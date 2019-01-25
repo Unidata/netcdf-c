@@ -28,6 +28,7 @@
 #define NUM_ATTS 100
 #define ATT_LEN 100
 #define NUM_VARS 1
+#define NUM_VARS_MANY 5000
 
 int
 add_attributes(int ncid, int varid, size_t num_atts, size_t att_len)
@@ -59,8 +60,7 @@ add_attributes(int ncid, int varid, size_t num_atts, size_t att_len)
 
 /* Build the test file. */
 int
-buildfile(size_t num_vars, size_t num_atts, size_t att_len,
-          char *file_name)
+buildfile(size_t num_vars, size_t num_atts, size_t att_len, char *file_name)
 {
    int ncid, varid;
    int dimids[NDIMS];
@@ -102,10 +102,13 @@ readfile(char *file_name, long long *delta, int do_inq, int num_vars)
    if (nc_open(file_name, NC_NETCDF4, &ncid)) ERR;
 
    /* Do an inq if desired, triggering read of atts. */
-   for (v = 0; v < num_vars; v++)
-      if (nc_inq_varnatts(ncid, v, &natts)) ERR;
+   if (do_inq)
+   {
+      for (v = 0; v < num_vars; v++)
+         if (nc_inq_varnatts(ncid, v, &natts)) ERR;
 
-   if (nc_inq_natts(ncid, &natts)) ERR;
+      if (nc_inq_natts(ncid, &natts)) ERR;
+   }
 
    /* Close the file. */
    if (nc_close(ncid)) ERR;
@@ -166,9 +169,10 @@ readfile_hdf5(char *file_name, long long *delta, int do_inq, int num_vars)
    return 0;
 }
 
-#define NUM_RUNS 5
-#define NUM_STEPS 20
+#define NUM_RUNS 1
+#define NUM_STEPS 10
 #define FACTOR 100
+#define VAR_FACTOR 500
 #define NUM_INQ_TESTS 2
 int
 main(int argc, char **argv)
@@ -179,31 +183,24 @@ main(int argc, char **argv)
    int factor;
    int r, s, num_vars, do_inq;
 
-   for (do_inq = 0; do_inq < NUM_INQ_TESTS; do_inq++)
+   printf("Testing with many vars...\n");
    {
-      for (num_vars = 0; num_vars <= NUM_VARS; num_vars++)
+      for (do_inq = 0; do_inq < 1; do_inq++)
       {
-         /* Reset. */
-         num_atts = 1;
-
-         factor = FACTOR;
-
-         printf("*** %s %s\n", num_vars ? "variable attributes" : "global attributes",
-                do_inq ? "with inq" : "");
-         printf("Number of Attributes\tHDF5 Open Time (s)\tNetcdf4 Open Time (s)\n");
-         for (s = 0; s < NUM_STEPS; s++)
+         printf("Number of Variables\tHDF5 Open Time (s)\tNetcdf4 Open Time (s)\n");
+         for (num_vars = 1; num_vars <= NUM_VARS_MANY; num_vars += VAR_FACTOR)
          {
+            num_atts = 10;
             tot_nc4 = 0;
             tot_hdf5 = 0;
-            num_atts += factor * s;
 
             for (r = 0; r < NUM_RUNS; r++)
             {
-               long long nc4_open_time;
-               long long hdf5_open_time;
+               long long nc4_open_time = 0;
+               long long hdf5_open_time = 0;
 
                /* Determine file name. */
-               sprintf(file_name, "%s_%d_%d_%d.nc", TEST, num_vars, s, r);
+               sprintf(file_name, "%s_%d_%d.nc", TEST, num_vars, r);
 
                if (buildfile(num_vars, num_atts, ATT_LEN, file_name)) ERR;
                if (readfile(file_name, &nc4_open_time, do_inq, num_vars)) ERR;
@@ -213,11 +210,54 @@ main(int argc, char **argv)
             }
 
             /* Print average results to the millisec */
-            printf("%ld\t%g\t%g\n", num_atts, tot_hdf5/((float)NUM_RUNS * 1000000),
+            printf("%d\t%g\t%g\n", num_vars, tot_hdf5/((float)NUM_RUNS * 1000000),
                    tot_nc4/((float)NUM_RUNS * 1000000));
          }
-      }
-   } /* next do_inq */
+      } /* next do_inq */
+   }
+   SUMMARIZE_ERR;
+   printf("Testing with many atts...\n");
+   {
+      for (do_inq = 0; do_inq < NUM_INQ_TESTS; do_inq++)
+      {
+         for (num_vars = 0; num_vars <= NUM_VARS; num_vars++)
+         {
+            /* Reset. */
+            num_atts = 1;
+
+            factor = FACTOR;
+
+            printf("*** %s %s\n", num_vars ? "variable attributes" : "global attributes",
+                   do_inq ? "with inq" : "");
+            printf("Number of Attributes\tHDF5 Open Time (s)\tNetcdf4 Open Time (s)\n");
+            for (s = 0; s < NUM_STEPS; s++)
+            {
+               tot_nc4 = 0;
+               tot_hdf5 = 0;
+               num_atts += factor * s;
+
+               for (r = 0; r < NUM_RUNS; r++)
+               {
+                  long long nc4_open_time;
+                  long long hdf5_open_time;
+
+                  /* Determine file name. */
+                  sprintf(file_name, "%s_%d_%d_%d.nc", TEST, num_vars, s, r);
+
+                  if (buildfile(num_vars, num_atts, ATT_LEN, file_name)) ERR;
+                  if (readfile(file_name, &nc4_open_time, do_inq, num_vars)) ERR;
+                  if (readfile_hdf5(file_name, &hdf5_open_time, do_inq, num_vars)) ERR;
+                  tot_nc4 += nc4_open_time;
+                  tot_hdf5 += hdf5_open_time;
+               }
+
+               /* Print average results to the millisec */
+               printf("%ld\t%g\t%g\n", num_atts, tot_hdf5/((float)NUM_RUNS * 1000000),
+                      tot_nc4/((float)NUM_RUNS * 1000000));
+            }
+         }
+      } /* next do_inq */
+   }
    SUMMARIZE_ERR;
    FINAL_RESULTS;
 }

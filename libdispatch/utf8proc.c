@@ -128,7 +128,7 @@ nc_utf8proc_ssize_t nc_utf8proc_iterate(
     *dst = uc;
     return 1;
   }
-  /*Must be between 0xc2 and 0xf4 inclusive to be valid */
+  /* Must be between 0xc2 and 0xf4 inclusive to be valid */
   if ((uc - 0xc2) > (0xf4-0xc2)) return UTF8PROC_ERROR_INVALIDUTF8;
   if (uc < 0xe0) {         /* 2-byte sequence */
      /* Must have valid continuation character */

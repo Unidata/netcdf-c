@@ -880,15 +880,24 @@ test "x$enable_mmap" = xyes || enable_mmap=no
 AC_MSG_RESULT($enable_mmap)
 
 # check for mmap and mremap availability before committing to use mmap
-AC_CHECK_FUNCS([mmap],[have_mmap=yes],[have_mmap=no])
-AC_CHECK_FUNCS([mremap],[have_mremap=yes],[have_mremap=no])
+have_mmap="$enable_mmap"
+AC_CHECK_FUNCS([mmap],[],[have_mmap=no])
+AC_CHECK_FUNCS([mremap],[],[have_mmap=no])
+
+# Check for MAP_ANONYMOUS
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[#include <sys/mman.h>],
+[[int x = MAP_ANONYMOUS;]])],
+                   [havemapanon=yes],
+                   [havemapanon=no])
+AC_MSG_CHECKING([whether MAP_ANONYMOUS is defined])
+AC_MSG_RESULT([${havemapanon}])
+if test "x$havemapanon" != xyes ; then
+  have_mmap=no
+fi
 
 if test "x$have_mmap" != xyes ; then
-  echo "mmap function is not available: disabling mmap"
-  enable_mmap=no
-fi
-if test "x$have_mremap" != xyes ; then
-  echo "mremap function is not available: disabling mmap"
+  echo "mmap functionality is not available: disabling mmap"
   enable_mmap=no
 fi
 
@@ -1101,7 +1110,7 @@ if test "x$enable_hdf5" = xyes ; then
    AC_ARG_ENABLE([parallel4],
 	[AS_HELP_STRING([--disable-parallel4],
                         [disable parallel I/O for netcdf-4, even if it's enabled in libhdf5])],
-			[user_set_parallel4=${enableval}])
+			[user_set_parallel4=${enableval}]2)
    test "x$enable_parallel4" = xno || enable_parallel4=yes
 
    # If user wants parallel IO for netCDF-4, make sure HDF5 can provide it.
@@ -1190,13 +1199,12 @@ AC_ARG_ENABLE([erange_fill],
    [enable_erange_fill=${enableval}], [enable_erange_fill=auto]
 )
 
+dnl Always build with relaxed coord bound checking, to prevent API
+dnl incompatibilities between different installs of netCDF.
 AC_ARG_ENABLE([zero-length-coord-bound],
    [AS_HELP_STRING([--disable-zero-length-coord-bound],
-                   [Disable a more relaxed boundary error check NC_EINVALCOORDS
-                    to allow coordinate start argument equal to dimension size
-                    when argument count is zero. @<:@default: enabled@:>@])],
-   [enable_zero_length_coord_bound=${enableval}], [enable_zero_length_coord_bound=auto]
-)
+                   [Disable relaxed boundary error check. Deprecated. Using this can cause API incompatibilities. This option will be removed in the next release of netCDF.])])
+test "x$enable_zero_length_coord_bound" = xno || enable_zero_length_coord_bound=yes
 
 # check PnetCDF's settings on enable_erange_fill and relax_coord_bound
 if test "x$enable_pnetcdf" = xyes; then
@@ -1226,19 +1234,12 @@ if test "x$enable_pnetcdf" = xyes; then
       choke me
 #endif]])], [relax_coord_bound_pnetcdf=yes], [relax_coord_bound_pnetcdf=no])
    AC_MSG_RESULT([$relax_coord_bound_pnetcdf])
-   if test "x$enable_zero_length_coord_bound" = xauto ; then
-      enable_zero_length_coord_bound=$relax_coord_bound_pnetcdf
-   elif test "$enable_zero_length_coord_bound" != "$relax_coord_bound_pnetcdf"; then
-      if test "$enable_zero_length_coord_bound" = yes; then
-         AC_MSG_ERROR([Enabling relax-coord-bound conflicts with PnetCDF setting])
-      else
-         AC_MSG_ERROR([Disabling relax-coord-bound conflicts with PnetCDF setting])
-      fi
+   if test x"$relax_coord_bound_pnetcdf" != xyes; then
+      AC_MSG_ERROR([PNetCDF must be built with relax-coord-bound])
    fi
 else
    # default setting
    enable_erange_fill=no
-   enable_zero_length_coord_bound=yes
 fi
 
 if test "x$enable_zero_length_coord_bound" = xyes; then

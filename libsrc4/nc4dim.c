@@ -32,7 +32,6 @@
 int
 NC4_inq_unlimdim(int ncid, int *unlimdimidp)
 {
-   NC *nc;
    NC_GRP_INFO_T *grp, *g;
    NC_FILE_INFO_T *h5;
    NC_DIM_INFO_T *dim;
@@ -42,9 +41,9 @@ NC4_inq_unlimdim(int ncid, int *unlimdimidp)
 
    LOG((2, "%s: called", __func__));
 
-   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
+   if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
       return retval;
-   assert(h5 && nc && grp);
+   assert(h5 && grp);
 
    if (unlimdimidp)
    {

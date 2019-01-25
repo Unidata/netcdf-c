@@ -11,8 +11,8 @@
    $Id$
 */
 
-#include <netcdf.h>
 #include <config.h>
+#include <netcdf.h>
 #include <nc_tests.h>
 #include "err_macros.h"
 #include <string.h>
