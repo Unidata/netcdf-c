@@ -387,6 +387,7 @@ main(int argc, char **argv)
    {
       int ncid, dimid[NDIMS2], varid;
       size_t start[NDIMS2] = {0, 0}, count[NDIMS2] = {NX, NY};
+      ptrdiff_t stride[NDIMS2] = {1, 1};
       double double_data[NX * NY];
 
       /* Create file with two dims, one 2D var. */
@@ -399,6 +400,10 @@ main(int argc, char **argv)
       /* Try to write some data, but fail. */
       if (nc_put_vara_double(ncid + MILLION, 0, start, count, double_data) != NC_EBADID) ERR;
       if (nc_put_vara_double(ncid + TEST_VAL_42, 0, start, count, double_data) != NC_EBADID) ERR;
+
+      /* Write some data. */
+      if (nc_put_vars_double(ncid, varid, start, count, NULL, double_data)) ERR;
+      if (nc_put_vars_double(ncid, varid, start, count, stride, double_data)) ERR;
 
       if (nc_close(ncid)) ERR;
    }

@@ -12,7 +12,9 @@
 
 #include "config.h"
 #include <stdlib.h>
-#include <stdio.h>
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
 #ifdef HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
 #endif
@@ -26,6 +28,11 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h> /* lseek() */
 #endif
+
+#ifdef HAVE_STDIO_H
+#include <stdio.h>
+#endif
+extern int fileno(FILE*);
 
 #include "ncdispatch.h"
 #include "netcdf_mem.h"
@@ -102,7 +109,7 @@ nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_numbe
    if (!dispatch_table)
       return NC_EINVAL;
    if (magic_number && strlen(magic_number) > NC_MAX_MAGIC_NUMBER_LEN)
-      return NC_EINVAL;      
+      return NC_EINVAL;
 
    /* Retain a pointer to the dispatch_table and a copy of the magic
     * number, if one was provided. */
@@ -119,7 +126,7 @@ nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_numbe
          strncpy(UDF1_magic_number, magic_number, NC_MAX_MAGIC_NUMBER_LEN);
       break;
    }
-   
+
    return NC_NOERR;
 }
 
@@ -1876,7 +1883,7 @@ NC_create(const char *path0, int cmode, size_t initialsz,
     }
 
     assert(model.format != 0 && model.impl != 0);
-    
+
     /* Now, check for NC_ENOTBUILT cases limited to create (so e.g. HDF4 is not listed) */
 #ifndef USE_HDF5
     if (model.impl == NC_FORMATX_NC4)
@@ -1885,7 +1892,7 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 #ifndef USE_PNETCDF
     if (model.impl == NC_FORMATX_PNETCDF)
 	{stat = NC_ENOTBUILT; goto done;}
-#endif    
+#endif
 #ifndef ENABLE_CDF5
     if (model.impl == NC_FORMATX_NC3 && (cmode & NC_64BIT_DATA))
 	{stat = NC_ENOTBUILT; goto done;}
@@ -1970,18 +1977,18 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
     char* path = NULL;
     NCmodel model;
     char* newpath = NULL;
-    
+
     TRACE(nc_open);
     if(!NC_initialized) {
 	stat = nc_initialize();
 	if(stat) return stat;
     }
-    
+
     /* Capture the inmemory related flags */
     mmap = ((omode & NC_MMAP) == NC_MMAP);
     diskless = ((omode & NC_DISKLESS) == NC_DISKLESS);
     inmemory = ((omode & NC_INMEMORY) == NC_INMEMORY);
-    
+
     /* NC_INMEMORY and NC_DISKLESS and NC_MMAP are all mutually exclusive */
     if(diskless && inmemory) {stat = NC_EDISKLESS; goto done;}
     if(diskless && mmap) {stat = NC_EDISKLESS; goto done;}
@@ -1994,7 +2001,7 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
        nothing if path is a 'file:...' url, so it will need to be
        repeated in protocol code (e.g. libdap2, libdap4, etc).
     */
-    
+
    {
         /* Skip past any leading whitespace in path */
 	const char* p;
@@ -2006,7 +2013,7 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 	path = nulldup(p);
 #endif
    }
-    
+
 #ifdef USE_REFCOUNT
     /* If this path is already open, then bump the refcount and return it */
     ncp = find_in_NCList_by_name(path);
@@ -2017,7 +2024,7 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 	return NC_NOERR;
     }
 #endif
-    
+
     memset(&model,0,sizeof(model));
     /* Infer model implementation and format, possibly by reading the file */
     if((stat = NC_infermodel(path,&omode,0,useparallel,parameters,&model,&newpath)))
@@ -2026,7 +2033,7 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 	nullfree(path);
 	path = newpath;
     }
-    
+
     /* Still no implementation, give up */
     if(model.impl == 0) {
 #ifdef DEBUG
@@ -2034,7 +2041,7 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 #endif
 	{stat = NC_ENOTNC; goto done;}
     }
-    
+
     /* Suppress unsupported formats */
     {
 	int hdf5built = 0;
@@ -2066,7 +2073,7 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
   	    {stat = NC_ENOTBUILT; goto done;}
 	if(!udf1built && model.impl == NC_FORMATX_UDF1)
   	    {stat = NC_ENOTBUILT; goto done;}
-    }    
+    }
     /* Figure out what dispatcher to use */
     if (!dispatcher) {
 	switch (model.impl) {
@@ -2102,7 +2109,7 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 	case NC_FORMATX_UDF1:
 	    dispatcher = UDF1_dispatch_table;
 	    break;
-#endif /* USE_NETCDF4 */         
+#endif /* USE_NETCDF4 */
 	case NC_FORMATX_NC3:
 	    dispatcher = NC3_dispatch_table;
 	    break;
@@ -2111,21 +2118,21 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 	    return NC_ENOTNC;
 	}
     }
-    
+
     /* If we can't figure out what dispatch table to use, give up. */
     if (!dispatcher) {stat = NC_ENOTNC; goto done;}
-    
+
     /* Create the NC* instance and insert its dispatcher */
     if((stat = new_NC(dispatcher,path,omode,&model,&ncp))) goto done;
-    
+
     /* Add to list of known open files */
     add_to_NCList(ncp);
-    
+
 #ifdef USE_REFCOUNT
     /* bump the refcount */
     ncp->refcount++;
 #endif
-    
+
     /* Assume open will fill in remaining ncp fields */
     stat = dispatcher->open(ncp->path, omode, basepe, chunksizehintp,
 			    parameters, dispatcher, ncp);

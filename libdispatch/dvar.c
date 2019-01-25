@@ -699,10 +699,10 @@ NC_check_nulls(int ncid, int varid, const size_t *start, size_t **count,
    {
       int i;
 
-      if (!(*stride = malloc(varndims * sizeof(size_t))))
+      if (!(*stride = malloc(varndims * sizeof(ptrdiff_t))))
          return NC_ENOMEM;
       for (i = 0; i < varndims; i++)
-         *stride[i] = 1;
+         (*stride)[i] = 1;
    }
 
    return NC_NOERR;

@@ -9,6 +9,7 @@ See \ref copyright file for more info.
 
 */
 
+#include <config.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>

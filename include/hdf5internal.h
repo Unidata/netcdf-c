@@ -109,7 +109,7 @@ int hdf5_set_log_level();
 /* These functions deal with HDF5 dimension scales. */
 int rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
 int rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);
-int delete_existing_dimscale_dataset(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T *dim);
+int delete_dimscale_dataset(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T *dim);
 
 /* Write metadata. */
 int nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order);
@@ -179,5 +179,11 @@ int nc4_hdf5_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
                               NC_GRP_INFO_T **grp, NC_VAR_INFO_T **var,
                               NC_ATT_INFO_T **att);
 
+/* Find var, doing lazy var metadata read if needed. */
+int nc4_hdf5_find_grp_h5_var(int ncid, int varid, NC_FILE_INFO_T **h5,
+                             NC_GRP_INFO_T **grp, NC_VAR_INFO_T **var);
+
+/* Perform lazy read of the rest of the metadata for a var. */
+int nc4_get_var_meta(NC_VAR_INFO_T *var);
 
 #endif /* _HDF5INTERNAL_ */

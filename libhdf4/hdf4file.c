@@ -662,7 +662,7 @@ NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 }
 
 /**
- * @internal Close the HDF4 file.
+ * @internal Abort (close) the HDF4 file.
  *
  * @param ncid File ID.
  *
@@ -671,7 +671,23 @@ NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
  * @author Ed Hartnett
  */
 int
-NC_HDF4_close(int ncid)
+NC_HDF4_abort(int ncid)
+{
+   return NC_HDF4_close(ncid, NULL);
+}
+
+/**
+ * @internal Close the HDF4 file.
+ *
+ * @param ncid File ID.
+ * @param ignore Ignore this pointer.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @author Ed Hartnett
+ */
+int
+NC_HDF4_close(int ncid, void *ignore)
 {
    NC_GRP_INFO_T *grp;
    NC *nc;

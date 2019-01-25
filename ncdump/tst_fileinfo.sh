@@ -58,7 +58,7 @@ fi
 
 rm -f $NCF
 rm -f $HDF
-rm -f *.tmp
+rm -f tst_fileinfo.tmp tst_fileinfo2.tmp
 
 if test "x$EXIT" = x0 ; then
 echo "*** Pass all tests"

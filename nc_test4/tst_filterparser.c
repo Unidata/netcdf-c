@@ -14,7 +14,8 @@
 #define PARAMS_ID 32768
 
 /* The C standard apparently defines all floating point constants as double;
-   we rely on that in this code.
+   we rely on that in this code. Update: apparently not true when
+   -ansi flag is used.
 */
 #define DBLVAL 12345678.12345678
 
@@ -25,12 +26,11 @@ static unsigned int baseline[NPARAMS];
 	
 /* Expected contents of baseline:
 id = 32768
-params = 4294967279, 23, 4294967271, 27, 77, 93, 1145389056, 3287505826, 1097305129, 1, 2147483648, 4294967295, 4294967295
+params = 4294967279, 23, 4294967271, 27, 77, 93, 1145389056, 3287505826, 1097305129, 1, 2147483647, 4294967295U, 4294967295U
 */
 
 static const char* spec = 
-"32768, -17b, 23ub, -25S, 27US, 77, 93U, 789f, 12345678.12345678d, -9223372036854775807L, 18446744073709551615UL, 2147483647, -2147483648, 4294967295";
-
+"32768, -17b, 23ub, -25S, 27US, 77, 93U, 789f, 12345678.12345678d, -9223372036854775807L, 18446744073709551615UL, 2147483647, -2147483648, 4294967295U";
 
 /* Test support for the conversions */
 /* Not sure if this kind of casting via union is legal C99 */
@@ -55,7 +55,7 @@ static int nerrs = 0;
 static void
 mismatch(size_t i, unsigned int *params, const char* tag)
 {
-    fprintf(stderr,"mismatch: %s [%d] baseline=%ud params=%u\n",tag,(int)i,baseline[i],params[i]);
+    fprintf(stderr,"mismatch: %s [%d] baseline=%u params=%u\n",tag,(int)i,baseline[i],params[i]);
     fflush(stderr);
     nerrs++;
 }
@@ -63,7 +63,7 @@ mismatch(size_t i, unsigned int *params, const char* tag)
 static void
 mismatch2(size_t i, unsigned int *params, const char* tag)
 {
-    fprintf(stderr,"mismatch2: %s [%ld-%ld] baseline=%ud,%ud params=%u,%u\n",
+    fprintf(stderr,"mismatch2: %s [%ld-%ld] baseline=%u,%u params=%u,%u\n",
 	tag,(long)i,(long)(i+1),baseline[i],baseline[i+1],params[i],params[i+1]);
     fflush(stderr);
     nerrs++;
@@ -106,9 +106,9 @@ buildbaseline(void)
     insert(11,&val8,sizeof(val8)); /* 11 unsigned long long */
     val4 = 2147483647;
     insert(13,&val4,sizeof(val4)); /* 13 signed int */
-    val4 = -2147483648;
+    val4 = (-2147483647)-1;
     insert(14,&val4,sizeof(val4)); /* 14 signed int */
-    val4 = 4294967295;
+    val4 = 4294967295U;
     insert(15,&val4,sizeof(val4)); /* 15 unsigned int */
 }
 
@@ -145,7 +145,7 @@ main(int argc, char **argv)
 #ifdef WORD_BIGENDIAN
     byteswap8((unsigned char*)&ud.d);
 #endif
-    if(ud.d != DBLVAL)
+    if(ud.d != (double)DBLVAL)
 	mismatch2(7,params,"ud.d");
     ul.ui[0] = params[9];
     ul.ui[1] = params[10];
