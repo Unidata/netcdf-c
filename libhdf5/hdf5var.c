@@ -227,6 +227,7 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
  * HDF5 file.
  *
  * @param var Pointer to var info.
+ * @param name Name to use for base of secret name.
  *
  * @returns ::NC_NOERR No error.
  * @returns ::NC_EMAXNAME Name too long to fit secret prefix.
@@ -234,17 +235,17 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
  * @author Ed Hartnett
  */
 static int
-give_var_secret_name(NC_VAR_INFO_T *var)
+give_var_secret_name(NC_VAR_INFO_T *var, const char *name)
 {
    /* Set a different hdf5 name for this variable to avoid name
     * clash. */
-   if (strlen(var->hdr.name) + strlen(NON_COORD_PREPEND) > NC_MAX_NAME)
+   if (strlen(name) + strlen(NON_COORD_PREPEND) > NC_MAX_NAME)
       return NC_EMAXNAME;
    if (!(var->hdf5_name = malloc((strlen(NON_COORD_PREPEND) +
-                                  strlen(var->hdr.name) + 1) * sizeof(char))))
+                                  strlen(name) + 1) * sizeof(char))))
       return NC_ENOMEM;
 
-   sprintf(var->hdf5_name, "%s%s", NON_COORD_PREPEND, var->hdr.name);
+   sprintf(var->hdf5_name, "%s%s", NON_COORD_PREPEND, name);
 
    return NC_NOERR;
 }
@@ -531,7 +532,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
     * and this var has the same name. */
    dim = (NC_DIM_INFO_T*)ncindexlookup(grp->dim,norm_name);
    if (dim && (!var->ndims || dimidsp[0] != dim->hdr.id))
-      if ((retval = give_var_secret_name(var)))
+      if ((retval = give_var_secret_name(var, var->hdr.name)))
          BAIL(retval);
 
    /* If this is a coordinate var, it is marked as a HDF5 dimension
@@ -1114,8 +1115,9 @@ NC4_rename_var(int ncid, int varid, const char *name)
          return retval;
 
       /* Give this var a secret HDF5 name so it can co-exist in file
-       * with dim wp var dataset. */
-      if ((retval = give_var_secret_name(var)))
+       * with dim wp var dataset. Base the secret name on the new var
+       * name. */
+      if ((retval = give_var_secret_name(var, name)))
          return retval;
    }
 
@@ -1123,6 +1125,9 @@ NC4_rename_var(int ncid, int varid, const char *name)
       there. */
    if (var->created)
    {
+      char *hdf5_name;
+      hdf5_name = name;
+
       /* Do we need to read var metadata? */
       if (!var->meta_read)
          if ((retval = nc4_get_var_meta(var)))
@@ -1144,7 +1149,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
       }
 
       LOG((3, "Moving dataset %s to %s", var->hdr.name, name));
-      if (H5Gmove(hdf5_grp->hdf_grpid, var->hdr.name, name) < 0)
+      if (H5Gmove(hdf5_grp->hdf_grpid, var->hdr.name, hdf5_name) < 0)
          BAIL(NC_EHDFERR);
    }
 
