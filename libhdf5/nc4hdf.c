@@ -1720,8 +1720,8 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
  * @returns ::NC_EHDFERR HDF5 returned error.
  * @author Ed Hartnett
  */
-static int
-create_dim_wo_var(NC_DIM_INFO_T *dim)
+int
+nc4_create_dim_wo_var(NC_DIM_INFO_T *dim)
 {
    NC_HDF5_DIM_INFO_T *hdf5_dim;
    NC_HDF5_GRP_INFO_T *hdf5_grp;
@@ -1821,7 +1821,7 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
     * variable. (That is, it should appear as a dimension
     * without an associated variable.) */
    if (!hdf5_dim->hdf_dimscaleid)
-      if ((retval = create_dim_wo_var(dim)))
+      if ((retval = nc4_create_dim_wo_var(dim)))
          BAIL(retval);
 
    /* Did we extend an unlimited dimension? */
