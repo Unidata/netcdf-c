@@ -1061,6 +1061,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
    NC_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var;
    NC_DIM_INFO_T *other_dim;
+   int use_secret_name = 0;
    int retval = NC_NOERR;
 
    if (!name)
@@ -1119,6 +1120,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
        * name. */
       if ((retval = give_var_secret_name(var, name)))
          return retval;
+      use_secret_name++;
    }
 
    /* Change the HDF5 file, if this var has already been created
@@ -1126,7 +1128,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
    if (var->created)
    {
       char *hdf5_name;
-      hdf5_name = name;
+      hdf5_name = use_secret_name ? var->hdf5_name: (char *)name;
 
       /* Do we need to read var metadata? */
       if (!var->meta_read)
