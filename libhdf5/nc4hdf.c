@@ -1728,7 +1728,7 @@ nc4_create_dim_wo_var(NC_DIM_INFO_T *dim)
    hid_t spaceid = -1, create_propid = -1;
    hsize_t dims[1], max_dims[1], chunk_dims[1] = {1};
    char dimscale_wo_var[NC_MAX_NAME];
-   int retval;
+   int retval = NC_NOERR;
 
    LOG((4, "%s: creating dim %s", __func__, dim->hdr.name));
 
@@ -1790,7 +1790,7 @@ exit:
       BAIL2(NC_EHDFERR);
    if (create_propid > 0 && H5Pclose(create_propid) < 0)
       BAIL2(NC_EHDFERR);
-   return NC_NOERR;
+   return retval;
 }
 
 /**

@@ -138,6 +138,10 @@ extern void NC4_image_finalize(void*);
 /* Create HDF5 dataset for dim without a coord var. */
 extern int nc4_create_dim_wo_var(NC_DIM_INFO_T *dim);
 
+/* Give a var a secret HDF5 name, for use when there is a dim of this
+ * name, but the var is not a coord var of that dim. */
+extern int nc4_give_var_secret_name(NC_VAR_INFO_T *var);
+
 /* Get the fill value for a var. */
 int nc4_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp);
 
