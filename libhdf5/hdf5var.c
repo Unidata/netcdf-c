@@ -233,8 +233,8 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
  * @returns ::NC_ENOMEM Out of memory.
  * @author Ed Hartnett
  */
-static int
-give_var_secret_name(NC_VAR_INFO_T *var)
+int
+nc4_give_var_secret_name(NC_VAR_INFO_T *var)
 {
    /* Set a different hdf5 name for this variable to avoid name
     * clash. */
@@ -531,7 +531,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
     * and this var has the same name. */
    dim = (NC_DIM_INFO_T*)ncindexlookup(grp->dim,norm_name);
    if (dim && (!var->ndims || dimidsp[0] != dim->hdr.id))
-      if ((retval = give_var_secret_name(var)))
+      if ((retval = nc4_give_var_secret_name(var)))
          BAIL(retval);
 
    /* If this is a coordinate var, it is marked as a HDF5 dimension
