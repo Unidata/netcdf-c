@@ -169,7 +169,6 @@ main(int argc, char **argv)
 
       /* Create file with dim and associated coordinate var. */
       sprintf(file_name, "%s_sync.nc", TEST_NAME);
-      nc_set_log_level(4);
       if (nc_create(file_name, NC_CLOBBER|NC_NETCDF4|NC_CLASSIC_MODEL, &ncid)) ERR;
       if (nc_def_dim(ncid, DIM_NAME_END, DIM1_LEN, &dimid)) ERR;
       if (nc_def_var(ncid, DIM_NAME_END, NC_INT, NDIM1, &dimid, &varid)) ERR;
@@ -208,7 +207,7 @@ main(int argc, char **argv)
       if (nc_def_var(ncid, VAR_NAME_START, NC_INT, NDIM1, &dimid, &varid)) ERR;
       if (nc_close(ncid)) ERR;
 
-      nc_set_log_level(4);
+      /* nc_set_log_level(4); */
       /* Open the file and rename the var. */
       if (nc_open(file_name, NC_WRITE, &ncid)) ERR;
       if (nc_inq_dimid(ncid, DIM_NAME_START, &dimid)) ERR;
@@ -238,15 +237,14 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
-   fprintf(stderr,"*** test renaming two coord vars...");
+   fprintf(stderr,"*** test renaming non-coord var to same name as dim...");
    {
       int ncid, dimid1, dimid2, varid1, varid2;
       int dimid_in, varid_in;
       char file_name[NC_MAX_NAME + 1];
-      char name[NC_MAX_NAME + 1];
 
       /* Create file with dim and associated coordinate var. */
-      sprintf(file_name, "%s_sync.nc", TEST_NAME);
+      sprintf(file_name, "%s_non_coord_to_dim.nc", TEST_NAME);
       if (nc_create(file_name, NC_CLOBBER|NC_NETCDF4|NC_CLASSIC_MODEL, &ncid)) ERR;
       if (nc_def_dim(ncid, D1_NAME, DIM1_LEN, &dimid1)) ERR;
       if (nc_def_dim(ncid, D2_NAME, DIM1_LEN, &dimid2)) ERR;
@@ -255,7 +253,7 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
 
       /* Open the file and rename the vars. */
-      nc_set_log_level(4);
+      /* nc_set_log_level(4); */
       if (nc_open(file_name, NC_WRITE, &ncid)) ERR;
       if (nc_rename_var(ncid, varid1, TMP_NAME)) ERR;
       if (nc_rename_var(ncid, varid2, D1_NAME)) ERR;
