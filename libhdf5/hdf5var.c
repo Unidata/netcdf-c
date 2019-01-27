@@ -1109,7 +1109,13 @@ NC4_rename_var(int ncid, int varid, const char *name)
    if ((other_dim = (NC_DIM_INFO_T *)ncindexlookup(grp->dim, name)) &&
        strcmp(name, var->dim[0]->hdr.name))
    {
+      /* Create a dim without var dataset for old dim. */
       if ((retval = nc4_create_dim_wo_var(other_dim)))
+         return retval;
+
+      /* Give this var a secret HDF5 name so it can co-exist in file
+       * with dim wp var dataset. */
+      if ((retval = give_var_secret_name(var)))
          return retval;
    }
 
@@ -1160,8 +1166,6 @@ NC4_rename_var(int ncid, int varid, const char *name)
       /* Break up the coordinate variable */
       if ((retval = nc4_break_coord_var(grp, var, var->dim[0])))
          return retval;
-      /* if ((retval = give_var_secret_name(var))) */
-      /*    return retval; */
    }
 
    /* Check if this should become a coordinate variable. */
