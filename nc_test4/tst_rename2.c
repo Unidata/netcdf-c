@@ -267,6 +267,9 @@ main(int argc, char **argv)
       if (dimid_in != dimid2) ERR;
       if (nc_inq_dimid(ncid, TMP_NAME, &dimid_in) != NC_EBADDIM) ERR;
       if (nc_inq_varid(ncid, TMP_NAME, &varid_in)) ERR;
+      if (varid_in != varid1) ERR;
+      if (nc_inq_varid(ncid, D1_NAME, &varid_in)) ERR;
+      if (varid_in != varid2) ERR;
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
