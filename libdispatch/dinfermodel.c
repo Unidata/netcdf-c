@@ -216,13 +216,13 @@ parseurlmode(const char* modestr, NClist* list)
 	nclistpush(list,s);
 	if(*endp == '\0') break;
 	p = endp+1;
-    } 
+    }
 
 done:
     return check(stat);
 }
 
-/* Given a mode= argument, and the mode flags, 
+/* Given a mode= argument, and the mode flags,
    infer the iosp part of the model */
 static int
 extractiosp(NClist* modeargs, int cmode, NCmodel* model)
@@ -238,7 +238,7 @@ extractiosp(NClist* modeargs, int cmode, NCmodel* model)
 	    if(strcmp(p,io->tag)==0) {
 		conflictset(MIO,model->iosp,io->iosp);
 		goto done;
-	    }        
+	    }
 	}
     }
 done:
@@ -271,7 +271,7 @@ issingleton(const char* tag)
     for(p=modesingles;*p;p++) {
 	if(strcmp(*p,tag)==0) return 1;
     }
-    return 0;	 
+    return 0;
 }
 
 /* If we have a url, see if we can determine DAP */
@@ -285,15 +285,15 @@ NC_dapinfer(NClist* modeargs, NCmodel* model)
     for(i=0;i<nclistlength(modeargs);i++) {
 	const char* arg = nclistget(modeargs,i);
 	if(strcasecmp(arg,"bytes")==0
-	   || strcasecmp(arg,"zarr")==0) {    
+	   || strcasecmp(arg,"zarr")==0) {
 	    /* Ok, we know this is not DAP, so give up */
 	    return stat;
 	}
-	if(strcasecmp(arg,"dap2")==0) {    
+	if(strcasecmp(arg,"dap2")==0) {
 	    model->format = NC_FORMAT_NC3;
 	    model->iosp = NC_IOSP_DAP2;
 	    model->impl = NC_FORMATX_DAP2;
-	} else if(strcasecmp(arg,"dap4")==0) {    
+	} else if(strcasecmp(arg,"dap4")==0) {
 	    model->format = NC_FORMAT_NETCDF4;
 	    model->iosp = NC_IOSP_DAP4;
 	    model->impl = NC_FORMATX_DAP4;
@@ -349,7 +349,7 @@ NC_omodeinfer(int cmode, NCmodel* model)
 
 done:
     return check(stat);
-}    
+}
 
 /* Infer the implementation/dispatcher from format*/
 static int
@@ -439,7 +439,7 @@ processuri(const char* path, NCURI** urip, char** newpathp, NClist* modeargs)
 	    nclistpush(modeargs,strdup(value));
 	} else
 	if(strcmp(name,"mode")==0) {
-	    if((stat = parseurlmode(value,modeargs))) goto done;	
+	    if((stat = parseurlmode(value,modeargs))) goto done;
 	} else
 	if(issingleton(name) && (value == NULL || strlen(value)==0)) {
 	    nclistpush(modeargs,strdup(name));
@@ -529,7 +529,7 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
     if(!iscreate && isreadable(model->iosp)) {
 	/* Ok, we need to try to read the file */
 	if((stat = check_file_type(path, omode, useparallel, params, model, uri))) goto done;
-    } 
+    }
 
     /* Phase 6: Infer impl from format */
     if(!modelcomplete(model)) {
@@ -896,7 +896,7 @@ closemagic(struct MagicFile* file)
         if (file->use_parallel) {
 	    int retval;
 	    if((retval = MPI_File_close(&file->fh)) != MPI_SUCCESS)
-		    {status = NC_EPARINIT; goto done;}
+		    {status = NC_EPARINIT; return status;}
         } else
 #endif
         {
