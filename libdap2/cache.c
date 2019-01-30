@@ -151,8 +151,10 @@ nclog(NCLOGDBG,"prefetch: %s",var->ncfullname);
     newconstraint->selections = dceclonelist(urlconstraint->selections);
 
     for(i=0;i<nclistlength(vars);i++) {
-        CDFnode* var = (CDFnode*)nclistget(vars,i);
 	DCEprojection* varprojection;
+        CDFnode* var = (CDFnode*)nclistget(vars,i);
+	/* Ignore invisible vars */
+	if(var->invisible) continue; 
 	/* convert var to a projection */
 	ncstat = dapvar2projection(var,&varprojection);
 	if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
