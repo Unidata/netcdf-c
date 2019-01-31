@@ -337,6 +337,8 @@ dimscale_visitor(hid_t did, unsigned dim, hid_t dsid,
 {
    H5G_stat_t statbuf;
 
+   LOG((4, "%s", __func__));
+
    /* Get more info on the dimscale object.*/
    if (H5Gget_objinfo(dsid, ".", 1, &statbuf) < 0)
       return -1;
@@ -1070,31 +1072,40 @@ get_attached_info(NC_VAR_INFO_T *var, NC_HDF5_VAR_INFO_T *hdf5_var, int ndims,
    int d;
    int num_scales = 0;
 
+   LOG((4, "%s ndims %d datasetid %ld", __func__, ndims, datasetid));
+
    /* Find out how many scales are attached to this
     * dataset. H5DSget_num_scales returns an error if there are no
     * scales, so convert a negative return value to zero. */
    num_scales = H5DSget_num_scales(datasetid, 0);
    if (num_scales < 0)
       num_scales = 0;
+   LOG((4, "num_scales %d", num_scales));
 
-   if (num_scales && ndims)
+   /* If an enddef has already been called, the dimscales will already
+    * be taken care of. */
+   if (num_scales && ndims && !var->dimscale_attached)
    {
       /* Allocate space to remember whether the dimscale has been
-       * attached for each dimension. */
+       * attached for each dimension, and the HDF5 object IDs of the
+       * scale(s). */
+      assert(!hdf5_var->dimscale_hdf5_objids);
       if (!(var->dimscale_attached = calloc(ndims, sizeof(nc_bool_t))))
          return NC_ENOMEM;
-
-      /* Store id information allowing us to match hdf5
-       * dimscales to netcdf dimensions. */
       if (!(hdf5_var->dimscale_hdf5_objids = malloc(ndims *
                                                     sizeof(struct hdf5_objid))))
          return NC_ENOMEM;
+
+      /* Store id information allowing us to match hdf5 dimscales to
+       * netcdf dimensions. */
       for (d = 0; d < var->ndims; d++)
       {
+         LOG((4, "about to iterate scales for dim %d", d));
          if (H5DSiterate_scales(hdf5_var->hdf_datasetid, d, NULL, dimscale_visitor,
                                 &(hdf5_var->dimscale_hdf5_objids[d])) < 0)
             return NC_EHDFERR;
          var->dimscale_attached[d] = NC_TRUE;
+         LOG((4, "dimscale attached"));
       }
    }
 
@@ -1131,6 +1142,9 @@ get_scale_info(NC_GRP_INFO_T *grp, NC_DIM_INFO_T *dim, NC_VAR_INFO_T *var,
    {
       assert(ndims);
       var->dimscale = NC_TRUE;
+
+      /* If this is a multi-dimensional coordinate var, then the
+       * dimids must be stored in the hidden coordinates attribute. */
       if (var->ndims > 1)
       {
          if ((retval = read_coord_dimids(grp, var)))
@@ -1138,6 +1152,7 @@ get_scale_info(NC_GRP_INFO_T *grp, NC_DIM_INFO_T *dim, NC_VAR_INFO_T *var,
       }
       else
       {
+         /* This is a 1-dimensional coordinate var. */
          assert(!strcmp(var->hdr.name, dim->hdr.name));
          var->dimids[0] = dim->hdr.id;
          var->dim[0] = dim;
@@ -1176,7 +1191,7 @@ nc4_get_var_meta(NC_VAR_INFO_T *var)
    int retval = NC_NOERR;
 
    assert(var && var->format_var_info);
-   LOG((3, "%s: var %s", var->hdr.name));
+   LOG((3, "%s: var %s", __func__, var->hdr.name));
 
    /* Have we already read the var metadata? */
    if (var->meta_read)

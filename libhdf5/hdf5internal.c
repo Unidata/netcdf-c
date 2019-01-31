@@ -346,8 +346,7 @@ nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var,
  * @author Ed Hartnett
  */
 int
-delete_existing_dimscale_dataset(NC_GRP_INFO_T *grp, int dimid,
-                                 NC_DIM_INFO_T *dim)
+delete_dimscale_dataset(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T *dim)
 {
    NC_HDF5_DIM_INFO_T *hdf5_dim;
    NC_HDF5_GRP_INFO_T *hdf5_grp;

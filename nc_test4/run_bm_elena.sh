@@ -1,7 +1,10 @@
 #!/bin/sh
 
 # This shell runs some benchmarks that Elena ran as described here:
-# http://hdfeos.org/workshops/ws06/presentations/Pourmal/HDF5_IO_Perf.pdf
+# http://hdfeos.org/workshops/ws06/presentations/Pourmal/HDF5_IO_Perf.pdf. Also
+# added tst_files2, which needs to be run from a script because it is
+# dependant on tst_files being run first, and the dependency tacking
+# only works for .sh tests.
 
 # Ed Hartnett
 
@@ -20,4 +23,8 @@ ${execdir}/bm_file -d -f 3 -o  tst_elena_out.nc -c 0:-1:0:256:64:256 tst_elena_i
 ${execdir}/bm_file -d -f 3 -o  tst_elena_out.nc -c 0:-1:0:256:256:256 tst_elena_int_3D.nc
 echo '*** SUCCESS!!!'
 
+echo ""
+echo "*** Testing the benchmarking program tst_files2..."
+${execdir}/tst_files2
+echo '*** SUCCESS!!!'
 exit 0
