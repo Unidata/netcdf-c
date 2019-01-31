@@ -1431,12 +1431,11 @@ nc_set_log_level(int new_level)
  * @param tab_count Number of tabs.
  *
  * @return ::NC_NOERR No error.
- * @author Ed Hartnett
+ * @author Ed Hartnett, Dennis Heimbigner
  */
 static int
 rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
 {
-   NC_GRP_INFO_T *g;
    NC_ATT_INFO_T *att;
    NC_VAR_INFO_T *var;
    NC_DIM_INFO_T *dim;
@@ -1455,28 +1454,31 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
    LOG((2, "%s GROUP - %s nc_grpid: %d nvars: %d natts: %d",
         tabs, grp->hdr.name, grp->hdr.id, ncindexsize(grp->vars), ncindexsize(grp->att)));
 
-   for(i=0;i<ncindexsize(grp->att);i++) {
-      att = (NC_ATT_INFO_T*)ncindexith(grp->att,i);
-      if(att == NULL) continue;
+   for (i = 0; i < ncindexsize(grp->att); i++)
+   {
+      att = (NC_ATT_INFO_T *)ncindexith(grp->att, i);
+      assert(att);
       LOG((2, "%s GROUP ATTRIBUTE - attnum: %d name: %s type: %d len: %d",
            tabs, att->hdr.id, att->hdr.name, att->nc_typeid, att->len));
    }
 
-   for(i=0;i<ncindexsize(grp->dim);i++) {
-      dim = (NC_DIM_INFO_T*)ncindexith(grp->dim,i);
-      if(dim == NULL) continue;
+   for (i = 0; i < ncindexsize(grp->dim); i++)
+   {
+      dim = (NC_DIM_INFO_T *)ncindexith(grp->dim, i);
+      assert(dim);
       LOG((2, "%s DIMENSION - dimid: %d name: %s len: %d unlimited: %d",
            tabs, dim->hdr.id, dim->hdr.name, dim->len, dim->unlimited));
    }
 
-   for(i=0;i<ncindexsize(grp->vars);i++)
+   for (i = 0; i < ncindexsize(grp->vars); i++)
    {
       int j;
       var = (NC_VAR_INFO_T*)ncindexith(grp->vars,i);
-      if (var == NULL) continue;
-      if(var->ndims > 0)
+      assert(var);
+      if (var->ndims > 0)
       {
-         dims_string = (char*)malloc(sizeof(char)*(var->ndims*4));
+         if (!(dims_string = malloc(sizeof(char) * var->ndims * 4)))
+            return NC_ENOMEM;
          strcpy(dims_string, "");
          for (d = 0; d < var->ndims; d++)
          {
@@ -1487,31 +1489,31 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
       LOG((2, "%s VARIABLE - varid: %d name: %s ndims: %d dimscale: %d dimids:%s",
            tabs, var->hdr.id, var->hdr.name, var->ndims, (int)var->dimscale,
            (dims_string ? dims_string : " -")));
-      for(j=0;j<ncindexsize(var->att);j++) {
-         att = (NC_ATT_INFO_T*)ncindexith(var->att,j);
-         if(att == NULL) continue;
+      for (j = 0; j < ncindexsize(var->att); j++)
+      {
+         att = (NC_ATT_INFO_T *)ncindexith(var->att, j);
+         assert(att);
          LOG((2, "%s VAR ATTRIBUTE - attnum: %d name: %s type: %d len: %d",
               tabs, att->hdr.id, att->hdr.name, att->nc_typeid, att->len));
       }
-      if(dims_string)
-      {
+      if (dims_string)
          free(dims_string);
-         dims_string = NULL;
-      }
    }
 
-   for(i=0;i<ncindexsize(grp->type);i++)
+   for (i = 0; i < ncindexsize(grp->type); i++)
    {
-      if((type = (NC_TYPE_INFO_T*)ncindexith(grp->type,i)) == NULL) continue;
-      LOG((2, "%s TYPE - nc_typeid: %d committed: %d name: %s num_fields: %d",
+      type = (NC_TYPE_INFO_T*)ncindexith(grp->type, i);
+      assert(type);
+      LOG((2, "%s TYPE - nc_typeid: %d size: %d committed: %d name: %s",
            tabs, type->hdr.id, type->size, (int)type->committed, type->hdr.name));
       /* Is this a compound type? */
       if (type->nc_type_class == NC_COMPOUND)
       {
          int j;
          LOG((3, "compound type"));
-         for(j=0;j<nclistlength(type->u.c.field);j++) {
-            field = (NC_FIELD_INFO_T*)nclistget(type->u.c.field,j);
+         for (j = 0; j < nclistlength(type->u.c.field); j++)
+         {
+            field = (NC_FIELD_INFO_T *)nclistget(type->u.c.field, j);
             LOG((4, "field %s offset %d nctype %d ndims %d", field->hdr.name,
                  field->offset, field->nc_typeid, field->ndims));
          }
@@ -1536,12 +1538,11 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
    }
 
    /* Call self for each child of this group. */
-   for(i=0;i<ncindexsize(grp->children);i++)
-   {
-      if((g = (NC_GRP_INFO_T*)ncindexith(grp->children,i)) == NULL) continue;
-      if ((retval = rec_print_metadata(g, tab_count + 1)))
+   for (i = 0; i < ncindexsize(grp->children); i++)
+      if ((retval = rec_print_metadata((NC_GRP_INFO_T *)ncindexith(grp->children, i),
+                                       tab_count + 1)))
          return retval;
-   }
+
    return NC_NOERR;
 }
 

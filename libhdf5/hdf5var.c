@@ -1034,23 +1034,21 @@ NC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
 int
 NC4_rename_var(int ncid, int varid, const char *name)
 {
-   NC *nc;
    NC_GRP_INFO_T *grp;
    NC_HDF5_GRP_INFO_T *hdf5_grp;
    NC_FILE_INFO_T *h5;
-   NC_VAR_INFO_T *var, *tmpvar;
+   NC_VAR_INFO_T *var;
    int retval = NC_NOERR;
 
    if (!name)
       return NC_EINVAL;
 
-   LOG((2, "%s: ncid 0x%x varid %d name %s", __func__, ncid, varid,
-        name));
+   LOG((2, "%s: ncid 0x%x varid %d name %s", __func__, ncid, varid, name));
 
    /* Find info for this file and group, and set pointer to each. */
-   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
+   if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
       return retval;
-   assert(h5 && grp && grp->format_grp_info && h5);
+   assert(h5 && grp && grp->format_grp_info);
 
    /* Get HDF5-specific group info. */
    hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->format_grp_info;
@@ -1069,14 +1067,12 @@ NC4_rename_var(int ncid, int varid, const char *name)
       return retval;
 
    /* Get the variable wrt varid */
-   var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);
-   if (!var)
+   if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, varid)))
       return NC_ENOTVAR;
 
    /* Check if new name is in use; note that renaming to same name is still an error
       according to the nc_test/test_write.c code. Why?*/
-   tmpvar = (NC_VAR_INFO_T*)ncindexlookup(grp->vars,name);
-   if(tmpvar != NULL)
+   if (ncindexlookup(grp->vars, name))
       return NC_ENAMEINUSE;
 
    /* If we're not in define mode, new name must be of equal or
@@ -1103,8 +1099,8 @@ NC4_rename_var(int ncid, int varid, const char *name)
           * so, it must be deleted. */
          if (hdf5_d0->hdf_dimscaleid)
          {
-            if ((retval = delete_existing_dimscale_dataset(grp, var->dim[0]->hdr.id,
-                                                           var->dim[0])))
+            if ((retval = delete_dimscale_dataset(grp, var->dim[0]->hdr.id,
+                                                  var->dim[0])))
                return retval;
          }
       }
@@ -1119,12 +1115,14 @@ NC4_rename_var(int ncid, int varid, const char *name)
    if (!(var->hdr.name = strdup(name)))
       return NC_ENOMEM;
    LOG((3, "var is now %s", var->hdr.name));
-   var->hdr.hashkey = NC_hashmapkey(var->hdr.name,strlen(var->hdr.name)); /* Fix hash key */
 
-   if(!ncindexrebuild(grp->vars))
+   /* Fix hash key and rebuild index. */
+   var->hdr.hashkey = NC_hashmapkey(var->hdr.name, strlen(var->hdr.name));
+   if (!ncindexrebuild(grp->vars))
       return NC_EINTERNAL;
 
-   /* Check if this was a coordinate variable previously, but names are different now */
+   /* Check if this was a coordinate variable previously, but names
+    * are different now */
    if (var->dimscale && strcmp(var->hdr.name, var->dim[0]->hdr.name))
    {
       /* Break up the coordinate variable */
@@ -1132,24 +1130,25 @@ NC4_rename_var(int ncid, int varid, const char *name)
          return retval;
    }
 
-   /* Check if this should become a coordinate variable */
+   /* Check if this should become a coordinate variable. */
    if (!var->dimscale)
    {
-      /* Only variables with >0 dimensions can become coordinate variables */
+      /* Only variables with >0 dimensions can become coordinate
+       * variables. */
       if (var->ndims)
       {
          NC_GRP_INFO_T *dim_grp;
          NC_DIM_INFO_T *dim;
 
-         /* Check to see if this is became a coordinate variable.  If so, it
-          * will have the same name as dimension index 0. If it is a
-          * coordinate var, is it a coordinate var in the same group as the dim?
-          */
+         /* Check to see if this is became a coordinate variable.  If
+          * so, it will have the same name as dimension index 0. If it
+          * is a coordinate var, is it a coordinate var in the same
+          * group as the dim? */
          if ((retval = nc4_find_dim(grp, var->dimids[0], &dim, &dim_grp)))
             return retval;
          if (!strcmp(dim->hdr.name, name) && dim_grp == grp)
          {
-            /* Reform the coordinate variable */
+            /* Reform the coordinate variable. */
             if ((retval = nc4_reform_coord_var(grp, var, dim)))
                return retval;
             var->became_coord_var = NC_TRUE;
