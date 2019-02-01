@@ -1874,7 +1874,7 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 #endif
 
     memset(&model,0,sizeof(model));
-    if((stat = NC_infermodel(path,&cmode,1,0,NULL,&model,&newpath)))
+    if((stat = NC_infermodel(path,&cmode,1,useparallel,NULL,&model,&newpath)))
 	goto done;
     if(newpath) {
 	nullfree(path);

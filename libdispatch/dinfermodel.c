@@ -500,21 +500,17 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
     assert(model->iosp != 0);
 
     /* Phase 2: Process the non-iosp mode arguments */
-    if(!modelcomplete(model)) {
-	if(isuri) {
+    if(!modelcomplete(model) && isuri) {
 	    int i;
 	    for(i=0;i<nclistlength(modeargs);i++) {
 		const char* arg = nclistget(modeargs,i);
 		if((stat=processmodearg(arg,model))) goto done;
 	    }
-	}
     }
 
     /* Phase 3: See if we can infer DAP */
-    if(!modelcomplete(model)) {
-	if(isuri) {
+    if(!modelcomplete(model) && isuri) {
             if((stat = NC_dapinfer(modeargs,model))) goto done;
-	}
     }
 
     /* Phase 4: mode inference */
@@ -557,13 +553,18 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
 	if(model->format == NC_FORMAT_64BIT_OFFSET) omode |= NC_64BIT_OFFSET;
 	else if(model->format == NC_FORMAT_64BIT_DATA) omode |= NC_64BIT_DATA;
 	break;
+    case NC_FORMATX_PNETCDF:
+	omode &= ~NC_NETCDF4; /* must be netcdf-3 (CDF-1, CDF-2, CDF-5) */
+	if(model->format == NC_FORMAT_64BIT_OFFSET) omode |= NC_64BIT_OFFSET;
+	else if(model->format == NC_FORMAT_64BIT_DATA) omode |= NC_64BIT_DATA;
+	break;
     default:
 	{stat = NC_ENOTNC; goto done;}
     }
 
 done:
     if(uri) ncurifree(uri);
-    nclistfree(modeargs);
+    nclistfreeall(modeargs);
     if(stat == NC_NOERR && newpathp) {*newpathp = newpath; newpath = NULL;}
     nullfree(newpath);
     *omodep = omode; /* in/out */
