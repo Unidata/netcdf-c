@@ -113,6 +113,7 @@ int main(int argc, char **argv)
    if (mpi_rank == 0)
       SUMMARIZE_ERR;
 
+#if 0
    if (mpi_rank == 0)
       printf("*** Testing parallel IO for raw-data with MPIPOSIX-IO (driver)...");
    facc_type = NC_NETCDF4;
@@ -121,6 +122,7 @@ int main(int argc, char **argv)
    if(test_pio(NC_COLLECTIVE)!=0) ERR;
    if (mpi_rank == 0)
       SUMMARIZE_ERR;
+#endif
 
    if (mpi_rank == 0)
       printf("*** Testing parallel IO for meta-data with MPIPOSIX-IO (driver)...");
