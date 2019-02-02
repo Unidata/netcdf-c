@@ -1785,6 +1785,12 @@ nc4_create_dim_wo_var(NC_DIM_INFO_T *dim)
    if (H5DSset_scale(hdf5_dim->hdf_dimscaleid, dimscale_wo_var) < 0)
       BAIL(NC_EHDFERR);
 
+   /* Since this dimension was created out of order, we cannot rely on
+    * it getting the correct dimid on file open. We must assign it
+    * explicitly. */
+   if ((retval = write_netcdf4_dimid(hdf5_dim->hdf_dimscaleid, dim->hdr.id)))
+       BAIL(retval);
+
 exit:
    if (spaceid > 0 && H5Sclose(spaceid) < 0)
       BAIL2(NC_EHDFERR);
