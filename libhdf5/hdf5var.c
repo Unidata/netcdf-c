@@ -1151,7 +1151,8 @@ NC4_rename_var(int ncid, int varid, const char *name)
       }
 
       LOG((3, "Moving dataset %s to %s", var->hdr.name, name));
-      if (H5Gmove(hdf5_grp->hdf_grpid, var->hdr.name, hdf5_name) < 0)
+      if (H5Lmove(hdf5_grp->hdf_grpid, var->hdr.name, hdf5_grp->hdf_grpid,
+                  hdf5_name, H5P_DEFAULT, H5P_DEFAULT) < 0)
          BAIL(NC_EHDFERR);
    }
 
