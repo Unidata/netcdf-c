@@ -1038,7 +1038,22 @@ NC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
 
 /**
  * @internal Rename a var to "bubba," for example. This is called by
- * nc_rename_var() for netCDF-4 files.
+ * nc_rename_var() for netCDF-4 files. This results in complexities
+ * when coordinate variables are involved.
+
+ * Whenever a var has the same name as a dim, and also uses that dim
+ * as its first dimension, then that var is aid to be a coordinate
+ * variable for that dimensions. Coordinate variables are represented
+ * in the HDF5 by making them dimscales. Dimensions without coordinate
+ * vars are represented by datasets which are dimscales, but have a
+ * special attribute marking them as dimscales without associated
+ * coordinate variables.
+ *
+ * When a var is renamed, we must detect whether it has become a
+ * coordinate var (by being renamed to the same name as a dim that is
+ * also its first dimension), or whether it is no longer a coordinate
+ * var. These cause flags to be set in NC_VAR_INFO_T which are used at
+ * enddef time to make changes in the HDF5 file.
  *
  * @param ncid File ID.
  * @param varid Variable ID
@@ -1127,7 +1142,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
       there. */
    if (var->created)
    {
-      char *hdf5_name;
+      char *hdf5_name; /* Dataset will be renamed to this. */
       hdf5_name = use_secret_name ? var->hdf5_name: (char *)name;
 
       /* Do we need to read var metadata? */
@@ -1153,7 +1168,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
       LOG((3, "Moving dataset %s to %s", var->hdr.name, name));
       if (H5Lmove(hdf5_grp->hdf_grpid, var->hdr.name, hdf5_grp->hdf_grpid,
                   hdf5_name, H5P_DEFAULT, H5P_DEFAULT) < 0)
-         BAIL(NC_EHDFERR);
+          return NC_EHDFERR;
    }
 
    /* Now change the name in our metadata. */
@@ -1202,7 +1217,6 @@ NC4_rename_var(int ncid, int varid, const char *name)
       }
    }
 
-exit:
    return retval;
 }
 
