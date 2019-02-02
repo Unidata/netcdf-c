@@ -23,7 +23,7 @@ int
 main()
 {
    printf("\n*** Checking HDF5 variable renaming.\n");
-   printf("*** Checking HDF5 variable ordering after renames...");
+   printf("*** Checking HDF5 variable ordering after renames...\n");
 
 #define NUM_ELEMENTS 6
 #define MAX_SYMBOL_LEN 2
@@ -80,6 +80,7 @@ main()
 
       if (H5Gget_num_objs(grpid, &num_obj) < 0) ERR;
       if (num_obj != NUM_ELEMENTS) ERR;
+      printf("Original order:\n");
       for (i = 0; i < num_obj; i++)
       {
 	 if (H5Oget_info_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
@@ -90,6 +91,7 @@ main()
 	 H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i,
 				name, size+1, H5P_DEFAULT);
 	 if (strcmp(name, names[i])) ERR;
+         printf("name %s\n", name);
       }
 
       /* Rename the first dataset. */
@@ -101,30 +103,31 @@ main()
 	  H5Fclose(fileid) < 0)
 	 ERR;
 
+      /* Now reopen the file and check the order again. */
+      if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
+      if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
+      if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, fapl_id)) < 0) ERR;
+      if ((grpid = H5Gopen(fileid, ELEMENTS_NAME)) < 0) ERR;
 
-   /*    /\* Now reopen the file and check the order again. *\/ */
-   /*    if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR; */
-   /*    if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR; */
-   /*    if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, fapl_id)) < 0) ERR; */
-   /*    if ((grpid = H5Gopen(fileid, ELEMENTS_NAME)) < 0) ERR; */
-
-   /*    if (H5Gget_num_objs(grpid, &num_obj) < 0) ERR; */
-   /*    if (num_obj != NUM_ELEMENTS) ERR; */
-   /*    for (i = 0; i < num_obj; i++) */
-   /*    { */
-   /*       if (H5Oget_info_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, */
-   /*      			i, &obj_info, H5P_DEFAULT) < 0) ERR; */
-   /*       if (obj_info.type != H5O_TYPE_DATASET) ERR; */
-   /*       if ((size = H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i, */
-   /*      				NULL, 0, H5P_DEFAULT)) < 0) ERR; */
-   /*       H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i, */
-   /*      			name, size+1, H5P_DEFAULT); */
-   /*       if (strcmp(name, names2[i])) ERR; */
-   /*    } */
-   /*    if (H5Pclose(fapl_id) < 0 || */
-   /*        H5Gclose(grpid) < 0 || */
-   /*        H5Fclose(fileid) < 0) */
-   /*       ERR; */
+      if (H5Gget_num_objs(grpid, &num_obj) < 0) ERR;
+      if (num_obj != NUM_ELEMENTS) ERR;
+      printf("New order:\n");
+      for (i = 0; i < num_obj; i++)
+      {
+         if (H5Oget_info_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
+        			i, &obj_info, H5P_DEFAULT) < 0) ERR;
+         if (obj_info.type != H5O_TYPE_DATASET) ERR;
+         if ((size = H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i,
+        				NULL, 0, H5P_DEFAULT)) < 0) ERR;
+         H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i,
+        			name, size+1, H5P_DEFAULT);
+         printf("name %s\n", name);
+         /* if (strcmp(name, names2[i])) ERR; */
+      }
+      if (H5Pclose(fapl_id) < 0 ||
+          H5Gclose(grpid) < 0 ||
+          H5Fclose(fileid) < 0)
+         ERR;
    }
    SUMMARIZE_ERR;
    FINAL_RESULTS;
