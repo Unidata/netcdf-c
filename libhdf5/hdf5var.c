@@ -1142,6 +1142,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
       there. */
    if (var->created)
    {
+      int v;
       char *hdf5_name; /* Dataset will be renamed to this. */
       hdf5_name = use_secret_name ? var->hdf5_name: (char *)name;
 
@@ -1169,6 +1170,23 @@ NC4_rename_var(int ncid, int varid, const char *name)
       if (H5Lmove(hdf5_grp->hdf_grpid, var->hdr.name, hdf5_grp->hdf_grpid,
                   hdf5_name, H5P_DEFAULT, H5P_DEFAULT) < 0)
           return NC_EHDFERR;
+
+      /* Now we must rename all the vars in this file with a varid
+       * greater than this var. This is because varids are assigned
+       * based on HDF5 creation time for the dataset, and we have just
+       * changed that for this var. Now we have to do the same for all
+       * vars with a > varid, so that the creation order will continue
+       * to be correct. */
+      for (v = var->hdr.id + 1; v < ncindexsize(grp->vars); v++)
+      {
+         NC_VAR_INFO_T *my_var;
+         my_var = (NC_VAR_INFO_T *)ncindexith(grp->vars, v);
+         assert(my_var);
+         if (!my_var->created)
+            continue; /* I'm not sure this is possible. */
+
+         LOG((3, "mandatory rename of %s to same name", my_var->hdr.name));
+      }
    }
 
    /* Now change the name in our metadata. */

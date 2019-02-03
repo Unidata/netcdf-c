@@ -1379,7 +1379,7 @@ attach_dimscales(NC_GRP_INFO_T *grp)
    for (v = 0; v < ncindexsize(grp->vars); v++)
    {
       /* Get pointer to var and HDF5-specific var info. */
-      var = (NC_VAR_INFO_T*)ncindexith(grp->vars, v);
+      var = (NC_VAR_INFO_T *)ncindexith(grp->vars, v);
       assert(var && var->format_var_info);
       hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
 
