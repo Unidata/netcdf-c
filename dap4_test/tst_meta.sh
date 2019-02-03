@@ -26,7 +26,7 @@ for f in ${F} ; do
     if ! ${VG} ${execdir}/test_meta ${DMRTESTFILES}/${f}.dmr ./results/${f} ; then
         failure "${execdir}/test_meta ${DMRTESTFILES}/${f}.dmr ./results/${f}"
     fi
-    ${NCDUMP} -h ./results/${f} > ./results/${f}.d4m
+    ${NCDUMP} ${DUMPFLAGS} -h ./results/${f} > ./results/${f}.d4m
     if test "x${TEST}" = x1 ; then
 	if ! diff -wBb ${BASELINE}/${f}.d4m ./results/${f}.d4m ; then
 	    failure "diff -wBb ${BASELINE}/${f}.ncdump ./results/${f}.d4m"

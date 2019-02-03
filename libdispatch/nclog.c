@@ -1,11 +1,10 @@
 /*********************************************************************
- *   Copyright 2010, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header$
  *********************************************************************/
 
 #include "config.h"
-
 #ifdef _MSC_VER
 #include<io.h>
 #endif
@@ -17,6 +16,8 @@
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
+
+extern FILE* fdopen(int fd, const char *mode);
 
 #include "nclog.h"
 #include "ncglobal.h"
@@ -193,6 +194,25 @@ nclog(int tag, const char* fmt, ...)
     fflush(nc_global->logstate->logstream);
 done:
     NCUNLOCK();
+}
+
+void
+ncvlog(int tag, const char* fmt, va_list ap)
+{
+    char* prefix;
+
+    if(!nclogginginitialized) ncloginit();
+
+    if(!nclogging || nclogstream == NULL) return;
+
+    prefix = nctagname(tag);
+    fprintf(nclogstream,"%s:",prefix);
+
+    if(fmt != NULL) {
+      vfprintf(nclogstream, fmt, ap);
+    }
+    fprintf(nclogstream, "\n" );
+    fflush(nclogstream);
 }
 
 void

@@ -46,15 +46,10 @@ main(int argc, char **argv)
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_close(ncid)) ERR;
 
-      /* This will fail. */
-      if (nc_open(FILE_NAME, NC_MPIIO|NC_MPIPOSIX, &ncid) != NC_EINVAL) ERR;
-
       /* These will all fail due to incorrect mode flag combinations. */
       if (nc_create(FILE_NAME, NC_64BIT_OFFSET|NC_NETCDF4, &ncid) != NC_EINVAL) ERR;
-      if (nc_create(FILE_NAME, NC_CLASSIC_MODEL|NC_MPIIO|NC_MPIPOSIX, &ncid) != NC_EINVAL) ERR;
       if (nc_create(FILE_NAME, NC_64BIT_OFFSET|NC_CDF5, &ncid) != NC_EINVAL) ERR;
       if (nc_create(FILE_NAME, NC_NETCDF4|NC_CDF5, &ncid) != NC_EINVAL) ERR;
-      if (nc_create(FILE_NAME, NC_MPIIO|NC_MPIPOSIX, &ncid) != NC_EINVAL) ERR;
    }
    SUMMARIZE_ERR;
    printf("*** testing simple opens and creates...");
@@ -436,10 +431,10 @@ test_redef(int format)
    cache_size_in = 0;
    if (nc_get_chunk_cache(&cache_size_in, NULL, NULL)) ERR;
    if (cache_size_in != NEW_CACHE_SIZE) ERR;
-   cache_nelems_in = 0;   
+   cache_nelems_in = 0;
    if (nc_get_chunk_cache(NULL, &cache_nelems_in, NULL)) ERR;
    if (cache_nelems_in != NEW_CACHE_NELEMS) ERR;
-   cache_preemption_in = 0;   
+   cache_preemption_in = 0;
    if (nc_get_chunk_cache(NULL, NULL, &cache_preemption_in)) ERR;
    if (cache_preemption_in != NEW_CACHE_PREEMPTION) ERR;
 
@@ -468,7 +463,7 @@ test_redef(int format)
                                -1) != NC_EINVAL) ERR;
    if (nc_set_chunk_cache_ints(NEW_CACHE_SIZE_2, NEW_CACHE_NELEMS_2,
                                101) != NC_EINVAL) ERR;
-   
+
 
    /* Change chunk cache again. */
    if (nc_set_chunk_cache_ints(NEW_CACHE_SIZE_2, NEW_CACHE_NELEMS_2,
@@ -477,7 +472,7 @@ test_redef(int format)
                                &cache_preemption_int_in)) ERR;
    if (cache_size_int_in != NEW_CACHE_SIZE_2 || cache_nelems_int_in != NEW_CACHE_NELEMS_2 ||
        cache_preemption_int_in != (int)(NEW_CACHE_PREEMPTION_2 * 100)) ERR;
-   
+
 
    /* This will fail, except for netcdf-4/hdf5, which permits any
     * name. */

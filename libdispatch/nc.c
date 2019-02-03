@@ -1,5 +1,5 @@
 /*
- *	Copyright 1996, University Corporation for Atmospheric Research
+ *	Copyright 2018, University Corporation for Atmospheric Research
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 
@@ -90,19 +90,23 @@ nc_set_default_format(int format, int *old_formatp)
     }
 
     /* Make sure only valid format is set. */
-#ifdef USE_NETCDF4
+#ifndef ENABLE_CDF5
+    if (format == NC_FORMAT_CDF5)
+        return NC_ENOTBUILT;
+#endif
+#ifdef USE_HDF5
     if (format != NC_FORMAT_CLASSIC && format != NC_FORMAT_64BIT_OFFSET &&
         format != NC_FORMAT_NETCDF4 && format != NC_FORMAT_NETCDF4_CLASSIC &&
 	format != NC_FORMAT_CDF5)
-      return NC_EINVAL;
+        return NC_EINVAL;
 #else
+    if (format == NC_FORMAT_NETCDF4 || format == NC_FORMAT_NETCDF4_CLASSIC)
+        return NC_ENOTBUILT;
     if (format != NC_FORMAT_CLASSIC && format != NC_FORMAT_64BIT_OFFSET &&
         format != NC_FORMAT_CDF5)
-       return NC_EINVAL;
- #endif
-    NCLOCK();
-    NC_default_create_format = format;
-    NCUNLOCK();
+        return NC_EINVAL;
+#endif
+    default_create_format = format;
     return NC_NOERR;
 }
 

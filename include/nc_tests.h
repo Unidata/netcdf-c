@@ -1,4 +1,4 @@
-/* This is part of the netCDF package. Copyright 2005 University
+/* This is part of the netCDF package. Copyright 2018 University
  * Corporation for Atmospheric Research/Unidata. See \ref copyright
  * file for conditions of use. */
 /** @internal @file
@@ -22,7 +22,6 @@
 #include "netcdf_par.h"
 #endif
 #include "netcdf.h"
-//#include "err_macros.h"
 
 /** NC_MAX_DIMS for tests.  Allows different NC_MAX_DIMS values
  * without breaking this test with a heap or stack overflow. */

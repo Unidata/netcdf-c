@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
@@ -86,8 +86,7 @@ NCD4_sync(int ncid)
 static int
 NCD4_create(const char *path, int cmode,
            size_t initialsz, int basepe, size_t *chunksizehintp,
-	   int use_parallel, void* mpidata,
-           NC_Dispatch* dispatch, NC* ncp)
+           void* mpidata, NC_Dispatch *dispatch, NC *ncp)
 {
    return THROW(NC_EPERM);
 }
@@ -729,7 +728,7 @@ NCD4_get_var_chunk_cache(int ncid, int p2, size_t* p3, size_t* p4, float* p5)
     return (ret);
 }
 
-#endif // USE_NETCDF4
+#endif /*USE_NETCDF4*/
 
 /**************************************************/
 /*

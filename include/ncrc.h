@@ -1,6 +1,6 @@
 /*
-Copyright (c) 1998-2017 University Corporation for Atmospheric Research/Unidata
-See LICENSE.txt for license information.
+Copyright (c) 1998-2018 University Corporation for Atmospheric Research/Unidata
+See COPYRIGHT for license information.
 */
 
 /*
@@ -55,6 +55,7 @@ extern char* NC_backslashEscape(const char* s);
 extern char* NC_backslashUnescape(const char* esc);
 extern char* NC_entityescape(const char* s);
 extern int NC_readfile(const char* filename, NCbytes* content);
+extern int NC_writefile(const char* filename, size_t size, void* content);
 extern char* NC_mktmp(const char* base);
 
 #endif /*NCRC_H*/

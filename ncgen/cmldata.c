@@ -1,3 +1,14 @@
+/*! \file
+
+Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+2015, 2016, 2017, 2018
+University Corporation for Atmospheric Research/Unidata.
+
+See \ref copyright file for more info.
+
+*/
+
 #include "includes.h"
 
 #ifdef ENABLE_CML
@@ -206,7 +217,7 @@ gencml_primdata(Symbol* tsym, Datasrc* src, Datalist* fillsrc,
     prim = srcnext(src);
 
     if(prim == NULL || prim->nctype == NC_FILLVALUE) {
-	gencml_fillvalue(tsym,fillsrc,src,databuf);	
+	gencml_fillvalue(tsym,fillsrc,src,databuf);
 	return;
     }
 
@@ -327,9 +338,9 @@ xconst(Constant* ci)
 	p = ci->value.opaquev.stringv;
 	while(*p) {
 	    strcat(bstring,"&#");
-	    strncat(bstring,p,2);	    	    
+	    strncat(bstring,p,2);
 	    strcat(bstring,";");
-	    p += 2;	
+	    p += 2;
 	}
 	return bstring;
 	} break;
@@ -471,14 +482,14 @@ gencml_stringarray(Symbol* sym, Datasrc* src, Bytebuffer* databuf)
 	    Datalist* fill = getfiller(sym);
 	    Datasrc* fillsrc = datalist2src(fill);
 	    gencml_stringarray(sym,fillsrc,databuf);
-	    } break;	    	    
+	    } break;
 	default:
 	    semerror(srcline(src),
 		     "Encountered non-string constant in attribute: %s",
 		     sym->name);
 	    return;
 	}
-    }	
+    }
 }
 
 #endif /*ENABLE_CML*/

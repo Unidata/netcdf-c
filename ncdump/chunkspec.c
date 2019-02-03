@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2010, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Id $
  *********************************************************************/
@@ -62,7 +62,7 @@ chunkspec_parse(int igrp, const char *spec)
 /*
  * Parse chunkspec string and convert into dimchunkspec structure.
  *   ncid: location ID of open netCDF file or group in an open file
- *   spec: string of form 
+ *   spec: string of form
  *           dim1/n1,dim2/n2,...,dimk/nk
  *   specifying chunk size (ni) to be used for dimension named
  *   dimi.  Dimension names may be absolute,
@@ -72,7 +72,7 @@ chunkspec_parse(int igrp, const char *spec)
  *   not mentioned in the string. However, for unlimited dimensions,
  *   the default is a default size: 4 megabytes or the
  *   existing unlimited size if smaller.
- *   If the chunkspec string is "/", specifying no dimensions or 
+ *   If the chunkspec string is "/", specifying no dimensions or
  *   chunk sizes, it indicates chunking to be turned off on output.
  *
  * Returns NC_NOERR if no error, NC_EINVAL if spec has consecutive
@@ -86,22 +86,24 @@ dimchunkspec_parse(int igrp, const char *spec)
     const char *np;	   /* beginning of current dimension name */
     size_t ndims = 0;
     int idim;
-    int ret;
+    int ret = NC_NOERR;
     int comma_seen = 0;
 
     dimchunkspecs.ndims = 0;
     dimchunkspecs.omit = false;
     if (!spec || *spec == '\0') /* default chunking */
-	return NC_NOERR; 
-    if (spec[0] == '/' && spec[1] == '\0') { /* no chunking */
+	goto done;
+    /* Special rule: // is treated as equivalent to / */
+    if ((spec[0] == '/' && spec[1] == '\0')
+	|| (spec[0] == '/' && spec[1] == '/' && spec[2] == '\0')) { /* no chunking */
 	dimchunkspecs.omit = true;
-	return NC_NOERR;
+	goto done;
     }
     /* Count unescaped commas, handle consecutive unescaped commas as error */
     for(cp = spec; *cp; cp++) {
 	if(*cp == ',' && *pp != '\\') {
 	    if(comma_seen) {	/* consecutive commas detected */
-		return(NC_EINVAL);
+		{ret = NC_EINVAL; goto done;}
 	    }
 	    comma_seen = 1;
 	    ndims++;
@@ -124,12 +126,13 @@ dimchunkspec_parse(int igrp, const char *spec)
 	    char *dp;
 	    int dimid;
 	    size_t chunksize;
-	 
+
 	    for(; pp > np && *pp != '/'; pp--) { /* look backwards for "/" */
 		continue;
 	    }
 	    if(*pp != '/') {	/* no '/' found, no chunksize specified for dimension */
-		return(NC_EINVAL);
+		ret = NC_EINVAL;
+		goto done;
 	    }
 	    /* extract dimension name */
 	    dimname = (char *) emalloc(pp - np + 1);
@@ -141,7 +144,7 @@ dimchunkspec_parse(int igrp, const char *spec)
 	    /* look up dimension id from dimension pathname */
 	    ret = nc_inq_dimid2(igrp, dimname, &dimid);
 	    if(ret != NC_NOERR)
-		break;
+		{if(dimname) free(dimname); goto done;}
 	    dimchunkspecs.idimids[idim] = dimid;
 	    /* parse and assign corresponding chunksize */
 	    pp++; /* now points to first digit of chunksize, ',', or '\0' */
@@ -149,7 +152,7 @@ dimchunkspec_parse(int igrp, const char *spec)
 		size_t dimlen;
 		ret = nc_inq_dimlen(igrp, dimid, &dimlen);
 		if(ret != NC_NOERR)
-		    return(ret);
+		    {if(dimname) free(dimname); goto done;}
 		chunksize = dimlen;
 	    } else {	      /* convert nnn string to long long integer */
 		char *ep;
@@ -159,12 +162,13 @@ dimchunkspec_parse(int igrp, const char *spec)
 		long long val = strtol(pp, &ep, 0);
 #endif
 		if(ep == pp || errno == ERANGE || val < 1) /* allow chunksize bigger than dimlen */
-		    return (NC_EINVAL);
+		    {if(dimname) free(dimname); ret = NC_EINVAL; goto done;}
 		chunksize = (size_t)val;
 	    }
 	    dimchunkspecs.chunksizes[idim] = chunksize;
 	    idim++;
-	    free(dimname);
+	    if(dimname) free(dimname);
+	    dimname = NULL;
 	    if(*cp == '\0')
 		break;
 	    /* set np to point to first char after comma */
@@ -172,7 +176,8 @@ dimchunkspec_parse(int igrp, const char *spec)
 	}
 	pp = cp;
     };
-    return NC_NOERR;
+done:
+    return ret;
 }
 
 /* Return size in chunkspec string specified for dimension corresponding to dimid, 0 if not found */
@@ -182,7 +187,7 @@ dimchunkspec_size(int indimid) {
     for(idim = 0; idim < dimchunkspecs.ndims; idim++) {
 	if(indimid == dimchunkspecs.idimids[idim]) {
 	    return dimchunkspecs.chunksizes[idim];
-	}	
+	}
     }
     return 0;
 }
@@ -206,7 +211,7 @@ dimchunkspec_omit(void) {
 /*
  * Parse per-variable chunkspec string and convert into varchunkspec structure.
  *   ncid: location ID of open netCDF file or group in an open file
- *   spec: string of form 
+ *   spec: string of form
  *           var:n1,n2,...nk
  *
  *         specifying chunk size (ni) to be used for ith dimension of
@@ -242,24 +247,33 @@ varchunkspec_parse(int igrp, const char *spec0)
     if(p == NULL)
 	{ret = NC_EINVAL; goto done;}
     *p++ = '\0';
+
     /* Lookup the variable by name */
     ret = nc_inq_varid2(igrp, spec, &chunkspec->ivarid, &chunkspec->igrpid);
     if(ret != NC_NOERR) goto done;
-    
+
+    if(*p == '\0') {/* we have -c var: => do not chunk var */
+	chunkspec->omit = 1;
+        /* add the chunkspec to our list */
+        listpush(varchunkspecs,chunkspec);
+        chunkspec = NULL;
+	goto done;
+    }
+
     /* Iterate over dimension sizes */
     while(*p) {
 	unsigned long dimsize;
 	q = strchr(p,',');
-	if(q == NULL) 
+	if(q == NULL)
 	    q = p + strlen(p); /* Fake the endpoint */
 	else
 	    *q++ = '\0';
-	
+
 	/* Scan as unsigned long */
 	if(sscanf(p,"%lu",&dimsize) != 1)
 	    {ret = NC_EINVAL; goto done;} /* Apparently not a valid dimension size */
 	if(chunkspec->rank >= NC_MAX_VAR_DIMS) {ret = NC_EINVAL; goto done;} /* to many chunks */
-	chunkspec->chunksizes[chunkspec->rank] = (size_t)dimsize;		
+	chunkspec->chunksizes[chunkspec->rank] = (size_t)dimsize;
 	chunkspec->rank++;
 	p = q;
     }
@@ -267,7 +281,7 @@ varchunkspec_parse(int igrp, const char *spec0)
     /* Get some info about the var (from input) */
     ret = nc_inq_var(chunkspec->igrpid,chunkspec->ivarid,NULL,NULL,&rank,dimids,NULL);
     if(ret != NC_NOERR) goto done;
-    
+
     /* 1. check # chunksizes == rank of variable */
     if(rank != chunkspec->rank) {ret = NC_EINVAL; goto done;}
 
@@ -278,7 +292,7 @@ varchunkspec_parse(int igrp, const char *spec0)
 	if(ret != NC_NOERR) goto done;
 	if(chunkspec->chunksizes[i] > len) {ret = NC_EBADCHUNK; goto done;}
     }
-    
+
     /* add the chunkspec to our list */
     listpush(varchunkspecs,chunkspec);
     chunkspec = NULL;
@@ -340,5 +354,3 @@ varchunkspec_rank(int igrpid, int ivarid)
     }
     return 0;
 }
-
-

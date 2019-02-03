@@ -1,16 +1,13 @@
 #!/bin/sh
 
-if test "x$srcdir" = x ; then srcdir=`pwd`; fi
-. ../test_common.sh
-
 # This shell just tests the bm_file program by running it a few times
 # on a simple test file. Then it uses ncdum to check that the output
 # is what it should be.
 
-# $Id: run_bm_test1.sh,v 1.13 2008/01/04 15:57:48 ed Exp $
+# Ed Hartnett
 
-set -e
-echo ""
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
+. ../test_common.sh
 
 for type_name in floats ints shorts
 do

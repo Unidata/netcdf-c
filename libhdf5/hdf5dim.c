@@ -104,6 +104,10 @@ NC4_def_dim(int ncid, const char *name, size_t len, int *idp)
    if ((retval = nc4_dim_list_add(grp, norm_name, len, -1, &dim)))
       return retval;
 
+   /* Create struct for HDF5-specific dim info. */
+   if (!(dim->format_dim_info = calloc(1, sizeof(NC_HDF5_DIM_INFO_T))))
+      return NC_ENOMEM;
+
    /* Pass back the dimid. */
    if (idp)
       *idp = dim->hdr.id;
@@ -202,9 +206,9 @@ NC4_inq_dim(int ncid, int dimid, char *name, size_t *lenp)
 int
 NC4_rename_dim(int ncid, int dimid, const char *name)
 {
-   NC *nc;
    NC_GRP_INFO_T *grp;
-   NC_DIM_INFO_T *dim, *tmpdim;
+   NC_DIM_INFO_T *dim;
+   NC_HDF5_DIM_INFO_T *hdf5_dim;
    NC_FILE_INFO_T *h5;
    char norm_name[NC_MAX_NAME + 1];
    int retval;
@@ -217,9 +221,9 @@ NC4_rename_dim(int ncid, int dimid, const char *name)
         dimid, name));
 
    /* Find info for this file and group, and set pointer to each. */
-   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
+   if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
       return retval;
-   assert(nc && h5 && grp);
+   assert(h5 && grp);
 
    /* Trying to write to a read-only file? No way, Jose! */
    if (h5->no_write)
@@ -229,26 +233,24 @@ NC4_rename_dim(int ncid, int dimid, const char *name)
    if ((retval = nc4_check_name(name, norm_name)))
       return retval;
 
-   /* Get the original dim */
-   if((retval=nc4_find_dim(grp,dimid,&dim,NULL)) != NC_NOERR)
-	return retval;
-   if(dim == NULL) /* No such dim */
-	return NC_EBADDIM;
+   /* Get the original dim. */
+   if ((retval = nc4_find_dim(grp, dimid, &dim, NULL)))
+      return retval;
+   assert(dim && dim->format_dim_info);
+   hdf5_dim = (NC_HDF5_DIM_INFO_T *)dim->format_dim_info;
 
-   /* Check if new name is in use */
-   tmpdim = (NC_DIM_INFO_T*)ncindexlookup(grp->dim,norm_name);
-   if(tmpdim != NULL)
-	return NC_ENAMEINUSE;
+   /* Check if new name is in use. */
+   if (ncindexlookup(grp->dim, norm_name))
+      return NC_ENAMEINUSE;
 
-   /* Check for renaming dimension w/o variable */
-   if (dim->hdf_dimscaleid)
+   /* Check for renaming dimension w/o variable. */
+   if (hdf5_dim->hdf_dimscaleid)
    {
-      /* Sanity check */
       assert(!dim->coord_var);
       LOG((3, "dim %s is a dim without variable", dim->hdr.name));
 
       /* Delete the dimscale-only dataset. */
-      if ((retval = delete_existing_dimscale_dataset(grp, dimid, dim)))
+      if ((retval = delete_dimscale_dataset(grp, dimid, dim)))
          return retval;
    }
 
@@ -259,16 +261,17 @@ NC4_rename_dim(int ncid, int dimid, const char *name)
    if (!(dim->hdr.name = strdup(norm_name)))
       return NC_ENOMEM;
    LOG((3, "dim is now named %s", dim->hdr.name));
-   dim->hdr.hashkey = NC_hashmapkey(dim->hdr.name,strlen(dim->hdr.name)); /* Fix hash key */
 
-   if(!ncindexrebuild(grp->dim))
-	return NC_EINTERNAL;
+   /* Fix hash key and rebuild index. */
+   dim->hdr.hashkey = NC_hashmapkey(dim->hdr.name,strlen(dim->hdr.name));
+   if (!ncindexrebuild(grp->dim))
+      return NC_EINTERNAL;
 
    /* Check if dimension was a coordinate variable, but names are
-    * different now */
+    * different now. */
    if (dim->coord_var && strcmp(dim->hdr.name, dim->coord_var->hdr.name))
    {
-      /* Break up the coordinate variable */
+      /* Break up the coordinate variable. */
       if ((retval = nc4_break_coord_var(grp, dim->coord_var, dim)))
          return retval;
    }

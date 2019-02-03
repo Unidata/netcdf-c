@@ -1,4 +1,4 @@
-/* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
+/* Copyright 2018, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
 
 #define VALIDATE
@@ -18,26 +18,22 @@
 #ifdef HAVE_STRINGS_H
 #include <strings.h>
 #endif
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#endif
 
-#include "oc.h"
-#include "ocx.h"
-
-/* Utilities */
 #include "netcdf.h"
 #include "ncuri.h"
 #include "ncbytes.h"
 #include "nclog.h"
 
-#ifdef WIN32
-/*#include <windows.h>*/
-#define snprintf _snprintf
-#define strcasecmp stricmp
-#endif
+#include "oc.h"
+#include "ocx.h"
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 #include "XGetopt.h"
-int opterr;
-int optind;
+int opterr, optind;
+char* optarg;
 #endif
 
 #ifndef nulldup
@@ -172,12 +168,15 @@ static char* optionmsg =
 
 static OCflags ocflags;
 
+EXTERNL int nc_initialize(void);
+
 static void
 init()
 {
     memset(&ocopt,0,sizeof(ocopt));
     ocopt.generate = 1;             /* -G|-g */
     ocopt.userparams = ncbytesnew(); /* -U */
+    nc_initialize();
 }
 
 int

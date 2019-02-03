@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2011, University Corporation for Atmospheric Research
+ *   Copyright 2018, University Corporation for Atmospheric Research
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   
  *   Stuff that's common to both ncdump and nccopy
@@ -63,13 +63,17 @@ extern char *progname;		/* for error messages */
 extern "C" {
 #endif
 
-#define NC_CHECK(fncall) {int statnc=fncall;if(statnc!=NC_NOERR)check(statnc,__FILE__,__LINE__);}
+#define NC_CHECK(fncall) {int ncstat=fncall;if(ncstat!=NC_NOERR)check(ncstat,__FILE__,__LINE__);}
 
 /* Print error message to stderr and exit */
 extern void	error ( const char *fmt, ... );
 
 /* Check error on malloc and exit with message if out of memory */
 extern void*    emalloc ( size_t size );
+/* Ditto calloc */
+extern void*    ecalloc ( size_t size );
+/* Ditto realloc */
+extern void*    erealloc (void* p, size_t size );
 
 /* Check error return.  If bad, print error message and exit. */
 extern void check(int err, const char* file, const int line);

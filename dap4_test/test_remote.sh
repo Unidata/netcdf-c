@@ -73,7 +73,7 @@ for f in $F ; do
     if test "x$NOCSUM" = x1; then
 	URL="[ucar.checksummode=none]${URL}"
     fi
-    if ! ${NCDUMP} "${URL}" > ${builddir}/results_test_remote/${f}.dmp; then
+    if ! ${NCDUMP} ${DUMPFLAGS} "${URL}" > ${builddir}/results_test_remote/${f}.dmp; then
         failure "${URL}"
     fi
     if test "x${TEST}" = x1 ; then

@@ -1,5 +1,5 @@
 ## This is a automake file, part of Unidata's netCDF package.
-# Copyright 2010, see the COPYRIGHT file for more information.
+# Copyright 2018, see the COPYRIGHT file for more information.
 
 # This Makefile assembles the correct libnetcdf based on various
 # configure flags. It is assumed that all the relevant convenience
@@ -34,14 +34,14 @@ endif # BUILD_V2
 libnetcdf_la_LIBADD += ${top_builddir}/libdispatch/libdispatch.la	\
 			${top_builddir}/libsrc/libnetcdf3.la
 
-# + pnetcdf
+# + PnetCDF
 if USE_PNETCDF
 AM_CPPFLAGS += -I${top_srcdir}/libsrcp
 libnetcdf_la_LIBADD += ${top_builddir}/libsrcp/libnetcdfp.la
 endif # USE_PNETCDF
 
 # + hdf5
-if USE_NETCDF4
+if USE_HDF5
 AM_CPPFLAGS += -I${top_srcdir}/libhdf5
 libnetcdf_la_LIBADD += ${top_builddir}/libhdf5/libnchdf5.la
 endif # USE_NETCDF4
@@ -66,10 +66,8 @@ endif # ENABLE_DAP4
 
 # NetCDF-4 ...
 if USE_NETCDF4
-
 AM_CPPFLAGS += -I${top_srcdir}/libsrc4
 libnetcdf_la_LIBADD += ${top_builddir}/libsrc4/libnetcdf4.la
-
 endif #USE_NETCDF4
 
 if ISCYGWIN

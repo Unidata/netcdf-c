@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1993, University Corporation for Atmospheric Research
+ *   Copyright 2018, University Corporation for Atmospheric Research
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/ncdump/dumplib.h,v 1.28 2009/08/13 21:06:13 russ Exp $
  *********************************************************************/

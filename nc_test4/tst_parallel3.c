@@ -79,8 +79,8 @@ int main(int argc, char **argv)
       return -1;
    }
 
-   facc_type = NC_NETCDF4|NC_MPIIO;
-   facc_type_open = NC_MPIIO;
+   facc_type = NC_NETCDF4;
+   facc_type_open = 0;
 
    /* Create file name. */
    sprintf(file_name, "%s/%s", TEMP_LARGE, FILE_NAME);
@@ -113,15 +113,10 @@ int main(int argc, char **argv)
    if (mpi_rank == 0)
       SUMMARIZE_ERR;
 
-/* Note: When the MPI-POSIX VFD is not compiled in to HDF5, the NC_MPIPOSIX
- *      flag will be aliased to the NC_MPIIO flag within the library, and
- *      therefore this test will exercise the aliasing, with the MPI-IO VFD,
- *      under that configuration. -QAK
- */
    if (mpi_rank == 0)
       printf("*** Testing parallel IO for raw-data with MPIPOSIX-IO (driver)...");
-   facc_type = NC_NETCDF4|NC_MPIPOSIX;
-   facc_type_open = NC_MPIPOSIX;
+   facc_type = NC_NETCDF4;
+   facc_type_open = 0;
    if(test_pio(NC_INDEPENDENT)!=0) ERR;
    if(test_pio(NC_COLLECTIVE)!=0) ERR;
    if (mpi_rank == 0)
@@ -704,7 +699,7 @@ int test_pio_extend(int flag){
     MPI_Comm_size(MPI_COMM_WORLD, &procs);
 
     /* Create netcdf file */
-    if (nc_create_par("test.nc", NC_NETCDF4 | NC_MPIIO, MPI_COMM_WORLD, MPI_INFO_NULL, &ncFile)) ERR;
+    if (nc_create_par("test.nc", NC_NETCDF4, MPI_COMM_WORLD, MPI_INFO_NULL, &ncFile)) ERR;
 
     /* Create netcdf dimensions */
     if (nc_def_dim(ncFile, "partitions", procs, &ncDimPart)) ERR;

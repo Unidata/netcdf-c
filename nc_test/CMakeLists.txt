@@ -1,3 +1,10 @@
+# Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+# 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+# 2015, 2016, 2017, 2018
+# University Corporation for Atmospheric Research/Unidata.
+
+# See netcdf-c/COPYRIGHT file for more info.
+
 message(STATUS "CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}")
 message(STATUS "CMAKE_BINARY_DIR=${CMAKE_BINARY_DIR}")
 message(STATUS "CMAKE_CURRENT_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}")
@@ -56,6 +63,7 @@ ENDIF()
 SET(TESTFILES ${TESTFILES} tst_diskless tst_diskless3 tst_diskless4 tst_diskless5 tst_inmemory tst_open_mem)
 IF(USE_NETCDF4)
   SET(TESTFILES ${TESTFILES} tst_diskless2)
+  SET(TESTS ${TESTS} tst_diskless6)
 ENDIF()
 
 # Build executables required for the shell scripts.
@@ -77,12 +85,11 @@ IF(BUILD_UTILITIES)
       add_sh_test(nc_test run_mmap)
       SET_TESTS_PROPERTIES(nc_test_run_mmap PROPERTIES RUN_SERIAL TRUE)
     ENDIF(BUILD_MMAP)
-    IF(LARGE_FILE_TESTS)
-      add_sh_test(nc_test run_diskless2)
-    ENDIF(LARGE_FILE_TESTS)
     add_sh_test(nc_test run_diskless5)
     add_sh_test(nc_test run_inmemory)
-
+    IF(LARGE_FILE_TESTS)
+      add_sh_test(nc_test run_diskless2)
+    ENDIF()
 ENDIF(BUILD_UTILITIES)
 
 # Copy some test files from current source dir to out-of-tree build dir.

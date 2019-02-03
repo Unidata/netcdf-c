@@ -1,5 +1,5 @@
 /*
- *	Copyright 1996, University Corporation for Atmospheric Research
+ *	Copyright 2018, University Corporation for Atmospheric Research
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 #ifndef _NC3INTERNAL_
@@ -16,10 +16,9 @@
 #  include <stdint.h>
 #endif /* HAVE_STDINT_H */
 #include <sys/types.h>	/* off_t */
+#include "netcdf.h"
 #ifdef USE_PARALLEL
 #include "netcdf_par.h"
-#else
-#include "netcdf.h"
 #endif /* USE_PARALLEL */
 
 /* Always needed */

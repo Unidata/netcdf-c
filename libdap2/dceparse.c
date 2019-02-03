@@ -1,4 +1,4 @@
-/* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
+/* Copyright 2018, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
 
 /* Parser actions for constraint expressions */
@@ -333,7 +333,10 @@ dceerror(DCEparsestate* state, char* msg)
 static void
 dce_parse_cleanup(DCEparsestate* state)
 {
+    if(state == NULL) return;
     dcelexcleanup(&state->lexstate); /* will free */
+    /* Free up the state */
+    free(state);
 }
 
 static DCEparsestate*

@@ -40,8 +40,12 @@ endif
 
 # Is the user building netCDF-4?
 if USE_NETCDF4
-H5_TEST_DIR = h5_test
 LIBSRC4_DIR = libsrc4
+endif
+
+# Is the user building with HDF5?
+if USE_HDF5
+H5_TEST_DIR = h5_test
 LIBHDF5 = libhdf5
 NC_TEST4 = nc_test4
 endif
@@ -58,7 +62,7 @@ DAP4 = libdap4
 NCDAP4TESTDIR = dap4_test
 endif #DAP4
 
-# Build pnetcdf
+# Build PnetCDF
 if USE_PNETCDF
 LIBSRCP = libsrcp
 endif

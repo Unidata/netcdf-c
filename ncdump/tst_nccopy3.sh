@@ -34,6 +34,7 @@ fi
 echo "*** Testing netCDF-3 features of nccopy on ncdump/*.nc files"
 for i in $TESTFILES ; do
     echo "*** Testing nccopy $i.nc nccopy3_copy_of_$i.nc ..."
+ls -l $i.nc
     ${NCCOPY} $i.nc nccopy3_copy_of_$i.nc
     ${NCDUMP} -n nccopy3_copy_of_$i $i.nc > tmp_tst_nccopy3.cdl
     ${NCDUMP} nccopy3_copy_of_$i.nc > nccopy3_copy_of_$i.cdl

@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2009, University Corporation for Atmospheric Research
+ *   Copyright 2018, University Corporation for Atmospheric Research
  *   See netcdf/README file for copying and redistribution conditions.
  *   "$Id: nciter.h 400 2010-08-27 21:02:52Z russ $"
  *********************************************************************/
@@ -7,7 +7,7 @@
 #ifndef _NCITER_
 #define _NCITER_
 
-#include <netcdf.h>
+#include "netcdf.h"
 
 #if defined(__cplusplus)
 extern "C" {

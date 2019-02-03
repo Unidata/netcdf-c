@@ -1,12 +1,14 @@
 /* This is part of the netCDF package.
-   Copyright 2005 University Corporation for Atmospheric Research/Unidata
+   Copyright 2018 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
    Test HDF5 file code. These are not intended to be exhaustive tests,
    but they use HDF5 the same way that netCDF-4 does, so if these
    tests don't work, than netCDF-4 won't work either.
 
+   Ed Hartnett
 */
+
 #include <config.h>
 #include <nc_tests.h>
 #include "err_macros.h"
@@ -18,6 +20,10 @@
 
 #define FILE_NAME "tst_h_many_atts.h5"
 #define GRP_NAME "group1"
+
+/* Prototype from tst_utils.c. */
+int nc4_timeval_subtract(struct timeval *result, struct timeval *x,
+                         struct timeval *y);
 
 int
 main()

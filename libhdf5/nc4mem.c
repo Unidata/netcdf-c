@@ -79,39 +79,3 @@ NC4_create_image_file(NC_FILE_INFO_T* h5, size_t initialsz)
 done:
     return stat;
 }
-
-#if 0
-int
-NC4_extract_file_image(NC_FILE_INFO_T* h5)
-{
-    int stat = NC_NOERR;
-    hid_t fapl;
-    herr_t herr;
-    NC_memio mem;
-    hid_t hdfid = -1;
-
-    assert(h5 && h5->format_file_info && !h5->no_write);
-
-    if((hdfid = ((NC_HDF5_FILE_INFO_T *)h5->format_file_info)->hdfid) < 0)
-	{stat = NC_EHDFERR; goto done;}
-
-    /* The h5->mem.memio struct should contain what we want */
-    
-
-    /* Get the file access property list */
-    if((fapl = H5Fget_access_plist(hdfid)) < 0)
-	{stat = NC_EHDFERR; goto done;}
-    memset(&mem,0,sizeof(mem));
-    herr = H5Pget_file_image(fapl, &mem.memory, &mem.size);
-    if(herr < 0)
-	{stat = NC_EHDFERR; goto done;}
-    h5->mem.memio = mem;
-
-    /* Close FAPL */
-    if (H5Pclose(fapl) < 0) 
-	{stat = NC_EHDFERR; goto done;}        
-
-done:
-    return stat;
-}
-#endif

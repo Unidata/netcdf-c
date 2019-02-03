@@ -2,8 +2,9 @@
 
 Main header file for the C API.
 
-Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014
+Copyright 2018, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+2015, 2016, 2017, 2018
 University Corporation for Atmospheric Research/Unidata.
 
 See \ref copyright file for more info.
@@ -66,7 +67,7 @@ extern "C" {
 #define NC_FILL_BYTE    ((signed char)-127)
 #define NC_FILL_CHAR    ((char)0)
 #define NC_FILL_SHORT   ((short)-32767)
-#define NC_FILL_INT     (-2147483647L)
+#define NC_FILL_INT     (-2147483647)
 #define NC_FILL_FLOAT   (9.9692099683868690e+36f) /* near 15 * 2^119 */
 #define NC_FILL_DOUBLE  (9.9692099683868690e+36)
 #define NC_FILL_UBYTE   (255)
@@ -116,21 +117,23 @@ extern "C" {
 /* Define the ioflags bits for nc_create and nc_open.
    currently unused:
         0x0002
-        0x0040
-        0x0080
    and the whole upper 16 bits
 */
 
 #define NC_NOWRITE       0x0000 /**< Set read-only access for nc_open(). */
 #define NC_WRITE         0x0001 /**< Set read-write access for nc_open(). */
+
 #define NC_CLOBBER       0x0000 /**< Destroy existing file. Mode flag for nc_create(). */
 #define NC_NOCLOBBER     0x0004 /**< Don't destroy existing file. Mode flag for nc_create(). */
 
 #define NC_DISKLESS      0x0008  /**< Use diskless file. Mode flag for nc_open() or nc_create(). */
-#define NC_MMAP          0x0010  /**< Use diskless file with mmap. Mode flag for nc_open() or nc_create(). */
+#define NC_MMAP          0x0010  /**< \deprecated Use diskless file with mmap. Mode flag for nc_open() or nc_create()*/
 
 #define NC_64BIT_DATA    0x0020  /**< CDF-5 format: classic model but 64 bit dimensions and sizes */
 #define NC_CDF5          NC_64BIT_DATA  /**< Alias NC_CDF5 to NC_64BIT_DATA */
+
+#define NC_UDF0          0x0040  /**< User-defined format 0. */
+#define NC_UDF1          0x0080  /**< User-defined format 1. */
 
 #define NC_CLASSIC_MODEL 0x0100 /**< Enforce classic model on netCDF-4. Mode flag for nc_create(). */
 #define NC_64BIT_OFFSET  0x0200  /**< Use large (64-bit) file offsets. Mode flag for nc_create(). */
@@ -149,19 +152,17 @@ Use this in mode flags for both nc_create() and nc_open(). */
 
 /** Turn on MPI I/O.
 Use this in mode flags for both nc_create() and nc_open(). */
-#define NC_MPIIO         0x2000
+#define NC_MPIIO         0x2000 /**< \deprecated */
 /** Turn on MPI POSIX I/O.
 Use this in mode flags for both nc_create() and nc_open(). */
-#define NC_MPIPOSIX      0x4000 /**< \deprecated As of libhdf5 1.8.13. */
+#define NC_MPIPOSIX      NC_MPIIO /**< \deprecated As of libhdf5 1.8.13. Now an alias */
 
-#define NC_INMEMORY      0x8000  /**< Read from memory. Mode flag for nc_open() or nc_create() => NC_DISKLESS */
+#define NC_PERSIST       0x4000  /**< Save diskless contents to disk. Mode flag for nc_open() or nc_create() */
+#define NC_INMEMORY      0x8000  /**< Read from memory. Mode flag for nc_open() or nc_create() */
 
-#define NC_PNETCDF       (NC_MPIIO) /**< Use parallel-netcdf library; alias for NC_MPIIO. */
+#define NC_PNETCDF       (NC_MPIIO) /**< \deprecated Use PnetCDF library; alias for NC_MPIIO. */
 
-#define NC_UDF0          0x0080  /**< User-defined format 0. */
-#define NC_UDF1          0x0002  /**< User-defined format 1. */
-
-#define NC_MAX_MAGIC_NUMBER_LEN 8 /**< Max len of ser-defined format magic number. */
+#define NC_MAX_MAGIC_NUMBER_LEN 8 /**< Max len of user-defined format magic number. */
 
 /** Format specifier for nc_set_default_format() and returned
  *  by nc_inq_format. This returns the format as provided by
@@ -1960,6 +1961,11 @@ ncrecget(int ncid, long recnum, void **datap);
 
 EXTERNL int
 ncrecput(int ncid, long recnum, void *const *datap);
+
+/* This function may be called to force the library to
+   initialize itself. It is not required, however.
+*/
+EXTERNL int nc_initialize(void);
 
 /* This function may be called to force the library to
    cleanup global memory so that memory checkers will not

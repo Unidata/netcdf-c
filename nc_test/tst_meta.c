@@ -1,5 +1,5 @@
 /*
-  Copyright 20014, UCAR/Unidata
+  Copyright 2018, UCAR/Unidata
   See COPYRIGHT file for copying and redistribution conditions.
 
   This is part of netCDF.
@@ -9,6 +9,7 @@
 
 */
 
+#include <config.h>
 #include <stdio.h> /* printf() */
 #include <config.h>
 #include <stdlib.h>

@@ -66,7 +66,7 @@ ezxml_t ezxml_parse_fd(int fd);
 
 /* a wrapper for ezxml_parse_fd() that accepts a file name*/
 ezxml_t ezxml_parse_file(const char *file);
-    
+
 /* Wrapper for ezxml_parse_str() that accepts a file stream. Reads the entire*/
 /* stream into memory and then parses it. For xml files, use ezxml_parse_file()*/
 /* or ezxml_parse_fd()*/
@@ -111,7 +111,7 @@ const char **ezxml_pi(ezxml_t xml, const char *target);
 
 /* frees the memory allocated for an ezxml structure*/
 void ezxml_free(ezxml_t xml);
-    
+
 /* returns parser error message or empty string if none*/
 const char *ezxml_error(ezxml_t xml);
 

@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2011, University Corporation for Atmospheric Research
+ *   Copyright 2018, University Corporation for Atmospheric Research
  *   See netcdf/README file for copying and redistribution conditions.
  *   $Id$
  *********************************************************************/
@@ -13,6 +13,9 @@
 #include <assert.h>
 #include <ctype.h>
 #include "utils.h"
+#ifndef isascii
+EXTERNL int isascii(int c);
+#endif
 
 /*
  * Print error message to stderr and exit
@@ -39,6 +42,36 @@ emalloc (			/* check return from malloc */
     void   *p;
 
     p = (void *) malloc (size==0 ? 1 : size); /* malloc(0) not portable */
+    if (p == 0) {
+	error ("out of memory\n");
+    }
+    return p;
+}
+
+void *
+ecalloc (			/* check return from calloc */
+	size_t size)
+{
+    void   *p;
+
+    p = (void *) calloc (1,(size==0 ? 1 : size)); /* calloc(0) not portable */
+    if (p == 0) {
+	error ("out of memory\n");
+    }
+    return p;
+}
+
+void *
+erealloc (void* p0,			/* check return from realloc */
+	size_t size)
+{
+    void   *p;
+
+    if(p0 == NULL)
+        return emalloc(size);
+    if(size == 0)
+    	error("realloc with zero size");
+    p = (void *) realloc (p0,size); /* realloc(0) not portable */
     if (p == 0) {
 	error ("out of memory\n");
     }
@@ -84,7 +117,7 @@ escaped_name(const char* cp) {
     for (; *cp; cp++) {
 	if (isascii((int)*cp)) {
 	    if(iscntrl((int)*cp)) {	/* render control chars as two hex digits, \%xx */
-		snprintf(sp, 4,"\\%%%.2x", *cp);
+		snprintf(sp, 4+1,"\\%%%.2x", *cp);
 		sp += 4;
 	    } else {
 		switch (*cp) {

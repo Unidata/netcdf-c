@@ -1,6 +1,10 @@
 ## This is a automake file, part of Unidata's netCDF package.
-# Copyright 2005-2011, see the COPYRIGHT file for more information.
-# This file builds the netcdf documentation.
+# Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+# 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+# 2015, 2016, 2017, 2018
+# University Corporation for Atmospheric Research/Unidata.
+
+# See netcdf-c/COPYRIGHT file for more info.
 
 # These files will be included with the dist.
 EXTRA_DIST = netcdf.m4 DoxygenLayout.xml Doxyfile.in footer.html	\
@@ -9,9 +13,9 @@ architecture.dox internal.dox windows-binaries.md			\
 building-with-cmake.md CMakeLists.txt groups.dox install.md notes.md	\
 install-fortran.md all-error-codes.md credits.md auth.md		\
 obsolete/fan_utils.html bestpractices.md filters.md indexing.dox	\
-inmemory.md DAP4.dox OPeNDAP.dox attribute_conventions.md FAQ.md	\
-file_format_specifications.md known_problems.md COPYRIGHT.dox		\
-user_defined_formats.md inmeminternal.dox
+inmemory.md DAP2.dox attribute_conventions.md FAQ.md	\
+file_format_specifications.md known_problems.md COPYRIGHT.md		\
+user_defined_formats.md inmeminternal.dox DAP4.md DAP4.dox
 
 # Turn off parallel builds in this directory.
 .NOTPARALLEL:

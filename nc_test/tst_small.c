@@ -1,4 +1,4 @@
-/* This is part of the netCDF package. Copyright 2005 University
+/* This is part of the netCDF package. Copyright 2018 University
    Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
    conditions of use. See www.unidata.ucar.edu for more info.
 
@@ -59,7 +59,7 @@ static int file_create(const char *filename, int cmode, int *ncid)
         || default_format == NC_FORMAT_64BIT_DATA
 #endif
         )
-        err = nc_create_par(filename, cmode|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, ncid);
+        err = nc_create_par(filename, cmode, MPI_COMM_WORLD, MPI_INFO_NULL, ncid);
     else
 #endif
         err = nc_create(filename, cmode, ncid);
@@ -81,7 +81,7 @@ static int file_open(const char *filename, int omode, int *ncid)
     if (default_format == NC_FORMAT_CLASSIC ||
         default_format == NC_FORMAT_64BIT_OFFSET ||
         default_format == NC_FORMAT_64BIT_DATA)
-        err = nc_open_par(filename, omode|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, ncid);
+        err = nc_open_par(filename, omode, MPI_COMM_WORLD, MPI_INFO_NULL, ncid);
     else
 #endif
         err = nc_open(filename, omode, ncid);
@@ -533,7 +533,7 @@ main(int argc, char **argv)
       case NC_FORMAT_CDF5:
         continue;
 #endif
-#ifdef USE_NETCDF4
+#ifdef USE_HDF5
 	 case NC_FORMAT_NETCDF4_CLASSIC:
 	    nc_set_default_format(NC_FORMAT_NETCDF4_CLASSIC, NULL);
 	    strcpy(testfile, "tst_small_netcdf4_classic.nc");

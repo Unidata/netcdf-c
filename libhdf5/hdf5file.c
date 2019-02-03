@@ -13,8 +13,11 @@
 
 #include "config.h"
 #include "hdf5internal.h"
+#include "ncrc.h"
 
-extern int nc4_vararray_add(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
+extern int NC4_extract_file_image(NC_FILE_INFO_T* h5); /* In nc4memcb.c */
+
+static void dumpopenobjects(NC_FILE_INFO_T* h5);
 
 /** @internal When we have open objects at file close, should
     we log them or print to stdout. Default is to log. */
@@ -32,16 +35,14 @@ static const NC_reservedatt NC_reserved[NRESERVED] = {
    {NC_ATT_DIMENSION_LIST, READONLYFLAG|DIMSCALEFLAG},   /*DIMENSION_LIST*/
    {NC_ATT_NAME, READONLYFLAG|DIMSCALEFLAG},             /*NAME*/
    {NC_ATT_REFERENCE_LIST, READONLYFLAG|DIMSCALEFLAG},   /*REFERENCE_LIST*/
-   {NC_ATT_FORMAT, READONLYFLAG},                /*_Format*/
-   {ISNETCDF4ATT, READONLYFLAG|NAMEONLYFLAG}, /*_IsNetcdf4*/
-   {NCPROPS, READONLYFLAG|NAMEONLYFLAG},         /*_NCProperties*/
-   {NC_ATT_COORDINATES, READONLYFLAG|DIMSCALEFLAG},      /*_Netcdf4Coordinates*/
-   {NC_DIMID_ATT_NAME, READONLYFLAG|DIMSCALEFLAG},       /*_Netcdf4Dimid*/
+   {NC_ATT_FORMAT, READONLYFLAG},               	 /*_Format*/
+   {ISNETCDF4ATT, READONLYFLAG|NAMEONLYFLAG}, 		 /*_IsNetcdf4*/
+   {NCPROPS, READONLYFLAG|NAMEONLYFLAG|MATERIALIZEDFLAG},/*_NCProperties*/
+   {NC_ATT_COORDINATES, READONLYFLAG|DIMSCALEFLAG|MATERIALIZEDFLAG},/*_Netcdf4Coordinates*/
+   {NC_DIMID_ATT_NAME, READONLYFLAG|DIMSCALEFLAG|MATERIALIZEDFLAG},/*_Netcdf4Dimid*/
    {SUPERBLOCKATT, READONLYFLAG|NAMEONLYFLAG},/*_SuperblockVersion*/
-   {NC3_STRICT_ATT_NAME, READONLYFLAG},  /*_nc3_strict*/
+   {NC3_STRICT_ATT_NAME, READONLYFLAG|MATERIALIZEDFLAG},  /*_nc3_strict*/
 };
-
-extern void reportopenobjects(int log, hid_t);
 
 /* Forward */
 static int NC4_enddef(int ncid);
@@ -51,6 +52,8 @@ static void dumpopenobjects(NC_FILE_INFO_T* h5);
  * @internal Define a binary searcher for reserved attributes
  * @param name for which to search
  * @return pointer to the matchig NC_reservedatt structure.
+ * @return NULL if not found.
+ * @author Dennis Heimbigner
  */
 const NC_reservedatt*
 NC_findreserved(const char* name)
@@ -70,6 +73,84 @@ NC_findreserved(const char* name)
          R = (m - 1);
    }
    return NULL;
+}
+
+/**
+ * @internal Recursively determine if there is a mismatch between
+ * order of coordinate creation and associated dimensions in this
+ * group or any subgroups, to find out if we have to handle that
+ * situation.  Also check if there are any multidimensional coordinate
+ * variables defined, which require the same treatment to fix a
+ * potential bug when such variables occur in subgroups.
+ *
+ * @param grp Pointer to group info struct.
+ * @param bad_coord_orderp Pointer that gets 1 if there is a bad
+ * coordinate order.
+ *
+ * @returns NC_NOERR No error.
+ * @returns NC_EHDFERR HDF5 returned an error.
+ * @author Ed Hartnett
+ */
+static int
+detect_preserve_dimids(NC_GRP_INFO_T *grp, nc_bool_t *bad_coord_orderp)
+{
+   NC_VAR_INFO_T *var;
+   NC_GRP_INFO_T *child_grp;
+   int last_dimid = -1;
+   int retval;
+   int i;
+
+   /* Iterate over variables in this group */
+   for (i=0; i < ncindexsize(grp->vars); i++)
+   {
+      var = (NC_VAR_INFO_T*)ncindexith(grp->vars,i);
+      if (var == NULL) continue;
+      /* Only matters for dimension scale variables, with non-scalar dimensionality */
+      if (var->dimscale && var->ndims)
+      {
+         /* If the user writes coord vars in a different order then he
+          * defined their dimensions, then, when the file is reopened, the
+          * order of the dimids will change to match the order of the coord
+          * vars. Detect if this is about to happen. */
+         if (var->dimids[0] < last_dimid)
+         {
+            LOG((5, "%s: %s is out of order coord var", __func__, var->hdr.name));
+            *bad_coord_orderp = NC_TRUE;
+            return NC_NOERR;
+         }
+         last_dimid = var->dimids[0];
+
+         /* If there are multidimensional coordinate variables defined, then
+          * it's also necessary to preserve dimension IDs when the file is
+          * reopened ... */
+         if (var->ndims > 1)
+         {
+            LOG((5, "%s: %s is multidimensional coord var", __func__, var->hdr.name));
+            *bad_coord_orderp = NC_TRUE;
+            return NC_NOERR;
+         }
+
+         /* Did the user define a dimension, end define mode, reenter define
+          * mode, and then define a coordinate variable for that dimension?
+          * If so, dimensions will be out of order. */
+         if (var->is_new_var || var->became_coord_var)
+         {
+            LOG((5, "%s: coord var defined after enddef/redef", __func__));
+            *bad_coord_orderp = NC_TRUE;
+            return NC_NOERR;
+         }
+      }
+   }
+
+   /* If there are any child groups, check them also for this condition. */
+   for (i = 0; i < ncindexsize(grp->children); i++)
+   {
+      if (!(child_grp = (NC_GRP_INFO_T *)ncindexith(grp->children, i)))
+         continue;
+      if ((retval = detect_preserve_dimids(child_grp, bad_coord_orderp)))
+         return retval;
+   }
+   return NC_NOERR;
 }
 
 /**
@@ -109,11 +190,11 @@ sync_netcdf4_file(NC_FILE_INFO_T *h5)
 #ifdef LOGGING
    /* This will print out the names, types, lens, etc of the vars and
       atts in the file, if the logging level is 2 or greater. */
-   log_metadata_nc(h5->root_grp->nc4_info->controller);
+   log_metadata_nc(h5);
 #endif
 
    /* Write any metadata that has changed. */
-   if (!(h5->cmode & NC_NOWRITE))
+   if (!h5->no_write)
    {
       nc_bool_t bad_coord_order = NC_FALSE;
 
@@ -124,12 +205,16 @@ sync_netcdf4_file(NC_FILE_INFO_T *h5)
       /* Check to see if the coordinate order is messed up. If
        * detected, propagate to all groups to consistently store
        * dimids. */
-      if ((retval = nc4_detect_preserve_dimids(h5->root_grp, &bad_coord_order)))
+      if ((retval = detect_preserve_dimids(h5->root_grp, &bad_coord_order)))
          return retval;
 
       /* Write all the metadata. */
       if ((retval = nc4_rec_write_metadata(h5->root_grp, bad_coord_order)))
          return retval;
+
+      /* Write out _NCProperties */
+      if((retval = NC4_write_ncproperties(h5)))
+	return retval;
    }
 
    /* Tell HDF5 to flush all changes to the file. */
@@ -151,32 +236,26 @@ sync_netcdf4_file(NC_FILE_INFO_T *h5)
  * @param memio the place to return a core image if not NULL
  *
  * @return ::NC_NOERR No error.
- * @author Ed Hartnett
+ * @return ::NC_EHDFERR HDF5 could not close the file.
+ * @return ::NC_EINDEFINE Classic model file is in define mode.
+ * @author Ed Hartnett, Dennis Heimbigner
  */
 int
-nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio* memio)
+nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio)
 {
    NC_HDF5_FILE_INFO_T *hdf5_info;
-   int retval = NC_NOERR;
+   int retval;
 
    assert(h5 && h5->root_grp && h5->format_file_info);
    LOG((3, "%s: h5->path %s abort %d", __func__, h5->controller->path, abort));
+
+   /* Get HDF5 specific info. */
    hdf5_info = (NC_HDF5_FILE_INFO_T *)h5->format_file_info;
-
-   /* According to the docs, always end define mode on close. */
-   if (h5->flags & NC_INDEF)
-      h5->flags ^= NC_INDEF;
-
-   /* Sync the file, unless we're aborting, or this is a read-only
-    * file. */
-   if (!h5->no_write && !abort)
-      if ((retval = sync_netcdf4_file(h5)))
-         goto exit;
 
    /* Delete all the list contents for vars, dims, and atts, in each
     * group. */
    if ((retval = nc4_rec_grp_del(h5->root_grp)))
-      goto exit;
+      return retval;
 
    /* Free lists of dims, groups, and types in the root group. */
    nclistfree(h5->alldims);
@@ -197,50 +276,101 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio* memio)
 
    /* Free the fileinfo struct, which holds info from the fileinfo
     * hidden attribute. */
-   if (h5->fileinfo)
-      free(h5->fileinfo);
+   if (h5->provenance)
+      NC4_free_provenance(h5->provenance);
+   h5->provenance = NULL; /* Avoid double dealloc */
 
    /* Close hdf file. It may not be open, since this function is also
     * called by NC_create() when a file opening is aborted. */
-   if (hdf5_info->hdfid && H5Fclose(hdf5_info->hdfid) < 0)
+   if (hdf5_info->hdfid > 0 && H5Fclose(hdf5_info->hdfid) < 0)
    {
       dumpopenobjects(h5);
-      BAIL(NC_EHDFERR);
+      return NC_EHDFERR;
    }
 
    /* If inmemory is used and user wants the final memory block,
       then capture and return the final memory block else free it */
    if(h5->mem.inmemory) {
+       /* Pull out the final memory */
+       (void)NC4_extract_file_image(h5);
        if(!abort && memio != NULL) {
 	    *memio = h5->mem.memio; /* capture it */
 	    h5->mem.memio.memory = NULL; /* avoid duplicate free */
        }
        /* If needed, reclaim extraneous memory */
        if(h5->mem.memio.memory != NULL) {
-	/* If the original block of memory is not resizeable, then
-           it belongs to the caller and we should not free it. */
-	if(!h5->mem.locked)
-	    free(h5->mem.memio.memory);	
+	    /* If the original block of memory is not resizeable, then
+               it belongs to the caller and we should not free it. */
+	    if(!h5->mem.locked)
+	        free(h5->mem.memio.memory);	
        }
        h5->mem.memio.memory = NULL;
        h5->mem.memio.size = 0;
        NC4_image_finalize(h5->mem.udata);
-   }
+    }
 
    /* Free the HDF5-specific info. */
    if (h5->format_file_info)
       free(h5->format_file_info);
 
-exit:
    /* Free the nc4_info struct; above code should have reclaimed
       everything else */
+   free(h5);
 
-   if (!retval)
-
-      free(h5);
-   return retval;
+   return NC_NOERR;
 }
 
+/**
+ * @internal This function will recurse through an open HDF5 file and
+ * release resources. All open HDF5 objects in the file will be
+ * closed.
+ *
+ * @param h5 Pointer to HDF5 file info struct.
+ * @param abort True if this is an abort.
+ * @param memio the place to return a core image if not NULL
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EHDFERR HDF5 could not close the file.
+ * @author Ed Hartnett
+ */
+int
+nc4_close_hdf5_file(NC_FILE_INFO_T *h5, int abort,  NC_memio *memio)
+{
+   int retval;
+
+   assert(h5 && h5->root_grp && h5->format_file_info);
+   LOG((3, "%s: h5->path %s abort %d", __func__, h5->controller->path, abort));
+
+   /* According to the docs, always end define mode on close. */
+   if (h5->flags & NC_INDEF)
+      h5->flags ^= NC_INDEF;
+
+   /* Sync the file, unless we're aborting, or this is a read-only
+    * file. */
+   if (!h5->no_write && !abort)
+      if ((retval = sync_netcdf4_file(h5)))
+         return retval;
+
+   /* Close all open HDF5 objects within the file. */
+   if ((retval = nc4_rec_grp_HDF5_del(h5->root_grp)))
+      return retval;
+
+   /* Release all intarnal lists and metadata associated with this
+    * file. All HDF5 objects have already been released. */
+   if ((retval = nc4_close_netcdf4_file(h5, abort, memio)))
+      return retval;
+
+   return NC_NOERR;
+}
+
+/**
+ * @internal Output a list of still-open objects in the HDF5
+ * file. This is only called if the file fails to close cleanly.
+ *
+ * @param h5 Pointer to file info.
+ *
+ * @author Dennis Heimbigner
+ */
 static void
 dumpopenobjects(NC_FILE_INFO_T* h5)
 {
@@ -282,105 +412,6 @@ dumpopenobjects(NC_FILE_INFO_T* h5)
    return;
 }
 
-size_t nc4_chunk_cache_size = CHUNK_CACHE_SIZE;            /**< Default chunk cache size. */
-size_t nc4_chunk_cache_nelems = CHUNK_CACHE_NELEMS;        /**< Default chunk cache number of elements. */
-float nc4_chunk_cache_preemption = CHUNK_CACHE_PREEMPTION; /**< Default chunk cache preemption. */
-
-
-/**
- * Set chunk cache size. Only affects files opened/created *after* it
- * is called.
- *
- * @param size Size in bytes to set cache.
- * @param nelems Number of elements to hold in cache.
- * @param preemption Premption stragety (between 0 and 1).
- *
- * @return ::NC_NOERR No error.
- * @return ::NC_EINVAL Bad preemption.
- * @author Ed Hartnett
- */
-int
-nc_set_chunk_cache(size_t size, size_t nelems, float preemption)
-{
-   if (preemption < 0 || preemption > 1)
-      return NC_EINVAL;
-   nc4_chunk_cache_size = size;
-   nc4_chunk_cache_nelems = nelems;
-   nc4_chunk_cache_preemption = preemption;
-   return NC_NOERR;
-}
-
-/**
- * Get chunk cache size. Only affects files opened/created *after* it
- * is called.
- *
- * @param sizep Pointer that gets size in bytes to set cache.
- * @param nelemsp Pointer that gets number of elements to hold in cache.
- * @param preemptionp Pointer that gets premption stragety (between 0 and 1).
- *
- * @return ::NC_NOERR No error.
- * @author Ed Hartnett
- */
-int
-nc_get_chunk_cache(size_t *sizep, size_t *nelemsp, float *preemptionp)
-{
-   if (sizep)
-      *sizep = nc4_chunk_cache_size;
-
-   if (nelemsp)
-      *nelemsp = nc4_chunk_cache_nelems;
-
-   if (preemptionp)
-      *preemptionp = nc4_chunk_cache_preemption;
-   return NC_NOERR;
-}
-
-/**
- * @internal Set the chunk cache. Required for fortran to avoid size_t
- * issues.
- *
- * @param size Cache size.
- * @param nelems Number of elements.
- * @param preemption Preemption * 100.
- *
- * @return NC_NOERR No error.
- * @author Ed Hartnett
- */
-int
-nc_set_chunk_cache_ints(int size, int nelems, int preemption)
-{
-   if (size <= 0 || nelems <= 0 || preemption < 0 || preemption > 100)
-      return NC_EINVAL;
-   nc4_chunk_cache_size = size;
-   nc4_chunk_cache_nelems = nelems;
-   nc4_chunk_cache_preemption = (float)preemption / 100;
-   return NC_NOERR;
-}
-
-/**
- * @internal Get the chunk cache settings. Required for fortran to
- * avoid size_t issues.
- *
- * @param sizep Pointer that gets cache size.
- * @param nelemsp Pointer that gets number of elements.
- * @param preemptionp Pointer that gets preemption * 100.
- *
- * @return NC_NOERR No error.
- * @author Ed Hartnett
- */
-int
-nc_get_chunk_cache_ints(int *sizep, int *nelemsp, int *preemptionp)
-{
-   if (sizep)
-      *sizep = (int)nc4_chunk_cache_size;
-   if (nelemsp)
-      *nelemsp = (int)nc4_chunk_cache_nelems;
-   if (preemptionp)
-      *preemptionp = (int)(nc4_chunk_cache_preemption * 100);
-
-   return NC_NOERR;
-}
-
 /**
  * @internal Unfortunately HDF only allows specification of fill value
  * only when a dataset is created. Whereas in netcdf, you first create
@@ -398,13 +429,14 @@ nc_get_chunk_cache_ints(int *sizep, int *nelemsp, int *preemptionp)
 int
 NC4_set_fill(int ncid, int fillmode, int *old_modep)
 {
-   NC *nc;
-   NC_FILE_INFO_T* nc4_info;
+   NC_FILE_INFO_T *nc4_info;
+   int retval;
 
    LOG((2, "%s: ncid 0x%x fillmode %d", __func__, ncid, fillmode));
 
-   if (!(nc = nc4_find_nc_file(ncid,&nc4_info)))
-      return NC_EBADID;
+   /* Get pointer to file info. */
+   if ((retval = nc4_find_grp_h5(ncid, NULL, &nc4_info)))
+      return retval;
    assert(nc4_info);
 
    /* Trying to set fill on a read-only file? You sicken me! */
@@ -421,7 +453,6 @@ NC4_set_fill(int ncid, int fillmode, int *old_modep)
 
    nc4_info->fill_mode = fillmode;
 
-
    return NC_NOERR;
 }
 
@@ -437,13 +468,14 @@ NC4_set_fill(int ncid, int fillmode, int *old_modep)
 int
 NC4_redef(int ncid)
 {
-   NC_FILE_INFO_T* nc4_info;
+   NC_FILE_INFO_T *nc4_info;
+   int retval;
 
    LOG((1, "%s: ncid 0x%x", __func__, ncid));
 
    /* Find this file's metadata. */
-   if (!(nc4_find_nc_file(ncid,&nc4_info)))
-      return NC_EBADID;
+   if ((retval = nc4_find_grp_h5(ncid, NULL, &nc4_info)))
+      return retval;
    assert(nc4_info);
 
    /* If we're already in define mode, return an error. */
@@ -481,9 +513,6 @@ int
 NC4__enddef(int ncid, size_t h_minfree, size_t v_align,
             size_t v_minfree, size_t r_align)
 {
-   if (nc4_find_nc_file(ncid,NULL) == NULL)
-      return NC_EBADID;
-
    return NC4_enddef(ncid);
 }
 
@@ -498,29 +527,26 @@ NC4__enddef(int ncid, size_t h_minfree, size_t v_align,
  * @return ::NC_EBADGRPID Bad group ID.
  * @author Ed Hartnett
  */
-static int NC4_enddef(int ncid)
+static int
+NC4_enddef(int ncid)
 {
-   NC *nc;
    NC_FILE_INFO_T *nc4_info;
    NC_GRP_INFO_T *grp;
+   NC_VAR_INFO_T *var;
    int i;
+   int retval;
 
    LOG((1, "%s: ncid 0x%x", __func__, ncid));
 
-   if (!(nc = nc4_find_nc_file(ncid, &nc4_info)))
-      return NC_EBADID;
-   assert(nc4_info);
-
-   /* Find info for this file and group */
-   if (!(grp = nc4_rec_find_grp(nc4_info, (ncid & GRP_ID_MASK))))
-      return NC_EBADGRPID;
+   /* Find pointer to group and nc4_info. */
+   if ((retval = nc4_find_grp_h5(ncid, &grp, &nc4_info)))
+      return retval;
 
    /* When exiting define mode, mark all variable written. */
    for (i = 0; i < ncindexsize(grp->vars); i++)
    {
-      NC_VAR_INFO_T *var;
-      if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, i)))
-         continue;
+      var = (NC_VAR_INFO_T *)ncindexith(grp->vars, i);
+      assert(var);
       var->written_to = NC_TRUE;
    }
 
@@ -534,23 +560,24 @@ static int NC4_enddef(int ncid)
  * @param ncid File and group ID.
  *
  * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_EINDEFINE Classic model file is in define mode.
  * @author Ed Hartnett
  */
 int
 NC4_sync(int ncid)
 {
-   NC *nc;
+   NC_FILE_INFO_T *nc4_info;
    int retval;
-   NC_FILE_INFO_T* nc4_info;
 
    LOG((2, "%s: ncid 0x%x", __func__, ncid));
 
-   if (!(nc = nc4_find_nc_file(ncid,&nc4_info)))
-      return NC_EBADID;
+   if ((retval = nc4_find_grp_h5(ncid, NULL, &nc4_info)))
+      return retval;
    assert(nc4_info);
 
    /* If we're in define mode, we can't sync. */
-   if (nc4_info && nc4_info->flags & NC_INDEF)
+   if (nc4_info->flags & NC_INDEF)
    {
       if (nc4_info->cmode & NC_CLASSIC_MODEL)
          return NC_EINDEFINE;
@@ -578,29 +605,28 @@ int
 NC4_abort(int ncid)
 {
    NC *nc;
+   NC_FILE_INFO_T *nc4_info;
    int delete_file = 0;
    char path[NC_MAX_NAME + 1];
-   int retval = NC_NOERR;
-   NC_FILE_INFO_T* nc4_info;
+   int retval;
 
    LOG((2, "%s: ncid 0x%x", __func__, ncid));
 
    /* Find metadata for this file. */
-   if (!(nc = nc4_find_nc_file(ncid,&nc4_info)))
-      return NC_EBADID;
-
+   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, NULL, &nc4_info)))
+      return retval;
    assert(nc4_info);
 
    /* If we're in define mode, but not redefing the file, delete it. */
    if (nc4_info->flags & NC_INDEF && !nc4_info->redef)
    {
       delete_file++;
-      strncpy(path, nc->path,NC_MAX_NAME);
+      strncpy(path, nc->path, NC_MAX_NAME);
    }
 
    /* Free any resources the netcdf-4 library has for this file's
     * metadata. */
-   if ((retval = nc4_close_netcdf4_file(nc4_info, 1, NULL)))
+   if ((retval = nc4_close_hdf5_file(nc4_info, 1, NULL)))
       return retval;
 
    /* Delete the file, if we should. */
@@ -608,7 +634,7 @@ NC4_abort(int ncid)
       if (remove(path) < 0)
          return NC_ECANTREMOVE;
 
-   return retval;
+   return NC_NOERR;
 }
 
 /**
@@ -624,7 +650,6 @@ int
 NC4_close(int ncid, void* params)
 {
    NC_GRP_INFO_T *grp;
-   NC *nc;
    NC_FILE_INFO_T *h5;
    int retval;
    int inmemory;
@@ -633,10 +658,10 @@ NC4_close(int ncid, void* params)
    LOG((1, "%s: ncid 0x%x", __func__, ncid));
 
    /* Find our metadata for this file. */
-   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
+   if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
       return retval;
 
-   assert(nc && h5 && grp);
+   assert(h5 && grp);
 
    /* This must be the root group. */
    if (grp->parent)
@@ -649,7 +674,7 @@ NC4_close(int ncid, void* params)
    }
 
    /* Call the nc4 close. */
-   if ((retval = nc4_close_netcdf4_file(grp->nc4_info, 0, memio)))
+   if ((retval = nc4_close_hdf5_file(grp->nc4_info, 0, memio)))
       return retval;
 
    return NC_NOERR;
