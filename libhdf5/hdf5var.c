@@ -12,8 +12,12 @@
 #include <hdf5internal.h>
 #include <math.h>
 
-/** @internal Default size for unlimited dim chunksize */
+/** @internal Default size for unlimited dim chunksize. */
 #define DEFAULT_1D_UNLIM_SIZE (4096)
+
+/** @internal Temp name used when renaming vars to preserve varid
+ * order. */
+#define NC_TEMP_NAME "_netcdf4_temporary_variable_name_for_rename"
 
 /**
  * @internal If the HDF5 dataset for this variable is open, then close
@@ -1184,8 +1188,13 @@ NC4_rename_var(int ncid, int varid, const char *name)
          assert(my_var);
          if (!my_var->created)
             continue; /* I'm not sure this is possible. */
-
          LOG((3, "mandatory rename of %s to same name", my_var->hdr.name));
+         if (H5Lmove(hdf5_grp->hdf_grpid, my_var->hdr.name, hdf5_grp->hdf_grpid,
+                     NC_TEMP_NAME, H5P_DEFAULT, H5P_DEFAULT) < 0)
+            return NC_EHDFERR;
+         if (H5Lmove(hdf5_grp->hdf_grpid, NC_TEMP_NAME, hdf5_grp->hdf_grpid,
+                     my_var->hdr.name, H5P_DEFAULT, H5P_DEFAULT) < 0)
+            return NC_EHDFERR;
       }
    }
 
