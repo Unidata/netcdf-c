@@ -727,7 +727,7 @@ NC4_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
    if (nattsp)
    {
       /* Do we need to read the atts? */
-      if (grp->atts_not_read)
+      if (!grp->atts_read)
          if ((retval = nc4_read_atts(grp, NULL)))
             return retval;
 

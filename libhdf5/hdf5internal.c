@@ -837,7 +837,7 @@ nc4_hdf5_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
    if (varid == NC_GLOBAL)
    {
       /* Do we need to read the atts? */
-      if (my_grp->atts_not_read)
+      if (!my_grp->atts_read)
          if ((retval = nc4_read_atts(my_grp, NULL)))
             return retval;
 
@@ -849,7 +849,7 @@ nc4_hdf5_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
          return NC_ENOTVAR;
 
       /* Do we need to read the var attributes? */
-      if (my_var->atts_not_read)
+      if (!my_var->atts_read)
          if ((retval = nc4_read_atts(my_grp, my_var)))
             return retval;
 
