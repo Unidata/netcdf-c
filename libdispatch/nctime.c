@@ -23,6 +23,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <assert.h>
+#include "ncconfigure.h"
 #include "nctime.h"
 
 static int cuErrOpts;			     /* Error options */
@@ -309,7 +310,7 @@ cdParseRelunits(cdCalenType timetype, char* relunits, cdUnitTime* unit, cdCompTi
 	char charunits[CD_MAX_RELUNITS];
 	char basetime_1[CD_MAX_CHARTIME];
 	char basetime_2[CD_MAX_CHARTIME];
-	char basetime[CD_MAX_CHARTIME];
+	char basetime[2 * CD_MAX_CHARTIME + 1];
 	int nconv1, nconv2, nconv;
 
 					     /* Parse the relunits */
@@ -659,6 +660,7 @@ Cdh2e(CdTime *htime, double *etime)
 static int
 cdValidateTime(cdCalenType timetype, cdCompTime comptime)
 {
+	NC_UNUSED(timetype);
 	if(comptime.month<1 || comptime.month>12){
 		cdError("Error on time conversion: invalid month = %hd\n",comptime.month);
 		return 1;
