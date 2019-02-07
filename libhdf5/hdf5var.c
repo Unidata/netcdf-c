@@ -221,6 +221,36 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 }
 
 /**
+ * @internal Give a var a secret HDF5 name. This is needed when a var
+ * is defined with the same name as a dim, but it is not a coord var
+ * of that dim. In that case, the var uses a secret name inside the
+ * HDF5 file.
+ *
+ * @param var Pointer to var info.
+ * @param name Name to use for base of secret name.
+ *
+ * @returns ::NC_NOERR No error.
+ * @returns ::NC_EMAXNAME Name too long to fit secret prefix.
+ * @returns ::NC_ENOMEM Out of memory.
+ * @author Ed Hartnett
+ */
+static int
+give_var_secret_name(NC_VAR_INFO_T *var, const char *name)
+{
+   /* Set a different hdf5 name for this variable to avoid name
+    * clash. */
+   if (strlen(name) + strlen(NON_COORD_PREPEND) > NC_MAX_NAME)
+      return NC_EMAXNAME;
+   if (!(var->hdf5_name = malloc((strlen(NON_COORD_PREPEND) +
+                                  strlen(name) + 1) * sizeof(char))))
+      return NC_ENOMEM;
+
+   sprintf(var->hdf5_name, "%s%s", NON_COORD_PREPEND, name);
+
+   return NC_NOERR;
+}
+
+/**
  * @internal This is called when a new netCDF-4 variable is defined
  * with nc_def_var().
  *
@@ -410,6 +440,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
 
    var->is_new_var = NC_TRUE;
    var->meta_read = NC_TRUE;
+   var->atts_read = NC_TRUE;
 
    /* Point to the type, and increment its ref. count */
    var->type_info = type;
@@ -501,17 +532,8 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
     * and this var has the same name. */
    dim = (NC_DIM_INFO_T*)ncindexlookup(grp->dim,norm_name);
    if (dim && (!var->ndims || dimidsp[0] != dim->hdr.id))
-   {
-      /* Set a different hdf5 name for this variable to avoid name
-       * clash. */
-      if (strlen(norm_name) + strlen(NON_COORD_PREPEND) > NC_MAX_NAME)
-         BAIL(NC_EMAXNAME);
-      if (!(var->hdf5_name = malloc((strlen(NON_COORD_PREPEND) +
-                                     strlen(norm_name) + 1) * sizeof(char))))
-         BAIL(NC_ENOMEM);
-
-      sprintf(var->hdf5_name, "%s%s", NON_COORD_PREPEND, norm_name);
-   }
+      if ((retval = give_var_secret_name(var, var->hdr.name)))
+         BAIL(retval);
 
    /* If this is a coordinate var, it is marked as a HDF5 dimension
     * scale. (We found dim above.) Otherwise, allocate space to
@@ -1038,6 +1060,8 @@ NC4_rename_var(int ncid, int varid, const char *name)
    NC_HDF5_GRP_INFO_T *hdf5_grp;
    NC_FILE_INFO_T *h5;
    NC_VAR_INFO_T *var;
+   NC_DIM_INFO_T *other_dim;
+   int use_secret_name = 0;
    int retval = NC_NOERR;
 
    if (!name)
@@ -1081,10 +1105,31 @@ NC4_rename_var(int ncid, int varid, const char *name)
        (h5->cmode & NC_CLASSIC_MODEL))
       return NC_ENOTINDEFINE;
 
+   /* Is there another dim with this name, for which this var will not
+    * be a coord var? If so, we have to create a dim without a
+    * variable for the old name. */
+   if ((other_dim = (NC_DIM_INFO_T *)ncindexlookup(grp->dim, name)) &&
+       strcmp(name, var->dim[0]->hdr.name))
+   {
+      /* Create a dim without var dataset for old dim. */
+      if ((retval = nc4_create_dim_wo_var(other_dim)))
+         return retval;
+
+      /* Give this var a secret HDF5 name so it can co-exist in file
+       * with dim wp var dataset. Base the secret name on the new var
+       * name. */
+      if ((retval = give_var_secret_name(var, name)))
+         return retval;
+      use_secret_name++;
+   }
+
    /* Change the HDF5 file, if this var has already been created
       there. */
    if (var->created)
    {
+      char *hdf5_name;
+      hdf5_name = use_secret_name ? var->hdf5_name: (char *)name;
+
       /* Do we need to read var metadata? */
       if (!var->meta_read)
          if ((retval = nc4_get_var_meta(var)))
@@ -1106,7 +1151,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
       }
 
       LOG((3, "Moving dataset %s to %s", var->hdr.name, name));
-      if (H5Gmove(hdf5_grp->hdf_grpid, var->hdr.name, name) < 0)
+      if (H5Gmove(hdf5_grp->hdf_grpid, var->hdr.name, hdf5_name) < 0)
          BAIL(NC_EHDFERR);
    }
 

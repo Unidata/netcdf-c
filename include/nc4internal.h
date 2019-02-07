@@ -153,7 +153,7 @@ typedef struct NC_VAR_INFO
    nc_bool_t created;           /* Variable has already been created (_not_ that it was just created) */
    nc_bool_t written_to;        /* True if variable has data written to it */
    struct NC_TYPE_INFO *type_info;
-   int atts_not_read;           /* If true, the atts have not yet been read. */
+   int atts_read;               /* If true, the atts have been read. */
    nc_bool_t meta_read;         /* True if this vars metadata has been completely read. */
    nc_bool_t coords_read;       /* True if this var has hidden coordinates att, and it has been read. */
    NCindex *att; 		/* NCindex<NC_ATT_INFO_T*> */
@@ -229,7 +229,7 @@ typedef struct NC_GRP_INFO
    void *format_grp_info;
    struct NC_FILE_INFO *nc4_info;
    struct NC_GRP_INFO *parent;
-   int atts_not_read;
+   int atts_read;               /* True if atts have been read for this group. */
    NCindex* children;		/* NCindex<struct NC_GRP_INFO*> */
    NCindex* dim;		/* NCindex<NC_DIM_INFO_T> * */
    NCindex* att;		/* NCindex<NC_ATT_INFO_T> * */
