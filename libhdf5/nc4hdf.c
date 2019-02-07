@@ -1708,6 +1708,92 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
 }
 
 /**
+ * @internal Write a HDF5 dataset which is a dimension without a
+ * coordinate variable. This is a special 1-D dataset.
+ *
+ * @param dim Pointer to dim info struct.
+ * @param grp Pointer to group info struct.
+ * @param write_dimid
+ *
+ * @returns ::NC_NOERR No error.
+ * @returns ::NC_EPERM Read-only file.
+ * @returns ::NC_EHDFERR HDF5 returned error.
+ * @author Ed Hartnett
+ */
+int
+nc4_create_dim_wo_var(NC_DIM_INFO_T *dim)
+{
+   NC_HDF5_DIM_INFO_T *hdf5_dim;
+   NC_HDF5_GRP_INFO_T *hdf5_grp;
+   hid_t spaceid = -1, create_propid = -1;
+   hsize_t dims[1], max_dims[1], chunk_dims[1] = {1};
+   char dimscale_wo_var[NC_MAX_NAME];
+   int retval = NC_NOERR;
+
+   LOG((4, "%s: creating dim %s", __func__, dim->hdr.name));
+
+   /* Sanity check */
+   assert(!dim->coord_var);
+
+   /* Get HDF5-specific dim and group info. */
+   hdf5_grp = (NC_HDF5_GRP_INFO_T *)dim->container->format_grp_info;
+   hdf5_dim = (NC_HDF5_DIM_INFO_T *)dim->format_dim_info;
+
+   /* Create a property list. */
+   if ((create_propid = H5Pcreate(H5P_DATASET_CREATE)) < 0)
+      BAIL(NC_EHDFERR);
+
+   /* Turn off recording of times associated with this object. */
+   if (H5Pset_obj_track_times(create_propid, 0) < 0)
+      BAIL(NC_EHDFERR);
+
+   /* Set size of dataset to size of dimension. */
+   dims[0] = dim->len;
+   max_dims[0] = dim->len;
+
+   /* If this dimension scale is unlimited (i.e. it's an unlimited
+    * dimension), then set up chunking, with a chunksize of 1. */
+   if (dim->unlimited)
+   {
+      max_dims[0] = H5S_UNLIMITED;
+      if (H5Pset_chunk(create_propid, 1, chunk_dims) < 0)
+         BAIL(NC_EHDFERR);
+   }
+
+   /* Set up space. */
+   if ((spaceid = H5Screate_simple(1, dims, max_dims)) < 0)
+      BAIL(NC_EHDFERR);
+
+   /* Turn on creation-order tracking. */
+   if (H5Pset_attr_creation_order(create_propid, H5P_CRT_ORDER_TRACKED|
+                                  H5P_CRT_ORDER_INDEXED) < 0)
+      BAIL(NC_EHDFERR);
+
+   /* Create the dataset that will be the dimension scale. */
+   LOG((4, "%s: about to H5Dcreate1 a dimscale dataset %s", __func__,
+        dim->hdr.name));
+   if ((hdf5_dim->hdf_dimscaleid = H5Dcreate2(hdf5_grp->hdf_grpid, dim->hdr.name,
+                                              H5T_IEEE_F32BE, spaceid,
+                                              H5P_DEFAULT, create_propid,
+                                              H5P_DEFAULT)) < 0)
+      BAIL(NC_EHDFERR);
+
+   /* Indicate that this is a scale. Also indicate that not
+    * be shown to the user as a variable. It is hidden. It is
+    * a DIM WITHOUT A VARIABLE! */
+   sprintf(dimscale_wo_var, "%s%10d", DIM_WITHOUT_VARIABLE, (int)dim->len);
+   if (H5DSset_scale(hdf5_dim->hdf_dimscaleid, dimscale_wo_var) < 0)
+      BAIL(NC_EHDFERR);
+
+exit:
+   if (spaceid > 0 && H5Sclose(spaceid) < 0)
+      BAIL2(NC_EHDFERR);
+   if (create_propid > 0 && H5Pclose(create_propid) < 0)
+      BAIL2(NC_EHDFERR);
+   return retval;
+}
+
+/**
  * @internal Write a dimension.
  *
  * @param dim Pointer to dim info struct.
@@ -1722,76 +1808,21 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
 static int
 write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
 {
-   hid_t spaceid = -1, create_propid = -1;
-   NC_HDF5_GRP_INFO_T *hdf5_grp;
    NC_HDF5_DIM_INFO_T *hdf5_dim;
-   hsize_t *new_size = NULL;
    int retval = NC_NOERR;
 
    assert(dim && dim->format_dim_info && grp && grp->format_grp_info);
 
    /* Get HDF5-specific dim and group info. */
    hdf5_dim = (NC_HDF5_DIM_INFO_T *)dim->format_dim_info;
-   hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->format_grp_info;
 
    /* If there's no dimscale dataset for this dim, create one,
     * and mark that it should be hidden from netCDF as a
     * variable. (That is, it should appear as a dimension
     * without an associated variable.) */
    if (!hdf5_dim->hdf_dimscaleid)
-   {
-      hsize_t dims[1], max_dims[1], chunk_dims[1] = {1};
-      char dimscale_wo_var[NC_MAX_NAME];
-
-      LOG((4, "%s: creating dim %s", __func__, dim->hdr.name));
-
-      /* Sanity check */
-      assert(!dim->coord_var);
-
-      /* Create a property list. If this dimension scale is
-       * unlimited (i.e. it's an unlimited dimension), then set
-       * up chunking, with a chunksize of 1. */
-      if ((create_propid = H5Pcreate(H5P_DATASET_CREATE)) < 0)
-         BAIL(NC_EHDFERR);
-
-      /* Turn off recording of times associated with this object. */
-      if (H5Pset_obj_track_times(create_propid,0)<0)
-         BAIL(NC_EHDFERR);
-
-      dims[0] = dim->len;
-      max_dims[0] = dim->len;
-      if (dim->unlimited)
-      {
-         max_dims[0] = H5S_UNLIMITED;
-         if (H5Pset_chunk(create_propid, 1, chunk_dims) < 0)
-            BAIL(NC_EHDFERR);
-      }
-
-      /* Set up space. */
-      if ((spaceid = H5Screate_simple(1, dims, max_dims)) < 0)
-         BAIL(NC_EHDFERR);
-
-      /* Turn on creation-order tracking. */
-      if (H5Pset_attr_creation_order(create_propid, H5P_CRT_ORDER_TRACKED|
-                                     H5P_CRT_ORDER_INDEXED) < 0)
-         BAIL(NC_EHDFERR);
-
-      /* Create the dataset that will be the dimension scale. */
-      LOG((4, "%s: about to H5Dcreate1 a dimscale dataset %s", __func__,
-           dim->hdr.name));
-      if ((hdf5_dim->hdf_dimscaleid = H5Dcreate2(hdf5_grp->hdf_grpid, dim->hdr.name,
-                                                 H5T_IEEE_F32BE, spaceid,
-                                                 H5P_DEFAULT, create_propid,
-                                                 H5P_DEFAULT)) < 0)
-         BAIL(NC_EHDFERR);
-
-      /* Indicate that this is a scale. Also indicate that not
-       * be shown to the user as a variable. It is hidden. It is
-       * a DIM WITHOUT A VARIABLE! */
-      sprintf(dimscale_wo_var, "%s%10d", DIM_WITHOUT_VARIABLE, (int)dim->len);
-      if (H5DSset_scale(hdf5_dim->hdf_dimscaleid, dimscale_wo_var) < 0)
-         BAIL(NC_EHDFERR);
-   }
+      if ((retval = nc4_create_dim_wo_var(dim)))
+         BAIL(retval);
 
    /* Did we extend an unlimited dimension? */
    if (dim->extended)
@@ -1806,6 +1837,7 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
       if (v1)
       {
          NC_HDF5_VAR_INFO_T *hdf5_v1;
+         hsize_t *new_size;
          int d1;
 
          hdf5_v1 = (NC_HDF5_VAR_INFO_T *)v1->format_var_info;
@@ -1821,6 +1853,7 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
          }
          if (H5Dset_extent(hdf5_v1->hdf_datasetid, new_size) < 0)
             BAIL(NC_EHDFERR);
+         free(new_size);
       }
    }
 
@@ -1833,12 +1866,6 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
          BAIL(retval);
 
 exit:
-   if (spaceid > 0 && H5Sclose(spaceid) < 0)
-      BAIL2(NC_EHDFERR);
-   if (create_propid > 0 && H5Pclose(create_propid) < 0)
-      BAIL2(NC_EHDFERR);
-   if (new_size)
-      free(new_size);
 
    return retval;
 }

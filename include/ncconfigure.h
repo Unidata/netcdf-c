@@ -95,7 +95,13 @@ typedef unsigned short ushort;
 typedef unsigned int uint;
 #endif
 
+
 /* Provide a fixed size alternative to off_t or off64_t */
 typedef long long fileoffset_t;
+
+#ifndef NC_UNUSED
+#define NC_UNUSED(var) (void)var
+#endif
+
 
 #endif /* NCCONFIGURE_H */
