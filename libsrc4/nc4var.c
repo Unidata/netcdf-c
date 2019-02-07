@@ -390,6 +390,9 @@ int
 NC4_var_par_access(int ncid, int varid, int par_access)
 {
 #ifndef USE_PARALLEL4
+   NC_UNUSED(ncid);
+   NC_UNUSED(varid);
+   NC_UNUSED(par_access);
    return NC_ENOPAR;
 #else
    NC *nc;

@@ -67,7 +67,7 @@ static char* queryallow =
 static char* userpwdallow =
 "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!$&'()*+,-.;=_~?#/";
 
-#ifndef HAVE_STRNCMP
+#ifndef HAVE_STRNDUP
 #define strndup ncstrndup
 /* Not all systems have strndup, so provide one*/
 char*
@@ -258,7 +258,7 @@ ncuriparse(const char* uri0, NCURI** durip)
 
     isfile = (strcmp(tmp.protocol,"file")==0);
     if(isfile) {
-	int l = strlen(p); /* to test if we have enough characters */
+	size_t l = strlen(p); /* to test if we have enough characters */
 	hashost = 0; /* always */
 	if(l >= 2 && p[1] == ':' && strchr(DRIVELETTERS,p[0]) != NULL) { /* case 1 */
 	    ; /* p points to the start of the path */

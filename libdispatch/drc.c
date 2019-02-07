@@ -396,8 +396,8 @@ rcsearch(const char* prefix, const char* rcname, char** pathp)
 {
     char* path = NULL;
     FILE* f = NULL;
-    int plen = strlen(prefix);
-    int rclen = strlen(rcname);
+    size_t plen = strlen(prefix);
+    size_t rclen = strlen(rcname);
     int ret = NC_NOERR;
 
     size_t pathlen = plen+rclen+1; /*+1 for '/' */
