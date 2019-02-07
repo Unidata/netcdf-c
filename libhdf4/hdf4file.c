@@ -415,6 +415,7 @@ nc4_var_list_add_full(NC_GRP_INFO_T* grp, const char* name, int ndims, nc_type x
    (*var)->created = NC_TRUE;
    (*var)->written_to = NC_TRUE;
    (*var)->format_var_info = format_var_info;
+   (*var)->atts_read = 1;
 
    /* Fill special type_info struct for variable type information. */
    if ((retval = nc4_set_var_type(xtype, endianness, type_size, type_name,
@@ -630,6 +631,7 @@ NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
    assert(nc4_info && nc4_info->root_grp);
    h5 = nc4_info;
    h5->no_write = NC_TRUE;
+   h5->root_grp->atts_read = 1;
 
    /* Allocate data to hold HDF4 specific file data. */
    if (!(hdf4_file = malloc(sizeof(NC_HDF4_FILE_INFO_T))))

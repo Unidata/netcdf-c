@@ -27,13 +27,14 @@ static int
 getattlist(NC_GRP_INFO_T *grp, int varid, NC_VAR_INFO_T **varp,
             NCindex **attlist)
 {
-   NC_VAR_INFO_T* var;
    int retval;
+
+   assert(grp && attlist);
 
    if (varid == NC_GLOBAL)
    {
       /* Do we need to read the atts? */
-      if (grp->atts_not_read)
+      if (!grp->atts_read)
          if ((retval = nc4_read_atts(grp, NULL)))
             return retval;
 
@@ -43,12 +44,14 @@ getattlist(NC_GRP_INFO_T *grp, int varid, NC_VAR_INFO_T **varp,
    }
    else
    {
+      NC_VAR_INFO_T *var;
+
       if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, varid)))
          return NC_ENOTVAR;
       assert(var->hdr.id == varid);
 
       /* Do we need to read the atts? */
-      if (var->atts_not_read)
+      if (!var->atts_read)
          if ((retval = nc4_read_atts(grp, var)))
             return retval;
 
