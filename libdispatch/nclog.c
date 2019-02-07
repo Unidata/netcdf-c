@@ -213,6 +213,7 @@ Each line will be sent using nclog with the specified tag.
 void
 nclogtextn(int tag, const char* text, size_t count)
 {
+    NC_UNUSED(tag);
     if(!nclogging || nclogstream == NULL) return;
     fwrite(text,1,count,nclogstream);
     fflush(nclogstream);

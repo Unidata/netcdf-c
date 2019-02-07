@@ -184,7 +184,11 @@ blksize(int fd)
 		return 8192;
 	}
 	/* else, silent in the face of error */
+#else
+	NC_UNUSED(fd);
 #endif
+#else
+	NC_UNUSED(fd);
 #endif
 	return (size_t) 2 * pagesize();
 }
@@ -445,6 +449,7 @@ px_rel(ncio_px *const pxp, off_t offset, int rflags)
 		 && offset < pxp->bf_offset + (off_t) pxp->bf_extent);
 	assert(pIf(fIsSet(rflags, RGN_MODIFIED),
 		fIsSet(pxp->bf_rflags, RGN_WRITE)));
+	NC_UNUSED(offset);
 
 	if(fIsSet(rflags, RGN_MODIFIED))
 	{
@@ -797,6 +802,7 @@ px_double_buffer(ncio *const nciop, off_t to, off_t from,
 	int status = NC_NOERR;
 	void *src;
 	void *dest;
+	NC_UNUSED(rflags);
 
 #if INSTRUMENT
 fprintf(stderr, "\tdouble_buffr %ld %ld %ld\n",
@@ -1152,6 +1158,7 @@ ncio_spx_rel(ncio *const nciop, off_t offset, int rflags)
 	assert(offset < pxp->bf_offset + X_ALIGN);
 	assert(pxp->bf_cnt % X_ALIGN == 0 );
 #endif
+	NC_UNUSED(offset);
 
 	if(fIsSet(rflags, RGN_MODIFIED))
 	{
@@ -1400,6 +1407,7 @@ ncio_spx_move(ncio *const nciop, off_t to, off_t from,
 static int
 ncio_spx_sync(ncio *const nciop)
 {
+	NC_UNUSED(nciop);
 	/* NOOP */
 	return NC_NOERR;
 }
@@ -1592,6 +1600,7 @@ posixio_create(const char *path, int ioflags,
 	int oflags = (O_RDWR|O_CREAT);
 	int fd;
 	int status;
+	NC_UNUSED(parameters);
 
 	if(initialsz < (size_t)igeto + igetsz)
 		initialsz = (size_t)igeto + igetsz;
@@ -1736,6 +1745,7 @@ posixio_open(const char *path,
 	int oflags = fIsSet(ioflags, NC_WRITE) ? O_RDWR : O_RDONLY;
 	int fd = -1;
 	int status = 0;
+	NC_UNUSED(parameters);
 
 	if(path == NULL || *path == 0)
 		return EINVAL;
