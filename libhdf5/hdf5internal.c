@@ -385,7 +385,7 @@ delete_dimscale_dataset(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T *dim)
  * @param dim Pointer to dimension info struct.
  *
  * @return ::NC_NOERR No error.
- * @author Quincey Koziol
+ * @author Quincey Koziol, Ed Hartnett
  */
 int
 nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
@@ -406,14 +406,14 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
    hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->format_grp_info;
    hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
 
-   /* Detach dimscales from the [new] coordinate variable */
+   /* Detach dimscales from the [new] coordinate variable. */
    if (var->dimscale_attached)
    {
       int dims_detached = 0;
       int finished = 0;
       int d;
 
-      /* Loop over all dimensions for variable */
+      /* Loop over all dimensions for variable. */
       for (d = 0; d < var->ndims && !finished; d++)
       {
          /* Is there a dimscale attached to this axis? */
@@ -439,7 +439,8 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
 
                      /* Find dataset ID for dimension */
                      if (dim1->coord_var)
-                        dim_datasetid = ((NC_HDF5_VAR_INFO_T *)(dim1->coord_var->format_var_info))->hdf_datasetid;
+                        dim_datasetid = ((NC_HDF5_VAR_INFO_T *)
+                                         (dim1->coord_var->format_var_info))->hdf_datasetid;
                      else
                         dim_datasetid = hdf5_dim1->hdf_dimscaleid;
 
@@ -450,7 +451,8 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
                      if (dim_datasetid > 0)
                      {
                         LOG((3, "detaching scale from %s", var->hdr.name));
-                        if (H5DSdetach_scale(hdf5_var->hdf_datasetid, dim_datasetid, d) < 0)
+                        if (H5DSdetach_scale(hdf5_var->hdf_datasetid,
+                                             dim_datasetid, d) < 0)
                            BAIL(NC_EHDFERR);
                      }
                      var->dimscale_attached[d] = NC_FALSE;
@@ -462,7 +464,7 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
          }
       } /* next variable dimension */
 
-      /* Release & reset the array tracking attached dimscales */
+      /* Release & reset the array tracking attached dimscales. */
       free(var->dimscale_attached);
       var->dimscale_attached = NULL;
       need_to_reattach_scales++;
@@ -476,31 +478,32 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
          BAIL(NC_EHDFERR);
       hdf5_dim->hdf_dimscaleid = 0;
 
-      /* Now delete the dimscale's dataset
-         (it will be recreated later, if necessary) */
+      /* Now delete the dimscale's dataset (it will be recreated
+         later, if necessary). */
       if (H5Gunlink(hdf5_grp->hdf_grpid, dim->hdr.name) < 0)
          return NC_EDIMMETA;
    }
 
-   /* Attach variable to dimension */
+   /* Attach variable to dimension. */
    var->dimscale = NC_TRUE;
    dim->coord_var = var;
 
    /* Check if this variable used to be a coord. var */
    if (need_to_reattach_scales || (var->was_coord_var && grp != NULL))
    {
-      /* Reattach the scale everywhere it is used. */
-      /* (Recall that netCDF dimscales are always 1-D) */
+      /* Reattach the scale everywhere it is used. (Recall that netCDF
+       * dimscales are always 1-D) */
       if ((retval = rec_reattach_scales(grp->nc4_info->root_grp,
                                         var->dimids[0], hdf5_var->hdf_datasetid)))
          return retval;
 
-      /* Set state transition indicator (cancels earlier transition) */
+      /* Set state transition indicator (cancels earlier
+       * transition). */
       var->was_coord_var = NC_FALSE;
    }
-   else
-      /* Set state transition indicator */
-      var->became_coord_var = NC_TRUE;
+
+   /* Set state transition indicator */
+   var->became_coord_var = NC_TRUE;
 
 exit:
    return retval;
@@ -837,7 +840,7 @@ nc4_hdf5_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
    if (varid == NC_GLOBAL)
    {
       /* Do we need to read the atts? */
-      if (my_grp->atts_not_read)
+      if (!my_grp->atts_read)
          if ((retval = nc4_read_atts(my_grp, NULL)))
             return retval;
 
@@ -849,7 +852,7 @@ nc4_hdf5_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
          return NC_ENOTVAR;
 
       /* Do we need to read the var attributes? */
-      if (my_var->atts_not_read)
+      if (!my_var->atts_read)
          if ((retval = nc4_read_atts(my_grp, my_var)))
             return retval;
 

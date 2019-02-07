@@ -67,6 +67,11 @@ NC4_def_grp(int parent_ncid, const char *name, int *new_ncid)
       return retval;
    if (!(g->format_grp_info = calloc(1, sizeof(NC_HDF5_GRP_INFO_T))))
       return NC_ENOMEM;
+
+   /* For new groups, there are no atts to read from file. */
+   g->atts_read = 1;
+
+   /* Return the ncid to the user. */
    if (new_ncid)
       *new_ncid = grp->nc4_info->controller->ext_ncid | g->hdr.id;
 
