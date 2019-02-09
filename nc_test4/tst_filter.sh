@@ -104,15 +104,15 @@ if test "x$NCP" = x1 ; then
 echo "*** Testing dynamic filters using nccopy"
 rm -f ./unfiltered.nc ./filtered.nc ./tmp.nc ./filtered.dump ./tst_filter.txt
 # Create our input test files
-${NCGEN} -4 -lb -o unfiltered.nc ${srcdir}/unfiltered.cdl
-${NCGEN} -4 -lb -o unfilteredvv.nc ${srcdir}/unfilteredvv.cdl
+${NCGEN} -4 -lb -o unfiltered.nc ${srcdir}/ref_unfiltered.cdl
+${NCGEN} -4 -lb -o unfilteredvv.nc ${srcdir}/ref_unfilteredvv.cdl
 
 echo "	*** Testing simple filter application"
 ${NCCOPY} -M0 -F "/g/var,307,9,4" unfiltered.nc filtered.nc
 ${NCDUMP} -s filtered.nc > ./tst_filter.txt
 # Remove irrelevant -s output
 sclean ./tst_filter.txt ./filtered.dump
-diff -b -w ${srcdir}/filtered.cdl ./filtered.dump
+diff -b -w ${srcdir}/ref_filtered.cdl ./filtered.dump
 echo "	*** Pass: nccopy simple filter"
 
 echo "	*** Testing '*' filter application"
@@ -120,7 +120,7 @@ ${NCCOPY} -M0 -F "*,307,9,4" unfilteredvv.nc filteredvv.nc
 ${NCDUMP} -s filteredvv.nc > ./tst_filtervv.txt
 # Remove irrelevant -s output
 sclean ./tst_filtervv.txt ./filteredvv.dump
-diff -b -w ${srcdir}/filteredvv.cdl ./filteredvv.dump
+diff -b -w ${srcdir}/ref_filteredvv.cdl ./filteredvv.dump
 echo "	*** Pass: nccopy '*' filter"
 
 echo "	*** Testing 'v|v' filter application"
@@ -128,7 +128,7 @@ ${NCCOPY} -M0 -F "var1|/g/var2,307,9,4" unfilteredvv.nc filteredvbar.nc
 ${NCDUMP} -n filteredvv -s filteredvbar.nc > ./tst_filtervbar.txt
 # Remove irrelevant -s output
 sclean ./tst_filtervbar.txt ./filteredvbar.dump
-diff -b -w ${srcdir}/filteredvv.cdl ./filteredvbar.dump
+diff -b -w ${srcdir}/ref_filteredvv.cdl ./filteredvbar.dump
 echo "	*** Pass: nccopy 'v|v' filter"
 
 echo "	*** Testing pass-thru of filters"
