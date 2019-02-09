@@ -273,20 +273,25 @@ Set the log level; only usable if nccopy supports netCDF-4 (enhanced).
 Set the minimum chunk size; only usable if nccopy supports netCDF-4 (enhanced).
 .IP "\fB \-F \fP \fIfilterspec\fP"
 For netCDF-4 output, including netCDF-4 classic model, specify a filter
-to apply to an specified variable in the output. As a rule, the filter
+to apply to a specified set of variables in the output. As a rule, the filter
 is a compression/decompression algorithm with a unique numeric identifier
 assigned by the HDF Group (see https://support.hdfgroup.org/services/filters.html).
 .IP
 The \fIfilterspec\fP argument has this general form.
 .RS
-fqn,filterid,param1,param2...paramn
+fqn1|fqn2...,filterid,param1,param2...paramn
+or
+*,filterid,param1,param2...paramn
 .RE
-The fqn (fully qualified name) is the name
+An fqn (fully qualified name) is the name
 of a variable prefixed by its containing
 groups with the group names separated by forward slash ('/').
 An example might be \FI/g1/g2/var\fP. Alternatively,
 just the variable name can be given if it is in the root group:
 e.g. \FIvar\fP. Backslash escapes may be used as needed.
+A note of warning: the '|' separator is a bash reserved character, so you will
+probably need to put the filter spec in some kind of quotes or otherwise escape it.
+.IP
 The filterid is an unsigned positive integer representing the id
 assigned by the HDFgroup to the filter. Following the id is a sequence of
 parameters defining the operation of the filter. Each parameter
