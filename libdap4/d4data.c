@@ -76,15 +76,8 @@ NCD4_processdata(NCD4meta* meta)
 	    FAIL(ret,"delimit failure");
     }
 
-    /* Swap the data for each top level variable,
-	including the checksum (if any)
-    */
-    if(meta->swap) {
-        if((ret=NCD4_swapdata(meta,toplevel)))
-	    FAIL(ret,"byte swapping failed");
-    }
-
     /* Compute the checksums of the top variables */
+    /* must occur before any byte swapping */
     if(meta->localchecksumming) {
 	for(i=0;i<nclistlength(toplevel);i++) {
 	    unsigned int csum = 0;
@@ -105,6 +98,14 @@ NCD4_processdata(NCD4meta* meta)
 	    }
         }
     }
+
+    /* Swap the data for each top level variable,
+    */
+    if(meta->swap) {
+        if((ret=NCD4_swapdata(meta,toplevel)))
+	    FAIL(ret,"byte swapping failed");
+    }
+
 done:
     if(toplevel) nclistfree(toplevel);
     return THROW(ret);
