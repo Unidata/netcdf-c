@@ -46,11 +46,11 @@ format. The URL is composed of three parts.
    +  http://remotetest.unidata.ucar.edu/d4ts/test.01#protocol=dap4
    +  http://thredds.ucar.edu/thredds/dap4/...
 
- -  Constraints - these are suffixed to the URL and take the form
+-  Constraints - these are suffixed to the URL and take the form
     “?dap4.ce=\<expression\>”. The form of the constraint expression
     is somewhat complicated, and the specification should be consulted.
 
- - Client parameters - these may be specified in either of
+- Client parameters - these may be specified in either of
    two ways.  The older, deprecated form prefixes text to the
    front of the url and is of the the general form [\<name>]
    or [\<name>=value].  Examples include [show=fetch] or [noprefetch].
@@ -95,7 +95,7 @@ Parameter Name Legal Values Semantics
   for specially named elements in the DMR XML in order to
   achieve a better translation of the DAP4 meta-data to NetCDF enhanced
   metadata.
-- "opaquesize=<integer>" - This parameter causes the netCDF code to 
+- "opaquesize=<integer>" - This parameter causes the netCDF code to
   convert DAP4 variable size OPAQUE objects to netcdf-4 fixed size
   objects and forces all of them to be of the size specified.
 - "fillmismatch" - Unfortunately, a number of servers sometimes
@@ -152,79 +152,79 @@ Finally from the set so constructed, choose the first matching entry.
 Currently, the supported set of keys (with descriptions) are as
 follows.
 
--# HTTP.VERBOSE  
-        Type: boolean ("1"/"0")  
-        Description: Produce verbose output, especially using SSL.  
-        Related CURL Flags: CURLOPT_VERBOSE  
+-# HTTP.VERBOSE
+        Type: boolean ("1"/"0")
+        Description: Produce verbose output, especially using SSL.
+        Related CURL Flags: CURLOPT_VERBOSE
 
--# HTTP.DEFLATE  
-        Type: boolean ("1"/"0")  
-        Description: Allow use of compression by the server.  
-        Related CURL Flags: CURLOPT_ENCODING  
+-# HTTP.DEFLATE
+        Type: boolean ("1"/"0")
+        Description: Allow use of compression by the server.
+        Related CURL Flags: CURLOPT_ENCODING
 
--# HTTP.COOKIEJAR  
-        Type: String representing file path  
-        Description: Specify the name of file into which to store cookies. Defaults to in-memory storage.  
-        Related CURL Flags:CURLOPT_COOKIEJAR  
+-# HTTP.COOKIEJAR
+        Type: String representing file path
+        Description: Specify the name of file into which to store cookies. Defaults to in-memory storage.
+        Related CURL Flags:CURLOPT_COOKIEJAR
 
--# HTTP.CREDENTIALS.USER  
-        Type: String representing user name  
-        Description: Specify the user name for Digest and Basic authentication.  
-        Related CURL Flags:  
-  
--# HTTP.CREDENTIALS.PASSWORD  
-        Type: String representing password  
-        Type: boolean ("1"/"0")  
-        Description: Specify the password for Digest and Basic authentication.  
-        Related CURL Flags:  
+-# HTTP.CREDENTIALS.USER
+        Type: String representing user name
+        Description: Specify the user name for Digest and Basic authentication.
+        Related CURL Flags:
 
--# HTTP.SSL.CERTIFICATE  
-        Type: String representing file path  
-        Description: Path to a file containing a PEM cerficate.  
-        Related CURL Flags: CURLOPT_CERT  
+-# HTTP.CREDENTIALS.PASSWORD
+        Type: String representing password
+        Type: boolean ("1"/"0")
+        Description: Specify the password for Digest and Basic authentication.
+        Related CURL Flags:
 
--# HTTP.SSL.KEY  
-        Type: String representing file path  
-        Description: Same as HTTP.SSL.CERTIFICATE, and should usually have the same value.  
-        Related CURL Flags: CURLOPT_SSLKEY  
+-# HTTP.SSL.CERTIFICATE
+        Type: String representing file path
+        Description: Path to a file containing a PEM cerficate.
+        Related CURL Flags: CURLOPT_CERT
 
--# HTTP.SSL.KEYPASSWORD  
-        Type: String representing password  
-        Description: Password for accessing the HTTP.SSL.KEY/HTTP.SSL.CERTIFICATE  
-        Related CURL Flags: CURLOPT_KEYPASSWORD  
+-# HTTP.SSL.KEY
+        Type: String representing file path
+        Description: Same as HTTP.SSL.CERTIFICATE, and should usually have the same value.
+        Related CURL Flags: CURLOPT_SSLKEY
 
--# HTTP.SSL.CAPATH  
-        Type: String representing directory  
-        Description: Path to a directory containing trusted certificates for validating server certificates.  
-        Related CURL Flags: CURLOPT_CAPATH  
+-# HTTP.SSL.KEYPASSWORD
+        Type: String representing password
+        Description: Password for accessing the HTTP.SSL.KEY/HTTP.SSL.CERTIFICATE
+        Related CURL Flags: CURLOPT_KEYPASSWORD
 
--# HTTP.SSL.VALIDATE  
-        Type: boolean ("1"/"0")  
-        Description: Cause the client to verify the server's presented certificate.  
-        Related CURL Flags: CURLOPT_SSL_VERIFYPEER, CURLOPT_SSL_VERIFYHOST  
+-# HTTP.SSL.CAPATH
+        Type: String representing directory
+        Description: Path to a directory containing trusted certificates for validating server certificates.
+        Related CURL Flags: CURLOPT_CAPATH
 
--# HTTP.TIMEOUT  
-        Type: String ("dddddd")  
-        Description: Specify the maximum time in seconds that you allow the http transfer operation to take.  
-        Related CURL Flags: CURLOPT_TIMEOUT, CURLOPT_NOSIGNAL  
+-# HTTP.SSL.VALIDATE
+        Type: boolean ("1"/"0")
+        Description: Cause the client to verify the server's presented certificate.
+        Related CURL Flags: CURLOPT_SSL_VERIFYPEER, CURLOPT_SSL_VERIFYHOST
 
--# HTTP.PROXY_SERVER  
-        Type: String representing url to access the proxy: (e.g.http://[username:password@]host[:port])  
-        Description: Specify the needed information for accessing a proxy.  
-        Related CURL Flags: CURLOPT_PROXY, CURLOPT_PROXYHOST, CURLOPT_PROXYUSERPWD  
+-# HTTP.TIMEOUT
+        Type: String ("dddddd")
+        Description: Specify the maximum time in seconds that you allow the http transfer operation to take.
+        Related CURL Flags: CURLOPT_TIMEOUT, CURLOPT_NOSIGNAL
 
--# HTTP.READ.BUFFERSIZE  
-        Type: String ("dddddd")  
-        Description: Specify the the internal buffer size for curl reads.  
-        Related CURL Flags: CURLOPT_BUFFERSIZE, CURL_MAX_WRITE_SIZE (16kB),  
-                            CURL_MAX_READ_SIZE (512kB).  
+-# HTTP.PROXY_SERVER
+        Type: String representing url to access the proxy: (e.g.http://[username:password@]host[:port])
+        Description: Specify the needed information for accessing a proxy.
+        Related CURL Flags: CURLOPT_PROXY, CURLOPT_PROXYHOST, CURLOPT_PROXYUSERPWD
 
--# HTTP.KEEPALIVE  
-        Type: String ("on|n/m")  
-        Description: Specify that TCP KEEPALIVE should be enabled and that the associated idle wait time is n and that the associated repeat interval is m. If the value is of the form is the string "on", then turn on keepalive, but do not set idle or interval.  
-        Related CURL Flags: CURLOPT_TCP_KEEPALIVE, CURLOPT_TCP_KEEPIDLE,  
-                            CURLOPT_TCP_KEEPINTVL.  
-  
+-# HTTP.READ.BUFFERSIZE
+        Type: String ("dddddd")
+        Description: Specify the the internal buffer size for curl reads.
+        Related CURL Flags: CURLOPT_BUFFERSIZE, CURL_MAX_WRITE_SIZE (16kB),
+                            CURL_MAX_READ_SIZE (512kB).
+
+-# HTTP.KEEPALIVE
+        Type: String ("on|n/m")
+        Description: Specify that TCP KEEPALIVE should be enabled and that the associated idle wait time is n and that the associated repeat interval is m. If the value is of the form is the string "on", then turn on keepalive, but do not set idle or interval.
+        Related CURL Flags: CURLOPT_TCP_KEEPALIVE, CURLOPT_TCP_KEEPIDLE,
+                            CURLOPT_TCP_KEEPINTVL.
+
 The related curl flags line indicates the curl flags modified by this
 key. See the libcurl documentation of the _curl_easy_setopt()_ function
 for more detail (http://curl.haxx.se/libcurl/c/curl_easy_setopt.html).
