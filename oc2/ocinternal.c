@@ -102,6 +102,9 @@ ocopen(OCstate** statep, const char* url)
     NCURI* tmpurl = NULL;
     CURL* curl = NULL; /* curl handle*/
 
+    if(!ocinitialized)
+        ocinternalinitialize();
+
     if(ncuriparse(url,&tmpurl) != NCU_OK) {
 	OCTHROWCHK(stat=OC_EBADURL);
 	goto fail;
