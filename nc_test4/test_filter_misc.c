@@ -10,6 +10,7 @@
 
 #include <hdf5.h>
 #include "netcdf.h"
+#include "netcdf_filter.h"
 
 #undef DEBUG
 
@@ -289,7 +290,13 @@ showparameters(void)
 static void
 insert(int index, void* src, size_t size)
 {
+    unsigned char src8[8];
     void* dst = &baseline[index];
+    if(size == 8) {
+	memcpy(src8,src,size);
+	NC_filterfix8(src8,0);
+	src = src8;
+    }
     memcpy(dst,src,size);
 }
 

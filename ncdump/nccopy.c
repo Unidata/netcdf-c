@@ -17,12 +17,12 @@
 #endif
 #include <string.h>
 #include "netcdf.h"
+#include "netcdf_filter.h"
 #include "nciter.h"
 #include "utils.h"
 #include "chunkspec.h"
 #include "dimmap.h"
 #include "nccomps.h"
-#include "ncfilter.h"
 #include "list.h"
 
 #undef DEBUGFILTER

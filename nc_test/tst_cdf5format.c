@@ -23,13 +23,15 @@ write2(int ncid, int parallel)
    int dimid[NDIM2];
    char str[NC_MAX_NAME + 1];
    int varid[NVARS];
+   int i;
+   int j;
 
    /* define dimension */
    if (nc_def_dim(ncid, "Y", NC_UNLIMITED, &dimid[0])) ERR;
    if (nc_def_dim(ncid, "X", NX, &dimid[1])) ERR;
 
    /* Define vars. */
-   for (int i = 0; i < NVARS; i++)
+   for (i = 0; i < NVARS; i++)
    {
       if (i % 2)
       {
@@ -46,14 +48,14 @@ write2(int ncid, int parallel)
    if (nc_enddef(ncid)) ERR;
 
    /* write all variables */
-   for (int i = 0; i < NVARS; i++)
+   for (i = 0; i < NVARS; i++)
    {
       size_t start[NDIM2] = {0, 0};
       size_t count[NDIM2];
       int buf[NX];
 
       /* Initialize some data. */
-      for (int j = 0; j < NX; j++)
+      for (j = 0; j < NX; j++)
 	 buf[j] = i * 10 + j;
 
       /* Write the data. */
@@ -95,7 +97,10 @@ extend(int ncid)
 int
 read2(int ncid)
 {
-   for (int i = 0; i < NVARS; i++)
+   int i;
+   int j;
+
+   for (i = 0; i < NVARS; i++)
    {
       int buf[NX];
       size_t start[2] = {0, 0}, count[2];
@@ -110,7 +115,7 @@ read2(int ncid)
 	 count[1] = NX;
       }
       if (nc_get_vara_int(ncid, i, start, count, buf)) ERR;
-      for (int j = 0; j < NX; j++)
+      for (j = 0; j < NX; j++)
       {
 	 if (buf[j] != i * 10 + j)
 	 {
