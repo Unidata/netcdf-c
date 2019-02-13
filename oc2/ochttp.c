@@ -138,6 +138,7 @@ ocfetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime)
 fail:
 	nclog(NCLOGERR, "curl error: %s", curl_easy_strerror(cstat));
 	switch (httpcode) {
+	case 400: stat = OC_EBADURL; break;
 	case 401: stat = OC_EAUTH; break;
 	case 404: stat = OC_ENOFILE; break;
 	case 500: stat = OC_EDAPSVC; break;
