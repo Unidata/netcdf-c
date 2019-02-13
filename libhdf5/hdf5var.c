@@ -1,4 +1,4 @@
-/* Copyright 2003-2006, University Corporation for Atmospheric
+/* Copyright 2003-2019, University Corporation for Atmospheric
  * Research. See COPYRIGHT file for copying and redistribution
  * conditions.*/
 /**
@@ -10,10 +10,14 @@
 
 #include "config.h"
 #include <hdf5internal.h>
-#include <math.h>
+#include <math.h> /* For pow() used below. */
 
-/** @internal Default size for unlimited dim chunksize */
+/** @internal Default size for unlimited dim chunksize. */
 #define DEFAULT_1D_UNLIM_SIZE (4096)
+
+/** @internal Temp name used when renaming vars to preserve varid
+ * order. */
+#define NC_TEMP_NAME "_netcdf4_temporary_variable_name_for_rename"
 
 /**
  * @internal If the HDF5 dataset for this variable is open, then close
@@ -282,8 +286,8 @@ give_var_secret_name(NC_VAR_INFO_T *var, const char *name)
  * @author Ed Hartnett, Dennis Heimbigner
  */
 int
-NC4_def_var(int ncid, const char *name, nc_type xtype,
-            int ndims, const int *dimidsp, int *varidp)
+NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
+            const int *dimidsp, int *varidp)
 {
    NC_GRP_INFO_T *grp;
    NC_VAR_INFO_T *var;
@@ -438,6 +442,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    if (!(var->format_var_info = calloc(1, sizeof(NC_HDF5_VAR_INFO_T))))
       BAIL(NC_ENOMEM);
 
+   /* Set these state flags for the var. */
    var->is_new_var = NC_TRUE;
    var->meta_read = NC_TRUE;
    var->atts_read = NC_TRUE;
@@ -447,19 +452,17 @@ NC4_def_var(int ncid, const char *name, nc_type xtype,
    var->type_info->rc++;
    type = NULL;
 
-   /* Set variables no_fill to match the database default
-    * unless the variable type is variable length (NC_STRING or NC_VLEN)
-    * or is user-defined type.
-    */
+   /* Set variables no_fill to match the database default unless the
+    * variable type is variable length (NC_STRING or NC_VLEN) or is
+    * user-defined type. */
    if (var->type_info->nc_type_class < NC_STRING)
       var->no_fill = h5->fill_mode;
 
-   /* Assign dimensions to the variable */
-   /* At the same time, check to see if this is a coordinate
-    * variable. If so, it will have the same name as one of its
-    * dimensions. If it is a coordinate var, is it a coordinate var in
-    * the same group as the dim? */
-   /* Also, check whether we should use contiguous or chunked storage */
+   /* Assign dimensions to the variable. At the same time, check to
+    * see if this is a coordinate variable. If so, it will have the
+    * same name as one of its dimensions. If it is a coordinate var,
+    * is it a coordinate var in the same group as the dim? Also, check
+    * whether we should use contiguous or chunked storage. */
    var->contiguous = NC_TRUE;
    for (d = 0; d < ndims; d++)
    {
@@ -1109,8 +1112,9 @@ NC4_rename_var(int ncid, int varid, const char *name)
    if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, varid)))
       return NC_ENOTVAR;
 
-   /* Check if new name is in use; note that renaming to same name is still an error
-      according to the nc_test/test_write.c code. Why?*/
+   /* Check if new name is in use; note that renaming to same name is
+      still an error according to the nc_test/test_write.c
+      code. Why?*/
    if (ncindexlookup(grp->vars, name))
       return NC_ENAMEINUSE;
 
@@ -1142,6 +1146,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
       there. */
    if (var->created)
    {
+      int v;
       char *hdf5_name; /* Dataset will be renamed to this. */
       hdf5_name = use_secret_name ? var->hdf5_name: (char *)name;
 
@@ -1169,6 +1174,30 @@ NC4_rename_var(int ncid, int varid, const char *name)
       if (H5Lmove(hdf5_grp->hdf_grpid, var->hdr.name, hdf5_grp->hdf_grpid,
                   hdf5_name, H5P_DEFAULT, H5P_DEFAULT) < 0)
           return NC_EHDFERR;
+
+      /* Rename all the vars in this file with a varid greater than
+       * this var. Varids are assigned based on dataset creation time,
+       * and we have just changed that for this var. We must do the
+       * same for all vars with a > varid, so that the creation order
+       * will continue to be correct. */
+      for (v = var->hdr.id + 1; v < ncindexsize(grp->vars); v++)
+      {
+         NC_VAR_INFO_T *my_var;
+         my_var = (NC_VAR_INFO_T *)ncindexith(grp->vars, v);
+         assert(my_var);
+
+         LOG((3, "mandatory rename of %s to same name", my_var->hdr.name));
+
+         /* Rename to temp name. */
+         if (H5Lmove(hdf5_grp->hdf_grpid, my_var->hdr.name, hdf5_grp->hdf_grpid,
+                     NC_TEMP_NAME, H5P_DEFAULT, H5P_DEFAULT) < 0)
+            return NC_EHDFERR;
+
+         /* Rename to real name. */
+         if (H5Lmove(hdf5_grp->hdf_grpid, NC_TEMP_NAME, hdf5_grp->hdf_grpid,
+                     my_var->hdr.name, H5P_DEFAULT, H5P_DEFAULT) < 0)
+            return NC_EHDFERR;
+      }
    }
 
    /* Now change the name in our metadata. */
@@ -1358,11 +1387,12 @@ set_par_access(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, hid_t xfer_plistid)
          return NC_EPARINIT;
 
       LOG((4, "%s: %d H5FD_MPIO_COLLECTIVE: %d H5FD_MPIO_INDEPENDENT: %d",
-           __func__, (int)hdf5_xfer_mode, H5FD_MPIO_COLLECTIVE, H5FD_MPIO_INDEPENDENT));
+           __func__, (int)hdf5_xfer_mode, H5FD_MPIO_COLLECTIVE,
+           H5FD_MPIO_INDEPENDENT));
    }
    return NC_NOERR;
 }
-#endif
+#endif /* USE_PARALLEL4 */
 
 /**
  * @internal Write a strided array of data to a variable. This is
@@ -1555,10 +1585,9 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
       BAIL(retval);
 #endif
 
-   /* Read this hyperslab from  memory. */
-   /* Does the dataset have to be extended? If it's already
-      extended to the required size, it will do no harm to reextend
-      it to that size. */
+   /* Read this hyperslab from memory. Does the dataset have to be
+      extended? If it's already extended to the required size, it will
+      do no harm to reextend it to that size. */
    if (var->ndims)
    {
       for (d2 = 0; d2 < var->ndims; d2++)
@@ -1594,13 +1623,12 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
       }
 
 #ifdef USE_PARALLEL4
-      /* Check if anyone wants to extend */
+      /* Check if anyone wants to extend. */
       if (extend_possible && h5->parallel &&
           NC_COLLECTIVE == var->parallel_access)
       {
-         /* Form consensus opinion among all processes about whether to perform
-          * collective I/O
-          */
+         /* Form consensus opinion among all processes about whether
+          * to perform collective I/O.  */
          if (MPI_SUCCESS != MPI_Allreduce(MPI_IN_PLACE, &need_to_extend, 1,
                                           MPI_INT, MPI_BOR, h5->comm))
             BAIL(NC_EMPI);
@@ -1625,7 +1653,8 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
                BAIL(NC_EMPI);
          }
 #endif /* USE_PARALLEL4 */
-         /* Convert xtend_size back to hsize_t for use with H5Dset_extent */
+         /* Convert xtend_size back to hsize_t for use with
+          * H5Dset_extent. */
          for (d2 = 0; d2 < var->ndims; d2++)
             fdims[d2] = (hsize_t)xtend_size[d2];
 
@@ -1747,7 +1776,8 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
    if ((retval = nc4_hdf5_find_grp_h5_var(ncid, varid, &h5, &grp, &var)))
       return retval;
    assert(h5 && grp && var && var->hdr.id == varid && var->format_var_info &&
-          var->type_info && var->type_info->size && var->type_info->format_type_info);
+          var->type_info && var->type_info->size &&
+          var->type_info->format_type_info);
 
    /* Get the HDF5-specific var and type info. */
    hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
@@ -1860,7 +1890,8 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
    }
 
    /* Check the type_info fields. */
-   /* assert(var->type_info && var->type_info->size && var->type_info->format_type_info); */
+   assert(var->type_info && var->type_info->size &&
+          var->type_info->format_type_info);
 
    /* Later on, we will need to know the size of this type in the
     * file. */
@@ -1998,7 +2029,7 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
                      mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
             BAIL(NC_EHDFERR);
       }
-#endif /* End ifdef USE_PARALLEL4 */
+#endif /* USE_PARALLEL4 */
    }
    /* Now we need to fake up any further data that was asked for,
       using the fill values instead. First skip past the data we
@@ -2159,7 +2190,8 @@ NC4_HDF5_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
  * @returns ::NC_NOERR No error.
  * @returns ::NC_EBADID Bad ncid.
  * @returns ::NC_ENOTVAR Invalid variable ID.
- * @returns ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3 netcdf-4 file.
+ * @returns ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict
+ * nc3 netcdf-4 file.
  * @returns ::NC_EINVAL Invalid input.
  * @returns ::NC_EHDFERR HDF5 error.
  * @author Ed Hartnett
