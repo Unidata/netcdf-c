@@ -1072,6 +1072,7 @@ pr_att_specials(
 	    }
 	    printf("\" ;\n");
 	}
+	if(params) free(params);
     }
     {
 	int no_fill = 0;

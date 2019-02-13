@@ -27,7 +27,7 @@
 #endif
 
 
-#define D4CATCH /* Warning: significant performance impact */
+#undef D4CATCH /* Warning: significant performance impact */
 
 #define PANIC(msg) assert(d4panic(msg));
 #define PANIC1(msg,arg) assert(d4panic(msg,arg));
