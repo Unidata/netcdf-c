@@ -2,13 +2,12 @@ NetCDF-4 Filter Support
 ============================
 <!-- double header is needed to workaround doxygen bug -->
 
-NetCDF-4 Filter Support {#compress}
-=================================
+NetCDF-4 Filter Support {#filters}
+============================
 
 [TOC]
 
-Introduction {#compress_intro}
-==================
+# Introduction {#filters_intro}
 
 The HDF5 library (1.8.11 and later) 
 supports a general filter mechanism to apply various
@@ -37,8 +36,7 @@ can locate, load, and utilize the compressor.
 These libraries are expected to installed in a specific
 directory.
 
-Enabling A Compression Filter {#Enable}
-=============================
+# Enabling A Compression Filter {#filters_enable}
 
 In order to compress a variable, the netcdf-c library
 must be given three pieces of information:
@@ -66,8 +64,7 @@ using __ncgen__, via an API call, or via command line parameters to __nccopy__.
 In any case, remember that filtering also requires setting chunking, so the
 variable must also be marked with chunking information.
 
-Using The API {#API}
--------------
+## Using The API {#filters_API}
 The necessary API methods are included in __netcdf.h__ by default.
 One API method is for setting the filter to be used
 when writing a variable. The relevant signature is
@@ -90,8 +87,7 @@ __params__.  As is usual with the netcdf API, one is expected to call
 this function twice. The first time to get __nparams__ and the
 second to get the parameters in client-allocated memory.
 
-Using ncgen {#NCGEN}
--------------
+## Using ncgen {#filters_NCGEN}
 
 In a CDL file, compression of a variable can be specified
 by annotating it with the following attribute:
@@ -107,8 +103,8 @@ This is a "special" attribute, which means that
 it will normally be invisible when using
 __ncdump__ unless the -s flag is specified.
 
-Example CDL File (Data elided)
-------------------------------
+### Example CDL File (Data elided)
+
 ````
 netcdf bzip2 {
 dimensions:
@@ -123,8 +119,8 @@ data:
 }
 ````
 
-Using nccopy {#NCCOPY}
--------------
+## Using nccopy {#filters_NCCOPY}
+
 When copying a netcdf file using __nccopy__ it is possible
 to specify filter information for any output variable by
 using the "-F" option on the command line; for example:
@@ -171,8 +167,7 @@ by this table.
 <tr><td>false<td>-Fvar,...<td>NA<td>use output filter
 </table> 
 
-Parameter Encoding {#ParamEncode}
-==========
+# Parameter Encode/Decode {#filters_paramcoding}
 
 The parameters passed to a filter are encoded internally as a vector
 of 32-bit unsigned integers. It may be that the parameters
@@ -198,57 +193,83 @@ them between the local machine byte order and network byte
 order.
 
 Parameters whose size is larger than 32-bits present a byte order problem.
-This typically includes double precision floats and (signed or unsigned)
-64-bit integers. For these cases, the machine byte order must be
-handled by the compression code. This is because HDF5 will treat,
+This specifically includes double precision floats and (signed or unsigned)
+64-bit integers. For these cases, the machine byte order issue must be
+handled, in part, by the compression code. This is because HDF5 will treat,
 for example, an unsigned long long as two 32-bit unsigned integers
 and will convert each to network order separately. This means that
 on a machine whose byte order is different than the machine in which
-the parameters were initially created, the two integers are out of order
-and must be swapped to get the correct unsigned long long value.
-Consider this example. Suppose we have this little endian unsigned long long.
+the parameters were initially created, the two integers will be separately
+endian converted. But this will be incorrect for 64-bit values.
 
-    1000000230000004
+So, we have this situation:
 
-In network byte order, it will be stored as two 32-bit integers.
+1. the 8 bytes come in as native machine order for the machine
+   doing the call to *nc_def_var_filter*.
+2. HDF5 divides the 8 bytes into 2 four byte pieces and ensures that each piece
+   is in network (big) endian order.
+3. When the filter is called, the two pieces are returned in the same order
+   but with the bytes in each piece consistent with the native machine order
+   for the machine executing the filter.
 
-    20000001 40000003
+## Encoding Algorithms
 
-On a big endian machine, this will be given to the filter in that form.
+In order to properly extract the correct 8-byte value, we need to ensure
+that the values stored in the HDF5 file have a known format independent of
+the native format of the creating machine.
 
-    2000000140000003
+The idea is to do sufficient manipulation so that HDF5
+will store the 8-byte value as a little endian value
+divided into two 4-byte integers.
+Note that little-endian is used as the standard
+because it is the most common machine format.
+When read, the filter code needs to be aware of this convention
+and do the appropriate conversions.
 
-But note that the proper big endian unsigned long long form is this.
+This leads to the following set of rules.
 
-4000000320000001
+### Encoding 
 
-So, the two words need to be swapped.
+1. Encode on little endian (LE) machine: no special action is required.
+   The 8-byte value is passed to HDF5 as two 4-byte integers. HDF5 byte
+   swaps each integer and stores it in the file.
+2. Encode on a big endian (BE) machine: several steps are required:
 
-But consider the case when both original and final machines are big endian.
+   1. Do an 8-byte byte swap to convert the original value to little-endian
+      format.
+   2. Since the encoding machine is BE, HDF5 will just store the value.
+      So it is necessary to simulate little endian encoding by byte-swapping
+      each 4-byte integer separately. 
+   3. This doubly swapped pair of integers is then passed to HDF5 and is stored
+      unchanged.
 
-1. 4000000320000001
-2. 40000003 20000001
-3. 40000003 20000001
+### Decoding 
 
-where #1 is the original number, #2 is the network order and
-#3 is the what is given to the filter. In this case we do not
-want to swap words.
+1. Decode on LE machine: no special action is required.
+   HDF5 will get the two 4-bytes values from the file and byte-swap each
+   separately. The concatenation of those two integers will be the expected
+   LE value.
+2. Decode on a big endian (BE) machine: the inverse of the encode case must
+   be implemented.
 
-The solution is to forcibly encode the original number using some
-specified endianness so that the filter always assumes it is getting
-its parameters in that order and will always do swapping as needed.
-This is irritating, but one needs to be aware of it. Since most
-machines are little-endian. We choose to use that as the endianness
-for handling 64 bit entities.
+   1. HDF5 sends the two 4-byte values to the filter.
+   2. The filter must then byte-swap each 4-byte value independently.
+   3. The filter then must concatenate the two 4-byte values into a single
+      8-byte value. Because of the encoding rules, this 8-byte value will
+      be in LE format.
+   4. The filter must finally do an 8-byte byte-swap on that 8-byte value
+      to convert it to desired BE format.
 
-Filter Specification Syntax {#Syntax}
-==========
+To support these rules, some utility programs exist and are discussed in
+<a href="#AppendixA">Appendix A</a>.
+
+# Filter Specification Syntax {#filters_syntax}
 
 Both of the utilities
 <a href="#NCGEN">__ncgen__</a>
 and
 <a href="#NCCOPY">__nccopy__</a>
-allow the specification of filter parameters.
+allow the specification of filter parameters in text format.
 These specifications consist of a sequence of comma
 separated constants. The constants are converted
 within the utility to a proper set of unsigned int
@@ -257,7 +278,7 @@ constants (see the <a href="#ParamEncode">parameter encoding section</a>).
 To simplify things, various kinds of constants can be specified
 rather than just simple unsigned integers. The utilities will encode
 them properly using the rules specified in 
-the <a href="#ParamEncode">parameter encoding section</a>.
+the section on <a href="#filters_paramcoding">parameter encode/decode</a>.
 
 The currently supported constants are as follows.
 <table>
@@ -270,9 +291,9 @@ The currently supported constants are as follows.
 <tr><td>77<td>implicit unsigned 32-bit integer<td>No tag<td>
 <tr><td>93U<td>explicit unsigned 32-bit integer<td>u|U<td>
 <tr><td>789f<td>32-bit float<td>f|F<td>
-<tr><td>12345678.12345678d<td>64-bit double<td>d|D<td>Network byte order
-<tr><td>-9223372036854775807L<td>64-bit signed long long<td>l|L<td>Network byte order
-<tr><td>18446744073709551615UL<td>64-bit unsigned long long<td>u|U l|L<td>Network byte order
+<tr><td>12345678.12345678d<td>64-bit double<td>d|D<td>LE encoding
+<tr><td>-9223372036854775807L<td>64-bit signed long long<td>l|L<td>LE encoding
+<tr><td>18446744073709551615UL<td>64-bit unsigned long long<td>u|U l|L<td>LE encoding
 </table>
 Some things to note.
 
@@ -283,10 +304,10 @@ Some things to note.
 2. For signed byte and short, the value is sign extended to 32 bits
    and then treated as an unsigned int value.
 3. For double, and signed|unsigned long long, they are converted
-   to network byte order and then treated as two unsigned int values.
-   This is consistent with the <a href="#ParamEncode">parameter encoding</a>.
+   as specified in the section on
+   <a href="#filters_paramcoding">parameter encode/decode</a>.
 
-Dynamic Loading Process {#Process}
+Dynamic Loading Process {#filters_Process}
 ==========
 
 The documentation[1,2] for the HDF5 dynamic loading was (at the time
@@ -294,7 +315,7 @@ this was written) out-of-date with respect to the actual HDF5 code
 (see HDF5PL.c). So, the following discussion is largely derived
 from looking at the actual code. This means that it is subject to change.
 
-Plugin directory {#Plugindir}
+Plugin directory {#filters_Plugindir}
 ----------------
 
 The HDF5 loader expects plugins to be in a specified plugin directory.
@@ -306,7 +327,7 @@ The default directory is:
 The default may be overridden using the environment variable
 __HDF5_PLUGIN_PATH__.
 
-Plugin Library Naming {#Pluginlib}
+Plugin Library Naming {#filters_Pluginlib}
 ---------------------
 
 Given a plugin directory, HDF5 examines every file in that
@@ -320,7 +341,7 @@ as determined by the platform on which the library is being executed.
 <tr halign="left"><td>Windows<td>*<td>.dll
 </table>
 
-Plugin Verification {#Pluginverify}
+Plugin Verification {#filters_Pluginverify}
 -------------------
 For each dynamic library located using the previous patterns,
 HDF5 attempts to load the library and attempts to obtain information
@@ -340,7 +361,7 @@ specified for the variable in __nc_def_var_filter__ in order to be used.
 If plugin verification fails, then that plugin is ignored and
 the search continues for another, matching plugin.
 
-Debugging {#Debug}
+Debugging {#filters_Debug}
 -------
 Debugging plugins can be very difficult. You will probably
 need to use the old printf approach for debugging the filter itself.
@@ -356,7 +377,7 @@ Since ncdump is not being asked to access the data (the -h flag), it
 can obtain the filter information without failures. Then it can print
 out the filter id and the parameters (the -s flag).
 
-Test Case {#TestCase}
+Test Case {#filters_TestCase}
 -------
 Within the netcdf-c source tree, the directory
 __netcdf-c/nc_test4__ contains a test case (__test_filter.c__) for
@@ -365,7 +386,7 @@ bzip2. Another test (__test_filter_misc.c__) validates
 parameter passing.  These tests are disabled if __--enable-shared__
 is not set or if __--enable-netcdf-4__ is not set.
 
-Example {#Example}
+Example {#filters_Example}
 -------
 A slightly simplified version of the filter test case is also
 available as an example within the netcdf-c source tree
@@ -444,45 +465,35 @@ has been known to work.
 gcc -g -O0 -shared -o libbzip2.so <plugin source files>  -L${HDF5LIBDIR} -lhdf5_hl -lhdf5 -L${ZLIBDIR} -lz
 ````
 
-Appendix A. Byte Swap Code {#AppendixA}
+Appendix A. Support Utilities {#filters_AppendixA}
 ==========
-Since in some cases, it is necessary for a filter to
-byte swap from little-endian to big-endian, This appendix
-provides sample code for doing this. It also provides
-a code snippet for testing if the machine the
-endianness of a machine.
 
-Byte swap an 8-byte chunk of memory
--------
-````
-static void
-byteswap8(unsigned char* mem)
-{
-    register unsigned char c;
-    c = mem[0];
-    mem[0] = mem[7];
-    mem[7] = c;
-    c = mem[1];
-    mem[1] = mem[6];
-    mem[6] = c;
-    c = mem[2];
-    mem[2] = mem[5];
-    mem[5] = c;
-    c = mem[3];
-    mem[3] = mem[4];
-    mem[4] = c;
-}
+Two functions are exported from the netcdf-c library
+for use by client programs and by filter implementations.
 
-````
+1. ````int NC_parsefilterspec(const char* spec, unsigned int* idp, size_t* nparamsp, unsigned int** paramsp);````
+    * idp will contain the filter id value from the spec.
+    * nparamsp will contain the number of 4-byte parameters
+    * paramsp will contain a pointer to the parsed parameters -- the caller
+      must free.
+    This function can parse filter spec strings as defined in 
+    the section on <a href="#filters_syntax">Filter Specification Syntax</a>.
+    This function parses the first argument and returns several values.
 
-Test for Machine Endianness
--------
-````
-static const unsigned char b[4] = {0x0,0x0,0x0,0x1}; /* value 1 in big-endian*/
-int endianness = (1 == *(unsigned int*)b); /* 1=>big 0=>little endian
-````
-References {#References}
-========================
+2. ````int NC_filterfix8(unsigned char* mem8, int decode);````
+    * mem8 is a pointer to the 8-byte value either to fix.
+    * decode is 1 if the function should apply the 8-byte decoding algorithm
+      else apply the encoding algorithm.
+    This function implements the 8-byte conversion algorithms.
+    Before calling *nc_def_var_filter* (unless *NC_parsefilterspec* was used),
+    the client must call this function with the decode argument set to 0.
+    Inside the filter code, this function should be called with the decode
+    argument set to 1.
+
+Examples of the use of these functions can be seen in the test program
+*nc_test4/tst_filterparser.c*.
+
+# References {#filters_References}
 
 1. https://support.hdfgroup.org/HDF5/doc/Advanced/DynamicallyLoadedFilters/HDF5DynamicallyLoadedFilters.pdf
 2. https://support.hdfgroup.org/HDF5/doc/TechNotes/TechNote-HDF5-CompressionTroubleshooting.pdf
@@ -490,8 +501,7 @@ References {#References}
 4. https://support.hdfgroup.org/services/contributions.html#filters
 5. https://support.hdfgroup.org/HDF5/doc/RM/RM_H5.html
 
-Point of Contact
-================
+# Point of Contact
 
 __Author__: Dennis Heimbigner<br>
 __Email__: dmh at ucar dot edu
