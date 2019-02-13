@@ -80,7 +80,7 @@ static char SccsId[] = "$Id: ncgen.y,v 1.42 2010/05/18 21:32:46 dmh Exp $";
 #include        "ncgeny.h"
 #include        "ncgen.h"
 #ifdef USE_NETCDF4
-#include        "ncfilter.h"
+#include        "netcdf_filter.h"
 #endif
 
 /* Following are in ncdump (for now)*/
@@ -2981,7 +2981,7 @@ makeprimitivetype(nc_type nctype)
     sym->typ.typecode = nctype;
     sym->typ.size = ncsize(nctype);
     sym->typ.nelems = 1;
-    sym->typ.alignment = ncaux_class_alignment(nctype); 
+    sym->typ.alignment = ncaux_class_alignment(nctype);
     /* Make the basetype circular so we can always ask for it */
     sym->typ.basetype = sym;
     sym->prefix = listnew();
@@ -3284,7 +3284,7 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
 	else if(tag == _NCPROPS_FLAG) {
 	    globalspecials._NCProperties = sdata;
 	    sdata = NULL;
-	}	    
+	}
     } else {
         Specialdata* special;
         /* Set up special info */
@@ -3361,7 +3361,7 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
                 break;
           case _CHUNKSIZES_FLAG: {
                 int i;
-		list = (isconst ? const2list(con) : list);		
+		list = (isconst ? const2list(con) : list);
                 special->nchunks = list->length;
                 special->_ChunkSizes = (size_t*)ecalloc(sizeof(size_t)*special->nchunks);
                 for(i=0;i<special->nchunks;i++) {
