@@ -44,7 +44,7 @@ variables:
 		var5:_NoFill = "true" ;
 
 // global attributes:
- 		:_NCProperties = "version=1|netcdflibversion=0.0.0|hdf5libversion=0.0.0" ;
+ 		:_NCProperties = "version=2,netcdf=4.6.2-development,hdf5=1.10.1" ;
 		:_SuperblockVersion = 0 ;
 		:_IsNetcdf4 = 1 ;
 		:_Format = "netCDF-4" ;

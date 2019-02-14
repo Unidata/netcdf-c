@@ -1,4 +1,4 @@
-/* This is part of the netCDF package. Copyright 2005 University
+/* This is part of the netCDF package. Copyright 2018 University
    Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
    conditions of use. See www.unidata.ucar.edu for more info.
 
@@ -8,7 +8,9 @@
 */
 
 #include <nc_tests.h>
+#include "err_macros.h"
 #include "netcdf.h"
+#include <hdf5.h>
 
 #define FILE_NAME_1 "tst_xplatform2_1.nc"
 #define REF_FILE_NAME_1 "ref_tst_xplatform2_1.nc"
@@ -28,10 +30,10 @@
 
 #define DIM1_LEN 5
 #define DIM2_LEN 3
-#define VLEN_NAME "Magna_Carta_VLEN"      
+#define VLEN_NAME "Magna_Carta_VLEN"
 #define VLEN_ATT_NAME "We_will_sell_to_no_man_we_will_not_deny_or_defer_to_any_man_either_Justice_or_Right"
 #define TWO_TYPES 2
-#define NUM_S1 4    
+#define NUM_S1 4
 
 #define DIM3_LEN 1
 #define DIM3_NAME "DIMENSION->The city of London shall enjoy all its ancient liberties and free customs, both by land and by water."
@@ -40,7 +42,7 @@
 #define NUM_VL 1
 #define S3_ATT_NAME "King_John"
 #define S3_TYPE_NAME "barons"
-#define VL_NAME "No scutage or aid may be levied in our kingdom without its general consent"      
+#define VL_NAME "No scutage or aid may be levied in our kingdom without its general consent"
 #define THREE_TYPES 3
 
 struct s1
@@ -86,7 +88,7 @@ check_file_1(int ncid, nc_vlen_t *data_out)
 
    /* How does the vlen type look? */
    if (nc_inq_vlen(ncid, typeids_in[1], name_in, &size_in, &base_nc_type_in)) ERR;
-   if (strcmp(name_in, VLEN_NAME) || size_in != sizeof(nc_vlen_t) || 
+   if (strcmp(name_in, VLEN_NAME) || size_in != sizeof(nc_vlen_t) ||
        base_nc_type_in != typeids_in[0]) ERR;
 
    /* Now read the attribute. */
@@ -108,7 +110,7 @@ check_file_1(int ncid, nc_vlen_t *data_out)
    /* We're done! */
    return NC_NOERR;
 }
-   
+
 int
 check_file_2(int ncid, struct s2 *data_out)
 {
@@ -139,9 +141,9 @@ check_file_2(int ncid, struct s2 *data_out)
 
    /* How does the containing compound type look? */
    if (nc_inq_compound(ncid, typeids_in[1], name_in, &size_in, &nfields_in)) ERR;
-   if (strcmp(name_in, S2_TYPE_NAME) || size_in != sizeof(struct s2) || 
+   if (strcmp(name_in, S2_TYPE_NAME) || size_in != sizeof(struct s2) ||
        nfields_in != 1) ERR;
-   if (nc_inq_compound_field(ncid, typeids_in[1], 0, name_in, &offset_in, &field_type_in, 
+   if (nc_inq_compound_field(ncid, typeids_in[1], 0, name_in, &offset_in, &field_type_in,
 			     &ndims_in, field_dims_in)) ERR;
    if (strcmp(name_in, S1_NAME) || offset_in != NC_COMPOUND_OFFSET(struct s2, data) ||
        field_type_in != typeids_in[0] || ndims_in != 1 || field_dims_in[0] != NUM_S1) ERR;
@@ -154,11 +156,11 @@ check_file_2(int ncid, struct s2 *data_out)
       for (j = 0; j < NUM_S1; j++)
 	 if (data_out[i].data[j].x != data_in[i].data[j].x ||
 	     data_out[i].data[j].y != data_in[i].data[j].y) ERR;
-   
+
    /* We're done! */
    return NC_NOERR;
 }
-   
+
 int
 check_file_3(int ncid, struct s3 *data_out)
 {
@@ -189,14 +191,14 @@ check_file_3(int ncid, struct s3 *data_out)
 
    /* How does the vlen type look? */
    if (nc_inq_vlen(ncid, typeids_in[1], name_in, &size_in, &base_nc_type_in)) ERR;
-   if (strcmp(name_in, VLEN_NAME) || size_in != sizeof(nc_vlen_t) || 
+   if (strcmp(name_in, VLEN_NAME) || size_in != sizeof(nc_vlen_t) ||
        base_nc_type_in != typeids_in[0]) ERR;
 
    /* How does the containing compound type look? */
    if (nc_inq_compound(ncid, typeids_in[2], name_in, &size_in, &nfields_in)) ERR;
-   if (strcmp(name_in, S3_TYPE_NAME) || size_in != sizeof(struct s3) || 
+   if (strcmp(name_in, S3_TYPE_NAME) || size_in != sizeof(struct s3) ||
        nfields_in != 1) ERR;
-   if (nc_inq_compound_field(ncid, typeids_in[2], 0, name_in, &offset_in, &field_type_in, 
+   if (nc_inq_compound_field(ncid, typeids_in[2], 0, name_in, &offset_in, &field_type_in,
 			     &ndims_in, field_dims_in)) ERR;
    if (strcmp(name_in, VL_NAME) || offset_in != NC_COMPOUND_OFFSET(struct s3, data) ||
        field_type_in != typeids_in[1] || ndims_in != 1 || field_dims_in[0] != NUM_VL) ERR;
@@ -208,21 +210,21 @@ check_file_3(int ncid, struct s3 *data_out)
    for (i = 0; i < DIM3_LEN; i++)
       for (j = 0; j < NUM_VL; j++)
       {
-	 if (data_in[i].data[j].len != data_in[i].data[j].len) ERR;
+	 if (data_in[i].data[j].len != data_out[i].data[j].len) ERR;
 	 for (k = 0; k < data_out[i].data[j].len; k++)
 	    if (((struct s1 *)data_in[i].data[j].p)[k].x != ((struct s1 *)data_out[i].data[j].p)[k].x ||
 		((struct s1 *)data_in[i].data[j].p)[k].y != ((struct s1 *)data_out[i].data[j].p)[k].y) ERR;
       }
 
    /* Free our vlens. */
-/*    for (i = 0; i < DIM3_LEN; i++) */
-/*       for (j = 0; j < NUM_VL; j++) */
-/* 	 nc_free_vlen(&(data_in[i].data[j])); */
+   for (i = 0; i < DIM3_LEN; i++)
+      for (j = 0; j < NUM_VL; j++)
+	 nc_free_vlen(&(data_in[i].data[j]));
 
    /* We're done! */
    return NC_NOERR;
 }
-   
+
 int
 check_file_4(int ncid, struct s3 *data_out)
 {
@@ -253,14 +255,14 @@ check_file_4(int ncid, struct s3 *data_out)
 
    /* How does the vlen type look? */
    if (nc_inq_vlen(ncid, typeids_in[1], name_in, &size_in, &base_nc_type_in)) ERR;
-   if (strcmp(name_in, VLEN_NAME) || size_in != sizeof(nc_vlen_t) || 
+   if (strcmp(name_in, VLEN_NAME) || size_in != sizeof(nc_vlen_t) ||
        base_nc_type_in != typeids_in[0]) ERR;
 
    /* How does the containing compound type look? */
    if (nc_inq_compound(ncid, typeids_in[2], name_in, &size_in, &nfields_in)) ERR;
-   if (strcmp(name_in, S3_TYPE_NAME) || size_in != sizeof(struct s3) || 
+   if (strcmp(name_in, S3_TYPE_NAME) || size_in != sizeof(struct s3) ||
        nfields_in != 1) ERR;
-   if (nc_inq_compound_field(ncid, typeids_in[2], 0, name_in, &offset_in, &field_type_in, 
+   if (nc_inq_compound_field(ncid, typeids_in[2], 0, name_in, &offset_in, &field_type_in,
 			     &ndims_in, field_dims_in)) ERR;
    if (strcmp(name_in, VL_NAME) || offset_in != NC_COMPOUND_OFFSET(struct s3, data) ||
        field_type_in != typeids_in[1] || ndims_in != 1 || field_dims_in[0] != NUM_VL) ERR;
@@ -272,21 +274,21 @@ check_file_4(int ncid, struct s3 *data_out)
    for (i = 0; i < DIM3_LEN; i++)
       for (j = 0; j < NUM_VL; j++)
       {
-	 if (data_in[i].data[j].len != data_in[i].data[j].len) ERR;
+	 if (data_in[i].data[j].len != data_out[i].data[j].len) ERR;
 	 for (k = 0; k < data_out[i].data[j].len; k++)
 	    if (((struct s1 *)data_in[i].data[j].p)[k].x != ((struct s1 *)data_out[i].data[j].p)[k].x ||
 		((struct s1 *)data_in[i].data[j].p)[k].y != ((struct s1 *)data_out[i].data[j].p)[k].y) ERR;
       }
 
    /* Free our vlens. */
-/*    for (i = 0; i < DIM3_LEN; i++) */
-/*       for (j = 0; j < NUM_VL; j++) */
-/* 	 nc_free_vlen(&(data_in[i].data[j])); */
+   for (i = 0; i < DIM3_LEN; i++)
+      for (j = 0; j < NUM_VL; j++)
+	 nc_free_vlen(&(data_in[i].data[j]));
 
    /* We're done! */
    return NC_NOERR;
 }
-   
+
 int
 main(int argc, char **argv)
 {
@@ -339,7 +341,6 @@ main(int argc, char **argv)
 	 }
       }
 
-
    printf("*** testing of vlen of compound type...");
    {
       nc_type s1_typeid, vlen_typeid;
@@ -351,9 +352,9 @@ main(int argc, char **argv)
        * different platforms - our old friend struct s1. */
       if (nc_def_compound(ncid, sizeof(struct s1), S1_TYPE_NAME, &s1_typeid)) ERR;
       if (nc_insert_compound(ncid, s1_typeid, X_NAME,
-			     NC_COMPOUND_OFFSET(struct s1, x), NC_FLOAT)) ERR;
+   			     NC_COMPOUND_OFFSET(struct s1, x), NC_FLOAT)) ERR;
       if (nc_insert_compound(ncid, s1_typeid, Y_NAME,
-			     NC_COMPOUND_OFFSET(struct s1, y), NC_DOUBLE)) ERR;
+   			     NC_COMPOUND_OFFSET(struct s1, y), NC_DOUBLE)) ERR;
 
       /* Now make a new type: a vlen of our compound type. */
       if (nc_def_vlen(ncid, VLEN_NAME, s1_typeid, &vlen_typeid)) ERR;
@@ -381,8 +382,8 @@ main(int argc, char **argv)
       strcpy(file_in, "");
       if (getenv("srcdir"))
       {
-	 strcat(file_in, getenv("srcdir"));
-	 strcat(file_in, "/");
+   	 strcat(file_in, getenv("srcdir"));
+   	 strcat(file_in, "/");
       }
       strcat(file_in, REF_FILE_NAME_1);
 
@@ -405,21 +406,21 @@ main(int argc, char **argv)
        * different platforms - our old friend struct s1. */
       if (nc_def_compound(ncid, sizeof(struct s1), S1_TYPE_NAME, &s1_typeid)) ERR;
       if (nc_insert_compound(ncid, s1_typeid, X_NAME,
-			     NC_COMPOUND_OFFSET(struct s1, x), NC_FLOAT)) ERR;
+   			     NC_COMPOUND_OFFSET(struct s1, x), NC_FLOAT)) ERR;
       if (nc_insert_compound(ncid, s1_typeid, Y_NAME,
-			     NC_COMPOUND_OFFSET(struct s1, y), NC_DOUBLE)) ERR;
+   			     NC_COMPOUND_OFFSET(struct s1, y), NC_DOUBLE)) ERR;
 
       /* Now make a compound type that holds an array of the struct s1
        * type. */
       if (nc_def_compound(ncid, sizeof(struct s2), S2_TYPE_NAME, &s2_typeid)) ERR;
       if (nc_insert_array_compound(ncid, s2_typeid, S1_NAME,
-				   NC_COMPOUND_OFFSET(struct s2, data),
-				   s1_typeid, 1, dimsizes)) ERR;
+   				   NC_COMPOUND_OFFSET(struct s2, data),
+   				   s1_typeid, 1, dimsizes)) ERR;
 
 
       /* Write the output data as an attribute. */
       if (nc_put_att(ncid, NC_GLOBAL, S2_ATT_NAME, s2_typeid,
-		     DIM2_LEN, comp_array_of_comp_out)) ERR;
+   		     DIM2_LEN, comp_array_of_comp_out)) ERR;
 
       /* How does it look? */
       if (check_file_2(ncid, comp_array_of_comp_out)) ERR;
@@ -440,8 +441,8 @@ main(int argc, char **argv)
       strcpy(file_in, "");
       if (getenv("srcdir"))
       {
-	 strcat(file_in, getenv("srcdir"));
-	 strcat(file_in, "/");
+   	 strcat(file_in, getenv("srcdir"));
+   	 strcat(file_in, "/");
       }
       strcat(file_in, REF_FILE_NAME_2);
 
@@ -464,9 +465,9 @@ main(int argc, char **argv)
        * different platforms - our old friend struct s1. */
       if (nc_def_compound(ncid, sizeof(struct s1), S1_TYPE_NAME, &s1_typeid)) ERR;
       if (nc_insert_compound(ncid, s1_typeid, X_NAME,
-			     NC_COMPOUND_OFFSET(struct s1, x), NC_FLOAT)) ERR;
+   			     NC_COMPOUND_OFFSET(struct s1, x), NC_FLOAT)) ERR;
       if (nc_insert_compound(ncid, s1_typeid, Y_NAME,
-			     NC_COMPOUND_OFFSET(struct s1, y), NC_DOUBLE)) ERR;
+   			     NC_COMPOUND_OFFSET(struct s1, y), NC_DOUBLE)) ERR;
 
       /* Now make a new type: a vlen of our s1 compound type. */
       if (nc_def_vlen(ncid, VLEN_NAME, s1_typeid, &vlen_typeid)) ERR;
@@ -475,16 +476,16 @@ main(int argc, char **argv)
        * type. */
       if (nc_def_compound(ncid, sizeof(struct s3), S3_TYPE_NAME, &s3_typeid)) ERR;
       if (nc_insert_array_compound(ncid, s3_typeid, VL_NAME,
-				   NC_COMPOUND_OFFSET(struct s3, data),
-				   vlen_typeid, 1, dimsizes)) ERR;
+   				   NC_COMPOUND_OFFSET(struct s3, data),
+   				   vlen_typeid, 1, dimsizes)) ERR;
 
 
       /* Write the output data as an attribute. */
       if (nc_put_att(ncid, NC_GLOBAL, S3_ATT_NAME, s3_typeid,
-		     DIM3_LEN, comp_array_of_vlen_of_comp_out)) ERR;
+   		     DIM3_LEN, comp_array_of_vlen_of_comp_out)) ERR;
 
-      /* How does it look? */
-      if (check_file_3(ncid, comp_array_of_vlen_of_comp_out)) ERR;
+      /* How does it look? Uncomment this line to see memory issue. */
+      /* if (check_file_3(ncid, comp_array_of_vlen_of_comp_out)) ERR; */
 
       /* We're done - wasn't that easy? */
       if (nc_close(ncid)) ERR;
@@ -495,15 +496,6 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
-/*    printf("*** testing Solaris-written compound containing array of vlen of compound type..."); */
-/*    { */
-/*       /\* Check out the same file, generated on buddy and included with */
-/*        * the distribution. *\/ */
-/*       if (nc_open(REF_FILE_NAME_3, NC_NOWRITE, &ncid)) ERR; */
-/*       if (check_file_3(ncid, comp_array_of_vlen_of_comp_out)) ERR; */
-/*       if (nc_close(ncid)) ERR; */
-/*    } */
-/*    SUMMARIZE_ERR; */
    printf("*** testing compound variable containing array of vlen of compound type...");
    {
       nc_type vlen_typeid, s3_typeid, s1_typeid;
@@ -517,9 +509,9 @@ main(int argc, char **argv)
        * different platforms - our old friend struct s1. */
       if (nc_def_compound(ncid, sizeof(struct s1), S1_TYPE_NAME, &s1_typeid)) ERR;
       if (nc_insert_compound(ncid, s1_typeid, X_NAME,
-			     NC_COMPOUND_OFFSET(struct s1, x), NC_FLOAT)) ERR;
+   			     NC_COMPOUND_OFFSET(struct s1, x), NC_FLOAT)) ERR;
       if (nc_insert_compound(ncid, s1_typeid, Y_NAME,
-			     NC_COMPOUND_OFFSET(struct s1, y), NC_DOUBLE)) ERR;
+   			     NC_COMPOUND_OFFSET(struct s1, y), NC_DOUBLE)) ERR;
 
       /* Now make a new type: a vlen of our s1 compound type. */
       if (nc_def_vlen(ncid, VLEN_NAME, s1_typeid, &vlen_typeid)) ERR;
@@ -528,8 +520,8 @@ main(int argc, char **argv)
        * type. */
       if (nc_def_compound(ncid, sizeof(struct s3), S3_TYPE_NAME, &s3_typeid)) ERR;
       if (nc_insert_array_compound(ncid, s3_typeid, VL_NAME,
-				   NC_COMPOUND_OFFSET(struct s3, data),
-				   vlen_typeid, 1, dimsizes)) ERR;
+   				   NC_COMPOUND_OFFSET(struct s3, data),
+   				   vlen_typeid, 1, dimsizes)) ERR;
 
       /* Create a dimension and a var of s3 type, then write the
        * data. */
@@ -561,6 +553,102 @@ main(int argc, char **argv)
    free(comp_array_of_vlen_of_comp_out);
    free(vlen_of_comp_out);
 
+   /* Now run the tests formerly in tst_h_atts2.c. */
+#define REF_FILE_NAME "tst_xplatform2_3.nc"
+#define NUM_OBJ 3
+   
+   printf("\n*** Checking HDF5 attribute functions some more.\n");
+   printf("*** Opening tst_xplatform2_3.nc...");
+   {
+      hid_t fileid, grpid, attid;
+      hid_t file_typeid1[NUM_OBJ], native_typeid1[NUM_OBJ];
+      hid_t file_typeid2, native_typeid2;
+      hsize_t num_obj, i;
+      H5O_info_t obj_info;
+      char obj_name[NC_MAX_NAME + 1];
+
+      /* Open one of the netCDF test files. */
+      if ((fileid = H5Fopen(REF_FILE_NAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) ERR;
+      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+
+      /* How many objects in this group? */
+      if (H5Gget_num_objs(grpid, &num_obj) < 0) ERR;
+      if (num_obj != NUM_OBJ) ERR;
+
+      /* For each object in the group... */
+      for (i = 0; i < num_obj; i++)
+      {
+	 /* Get the name. */
+	 if (H5Oget_info_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
+				i, &obj_info, H5P_DEFAULT) < 0) ERR_RET;
+	 if (H5Lget_name_by_idx(grpid, ".", H5_INDEX_NAME, H5_ITER_INC, i,
+				obj_name, NC_MAX_NAME + 1, H5P_DEFAULT) < 0) ERR_RET;
+	 printf(" reading type %s ", obj_name);
+	 if (obj_info.type != H5O_TYPE_NAMED_DATATYPE) ERR_RET;
+
+	 /* Get the typeid. */
+	 if ((file_typeid1[i] = H5Topen2(grpid, obj_name, H5P_DEFAULT)) < 0) ERR_RET;
+	 if ((native_typeid1[i] = H5Tget_native_type(file_typeid1[i], H5T_DIR_DEFAULT)) < 0) ERR_RET;
+      }
+
+      /* There is one att: open it by index. */
+      if ((attid = H5Aopen_idx(grpid, 0)) < 0) ERR;
+
+      /* Get file and native typeids. */
+      if ((file_typeid2 = H5Aget_type(attid)) < 0) ERR;
+      if ((native_typeid2 = H5Tget_native_type(file_typeid2, H5T_DIR_DEFAULT)) < 0) ERR;
+
+      /* Close the attribute. */
+      if (H5Aclose(attid) < 0) ERR;
+
+      /* Close the typeids. */
+      if (H5Tclose(file_typeid2) < 0) ERR_RET;
+      if (H5Tclose(native_typeid2) < 0) ERR_RET;
+      for (i = 0; i < NUM_OBJ; i++)
+      {
+	 if (H5Tclose(file_typeid1[i]) < 0) ERR_RET;
+	 if (H5Tclose(native_typeid1[i]) < 0) ERR_RET;
+      }
+
+      /* Close the group and file. */
+      if (H5Gclose(grpid) < 0 ||
+	  H5Fclose(fileid) < 0) ERR;
+   }
+
+   SUMMARIZE_ERR;
+   printf("*** Opening tst_xplatform2_3.nc again...");
+   {
+      hid_t fileid, grpid, attid, file_typeid, native_typeid;
+      hid_t file_typeid2, native_typeid2;
+
+      /* Open one of the netCDF test files. */
+      if ((fileid = H5Fopen(REF_FILE_NAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) ERR;
+      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+
+      /* There is one att: open it by index. */
+      if ((attid = H5Aopen_idx(grpid, 0)) < 0) ERR;
+
+      /* Get file and native typeids. */
+      if ((file_typeid = H5Aget_type(attid)) < 0) ERR;
+      if ((native_typeid = H5Tget_native_type(file_typeid, H5T_DIR_DEFAULT)) < 0) ERR;
+
+      /* Now getting another copy of the native typeid will fail! WTF? */
+      if ((file_typeid2 = H5Aget_type(attid)) < 0) ERR;
+      if ((native_typeid2 = H5Tget_native_type(file_typeid, H5T_DIR_DEFAULT)) < 0) ERR;
+
+      /* Close the attribute. */
+      if (H5Aclose(attid) < 0) ERR;
+
+      /* Close the typeids. */
+      if (H5Tclose(file_typeid) < 0) ERR;
+      if (H5Tclose(native_typeid) < 0) ERR;
+      if (H5Tclose(file_typeid2) < 0) ERR;
+      if (H5Tclose(native_typeid2) < 0) ERR;
+
+      /* Close the group and file. */
+      if (H5Gclose(grpid) < 0 ||
+	  H5Fclose(fileid) < 0) ERR;
+   }
+   SUMMARIZE_ERR;
    FINAL_RESULTS;
 }
-

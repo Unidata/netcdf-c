@@ -1,9 +1,9 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
-#include "ncdap.h"
+#include "dapincludes.h"
 
 NCerror
 ocerrtoncerr(OCerror ocerr)

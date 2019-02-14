@@ -1,5 +1,5 @@
 /* This is part of the netCDF package.
-   Copyright 20057 University Corporation for Atmospheric Research/Unidata
+   Copyright 2018 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
    Test HDF5 file code. These are not intended to be exhaustive tests,
@@ -11,6 +11,7 @@
    $Id: tst_h_par.c,v 1.15 2010/05/25 13:53:04 ed Exp $
 */
 #include <nc_tests.h>
+#include "err_macros.h"
 #include <hdf5.h>
 
 /* Defining USE_MPE causes the MPE trace library to be used (and you
@@ -45,14 +46,14 @@ main(int argc, char **argv)
 
 #ifdef USE_MPE
    MPE_Init_log();
-   s_init = MPE_Log_get_event_number(); 
-   e_init = MPE_Log_get_event_number(); 
-   s_define = MPE_Log_get_event_number(); 
-   e_define = MPE_Log_get_event_number(); 
-   s_write = MPE_Log_get_event_number(); 
-   e_write = MPE_Log_get_event_number(); 
-   s_close = MPE_Log_get_event_number(); 
-   e_close = MPE_Log_get_event_number(); 
+   s_init = MPE_Log_get_event_number();
+   e_init = MPE_Log_get_event_number();
+   s_define = MPE_Log_get_event_number();
+   e_define = MPE_Log_get_event_number();
+   s_write = MPE_Log_get_event_number();
+   e_write = MPE_Log_get_event_number();
+   s_close = MPE_Log_get_event_number();
+   e_close = MPE_Log_get_event_number();
    MPE_Describe_state(s_init, e_init, "Init", "red");
    MPE_Describe_state(s_define, e_define, "Define", "yellow");
    MPE_Describe_state(s_write, e_write, "Write", "green");
@@ -79,7 +80,7 @@ main(int argc, char **argv)
        * fill the file. */
       for (i = 0; i < SC1; i++)
 	 data[i] = rand();
-      
+
 #ifdef USE_MPE
       MPE_Log_event(e_init, 0, "end init");
       MPE_Log_event(s_define, 0, "start define file");
@@ -88,7 +89,7 @@ main(int argc, char **argv)
       /* Create file. */
       if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
       if (H5Pset_fapl_mpio(fapl_id, MPI_COMM_WORLD, MPI_INFO_NULL) < 0) ERR;
-      if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, 
+      if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
 			      fapl_id)) < 0) ERR;
 
       /* Create a space to deal with one slice in memory. */
@@ -100,7 +101,7 @@ main(int argc, char **argv)
       if ((whole_spaceid = H5Screate_simple(NDIMS, dims, NULL)) < 0) ERR;
 
       /* Create dataset. */
-      if ((dsid = H5Dcreate1(fileid, VAR_NAME, H5T_NATIVE_INT, 
+      if ((dsid = H5Dcreate1(fileid, VAR_NAME, H5T_NATIVE_INT,
       whole_spaceid, H5P_DEFAULT)) < 0) ERR;
 
       /* Use collective write operations. */
@@ -114,7 +115,7 @@ main(int argc, char **argv)
 #endif /* USE_MPE */
 
       /* Write the data in num_step steps. */
-      ftime = MPI_Wtime();      
+      ftime = MPI_Wtime();
       num_steps = (DIM2_LEN/SC1) / p;
       for (s = 0; s < num_steps; s++)
       {
@@ -125,10 +126,10 @@ main(int argc, char **argv)
 	 /* Select hyperslab for write of one slice. */
 	 start[0] = s * SC1 * p + my_rank * SC1;
 	 count[0] = SC1;
-	 if (H5Sselect_hyperslab(whole_spaceid, H5S_SELECT_SET, 
+	 if (H5Sselect_hyperslab(whole_spaceid, H5S_SELECT_SET,
 	 start, NULL, count, NULL) < 0) ERR;
-	 
-	 if (H5Dwrite(dsid, H5T_NATIVE_INT, slice_spaceid, whole_spaceid, 
+
+	 if (H5Dwrite(dsid, H5T_NATIVE_INT, slice_spaceid, whole_spaceid,
 	 xferid, data) < 0) ERR;
 
 #ifdef USE_MPE
@@ -139,10 +140,10 @@ main(int argc, char **argv)
       MPI_Reduce(&write_us, &max_write_us, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
       if (!my_rank)
       {
-	 write_rate = (float)(DIM2_LEN * sizeof(int))/(float)max_write_us;      
+	 write_rate = (float)(DIM2_LEN * sizeof(int))/(float)max_write_us;
 	 printf("\np=%d, write_rate=%g", p, write_rate);
       }
-      
+
 #ifdef USE_MPE
       MPE_Log_event(s_close, 0, "start close file");
 #endif /* USE_MPE */
@@ -176,23 +177,23 @@ main(int argc, char **argv)
       if ((dsid = H5Dopen(fileid, VAR_NAME)) < 0) ERR;
       if ((whole_spaceid1 = H5Dget_space(dsid)) < 0) ERR;
 
-      ftime = MPI_Wtime();      
-      
+      ftime = MPI_Wtime();
+
       /* Read the data, a slice at a time. */
       for (s = 0; s < num_steps; s++)
       {
 	 /* Select hyperslab for read of one slice. */
 	 start[0] = s * SC1 * p + my_rank * SC1;
 	 count[0] = SC1;
-	 if (H5Sselect_hyperslab(whole_spaceid1, H5S_SELECT_SET, 
-	 start, NULL, count, NULL) < 0) 
+	 if (H5Sselect_hyperslab(whole_spaceid1, H5S_SELECT_SET,
+	 start, NULL, count, NULL) < 0)
 	 {
 	    ERR;
 	    return 2;
 	 }
 
-	 if (H5Dread(dsid, H5T_NATIVE_INT, slice_spaceid, whole_spaceid1, 
-	 H5P_DEFAULT, data_in) < 0) 
+	 if (H5Dread(dsid, H5T_NATIVE_INT, slice_spaceid, whole_spaceid1,
+	 H5P_DEFAULT, data_in) < 0)
 	 {
 	    ERR;
 	    return 2;
@@ -210,10 +211,10 @@ main(int argc, char **argv)
       MPI_Reduce(&read_us, &max_read_us, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
       if (!my_rank)
       {
-	 read_rate = (float)(DIM2_LEN * sizeof(int))/(float)max_read_us;      
+	 read_rate = (float)(DIM2_LEN * sizeof(int))/(float)max_read_us;
 	 printf(", read_rate=%g\n", read_rate);
       }
-      
+
       /* Close down. */
       if (H5Dclose(dsid) < 0 ||
       H5Sclose(slice_spaceid) < 0 ||

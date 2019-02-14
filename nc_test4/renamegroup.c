@@ -1,4 +1,4 @@
-/* This is part of the netCDF package. Copyright 2005 University
+/* This is part of the netCDF package. Copyright 2018 University
    Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
    conditions of use. See www.unidata.ucar.edu for more info.
 
@@ -38,7 +38,7 @@ check(int status)
 int
 main(int argc, char **argv)
 {
-    int i,stat;
+    int stat;
     int ncid, grpid;
     char* filename;
     char* oldname;

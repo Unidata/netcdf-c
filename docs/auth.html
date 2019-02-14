@@ -69,6 +69,10 @@ netCDF can support user authorization using the facilities provided by the curl
 library. This includes basic password authentication as well as
 certificate-based authorization.
 <p>
+At the moment, this document only applies to DAP2 and DAP4 access
+because they are (for now) the only parts of the netCDF-C library
+that uses libcurl.
+<p>
 With some exceptions (e.g. see the section on <a href="#REDIR">redirection</a>)
 The libcurl authorization mechanisms can be accessed in two ways
 <ol>
@@ -161,7 +165,7 @@ specifies the password for accessing the HTTP.SSL.CERTIFICAT/HTTP.SSL.key file.
 <p>
 HTTP.SSL.CAPATH
 specifies the path to a directory containing
-trusted certificates for validating server sertificates.
+trusted certificates for validating server certificates.
 <p>
 HTTP.SSL.VALIDATE
 is a boolean (1/0) value that if true (1)

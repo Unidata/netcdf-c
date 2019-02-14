@@ -1,9 +1,20 @@
+/*! \file
+
+Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+2015, 2016, 2017, 2018
+University Corporation for Atmospheric Research/Unidata.
+
+See \ref copyright file for more info.
+
+*/
 #define NETCDF3ONLY
 #include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "netcdf.h"
+#include "t_srcdir.h"
 
 
 #undef GENERATE
@@ -110,9 +121,8 @@ int main()
 {
     int ncid, varid;
     int ncstat = NC_NOERR;
-    char* url;
-    char* topsrcdir;
-    size_t len;
+    char url[8102];
+    const char* topsrcdir;
 #ifndef USE_NETCDF4
     int i,j;
 #endif
@@ -120,32 +130,24 @@ int main()
     /* location of our target url: use file:// to avoid remote
 	server downtime issues
      */
-    
-    /* Assume that TESTS_ENVIRONMENT was set */
-    topsrcdir = getenv("TOPSRCDIR");
-    if(topsrcdir == NULL) {
-        fprintf(stderr,"$abs_top_srcdir not defined: using '../'");
-	topsrcdir = "..";
-    }    
-    len = strlen("file://") + strlen(topsrcdir) + strlen("/ncdap_test/testdata3/test.02") + 1;
-#ifdef DEBUG
-    len += strlen("[log][show=fetch]");
-#endif
-    url = (char*)malloc(len);
+
+    topsrcdir = gettopsrcdir();
+
     url[0] = '\0';
 
 #ifdef DEBUG
-    strcat(url,"[log][show=fetch]");
+    strlcat(url,"[log][show=fetch]",sizeof(url));
 #endif
 
-    strcat(url,"file://");
-    strcat(url,topsrcdir);
-    strcat(url,"/ncdap_test/testdata3/test.02");
+    strlcat(url,"file://",sizeof(url));
+    strlcat(url,topsrcdir,sizeof(url));
+    strlcat(url,"/ncdap_test/testdata3/test.02",sizeof(url));
 
     printf("*** Test: var conversions on URL: %s\n",url);
 
     /* open file, get varid */
     CHECK(nc_open(url, NC_NOWRITE, &ncid));
+
     /* extract the string case for netcdf-3*/
 #ifndef USE_NETCDF4
     CHECK(nc_inq_varid(ncid, "s", &varid));
@@ -310,6 +312,7 @@ int main()
         printf("ncstat=%d %s",ncstat,nc_strerror(ncstat));
         exit(1);
     }
+    nc_close(ncid);
     return 0;
 }
 
@@ -376,7 +379,7 @@ compare(nc_type t1, nc_type t2, void* v0, void* vdata0, char* tag,
     default: {
 	printf("unexpected compare:  %d %d\n",(int)t1,(int)t2);
 	abort();
-    }    
+    }
 
 case CASE(NC_CHAR,NC_CHAR): {
     setup(char);
@@ -467,4 +470,3 @@ case CASE(NC_CHAR,NC_STRING):{
 
     } /*switch*/
 }
-

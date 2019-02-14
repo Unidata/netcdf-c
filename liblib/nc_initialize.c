@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2010, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
@@ -11,23 +11,45 @@
 
 #include "ncdispatch.h"
 
+
 extern int NC3_initialize(void);
 extern int NC3_finalize(void);
 
 #ifdef USE_NETCDF4
 #include "nc4internal.h"
+#include "hdf5internal.h"
 extern int NC4_initialize(void);
 extern int NC4_finalize(void);
 #endif
 
-#ifdef USE_DAP
+#ifdef USE_HDF5
+extern int NC_HDF5_initialize(void);
+extern int NC_HDF5_finalize(void);
+#endif
+
+#ifdef ENABLE_DAP2
 extern int NCD2_initialize(void);
 extern int NCD2_finalize(void);
+#endif
+
+#ifdef ENABLE_DAP4
+extern int NCD4_initialize(void);
+extern int NCD4_finalize(void);
 #endif
 
 #ifdef USE_PNETCDF
 extern int NCP_initialize(void);
 extern int NCP_finalize(void);
+#endif
+
+#ifdef USE_HDF4
+extern int NC_HDF4_initialize(void);
+extern int NC_HDF4_finalize(void);
+#endif
+
+#ifdef _MSC_VER
+#include <io.h>
+#include <fcntl.h>
 #endif
 
 int NC_argc = 1;
@@ -59,16 +81,25 @@ nc_initialize()
 
     /* Initialize each active protocol */
     if((stat = NC3_initialize())) goto done;
-#ifdef USE_DAP
+#ifdef ENABLE_DAP
     if((stat = NCD2_initialize())) goto done;
+#endif
+#ifdef ENABLE_DAP4
+    if((stat = NCD4_initialize())) goto done;
 #endif
 #ifdef USE_PNETCDF
     if((stat = NCP_initialize())) goto done;
 #endif
 #ifdef USE_NETCDF4
     if((stat = NC4_initialize())) goto done;
-    stat = NC4_fileinfo_init();
 #endif /* USE_NETCDF4 */
+#ifdef USE_HDF5
+    if((stat = NC_HDF5_initialize())) goto done;
+    stat = NC4_provenance_init();
+#endif
+#ifdef USE_HDF4
+    if((stat = NC_HDF4_initialize())) goto done;
+#endif
 
 done:
     return stat;
@@ -94,13 +125,20 @@ nc_finalize(void)
 
     /* Finalize each active protocol */
 
-#ifdef USE_DAP
+#ifdef ENABLE_DAP2
     if((stat = NCD2_finalize())) return stat;
+#endif
+#ifdef ENABLE_DAP4
+    if((stat = NCD4_finalize())) return stat;
 #endif
 
 #ifdef USE_PNETCDF
     if((stat = NCP_finalize())) return stat;
 #endif
+
+#ifdef USE_HDF4
+    if((stat = NC_HDF4_finalize())) return stat;
+#endif /* USE_HDF4 */
 
 #ifdef USE_NETCDF4
     if((stat = NC4_finalize())) return stat;

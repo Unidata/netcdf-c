@@ -1,5 +1,16 @@
-/* This is a quickie tester for netcdf-4. 
-   
+/*! \file
+
+Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+2015, 2016, 2017, 2018
+University Corporation for Atmospheric Research/Unidata.
+
+See \ref copyright file for more info.
+
+*/
+
+/* This is a quickie tester for netcdf-4.
+
    This just excersizes MPI file I/O to make sure everything's working
    properly. If this doesn't work, netcdf/HDF5 parallel I/O also won't
    work.
@@ -8,6 +19,7 @@
 */
 
 #include <nc_tests.h>
+#include "err_macros.h"
 #include <mpi.h>
 
 #define FILE "tst_mpi_parallel.bin"
@@ -26,7 +38,7 @@ main(int argc, char **argv)
    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
    /*MPI_Get_processor_name(mpi_name, &mpi_namelen);*/
-   /*printf("mpi_name: %s size: %d rank: %d\n", mpi_name, 
+   /*printf("mpi_name: %s size: %d rank: %d\n", mpi_name,
      mpi_size, my_rank);*/
 
    if (my_rank == 0)

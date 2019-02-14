@@ -1,5 +1,5 @@
 /* This is part of the netCDF package.
-   Copyright 2005 University Corporation for Atmospheric Research/Unidata
+   Copyright 2018 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
    Test that HDF5 and NetCDF-4 can read and write the same file.
@@ -8,6 +8,7 @@
 */
 #include <config.h>
 #include <nc_tests.h>
+#include "err_macros.h"
 #include <hdf5.h>
 #include <H5DSpublic.h>
 
@@ -28,11 +29,11 @@
 #define ATT_NAME "song"
 #define NEW_FLOAT 1.0
 
-void 
-printRes(const char *msg, int ires) 
+void
+printRes(const char *msg, int ires)
 {
    printf("%s: %d\n", msg, ires);
-   if (ires < 0) 
+   if (ires < 0)
    {
       printf("bad ires: %d\n", ires);
       /*H5Eprint2(ires, stdout);*/
@@ -170,7 +171,7 @@ main(int argc, char **argv)
       if ((typeid = H5Aget_type(attid)) < 0) ERR;
       if (H5Aread(attid, typeid, song_in) < 0) ERR;
       if (strcmp(song, song_in)) ERR;
-      
+
       /* Close up the shop. */
       if (H5Tclose(typeid) < 0 ||
 	  H5Aclose(attid) < 0 ||
@@ -208,7 +209,7 @@ main(int argc, char **argv)
       if ((pres_spaceid = H5Screate_simple(DIMS_2, dims, dims)) < 0) ERR;
 
       /* Create a variable. It will not have dimension scales. */
-      if ((pres_datasetid = H5Dcreate(fileid, PRES_NAME, H5T_NATIVE_FLOAT, 
+      if ((pres_datasetid = H5Dcreate(fileid, PRES_NAME, H5T_NATIVE_FLOAT,
 				      pres_spaceid, H5P_DEFAULT)) < 0) ERR;
 
       /* Ring down the curtain. */
@@ -235,7 +236,7 @@ main(int argc, char **argv)
       size_t len_in;
 
       /* Create file. */
-      if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, 
+      if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
 			      H5P_DEFAULT)) < 0) ERR;
 
       /* Create the space for the dataset. */
@@ -244,7 +245,7 @@ main(int argc, char **argv)
       if ((pres_spaceid = H5Screate_simple(DIMS_2, dims, dims)) < 0) ERR;
 
       /* Create a variable. It will not have dimension scales. */
-      if ((pres_datasetid = H5Dcreate(fileid, PRES_NAME, H5T_NATIVE_FLOAT, 
+      if ((pres_datasetid = H5Dcreate(fileid, PRES_NAME, H5T_NATIVE_FLOAT,
 				      pres_spaceid, H5P_DEFAULT)) < 0) ERR;
 
       /* Ring down the curtain. */
@@ -271,7 +272,7 @@ main(int argc, char **argv)
       size_t len_in;
 
       /* Create file. */
-      if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, 
+      if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
 			      H5P_DEFAULT)) < 0) ERR;
 
       /* Create the space for the datasets. */
@@ -280,9 +281,9 @@ main(int argc, char **argv)
       if ((spaceid = H5Screate_simple(DIMS_2, dims, dims)) < 0) ERR;
 
       /* Create two datasets. They will not have dimension scales. */
-      if ((pres_datasetid = H5Dcreate(fileid, PRES_NAME, H5T_NATIVE_FLOAT, 
+      if ((pres_datasetid = H5Dcreate(fileid, PRES_NAME, H5T_NATIVE_FLOAT,
 				      spaceid, H5P_DEFAULT)) < 0) ERR;
-      if ((temp_datasetid = H5Dcreate(fileid, TEMP_NAME, H5T_NATIVE_FLOAT, 
+      if ((temp_datasetid = H5Dcreate(fileid, TEMP_NAME, H5T_NATIVE_FLOAT,
 				      spaceid, H5P_DEFAULT)) < 0) ERR;
 
       /* Ring down the curtain. */
@@ -318,16 +319,16 @@ main(int argc, char **argv)
       int i;
 
       /* Create file. */
-      if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, 
+      if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
 			      H5P_DEFAULT)) < 0) ERR;
 
 
       if ((typeid =  H5Tcopy(H5T_C_S1)) < 0) ERR;
       if (H5Tset_size(typeid, MAX_LEN + 1) < 0) ERR;
-   
+
       /* Write an attribute of this (string) type. */
       if ((spaceid = H5Screate_simple(1, dims, NULL)) < 0) ERR;
-      if ((attid = H5Acreate(fileid, ATT_NAME2, typeid, spaceid, 
+      if ((attid = H5Acreate(fileid, ATT_NAME2, typeid, spaceid,
 			     H5P_DEFAULT)) < 0) ERR;
       if (H5Awrite(attid, typeid, data) < 0) ERR;
 
@@ -374,7 +375,7 @@ main(int argc, char **argv)
       if (H5Aclose(attid) < 0) ERR;
       if (H5Tclose(typeid) < 0) ERR;
       if (H5Fclose(fileid) < 0) ERR;
-      
+
       /* Read the data with netCDF. */
       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
       if (nc_inq(ncid, &ndims_in, &nvars_in, &natts_in, &unlimdim_in)) ERR;
@@ -389,11 +390,7 @@ main(int argc, char **argv)
       /* Open the file with HDF5 while netcdf still has it open. */
       if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
       /* Turn this off for*/
-#ifdef EXTRA_TESTS
       if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_SEMI)) ERR;
-#else
-      if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_STRONG)) ERR;
-#endif
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, fapl_id)) < 0) ERR;
       if (H5Pclose(fapl_id) < 0) ERR;
       if (H5Fclose(fileid) < 0) ERR;
@@ -401,48 +398,47 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
-/*    printf("**** testing 2D coordinate variable..."); */
+   printf("**** testing 2D coordinate variable...");
 
-/*    { */
-/* #define VAR_NAME "Britany" */
-/* #define NDIMS 2 */
-/* #define TEXT_LEN 15 */
-/* #define D0_NAME "time" */
-/* #define D1_NAME "tl" */
-/*       int ncid, nvars_in, varids_in[1]; */
-/*       int time_dimids[NDIMS], time_id; */
-/*       size_t time_count[NDIMS], time_index[NDIMS] = {0, 0}; */
-/*       const char ttext[TEXT_LEN]="20051224.150000"; */
-/*       int nvars, ndims, ngatts, unlimdimid; */
-/*       int ndims_in, natts_in, dimids_in[NDIMS]; */
-/*       char var_name_in[NC_MAX_NAME + 1]; */
-/*       nc_type xtype_in; */
+   {
+#define VAR_NAME "Britany"
+#define NDIMS2 2
+#define TEXT_LEN 15
+#define D0_NAME "time"
+#define D1_NAME "tl"
+      int ncid, nvars_in, varids_in[1];
+      int time_dimids[NDIMS2], time_id;
+      size_t time_count[NDIMS2], time_index[NDIMS2] = {0, 0};
+      const char ttext[TEXT_LEN]="20051224.150000";
+      int nvars, ndims, ngatts, unlimdimid;
+      int ndims_in, natts_in, dimids_in[NDIMS2];
+      char var_name_in[NC_MAX_NAME + 1];
+      nc_type xtype_in;
 
-/*       /\* Create a netcdf-4 file with 2D coordinate var. *\/ */
-/*       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR; */
+      /* Create a netcdf-4 file with 2D coordinate var. */
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
 
-/*       if (nc_def_dim(ncid, D0_NAME, NC_UNLIMITED, &time_dimids[0])) ERR; */
-/*       if (nc_def_dim(ncid, D1_NAME, TEXT_LEN, &time_dimids[1])) ERR; */
-/*       if (nc_def_var(ncid, D0_NAME, NC_CHAR, NDIMS, time_dimids, &time_id)) ERR; */
+      if (nc_def_dim(ncid, D0_NAME, NC_UNLIMITED, &time_dimids[0])) ERR;
+      if (nc_def_dim(ncid, D1_NAME, TEXT_LEN, &time_dimids[1])) ERR;
+      if (nc_def_var(ncid, D0_NAME, NC_CHAR, NDIMS2, time_dimids, &time_id)) ERR;
 
-/*       /\* Write one time to the coordinate variable. *\/ */
-/*       time_count[0] = 1; */
-/*       time_count[1] = TEXT_LEN; */
-/*       if (nc_put_vara_text(ncid, time_id, time_index, time_count, ttext)) ERR; */
-/*       if (nc_close(ncid)) ERR; */
+      /* Write one time to the coordinate variable. */
+      time_count[0] = 1;
+      time_count[1] = TEXT_LEN;
+      if (nc_put_vara_text(ncid, time_id, time_index, time_count, ttext)) ERR;
+      if (nc_close(ncid)) ERR;
 
-/*       /\* Open the file and check. *\/ */
-/*       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR; */
-/*       if (nc_inq(ncid, &ndims, &nvars, &ngatts, &unlimdimid)) ERR; */
-/*       if (nvars != 1 || ndims != 2 || ngatts != 0 || unlimdimid != 0) ERR; */
-/*       if (nc_inq_varids(ncid, &nvars_in, varids_in)) ERR; */
-/*       if (nvars_in != 1 || varids_in[0] != 0) ERR; */
-/*       if (nc_inq_var(ncid, 0, var_name_in, &xtype_in, &ndims_in, dimids_in, &natts_in)) ERR; */
-/*       if (strcmp(var_name_in, D0_NAME) || xtype_in != NC_CHAR || ndims_in != 2 || */
-/* 	dimids_in[0] != 0 || dimids_in[1] != 1 || natts_in != 0) ERR; */
-/*       if (nc_close(ncid)) ERR; */
-/*    } */
-/*    SUMMARIZE_ERR; */
+      /* Open the file and check. */
+      if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+      if (nc_inq(ncid, &ndims, &nvars, &ngatts, &unlimdimid)) ERR;
+      if (nvars != 1 || ndims != 2 || ngatts != 0 || unlimdimid != 0) ERR;
+      if (nc_inq_varids(ncid, &nvars_in, varids_in)) ERR;
+      if (nvars_in != 1 || varids_in[0] != 0) ERR;
+      if (nc_inq_var(ncid, 0, var_name_in, &xtype_in, &ndims_in, dimids_in, &natts_in)) ERR;
+      if (strcmp(var_name_in, D0_NAME) || xtype_in != NC_CHAR || ndims_in != 2 ||
+	dimids_in[0] != 0 || dimids_in[1] != 1 || natts_in != 0) ERR;
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
    FINAL_RESULTS;
 }
-

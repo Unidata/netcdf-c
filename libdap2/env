@@ -4,12 +4,12 @@ alias xx="cd ..;make; cd libdap2"
 PARMS=""; ARGS=""; CON="" ; CE="";  OCON="" ; VAR=""; SHARP='#'
 alias q0=;alias qq=;alias qv=;alias q=;alias  qh=;alias qqh=;alias qall=;alias qv=;alias qo=;
 
-F="http://www.esrl.noaa.gov/psd/thredds/dodsC/Datasets/ncep.reanalysis.dailyavgs/pressure/air.1947.nc"
+F='https://cida.usgs.gov/thredds/dodsC/new_gmo?longitude[0:1:461],latitude[0:1:221],time[0:1:22644]'
 
-if test -e "/cygdrive/f/git/netcdf-c" ; then
-TOP="/cygdrive/f/git/netcdf-c"
-elif test -e "/cygdrive/d/git/netcdf-c" ; then
+if test -e "/cygdrive/d/git/netcdf-c" ; then
 TOP="/cygdrive/d/git/netcdf-c"
+elif test -e "/cygdrive/f/git/netcdf-c" ; then
+TOP="/cygdrive/f/git/netcdf-c"
 elif test -e "/home/dmh/git/netcdf-c" ; then
 TOP="/home/dmh/git/netcdf-c"
 else
@@ -25,15 +25,15 @@ fi
 P=`pwd`
 
 PARMS="log"
-#PARMS="${PARMS}&netcdf3"
-#PARMS="${PARMS}&fetch=disk"
-#PARMS="${PARMS}&cache"
-#PARMS="${PARMS}&nocache"
-#PARMS="${PARMS}&wholevar"
-PARMS="${PARMS}&show=fetch"
-#PARMS="${PARMS}&noprefetch"
-#PARMS="${PARMS}&prefetch"
-#PARMS="${PARMS}&prefetch=eager"
+#PARMS="${PARMS}[netcdf3]"
+#PARMS="${PARMS}[fetch=disk]"
+#PARMS="${PARMS}[cache]"
+#PARMS="${PARMS}[nocache]"
+#PARMS="${PARMS}[wholevar]"
+PARMS="${PARMS}[show=fetch]"
+#PARMS="${PARMS}[noprefetch]"
+#PARMS="${PARMS}[prefetch]"
+#PARMS="${PARMS}[prefetch=eager]"
 PARMS="[log][cache][noprefetch]"
 
 VARGS="--leak-check=full"
@@ -52,10 +52,9 @@ if test "x$PROG" = x ; then
  PROG="../ncdump/ncdump"
 fi
 
-if test "x$PARMS" != "x" ; then PARMS="\#$PARMS"; fi
 U="$F"
 if test "x$CON" != "x" ; then U="$U?$CON"; fi
-UALL="$U${PARMS}"
+UALL="${PARMS}$U"
 #ARGS="-h $ARGS"
 #ARGS="-w $ARGS"
 #ARGS="-c $ARGS"
@@ -133,4 +132,5 @@ F="http://nomads.ncep.noaa.gov:9090/dods/gens/gens20140123/gep_all_12z"
 VAR=prmslmsl 
 F="http://data.nodc.noaa.gov/thredds/dodsC/testdata/pathfinderAgg/pathFinderV5.2_night.ncml"
 CON="sst_dtime.sst_dtime"
+F="http://www.esrl.noaa.gov/psd/thredds/dodsC/Datasets/ncep.reanalysis.dailyavgs/pressure/air.1947.nc"
 fi

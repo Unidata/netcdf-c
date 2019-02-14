@@ -1,5 +1,16 @@
+/*! \file
+
+Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+2015, 2016, 2017, 2018
+University Corporation for Atmospheric Research/Unidata.
+
+See \ref copyright file for more info.
+
+*/
+
 /* This example program is part of Unidata's netCDF library for
-   scientific data access. 
+   scientific data access.
 
    This program will create a large file in netCDF classic
    format. From the netcdf docs:
@@ -25,7 +36,7 @@
 printf("Bailing out in file %s, line %d, error:%s.\n", \
 __FILE__, __LINE__, nc_strerror(e)); \
 return NC_EXAMPLE_ERROR; \
-} while (0) 
+} while (0)
 
 #define NUMDIMS 1
 #define NUMVARS 2
@@ -40,7 +51,7 @@ main()
    int ncid, spockid, kirkid, dimids[NUMDIMS];
    double val_in, val_out = 999.99;
    size_t index[NUMDIMS] = {1};
-   int i, res; 
+   int i, res;
 
    /* Create the netCDF classic format file. */
    if ((res = nc_create("example.nc", NC_CLOBBER, &ncid)))
@@ -53,15 +64,15 @@ main()
    /* Define dimension. */
    if ((res = nc_def_dim(ncid, "longdim", DIM_LEN, dimids)))
       BAIL(res);
-   
+
    /* Define two variables. */
-   if ((res = nc_def_var(ncid, "spock", NC_DOUBLE, NUMDIMS, 
+   if ((res = nc_def_var(ncid, "spock", NC_DOUBLE, NUMDIMS,
 			 dimids, &spockid)))
       BAIL(res);
-   if ((res = nc_def_var(ncid, "kirk", NC_DOUBLE, NUMDIMS, 
+   if ((res = nc_def_var(ncid, "kirk", NC_DOUBLE, NUMDIMS,
 			 dimids, &kirkid)))
       BAIL(res);
-   
+
    /* We're finished defining metadata. */
    if ((res = nc_enddef(ncid)))
       BAIL(res);
@@ -75,4 +86,3 @@ main()
 
    return 0;
 }
-

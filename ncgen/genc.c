@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/ncgen/genc.c,v 1.6 2010/05/17 23:26:44 dmh Exp $
  *********************************************************************/
@@ -36,11 +36,12 @@ static void genc_writeattr(Generator*,Symbol*,Bytebuffer*,int,size_t*,size_t*);
  * Generate C code for creating netCDF from in-memory structure.
  */
 void
-gen_ncc(const char *filename)
+genc_netcdf(void)
 {
     int idim, ivar, iatt, maxdims;
     int ndims, nvars, natts, ngatts;
     char* cmode_string;
+    const char *filename = rootgroup->file.filename;
 
 #ifdef USE_NETCDF4
     int igrp,ityp, ngrps, ntyps;
@@ -95,7 +96,7 @@ gen_ncc(const char *filename)
         for(ivar=0;ivar<nvars;ivar++) {
             Bytebuffer* tmp = bbNew();
             Symbol* var = (Symbol*)listget(vardefs,ivar);
-            Specialdata* special = &var->var.special;
+            Specialdata* special = var->var.special;
             if(special->flags & _CHUNKSIZES_FLAG) {
                 int i;
                 size_t* chunks = special->_ChunkSizes;
@@ -107,6 +108,21 @@ gen_ncc(const char *filename)
                 }
                 bbprintf0(stmt,"static size_t %s_chunksizes[%d] = {",
                             cname(var),special->nchunks);
+                codedump(stmt);
+                codedump(tmp);
+                codeline("} ;");
+            }
+            if(special->flags & _FILTER_FLAG) {
+                int i;
+                unsigned int* params = special->_FilterParams;
+                if(special->nparams == 0 || params == NULL) continue;
+                bbClear(tmp);
+                for(i=0;i<special->nparams;i++) {
+                    bbprintf(tmp,"%s%luU",
+                            (i == 0?"":", "),params[i]);
+                }
+                bbprintf0(stmt,"static unsigned int %s_filterparams[%d] = {",
+                            cname(var),special->nparams);
                 codedump(stmt);
                 codedump(tmp);
                 codeline("} ;");
@@ -433,7 +449,7 @@ genc_defineglobalspecials(void)
 static void
 genc_definespecialattributes(Symbol* vsym)
 {
-    Specialdata* special = &vsym->var.special;
+    Specialdata* special = vsym->var.special;
     if(usingclassic) return;
     if(special->flags & _STORAGE_FLAG) {
         int storage = special->_Storage;
@@ -494,11 +510,52 @@ genc_definespecialattributes(Symbol* vsym)
         codedump(stmt);
         codelined(1,"check_err(stat,__LINE__,__FILE__);");
     }
+    if(special->flags & _FILTER_FLAG) {
+	/* Special check for alternate way to specify _Deflate */
+	if(special->_FilterID == ZIP_ID) {
+	    unsigned int level;
+	    if(special->nparams == 0 || special->_FilterParams == NULL)
+		level = 9; /* default */
+	    else
+		level = special->_FilterParams[0];
+	    if(level > 9)
+		derror("Illegal deflate level");		
+	    else {
+	        bbprintf0(stmt,
+	                "    stat = nc_def_var_deflate(%s, %s, %s, %d, %d);\n",
+	                groupncid(vsym->container),
+	                varncid(vsym),
+	                (special->_Shuffle == 1?"NC_SHUFFLE":"NC_NOSHUFFLE"),
+	                1,
+			level);
+	        codedump(stmt);
+	    }
+	} else {
+	        bbprintf0(stmt,
+	                "    stat = nc_def_var_filter(%s, %s, %u, %lu, ",
+	                groupncid(vsym->container),
+	                varncid(vsym),
+			special->_FilterID,
+			special->nparams
+			);
+	        codedump(stmt);
+	        if(special->nparams == 0 || special->_FilterParams == NULL)
+	            codepartial("NULL");
+        	else {
+	            bbprintf0(stmt,"%s_filterparams",cname(vsym));
+	            codedump(stmt);
+		}
+	        codeline(");");
+	}
+        codelined(1,"check_err(stat,__LINE__,__FILE__);");
+    }
+
+
 }
 #endif /*USE_NETCDF4*/
 
 void
-cl_c(void)
+genc_close(void)
 {
     bbprintf0(stmt,"%sstat = nc_close(%s);\n",indented(1),groupncid(rootgroup));
     codedump(stmt);
@@ -715,7 +772,7 @@ definectype(Symbol* tsym)
 	    Symbol* econst = (Symbol*)listget(tsym->subnodes,i);
 	    Bytebuffer* econststring = bbNew();
 	    ASSERT(econst->subclass == NC_ECONST);
-	    c_generator->constant(c_generator,&econst->typ.econst,econststring);
+	    c_generator->constant(c_generator,tsym,econst->typ.econst,econststring);
 	    bbNull(econststring);
             /* Enum constants must be converted to a fully qualified name */
 	    bbprintf0(stmt,"#define %s ((%s)%s)\n",
@@ -813,7 +870,7 @@ genc_deftype(Symbol* tsym)
 	    Symbol* econst = (Symbol*)listget(tsym->subnodes,i);
 	    Bytebuffer* econststring = bbNew();
 	    ASSERT(econst->subclass == NC_ECONST);
-	    c_generator->constant(c_generator,&econst->typ.econst,econststring);
+	    c_generator->constant(c_generator,tsym,econst->typ.econst,econststring);
 	    bbNull(econststring);
 	    bbprintf0(stmt,"%seconst = %s;\n",
 		indented(1),bbContents(econststring));

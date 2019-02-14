@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1993, University Corporation for Atmospheric Research
+ *   Copyright 2018, University Corporation for Atmospheric Research
  *   See netcdf/README file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/ncdump/dumplib.c,v 1.85 2010/05/05 22:15:39 dmh Exp $
  *********************************************************************/
@@ -9,7 +9,7 @@
  * definition for va_list from the GNU C compiler.
  */
 
-#include <config.h>
+#include "config.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -112,62 +112,6 @@ char double_var_fmt[] = "%.NNg";
 char float_att_fmt[] = "%#.NNgf";
 char float_attx_fmt[] = "%#.NNg";
 char double_att_fmt[] = "%#.NNg";
-
-#ifndef HAVE_STRLCAT
-/*	$OpenBSD: strlcat.c,v 1.12 2005/03/30 20:13:52 otto Exp $	*/
-
-/*
- * Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
- *
- * Permission to use, copy, modify, and distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
-
-/*
- * Appends src to string dst of size siz (unlike strncat, siz is the
- * full size of dst, not space left).  At most siz-1 characters
- * will be copied.  Always NUL terminates (unless siz <= strlen(dst)).
- * Returns strlen(src) + MIN(siz, strlen(initial dst)).
- * If retval >= siz, truncation occurred.
- */
-size_t
-strlcat(char *dst, const char *src, size_t siz)
-{
-	char *d = dst;
-	const char *s = src;
-	size_t n = siz;
-	size_t dlen;
-
-	/* Find the end of dst and adjust bytes left but don't go past end */
-	while (n-- != 0 && *d != '\0')
-		d++;
-	dlen = d - dst;
-	n = siz - dlen;
-
-	if (n == 0)
-		return(dlen + strlen(s));
-	while (*s != '\0') {
-		if (n != 1) {
-			*d++ = *s;
-			n--;
-		}
-		s++;
-	}
-	*d = '\0';
-
-	return(dlen + (s - src));	/* count does not include NUL */
-}
-#endif /* ! HAVE_STRLCAT */
-
 
 /* magic number stored in a safebuf and checked, hoping it will be
  * changed if buffer was overwritten inadvertently */
@@ -897,7 +841,8 @@ ncuint64_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp) {
     return sbuf_len(sfbf);
 }
 
-int ncstring_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp) {
+int ncstring_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp)
+{
     const char *cp;
 
     cp = ((char **)valp)[0];
@@ -907,7 +852,8 @@ int ncstring_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp
         char *sp;
         unsigned char uc;
 
-        slen = 3 + 5 * strlen(cp); /* need "'s around string, and extra space to escape control characters */
+        slen = 4 + 5 * strlen(cp); /* need "'s around string, and extra space to escape control characters */
+	slen++; /* nul term */
         sout = emalloc(slen);
         sp = sout;
         *sp++ = '"' ;
@@ -951,7 +897,7 @@ int ncstring_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp
                 break;
             default:
                 if (iscntrl(uc)) {
-                    snprintf(sp,3,"\\%03o",uc);
+                    snprintf(sp,4+1,"\\%03o",uc); /* +1 for nul */
                     sp += 4;
                 }
                 else
@@ -974,7 +920,7 @@ int ncstring_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp
 int
 ncenum_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp) {
     char symbol[NC_MAX_NAME + 1];
-    long long val;
+    long long val = 0;
 
     switch (typ->base_tid) {
     case NC_BYTE:
@@ -1269,7 +1215,7 @@ ncdouble_val_tostring(const ncvar_t *varp, safebuf_t *sfbf, const void *valp) {
  * lose precision for values of type NC_INT64 or NC_UINT64 */
 static
 double to_double(const ncvar_t *varp, const void *valp) {
-    double dd;
+    double dd = 0.0;
     switch (varp->type) {
     case NC_BYTE:
 	dd = *(signed char *)valp;
@@ -1313,9 +1259,16 @@ nctime_val_tostring(const ncvar_t *varp, safebuf_t *sfbf, const void *valp) {
     double vv = to_double(varp, valp);
     int separator = formatting_specs.iso_separator ? 'T' : ' ';
     if(isfinite(vv)) {
+	int oldopts = 0;
+	int newopts = 0;
 	int res;
 	sout[0]='"';
+	/* Make nctime dump error messages */
+	oldopts = cdSetErrOpts(0);
+	newopts = oldopts | CU_VERBOSE;
+	cdSetErrOpts(newopts);
 	cdRel2Iso(varp->timeinfo->calendar, varp->timeinfo->units, separator, vv, &sout[1]);
+	cdSetErrOpts(oldopts);
 	res = strlen(sout);
 	sout[res++] = '"';
 	sout[res] = '\0';

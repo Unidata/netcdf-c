@@ -29,7 +29,13 @@ It is strongly recommended that applicable conventions be followed unless there 
 
 <p>
 
-> Generic applications often need to write a value to represent undefined or missing values. The fill value provides an appropriate value for this purpose because it is normally outside the valid range and therefore treated as missing when read by generic applications. It is legal (but not recommended) for the fill value to be within the valid range.
+> Generic applications often need to write a value to represent undefined or missing values. The fill value provides an appropriate value for this purpose because it is normally outside the valid range and therefore treated as missing when read by generic applications. It is legal (but not recommended) for the fill value to be within the valid range.		
+
+> **Note that if you change the value of this attribute, the changed value applies only to subsequent writes; previously written data are not changed.**
+
+`_NoFill`
+
+> This attribute is not treated in any special way by the library or conforming generic application, but it is interpreted by the `ncgen` utility when converting a CDL file to a binary netCDF files.  It is the equivalent of applying `nc_set_fill(ncid, NC_NOFILL, null)`.
 
 `missing_value`
 
@@ -155,18 +161,24 @@ Using the following API calls will fail.
 
 `_NCProperties`
 
-> This attribute is persistent in the file, but hidden. It is inserted in the file at creation time and is never modified after that point. It specifies the following.
-> - The version for the netcdf library used at creation time.
+> This attribute is persistent in the file, but hidden. It is inserted in the file at creation time and is never modified after that point. The type of this attribute is currently NC_CHAR. There two versions of this property, but both have the general form
+>> version=n,key=value,key=value...,key=value
+> where the version number n is either 1 or 2.
+
+> Version 1 has two (key,value) pairs (after than the initial version pair)
+> - netcdfversion={netcdfversion} where the version number is the version for the netcdf library used at creation time.
+> - hdf5version={hdf5fversion} where the version number is the version for the hdf5 library used at creation time.
 > - The version for the HDF5 library used at creation time.
-> - The type of this attribute is NC_CHAR.
+> - Note that for version 1, the separator character is '|' instead of ','
+> - Occurrences of '=' or '|' in the name or value are disallowed.
 
-> Its format is: `name=value|name=value ...`<br>
-> Occurrences of '|' in the name or value are disallowed.
-
-> The current set of known names is as follows.
-> - version=... The current format version for the _NCProperties file, currently 1.
-> - netcdflibversion=... The version of the netcdf library used to create the file. The value is, for example, 4.4.1-rc1-development or 4.4.1.
-> - hdf5libversion=... The version of the HDF5 library used to create the file. The value is, for example, 1.8.16 or 1.10.0.
+> Version 2 has an unlimited set of (key,value) pairs (after the initial version pair). By convention (but unenforced), the first pair is the name and version of the primary library used to create this file. For netcdf, it has the form _netcdf={version}_. The remaining fields are by convention as follows.
+> - If the primary build library is netcdf, then the second pair is of the form _hdf5={version}. The remaining pairs consist of a combination of the name and version of important supporting libraries -- the libcurl version, for example -- plus an arbitrary set of pairs as specified by the _--with-ncproperties_ option to the ./configure command. Note that the argument to --with-ncproperties should be wrapped with double quotes, like this.
+>> _./configure ... --with-ncproperties="key1=value,key2=value"_
+>
+> Note the following for version 2.
+> - The pair separator character was changed from '|' to ',' because of problems with bash, which did not like '|' in the --with-ncproperties value.
+> - It is possible to include escaped characters using the standard '\' escape convention.
 
 `_SuperblockVersion`
 
@@ -183,4 +195,3 @@ Using the following API calls will fail.
 > The type of this attribute is NC_INT.
 
 > This attribute is computed by using the HDF5 API to walk the file to look for attributes specific to netcdf-4.  False negatives are possible for a small subset of netcdf-4 files, especially those not containing dimensions. False positives are only possible by deliberate modifications to an existing HDF5 file thru the HDF5 API. For files with the _NCProperties attribute, this attribute is redundant. For files created prior to the introduction of the _NCProperties attribute, this may be a useful indicator of the provenance of the file.
-

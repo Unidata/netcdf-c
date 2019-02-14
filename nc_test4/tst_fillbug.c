@@ -1,5 +1,5 @@
 /* This is part of the netCDF package.
-   Copyright 2008 University Corporation for Atmospheric Research/Unidata
+   Copyright 2018 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
    Test for a bug that Russ found testing fill values.
@@ -8,6 +8,7 @@
 */
 
 #include <nc_tests.h>
+#include "err_macros.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <netcdf.h>
@@ -18,7 +19,7 @@
 #define LEN 4
 
 int
-main() 
+main()
 {
    int ncid, dimids[RANK_P], time_id, p_id;
    int ndims, dimids_in[RANK_P];
@@ -87,7 +88,7 @@ main()
    if (nc_close(ncid)) ERR;
 
    SUMMARIZE_ERR;
-   
+
    FINAL_RESULTS;
    return 0;
 }

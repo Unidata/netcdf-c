@@ -1,3 +1,13 @@
+/*! \file
+
+Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+2015, 2016, 2017, 2018
+University Corporation for Atmospheric Research/Unidata.
+
+See \ref copyright file for more info.
+
+*/
 #include "config.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -9,6 +19,7 @@
 #define DEBUG
 
 #include "netcdf.h"
+#include "nctestserver.h"
 
 #undef NOEMBED
 #undef NOLOCAL
@@ -20,12 +31,11 @@
 #define RC ".ocrc"
 #define SPECRC "./ocrc"
 
-#define DEFAULTTESTSERVER "remotetest.unidata.ucar.edu"
 #define USERPWD "tiggeUser:tigge"
 #define COOKIEFILE "./cookies"
 
-#define URL1 "https://%s@%s/thredds/dodsC/restrict/testData.nc"
-#define URL2 "https://%s/thredds/dodsC/restrict/testData.nc"
+#define URL1 "https://%s@%s/dodsC/restrict/testData.nc"
+#define URL2 "https://%s/dodsC/restrict/testData.nc"
 #define URL3 "https://%s@thredds-test.ucar.edu/thredds/dodsC/restrict/testData.nc"
 
 /* Embedded user:pwd */
@@ -63,7 +73,7 @@ main(int argc, char** argv)
 
     fprintf(stderr,"Testing: Authorization\n");
 
-    dfaltsvc = DEFAULTTESTSERVER;
+    dfaltsvc = nc_findtestserver("thredds",0,REMOTETESTSERVERS);
     snprintf(url1,sizeof(url1),URL1,USERPWD,dfaltsvc); /* embedded */
     snprintf(url2,sizeof(url2),URL2,dfaltsvc); /* using rc file */
 
@@ -148,7 +158,7 @@ testrc(const char* prefix, const char* url)
     if(rc == NULL) {
         fprintf(stderr,"Cannot create ./%s\n",RC);
         exit(1);
-    }    
+    }
     fclose(rc);
     fillrc(rcpath);
     retval = nc_open(url, 0, &ncid);

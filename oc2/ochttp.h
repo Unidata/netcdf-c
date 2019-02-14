@@ -1,4 +1,4 @@
-/* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
+/* Copyright 2018, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
 
 #ifndef HTTP_H
@@ -7,7 +7,7 @@
 extern int curlopen(CURL** curlp);
 extern void curlclose(CURL*);
 
-extern OCerror ocfetchurl(CURL*, const char*, OCbytes*, long*, struct OCcredentials*);
+extern OCerror ocfetchurl(CURL*, const char*, NCbytes*, long*);
 extern OCerror ocfetchurl_file(CURL*, const char*, FILE*, off_t*, long*);
 
 extern long ocfetchhttpcode(CURL* curl);

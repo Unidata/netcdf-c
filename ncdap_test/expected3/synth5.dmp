@@ -4,6 +4,9 @@ dimensions:
 	long = 2 ;
 variables:
 	float G1(lat, long) ;
+
+// global attributes:
+		:S1.v2.a1 = 32 ;
 data:
 
  G1 =

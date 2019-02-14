@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1996, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Id: error.c,v 1.7 2007/05/15 01:36:57 ed Exp $
  *********************************************************************/
@@ -59,7 +59,7 @@ ifFail(const int expr, const int line, const char *file)
  * "architecture" of this program.
  */
 void
-print_n_size_t(size_t nelems, const size_t *array)
+print_n_size_t(int nelems, const size_t *array)
 {
 	fprintf(stderr, "[");
 	while(nelems-- > 0)

@@ -1,4 +1,4 @@
-/* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
+/* Copyright 2018, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
 
 #ifndef DAPPARSELEX_H
@@ -20,22 +20,22 @@ typedef void* Object;
 typedef struct DAPlexstate {
     char* input;
     char* next; /* next char in uri.query*/
-    OCbytes* yytext;
+    NCbytes* yytext;
     int lineno;
     /*! Specifies the Lasttoken. */
     int lasttoken;
     char lasttokentext[MAX_TOKEN_LENGTH+1];
-    char* wordchars1;
-    char* wordcharsn;
-    char* worddelims;
-    OClist* reclaim; /* reclaim WORD_WORD instances */
+    const char* wordchars1;
+    const char* wordcharsn;
+    const char* worddelims;
+    NClist* reclaim; /* reclaim WORD_WORD instances */
 } DAPlexstate;
 
 /*! Specifies the DAPparsestate. */
 typedef struct DAPparsestate {
     struct OCnode* root;
     DAPlexstate* lexstate;
-    OClist* ocnodes;
+    NClist* ocnodes;
     struct OCstate* conn;
     /* Provide a flag for semantic failures during parse */
     OCerror error; /* OC_EDAPSVC=> we had a server failure; else we had a semantic error */

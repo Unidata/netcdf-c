@@ -1,14 +1,15 @@
-/* This is part of the netCDF package. Copyright 2010 University
+/* This is part of the netCDF package. Copyright 2018 University
    Corporation for Atmospheric Research/Unidata.  See COPYRIGHT file for
    conditions of use. See www.unidata.ucar.edu for more info.
 
    Create a compressible test file for nccopy to compress.
 
-   $Id$
+   Russ Rew, Ward Fisher, Dennis Heimbigner
 */
 
-#include <config.h>
+#include "config.h"
 #include <nc_tests.h>
+#include "err_macros.h"
 #include <stdlib.h>
 #include <netcdf.h>
 

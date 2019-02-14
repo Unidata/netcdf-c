@@ -1,4 +1,17 @@
+/*! \file
+
+Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+2015, 2016, 2017, 2018
+University Corporation for Atmospheric Research/Unidata.
+
+See \ref copyright file for more info.
+
+*/
+
+#include "config.h"
 #include <nc_tests.h>
+#include "err_macros.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <netcdf.h>
@@ -9,7 +22,10 @@
 
 #define DIMMAXCLASSIC (NC_MAX_INT - 3)
 #define DIMMAX64OFFSET (NC_MAX_UINT - 3)
+
+#ifdef ENABLE_CDF5
 #define DIMMAX64DATA (NC_MAX_UINT64 - 3)
+#endif
 
 /*
 Test that at least the meta-data works
@@ -23,18 +39,17 @@ Also, leave the files around so we can test with ncdump.
 */
 
 int
-main(int argc, char **argv) 
+main(int argc, char **argv)
 {
     int ncid;
     size_t dimsize;
     int dimid;
     int stat = NC_NOERR;
-
     printf("\n*** Testing Max Dimension Sizes\n");
 
     printf("\n|size_t|=%lu\n",(unsigned long)sizeof(size_t));
 
-    printf("\n*** Writing Max Dimension Size For NC_CLASSIC\n");
+    printf("\n*** Writing Max Dimension Size (%d) For NC_CLASSIC\n",DIMMAXCLASSIC);
     if ((stat=nc_create(FILECLASSIC, NC_CLOBBER, &ncid))) ERRSTAT(stat);
     dimsize = DIMMAXCLASSIC;
     if ((stat=nc_def_dim(ncid, "testdim", dimsize, &dimid))) ERRSTAT(stat);
@@ -47,10 +62,11 @@ main(int argc, char **argv)
     if(dimsize != DIMMAXCLASSIC) ERR;
     if ((stat=nc_close(ncid))) ERRSTAT(stat);
 
-    printf("\n*** Writing Max Dimension Size For NC_64BIT_OFFSET\n");
+    printf("\n*** Writing Max Dimension Size (%u) For NC_64BIT_OFFSET\n",DIMMAX64OFFSET);
     if ((stat=nc_create(FILE64OFFSET, NC_CLOBBER | NC_64BIT_OFFSET, &ncid))) ERRSTAT(stat);
     dimsize = DIMMAX64OFFSET;
     if ((stat=nc_def_dim(ncid, "testdim", dimsize, &dimid))) ERRSTAT(stat);
+    if ((stat=nc_enddef(ncid))) ERRSTAT(stat);
     if ((stat=nc_close(ncid))) ERRSTAT(stat);
 
     printf("\n*** Reading Max Dimension Size For NC_64BIT_OFFSET\n");
@@ -60,8 +76,9 @@ main(int argc, char **argv)
     if(dimsize != DIMMAX64OFFSET) ERR;
     if ((stat=nc_close(ncid))) ERRSTAT(stat);
 
+#ifdef ENABLE_CDF5
     if(sizeof(size_t) == 8) {
-        printf("\n*** Writing Max Dimension Size For NC_64BIT_DATA\n");
+      printf("\n*** Writing Max Dimension Size (%llu) For NC_64BIT_DATA\n",DIMMAX64DATA);
         if ((stat=nc_create(FILE64DATA, NC_CLOBBER | NC_64BIT_DATA, &ncid))) ERRSTAT(stat);
         dimsize = (size_t)DIMMAX64DATA;
         if ((stat=nc_def_dim(ncid, "testdim", dimsize, &dimid))) ERRSTAT(stat);
@@ -73,7 +90,8 @@ main(int argc, char **argv)
 	if ((stat=nc_inq_dimlen(ncid, dimid, &dimsize))) ERRSTAT(stat);
 	if(dimsize != DIMMAX64DATA) ERR;
 	if ((stat=nc_close(ncid))) ERRSTAT(stat);
-    }      
+    }
+#endif /* ENABLE_CDF5 */
 
     SUMMARIZE_ERR;
     FINAL_RESULTS;

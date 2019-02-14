@@ -38,6 +38,8 @@
 #include "ncgen.h"
 #include "ncgeny.h"
 
+EXTERNL int fileno(FILE*);
+
 #define FILL_STRING "_"
 #define XDR_INT32_MIN (-2147483647-1)
 #define XDR_INT32_MAX 2147483647
@@ -90,7 +92,7 @@ static unsigned int MAX_UINT = NC_MAX_UINT;
 
 char errstr[100];		/* for short error messages */
 
-int lineno;              /* line number for error messages */
+int lineno;                    /* line number for error messages */
 Bytebuffer* lextext;           /* name or string with escapes removed */
 
 #define YY_BREAK                /* defining as nothing eliminates unreachable
@@ -132,6 +134,7 @@ struct Specialtoken specials[] = {
 {"_NCProperties",_NCPROPS,_NCPROPS_FLAG},
 {"_IsNetcdf4",_ISNETCDF4,_ISNETCDF4_FLAG},
 {"_SuperblockVersion",_SUPERBLOCK,_SUPERBLOCK_FLAG},
+{"_Filter",_FILTER,_FILTER_FLAG},
 {NULL,0} /* null terminate */
 };
 
@@ -210,7 +213,7 @@ NUMBER       [+-]?[0-9][0-9]*[Uu]?([BbSs]|[Ll]|[Ll][Ll])?
 DBLNUMBER    [+-]?[0-9]*\.[0-9]*{exp}?[LlDd]?|[+-]?[0-9]*{exp}[LlDd]?
 FLTNUMBER    [+-]?[0-9]*\.[0-9]*{exp}?[Ff]|[+-]?[0-9]*{exp}[Ff]
 
-SPECIAL "_FillValue"|"_Format"|"_Storage"|"_ChunkSizes"|"_Fletcher32"|"_DeflateLevel"|"_Shuffle"|"_Endianness"|"_NoFill"|"_NCProperties"|"_IsNetcdf4"|"_SuperblockVersion"
+SPECIAL "_FillValue"|"_Format"|"_Storage"|"_ChunkSizes"|"_Fletcher32"|"_DeflateLevel"|"_Shuffle"|"_Endianness"|"_NoFill"|"_NCProperties"|"_IsNetcdf4"|"_SuperblockVersion"|"_Filter"
 
 USASCII   [\x01-\x7F]
 
@@ -223,7 +226,7 @@ USASCII   [\x01-\x7F]
                           break;
                         }
 
-\"{nonquotes}\"		{int len;
+\"{nonquotes}\"		{int len; char* s = NULL;
 			 /* In netcdf4, this will be used in a variety
                             of places, so only remove escapes */
 /*
@@ -232,18 +235,15 @@ yyerror("string too long, truncated\n");
 yytext[MAXTRST-1] = '\0';
 }
 */
-		        /* FIX: Assumes unescape also does normalization */
-			bbSetalloc(lextext,yyleng+1); /*+1 for nul */
-			/* Adjust length */
-		        bbSetlength(lextext,yyleng-2); /*-2 for quotes */
-			len = unescape(bbContents(lextext),
-                                       (char *)yytext+1,yyleng-2,!ISIDENT);
+			len = unescape((char *)yytext+1,yyleng-2,!ISIDENT,&s);
 			if(len < 0) {
 			    sprintf(errstr,"Illegal character: %s",yytext);
 			    yyerror(errstr);
 			}
-			bbSetlength(lextext,len);
+			bbClear(lextext);
+			bbAppendn(lextext,s,len);
 			bbNull(lextext);
+			if(s) efree(s);
 		 	return lexdebug(TERMSTRING);
 		        }
 
@@ -261,7 +261,7 @@ yytext[MAXTRST-1] = '\0';
 
 compound|struct|structure {return lexdebug(COMPOUND);}
 enum				{return lexdebug(ENUM);}
-opaque				{return lexdebug(OPAQUE);}
+opaque				{return lexdebug(OPAQUE_);}
 
 float|real		{return lexdebug(FLOAT_K);}
 char			{return lexdebug(CHAR_K);}
@@ -274,6 +274,8 @@ ulong|uint|uinteger	{return lexdebug(UINT_K);}
 int64			{return lexdebug(INT64_K);}
 uint64			{return lexdebug(UINT64_K);}
 double			{return lexdebug(DOUBLE_K);}
+string                  {return lexdebug(STRING_K);}
+
 unlimited|UNLIMITED	{int32_val = -1;
 			 return lexdebug(NC_UNLIMITED_K);}
 
@@ -355,20 +357,21 @@ NIL|nil|Nil {
 		    q = p;
 		    while((c=*p++)) {if(c > ' ') *q++ = c;}
 		    *q = '\0';
-		    datasetname = bbDup(lextext);
+		    if(datasetname == NULL)
+		        datasetname = bbDup(lextext);
 		    BEGIN(INITIAL);
 		    return lexdebug(DATASETID);
 		}
 
-{ID}		{ char* id; int len;
-		    bbClear(lextext);
-		    bbAppendn(lextext,(char*)yytext,yyleng+1); /* include null */
-		    bbNull(lextext);
-		    id = bbContents(lextext);
-		    len = unescape(id,id,bbLength(lextext),ISIDENT);
-		    bbSetlength(lextext,len);
-		    if (STREQ(id, FILL_STRING)) return lexdebug(FILLMARKER);
+{ID}		{ char* id = NULL; int len;
+		    len = strlen(yytext);
+		    len = unescape(yytext,len,ISIDENT,&id);
+		    if(NCSTREQ(id, FILL_STRING)) {
+			efree(id);
+		        return lexdebug(FILLMARKER);
+		    }
 		    yylval.sym = install(id);
+		    efree(id);
 		    return lexdebug(IDENT);
 		}
 
@@ -381,7 +384,6 @@ NIL|nil|Nil {
 		    int slen = strlen(ncgtext);
 		    char* stag = NULL;
 		    int tag = NC_NAT;
-		    int signchar = 0;
 		    int isneg = 0;
 		    int c = ncgtext[0];
 		    int fail = 0;
@@ -605,45 +607,38 @@ makepath(char* text0)
         List* prefix = listnew();
 	/* split the text into IDENT chunks, convert to symbols */
         Symbol* container = rootgroup;
-	char *ident, *p;
-        char* text = strdup(text0);
-	int c,lastident;
+	char *ident, *p, *match;
+        char* text = estrdup(text0);
+	int lastident;
+
 	ident=text+1; p=ident; /* skip leading '/' */
+	lastident = 0;
 	do {
-	    lastident = 0;
-	    switch ((c=*p)) {
-	    default: p++; break;
-	    case '\\': p++; if(*p == '/') p++; break;
-	    case '\0': /* treat null terminator like trailing '/' (mostly) */
-		lastident=1; /* this is the last ident in the path */
-		/*fall thru */
-	    case '/':
-		*p='\0';
-		if(!lastident) {
-		    unescape(ident,ident,strlen(ident),ISIDENT);
-		    refsym = lookupingroup(NC_GRP,ident,container);
-		    if(refsym == NULL) {
-		        sprintf(errstr,"Undefined or forward referenced group: %s",ident);
-		        yyerror(errstr);
-			refsym = rootgroup;
-		    } else {
-		        listpush(prefix,(void*)refsym);
-		    }
-		} else { /* lastident is true */
-		    unescape(ident,ident,strlen(ident),ISIDENT);
-		    refsym = install(ident);
-		    refsym->objectclass = NC_GRP;/* tentative */
-		    refsym->ref.is_ref = 1;
-		    refsym->container = container;
-		    refsym->subnodes = listnew();
-		}
-		container = refsym;
-	        ident=p+1; p=ident;
-	        break;
+	    match = esc_strchr(p,'/',0);
+	    lastident = (*match == '\0');
+	    *match='\0';
+	    (void)unescape(p,strlen(p),ISIDENT,&ident);
+	    refsym = lookupingroup(NC_GRP,ident,container);
+	    if(!lastident) {
+	        if(refsym == NULL) {
+	            sprintf(errstr,"Undefined or forward referenced group: %s",ident);
+	            yyerror(errstr);
+		    refsym = rootgroup;
+	        } else
+	             listpush(prefix,(void*)refsym);
+	    } else {/* lasiident is true */
+		refsym = install(ident); /* create as symbol */
+	        refsym->objectclass = NC_GRP;/* tentative */
+		refsym->ref.is_ref = 1;
+		refsym->container = container;
+		refsym->subnodes = listnew();
 	    }
-	} while(c != '\0');
+   	    container = refsym;
+	    p = (lastident?match:match+1);
+	    if(ident) efree(ident);
+	} while(!lastident);
         refsym->prefix = prefix;
-	free(text);
+	efree(text);
     }
     return refsym;
 }
@@ -655,7 +650,6 @@ Return the value.
 static unsigned long long
 parseULL(char* text, int* failp)
 {
-    int result = 0;
     extern int errno;
     char* endptr;
     unsigned long long uint64 = 0;
@@ -839,7 +833,7 @@ collecttag(char* text, char** stagp)
     stag[MAXTAGLEN] = '\0';
     if(stag[0] == 'U' || stag[0] == 'u') {
 	hasU = 1;
-    memmove(stag,stag+1,MAXTAGLEN);
+        memmove(stag,stag+1,MAXTAGLEN);
 	staglen--;
     } else if(stag[staglen-1] == 'U' || stag[staglen-1] == 'u') {
 	hasU = 1;
@@ -847,7 +841,7 @@ collecttag(char* text, char** stagp)
 	stag[staglen] = '\0';
     }
     if(strlen(stag) == 0 && hasU) {
-	tag = NC_UINT64;
+	tag = NC_UINT;
     } else if(strlen(stag) == 1) {
 	switch (stag[0]) {
 	case 'B': case 'b': tag = (hasU ? NC_UBYTE : NC_BYTE); break;

@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1993, University Corporation for Atmospheric Research
+ *   Copyright 2018, University Corporation for Atmospheric Research
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/ncdump/dumplib.h,v 1.28 2009/08/13 21:06:13 russ Exp $
  *********************************************************************/
@@ -49,11 +49,6 @@ extern char double_att_fmt[];
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#ifndef HAVE_STRLCAT
-/* Append src to dst of size siz */
-extern size_t strlcat(char *dst, const char *src, size_t siz);
-#endif /* ! HAVE_STRLCAT */
 
 /* In case different formats specified with -d option, set them here. */
 extern void	set_formats ( int flt_digs, int dbl_digs );

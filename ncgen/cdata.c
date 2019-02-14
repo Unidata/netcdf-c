@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2009, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
@@ -9,17 +9,20 @@
 #ifdef ENABLE_C
 
 #include <math.h> 
+#ifndef isnan
+extern int isnan(double);
+#endif
 
 static int c_uid = 0;
 
 static int
-c_charconstant(Generator* generator, Bytebuffer* codebuf, ...)
+c_charconstant(Generator* generator, Symbol* sym, Bytebuffer* codebuf, ...)
 {
     /* Escapes and quoting will be handled in genc_write */
     /* Just transfer charbuf to codebuf */
     Bytebuffer* charbuf;
     va_list ap;
-    vastart(ap,codebuf);
+    va_start(ap,codebuf);
     charbuf = va_arg(ap, Bytebuffer*);
     va_end(ap);
     bbNull(charbuf);
@@ -28,7 +31,7 @@ c_charconstant(Generator* generator, Bytebuffer* codebuf, ...)
 }
 
 static int
-c_constant(Generator* generator, NCConstant* con, Bytebuffer* buf,...)
+c_constant(Generator* generator, Symbol* sym, NCConstant* con, Bytebuffer* buf,...)
 {
     Bytebuffer* codetmp = bbNew();
     char* special = NULL;
@@ -121,7 +124,7 @@ c_constant(Generator* generator, NCConstant* con, Bytebuffer* buf,...)
 }
 
 static int
-c_listbegin(Generator* generator, ListClass lc, size_t size, Bytebuffer* codebuf, int* uidp, ...)
+c_listbegin(Generator* generator, Symbol* sym, void* liststate, ListClass lc, size_t size, Bytebuffer* codebuf, int* uidp, ...)
 {
     if(uidp) *uidp = ++c_uid;
     switch (lc) {
@@ -138,7 +141,7 @@ c_listbegin(Generator* generator, ListClass lc, size_t size, Bytebuffer* codebuf
 }
 
 static int
-c_list(Generator* generator, ListClass lc, int uid, size_t count, Bytebuffer* codebuf, ...)
+c_list(Generator* generator, Symbol* sym, void* liststate, ListClass lc, int uid, size_t count, Bytebuffer* codebuf, ...)
 {
     switch (lc) {
     case LISTVLEN:
@@ -155,7 +158,7 @@ c_list(Generator* generator, ListClass lc, int uid, size_t count, Bytebuffer* co
 }
 
 static int
-c_listend(Generator* generator, ListClass lc, int uid, size_t count, Bytebuffer* buf, ...)
+c_listend(Generator* generator, Symbol* sym, void* liststate, ListClass lc, int uid, size_t count, Bytebuffer* buf, ...)
 {
     switch (lc) {
     case LISTCOMPOUND:
@@ -171,14 +174,14 @@ c_listend(Generator* generator, ListClass lc, int uid, size_t count, Bytebuffer*
 }
 
 static int
-c_vlendecl(Generator* generator, Bytebuffer* codebuf, Symbol* tsym, int uid, size_t count, ...)
+c_vlendecl(Generator* generator, Symbol* tsym, Bytebuffer* codebuf, int uid, size_t count, ...)
 {
     /* Build a bytebuffer to capture the vlen decl */
-    List* declstack = (List*)generator->state;
+    List* declstack = (List*)generator->globalstate;
     Bytebuffer* decl = bbNew();
     Bytebuffer* vlenbuf;
     va_list ap;
-    vastart(ap,count);
+    va_start(ap,count);
     vlenbuf = va_arg(ap, Bytebuffer*);
     va_end(ap);
     bbprintf0(decl,"static const %s vlen_%u[] = {",
@@ -194,7 +197,7 @@ c_vlendecl(Generator* generator, Bytebuffer* codebuf, Symbol* tsym, int uid, siz
 }
 
 static int
-c_vlenstring(Generator* generator, Bytebuffer* vlenmem, int* uidp, size_t* countp,...)
+c_vlenstring(Generator* generator, Symbol* sym, Bytebuffer* vlenmem, int* uidp, size_t* countp,...)
 {
     if(uidp) *uidp = ++c_uid;
     if(countp) *countp = bbLength(vlenmem);

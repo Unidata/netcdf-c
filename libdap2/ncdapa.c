@@ -1,12 +1,12 @@
 /********************************************************************* \
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
-#include "ncdap.h"
+#include "dapincludes.h"
 #include "nc3dispatch.h"
 #include "ncd2dispatch.h"
-#include "dapalign.h"
+#include "ncoffsets.h"
 #include "dapdump.h"
 #include "oc.h"
 

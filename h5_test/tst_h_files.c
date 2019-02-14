@@ -1,5 +1,5 @@
 /* This is part of the netCDF package.
-   Copyright 2005 University Corporation for Atmospheric Research/Unidata
+   Copyright 2018 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
    Test HDF5 file code. These are not intended to be exhaustive tests,
@@ -32,7 +32,6 @@ main()
       int obj_class;
       char obj_name[STR_LEN + 1];
       H5T_class_t class;
-      size_t type_size;
       int j, k;
       hid_t tmp1;
 
@@ -237,7 +236,7 @@ main()
    printf("*** large file test for HDF5...");
    {
       hid_t fapl_id, fcpl_id, fileid, grpid, spaceid, datasetid;
-      hid_t dim1_dimscaleid, dim2_dimscaleid, plistid, datasetid2, file_spaceid;
+      hid_t dim1_dimscaleid, dim2_dimscaleid, plistid, file_spaceid;
       hid_t mem_spaceid, xfer_plistid, native_typeid;
       hsize_t *chunksize, dims[1], maxdims[1], *dimsize, *maxdimsize;
       hsize_t fdims[MAX_DIMS], fmaxdims[MAX_DIMS];
@@ -245,7 +244,7 @@ main()
       char file_name[STR_LEN + 1];
       char dimscale_wo_var[STR_LEN];
       void *bufr;
-      void *fillp;
+      void *fillp = NULL;
 
       sprintf(file_name, "%s/%s", TEMP_LARGE, FILE_NAME);
       
@@ -306,7 +305,7 @@ main()
       if (!(fillp = malloc(1))) ERR;
 #define FILL_BYTE 255
       *(signed char *)fillp = FILL_BYTE;
-      if (H5Pset_fill_value(plistid, H5T_NATIVE_SCHAR, fillp) < 0) ERR;
+      if(H5Pset_fill_value(plistid, H5T_NATIVE_SCHAR, fillp) < 0) ERR;
       if (!(chunksize = malloc(NDIMS2 * sizeof(hsize_t)))) ERR;
       chunksize[0] = 1024;
       chunksize[1] = 1048576;
@@ -320,7 +319,7 @@ main()
       if ((spaceid = H5Screate_simple(NDIMS2, dimsize, maxdimsize)) < 0) ERR;
       if (H5Pset_attr_creation_order(plistid, H5P_CRT_ORDER_TRACKED|
 				     H5P_CRT_ORDER_INDEXED) < 0) ERR;
-      if ((datasetid = H5Dcreate(grpid, VAR_NAME2, H5T_NATIVE_SCHAR, spaceid, plistid)) < 0)
+      if ((datasetid = H5Dcreate(grpid, VAR_NAME2, H5T_NATIVE_SCHAR, spaceid, plistid)) < 0) ERR;
       
       free(fillp);
       free(chunksize);

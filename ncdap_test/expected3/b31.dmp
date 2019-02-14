@@ -11,6 +11,10 @@ variables:
 		b31.class:long_name = "class is dismissed" ;
 	char b31.text(b31, maxStrlen64) ;
 		b31.text:long_name = "textually yours" ;
+
+// global attributes:
+		:b31.foo.long_name = "It is beyond all recognition" ;
+		:b31.foo.short_name = "foobar" ;
 data:
 
  b32 = 1 ;

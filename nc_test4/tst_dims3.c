@@ -1,19 +1,19 @@
-/* This is part of the netCDF package. Copyright 2008 University
+/* This is part of the netCDF package. Copyright 2018 University
    Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
    conditions of use. See www.unidata.ucar.edu for more info.
 
-   Test netcdf-4 dimensions inheritance. 
+   Test netcdf-4 dimensions inheritance.
 
    $Id: tst_dims3.c,v 1.7 2010/05/25 13:53:04 ed Exp $
 */
 
 #include <config.h>
 #include <nc_tests.h>
+#include "err_macros.h"
 
 int
 main(int argc, char **argv)
 {
-nc_set_log_level(0);
    printf("\n*** Testing netcdf-4 dimensions even more.\n");
    printf("*** testing netcdf-4 dimension inheritance...");
    {
@@ -25,7 +25,7 @@ nc_set_log_level(0);
 #define VAR2_NAME "z"
 #define TIME_RANK 1
 #define NUM_TIMES 2
-#define LEV_NAME "level"     
+#define LEV_NAME "level"
 #define VRT_NAME "vert_number"
 #define LEV_NUM  3
 #define LEV_RANK 1
@@ -46,14 +46,14 @@ nc_set_log_level(0);
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       if (nc_def_grp(ncid, GRP_NAME, &grpid)) ERR;
       if (nc_def_dim(ncid, TIME_NAME, NC_UNLIMITED, &time_dim)) ERR;
-      if (nc_def_var(ncid, TIME_NAME, NC_INT, TIME_RANK, &time_dim, 
+      if (nc_def_var(ncid, TIME_NAME, NC_INT, TIME_RANK, &time_dim,
 		     &time_var)) ERR;
-      if (nc_def_var(grpid, VAR2_NAME, NC_INT, TIME_RANK, &time_dim, 
+      if (nc_def_var(grpid, VAR2_NAME, NC_INT, TIME_RANK, &time_dim,
 		     &z_var)) ERR;
       if (nc_enddef(ncid)) ERR;
 
       /* Assign data to time variable, creating two times */
-      if (nc_put_vara(ncid, time_dim, time_startset, time_countset, 
+      if (nc_put_vara(ncid, time_dim, time_startset, time_countset,
 		      time_data)) ERR;
 
       /* Check the dim len from the root group */
@@ -89,7 +89,7 @@ nc_set_log_level(0);
    {
       int ncid, dimid, varid;
       float data = 42.5;
-      
+
       /* Create a scalar coordinate dimension. The only reason that
        * the user can ever possibly have for doing this is just
        * because they like to make life difficult for poor, poor
@@ -108,8 +108,8 @@ nc_set_log_level(0);
    printf("*** testing defining dimensions and coord variables in different orders in root group...");
    {
        int ncid, grpid, grp2id;
-       int time_dimid, lev_dimid, vrt_dimid, g2lev_dimid, g2vrt_dimid;
-       int time_dimid_in, lev_dimid_in, vrt_dimid_in, g2lev_dimid_in, g2vrt_dimid_in;
+       int time_dimid, lev_dimid, g2lev_dimid, g2vrt_dimid;
+       int time_dimid_in, lev_dimid_in, g2lev_dimid_in, g2vrt_dimid_in;
        int time_varid, lev_varid, gvar2_varid, g2lev_varid, g2vrt_varid;
        int var2_dims[VAR2_RANK];
       /* Create test for fix of bug that resulted in two dimensions
@@ -155,8 +155,8 @@ nc_set_log_level(0);
    printf("*** testing defining dimensions and coord variables in different orders in subgroup...");
    {
        int ncid, grpid, grp2id;
-       int time_dimid, lev_dimid, vrt_dimid, g2lev_dimid, g2vrt_dimid;
-       int time_dimid_in, lev_dimid_in, vrt_dimid_in, g2lev_dimid_in, g2vrt_dimid_in;
+       int time_dimid, lev_dimid, g2lev_dimid, g2vrt_dimid;
+       int time_dimid_in, lev_dimid_in, g2lev_dimid_in, g2vrt_dimid_in;
        int time_varid, lev_varid, gvar2_varid, g2lev_varid, g2vrt_varid;
        int var2_dims[VAR2_RANK];
       /* Create test for fix of bug inside a subgroup that results in two dimensions

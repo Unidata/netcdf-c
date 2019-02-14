@@ -1,5 +1,5 @@
 /* This is part of the netCDF package.
-   Copyright 2006 University Corporation for Atmospheric Research/Unidata.
+   Copyright 2018 University Corporation for Atmospheric Research/Unidata.
    See COPYRIGHT file for conditions of use.
 
    This is a very simple example which tests NFC normalization of
@@ -16,6 +16,7 @@
 #include <netcdf_par.h>
 #endif
 #include <nc_tests.h>
+#include "err_macros.h"
 
 /* The data file we will create. */
 #define FILE7_NAME "tst_norm.nc"
@@ -107,7 +108,7 @@ MPI_Init(&argc, &argv);
 #endif
    printf("\n*** testing UTF-8 normalization...");
 #ifdef TEST_PNETCDF
-   if((res = nc_create_par(FILE7_NAME, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)))
+   if((res = nc_create_par(FILE7_NAME, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)))
 #else
    if((res = nc_create(FILE7_NAME, NC_CLOBBER, &ncid)))
 #endif
@@ -150,7 +151,7 @@ MPI_Init(&argc, &argv);
 
    /* Check it out. */
 #ifdef TEST_PNETCDF
-   if ((res = nc_open_par(FILE7_NAME, NC_NOWRITE|NC_PNETCDF, MPI_COMM_WORLD,MPI_INFO_NULL, &ncid)))
+   if ((res = nc_open_par(FILE7_NAME, NC_NOWRITE, MPI_COMM_WORLD,MPI_INFO_NULL, &ncid)))
 #else
    if ((res = nc_open(FILE7_NAME, NC_NOWRITE, &ncid)))
 #endif

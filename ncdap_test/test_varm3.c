@@ -10,6 +10,8 @@ linked with:
 
 netcdf.a from the daily snapshot
 netcdf-4.1-beta2-snapshot2009091100
+
+TODO: Note that this test uses thredds server
 */
 
 /* This particular test seems to occasionally expose a server error*/
@@ -21,6 +23,7 @@ netcdf-4.1-beta2-snapshot2009091100
 #include <string.h>
 #include "netcdf.h"
 #include "ncdispatch.h"
+#include "nctestserver.h"
 
 #undef STANDALONE
 
@@ -92,23 +95,16 @@ main()
 #endif
 
     /* Find Test Server */
-    svc = getenv("THREDDSTESTSERVER");
-    if(svc != NULL) {
-        const char* testserver[2];
-	testserver[0] = svc;
-	testserver[1] = NULL;
-        svc = NC_findtestserver("thredds",testserver);
-    } else 	
-        svc = NC_findtestserver("thredds",NULL);
+    svc = nc_findtestserver("thredds",0,REMOTETESTSERVERS);
 
     if(svc == NULL) {
         fprintf(stderr,"Cannot locate test server\n");
 	exit(0);
     }
-    strcpy(url,svc);
-    strcat(url,TESTPATH);
-
+    strncpy(url,svc,sizeof(url));
+    strlcat(url,TESTPATH,sizeof(url));
     printf("*** Test: varm on URL: %s\n",url);
+    free(svc);
 
     check(err = nc_open(url, NC_NOWRITE, &ncid),__FILE__,__LINE__);
     check(err = nc_inq_varid(ncid, VAR, &varid),__FILE__,__LINE__);
@@ -257,6 +253,7 @@ main()
     }
     printf("*** %s: stride case 3\n",(fail?"Fail":"Pass"));
 
+    nc_close(ncid);
     return fail;
 
 }

@@ -1,5 +1,16 @@
+/*! \file
+
+Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+2015, 2016, 2017, 2018
+University Corporation for Atmospheric Research/Unidata.
+
+See \ref copyright file for more info.
+
+*/
+
 #include "includes.h"
-#include "offsets.h"
+#include "ncoffsets.h"
 
 #ifdef ENABLE_JAVA
 
@@ -331,8 +342,8 @@ genjjni_vlendata(List* vlenconstants, Bytebuffer* databuf)
 	vlensrc = datalist2src(cmpd->value.compoundv);
  	bbClear(vlenbuf);
 	if(typecode == NC_CHAR) {
-   	    /* Collect the char vlen in a separate buffer */
-            gen_charvlen(vlensrc,vlenbuf);
+   	    /* Collect the char sequence in a separate buffer */
+            gen_charseq(vlensrc,vlenbuf);
 	    count = bbLength(vlenbuf);
 	    /* Add to the existing data buf as a single constant */
    	    jquotestring(vlenbuf,'"');
@@ -446,8 +457,8 @@ jopaquestring(Symbol* tsym, Constant* prim, Constant* target)
 
     ASSERT((oplen%2) == 0);
 
-    opstring = (char*)emalloc(oplen*(2+4));
-    opstring[0]='\0';    
+    opstring = (char*)ecalloc(oplen*(2+4));
+    opstring[0]='\0';
 
     p=(unsigned char*)op;
     for(i=0;i<oplen;i++,p++) {

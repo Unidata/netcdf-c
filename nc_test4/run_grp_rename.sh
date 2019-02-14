@@ -1,14 +1,12 @@
 #!/bin/sh
-#set -x
+
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
+. ../test_common.sh
 
 # This shell just tests the group renaming.
 
 set -e
 echo ""
-
-if test "x$srcdir" = x ; then
-srcdir=`pwd`
-fi
 
 # Create the input cdl file
 rm -f tst_grp_rename.cdl
@@ -85,23 +83,23 @@ FAIL=0
 
 # Create ref_tst_group_rename.nc
 rm -f tst_grp_rename.nc
-../ncgen/ncgen -k nc4 ./tst_grp_rename.cdl
+${NCGEN} -k nc4 ./tst_grp_rename.cdl
 
 # Try to rename 2nd level group
-if ! ./renamegroup tst_grp_rename.nc "inner/inner_inner" "inner_renamed" ; then
+if ! ${execdir}/renamegroup tst_grp_rename.nc "inner/inner_inner" "inner_renamed" ; then
   echo "***FAIL: attempt to rename /inner/inner_inner failed"
   FAIL=1
 fi
 
 # Try to 1st level group
-if ! ./renamegroup tst_grp_rename.nc "inner" "renamed" ; then
+if ! ${execdir}/renamegroup tst_grp_rename.nc "inner" "renamed" ; then
   echo "***FAIL: attempt to rename /inner failed"
   FAIL=1
 fi
 
 # Dump the final .nc and compare with the reference
 rm -f tst_grp_rename.dmp
-../ncdump/ncdump tst_grp_rename.nc > ./tst_grp_rename.dmp
+${NCDUMP} tst_grp_rename.nc > ./tst_grp_rename.dmp
 
 if ! diff -b ref_grp_rename.cdl tst_grp_rename.dmp ; then
   echo "***FAIL: output and reference output differ"
@@ -109,7 +107,7 @@ if ! diff -b ref_grp_rename.cdl tst_grp_rename.dmp ; then
 fi
 
 # Finally, try to rename root group; should fail
-if ./renamegroup tst_grp_rename.nc "/" "rootgroup" ; then
+if ${execdir}/renamegroup tst_grp_rename.nc "/" "rootgroup" ; then
   echo "***FAIL: attempt to rename root group should not have succeeded"
   FAIL=1
 else

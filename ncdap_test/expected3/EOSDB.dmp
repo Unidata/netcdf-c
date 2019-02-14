@@ -104,6 +104,23 @@ variables:
 // global attributes:
 		:history = "FERRET V4.11 (debug/no GUI) 19-Nov-95FERRET V4.20 (debug/no GUI) 12-Mar-96" ;
 		:title = "COADS Surface Marine Observations (1854-1993)" ;
+		:Facility.PrincipleInvestigator = "Mark Abbott" ;
+		:Facility.DataCenter = "COAS Environmental Computer Facility" ;
+		:LON.units = "degrees_east" ;
+		:LON.modulo = " " ;
+		:LON.point_spacing = "even" ;
+		:LAT.units = "degrees_north" ;
+		:LAT.point_spacing = "even" ;
+		:TIME.units = "days since 1700-01-01 00:00:00" ;
+		:TIME.time_origin = "1-JAN-1700" ;
+		:TIME.point_spacing = "uneven" ;
+		:TIME.edges = "TIMEedges" ;
+		:TIMEedges.edges = " " ;
+		:SST.missing_value = -9.9999998e+33 ;
+		:SST._FillValue = -9.9999998e+33 ;
+		:SST.long_name = "Sea Surface Temperature" ;
+		:SST.history = "From all_coads_grid" ;
+		:SST.units = "deg C" ;
 data:
 
  Abbott_Image_Data.Image_Name =

@@ -1,5 +1,5 @@
 /* This is part of the netCDF package.
-   Copyright 2010 University Corporation for Atmospheric Research/Unidata
+   Copyright 2018 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
    Test large file problems reported by user. This test based on code
@@ -139,8 +139,6 @@ main(int argc, char **argv)
       free(data);
    }
    SUMMARIZE_ERR;
-
-   nc_finalize();
 
    FINAL_RESULTS;
 }

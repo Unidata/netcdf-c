@@ -1,0 +1,103 @@
+P=data
+
+V=valgrind --leak-check=full --num-callers=100
+G=gdb --args
+
+#ROOT=${HOME}/git/dap4
+ROOT=d:/git/dap4
+
+X=test_one_var.nc
+
+ifeq ($P, parse)
+T=../dap4_test/test_parse.c
+DIR=dmrtestfiles
+EXT=.dmr
+O=
+endif
+ifeq ($P, parser)
+T=../dap4_test/test_parse.c
+DIR=dmrtestfiles
+EXT=.dmr
+O=
+endif
+ifeq ($P, meta)
+T=../dap4_test/test_meta.c
+DIR=dmrtestfiles
+EXT=.dmr
+endif
+ifeq ($P, data)
+T=../dap4_test/test_data.c
+DIR=daptestfiles
+EXT=
+endif
+
+I=${ROOT}/dap4_test/${DIR}/${X}${EXT}
+O=./t.nc
+
+CFLAGS=-Wall -g -O0 -I.. -I../include -I../libdap4 -I../dap4_test
+
+CC=gcc
+LDFLAGS=../liblib/.libs/libnetcdf.a -L/usr/local/lib -lhdf5_hl -lhdf5 -lz  -ldl -lm -lcurl
+
+LLP=/usr/local/lib:${LD_LIBRARY_PATH}
+
+SHELL=/bin/bash
+
+ifeq ($P, meta)
+all:: clean build
+else
+all:: clean mkt
+	./t $I $O
+	if test "x$O" != x ; then ../ncdump/ncdump $O; fi
+endif
+
+g:: mkt
+	export LD_LIBRARY_PATH=${LLP}; export CFLAGS; export LDFLAGS; \
+	${G} ./t $I $O
+
+v:: mkt
+	export LD_LIBRARY_PATH=${LLP}; export CFLAGS; export LDFLAGS; \
+	${V} ./t $I $O
+
+build:: mkt
+	./t $I $O
+	../ncdump/ncdump -h $O	
+	
+diff:: mkt
+	rm -fr ./j
+	./t ${ARGS} >& ./j
+
+mkt:: clean t.exe
+
+t.exe: ${T}
+	${CC} -o t ${CFLAGS} ${T} ${LDFLAGS}
+
+#	export LD_LIBRARY_PATH=${LLP}; export CFLAGS; export LDFLAGS;
+
+d4printer.o: d4printer.c ../liblib/.libs/libnetcdf.a
+	${MAKE}
+
+clean::
+	rm -fr t t.exe t.o
+
+cpp::
+	rm -f cpp.txt
+	${CC} -E ${CFLAGS} d4rc.c > cpp.txt
+
+x:
+	pushd .. ; ${MAKE} ; popd
+
+D=test_struct_type
+TF=../dap4_test/testfiles/${D}
+debug::
+	rm -f t.dmr t.cdl t.dap
+	if test -f ${TF}.syn.dmr; then cp ${TF}.syn.dmr ./t.dmr ; fi
+	if test -f ${TF}.nc.dmr; then cp ${TF}.nc.dmr ./t.dmr ; fi
+	if test -f ${TF}.cdl; then cp ${TF}.cdl ./t.cdl ; fi
+	if test -f ${TF}.dap; then cp ${TF}.dap ./t.dap ; fi
+	if test -f ${TF}.syn.dap; then cp ${TF}.syn.dap ./t.dap ; fi
+	if test -f ${TF}.nc.dap; then cp ${TF}.nc.dap ./t.dap ; fi
+
+gdb:: mkt
+	gdb --args ../ncdump/ncdump '[log][dap4]http://localhost:8081/d4ts/${D}.nc'
+

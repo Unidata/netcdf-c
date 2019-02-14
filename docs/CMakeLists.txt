@@ -1,3 +1,10 @@
+# Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+# 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+# 2015, 2016, 2017, 2018
+# University Corporation for Atmospheric Research/Unidata.
+
+# See netcdf-c/COPYRIGHT file for more info.
+
 #####
 # Build doxygen documentation, if need be.
 #####
@@ -74,6 +81,16 @@ IF(ENABLE_DOXYGEN)
 
 ENDIF(ENABLE_DOXYGEN)
 
-SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am netcdf.m4 DoxygenLayout.xml Doxyfile.in Doxyfile.guide.in footer.html mainpage.dox tutorial.dox dispatch.dox guide.dox types.dox notes.md cdl.dox architecture.dox internal.dox install-fortran.dox Doxyfile.in.cmake windows-binaries.md building-with-cmake.md install.md)
+# Should match list in Makefile.am
+SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST}
+netcdf.m4 DoxygenLayout.xml Doxyfile.in footer.html
+mainpage.dox tutorial.dox guide.dox types.dox cdl.dox
+architecture.dox internal.dox windows-binaries.md
+building-with-cmake.md CMakeLists.txt groups.dox install.md notes.md
+install-fortran.md all-error-codes.md credits.md auth.md
+obsolete/fan_utils.html bestpractices.md filters.md indexing.md
+inmemory.md DAP2.dox attribute_conventions.md FAQ.md
+file_format_specifications.md known_problems.md
+COPYRIGHT.dox user_defined_formats.md DAP4.md DAP4.dox)
 
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")

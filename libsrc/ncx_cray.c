@@ -1,11 +1,15 @@
 /*
- *	Copyright 1996, University Corporation for Atmospheric Research
+ *	Copyright 2018, University Corporation for Atmospheric Research
  *	See netcdf/COPYRIGHT file for copying and redistribution conditions.
  * 	
  */
 /* $Id: ncx_cray.c,v 1.60 2004/09/30 18:47:12 russ Exp $ */
 #ifndef _CRAY
 #error "ncx_cray.c is a cray specific implementation"
+#endif
+
+#if HAVE_CONFIG_H
+#include <config.h>
 #endif
 
 /*

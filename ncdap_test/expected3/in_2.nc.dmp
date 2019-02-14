@@ -119,18 +119,14 @@ variables:
 	float one_dmn_var(bnd) ;
 	float att_var ;
 		att_var:byte_att = 0b ;
-		att_var:char_att = "Sentence one.\n",
-			"Sentence two.\n",
-			"" ;
+		att_var:char_att = "Sentence one.\\012Sentence two.\\012" ;
 		att_var:short_att = 37s ;
 		att_var:int_att = 73 ;
 		att_var:float_att = 73.f, 72.f, 71.f ;
 		att_var:double_att = 73. ;
 	int bnd_var(lev, bnd) ;
 		bnd_var:byte_att = 0b ;
-		bnd_var:char_att = "Sentence one.\n",
-			"Sentence two.\n",
-			"" ;
+		bnd_var:char_att = "Sentence one.\\012Sentence two.\\012" ;
 		bnd_var:short_att = 37s ;
 		bnd_var:int_att = 73 ;
 		bnd_var:float_att = 73.f ;
@@ -327,8 +323,7 @@ variables:
 
 // global attributes:
 		:Conventions = "NCAR-CSM" ;
-		:history = "History global attribute.\n",
-			"" ;
+		:history = "History global attribute.\\012" ;
 		:julian_day = 200000.04 ;
 		:DODS_EXTRA.Unlimited_Dimension = "time" ;
 data:

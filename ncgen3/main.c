@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/ncgen3/main.c,v 1.20 2010/03/31 18:18:40 dmh Exp $
  *********************************************************************/
@@ -26,7 +26,8 @@ int optind;
 #include <locale.h>
 #endif
     
-#include <netcdf.h>
+#include "netcdf.h"
+#include "ncwinpath.h"
 
 #include "generic.h"
 #include "ncgen.h"
@@ -229,7 +230,7 @@ main(
 
     fp = stdin;
     if (argc > 0 && strcmp(argv[0], "-") != 0) {
-	if ((fp = fopen(argv[0], "r")) == NULL) {
+	if ((fp = NCfopen(argv[0], "r")) == NULL) {
 	    derror ("can't open file %s for reading: ", argv[0]);
 	    perror("");
 	    return(7);
@@ -242,4 +243,3 @@ main(
 	return 1;
     return 0;
 }
-END_OF_MAIN()

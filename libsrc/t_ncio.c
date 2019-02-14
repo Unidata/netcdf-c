@@ -1,16 +1,19 @@
 /*
- *   Copyright 1995, University Corporation for Atmospheric Research
+ *   Copyright 2018, University Corporation for Atmospheric Research
  *   See top level COPYRIGHT file for copying and redistribution conditions.
  */
 /* $Id: t_ncio.c,v 1.10 2010/05/26 11:11:26 ed Exp $ */
 
+#if HAVE_CONFIG_H
 #include <config.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
-#include "ncio.h" 
+#include "ncio.h"
 #ifndef NC_NOERR
 #define NC_NOERR 0
 #endif
@@ -105,7 +108,7 @@ modify_ex(off_t offset, size_t extent, void *vp)
 
 	while(cp < end)
 	{
-		*cp++ = (unsigned char) (cp - obuf); 
+		*cp++ = (unsigned char) (cp - obuf);
 	}
 }
 
@@ -265,7 +268,7 @@ main(int ac, char *av[])
 
 
 	}
-	
+
 	if(!create)
 	{
 		status = ncio_open(path, flags,

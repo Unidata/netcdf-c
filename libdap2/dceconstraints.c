@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
@@ -10,13 +10,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include "nclist.h"
-#include "ncbytes.h"
-#include "nclog.h"
-
-#include "netcdf.h"
-#include "dceconstraints.h"
-#include "dapdebug.h"
+#include "dapincludes.h"
 #include "dceparselex.h"
 
 #define DEBUG

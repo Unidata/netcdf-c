@@ -11,6 +11,15 @@ variables:
 	int exp.i(exp.i_0) ;
 	int exp.data.i ;
 	double exp.data.f(exp.data.f_0) ;
+
+// global attributes:
+		:GeneralInfo.Author = "Nathan\n",
+			"Potter" ;
+		:GeneralInfo.Facility = "Oregon State University\n",
+			"College of Oceanic and Atmospheric Sciences" ;
+		:GeneralInfo.Example = "This dataset is a simple example of how to use a .ovr file\n",
+			"in the INFO directory to override the default .info service output\n",
+			"of the OPeNDAP servlet." ;
 data:
 
  exp.ThreeD =

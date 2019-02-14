@@ -10,8 +10,6 @@
 #ifndef NCGEN_INCLUDES_H
 #define NCGEN_INCLUDES_H
 
-#undef USE_NOFILL
-
 #include "config.h"
 
 #include <stdlib.h>
@@ -33,6 +31,7 @@
 
 #include "list.h"
 #include "bytebuffer.h"
+#include "nctime.h"
 
 /* Local Configuration flags*/
 #define ENABLE_BINARY
@@ -47,7 +46,6 @@
 #include "util.h"
 #include "debug.h"
 #include "nc.h"
-
 #ifdef USE_NETCDF4
 #include "nc4internal.h"
 #endif
@@ -56,5 +54,8 @@ extern int specialconstants;
 
 #undef ITERBUG
 #undef CHARBUG
+
+#undef nullfree
+#define nullfree(x) {if((x)) free(x);}
 
 #endif /* NCGEN_INCLUDES_H */

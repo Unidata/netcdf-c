@@ -6,7 +6,13 @@ set -e
 # will be executed in a different directory
 # than the one containing it; so capture the path to this script
 # as the location of the source directory.
-srcdir=`dirname $0`
+
+if test "x$topsrcdir" != x ; then
+  srcdir="$topsrcdir/ncdap_test"
+else
+  srcdir=`dirname $0`
+fi
+
 cd $srcdir
 srcdir=`pwd`
 
@@ -20,7 +26,6 @@ fi
 
 cd ${builddir}/ncdap_test
 
-#set -x
 quiet=0
 cache=1
 leakcheck=0
@@ -79,7 +84,7 @@ TESTSET="${TDSTESTS1}"
 # Temporarily suppress
 XFAILTESTS="tst-Surface-METAR.nc"
 
-RESULTSDIR="./results"
+RESULTSDIR="./results_tst_tds"
 expected3="${srcdir}/expecttds3"
 
 # Locate some tools
@@ -88,8 +93,6 @@ NCCOPY="${builddir}/ncdump/nccopy"
 
 if test "x$leakcheck" = x1 ; then
 VALGRIND="valgrind -q --error-exitcode=2 --leak-check=full"
-else
-VALGRIND=
 fi
 
 rm -fr ${RESULTSDIR}
@@ -154,6 +157,7 @@ for t in ${TESTSET} ; do
 done
 cd ..
 
+rm -fr ${RESULTSDIR}
 totalcount=`expr $passcount + $failcount + $xfailcount`
 okcount=`expr $passcount + $xfailcount`
 

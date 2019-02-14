@@ -1,19 +1,18 @@
 /*
- *	Copyright 1996, University Corporation for Atmospheric Research
+ *	Copyright 2018, University Corporation for Atmospheric Research
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 /* $Id: string.c,v 1.76 2010/05/26 21:43:33 dmh Exp $ */
 
 #include "config.h"
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
 #include "nc.h"
 #include "rnd.h"
-#include "utf8proc.h"
-
+#include "ncutf8.h"
 
 /* There are 3 levels of UTF8 checking: 1=> (exact)validating 2=>relaxed
    and 3=>very relaxed
@@ -171,7 +170,7 @@ NC_check_name(const char *name)
 	int skip;
 	int ch;
 	const char *cp = name;
-	ssize_t utf8_stat;
+	int stat;
 
 	assert(name != NULL);
 
@@ -180,8 +179,8 @@ NC_check_name(const char *name)
 		goto fail;
 
 	/* check validity of any UTF-8 */
-	utf8_stat = utf8proc_check((const unsigned char *)name);
-	if (utf8_stat < 0)
+	stat = nc_utf8_validate((const unsigned char *)name);
+	if (stat != NC_NOERR)
 	    goto fail;
 
 	/* First char must be [a-z][A-Z][0-9]_ | UTF8 */
@@ -228,13 +227,8 @@ fail:
 NC_new_string(count, str)
  */
 
-#ifdef __arm__
-NC_string *
-new_NC_string(size_t slen, const signed char *str)
-#else
 NC_string *
 new_NC_string(size_t slen, const char *str)
-#endif
 {
 	NC_string *ncstrp;
 	size_t sz = M_RNDUP(sizeof(NC_string)) + slen + 1;
@@ -269,13 +263,8 @@ new_NC_string(size_t slen, const char *str)
 NC_re_string()
  */
 
-#ifdef __arm__
- int
-   set_NC_string(NC_string *ncstrp, const signed char *str)
-#else
- int
+int
    set_NC_string(NC_string *ncstrp, const char *str)
-#endif
  {
 	size_t slen;
 
@@ -312,3 +301,58 @@ strdup(const char* s)
 #endif
 
 /**************************************************/
+/* strlcat */
+/*
+ * Copyright (c) 1998, 2015 Todd C. Miller <Todd.Miller@courtesan.com>
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
+
+#ifndef HAVE_STRLCAT
+#ifndef _WIN32 /* We will use strcat_s */
+/*
+ * Appends src to string dst of size dsize (unlike strncat, dsize is the
+ * full size of dst, not space left).  At most dsize-1 characters
+ * will be copied.  Always NUL terminates (unless dsize <= strlen(dst)).
+ * Returns strlen(src) + MIN(dsize, strlen(initial dst)).
+ * If retval >= dsize, truncation occurred.
+ */
+EXTERNL size_t
+strlcat(char* dst, const char* src, size_t dsize)
+{
+	const char *odst = dst;
+	const char *osrc = src;
+	size_t n = dsize;
+	size_t dlen;
+
+	/* Find the end of dst and adjust bytes left but don't go past end. */
+	while (n-- != 0 && *dst != '\0')
+		dst++;
+	dlen = dst - odst;
+	n = dsize - dlen;
+
+	if (n-- == 0)
+		return(dlen + strlen(src));
+	while (*src != '\0') {
+		if (n != 0) {
+			*dst++ = *src;
+			n--;
+		}
+		src++;
+	}
+	*dst = '\0';
+
+	return(dlen + (src - osrc));	/* count does not include NUL */
+}
+#endif /*!_WIN32*/
+#endif /*!HAVE_STRLCAT*/

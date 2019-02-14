@@ -1,14 +1,15 @@
-/* This is part of the netCDF package. Copyright 2005-2007 University
+/* This is part of the netCDF package. Copyright 2005-2018 University
    Corporation for Atmospheric Research/Unidata. See COPYRIGHT file
    for conditions of use.
 
-   Test attributes. 
+   Test attributes.
 
    $Id: tst_atts3.c 2796 2014-10-28 03:40:29Z wkliao $
 */
 
 #include "config.h"
 #include <nc_tests.h>
+#include "err_macros.h"
 #include <signal.h>
 #include "netcdf.h"
 #ifdef USE_PARALLEL
@@ -84,7 +85,7 @@ int
 tst_att_ordering(int cmode)
 {
    int ncid;
-   char name[NUM_ATTS][ATT_MAX_NAME + 1] = {"Gc", "Gb", "Gs", "Gi", "Gf", 
+   char name[NUM_ATTS][ATT_MAX_NAME + 1] = {"Gc", "Gb", "Gs", "Gi", "Gf",
 					    "Gd", "Gatt-name-dashes", "Gatt.name.dots"};
    int len[NUM_ATTS] = {0, 2, 3, 3, 3, 3, 1, 1};
    signed char b[2] = {-128, 127};
@@ -98,23 +99,23 @@ tst_att_ordering(int cmode)
 
    /* Create a file with some global atts. */
 #ifdef TEST_PNETCDF
-   if (nc_create_par(FILE_NAME, cmode|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
+   if (nc_create_par(FILE_NAME, cmode, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
 #else
    if (nc_create(FILE_NAME, cmode, &ncid)) ERR;
 #endif
-   if (nc_put_att_text(ncid, NC_GLOBAL, name[0], len[0], NULL)) ERR;      
-   if (nc_put_att_schar(ncid, NC_GLOBAL, name[1], NC_BYTE, len[1], b)) ERR;      
-   if (nc_put_att_short(ncid, NC_GLOBAL, name[2], NC_SHORT, len[2], s)) ERR;      
-   if (nc_put_att_int(ncid, NC_GLOBAL, name[3], NC_INT, len[3], i)) ERR;       
-   if (nc_put_att_float(ncid, NC_GLOBAL, name[4], NC_FLOAT, len[4], f)) ERR;       
-   if (nc_put_att_double(ncid, NC_GLOBAL, name[5], NC_DOUBLE, len[5], d)) ERR;       
-   if (nc_put_att_int(ncid, NC_GLOBAL, name[6], NC_INT, len[6], &att_name_dashes)) ERR;       
-   if (nc_put_att_int(ncid, NC_GLOBAL, name[7], NC_INT, len[7], &att_name_dots)) ERR;       
+   if (nc_put_att_text(ncid, NC_GLOBAL, name[0], len[0], NULL)) ERR;
+   if (nc_put_att_schar(ncid, NC_GLOBAL, name[1], NC_BYTE, len[1], b)) ERR;
+   if (nc_put_att_short(ncid, NC_GLOBAL, name[2], NC_SHORT, len[2], s)) ERR;
+   if (nc_put_att_int(ncid, NC_GLOBAL, name[3], NC_INT, len[3], i)) ERR;
+   if (nc_put_att_float(ncid, NC_GLOBAL, name[4], NC_FLOAT, len[4], f)) ERR;
+   if (nc_put_att_double(ncid, NC_GLOBAL, name[5], NC_DOUBLE, len[5], d)) ERR;
+   if (nc_put_att_int(ncid, NC_GLOBAL, name[6], NC_INT, len[6], &att_name_dashes)) ERR;
+   if (nc_put_att_int(ncid, NC_GLOBAL, name[7], NC_INT, len[7], &att_name_dots)) ERR;
    if (nc_close(ncid)) ERR;
-      
+
    /* Reopen the file and check the order. */
 #ifdef TEST_PNETCDF
-   if (nc_open_par(FILE_NAME, NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+   if (nc_open_par(FILE_NAME, 0, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
    if (nc_open(FILE_NAME, 0, &ncid)) ERR;
 #endif
@@ -135,18 +136,10 @@ main(int argc, char **argv)
     signed char schar_in[ATT_LEN], schar_out[ATT_LEN] = {NC_MIN_BYTE, 1, NC_MAX_BYTE};
     unsigned char uchar_in[ATT_LEN];
     short short_in[ATT_LEN], short_out[ATT_LEN] = {NC_MIN_SHORT, -128, NC_MAX_SHORT};
-    int int_in[ATT_LEN], int_out[ATT_LEN] = {-100000, 128, 100000};
+    int int_in[ATT_LEN], int_out[ATT_LEN] = {-100000, 127, 100000};
     float float_in[ATT_LEN], float_out[ATT_LEN] = {-0.5, 0.25, 0.125};
     double double_in[ATT_LEN], double_out[ATT_LEN] = {-0.25, .5, 0.125};
     long long longlong_in[ATT_LEN] = {-1LL, -1LL, -1LL};
-#ifdef USE_NETCDF4
-    long long_in[ATT_LEN];
-    unsigned short ushort_in[ATT_LEN], ushort_out[ATT_LEN] = {0, 128, NC_MAX_USHORT};
-    unsigned int uint_in[ATT_LEN], uint_out[ATT_LEN] = {0, 128, NC_MAX_UINT};
-    long long longlong_out[ATT_LEN] = {-3123456789LL, 128LL, 3123456789LL};
-    unsigned long long ulonglong_in[ATT_LEN] = {NC_MAX_UINT64, NC_MAX_UINT64, NC_MAX_UINT64};
-    unsigned long long ulonglong_out[ATT_LEN] = {0LL, 128LL, 3123456789LL};
-#endif
 
 #ifdef TEST_PNETCDF
    MPI_Init(&argc, &argv);
@@ -158,24 +151,24 @@ main(int argc, char **argv)
 #define NUM_SIMPLE_ATTS 9
    {
       int ncid;
-      char name[NUM_SIMPLE_ATTS][ATT_MAX_NAME + 1] = {"Gc", "Gb", "Gs", "Gi", "Gf", 
+      char name[NUM_SIMPLE_ATTS][ATT_MAX_NAME + 1] = {"Gc", "Gb", "Gs", "Gi", "Gf",
 						      "Gd", "G7", "G8", "G9"};
       char name_in[NC_MAX_NAME];
       int j;
 
       /* Create a file with some global atts. */
 #ifdef TEST_PNETCDF
-      if (nc_create_par(FILE_NAME, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
+      if (nc_create_par(FILE_NAME, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
 #else
       if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
 #endif
       for (j = 0; j < NUM_SIMPLE_ATTS; j++)
-	 if (nc_put_att_int(ncid, NC_GLOBAL, name[j], NC_INT, 0, NULL)) ERR;      
+	 if (nc_put_att_int(ncid, NC_GLOBAL, name[j], NC_INT, 0, NULL)) ERR;
       if (nc_close(ncid)) ERR;
-      
+
       /* Reopen the file and check the order. */
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, 0, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, 0, &ncid)) ERR;
 #endif
@@ -190,7 +183,7 @@ main(int argc, char **argv)
    }
    SUMMARIZE_ERR;
    printf("*** testing simple global atts...");
-   {      
+   {
       int ncid;
       nc_type att_type;
       size_t att_len;
@@ -200,18 +193,20 @@ main(int argc, char **argv)
 
       /* This won't work, because classic files can't create these types. */
 #ifdef TEST_PNETCDF
-      if (nc_create_par(FILE_NAME, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
+      if (nc_create_par(FILE_NAME, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
 #else
       if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
 #endif
-      if (nc_put_att_int(ncid, NC_GLOBAL, ATT_INT_NAME, NC_INT, ATT_LEN, 
-			    int_out)) ERR;      
+      if (nc_put_att_int(ncid, NC_GLOBAL, ATT_INT_NAME, NC_INT, ATT_LEN,
+			    int_out)) ERR;
       /* It is also OK to read classic types converted into
        * supported C types. though the conversion may encounter
        * out-of-range values */
       if (nc_get_att_uchar(ncid, NC_GLOBAL, ATT_INT_NAME, uchar_in) != NC_ERANGE) ERR;
-      for (i = 0; i < ATT_LEN; i++)
+      for (i = 0; i < ATT_LEN; i++) {
+        if (i == 0 || i == 2) continue;
 	if (uchar_in[i] != (unsigned char) int_out[i]) ERR;
+      }
 
       /* This was bug NCF-171: on 32-bit platforms, bad values returned */
       if (nc_get_att_longlong(ncid, NC_GLOBAL, ATT_INT_NAME, longlong_in)) ERR;
@@ -221,21 +216,21 @@ main(int argc, char **argv)
 
       /* Create a file with a global attribute of each type. */
 #ifdef TEST_PNETCDF
-      if (nc_create_par(FILE_NAME, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
+      if (nc_create_par(FILE_NAME, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
 #else
       if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
 #endif
-      if (nc_put_att_text(ncid, NC_GLOBAL, ATT_TEXT_NAME, strlen(speech)+1, speech)) ERR;      
-      if (nc_put_att_schar(ncid, NC_GLOBAL, ATT_SCHAR_NAME, NC_BYTE, ATT_LEN, schar_out)) ERR;      
-      if (nc_put_att_short(ncid, NC_GLOBAL, ATT_SHORT_NAME, NC_SHORT, ATT_LEN, short_out)) ERR;      
-      if (nc_put_att_int(ncid, NC_GLOBAL, ATT_INT_NAME, NC_INT, ATT_LEN, int_out)) ERR;      
-      if (nc_put_att_float(ncid, NC_GLOBAL, ATT_FLOAT_NAME, NC_FLOAT, ATT_LEN, float_out)) ERR;      
-      if (nc_put_att_double(ncid, NC_GLOBAL, ATT_DOUBLE_NAME, NC_DOUBLE, ATT_LEN, double_out)) ERR;      
+      if (nc_put_att_text(ncid, NC_GLOBAL, ATT_TEXT_NAME, strlen(speech)+1, speech)) ERR;
+      if (nc_put_att_schar(ncid, NC_GLOBAL, ATT_SCHAR_NAME, NC_BYTE, ATT_LEN, schar_out)) ERR;
+      if (nc_put_att_short(ncid, NC_GLOBAL, ATT_SHORT_NAME, NC_SHORT, ATT_LEN, short_out)) ERR;
+      if (nc_put_att_int(ncid, NC_GLOBAL, ATT_INT_NAME, NC_INT, ATT_LEN, int_out)) ERR;
+      if (nc_put_att_float(ncid, NC_GLOBAL, ATT_FLOAT_NAME, NC_FLOAT, ATT_LEN, float_out)) ERR;
+      if (nc_put_att_double(ncid, NC_GLOBAL, ATT_DOUBLE_NAME, NC_DOUBLE, ATT_LEN, double_out)) ERR;
       if (nc_close(ncid)) ERR;
 
       /* Open the file and check attributes. */
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, 0, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, 0, &ncid)) ERR;
 #endif
@@ -244,23 +239,23 @@ main(int argc, char **argv)
 	 ERR;
       if (att_type != NC_CHAR || att_len != strlen(speech) + 1) ERR;
       if (!(speech_in = malloc(att_len + 1))) ERR;
-      if (nc_get_att_text(ncid, NC_GLOBAL, ATT_TEXT_NAME, speech_in)) ERR;      
+      if (nc_get_att_text(ncid, NC_GLOBAL, ATT_TEXT_NAME, speech_in)) ERR;
       if (strcmp(speech, speech_in)) ERR;
       free(speech_in);
       /* Check numeric values. */
-      if (nc_get_att_schar(ncid, NC_GLOBAL, ATT_SCHAR_NAME, schar_in)) ERR;      
+      if (nc_get_att_schar(ncid, NC_GLOBAL, ATT_SCHAR_NAME, schar_in)) ERR;
       for (i = 0; i < ATT_LEN; i++)
 	 if (schar_in[i] != schar_out[i]) ERR;
-      if (nc_get_att_short(ncid, NC_GLOBAL, ATT_SHORT_NAME, short_in)) ERR;      
+      if (nc_get_att_short(ncid, NC_GLOBAL, ATT_SHORT_NAME, short_in)) ERR;
       for (i = 0; i < ATT_LEN; i++)
 	 if (short_in[i] != short_out[i]) ERR;
-      if (nc_get_att_int(ncid, NC_GLOBAL, ATT_INT_NAME, int_in)) ERR;      
+      if (nc_get_att_int(ncid, NC_GLOBAL, ATT_INT_NAME, int_in)) ERR;
       for (i = 0; i < ATT_LEN; i++)
 	 if (int_in[i] != int_out[i]) ERR;
-      if (nc_get_att_float(ncid, NC_GLOBAL, ATT_FLOAT_NAME, float_in)) ERR;      
+      if (nc_get_att_float(ncid, NC_GLOBAL, ATT_FLOAT_NAME, float_in)) ERR;
       for (i = 0; i < ATT_LEN; i++)
 	 if (float_in[i] != float_out[i]) ERR;
-      if (nc_get_att_double(ncid, NC_GLOBAL, ATT_DOUBLE_NAME, double_in)) ERR;      
+      if (nc_get_att_double(ncid, NC_GLOBAL, ATT_DOUBLE_NAME, double_in)) ERR;
       for (i = 0; i < ATT_LEN; i++)
 	 if (double_in[i] != double_out[i]) ERR;
       if (nc_close(ncid)) ERR;
@@ -274,7 +269,7 @@ main(int argc, char **argv)
 
       /* Reopen the file and try different type conversions. */
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, 0, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, 0, &ncid)) ERR;
 #endif
@@ -345,8 +340,10 @@ main(int argc, char **argv)
       for (i = 0; i < ATT_LEN; i++)
 	 if (short_in[i] != short_out[i]) ERR;
       if (nc_get_att_short(ncid, NC_GLOBAL, ATT_INT_NAME, short_in) != NC_ERANGE) ERR;
-      for (i = 0; i < ATT_LEN; i++)
+      for (i = 0; i < ATT_LEN; i++) {
+          if (i == 0 || i == 2) continue;
 	  if (short_in[i] != (short) int_out[i]) ERR;
+      }
       if (nc_get_att_short(ncid, NC_GLOBAL, ATT_FLOAT_NAME, short_in)) ERR;
       for (i = 0; i < ATT_LEN; i++)
 	  if (short_in[i] != (short) float_out[i]) ERR;
@@ -359,11 +356,15 @@ main(int argc, char **argv)
       for (i = 0; i < ATT_LEN; i++)
 	 if (schar_in[i] != schar_out[i]) ERR;
       if (nc_get_att_schar(ncid, NC_GLOBAL, ATT_SHORT_NAME, schar_in) != NC_ERANGE) ERR;
-      for (i = 0; i < ATT_LEN; i++)
+      for (i = 0; i < ATT_LEN; i++) {
+         if (i == 0 || i == 2) continue;
 	 if (schar_in[i] != (signed char) short_out[i]) ERR;
+      }
       if (nc_get_att_schar(ncid, NC_GLOBAL, ATT_INT_NAME, schar_in) != NC_ERANGE) ERR;
-      for (i = 0; i < ATT_LEN; i++)
+      for (i = 0; i < ATT_LEN; i++) {
+         if (i == 0 || i == 2) continue;
 	 if (schar_in[i] != (signed char) int_out[i]) ERR;
+      }
       if (nc_get_att_schar(ncid, NC_GLOBAL, ATT_FLOAT_NAME, schar_in)) ERR;
       for (i = 0; i < ATT_LEN; i++)
 	 if (schar_in[i] != (signed char) float_out[i]) ERR;
@@ -372,22 +373,25 @@ main(int argc, char **argv)
 	 if (schar_in[i] != (signed char) double_out[i]) ERR;
 
       /* Read all atts (except text) as uchar. */
-      /* Shouldn't this get an NC_ERANGE error for storing -128 into an unsigned char?  Possible bug ... */
       if (nc_get_att_uchar(ncid, NC_GLOBAL, ATT_SCHAR_NAME, uchar_in)) ERR;
       for (i = 0; i < ATT_LEN; i++)
 	 if (uchar_in[i] != (unsigned char) schar_out[i]) ERR;
       if (nc_get_att_uchar(ncid, NC_GLOBAL, ATT_SHORT_NAME, uchar_in) != NC_ERANGE) ERR;
-      for (i = 0; i < ATT_LEN; i++)
-	 if (uchar_in[i] != (unsigned char) short_out[i]) ERR;
       if (nc_get_att_uchar(ncid, NC_GLOBAL, ATT_INT_NAME, uchar_in) != NC_ERANGE) ERR;
-      for (i = 0; i < ATT_LEN; i++)
+      for (i = 0; i < ATT_LEN; i++) {
+         if (i == 0 || i == 2) continue;
 	 if (uchar_in[i] != (unsigned char) int_out[i]) ERR;
+      }
       if (nc_get_att_uchar(ncid, NC_GLOBAL, ATT_FLOAT_NAME, uchar_in) != NC_ERANGE) ERR;
-      for (i = 0; i < ATT_LEN; i++)
+      for (i = 0; i < ATT_LEN; i++) {
+         if (i == 0) continue;
 	 if (uchar_in[i] != (unsigned char) float_out[i]) ERR;
+      }
       if (nc_get_att_uchar(ncid, NC_GLOBAL, ATT_DOUBLE_NAME, uchar_in) != NC_ERANGE) ERR;
-      for (i = 0; i < ATT_LEN; i++)
+      for (i = 0; i < ATT_LEN; i++) {
+         if (i == 0) continue;
 	 if (uchar_in[i] != (unsigned char) double_out[i]) ERR;
+      }
 
       /* Read all atts (except text) into long long variable. */
       if (nc_get_att_longlong(ncid, NC_GLOBAL, ATT_SCHAR_NAME, longlong_in)) ERR;
@@ -419,7 +423,7 @@ main(int argc, char **argv)
 
       /* Create a file with a global attribute of each type of zero length. */
 #ifdef TEST_PNETCDF
-      if (nc_create_par(FILE_NAME, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
+      if (nc_create_par(FILE_NAME, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
 #else
       if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
 #endif
@@ -445,7 +449,7 @@ main(int argc, char **argv)
       nc_type xtype;
 
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, 0, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, 0, &ncid)) ERR;
 #endif
@@ -488,7 +492,7 @@ main(int argc, char **argv)
 
       /* Create a file with a global attribute of each type of zero length. */
 #ifdef TEST_PNETCDF
-      if (nc_create_par(FILE_NAME, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
+      if (nc_create_par(FILE_NAME, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
 #else
       if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
 #endif
@@ -505,7 +509,7 @@ main(int argc, char **argv)
       /* Make sure we can read all these zero-length atts added during a
        * redef. */
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, 0, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, 0, &ncid)) ERR;
 #endif
@@ -536,17 +540,17 @@ main(int argc, char **argv)
 
       /* Create a file with a global attribute. */
 #ifdef TEST_PNETCDF
-      if (nc_create_par(FILE_NAME, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
+      if (nc_create_par(FILE_NAME, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
 #else
       if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
 #endif
-      if (nc_put_att_text(ncid, NC_GLOBAL, ATT_TEXT_NAME, strlen(speech)+1, 
-			  speech)) ERR;      
+      if (nc_put_att_text(ncid, NC_GLOBAL, ATT_TEXT_NAME, strlen(speech)+1,
+			  speech)) ERR;
       if (nc_close(ncid)) ERR;
-      
+
       /* Rename it. */
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_WRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, NC_WRITE, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
 #endif
@@ -555,28 +559,28 @@ main(int argc, char **argv)
       if (nc_inq_attname(ncid, NC_GLOBAL, attid_in, name_in)) ERR;
       if (strcmp(name_in, ATT_TEXT_NAME)) ERR;
       if (nc_redef(ncid)) ERR;
-      if (nc_rename_att(ncid, NC_GLOBAL, ATT_TEXT_NAME, ATT_TEXT_NAME2)) ERR;      
+      if (nc_rename_att(ncid, NC_GLOBAL, ATT_TEXT_NAME, ATT_TEXT_NAME2)) ERR;
       if (nc_inq_attname(ncid, NC_GLOBAL, attid_in, name_in)) ERR;
       if (strcmp(name_in, ATT_TEXT_NAME2)) ERR;
       if (nc_close(ncid)) ERR;
 
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_WRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, NC_WRITE, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
 #endif
       if (nc_inq_att(ncid, NC_GLOBAL, ATT_TEXT_NAME2, &att_type, &att_len)) ERR;
       if (att_type != NC_CHAR || att_len != strlen(speech) + 1) ERR;
       if (!(speech_in = malloc(att_len + 1))) ERR;
-      if (nc_get_att_text(ncid, NC_GLOBAL, ATT_TEXT_NAME2, speech_in)) ERR;      
+      if (nc_get_att_text(ncid, NC_GLOBAL, ATT_TEXT_NAME2, speech_in)) ERR;
       if (strcmp(speech, speech_in)) ERR;
       free(speech_in);
-      if (nc_get_att_text(ncid, NC_GLOBAL, ATT_TEXT_NAME, speech_in) != NC_ENOTATT) ERR;      
+      if (nc_get_att_text(ncid, NC_GLOBAL, ATT_TEXT_NAME, speech_in) != NC_ENOTATT) ERR;
       if (nc_close(ncid)) ERR;
 
       /* Now delete the att. */
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_WRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, NC_WRITE, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
 #endif
@@ -586,20 +590,20 @@ main(int argc, char **argv)
 
       /* Now create a file with a variable, which has an att. */
 #ifdef TEST_PNETCDF
-      if (nc_create_par(FILE_NAME, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
+      if (nc_create_par(FILE_NAME, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
 #else
       if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
 #endif
-      if (nc_put_att_text(ncid, NC_GLOBAL, ATT_TEXT_NAME, strlen(speech)+1, speech)) ERR;      
+      if (nc_put_att_text(ncid, NC_GLOBAL, ATT_TEXT_NAME, strlen(speech)+1, speech)) ERR;
       if (nc_def_dim(ncid, DIM1_NAME, DIM1_LEN, &dimids[0])) ERR;
       if (nc_def_dim(ncid, DIM2_NAME, DIM2_LEN, &dimids[1])) ERR;
       if (nc_def_var(ncid, VAR1_NAME, NC_INT, 2, dimids, &varid)) ERR;
-      if (nc_put_att_int(ncid, varid, ATT_INT_NAME, NC_INT, 3, int_out)) ERR;      
+      if (nc_put_att_int(ncid, varid, ATT_INT_NAME, NC_INT, 3, int_out)) ERR;
       if (nc_close(ncid)) ERR;
-      
+
       /* Reopen the file and delete it. Make sure it's gone. */
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_WRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, NC_WRITE, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
 #endif
@@ -610,12 +614,12 @@ main(int argc, char **argv)
       /* Reopen the file and readd the attribute. Enddef and redef,
        * and delete it, then check to make sure it's gone. */
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_WRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, NC_WRITE, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
 #endif
       if (nc_redef(ncid)) ERR;
-      if (nc_put_att_int(ncid, varid, ATT_INT_NAME, NC_INT, 3, int_out)) ERR;      
+      if (nc_put_att_int(ncid, varid, ATT_INT_NAME, NC_INT, 3, int_out)) ERR;
       if (nc_enddef(ncid)) ERR;
       if (nc_redef(ncid)) ERR;
       if (nc_del_att(ncid, 0, ATT_INT_NAME)) ERR;
@@ -636,17 +640,17 @@ main(int argc, char **argv)
 
       /* Create a file with several global attributes. */
 #ifdef TEST_PNETCDF
-      if (nc_create_par(FILE_NAME, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
+      if (nc_create_par(FILE_NAME, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
 #else
       if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
 #endif
       if (nc_put_att_int(ncid, NC_GLOBAL, ATT0, NC_INT, 1, &number)) ERR;
       if (nc_put_att_int(ncid, NC_GLOBAL, ATT1, NC_INT, 1, &number)) ERR;
       if (nc_close(ncid)) ERR;
-      
+
       /* Open it and check the order. */
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_WRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, NC_WRITE, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
 #endif
@@ -658,7 +662,7 @@ main(int argc, char **argv)
 
       /* Now create a file with a variable, which has two atts. */
 #ifdef TEST_PNETCDF
-      if (nc_create_par(FILE_NAME, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
+      if (nc_create_par(FILE_NAME, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
 #else
       if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
 #endif
@@ -668,10 +672,10 @@ main(int argc, char **argv)
       if (nc_put_att_int(ncid, varid, ATT0, NC_INT, 1, &number)) ERR;
       if (nc_put_att_int(ncid, varid, ATT1, NC_INT, 1, &number)) ERR;
       if (nc_close(ncid)) ERR;
-      
+
       /* Reopen the file and check the order of the attributes on the var. */
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_WRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, NC_WRITE, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
 #endif
@@ -686,9 +690,9 @@ main(int argc, char **argv)
    printf("*** testing attribute ordering some more...");
 
 #define VAR_NAME "i"
-#define A1_NAME "i"      
-#define A2_NAME "f"      
-#define A3_NAME "d"      
+#define A1_NAME "i"
+#define A2_NAME "f"
+#define A3_NAME "d"
 #define A1_LEN 3
 #define A2_LEN 4
 #define A3_LEN 5
@@ -700,19 +704,19 @@ main(int argc, char **argv)
 
       /* Create a file with one var, and attach three atts to it. */
 #ifdef TEST_PNETCDF
-      if (nc_create_par(FILE_NAME, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
+      if (nc_create_par(FILE_NAME, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
 #else
       if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
 #endif
       if (nc_def_var(ncid, VAR_NAME, NC_INT, 0, NULL, &varid)) ERR;
-      if (nc_put_att_double(ncid, varid, A1_NAME, NC_INT, A1_LEN, dvalue)) ERR;      
-      if (nc_put_att_double(ncid, varid, A2_NAME, NC_INT, A2_LEN, dvalue)) ERR;      
-      if (nc_put_att_double(ncid, varid, A3_NAME, NC_INT, A3_LEN, dvalue)) ERR;      
+      if (nc_put_att_double(ncid, varid, A1_NAME, NC_INT, A1_LEN, dvalue)) ERR;
+      if (nc_put_att_double(ncid, varid, A2_NAME, NC_INT, A2_LEN, dvalue)) ERR;
+      if (nc_put_att_double(ncid, varid, A3_NAME, NC_INT, A3_LEN, dvalue)) ERR;
       if (nc_close(ncid)) ERR;
-      
+
       /* Reopen the file and check. */
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, 0, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, 0, &ncid)) ERR;
 #endif
@@ -748,7 +752,7 @@ main(int argc, char **argv)
       int ncid, att = 1;
 
 #ifdef TEST_PNETCDF
-      if (nc_create_par(FILE_NAME, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
+      if (nc_create_par(FILE_NAME, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
 #else
       if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
 #endif
@@ -761,7 +765,7 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
 
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, 0, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, 0, &ncid)) ERR;
 #endif
@@ -770,7 +774,7 @@ main(int argc, char **argv)
 
    SUMMARIZE_ERR;
    printf("*** testing copy of simple global atts...");
-   {      
+   {
       int ncid, ncid2;
       nc_type att_type;
       size_t att_len;
@@ -785,20 +789,20 @@ main(int argc, char **argv)
 
       /* Create a file with a global attribute of each type. */
 #ifdef TEST_PNETCDF
-      if (nc_create_par(FILE_NAME, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
+      if (nc_create_par(FILE_NAME, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
 #else
       if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
 #endif
-      if (nc_put_att_text(ncid, NC_GLOBAL, ATT_TEXT_NAME, strlen(speech)+1, speech)) ERR;      
-      if (nc_put_att_schar(ncid, NC_GLOBAL, ATT_SCHAR_NAME, NC_BYTE, ATT_LEN, schar_out)) ERR;      
-      if (nc_put_att_short(ncid, NC_GLOBAL, ATT_SHORT_NAME, NC_SHORT, ATT_LEN, short_out)) ERR;      
-      if (nc_put_att_int(ncid, NC_GLOBAL, ATT_INT_NAME, NC_INT, ATT_LEN, int_out)) ERR;      
-      if (nc_put_att_float(ncid, NC_GLOBAL, ATT_FLOAT_NAME, NC_FLOAT, ATT_LEN, float_out)) ERR;      
-      if (nc_put_att_double(ncid, NC_GLOBAL, ATT_DOUBLE_NAME, NC_DOUBLE, ATT_LEN, double_out)) ERR;      
+      if (nc_put_att_text(ncid, NC_GLOBAL, ATT_TEXT_NAME, strlen(speech)+1, speech)) ERR;
+      if (nc_put_att_schar(ncid, NC_GLOBAL, ATT_SCHAR_NAME, NC_BYTE, ATT_LEN, schar_out)) ERR;
+      if (nc_put_att_short(ncid, NC_GLOBAL, ATT_SHORT_NAME, NC_SHORT, ATT_LEN, short_out)) ERR;
+      if (nc_put_att_int(ncid, NC_GLOBAL, ATT_INT_NAME, NC_INT, ATT_LEN, int_out)) ERR;
+      if (nc_put_att_float(ncid, NC_GLOBAL, ATT_FLOAT_NAME, NC_FLOAT, ATT_LEN, float_out)) ERR;
+      if (nc_put_att_double(ncid, NC_GLOBAL, ATT_DOUBLE_NAME, NC_DOUBLE, ATT_LEN, double_out)) ERR;
 
       /* Create another file and copy all the attributes. */
 #ifdef TEST_PNETCDF
-      if (nc_create_par(FILE_NAME2, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid2)) ERR;
+      if (nc_create_par(FILE_NAME2, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid2)) ERR;
 #else
       if (nc_create(FILE_NAME2, NC_CLOBBER, &ncid2)) ERR;
 #endif
@@ -815,7 +819,7 @@ main(int argc, char **argv)
 
       /* Open the file and check attributes. */
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME2, NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME2, 0, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME2, 0, &ncid)) ERR;
 #endif
@@ -823,23 +827,23 @@ main(int argc, char **argv)
       if (nc_inq_att(ncid, NC_GLOBAL, ATT_TEXT_NAME, &att_type, &att_len)) ERR;
       if (att_type != NC_CHAR || att_len != strlen(speech) + 1) ERR;
       if (!(speech_in = malloc(att_len + 1))) ERR;
-      if (nc_get_att_text(ncid, NC_GLOBAL, ATT_TEXT_NAME, speech_in)) ERR;      
+      if (nc_get_att_text(ncid, NC_GLOBAL, ATT_TEXT_NAME, speech_in)) ERR;
       if (strcmp(speech, speech_in)) ERR;
       free(speech_in);
       /* Check numeric values. */
-      if (nc_get_att_schar(ncid, NC_GLOBAL, ATT_SCHAR_NAME, schar_in)) ERR;      
+      if (nc_get_att_schar(ncid, NC_GLOBAL, ATT_SCHAR_NAME, schar_in)) ERR;
       for (i = 0; i < ATT_LEN; i++)
 	 if (schar_in[i] != schar_out[i]) ERR;
-      if (nc_get_att_short(ncid, NC_GLOBAL, ATT_SHORT_NAME, short_in)) ERR;      
+      if (nc_get_att_short(ncid, NC_GLOBAL, ATT_SHORT_NAME, short_in)) ERR;
       for (i = 0; i < ATT_LEN; i++)
 	 if (short_in[i] != short_out[i]) ERR;
-      if (nc_get_att_int(ncid, NC_GLOBAL, ATT_INT_NAME, int_in)) ERR;      
+      if (nc_get_att_int(ncid, NC_GLOBAL, ATT_INT_NAME, int_in)) ERR;
       for (i = 0; i < ATT_LEN; i++)
 	 if (int_in[i] != int_out[i]) ERR;
-      if (nc_get_att_float(ncid, NC_GLOBAL, ATT_FLOAT_NAME, float_in)) ERR;      
+      if (nc_get_att_float(ncid, NC_GLOBAL, ATT_FLOAT_NAME, float_in)) ERR;
       for (i = 0; i < ATT_LEN; i++)
 	 if (float_in[i] != float_out[i]) ERR;
-      if (nc_get_att_double(ncid, NC_GLOBAL, ATT_DOUBLE_NAME, double_in)) ERR;      
+      if (nc_get_att_double(ncid, NC_GLOBAL, ATT_DOUBLE_NAME, double_in)) ERR;
       for (i = 0; i < ATT_LEN; i++)
 	 if (double_in[i] != double_out[i]) ERR;
       if (nc_close(ncid)) ERR;
@@ -850,5 +854,3 @@ main(int argc, char **argv)
 #endif
    FINAL_RESULTS;
 }
-
-

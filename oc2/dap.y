@@ -1,4 +1,4 @@
-/* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
+/* Copyright 2018, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
 
 /*The lines down to DO NOT DELETE ... comment are specific to the C Parser.
@@ -17,7 +17,7 @@ int dapdebug = 0;
 
 /*DO NOT DELETE THIS LINE*/
 
-%token SCAN_ALIAS 
+%token SCAN_ALIAS
 %token SCAN_ARRAY
 %token SCAN_ATTR
 %token SCAN_BYTE
@@ -31,14 +31,14 @@ int dapdebug = 0;
 %token SCAN_GRID
 %token SCAN_INT16
 %token SCAN_INT32
-%token SCAN_MAPS 
+%token SCAN_MAPS
 %token SCAN_MESSAGE
 %token SCAN_SEQUENCE
 %token SCAN_STRING
 %token SCAN_STRUCTURE
 %token SCAN_UINT16
 %token SCAN_UINT32
-%token SCAN_URL 
+%token SCAN_URL
 /* For errorbody */
 %token SCAN_PTYPE
 %token SCAN_PROG
@@ -52,7 +52,7 @@ int dapdebug = 0;
 
 start:
 	  dataset datasetbody
-	| dataset datasetbody SCAN_DATA
+	| dataset datasetbody SCAN_DATA /* The SCAN_DATA indicates serialized data follows */
 	| attr attributebody
 	| err errorbody
         | error {dap_unrecognizedresponse(parsestate); YYABORT;}
@@ -94,10 +94,10 @@ declaration:
 	| SCAN_GRID '{' SCAN_ARRAY ':' declaration SCAN_MAPS ':'
           declarations '}' var_name ';'
 	    {if(($$=dap_makegrid(parsestate,$10,$5,$8))==null) {YYABORT;}}
-        | error 
+        | error
             {dapsemanticerror(parsestate,OC_EBADTYPE,"Unrecognized type"); YYABORT;}
 	;
- 
+
 
 base_type:
 	  SCAN_BYTE {$$=(Object)SCAN_BYTE;}
@@ -144,7 +144,7 @@ attr_list:
 	;
 
 attribute:
-	  alias ';' {$$=null;} /* ignored */ 
+	  alias ';' {$$=null;} /* ignored */
         | SCAN_BYTE name bytes ';'
 	    {$$=dap_attribute(parsestate,$2,$3,(Object)SCAN_BYTE);}
 	| SCAN_INT16 name int16 ';'
@@ -164,7 +164,7 @@ attribute:
 	| SCAN_URL name urls ';'
 	    {$$=dap_attribute(parsestate,$2,$3,(Object)SCAN_URL);}
 	| name '{' attr_list '}' {$$=dap_attrset(parsestate,$1,$3);}
-	| error 
+	| error
             {dapsemanticerror(parsestate,OC_EDAS,"Illegal attribute"); YYABORT;}
 	;
 
@@ -222,7 +222,7 @@ str_or_id:
 /* Not used
 float_or_int:
 	  WORD_INT {$$=$1;}
-	| WORD_DOUBLE {$$=$1;}        
+	| WORD_DOUBLE {$$=$1;}
 	;
 */
 
@@ -245,29 +245,29 @@ errorprog : /*empty*/ {$$=null;} | SCAN_PROG    '=' WORD_WORD ';' {$$=$3;}
 */
 name:
           WORD_WORD      {$$=dapdecode(parsestate->lexstate,$1);}
-	| SCAN_ALIAS     {$$=strdup("alias");}
-	| SCAN_ARRAY     {$$=strdup("array");}
-	| SCAN_ATTR      {$$=strdup("attributes");}
-	| SCAN_BYTE      {$$=strdup("byte");}
-	| SCAN_DATASET   {$$=strdup("dataset");}
-	| SCAN_DATA      {$$=strdup("data");}
-	| SCAN_ERROR     {$$=strdup("error");}
-	| SCAN_FLOAT32   {$$=strdup("float32");}
-	| SCAN_FLOAT64   {$$=strdup("float64");}
-	| SCAN_GRID      {$$=strdup("grid");}
-	| SCAN_INT16     {$$=strdup("int16");}
-	| SCAN_INT32     {$$=strdup("int32");}
-	| SCAN_MAPS      {$$=strdup("maps");}
-	| SCAN_SEQUENCE  {$$=strdup("sequence");}
-	| SCAN_STRING    {$$=strdup("string");}
-	| SCAN_STRUCTURE {$$=strdup("structure");}
-	| SCAN_UINT16    {$$=strdup("uint16");}
-	| SCAN_UINT32    {$$=strdup("uint32");}
-	| SCAN_URL       {$$=strdup("url");}
-	| SCAN_CODE      {$$=strdup("code");}
-	| SCAN_MESSAGE   {$$=strdup("message");}
-	| SCAN_PROG      {$$=strdup("program");}
-	| SCAN_PTYPE     {$$=strdup("program_type");}
+	| SCAN_ALIAS     {$$=strdup($1);}
+	| SCAN_ARRAY     {$$=strdup($1);}
+	| SCAN_ATTR      {$$=strdup($1);}
+	| SCAN_BYTE      {$$=strdup($1);}
+	| SCAN_DATASET   {$$=strdup($1);}
+	| SCAN_DATA      {$$=strdup($1);}
+	| SCAN_ERROR     {$$=strdup($1);}
+	| SCAN_FLOAT32   {$$=strdup($1);}
+	| SCAN_FLOAT64   {$$=strdup($1);}
+	| SCAN_GRID      {$$=strdup($1);}
+	| SCAN_INT16     {$$=strdup($1);}
+	| SCAN_INT32     {$$=strdup($1);}
+	| SCAN_MAPS      {$$=strdup($1);}
+	| SCAN_SEQUENCE  {$$=strdup($1);}
+	| SCAN_STRING    {$$=strdup($1);}
+	| SCAN_STRUCTURE {$$=strdup($1);}
+	| SCAN_UINT16    {$$=strdup($1);}
+	| SCAN_UINT32    {$$=strdup($1);}
+	| SCAN_URL       {$$=strdup($1);}
+	| SCAN_CODE      {$$=strdup($1);}
+	| SCAN_MESSAGE   {$$=strdup($1);}
+	| SCAN_PROG      {$$=strdup($1);}
+	| SCAN_PTYPE     {$$=strdup($1);}
 	;
 
 %%

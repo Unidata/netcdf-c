@@ -1,6 +1,6 @@
 /*********************************************************************
  * This is part of the Unidata netCDF package.
- * Copyright 2006, UCAR/Unidata
+ * Copyright 2018, UCAR/Unidata
  * See COPYRIGHT file for copying and redistribution conditions.
  *
  * This program is part of the testing of file lengths done by the
@@ -9,7 +9,7 @@
  * $Id: rewrite-scalar.c,v 1.3 2008/10/20 01:48:08 ed Exp $
  *********************************************************************/
 
-#include <config.h>
+#include "config.h"
 #include <stdio.h>
 #include <netcdf.h>
 

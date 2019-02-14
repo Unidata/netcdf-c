@@ -1,8 +1,12 @@
 /*
- *	Copyright 1996, University Corporation for Atmospheric Research
+ *	Copyright 2018, University Corporation for Atmospheric Research
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 /* $Id: dim.c,v 1.83 2010/05/25 17:54:15 dmh Exp $ */
+
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include "nc3internal.h"
 #include <stdlib.h>
@@ -10,7 +14,7 @@
 #include <assert.h>
 #include "ncx.h"
 #include "fbits.h"
-#include "utf8proc.h"
+#include "ncutf8.h"
 
 /*
  * Free dim
@@ -51,26 +55,29 @@ static NC_dim *
 new_NC_dim(const char *uname, size_t size)
 {
 	NC_string *strp;
-	NC_dim *dimp;
+	NC_dim *dimp = NULL;
+	int stat = NC_NOERR;
+	char* name = NULL;
 
-	char *name = (char *)utf8proc_NFC((const unsigned char *)uname);
-	if(name == NULL)
-	    return NULL;
+	stat = nc_utf8_normalize((const unsigned char *)uname,(unsigned char **)&name);
+	if(stat != NC_NOERR)
+	    goto done;
 	strp = new_NC_string(strlen(name), name);
-	free(name);
 	if(strp == NULL)
-		return NULL;
+		{stat = NC_ENOMEM; goto done;}
 
 	dimp = new_x_NC_dim(strp);
 	if(dimp == NULL)
 	{
 		free_NC_string(strp);
-		return NULL;
+		goto done;
 	}
 
 	dimp->size = size;
 
-	return(dimp);
+done:
+	if(name) free(name);
+	return (dimp);
 }
 
 
@@ -113,7 +120,6 @@ find_NC_Udim(const NC_dimarray *ncap, NC_dim **dimpp)
 	}
 }
 
-
 /*
  * Step thru NC_DIMENSION array, seeking match on uname.
  * Return dimid or -1 on not found.
@@ -124,33 +130,24 @@ find_NC_Udim(const NC_dimarray *ncap, NC_dim **dimpp)
 static int
 NC_finddim(const NC_dimarray *ncap, const char *uname, NC_dim **dimpp)
 {
-
-   int dimid;
-   NC_dim ** loc;
-   char *name;
+   int dimid = -1;
+   char *name = NULL;
+   uintptr_t data;
 
    assert(ncap != NULL);
-
    if(ncap->nelems == 0)
-      return -1;
+	goto done;
+   /* normalized version of uname */
+  if(nc_utf8_normalize((const unsigned char *)uname,(unsigned char **)&name))
+	goto done;	 
+  if(NC_hashmapget(ncap->hashmap, name, strlen(name), &data) == 0)
+	goto done;
+  dimid = (int)data;
+  if(dimpp) *dimpp = ncap->value[dimid];
 
-   {
-      dimid = 0;
-      loc = (NC_dim **) ncap->value;
-
-      /* normalized version of uname */
-      name = (char *)utf8proc_NFC((const unsigned char *)uname);
-      if(name == NULL)
-	 return NC_ENOMEM;
-      dimid = (int)NC_hashmapGetDim(ncap, name);
-      free(name);
-      if (dimid >= 0) {
-	if (dimpp != NULL)
-	  *dimpp = ncap->value[dimid];
-      }
-      return(dimid); /* Normal return */
-   }
-   return -1;
+done:
+   if(name) free(name);
+   return dimid;
 }
 
 
@@ -197,7 +194,7 @@ free_NC_dimarrayV(NC_dimarray *ncap)
 	if(ncap->nalloc == 0)
 		return;
 
-	NC_hashmapDelete(ncap->hashmap);
+	NC_hashmapfree(ncap->hashmap);
 	ncap->hashmap = NULL;
 
 	assert(ncap->value != NULL);
@@ -276,7 +273,7 @@ incr_NC_dimarray(NC_dimarray *ncap, NC_dim *newelemp)
 			return NC_ENOMEM;
 		ncap->value = vp;
 		ncap->nalloc = NC_ARRAY_GROWBY;
-		ncap->hashmap = NC_hashmapCreate(0);
+		ncap->hashmap = NC_hashmapnew(0);
 	}
 	else if(ncap->nelems +1 > ncap->nalloc)
 	{
@@ -290,9 +287,10 @@ incr_NC_dimarray(NC_dimarray *ncap, NC_dim *newelemp)
 
 	if(newelemp != NULL)
 	{
-		NC_hashmapAddDim(ncap, (long)ncap->nelems, newelemp->name->cp);
-		ncap->value[ncap->nelems] = newelemp;
-		ncap->nelems++;
+           uintptr_t intdata = ncap->nelems;
+	   NC_hashmapadd(ncap->hashmap, intdata, newelemp->name->cp, strlen(newelemp->name->cp));
+	   ncap->value[ncap->nelems] = newelemp;
+	   ncap->nelems++;
 	}
 	return NC_NOERR;
 }
@@ -323,7 +321,7 @@ NC3_def_dim(int ncid, const char *name, size_t size, int *dimidp)
 	int dimid;
 	NC_dim *dimp;
 
-	status = NC_check_id(ncid, &nc); 
+	status = NC_check_id(ncid, &nc);
 	if(status != NC_NOERR)
 		return status;
 	ncp = NC3_DATA(nc);
@@ -356,13 +354,10 @@ NC3_def_dim(int ncid, const char *name, size_t size, int *dimidp)
 		}
 	}
 
-	if(ncp->dims.nelems >= NC_MAX_DIMS)
-		return NC_EMAXDIMS;
-
 	dimid = NC_finddim(&ncp->dims, name, &dimp);
 	if(dimid != -1)
 		return NC_ENAMEINUSE;
-	
+
 	dimp = new_NC_dim(name, size);
 	if(dimp == NULL)
 		return NC_ENOMEM;
@@ -387,7 +382,7 @@ NC3_inq_dimid(int ncid, const char *name, int *dimid_ptr)
 	NC3_INFO* ncp;
 	int dimid;
 
-	status = NC_check_id(ncid, &nc); 
+	status = NC_check_id(ncid, &nc);
 	if(status != NC_NOERR)
 		return status;
 	ncp = NC3_DATA(nc);
@@ -410,7 +405,7 @@ NC3_inq_dim(int ncid, int dimid, char *name, size_t *sizep)
 	NC3_INFO* ncp;
 	NC_dim *dimp;
 
-	status = NC_check_id(ncid, &nc); 
+	status = NC_check_id(ncid, &nc);
 	if(status != NC_NOERR)
 		return status;
 	ncp = NC3_DATA(nc);
@@ -421,7 +416,7 @@ NC3_inq_dim(int ncid, int dimid, char *name, size_t *sizep)
 
 	if(name != NULL)
 	{
-		(void)strncpy(name, dimp->name->cp, 
+		(void)strncpy(name, dimp->name->cp,
 			dimp->name->nchars);
 		name[dimp->name->nchars] = 0;
 	}
@@ -430,7 +425,7 @@ NC3_inq_dim(int ncid, int dimid, char *name, size_t *sizep)
 		if(dimp->size == NC_UNLIMITED)
 			*sizep = NC_get_numrecs(ncp);
 		else
-			*sizep = dimp->size;	
+			*sizep = dimp->size;
 	}
 	return NC_NOERR;
 }
@@ -438,67 +433,75 @@ NC3_inq_dim(int ncid, int dimid, char *name, size_t *sizep)
 int
 NC3_rename_dim( int ncid, int dimid, const char *unewname)
 {
-	int status;
+	int status = NC_NOERR;
 	NC *nc;
 	NC3_INFO* ncp;
 	int existid;
 	NC_dim *dimp;
-	char *newname;		/* normalized */
+	char *newname = NULL; /* normalized */
+	NC_string *old = NULL;
+ 	uintptr_t intdata;
 
-	status = NC_check_id(ncid, &nc); 
+
+	status = NC_check_id(ncid, &nc);
 	if(status != NC_NOERR)
-		return status;
+		goto done;
 	ncp = NC3_DATA(nc);
 
 	if(NC_readonly(ncp))
-		return NC_EPERM;
+		{status = NC_EPERM; goto done;}
 
 	status = NC_check_name(unewname);
 	if(status != NC_NOERR)
-		return status;
+		goto done;
 
 	existid = NC_finddim(&ncp->dims, unewname, &dimp);
 	if(existid != -1)
-		return NC_ENAMEINUSE;
+		{status = NC_ENAMEINUSE; goto done;}
 
 	dimp = elem_NC_dimarray(&ncp->dims, (size_t)dimid);
 	if(dimp == NULL)
-		return NC_EBADDIM;
+		{status = NC_EBADDIM; goto done;}
 
-	NC_string *old = dimp->name;
-	newname = (char *)utf8proc_NFC((const unsigned char *)unewname);
-	if(newname == NULL)
-	    return NC_ENOMEM;
-	if(NC_indef(ncp))
+    old = dimp->name;
+    status = nc_utf8_normalize((const unsigned char *)unewname,(unsigned char **)&newname);
+    if(status != NC_NOERR)
+	goto done;
+    if(NC_indef(ncp))
 	{
 		NC_string *newStr = new_NC_string(strlen(newname), newname);
-		free(newname);
 		if(newStr == NULL)
-			return NC_ENOMEM;
+			{status = NC_ENOMEM; goto done;}
 
 		/* Remove old name from hashmap; add new... */
-		NC_hashmapRemoveDim(&ncp->dims, old->cp);
-
+	        NC_hashmapremove(ncp->dims.hashmap, old->cp, strlen(old->cp), NULL);
 		dimp->name = newStr;
 
-		NC_hashmapAddDim(&ncp->dims, dimid, newStr->cp);
+		intdata = dimid;
+		NC_hashmapadd(ncp->dims.hashmap, intdata, newStr->cp, strlen(newStr->cp));
 		free_NC_string(old);
-
-		return NC_NOERR;
+		goto done;
 	}
 
 	/* else, not in define mode */
 
+	/* If new name is longer than old, then complain,
+           but otherwise, no change (test is same as set_NC_string)*/
+	if(dimp->name->nchars < strlen(newname)) {
+	    {status = NC_ENOTINDEFINE; goto done;}
+	}
 
 	/* Remove old name from hashmap; add new... */
-	NC_hashmapRemoveDim(&ncp->dims, old->cp);
+	/* WARNING: strlen(NC_string.cp) may be less than NC_string.nchars */
+	NC_hashmapremove(ncp->dims.hashmap, old->cp, strlen(old->cp), NULL);
 
+	/* WARNING: strlen(NC_string.cp) may be less than NC_string.nchars */
 	status = set_NC_string(dimp->name, newname);
-	free(newname);
 	if(status != NC_NOERR)
-		return status;
+		goto done;
 
-	NC_hashmapAddDim(&ncp->dims, dimid, dimp->name->cp);
+        intdata = (uintptr_t)dimid;
+	NC_hashmapadd(ncp->dims.hashmap, intdata, dimp->name->cp, strlen(dimp->name->cp));
 
 	set_NC_hdirty(ncp);
 
@@ -506,8 +509,10 @@ NC3_rename_dim( int ncid, int dimid, const char *unewname)
 	{
 		status = NC_sync(ncp);
 		if(status != NC_NOERR)
-			return status;
+			goto done;
 	}
 
-	return NC_NOERR;
+done:
+	if(newname) free(newname);
+	return status;
 }

@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2009, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 /* $Id: cvt.c,v 1.2 2010/05/24 19:59:56 dmh Exp $ */
@@ -18,6 +18,11 @@ convert1(NCConstant* src, NCConstant* dst)
     Constvalue tmp;
     unsigned char* bytes = NULL;
     size_t bytelen;
+#ifdef _MSC_VER
+    int byteval;
+#endif
+
+    memset(&tmp,0,sizeof(tmp));
 
     dst->lineno = src->lineno;
 
@@ -28,7 +33,7 @@ convert1(NCConstant* src, NCConstant* dst)
     /* special case for src being NC_FILLVALUE*/
     if(src->nctype == NC_FILLVALUE) {
 	if(dst->nctype != NC_FILLVALUE) {
-	    nc_getfill(dst);
+	    nc_getfill(dst,NULL);
 	} 
 	return;
     }
@@ -40,7 +45,7 @@ convert1(NCConstant* src, NCConstant* dst)
 	} else {
 	    Symbol* econst;
 	    econst = src->value.enumv;
-	    convert1(&econst->typ.econst,dst);
+	    convert1(econst->typ.econst,dst);
 	}
 	return;
     } else if(dst->nctype == NC_ECONST) {
@@ -405,10 +410,17 @@ case CASE(NC_DOUBLE,NC_DOUBLE):
     break;
 
 /* Conversion of a string to e.g. an integer should be what?*/
+#ifdef _MSC_VER
+case CASE(NC_STRING,NC_BYTE):
+    sscanf(src->value.stringv.stringv,"%d",&byteval); tmp.int8v = (char)byteval; break;
+case CASE(NC_STRING,NC_UBYTE):
+    sscanf(src->value.stringv.stringv,"%d",&byteval); tmp.uint8v = (unsigned char)byteval; break;
+#else
 case CASE(NC_STRING,NC_BYTE):
     sscanf(src->value.stringv.stringv,"%hhd",&tmp.int8v); break;
 case CASE(NC_STRING,NC_UBYTE):
     sscanf(src->value.stringv.stringv,"%hhu",&tmp.uint8v); break;
+#endif
 case CASE(NC_STRING,NC_USHORT):
     sscanf(src->value.stringv.stringv,"%hu",&tmp.uint16v); break;
 case CASE(NC_STRING,NC_UINT):
@@ -431,7 +443,7 @@ case CASE(NC_STRING,NC_CHAR):
 case CASE(NC_STRING,NC_STRING):
     /* Need to watch out for embedded NULs */
     tmp.stringv.len = src->value.stringv.len;
-    tmp.stringv.stringv = (char*)malloc(src->value.stringv.len+1);
+    tmp.stringv.stringv = (char*)ecalloc(src->value.stringv.len+1);
     memcpy((void*)tmp.stringv.stringv,
            (void*)src->value.stringv.stringv,
            tmp.stringv.len);
@@ -500,9 +512,9 @@ case CASE(NC_OPAQUE,NC_CHAR):
     tmp.charv	= *(char*)bytes;
   break;
 case CASE(NC_OPAQUE,NC_BYTE):
-  if(bytes)
-    tmp.uint8v	= *(unsigned char*)bytes;
-    break;
+   if(bytes)
+      tmp.uint8v	= *(unsigned char*)bytes;
+   break;
 case CASE(NC_OPAQUE,NC_UBYTE):
   if(bytes)  
     tmp.uint8v	= *(unsigned char*)bytes;
@@ -540,7 +552,7 @@ case CASE(NC_OPAQUE,NC_DOUBLE):
     tmp.doublev = *(double*)bytes;
   break;
 case CASE(NC_OPAQUE,NC_OPAQUE):
-    tmp.opaquev.stringv = (char*)malloc(src->value.opaquev.len+1);
+    tmp.opaquev.stringv = (char*)ecalloc(src->value.opaquev.len+1);
     memcpy(tmp.opaquev.stringv,src->value.opaquev.stringv,src->value.opaquev.len);
     tmp.opaquev.len = src->value.opaquev.len;
     tmp.opaquev.stringv[tmp.opaquev.len] = '\0';
@@ -581,7 +593,7 @@ setprimlength(NCConstant* prim, unsigned long len)
 	    prim->value.stringv.len = len;
         } else {/* prim->value.stringv.len > srcov->len*/
 	    char* s;
-            s = (char*)emalloc(len+1);
+            s = (char*)ecalloc(len+1);
 	    memset(s,NC_FILL_CHAR,len);
 	    s[len] = '\0';
 	    memcpy(s,prim->value.stringv.stringv,prim->value.stringv.len);
@@ -600,7 +612,7 @@ setprimlength(NCConstant* prim, unsigned long len)
 	    prim->value.opaquev.len = len;
         } else {/* prim->value.opaquev.len < len => expand*/
 	    char* s;
-	    s = (char*)emalloc(len+1);
+	    s = (char*)ecalloc(len+1);
 	    memset(s,'0',len);
 	    memcpy(s,prim->value.opaquev.stringv,prim->value.opaquev.len);
 	    s[len] = '\0';
@@ -632,4 +644,17 @@ convertstringtochars(NCConstant* str)
 	dlappend(dl,&con);
     }
     return dl;
+}
+
+unsigned int
+convertFilterID(const char* id)
+{
+    unsigned int nid = 0;
+    int ok = 0;
+
+    /* for now, must be an integer */
+    ok = sscanf(id,"%u",&nid);
+    if(ok == 1)
+	return nid;
+    return 0; /* Not a recognizable id */
 }

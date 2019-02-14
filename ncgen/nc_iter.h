@@ -1,11 +1,11 @@
 /*********************************************************************
- *   Copyright 2009, University Corporation for Atmospheric Research
+ *   Copyright 2018, University Corporation for Atmospheric Research
  *   See netcdf/README file for copying and redistribution conditions.
  *   "$Id $"
  *********************************************************************/
 
-#ifndef _NCITER_
-#define _NCITER_
+#ifndef _NC_ITER_H
+#define _NC_ITER_H
 
 #include <netcdf.h>
 
@@ -49,4 +49,4 @@ nc_next_iter(nciter_t *iterp, size_t *start, size_t *count);
 }
 #endif
 
-#endif /* _NCITER_ */
+#endif /* _NC_ITER_H */

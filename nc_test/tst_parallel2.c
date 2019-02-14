@@ -1,3 +1,14 @@
+/*! \file
+
+Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+2015, 2016, 2017, 2018
+University Corporation for Atmospheric Research/Unidata.
+
+See \ref copyright file for more info.
+
+*/
+
 /* This is a benchmarking program for netCDF-4 parallel I/O. */
 
 /* Defining USE_MPE causes the MPE trace library to be used (and you
@@ -7,12 +18,15 @@
 /*#define USE_MPE 1*/
 
 #include <nc_tests.h>
+#include "err_macros.h"
 #include <mpi.h>
 #include <pnetcdf.h>
 
 #ifdef USE_MPE
 #include <mpe.h>
 #endif /* USE_MPE */
+
+#undef DEBUG
 
 #define FILE_NAME "tst_parallel2.nc"
 #define NDIMS 3
@@ -27,7 +41,7 @@ int
 main(int argc, char **argv)
 {
     /* MPI stuff. */
-    int mpi_namelen;		
+    int mpi_namelen;
     char mpi_name[MPI_MAX_PROCESSOR_NAME];
     int mpi_size, mpi_rank;
     MPI_Comm comm = MPI_COMM_WORLD;
@@ -40,7 +54,7 @@ main(int argc, char **argv)
     size_t count[NDIMS] = {1, DIMSIZE, DIMSIZE};
     int data[DIMSIZE * DIMSIZE], data_in[DIMSIZE * DIMSIZE];
     int j, i;
-    
+
     char file_name[NC_MAX_NAME + 1];
     int ndims_in, nvars_in, natts_in, unlimdimid_in;
 
@@ -53,28 +67,30 @@ main(int argc, char **argv)
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
     MPI_Get_processor_name(mpi_name, &mpi_namelen);
-    /*printf("mpi_name: %s size: %d rank: %d\n", mpi_name, mpi_size, mpi_rank);*/
+#ifdef DEBUG
+    printf("mpi_name: %s size: %d rank: %d\n", mpi_name, mpi_size, mpi_rank);
+#endif
 
     /* Must be able to evenly divide my slabs between processors. */
     if (NUM_SLABS % mpi_size != 0)
     {
-       if (!mpi_rank) printf("NUM_SLABS (%d) is not evenly divisible by mpi_size(%d)\n", 
+       if (!mpi_rank) printf("NUM_SLABS (%d) is not evenly divisible by mpi_size(%d)\n",
                              NUM_SLABS, mpi_size);
        ERR;
     }
 
 #ifdef USE_MPE
     MPE_Init_log();
-    s_init = MPE_Log_get_event_number(); 
-    e_init = MPE_Log_get_event_number(); 
-    s_define = MPE_Log_get_event_number(); 
-    e_define = MPE_Log_get_event_number(); 
-    s_write = MPE_Log_get_event_number(); 
-    e_write = MPE_Log_get_event_number(); 
-    s_close = MPE_Log_get_event_number(); 
-    e_close = MPE_Log_get_event_number(); 
-    s_open = MPE_Log_get_event_number(); 
-    e_open = MPE_Log_get_event_number(); 
+    s_init = MPE_Log_get_event_number();
+    e_init = MPE_Log_get_event_number();
+    s_define = MPE_Log_get_event_number();
+    e_define = MPE_Log_get_event_number();
+    s_write = MPE_Log_get_event_number();
+    e_write = MPE_Log_get_event_number();
+    s_close = MPE_Log_get_event_number();
+    e_close = MPE_Log_get_event_number();
+    s_open = MPE_Log_get_event_number();
+    e_open = MPE_Log_get_event_number();
     MPE_Describe_state(s_init, e_init, "Init", "red");
     MPE_Describe_state(s_define, e_define, "Define", "yellow");
     MPE_Describe_state(s_write, e_write, "Write", "green");
@@ -84,12 +100,14 @@ main(int argc, char **argv)
     MPE_Log_event(s_init, 0, "start init");
 #endif /* USE_MPE */
 
-/*     if (!mpi_rank) */
-/*     { */
-/*        printf("\n*** Testing parallel I/O some more.\n"); */
-/*        printf("*** writing a %d x %d x %d file from %d processors...\n",  */
-/*               NUM_SLABS, DIMSIZE, DIMSIZE, mpi_size); */
-/*     } */
+#ifdef DEBUG
+    if (!mpi_rank)
+    {
+       printf("\n*** Testing parallel I/O some more.\n");
+       printf("*** writing a %d x %d x %d file from %d processors...\n",
+              NUM_SLABS, DIMSIZE, DIMSIZE, mpi_size);
+    }
+#endif
 
     /* We will write the same slab over and over. */
     for (i = 0; i < DIMSIZE * DIMSIZE; i++)
@@ -102,7 +120,10 @@ main(int argc, char **argv)
 
     /* Create a parallel netcdf-4 file. */
     sprintf(file_name, "%s/%s", TEMP_LARGE, FILE_NAME);
-    if (nc_create_par(file_name, NC_PNETCDF, comm, info, &ncid)) ERR;
+#ifdef DEBUG
+    fprintf(stderr,"create: file_name=%s\n",file_name);
+#endif
+    if (nc_create_par(file_name, 0, comm, info, &ncid)) ERR;
 
     /* A global attribute holds the number of processors that created
      * the file. */
@@ -125,8 +146,13 @@ main(int argc, char **argv)
        sleep(mpi_rank);
 #endif /* USE_MPE */
 
+#ifdef USE_PNETCDF
+/*    if (nc_var_par_access(ncid, NC_GLOBAL, NC_COLLECTIVE)) ERR;*/
+    if (nc_var_par_access(ncid, NC_GLOBAL, NC_INDEPENDENT)) ERR;
+#else
 /*    if (nc_var_par_access(ncid, varid, NC_COLLECTIVE)) ERR;*/
     if (nc_var_par_access(ncid, varid, NC_INDEPENDENT)) ERR;
+#endif
 
     if (!mpi_rank)
        start_time = MPI_Wtime();
@@ -161,15 +187,18 @@ main(int argc, char **argv)
 
     /* Close the netcdf file. */
     if (nc_close(ncid))	ERR;
-    
+
 #ifdef USE_MPE
     MPE_Log_event(e_close, 0, "end close file");
 #endif /* USE_MPE */
 
     /* Reopen the file and check it. */
-    if (nc_open_par(file_name, NC_NOWRITE|NC_PNETCDF, comm, info, &ncid)) ERR;
+#ifdef DEBUG
+    fprintf(stderr,"open: file_name=%s\n",file_name);
+#endif
+    if (nc_open_par(file_name, NC_NOWRITE, comm, info, &ncid)) ERR;
     if (nc_inq(ncid, &ndims_in, &nvars_in, &natts_in, &unlimdimid_in)) ERR;
-    if (ndims_in != NDIMS || nvars_in != 1 || natts_in != 1 || 
+    if (ndims_in != NDIMS || nvars_in != 1 || natts_in != 1 ||
         unlimdimid_in != -1) ERR;
 
     /* Read all the slabs this process is responsible for. */
@@ -183,10 +212,10 @@ main(int argc, char **argv)
 
        /* Read one slab of data. */
        if (nc_get_vara_int(ncid, varid, start, count, data_in)) ERR;
-       
+
        /* Check data. */
        for (j = 0; j < DIMSIZE * DIMSIZE; j++)
-	  if (data_in[j] != mpi_rank) 
+	  if (data_in[j] != mpi_rank)
 	  {
 	     ERR;
 	     break;
@@ -203,21 +232,25 @@ main(int argc, char **argv)
 
     /* Close the netcdf file. */
     if (nc_close(ncid))	ERR;
-    
+
 #ifdef USE_MPE
     MPE_Log_event(e_close, 0, "end close file");
 #endif /* USE_MPE */
 
-    /* Delete this large file. */
-    remove(file_name); 
+    MPI_Barrier(MPI_COMM_WORLD);
+    if (mpi_rank == 0)
+	remove(file_name);
 
     /* Shut down MPI. */
     MPI_Finalize();
 
-/*     if (!mpi_rank) */
-/*     { */
-/*        SUMMARIZE_ERR; */
-/*        FINAL_RESULTS; */
-/*     } */
+#ifdef DEBUG
+    if (!mpi_rank)
+    {
+       SUMMARIZE_ERR;
+       FINAL_RESULTS;
+    }
+#endif
+
     return total_err;
 }

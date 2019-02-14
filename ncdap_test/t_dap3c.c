@@ -1,8 +1,19 @@
+/*! \file
+
+Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+2015, 2016, 2017, 2018
+University Corporation for Atmospheric Research/Unidata.
+
+See \ref copyright file for more info.
+
+*/
 #include "config.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <netcdf.h>
+#include "netcdf.h"
+#include "t_srcdir.h"
 
 #define VAR "i32"
 
@@ -19,19 +30,16 @@ main()
     int i32[100];
     size_t start[1];
     size_t count[1];
-    int ok = 1;    
-    char* topsrcdir;
+    int ok = 1;
+    const char* topsrcdir;
     char url[4096];
 
-    /* Assume that TESTS_ENVIRONMENT was set */
-    topsrcdir = getenv("TOPSRCDIR");
-    if(topsrcdir == NULL) {
-        fprintf(stderr,"*** FAIL: $abs_top_srcdir not defined: location= %s:%d\n",__FILE__,__LINE__);
-        exit(1);
-    }    
-    strcpy(url,"file://");
-    strcat(url,topsrcdir);
-    strcat(url,"/ncdap_test/testdata3/test.02");
+
+    topsrcdir = gettopsrcdir();
+
+    strncpy(url,"file://",sizeof(url));
+    strlcat(url,topsrcdir,sizeof(url));
+    strlcat(url,"/ncdap_test/testdata3/test.02",sizeof(url));
 
     if ((retval = nc_open(url, 0, &ncid)))
        ERR(retval);

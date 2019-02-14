@@ -1,4 +1,4 @@
-/* This is part of the netCDF package.  Copyright 2005 University
+/* This is part of the netCDF package.  Copyright 2018 University
    Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
    conditions of use.
 
@@ -32,7 +32,6 @@ main()
 	/* Create new file, using default properties. */
 	if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
 	
-
         /* Create dataset with reference datatype */
         if ((dsetid = H5Dcreate2(fileid, REF_VAR_NAME, H5T_STD_REF_OBJ, scalar_spaceid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
 
@@ -83,6 +82,7 @@ main()
         int natts = 0;
 	nc_type type;
 
+        nc_set_log_level(4);
 	if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
 
         /* Check the root group's attributes are OK */

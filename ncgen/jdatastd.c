@@ -1,12 +1,12 @@
 /*********************************************************************
- *   Copyright 2009, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 /* $Id: jdatastd.c,v 1.2 2010/05/24 19:59:57 dmh Exp $ */
 /* $Header: /upc/share/CVS/netcdf-3/ncgen/jdatastd.c,v 1.2 2010/05/24 19:59:57 dmh Exp $ */
 
 #include "includes.h"
-#include "offsets.h"
+#include "ncoffsets.h"
 
 extern List* vlenconstants;  /* List<Constant*>;*/
 

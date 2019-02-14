@@ -1,17 +1,19 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
-#include "ncdap.h"
+#include "dapincludes.h"
 #include "ncd2dispatch.h"
-#include "dapalign.h"
+#include "ncrc.h"
+#include "ncoffsets.h"
+#ifdef DEBUG2
+#include "dapdump.h"
+#endif
 
 #ifdef _MSC_VER
 #include <crtdbg.h>
 #endif
-
-#define NCRCFILE "NCRCFILE"
 
 #ifdef HAVE_GETRLIMIT
 #  ifdef HAVE_SYS_RESOURCE_H
@@ -27,16 +29,13 @@ static char* constrainableprotocols[] = {"http", "https",NULL};
 
 static int ncd2initialized = 0;
 
-size_t dap_one[NC_MAX_VAR_DIMS];
-size_t dap_zero[NC_MAX_VAR_DIMS];
-
 /* Forward */
 static NCerror buildncstructures(NCDAPCOMMON*);
 static NCerror builddims(NCDAPCOMMON*);
 static char* getdefinename(CDFnode* node);
 static NCerror buildvars(NCDAPCOMMON*);
 static NCerror buildglobalattrs(NCDAPCOMMON*, CDFnode* root);
-static NCerror buildattribute(NCDAPCOMMON*, NCattribute*, nc_type, int);
+static NCerror buildattribute(NCDAPCOMMON*, CDFnode*, NCattribute*);
 static void computedimindexanon(CDFnode* dim, CDFnode* var);
 static void replacedims(NClist* dims);
 static int equivalentdim(CDFnode* basedim, CDFnode* dupdim);
@@ -64,8 +63,7 @@ static NCerror applyclientparams(NCDAPCOMMON*);
 static int
 NCD2_create(const char *path, int cmode,
            size_t initialsz, int basepe, size_t *chunksizehintp,
-	   int use_parallel, void* mpidata,
-           NC_Dispatch*,NC* ncp);
+           void* mpidata, NC_Dispatch*,NC* ncp);
 
 static int NCD2_redef(int ncid);
 static int NCD2__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree, size_t r_align);
@@ -138,6 +136,7 @@ NCDEFAULT_put_varm,
 NCD2_inq_var_all,
 
 NCD2_var_par_access,
+NCD2_def_var_fill,
 
 #ifdef USE_NETCDF4
 NCD2_show_metadata,
@@ -173,8 +172,8 @@ NCD2_def_opaque,
 NCD2_def_var_deflate,
 NCD2_def_var_fletcher32,
 NCD2_def_var_chunking,
-NCD2_def_var_fill,
 NCD2_def_var_endian,
+NCD2_def_var_filter,
 NCD2_set_var_chunk_cache,
 NCD2_get_var_chunk_cache,
 
@@ -184,20 +183,10 @@ NCD2_get_var_chunk_cache,
 
 NC_Dispatch* NCD2_dispatch_table = NULL; /* moved here from ddispatch.c */
 
-static NC_Dispatch NCD2_dispatcher;
-
 int
 NCD2_initialize(void)
 {
-    int i;
-
     NCD2_dispatch_table = &NCD2_dispatch_base;
-    /* Local Initialization */
-    compute_nccalignments();
-    for(i=0;i<NC_MAX_VAR_DIMS;i++) {
-	dap_one[i] = 1;
-	dap_zero[i] = 0;
-    }
     ncd2initialized = 1;
 #ifdef DEBUG
     /* force logging to go to stderr */
@@ -205,18 +194,13 @@ NCD2_initialize(void)
     if(nclogopen(NULL))
         ncsetlogging(1); /* turn it on */
 #endif
-    /* Look at env vars for rc file location */
-    if(getenv(NCRCFILE) != NULL) {
-	const char* ncrcfile = getenv(NCRCFILE);
-	if(oc_set_rcfile(ncrcfile) != OC_NOERR)
-	    return NC_EAUTH;
-    }
     return NC_NOERR;
 }
 
 int
 NCD2_finalize(void)
 {
+    curl_global_cleanup();
     return NC_NOERR;
 }
 
@@ -241,14 +225,13 @@ NCD2_sync(int ncid)
 static int
 NCD2_abort(int ncid)
 {
-    return NCD2_close(ncid);
+    return NCD2_close(ncid,NULL);
 }
 
 static int
 NCD2_create(const char *path, int cmode,
            size_t initialsz, int basepe, size_t *chunksizehintp,
-	   int use_parallel, void* mpidata,
-           NC_Dispatch* dispatch, NC* ncp)
+           void* mpidata, NC_Dispatch* dispatch, NC* ncp)
 {
    return NC_EPERM;
 }
@@ -291,10 +274,8 @@ NCD2_get_vars(int ncid, int varid,
 
 /* See ncd2dispatch.c for other version */
 int
-NCD2_open(const char * path, int mode,
-               int basepe, size_t *chunksizehintp,
- 	       int useparallel, void* mpidata,
-               NC_Dispatch* dispatch, NC* drno)
+NCD2_open(const char* path, int mode, int basepe, size_t *chunksizehintp,
+          void* mpidata, NC_Dispatch* dispatch, NC* drno)
 {
     NCerror ncstat = NC_NOERR;
     OCerror ocstat = OC_NOERR;
@@ -303,13 +284,15 @@ NCD2_open(const char * path, int mode,
     int nc3id = -1;
 
     if(path == NULL)
-	return NC_EDAPURL;
-    if(dispatch == NULL) PANIC("NC3D_open: no dispatch table");
+	{ncstat = NC_EDAPURL; goto done;}
+    if(dispatch == NULL)
+	PANIC("NCD3_open: no dispatch table");
 
     /* Setup our NC and NCDAPCOMMON state*/
 
     dapcomm = (NCDAPCOMMON*)calloc(1,sizeof(NCDAPCOMMON));
-    if(dapcomm == NULL) {ncstat = NC_ENOMEM; goto done;}
+    if(dapcomm == NULL)
+	{ncstat = NC_ENOMEM; goto done;}
 
     NCD2_DATA_SET(drno,dapcomm);
     drno->int_ncid = nc__pseudofd(); /* create a unique id */
@@ -328,18 +311,20 @@ NCD2_open(const char * path, int mode,
 #endif
 
 #ifdef OCCOMPILEBYDEFAULT
+    { int rullen = 0;
     /* set the compile flag by default */
-    dapcomm->oc.rawurltext = (char*)emalloc(strlen(path)+strlen("[compile]")+1);
-    strcpy(dapcomm->oc.rawurltext,"[compile]");
-    strcat(dapcomm->oc.rawurltext, path);
+    rullen = strlen(path)+strlen("[compile]");;
+    rullen++; /* strlcat nul */
+    dapcomm->oc.rawurltext = (char*)emalloc(rullen+1);
+    strncpy(dapcomm->oc.rawurltext,"[compile]",rullen);
+    strlcat(dapcomm->oc.rawurltext, path, rullen);
+    }
 #else
     dapcomm->oc.rawurltext = strdup(path);
 #endif
 
-    ncuriparse(dapcomm->oc.rawurltext,&dapcomm->oc.url);
-
-    /* parse the client parameters */
-    ncuridecodeparams(dapcomm->oc.url);
+    if(ncuriparse(dapcomm->oc.rawurltext,&dapcomm->oc.url) != NCU_OK)
+	{ncstat = NC_EURL; goto done;}
 
     if(!constrainable(dapcomm->oc.url))
 	SETFLAG(dapcomm->controls,NCF_UNCONSTRAINABLE);
@@ -359,9 +344,9 @@ NCD2_open(const char * path, int mode,
 
     /* fail if we are unconstrainable but have constraints */
     if(FLAGSET(dapcomm->controls,NCF_UNCONSTRAINABLE)) {
-	if(dapcomm->oc.url->constraint != NULL) {
+	if(dapcomm->oc.url->query != NULL) {
 	    nclog(NCLOGWARN,"Attempt to constrain an unconstrainable data source: %s",
-		   dapcomm->oc.url->constraint);
+		   dapcomm->oc.url->query);
 	    ncstat = THROW(NC_EDAPCONSTRAINT);
 	    goto done;
 	}
@@ -374,37 +359,41 @@ NCD2_open(const char * path, int mode,
         /* Create fake file name: exact name must be unique,
            but is otherwise irrelevant because we are using NC_DISKLESS
         */
-        snprintf(tmpname,sizeof(tmpname),"%d",drno->int_ncid);
+        snprintf(tmpname,sizeof(tmpname),"tmp_%d",drno->int_ncid);
 
         /* Now, use the file to create the hidden, in-memory netcdf file.
 	   We want this hidden file to always be NC_CLASSIC, so we need to
            force default format temporarily in case user changed it.
+	   Since diskless is enabled, create file in-memory.
 	*/
 	{
-	    int new = NC_CLASSIC_MODEL;
+	    int new = 0; /* format netcdf-3 */
 	    int old = 0;
+	    int ncflags = NC_CLOBBER|NC_CLASSIC_MODEL;
+	    ncflags |= NC_DISKLESS;
 	    nc_set_default_format(new,&old); /* save and change */
-            ncstat = nc_create(tmpname,NC_DISKLESS|NC_CLASSIC_MODEL,&nc3id);
+            ncstat = nc_create(tmpname,ncflags,&nc3id);
 	    nc_set_default_format(old,&new); /* restore */
+	    dapcomm->substrate.realfile = ((ncflags & NC_DISKLESS) != 0);
+	    dapcomm->substrate.filename = strdup(tmpname);
+	    if(tmpname == NULL) ncstat = NC_ENOMEM;
+	    dapcomm->substrate.nc3id = nc3id;
 	}
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
-	dapcomm->nc3id = nc3id;
 	/* Avoid fill */
 	nc_set_fill(nc3id,NC_NOFILL,NULL);
 
     }
-
     dapcomm->oc.dapconstraint = (DCEconstraint*)dcecreate(CES_CONSTRAINT);
     dapcomm->oc.dapconstraint->projections = nclistnew();
     dapcomm->oc.dapconstraint->selections = nclistnew();
 
      /* Parse constraints to make sure they are syntactically correct */
-     ncstat = dapparsedapconstraints(dapcomm,dapcomm->oc.url->constraint,dapcomm->oc.dapconstraint);
+     ncstat = dapparsedapconstraints(dapcomm,dapcomm->oc.url->query,dapcomm->oc.dapconstraint);
      if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
     /* Construct a url for oc minus any constraint and params*/
-    dapcomm->oc.urltext = ncuribuild(dapcomm->oc.url,NULL,NULL,
-				      (NCURISTD ^ NCURICONSTRAINTS));
+    dapcomm->oc.urltext = ncuribuild(dapcomm->oc.url,NULL,NULL,NCURIBASE);
 
     /* Pass to OC */
     ocstat = oc_open(dapcomm->oc.urltext,&dapcomm->oc.conn);
@@ -542,16 +531,16 @@ fprintf(stderr,"constrained dds: %s\n",dumptree(dapcomm->cdf.ddsroot));
     /* using the modified constraint, rebuild the constraint string */
     if(FLAGSET(dapcomm->controls,NCF_UNCONSTRAINABLE)) {
 	/* ignore all constraints */
-	dapcomm->oc.urltext = ncuribuild(dapcomm->oc.url,NULL,NULL,0);
+	dapcomm->oc.urltext = ncuribuild(dapcomm->oc.url,NULL,NULL,NCURIBASE);
     } else {
 	char* constraintstring = dcebuildconstraintstring(dapcomm->oc.dapconstraint);
-        ncurisetconstraints(dapcomm->oc.url,constraintstring);
+        ncurisetquery(dapcomm->oc.url,constraintstring);
 	nullfree(constraintstring);
-        dapcomm->oc.urltext = ncuribuild(dapcomm->oc.url,NULL,NULL,NCURICONSTRAINTS);
+        dapcomm->oc.urltext = ncuribuild(dapcomm->oc.url,NULL,NULL,NCURISVC);
     }
 
 #ifdef DEBUG
-fprintf(stderr,"ncdap3: final constraint: %s\n",dapcomm->oc.url->constraint);
+fprintf(stderr,"ncdap3: final constraint: %s\n",dapcomm->oc.url->query);
 #endif
 
     /* Estimate the variable sizes */
@@ -601,13 +590,13 @@ fprintf(stderr,"ncdap3: final constraint: %s\n",dapcomm->oc.url->constraint);
     return ncstat;
 
 done:
-    if(drno != NULL) NCD2_close(drno->ext_ncid);
+    if(drno != NULL) NCD2_close(drno->ext_ncid,NULL);
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     return THROW(ncstat);
 }
 
 int
-NCD2_close(int ncid)
+NCD2_close(int ncid, void* ignore)
 {
     NC* drno;
     NCDAPCOMMON* dapcomm;
@@ -635,7 +624,6 @@ buildncstructures(NCDAPCOMMON* dapcomm)
 {
     NCerror ncstat = NC_NOERR;
     CDFnode* dds = dapcomm->cdf.ddsroot;
-    NC* ncsub;
 
     ncstat = buildglobalattrs(dapcomm,dds);
     if(ncstat != NC_NOERR) goto done;
@@ -657,7 +645,6 @@ builddims(NCDAPCOMMON* dapcomm)
     NCerror ncstat = NC_NOERR;
     int dimid;
     NClist* dimset = NULL;
-    NC* drno = dapcomm->controller;
     NC* ncsub;
     char* definename;
 
@@ -685,7 +672,7 @@ builddims(NCDAPCOMMON* dapcomm)
     if(dapcomm->cdf.recorddim != NULL) {
 	CDFnode* unlimited = dapcomm->cdf.recorddim;
 	definename = getdefinename(unlimited);
-        ncstat = nc_def_dim(dapcomm->nc3id,
+        ncstat = nc_def_dim(dapcomm->substrate.nc3id,
 			definename,
 			NC_UNLIMITED,
 			&unlimited->ncid);
@@ -693,12 +680,12 @@ builddims(NCDAPCOMMON* dapcomm)
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 
         /* get the id for the substrate */
-        ncstat = NC_check_id(dapcomm->nc3id,&ncsub);
+        ncstat = NC_check_id(dapcomm->substrate.nc3id,&ncsub);
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
 #if 0
 	nc3sub = (NC3_INFO*)&ncsub->dispatchdata;
         /* Set the effective size of UNLIMITED;
-           note that this cannot easily be done thru the normal API.*/
+           note that this cannot easily be done through the normal API.*/
         NC_set_numrecs(nc3sub,unlimited->dim.declsize);
 #endif
 
@@ -712,7 +699,7 @@ builddims(NCDAPCOMMON* dapcomm)
 fprintf(stderr,"define: dim: %s=%ld\n",dim->ncfullname,(long)dim->dim.declsize);
 #endif
 	definename = getdefinename(dim);
-        ncstat = nc_def_dim(dapcomm->nc3id,definename,dim->dim.declsize,&dimid);
+        ncstat = nc_def_dim(dapcomm->substrate.nc3id,definename,dim->dim.declsize,&dimid);
         if(ncstat != NC_NOERR) {
           THROWCHK(ncstat); nullfree(definename); goto done;
 	}
@@ -742,7 +729,6 @@ buildvars(NCDAPCOMMON* dapcomm)
     NCerror ncstat = NC_NOERR;
     int varid;
     NClist* varnodes = dapcomm->cdf.ddsroot->tree->varnodes;
-    NC* drno = dapcomm->controller;
     char* definename;
 
     ASSERT((varnodes != NULL));
@@ -767,9 +753,6 @@ fprintf(stderr,"buildvars.candidate=|%s|\n",var->ncfullname);
                 dimids[j] = dim->ncid;
  	    }
         }
-
-
-
 	definename = getdefinename(var);
 
 #ifdef DEBUG1
@@ -784,7 +767,7 @@ fprintf(stderr,"[%ld]",dim->dim.declsize);
  }
 fprintf(stderr,"\n");
 #endif
-        ncstat = nc_def_var(dapcomm->nc3id,
+        ncstat = nc_def_var(dapcomm->substrate.nc3id,
 		        definename,
                         var->externaltype,
                         ncrank,
@@ -797,9 +780,58 @@ fprintf(stderr,"\n");
 	}
         var->ncid = varid;
 	if(var->attributes != NULL) {
+	    NCattribute* unsignedatt = NULL;
+	    int unsignedval = 0;
+	    /* See if variable has _Unsigned attribute */ 
 	    for(j=0;j<nclistlength(var->attributes);j++) {
 		NCattribute* att = (NCattribute*)nclistget(var->attributes,j);
-		ncstat = buildattribute(dapcomm,att,var->etype,varid);
+		if(strcmp(att->name,"_Unsigned") == 0) {
+		    char* value = nclistget(att->values,0);
+		    unsignedatt = att;
+		    if(value != NULL) {
+			if(strcasecmp(value,"false")==0
+			   || strcmp(value,"0")==0)
+			    unsignedval = 0;
+			else
+			    unsignedval = 1;
+		    }
+		    break;
+		}
+	    }
+	    for(j=0;j<nclistlength(var->attributes);j++) {
+		NCattribute* att = (NCattribute*)nclistget(var->attributes,j);
+		char* val = NULL;
+		/* Check for _FillValue/Variable mismatch */
+		if(strcmp(att->name,"_FillValue")==0) {
+		    /* Special case var is byte, fillvalue is int16 and 
+			unsignedattr == 0;
+			This exception is needed because DAP2 byte type
+			is equivalent to netcdf ubyte type. So passing
+                        a signed byte thru DAP2 requires some type and
+                        signedness hacking that we have to undo.
+		    */
+		    if(var->etype == NC_UBYTE
+			&& att->etype == NC_SHORT
+			&& unsignedatt != NULL && unsignedval == 0) {
+			/* Forcibly change the attribute type and signedness */
+			att->etype = NC_BYTE;
+			val = nclistremove(unsignedatt->values,0);
+			if(val) free(val);
+			nclistpush(unsignedatt->values,strdup("false"));
+		    } else if(att->etype != var->etype) {/* other mismatches */
+			/* Log a message */
+	                nclog(NCLOGERR,"_FillValue/Variable type mismatch: variable=%s",var->ncbasename);
+			/* See if mismatch is allowed */
+			if(FLAGSET(dapcomm->controls,NCF_FILLMISMATCH)) {
+			    /* Forcibly change the attribute type to match */
+			    att->etype = var->etype;
+			} else {
+			    ncstat = NC_EBADTYPE; /* fail */
+			    goto done;
+			}
+		    }
+		}
+		ncstat = buildattribute(dapcomm,var,att);
         	if(ncstat != NC_NOERR) goto done;
 	    }
 	}
@@ -820,12 +852,11 @@ buildglobalattrs(NCDAPCOMMON* dapcomm, CDFnode* root)
     char *nltxt, *p;
     NCbytes* buf = NULL;
     NClist* cdfnodes;
-    NC* drno = dapcomm->controller;
 
     if(root->attributes != NULL) {
         for(i=0;i<nclistlength(root->attributes);i++) {
    	    NCattribute* att = (NCattribute*)nclistget(root->attributes,i);
-	    ncstat = buildattribute(dapcomm,att,NC_NAT,NC_GLOBAL);
+	    ncstat = buildattribute(dapcomm,NULL,att);
             if(ncstat != NC_NOERR) goto done;
 	}
     }
@@ -845,7 +876,7 @@ buildglobalattrs(NCDAPCOMMON* dapcomm, CDFnode* root)
 	    }
 	}
         if(ncbyteslength(buf) > 0) {
-            ncstat = nc_put_att_text(dapcomm->nc3id,NC_GLOBAL,"_sequence_dimensions",
+            ncstat = nc_put_att_text(dapcomm->substrate.nc3id,NC_GLOBAL,"_sequence_dimensions",
 	           ncbyteslength(buf),ncbytescontents(buf));
 	}
     }
@@ -856,12 +887,12 @@ buildglobalattrs(NCDAPCOMMON* dapcomm, CDFnode* root)
 
     if(dapparamcheck(dapcomm,"show","translate")) {
         /* Add a global attribute to show the translation */
-        ncstat = nc_put_att_text(dapcomm->nc3id,NC_GLOBAL,"_translate",
+        ncstat = nc_put_att_text(dapcomm->substrate.nc3id,NC_GLOBAL,"_translate",
 	           strlen("netcdf-3"),"netcdf-3");
     }
     if(dapparamcheck(dapcomm,"show","url")) {
 	if(dapcomm->oc.rawurltext != NULL)
-            ncstat = nc_put_att_text(dapcomm->nc3id,NC_GLOBAL,"_url",
+            ncstat = nc_put_att_text(dapcomm->substrate.nc3id,NC_GLOBAL,"_url",
 				       strlen(dapcomm->oc.rawurltext),dapcomm->oc.rawurltext);
     }
     if(dapparamcheck(dapcomm,"show","dds")) {
@@ -872,7 +903,7 @@ buildglobalattrs(NCDAPCOMMON* dapcomm, CDFnode* root)
 	    /* replace newlines with spaces*/
 	    nltxt = nulldup(txt);
 	    for(p=nltxt;*p;p++) {if(*p == '\n' || *p == '\r' || *p == '\t') {*p = ' ';}};
-            ncstat = nc_put_att_text(dapcomm->nc3id,NC_GLOBAL,"_dds",strlen(nltxt),nltxt);
+            ncstat = nc_put_att_text(dapcomm->substrate.nc3id,NC_GLOBAL,"_dds",strlen(nltxt),nltxt);
 	    nullfree(nltxt);
 	}
     }
@@ -883,7 +914,7 @@ buildglobalattrs(NCDAPCOMMON* dapcomm, CDFnode* root)
 	if(txt != NULL) {
 	    nltxt = nulldup(txt);
 	    for(p=nltxt;*p;p++) {if(*p == '\n' || *p == '\r' || *p == '\t') {*p = ' ';}};
-            ncstat = nc_put_att_text(dapcomm->nc3id,NC_GLOBAL,"_das",strlen(nltxt),nltxt);
+            ncstat = nc_put_att_text(dapcomm->substrate.nc3id,NC_GLOBAL,"_das",strlen(nltxt),nltxt);
 	    nullfree(nltxt);
 	}
     }
@@ -894,12 +925,13 @@ done:
 }
 
 static NCerror
-buildattribute(NCDAPCOMMON* dapcomm, NCattribute* att, nc_type vartype, int varid)
+buildattribute(NCDAPCOMMON* dapcomm, CDFnode* var, NCattribute* att)
 {
     int i;
     NCerror ncstat = NC_NOERR;
     unsigned int nvalues = nclistlength(att->values);
-    NC* drno = dapcomm->controller;
+    int varid = (var == NULL ? NC_GLOBAL : var->ncid);
+    void* mem = NULL;
 
     /* If the type of the attribute is string, then we need*/
     /* to convert to a single character string by concatenation.
@@ -913,57 +945,40 @@ buildattribute(NCDAPCOMMON* dapcomm, NCattribute* att, nc_type vartype, int vari
 	    char* s = (char*)nclistget(att->values,i);
 	    newlen += (1+strlen(s));
 	}
-    if(newlen > 0)
-      newstring = (char*)malloc(newlen);
-
-    MEMCHECK(newstring,NC_ENOMEM);
+	newlen++; /* for strlcat nul */
+        newstring = (char*)malloc(newlen+1);
+        MEMCHECK(newstring,NC_ENOMEM);
 	newstring[0] = '\0';
 	for(i=0;i<nvalues;i++) {
 	    char* s = (char*)nclistget(att->values,i);
-	    if(i > 0) strcat(newstring,"\n");
-	    strcat(newstring,s);
+	    if(i > 0) strlcat(newstring,"\n",newlen);
+	    strlcat(newstring,s,newlen);
 	}
         dapexpandescapes(newstring);
 	if(newstring[0]=='\0')
-	    ncstat = nc_put_att_text(dapcomm->nc3id,varid,att->name,1,newstring);
+	    ncstat = nc_put_att_text(dapcomm->substrate.nc3id,varid,att->name,1,newstring);
 	else
-	    ncstat = nc_put_att_text(dapcomm->nc3id,varid,att->name,strlen(newstring),newstring);
+	    ncstat = nc_put_att_text(dapcomm->substrate.nc3id,varid,att->name,strlen(newstring),newstring);
 	free(newstring);
         if(ncstat) goto done;
     } else {
 	nc_type atype;
 	unsigned int typesize;
-	void* mem = NULL;
-	/* It turns out that some servers upgrade the type
-           of _FillValue in order to correctly preserve the
-           original value. However, since the type of the
-           underlying variable is not changes, we get a type
-           mismatch. So, make sure the type of the fillvalue
-           is the same as that of the controlling variable.
-	*/
-        if(varid != NC_GLOBAL && strcmp(att->name,"_FillValue")==0)
-	    atype = nctypeconvert(dapcomm,vartype);
-	else
-	    atype = nctypeconvert(dapcomm,att->etype);
+	atype = nctypeconvert(dapcomm,att->etype);
 	typesize = nctypesizeof(atype);
 	if (nvalues > 0) {
-		mem = malloc(typesize * nvalues);
-#ifdef _MSC_VER
-		_ASSERTE(_CrtCheckMemory());
-#endif
+	    mem = malloc(typesize * nvalues);
 	}
-    ncstat = dapcvtattrval(atype,mem,att->values);
-#ifdef _MSC_VER
-	_ASSERTE(_CrtCheckMemory());
-#endif
-    if(ncstat) {nullfree(mem); goto done;}
-    ncstat = nc_put_att(dapcomm->nc3id,varid,att->name,atype,nvalues,mem);
-#ifdef _MSC_VER
-	_ASSERTE(_CrtCheckMemory());
-#endif
-    if(ncstat) {nullfree(mem); goto done;}
+        ncstat = dapcvtattrval(atype,mem,att->values,att);
+        if(ncstat == NC_ERANGE)
+	    nclog(NCLOGERR,"Attribute value out of range: %s:%s",
+		(var==NULL?"":var->ncbasename),att->name);
+        if(ncstat) goto done;
+        ncstat = nc_put_att(dapcomm->substrate.nc3id,varid,att->name,atype,nvalues,mem);
+        if(ncstat) goto done;
     }
 done:
+    if(mem) free(mem);
     return THROW(ncstat);
 }
 
@@ -994,7 +1009,7 @@ getdefinename(CDFnode* node)
 }
 
 int
-NCDAP_ping(const char* url)
+NCDAP2_ping(const char* url)
 {
     OCerror ocstat = OC_NOERR;
     ocstat = oc_ping(url);
@@ -1145,11 +1160,14 @@ fprintf(stderr,"conflict: %s[%lu] %s[%lu]\n",
 	    nullfree(dim->ncbasename);
 	    if(dim->dim.index1 > 0) {/* need to fix conflicting names (see above) */
 	        char sindex[64];
+		size_t baselen;
 		snprintf(sindex,sizeof(sindex),"_%d",dim->dim.index1);
-		dim->ncbasename = (char*)malloc(strlen(sindex)+strlen(legalname)+1);
+		baselen = strlen(sindex)+strlen(legalname);
+		baselen++; /* for strlcat nul */
+		dim->ncbasename = (char*)malloc(baselen+1);
 		if(dim->ncbasename == NULL) {nullfree(legalname); return NC_ENOMEM;}
-		strcpy(dim->ncbasename,legalname);
-		strcat(dim->ncbasename,sindex);
+		strncpy(dim->ncbasename,legalname,baselen);
+		strlcat(dim->ncbasename,sindex,baselen);
 		nullfree(legalname);
 	    } else {/* standard case */
 	        dim->ncbasename = legalname;
@@ -1201,6 +1219,16 @@ constrainable(NCURI* durl)
    return 0;
 }
 
+/* Lookup a parameter key; case insensitive */
+static const char*
+paramlookup(NCDAPCOMMON* state, const char* key)
+{
+    const char* value = NULL;
+    if(state == NULL || key == NULL || state->oc.url == NULL) return NULL;
+    value = ncurilookup(state->oc.url,key);
+    return value;
+}
+
 /* Note: this routine only applies some common
    client parameters, other routines may apply
    specific ones.
@@ -1214,24 +1242,24 @@ applyclientparams(NCDAPCOMMON* nccomm)
     int dfaltseqlim = DEFAULTSEQLIMIT;
     const char* value;
     char tmpname[NC_MAX_NAME+32];
-    char* pathstr;
+    char* pathstr = NULL;
     OClink conn = nccomm->oc.conn;
     unsigned long limit;
 
     ASSERT(nccomm->oc.url != NULL);
 
     nccomm->cdf.cache->cachelimit = DFALTCACHELIMIT;
-    value = oc_clientparam_get(conn,"cachelimit");
+    value = paramlookup(nccomm,"cachelimit");
     limit = getlimitnumber(value);
     if(limit > 0) nccomm->cdf.cache->cachelimit = limit;
 
     nccomm->cdf.fetchlimit = DFALTFETCHLIMIT;
-    value = oc_clientparam_get(conn,"fetchlimit");
+    value = paramlookup(nccomm,"fetchlimit");
     limit = getlimitnumber(value);
     if(limit > 0) nccomm->cdf.fetchlimit = limit;
 
     nccomm->cdf.smallsizelimit = DFALTSMALLLIMIT;
-    value = oc_clientparam_get(conn,"smallsizelimit");
+    value = paramlookup(nccomm,"smallsizelimit");
     limit = getlimitnumber(value);
     if(limit > 0) nccomm->cdf.smallsizelimit = limit;
 
@@ -1243,38 +1271,46 @@ applyclientparams(NCDAPCOMMON* nccomm)
       }
     }
 #endif
-    value = oc_clientparam_get(conn,"cachecount");
+    value = paramlookup(nccomm,"cachecount");
     limit = getlimitnumber(value);
     if(limit > 0) nccomm->cdf.cache->cachecount = limit;
     /* Ignore limit if not caching */
     if(!FLAGSET(nccomm->controls,NCF_CACHE))
         nccomm->cdf.cache->cachecount = 0;
 
-    if(oc_clientparam_get(conn,"nolimit") != NULL)
+    if(paramlookup(nccomm,"nolimit") != NULL)
 	dfaltseqlim = 0;
-    value = oc_clientparam_get(conn,"limit");
+    value = paramlookup(nccomm,"limit");
     if(value != NULL && strlen(value) != 0) {
         if(sscanf(value,"%d",&len) && len > 0) dfaltseqlim = len;
     }
     nccomm->cdf.defaultsequencelimit = dfaltseqlim;
 
     /* allow embedded _ */
-    value = oc_clientparam_get(conn,"stringlength");
+    value = paramlookup(nccomm,"stringlength");
+    if(value == NULL) 
+        value = paramlookup(nccomm,"maxstrlen");
     if(value != NULL && strlen(value) != 0) {
         if(sscanf(value,"%d",&len) && len > 0) dfaltstrlen = len;
-    }
+    } 
     nccomm->cdf.defaultstringlength = dfaltstrlen;
 
     /* String dimension limits apply to variables */
     for(i=0;i<nclistlength(nccomm->cdf.ddsroot->tree->varnodes);i++) {
 	CDFnode* var = (CDFnode*)nclistget(nccomm->cdf.ddsroot->tree->varnodes,i);
-	/* Define the client param stringlength for this variable*/
+	/* Define the client param stringlength/maxstrlen for this variable*/
+	/* create the variable path name */
 	var->maxstringlength = 0; /* => use global dfalt */
-	strcpy(tmpname,"stringlength_");
+	strncpy(tmpname,"stringlength_",sizeof(tmpname));
 	pathstr = makeocpathstring(conn,var->ocnode,".");
-	strncat(tmpname,pathstr,NC_MAX_NAME);
+	strlcat(tmpname,pathstr,sizeof(tmpname));
+	value = paramlookup(nccomm,tmpname);
+	if(value == NULL) {
+	    strcpy(tmpname,"maxstrlen_");
+	    strncat(tmpname,pathstr,NC_MAX_NAME);
+	    value = paramlookup(nccomm,tmpname);
+        }
 	nullfree(pathstr);
-	value = oc_clientparam_get(conn,tmpname);
         if(value != NULL && strlen(value) != 0) {
             if(sscanf(value,"%d",&len) && len > 0) var->maxstringlength = len;
 	}
@@ -1284,14 +1320,14 @@ applyclientparams(NCDAPCOMMON* nccomm)
 	CDFnode* var = (CDFnode*)nclistget(nccomm->cdf.ddsroot->tree->nodes,i);
 	if(var->nctype != NC_Sequence) continue;
 	var->sequencelimit = dfaltseqlim;
-	strcpy(tmpname,"nolimit_");
+	strncpy(tmpname,"nolimit_",sizeof(tmpname));
 	pathstr = makeocpathstring(conn,var->ocnode,".");
-	strncat(tmpname,pathstr,NC_MAX_NAME);
-	if(oc_clientparam_get(conn,tmpname) != NULL)
+	strlcat(tmpname,pathstr,sizeof(tmpname));
+	if(paramlookup(nccomm,tmpname) != NULL)
 	    var->sequencelimit = 0;
-	strcpy(tmpname,"limit_");
-	strncat(tmpname,pathstr,NC_MAX_NAME);
-	value = oc_clientparam_get(conn,tmpname);
+	strncpy(tmpname,"limit_",sizeof(tmpname));
+	strlcat(tmpname,pathstr,sizeof(tmpname));
+	value = paramlookup(nccomm,tmpname);
         if(value != NULL && strlen(value) != 0) {
             if(sscanf(value,"%d",&len) && len > 0)
 		var->sequencelimit = len;
@@ -1300,7 +1336,7 @@ applyclientparams(NCDAPCOMMON* nccomm)
     }
 
     /* test for the appropriate fetch flags */
-    value = oc_clientparam_get(conn,"fetch");
+    value = paramlookup(nccomm,"fetch");
     if(value != NULL && strlen(value) > 0) {
 	if(value[0] == 'd' || value[0] == 'D') {
             SETFLAG(nccomm->controls,NCF_ONDISK);
@@ -1308,7 +1344,7 @@ applyclientparams(NCDAPCOMMON* nccomm)
     }
 
     /* test for the force-whole-var flag */
-    value = oc_clientparam_get(conn,"wholevar");
+    value = paramlookup(nccomm,"wholevar");
     if(value != NULL) {
         SETFLAG(nccomm->controls,NCF_WHOLEVAR);
     }
@@ -1448,7 +1484,7 @@ addstringdims(NCDAPCOMMON* dapcomm)
 	if(dimsize == 0)
 	    sdim = dapcomm->cdf.globalstringdim; /* use default */
 	else {
-	    /* create a psuedo dimension for the charification of the string*/
+	    /* create a pseudo dimension for the charification of the string*/
 	    if(var->dodsspecial.dimname != NULL) {
 	        strncpy(dimname,var->dodsspecial.dimname,sizeof(dimname));
 	        dimname[sizeof(dimname)-1] = '\0';
@@ -1755,6 +1791,7 @@ done:
 static NCerror
 freeNCDAPCOMMON(NCDAPCOMMON* dapcomm)
 {
+    if(dapcomm == NULL) return NC_NOERR;
     freenccache(dapcomm,dapcomm->cdf.cache);
     nclistfree(dapcomm->cdf.projectedvars);
     nullfree(dapcomm->cdf.recorddimname);
@@ -1774,6 +1811,11 @@ freeNCDAPCOMMON(NCDAPCOMMON* dapcomm)
 
     dcefree((DCEnode*)dapcomm->oc.dapconstraint);
     dapcomm->oc.dapconstraint = NULL;
+
+    /* Note that the ncio layer will figure out that the tmp file needs to be deleted,
+       so we do not have to do it.
+    */
+    nullfree(dapcomm->substrate.filename); /* always reclaim */
 
     free(dapcomm);
 
@@ -1844,8 +1886,8 @@ computeseqcountconstraints(NCDAPCOMMON* dapcomm, CDFnode* seq, NCbytes* seqcount
 	}
     }
     /* Finally, add in any selection from the original URL */
-    if(dapcomm->oc.url->selection != NULL)
-        ncbytescat(seqcountconstraints,dapcomm->oc.url->selection);
+    if(dap_getselection(dapcomm->oc.url) != NULL)
+        ncbytescat(seqcountconstraints,dap_getselection(dapcomm->oc.url));
     nclistfree(path);
     return NC_NOERR;
 }
@@ -1992,7 +2034,7 @@ fetchpatternmetadata(NCDAPCOMMON* dapcomm)
     if(FLAGSET(dapcomm->controls,NCF_UNCONSTRAINABLE))
 	ce = NULL;
     else
-        ce = nulldup(dapcomm->oc.url->selection);
+        ce = nulldup(dap_getselection(dapcomm->oc.url));
 
     /* Get selection constrained DDS */
     ncstat = dap_fetch(dapcomm,dapcomm->oc.conn,ce,OCDDS,&ocroot);
@@ -2034,7 +2076,7 @@ fetchpatternmetadata(NCDAPCOMMON* dapcomm)
         if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
     }
 
-#ifdef DEBUG
+#ifdef DEBUG2
 fprintf(stderr,"full pattern:\n%s",dumptree(dapcomm->cdf.fullddsroot));
 #endif
 
@@ -2075,7 +2117,7 @@ fetchconstrainedmetadata(NCDAPCOMMON* dapcomm)
             if(ncstat) goto fail;
 	}
 
-#ifdef DEBUG
+#ifdef DEBUG2
 fprintf(stderr,"constrained:\n%s",dumptree(dapcomm->cdf.ddsroot));
 #endif
 
@@ -2085,7 +2127,6 @@ fprintf(stderr,"constrained:\n%s",dumptree(dapcomm->cdf.ddsroot));
                                dapcomm->oc.ocdasroot);
             if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 	}
-
         /* map the constrained DDS to the unconstrained DDS */
         ncstat = mapnodes(dapcomm->cdf.ddsroot,dapcomm->cdf.fullddsroot);
         if(ncstat) goto fail;
@@ -2195,6 +2236,12 @@ applyclientparamcontrols(NCDAPCOMMON* dapcomm)
 
     if(dapparamcheck(dapcomm,"show","fetch"))
 	SETFLAG(dapcomm->controls,NCF_SHOWFETCH);
+
+    /* enable/disable _FillValue/Variable Mis-match */
+    if(dapparamcheck(dapcomm,"fillmismatch",NULL))
+	SETFLAG(dapcomm->controls,NCF_FILLMISMATCH);
+    else if(dapparamcheck(dapcomm,"nofillmismatch",NULL))
+	CLRFLAG(dapcomm->controls,NCF_FILLMISMATCH);
 
     nclog(NCLOGNOTE,"Caching=%d",FLAGSET(dapcomm->controls,NCF_CACHE));
 
@@ -2386,7 +2433,8 @@ NCD2_inq_var_all(int ncid, int varid, char *name, nc_type* xtypep,
                int* shufflep, int* deflatep, int* deflate_levelp,
                int* fletcher32p, int* contiguousp, size_t* chunksizesp,
                int* no_fill, void* fill_valuep, int* endiannessp,
-	       int* options_maskp, int* pixels_per_blockp)
+	       unsigned int* idp, size_t* nparamsp, unsigned int* params
+               )
 {
     NC* drno;
     int ret;
@@ -2396,7 +2444,8 @@ NCD2_inq_var_all(int ncid, int varid, char *name, nc_type* xtypep,
                shufflep, deflatep, deflate_levelp,
                fletcher32p, contiguousp, chunksizesp,
                no_fill, fill_valuep, endiannessp,
-	       options_maskp, pixels_per_blockp);
+	       idp,nparamsp,params
+	       );
     return THROW(ret);
 }
 
@@ -2426,6 +2475,15 @@ NCD2_var_par_access(int ncid, int p2, int p3)
     return THROW(NC_ENOPAR);
 }
 
+int
+NCD2_def_var_fill(int ncid, int p2, int p3, const void* p4)
+{
+    NC* drno;
+    int ret;
+    if((ret = NC_check_id(ncid, (NC**)&drno)) != NC_NOERR) return THROW(ret);
+    ret = nc_def_var_fill(getnc3id(drno), p2, p3, p4);
+    return THROW(ret);
+}
 
 #ifdef USE_NETCDF4
 
@@ -2756,22 +2814,22 @@ NCD2_def_var_chunking(int ncid, int p2, int p3, const size_t* p4)
 }
 
 int
-NCD2_def_var_fill(int ncid, int p2, int p3, const void* p4)
-{
-    NC* drno;
-    int ret;
-    if((ret = NC_check_id(ncid, (NC**)&drno)) != NC_NOERR) return THROW(ret);
-    ret = nc_def_var_fill(getnc3id(drno), p2, p3, p4);
-    return THROW(ret);
-}
-
-int
 NCD2_def_var_endian(int ncid, int p2, int p3)
 {
     NC* drno;
     int ret;
     if((ret = NC_check_id(ncid, (NC**)&drno)) != NC_NOERR) return THROW(ret);
     ret = nc_def_var_endian(getnc3id(drno), p2, p3);
+    return THROW(ret);
+}
+
+int
+NCD2_def_var_filter(int ncid, int varid, unsigned int id, size_t n, const unsigned int* params)
+{
+    NC* drno;
+    int ret;
+    if((ret = NC_check_id(ncid, (NC**)&drno)) != NC_NOERR) return THROW(ret);
+    ret = nc_def_var_filter(getnc3id(drno), varid, id, n, params);
     return THROW(ret);
 }
 
@@ -2795,4 +2853,4 @@ NCD2_get_var_chunk_cache(int ncid, int p2, size_t* p3, size_t* p4, float* p5)
     return THROW(ret);
 }
 
-#endif // USE_NETCDF4
+#endif /* USE_NETCDF4 */

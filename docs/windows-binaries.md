@@ -28,15 +28,15 @@ These libraries have been built using Visual Studio 2012.  The downloads are ins
 
 The included dependencies and versions are as follows:
 
-* `libhdf5`: 1.8.17
-* `libcurl`: 7.35.0
+* `libhdf5`: 1.8.19
+* `libcurl`: 7.55.1
 * `zlib`:    1.2.8
 
 ## Latest Release (netCDF-C major.minor.point) {#msvc-latest-release}
 
 Configuration		| 32-bit 						| 64-bit |
 :-------------------|:--------							|:-------|
-netCDF 3		| [netCDFmajor.minor.point-NC3-32.exe][r1]		| [netCDFmajor.minor.point-NC3-64.exe][r6]
+netCDF 3		| [netCDFmajor.minor.point-NC3-32.exe][r1]		| [netCDFmajor.minor.point-NC3-64.exe][r5]
 netCDF3+DAP		| [netCDFmajor.minor.point-NC3-DAP-32.exe][r2]	| [netCDFmajor.minor.point-NC3-DAP-64.exe][r6]
 netCDF4			| [netCDFmajor.minor.point-NC4-32.exe][r3]		| [netCDFmajor.minor.point-NC4-64.exe][r7]
 netCDF4+DAP		| [netCDFmajor.minor.point-NC4-DAP-32.exe][r4]	| [netCDFmajor.minor.point-NC4-DAP-64.exe][r8]
@@ -64,7 +64,7 @@ When installed, the netCDF libraries are placed in the specified locations, alon
 [r2]: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netCDFmajor.minor.point-NC3-DAP-32.exe
 [r3]: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netCDFmajor.minor.point-NC4-32.exe
 [r4]: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netCDFmajor.minor.point-NC4-DAP-32.exe
-[r6]: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netCDFmajor.minor.point-NC3-64.exe
+[r5]: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netCDFmajor.minor.point-NC3-64.exe
 [r6]: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netCDFmajor.minor.point-NC3-DAP-64.exe
 [r7]: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netCDFmajor.minor.point-NC4-64.exe
 [r8]: http://www.unidata.ucar.edu/downloads/netcdf/ftp/netCDFmajor.minor.point-NC4-DAP-64.exe

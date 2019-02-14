@@ -1,4 +1,4 @@
-/* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
+/* Copyright 2018, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
 
 #ifndef OCUTIL_H
@@ -33,9 +33,9 @@ extern size_t ocedgeoffset(size_t rank, size_t*, size_t*);
 
 extern int ocvalidateindices(size_t rank, size_t*, size_t*);
 
-extern void ocmakedimlist(OClist* path, OClist* dims);
+extern void ocmakedimlist(NClist* path, NClist* dims);
 
-extern int ocfindbod(OCbytes* buffer, size_t*, size_t*);
+extern int ocfindbod(NCbytes* buffer, size_t*, size_t*);
 
 /* Reclaimers*/
 extern void ocfreeprojectionclause(OCprojectionclause* clause);

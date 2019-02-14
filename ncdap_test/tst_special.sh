@@ -1,28 +1,13 @@
 #!/bin/sh
 
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
+. ../test_common.shs
+
 set -e
-
-# if this is part of a distcheck action, then this script
-# will be executed in a different directory
-# than the one containing it; so capture the path to this script
-# as the location of the source directory.
-srcdir=`dirname $0`
-cd $srcdir
-srcdir=`pwd`
-
-# compute the build directory
-builddir=`pwd`/..
-# Hack for CYGWIN
-if [ `uname | cut -d "_" -f 1` = "MINGW32" ]; then
-    srcdir=`pwd | sed 's/\/c\//c:\//g'`
-    builddir="$srcdir"/..
-fi
-cd ${builddir}/ncdap_test
 
 #EXTSET="hdr dmp"
 EXTSET="dmp"
 
-#set -x
 quiet=0
 leakcheck=0
 
@@ -77,13 +62,10 @@ d055.nc;http://ilikai.soest.hawaii.edu/cgi-bin/nph-dods/fast/d055.nc \
 # Temporarily suppress
 XFAILTESTS="qscat_high_wind totalAagg  world-unfilter-monthly.nc duacs_global_nrt_msla_merged_h_lr 500m"
 
-RESULTSDIR="./results"
+RESULTSDIR="./results_tst_special"
 # Locate some tools
-NCDUMP="${builddir}/ncdump/ncdump"
 if test "x$leakcheck" = x1 ; then
 VALGRIND="valgrind -q --error-exitcode=2 --leak-check=full"
-else
-VALGRIND=
 fi
 
 rm -fr ${RESULTSDIR}
@@ -152,6 +134,7 @@ done
 cd ..
 done
 
+rm -fr ${RESULTSDIR}
 totalcount=`expr $passcount + $failcount + $xfailcount`
 okcount=`expr $passcount + $xfailcount`
 

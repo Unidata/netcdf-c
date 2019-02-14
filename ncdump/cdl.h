@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/ncdump/cdl.h,v 1.3 2008/12/22 16:42:36 russ Exp $
  *********************************************************************/
@@ -18,5 +18,6 @@
 #define NC_ATT_STORAGE     "_Storage"
 #define NC_ATT_NOFILL      "_NoFill"
 #define NC_ATT_NETCDF4     "_NetCDF4"
+#define NC_ATT_FILTER      "_Filter"
 
 #endif	/*_CDL_H_ */

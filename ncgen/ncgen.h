@@ -1,7 +1,7 @@
 #ifndef NC_NCGEN_H
 #define NC_NCGEN_H
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/ncgen/ncgen.h,v 1.18 2010/06/01 15:34:53 ed Exp $
 *********************************************************************/
@@ -57,6 +57,7 @@
 #define NEGNC_INFINITEF (-NC_INFINITEF)
 #define NEGNC_INFINITE (-NC_INFINITEF)
 #endif
+
 /* nc_class is one of:
         NC_GRP NC_DIM NC_VAR NC_ATT NC_TYPE
 */
@@ -92,7 +93,7 @@ various C global variables
 #define _ISNETCDF4_FLAG     0x200
 #define _SUPERBLOCK_FLAG    0x400
 #define _FORMAT_FLAG        0x800
-
+#define _FILTER_FLAG        0x1000
 
 extern struct Specialtoken {
     char* name;
@@ -114,13 +115,23 @@ char* name;
 int k_flag;
 };
 
-#define NKVALUES 100
-extern struct Kvalues legalkinds[NKVALUES];
+extern struct Kvalues legalkinds[];
+
+struct FilterID {
+char* name;
+unsigned int id;
+};
+
+#define ZIP_ID  0xFFFFFFFF
+#define SZIP_ID  0xFFFFFFFE
+#define BZIP2_ID 307U
+#define ZFP_ID 32013U
+#define FPZIP_ID 32014U
 
 /* Note: some non-var specials (i.e. _Format) are not included in this struct*/
 typedef struct Specialdata {
     int flags;
-    Datalist*      _Fillvalue; /* This is a per-type  */
+    Datalist*      _Fillvalue; /* This is a per-type ; points to the _FillValue attribute node */
     int           _Storage;      /* NC_CHUNKED | NC_CONTIGUOUS*/
     size_t*       _ChunkSizes;     /* NULL => defaults*/
         int nchunks;     /*  |_Chunksize| ; 0 => not specified*/
@@ -129,6 +140,9 @@ typedef struct Specialdata {
     int           _Shuffle;      /* 0 => false, 1 => true*/
     int           _Endianness;   /* 1 =>little, 2 => big*/
     int           _Fill ;        /* 0 => false, 1 => true WATCHOUT: this is inverse of NOFILL*/
+    unsigned int  _FilterID;
+    size_t nparams;          /*  |_FilterParms| ; 0 => not specified*/
+        unsigned int* _FilterParams; /* NULL => defaults*/
 } Specialdata;
 
 typedef struct GlobalSpecialdata {
@@ -137,6 +151,18 @@ typedef struct GlobalSpecialdata {
     int           _IsNetcdf4 ;   /* 0 => false, 1 => true */
     int           _Superblock  ; /* HDF5 file superblock version */
 } GlobalSpecialData;
+
+/*
+During the generation of binary data,
+we will generate a number of references
+to strings and opaques that should
+be reclaimed to keep the memory
+checkers happy.
+*/
+typedef struct BinBuffer {
+    Bytebuffer* buf; /* top level data */
+    List* reclaim; /* objects that need to be free'd */
+} BinBuffer;
 
 /* Track a set of dimensions*/
 /* (Note: the netcdf type system is deficient here)*/
@@ -161,9 +187,10 @@ typedef struct Typeinfo {
 	nc_type         typecode;
         unsigned long   offset;   /* fields in struct*/
         unsigned long   alignment;/* fields in struct*/
-        NCConstant      econst;   /* for enum values*/
+        NCConstant*      econst;   /* for enum values*/
         Dimset          dimset;     /* for NC_VAR/NC_FIELD/NC_ATT*/
         size_t   size;     /* for opaque, compound, etc.*/
+	size_t   cmpdalign; /* alignment needed for total size instances */
         size_t   nelems;   /* size in terms of # of datalist constants
 			      it takes to represent it */
 	Datalist*       _Fillvalue; /* per-type cached fillvalue
@@ -173,12 +200,16 @@ typedef struct Typeinfo {
 typedef struct Varinfo {
     int		nattributes; /* |attributes|*/
     List*       attributes;  /* List<Symbol*>*/
-    Specialdata special;
+    Specialdata* special;
 } Varinfo;
 
 typedef struct Groupinfo {
     int is_root;
 } Groupinfo;
+
+typedef struct Fileinfo {
+    char* filename;
+} Fileinfo;
 
 /* store info when the symbol
    is really a reference to another
@@ -191,7 +222,6 @@ typedef struct Reference {
 } Reference;
 
 typedef struct Symbol {  /* symbol table entry*/
-        struct Symbol*  next;    /* Linked list of all defined symbols*/
         nc_class        objectclass;  /* NC_DIM|NC_VLEN|NC_OPAQUE...*/
         nc_class        subclass;  /* NC_STRUCT|...*/
         char*           name;
@@ -211,11 +241,13 @@ typedef struct Symbol {  /* symbol table entry*/
         Attrinfo  att;
         Diminfo   dim;
         Groupinfo grp;
- 	Reference ref; /* symbol is really a referene to another symbol*/
+	Fileinfo  file;
+ 	Reference ref; /* symbol is really a reference to another symbol*/
 	/* Misc pieces of info*/
 	int             lineno;  /* at point of creation*/
 	int		touched; /* for sorting*/
-        int             ncid;  /* from netcdf API: varid, or dimid, or etc.*/
+	/* for use by -lb */
+        int             nc_id;  /* from netcdf API: varid, or dimid, or etc.*/
 } Symbol;
 
 

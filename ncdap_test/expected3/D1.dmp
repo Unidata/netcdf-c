@@ -7,6 +7,9 @@ variables:
 	char Drifters.location(Drifters, maxStrlen64) ;
 	double Drifters.latitude(Drifters) ;
 	double Drifters.longitude(Drifters) ;
+
+// global attributes:
+		:_location.Description = "String describing general location (southern ocean,oregon coast, etc.) of drifter deployment." ;
 data:
 
  Drifters.instrument_id =

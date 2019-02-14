@@ -1,21 +1,24 @@
 /*
- *	Copyright 1996, University Corporation for Atmospheric Research
+ *	Copyright 2018, University Corporation for Atmospheric Research
  *	See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 
-#include "config.h"
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <assert.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
 #ifdef _MSC_VER /* Microsoft Compilers */
 #include <io.h>
 #endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-#ifdef HAVE_FCNTL_H
-#include <fcntl.h>
 #endif
 #include "nc3internal.h"
 
@@ -38,17 +41,13 @@
 #error mmap not fully implemented: missing MAP_ANONYMOUS
 #endif
 
-#ifdef HAVE_MMAP
+#ifdef HAVE_MREMAP
   /* This is conditionalized by __USE_GNU ; why? */
   extern void *mremap(void*,size_t,size_t,int);
 # ifndef MREMAP_MAYMOVE
 #   define MREMAP_MAYMOVE 1
 # endif
-#endif /*HAVE_MMAP*/
-
-#ifndef HAVE_SSIZE_T
-#define ssize_t int
-#endif
+#endif /*HAVE_MREMAP*/
 
 #ifndef SEEK_SET
 #define SEEK_SET 0
@@ -91,7 +90,7 @@
 
 typedef struct NCMMAPIO {
     int locked; /* => we cannot realloc */
-    int persist; /* => save to a file; triggered by NC_WRITE */
+    int persist; /* => save to a file; triggered by NC_PERSIST */
     char* memory;
     off_t alloc;
     off_t size;
@@ -165,7 +164,7 @@ mmapio_new(const char* path, int ioflags, off_t initialsize, ncio** nciopp, NCMM
     mmapio->memory = NULL;
     mmapio->size = 0;
     mmapio->pos = 0;
-    mmapio->persist = fIsSet(ioflags,NC_WRITE);
+    mmapio->persist = fIsSet(ioflags,NC_PERSIST);
 
     /* See if ok to use mmap */
     if(sizeof(void*) < 8 &&
@@ -212,7 +211,7 @@ mmapio_create(const char* path, int ioflags,
     int fd;
     int status;
     NCMMAPIO* mmapio = NULL;
-    int persist = (ioflags & NC_WRITE?1:0);
+    int persist = (ioflags & NC_PERSIST?1:0);
     int oflags;
 
     if(path == NULL ||* path == 0)
@@ -235,8 +234,8 @@ mmapio_create(const char* path, int ioflags,
                                     mmapio->mapfd,0);
 	{mmapio->memory[0] = 0;} /* test writing of the mmap'd memory */
     } else { /*persist */
-        /* Open the file, but make sure we can write it if needed */
-        oflags = (persist ? O_RDWR : O_RDONLY);    
+        /* Open the file to get fd,  but make sure we can write it if needed */
+        oflags = O_RDWR;
 #ifdef O_BINARY
         fSet(oflags, O_BINARY);
 #endif
@@ -320,11 +319,11 @@ mmapio_open(const char* path,
     ncio* nciop;
     int fd;
     int status;
-    int persist = (fIsSet(ioflags,NC_WRITE)?1:0);
     int oflags;
     NCMMAPIO* mmapio = NULL;
     size_t sizehint;
     off_t filesize;
+    int readwrite = (fIsSet(ioflags,NC_WRITE)?1:0);
 
     if(path == NULL ||* path == 0)
         return EINVAL;
@@ -333,7 +332,7 @@ mmapio_open(const char* path,
     sizehint = *sizehintp;
 
     /* Open the file, but make sure we can write it if needed */
-    oflags = (persist ? O_RDWR : O_RDONLY);    
+    oflags = (readwrite ? O_RDWR : O_RDONLY);    
 #ifdef O_BINARY
     fSet(oflags, O_BINARY);
 #endif
@@ -360,7 +359,7 @@ mmapio_open(const char* path,
 
     mmapio->mapfd = fd;
     mmapio->memory = (char*)mmap(NULL,mmapio->alloc,
-                                    persist?(PROT_READ|PROT_WRITE):(PROT_READ),
+                                    readwrite?(PROT_READ|PROT_WRITE):(PROT_READ),
 				    MAP_SHARED,
                                     mmapio->mapfd,0);
 #ifdef DEBUG
@@ -369,6 +368,10 @@ fprintf(stderr,"mmapio_open: initial memory: %lu/%lu\n",(unsigned long)mmapio->m
 
     /* Use half the filesize as the blocksize */
     sizehint = filesize/2;
+
+    /* sizehint must be multiple of 8 */
+    sizehint = (sizehint / 8) * 8;
+    if(sizehint < 8) sizehint = 8;
 
     fd = nc__pseudofd();
     *((int* )&nciop->fd) = fd; 
@@ -443,8 +446,18 @@ mmapio_pad_length(ncio* nciop, off_t length)
 	lseek(mmapio->mapfd,pos,SEEK_SET); /* reset position */
 	}
 
+#ifdef HAVE_MREMAP
 	newmem = (char*)mremap(mmapio->memory,mmapio->alloc,newsize,MREMAP_MAYMOVE);
 	if(newmem == NULL) return NC_ENOMEM;
+#else
+        newmemory = (char*)mmap(NULL,newsize,
+                                    persist?(PROT_READ|PROT_WRITE):(PROT_READ),
+				    MAP_SHARED,
+                                    mmapio->mapfd,0);
+	if(newmem == NULL) return NC_ENOMEM;
+	memcpy(newmemory,mmapio->memory,mmapio->alloc);
+        munmap(mmapio->memory,mmapio->alloc);
+#endif
 
 #ifdef DEBUG
 fprintf(stderr,"realloc: %lu/%lu -> %lu/%lu\n",

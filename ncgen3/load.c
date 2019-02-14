@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Id: load.c,v 1.35 2009/11/17 18:15:08 dmh Exp $
  *********************************************************************/
@@ -14,10 +14,6 @@
 #include "generic.h"
 #include "ncgen.h"
 #include "genlib.h"
-
-#ifndef HAVE_STRLCAT
-extern size_t strlcat(char *dst, const char *src, size_t siz);
-#endif
 
 extern int netcdf_flag;
 extern int c_flag;

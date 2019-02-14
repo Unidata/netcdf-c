@@ -2,13 +2,13 @@
  *
  * Main header file for the Parallel C API.
  *
- * Copyright 2010 University Corporation for Atmospheric
+ * Copyright 2018 University Corporation for Atmospheric
  * Research/Unidata. See COPYRIGHT file for more info.
  *
  * This header file is for the parallel I/O functions of netCDF.
  *
+ * \author Ed Hartnett
  */
-/* "$Id: netcdf_par.h,v 1.1 2010/06/01 15:46:49 ed Exp $" */
 
 #ifndef NETCDF_PAR_H
 #define NETCDF_PAR_H 1
@@ -19,8 +19,9 @@
 extern "C" {
 #endif
 
-/* Use these with nc_var_par_access(). */
+/** Use with nc_var_par_access() to set parallel access to independent. */
 #define NC_INDEPENDENT 0
+/** Use with nc_var_par_access() to set parallel access to collective. */
 #define NC_COLLECTIVE 1
 
 /* Create a file and enable parallel I/O. */

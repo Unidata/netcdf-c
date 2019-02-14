@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2009, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
@@ -9,17 +9,20 @@
 #ifdef ENABLE_JAVA
 
 #include <math.h> 
+#ifndef isnan
+extern int isnan(double);
+#endif
 
 static int j_uid = 0;
 
 static int
-j_charconstant(Generator* generator, Bytebuffer* codebuf, ...)
+j_charconstant(Generator* generator, Symbol* sym, Bytebuffer* codebuf, ...)
 {
     /* Escapes and quoting will be handled in genc_write */
     /* Just transfer charbuf to codebuf */
     Bytebuffer* charbuf;
     va_list ap;
-    vastart(ap,codebuf);
+    va_start(ap,codebuf);
     charbuf = va_arg(ap, Bytebuffer*);
     va_end(ap);
     bbNull(charbuf);
@@ -28,7 +31,7 @@ j_charconstant(Generator* generator, Bytebuffer* codebuf, ...)
 }
 
 static int
-j_constant(Generator* generator, NCConstant* con, Bytebuffer* buf,...)
+j_constant(Generator* generator, Symbol* sym, NCConstant* con, Bytebuffer* buf,...)
 {
     Bytebuffer* codetmp = bbNew();
     char* special = NULL;
@@ -99,7 +102,7 @@ j_constant(Generator* generator, NCConstant* con, Bytebuffer* buf,...)
 }
 
 static int
-j_listbegin(Generator* generator, ListClass lc, size_t size, Bytebuffer* codebuf, int* uidp, ...)
+j_listbegin(Generator* generator, Symbol* sym, void* liststate, ListClass lc, size_t size, Bytebuffer* codebuf, int* uidp, ...)
 {
     if(uidp) *uidp = ++j_uid;
     switch (lc) {
@@ -115,7 +118,7 @@ j_listbegin(Generator* generator, ListClass lc, size_t size, Bytebuffer* codebuf
 }
 
 static int
-j_list(Generator* generator, ListClass lc, int uid, size_t count, Bytebuffer* codebuf, ...)
+j_list(Generator* generator, Symbol* sym, void* liststate, ListClass lc, int uid, size_t count, Bytebuffer* codebuf, ...)
 {
     switch (lc) {
     case LISTATTR:
@@ -133,19 +136,19 @@ j_list(Generator* generator, ListClass lc, int uid, size_t count, Bytebuffer* co
 }
 
 static int
-j_listend(Generator* generator, ListClass lc, int uid, size_t count, Bytebuffer* buf, ...)
+j_listend(Generator* generator, Symbol* sym, void* liststate, ListClass lc, int uid, size_t count, Bytebuffer* buf, ...)
 {
     return 1;
 }
 
 static int
-j_vlendecl(Generator* generator, Bytebuffer* codebuf, Symbol* tsym, int uid, size_t count, ...)
+j_vlendecl(Generator* generator, Symbol* tsym, Bytebuffer* codebuf, int uid, size_t count, ...)
 {
     return 1;
 }
 
 static int
-j_vlenstring(Generator* generator, Bytebuffer* vlenmem, int* uidp, size_t* countp,...)
+j_vlenstring(Generator* generator, Symbol* sym, Bytebuffer* vlenmem, int* uidp, size_t* countp,...)
 {
     if(uidp) *uidp = ++j_uid;
     if(countp) *countp = 0;

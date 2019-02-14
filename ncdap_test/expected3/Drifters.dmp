@@ -63,6 +63,12 @@ variables:
 		Drifters.Calibration_File:Description = "Path to the file on our file server of the calibration file for the drifter." ;
 	char Drifters.Drifter_Type(Drifters, maxStrlen64) ;
 		Drifters.Drifter_Type:Description = "Type of drifter." ;
+
+// global attributes:
+		:Facility.PrincipleInvestigator = "Mark Abbott\n",
+			"Ph.D" ;
+		:Facility.DataCenter = "COAS Environmental Computer Facility" ;
+		:Facility.DrifterType = "MetOcean WOCE/OCM" ;
 data:
 
  Drifters.Drifter_ID =

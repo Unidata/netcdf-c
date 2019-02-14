@@ -1875,139 +1875,139 @@ yyreduce:
 
   case 84:
 #line 248 "dap.y" /* yacc.c:1646  */
-    {(yyval)=strdup("alias");}
+    {(yyval)=strdup((yyvsp[0]));}
 #line 1880 "dap.tab.c" /* yacc.c:1646  */
     break;
 
   case 85:
 #line 249 "dap.y" /* yacc.c:1646  */
-    {(yyval)=strdup("array");}
+    {(yyval)=strdup((yyvsp[0]));}
 #line 1886 "dap.tab.c" /* yacc.c:1646  */
     break;
 
   case 86:
 #line 250 "dap.y" /* yacc.c:1646  */
-    {(yyval)=strdup("attributes");}
+    {(yyval)=strdup((yyvsp[0]));}
 #line 1892 "dap.tab.c" /* yacc.c:1646  */
     break;
 
   case 87:
 #line 251 "dap.y" /* yacc.c:1646  */
-    {(yyval)=strdup("byte");}
+    {(yyval)=strdup((yyvsp[0]));}
 #line 1898 "dap.tab.c" /* yacc.c:1646  */
     break;
 
   case 88:
 #line 252 "dap.y" /* yacc.c:1646  */
-    {(yyval)=strdup("dataset");}
+    {(yyval)=strdup((yyvsp[0]));}
 #line 1904 "dap.tab.c" /* yacc.c:1646  */
     break;
 
   case 89:
 #line 253 "dap.y" /* yacc.c:1646  */
-    {(yyval)=strdup("data");}
+    {(yyval)=strdup((yyvsp[0]));}
 #line 1910 "dap.tab.c" /* yacc.c:1646  */
     break;
 
   case 90:
 #line 254 "dap.y" /* yacc.c:1646  */
-    {(yyval)=strdup("error");}
+    {(yyval)=strdup((yyvsp[0]));}
 #line 1916 "dap.tab.c" /* yacc.c:1646  */
     break;
 
   case 91:
 #line 255 "dap.y" /* yacc.c:1646  */
-    {(yyval)=strdup("float32");}
+    {(yyval)=strdup((yyvsp[0]));}
 #line 1922 "dap.tab.c" /* yacc.c:1646  */
     break;
 
   case 92:
 #line 256 "dap.y" /* yacc.c:1646  */
-    {(yyval)=strdup("float64");}
+    {(yyval)=strdup((yyvsp[0]));}
 #line 1928 "dap.tab.c" /* yacc.c:1646  */
     break;
 
   case 93:
 #line 257 "dap.y" /* yacc.c:1646  */
-    {(yyval)=strdup("grid");}
+    {(yyval)=strdup((yyvsp[0]));}
 #line 1934 "dap.tab.c" /* yacc.c:1646  */
     break;
 
   case 94:
 #line 258 "dap.y" /* yacc.c:1646  */
-    {(yyval)=strdup("int16");}
+    {(yyval)=strdup((yyvsp[0]));}
 #line 1940 "dap.tab.c" /* yacc.c:1646  */
     break;
 
   case 95:
 #line 259 "dap.y" /* yacc.c:1646  */
-    {(yyval)=strdup("int32");}
+    {(yyval)=strdup((yyvsp[0]));}
 #line 1946 "dap.tab.c" /* yacc.c:1646  */
     break;
 
   case 96:
 #line 260 "dap.y" /* yacc.c:1646  */
-    {(yyval)=strdup("maps");}
+    {(yyval)=strdup((yyvsp[0]));}
 #line 1952 "dap.tab.c" /* yacc.c:1646  */
     break;
 
   case 97:
 #line 261 "dap.y" /* yacc.c:1646  */
-    {(yyval)=strdup("sequence");}
+    {(yyval)=strdup((yyvsp[0]));}
 #line 1958 "dap.tab.c" /* yacc.c:1646  */
     break;
 
   case 98:
 #line 262 "dap.y" /* yacc.c:1646  */
-    {(yyval)=strdup("string");}
+    {(yyval)=strdup((yyvsp[0]));}
 #line 1964 "dap.tab.c" /* yacc.c:1646  */
     break;
 
   case 99:
 #line 263 "dap.y" /* yacc.c:1646  */
-    {(yyval)=strdup("structure");}
+    {(yyval)=strdup((yyvsp[0]));}
 #line 1970 "dap.tab.c" /* yacc.c:1646  */
     break;
 
   case 100:
 #line 264 "dap.y" /* yacc.c:1646  */
-    {(yyval)=strdup("uint16");}
+    {(yyval)=strdup((yyvsp[0]));}
 #line 1976 "dap.tab.c" /* yacc.c:1646  */
     break;
 
   case 101:
 #line 265 "dap.y" /* yacc.c:1646  */
-    {(yyval)=strdup("uint32");}
+    {(yyval)=strdup((yyvsp[0]));}
 #line 1982 "dap.tab.c" /* yacc.c:1646  */
     break;
 
   case 102:
 #line 266 "dap.y" /* yacc.c:1646  */
-    {(yyval)=strdup("url");}
+    {(yyval)=strdup((yyvsp[0]));}
 #line 1988 "dap.tab.c" /* yacc.c:1646  */
     break;
 
   case 103:
 #line 267 "dap.y" /* yacc.c:1646  */
-    {(yyval)=strdup("code");}
+    {(yyval)=strdup((yyvsp[0]));}
 #line 1994 "dap.tab.c" /* yacc.c:1646  */
     break;
 
   case 104:
 #line 268 "dap.y" /* yacc.c:1646  */
-    {(yyval)=strdup("message");}
+    {(yyval)=strdup((yyvsp[0]));}
 #line 2000 "dap.tab.c" /* yacc.c:1646  */
     break;
 
   case 105:
 #line 269 "dap.y" /* yacc.c:1646  */
-    {(yyval)=strdup("program");}
+    {(yyval)=strdup((yyvsp[0]));}
 #line 2006 "dap.tab.c" /* yacc.c:1646  */
     break;
 
   case 106:
 #line 270 "dap.y" /* yacc.c:1646  */
-    {(yyval)=strdup("program_type");}
+    {(yyval)=strdup((yyvsp[0]));}
 #line 2012 "dap.tab.c" /* yacc.c:1646  */
     break;
 

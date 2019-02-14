@@ -1,88 +1,90 @@
-/* This is part of the netCDF package. Copyright 2008 University
+/* This is part of the netCDF package. Copyright 2018 University
    Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
    conditions of use. See www.unidata.ucar.edu for more info.
 
-   Create a test file with default fill values for variables of each type.
+   Create a test file with default fill values for variables of each
+   type.
 
-   $Id: tst_fills.c,v 1.12 2009/03/17 01:22:42 ed Exp $
+   Ed Hartnett
 */
 
 #include <nc_tests.h>
+#include "err_macros.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <netcdf.h>
 
-#define FILE_NAME "tst_fills.nc" 
+#define FILE_NAME "tst_fills.nc"
 
 int
-main(int argc, char **argv) 
+main(int argc, char **argv)
 {			/* create tst_classic_fills.nc */
    printf("\n*** Testing fill values.\n");
-   printf("*** testing very simple scalar string var...");
-   {
-#define STRING_VAR_NAME "Petition_of_Right"
-#define NDIMS_STRING 1
+/*    printf("*** testing very simple scalar string var..."); */
+/*    { */
+/* #define STRING_VAR_NAME "Petition_of_Right" */
+/* #define NDIMS_STRING 1 */
 
-      int  ncid, varid;
-      int varid_in;
-      const char *data_out[NDIMS_STRING] = {
-	 "Humbly show unto our Sovereign Lord the King, the Lords "
-	 "Spiritual and Temporal, and Commons in Parliament assembles, "
-	 "that whereas it is declared and enacted by a statute made in "
-	 "the time of the reign of King Edward I, commonly called "
-	 "Stratutum de Tellagio non Concedendo, that no tallage or "
-	 "aid shall be laid or levied by the king or his heirs in this "
-	 "realm, without the good will and assent of the archbishops, "
-	 "bishops, earls, barons, knights, burgesses, and other the "
-	 "freemen of the commonalty of this realm; and by authority "
-	 "of parliament holden in the five-and-twentieth year of the "
-	 "reign of King Edward III, it is declared and enacted, that "
-	 "from thenceforth no person should be compelled to make any "
-	 "loans to the king against his will, because such loans were "
-	 "against reason and the franchise of the land; and by other "
-	 "laws of this realm it is provided, that none should be charged "
-	 "by any charge or imposition called a benevolence, nor by such "
-	 "like charge; by which statutes before mentioned, and other the "
-	 "good laws and statutes of this realm, your subjects have inherited "
-	 "this freedom, that they should not be compelled to contribute "
-	 "to any tax, tallage, aid, or other like charge not set by "
-	 "common consent, in parliament."
-      };
-      char *data_in[NDIMS_STRING];
-      size_t index1[NDIMS_STRING] = {0};
+/*       int  ncid, varid; */
+/*       int varid_in; */
+/*       const char *data_out[NDIMS_STRING] = { */
+/* 	 "Humbly show unto our Sovereign Lord the King, the Lords " */
+/* 	 "Spiritual and Temporal, and Commons in Parliament assembles, " */
+/* 	 "that whereas it is declared and enacted by a statute made in " */
+/* 	 "the time of the reign of King Edward I, commonly called " */
+/* 	 "Stratutum de Tellagio non Concedendo, that no tallage or " */
+/* 	 "aid shall be laid or levied by the king or his heirs in this " */
+/* 	 "realm, without the good will and assent of the archbishops, " */
+/* 	 "bishops, earls, barons, knights, burgesses, and other the " */
+/* 	 "freemen of the commonalty of this realm; and by authority " */
+/* 	 "of parliament holden in the five-and-twentieth year of the " */
+/* 	 "reign of King Edward III, it is declared and enacted, that " */
+/* 	 "from thenceforth no person should be compelled to make any " */
+/* 	 "loans to the king against his will, because such loans were " */
+/* 	 "against reason and the franchise of the land; and by other " */
+/* 	 "laws of this realm it is provided, that none should be charged " */
+/* 	 "by any charge or imposition called a benevolence, nor by such " */
+/* 	 "like charge; by which statutes before mentioned, and other the " */
+/* 	 "good laws and statutes of this realm, your subjects have inherited " */
+/* 	 "this freedom, that they should not be compelled to contribute " */
+/* 	 "to any tax, tallage, aid, or other like charge not set by " */
+/* 	 "common consent, in parliament." */
+/*       }; */
+/*       char *data_in[NDIMS_STRING]; */
+/*       size_t index1[NDIMS_STRING] = {0}; */
 
-      /* Create file with a 1D string var. Set its fill value to the
-       * empty string. */
-      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
-      if (nc_def_var(ncid, STRING_VAR_NAME, NC_STRING, 0, NULL, &varid)) ERR;
+/*       /\* Create file with a 1D string var. Set its fill value to the */
+/*        * empty string. *\/ */
+/*       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR; */
+/*       if (nc_def_var(ncid, STRING_VAR_NAME, NC_STRING, 0, NULL, &varid)) ERR; */
 
-      /* Check it out. */
-      if (nc_inq_varid(ncid, STRING_VAR_NAME, &varid_in)) ERR;
-      if (varid_in != varid) ERR;
+/*       /\* Check it out. *\/ */
+/*       if (nc_inq_varid(ncid, STRING_VAR_NAME, &varid_in)) ERR; */
+/*       if (varid_in != varid) ERR; */
 
-      /* Write string. */
-      if (nc_put_var1_string(ncid, varid_in, index1, data_out)) ERR;
+/*       /\* Write string. *\/ */
+/*       if (nc_put_var1_string(ncid, varid_in, index1, data_out)) ERR; */
 
-      /* Get the string, check it, and free it. */
-      if (nc_get_var_string(ncid, varid_in, data_in)) ERR;
-      if (strcmp(data_in[0], data_out[0])) ERR;
-      if (nc_free_string(1, data_in)) ERR;
+/*       /\* Get the string, check it, and free it. *\/ */
+/*       if (nc_get_var_string(ncid, varid_in, data_in)) ERR; */
+/*       if (strcmp(data_in[0], data_out[0])) ERR; */
+/*       if (nc_free_string(1, data_in)) ERR; */
 
-      /* Close the file. */
-      if (nc_close(ncid)) ERR;
+/*       /\* Close the file. *\/ */
+/*       if (nc_close(ncid)) ERR; */
 
-      /* Now re-open file, read data, and check values again. */
-      if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+/*       /\* Now re-open file, read data, and check values again. *\/ */
+/*       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR; */
 
-      /* Get the string, check it, and free it. */
-      if (nc_get_var_string(ncid, varid_in, data_in)) ERR;
-      if (strcmp(data_in[0], data_out[0])) ERR;
-      if (nc_free_string(1, data_in)) ERR;
+/*       /\* Get the string, check it, and free it. *\/ */
+/*       if (nc_get_var_string(ncid, varid_in, data_in)) ERR; */
+/*       if (strcmp(data_in[0], data_out[0])) ERR; */
+/*       if (nc_free_string(1, data_in)) ERR; */
 
-      /* Close the file. */
-      if (nc_close(ncid)) ERR;
-   }
-   SUMMARIZE_ERR;
+/*       /\* Close the file. *\/ */
+/*       if (nc_close(ncid)) ERR; */
+/*    } */
+/*    SUMMARIZE_ERR; */
    printf("*** testing fill values of one var...");
    {
 #define V1_NAME "v1"
@@ -94,6 +96,7 @@ main(int argc, char **argv)
       char vals[MAX_VALS];
       int i;
 
+      nc_set_log_level(4);
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
 
       /* Define dimensions and two vars, a 1D coordinate var for
@@ -204,56 +207,56 @@ main(int argc, char **argv)
 	 if (nc_inq_varid(ncid, fnames[fixvar], &varid)) ERR;
 	 if (nc_inq_vartype(ncid, varid, &type)) ERR;
 	 switch(type) {
-	    case NC_CHAR:
-	    {
-	       char vals[NVALS];
-	       if (nc_get_var_text(ncid, varid, vals)) ERR;
-	       for (i = 0; i < NVALS; i++)
-		  if(vals[i] != NC_FILL_CHAR) ERR;
-	    }
-	    break;
-	    case NC_BYTE:
-	    {
-	       signed char vals[NVALS];
-	       if (nc_get_var_schar(ncid, varid, vals)) ERR;
-	       for (i = 0; i < NVALS; i++)
-		  if(vals[i] != NC_FILL_BYTE) ERR;
-	    }
-	    break;
-	    case NC_SHORT:
-	    {
-	       short vals[NVALS];
-	       if (nc_get_var_short(ncid, varid, vals)) ERR;
-	       for (i = 0; i < NVALS; i++)
-		  if(vals[i] != NC_FILL_SHORT) ERR;
-	    }
-	    break;
-	    case NC_INT:
-	    {
-	       int vals[NVALS];
-	       if (nc_get_var_int(ncid, varid, vals)) ERR;
-	       for (i = 0; i < NVALS; i++)
-		  if(vals[i] != NC_FILL_INT) ERR;
-	    }
-	    break;
-	    case NC_FLOAT:
-	    {
-	       float vals[NVALS];
-	       if (nc_get_var_float(ncid, varid, vals)) ERR;
-	       for (i = 0; i < NVALS; i++)
-		  if(vals[i] != NC_FILL_FLOAT) ERR;
-	    }
-	    break;
-	    case NC_DOUBLE:
-	    {
-	       double vals[NVALS];
-	       if (nc_get_var_double(ncid, varid, vals)) ERR;
-	       for (i = 0; i < NVALS; i++)
-		  if (vals[i] != NC_FILL_DOUBLE) ERR;
-	    }
-	    break;
-	    default:
-	       ERR;
+         case NC_CHAR:
+         {
+            char vals[NVALS];
+            if (nc_get_var_text(ncid, varid, vals)) ERR;
+            for (i = 0; i < NVALS; i++)
+               if(vals[i] != NC_FILL_CHAR) ERR;
+         }
+         break;
+         case NC_BYTE:
+         {
+            signed char vals[NVALS];
+            if (nc_get_var_schar(ncid, varid, vals)) ERR;
+            for (i = 0; i < NVALS; i++)
+               if(vals[i] != NC_FILL_BYTE) ERR;
+         }
+         break;
+         case NC_SHORT:
+         {
+            short vals[NVALS];
+            if (nc_get_var_short(ncid, varid, vals)) ERR;
+            for (i = 0; i < NVALS; i++)
+               if(vals[i] != NC_FILL_SHORT) ERR;
+         }
+         break;
+         case NC_INT:
+         {
+            int vals[NVALS];
+            if (nc_get_var_int(ncid, varid, vals)) ERR;
+            for (i = 0; i < NVALS; i++)
+               if(vals[i] != NC_FILL_INT) ERR;
+         }
+         break;
+         case NC_FLOAT:
+         {
+            float vals[NVALS];
+            if (nc_get_var_float(ncid, varid, vals)) ERR;
+            for (i = 0; i < NVALS; i++)
+               if(vals[i] != NC_FILL_FLOAT) ERR;
+         }
+         break;
+         case NC_DOUBLE:
+         {
+            double vals[NVALS];
+            if (nc_get_var_double(ncid, varid, vals)) ERR;
+            for (i = 0; i < NVALS; i++)
+               if (vals[i] != NC_FILL_DOUBLE) ERR;
+         }
+         break;
+         default:
+            ERR;
 	 }
       }
 
@@ -267,61 +270,94 @@ main(int argc, char **argv)
 	 if (nc_inq_varid(ncid, rnames[recvar], &varid)) ERR;
 	 if (nc_inq_vartype(ncid, varid, &type)) ERR;
 	 switch(type) {
-	    case NC_CHAR:
-	    {
-	       char vals[NVALS];
-	       if (nc_get_vara_text(ncid, varid, start, count, vals)) ERR;
-	       for (i = 0; i < NVALS; i++)
-		  if(vals[i] != NC_FILL_CHAR) ERR;
-	    }
-	    break;
-	    case NC_BYTE:
-	    {
-	       signed char vals[NVALS];
-	       if (nc_get_vara_schar(ncid, varid, start, count, vals)) ERR;
-	       for (i = 0; i < NVALS; i++)
-		  if(vals[i] != NC_FILL_BYTE) ERR;
-	    }
-	    break;
-	    case NC_SHORT:
-	    {
-	       short vals[NVALS];
-	       if (nc_get_vara_short(ncid, varid, start, count, vals)) ERR;
-	       for (i = 0; i < NVALS; i++)
-		  if(vals[i] != NC_FILL_SHORT) ERR;
-	    }
-	    break;
-	    case NC_INT:
-	    {
-	       int vals[NVALS];
-	       if (nc_get_vara_int(ncid, varid, start, count, vals)) ERR;
-	       for (i = 0; i < NVALS; i++)
-		  if(vals[i] != NC_FILL_INT) ERR;
-	    }
-	    break;
-	    case NC_FLOAT:
-	    {
-	       float vals[NVALS];
-	       if (nc_get_vara_float(ncid, varid, start, count, vals)) ERR;
-	       for (i = 0; i < NVALS; i++)
-		  if(vals[i] != NC_FILL_FLOAT) ERR;
-	    }
-	    break;
-	    case NC_DOUBLE:
-	    {
-	       double vals[NVALS];
-	       if (nc_get_vara_double(ncid, varid, start, count, vals)) ERR;
-	       for (i = 0; i < NVALS; i++)
-		  if(vals[i] != NC_FILL_DOUBLE) ERR;
-	    }
-	    break;
-	    default:
-	       ERR;
+         case NC_CHAR:
+         {
+            char vals[NVALS];
+            if (nc_get_vara_text(ncid, varid, start, count, vals)) ERR;
+            for (i = 0; i < NVALS; i++)
+               if(vals[i] != NC_FILL_CHAR) ERR;
+         }
+         break;
+         case NC_BYTE:
+         {
+            signed char vals[NVALS];
+            if (nc_get_vara_schar(ncid, varid, start, count, vals)) ERR;
+            for (i = 0; i < NVALS; i++)
+               if(vals[i] != NC_FILL_BYTE) ERR;
+         }
+         break;
+         case NC_SHORT:
+         {
+            short vals[NVALS];
+            if (nc_get_vara_short(ncid, varid, start, count, vals)) ERR;
+            for (i = 0; i < NVALS; i++)
+               if(vals[i] != NC_FILL_SHORT) ERR;
+         }
+         break;
+         case NC_INT:
+         {
+            int vals[NVALS];
+            if (nc_get_vara_int(ncid, varid, start, count, vals)) ERR;
+            for (i = 0; i < NVALS; i++)
+               if(vals[i] != NC_FILL_INT) ERR;
+         }
+         break;
+         case NC_FLOAT:
+         {
+            float vals[NVALS];
+            if (nc_get_vara_float(ncid, varid, start, count, vals)) ERR;
+            for (i = 0; i < NVALS; i++)
+               if(vals[i] != NC_FILL_FLOAT) ERR;
+         }
+         break;
+         case NC_DOUBLE:
+         {
+            double vals[NVALS];
+            if (nc_get_vara_double(ncid, varid, start, count, vals)) ERR;
+            for (i = 0; i < NVALS; i++)
+               if(vals[i] != NC_FILL_DOUBLE) ERR;
+         }
+         break;
+         default:
+            ERR;
 	 }
       }
 
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
+   printf("*** testing fill mode...");
+#define NDIM1 1
+#define DIM_LEN 4
+#define DIM_NAME "my_dim"
+#define VAR_NAME "my_var"
+   {
+      int ncid;
+      int dimid;
+      int varid;
+      int cmode = 0;
+      char testfile[] = "test.nc";
+      size_t index = 2;
+      int test_val = 42;
+      int no_fill;
+      int ret;
+        
+      if ((ret = nc_create(testfile, cmode, &ncid)))
+         return ret;
+      if ((ret = nc_def_dim(ncid, DIM_NAME, DIM_LEN, &dimid)))
+         return ret;
+      if ((ret = nc_def_var(ncid, VAR_NAME, NC_INT, NDIM1, &dimid, &varid)))
+         return ret;
+      if ((ret = nc_enddef(ncid)))
+         return ret;
+      if ((ret = nc_put_var1_int(ncid, varid, &index, &test_val)))
+         return ret;
+      if ((ret = nc_inq_var_fill(ncid, varid, &no_fill, NULL)))
+         return ret;
+      if (no_fill) ERR;
+      if ((ret = nc_close(ncid)))
+         return ret;
+   }
+   SUMMARIZE_ERR;        
    FINAL_RESULTS;
 }

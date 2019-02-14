@@ -21,6 +21,7 @@ variables:
 // global attributes:
 		:g1 = 3, 8, 16, 32 ;
 		:s1 = "gvalue1" ;
+		:S2.lost1 = "value1" ;
 data:
 
  S1.v1 =

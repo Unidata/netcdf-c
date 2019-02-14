@@ -1,5 +1,5 @@
 /* This is part of the netCDF package.
-   Copyright 2005 University Corporation for Atmospheric Research/Unidata
+   Copyright 2018 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
    Test HDF5 file code. These are not intended to be exhaustive tests,
@@ -79,7 +79,7 @@ main()
 			      H5P_DEFAULT)) < 0) ERR;
       if ((grpid = H5Gcreate(fileid, GRP2_NAME, 0)) < 0) ERR;
 
-      /* Create a space coresponding to these three dimensions. */
+      /* Create a space corresponding to these three dimensions. */
       dims[0] = 0;
       dims[1] = LAT_LEN;
       dims[2] = LON_LEN;

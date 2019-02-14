@@ -6,24 +6,9 @@
 # will be executed in a different directory
 # than the ontaining it; so capture the path to this script
 # as the location of the source directory.
-srcdir=`dirname $0`
-cd $srcdir
-srcdir=`pwd`
-if [ `uname | cut -d "_" -f 1` = "MINGW32" ]; then
-    srcdir=`pwd | sed 's/\/c\//c:\//g'`
-    builddir="$srcdir"/..
-fi
-tmp=`echo ${srcdir}|sed -e 's/^\\\\//g'`
-if test ${tmp} = ${srcdir} ; then
-  srcdir=`pwd`/${srcdir}
-  tmp=`echo ${srcdir}|sed -e 's/\\\\$//g'`
-  srcdir=${tmp}
-fi
-echo "srcdir=${srcdir}"
-# Also compute the build directory
-#builddir=`pwd`/..
-builddir=${srcdir}/..
-echo "builddir=${builddir}"
+
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
+. ../test_common.sh
 
 # Locate the expected directory
 expected="${srcdir}/expected"

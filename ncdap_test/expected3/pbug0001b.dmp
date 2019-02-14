@@ -8,8 +8,8 @@ variables:
 	float \3H(ISTA, IZ) ;
 
 // global attributes:
-		:bs5 = "foo\foo\\" ;
-		:dsp_ing_tiros_ourid = "NO11****C”¸5>B\\" ;
+		:bs5 = "foo\\foo\\" ;
+ 		:dsp_ing_tiros_ourid = "NO11****C\\224\\2705>B\\217\\" ;
 		:bung = 0.f, 1.f, 2.3f, -2.23456f ;
 data:
 

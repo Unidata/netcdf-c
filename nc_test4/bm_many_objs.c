@@ -1,12 +1,15 @@
-/** \file
-This program benchmarks creating a netCDF file with many objects.
+/* This is part of the netCDF package. Copyright 2018 University
+   Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
+   conditions of use. See www.unidata.ucar.edu for more info.
 
-Copyright 2010, UCAR/Unidata See COPYRIGHT file for copying and
-redistribution conditions.
+   This program benchmarks creating a netCDF file with many objects.
+
+   Ed Hartnett
 */
 
 #include <config.h>
 #include <nc_tests.h>
+#include "err_macros.h"
 #include <netcdf.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,6 +18,10 @@ redistribution conditions.
 
 /* We will create this file. */
 #define FILE_NAME "bm_many_objs.nc"
+
+/* Prototype from tst_utils.c. */
+int nc4_timeval_subtract(struct timeval *result, struct timeval *x,
+                         struct timeval *y);
 
 int main(int argc, char **argv)
 {
@@ -27,7 +34,7 @@ int main(int argc, char **argv)
     int g, grp, numgrp;
     char gname[16];
     int v, var, numvar, vn, vleft, nvars;
-    
+
     if(argc > 2) { 	/* Usage */
 	printf("NetCDF performance test, writing many groups and variables.\n");
 	printf("Usage:\t%s [N]\n", argv[0]);
@@ -58,11 +65,11 @@ int main(int argc, char **argv)
 	}
     }
     nc_close(ncid);
-    
+
     /*  create new file */
     if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
-    /* create N variables, printing time after every 1000.  
-     * Put NC_MAX_VARS variables per group (even though netcdf4 non-classic 
+    /* create N variables, printing time after every 1000.
+     * Put NC_MAX_VARS variables per group (even though netcdf4 non-classic
      * format does not limit variable count), create the necessary number
      * of groups to hold nitem variables. */
     numvar = nitem;
@@ -71,7 +78,7 @@ int main(int argc, char **argv)
     vleft = numvar - (NC_MAX_VARS * (numgrp - 1));
     if (gettimeofday(&start_time, NULL))
 	ERR;
-    
+
     for(g = 1; g < numgrp + 1; g++) {
 	sprintf(gname, "group%d", g);
 	if (nc_def_grp(ncid, gname, &grp)) ERR;
@@ -92,5 +99,5 @@ int main(int argc, char **argv)
 	}
     }
     nc_close(ncid);
-    return(0);
+    FINAL_RESULTS;
 }

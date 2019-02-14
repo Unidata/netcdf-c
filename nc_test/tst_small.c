@@ -1,4 +1,4 @@
-/* This is part of the netCDF package. Copyright 2005 University
+/* This is part of the netCDF package. Copyright 2018 University
    Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
    conditions of use. See www.unidata.ucar.edu for more info.
 
@@ -9,6 +9,7 @@
 
 #include "config.h"
 #include <nc_tests.h>
+#include "err_macros.h"
 #include <netcdf.h>
 #ifdef USE_PNETCDF
 #include <netcdf_par.h>
@@ -19,7 +20,7 @@
 #define NUM_FORMATS (5)
 
 #define ATT_NAME "Atom"
-#define MAX_LEN 7   
+#define MAX_LEN 7
 
 #define ERR2 { \
     err++; \
@@ -33,31 +34,34 @@
      int format; \
      nc_inq_format_extended(ncid,&format,NULL); \
      if (format == NC_FORMATX_PNETCDF) { \
-       if (nc_var_par_access(ncid, varid, NC_COLLECTIVE)) ERR;\
+       if (nc_var_par_access(ncid, NC_GLOBAL, NC_COLLECTIVE)) ERR;\
      }\
    }
 #else
-#define FMTCHECK 
+#define FMTCHECK
 #endif
 
 
 static int file_create(const char *filename, int cmode, int *ncid)
-{        
+{
     int err;
-         
+
     /* get the default file format */
     int default_format;
     nc_set_default_format(NC_FORMAT_CLASSIC, &default_format);
     /* set it back to the default */
     nc_set_default_format(default_format, NULL);
-    
+
 #ifdef USE_PNETCDF
     if (default_format == NC_FORMAT_CLASSIC ||
-        default_format == NC_FORMAT_64BIT_OFFSET ||
-        default_format == NC_FORMAT_64BIT_DATA)
-        err = nc_create_par(filename, cmode|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, ncid);
+        default_format == NC_FORMAT_64BIT_OFFSET
+#ifdef ENABLE_CDF5
+        || default_format == NC_FORMAT_64BIT_DATA
+#endif
+        )
+        err = nc_create_par(filename, cmode, MPI_COMM_WORLD, MPI_INFO_NULL, ncid);
     else
-#endif 
+#endif
         err = nc_create(filename, cmode, ncid);
 
     return err;
@@ -77,7 +81,7 @@ static int file_open(const char *filename, int omode, int *ncid)
     if (default_format == NC_FORMAT_CLASSIC ||
         default_format == NC_FORMAT_64BIT_OFFSET ||
         default_format == NC_FORMAT_64BIT_DATA)
-        err = nc_open_par(filename, omode|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, ncid);
+        err = nc_open_par(filename, omode, MPI_COMM_WORLD, MPI_INFO_NULL, ncid);
     else
 #endif
         err = nc_open(filename, omode, ncid);
@@ -93,7 +97,7 @@ test_small_atts(const char *testfile)
    int ndims, nvars, natts, unlimdimid;
    size_t len_in;
    int t, f;
-   
+
    /* Run this with and without fill mode. */
    for (f = 0; f < 2; f++)
    {
@@ -103,13 +107,14 @@ test_small_atts(const char *testfile)
       {
 	 /* Create null-terminated text string of correct length. */
 	 strncpy(att, source, t);
-	 
+         att[t] = '\0';
+
 	 /* Create a file with one attribute. */
 	 if (file_create(testfile, NC_CLOBBER, &ncid)) ERR;
 	 if (nc_put_att_text(ncid, NC_GLOBAL, ATT_NAME, t + 1, att)) ERR;
 	 if (f && nc_set_fill(ncid, NC_NOFILL, NULL)) ERR;
 	 if (nc_close(ncid)) ERR;
-	 
+
 	 /* Reopen the file and check it. */
 	 if (file_open(testfile, NC_NOWRITE, &ncid)) ERR;
 	 if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
@@ -118,7 +123,7 @@ test_small_atts(const char *testfile)
 	 if (len_in != t + 1) ERR;
 	 if (nc_get_att_text(ncid, NC_GLOBAL, ATT_NAME, att_in)) ERR;
 	 if (strncmp(att_in, att, t)) ERR;
-	 if (nc_close(ncid)) ERR; 
+	 if (nc_close(ncid)) ERR;
       }
    }
    return 0;
@@ -150,7 +155,7 @@ test_small_unlim(const char *testfile)
      strcpy(data[i], source);*/
    strcpy(data[0], "2005-04-11_12:00:00");
    strcpy(data[1], "2005-04-11_13:00:00");
-   
+
    /* Create a file with two dimensions, one unlimited, and one
     * var, and a global att. */
    if (file_create(testfile, NC_CLOBBER, &ncid)) ERR;
@@ -172,7 +177,7 @@ test_small_unlim(const char *testfile)
 
    /* We're done! */
    if (nc_close(ncid)) ERR;
-   
+
    /* Reopen the file and check it. */
    if (file_open(testfile, NC_NOWRITE, &ncid)) ERR;
    if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
@@ -180,7 +185,7 @@ test_small_unlim(const char *testfile)
    if (nc_get_var_text(ncid, varid, (char *)data_in)) ERR;
    for (i = 0; i < NUM_VALS; i++)
       if (strncmp(data[i], data_in[i], STR_LEN)) ERR;
-   if (nc_close(ncid)) ERR; 
+   if (nc_close(ncid)) ERR;
    return 0;
 }
 
@@ -198,7 +203,7 @@ test_small_fixed(const char *testfile)
      strcpy(data[i], source);*/
    strcpy(data[0], "2005-04-11_12:00:00");
    strcpy(data[1], "2005-04-11_13:00:00");
-   
+
    /* Create a file with two dimensions, one unlimited, and one
     * var, and a global att. */
    if (file_create(testfile, NC_CLOBBER, &ncid)) ERR;
@@ -217,7 +222,7 @@ test_small_fixed(const char *testfile)
 
    /* We're done! */
    if (nc_close(ncid)) ERR;
-   
+
    /* Reopen the file and check it. */
    if (file_open(testfile, NC_NOWRITE, &ncid)) ERR;
    if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
@@ -225,7 +230,7 @@ test_small_fixed(const char *testfile)
    if (nc_get_var_text(ncid, varid, (char *)data_in)) ERR;
    for (i = 0; i < NUM_VALS; i++)
       if (strncmp(data[i], data_in[i], STR_LEN)) ERR;
-   if (nc_close(ncid)) ERR; 
+   if (nc_close(ncid)) ERR;
    return 0;
 }
 
@@ -254,14 +259,14 @@ test_small_one(const char *testfile)
 
    /* We're done! */
    if (nc_close(ncid)) ERR;
-   
+
    /* Reopen the file and check it. */
    if (file_open(testfile, NC_NOWRITE, &ncid)) ERR;
    if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
    if (ndims != 1 && nvars != 1 && natts != 0 && unlimdimid != 0) ERR;
    if (nc_get_var_text(ncid, varid, &data_in)) ERR;
    if (data_in != data) ERR;
-   if (nc_close(ncid)) ERR; 
+   if (nc_close(ncid)) ERR;
    return 0;
 }
 
@@ -314,7 +319,7 @@ test_one_growing(const char *testfile)
 	 FMTCHECK;
 	 if (nc_put_vara_text(ncid, varid, start, count, &data[r])) ERR;
 	 if (nc_close(ncid)) ERR;
-      
+
 	 /* Reopen the file and check it. */
 	 if (file_open(testfile, NC_NOWRITE, &ncid)) ERR;
 	 if (nc_inq_dimlen(ncid, 0, &len_in)) ERR;
@@ -322,7 +327,7 @@ test_one_growing(const char *testfile)
 	 index[0] = r;
 	 if (nc_get_var1_text(ncid, 0, index, &data_in)) ERR;
 	 if (data_in != data[r]) ERR;
-	 if (nc_close(ncid)) ERR; 
+	 if (nc_close(ncid)) ERR;
       } /* Next record. */
    }
    return 0;
@@ -369,7 +374,7 @@ test_one_growing_with_att(const char *testfile)
       if (nc_redef(ncid)) ERR;
       if (nc_put_att_text(ncid, varid, att_name, 1, &data[r])) ERR;
       if (nc_close(ncid)) ERR;
-      
+
       /* Reopen the file and check it. */
       if (file_open(testfile, NC_NOWRITE, &ncid)) ERR;
       if (nc_inq_dimlen(ncid, 0, &len_in)) ERR;
@@ -379,7 +384,7 @@ test_one_growing_with_att(const char *testfile)
       if (data_in != data[r]) ERR;
       if (nc_get_att_text(ncid, varid, att_name, &data_in)) ERR;
       if (data_in != data[r]) ERR;
-      if (nc_close(ncid)) ERR; 
+      if (nc_close(ncid)) ERR;
    } /* Next record. */
    return 0;
 }
@@ -420,9 +425,7 @@ test_two_growing_with_att(const char *testfile)
       {int format;
       nc_inq_format_extended(ncid,&format,NULL);
       if (format == NC_FORMATX_PNETCDF) {
-          for (v = 0; v < NUM_VARS; v++) {
-              if (nc_var_par_access(ncid, varid[v], NC_COLLECTIVE)) ERR;
-          }
+          if (nc_var_par_access(ncid, NC_GLOBAL, NC_COLLECTIVE)) ERR;
       }}
 #endif
       count[0] = 1;
@@ -436,7 +439,7 @@ test_two_growing_with_att(const char *testfile)
 	 if (nc_enddef(ncid)) ERR;
       }
       if (nc_close(ncid)) ERR;
-      
+
       /* Reopen the file and check it. */
       if (file_open(testfile, NC_NOWRITE, &ncid)) ERR;
       if (nc_inq_dimlen(ncid, 0, &len_in)) ERR;
@@ -447,7 +450,7 @@ test_two_growing_with_att(const char *testfile)
 	 if (nc_get_var1_text(ncid, varid[v], index, &data_in)) ERR;
 	 if (data_in != data[r]) ERR;
       }
-      if (nc_close(ncid)) ERR; 
+      if (nc_close(ncid)) ERR;
    } /* Next record. */
    return 0;
 }
@@ -478,7 +481,7 @@ test_one_with_att(const char *testfile)
 
    /* We're done! */
    if (nc_close(ncid)) ERR;
-   
+
    /* Reopen the file and check it. */
    if (file_open(testfile, NC_NOWRITE, &ncid)) ERR;
    if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
@@ -487,7 +490,7 @@ test_one_with_att(const char *testfile)
    if (data_in != data) ERR;
    if (nc_get_att_text(ncid, NC_GLOBAL, ATT_NAME, &data_in)) ERR;
    if (data_in != data) ERR;
-   if (nc_close(ncid)) ERR; 
+   if (nc_close(ncid)) ERR;
    return 0;
 }
 
@@ -508,7 +511,7 @@ main(int argc, char **argv)
     * only builds), or 4 (for netCDF-4 builds) different formats. */
    for (i = NUM_FORMATS; i >= 1; i--)
    {
-      switch (i) 
+      switch (i)
       {
 	 case NC_FORMAT_CLASSIC:
 	    nc_set_default_format(NC_FORMAT_CLASSIC, NULL);
@@ -520,12 +523,17 @@ main(int argc, char **argv)
 	    printf("Switching to 64-bit offset format.\n");
 	    strcpy(testfile, "tst_small_64bit.nc");
 	    break;
+#ifdef ENABLE_CDF5
 	 case NC_FORMAT_CDF5:
 	    nc_set_default_format(NC_FORMAT_CDF5, NULL);
 	    printf("Switching to 64-bit data format.\n");
 	    strcpy(testfile, "tst_small_cdf5.nc");
 	    break;
-#ifdef USE_NETCDF4
+#else
+      case NC_FORMAT_CDF5:
+        continue;
+#endif
+#ifdef USE_HDF5
 	 case NC_FORMAT_NETCDF4_CLASSIC:
 	    nc_set_default_format(NC_FORMAT_NETCDF4_CLASSIC, NULL);
 	    strcpy(testfile, "tst_small_netcdf4_classic.nc");
@@ -549,7 +557,7 @@ main(int argc, char **argv)
       printf("*** testing simple small file with a global attribute...");
       test_small_atts(testfile);
       SUMMARIZE_ERR;
-      
+
       printf("*** testing simple small file with fixed dimensions...");
       test_small_fixed(testfile);
       SUMMARIZE_ERR;
@@ -557,15 +565,15 @@ main(int argc, char **argv)
       printf("*** testing simple small file with an unlimited dimension...");
       test_small_unlim(testfile);
       SUMMARIZE_ERR;
-      
+
       printf("*** testing small file with one variable...");
       test_small_one(testfile);
       SUMMARIZE_ERR;
-      
+
       printf("*** testing small file with one variable and one att...");
       test_one_with_att(testfile);
       SUMMARIZE_ERR;
-      
+
       printf("*** testing small file with one record variable, which grows...");
       test_one_growing(testfile);
       SUMMARIZE_ERR;
@@ -586,4 +594,3 @@ main(int argc, char **argv)
 #endif
    FINAL_RESULTS;
 }
-

@@ -1,9 +1,9 @@
 /* This is part of the netCDF package.
-   Copyright 2006 University Corporation for Atmospheric Research/Unidata.
+   Copyright 2018 University Corporation for Atmospheric Research/Unidata.
    See COPYRIGHT file for conditions of use.
 
    This is a very simple example which tests rejection of bad names for
-   netCDF data objects, including names with "/" character, trailing spaces, 
+   netCDF data objects, including names with "/" character, trailing spaces,
    leading special characters, and invalid UTF-8 strings.
 
    $Id: tst_names.c 2792 2014-10-27 06:02:59Z wkliao $
@@ -17,14 +17,15 @@
 #include <netcdf_par.h>
 #endif
 #include <nc_tests.h>
+#include "err_macros.h"
 
 /* The data file we will create. */
 #define FILE_NAME "tst_names.nc"
 #define NDIMS 1
 #define DIMLEN 1
 
-#define ERROR {printf("Error at line %d: %s\n",__LINE__,nc_strerror(res)); continue;}
-#define ERRORI {printf("Error at line %d (loop=%d): %s\n",__LINE__,i,nc_strerror(res)); continue;}
+#define ERROR {printf("Error at line %d: %s\n",__LINE__,nc_strerror(res)); nerrs++; continue;}
+#define ERRORI {printf("Error at line %d (loop=%d): %s\n",__LINE__,i,nc_strerror(res)); nerrs++; continue;}
 
 int
 main(int argc, char **argv)
@@ -196,10 +197,14 @@ main(int argc, char **argv)
        "x\xED\xAE\x80\xED\xB0\x80",
        "x\xED\xAE\x80\xED\xBF\xBF",
        "x\xED\xAF\xBF\xED\xB0\x80",
-       "x\xED\xAF\xBF\xED\xBF\xBF",
-       "x\xEF\xBF\xBE",		/* other illegal code positions */
+       "x\xED\xAF\xBF\xED\xBF\xBF"
+#if 0
+       /* The two below is legal since UTF8PROC_VERSION_MAJOR 2 */
+       "x\xEF\xBF\xBE",         /* other illegal code positions */
        "x\xEF\xBF\xBF"
+#endif
    };
+   int nerrs=0;
    int i, j;
 #define NUM_BAD (sizeof notvalid / sizeof notvalid[0])
 #define NUM_GOOD (sizeof valid / sizeof valid[0])
@@ -220,9 +225,11 @@ main(int argc, char **argv)
        NC_FORMAT_CLASSIC
        ,
        NC_FORMAT_64BIT_OFFSET
+#ifdef ENABLE_CDF5
        ,
        NC_FORMAT_CDF5
-#ifdef USE_NETCDF4
+#endif
+#ifdef USE_HDF5
        ,
        NC_FORMAT_NETCDF4
        ,
@@ -234,22 +241,14 @@ main(int argc, char **argv)
        "classic", "64-bit offset", "64-bit data", "netCDF-4/HDF5", "netCDF-4 classic model"
    };
 
-#ifdef TEST_PNETCDF
-   MPI_Init(&argc, &argv);
-#endif
-
    printf("\n*** testing names with file %s...\n", testfile);
    for (j = 0; j < num_formats; j++)
    {
        printf("*** switching to netCDF %s format...", format_names[j]);
        nc_set_default_format(formats[j], NULL);
-#ifdef TEST_PNETCDF
-       if((res = nc_create_par(testfile, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)))
-#else
        if((res = nc_create(testfile, NC_CLOBBER, &ncid)))
-#endif
 	   ERROR
-       
+
        /* Define dimensions, variables, and attributes with various
 	* acceptable names */
        for (i = 0; i < NUM_GOOD; i++) {
@@ -258,34 +257,34 @@ main(int argc, char **argv)
 
 	   dimids[i] = dimid;
 	   /* Define variable with same name */
-	   if ((res = nc_def_var(ncid, valid[i], NC_FLOAT, NDIMS, &dimids[i], 
+	   if ((res = nc_def_var(ncid, valid[i], NC_FLOAT, NDIMS, &dimids[i],
 				 &varid)))
 	       ERRORI
 	   varids[i] = varid;
 	   /* Define variable and global attributes with same name and value */
-	   if ((res = nc_put_att_text(ncid, varid, valid[i], 
+	   if ((res = nc_put_att_text(ncid, varid, valid[i],
 				      strlen(valid[i]), valid[i])))
 	       ERRORI
-	   if ((res = nc_put_att_double(ncid, NC_GLOBAL, valid[i], NC_DOUBLE, 
+	   if ((res = nc_put_att_double(ncid, NC_GLOBAL, valid[i], NC_DOUBLE,
 					NATTVALS, attvals)))
 	       ERRORI
 #if 0
 	   attnums[i] = i;
 #endif
        }
-       
+
        /* Try defining dimensions, variables, and attributes with various
 	* bad names and make sure these are rejected */
        for (i = 0; i < NUM_BAD; i++) {
-	   if ((res = nc_def_dim(ncid, notvalid[i], DIMLEN, &dimid)) 
+	   if ((res = nc_def_dim(ncid, notvalid[i], DIMLEN, &dimid))
 	       != NC_EBADNAME) ERRORI
-	   if ((res = nc_def_var(ncid, notvalid[i], NC_FLOAT, NDIMS, dimids, 
+	   if ((res = nc_def_var(ncid, notvalid[i], NC_FLOAT, NDIMS, dimids,
 				 &varid))
 	       != NC_EBADNAME) ERRORI
-	   if ((res = nc_put_att_text(ncid, varid, notvalid[i], 
+	   if ((res = nc_put_att_text(ncid, varid, notvalid[i],
 				      strlen(attstring), attstring))
 	       != NC_EBADNAME) ERRORI
-	   if ((res = nc_put_att_double(ncid, NC_GLOBAL, notvalid[i], NC_DOUBLE, 
+	   if ((res = nc_put_att_double(ncid, NC_GLOBAL, notvalid[i], NC_DOUBLE,
 					NATTVALS, attvals))
 	       != NC_EBADNAME) ERRORI
        }
@@ -293,31 +292,27 @@ main(int argc, char **argv)
 	   ERROR
        if ((res = nc_close(ncid)))
 	   ERROR
-       
+
        /* Check it out, make sure all objects with good names were defined OK */
-#ifdef TEST_PNETCDF
-       if ((res = nc_open_par(testfile, NC_NOWRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)))
-#else
        if ((res = nc_open(testfile, NC_NOWRITE, &ncid)))
-#endif
 	   ERROR
        for (i = 0; i < NUM_GOOD; i++) {
 	   size_t attlen;
-	   if ((res = nc_inq_dimid(ncid, valid[i], &dimid)) || 
+	   if ((res = nc_inq_dimid(ncid, valid[i], &dimid)) ||
 	       dimid != dimids[i])
 	       ERRORI
-	   if ((res = nc_inq_varid(ncid, valid[i], &varid)) || 
+	   if ((res = nc_inq_varid(ncid, valid[i], &varid)) ||
 	       varid != varids[i])
 	       ERRORI
 	   res = nc_inq_attlen(ncid, varid, valid[i], &attlen);
-	   if ((res = nc_get_att_text(ncid, varid, valid[i], attstr_in))) 
+	   if ((res = nc_get_att_text(ncid, varid, valid[i], attstr_in)))
 	       ERRORI
 	   attstr_in[attlen] = '\0';
-	   if (strcmp(valid[i], attstr_in) != 0) 
+	   if (strcmp(valid[i], attstr_in) != 0)
 	       ERRORI
-	   if ((res = nc_get_att_double(ncid, NC_GLOBAL, valid[i], 
-					attvals_in)) 
-	       || attvals[0] != attvals_in[0]) 
+	   if ((res = nc_get_att_double(ncid, NC_GLOBAL, valid[i],
+					attvals_in))
+	       || attvals[0] != attvals_in[0])
 	       ERRORI
        }
        if ((res = nc_close(ncid)))
@@ -326,10 +321,8 @@ main(int argc, char **argv)
 
        SUMMARIZE_ERR;
    }
+   total_err += nerrs;
    FINAL_RESULTS;
 
-#ifdef TEST_PNETCDF
-   MPI_Finalize();
-#endif
    return 0;
 }

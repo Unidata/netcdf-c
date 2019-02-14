@@ -1,12 +1,22 @@
+/*! \file
+
+Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+2015, 2016, 2017, 2018
+University Corporation for Atmospheric Research/Unidata.
+
+See \ref copyright file for more info.
+
+*/
 #include "config.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <netcdf.h>
+#include "netcdf.h"
+#include "nctestserver.h"
 
-
-#define URL1 "http://%s" /* test that no trailing / is ok */
-static char url1[1024];
+#define FURL "%s"
+static char url[4096];
 
 #ifdef DEBUG
 static void
@@ -31,17 +41,32 @@ int
 main()
 {
     int ncid,retval;
+    char* serverlist = NULL;
+    char* svcurl = NULL;
+    const char* servlet = "dts";
 
-    {
-    char* evv = getenv("DTSTESTSERVER");
-    if(evv == NULL)
-	evv = "remotetest.unidata.ucar.edu";
-    snprintf(url1,sizeof(url1),URL1,evv);
+#ifdef REMOTETESTSERVERS
+    serverlist = strdup(REMOTETESTSERVERS);
+#endif
+
+    if(serverlist == NULL || strlen(serverlist) == 0) {
+	fprintf(stderr,"Cannot determine a server list");
+	exit(1);
+    }
+    svcurl = nc_findtestserver(servlet,0,serverlist);
+    if(svcurl == NULL) {
+	fprintf(stderr,"not found: %s\n",servlet);
+	exit(1);
     }
 
-    printf("Testing: Misc. Tests \n");
-    retval = nc_open(url1, 0, &ncid);
+    snprintf(url,sizeof(url),FURL,svcurl);
+
+    printf("Testing: Misc. Tests url=|%s|\n",url);
+    retval = nc_open(url, 0, &ncid);
     XFAIL(retval,"*** XFail : No trailing slash in url");
     retval = nc_close(ncid);
+    /* cleanup */
+    free(serverlist);
+    free(svcurl);
     return 0;
 }

@@ -1,5 +1,5 @@
 ## This is a automake file, part of Unidata's netCDF package.
-# Copyright 2005, see the COPYRIGHT file for more information.
+# Copyright 2008, see the COPYRIGHT file for more information.
 
 # This Makefile controls the building of the dispatch layer of the
 # netCDF library. The dispatch layer decides whether to call the
@@ -17,30 +17,33 @@ libdispatch_la_CPPFLAGS = ${AM_CPPFLAGS}
 # The source files.
 libdispatch_la_SOURCES = dparallel.c dcopy.c dfile.c ddim.c datt.c	\
 dattinq.c dattput.c dattget.c derror.c dvar.c dvarget.c dvarput.c	\
-dvarinq.c dinternal.c ddispatch.c                                                   \
-nclog.c dstring.c dutf8proc.c utf8proc_data.h                          \
-ncuri.c nclist.c ncbytes.c nchashmap.c nctime.c                        \
-nc.c nclistmgr.c
+dvarinq.c dinternal.c ddispatch.c dutf8.c nclog.c dstring.c ncuri.c	\
+nclist.c ncbytes.c nchashmap.c nctime.c nc.c nclistmgr.c		\
+dauth.c doffsets.c dwinpath.c dutil.c dreadonly.c dnotnc4.c dnotnc3.c	\
+crc32.c crc32.h daux.c
+
+# Add the utf8 codebase
+libdispatch_la_SOURCES += utf8proc.c utf8proc.h
+
+# The rc code is currently only used by libdap2 and libdap4,
+# but in the future, it will be expanded to be used as the
+# general .rc file for the netcdf-c library. So, always compile it.
+libdispatch_la_SOURCES += drc.c
 
 # Add functions only found in netCDF-4.
 if USE_NETCDF4
 libdispatch_la_SOURCES += dgroup.c dvlen.c dcompound.c dtype.c denum.c	\
-dopaque.c ncaux.c
+dopaque.c dfilter.c
 endif # USE_NETCDF4
-
-# Turn on pre-processor flag when building a DLL for windows.
-if BUILD_DLL
-libdispatch_la_CPPFLAGS += -DDLL_EXPORT
-endif # BUILD_DLL
 
 # Add V2 API convenience library if needed.
 if BUILD_V2
-noinst_LTLIBRARIES += libnetcdf2.la 
+noinst_LTLIBRARIES += libnetcdf2.la
 libnetcdf2_la_SOURCES = dv2i.c
 libnetcdf2_la_CPPFLAGS = ${AM_CPPFLAGS} -DDLL_EXPORT
 endif # BUILD_V2
 
-EXTRA_DIST=CMakeLists.txt ncsettings.hdr
+EXTRA_DIST=CMakeLists.txt ncsettings.hdr utf8proc_data.c
 
 # Build ncsettings.c as follows:
 # 1. copy ncsettings.hdr to ncsettings.c
@@ -61,3 +64,9 @@ ncsettings.c: $(top_srcdir)/libnetcdf.settings ncsettings.hdr
 	sed -e 's/\(.*\)/\"\1\\n\"/' | \
 	cat >> ncsettings.c
 	echo ';' >> ncsettings.c
+
+# Unit tests
+test_ncuri_SOURCES = test_ncuri.c ncuri.c ncbytes.c nclist.c
+test_pathcvt_SOURCES = test_pathcvt.c dwinpath.c
+check_PROGRAMS = test_ncuri test_pathcvt
+TESTS = test_ncuri test_pathcvt

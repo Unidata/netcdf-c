@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
@@ -7,7 +7,7 @@
 #ifdef USE_PARALLEL
 #include "netcdf_par.h"
 #endif
-#include "ncdap.h"
+#include "dapincludes.h"
 #include "dapdump.h"
 #include "dceconstraints.h"
 
@@ -156,10 +156,10 @@ dumpdata1(nc_type nctype, size_t index, char* data)
 	fprintf(stdout,"'%c' %hhd",data[index],data[index]);
 	break;
     case NC_BYTE:
-	fprintf(stdout,"%hdB",((signed char*)data)[index]);
+	fprintf(stdout,"%hhdB",((signed char*)data)[index]);
 	break;
     case NC_UBYTE:
-	fprintf(stdout,"%huB",((unsigned char*)data)[index]);
+	fprintf(stdout,"%hhuB",((unsigned char*)data)[index]);
 	break;
     case NC_SHORT:
 	fprintf(stdout,"%hdS",((short*)data)[index]);
@@ -440,7 +440,7 @@ dumpnode(CDFnode* node)
     ncbytescat(buf,tmp);
     snprintf(tmp,sizeof(tmp),"ncfullname=%s\n",node->ncfullname);
     ncbytescat(buf,tmp);
-    snprintf(tmp,sizeof(tmp),"|subnodes|=%ld\n",nclistlength(node->subnodes));
+    snprintf(tmp,sizeof(tmp),"|subnodes|=%u\n",(unsigned)nclistlength(node->subnodes));
     ncbytescat(buf,tmp);
     snprintf(tmp,sizeof(tmp),"externaltype=%d\n",node->externaltype);
     ncbytescat(buf,tmp);
@@ -459,7 +459,7 @@ dumpnode(CDFnode* node)
     snprintf(tmp,sizeof(tmp),"attachment=%s\n",
 		(node->attachment?node->attachment->ocname:"null"));
     ncbytescat(buf,tmp);
-    snprintf(tmp,sizeof(tmp),"rank=%lu\n",nclistlength(node->array.dimset0));
+    snprintf(tmp,sizeof(tmp),"rank=%u\n",(unsigned)nclistlength(node->array.dimset0));
     ncbytescat(buf,tmp);
     for(i=0;i<nclistlength(node->array.dimset0);i++) {
 	CDFnode* dim = (CDFnode*)nclistget(node->array.dimset0,i);
@@ -485,14 +485,14 @@ dumpnode(CDFnode* node)
 }
 
 char*
-dumpalign(NCalignment* ncalign)
+dumpalign(NCD2alignment* ncalign)
 {
     char* result;
     char tmp[1024];
     if(ncalign == NULL)
-	result = nulldup("NCalignment{size=-- alignment=-- offset=--}");
+	result = nulldup("NCD2alignment{size=-- alignment=-- offset=--}");
     else {
-        snprintf(tmp,sizeof(tmp),"NCalignment{size=%lu alignment=%lu offset=%lu}",
+        snprintf(tmp,sizeof(tmp),"NCD2alignment{size=%lu alignment=%lu offset=%lu}",
 		 ncalign->size,ncalign->alignment,ncalign->offset);
         result = nulldup(tmp);
     }
@@ -584,7 +584,7 @@ dumpslice(DCEslice* slice)
                 (unsigned long)slice->stride,
                 (unsigned long)slice->last);
     }
-    strcat(buf,tmp);
+    strlcat(buf,tmp,sizeof(buf));
     return strdup(tmp);
 }
 

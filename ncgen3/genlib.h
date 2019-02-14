@@ -1,11 +1,11 @@
 #ifndef NC_GENLIB_H
 #define NC_GENLIB_H
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/ncgen3/genlib.h,v 1.15 2009/12/29 18:42:35 dmh Exp $
  *********************************************************************/
-#include <config.h>
+#include "config.h"
 #include <stdlib.h>
 #include <limits.h>
 
@@ -79,11 +79,6 @@ extern void nc_fill ( nc_type  type, size_t num, void* datp,
 
 /* reset symbol table to empty, defined in ncgen.y */
 extern void clearout(void);
-
-/* In case we are missing strlcat */
-#ifndef HAVE_STRLCAT
-extern size_t strlcat(char *dst, const char *src, size_t siz);
-#endif
 
 #ifdef __cplusplus
 }

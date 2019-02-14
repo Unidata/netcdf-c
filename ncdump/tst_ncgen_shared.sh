@@ -1,5 +1,7 @@
 #!/bin/sh
-if test "x$SETX" = x1 ; then echo "file=$0"; set -x ; fi
+
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
+. ../test_common.sh
 
 # To add a new test,
 # 1. put the .cdl file in the 'cdl' directory
@@ -12,7 +14,7 @@ if test "x$SETX" = x1 ; then echo "file=$0"; set -x ; fi
 #    and expected/Makefile.am 
 
 set -e
-RESULTSDIR="./results"
+RESULTSDIR="./results_$$"
 #SHOWXFAILS=1
 
 # Locate the cdl and expected directory
@@ -92,13 +94,14 @@ ref_tst_special_atts \
 ref_tst_nans \
 ref_solar \
 unlimtest2 \
-ref_tst_vlen_data \
-ref_tst_vlen_data \
-ref_tst_vlen_data2 \
 ref_niltest \
 ref_tst_h_scalar \
 ref_tst_nul4 \
 "
+
+if test "x$NC_VLEN_NOTEST" = x ; then
+TESTS4="$TESTS4 ref_tst_vlen_data ref_tst_vlen_data2"
+fi
 
 SPECIALTESTS3="ref_tst_special_atts3"
 
@@ -141,5 +144,4 @@ failcount=0
 passcount=0
 xfailcount=0
 
-rm -fr results
-mkdir results
+rm -fr $RESULTSDIR

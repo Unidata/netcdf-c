@@ -1,10 +1,10 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/ncdump/vardata.c,v 1.48 2010/05/05 22:15:39 dmh Exp $
  *********************************************************************/
 
-#include <config.h>
+#include "config.h"
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
@@ -12,16 +12,21 @@
 #include <assert.h>
 #include <netcdf.h>
 #include "utils.h"
+#include "netcdf.h"
 #include "nccomps.h"
 #include "dumplib.h"
 #include "ncdump.h"
 #include "indent.h"
 #include "vardata.h"
+#include "netcdf_aux.h"
 
 /* maximum len of string needed for one value of a primitive type */
 #define MAX_OUTPUT_LEN 100
 
 #define LINEPIND	"    "	/* indent of continued lines */
+
+#define LBRACE "{"
+#define RBRACE "}"
 
 extern fspec_t formatting_specs; /* set from command-line options */
 
@@ -442,7 +447,7 @@ print_rows(
 	inc *= vdims[i];
     }
     if(mark_record) { /* the whole point of this recursion is printing these "{}" */
-	lput("{");
+	lput(LBRACE);
 	marks_pending++;	/* matching "}"s to emit after last "row" */
     }
     if(rank - level > 1) {     	/* this level is just d0 next levels */
@@ -473,7 +478,7 @@ print_rows(
 	NC_CHECK(nc_get_vara(ncid, varid, cor, edg, (void *)valp));
 
 	/* Test if we should treat array of chars as strings along last dimension  */
-	if(vp->type == NC_CHAR && (vp->fmt == 0 || STREQ(vp->fmt,"%s") || STREQ(vp->fmt,""))) {
+	if(vp->type == NC_CHAR && (vp->fmt == 0 || NCSTREQ(vp->fmt,"%s") || NCSTREQ(vp->fmt,""))) {
 	    pr_tvals(vp, ncols, vals, cor);
 	} else {			/* for non-text variables */
 	    for(i=0; i < d0 - 1; i++) {
@@ -489,27 +494,30 @@ print_rows(
 	    }
 	    print_any_val(sb, vp, (void *)valp);
 	}
+        /* In case vals has memory hanging off e.g. vlen or string, make sure to reclaim it */
+        (void)ncaux_reclaim_data(ncid,vp->type,vals,ncols);
+
 	/* determine if this is the last row */
 	lastrow = true;
 	for(j = 0; j < rank - 1; j++) {
-      if (cor[j] != vdims[j] - 1) {
+            if (cor[j] != vdims[j] - 1) {
 		lastrow = false;
 		break;
-      }
+            }
 	}
 	if (formatting_specs.full_data_cmnts) {
-      for (j = 0; j < marks_pending; j++) {
-		sbuf_cat(sb, "}");
-      }
-      printf("%s", sbuf_str(sb));
-      lastdelim (0, lastrow);
-      annotate (vp, cor, d0-1);
+            for (j = 0; j < marks_pending; j++) {
+		sbuf_cat(sb, RBRACE);
+            }
+            printf("%s", sbuf_str(sb));
+            lastdelim (0, lastrow);
+            annotate (vp, cor, d0-1);
 	} else {
-      for (j = 0; j < marks_pending; j++) {
-		sbuf_cat(sb, "}");
-      }
-      lput(sbuf_str(sb));
-      lastdelim2 (0, lastrow);
+            for (j = 0; j < marks_pending; j++) {
+		sbuf_cat(sb, RBRACE);
+            }
+      	    lput(sbuf_str(sb));
+            lastdelim2 (0, lastrow);
 	}
     }
     sbuf_free(sb);
@@ -533,7 +541,6 @@ vardata(
     int id;
     size_t nels;
     size_t ncols;
-    size_t nrows;
     int vrank = vp->ndims;
 
     int level = 0;
@@ -576,7 +583,6 @@ vardata(
 	if (vrank > 1)
 	  add[vrank-2] = 1;
     }
-    nrows = nels/ncols;		/* number of "rows" */
     vals = emalloc(ncols * vp->tinfo->size);
 
     NC_CHECK(print_rows(level, ncid, varid, vp, vdims, cor, edg, vals, marks_pending));
@@ -768,7 +774,7 @@ vardatax(
 	NC_CHECK(nc_get_vara(ncid, varid, cor, edg, vals) );
 	/* Test if we should treat array of chars as a string  */
 	if(vp->type == NC_CHAR &&
-	   (vp->fmt == 0 || STREQ(vp->fmt,"%s") || STREQ(vp->fmt,""))) {
+	   (vp->fmt == 0 || NCSTREQ(vp->fmt,"%s") || NCSTREQ(vp->fmt,""))) {
 	    pr_tvalsx(vp, ncols, 0, lastrow, (char *) vals);
 	} else {
 	    pr_any_valsx(vp, ncols, 0, lastrow, vals);

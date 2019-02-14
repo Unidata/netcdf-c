@@ -1,9 +1,9 @@
 /*********************************************************************
-   Copyright 2010, UCAR/Unidata See netcdf/COPYRIGHT file for
+   Copyright 2018, UCAR/Unidata See netcdf/COPYRIGHT file for
    copying and redistribution conditions.
  *********************************************************************/
 
-#include <config.h>
+#include "config.h"
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -88,6 +88,11 @@ find_in_NCList(int ext_ncid)
    unsigned int ncid = ((unsigned int)ext_ncid) >> ID_SHIFT;
    if(numfiles > 0 && nc_filelist != NULL && ncid < NCFILELISTLENGTH)
 	f = nc_filelist[ncid];
+
+   /* for classic files, ext_ncid must be a multiple of (1<<ID_SHIFT) */
+   if (f != NULL && f->model == NC_FORMATX_NC3 && (ext_ncid % (1<<ID_SHIFT)))
+       return NULL;
+
    return f;
 }
 
@@ -106,7 +111,7 @@ find_in_NCList_by_name(const char* path)
 	    if(strcmp(nc_filelist[i]->path,path)==0) {
 		f = nc_filelist[i];
 		break;
-	    }				
+	    }
 	}
    }
    return f;
@@ -121,4 +126,3 @@ iterate_NCList(int index, NC** ncp)
     if(ncp) *ncp = nc_filelist[index];
     return NC_NOERR;
 }
-

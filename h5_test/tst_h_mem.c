@@ -1,4 +1,4 @@
-/* This is part of the netCDF package. Copyright 2007 University
+/* This is part of the netCDF package. Copyright 2018 University
    Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
    conditions of use.
 
@@ -9,6 +9,7 @@
 */
 
 #include "nc_tests.h"
+#include "err_macros.h"
 #include <hdf5.h>
 #include <H5DSpublic.h>
 

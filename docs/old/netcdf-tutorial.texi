@@ -2293,7 +2293,7 @@ Argonne/Northwestern. Unfortunately the two methods involve different
 APIs, and different binary formats.
 
 For parallel read/write access to classic and 64-bit offset data users
-must use the parallel-netcdf library from Argonne/Northwestern
+must use the PnetCDF library from Argonne/Northwestern
 University. This is not a Unidata software package, but was developed
 using the Unidata netCDF C library as a starting point. For more
 information see the parallel netcdf web site: @value{pnetcdf-url}.

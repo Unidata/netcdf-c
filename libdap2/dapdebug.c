@@ -1,25 +1,29 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 #include "config.h"
 #include <stdarg.h>
 #include <stdio.h>
 
+#include "dapincludes.h"
 #include "nclog.h"
-#include "ncdap.h"
 
 int ncdap3debug = 0;
 
 #ifdef CATCHERROR
 /* Place breakpoint here to catch errors close to where they occur*/
 int
-dapbreakpoint(int err) {return err;}
+dapbreakpoint(int err)
+{
+    return err;
+}
 
 int
-dapthrow(int err)
+dapthrow(int err, int lineno, const char* filename)
 {
     if(err == 0) return err;
+    fprintf(stderr,"$dapthrow: err=%d line=%d file=%s\n",err,lineno,filename); fflush(stderr);
     return dapbreakpoint(err);
 }
 #endif

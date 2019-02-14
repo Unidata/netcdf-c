@@ -1,12 +1,12 @@
 /* This is part of the netCDF package.
-   Copyright 2010 University Corporation for Atmospheric Research/Unidata
+   Copyright 2018 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
    Test dim rename that is causing problems with v2 API.
 */
 
 #include <nc_tests.h>
-
+#include "err_macros.h"
 
 #define FILE_NAME "tst_rename.nc"
 

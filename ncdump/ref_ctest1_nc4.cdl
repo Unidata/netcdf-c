@@ -28,9 +28,9 @@ variables:
 	double d ;
 		d:c = "abcd\tZ$&" ;
 	int64 i64 ;
-		i64:att_int64 = 1LL ;
+		i64:att_int64 = 1 ;
 	uint64 ui64 ;
-		ui64:att_uint64 = 1ULL ;
+		ui64:att_uint64 = 1 ;
 	char cr(Dr) ;
 	byte br(Dr) ;
 	short sr(Dr) ;
