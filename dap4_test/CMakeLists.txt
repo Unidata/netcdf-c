@@ -22,6 +22,12 @@ FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
 
+IF(ENABLE_DAP_REMOTE_TESTS)
+    # Change name (add '4') to avoid cmake
+    # complaint about duplicate targets.
+    BUILD_BIN_TEST(findtestserver4)
+ENDIF()
+
 IF(ENABLE_TESTS)
 
   # Base tests
@@ -34,10 +40,6 @@ IF(ENABLE_TESTS)
   ENDIF(BUILD_UTILITIES)
 
   IF(ENABLE_DAP_REMOTE_TESTS)
-
-    # Change name (add '4') to avoid cmake
-    # complaint about duplicate targets.
-    BUILD_BIN_TEST(findtestserver4)
 
     IF(BUILD_UTILITIES)
       #add_sh_test(dap4_test test_remote)

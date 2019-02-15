@@ -21,6 +21,7 @@ See \ref copyright file for more info.
 #define MAXSERVERURL 4096
 #define TIMEOUT 10 /*seconds*/
 #define BUFSIZE 8192 /*bytes*/
+#define MAXREMOTETESTSERVERS 4096
 
 #ifndef HAVE_CURLINFO_RESPONSE_CODE
 #define CURLINFO_RESPONSE_CODE CURLINFO_HTTP_CODE
@@ -37,8 +38,11 @@ parseServers(const char* remotetestservers)
     char* p;
     char* svc;
     char** l;
+    size_t rtslen = strlen(remotetestservers);
 
-    list = (char**)malloc(sizeof(char*) * (int)(strlen(remotetestservers)/2));
+    /* Keep LGTM quiet */
+    if(rtslen > MAXREMOTETESTSERVERS) goto done;
+    list = (char**)malloc(sizeof(char*) * (int)(rtslen/2));
     if(list == NULL) return NULL;
     rts = strdup(remotetestservers);
     if(rts == NULL) goto done;
