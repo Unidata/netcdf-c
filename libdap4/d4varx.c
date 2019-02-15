@@ -46,7 +46,7 @@ NCD4_get_vars(int ncid, int varid,
     size_t dstcount;
     
     if((ret=getvarx(ncid, varid, &info, &ncvar, &xtype, &xsize, &nc4type, &nc4size)))
-	{THROW(ret); goto done;}
+	{goto done;}
 
     meta = info->substrate.metadata;
     nctype = ncvar->basetype;
@@ -91,17 +91,17 @@ NCD4_get_vars(int ncid, int varid,
             offset = ncvar->data.dap4data.memory;
 	    /* We have to walk to the count'th location in the data */
 	    if((ret=NCD4_moveto(meta,ncvar,count,&offset)))
-	        {THROW(ret); goto done;}		    
+	        {goto done;}		    
 	}
 	dst = instance;
 	if((ret=NCD4_fillinstance(meta,nctype,&offset,&dst,blobs)))
-	    {THROW(ret); goto done;}
+	    {goto done;}
 	if(xtype == nc4type) {
 	    /* We can just copy out the data */
 	    memcpy(xpos,instance,nc4size);
 	} else { /* Need to convert */
 	    if((ret=NCD4_convert(nc4type,xtype,xpos,instance,1)))
-	        {THROW(ret); goto done;}
+	        {goto done;}
 	}
     }
 
@@ -136,7 +136,7 @@ getvarx(int ncid, int varid, NCD4INFO** infop, NCD4node** varp,
     int grp_id;
 
     if((ret = NC_check_id(ncid, (NC**)&ncp)) != NC_NOERR)
-	{THROW(ret); goto done;}
+	goto done;
 
     info = getdap(ncp);
     if(info == NULL)
