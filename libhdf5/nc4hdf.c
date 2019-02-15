@@ -1379,7 +1379,7 @@ attach_dimscales(NC_GRP_INFO_T *grp)
    for (v = 0; v < ncindexsize(grp->vars); v++)
    {
       /* Get pointer to var and HDF5-specific var info. */
-      var = (NC_VAR_INFO_T*)ncindexith(grp->vars, v);
+      var = (NC_VAR_INFO_T *)ncindexith(grp->vars, v);
       assert(var && var->format_var_info);
       hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
 
@@ -1784,6 +1784,12 @@ nc4_create_dim_wo_var(NC_DIM_INFO_T *dim)
    sprintf(dimscale_wo_var, "%s%10d", DIM_WITHOUT_VARIABLE, (int)dim->len);
    if (H5DSset_scale(hdf5_dim->hdf_dimscaleid, dimscale_wo_var) < 0)
       BAIL(NC_EHDFERR);
+
+   /* Since this dimension was created out of order, we cannot rely on
+    * it getting the correct dimid on file open. We must assign it
+    * explicitly. */
+   if ((retval = write_netcdf4_dimid(hdf5_dim->hdf_dimscaleid, dim->hdr.id)))
+       BAIL(retval);
 
 exit:
    if (spaceid > 0 && H5Sclose(spaceid) < 0)
