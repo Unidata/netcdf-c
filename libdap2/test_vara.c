@@ -93,9 +93,13 @@ main()
     size_t count[RANK];
     char URL[4096];
     const char* svc = NULL;
+    const char* testservers = "";
 
+#ifdef REMOTETESTSERVERS
+    testservers = REMOTETESTSERVERS;
+#endif
     /* Find Test Server */
-    svc = nc_findtestserver("dts",0);
+    svc = nc_findtestserver("dts",0,testservers);
     if(svc == NULL) {
 	fprintf(stderr,"Cannot locate test server\n");
 	exit(1);
