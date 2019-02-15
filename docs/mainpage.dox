@@ -23,6 +23,7 @@ The NetCDF homepage may be found at <a href="http://www.unidata.ucar.edu/softwar
 
 \subsubsection NetCDF-Fortran
 
+- <a href="http://www.unidata.ucar.edu/software/netcdf/fortran/docs"> The NetCDF-Fortran Developer's Guide</a>
 - <A href="http://cdash.unidata.ucar.edu/index.php?project=netcdf-fortran">The netCDF-Fortran Nightly and Continuous Integration Dashboard</A>
 - <A href="https://travis-ci.org/Unidata/netcdf-c">NetCDF-Fortran at Travis-CI</A>
 
