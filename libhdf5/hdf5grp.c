@@ -147,11 +147,13 @@ NC4_rename_grp(int grpid, const char *name)
       /* Attempt to rename & re-open the group, if the parent group is open */
       if (parent_hdf5_grp->hdf_grpid)
       {
-         /* Rename the group */
-         if (H5Gmove(parent_hdf5_grp->hdf_grpid, grp->hdr.name, name) < 0)
+         /* Rename the group. */
+         if (H5Lmove(parent_hdf5_grp->hdf_grpid, grp->hdr.name,
+                     parent_hdf5_grp->hdf_grpid, name, H5P_DEFAULT,
+                     H5P_DEFAULT) < 0)
             return NC_EHDFERR;
 
-         /* Reopen the group, with the new name */
+         /* Reopen the group, with the new name. */
          if ((hdf5_grp->hdf_grpid = H5Gopen2(parent_hdf5_grp->hdf_grpid, name,
                                              H5P_DEFAULT)) < 0)
             return NC_EHDFERR;
@@ -163,8 +165,9 @@ NC4_rename_grp(int grpid, const char *name)
    free(grp->hdr.name);
    if (!(grp->hdr.name = strdup(norm_name)))
       return NC_ENOMEM;
-   grp->hdr.hashkey = NC_hashmapkey(grp->hdr.name,strlen(grp->hdr.name)); /* Fix hash key */
 
+   /* Update the hash and rebuild index. */
+   grp->hdr.hashkey = NC_hashmapkey(grp->hdr.name,strlen(grp->hdr.name));
    if(!ncindexrebuild(grp->parent->children))
       return NC_EINTERNAL;
 
