@@ -132,9 +132,6 @@ are set when opening a binary file on Windows. */
 /* if true, build DAP4 Client */
 #cmakedefine ENABLE_DAP4 1
 
-/* if true, enable DAP group names */
-#cmakedefine ENABLE_DAP_GROUPS 1
-
 /* if true, do remote tests */
 #cmakedefine ENABLE_DAP_REMOTE_TESTS 1
 
