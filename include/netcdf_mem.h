@@ -12,6 +12,20 @@
 #ifndef NETCDF_MEM_H
 #define NETCDF_MEM_H 1
 
+/* Declaration modifiers for DLL support (MSC et al) */
+#if defined(DLL_NETCDF) /* define when library is a DLL */
+#  if defined(DLL_EXPORT) /* define when building the library */
+#   define MSC_EXTRA __declspec(dllexport)
+#  else
+#   define MSC_EXTRA __declspec(dllimport)
+#  endif
+#  include <io.h>
+#else
+#define MSC_EXTRA  /**< Needed for DLL build. */
+#endif  /* defined(DLL_NETCDF) */
+
+#define EXTERNL MSC_EXTRA extern /**< Needed for DLL build. */
+
 typedef struct NC_memio {
     size_t size;
     void* memory;

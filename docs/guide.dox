@@ -88,12 +88,8 @@ were written.
 
 Unidata supports the netCDF interfaces for C (see <a
 href="http://www.unidata.ucar.edu/netcdf/docs/" >NetCDF-C User's
-Guide</a>), FORTRAN 77 (see <a
-href="http://www.unidata.ucar.edu/netcdf/documentation/historic/netcdf-f77/index.html#Top"
->NetCDF Fortran 77 Interface Guide</a>), FORTRAN 90 (see <a
-href="http://www.unidata.ucar.edu/netcdf/documentation/historic/netcdf-f90/index.html"
->NetCDF Fortran 90 Interface Guide</a>), and C++ (see <a
-href="http://www.unidata.ucar.edu/netcdf/documentation/historic/cxx4/index.html"
+Guide</a>), Fortran (see <a href="http://www.unidata.ucar.edu/netcdf/fortran/docs/" >NetCDF-Fortran User's Guide</a>)
+and C++ (see <a href="http://www.unidata.ucar.edu/netcdf/documentation/historic/cxx4/index.html"
 >NetCDF C++ Interface Guide</a>).
 
 The netCDF library is supported for various UNIX operating systems. A
