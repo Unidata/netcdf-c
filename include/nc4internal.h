@@ -6,7 +6,7 @@
  * used to build and manipulate the netCDF metadata model.
  *
  * @author Ed Hartnett, Dennis Heimbigner, Ward Fisher
-*/
+ */
 
 #ifndef _NC4INTERNAL_
 #define _NC4INTERNAL_
@@ -50,31 +50,31 @@ typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP} NC_SORT;
 /*
  * limits of the external representation
  */
-#define X_SCHAR_MIN	(-128)
-#define X_SCHAR_MAX	127
-#define X_UCHAR_MAX	255U
-#define X_SHORT_MIN	(-32768)
-#define X_SHRT_MIN	X_SHORT_MIN	/* alias compatible with limits.h */
-#define X_SHORT_MAX	32767
-#define X_SHRT_MAX	X_SHORT_MAX	/* alias compatible with limits.h */
-#define X_USHORT_MAX	65535U
-#define X_USHRT_MAX	X_USHORT_MAX	/* alias compatible with limits.h */
-#define X_INT_MIN	(-2147483647-1)
-#define X_INT_MAX	2147483647
-#define X_LONG_MIN	X_INT_MIN
-#define X_LONG_MAX	X_INT_MAX
-#define X_UINT_MAX	4294967295U
-#define X_INT64_MIN	(-9223372036854775807LL-1LL)
-#define X_INT64_MAX	9223372036854775807LL
-#define X_UINT64_MAX	18446744073709551615ULL
+#define X_SCHAR_MIN     (-128)
+#define X_SCHAR_MAX     127
+#define X_UCHAR_MAX     255U
+#define X_SHORT_MIN     (-32768)
+#define X_SHRT_MIN      X_SHORT_MIN     /* alias compatible with limits.h */
+#define X_SHORT_MAX     32767
+#define X_SHRT_MAX      X_SHORT_MAX     /* alias compatible with limits.h */
+#define X_USHORT_MAX    65535U
+#define X_USHRT_MAX     X_USHORT_MAX    /* alias compatible with limits.h */
+#define X_INT_MIN       (-2147483647-1)
+#define X_INT_MAX       2147483647
+#define X_LONG_MIN      X_INT_MIN
+#define X_LONG_MAX      X_INT_MAX
+#define X_UINT_MAX      4294967295U
+#define X_INT64_MIN     (-9223372036854775807LL-1LL)
+#define X_INT64_MAX     9223372036854775807LL
+#define X_UINT64_MAX    18446744073709551615ULL
 #ifdef WIN32 /* Windows, of course, has to be a *little* different. */
-#define X_FLOAT_MAX	3.402823466e+38f
+#define X_FLOAT_MAX     3.402823466e+38f
 #else
-#define X_FLOAT_MAX	3.40282347e+38f
+#define X_FLOAT_MAX     3.40282347e+38f
 #endif /* WIN32 */
-#define X_FLOAT_MIN	(-X_FLOAT_MAX)
-#define X_DOUBLE_MAX	1.7976931348623157e+308
-#define X_DOUBLE_MIN	(-X_DOUBLE_MAX)
+#define X_FLOAT_MIN     (-X_FLOAT_MAX)
+#define X_DOUBLE_MAX    1.7976931348623157e+308
+#define X_DOUBLE_MIN    (-X_DOUBLE_MAX)
 
 /** This is the number of netCDF atomic types. */
 #define NUM_ATOMIC_TYPES (NC_MAX_ATOMIC_TYPE + 1)
@@ -91,15 +91,15 @@ struct NC_GRP_INFO;
 struct NC_TYPE_INFO;
 
 /*
-Indexed Access to Meta-data objects:
+  Indexed Access to Meta-data objects:
 
-See the document docs/indexing.dox for detailed information.
+  See the document docs/indexing.dox for detailed information.
 
-Basically provide a common header and use NCindex instances
-instead of linked lists.
+  Basically provide a common header and use NCindex instances
+  instead of linked lists.
 
-WARNING: ALL OBJECTS THAT CAN BE INSERTED INTO AN NCindex
-MUST HAVE AN INSTANCE of NC_OBJ AS THE FIRST FIELD.
+  WARNING: ALL OBJECTS THAT CAN BE INSERTED INTO AN NCindex
+  MUST HAVE AN INSTANCE of NC_OBJ AS THE FIRST FIELD.
 */
 
 typedef struct NC_OBJ {
@@ -112,181 +112,181 @@ typedef struct NC_OBJ {
 /* This is a struct to handle the dim metadata. */
 typedef struct NC_DIM_INFO
 {
-   NC_OBJ hdr;
-   struct NC_GRP_INFO *container;  /* containing group */
-   size_t len;
-   nc_bool_t unlimited;         /* True if the dimension is unlimited */
-   nc_bool_t extended;          /* True if the dimension needs to be extended */
-   nc_bool_t too_long;          /* True if len is too big to fit in local size_t. */
-   void *format_dim_info;       /* Pointer to format-specific dim info. */
-   struct NC_VAR_INFO *coord_var; /* The coord var, if it exists. */
+    NC_OBJ hdr;
+    struct NC_GRP_INFO *container;  /* containing group */
+    size_t len;
+    nc_bool_t unlimited;         /* True if the dimension is unlimited */
+    nc_bool_t extended;          /* True if the dimension needs to be extended */
+    nc_bool_t too_long;          /* True if len is too big to fit in local size_t. */
+    void *format_dim_info;       /* Pointer to format-specific dim info. */
+    struct NC_VAR_INFO *coord_var; /* The coord var, if it exists. */
 } NC_DIM_INFO_T;
 
 typedef struct NC_ATT_INFO
 {
-   NC_OBJ hdr;
-   struct NC_OBJ *container;    /* containing group|var */
-   int len;
-   nc_bool_t dirty;             /* True if attribute modified */
-   nc_bool_t created;           /* True if attribute already created */
-   nc_type nc_typeid;           /* netCDF type of attribute's data */
-   void *format_att_info;
-   void *data;
-   nc_vlen_t *vldata; /* only used for vlen */
-   char **stdata; /* only for string type. */
+    NC_OBJ hdr;
+    struct NC_OBJ *container;    /* containing group|var */
+    int len;
+    nc_bool_t dirty;             /* True if attribute modified */
+    nc_bool_t created;           /* True if attribute already created */
+    nc_type nc_typeid;           /* netCDF type of attribute's data */
+    void *format_att_info;
+    void *data;
+    nc_vlen_t *vldata; /* only used for vlen */
+    char **stdata; /* only for string type. */
 } NC_ATT_INFO_T;
 
 /* This is a struct to handle the var metadata. */
 typedef struct NC_VAR_INFO
 {
-   NC_OBJ hdr;
-   char *hdf5_name; /* used if different from name */
-   struct NC_GRP_INFO *container; /* containing group */
-   size_t ndims;
-   int *dimids;
-   NC_DIM_INFO_T **dim;
-   nc_bool_t is_new_var;        /* True if variable is newly created */
-   nc_bool_t was_coord_var;     /* True if variable was a coordinate var, but either the dim or var has been renamed */
-   nc_bool_t became_coord_var;  /* True if variable _became_ a coordinate var, because either the dim or var has been renamed */
-   nc_bool_t fill_val_changed;  /* True if variable's fill value changes after it has been created */
-   nc_bool_t attr_dirty;        /* True if variable's attributes are dirty and should be rewritten */
-   nc_bool_t created;           /* Variable has already been created (_not_ that it was just created) */
-   nc_bool_t written_to;        /* True if variable has data written to it */
-   struct NC_TYPE_INFO *type_info;
-   int atts_read;               /* If true, the atts have been read. */
-   nc_bool_t meta_read;         /* True if this vars metadata has been completely read. */
-   nc_bool_t coords_read;       /* True if this var has hidden coordinates att, and it has been read. */
-   NCindex *att; 		/* NCindex<NC_ATT_INFO_T*> */
-   nc_bool_t no_fill;           /* True if no fill value is defined for var */
-   void *fill_value;
-   size_t *chunksizes;
-   nc_bool_t contiguous;        /* True if variable is stored contiguously in HDF5 file */
-   int parallel_access;         /* Type of parallel access for I/O on variable (collective or independent) */
-   nc_bool_t dimscale;          /* True if var is a dimscale */
-   nc_bool_t *dimscale_attached;        /* Array of flags that are true if dimscale is attached for that dim index */
-   nc_bool_t deflate;           /* True if var has deflate filter applied */
-   int deflate_level;
-   nc_bool_t shuffle;           /* True if var has shuffle filter applied */
-   nc_bool_t fletcher32;        /* True if var has fletcher32 filter applied */
-   size_t chunk_cache_size, chunk_cache_nelems;
-   float chunk_cache_preemption;
-   void *format_var_info;       /* Pointer to any binary format info. */
-   /* Stuff for arbitrary filters */
-   unsigned int filterid;
-   size_t nparams;
-   unsigned int *params;
+    NC_OBJ hdr;
+    char *hdf5_name; /* used if different from name */
+    struct NC_GRP_INFO *container; /* containing group */
+    size_t ndims;
+    int *dimids;
+    NC_DIM_INFO_T **dim;
+    nc_bool_t is_new_var;        /* True if variable is newly created */
+    nc_bool_t was_coord_var;     /* True if variable was a coordinate var, but either the dim or var has been renamed */
+    nc_bool_t became_coord_var;  /* True if variable _became_ a coordinate var, because either the dim or var has been renamed */
+    nc_bool_t fill_val_changed;  /* True if variable's fill value changes after it has been created */
+    nc_bool_t attr_dirty;        /* True if variable's attributes are dirty and should be rewritten */
+    nc_bool_t created;           /* Variable has already been created (_not_ that it was just created) */
+    nc_bool_t written_to;        /* True if variable has data written to it */
+    struct NC_TYPE_INFO *type_info;
+    int atts_read;               /* If true, the atts have been read. */
+    nc_bool_t meta_read;         /* True if this vars metadata has been completely read. */
+    nc_bool_t coords_read;       /* True if this var has hidden coordinates att, and it has been read. */
+    NCindex *att;                /* NCindex<NC_ATT_INFO_T*> */
+    nc_bool_t no_fill;           /* True if no fill value is defined for var */
+    void *fill_value;
+    size_t *chunksizes;
+    nc_bool_t contiguous;        /* True if variable is stored contiguously in HDF5 file */
+    int parallel_access;         /* Type of parallel access for I/O on variable (collective or independent) */
+    nc_bool_t dimscale;          /* True if var is a dimscale */
+    nc_bool_t *dimscale_attached;        /* Array of flags that are true if dimscale is attached for that dim index */
+    nc_bool_t deflate;           /* True if var has deflate filter applied */
+    int deflate_level;
+    nc_bool_t shuffle;           /* True if var has shuffle filter applied */
+    nc_bool_t fletcher32;        /* True if var has fletcher32 filter applied */
+    size_t chunk_cache_size, chunk_cache_nelems;
+    float chunk_cache_preemption;
+    void *format_var_info;       /* Pointer to any binary format info. */
+    /* Stuff for arbitrary filters */
+    unsigned int filterid;
+    size_t nparams;
+    unsigned int *params;
 } NC_VAR_INFO_T;
 
 typedef struct NC_FIELD_INFO
 {
-   NC_OBJ hdr;
-   nc_type nc_typeid;
-   size_t offset;
-   int ndims;
-   int *dim_size;
-   void *format_field_info;  /* Pointer to any binary format info for field. */
+    NC_OBJ hdr;
+    nc_type nc_typeid;
+    size_t offset;
+    int ndims;
+    int *dim_size;
+    void *format_field_info;  /* Pointer to any binary format info for field. */
 } NC_FIELD_INFO_T;
 
 typedef struct NC_ENUM_MEMBER_INFO
 {
-   char *name;
-   void *value;
+    char *name;
+    void *value;
 } NC_ENUM_MEMBER_INFO_T;
 
 typedef struct NC_TYPE_INFO
 {
-   NC_OBJ hdr;                  /* NetCDF type ID. */
-   struct NC_GRP_INFO *container; /* Containing group */
-   unsigned rc;                 /* Ref. count of objects using this type */
-   int endianness;              /* What endianness for the type? */
-   size_t size;                 /* Size of the type in memory, in bytes */
-   nc_bool_t committed;         /* True when datatype is committed in the file */
-   nc_type nc_type_class;       /* NC_VLEN, NC_COMPOUND, NC_OPAQUE,
-                                 * NC_ENUM, NC_INT, NC_FLOAT, or
-                                 * NC_STRING. */
-   void *format_type_info;      /* HDF5-specific type info. */
+    NC_OBJ hdr;                  /* NetCDF type ID. */
+    struct NC_GRP_INFO *container; /* Containing group */
+    unsigned rc;                 /* Ref. count of objects using this type */
+    int endianness;              /* What endianness for the type? */
+    size_t size;                 /* Size of the type in memory, in bytes */
+    nc_bool_t committed;         /* True when datatype is committed in the file */
+    nc_type nc_type_class;       /* NC_VLEN, NC_COMPOUND, NC_OPAQUE,
+                                  * NC_ENUM, NC_INT, NC_FLOAT, or
+                                  * NC_STRING. */
+    void *format_type_info;      /* HDF5-specific type info. */
 
-   /* Information for each type or class */
-   union {
-      struct {
-         NClist* enum_member; /* <! NClist<NC_ENUM_MEMBER_INFO_T*> */
-         nc_type base_nc_typeid;
-      } e;                      /* Enum */
-      struct Fields {
-         NClist* field; /* <! NClist<NC_FIELD_INFO_T*> */
-      } c;                      /* Compound */
-      struct {
-         nc_type base_nc_typeid;
-      } v;                      /* Variable-length */
-   } u;                         /* Union of structs, for each type/class */
+    /* Information for each type or class */
+    union {
+        struct {
+            NClist* enum_member; /* <! NClist<NC_ENUM_MEMBER_INFO_T*> */
+            nc_type base_nc_typeid;
+        } e;                      /* Enum */
+        struct Fields {
+            NClist* field; /* <! NClist<NC_FIELD_INFO_T*> */
+        } c;                      /* Compound */
+        struct {
+            nc_type base_nc_typeid;
+        } v;                      /* Variable-length */
+    } u;                         /* Union of structs, for each type/class */
 } NC_TYPE_INFO_T;
 
 /* This holds information for one group. Groups reproduce with
  * parthenogenesis. */
 typedef struct NC_GRP_INFO
 {
-   NC_OBJ hdr;
-   void *format_grp_info;
-   struct NC_FILE_INFO *nc4_info;
-   struct NC_GRP_INFO *parent;
-   int atts_read;               /* True if atts have been read for this group. */
-   NCindex* children;		/* NCindex<struct NC_GRP_INFO*> */
-   NCindex* dim;		/* NCindex<NC_DIM_INFO_T> * */
-   NCindex* att;		/* NCindex<NC_ATT_INFO_T> * */
-   NCindex* type;		/* NCindex<NC_TYPE_INFO_T> * */
-   /* Note that this is the list of vars with position == varid */
-   NCindex* vars;		/* NCindex<NC_VAR_INFO_T> * */
+    NC_OBJ hdr;
+    void *format_grp_info;
+    struct NC_FILE_INFO *nc4_info;
+    struct NC_GRP_INFO *parent;
+    int atts_read;               /* True if atts have been read for this group. */
+    NCindex* children;           /* NCindex<struct NC_GRP_INFO*> */
+    NCindex* dim;                /* NCindex<NC_DIM_INFO_T> * */
+    NCindex* att;                /* NCindex<NC_ATT_INFO_T> * */
+    NCindex* type;               /* NCindex<NC_TYPE_INFO_T> * */
+    /* Note that this is the list of vars with position == varid */
+    NCindex* vars;               /* NCindex<NC_VAR_INFO_T> * */
 } NC_GRP_INFO_T;
 
 /* These constants apply to the cmode parameter in the
  * HDF5_FILE_INFO_T defined below. */
-#define NC_CREAT 2	/* in create phase, cleared by ncendef */
-#define NC_INDEF 8	/* in define mode, cleared by ncendef */
-#define NC_NSYNC 0x10	/* synchronise numrecs on change */
-#define NC_HSYNC 0x20	/* synchronise whole header on change */
-#define NC_NDIRTY 0x40	/* numrecs has changed */
+#define NC_CREAT 2      /* in create phase, cleared by ncendef */
+#define NC_INDEF 8      /* in define mode, cleared by ncendef */
+#define NC_NSYNC 0x10   /* synchronise numrecs on change */
+#define NC_HSYNC 0x20   /* synchronise whole header on change */
+#define NC_NDIRTY 0x40  /* numrecs has changed */
 #define NC_HDIRTY 0x80  /* header info has changed */
 
 /* This is the metadata we need to keep track of for each
    netcdf-4/HDF5 file. */
 typedef struct  NC_FILE_INFO
 {
-   NC* controller;
+    NC* controller;
 #ifdef USE_PARALLEL4
-   MPI_Comm comm;    /* Copy of MPI Communicator used to open the file */
-   MPI_Info info;    /* Copy of MPI Information Object used to open the file */
+    MPI_Comm comm;    /* Copy of MPI Communicator used to open the file */
+    MPI_Info info;    /* Copy of MPI Information Object used to open the file */
 #endif
-   int flags;
-   int cmode;
-   nc_bool_t parallel;          /* True if file is open for parallel access */
-   nc_bool_t redef;             /* True if redefining an existing file */
-   int fill_mode;               /* Fill mode for vars - Unused internally currently */
-   nc_bool_t no_write;          /* true if nc_open has mode NC_NOWRITE. */
-   NC_GRP_INFO_T *root_grp;
-   /* Track indices to assign to grps, types, and dims */
-   short next_nc_grpid;
-   int next_typeid;
-   int next_dimid;
-   /* Provide convenience vectors indexed by the object id.
-      This allows for direct conversion of e.g. an nc_type to
-      the corresponding NC_TYPE_INFO_T object.
-   */
-   NClist* alldims;
-   NClist* alltypes;
-   NClist* allgroups; /* including root group */
-   void *format_file_info;
-   struct NCPROVENANCE* provenance;
-   struct NC4_Memio {
-	NC_memio memio; /* What we sent to image_init and what comes back*/
-	int locked; /* do not copy and do not free  */
-	int persist; /* Should file be persisted out on close? */
-	int inmemory; /* NC_INMEMORY flag was set */
-	int diskless; /* NC_DISKLESS flag was set => inmemory */
-	int created; /* 1 => create, 0 => open */
-	unsigned int imageflags; /* for H5LTopen_file_image */
-	size_t initialsize;
-	void* udata; /* extra memory allocated in NC4_image_init */
-   } mem;
+    int flags;
+    int cmode;
+    nc_bool_t parallel;          /* True if file is open for parallel access */
+    nc_bool_t redef;             /* True if redefining an existing file */
+    int fill_mode;               /* Fill mode for vars - Unused internally currently */
+    nc_bool_t no_write;          /* true if nc_open has mode NC_NOWRITE. */
+    NC_GRP_INFO_T *root_grp;
+    /* Track indices to assign to grps, types, and dims */
+    short next_nc_grpid;
+    int next_typeid;
+    int next_dimid;
+    /* Provide convenience vectors indexed by the object id.
+       This allows for direct conversion of e.g. an nc_type to
+       the corresponding NC_TYPE_INFO_T object.
+    */
+    NClist* alldims;
+    NClist* alltypes;
+    NClist* allgroups; /* including root group */
+    void *format_file_info;
+    struct NCPROVENANCE* provenance;
+    struct NC4_Memio {
+        NC_memio memio; /* What we sent to image_init and what comes back*/
+        int locked; /* do not copy and do not free  */
+        int persist; /* Should file be persisted out on close? */
+        int inmemory; /* NC_INMEMORY flag was set */
+        int diskless; /* NC_DISKLESS flag was set => inmemory */
+        int created; /* 1 => create, 0 => open */
+        unsigned int imageflags; /* for H5LTopen_file_image */
+        size_t initialsize;
+        void* udata; /* extra memory allocated in NC4_image_init */
+    } mem;
 } NC_FILE_INFO_T;
 
 /* Variable Length Datatype struct in memory. Must be identical to
@@ -303,7 +303,7 @@ extern char* nc4_atomic_name[NC_MAX_ATOMIC_TYPE+1];
 int nc4_get_typelen_mem(NC_FILE_INFO_T *h5, nc_type xtype, size_t *len);
 int nc4_convert_type(const void *src, void *dest, const nc_type src_type,
                      const nc_type dest_type, const size_t len, int *range_error,
-		     const void *fill_value, int strict_nc3);
+                     const void *fill_value, int strict_nc3);
 
 /* These functions do HDF5 things. */
 int nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
@@ -323,7 +323,7 @@ NC_TYPE_INFO_T *nc4_rec_find_named_type(NC_GRP_INFO_T *start_grp, char *name);
 NC_TYPE_INFO_T *nc4_rec_find_equal_type(NC_GRP_INFO_T *start_grp, int ncid1,
                                         NC_TYPE_INFO_T *type);
 int nc4_find_nc_att(int ncid, int varid, const char *name, int attnum,
-		    NC_ATT_INFO_T **att);
+                    NC_ATT_INFO_T **att);
 int nc4_find_grp_h5_var(int ncid, int varid, NC_FILE_INFO_T **h5,
                         NC_GRP_INFO_T **grp, NC_VAR_INFO_T **var);
 int nc4_find_grp_att(NC_GRP_INFO_T *grp, int varid, const char *name,
@@ -353,7 +353,7 @@ int nc4_type_list_add(NC_GRP_INFO_T *grp, size_t size, const char *name,
 int nc4_type_list_del(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type);
 int nc4_type_free(NC_TYPE_INFO_T *type);
 int nc4_field_list_add(NC_TYPE_INFO_T* parent, const char *name,
-		       size_t offset, nc_type xtype, int ndims,
+                       size_t offset, nc_type xtype, int ndims,
                        const int *dim_sizesp);
 int nc4_att_list_add(NCindex *list, const char *name, NC_ATT_INFO_T **att);
 int nc4_att_list_del(NCindex *list, NC_ATT_INFO_T *att);
@@ -425,12 +425,12 @@ extern const NC_reservedatt* NC_findreserved(const char* name);
 
 /**************************************************/
 /**
-For netcdf4 files, capture state information about the following:
-1. Global: netcdf library version
-2. Global: hdf5 library version
-3. Per file: superblock version
-4. Per File: was it created by netcdf-4?
-5. Per file: _NCProperties attribute
+   For netcdf4 files, capture state information about the following:
+   1. Global: netcdf library version
+   2. Global: hdf5 library version
+   3. Per file: superblock version
+   4. Per File: was it created by netcdf-4?
+   5. Per file: _NCProperties attribute
 */
 
 /* Most of this needs to be moved to hdf5internal.h */
@@ -453,22 +453,22 @@ For netcdf4 files, capture state information about the following:
 
 struct NCPROVENANCE {
     int superblockversion;
-     struct NCPROPINFO {
-         int version; /* 0 => not defined */
+    struct NCPROPINFO {
+        int version; /* 0 => not defined */
         /* Following is filled from NCPROPS attribute or from global version */
-	/* Version 1 format is:
-	   "netcdflibversion=<version|hdf5libversion=<version>"
-	   Version 2 format is:
-	   "<mainbuildlib>=<version|<supportlib1>=<version>...|<other>=..."
-	*/
-	/* The _NCProperties values are stored as an arbitrary
+        /* Version 1 format is:
+           "netcdflibversion=<version|hdf5libversion=<version>"
+           Version 2 format is:
+           "<mainbuildlib>=<version|<supportlib1>=<version>...|<other>=..."
+        */
+        /* The _NCProperties values are stored as an arbitrary
            set of (key,value) pairs */
-	/* It is assumed that the first entry is the primary library
+        /* It is assumed that the first entry is the primary library
            used to build the file, and it is followed by other libraries
            used in the build, and finally an arbitrary list of other
            (key,value) pairs. */
         NClist* properties;
-     } propattr;
+    } propattr;
 };
 
 /* Provenance Initialization */
