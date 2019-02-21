@@ -7,10 +7,11 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.6.3 - TBD
 
-## 4.6.2.1 - February 15, 2019
-
 ### Maintenance Release
-
+* Now always write hidden coordinates attribute, which allows faster file opens when present. See [Github #1262](https://github.com/Unidata/netcdf-c/issues/1262) for more information.
+* Some fixes for rename, including fix for renumbering of varids after a rename (#1307), renaming var to dim without coordinate var. See [Github #1297](https://github.com/Unidata/netcdf-c/issues/1297).
+* Fix of NULL parameter causing segfaults in put_vars functions. See [Github #1265](https://github.com/Unidata/netcdf-c/issues/1265) for more information.
+* Fix of --enable-benchmark benchmark tests [Github #1211](https://github.com/Unidata/netcdf-c/issues/1211)
 * Update the license from the home-brewed NetCDF license to the standard 3-Clause BSD License.  This change does not result in any new restrictions; it is merely the adoption of a standard, well-known and well-understood license in place of the historic NetCDF license written at Unidata.  This is part of a broader push by Unidata to adopt modern, standardized licensing.  
 * [BugFix] Corrected DAP-releated issues on big-endian machines. See [Github #1321](https://github.com/Unidata/netcdf-c/issues/1321), [Github #1302](https://github.com/Unidata/netcdf-c/issues/1302) for more information.
 * [BugFix][Enhancement]  Various and sundry bugfixes and performance enhancements, thanks to @edhartnett, @gsjaardema, @t-b, @wkliao, and all of our other contributors.
