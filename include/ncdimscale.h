@@ -6,7 +6,7 @@
  * also some h5_test tests.
  *
  * @author Ed Hartnett
-*/
+ */
 
 #ifndef _NCDIMSCALE_H_
 #define _NCDIMSCALE_H_
@@ -15,10 +15,10 @@
 
 /* This is used to uniquely identify datasets, so we can keep track of
  * dimscales. */
-typedef struct hdf5_objid 
+typedef struct hdf5_objid
 {
-   unsigned long fileno[2]; /* file number */
-   haddr_t objno[2]; /* object number */
-} HDF5_OBJID_T; 
+    unsigned long fileno[2]; /* file number */
+    haddr_t objno[2]; /* object number */
+} HDF5_OBJID_T;
 
 #endif
