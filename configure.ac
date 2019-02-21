@@ -1028,7 +1028,7 @@ if test "x$enable_hdf5" = xyes; then
 
    # H5Pset_fapl_mpiposix and H5Pget_fapl_mpiposix have been removed since HDF5 1.8.12.
    # Use H5Pset_fapl_mpio and H5Pget_fapl_mpio, instead.
-   AC_CHECK_FUNCS([H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5free_memory H5Pset_libver_bounds H5Pset_all_coll_metadata_ops])
+   AC_CHECK_FUNCS([H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5free_memory H5resize_memory H5allocate_memory H5Pset_libver_bounds H5Pset_all_coll_metadata_ops])
 
    # Check to see if HDF5 library has collective metadata APIs, (HDF5 >= 1.10.0)
    if test "x$ac_cv_func_H5Pset_all_coll_metadata_ops" = xyes; then
@@ -1060,6 +1060,14 @@ if test "x$enable_hdf5" = xyes; then
 
    if test "x$ac_cv_func_H5free_memory" = xyes; then
       AC_DEFINE([HDF5_HAS_H5FREE], [1], [if true, H5free_memory() will be used to free hdf5-allocated memory in nc4file.])
+   fi
+
+   if test "x$ac_cv_func_H5allocate_memory" = xyes; then
+      AC_DEFINE([HDF5_HAS_ALLOCATE_MEMORY], [1], [if true, H5allocate_memory() will be used.])
+   fi
+
+   if test "x$ac_cv_func_H5resize_memory" = xyes; then
+      AC_DEFINE([HDF5_HAS_resize_MEMORY], [1], [if true, H5resize_memory() will be used.])
    fi
 
    if test "x$ac_cv_func_H5Pset_libver_bounds" = xyes; then
