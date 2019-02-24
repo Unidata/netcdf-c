@@ -92,10 +92,10 @@ IF(BUILD_UTILITIES)
     ENDIF()
 ENDIF(BUILD_UTILITIES)
 
-IF(ENABLE_HTTP)
-  build_bin_test_no_prefix(tst_http)
+IF(ENABLE_BYTERANGE)
+  build_bin_test_no_prefix(tst_byterange)
   IF(BUILD_UTILITIES)
-    add_sh_test(nc_test test_http)
+    add_sh_test(nc_test test_byterange)
   ENDIF()
 ENDIF()
 

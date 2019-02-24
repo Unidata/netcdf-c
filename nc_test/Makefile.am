@@ -57,9 +57,9 @@ if USE_HDF5
 TESTPROGRAMS += tst_diskless6
 endif
 
-if ENABLE_HTTP
-TESTPROGRAMS += tst_http
-tst_http_SOURCES = tst_http.c
+if ENABLE_BYTERANGE
+TESTPROGRAMS += tst_byterange
+tst_byterange_SOURCES = tst_byterange.c
 endif
 
 # Set up the tests.
@@ -79,8 +79,8 @@ TESTS += run_diskless.sh run_diskless5.sh run_inmemory.sh
 if LARGE_FILE_TESTS
 TESTS += run_diskless2.sh
 endif
-if ENABLE_HTTP
-TESTS += test_http.sh
+if ENABLE_BYTERANGE
+TESTS += test_byterange.sh
 endif
 endif
 
@@ -94,7 +94,7 @@ EXTRA_DIST = test_get.m4 test_put.m4 run_diskless.sh run_diskless2.sh   \
 run_diskless5.sh run_mmap.sh run_pnetcdf_test.sh test_read.m4           \
 test_write.m4 ref_tst_diskless2.cdl tst_diskless5.cdl run_inmemory.sh   \
 f03tst_open_mem.nc                                                      \
-test_http.sh ref_tst_http_nc3.cdl ref_tst_http_nc4.cdl                  \
+test_byterange.sh ref_tst_http_nc3.cdl ref_tst_http_nc4.cdl                  \
 CMakeLists.txt
 
 # These files are created by the tests.

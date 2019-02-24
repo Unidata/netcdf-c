@@ -21,11 +21,16 @@
 #include "ncbytes.h"
 #include "nclist.h"
 #include "nclog.h"
-#ifdef ENABLE_HTTP
+#ifdef ENABLE_BYTERANGE
 #include "nchttp.h"
 #endif
 
 #undef DEBUG
+
+/* If Defined, then use only stdio for all magic number io;
+   otherwise use stdio or mpio as required.
+ */
+#undef USE_STDIO
 
 /**
 Sort info for open/read/close of
@@ -42,7 +47,7 @@ struct MagicFile {
 #ifdef USE_PARALLEL
     MPI_File fh;
 #endif
-#ifdef ENABLE_HTTP
+#ifdef ENABLE_BYTERANGE
     void* curl; /* avoid need to include curl.h */
     char* curlurl; /* url to use with CURLOPT_SET_URL */
 #endif
@@ -674,7 +679,11 @@ check_file_type(const char *path, int flags, int use_parallel,
     magicinfo.uri = uri; /* do not free */
     magicinfo.model = model; /* do not free */
     magicinfo.parameters = parameters; /* do not free */
+#ifdef USE_STDIO
+    magicinfo.use_parallel = 0;
+#else
     magicinfo.use_parallel = use_parallel;
+#endif
 
     if((status = openmagic(&magicinfo))) goto done;
 
@@ -793,7 +802,7 @@ openmagic(struct MagicFile* file)
 	  }
 	} break;
 
-#ifdef ENABLE_HTTP
+#ifdef ENABLE_BYTERANGE
     case NC_IOSP_HTTP: {
 	/* Construct a URL minus any fragment */
         file->curlurl = ncuribuild(file->uri,NULL,NULL,NCURISVC);
@@ -851,7 +860,7 @@ readmagic(struct MagicFile* file, long pos, char* magic)
 	}
 	break;
 
-#ifdef ENABLE_HTTP
+#ifdef ENABLE_BYTERANGE
     case NC_IOSP_HTTP: {
 	NCbytes* buf = ncbytesnew();
 	fileoffset_t start = (size_t)pos;
@@ -905,7 +914,7 @@ closemagic(struct MagicFile* file)
         }
 	break;
 
-#ifdef ENABLE_HTTP
+#ifdef ENABLE_BYTERANGE
      case NC_IOSP_HTTP:
 	status = nc_http_close(file->curl);
 	nullfree(file->curlurl);

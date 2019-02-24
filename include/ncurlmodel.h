@@ -14,7 +14,6 @@
    Note that cases (DAP2,DAP4) where the implementation is 1-1
    with the iosp are not included.
 */
-#define NC_IOSP_S3 (1)
 #define NC_IOSP_ZARR (1)
 
 /* Track the information from a URL that will help us

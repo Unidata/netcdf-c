@@ -903,11 +903,8 @@ if test "x$found_curl" = xno ; then
   enable_byterange=no
 fi
 
-# Use "http" as synonym for byterange to correspond with NetCDF-Java
-enable_http=${enable_byterange}
-
-if test "x$enable_http" = xyes; then
-    AC_DEFINE([ENABLE_HTTP], [1], [if true, support byte-range read of remote datasets.])
+if test "x$enable_byterange" = xyes; then
+    AC_DEFINE([ENABLE_BYTERANGE], [1], [if true, support byte-range read of remote datasets.])
 fi
 
 AC_FUNC_ALLOCA
@@ -1305,7 +1302,7 @@ AM_CONDITIONAL(BUILD_MMAP, [test x$enable_mmap = xyes])
 AM_CONDITIONAL(BUILD_DOCS, [test x$enable_doxygen = xyes])
 AM_CONDITIONAL(SHOW_DOXYGEN_TAG_LIST, [test x$enable_doxygen_tasks = xyes])
 AM_CONDITIONAL(ENABLE_METADATA_PERF, [test x$enable_metadata_perf = xyes])
-AM_CONDITIONAL(ENABLE_HTTP, [test "x$enable_http" = xyes])
+AM_CONDITIONAL(ENABLE_BYTERANGE, [test "x$enable_byterange" = xyes])
 
 # If the machine doesn't have a long long, and we want netCDF-4, then
 # we've got problems!
@@ -1439,7 +1436,7 @@ AC_SUBST(HAS_MMAP,[$enable_mmap])
 AC_SUBST(HAS_JNA,[$enable_jna])
 AC_SUBST(RELAX_COORD_BOUND,[$enable_zero_length_coord_bound])
 AC_SUBST(HAS_ERANGE_FILL,[$enable_erange_fill])
-AC_SUBST(HAS_HTTP,[$enable_http])
+AC_SUBST(HAS_BYTERANGE,[$enable_byterange])
 
 # Include some specifics for netcdf on windows.
 #AH_VERBATIM([_WIN32_STRICMP],
@@ -1508,7 +1505,7 @@ AX_SET_META([NC_HAS_PARALLEL4],[$enable_parallel4],[yes])
 AX_SET_META([NC_HAS_CDF5],[$enable_cdf5],[yes])
 AX_SET_META([NC_HAS_ERANGE_FILL], [$enable_erange_fill],[yes])
 AX_SET_META([NC_RELAX_COORD_BOUND], [$enable_zero_length_coord_bound],[yes])
-AX_SET_META([NC_HAS_HTTP],[$enable_http],[yes])
+AX_SET_META([NC_HAS_BYTERANGE],[$enable_byterange],[yes])
 
 # Automake says that this is always run in top_builddir
 # and that srcdir is defined (== top_srcdir)

@@ -39,6 +39,8 @@ extern int fileno(FILE*);
 #include "ncwinpath.h"
 #include "fbits.h"
 
+#undef DEBUG
+
 extern int NC_initialized; /**< True when dispatch table is initialized. */
 
 /* User-defined formats. */

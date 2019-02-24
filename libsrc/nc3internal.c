@@ -1201,13 +1201,13 @@ NC3_open(const char *path, int ioflags, int basepe, size_t *chunksizehintp,
     }
 #endif
 
-#ifdef ENABLE_HTTP
+#ifdef ENABLE_BYTERANGE
     /* If the model specified the use of byte-ranges, then signal by
        a temporary hack using one of the flags in the ioflags.
     */
     if(nc->model->iosp == NC_IOSP_HTTP)
         ioflags |= NC_HTTP;
-#endif /*ENABLE_HTTP*/
+#endif /*ENABLE_BYTERANGE*/
 
         status = ncio_open(path, ioflags, 0, 0, &nc3->chunk, parameters,
 			       &nc3->nciop, NULL);

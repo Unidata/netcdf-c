@@ -10,7 +10,7 @@ SET(libnchdf5_SOURCES nc4hdf.c nc4info.c hdf5file.c hdf5attr.c
 hdf5dim.c hdf5grp.c hdf5type.c hdf5internal.c hdf5create.c hdf5open.c
 hdf5var.c nc4mem.c nc4memcb.c hdf5cache.c hdf5dispatch.c)
 
-IF(ENABLE_HTTP)
+IF(ENABLE_BYTERANGE)
 SET(libnchdf5_SOURCES ${libnchdf5_SOURCES} H5FDhttp.c)
 ENDIF()
 

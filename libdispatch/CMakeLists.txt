@@ -14,9 +14,9 @@ IF(BUILD_V2)
   SET(libdispatch_SOURCES ${libdispatch_SOURCES} dv2i.c)
 ENDIF(BUILD_V2)
 
-IF(ENABLE_HTTP)
+IF(ENABLE_BYTERANGE)
   SET(libdispatch_SOURCES ${libdispatch_SOURCES} dhttp.c)
-ENDIF(ENABLE_HTTP)
+ENDIF(ENABLE_BYTERANGE)
 
 add_library(dispatch OBJECT ${libdispatch_SOURCES})
 

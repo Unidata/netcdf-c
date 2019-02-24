@@ -35,7 +35,7 @@ extern int ffio_open(const char*,int,off_t,size_t,size_t*,void*,ncio**,void** co
      extern int mmapio_open(const char*,int,off_t,size_t,size_t*,void*,ncio**,void** const);
 #  endif
 
-#ifdef ENABLE_HTTP
+#ifdef ENABLE_BYTERANGE
     extern int httpio_open(const char*,int,off_t,size_t,size_t*,void*,ncio**,void** const);
 #endif
 
@@ -88,12 +88,12 @@ ncio_open(const char *path, int ioflags,
         return mmapio_open(path,ioflags,igeto,igetsz,sizehintp,parameters,iopp,mempp);
     }
 #  endif /*USE_MMAP*/
-#  ifdef ENABLE_HTTP
+#  ifdef ENABLE_BYTERANGE
    /* The NC_HTTP flag is a big hack until we can reorganize the ncio interface */
    if(fIsSet(ioflags,NC_HTTP)) {
         return httpio_open(path,ioflags,igeto,igetsz,sizehintp,parameters,iopp,mempp);
    }
-#  endif /*ENABLE_HTTP*/
+#  endif /*ENABLE_BYTERANGE*/
 
 #ifdef USE_STDIO
     return stdio_open(path,ioflags,igeto,igetsz,sizehintp,parameters,iopp,mempp);

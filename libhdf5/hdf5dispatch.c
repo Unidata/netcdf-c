@@ -5,13 +5,13 @@
  * @internal This header file contains prototypes and initialization
  * for the HDF5 dispatch layer.
  *
- * @author Ed Hartnett
+ * @author Ed Hartnett, Dennis Heimbigner
  */
 
 #include "config.h"
 #include "hdf5internal.h"
 
-#ifdef ENABLE_HTTP
+#ifdef ENABLE_BYTERANGE
 #include "H5FDhttp.h"
 #endif
 
@@ -124,7 +124,7 @@ NC_HDF5_initialize(void)
     if (!nc4_hdf5_initialized)
         nc4_hdf5_initialize();
 
-#ifdef ENABLE_HTTP
+#ifdef ENABLE_BYTERANGE
     (void)H5FD_http_init();
 #endif  
     return NC4_provenance_init();
