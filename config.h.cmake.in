@@ -117,6 +117,9 @@ are set when opening a binary file on Windows. */
 /* set this only when building a DLL under MinGW */
 #cmakedefine DLL_NETCDF 1
 
+/* if true, build byte-range Client */
+#cmakedefine ENABLE_BYTERANGE 1
+
 /* if true, enable CDF5 Support */
 #cmakedefine ENABLE_CDF5 1
 
@@ -137,9 +140,6 @@ are set when opening a binary file on Windows. */
 
 /* define the possible sources for remote test servers */
 #cmakedefine REMOTETESTSERVERS	"${REMOTETESTSERVERS}"
-
-/* if true, build byte-range Client */
-#cmakedefine ENABLE_HTTP 1
 
 /* if true, run extra tests which may not work yet */
 #cmakedefine EXTRA_TESTS 1

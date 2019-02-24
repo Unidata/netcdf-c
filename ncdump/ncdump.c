@@ -2390,7 +2390,6 @@ main(int argc, char *argv[])
 	    NC_CHECK( nc_close(ncid) );
     }
     if(path) {free(path); path = NULL;}
-    nc_finalize();
     exit(EXIT_SUCCESS);
 
 fail: /* ncstat failures */
@@ -2400,6 +2399,5 @@ fail: /* ncstat failures */
     if(strlen(errmsg) > 0)
 	error("%s: %s", path, errmsg);
     if(path) free(path);
-    nc_finalize();
     exit(EXIT_FAILURE);
 }

@@ -39,7 +39,6 @@ static struct LEGALMODES {
 {"dap2",NC_FORMAT_CLASSIC,NC_FORMATX_DAP2,0},
 {"dap4",NC_FORMAT_NETCDF4,NC_FORMATX_DAP4,0},
 /* IO Handlers */
-{"s3",0,0,NC_IOSP_S3},
 {"zarr",0,0,NC_IOSP_ZARR},
 {NULL,0,0},
 };

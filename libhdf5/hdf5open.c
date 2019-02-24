@@ -14,9 +14,6 @@
 #include "ncrc.h"
 #include "ncmodel.h"
 
-#ifdef ENABLE_HTTP
-#include "H5FDhttp.h"
-#endif
 #ifdef ENABLE_BYTERANGE
 #include "H5FDhttp.h"
 #endif
@@ -673,7 +670,7 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
 
     h5 = (NC_HDF5_FILE_INFO_T*)nc4_info->format_file_info;
 
-#ifdef ENABLE_HTTP
+#ifdef ENABLE_BYTERANGE
     /* See if we want the byte range protocol */
     if(nc->model->iosp == NC_IOSP_HTTP) {
 	h5->http.iosp = 1;
@@ -682,7 +679,7 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
 	parameters = NULL; /* kill off parallel */	    
     } else
 	h5->http.iosp = 0;
-#endif /*ENABLE_HTTP*/
+#endif /*ENABLE_BYTERANGE*/
 
     nc4_info->mem.inmemory = ((mode & NC_INMEMORY) == NC_INMEMORY);
     nc4_info->mem.diskless = ((mode & NC_DISKLESS) == NC_DISKLESS);
@@ -782,7 +779,7 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
 	if ((h5->hdfid = H5Fopen(path, flags, fapl_id)) < 0)
             BAIL(NC_EHDFERR);
     }
-#ifdef ENABLE_HTTP
+#ifdef ENABLE_BYTERANGE
     else
     if(h5->http.iosp) {   /* Arrange to use the byte-range driver */
 	/* Configure FAPL to use the byte-range file driver */

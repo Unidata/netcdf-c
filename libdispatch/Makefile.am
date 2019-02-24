@@ -43,9 +43,9 @@ libnetcdf2_la_SOURCES = dv2i.c
 libnetcdf2_la_CPPFLAGS = ${AM_CPPFLAGS} -DDLL_EXPORT
 endif # BUILD_V2
 
-if ENABLE_HTTP
+if ENABLE_BYTERANGE
 libdispatch_la_SOURCES += dhttp.c
-endif # ENABLE_HTTP
+endif # ENABLE_BYTERANGE
 
 EXTRA_DIST=CMakeLists.txt ncsettings.hdr utf8proc_data.c
 

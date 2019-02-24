@@ -28,9 +28,9 @@ ELSE (USE_FFIO)
   SET(libsrc_SOURCES ${libsrc_SOURCES} posixio.c)
 ENDIF (USE_FFIO)
 
-IF (ENABLE_HTTP)
+IF (ENABLE_BYTERANGE)
   SET(libsrc_SOURCES ${libsrc_SOURCES} httpio.c)
-ENDIF(ENABLE_HTTP)
+ENDIF(ENABLE_BYTERANGE)
 
 add_library(netcdf3 OBJECT ${libsrc_SOURCES})
 
