@@ -52,7 +52,7 @@ NC4_provenance_init(void)
     unsigned major,minor,release;
 
     if(globalpropinitialized)
-	return stat;
+        return stat;
 
     /* Build _NCProperties info */
 
@@ -61,32 +61,32 @@ NC4_provenance_init(void)
     globalpropinfo.version = NCPROPS_VERSION;
     globalpropinfo.properties = nclistnew();
     if(globalpropinfo.properties == NULL)
-	{stat = NC_ENOMEM; goto done;}
+    {stat = NC_ENOMEM; goto done;}
 
     /* Insert primary library version as first entry */
     if((name = strdup(NCPNCLIB2)) == NULL)
-	{stat = NC_ENOMEM; goto done;}
+    {stat = NC_ENOMEM; goto done;}
     nclistpush(globalpropinfo.properties,name);
     name = NULL; /* Avoid multiple free() */
 
     if((value = strdup(PACKAGE_VERSION)) == NULL)
-	{stat = NC_ENOMEM; goto done;}
+    {stat = NC_ENOMEM; goto done;}
     nclistpush(globalpropinfo.properties,value);
     value = NULL;
 
     /* Insert the HDF5 as underlying storage format library */
     if((name = strdup(NCPHDF5LIB2)) == NULL)
-	{stat = NC_ENOMEM; goto done;}
+    {stat = NC_ENOMEM; goto done;}
     nclistpush(globalpropinfo.properties,name);
     name = NULL;
 
     stat = NC4_hdf5get_libversion(&major,&minor,&release);
     if(stat) goto done;
     {
-	char sversion[64];
+        char sversion[64];
         snprintf(sversion,sizeof(sversion),"%1u.%1u.%1u",major,minor,release);
-	if((value = strdup(sversion)) == NULL)
-	    {stat = NC_ENOMEM; goto done;}
+        if((value = strdup(sversion)) == NULL)
+        {stat = NC_ENOMEM; goto done;}
     }
     nclistpush(globalpropinfo.properties,value);
     value = NULL;
@@ -101,7 +101,7 @@ NC4_provenance_init(void)
 #endif
     /* merge into the properties list */
     for(i=0;i<nclistlength(other);i++)
-	nclistpush(globalpropinfo.properties,strdup(nclistget(other,i)));
+        nclistpush(globalpropinfo.properties,strdup(nclistget(other,i)));
     nclistfreeall(other);
     other = NULL;
 
@@ -109,9 +109,9 @@ done:
     if(name != NULL) free(name);
     if(value != NULL) free(value);
     if(other != NULL)
-	nclistfreeall(other);
+        nclistfreeall(other);
     if(stat && globalpropinfo.properties != NULL) {
-	nclistfreeall(globalpropinfo.properties);
+        nclistfreeall(globalpropinfo.properties);
         globalpropinfo.properties = NULL;
     }
     if(stat == NC_NOERR)
@@ -129,10 +129,10 @@ locate(char* p, char tag)
     int c;
     assert(p != NULL);
     for(next = p;(c = *next);next++) {
-	if(c == tag)
-	    return next;
-	else if(c == '\\' && next[1] != '\0')
-	    next++; /* skip escaped char */
+        if(c == tag)
+            return next;
+        else if(c == '\\' && next[1] != '\0')
+            next++; /* skip escaped char */
     }
     return next; /* not found */
 }
@@ -168,38 +168,38 @@ properties_parse(const char* text0, NClist* pairs)
     char* text = NULL;
 
     if(text0 == NULL || strlen(text0) == 0)
-	goto done;
+        goto done;
 
     text = strdup(text0);
     if(text == NULL) return NC_ENOMEM;
 
     /* For back compatibility with version 1, translate '|' -> ',' */
     for(p=text;*p;p++) {
-	if(*p == NCPROPSSEP1)
-	    *p = NCPROPSSEP2;
+        if(*p == NCPROPSSEP1)
+            *p = NCPROPSSEP2;
     }
 
     /* Walk and fill in ncinfo */
     p = text;
     while(*p) {
-	char* name = p;
-	char* value = NULL;
-	char* next = NULL;
+        char* name = p;
+        char* value = NULL;
+        char* next = NULL;
 
-	/* Delimit whole (key,value) pair */
-	q = locate(p,NCPROPSSEP2);
-	if(*q != '\0') /* Never go beyond the final nul term */
-  	    *q++ = '\0';
-	next = q;
-	/* split key and value */
-	q = locate(p,'=');
- 	name = p;
+        /* Delimit whole (key,value) pair */
+        q = locate(p,NCPROPSSEP2);
+        if(*q != '\0') /* Never go beyond the final nul term */
+            *q++ = '\0';
+        next = q;
+        /* split key and value */
+        q = locate(p,'=');
+        name = p;
         *q++ = '\0';
-	value = q;
-	/* Set up p for next iteration */
-	p = next;
-	nclistpush(pairs,strdup(name));
-	nclistpush(pairs,strdup(value));
+        value = q;
+        /* Set up p for next iteration */
+        p = next;
+        nclistpush(pairs,strdup(name));
+        nclistpush(pairs,strdup(value));
     }
 done:
     if(text) free(text);
@@ -213,9 +213,9 @@ escapify(NCbytes* buffer, const char* s)
 {
     const char* p;
     for(p=s;*p;p++) {
-	if(strchr(ESCAPECHARS,*p) != NULL)
-	    ncbytesappend(buffer,'\\');
-	ncbytesappend(buffer,*p);
+        if(strchr(ESCAPECHARS,*p) != NULL)
+            ncbytesappend(buffer,'\\');
+        ncbytesappend(buffer,*p);
     }
 }
 
@@ -225,14 +225,14 @@ propinfo_default(struct NCPROPINFO* dst, const struct NCPROPINFO* dfalt)
 {
     int i;
     if(dst->properties == NULL) {
-	dst->properties = nclistnew();
-	if(dst->properties == NULL) return NC_ENOMEM;
+        dst->properties = nclistnew();
+        if(dst->properties == NULL) return NC_ENOMEM;
     }
     dst->version = dfalt->version;
     for(i=0;i<nclistlength(dfalt->properties);i++) {
-	char* s = nclistget(dfalt->properties,i);
-	s = strdup(s);
-	if(s == NULL) return NC_ENOMEM;
+        char* s = nclistget(dfalt->properties,i);
+        s = strdup(s);
+        if(s == NULL) return NC_ENOMEM;
         nclistpush(dst->properties,s);
     }
     return NC_NOERR;
@@ -261,9 +261,9 @@ NC4_buildpropinfo(struct NCPROPINFO* info, char** propdatap)
     LOG((3, "%s", __func__));
 
     if(info == NULL || info->version == 0 || propdatap == NULL)
-      {stat = NC_EINVAL; goto done;}
+    {stat = NC_EINVAL; goto done;}
 
-   *propdatap = NULL;
+    *propdatap = NULL;
 
     buffer = ncbytesnew();
     if(!buffer) {stat = NC_ENOMEM; goto done;}
@@ -275,14 +275,14 @@ NC4_buildpropinfo(struct NCPROPINFO* info, char** propdatap)
     ncbytescat(buffer,sversion);
 
     for(i=0;i<nclistlength(info->properties);i+=2) {
-	char* value, *name;
-	name = nclistget(info->properties,i);
-	if(name == NULL) continue;
-	value = nclistget(info->properties,i+1);
+        char* value, *name;
+        name = nclistget(info->properties,i);
+        if(name == NULL) continue;
+        value = nclistget(info->properties,i+1);
         ncbytesappend(buffer,NCPROPSSEP2); /* terminate last entry */
-	escapify(buffer,name);
+        escapify(buffer,name);
         ncbytesappend(buffer,'=');
-	escapify(buffer,value);
+        escapify(buffer,value);
     }
     /* Force null termination */
     ncbytesnull(buffer);
@@ -326,30 +326,30 @@ NC4_set_provenance(NC_FILE_INFO_T* file, const struct NCPROPINFO* dfalt)
     provenance->propattr.version = globalpropinfo.version;
     /* Get the superblock number */
     if((ncstat = NC4_hdf5get_superblock(file,&superblock)))
-	goto done;
+        goto done;
     provenance->superblockversion = superblock;
 
     /* Capture properties */
     provenance->propattr.properties = nclistnew();
     if(provenance->propattr.properties == NULL)
-	{ncstat = NC_ENOMEM; goto done;}
+    {ncstat = NC_ENOMEM; goto done;}
     /* add in the dfalt values */
     if(dfalt != NULL) {
-	int i;
-	for(i=0;i<nclistlength(dfalt->properties);i++) {
-	    char* prop = nclistget(dfalt->properties,i);
-	    if(prop != NULL) {
-		prop = strdup(prop);
-		if(prop == NULL) {ncstat = NC_ENOMEM; goto done;}
-	        nclistpush(provenance->propattr.properties,prop);
-	    }
-	}
+        int i;
+        for(i=0;i<nclistlength(dfalt->properties);i++) {
+            char* prop = nclistget(dfalt->properties,i);
+            if(prop != NULL) {
+                prop = strdup(prop);
+                if(prop == NULL) {ncstat = NC_ENOMEM; goto done;}
+                nclistpush(provenance->propattr.properties,prop);
+            }
+        }
     }
 
 done:
     if(ncstat) {
-	LOG((0,"Could not create _NCProperties attribute"));
-	(void)NC4_free_provenance(provenance);
+        LOG((0,"Could not create _NCProperties attribute"));
+        (void)NC4_free_provenance(provenance);
     } else
         file->provenance = provenance;
     return NC_NOERR;
@@ -385,38 +385,38 @@ NC4_get_provenance(NC_FILE_INFO_T* file, const char* propstring, const struct NC
 
     assert(file->provenance == NULL);
     if((file->provenance = calloc(1,sizeof(struct NCPROVENANCE))) == NULL)
-	{ncstat = NC_ENOMEM; goto done;}
+    {ncstat = NC_ENOMEM; goto done;}
     provenance = file->provenance;
     if((provenance->propattr.properties = nclistnew()) == NULL)
-	{ncstat = NC_ENOMEM; goto done;}
+    {ncstat = NC_ENOMEM; goto done;}
 
     /* Set the superblock */
     if((ncstat = NC4_hdf5get_superblock(file,&superblock)))
-	goto done;
+        goto done;
     provenance->superblockversion = superblock;
 
     if(propstring == NULL) {
-	/* Use dfalt */
-	if((ncstat=propinfo_default(&provenance->propattr,dfalt)))
-	    goto done;
+        /* Use dfalt */
+        if((ncstat=propinfo_default(&provenance->propattr,dfalt)))
+            goto done;
     } else {
-	NClist* list = provenance->propattr.properties;
+        NClist* list = provenance->propattr.properties;
         if((ncstat=properties_parse(propstring,list)))
-	    goto done;
-	/* Check the version and remove from properties list*/
+            goto done;
+        /* Check the version and remove from properties list*/
         if(nclistlength(list) < 2)
-	    {ncstat = NC_EINVAL; goto done;} /* bad _NCProperties attribute */
-	/* Extract the purported version=... */
-	name = nclistremove(list,0);
+        {ncstat = NC_EINVAL; goto done;} /* bad _NCProperties attribute */
+        /* Extract the purported version=... */
+        name = nclistremove(list,0);
         value = nclistremove(list,0);
-	if(strcmp(name,NCPVERSION) == 0) {
+        if(strcmp(name,NCPVERSION) == 0) {
             if(sscanf(value,"%d",&v) != 1)
-	        {ncstat = NC_EINVAL; goto done;} /* illegal version */
+            {ncstat = NC_EINVAL; goto done;} /* illegal version */
             if(v <= 0 || v > NCPROPS_VERSION)
-	        {ncstat = NC_EINVAL; goto done;} /* unknown version */
-	    provenance->propattr.version = v;
-	} else
-	    {ncstat = NC_EINVAL; goto done;} /* bad _NCProperties attribute */
+            {ncstat = NC_EINVAL; goto done;} /* unknown version */
+            provenance->propattr.version = v;
+        } else
+        {ncstat = NC_EINVAL; goto done;} /* bad _NCProperties attribute */
         /* Now, rebuild from version 1 to version 2 if necessary */
         if(provenance->propattr.version == 1) {
 	    int i;
@@ -457,7 +457,7 @@ NC4_free_provenance(struct NCPROVENANCE* prov)
 
     if(prov == NULL) return NC_NOERR;
     if(prov->propattr.properties != NULL)
-	nclistfreeall(prov->propattr.properties);
+        nclistfreeall(prov->propattr.properties);
     prov->propattr.properties = NULL;
     free(prov);
     return NC_NOERR;
@@ -482,7 +482,7 @@ NC4_read_ncproperties(NC_FILE_INFO_T* h5)
     hdf5grpid = ((NC_HDF5_GRP_INFO_T *)(h5->root_grp->format_grp_info))->hdf_grpid;
 
     if(H5Aexists(hdf5grpid,NCPROPS) <= 0) { /* Does not exist */
-	/* File did not contain a _NCProperties attribute */
+        /* File did not contain a _NCProperties attribute */
         retval=NC4_get_provenance(h5,NULL,&globalpropinfo);
         goto done;
     }
@@ -495,22 +495,22 @@ NC4_read_ncproperties(NC_FILE_INFO_T* h5)
     /* Verify atype and size */
     t_class = H5Tget_class(atype);
     if(t_class != H5T_STRING)
-	{retval = NC_EINVAL; goto done;}
+    {retval = NC_EINVAL; goto done;}
     size = H5Tget_size(atype);
     if(size == 0)
-	{retval = NC_EINVAL; goto done;}
+    {retval = NC_EINVAL; goto done;}
     text = (char*)malloc(1+(size_t)size);
     if(text == NULL)
-	{retval = NC_ENOMEM; goto done;}
+    {retval = NC_ENOMEM; goto done;}
     if((ntype = H5Tget_native_type(atype, H5T_DIR_DEFAULT)) < 0)
-	{retval = NC_EHDFERR; goto done;}
+    {retval = NC_EHDFERR; goto done;}
     if((H5Aread(attid, ntype, text)) < 0)
-	{retval = NC_EHDFERR; goto done;}
+    {retval = NC_EHDFERR; goto done;}
     /* Make sure its null terminated */
     text[(size_t)size] = '\0';
     /* Process the _NCProperties value */
     if((retval = NC4_get_provenance(h5, text, &globalpropinfo)))
-	goto done;
+        goto done;
 
 done:
     if(text != NULL) free(text);
@@ -522,10 +522,10 @@ done:
 
     /* For certain errors, actually fail, else log that attribute was invalid and ignore */
     if(retval != NC_NOERR) {
-	if(retval != NC_ENOMEM && retval != NC_EHDFERR) {
-	    LOG((0,"Invalid _NCProperties attribute: ignored"));
-	    retval = NC_NOERR;
-	}
+        if(retval != NC_ENOMEM && retval != NC_EHDFERR) {
+            LOG((0,"Invalid _NCProperties attribute: ignored"));
+            retval = NC_NOERR;
+        }
     }
     return retval;
 }
@@ -545,47 +545,47 @@ NC4_write_ncproperties(NC_FILE_INFO_T* h5)
 
     /* If the file is read-only, return an error. */
     if (h5->no_write)
-      {retval = NC_EPERM; goto done;}
+    {retval = NC_EPERM; goto done;}
 
     hdf5grpid = ((NC_HDF5_GRP_INFO_T *)(h5->root_grp->format_grp_info))->hdf_grpid;
 
     if(H5Aexists(hdf5grpid,NCPROPS) > 0) /* Already exists, no overwrite */
-	goto done;
+        goto done;
 
     /* Build the attribute string */
     if((retval = NC4_buildpropinfo(&h5->provenance->propattr,&text)))
-	goto done;
+        goto done;
 
     /* Build the HDF5 string type */
     if ((atype = H5Tcopy(H5T_C_S1)) < 0)
-	{retval = NC_EHDFERR; goto done;}
+    {retval = NC_EHDFERR; goto done;}
     if (H5Tset_strpad(atype, H5T_STR_NULLTERM) < 0)
-	{retval = NC_EHDFERR; goto done;}
+    {retval = NC_EHDFERR; goto done;}
     if(H5Tset_cset(atype, H5T_CSET_ASCII) < 0)
-	{retval = NC_EHDFERR; goto done;}
-   len = strlen(text);
-   if(H5Tset_size(atype, len) < 0)
-      {retval = NC_EFILEMETA; goto done;}
+    {retval = NC_EHDFERR; goto done;}
+    len = strlen(text);
+    if(H5Tset_size(atype, len) < 0)
+    {retval = NC_EFILEMETA; goto done;}
 
     /* Create NCPROPS attribute */
-   if((aspace = H5Screate(H5S_SCALAR)) < 0)
-      {retval = NC_EFILEMETA; goto done;}
-   if ((attid = H5Acreate(hdf5grpid, NCPROPS, atype, aspace, H5P_DEFAULT)) < 0)
-      {retval = NC_EFILEMETA; goto done;}
-   if (H5Awrite(attid, atype, text) < 0)
-      {retval = NC_EFILEMETA; goto done;}
+    if((aspace = H5Screate(H5S_SCALAR)) < 0)
+    {retval = NC_EFILEMETA; goto done;}
+    if ((attid = H5Acreate(hdf5grpid, NCPROPS, atype, aspace, H5P_DEFAULT)) < 0)
+    {retval = NC_EFILEMETA; goto done;}
+    if (H5Awrite(attid, atype, text) < 0)
+    {retval = NC_EFILEMETA; goto done;}
 
 /* Verify */
 #if 0
-{
-   hid_t spacev, typev;
-   hsize_t dsize, tsize;
-   typev = H5Aget_type(attid);
-   spacev = H5Aget_space(attid);
-   dsize = H5Aget_storage_size(attid);
-   tsize = H5Tget_size(typev);
-   fprintf(stderr,"dsize=%lu tsize=%lu\n",(unsigned long)dsize,(unsigned long)tsize);
-}
+    {
+        hid_t spacev, typev;
+        hsize_t dsize, tsize;
+        typev = H5Aget_type(attid);
+        spacev = H5Aget_space(attid);
+        dsize = H5Aget_storage_size(attid);
+        tsize = H5Tget_size(typev);
+        fprintf(stderr,"dsize=%lu tsize=%lu\n",(unsigned long)dsize,(unsigned long)tsize);
+    }
 #endif
 
 done:
@@ -602,11 +602,11 @@ done:
     case NC_EPERM:
     case NC_EFILEMETA:
     case NC_NOERR:
-	break;
+        break;
     default:
-	LOG((0,"Invalid _NCProperties attribute"));
-	retval = NC_NOERR;
-	break;
+        LOG((0,"Invalid _NCProperties attribute"));
+        retval = NC_NOERR;
+        break;
     }
     return retval;
 }
@@ -619,9 +619,9 @@ ncprintpropinfo(struct NCPROPINFO* info)
     int i;
     fprintf(stderr,"[%p] version=%d\n",info,info->version);
     for(i=0;i<nclistlength(info->properties);i+=2) {
-	char* name = nclistget(info->properties,i);
-	char* value = nclistget(info->properties,i+1);
-	fprintf(stderr,"\t[%d] name=|%s| value=|%s|\n",i,name,value);
+        char* name = nclistget(info->properties,i);
+        char* value = nclistget(info->properties,i+1);
+        fprintf(stderr,"\t[%d] name=|%s| value=|%s|\n",i,name,value);
     }
 }
 

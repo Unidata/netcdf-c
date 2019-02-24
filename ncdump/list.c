@@ -37,6 +37,19 @@ List* listnew(void)
 }
 
 int
+listfreeall(List* l)
+{
+  if(l) {
+    int i;
+    for(i=0;i<listlength(l);i++) {
+	void* elem = listget(l,i);
+	if(elem != NULL) free(elem);
+    }
+  }
+  return listfree(l);
+}
+
+int
 listfree(List* l)
 {
   if(l) {

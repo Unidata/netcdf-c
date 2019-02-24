@@ -25,11 +25,11 @@
 int
 NC_HDF4_inq_format(int ncid, int *formatp)
 {
-   /* HDF4 is the format. */
-   if (formatp)
-      *formatp = NC_FORMATX_NC_HDF4;
+    /* HDF4 is the format. */
+    if (formatp)
+        *formatp = NC_FORMATX_NC_HDF4;
 
-   return NC_NOERR;
+    return NC_NOERR;
 }
 
 /**
@@ -49,19 +49,19 @@ NC_HDF4_inq_format(int ncid, int *formatp)
 int
 NC_HDF4_inq_format_extended(int ncid, int *formatp, int *modep)
 {
-   NC *nc;
-   int retval;
+    NC *nc;
+    int retval;
 
-   LOG((2, "%s: ncid 0x%x", __func__, ncid));
+    LOG((2, "%s: ncid 0x%x", __func__, ncid));
 
-   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, NULL, NULL)))
-      return NC_EBADID;
+    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, NULL, NULL)))
+        return NC_EBADID;
 
-   if (modep)
-      *modep = nc->mode|NC_NETCDF4;
+    if (modep)
+        *modep = nc->mode|NC_NETCDF4;
 
-   if (formatp) 
-      *formatp = NC_FORMATX_NC_HDF4;
-   
-   return NC_NOERR;
+    if (formatp)
+        *formatp = NC_FORMATX_NC_HDF4;
+
+    return NC_NOERR;
 }

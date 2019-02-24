@@ -47,145 +47,145 @@ nc4_get_att_ptrs(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var,
                  const char *name, nc_type *xtype, nc_type mem_type,
                  size_t *lenp, int *attnum, void *data)
 {
-   NC_ATT_INFO_T *att = NULL;
-   int my_attnum = -1;
-   int need_to_convert = 0;
-   int range_error = NC_NOERR;
-   void *bufr = NULL;
-   size_t type_size;
-   int varid;
-   int i;
-   int retval;
+    NC_ATT_INFO_T *att = NULL;
+    int my_attnum = -1;
+    int need_to_convert = 0;
+    int range_error = NC_NOERR;
+    void *bufr = NULL;
+    size_t type_size;
+    int varid;
+    int i;
+    int retval;
 
-   LOG((3, "%s: mem_type %d", __func__, mem_type));
+    LOG((3, "%s: mem_type %d", __func__, mem_type));
 
-   /* Get the varid, or NC_GLOBAL. */
-   varid = var ? var->hdr.id : NC_GLOBAL;
+    /* Get the varid, or NC_GLOBAL. */
+    varid = var ? var->hdr.id : NC_GLOBAL;
 
-   if (attnum)
-      my_attnum = *attnum;
+    if (attnum)
+        my_attnum = *attnum;
 
-   if (name == NULL)
-      BAIL(NC_EBADNAME);
+    if (name == NULL)
+        BAIL(NC_EBADNAME);
 
-   /* Find the attribute, if it exists. */
-   if ((retval = nc4_find_grp_att(grp, varid, name, my_attnum, &att)))
-      return retval;
+    /* Find the attribute, if it exists. */
+    if ((retval = nc4_find_grp_att(grp, varid, name, my_attnum, &att)))
+        return retval;
 
-   /* If mem_type is NC_NAT, it means we want to use the attribute's
-    * file type as the mem type as well. */
-   if (mem_type == NC_NAT)
-      mem_type = att->nc_typeid;
+    /* If mem_type is NC_NAT, it means we want to use the attribute's
+     * file type as the mem type as well. */
+    if (mem_type == NC_NAT)
+        mem_type = att->nc_typeid;
 
-   /* If the attribute is NC_CHAR, and the mem_type isn't, or vice
-    * versa, that's a freakish attempt to convert text to
-    * numbers. Some pervert out there is trying to pull a fast one!
-    * Send him an NC_ECHAR error. */
-   if (data && att->len)
-      if ((att->nc_typeid == NC_CHAR && mem_type != NC_CHAR) ||
-           (att->nc_typeid != NC_CHAR && mem_type == NC_CHAR))
-         BAIL(NC_ECHAR); /* take that, you freak! */
+    /* If the attribute is NC_CHAR, and the mem_type isn't, or vice
+     * versa, that's a freakish attempt to convert text to
+     * numbers. Some pervert out there is trying to pull a fast one!
+     * Send him an NC_ECHAR error. */
+    if (data && att->len)
+        if ((att->nc_typeid == NC_CHAR && mem_type != NC_CHAR) ||
+            (att->nc_typeid != NC_CHAR && mem_type == NC_CHAR))
+            BAIL(NC_ECHAR); /* take that, you freak! */
 
-   /* Copy the info. */
-   if (lenp)
-      *lenp = att->len;
-   if (xtype)
-      *xtype = att->nc_typeid;
-   if (attnum) {
-      *attnum = att->hdr.id;
-   }
+    /* Copy the info. */
+    if (lenp)
+        *lenp = att->len;
+    if (xtype)
+        *xtype = att->nc_typeid;
+    if (attnum) {
+        *attnum = att->hdr.id;
+    }
 
-   /* Zero len attributes are easy to read! */
-   if (!att->len)
-      BAIL(NC_NOERR);
+    /* Zero len attributes are easy to read! */
+    if (!att->len)
+        BAIL(NC_NOERR);
 
-   /* Later on, we will need to know the size of this type. */
-   if ((retval = nc4_get_typelen_mem(h5, mem_type, &type_size)))
-      BAIL(retval);
+    /* Later on, we will need to know the size of this type. */
+    if ((retval = nc4_get_typelen_mem(h5, mem_type, &type_size)))
+        BAIL(retval);
 
-   /* We may have to convert data. Treat NC_CHAR the same as
-    * NC_UBYTE. If the mem_type is NAT, don't try any conversion - use
-    * the attribute's type. */
-   if (data && att->len && mem_type != att->nc_typeid &&
-       mem_type != NC_NAT &&
-       !(mem_type == NC_CHAR &&
-         (att->nc_typeid == NC_UBYTE || att->nc_typeid == NC_BYTE)))
-   {
-      if (!(bufr = malloc((size_t)(att->len * type_size))))
-         BAIL(NC_ENOMEM);
-      need_to_convert++;
-      if ((retval = nc4_convert_type(att->data, bufr, att->nc_typeid,
-                                     mem_type, (size_t)att->len, &range_error,
-                                     NULL, (h5->cmode & NC_CLASSIC_MODEL))))
-         BAIL(retval);
-
-      /* For strict netcdf-3 rules, ignore erange errors between UBYTE
-       * and BYTE types. */
-      if ((h5->cmode & NC_CLASSIC_MODEL) &&
-          (att->nc_typeid == NC_UBYTE || att->nc_typeid == NC_BYTE) &&
-          (mem_type == NC_UBYTE || mem_type == NC_BYTE) &&
-          range_error)
-         range_error = 0;
-   }
-   else
-   {
-      bufr = att->data;
-   }
-
-   /* If the caller wants data, copy it for him. If he hasn't
-      allocated enough memory for it, he will burn in segmentation
-      fault hell, writhing with the agony of undiscovered memory
-      bugs! */
-   if (data)
-   {
-      if (att->vldata)
-      {
-         size_t base_typelen;
-         nc_hvl_t *vldest = data;
-         NC_TYPE_INFO_T *type;
-
-         /* Get the type object for the attribute's type */
-         if ((retval = nc4_find_type(h5, att->nc_typeid, &type)))
+    /* We may have to convert data. Treat NC_CHAR the same as
+     * NC_UBYTE. If the mem_type is NAT, don't try any conversion - use
+     * the attribute's type. */
+    if (data && att->len && mem_type != att->nc_typeid &&
+        mem_type != NC_NAT &&
+        !(mem_type == NC_CHAR &&
+          (att->nc_typeid == NC_UBYTE || att->nc_typeid == NC_BYTE)))
+    {
+        if (!(bufr = malloc((size_t)(att->len * type_size))))
+            BAIL(NC_ENOMEM);
+        need_to_convert++;
+        if ((retval = nc4_convert_type(att->data, bufr, att->nc_typeid,
+                                       mem_type, (size_t)att->len, &range_error,
+                                       NULL, (h5->cmode & NC_CLASSIC_MODEL))))
             BAIL(retval);
 
-         /* Retrieve the size of the base type */
-         if ((retval = nc4_get_typelen_mem(h5, type->u.v.base_nc_typeid, &base_typelen)))
-            BAIL(retval);
+        /* For strict netcdf-3 rules, ignore erange errors between UBYTE
+         * and BYTE types. */
+        if ((h5->cmode & NC_CLASSIC_MODEL) &&
+            (att->nc_typeid == NC_UBYTE || att->nc_typeid == NC_BYTE) &&
+            (mem_type == NC_UBYTE || mem_type == NC_BYTE) &&
+            range_error)
+            range_error = 0;
+    }
+    else
+    {
+        bufr = att->data;
+    }
 
-         for (i = 0; i < att->len; i++)
-         {
-            vldest[i].len = att->vldata[i].len;
-            if (!(vldest[i].p = malloc(vldest[i].len * base_typelen)))
-               BAIL(NC_ENOMEM);
-            memcpy(vldest[i].p, att->vldata[i].p, vldest[i].len * base_typelen);
-         }
-      }
-      else if (att->stdata)
-      {
-         for (i = 0; i < att->len; i++)
-         {
-            /* Check for NULL pointer for string (valid in HDF5) */
-            if(att->stdata[i])
+    /* If the caller wants data, copy it for him. If he hasn't
+       allocated enough memory for it, he will burn in segmentation
+       fault hell, writhing with the agony of undiscovered memory
+       bugs! */
+    if (data)
+    {
+        if (att->vldata)
+        {
+            size_t base_typelen;
+            nc_hvl_t *vldest = data;
+            NC_TYPE_INFO_T *type;
+
+            /* Get the type object for the attribute's type */
+            if ((retval = nc4_find_type(h5, att->nc_typeid, &type)))
+                BAIL(retval);
+
+            /* Retrieve the size of the base type */
+            if ((retval = nc4_get_typelen_mem(h5, type->u.v.base_nc_typeid, &base_typelen)))
+                BAIL(retval);
+
+            for (i = 0; i < att->len; i++)
             {
-               if (!(((char **)data)[i] = strdup(att->stdata[i])))
-                  BAIL(NC_ENOMEM);
+                vldest[i].len = att->vldata[i].len;
+                if (!(vldest[i].p = malloc(vldest[i].len * base_typelen)))
+                    BAIL(NC_ENOMEM);
+                memcpy(vldest[i].p, att->vldata[i].p, vldest[i].len * base_typelen);
             }
-            else
-               ((char **)data)[i] = att->stdata[i];
-         }
-      }
-      else
-      {
-         memcpy(data, bufr, (size_t)(att->len * type_size));
-      }
-   }
+        }
+        else if (att->stdata)
+        {
+            for (i = 0; i < att->len; i++)
+            {
+                /* Check for NULL pointer for string (valid in HDF5) */
+                if(att->stdata[i])
+                {
+                    if (!(((char **)data)[i] = strdup(att->stdata[i])))
+                        BAIL(NC_ENOMEM);
+                }
+                else
+                    ((char **)data)[i] = att->stdata[i];
+            }
+        }
+        else
+        {
+            memcpy(data, bufr, (size_t)(att->len * type_size));
+        }
+    }
 
 exit:
-   if (need_to_convert)
-      free(bufr);
-   if (range_error)
-      retval = NC_ERANGE;
-   return retval;
+    if (need_to_convert)
+        free(bufr);
+    if (range_error)
+        retval = NC_ERANGE;
+    return retval;
 }
 
 /**
@@ -213,38 +213,38 @@ int
 nc4_get_att(int ncid, int varid, const char *name, nc_type *xtype,
             nc_type mem_type, size_t *lenp, int *attnum, void *data)
 {
-   NC_FILE_INFO_T *h5;
-   NC_GRP_INFO_T *grp;
-   NC_VAR_INFO_T *var = NULL;
-   char norm_name[NC_MAX_NAME + 1];
-   int retval;
+    NC_FILE_INFO_T *h5;
+    NC_GRP_INFO_T *grp;
+    NC_VAR_INFO_T *var = NULL;
+    char norm_name[NC_MAX_NAME + 1];
+    int retval;
 
-   LOG((3, "%s: ncid 0x%x varid %d mem_type %d", __func__, ncid,
-        varid, mem_type));
+    LOG((3, "%s: ncid 0x%x varid %d mem_type %d", __func__, ncid,
+         varid, mem_type));
 
-   /* Find info for this file, group, and h5 info. */
-   if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
-      return retval;
-   assert(h5 && grp);
+    /* Find info for this file, group, and h5 info. */
+    if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
+        return retval;
+    assert(h5 && grp);
 
-   /* Check varid */
-   if (varid != NC_GLOBAL)
-   {
-      if (!(var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid)))
-         return NC_ENOTVAR;
-      assert(var->hdr.id == varid);
-   }
+    /* Check varid */
+    if (varid != NC_GLOBAL)
+    {
+        if (!(var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid)))
+            return NC_ENOTVAR;
+        assert(var->hdr.id == varid);
+    }
 
-   /* Name is required. */
-   if (!name)
-      return NC_EBADNAME;
+    /* Name is required. */
+    if (!name)
+        return NC_EBADNAME;
 
-   /* Normalize name. */
-   if ((retval = nc4_normalize_name(name, norm_name)))
-      return retval;
+    /* Normalize name. */
+    if ((retval = nc4_normalize_name(name, norm_name)))
+        return retval;
 
-   return nc4_get_att_ptrs(h5, grp, var, norm_name, xtype, mem_type, lenp,
-                           attnum, data);
+    return nc4_get_att_ptrs(h5, grp, var, norm_name, xtype, mem_type, lenp,
+                            attnum, data);
 }
 
 /**
@@ -265,8 +265,8 @@ int
 NC4_inq_att(int ncid, int varid, const char *name, nc_type *xtypep,
             size_t *lenp)
 {
-   LOG((2, "%s: ncid 0x%x varid %d name %s", __func__, ncid, varid, name));
-   return nc4_get_att(ncid, varid, name, xtypep, NC_NAT, lenp, NULL, NULL);
+    LOG((2, "%s: ncid 0x%x varid %d name %s", __func__, ncid, varid, name));
+    return nc4_get_att(ncid, varid, name, xtypep, NC_NAT, lenp, NULL, NULL);
 }
 
 /**
@@ -283,8 +283,8 @@ NC4_inq_att(int ncid, int varid, const char *name, nc_type *xtypep,
 int
 NC4_inq_attid(int ncid, int varid, const char *name, int *attnump)
 {
-   LOG((2, "%s: ncid 0x%x varid %d name %s", __func__, ncid, varid, name));
-   return nc4_get_att(ncid, varid, name, NULL, NC_NAT, NULL, attnump, NULL);
+    LOG((2, "%s: ncid 0x%x varid %d name %s", __func__, ncid, varid, name));
+    return nc4_get_att(ncid, varid, name, NULL, NC_NAT, NULL, attnump, NULL);
 }
 
 /**
@@ -302,21 +302,21 @@ NC4_inq_attid(int ncid, int varid, const char *name, int *attnump)
 int
 NC4_inq_attname(int ncid, int varid, int attnum, char *name)
 {
-   NC_ATT_INFO_T *att;
-   int retval;
+    NC_ATT_INFO_T *att;
+    int retval;
 
-   LOG((2, "nc_inq_attname: ncid 0x%x varid %d attnum %d", ncid, varid,
-        attnum));
+    LOG((2, "nc_inq_attname: ncid 0x%x varid %d attnum %d", ncid, varid,
+         attnum));
 
-   /* Find the attribute metadata. */
-   if ((retval = nc4_find_nc_att(ncid, varid, NULL, attnum, &att)))
-      return retval;
+    /* Find the attribute metadata. */
+    if ((retval = nc4_find_nc_att(ncid, varid, NULL, attnum, &att)))
+        return retval;
 
-   /* Get the name. */
-   if (name)
-      strcpy(name, att->hdr.name);
+    /* Get the name. */
+    if (name)
+        strcpy(name, att->hdr.name);
 
-   return NC_NOERR;
+    return NC_NOERR;
 }
 
 /**
@@ -335,5 +335,5 @@ NC4_inq_attname(int ncid, int varid, int attnum, char *name)
 int
 NC4_get_att(int ncid, int varid, const char *name, void *value, nc_type memtype)
 {
-   return nc4_get_att(ncid, varid, name, NULL, memtype, NULL, NULL, value);
+    return nc4_get_att(ncid, varid, name, NULL, memtype, NULL, NULL, value);
 }
