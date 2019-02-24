@@ -8,7 +8,7 @@ SET(CMAKE_BUILD_TYPE "")
 
 SET(libbzip2_SOURCES blocksort.c huffman.c crctable.c randtable.c compress.c decompress.c bzlib.c H5Zbzip2.c)
 
-SET(libmisc_SOURCES H5Zmisc.c)
+SET(libmisc_SOURCES H5Zmisc.c H5Zutil.c h5misc.h)
 
 IF(ENABLE_FILTER_TESTING)
 IF(BUILD_UTILITIES)

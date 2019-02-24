@@ -10,11 +10,17 @@ This file contains a high-level description of this package's evolution. Release
 * [Enhancement] Provide byte-range reading of remote datasets. This allows
 read-only access to, for example, Amazon S3 objects and also Thredds Server
 datasets via the HTTPService access method.
-See [GitHub #???](https://github.com/Unidata/netcdf-c/issues/???).
+See [GitHub #1251](https://github.com/Unidata/netcdf-c/issues/1251).
 
 * Update the license from the home-brewed NetCDF license to the standard 3-Clause BSD License.  This change does not result in any new restrictions; it is merely the adoption of a standard, well-known and well-understood license in place of the historic NetCDF license written at Unidata.  This is part of a broader push by Unidata to adopt modern, standardized licensing.  
 
+### Maintenance Release
 
+* Update the license from the home-brewed NetCDF license to the standard 3-Clause BSD License.  This change does not result in any new restrictions; it is merely the adoption of a standard, well-known and well-understood license in place of the historic NetCDF license written at Unidata.  This is part of a broader push by Unidata to adopt modern, standardized licensing.  
+* [BugFix] Corrected DAP-releated issues on big-endian machines. See [Github #1321](https://github.com/Unidata/netcdf-c/issues/1321), [Github #1302](https://github.com/Unidata/netcdf-c/issues/1302) for more information.
+* [BugFix][Enhancement]  Various and sundry bugfixes and performance enhancements, thanks to @edhartnett, @gsjaardema, @t-b, @wkliao, and all of our other contributors.
+* [Enhancement] Extended `nccopy -F` syntax to support multiple variables with a single invocation. See [Github #1311](https://github.com/Unidata/netcdf-c/issues/1311) for more information.
+* [BugFix] Corrected an issue where DAP2 was incorrectly converting signed bytes, resulting in an erroneous error message under some circumstances. See [GitHub #1317](https://github.com/Unidata/netcdf-c/issues/1317) for more information.  See [Github #1319](https://github.com/Unidata/netcdf-c/issues/1319) for related information.
 * [BugFix][Enhancement] Modified `nccopy` so that `_NCProperties` is not copied over verbatim but is instead generated based on the version of `libnetcdf` used when copying the file.  Additionally, `_NCProperties` are displayed if/when associated with a netcdf3 file, now. See [GitHub #803](https://github.com/Unidata/netcdf-c/issues/803) for more information.
 
 ## 4.6.2 - November 16, 2018

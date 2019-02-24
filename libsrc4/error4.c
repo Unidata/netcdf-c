@@ -1,8 +1,8 @@
 /*! \file
 
-Copyright 2003-2018, University Corporation for Atmospheric
-Research. See netcdf-4/docs/COPYRIGHT file for copying and
-redistribution conditions. */
+  Copyright 2003-2018, University Corporation for Atmospheric
+  Research. See netcdf-4/docs/COPYRIGHT file for copying and
+  redistribution conditions. */
 /**
  * @file @internal This file is part of netcdf-4, a netCDF-like
  * interface for HDF5, or a HDF5 backend for netCDF, depending on your
@@ -12,7 +12,7 @@ redistribution conditions. */
  * contains the functions nc_malloc, nc_calloc, and nc_free.
  *
  * @author Ed Hartnett
-*/
+ */
 
 #include "config.h"
 #include <stdarg.h>
@@ -43,29 +43,29 @@ extern int nc_log_level;
 void
 nc_log(int severity, const char *fmt, ...)
 {
-   va_list argp;
-   int t;
+    va_list argp;
+    int t;
 
-   /* If the severity is greater than the log level, we don' care to
-      print this message. */
-   if (severity > nc_log_level)
-      return;
+    /* If the severity is greater than the log level, we don' care to
+       print this message. */
+    if (severity > nc_log_level)
+        return;
 
-   /* If the severity is zero, this is an error. Otherwise insert that
-      many tabs before the message. */
-   if (!severity)
-      fprintf(stderr, "ERROR: ");
-   for (t=0; t<severity; t++)
-      fprintf(stderr, "\t");
+    /* If the severity is zero, this is an error. Otherwise insert that
+       many tabs before the message. */
+    if (!severity)
+        fprintf(stderr, "ERROR: ");
+    for (t=0; t<severity; t++)
+        fprintf(stderr, "\t");
 
-   /* Print out the variable list of args with vprintf. */
-   va_start(argp, fmt);
-   vfprintf(stderr, fmt, argp);
-   va_end(argp);
+    /* Print out the variable list of args with vprintf. */
+    va_start(argp, fmt);
+    vfprintf(stderr, fmt, argp);
+    va_end(argp);
 
-   /* Put on a final linefeed. */
-   fprintf(stderr, "\n");
-   fflush(stderr);
+    /* Put on a final linefeed. */
+    fprintf(stderr, "\n");
+    fflush(stderr);
 }
 
 void

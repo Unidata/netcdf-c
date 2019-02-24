@@ -18,7 +18,7 @@ See \ref copyright file for more info.
 #include "nc_tests.h"
 #include "err_macros.h"
 
-#define TEST_NAME "tst_rename"
+#define TEST_NAME "tst_rename2"
 #define LAT "lat"
 #define LON "lon"
 #define LEV "lev"
@@ -253,7 +253,7 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
 
       /* Open the file and rename the vars. */
-      /* nc_set_log_level(4); */
+      nc_set_log_level(4);
       if (nc_open(file_name, NC_WRITE, &ncid)) ERR;
       if (nc_rename_var(ncid, varid1, TMP_NAME)) ERR;
       if (nc_rename_var(ncid, varid2, D1_NAME)) ERR;
@@ -269,6 +269,35 @@ main(int argc, char **argv)
       if (nc_inq_varid(ncid, TMP_NAME, &varid_in)) ERR;
       if (varid_in != varid1) ERR;
       if (nc_inq_varid(ncid, D1_NAME, &varid_in)) ERR;
+      if (varid_in != varid2) ERR;
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+   fprintf(stderr,"*** test renaming affect on varids...");
+   {
+      int ncid, dimid1, dimid2, varid1, varid2;
+      int dimid_in, varid_in;
+      char file_name[NC_MAX_NAME + 1];
+
+      /* Create file with two scalar vars. */
+      sprintf(file_name, "%s_rename_affect_varid_order.nc", TEST_NAME);
+      if (nc_create(file_name, NC_CLOBBER|NC_NETCDF4|NC_CLASSIC_MODEL, &ncid)) ERR;
+      if (nc_def_var(ncid, D1_NAME, NC_INT, 0, NULL, &varid1)) ERR;
+      if (nc_def_var(ncid, D2_NAME, NC_INT, 0, NULL, &varid2)) ERR;
+      if (nc_close(ncid)) ERR;
+
+      /* Open the file and rename a var. */
+      nc_set_log_level(4);
+      if (nc_open(file_name, NC_WRITE, &ncid)) ERR;
+      if (nc_rename_var(ncid, varid1, TMP_NAME)) ERR;
+      if (nc_close(ncid)) ERR;
+
+      /* Reopen file and check, */
+      if (nc_open(file_name, NC_WRITE, &ncid)) ERR;
+      if (nc_inq_varid(ncid, TMP_NAME, &varid_in)) ERR;
+      if (varid_in != varid1) ERR;
+      if (nc_inq_varid(ncid, D1_NAME, &varid_in) != NC_ENOTVAR) ERR;
+      if (nc_inq_varid(ncid, D2_NAME, &varid_in)) ERR;
       if (varid_in != varid2) ERR;
       if (nc_close(ncid)) ERR;
    }

@@ -21,6 +21,7 @@ typedef struct List {
 
 EXTERNC List* listnew(void);
 EXTERNC int listfree(List*);
+EXTERNC int listfreeall(List*);
 EXTERNC int listsetalloc(List*,unsigned long);
 EXTERNC int listsetlength(List*,unsigned long);
 

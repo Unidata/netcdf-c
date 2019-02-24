@@ -830,7 +830,11 @@ convertString(union ATOMICS* converter, NCD4node* type, const char* s)
 	if(sscanf(s,"%lf",&converter->f64[0]) != 1) return THROW(NC_ERANGE);
 	break;
     case NC_CHAR:
+#ifdef WORDS_BIGENDIAN
+	converter->i8[7] = s[0];
+#else
 	converter->i8[0] = s[0];
+#endif
 	break;
     case NC_STRING:
 	converter->s[0]= strdup(s);
