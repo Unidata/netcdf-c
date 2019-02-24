@@ -749,7 +749,6 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
          nc4_chunk_cache_preemption));
 #endif /* USE_PARALLEL4 */
 
-<<<<<<< HEAD
     /* Process  NC_INMEMORY */
     if(nc4_info->mem.inmemory) {
 	NC_memio* memio;
@@ -870,7 +869,7 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
          void *parameters, NC_Dispatch *dispatch, NC *nc_file)
 {
     assert(nc_file && path && dispatch && nc_file &&
-           nc_file->model == NC_FORMATX_NC4);
+           nc_file->model->impl == NC_FORMATX_NC4);
 
     LOG((1, "%s: path %s mode %d params %x",
          __func__, path, mode, parameters));
