@@ -177,7 +177,7 @@ buildbaseline(void)
     val8 = 18446744073709551615UL;
     insert(12,&val8,sizeof(val8)); /* unsigned long long */
     float8 = DBLVAL;
-    insert(114,&float8,sizeof(float8)); /* double */
+    insert(14,&float8,sizeof(float8)); /* double */
 }
 
 /**************************************************/
