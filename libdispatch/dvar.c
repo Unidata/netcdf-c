@@ -2,7 +2,8 @@
    Research/Unidata. See COPYRIGHT file for more info. */
 /**
  * @file
- * Functions for defining and inquiring about variables.
+ * Functions for defining and inquiring about variables. @note The
+ * order of functions in this file affects the doxygen documentation.
  */
 
 #include "ncdispatch.h"
