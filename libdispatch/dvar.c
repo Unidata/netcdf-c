@@ -9,7 +9,7 @@
 #include "netcdf_f.h"
 
 /**
-   \defgroup variables Variables
+   @defgroup variables Variables
 
    Variables hold multi-dimensional arrays of data.
 
@@ -55,7 +55,7 @@
    index mapping vector.
    - Rename a variable.
 
-   \section language_types Language Types Corresponding to netCDF
+   @section language_types Language Types Corresponding to netCDF
    External Data Types
 
    NetCDF supported six atomic data types through version 3.6.0 (char,
@@ -68,7 +68,7 @@
    files. To create netCDF-4/HDF5 files, use the HDF5 flag in
    nc_create. (see nc_create).
 
-   \section classic_types NetCDF-3 Classic and 64-Bit Offset Data Types
+   @section classic_types NetCDF-3 Classic and 64-Bit Offset Data Types
 
    NetCDF-3 classic and 64-bit offset files support 6 atomic data types,
    and none of the user defined datatype introduced in NetCDF-4.
@@ -94,7 +94,7 @@
    column gives the number of bits used in the external representation of
    values of the corresponding type.
 
-   \section netcdf_4_atomic NetCDF-4 Atomic Types
+   @section netcdf_4_atomic NetCDF-4 Atomic Types
 
    NetCDF-4 files support all of the atomic data types from netCDF-3,
    plus additional unsigned integer types, 64-bit integer types, and a
@@ -127,7 +127,7 @@
 
    Use these functions to define variables.
 */
-/*! \{ */
+/*! @{ */
 
 /**
    @ingroup variables
@@ -142,9 +142,9 @@
    nc_create(), nc_def_grp(), or associated inquiry functions such as
    nc_inq_ncid().
 
-   @param name Variable \ref object_name.
+   @param name Variable @ref object_name.
 
-   @param xtype \ref data_type of the variable.
+   @param xtype @ref data_type of the variable.
 
    @param ndims Number of dimensions for the variable. For example, 2
    specifies a matrix, 1 specifies a vector, and 0 means the variable is
@@ -219,14 +219,14 @@ nc_def_var(int ncid, const char *name, nc_type xtype,
     return ncp->dispatch->def_var(ncid, name, xtype, ndims,
                                   dimidsp, varidp);
 }
-/*! \} */
+/*! @} */
 
 /**
    @name Rename a Variable
 
    Rename a variable.
 */
-/*! \{ */
+/*! @{ */
 
 /**
    Rename a variable.
@@ -295,7 +295,7 @@ nc_rename_var(int ncid, int varid, const char *name)
     TRACE(nc_rename_var);
     return ncp->dispatch->rename_var(ncid, varid, name);
 }
-/*! \} */
+/*! @} */
 
 /**
    @ingroup variables
@@ -470,8 +470,8 @@ nctypelen(nc_type type)
     }
 }
 
-/** \internal
-    \ingroup variables
+/** @internal
+    @ingroup variables
     Find the length of a type. Redundant over nctypelen() above. */
 size_t
 NC_atomictypelen(nc_type xtype)
@@ -498,8 +498,8 @@ NC_atomictypelen(nc_type xtype)
     return sz;
 }
 
-/** \internal
-    \ingroup variables
+/** @internal
+    @ingroup variables
     Get the type name. */
 char *
 NC_atomictypename(nc_type xtype)
@@ -526,8 +526,8 @@ NC_atomictypename(nc_type xtype)
     return nm;
 }
 
-/** \internal
-    \ingroup variables
+/** @internal
+    @ingroup variables
     Get the shape of a variable.
 */
 int
@@ -708,7 +708,7 @@ NC_check_nulls(int ncid, int varid, const size_t *start, size_t **count,
     return NC_NOERR;
 }
 
-/** \ingroup variables
+/** @ingroup variables
     Free string space allocated by the library.
 
     When you read string type the library will allocate the storage space
@@ -716,10 +716,10 @@ NC_check_nulls(int ncid, int varid, const size_t *start, size_t **count,
     back to this function, when you're done with the data, and it will
     free the string memory.
 
-    \param len The number of character arrays in the array.
-    \param data The pointer to the data array.
+    @param len The number of character arrays in the array.
+    @param data The pointer to the data array.
 
-    \returns ::NC_NOERR No error.
+    @returns ::NC_NOERR No error.
 */
 int
 nc_free_string(size_t len, char **data)
@@ -731,7 +731,7 @@ nc_free_string(size_t len, char **data)
 }
 
 #ifdef USE_NETCDF4
-/** \ingroup variables
+/** @ingroup variables
 
     Change the cache settings for a chunked variable. This function allows
     users to control the amount of memory used in the per-variable chunk
@@ -739,35 +739,35 @@ nc_free_string(size_t len, char **data)
     until the file is closed. Once re-opened, the variable chunk cache
     returns to its default value.
 
-    \param ncid NetCDF or group ID, from a previous call to nc_open(),
+    @param ncid NetCDF or group ID, from a previous call to nc_open(),
     nc_create(), nc_def_grp(), or associated inquiry functions such as
     nc_inq_ncid().
 
-    \param varid Variable ID
+    @param varid Variable ID
 
-    \param size The total size of the raw data chunk cache, in bytes.
+    @param size The total size of the raw data chunk cache, in bytes.
 
-    \param nelems The number of chunk slots in the raw data chunk cache.
+    @param nelems The number of chunk slots in the raw data chunk cache.
 
-    \param preemption The preemption, a value between 0 and 1 inclusive
+    @param preemption The preemption, a value between 0 and 1 inclusive
     that indicates how much chunks that have been fully read are favored
     for preemption. A value of zero means fully read chunks are treated no
     differently than other chunks (the preemption is strictly LRU) while a
     value of one means fully read chunks are always preempted before other
     chunks.
 
-    \returns ::NC_NOERR No error.
-    \returns ::NC_EBADID Bad ncid.
-    \returns ::NC_ENOTVAR Invalid variable ID.
-    \returns ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3 netcdf-4 file.
-    \returns ::NC_EINVAL Invalid input
+    @returns ::NC_NOERR No error.
+    @returns ::NC_EBADID Bad ncid.
+    @returns ::NC_ENOTVAR Invalid variable ID.
+    @returns ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3 netcdf-4 file.
+    @returns ::NC_EINVAL Invalid input
 
-    \section nc_def_var_chunk_cache_example Example
+    @section nc_def_var_chunk_cache_example Example
 
     In this example from nc_test4/tst_coords.c, a variable is defined, and
     the chunk cache settings are changed for that variable.
 
-    \code
+    @code
     printf("**** testing setting cache values for coordinate variables...");
     {
     #define RANK_1 1
@@ -788,7 +788,7 @@ nc_free_string(size_t len, char **data)
     ...
     }
     SUMMARIZE_ERR;
-    \endcode
+    @endcode
 */
 int
 nc_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
@@ -801,35 +801,35 @@ nc_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
                                               nelems, preemption);
 }
 
-/** \ingroup variables
+/** @ingroup variables
 
     Get the per-variable chunk cache settings from the HDF5 layer.
 
-    \param ncid NetCDF or group ID, from a previous call to nc_open(),
+    @param ncid NetCDF or group ID, from a previous call to nc_open(),
     nc_create(), nc_def_grp(), or associated inquiry functions such as
     nc_inq_ncid().
 
-    \param varid Variable ID
+    @param varid Variable ID
 
-    \param sizep The total size of the raw data chunk cache, in bytes,
-    will be put here. \ref ignored_if_null.
+    @param sizep The total size of the raw data chunk cache, in bytes,
+    will be put here. @ref ignored_if_null.
 
-    \param nelemsp The number of chunk slots in the raw data chunk cache
-    hash table will be put here. \ref ignored_if_null.
+    @param nelemsp The number of chunk slots in the raw data chunk cache
+    hash table will be put here. @ref ignored_if_null.
 
-    \param preemptionp The preemption will be put here. The preemtion
+    @param preemptionp The preemption will be put here. The preemtion
     value is between 0 and 1 inclusive and indicates how much chunks that
     have been fully read are favored for preemption. A value of zero means
     fully read chunks are treated no differently than other chunks (the
     preemption is strictly LRU) while a value of one means fully read
-    chunks are always preempted before other chunks. \ref ignored_if_null.
+    chunks are always preempted before other chunks. @ref ignored_if_null.
 
-    \returns ::NC_NOERR No error.
-    \returns ::NC_EBADID Bad ncid.
-    \returns ::NC_ENOTVAR Invalid variable ID.
-    \returns ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3
+    @returns ::NC_NOERR No error.
+    @returns ::NC_EBADID Bad ncid.
+    @returns ::NC_ENOTVAR Invalid variable ID.
+    @returns ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3
     netcdf-4 file.
-    \returns ::NC_EINVAL Invalid input
+    @returns ::NC_EINVAL Invalid input
 */
 int
 nc_get_var_chunk_cache(int ncid, int varid, size_t *sizep, size_t *nelemsp,
@@ -986,7 +986,7 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
 
 /*! Define chunking parameters for a variable
 
-  \ingroup variables
+  @ingroup variables
 
   The function nc_def_var_chunking sets the chunking parameters for a
   variable in a netCDF-4 file. It can set the chunk sizes to get chunked
@@ -1003,12 +1003,12 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
   Note that this does not work for scalar variables. Only non-scalar
   variables can have chunking.
 
-  \param[in] ncid NetCDF ID, from a previous call to nc_open or
+  @param[in] ncid NetCDF ID, from a previous call to nc_open or
   nc_create.
 
-  \param[in] varid Variable ID.
+  @param[in] varid Variable ID.
 
-  \param[in] storage If ::NC_CONTIGUOUS, then contiguous storage is used
+  @param[in] storage If ::NC_CONTIGUOUS, then contiguous storage is used
   for this variable. Variables with one or more unlimited dimensions
   cannot use contiguous storage. If contiguous storage is turned on, the
   chunksizes parameter is ignored. If ::NC_CHUNKED, then chunked storage
@@ -1016,7 +1016,7 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
   chunksizes parameter or default sizes will be used if that parameter
   is NULL.
 
-  \param[in] chunksizesp A pointer to an array list of chunk sizes. The
+  @param[in] chunksizesp A pointer to an array list of chunk sizes. The
   array must have one chunksize for each dimension of the variable. If
   ::NC_CONTIGUOUS storage is set, then the chunksizes parameter is
   ignored.
@@ -1031,18 +1031,18 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
   set the chunking for that variable.
   * @returns ::NC_ENOTINDEFINE Not in define mode.  This is returned for
   netCDF classic or 64-bit offset files, or for netCDF-4 files, when
-  they wwere created with NC_STRICT_NC3 flag. See \ref nc_create.
+  they wwere created with NC_STRICT_NC3 flag. See @ref nc_create.
   * @returns ::NC_EPERM Attempt to create object in read-only file.
   * @returns ::NC_EBADCHUNK Retunrs if the chunk size specified for a
   variable is larger than the length of the dimensions associated with
   variable.
 
-  \section nc_def_var_chunking_example Example
+  @section nc_def_var_chunking_example Example
 
   In this example from libsrc4/tst_vars2.c, chunksizes are set with
   nc_var_def_chunking, and checked with nc_var_inq_chunking.
 
-  \code
+  @code
   printf("**** testing chunking...");
   {
   #define NDIMS5 1
@@ -1074,7 +1074,7 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
   for (d = 0; d < NDIMS5; d++)
   if (chunksize[d] != chunksize_in[d]) ERR;
   if (storage_in != NC_CHUNKED) ERR;
-  \endcode
+  @endcode
 */
 int
 nc_def_var_chunking(int ncid, int varid, int storage,
@@ -1123,7 +1123,7 @@ nc_def_var_chunking(int ncid, int varid, int storage,
    set the chunking for that variable.
    @returns ::NC_ENOTINDEFINE Not in define mode. This is returned for
    netCDF classic or 64-bit offset files, or for netCDF-4 files, when
-   they wwere created with NC_STRICT_NC3 flag. See \ref nc_create.
+   they wwere created with NC_STRICT_NC3 flag. See @ref nc_create.
    @returns ::NC_EPERM Attempt to create object in read-only file.
 
    @section nc_def_var_endian_example Example
