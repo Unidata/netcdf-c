@@ -9,117 +9,116 @@
 #include "netcdf_f.h"
 
 /**
-   @defgroup variables Variables
-
-   Variables hold multi-dimensional arrays of data.
-
-   Variables for a netCDF dataset are defined when the dataset is
-   created, while the netCDF dataset is in define mode. Other variables
-   may be added later by reentering define mode. A netCDF variable has a
-   name, a type, and a shape, which are specified when it is defined. A
-   variable may also have values, which are established later in data
-   mode.
-
-   Ordinarily, the name, type, and shape are fixed when the variable is
-   first defined. The name may be changed, but the type and shape of a
-   variable cannot be changed. However, a variable defined in terms of
-   the unlimited dimension can grow without bound in that dimension.
-
-   A netCDF variable in an open netCDF dataset is referred to by a small
-   integer called a variable ID.
-
-   Variable IDs reflect the order in which variables were defined within
-   a netCDF dataset. Variable IDs are 0, 1, 2,..., in the order in which
-   the variables were defined. A function is available for getting the
-   variable ID from the variable name and vice-versa.
-
-   Attributes (see Attributes) may be associated with a variable to
-   specify such properties as units.
-
-   Operations supported on variables are:
-   - Create a variable, given its name, data type, and shape.
-   - Get a variable ID from its name.
-   - Get a variable's name, data type, shape, and number of attributes
-   from its ID.
-   - Put a data value into a variable, given variable ID, indices, and value.
-   - Put an array of values into a variable, given variable ID, corner
-   indices, edge lengths, and a block of values.
-   - Put a subsampled or mapped array-section of values into a variable,
-   given variable ID, corner indices, edge lengths, stride vector,
-   index mapping vector, and a block of values.
-   - Get a data value from a variable, given variable ID and indices.
-   - Get an array of values from a variable, given variable ID, corner
-   indices, and edge lengths.
-   - Get a subsampled or mapped array-section of values from a variable,
-   given variable ID, corner indices, edge lengths, stride vector, and
-   index mapping vector.
-   - Rename a variable.
-
-   @section language_types Language Types Corresponding to netCDF
-   External Data Types
-
-   NetCDF supported six atomic data types through version 3.6.0 (char,
-   byte, short, int, float, and double). Starting with version 4.0, many
-   new atomic and user defined data types are supported (unsigned int
-   types, strings, compound types, variable length arrays, enums,
-   opaque).
-
-   The additional data types are only supported in netCDF-4/HDF5
-   files. To create netCDF-4/HDF5 files, use the HDF5 flag in
-   nc_create. (see nc_create).
-
-   @section classic_types NetCDF-3 Classic and 64-Bit Offset Data Types
-
-   NetCDF-3 classic and 64-bit offset files support 6 atomic data types,
-   and none of the user defined datatype introduced in NetCDF-4.
-
-   The following table gives the netCDF-3 external data types and the
-   corresponding type constants for defining variables in the C
-   interface:
-
-   <table>
-   <tr><td>Type</td><td>C define</td><td>Bits</td></tr>
-   <tr><td>byte</td><td>NC_BYTE</td><td>8</td></tr>
-   <tr><td>char</td><td>NC_CHAR</td><td>8</td></tr>
-   <tr><td>short</td><td>NC_SHORT</td><td>16</td></tr>
-   <tr><td>int</td><td>NC_INT</td><td>32</td></tr>
-   <tr><td>float</td><td>NC_FLOAT</td><td>32</td></tr>
-   <tr><td>double</td><td>NC_DOUBLE</td><td>64</td></tr>
-   </table>
-
-   The first column gives the netCDF external data type, which is the
-   same as the CDL data type. The next column gives the corresponding C
-   pre-processor macro for use in netCDF functions (the pre-processor
-   macros are defined in the netCDF C header-file netcdf.h). The last
-   column gives the number of bits used in the external representation of
-   values of the corresponding type.
-
-   @section netcdf_4_atomic NetCDF-4 Atomic Types
-
-   NetCDF-4 files support all of the atomic data types from netCDF-3,
-   plus additional unsigned integer types, 64-bit integer types, and a
-   string type.
-
-   <table>
-   <tr><td>Type</td><td>C define</td><td>Bits
-
-   <tr><td>byte</td><td>NC_BYTE</td><td>8</td></tr>
-   <tr><td>unsigned byte </td><td>NC_UBYTE^</td><td> 8</td></tr>
-   <tr><td>char </td><td>NC_CHAR </td><td>8</td></tr>
-   <tr><td>short </td><td>NC_SHORT </td><td>16</td></tr>
-   <tr><td>unsigned short </td><td>NC_USHORT^ </td><td>16</td></tr>
-   <tr><td>int </td><td>NC_INT </td><td>32</td></tr>
-   <tr><td>unsigned int </td><td>NC_UINT^ </td><td>32</td></tr>
-   <tr><td>unsigned long long </td><td>NC_UINT64^ </td><td>64</td></tr>
-   <tr><td>long long </td><td>NC_INT64^ </td><td>64</td></tr>
-   <tr><td>float </td><td>NC_FLOAT </td><td>32</td></tr>
-   <tr><td>double </td><td>NC_DOUBLE </td><td>64</td></tr>
-   <tr><td>char ** </td><td>NC_STRING^ </td><td>string length + 1</td></tr>
-   </table>
-
-   ^This type was introduced in netCDF-4, and is not supported in netCDF
-   classic or 64-bit offset format files, or in netCDF-4 files if they
-   are created with the NC_CLASSIC_MODEL flags.
+ * @defgroup variables Variables
+ *
+ * Variables hold multi-dimensional arrays of data.
+ *
+ * Variables for a netCDF dataset are defined when the dataset is
+ * created, while the netCDF dataset is in define mode. Other variables
+ * may be added later by reentering define mode. A netCDF variable has a
+ * name, a type, and a shape, which are specified when it is defined. A
+ * variable may also have values, which are established later in data
+ * mode.
+ *
+ * Ordinarily, the name, type, and shape are fixed when the variable is
+ * first defined. The name may be changed, but the type and shape of a
+ * variable cannot be changed. However, a variable defined in terms of
+ * the unlimited dimension can grow without bound in that dimension.
+ *
+ * A netCDF variable in an open netCDF dataset is referred to by a small
+ * integer called a variable ID.
+ *
+ * Variable IDs reflect the order in which variables were defined within
+ * a netCDF dataset. Variable IDs are 0, 1, 2,..., in the order in which
+ * the variables were defined. A function is available for getting the
+ * variable ID from the variable name and vice-versa.
+ *
+ * Attributes (see Attributes) may be associated with a variable to
+ * specify such properties as units.
+ *
+ * Operations supported on variables are:
+ * - Create a variable, given its name, data type, and shape.
+ * - Get a variable ID from its name.
+ * - Get a variable's name, data type, shape, and number of attributes
+ * from its ID.
+ * - Put a data value into a variable, given variable ID, indices, and value.
+ * - Put an array of values into a variable, given variable ID, corner
+ * indices, edge lengths, and a block of values.
+ * - Put a subsampled or mapped array-section of values into a variable,
+ * given variable ID, corner indices, edge lengths, stride vector,
+ * index mapping vector, and a block of values.
+ * - Get a data value from a variable, given variable ID and indices.
+ * - Get an array of values from a variable, given variable ID, corner
+ * indices, and edge lengths.
+ * - Get a subsampled or mapped array-section of values from a variable,
+ * given variable ID, corner indices, edge lengths, stride vector, and
+ * index mapping vector.
+ * - Rename a variable.
+ *
+ *   @section language_types Data Types
+ *
+ * NetCDF supported six atomic data types through version 3.6.0 (char,
+ * byte, short, int, float, and double). Starting with version 4.0, many
+ * new atomic and user defined data types are supported (unsigned int
+ * types, strings, compound types, variable length arrays, enums,
+ * opaque).
+ *
+ * The additional data types are only supported in netCDF-4/HDF5
+ * files. To create netCDF-4/HDF5 files, use the ::NC_NETCDF4 flag in
+ * nc_create().
+ *
+ * @section classic_types NetCDF-3 Classic and 64-Bit Offset Data Types
+ *
+ * NetCDF-3 classic and 64-bit offset files support 6 atomic data types,
+ * and none of the user defined datatype introduced in NetCDF-4.
+ *
+ * The following table gives the netCDF-3 external data types and the
+ * corresponding type constants for defining variables in the C
+ * interface:
+ *
+ * <table>
+ * <tr><td>Type</td><td>C define</td><td>Bits</td></tr>
+ * <tr><td>byte</td><td>::NC_BYTE</td><td>8</td></tr>
+ * <tr><td>char</td><td>::NC_CHAR</td><td>8</td></tr>
+ * <tr><td>short</td><td>::NC_SHORT</td><td>16</td></tr>
+ * <tr><td>int</td><td>::NC_INT</td><td>32</td></tr>
+ * <tr><td>float</td><td>::NC_FLOAT</td><td>32</td></tr>
+ * <tr><td>double</td><td>::NC_DOUBLE</td><td>64</td></tr>
+ * </table>
+ *
+ * The first column gives the netCDF external data type, which is the
+ * same as the CDL data type. The next column gives the corresponding C
+ * pre-processor macro for use in netCDF functions (the pre-processor
+ * macros are defined in the netCDF C header-file netcdf.h). The last
+ * column gives the number of bits used in the external representation of
+ * values of the corresponding type.
+ *
+ * @section netcdf_4_atomic NetCDF-4 Atomic Types
+ *
+ * NetCDF-4 files support all of the atomic data types from netCDF-3,
+ * plus additional unsigned integer types, 64-bit integer types, and a
+ * string type.
+ *
+ * <table>
+ * <tr><td>Type</td><td>C define</td><td>Bits
+ *
+ * <tr><td>byte</td><td>NC_BYTE</td><td>8</td></tr>
+ * <tr><td>unsigned byte </td><td>NC_UBYTE^</td><td> 8</td></tr>
+ * <tr><td>char </td><td>NC_CHAR </td><td>8</td></tr>
+ * <tr><td>short </td><td>NC_SHORT </td><td>16</td></tr>
+ * <tr><td>unsigned short </td><td>NC_USHORT^ </td><td>16</td></tr>
+ * <tr><td>int </td><td>NC_INT </td><td>32</td></tr>
+ * <tr><td>unsigned int </td><td>NC_UINT^ </td><td>32</td></tr>
+ * <tr><td>unsigned long long </td><td>NC_UINT64^ </td><td>64</td></tr>
+ * <tr><td>long long </td><td>NC_INT64^ </td><td>64</td></tr>
+ * <tr><td>float </td><td>NC_FLOAT </td><td>32</td></tr>
+ * <tr><td>double </td><td>NC_DOUBLE </td><td>64</td></tr>
+ * <tr><td>char ** </td><td>NC_STRING^ </td><td>string length + 1</td></tr>
+ * </table>
+ *
+ * ^This type was introduced in netCDF-4, and is not supported in netCDF
+ * classic or 64-bit offset format files, or in netCDF-4 files if they
+ * are created with the NC_CLASSIC_MODEL flags.
 */
 
 /**
@@ -422,15 +421,15 @@ NC_inq_recvar(int ncid, int varid, int* nrecdimsp, int *is_recdim)
 */
 
 /**
- * @internal
- * @ingroup variables
- * Find the length of a type. This is how much space is required by
- * the in memory to hold one element of this type.
- *
- * @param type A netCDF atomic type.
- *
- * @return Length of the type in bytes, or -1 if type not found.
- * @author Ed Hartnett
+  @internal
+  @ingroup variables
+  Find the length of a type. This is how much space is required by
+  the in memory to hold one element of this type.
+
+  @param type A netCDF atomic type.
+
+  @return Length of the type in bytes, or -1 if type not found.
+  @author Ed Hartnett
  */
 int
 nctypelen(nc_type type)
