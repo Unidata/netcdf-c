@@ -122,6 +122,7 @@
    are created with the ::NC_CLASSIC_MODEL flags.
 */
 
+/** @{ */
 /**
    @name Defining Variables
 
@@ -573,10 +574,10 @@ NC_getshape(int ncid, int varid, int ndims, size_t* shape)
 
    @return ::NC_NOERR No error.
    @return ::NC_EBADID Bad ID.
-   @return ::NC_ENOTINDEFINE Not in define mode.  This is returned
-   for netCDF classic, 64-bit offset, or 64-bit data files, or for
-   netCDF-4 files, when they were created with NC_STRICT_NC3 flag. See
-   @ref nc_create.
+   @return ::NC_ENOTINDEFINE Not in define mode.  This is returned for
+   netCDF classic, 64-bit offset, or 64-bit data files, or for
+   netCDF-4 files, when they were created with ::NC_CLASSIC_MODEL flag by
+   nc_creae().
    @return ::NC_EPERM Attempt to create object in read-only file.
    @return ::NC_ELATEDEF (NetCDF-4 only). Returned when user attempts
    to set fill value after data are written.
@@ -1031,7 +1032,7 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
    set the chunking for that variable.
    @return ::NC_ENOTINDEFINE Not in define mode.  This is returned for
    netCDF classic or 64-bit offset files, or for netCDF-4 files, when
-   they wwere created with NC_STRICT_NC3 flag. See @ref nc_create.
+   they wwere created with ::NC_CLASSIC_MODEL flag by nc_create().
    @return ::NC_EPERM Attempt to create object in read-only file.
    @return ::NC_EBADCHUNK Retunrs if the chunk size specified for a
    variable is larger than the length of the dimensions associated with
@@ -1104,14 +1105,14 @@ nc_def_var_chunking(int ncid, int varid, int storage,
    This function may only be called after the variable is defined, but
    before nc_enddef is called.
 
-   @param[in] ncid NetCDF ID, from a previous call to nc_open or
-   nc_create.
+   @param ncid NetCDF ID, from a previous call to nc_open() or
+   nc_create().
 
-   @param[in] varid Variable ID.
+   @param varid Variable ID.
 
-   @param[in] endian NC_ENDIAN_NATIVE to select the native endianness of
-   the platform (the default), NC_ENDIAN_LITTLE to use little-endian,
-   NC_ENDIAN_BIG to use big-endian.
+   @param endian ::NC_ENDIAN_NATIVE to select the native endianness of
+   the platform (the default), ::NC_ENDIAN_LITTLE to use
+   little-endian, ::NC_ENDIAN_BIG to use big-endian.
 
    @return ::NC_NOERR No error.
    @return ::NC_EBADID Bad ID.
@@ -1123,13 +1124,13 @@ nc_def_var_chunking(int ncid, int varid, int storage,
    set the chunking for that variable.
    @return ::NC_ENOTINDEFINE Not in define mode. This is returned for
    netCDF classic or 64-bit offset files, or for netCDF-4 files, when
-   they wwere created with NC_STRICT_NC3 flag. See @ref nc_create.
+   they wwere created with ::NC_CLASSIC_MODEL flag by nc_create().
    @return ::NC_EPERM Attempt to create object in read-only file.
 
    @section nc_def_var_endian_example Example
 
    In this example from libsrc4/tst_vars2.c, a variable is created, and
-   the endianness set to NC_ENDIAN_BIG.
+   the endianness set to ::NC_ENDIAN_BIG.
 
    @code
    #define NDIMS4 1
@@ -1190,3 +1191,4 @@ nc_def_var_filter(int ncid, int varid, unsigned int id,
 }
 
 #endif /* USE_NETCDF4 */
+/** @} */
