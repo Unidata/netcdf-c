@@ -48,10 +48,9 @@ byteswap4(unsigned char* mem)
 void
 NC_filterfix8(void* mem0, int decode)
 {
-
-unsigned char* mem = mem0;
 #ifdef WORDS_BIGENDIAN
- if(decode) { /* Apply inverse of the encode case */
+    unsigned char* mem = mem0;
+    if(decode) { /* Apply inverse of the encode case */
 	byteswap4(mem); /* step 1: byte-swap each piece */
 	byteswap4(mem+4);
 	byteswap8(mem); /* step 2: convert to little endian format */
@@ -61,8 +60,6 @@ unsigned char* mem = mem0;
 	byteswap4(mem+4);
     }
 #else /* Little endian */
-
-
     /* No action is necessary */
 #endif
 }
