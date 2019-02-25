@@ -233,11 +233,14 @@ nc_inq_dim(int ncid, int dimid, char *name, size_t *lenp)
    for writing. You cannot rename a dimension to have the same name as
    another dimension.
 
-   For netCDF classic and 64-bit offset files, if the new name is longer
-   than the old name, the netCDF dataset must be in define mode.
+   For netCDF classic and 64-bit offset files, if the new name is
+   longer than the old name, which has been flushed to disk, the
+   netCDF dataset must be in define mode.
 
-   For netCDF-4 files the dataset is switched to define mode for the
-   rename, regardless of the name length.
+   For netCDF-4 files the length of the name is not checked against
+   the length of the old name, even for classic model files. This is
+   due to the difficulty of exactly reproducing classic library
+   behavior in this case.
 
    @param ncid NetCDF or group ID, from a previous call to nc_open(),
    nc_create(), nc_def_grp(), or associated inquiry functions such as
