@@ -8,6 +8,8 @@
 #include <H5PLextern.h>
 #include "h5misc.h"
 
+#include "config.h"
+
 #ifndef DLL_EXPORT
 #define DLL_EXPORT
 #endif
