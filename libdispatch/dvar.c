@@ -215,351 +215,6 @@ nc_def_var(int ncid, const char *name, nc_type xtype,
     return ncp->dispatch->def_var(ncid, name, xtype, ndims,
                                   dimidsp, varidp);
 }
-/*! @} */
-
-/**
-   @name Rename a Variable
-
-   Rename a variable.
-*/
-/*! @{ */
-
-/**
-   Rename a variable.
-
-   This function changes the name of a netCDF variable in an open netCDF
-   file or group. You cannot rename a variable to have the name of any existing
-   variable.
-
-   For classic format, 64-bit offset format, and netCDF-4/HDF5 with
-   classic mode, if the new name is longer than the old name, the netCDF
-   dataset must be in define mode.
-
-   For netCDF-4/HDF5 files, renaming the variable changes the order of
-   the variables in the file. The renamed variable becomes the last
-   variable in the file.
-
-   @param ncid NetCDF or group ID, from a previous call to nc_open(),
-   nc_create(), nc_def_grp(), or associated inquiry functions such as
-   nc_inq_ncid().
-
-   @param varid Variable ID
-
-   @param name New name of the variable.
-
-   @return ::NC_NOERR No error.
-   @return ::NC_EBADID Bad ncid.
-   @return ::NC_ENOTVAR Invalid variable ID.
-   @return ::NC_EBADNAME Bad name.
-   @return ::NC_EMAXNAME Name is too long.
-   @return ::NC_ENAMEINUSE Name in use.
-   @return ::NC_ENOMEM Out of memory.
-
-   @section nc_rename_var_example Example
-
-   Here is an example using nc_rename_var to rename the variable rh to
-   rel_hum in an existing netCDF dataset named foo.nc:
-
-   @code
-   #include <netcdf.h>
-   ...
-   int  status;
-   int  ncid;
-   int  rh_id;
-   ...
-   status = nc_open("foo.nc", NC_WRITE, &ncid);
-   if (status != NC_NOERR) handle_error(status);
-   ...
-   status = nc_redef(ncid);
-   if (status != NC_NOERR) handle_error(status);
-   status = nc_inq_varid (ncid, "rh", &rh_id);
-   if (status != NC_NOERR) handle_error(status);
-   status = nc_rename_var (ncid, rh_id, "rel_hum");
-   if (status != NC_NOERR) handle_error(status);
-   status = nc_enddef(ncid);
-   if (status != NC_NOERR) handle_error(status);
-   @endcode
-   @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
-*/
-int
-nc_rename_var(int ncid, int varid, const char *name)
-{
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    TRACE(nc_rename_var);
-    return ncp->dispatch->rename_var(ncid, varid, name);
-}
-/*! @} */
-
-/**
-   @internal Does a variable have a record dimension?
-
-   @param ncid File ID.
-   @param varid Variable ID.
-   @param nrecs Pointer that gets number of records.
-
-   @return 0 if not a record var, 1 if it is.
-*/
-int
-NC_is_recvar(int ncid, int varid, size_t* nrecs)
-{
-    int status = NC_NOERR;
-    int unlimid;
-    int ndims;
-    int dimset[NC_MAX_VAR_DIMS];
-
-    status = nc_inq_unlimdim(ncid,&unlimid);
-    if(status != NC_NOERR) return 0; /* no unlimited defined */
-    status = nc_inq_varndims(ncid,varid,&ndims);
-    if(status != NC_NOERR) return 0; /* no unlimited defined */
-    if(ndims == 0) return 0; /* scalar */
-    status = nc_inq_vardimid(ncid,varid,dimset);
-    if(status != NC_NOERR) return 0; /* no unlimited defined */
-    status = nc_inq_dim(ncid,dimset[0],NULL,nrecs);
-    if(status != NC_NOERR) return 0;
-    return (dimset[0] == unlimid ? 1: 0);
-}
-
-/**
-   @internal Get the number of record dimensions for a variable and an
-   array that identifies which of a variable's dimensions are record
-   dimensions. Intended to be used instead of NC_is_recvar(), which
-   doesn't work for netCDF-4 variables which have multiple unlimited
-   dimensions or an unlimited dimension that is not the first of a
-   variable's dimensions.
-
-   @param ncid File ID.
-   @param varid Variable ID.
-   @param nrecdimsp Pointer that gets number of record dims.
-   @param is_recdim Pointer that gets 1 if there is one or more record
-   dimensions, 0 if not.
-
-   @return 0 if not a record var, 1 if it is.
-
-   Example use:
-   @code
-   int nrecdims;
-   int is_recdim[NC_MAX_VAR_DIMS];
-   ...
-   status = NC_inq_recvar(ncid,varid,&nrecdims,is_recdim);
-   isrecvar = (nrecdims > 0);
-   @endcode
-*/
-int
-NC_inq_recvar(int ncid, int varid, int* nrecdimsp, int *is_recdim)
-{
-    int status = NC_NOERR;
-    int unlimid;
-    int nvardims;
-    int dimset[NC_MAX_VAR_DIMS];
-    int dim;
-    int nrecdims = 0;
-
-    status = nc_inq_varndims(ncid,varid,&nvardims);
-    if(status != NC_NOERR) return status;
-    if(nvardims == 0) return NC_NOERR; /* scalars have no dims */
-    for(dim = 0; dim < nvardims; dim++)
-        is_recdim[dim] = 0;
-    status = nc_inq_unlimdim(ncid, &unlimid);
-    if(status != NC_NOERR) return status;
-    if(unlimid == -1) return status; /* no unlimited dims for any variables */
-#ifdef USE_NETCDF4
-    {
-        int nunlimdims;
-        int *unlimids;
-        int recdim;
-        status = nc_inq_unlimdims(ncid, &nunlimdims, NULL); /* for group or file, not variable */
-        if(status != NC_NOERR) return status;
-        if(nunlimdims == 0) return status;
-
-        if (!(unlimids = malloc(nunlimdims * sizeof(int))))
-            return NC_ENOMEM;
-        status = nc_inq_unlimdims(ncid, &nunlimdims, unlimids); /* for group or file, not variable */
-        if(status != NC_NOERR) {
-            free(unlimids);
-            return status;
-        }
-        status = nc_inq_vardimid(ncid, varid, dimset);
-        if(status != NC_NOERR) {
-            free(unlimids);
-            return status;
-        }
-        for (dim = 0; dim < nvardims; dim++) { /* netCDF-4 rec dims need not be first dim for a rec var */
-            for(recdim = 0; recdim < nunlimdims; recdim++) {
-                if(dimset[dim] == unlimids[recdim]) {
-                    is_recdim[dim] = 1;
-                    nrecdims++;
-                }
-            }
-        }
-        free(unlimids);
-    }
-#else
-    status = nc_inq_vardimid(ncid, varid, dimset);
-    if(status != NC_NOERR) return status;
-    if(dimset[0] == unlimid) {
-        is_recdim[0] = 1;
-        nrecdims++;
-    }
-#endif /* USE_NETCDF4 */
-    if(nrecdimsp) *nrecdimsp = nrecdims;
-    return status;
-}
-
-/* Ok to use NC pointers because
-   all IOSP's will use that structure,
-   but not ok to use e.g. NC_Var pointers
-   because they may be different structure
-   entirely.
-*/
-
-/**
-   @internal
-   Find the length of a type. This is how much space is required by
-   the in memory to hold one element of this type.
-
-   @param type A netCDF atomic type.
-
-   @return Length of the type in bytes, or -1 if type not found.
-   @author Ed Hartnett
-*/
-int
-nctypelen(nc_type type)
-{
-    switch(type){
-    case NC_CHAR :
-        return ((int)sizeof(char));
-    case NC_BYTE :
-        return ((int)sizeof(signed char));
-    case NC_SHORT :
-        return ((int)sizeof(short));
-    case NC_INT :
-        return ((int)sizeof(int));
-    case NC_FLOAT :
-        return ((int)sizeof(float));
-    case NC_DOUBLE :
-        return ((int)sizeof(double));
-
-        /* These can occur in netcdf-3 code */
-    case NC_UBYTE :
-        return ((int)sizeof(unsigned char));
-    case NC_USHORT :
-        return ((int)(sizeof(unsigned short)));
-    case NC_UINT :
-        return ((int)sizeof(unsigned int));
-    case NC_INT64 :
-        return ((int)sizeof(signed long long));
-    case NC_UINT64 :
-        return ((int)sizeof(unsigned long long));
-#ifdef USE_NETCDF4
-    case NC_STRING :
-        return ((int)sizeof(char*));
-#endif /*USE_NETCDF4*/
-
-    default:
-        return -1;
-    }
-}
-
-/**
-    @internal
-    Find the length of a type. Redundant over nctypelen() above.
-
-    @param xtype an nc_type.
-
-    @author Dennis Heimbigner
-*/
-size_t
-NC_atomictypelen(nc_type xtype)
-{
-    size_t sz = 0;
-    switch(xtype) {
-    case NC_NAT: sz = 0; break;
-    case NC_BYTE: sz = sizeof(signed char); break;
-    case NC_CHAR: sz = sizeof(char); break;
-    case NC_SHORT: sz = sizeof(short); break;
-    case NC_INT: sz = sizeof(int); break;
-    case NC_FLOAT: sz = sizeof(float); break;
-    case NC_DOUBLE: sz = sizeof(double); break;
-    case NC_INT64: sz = sizeof(signed long long); break;
-    case NC_UBYTE: sz = sizeof(unsigned char); break;
-    case NC_USHORT: sz = sizeof(unsigned short); break;
-    case NC_UINT: sz = sizeof(unsigned int); break;
-    case NC_UINT64: sz = sizeof(unsigned long long); break;
-#ifdef USE_NETCDF4
-    case NC_STRING: sz = sizeof(char*); break;
-#endif
-    default: break;
-    }
-    return sz;
-}
-
-/**
-    @internal
-    Get the type name.
-
-    @param xtype an nc_type.
-
-    @author Dennis Heimbigner
-*/
-char *
-NC_atomictypename(nc_type xtype)
-{
-    char* nm = NULL;
-    switch(xtype) {
-    case NC_NAT: nm = "undefined"; break;
-    case NC_BYTE: nm = "byte"; break;
-    case NC_CHAR: nm = "char"; break;
-    case NC_SHORT: nm = "short"; break;
-    case NC_INT: nm = "int"; break;
-    case NC_FLOAT: nm = "float"; break;
-    case NC_DOUBLE: nm = "double"; break;
-    case NC_INT64: nm = "int64"; break;
-    case NC_UBYTE: nm = "ubyte"; break;
-    case NC_USHORT: nm = "ushort"; break;
-    case NC_UINT: nm = "uint"; break;
-    case NC_UINT64: nm = "uint64"; break;
-#ifdef USE_NETCDF4
-    case NC_STRING: nm = "string"; break;
-#endif
-    default: break;
-    }
-    return nm;
-}
-
-/**
-   @internal
-   Get the shape of a variable.
-
-   @param ncid NetCDF ID, from a previous call to nc_open() or
-   nc_create().
-   @param varid Variable ID.
-   @param ndims Number of dimensions for this var.
-   @param shape Pointer to pre-allocated array that gets the size of
-   each dimension.
-
-   @return ::NC_NOERR No error.
-   @return ::NC_EBADID Bad ncid.
-   @return ::NC_ENOTVAR Bad varid.
-
-   @author Dennis Heimbigner
-*/
-int
-NC_getshape(int ncid, int varid, int ndims, size_t* shape)
-{
-    int dimids[NC_MAX_VAR_DIMS];
-    int i;
-    int status = NC_NOERR;
-
-    if ((status = nc_inq_vardimid(ncid, varid, dimids)))
-        return status;
-    for(i = 0; i < ndims; i++)
-        if ((status = nc_inq_dimlen(ncid, dimids[i], &shape[i])))
-            break;
-
-    return status;
-}
 
 /**
    Set the fill value for a variable.
@@ -655,201 +310,7 @@ nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
     return ncp->dispatch->def_var_fill(ncid,varid,no_fill,fill_value);
 }
 
-/**
-   @internal Check the start, count, and stride parameters for gets
-   and puts, and handle NULLs.
-
-   @param ncid The file ID.
-   @param varid The variable ID.
-   @param start Pointer to start array. If NULL ::NC_EINVALCOORDS will
-   be returned for non-scalar variable.
-   @param count Pointer to pointer to count array. If *count is NULL,
-   an array of the correct size will be allocated, and filled with
-   counts that represent the full extent of the variable. In this
-   case, the memory must be freed by the caller.
-   @param stride Pointer to pointer to stride array. If NULL, stide is
-   ignored. If *stride is NULL an array of the correct size will be
-   allocated, and filled with ones. In this case, the memory must be
-   freed by the caller.
-
-   @return ::NC_NOERR No error.
-   @return ::NC_EBADID Bad ncid.
-   @return ::NC_ENOTVAR Variable not found.
-   @return ::NC_ENOMEM Out of memory.
-   @return ::NC_EINVALCOORDS Missing start array.
-   @author Ed Hartnett
-*/
-int
-NC_check_nulls(int ncid, int varid, const size_t *start, size_t **count,
-               ptrdiff_t **stride)
-{
-    int varndims;
-    int stat;
-
-    if ((stat = nc_inq_varndims(ncid, varid, &varndims)))
-        return stat;
-
-    /* For non-scalar vars, start is required. */
-    if (!start && varndims)
-        return NC_EINVALCOORDS;
-
-    /* If count is NULL, assume full extent of var. */
-    if (!*count)
-    {
-        if (!(*count = malloc(varndims * sizeof(size_t))))
-            return NC_ENOMEM;
-        if ((stat = NC_getshape(ncid, varid, varndims, *count)))
-        {
-            free(*count);
-            *count = NULL;
-            return stat;
-        }
-    }
-
-    /* If stride is NULL, do nothing, if *stride is NULL use all
-     * 1s. */
-    if (stride && !*stride)
-    {
-        int i;
-
-        if (!(*stride = malloc(varndims * sizeof(ptrdiff_t))))
-            return NC_ENOMEM;
-        for (i = 0; i < varndims; i++)
-            (*stride)[i] = 1;
-    }
-
-    return NC_NOERR;
-}
-
-/**
-   Free string space allocated by the library.
-
-   When you read string type the library will allocate the storage
-   space for the data. This storage space must be freed, so pass the
-   pointer back to this function, when you're done with the data, and
-   it will free the string memory.
-
-   @param len The number of character arrays in the array.
-   @param data The pointer to the data array.
-
-   @return ::NC_NOERR No error.
-   @author Ed Hartnett
-*/
-int
-nc_free_string(size_t len, char **data)
-{
-    int i;
-    for (i = 0; i < len; i++)
-        free(data[i]);
-    return NC_NOERR;
-}
-
 #ifdef USE_NETCDF4
-/**
-   Change the cache settings for a chunked variable. This function allows
-   users to control the amount of memory used in the per-variable chunk
-   cache at the HDF5 level. Changing the chunk cache only has effect
-   until the file is closed. Once re-opened, the variable chunk cache
-   returns to its default value.
-
-   @param ncid NetCDF or group ID, from a previous call to nc_open(),
-   nc_create(), nc_def_grp(), or associated inquiry functions such as
-   nc_inq_ncid().
-   @param varid Variable ID
-   @param size The total size of the raw data chunk cache, in bytes.
-   @param nelems The number of chunk slots in the raw data chunk cache.
-   @param preemption The preemption, a value between 0 and 1 inclusive
-   that indicates how much chunks that have been fully read are favored
-   for preemption. A value of zero means fully read chunks are treated no
-   differently than other chunks (the preemption is strictly LRU) while a
-   value of one means fully read chunks are always preempted before other
-   chunks.
-
-   @return ::NC_NOERR No error.
-   @return ::NC_EBADID Bad ncid.
-   @return ::NC_ENOTVAR Invalid variable ID.
-   @return ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3
-   netcdf-4 file.
-   @return ::NC_EINVAL Invalid input
-
-   @section nc_def_var_chunk_cache_example Example
-
-   In this example from nc_test4/tst_coords.c, a variable is defined, and
-   the chunk cache settings are changed for that variable.
-
-   @code
-   printf("**** testing setting cache values for coordinate variables...");
-   {
-   #define RANK_1 1
-   #define DIM0_NAME "d0"
-   #define CACHE_SIZE 1000000
-   #define CACHE_NELEMS 1009
-   #define CACHE_PREEMPTION .90
-
-   int ncid, dimid, varid;
-   char name_in[NC_MAX_NAME + 1];
-
-   if (nc_create(FILE_NAME, NC_CLASSIC_MODEL|NC_NETCDF4, &ncid)) ERR;
-   if (nc_def_dim(ncid, DIM0_NAME, NC_UNLIMITED, &dimid)) ERR;
-   if (nc_def_var(ncid, DIM0_NAME, NC_DOUBLE, 1, &dimid, &varid)) ERR;
-   if (nc_set_var_chunk_cache(ncid, varid, CACHE_SIZE, CACHE_NELEMS, CACHE_PREEMPTION)) ERR;
-   if (nc_close(ncid)) ERR;
-
-   ...
-   }
-   SUMMARIZE_ERR;
-   @endcode
-   @author Ed Hartnett
-*/
-int
-nc_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
-                       float preemption)
-{
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->set_var_chunk_cache(ncid, varid, size,
-                                              nelems, preemption);
-}
-
-/**
-   Get the per-variable chunk cache settings from the HDF5 layer.
-
-   @param ncid NetCDF or group ID, from a previous call to nc_open(),
-   nc_create(), nc_def_grp(), or associated inquiry functions such as
-   nc_inq_ncid().
-   @param varid Variable ID
-   @param sizep The total size of the raw data chunk cache, in bytes,
-   will be put here. @ref ignored_if_null.
-   @param nelemsp The number of chunk slots in the raw data chunk
-   cache hash table will be put here. @ref ignored_if_null.
-   @param preemptionp The preemption will be put here. The preemtion
-   value is between 0 and 1 inclusive and indicates how much chunks
-   that have been fully read are favored for preemption. A value of
-   zero means fully read chunks are treated no differently than other
-   chunks (the preemption is strictly LRU) while a value of one means
-   fully read chunks are always preempted before other chunks. @ref
-   ignored_if_null.
-
-   @return ::NC_NOERR No error.
-   @return ::NC_EBADID Bad ncid.
-   @return ::NC_ENOTVAR Invalid variable ID.
-   @return ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3
-   netcdf-4 file.
-   @return ::NC_EINVAL Invalid input
-   @author Ed Hartnett
-*/
-int
-nc_get_var_chunk_cache(int ncid, int varid, size_t *sizep, size_t *nelemsp,
-                       float *preemptionp)
-{
-    NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->get_var_chunk_cache(ncid, varid, sizep,
-                                              nelemsp, preemptionp);
-}
-
 /**
    Set the compression settings for a netCDF-4/HDF5 variable.
 
@@ -1189,6 +650,562 @@ nc_def_var_filter(int ncid, int varid, unsigned int id,
     if(stat != NC_NOERR) return stat;
     return ncp->dispatch->def_var_filter(ncid,varid,id,nparams,parms);
 }
+#endif /* USE_NETCDF4 */
 
+/** @} */
+
+/**
+   @name Rename a Variable
+
+   Rename a variable.
+*/
+/** @{ */
+
+/**
+   Rename a variable.
+
+   This function changes the name of a netCDF variable in an open netCDF
+   file or group. You cannot rename a variable to have the name of any existing
+   variable.
+
+   For classic format, 64-bit offset format, and netCDF-4/HDF5 with
+   classic mode, if the new name is longer than the old name, the netCDF
+   dataset must be in define mode.
+
+   For netCDF-4/HDF5 files, renaming the variable changes the order of
+   the variables in the file. The renamed variable becomes the last
+   variable in the file.
+
+   @param ncid NetCDF or group ID, from a previous call to nc_open(),
+   nc_create(), nc_def_grp(), or associated inquiry functions such as
+   nc_inq_ncid().
+
+   @param varid Variable ID
+
+   @param name New name of the variable.
+
+   @return ::NC_NOERR No error.
+   @return ::NC_EBADID Bad ncid.
+   @return ::NC_ENOTVAR Invalid variable ID.
+   @return ::NC_EBADNAME Bad name.
+   @return ::NC_EMAXNAME Name is too long.
+   @return ::NC_ENAMEINUSE Name in use.
+   @return ::NC_ENOMEM Out of memory.
+
+   @section nc_rename_var_example Example
+
+   Here is an example using nc_rename_var to rename the variable rh to
+   rel_hum in an existing netCDF dataset named foo.nc:
+
+   @code
+   #include <netcdf.h>
+   ...
+   int  status;
+   int  ncid;
+   int  rh_id;
+   ...
+   status = nc_open("foo.nc", NC_WRITE, &ncid);
+   if (status != NC_NOERR) handle_error(status);
+   ...
+   status = nc_redef(ncid);
+   if (status != NC_NOERR) handle_error(status);
+   status = nc_inq_varid (ncid, "rh", &rh_id);
+   if (status != NC_NOERR) handle_error(status);
+   status = nc_rename_var (ncid, rh_id, "rel_hum");
+   if (status != NC_NOERR) handle_error(status);
+   status = nc_enddef(ncid);
+   if (status != NC_NOERR) handle_error(status);
+   @endcode
+   @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
+*/
+int
+nc_rename_var(int ncid, int varid, const char *name)
+{
+    NC* ncp;
+    int stat = NC_check_id(ncid, &ncp);
+    if(stat != NC_NOERR) return stat;
+    TRACE(nc_rename_var);
+    return ncp->dispatch->rename_var(ncid, varid, name);
+}
+/** @} */
+
+/**
+   @internal Does a variable have a record dimension?
+
+   @param ncid File ID.
+   @param varid Variable ID.
+   @param nrecs Pointer that gets number of records.
+
+   @return 0 if not a record var, 1 if it is.
+*/
+int
+NC_is_recvar(int ncid, int varid, size_t* nrecs)
+{
+    int status = NC_NOERR;
+    int unlimid;
+    int ndims;
+    int dimset[NC_MAX_VAR_DIMS];
+
+    status = nc_inq_unlimdim(ncid,&unlimid);
+    if(status != NC_NOERR) return 0; /* no unlimited defined */
+    status = nc_inq_varndims(ncid,varid,&ndims);
+    if(status != NC_NOERR) return 0; /* no unlimited defined */
+    if(ndims == 0) return 0; /* scalar */
+    status = nc_inq_vardimid(ncid,varid,dimset);
+    if(status != NC_NOERR) return 0; /* no unlimited defined */
+    status = nc_inq_dim(ncid,dimset[0],NULL,nrecs);
+    if(status != NC_NOERR) return 0;
+    return (dimset[0] == unlimid ? 1: 0);
+}
+
+/**
+   @internal Get the number of record dimensions for a variable and an
+   array that identifies which of a variable's dimensions are record
+   dimensions. Intended to be used instead of NC_is_recvar(), which
+   doesn't work for netCDF-4 variables which have multiple unlimited
+   dimensions or an unlimited dimension that is not the first of a
+   variable's dimensions.
+
+   @param ncid File ID.
+   @param varid Variable ID.
+   @param nrecdimsp Pointer that gets number of record dims.
+   @param is_recdim Pointer that gets 1 if there is one or more record
+   dimensions, 0 if not.
+
+   @return 0 if not a record var, 1 if it is.
+
+   Example use:
+   @code
+   int nrecdims;
+   int is_recdim[NC_MAX_VAR_DIMS];
+   ...
+   status = NC_inq_recvar(ncid,varid,&nrecdims,is_recdim);
+   isrecvar = (nrecdims > 0);
+   @endcode
+*/
+int
+NC_inq_recvar(int ncid, int varid, int* nrecdimsp, int *is_recdim)
+{
+    int status = NC_NOERR;
+    int unlimid;
+    int nvardims;
+    int dimset[NC_MAX_VAR_DIMS];
+    int dim;
+    int nrecdims = 0;
+
+    status = nc_inq_varndims(ncid,varid,&nvardims);
+    if(status != NC_NOERR) return status;
+    if(nvardims == 0) return NC_NOERR; /* scalars have no dims */
+    for(dim = 0; dim < nvardims; dim++)
+        is_recdim[dim] = 0;
+    status = nc_inq_unlimdim(ncid, &unlimid);
+    if(status != NC_NOERR) return status;
+    if(unlimid == -1) return status; /* no unlimited dims for any variables */
+#ifdef USE_NETCDF4
+    {
+        int nunlimdims;
+        int *unlimids;
+        int recdim;
+        status = nc_inq_unlimdims(ncid, &nunlimdims, NULL); /* for group or file, not variable */
+        if(status != NC_NOERR) return status;
+        if(nunlimdims == 0) return status;
+
+        if (!(unlimids = malloc(nunlimdims * sizeof(int))))
+            return NC_ENOMEM;
+        status = nc_inq_unlimdims(ncid, &nunlimdims, unlimids); /* for group or file, not variable */
+        if(status != NC_NOERR) {
+            free(unlimids);
+            return status;
+        }
+        status = nc_inq_vardimid(ncid, varid, dimset);
+        if(status != NC_NOERR) {
+            free(unlimids);
+            return status;
+        }
+        for (dim = 0; dim < nvardims; dim++) { /* netCDF-4 rec dims need not be first dim for a rec var */
+            for(recdim = 0; recdim < nunlimdims; recdim++) {
+                if(dimset[dim] == unlimids[recdim]) {
+                    is_recdim[dim] = 1;
+                    nrecdims++;
+                }
+            }
+        }
+        free(unlimids);
+    }
+#else
+    status = nc_inq_vardimid(ncid, varid, dimset);
+    if(status != NC_NOERR) return status;
+    if(dimset[0] == unlimid) {
+        is_recdim[0] = 1;
+        nrecdims++;
+    }
+#endif /* USE_NETCDF4 */
+    if(nrecdimsp) *nrecdimsp = nrecdims;
+    return status;
+}
+
+/* Ok to use NC pointers because
+   all IOSP's will use that structure,
+   but not ok to use e.g. NC_Var pointers
+   because they may be different structure
+   entirely.
+*/
+
+/**
+   @internal
+   Find the length of a type. This is how much space is required by
+   the in memory to hold one element of this type.
+
+   @param type A netCDF atomic type.
+
+   @return Length of the type in bytes, or -1 if type not found.
+   @author Ed Hartnett
+*/
+int
+nctypelen(nc_type type)
+{
+    switch(type){
+    case NC_CHAR :
+        return ((int)sizeof(char));
+    case NC_BYTE :
+        return ((int)sizeof(signed char));
+    case NC_SHORT :
+        return ((int)sizeof(short));
+    case NC_INT :
+        return ((int)sizeof(int));
+    case NC_FLOAT :
+        return ((int)sizeof(float));
+    case NC_DOUBLE :
+        return ((int)sizeof(double));
+
+        /* These can occur in netcdf-3 code */
+    case NC_UBYTE :
+        return ((int)sizeof(unsigned char));
+    case NC_USHORT :
+        return ((int)(sizeof(unsigned short)));
+    case NC_UINT :
+        return ((int)sizeof(unsigned int));
+    case NC_INT64 :
+        return ((int)sizeof(signed long long));
+    case NC_UINT64 :
+        return ((int)sizeof(unsigned long long));
+#ifdef USE_NETCDF4
+    case NC_STRING :
+        return ((int)sizeof(char*));
+#endif /*USE_NETCDF4*/
+
+    default:
+        return -1;
+    }
+}
+
+/**
+    @internal
+    Find the length of a type. Redundant over nctypelen() above.
+
+    @param xtype an nc_type.
+
+    @author Dennis Heimbigner
+*/
+size_t
+NC_atomictypelen(nc_type xtype)
+{
+    size_t sz = 0;
+    switch(xtype) {
+    case NC_NAT: sz = 0; break;
+    case NC_BYTE: sz = sizeof(signed char); break;
+    case NC_CHAR: sz = sizeof(char); break;
+    case NC_SHORT: sz = sizeof(short); break;
+    case NC_INT: sz = sizeof(int); break;
+    case NC_FLOAT: sz = sizeof(float); break;
+    case NC_DOUBLE: sz = sizeof(double); break;
+    case NC_INT64: sz = sizeof(signed long long); break;
+    case NC_UBYTE: sz = sizeof(unsigned char); break;
+    case NC_USHORT: sz = sizeof(unsigned short); break;
+    case NC_UINT: sz = sizeof(unsigned int); break;
+    case NC_UINT64: sz = sizeof(unsigned long long); break;
+#ifdef USE_NETCDF4
+    case NC_STRING: sz = sizeof(char*); break;
+#endif
+    default: break;
+    }
+    return sz;
+}
+
+/**
+    @internal
+    Get the type name.
+
+    @param xtype an nc_type.
+
+    @author Dennis Heimbigner
+*/
+char *
+NC_atomictypename(nc_type xtype)
+{
+    char* nm = NULL;
+    switch(xtype) {
+    case NC_NAT: nm = "undefined"; break;
+    case NC_BYTE: nm = "byte"; break;
+    case NC_CHAR: nm = "char"; break;
+    case NC_SHORT: nm = "short"; break;
+    case NC_INT: nm = "int"; break;
+    case NC_FLOAT: nm = "float"; break;
+    case NC_DOUBLE: nm = "double"; break;
+    case NC_INT64: nm = "int64"; break;
+    case NC_UBYTE: nm = "ubyte"; break;
+    case NC_USHORT: nm = "ushort"; break;
+    case NC_UINT: nm = "uint"; break;
+    case NC_UINT64: nm = "uint64"; break;
+#ifdef USE_NETCDF4
+    case NC_STRING: nm = "string"; break;
+#endif
+    default: break;
+    }
+    return nm;
+}
+
+/**
+   @internal
+   Get the shape of a variable.
+
+   @param ncid NetCDF ID, from a previous call to nc_open() or
+   nc_create().
+   @param varid Variable ID.
+   @param ndims Number of dimensions for this var.
+   @param shape Pointer to pre-allocated array that gets the size of
+   each dimension.
+
+   @return ::NC_NOERR No error.
+   @return ::NC_EBADID Bad ncid.
+   @return ::NC_ENOTVAR Bad varid.
+
+   @author Dennis Heimbigner
+*/
+int
+NC_getshape(int ncid, int varid, int ndims, size_t* shape)
+{
+    int dimids[NC_MAX_VAR_DIMS];
+    int i;
+    int status = NC_NOERR;
+
+    if ((status = nc_inq_vardimid(ncid, varid, dimids)))
+        return status;
+    for(i = 0; i < ndims; i++)
+        if ((status = nc_inq_dimlen(ncid, dimids[i], &shape[i])))
+            break;
+
+    return status;
+}
+
+/**
+   @internal Check the start, count, and stride parameters for gets
+   and puts, and handle NULLs.
+
+   @param ncid The file ID.
+   @param varid The variable ID.
+   @param start Pointer to start array. If NULL ::NC_EINVALCOORDS will
+   be returned for non-scalar variable.
+   @param count Pointer to pointer to count array. If *count is NULL,
+   an array of the correct size will be allocated, and filled with
+   counts that represent the full extent of the variable. In this
+   case, the memory must be freed by the caller.
+   @param stride Pointer to pointer to stride array. If NULL, stide is
+   ignored. If *stride is NULL an array of the correct size will be
+   allocated, and filled with ones. In this case, the memory must be
+   freed by the caller.
+
+   @return ::NC_NOERR No error.
+   @return ::NC_EBADID Bad ncid.
+   @return ::NC_ENOTVAR Variable not found.
+   @return ::NC_ENOMEM Out of memory.
+   @return ::NC_EINVALCOORDS Missing start array.
+   @author Ed Hartnett
+*/
+int
+NC_check_nulls(int ncid, int varid, const size_t *start, size_t **count,
+               ptrdiff_t **stride)
+{
+    int varndims;
+    int stat;
+
+    if ((stat = nc_inq_varndims(ncid, varid, &varndims)))
+        return stat;
+
+    /* For non-scalar vars, start is required. */
+    if (!start && varndims)
+        return NC_EINVALCOORDS;
+
+    /* If count is NULL, assume full extent of var. */
+    if (!*count)
+    {
+        if (!(*count = malloc(varndims * sizeof(size_t))))
+            return NC_ENOMEM;
+        if ((stat = NC_getshape(ncid, varid, varndims, *count)))
+        {
+            free(*count);
+            *count = NULL;
+            return stat;
+        }
+    }
+
+    /* If stride is NULL, do nothing, if *stride is NULL use all
+     * 1s. */
+    if (stride && !*stride)
+    {
+        int i;
+
+        if (!(*stride = malloc(varndims * sizeof(ptrdiff_t))))
+            return NC_ENOMEM;
+        for (i = 0; i < varndims; i++)
+            (*stride)[i] = 1;
+    }
+
+    return NC_NOERR;
+}
+
+/**
+   @name Free String Resources
+
+   Use this functions to free resources associated with ::NC_STRING
+   data.
+*/
+/*! @{ */
+/**
+   Free string space allocated by the library.
+
+   When you read string type the library will allocate the storage
+   space for the data. This storage space must be freed, so pass the
+   pointer back to this function, when you're done with the data, and
+   it will free the string memory.
+
+   @param len The number of character arrays in the array.
+   @param data The pointer to the data array.
+
+   @return ::NC_NOERR No error.
+   @author Ed Hartnett
+*/
+int
+nc_free_string(size_t len, char **data)
+{
+    int i;
+    for (i = 0; i < len; i++)
+        free(data[i]);
+    return NC_NOERR;
+}
+/** @} */
+
+#ifdef USE_NETCDF4
+/**
+   @name Variables Chunk Caches
+
+   Use these functions to change the variable chunk cache settings.
+*/
+/*! @{ */
+/**
+   Change the cache settings for a chunked variable. This function allows
+   users to control the amount of memory used in the per-variable chunk
+   cache at the HDF5 level. Changing the chunk cache only has effect
+   until the file is closed. Once re-opened, the variable chunk cache
+   returns to its default value.
+
+   @param ncid NetCDF or group ID, from a previous call to nc_open(),
+   nc_create(), nc_def_grp(), or associated inquiry functions such as
+   nc_inq_ncid().
+   @param varid Variable ID
+   @param size The total size of the raw data chunk cache, in bytes.
+   @param nelems The number of chunk slots in the raw data chunk cache.
+   @param preemption The preemption, a value between 0 and 1 inclusive
+   that indicates how much chunks that have been fully read are favored
+   for preemption. A value of zero means fully read chunks are treated no
+   differently than other chunks (the preemption is strictly LRU) while a
+   value of one means fully read chunks are always preempted before other
+   chunks.
+
+   @return ::NC_NOERR No error.
+   @return ::NC_EBADID Bad ncid.
+   @return ::NC_ENOTVAR Invalid variable ID.
+   @return ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3
+   netcdf-4 file.
+   @return ::NC_EINVAL Invalid input
+
+   @section nc_def_var_chunk_cache_example Example
+
+   In this example from nc_test4/tst_coords.c, a variable is defined, and
+   the chunk cache settings are changed for that variable.
+
+   @code
+   printf("**** testing setting cache values for coordinate variables...");
+   {
+   #define RANK_1 1
+   #define DIM0_NAME "d0"
+   #define CACHE_SIZE 1000000
+   #define CACHE_NELEMS 1009
+   #define CACHE_PREEMPTION .90
+
+   int ncid, dimid, varid;
+   char name_in[NC_MAX_NAME + 1];
+
+   if (nc_create(FILE_NAME, NC_CLASSIC_MODEL|NC_NETCDF4, &ncid)) ERR;
+   if (nc_def_dim(ncid, DIM0_NAME, NC_UNLIMITED, &dimid)) ERR;
+   if (nc_def_var(ncid, DIM0_NAME, NC_DOUBLE, 1, &dimid, &varid)) ERR;
+   if (nc_set_var_chunk_cache(ncid, varid, CACHE_SIZE, CACHE_NELEMS, CACHE_PREEMPTION)) ERR;
+   if (nc_close(ncid)) ERR;
+
+   ...
+   }
+   SUMMARIZE_ERR;
+   @endcode
+   @author Ed Hartnett
+*/
+int
+nc_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
+                       float preemption)
+{
+    NC* ncp;
+    int stat = NC_check_id(ncid, &ncp);
+    if(stat != NC_NOERR) return stat;
+    return ncp->dispatch->set_var_chunk_cache(ncid, varid, size,
+                                              nelems, preemption);
+}
+
+/**
+   Get the per-variable chunk cache settings from the HDF5 layer.
+
+   @param ncid NetCDF or group ID, from a previous call to nc_open(),
+   nc_create(), nc_def_grp(), or associated inquiry functions such as
+   nc_inq_ncid().
+   @param varid Variable ID
+   @param sizep The total size of the raw data chunk cache, in bytes,
+   will be put here. @ref ignored_if_null.
+   @param nelemsp The number of chunk slots in the raw data chunk
+   cache hash table will be put here. @ref ignored_if_null.
+   @param preemptionp The preemption will be put here. The preemtion
+   value is between 0 and 1 inclusive and indicates how much chunks
+   that have been fully read are favored for preemption. A value of
+   zero means fully read chunks are treated no differently than other
+   chunks (the preemption is strictly LRU) while a value of one means
+   fully read chunks are always preempted before other chunks. @ref
+   ignored_if_null.
+
+   @return ::NC_NOERR No error.
+   @return ::NC_EBADID Bad ncid.
+   @return ::NC_ENOTVAR Invalid variable ID.
+   @return ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3
+   netcdf-4 file.
+   @return ::NC_EINVAL Invalid input
+   @author Ed Hartnett
+*/
+int
+nc_get_var_chunk_cache(int ncid, int varid, size_t *sizep, size_t *nelemsp,
+                       float *preemptionp)
+{
+    NC* ncp;
+    int stat = NC_check_id(ncid, &ncp);
+    if(stat != NC_NOERR) return stat;
+    return ncp->dispatch->get_var_chunk_cache(ncid, varid, sizep,
+                                              nelemsp, preemptionp);
+}
+/** @} */
 #endif /* USE_NETCDF4 */
 /** @} */
