@@ -2,9 +2,9 @@
    Research/Unidata. See COPYRIGHT file for more info. */
 /**
 @file
-Dimension functions
 
-These functions define and inquire about dimensions.
+The functions in this file define, inquire about, and rename
+dimensions.
 */
 
 #include "ncdispatch.h"
@@ -101,13 +101,13 @@ unlimited dimensions.
 @returns ::NC_ENOMEM Memory allocation (malloc) failure
 @returns ::NC_EPERM Write to read only
 
-\section nc_def_dim_example Example
+@section nc_def_dim_example Example
 
 Here is an example using nc_def_dim() to create a dimension named lat of
 length 18 and a unlimited dimension named rec in a new netCDF dataset
 named foo.nc:
 
-\code
+@code
      #include <netcdf.h>
         ...
      int status, ncid, latid, recid;
@@ -119,7 +119,7 @@ named foo.nc:
      if (status != NC_NOERR) handle_error(status);
      status = nc_def_dim(ncid, "rec", NC_UNLIMITED, &recid);
      if (status != NC_NOERR) handle_error(status);
-\endcode
+@endcode
 
  */
 int
@@ -132,7 +132,7 @@ nc_def_dim(int ncid, const char *name, size_t len, int *idp)
     return ncp->dispatch->def_dim(ncid, name, len, idp);
 }
 
-/*!
+/**
 Find the ID of a dimension from the name.
 
 The function nc_inq_dimid returns (as an argument) the ID of a netCDF
@@ -140,13 +140,13 @@ dimension, given the name of the dimension. If ndims is the number of
 dimensions defined for a netCDF dataset, each dimension has an ID
 between 0 and ndims-1.
 
-\param ncid NetCDF or group ID, from a previous call to nc_open(),
+@param ncid NetCDF or group ID, from a previous call to nc_open(),
 nc_create(), nc_def_grp(), or associated inquiry functions such as
 nc_inq_ncid().
 
-\param name Name of the dimension.
+@param name Name of the dimension.
 
-\param idp Pointer where dimension ID will be stored.
+@param idp Pointer where dimension ID will be stored.
 
 @returns ::NC_NOERR   No error.
 @returns ::NC_EBADID  Not a valid ID.
@@ -162,40 +162,40 @@ nc_inq_dimid(int ncid, const char *name, int *idp)
     return ncp->dispatch->inq_dimid(ncid,name,idp);
 }
 
-/*!
+/**
 Find the name and length of a dimension.
 
 The length for the unlimited dimension, if any, is the number of
 records written so far.
 
-\param ncid NetCDF or group ID, from a previous call to nc_open(),
+@param ncid NetCDF or group ID, from a previous call to nc_open(),
 nc_create(), nc_def_grp(), or associated inquiry functions such as
 nc_inq_ncid().
 
-\param dimid Dimension ID, from a previous call to nc_inq_dimid() or
+@param dimid Dimension ID, from a previous call to nc_inq_dimid() or
 nc_def_dim().
 
-\param name Returned dimension name. The caller must allocate space
+@param name Returned dimension name. The caller must allocate space
 for the returned name. The maximum possible length, in characters, of
 a dimension name is given by the predefined constant
 NC_MAX_NAME. (This doesn't include the null terminator, so declare
 your array to be size NC_MAX_NAME+1). The returned character array
 will be null-terminated.
 
-\param lenp Pointer to location for returned length of dimension. For
+@param lenp Pointer to location for returned length of dimension. For
 the unlimited dimension, this is the number of records written so far.
 
 @returns ::NC_NOERR   No error.
 @returns ::NC_EBADID  Not a valid ID.
 @returns ::NC_EBADDIM Invalid dimension ID or name.
 
-\section nc_inq_dim_example Example
+@section nc_inq_dim_example Example
 
 Here is an example using nc_inq_dim() to determine the length of a
 dimension named lat, and the name and current maximum length of the
 unlimited dimension for an existing netCDF dataset named foo.nc:
 
-\code
+@code
      #include <netcdf.h>
         ...
      int status, ncid, latid, recid;
@@ -214,7 +214,7 @@ unlimited dimension for an existing netCDF dataset named foo.nc:
 
      status = nc_inq_dim(ncid, recid, recname, &recs);
      if (status != NC_NOERR) handle_error(status);
-\endcode
+@endcode
  */
 int
 nc_inq_dim(int ncid, int dimid, char *name, size_t *lenp)
@@ -226,7 +226,7 @@ nc_inq_dim(int ncid, int dimid, char *name, size_t *lenp)
     return ncp->dispatch->inq_dim(ncid,dimid,name,lenp);
 }
 
-/*!
+/**
 Rename a dimension.
 
 This function renames an existing dimension in a netCDF dataset open
@@ -239,14 +239,14 @@ than the old name, the netCDF dataset must be in define mode.
 For netCDF-4 files the dataset is switched to define mode for the
 rename, regardless of the name length.
 
-\param ncid NetCDF or group ID, from a previous call to nc_open(),
+@param ncid NetCDF or group ID, from a previous call to nc_open(),
 nc_create(), nc_def_grp(), or associated inquiry functions such as
 nc_inq_ncid().
 
-\param dimid Dimension ID, from a previous call to nc_inq_dimid() or
+@param dimid Dimension ID, from a previous call to nc_inq_dimid() or
 nc_def_dim().
 
-\param name New name for dimension. Must be a null-terminated string
+@param name New name for dimension. Must be a null-terminated string
 with length less than NC_MAX_NAME.
 
 @returns ::NC_NOERR      No error.
@@ -256,12 +256,13 @@ with length less than NC_MAX_NAME.
 @returns ::NC_ENOMEM     Memory allocation (malloc) failure
 @returns ::NC_EPERM      Write to read only
 @returns ::NC_ENOTINDEFINE Not in define mode and new name is longer than old.
-\section nc_rename_dim_example Example
+
+@section nc_rename_dim_example Example
 
 Here is an example using nc_rename_dim to rename the dimension lat to
 latitude in an existing netCDF dataset named foo.nc:
 
-\code
+@code
      #include <netcdf.h>
         ...
      int status, ncid, latid;
@@ -277,8 +278,8 @@ latitude in an existing netCDF dataset named foo.nc:
      if (status != NC_NOERR) handle_error(status);
      status = nc_enddef(ncid);
      if (status != NC_NOERR) handle_error(status);
-\endcode
- */
+@endcode
+*/
 int
 nc_rename_dim(int ncid, int dimid, const char *name)
 {
@@ -289,7 +290,7 @@ nc_rename_dim(int ncid, int dimid, const char *name)
     return ncp->dispatch->rename_dim(ncid,dimid,name);
 }
 
-/*!
+/**
 Find the number of dimensions.
 
 In a classic model netCDF file, this function returns the number of
@@ -299,17 +300,16 @@ may be less than the total number of dimensions in a file. In a
 netCDF-4/HDF5 file, dimensions are in all sub-groups, sub-sub-groups,
 etc.
 
-\param ncid NetCDF or group ID, from a previous call to nc_open(),
+@param ncid NetCDF or group ID, from a previous call to nc_open(),
 nc_create(), nc_def_grp(), or associated inquiry functions such as
 nc_inq_ncid().
 
-\param ndimsp Pointer where number of dimensions will be
+@param ndimsp Pointer where number of dimensions will be
 written. Ignored if NULL.
 
 @returns ::NC_NOERR  No error.
 @returns ::NC_EBADID Not a valid ID.
-
- */
+*/
 int
 nc_inq_ndims(int ncid, int *ndimsp)
 {
@@ -321,7 +321,7 @@ nc_inq_ndims(int ncid, int *ndimsp)
     return ncp->dispatch->inq(ncid,ndimsp,NULL,NULL,NULL);
 }
 
-/*!
+/**
 Find the ID of the unlimited dimension.
 
 This function finds the ID of the unlimited dimension. For
@@ -329,17 +329,16 @@ netCDF-4/HDF5 files (which may have more than one unlimited
 dimension), the ID of the first unlimited dimesnion is returned. For
 these files, nc_inq_unlimdims() will return all the unlimited dimension IDs.
 
-\param ncid NetCDF or group ID, from a previous call to nc_open(),
+@param ncid NetCDF or group ID, from a previous call to nc_open(),
 nc_create(), nc_def_grp(), or associated inquiry functions such as
 nc_inq_ncid().
 
-\param unlimdimidp Pointer where unlimited dimension ID will be
+@param unlimdimidp Pointer where unlimited dimension ID will be
 stored. If there is no unlimited dimension, -1 will be stored
 here. Ignored if NULL.
 
 @returns ::NC_NOERR  No error.
 @returns ::NC_EBADID Not a valid ID.
-
  */
 int
 nc_inq_unlimdim(int ncid, int *unlimdimidp)
@@ -351,17 +350,17 @@ nc_inq_unlimdim(int ncid, int *unlimdimidp)
     return ncp->dispatch->inq_unlimdim(ncid,unlimdimidp);
 }
 
-/*!
+/**
 Find out the name of a dimension.
 
-\param ncid NetCDF or group ID, from a previous call to nc_open(),
+@param ncid NetCDF or group ID, from a previous call to nc_open(),
 nc_create(), nc_def_grp(), or associated inquiry functions such as
 nc_inq_ncid().
 
-\param dimid Dimension ID, from a previous call to nc_inq_dimid() or
+@param dimid Dimension ID, from a previous call to nc_inq_dimid() or
 nc_def_dim().
 
-\param name Returned dimension name. The caller must allocate space
+@param name Returned dimension name. The caller must allocate space
 for the returned name. The maximum possible length, in characters, of
 a dimension name is given by the predefined constant
 NC_MAX_NAME. (This doesn't include the null terminator, so declare
@@ -372,13 +371,13 @@ will be null-terminated. Ignored if NULL.
 @returns ::NC_EBADID  Not a valid ID.
 @returns ::NC_EBADDIM Invalid dimension ID or name.
 
-\section nc_inq_dim_example2 Example
+@section nc_inq_dim_example2 Example
 
 Here is an example using nc_inq_dim() to determine the length of a
 dimension named lat, and the name and current maximum length of the
 unlimited dimension for an existing netCDF dataset named foo.nc:
 
-\code
+@code
      #include <netcdf.h>
         ...
      int status, ncid, latid, recid;
@@ -397,9 +396,8 @@ unlimited dimension for an existing netCDF dataset named foo.nc:
 
      status = nc_inq_dim(ncid, recid, recname, &recs);
      if (status != NC_NOERR) handle_error(status);
-\endcode
-
- */
+@endcode
+*/
 int
 nc_inq_dimname(int ncid, int dimid, char *name)
 {
@@ -411,32 +409,32 @@ nc_inq_dimname(int ncid, int dimid, char *name)
     return ncp->dispatch->inq_dim(ncid,dimid,name,NULL);
 }
 
-/*!
+/**
 Find the length of a dimension.
 
 The length for the unlimited dimension, if any, is the number of
 records written so far.
 
-\param ncid NetCDF or group ID, from a previous call to nc_open(),
+@param ncid NetCDF or group ID, from a previous call to nc_open(),
 nc_create(), nc_def_grp(), or associated inquiry functions such as
 nc_inq_ncid().
 
-\param dimid Dimension ID, from a previous call to nc_inq_dimid() or
+@param dimid Dimension ID, from a previous call to nc_inq_dimid() or
 nc_def_dim().
 
-\param lenp Pointer where the length will be stored.
+@param lenp Pointer where the length will be stored.
 
 @returns ::NC_NOERR   No error.
 @returns ::NC_EBADID  Not a valid ID.
 @returns ::NC_EBADDIM Invalid dimension ID or name.
 
-\section nc_inq_dim_example3 Example
+@section nc_inq_dim_example3 Example
 
 Here is an example using nc_inq_dim() to determine the length of a
 dimension named lat, and the name and current maximum length of the
 unlimited dimension for an existing netCDF dataset named foo.nc:
 
-\code
+@code
      #include <netcdf.h>
         ...
      int status, ncid, latid, recid;
@@ -455,8 +453,8 @@ unlimited dimension for an existing netCDF dataset named foo.nc:
 
      status = nc_inq_dim(ncid, recid, recname, &recs);
      if (status != NC_NOERR) handle_error(status);
-\endcode
- */
+@endcode
+*/
 int
 nc_inq_dimlen(int ncid, int dimid, size_t *lenp)
 {
@@ -468,6 +466,5 @@ nc_inq_dimlen(int ncid, int dimid, size_t *lenp)
     return ncp->dispatch->inq_dim(ncid,dimid,NULL,lenp);
 }
 
-/*! \} */  /* End of named group ...*/
-
-/*! \} */ /* End of defgroup. */
+/** @} */
+/** @} */
