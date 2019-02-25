@@ -84,12 +84,9 @@
    @param ncid NetCDF or group ID, from a previous call to nc_open(),
    nc_create(), nc_def_grp(), or associated inquiry functions such as
    nc_inq_ncid().
-
    @param name Name of the dimension to be created.
-
    @param len Length of the dimension to be created. Use NC_UNLIMITED for
    unlimited dimensions.
-
    @param idp Pointer where dimension ID will be stored.
 
    @returns ::NC_NOERR No error.
@@ -121,6 +118,7 @@
    status = nc_def_dim(ncid, "rec", NC_UNLIMITED, &recid);
    if (status != NC_NOERR) handle_error(status);
    @endcode
+
    @author Glenn Davis, Russ Rew, Ed Hartnett, Dennis Heimbigner, Ward
    Fisher
 */
@@ -173,17 +171,14 @@ nc_inq_dimid(int ncid, const char *name, int *idp)
    @param ncid NetCDF or group ID, from a previous call to nc_open(),
    nc_create(), nc_def_grp(), or associated inquiry functions such as
    nc_inq_ncid().
-
    @param dimid Dimension ID, from a previous call to nc_inq_dimid() or
    nc_def_dim().
-
    @param name Returned dimension name. The caller must allocate space
    for the returned name. The maximum possible length, in characters, of
    a dimension name is given by the predefined constant
    NC_MAX_NAME. (This doesn't include the null terminator, so declare
    your array to be size NC_MAX_NAME+1). The returned character array
    will be null-terminated.
-
    @param lenp Pointer to location for returned length of dimension. For
    the unlimited dimension, this is the number of records written so far.
 
@@ -217,6 +212,7 @@ nc_inq_dimid(int ncid, const char *name, int *idp)
    status = nc_inq_dim(ncid, recid, recname, &recs);
    if (status != NC_NOERR) handle_error(status);
    @endcode
+
    @author Glenn Davis, Russ Rew, Ed Hartnett, Dennis Heimbigner, Ward
    Fisher
 */
@@ -246,10 +242,8 @@ nc_inq_dim(int ncid, int dimid, char *name, size_t *lenp)
    @param ncid NetCDF or group ID, from a previous call to nc_open(),
    nc_create(), nc_def_grp(), or associated inquiry functions such as
    nc_inq_ncid().
-
    @param dimid Dimension ID, from a previous call to nc_inq_dimid() or
    nc_def_dim().
-
    @param name New name for dimension. Must be a null-terminated string
    with length less than NC_MAX_NAME.
 
@@ -283,6 +277,7 @@ nc_inq_dim(int ncid, int dimid, char *name, size_t *lenp)
    status = nc_enddef(ncid);
    if (status != NC_NOERR) handle_error(status);
    @endcode
+
    @author Glenn Davis, Russ Rew, Ed Hartnett, Dennis Heimbigner, Ward
    Fisher
 */
@@ -309,12 +304,12 @@ nc_rename_dim(int ncid, int dimid, const char *name)
    @param ncid NetCDF or group ID, from a previous call to nc_open(),
    nc_create(), nc_def_grp(), or associated inquiry functions such as
    nc_inq_ncid().
-
    @param ndimsp Pointer where number of dimensions will be
    written. Ignored if NULL.
 
    @returns ::NC_NOERR  No error.
    @returns ::NC_EBADID Not a valid ID.
+
    @author Glenn Davis, Russ Rew, Ed Hartnett, Dennis Heimbigner, Ward
    Fisher
 */
@@ -340,13 +335,13 @@ nc_inq_ndims(int ncid, int *ndimsp)
    @param ncid NetCDF or group ID, from a previous call to nc_open(),
    nc_create(), nc_def_grp(), or associated inquiry functions such as
    nc_inq_ncid().
-
    @param unlimdimidp Pointer where unlimited dimension ID will be
    stored. If there is no unlimited dimension, -1 will be stored
    here. Ignored if NULL.
 
    @returns ::NC_NOERR  No error.
    @returns ::NC_EBADID Not a valid ID.
+
    @author Glenn Davis, Russ Rew, Ed Hartnett, Dennis Heimbigner, Ward
    Fisher
 */
@@ -366,10 +361,8 @@ nc_inq_unlimdim(int ncid, int *unlimdimidp)
    @param ncid NetCDF or group ID, from a previous call to nc_open(),
    nc_create(), nc_def_grp(), or associated inquiry functions such as
    nc_inq_ncid().
-
    @param dimid Dimension ID, from a previous call to nc_inq_dimid() or
    nc_def_dim().
-
    @param name Returned dimension name. The caller must allocate space
    for the returned name. The maximum possible length, in characters, of
    a dimension name is given by the predefined constant
@@ -407,6 +400,7 @@ nc_inq_unlimdim(int ncid, int *unlimdimidp)
    status = nc_inq_dim(ncid, recid, recname, &recs);
    if (status != NC_NOERR) handle_error(status);
    @endcode
+
    @author Glenn Davis, Russ Rew, Ed Hartnett, Dennis Heimbigner, Ward
    Fisher
 */
@@ -430,10 +424,8 @@ nc_inq_dimname(int ncid, int dimid, char *name)
    @param ncid NetCDF or group ID, from a previous call to nc_open(),
    nc_create(), nc_def_grp(), or associated inquiry functions such as
    nc_inq_ncid().
-
    @param dimid Dimension ID, from a previous call to nc_inq_dimid() or
    nc_def_dim().
-
    @param lenp Pointer where the length will be stored.
 
    @returns ::NC_NOERR   No error.
@@ -466,6 +458,7 @@ nc_inq_dimname(int ncid, int dimid, char *name)
    status = nc_inq_dim(ncid, recid, recname, &recs);
    if (status != NC_NOERR) handle_error(status);
    @endcode
+
    @author Glenn Davis, Russ Rew, Ed Hartnett, Dennis Heimbigner, Ward
    Fisher
 */
