@@ -81,15 +81,18 @@
    unlimited dimensions.
    @param idp Pointer where dimension ID will be stored.
 
-   @returns ::NC_NOERR No error.
-   @returns ::NC_EBADID Not a valid ID.
-   @returns ::NC_ENOTINDEFINE Not in define mode.
-   @returns ::NC_EDIMSIZE Invalid dimension size.
-   @returns ::NC_EUNLIMIT NC_UNLIMITED size already in use
-   @returns ::NC_EMAXDIMS NC_MAX_DIMS exceeded [not enforced after 4.5.0]
-   @returns ::NC_ENAMEINUSE String match to name in use
-   @returns ::NC_ENOMEM Memory allocation (malloc) failure
-   @returns ::NC_EPERM Write to read only
+   @return ::NC_NOERR No error.
+   @return ::NC_EBADID Not a valid ID.
+   @return ::NC_EMAXNAME Name is too long.
+   @return ::NC_EBADNAME Name breaks netCDF name rules.
+   @return ::NC_EINVAL Invalid input.
+   @return ::NC_ENOTINDEFINE Not in define mode.
+   @return ::NC_EDIMSIZE Invalid dimension size.
+   @return ::NC_EUNLIMIT NC_UNLIMITED size already in use
+   @return ::NC_EMAXDIMS NC_MAX_DIMS exceeded [not enforced after 4.5.0]
+   @return ::NC_ENAMEINUSE String match to name in use
+   @return ::NC_ENOMEM Memory allocation (malloc) failure
+   @return ::NC_EPERM Write to read only
 
    @section nc_def_dim_example Example
 
@@ -138,9 +141,9 @@ nc_def_dim(int ncid, const char *name, size_t len, int *idp)
    @param name Name of the dimension.
    @param idp Pointer where dimension ID will be stored.
 
-   @returns ::NC_NOERR   No error.
-   @returns ::NC_EBADID  Not a valid ID.
-   @returns ::NC_EBADDIM Invalid dimension ID or name.
+   @return ::NC_NOERR No error.
+   @return ::NC_EBADID Not a valid ID.
+   @return ::NC_EBADDIM Invalid dimension ID.
    @author Glenn Davis, Russ Rew, Ed Hartnett, Dennis Heimbigner, Ward
    Fisher
 */
@@ -174,9 +177,9 @@ nc_inq_dimid(int ncid, const char *name, int *idp)
    @param lenp Pointer to location for returned length of dimension. For
    the unlimited dimension, this is the number of records written so far.
 
-   @returns ::NC_NOERR   No error.
-   @returns ::NC_EBADID  Not a valid ID.
-   @returns ::NC_EBADDIM Invalid dimension ID or name.
+   @return ::NC_NOERR No error.
+   @return ::NC_EBADID Not a valid ID.
+   @return ::NC_EBADDIM Invalid dimension ID or name.
 
    @section nc_inq_dim_example Example
 
@@ -221,9 +224,9 @@ nc_inq_dim(int ncid, int dimid, char *name, size_t *lenp)
 /**
    Rename a dimension.
 
-   This function renames an existing dimension in a netCDF dataset open
-   for writing. You cannot rename a dimension to have the same name as
-   another dimension.
+   This function renames an existing dimension in a netCDF dataset
+   open for writing. You cannot rename a dimension to have the same
+   name as another dimension.
 
    For netCDF classic and 64-bit offset files, if the new name is
    longer than the old name, which has been flushed to disk, the
@@ -237,23 +240,24 @@ nc_inq_dim(int ncid, int dimid, char *name, size_t *lenp)
    @param ncid NetCDF or group ID, from a previous call to nc_open(),
    nc_create(), nc_def_grp(), or associated inquiry functions such as
    nc_inq_ncid().
-   @param dimid Dimension ID, from a previous call to nc_inq_dimid() or
-   nc_def_dim().
-   @param name New name for dimension. Must be a null-terminated string
-   with length less than ::NC_MAX_NAME.
+   @param dimid Dimension ID, from a previous call to nc_inq_dimid()
+   or nc_def_dim().
+   @param name New name for dimension. Must be a null-terminated
+   string with length less than ::NC_MAX_NAME.
 
-   @returns ::NC_NOERR      No error.
-   @returns ::NC_EBADID     Not a valid ID.
-   @returns ::NC_EBADDIM    Invalid dimension ID or name.
-   @returns ::NC_ENAMEINUSE String match to name in use
-   @returns ::NC_ENOMEM     Memory allocation (malloc) failure
-   @returns ::NC_EPERM      Write to read only
-   @returns ::NC_ENOTINDEFINE Not in define mode and new name is longer than old.
+   @return ::NC_NOERR No error.
+   @return ::NC_EBADID Not a valid ID.
+   @return ::NC_EBADDIM Invalid dimension ID or name.
+   @return ::NC_ENAMEINUSE String match to name in use
+   @return ::NC_ENOMEM Memory allocation (malloc) failure
+   @return ::NC_EPERM Write to read only
+   @return ::NC_ENOTINDEFINE Not in define mode and new name is longer
+   than old.
 
    @section nc_rename_dim_example Example
 
-   Here is an example using nc_rename_dim to rename the dimension lat to
-   latitude in an existing netCDF dataset named foo.nc:
+   Here is an example using nc_rename_dim to rename the dimension lat
+   to latitude in an existing netCDF dataset named foo.nc:
 
    @code
    #include <netcdf.h>
@@ -290,11 +294,11 @@ nc_rename_dim(int ncid, int dimid, const char *name)
    Find the number of dimensions.
 
    In a classic model netCDF file, this function returns the number of
-   defined dimensions. In a netCDF-4/HDF5 file, this function returns the
-   number of dimensions available in the group specified by ncid, which
-   may be less than the total number of dimensions in a file. In a
-   netCDF-4/HDF5 file, dimensions are in all sub-groups, sub-sub-groups,
-   etc.
+   defined dimensions. In a netCDF-4/HDF5 file, this function returns
+   the number of dimensions available in the group specified by ncid,
+   which may be less than the total number of dimensions in a file. In
+   a netCDF-4/HDF5 file, dimensions are in all sub-groups,
+   sub-sub-groups, etc.
 
    @param ncid NetCDF or group ID, from a previous call to nc_open(),
    nc_create(), nc_def_grp(), or associated inquiry functions such as
@@ -302,8 +306,8 @@ nc_rename_dim(int ncid, int dimid, const char *name)
    @param ndimsp Pointer where number of dimensions will be
    written. Ignored if NULL.
 
-   @returns ::NC_NOERR  No error.
-   @returns ::NC_EBADID Not a valid ID.
+   @return ::NC_NOERR  No error.
+   @return ::NC_EBADID Not a valid ID.
 
    @author Glenn Davis, Russ Rew, Ed Hartnett, Dennis Heimbigner, Ward
    Fisher
@@ -324,8 +328,9 @@ nc_inq_ndims(int ncid, int *ndimsp)
 
    This function finds the ID of the unlimited dimension. For
    netCDF-4/HDF5 files (which may have more than one unlimited
-   dimension), the ID of the first unlimited dimesnion is returned. For
-   these files, nc_inq_unlimdims() will return all the unlimited dimension IDs.
+   dimension), the ID of the first unlimited dimesnion is
+   returned. For these files, nc_inq_unlimdims() will return all the
+   unlimited dimension IDs.
 
    @param ncid NetCDF or group ID, from a previous call to nc_open(),
    nc_create(), nc_def_grp(), or associated inquiry functions such as
@@ -334,8 +339,8 @@ nc_inq_ndims(int ncid, int *ndimsp)
    stored. If there is no unlimited dimension, -1 will be stored
    here. Ignored if NULL.
 
-   @returns ::NC_NOERR  No error.
-   @returns ::NC_EBADID Not a valid ID.
+   @return ::NC_NOERR  No error.
+   @return ::NC_EBADID Not a valid ID.
 
    @author Glenn Davis, Russ Rew, Ed Hartnett, Dennis Heimbigner, Ward
    Fisher
@@ -356,18 +361,18 @@ nc_inq_unlimdim(int ncid, int *unlimdimidp)
    @param ncid NetCDF or group ID, from a previous call to nc_open(),
    nc_create(), nc_def_grp(), or associated inquiry functions such as
    nc_inq_ncid().
-   @param dimid Dimension ID, from a previous call to nc_inq_dimid() or
-   nc_def_dim().
+   @param dimid Dimension ID, from a previous call to nc_inq_dimid()
+   or nc_def_dim().
    @param name Returned dimension name. The caller must allocate space
-   for the returned name. The maximum possible length, in characters, of
-   a dimension name is given by the predefined constant
-   ::NC_MAX_NAME. (This doesn't include the null terminator, so declare
-   your array to be size NC_MAX_NAME+1). The returned character array
-   will be null-terminated. Ignored if NULL.
+   for the returned name. The maximum possible length, in characters,
+   of a dimension name is given by the predefined constant
+   ::NC_MAX_NAME. (This doesn't include the null terminator, so
+   declare your array to be size NC_MAX_NAME+1). The returned
+   character array will be null-terminated. Ignored if NULL.
 
-   @returns ::NC_NOERR   No error.
-   @returns ::NC_EBADID  Not a valid ID.
-   @returns ::NC_EBADDIM Invalid dimension ID or name.
+   @return ::NC_NOERR   No error.
+   @return ::NC_EBADID  Not a valid ID.
+   @return ::NC_EBADDIM Invalid dimension ID or name.
 
    @section nc_inq_dim_example2 Example
 
@@ -419,13 +424,13 @@ nc_inq_dimname(int ncid, int dimid, char *name)
    @param ncid NetCDF or group ID, from a previous call to nc_open(),
    nc_create(), nc_def_grp(), or associated inquiry functions such as
    nc_inq_ncid().
-   @param dimid Dimension ID, from a previous call to nc_inq_dimid() or
-   nc_def_dim().
+   @param dimid Dimension ID, from a previous call to nc_inq_dimid()
+   or nc_def_dim().
    @param lenp Pointer where the length will be stored.
 
-   @returns ::NC_NOERR   No error.
-   @returns ::NC_EBADID  Not a valid ID.
-   @returns ::NC_EBADDIM Invalid dimension ID or name.
+   @return ::NC_NOERR   No error.
+   @return ::NC_EBADID  Not a valid ID.
+   @return ::NC_EBADDIM Invalid dimension ID or name.
 
    @section nc_inq_dim_example3 Example
 
