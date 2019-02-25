@@ -65,14 +65,6 @@
 /** @{ */
 
 /**
-   @name Deleting and Renaming Dimensions
-
-   Functions to delete or rename an dimension.
-*/
-
-/** @{ */
-
-/**
    Define a new dimension. The function nc_def_dim() adds a new
    dimension to an open netCDF dataset in define mode. It returns (as an
    argument) a dimension ID, given the netCDF ID, the dimension name, and
@@ -476,5 +468,4 @@ nc_inq_dimlen(int ncid, int dimid, size_t *lenp)
     return ncp->dispatch->inq_dim(ncid,dimid,NULL,lenp);
 }
 
-/** @} */
 /** @} */
