@@ -24,18 +24,18 @@
 
    There is a suggested limit (1024) to the number of dimensions that
    can be defined in a single netCDF dataset. The limit is the value
-   of the predefined macro NC_MAX_DIMS. The purpose of the limit is to
-   make writing generic applications simpler. They need only provide
-   an array of NC_MAX_DIMS dimensions to handle any netCDF
+   of the predefined macro ::NC_MAX_DIMS. The purpose of the limit is
+   to make writing generic applications simpler. They need only
+   provide an array of ::NC_MAX_DIMS dimensions to handle any netCDF
    dataset. The implementation of the netCDF library does not enforce
    this advisory maximum, so it is possible to use more dimensions, if
    necessary, but netCDF utilities that assume the advisory maximums
    may not be able to handle the resulting netCDF datasets.
 
-   NC_MAX_VAR_DIMS, which must not exceed NC_MAX_DIMS, is the maximum
-   number of dimensions that can be used to specify the shape of a
-   single variable. It is also intended to simplify writing generic
-   applications.
+   ::NC_MAX_VAR_DIMS, which must not exceed ::NC_MAX_DIMS, is the
+   maximum number of dimensions that can be used to specify the shape
+   of a single variable. It is also intended to simplify writing
+   generic applications.
 
    Ordinarily, the name and length of a dimension are fixed when the
    dimension is first defined. The name may be changed later, but the
@@ -73,7 +73,7 @@
 /** @{ */
 
 /**
-   Define a new dimension. The function nc_def_dim adds a new
+   Define a new dimension. The function nc_def_dim() adds a new
    dimension to an open netCDF dataset in define mode. It returns (as an
    argument) a dimension ID, given the netCDF ID, the dimension name, and
    the dimension length. At most one unlimited length dimension, called
@@ -176,7 +176,7 @@ nc_inq_dimid(int ncid, const char *name, int *idp)
    @param name Returned dimension name. The caller must allocate space
    for the returned name. The maximum possible length, in characters, of
    a dimension name is given by the predefined constant
-   NC_MAX_NAME. (This doesn't include the null terminator, so declare
+   ::NC_MAX_NAME. (This doesn't include the null terminator, so declare
    your array to be size NC_MAX_NAME+1). The returned character array
    will be null-terminated.
    @param lenp Pointer to location for returned length of dimension. For
@@ -248,7 +248,7 @@ nc_inq_dim(int ncid, int dimid, char *name, size_t *lenp)
    @param dimid Dimension ID, from a previous call to nc_inq_dimid() or
    nc_def_dim().
    @param name New name for dimension. Must be a null-terminated string
-   with length less than NC_MAX_NAME.
+   with length less than ::NC_MAX_NAME.
 
    @returns ::NC_NOERR      No error.
    @returns ::NC_EBADID     Not a valid ID.
@@ -369,7 +369,7 @@ nc_inq_unlimdim(int ncid, int *unlimdimidp)
    @param name Returned dimension name. The caller must allocate space
    for the returned name. The maximum possible length, in characters, of
    a dimension name is given by the predefined constant
-   NC_MAX_NAME. (This doesn't include the null terminator, so declare
+   ::NC_MAX_NAME. (This doesn't include the null terminator, so declare
    your array to be size NC_MAX_NAME+1). The returned character array
    will be null-terminated. Ignored if NULL.
 
