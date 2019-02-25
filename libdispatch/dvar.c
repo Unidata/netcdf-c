@@ -131,7 +131,6 @@
 /*! @{ */
 
 /**
-   @ingroup variables
    Define a new variable.
 
    This function adds a new variable to an open netCDF dataset or group.
@@ -227,7 +226,6 @@ nc_def_var(int ncid, const char *name, nc_type xtype,
 
 /**
    Rename a variable.
-   @ingroup variables
 
    This function changes the name of a netCDF variable in an open netCDF
    file or group. You cannot rename a variable to have the name of any existing
@@ -295,7 +293,6 @@ nc_rename_var(int ncid, int varid, const char *name)
 /*! @} */
 
 /**
-   @ingroup variables
    @internal Does a variable have a record dimension?
 
    @param ncid File ID.
@@ -325,7 +322,6 @@ NC_is_recvar(int ncid, int varid, size_t* nrecs)
 }
 
 /**
-   @ingroup variables
    @internal Get the number of record dimensions for a variable and an
    array that identifies which of a variable's dimensions are record
    dimensions. Intended to be used instead of NC_is_recvar(), which
@@ -420,7 +416,6 @@ NC_inq_recvar(int ncid, int varid, int* nrecdimsp, int *is_recdim)
 
 /**
    @internal
-   @ingroup variables
    Find the length of a type. This is how much space is required by
    the in memory to hold one element of this type.
 
@@ -467,9 +462,14 @@ nctypelen(nc_type type)
     }
 }
 
-/** @internal
-    @ingroup variables
-    Find the length of a type. Redundant over nctypelen() above. */
+/**
+    @internal
+    Find the length of a type. Redundant over nctypelen() above.
+
+    @param xtype an nc_type.
+
+    @author Dennis Heimbigner
+*/
 size_t
 NC_atomictypelen(nc_type xtype)
 {
@@ -495,9 +495,14 @@ NC_atomictypelen(nc_type xtype)
     return sz;
 }
 
-/** @internal
-    @ingroup variables
-    Get the type name. */
+/**
+    @internal
+    Get the type name.
+
+    @param xtype an nc_type.
+
+    @author Dennis Heimbigner
+*/
 char *
 NC_atomictypename(nc_type xtype)
 {
@@ -523,9 +528,22 @@ NC_atomictypename(nc_type xtype)
     return nm;
 }
 
-/** @internal
-    @ingroup variables
-    Get the shape of a variable.
+/**
+   @internal
+   Get the shape of a variable.
+
+   @param ncid NetCDF ID, from a previous call to nc_open() or
+   nc_create().
+   @param varid Variable ID.
+   @param ndims Number of dimensions for this var.
+   @param shape Pointer to pre-allocated array that gets the size of
+   each dimension.
+
+   @return ::NC_NOERR No error.
+   @return ::NC_EBADID Bad ncid.
+   @return ::NC_ENOTVAR Bad varid.
+
+   @author Dennis Heimbigner
 */
 int
 NC_getshape(int ncid, int varid, int ndims, size_t* shape)
@@ -544,8 +562,6 @@ NC_getshape(int ncid, int varid, int ndims, size_t* shape)
 }
 
 /**
-   @ingroup variables
-
    Set the fill value for a variable.
 
    @note For netCDF classic, 64-bit offset, and CDF5 formats, it is
@@ -560,17 +576,17 @@ NC_getshape(int ncid, int varid, int ndims, size_t* shape)
    the user attempts to set the fill value after writing data to the
    variable.
 
-   @param ncid NetCDF ID, from a previous call to nc_open or
-   nc_create.
+   @param ncid NetCDF ID, from a previous call to nc_open() or
+   nc_create().
    @param varid Variable ID.
-   @param no_fill Set to NC_NOFILL to turn off fill mode for this
-   variable. Set to NC_FILL (the default) to turn on fill mode for the
-   variable.
+   @param no_fill Set to ::NC_NOFILL to turn off fill mode for this
+   variable. Set to ::NC_FILL (the default) to turn on fill mode for
+   the variable.
    @param fill_value the fill value to be used for this variable. Must
    be the same type as the variable. This must point to enough free
    memory to hold one element of the data type of the variable. (For
-   example, an NC_INT will require 4 bytes for it's fill value, which
-   is also an NC_INT.)
+   example, an ::NC_INT will require 4 bytes for it's fill value,
+   which is also an ::NC_INT.)
 
    @return ::NC_NOERR No error.
    @return ::NC_EBADID Bad ID.
@@ -630,11 +646,10 @@ nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
     int stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) return stat;
 
-    /* Dennis Heimbigner: Using NC_GLOBAL is illegal, as this API has no
-     * provision for specifying the type of the fillvalue, it must of necessity
-     * be using the type of the variable to interpret the bytes of the
-     * fill_value argument.
-     */
+    /* Using NC_GLOBAL is illegal, as this API has no provision for
+     * specifying the type of the fillvalue, it must of necessity be
+     * using the type of the variable to interpret the bytes of the
+     * fill_value argument. */
     if (varid == NC_GLOBAL) return NC_EGLOBAL;
 
     return ncp->dispatch->def_var_fill(ncid,varid,no_fill,fill_value);
@@ -646,7 +661,7 @@ nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
 
    @param ncid The file ID.
    @param varid The variable ID.
-   @param start Pointer to start array. If NULL NC_EINVALCOORDS will
+   @param start Pointer to start array. If NULL ::NC_EINVALCOORDS will
    be returned for non-scalar variable.
    @param count Pointer to pointer to count array. If *count is NULL,
    an array of the correct size will be allocated, and filled with
@@ -691,7 +706,8 @@ NC_check_nulls(int ncid, int varid, const size_t *start, size_t **count,
         }
     }
 
-    /* If stride is NULL, do nothing, if *stride is NULL use all 1s. */
+    /* If stride is NULL, do nothing, if *stride is NULL use all
+     * 1s. */
     if (stride && !*stride)
     {
         int i;
@@ -706,18 +722,18 @@ NC_check_nulls(int ncid, int varid, const size_t *start, size_t **count,
 }
 
 /**
-   @ingroup variables
    Free string space allocated by the library.
 
-   When you read string type the library will allocate the storage space
-   for the data. This storage space must be freed, so pass the pointer
-   back to this function, when you're done with the data, and it will
-   free the string memory.
+   When you read string type the library will allocate the storage
+   space for the data. This storage space must be freed, so pass the
+   pointer back to this function, when you're done with the data, and
+   it will free the string memory.
 
    @param len The number of character arrays in the array.
    @param data The pointer to the data array.
 
    @return ::NC_NOERR No error.
+   @author Ed Hartnett
 */
 int
 nc_free_string(size_t len, char **data)
@@ -730,8 +746,6 @@ nc_free_string(size_t len, char **data)
 
 #ifdef USE_NETCDF4
 /**
-   @ingroup variables
-
    Change the cache settings for a chunked variable. This function allows
    users to control the amount of memory used in the per-variable chunk
    cache at the HDF5 level. Changing the chunk cache only has effect
@@ -741,13 +755,9 @@ nc_free_string(size_t len, char **data)
    @param ncid NetCDF or group ID, from a previous call to nc_open(),
    nc_create(), nc_def_grp(), or associated inquiry functions such as
    nc_inq_ncid().
-
    @param varid Variable ID
-
    @param size The total size of the raw data chunk cache, in bytes.
-
    @param nelems The number of chunk slots in the raw data chunk cache.
-
    @param preemption The preemption, a value between 0 and 1 inclusive
    that indicates how much chunks that have been fully read are favored
    for preemption. A value of zero means fully read chunks are treated no
@@ -758,7 +768,8 @@ nc_free_string(size_t len, char **data)
    @return ::NC_NOERR No error.
    @return ::NC_EBADID Bad ncid.
    @return ::NC_ENOTVAR Invalid variable ID.
-   @return ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3 netcdf-4 file.
+   @return ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3
+   netcdf-4 file.
    @return ::NC_EINVAL Invalid input
 
    @section nc_def_var_chunk_cache_example Example
@@ -788,6 +799,7 @@ nc_free_string(size_t len, char **data)
    }
    SUMMARIZE_ERR;
    @endcode
+   @author Ed Hartnett
 */
 int
 nc_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
@@ -801,28 +813,23 @@ nc_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
 }
 
 /**
-   @ingroup variables
-
    Get the per-variable chunk cache settings from the HDF5 layer.
 
    @param ncid NetCDF or group ID, from a previous call to nc_open(),
    nc_create(), nc_def_grp(), or associated inquiry functions such as
    nc_inq_ncid().
-
    @param varid Variable ID
-
    @param sizep The total size of the raw data chunk cache, in bytes,
    will be put here. @ref ignored_if_null.
-
-   @param nelemsp The number of chunk slots in the raw data chunk cache
-   hash table will be put here. @ref ignored_if_null.
-
+   @param nelemsp The number of chunk slots in the raw data chunk
+   cache hash table will be put here. @ref ignored_if_null.
    @param preemptionp The preemption will be put here. The preemtion
-   value is between 0 and 1 inclusive and indicates how much chunks that
-   have been fully read are favored for preemption. A value of zero means
-   fully read chunks are treated no differently than other chunks (the
-   preemption is strictly LRU) while a value of one means fully read
-   chunks are always preempted before other chunks. @ref ignored_if_null.
+   value is between 0 and 1 inclusive and indicates how much chunks
+   that have been fully read are favored for preemption. A value of
+   zero means fully read chunks are treated no differently than other
+   chunks (the preemption is strictly LRU) while a value of one means
+   fully read chunks are always preempted before other chunks. @ref
+   ignored_if_null.
 
    @return ::NC_NOERR No error.
    @return ::NC_EBADID Bad ncid.
@@ -830,6 +837,7 @@ nc_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
    @return ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3
    netcdf-4 file.
    @return ::NC_EINVAL Invalid input
+   @author Ed Hartnett
 */
 int
 nc_get_var_chunk_cache(int ncid, int varid, size_t *sizep, size_t *nelemsp,
@@ -843,8 +851,6 @@ nc_get_var_chunk_cache(int ncid, int varid, size_t *sizep, size_t *nelemsp,
 }
 
 /**
-   @ingroup variables
-
    Set the compression settings for a netCDF-4/HDF5 variable.
 
    This function must be called after nc_def_var and before nc_enddef
@@ -945,8 +951,6 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
 }
 
 /**
-   @ingroup variables
-
    Set checksum for a var.
 
    This function must be called after nc_def_var and before nc_enddef
@@ -986,8 +990,6 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
 
 /**
    Define chunking parameters for a variable
-
-   @ingroup variables
 
    The function nc_def_var_chunking sets the chunking parameters for a
    variable in a netCDF-4 file. It can set the chunk sizes to get chunked
@@ -1089,8 +1091,6 @@ nc_def_var_chunking(int ncid, int varid, int storage,
 }
 
 /**
-   @ingroup variables
-
    Define endianness of a variable.
 
    With this function the endianness (i.e. order of bits in integers) can
