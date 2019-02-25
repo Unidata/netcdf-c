@@ -19,23 +19,18 @@ echo "findplugin.sh loaded"
 # Function to remove selected -s attributes from file;
 # These attributes might be platform dependent
 sclean() {
-cat $1 \
-  | sed -e '/var:_Endianness/d' \
-  | sed -e '/_NCProperties/d' \
-  | sed -e '/_SuperblockVersion/d' \
-  | sed -e '/_IsNetcdf4/d' \
-  | cat > $2
+    cat $1 \
+	| sed -e '/:_Endianness/d' \
+	| sed -e '/_NCProperties/d' \
+	| sed -e '/_SuperblockVersion/d' \
+	| sed -e '/_IsNetcdf4/d' \
+	| cat > $2
 }
 
 # Function to extract _Filter attribute from a file
 # These attributes might be platform dependent
 getfilterattr() {
-case "$1" in
-var1) sed -e '/var1:_Filter/p' -ed <$1 >$2 ;;
-var2) sed -e '/var2:_Filter/p' -ed <$1 >$2 ;;
-var) sed -e '/var:_Filter/p' -ed <$1 >$2 ;;
-*) sed -e '/var:_Filter/p' -ed <$1 >$2 ;;
-esac
+sed -e '/var.*:_Filter/p' -ed <$1 >$2
 }
 
 trimleft() {

@@ -32,41 +32,41 @@
 int
 NC4_inq_unlimdim(int ncid, int *unlimdimidp)
 {
-   NC_GRP_INFO_T *grp, *g;
-   NC_FILE_INFO_T *h5;
-   NC_DIM_INFO_T *dim;
-   int found = 0;
-   int retval;
-   int i;
+    NC_GRP_INFO_T *grp, *g;
+    NC_FILE_INFO_T *h5;
+    NC_DIM_INFO_T *dim;
+    int found = 0;
+    int retval;
+    int i;
 
-   LOG((2, "%s: called", __func__));
+    LOG((2, "%s: called", __func__));
 
-   if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
-      return retval;
-   assert(h5 && grp);
+    if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
+        return retval;
+    assert(h5 && grp);
 
-   if (unlimdimidp)
-   {
-      /* According to netcdf-3 manual, return -1 if there is no unlimited
-         dimension. */
-      *unlimdimidp = -1;
-      for (g = grp; g && !found; g = g->parent)
-      {
-         for(i=0;i<ncindexsize(grp->dim);i++)
-         {
-            dim = (NC_DIM_INFO_T*)ncindexith(grp->dim,i);
-            if(dim == NULL) continue;
-            if (dim->unlimited)
+    if (unlimdimidp)
+    {
+        /* According to netcdf-3 manual, return -1 if there is no unlimited
+           dimension. */
+        *unlimdimidp = -1;
+        for (g = grp; g && !found; g = g->parent)
+        {
+            for(i=0;i<ncindexsize(grp->dim);i++)
             {
-               *unlimdimidp = dim->hdr.id;
-               found++;
-               break;
+                dim = (NC_DIM_INFO_T*)ncindexith(grp->dim,i);
+                if(dim == NULL) continue;
+                if (dim->unlimited)
+                {
+                    *unlimdimidp = dim->hdr.id;
+                    found++;
+                    break;
+                }
             }
-         }
-      }
-   }
+        }
+    }
 
-   return NC_NOERR;
+    return NC_NOERR;
 }
 
 /**
@@ -85,41 +85,41 @@ NC4_inq_unlimdim(int ncid, int *unlimdimidp)
 int
 NC4_inq_dimid(int ncid, const char *name, int *idp)
 {
-   NC *nc;
-   NC_GRP_INFO_T *grp, *g;
-   NC_FILE_INFO_T *h5;
-   NC_DIM_INFO_T *dim;
-   char norm_name[NC_MAX_NAME + 1];
-   int retval;
-   int found;
+    NC *nc;
+    NC_GRP_INFO_T *grp, *g;
+    NC_FILE_INFO_T *h5;
+    NC_DIM_INFO_T *dim;
+    char norm_name[NC_MAX_NAME + 1];
+    int retval;
+    int found;
 
-   LOG((2, "%s: ncid 0x%x name %s", __func__, ncid, name));
+    LOG((2, "%s: ncid 0x%x name %s", __func__, ncid, name));
 
-   /* Check input. */
-   if (!name)
-      return NC_EINVAL;
+    /* Check input. */
+    if (!name)
+        return NC_EINVAL;
 
-   /* Find metadata for this file. */
-   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
-      return retval;
-   assert(h5 && nc && grp);
+    /* Find metadata for this file. */
+    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
+        return retval;
+    assert(h5 && nc && grp);
 
-   /* Normalize name. */
-   if ((retval = nc4_normalize_name(name, norm_name)))
-      return retval;
+    /* Normalize name. */
+    if ((retval = nc4_normalize_name(name, norm_name)))
+        return retval;
 
-   /* check for a name match in this group and its parents */
-   found = 0;
-   for (g = grp; g ; g = g->parent) {
-      dim = (NC_DIM_INFO_T*)ncindexlookup(g->dim,norm_name);
-      if(dim != NULL) {found = 1; break;}
-   }
-   if(!found)
-      return NC_EBADDIM;
-   assert(dim != NULL);
-   if (idp)
-      *idp = dim->hdr.id;
-   return NC_NOERR;
+    /* check for a name match in this group and its parents */
+    found = 0;
+    for (g = grp; g ; g = g->parent) {
+        dim = (NC_DIM_INFO_T*)ncindexlookup(g->dim,norm_name);
+        if(dim != NULL) {found = 1; break;}
+    }
+    if(!found)
+        return NC_EBADDIM;
+    assert(dim != NULL);
+    if (idp)
+        *idp = dim->hdr.id;
+    return NC_NOERR;
 }
 
 /**
@@ -140,40 +140,40 @@ NC4_inq_dimid(int ncid, const char *name, int *idp)
 int
 NC4_inq_unlimdims(int ncid, int *nunlimdimsp, int *unlimdimidsp)
 {
-   NC_DIM_INFO_T *dim;
-   NC_GRP_INFO_T *grp;
-   NC *nc;
-   NC_FILE_INFO_T *h5;
-   int num_unlim = 0;
-   int retval;
-   int i;
+    NC_DIM_INFO_T *dim;
+    NC_GRP_INFO_T *grp;
+    NC *nc;
+    NC_FILE_INFO_T *h5;
+    int num_unlim = 0;
+    int retval;
+    int i;
 
-   LOG((2, "%s: ncid 0x%x", __func__, ncid));
+    LOG((2, "%s: ncid 0x%x", __func__, ncid));
 
-   /* Find info for this file and group, and set pointer to each. */
-   if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
-      return retval;
-   assert(h5 && nc && grp);
+    /* Find info for this file and group, and set pointer to each. */
+    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
+        return retval;
+    assert(h5 && nc && grp);
 
-   /* Get our dim info. */
-   assert(h5);
-   {
-      for(i=0;i<ncindexsize(grp->dim);i++)
-      {
-         dim = (NC_DIM_INFO_T*)ncindexith(grp->dim,i);
-         if(dim == NULL) continue;
-         if (dim->unlimited)
-         {
-            if (unlimdimidsp)
-               unlimdimidsp[num_unlim] = dim->hdr.id;
-            num_unlim++;
-         }
-      }
-   }
+    /* Get our dim info. */
+    assert(h5);
+    {
+        for(i=0;i<ncindexsize(grp->dim);i++)
+        {
+            dim = (NC_DIM_INFO_T*)ncindexith(grp->dim,i);
+            if(dim == NULL) continue;
+            if (dim->unlimited)
+            {
+                if (unlimdimidsp)
+                    unlimdimidsp[num_unlim] = dim->hdr.id;
+                num_unlim++;
+            }
+        }
+    }
 
-   /* Give the number if the user wants it. */
-   if (nunlimdimsp)
-      *nunlimdimsp = num_unlim;
+    /* Give the number if the user wants it. */
+    if (nunlimdimsp)
+        *nunlimdimsp = num_unlim;
 
-   return NC_NOERR;
+    return NC_NOERR;
 }
