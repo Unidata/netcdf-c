@@ -144,6 +144,7 @@ nc_def_dim(int ncid, const char *name, size_t len, int *idp)
    @return ::NC_NOERR No error.
    @return ::NC_EBADID Not a valid ID.
    @return ::NC_EBADDIM Invalid dimension ID.
+
    @author Glenn Davis, Russ Rew, Ed Hartnett, Dennis Heimbigner, Ward
    Fisher
 */
