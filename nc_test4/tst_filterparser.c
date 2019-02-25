@@ -11,6 +11,8 @@
 #include "netcdf.h"
 #include "netcdf_filter.h"
 
+#undef DEBUG
+
 #define PARAMS_ID 32768
 
 /* The C standard apparently defines all floating point constants as double;
@@ -177,7 +179,7 @@ buildbaseline(void)
     val8 = 18446744073709551615UL;
     insert(12,&val8,sizeof(val8)); /* unsigned long long */
     float8 = DBLVAL;
-    insert(114,&float8,sizeof(float8)); /* double */
+    insert(14,&float8,sizeof(float8)); /* double */
 }
 
 /**************************************************/
@@ -240,7 +242,8 @@ main(int argc, char **argv)
     return (nerrs > 0 ? 1 : 0);
 }
 
-#if 0
+#ifdef DEBUG
+
 /* Look at q0 and q1) to determine type */
 static int
 gettype(const int q0, const int q1, int* isunsignedp)
@@ -470,4 +473,5 @@ NC_filterfix8(unsigned char* mem, int decode)
 #endif	    
 }
 
-#endif /*0*/
+#endif /*DEBUG*/
+
