@@ -1,3 +1,4 @@
+#include "config.h"
 #include <sys/types.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,7 +8,7 @@
 /* Older versions of the hdf library may define H5PL_type_t here */
 #include <H5PLextern.h>
 
-#include "config.h"
+
 
 #ifndef DLL_EXPORT
 #define DLL_EXPORT
