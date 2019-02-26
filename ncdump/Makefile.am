@@ -4,10 +4,10 @@
 
 # Ed Hartnett, Dennis Heimbigner, Ward Fisher
 
-#SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#TESTS_ENVIRONMENT = export SETX=1;
+SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+TESTS_ENVIRONMENT = export SETX=1;
 
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
@@ -54,7 +54,7 @@ TESTS = tst_inttags.sh run_tests.sh tst_64bit.sh ref_ctest	\
 ref_ctest64 tst_output.sh tst_lengths.sh tst_calendars.sh	\
 run_utf8_tests.sh tst_nccopy3.sh tst_nccopy3_subset.sh		\
 tst_charfill.sh tst_iter.sh tst_formatx3.sh tst_bom.sh		\
-tst_dimsizes.sh run_ncgen_tests.sh tst_ncgen4_classic.sh
+tst_dimsizes.sh run_ncgen_tests.sh tst_ncgen4_classic.sh test_radix.sh
 
 # The tst_nccopy3.sh test uses output from a bunch of other
 # tests. This records the dependency so parallel builds work.
@@ -133,7 +133,8 @@ tst_hdf5_offset.sh run_ncgen_nc4_tests.sh tst_nccopy3_subset.sh		\
 ref_nccopy3_subset.nc ref_test_corrupt_magic.nc tst_ncgen_shared.sh	\
 tst_ncgen4.sh tst_ncgen4_classic.sh tst_ncgen4_diff.sh			\
 tst_ncgen4_cycle.sh tst_null_byte_padding.sh				\
-ref_null_byte_padding_test.nc ref_tst_irish_rover.nc ref_provenance_v1.nc
+ref_null_byte_padding_test.nc ref_tst_irish_rover.nc ref_provenance_v1.nc \
+ref_tst_radix.cdl tst_radix.cdl test_radix.sh 
 
 # The L512.bin file is file containing exactly 512 bytes each of value 0.
 # It is used for creating hdf5 files with varying offsets for testing.
@@ -163,4 +164,5 @@ compound_datasize_test.nc compound_datasize_test2.nc ncf199.nc		\
 tst_c0.cdl tst_c0_4.cdl tst_c0_4c.cdl tst_c0_64.cdl			\
 tst_compound_datasize_test.cdl tst_compound_datasize_test2.cdl		\
 tst_ncf199.cdl tst_tst_gattenum.cdl tst_tst_usuffix.cdl ctest.c		\
-ctest64.c nccopy3_subset_out.nc camrun.c tst_ncf213.cdl tst_ncf213.nc
+ctest64.c nccopy3_subset_out.nc camrun.c tst_ncf213.cdl tst_ncf213.nc   \
+tst_radix.nc tmp_radix.cdl
