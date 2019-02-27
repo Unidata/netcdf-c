@@ -5,7 +5,7 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
-## 4.6.3 - TBD
+## 4.6.3 - February 28, 2019
 
 * [Bug Fix] Correctly generated `netcdf.pc` generated either by `configure` or `cmake`.  If linking against a static netcdf, you would need to pass the `--static` argument to `pkg-config` in order to list all of the downstream dependencies.  See [Github #1324](https://github.com/Unidata/netcdf-c/issues/1324) for more information.
 * Now always write hidden coordinates attribute, which allows faster file opens when present. See [Github #1262](https://github.com/Unidata/netcdf-c/issues/1262) for more information.
