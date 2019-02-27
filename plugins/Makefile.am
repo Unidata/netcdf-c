@@ -16,10 +16,11 @@ HDF5PLUGINSRC=${PLUGINSRC} ${BZIP2SRC} ${PLUGINHDRS} ${BZIP2HDRS}
 
 if ENABLE_FILTER_TESTING
 
-lib_LTLIBRARIES = libbzip2.la libmisc.la
+noinst_LTLIBRARIES = libmisc.la
+lib_LTLIBRARIES = libh5bzip2.la
 
-libbzip2_la_SOURCES = ${HDF5PLUGINSRC}
-libbzip2_la_LDFLAGS = -module -avoid-version -shared -export-dynamic -no-undefined
+libh5bzip2_la_SOURCES = ${HDF5PLUGINSRC}
+libh5bzip2_la_LDFLAGS = -module -avoid-version -shared -export-dynamic -no-undefined
 
 libmisc_la_SOURCES = H5Zmisc.c H5Zutil.c h5misc.h
 libmisc_la_LDFLAGS = -module -avoid-version -shared -export-dynamic -no-undefined -rpath ${abs_builddir}
