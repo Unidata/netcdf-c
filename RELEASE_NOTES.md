@@ -7,7 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.6.3 - TBD
 
-### Maintenance Release
+* [Bug Fix] Correctly generated `netcdf.pc` generated either by `configure` or `cmake`.  If linking against a static netcdf, you would need to pass the `--static` argument to `pkg-config` in order to list all of the downstream dependencies.  See [Github #1324](https://github.com/Unidata/netcdf-c/issues/1324) for more information.
 * Now always write hidden coordinates attribute, which allows faster file opens when present. See [Github #1262](https://github.com/Unidata/netcdf-c/issues/1262) for more information.
 * Some fixes for rename, including fix for renumbering of varids after a rename (#1307), renaming var to dim without coordinate var. See [Github #1297](https://github.com/Unidata/netcdf-c/issues/1297).
 * Fix of NULL parameter causing segfaults in put_vars functions. See [Github #1265](https://github.com/Unidata/netcdf-c/issues/1265) for more information.
