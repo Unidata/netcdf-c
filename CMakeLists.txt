@@ -1847,7 +1847,7 @@ FOREACH(_LIB ${ALL_TLL_LIBS})
   LIST(APPEND LINKFLAGS "-L${_LIB_DIR}")
 ENDFOREACH()
 
-SET(NC_LIBS "-lnetcdf ${NC_LIBS}")
+#SET(NC_LIBS "-lnetcdf ${NC_LIBS}")
 
 STRING(REPLACE ";" " " NC_LIBS "${NC_LIBS}")
 STRING(REPLACE "-lhdf5::hdf5-shared" "-lhdf5" NC_LIBS ${NC_LIBS})
@@ -1860,6 +1860,9 @@ STRING(REPLACE ";" " " LINKFLAGS "${LINKFLAGS}")
 
 LIST(REMOVE_DUPLICATES NC_LIBS)
 LIST(REMOVE_DUPLICATES LINKFLAGS)
+
+SET(LIBS ${NC_LIBS})
+SET(NC_LIBS "-lnetcdf")
 
 configure_file(
   ${netCDF_SOURCE_DIR}/netcdf.pc.in
@@ -1920,10 +1923,6 @@ SET(LDFLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${CMAKE_SHARED_LINKER_FLAGS_${CMAKE_BU
 
 is_disabled(BUILD_SHARED_LIBS enable_static)
 is_enabled(BUILD_SHARED_LIBS enable_shared)
-
-# Remove libnetcdf from NC_LIBS.
-STRING(REPLACE "-lnetcdf " "" TMP_NC_LIBS "${NC_LIBS}")
-SET(LIBS "${TMP_NC_LIBS}")
 
 is_enabled(ENABLE_V2_API HAS_NC2)
 is_enabled(ENABLE_NETCDF_4 HAS_NC4)
