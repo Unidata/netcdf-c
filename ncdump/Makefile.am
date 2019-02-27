@@ -4,10 +4,10 @@
 
 # Ed Hartnett, Dennis Heimbigner, Ward Fisher
 
-SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-TESTS_ENVIRONMENT = export SETX=1;
+#SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#TESTS_ENVIRONMENT = export SETX=1;
 
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
