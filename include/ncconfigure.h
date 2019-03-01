@@ -41,7 +41,10 @@ typedef SSIZE_T ssize_t;
   in its headers.*/
 #ifndef _WIN32
 #if __STDC__ == 1 /*supposed to be same as -ansi flag */
+
+#ifndef strdup
 extern char* strdup(const char*);
+#endif
 
 #ifndef strlcat
 extern size_t strlcat(char*,const char*,size_t);
@@ -58,7 +61,9 @@ extern unsigned long long int strtoull(const char*, char**, int);
 #endif
 
 #ifdef _WIN32
+#ifndef strlcat
 #define strlcat(d,s,n) strcat_s((d),(n),(s))
+#endif
 #endif
 
 /* handle null arguments */
@@ -87,6 +92,10 @@ typedef unsigned short ushort;
 
 #ifndef HAVE_UINT
 typedef unsigned int uint;
+#endif
+
+#ifndef NC_UNUSED
+#define NC_UNUSED(var) (void)var
 #endif
 
 #endif /* NCCONFIGURE_H */

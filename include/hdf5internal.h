@@ -6,7 +6,7 @@
  * code outside libhdf5.
  *
  * @author Ed Hartnett
-*/
+ */
 
 #ifndef _HDF5INTERNAL_
 #define _HDF5INTERNAL_
@@ -54,47 +54,47 @@
 /** Strut to hold HDF5-specific info for the file. */
 typedef struct  NC_HDF5_FILE_INFO
 {
-   hid_t hdfid;
+    hid_t hdfid;
 } NC_HDF5_FILE_INFO_T;
 
 /* This is a struct to handle the dim metadata. */
 typedef struct NC_HDF5_DIM_INFO
 {
-   hid_t hdf_dimscaleid;        /* Non-zero if a DIM_WITHOUT_VARIABLE dataset is in use (no coord var). */
-   HDF5_OBJID_T hdf5_objid;
+    hid_t hdf_dimscaleid;        /* Non-zero if a DIM_WITHOUT_VARIABLE dataset is in use (no coord var). */
+    HDF5_OBJID_T hdf5_objid;
 } NC_HDF5_DIM_INFO_T;
 
 /** Strut to hold HDF5-specific info for attributes. */
 typedef struct  NC_HDF5_ATT_INFO
 {
-   hid_t native_hdf_typeid;     /* Native HDF5 datatype for attribute's data */
+    hid_t native_hdf_typeid;     /* Native HDF5 datatype for attribute's data */
 } NC_HDF5_ATT_INFO_T;
 
 /* Struct to hold HDF5-specific info for a group. */
 typedef struct NC_HDF5_GRP_INFO
 {
-   hid_t hdf_grpid;
+    hid_t hdf_grpid;
 } NC_HDF5_GRP_INFO_T;
 
 /* Struct to hold HDF5-specific info for a variable. */
 typedef struct NC_HDF5_VAR_INFO
 {
-   hid_t hdf_datasetid;
-   HDF5_OBJID_T *dimscale_hdf5_objids;
+    hid_t hdf_datasetid;
+    HDF5_OBJID_T *dimscale_hdf5_objids;
 } NC_HDF5_VAR_INFO_T;
 
 /* Struct to hold HDF5-specific info for a field. */
 typedef struct NC_HDF5_FIELD_INFO
 {
-   hid_t hdf_typeid;
-   hid_t native_hdf_typeid;
+    hid_t hdf_typeid;
+    hid_t native_hdf_typeid;
 } NC_HDF5_FIELD_INFO_T;
 
 /* Struct to hold HDF5-specific info for a type. */
 typedef struct NC_HDF5_TYPE_INFO
 {
-   hid_t hdf_typeid;
-   hid_t native_hdf_typeid;
+    hid_t hdf_typeid;
+    hid_t native_hdf_typeid;
 } NC_HDF5_TYPE_INFO_T;
 
 /* Logging and debugging. */
@@ -120,7 +120,7 @@ int nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset);
 NC_TYPE_INFO_T *nc4_rec_find_hdf_type(NC_FILE_INFO_T* h5,
                                       hid_t target_hdf_typeid);
 int nc4_get_hdf_typeid(NC_FILE_INFO_T *h5, nc_type xtype,
-		       hid_t *hdf_typeid, int endianness);
+                       hid_t *hdf_typeid, int endianness);
 
 /* Enddef and closing files. */
 int nc4_close_hdf5_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio);
@@ -135,7 +135,14 @@ int nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_IN
 extern hid_t NC4_image_init(NC_FILE_INFO_T* h5);
 extern void NC4_image_finalize(void*);
 
-/* These functions are internal to the libhdf5 directory. */
+/* Create HDF5 dataset for dim without a coord var. */
+extern int nc4_create_dim_wo_var(NC_DIM_INFO_T *dim);
+
+/* Give a var a secret HDF5 name, for use when there is a dim of this
+ * name, but the var is not a coord var of that dim. */
+extern int nc4_give_var_secret_name(NC_VAR_INFO_T *var);
+
+/* Get the fill value for a var. */
 int nc4_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp);
 
 

@@ -14,6 +14,11 @@ FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
 
+
+IF(ENABLE_DAP_REMOTE_TESTS)
+    BUILD_BIN_TEST(findtestserver)
+ENDIF()
+
 IF(ENABLE_TESTS)
   # Base tests
   # The tests are set up as a combination of shell scripts and executables that
@@ -30,8 +35,6 @@ IF(ENABLE_TESTS)
   ENDIF()
 
   IF(ENABLE_DAP_REMOTE_TESTS)
-
-    BUILD_BIN_TEST(findtestserver)
 
     IF(BUILD_UTILITIES)
       add_sh_test(ncdap tst_ber)

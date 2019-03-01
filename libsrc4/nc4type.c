@@ -1,7 +1,7 @@
 /* Copyright 2005, University Corporation for Atmospheric Research. See
  * the COPYRIGHT file for copying and redistribution conditions. */
 /**
- * @file 
+ * @file
  * @internal This file is part of netcdf-4, a netCDF-like interface
  * for HDF5, or a HDF5 backend for netCDF, depending on your point of
  * view.
@@ -15,8 +15,8 @@
 #include "nc4dispatch.h"
 
 /** @internal Names of atomic types. */
-char* nc4_atomic_name[NUM_ATOMIC_TYPES] = {"none", "byte", "char", 
-                                           "short", "int", "float", 
+char* nc4_atomic_name[NUM_ATOMIC_TYPES] = {"none", "byte", "char",
+                                           "short", "int", "float",
                                            "double", "ubyte",
                                            "ushort", "uint",
                                            "int64", "uint64", "string"};
@@ -45,39 +45,39 @@ char* nc4_atomic_name[NUM_ATOMIC_TYPES] = {"none", "byte", "char",
  * @return ::NC_EBADID Bad ncid.
  * @author Ed Hartnett
  */
-int 
+int
 NC4_inq_typeids(int ncid, int *ntypes, int *typeids)
 {
-   NC_GRP_INFO_T *grp;
-   NC_FILE_INFO_T *h5;
-   NC_TYPE_INFO_T *type;
-   int num = 0;
-   int retval;
+    NC_GRP_INFO_T *grp;
+    NC_FILE_INFO_T *h5;
+    NC_TYPE_INFO_T *type;
+    int num = 0;
+    int retval;
 
-   LOG((2, "nc_inq_typeids: ncid 0x%x", ncid));
+    LOG((2, "nc_inq_typeids: ncid 0x%x", ncid));
 
-   /* Find info for this file and group, and set pointer to each. */
-   if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
-      return retval;
-   assert(h5 && grp);
+    /* Find info for this file and group, and set pointer to each. */
+    if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
+        return retval;
+    assert(h5 && grp);
 
-   /* Count types. */
-   if (grp->type) {
-      int i;
-      for(i=0;i<ncindexsize(grp->type);i++)
-      {
-	 if((type = (NC_TYPE_INFO_T*)ncindexith(grp->type,i)) == NULL) continue;
-	 if (typeids)
-	    typeids[num] = type->hdr.id;
-	 num++;
-      }
-   }
+    /* Count types. */
+    if (grp->type) {
+        int i;
+        for(i=0;i<ncindexsize(grp->type);i++)
+        {
+            if((type = (NC_TYPE_INFO_T*)ncindexith(grp->type,i)) == NULL) continue;
+            if (typeids)
+                typeids[num] = type->hdr.id;
+            num++;
+        }
+    }
 
-   /* Give the count to the user. */
-   if (ntypes)
-      *ntypes = num;
+    /* Give the count to the user. */
+    if (ntypes)
+        *ntypes = num;
 
-   return NC_NOERR;
+    return NC_NOERR;
 }
 
 /**
@@ -93,53 +93,53 @@ NC4_inq_typeids(int ncid, int *ntypes, int *typeids)
  * @return ::NC_EBADID Bad ncid.
  * @return ::NC_EBADTYPE Type not found.
  * @author Ed Hartnett
-*/
+ */
 int
 NC4_inq_type(int ncid, nc_type typeid1, char *name, size_t *size)
 {
-   NC_GRP_INFO_T *grp;
-   NC_TYPE_INFO_T *type;
-   static const int atomic_size[NUM_ATOMIC_TYPES] = {0, NC_BYTE_LEN, NC_CHAR_LEN, NC_SHORT_LEN, 
-					NC_INT_LEN, NC_FLOAT_LEN, NC_DOUBLE_LEN, 
-					NC_BYTE_LEN, NC_SHORT_LEN, NC_INT_LEN, NC_INT64_LEN, 
-					NC_INT64_LEN, NC_STRING_LEN};
-					
-   int retval;
-   
-   LOG((2, "nc_inq_type: ncid 0x%x typeid %d", ncid, typeid1));
+    NC_GRP_INFO_T *grp;
+    NC_TYPE_INFO_T *type;
+    static const int atomic_size[NUM_ATOMIC_TYPES] = {0, NC_BYTE_LEN, NC_CHAR_LEN, NC_SHORT_LEN,
+                                                      NC_INT_LEN, NC_FLOAT_LEN, NC_DOUBLE_LEN,
+                                                      NC_BYTE_LEN, NC_SHORT_LEN, NC_INT_LEN, NC_INT64_LEN,
+                                                      NC_INT64_LEN, NC_STRING_LEN};
 
-   /* If this is an atomic type, the answer is easy. */
-   if (typeid1 < NUM_ATOMIC_TYPES)
-   {
-      if (name)
-	strcpy(name, nc4_atomic_name[typeid1]);
-      if (size)
-	*size = atomic_size[typeid1];
-      return NC_NOERR;
-   }
+    int retval;
 
-   /* Not an atomic type - so find group. */
-   if ((retval = nc4_find_nc4_grp(ncid, &grp)))
-      return retval;
-   
-   /* Find this type. */
-   if (!(type = nclistget(grp->nc4_info->alltypes, typeid1)))
-      return NC_EBADTYPE;
+    LOG((2, "nc_inq_type: ncid 0x%x typeid %d", ncid, typeid1));
 
-   if (name)
-      strcpy(name, type->hdr.name);
-   
-   if (size)
-   {
-      if (type->nc_type_class == NC_VLEN)
-	 *size = sizeof(nc_vlen_t);
-      else if (type->nc_type_class == NC_STRING)
-	 *size = 1;
-      else
-	 *size = type->size;
-   }
-   
-   return NC_NOERR;
+    /* If this is an atomic type, the answer is easy. */
+    if (typeid1 < NUM_ATOMIC_TYPES)
+    {
+        if (name)
+            strcpy(name, nc4_atomic_name[typeid1]);
+        if (size)
+            *size = atomic_size[typeid1];
+        return NC_NOERR;
+    }
+
+    /* Not an atomic type - so find group. */
+    if ((retval = nc4_find_nc4_grp(ncid, &grp)))
+        return retval;
+
+    /* Find this type. */
+    if (!(type = nclistget(grp->nc4_info->alltypes, typeid1)))
+        return NC_EBADTYPE;
+
+    if (name)
+        strcpy(name, type->hdr.name);
+
+    if (size)
+    {
+        if (type->nc_type_class == NC_VLEN)
+            *size = sizeof(nc_vlen_t);
+        else if (type->nc_type_class == NC_STRING)
+            *size = 1;
+        else
+            *size = type->size;
+    }
+
+    return NC_NOERR;
 }
 
 /**
@@ -157,67 +157,67 @@ NC4_inq_type(int ncid, nc_type typeid1, char *name, size_t *size)
  * @return ::NC_EBADID Bad ncid.
  * @return ::NC_EBADTYPE Type not found.
  * @author Ed Hartnett
-*/
+ */
 int
-NC4_inq_user_type(int ncid, nc_type typeid1, char *name, size_t *size, 
-		 nc_type *base_nc_typep, size_t *nfieldsp, int *classp)
+NC4_inq_user_type(int ncid, nc_type typeid1, char *name, size_t *size,
+                  nc_type *base_nc_typep, size_t *nfieldsp, int *classp)
 {
-   NC_GRP_INFO_T *grp;
-   NC_TYPE_INFO_T *type;
-   int retval;
-   
-   LOG((2, "nc_inq_user_type: ncid 0x%x typeid %d", ncid, typeid1));
+    NC_GRP_INFO_T *grp;
+    NC_TYPE_INFO_T *type;
+    int retval;
 
-   /* Find group metadata. */
-   if ((retval = nc4_find_nc4_grp(ncid, &grp)))
-      return retval;
-   
-   /* Find this type. */
-   if (!(type = nclistget(grp->nc4_info->alltypes, typeid1)))
-      return NC_EBADTYPE;
+    LOG((2, "nc_inq_user_type: ncid 0x%x typeid %d", ncid, typeid1));
 
-   /* Count the number of fields. */
-   if (nfieldsp)
-   {
-      if (type->nc_type_class == NC_COMPOUND)
-         *nfieldsp = nclistlength(type->u.c.field);
-      else if (type->nc_type_class == NC_ENUM)
-	 *nfieldsp = nclistlength(type->u.e.enum_member);
-      else
-	 *nfieldsp = 0;
-   }
+    /* Find group metadata. */
+    if ((retval = nc4_find_nc4_grp(ncid, &grp)))
+        return retval;
 
-   /* Fill in size and name info, if desired. */
-   if (size)
-   {
-      if (type->nc_type_class == NC_VLEN)
-	 *size = sizeof(nc_vlen_t);
-      else if (type->nc_type_class == NC_STRING)
-	 *size = 1;
-      else
-	 *size = type->size;
-   }
-   if (name)
-      strcpy(name, type->hdr.name);
+    /* Find this type. */
+    if (!(type = nclistget(grp->nc4_info->alltypes, typeid1)))
+        return NC_EBADTYPE;
 
-   /* VLENS and ENUMs have a base type - that is, they type they are
-    * arrays of or enums of. */
-   if (base_nc_typep)
-   {
-      if (type->nc_type_class == NC_ENUM)
-         *base_nc_typep = type->u.e.base_nc_typeid;
-      else if (type->nc_type_class == NC_VLEN)
-         *base_nc_typep = type->u.v.base_nc_typeid;
-      else
-         *base_nc_typep = NC_NAT;
-   }
+    /* Count the number of fields. */
+    if (nfieldsp)
+    {
+        if (type->nc_type_class == NC_COMPOUND)
+            *nfieldsp = nclistlength(type->u.c.field);
+        else if (type->nc_type_class == NC_ENUM)
+            *nfieldsp = nclistlength(type->u.e.enum_member);
+        else
+            *nfieldsp = 0;
+    }
 
-   /* If the user wants it, tell whether this is a compound, opaque,
-    * vlen, enum, or string class of type. */
-   if (classp)
-      *classp = type->nc_type_class;
+    /* Fill in size and name info, if desired. */
+    if (size)
+    {
+        if (type->nc_type_class == NC_VLEN)
+            *size = sizeof(nc_vlen_t);
+        else if (type->nc_type_class == NC_STRING)
+            *size = 1;
+        else
+            *size = type->size;
+    }
+    if (name)
+        strcpy(name, type->hdr.name);
 
-   return NC_NOERR;
+    /* VLENS and ENUMs have a base type - that is, they type they are
+     * arrays of or enums of. */
+    if (base_nc_typep)
+    {
+        if (type->nc_type_class == NC_ENUM)
+            *base_nc_typep = type->u.e.base_nc_typeid;
+        else if (type->nc_type_class == NC_VLEN)
+            *base_nc_typep = type->u.v.base_nc_typeid;
+        else
+            *base_nc_typep = NC_NAT;
+    }
+
+    /* If the user wants it, tell whether this is a compound, opaque,
+     * vlen, enum, or string class of type. */
+    if (classp)
+        *classp = type->nc_type_class;
+
+    return NC_NOERR;
 }
 
 /**
@@ -236,42 +236,42 @@ NC4_inq_user_type(int ncid, nc_type typeid1, char *name, size_t *size,
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
  * @author Ed Hartnett
-*/
+ */
 int
-NC4_inq_compound_field(int ncid, nc_type typeid1, int fieldid, char *name, 
-		      size_t *offsetp, nc_type *field_typeidp, int *ndimsp, 
-		      int *dim_sizesp)
+NC4_inq_compound_field(int ncid, nc_type typeid1, int fieldid, char *name,
+                       size_t *offsetp, nc_type *field_typeidp, int *ndimsp,
+                       int *dim_sizesp)
 {
-   NC_GRP_INFO_T *grp;
-   NC_TYPE_INFO_T *type;
-   NC_FIELD_INFO_T *field;
-   int d, retval;
-   
-   /* Find file metadata. */
-   if ((retval = nc4_find_nc4_grp(ncid, &grp)))
-      return retval;
-   
-   /* Find this type. */
-   if (!(type = nclistget(grp->nc4_info->alltypes, typeid1)))
-      return NC_EBADTYPE;
+    NC_GRP_INFO_T *grp;
+    NC_TYPE_INFO_T *type;
+    NC_FIELD_INFO_T *field;
+    int d, retval;
 
-   /* Find the field. */
-   if (!(field = nclistget(type->u.c.field,fieldid)))
-      return NC_EBADFIELD;
+    /* Find file metadata. */
+    if ((retval = nc4_find_nc4_grp(ncid, &grp)))
+        return retval;
 
-   if (name)
-      strcpy(name, field->hdr.name);
-   if (offsetp)
-      *offsetp = field->offset;
-   if (field_typeidp)
-      *field_typeidp = field->nc_typeid;
-   if (ndimsp)
-      *ndimsp = field->ndims;
-   if (dim_sizesp)
-      for (d = 0; d < field->ndims; d++)
-         dim_sizesp[d] = field->dim_size[d];
+    /* Find this type. */
+    if (!(type = nclistget(grp->nc4_info->alltypes, typeid1)))
+        return NC_EBADTYPE;
 
-   return NC_NOERR;
+    /* Find the field. */
+    if (!(field = nclistget(type->u.c.field,fieldid)))
+        return NC_EBADFIELD;
+
+    if (name)
+        strcpy(name, field->hdr.name);
+    if (offsetp)
+        *offsetp = field->offset;
+    if (field_typeidp)
+        *field_typeidp = field->nc_typeid;
+    if (ndimsp)
+        *ndimsp = field->ndims;
+    if (dim_sizesp)
+        for (d = 0; d < field->ndims; d++)
+            dim_sizesp[d] = field->dim_size[d];
+
+    return NC_NOERR;
 }
 
 /**
@@ -287,52 +287,52 @@ NC4_inq_compound_field(int ncid, nc_type typeid1, int fieldid, char *name,
  * @return ::NC_EBADTYPE Type not found.
  * @return ::NC_EBADFIELD Field not found.
  * @author Ed Hartnett
-*/
+ */
 int
 NC4_inq_compound_fieldindex(int ncid, nc_type typeid1, const char *name, int *fieldidp)
 {
-   NC_FILE_INFO_T *h5;
-   NC_TYPE_INFO_T *type;
-   NC_FIELD_INFO_T *field;
-   char norm_name[NC_MAX_NAME + 1];
-   int retval;
-   int i;
+    NC_FILE_INFO_T *h5;
+    NC_TYPE_INFO_T *type;
+    NC_FIELD_INFO_T *field;
+    char norm_name[NC_MAX_NAME + 1];
+    int retval;
+    int i;
 
-   LOG((2, "nc_inq_compound_fieldindex: ncid 0x%x typeid %d name %s",
-	ncid, typeid1, name));
+    LOG((2, "nc_inq_compound_fieldindex: ncid 0x%x typeid %d name %s",
+         ncid, typeid1, name));
 
-   /* Find file metadata. */
-   if ((retval = nc4_find_grp_h5(ncid, NULL, &h5)))
-      return retval;
+    /* Find file metadata. */
+    if ((retval = nc4_find_grp_h5(ncid, NULL, &h5)))
+        return retval;
 
-   /* Find the type. */
-   if ((retval = nc4_find_type(h5, typeid1, &type)))
-      return retval;
+    /* Find the type. */
+    if ((retval = nc4_find_type(h5, typeid1, &type)))
+        return retval;
 
-   /* Did the user give us a good compound type typeid? */
-   if (!type || type->nc_type_class != NC_COMPOUND)
-      return NC_EBADTYPE;
+    /* Did the user give us a good compound type typeid? */
+    if (!type || type->nc_type_class != NC_COMPOUND)
+        return NC_EBADTYPE;
 
-   /* Normalize name. */
-   if ((retval = nc4_normalize_name(name, norm_name)))
-      return retval;
+    /* Normalize name. */
+    if ((retval = nc4_normalize_name(name, norm_name)))
+        return retval;
 
-   /* Find the field with this name. */
-   for (i = 0; i < nclistlength(type->u.c.field); i++)
-   {
-      field = nclistget(type->u.c.field, i);
-      assert(field);
-      if (!strcmp(field->hdr.name, norm_name))
-	 break;
-      field = NULL; /* because this is the indicator of not found */
-   }
+    /* Find the field with this name. */
+    for (i = 0; i < nclistlength(type->u.c.field); i++)
+    {
+        field = nclistget(type->u.c.field, i);
+        assert(field);
+        if (!strcmp(field->hdr.name, norm_name))
+            break;
+        field = NULL; /* because this is the indicator of not found */
+    }
 
-   if (!field)
-      return NC_EBADFIELD;
+    if (!field)
+        return NC_EBADFIELD;
 
-   if (fieldidp)
-      *fieldidp = field->hdr.id;
-   return NC_NOERR;
+    if (fieldidp)
+        *fieldidp = field->hdr.id;
+    return NC_NOERR;
 }
 
 /**
@@ -349,79 +349,79 @@ NC4_inq_compound_fieldindex(int ncid, nc_type typeid1, const char *name, int *fi
  * @return ::NC_EBADTYPE Type not found.
  * @return ::NC_EINVAL Invalid type data.
  * @author Ed Hartnett
-*/
+ */
 int
 NC4_inq_enum_ident(int ncid, nc_type xtype, long long value, char *identifier)
 {
-   NC_GRP_INFO_T *grp;
-   NC_TYPE_INFO_T *type;
-   NC_ENUM_MEMBER_INFO_T *enum_member;
-   long long ll_val;
-   int i;
-   int retval;
-   int found;
+    NC_GRP_INFO_T *grp;
+    NC_TYPE_INFO_T *type;
+    NC_ENUM_MEMBER_INFO_T *enum_member;
+    long long ll_val;
+    int i;
+    int retval;
+    int found;
 
-   LOG((3, "nc_inq_enum_ident: xtype %d value %d\n", xtype, value));
-   
-   /* Find group metadata. */
-   if ((retval = nc4_find_nc4_grp(ncid, &grp)))
-      return retval;
-   
-   /* Find this type. */
-   if (!(type = nclistget(grp->nc4_info->alltypes, xtype)))
-      return NC_EBADTYPE;
-   
-   /* Complain if they are confused about the type. */
-   if (type->nc_type_class != NC_ENUM)
-      return NC_EBADTYPE;
-   
-   /* Move to the desired enum member in the list. */
-   for (found = 0, i = 0; i < nclistlength(type->u.e.enum_member); i++)
-   {
-      enum_member = nclistget(type->u.e.enum_member, i);
-      assert(enum_member);
-      switch (type->u.e.base_nc_typeid)
-      {
-	 case NC_BYTE:
-	    ll_val = *(char *)enum_member->value;
-	    break;
-	 case NC_UBYTE:
-	    ll_val = *(unsigned char *)enum_member->value;
-	    break;
-	 case NC_SHORT:
-	    ll_val = *(short *)enum_member->value;
-	    break;
-	 case NC_USHORT:
-	    ll_val = *(unsigned short *)enum_member->value;
-	    break;
-	 case NC_INT:
-	    ll_val = *(int *)enum_member->value;
-	    break;
-	 case NC_UINT:
-	    ll_val = *(unsigned int *)enum_member->value;
-	    break;
-	 case NC_INT64:
-	 case NC_UINT64:
-	    ll_val = *(long long *)enum_member->value;
-	    break;
-	 default:
-	    return NC_EINVAL;
-      }
-      LOG((4, "ll_val=%d", ll_val));
-      if (ll_val == value)
-      {
-	 if (identifier)
-	    strcpy(identifier, enum_member->name);
-	 found = 1;
-	 break;
-      }
-   }
+    LOG((3, "nc_inq_enum_ident: xtype %d value %d\n", xtype, value));
 
-   /* If we didn't find it, life sucks for us. :-( */
-   if (!found)
-      return NC_EINVAL;
+    /* Find group metadata. */
+    if ((retval = nc4_find_nc4_grp(ncid, &grp)))
+        return retval;
 
-   return NC_NOERR;
+    /* Find this type. */
+    if (!(type = nclistget(grp->nc4_info->alltypes, xtype)))
+        return NC_EBADTYPE;
+
+    /* Complain if they are confused about the type. */
+    if (type->nc_type_class != NC_ENUM)
+        return NC_EBADTYPE;
+
+    /* Move to the desired enum member in the list. */
+    for (found = 0, i = 0; i < nclistlength(type->u.e.enum_member); i++)
+    {
+        enum_member = nclistget(type->u.e.enum_member, i);
+        assert(enum_member);
+        switch (type->u.e.base_nc_typeid)
+        {
+        case NC_BYTE:
+            ll_val = *(char *)enum_member->value;
+            break;
+        case NC_UBYTE:
+            ll_val = *(unsigned char *)enum_member->value;
+            break;
+        case NC_SHORT:
+            ll_val = *(short *)enum_member->value;
+            break;
+        case NC_USHORT:
+            ll_val = *(unsigned short *)enum_member->value;
+            break;
+        case NC_INT:
+            ll_val = *(int *)enum_member->value;
+            break;
+        case NC_UINT:
+            ll_val = *(unsigned int *)enum_member->value;
+            break;
+        case NC_INT64:
+        case NC_UINT64:
+            ll_val = *(long long *)enum_member->value;
+            break;
+        default:
+            return NC_EINVAL;
+        }
+        LOG((4, "ll_val=%d", ll_val));
+        if (ll_val == value)
+        {
+            if (identifier)
+                strcpy(identifier, enum_member->name);
+            found = 1;
+            break;
+        }
+    }
+
+    /* If we didn't find it, life sucks for us. :-( */
+    if (!found)
+        return NC_EINVAL;
+
+    return NC_NOERR;
 }
 
 /**
@@ -439,40 +439,39 @@ NC4_inq_enum_ident(int ncid, nc_type xtype, long long value, char *identifier)
  * @return ::NC_EBADTYPE Type not found.
  * @return ::NC_EINVAL Bad idx.
  * @author Ed Hartnett
-*/
+ */
 int
-NC4_inq_enum_member(int ncid, nc_type typeid1, int idx, char *identifier, 
-		   void *value)
+NC4_inq_enum_member(int ncid, nc_type typeid1, int idx, char *identifier,
+                    void *value)
 {
-   NC_GRP_INFO_T *grp;
-   NC_TYPE_INFO_T *type;
-   NC_ENUM_MEMBER_INFO_T *enum_member;
-   int retval;
-   
-   LOG((2, "nc_inq_enum_member: ncid 0x%x typeid %d", ncid, typeid1));
+    NC_GRP_INFO_T *grp;
+    NC_TYPE_INFO_T *type;
+    NC_ENUM_MEMBER_INFO_T *enum_member;
+    int retval;
 
-   /* Find group metadata. */
-   if ((retval = nc4_find_nc4_grp(ncid, &grp)))
-      return retval;
-   
-   /* Find this type. */
-   if (!(type = nclistget(grp->nc4_info->alltypes, typeid1)))
-      return NC_EBADTYPE;
-   
-   /* Complain if they are confused about the type. */
-   if (type->nc_type_class != NC_ENUM)
-      return NC_EBADTYPE;
-   
-   /* Move to the desired enum member in the list. */
-   if (!(enum_member = nclistget(type->u.e.enum_member, idx)))
-      return NC_EINVAL;
+    LOG((2, "nc_inq_enum_member: ncid 0x%x typeid %d", ncid, typeid1));
 
-   /* Give the people what they want. */
-   if (identifier)
-      strcpy(identifier, enum_member->name);
-   if (value)
-      memcpy(value, enum_member->value, type->size);
+    /* Find group metadata. */
+    if ((retval = nc4_find_nc4_grp(ncid, &grp)))
+        return retval;
 
-   return NC_NOERR;
+    /* Find this type. */
+    if (!(type = nclistget(grp->nc4_info->alltypes, typeid1)))
+        return NC_EBADTYPE;
+
+    /* Complain if they are confused about the type. */
+    if (type->nc_type_class != NC_ENUM)
+        return NC_EBADTYPE;
+
+    /* Move to the desired enum member in the list. */
+    if (!(enum_member = nclistget(type->u.e.enum_member, idx)))
+        return NC_EINVAL;
+
+    /* Give the people what they want. */
+    if (identifier)
+        strcpy(identifier, enum_member->name);
+    if (value)
+        memcpy(value, enum_member->value, type->size);
+
+    return NC_NOERR;
 }
-

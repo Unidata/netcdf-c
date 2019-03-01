@@ -395,21 +395,6 @@ if test "x$enable_dap_remote_tests" = "xno" ; then
 fi
 AC_MSG_RESULT($enable_dap_auth_tests)
 
-# Control if groups are supported in [netcdf4]dap2 code
-AC_MSG_CHECKING([whether [netcdf4] group names for DAP2 should be enabled (default on)])
-AC_ARG_ENABLE([dap-groups],
-              [AS_HELP_STRING([--disable-dap-groups],
-                                 [disable [netcdf4] DAP2 group names])])
-test "x$enable_dap_groups" = xno || enable_dap_groups=yes
-AC_MSG_RESULT($enable_dap_groups)
-if test "x$enable_dap" = "xno" ; then
-  AC_MSG_NOTICE([DAP2 groups is being disabled because DAP2 support is  disabled or netcdf-4 disabled])
-  enable_dap_groups=no
-fi
-if test "x$enable_dap_groups" = xyes; then
-AC_DEFINE([ENABLE_DAP_GROUPS], [1], [if true, enable DAP group names])
-fi
-
 # Did the user specify a list of test servers to try for remote tests?
 AC_MSG_CHECKING([which remote test server(s) to use])
 AC_ARG_WITH([testservers],
