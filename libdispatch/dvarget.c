@@ -107,6 +107,7 @@ NC_get_vara(int ncid, int varid,
 }
 
 /** 
+\internal
 Get data for a variable.
 
 \param ncid NetCDF or group ID.
@@ -129,7 +130,6 @@ they are read.
 \returns ::NC_EBADID Bad ncid.
 
 \ingroup variables
-\internal
 \author Dennis Heimbigner
  */
 static int
@@ -547,6 +547,7 @@ NCDEFAULT_get_varm(int ncid, int varid, const size_t *start,
 }
 
 /**
+\internal
 Called by externally visible nc_get_vars_xxx routines.
 
 \param ncid NetCDF or group ID.
@@ -575,7 +576,6 @@ they are read.
 \returns ::NC_EBADID Bad ncid.
 
 \ingroup variables
-\internal
 \author Dennis Heimbigner, Ed Hartnett
 */
 static int
@@ -605,6 +605,7 @@ NC_get_vars(int ncid, int varid, const size_t *start,
 }
 
 /** 
+\internal
 Called by externally visible nc_get_varm_xxx routines. Note that the
 varm routines are deprecated. Use the vars routines instead for new
 code.
@@ -637,7 +638,6 @@ they are read.
 \returns ::NC_EBADID Bad ncid.
 
 \ingroup variables
-\internal
 \author Dennis Heimbigner, Ed Hartnett
  */
 static int
