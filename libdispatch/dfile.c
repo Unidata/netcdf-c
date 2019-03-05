@@ -141,7 +141,7 @@ nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_numbe
    if (!dispatch_table)
       return NC_EINVAL;
    if (magic_number && strlen(magic_number) > NC_MAX_MAGIC_NUMBER_LEN)
-      return NC_EINVAL;      
+      return NC_EINVAL;
 
    /* Retain a pointer to the dispatch_table and a copy of the magic
     * number, if one was provided. */
@@ -158,7 +158,7 @@ nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_numbe
          strncpy(UDF1_magic_number, magic_number, NC_MAX_MAGIC_NUMBER_LEN);
       break;
    }
-   
+
    return NC_NOERR;
 }
 
@@ -2084,8 +2084,10 @@ NC_create(const char *path0, int cmode, size_t initialsz,
         /* PnetCDF is used for parallel io on CDF-1, CDF-2, and CDF-5 */
         model = NC_FORMATX_PNETCDF;
 #else
-    if (model == NC_FORMATX_UNDEFINED && useparallel)
-        return NC_ENOTBUILT;
+    if (model == NC_FORMATX_UNDEFINED && useparallel) {
+      nullfree(path);
+      return NC_ENOTBUILT;
+    }
 #endif
 
     /* Check default format (not formatx) */
@@ -2280,7 +2282,7 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
       dispatcher = UDF1_dispatch_table;
    }
 #endif /* USE_NETCDF4 */
-   
+
     if(model == 0) {
 	version = 0;
 	/* Try to find dataset type */
@@ -2383,7 +2385,7 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
       case NC_FORMATX_UDF1:
          dispatcher = UDF1_dispatch_table;
          break;
-#endif /* USE_NETCDF4 */         
+#endif /* USE_NETCDF4 */
       case NC_FORMATX_NC3:
          dispatcher = NC3_dispatch_table;
          break;
