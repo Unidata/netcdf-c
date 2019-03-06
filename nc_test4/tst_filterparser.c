@@ -172,11 +172,11 @@ buildbaseline(void)
     insert(7,&val4,sizeof(val4)); /* signed int */
     val4 = 4294967295U; /*0xffffffff*/
     insert(8,&val4,sizeof(val4)); /* unsigned int */
-    float4 = 789.0f;
+    float4 = (float)FLTVAL;
     insert(9,&float4,sizeof(float4)); /*float */
-    val8 = -9223372036854775807L;
+    val8 = LONGLONGVAL;
     insert(10,&val8,sizeof(val8)); /* signed long long */
-    val8 = 18446744073709551615UL;
+    val8 = ULONGLONGVAL;
     insert(12,&val8,sizeof(val8)); /* unsigned long long */
     float8 = DBLVAL;
     insert(14,&float8,sizeof(float8)); /* double */
@@ -190,6 +190,11 @@ main(int argc, char **argv)
     unsigned int id = 0;
     size_t i,nparams = 0;
     unsigned int* params = NULL;
+    /* Provide for 8-byte values */
+    long long basell;
+    unsigned long long baseull;
+    float basef;
+    double based;
 
     printf("\nTesting filter parser.\n");
 
@@ -211,28 +216,32 @@ main(int argc, char **argv)
 
     /* float */
     uf.ui = params[9];
-    if(uf.f != (float)FLTVAL)
+    memcpy(&basef,&baseline[9],4);
+    if(uf.f != basef)
 	mismatch(9,params,"uf.f");
 
     /* signed long long */
     ul.ui[0] = params[10];
     ul.ui[1] = params[11];
     NC_filterfix8((unsigned char*)&ul.ll,1);
-    if(ul.ll != LONGLONGVAL)
+    memcpy(&basell,&baseline[10],8);
+    if(ul.ll != basell)
 	mismatch2(10,params,"ul.ll");
 
     /* unsigned long long */
     ul.ui[0] = params[12];
     ul.ui[1] = params[13];
     NC_filterfix8((unsigned char*)&ul.ull,1);
-    if(ul.ull != ULONGLONGVAL)
+    memcpy(&baseull,&baseline[12],8);
+    if(ul.ull != baseull)
 	mismatch2(12,params,"ul.ull");
 
     /* double */
     ud.ui[0] = params[14];
     ud.ui[1] = params[15];
     NC_filterfix8((unsigned char*)&ud.d,1);
-    if(ud.d != (double)DBLVAL)
+    memcpy(&based,&baseline[14],8);
+    if(ud.d != based)
 	mismatch2(14,params,"ud.d");
 
     if (!nerrs)
