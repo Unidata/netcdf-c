@@ -27,7 +27,7 @@
 #define HCHECK(expr) {if((expr)<0) {ncstat = NC_EHDFERR; goto done;}}
 
 static int globalpropinitialized = 0;
-struct NCPROPINFO globalpropinfo; /**< Global property info. */
+static struct NCPROPINFO* globalpropinfo = NULL; /**< Global property info. */
 
 /* Forward */
 static int properties_parse(const char* text0, NClist* pairs);
@@ -57,27 +57,28 @@ NC4_provenance_init(void)
     /* Build _NCProperties info */
 
     /* Initialize globalpropinfo */
-    memset((void*)&globalpropinfo,0,sizeof(globalpropinfo));
-    globalpropinfo.version = NCPROPS_VERSION;
-    globalpropinfo.properties = nclistnew();
-    if(globalpropinfo.properties == NULL)
+    globalpropinfo = calloc(1,sizeof(struct NCPROPINFO));
+    if(globalpropinfo == NULL) return NC_ENOMEM;
+    globalpropinfo->version = NCPROPS_VERSION;
+    globalpropinfo->properties = nclistnew();
+    if(globalpropinfo->properties == NULL)
     {stat = NC_ENOMEM; goto done;}
 
     /* Insert primary library version as first entry */
     if((name = strdup(NCPNCLIB2)) == NULL)
     {stat = NC_ENOMEM; goto done;}
-    nclistpush(globalpropinfo.properties,name);
+    nclistpush(globalpropinfo->properties,name);
     name = NULL; /* Avoid multiple free() */
 
     if((value = strdup(PACKAGE_VERSION)) == NULL)
     {stat = NC_ENOMEM; goto done;}
-    nclistpush(globalpropinfo.properties,value);
+    nclistpush(globalpropinfo->properties,value);
     value = NULL;
 
     /* Insert the HDF5 as underlying storage format library */
     if((name = strdup(NCPHDF5LIB2)) == NULL)
     {stat = NC_ENOMEM; goto done;}
-    nclistpush(globalpropinfo.properties,name);
+    nclistpush(globalpropinfo->properties,name);
     name = NULL;
 
     stat = NC4_hdf5get_libversion(&major,&minor,&release);
@@ -88,7 +89,7 @@ NC4_provenance_init(void)
         if((value = strdup(sversion)) == NULL)
         {stat = NC_ENOMEM; goto done;}
     }
-    nclistpush(globalpropinfo.properties,value);
+    nclistpush(globalpropinfo->properties,value);
     value = NULL;
 
     /* Add any extra fields */
@@ -101,7 +102,7 @@ NC4_provenance_init(void)
 #endif
     /* merge into the properties list */
     for(i=0;i<nclistlength(other);i++)
-        nclistpush(globalpropinfo.properties,strdup(nclistget(other,i)));
+        nclistpush(globalpropinfo->properties,strdup(nclistget(other,i)));
     nclistfreeall(other);
     other = NULL;
 
@@ -110,9 +111,9 @@ done:
     if(value != NULL) free(value);
     if(other != NULL)
         nclistfreeall(other);
-    if(stat && globalpropinfo.properties != NULL) {
-        nclistfreeall(globalpropinfo.properties);
-        globalpropinfo.properties = NULL;
+    if(stat && globalpropinfo->properties != NULL) {
+        nclistfreeall(globalpropinfo->properties);
+        globalpropinfo->properties = NULL;
     }
     if(stat == NC_NOERR)
         globalpropinitialized = 1; /* avoid repeating it */
@@ -146,7 +147,9 @@ locate(char* p, char tag)
 int
 NC4_provenance_finalize(void)
 {
-    nclistfreeall(globalpropinfo.properties);
+    nclistfreeall(globalpropinfo->properties);
+    nullfree(globalpropinfo);
+    globalpropinfo = NULL;
     return NC_NOERR;
 }
 
@@ -323,7 +326,7 @@ NC4_set_provenance(NC_FILE_INFO_T* file, const struct NCPROPINFO* dfalt)
     if(provenance == NULL) {ncstat = NC_ENOMEM; goto done;}
 
     /* Initialize from the default */
-    provenance->propattr.version = globalpropinfo.version;
+    provenance->propattr.version = globalpropinfo->version;
     /* Get the superblock number */
     if((ncstat = NC4_hdf5get_superblock(file,&superblock)))
         goto done;

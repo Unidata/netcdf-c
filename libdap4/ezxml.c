@@ -56,7 +56,7 @@ struct ezxml_root {       /* additional data for the root tag*/
     char err[EZXML_ERRL]; /* error string*/
 };
 
-char *EZXML_NIL[] = { NULL }; /* empty, null terminated array of strings*/
+static const char *EZXML_NIL[] = { NULL }; /* empty, null terminated array of strings*/
 
 /* returns the first child tag with the given name or NULL if not found*/
 ezxml_t ezxml_child(ezxml_t xml, const char *name)
@@ -795,14 +795,14 @@ const char *ezxml_error(ezxml_t xml)
 /* returns a new empty ezxml structure with the given root tag name*/
 ezxml_t ezxml_new(const char *name)
 {
-    static char *ent[] = { "lt;", "&#60;", "gt;", "&#62;", "quot;", "&#34;",
+    static const char *entities[] = { "lt;", "&#60;", "gt;", "&#62;", "quot;", "&#34;",
                            "apos;", "&#39;", "amp;", "&#38;", NULL };
     ezxml_root_t root = (ezxml_root_t)memset(malloc(sizeof(struct ezxml_root)),
                                              '\0', sizeof(struct ezxml_root));
     root->xml.name = (char *)name;
     root->cur = &root->xml;
     strcpy(root->err, root->xml.txt = "");
-    root->ent = memcpy(malloc(sizeof(ent)), ent, sizeof(ent));
+    root->ent = memcpy(malloc(sizeof(entitities)), entities, sizeof(entities));
     root->attr = root->pi = (char ***)(root->xml.attr = EZXML_NIL);
     return &root->xml;
 }

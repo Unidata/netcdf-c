@@ -376,14 +376,16 @@ set_curl_properties(NCD4INFO* d4info)
         char* newpath = NULL;
         int len;
 	errno = 0;
+	NCRCglobalstate* globalstate = ncrc_getglobalstate();
+
 	/* Create the unique cookie file name */
         len =
-	  strlen(ncrc_globalstate.tempdir)
+	  strlen(globalstate->tempdir)
 	  + 1 /* '/' */
 	  + strlen("ncd4cookies");
         path = (char*)malloc(len+1);
         if(path == NULL) return NC_ENOMEM;
-	snprintf(path,len,"%s/nc4cookies",ncrc_globalstate.tempdir);
+	snprintf(path,len,"%s/nc4cookies",globalstate->tempdir);
 	/* Create the unique cookie file name */
         newpath = NC_mktmp(path);
         free(path);

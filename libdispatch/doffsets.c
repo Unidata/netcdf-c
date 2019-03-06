@@ -105,7 +105,7 @@ char* ctypenames[NCTYPES] = {
 
 static NCtypealignvec vec[NC_NCTYPES];
 static NCtypealignset set;
-int NC_alignments_computed = 0;
+static int NC_alignments_computed = 0;
 
 /* Argument is a netcdf type class, except compound|ENUM  */
 size_t

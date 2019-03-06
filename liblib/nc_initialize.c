@@ -52,9 +52,6 @@ extern int NC_HDF4_finalize(void);
 #include <fcntl.h>
 #endif
 
-int NC_argc = 1;
-char* NC_argv[] = {"nc_initialize",NULL};
-
 int NC_initialized = 0;
 int NC_finalized = 1;
 

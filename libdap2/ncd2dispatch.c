@@ -25,12 +25,12 @@
 #endif
 
 /* Define the set of protocols known to be constrainable */
-static char* constrainableprotocols[] = {"http", "https",NULL};
+static const char* constrainableprotocols[] = {"http", "https",NULL};
 
 static int ncd2initialized = 0;
 
 /* Forward */
-static NCerror buildncstructures(NCDAPCOMMON*);
+static NCerror buildstructures(NCDAPCOMMON*);
 static NCerror builddims(NCDAPCOMMON*);
 static char* getdefinename(CDFnode* node);
 static NCerror buildvars(NCDAPCOMMON*);
@@ -88,7 +88,7 @@ static int NCD2_get_vars(int ncid, int varid,
 	    const size_t *start, const size_t *edges, const ptrdiff_t* stride,
             void *value, nc_type memtype);
 
-static NC_Dispatch NCD2_dispatch_base = {
+static const NC_Dispatch NCD2_dispatch_base = {
 
 NC_FORMATX_DAP2,
 
@@ -181,7 +181,7 @@ NCD2_get_var_chunk_cache,
 
 };
 
-NC_Dispatch* NCD2_dispatch_table = NULL; /* moved here from ddispatch.c */
+const NC_Dispatch* NCD2_dispatch_table = NULL; /* moved here from ddispatch.c */
 
 int
 NCD2_initialize(void)

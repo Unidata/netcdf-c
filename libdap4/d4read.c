@@ -24,17 +24,14 @@ static int readfile(NCD4INFO* state, const NCURI*, const char* suffix, NCbytes* 
 static int readfiletofile(NCD4INFO* state, const NCURI*, const char* suffix, FILE* stream, d4size_t*);
 
 #ifdef HAVE_GETTIMEOFDAY
-static struct timeval time0;
-static struct timeval time1;
-
 static double
-deltatime()
+deltatime(struct timeval t0,struct timeval t1)
 {
     double t0, t1;
-    t0 = ((double)time0.tv_sec);
-    t0 += ((double)time0.tv_usec) / 1000000.0;
-    t1 = ((double)time1.tv_sec);
-    t1 += ((double)time1.tv_usec) / 1000000.0;
+    t0 = ((double)t0.tv_sec);
+    t0 += ((double)t0.tv_usec) / 1000000.0;
+    t1 = ((double)t1.tv_sec);
+    t1 += ((double)t1.tv_usec) / 1000000.0;
     return (t1 - t0);
 }
 #endif
@@ -106,6 +103,10 @@ readpacket(NCD4INFO* state, NCURI* url, NCbytes* packet, NCD4mode dxx, long* las
     int fileprotocol = 0;
     const char* suffix = dxxextension(dxx);
     CURL* curl = state->curl->curl;
+#ifdef HAVE_GETTIMEOFDAY
+    struct timeval time0;
+    struct timeval time1;
+#endif
 
     fileprotocol = (strcmp(url->protocol,"file")==0);
 

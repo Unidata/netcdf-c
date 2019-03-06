@@ -327,14 +327,15 @@ createtempfile(OCstate* state, OCtree* tree)
     char* path = NULL;
     char* tmppath = NULL;
     int len;
+    NCRCglobalstate* globalstate = ncrc_getglobalstate();
 
     len =
-	  strlen(ncrc_globalstate.tempdir)
+	  strlen(globalstate->tempdir)
 	  + 1 /* '/' */
 	  + strlen(DATADDSFILE);
     path = (char*)malloc(len+1);
     if(path == NULL) return OC_ENOMEM;
-    occopycat(path,len,3,ncrc_globalstate.tempdir,"/",DATADDSFILE);
+    occopycat(path,len,3,globalstate->tempdir,"/",DATADDSFILE);
     tmppath = NC_mktmp(path);
     free(path);
     if(stat != OC_NOERR) goto fail;
@@ -462,8 +463,8 @@ fprintf(stderr,"missing bod: ddslen=%lu bod=%lu\n",
 }
 
 /* Allow these (non-alpha-numerics) to pass thru */
-static char okchars[] = "&/:;,.=?@'\"<>{}!|\\^[]`~";
-static char hexdigits[] = "0123456789abcdef";
+static const char okchars[] = "&/:;,.=?@'\"<>{}!|\\^[]`~";
+static const char hexdigits[] = "0123456789abcdef";
 
 /* Modify constraint to use %XX escapes */
 static char*
@@ -586,12 +587,12 @@ ocset_curlproperties(OCstate* state)
 	errno = 0;
 	/* Create the unique cookie file name */
         len =
-	  strlen(ncrc_globalstate.tempdir)
+	  strlen(globalstate->tempdir)
 	  + 1 /* '/' */
 	  + strlen("occookies");
         path = (char*)calloc(1,len+1);
         if(path == NULL) return OC_ENOMEM;
-        occopycat(path,len,3,ncrc_globalstate.tempdir,"/","occookies");
+        occopycat(path,len,3,globalstate->tempdir,"/","occookies");
         tmppath = NC_mktmp(path);
         free(path);
 	state->auth.curlflags.cookiejar = tmppath;
@@ -647,7 +648,7 @@ fail:
     return OCTHROW(stat);
 }
 
-static char* ERROR_TAG = "Error ";
+static const char* ERROR_TAG = "Error ";
 
 static int
 dataError(XXDR* xdrs, OCstate* state)

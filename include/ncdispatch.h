@@ -385,8 +385,6 @@ extern int NC_inq_recvar(int ncid, int varid, int* nrecdims, int* is_recdim);
 extern size_t NC_coord_zero[NC_MAX_VAR_DIMS];
 extern size_t NC_coord_one[NC_MAX_VAR_DIMS];
 
-extern int NC_argc;
-extern char* NC_argv[];
 extern int NC_initialized;
 
 /**

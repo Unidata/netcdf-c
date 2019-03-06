@@ -632,18 +632,16 @@ normal:	    *s++ = *t++;
     return;
 }
 
-#ifdef HAVE_GETTIMEOFDAY
-static struct timeval time0;
-static struct timeval time1;
 
+#ifdef HAVE_GETTIMEOFDAY
 static double
-deltatime()
+deltatime(struct timeval t0, struct timeval t1)
 {
     double t0, t1;
-    t0 = ((double)time0.tv_sec);
-    t0 += ((double)time0.tv_usec) / 1000000.0;
-    t1 = ((double)time1.tv_sec);
-    t1 += ((double)time1.tv_usec) / 1000000.0;
+    t0 = ((double)t0.tv_sec);
+    t0 += ((double)t0.tv_usec) / 1000000.0;
+    t1 = ((double)t1.tv_sec);
+    t1 += ((double)t1.tv_usec) / 1000000.0;
     return (t1 - t0);
 }
 #endif
@@ -658,6 +656,10 @@ dap_fetch(NCDAPCOMMON* nccomm, OClink conn, const char* ce,
     char* ext = NULL;
     OCflags flags = 0;
     int httpcode = 0;
+#ifdef HAVE_GETTIMEOFDAY
+    struct timeval time0;
+    struct timeval time1;
+#endif
 
     if(dxd == OCDDS) ext = ".dds";
     else if(dxd == OCDAS) ext = ".das";
@@ -691,7 +693,7 @@ dap_fetch(NCDAPCOMMON* nccomm, OClink conn, const char* ce,
 #ifdef HAVE_GETTIMEOFDAY
         double secs;
 	gettimeofday(&time1,NULL);
-	secs = deltatime();
+	secs = deltatime(time0,time1);
 	nclog(NCLOGNOTE,"fetch complete: %0.3f secs",secs);
 #else
 	nclog(NCLOGNOTE,"fetch complete.");

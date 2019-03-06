@@ -49,7 +49,7 @@ extern int ocmktmp(const char* base, char** tmpnamep);
 
 extern void ocdataddsmsg(struct OCstate*, struct OCtree*);
 
-extern const char* ocdtmodestring(OCDT mode,int compact);
+extern char* ocdtmodestring(OCDT mode,int compact);
 
 /* Define some classifiers */
 #define ociscontainer(t) ((t) == OC_Dataset || (t) == OC_Structure || (t) == OC_Sequence || (t) == OC_Grid || (t) == OC_Attributeset)

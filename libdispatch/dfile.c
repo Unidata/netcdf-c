@@ -72,7 +72,7 @@ extern int NC_initialized; /**< True when dispatch table is initialized. */
 
 /** @internal Magic number for HDF5 files. To be consistent with
  * H5Fis_hdf5, use the complete HDF5 magic number */
-static char HDF5_SIGNATURE[MAGIC_NUMBER_LEN] = "\211HDF\r\n\032\n";
+static const char HDF5_SIGNATURE[MAGIC_NUMBER_LEN] = "\211HDF\r\n\032\n";
 
 #ifdef USE_NETCDF4
 /* User-defined formats. */

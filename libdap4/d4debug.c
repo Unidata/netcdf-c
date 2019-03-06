@@ -10,8 +10,6 @@
 #include "ncdispatch.h"
 #include "netcdf_aux.h"
 
-int ncdap4debug = 0;
-
 #ifdef D4CATCH
 /* Place breakpoint here to catch errors close to where they occur*/
 int

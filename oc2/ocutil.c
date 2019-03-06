@@ -22,7 +22,7 @@
 #include "ocdebug.h"
 
 /* Order is important: longest first */
-static char* DDSdatamarks[3] = {"Data:\r\n","Data:\n",(char*)NULL};
+static const char* DDSdatamarks[3] = {"Data:\r\n","Data:\n",(char*)NULL};
 
 /* Not all systems have strndup, so provide one*/
 char*
@@ -538,7 +538,7 @@ oc_ispacked(OCnode* node)
 /* Must be consistent with ocx.h.OCDT */
 #define NMODES 6
 #define MAXMODENAME 8 /*max (strlen(modestrings[i])) */
-static char* modestrings[NMODES+1] = {
+static const char* modestrings[NMODES+1] = {
 "FIELD", /* ((OCDT)(1<<0)) field of a container */
 "ELEMENT", /* ((OCDT)(1<<1)) element of a structure array */
 "RECORD", /* ((OCDT)(1<<2)) record of a sequence */
@@ -548,12 +548,16 @@ static char* modestrings[NMODES+1] = {
 NULL,
 };
 
-const char*
+char*
 ocdtmodestring(OCDT mode,int compact)
 {
-    static char result[1+(NMODES*(MAXMODENAME+1))]; /* hack to avoid malloc */
+    char* result = NULL;
     int i;
-    char* p = result;
+    char* p = NULL;
+
+    result = malloc(1+(NMODES*(MAXMODENAME+1)));
+    if(result == NULL) return NULL;
+    p = result;
     result[0] = '\0';
     if(mode == 0) {
 	if(compact) *p++ = '-';

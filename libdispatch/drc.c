@@ -43,11 +43,29 @@ static void storedump(char* msg, NClist* triples);
 #endif
 
 /* Define default rc files and aliases, also defines search order*/
-static char* rcfilenames[] = {".daprc",".dodsrc",NULL};
+static const char* rcfilenames[] = {".daprc",".dodsrc",".ncrc",NULL};
 
 /**************************************************/
 /* External Entry Points */
 
+static NCRCglobalstate* ncrc_globalstate = NULL;
+
+/* Get global state */
+NCRCglobalstate*
+ncrc_getglobalstate(void)
+{
+    if(ncrc_globalstate == NULL) {
+        ncrc_globalstate = calloc(1,sizeof(NCRCglobalstate);
+    }
+    return ncrc_globalstate;
+}
+
+void
+ncrc_freeglobalstate(void)
+{
+    if(ncrc_globalstate != NULL) free(ncrc_globalstate);
+    ncrc_globalstate = NULL;
+}
 
 /* locate, read and compile the rc file, if any */
 int
@@ -55,12 +73,13 @@ NC_rcload(void)
 {
     int ret = NC_NOERR;
     char* path = NULL;
+    NCRCglobalstate* globalstate = ncrc_getglobalstate();
 
-    if(ncrc_globalstate.rcinfo.ignore) {
+    if(globalstate->rcinfo.ignore) {
         nclog(NCLOGDBG,"No runtime configuration file specified; continuing");
 	return (NC_NOERR);
     }
-    if(ncrc_globalstate.rcinfo.loaded) return (NC_NOERR);
+    if(globalstate->rcinfo.loaded) return (NC_NOERR);
 
     /* locate the configuration files in the following order:
        1. specified by NC_set_rcfile
@@ -68,8 +87,8 @@ NC_rcload(void)
        3. ./<rcfile> (current directory)
        4. $HOME/<rcfile>
     */
-    if(ncrc_globalstate.rcinfo.rcfile != NULL) { /* always use this */
-	path = strdup(ncrc_globalstate.rcinfo.rcfile);
+    if(globalstate->rcinfo.rcfile != NULL) { /* always use this */
+	path = strdup(globalstate->rcinfo.rcfile);
     } else if(getenv(RCFILEENV) != NULL && strlen(getenv(RCFILEENV)) > 0) {
         path = strdup(getenv(RCFILEENV));
     } else {
@@ -78,7 +97,7 @@ NC_rcload(void)
 	for(rcname=rcfilenames;!found && *rcname;rcname++) {
 	    ret = rcsearch(".",*rcname,&path);
     	    if(ret == NC_NOERR && path == NULL)  /* try $HOME */
-	        ret = rcsearch(ncrc_globalstate.home,*rcname,&path);
+	        ret = rcsearch(globalstate->home,*rcname,&path);
 	    if(ret != NC_NOERR)
 		goto done;
 	    if(path != NULL)
@@ -97,7 +116,7 @@ NC_rcload(void)
 	}
     }
 done:
-    ncrc_globalstate.rcinfo.loaded = 1; /* even if not exists */
+    globalstate->rcinfo.loaded = 1; /* even if not exists */
     nullfree(path);
     return (ret);
 }
@@ -130,6 +149,7 @@ NC_set_rcfile(const char* rcfile)
 {
     int stat = NC_NOERR;
     FILE* f = NULL;
+    NCRCglobalstate* globalstate = ncrc_getglobalstate();
 
     if(rcfile != NULL && strlen(rcfile) == 0)
 	rcfile = NULL;
@@ -139,10 +159,10 @@ NC_set_rcfile(const char* rcfile)
         goto done;
     }
     fclose(f);
-    nullfree(ncrc_globalstate.rcinfo.rcfile);
-    ncrc_globalstate.rcinfo.rcfile = strdup(rcfile);
-    /* Clear ncrc_globalstate.rcinfo */
-    NC_rcclear(&ncrc_globalstate.rcinfo);
+    nullfree(globalstate->rcinfo.rcfile);
+    globalstate->rcinfo.rcfile = strdup(rcfile);
+    /* Clear globalstate->rcinfo */
+    NC_rcclear(&globalstate->rcinfo);
     /* (re) load the rcfile and esp the triplestore*/
     stat = NC_rcload();
 done:
@@ -261,6 +281,7 @@ rccompile(const char* path)
     NCbytes* tmp = ncbytesnew();
     NCURI* uri = NULL;
     char* nextline = NULL;
+    NCRCglobalstate* globalstate = ncrc_getglobalstate();
 
     if((ret=NC_readfile(path,tmp))) {
         nclog(NCLOGERR, "Could not open configuration file: %s",path);
@@ -269,12 +290,12 @@ rccompile(const char* path)
     contents = ncbytesextract(tmp);
     if(contents == NULL) contents = strdup("");
     /* Either reuse or create new  */
-    rc = ncrc_globalstate.rcinfo.triples;
+    rc = globalstate->rcinfo.triples;
     if(rc != NULL)
         rcfreetriples(rc); /* clear out any old data */
     else {
         rc = nclistnew();
-        ncrc_globalstate.rcinfo.triples = rc;
+        globalstate->rcinfo.triples = rc;
     }
     nextline = contents;
     for(;;) {
@@ -357,10 +378,11 @@ static struct NCTriple*
 rclocate(const char* key, const char* hostport)
 {
     int i,found;
-    NClist* rc = ncrc_globalstate.rcinfo.triples;
+    NCRCglobalstate* globalstate = ncrc_getglobalstate();
+    NClist* rc = globalstate->rcinfo.triples;
     NCTriple* triple = NULL;
 
-    if(ncrc_globalstate.rcinfo.ignore)
+    if(globalstate->rcinfo.ignore)
 	return NULL;
 
     if(key == NULL || rc == NULL) return NULL;
@@ -432,7 +454,8 @@ NC_rcfile_insert(const char* key, const char* value, const char* hostport)
     int ret = NC_NOERR;
     /* See if this key already defined */
     struct NCTriple* triple = NULL;
-    NClist* rc = ncrc_globalstate.rcinfo.triples;
+    NCRCglobalstate* globalstate = ncrc_getglobalstate();
+    NClist* rc = globalstate->rcinfo.triples;
 
     if(rc == NULL) {
 	rc = nclistnew();

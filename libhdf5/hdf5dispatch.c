@@ -11,7 +11,7 @@
 #include "config.h"
 #include "hdf5internal.h"
 
-static NC_Dispatch NC4_dispatcher = {
+static const NC_Dispatch HDF5_dispatcher = {
 
     NC_FORMATX_NC4,
 
@@ -104,7 +104,7 @@ static NC_Dispatch NC4_dispatcher = {
 
 };
 
-NC_Dispatch* HDF5_dispatch_table = NULL; /* moved here from ddispatch.c */
+const NC_Dispatch* HDF5_dispatch_table = NULL; /* moved here from ddispatch.c */
 
 /**
  * @internal Initialize the HDF5 dispatch layer.
@@ -115,8 +115,7 @@ NC_Dispatch* HDF5_dispatch_table = NULL; /* moved here from ddispatch.c */
 int
 NC_HDF5_initialize(void)
 {
-    HDF5_dispatch_table = &NC4_dispatcher;
-
+    HDF5_dispatch_table = &HDF5_dispatcher;
     if (!nc4_hdf5_initialized)
         nc4_hdf5_initialize();
 
