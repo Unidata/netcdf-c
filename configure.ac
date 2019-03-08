@@ -1477,9 +1477,9 @@ cd $srcdir
 abs_top_srcdir=`pwd`
 cd $abs_top_builddir
 
-
 AC_SUBST([ISCMAKE], [])
 AC_SUBST([MSVC], [])
+
 AC_MSG_NOTICE([generating header files, makefiles, generated tests, and nc-config])
 AC_CONFIG_FILES(test_common.sh:test_common.in)
 AC_CONFIG_FILES(nc_test4/findplugin.sh:nc_test4/findplugin.in)
