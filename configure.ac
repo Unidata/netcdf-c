@@ -367,7 +367,7 @@ if test "x$enable_dap" = "xno" ; then
 fi
 AC_MSG_RESULT($enable_dap_remote_tests)
 
-# Default is now to do the remote authorization tests
+# Default is not to do the remote authorization tests
 AC_MSG_CHECKING([whether dap remote authorization testing should be enabled (default off)])
 AC_ARG_ENABLE([dap-auth-tests],
               [AS_HELP_STRING([--enable-dap-auth-tests],
