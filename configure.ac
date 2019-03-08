@@ -1,12 +1,9 @@
 #                                               -*- Autoconf -*-
 ## Process this file with autoconf to produce a configure script.
 
-# This is part of Unidata's netCDF package. Copyright 2005-2018, see
+# This is part of Unidata's netCDF package. Copyright 2005-2019, see
 # the COPYRIGHT file for more information.
 # Ed Hartnett, Ward Fisher, Dennis Heimbigner
-
-# Recall that ${VAR-exp} expands to $VAR if var is set (even to null),
-# and to exp otherwise.
 
 # Running autoconf on this file will trigger a warning if
 # autoconf is not at least the specified version.
