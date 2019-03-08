@@ -36,13 +36,13 @@ endif #USE_HDF5
 if USE_PNETCDF
 # This is the pnetcdf example.
 check_PROGRAMS += parallel_vara
-TESTS += parallel_vara
+TESTS += run_par_test.sh
 endif #USE_PNETCDF
 
 # These files are created by the tests.
 CLEANFILES = *.nc
 
 EXTRA_DIST = CMakeLists.txt run_examples.sh run_examples4.sh	\
-run_filter.sh
+run_filter.sh run_par_test.sh.in
 
-DISTCLEANFILES = findplugin.sh
+DISTCLEANFILES = findplugin.sh run_par_test.sh
