@@ -251,6 +251,7 @@ ENDIF(MSVC)
     add_sh_test(ncdump tst_inttags4)
   ENDIF(USE_NETCDF4)
 
+  add_sh_test(ncdump test_radix)
 ENDIF()
 
 ENDIF()

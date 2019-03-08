@@ -7,7 +7,7 @@
  * nc_test4 directories.
  *
  * @author Ed Hartnett, Denis Heimbigner, Ward Fisher
-*/
+ */
 
 #ifndef _NC_TESTS_H
 #define _NC_TESTS_H

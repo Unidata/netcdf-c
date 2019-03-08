@@ -63,7 +63,15 @@ extern char *progname;		/* for error messages */
 extern "C" {
 #endif
 
+/* For NDEBUG builds, provide a version of NC_CHECK that does not
+ * include a file name. Including a file name causes heartache for the
+ * debian package builders. They already use NDEBUG to turn off the
+ * file names in asserts. */
+#ifdef NDEBUG
+#define NC_CHECK(fncall) {int ncstat=fncall;if(ncstat!=NC_NOERR)check(ncstat,"",__LINE__);}
+#else
 #define NC_CHECK(fncall) {int ncstat=fncall;if(ncstat!=NC_NOERR)check(ncstat,__FILE__,__LINE__);}
+#endif /* NDEBUG */
 
 /* Print error message to stderr and exit */
 extern void	error ( const char *fmt, ... );

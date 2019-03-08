@@ -1,0 +1,19 @@
+netcdf tst_radix {
+dimensions:
+	d = 2 ;
+variables:
+	byte b(d);
+	short s(d);
+	int i(d);
+
+ // global attributes:
+ 		:attr1 = 0123s ;
+ 		:attr2 = '\123' ;
+data:
+
+ b = -0200, 0177 ;
+
+ s = -077777, 077776 ;
+
+ i = -017777777776, 017777777777 ;
+}
