@@ -98,8 +98,8 @@ if TEST_PARALLEL4
 TESTS += run_par_bm_test.sh
 # This benchmark depends on tst_create_files being run.
 run_par_bm_test.log: tst_create_files.log
-endif # BUILD_UTILITIES
 endif # TEST_PARALLEL4
+endif # BUILD_UTILITIES
 endif # BUILD_BENCHMARKS
 
 # Szip Tests (requires ncdump)
