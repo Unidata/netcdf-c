@@ -154,7 +154,7 @@ foo1.nc tst_*.h4 test.nc testszip.nc test.h5 szip_dump.cdl		\
 perftest.txt bigmeta.nc bigvars.nc *.gz MSGCPP_*.nc floats*.nc		\
 floats*.cdl shorts*.nc shorts*.cdl ints*.nc ints*.cdl
 
-DISTCLEANFILES = findplugin.sh run_par_test.sh
+DISTCLEANFILES = findplugin.sh run_par_test.sh run_par_bm_test.sh
 
 # If valgrind is present, add valgrind targets.
 @VALGRIND_CHECK_RULES@
