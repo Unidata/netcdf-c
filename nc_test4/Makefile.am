@@ -79,9 +79,13 @@ bm_file_SOURCES = bm_file.c tst_utils.c
 tst_knmi_SOURCES = tst_knmi.c tst_utils.c
 tst_wrf_reads_SOURCES = tst_wrf_reads.c tst_utils.c
 
-TESTS += tst_ar4_3d tst_create_files run_bm_test1.sh run_bm_elena.sh	\
-run_bm_test2.sh run_tst_chunks.sh tst_files3 tst_mem run_knmi_bm.sh	\
-tst_wrf_reads tst_attsperf
+TESTS += tst_ar4_3d tst_create_files run_bm_elena.sh			\
+run_tst_chunks.sh tst_files3 tst_mem run_knmi_bm.sh tst_wrf_reads	\
+tst_attsperf
+
+if BUILD_UTILITIES
+TESTS += run_bm_test2.sh run_bm_test1.sh
+endif
 
 # tst_create_files creates files for other tests.
 run_bm_test1.log: tst_create_files.log
