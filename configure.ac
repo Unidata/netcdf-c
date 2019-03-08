@@ -639,15 +639,6 @@ AC_ARG_WITH([udf1-magic-number],
             [UDF1_MAGIC_NUMBER=$with_udf1_magic_number])
 AC_MSG_RESULT([$UDF1_MAGIC_NUMBER])
 
-# Did the user specify a default cache preemption?
-AC_MSG_CHECKING([whether a default cache preemption for HDF5 was specified])
-AC_ARG_WITH([chunk-cache-preemption],
-              [AS_HELP_STRING([--with-chunk-cache-preemption=<float between 0 and 1 inclusive>],
-                              [Specify default file chunk cache preemption policy for HDF5 files (a number between 0 and 1, inclusive).])],
-            [CHUNK_CACHE_PREEMPTION=$with_chunk_cache_preemption], [CHUNK_CACHE_PREEMPTION=0.75])
-AC_MSG_RESULT([$CHUNK_CACHE_PREEMPTION])
-AC_DEFINE_UNQUOTED([CHUNK_CACHE_PREEMPTION], [$CHUNK_CACHE_PREEMPTION], [default file chunk cache preemption policy.])
-
 # According to the autoconf mailing list gurus, we must test for
 # compilers unconditionally. That is, we can't skip looking for the
 # fortran compilers, just because the user doesn't want fortran. This
