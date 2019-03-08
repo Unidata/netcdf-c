@@ -34,7 +34,7 @@ tst_rename2 tst_rename3 tst_h5_endians tst_atts_string_rewrite		\
 tst_hdf5_file_compat tst_fill_attr_vanish tst_rehash tst_filterparser	\
 tst_bug324 tst_types tst_atts3 tst_put_vars tst_elatefill tst_udf
 
-# Temporary I hope
+# Temporary I hoped, but hoped in vain.
 if !ISCYGWIN
 NC4_TESTS += tst_h_strbug tst_h_refs
 endif
@@ -141,8 +141,9 @@ run_grp_rename.sh tst_h5_endians.c tst_atts_string_rewrite.c		\
 tst_put_vars_two_unlim_dim.c tst_empty_vlen_unlim.c			\
 run_empty_vlen_test.sh ref_hdf5_compat1.nc ref_hdf5_compat2.nc		\
 ref_hdf5_compat3.nc tst_misc.sh tdset.h5 tst_szip.sh ref_szip.h5	\
-ref_szip.cdl tst_filter.sh bzip2.cdl ref_filtered.cdl ref_unfiltered.cdl \
-ref_bzip2.c findplugin.in perftest.sh ref_unfilteredvv.cdl ref_filteredvv.cdl
+ref_szip.cdl tst_filter.sh bzip2.cdl ref_filtered.cdl			\
+ref_unfiltered.cdl ref_bzip2.c findplugin.in perftest.sh		\
+ref_unfilteredvv.cdl ref_filteredvv.cdl
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
 tst_floats_1D.cdl floats_1D_3.nc floats_1D.cdl tst_*.nc			\
@@ -150,8 +151,8 @@ tst_floats2_*.cdl tst_ints2_*.cdl tst_shorts2_*.cdl tst_elena_*.cdl	\
 tst_simple*.cdl tst_chunks.cdl pr_A1.* tauu_A1.* usi_01.* thetau_01.*	\
 tst_*.h5 tst_grp_rename.cdl tst_grp_rename.dmp ref_grp_rename.cdl	\
 foo1.nc tst_*.h4 test.nc testszip.nc test.h5 szip_dump.cdl		\
-perftest.txt bigmeta.nc bigvars.nc *.gz MSGCPP_*.nc	\
-floats*.nc floats*.cdl shorts*.nc shorts*.cdl ints*.nc ints*.cdl
+perftest.txt bigmeta.nc bigvars.nc *.gz MSGCPP_*.nc floats*.nc		\
+floats*.cdl shorts*.nc shorts*.cdl ints*.nc ints*.cdl
 
 DISTCLEANFILES = findplugin.sh run_par_test.sh
 
