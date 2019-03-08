@@ -90,7 +90,7 @@ Available values for OPTION include:
   --has-parallel4 whether has parallel IO support via HDF5
   --has-parallel  whether has parallel IO support via HDF5 or PnetCDF
   --libs          library linking information for netcdf
-  --prefix        Install prefixx
+  --prefix        Install prefix
   --includedir    Include directory
   --libdir        Library directory
   --version       Library version

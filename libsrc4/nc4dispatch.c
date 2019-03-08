@@ -7,7 +7,7 @@
  * macros.
  *
  * @author Dennis Heimbigner, Ed Hartnett
-*/
+ */
 
 #include "config.h"
 #include <stdlib.h>
@@ -42,31 +42,31 @@ extern NC_Dispatch *UDF1_dispatch_table;
 int
 NC4_initialize(void)
 {
-   int ret = NC_NOERR;
+    int ret = NC_NOERR;
 
 #ifdef USE_UDF0
-   /* If user-defined format 0 was specified during configure, set up
-    * it's dispatch table. */
-   if ((ret = nc_def_user_format(NC_UDF0, UDF0_DISPATCH_FUNC, NULL)))
-      return ret;
+    /* If user-defined format 0 was specified during configure, set up
+     * it's dispatch table. */
+    if ((ret = nc_def_user_format(NC_UDF0, UDF0_DISPATCH_FUNC, NULL)))
+        return ret;
 #endif /* USE_UDF0 */
-    
+
 #ifdef USE_UDF1
-   /* If user-defined format 0 was specified during configure, set up
-    * it's dispatch table. */
-   if ((ret = nc_def_user_format(NC_UDF1F, &UDF1_DISPATCH_FUNC, NULL)))
-      return ret;
+    /* If user-defined format 0 was specified during configure, set up
+     * it's dispatch table. */
+    if ((ret = nc_def_user_format(NC_UDF1F, &UDF1_DISPATCH_FUNC, NULL)))
+        return ret;
 #endif /* USE_UDF0 */
-    
+
 #ifdef LOGGING
-   if(getenv(NCLOGLEVELENV) != NULL) {
-   char* slevel = getenv(NCLOGLEVELENV);
-   long level = atol(slevel);
-   if(level >= 0)
-      nc_set_log_level((int)level);
-}
+    if(getenv(NCLOGLEVELENV) != NULL) {
+        char* slevel = getenv(NCLOGLEVELENV);
+        long level = atol(slevel);
+        if(level >= 0)
+            nc_set_log_level((int)level);
+    }
 #endif
-   return ret;
+    return ret;
 }
 
 /**

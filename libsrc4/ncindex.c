@@ -1,15 +1,15 @@
 /*
-Copyright (c) 1998-2018 University Corporation for Atmospheric Research/Unidata
-See LICENSE.txt for license information.
+  Copyright (c) 1998-2018 University Corporation for Atmospheric Research/Unidata
+  See LICENSE.txt for license information.
 */
 
 /** \file \internal
-Internal netcdf-4 functions.
+    Internal netcdf-4 functions.
 
-This file contains functions for manipulating ncindex objects.
+    This file contains functions for manipulating ncindex objects.
 
-Warning: This code depends critically on the assumption that
-|void*| == |uintptr_t|
+    Warning: This code depends critically on the assumption that
+    |void*| == |uintptr_t|
 
 */
 
@@ -50,22 +50,22 @@ extern void printhashmap(NC_hashmap*);
 NC_OBJ*
 ncindexlookup(NCindex* ncindex, const char* name)
 {
-   NC_OBJ* obj = NULL;
-   if(ncindex == NULL || name == NULL)
-	return NULL;
+    NC_OBJ* obj = NULL;
+    if(ncindex == NULL || name == NULL)
+        return NULL;
     {
 #ifndef NCNOHASH
         uintptr_t index;
         assert(ncindex->map != NULL);
         if(!NC_hashmapget(ncindex->map,(void*)name,strlen(name),&index))
-	    return NULL; /* not present */
-	obj = (NC_OBJ*)nclistget(ncindex->list,(size_t)index);
+            return NULL; /* not present */
+        obj = (NC_OBJ*)nclistget(ncindex->list,(size_t)index);
 #else
-	int i;
+        int i;
         for(i=0;i<nclistlength(ncindex->list);i++) {
-	    NC_OBJ* o = (NC_OBJ*)ncindex->list->content[i];
-	    if(strcmp(o->name,name)==0) return o;
-	}
+            NC_OBJ* o = (NC_OBJ*)ncindex->list->content[i];
+            if(strcmp(o->name,name)==0) return o;
+        }
 #endif
     }
     return obj;
@@ -75,9 +75,9 @@ ncindexlookup(NCindex* ncindex, const char* name)
 NC_OBJ*
 ncindexith(NCindex* index, size_t i)
 {
-   if(index == NULL) return NULL;
-   assert(index->list != NULL);
-   return nclistget(index->list,i);
+    if(index == NULL) return NULL;
+    assert(index->list != NULL);
+    return nclistget(index->list,i);
 }
 
 /* See if x is contained in the index */
@@ -90,8 +90,8 @@ ncindexfind(NCindex* index, NC_OBJ* nco)
     if(index == NULL || nco == NULL) return -1;
     list = index->list;
     for(i=0;i<nclistlength(list);i++) {
-	NC_OBJ* o = (NC_OBJ*)list->content[i];
-	if(nco == o) return i;
+        NC_OBJ* o = (NC_OBJ*)list->content[i];
+        if(nco == o) return i;
     }
     return -1;
 }
@@ -101,17 +101,17 @@ ncindexfind(NCindex* index, NC_OBJ* nco)
 int
 ncindexadd(NCindex* ncindex, NC_OBJ* obj)
 {
-   if(ncindex == NULL) return 0;
+    if(ncindex == NULL) return 0;
 #ifndef NCNOHASH
-   {
-   uintptr_t index; /*Note not the global id */
-   index = (uintptr_t)nclistlength(ncindex->list);
-   NC_hashmapadd(ncindex->map,index,(void*)obj->name,strlen(obj->name));
-   }
+    {
+        uintptr_t index; /*Note not the global id */
+        index = (uintptr_t)nclistlength(ncindex->list);
+        NC_hashmapadd(ncindex->map,index,(void*)obj->name,strlen(obj->name));
+    }
 #endif
-   if(!nclistpush(ncindex->list,obj))
-	return 0;
-   return 1;
+    if(!nclistpush(ncindex->list,obj))
+        return 0;
+    return 1;
 }
 
 /* Insert object at ith position of the vector, also insert into the hashmaps; */
@@ -119,15 +119,15 @@ ncindexadd(NCindex* ncindex, NC_OBJ* obj)
 int
 ncindexset(NCindex* ncindex, size_t i, NC_OBJ* obj)
 {
-   if(ncindex == NULL) return 0;
-   if(!nclistset(ncindex->list,i,obj)) return 0;
+    if(ncindex == NULL) return 0;
+    if(!nclistset(ncindex->list,i,obj)) return 0;
 #ifndef NCNOHASH
-   {
-   uintptr_t index = (uintptr_t)i;
-   NC_hashmapadd(ncindex->map,index,(void*)obj->name,strlen(obj->name));
-   }
+    {
+        uintptr_t index = (uintptr_t)i;
+        NC_hashmapadd(ncindex->map,index,(void*)obj->name,strlen(obj->name));
+    }
 #endif
-   return 1;
+    return 1;
 }
 
 /**
@@ -136,14 +136,14 @@ ncindexset(NCindex* ncindex, size_t i, NC_OBJ* obj)
 int
 ncindexidel(NCindex* index, size_t i)
 {
-   if(index == NULL) return 0;
-   nclistremove(index->list,i);
+    if(index == NULL) return 0;
+    nclistremove(index->list,i);
 #ifndef NCNOHASH
-   /* Remove from the hash map by deactivating its entry */
-   if(!NC_hashmapdeactivate(index->map,(uintptr_t)i))
-	return 0; /* not present */
+    /* Remove from the hash map by deactivating its entry */
+    if(!NC_hashmapdeactivate(index->map,(uintptr_t)i))
+        return 0; /* not present */
 #endif
-   return 1;
+    return 1;
 }
 
 /*Return a duplicate of the index's vector */
@@ -152,7 +152,7 @@ NC_OBJ**
 ncindexdup(NCindex* index)
 {
     if(index == NULL || nclistlength(index->list) == 0)
-	return NULL;
+        return NULL;
     return (NC_OBJ**)nclistdup(index->list);
 }
 
@@ -160,18 +160,18 @@ ncindexdup(NCindex* index)
 int
 ncindexcount(NCindex* index)
 {
-   int count = 0;
-   int i;
-   for(i=0;i<ncindexsize(index);i++) {
-	if(ncindexith(index,i) != NULL) count++;
-   }
-   return count;
+    int count = 0;
+    int i;
+    for(i=0;i<ncindexsize(index);i++) {
+        if(ncindexith(index,i) != NULL) count++;
+    }
+    return count;
 }
 
 /*
-Rebuild the list map by rehashing all entries
-using their current, possibly changed id and name;
-also recompute their hashkey.
+  Rebuild the list map by rehashing all entries
+  using their current, possibly changed id and name;
+  also recompute their hashkey.
 */
 /* Return 1 if ok, 0 otherwise.*/
 int
@@ -189,10 +189,10 @@ ncindexrebuild(NCindex* index)
     index->map = NC_hashmapnew(size);
     /* Now, reinsert all the attributes except NULLs */
     for(i=0;i<size;i++) {
-	NC_OBJ* tmp = contents[i];
-	if(tmp == NULL) continue; /* ignore */
-	if(!ncindexadd(index,tmp))
-	    return 0;
+        NC_OBJ* tmp = contents[i];
+        if(tmp == NULL) continue; /* ignore */
+        if(!ncindexadd(index,tmp))
+            return 0;
     }
 #endif
     if(contents != NULL) free(contents);
@@ -234,9 +234,9 @@ static const char*
 keystr(NC_hentry* e)
 {
     if(e->keysize < sizeof(uintptr_t))
-	return (const char*)(&e->key);
+        return (const char*)(&e->key);
     else
-	return (const char*)(e->key);
+        return (const char*)(e->key);
 }
 #endif
 
@@ -251,35 +251,35 @@ ncindexverify(NCindex* lm, int dump)
 #endif
 
     if(lm == NULL) {
-	fprintf(stderr,"index: <empty>\n");
-	return 1;
+        fprintf(stderr,"index: <empty>\n");
+        return 1;
     }
     if(dump) {
-	fprintf(stderr,"-------------------------\n");
+        fprintf(stderr,"-------------------------\n");
 #ifndef NCNOHASH
         if(lm->map->active == 0) {
-	    fprintf(stderr,"hash: <empty>\n");
-	    goto next1;
-	}
-	for(i=0;i < lm->map->alloc; i++) {
-	    NC_hentry* e = &lm->map->table[i];
-	    if(e->flags != 1) continue;
-	    fprintf(stderr,"hash: %ld: data=%lu key=%s\n",(unsigned long)i,(unsigned long)e->data,keystr(e));
-	    fflush(stderr);
-	}
-next1:
+            fprintf(stderr,"hash: <empty>\n");
+            goto next1;
+        }
+        for(i=0;i < lm->map->alloc; i++) {
+            NC_hentry* e = &lm->map->table[i];
+            if(e->flags != 1) continue;
+            fprintf(stderr,"hash: %ld: data=%lu key=%s\n",(unsigned long)i,(unsigned long)e->data,keystr(e));
+            fflush(stderr);
+        }
+    next1:
 #endif
         if(nclistlength(l) == 0) {
-	    fprintf(stderr,"list: <empty>\n");
-	    goto next2;
-	}
-	for(i=0;i < nclistlength(l); i++) {
-	    const char** a = (const char**)nclistget(l,i);
-	    fprintf(stderr,"list: %ld: name=%s\n",(unsigned long)i,*a);
-	    fflush(stderr);
-	}
-	fprintf(stderr,"-------------------------\n");
-	fflush(stderr);
+            fprintf(stderr,"list: <empty>\n");
+            goto next2;
+        }
+        for(i=0;i < nclistlength(l); i++) {
+            const char** a = (const char**)nclistget(l,i);
+            fprintf(stderr,"list: %ld: name=%s\n",(unsigned long)i,*a);
+            fflush(stderr);
+        }
+        fprintf(stderr,"-------------------------\n");
+        fflush(stderr);
     }
 
 next2:
@@ -288,61 +288,61 @@ next2:
 
     /* Verify that map entry points to same-named entry in vector */
     for(m=0;m < lm->map->alloc; m++) {
-	NC_hentry* e = &lm->map->table[m];
+        NC_hentry* e = &lm->map->table[m];
         char** object = NULL;
-	char* oname = NULL;
-	uintptr_t udata = (uintptr_t)e->data;
-	if((e->flags & 1) == 0) continue;
-	object = nclistget(l,(size_t)udata);
+        char* oname = NULL;
+        uintptr_t udata = (uintptr_t)e->data;
+        if((e->flags & 1) == 0) continue;
+        object = nclistget(l,(size_t)udata);
         if(object == NULL) {
-	    fprintf(stderr,"bad data: %d: %lu\n",(int)m,(unsigned long)udata);
-	    nerrs++;
-	} else {
-	    oname = *object;
-	    if(strcmp(oname,keystr(e)) != 0)  {
-	        fprintf(stderr,"name mismatch: %d: %lu: hash=%s list=%s\n",
-			(int)m,(unsigned long)udata,keystr(e),oname);
-	        nerrs++;
-	    }
-	}
+            fprintf(stderr,"bad data: %d: %lu\n",(int)m,(unsigned long)udata);
+            nerrs++;
+        } else {
+            oname = *object;
+            if(strcmp(oname,keystr(e)) != 0)  {
+                fprintf(stderr,"name mismatch: %d: %lu: hash=%s list=%s\n",
+                        (int)m,(unsigned long)udata,keystr(e),oname);
+                nerrs++;
+            }
+        }
     }
     /* Walk vector and mark corresponding hash entry*/
     if(nclistlength(l) == 0 || lm->map->active == 0)
-	goto done; /* cannot verify */
+        goto done; /* cannot verify */
     for(i=0;i < nclistlength(l); i++) {
-	int match;
-	const char** xp = (const char**)nclistget(l,i);
+        int match;
+        const char** xp = (const char**)nclistget(l,i);
         /* Walk map looking for *xp */
-	for(match=0,m=0;m < lm->map->active; m++) {
-	    NC_hentry* e = &lm->map->table[m];
-	    if((e->flags & 1) == 0) continue;
-	    if(strcmp(keystr(e),*xp)==0) {
-		if((e->flags & 128) == 128) {
-		    fprintf(stderr,"%ld: %s already in map at %ld\n",(unsigned long)i,keystr(e),(unsigned long)m);
-		    nerrs++;
-		}
-		match = 1;
-		e->flags += 128;
-	    }
-	}
-	if(!match) {
-	    fprintf(stderr,"mismatch: %d: %s in vector, not in map\n",(int)i,*xp);
-	    nerrs++;
-	}
+        for(match=0,m=0;m < lm->map->active; m++) {
+            NC_hentry* e = &lm->map->table[m];
+            if((e->flags & 1) == 0) continue;
+            if(strcmp(keystr(e),*xp)==0) {
+                if((e->flags & 128) == 128) {
+                    fprintf(stderr,"%ld: %s already in map at %ld\n",(unsigned long)i,keystr(e),(unsigned long)m);
+                    nerrs++;
+                }
+                match = 1;
+                e->flags += 128;
+            }
+        }
+        if(!match) {
+            fprintf(stderr,"mismatch: %d: %s in vector, not in map\n",(int)i,*xp);
+            nerrs++;
+        }
     }
     /* Verify that every element in map in in vector */
     for(m=0;m < lm->map->active; m++) {
-	NC_hentry* e = &lm->map->table[m];
-	if((e->flags & 1) == 0) continue;
-	if((e->flags & 128) == 128) continue;
-	/* We have a hash entry not in the vector */
-	fprintf(stderr,"mismatch: %d: %s->%lu in hash, not in vector\n",(int)m,keystr(e),(unsigned long)e->data);
-	nerrs++;
+        NC_hentry* e = &lm->map->table[m];
+        if((e->flags & 1) == 0) continue;
+        if((e->flags & 128) == 128) continue;
+        /* We have a hash entry not in the vector */
+        fprintf(stderr,"mismatch: %d: %s->%lu in hash, not in vector\n",(int)m,keystr(e),(unsigned long)e->data);
+        nerrs++;
     }
     /* clear the 'touched' flag */
     for(m=0;m < lm->map->active; m++) {
-	NC_hentry* e = &lm->map->table[m];
-	e->flags &= ~128;
+        NC_hentry* e = &lm->map->table[m];
+        e->flags &= ~128;
     }
 
 done:
@@ -371,16 +371,16 @@ printindexlist(NClist* lm)
 {
     int i;
     if(lm == NULL) {
-	fprintf(stderr,"<empty>\n");
-	return;
+        fprintf(stderr,"<empty>\n");
+        return;
     }
     for(i=0;i<nclistlength(lm);i++) {
-	NC_OBJ* o = (NC_OBJ*)nclistget(lm,i);
-	if(o == NULL)
+        NC_OBJ* o = (NC_OBJ*)nclistget(lm,i);
+        if(o == NULL)
             fprintf(stderr,"[%ld] <null>\n",(unsigned long)i);
-	else
+        else
             fprintf(stderr,"[%ld] sort=%s name=|%s| id=%lu hashkey=%lu\n",
-		(unsigned long)i,sortname(o->sort),o->name,(unsigned long)o->id,(unsigned long)o->hashkey);
+                    (unsigned long)i,sortname(o->sort),o->name,(unsigned long)o->id,(unsigned long)o->hashkey);
     }
 }
 
@@ -389,8 +389,8 @@ void
 printindexmap(NCindex* lm)
 {
     if(lm == NULL) {
-	fprintf(stderr,"<empty>\n");
-	return;
+        fprintf(stderr,"<empty>\n");
+        return;
     }
     printhashmap(lm->map);
 }
@@ -400,8 +400,8 @@ void
 printindex(NCindex* lm)
 {
     if(lm == NULL) {
-	fprintf(stderr,"<empty>\n");
-	return;
+        fprintf(stderr,"<empty>\n");
+        return;
     }
     printindexlist(lm->list);
 #ifndef NCNOHASH
