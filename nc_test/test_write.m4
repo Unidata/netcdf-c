@@ -1043,13 +1043,8 @@ ifdef(`PNETCDF',`dnl
             if (var_dimid[i][j] == RECDIM) continue; /* skip record dim */
             start[j] = var_shape[i][j];
             err = PutVara(ncid, i, start, edge, buf, 0, datatype);
-#ifdef RELAX_COORD_BOUND
             IF (err != NC_NOERR) /* allowed when edge[j]==0 */
                 EXPECT_ERR(NC_NOERR, err)
-#else
-            IF (err != NC_EINVALCOORDS) /* not allowed even when edge[j]==0 */
-                EXPECT_ERR(NC_EINVALCOORDS, err)
-#endif
             ELSE_NOK
             start[j] = var_shape[i][j]+1; /* out of boundary check */
             err = PutVara(ncid, i, start, edge, buf, 1, datatype);
@@ -1236,13 +1231,8 @@ ifdef(`PNETCDF',`dnl
             if (var_dimid[i][j] == 0) continue; /* skip record dim */
             start[j] = var_shape[i][j];
             err = PutVars(ncid, i, start, edge, stride, buf, 0, datatype);
-#ifdef RELAX_COORD_BOUND
             IF (err != NC_NOERR) /* allowed when edge[j]==0 */
                 EXPECT_ERR(NC_NOERR, err)
-#else
-            IF (err != NC_EINVALCOORDS) /* not allowed even when edge[j]==0 */
-                EXPECT_ERR(NC_EINVALCOORDS, err)
-#endif
             ELSE_NOK
             start[j] = var_shape[i][j]+1; /* out of boundary check */
             err = PutVars(ncid, i, start, edge, stride, buf, 1, datatype);
@@ -1459,13 +1449,8 @@ ifdef(`PNETCDF',`dnl
             if (var_dimid[i][j] == 0) continue; /* skip record dim */
             start[j] = var_shape[i][j];
             err = PutVarm(ncid, i, start, edge, stride, imap, buf, 0, datatype);
-#ifdef RELAX_COORD_BOUND
             IF (err != NC_NOERR) /* allowed when edge[j]==0 */
                 EXPECT_ERR(NC_NOERR, err)
-#else
-            IF (err != NC_EINVALCOORDS) /* not allowed even when edge[j]==0 */
-                EXPECT_ERR(NC_EINVALCOORDS, err)
-#endif
             ELSE_NOK
             start[j] = var_shape[i][j]+1; /* out of boundary check */
             err = PutVarm(ncid, i, start, edge, stride, imap, buf, 1, datatype);

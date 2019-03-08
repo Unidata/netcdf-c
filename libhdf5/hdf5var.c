@@ -1508,19 +1508,12 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
             endindex = start[d2]; /* fixup for zero read count */
         if (!dim->unlimited)
         {
-#ifdef RELAX_COORD_BOUND
             /* Allow start to equal dim size if count is zero. */
             if (start[d2] > (hssize_t)fdims[d2] ||
                 (start[d2] == (hssize_t)fdims[d2] && count[d2] > 0))
                 BAIL_QUIET(NC_EINVALCOORDS);
             if (!zero_count && endindex >= fdims[d2])
                 BAIL_QUIET(NC_EEDGE);
-#else
-            if (start[d2] >= (hssize_t)fdims[d2])
-                BAIL_QUIET(NC_EINVALCOORDS);
-            if (endindex >= fdims[d2])
-                BAIL_QUIET(NC_EEDGE);
-#endif
         }
     }
 
@@ -1842,15 +1835,10 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
                 BAIL(retval);
 
             /* Check for out of bound requests. */
-#ifdef RELAX_COORD_BOUND
             /* Allow start to equal dim size if count is zero. */
             if (start[d2] > (hssize_t)ulen ||
                 (start[d2] == (hssize_t)ulen && count[d2] > 0))
                 BAIL_QUIET(NC_EINVALCOORDS);
-#else
-            if (start[d2] >= (hssize_t)ulen && ulen > 0)
-                BAIL_QUIET(NC_EINVALCOORDS);
-#endif
             if (count[d2] && endindex >= ulen)
                 BAIL_QUIET(NC_EEDGE);
 
@@ -1872,15 +1860,10 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
         else /* Dim is not unlimited. */
         {
             /* Check for out of bound requests. */
-#ifdef RELAX_COORD_BOUND
             /* Allow start to equal dim size if count is zero. */
             if (start[d2] > (hssize_t)fdims[d2] ||
                 (start[d2] == (hssize_t)fdims[d2] && count[d2] > 0))
                 BAIL_QUIET(NC_EINVALCOORDS);
-#else
-            if (start[d2] >= (hssize_t)fdims[d2])
-                BAIL_QUIET(NC_EINVALCOORDS);
-#endif
             if (count[d2] && endindex >= fdims[d2])
                 BAIL_QUIET(NC_EEDGE);
 
