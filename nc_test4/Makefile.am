@@ -83,20 +83,22 @@ TESTS += tst_ar4_3d tst_create_files run_bm_elena.sh			\
 run_tst_chunks.sh tst_files3 tst_mem run_knmi_bm.sh tst_wrf_reads	\
 tst_attsperf
 
+run_bm_elena.log: tst_create_files.log tst_files.log
+
+# These tests depend on ncgen/ncdump.
 if BUILD_UTILITIES
 TESTS += run_bm_test2.sh run_bm_test1.sh
-endif
 
 # tst_create_files creates files for other tests.
 run_bm_test1.log: tst_create_files.log
 run_bm_test2.log: tst_create_files.log
-run_bm_elena.log: tst_create_files.log tst_files.log
 
 # This will run a parallel I/O benchmark for parallel builds.
 if TEST_PARALLEL4
 TESTS += run_par_bm_test.sh
 # This benchmark depends on tst_create_files being run.
 run_par_bm_test.log: tst_create_files.log
+endif # BUILD_UTILITIES
 endif # TEST_PARALLEL4
 endif # BUILD_BENCHMARKS
 
