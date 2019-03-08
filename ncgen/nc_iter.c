@@ -14,7 +14,7 @@ It has diverged slightly over time.
 #include "nc_iter.h"
 
 
-#define CHECK(stat,f) if(stat != NC_NOERR) {check(stat,#f,__FILE__,__LINE__);} else {}
+#define CHECK(stat,f) if(stat != NC_NOERR) {check(stat,#f,"ncgen",__LINE__);} else {}
 
 /* forward declarations */
 static int nc_blkio_init(size_t bufsize, size_t value_size, int rank, 
