@@ -7,7 +7,6 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
-set -x
 set -e
 
 echo "Testing performance of nc_create and nc_open on file with large metadata"

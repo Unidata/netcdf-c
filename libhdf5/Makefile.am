@@ -7,7 +7,7 @@
 
 # Get AM_CPPFLAGS.
 include $(top_srcdir)/lib_flags.am
-libnetcdf4_la_CPPFLAGS = ${AM_CPPFLAGS}
+libnchdf5_la_CPPFLAGS = ${AM_CPPFLAGS}
 
 # This is our output. The HDF5 convenience library.
 noinst_LTLIBRARIES = libnchdf5.la

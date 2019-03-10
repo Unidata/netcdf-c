@@ -86,7 +86,6 @@ typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP} NC_SORT;
 typedef enum {NC_FALSE = 0, NC_TRUE = 1} nc_bool_t;
 
 /*Forward*/
-struct NCPROVENANCE;
 struct NC_GRP_INFO;
 struct NC_TYPE_INFO;
 
@@ -275,7 +274,7 @@ typedef struct  NC_FILE_INFO
     NClist* alltypes;
     NClist* allgroups; /* including root group */
     void *format_file_info;
-    struct NCPROVENANCE* provenance;
+    NC4_Provenance provenance;
     struct NC4_Memio {
         NC_memio memio; /* What we sent to image_init and what comes back*/
         int locked; /* do not copy and do not free  */
@@ -422,56 +421,5 @@ extern const NC_reservedatt* NC_findreserved(const char* name);
 #define NC_ATT_NAME "NAME"
 #define NC_ATT_COORDINATES COORDINATES /*defined above*/
 #define NC_ATT_FORMAT "_Format"
-
-/**************************************************/
-/**
-   For netcdf4 files, capture state information about the following:
-   1. Global: netcdf library version
-   2. Global: hdf5 library version
-   3. Per file: superblock version
-   4. Per File: was it created by netcdf-4?
-   5. Per file: _NCProperties attribute
-*/
-
-/* Most of this needs to be moved to hdf5internal.h */
-
-#define NCPROPS "_NCProperties"
-#define NCPVERSION "version" /* Of the properties format */
-#define NCPHDF5LIB1 "hdf5libversion"
-#define NCPNCLIB1 "netcdflibversion"
-#define NCPHDF5LIB2 "hdf5"
-#define NCPNCLIB2 "netcdf"
-#define NCPROPS_VERSION (2)
-/* Version 2 changes this because '|' was causing bash problems */
-#define NCPROPSSEP1  '|'
-#define NCPROPSSEP2  ','
-
-/* Other hidden attributes */
-#define ISNETCDF4ATT "_IsNetcdf4"
-#define SUPERBLOCKATT "_SuperblockVersion"
-
-
-struct NCPROVENANCE {
-    int superblockversion;
-    struct NCPROPINFO {
-        int version; /* 0 => not defined */
-        /* Following is filled from NCPROPS attribute or from global version */
-        /* Version 1 format is:
-           "netcdflibversion=<version|hdf5libversion=<version>"
-           Version 2 format is:
-           "<mainbuildlib>=<version|<supportlib1>=<version>...|<other>=..."
-        */
-        /* The _NCProperties values are stored as an arbitrary
-           set of (key,value) pairs */
-        /* It is assumed that the first entry is the primary library
-           used to build the file, and it is followed by other libraries
-           used in the build, and finally an arbitrary list of other
-           (key,value) pairs. */
-        NClist* properties;
-    } propattr;
-};
-
-/* Provenance Initialization */
-extern struct NCPROPINFO globalpropinfo;
 
 #endif /* _NC4INTERNAL_ */
