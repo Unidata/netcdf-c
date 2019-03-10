@@ -2506,11 +2506,7 @@ openmagic(struct MagicFile* file)
     {
         if(file->path == NULL || strlen(file->path)==0)
 	    {status = NC_EINVAL; goto done;}
-#ifdef _MSC_VER
-        file->fp = fopen(file->path, "rb");
-#else
-        file->fp = fopen(file->path, "r");
-#endif
+        file->fp = NCfopen(file->path, "rb");
 	if(file->fp == NULL)
 	    {status = errno; goto done;}
 	/* Get its length */

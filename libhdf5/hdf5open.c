@@ -784,9 +784,8 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
     if (is_classic)
         nc4_info->cmode |= NC_CLASSIC_MODEL;
 
-    /* See if this file contained _NCPROPERTIES, and if yes, process
-     * it, if no, then fake it. */
-    if ((retval = NC4_read_ncproperties(nc4_info)))
+    /* See if this file contained _NCPROPERTIES, and if yes, process it */
+    if ((retval = NC4_read_provenance(nc4_info)))
         BAIL(retval);
 
     /* Now figure out which netCDF dims are indicated by the dimscale

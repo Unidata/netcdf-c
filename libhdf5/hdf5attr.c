@@ -91,28 +91,23 @@ nc4_get_att_special(NC_FILE_INFO_T* h5, const char* name,
         return NC_EATTMETA;
 
     if(strcmp(name,NCPROPS)==0) {
-        char* propdata = NULL;
-        int stat = NC_NOERR;
         int len;
-        if(h5->provenance->propattr.version == 0)
+        if(h5->provenance.ncproperties == NULL)
             return NC_ENOTATT;
         if(mem_type == NC_NAT) mem_type = NC_CHAR;
         if(mem_type != NC_CHAR)
             return NC_ECHAR;
         if(filetypep) *filetypep = NC_CHAR;
-        stat = NC4_buildpropinfo(&h5->provenance->propattr, &propdata);
-        if(stat != NC_NOERR) return stat;
-        len = strlen(propdata);
+	len = strlen(h5->provenance.ncproperties);
         if(lenp) *lenp = len;
-        if(data) strncpy((char*)data,propdata,len+1);
-        free(propdata);
+        if(data) strncpy((char*)data,h5->provenance.ncproperties,len+1);
     } else if(strcmp(name,ISNETCDF4ATT)==0
               || strcmp(name,SUPERBLOCKATT)==0) {
         unsigned long long iv = 0;
         if(filetypep) *filetypep = NC_INT;
         if(lenp) *lenp = 1;
         if(strcmp(name,SUPERBLOCKATT)==0)
-            iv = (unsigned long long)h5->provenance->superblockversion;
+            iv = (unsigned long long)h5->provenance.superblockversion;
         else /* strcmp(name,ISNETCDF4ATT)==0 */
             iv = NC4_isnetcdf4(h5);
         if(mem_type == NC_NAT) mem_type = NC_INT;
