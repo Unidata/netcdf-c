@@ -11,7 +11,8 @@
 
 LDADD = -lm
 AM_CPPFLAGS = -I$(top_srcdir)/include
-AM_LDFLAGS =
+AM_CPPFLAGS += -I$(top_builddir)/liblib
+AM_LDFLAGS = ${top_builddir}/liblib/libnetcdf.la
 
 # These are the netCDF-3 examples.
 check_PROGRAMS = simple_xy_wr simple_xy_rd sfc_pres_temp_wr	\
@@ -21,7 +22,7 @@ TESTS = run_examples.sh
 
 # To build netcdf-4, or not to build netcdf-4, that is the question...
 if USE_HDF5
-# These are the extra netCDF-4 examples.
+# These are the netCDF-4 examples.
 check_PROGRAMS += simple_nc4_wr simple_nc4_rd simple_xy_nc4_wr	\
 simple_xy_nc4_rd
 
@@ -34,13 +35,10 @@ endif
 endif #USE_HDF5
 
 if USE_PNETCDF
-# These are the extra netCDF-4 examples.
+# This is a pnetcdf example.
 check_PROGRAMS += parallel_vara
-TESTS += parallel_vara
+TESTS += run_par_test.sh
 endif #USE_PNETCDF
-
-AM_CPPFLAGS += -I$(top_builddir)/liblib
-AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
 
 if USE_HDF5
 TESTS += run_examples4.sh
