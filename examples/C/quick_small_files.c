@@ -4,20 +4,20 @@
 Atmospheric Research/Unidata. See \ref copyright file for more
 info. */
 /**
-   @file
-   This example program is part of Unidata's netCDF library for
-   scientific data access.
-
-   This program will create a large file in netCDF classic
-   format. From the netcdf docs:
-
-   "If you don't use the unlimited dimension, only one variable can
-   exceed 2 Gbytes in size, but it can be as large as the underlying
-   file system permits. It must be the last variable in the dataset,
-   and the offset to the beginning of this variable must be less than
-   about 2 Gbytes."
-
-   \author Ed Hartnett
+ *   @file
+ * This example program is part of Unidata's netCDF library for
+ * scientific data access.
+ *
+ * This program will create a large file in netCDF classic
+ * format. From the netcdf docs:
+ *
+ * "If you don't use the unlimited dimension, only one variable can
+ * exceed 2 Gbytes in size, but it can be as large as the underlying
+ * file system permits. It must be the last variable in the dataset,
+ * and the offset to the beginning of this variable must be less than
+ * about 2 Gbytes."
+ *
+ * @author Ed Hartnett
 */
 
 #include <netcdf.h>
