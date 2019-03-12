@@ -1,4 +1,4 @@
-/* Copyright 2018 University Corporation for Atmospheric
+/* Copyright 2019 University Corporation for Atmospheric
    Research/Unidata.  See COPYRIGHT file for conditions of use. */
 /**
  * @file
