@@ -5,9 +5,6 @@
 # the COPYRIGHT file for more information.
 # Ed Hartnett, Ward Fisher, Dennis Heimbigner
 
-# Recall that ${VAR-exp} expands to $VAR if var is set (even to null),
-# and to exp otherwise.
-
 # Running autoconf on this file will trigger a warning if
 # autoconf is not at least the specified version.
 AC_PREREQ([2.59])
@@ -359,7 +356,7 @@ fi
 
 # --enable-dap => enable-dap4
 enable_dap4=$enable_dap
-# Default is now to always do the short remote tests
+# Default is to do the short remote tests.
 AC_MSG_CHECKING([whether dap remote testing should be enabled (default on)])
 AC_ARG_ENABLE([dap-remote-tests],
               [AS_HELP_STRING([--disable-dap-remote-tests],
@@ -370,7 +367,7 @@ if test "x$enable_dap" = "xno" ; then
 fi
 AC_MSG_RESULT($enable_dap_remote_tests)
 
-# Default is now to do the remote authorization tests
+# Default is not to do the remote authorization tests.
 AC_MSG_CHECKING([whether dap remote authorization testing should be enabled (default off)])
 AC_ARG_ENABLE([dap-auth-tests],
               [AS_HELP_STRING([--enable-dap-auth-tests],
