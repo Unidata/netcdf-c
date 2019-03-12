@@ -1,15 +1,11 @@
-/*! \file
-
-Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
-2015, 2016, 2017, 2018
-University Corporation for Atmospheric Research/Unidata.
-
-See \ref copyright file for more info.
-
-*/
-
-/* This example program is part of Unidata's netCDF library for
+/* Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
+2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012,
+2013, 2014, 2015, 2016, 2017, 2018 University Corporation for
+Atmospheric Research/Unidata. See \ref copyright file for more
+info. */
+/**
+   @file
+   This example program is part of Unidata's netCDF library for
    scientific data access.
 
    This program will create a large file in netCDF classic
@@ -21,8 +17,7 @@ See \ref copyright file for more info.
    and the offset to the beginning of this variable must be less than
    about 2 Gbytes."
 
-   Ed Hartnett, 8/11/4
-   $Id: quick_small_files.c,v 1.2 2004/09/10 14:27:34 ed Exp $
+   \author Ed Hartnett
 */
 
 #include <netcdf.h>
