@@ -1,3 +1,5 @@
+/* Copyright 2018 University Corporation for Atmospheric
+   Research/Unidata.  See COPYRIGHT file for conditions of use. */
 /*! \file
 A more complex example of writing a netCDF file.
 
@@ -6,8 +8,7 @@ temperatures. It is intended to illustrate the use of the netCDF C
 API. The companion program pres_temp_4D_rd.c shows how to read the
 netCDF data file created by this program.
 
-Copyright 2018 University Corporation for Atmospheric
-Research/Unidata.  See COPYRIGHT file for conditions of use.
+\author Ed Hartnett
 */
 
 #include <stdio.h>
