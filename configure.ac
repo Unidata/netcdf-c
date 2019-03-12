@@ -1473,34 +1473,22 @@ AX_SET_META([NC_HAS_PARALLEL4],[$enable_parallel4],[yes])
 AX_SET_META([NC_HAS_CDF5],[$enable_cdf5],[yes])
 AX_SET_META([NC_HAS_ERANGE_FILL], [$enable_erange_fill],[yes])
 AX_SET_META([NC_RELAX_COORD_BOUND], [$enable_zero_length_coord_bound],[yes])
-
-# Automake says that this is always run in top_builddir
-# and that srcdir is defined (== top_srcdir)
-abs_top_builddir=`pwd`
-cd $srcdir
-abs_top_srcdir=`pwd`
-cd $abs_top_builddir
-
-# test_common.sh setup
-AC_CONFIG_FILES(test_common.sh:test_common.in)
-#rm -f ${abs_top_builddir}/test_common.sh
-#sed -e "s|@TOPSRCDIR@|${abs_top_srcdir}|" -e "s|@TOPBUILDDIR@|${abs_top_builddir}|" <${abs_top_srcdir}/test_common.in >${abs_top_builddir}/test_common.sh
-
-# nc_test4/findplugin.sh setup
-AC_SUBST([ISCMAKE], [])
-AC_SUBST([MSVC], [])
-AC_CONFIG_FILES(nc_test4/findplugin.sh:nc_test4/findplugin.in)
-AC_CONFIG_FILES(examples/C/findplugin.sh:nc_test4/findplugin.in)
-
-# DAP 2/4 findtestserver[4].c setup
-AC_CONFIG_FILES(ncdap_test/findtestserver.c:ncdap_test/findtestserver.c.in)
-AC_CONFIG_FILES(dap4_test/findtestserver4.c:ncdap_test/findtestserver.c.in)
-
 #####
 # End netcdf_meta.h definitions.
 #####
 
+# This would be true for a cmake build.
+AC_SUBST([ISCMAKE], [])
+
+# This would be true for a visual studio build.
+AC_SUBST([MSVC], [])
+
 AC_MSG_NOTICE([generating header files and makefiles])
+AC_CONFIG_FILES(test_common.sh:test_common.in)
+AC_CONFIG_FILES(nc_test4/findplugin.sh:nc_test4/findplugin.in)
+AC_CONFIG_FILES(examples/C/findplugin.sh:nc_test4/findplugin.in)
+AC_CONFIG_FILES(ncdap_test/findtestserver.c:ncdap_test/findtestserver.c.in)
+AC_CONFIG_FILES(dap4_test/findtestserver4.c:ncdap_test/findtestserver.c.in)
 AC_CONFIG_FILES([nc_test4/run_par_test.sh], [chmod ugo+x nc_test4/run_par_test.sh])
 AC_CONFIG_FILES([nc_test4/run_par_bm_test.sh], [chmod ugo+x nc_test4/run_par_bm_test.sh])
 AC_CONFIG_FILES([nc-config], [chmod 755 nc-config])
