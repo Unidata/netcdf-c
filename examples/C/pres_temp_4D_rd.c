@@ -1,20 +1,20 @@
-/*! \file
-Example program for reading a 4D netCDF file
-
-\ingroup tutorial
-
-This is an example which reads some 4D pressure and temperatures. The
-data file read by this program is produced by the companion program
-pres_temp_4D_wr.c. It is intended to illustrate the use of the netCDF
-C API.
-
-This is part of the netCDF package. Copyright 2006-2011 University
-Corporation for Atmospheric Research/Unidata. See COPYRIGHT file for
-conditions of use. Full documentation of the netCDF can be found at
-http://www.unidata.ucar.edu/software/netcdf/docs.
-
-\author Ed Hartnett
-*/
+/* Copyright 2006-2011 University Corporation for Atmospheric
+Research/Unidata. See COPYRIGHT file for conditions of use. */
+/**
+ * @file
+ * @ingroup tutorial
+ * Example program for reading a 4D netCDF file
+ *
+ * This is an example which reads some 4D pressure and
+ * temperatures. The data file read by this program is produced by the
+ * companion program pres_temp_4D_wr.c. It is intended to illustrate
+ * the use of the netCDF C API.
+ *
+ * This is part of the netCDF package. Full documentation of the netCDF can be found at
+ * http://www.unidata.ucar.edu/software/netcdf/docs.
+ *
+ * @author Ed Hartnett
+ */
 
 #include <stdio.h>
 #include <string.h>
