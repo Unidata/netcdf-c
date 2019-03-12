@@ -34,11 +34,13 @@ endif
 
 endif #USE_HDF5
 
+if TEST_PARALLEL4
 if USE_PNETCDF
 # This is a pnetcdf example.
 check_PROGRAMS += parallel_vara
 TESTS += run_par_test.sh
 endif #USE_PNETCDF
+endif # TEST_PARALLEL4
 
 if USE_HDF5
 TESTS += run_examples4.sh
