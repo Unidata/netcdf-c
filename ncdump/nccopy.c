@@ -1894,7 +1894,7 @@ copy(char* infile, char* outfile)
     }
 
     if(option_write_diskless)
-	create_mode |= NC_WRITE | NC_DISKLESS; /* NC_WRITE persists diskless file on close */
+	create_mode |= NC_PERSIST | NC_DISKLESS; /* NC_WRITE persists diskless file on close */
     switch(outkind) {
     case NC_FORMAT_CLASSIC:
 	/* nothing to do */
