@@ -4,10 +4,10 @@
 
 # Ed Hartnett, Dennis Heimbigner, Ward Fisher
 
-SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-TESTS_ENVIRONMENT = export SETX=1;
+#SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#TESTS_ENVIRONMENT = export SETX=1;
 
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
@@ -93,9 +93,9 @@ tst_fillbug.log tst_netcdf4_4.log tst_h_scalar.log
 tst_nccopy5.log: tst_nccopy4.log
 endif #!USE_HDF5
 
-TESTS += tst_inmemory_nc3.sh
+TESTS += tst_inmemory_nc3.sh tst_nccopy_w3.sh
 if USE_HDF5
-TESTS += tst_inmemory_nc4.sh
+TESTS += tst_inmemory_nc4.sh tst_nccopy_w4.sh
 endif
 
 endif BUILD_TESTSETS
@@ -134,7 +134,8 @@ ref_nccopy3_subset.nc ref_test_corrupt_magic.nc tst_ncgen_shared.sh	\
 tst_ncgen4.sh tst_ncgen4_classic.sh tst_ncgen4_diff.sh			\
 tst_ncgen4_cycle.sh tst_null_byte_padding.sh				\
 ref_null_byte_padding_test.nc ref_tst_irish_rover.nc ref_provenance_v1.nc \
-ref_tst_radix.cdl tst_radix.cdl test_radix.sh 
+ref_tst_radix.cdl tst_radix.cdl test_radix.sh                           \
+ref_nccopy_w.cdl tst_nccopy_w3.sh tst_nccopy_w4.sh
 
 # The L512.bin file is file containing exactly 512 bytes each of value 0.
 # It is used for creating hdf5 files with varying offsets for testing.
