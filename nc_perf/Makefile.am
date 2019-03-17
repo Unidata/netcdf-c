@@ -53,6 +53,6 @@ tst_wrf_reads tst_attsperf
 # endif # TEST_PARALLEL4
 # endif # BUILD_UTILITIES
 
-EXTRA_DIST = run_par_bm_test.sh.in
+EXTRA_DIST = run_par_bm_test.sh.in run_knmi_bm.sh
 
 DISTCLEANFILES = run_par_bm_test.sh MSGCPP_CWP_NC*.nc
