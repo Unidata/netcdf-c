@@ -55,4 +55,6 @@ tst_wrf_reads tst_attsperf
 
 EXTRA_DIST = run_par_bm_test.sh.in run_knmi_bm.sh
 
+CLEANFILES = tst_*.nc
+
 DISTCLEANFILES = run_par_bm_test.sh MSGCPP_CWP_NC*.nc
