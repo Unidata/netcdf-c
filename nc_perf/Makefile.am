@@ -10,10 +10,6 @@
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
 
-# Un comment to use a more verbose test driver
-#SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-
 TEST_EXTENSIONS = .sh
 
 # Link to our assembled library.
@@ -37,10 +33,9 @@ tst_h_many_atts_SOURCES = tst_h_many_atts.c tst_utils.c
 tst_knmi_SOURCES = tst_knmi.c tst_utils.c
 tst_wrf_reads_SOURCES = tst_wrf_reads.c tst_utils.c
 
-TESTS = tst_ar4_3d tst_create_files 			\
-run_tst_chunks.sh tst_files3 tst_mem run_knmi_bm.sh tst_wrf_reads	\
-tst_attsperf
-#run_bm_elena.sh
+TESTS = tst_ar4_3d tst_create_files tst_files3 tst_mem run_knmi_bm.sh	\
+tst_wrf_reads tst_attsperf
+#run_bm_elena.sh run_tst_chunks.sh
 
 #run_bm_elena.log: tst_create_files.log tst_files.log
 
@@ -59,3 +54,5 @@ tst_attsperf
 # endif # BUILD_UTILITIES
 
 EXTRA_DIST = run_par_bm_test.sh.in
+
+DISTCLEANFILES = run_par_bm_test.sh MSGCPP_CWP_NC*.nc
