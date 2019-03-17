@@ -53,8 +53,9 @@ bytes in length. On a 64-bit machine, the size must be less than 2^64 bytes.
 
 Also note that for a diskless file, there are two notions of
 *write* with respect to the file. The first notion is that the
-file is read-only through the netCDF API. For example, if the file
-is read-only, then a call to, for example, _nc_def_dim()_ will fail.
+file is writeable through the netCDF API, but on disk, the file is
+read-only. This means a call to, for example, _nc_def_dim()_ will succeed,
+but no changes will be written to disk.
 The second notion of *write* refers to the file on disk to which 
 the contents of memory might be persisted.
 
