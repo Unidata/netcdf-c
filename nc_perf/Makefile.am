@@ -37,12 +37,12 @@ tst_h_many_atts_SOURCES = tst_h_many_atts.c tst_utils.c
 tst_knmi_SOURCES = tst_knmi.c tst_utils.c
 tst_wrf_reads_SOURCES = tst_wrf_reads.c tst_utils.c
 
-# TESTS += tst_ar4_3d tst_create_files run_bm_elena.sh			\
-# run_tst_chunks.sh tst_files3 tst_mem run_knmi_bm.sh tst_wrf_reads	\
-# tst_attsperf
-TESTS = tst_create_files
+TESTS = tst_ar4_3d tst_create_files 			\
+run_tst_chunks.sh tst_files3 tst_mem run_knmi_bm.sh tst_wrf_reads	\
+tst_attsperf
+#run_bm_elena.sh
 
-run_bm_elena.log: tst_create_files.log tst_files.log
+#run_bm_elena.log: tst_create_files.log tst_files.log
 
 # if BUILD_UTILITIES
 # TESTS += run_bm_test1.sh run_bm_test2.sh
@@ -57,3 +57,5 @@ run_bm_elena.log: tst_create_files.log tst_files.log
 # run_par_bm_test.log: tst_create_files.log
 # endif # TEST_PARALLEL4
 # endif # BUILD_UTILITIES
+
+EXTRA_DIST = run_par_bm_test.sh.in
