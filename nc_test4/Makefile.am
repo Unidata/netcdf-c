@@ -49,33 +49,30 @@ check_PROGRAMS += tst_large tst_large2
 TESTS += tst_large tst_large2
 endif
 
-if BUILD_UTILITIES
-check_PROGRAMS += renamegroup
-TESTS += run_grp_rename.sh tst_misc.sh
-endif
-
 # If the v2 API was built, add its test program.
 if BUILD_V2
 check_PROGRAMS += tst_v2
 TESTS += tst_v2
 endif # BUILD_V2
 
+# The rest of the tests require ncgen/ncdump.
+if BUILD_UTILITIES
+check_PROGRAMS += renamegroup
+TESTS += run_grp_rename.sh tst_misc.sh
+
 # Szip Tests (requires ncdump)
 if USE_SZIP
-if BUILD_UTILITIES
 check_PROGRAMS += test_szip h5testszip
 TESTS += tst_szip.sh
-endif
 endif
 
 # Filter Tests (requires ncdump and ncgen)
 if ENABLE_FILTER_TESTING
-if BUILD_UTILITIES
 extradir =
 extra_PROGRAMS = test_filter test_filter_misc
 TESTS += tst_filter.sh
 endif
-endif
+endif # BUILD_UTILITIES
 
 # This are extra tests that will only be run if netcdf-4 is configured
 # with --enable-parallel-tests.
@@ -89,7 +86,6 @@ endif
 EXTRA_DIST = run_par_test.sh.in ref_tst_compounds.nc			\
 ref_tst_xplatform2_1.nc ref_tst_xplatform2_2.nc ref_tst_dims.nc		\
 ref_tst_interops4.nc CMakeLists.txt run_grp_rename.sh			\
-tst_h5_endians.c tst_atts_string_rewrite.c				\
 tst_put_vars_two_unlim_dim.c tst_empty_vlen_unlim.c			\
 run_empty_vlen_test.sh ref_hdf5_compat1.nc ref_hdf5_compat2.nc		\
 ref_hdf5_compat3.nc tst_misc.sh tdset.h5 tst_szip.sh ref_szip.h5	\
