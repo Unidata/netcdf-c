@@ -40,24 +40,25 @@ tst_wrf_reads tst_attsperf perftest.sh
 
 #run_bm_elena.log: tst_create_files.log tst_files.log
 
-# if BUILD_UTILITIES
-# TESTS += run_bm_test1.sh run_bm_test2.sh
+if BUILD_UTILITIES
+TESTS += run_bm_test1.sh run_bm_test2.sh
 
-# # tst_create_files creates files for other tests.
-# run_bm_test1.log: tst_create_files.log
-# run_bm_test2.log: tst_create_files.log
+# tst_create_files creates files for other tests.
+run_bm_test1.log: tst_create_files.log
+run_bm_test2.log: tst_create_files.log
 
-# # This will run a parallel I/O benchmark for parallel builds.
-# if TEST_PARALLEL4
-# TESTS += run_par_bm_test.sh
-# run_par_bm_test.log: tst_create_files.log
-# endif # TEST_PARALLEL4
-# endif # BUILD_UTILITIES
+# This will run a parallel I/O benchmark for parallel builds.
+if TEST_PARALLEL4
+TESTS += run_par_bm_test.sh
+run_par_bm_test.log: tst_create_files.log
+endif # TEST_PARALLEL4
+endif # BUILD_UTILITIES
 
 EXTRA_DIST = run_par_bm_test.sh.in run_knmi_bm.sh CMakeLists.txt	\
-perftest.sh
+perftest.sh run_bm_test1.sh run_bm_test2.sh
 
-CLEANFILES = tst_*.nc *.txt bigmeta.nc
+CLEANFILES = tst_*.nc *.txt bigmeta.nc bigvars.nc floats*.nc	\
+floats*.cdl shorts*.nc shorts*.cdl ints*.nc ints*.cdl tst_*.cdl
 
 DISTCLEANFILES = run_par_bm_test.sh MSGCPP_CWP_NC*.nc
 
