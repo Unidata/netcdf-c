@@ -35,8 +35,8 @@ tst_knmi_SOURCES = tst_knmi.c tst_utils.c
 tst_wrf_reads_SOURCES = tst_wrf_reads.c tst_utils.c
 
 TESTS = tst_ar4_3d tst_create_files tst_files3 tst_mem run_knmi_bm.sh	\
-tst_wrf_reads tst_attsperf perftest.sh
-#run_bm_elena.sh run_tst_chunks.sh
+tst_wrf_reads tst_attsperf perftest.sh run_tst_chunks.sh
+#run_bm_elena.sh
 
 #run_bm_elena.log: tst_create_files.log tst_files.log
 
