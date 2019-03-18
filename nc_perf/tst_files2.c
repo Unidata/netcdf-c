@@ -3,7 +3,7 @@
    conditions of use.
 
    This is a benchmark test which times how long it takes to create
-   some files. This program uses a file produced by tst_files.c.
+   some files.
 
    Ed Hartnett
 */
@@ -16,7 +16,7 @@
 
 #define MAX_LEN 30
 #define TMP_FILE_NAME "tst_files2_tmp.out"
-#define FILE_NAME "tst_files2_1.nc" /* Created by tst_files.c. */
+#define FILE_NAME "tst_files2_5_0.nc" /* One of the files created by first test. */
 #define MILLION 1000000
 
 void *last_sbrk;
