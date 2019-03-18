@@ -2,10 +2,11 @@
 # Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
 # conditions of use.
 #
-# This directory holds tests for netCDF-4. It is skipped if netCDF-4
-# is not enabled.
+# This directory holds performance tests for netCDF-4. It is only
+# built for netCDF-4 builds that use the --enable-benchmarks configure
+# option.
 #
-# Ed Hartnett, Ward Fisher
+# Ed Hartnett 3/18/19
 
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am

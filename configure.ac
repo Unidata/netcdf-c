@@ -531,6 +531,9 @@ AC_ARG_ENABLE([benchmarks],
                               are timed. We use these tests to check netCDF performance.])])
 test "x$enable_benchmarks" = xyes || enable_benchmarks=no
 AC_MSG_RESULT($enable_benchmarks)
+if test "x$enable_netcdf4" = xno ; then
+AC_MSG_ERROR([Can't use benchmarks if netCDF-4 is disabled.])
+fi
 AM_CONDITIONAL(BUILD_BENCHMARKS, [test x$enable_benchmarks = xyes])
 
 # Does the user want to use extreme numbers in testing.
