@@ -32,7 +32,8 @@ t_type cdm_sea_soundings tst_camrun tst_vl tst_atts1 tst_atts2		\
 tst_vars2 tst_files5 tst_files6 tst_sync tst_h_scalar tst_rename	\
 tst_rename2 tst_rename3 tst_h5_endians tst_atts_string_rewrite		\
 tst_hdf5_file_compat tst_fill_attr_vanish tst_rehash tst_filterparser	\
-tst_bug324 tst_types tst_atts3 tst_put_vars tst_elatefill tst_udf
+tst_bug324 tst_types tst_atts3 tst_put_vars tst_elatefill tst_udf	\
+tst_put_vars_two_unlim_dim
 
 # Temporary I hoped, but hoped in vain.
 if !ISCYGWIN
@@ -86,7 +87,6 @@ endif
 EXTRA_DIST = run_par_test.sh.in ref_tst_compounds.nc			\
 ref_tst_xplatform2_1.nc ref_tst_xplatform2_2.nc ref_tst_dims.nc		\
 ref_tst_interops4.nc CMakeLists.txt run_grp_rename.sh			\
-tst_put_vars_two_unlim_dim.c tst_empty_vlen_unlim.c			\
 run_empty_vlen_test.sh ref_hdf5_compat1.nc ref_hdf5_compat2.nc		\
 ref_hdf5_compat3.nc tst_misc.sh tdset.h5 tst_szip.sh ref_szip.h5	\
 ref_szip.cdl tst_filter.sh bzip2.cdl ref_filtered.cdl			\
