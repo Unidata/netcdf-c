@@ -56,7 +56,7 @@ tst_wrf_reads tst_attsperf perftest.sh
 
 EXTRA_DIST = run_par_bm_test.sh.in run_knmi_bm.sh CMakeLists.txt
 
-CLEANFILES = tst_*.nc
+CLEANFILES = tst_*.nc *.txt
 
 DISTCLEANFILES = run_par_bm_test.sh MSGCPP_CWP_NC*.nc
 
