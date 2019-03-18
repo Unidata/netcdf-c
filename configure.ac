@@ -1358,14 +1358,6 @@ if test "x$enable_jna" = xyes ; then
 AC_DEFINE([JNA], [1], [if true, include JNA bug fix])
 fi
 
-# Control large metadata performance test
-AC_MSG_CHECKING([whether large metadata performance testing should be run])
-AC_ARG_ENABLE([metadata-perf],
-              [AS_HELP_STRING([--enable-metadata-perf],
-                              [Test performance of nc_create and nc_open on large metadata])])
-test "x$enable_metadata_perf" = xyes || enable_metadata_perf=no
-AC_MSG_RESULT($enable_metadata_perf)
-
 # Control filter test/example
 AC_MSG_CHECKING([whether filter testing should be run])
 AC_ARG_ENABLE([filter-testing],

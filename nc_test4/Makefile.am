@@ -86,21 +86,16 @@ tst_mode
 TESTS += run_par_test.sh
 endif
 
-if ENABLE_METADATA_PERF
-check_PROGRAMS += bigmeta openbigmeta
-TESTS += perftest.sh
-endif
-
 EXTRA_DIST = run_par_test.sh.in run_bm_test1.sh run_bm_test2.sh		\
 ref_tst_compounds.nc ref_tst_xplatform2_1.nc ref_tst_xplatform2_2.nc	\
-ref_tst_dims.nc ref_tst_interops4.nc CMakeLists.txt	\
-run_grp_rename.sh tst_h5_endians.c tst_atts_string_rewrite.c		\
+ref_tst_dims.nc ref_tst_interops4.nc CMakeLists.txt run_grp_rename.sh	\
+tst_h5_endians.c tst_atts_string_rewrite.c				\
 tst_put_vars_two_unlim_dim.c tst_empty_vlen_unlim.c			\
 run_empty_vlen_test.sh ref_hdf5_compat1.nc ref_hdf5_compat2.nc		\
 ref_hdf5_compat3.nc tst_misc.sh tdset.h5 tst_szip.sh ref_szip.h5	\
 ref_szip.cdl tst_filter.sh bzip2.cdl ref_filtered.cdl			\
-ref_unfiltered.cdl ref_bzip2.c findplugin.in perftest.sh		\
-ref_unfilteredvv.cdl ref_filteredvv.cdl
+ref_unfiltered.cdl ref_bzip2.c findplugin.in ref_unfilteredvv.cdl	\
+ref_filteredvv.cdl
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
 tst_floats_1D.cdl floats_1D_3.nc floats_1D.cdl tst_*.nc			\
