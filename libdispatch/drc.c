@@ -455,6 +455,23 @@ done:
     return ret;
 }
 
+/* Obtain the count of number of triples */
+size_t
+NC_rcfile_length(NCRCinfo* info)
+{
+    return nclistlength(info->triples);
+}
+
+/* Obtain the ith triple; return NULL if out of range */
+NCTriple*
+NC_rcfile_ith(NCRCinfo* info, size_t i)
+{
+    if(i >= nclistlength(info->triples))
+	return NULL;
+    return (NCTriple*)nclistget(info->triples,i);
+}
+
+
 #ifdef D4DEBUG
 static void
 storedump(char* msg, NClist* triples)
