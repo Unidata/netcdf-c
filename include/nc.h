@@ -8,6 +8,9 @@
 #include "config.h"
 #include "netcdf.h"
 
+/* Forward */
+struct NCmodel;
+
    /* There's an external ncid (ext_ncid) and an internal ncid
     * (int_ncid). The ext_ncid is the ncid returned to the user. If
     * the user has opened or created a netcdf-4 file, then the
@@ -27,7 +30,7 @@ typedef struct NC {
 	void* dispatchdata; /*per-'file' data; points to e.g. NC3_INFO data*/
 	char* path;
 	int   mode; /* as provided to nc_open/nc_create */
-        int   model; /* as determined by libdispatch/dfile.c */
+        struct NCmodel*  model; /* as determined by libdispatch/dfile.c */
 #ifdef USE_REFCOUNT
 	int   refcount; /* To enable multiple name-based opens */
 #endif
@@ -78,7 +81,7 @@ extern int iterate_NCList(int i,NC**); /* Walk from 0 ...; ERANGE return => stop
 
 /* Defined in nc.c */
 extern void free_NC(NC*);
-extern int new_NC(struct NC_Dispatch*, const char*, int, int, NC**);
+extern int new_NC(struct NC_Dispatch*, const char*, int, struct NCmodel*, NC**);
 
 /* Defined in nc.c */
 extern int ncdebug;
