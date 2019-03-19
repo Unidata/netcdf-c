@@ -419,20 +419,20 @@ NC4_get_provenance(NC_FILE_INFO_T* file, const char* propstring, const struct NC
         {ncstat = NC_EINVAL; goto done;} /* bad _NCProperties attribute */
         /* Now, rebuild from version 1 to version 2 if necessary */
         if(provenance->propattr.version == 1) {
-            int i;
-            for(i=0;i<nclistlength(list);i+=2) {
-                char* newname = NULL;
-                name = nclistget(list,i);
-                if(name == NULL) continue; /* ignore */
-                if(strcmp(name,NCPNCLIB1) == 0)
-                    newname = NCPNCLIB2; /* change name */
-                else if(strcmp(name,NCPHDF5LIB1) == 0)
-                    newname = NCPHDF5LIB2;
-                else continue; /* ignore */
-                /* Do any rename */
-                nclistset(list,i,strdup(newname));
-                if(name) {free(name); name = NULL;}
-            }
+	    int i;
+	    for(i=0;i<nclistlength(list);i+=2) {
+	        char* newname = NULL;
+	        char* oldname = nclistget(list,i);
+	        if(oldname == NULL) continue; /* ignore */
+	        if(strcmp(oldname,NCPNCLIB1) == 0)
+		    newname = NCPNCLIB2; /* change name */
+	        else if(strcmp(oldname,NCPHDF5LIB1) == 0)
+		    newname = NCPHDF5LIB2;
+		if(newname != NULL) {/* Do any rename */
+	            if(oldname) free(oldname);
+	            nclistset(list,i,strdup(newname));
+		}
+	    }
         }
     }
 done:

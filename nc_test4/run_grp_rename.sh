@@ -114,6 +114,6 @@ else
   echo "***XFAIL : attempt to rename root group failed as expected"
 fi
 
-#rm -f tst_grp_rename.cdl tst_grp_rename.nc ref_grp_rename.nc
+rm -f tst_grp_rename.cdl tst_grp_rename.nc ref_grp_rename.nc
 
 exit $FAIL
