@@ -82,6 +82,7 @@ static unsigned int MAX_UINT = NC_MAX_UINT;
 #define TAGCHARS "BbSsLlUu"
 
 #define tstdecimal(ch) ((ch) >= '0' && (ch) <= '9')
+#define tstoctal(ch) ((ch) == '0')
 
 /*Mnemonics*/
 #define ISIDENT 1
@@ -115,7 +116,7 @@ unsigned char ubyte_val;       /* last byte value read */
 
 static Symbol* makepath(char* text);
 static int lexdebug(int);
-static unsigned long long parseULL(char* text, int*);
+static unsigned long long parseULL(int radix, char* text, int*);
 static nc_type downconvert(unsigned long long uint64, int*, int, int);
 static int tagmatch(nc_type nct, int tag);
 static int nct2lexeme(nc_type nct);
@@ -380,6 +381,7 @@ NIL|nil|Nil {
 		  We need to try to see what size of integer ((u)int).
 		  Technically, the user should specify, but...
 		  If out of any integer range, then complain
+		  Also, if the digits begin with 0, then assume octal.
 		*/
 		    int slen = strlen(ncgtext);
 		    char* stag = NULL;
@@ -390,28 +392,40 @@ NIL|nil|Nil {
 		    nc_type nct = 0;
 		    char* pos = NULL;
 		    int hasU = 0;
+		    int radix = 10;
+
+		    pos = ncgtext;
 
 		    /* capture the tag string */
-		    tag = collecttag(ncgtext,&stag);
+		    tag = collecttag(pos,&stag);
 		    if(tag == NC_NAT) {
 			sprintf(errstr,"Illegal integer suffix: %s",stag);
 			yyerror(errstr);
 			goto done;
 		    }
+
 		    /* drop the tag from the input text */
 		    ncgtext[slen - strlen(stag)] = '\0';
 		    hasU = isuinttype(tag);
-		    if(!tstdecimal(c)) {
-			pos = ncgtext+1;
-			isneg = (c == '-');
-		    } else
-		        pos = ncgtext;
+
+		    /* Capture the sign, if any */
+		    isneg = (c == '-');
+		    /* skip leading sign */
+		    if(c == '-' || c == '+')
+			pos++;
+
+		    c = pos[0];
+		    if(tstoctal(c))
+			radix = 8;
+		    else
+			radix = 10;
+
 		    if(isneg && hasU) {
 			sprintf(errstr,"Unsigned integer cannot be signed: %s",ncgtext);
 			yyerror(errstr);
 			goto done;
 		    }
-		    uint64_val = parseULL(pos,&fail);
+		    uint64_val = parseULL(radix, pos,&fail);
 		    if(fail) {
 			sprintf(errstr,"integer constant out of range: %s",ncgtext);
 			yyerror(errstr);
@@ -648,24 +662,26 @@ Parse a simple string of digits into an unsigned long long
 Return the value.
 */
 static unsigned long long
-parseULL(char* text, int* failp)
+parseULL(int radix, char* text, int* failp)
 {
     extern int errno;
     char* endptr;
     unsigned long long uint64 = 0;
 
     errno = 0; endptr = NULL;
-    assert(tstdecimal(text[0]));
 #ifdef HAVE_STRTOULL
-    uint64 = strtoull(text,&endptr,10);
+    uint64 = strtoull(text,&endptr,radix);
     if(errno == ERANGE) {
 	if(failp) *failp = ERANGE;
 	return 0;
     }
-#else /*!(defined HAVE_STRTOLL && defined HAVE_STRTOULL)*/
-    sscanf((char*)text, "%llu", &uint64);
+#else /*!defined HAVE_STRTOULL*/
     /* Have no useful way to detect out of range */
-#endif /*!(defined HAVE_STRTOLL && defined HAVE_STRTOULL)*/
+    if(radix == 8)
+        sscanf((char*)text, "%llo", &uint64);
+    else
+        sscanf((char*)text, "%llu", &uint64);
+#endif /*!defined HAVE_STRTOULL*/
     return uint64;
 }
 

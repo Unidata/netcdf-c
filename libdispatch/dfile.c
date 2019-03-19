@@ -1783,10 +1783,6 @@ check_create_mode(int mode)
     /* mmap is not allowed for netcdf-4 */
     if(mmap && (mode & NC_NETCDF4)) return NC_EINVAL;
 
-    /* Can't use both parallel and diskless|inmemory|mmap. */
-    if (mode & NC_MPIIO && mode & (NC_DISKLESS|NC_INMEMORY|NC_MMAP))
-	return NC_EINVAL;
-
 #ifndef USE_NETCDF4
    /* If the user asks for a netCDF-4 file, and the library was built
     * without netCDF-4, then return an error.*/

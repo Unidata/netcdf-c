@@ -168,8 +168,10 @@ ENDIF(MSVC)
   ENDIF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
 
   add_sh_test(ncdump tst_inmemory_nc3)
+  add_sh_test(ncdump tst_nccopy_w3)
   IF(USE_NETCDF4)
       add_sh_test(ncdump tst_inmemory_nc4)
+      add_sh_test(ncdump tst_nccopy_w4)
   ENDIF(USE_NETCDF4)
 
   IF(USE_NETCDF4)
@@ -251,6 +253,7 @@ ENDIF(MSVC)
     add_sh_test(ncdump tst_inttags4)
   ENDIF(USE_NETCDF4)
 
+  add_sh_test(ncdump test_radix)
 ENDIF()
 
 ENDIF()

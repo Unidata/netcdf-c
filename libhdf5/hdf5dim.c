@@ -187,6 +187,11 @@ NC4_inq_dim(int ncid, int dimid, char *name, size_t *lenp)
 /**
  * @internal Rename a dimension, for those who like to prevaricate.
  *
+ * @note If we're not in define mode, new name must be of equal or
+ * less size, if strict nc3 rules are in effect for this file. But we
+ * don't check this because reproducing the exact classic behavior
+ * would be too difficult. See github issue #1340.
+ *
  * @param ncid File and group ID.
  * @param dimid Dimension ID.
  * @param name New dimension name.
