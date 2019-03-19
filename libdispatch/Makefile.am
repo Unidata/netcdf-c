@@ -20,7 +20,7 @@ dattinq.c dattput.c dattget.c derror.c dvar.c dvarget.c dvarput.c	\
 dvarinq.c dinternal.c ddispatch.c dutf8.c nclog.c dstring.c ncuri.c	\
 nclist.c ncbytes.c nchashmap.c nctime.c nc.c nclistmgr.c		\
 dauth.c doffsets.c dwinpath.c dutil.c dreadonly.c dnotnc4.c dnotnc3.c	\
-crc32.c crc32.h daux.c
+crc32.c crc32.h daux.c dinfermodel.c
 
 # Add the utf8 codebase
 libdispatch_la_SOURCES += utf8proc.c utf8proc.h
@@ -42,6 +42,10 @@ noinst_LTLIBRARIES += libnetcdf2.la
 libnetcdf2_la_SOURCES = dv2i.c
 libnetcdf2_la_CPPFLAGS = ${AM_CPPFLAGS} -DDLL_EXPORT
 endif # BUILD_V2
+
+if ENABLE_BYTERANGE
+libdispatch_la_SOURCES += dhttp.c
+endif # ENABLE_BYTERANGE
 
 EXTRA_DIST=CMakeLists.txt ncsettings.hdr utf8proc_data.c
 

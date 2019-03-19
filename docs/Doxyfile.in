@@ -751,6 +751,7 @@ INPUT = \
     @abs_top_srcdir@/docs/guide.dox \
     @abs_top_srcdir@/docs/attribute_conventions.md \
     @abs_top_srcdir@/docs/file_format_specifications.md \
+    @abs_top_srcdir@/docs/byterange.dox \
     @abs_top_srcdir@/docs/DAP2.dox \
     @abs_top_srcdir@/docs/DAP4.dox \
     @abs_top_srcdir@/docs/user_defined_formats.md \
