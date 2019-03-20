@@ -6,7 +6,7 @@
 # See netcdf-c/COPYRIGHT file for more info.
 SET(CMAKE_BUILD_TYPE "")
 
-SET(libbzip2_SOURCES blocksort.c huffman.c crctable.c randtable.c compress.c decompress.c bzlib.c H5Zbzip2.c)
+SET(libh5bzip2_SOURCES blocksort.c huffman.c crctable.c randtable.c compress.c decompress.c bzlib.c H5Zbzip2.c)
 
 SET(libmisc_SOURCES H5Zmisc.c H5Zutil.c h5misc.h)
 
@@ -23,11 +23,11 @@ ENDIF()
 
 # Note we use name test_bzip2 instead of bzip2 to avoid logical
 # target name clash with examples/C/hdf5plugins
-ADD_LIBRARY(test_bzip2 MODULE ${libbzip2_SOURCES})
+ADD_LIBRARY(test_bzip2 MODULE ${libh5bzip2_SOURCES})
 SET_TARGET_PROPERTIES(test_bzip2 PROPERTIES OUTPUT_NAME "bzip2")
-SET_TARGET_PROPERTIES(test_bzip2 PROPERTIES LIBRARY_OUTPUT_NAME "bzip2")
-SET_TARGET_PROPERTIES(test_bzip2 PROPERTIES ARCHIVE_OUTPUT_NAME "bzip2")
-SET_TARGET_PROPERTIES(test_bzip2 PROPERTIES RUNTIME_OUTPUT_NAME "bzip2")
+SET_TARGET_PROPERTIES(test_bzip2 PROPERTIES LIBRARY_OUTPUT_NAME "h5bzip2")
+SET_TARGET_PROPERTIES(test_bzip2 PROPERTIES ARCHIVE_OUTPUT_NAME "h5bzip2")
+SET_TARGET_PROPERTIES(test_bzip2 PROPERTIES RUNTIME_OUTPUT_NAME "h5bzip2")
 TARGET_LINK_LIBRARIES(test_bzip2 ${ALL_TLL_LIBS})
 
 ADD_LIBRARY(misc MODULE ${libmisc_SOURCES})
