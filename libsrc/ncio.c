@@ -1,10 +1,10 @@
 /*
- *	Copyright 1996, University Corporation for Atmospheric Research
+ *	Copyright 2018, University Corporation for Atmospheric Research
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 
-#if HAVE_CONFIG_H
-#include <config.h>
+#ifdef HAVE_CONFIG_H
+#include "config.h"
 #endif
 
 #include <stdlib.h>
@@ -34,6 +34,11 @@ extern int ffio_open(const char*,int,off_t,size_t,size_t*,void*,ncio**,void** co
      extern int mmapio_create(const char*,int,size_t,off_t,size_t,size_t*,void*,ncio**,void** const);
      extern int mmapio_open(const char*,int,off_t,size_t,size_t*,void*,ncio**,void** const);
 #  endif
+
+#ifdef ENABLE_BYTERANGE
+    extern int httpio_open(const char*,int,off_t,size_t,size_t*,void*,ncio**,void** const);
+#endif
+
      extern int memio_create(const char*,int,size_t,off_t,size_t,size_t*,void*,ncio**,void** const);
      extern int memio_open(const char*,int,off_t,size_t,size_t*,void*,ncio**,void** const);
 
@@ -43,14 +48,16 @@ ncio_create(const char *path, int ioflags, size_t initialsz,
 		       void* parameters,
                        ncio** iopp, void** const mempp)
 {
-    if(fIsSet(ioflags,NC_INMEMORY)) {
-#  ifdef USE_MMAP
-      if(fIsSet(ioflags,NC_MMAP) && fIsSet(ioflags, NC_DISKLESS))
-        return mmapio_create(path,ioflags,initialsz,igeto,igetsz,sizehintp,parameters,iopp,mempp);
-      else
-#  endif /*USE_MMAP*/
+    if(fIsSet(ioflags,NC_DISKLESS)) {
+        return memio_create(path,ioflags,initialsz,igeto,igetsz,sizehintp,parameters,iopp,mempp);
+    } else if(fIsSet(ioflags,NC_INMEMORY)) {
         return memio_create(path,ioflags,initialsz,igeto,igetsz,sizehintp,parameters,iopp,mempp);
     }
+#  ifdef USE_MMAP
+    else if(fIsSet(ioflags,NC_MMAP)) {
+        return mmapio_create(path,ioflags,initialsz,igeto,igetsz,sizehintp,parameters,iopp,mempp);
+    }
+#  endif /*USE_MMAP*/
 
 #ifdef USE_STDIO
     return stdio_create(path,ioflags,initialsz,igeto,igetsz,sizehintp,parameters,iopp,mempp);
@@ -70,14 +77,24 @@ ncio_open(const char *path, int ioflags,
     /* Diskless open has the following constraints:
        1. file must be classic version 1 or 2 or 5
      */
-    if(fIsSet(ioflags,NC_INMEMORY)) {
-#  ifdef USE_MMAP
-      if(fIsSet(ioflags,NC_MMAP) && fIsSet(ioflags, NC_DISKLESS))
-        return mmapio_open(path,ioflags,igeto,igetsz,sizehintp,parameters,iopp,mempp);
-      else
-#  endif /*USE_MMAP*/
+    if(fIsSet(ioflags,NC_DISKLESS)) {
         return memio_open(path,ioflags,igeto,igetsz,sizehintp,parameters,iopp,mempp);
     }
+    if(fIsSet(ioflags,NC_INMEMORY)) {
+        return memio_open(path,ioflags,igeto,igetsz,sizehintp,parameters,iopp,mempp);
+    }
+#  ifdef USE_MMAP
+    if(fIsSet(ioflags,NC_MMAP)) {
+        return mmapio_open(path,ioflags,igeto,igetsz,sizehintp,parameters,iopp,mempp);
+    }
+#  endif /*USE_MMAP*/
+#  ifdef ENABLE_BYTERANGE
+   /* The NC_HTTP flag is a big hack until we can reorganize the ncio interface */
+   if(fIsSet(ioflags,NC_HTTP)) {
+        return httpio_open(path,ioflags,igeto,igetsz,sizehintp,parameters,iopp,mempp);
+   }
+#  endif /*ENABLE_BYTERANGE*/
+
 #ifdef USE_STDIO
     return stdio_open(path,ioflags,igeto,igetsz,sizehintp,parameters,iopp,mempp);
 #elif defined(USE_FFIO)

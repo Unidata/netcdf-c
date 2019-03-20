@@ -1,12 +1,12 @@
 /*
- Copyright 2010 University Corporation for Atmospheric
+ Copyright 2018 University Corporation for Atmospheric
  Research/Unidata. See COPYRIGHT file for more info.
 
  This file defines most of the netcdf API in terms of the dispatch
  functions along with a few functions that are overlays over the
  dispatch functions.
 
- "$Id: netcdf.m4,v 1.16 2010/06/01 15:34:50 ed Exp $" 
+ "$Id: netcdf.m4,v 1.16 2010/06/01 15:34:50 ed Exp $"
 */
 
 #include "ncdispatch.h"
@@ -588,4 +588,3 @@ NC_PUT_ATT(ulonglong,unsigned long long)
 #ifdef USE_NETCDF4
 /*NC_PUT_ATT(string,char*) defined separately */
 #endif /*USE_NETCDF4*/
-

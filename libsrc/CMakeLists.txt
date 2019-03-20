@@ -1,5 +1,5 @@
 ## This is a CMake file, part of Unidata's netCDF package.
-# Copyright 2012-2013, see the COPYRIGHT file for more information.
+# Copyright 2012-2018, see the COPYRIGHT file for more information.
 
 # Process these files with m4.
 SET(m4_SOURCES attr ncx putget t_ncxx)
@@ -27,6 +27,10 @@ ELSEIF (USE_STDIO)
 ELSE (USE_FFIO)
   SET(libsrc_SOURCES ${libsrc_SOURCES} posixio.c)
 ENDIF (USE_FFIO)
+
+IF (ENABLE_BYTERANGE)
+  SET(libsrc_SOURCES ${libsrc_SOURCES} httpio.c)
+ENDIF(ENABLE_BYTERANGE)
 
 add_library(netcdf3 OBJECT ${libsrc_SOURCES})
 

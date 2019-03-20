@@ -1,5 +1,5 @@
 /* This is part of the netCDF package.
-   Copyright 2006 University Corporation for Atmospheric Research/Unidata.
+   Copyright 2018 University Corporation for Atmospheric Research/Unidata.
    See COPYRIGHT file for conditions of use.
 
    This is a very simple example which writes a netCDF file with
@@ -456,7 +456,7 @@ create_file()
 
     /* enter define mode */
 #ifdef TEST_PNETCDF
-    stat = nc_create_par(FILE_NAME, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
+    stat = nc_create_par(FILE_NAME, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
 #else
     stat = nc_create(FILE_NAME, NC_CLOBBER, &ncid);
 #endif
@@ -1210,7 +1210,7 @@ create_file()
     check_err(stat,__LINE__,__FILE__);
     }
     { /* Gi */
-    static const int Gi_att[4] = {-2147483648, 2147483647, -2147483648, -2147483648} ;
+    static const int Gi_att[] = {-2147483647-1,2147483647,-2147483647-1,-2147483647-1};
     stat = nc_put_att_int(ncid, NC_GLOBAL, "Gi", NC_INT, 4, Gi_att);
     check_err(stat,__LINE__,__FILE__);
     }
@@ -1242,7 +1242,7 @@ create_file()
     check_err(stat,__LINE__,__FILE__);
     }
     { /* i */
-    static const int i_i_att[3] = {-2147483648, 2147483647, -2147483648} ;
+    static const int i_i_att[3] = {-2147483647-1, 2147483647, -2147483647-1} ;
     stat = nc_put_att_int(ncid, i_id, "i", NC_INT, 3, i_i_att);
     check_err(stat,__LINE__,__FILE__);
     }
@@ -1322,7 +1322,7 @@ create_file()
     }
 
     {
-    int ir_data[2] = {-2147483648, 2147483647} ;
+    int ir_data[2] = {-2147483647-1, 2147483647} ;
     size_t ir_startset[1] = {0} ;
     size_t ir_countset[1] = {2} ;
     stat = nc_put_vara(ncid, ir_id, ir_startset, ir_countset, ir_data);
@@ -1370,7 +1370,7 @@ create_file()
     }
 
     {
-    int i1_data[1] = {-2147483648} ;
+    int i1_data[1] = {(-2147483647)-1} ;
     size_t i1_startset[1] = {0} ;
     size_t i1_countset[1] = {1} ;
     stat = nc_put_vara(ncid, i1_id, i1_startset, i1_countset, i1_data);
@@ -1418,7 +1418,7 @@ create_file()
     }
 
     {
-    int i2_data[2] = {-2147483648, 2147483647} ;
+    int i2_data[2] = {(-2147483647)-1, 2147483647} ;
     size_t i2_startset[1] = {0} ;
     size_t i2_countset[1] = {2} ;
     stat = nc_put_vara(ncid, i2_id, i2_startset, i2_countset, i2_data);
@@ -1466,7 +1466,7 @@ create_file()
     }
 
     {
-    int i3_data[3] = {-2147483648, 2147483647, -2147483648} ;
+    int i3_data[3] = {(-2147483647)-1, 2147483647, (-2147483647)-1} ;
     size_t i3_startset[1] = {0} ;
     size_t i3_countset[1] = {3} ;
     stat = nc_put_vara(ncid, i3_id, i3_startset, i3_countset, i3_data);
@@ -1514,7 +1514,7 @@ create_file()
     }
 
     {
-    int i4_data[4] = {-2147483648, 2147483647, -2147483648, -2147483648} ;
+    int i4_data[4] = {(-2147483647)-1, 2147483647, (-2147483647)-1, (-2147483647)-1} ;
     size_t i4_startset[1] = {0} ;
     size_t i4_countset[1] = {4} ;
     stat = nc_put_vara(ncid, i4_id, i4_startset, i4_countset, i4_data);
@@ -2363,7 +2363,7 @@ main(int argc, char **argv)
 
       /* Create a file with a var with two atts. */
 #ifdef TEST_PNETCDF
-      if (nc_create_par(FILE_NAME, NC_CLOBBER|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_create_par(FILE_NAME, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLASSIC_MODEL|NC_CLOBBER, &ncid)) ERR;
 #endif
@@ -2409,7 +2409,7 @@ main(int argc, char **argv)
 
       /* Reopen the file and check it. */
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_WRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, NC_WRITE, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
 #endif
@@ -2441,7 +2441,7 @@ main(int argc, char **argv)
 
       /* Open the file. */
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_WRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, NC_WRITE, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
 #endif
@@ -2470,7 +2470,7 @@ main(int argc, char **argv)
 
       /* Reopen the file and check it. */
 #ifdef TEST_PNETCDF
-      if (nc_open_par(FILE_NAME, NC_WRITE|NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
+      if (nc_open_par(FILE_NAME, NC_WRITE, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid)) ERR;
 #else
       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
 #endif

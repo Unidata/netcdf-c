@@ -1,3 +1,13 @@
+/*! \file
+
+Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+2015, 2016, 2017, 2018
+University Corporation for Atmospheric Research/Unidata.
+
+See \ref copyright file for more info.
+
+*/
 #ifndef CONFIG_H
 #define CONFIG_H
 
@@ -107,6 +117,9 @@ are set when opening a binary file on Windows. */
 /* set this only when building a DLL under MinGW */
 #cmakedefine DLL_NETCDF 1
 
+/* if true, build byte-range Client */
+#cmakedefine ENABLE_BYTERANGE 1
+
 /* if true, enable CDF5 Support */
 #cmakedefine ENABLE_CDF5 1
 
@@ -121,9 +134,6 @@ are set when opening a binary file on Windows. */
 
 /* if true, build DAP4 Client */
 #cmakedefine ENABLE_DAP4 1
-
-/* if true, enable DAP group names */
-#cmakedefine ENABLE_DAP_GROUPS 1
 
 /* if true, do remote tests */
 #cmakedefine ENABLE_DAP_REMOTE_TESTS 1
@@ -360,6 +370,12 @@ are set when opening a binary file on Windows. */
    nc4file. */
 #cmakedefine HDF5_HAS_H5FREE 1
 
+/* if true, H5allocate_memory() will be used. */
+#cmakedefine HDF5_HAS_ALLOCATE_MEMORY 1
+
+/* if true, H5resize_memory() will be used. */
+#cmakedefine HDF5_HAS_RESIZE_MEMORY 1
+
 /* if true, hdf5 has parallelism enabled */
 #cmakedefine HDF5_PARALLEL 1
 
@@ -525,12 +541,6 @@ are set when opening a binary file on Windows. */
 
 /* if true, parallel netcdf-4 is in use */
 #cmakedefine USE_PARALLEL4 1
-
-/* if true, compile in parallel netCDF-4 based on MPI/IO */
-#cmakedefine USE_PARALLEL_MPIO 1
-
-/* if true, compile in parallel netCDF-4 based on MPI/POSIX */
-#cmakedefine USE_PARALLEL_POSIX 1
 
 /* if true, parallel netCDF is used */
 #cmakedefine USE_PNETCDF 1

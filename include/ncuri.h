@@ -1,5 +1,5 @@
 /*
- *	Copyright 1996, University Corporation for Atmospheric Research
+ *	Copyright 2018, University Corporation for Atmospheric Research
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 
@@ -93,6 +93,12 @@ extern const char* ncurilookup(NCURI*, const char* param);
     In any case, the result is imutable and should not be free'd.
 */
 extern const char* ncuriquerylookup(NCURI*, const char* param);
+
+/* Obtain the complete list of fragment pairs in envv format */
+extern const char** ncurifragmentparams(NCURI*);
+
+/* Obtain the complete list of query pairs in envv format */
+extern const char** ncuriqueryparams(NCURI*);
 
 /* URL Encode/Decode */
 extern char* ncuridecode(char* s);

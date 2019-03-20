@@ -5,6 +5,9 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 # For a netCDF-4 build, test nccopy on netCDF files in this directory
 
+if test -f tst_comp2${ext} ; then ${execdir}/tst_comp2 ; fi
+
+
 set -e
 echo ""
 
@@ -13,12 +16,11 @@ echo ""
 # ref_tst_compounds2 ref_tst_compounds3 ref_tst_compounds4
 TESTFILES='tst_comp tst_comp2 tst_enum_data tst_fillbug
  tst_group_data tst_nans tst_opaque_data tst_solar_1 tst_solar_2
- tst_solar_cmp tst_special_atts tst_string_data tst_unicode
- tst_vlen_data'
+ tst_solar_cmp tst_special_atts tst_string_data tst_unicode'
 
-# Run these programs to create some test files.
-${execdir}/tst_comp2
-${execdir}/tst_compress
+if test "x$NC_VLEN_NOTEST" = x ; then
+TESFILES="$TESTFILES tst_vlen_data"
+fi
 
 echo "*** Testing netCDF-4 features of nccopy on ncdump/*.nc files"
 for i in $TESTFILES ; do

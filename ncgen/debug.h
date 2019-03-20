@@ -1,8 +1,19 @@
+/*! \file
+
+Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+2015, 2016, 2017, 2018
+University Corporation for Atmospheric Research/Unidata.
+
+See \ref copyright file for more info.
+
+*/
+
 #ifndef NCGEN_DEBUG_H
 #define NCGEN_DEBUG_H
 
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/ncgen/debug.h,v 1.2 2010/03/31 18:18:34 dmh Exp $
  *********************************************************************/
@@ -28,11 +39,10 @@
 #  endif
 #endif
 
+extern int settrace(int);
 
-
-
-extern int ncgdebug;
 extern int debug;
+extern int ncgdebug;
 
 extern void fdebug(const char *fmt, ...);
 
@@ -50,10 +60,12 @@ The wrapped version:
 3. zeros all allocated memory.
 */
 
+#define emalloc(x) chkmalloc(x) /*note only single arg */
 #define ecalloc(x) chkcalloc(x) /*note only single arg */
 #define erealloc(p,x)   chkrealloc(p,x)
 #define efree(x) chkfree(x)
 #define estrdup(x) chkstrdup(x)
+extern void* chkmalloc(size_t);
 extern void* chkcalloc(size_t);
 extern void* chkrealloc(void*,size_t);
 extern void  chkfree(void*);

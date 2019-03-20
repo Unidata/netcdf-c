@@ -1,3 +1,9 @@
+# Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+# 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+# 2015, 2016, 2017, 2018
+# University Corporation for Atmospheric Research/Unidata.
+
+# See netcdf-c/COPYRIGHT file for more info.
 # Some extra tests
 SET(NC4_TESTS tst_dims tst_dims2 tst_dims3 tst_files tst_files4
   tst_vars tst_varms tst_unlim_vars tst_converts tst_converts2
@@ -8,9 +14,9 @@ SET(NC4_TESTS tst_dims tst_dims2 tst_dims3 tst_files tst_files4
   tst_fillbug tst_xplatform2 tst_endian_fill tst_atts t_type
   cdm_sea_soundings tst_vl tst_atts1 tst_atts2 tst_vars2 tst_files5
   tst_files6 tst_sync tst_h_strbug tst_h_refs tst_h_scalar tst_rename
-  tst_rename2 tst_h5_endians tst_atts_string_rewrite tst_put_vars_two_unlim_dim
+  tst_rename2 tst_rename3 tst_h5_endians tst_atts_string_rewrite tst_put_vars_two_unlim_dim
   tst_hdf5_file_compat tst_fill_attr_vanish tst_rehash tst_types tst_bug324
-  tst_filterparser tst_atts3 tst_put_vars tst_elatefill tst_udf)
+  tst_atts3 tst_put_vars tst_elatefill tst_udf)
 
 # Note, renamegroup needs to be compiled before run_grp_rename
 
@@ -23,6 +29,7 @@ IF(ENABLE_FILTER_TESTING)
   build_bin_test(test_filter)
   build_bin_test(test_filter_misc)
   ADD_SH_TEST(nc_test4 tst_filter)
+  SET(NC4_TESTS ${NC4_TESTS} tst_filterparser)
 ENDIF(ENABLE_FILTER_TESTING)
 
 ENDIF(BUILD_UTILITIES)

@@ -6,16 +6,25 @@ ncgen \- From a CDL file generate a netCDF-3 file, a netCDF-4 file or a C progra
 .HP
 ncgen
 .nh
-\%[\-b]
-\%[\-c]
-\%[\-f]
-\%[\-k \fIformat_name\fP]
 \%[\-\fIformat_code\fP]
-\%[\-l \fIoutput language\fP]
+\%[\-1|3|4|5|6|7]
+\%[\-b]
+\%[\-B \fIbuffersize\fP]
+\%[\-c]
+\%[\-d]
+\%[\-D \fIdebuglevel\fP]
+\%[\-f]
+\%[\-h]
+\%[\-H]
+\%[\-k \fIformat_name\fP]
+\%[\-l \fIb|c|f77|java\fP]
+\%[\-L \fIloglevel\fP]
+\%[\-M \fIname\fP]
 \%[\-n]
+\%[\-N \fIdatasetname\fP]
 \%[\-o \fInetcdf_filename\fP]
+\%[\-P]
 \%[\-x]
-\%[\fIinput_file\fP]
 .hy
 .ft
 .SH DESCRIPTION
@@ -43,17 +52,35 @@ in a netCDF file, use \fBncdump\fP to get a CDL version of the netCDF file,
 edit the CDL file to change the name of the dimensions, and use \fBncgen\fP
 to generate the corresponding netCDF file from the edited CDL file.
 .SH OPTIONS
+.IP "\fB-1|3|4|5|6|7\fP"
+Alternate method to specify the format.
+.RS
+.RS
+.IP "3 => netcdf classic format"
+.IP "4 => netCDF-4 format (enhanced data model)"
+.IP "5 => netcdf 5 format"
+.IP "6 => netCDF 64-bit format"
+.IP "7 => netCDF-4 classic model format (3+4 == 7)"
+.RE
+.RE
+See the \fB-k\fP flag.
 .IP "\fB-b\fP"
 Create a (binary) netCDF file.  If the \fB-o\fP option is absent, a
 default file name will be constructed from the basename of the CDL
 file, with any suffix replaced by the `.nc' extension.  If a
 file already exists with the specified name, it will be overwritten.
+.IP "\fB-B\fP \fRbuffersize\fP\fP"
+Specify the internal iterator buffer size.
 .IP "\fB-c\fP"
 Generate
 .B C
 source code that will create a netCDF file
 matching the netCDF specification.  The C source code is written to
 standard output; equivalent to \-lc.
+.IP "\fB-d\fP"
+Same as \fB-D1\fP.
+.IP "\fB-D\fP \fRdebuglevel\fP"
+Set the level of debug output.
 .IP "\fB-f\fP"
 Generate
 .B FORTRAN 77
@@ -61,13 +88,10 @@ source code that will create a netCDF file
 matching the netCDF specification.
 The source code is written to
 standard output; equivalent to \-lf77.
-.IP "\fB-o\fP \fRnetcdf_file\fP"
-Name of the file to pass to calls to "nc_create()".
-If this option is specified it implies
-(in the absence of any explicit \-l flag) the "\fB-b\fP" option.
-This option is necessary because netCDF files
-cannot be written directly to standard output, since standard output is not
-seekable.
+.IP "\fB-h\fP"
+Output help information.
+.IP "\fB-H\fP"
+Output the header only; ignore the \fIdata\fP section.
 .IP "\fB-k \fIformat_name\fP"
 .IP "\fB-\fIformat_code\fP"
 The \-k flag specifies the format of the file to be created and, by inference,
@@ -105,11 +129,7 @@ format numbers and format names. Various old format name aliases are
 also accepted but deprecated, e.g. 'hdf5', 'enhanced-nc3', etc.
 Also, note that \-v is accepted to mean the same thing as
 \-k for backward compatibility.
-.IP "\fB-x\fP"
-Don't initialize data with fill values.  This can speed up creation of
-large netCDF files greatly, but later attempts to read unwritten data
-from the generated file will not be easily detectable.
-.IP "\fB-l \fRoutput_language\fP"
+.IP "\fB-l\fP \fRb|c|f77|java\fP"
 The \-l flag specifies the output language to use
 when generating source code that will create or define a netCDF file
 matching the netCDF specification.
@@ -170,6 +190,26 @@ a \-k flag value of 4 (netCDF-4 classic model) will be used.
 .IP "\fB6.\fP"
 Otherwise ncgen will set the \-k flag to 1 (classic model).
 .RE
+.IP "\fB-L\fP \fRloglevel\fP"
+.IP "\fB-M\fP \fRname\fP"
+Specify the name for the main function for C, F77, or Java.
+.IP "\fB-n\fP"
+.IP "\fB-N\fP \fRdatasetname\fP"
+.IP "\fB-o\fP \fRnetcdf_file\fP"
+Name of the file to pass to calls to "nc_create()".
+If this option is specified it implies
+(in the absence of any explicit \-l flag) the "\fB-b\fP" option.
+This option is necessary because netCDF files
+cannot be written directly to standard output, since standard output is not
+seekable.
+.IP "\fB-P\fP"
+Use NC_DISKLESS mode to create the file totally in memory
+before persisting it to disk.
+.IP "\fB-x\fP"
+Don't initialize data with fill values.  This can speed up creation of
+large netCDF files greatly, but later attempts to read unwritten data
+from the generated file will not be easily detectable.
+
 .SH EXAMPLES
 .LP
 Check the syntax of the CDL file `\fBfoo.cdl\fP':

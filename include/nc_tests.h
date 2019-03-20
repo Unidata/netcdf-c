@@ -1,4 +1,4 @@
-/* This is part of the netCDF package. Copyright 2005 University
+/* This is part of the netCDF package. Copyright 2018 University
  * Corporation for Atmospheric Research/Unidata. See \ref copyright
  * file for conditions of use. */
 /** @internal @file
@@ -7,7 +7,7 @@
  * nc_test4 directories.
  *
  * @author Ed Hartnett, Denis Heimbigner, Ward Fisher
-*/
+ */
 
 #ifndef _NC_TESTS_H
 #define _NC_TESTS_H

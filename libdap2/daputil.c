@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
@@ -34,6 +34,8 @@ names to %2f.
 char*
 cdflegalname(char* name)
 {
+    if(name != NULL && name[0] == '/')
+	name = name+1; /* remove leading / so name will be legal */
     return repairname(name,"/");
 }
 
@@ -733,6 +735,7 @@ dap_badname(char* name)
     return 0;
 }
 
+#if 0
 /* Repair a dap name */
 char*
 dap_repairname(char* name)
@@ -740,6 +743,7 @@ dap_repairname(char* name)
     /* assume that dap_badname was called on this name and returned 1 */
     return repairname(name,baddapchars);
 }
+#endif
 
 /* Check a name to see if it contains illegal dap characters
    and repair them

@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2016, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
@@ -229,10 +229,10 @@ walkSeq(NCD4meta* compiler, NCD4node* topvar, NCD4node* vlentype, void** offsetp
     offset = *offsetp;
 
     /* process the record count */
+    if(compiler->swap)
+        swapinline64(offset);
     recordcount = GETCOUNTER(offset);
     SKIPCOUNTER(offset);
-    if(compiler->swap)
-        swapinline64(&recordcount);
 
     basetype = vlentype->basetype; /* This may be of any type potentially */
     assert(basetype->sort == NCD4_TYPE);

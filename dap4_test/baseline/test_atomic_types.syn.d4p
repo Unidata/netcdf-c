@@ -19,7 +19,6 @@
       <EnumConst name="Cirrus" value="10"/>
       <EnumConst name="Missing" value="127"/>
     </Enumeration>
-    <Opaque name="_bytestring"/>
   </Types>
   <Variables>
     <Int8 name="v8"/>
@@ -34,7 +33,7 @@
     <Float64 name="vd"/>
     <Char name="vc"/>
     <String name="vs"/>
-    <Opaque name="vo" type="/_bytestring"/>
+    <Opaque name="vo" type="/opaque16_t"/>
     <Enum name="primary_cloud" enum="/cloud_class_t">
       <Attribute name="_FillValue" type="/cloud_class_t">
         <Value value="Missing"/>

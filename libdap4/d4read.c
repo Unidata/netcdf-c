@@ -1,3 +1,14 @@
+/*! \file
+
+Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+2015, 2016, 2017, 2018
+University Corporation for Atmospheric Research/Unidata.
+
+See \ref copyright file for more info.
+
+*/
+
 #include "d4includes.h"
 #include "d4curlfunctions.h"
 #ifdef HAVE_FCNTL_H
@@ -181,7 +192,7 @@ readfile(NCD4INFO* state, const NCURI* uri, const char* suffix, NCbytes* packet)
     filename = ncbytesextract(tmp);
     ncbytesfree(tmp);
 
-    state->fileproto.filename = strdup(filename);
+    state->fileproto.filename = filename; /* filename is alloc'd here anyway */
 
     if(FLAGSET(state->controls.flags,NCF_SHOWFETCH)) {
 	char* surl = NULL;

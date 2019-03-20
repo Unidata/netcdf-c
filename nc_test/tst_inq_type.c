@@ -1,4 +1,4 @@
-/* This is part of the netCDF package. Copyright 2016 University
+/* This is part of the netCDF package. Copyright 2018 University
    Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
    conditions of use. See www.unidata.ucar.edu for more info.
 
@@ -8,10 +8,10 @@
 
 */
 
+#include "config.h"
 #include <stdlib.h>
 #include <string.h>
 
-#include "config.h"
 #include <nc_tests.h>
 #include "err_macros.h"
 #include <netcdf.h>
@@ -113,7 +113,7 @@ int main(int argc, char **argv) {
    SUMMARIZE_ERR;
 #endif /* ENABLE_CDF5 */
 
-#ifdef USE_NETCDF4
+#ifdef USE_HDF5
    printf("\n* Testing nc_inq_type with netcdf-4 + Classic Model\n");
    {
       if(nc_create(FILE_NAME,NC_CLOBBER|NC_NETCDF4|NC_CLASSIC_MODEL,&ncid)) ERR;
@@ -178,10 +178,9 @@ int main(int argc, char **argv) {
    }
    SUMMARIZE_ERR;
 
-#endif // USE_NETCDF4
+#endif /*USE_HDF5*/
 
    printf("* Finished.\n");
 
    FINAL_RESULTS;
 }
-

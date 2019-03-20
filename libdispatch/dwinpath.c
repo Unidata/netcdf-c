@@ -1,5 +1,5 @@
 /*
- * Copyright 1996, University Corporation for Atmospheric Research
+ * Copyright 2018, University Corporation for Atmospheric Research
  * See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 
@@ -20,6 +20,8 @@
 
 #include "ncexternl.h"
 #include "ncwinpath.h"
+
+extern char *realpath(const char *path, char *resolved_path);
 
 #undef PATHFORMAT
 

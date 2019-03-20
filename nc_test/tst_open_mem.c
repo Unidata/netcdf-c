@@ -1,3 +1,14 @@
+/*! \file
+
+Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+2015, 2016, 2017, 2018
+University Corporation for Atmospheric Research/Unidata.
+
+See \ref copyright file for more info.
+
+*/
+
 #include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,8 +42,12 @@ readfile(const char* path, NC_memio* memio)
 #else
     f = fopen(path,"r");
 #endif
-    if(f == NULL)
-	{status = errno; goto done;}
+    if(f == NULL) {
+	fprintf(stderr,"cannot open file: %s\n",path);
+	fflush(stderr);
+	status = errno;
+	goto done;
+    }
     /* get current filesize */
     if(fseek(f,0,SEEK_END) < 0)
 	{status = errno; goto done;}
@@ -49,19 +64,20 @@ readfile(const char* path, NC_memio* memio)
         size_t actual;
         actual = fread(p,1,count,f);
 	if(actual == 0 || ferror(f))
-	    {status = NC_EIO; goto done;}	 
+	    {status = NC_EIO; goto done;}
 	count -= actual;
 	p += actual;
     }
     if(memio) {
 	memio->size = (size_t)filesize;
 	memio->memory = memory;
-    }    
+	memory = NULL;
+    }
 done:
     if(status != NC_NOERR && memory != NULL)
 	free(memory);
     if(f != NULL) fclose(f);
-    return status;    
+    return status;
 }
 
 int
@@ -82,6 +98,8 @@ main(int argc, char** argv)
 	goto exit;
     if((retval = nc_close(ncid)))
 	goto exit;
+    if(mem.memory)
+        free(mem.memory);
     return 0;
 exit:
     fprintf(stderr,"retval=%d\n",retval);

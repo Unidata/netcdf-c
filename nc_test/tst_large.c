@@ -1,5 +1,5 @@
 /*
-  Copyright 2008, UCAR/Unidata
+  Copyright 2018, UCAR/Unidata
   See COPYRIGHT file for copying and redistribution conditions.
 
   This program tests the large file bug in netCDF 3.6.2,

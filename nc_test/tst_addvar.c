@@ -1,3 +1,14 @@
+/*! \file
+
+Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+2015, 2016, 2017, 2018
+University Corporation for Atmospheric Research/Unidata.
+
+See \ref copyright file for more info.
+
+*/
+
 /* This program adds two new variables to an existing netCDF file.
  * It is used to test if netCDF can correctly calculate the file offsets
  * for the two new variables, in particular for files that align the
@@ -15,22 +26,23 @@
  * Check the first new variable's begin to see whether it is less than
  * the last variable's offset in the existing file.
  */
+#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <netcdf.h>
 
-#define ERR {if(err!=NC_NOERR){printf("Error at line=%d: %s\n", __LINE__, nc_strerror(err));}}
+#define ERR {if(err!=NC_NOERR){printf("Error at line=%d: %s\n", __LINE__, nc_strerror(err));nerrs++;}}
 
 int main(int argc, char** argv) {
-    int i, j, err, nerrs, ncid, varid[5], dimid[2];
+    int i, j, err, nerrs=0, ncid, varid[5], dimid[2];
     int old_buf[3][5], get_buf[3][5], new_buf[1024];
+    char *filename;
 
-    if (argc != 2) {
-        printf("Usage: %s [filename]\n",argv[0]);
-        exit(0);
-    }
+    filename = argv[1];
+    if (argc == 1) filename = "tst_pnetcdf.nc";
 
-    err = nc_open(argv[1], NC_WRITE, &ncid); ERR
+    err = nc_open(filename, NC_WRITE, &ncid); ERR
+    if (err != NC_NOERR) return 1;
 
     /* read all fixed-size variables */
     err = nc_inq_varid(ncid, "fixed_var_1", &varid[0]);
@@ -60,7 +72,6 @@ int main(int argc, char** argv) {
     err = nc_get_var_int(ncid, varid[1], get_buf[1]); ERR
     err = nc_get_var_int(ncid, varid[2], get_buf[2]); ERR
 
-    nerrs = 0;
     for (i=0; i<3; i++) {
         char varname[32];
         sprintf(varname, "fixed_var_%d",2*i+1);
@@ -75,10 +86,9 @@ int main(int argc, char** argv) {
 
     err = nc_close(ncid); ERR
 
-    if (nerrs > 0) exit(-1);
 /*
     SUMMARIZE_ERR;
     FINAL_RESULTS;
 */
-    return 0;
+    return (nerrs > 0);
 }

@@ -1,5 +1,5 @@
 /* This is part of the netCDF package.
- * Copyright 2005 University Corporation for Atmospheric Research/Unidata
+ * Copyright 2018 University Corporation for Atmospheric Research/Unidata
  * See COPYRIGHT file for conditions of use.
  *
  * Test per-variable fill mode for classic file formats.
@@ -7,11 +7,11 @@
  * Author: Wei-keng Liao.
  */
 
+#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <netcdf.h>
-
 
 #define CHECK_ERR { \
     if (err != NC_NOERR) { \
@@ -143,4 +143,3 @@ int main(int argc, char** argv) {
 
     return (nerrs > 0);
 }
-

@@ -19,12 +19,19 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
+# Figure our dst server; if none, then just stop
+DTS=`${execdir}/findtestserver dap2 dts`
+if test "x$DTS" = "x" ; then
+echo "WARNING: Cannot locate test server for dts"
+exit 1
+fi
+
 OCLOGFILE=stderr
 if test "x$DBG" = x1 ; then
 SHOW=1
 fi
 
-URL="http://remotetest.unidata.ucar.edu/dts/test.03"
+URL="$DTS/test.03"
 
 PREFIX="[log][show=fetch]"
 SUFFIX="log&show=fetch"

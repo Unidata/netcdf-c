@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2009, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
@@ -9,6 +9,9 @@
 #ifdef ENABLE_JAVA
 
 #include <math.h> 
+#ifndef isnan
+extern int isnan(double);
+#endif
 
 static int j_uid = 0;
 
@@ -19,7 +22,7 @@ j_charconstant(Generator* generator, Symbol* sym, Bytebuffer* codebuf, ...)
     /* Just transfer charbuf to codebuf */
     Bytebuffer* charbuf;
     va_list ap;
-    vastart(ap,codebuf);
+    va_start(ap,codebuf);
     charbuf = va_arg(ap, Bytebuffer*);
     va_end(ap);
     bbNull(charbuf);

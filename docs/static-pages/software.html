@@ -234,7 +234,7 @@
         <a href="#Panoply" >Panoply</a>
       </li>
       <li>
-        <a href="#Parallel-NetCDF" >Parallel-NetCDF</a>
+        <a href="#PnetCDF" >PnetCDF</a>
       </li>
       <li>
         <a href="#Paraview" >Paraview and vtkCSCSNetCDF</a>
@@ -2344,12 +2344,12 @@ or using ECMWF reanalysis on a reduced grid
       B. Schmunk</a>.
     </p>
     <p></p>
-    <h2><a id="Parallel-NetCDF" name="Parallel-NetCDF">Parallel-NetCDF</a></h2>
+    <h2><a id="PnetCDF" name="PnetCDF">PnetCDF</a></h2>
     <p>
       A group of researchers at Northwestern University and Argonne National
       Laboratory (Jianwei Li, Wei-keng Liao, Alok Choudhary, Robert Ross, Rajeev
       Thakur, William Gropp, and Rob Latham) have designed and implemented a new
-      <a href="http://www.mcs.anl.gov/parallel-netcdf/" > parallel interface for writing and reading netCDF data</a>, tailored for use on
+      <a href="https://parallel-netcdf.github.io">parallel interface for writing and reading netCDF data</a>, tailored for use on
       high performance platforms with parallel I/O.  The implementation builds on
       the MPI-IO interface, providing portability to most platforms in use and
       allowing users to leverage the many optimizations built into MPI-IO
@@ -2357,13 +2357,13 @@ or using ECMWF reanalysis on a reduced grid
       IBM SP machines using IBM's MPI.
     </p>
     <p>
-      Documentation and code for Parallel-NetCDF is now available for
+      Documentation and code for PnetCDF is now available for
       testing.
       Although a few interfaces are not implemented yet, the current implementation
       is complete enough to provide significant I/O performance improvements on
       parallel platforms, as described in a <a
       href="ftp://info.mcs.anl.gov/pub/tech_reports/reports/P1048.pdf"
-      >technical report</a>.   Users are invited to test Parallel-NetCDF
+      >technical report</a>.   Users are invited to test PnetCDF
       in their applications.
     </p>
     <p></p>
@@ -2604,7 +2604,7 @@ or using ECMWF reanalysis on a reduced grid
     <p>
       Vicente Galiano of Miguel Hernandez University has developed a Python interface to
       PnetCDF. This Python's package called "PyPnetCDF" allows access to NetCDF files using MPI and
-      the library pnetCDF developed by http://www.mcs.anl.gov/parallel-netcdf/.
+      the library PnetCDF developed by https://parallel-netcdf.github.io.
       The tools are very similar to Konrad Hinsen's NetCDF package to Python
       but can read and write in a parallel way. For more information, see:
       <a

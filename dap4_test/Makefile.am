@@ -1,5 +1,5 @@
 ## This is a automake file, part of Unidata's netCDF package.
-# Copyright 2011, see the COPYRIGHT file for more information.
+# Copyright 2018, see the COPYRIGHT file for more information.
 
 # This file builds and runs DAP4 tests.
 
@@ -12,7 +12,7 @@ include $(top_srcdir)/lib_flags.am
 #sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #TESTS_ENVIRONMENT = export SETX=1;
-	
+
 LDADD = ${top_builddir}/liblib/libnetcdf.la
 AM_CPPFLAGS += -I$(top_srcdir)/libdap4
 
@@ -46,8 +46,11 @@ test_data.log: test_meta.log
 if ENABLE_DAP_REMOTE_TESTS
 # Note: This program name was changed to findtestserver4
 # to avoid cmake complaint about duplicate targets.
-check_PROGRAMS += findtestserver4
+noinst_PROGRAMS = findtestserver4
 findtestserver4_SOURCES = findtestserver4.c
+endif
+
+if ENABLE_DAP_REMOTE_TESTS
 if BUILD_UTILITIES
   # relies on ncdump
   TESTS += test_remote.sh

@@ -1,4 +1,4 @@
-/* This is part of the netCDF package.  Copyright 2005-2011 University
+/* This is part of the netCDF package.  Copyright 2018-2011 University
    Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
    conditions of use.
 

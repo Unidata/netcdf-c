@@ -60,7 +60,7 @@
 	long inb, oub; \
         char time_mess[100]; \
         float seconds;
-      
+
 #define TIMING_START \
 	TMrepeats = 1; \
 	do { \
@@ -71,7 +71,7 @@
 	    inb = ru.ru_inblock; \
             oub = ru.ru_oublock; \
 	    for(TMreps=0; TMreps < TMrepeats; TMreps++) {
-	
+
 #define TIMING_END(seconds)				\
             } \
 	    if(getrusage(RUSAGE_SELF, &ru)) {			\
@@ -99,7 +99,7 @@ return n; \
 
 void
 parse_args(int argc, char *argv[], /* from command-line invocation */
-	   int *deflate_levelp,	   /* returned: 0 uncompressed, 
+	   int *deflate_levelp,	   /* returned: 0 uncompressed,
 				      1-9 compression level */
 	   int *shufflep,	   /* returned: 1 if shuffle, otherwise 0 */
 	   size_t *dims,	   /* returned: dimension sizes */
@@ -128,7 +128,7 @@ parse_args(int argc, char *argv[], /* from command-line invocation */
 	dims[1] = dims[0];
     if(argc > 5)
 	chunks[1] = atol(argv[5]);
-    else 
+    else
 	chunks[1] = chunks[0];
     if(argc > 6)
 	dims[2] = atol(argv[6]);
@@ -145,10 +145,10 @@ parse_args(int argc, char *argv[], /* from command-line invocation */
     if(argc > 10)
 	*cache_prep = atof(argv[10]);
     if(argc > 11) {
-	printf("Usage: %s [def_level] [dim1] [chunk1] [dim2] [chunk2] [dim3] [chunk3] [cache_size] [cache_nelems] [cache_pre]\n", 
+	printf("Usage: %s [def_level] [dim1] [chunk1] [dim2] [chunk2] [dim3] [chunk3] [cache_size] [cache_nelems] [cache_pre]\n",
 	       argv[0]);
 	exit(1);
-    } 
+    }
     return;
 }
 
@@ -204,11 +204,11 @@ main(int argc, char *argv[]) {
     /* From args, get parameters for timing, including variable and
        chunk sizes.  Negative deflate level means also use shuffle
        filter. */
-    parse_args(argc, argv, &deflate_level, &shuffle, dims, 
+    parse_args(argc, argv, &deflate_level, &shuffle, dims,
 	       chunks, &cache_size, &cache_hash, &cache_pre);
 
     /* get cache defaults, then set cache parameters that are not default */
-    if((stat = nc_get_chunk_cache(&cache_size_def, &cache_hash_def, 
+    if((stat = nc_get_chunk_cache(&cache_size_def, &cache_hash_def,
 				   &cache_pre_def)))
 	ERR1(stat);
     if(cache_size == 0)
@@ -219,7 +219,7 @@ main(int argc, char *argv[]) {
 	cache_pre = cache_pre_def;
     if((stat = nc_set_chunk_cache(cache_size, cache_hash, cache_pre)))
 	ERR1(stat);
-    printf("cache: %3.2f MBytes  %ld objs  %3.2f preempt, ", 
+    printf("cache: %3.2f MBytes  %ld objs  %3.2f preempt, ",
 	   cache_size/1.e6, cache_hash, cache_pre);
 
     if(deflate_level == 0) {
@@ -257,7 +257,7 @@ main(int argc, char *argv[]) {
 
     if((stat = nc_create(FILENAME, NC_NETCDF4 | NC_CLASSIC_MODEL, &ncid)))
 	ERR1(stat);
-    
+
     /* define dimensions */
     if((stat = nc_def_dim(ncid, "dim1", dims[0], &dim1id)))
 	ERR1(stat);
@@ -265,18 +265,18 @@ main(int argc, char *argv[]) {
 	ERR1(stat);
     if((stat = nc_def_dim(ncid, "dim3", dims[2], &dim3id)))
 	ERR1(stat);
-    
+
     /* define variables */
     var_dims[0] = dim1id;
     var_dims[1] = dim2id;
     var_dims[2] = dim3id;
-    if((stat = nc_def_var(ncid, "var_contiguous", NC_FLOAT, RANK_var1, 
+    if((stat = nc_def_var(ncid, "var_contiguous", NC_FLOAT, RANK_var1,
 			   var_dims, &varid_g)))
 	ERR1(stat);
-    if((stat = nc_def_var(ncid, "var_chunked", NC_FLOAT, RANK_var1, 
+    if((stat = nc_def_var(ncid, "var_chunked", NC_FLOAT, RANK_var1,
 			   var_dims, &varid_k)))
 	ERR1(stat);
-    if((stat = nc_def_var(ncid, "var_compressed", NC_FLOAT, RANK_var1, 
+    if((stat = nc_def_var(ncid, "var_compressed", NC_FLOAT, RANK_var1,
 			   var_dims, &varid_x)))
 	ERR1(stat);
 
@@ -290,7 +290,7 @@ main(int argc, char *argv[]) {
 	ERR1(stat);
 
     if (deflate_level != 0) {
-	if((stat = nc_def_var_deflate(ncid, varid_x, shuffle, 
+	if((stat = nc_def_var_deflate(ncid, varid_x, shuffle,
 				       NC_COMPRESSED, deflate_level)))
 	    ERR1(stat);
     }
@@ -298,7 +298,7 @@ main(int argc, char *argv[]) {
     /* leave define mode */
     if((stat = nc_enddef (ncid)))
 	ERR1(stat);
-    
+
     /* write each variable one yz slab at a time */
     start[0] = 0;
     start[1] = 0;
@@ -404,7 +404,7 @@ main(int argc, char *argv[]) {
     else
 	printf(" %5.2g x slower\n", 1.0/ratio);
     printf("\n");
-    
+
     /* write each variable one xy slab at a time */
     start[0] = 0;
     start[1] = 0;
@@ -424,7 +424,7 @@ main(int argc, char *argv[]) {
     TIMING_END(TMsec) ;
     printf("\n");
     contig_time = TMsec;
-    
+
     sprintf(time_mess,"  chunked    write %3ld %3ld %3d  %3ld %3ld %3ld",
 	    dims[0], dims[1], 1, chunks[0], chunks[1], chunks[2]);
     TIMING_START ;
@@ -477,7 +477,7 @@ main(int argc, char *argv[]) {
     TIMING_END(TMsec) ;
     printf("\n");
     contig_time = TMsec;
-    
+
     sprintf(time_mess,"  chunked     read %3d %3ld %3ld  %3ld %3ld %3ld",
 	    1, dims[1], dims[2] , chunks[0], chunks[1], chunks[2]);
     TIMING_START ;
@@ -493,7 +493,7 @@ main(int argc, char *argv[]) {
 	printf(" %5.2g x faster\n", ratio);
     else
 	printf(" %5.2g x slower\n", 1.0/ratio);
-    
+
     sprintf(time_mess,"  compressed  read %3d %3ld %3ld  %3ld %3ld %3ld",
 	    1, dims[1], dims[2] , chunks[0], chunks[1], chunks[2]);
     TIMING_START ;
@@ -530,7 +530,7 @@ main(int argc, char *argv[]) {
     TIMING_END(TMsec) ;
     printf("\n");
     contig_time = TMsec;
-    
+
     sprintf(time_mess,"  chunked     read %3ld %3d %3ld  %3ld %3ld %3ld",
 	    dims[0], 1, dims[2], chunks[0], chunks[1], chunks[2]);
     TIMING_START ;
@@ -546,7 +546,7 @@ main(int argc, char *argv[]) {
 	printf(" %5.2g x faster\n", ratio);
     else
 	printf(" %5.2g x slower\n", 1.0/ratio);
-    
+
     sprintf(time_mess,"  compressed  read %3ld %3d %3ld  %3ld %3ld %3ld",
 	    dims[0], 1, dims[2], chunks[0], chunks[1], chunks[2]);
     TIMING_START ;

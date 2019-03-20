@@ -1,4 +1,4 @@
-/* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
+/* Copyright 2018, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
 #ifndef LIST_H
 #define LIST_H 1
@@ -21,6 +21,7 @@ typedef struct List {
 
 EXTERNC List* listnew(void);
 EXTERNC int listfree(List*);
+EXTERNC int listfreeall(List*);
 EXTERNC int listsetalloc(List*,unsigned long);
 EXTERNC int listsetlength(List*,unsigned long);
 

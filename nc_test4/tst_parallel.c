@@ -1,5 +1,5 @@
 /*
-Copyright 2009, UCAR/Unidata
+Copyright 2018, UCAR/Unidata
 See COPYRIGHT file for copying and redistribution conditions.
 
 This program tests netcdf-4 parallel I/O.
@@ -93,7 +93,7 @@ main(int argc, char **argv)
     /* Create a parallel netcdf-4 file. */
     /*nc_set_log_level(3);*/
     sprintf(file_name, "%s/%s", TEMP_LARGE, FILE);
-    if ((res = nc_create_par(file_name, NC_NETCDF4|NC_MPIIO, comm,
+    if ((res = nc_create_par(file_name, NC_NETCDF4, comm,
 			     info, &ncid))) ERR;
 
     /* Create three dimensions. */

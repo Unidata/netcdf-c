@@ -1,4 +1,4 @@
-/* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
+/* Copyright 2018, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information.
 */
 
@@ -468,6 +468,8 @@ dap_parse_cleanup(DAPparsestate* state)
     daplexcleanup(&state->lexstate);
     if(state->ocnodes != NULL) ocnodes_free(state->ocnodes);
     state->ocnodes = NULL;
+    nullfree(state->code);
+    nullfree(state->message);
     free(state);
 }
 

@@ -1,6 +1,6 @@
 /*
-Copyright (c) 1998-2017 University Corporation for Atmospheric Research/Unidata
-See LICENSE.txt for license information.
+Copyright (c) 1998-2018 University Corporation for Atmospheric Research/Unidata
+See COPYRIGHT for license information.
 */
 
 
@@ -160,8 +160,8 @@ NC_authsetup(NCauth* auth, NCURI* uri)
           if(ret) {nullfree(uri_hostport); return ret;}
 	    }
       }
-      setauthfield(auth,"HTTP.USERNAME",user);
-      setauthfield(auth,"HTTP.PASSWORD",pwd);
+      setauthfield(auth,"HTTP.CREDENTIALS.USERNAME",user);
+      setauthfield(auth,"HTTP.CREDENTIALS.PASSWORD",pwd);
       nullfree(user);
       nullfree(pwd);
       nullfree(uri_hostport);

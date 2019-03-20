@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
@@ -63,8 +63,7 @@ static NCerror applyclientparams(NCDAPCOMMON*);
 static int
 NCD2_create(const char *path, int cmode,
            size_t initialsz, int basepe, size_t *chunksizehintp,
-	   int use_parallel, void* mpidata,
-           NC_Dispatch*,NC* ncp);
+           void* mpidata, NC_Dispatch*,NC* ncp);
 
 static int NCD2_redef(int ncid);
 static int NCD2__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree, size_t r_align);
@@ -232,8 +231,7 @@ NCD2_abort(int ncid)
 static int
 NCD2_create(const char *path, int cmode,
            size_t initialsz, int basepe, size_t *chunksizehintp,
-	   int use_parallel, void* mpidata,
-           NC_Dispatch* dispatch, NC* ncp)
+           void* mpidata, NC_Dispatch* dispatch, NC* ncp)
 {
    return NC_EPERM;
 }
@@ -276,10 +274,8 @@ NCD2_get_vars(int ncid, int varid,
 
 /* See ncd2dispatch.c for other version */
 int
-NCD2_open(const char* path, int mode,
-               int basepe, size_t *chunksizehintp,
- 	       int useparallel, void* mpidata,
-               NC_Dispatch* dispatch, NC* drno)
+NCD2_open(const char* path, int mode, int basepe, size_t *chunksizehintp,
+          void* mpidata, NC_Dispatch* dispatch, NC* drno)
 {
     NCerror ncstat = NC_NOERR;
     OCerror ocstat = OC_NOERR;
@@ -784,11 +780,45 @@ fprintf(stderr,"\n");
 	}
         var->ncid = varid;
 	if(var->attributes != NULL) {
+	    NCattribute* unsignedatt = NULL;
+	    int unsignedval = 0;
+	    /* See if variable has _Unsigned attribute */ 
 	    for(j=0;j<nclistlength(var->attributes);j++) {
 		NCattribute* att = (NCattribute*)nclistget(var->attributes,j);
+		if(strcmp(att->name,"_Unsigned") == 0) {
+		    char* value = nclistget(att->values,0);
+		    unsignedatt = att;
+		    if(value != NULL) {
+			if(strcasecmp(value,"false")==0
+			   || strcmp(value,"0")==0)
+			    unsignedval = 0;
+			else
+			    unsignedval = 1;
+		    }
+		    break;
+		}
+	    }
+	    for(j=0;j<nclistlength(var->attributes);j++) {
+		NCattribute* att = (NCattribute*)nclistget(var->attributes,j);
+		char* val = NULL;
 		/* Check for _FillValue/Variable mismatch */
 		if(strcmp(att->name,"_FillValue")==0) {
-		    if(att->etype != var->etype) {
+		    /* Special case var is byte, fillvalue is int16 and 
+			unsignedattr == 0;
+			This exception is needed because DAP2 byte type
+			is equivalent to netcdf ubyte type. So passing
+                        a signed byte thru DAP2 requires some type and
+                        signedness hacking that we have to undo.
+		    */
+		    if(var->etype == NC_UBYTE
+			&& att->etype == NC_SHORT
+			&& unsignedatt != NULL && unsignedval == 0) {
+			/* Forcibly change the attribute type and signedness */
+			att->etype = NC_BYTE;
+			val = nclistremove(unsignedatt->values,0);
+			if(val) free(val);
+			nclistpush(unsignedatt->values,strdup("false"));
+		    } else if(att->etype != var->etype) {/* other mismatches */
 			/* Log a message */
 	                nclog(NCLOGERR,"_FillValue/Variable type mismatch: variable=%s",var->ncbasename);
 			/* See if mismatch is allowed */
@@ -901,6 +931,7 @@ buildattribute(NCDAPCOMMON* dapcomm, CDFnode* var, NCattribute* att)
     NCerror ncstat = NC_NOERR;
     unsigned int nvalues = nclistlength(att->values);
     int varid = (var == NULL ? NC_GLOBAL : var->ncid);
+    void* mem = NULL;
 
     /* If the type of the attribute is string, then we need*/
     /* to convert to a single character string by concatenation.
@@ -933,30 +964,21 @@ buildattribute(NCDAPCOMMON* dapcomm, CDFnode* var, NCattribute* att)
     } else {
 	nc_type atype;
 	unsigned int typesize;
-	void* mem = NULL;
 	atype = nctypeconvert(dapcomm,att->etype);
 	typesize = nctypesizeof(atype);
 	if (nvalues > 0) {
-		mem = malloc(typesize * nvalues);
-#ifdef _MSC_VER
-		_ASSERTE(_CrtCheckMemory());
-#endif
+	    mem = malloc(typesize * nvalues);
 	}
         ncstat = dapcvtattrval(atype,mem,att->values,att);
-#ifdef _MSC_VER
-	_ASSERTE(_CrtCheckMemory());
-#endif
-    if(ncstat == NC_ERANGE)
-	nclog(NCLOGERR,"Attribute value out of range: %s:%s",
+        if(ncstat == NC_ERANGE)
+	    nclog(NCLOGERR,"Attribute value out of range: %s:%s",
 		(var==NULL?"":var->ncbasename),att->name);
-    if(ncstat) {nullfree(mem); goto done;}
-    ncstat = nc_put_att(dapcomm->substrate.nc3id,varid,att->name,atype,nvalues,mem);
-#ifdef _MSC_VER
-	_ASSERTE(_CrtCheckMemory());
-#endif
-    if(ncstat) {nullfree(mem); goto done;}
+        if(ncstat) goto done;
+        ncstat = nc_put_att(dapcomm->substrate.nc3id,varid,att->name,atype,nvalues,mem);
+        if(ncstat) goto done;
     }
 done:
+    if(mem) free(mem);
     return THROW(ncstat);
 }
 

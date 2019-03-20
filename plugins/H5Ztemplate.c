@@ -81,7 +81,7 @@ size_t H5Z_filter_xxxx(unsigned int flags, size_t cd_nelmts,
 
     /* Prepare the output buffer. */
     outbuflen = M;  /* worst case */
-    outbuf = malloc(outbuflen);
+    outbuf = H5allocate_memory(outbuflen,0);
     if (outbuf == NULL) {
       fprintf(stderr, "memory allocation failed for xxxx compression\n");
       goto cleanupAndFail;
@@ -92,13 +92,13 @@ size_t H5Z_filter_xxxx(unsigned int flags, size_t cd_nelmts,
   }
 
   /* Always replace the input buffer with the output buffer. */
-  free(*buf);
+  H5free_memory(*buf);
   *buf = outbuf;
   *buf_size = outbuflen;
   return outdatalen;
 
  cleanupAndFail:
   if (outbuf)
-    free(outbuf);
+    H5free_memory(outbuf);
   return 0;
 }

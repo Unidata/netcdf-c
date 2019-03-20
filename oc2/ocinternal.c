@@ -1,4 +1,4 @@
-/* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
+/* Copyright 2018, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
 
 #include "config.h"
@@ -101,6 +101,9 @@ ocopen(OCstate** statep, const char* url)
     OCstate * state = NULL;
     NCURI* tmpurl = NULL;
     CURL* curl = NULL; /* curl handle*/
+
+    if(!ocinitialized)
+        ocinternalinitialize();
 
     if(ncuriparse(url,&tmpurl) != NCU_OK) {
 	OCTHROWCHK(stat=OC_EBADURL);

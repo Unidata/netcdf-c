@@ -8,12 +8,11 @@
 - \subpage netcdf_data_set_components
 - \subpage netcdf_perf_chunking
 - \subpage netcdf_utilities_guide
-- \subpage dap2
-- \subpage dap4
-- \subpage compress
 - \subpage BestPractices
 - \subpage user_defined_formats
 - \subpage users_guide_appendices
+- \subpage dap2
+- \subpage dap4
 
 <H2>The Purpose of NetCDF</H2>
 
@@ -48,7 +47,10 @@ web site (http://www.unidata.ucar.edu/netcdf), and with the netCDF
 distribution.
 
 The latest version of this document, and the language specific guides,
-can be found at the netCDF web site (http://www.unidata.ucar.edu/netcdf/docs) along with extensive additional information about netCDF, including pointers to other software that works with netCDF data.
+can be found at the netCDF web site
+(http://www.unidata.ucar.edu/netcdf/docs) along with extensive
+additional information about netCDF, including pointers to other
+software that works with netCDF data.
 
 Separate documentation of the Java netCDF library can be found at
 http://www.unidata.ucar.edu/software/netcdf-java/.
@@ -88,11 +90,9 @@ were written.
 
 Unidata supports the netCDF interfaces for C (see <a
 href="http://www.unidata.ucar.edu/netcdf/docs/" >NetCDF-C User's
-Guide</a>), FORTRAN 77 (see <a
-href="http://www.unidata.ucar.edu/netcdf/documentation/historic/netcdf-f77/index.html#Top"
->NetCDF Fortran 77 Interface Guide</a>), FORTRAN 90 (see <a
-href="http://www.unidata.ucar.edu/netcdf/documentation/historic/netcdf-f90/index.html"
->NetCDF Fortran 90 Interface Guide</a>), and C++ (see <a
+Guide</a>), Fortran (see <a
+href="http://www.unidata.ucar.edu/netcdf/fortran/docs/"
+>NetCDF-Fortran User's Guide</a>) and C++ (see <a
 href="http://www.unidata.ucar.edu/netcdf/documentation/historic/cxx4/index.html"
 >NetCDF C++ Interface Guide</a>).
 
@@ -261,7 +261,7 @@ The netCDF C-based libraries depend on a core C library and some externally deve
 - NetCDF-Java is an independent implementation, not shown here
 - C-based 3rd-party netCDF APIs for other languages include Python, Ruby, Perl, Fortran-2003, MATLAB, IDL, and R
 - Libraries that don't support netCDF-4 include Perl and old C++
-- 3rd party libraries are optional (HDF5, HDF4, zlib, szlib, pnetcdf, libcurl), depending on what features are needed and how netCDF is configured
+- 3rd party libraries are optional (HDF5, HDF4, zlib, szlib, PnetCDF, libcurl), depending on what features are needed and how netCDF is configured
 - "Apps" in the above means applications, not mobile apps!
 
 \section performance What about Performance?

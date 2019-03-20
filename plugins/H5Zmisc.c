@@ -1,3 +1,4 @@
+#include "config.h"
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -6,12 +7,27 @@
 #include <hdf5.h>
 /* Older versions of the hdf library may define H5PL_type_t here */
 #include <H5PLextern.h>
+#include "h5misc.h"
 
 #ifndef DLL_EXPORT
 #define DLL_EXPORT
 #endif
 
-#include "h5misc.h"
+/* WARNING:
+Starting with HDF5 version 1.10.x, the plugin code MUST be
+careful when using the standard *malloc()*, *realloc()*, and
+*free()* function.
+
+In the event that the code is allocating, reallocating, for
+free'ing memory that either came from or will be exported to the
+calling HDF5 library, then one MUST use the corresponding HDF5
+functions *H5allocate_memory()*, *H5resize_memory()*,
+*H5free_memory()* [5] to avoid memory failures.
+
+Additionally, if your filter code leaks memory, then the HDF5 library
+will generate an error.
+
+*/
 
 #undef DEBUG
 
@@ -21,8 +37,9 @@
 #define DBLVAL 12345678.12345678
 
 static int paramcheck(size_t nparams, const unsigned int* params);
-static void byteswap8(unsigned char* mem);
 static void mismatch(size_t i, const char* which);
+
+extern void NC_filterfix8(void* mem, int decode);
 
 const H5Z_class2_t H5Z_TEST[1] = {{
     H5Z_CLASS_T_VERS,                /* H5Z_class_t version */
@@ -93,17 +110,37 @@ H5Z_filter_test(unsigned int flags, size_t cd_nelmts,
     if (flags & H5Z_FLAG_REVERSE) {
 
         /* Replace buffer */
-        newbuf = malloc(*buf_size);
+#ifdef HDF5_HAS_ALLOCATE_MEMORY
+        newbuf = H5allocate_memory(*buf_size,0);
+#else
+        newbuf = malloc(*buf_size * sizeof(void));
+#endif
         if(newbuf == NULL) abort();
         memcpy(newbuf,*buf,*buf_size);
+        /* reclaim old buffer */
+#ifdef HDF5_HAS_H5FREE
+        H5free_memory(*buf);
+#else
+        free(*buf);
+#endif
         *buf = newbuf;
 
     } else {
 
         /* Replace buffer */
-        newbuf = malloc(*buf_size);
-        if(newbuf == NULL) abort();
+#ifdef HDF5_HAS_ALLOCATE_MEMORY
+      newbuf = H5allocate_memory(*buf_size,0);
+#else
+      newbuf = malloc(*buf_size * sizeof(void));
+#endif
+      if(newbuf == NULL) abort();
         memcpy(newbuf,*buf,*buf_size);
+	/* reclaim old buffer */
+#ifdef HDF5_HAS_H5FREE
+        H5free_memory(*buf);
+#else
+        free(*buf);
+#endif
         *buf = newbuf;
 
     }
@@ -118,12 +155,10 @@ static int
 paramcheck(size_t nparams, const unsigned int* params)
 {
     size_t i;
-    /* Test endianness of this machine */
-    const unsigned char b[4] = {0x0,0x0,0x0,0x1}; /* value 1 in big-endian*/
-    int bigendian = (1 == *(unsigned int*)b); /* 1=>big 0=>little*/
+    unsigned char mem[8];
 
     if(nparams != 14) {
-	fprintf(stderr,"Too few parameters: need=16 sent=%ld\n",(unsigned long)nparams);
+	fprintf(stderr,"Too few parameters: need=14 sent=%ld\n",(unsigned long)nparams);
 	goto fail;
     }
 
@@ -170,33 +205,37 @@ paramcheck(size_t nparams, const unsigned int* params)
 	    {mismatch(i,"float"); goto fail; };
 	    break;
         case 8: {/*double*/
-            double x = *(double*)&params[i];
+            double x;
+	    memcpy(mem,&params[i],sizeof(mem));
+	    NC_filterfix8(mem,1); /* Fix up endianness */
+            x = *(double*)mem;
 	    dval = DBLVAL;
             i++; /* takes two parameters */
-            if(bigendian)
-		byteswap8((unsigned char*)&x);
 	    if(dval != x) {
                 mismatch(i,"double");
                 goto fail;
             }
             }; break;
         case 10: {/*signed long long*/
-            signed long long x = *(signed long long*)&params[i];
+            signed long long x;
+	    memcpy(mem,&params[i],sizeof(mem));
+	    NC_filterfix8(mem,1); /* Fix up endianness */
+            x = *(signed long long*)mem;
+	    NC_filterfix8(&x,1); /* Fix up endianness */
 	    lval = -9223372036854775807L;
             i++; /* takes two parameters */
-            if(bigendian)
-		byteswap8((unsigned char*)&x);
             if(lval != x) {
                 mismatch(i,"signed long long");
                 goto fail;
             }
             }; break;
         case 12: {/*unsigned long long*/
-            unsigned long long x = *(unsigned long long*)&params[i];
+            unsigned long long x;
+	    memcpy(mem,&params[i],sizeof(mem));
+	    NC_filterfix8(mem,1); /* Fix up endianness */
+            x = *(unsigned long long*)mem;
 	    lval = 18446744073709551615UL;
             i++; /* takes two parameters */
-            if(bigendian)
-		byteswap8((unsigned char*)&x);
             if(lval != x) {
                 mismatch(i,"unsigned long long");
                 goto fail;
@@ -223,24 +262,6 @@ paramcheck(size_t nparams, const unsigned int* params)
     return 1;
 fail:
     return 0;
-}
-
-static void
-byteswap8(unsigned char* mem)
-{
-    unsigned char c;
-    c = mem[0];
-    mem[0] = mem[7];
-    mem[7] = c;
-    c = mem[1];
-    mem[1] = mem[6];
-    mem[6] = c;
-    c = mem[2];
-    mem[2] = mem[5];
-    mem[5] = c;
-    c = mem[3];
-    mem[3] = mem[4];
-    mem[4] = c;
 }
 
 static void

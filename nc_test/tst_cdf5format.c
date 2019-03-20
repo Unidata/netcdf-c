@@ -1,8 +1,8 @@
 /* This is part of the netCDF package.
-   Copyright 2005 University Corporation for Atmospheric Research/Unidata
+   Copyright 2018 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
-   Test fix of bug involving creation of a file with pnetcdf APIs,
+   Test fix of bug involving creation of a file with PnetCDF APIs,
    then opening and modifying the file with netcdf.
 
    Author: Wei-keng Liao, Ed Hartnett
@@ -23,13 +23,15 @@ write2(int ncid, int parallel)
    int dimid[NDIM2];
    char str[NC_MAX_NAME + 1];
    int varid[NVARS];
-   
+   int i;
+   int j;
+
    /* define dimension */
    if (nc_def_dim(ncid, "Y", NC_UNLIMITED, &dimid[0])) ERR;
    if (nc_def_dim(ncid, "X", NX, &dimid[1])) ERR;
 
    /* Define vars. */
-   for (int i = 0; i < NVARS; i++)
+   for (i = 0; i < NVARS; i++)
    {
       if (i % 2)
       {
@@ -42,18 +44,18 @@ write2(int ncid, int parallel)
 	 if (nc_def_var(ncid, str, NC_INT, 2, dimid, &varid[i])) ERR;
       }
    }
-   
+
    if (nc_enddef(ncid)) ERR;
-   
+
    /* write all variables */
-   for (int i = 0; i < NVARS; i++)
+   for (i = 0; i < NVARS; i++)
    {
       size_t start[NDIM2] = {0, 0};
       size_t count[NDIM2];
       int buf[NX];
-      
+
       /* Initialize some data. */
-      for (int j = 0; j < NX; j++)
+      for (j = 0; j < NX; j++)
 	 buf[j] = i * 10 + j;
 
       /* Write the data. */
@@ -80,7 +82,7 @@ extend(int ncid)
    char str[32];
 
    if (nc_redef(ncid)) ERR;
-   
+
    /* add attributes to make header grow */
    for (i = 0; i < NVARS; i++)
    {
@@ -95,10 +97,13 @@ extend(int ncid)
 int
 read2(int ncid)
 {
-   for (int i = 0; i < NVARS; i++)
+   int i;
+   int j;
+
+   for (i = 0; i < NVARS; i++)
    {
       int buf[NX];
-      size_t start[2] = {0, 0}, count[2];      
+      size_t start[2] = {0, 0}, count[2];
 
       if (i % 2)
       {
@@ -109,8 +114,8 @@ read2(int ncid)
 	 count[0] = 1;
 	 count[1] = NX;
       }
-      if (nc_get_vara_int(ncid, i, start, count, buf)) ERR;	 
-      for (int j = 0; j < NX; j++)
+      if (nc_get_vara_int(ncid, i, start, count, buf)) ERR;
+      for (j = 0; j < NX; j++)
       {
 	 if (buf[j] != i * 10 + j)
 	 {
@@ -137,17 +142,17 @@ int main(int argc, char* argv[])
 
    printf("\nWrite using PNETCDF; Read using classic netCDF...");
    {
-      /* Create a netCDF classic file with pnetcdf. */
-      cmode = NC_PNETCDF | NC_CLOBBER;
+      /* Create a netCDF classic file with PnetCDF. */
+      cmode = NC_CLOBBER;
       if (nc_create_par(FILENAME, cmode, comm, info, &ncid)) ERR;
       if (write2(ncid, 1)) ERR;
       if (nc_close(ncid)) ERR;
-      
+
       /* Re-open the file with pnetCDF (parallel) and add var attributes. */
-      if (nc_open_par(FILENAME, NC_WRITE|NC_PNETCDF, comm, info, &ncid)) ERR;
+      if (nc_open_par(FILENAME, NC_WRITE, comm, info, &ncid)) ERR;
       if (extend(ncid)) ERR;
       if (nc_close(ncid)) ERR;
-      
+
       /* Open with classic and check. */
       if (nc_open(FILENAME, 0, &ncid)) ERR;
       if (read2(ncid)) ERR;
@@ -162,14 +167,14 @@ int main(int argc, char* argv[])
       if (nc_create(FILENAME, cmode, &ncid)) ERR;
       if (write2(ncid, 0)) ERR;
       if (nc_close(ncid)) ERR;
-      
+
       /* Re-open the file with CDF5 and add some atts. */
       if (nc_open(FILENAME, NC_WRITE, &ncid)) ERR;
       if (extend(ncid)) ERR;
       if (nc_close(ncid)) ERR;
 
-      /* Re-open with pnetcdf and check. */
-      cmode = NC_PNETCDF | NC_NOCLOBBER;
+      /* Re-open with PnetCDF and check. */
+      cmode = NC_NOCLOBBER;
       if (nc_open_par(FILENAME, cmode, comm, info, &ncid)) ERR;
       if (read2(ncid)) ERR;
       if (nc_close(ncid)) ERR;

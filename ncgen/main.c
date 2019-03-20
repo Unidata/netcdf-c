@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 /* $Id: main.c,v 1.33 2010/05/26 21:43:36 dmh Exp $ */
@@ -14,7 +14,6 @@
 
 #ifdef _MSC_VER
 #include "XGetopt.h"
-#define snprintf _snprintf
 int opterr;
 int optind;
 #endif
@@ -52,8 +51,8 @@ size_t nciterbuffersize;
 
 struct Vlendata* vlendata;
 
-char *netcdf_name; /* command line -o file name */
-char *datasetname; /* name from the netcdf <name> {} || from -N */
+char *netcdf_name = NULL; /* command line -o file name */
+char *datasetname = NULL; /* name from the netcdf <name> {} || from -N */
 
 extern FILE *ncgin;
 
@@ -157,19 +156,6 @@ static char* LE16 = "\xFF\xFE";       /* UTF-16; little-endian */
 */
 #define DFALTBINNCITERBUFFERSIZE  0x40000 /* about 250k bytes */
 #define DFALTLANGNCITERBUFFERSIZE  0x4000 /* about 15k bytes */
-
-void *emalloc (size_t size) {                  /* check return from malloc */
-  void   *p;
-
-  if (size == 0)
-    return 0;
-  p = (void *) malloc (size);
-  if (p == 0) {
-    exit(NC_ENOMEM);
-  }
-  return p;
-}
-
 
 /* strip off leading path */
 /* result is malloc'd */
@@ -311,7 +297,9 @@ main(
               derror("%s: output language is null", progname);
               return(1);
             }
-            //lang_name = estrdup(optarg);
+#if 0
+            lang_name = estrdup(optarg);
+#endif
             lang_name = (char*) emalloc(strlen(optarg)+1);
             (void)strcpy(lang_name, optarg);
 
@@ -340,9 +328,11 @@ main(
           binary_ext = ".cdf";
 	  break;
 	case 'o':		/* to explicitly specify output name */
+	  if(netcdf_name) efree(netcdf_name);
 	  netcdf_name = nulldup(optarg);
 	  break;
 	case 'N':		/* to explicitly specify dataset name */
+	  if(datasetname) efree(datasetname);
 	  datasetname = nulldup(optarg);
 	  break;
 	case 'x': /* set nofill mode to speed up creation of large files */
@@ -428,7 +418,7 @@ main(
     }
 
 #ifndef ENABLE_C
-    if(c_flag) {
+    if(l_flag == L_C) {
 	  fprintf(stderr,"C not currently supported\n");
 	  code=1; goto done;
     }
@@ -597,6 +587,8 @@ main(
         define_netcdf();
 
 done:
+    nullfree(netcdf_name);
+    nullfree(datasetname);
     finalize_netcdf(code);
     return code;
 }

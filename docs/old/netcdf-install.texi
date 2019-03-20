@@ -518,7 +518,7 @@ x86 platforms.
 @cindex --enable-parallel-tests
 
 NetCDF makes available the parallel I/O features of HDF5 and the
-parallel-netcdf libraries, allowing parallel I/O from netCDF-4 linked
+PnetCDF libraries, allowing parallel I/O from netCDF-4 linked
 programs.
 
 @subsection Building HDF5 for Parallel I/O
@@ -535,9 +535,9 @@ testing system:
 CC=mpicc ./configure --enable-parallel --prefix=/shecky/local_par --with-zlib=/shecky/local_par --disable-shared && make check install
 @end example
 
-@subsection The parallel-netcdf Library
+@subsection The PnetCDF Library
 
-Optionally, the parallel-netcdf library should also be installed, and
+Optionally, the PnetCDF library should also be installed, and
 the replacement for pnetcdf.h should be copied from
 ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/pnetcdf.h.
 
@@ -560,7 +560,7 @@ option to configure. These tests will be run as mpiexec calls. This
 may not be appropriate on all systems, especially those which use some
 queue for jobs. 
 
-To use parallel-netcdf to perform parallel I/O on classic and 64-bit
+To use PnetCDF to perform parallel I/O on classic and 64-bit
 offset files, use the --enable-pnetcdf option.
 
 For parallel builds the netCDF examples are not built. This is to
@@ -665,8 +665,8 @@ users.
 
 @item --enable-pnetcdf
 Allows parallel I/O with classic and 64-bit offset format files, using
-the parallel-netcdf (formerly pnetcdf) library from
-Argonne/Northwestern. The parallel-netcdf library must be installed,
+the PnetCDF library from
+Argonne/Northwestern. The PnetCDF library must be installed,
 and a specially modified pnetcdf.h must be used. (Get it at
 ftp://ftp.unidata.ucar.edu/pub/netcdf/user/contrib/pnetcdf.h)
 
@@ -1329,7 +1329,7 @@ On some systems you must also include -lm for the math library.
 If HDF4 was used when building netCDF, you must also use -lmfhdf -ldf
 -ljpeg.
 
-Finally, if you use the parallel-netcdf library, you must use
+Finally, if you use the PnetCDF library, you must use
 -lpnetcdf. 
 
 The worst case scenario is, using all of the above libraries:

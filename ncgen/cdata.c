@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2009, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
@@ -9,6 +9,9 @@
 #ifdef ENABLE_C
 
 #include <math.h> 
+#ifndef isnan
+extern int isnan(double);
+#endif
 
 static int c_uid = 0;
 
@@ -19,7 +22,7 @@ c_charconstant(Generator* generator, Symbol* sym, Bytebuffer* codebuf, ...)
     /* Just transfer charbuf to codebuf */
     Bytebuffer* charbuf;
     va_list ap;
-    vastart(ap,codebuf);
+    va_start(ap,codebuf);
     charbuf = va_arg(ap, Bytebuffer*);
     va_end(ap);
     bbNull(charbuf);
@@ -178,7 +181,7 @@ c_vlendecl(Generator* generator, Symbol* tsym, Bytebuffer* codebuf, int uid, siz
     Bytebuffer* decl = bbNew();
     Bytebuffer* vlenbuf;
     va_list ap;
-    vastart(ap,count);
+    va_start(ap,count);
     vlenbuf = va_arg(ap, Bytebuffer*);
     va_end(ap);
     bbprintf0(decl,"static const %s vlen_%u[] = {",

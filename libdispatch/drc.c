@@ -1,6 +1,6 @@
 /*
-Copyright (c) 1998-2017 University Corporation for Atmospheric Research/Unidata
-See LICENSE.txt for license information.
+Copyright (c) 1998-2018 University Corporation for Atmospheric Research/Unidata
+See COPYRIGHT for license information.
 */
 
 #include "config.h"
@@ -367,9 +367,12 @@ rclocate(const char* key, const char* hostport)
     if(hostport == NULL) hostport = "";
 
     for(found=0,i=0;i<nclistlength(rc);i++) {
-	triple = (NCTriple*)nclistget(rc,i);
-        size_t hplen = (triple->host == NULL ? 0 : strlen(triple->host));
-        int t;
+      int t;
+      size_t hplen;
+      triple = (NCTriple*)nclistget(rc,i);
+
+      hplen = (triple->host == NULL ? 0 : strlen(triple->host));
+
         if(strcmp(key,triple->key) != 0) continue; /* keys do not match */
         /* If the triple entry has no url, then use it
            (because we have checked all other cases)*/
@@ -393,8 +396,8 @@ rcsearch(const char* prefix, const char* rcname, char** pathp)
 {
     char* path = NULL;
     FILE* f = NULL;
-    int plen = strlen(prefix);
-    int rclen = strlen(rcname);
+    size_t plen = strlen(prefix);
+    size_t rclen = strlen(rcname);
     int ret = NC_NOERR;
 
     size_t pathlen = plen+rclen+1; /*+1 for '/' */
@@ -451,6 +454,23 @@ NC_rcfile_insert(const char* key, const char* value, const char* hostport)
 done:
     return ret;
 }
+
+/* Obtain the count of number of triples */
+size_t
+NC_rcfile_length(NCRCinfo* info)
+{
+    return nclistlength(info->triples);
+}
+
+/* Obtain the ith triple; return NULL if out of range */
+NCTriple*
+NC_rcfile_ith(NCRCinfo* info, size_t i)
+{
+    if(i >= nclistlength(info->triples))
+	return NULL;
+    return (NCTriple*)nclistget(info->triples,i);
+}
+
 
 #ifdef D4DEBUG
 static void

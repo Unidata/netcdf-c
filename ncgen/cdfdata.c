@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2009, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 /* $Id: cdfdata.c,v 1.4 2010/05/24 19:59:56 dmh Exp $ */
@@ -340,8 +340,8 @@ genbin_vlenconstants(List* vlenconstants)
 	bbClear(memory);
 	count = 0;
 	if(chartype) {
-   	    /* Collect the char vlen in a separate buffer */
-            gen_charvlen(vlensrc,memory);
+   	    /* Collect the char sequence in a separate buffer */
+            gen_charseq(vlensrc,memory);
 	    count = bbLength(memory);
 	} else {
   	    while(srcmore(vlensrc)) {

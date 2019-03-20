@@ -1,3 +1,4 @@
+#include "config.h"
 #include <sys/types.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,9 +8,27 @@
 /* Older versions of the hdf library may define H5PL_type_t here */
 #include <H5PLextern.h>
 
+
+
 #ifndef DLL_EXPORT
 #define DLL_EXPORT
 #endif
+
+/* WARNING:
+Starting with HDF5 version 1.10.x, the plugin code MUST be
+careful when using the standard *malloc()*, *realloc()*, and
+*free()* function.
+
+In the event that the code is allocating, reallocating, for
+free'ing memory that either came from or will be exported to the
+calling HDF5 library, then one MUST use the corresponding HDF5
+functions *H5allocate_memory()*, *H5resize_memory()*,
+*H5free_memory()* [5] to avoid memory failures.
+
+Additionally, if your filter code leaks memory, then the HDF5 library
+will generate an error.
+
+*/
 
 #include "h5bzip2.h"
 
@@ -74,7 +93,11 @@ size_t H5Z_filter_bzip2(unsigned int flags, size_t cd_nelmts,
 
     /* Prepare the output buffer. */
     outbuflen = nbytes * 3 + 1;  /* average bzip2 compression ratio is 3:1 */
-    outbuf = malloc(outbuflen);
+#ifdef HDF5_HAS_ALLOCATE_MEMORY
+    outbuf = H5allocate_memory(outbuflen,0);
+#else
+    outbuf = (char*)malloc(outbuflen * sizeof(char));
+#endif
     if (outbuf == NULL) {
       fprintf(stderr, "memory allocation failed for bzip2 decompression\n");
       goto cleanupAndFail;
@@ -107,7 +130,11 @@ size_t H5Z_filter_bzip2(unsigned int flags, size_t cd_nelmts,
       if (ret != BZ_STREAM_END && stream.avail_out == 0) {
         /* Grow the output buffer. */
         newbuflen = outbuflen * 2;
-        newbuf = realloc(outbuf, newbuflen);
+#ifdef HDF5_HAS_RESIZE_MEMORY
+        newbuf = H5resize_memory(outbuf, newbuflen);
+#else
+        newbuf = realloc(outbuf,newbuflen);
+#endif
         if (newbuf == NULL) {
           fprintf(stderr, "memory allocation failed for bzip2 decompression\n");
           goto cleanupAndFail;
@@ -151,7 +178,12 @@ size_t H5Z_filter_bzip2(unsigned int flags, size_t cd_nelmts,
 
     /* Prepare the output buffer. */
     outbuflen = nbytes + nbytes / 100 + 600;  /* worst case (bzip2 docs) */
-    outbuf = malloc(outbuflen);
+#ifdef HDF5_HAS_ALLOCATE_MEMORY
+    outbuf = H5allocate_memory(outbuflen,0);
+#else
+    outbuf = (char*)malloc(outbuflen * sizeof(char));
+#endif
+
     if (outbuf == NULL) {
       fprintf(stderr, "memory allocation failed for bzip2 compression\n");
       goto cleanupAndFail;
@@ -169,13 +201,23 @@ size_t H5Z_filter_bzip2(unsigned int flags, size_t cd_nelmts,
   }
 
   /* Always replace the input buffer with the output buffer. */
+#ifdef HDF5_HAS_H5FREE
+  H5free_memory(*buf);
+#else
   free(*buf);
+#endif
+
   *buf = outbuf;
   *buf_size = outbuflen;
   return outdatalen;
 
  cleanupAndFail:
   if (outbuf)
-    free(outbuf);
+#ifdef HDF5_HAS_H5FREE
+    H5free_memory(outbuf);
+#else
+  free(outbuf);
+#endif
+
   return 0;
 }
