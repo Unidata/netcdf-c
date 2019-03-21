@@ -1015,7 +1015,6 @@ if test "x$enable_netcdf_4" = xyes || test "x$enable_dap" = xyes; then
    AC_SEARCH_LIBS([deflate], [zlibwapi zlibstat zlib zlib1 z], [], [
      AC_MSG_ERROR([Can't find or link to the z library. Turn off netCDF-4 and \
      DAP clients with --disable-netcdf-4 --disable-dap, or see config.log for errors.])])
-   AC_SEARCH_LIBS([SZ_Compress], [szip sz], [], [])
    AC_SEARCH_LIBS([dlopen], [dl dld], [], [])
 fi
 
@@ -1045,7 +1044,7 @@ if test "x$enable_hdf5" = xyes; then
 
    # H5Pset_fapl_mpiposix and H5Pget_fapl_mpiposix have been removed since HDF5 1.8.12.
    # Use H5Pset_fapl_mpio and H5Pget_fapl_mpio, instead.
-   AC_CHECK_FUNCS([H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5free_memory H5resize_memory H5allocate_memory H5Pset_libver_bounds H5Pset_all_coll_metadata_ops])
+   AC_CHECK_FUNCS([H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5free_memory H5resize_memory H5allocate_memory H5Pset_libver_bounds H5Pset_all_coll_metadata_ops H5Z_SZIP])
 
    # Check to see if HDF5 library has collective metadata APIs, (HDF5 >= 1.10.0)
    if test "x$ac_cv_func_H5Pset_all_coll_metadata_ops" = xyes; then
@@ -1059,6 +1058,13 @@ if test "x$enable_hdf5" = xyes; then
 
    AC_MSG_CHECKING([whether parallel io is enabled in hdf5])
    AC_MSG_RESULT([$hdf5_parallel])
+
+   # Check to see if we need to search for and link against szlib.
+   if test "x$ac_cv_func_H5Z_SZIP" = xyes; then
+      AC_SEARCH_LIBS([SZ_Compress], [szip sz], [],
+      [AC_MSG_ERROR([libhdf5 installed with szip support, but cannot find or link to the szip library.])])
+   fi
+
 
    if test "x$hdf5_parallel" = "xno"; then
       if test "x$enable_parallel_tests" = "xyes"; then
