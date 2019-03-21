@@ -109,7 +109,8 @@ if ENABLE_FILTER_TESTING
 if BUILD_UTILITIES
 extradir =
 extra_PROGRAMS = test_filter test_filter_misc
-TESTS += tst_filter.sh
+check_PROGRAMS = test_filter_reg
+TESTS += tst_filter.sh test_filter_reg
 endif
 endif
 
@@ -144,8 +145,9 @@ tst_floats2_*.cdl tst_ints2_*.cdl tst_shorts2_*.cdl tst_elena_*.cdl	\
 tst_simple*.cdl tst_chunks.cdl pr_A1.* tauu_A1.* usi_01.* thetau_01.*	\
 tst_*.h5 tst_grp_rename.cdl tst_grp_rename.dmp ref_grp_rename.cdl	\
 foo1.nc tst_*.h4 test.nc testszip.nc test.h5 szip_dump.cdl		\
-perftest.txt bigmeta.nc bigvars.nc *.gz MSGCPP_*.nc	\
-floats*.nc floats*.cdl shorts*.nc shorts*.cdl ints*.nc ints*.cdl
+perftest.txt bigmeta.nc bigvars.nc *.gz MSGCPP_*.nc	                \
+floats*.nc floats*.cdl shorts*.nc shorts*.cdl ints*.nc ints*.cdl        \
+testfilter_reg.nc
 
 DISTCLEANFILES = findplugin.sh run_par_test.sh
 

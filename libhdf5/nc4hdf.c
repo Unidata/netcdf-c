@@ -25,6 +25,11 @@
 
 #define NC_HDF5_MAX_NAME 1024 /**< @internal Max size of HDF5 name. */
 
+/* WARNING: GLOBAL VARIABLE */
+
+/* Define list of registered filters */
+static NClist* filters = NULL;
+
 /**
  * @internal Flag attributes in a linked list as dirty.
  *
@@ -2638,3 +2643,122 @@ NC4_walk(hid_t gid, int* countp)
     }
     return ncstat;
 }
+
+
+/**************************************************/
+/* Filter registration support */
+
+static int
+filterlookup(int id)
+{
+    int i;
+    if(filters == NULL)
+	filters = nclistnew();
+    for(i=0;i<nclistlength(filters);i++) {
+	NC_FILTER_INFO* x = nclistget(filters,i);
+	if(x != NULL && x->id == id) return i; /* return position */
+    }
+    return -1;
+}
+
+static void
+reclaiminfo(NC_FILTER_INFO* info)
+{
+    if(info != NULL)
+        nullfree(info->info);
+    nullfree(info);
+}
+
+static int
+filterremove(int pos)
+{
+    NC_FILTER_INFO* info = NULL;
+    if(filters == NULL)
+	filters = nclistnew();
+    if(pos < 0 || pos >= nclistlength(filters))
+	return NC_EINVAL;
+    info = nclistget(filters,pos);
+    reclaiminfo(info);
+    nclistremove(filters,pos);
+    return NC_NOERR;
+}
+
+static NC_FILTER_INFO*
+dupfilterinfo(NC_FILTER_INFO* info)
+{
+    NC_FILTER_INFO* dup = NULL;
+    if(info == NULL) goto fail;
+    if(info->info == NULL) goto fail;
+    if((dup = calloc(1,sizeof(NC_FILTER_INFO))) == NULL) goto fail;
+    *dup = *info;
+    if((dup->info = calloc(1,sizeof(H5Z_class2_t))) == NULL) goto fail;
+    {
+        H5Z_class2_t* h5dup = (H5Z_class2_t*)dup->info;
+        H5Z_class2_t* h5info = (H5Z_class2_t*)info->info;
+        *h5dup = *h5info;
+    }
+    return dup;
+fail:
+    reclaiminfo(dup);
+    return NULL;
+}
+
+int
+nc4_filter_action(int op, int format, int id, NC_FILTER_INFO* info)
+{
+    int stat = NC_NOERR;
+    H5Z_class2_t* h5filterinfo = NULL;
+    herr_t herr;
+    int pos = -1;
+    NC_FILTER_INFO* dup = NULL;
+
+    if(format != NC_FILTER_FORMAT_HDF5)
+	{stat = NC_ENOTNC4; goto done;}
+
+    switch (op) {
+    case FILTER_REG: /* Ignore id argument */
+	if(info == NULL || info->info == NULL)
+	    {stat = NC_EINVAL; goto done;}
+	if(info->version != NC_FILTER_INFO_VERSION
+	   || info->format != NC_FILTER_FORMAT_HDF5)
+	    {stat = NC_ENOTNC4; goto done;}
+        h5filterinfo = info->info;
+        /* Another sanity check */
+        if(info->id != h5filterinfo->id)
+	    {stat = NC_EINVAL; goto done;}
+	/* See if this filter is already defined */
+	if((pos = filterlookup(id)) >= 0)
+	    {stat = NC_ENAMEINUSE; goto done;} /* Already defined */
+	if((herr = H5Zregister(h5filterinfo)) < 0)
+	    {stat = NC_EFILTER; goto done;}
+	/* Save a copy of the passed in info */
+	if((dup = dupfilterinfo(info)) == NULL)
+	    {stat = NC_ENOMEM; goto done;}		
+	nclistpush(filters,dup);	
+	break;
+    case FILTER_UNREG:
+	if(id <= 0)
+	    {stat = NC_ENOTNC4; goto done;}
+	/* See if this filter is already defined */
+	if((pos = filterlookup(id)) < 0)
+	    {stat = NC_EFILTER; goto done;} /* Not defined */
+	if((herr = H5Zunregister(id)) < 0)
+	    {stat = NC_EFILTER; goto done;}
+	if((stat=filterremove(pos))) goto done;
+	break;
+    case FILTER_INQ:
+	if(id <= 0)
+	    {stat = NC_ENOTNC4; goto done;}
+	/* Look up the id in our local table */
+	if((pos = filterlookup(id)) < 0)
+	    {stat = NC_EFILTER; goto done;} /* Not defined */
+	if(info != NULL) {
+	    *info = *((NC_FILTER_INFO*)nclistget(filters,pos));
+	}
+	break;
+    default:
+	{stat = NC_EINTERNAL; goto done;}	
+    }
+done:
+    return stat;
+} 
