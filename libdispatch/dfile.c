@@ -2032,50 +2032,12 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 	path = newpath;
     }
 
-<<<<<<< HEAD
-#ifdef USE_NETCDF4
-   /* Check for use of user-defined format 0. */
-   if (omode & NC_UDF0)
-   {
-      if (!UDF0_dispatch_table)
-         return NC_EINVAL;
-      model = NC_FORMATX_UDF0;
-      dispatcher = UDF0_dispatch_table;
-   }
-
-   /* Check for use of user-defined format 1. */
-   if (omode & NC_UDF1)
-   {
-      if (!UDF1_dispatch_table)
-         return NC_EINVAL;
-      model = NC_FORMATX_UDF1;
-      dispatcher = UDF1_dispatch_table;
-   }
-#endif /* USE_NETCDF4 */
-
-    if(model == 0) {
-	version = 0;
-	/* Try to find dataset type */
-	int flags = omode;
-	stat = NC_check_file_type(path,flags,useparallel,parameters,&model,&version);
-        if(stat == NC_NOERR) {
-	    if(model == 0) {
-		nullfree(path);
-		return NC_ENOTNC;
-	    }
-	} else {
-	    /* presumably not a netcdf file */
-	    nullfree(path);
-	    return stat;
-	}
-=======
     /* Still no implementation, give up */
     if(model.impl == 0) {
 #ifdef DEBUG
 	fprintf(stderr,"implementation == 0\n");
 #endif
 	{stat = NC_ENOTNC; goto done;}
->>>>>>> master
     }
 
     /* Suppress unsupported formats */
@@ -2139,23 +2101,6 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 	    break;
 #endif
 #ifdef USE_NETCDF4
-<<<<<<< HEAD
-      case NC_FORMATX_UDF0:
-         dispatcher = UDF0_dispatch_table;
-         break;
-      case NC_FORMATX_UDF1:
-         dispatcher = UDF1_dispatch_table;
-         break;
-#endif /* USE_NETCDF4 */
-      case NC_FORMATX_NC3:
-         dispatcher = NC3_dispatch_table;
-         break;
-      default:
-         nullfree(path);
-         return NC_ENOTNC;
-      }
-   }
-=======
 	case NC_FORMATX_UDF0:
 	    dispatcher = UDF0_dispatch_table;
 	    break;
@@ -2171,7 +2116,7 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 	    return NC_ENOTNC;
 	}
     }
->>>>>>> master
+
 
     /* If we can't figure out what dispatch table to use, give up. */
     if (!dispatcher) {stat = NC_ENOTNC; goto done;}
