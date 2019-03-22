@@ -10,7 +10,6 @@
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
-extern int fileno(FILE*);
 
 /**
 Create a netCDF file for parallel I/O.
