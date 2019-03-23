@@ -1,5 +1,5 @@
 /*
- *	Copyright 1996, Unuiversity Corporation for Atmospheric Research
+ *	Copyright 2018, Unuiversity Corporation for Atmospheric Research
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 
@@ -38,7 +38,6 @@
 
 /* Internal function; breaks ncio abstraction */
 extern int memio_extract(ncio* const nciop, size_t* sizep, void** memoryp);
-
 
 static void
 free_NC3INFO(NC3_INFO *nc3)
@@ -1201,6 +1200,14 @@ NC3_open(const char *path, int ioflags, int basepe, size_t *chunksizehintp,
       goto unwind_alloc;
     }
 #endif
+
+#ifdef ENABLE_BYTERANGE
+    /* If the model specified the use of byte-ranges, then signal by
+       a temporary hack using one of the flags in the ioflags.
+    */
+    if(nc->model->iosp == NC_IOSP_HTTP)
+        ioflags |= NC_HTTP;
+#endif /*ENABLE_BYTERANGE*/
 
         status = ncio_open(path, ioflags, 0, 0, &nc3->chunk, parameters,
 			       &nc3->nciop, NULL);

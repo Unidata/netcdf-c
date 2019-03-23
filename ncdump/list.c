@@ -1,4 +1,4 @@
-/* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
+/* Copyright 2018, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
 #include <stdlib.h>
 #include <stdio.h>
@@ -34,6 +34,19 @@ List* listnew(void)
     l->content=NULL;
   }
   return l;
+}
+
+int
+listfreeall(List* l)
+{
+  if(l) {
+    int i;
+    for(i=0;i<listlength(l);i++) {
+	void* elem = listget(l,i);
+	if(elem != NULL) free(elem);
+    }
+  }
+  return listfree(l);
 }
 
 int

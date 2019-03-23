@@ -3,7 +3,7 @@ Error messages and library version.
 
 These functions return the library version, and error messages.
 
-Copyright 2010 University Corporation for Atmospheric
+Copyright 2018 University Corporation for Atmospheric
 Research/Unidata. See COPYRIGHT file for more info.
 */
 

@@ -1,3 +1,9 @@
+# Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+# 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+# 2015, 2016, 2017, 2018
+# University Corporation for Atmospheric Research/Unidata.
+
+# See netcdf-c/COPYRIGHT file for more info.
 #####
 # Contains variables and settings used
 # by the CMake build system in order to
@@ -32,6 +38,7 @@ SET(CPACK_SOURCE_IGNORE_FILES "${CPACK_SOURCE_IGNORE_FILES}"
   "/obsolete/"
   "/unknown/"
   ".*~"
+  ".git/"
   )
 
 ###
@@ -50,9 +57,9 @@ IF(WIN32)
   SET(CPACK_NSIS_CONTACT "support-netcdf@unidata.ucar.edu")
   SET(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
   SET(CPACK_NSIS_MENU_LINKS
-	"http://www.unidata.ucar.edu/netcdf" "Unidata Website"
-	"http://www.unidata.ucar.edu/netcdf/docs" "NetCDF Stable Documentation"
-	"http://www.unidata.ucar.edu/netcdf/docs_rc" "NetCDF Unstable Documentation")
+	"http://www.unidata.ucar.edu/software/netcdf" "Unidata Website"
+	"http://www.unidata.ucar.edu/software/netcdf/docs" "NetCDF Stable Documentation"
+	"http://www.unidata.ucar.edu/software/netcdf/docs_rc" "NetCDF Unstable Documentation")
 
 ENDIF()
 
@@ -72,7 +79,7 @@ IF(NC_DPKG)
   ENDMACRO(getdpkg_arch)
   getdpkg_arch(dpkg_arch)
 
-  SET(CPACK_DEBIAN_PACKAGE_NAME "netcdf4-dev")	
+  SET(CPACK_DEBIAN_PACKAGE_NAME "netcdf4-dev")
   SET(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "${dpkg_arch}")
   SET(CPACK_DEBIAN_PACKAGE_DEPENDS "zlib1g (>= 1:1.2.3.4), libhdf5-7 (>= 1.8.11), libcurl4-openssl-dev (>= 7.22.0)")
 ENDIF()
@@ -97,7 +104,7 @@ ENDIF()
 
 IF(APPLE)
   SET(CPACK_SOURCE_GENERATOR "TGZ")
-  SET(CPACK_GENERATOR "PackageMaker" "STGZ" "TBZ2" "TGZ" "ZIP")
+  SET(CPACK_GENERATOR "productbuild" "STGZ" "TBZ2" "TGZ" "ZIP")
 ENDIF()
 
 ##

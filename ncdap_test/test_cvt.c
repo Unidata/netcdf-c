@@ -1,3 +1,13 @@
+/*! \file
+
+Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+2015, 2016, 2017, 2018
+University Corporation for Atmospheric Research/Unidata.
+
+See \ref copyright file for more info.
+
+*/
 #include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -119,7 +129,7 @@ int main()
     /* location of our target url: use file// to avoid remote
 	server downtime issues
      */
-    
+
     topsrcdir = gettopsrcdir();
 
     url[0] = '\0';
@@ -136,7 +146,7 @@ int main()
 
     /* open file, get varid */
     CHECK(nc_open(url, NC_NOWRITE, &ncid));
-    
+
     /* extract the string case for netcdf-3*/
 #ifndef USE_NETCDF4
     CHECK(nc_inq_varid(ncid, "s", &varid));
@@ -368,7 +378,7 @@ compare(nc_type t1, nc_type t2, void* v0, void* vdata0, char* tag,
     default: {
 	printf("unexpected compare:  %d %d\n",(int)t1,(int)t2);
 	abort();
-    }    
+    }
 
 case CASE(NC_CHAR,NC_CHAR): {
     setup(char);

@@ -1,6 +1,6 @@
 /*
-Copyright (c) 1998-2017 University Corporation for Atmospheric Research/Unidata
-See LICENSE.txt for license information.
+Copyright (c) 1998-2018 University Corporation for Atmospheric Research/Unidata
+See COPYRIGHT for license information.
 */
 
 /*
@@ -75,6 +75,10 @@ extern int NC_set_rcfile(const char* rcfile);
 extern int NC_rcfile_insert(const char* key, const char* value, const char* hostport);
 extern int NC_rcloadfields(NCRCFIELDS* fields, const char* hostport);
 extern int NC_rcloadfield(NCRCFIELDS* fields, const char* key, const char* value);
+/* Obtain the count of number of triples */
+extern size_t NC_rcfile_length(NCRCinfo*);
+/* Obtain the ith triple; return NULL if out of range */
+extern NCTriple* NC_rcfile_ith(NCRCinfo*,size_t);
 
 /* From dutil.c (Might later move to e.g. nc.h */
 extern int NC__testurl(const char* path, char** basenamep);

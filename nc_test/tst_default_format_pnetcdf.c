@@ -1,3 +1,14 @@
+/*! \file
+
+Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+2015, 2016, 2017, 2018
+University Corporation for Atmospheric Research/Unidata.
+
+See \ref copyright file for more info.
+
+*/
+
 #include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,25 +25,34 @@
 
 static int default_format;
 
+static const char*
+formatstr(int format)
+{
+    const char* str = NULL;
+    switch (format) {
+        case NC_FORMAT_CLASSIC:      str="NC_FORMAT_CLASSIC";      break;
+        case NC_FORMAT_64BIT_OFFSET: str="NC_FORMAT_64BIT_OFFSET"; break;
+        case NC_FORMAT_64BIT_DATA:   str="NC_FORMAT_64BIT_DATA";   break;
+        case NC_FORMAT_NETCDF4:      str="NC_FORMAT_NETCDF4";      break;
+        case NC_FORMAT_NETCDF4_CLASSIC:
+                                     str="NC_FORMAT_NETCDF4_CLASSIC";break;
+        default: break;
+    }
+    return str;
+}
+
+
 static int
 create_check_pnetcdf(char *fname, int cmode, int exp_format)
 {
     int nerrs=0, err, exp_err=NC_NOERR, ncid, format;
-    char *exp_str;
+    const char *exp_str;
 
 #ifndef USE_PNETCDF
     exp_err = NC_ENOTBUILT;
 #endif
 
-    switch (exp_format) {
-        case NC_FORMAT_CLASSIC:      exp_str="NC_FORMAT_CLASSIC";      break;
-        case NC_FORMAT_64BIT_OFFSET: exp_str="NC_FORMAT_64BIT_OFFSET"; break;
-        case NC_FORMAT_64BIT_DATA:   exp_str="NC_FORMAT_64BIT_DATA";   break;
-        case NC_FORMAT_NETCDF4:      exp_str="NC_FORMAT_NETCDF4";      break;
-        case NC_FORMAT_NETCDF4_CLASSIC:
-                                     exp_str="NC_FORMAT_NETCDF4_CLASSIC";break;
-        default: break;
-    }
+    exp_str = formatstr(exp_format);
 
 #ifndef ENABLE_CDF5
     if (cmode & NC_64BIT_DATA) exp_err = NC_ENOTBUILT;
@@ -49,33 +69,9 @@ create_check_pnetcdf(char *fname, int cmode, int exp_format)
     err = nc_open(fname, NC_NOWRITE, &ncid); ERR
     err = nc_inq_format(ncid, &format); ERR
     if (format != exp_format) {
-        char *f_str="", *d_str="";
-        switch (format) {
-            case NC_FORMAT_CLASSIC:      f_str = "NC_FORMAT_CLASSIC";
-                                         break;
-            case NC_FORMAT_64BIT_OFFSET: f_str = "NC_FORMAT_64BIT_OFFSET";
-                                         break;
-            case NC_FORMAT_64BIT_DATA:   f_str = "NC_FORMAT_64BIT_DATA";
-                                         break;
-            case NC_FORMAT_NETCDF4:      f_str = "NC_FORMAT_NETCDF4";
-                                         break;
-            case NC_FORMAT_NETCDF4_CLASSIC: f_str = "NC_FORMAT_NETCDF4_CLASSIC";
-                                         break;
-            default: break;
-        }
-        switch (default_format) {
-            case NC_FORMAT_CLASSIC:      d_str = "NC_FORMAT_CLASSIC";
-                                         break;
-            case NC_FORMAT_64BIT_OFFSET: d_str = "NC_FORMAT_64BIT_OFFSET";
-                                         break;
-            case NC_FORMAT_64BIT_DATA:   d_str = "NC_FORMAT_64BIT_DATA";
-                                         break;
-            case NC_FORMAT_NETCDF4:      d_str = "NC_FORMAT_NETCDF4";
-                                         break;
-            case NC_FORMAT_NETCDF4_CLASSIC: d_str = "NC_FORMAT_NETCDF4_CLASSIC";
-                                         break;
-            default: break;
-        }
+        const char *f_str="", *d_str="";
+	f_str = formatstr(format);
+	d_str = formatstr(default_format);
 
         printf("Error at %s line %d: default is %s and expect %s but got %s\n",
                __FILE__, __LINE__, d_str, exp_str, f_str);
@@ -87,7 +83,7 @@ create_check_pnetcdf(char *fname, int cmode, int exp_format)
 
 int main(int argc, char *argv[])
 {
-    char *fname="tst_default_format.nc";
+    char *fname="tst_default_format_pnetcdf.nc";
     int err, exp_err=NC_NOERR, nerrs=0, ncid, cmode;
 
     MPI_Init(&argc, &argv);

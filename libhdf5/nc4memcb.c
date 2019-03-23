@@ -503,6 +503,9 @@ local_image_realloc(void *ptr, size_t size, H5FD_file_image_op_t file_image_op, 
 		/* From realloc man page: If ptr is NULL, then the call is equivalent to malloc(size),
 		   for all values of size; if size is equal to zero, and ptr is not NULL, then the call
 		   is equivalent to free(ptr). */
+		/* if the app_image != NULL then free it to simulate effect of realloc */
+	        if(udata->app_image_ptr != NULL)
+		    free(udata->app_image_ptr);
 		udata->vfd_image_ptr = malloc(size);
 	        udata->vfd_ref_count++;
 	    } else { /* ptr != NULL */
@@ -519,7 +522,12 @@ local_image_realloc(void *ptr, size_t size, H5FD_file_image_op_t file_image_op, 
 		fprintf(stderr,"\t>>>> realloc(%p,%ld)=>%p\n",ptr,(unsigned long)size,udata->vfd_image_ptr);
 #endif
 	    }
-	    udata->vfd_image_size = size;
+            udata->vfd_image_size = size;
+
+	    /* Make sure other pointers are consistent */
+	    udata->app_image_ptr = udata->vfd_image_ptr;
+	    udata->fapl_image_ptr = udata->vfd_image_ptr;
+
 	} else { /* Cannot realloc, so fake it */
 	   if(size <= udata->vfd_image_size) {
 	       /* Ok, pretend we did a realloc but just change size*/
@@ -596,14 +604,6 @@ local_image_free(void *ptr, H5FD_file_image_op_t file_image_op, void *_udata)
 
             udata->vfd_ref_count--;
 
-	    udata->h5->mem.memio.memory = udata->vfd_image_ptr;
-	    udata->h5->mem.memio.size = udata->vfd_image_size;
-	    /* clean up */
-#if 0
-	    udata->app_image_ptr = NULL;
-	    udata->fapl_image_ptr = NULL;
-#endif
-	    udata->vfd_image_ptr = NULL;
             break;
 
 	/* added unused labels to keep the compiler quiet */
@@ -654,8 +654,8 @@ local_udata_copy(void *_udata)
         goto out;
 #endif
 
-    /* never copy */
-   if (udata->ref_count == 0)
+    /* never copy so we only have one instance */
+    if (udata->ref_count == 0)
 	goto out;
     udata->ref_count++;
 
@@ -700,14 +700,6 @@ local_udata_free(void *_udata)
         goto out;
     udata->ref_count--;
 
-    /* checks that there are no references outstanding before deallocating udata */
-    if (udata->ref_count == 0 && udata->fapl_ref_count == 0 && udata->vfd_ref_count == 0) {
-        free(udata);
-#ifdef TRACE_UDATA
-	fprintf(stderr,"\t>>>> freed: udata=%p\n",udata);
-#endif
-	udata = NULL;	
-    }
     TRACEEND("udata_free",udata,1);
     return(SUCCEED);
 
@@ -729,8 +721,6 @@ NC4_image_init(NC_FILE_INFO_T* h5)
     size_t              min_incr = 65536; /* Minimum buffer increment */
     double              buf_prcnt = 0.1f;  /* Percentage of buffer size to set
                                              as increment */
-    size_t buf_size = 0;
-    void* buf_ptr = NULL;
     unsigned imageflags;
     int create = 0;
     H5LT_file_image_ud_t *udata = NULL;	/* Pointer to udata structure */
@@ -749,14 +739,10 @@ NC4_image_init(NC_FILE_INFO_T* h5)
 	if(create) {
 	    if(h5->mem.memio.size == 0) h5->mem.memio.size = DEFAULT_CREATE_MEMSIZE;
 	    h5->mem.memio.memory = malloc(h5->mem.memio.size);
-	} else
+	}  else
 	    goto out; /* open requires an input buffer */
     } else if(h5->mem.memio.size == 0)
 	goto out;
-
-    /* alias for convenience */
-    buf_size = h5->mem.memio.size;
-    buf_ptr = h5->mem.memio.memory;
 
     /* Create FAPL to transmit file image */
     if ((fapl = H5Pcreate(H5P_FILE_ACCESS)) < 0)
@@ -765,8 +751,8 @@ NC4_image_init(NC_FILE_INFO_T* h5)
     /* set allocation increment to a percentage of the supplied buffer size, or
      * a pre-defined minimum increment value, whichever is larger
      */
-    if ((buf_prcnt * buf_size) > min_incr)
-        alloc_incr = (size_t)(buf_prcnt * buf_size);
+    if ((buf_prcnt * h5->mem.memio.size) > min_incr)
+        alloc_incr = (size_t)(buf_prcnt * h5->mem.memio.size);
     else
         alloc_incr = min_incr;
 
@@ -781,8 +767,10 @@ NC4_image_init(NC_FILE_INFO_T* h5)
             goto out;
 
         /* Initialize udata with info about app buffer containing file image  and flags */
-        udata->app_image_ptr = buf_ptr;
-        udata->app_image_size = buf_size;
+        udata->app_image_ptr = h5->mem.memio.memory;
+        udata->app_image_size = h5->mem.memio.size;
+	h5->mem.memio.memory = NULL; /* move control */
+	h5->mem.memio.size = 0;
         udata->fapl_image_ptr = NULL;
         udata->fapl_image_size = 0;
         udata->fapl_ref_count = 0;
@@ -795,14 +783,13 @@ NC4_image_init(NC_FILE_INFO_T* h5)
 
         /* copy address of udata into callbacks */
         callbacks.udata = (void *)udata;
-
         /* Set file image callbacks */
         if (H5Pset_file_image_callbacks(fapl, &callbacks) < 0)
             goto out;
     }
 
     /* Assign file image in user buffer to FAPL */
-    if (H5Pset_file_image(fapl, buf_ptr, buf_size) < 0)
+    if (H5Pset_file_image(fapl, udata->app_image_ptr, udata->app_image_size) < 0)
         goto out;
 
     /* define a unique file name */
@@ -825,7 +812,9 @@ NC4_image_init(NC_FILE_INFO_T* h5)
             goto out;
     }
 
-    h5->mem.udata = udata;
+    /* Maintain a backward link */
+    h5->mem.udata = (void*)udata;
+    udata = NULL;
 
 done:
     /* Reclaim the fapl object */
@@ -833,11 +822,11 @@ done:
 	if(fapl >= 0)
             H5Pclose(fapl);
     } H5E_END_TRY;
-    /* Reclaim udata */
     /* Return file identifier */
     return file_id;
 
 out:
+    /* free up udata only on error */
     if(udata != NULL) free(udata);
     file_id = -1;
     goto done;
@@ -848,13 +837,38 @@ NC4_image_finalize(void* _udata)
 {
     if(_udata != NULL) {
 	H5LT_file_image_ud_t *udata = (H5LT_file_image_ud_t*)_udata;
+        /* checks reference counts before deallocating udata */
 #if 0
+        assert(udata->ref_count == 1 && udata->fapl_ref_count == 0 && udata->vfd_ref_count == 0);
 	if(udata->app_image_ptr != NULL) free(udata->app_image_ptr);
 	if(udata->fapl_image_ptr != NULL) free(udata->fapl_image_ptr);
 	if(udata->vfd_image_ptr != NULL) free(udata->vfd_image_ptr);
 #endif
-	free(udata);
-    }    
+        free(udata);
+#ifdef TRACE_UDATA
+	fprintf(stderr,"\t>>>> freed: udata=%p\n",udata);
+#endif
+    }
+}
+
+int
+NC4_extract_file_image(NC_FILE_INFO_T* h5)
+{
+    int stat = NC_NOERR;
+    H5LT_file_image_ud_t *udata;
+
+    udata = (H5LT_file_image_ud_t *)h5->mem.udata;
+    assert(udata != NULL);
+
+    /* Fill in h5->mem.memio from udata */
+    h5->mem.memio.memory = udata->vfd_image_ptr;
+    h5->mem.memio.size = udata->vfd_image_size;
+
+    /* Move control */
+    udata->vfd_image_ptr = NULL;
+    udata->vfd_image_size = 0;
+    
+    return stat;
 }
 
 #ifdef TRACE

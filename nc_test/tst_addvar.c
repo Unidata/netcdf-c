@@ -1,3 +1,14 @@
+/*! \file
+
+Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+2015, 2016, 2017, 2018
+University Corporation for Atmospheric Research/Unidata.
+
+See \ref copyright file for more info.
+
+*/
+
 /* This program adds two new variables to an existing netCDF file.
  * It is used to test if netCDF can correctly calculate the file offsets
  * for the two new variables, in particular for files that align the
@@ -15,6 +26,7 @@
  * Check the first new variable's begin to see whether it is less than
  * the last variable's offset in the existing file.
  */
+#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <netcdf.h>

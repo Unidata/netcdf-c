@@ -7,6 +7,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 echo "test_meta.sh:"
 
+set -e
 
 cd ${DMRTESTFILES}
 F=`ls -1 *.dmr | sed -e 's/[.]dmr//g' | tr '\r\n' '  '`

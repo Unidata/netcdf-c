@@ -27,7 +27,7 @@ To date, at least the following dispatch tables are supported.
 - netcdf enhanced files (netcdf-4)
 - DAP2 to netcdf-3
 - DAP4 to netcdf-4
-- PnetCDF (parallel I/O for classic files)
+- PnetCDF (parallel I/O for classic files -- version 1,2, or 5)
 - HDF4 SD files
 
 The dispatch table represents a distillation of the netcdf API down to
@@ -159,9 +159,11 @@ the top-level _Makefile.am_.
 \section choosing_dispatch_table Choosing a Dispatch Table
 
 The dispatch table is chosen in the NC_create and the NC_open
-procedures in _libdispatch/netcdf.c_.
+procedures.
 This can be, unfortunately, a complex process.
-The choice is made in _NC_create_ and _NC_open_ in _libdispatch/dfile.c_.
+The code for inferring a dispatch table is largely isolated
+to the file _libdispatch/dinfermodel.c_, which is invoked
+from _NC_create_ or _NC_open_ in _libdispatch/dfile.c_.
 
 In any case, the choice of dispatch table is currently based on the following
 pieces of information.
@@ -178,10 +180,6 @@ the choice is determined using the function _NC_urlmodel_.
 3. The file contents - when the contents of a real file are available,
 the contents of the file can be used to determine the dispatch table.
 As a rule, this is likely to be useful only for _nc_open_.
-
-4. Environment variables - this option is currently not used,
-but information such as environment variables could be used to determine
-the choice of dispatch table.
 
 \section special_dispatch Special Dispatch Table Signatures.
 
@@ -483,4 +481,52 @@ The code in _hdf4var.c_ does an _nc_get_vara()_ on the HDF4 SD
 dataset. This is all that is needed for all the nc_get_* functions to
 work.
 
+\subsection model_infer Inferring the Dispatch Table
+
+As mentioned above, the dispatch table is inferred using the following
+information:
+1. The mode argument
+2. The file path/URL
+3. The file contents (when available)
+
+The primary function for doing this inference is in the file
+_libdispatch/dinfermodel.c_ via the API in _include/ncmodel.h_.
+The term _model_ is used here to include (at least) the following
+information (see the structure type _NCmodel_ in _include/ncmodel.h_).
+
+1. format -- this is an NC_FORMAT_XXX value defining the file format
+   as seen by the user program.
+2. version -- the specific version of the format.
+3. iosp -- this is and NC_IOSP_XXX value describing internal protocols to use.
+4. impl -- this is an NC_FORMATX_XXX value defining, in effect, the
+   dispatch table to use.
+
+For example, if the format was NC_FORMAT_CLASSIC, then the client
+will see the netcdf-3 data model, as modified by the version. If the
+version was 5, for example, then that indicates the file format
+is actually NC_FORMAT_64BIT_DATA, which is a variant of the netcdf-3
+format.
+
+The _iosp_ provides information about how the protocol the
+dispatch table will use to access the actual dataset. If the iosp
+is NC_IOSP_S3RAW, then it indicates that the dispatcher, NC_FORMATX_NC3,
+for example, will access the dataset using the Amazon S3 REST API.
+
+The construction of the model is primarily carried out by the function
+_NC_infermodel()_. It is given the following parameters:
+1. path -- (IN) absolute file path or URL
+2. omodep -- (IN/OUT) the set of mode flags given to _NC_open_ or _NC_create_.
+3. iscreate -- (IN) distinguish open from create.
+4. useparallel -- (IN) indicate if parallel IO can be used.
+5. params -- (IN/OUT) arbitrary data dependent on the mode and path.
+6. model -- (IN/OUT) place to store inferred model information (e.g. format
+   or version).
+7. newpathp -- (OUT) sometimes, it is necessary to rewrite the path.
+
+As a rule, these values are used in the this order to infer the model.
+1. file contents -- highest precedence
+2. url (if it is one) -- using the protocol and fragment arguments
+3. mode flags
+4. default format -- lowest precedence
+ 
 */

@@ -2,8 +2,9 @@
 
 Main header file for the C API.
 
-Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014
+Copyright 2018, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+2015, 2016, 2017, 2018
 University Corporation for Atmospheric Research/Unidata.
 
 See \ref copyright file for more info.
@@ -149,17 +150,15 @@ Use this in mode flags for both nc_create() and nc_open(). */
 
 #define NC_NETCDF4       0x1000  /**< Use netCDF-4/HDF5 format. Mode flag for nc_create(). */
 
-/** Turn on MPI I/O.
-Use this in mode flags for both nc_create() and nc_open(). */
+/** The following 3 flags are deprecated as of 4.6.2. Parallel I/O is now
+ * initiated by calling nc_create_par and nc_open_par, no longer by flags.
+ */
 #define NC_MPIIO         0x2000 /**< \deprecated */
-/** Turn on MPI POSIX I/O.
-Use this in mode flags for both nc_create() and nc_open(). */
-#define NC_MPIPOSIX      NC_MPIIO /**< \deprecated As of libhdf5 1.8.13. Now an alias */
+#define NC_MPIPOSIX      NC_MPIIO /**< \deprecated */
+#define NC_PNETCDF       (NC_MPIIO) /**< \deprecated */
 
 #define NC_PERSIST       0x4000  /**< Save diskless contents to disk. Mode flag for nc_open() or nc_create() */
 #define NC_INMEMORY      0x8000  /**< Read from memory. Mode flag for nc_open() or nc_create() */
-
-#define NC_PNETCDF       (NC_MPIIO) /**< \deprecated Use PnetCDF library; alias for NC_MPIIO. */
 
 #define NC_MAX_MAGIC_NUMBER_LEN 8 /**< Max len of user-defined format magic number. */
 
@@ -171,8 +170,8 @@ Use this in mode flags for both nc_create() and nc_open(). */
  */
 /**@{*/
 #define NC_FORMAT_CLASSIC         (1)
-/* After adding CDF5 support, this flag
-   is somewhat confusing. So, it is renamed.
+/* After adding CDF5 support, the NC_FORMAT_64BIT
+   flag is somewhat confusing. So, it is renamed.
    Note that the name in the contributed code
    NC_FORMAT_64BIT was renamed to NC_FORMAT_CDF2
 */
@@ -184,6 +183,9 @@ Use this in mode flags for both nc_create() and nc_open(). */
 
 /* Alias */
 #define NC_FORMAT_CDF5    NC_FORMAT_64BIT_DATA
+
+/* Define a mask covering format flags only */
+#define NC_FORMAT_ALL (NC_64BIT_OFFSET|NC_64BIT_DATA|NC_CLASSIC_MODEL|NC_NETCDF4|NC_UDF0|NC_UDF1)
 
 /**@}*/
 
@@ -214,6 +216,7 @@ Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_FORMATX_DAP4      (6)
 #define NC_FORMATX_UDF0      (8)
 #define NC_FORMATX_UDF1      (9)
+#define NC_FORMATX_ZARR      (10)
 #define NC_FORMATX_UNDEFINED (0)
 
   /* To avoid breaking compatibility (such as in the python library),

@@ -1,4 +1,4 @@
-/* Copyright 2010 University Corporation for Atmospheric
+/* Copyright 2018 University Corporation for Atmospheric
    Research/Unidata. See COPYRIGHT file for more info. */
 /**
  * @file
@@ -7,6 +7,10 @@
 */
 #include "config.h"
 #include "ncdispatch.h"
+#ifdef HAVE_STDIO_H
+#include <stdio.h>
+#endif
+extern int fileno(FILE*);
 
 /**
 Create a netCDF file for parallel I/O.
@@ -98,6 +102,11 @@ int nc_create_par(const char *path, int cmode, MPI_Comm comm,
                   MPI_Info info, int *ncidp)
 {
 #ifndef USE_PARALLEL
+    NC_UNUSED(path);
+    NC_UNUSED(cmode);
+    NC_UNUSED(comm);
+    NC_UNUSED(info);
+    NC_UNUSED(ncidp);
     return NC_ENOPAR;
 #else
     NC_MPI_INFO data;
@@ -113,6 +122,10 @@ int nc_create_par(const char *path, int cmode, MPI_Comm comm,
     if (cmode & NC_NETCDF4)
         return NC_ENOTBUILT;
 #endif
+
+    /* Can't use both parallel and diskless|inmemory|mmap. */
+    if (cmode & (NC_DISKLESS|NC_INMEMORY|NC_MMAP))
+        return NC_EINVAL;
 
     data.comm = comm;
     data.info = info;
@@ -197,6 +210,11 @@ nc_open_par(const char *path, int omode, MPI_Comm comm,
             MPI_Info info, int *ncidp)
 {
 #ifndef USE_PARALLEL
+    NC_UNUSED(path);
+    NC_UNUSED(omode);
+    NC_UNUSED(comm);
+    NC_UNUSED(info);
+    NC_UNUSED(ncidp);
     return NC_ENOPAR;
 #else
     NC_MPI_INFO mpi_data;
@@ -245,6 +263,11 @@ nc_open_par_fortran(const char *path, int omode, int comm,
                     int info, int *ncidp)
 {
 #ifndef USE_PARALLEL
+    NC_UNUSED(path);
+    NC_UNUSED(omode);
+    NC_UNUSED(comm);
+    NC_UNUSED(info);
+    NC_UNUSED(ncidp);
     return NC_ENOPAR;
 #else
     MPI_Comm comm_c;
@@ -344,6 +367,9 @@ int
 nc_var_par_access(int ncid, int varid, int par_access)
 {
 #ifndef USE_PARALLEL
+    NC_UNUSED(ncid);
+    NC_UNUSED(varid);
+    NC_UNUSED(par_access);
     return NC_ENOPAR;
 #else
     int stat = NC_NOERR;
@@ -399,6 +425,11 @@ nc_create_par_fortran(const char *path, int cmode, int comm,
                       int info, int *ncidp)
 {
 #ifndef USE_PARALLEL
+    NC_UNUSED(path);
+    NC_UNUSED(cmode);
+    NC_UNUSED(comm);
+    NC_UNUSED(info);
+    NC_UNUSED(ncidp);
     return NC_ENOPAR;
 #else
     MPI_Comm comm_c;

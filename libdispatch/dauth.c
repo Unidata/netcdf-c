@@ -1,6 +1,6 @@
 /*
-Copyright (c) 1998-2017 University Corporation for Atmospheric Research/Unidata
-See LICENSE.txt for license information.
+Copyright (c) 1998-2018 University Corporation for Atmospheric Research/Unidata
+See COPYRIGHT for license information.
 */
 
 
@@ -76,6 +76,9 @@ int
 NC_authsetup(NCauth* auth, NCRCFIELDS* rcfields)
 {
     int ret = NC_NOERR;
+    char* uri_hostport = NULL;
+
+#if 0
     if(rcfields != NULL) {
     setauthfield(auth,"HTTP.DEFLATE",rcfields);
     setauthfield(auth,"HTTP.VERBOSE",rcfields);
@@ -93,6 +96,84 @@ NC_authsetup(NCauth* auth, NCRCFIELDS* rcfields)
     setauthfield(auth,"HTTP.NETRC",rcfields);
     setauthfield(auth,"HTTP.CREDENTIALS.USER",rcfields);
     setauthfield(auth,"HTTP.CREDENTIALS.PASSWORD",rcfields);
+#endif
+
+    if(uri != NULL)
+      uri_hostport = NC_combinehostport(uri);
+    else
+      return NC_EDAP; /* Generic EDAP error. */
+    setdefaults(auth);
+
+    /* Note, we still must do this function even if
+       ncrc_globalstate.rc.ignore is set in order
+       to getinfo e.g. host+port  from url
+    */
+
+    setauthfield(auth,"HTTP.DEFLATE",
+		      NC_rclookup("HTTP.DEFLATE",uri_hostport));
+    setauthfield(auth,"HTTP.VERBOSE",
+			NC_rclookup("HTTP.VERBOSE",uri_hostport));
+    setauthfield(auth,"HTTP.TIMEOUT",
+			NC_rclookup("HTTP.TIMEOUT",uri_hostport));
+    setauthfield(auth,"HTTP.USERAGENT",
+			NC_rclookup("HTTP.USERAGENT",uri_hostport));
+    setauthfield(auth,"HTTP.COOKIEFILE",
+			NC_rclookup("HTTP.COOKIEFILE",uri_hostport));
+    setauthfield(auth,"HTTP.COOKIE_FILE",
+			NC_rclookup("HTTP.COOKIE_FILE",uri_hostport));
+    setauthfield(auth,"HTTP.COOKIEJAR",
+			NC_rclookup("HTTP.COOKIEJAR",uri_hostport));
+    setauthfield(auth,"HTTP.COOKIE_JAR",
+			NC_rclookup("HTTP.COOKIE_JAR",uri_hostport));
+    setauthfield(auth,"HTTP.PROXY.SERVER",
+			NC_rclookup("HTTP.PROXY.SERVER",uri_hostport));
+    setauthfield(auth,"HTTP.PROXY_SERVER",
+			NC_rclookup("HTTP.PROXY_SERVER",uri_hostport));
+    setauthfield(auth,"HTTP.SSL.VALIDATE",
+			NC_rclookup("HTTP.SSL.VALIDATE",uri_hostport));
+    setauthfield(auth,"HTTP.SSL.CERTIFICATE",
+			NC_rclookup("HTTP.SSL.CERTIFICATE",uri_hostport));
+    setauthfield(auth,"HTTP.SSL.KEY",
+			NC_rclookup("HTTP.SSL.KEY",uri_hostport));
+    setauthfield(auth,"HTTP.SSL.KEYPASSWORD",
+			NC_rclookup("HTTP.SSL.KEYPASSWORD",uri_hostport));
+    setauthfield(auth,"HTTP.SSL.CAINFO",
+			NC_rclookup("HTTP.SSL.CAINFO",uri_hostport));
+    setauthfield(auth,"HTTP.SSL.CAPATH",
+			NC_rclookup("HTTP.SSL.CAPATH",uri_hostport));
+    setauthfield(auth,"HTTP.SSL.VERIFYPEER",
+			NC_rclookup("HTTP.SSL.VERIFYPEER",uri_hostport));
+    setauthfield(auth,"HTTP.NETRC",
+			NC_rclookup("HTTP.NETRC",uri_hostport));
+
+    { /* Handle various cases for user + password */
+      /* First, see if the user+pwd was in the original url */
+      char* user = NULL;
+      char* pwd = NULL;
+      if(uri->user != NULL && uri->password != NULL) {
+	    user = uri->user;
+	    pwd = uri->password;
+      } else {
+   	    user = NC_rclookup("HTTP.CREDENTIALS.USER",uri_hostport);
+	    pwd = NC_rclookup("HTTP.CREDENTIALS.PASSWORD",uri_hostport);
+      }
+      if(user != NULL && pwd != NULL) {
+        user = strdup(user); /* so we can consistently reclaim */
+        pwd = strdup(pwd);
+      } else {
+	    /* Could not get user and pwd, so try USERPASSWORD */
+	    const char* userpwd = NC_rclookup("HTTP.CREDENTIALS.USERPASSWORD",uri_hostport);
+	    if(userpwd != NULL) {
+          ret = NC_parsecredentials(userpwd,&user,&pwd);
+          if(ret) {nullfree(uri_hostport); return ret;}
+	    }
+      }
+      setauthfield(auth,"HTTP.CREDENTIALS.USERNAME",user);
+      setauthfield(auth,"HTTP.CREDENTIALS.PASSWORD",pwd);
+      nullfree(user);
+      nullfree(pwd);
+      nullfree(uri_hostport);
+>>>>>>> master
     }
     return (ret);
 }

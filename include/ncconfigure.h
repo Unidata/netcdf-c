@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 University Corporation for Atmospheric
+ * Copyright 2018 University Corporation for Atmospheric
  * Research/Unidata. See COPYRIGHT file for more info.
  *
  * This header file is for the parallel I/O functions of netCDF.
@@ -26,12 +26,6 @@ defined and missing types defined.
 extern char* strdup(const char*);
 #endif
 
-/*
-#ifndef HAVE_SSIZE_T
-typedef long ssize_t;
-#define HAVE_SSIZE_T
-#endif
-*/
 /* handle null arguments */
 #ifndef nulldup
 #ifdef HAVE_STRDUP
@@ -49,15 +43,36 @@ typedef SSIZE_T ssize_t;
 #endif
 #endif
 
-#ifndef HAVE_STRLCAT
-#ifdef _MSC_VER
-/* Windows strlcat_s is equivalent to strlcat, but different arg order */
-#define strlcat(d,s,n) strcat_s((d),(n),(s))
-#else
-extern size_t strlcat(char* dst, const char* src, size_t dsize);
+/*Warning: Cygwin with -ansi does not define these functions
+  in its headers.*/
+#ifndef _WIN32
+#if __STDC__ == 1 /*supposed to be same as -ansi flag */
+
+#ifndef strdup
+extern char* strdup(const char*);
+#endif
+
+#ifndef strlcat
+extern size_t strlcat(char*,const char*,size_t);
+#endif
+
+#ifndef snprintf
+extern int snprintf(char*, size_t, const char*, ...);
+#endif
+
+extern int strcasecmp(const char*, const char*);
+extern long long int strtoll(const char*, char**, int);
+extern unsigned long long int strtoull(const char*, char**, int);
 #endif
 #endif
 
+#ifdef _WIN32
+#ifndef strlcat
+#define strlcat(d,s,n) strcat_s((d),(n),(s))
+#endif
+#endif
+
+/* handle null arguments */
 #ifndef nulldup
 #define nulldup(s) ((s)==NULL?NULL:strdup(s))
 #endif
@@ -84,5 +99,14 @@ typedef unsigned short ushort;
 #ifndef HAVE_UINT
 typedef unsigned int uint;
 #endif
+
+
+/* Provide a fixed size alternative to off_t or off64_t */
+typedef long long fileoffset_t;
+
+#ifndef NC_UNUSED
+#define NC_UNUSED(var) (void)var
+#endif
+
 
 #endif /* NCCONFIGURE_H */

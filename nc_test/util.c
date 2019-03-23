@@ -1,9 +1,10 @@
 /*********************************************************************
- *   Copyright 1996, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Id: util.c 2792 2014-10-27 06:02:59Z wkliao $
  *********************************************************************/
 
+#include <config.h>
 #include <math.h> /* floor() */
 #include "tests.h"
 
@@ -1313,8 +1314,10 @@ char* nc_err_code_name(int err)
         case (NC_EMPI):				return "NC_EMPI";
         case (NC_ENULLPAD):			return "NC_NULLPAD";
         case (NC_EINMEMORY):			return "NC_EINMEMORY";
-        // case (NC_EURL):				return "NC_EURL";
-        // case (NC_ECONSTRAINT):			return "NC_ECONSTRAINT";
+#if 0
+        case (NC_EURL):				return "NC_EURL";
+        case (NC_ECONSTRAINT):			return "NC_ECONSTRAINT";
+#endif
 #ifdef USE_PNETCDF
         case (NC_ESMALL):			return "NC_ESMALL";
         case (NC_ENOTINDEP):			return "NC_ENOTINDEP";

@@ -1,5 +1,5 @@
 ## This is a automake file, part of Unidata's netCDF package.
-# Copyright 2011, see the COPYRIGHT file for more information.
+# Copyright 2018v, see the COPYRIGHT file for more information.
 
 # This file builds and runs DAP tests.
 
@@ -38,12 +38,13 @@ endif
 # because the server may be down or inaccessible
 
 if ENABLE_DAP_REMOTE_TESTS
-check_PROGRAMS += findtestserver
+noinst_PROGRAMS = findtestserver
 findtestserver_SOURCES = findtestserver.c
+endif
 
+if ENABLE_DAP_REMOTE_TESTS
 if BUILD_UTILITIES
-TESTS += tst_ber.sh tst_remote3.sh tst_formatx.sh testurl.sh
-TESTS += tst_fillmismatch.sh tst_rcparam.sh
+TESTS += tst_ber.sh tst_remote3.sh tst_formatx.sh testurl.sh tst_fillmismatch.sh tst_zero_len_var.sh
 endif
 
 TESTS += test_partvar
@@ -84,6 +85,7 @@ SUBDIRS = testdata3 expected3 expectremote3
 EXTRA_DIST = tst_ncdap3.sh  \
              tst_remote3.sh \
              tst_longremote3.sh \
+			 tst_zero_len_var.sh \
              tst_filelists.sh tst_urls.sh tst_utils.sh \
 	     t_dap.c CMakeLists.txt tst_formatx.sh testauth.sh testurl.sh \
 	     t_ncf330.c tst_ber.sh tst_fillmismatch.sh tst_rcparam.sh \

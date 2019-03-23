@@ -1,5 +1,5 @@
 /* This is part of the netCDF package.
-   Copyright 2005 University Corporation for Atmospheric Research/Unidata
+   Copyright 2018 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
    Test that HDF5 and NetCDF-4 can read and write the same file.
@@ -398,47 +398,47 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
-/*    printf("**** testing 2D coordinate variable..."); */
+   printf("**** testing 2D coordinate variable...");
 
-/*    { */
-/* #define VAR_NAME "Britany" */
-/* #define NDIMS 2 */
-/* #define TEXT_LEN 15 */
-/* #define D0_NAME "time" */
-/* #define D1_NAME "tl" */
-/*       int ncid, nvars_in, varids_in[1]; */
-/*       int time_dimids[NDIMS], time_id; */
-/*       size_t time_count[NDIMS], time_index[NDIMS] = {0, 0}; */
-/*       const char ttext[TEXT_LEN]="20051224.150000"; */
-/*       int nvars, ndims, ngatts, unlimdimid; */
-/*       int ndims_in, natts_in, dimids_in[NDIMS]; */
-/*       char var_name_in[NC_MAX_NAME + 1]; */
-/*       nc_type xtype_in; */
+   {
+#define VAR_NAME "Britany"
+#define NDIMS2 2
+#define TEXT_LEN 15
+#define D0_NAME "time"
+#define D1_NAME "tl"
+      int ncid, nvars_in, varids_in[1];
+      int time_dimids[NDIMS2], time_id;
+      size_t time_count[NDIMS2], time_index[NDIMS2] = {0, 0};
+      const char ttext[TEXT_LEN]="20051224.150000";
+      int nvars, ndims, ngatts, unlimdimid;
+      int ndims_in, natts_in, dimids_in[NDIMS2];
+      char var_name_in[NC_MAX_NAME + 1];
+      nc_type xtype_in;
 
-/*       /\* Create a netcdf-4 file with 2D coordinate var. *\/ */
-/*       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR; */
+      /* Create a netcdf-4 file with 2D coordinate var. */
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
 
-/*       if (nc_def_dim(ncid, D0_NAME, NC_UNLIMITED, &time_dimids[0])) ERR; */
-/*       if (nc_def_dim(ncid, D1_NAME, TEXT_LEN, &time_dimids[1])) ERR; */
-/*       if (nc_def_var(ncid, D0_NAME, NC_CHAR, NDIMS, time_dimids, &time_id)) ERR; */
+      if (nc_def_dim(ncid, D0_NAME, NC_UNLIMITED, &time_dimids[0])) ERR;
+      if (nc_def_dim(ncid, D1_NAME, TEXT_LEN, &time_dimids[1])) ERR;
+      if (nc_def_var(ncid, D0_NAME, NC_CHAR, NDIMS2, time_dimids, &time_id)) ERR;
 
-/*       /\* Write one time to the coordinate variable. *\/ */
-/*       time_count[0] = 1; */
-/*       time_count[1] = TEXT_LEN; */
-/*       if (nc_put_vara_text(ncid, time_id, time_index, time_count, ttext)) ERR; */
-/*       if (nc_close(ncid)) ERR; */
+      /* Write one time to the coordinate variable. */
+      time_count[0] = 1;
+      time_count[1] = TEXT_LEN;
+      if (nc_put_vara_text(ncid, time_id, time_index, time_count, ttext)) ERR;
+      if (nc_close(ncid)) ERR;
 
-/*       /\* Open the file and check. *\/ */
-/*       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR; */
-/*       if (nc_inq(ncid, &ndims, &nvars, &ngatts, &unlimdimid)) ERR; */
-/*       if (nvars != 1 || ndims != 2 || ngatts != 0 || unlimdimid != 0) ERR; */
-/*       if (nc_inq_varids(ncid, &nvars_in, varids_in)) ERR; */
-/*       if (nvars_in != 1 || varids_in[0] != 0) ERR; */
-/*       if (nc_inq_var(ncid, 0, var_name_in, &xtype_in, &ndims_in, dimids_in, &natts_in)) ERR; */
-/*       if (strcmp(var_name_in, D0_NAME) || xtype_in != NC_CHAR || ndims_in != 2 || */
-/* 	dimids_in[0] != 0 || dimids_in[1] != 1 || natts_in != 0) ERR; */
-/*       if (nc_close(ncid)) ERR; */
-/*    } */
-/*    SUMMARIZE_ERR; */
+      /* Open the file and check. */
+      if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+      if (nc_inq(ncid, &ndims, &nvars, &ngatts, &unlimdimid)) ERR;
+      if (nvars != 1 || ndims != 2 || ngatts != 0 || unlimdimid != 0) ERR;
+      if (nc_inq_varids(ncid, &nvars_in, varids_in)) ERR;
+      if (nvars_in != 1 || varids_in[0] != 0) ERR;
+      if (nc_inq_var(ncid, 0, var_name_in, &xtype_in, &ndims_in, dimids_in, &natts_in)) ERR;
+      if (strcmp(var_name_in, D0_NAME) || xtype_in != NC_CHAR || ndims_in != 2 ||
+	dimids_in[0] != 0 || dimids_in[1] != 1 || natts_in != 0) ERR;
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
    FINAL_RESULTS;
 }

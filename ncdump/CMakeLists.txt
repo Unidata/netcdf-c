@@ -1,3 +1,9 @@
+# Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+# 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+# 2015, 2016, 2017, 2018
+# University Corporation for Atmospheric Research/Unidata.
+
+# See netcdf-c/COPYRIGHT file for more info.
 IF(BUILD_SHARED_LIBS AND WIN32)
   remove_definitions(-DDLL_EXPORT)
   remove_definitions(-DDLL_NETCDF)
@@ -162,8 +168,10 @@ ENDIF(MSVC)
   ENDIF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
 
   add_sh_test(ncdump tst_inmemory_nc3)
+  add_sh_test(ncdump tst_nccopy_w3)
   IF(USE_NETCDF4)
       add_sh_test(ncdump tst_inmemory_nc4)
+      add_sh_test(ncdump tst_nccopy_w4)
   ENDIF(USE_NETCDF4)
 
   IF(USE_NETCDF4)
@@ -183,7 +191,6 @@ ENDIF(MSVC)
     build_bin_test_no_prefix(tst_special_atts)
     build_bin_test_no_prefix(tst_compress)
     build_bin_test_no_prefix(tst_chunking)
-
 
     ###
     # This test fails on Visual Studio builds with bash.
@@ -246,6 +253,7 @@ ENDIF(MSVC)
     add_sh_test(ncdump tst_inttags4)
   ENDIF(USE_NETCDF4)
 
+  add_sh_test(ncdump test_radix)
 ENDIF()
 
 ENDIF()

@@ -1,4 +1,4 @@
-/* This is part of the netCDF package.  Copyright 2005 University
+/* This is part of the netCDF package.  Copyright 2018 University
    Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
    conditions of use.
 
@@ -82,6 +82,7 @@ main()
         int natts = 0;
 	nc_type type;
 
+        nc_set_log_level(4);
 	if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
 
         /* Check the root group's attributes are OK */

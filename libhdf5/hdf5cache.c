@@ -12,10 +12,11 @@
 #include "config.h"
 #include "hdf5internal.h"
 
-/* These hold the file caching settings for the library. */
-size_t nc4_chunk_cache_size = CHUNK_CACHE_SIZE;            /**< Default chunk cache size. */
-size_t nc4_chunk_cache_nelems = CHUNK_CACHE_NELEMS;        /**< Default chunk cache number of elements. */
-float nc4_chunk_cache_preemption = CHUNK_CACHE_PREEMPTION; /**< Default chunk cache preemption. */
+/* These are the default chunk cache sizes for HDF5 files created or
+ * opened with netCDF-4. */
+extern size_t nc4_chunk_cache_size;
+extern size_t nc4_chunk_cache_nelems;
+extern float nc4_chunk_cache_preemption;
 
 /**
  * Set chunk cache size. Only affects files opened/created *after* it
@@ -32,12 +33,12 @@ float nc4_chunk_cache_preemption = CHUNK_CACHE_PREEMPTION; /**< Default chunk ca
 int
 nc_set_chunk_cache(size_t size, size_t nelems, float preemption)
 {
-   if (preemption < 0 || preemption > 1)
-      return NC_EINVAL;
-   nc4_chunk_cache_size = size;
-   nc4_chunk_cache_nelems = nelems;
-   nc4_chunk_cache_preemption = preemption;
-   return NC_NOERR;
+    if (preemption < 0 || preemption > 1)
+        return NC_EINVAL;
+    nc4_chunk_cache_size = size;
+    nc4_chunk_cache_nelems = nelems;
+    nc4_chunk_cache_preemption = preemption;
+    return NC_NOERR;
 }
 
 /**
@@ -54,15 +55,15 @@ nc_set_chunk_cache(size_t size, size_t nelems, float preemption)
 int
 nc_get_chunk_cache(size_t *sizep, size_t *nelemsp, float *preemptionp)
 {
-   if (sizep)
-      *sizep = nc4_chunk_cache_size;
+    if (sizep)
+        *sizep = nc4_chunk_cache_size;
 
-   if (nelemsp)
-      *nelemsp = nc4_chunk_cache_nelems;
+    if (nelemsp)
+        *nelemsp = nc4_chunk_cache_nelems;
 
-   if (preemptionp)
-      *preemptionp = nc4_chunk_cache_preemption;
-   return NC_NOERR;
+    if (preemptionp)
+        *preemptionp = nc4_chunk_cache_preemption;
+    return NC_NOERR;
 }
 
 /**
@@ -79,12 +80,12 @@ nc_get_chunk_cache(size_t *sizep, size_t *nelemsp, float *preemptionp)
 int
 nc_set_chunk_cache_ints(int size, int nelems, int preemption)
 {
-   if (size <= 0 || nelems <= 0 || preemption < 0 || preemption > 100)
-      return NC_EINVAL;
-   nc4_chunk_cache_size = size;
-   nc4_chunk_cache_nelems = nelems;
-   nc4_chunk_cache_preemption = (float)preemption / 100;
-   return NC_NOERR;
+    if (size <= 0 || nelems <= 0 || preemption < 0 || preemption > 100)
+        return NC_EINVAL;
+    nc4_chunk_cache_size = size;
+    nc4_chunk_cache_nelems = nelems;
+    nc4_chunk_cache_preemption = (float)preemption / 100;
+    return NC_NOERR;
 }
 
 /**
@@ -101,12 +102,12 @@ nc_set_chunk_cache_ints(int size, int nelems, int preemption)
 int
 nc_get_chunk_cache_ints(int *sizep, int *nelemsp, int *preemptionp)
 {
-   if (sizep)
-      *sizep = (int)nc4_chunk_cache_size;
-   if (nelemsp)
-      *nelemsp = (int)nc4_chunk_cache_nelems;
-   if (preemptionp)
-      *preemptionp = (int)(nc4_chunk_cache_preemption * 100);
+    if (sizep)
+        *sizep = (int)nc4_chunk_cache_size;
+    if (nelemsp)
+        *nelemsp = (int)nc4_chunk_cache_nelems;
+    if (preemptionp)
+        *preemptionp = (int)(nc4_chunk_cache_preemption * 100);
 
-   return NC_NOERR;
+    return NC_NOERR;
 }

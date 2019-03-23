@@ -1,5 +1,5 @@
 /*
- *	Copyright 1996, University Corporation for Atmospheric Research
+ *	Copyright 2018, University Corporation for Atmospheric Research
  *	See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 
@@ -75,7 +75,7 @@ typedef int ssize_t;
 #undef X_ALIGN
 #endif
 
-#undef REALLOCBUG
+#define REALLOCBUG
 #ifdef REALLOCBUG
 /* There is some kind of realloc bug that I cannot solve yet */
 #define reallocx(m,new,old) realloc(m,new)
@@ -84,7 +84,10 @@ static void*
 reallocx(void* mem, size_t newsize, size_t oldsize)
 {
     void* m = malloc(newsize);
-    memcpy(m,mem,oldsize);
+    if(m != NULL) {
+        memcpy(m,mem,oldsize);
+	free(mem);
+    }
     return m;
 }
 #endif
@@ -334,6 +337,8 @@ memio_open(const char* path,
 
     sizehint = *sizehintp;
 
+    memset(&meminfo,0,sizeof(meminfo));
+
     if(inmemory) { /* parameters provide the memory chunk */
 	NC_memio* memparams = (NC_memio*)parameters;
         meminfo = *memparams;
@@ -446,7 +451,7 @@ memio_pad_length(ncio* nciop, off_t length)
     if(nciop == NULL || nciop->pvt == NULL) return NC_EINVAL;
     memio = (NCMEMIO*)nciop->pvt;
 
-    if(fIsSet(nciop->ioflags,NC_WRITE))
+    if(!fIsSet(nciop->ioflags,NC_WRITE))
         return EPERM; /* attempt to write readonly file*/
     if(memio->locked)
 	return NC_EINMEMORY;
@@ -478,8 +483,6 @@ fprintf(stderr,"realloc: %lu/%lu -> %lu/%lu\n",
 (unsigned long)memio->memory,(unsigned long)memio->alloc,
 (unsigned long)newmem,(unsigned long)newsize);
 #endif
-	if(memio->memory != NULL && (!memio->locked || memio->modified))
-	    free(memio->memory);
 	memio->memory = newmem;
 	memio->alloc = newsize;
 	memio->modified = 1;
@@ -490,7 +493,8 @@ fprintf(stderr,"realloc: %lu/%lu -> %lu/%lu\n",
 
 /*! Write out any dirty buffers to disk.
 
-  Write out any dirty buffers to disk and ensure that next read will get data from disk. Sync any changes, then close the open file associated with the ncio struct, and free its memory.
+  Write out any dirty buffers to disk and ensure that next read will get data from disk.
+  Sync any changes, then close the open file associated with the ncio struct, and free its memory.
 
   @param[in] nciop pointer to ncio to close.
   @param[in] doUnlink if true, unlink file
@@ -632,8 +636,8 @@ memio_sync(ncio* const nciop)
     return NC_NOERR; /* do nothing */
 }
 
-/* "Hidden" Internal function to extract a copy of
-   the size and/or contents of the memory
+/* "Hidden" Internal function to extract the 
+   the size and/or contents of the memory.
 */
 int
 memio_extract(ncio* const nciop, size_t* sizep, void** memoryp)
@@ -735,9 +739,11 @@ readfile(const char* path, NC_memio* memio)
     if(memio) {
 	memio->size = (size_t)filesize;
 	memio->memory = memory;
-    }    
+	memory = NULL;
+    }
+
 done:
-    if(status != NC_NOERR && memory != NULL)
+    if(memory != NULL)
 	free(memory);
     if(f != NULL) fclose(f);
     return status;    

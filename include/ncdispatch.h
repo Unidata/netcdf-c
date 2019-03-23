@@ -1,13 +1,14 @@
-/*********************************************************************
- *   Copyright 2010, UCAR/Unidata
- *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *********************************************************************/
+/* Copyright 2018-2018 University Corporation for Atmospheric
+   Research/Unidata. */
+/**
+ * @file
+ * @internal Includes prototypes for core dispatch functionality.
+ *
+ * @author Dennis Heimbigner
+ */
 
-/* $Id: ncdispatch.h,v 1.18 2010/06/01 20:11:59 dmh Exp $ */
-/* $Header: /upc/share/CVS/netcdf-3/libdispatch/ncdispatch.h,v 1.18 2010/06/01 20:11:59 dmh Exp $ */
-
-#ifndef _DISPATCH_H
-#define _DISPATCH_H
+#ifndef NC_DISPATCH_H
+#define NC_DISPATCH_H
 
 #if HAVE_CONFIG_H
 #include "config.h"
@@ -20,6 +21,7 @@
 #include <mpi.h>
 #endif
 #include "netcdf.h"
+#include "ncmodel.h"
 #include "nc.h"
 #include "ncuri.h"
 #ifdef USE_PARALLEL
@@ -62,14 +64,6 @@
 #define T_ulong   ulongtype
 
 /**************************************************/
-#if 0
-/* Define the known classes of dispatchers */
-/* Flags may be or'd => powers of 2*/
-#define NC_DISPATCH_NC3    1
-#define NC_DISPATCH_NC4    2
-#define NC_DISPATCH_NCD    4
-#define NC_DISPATCH_NCP    8
-#endif
 
 /* Define a type for use when doing e.g. nc_get_vara_long, etc. */
 /* Should matche values in libsrc4/netcdf.h */
@@ -107,10 +101,6 @@ typedef struct NC_MPI_INFO {
 
 /* Define known dispatch tables and initializers */
 
-/*Forward*/
-// typedef struct NC_Dispatch NC_Dispatch;
-
-
 extern int NCDISPATCH_initialize(void);
 extern int NCDISPATCH_finalize(void);
 
@@ -136,9 +126,14 @@ extern int NCP_finalize(void);
 #endif
 
 #ifdef USE_NETCDF4
-extern NC_Dispatch* NC4_dispatch_table;
 extern int NC4_initialize(void);
 extern int NC4_finalize(void);
+#endif
+
+#ifdef USE_HDF5
+extern NC_Dispatch* HDF5_dispatch_table;
+extern int NC_HDF5_initialize(void);
+extern int NC_HDF5_finalize(void);
 #endif
 
 #ifdef USE_HDF4
@@ -151,6 +146,12 @@ extern int HDF4_finalize(void);
 extern size_t nc_sizevector0[NC_MAX_VAR_DIMS];
 extern size_t nc_sizevector1[NC_MAX_VAR_DIMS];
 extern ptrdiff_t nc_ptrdiffvector1[NC_MAX_VAR_DIMS];
+
+/* User-defined formats. */
+extern NC_Dispatch* UDF0_dispatch_table;
+extern char UDF0_magic_number[NC_MAX_MAGIC_NUMBER_LEN + 1];
+extern NC_Dispatch* UDF1_dispatch_table;
+extern char UDF1_magic_number[NC_MAX_MAGIC_NUMBER_LEN + 1];
 
 /* Prototypes. */
 int NC_check_nulls(int ncid, int varid, const size_t *start, size_t **count,
@@ -337,32 +338,6 @@ extern NC_Dispatch* NC_get_dispatch_override(void);
 extern void NC_set_dispatch_override(NC_Dispatch*);
 #endif
 
-/* Return model as specified by the url, if any;
-   return a modified url suitable for passing to curl
-*/
-extern int NC_urlmodel(const char* path, int mode, char** newurl);
-
-/* allow access url parse and params without exposing nc_url.h */
-extern int NCDAP_urlparse(const char* s, void** dapurl);
-extern void NCDAP_urlfree(void* dapurl);
-extern const char* NCDAP_urllookup(void* dapurl, const char* param);
-
-#if defined(DLL_NETCDF)
-# if defined(DLL_EXPORT)
-#  define NCC_EXTRA __declspec(dllexport)
-#else
-#  define NCC_EXTRA __declspec(dllimport)
-# endif
-NCC_EXTRA extern int nc__testurl(const char* path, char** basename);
-#else
-extern int
- nc__testurl(const char* parth, char** basename);
-#endif
-
-/* Ping a specific server */
-extern int NCDAP2_ping(const char*);
-extern int NCDAP4_ping(const char*);
-
 /* Misc */
 
 extern int NC_getshape(int ncid, int varid, int ndims, size_t* shape);
@@ -370,7 +345,6 @@ extern int NC_is_recvar(int ncid, int varid, size_t* nrecs);
 extern int NC_inq_recvar(int ncid, int varid, int* nrecdims, int* is_recdim);
 
 #define nullstring(s) (s==NULL?"(null)":s)
-
 
 #undef TRACECALLS
 #ifdef TRACECALLS
@@ -465,4 +439,4 @@ EXTERNL int NC_NOTNC4_set_var_chunk_cache(int, int, size_t, size_t, float);
 EXTERNL int NC_NOTNC4_get_var_chunk_cache(int, int, size_t *, size_t *, float *);
 EXTERNL int NC_NOTNC4_var_par_access(int, int, int);
 
-#endif /* _DISPATCH_H */
+#endif /* NC_DISPATCH_H */

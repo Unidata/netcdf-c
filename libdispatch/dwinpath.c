@@ -1,5 +1,5 @@
 /*
- * Copyright 1996, University Corporation for Atmospheric Research
+ * Copyright 2018, University Corporation for Atmospheric Research
  * See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 
@@ -20,6 +20,8 @@
 
 #include "ncexternl.h"
 #include "ncwinpath.h"
+
+extern char *realpath(const char *path, char *resolved_path);
 
 #undef PATHFORMAT
 
@@ -155,7 +157,7 @@ static char*
 makeabsolute(const char* relpath)
 {
     char* path = NULL;
-#ifdef _MSC_VER
+#ifdef _WIN32
     path = _fullpath(NULL,relpath,8192);
 #else
     path = realpath(relpath, NULL);

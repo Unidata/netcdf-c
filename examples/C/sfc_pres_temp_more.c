@@ -1,6 +1,6 @@
 /* This is part of the netCDF package.
 
-   Copyright 2006 University Corporation for Atmospheric
+   Copyright 2018 University Corporation for Atmospheric
    Research/Unidata.  See COPYRIGHT file for conditions of use.
 
    This is a simple example which writes and then reads some surface
@@ -72,7 +72,7 @@ main()
     * applies to the entire file, not just to one variable. Don't
     * forget that sizeof does not include the null terminator, so if
     * you want it, you need to add one more byte. */
-   if ((retval = nc_put_att_text(ncid, NC_GLOBAL, SONNET_NAME, 
+   if ((retval = nc_put_att_text(ncid, NC_GLOBAL, SONNET_NAME,
 				 sizeof(poem) + 1, poem)))
       return retval;
 
@@ -118,7 +118,7 @@ main()
    /* Close the file. */
    if ((retval = nc_close(ncid)))
       return retval;
-   
+
    /* Open the file and check that everything's OK. */
    if ((retval = nc_open(FILE_NAME, 0, &ncid)))
       return retval;
@@ -134,7 +134,7 @@ main()
    free(att_in);
    if (error)
       return -2;
-   
+
    /* Read the data. */
    if ((retval = nc_get_var_float(ncid, pres_varid, pres_in)))
       return retval;

@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2010, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header$
  *********************************************************************/
@@ -67,7 +67,7 @@ static char* queryallow =
 static char* userpwdallow =
 "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!$&'()*+,-.;=_~?#/";
 
-#ifndef HAVE_STRNCMP
+#ifndef HAVE_STRNDUP
 #define strndup ncstrndup
 /* Not all systems have strndup, so provide one*/
 char*
@@ -258,7 +258,7 @@ ncuriparse(const char* uri0, NCURI** durip)
 
     isfile = (strcmp(tmp.protocol,"file")==0);
     if(isfile) {
-	int l = strlen(p); /* to test if we have enough characters */
+	size_t l = strlen(p); /* to test if we have enough characters */
 	hashost = 0; /* always */
 	if(l >= 2 && p[1] == ':' && strchr(DRIVELETTERS,p[0]) != NULL) { /* case 1 */
 	    ; /* p points to the start of the path */
@@ -638,6 +638,20 @@ ncuriquerylookup(NCURI* uri, const char* key)
     return NULL;
   value = uri->querylist[(2*i)+1];
   return value;
+}
+
+/* Obtain the complete list of fragment pairs in envv format */
+const char**
+ncurifragmentparams(NCURI* uri)
+{
+    return (const char**)uri->fraglist;
+}
+
+/* Obtain the complete list of query pairs in envv format */
+const char**
+ncuriqueryparams(NCURI* uri)
+{
+    return (const char**)uri->querylist;
 }
 
 #if 0

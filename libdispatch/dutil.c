@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2016, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
@@ -24,6 +24,8 @@
 #include "ncbytes.h"
 #include "nclog.h"
 #include "ncwinpath.h"
+
+extern int mkstemp(char *template);
 
 #define NC_MAX_PATH 4096
 
@@ -208,7 +210,7 @@ NC_mktmp(const char* base)
 	    char spid[7];
 	    if(rno < 0) rno = -rno;
             snprintf(spid,sizeof(spid),"%06d",rno);
-            strncat(tmp,spid,sizeof(tmp));
+            strncat(tmp,spid,sizeof(tmp) - strlen(tmp) - 1);
 	}
 #endif /* HAVE_MKTEMP */
 #ifdef _MSC_VER

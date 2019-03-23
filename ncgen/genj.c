@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/ncgen/genj.c,v 1.2 2010/05/17 23:26:44 dmh Exp $
  *********************************************************************/
@@ -38,10 +38,11 @@ static void genj_writeattr(Generator*,Symbol*,Bytebuffer*,int,size_t*,size_t*);
  * Generate code for creating netCDF from in-memory structure.
  */
 void
-gen_ncjava(const char *filename)
+genjava_netcdf(void)
 {
     int idim, ivar, iatt, maxdims;
     int ndims, nvars, natts, ngatts;
+    const char *filename = rootgroup->file.filename;
 
     ndims = listlength(dimdefs);
     nvars = listlength(vardefs);
@@ -201,7 +202,7 @@ gen_ncjava(const char *filename)
 }
 
 void
-cl_java(void)
+genjava_close(void)
 {
     codelined(1,"ncfile.close();");
     codeline("");

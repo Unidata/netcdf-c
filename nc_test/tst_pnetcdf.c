@@ -1,5 +1,5 @@
 /* This is part of the netCDF package.
-   Copyright 2005 University Corporation for Atmospheric Research/Unidata
+   Copyright 2018 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
    Test fix of bug involving creation of a file with PnetCDF APIs,
@@ -140,6 +140,7 @@ int main(int argc, char* argv[])
         }
     }
     st = nc_close(ncid); CHK_ERR(st)
+    free(buf);
 
 fn_exit:
     MPI_Finalize();
