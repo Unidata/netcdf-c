@@ -29,6 +29,14 @@ bin_PROGRAMS += nccopy
 nccopy_SOURCES = nccopy.c nciter.c nciter.h chunkspec.h chunkspec.c     \
 utils.h utils.c dimmap.h dimmap.c list.c list.h
 
+# Wei-keng Liao's (wkliao@eecs.northwestern.edu)
+# netcdf-3 validator program
+# (https://github.com/Parallel-NetCDF/PnetCDF/blob/master/src/utils/ncvalidator/ncvalidator.c)
+# that prints out the structure of a netcdf-3 file.
+# This program is built but not installed. 
+noinst_PROGRAMS += ncvalidator
+ncvalidator_SOURCES = ncvalidator.c
+
 # A simple netcdf-4 metadata -> xml printer. Do not install.
 if USE_HDF5
 noinst_PROGRAMS += nc4print
