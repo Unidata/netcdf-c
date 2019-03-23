@@ -19,6 +19,7 @@ Research/Unidata. See \ref copyright file for more info.  */
 #endif
 
 #ifdef _WIN32
+#define snprintf _snprintf
 #include "XGetopt.h"
 int opterr;
 int optind;
