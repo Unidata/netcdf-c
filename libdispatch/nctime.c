@@ -78,8 +78,11 @@ cdError(char *fmt, ...)
 
 #define ISLEAP(year,timeType)	((timeType & Cd366) || (((timeType) & CdHasLeap) && (!((year) % 4) && (((timeType) & CdJulianType) || (((year) % 100) || !((year) % 400))))))
 
-static const int mon_day_cnt[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
+static const int mon_day_cnt_normal[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
+static const int mon_day_cnt_leap[12] = {31,29,31,30,31,30,31,31,30,31,30,31};
 static const int days_sum[12] = {0,31,59,90,120,151,181,212,243,273,304,334};
+
+static const int* mon_day_cnt;
 
 /* Compute month and day from year and day-of-year.
  *
@@ -117,9 +120,9 @@ CdMonthDay(int *doy, CdTime *date)
 		year = date->year;
 
 	if (ISLEAP(year,date->timeType)) {
-		((int*)mon_day_cnt)[1] = 29;
+		mon_day_cnt = mon_day_cnt_leap;
 	} else {
-		((int*)mon_day_cnt)[1] = 28;
+		mon_day_cnt = mon_day_cnt_normal;
 	}
 	date->month	= 0;
 	for (i = 0; i < 12; i++) {
