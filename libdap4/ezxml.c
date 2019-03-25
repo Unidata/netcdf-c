@@ -131,7 +131,7 @@ const char **ezxml_pi(ezxml_t xml, const char *target)
     if (! root) return (const char **)EZXML_NIL;
     while (root->xml.parent) root = (ezxml_root_t)root->xml.parent; /* root tag*/
     while (root->pi[i] && strcmp(target, root->pi[i][0])) i++; /* find target*/
-    return (const char **)((root->pi[i]) ? root->pi[i] + 1 : EZXML_NIL);
+    return ((root->pi[i]) ? (const char**)(root->pi[i] + 1) : EZXML_NIL);
 }
 
 /* set an error string and return root*/
@@ -459,7 +459,7 @@ void ezxml_free_attr(char **attr) {
     int i = 0;
     char *m;
 
-    if (! attr || attr == EZXML_NIL) return; /* nothing to free*/
+    if (! attr || ((const char**)attr) == EZXML_NIL) return; /* nothing to free*/
     while (attr[i]) i += 2; /* find end of attribute list*/
     m = attr[i + 1]; /* list of which names and values are malloced*/
     for (i = 0; m[i]; i++) {
@@ -802,8 +802,8 @@ ezxml_t ezxml_new(const char *name)
     root->xml.name = (char *)name;
     root->cur = &root->xml;
     strcpy(root->err, root->xml.txt = "");
-    root->ent = memcpy(malloc(sizeof(entitities)), entities, sizeof(entities));
-    root->attr = root->pi = (char ***)(root->xml.attr = EZXML_NIL);
+    root->ent = memcpy(malloc(sizeof(entities)), entities, sizeof(entities));
+    root->attr = root->pi = (char ***)(root->xml.attr = (char**)EZXML_NIL);
     return &root->xml;
 }
 
@@ -859,7 +859,7 @@ ezxml_t ezxml_add_child(ezxml_t xml, const char *name, size_t off)
     child = (ezxml_t)memset(malloc(sizeof(struct ezxml)), '\0',
                             sizeof(struct ezxml));
     child->name = (char *)name;
-    child->attr = EZXML_NIL;
+    child->attr = (char**)EZXML_NIL;
     child->txt = "";
 
     return ezxml_insert(child, xml, off);
@@ -885,7 +885,7 @@ ezxml_t ezxml_set_attr(ezxml_t xml, const char *name, const char *value)
     while (xml->attr[l] && strcmp(xml->attr[l], name)) l += 2;
     if (! xml->attr[l]) { /* not found, add as new attribute*/
         if (! value) return xml; /* nothing to do*/
-        if (xml->attr == EZXML_NIL) { /* first attribute*/
+        if (xml->attr == (char**)EZXML_NIL) { /* first attribute*/
             xml->attr = malloc(4 * sizeof(char *));
             xml->attr[1] = strdup(""); /* empty list of malloced names/vals*/
         }

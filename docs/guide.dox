@@ -8,7 +8,6 @@
 - \subpage netcdf_data_set_components
 - \subpage netcdf_perf_chunking
 - \subpage netcdf_utilities_guide
-- \subpage compress
 - \subpage BestPractices
 - \subpage user_defined_formats
 - \subpage users_guide_appendices
@@ -48,7 +47,10 @@ web site (http://www.unidata.ucar.edu/netcdf), and with the netCDF
 distribution.
 
 The latest version of this document, and the language specific guides,
-can be found at the netCDF web site (http://www.unidata.ucar.edu/netcdf/docs) along with extensive additional information about netCDF, including pointers to other software that works with netCDF data.
+can be found at the netCDF web site
+(http://www.unidata.ucar.edu/netcdf/docs) along with extensive
+additional information about netCDF, including pointers to other
+software that works with netCDF data.
 
 Separate documentation of the Java netCDF library can be found at
 http://www.unidata.ucar.edu/software/netcdf-java/.
@@ -88,8 +90,10 @@ were written.
 
 Unidata supports the netCDF interfaces for C (see <a
 href="http://www.unidata.ucar.edu/netcdf/docs/" >NetCDF-C User's
-Guide</a>), Fortran (see <a href="http://www.unidata.ucar.edu/netcdf/fortran/docs/" >NetCDF-Fortran User's Guide</a>)
-and C++ (see <a href="http://www.unidata.ucar.edu/netcdf/documentation/historic/cxx4/index.html"
+Guide</a>), Fortran (see <a
+href="http://www.unidata.ucar.edu/netcdf/fortran/docs/"
+>NetCDF-Fortran User's Guide</a>) and C++ (see <a
+href="http://www.unidata.ucar.edu/netcdf/documentation/historic/cxx4/index.html"
 >NetCDF C++ Interface Guide</a>).
 
 The netCDF library is supported for various UNIX operating systems. A

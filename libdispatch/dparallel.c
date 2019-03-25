@@ -123,6 +123,10 @@ int nc_create_par(const char *path, int cmode, MPI_Comm comm,
         return NC_ENOTBUILT;
 #endif
 
+    /* Can't use both parallel and diskless|inmemory|mmap. */
+    if (cmode & (NC_DISKLESS|NC_INMEMORY|NC_MMAP))
+        return NC_EINVAL;
+
     data.comm = comm;
     data.info = info;
     return NC_create(path, cmode, 0, 0, NULL, 1, &data, ncidp);

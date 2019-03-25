@@ -29,18 +29,18 @@ extern FILE* fdopen(int fd, const char *mode);
 static int nclogginginitialized = 0;
 
 static struct NCLOGGLOBAL {
-    int nclogging = 0;
-    int ncsystemfile = 0; /* 1 => we are logging to file we did not open */
-    char* nclogfile = NULL;
-    FILE* nclogstream = NULL;
-} nclog_global;
+    int nclogging;
+    int ncsystemfile; /* 1 => we are logging to file we did not open */
+    char* nclogfile;
+    FILE* nclogstream;
+} nclog_global = {0,0,NULL,NULL};
 
 static const char* nctagset[] = {"Warning","Error","Note","Debug"};
 static const int nctagsize = sizeof(nctagset)/sizeof(char*);
 
 /* Forward */
-static char* nctagname(int tag);
-
+static const char* nctagname(int tag);
+ 
 /*!\defgroup NClog NClog Management
 @{*/
 
@@ -54,7 +54,7 @@ ncloginit(void)
     if(nclogginginitialized)
 	return;
     nclogginginitialized = 1;
-    memset(&nclog_global,0,sizeof(nclog_global);
+    memset(&nclog_global,0,sizeof(nclog_global));
     ncsetlogging(0);
     nclog_global.nclogfile = NULL;
     nclog_global.nclogstream = NULL;
@@ -163,7 +163,7 @@ void
 nclog(int tag, const char* fmt, ...)
 {
     va_list args;
-    char* prefix;
+    const char* prefix;
 
     if(!nclogginginitialized) ncloginit();
 
@@ -184,14 +184,14 @@ nclog(int tag, const char* fmt, ...)
 void
 ncvlog(int tag, const char* fmt, va_list ap)
 {
-    char* prefix;
+    const char* prefix;
 
     if(!nclogginginitialized) ncloginit();
 
     if(!nclog_global.nclogging || nclog_global.nclogstream == NULL) return;
 
     prefix = nctagname(tag);
-    fprintf(nclogstream,"%s:",prefix);
+    fprintf(nclog_global.nclogstream,"%s:",prefix);
 
     if(fmt != NULL) {
       vfprintf(nclog_global.nclogstream, fmt, ap);
@@ -222,10 +222,10 @@ nclogtextn(int tag, const char* text, size_t count)
     fflush(nclog_global.nclogstream);
 }
 
-static char*
+static const char*
 nctagname(int tag)
 {
-    if(tag < 0 || tag >= nctagsize) {
+    if(tag < 0 || tag >= nctagsize)
 	return "unknown";
     return nctagset[tag];
 }

@@ -94,12 +94,18 @@ extern const char* ncurilookup(NCURI*, const char* param);
 */
 extern const char* ncuriquerylookup(NCURI*, const char* param);
 
+/* Obtain the complete list of fragment pairs in envv format */
+extern const char** ncurifragmentparams(NCURI*);
+
+/* Obtain the complete list of query pairs in envv format */
+extern const char** ncuriqueryparams(NCURI*);
+
 /* URL Encode/Decode */
 extern char* ncuridecode(char* s);
 /* Partial decode */
 extern char* ncuridecodepartial(char* s, const char* decodeset);
 /* Encode using specified character set */
-extern char* ncuriencodeonly(char* s, char* allowable);
+extern char* ncuriencodeonly(char* s, const char* allowable);
 /* Encode user or pwd */
 extern char* ncuriencodeuserpwd(char* s);
 

@@ -47,6 +47,10 @@ extern char* NC_rclookup(const char* key, const char* hostport);
 extern void NC_rcclear(NCRCinfo* info);
 extern int NC_set_rcfile(const char* rcfile);
 extern int NC_rcfile_insert(const char* key, const char* value, const char* hostport);
+/* Obtain the count of number of triples */
+extern size_t NC_rcfile_length(NCRCinfo*);
+/* Obtain the ith triple; return NULL if out of range */
+extern NCTriple* NC_rcfile_ith(NCRCinfo*,size_t);
 
 /* From dutil.c (Might later move to e.g. nc.h */
 extern int NC__testurl(const char* path, char** basenamep);

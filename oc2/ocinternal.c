@@ -560,6 +560,8 @@ static OCerror
 ocset_curlproperties(OCstate* state)
 {
     OCerror stat = OC_NOERR;
+    NCRCglobalstate* globalstate = ncrc_getglobalstate();
+
     if(state->auth.curlflags.useragent == NULL) {
         size_t len = strlen(DFALTUSERAGENT) + strlen(VERSION) + 1;
 	char* agent = (char*)malloc(len+1);

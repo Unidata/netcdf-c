@@ -51,10 +51,15 @@
 /** This is the name of the name HDF5 dimension scale attribute. */
 #define HDF5_DIMSCALE_NAME_ATT_NAME "NAME"
 
-/** Strut to hold HDF5-specific info for the file. */
-typedef struct  NC_HDF5_FILE_INFO
-{
-    hid_t hdfid;
+/** Struct to hold HDF5-specific info for the file. */
+typedef struct NC_HDF5_FILE_INFO {
+   hid_t hdfid;
+#ifdef ENABLE_BYTERANGE
+   struct HTTP {
+	NCURI* uri; /* Parse of the incoming path, if url */
+	int iosp; /* We are using the S3 rawvirtual file driver */
+   } http;
+#endif
 } NC_HDF5_FILE_INFO_T;
 
 /* This is a struct to handle the dim metadata. */
@@ -154,10 +159,10 @@ extern int NC4_provenance_init();
 extern int NC4_provenance_finalize();
 
 /* Extract the provenance from a file, using dfalt as default */
-extern int NC4_get_provenance(NC_FILE_INFO_T* file, const char* propstring, const struct NCPROPINFO* dfalt);
+extern int NC4_get_provenance(NC_FILE_INFO_T* file, const char* propstring);
 
-/* Set the provenance for a created file using dfalt as default */
-extern int NC4_set_provenance(NC_FILE_INFO_T* file, const struct NCPROPINFO* dfalt);
+/* Set the provenance for a created file */
+extern int NC4_set_provenance(NC_FILE_INFO_T* file);
 
 /* Recover memory of an NCPROVENANCE object */
 extern int NC4_free_provenance(struct NCPROVENANCE* prov);

@@ -92,7 +92,6 @@ nc_initialize()
 #endif /* USE_NETCDF4 */
 #ifdef USE_HDF5
     if((stat = NC_HDF5_initialize())) goto done;
-    stat = NC4_provenance_init();
 #endif
 #ifdef USE_HDF4
     if((stat = NC_HDF4_initialize())) goto done;
@@ -140,6 +139,10 @@ nc_finalize(void)
 #ifdef USE_NETCDF4
     if((stat = NC4_finalize())) return stat;
 #endif /* USE_NETCDF4 */
+
+#ifdef USE_HDF5
+    if((stat = NC_HDF5_finalize())) return stat;
+#endif
 
     if((stat = NC3_finalize())) return stat;
 

@@ -571,7 +571,6 @@ dcetobuffer(DCEnode* node, NCbytes* buf)
 static void
 dcedump(DCEnode* node, NCbytes* buf)
 {
-    int i;
     char tmp[1024];
 
     if(buf == NULL) return;
@@ -602,8 +601,12 @@ dcedump(DCEnode* node, NCbytes* buf)
 
     case CES_SEGMENT: {
 	DCEsegment* segment = (DCEsegment*)node;
-        int rank = segment->rank;
 	char* name = (segment->name?segment->name:"<unknown>");
+#ifdef DCEVERBOSE
+        int rank = segment->rank;
+	int i;
+#endif
+
 	name = nulldup(name);
 	ncbytescat(buf,name);
 	nullfree(name);

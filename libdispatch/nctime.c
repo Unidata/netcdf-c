@@ -117,9 +117,9 @@ CdMonthDay(int *doy, CdTime *date)
 		year = date->year;
 
 	if (ISLEAP(year,date->timeType)) {
-		mon_day_cnt[1] = 29;
+		((int*)mon_day_cnt)[1] = 29;
 	} else {
-		mon_day_cnt[1] = 28;
+		((int*)mon_day_cnt)[1] = 28;
 	}
 	date->month	= 0;
 	for (i = 0; i < 12; i++) {

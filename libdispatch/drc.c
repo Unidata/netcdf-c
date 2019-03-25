@@ -55,7 +55,7 @@ NCRCglobalstate*
 ncrc_getglobalstate(void)
 {
     if(ncrc_globalstate == NULL) {
-        ncrc_globalstate = calloc(1,sizeof(NCRCglobalstate);
+        ncrc_globalstate = calloc(1,sizeof(NCRCglobalstate));
     }
     return ncrc_globalstate;
 }
@@ -63,8 +63,35 @@ ncrc_getglobalstate(void)
 void
 ncrc_freeglobalstate(void)
 {
-    if(ncrc_globalstate != NULL) free(ncrc_globalstate);
-    ncrc_globalstate = NULL;
+    if(ncrc_globalstate != NULL) {
+        nullfree(ncrc_globalstate->tempdir);
+        nullfree(ncrc_globalstate->home);
+        NC_rcclear(&ncrc_globalstate->rcinfo);
+	free(ncrc_globalstate);
+	ncrc_globalstate = NULL;
+    }
+}
+
+void
+NC_rcclear(NCRCinfo* info)
+{
+    if(info == NULL) return;
+    nullfree(info->rcfile);
+    rcfreetriples(info->triples);
+}
+
+void
+rcfreetriples(NClist* rc)
+{
+    int i;
+    for(i=0;i<nclistlength(rc);i++) {
+	NCTriple* t = (NCTriple*)nclistget(rc,i);
+	nullfree(t->host);
+	nullfree(t->key);
+	nullfree(t->value);
+	free(t);
+    }
+    nclistfree(rc);
 }
 
 /* locate, read and compile the rc file, if any */
@@ -92,7 +119,7 @@ NC_rcload(void)
     } else if(getenv(RCFILEENV) != NULL && strlen(getenv(RCFILEENV)) > 0) {
         path = strdup(getenv(RCFILEENV));
     } else {
-	char** rcname;
+	const char** rcname;
 	int found = 0;
 	for(rcname=rcfilenames;!found && *rcname;rcname++) {
 	    ret = rcsearch(".",*rcname,&path);
@@ -167,28 +194,6 @@ NC_set_rcfile(const char* rcfile)
     stat = NC_rcload();
 done:
     return stat;
-}
-
-void
-NC_rcclear(NCRCinfo* info)
-{
-    if(info == NULL) return;
-    nullfree(info->rcfile);
-    rcfreetriples(info->triples);
-}
-
-void
-rcfreetriples(NClist* rc)
-{
-    int i;
-    for(i=0;i<nclistlength(rc);i++) {
-	NCTriple* t = (NCTriple*)nclistget(rc,i);
-	nullfree(t->host);
-	nullfree(t->key);
-	nullfree(t->value);
-	free(t);
-    }
-    nclistfree(rc);
 }
 
 /**************************************************/
@@ -477,6 +482,23 @@ NC_rcfile_insert(const char* key, const char* value, const char* hostport)
 done:
     return ret;
 }
+
+/* Obtain the count of number of triples */
+size_t
+NC_rcfile_length(NCRCinfo* info)
+{
+    return nclistlength(info->triples);
+}
+
+/* Obtain the ith triple; return NULL if out of range */
+NCTriple*
+NC_rcfile_ith(NCRCinfo* info, size_t i)
+{
+    if(i >= nclistlength(info->triples))
+	return NULL;
+    return (NCTriple*)nclistget(info->triples,i);
+}
+
 
 #ifdef D4DEBUG
 static void

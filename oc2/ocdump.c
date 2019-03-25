@@ -25,7 +25,7 @@ static void dumpattvalue(OCtype nctype, char** aset, int index);
 static const char* sindent = 
 	"                                                                                                     ";
 
-static char*
+static const char*
 dent(int n)
 {
     if(n > 100) n = 100;
@@ -33,7 +33,7 @@ dent(int n)
 }
 
 /* support [dd] leader*/
-static char*
+static const char*
 dent2(int n) {return dent(n+4);}
 
 static void

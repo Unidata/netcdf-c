@@ -25,13 +25,13 @@ static int readfiletofile(NCD4INFO* state, const NCURI*, const char* suffix, FIL
 
 #ifdef HAVE_GETTIMEOFDAY
 static double
-deltatime(struct timeval t0,struct timeval t1)
+deltatime(struct timeval time0,struct timeval time1)
 {
     double t0, t1;
-    t0 = ((double)t0.tv_sec);
-    t0 += ((double)t0.tv_usec) / 1000000.0;
-    t1 = ((double)t1.tv_sec);
-    t1 += ((double)t1.tv_usec) / 1000000.0;
+    t0 = ((double)time0.tv_sec);
+    t0 += ((double)time0.tv_usec) / 1000000.0;
+    t1 = ((double)time1.tv_sec);
+    t1 += ((double)time1.tv_usec) / 1000000.0;
     return (t1 - t0);
 }
 #endif
@@ -134,7 +134,7 @@ readpacket(NCD4INFO* state, NCURI* url, NCbytes* packet, NCD4mode dxx, long* las
             double secs = 0;
 #ifdef HAVE_GETTIMEOFDAY
    	    gettimeofday(&time1,NULL);
-	    secs = deltatime();
+	    secs = deltatime(time0,time1);
 #endif
             nclog(NCLOGDBG,"fetch complete: %0.3f",secs);
 	}
@@ -192,6 +192,10 @@ readfile(NCD4INFO* state, const NCURI* uri, const char* suffix, NCbytes* packet)
     ncbytesnull(tmp);
     filename = ncbytesextract(tmp);
     ncbytesfree(tmp);
+#ifdef HAVE_GETTIMEOFDAY
+    struct timeval time0;
+    struct timeval time1;
+#endif
 
     state->fileproto.filename = filename; /* filename is alloc'd here anyway */
 
@@ -208,7 +212,7 @@ readfile(NCD4INFO* state, const NCURI* uri, const char* suffix, NCbytes* packet)
 	double secs;
 #ifdef HAVE_GETTIMEOFDAY
    	gettimeofday(&time1,NULL);
-	secs = deltatime();
+	secs = deltatime(time0,time1);
 #endif
         nclog(NCLOGDBG,"fetch complete: %0.3f",secs);
     }

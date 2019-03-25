@@ -136,12 +136,12 @@ ocfindbod(NCbytes* buffer, size_t* bodp, size_t* ddslenp)
     unsigned int i;
     char* content;
     size_t len = ncbyteslength(buffer);
-    char** marks;
+    const char** marks;
     
     content = ncbytescontents(buffer);
 
     for(marks = DDSdatamarks;*marks;marks++) {
-	char* mark = *marks;
+	const char* mark = *marks;
         size_t tlen = strlen(mark);
         for(i=0;i<len;i++) {
 	    if((i+tlen) <= len 
@@ -471,7 +471,7 @@ done:
    for set of dimension indices.
 */
 size_t
-ocarrayoffset(size_t rank, size_t* sizes, size_t* indices)
+ocarrayoffset(size_t rank, size_t* sizes, const size_t* indices)
 {
     unsigned int i;
     size_t count = 0;
@@ -564,7 +564,7 @@ ocdtmodestring(OCDT mode,int compact)
 	else if(!occoncat(result,sizeof(result),1,"NONE"))
 	    return NULL;
     } else for(i=0;;i++) {
-	char* ms = modestrings[i];
+	const char* ms = modestrings[i];
 	if(ms == NULL) break;
 	if(!compact && i > 0)
 	    if(!occoncat(result,sizeof(result),1,","))

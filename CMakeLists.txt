@@ -26,13 +26,13 @@ set(PACKAGE "netCDF" CACHE STRING "")
 
 SET(NC_VERSION_MAJOR 4)
 SET(NC_VERSION_MINOR 6)
-SET(NC_VERSION_PATCH 3)
+SET(NC_VERSION_PATCH 4)
 SET(NC_VERSION_NOTE "-development")
 SET(netCDF_VERSION ${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
 SET(NC_VERSION ${netCDF_VERSION})
-SET(netCDF_LIB_VERSION 13)
-SET(netCDF_SO_VERSION 13)
+SET(netCDF_LIB_VERSION 15)
+SET(netCDF_SO_VERSION 15)
 SET(PACKAGE_VERSION ${VERSION})
 
 # Get system configuration, Use it to determine osname, os release, cpu. These
@@ -737,6 +737,8 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
 
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pset_libver_bounds "" HDF5_HAS_LIBVER_BOUNDS)
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5free_memory "" HDF5_HAS_H5FREE)
+  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5allocate_memory "" HDF5_HAS_ALLOCATE_MEMORY)
+  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5resize_memory "" HDF5_HAS_RESIZE_MEMORY)
 
   IF(HDF5_PARALLEL)
 	SET(HDF5_CC h5pcc)
@@ -831,6 +833,17 @@ ELSE()
   SET(ENABLE_DAP4 OFF)
 ENDIF()
 
+# Option to support byte-range reading of remote datasets
+OPTION(ENABLE_BYTERANGE "Enable byte-range access to remote datasets.." OFF)
+IF(ENABLE_BYTERANGE)
+  FIND_PACKAGE(CURL)
+  IF(NOT CURL_LIBRARY)
+    MESSAGE(FATAL_ERROR "Byte-range support specified, CURL libraries are not found.")
+    SET(ENABLE_BYTERANGE OFF BOOL)
+  ELSE()
+    SET(ENABLE_BYTERANGE ON BOOL)
+  ENDIF()
+ENDIF()
 
 # Check for the math library so it can be explicitly linked.
 IF(NOT WIN32)
@@ -995,7 +1008,12 @@ IF(ENABLE_PARALLEL4 AND ENABLE_NETCDF_4)
     SET(STATUS_PARALLEL "ON")
     configure_file("${netCDF_SOURCE_DIR}/nc_test4/run_par_test.sh.in"
       "${netCDF_BINARY_DIR}/tmp/run_par_test.sh" @ONLY NEWLINE_STYLE LF)
+    configure_file("${netCDF_SOURCE_DIR}/nc_test4/run_par_test2.sh.in"
+      "${netCDF_BINARY_DIR}/tmp/run_par_test2.sh" @ONLY NEWLINE_STYLE LF)
     FILE(COPY "${netCDF_BINARY_DIR}/tmp/run_par_test.sh"
+      DESTINATION ${netCDF_BINARY_DIR}/nc_test4
+      FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+    FILE(COPY "${netCDF_BINARY_DIR}/tmp/run_par_test2.sh"
       DESTINATION ${netCDF_BINARY_DIR}/nc_test4
       FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 
@@ -1584,6 +1602,7 @@ MACRO(print_conf_summary)
   MESSAGE(STATUS "Building netCDF-4:             ${ENABLE_NETCDF_4}")
   MESSAGE(STATUS "Building DAP2 Support:         ${ENABLE_DAP2}")
   MESSAGE(STATUS "Building DAP4 Support:         ${ENABLE_DAP4}")
+  MESSAGE(STATUS "Building Byte-range Support:   ${ENABLE_BYTERANGE}")
   MESSAGE(STATUS "Building Utilities:            ${BUILD_UTILITIES}")
   IF(CMAKE_PREFIX_PATH)
     MESSAGE(STATUS "CMake Prefix Path:             ${CMAKE_PREFIX_PATH}")
@@ -1845,7 +1864,7 @@ FOREACH(_LIB ${ALL_TLL_LIBS})
   LIST(APPEND LINKFLAGS "-L${_LIB_DIR}")
 ENDFOREACH()
 
-SET(NC_LIBS "-lnetcdf ${NC_LIBS}")
+#SET(NC_LIBS "-lnetcdf ${NC_LIBS}")
 
 STRING(REPLACE ";" " " NC_LIBS "${NC_LIBS}")
 STRING(REPLACE "-lhdf5::hdf5-shared" "-lhdf5" NC_LIBS ${NC_LIBS})
@@ -1858,6 +1877,9 @@ STRING(REPLACE ";" " " LINKFLAGS "${LINKFLAGS}")
 
 LIST(REMOVE_DUPLICATES NC_LIBS)
 LIST(REMOVE_DUPLICATES LINKFLAGS)
+
+SET(LIBS ${NC_LIBS})
+SET(NC_LIBS "-lnetcdf")
 
 configure_file(
   ${netCDF_SOURCE_DIR}/netcdf.pc.in
@@ -1919,10 +1941,6 @@ SET(LDFLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${CMAKE_SHARED_LINKER_FLAGS_${CMAKE_BU
 is_disabled(BUILD_SHARED_LIBS enable_static)
 is_enabled(BUILD_SHARED_LIBS enable_shared)
 
-# Remove libnetcdf from NC_LIBS.
-STRING(REPLACE "-lnetcdf " "" TMP_NC_LIBS "${NC_LIBS}")
-SET(LIBS "${TMP_NC_LIBS}")
-
 is_enabled(ENABLE_V2_API HAS_NC2)
 is_enabled(ENABLE_NETCDF_4 HAS_NC4)
 is_enabled(ENABLE_HDF4 HAS_HDF4)
@@ -1934,6 +1952,7 @@ is_enabled(ENABLE_PARALLEL4 HAS_PARALLEL4)
 is_enabled(ENABLE_DAP HAS_DAP)
 is_enabled(ENABLE_DAP HAS_DAP2)
 is_enabled(ENABLE_DAP4 HAS_DAP4)
+is_enabled(ENABLE_BYTERANGE HAS_BYTERANGE)
 is_enabled(ENABLE_DISKLESS HAS_DISKLESS)
 is_enabled(USE_MMAP HAS_MMAP)
 is_enabled(JNA HAS_JNA)

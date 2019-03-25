@@ -136,7 +136,7 @@ NCD4_debugcopy(NCD4INFO* info)
 		NCD4node* dim = (NCD4node*)nclistget(var->dims,d);
 		edges[d] = (size_t)dim->dim.size;
 	    }
-            if((ret=nc_put_vara(grpid,varid,nc_sizevector0,edges,memory)))
+            if((ret=nc_put_vara(grpid,varid,NC_coord_zero,edges,memory)))
 	        goto done;
 	}
 	if((ret=ncaux_reclaim_data(ncid,type->meta.id,memory,dimprod)))

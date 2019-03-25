@@ -300,7 +300,7 @@ done:
  * @internal
  *
  * Construct the provenance information for a newly created file
- * using dfalt as the default.
+ * using global prop inot as the default.
  * Note that creation of the _NCProperties attribute is deferred
  * to the sync_netcdf4_file function.
  *
@@ -312,7 +312,7 @@ done:
  * @author Dennis Heimbigner
  */
 int
-NC4_set_provenance(NC_FILE_INFO_T* file, const struct NCPROPINFO* dfalt)
+NC4_set_provenance(NC_FILE_INFO_T* file)
 {
     int ncstat = NC_NOERR;
     struct NCPROVENANCE* provenance = NULL;
@@ -337,10 +337,10 @@ NC4_set_provenance(NC_FILE_INFO_T* file, const struct NCPROPINFO* dfalt)
     if(provenance->propattr.properties == NULL)
     {ncstat = NC_ENOMEM; goto done;}
     /* add in the dfalt values */
-    if(dfalt != NULL) {
+    if(globalpropinfo != NULL) {
         int i;
-        for(i=0;i<nclistlength(dfalt->properties);i++) {
-            char* prop = nclistget(dfalt->properties,i);
+        for(i=0;i<nclistlength(globalpropinfo->properties);i++) {
+            char* prop = nclistget(globalpropinfo->properties,i);
             if(prop != NULL) {
                 prop = strdup(prop);
                 if(prop == NULL) {ncstat = NC_ENOMEM; goto done;}
@@ -363,11 +363,10 @@ done:
  *
  * Construct the provenance information for a newly opened file
  * Using the specified _NCProperties value. If NULL, then
- * initialize using dfalt.
+ * initialize using globalpropinfo.
  *
  * @param file Pointer to file object.
  * @param propstring The contents of _NCProperties
- * @param dfalt
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_ENOMEM
@@ -375,7 +374,7 @@ done:
  * @author Dennis Heimbigner
  */
 int
-NC4_get_provenance(NC_FILE_INFO_T* file, const char* propstring, const struct NCPROPINFO* dfalt)
+NC4_get_provenance(NC_FILE_INFO_T* file, const char* propstring)
 {
     int ncstat = NC_NOERR;
     struct NCPROVENANCE* provenance;
@@ -399,8 +398,7 @@ NC4_get_provenance(NC_FILE_INFO_T* file, const char* propstring, const struct NC
     provenance->superblockversion = superblock;
 
     if(propstring == NULL) {
-        /* Use dfalt */
-        if((ncstat=propinfo_default(&provenance->propattr,dfalt)))
+        if((ncstat=propinfo_default(&provenance->propattr,globalpropinfo)))
             goto done;
     } else {
         NClist* list = provenance->propattr.properties;
@@ -422,20 +420,20 @@ NC4_get_provenance(NC_FILE_INFO_T* file, const char* propstring, const struct NC
         {ncstat = NC_EINVAL; goto done;} /* bad _NCProperties attribute */
         /* Now, rebuild from version 1 to version 2 if necessary */
         if(provenance->propattr.version == 1) {
-            int i;
-            for(i=0;i<nclistlength(list);i+=2) {
-                char* newname = NULL;
-                name = nclistget(list,i);
-                if(name == NULL) continue; /* ignore */
-                if(strcmp(name,NCPNCLIB1) == 0)
-                    newname = NCPNCLIB2; /* change name */
-                else if(strcmp(name,NCPHDF5LIB1) == 0)
-                    newname = NCPHDF5LIB2;
-                else continue; /* ignore */
-                /* Do any rename */
-                nclistset(list,i,strdup(newname));
-                if(name) {free(name); name = NULL;}
-            }
+	    int i;
+	    for(i=0;i<nclistlength(list);i+=2) {
+	        char* newname = NULL;
+	        char* oldname = nclistget(list,i);
+	        if(oldname == NULL) continue; /* ignore */
+	        if(strcmp(oldname,NCPNCLIB1) == 0)
+		    newname = NCPNCLIB2; /* change name */
+	        else if(strcmp(oldname,NCPHDF5LIB1) == 0)
+		    newname = NCPHDF5LIB2;
+		if(newname != NULL) {/* Do any rename */
+	            if(oldname) free(oldname);
+	            nclistset(list,i,strdup(newname));
+		}
+	    }
         }
     }
 done:
@@ -486,7 +484,7 @@ NC4_read_ncproperties(NC_FILE_INFO_T* h5)
 
     if(H5Aexists(hdf5grpid,NCPROPS) <= 0) { /* Does not exist */
         /* File did not contain a _NCProperties attribute */
-        retval=NC4_get_provenance(h5,NULL,&globalpropinfo);
+        retval=NC4_get_provenance(h5,NULL);
         goto done;
     }
 
@@ -512,7 +510,7 @@ NC4_read_ncproperties(NC_FILE_INFO_T* h5)
     /* Make sure its null terminated */
     text[(size_t)size] = '\0';
     /* Process the _NCProperties value */
-    if((retval = NC4_get_provenance(h5, text, &globalpropinfo)))
+    if((retval = NC4_get_provenance(h5, text)))
         goto done;
 
 done:

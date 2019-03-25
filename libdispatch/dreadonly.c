@@ -8,7 +8,6 @@
  * @author Ed Hartnett
  */
 
-#include "nc.h"
 #include "ncdispatch.h"
 
 /**
@@ -254,7 +253,7 @@ NC_RO_sync(int ncid)
 int
 NC_RO_create(const char* path, int cmode, size_t initialsz, int basepe,
              size_t *chunksizehintp, void *parameters,
-             NC_Dispatch *dispatch, NC *nc_file)
+             const NC_Dispatch *dispatch, NC *nc_file)
 {
    return NC_EPERM;
 }

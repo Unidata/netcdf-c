@@ -641,6 +641,20 @@ ncuriquerylookup(NCURI* uri, const char* key)
   return value;
 }
 
+/* Obtain the complete list of fragment pairs in envv format */
+const char**
+ncurifragmentparams(NCURI* uri)
+{
+    return (const char**)uri->fraglist;
+}
+
+/* Obtain the complete list of query pairs in envv format */
+const char**
+ncuriqueryparams(NCURI* uri)
+{
+    return (const char**)uri->querylist;
+}
+
 #if 0
 int
 ncuriremoveparam(NCURI* uri, const char* key)
@@ -768,7 +782,7 @@ ncuriencodeuserpwd(char* s)
  */
 
 char*
-ncuriencodeonly(char* s, char* allowable)
+ncuriencodeonly(char* s, const char* allowable)
 {
     size_t slen;
     char* encoded;

@@ -635,13 +635,13 @@ normal:	    *s++ = *t++;
 
 #ifdef HAVE_GETTIMEOFDAY
 static double
-deltatime(struct timeval t0, struct timeval t1)
+deltatime(struct timeval time0, struct timeval time1)
 {
     double t0, t1;
-    t0 = ((double)t0.tv_sec);
-    t0 += ((double)t0.tv_usec) / 1000000.0;
-    t1 = ((double)t1.tv_sec);
-    t1 += ((double)t1.tv_usec) / 1000000.0;
+    t0 = ((double)time0.tv_sec);
+    t0 += ((double)time0.tv_usec) / 1000000.0;
+    t1 = ((double)time1.tv_sec);
+    t1 += ((double)time1.tv_usec) / 1000000.0;
     return (t1 - t0);
 }
 #endif

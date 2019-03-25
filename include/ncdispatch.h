@@ -7,8 +7,8 @@
  * @author Dennis Heimbigner
  */
 
-#ifndef _DISPATCH_H
-#define _DISPATCH_H
+#ifndef NC_DISPATCH_H
+#define NC_DISPATCH_H
 
 #if HAVE_CONFIG_H
 #include "config.h"
@@ -21,6 +21,7 @@
 #include <mpi.h>
 #endif
 #include "netcdf.h"
+#include "ncmodel.h"
 #include "nc.h"
 #include "ncuri.h"
 #ifdef USE_PARALLEL
@@ -63,14 +64,6 @@
 #define T_ulong   ulongtype
 
 /**************************************************/
-#if 0
-/* Define the known classes of dispatchers */
-/* Flags may be or'd => powers of 2*/
-#define NC_DISPATCH_NC3    1
-#define NC_DISPATCH_NC4    2
-#define NC_DISPATCH_NCD    4
-#define NC_DISPATCH_NCP    8
-#endif
 
 /* Define a type for use when doing e.g. nc_get_vara_long, etc. */
 /* Should matche values in libsrc4/netcdf.h */
@@ -111,23 +104,23 @@ typedef struct NC_MPI_INFO {
 extern int NCDISPATCH_initialize(void);
 extern int NCDISPATCH_finalize(void);
 
-extern NC_Dispatch* NC3_dispatch_table;
+extern const NC_Dispatch* NC3_dispatch_table;
 extern int NC3_initialize(void);
 extern int NC3_finalize(void);
 
 #ifdef ENABLE_DAP
-extern NC_Dispatch* NCD2_dispatch_table;
+extern const NC_Dispatch* NCD2_dispatch_table;
 extern int NCD2_initialize(void);
 extern int NCD2_finalize(void);
 #endif
 #ifdef ENABLE_DAP4
-extern NC_Dispatch* NCD4_dispatch_table;
+extern const NC_Dispatch* NCD4_dispatch_table;
 extern int NCD4_initialize(void);
 extern int NCD4_finalize(void);
 #endif
 
 #ifdef USE_PNETCDF
-extern NC_Dispatch* NCP_dispatch_table;
+extern const NC_Dispatch* NCP_dispatch_table;
 extern int NCP_initialize(void);
 extern int NCP_finalize(void);
 #endif
@@ -138,21 +131,22 @@ extern int NC4_finalize(void);
 #endif
 
 #ifdef USE_HDF5
-extern NC_Dispatch* HDF5_dispatch_table;
+extern const NC_Dispatch* HDF5_dispatch_table;
 extern int NC_HDF5_initialize(void);
 extern int NC_HDF5_finalize(void);
 #endif
 
 #ifdef USE_HDF4
-extern NC_Dispatch* HDF4_dispatch_table;
+extern const NC_Dispatch* HDF4_dispatch_table;
 extern int HDF4_initialize(void);
 extern int HDF4_finalize(void);
 #endif
 
-/* Vectors of ones and zeros */
-extern size_t nc_sizevector0[NC_MAX_VAR_DIMS];
-extern size_t nc_sizevector1[NC_MAX_VAR_DIMS];
-extern ptrdiff_t nc_ptrdiffvector1[NC_MAX_VAR_DIMS];
+/* User-defined formats.*/
+extern NC_Dispatch* UDF0_dispatch_table;
+extern char UDF0_magic_number[NC_MAX_MAGIC_NUMBER_LEN + 1];
+extern NC_Dispatch* UDF1_dispatch_table;
+extern char UDF1_magic_number[NC_MAX_MAGIC_NUMBER_LEN + 1];
 
 /* Prototypes. */
 int NC_check_nulls(int ncid, int varid, const size_t *start, size_t **count,
@@ -200,10 +194,10 @@ int model; /* one of the NC_FORMATX #'s */
 
 int (*create)(const char *path, int cmode,
               size_t initialsz, int basepe, size_t *chunksizehintp,
-              void* parameters, struct NC_Dispatch* table, NC* ncp);
+              void* parameters, const struct NC_Dispatch* table, NC* ncp);
 int (*open)(const char *path, int mode,
             int basepe, size_t *chunksizehintp,
-            void* parameters, struct NC_Dispatch* table, NC* ncp);
+            void* parameters, const struct NC_Dispatch* table, NC* ncp);
 
 int (*redef)(int);
 int (*_enddef)(int,size_t,size_t,size_t,size_t);
@@ -320,50 +314,13 @@ int (*nc_finalize)();
 typedef struct NCcommon {
 	int ext_ncid; /* uid << 16 */
 	int int_ncid; /* unspecified other id */
-	struct NC_Dispatch* dispatch;
+	const struct NC_Dispatch* dispatch;
 	void* dispatchdata; /* per-protocol instance data */
 	char* path; /* as specified at open or create */
 } NCcommon;
 
 EXTERNL size_t NC_atomictypelen(nc_type xtype);
 EXTERNL char* NC_atomictypename(nc_type xtype);
-
-#ifdef OBSOLETE
-/* Provide a dispatch table overlay facility */
-extern int NC_dispatch_overlay(const NC_Dispatch* overlay,
-                                        const NC_Dispatch* base,
-					NC_Dispatch* merge);
-
-/* Get/set the override dispatch table */
-extern NC_Dispatch* NC_get_dispatch_override(void);
-extern void NC_set_dispatch_override(NC_Dispatch*);
-#endif
-
-/* Return model as specified by the url, if any;
-   return a modified url suitable for passing to curl
-*/
-extern int NC_urlmodel(const char* path, int mode, char** newurl);
-
-/* allow access url parse and params without exposing nc_url.h */
-extern int NCDAP_urlparse(const char* s, void** dapurl);
-extern void NCDAP_urlfree(void* dapurl);
-extern const char* NCDAP_urllookup(void* dapurl, const char* param);
-
-#if defined(DLL_NETCDF)
-# if defined(DLL_EXPORT)
-#  define NCC_EXTRA __declspec(dllexport)
-#else
-#  define NCC_EXTRA __declspec(dllimport)
-# endif
-NCC_EXTRA extern int nc__testurl(const char* path, char** basename);
-#else
-extern int
- nc__testurl(const char* parth, char** basename);
-#endif
-
-/* Ping a specific server */
-extern int NCDAP2_ping(const char*);
-extern int NCDAP4_ping(const char*);
 
 /* Misc */
 
@@ -373,7 +330,6 @@ extern int NC_inq_recvar(int ncid, int varid, int* nrecdims, int* is_recdim);
 
 #define nullstring(s) (s==NULL?"(null)":s)
 
-
 #undef TRACECALLS
 #ifdef TRACECALLS
 #include <stdio.h>
@@ -382,8 +338,10 @@ extern int NC_inq_recvar(int ncid, int varid, int* nrecdims, int* is_recdim);
 #define TRACE(fname)
 #endif
 
-extern size_t NC_coord_zero[NC_MAX_VAR_DIMS];
-extern size_t NC_coord_one[NC_MAX_VAR_DIMS];
+/* Vectors of ones and zeros */
+extern const size_t NC_coord_zero[NC_MAX_VAR_DIMS];
+extern const size_t NC_coord_one[NC_MAX_VAR_DIMS];
+extern const ptrdiff_t NC_stride_one[NC_MAX_VAR_DIMS];
 
 extern int NC_initialized;
 
@@ -409,7 +367,7 @@ NCDISPATCH_get_att(int ncid, int varid, const char* name, void* value, nc_type t
 
 EXTERNL int NC_RO_create(const char *path, int cmode, size_t initialsz, int basepe,
                  size_t *chunksizehintp, void* parameters,
-                 NC_Dispatch*, NC*);
+                 const NC_Dispatch*, NC*);
 EXTERNL int NC_RO_redef(int ncid);
 EXTERNL int NC_RO__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree,
                   size_t r_align);
@@ -465,4 +423,4 @@ EXTERNL int NC_NOTNC4_set_var_chunk_cache(int, int, size_t, size_t, float);
 EXTERNL int NC_NOTNC4_get_var_chunk_cache(int, int, size_t *, size_t *, float *);
 EXTERNL int NC_NOTNC4_var_par_access(int, int, int);
 
-#endif /* _DISPATCH_H */
+#endif /* NC_DISPATCH_H */

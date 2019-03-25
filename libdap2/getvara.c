@@ -171,7 +171,7 @@ fprintf(stderr,"\n");
 
     /* Fill in missing arguments */
     if(startp == NULL)
-	startp = nc_sizevector0;
+	startp = NC_coord_zero;
 
     if(countp == NULL) {
         /* Accumulate the dimension sizes */
@@ -183,7 +183,7 @@ fprintf(stderr,"\n");
     }
 
     if(stridep == NULL)
-	stridep = nc_ptrdiffvector1;
+	stridep = NC_stride_one;
 
     /* Validate the dimension sizes */
     for(i=0;i<ncrank;i++) {
