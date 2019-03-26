@@ -92,10 +92,20 @@ IF(BUILD_UTILITIES)
     ENDIF()
 ENDIF(BUILD_UTILITIES)
 
+IF(ENABLE_BYTERANGE)
+  build_bin_test_no_prefix(tst_byterange)
+  IF(BUILD_UTILITIES)
+    add_sh_test(nc_test test_byterange)
+  ENDIF()
+ENDIF()
+
 # Copy some test files from current source dir to out-of-tree build dir.
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
 IF(MSVC)
+#MESSAGE(STATUS "XXX")
+#MESSAGE(STATUS "${COPY_FILES}")
+#MESSAGE(STATUS "${RUNTIME_OUTPUT_DIRECTORY}")
   FILE(COPY ${COPY_FILES} DESTINATION ${RUNTIME_OUTPUT_DIRECTORY}/)
 ENDIF()
 
@@ -103,5 +113,6 @@ ENDIF()
 ## Specify files to be distributed by 'make dist'
 FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am)
-SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} test_get.m4 test_put.m4 test_read.m4 test_write.m4 ref_tst_diskless2.cdl tst_diskless5.cdl)
+SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} test_get.m4 test_put.m4 test_read.m4 test_write.m4 ref_tst_diskless2.cdl tst_diskless5.cdl
+ref_tst_http_nc3.cdl ref_tst_http_nc4.cdl)
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")

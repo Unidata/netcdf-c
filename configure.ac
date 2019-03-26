@@ -872,6 +872,23 @@ if test "x$enable_mmap" = xyes; then
     AC_DEFINE([USE_MMAP], [1], [if true, use mmap for in-memory files])
 fi
 
+# Does the user want to allow reading of remote data via range headers?
+AC_MSG_CHECKING([whether byte range support is enabled])
+AC_ARG_ENABLE([byterange],
+              [AS_HELP_STRING([--enable-byterange],
+                              [allow byte-range I/O])])
+test "x$enable_byterange" = xyes || enable_byterange=no
+AC_MSG_RESULT($enable_byterange)
+# Need curl for byte ranges
+if test "x$found_curl" = xno ; then
+  AC_MSG_ERROR([curl required for byte range support. Install curl or build without --enable-byterange.])
+  enable_byterange=no
+fi
+
+if test "x$enable_byterange" = xyes; then
+    AC_DEFINE([ENABLE_BYTERANGE], [1], [if true, support byte-range read of remote datasets.])
+fi
+
 AC_FUNC_ALLOCA
 AC_CHECK_DECLS([isnan, isinf, isfinite],,,[#include <math.h>])
 AC_STRUCT_ST_BLKSIZE
@@ -1274,6 +1291,7 @@ AM_CONDITIONAL(BUILD_MMAP, [test x$enable_mmap = xyes])
 AM_CONDITIONAL(BUILD_DOCS, [test x$enable_doxygen = xyes])
 AM_CONDITIONAL(SHOW_DOXYGEN_TAG_LIST, [test x$enable_doxygen_tasks = xyes])
 AM_CONDITIONAL(ENABLE_METADATA_PERF, [test x$enable_metadata_perf = xyes])
+AM_CONDITIONAL(ENABLE_BYTERANGE, [test "x$enable_byterange" = xyes])
 
 # If the machine doesn't have a long long, and we want netCDF-4, then
 # we've got problems!
@@ -1399,7 +1417,7 @@ AC_SUBST(HAS_MMAP,[$enable_mmap])
 AC_SUBST(HAS_JNA,[$enable_jna])
 AC_SUBST(RELAX_COORD_BOUND,[$enable_zero_length_coord_bound])
 AC_SUBST(HAS_ERANGE_FILL,[$enable_erange_fill])
-
+AC_SUBST(HAS_BYTERANGE,[$enable_byterange])
 
 # Include some specifics for netcdf on windows.
 #AH_VERBATIM([_WIN32_STRICMP],
@@ -1468,6 +1486,7 @@ AX_SET_META([NC_HAS_PARALLEL4],[$enable_parallel4],[yes])
 AX_SET_META([NC_HAS_CDF5],[$enable_cdf5],[yes])
 AX_SET_META([NC_HAS_ERANGE_FILL], [$enable_erange_fill],[yes])
 AX_SET_META([NC_RELAX_COORD_BOUND], [$enable_zero_length_coord_bound],[yes])
+AX_SET_META([NC_HAS_BYTERANGE],[$enable_byterange],[yes])
 #####
 # End netcdf_meta.h definitions.
 #####

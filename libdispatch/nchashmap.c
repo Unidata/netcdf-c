@@ -11,7 +11,7 @@ See LICENSE.txt for license information.
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
 #endif
-#include "nc.h"
+#include "ncdispatch.h"
 
 #include "nchashmap.h"
 #include "nc3internal.h"
@@ -44,9 +44,9 @@ extern unsigned int NC_crc32(unsigned int crc, const unsigned char* buf, unsigne
 #endif
 
 #ifdef DEBUGTRACE
-#define TRACE(x) {fprintf(stderr,"NC_hashmap: %s\n",x); fflush(stderr);}
+#define Trace(x) {fprintf(stderr,"NC_hashmap: %s\n",x); fflush(stderr);}
 #else
-#define TRACE(x)
+#define Trace(x)
 #endif
 
 #define SEED 37
@@ -88,7 +88,7 @@ rehash(NC_hashmap* hm)
 #endif
     NC_hentry* oldtable = hm->table;
 
-    TRACE("rehash");
+    Trace("rehash");
 
     hm->alloc = findPrimeGreaterThan(alloc<<1);
     hm->table = (NC_hentry*)calloc(sizeof(NC_hentry), hm->alloc);
@@ -119,7 +119,7 @@ locate(NC_hashmap* hash, unsigned int hashkey, const char* key, size_t keysize, 
     int deletefound = 0;
     size_t deletedindex = 0; /* first deleted entry encountered */
     NC_hentry* entry;
-    TRACE("locate");
+    Trace("locate");
     /* Compute starting point */
     index = (size_t)(hashkey % hash->alloc);
 
@@ -167,7 +167,7 @@ NC_hashmapnew(size_t startsize)
 {
     NC_hashmap* hm = NULL;
 
-    TRACE("NC_hashmapnew");
+    Trace("NC_hashmapnew");
 
     hm = (NC_hashmap*)malloc(sizeof(NC_hashmap));
 
@@ -190,7 +190,7 @@ NC_hashmapadd(NC_hashmap* hash, uintptr_t data, const char* key, size_t keysize)
   NC_hentry* entry;
   unsigned int hashkey;
 
-    TRACE("NC_hashmapadd");
+    Trace("NC_hashmapadd");
 
     if(key == NULL || keysize == 0)
       return 0;
@@ -233,7 +233,7 @@ NC_hashmapremove(NC_hashmap* hash, const char* key, size_t keysize, uintptr_t* d
     size_t index;
     NC_hentry* h;
 
-    TRACE("NC_hashmapremove");
+    Trace("NC_hashmapremove");
 
     if(key == NULL || keysize == 0)
 	return 0;
@@ -259,7 +259,7 @@ NC_hashmapget(NC_hashmap* hash, const char* key, size_t keysize, uintptr_t* data
 {
     unsigned int hashkey;
 
-    TRACE("NC_hashmapget");
+    Trace("NC_hashmapget");
 
     if(key == NULL || keysize == 0)
 	return 0;
@@ -289,7 +289,7 @@ NC_hashmapsetdata(NC_hashmap* hash, const char* key, size_t keysize, uintptr_t n
     NC_hentry* h;
     unsigned int hashkey;
 
-    TRACE("NC_hashmapsetdata");
+    Trace("NC_hashmapsetdata");
 
     if(key == NULL || keysize == 0)
 	return 0;
@@ -307,14 +307,14 @@ NC_hashmapsetdata(NC_hashmap* hash, const char* key, size_t keysize, uintptr_t n
 size_t
 NC_hashmapcount(NC_hashmap* hash)
 {
-    TRACE("NC_hashmapcount");
+    Trace("NC_hashmapcount");
     return hash->active;
 }
 
 int
 NC_hashmapfree(NC_hashmap* hash)
 {
-    TRACE("NC_hashmapfree");
+    Trace("NC_hashmapfree");
     if(hash) {
       int i;
 #ifdef DEBUG

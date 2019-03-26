@@ -5,6 +5,16 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
+
+## 4.6.4 - TBD
+
+* [Enhancement] Provide byte-range reading of remote datasets. This allows
+read-only access to, for example, Amazon S3 objects and also Thredds Server
+datasets via the HTTPService access method.
+See [GitHub #1251](https://github.com/Unidata/netcdf-c/issues/1251).
+
+* Update the license from the home-brewed NetCDF license to the standard 3-Clause BSD License.  This change does not result in any new restrictions; it is merely the adoption of a standard, well-known and well-understood license in place of the historic NetCDF license written at Unidata.  This is part of a broader push by Unidata to adopt modern, standardized licensing.  
+
 ## 4.6.3 - February 28, 2019
 
 * [Bug Fix] Correctly generated `netcdf.pc` generated either by `configure` or `cmake`.  If linking against a static netcdf, you would need to pass the `--static` argument to `pkg-config` in order to list all of the downstream dependencies.  See [Github #1324](https://github.com/Unidata/netcdf-c/issues/1324) for more information.
