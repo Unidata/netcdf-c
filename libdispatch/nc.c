@@ -15,7 +15,6 @@
 #include <unistd.h>
 #endif
 
-#include "nc.h"
 #include "ncdispatch.h"
 
 int ncdebug = 0;
@@ -45,6 +44,8 @@ free_NC(NC *ncp)
 	return;
     if(ncp->path)
 	free(ncp->path);
+    if(ncp->model)
+	free(ncp->model);
     /* We assume caller has already cleaned up ncp->dispatchdata */
 #if _CRAYMPP && defined(LOCKNUMREC)
     shfree(ncp);
@@ -54,14 +55,16 @@ free_NC(NC *ncp)
 }
 
 int
-new_NC(NC_Dispatch* dispatcher, const char* path, int mode, int model, NC** ncpp)
+new_NC(NC_Dispatch* dispatcher, const char* path, int mode, NCmodel* model, NC** ncpp)
 {
     NC *ncp = (NC*)calloc(1,sizeof(NC));
     if(ncp == NULL) return NC_ENOMEM;
     ncp->dispatch = dispatcher;
     ncp->path = nulldup(path);
     ncp->mode = mode;
-    ncp->model = model;
+    if((ncp->model = malloc(sizeof(NCmodel)))==NULL)
+	return NC_ENOMEM;
+    *ncp->model = *model; /* Make a copy */
     if(ncp->path == NULL) { /* fail */
         free_NC(ncp);
 	return NC_ENOMEM;

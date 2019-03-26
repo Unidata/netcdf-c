@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include "nc.h"
+#include "ncdispatch.h"
 
 #define ID_SHIFT (16)
 #define NCFILELISTLENGTH 0x10000
@@ -90,7 +90,7 @@ find_in_NCList(int ext_ncid)
 	f = nc_filelist[ncid];
 
    /* for classic files, ext_ncid must be a multiple of (1<<ID_SHIFT) */
-   if (f != NULL && f->model == NC_FORMATX_NC3 && (ext_ncid % (1<<ID_SHIFT)))
+   if (f != NULL && f->model->impl == NC_FORMATX_NC3 && (ext_ncid % (1<<ID_SHIFT)))
        return NULL;
 
    return f;
