@@ -1,13 +1,15 @@
-/* This is part of the netCDF package.
-
-   Copyright 2018 University Corporation for Atmospheric
-   Research/Unidata.  See COPYRIGHT file for conditions of use.
-
-   This is a simple example which writes and then reads some surface
-   pressure and temperatures, and stores additional metadata as
-   dimension variables, an attribute.
-
-   $Id: sfc_pres_temp_more.c,v 1.2 2006/03/25 15:57:55 ed Exp $
+/* Copyright 2018 University Corporation for Atmospheric
+   Research/Unidata.  See COPYRIGHT file for conditions of use. */
+/**
+ * @file
+ * @ingroup tutorial
+ * This is part of the netCDF package.
+ *
+ * This is a simple example which writes and then reads some surface
+ * pressure and temperatures, and stores additional metadata as
+ * dimension variables, an attribute.
+ *
+ * @author Ed Hartnett 2006/03/25
 */
 #include <netcdf.h>
 
