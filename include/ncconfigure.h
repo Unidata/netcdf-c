@@ -13,6 +13,9 @@
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
+#ifdef HAVE_STDIO_H
+#include <stdio.h>
+#endif
 
 /*
 This is included in bottom
@@ -63,8 +66,13 @@ extern int snprintf(char*, size_t, const char*, ...);
 extern int strcasecmp(const char*, const char*);
 extern long long int strtoll(const char*, char**, int);
 extern unsigned long long int strtoull(const char*, char**, int);
+
+#ifndef fileno
+extern int fileno(FILE*);
 #endif
-#endif
+
+#endif /*STDC*/
+#endif /*!WIN32*/
 
 #ifdef _WIN32
 #ifndef strlcat
