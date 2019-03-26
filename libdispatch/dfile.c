@@ -32,7 +32,6 @@
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
-extern int fileno(FILE*);
 
 #include "ncdispatch.h"
 #include "netcdf_mem.h"

@@ -13,6 +13,9 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
 
 #include "ncdispatch.h"
 #include "ncwinpath.h"
@@ -775,10 +778,11 @@ openmagic(struct MagicFile* file)
 	{
 	    if(file->path == NULL || strlen(file->path)==0)
 	        {status = NC_EINVAL; goto done;}
+
 #ifdef _WIN32
-            file->fp = fopen(file->path, "rb");
+            file->fp = NCfopen(file->path, "rb");
 #else
-            file->fp = fopen(file->path, "r");
+            file->fp = NCfopen(file->path, "r");
 #endif
    	    if(file->fp == NULL)
 	        {status = errno; goto done;}
