@@ -5,9 +5,6 @@
 # the COPYRIGHT file for more information.
 # Ed Hartnett, Ward Fisher, Dennis Heimbigner
 
-# Recall that ${VAR-exp} expands to $VAR if var is set (even to null),
-# and to exp otherwise.
-
 # Running autoconf on this file will trigger a warning if
 # autoconf is not at least the specified version.
 AC_PREREQ([2.59])
@@ -249,15 +246,6 @@ AC_ARG_ENABLE([remote-fortran-bootstrap], [AS_HELP_STRING([--enable-remote-fortr
 test "x$enable_remote_fortran_bootstrap" = xyes || enable_remote_fortran_bootstrap=no
 AC_MSG_RESULT([$enable_remote_fortran_bootstrap])
 
-# Does the user want to run extra example tests
-AC_MSG_CHECKING([whether extra example tests should be run])
-AC_ARG_ENABLE([extra-example-tests],
-              [AS_HELP_STRING([--enable-extra-example-tests],
-                              [Run extra example tests; requires GNU sed. Ignored if \
-                               netCDF-4 is not enabled.])])
-test "x$enable_extra_example_tests" = xyes || enable_extra_example_tests=no
-AC_MSG_RESULT($enable_extra_example_tests)
-
 # Does the user want to run extra parallel tests when parallel netCDF-4 is built?
 AC_MSG_CHECKING([whether parallel IO tests should be run])
 AC_ARG_ENABLE([parallel-tests],
@@ -368,7 +356,7 @@ fi
 
 # --enable-dap => enable-dap4
 enable_dap4=$enable_dap
-# Default is now to always do the short remote tests
+# Default is to do the short remote tests.
 AC_MSG_CHECKING([whether dap remote testing should be enabled (default on)])
 AC_ARG_ENABLE([dap-remote-tests],
               [AS_HELP_STRING([--disable-dap-remote-tests],
@@ -379,7 +367,7 @@ if test "x$enable_dap" = "xno" ; then
 fi
 AC_MSG_RESULT($enable_dap_remote_tests)
 
-# Default is now to do the remote authorization tests
+# Default is not to do the remote authorization tests.
 AC_MSG_CHECKING([whether dap remote authorization testing should be enabled (default off)])
 AC_ARG_ENABLE([dap-auth-tests],
               [AS_HELP_STRING([--enable-dap-auth-tests],
@@ -638,15 +626,6 @@ AC_ARG_WITH([udf1-magic-number],
                               [Specify a magic number for user-defined format 1 (ignored unless --with-udf1 is also used).])],
             [UDF1_MAGIC_NUMBER=$with_udf1_magic_number])
 AC_MSG_RESULT([$UDF1_MAGIC_NUMBER])
-
-# Did the user specify a default cache preemption?
-AC_MSG_CHECKING([whether a default cache preemption for HDF5 was specified])
-AC_ARG_WITH([chunk-cache-preemption],
-              [AS_HELP_STRING([--with-chunk-cache-preemption=<float between 0 and 1 inclusive>],
-                              [Specify default file chunk cache preemption policy for HDF5 files (a number between 0 and 1, inclusive).])],
-            [CHUNK_CACHE_PREEMPTION=$with_chunk_cache_preemption], [CHUNK_CACHE_PREEMPTION=0.75])
-AC_MSG_RESULT([$CHUNK_CACHE_PREEMPTION])
-AC_DEFINE_UNQUOTED([CHUNK_CACHE_PREEMPTION], [$CHUNK_CACHE_PREEMPTION], [default file chunk cache preemption policy.])
 
 # According to the autoconf mailing list gurus, we must test for
 # compilers unconditionally. That is, we can't skip looking for the
@@ -1298,7 +1277,6 @@ AM_CONDITIONAL(ENABLE_CDF5, [test "x$enable_cdf5" = xyes])
 AM_CONDITIONAL(ENABLE_DAP_REMOTE_TESTS, [test "x$enable_dap_remote_tests" = xyes])
 AM_CONDITIONAL(ENABLE_DAP_AUTH_TESTS, [test "x$enable_dap_auth_tests" = xyes])
 AM_CONDITIONAL(ENABLE_DAP_LONG_TESTS, [test "x$enable_dap_long_tests" = xyes])
-AM_CONDITIONAL(EXTRA_EXAMPLE_TESTS, [test "x$enable_extra_example_tests" = xyes])
 AM_CONDITIONAL(USE_SZIP, [test "x$ac_cv_func_H5Z_SZIP" = xyes])
 AM_CONDITIONAL(USE_PNETCDF_DIR, [test ! "x$PNETCDFDIR" = x])
 AM_CONDITIONAL(USE_LOGGING, [test "x$enable_logging" = xyes])
@@ -1519,36 +1497,25 @@ AX_SET_META([NC_HAS_CDF5],[$enable_cdf5],[yes])
 AX_SET_META([NC_HAS_ERANGE_FILL], [$enable_erange_fill],[yes])
 AX_SET_META([NC_RELAX_COORD_BOUND], [$enable_zero_length_coord_bound],[yes])
 AX_SET_META([NC_HAS_BYTERANGE],[$enable_byterange],[yes])
-
-# Automake says that this is always run in top_builddir
-# and that srcdir is defined (== top_srcdir)
-abs_top_builddir=`pwd`
-cd $srcdir
-abs_top_srcdir=`pwd`
-cd $abs_top_builddir
-
-# test_common.sh setup
-AC_CONFIG_FILES(test_common.sh:test_common.in)
-#rm -f ${abs_top_builddir}/test_common.sh
-#sed -e "s|@TOPSRCDIR@|${abs_top_srcdir}|" -e "s|@TOPBUILDDIR@|${abs_top_builddir}|" <${abs_top_srcdir}/test_common.in >${abs_top_builddir}/test_common.sh
-
-# nc_test4/findplugin.sh setup
-AC_SUBST([ISCMAKE], [])
-AC_SUBST([MSVC], [])
-AC_CONFIG_FILES(nc_test4/findplugin.sh:nc_test4/findplugin.in)
-AC_CONFIG_FILES(examples/C/findplugin.sh:nc_test4/findplugin.in)
-
-# DAP 2/4 findtestserver[4].c setup
-AC_CONFIG_FILES(ncdap_test/findtestserver.c:ncdap_test/findtestserver.c.in)
-AC_CONFIG_FILES(dap4_test/findtestserver4.c:ncdap_test/findtestserver.c.in)
-
 #####
 # End netcdf_meta.h definitions.
 #####
 
+# This would be true for a cmake build.
+AC_SUBST([ISCMAKE], [])
+
+# This would be true for a visual studio build.
+AC_SUBST([MSVC], [])
+
 AC_MSG_NOTICE([generating header files and makefiles])
+AC_CONFIG_FILES(test_common.sh:test_common.in)
+AC_CONFIG_FILES(nc_test4/findplugin.sh:nc_test4/findplugin.in)
+AC_CONFIG_FILES(examples/C/findplugin.sh:nc_test4/findplugin.in)
+AC_CONFIG_FILES(ncdap_test/findtestserver.c:ncdap_test/findtestserver.c.in)
+AC_CONFIG_FILES(dap4_test/findtestserver4.c:ncdap_test/findtestserver.c.in)
 AC_CONFIG_FILES([nc_test4/run_par_test.sh], [chmod ugo+x nc_test4/run_par_test.sh])
 AC_CONFIG_FILES([nc_test4/run_par_bm_test.sh], [chmod ugo+x nc_test4/run_par_bm_test.sh])
+AC_CONFIG_FILES([examples/C/run_par_test.sh], [chmod ugo+x examples/C/run_par_test.sh])
 AC_CONFIG_FILES([nc-config], [chmod 755 nc-config])
 AC_CONFIG_FILES([Makefile
                  netcdf.pc
