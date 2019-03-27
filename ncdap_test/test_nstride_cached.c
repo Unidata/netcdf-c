@@ -78,7 +78,7 @@ Float64 lon_rho[eta_rho = 336][xi_rho = 896];
 Float64 lat_rho[eta_rho = 336][xi_rho = 896];
 */
 
-#define URL "%s/dodsC/testdods/rtofs.nc"
+#define URL "[nocache][noprefetch][log][show=fetch]%s/dodsC/testdods/rtofs.nc"
 #define VAR1 "Latitude"
 #define VAR2 "Longitude"
 #define XSIZE 850
@@ -125,6 +125,7 @@ main()
     printf("********************\n");
     printf("open URL %s\n",url);
     printf(" \n");
+    fflush(stdout);
 
     ncstatus = nc_open(url, NC_NOWRITE, &ncid);
 
@@ -174,10 +175,10 @@ main()
         printf("%s[%d] = %f\n",VAR1,i,dat[i]);
     printf(" \n");
 
-
     for (i=(nelems-11); i<(nelems-1); i++)
         printf("%s[%d] = %f\n",VAR1,i,dat[i]);
     printf(" \n");
+    fflush(stdout);
 #endif
 
     memset((void*)dat,0,sizeof(dat));
@@ -193,6 +194,7 @@ main()
     printf("********************\n");
     printf("Read %s data w/o strides\n",VAR2);
     printf(" \n");
+    fflush(stdout);
 #endif
 
     start[0] = 0;
@@ -210,6 +212,7 @@ main()
     for (idim=0; idim<ndim; idim++)
         printf("start[%d]=%3lu count[%d]=%3lu stride[%d]=%3lu\n",
 		idim, (unsigned long)start[idim], idim, (unsigned long)count[idim], idim, (unsigned long)stride[idim]);
+    fflush(stdout);
 #endif
 
     ncstatus = nc_get_vars_float (ncid, varid, start, count, stride, (float*) dat);
@@ -227,6 +230,7 @@ main()
     for (i=(nelems-11); i<(nelems-1); i++)
         printf("%s[%d] = %f\n",VAR2,i,dat[i]);
     printf(" \n");
+    fflush(stdout);
 #endif
 
     memset((void*)dat,0,sizeof(dat));
@@ -237,6 +241,7 @@ main()
     printf(" \n");
     printf("********************\n");
     printf("Close and reopen the dataset\n");
+    fflush(stdout);
 #endif
 
     ncstatus = nc_close (ncid);
@@ -252,6 +257,7 @@ main()
     printf("********************\n");
     printf("Read a subset of %s data with strides\n",VAR1);
     printf(" \n");
+    fflush(stdout);
 #endif
 
     start[0] = 250;
@@ -265,8 +271,9 @@ main()
 
 #ifdef VERBOSE
     for (idim=0; idim<ndim; idim++)
-	printf("start[%1d]=%3lu count[%1d]=%3lu stride[%1d]=%3lu\n",
+	printf("start[%d]=%lu count[%d]=%lu stride[%d]=%lu\n",
 		idim,(unsigned long)start[idim],idim,(unsigned long)count[idim],idim,(unsigned long)stride[idim]);
+    fflush(stdout);
 #endif
 
     memset((void*)sdat,0,sizeof(sdat));
@@ -290,6 +297,7 @@ main()
 
     for (i=0; i<10; i++)
         printf("%s[%d] = %f\n",VAR1,i,sdat[i]);
+    fflush(stdout);
 #endif
 
     ncstatus = nc_close (ncid);

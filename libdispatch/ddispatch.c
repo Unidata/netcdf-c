@@ -42,13 +42,18 @@ NCDISPATCH_initialize(void)
     int i;
     NCRCglobalstate* globalstate = NULL;
 
-    globalstate = ncrc_getglobalstate(); /* will allocate and clear */
-
-    for(i=0;i<NC_MAX_VAR_DIMS;i++) {
-	((size_t*)NC_coord_one)[i] = 1;
-	((size_t*)NC_coord_zero)[i] = 0;
-	((ptrdiff_t*)NC_stride_one)[i] = 1;
+    {
+	size_t* c0 = (size_t*)NC_coord_zero;
+	size_t* c1 = (size_t*)NC_coord_one;
+	ptrdiff_t* s1 = (ptrdiff_t*)NC_stride_one;
+        for(i=0;i<NC_MAX_VAR_DIMS;i++) {
+	    c0[0] = 0;
+	    c1[i] = 1;
+	    s1[i] = 1;
+	}
     }
+
+    globalstate = ncrc_getglobalstate(); /* will allocate and clear */
 
     /* Capture temp dir*/
     {

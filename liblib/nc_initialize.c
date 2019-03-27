@@ -11,7 +11,6 @@
 
 #include "ncdispatch.h"
 
-
 extern int NC3_initialize(void);
 extern int NC3_finalize(void);
 
