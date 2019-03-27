@@ -605,8 +605,6 @@ dcedump(DCEnode* node, NCbytes* buf)
 	name = nulldup(name);
 	ncbytescat(buf,name);
 	nullfree(name);
-	if(dceiswholesegment(segment))
-	    ncbytescat(buf,"*");
         if(!dceiswholesegment(segment)) {
             for(i=0;i<rank;i++) {
 	        DCEslice* slice = segment->slices+i;

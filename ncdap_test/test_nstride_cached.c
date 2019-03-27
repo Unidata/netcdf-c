@@ -78,7 +78,7 @@ Float64 lon_rho[eta_rho = 336][xi_rho = 896];
 Float64 lat_rho[eta_rho = 336][xi_rho = 896];
 */
 
-#define URL "[nocache][noprefetch][log][show=fetch]%s/dodsC/testdods/rtofs.nc"
+#define URL "%s/dodsC/testdods/rtofs.nc"
 #define VAR1 "Latitude"
 #define VAR2 "Longitude"
 #define XSIZE 850
