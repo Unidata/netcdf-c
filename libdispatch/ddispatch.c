@@ -9,6 +9,7 @@ See LICENSE.txt for license information.
 #include "nclog.h"
 #include "ncbytes.h"
 #include "ncrc.h"
+#include "ncoffsets.h"
 
 /* Required for getcwd, other functions. */
 #ifdef HAVE_UNISTD_H
@@ -117,6 +118,9 @@ NCDISPATCH_initialize(void)
     /* Now load RC File */
     status = NC_rcload();
     ncloginit();
+
+    /* Compute type alignments */
+    NC_compute_alignments();
 
     return status;
 }
