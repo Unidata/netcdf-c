@@ -582,19 +582,17 @@ dcedump(DCEnode* node, NCbytes* buf)
 	    DCEslice* slice = (DCEslice*)node;
 	    size_t last = (slice->first+slice->length)-1;
             if(slice->count == 1) {
-                snprintf(tmp,sizeof(tmp),"[%lu/%lu]",
-	            (unsigned long)slice->first,(unsigned long)slice->declsize);
+                snprintf(tmp,sizeof(tmp),"[%lu]",
+	            (unsigned long)slice->first);
             } else if(slice->stride == 1) {
-                snprintf(tmp,sizeof(tmp),"[%lu:%lu/%lu]",
+                snprintf(tmp,sizeof(tmp),"[%lu:%lu]",
 	            (unsigned long)slice->first,
-	            (unsigned long)last,
-	            (unsigned long)slice->declsize);
+	            (unsigned long)last);
             } else {
-	        snprintf(tmp,sizeof(tmp),"[%lu:%lu:%lu/%lu]",
+	        snprintf(tmp,sizeof(tmp),"[%lu:%lu:%lu]",
 		    (unsigned long)slice->first,
 		    (unsigned long)slice->stride,
-		    (unsigned long)last,
-	            (unsigned long)slice->declsize);
+		    (unsigned long)last);
 	    }
             ncbytescat(buf,tmp);
     } break;
@@ -602,15 +600,11 @@ dcedump(DCEnode* node, NCbytes* buf)
     case CES_SEGMENT: {
 	DCEsegment* segment = (DCEsegment*)node;
 	char* name = (segment->name?segment->name:"<unknown>");
-#ifdef DCEVERBOSE
         int rank = segment->rank;
 	int i;
-#endif
-
 	name = nulldup(name);
 	ncbytescat(buf,name);
 	nullfree(name);
-#ifdef DCEVERBOSE
 	if(dceiswholesegment(segment))
 	    ncbytescat(buf,"*");
         if(!dceiswholesegment(segment)) {
@@ -619,7 +613,6 @@ dcedump(DCEnode* node, NCbytes* buf)
                 dcetobuffer((DCEnode*)slice,buf);
 	    }
 	}
-#endif
     } break;
 
     case CES_VAR: {
