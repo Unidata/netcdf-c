@@ -34,7 +34,7 @@ tst_rename2 tst_rename3 tst_h5_endians tst_atts_string_rewrite		\
 tst_hdf5_file_compat tst_fill_attr_vanish tst_rehash tst_filterparser	\
 tst_bug324 tst_types tst_atts3 tst_put_vars tst_elatefill tst_udf
 
-# Temporary I hope
+# Temporary I hoped, but hoped in vain.
 if !ISCYGWIN
 NC4_TESTS += tst_h_strbug tst_h_refs
 endif
@@ -79,21 +79,25 @@ bm_file_SOURCES = bm_file.c tst_utils.c
 tst_knmi_SOURCES = tst_knmi.c tst_utils.c
 tst_wrf_reads_SOURCES = tst_wrf_reads.c tst_utils.c
 
-TESTS += tst_ar4_3d tst_create_files run_bm_test1.sh run_bm_elena.sh	\
-run_bm_test2.sh run_tst_chunks.sh tst_files3 tst_mem run_knmi_bm.sh	\
-tst_wrf_reads tst_attsperf
+TESTS += tst_ar4_3d tst_create_files run_bm_elena.sh			\
+run_tst_chunks.sh tst_files3 tst_mem run_knmi_bm.sh tst_wrf_reads	\
+tst_attsperf
+
+run_bm_elena.log: tst_create_files.log tst_files.log
+
+if BUILD_UTILITIES
+TESTS += run_bm_test1.sh run_bm_test2.sh
 
 # tst_create_files creates files for other tests.
 run_bm_test1.log: tst_create_files.log
 run_bm_test2.log: tst_create_files.log
-run_bm_elena.log: tst_create_files.log tst_files.log
 
 # This will run a parallel I/O benchmark for parallel builds.
 if TEST_PARALLEL4
 TESTS += run_par_bm_test.sh
-# This benchmark depends on tst_create_files being run.
 run_par_bm_test.log: tst_create_files.log
 endif # TEST_PARALLEL4
+endif # BUILD_UTILITIES
 endif # BUILD_BENCHMARKS
 
 # Szip Tests (requires ncdump)
@@ -144,10 +148,10 @@ tst_floats2_*.cdl tst_ints2_*.cdl tst_shorts2_*.cdl tst_elena_*.cdl	\
 tst_simple*.cdl tst_chunks.cdl pr_A1.* tauu_A1.* usi_01.* thetau_01.*	\
 tst_*.h5 tst_grp_rename.cdl tst_grp_rename.dmp ref_grp_rename.cdl	\
 foo1.nc tst_*.h4 test.nc testszip.nc test.h5 szip_dump.cdl		\
-perftest.txt bigmeta.nc bigvars.nc *.gz MSGCPP_*.nc	\
-floats*.nc floats*.cdl shorts*.nc shorts*.cdl ints*.nc ints*.cdl
+perftest.txt bigmeta.nc bigvars.nc *.gz MSGCPP_*.nc floats*.nc		\
+floats*.cdl shorts*.nc shorts*.cdl ints*.nc ints*.cdl
 
-DISTCLEANFILES = findplugin.sh run_par_test.sh
+DISTCLEANFILES = findplugin.sh run_par_test.sh run_par_bm_test.sh
 
 # If valgrind is present, add valgrind targets.
 @VALGRIND_CHECK_RULES@

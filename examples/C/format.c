@@ -1,25 +1,20 @@
-/*! \file
-
-Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
-2015, 2016, 2017, 2018
-University Corporation for Atmospheric Research/Unidata.
-
-See \ref copyright file for more info.
-
+/* Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
+2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012,
+2013, 2014, 2015, 2016, 2017, 2018 University Corporation for
+Atmospheric Research/Unidata.  See \ref copyright file for more
+info. */
+/**
+ * @file
+ * This example program is part of Unidata's netCDF library for
+ * scientific data access.
+ *
+ * This example shows how to create and deal with files of different
+ * netcdf formats (i.e. classic vs. 64-bit-offset).
+ *
+ * @author Ed Hartnett, 7/13/4
 */
 
-
-/* This example program is part of Unidata's netCDF library for
-   scientific data access.
-
-   This example shows how to create and deal with files of different
-   netcdf formats (i.e. classic vs. 64-bit-offset).
-
-   Ed Hartnett, 7/13/4
-   $Id: format.c,v 1.1 2004/07/26 14:04:42 ed Exp $
-*/
-
+#include <config.h>
 #include <netcdf.h>
 #include <stdio.h>
 #include <string.h>

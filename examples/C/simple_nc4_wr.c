@@ -1,15 +1,18 @@
-/** \file
-Write a file demonstrating some of the features of netCDF-4.
-
-We create two shared dimensions, "x" and "y", in a parent group, and
-some netCDF variables in different subgroups. The variables will
-include a compound and an enum type, as well as some of the new atomic
-types, like the unsigned 64-bit integer.
-
-This is part of the netCDF package. Copyright 2006-2018 University
-Corporation for Atmospheric Research/Unidata. See COPYRIGHT file for
-conditions of use. Full documentation of the netCDF can be found at
-http://www.unidata.ucar.edu/software/netcdf/docs.
+/* Copyright 2019 University Corporation for Atmospheric
+   Research/Unidata.  See COPYRIGHT file for conditions of use. */
+/**
+ * @file
+ * Write a file demonstrating some of the features of netCDF-4.
+ *
+ * We create two shared dimensions, "x" and "y", in a parent group, and
+ * some netCDF variables in different subgroups. The variables will
+ * include a compound and an enum type, as well as some of the new atomic
+ * types, like the unsigned 64-bit integer.
+ *
+ * This is part of the netCDF package. Full documentation of netCDF
+ * can be found at http://www.unidata.ucar.edu/software/netcdf/docs.
+ *
+ * @author Ed Hartnett
 */
 
 #include <stdlib.h>
