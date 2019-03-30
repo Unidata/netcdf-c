@@ -26,7 +26,7 @@ struct NCmodel;
 typedef struct NC {
 	int ext_ncid;
 	int int_ncid;
-	struct NC_Dispatch* dispatch;
+	const struct NC_Dispatch* dispatch;
 	void* dispatchdata; /*per-'file' data; points to e.g. NC3_INFO data*/
 	char* path;
 	int   mode; /* as provided to nc_open/nc_create */
@@ -81,9 +81,6 @@ extern int iterate_NCList(int i,NC**); /* Walk from 0 ...; ERANGE return => stop
 
 /* Defined in nc.c */
 extern void free_NC(NC*);
-extern int new_NC(struct NC_Dispatch*, const char*, int, struct NCmodel*, NC**);
-
-/* Defined in nc.c */
-extern int ncdebug;
+extern int new_NC(const struct NC_Dispatch*, const char*, int, struct NCmodel*, NC**);
 
 #endif /* _NC_H_ */

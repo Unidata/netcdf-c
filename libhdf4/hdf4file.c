@@ -594,7 +594,7 @@ hdf4_read_var(NC_FILE_INFO_T *h5, int v)
  */
 int
 NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
-             void *parameters, NC_Dispatch *dispatch, NC *nc_file)
+             void *parameters, const NC_Dispatch *dispatch, NC *nc_file)
 {
     NC_FILE_INFO_T *h5;
     NC_HDF4_FILE_INFO_T *hdf4_file;

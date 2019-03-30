@@ -208,6 +208,9 @@ typedef struct {
     NC_FILE_INFO_T* h5;
 } H5LT_file_image_ud_t;
 
+/* Unique id for file name */
+static long         file_name_counter;
+
 /* callbacks prototypes for file image ops */
 static void *local_image_malloc(size_t size, H5FD_file_image_op_t file_image_op, void *udata);
 static void *local_image_memcpy(void *dest, const void *src, size_t size, H5FD_file_image_op_t file_image_op, void *udata);
@@ -729,8 +732,6 @@ NC4_image_init(NC_FILE_INFO_T* h5)
                                            &local_image_realloc, &local_image_free,
                                            &local_udata_copy, &local_udata_free,
                                            (void *)NULL};
-    static long         file_name_counter;
-
     imageflags = h5->mem.imageflags;
     create = h5->mem.created;
 
