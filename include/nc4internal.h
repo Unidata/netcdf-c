@@ -297,7 +297,7 @@ typedef struct {
     void *p;    /* Pointer to VL data */
 } nc_hvl_t;
 
-extern char* nc4_atomic_name[NC_MAX_ATOMIC_TYPE+1];
+extern const char* nc4_atomic_name[NC_MAX_ATOMIC_TYPE+1];
 
 /* These functions convert between netcdf and HDF5 types. */
 int nc4_get_typelen_mem(NC_FILE_INFO_T *h5, nc_type xtype, size_t *len);
@@ -470,8 +470,5 @@ struct NCPROVENANCE {
         NClist* properties;
     } propattr;
 };
-
-/* Provenance Initialization */
-extern struct NCPROPINFO globalpropinfo;
 
 #endif /* _NC4INTERNAL_ */

@@ -12,8 +12,6 @@
 
 #define NEWVARM
 
-static DCEnode* save = NULL;
-
 /* Define a tracker for memory to support*/
 /* the concatenation*/
 struct NCMEMORY {
@@ -173,7 +171,7 @@ fprintf(stderr,"\n");
 
     /* Fill in missing arguments */
     if(startp == NULL)
-	startp = nc_sizevector0;
+	startp = NC_coord_zero;
 
     if(countp == NULL) {
         /* Accumulate the dimension sizes */
@@ -185,7 +183,7 @@ fprintf(stderr,"\n");
     }
 
     if(stridep == NULL)
-	stridep = nc_ptrdiffvector1;
+	stridep = NC_stride_one;
 
     /* Validate the dimension sizes */
     for(i=0;i<ncrank;i++) {
@@ -412,7 +410,6 @@ fprintf(stderr,"cache.datadds=%s\n",dumptree(cachenode->datadds));
 
     /* Switch to datadds tree space*/
     varainfo->target = xtarget;
-save = (DCEnode*)varaprojection;
     ncstat = moveto(dapcomm,varainfo,varainfo->cache->datadds,data);
     if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto fail;}
 

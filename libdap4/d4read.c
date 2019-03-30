@@ -24,11 +24,8 @@ static int readfile(NCD4INFO* state, const NCURI*, const char* suffix, NCbytes* 
 static int readfiletofile(NCD4INFO* state, const NCURI*, const char* suffix, FILE* stream, d4size_t*);
 
 #ifdef HAVE_GETTIMEOFDAY
-static struct timeval time0;
-static struct timeval time1;
-
 static double
-deltatime()
+deltatime(struct timeval time0,struct timeval time1)
 {
     double t0, t1;
     t0 = ((double)time0.tv_sec);
@@ -106,6 +103,10 @@ readpacket(NCD4INFO* state, NCURI* url, NCbytes* packet, NCD4mode dxx, long* las
     int fileprotocol = 0;
     const char* suffix = dxxextension(dxx);
     CURL* curl = state->curl->curl;
+#ifdef HAVE_GETTIMEOFDAY
+    struct timeval time0;
+    struct timeval time1;
+#endif
 
     fileprotocol = (strcmp(url->protocol,"file")==0);
 
@@ -133,7 +134,7 @@ readpacket(NCD4INFO* state, NCURI* url, NCbytes* packet, NCD4mode dxx, long* las
             double secs = 0;
 #ifdef HAVE_GETTIMEOFDAY
    	    gettimeofday(&time1,NULL);
-	    secs = deltatime();
+	    secs = deltatime(time0,time1);
 #endif
             nclog(NCLOGDBG,"fetch complete: %0.3f",secs);
 	}
@@ -191,6 +192,10 @@ readfile(NCD4INFO* state, const NCURI* uri, const char* suffix, NCbytes* packet)
     ncbytesnull(tmp);
     filename = ncbytesextract(tmp);
     ncbytesfree(tmp);
+#ifdef HAVE_GETTIMEOFDAY
+    struct timeval time0;
+    struct timeval time1;
+#endif
 
     state->fileproto.filename = filename; /* filename is alloc'd here anyway */
 
@@ -207,7 +212,7 @@ readfile(NCD4INFO* state, const NCURI* uri, const char* suffix, NCbytes* packet)
 	double secs;
 #ifdef HAVE_GETTIMEOFDAY
    	gettimeofday(&time1,NULL);
-	secs = deltatime();
+	secs = deltatime(time0,time1);
 #endif
         nclog(NCLOGDBG,"fetch complete: %0.3f",secs);
     }

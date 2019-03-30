@@ -97,7 +97,7 @@ NC_authsetup(NCauth* auth, NCURI* uri)
     setdefaults(auth);
 
     /* Note, we still must do this function even if
-       ncrc_globalstate.rc.ignore is set in order
+       ncrc_getglobalstate()->rc.ignore is set in order
        to getinfo e.g. host+port  from url
     */
 

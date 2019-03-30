@@ -44,7 +44,7 @@ NCP_create(const char *path,
            int basepe,
            size_t *chunksizehintp,
            void *mpidata,
-           struct NC_Dispatch *table,
+           const struct NC_Dispatch *table,
            NC *nc)
 {
     int status;
@@ -81,7 +81,7 @@ NCP_open(const char *path,
          int basepe,
          size_t *chunksizehintp,
          void *mpidata,
-         struct NC_Dispatch *table,
+         const struct NC_Dispatch *table,
          NC *nc)
 {
     int status;
@@ -1380,7 +1380,7 @@ NCP_inq_user_type(int ncid, nc_type typeid, char *name, size_t *size,
 /**************************************************/
 /* Pnetcdf Dispatch table */
 
-NC_Dispatch NCP_dispatcher = {
+static const NC_Dispatch NCP_dispatcher = {
 
 NC_FORMATX_PNETCDF,
 
@@ -1473,7 +1473,7 @@ NC_NOTNC4_get_var_chunk_cache,
 
 };
 
-NC_Dispatch *NCP_dispatch_table = NULL; /* moved here from ddispatch.c */
+const NC_Dispatch *NCP_dispatch_table = NULL; /* moved here from ddispatch.c */
 
 int
 NCP_initialize(void)

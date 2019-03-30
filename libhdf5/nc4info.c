@@ -27,7 +27,7 @@
 #define HCHECK(expr) {if((expr)<0) {ncstat = NC_EHDFERR; goto done;}}
 
 static int globalpropinitialized = 0;
-struct NCPROPINFO globalpropinfo; /**< Global property info. */
+static struct NCPROPINFO* globalpropinfo = NULL; /**< Global property info. */
 
 /* Forward */
 static int properties_parse(const char* text0, NClist* pairs);
@@ -57,27 +57,28 @@ NC4_provenance_init(void)
     /* Build _NCProperties info */
 
     /* Initialize globalpropinfo */
-    memset((void*)&globalpropinfo,0,sizeof(globalpropinfo));
-    globalpropinfo.version = NCPROPS_VERSION;
-    globalpropinfo.properties = nclistnew();
-    if(globalpropinfo.properties == NULL)
+    globalpropinfo = calloc(1,sizeof(struct NCPROPINFO));
+    if(globalpropinfo == NULL) return NC_ENOMEM;
+    globalpropinfo->version = NCPROPS_VERSION;
+    globalpropinfo->properties = nclistnew();
+    if(globalpropinfo->properties == NULL)
     {stat = NC_ENOMEM; goto done;}
 
     /* Insert primary library version as first entry */
     if((name = strdup(NCPNCLIB2)) == NULL)
     {stat = NC_ENOMEM; goto done;}
-    nclistpush(globalpropinfo.properties,name);
+    nclistpush(globalpropinfo->properties,name);
     name = NULL; /* Avoid multiple free() */
 
     if((value = strdup(PACKAGE_VERSION)) == NULL)
     {stat = NC_ENOMEM; goto done;}
-    nclistpush(globalpropinfo.properties,value);
+    nclistpush(globalpropinfo->properties,value);
     value = NULL;
 
     /* Insert the HDF5 as underlying storage format library */
     if((name = strdup(NCPHDF5LIB2)) == NULL)
     {stat = NC_ENOMEM; goto done;}
-    nclistpush(globalpropinfo.properties,name);
+    nclistpush(globalpropinfo->properties,name);
     name = NULL;
 
     stat = NC4_hdf5get_libversion(&major,&minor,&release);
@@ -88,7 +89,7 @@ NC4_provenance_init(void)
         if((value = strdup(sversion)) == NULL)
         {stat = NC_ENOMEM; goto done;}
     }
-    nclistpush(globalpropinfo.properties,value);
+    nclistpush(globalpropinfo->properties,value);
     value = NULL;
 
     /* Add any extra fields */
@@ -101,7 +102,7 @@ NC4_provenance_init(void)
 #endif
     /* merge into the properties list */
     for(i=0;i<nclistlength(other);i++)
-        nclistpush(globalpropinfo.properties,strdup(nclistget(other,i)));
+        nclistpush(globalpropinfo->properties,strdup(nclistget(other,i)));
     nclistfreeall(other);
     other = NULL;
 
@@ -110,9 +111,9 @@ done:
     if(value != NULL) free(value);
     if(other != NULL)
         nclistfreeall(other);
-    if(stat && globalpropinfo.properties != NULL) {
-        nclistfreeall(globalpropinfo.properties);
-        globalpropinfo.properties = NULL;
+    if(stat && globalpropinfo->properties != NULL) {
+        nclistfreeall(globalpropinfo->properties);
+        globalpropinfo->properties = NULL;
     }
     if(stat == NC_NOERR)
         globalpropinitialized = 1; /* avoid repeating it */
@@ -146,7 +147,9 @@ locate(char* p, char tag)
 int
 NC4_provenance_finalize(void)
 {
-    nclistfreeall(globalpropinfo.properties);
+    nclistfreeall(globalpropinfo->properties);
+    nullfree(globalpropinfo);
+    globalpropinfo = NULL;
     return NC_NOERR;
 }
 
@@ -297,7 +300,7 @@ done:
  * @internal
  *
  * Construct the provenance information for a newly created file
- * using dfalt as the default.
+ * using global prop inot as the default.
  * Note that creation of the _NCProperties attribute is deferred
  * to the sync_netcdf4_file function.
  *
@@ -309,7 +312,7 @@ done:
  * @author Dennis Heimbigner
  */
 int
-NC4_set_provenance(NC_FILE_INFO_T* file, const struct NCPROPINFO* dfalt)
+NC4_set_provenance(NC_FILE_INFO_T* file)
 {
     int ncstat = NC_NOERR;
     struct NCPROVENANCE* provenance = NULL;
@@ -323,7 +326,7 @@ NC4_set_provenance(NC_FILE_INFO_T* file, const struct NCPROPINFO* dfalt)
     if(provenance == NULL) {ncstat = NC_ENOMEM; goto done;}
 
     /* Initialize from the default */
-    provenance->propattr.version = globalpropinfo.version;
+    provenance->propattr.version = globalpropinfo->version;
     /* Get the superblock number */
     if((ncstat = NC4_hdf5get_superblock(file,&superblock)))
         goto done;
@@ -334,10 +337,10 @@ NC4_set_provenance(NC_FILE_INFO_T* file, const struct NCPROPINFO* dfalt)
     if(provenance->propattr.properties == NULL)
     {ncstat = NC_ENOMEM; goto done;}
     /* add in the dfalt values */
-    if(dfalt != NULL) {
+    if(globalpropinfo != NULL) {
         int i;
-        for(i=0;i<nclistlength(dfalt->properties);i++) {
-            char* prop = nclistget(dfalt->properties,i);
+        for(i=0;i<nclistlength(globalpropinfo->properties);i++) {
+            char* prop = nclistget(globalpropinfo->properties,i);
             if(prop != NULL) {
                 prop = strdup(prop);
                 if(prop == NULL) {ncstat = NC_ENOMEM; goto done;}
@@ -360,11 +363,10 @@ done:
  *
  * Construct the provenance information for a newly opened file
  * Using the specified _NCProperties value. If NULL, then
- * initialize using dfalt.
+ * initialize using globalpropinfo.
  *
  * @param file Pointer to file object.
  * @param propstring The contents of _NCProperties
- * @param dfalt
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_ENOMEM
@@ -372,7 +374,7 @@ done:
  * @author Dennis Heimbigner
  */
 int
-NC4_get_provenance(NC_FILE_INFO_T* file, const char* propstring, const struct NCPROPINFO* dfalt)
+NC4_get_provenance(NC_FILE_INFO_T* file, const char* propstring)
 {
     int ncstat = NC_NOERR;
     struct NCPROVENANCE* provenance;
@@ -396,8 +398,7 @@ NC4_get_provenance(NC_FILE_INFO_T* file, const char* propstring, const struct NC
     provenance->superblockversion = superblock;
 
     if(propstring == NULL) {
-        /* Use dfalt */
-        if((ncstat=propinfo_default(&provenance->propattr,dfalt)))
+        if((ncstat=propinfo_default(&provenance->propattr,globalpropinfo)))
             goto done;
     } else {
         NClist* list = provenance->propattr.properties;
@@ -483,7 +484,7 @@ NC4_read_ncproperties(NC_FILE_INFO_T* h5)
 
     if(H5Aexists(hdf5grpid,NCPROPS) <= 0) { /* Does not exist */
         /* File did not contain a _NCProperties attribute */
-        retval=NC4_get_provenance(h5,NULL,&globalpropinfo);
+        retval=NC4_get_provenance(h5,NULL);
         goto done;
     }
 
@@ -509,7 +510,7 @@ NC4_read_ncproperties(NC_FILE_INFO_T* h5)
     /* Make sure its null terminated */
     text[(size_t)size] = '\0';
     /* Process the _NCProperties value */
-    if((retval = NC4_get_provenance(h5, text, &globalpropinfo)))
+    if((retval = NC4_get_provenance(h5, text)))
         goto done;
 
 done:

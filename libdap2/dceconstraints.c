@@ -18,9 +18,7 @@
 #define LBRACE "{"
 #define RBRACE "}"
 
-int dceverbose = 0;
-
-static char* opstrings[] = OPSTRINGS ;
+static const char* opstrings[] = OPSTRINGS ;
 
 static void ceallnodesr(DCEnode* node, NClist* allnodes, CEsort which);
 static void dcedump(DCEnode* node, NCbytes* buf);
@@ -60,11 +58,8 @@ fprintf(stderr,"constraint: %s",dcetostring((DCEnode*)dapconstraint));
 static void
 slicedump(const char* prefix, DCEslice* s)
 {
-#if 1
-    int v = dceverbose;
-    dceverbose = 1;
+#ifdef DCEVERBOSE
     fprintf(stderr,"%s: %s\n",prefix,dcetostring((DCEnode*)s));
-    dceverbose = v;
 #else
     size_t last = (s->first+s->length)-1;
     fprintf(stderr,"%s: [%lu:%lu:%lu p=%lu l=%lu c=%lu]\n",
@@ -567,25 +562,6 @@ dcerawlisttostring(NClist* list)
     return s;
 }
 
-/* For debugging */
-#ifdef DEBUG
-static char*
-dimdecl(size_t declsize)
-{
-    static char tag[16];
-    tag[0] = '\0';
-    if(dceverbose) 
-        snprintf(tag,sizeof(tag),"/%lu",(unsigned long)declsize);
-    return tag;
-}
-#else
-static char*
-dimdecl(size_t declsize)
-{
-    return "";
-}
-#endif
-
 void
 dcetobuffer(DCEnode* node, NCbytes* buf)
 {
@@ -595,7 +571,6 @@ dcetobuffer(DCEnode* node, NCbytes* buf)
 static void
 dcedump(DCEnode* node, NCbytes* buf)
 {
-    int i;
     char tmp[1024];
 
     if(buf == NULL) return;
@@ -607,33 +582,30 @@ dcedump(DCEnode* node, NCbytes* buf)
 	    DCEslice* slice = (DCEslice*)node;
 	    size_t last = (slice->first+slice->length)-1;
             if(slice->count == 1) {
-                snprintf(tmp,sizeof(tmp),"[%lu%s]",
-	            (unsigned long)slice->first,dimdecl(slice->declsize));
+                snprintf(tmp,sizeof(tmp),"[%lu]",
+	            (unsigned long)slice->first);
             } else if(slice->stride == 1) {
-                snprintf(tmp,sizeof(tmp),"[%lu:%lu%s]",
+                snprintf(tmp,sizeof(tmp),"[%lu:%lu]",
 	            (unsigned long)slice->first,
-	            (unsigned long)last,
-	            dimdecl(slice->declsize));
+	            (unsigned long)last);
             } else {
-	        snprintf(tmp,sizeof(tmp),"[%lu:%lu:%lu%s]",
+	        snprintf(tmp,sizeof(tmp),"[%lu:%lu:%lu]",
 		    (unsigned long)slice->first,
 		    (unsigned long)slice->stride,
-		    (unsigned long)last,
-	            dimdecl(slice->declsize));
+		    (unsigned long)last);
 	    }
             ncbytescat(buf,tmp);
     } break;
 
     case CES_SEGMENT: {
 	DCEsegment* segment = (DCEsegment*)node;
-        int rank = segment->rank;
 	char* name = (segment->name?segment->name:"<unknown>");
+        int rank = segment->rank;
+	int i;
 	name = nulldup(name);
 	ncbytescat(buf,name);
 	nullfree(name);
-        if(dceverbose && dceiswholesegment(segment))
-	    ncbytescat(buf,"*");
-        if(dceverbose || !dceiswholesegment(segment)) {
+        if(!dceiswholesegment(segment)) {
             for(i=0;i<rank;i++) {
 	        DCEslice* slice = segment->slices+i;
                 dcetobuffer((DCEnode*)slice,buf);

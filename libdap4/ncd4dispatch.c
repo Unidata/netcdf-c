@@ -30,9 +30,9 @@ static char* constrainableprotocols[] = {"http", "https",NULL};
 
 static int ncd4initialized = 0;
 
-static NC_Dispatch NCD4_dispatch_base;
+static const NC_Dispatch NCD4_dispatch_base;
 
-NC_Dispatch* NCD4_dispatch_table = NULL; /* moved here from ddispatch.c */
+const NC_Dispatch* NCD4_dispatch_table = NULL; /* moved here from ddispatch.c */
 
 /* Forward */
 static int globalinit(void);
@@ -86,7 +86,7 @@ NCD4_sync(int ncid)
 static int
 NCD4_create(const char *path, int cmode,
            size_t initialsz, int basepe, size_t *chunksizehintp,
-           void* mpidata, NC_Dispatch *dispatch, NC *ncp)
+           void* mpidata, const NC_Dispatch *dispatch, NC *ncp)
 {
    return THROW(NC_EPERM);
 }
@@ -805,7 +805,7 @@ globalinit(void)
 
 /**************************************************/
 
-static NC_Dispatch NCD4_dispatch_base = {
+static const NC_Dispatch NCD4_dispatch_base = {
 
 NC_FORMATX_DAP4,
 

@@ -159,10 +159,10 @@ extern int NC4_provenance_init();
 extern int NC4_provenance_finalize();
 
 /* Extract the provenance from a file, using dfalt as default */
-extern int NC4_get_provenance(NC_FILE_INFO_T* file, const char* propstring, const struct NCPROPINFO* dfalt);
+extern int NC4_get_provenance(NC_FILE_INFO_T* file, const char* propstring);
 
-/* Set the provenance for a created file using dfalt as default */
-extern int NC4_set_provenance(NC_FILE_INFO_T* file, const struct NCPROPINFO* dfalt);
+/* Set the provenance for a created file */
+extern int NC4_set_provenance(NC_FILE_INFO_T* file);
 
 /* Recover memory of an NCPROVENANCE object */
 extern int NC4_free_provenance(struct NCPROVENANCE* prov);

@@ -234,7 +234,7 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
     nc4_info->flags |= NC_INDEF;
 
     /* Save the HDF5 superblock number and set the _NCProperties attribute. */
-    if ((retval = NC4_set_provenance(nc4_info, &globalpropinfo)))
+    if ((retval = NC4_set_provenance(nc4_info)))
         BAIL(retval);
 
     return NC_NOERR;
@@ -271,7 +271,7 @@ exit: /*failure exit*/
 int
 NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
            size_t *chunksizehintp, void *parameters,
-           NC_Dispatch *dispatch, NC *nc_file)
+           const NC_Dispatch *dispatch, NC *nc_file)
 {
     int res;
 

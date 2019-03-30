@@ -268,7 +268,7 @@ NCDEFAULT_get_vars(int ncid, int varid, const size_t * start,
    while(odom_more(&odom)) {
       int localstatus = NC_NOERR;
       /* Read a single value */
-      localstatus = NC_get_vara(ncid,varid,odom.index,nc_sizevector1,memptr,memtype);
+      localstatus = NC_get_vara(ncid,varid,odom.index,NC_coord_one,memptr,memtype);
       /* So it turns out that when get_varm is used, all errors are
          delayed and ERANGE will be overwritten by more serious errors.
       */
