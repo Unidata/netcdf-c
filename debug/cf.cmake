@@ -6,6 +6,10 @@ DAP=1
 #CDF5=1
 #HDF4=1
 
+#TR=--trace
+
+NCC="c:/tools/nccmake"
+
 export SETX=1
 
 for arg in "$@" ; do
@@ -13,6 +17,7 @@ case "$arg" in
 vs|VS) VS=1 ;;
 linux|nix|l|x) unset VS ;;
 nobuild|nb) NOBUILD=1 ;;
+notest|nt) NOTEST=1 ;;
 *) echo "Must specify env: vs|linux"; exit 1; ;;
 esac
 done
@@ -35,8 +40,10 @@ else
 CFG="Release"
 fi
 
+FLAGS=
+
 if test "x$VS" != x -a "x$INSTALL" != x ; then
-FLAGS="-DCMAKE_PREFIX_PATH=c:/tools/nccmake"
+FLAGS="$FLAGS -DCMAKE_PREFIX_PATH=${NCC}"
 fi
 FLAGS="$FLAGS -DCMAKE_INSTALL_PREFIX=/tmp/netcdf"
 
@@ -45,6 +52,8 @@ FLAGS="$FLAGS -DENABLE_DAP=false"
 fi
 if test "x$NC4" = x ; then
 FLAGS="$FLAGS -DENABLE_NETCDF_4=false"
+else
+FLAGS="-DHDF5_C_LIBRARY=${NCC}/lib/hdf5 -DHDF5_HL_LIBRARY=${NCC}/lib/hdf5_hl -DHDF5_INCLUDE_DIR=${NCC}/include"
 fi
 if test "x$CDF5" != x ; then
 FLAGS="$FLAGS -DENABLE_CDF5=true"
@@ -69,6 +78,7 @@ FLAGS="$FLAGS -DENABLE_EXAMPLES=false"
 FLAGS="$FLAGS -DENABLE_CONVERSION_WARNINGS=false"
 #FLAGS="$FLAGS -DENABLE_TESTS=false"
 #FLAGS="$FLAGS -DENABLE_DISKLESS=false"
+FLAGS="$FLAGS -DBUILD_UTILITIES=true"
 
 # Withs
 FLAGS="$FLAGS -DNCPROPERTIES_EXTRA=\"key1=value1|key2=value2\""
@@ -86,10 +96,12 @@ CFG="Release"
 NCLIB="${NCLIB}/liblib"
 export PATH="${NCLIB}:${PATH}"
 #G=
-cmake "$G" -DCMAKE_BUILD_TYPE=${CFG} $FLAGS ..
+cmake ${TR} "$G" -DCMAKE_BUILD_TYPE=${CFG} $FLAGS ..
 if test "x$NOBUILD" = x ; then
-cmake --build . --config ${CFG}
-cmake --build . --config ${CFG} --target RUN_TESTS
+cmake ${TR} --build . --config ${CFG} --target ZERO_CHECK
+if test "x$NOTEST" = x ; then
+cmake ${TR} --build . --config ${CFG} --target RUN_TESTS
+fi
 fi
 else
 # GCC
