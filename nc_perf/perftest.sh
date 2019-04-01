@@ -1,4 +1,6 @@
 #!/bin/sh
+# This is a metadata performance test for netCDF-4.
+# Dennis Heimbigner
 
 #PROF=1
 #DEBUG=1
