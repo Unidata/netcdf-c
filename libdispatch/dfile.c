@@ -2116,6 +2116,7 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 	}
     }
 
+
     /* If we can't figure out what dispatch table to use, give up. */
     if (!dispatcher) {stat = NC_ENOTNC; goto done;}
 
