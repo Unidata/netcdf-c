@@ -78,10 +78,15 @@ if ENABLE_FILTER_TESTING
 PLUGIN_DIR = plugins
 endif
 
+# If benchmarks were turned on, build and run a bunch more tests.
+if BUILD_BENCHMARKS
+BENCHMARKS_DIR = nc_perf
+endif # BUILD_BENCHMARKS
+
 # Define Test directories
 if BUILD_TESTSETS
-TESTDIRS = $(V2_TEST) nc_test $(NC_TEST4) $(HDF4_TEST_DIR)	\
-$(NCDAP2TESTDIR) $(NCDAP4TESTDIR)
+TESTDIRS = $(V2_TEST) nc_test $(NC_TEST4) $(BENCHMARKS_DIR)	\
+$(HDF4_TEST_DIR) $(NCDAP2TESTDIR) $(NCDAP4TESTDIR)
 endif
 
 # This is the list of subdirs for which Makefiles will be constructed
