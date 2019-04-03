@@ -17,7 +17,7 @@
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
-#ifdef _MSC_VER /* Microsoft Compilers */
+#ifdef _WIN32
 #include <windows.h>
 #include <winbase.h>
 #include <io.h>
