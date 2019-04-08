@@ -12,6 +12,7 @@ includedir="@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_INCLUDEDIR@"
 cc="@CMAKE_C_COMPILER@"
 cflags="-I@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_INCLUDEDIR@"
 libs="-L@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@ @NC_LIBS@"
+libsprivate="@LIBS@"
 
 has_dap2="@ENABLE_DAP2@"
 if [ -z $has_dap2 -o "$has_dap2" = "OFF" ]; then
@@ -163,6 +164,7 @@ Available values for OPTION include:
   --has-parallel4 whether has parallel IO support via HDF5
   --has-parallel  whether has parallel IO support via HDF5 or PnetCDF
   --libs          library linking information for netcdf
+  --static        library linking information for statically-compiled netcdf
   --prefix        Install prefix
   --includedir    Include directory
   --libdir        Library directory
@@ -202,6 +204,7 @@ all()
         echo "  --cc            -> $cc"
         echo "  --cflags        -> $cflags"
         echo "  --libs          -> $libs"
+        echo "  --static        -> $libsprivate"
         echo
         echo "  --has-c++       -> $has_cxx"
         echo "  --cxx           -> $cxx"
@@ -334,6 +337,10 @@ while test $# -gt 0; do
 
     --libs)
         echo $libs
+        ;;
+
+    --static)
+        echo $libs $libsprivate
         ;;
 
     --prefix)

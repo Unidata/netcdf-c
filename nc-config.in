@@ -12,6 +12,8 @@ includedir=@includedir@
 cc="@CC@"
 cflags="-I${includedir} @CPPFLAGS@"
 libs="-L${libdir} @NC_LIBS@"
+libsprivate="@LIBS@"
+
 
 has_dap="@HAS_DAP@"
 has_dap4="@HAS_DAP4@"
@@ -90,6 +92,7 @@ Available values for OPTION include:
   --has-parallel4 whether has parallel IO support via HDF5
   --has-parallel  whether has parallel IO support via HDF5 or PnetCDF
   --libs          library linking information for netcdf
+  --static        library linking information for statically-compiled netcdf
   --prefix        Install prefix
   --includedir    Include directory
   --libdir        Library directory
@@ -129,6 +132,7 @@ all()
         echo "  --cc            -> $cc"
         echo "  --cflags        -> $cflags"
         echo "  --libs          -> $libs"
+        echo "  --static        -> $libsprivate"
         echo
         echo "  --has-c++       -> $has_cxx"
         echo "  --cxx           -> $cxx"
@@ -262,6 +266,9 @@ while test $# -gt 0; do
      --libs)
         echo $libs
         ;;
+     --static)
+         echo $libs $libsprivate
+         ;;
 
     --prefix)
         echo "${prefix}"
