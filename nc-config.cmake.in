@@ -13,6 +13,7 @@ cc="@CMAKE_C_COMPILER@"
 cflags="-I@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_INCLUDEDIR@"
 libs="-L@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@ @NC_LIBS@"
 libsprivate="@LIBS@"
+HAS_STATIC=""
 
 has_dap2="@ENABLE_DAP2@"
 if [ -z $has_dap2 -o "$has_dap2" = "OFF" ]; then
@@ -256,6 +257,16 @@ if test $# -eq 0; then
     usage 1
 fi
 
+for i in "$@"; do
+    case $i in
+        --static)
+            HAS_STATIC="TRUE"
+            ;;
+        *)
+            ;;
+    esac
+done
+
 while test $# -gt 0; do
     case "$1" in
     # this deals with options in the style
@@ -336,11 +347,15 @@ while test $# -gt 0; do
         ;;
 
     --libs)
-        echo $libs
+        if [ "x$HAS_STATIC" = "xTRUE" ]; then
+            echo $libs $libsprivate
+        else
+            echo $libs
+        fi
         ;;
 
     --static)
-        echo $libs $libsprivate
+
         ;;
 
     --prefix)
