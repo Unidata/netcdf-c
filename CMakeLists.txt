@@ -1422,10 +1422,10 @@ CHECK_FUNCTION_EXISTS(fileno HAVE_FILENO)
 
 # Check to see if MAP_ANONYMOUS is defined.
 CHECK_C_SOURCE_COMPILES("
-#include <sys/mmap.h>
+#include <sys/mman.h>
 int main() {int x = MAP_ANONYMOUS;}" HAVE_MAPANON)
 
-IF(NOT HAVE_MMMAP OR NOT HAVE_MREMAP OR NOT HAVE_MAPANON)
+IF(NOT HAVE_MMAP OR NOT HAVE_MREMAP OR NOT HAVE_MAPANON)
   MESSAGE(WARNING "mmap or mremap or MAP_ANONYMOUS not found: disabling MMAP support.")
   SET(ENABLE_MMAP OFF)
 ENDIF()
