@@ -46,7 +46,7 @@ rm -f tst_diskless3_file.cdl tst_diskless3_memory.cdl
 echo ""
 echo "**** Open and modify file using mmap"
 rm -f $FILE3
-${execdir}/tst_diskless3 diskless mmap
+${execdir}/tst_diskless3 mmap
 ${NCDUMP} $FILE3 >tst_diskless3_memory.cdl
 
 # compare
