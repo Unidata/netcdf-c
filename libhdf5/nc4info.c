@@ -32,6 +32,9 @@
 /** @internal Check HDF5 return code. */
 #define HCHECK(expr) {if((expr)<0) {ncstat = NC_EHDFERR; goto done;}}
 
+static int NC4_read_ncproperties(NC_FILE_INFO_T* h5, char** propstring);
+static int NC4_write_ncproperties(NC_FILE_INFO_T* h5);
+
 static int globalpropinitialized = 0;
 static NC4_Provenance globalprovenance;
 
@@ -66,13 +69,11 @@ NC4_provenance_init(void)
 
     buffer = ncbytesnew();
 
-    /* Insert primary library version as first entry */
-    ncbytescat(buffer,NCPNCLIB2);
+    /* Insert version as first entry */
+    ncbytescat(buffer,NCPVERSION);
     ncbytescat(buffer,"=");
 
     snprintf(printbuf,sizeof(printbuf),"%d",globalprovenance.version);
-    ncbytescat(buffer,printbuf);
-
     ncbytescat(buffer,printbuf);
 
     /* Insert the netcdf version */
@@ -85,8 +86,6 @@ NC4_provenance_init(void)
     ncbytesappend(buffer,NCPROPSSEP2);
     ncbytescat(buffer,NCPHDF5LIB2);
     ncbytescat(buffer,"=");
-    ncbytescat(buffer,PACKAGE_VERSION);
-
     if((stat = NC4_hdf5get_libversion(&major,&minor,&release))) goto done;
     snprintf(printbuf,sizeof(printbuf),"%1u.%1u.%1u",major,minor,release);
     ncbytescat(buffer,printbuf);
@@ -211,8 +210,29 @@ done:
     return NC_NOERR;
 }
 
-/* HDF5 Specific attribute read/write of _NCProperties */
+/**
+ * @internal
+ *
+ * Add the provenance information to a newly created file.
+ *
+ * @param file Pointer to file object.
+ *
+ * @return ::NC_NOERR No error.
+ * [Note: other errors are reported via LOG()]
+ * @author Dennis Heimbigner
+ */
 int
+NC4_write_provenance(NC_FILE_INFO_T* file)
+{
+    int ncstat = NC_NOERR;
+    if((ncstat = NC4_write_ncproperties(file)))
+	goto done;
+done:
+    return ncstat;
+}
+
+/* HDF5 Specific attribute read/write of _NCProperties */
+static int
 NC4_read_ncproperties(NC_FILE_INFO_T* h5, char** propstring)
 {
     int retval = NC_NOERR;
@@ -275,7 +295,7 @@ done:
     return retval;
 }
 
-int
+static int
 NC4_write_ncproperties(NC_FILE_INFO_T* h5)
 {
 #ifdef SUPPRESSNCPROPERTY

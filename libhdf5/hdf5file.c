@@ -212,8 +212,8 @@ sync_netcdf4_file(NC_FILE_INFO_T *h5)
         if ((retval = nc4_rec_write_metadata(h5->root_grp, bad_coord_order)))
             return retval;
 
-        /* Write out _NCProperties */
-        if((retval = NC4_write_ncproperties(h5)))
+        /* Write out provenance*/
+        if((retval = NC4_write_provenance(h5)))
             return retval;
     }
 
