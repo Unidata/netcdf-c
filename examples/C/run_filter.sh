@@ -18,7 +18,7 @@ echo "*** running test_filter example..."
 
 # Locate the plugin path and the library names; argument order is critical
 # Find bzip2 and capture
-findplugin bzip2
+findplugin h5bzip2
 BZIP2PATH="${HDF5_PLUGIN_PATH}/${HDF5_PLUGIN_LIB}"
 # Verify
 if ! test -f ${BZIP2PATH} ; then echo "Unable to locate ${BZIP2PATH}"; exit 1; fi

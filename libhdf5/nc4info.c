@@ -201,7 +201,7 @@ NC4_read_provenance(NC_FILE_INFO_T* file)
     /* Read the _NCProperties value from the file */
     if((ncstat = NC4_read_ncproperties(file,&propstring))) goto done;
     provenance->ncproperties = propstring;
-    propstring = NULL;    
+    propstring = NULL;
 
 done:
     nullfree(propstring);
@@ -546,14 +546,14 @@ properties_getversion(const char* propstring, int* versionp)
     int version = 0;
     /* propstring should begin with "version=dddd" */
     if(propstring == NULL || strlen(propstring) < strlen("version=") + strlen("1"))
-        {ncstat = NC_EINVAL; goto done;} /* illegal version */	
+        {ncstat = NC_EINVAL; goto done;} /* illegal version */
     if(memcmp(propstring,"version=",strlen("version=")) != 0)
-        {ncstat = NC_EINVAL; goto done;} /* illegal version */	
+        {ncstat = NC_EINVAL; goto done;} /* illegal version */
     propstring += strlen("version=");
     /* get version */
     version = atoi(propstring);
     if(version < 0)
-        {ncstat = NC_EINVAL; goto done;} /* illegal version */	
+        {ncstat = NC_EINVAL; goto done;} /* illegal version */
     if(versionp) *versionp = version;
 done:
     return ncstat;
@@ -562,7 +562,7 @@ done:
 /**
  * @internal
  *
- * Construct the parsed provenance information 
+ * Construct the parsed provenance information
  *
  * @param prov Pointer to provenance object
  *

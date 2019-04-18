@@ -13,6 +13,9 @@
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
+#ifdef HAVE_STDIO_H
+#include <stdio.h>
+#endif
 
 /*
 This is included in bottom
@@ -22,12 +25,18 @@ missing functions should be
 defined and missing types defined.
 */
 
-/*
-#ifndef HAVE_SSIZE_T
-typedef long ssize_t;
-#define HAVE_SSIZE_T
+#ifndef HAVE_STRDUP
+extern char* strdup(const char*);
 #endif
-*/
+
+/* handle null arguments */
+#ifndef nulldup
+#ifdef HAVE_STRDUP
+#define nulldup(s) ((s)==NULL?NULL:strdup(s))
+#else
+char *nulldup(const char* s);
+#endif
+#endif
 
 #ifdef _MSC_VER
 #ifndef HAVE_SSIZE_T
@@ -57,8 +66,13 @@ extern int snprintf(char*, size_t, const char*, ...);
 extern int strcasecmp(const char*, const char*);
 extern long long int strtoll(const char*, char**, int);
 extern unsigned long long int strtoull(const char*, char**, int);
+
+#ifndef fileno
+extern int fileno(FILE*);
 #endif
-#endif
+
+#endif /*STDC*/
+#endif /*!WIN32*/
 
 #ifdef _WIN32
 #ifndef strlcat
@@ -94,8 +108,13 @@ typedef unsigned short ushort;
 typedef unsigned int uint;
 #endif
 
+
+/* Provide a fixed size alternative to off_t or off64_t */
+typedef long long fileoffset_t;
+
 #ifndef NC_UNUSED
 #define NC_UNUSED(var) (void)var
 #endif
+
 
 #endif /* NCCONFIGURE_H */
