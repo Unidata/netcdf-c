@@ -10,7 +10,6 @@
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
-extern int fileno(FILE*);
 
 /**
 Create a netCDF file for parallel I/O.
@@ -122,6 +121,10 @@ int nc_create_par(const char *path, int cmode, MPI_Comm comm,
     if (cmode & NC_NETCDF4)
         return NC_ENOTBUILT;
 #endif
+
+    /* Can't use both parallel and diskless|inmemory|mmap. */
+    if (cmode & (NC_DISKLESS|NC_INMEMORY|NC_MMAP))
+        return NC_EINVAL;
 
     data.comm = comm;
     data.info = info;

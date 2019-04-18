@@ -5,7 +5,7 @@
 #include "config.h"
 #include "dapincludes.h"
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 #include <crtdbg.h>
 #include <math.h>
 #endif

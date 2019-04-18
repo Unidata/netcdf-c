@@ -315,7 +315,7 @@ SET(CHUNK_CACHE_PREEMPTION 0.75 CACHE STRING "Default file chunk cache preemptio
 SET(MAX_DEFAULT_CACHE_SIZE 67108864 CACHE STRING "Default maximum cache size.")
 SET(NETCDF_LIB_NAME "" CACHE STRING "Default name of the netcdf library.")
 SET(TEMP_LARGE "." CACHE STRING "Where to put large temp files if large file tests are run.")
-SET(NCPROPERTIES_EXTRA "" CACHE STRNG "Specify extra pairs for _NCProperties.")
+SET(NCPROPERTIES_EXTRA "" CACHE STRING "Specify extra pairs for _NCProperties.")
 SET(MPIEXEC "mpiexec" CACHE STRING "Command to run MPI programs if parallel tests are run.")
 
 IF(NOT NETCDF_LIB_NAME STREQUAL "")
@@ -833,6 +833,17 @@ ELSE()
   SET(ENABLE_DAP4 OFF)
 ENDIF()
 
+# Option to support byte-range reading of remote datasets
+OPTION(ENABLE_BYTERANGE "Enable byte-range access to remote datasets.." OFF)
+IF(ENABLE_BYTERANGE)
+  FIND_PACKAGE(CURL)
+  IF(NOT CURL_LIBRARY)
+    MESSAGE(FATAL_ERROR "Byte-range support specified, CURL libraries are not found.")
+    SET(ENABLE_BYTERANGE OFF BOOL)
+  ELSE()
+    SET(ENABLE_BYTERANGE ON BOOL)
+  ENDIF()
+ENDIF()
 
 # Check for the math library so it can be explicitly linked.
 IF(NOT WIN32)
@@ -997,9 +1008,14 @@ IF(ENABLE_PARALLEL4 AND ENABLE_NETCDF_4)
     SET(STATUS_PARALLEL "ON")
     configure_file("${netCDF_SOURCE_DIR}/nc_test4/run_par_test.sh.in"
       "${netCDF_BINARY_DIR}/tmp/run_par_test.sh" @ONLY NEWLINE_STYLE LF)
+    #configure_file("${netCDF_SOURCE_DIR}/nc_test4/run_par_test2.sh.in"
+    #  "${netCDF_BINARY_DIR}/tmp/run_par_test2.sh" @ONLY NEWLINE_STYLE LF)
     FILE(COPY "${netCDF_BINARY_DIR}/tmp/run_par_test.sh"
       DESTINATION ${netCDF_BINARY_DIR}/nc_test4
       FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+    #FILE(COPY "${netCDF_BINARY_DIR}/tmp/run_par_test2.sh"
+    #  DESTINATION ${netCDF_BINARY_DIR}/nc_test4
+    #  FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 
   ENDIF()
 ENDIF()
@@ -1402,6 +1418,7 @@ CHECK_FUNCTION_EXISTS(getrlimit HAVE_GETRLIMIT)
 CHECK_FUNCTION_EXISTS(_filelengthi64 HAVE_FILE_LENGTH_I64)
 CHECK_FUNCTION_EXISTS(mmap HAVE_MMAP)
 CHECK_FUNCTION_EXISTS(mremap HAVE_MREMAP)
+CHECK_FUNCTION_EXISTS(fileno HAVE_FILENO)
 
 # Check to see if MAP_ANONYMOUS is defined.
 CHECK_C_SOURCE_COMPILES("
@@ -1586,6 +1603,7 @@ MACRO(print_conf_summary)
   MESSAGE(STATUS "Building netCDF-4:             ${ENABLE_NETCDF_4}")
   MESSAGE(STATUS "Building DAP2 Support:         ${ENABLE_DAP2}")
   MESSAGE(STATUS "Building DAP4 Support:         ${ENABLE_DAP4}")
+  MESSAGE(STATUS "Building Byte-range Support:   ${ENABLE_BYTERANGE}")
   MESSAGE(STATUS "Building Utilities:            ${BUILD_UTILITIES}")
   IF(CMAKE_PREFIX_PATH)
     MESSAGE(STATUS "CMake Prefix Path:             ${CMAKE_PREFIX_PATH}")
@@ -1766,6 +1784,9 @@ IF(ENABLE_TESTS)
   IF(USE_NETCDF4)
     INCLUDE_DIRECTORIES(h5_test)
     ADD_SUBDIRECTORY(nc_test4)
+    IF(BUILD_BENCHMARKS)
+      ADD_SUBDIRECTORY(nc_perf)
+    ENDIF()
     ADD_SUBDIRECTORY(h5_test)
   ENDIF()
   IF(ENABLE_DAP2)
@@ -1935,6 +1956,7 @@ is_enabled(ENABLE_PARALLEL4 HAS_PARALLEL4)
 is_enabled(ENABLE_DAP HAS_DAP)
 is_enabled(ENABLE_DAP HAS_DAP2)
 is_enabled(ENABLE_DAP4 HAS_DAP4)
+is_enabled(ENABLE_BYTERANGE HAS_BYTERANGE)
 is_enabled(ENABLE_DISKLESS HAS_DISKLESS)
 is_enabled(USE_MMAP HAS_MMAP)
 is_enabled(JNA HAS_JNA)
