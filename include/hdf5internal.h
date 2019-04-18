@@ -163,11 +163,6 @@ int nc4_hdf5_find_grp_h5_var(int ncid, int varid, NC_FILE_INFO_T **h5,
 /* Perform lazy read of the rest of the metadata for a var. */
 int nc4_get_var_meta(NC_VAR_INFO_T *var);
 
-
-/* Attribute read/write functon for provenance info (defined in nc4info.c) */
-extern int NC4_read_ncproperties(NC_FILE_INFO_T* h5, char** propstring);
-extern int NC4_write_ncproperties(NC_FILE_INFO_T* h5);
-
 /* Support functions for provenance info (defined in nc4hdf.c) */
 extern int NC4_hdf5get_libversion(unsigned*,unsigned*,unsigned*);/*libsrc4/nc4hdf.c*/
 extern int NC4_hdf5get_superblock(struct NC_FILE_INFO*, int*);/*libsrc4/nc4hdf.c*/

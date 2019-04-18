@@ -70,6 +70,9 @@ extern int NC4_provenance_finalize(void);
 /* Read and store the provenance from an existing file */
 extern int NC4_read_provenance(struct NC_FILE_INFO* file);
 
+/* Write the provenance into a newly created file */
+extern int NC4_write_provenance(struct NC_FILE_INFO* file);
+
 /* Create the provenance for a newly created file */
 extern int NC4_new_provenance(struct NC_FILE_INFO* file);
 

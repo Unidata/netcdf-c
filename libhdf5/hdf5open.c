@@ -642,7 +642,6 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
     NC_FILE_INFO_T *nc4_info = NULL;
     int is_classic;
     NC_HDF5_FILE_INFO_T *h5 = NULL;
-    char *propstring = NULL;
 
 #ifdef USE_PARALLEL4
     NC_MPI_INFO* mpiinfo = NULL;
@@ -811,9 +810,8 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
     if (is_classic)
        nc4_info->cmode |= NC_CLASSIC_MODEL;
 
-    /* See if this file contained _NCPROPERTIES, and if yes, process
-     * it, if no, then fake it. */
-    if ((retval = NC4_read_ncproperties(nc4_info,&propstring)))
+    /* Set the provenance info for this file */
+    if ((retval = NC4_read_provenance(nc4_info)))
        BAIL(retval);
 
     /* Now figure out which netCDF dims are indicated by the dimscale
