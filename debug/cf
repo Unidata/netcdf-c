@@ -6,11 +6,11 @@ DB=1
 #ANSI=1
 #MEM=1
 #NOTUIL=1
-#FAST=1
+FAST=1
 #PROF=1
 
-HDF5=1
-DAP=1
+#HDF5=1
+#DAP=1
 #SZIP=1
 #HDF4=1
 #PNETCDF=1
@@ -91,17 +91,16 @@ LDFLAGS="$LDFLAGS -lsz -laec"
 fi
 
 export PKG_CONFIG_PATH=/usr/lib/pkgconfig
-if test "x$DAP" = "x1" ; then
 if curl-config --version >/dev/null ; then
 TMP=`curl-config --cflags`
 CPPFLAGS="$TMP $CPPFLAGS"
+WH=`curl-config --prefix`
+WH="${WH}/lib"
 TMP=`curl-config --libs`
-LDFLAGS="$TMP $LDFLAGS"
-TMP=`curl-config --prefix`
-LD_LIBRARY_PATH="$TMP/lib:$LD_LIBRARY_PATH"
+LDFLAGS="$LDFLAGS -L$WH $TMP"
+LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$WH"
 else
   LDFLAGS="${LDFLAGS} -lcurl"
-fi
 fi
 
 CXXFLAGS="$CPPFLAGS $CXXFLAGS"
@@ -122,6 +121,7 @@ FLAGS="$FLAGS --enable-extreme-numbers"
 FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --disable-diskless"
 FLAGS="$FLAGS --enable-mmap"
+FLAGS="$FLAGS --enable-byterange"
 #FLAGS="$FLAGS --with-udunits"
 #FLAGS="$FLAGS --with-libcf"
 #FLAGS="$FLAGS --enable-jna"

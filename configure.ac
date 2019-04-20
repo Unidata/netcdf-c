@@ -347,7 +347,7 @@ AC_ARG_ENABLE([dap],
 test "x$enable_dap" = xno || enable_dap=yes
 AC_MSG_RESULT($enable_dap)
 
-# We need curl for DAP.
+# We need curl for DAP and byterange
 AC_CHECK_LIB([curl],[curl_easy_setopt],[found_curl=yes],[found_curl=no])
 if test "x$enable_dap" = "xyes" ; then
    AC_SEARCH_LIBS([curl_easy_setopt],[curl curl.dll], [],
@@ -846,10 +846,15 @@ AC_ARG_ENABLE([mmap],
 test "x$enable_mmap" = xyes || enable_mmap=no
 AC_MSG_RESULT($enable_mmap)
 
-# check for mmap and mremap availability before committing to use mmap
+# check for mmap availability before committing to use mmap
 have_mmap="$enable_mmap"
-AC_CHECK_FUNCS([mmap],[],[have_mmap=no])
-AC_CHECK_FUNCS([mremap],[],[have_mmap=no])
+AC_CHECK_FUNCS([mmap],[havemmapfcn=yes],[havemmapfcn=no])
+if test "x$havemmapfcn" = xno ; then
+have_mmap=no
+fi
+
+# check for mremap availability; not strictly needed
+AC_CHECK_FUNCS([mremap],[havemremapfcn=yes],[havemmapfcn=no])
 
 # Check for MAP_ANONYMOUS
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
