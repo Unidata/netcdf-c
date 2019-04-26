@@ -1860,6 +1860,8 @@ SET(CC ${CMAKE_C_COMPILER})
 # Process all dependency libraries and create a string
 # used when parsing netcdf.pc.in
 
+SET(NC_LIBS "")
+
 FOREACH(_LIB ${ALL_TLL_LIBS})
   GET_FILENAME_COMPONENT(_LIB_NAME ${_LIB} NAME_WE)
   STRING(REGEX REPLACE "^lib" "" _NAME ${_LIB_NAME})
@@ -1870,12 +1872,14 @@ ENDFOREACH()
 
 #SET(NC_LIBS "-lnetcdf ${NC_LIBS}")
 
-STRING(REPLACE ";" " " NC_LIBS "${NC_LIBS}")
-STRING(REPLACE "-lhdf5::hdf5-shared" "-lhdf5" NC_LIBS ${NC_LIBS})
-STRING(REPLACE "-lhdf5::hdf5_hl-shared" "-lhdf5_hl" NC_LIBS ${NC_LIBS})
-STRING(REPLACE "-lhdf5::hdf5-static" "-lhdf5" NC_LIBS ${NC_LIBS})
-STRING(REPLACE "-lhdf5::hdf5_hl-static" "-lhdf5_hl" NC_LIBS ${NC_LIBS})
 
+IF(NOT ${NC_LIBS} STREQUAL "")
+  STRING(REPLACE ";" " " NC_LIBS "${NC_LIBS}")
+  STRING(REPLACE "-lhdf5::hdf5-shared" "-lhdf5" NC_LIBS ${NC_LIBS})
+  STRING(REPLACE "-lhdf5::hdf5_hl-shared" "-lhdf5_hl" NC_LIBS ${NC_LIBS})
+  STRING(REPLACE "-lhdf5::hdf5-static" "-lhdf5" NC_LIBS ${NC_LIBS})
+  STRING(REPLACE "-lhdf5::hdf5_hl-static" "-lhdf5_hl" NC_LIBS ${NC_LIBS})
+ENDIF()
 
 STRING(REPLACE ";" " " LINKFLAGS "${LINKFLAGS}")
 
