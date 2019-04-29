@@ -1721,7 +1721,7 @@ hdf5free(void* memory)
 #ifndef JNA
     /* On Windows using the microsoft runtime, it is an error
        for one library to free memory allocated by a different library.*/
-#ifdef HDF5_HAS_H5FREE
+#ifdef HAVE_H5FREE_MEMORY
     if(memory != NULL) H5free_memory(memory);
 #else
 #ifndef _MSC_VER
