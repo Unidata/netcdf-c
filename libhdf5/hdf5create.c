@@ -155,7 +155,7 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
          nc4_chunk_cache_preemption));
 #endif /* USE_PARALLEL4 */
 
-#ifdef HDF5_HAS_LIBVER_BOUNDS
+#ifdef HAVE_H5PSET_LIBVER_BOUNDS
 #if H5_VERSION_GE(1,10,2)
     if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_EARLIEST, H5F_LIBVER_V18) < 0)
 #else

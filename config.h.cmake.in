@@ -218,7 +218,7 @@ are set when opening a binary file on Windows. */
 #cmakedefine HAVE_GETTIMEOFDAY 1
 
 /* if true, netcdf4 file properties will be set using H5Pset_libver_bounds */
-#cmakedefine HDF5_HAS_LIBVER_BOUNDS 1
+#cmakedefine HAVE_H5PSET_LIBVER_BOUNDS 1
 
 /* Define to 1 if you have the `H5Z_SZIP' function. */
 #cmakedefine HAVE_H5Z_SZIP 1
@@ -370,13 +370,13 @@ are set when opening a binary file on Windows. */
 
 /* if true, H5free_memory() will be used to free hdf5-allocated memory in
    nc4file. */
-#cmakedefine HDF5_HAS_H5FREE 1
+#cmakedefine HAVE_H5FREE_MEMORY 1
 
 /* if true, H5allocate_memory() will be used. */
-#cmakedefine HDF5_HAS_ALLOCATE_MEMORY 1
+#cmakedefine HAVE_H5ALLOCATE_MEMORY 1
 
 /* if true, H5resize_memory() will be used. */
-#cmakedefine HDF5_HAS_RESIZE_MEMORY 1
+#cmakedefine HAVE_H5RESIZE_MEMORY 1
 
 /* if true, hdf5 has parallelism enabled */
 #cmakedefine HDF5_PARALLEL 1
