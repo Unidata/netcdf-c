@@ -25,8 +25,8 @@ set(PACKAGE "netCDF" CACHE STRING "")
 #####
 
 SET(NC_VERSION_MAJOR 4)
-SET(NC_VERSION_MINOR 6)
-SET(NC_VERSION_PATCH 4)
+SET(NC_VERSION_MINOR 7)
+SET(NC_VERSION_PATCH 1)
 SET(NC_VERSION_NOTE "-development")
 SET(netCDF_VERSION ${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
@@ -315,7 +315,7 @@ SET(CHUNK_CACHE_PREEMPTION 0.75 CACHE STRING "Default file chunk cache preemptio
 SET(MAX_DEFAULT_CACHE_SIZE 67108864 CACHE STRING "Default maximum cache size.")
 SET(NETCDF_LIB_NAME "" CACHE STRING "Default name of the netcdf library.")
 SET(TEMP_LARGE "." CACHE STRING "Where to put large temp files if large file tests are run.")
-SET(NCPROPERTIES_EXTRA "" CACHE STRNG "Specify extra pairs for _NCProperties.")
+SET(NCPROPERTIES_EXTRA "" CACHE STRING "Specify extra pairs for _NCProperties.")
 SET(MPIEXEC "mpiexec" CACHE STRING "Command to run MPI programs if parallel tests are run.")
 
 IF(NOT NETCDF_LIB_NAME STREQUAL "")
@@ -1008,14 +1008,14 @@ IF(ENABLE_PARALLEL4 AND ENABLE_NETCDF_4)
     SET(STATUS_PARALLEL "ON")
     configure_file("${netCDF_SOURCE_DIR}/nc_test4/run_par_test.sh.in"
       "${netCDF_BINARY_DIR}/tmp/run_par_test.sh" @ONLY NEWLINE_STYLE LF)
-    configure_file("${netCDF_SOURCE_DIR}/nc_test4/run_par_test2.sh.in"
-      "${netCDF_BINARY_DIR}/tmp/run_par_test2.sh" @ONLY NEWLINE_STYLE LF)
+    #configure_file("${netCDF_SOURCE_DIR}/nc_test4/run_par_test2.sh.in"
+    #  "${netCDF_BINARY_DIR}/tmp/run_par_test2.sh" @ONLY NEWLINE_STYLE LF)
     FILE(COPY "${netCDF_BINARY_DIR}/tmp/run_par_test.sh"
       DESTINATION ${netCDF_BINARY_DIR}/nc_test4
       FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
-    FILE(COPY "${netCDF_BINARY_DIR}/tmp/run_par_test2.sh"
-      DESTINATION ${netCDF_BINARY_DIR}/nc_test4
-      FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+    #FILE(COPY "${netCDF_BINARY_DIR}/tmp/run_par_test2.sh"
+    #  DESTINATION ${netCDF_BINARY_DIR}/nc_test4
+    #  FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 
   ENDIF()
 ENDIF()
@@ -1418,6 +1418,7 @@ CHECK_FUNCTION_EXISTS(getrlimit HAVE_GETRLIMIT)
 CHECK_FUNCTION_EXISTS(_filelengthi64 HAVE_FILE_LENGTH_I64)
 CHECK_FUNCTION_EXISTS(mmap HAVE_MMAP)
 CHECK_FUNCTION_EXISTS(mremap HAVE_MREMAP)
+CHECK_FUNCTION_EXISTS(fileno HAVE_FILENO)
 
 # Check to see if MAP_ANONYMOUS is defined.
 CHECK_C_SOURCE_COMPILES("
@@ -1783,6 +1784,9 @@ IF(ENABLE_TESTS)
   IF(USE_NETCDF4)
     INCLUDE_DIRECTORIES(h5_test)
     ADD_SUBDIRECTORY(nc_test4)
+    IF(BUILD_BENCHMARKS)
+      ADD_SUBDIRECTORY(nc_perf)
+    ENDIF()
     ADD_SUBDIRECTORY(h5_test)
   ENDIF()
   IF(ENABLE_DAP2)
@@ -1856,6 +1860,8 @@ SET(CC ${CMAKE_C_COMPILER})
 # Process all dependency libraries and create a string
 # used when parsing netcdf.pc.in
 
+SET(NC_LIBS "")
+
 FOREACH(_LIB ${ALL_TLL_LIBS})
   GET_FILENAME_COMPONENT(_LIB_NAME ${_LIB} NAME_WE)
   STRING(REGEX REPLACE "^lib" "" _NAME ${_LIB_NAME})
@@ -1865,13 +1871,13 @@ FOREACH(_LIB ${ALL_TLL_LIBS})
 ENDFOREACH()
 
 #SET(NC_LIBS "-lnetcdf ${NC_LIBS}")
-
-STRING(REPLACE ";" " " NC_LIBS "${NC_LIBS}")
-STRING(REPLACE "-lhdf5::hdf5-shared" "-lhdf5" NC_LIBS ${NC_LIBS})
-STRING(REPLACE "-lhdf5::hdf5_hl-shared" "-lhdf5_hl" NC_LIBS ${NC_LIBS})
-STRING(REPLACE "-lhdf5::hdf5-static" "-lhdf5" NC_LIBS ${NC_LIBS})
-STRING(REPLACE "-lhdf5::hdf5_hl-static" "-lhdf5_hl" NC_LIBS ${NC_LIBS})
-
+IF(NC_LIBS)
+  STRING(REPLACE ";" " " NC_LIBS "${NC_LIBS}")
+  STRING(REPLACE "-lhdf5::hdf5-shared" "-lhdf5" NC_LIBS ${NC_LIBS})
+  STRING(REPLACE "-lhdf5::hdf5_hl-shared" "-lhdf5_hl" NC_LIBS ${NC_LIBS})
+  STRING(REPLACE "-lhdf5::hdf5-static" "-lhdf5" NC_LIBS ${NC_LIBS})
+  STRING(REPLACE "-lhdf5::hdf5_hl-static" "-lhdf5_hl" NC_LIBS ${NC_LIBS})
+ENDIF()
 
 STRING(REPLACE ";" " " LINKFLAGS "${LINKFLAGS}")
 

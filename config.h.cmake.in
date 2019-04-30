@@ -199,6 +199,8 @@ are set when opening a binary file on Windows. */
 /* Define if we have filelengthi64. */
 #cmakedefine HAVE_FILE_LENGTH_I64 @HAVE_FILE_LENGTH_I64@
 
+/* Define to 1 if you have the `fileno' function. */
+#cmakedefine HAVE_FILENO 1
 
 /* Define to 1 if you have the `fsync' function. */
 #cmakedefine HAVE_FSYNC 1

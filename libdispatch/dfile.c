@@ -32,7 +32,6 @@
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
-extern int fileno(FILE*);
 
 #include "ncdispatch.h"
 #include "netcdf_mem.h"
@@ -2116,6 +2115,7 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 	    return NC_ENOTNC;
 	}
     }
+
 
     /* If we can't figure out what dispatch table to use, give up. */
     if (!dispatcher) {stat = NC_ENOTNC; goto done;}
