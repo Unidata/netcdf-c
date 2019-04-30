@@ -19,6 +19,7 @@
 typedef enum H5testcase {
 TC_NONE = 0,
 TC_ENDIAN = 1,
+TC_ODDSIZE = 2,
 } H5testcase;
 
 /* declare the hdf5 interface */
