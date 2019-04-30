@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <errno.h>
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif

@@ -234,7 +234,7 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
     nc4_info->flags |= NC_INDEF;
 
     /* Save the HDF5 superblock number and set the _NCProperties attribute. */
-    if ((retval = NC4_set_provenance(nc4_info, &globalpropinfo)))
+    if ((retval = NC4_new_provenance(nc4_info)))
         BAIL(retval);
 
     return NC_NOERR;
