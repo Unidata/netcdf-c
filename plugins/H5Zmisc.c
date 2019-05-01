@@ -119,7 +119,7 @@ H5Z_filter_test(unsigned int flags, size_t cd_nelmts,
     if (flags & H5Z_FLAG_REVERSE) {
 
         /* Replace buffer */
-#ifdef HDF5_HAS_ALLOCATE_MEMORY
+#ifdef HAVE_H5ALLOCATE_MEMORY
         newbuf = H5allocate_memory(*buf_size,0);
 #else
         newbuf = malloc(*buf_size * sizeof(void));
@@ -127,7 +127,7 @@ H5Z_filter_test(unsigned int flags, size_t cd_nelmts,
         if(newbuf == NULL) abort();
         memcpy(newbuf,*buf,*buf_size);
         /* reclaim old buffer */
-#ifdef HDF5_HAS_H5FREE
+#ifdef HAVE_H5FREE_MEMORY
         H5free_memory(*buf);
 #else
         free(*buf);
@@ -137,7 +137,7 @@ H5Z_filter_test(unsigned int flags, size_t cd_nelmts,
     } else {
 
         /* Replace buffer */
-#ifdef HDF5_HAS_ALLOCATE_MEMORY
+#ifdef HAVE_H5ALLOCATE_MEMORY
       newbuf = H5allocate_memory(*buf_size,0);
 #else
       newbuf = malloc(*buf_size * sizeof(void));
@@ -145,7 +145,7 @@ H5Z_filter_test(unsigned int flags, size_t cd_nelmts,
       if(newbuf == NULL) abort();
         memcpy(newbuf,*buf,*buf_size);
 	/* reclaim old buffer */
-#ifdef HDF5_HAS_H5FREE
+#ifdef HAVE_H5FREE_MEMORY
         H5free_memory(*buf);
 #else
         free(*buf);
