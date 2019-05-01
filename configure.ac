@@ -1062,22 +1062,6 @@ if test "x$enable_hdf5" = xyes; then
    fi
    AC_MSG_RESULT([$enable_szlib])
 
-   if test "x$ac_cv_func_H5free_memory" = xyes; then
-      AC_DEFINE([HDF5_HAS_H5FREE], [1], [if true, H5free_memory() will be used to free hdf5-allocated memory in nc4file.])
-   fi
-
-   if test "x$ac_cv_func_H5allocate_memory" = xyes; then
-      AC_DEFINE([HDF5_HAS_ALLOCATE_MEMORY], [1], [if true, H5allocate_memory() will be used.])
-   fi
-
-   if test "x$ac_cv_func_H5resize_memory" = xyes; then
-      AC_DEFINE([HDF5_HAS_resize_MEMORY], [1], [if true, H5resize_memory() will be used.])
-   fi
-
-   if test "x$ac_cv_func_H5Pset_libver_bounds" = xyes; then
-      AC_DEFINE([HDF5_HAS_LIBVER_BOUNDS], [1], [if true, netcdf4 file properties will be set using H5Pset_libver_bounds])
-   fi
-
 fi
 
 # If the user wants hdf4 built in, check it out.
