@@ -18,6 +18,7 @@
 #include "ncdimscale.h"
 #include "nc4dispatch.h"
 #include "hdf5dispatch.h"
+#include "netcdf_filter.h"
 
 #define NC_MAX_HDF5_NAME (NC_MAX_NAME + 10)
 
@@ -50,6 +51,11 @@
 
 /** This is the name of the name HDF5 dimension scale attribute. */
 #define HDF5_DIMSCALE_NAME_ATT_NAME "NAME"
+
+/** Define Filter API Operations */
+#define FILTER_REG   1
+#define FILTER_UNREG 2
+#define FILTER_INQ   3
 
 /** Struct to hold HDF5-specific info for the file. */
 typedef struct NC_HDF5_FILE_INFO {
@@ -150,36 +156,6 @@ extern int nc4_give_var_secret_name(NC_VAR_INFO_T *var);
 /* Get the fill value for a var. */
 int nc4_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp);
 
-
-/* Provenance Management (moved from nc4internal.h) */
-/* Initialize the fileinfo global state */
-extern int NC4_provenance_init();
-
-/* Finalize the fileinfo global state */
-extern int NC4_provenance_finalize();
-
-/* Extract the provenance from a file, using dfalt as default */
-extern int NC4_get_provenance(NC_FILE_INFO_T* file, const char* propstring);
-
-/* Set the provenance for a created file */
-extern int NC4_set_provenance(NC_FILE_INFO_T* file);
-
-/* Recover memory of an NCPROVENANCE object */
-extern int NC4_free_provenance(struct NCPROVENANCE* prov);
-
-extern int NC4_hdf5get_libversion(unsigned*,unsigned*,unsigned*);/*libsrc4/nc4hdf.c*/
-extern int NC4_hdf5get_superblock(struct NC_FILE_INFO*, int*);/*libsrc4/nc4hdf.c*/
-extern int NC4_isnetcdf4(struct NC_FILE_INFO*); /*libsrc4/nc4hdf.c*/
-
-/* Convert a NCPROPINFO instance to a single string. */
-extern int NC4_buildpropinfo(struct NCPROPINFO* info, char** propdatap);
-
-/* Use HDF5 API to read the _NCProperties attribute */
-extern int NC4_read_ncproperties(NC_FILE_INFO_T*);
-
-/* Use HDF5 API to write the _NCProperties attribute */
-extern int NC4_write_ncproperties(NC_FILE_INFO_T*);
-
 /* Find file, group, var, and att info, doing lazy reads if needed. */
 int nc4_hdf5_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
                               int use_name, char *norm_name, NC_FILE_INFO_T **h5,
@@ -192,5 +168,14 @@ int nc4_hdf5_find_grp_h5_var(int ncid, int varid, NC_FILE_INFO_T **h5,
 
 /* Perform lazy read of the rest of the metadata for a var. */
 int nc4_get_var_meta(NC_VAR_INFO_T *var);
+
+
+/* Define Filter API Function */
+int nc4_filter_action(int action, int formatx, int id, NC_FILTER_INFO* info);
+/* Support functions for provenance info (defined in nc4hdf.c) */
+extern int NC4_hdf5get_libversion(unsigned*,unsigned*,unsigned*);/*libsrc4/nc4hdf.c*/
+extern int NC4_hdf5get_superblock(struct NC_FILE_INFO*, int*);/*libsrc4/nc4hdf.c*/
+extern int NC4_isnetcdf4(struct NC_FILE_INFO*); /*libsrc4/nc4hdf.c*/
+
 
 #endif /* _HDF5INTERNAL_ */

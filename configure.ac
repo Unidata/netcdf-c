@@ -10,7 +10,7 @@
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address.
-AC_INIT([netCDF], [4.6.4-development], [support-netcdf@unidata.ucar.edu], [netcdf-c])
+AC_INIT([netCDF], [4.7.1-development], [support-netcdf@unidata.ucar.edu], [netcdf-c])
 
 ##
 # Prefer an empty CFLAGS variable instead of the default -g -O2.
@@ -20,8 +20,8 @@ AC_INIT([netCDF], [4.6.4-development], [support-netcdf@unidata.ucar.edu], [netcd
 : ${CFLAGS=""}
 
 AC_SUBST([NC_VERSION_MAJOR]) NC_VERSION_MAJOR=4
-AC_SUBST([NC_VERSION_MINOR]) NC_VERSION_MINOR=6
-AC_SUBST([NC_VERSION_PATCH]) NC_VERSION_PATCH=4
+AC_SUBST([NC_VERSION_MINOR]) NC_VERSION_MINOR=7
+AC_SUBST([NC_VERSION_PATCH]) NC_VERSION_PATCH=1
 AC_SUBST([NC_VERSION_NOTE]) NC_VERSION_NOTE="-development"
 
 #####
@@ -531,6 +531,9 @@ AC_ARG_ENABLE([benchmarks],
                               are timed. We use these tests to check netCDF performance.])])
 test "x$enable_benchmarks" = xyes || enable_benchmarks=no
 AC_MSG_RESULT($enable_benchmarks)
+if test "x$enable_netcdf4" = xno -a "x$enable_benchmarks" = xyes; then
+AC_MSG_ERROR([Can't use benchmarks if netCDF-4 is disabled.])
+fi
 AM_CONDITIONAL(BUILD_BENCHMARKS, [test x$enable_benchmarks = xyes])
 
 # Does the user want to use extreme numbers in testing.
@@ -994,7 +997,6 @@ if test "x$enable_netcdf_4" = xyes || test "x$enable_dap" = xyes; then
    AC_SEARCH_LIBS([deflate], [zlibwapi zlibstat zlib zlib1 z], [], [
      AC_MSG_ERROR([Can't find or link to the z library. Turn off netCDF-4 and \
      DAP clients with --disable-netcdf-4 --disable-dap, or see config.log for errors.])])
-   AC_SEARCH_LIBS([SZ_Compress], [szip sz], [], [])
    AC_SEARCH_LIBS([dlopen], [dl dld], [], [])
 fi
 
@@ -1020,11 +1022,10 @@ if test "x$enable_hdf5" = xyes; then
    [AC_MSG_ERROR([Can't find or link to the hdf5 high-level. Use --disable-netcdf-4, or see config.log for errors.])])
 
    AC_CHECK_HEADERS([hdf5.h], [], [AC_MSG_ERROR([Compiling a test with HDF5 failed.  Either hdf5.h cannot be found, or config.log should be checked for other reason.])])
-   AC_CHECK_FUNCS([H5Z_SZIP])
 
    # H5Pset_fapl_mpiposix and H5Pget_fapl_mpiposix have been removed since HDF5 1.8.12.
    # Use H5Pset_fapl_mpio and H5Pget_fapl_mpio, instead.
-   AC_CHECK_FUNCS([H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5free_memory H5resize_memory H5allocate_memory H5Pset_libver_bounds H5Pset_all_coll_metadata_ops])
+   AC_CHECK_FUNCS([H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5free_memory H5resize_memory H5allocate_memory H5Pset_libver_bounds H5Pset_all_coll_metadata_ops H5Z_SZIP])
 
    # Check to see if HDF5 library has collective metadata APIs, (HDF5 >= 1.10.0)
    if test "x$ac_cv_func_H5Pset_all_coll_metadata_ops" = xyes; then
@@ -1038,6 +1039,13 @@ if test "x$enable_hdf5" = xyes; then
 
    AC_MSG_CHECKING([whether parallel io is enabled in hdf5])
    AC_MSG_RESULT([$hdf5_parallel])
+
+   # Check to see if we need to search for and link against szlib.
+   if test "x$ac_cv_func_H5Z_SZIP" = xyes; then
+      AC_SEARCH_LIBS([SZ_Compress], [szip sz], [],
+      [AC_MSG_ERROR([libhdf5 installed with szip support, but cannot find or link to the szip library.])])
+   fi
+
 
    if test "x$hdf5_parallel" = "xno"; then
       if test "x$enable_parallel_tests" = "xyes"; then
@@ -1376,14 +1384,6 @@ if test "x$enable_jna" = xyes ; then
 AC_DEFINE([JNA], [1], [if true, include JNA bug fix])
 fi
 
-# Control large metadata performance test
-AC_MSG_CHECKING([whether large metadata performance testing should be run])
-AC_ARG_ENABLE([metadata-perf],
-              [AS_HELP_STRING([--enable-metadata-perf],
-                              [Test performance of nc_create and nc_open on large metadata])])
-test "x$enable_metadata_perf" = xyes || enable_metadata_perf=no
-AC_MSG_RESULT($enable_metadata_perf)
-
 # Control filter test/example
 AC_MSG_CHECKING([whether filter testing should be run])
 AC_ARG_ENABLE([filter-testing],
@@ -1509,7 +1509,7 @@ AC_CONFIG_FILES(examples/C/findplugin.sh:nc_test4/findplugin.in)
 AC_CONFIG_FILES(ncdap_test/findtestserver.c:ncdap_test/findtestserver.c.in)
 AC_CONFIG_FILES(dap4_test/findtestserver4.c:ncdap_test/findtestserver.c.in)
 AC_CONFIG_FILES([nc_test4/run_par_test.sh], [chmod ugo+x nc_test4/run_par_test.sh])
-AC_CONFIG_FILES([nc_test4/run_par_bm_test.sh], [chmod ugo+x nc_test4/run_par_bm_test.sh])
+AC_CONFIG_FILES([nc_perf/run_par_bm_test.sh], [chmod ugo+x nc_perf/run_par_bm_test.sh])
 AC_CONFIG_FILES([examples/C/run_par_test.sh], [chmod ugo+x examples/C/run_par_test.sh])
 AC_CONFIG_FILES([nc-config], [chmod 755 nc-config])
 AC_CONFIG_FILES([Makefile
@@ -1542,6 +1542,7 @@ AC_CONFIG_FILES([Makefile
                  docs/images/Makefile
                  nctest/Makefile
                  nc_test4/Makefile
+                 nc_perf/Makefile
                  nc_test/Makefile
                  ncdap_test/Makefile
                  ncdap_test/testdata3/Makefile

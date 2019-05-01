@@ -4,11 +4,16 @@
 */
 
 #include "config.h"
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
+#include <assert.h>
+#include <sys/types.h>
 
 #include <hdf5.h>
+/* Older versions of the hdf library may define H5PL_type_t here */
+#include <H5PLextern.h>
+
 #include "netcdf.h"
 #include "netcdf_filter.h"
 
@@ -16,44 +21,28 @@
 
 #undef DEBUG
 
-/* The C standard apparently defines all floating point constants as double;
-   we rely on that in this code.
-*/
-#define DBLVAL 12345678.12345678
-
-#define TEST_ID 32768
+#define FILTER_ID 32768
 
 #define MAXERRS 8
 
 #define MAXPARAMS 32
 
-#define NPARAMS 14
-
-static unsigned int baseline[NPARAMS];
-
 #define MAXDIMS 8
 
-#define TESTFILE "testmisc.nc"
+#define TESTFILE "testfilter_reg.nc"
 
-#define spec "32768, -17b, 23ub, -25S, 27US, 77, 93U, 789f, 12345678.12345678d, -9223372036854775807L, 18446744073709551615UL"
+#define NPARAMS 1
+#define PARAMVAL 17
 
-#ifdef TESTODDSIZE
-#define NDIMS 1
-static size_t dimsize[NDIMS] = {4};
-static size_t chunksize[NDIMS] = {3};
-#else
 #define NDIMS 4
 static size_t dimsize[NDIMS] = {4,4,4,4};
 static size_t chunksize[NDIMS] = {4,4,4,4};
-#endif
 
 static size_t ndims = NDIMS;
 
 static size_t totalproduct = 1; /* x-product over max dims */
 static size_t actualproduct = 1; /* x-product over actualdims */
 static size_t chunkproduct = 1; /* x-product over actual chunks */
-
-static size_t pattern[MAXDIMS];
 
 static int nerrs = 0;
 
@@ -66,9 +55,14 @@ static float* expected = NULL;
 static unsigned int filterid = 0;
 static size_t nparams = 0;
 static unsigned int params[MAXPARAMS];
+static unsigned int baseline[NPARAMS] = {PARAMVAL};
+
+static NC_FILTER_INFO baseinfo;
+
+static const H5Z_class2_t H5Z_REG[1];
 
 /* Forward */
-static int test_test1(void);
+static int filter_test1(void);
 static void init(int argc, char** argv);
 static void reset(void);
 static void odom_reset(void);
@@ -130,7 +124,7 @@ create(void)
 {
     int i;
 
-    /* Create a file with one big variable, but whose dimensions arte not a multiple of chunksize (to see what happens) */
+    /* Create a file with one big variable */
     CHECK(nc_create(TESTFILE, NC_NETCDF4|NC_CLOBBER, &ncid));
     CHECK(nc_set_fill(ncid, NC_NOFILL, NULL));
     for(i=0;i<ndims;i++) {
@@ -142,10 +136,88 @@ create(void)
     return NC_NOERR;
 }
 
+static int
+verifyfilterinfo(NC_FILTER_INFO* info, NC_FILTER_INFO* base)
+{
+    int stat = NC_NOERR;
+    if(info->version != base->version)
+	{stat = NC_EINVAL; fprintf(stderr,"verifyfilterinfo: version mismatch\n");}
+    if(info->format != base->format)
+	{stat = NC_EINVAL; fprintf(stderr,"verifyfilterinfo: format mismatch\n");}
+    if(info->id != base->id)
+	{stat = NC_EINVAL; fprintf(stderr,"verifyfilterinfo: id mismatch\n");}
+    if(info->format == NC_FILTER_FORMAT_HDF5) {
+#ifdef USE_HDF5
+	H5Z_class2_t* h5info = (H5Z_class2_t*)info->info;
+	H5Z_class2_t* h5base = (H5Z_class2_t*)base->info;
+        if(h5info->version != h5base->version)
+	    {stat = NC_EINVAL; fprintf(stderr,"verifyfilterinfo: H5Z_class_t: version mismatch\n");}
+        if(h5info->id != h5base->id)
+	    {stat = NC_EINVAL; fprintf(stderr,"verifyfilterinfo: H5Z_class_t: id mismatch\n");}
+        if(h5info->encoder_present != h5base->encoder_present)
+	    {stat = NC_EINVAL; fprintf(stderr,"verifyfilterinfo: H5Z_class_t: encoder_present mismatch\n");}
+        if(h5info->decoder_present != h5base->decoder_present)
+	    {stat = NC_EINVAL; fprintf(stderr,"verifyfilterinfo: H5Z_class_t: decoder_present mismatch\n");}
+        if(h5info->decoder_present != h5base->decoder_present)
+	    {stat = NC_EINVAL; fprintf(stderr,"verifyfilterinfo: H5Z_class_t: decoder_present mismatch\n");}
+        if(strcmp(h5info->name,h5base->name) != 0)
+	    {stat = NC_EINVAL; fprintf(stderr,"verifyfilterinfo: H5Z_class_t: name mismatch\n");}
+        if(h5info->can_apply != h5base->can_apply)
+	    {stat = NC_EINVAL; fprintf(stderr,"verifyfilterinfo: H5Z_class_t: can_apply mismatch\n");}
+        if(h5info->set_local != h5base->set_local)
+	    {stat = NC_EINVAL; fprintf(stderr,"verifyfilterinfo: H5Z_class_t: set_local mismatch\n");}
+        if(h5info->filter != h5base->filter)
+	    {stat = NC_EINVAL; fprintf(stderr,"verifyfilterinfo: H5Z_class_t: filter mismatch\n");}
+#else
+	stat = NC_ENOTBUILT; fprintf(stderr,"Unknown format\n")}
+#endif
+    } else
+	{stat = NC_EINVAL; fprintf(stderr,"Unknown format\n");}
+
+    return stat;
+}
+
+static void
+registerfilter(void)
+{
+    NC_FILTER_INFO inqinfo;
+
+    baseinfo.version = NC_FILTER_INFO_VERSION;
+    baseinfo.format = NC_FILTER_FORMAT_HDF5;
+    baseinfo.id = FILTER_ID;
+    baseinfo.info = (void*)&H5Z_REG[0];
+    CHECK(nc_filter_register(&baseinfo));
+    /* Verify by inquiry */
+    memset(&inqinfo,0,sizeof(NC_FILTER_INFO));
+    CHECK((nc_filter_inq(NC_FILTER_FORMAT_HDF5, FILTER_ID, &inqinfo)));
+    CHECK((verifyfilterinfo(&inqinfo,&baseinfo)));
+}
+
+static void
+unregisterfilter(void)
+{
+    int stat = NC_NOERR;
+    NC_FILTER_INFO inqinfo;
+
+    /* Verify that the filter info is still good */
+    memset(&inqinfo,0,sizeof(NC_FILTER_INFO));
+    CHECK((stat = nc_filter_inq(NC_FILTER_FORMAT_HDF5, FILTER_ID, &inqinfo)));
+    CHECK((verifyfilterinfo(&inqinfo,&baseinfo)));    
+    /* Unregister */
+    CHECK((stat = nc_filter_unregister(NC_FILTER_FORMAT_HDF5, FILTER_ID)));
+    /* Inq again to verify unregistered */
+    stat = nc_filter_inq(NC_FILTER_FORMAT_HDF5, FILTER_ID, NULL);
+    if(stat != NC_EFILTER) {
+	fprintf(stderr,"unregister: failed\n");
+	CHECK(NC_EFILTER);
+    }
+}
+
 static void
 setvarfilter(void)
 {
-    CHECK(nc_def_var_filter(ncid,varid,TEST_ID,NPARAMS,baseline));
+    /* NOOP the params */
+    CHECK(nc_def_var_filter(ncid,varid,FILTER_ID,NPARAMS,baseline));
     verifyparams();
 }
 
@@ -154,7 +226,7 @@ verifyparams(void)
 {
     int i;
     CHECK(nc_inq_var_filter(ncid,varid,&filterid,&nparams,params));
-    if(filterid != TEST_ID) REPORT("id mismatch");
+    if(filterid != FILTER_ID) REPORT("id mismatch");
     if(nparams != NPARAMS) REPORT("nparams mismatch");
     for(i=0;i<nparams;i++) {
         if(params[i] != baseline[i])
@@ -179,7 +251,7 @@ openfile(void)
             return NC_ENOMEM;
         CHECK(nc_inq_var_filter(ncid,varid,&filterid,&nparams,params));
     }
-    if(filterid != TEST_ID) {
+    if(filterid != FILTER_ID) {
         fprintf(stderr,"open: test id mismatch: %d\n",filterid);
         return NC_EFILTER;
     }
@@ -235,7 +307,6 @@ fill(void)
         }
    }
 }
-
 
 static int
 compare(void)
@@ -302,67 +373,12 @@ showparameters(void)
     fflush(stderr);
 }
 
-static void
-insert(int index, void* src, size_t size)
-{
-    unsigned char src8[8];
-    void* dst = &baseline[index];
-    if(size == 8) {
-	memcpy(src8,src,size);
-	NC_filterfix8(src8,0);
-	src = src8;
-    }
-    memcpy(dst,src,size);
-}
-
-static void
-buildbaseline(unsigned int testcasenumber)
-{
-    unsigned int val4;
-    unsigned long long val8;
-    float float4;
-    double float8;
-
-    baseline[0] = testcasenumber;
-    switch (testcasenumber) {
-    case 1:
-        val4 = ((unsigned int)-17) & 0xff;
-        insert(1,&val4,sizeof(val4)); /* 1 signed int*/
-	val4 = (unsigned int)23;
-        insert(2,&val4,sizeof(val4)); /* 2 unsigned int*/
-        val4 = ((unsigned int)-25) & 0xffff;
-        insert(3,&val4,sizeof(val4)); /* 3 signed int*/
-	val4 = (unsigned int)27;
-        insert(4,&val4,sizeof(val4)); /* 4 unsigned int*/
-	val4 = (unsigned int)77;
-        insert(5,&val4,sizeof(val4)); /* 5 signed int*/
-	val4 = (unsigned int)93;
-        insert(6,&val4,sizeof(val4)); /* 6 unsigned int*/
-	float4 = 789.0f;
-        insert(7,&float4,sizeof(float4)); /* 7 float */
-	float8 = DBLVAL;
-        insert(8,&float8,sizeof(float8)); /* 8 double */
-	val8 = -9223372036854775807L;
-        insert(10,&val8,sizeof(val8)); /* 10 signed long long */
-	val8 = 18446744073709551615UL;
-        insert(12,&val8,sizeof(val8)); /* 12 unsigned long long */
-	break;
-    case 2:
-    	break;
-    default:
-	fprintf(stderr,"Unknown testcase number: %d\n",testcasenumber);
-	abort();
-    }
-}
-
 static int
-test_test1(void)
+filter_test1(void)
 {
     int ok = 1;
 
     reset();
-
-    buildbaseline(1);
 
     fprintf(stderr,"test1: compression.\n");
     create();
@@ -378,37 +394,6 @@ test_test1(void)
     CHECK(nc_close(ncid));
 
     fprintf(stderr,"test1: decompression.\n");
-    reset();
-    openfile();
-    CHECK(nc_get_var_float(ncid, varid, array));
-    ok = compare();
-    CHECK(nc_close(ncid));
-    return ok;
-}
-
-static int
-test_test2(void)
-{
-    int ok = 1;
-
-    reset();
-
-    buildbaseline(2);
-
-    fprintf(stderr,"test2: dimsize %% chunksize != 0: compress.\n");
-    create();
-    setchunking();
-    setvarfilter();
-    showparameters();
-    CHECK(nc_enddef(ncid));
-
-    /* Fill in the array */
-    fill();
-    /* write array */
-    CHECK(nc_put_var(ncid,varid,expected));
-    CHECK(nc_close(ncid));
-
-    fprintf(stderr,"test2: dimsize %% chunksize != 0: decompress.\n");
     reset();
     openfile();
     CHECK(nc_get_var_float(ncid, varid, array));
@@ -485,9 +470,7 @@ init(int argc, char** argv)
     actualproduct = 1;
     chunkproduct = 1;
     for(i=0;i<MAXDIMS;i++) {
-        if(pattern[i] == 1)
-	    chunksize[i] = 1;
-        totalproduct *= dimsize[i];
+	totalproduct *= dimsize[i];
         if(i < ndims) {
             actualproduct *= dimsize[i];
             chunkproduct *= chunksize[i];
@@ -496,6 +479,8 @@ init(int argc, char** argv)
     /* Allocate max size */
     array = (float*)calloc(1,sizeof(float)*actualproduct);
     expected = (float*)calloc(1,sizeof(float)*actualproduct);
+    /* Register the filter */
+    registerfilter();
 }
 
 /**************************************************/
@@ -507,7 +492,122 @@ main(int argc, char **argv)
     nc_set_log_level(1);
 #endif
     init(argc,argv);
-    if(!test_test1()) ERRR;
-    if(!test_test2()) ERRR;
+    if(!filter_test1()) ERRR;
+    /* Unregister filter */
+    unregisterfilter();
     exit(nerrs > 0?1:0);
 }
+
+/**************************************************/
+/* In-line filter code */
+
+#define H5Z_FILTER_REG FILTER_ID
+
+#ifndef DLL_EXPORT
+#define DLL_EXPORT
+#endif
+
+static int paramcheck(size_t nparams, const unsigned int* params);
+
+/* Forward */
+static int paramcheck(size_t nparams, const unsigned int* params);
+
+/* Make this explicit */
+/*
+ * The "can_apply" callback returns positive a valid combination, zero for an
+ * invalid combination and negative for an error.
+ */
+static htri_t
+H5Z_reg_can_apply(hid_t dcpl_id, hid_t type_id, hid_t space_id)
+{
+    return 1; /* Assume it can always apply */
+}
+
+/*
+As a filter, it is the identity function,
+passing input to output unchanged.
+*/
+
+size_t
+H5Z_filter_reg(unsigned int flags, size_t cd_nelmts,
+                     const unsigned int cd_values[], size_t nbytes,
+                     size_t *buf_size, void **buf)
+{
+    void* newbuf;
+
+    if(cd_nelmts == 0)
+	goto fail;
+
+    if(!paramcheck(cd_nelmts,cd_values))
+	goto fail;
+
+    fprintf(stderr,"nbytes=%ld\n",(long)nbytes);
+
+    if (flags & H5Z_FLAG_REVERSE) {
+
+        /* Replace buffer */
+#ifdef HDF5_HAS_ALLOCATE_MEMORY
+        newbuf = H5allocate_memory(*buf_size,0);
+#else
+        newbuf = malloc(*buf_size * sizeof(void));
+#endif
+        if(newbuf == NULL) abort();
+        memcpy(newbuf,*buf,*buf_size);
+        /* reclaim old buffer */
+#ifdef HDF5_HAS_H5FREE
+        H5free_memory(*buf);
+#else
+        free(*buf);
+#endif
+        *buf = newbuf;
+
+    } else {
+
+        /* Replace buffer */
+#ifdef HDF5_HAS_ALLOCATE_MEMORY
+      newbuf = H5allocate_memory(*buf_size,0);
+#else
+      newbuf = malloc(*buf_size * sizeof(void));
+#endif
+      if(newbuf == NULL) abort();
+        memcpy(newbuf,*buf,*buf_size);
+	/* reclaim old buffer */
+#ifdef HDF5_HAS_H5FREE
+        H5free_memory(*buf);
+#else
+        free(*buf);
+#endif
+        *buf = newbuf;
+
+    }
+
+    return *buf_size;
+
+fail:
+    return 0;
+}
+
+static int
+paramcheck(size_t nparams, const unsigned int* params)
+{
+    if(nparams != 1) {
+	fprintf(stderr,"Incorrect parameter count: need=1 sent=%ld\n",(unsigned long)nparams);
+	goto fail;
+    }
+
+    return 1;
+
+fail:
+    return 0;
+}
+
+static const H5Z_class2_t H5Z_REG[1] = {{
+    H5Z_CLASS_T_VERS,                /* H5Z_class_t version */
+    (H5Z_filter_t)(H5Z_FILTER_REG), /* Filter id number */
+    1,                               /* encoder_present flag (set to true) */
+    1,                               /* decoder_present flag (set to true) */
+    "registered",                    /* Filter name for debugging    */
+    (H5Z_can_apply_func_t)H5Z_reg_can_apply, /* The "can apply" callback  */
+    NULL,			     /* The "set local" callback  */
+    (H5Z_func_t)H5Z_filter_reg,     /* The actual filter function   */
+}};

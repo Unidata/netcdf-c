@@ -146,7 +146,7 @@ NCD4_open(const char * path, int mode,
 	d4info->curl->curl = curl;
         /* Load misc rc properties */
         NCD4_get_rcproperties(d4info);
-        if((ret=set_curl_properties(d4info))!= NC_NOERR) goto done;	
+        if((ret=set_curl_properties(d4info))!= NC_NOERR) goto done;
         /* Set the one-time curl flags */
         if((ret=NCD4_set_flags_perlink(d4info))!= NC_NOERR) goto done;
 #if 1 /* temporarily make per-link */
@@ -315,7 +315,7 @@ freeInfo(NCD4INFO* d4info)
     NCD4_reclaimMeta(d4info->substrate.metadata);
     NC_authclear(&d4info->auth);
     nclistfree(d4info->blobs);
-    free(d4info);    
+    free(d4info);
 }
 
 static void
@@ -457,7 +457,7 @@ NCD4_applyclientparamcontrols(NCD4INFO* info)
 
     value = getparam(info,"substratename");
     if(value != NULL)
-	strncpy(info->controls.substratename,value,NC_MAX_NAME);
+      strncpy(info->controls.substratename,value,(NC_MAX_NAME-1));
 
     info->controls.opaquesize = DFALTOPAQUESIZE;
     value = getparam(info,"opaquesize");
@@ -466,9 +466,9 @@ NCD4_applyclientparamcontrols(NCD4INFO* info)
 	if(sscanf(value,"%lld",&len) != 1 || len == 0)
 	    nclog(NCLOGWARN,"bad [opaquesize] tag: %s",value);
 	else
-	    info->controls.opaquesize = (size_t)len;	    
+	    info->controls.opaquesize = (size_t)len;
     }
-    
+
     value = getparam(info,"fillmismatch");
     if(value != NULL)
 	SETFLAG(info->controls.flags,NCF_FILLMISMATCH);
@@ -479,7 +479,7 @@ NCD4_applyclientparamcontrols(NCD4INFO* info)
 }
 
 static void
-applyclientmetacontrols(NCD4meta* meta)    
+applyclientmetacontrols(NCD4meta* meta)
 {
     NCD4INFO* info = meta->controller;
     const char* value = getparam(info,"checksummode");
@@ -522,4 +522,3 @@ getparam(NCD4INFO* info, const char* key)
 	return NULL;
     return value;
 }
-

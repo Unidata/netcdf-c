@@ -82,6 +82,7 @@ that the parameters passed to the filter
 are correct. Specifically, that endian-ness
 is correct. As a filter, it is the identify
 function, passing input to output unchanged.
+It also prints out the size of each chunk.
 
 Test cases format:
 1.The first param is the test index i.e. which test to execute.
@@ -102,9 +103,17 @@ H5Z_filter_test(unsigned int flags, size_t cd_nelmts,
 
     testcase = cd_values[0];
 
-    if(testcase == TC_ENDIAN) {
+    switch (testcase) {
+    case TC_ENDIAN:
 	if(!paramcheck(cd_nelmts,cd_values))
 	    goto fail;
+	break;
+    case TC_ODDSIZE:
+        /* Print out the chunk size */
+        fprintf(stderr,"nbytes = %lld chunk size = %lld\n",(long long)nbytes,(long long)*buf_size);
+        fflush(stderr);
+	break;
+    default: break;
     }
 
     if (flags & H5Z_FLAG_REVERSE) {

@@ -153,9 +153,10 @@ reclaim_datar(int ncid, int xtype, size_t typesize, Position* offset)
 static ptrdiff_t
 read_align(ptrdiff_t offset, size_t alignment)
 {
-    size_t delta = (offset % alignment);
-    if(delta == 0) return offset;
-    return offset + (alignment - delta);
+  size_t loc_align = (alignment == 0 ? 1 : alignment);
+  size_t delta = (offset % loc_align);
+  if(delta == 0) return offset;
+  return offset + (alignment - delta);
 }
 
 static int

@@ -508,6 +508,85 @@ for use by client programs and by filter implementations.
 Examples of the use of these functions can be seen in the test program
 *nc_test4/tst_filterparser.c*.
 
+Appendix B. Programmatic Filter Definition {#filters_programmatic}
+==========
+
+HDF5 provides an API [6] to allow for the programmatic definition
+of filters -- as opposed to using the HDF5_PLUGIN_PATH environment variable.
+The idea is that instead of using dynamic shared libraries, the filter code
+is compiled into the application and the relevant information
+(namely an instance of *H5Z_class2_t*) is passed to the HDF5 library API.
+Because it is anticipated that in the future, other plugin formats
+will be used, this netcdf-c API is deliberately more general than
+strictly required by HDF5.
+
+## API Concepts
+
+Three concepts are used in this API.
+
+1. Format - this is an integer defining the format of the plugin.
+   Currently, only *NC_FILTER_FORMAT_HDF5* is defined and corresponds
+   to the existing HDF5 plugin format.
+2. ID - this is an integer that is a unique identifier for the filter.
+   This value is interpreted in the context of the format, so the same
+   id might be assigned to different filters if the format is different.
+3. The structure *NC_FILTER_INFO* that provides generic information
+   to the API and has a placeholder for format-specific information.
+
+        typedef struct NC_FILTER_INFO {
+          int version; /* Of this structure */
+          int format; /* Controls actual type of this structure */
+          int id;     /* Must be unique WRT format */
+          void* info; /* The filter info as defined by the format. */
+        } NC_FILTER_INFO;
+    When the format is the value NC_FILTER_FORMAT_HDF5,
+    then the info field is a pointer to an instance of
+    H5Z_class2_t as define in H5Zpublic.h.
+    The use of void* is, of course, to allow for passing arbitrary objects.
+
+### NetCDF API
+
+The following function signatures are provided (see *netcdf_filter.h*).
+
+1. Register a filter
+
+        int nc_filter_register(NC_FILTER_INFO* filter_info);
+    Register a filter whose format and ID are specified in the 'filter_info'
+    argument.
+
+2. Unregister a filter
+
+        int nc_filter_unregister(int format, int id);
+    Unregister the filter specified by the id. Note that only
+    filters registered using 'nc_filter_register' can be unregistered.
+
+3. Inquire about a filter
+
+        int nc_filter_inq(int format, int id, NC_FILTER_INFO* filter_info);
+    Unregister the filter specified by the id. Note that only
+    filters registered using 'nc_filter_register' can be inquired.
+    The 'filter_info' is filled with a copy of the original argument to
+    'nc_filter_register'.
+
+### Example
+
+    static const H5Z_class2_t H5Z_REG[1] = {
+        ...
+    };
+    ...
+    NC_FILTER_INFO info;
+    ...
+    info.version = NC_FILTER_INFO_VERSION;
+    info.format = NC_FILTER_FORMAT_HDF5;
+    info.id = FILTER_ID;
+    info.info = (void*)&H5Z_REG[0];
+    stat = nc_filter_register(&info);
+    ...
+    memset(&info,0,sizeof(NC_FILTER_INFO));
+    stat = nc_filter_inq(NC_FILTER_FORMAT_HDF5, FILTER_ID, &info);
+    ...
+    stat = nc_filter_unregister(NC_FILTER_FORMAT_HDF5, FILTER_ID);
+
 # References {#filters_References}
 
 1. https://support.hdfgroup.org/HDF5/doc/Advanced/DynamicallyLoadedFilters/HDF5DynamicallyLoadedFilters.pdf
@@ -515,6 +594,7 @@ Examples of the use of these functions can be seen in the test program
 3. https://portal.hdfgroup.org/display/support/Contributions#Contributions-filters
 4. https://support.hdfgroup.org/services/contributions.html#filters
 5. https://support.hdfgroup.org/HDF5/doc/RM/RM_H5.html
+6. https://confluence.hdfgroup.org/display/HDF5/Filters
 
 # Point of Contact
 

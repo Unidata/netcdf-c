@@ -1,4 +1,6 @@
 #!/bin/sh
+# This is a metadata performance test for netCDF-4.
+# Dennis Heimbigner
 
 #PROF=1
 #DEBUG=1
@@ -7,7 +9,6 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
-set -x
 set -e
 
 echo "Testing performance of nc_create and nc_open on file with large metadata"
