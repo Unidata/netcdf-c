@@ -105,7 +105,7 @@ extern char* ncuridecode(char* s);
 /* Partial decode */
 extern char* ncuridecodepartial(char* s, const char* decodeset);
 /* Encode using specified character set */
-extern char* ncuriencodeonly(char* s, char* allowable);
+extern char* ncuriencodeonly(char* s, const char* allowable);
 /* Encode user or pwd */
 extern char* ncuriencodeuserpwd(char* s);
 

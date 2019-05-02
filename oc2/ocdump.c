@@ -22,23 +22,18 @@ static void dumpocnode1(OCnode* node, int depth);
 static void dumpdimensions(OCnode* node);
 static void dumpattvalue(OCtype nctype, char** aset, int index);
 
-static char* sindent = NULL;
+static const char* sindent = 
+	"                                                                                                     ";
 
-static char*
+static const char*
 dent(int n)
 {
-    if(sindent == NULL) {
-	sindent = (char*)ocmalloc(102);
-	MEMCHECK(sindent,NULL);
-	memset((void*)sindent,(int)' ',(size_t)101);
-	sindent[101] = '\0';
-    }
     if(n > 100) n = 100;
     return sindent+(100-n);
 }
 
 /* support [dd] leader*/
-static char*
+static const char*
 dent2(int n) {return dent(n+4);}
 
 static void
@@ -500,6 +495,8 @@ ocdumpdata(OCstate* state, OCdata* data, NCbytes* buffer, int frominstance)
 {
     char tmp[1024];
     OCnode* pattern = data->pattern;
+    char* smode = NULL;
+
     snprintf(tmp,sizeof(tmp),"%lx:",(unsigned long)data);
     ncbytescat(buffer,tmp);
     if(!frominstance) {
@@ -523,7 +520,8 @@ ocdumpdata(OCstate* state, OCdata* data, NCbytes* buffer, int frominstance)
     snprintf(tmp,sizeof(tmp),"%lx",(unsigned long)data->container);
     ncbytescat(buffer,tmp);
     ncbytescat(buffer," mode=");
-    ncbytescat(buffer,ocdtmodestring(data->datamode,0));
+    ncbytescat(buffer,(smode=ocdtmodestring(data->datamode,0)));
+    nullfree(smode);
 }
 
 /*
@@ -545,6 +543,7 @@ ocdumpdatatree(OCstate* state, OCdata* data, NCbytes* buffer, int depth)
     size_t crossproduct;
     int tabstop = 0;
     const char* typename;
+    char* smode = NULL;
 
     /* If this is the first call, then dump a header line */
     if(depth == 0) {
@@ -581,7 +580,8 @@ ocdumpdatatree(OCstate* state, OCdata* data, NCbytes* buffer, int depth)
     tabto(tabstops[++tabstop],buffer);
 
     /* Dump the mode flags in compact form */
-    ncbytescat(buffer,ocdtmodestring(data->datamode,1));
+    ncbytescat(buffer,(smode=ocdtmodestring(data->datamode,1)));
+    nullfree(smode);
 
     tabto(tabstops[++tabstop],buffer);
 

@@ -230,7 +230,7 @@ set_curl_options(NCD4INFO* state)
 
     hostport = NC_combinehostport(state->uri);
 
-    store = ncrc_globalstate.rcinfo.triples;
+    store = ncrc_getglobalstate()->rcinfo.triples;
 
     for(i=0;i<nclistlength(store);i++) {
         struct CURLFLAG* flag;

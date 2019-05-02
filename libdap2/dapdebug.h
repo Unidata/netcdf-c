@@ -25,6 +25,9 @@
 #  endif
 #endif
 
+/* Dump info about constraint processing */
+#undef DCEVERBOSE
+
 #undef PARSEDEBUG
 /* Warning: setting CATCHERROR has significant performance impact */
 #undef CATCHERROR

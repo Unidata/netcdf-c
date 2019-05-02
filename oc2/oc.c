@@ -1452,7 +1452,7 @@ and the read request cannot be completed.
 
 OCerror
 oc_data_readn(OCobject link, OCobject datanode,
-                 size_t* start, size_t N,
+                 const size_t* start, size_t N,
 	         size_t memsize, void* memory)
 {
     OCerror ocerr = OC_NOERR;

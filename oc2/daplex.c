@@ -30,13 +30,13 @@ static int tohex(int c);
 
 #ifdef INFORMATIONAL
 /* Set of all ascii printable characters */
-static char ascii[] = " !\"#$%&'()*+,-./:;<=>?@[]\\^_`|{}~";
+static const char ascii[] = " !\"#$%&'()*+,-./:;<=>?@[]\\^_`|{}~";
 
 /* Define the set of legal nonalphanum characters as specified in the DAP2 spec. */
-static char* daplegal ="_!~*'-\"";
+static const char* daplegal ="_!~*'-\"";
 #endif
 
-static char* ddsworddelims =
+static const char* ddsworddelims =
   "{}[]:;=,";
 
 /* Define 1 and > 1st legal characters */
@@ -51,7 +51,7 @@ static const char* ddswordcharsn =
   "-+_/%\\.*!~'\"";
 
 /* This includes sharp and colon for historical reasons */
-static char* daswordcharsn =
+static const char* daswordcharsn =
   "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
   "-+_/%\\.*#:!~'\"";
 

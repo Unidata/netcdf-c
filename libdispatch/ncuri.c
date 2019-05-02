@@ -57,14 +57,14 @@
 #define rshift(buf,buflen) {memmove(buf+1,buf,buflen+1);}
 
 /* Allowable character sets for encode */
-static char* pathallow =
+static const char* pathallow =
 "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!#$&'()*+,-./:;=?@_~";
 
-static char* queryallow =
+static const char* queryallow =
 "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!#$&'()*+,-./:;=?@_~";
 
 /* user+pwd allow = path allow - "@:" */
-static char* userpwdallow =
+static const char* userpwdallow =
 "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!$&'()*+,-.;=_~?#/";
 
 #ifndef HAVE_STRNDUP
@@ -748,7 +748,7 @@ ncrshift1(char* p)
 
 /* Provide % encoders and decoders */
 
-static char* hexchars = "0123456789abcdefABCDEF";
+static const char* hexchars = "0123456789abcdefABCDEF";
 
 static void
 toHex(unsigned int b, char hex[2])
@@ -782,7 +782,7 @@ ncuriencodeuserpwd(char* s)
  */
 
 char*
-ncuriencodeonly(char* s, char* allowable)
+ncuriencodeonly(char* s, const char* allowable)
 {
     size_t slen;
     char* encoded;
