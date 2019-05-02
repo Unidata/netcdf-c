@@ -6,6 +6,10 @@
 
 # Ed Hartnett, Dennis Heimbigner, Ward Fisher
 
+# Un comment to use a more verbose test driver
+#SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
 AM_CPPFLAGS += -I$(top_srcdir)/libsrc
@@ -82,6 +86,9 @@ endif
 if ENABLE_BYTERANGE
 TESTS += test_byterange.sh
 endif
+if BUILD_MMAP
+TESTS += run_mmap.sh
+endif
 endif
 
 if USE_PNETCDF
@@ -92,14 +99,16 @@ endif
 # we also include the original m4 files, plus test scripts data.
 EXTRA_DIST = test_get.m4 test_put.m4 run_diskless.sh run_diskless2.sh   \
 run_diskless5.sh run_mmap.sh run_pnetcdf_test.sh test_read.m4           \
-test_write.m4 ref_tst_diskless2.cdl tst_diskless5.cdl run_inmemory.sh   \
+test_write.m4 ref_tst_diskless2.cdl tst_diskless5.cdl                   \
+ref_tst_diskless3_create.cdl ref_tst_diskless3_open.cdl                 \
+run_inmemory.sh run_mmap.sh                                             \
 f03tst_open_mem.nc                                                      \
-test_byterange.sh ref_tst_http_nc3.cdl ref_tst_http_nc4.cdl                  \
+test_byterange.sh ref_tst_http_nc3.cdl ref_tst_http_nc4.cdl             \
 CMakeLists.txt
 
 # These files are created by the tests.
 CLEANFILES = nc_test_*.nc tst_*.nc t_nc.nc large_files.nc		\
-quick_large_files.nc tst_diskless3_file.cdl tst_diskless3_memory.cdl	\
+quick_large_files.nc tst_diskless3_file.cdl                             \
 tst_diskless4.cdl ref_tst_diskless4.cdl benchmark.nc                    \
 tst_http_nc3.cdl tst_http_nc4.cdl
 

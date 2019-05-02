@@ -82,6 +82,7 @@ if test -f $FILE2 ; then
 else
   echo "#### $FILE2 not created"
 fi
+exit
 rm -f tmp1.cdl tmp2.cdl tmp1.nc tmp2.nc
 
 if test "x$ok" = xyes ; then
@@ -101,19 +102,19 @@ rm -f tst_diskless3_file.cdl tst_diskless3_memory.cdl
 echo ""
 echo "**** Create baseline cdl"
 rm -f $FILE3
-${execdir}/tst_diskless3 file
+${execdir}/tst_diskless3 file file:$FILE3
 ${NCDUMP} $FILE3 >tst_diskless3_file.cdl
 
 echo ""
 echo "**** Create and modify file using diskless"
 rm -f $FILE3
-${execdir}/tst_diskless3 diskless persist
+${execdir}/tst_diskless3 diskless persist file:$FILE3
 ${NCDUMP} $FILE3 >tst_diskless3_memory.cdl
 
 # compare
 diff tst_diskless3_file.cdl tst_diskless3_memory.cdl
 
 # cleanup
-rm -f $FILE3 tst_diskless3_file.cdl tst_diskless3_memory.cdl
+rm -f $FILE1 $FILE2 $FILE3 tst_diskless3_file.cdl tst_diskless3_memory.cdl
 
 exit 0
