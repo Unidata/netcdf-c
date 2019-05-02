@@ -1827,7 +1827,7 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 {
    int stat = NC_NOERR;
    NC* ncp = NULL;
-   NC_Dispatch* dispatcher = NULL;
+   const NC_Dispatch* dispatcher = NULL;
    char* path = NULL;
    NCmodel model;
    char* newpath = NULL;
@@ -1967,7 +1967,7 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 {
     int stat = NC_NOERR;
     NC* ncp = NULL;
-    NC_Dispatch* dispatcher = NULL;
+    const NC_Dispatch* dispatcher = NULL;
     int inmemory = 0;
     int diskless = 0;
     int mmap = 0;

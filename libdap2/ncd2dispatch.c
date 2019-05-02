@@ -25,7 +25,7 @@
 #endif
 
 /* Define the set of protocols known to be constrainable */
-static char* constrainableprotocols[] = {"http", "https",NULL};
+static const char* constrainableprotocols[] = {"http", "https",NULL};
 
 static int ncd2initialized = 0;
 
@@ -63,7 +63,7 @@ static NCerror applyclientparams(NCDAPCOMMON*);
 static int
 NCD2_create(const char *path, int cmode,
            size_t initialsz, int basepe, size_t *chunksizehintp,
-           void* mpidata, NC_Dispatch*,NC* ncp);
+           void* mpidata, const struct NC_Dispatch*,NC* ncp);
 
 static int NCD2_redef(int ncid);
 static int NCD2__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree, size_t r_align);
@@ -88,7 +88,7 @@ static int NCD2_get_vars(int ncid, int varid,
 	    const size_t *start, const size_t *edges, const ptrdiff_t* stride,
             void *value, nc_type memtype);
 
-static NC_Dispatch NCD2_dispatch_base = {
+static const NC_Dispatch NCD2_dispatch_base = {
 
 NC_FORMATX_DAP2,
 
@@ -181,7 +181,7 @@ NCD2_get_var_chunk_cache,
 
 };
 
-NC_Dispatch* NCD2_dispatch_table = NULL; /* moved here from ddispatch.c */
+const NC_Dispatch* NCD2_dispatch_table = NULL; /* moved here from ddispatch.c */
 
 int
 NCD2_initialize(void)
@@ -231,7 +231,7 @@ NCD2_abort(int ncid)
 static int
 NCD2_create(const char *path, int cmode,
            size_t initialsz, int basepe, size_t *chunksizehintp,
-           void* mpidata, NC_Dispatch* dispatch, NC* ncp)
+           void* mpidata, const NC_Dispatch* dispatch, NC* ncp)
 {
    return NC_EPERM;
 }
@@ -251,7 +251,7 @@ NCD2_get_vara(int ncid, int varid,
             void *value,
 	    nc_type memtype)
 {
-    int stat = nc3d_getvarx(ncid, varid, start, edges, nc_ptrdiffvector1, value,memtype);
+    int stat = nc3d_getvarx(ncid, varid, start, edges, NC_stride_one, value,memtype);
     return stat;
 }
 
@@ -275,7 +275,7 @@ NCD2_get_vars(int ncid, int varid,
 /* See ncd2dispatch.c for other version */
 int
 NCD2_open(const char* path, int mode, int basepe, size_t *chunksizehintp,
-          void* mpidata, NC_Dispatch* dispatch, NC* drno)
+          void* mpidata, const NC_Dispatch* dispatch, NC* drno)
 {
     NCerror ncstat = NC_NOERR;
     OCerror ocstat = OC_NOERR;
@@ -1211,7 +1211,7 @@ fprintf(stderr,"basedim: %s=%ld\n",dim->ncfullname,(long)dim->dim.declsize);
 int
 constrainable(NCURI* durl)
 {
-   char** protocol = constrainableprotocols;
+   const char** protocol = constrainableprotocols;
    for(;*protocol;protocol++) {
 	if(strcmp(durl->protocol,*protocol)==0)
 	    return 1;

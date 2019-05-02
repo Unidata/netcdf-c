@@ -21,7 +21,7 @@ NCD4_get_vara(int ncid, int varid,
 {
     int ret;
     /* TODO: optimize since we know stride is 1 */
-    ret = NCD4_get_vars(ncid,varid,start,edges,nc_ptrdiffvector1,value,memtype);
+    ret = NCD4_get_vars(ncid,varid,start,edges,NC_stride_one,value,memtype);
     return ret;
 }
 

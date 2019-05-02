@@ -862,7 +862,7 @@ exit:
  */
 int
 NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
-         void *parameters, NC_Dispatch *dispatch, NC *nc_file)
+         void *parameters, const NC_Dispatch *dispatch, NC *nc_file)
 {
     assert(nc_file && path && dispatch && nc_file &&
            nc_file->model->impl == NC_FORMATX_NC4);

@@ -271,7 +271,7 @@ exit: /*failure exit*/
 int
 NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
            size_t *chunksizehintp, void *parameters,
-           NC_Dispatch *dispatch, NC *nc_file)
+           const NC_Dispatch *dispatch, NC *nc_file)
 {
     int res;
 
