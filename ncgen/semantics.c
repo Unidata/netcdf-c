@@ -501,7 +501,12 @@ fixeconstref(Symbol* avsym, NCConstant* con)
 	    varsym = NULL;
     }
     
-    if(basetype->objectclass != NC_TYPE && basetype->subclass != NC_ENUM)
+    /* If this is a non-econst fillvalue, then ignore it */
+    if(con->nctype == NC_FILLVALUE && basetype->subclass != NC_ENUM)
+	return;
+
+    /* If this is an econst then validate against type */
+    if(con->nctype == NC_ECONST && basetype->subclass != NC_ENUM)
         semerror(con->lineno,"Enumconstant associated with a non-econst type");
 
     if(con->nctype == NC_FILLVALUE) {

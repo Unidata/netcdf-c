@@ -12,7 +12,7 @@ services:
 env:
     matrix:
 # Ubuntu
-        - DOCKIMG=unidata/nctests:serial   USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc   AC_COPTS='CFLAGS=-fsigned-char --disable-netcdf-4 --disable-dap-remote-tests --enable-cdf5' COPTS='-DENABLE_NETCDF_4=OFF -DCMAKE_C_FLAGS=-fsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=TRUE' USECP=FALSE CURHOST=docker-gcc-x64-signed TESTFILTER=FALSE
+        - DOCKIMG=unidata/nctests:serial   USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc   AC_COPTS='CFLAGS=-fsigned-char --disable-netcdf-4 --disable-dap-remote-tests --enable-cdf5 --enable-byterange' COPTS='-DENABLE_NETCDF_4=OFF -DCMAKE_C_FLAGS=-fsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=TRUE -DENABLE_BYTERANGE=TRUE' USECP=FALSE CURHOST=docker-gcc-x64-signed TESTFILTER=FALSE
 
         - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc   AC_COPTS='CFLAGS=-fsigned-char --disable-netcdf-4 --disable-dap-remote-tests' COPTS='-DENABLE_NETCDF_4=OFF -DCMAKE_C_FLAGS=-fsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=OFF' USECP=FALSE CURHOST=docker-gcc-x86-signed TESTFILTER=FALSE
 

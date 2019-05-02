@@ -765,68 +765,64 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
 
 ENDIF(USE_HDF5 OR ENABLE_NETCDF_4)
 
+# See if we have libcurl
+FIND_PACKAGE(CURL)
+ADD_DEFINITIONS(-DCURL_STATICLIB=1)
+INCLUDE_DIRECTORIES(${CURL_INCLUDE_DIRS})
+
+# Check to see if CURLOPT_USERNAME is defined.
+# It is present starting version 7.19.1.
+CHECK_C_SOURCE_COMPILES("
+#include <curl/curl.h>
+int main() {int x = CURLOPT_USERNAME;}" HAVE_CURLOPT_USERNAME)
+
+# Check to see if CURLOPT_PASSWORD is defined.
+# It is present starting version 7.19.1.
+CHECK_C_SOURCE_COMPILES("
+#include <curl/curl.h>
+int main() {int x = CURLOPT_PASSWORD;}" HAVE_CURLOPT_PASSWORD)
+
+# Check to see if CURLOPT_KEYPASSWD is defined.
+# It is present starting version 7.16.4.
+CHECK_C_SOURCE_COMPILES("
+#include <curl/curl.h>
+int main() {int x = CURLOPT_KEYPASSWD;}" HAVE_CURLOPT_KEYPASSWD)
+
+# Check to see if CURLINFO_RESPONSE_CODE is defined.
+# It showed up in curl 7.10.7.
+CHECK_C_SOURCE_COMPILES("
+#include <curl/curl.h>
+int main() {int x = CURLINFO_RESPONSE_CODE;}" HAVE_CURLINFO_RESPONSE_CODE)
+
+# Check to see if CURLINFO_HTTP_CONNECTCODE is defined.
+# It showed up in curl 7.10.7.
+CHECK_C_SOURCE_COMPILES("
+#include <curl/curl.h>
+int main() {int x = CURLINFO_HTTP_CONNECTCODE;}" HAVE_CURLINFO_HTTP_CONNECTCODE)
+
+# Check to see if CURLOPT_BUFFERSIZE is defined.
+# It is present starting version 7.59
+CHECK_C_SOURCE_COMPILES("
+#include <curl/curl.h>
+int main() {int x = CURLOPT_BUFFERSIZE;}" HAVE_CURLOPT_BUFFERSIZE)
+
+# Check to see if CURLOPT_TCP_KEEPALIVE is defined.
+# It is present starting version 7.25
+CHECK_C_SOURCE_COMPILES("
+#include <curl/curl.h>
+int main() {int x = CURLOPT_TCP_KEEPALIVE;}" HAVE_CURLOPT_KEEPALIVE)
+
 # Option to Build DAP2+DAP4 Clients
 OPTION(ENABLE_DAP "Enable DAP2 and DAP4 Client." ON)
 IF(ENABLE_DAP)
   SET(USE_DAP ON CACHE BOOL "")
   SET(ENABLE_DAP2 ON CACHE BOOL "")
 
-
   IF(ENABLE_NETCDF_4)
     SET(ENABLE_DAP4 ON CACHE BOOL "")
   ELSE(ENABLE_NETCDF_4)
     SET(ENABLE_DAP4 OFF CACHE BOOL "")
   ENDIF(ENABLE_NETCDF_4)
-
-  FIND_PACKAGE(CURL)
-  IF(NOT CURL_LIBRARY)
-    MESSAGE(FATAL_ERROR "DAP Support specified, CURL libraries are not found.")
-  ENDIF()
-
-  ADD_DEFINITIONS(-DCURL_STATICLIB=1)
-  INCLUDE_DIRECTORIES(${CURL_INCLUDE_DIRS})
-
-  # Check to see if CURLOPT_USERNAME is defined.
-  # It is present starting version 7.19.1.
-  CHECK_C_SOURCE_COMPILES("
-  #include <curl/curl.h>
-  int main() {int x = CURLOPT_USERNAME;}" HAVE_CURLOPT_USERNAME)
-
-  # Check to see if CURLOPT_PASSWORD is defined.
-  # It is present starting version 7.19.1.
-  CHECK_C_SOURCE_COMPILES("
-  #include <curl/curl.h>
-  int main() {int x = CURLOPT_PASSWORD;}" HAVE_CURLOPT_PASSWORD)
-
-  # Check to see if CURLOPT_KEYPASSWD is defined.
-  # It is present starting version 7.16.4.
-  CHECK_C_SOURCE_COMPILES("
-  #include <curl/curl.h>
-  int main() {int x = CURLOPT_KEYPASSWD;}" HAVE_CURLOPT_KEYPASSWD)
-
-  # Check to see if CURLINFO_RESPONSE_CODE is defined.
-  # It showed up in curl 7.10.7.
-  CHECK_C_SOURCE_COMPILES("
-  #include <curl/curl.h>
-  int main() {int x = CURLINFO_RESPONSE_CODE;}" HAVE_CURLINFO_RESPONSE_CODE)
-
-  # Check to see if CURLINFO_HTTP_CONNECTCODE is defined.
-  # It showed up in curl 7.10.7.
-  CHECK_C_SOURCE_COMPILES("
-  #include <curl/curl.h>
-  int main() {int x = CURLINFO_HTTP_CONNECTCODE;}" HAVE_CURLINFO_HTTP_CONNECTCODE)
-
-  # Check to see if CURLOPT_BUFFERSIZE is defined.
-  # It is present starting version 7.59
-  CHECK_C_SOURCE_COMPILES("
-  #include <curl/curl.h>
-  int main() {int x = CURLOPT_BUFFERSIZE;}" HAVE_CURLOPT_BUFFERSIZE)
-
-  # Check to see if CURLOPT_TCP_KEEPALIVE is defined.
-  # It is present starting version 7.25
-  CHECK_C_SOURCE_COMPILES("
-  #include <curl/curl.h>
-  int main() {int x = CURLOPT_TCP_KEEPALIVE;}" HAVE_CURLOPT_KEEPALIVE)
 
 ELSE()
   SET(ENABLE_DAP2 OFF)
@@ -835,13 +831,14 @@ ENDIF()
 
 # Option to support byte-range reading of remote datasets
 OPTION(ENABLE_BYTERANGE "Enable byte-range access to remote datasets.." OFF)
-IF(ENABLE_BYTERANGE)
-  FIND_PACKAGE(CURL)
-  IF(NOT CURL_LIBRARY)
+
+IF(NOT CURL_LIBRARY)
+  IF(ENABLE_BYTERANGE)
     MESSAGE(FATAL_ERROR "Byte-range support specified, CURL libraries are not found.")
-    SET(ENABLE_BYTERANGE OFF BOOL)
-  ELSE()
-    SET(ENABLE_BYTERANGE ON BOOL)
+  ENDIF()
+
+  IF(ENABLE_DAP2 OR ENABLE_DAP4)
+    MESSAGE(FATAL_ERROR "DAP support specified, CURL libraries are not found.")
   ENDIF()
 ENDIF()
 
@@ -1421,16 +1418,21 @@ CHECK_FUNCTION_EXISTS(mremap HAVE_MREMAP)
 CHECK_FUNCTION_EXISTS(fileno HAVE_FILENO)
 
 # Check to see if MAP_ANONYMOUS is defined.
+IF(MSVC)
+MESSAGE(WARNING "mmap not supported under visual studio: disabling MMAP support.")
+SET(ENABLE_MMAP OFF)
+ELSE()
 CHECK_C_SOURCE_COMPILES("
-#include <sys/mmap.h>
+#include <sys/mman.h>
 int main() {int x = MAP_ANONYMOUS;}" HAVE_MAPANON)
-
-IF(NOT HAVE_MMMAP OR NOT HAVE_MREMAP OR NOT HAVE_MAPANON)
-  MESSAGE(WARNING "mmap or mremap or MAP_ANONYMOUS not found: disabling MMAP support.")
+IF(NOT HAVE_MMAP OR NOT HAVE_MAPANON)
+  MESSAGE(WARNING "mmap or MAP_ANONYMOUS not found: disabling MMAP support.")
   SET(ENABLE_MMAP OFF)
+ENDIF()
 ENDIF()
 
 IF(ENABLE_MMAP)
+  # Aliases
   SET(BUILD_MMAP ON)
   SET(USE_MMAP ON)
 ENDIF(ENABLE_MMAP)
