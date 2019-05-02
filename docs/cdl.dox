@@ -44,7 +44,7 @@ double slash characters '//' on any line.
 A CDL description for a classic model file consists of three optional
 parts: dimensions, variables, and data. The variable part may contain
 variable declarations and attribute assignments. For the enhanced
-model supported by netCDF-4, a CDL decription may also includes
+model supported by netCDF-4, a CDL description may also include
 groups, subgroups, and user-defined types.
 
 A dimension is used to define the shape of one or more of the
@@ -160,8 +160,8 @@ NetCDF-4 supports the additional primitive types:
 - ubyte Unsigned eight-bit integers.
 - ushort Unsigned 16-bit integers.
 - uint Unsigned 32-bit integers.
-- int64 64-bit singed integers.
-- uint64 Unsigned 64-bit singed integers.
+- int64 64-bit signed integers.
+- uint64 Unsigned 64-bit signed integers.
 - string Variable-length string of characters 
 
 Except for the added data-type byte, CDL supports the same primitive

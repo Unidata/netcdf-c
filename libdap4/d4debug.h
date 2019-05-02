@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2016, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 #ifndef D4DEBUG_H
@@ -27,7 +27,7 @@
 #endif
 
 
-#define D4CATCH /* Warning: significant performance impact */
+#undef D4CATCH /* Warning: significant performance impact */
 
 #define PANIC(msg) assert(d4panic(msg));
 #define PANIC1(msg,arg) assert(d4panic(msg,arg));

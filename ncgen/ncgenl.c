@@ -1420,6 +1420,8 @@ char *yytext;
 #include "ncgen.h"
 #include "ncgeny.h"
 
+EXTERNL int fileno(FILE*);
+
 #define FILL_STRING "_"
 #define XDR_INT32_MIN (-2147483647-1)
 #define XDR_INT32_MAX 2147483647
@@ -1462,6 +1464,7 @@ static unsigned int MAX_UINT = NC_MAX_UINT;
 #define TAGCHARS "BbSsLlUu"
 
 #define tstdecimal(ch) ((ch) >= '0' && (ch) <= '9')
+#define tstoctal(ch) ((ch) == '0')
 
 /*Mnemonics*/
 #define ISIDENT 1
@@ -1472,7 +1475,7 @@ static unsigned int MAX_UINT = NC_MAX_UINT;
 
 char errstr[100];		/* for short error messages */
 
-int lineno;              /* line number for error messages */
+int lineno;                    /* line number for error messages */
 Bytebuffer* lextext;           /* name or string with escapes removed */
 
 #define YY_BREAK                /* defining as nothing eliminates unreachable
@@ -1495,7 +1498,7 @@ unsigned char ubyte_val;       /* last byte value read */
 
 static Symbol* makepath(char* text);
 static int lexdebug(int);
-static unsigned long long parseULL(char* text, int*);
+static unsigned long long parseULL(int radix, char* text, int*);
 static nc_type downconvert(unsigned long long uint64, int*, int, int);
 static int tagmatch(nc_type nct, int tag);
 static int nct2lexeme(nc_type nct);
@@ -1518,7 +1521,7 @@ struct Specialtoken specials[] = {
 {NULL,0} /* null terminate */
 };
 
-#line 1521 "ncgenl.c"
+#line 1524 "ncgenl.c"
 
 /* The most correct (validating) version of UTF8 character set
    (Taken from: http://www.w3.org/2005/03/23-lex-U)
@@ -1561,7 +1564,7 @@ ID ([A-Za-z_]|{UTF8})([A-Z.@#\[\]a-z_0-9+-]|{UTF8})*
 /* Note: this definition of string will work for utf8 as well,
    although it is a very relaxed definition
 */
-#line 1564 "ncgenl.c"
+#line 1567 "ncgenl.c"
 
 #define INITIAL 0
 #define ST_C_COMMENT 1
@@ -1780,9 +1783,9 @@ YY_DECL
 		}
 
 	{
-#line 218 "ncgen.l"
+#line 221 "ncgen.l"
 
-#line 1785 "ncgenl.c"
+#line 1788 "ncgenl.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1841,14 +1844,14 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 219 "ncgen.l"
+#line 222 "ncgen.l"
 { /* whitespace */
 		  break;
 		}
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 223 "ncgen.l"
+#line 226 "ncgen.l"
 { /* comment */
                           break;
                         }
@@ -1856,8 +1859,8 @@ YY_RULE_SETUP
 case 3:
 /* rule 3 can match eol */
 YY_RULE_SETUP
-#line 227 "ncgen.l"
-{int len;
+#line 230 "ncgen.l"
+{int len; char* s = NULL;
 			 /* In netcdf4, this will be used in a variety
                             of places, so only remove escapes */
 /*
@@ -1866,18 +1869,15 @@ yyerror("string too long, truncated\n");
 yytext[MAXTRST-1] = '\0';
 }
 */
-		        /* FIX: Assumes unescape also does normalization */
-			bbSetalloc(lextext,yyleng+1); /*+1 for nul */
-			/* Adjust length */
-		        bbSetlength(lextext,yyleng-2); /*-2 for quotes */
-			len = unescape(bbContents(lextext),
-                                       (char *)yytext+1,yyleng-2,!ISIDENT);
+			len = unescape((char *)yytext+1,yyleng-2,!ISIDENT,&s);
 			if(len < 0) {
 			    sprintf(errstr,"Illegal character: %s",yytext);
 			    yyerror(errstr);
 			}
-			bbSetlength(lextext,len);
+			bbClear(lextext);
+			bbAppendn(lextext,s,len);
 			bbNull(lextext);
+			if(s) efree(s);
 		 	return lexdebug(TERMSTRING);
 		        }
 	YY_BREAK
@@ -2112,15 +2112,15 @@ YY_RULE_SETUP
 case 35:
 YY_RULE_SETUP
 #line 367 "ncgen.l"
-{ char* id; int len;
-		    bbClear(lextext);
-		    bbAppendn(lextext,(char*)yytext,yyleng+1); /* include null */
-		    bbNull(lextext);
-		    id = bbContents(lextext);
-		    len = unescape(id,id,bbLength(lextext),ISIDENT);
-		    bbSetlength(lextext,len);
-		    if (STREQ(id, FILL_STRING)) return lexdebug(FILLMARKER);
+{ char* id = NULL; int len;
+		    len = strlen(yytext);
+		    len = unescape(yytext,len,ISIDENT,&id);
+		    if(NCSTREQ(id, FILL_STRING)) {
+			efree(id);
+		        return lexdebug(FILLMARKER);
+		    }
 		    yylval.sym = install(id);
+		    efree(id);
 		    return lexdebug(IDENT);
 		}
 	YY_BREAK
@@ -2132,6 +2132,7 @@ YY_RULE_SETUP
 		  We need to try to see what size of integer ((u)int).
 		  Technically, the user should specify, but...
 		  If out of any integer range, then complain
+		  Also, if the digits begin with 0, then assume octal.
 		*/
 		    int slen = strlen(ncgtext);
 		    char* stag = NULL;
@@ -2142,28 +2143,40 @@ YY_RULE_SETUP
 		    nc_type nct = 0;
 		    char* pos = NULL;
 		    int hasU = 0;
+		    int radix = 10;
+
+		    pos = ncgtext;
 
 		    /* capture the tag string */
-		    tag = collecttag(ncgtext,&stag);
+		    tag = collecttag(pos,&stag);
 		    if(tag == NC_NAT) {
 			sprintf(errstr,"Illegal integer suffix: %s",stag);
 			yyerror(errstr);
 			goto done;
 		    }
+
 		    /* drop the tag from the input text */
 		    ncgtext[slen - strlen(stag)] = '\0';
 		    hasU = isuinttype(tag);
-		    if(!tstdecimal(c)) {
-			pos = ncgtext+1;
-			isneg = (c == '-');
-		    } else
-		        pos = ncgtext;
+
+		    /* Capture the sign, if any */
+		    isneg = (c == '-');
+		    /* skip leading sign */
+		    if(c == '-' || c == '+')
+			pos++;
+
+		    c = pos[0];
+		    if(tstoctal(c))
+			radix = 8;
+		    else
+			radix = 10;
+
 		    if(isneg && hasU) {
 			sprintf(errstr,"Unsigned integer cannot be signed: %s",ncgtext);
 			yyerror(errstr);
 			goto done;
 		    }
-		    uint64_val = parseULL(pos,&fail);
+		    uint64_val = parseULL(radix, pos,&fail);
 		    if(fail) {
 			sprintf(errstr,"integer constant out of range: %s",ncgtext);
 			yyerror(errstr);
@@ -2194,7 +2207,7 @@ done: return 0;
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 444 "ncgen.l"
+#line 457 "ncgen.l"
 {
 		int c;
 		int token = 0;
@@ -2245,7 +2258,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 491 "ncgen.l"
+#line 504 "ncgen.l"
 {
 		if (sscanf((char*)yytext, "%le", &double_val) != 1) {
 		    sprintf(errstr,"bad long or double constant: %s",(char*)yytext);
@@ -2256,7 +2269,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 498 "ncgen.l"
+#line 511 "ncgen.l"
 {
 		if (sscanf((char*)yytext, "%e", &float_val) != 1) {
 		    sprintf(errstr,"bad float constant: %s",(char*)yytext);
@@ -2268,7 +2281,7 @@ YY_RULE_SETUP
 case 40:
 /* rule 40 can match eol */
 YY_RULE_SETUP
-#line 505 "ncgen.l"
+#line 518 "ncgen.l"
 {
 	        (void) sscanf((char*)&yytext[1],"%c",&byte_val);
 		return lexdebug(BYTE_CONST);
@@ -2276,7 +2289,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 509 "ncgen.l"
+#line 522 "ncgen.l"
 {
 		int oct = unescapeoct(&yytext[2]);
 		if(oct < 0) {
@@ -2289,7 +2302,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 518 "ncgen.l"
+#line 531 "ncgen.l"
 {
 		int hex = unescapehex(&yytext[3]);
 		if(byte_val < 0) {
@@ -2302,7 +2315,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 527 "ncgen.l"
+#line 540 "ncgen.l"
 {
 	       switch ((char)yytext[2]) {
 	          case 'a': byte_val = '\007'; break; /* not everyone under-
@@ -2324,7 +2337,7 @@ YY_RULE_SETUP
 case 44:
 /* rule 44 can match eol */
 YY_RULE_SETUP
-#line 545 "ncgen.l"
+#line 558 "ncgen.l"
 {
 		lineno++ ;
                 break;
@@ -2332,7 +2345,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 550 "ncgen.l"
+#line 563 "ncgen.l"
 {/*initial*/
 	    BEGIN(ST_C_COMMENT);
 	    break;
@@ -2341,21 +2354,21 @@ YY_RULE_SETUP
 case 46:
 /* rule 46 can match eol */
 YY_RULE_SETUP
-#line 555 "ncgen.l"
+#line 568 "ncgen.l"
 {/* continuation */
 				     break;
 				}
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 559 "ncgen.l"
+#line 572 "ncgen.l"
 {/* final */
 			    BEGIN(INITIAL);
 			    break;
 			}
 	YY_BREAK
 case YY_STATE_EOF(ST_C_COMMENT):
-#line 564 "ncgen.l"
+#line 577 "ncgen.l"
 {/* final, error */
 			    fprintf(stderr,"unterminated /**/ comment");
 			    BEGIN(INITIAL);
@@ -2364,17 +2377,17 @@ case YY_STATE_EOF(ST_C_COMMENT):
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 570 "ncgen.l"
+#line 583 "ncgen.l"
 {/* Note: this next rule will not work for UTF8 characters */
 		return lexdebug(yytext[0]) ;
 		}
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 573 "ncgen.l"
+#line 586 "ncgen.l"
 ECHO;
 	YY_BREAK
-#line 2377 "ncgenl.c"
+#line 2390 "ncgenl.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(TEXT):
 	yyterminate();
@@ -3380,7 +3393,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 573 "ncgen.l"
+#line 586 "ncgen.l"
 
 static int
 lexdebug(int token)
@@ -3419,45 +3432,38 @@ makepath(char* text0)
         List* prefix = listnew();
 	/* split the text into IDENT chunks, convert to symbols */
         Symbol* container = rootgroup;
-	char *ident, *p;
-        char* text = strdup(text0);
-	int c,lastident;
+	char *ident, *p, *match;
+        char* text = estrdup(text0);
+	int lastident;
+
 	ident=text+1; p=ident; /* skip leading '/' */
+	lastident = 0;
 	do {
-	    lastident = 0;
-	    switch ((c=*p)) {
-	    default: p++; break;
-	    case '\\': p++; if(*p == '/') p++; break;
-	    case '\0': /* treat null terminator like trailing '/' (mostly) */
-		lastident=1; /* this is the last ident in the path */
-		/*fall thru */
-	    case '/':
-		*p='\0';
-		if(!lastident) {
-		    unescape(ident,ident,strlen(ident),ISIDENT);
-		    refsym = lookupingroup(NC_GRP,ident,container);
-		    if(refsym == NULL) {
-		        sprintf(errstr,"Undefined or forward referenced group: %s",ident);
-		        yyerror(errstr);
-			refsym = rootgroup;
-		    } else {
-		        listpush(prefix,(void*)refsym);
-		    }
-		} else { /* lastident is true */
-		    unescape(ident,ident,strlen(ident),ISIDENT);
-		    refsym = install(ident);
-		    refsym->objectclass = NC_GRP;/* tentative */
-		    refsym->ref.is_ref = 1;
-		    refsym->container = container;
-		    refsym->subnodes = listnew();
-		}
-		container = refsym;
-	        ident=p+1; p=ident;
-	        break;
+	    match = esc_strchr(p,'/',0);
+	    lastident = (*match == '\0');
+	    *match='\0';
+	    (void)unescape(p,strlen(p),ISIDENT,&ident);
+	    refsym = lookupingroup(NC_GRP,ident,container);
+	    if(!lastident) {
+	        if(refsym == NULL) {
+	            sprintf(errstr,"Undefined or forward referenced group: %s",ident);
+	            yyerror(errstr);
+		    refsym = rootgroup;
+	        } else
+	             listpush(prefix,(void*)refsym);
+	    } else {/* lasiident is true */
+		refsym = install(ident); /* create as symbol */
+	        refsym->objectclass = NC_GRP;/* tentative */
+		refsym->ref.is_ref = 1;
+		refsym->container = container;
+		refsym->subnodes = listnew();
 	    }
-	} while(c != '\0');
+   	    container = refsym;
+	    p = (lastident?match:match+1);
+	    if(ident) efree(ident);
+	} while(!lastident);
         refsym->prefix = prefix;
-	free(text);
+	efree(text);
     }
     return refsym;
 }
@@ -3467,24 +3473,26 @@ Parse a simple string of digits into an unsigned long long
 Return the value.
 */
 static unsigned long long
-parseULL(char* text, int* failp)
+parseULL(int radix, char* text, int* failp)
 {
     extern int errno;
     char* endptr;
     unsigned long long uint64 = 0;
 
     errno = 0; endptr = NULL;
-    assert(tstdecimal(text[0]));
 #ifdef HAVE_STRTOULL
-    uint64 = strtoull(text,&endptr,10);
+    uint64 = strtoull(text,&endptr,radix);
     if(errno == ERANGE) {
 	if(failp) *failp = ERANGE;
 	return 0;
     }
-#else /*!(defined HAVE_STRTOLL && defined HAVE_STRTOULL)*/
-    sscanf((char*)text, "%llu", &uint64);
+#else /*!defined HAVE_STRTOULL*/
     /* Have no useful way to detect out of range */
-#endif /*!(defined HAVE_STRTOLL && defined HAVE_STRTOULL)*/
+    if(radix == 8)
+        sscanf((char*)text, "%llo", &uint64);
+    else
+        sscanf((char*)text, "%llu", &uint64);
+#endif /*!defined HAVE_STRTOULL*/
     return uint64;
 }
 

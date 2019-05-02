@@ -10,7 +10,7 @@
 #include <config.h>
 #include <nc_tests.h>
 #include "err_macros.h"
-#include "nc4internal.h"
+#include "hdf5internal.h"
 
 /* The data file we will create. */
 #define FILE_NAME "tst_atts.nc"
@@ -178,12 +178,12 @@ main(int argc, char **argv)
 
       /* Try and write a new att. Won't work. */
       if (nc_put_att_text(ncid, NC_GLOBAL, OLD_NAME_2, strlen(CONTENTS_2),
-                          CONTENTS_2) != NC_EINDEFINE) ERR;
+                          CONTENTS_2) != NC_ENOTINDEFINE) ERR;
 
       /* This will not work. Overwriting att must be same length or
        * shorter if not in define mode. */
       if (nc_put_att_text(ncid, NC_GLOBAL, OLD_NAME, strlen(CONTENTS_2),
-                          CONTENTS_2) != NC_EINDEFINE) ERR;
+                          CONTENTS_2) != NC_ENOTINDEFINE) ERR;
 
       /* Now overwrite the att. */
       if (nc_put_att_text(ncid, NC_GLOBAL, OLD_NAME, strlen(CONTENTS_3),
@@ -314,11 +314,11 @@ main(int argc, char **argv)
                                 CONTENTS) != NC_ENAMEINUSE) ERR;
          }
       }
-      
+
       /* Write the attribute at last. */
       if (nc_put_att_text(ncid, NC_GLOBAL, OLD_NAME, strlen(CONTENTS),
                           CONTENTS)) ERR;
-      
+
       /* Write another with different name. */
       if (nc_put_att_text(ncid, NC_GLOBAL, OLD_NAME_2, strlen(CONTENTS),
                           CONTENTS)) ERR;
@@ -332,7 +332,7 @@ main(int argc, char **argv)
       if (nc_rename_att(ncid, NC_GLOBAL, OLD_NAME, BAD_NAME) != NC_EBADNAME) ERR;
       if (nc_rename_att(ncid, NC_GLOBAL, OLD_NAME, too_long_name) != NC_EMAXNAME) ERR;
       if (nc_rename_att(ncid, NC_GLOBAL, OLD_NAME, OLD_NAME_2) != NC_ENAMEINUSE) ERR;
-      
+
       /* Rename the att. */
       if (nc_rename_att(ncid, NC_GLOBAL, OLD_NAME, NEW_NAME)) ERR;
 

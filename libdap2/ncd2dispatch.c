@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
@@ -25,7 +25,7 @@
 #endif
 
 /* Define the set of protocols known to be constrainable */
-static char* constrainableprotocols[] = {"http", "https",NULL};
+static const char* constrainableprotocols[] = {"http", "https",NULL};
 
 static int ncd2initialized = 0;
 
@@ -35,7 +35,7 @@ static NCerror builddims(NCDAPCOMMON*);
 static char* getdefinename(CDFnode* node);
 static NCerror buildvars(NCDAPCOMMON*);
 static NCerror buildglobalattrs(NCDAPCOMMON*, CDFnode* root);
-static NCerror buildattribute(NCDAPCOMMON*, NCattribute*, nc_type, int);
+static NCerror buildattribute(NCDAPCOMMON*, CDFnode*, NCattribute*);
 static void computedimindexanon(CDFnode* dim, CDFnode* var);
 static void replacedims(NClist* dims);
 static int equivalentdim(CDFnode* basedim, CDFnode* dupdim);
@@ -63,8 +63,7 @@ static NCerror applyclientparams(NCDAPCOMMON*);
 static int
 NCD2_create(const char *path, int cmode,
            size_t initialsz, int basepe, size_t *chunksizehintp,
-	   int use_parallel, void* mpidata,
-           NC_Dispatch*,NC* ncp);
+           void* mpidata, const struct NC_Dispatch*,NC* ncp);
 
 static int NCD2_redef(int ncid);
 static int NCD2__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree, size_t r_align);
@@ -89,7 +88,7 @@ static int NCD2_get_vars(int ncid, int varid,
 	    const size_t *start, const size_t *edges, const ptrdiff_t* stride,
             void *value, nc_type memtype);
 
-static NC_Dispatch NCD2_dispatch_base = {
+static const NC_Dispatch NCD2_dispatch_base = {
 
 NC_FORMATX_DAP2,
 
@@ -182,7 +181,7 @@ NCD2_get_var_chunk_cache,
 
 };
 
-NC_Dispatch* NCD2_dispatch_table = NULL; /* moved here from ddispatch.c */
+const NC_Dispatch* NCD2_dispatch_table = NULL; /* moved here from ddispatch.c */
 
 int
 NCD2_initialize(void)
@@ -201,6 +200,7 @@ NCD2_initialize(void)
 int
 NCD2_finalize(void)
 {
+    curl_global_cleanup();
     return NC_NOERR;
 }
 
@@ -225,14 +225,13 @@ NCD2_sync(int ncid)
 static int
 NCD2_abort(int ncid)
 {
-    return NCD2_close(ncid);
+    return NCD2_close(ncid,NULL);
 }
 
 static int
 NCD2_create(const char *path, int cmode,
            size_t initialsz, int basepe, size_t *chunksizehintp,
-	   int use_parallel, void* mpidata,
-           NC_Dispatch* dispatch, NC* ncp)
+           void* mpidata, const NC_Dispatch* dispatch, NC* ncp)
 {
    return NC_EPERM;
 }
@@ -252,7 +251,7 @@ NCD2_get_vara(int ncid, int varid,
             void *value,
 	    nc_type memtype)
 {
-    int stat = nc3d_getvarx(ncid, varid, start, edges, nc_ptrdiffvector1, value,memtype);
+    int stat = nc3d_getvarx(ncid, varid, start, edges, NC_stride_one, value,memtype);
     return stat;
 }
 
@@ -275,10 +274,8 @@ NCD2_get_vars(int ncid, int varid,
 
 /* See ncd2dispatch.c for other version */
 int
-NCD2_open(const char* path, int mode,
-               int basepe, size_t *chunksizehintp,
- 	       int useparallel, void* mpidata,
-               NC_Dispatch* dispatch, NC* drno)
+NCD2_open(const char* path, int mode, int basepe, size_t *chunksizehintp,
+          void* mpidata, const NC_Dispatch* dispatch, NC* drno)
 {
     NCerror ncstat = NC_NOERR;
     OCerror ocstat = OC_NOERR;
@@ -367,16 +364,13 @@ NCD2_open(const char* path, int mode,
         /* Now, use the file to create the hidden, in-memory netcdf file.
 	   We want this hidden file to always be NC_CLASSIC, so we need to
            force default format temporarily in case user changed it.
-	   If diskless is enabled, then create file in-memory, else
-           create an actual temporary file in the file system.
+	   Since diskless is enabled, create file in-memory.
 	*/
 	{
 	    int new = 0; /* format netcdf-3 */
 	    int old = 0;
 	    int ncflags = NC_CLOBBER|NC_CLASSIC_MODEL;
-#ifdef USE_DISKLESS
 	    ncflags |= NC_DISKLESS;
-#endif
 	    nc_set_default_format(new,&old); /* save and change */
             ncstat = nc_create(tmpname,ncflags,&nc3id);
 	    nc_set_default_format(old,&new); /* restore */
@@ -596,13 +590,13 @@ fprintf(stderr,"ncdap3: final constraint: %s\n",dapcomm->oc.url->query);
     return ncstat;
 
 done:
-    if(drno != NULL) NCD2_close(drno->ext_ncid);
+    if(drno != NULL) NCD2_close(drno->ext_ncid,NULL);
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     return THROW(ncstat);
 }
 
 int
-NCD2_close(int ncid)
+NCD2_close(int ncid, void* ignore)
 {
     NC* drno;
     NCDAPCOMMON* dapcomm;
@@ -691,7 +685,7 @@ builddims(NCDAPCOMMON* dapcomm)
 #if 0
 	nc3sub = (NC3_INFO*)&ncsub->dispatchdata;
         /* Set the effective size of UNLIMITED;
-           note that this cannot easily be done thru the normal API.*/
+           note that this cannot easily be done through the normal API.*/
         NC_set_numrecs(nc3sub,unlimited->dim.declsize);
 #endif
 
@@ -759,9 +753,6 @@ fprintf(stderr,"buildvars.candidate=|%s|\n",var->ncfullname);
                 dimids[j] = dim->ncid;
  	    }
         }
-
-
-
 	definename = getdefinename(var);
 
 #ifdef DEBUG1
@@ -789,9 +780,58 @@ fprintf(stderr,"\n");
 	}
         var->ncid = varid;
 	if(var->attributes != NULL) {
+	    NCattribute* unsignedatt = NULL;
+	    int unsignedval = 0;
+	    /* See if variable has _Unsigned attribute */ 
 	    for(j=0;j<nclistlength(var->attributes);j++) {
 		NCattribute* att = (NCattribute*)nclistget(var->attributes,j);
-		ncstat = buildattribute(dapcomm,att,var->etype,varid);
+		if(strcmp(att->name,"_Unsigned") == 0) {
+		    char* value = nclistget(att->values,0);
+		    unsignedatt = att;
+		    if(value != NULL) {
+			if(strcasecmp(value,"false")==0
+			   || strcmp(value,"0")==0)
+			    unsignedval = 0;
+			else
+			    unsignedval = 1;
+		    }
+		    break;
+		}
+	    }
+	    for(j=0;j<nclistlength(var->attributes);j++) {
+		NCattribute* att = (NCattribute*)nclistget(var->attributes,j);
+		char* val = NULL;
+		/* Check for _FillValue/Variable mismatch */
+		if(strcmp(att->name,"_FillValue")==0) {
+		    /* Special case var is byte, fillvalue is int16 and 
+			unsignedattr == 0;
+			This exception is needed because DAP2 byte type
+			is equivalent to netcdf ubyte type. So passing
+                        a signed byte thru DAP2 requires some type and
+                        signedness hacking that we have to undo.
+		    */
+		    if(var->etype == NC_UBYTE
+			&& att->etype == NC_SHORT
+			&& unsignedatt != NULL && unsignedval == 0) {
+			/* Forcibly change the attribute type and signedness */
+			att->etype = NC_BYTE;
+			val = nclistremove(unsignedatt->values,0);
+			if(val) free(val);
+			nclistpush(unsignedatt->values,strdup("false"));
+		    } else if(att->etype != var->etype) {/* other mismatches */
+			/* Log a message */
+	                nclog(NCLOGERR,"_FillValue/Variable type mismatch: variable=%s",var->ncbasename);
+			/* See if mismatch is allowed */
+			if(FLAGSET(dapcomm->controls,NCF_FILLMISMATCH)) {
+			    /* Forcibly change the attribute type to match */
+			    att->etype = var->etype;
+			} else {
+			    ncstat = NC_EBADTYPE; /* fail */
+			    goto done;
+			}
+		    }
+		}
+		ncstat = buildattribute(dapcomm,var,att);
         	if(ncstat != NC_NOERR) goto done;
 	    }
 	}
@@ -816,7 +856,7 @@ buildglobalattrs(NCDAPCOMMON* dapcomm, CDFnode* root)
     if(root->attributes != NULL) {
         for(i=0;i<nclistlength(root->attributes);i++) {
    	    NCattribute* att = (NCattribute*)nclistget(root->attributes,i);
-	    ncstat = buildattribute(dapcomm,att,NC_NAT,NC_GLOBAL);
+	    ncstat = buildattribute(dapcomm,NULL,att);
             if(ncstat != NC_NOERR) goto done;
 	}
     }
@@ -885,11 +925,13 @@ done:
 }
 
 static NCerror
-buildattribute(NCDAPCOMMON* dapcomm, NCattribute* att, nc_type vartype, int varid)
+buildattribute(NCDAPCOMMON* dapcomm, CDFnode* var, NCattribute* att)
 {
     int i;
     NCerror ncstat = NC_NOERR;
     unsigned int nvalues = nclistlength(att->values);
+    int varid = (var == NULL ? NC_GLOBAL : var->ncid);
+    void* mem = NULL;
 
     /* If the type of the attribute is string, then we need*/
     /* to convert to a single character string by concatenation.
@@ -922,37 +964,21 @@ buildattribute(NCDAPCOMMON* dapcomm, NCattribute* att, nc_type vartype, int vari
     } else {
 	nc_type atype;
 	unsigned int typesize;
-	void* mem = NULL;
-	/* It turns out that some servers upgrade the type
-           of _FillValue in order to correctly preserve the
-           original value. However, since the type of the
-           underlying variable is not changes, we get a type
-           mismatch. So, make sure the type of the fillvalue
-           is the same as that of the controlling variable.
-	*/
-        if(varid != NC_GLOBAL && strcmp(att->name,"_FillValue")==0)
-	    atype = nctypeconvert(dapcomm,vartype);
-	else
-	    atype = nctypeconvert(dapcomm,att->etype);
+	atype = nctypeconvert(dapcomm,att->etype);
 	typesize = nctypesizeof(atype);
 	if (nvalues > 0) {
-		mem = malloc(typesize * nvalues);
-#ifdef _MSC_VER
-		_ASSERTE(_CrtCheckMemory());
-#endif
+	    mem = malloc(typesize * nvalues);
 	}
-    ncstat = dapcvtattrval(atype,mem,att->values);
-#ifdef _MSC_VER
-	_ASSERTE(_CrtCheckMemory());
-#endif
-    if(ncstat) {nullfree(mem); goto done;}
-    ncstat = nc_put_att(dapcomm->substrate.nc3id,varid,att->name,atype,nvalues,mem);
-#ifdef _MSC_VER
-	_ASSERTE(_CrtCheckMemory());
-#endif
-    if(ncstat) {nullfree(mem); goto done;}
+        ncstat = dapcvtattrval(atype,mem,att->values,att);
+        if(ncstat == NC_ERANGE)
+	    nclog(NCLOGERR,"Attribute value out of range: %s:%s",
+		(var==NULL?"":var->ncbasename),att->name);
+        if(ncstat) goto done;
+        ncstat = nc_put_att(dapcomm->substrate.nc3id,varid,att->name,atype,nvalues,mem);
+        if(ncstat) goto done;
     }
 done:
+    if(mem) free(mem);
     return THROW(ncstat);
 }
 
@@ -1185,7 +1211,7 @@ fprintf(stderr,"basedim: %s=%ld\n",dim->ncfullname,(long)dim->dim.declsize);
 int
 constrainable(NCURI* durl)
 {
-   char** protocol = constrainableprotocols;
+   const char** protocol = constrainableprotocols;
    for(;*protocol;protocol++) {
 	if(strcmp(durl->protocol,*protocol)==0)
 	    return 1;
@@ -1193,6 +1219,7 @@ constrainable(NCURI* durl)
    return 0;
 }
 
+/* Lookup a parameter key; case insensitive */
 static const char*
 paramlookup(NCDAPCOMMON* state, const char* key)
 {
@@ -1215,7 +1242,7 @@ applyclientparams(NCDAPCOMMON* nccomm)
     int dfaltseqlim = DEFAULTSEQLIMIT;
     const char* value;
     char tmpname[NC_MAX_NAME+32];
-    char* pathstr;
+    char* pathstr = NULL;
     OClink conn = nccomm->oc.conn;
     unsigned long limit;
 
@@ -1261,21 +1288,29 @@ applyclientparams(NCDAPCOMMON* nccomm)
 
     /* allow embedded _ */
     value = paramlookup(nccomm,"stringlength");
+    if(value == NULL) 
+        value = paramlookup(nccomm,"maxstrlen");
     if(value != NULL && strlen(value) != 0) {
         if(sscanf(value,"%d",&len) && len > 0) dfaltstrlen = len;
-    }
+    } 
     nccomm->cdf.defaultstringlength = dfaltstrlen;
 
     /* String dimension limits apply to variables */
     for(i=0;i<nclistlength(nccomm->cdf.ddsroot->tree->varnodes);i++) {
 	CDFnode* var = (CDFnode*)nclistget(nccomm->cdf.ddsroot->tree->varnodes,i);
-	/* Define the client param stringlength for this variable*/
+	/* Define the client param stringlength/maxstrlen for this variable*/
+	/* create the variable path name */
 	var->maxstringlength = 0; /* => use global dfalt */
 	strncpy(tmpname,"stringlength_",sizeof(tmpname));
 	pathstr = makeocpathstring(conn,var->ocnode,".");
 	strlcat(tmpname,pathstr,sizeof(tmpname));
-	nullfree(pathstr);
 	value = paramlookup(nccomm,tmpname);
+	if(value == NULL) {
+	    strcpy(tmpname,"maxstrlen_");
+	    strncat(tmpname,pathstr,NC_MAX_NAME);
+	    value = paramlookup(nccomm,tmpname);
+        }
+	nullfree(pathstr);
         if(value != NULL && strlen(value) != 0) {
             if(sscanf(value,"%d",&len) && len > 0) var->maxstringlength = len;
 	}
@@ -1449,7 +1484,7 @@ addstringdims(NCDAPCOMMON* dapcomm)
 	if(dimsize == 0)
 	    sdim = dapcomm->cdf.globalstringdim; /* use default */
 	else {
-	    /* create a psuedo dimension for the charification of the string*/
+	    /* create a pseudo dimension for the charification of the string*/
 	    if(var->dodsspecial.dimname != NULL) {
 	        strncpy(dimname,var->dodsspecial.dimname,sizeof(dimname));
 	        dimname[sizeof(dimname)-1] = '\0';
@@ -2202,6 +2237,12 @@ applyclientparamcontrols(NCDAPCOMMON* dapcomm)
     if(dapparamcheck(dapcomm,"show","fetch"))
 	SETFLAG(dapcomm->controls,NCF_SHOWFETCH);
 
+    /* enable/disable _FillValue/Variable Mis-match */
+    if(dapparamcheck(dapcomm,"fillmismatch",NULL))
+	SETFLAG(dapcomm->controls,NCF_FILLMISMATCH);
+    else if(dapparamcheck(dapcomm,"nofillmismatch",NULL))
+	CLRFLAG(dapcomm->controls,NCF_FILLMISMATCH);
+
     nclog(NCLOGNOTE,"Caching=%d",FLAGSET(dapcomm->controls,NCF_CACHE));
 
 }
@@ -2812,4 +2853,4 @@ NCD2_get_var_chunk_cache(int ncid, int p2, size_t* p3, size_t* p4, float* p5)
     return THROW(ret);
 }
 
-#endif // USE_NETCDF4
+#endif /* USE_NETCDF4 */

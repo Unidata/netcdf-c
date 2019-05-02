@@ -1,4 +1,4 @@
-/* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
+/* Copyright 2018, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
 
 #include "config.h"
@@ -108,7 +108,7 @@ occompile1(OCstate* state, OCnode* xnode, XXDR* xxdrs, OCdata** datap)
             if(!xxdr_uint(xxdrs,&xdrcount))
 	        {ocstat = OC_EXDR; goto fail;}
 	    if(xdrcount != nelements)
-   	        {ocstat=OC_EINVALCOORDS; goto fail;}
+   	        {ocstat=OCTHROW(OC_EINVALCOORDS); goto fail;}
 
 	    /* allocate space to capture all the element instances */
 	    data->instances = (OCdata**)malloc(nelements*sizeof(OCdata*));
@@ -160,7 +160,7 @@ occompile1(OCstate* state, OCnode* xnode, XXDR* xxdrs, OCdata** datap)
                 break; /* we are done with the this sequence instance*/
             } else {
 		nclog(NCLOGERR,"missing/invalid begin/end record marker\n");
-                ocstat = OC_EINVALCOORDS;
+                ocstat = OCTHROW(OC_EINVALCOORDS);
 		goto fail;
             }
 	}
@@ -301,11 +301,11 @@ occompileatomic(OCstate* state, OCdata* data, XXDR* xxdrs)
         nelements = octotaldimsize(xnode->array.rank,xnode->array.sizes);
         /* Get first copy of the dimension count */
         if(!xxdr_uint(xxdrs,&xxdrcount)) {ocstat = OC_EXDR; goto fail;}
-        if(xxdrcount != nelements) {ocstat=OC_EINVALCOORDS; goto fail;}
+        if(xxdrcount != nelements) {ocstat=OCTHROW(OC_EINVALCOORDS); goto fail;}
         if(xnode->etype != OC_String && xnode->etype != OC_URL) {
             /* Get second copy of the dimension count */
             if(!xxdr_uint(xxdrs,&xxdrcount)) {ocstat = OC_EXDR; goto fail;}
-            if(xxdrcount != nelements) {ocstat=OC_EINVALCOORDS; goto fail;}
+            if(xxdrcount != nelements) {ocstat=OCTHROW(OC_EINVALCOORDS); goto fail;}
         }
     } else { /*scalar*/
 	nelements = 1;

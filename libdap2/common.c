@@ -1,13 +1,11 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
 #include "dapincludes.h"
 
 #include "dapdump.h"
-
-extern CDFnode* v4node;
 
 static NCerror buildcdftreer(NCDAPCOMMON*,OCddsnode,CDFnode*,CDFtree*,CDFnode**);
 static void defdimensions(OCddsnode, CDFnode*, NCDAPCOMMON*, CDFtree*);

@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
@@ -34,6 +34,8 @@ names to %2f.
 char*
 cdflegalname(char* name)
 {
+    if(name != NULL && name[0] == '/')
+	name = name+1; /* remove leading / so name will be legal */
     return repairname(name,"/");
 }
 
@@ -41,18 +43,16 @@ cdflegalname(char* name)
    to the external netCDF variable type.
    The proper way is to, for example, convert unsigned short
    to an int to maintain the values.
-   Unfortuneately, libnc-dap does not do this:
+   Unfortunately, libnc-dap does not do this:
    it translates the types directly. For example
    libnc-dap upgrades the DAP byte type, which is unsigned char,
    to NC_BYTE, which signed char.
-   Oh well.
-   For netcdf-4, we can do proper type conversion.
+   Oh well. So we do the same.
 */
 nc_type
 nctypeconvert(NCDAPCOMMON* drno, nc_type nctype)
 {
     nc_type upgrade = NC_NAT;
-    if(drno->controls.flags & NCF_NC3) {
 	/* libnc-dap mimic invariant is to maintain type size */
 	switch (nctype) {
 	case NC_CHAR:    upgrade = NC_CHAR; break;
@@ -62,33 +62,12 @@ nctypeconvert(NCDAPCOMMON* drno, nc_type nctype)
 	case NC_USHORT:  upgrade = NC_SHORT; break;
 	case NC_INT:     upgrade = NC_INT; break;
 	case NC_UINT:    upgrade = NC_INT; break;
-	case NC_INT64:   upgrade = NC_INT64; break;
-	case NC_UINT64:  upgrade = NC_UINT64; break;
 	case NC_FLOAT:   upgrade = NC_FLOAT; break;
 	case NC_DOUBLE:  upgrade = NC_DOUBLE; break;
 	case NC_URL:
 	case NC_STRING:  upgrade = NC_CHAR; break;
 	default: break;
 	}
-    } else if(drno->controls.flags & NCF_NC4) {
-	/* netcdf-4 conversion is more correct */
-	switch (nctype) {
-	case NC_CHAR:    upgrade = NC_CHAR; break;
-	case NC_BYTE:    upgrade = NC_BYTE; break;
-	case NC_UBYTE:   upgrade = NC_UBYTE; break;
-	case NC_SHORT:   upgrade = NC_SHORT; break;
-	case NC_USHORT:  upgrade = NC_USHORT; break;
-	case NC_INT:     upgrade = NC_INT; break;
-	case NC_UINT:    upgrade = NC_UINT; break;
-	case NC_INT64:   upgrade = NC_INT64; break;
-	case NC_UINT64:  upgrade = NC_UINT64; break;
-	case NC_FLOAT:   upgrade = NC_FLOAT; break;
-	case NC_DOUBLE:  upgrade = NC_DOUBLE; break;
-	case NC_URL:
-	case NC_STRING:  upgrade = NC_STRING; break;
-	default: break;
-	}
-    }
     return upgrade;
 }
 
@@ -341,7 +320,7 @@ makeocpathstring(OClink conn, OCddsnode node, const char* sep)
     NCbytes* pathname = NULL;
 
     /* If we are asking for the dataset path only,
-       then nclude it, otherwise elide it
+       then include it, otherwise elide it
     */
     oc_dds_type(conn,node,&octype);
     if(octype == OC_Dataset) {
@@ -567,7 +546,8 @@ getlimitnumber(const char* limit)
     case 'K': case 'k': multiplier = KILOBYTE; break;
     default: break;
     }
-    sscanf(limit,"%lu",&lu);
+    if(sscanf(limit,"%lu",&lu) != 1)
+	return 0;
     return (lu*multiplier);
 }
 
@@ -652,12 +632,10 @@ normal:	    *s++ = *t++;
     return;
 }
 
-#ifdef HAVE_GETTIMEOFDAY
-static struct timeval time0;
-static struct timeval time1;
 
+#ifdef HAVE_GETTIMEOFDAY
 static double
-deltatime()
+deltatime(struct timeval time0, struct timeval time1)
 {
     double t0, t1;
     t0 = ((double)time0.tv_sec);
@@ -678,6 +656,10 @@ dap_fetch(NCDAPCOMMON* nccomm, OClink conn, const char* ce,
     char* ext = NULL;
     OCflags flags = 0;
     int httpcode = 0;
+#ifdef HAVE_GETTIMEOFDAY
+    struct timeval time0;
+    struct timeval time1;
+#endif
 
     if(dxd == OCDDS) ext = ".dds";
     else if(dxd == OCDAS) ext = ".das";
@@ -711,7 +693,7 @@ dap_fetch(NCDAPCOMMON* nccomm, OClink conn, const char* ce,
 #ifdef HAVE_GETTIMEOFDAY
         double secs;
 	gettimeofday(&time1,NULL);
-	secs = deltatime();
+	secs = deltatime(time0,time1);
 	nclog(NCLOGNOTE,"fetch complete: %0.3f secs",secs);
 #else
 	nclog(NCLOGNOTE,"fetch complete.");
@@ -741,12 +723,12 @@ oc_dumpnode(conn,*rootp);
 /* Check a name to see if it contains illegal dap characters
 */
 
-static char* baddapchars = "./";
+static const char* baddapchars = "./";
 
 int
 dap_badname(char* name)
 {
-    char* p;
+    const char* p;
     if(name == NULL) return 0;
     for(p=baddapchars;*p;p++) {
         if(strchr(name,*p) != NULL)
@@ -755,6 +737,7 @@ dap_badname(char* name)
     return 0;
 }
 
+#if 0
 /* Repair a dap name */
 char*
 dap_repairname(char* name)
@@ -762,6 +745,7 @@ dap_repairname(char* name)
     /* assume that dap_badname was called on this name and returned 1 */
     return repairname(name,baddapchars);
 }
+#endif
 
 /* Check a name to see if it contains illegal dap characters
    and repair them

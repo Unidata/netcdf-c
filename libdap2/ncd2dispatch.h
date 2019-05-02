@@ -1,5 +1,5 @@
 /*
- * Copyright 1993-1996 University Corporation for Atmospheric Research/Unidata
+ * Copyright 1993-2018 University Corporation for Atmospheric Research/Unidata
  *
  * Portions of this software were developed by the Unidata Program at the
  * University Corporation for Atmospheric Research.
@@ -46,11 +46,10 @@ extern "C" {
 extern int
 NCD2_open(const char *path, int mode,
          int basepe, size_t *chunksizehintp,
-         int use_parallel, void* mpidata,
-         struct NC_Dispatch* dispatch, NC* ncp);
+         void* mpidata, const struct NC_Dispatch* dispatch, NC* ncp);
 
 extern int
-NCD2_close(int ncid);
+NCD2_close(int ncid,void*);
 
 extern int
 NCD2_inq_format_extended(int ncid, int* formatp, int* modep);
@@ -275,7 +274,7 @@ NCD2_def_var_fill(int, int, int, const void *);
 extern int
 NCD2_get_var_chunk_cache(int, int, size_t *, size_t *, float *);
 
-#endif //USE_NETCDF4
+#endif /*USE_NETCDF4*/
 
 #if defined(__cplusplus)
 }

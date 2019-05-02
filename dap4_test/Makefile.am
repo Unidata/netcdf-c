@@ -1,12 +1,17 @@
 ## This is a automake file, part of Unidata's netCDF package.
-# Copyright 2011, see the COPYRIGHT file for more information.
+# Copyright 2018, see the COPYRIGHT file for more information.
 
 # This file builds and runs DAP4 tests.
 
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
 
-TEST_EXTENSIONS = .sh
+#TEST_EXTENSIONS = .sh
+
+#SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#TESTS_ENVIRONMENT = export SETX=1;
 
 LDADD = ${top_builddir}/liblib/libnetcdf.la
 AM_CPPFLAGS += -I$(top_srcdir)/libdap4
@@ -30,6 +35,7 @@ if BUILD_UTILITIES
 TESTS += test_raw.sh
 TESTS += test_meta.sh
 TESTS += test_data.sh
+TESTS += test_fillmismatch.sh
 endif
 
 # Note which tests depend on other tests. Necessary for make -j check.
@@ -40,26 +46,30 @@ test_data.log: test_meta.log
 if ENABLE_DAP_REMOTE_TESTS
 # Note: This program name was changed to findtestserver4
 # to avoid cmake complaint about duplicate targets.
-check_PROGRAMS += findtestserver4
+noinst_PROGRAMS = findtestserver4
 findtestserver4_SOURCES = findtestserver4.c
+endif
+
+if ENABLE_DAP_REMOTE_TESTS
 if BUILD_UTILITIES
   # relies on ncdump
-  # Disabled until the testserver is stable
-#TESTS += test_remote.sh
+  TESTS += test_remote.sh
 endif
 endif
 
 endif #ENABLE_DAP4
 
 EXTRA_DIST = test_parse.sh test_meta.sh test_data.sh \
-             test_raw.sh test_remote.sh test_hyrax.sh \
-             d4test_common.sh \
-	     daptestfiles dmrtestfiles cdltestfiles nctestfiles \
+             test_raw.sh test_remote.sh test_hyrax.sh test_fillmismatch.sh \
+             tst_curlopt.sh d4test_common.sh \
+	     daptestfiles dmrtestfiles cdltestfiles nctestfiles misctestfiles \
 	     baseline baselineraw baselineremote CMakeLists.txt
 
 CLEANFILES = *.exe
 # This should only be left behind if using parallel io
 CLEANFILES += tmp_*
+
+DISTCLEANFILES = findtestserver4.c
 
 # One last thing
 BUILT_SOURCES = .daprc

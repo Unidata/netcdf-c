@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
@@ -18,18 +18,18 @@ echo "findplugin.sh loaded"
 # Function to remove selected -s attributes from file;
 # These attributes might be platform dependent
 sclean() {
-cat $1 \
-  | sed -e '/var:_Endianness/d' \
-  | sed -e '/_NCProperties/d' \
-  | sed -e '/_SuperblockVersion/d' \
-  | sed -e '/_IsNetcdf4/d' \
-  | cat > $2
+    cat $1 \
+	| sed -e '/:_Endianness/d' \
+	| sed -e '/_NCProperties/d' \
+	| sed -e '/_SuperblockVersion/d' \
+	| sed -e '/_IsNetcdf4/d' \
+	| cat > $2
 }
 
 # Function to extract _Filter attribute from a file
 # These attributes might be platform dependent
 getfilterattr() {
-sed -e '/var:_Filter/p' -ed <$1 >$2
+sed -e '/var.*:_Filter/p' -ed <$1 >$2
 }
 
 trimleft() {
@@ -38,7 +38,7 @@ sed -e 's/[ 	]*\([^ 	].*\)/\1/' <$1 >$2
 
 # Locate the plugin path and the library names; argument order is critical
 # Find bzip2 and capture
-findplugin bzip2
+findplugin h5bzip2
 BZIP2PATH="${HDF5_PLUGIN_PATH}/${HDF5_PLUGIN_LIB}"
 # Find misc and capture
 findplugin misc
@@ -77,7 +77,7 @@ rm -f ./tst_filter.txt
 trimleft ./tst_filter2.txt ./tst_filter.txt
 rm -f ./tst_filter2.txt
 cat >./tst_filter2.txt <<EOF
-var:_Filter = "32768,1,239,23,65511,27,77,93,1145389056,3287505826,1097305129,1,2147483648,4294967295,4294967295" ;
+var:_Filter = "32768,2,239,23,65511,27,77,93,1145389056,3287505826,1097305129,1,2147483648,4294967295,4294967295" ;
 EOF
 diff -b -w ./tst_filter.txt ./tst_filter2.txt
 echo "*** Pass: parameter passing"
@@ -97,18 +97,38 @@ fi
 if test "x$NCP" = x1 ; then
 echo "*** Testing dynamic filters using nccopy"
 rm -f ./unfiltered.nc ./filtered.nc ./tmp.nc ./filtered.dump ./tst_filter.txt
-${NCGEN} -4 -lb -o unfiltered.nc ${srcdir}/unfiltered.cdl
+# Create our input test files
+${NCGEN} -4 -lb -o unfiltered.nc ${srcdir}/ref_unfiltered.cdl
+${NCGEN} -4 -lb -o unfilteredvv.nc ${srcdir}/ref_unfilteredvv.cdl
+
 echo "	*** Testing simple filter application"
-${NCCOPY} -F "/g/var,307,9,4" unfiltered.nc filtered.nc
+${NCCOPY} -M0 -F "/g/var,307,9,4" unfiltered.nc filtered.nc
 ${NCDUMP} -s filtered.nc > ./tst_filter.txt
 # Remove irrelevant -s output
 sclean ./tst_filter.txt ./filtered.dump
-diff -b -w ${srcdir}/filtered.cdl ./filtered.dump
+diff -b -w ${srcdir}/ref_filtered.cdl ./filtered.dump
 echo "	*** Pass: nccopy simple filter"
+
+echo "	*** Testing '*' filter application"
+${NCCOPY} -M0 -F "*,307,9,4" unfilteredvv.nc filteredvv.nc
+${NCDUMP} -s filteredvv.nc > ./tst_filtervv.txt
+# Remove irrelevant -s output
+sclean ./tst_filtervv.txt ./filteredvv.dump
+diff -b -w ${srcdir}/ref_filteredvv.cdl ./filteredvv.dump
+echo "	*** Pass: nccopy '*' filter"
+
+echo "	*** Testing 'v|v' filter application"
+${NCCOPY} -M0 -F "var1|/g/var2,307,9,4" unfilteredvv.nc filteredvbar.nc
+${NCDUMP} -n filteredvv -s filteredvbar.nc > ./tst_filtervbar.txt
+# Remove irrelevant -s output
+sclean ./tst_filtervbar.txt ./filteredvbar.dump
+diff -b -w ${srcdir}/ref_filteredvv.cdl ./filteredvbar.dump
+echo "	*** Pass: nccopy 'v|v' filter"
 
 echo "	*** Testing pass-thru of filters"
 rm -f ./tst_filter.txt tst_filter2.txt ./tst_filter2.nc
-${NCCOPY} ./filtered.nc ./tst_filter2.nc
+# Prevent failure by allowing any chunk size
+${NCCOPY} -M0 ./filtered.nc ./tst_filter2.nc
 ${NCDUMP} -s tst_filter2.nc > ./tst_filter.txt
 sed -e '/_Filter/p' -e d < ./tst_filter.txt >tst_filter2.txt
 test -s tst_filter2.txt
@@ -116,7 +136,7 @@ echo "	*** Pass: pass-thru of filters"
 
 echo "	*** Testing -F none"
 rm -f ./tst_filter.txt ./tst_filter2.txt ./tst_filter.nc
-${NCCOPY} -F none ./filtered.nc ./tst_filter.nc
+${NCCOPY} -M0 -F none ./filtered.nc ./tst_filter.nc
 ${NCDUMP} -s tst_filter.nc > ./tst_filter.txt
 sed -e '/_Filter/p' -e d < ./tst_filter.txt >./tst_filter2.txt
 test ! -s tst_filter2.txt
@@ -124,7 +144,7 @@ echo "	*** Pass: -F none"
 
 echo "	*** Testing -F var,none "
 rm -f ./tst_filter.txt ./tst_filter.nc
-${NCCOPY} -F "/g/var,none" ./filtered.nc ./tst_filter.nc
+${NCCOPY} -M0 -F "/g/var,none" ./filtered.nc ./tst_filter.nc
 ${NCDUMP} -s tst_filter.nc > ./tst_filter.txt
 sed -e '/_Filter/p' -e d < ./tst_filter.txt >tst_filter2.txt
 test ! -s tst_filter2.txt
@@ -168,6 +188,8 @@ rm -f ./bzip*.nc ./unfiltered.nc ./filtered.nc ./tst_filter.txt ./tst_filter2.tx
 rm -f ./test_bzip2.c
 rm -f ./testmisc.nc
 rm -f ./tst_filter2.nc
+rm -f ./unfilteredvv.nc ./filteredvv.nc ./filteredvbar.nc
+rm -f ./tst_filtervv.txt ./tst_filtervbar.txt
 echo "*** Pass: all selected tests passed"
 
 exit 0

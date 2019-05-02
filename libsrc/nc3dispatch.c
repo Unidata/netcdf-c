@@ -1,5 +1,5 @@
 /*********************************************************************
-   Copyright 2010, UCAR/Unidata See netcdf/COPYRIGHT file for
+   Copyright 2018, UCAR/Unidata See netcdf/COPYRIGHT file for
    copying and redistribution conditions.
 
    $Id: nc3dispatch.c,v 2.8 2010/05/26 11:11:26 ed Exp $
@@ -80,7 +80,7 @@ static int NC3_set_var_chunk_cache(int,int,size_t,size_t,float);
 static int NC3_get_var_chunk_cache(int,int,size_t*,size_t*,float*);
 #endif /*USE_NETCDF4*/
 
-static NC_Dispatch NC3_dispatcher = {
+static const NC_Dispatch NC3_dispatcher = {
 
 NC_FORMATX_NC3,
 
@@ -173,7 +173,7 @@ NC3_get_var_chunk_cache,
 
 };
 
-NC_Dispatch* NC3_dispatch_table = NULL; /*!< NC3 Dispatch table, moved here from ddispatch.c */
+const NC_Dispatch* NC3_dispatch_table = NULL; /*!< NC3 Dispatch table, moved here from ddispatch.c */
 
 int
 NC3_initialize(void)

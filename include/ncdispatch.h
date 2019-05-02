@@ -1,13 +1,14 @@
-/*********************************************************************
- *   Copyright 2010, UCAR/Unidata
- *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
- *********************************************************************/
+/* Copyright 2018-2018 University Corporation for Atmospheric
+   Research/Unidata. */
+/**
+ * @file
+ * @internal Includes prototypes for core dispatch functionality.
+ *
+ * @author Dennis Heimbigner
+ */
 
-/* $Id: ncdispatch.h,v 1.18 2010/06/01 20:11:59 dmh Exp $ */
-/* $Header: /upc/share/CVS/netcdf-3/libdispatch/ncdispatch.h,v 1.18 2010/06/01 20:11:59 dmh Exp $ */
-
-#ifndef _DISPATCH_H
-#define _DISPATCH_H
+#ifndef NC_DISPATCH_H
+#define NC_DISPATCH_H
 
 #if HAVE_CONFIG_H
 #include "config.h"
@@ -19,12 +20,13 @@
 #if defined(HDF5_PARALLEL) || defined(USE_PNETCDF)
 #include <mpi.h>
 #endif
+#include "netcdf.h"
+#include "ncmodel.h"
+#include "nc.h"
+#include "ncuri.h"
 #ifdef USE_PARALLEL
 #include "netcdf_par.h"
 #endif
-#include "netcdf.h"
-#include "nc.h"
-#include "ncuri.h"
 
 #define longtype ((sizeof(long) == sizeof(int) ? NC_INT : NC_INT64))
 
@@ -62,14 +64,6 @@
 #define T_ulong   ulongtype
 
 /**************************************************/
-#if 0
-/* Define the known classes of dispatchers */
-/* Flags may be or'd => powers of 2*/
-#define NC_DISPATCH_NC3    1
-#define NC_DISPATCH_NC4    2
-#define NC_DISPATCH_NCD    4
-#define NC_DISPATCH_NCP    8
-#endif
 
 /* Define a type for use when doing e.g. nc_get_vara_long, etc. */
 /* Should matche values in libsrc4/netcdf.h */
@@ -105,56 +99,58 @@ typedef struct NC_MPI_INFO {
     MPI_Info info;
 } NC_MPI_INFO;
 
-typedef struct NC_MEM_INFO {
-    size_t size;
-    void* memory;
-} NC_MEM_INFO;
-
 /* Define known dispatch tables and initializers */
-
-/*Forward*/
-typedef struct NC_Dispatch NC_Dispatch;
 
 extern int NCDISPATCH_initialize(void);
 extern int NCDISPATCH_finalize(void);
 
-extern NC_Dispatch* NC3_dispatch_table;
+extern const NC_Dispatch* NC3_dispatch_table;
 extern int NC3_initialize(void);
 extern int NC3_finalize(void);
 
 #ifdef ENABLE_DAP
-extern NC_Dispatch* NCD2_dispatch_table;
+extern const NC_Dispatch* NCD2_dispatch_table;
 extern int NCD2_initialize(void);
 extern int NCD2_finalize(void);
 #endif
 #ifdef ENABLE_DAP4
-extern NC_Dispatch* NCD4_dispatch_table;
+extern const NC_Dispatch* NCD4_dispatch_table;
 extern int NCD4_initialize(void);
 extern int NCD4_finalize(void);
 #endif
 
 #ifdef USE_PNETCDF
-extern NC_Dispatch* NCP_dispatch_table;
+extern const NC_Dispatch* NCP_dispatch_table;
 extern int NCP_initialize(void);
 extern int NCP_finalize(void);
 #endif
 
 #ifdef USE_NETCDF4
-extern NC_Dispatch* NC4_dispatch_table;
 extern int NC4_initialize(void);
 extern int NC4_finalize(void);
 #endif
 
+#ifdef USE_HDF5
+extern const NC_Dispatch* HDF5_dispatch_table;
+extern int NC_HDF5_initialize(void);
+extern int NC_HDF5_finalize(void);
+#endif
+
 #ifdef USE_HDF4
-extern NC_Dispatch* HDF4_dispatch_table;
+extern const NC_Dispatch* HDF4_dispatch_table;
 extern int HDF4_initialize(void);
 extern int HDF4_finalize(void);
 #endif
 
-/* Vectors of ones and zeros */
-extern size_t nc_sizevector0[NC_MAX_VAR_DIMS];
-extern size_t nc_sizevector1[NC_MAX_VAR_DIMS];
-extern ptrdiff_t nc_ptrdiffvector1[NC_MAX_VAR_DIMS];
+/* User-defined formats.*/
+extern NC_Dispatch* UDF0_dispatch_table;
+extern char UDF0_magic_number[NC_MAX_MAGIC_NUMBER_LEN + 1];
+extern NC_Dispatch* UDF1_dispatch_table;
+extern char UDF1_magic_number[NC_MAX_MAGIC_NUMBER_LEN + 1];
+
+/* Prototypes. */
+int NC_check_nulls(int ncid, int varid, const size_t *start, size_t **count,
+                   ptrdiff_t **stride);
 
 /**************************************************/
 /* Forward */
@@ -171,22 +167,20 @@ struct NC;
 
 int NC_create(const char *path, int cmode,
 	      size_t initialsz, int basepe, size_t *chunksizehintp,
-	      int useparallel, void* parameters,
-	      int *ncidp);
+	      int useparallel, void *parameters, int *ncidp);
 int NC_open(const char *path, int cmode,
 	    int basepe, size_t *chunksizehintp,
-	    int useparallel, void* parameters,
-	    int *ncidp);
+	    int useparallel, void *parameters, int *ncidp);
 
 /* Expose the default vars and varm dispatch entries */
-extern int NCDEFAULT_get_vars(int, int, const size_t*,
+EXTERNL int NCDEFAULT_get_vars(int, int, const size_t*,
 	       const size_t*, const ptrdiff_t*, void*, nc_type);
-extern int NCDEFAULT_put_vars(int, int, const size_t*,
+EXTERNL int NCDEFAULT_put_vars(int, int, const size_t*,
 	       const size_t*, const ptrdiff_t*, const void*, nc_type);
-extern int NCDEFAULT_get_varm(int, int, const size_t*,
+EXTERNL int NCDEFAULT_get_varm(int, int, const size_t*,
                const size_t*, const ptrdiff_t*, const ptrdiff_t*,
                void*, nc_type);
-extern int NCDEFAULT_put_varm(int, int, const size_t*,
+EXTERNL int NCDEFAULT_put_varm(int, int, const size_t*,
                const size_t*, const ptrdiff_t*, const ptrdiff_t*,
                const void*, nc_type);
 
@@ -199,19 +193,17 @@ struct NC_Dispatch {
 int model; /* one of the NC_FORMATX #'s */
 
 int (*create)(const char *path, int cmode,
-	  size_t initialsz, int basepe, size_t *chunksizehintp,
-	  int use_parallel, void* parameters,
-	  struct NC_Dispatch* table, NC* ncp);
+              size_t initialsz, int basepe, size_t *chunksizehintp,
+              void* parameters, const struct NC_Dispatch* table, NC* ncp);
 int (*open)(const char *path, int mode,
-	    int basepe, size_t *chunksizehintp,
-	    int use_parallel, void* parameters,
-	    struct NC_Dispatch* table, NC* ncp);
+            int basepe, size_t *chunksizehintp,
+            void* parameters, const struct NC_Dispatch* table, NC* ncp);
 
 int (*redef)(int);
 int (*_enddef)(int,size_t,size_t,size_t,size_t);
 int (*sync)(int);
 int (*abort)(int);
-int (*close)(int);
+int (*close)(int,void*);
 int (*set_fill)(int,int,int*);
 int (*inq_base_pe)(int,int*);
 int (*set_base_pe)(int,int);
@@ -322,50 +314,13 @@ void (*nc_finalize)();
 typedef struct NCcommon {
 	int ext_ncid; /* uid << 16 */
 	int int_ncid; /* unspecified other id */
-	struct NC_Dispatch* dispatch;
+	const struct NC_Dispatch* dispatch;
 	void* dispatchdata; /* per-protocol instance data */
 	char* path; /* as specified at open or create */
 } NCcommon;
 
-extern size_t NC_atomictypelen(nc_type xtype);
-extern char* NC_atomictypename(nc_type xtype);
-
-#ifdef OBSOLETE
-/* Provide a dispatch table overlay facility */
-extern int NC_dispatch_overlay(const NC_Dispatch* overlay,
-                                        const NC_Dispatch* base,
-					NC_Dispatch* merge);
-
-/* Get/set the override dispatch table */
-extern NC_Dispatch* NC_get_dispatch_override(void);
-extern void NC_set_dispatch_override(NC_Dispatch*);
-#endif
-
-/* Return model as specified by the url, if any;
-   return a modified url suitable for passing to curl
-*/
-extern int NC_urlmodel(const char* path, int mode, char** newurl);
-
-/* allow access url parse and params without exposing nc_url.h */
-extern int NCDAP_urlparse(const char* s, void** dapurl);
-extern void NCDAP_urlfree(void* dapurl);
-extern const char* NCDAP_urllookup(void* dapurl, const char* param);
-
-#if defined(DLL_NETCDF)
-# if defined(DLL_EXPORT)
-#  define NCC_EXTRA __declspec(dllexport)
-#else
-#  define NCC_EXTRA __declspec(dllimport)
-# endif
-NCC_EXTRA extern int nc__testurl(const char* path, char** basename);
-#else
-extern int
- nc__testurl(const char* parth, char** basename);
-#endif
-
-/* Ping a specific server */
-extern int NCDAP2_ping(const char*);
-extern int NCDAP4_ping(const char*);
+EXTERNL size_t NC_atomictypelen(nc_type xtype);
+EXTERNL char* NC_atomictypename(nc_type xtype);
 
 /* Misc */
 
@@ -375,7 +330,6 @@ extern int NC_inq_recvar(int ncid, int varid, int* nrecdims, int* is_recdim);
 
 #define nullstring(s) (s==NULL?"(null)":s)
 
-
 #undef TRACECALLS
 #ifdef TRACECALLS
 #include <stdio.h>
@@ -384,15 +338,12 @@ extern int NC_inq_recvar(int ncid, int varid, int* nrecdims, int* is_recdim);
 #define TRACE(fname)
 #endif
 
-extern size_t NC_coord_zero[NC_MAX_VAR_DIMS];
-extern size_t NC_coord_one[NC_MAX_VAR_DIMS];
+/* Vectors of ones and zeros */
+extern const size_t NC_coord_zero[NC_MAX_VAR_DIMS];
+extern const size_t NC_coord_one[NC_MAX_VAR_DIMS];
+extern const ptrdiff_t NC_stride_one[NC_MAX_VAR_DIMS];
 
-extern int NC_argc;
-extern char* NC_argv[];
 extern int NC_initialized;
-
-extern int nc_initialize();
-extern void nc_finalize();
 
 /**
 Certain functions are in the dispatch table,
@@ -400,7 +351,7 @@ but not in the netcdf.h API. These need to
 be exposed for use in delegation such as
 in libdap2.
 */
-extern int
+EXTERNL int
 NCDISPATCH_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
                int *ndimsp, int *dimidsp, int *nattsp,
                int *shufflep, int *deflatep, int *deflate_levelp,
@@ -408,68 +359,68 @@ NCDISPATCH_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
                int *no_fill, void *fill_valuep, int *endiannessp,
 	       unsigned int* idp, size_t* nparamsp, unsigned int* paramsp
                );
-extern int
+EXTERNL int
 NCDISPATCH_get_att(int ncid, int varid, const char* name, void* value, nc_type t);
 
 /* Read-only dispatch layers can use these functions to return
  * NC_EPERM to all attempts to modify a file. */
 
-int NC_RO_create(const char *path, int cmode, size_t initialsz, int basepe,
-                 size_t *chunksizehintp, int useparallel, void* parameters,
-                 NC_Dispatch*, NC*);
-int NC_RO_redef(int ncid);
-int NC_RO__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree,
+EXTERNL int NC_RO_create(const char *path, int cmode, size_t initialsz, int basepe,
+                 size_t *chunksizehintp, void* parameters,
+                 const NC_Dispatch*, NC*);
+EXTERNL int NC_RO_redef(int ncid);
+EXTERNL int NC_RO__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree,
                   size_t r_align);
-int NC_RO_sync(int ncid);
-int NC_RO_def_var_fill(int, int, int, const void *);
-int NC_RO_rename_att(int ncid, int varid, const char *name,
+EXTERNL int NC_RO_sync(int ncid);
+EXTERNL int NC_RO_def_var_fill(int, int, int, const void *);
+EXTERNL int NC_RO_rename_att(int ncid, int varid, const char *name,
                      const char *newname);
-int NC_RO_del_att(int ncid, int varid, const char*);
-int NC_RO_put_att(int ncid, int varid, const char *name, nc_type datatype,
+EXTERNL int NC_RO_del_att(int ncid, int varid, const char*);
+EXTERNL int NC_RO_put_att(int ncid, int varid, const char *name, nc_type datatype,
                   size_t len, const void *value, nc_type);
-int NC_RO_def_var(int ncid, const char *name,
+EXTERNL int NC_RO_def_var(int ncid, const char *name,
                   nc_type xtype, int ndims, const int *dimidsp, int *varidp);
-int NC_RO_rename_var(int ncid, int varid, const char *name);
-int NC_RO_put_vara(int ncid, int varid,
+EXTERNL int NC_RO_rename_var(int ncid, int varid, const char *name);
+EXTERNL int NC_RO_put_vara(int ncid, int varid,
                    const size_t *start, const size_t *count,
                    const void *value, nc_type);
-int NC_RO_def_dim(int ncid, const char *name, size_t len, int *idp);
-int NC_RO_rename_dim(int ncid, int dimid, const char *name);
-int NC_RO_set_fill(int ncid, int fillmode, int *old_modep);
+EXTERNL int NC_RO_def_dim(int ncid, const char *name, size_t len, int *idp);
+EXTERNL int NC_RO_rename_dim(int ncid, int dimid, const char *name);
+EXTERNL int NC_RO_set_fill(int ncid, int fillmode, int *old_modep);
 
 /* These functions are for dispatch layers that don't implement these
  * legacy functions. They return NC_ENOTNC3. */
-int NC_NOTNC3_set_base_pe(int ncid, int pe);
-int NC_NOTNC3_inq_base_pe(int ncid, int *pe);
+EXTERNL int NC_NOTNC3_set_base_pe(int ncid, int pe);
+EXTERNL int NC_NOTNC3_inq_base_pe(int ncid, int *pe);
 
 /* These functions are for dispatch layers that don't implement the
  * enhanced model. They return NC_ENOTNC4. */
-int NC_NOTNC4_def_var_filter(int, int, unsigned int, size_t,
+EXTERNL int NC_NOTNC4_def_var_filter(int, int, unsigned int, size_t,
                              const unsigned int*);
-int NC_NOTNC4_def_grp(int, const char *, int *);
-int NC_NOTNC4_rename_grp(int, const char *);
-int NC_NOTNC4_def_compound(int, size_t, const char *, nc_type *);
-int NC_NOTNC4_insert_compound(int, nc_type, const char *, size_t, nc_type);
-int NC_NOTNC4_insert_array_compound(int, nc_type, const char *, size_t, 
+EXTERNL int NC_NOTNC4_def_grp(int, const char *, int *);
+EXTERNL int NC_NOTNC4_rename_grp(int, const char *);
+EXTERNL int NC_NOTNC4_def_compound(int, size_t, const char *, nc_type *);
+EXTERNL int NC_NOTNC4_insert_compound(int, nc_type, const char *, size_t, nc_type);
+EXTERNL int NC_NOTNC4_insert_array_compound(int, nc_type, const char *, size_t, 
                                     nc_type, int, const int *);
-int NC_NOTNC4_inq_typeid(int, const char *, nc_type *);
-int NC_NOTNC4_inq_compound_field(int, nc_type, int, char *, size_t *, 
+EXTERNL int NC_NOTNC4_inq_typeid(int, const char *, nc_type *);
+EXTERNL int NC_NOTNC4_inq_compound_field(int, nc_type, int, char *, size_t *, 
                                  nc_type *, int *, int *);
-int NC_NOTNC4_inq_compound_fieldindex(int, nc_type, const char *, int *);
-int NC_NOTNC4_def_vlen(int, const char *, nc_type base_typeid, nc_type *);
-int NC_NOTNC4_put_vlen_element(int, int, void *, size_t, const void *);
-int NC_NOTNC4_get_vlen_element(int, int, const void *, size_t *, void *);
-int NC_NOTNC4_def_enum(int, nc_type, const char *, nc_type *);
-int NC_NOTNC4_insert_enum(int, nc_type, const char *, const void *);
-int NC_NOTNC4_inq_enum_member(int, nc_type, int, char *, void *);
-int NC_NOTNC4_inq_enum_ident(int, nc_type, long long, char *);
-int NC_NOTNC4_def_opaque(int, size_t, const char *, nc_type *);
-int NC_NOTNC4_def_var_deflate(int, int, int, int, int);
-int NC_NOTNC4_def_var_fletcher32(int, int, int);
-int NC_NOTNC4_def_var_chunking(int, int, int, const size_t *);
-int NC_NOTNC4_def_var_endian(int, int, int);
-int NC_NOTNC4_set_var_chunk_cache(int, int, size_t, size_t, float);
-int NC_NOTNC4_get_var_chunk_cache(int, int, size_t *, size_t *, float *);
-int NC_NOTNC4_var_par_access(int, int, int);
+EXTERNL int NC_NOTNC4_inq_compound_fieldindex(int, nc_type, const char *, int *);
+EXTERNL int NC_NOTNC4_def_vlen(int, const char *, nc_type base_typeid, nc_type *);
+EXTERNL int NC_NOTNC4_put_vlen_element(int, int, void *, size_t, const void *);
+EXTERNL int NC_NOTNC4_get_vlen_element(int, int, const void *, size_t *, void *);
+EXTERNL int NC_NOTNC4_def_enum(int, nc_type, const char *, nc_type *);
+EXTERNL int NC_NOTNC4_insert_enum(int, nc_type, const char *, const void *);
+EXTERNL int NC_NOTNC4_inq_enum_member(int, nc_type, int, char *, void *);
+EXTERNL int NC_NOTNC4_inq_enum_ident(int, nc_type, long long, char *);
+EXTERNL int NC_NOTNC4_def_opaque(int, size_t, const char *, nc_type *);
+EXTERNL int NC_NOTNC4_def_var_deflate(int, int, int, int, int);
+EXTERNL int NC_NOTNC4_def_var_fletcher32(int, int, int);
+EXTERNL int NC_NOTNC4_def_var_chunking(int, int, int, const size_t *);
+EXTERNL int NC_NOTNC4_def_var_endian(int, int, int);
+EXTERNL int NC_NOTNC4_set_var_chunk_cache(int, int, size_t, size_t, float);
+EXTERNL int NC_NOTNC4_get_var_chunk_cache(int, int, size_t *, size_t *, float *);
+EXTERNL int NC_NOTNC4_var_par_access(int, int, int);
 
-#endif /* _DISPATCH_H */
+#endif /* NC_DISPATCH_H */

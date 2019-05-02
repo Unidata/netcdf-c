@@ -1,5 +1,5 @@
 /* This is part of the netCDF package.
-   Copyright 2005 University Corporation for Atmospheric Research/Unidata
+   Copyright 2018 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
    Test HDF5 file code. These are not intended to be exhaustive tests,
@@ -512,7 +512,7 @@ main()
 				   lon_spaceid, H5P_DEFAULT)) < 0) ERR;
       if (H5DSset_scale(lon_scaleid, LON_NAME) < 0) ERR;
 
-      /* Create a space coresponding to these three dimensions. */
+      /* Create a space corresponding to these three dimensions. */
       dims[TIME_DIM] = 0;
       dims[LAT_DIM] = LAT_LEN;
       dims[LON_DIM] = LON_LEN;
@@ -720,7 +720,7 @@ main()
 					distance_spaceid, H5P_DEFAULT)) < 0) ERR;
       if (H5DSset_scale(distance_scaleid, DISTANCE_NAME) < 0) ERR;
 
-      /* Create a space coresponding to these three dimensions. */
+      /* Create a space corresponding to these three dimensions. */
       dims[TIME_DIM] = 0;
       dims[SMELLINESS_DIM] = 0;
       dims[DISTANCE_DIM] = DISTANCE_LEN;

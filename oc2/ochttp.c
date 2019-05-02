@@ -1,4 +1,4 @@
-/* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
+/* Copyright 2018, UCAR/Unidata and OPeNDAP, Inc.
  See the COPYRIGHT file for more information. */
 
 #include "config.h"
@@ -128,7 +128,7 @@ ocfetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime)
 	/* Null terminate the buffer*/
 	len = ncbyteslength(buf);
 	ncbytesappend(buf, '\0');
-	ncbytessetlength(buf, len); /* dont count null in buffer size*/
+	ncbytessetlength(buf, len); /* don't count null in buffer size*/
 #ifdef OCDEBUG
 	nclog(NCLOGNOTE,"buffersize: %lu bytes",(off_t)ncbyteslength(buf));
 #endif
@@ -138,6 +138,7 @@ ocfetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime)
 fail:
 	nclog(NCLOGERR, "curl error: %s", curl_easy_strerror(cstat));
 	switch (httpcode) {
+	case 400: stat = OC_EBADURL; break;
 	case 401: stat = OC_EAUTH; break;
 	case 404: stat = OC_ENOFILE; break;
 	case 500: stat = OC_EDAPSVC; break;
@@ -312,7 +313,7 @@ ocping(const char* url)
     if (cstat != CURLE_OK)
         goto done;
 
-    /* use a very short timeout: 10 seconds */
+    /* use a very short timeout: 5 seconds */
     cstat = CURLERR(curl_easy_setopt(curl, CURLOPT_TIMEOUT, (long)5));
     if (cstat != CURLE_OK)
         goto done;

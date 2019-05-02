@@ -1,4 +1,4 @@
-/* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
+/* Copyright 2018, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
 
 #include <stdlib.h>
@@ -17,7 +17,7 @@
 #define DEFAULTALLOC 1024
 #define ALLOCINCR 1024
 
-static int ncbytesdebug = 1;
+#define NCBYTESDEBUG 1
 
 static int
 ncbytesfail(void)
@@ -25,7 +25,9 @@ ncbytesfail(void)
     fflush(stdout);
     fprintf(stderr,"bytebuffer failure\n");
     fflush(stderr);
-    if(ncbytesdebug) abort();
+#ifdef NCBYTESDEBUG
+    abort();
+#endif
     return FALSE;
 }
 

@@ -8,7 +8,6 @@
  * @author Ed Hartnett
  */
 
-#include "nc.h"
 #include "ncdispatch.h"
 
 /**
@@ -157,7 +156,7 @@ NC_RO_rename_var(int ncid, int varid, const char *name)
  * 
  * @param ncid File ID.
  * @param varid Variable ID.
- * @param startp Array of start indicies.
+ * @param startp Array of start indices.
  * @param countp Array of counts.
  * @param op pointer that gets the data.
  * @param memtype The type of these data in memory.
@@ -253,8 +252,8 @@ NC_RO_sync(int ncid)
  */
 int
 NC_RO_create(const char* path, int cmode, size_t initialsz, int basepe,
-             size_t *chunksizehintp, int use_parallel, void *parameters,
-             NC_Dispatch *dispatch, NC* nc_file)
+             size_t *chunksizehintp, void *parameters,
+             const NC_Dispatch *dispatch, NC *nc_file)
 {
    return NC_EPERM;
 }

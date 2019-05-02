@@ -1,4 +1,4 @@
-/* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
+/* Copyright 2018, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
 
 #define URLDECODE
@@ -24,14 +24,14 @@ static void ceaddyytext(DCElexstate* lex, int c);
 
 /****************************************************/
 /* Define 1 and > 1st legal characters */
-static char* wordchars1 =
+static const char* wordchars1 =
   "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+_/%\\";
-static char* wordcharsn =
+static const char* wordcharsn =
   "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+_/%\\";
 
 /* Number characters */
-static char* numchars1="+-0123456789";
-static char* numcharsn="Ee.+-0123456789";
+static const char* numchars1="+-0123456789";
+static const char* numcharsn="Ee.+-0123456789";
 
 /**************************************************/
 

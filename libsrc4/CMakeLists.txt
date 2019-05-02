@@ -1,6 +1,12 @@
+# Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+# 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+# 2015, 2016, 2017, 2018
+# University Corporation for Atmospheric Research/Unidata.
+
+# See netcdf-c/COPYRIGHT file for more info.
 # Process these files with m4.
 
-SET(libsrc4_SOURCES nc4dispatch.c nc4attr.c nc4dim.c nc4file.c nc4grp.c nc4type.c nc4var.c ncfunc.c nc4internal.c nc4hdf.c nc4info.c ncindex.c)
+SET(libsrc4_SOURCES nc4dispatch.c nc4attr.c nc4dim.c nc4grp.c nc4type.c nc4var.c ncfunc.c nc4internal.c ncindex.c )
 
 IF(LOGGING)
   SET(libsrc4_SOURCES ${libsrc4_SOURCES} error4.c)
@@ -38,6 +44,3 @@ ENDIF(BUILD_DAP)
 IF (BUILD_PARALLEL)
   SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DPARALLEL_IO=TRUE)
 ENDIF(BUILD_PARALLEL)
-
-
-

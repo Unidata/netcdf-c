@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2010, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
@@ -18,8 +18,14 @@ extern int NC3_finalize(void);
 
 #ifdef USE_NETCDF4
 #include "nc4internal.h"
+#include "hdf5internal.h"
 extern int NC4_initialize(void);
 extern int NC4_finalize(void);
+#endif
+
+#ifdef USE_HDF5
+extern int NC_HDF5_initialize(void);
+extern int NC_HDF5_finalize(void);
 #endif
 
 #ifdef ENABLE_DAP2
@@ -47,9 +53,6 @@ extern int NC_HDF4_finalize(void);
 #include <fcntl.h>
 #endif
 
-int NC_argc = 1;
-char* NC_argv[] = {"nc_initialize",NULL};
-
 int NC_initialized = 0;
 int NC_finalized = 1;
 
@@ -71,11 +74,6 @@ nc_initialize()
     NC_initialized = 1;
     NC_finalized = 0;
 
-#ifdef _MSC_VER
-    /* Force binary mode */
-    _set_fmode(_O_BINARY);
-#endif
-
     /* Do general initialization */
     if((stat = NCDISPATCH_initialize())) goto done;
 
@@ -90,13 +88,15 @@ nc_initialize()
 #ifdef USE_PNETCDF
     if((stat = NCP_initialize())) goto done;
 #endif
+#ifdef USE_NETCDF4
+    if((stat = NC4_initialize())) goto done;
+#endif /* USE_NETCDF4 */
+#ifdef USE_HDF5
+    if((stat = NC_HDF5_initialize())) goto done;
+#endif
 #ifdef USE_HDF4
     if((stat = NC_HDF4_initialize())) goto done;
 #endif
-#ifdef USE_NETCDF4
-    if((stat = NC4_initialize())) goto done;
-    stat = NC4_fileinfo_init();
-#endif /* USE_NETCDF4 */
 
 #ifdef HAVE_ATEXIT
     /* If we have atexit(), then use it to invoke nc_finalize */
@@ -147,7 +147,11 @@ nc_finalize(void)
     if((stat = NC4_finalize())) goto done;
 #endif /* USE_NETCDF4 */
 
-    if((stat = NC3_finalize())) goto done;
+#ifdef USE_HDF5
+    if((stat = NC_HDF5_finalize())) return stat;
+#endif
+
+    if((stat = NC3_finalize())) return stat;
 
     /* Do general finalization */
     if((stat = NCDISPATCH_finalize())) goto done;

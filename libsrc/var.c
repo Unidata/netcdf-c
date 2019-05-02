@@ -1,5 +1,5 @@
 /*
- *	Copyright 1996, University Corporation for Atmospheric Research
+ *	Copyright 2018, University Corporation for Atmospheric Research
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 /* $Id: var.c,v 1.144 2010/05/30 00:50:35 russ Exp $ */
@@ -484,9 +484,6 @@ NC_var_shape(NC_var *varp, const NC_dimarray *dims)
 
 out :
 
-    /* No variable size can be > X_INT64_MAX - 3 */
-    if (0 == NC_check_vlen(varp, (size_t)X_INT64_MAX-3)) return NC_EVARSIZE;
-
     /*
      * For CDF-1 and CDF-2 formats, the total number of array elements
      * cannot exceed 2^32, unless this variable is the last fixed-size
@@ -513,16 +510,15 @@ out :
  * systems with LFS it should be 2^32 - 4.
  */
 int
-NC_check_vlen(NC_var *varp, unsigned long long vlen_max) {
-    unsigned long long prod=varp->xsz;	/* product of xsz and dimensions so far */
-
+NC_check_vlen(NC_var *varp, long long vlen_max) {
     int ii;
+    long long prod=varp->xsz;	/* product of xsz and dimensions so far */
 
     assert(varp != NULL);
     for(ii = IS_RECVAR(varp) ? 1 : 0; ii < varp->ndims; ii++) {
       if(!varp->shape)
         return 0; /* Shape is undefined/NULL. */
-      if (varp->shape[ii] > (size_t)(vlen_max / prod)) {
+      if ((long long)varp->shape[ii] > vlen_max / prod) {
         return 0;		/* size in bytes won't fit in a 32-bit int */
       }
       prod *= varp->shape[ii];

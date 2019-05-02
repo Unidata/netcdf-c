@@ -1,4 +1,4 @@
-/* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
+/* Copyright 2018, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
 
 /*The lines down to DO NOT DELETE ... comment are specific to the C Parser.
@@ -82,7 +82,7 @@ segment:
 	    {$$=segment(parsestate,$1,$2);}
 	;
 
-rangelist: 
+rangelist:
 	  range
 	    {$$=rangelist(parsestate,null,$1);}
         | rangelist range

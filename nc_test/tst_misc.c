@@ -1,5 +1,5 @@
 /*
-  Copyright 2007, UCAR/Unidata
+  Copyright 2018, UCAR/Unidata
   See COPYRIGHT file for copying and redistribution conditions.
 
   This is part of netCDF.
@@ -49,7 +49,7 @@ main(int argc, char **argv)
 
 	 /* Make sure that netCDF rejects this file politely. */
 #ifdef TEST_PNETCDF
-        openstat = nc_open_par(FILE_NAME, NC_PNETCDF, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
+        openstat = nc_open_par(FILE_NAME, 0, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
 #else
          openstat = nc_open(FILE_NAME, 0, &ncid);
 #endif
@@ -61,30 +61,20 @@ main(int argc, char **argv)
    }
 
    SUMMARIZE_ERR;
-#ifndef USE_NETCDF4   
+#ifndef USE_NETCDF4
    printf("*** Trying to create netCDF-4 file without netCDF-4...");
    {
        int ncid;
-       
+
        if (nc_create(FILE_NAME, NC_NETCDF4, &ncid) != NC_ENOTBUILT)
 	   ERR;
    }
    SUMMARIZE_ERR;
 #endif /* USE_NETCDF4 undefined */
-#ifndef USE_DISKLESS   
-   printf("*** Trying to create diskless file without diskless...");
-   {
-       int ncid;
-       
-       if (nc_create(FILE_NAME, NC_DISKLESS, &ncid) != NC_ENOTBUILT)
-	   ERR;
-   }
-   SUMMARIZE_ERR;
-#endif /* USE_DISKLESS undefined */
-   
+
 #ifdef TEST_PNETCDF
    MPI_Finalize();
 #endif
-   
+
    FINAL_RESULTS;
 }

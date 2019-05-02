@@ -1,3 +1,13 @@
+/*! \file
+
+Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+2015, 2016, 2017, 2018
+University Corporation for Atmospheric Research/Unidata.
+
+See \ref copyright file for more info.
+
+*/
 #ifndef CONFIG_H
 #define CONFIG_H
 
@@ -107,9 +117,11 @@ are set when opening a binary file on Windows. */
 /* set this only when building a DLL under MinGW */
 #cmakedefine DLL_NETCDF 1
 
+/* if true, build byte-range Client */
+#cmakedefine ENABLE_BYTERANGE 1
+
 /* if true, enable CDF5 Support */
 #cmakedefine ENABLE_CDF5 1
-#cmakedefine USE_CDF5 1
 
 /* if true, enable strict null byte header padding. */
 #cmakedefine USE_STRICT_NULL_BYTE_HEADER_PADDING 1
@@ -122,9 +134,6 @@ are set when opening a binary file on Windows. */
 
 /* if true, build DAP4 Client */
 #cmakedefine ENABLE_DAP4 1
-
-/* if true, enable DAP group names */
-#cmakedefine ENABLE_DAP_GROUPS 1
 
 /* if true, do remote tests */
 #cmakedefine ENABLE_DAP_REMOTE_TESTS 1
@@ -157,6 +166,12 @@ are set when opening a binary file on Windows. */
 /* Is CURLINFO_HTTP_CODE defined */
 #cmakedefine HAVE_CURLINFO_HTTP_CONNECTCODE 1
 
+/* Is CURLOPT_BUFFERSIZE defined */
+#cmakedefine HAVE_CURLOPT_BUFFERSIZE 1
+
+/* Is CURLOPT_TCP_KEEPALIVE defined */
+#cmakedefine HAVE_CURLOPT_KEEPALIVE 1
+
 /* Is CURLOPT_KEYPASSWD defined */
 #cmakedefine HAVE_CURLOPT_KEYPASSWD 1
 
@@ -187,6 +202,8 @@ are set when opening a binary file on Windows. */
 /* Define if we have filelengthi64. */
 #cmakedefine HAVE_FILE_LENGTH_I64 @HAVE_FILE_LENGTH_I64@
 
+/* Define to 1 if you have the `fileno' function. */
+#cmakedefine HAVE_FILENO 1
 
 /* Define to 1 if you have the `fsync' function. */
 #cmakedefine HAVE_FSYNC 1
@@ -204,7 +221,7 @@ are set when opening a binary file on Windows. */
 #cmakedefine HAVE_GETTIMEOFDAY 1
 
 /* if true, netcdf4 file properties will be set using H5Pset_libver_bounds */
-#cmakedefine HDF5_HAS_LIBVER_BOUNDS 1
+#cmakedefine HAVE_H5PSET_LIBVER_BOUNDS 1
 
 /* Define to 1 if you have the `H5Z_SZIP' function. */
 #cmakedefine HAVE_H5Z_SZIP 1
@@ -356,7 +373,13 @@ are set when opening a binary file on Windows. */
 
 /* if true, H5free_memory() will be used to free hdf5-allocated memory in
    nc4file. */
-#cmakedefine HDF5_HAS_H5FREE 1
+#cmakedefine HAVE_H5FREE_MEMORY 1
+
+/* if true, H5allocate_memory() will be used. */
+#cmakedefine HAVE_H5ALLOCATE_MEMORY 1
+
+/* if true, H5resize_memory() will be used. */
+#cmakedefine HAVE_H5RESIZE_MEMORY 1
 
 /* if true, hdf5 has parallelism enabled */
 #cmakedefine HDF5_PARALLEL 1
@@ -370,11 +393,17 @@ are set when opening a binary file on Windows. */
 /* If true, turn on logging. */
 #cmakedefine LOGGING 1
 
+/* If true, define nc_set_log_level. */
+#cmakedefine ENABLE_SET_LOG_LEVEL 1
+
 /* max size of the default per-var chunk cache. */
 #cmakedefine MAX_DEFAULT_CACHE_SIZE ${MAX_DEFAULT_CACHE_SIZE}
 
 /* min blocksize for posixio. */
 #cmakedefine NCIO_MINBLOCKSIZE ${NCIO_MINBLOCKSIZE}
+
+/* Add extra properties to _NCProperties attribute */
+#cmakedefine NCPROPERTIES_EXTRA ${NCPROPERTIES_EXTRA}
 
 /* no IEEE float on this platform */
 #cmakedefine NO_IEEE_FLOAT 1
@@ -517,12 +546,6 @@ are set when opening a binary file on Windows. */
 
 /* if true, parallel netcdf-4 is in use */
 #cmakedefine USE_PARALLEL4 1
-
-/* if true, compile in parallel netCDF-4 based on MPI/IO */
-#cmakedefine USE_PARALLEL_MPIO 1
-
-/* if true, compile in parallel netCDF-4 based on MPI/POSIX */
-#cmakedefine USE_PARALLEL_POSIX 1
 
 /* if true, parallel netCDF is used */
 #cmakedefine USE_PNETCDF 1

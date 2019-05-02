@@ -1,16 +1,22 @@
-/** \file
-Write the simple_xy file, with some of the features of netCDF-4.
-
-This is a very simple example which is based on the simple_xy example,
-but whch uses netCDF-4 features, such as compression. Please see the
-simple_xy example to learn more about the netCDF-3 API.
-
-Like simple_xy_wr.c, this program writes a 2D netCDF variable (called
-"data") and fills it with sample data.  It has two dimensions, "x" and
-"y".
-
-Full documentation for netCDF can be found at:
-http://www.unidata.ucar.edu/netcdf/docs
+/* Copyright 2019 University Corporation for Atmospheric
+   Research/Unidata.  See COPYRIGHT file for conditions of use. */
+/**
+ * @file
+ * Write the simple_xy file, with some of the features of netCDF-4.
+ *
+ * This is a very simple example which is based on the simple_xy
+ * example, but whch uses netCDF-4 features, such as
+ * compression. Please see the simple_xy example to learn more about
+ * the netCDF-3 API.
+ *
+ * Like simple_xy_wr.c, this program writes a 2D netCDF variable
+ * (called "data") and fills it with sample data.  It has two
+ * dimensions, "x" and "y".
+ *
+ * Full documentation for netCDF can be found at:
+ * http://www.unidata.ucar.edu/netcdf/docs.
+ *
+ * @author Ed Hartnett
 */
 #include <stdlib.h>
 #include <stdio.h>
@@ -61,7 +67,7 @@ main()
    if ((retval = nc_def_dim(ncid, "y", NY, &y_dimid)))
       ERR(retval);
 
-   /* Set up variabe data. */
+   /* Set up variable data. */
    dimids[0] = x_dimid;
    dimids[1] = y_dimid;
    chunks[0] = NX/4;

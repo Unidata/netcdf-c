@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 #include "config.h"
@@ -8,8 +8,6 @@
 
 #include "dapincludes.h"
 #include "nclog.h"
-
-int ncdap3debug = 0;
 
 #ifdef CATCHERROR
 /* Place breakpoint here to catch errors close to where they occur*/

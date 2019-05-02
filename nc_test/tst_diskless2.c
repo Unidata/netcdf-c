@@ -1,6 +1,21 @@
+/*! \file
+
+Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+2015, 2016, 2017, 2018
+University Corporation for Atmospheric Research/Unidata.
+
+See \ref copyright file for more info.
+
+*/
+
+#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <netcdf.h>
+
+
+#define FILENAME "tst_diskless2.nc"
 
 
 #define Clear ((unsigned char)0)
@@ -86,7 +101,7 @@ main() {/* create tst_diskless2.nc */
     int country_dims[RANK_country];
 
     /* enter define mode */
-    stat = nc_create("tst_diskless2.nc", NC_DISKLESS|NC_WRITE|NC_CLOBBER|NC_NETCDF4, &ncid);
+    stat = nc_create(FILENAME, NC_DISKLESS|NC_WRITE|NC_CLOBBER|NC_NETCDF4|NC_PERSIST, &ncid);
     check_err(stat,__LINE__,__FILE__);
     root_grp = ncid;
     stat = nc_def_grp(root_grp, "g", &g_grp);

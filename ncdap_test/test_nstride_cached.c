@@ -1,3 +1,13 @@
+/*! \file
+
+Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+2015, 2016, 2017, 2018
+University Corporation for Atmospheric Research/Unidata.
+
+See \ref copyright file for more info.
+
+*/
 /*
 Report from Ansely Manke:
 I've attached a file with a short c program that
@@ -115,6 +125,7 @@ main()
     printf("********************\n");
     printf("open URL %s\n",url);
     printf(" \n");
+    fflush(stdout);
 
     ncstatus = nc_open(url, NC_NOWRITE, &ncid);
 
@@ -164,10 +175,10 @@ main()
         printf("%s[%d] = %f\n",VAR1,i,dat[i]);
     printf(" \n");
 
-
     for (i=(nelems-11); i<(nelems-1); i++)
         printf("%s[%d] = %f\n",VAR1,i,dat[i]);
     printf(" \n");
+    fflush(stdout);
 #endif
 
     memset((void*)dat,0,sizeof(dat));
@@ -183,6 +194,7 @@ main()
     printf("********************\n");
     printf("Read %s data w/o strides\n",VAR2);
     printf(" \n");
+    fflush(stdout);
 #endif
 
     start[0] = 0;
@@ -200,6 +212,7 @@ main()
     for (idim=0; idim<ndim; idim++)
         printf("start[%d]=%3lu count[%d]=%3lu stride[%d]=%3lu\n",
 		idim, (unsigned long)start[idim], idim, (unsigned long)count[idim], idim, (unsigned long)stride[idim]);
+    fflush(stdout);
 #endif
 
     ncstatus = nc_get_vars_float (ncid, varid, start, count, stride, (float*) dat);
@@ -217,6 +230,7 @@ main()
     for (i=(nelems-11); i<(nelems-1); i++)
         printf("%s[%d] = %f\n",VAR2,i,dat[i]);
     printf(" \n");
+    fflush(stdout);
 #endif
 
     memset((void*)dat,0,sizeof(dat));
@@ -227,6 +241,7 @@ main()
     printf(" \n");
     printf("********************\n");
     printf("Close and reopen the dataset\n");
+    fflush(stdout);
 #endif
 
     ncstatus = nc_close (ncid);
@@ -242,6 +257,7 @@ main()
     printf("********************\n");
     printf("Read a subset of %s data with strides\n",VAR1);
     printf(" \n");
+    fflush(stdout);
 #endif
 
     start[0] = 250;
@@ -255,8 +271,9 @@ main()
 
 #ifdef VERBOSE
     for (idim=0; idim<ndim; idim++)
-	printf("start[%1d]=%3lu count[%1d]=%3lu stride[%1d]=%3lu\n",
+	printf("start[%d]=%lu count[%d]=%lu stride[%d]=%lu\n",
 		idim,(unsigned long)start[idim],idim,(unsigned long)count[idim],idim,(unsigned long)stride[idim]);
+    fflush(stdout);
 #endif
 
     memset((void*)sdat,0,sizeof(sdat));
@@ -280,6 +297,7 @@ main()
 
     for (i=0; i<10; i++)
         printf("%s[%d] = %f\n",VAR1,i,sdat[i]);
+    fflush(stdout);
 #endif
 
     ncstatus = nc_close (ncid);

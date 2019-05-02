@@ -174,7 +174,7 @@ Attributes {
             String units "Degrees C";
         }
         sub_wait {
-            String Description "Average time that bouy software waited for bouy to come to surface before measuring irradiance. (ASW)";
+            String Description "Average time that buoy software waited for buoy to come to surface before measuring irradiance. (ASW)";
             String units "minutes";
         }
         surf_volts {
@@ -182,11 +182,11 @@ Attributes {
             String units "volts";
         }
         surface_average {
-            String Description "Average duration of time that the bouy remained on the surface during the surface check function. (AST)";
+            String Description "Average duration of time that the buoy remained on the surface during the surface check function. (AST)";
             String units "minutes";
         }
         surface_percent {
-            String Description "Percentage of time that the bouy was on the surface during the surface check function. (PTOS)";
+            String Description "Percentage of time that the buoy was on the surface during the surface check function. (PTOS)";
             String units "percentage";
         }
         time {

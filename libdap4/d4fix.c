@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2016, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
@@ -415,7 +415,7 @@ done:
 /**************************************************/
 /*
 Walk the (toplevel) var's data to get to the count'th instance.
-For effiency, it can be supplied with a previous case.
+For efficiency, it can be supplied with a previous case.
 Assumes it is called after byte swapping and offsetting.
 Assumes that var is not fixed size.
 */

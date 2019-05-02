@@ -66,7 +66,7 @@ ezxml_t ezxml_parse_fd(int fd);
 
 /* a wrapper for ezxml_parse_fd() that accepts a file name*/
 ezxml_t ezxml_parse_file(const char *file);
-    
+
 /* Wrapper for ezxml_parse_str() that accepts a file stream. Reads the entire*/
 /* stream into memory and then parses it. For xml files, use ezxml_parse_file()*/
 /* or ezxml_parse_fd()*/
@@ -93,7 +93,7 @@ ezxml_t ezxml_idx(ezxml_t xml, int idx);
 /* returns the value of the requested tag attribute, or NULL if not found*/
 const char *ezxml_attr(ezxml_t xml, const char *attr);
 
-/* Traverses the ezxml sturcture to retrieve a specific subtag. Takes a*/
+/* Traverses the ezxml structure to retrieve a specific subtag. Takes a*/
 /* variable length list of tag names and indexes. The argument list must be*/
 /* terminated by either an index of -1 or an empty string tag name. Example: */
 /* title = ezxml_get(library, "shelf", 0, "book", 2, "title", -1);*/
@@ -111,7 +111,7 @@ const char **ezxml_pi(ezxml_t xml, const char *target);
 
 /* frees the memory allocated for an ezxml structure*/
 void ezxml_free(ezxml_t xml);
-    
+
 /* returns parser error message or empty string if none*/
 const char *ezxml_error(ezxml_t xml);
 

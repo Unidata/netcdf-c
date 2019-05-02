@@ -109,13 +109,6 @@ extern unsigned int NC_crc32(unsigned int crc, const unsigned char* buf, unsigne
 #  define TBLS 1
 #endif /* BYFOUR */
 
-/* Local functions for crc concatenation */
-local unsigned long gf2_matrix_times OF((unsigned long *mat,
-                                         unsigned long vec));
-local void gf2_matrix_square OF((unsigned long *square, unsigned long *mat));
-local uLong crc32_combine_ OF((uLong crc1, uLong crc2, z_off64_t len2));
-
-
 #ifdef DYNAMIC_CRC_TABLE
 
 local volatile int crc_table_empty = 1;
@@ -250,7 +243,8 @@ local void write_table(out, table)
 /* =========================================================================
  * This function can be used by asm versions of crc32()
  */
-const z_crc_t FAR * ZEXPORT get_crc_table()
+#if 0 /* Unused */
+local const z_crc_t FAR * ZEXPORT get_crc_table()
 {
 #ifdef DYNAMIC_CRC_TABLE
     if (crc_table_empty)
@@ -258,13 +252,14 @@ const z_crc_t FAR * ZEXPORT get_crc_table()
 #endif /* DYNAMIC_CRC_TABLE */
     return (const z_crc_t FAR *)crc_table;
 }
+#endif
 
 /* ========================================================================= */
 #define DO1 crc = crc_table[0][((int)crc ^ (*buf++)) & 0xff] ^ (crc >> 8)
 #define DO8 DO1; DO1; DO1; DO1; DO1; DO1; DO1; DO1
 
 /* ========================================================================= */
-unsigned long ZEXPORT crc32_z(crc, buf, len)
+local unsigned long ZEXPORT crc32_z(crc, buf, len)
     unsigned long crc;
     const unsigned char FAR *buf;
     z_size_t len;
@@ -405,6 +400,7 @@ local unsigned long crc32_big(crc, buf, len)
 #define GF2_DIM 32      /* dimension of GF(2) vectors (length of CRC) */
 
 /* ========================================================================= */
+#if 0 /* Unused */
 local unsigned long gf2_matrix_times(mat, vec)
     unsigned long *mat;
     unsigned long vec;
@@ -433,6 +429,7 @@ local void gf2_matrix_square(square, mat)
 }
 
 /* ========================================================================= */
+
 local uLong crc32_combine_(crc1, crc2, len2)
     uLong crc1;
     uLong crc2;
@@ -489,7 +486,7 @@ local uLong crc32_combine_(crc1, crc2, len2)
 }
 
 /* ========================================================================= */
-uLong ZEXPORT crc32_combine(crc1, crc2, len2)
+local uLong ZEXPORT crc32_combine(crc1, crc2, len2)
     uLong crc1;
     uLong crc2;
     z_off_t len2;
@@ -497,10 +494,11 @@ uLong ZEXPORT crc32_combine(crc1, crc2, len2)
     return crc32_combine_(crc1, crc2, len2);
 }
 
-uLong ZEXPORT crc32_combine64(crc1, crc2, len2)
+local uLong ZEXPORT crc32_combine64(crc1, crc2, len2)
     uLong crc1;
     uLong crc2;
     z_off64_t len2;
 {
     return crc32_combine_(crc1, crc2, len2);
 }
+#endif

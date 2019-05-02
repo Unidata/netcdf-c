@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 #ifndef DEBUG_H
@@ -24,6 +24,9 @@
 #    define DEBUG3
 #  endif
 #endif
+
+/* Dump info about constraint processing */
+#undef DCEVERBOSE
 
 #undef PARSEDEBUG
 /* Warning: setting CATCHERROR has significant performance impact */

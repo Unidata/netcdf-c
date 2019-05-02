@@ -296,6 +296,9 @@ static const char nada[X_ALIGN] = {0, 0, 0, 0};
                    (((a) & 0x00FF000000000000ULL) >> 40) | \
                    (((a) & 0xFF00000000000000ULL) >> 56) )
 
+#if defined(_MSC_VER) && _MSC_VER < 1900
+#define inline __inline
+#endif
 
 inline static void
 swapn2b(void *dst, const void *src, IntType nn)
@@ -670,7 +673,7 @@ define(`NCX_GET1F',dnl
 static int
 APIPrefix`x_get_'NC_TYPE($1)_$2(const void *xp, $2 *ip)
 {
-	ix_$1 xx;
+	ix_$1 xx = 0;
 	get_ix_$1(xp, &xx);
 	ifelse(`$1', `float',  `ifelse(`$2',  `longlong', GETF_CheckBND2($2),
 	                               `$2', `ulonglong', GETF_CheckBND2($2),
@@ -699,7 +702,7 @@ ifelse(`$3', `1',
     get_ix_$1(xp, (ix_$1 *)ip);
 `#'else
 ')dnl
-    ix_$1 xx;
+    ix_$1 xx = 0;
     get_ix_$1(xp, &xx);
 
 `#'if IXmax($1) > Imax($2)
@@ -1982,7 +1985,7 @@ NCX_GET1F(double, ulonglong)
 static int
 APIPrefix`x_get_'NC_TYPE(double)_float(const void *xp, float *ip)
 {
-    double xx;
+    double xx = 0.0;
     get_ix_double(xp, &xx);
     if (xx > FLT_MAX) {
 #ifdef ERANGE_FILL

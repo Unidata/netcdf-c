@@ -11,7 +11,7 @@ set -e
 # This shell script runs the ncdump tests.
 # get some config.h parameters
 if test -f ${top_builddir}/config.h ; then
-  if fgrep -e '#define USE_CDF5 1' ${top_builddir}/config.h >/dev/null ; then
+  if fgrep -e '#define ENABLE_CDF5 1' ${top_builddir}/config.h >/dev/null ; then
     CDF5=1
   else
     CDF5=0
@@ -51,7 +51,7 @@ echo "*** creating 64-bit offset file c0_64_run_ncgen_tests.nc from c0.cdl..."
 
 validateNC c0 "c0_64" -k 64-bit-offset -b
 
-if test "x$USE_CDF5" = x1 ; then
+if test "x$ENABLE_CDF5" = x1 ; then
 
     echo "*** creating 64-bit data file c5.nc from c5.cdl..."
     ${NCGEN} -k 64-bit-data -b -o tst_c5_run_ncgen_tests.nc $top_srcdir/ncgen/c5.cdl

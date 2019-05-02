@@ -1,11 +1,13 @@
 ## This is a automake file, part of Unidata's netCDF package.
-# Copyright 2011, see the COPYRIGHT file for more information.
+# Copyright 2018v, see the COPYRIGHT file for more information.
 
 # This file builds and runs DAP tests.
 
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
 
+# Un comment to use a more verbose test driver
+#SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #TEST_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 
@@ -36,11 +38,13 @@ endif
 # because the server may be down or inaccessible
 
 if ENABLE_DAP_REMOTE_TESTS
-check_PROGRAMS += findtestserver
+noinst_PROGRAMS = findtestserver
 findtestserver_SOURCES = findtestserver.c
+endif
 
+if ENABLE_DAP_REMOTE_TESTS
 if BUILD_UTILITIES
-TESTS += tst_ber.sh tst_remote3.sh tst_formatx.sh testurl.sh
+TESTS += tst_ber.sh tst_remote3.sh tst_formatx.sh testurl.sh tst_fillmismatch.sh tst_zero_len_var.sh
 endif
 
 TESTS += test_partvar
@@ -81,13 +85,17 @@ SUBDIRS = testdata3 expected3 expectremote3
 EXTRA_DIST = tst_ncdap3.sh  \
              tst_remote3.sh \
              tst_longremote3.sh \
+			 tst_zero_len_var.sh \
              tst_filelists.sh tst_urls.sh tst_utils.sh \
 	     t_dap.c CMakeLists.txt tst_formatx.sh testauth.sh testurl.sh \
-	     t_ncf330.c tst_ber.sh
+	     t_ncf330.c tst_ber.sh tst_fillmismatch.sh \
+	     findtestserver.c.in
 
 CLEANFILES = test_varm3 test_cvt3 file_results/* remote_results/* datadds* t_dap3a test_nstride_cached *.exe
 # This should only be left behind if using parallel io
 CLEANFILES += tmp_*
+
+DISTCLEANFILES = findtestserver.c
 
 # This rule are used if someone wants to rebuild t_dap3a.c
 # Otherwise never invoked, but records how to do it.
@@ -100,6 +108,8 @@ BUILT_SOURCES = .dodsrc
 
 .dodsrc:
 	echo "#DODSRC" >.dodsrc
+	echo "HTTP.READ.BUFFERSIZE=max" >>.dodsrc
+	echo "HTTP.KEEPALIVE=60/60" >>.dodsrc
 
 clean-local: clean-local-check
 
@@ -109,4 +119,5 @@ clean-local-check:
 	-rm -rf results
 	-rm -f .dodsrc
 
-
+# If valgrind is present, add valgrind targets.
+@VALGRIND_CHECK_RULES@

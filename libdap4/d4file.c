@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2016, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
@@ -22,7 +22,6 @@
 /* Forward */
 
 static void applyclientmetacontrols(NCD4meta* meta);
-static void applyclientparamcontrols(NCD4INFO*);
 static int constrainable(NCURI*);
 static void freeCurl(NCD4curl*);
 static void freeInfo(NCD4INFO*);
@@ -38,9 +37,8 @@ static const char* checkseps = "+,:;";
 /**************************************************/
 int
 NCD4_open(const char * path, int mode,
-               int basepe, size_t *chunksizehintp,
- 	       int useparallel, void* mpidata,
-               NC_Dispatch* dispatch, NC* nc)
+          int basepe, size_t *chunksizehintp,
+          void *mpidata, const NC_Dispatch *dispatch, NC *nc)
 {
     int ret = NC_NOERR;
     NCD4INFO* d4info = NULL;
@@ -84,7 +82,7 @@ NCD4_open(const char * path, int mode,
     }
 
     /* process control client parameters */
-    applyclientparamcontrols(d4info);
+    NCD4_applyclientparamcontrols(d4info);
 
     /* Use libsrc4 code (netcdf-4) for storing metadata */
     {
@@ -101,17 +99,14 @@ NCD4_open(const char * path, int mode,
         /* Now, use the file to create the hidden substrate netcdf file.
 	   We want this hidden file to always be NC_NETCDF4, so we need to
            force default format temporarily in case user changed it.
-	   If diskless is enabled, then create file in-memory, else
-           create an actual temporary file in the file system.
+	   Since diskless is enabled, create file in-memory.
 	*/
 	{
 	    int new = NC_NETCDF4;
 	    int old = 0;
 	    int ncid = 0;
 	    int ncflags = NC_NETCDF4|NC_CLOBBER;
-#ifdef USE_DISKLESS
 	    ncflags |= NC_DISKLESS;
-#endif
 	    if(FLAGSET(d4info->controls.debugflags,NCF_DEBUG_COPY)) {
 		/* Cause data to be dumped to real file */
 		ncflags |= NC_WRITE;
@@ -122,7 +117,7 @@ NCD4_open(const char * path, int mode,
 	    nc_set_default_format(old,&new); /* restore */
 	    d4info->substrate.realfile = ((ncflags & NC_DISKLESS) == 0);
 	    d4info->substrate.filename = strdup(tmpname);
-	    if(tmpname == NULL) ret = NC_ENOMEM;
+	    if(d4info->substrate.filename == NULL) ret = NC_ENOMEM;
 	    d4info->substrate.nc4id = ncid;
 	}
         if(ret != NC_NOERR) goto done;
@@ -149,7 +144,9 @@ NCD4_open(const char * path, int mode,
 	/* create the connection */
         if((ret=NCD4_curlopen(&curl))!= NC_NOERR) goto done;
 	d4info->curl->curl = curl;
-        if((ret=set_curl_properties(d4info))!= NC_NOERR) goto done;	
+        /* Load misc rc properties */
+        NCD4_get_rcproperties(d4info);
+        if((ret=set_curl_properties(d4info))!= NC_NOERR) goto done;
         /* Set the one-time curl flags */
         if((ret=NCD4_set_flags_perlink(d4info))!= NC_NOERR) goto done;
 #if 1 /* temporarily make per-link */
@@ -245,7 +242,7 @@ done:
 }
 
 int
-NCD4_close(int ncid)
+NCD4_close(int ncid, void* ignore)
 {
     int ret = NC_NOERR;
     NC* nc;
@@ -278,11 +275,12 @@ done:
 int
 NCD4_abort(int ncid)
 {
-    return NCD4_close(ncid);
+    return NCD4_close(ncid,NULL);
 }
 
 /**************************************************/
 
+/* Reclaim an NCD4INFO instance */
 static void
 freeInfo(NCD4INFO* d4info)
 {
@@ -296,6 +294,7 @@ freeInfo(NCD4INFO* d4info)
     nullfree(d4info->data.ondiskfilename);
     if(d4info->data.ondiskfile != NULL)
 	fclose(d4info->data.ondiskfile);
+    nullfree(d4info->fileproto.filename);
     if(d4info->substrate.realfile
 	&& !FLAGSET(d4info->controls.debugflags,NCF_DEBUG_COPY)) {
 	/* We used real file, so we need to delete the temp file
@@ -306,14 +305,17 @@ freeInfo(NCD4INFO* d4info)
            when aborted, it should be deleted. But that is not working
            for some reason, so we delete it ourselves.
 	*/
+#if 0
 	if(d4info->substrate.filename != NULL) {
 	    unlink(d4info->substrate.filename);
 	}
+#endif
     }
     nullfree(d4info->substrate.filename); /* always reclaim */
     NCD4_reclaimMeta(d4info->substrate.metadata);
     NC_authclear(&d4info->auth);
-    free(d4info);    
+    nclistfree(d4info->blobs);
+    free(d4info);
 }
 
 static void
@@ -324,15 +326,16 @@ freeCurl(NCD4curl* curl)
     ncbytesfree(curl->packet);
     nullfree(curl->errdata.code);
     nullfree(curl->errdata.message);
+    free(curl);
 }
 
 /* Define the set of protocols known to be constrainable */
-static char* constrainableprotocols[] = {"http", "https",NULL};
+static const char* constrainableprotocols[] = {"http", "https",NULL};
 
 static int
 constrainable(NCURI* durl)
 {
-   char** protocol = constrainableprotocols;
+   const char** protocol = constrainableprotocols;
    for(;*protocol;protocol++) {
 	if(strcmp(durl->protocol,*protocol)==0)
 	    return 1;
@@ -373,14 +376,16 @@ set_curl_properties(NCD4INFO* d4info)
         char* newpath = NULL;
         int len;
 	errno = 0;
+	NCRCglobalstate* globalstate = ncrc_getglobalstate();
+
 	/* Create the unique cookie file name */
         len =
-	  strlen(ncrc_globalstate.tempdir)
+	  strlen(globalstate->tempdir)
 	  + 1 /* '/' */
 	  + strlen("ncd4cookies");
         path = (char*)malloc(len+1);
         if(path == NULL) return NC_ENOMEM;
-	snprintf(path,len,"%s/nc4cookies",ncrc_globalstate.tempdir);
+	snprintf(path,len,"%s/nc4cookies",globalstate->tempdir);
 	/* Create the unique cookie file name */
         newpath = NC_mktmp(path);
         free(path);
@@ -424,8 +429,8 @@ fail:
     return THROW(ret);
 }
 
-static void
-applyclientparamcontrols(NCD4INFO* info)
+void
+NCD4_applyclientparamcontrols(NCD4INFO* info)
 {
     const char* value;
 
@@ -434,6 +439,7 @@ applyclientparamcontrols(NCD4INFO* info)
     CLRFLAG(info->controls.flags,NCF_SHOWFETCH);
     CLRFLAG(info->controls.flags,NCF_NC4);
     CLRFLAG(info->controls.flags,NCF_NCDAP);
+    CLRFLAG(info->controls.flags,NCF_FILLMISMATCH);
 
     /* Turn on any default on flags */
     SETFLAG(info->controls.flags,DFALT_ON_FLAGS);
@@ -451,12 +457,29 @@ applyclientparamcontrols(NCD4INFO* info)
 
     value = getparam(info,"substratename");
     if(value != NULL)
-	strncpy(info->controls.substratename,value,NC_MAX_NAME);
+      strncpy(info->controls.substratename,value,(NC_MAX_NAME-1));
 
+    info->controls.opaquesize = DFALTOPAQUESIZE;
+    value = getparam(info,"opaquesize");
+    if(value != NULL) {
+	long long len = 0;
+	if(sscanf(value,"%lld",&len) != 1 || len == 0)
+	    nclog(NCLOGWARN,"bad [opaquesize] tag: %s",value);
+	else
+	    info->controls.opaquesize = (size_t)len;
+    }
+
+    value = getparam(info,"fillmismatch");
+    if(value != NULL)
+	SETFLAG(info->controls.flags,NCF_FILLMISMATCH);
+
+    value = getparam(info,"nofillmismatch");
+    if(value != NULL)
+	CLRFLAG(info->controls.debugflags,NCF_FILLMISMATCH);
 }
 
 static void
-applyclientmetacontrols(NCD4meta* meta)    
+applyclientmetacontrols(NCD4meta* meta)
 {
     NCD4INFO* info = meta->controller;
     const char* value = getparam(info,"checksummode");
@@ -499,4 +522,3 @@ getparam(NCD4INFO* info, const char* key)
 	return NULL;
     return value;
 }
-

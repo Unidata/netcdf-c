@@ -1,0 +1,39 @@
+netcdf filteredvv {
+dimensions:
+	dim0 = 4 ;
+	dim1 = 4 ;
+variables:
+	float var1(dim0, dim1) ;
+		var1:_Storage = "chunked" ;
+		var1:_ChunkSizes = 2, 2 ;
+		var1:_Filter = "307,9,4" ;
+		var1:_NoFill = "true" ;
+
+// global attributes:
+		:_Format = "netCDF-4" ;
+data:
+
+ var1 =
+  100, 101, 102, 103,
+  104, 105, 106, 107,
+  108, 109, 1010, 1011,
+  1012, 1013, 1014, 1015 ;
+
+group: g {
+  variables:
+  	float var2(dim0, dim1) ;
+  		var2:_Storage = "chunked" ;
+  		var2:_ChunkSizes = 2, 2 ;
+  		var2:_Filter = "307,9,4" ;
+  		var2:_NoFill = "true" ;
+
+  // group attributes:
+  data:
+
+   var2 =
+  0, 1, 2, 3,
+  4, 5, 6, 7,
+  8, 9, 10, 11,
+  12, 13, 14, 15 ;
+  } // group g
+}

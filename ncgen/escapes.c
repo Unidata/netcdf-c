@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *   $Header: /upc/share/CVS/netcdf-3/ncgen/escapes.c,v 1.5 2010/04/04 19:39:44 dmh Exp $
  *********************************************************************/
@@ -169,7 +169,7 @@ initcodify(void)
     idtlen = strlen("DIGIT_n_"); /* initial digit template */
     hexlen = strlen("_XHH"); /* template for hex of non-ASCII bytes */
     for(i = 0; i < 128; i++) {
-        rp = emalloc(2);
+        rp = ecalloc(2);
         rp[0] = i;
         rp[1] = '\0';
         repls[i] = rp;
@@ -180,7 +180,7 @@ initcodify(void)
         repls[j] = ctable[i].s;
     }
     for(i = 128; i < 256; i++) {
-        rp = emalloc(hexlen+1);
+        rp = ecalloc(hexlen+1);
         snprintf(rp, hexlen+1, "_X%2.2X", i); /* need to include null*/
         rp[hexlen] = '\0';
         repls[i] = rp;
@@ -460,7 +460,7 @@ f77quotestring(Bytebuffer* databuf)
 	return;
     }
 
-    s = (unsigned char*)emalloc(slen+1);
+    s = (unsigned char*)ecalloc(slen+1);
     memcpy((void*)s,bbContents(databuf),slen);
     s[slen] = '\0';
     bbClear(databuf);
@@ -606,16 +606,22 @@ unescapeoct(const char* s)
 
 int
 unescape(
-     char *s, /* fill with contents of yytext, with escapes removed.
-                 s and yytext may be same*/
-     const char *yytext,
-     int yyleng,
-     int isident)
+     const char *yytext, /* text to unescape */
+     int yyleng, /* length of yytext */
+     int isident, /* Is this an identifier? */
+     char** sp /* Return the unescaped version of yytext */ 
+     )
 {
+    char* s = NULL; /* unescaped string */
     const char *t, *tend;
     char* p;
     int b;
-    /* expand "\" escapes, e.g. "\t" to tab character  */
+
+    s = (char*)emalloc(yyleng+1);
+    memcpy(s,yytext,yyleng);
+    s[yyleng] = '\0';
+
+    /* translate "\" escapes, e.g. "\t" to tab character  */
     t = yytext;
     tend = t + yyleng;
     p = s;
@@ -689,5 +695,59 @@ unescape(
 	}
     }
     *p = '\0';
-    return (p - s);
+    if(sp) *sp = s;
+    return (p-s);
+}
+
+
+		
+static int
+ishex(int c)
+{
+    return ((c >= 'a' && c <= 'z')
+	    || (c >= 'A' && c <= 'Z')
+	    || (c >= '0' && c <= '9'));
+}
+
+static int
+isoct(int c)
+{
+    return ((c >= '0' && c <= '7'));
+}
+
+/**
+Do equivalent of strchr, but taking escapes into account
+Set octhex to true if the string might contain \ddd or \xdd.
+Note that escaped versions of the stop character are not
+considered to match.
+WARNING: if char is not found, then return pointer to the
+trailing nul char
+*/
+
+char*
+esc_strchr(char* s, int stopc, int octhex)
+{
+    char* p;
+    int c;
+
+    for(p=s;(c=*p);) {
+	if(c == '\\') {
+	    if(p[1] == '\0' && c == stopc)
+	        return p; /* special case of '\\' at end of string */
+	    p++;
+	    c = *p;
+/* FiX: allow utf8 digits? */
+	    if(octhex && (c == 'x' || c == 'X')
+	       && ishex(p[1]) && ishex(p[2]))
+		    p += 3;
+	    else if(octhex && isoct(c) && isoct(p[1]) && isoct(p[2]))
+		    p += 3;
+	    else /* treat like just '\<c>' */
+	        p++;
+	} else if(stopc == c)
+	    break;
+	else
+	    p++;
+    }
+    return p; /* not found */
 }

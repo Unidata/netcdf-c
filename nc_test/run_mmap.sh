@@ -1,6 +1,5 @@
 #!/bin/sh
 
-
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
@@ -11,54 +10,55 @@ CPU=`uname -p`
 OS=`uname`
 
 #Constants
-FILE1=tst_diskless.nc
-FILE2=tst_diskless2.nc
-FILE3=tst_diskless3.nc
+FILE1=tst_mmap1.nc
+FILE3=tst_mmap3.nc
 
 echo ""
-echo "*** Testing in-memory (diskless) files with mmap"
+echo "*** Testing create files with mmap"
 
-echo "**** Test diskless+mmap netCDF classic file without persistence"
+echo "**** Test create mmap netCDF classic file without persistence"
 ${execdir}/tst_diskless mmap
-echo "PASS: diskless+mmap netCDF classic file without persistence"
+echo "PASS: create mmap netCDF classic file without persistence"
 
 echo ""
-echo "**** Test diskless+mmap netCDF classic file with persistence"
+echo "**** Test create mmap netCDF classic file with persistence"
 rm -f $FILE1
-${execdir}/tst_diskless mmap persist
+${execdir}/tst_diskless mmap persist file:tst_mmap1.nc
 if test -f $FILE1 ; then
 echo "**** $FILE1 created"
 # ${NCDUMP} $FILE1
-echo "PASS: diskless+mmap netCDF classic file with persistence"
+echo "PASS: create mmap netCDF classic file with persistence"
 else
 echo "#### $FILE1 not created"
-echo "FAIL: diskless+mmap netCDF classic file with persistence"
+echo "FAIL: create mmap netCDF classic file with persistence"
 fi
 
 rm -f tmp1.cdl tmp2.cdl tmp1.nc tmp2.nc
 
 echo ""
-echo "**** Testing nc_open in-memory (diskless+mmap) files"
+echo "**** Testing open files with mmap"
 
 # clear old files
-rm -f tst_diskless3_file.cdl tst_diskless3_memory.cdl
+rm -f tst_diskless3_mmap_create.cdl
+rm -f tst_diskless3_mmap_open.cdl
 
 echo ""
-echo "**** Create and modify file without using diskless+mmap"
+echo "**** create and modify file using mmap"
 rm -f $FILE3
-${execdir}/tst_diskless3
-${NCDUMP} $FILE3 >tst_diskless3_file.cdl
 
-echo ""
-echo "**** Create and modify file using diskless+mmap"
-rm -f $FILE3
-${execdir}/tst_diskless3 diskless mmap
-${NCDUMP} $FILE3 >tst_diskless3_memory.cdl
-
+${execdir}/tst_diskless3 mmap persist create
+${NCDUMP} $FILE3 >tst_diskless3_mmap_create.cdl
 # compare
-diff tst_diskless3_file.cdl tst_diskless3_memory.cdl
+diff ${srcdir}/ref_tst_diskless3_create.cdl tst_diskless3_mmap_create.cdl
+
+echo ""
+echo "**** open and modify file using mmap"
+${execdir}/tst_diskless3 mmap persist open
+${NCDUMP} $FILE3 >tst_diskless3_mmap_open.cdl
+# compare
+diff ${srcdir}/ref_tst_diskless3_open.cdl tst_diskless3_mmap_open.cdl
 
 # cleanup
-rm -f $FILE3 tst_diskless3_file.cdl tst_diskless3_memory.cdl
+rm -f $FILE1 $FILE3 tst_diskless3_mmap_create.cdl tst_diskless3_mmap_open.cdl
 
 exit

@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2016, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
@@ -13,6 +13,8 @@
 #ifdef _MSC_VER
 #include <io.h>
 #endif
+
+extern int mkstemp(char *template);
 
 #define LBRACKET '['
 #define RBRACKET ']'
@@ -423,16 +425,6 @@ NCD4_userpwd(NCURI* uri, char* space, size_t len)
     }
 }
 
-#ifdef BLOB
-void
-NCD4_saveblob(NCD4meta* meta, void* mem)
-{
-    if(meta->blobs == NULL)
-        meta->blobs = nclistnew();
-    nclistpush(meta->blobs,mem);
-}
-#endif
-
 /**************************************************/
 /* Error reporting */
 
@@ -442,9 +434,7 @@ NCD4_error(int code, const int line, const char* file, const char* fmt, ...)
     va_list argv;
     fprintf(stderr,"(%s:%d) ",file,line);
     va_start(argv,fmt);
-    vfprintf(stderr,fmt,argv);
-    fprintf(stderr,"\n");
-    fflush(stderr);
+    ncvlog(NCLOGERR,fmt,argv);
     return code;
 }
 

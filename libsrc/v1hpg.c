@@ -1,5 +1,5 @@
 /*
- *	Copyright 1996, University Corporation for Atmospheric Research
+ *	Copyright 2018, University Corporation for Atmospheric Research
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 
@@ -1050,7 +1050,9 @@ v1h_get_NC_var(v1hs *gsp, NC_var **varpp)
     if(status != NC_NOERR)
 		 goto unwind_alloc;
 
-	status = v1h_get_size_t(gsp, &varp->len);
+    size_t tmp;
+    status = v1h_get_size_t(gsp, &tmp);
+    varp->len = tmp;
     if(status != NC_NOERR)
 		 goto unwind_alloc;
 

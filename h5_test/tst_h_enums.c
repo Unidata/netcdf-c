@@ -1,4 +1,4 @@
-/* This is part of the netCDF package.  Copyright 2005 University
+/* This is part of the netCDF package.  Copyright 2018 University
    Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
    conditions of use.
 
@@ -121,7 +121,7 @@ main()
 	 if (the_value != val[i]) ERR;
 	 member_name = H5Tget_member_name(typeid, i);
 	 if (strcmp(member_name, love_how[i])) ERR;
-#ifdef HDF5_HAS_H5FREE
+#ifdef HAVE_H5FREE_MEMORY
 	 H5free_memory(member_name);
 #else
      free(member_name);
@@ -239,7 +239,7 @@ main()
 	 if (the_value != val[i]) ERR;
 	 member_name = H5Tget_member_name(typeid, i);
 	 if (strcmp(member_name, lang[i])) ERR;
-#ifdef HDF5_HAS_H5FREE
+#ifdef HAVE_H5FREE_MEMORY
 	 H5free_memory(member_name);
 #else
      free(member_name);

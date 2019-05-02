@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2009, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 /* $Id: cvt.c,v 1.2 2010/05/24 19:59:56 dmh Exp $ */
@@ -21,6 +21,9 @@ convert1(NCConstant* src, NCConstant* dst)
 #ifdef _MSC_VER
     int byteval;
 #endif
+
+    memset(&tmp,0,sizeof(tmp));
+
     dst->lineno = src->lineno;
 
     /* Need to translate all possible sources to all possible sinks.*/
@@ -30,7 +33,7 @@ convert1(NCConstant* src, NCConstant* dst)
     /* special case for src being NC_FILLVALUE*/
     if(src->nctype == NC_FILLVALUE) {
 	if(dst->nctype != NC_FILLVALUE) {
-	    nc_getfill(dst);
+	    nc_getfill(dst,NULL);
 	} 
 	return;
     }
@@ -42,7 +45,7 @@ convert1(NCConstant* src, NCConstant* dst)
 	} else {
 	    Symbol* econst;
 	    econst = src->value.enumv;
-	    convert1(&econst->typ.econst,dst);
+	    convert1(econst->typ.econst,dst);
 	}
 	return;
     } else if(dst->nctype == NC_ECONST) {
@@ -440,7 +443,7 @@ case CASE(NC_STRING,NC_CHAR):
 case CASE(NC_STRING,NC_STRING):
     /* Need to watch out for embedded NULs */
     tmp.stringv.len = src->value.stringv.len;
-    tmp.stringv.stringv = (char*)malloc(src->value.stringv.len+1);
+    tmp.stringv.stringv = (char*)ecalloc(src->value.stringv.len+1);
     memcpy((void*)tmp.stringv.stringv,
            (void*)src->value.stringv.stringv,
            tmp.stringv.len);
@@ -549,7 +552,7 @@ case CASE(NC_OPAQUE,NC_DOUBLE):
     tmp.doublev = *(double*)bytes;
   break;
 case CASE(NC_OPAQUE,NC_OPAQUE):
-    tmp.opaquev.stringv = (char*)malloc(src->value.opaquev.len+1);
+    tmp.opaquev.stringv = (char*)ecalloc(src->value.opaquev.len+1);
     memcpy(tmp.opaquev.stringv,src->value.opaquev.stringv,src->value.opaquev.len);
     tmp.opaquev.len = src->value.opaquev.len;
     tmp.opaquev.stringv[tmp.opaquev.len] = '\0';
@@ -590,7 +593,7 @@ setprimlength(NCConstant* prim, unsigned long len)
 	    prim->value.stringv.len = len;
         } else {/* prim->value.stringv.len > srcov->len*/
 	    char* s;
-            s = (char*)emalloc(len+1);
+            s = (char*)ecalloc(len+1);
 	    memset(s,NC_FILL_CHAR,len);
 	    s[len] = '\0';
 	    memcpy(s,prim->value.stringv.stringv,prim->value.stringv.len);
@@ -609,7 +612,7 @@ setprimlength(NCConstant* prim, unsigned long len)
 	    prim->value.opaquev.len = len;
         } else {/* prim->value.opaquev.len < len => expand*/
 	    char* s;
-	    s = (char*)emalloc(len+1);
+	    s = (char*)ecalloc(len+1);
 	    memset(s,'0',len);
 	    memcpy(s,prim->value.opaquev.stringv,prim->value.opaquev.len);
 	    s[len] = '\0';
@@ -655,4 +658,3 @@ convertFilterID(const char* id)
 	return nid;
     return 0; /* Not a recognizable id */
 }
-

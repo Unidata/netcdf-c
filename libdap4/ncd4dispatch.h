@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2016, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
@@ -17,11 +17,10 @@ extern "C" {
 extern int
 NCD4_open(const char *path, int mode,
          int basepe, size_t *chunksizehintp,
-         int use_parallel, void* mpidata,
-         struct NC_Dispatch* dispatch, NC* ncp);
+         void *mpidata, const struct NC_Dispatch *dispatch, NC *ncp);
 
 extern int
-NCD4_close(int ncid);
+NCD4_close(int ncid,void*);
 
 extern int
 NCD4_abort(int ncid);

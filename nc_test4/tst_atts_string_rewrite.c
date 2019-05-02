@@ -1,5 +1,5 @@
 /* This is part of the netCDF package.
-   Copyright 2006 University Corporation for Atmospheric Research/Unidata.
+   Copyright 2018 University Corporation for Atmospheric Research/Unidata.
    See COPYRIGHT file for conditions of use.
 
    This test was provided by Jeff Whitaker as an example of a bug,
@@ -11,8 +11,8 @@
    $Id$
 */
 
-#include <netcdf.h>
 #include <config.h>
+#include <netcdf.h>
 #include <nc_tests.h>
 #include "err_macros.h"
 #include <string.h>
@@ -31,7 +31,7 @@ int main() {
 
    printf("Creating global attribute with nc_put_att_text...");
    res = nc_put_att_text(dataset_id, NC_GLOBAL, "foo", 3, "bar");
-   printf("Succes\n");
+   printf("Success\n");
 
    printf("Overwriting global attribute with nc_put_att_string...");
    res = nc_put_att_string(dataset_id, NC_GLOBAL, "foo", 1, attstring);

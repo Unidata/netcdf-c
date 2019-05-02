@@ -1,5 +1,5 @@
 /*
-  Copyright 2008, UCAR/Unidata
+  Copyright 2018, UCAR/Unidata
   See COPYRIGHT file for copying and redistribution conditions.
 */
 
@@ -10,6 +10,9 @@
 
 #include <hdf5.h>
 #include "netcdf.h"
+#include "netcdf_filter.h"
+
+#undef TESTODDSIZE
 
 #undef DEBUG
 
@@ -30,25 +33,27 @@ static unsigned int baseline[NPARAMS];
 
 #define MAXDIMS 8
 
-#define DEFAULTACTUALDIMS 4
-#define DEFAULTDIMSIZE 4
-#define DEFAULTCHUNKSIZE 4
-
 #define TESTFILE "testmisc.nc"
 
 #define spec "32768, -17b, 23ub, -25S, 27US, 77, 93U, 789f, 12345678.12345678d, -9223372036854775807L, 18446744073709551615UL"
 
-static size_t dimsize = DEFAULTDIMSIZE;
-static size_t chunksize = DEFAULTCHUNKSIZE;
-static size_t actualdims = DEFAULTACTUALDIMS;
-static size_t pattern[MAXDIMS];
+#ifdef TESTODDSIZE
+#define NDIMS 1
+static size_t dimsize[NDIMS] = {4};
+static size_t chunksize[NDIMS] = {3};
+#else
+#define NDIMS 4
+static size_t dimsize[NDIMS] = {4,4,4,4};
+static size_t chunksize[NDIMS] = {4,4,4,4};
+#endif
+
+static size_t ndims = NDIMS;
 
 static size_t totalproduct = 1; /* x-product over max dims */
 static size_t actualproduct = 1; /* x-product over actualdims */
 static size_t chunkproduct = 1; /* x-product over actual chunks */
 
-static size_t dims[MAXDIMS];
-static size_t chunks[MAXDIMS];
+static size_t pattern[MAXDIMS];
 
 static int nerrs = 0;
 
@@ -104,15 +109,15 @@ verifychunks(void)
 {
     int i;
     int store = -1;
-    size_t chunksizes[MAXDIMS];
-    memset(chunksizes,0,sizeof(chunksizes));
-    CHECK(nc_inq_var_chunking(ncid, varid, &store, chunksizes));
+    size_t localchunks[MAXDIMS];
+    memset(localchunks,0,sizeof(localchunks));
+    CHECK(nc_inq_var_chunking(ncid, varid, &store, localchunks));
     if(store != NC_CHUNKED) {
         fprintf(stderr,"bad chunk store\n");
         return 0;
     }
-    for(i=0;i<actualdims;i++) {
-        if(chunksizes[i] != chunks[i]) {
+    for(i=0;i<ndims;i++) {
+        if(chunksize[i] != localchunks[i]) {
             fprintf(stderr,"bad chunk size: %d\n",i);
             return 0;
         }
@@ -125,15 +130,15 @@ create(void)
 {
     int i;
 
-    /* Create a file with one big variable. */
+    /* Create a file with one big variable, but whose dimensions arte not a multiple of chunksize (to see what happens) */
     CHECK(nc_create(TESTFILE, NC_NETCDF4|NC_CLOBBER, &ncid));
     CHECK(nc_set_fill(ncid, NC_NOFILL, NULL));
-    for(i=0;i<actualdims;i++) {
+    for(i=0;i<ndims;i++) {
         char dimname[1024];
         snprintf(dimname,sizeof(dimname),"dim%d",i);
-        CHECK(nc_def_dim(ncid, dimname, dims[i], &dimids[i]));
+        CHECK(nc_def_dim(ncid, dimname, dimsize[i], &dimids[i]));
     }
-    CHECK(nc_def_var(ncid, "var", NC_FLOAT, actualdims, dimids, &varid));
+    CHECK(nc_def_var(ncid, "var", NC_FLOAT, ndims, dimids, &varid));
     return NC_NOERR;
 }
 
@@ -160,7 +165,7 @@ verifyparams(void)
 static int
 openfile(void)
 {
-    unsigned int* params;
+    unsigned int* params = NULL;
 
     /* Open the file and check it. */
     CHECK(nc_open(TESTFILE, NC_NOWRITE, &ncid));
@@ -191,6 +196,8 @@ openfile(void)
     }
     if(nerrs > 0) return NC_EFILTER; 
 
+    if(params) free(params);
+
     /* Verify chunking */
     if(!verifychunks())
         return 0;
@@ -204,7 +211,7 @@ setchunking(void)
     int store;
 
     store = NC_CHUNKED;
-    CHECK(nc_def_var_chunking(ncid,varid,store,chunks));
+    CHECK(nc_def_var_chunking(ncid,varid,store,chunksize));
     if(!verifychunks())
         return NC_EINVAL;
     return NC_NOERR;
@@ -278,8 +285,19 @@ showparameters(void)
         fprintf(stderr," %u",params[i]);
     }
     fprintf(stderr,"\n");
-    for(i=0;i<actualdims;i++)
-        fprintf(stderr,"%s%ld",(i==0?" chunks=":","),(unsigned long)chunks[i]);
+    for(i=0;i<ndims;i++) {
+	if(i==0)
+            fprintf(stderr,"dimsizes=%ld",(unsigned long)dimsize[i]);
+	else
+            fprintf(stderr,",%ld",(unsigned long)dimsize[i]);
+    }
+    fprintf(stderr,"\n");
+    for(i=0;i<ndims;i++) {
+	if(i==0)
+            fprintf(stderr,"chunksizes=%ld",(unsigned long)chunksize[i]);
+	else
+            fprintf(stderr,",%ld",(unsigned long)chunksize[i]);
+    }
     fprintf(stderr,"\n");
     fflush(stderr);
 }
@@ -287,7 +305,13 @@ showparameters(void)
 static void
 insert(int index, void* src, size_t size)
 {
+    unsigned char src8[8];
     void* dst = &baseline[index];
+    if(size == 8) {
+	memcpy(src8,src,size);
+	NC_filterfix8(src8,0);
+	src = src8;
+    }
     memcpy(dst,src,size);
 }
 
@@ -323,6 +347,8 @@ buildbaseline(unsigned int testcasenumber)
 	val8 = 18446744073709551615UL;
         insert(12,&val8,sizeof(val8)); /* 12 unsigned long long */
 	break;
+    case 2:
+    	break;
     default:
 	fprintf(stderr,"Unknown testcase number: %d\n",testcasenumber);
 	abort();
@@ -360,6 +386,37 @@ test_test1(void)
     return ok;
 }
 
+static int
+test_test2(void)
+{
+    int ok = 1;
+
+    reset();
+
+    buildbaseline(2);
+
+    fprintf(stderr,"test2: dimsize %% chunksize != 0: compress.\n");
+    create();
+    setchunking();
+    setvarfilter();
+    showparameters();
+    CHECK(nc_enddef(ncid));
+
+    /* Fill in the array */
+    fill();
+    /* write array */
+    CHECK(nc_put_var(ncid,varid,expected));
+    CHECK(nc_close(ncid));
+
+    fprintf(stderr,"test2: dimsize %% chunksize != 0: decompress.\n");
+    reset();
+    openfile();
+    CHECK(nc_get_var_float(ncid, varid, array));
+    ok = compare();
+    CHECK(nc_close(ncid));
+    return ok;
+}
+
 /**************************************************/
 /* Utilities */
 
@@ -378,16 +435,16 @@ odom_reset(void)
 static int
 odom_more(void)
 {
-    return (odom[0] < dims[0]);
+    return (odom[0] < dimsize[0]);
 }
 
 static int
 odom_next(void)
 {
     int i; /* do not make unsigned */
-    for(i=actualdims-1;i>=0;i--) {
+    for(i=ndims-1;i>=0;i--) {
         odom[i] += 1;
-        if(odom[i] < dims[i]) break;
+        if(odom[i] < dimsize[i]) break;
         if(i == 0) return 0; /* leave the 0th entry if it overflows*/
         odom[i] = 0; /* reset this position*/
     }
@@ -399,8 +456,8 @@ odom_offset(void)
 {
     int i;
     int offset = 0;
-    for(i=0;i<actualdims;i++) {
-        offset *= dims[i];
+    for(i=0;i<ndims;i++) {
+        offset *= dimsize[i];
         offset += odom[i];
     }
     return offset;
@@ -412,8 +469,8 @@ expectedvalue(void)
     int i;
     float offset = 0;
 
-    for(i=0;i<actualdims;i++) {
-        offset *= dims[i];
+    for(i=0;i<ndims;i++) {
+        offset *= dimsize[i];
         offset += odom[i];
     }
     return offset;
@@ -428,12 +485,12 @@ init(int argc, char** argv)
     actualproduct = 1;
     chunkproduct = 1;
     for(i=0;i<MAXDIMS;i++) {
-        dims[i] = dimsize;
-        chunks[i] = (pattern[i] == 1 ? 1 : chunksize);
-        totalproduct *= dims[i];
-        if(i < actualdims) {
-            actualproduct *= dims[i];
-            chunkproduct *= chunks[i];
+        if(pattern[i] == 1)
+	    chunksize[i] = 1;
+        totalproduct *= dimsize[i];
+        if(i < ndims) {
+            actualproduct *= dimsize[i];
+            chunkproduct *= chunksize[i];
         }
     }
     /* Allocate max size */
@@ -451,5 +508,6 @@ main(int argc, char **argv)
 #endif
     init(argc,argv);
     if(!test_test1()) ERRR;
+    if(!test_test2()) ERRR;
     exit(nerrs > 0?1:0);
 }

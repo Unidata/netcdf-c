@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1993, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
@@ -30,12 +30,9 @@ static char* constrainableprotocols[] = {"http", "https",NULL};
 
 static int ncd4initialized = 0;
 
-static NC_Dispatch NCD4_dispatch_base;
+static const NC_Dispatch NCD4_dispatch_base;
 
-NC_Dispatch* NCD4_dispatch_table = NULL; /* moved here from ddispatch.c */
-
-/* Collect global state info in one place */
-NCD4globalstate* NCD4_globalstate = NULL;
+const NC_Dispatch* NCD4_dispatch_table = NULL; /* moved here from ddispatch.c */
 
 /* Forward */
 static int globalinit(void);
@@ -57,12 +54,14 @@ NCD4_initialize(void)
     globalinit();
     /* Load rc file */
     NC_rcload();    
+
     return THROW(NC_NOERR);
 }
 
 int
 NCD4_finalize(void)
 {
+    curl_global_cleanup();
     return THROW(NC_NOERR);
 }
 
@@ -87,8 +86,7 @@ NCD4_sync(int ncid)
 static int
 NCD4_create(const char *path, int cmode,
            size_t initialsz, int basepe, size_t *chunksizehintp,
-	   int use_parallel, void* mpidata,
-           NC_Dispatch* dispatch, NC* ncp)
+           void* mpidata, const NC_Dispatch *dispatch, NC *ncp)
 {
    return THROW(NC_EPERM);
 }
@@ -730,7 +728,7 @@ NCD4_get_var_chunk_cache(int ncid, int p2, size_t* p3, size_t* p4, float* p5)
     return (ret);
 }
 
-#endif // USE_NETCDF4
+#endif /*USE_NETCDF4*/
 
 /**************************************************/
 /*
@@ -800,12 +798,14 @@ globalinit(void)
 	if(cstat != CURLE_OK)
 	    fprintf(stderr,"curl_global_init failed!\n");
     }
+
+
     return stat;
 }
 
 /**************************************************/
 
-static NC_Dispatch NCD4_dispatch_base = {
+static const NC_Dispatch NCD4_dispatch_base = {
 
 NC_FORMATX_DAP4,
 

@@ -1,12 +1,14 @@
-netCDF Authorization Support
+NetCDF Authorization Support
 ======================================
+
 <!-- double header is needed to workaround doxygen bug -->
 
-# netCDF Authorization Support {#Header}
+NetCDF Authorization Support {#auth}
+====================================
 
 [TOC]
 
-## Introduction {#Introduction}
+## Introduction {#auth_intro}
 
 netCDF can support user authorization using the facilities provided by the curl
 library. This includes basic password authentication as well as
@@ -23,7 +25,7 @@ The libcurl authorization mechanisms can be accessed in two ways
 2. Accessing information from a so-called _rc_ file named either
    `.daprc` or `.dodsrc`
 
-## URL-Based Authentication {#URLAUTH}
+## URL-Based Authentication {#auth_url}
 
 For simple password based authentication, it is possible to
 directly insert the username and the password into a url in this form.
@@ -43,7 +45,7 @@ Note also that the `user:password` form may contain characters that must be
 escaped. See the <a href="#USERPWDESCAPE">password escaping</a> section to see
 how to properly escape the user and password.
 
-## RC File Authentication {#DODSRC}
+## RC File Authentication {#auth_dodsrc}
 The netcdf library supports an _rc_ file mechanism to allow the passing
 of a number of parameters to libnetcdf and libcurl.
 Locating the _rc_ file is a multi-step process.
@@ -118,7 +120,7 @@ Similarly,
 
 will have HTTP.VERBOSE set to 0 because its host+port matches the example above.
 
-## Authorization-Related Keys {#AUTHKEYS}
+## Authorization-Related Keys {#auth_keys}
 
 The currently defined set of authorization-related keys are as follows.
 The second column is the affected curl_easy_setopt option(s), if any
@@ -188,7 +190,7 @@ specifies the password for accessing the HTTP.SSL.CERTIFICAT/HTTP.SSL.key file.
 
 HTTP.SSL.CAPATH
 specifies the path to a directory containing
-trusted certificates for validating server sertificates.
+trusted certificates for validating server certificates.
 See reference #2 for more info.
 
 HTTP.SSL.VALIDATE
@@ -207,7 +209,7 @@ specifies the absolute path of the .netrc file.
 See [redirection authorization](#REDIR)
 for information about using .netrc.
 
-## Password Escaping {#USERPWDESCAPE}
+## Password Escaping {#auth_userpwdescape}
 
 With current password rules, it is is not unlikely that the password
 will contain characters that need to be escaped. Similarly, the user
@@ -231,7 +233,7 @@ The relevant escape codes are as follows.
 </table>
 Additional characters can be escaped if desired.
 
-## Redirection-Based Authentication {#REDIR}
+## Redirection-Based Authentication {#auth_redir}
 
 Some sites provide authentication by using a third party site
 to do the authentication. Examples include ESG, URS, RDA, and most oauth2-based
@@ -282,7 +284,7 @@ to specify a real file in the file system to act as the
 cookie jar file (HTTP.COOKIEJAR) so that the
 redirect site can properly pass back authorization information.
 
-## Client-Side Certificates {#CLIENTCERTS}
+## Client-Side Certificates {#auth_clientcerts}
 
 Some systems, notably ESG (Earth System Grid), requires
 the use of client-side certificates, as well as being
@@ -303,7 +305,7 @@ Note that the first two are there to support re-direction based authentication.
 1. https://curl.haxx.se/libcurl/c/curl_easy_setopt.html
 2. https://curl.haxx.se/docs/ssl-compared.html
 
-## Appendix A. All RC-File Keys {#allkeys}
+## Appendix A. All RC-File Keys {#auth_allkeys}
 
 For completeness, this is the list of all rc-file keys.
 If this documentation is out of date with respect to the actual code,
@@ -330,7 +332,7 @@ the code is definitive.
 <tr><td>HTTP.NETRC</td><td>CURLOPT_NETRC,CURLOPT_NETRC_FILE</td>
 </table>
 
-## Appendix B. URS Access in Detail {#URSDETAIL}
+## Appendix B. URS Access in Detail {#auth_ursdetail}
 
 It is possible to use the NASA Earthdata Login System (URS)
 with netcdf by using using the process specified in the
@@ -340,7 +342,7 @@ register as a user with NASA at this website (subject to change):
 
     https://uat.urs.earthdata.nasa.gov/
 
-## Appendix C. ESG Access in Detail {#ESGDETAIL}
+## Appendix C. ESG Access in Detail {#auth_esgdetail}
 
 It is possible to access Earth Systems Grid (ESG) datasets
 from ESG servers through the netCDF API using the techniques
@@ -512,9 +514,10 @@ what you changed to the author so this document can be updated.
     done
     exit
 
-## Provenance
+## Point of Contact
 
 __Author__: Dennis Heimbigner<br>
+__Email__: dmh at ucar dot edu
 __Initial Version__: 11/21/2014<br>
 __Last Revised__: 08/24/2017
 

@@ -1,6 +1,6 @@
 /*
-Copyright (c) 1998-2017 University Corporation for Atmospheric Research/Unidata
-See LICENSE.txt for license information.
+Copyright (c) 1998-2018 University Corporation for Atmospheric Research/Unidata
+See COPYRIGHT for license information.
 */
 
 #include "config.h"
@@ -43,11 +43,56 @@ static void storedump(char* msg, NClist* triples);
 #endif
 
 /* Define default rc files and aliases, also defines search order*/
-static char* rcfilenames[] = {".daprc",".dodsrc",NULL};
+static const char* rcfilenames[] = {".daprc",".dodsrc",".ncrc",NULL};
 
 /**************************************************/
 /* External Entry Points */
 
+static NCRCglobalstate* ncrc_globalstate = NULL;
+
+/* Get global state */
+NCRCglobalstate*
+ncrc_getglobalstate(void)
+{
+    if(ncrc_globalstate == NULL) {
+        ncrc_globalstate = calloc(1,sizeof(NCRCglobalstate));
+    }
+    return ncrc_globalstate;
+}
+
+void
+ncrc_freeglobalstate(void)
+{
+    if(ncrc_globalstate != NULL) {
+        nullfree(ncrc_globalstate->tempdir);
+        nullfree(ncrc_globalstate->home);
+        NC_rcclear(&ncrc_globalstate->rcinfo);
+	free(ncrc_globalstate);
+	ncrc_globalstate = NULL;
+    }
+}
+
+void
+NC_rcclear(NCRCinfo* info)
+{
+    if(info == NULL) return;
+    nullfree(info->rcfile);
+    rcfreetriples(info->triples);
+}
+
+void
+rcfreetriples(NClist* rc)
+{
+    int i;
+    for(i=0;i<nclistlength(rc);i++) {
+	NCTriple* t = (NCTriple*)nclistget(rc,i);
+	nullfree(t->host);
+	nullfree(t->key);
+	nullfree(t->value);
+	free(t);
+    }
+    nclistfree(rc);
+}
 
 /* locate, read and compile the rc file, if any */
 int
@@ -55,12 +100,13 @@ NC_rcload(void)
 {
     int ret = NC_NOERR;
     char* path = NULL;
+    NCRCglobalstate* globalstate = ncrc_getglobalstate();
 
-    if(ncrc_globalstate.rcinfo.ignore) {
+    if(globalstate->rcinfo.ignore) {
         nclog(NCLOGDBG,"No runtime configuration file specified; continuing");
 	return (NC_NOERR);
     }
-    if(ncrc_globalstate.rcinfo.loaded) return (NC_NOERR);
+    if(globalstate->rcinfo.loaded) return (NC_NOERR);
 
     /* locate the configuration files in the following order:
        1. specified by NC_set_rcfile
@@ -68,17 +114,17 @@ NC_rcload(void)
        3. ./<rcfile> (current directory)
        4. $HOME/<rcfile>
     */
-    if(ncrc_globalstate.rcinfo.rcfile != NULL) { /* always use this */
-	path = strdup(ncrc_globalstate.rcinfo.rcfile);
+    if(globalstate->rcinfo.rcfile != NULL) { /* always use this */
+	path = strdup(globalstate->rcinfo.rcfile);
     } else if(getenv(RCFILEENV) != NULL && strlen(getenv(RCFILEENV)) > 0) {
         path = strdup(getenv(RCFILEENV));
     } else {
-	char** rcname;
+	const char** rcname;
 	int found = 0;
 	for(rcname=rcfilenames;!found && *rcname;rcname++) {
 	    ret = rcsearch(".",*rcname,&path);
     	    if(ret == NC_NOERR && path == NULL)  /* try $HOME */
-	        ret = rcsearch(ncrc_globalstate.home,*rcname,&path);
+	        ret = rcsearch(globalstate->home,*rcname,&path);
 	    if(ret != NC_NOERR)
 		goto done;
 	    if(path != NULL)
@@ -97,7 +143,7 @@ NC_rcload(void)
 	}
     }
 done:
-    ncrc_globalstate.rcinfo.loaded = 1; /* even if not exists */
+    globalstate->rcinfo.loaded = 1; /* even if not exists */
     nullfree(path);
     return (ret);
 }
@@ -130,6 +176,7 @@ NC_set_rcfile(const char* rcfile)
 {
     int stat = NC_NOERR;
     FILE* f = NULL;
+    NCRCglobalstate* globalstate = ncrc_getglobalstate();
 
     if(rcfile != NULL && strlen(rcfile) == 0)
 	rcfile = NULL;
@@ -139,36 +186,14 @@ NC_set_rcfile(const char* rcfile)
         goto done;
     }
     fclose(f);
-    nullfree(ncrc_globalstate.rcinfo.rcfile);
-    ncrc_globalstate.rcinfo.rcfile = strdup(rcfile);
-    /* Clear ncrc_globalstate.rcinfo */
-    NC_rcclear(&ncrc_globalstate.rcinfo);    
+    nullfree(globalstate->rcinfo.rcfile);
+    globalstate->rcinfo.rcfile = strdup(rcfile);
+    /* Clear globalstate->rcinfo */
+    NC_rcclear(&globalstate->rcinfo);
     /* (re) load the rcfile and esp the triplestore*/
     stat = NC_rcload();
 done:
     return stat;
-}
-
-void
-NC_rcclear(NCRCinfo* info)
-{
-    if(info == NULL) return;
-    nullfree(info->rcfile);
-    rcfreetriples(info->triples);
-}
-
-void
-rcfreetriples(NClist* rc)
-{
-    int i;
-    for(i=0;i<nclistlength(rc);i++) {
-	NCTriple* t = (NCTriple*)nclistget(rc,i);
-	nullfree(t->host);
-	nullfree(t->key);
-	nullfree(t->value);
-	free(t);
-    }
-    nclistfree(rc);
 }
 
 /**************************************************/
@@ -196,10 +221,9 @@ static void
 rctrim(char* text)
 {
     char* p = text;
-    size_t len;
+    size_t len = 0;
     int i;
 
-    len = strlen(text);
     /* locate first non-trimchar */
     for(;*p;p++) {
        if(strchr(TRIMCHARS,*p) == NULL) break; /* hit non-trim char */
@@ -225,8 +249,9 @@ rcorder(NClist* rc)
 {
     int i;
     int len = nclistlength(rc);
-    NClist* tmprc = nclistnew();
+    NClist* tmprc = NULL;
     if(rc == NULL || len == 0) return;
+    tmprc = nclistnew();
     /* Copy rc into tmprc and clear rc */
     for(i=0;i<len;i++) {
         NCTriple* ti = nclistget(rc,i);
@@ -249,7 +274,6 @@ rcorder(NClist* rc)
     storedump("reorder:",rc);
 #endif
     nclistfree(tmprc);
-
 }
 
 /* Create a triple store from a file */
@@ -262,20 +286,21 @@ rccompile(const char* path)
     NCbytes* tmp = ncbytesnew();
     NCURI* uri = NULL;
     char* nextline = NULL;
+    NCRCglobalstate* globalstate = ncrc_getglobalstate();
 
     if((ret=NC_readfile(path,tmp))) {
-        nclog(NCLOGERR, "Could not open configuration file: %s",path);	
-	goto done;    
+        nclog(NCLOGERR, "Could not open configuration file: %s",path);
+	goto done;
     }
     contents = ncbytesextract(tmp);
     if(contents == NULL) contents = strdup("");
     /* Either reuse or create new  */
-    rc = ncrc_globalstate.rcinfo.triples;
+    rc = globalstate->rcinfo.triples;
     if(rc != NULL)
         rcfreetriples(rc); /* clear out any old data */
     else {
         rc = nclistnew();
-        ncrc_globalstate.rcinfo.triples = rc;
+        globalstate->rcinfo.triples = rc;
     }
     nextline = contents;
     for(;;) {
@@ -292,32 +317,34 @@ rccompile(const char* path)
 	if((llen=strlen(line)) == 0) continue; /* empty line */
 	triple = (NCTriple*)calloc(1,sizeof(NCTriple));
 	if(triple == NULL) {ret = NC_ENOMEM; goto done;}
-        if(line[0] == LTAG) {
-            char* url = ++line;
+	if(line[0] == LTAG) {
+	    char* url = ++line;
             char* rtag = strchr(line,RTAG);
             if(rtag == NULL) {
                 nclog(NCLOGERR, "Malformed [url] in %s entry: %s",path,line);
-                continue;
+                free(triple);
+		continue;
             }
             line = rtag + 1;
             *rtag = '\0';
             /* compile the url and pull out the host */
-	    if(uri) ncurifree(uri);
-	    if(ncuriparse(url,&uri) != NCU_OK) {
+            if(uri) ncurifree(uri);
+            if(ncuriparse(url,&uri) != NCU_OK) {
                 nclog(NCLOGERR, "Malformed [url] in %s entry: %s",path,line);
+                free(triple);
 		continue;
-	    }
-	    ncbytesclear(tmp);
-	    ncbytescat(tmp,uri->host);
-	    if(uri->port != NULL) {
+            }
+            ncbytesclear(tmp);
+            ncbytescat(tmp,uri->host);
+            if(uri->port != NULL) {
 		ncbytesappend(tmp,':');
-	        ncbytescat(tmp,uri->port);	
-	    }
-	    ncbytesnull(tmp);
-	    triple->host = ncbytesextract(tmp);
+                ncbytescat(tmp,uri->port);
+            }
+            ncbytesnull(tmp);
+            triple->host = ncbytesextract(tmp);
 	    if(strlen(triple->host)==0)
 		{free(triple->host); triple->host = NULL;}
-        }
+	}
         /* split off key and value */
         key=line;
         value = strchr(line, '=');
@@ -356,19 +383,23 @@ static struct NCTriple*
 rclocate(const char* key, const char* hostport)
 {
     int i,found;
-    NClist* rc = ncrc_globalstate.rcinfo.triples;
+    NCRCglobalstate* globalstate = ncrc_getglobalstate();
+    NClist* rc = globalstate->rcinfo.triples;
     NCTriple* triple = NULL;
 
-    if(ncrc_globalstate.rcinfo.ignore)
+    if(globalstate->rcinfo.ignore)
 	return NULL;
 
     if(key == NULL || rc == NULL) return NULL;
     if(hostport == NULL) hostport = "";
 
     for(found=0,i=0;i<nclistlength(rc);i++) {
-	triple = (NCTriple*)nclistget(rc,i);
-        size_t hplen = (triple->host == NULL ? 0 : strlen(triple->host));
-        int t;
+      int t;
+      size_t hplen;
+      triple = (NCTriple*)nclistget(rc,i);
+
+      hplen = (triple->host == NULL ? 0 : strlen(triple->host));
+
         if(strcmp(key,triple->key) != 0) continue; /* keys do not match */
         /* If the triple entry has no url, then use it
            (because we have checked all other cases)*/
@@ -392,8 +423,8 @@ rcsearch(const char* prefix, const char* rcname, char** pathp)
 {
     char* path = NULL;
     FILE* f = NULL;
-    int plen = strlen(prefix);
-    int rclen = strlen(rcname);
+    size_t plen = strlen(prefix);
+    size_t rclen = strlen(rcname);
     int ret = NC_NOERR;
 
     size_t pathlen = plen+rclen+1; /*+1 for '/' */
@@ -422,6 +453,53 @@ done:
     return (ret);
 }
 
+int
+NC_rcfile_insert(const char* key, const char* value, const char* hostport)
+{
+    int ret = NC_NOERR;
+    /* See if this key already defined */
+    struct NCTriple* triple = NULL;
+    NCRCglobalstate* globalstate = ncrc_getglobalstate();
+    NClist* rc = globalstate->rcinfo.triples;
+
+    if(rc == NULL) {
+	rc = nclistnew();
+	if(rc == NULL) {ret = NC_ENOMEM; goto done;}
+    }
+    triple = rclocate(key,hostport);
+    if(triple == NULL) {
+	triple = (NCTriple*)calloc(1,sizeof(NCTriple));
+	if(triple == NULL) {ret = NC_ENOMEM; goto done;}
+	triple->key = strdup(key);
+	triple->value = NULL;
+        rctrim(triple->key);
+        triple->host = (hostport == NULL ? NULL : strdup(hostport));
+	nclistpush(rc,triple);
+    }
+    if(triple->value != NULL) free(triple->value);
+    triple->value = strdup(value);
+    rctrim(triple->value);
+done:
+    return ret;
+}
+
+/* Obtain the count of number of triples */
+size_t
+NC_rcfile_length(NCRCinfo* info)
+{
+    return nclistlength(info->triples);
+}
+
+/* Obtain the ith triple; return NULL if out of range */
+NCTriple*
+NC_rcfile_ith(NCRCinfo* info, size_t i)
+{
+    if(i >= nclistlength(info->triples))
+	return NULL;
+    return (NCTriple*)nclistget(info->triples,i);
+}
+
+
 #ifdef D4DEBUG
 static void
 storedump(char* msg, NClist* triples)
@@ -441,4 +519,3 @@ storedump(char* msg, NClist* triples)
     fflush(stderr);
 }
 #endif
-

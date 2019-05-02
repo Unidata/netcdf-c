@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2009, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 /* $Id: odom.c,v 1.5 2010/05/27 21:34:18 dmh Exp $ */
@@ -18,7 +18,7 @@ newodometer(Dimset* dimset, size_t* startp, size_t* countp)
     Odometer* odom;
     ASSERT(dimset != NULL);
     ASSERT(dimset->ndims > 0);
-    odom = (Odometer*)emalloc(sizeof(Odometer));
+    odom = (Odometer*)ecalloc(sizeof(Odometer));
     if(odom == NULL) return NULL;
     odom->origin = odom;
     odom->offset = 0;
@@ -44,7 +44,7 @@ newsubodometer(Odometer* origin, Dimset* dimset, int start, int stop)
     ASSERT(dimset != NULL);
     ASSERT(dimset->ndims > 0 && dimset->ndims >= stop);
     ASSERT(stop > start);
-    odom = (Odometer*)emalloc(sizeof(Odometer));
+    odom = (Odometer*)ecalloc(sizeof(Odometer));
     if(odom == NULL) return NULL;
     odom->origin = origin;
     odom->offset = start;

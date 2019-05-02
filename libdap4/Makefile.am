@@ -1,5 +1,5 @@
 ## This is a automake file, part of Unidata's netCDF package.
-# Copyright 2005, see the COPYRIGHT file for more information.
+# Copyright 2008, see the COPYRIGHT file for more information.
 
 # This automake file generates the Makefile to libdap2. Whatever that
 # is!
@@ -15,10 +15,11 @@ EXTRA_DIST = CMakeLists.txt
 
 LDADD=
 
+#d4curlflags.c
+
 SRC= \
 d4crc32.c \
 d4curlfunctions.c \
-d4curlflags.c \
 d4fix.c \
 d4data.c \
 d4file.c \

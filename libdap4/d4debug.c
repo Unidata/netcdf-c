@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 2016, UCAR/Unidata
+ *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 #include "config.h"
@@ -8,8 +8,7 @@
 
 #include "d4includes.h"
 #include "ncdispatch.h"
-
-int ncdap4debug = 0;
+#include "netcdf_aux.h"
 
 #ifdef D4CATCH
 /* Place breakpoint here to catch errors close to where they occur*/
@@ -110,8 +109,10 @@ NCD4_debugcopy(NCD4INFO* info)
 	int varid = var->meta.id;
 	d4size_t varsize;
 	void* memory = NULL;
+	size_t dimprod = NCD4_dimproduct(var);
+	int ncid = info->substrate.nc4id;
 
-	varsize = type->meta.memsize * NCD4_dimproduct(var);
+	varsize = type->meta.memsize * dimprod;
 	memory = d4alloc(varsize);
         if(memory == NULL)
 	    {ret = NC_ENOMEM; goto done;}		
@@ -135,11 +136,17 @@ NCD4_debugcopy(NCD4INFO* info)
 		NCD4node* dim = (NCD4node*)nclistget(var->dims,d);
 		edges[d] = (size_t)dim->dim.size;
 	    }
-            if((ret=nc_put_vara(grpid,varid,nc_sizevector0,edges,memory)))
+            if((ret=nc_put_vara(grpid,varid,NC_coord_zero,edges,memory)))
 	        goto done;
 	}
+	if((ret=ncaux_reclaim_data(ncid,type->meta.id,memory,dimprod)))
+	    goto done;
+	free(memory);
+	memory = NULL;
     }	    
 done:
+    if(topvars)
+        nclistfree(topvars);
     if(ret != NC_NOERR) {
         fprintf(stderr,"debugcopy: %d %s\n",ret,nc_strerror(ret));
     }

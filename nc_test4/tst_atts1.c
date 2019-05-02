@@ -1,4 +1,4 @@
-/* This is part of the netCDF package. Copyright 2005-2007 University
+/* This is part of the netCDF package. Copyright 2006-2018 University
    Corporation for Atmospheric Research/Unidata. See COPYRIGHT file
    for conditions of use.
 
@@ -183,7 +183,7 @@ main(int argc, char **argv)
       if (nc_put_att_ulonglong(ncid, NC_GLOBAL, ATT_UINT64_NAME, NC_UINT64, ATT_LEN,
 			       ulonglong_out) != NC_ESTRICTNC3) ERR;
       /* But it's OK to put classic types like NC_INT converted from
-       * supported C types, though there may be out-of-range errrors
+       * supported C types, though there may be out-of-range errors
        * for some values */
       if (nc_put_att_uint(ncid, NC_GLOBAL, ATT_INT_NAME, NC_INT, ATT_LEN,
 			  uint_out) != NC_ERANGE) ERR;

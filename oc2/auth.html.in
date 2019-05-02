@@ -128,7 +128,7 @@ specifies the password for accessing the HTTP.SSL.CERTIFICAT/HTTP.SSL.key file.
 <p>
 HTTP.SSL.CAPATH
 specifies the path to a directory containing
-trusted certificates for validating server sertificates.
+trusted certificates for validating server certificates.
 <p>
 HTTP.SSL.VALIDATE
 is a boolean (1/0) value that if true (1)

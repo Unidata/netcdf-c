@@ -1,5 +1,5 @@
 /*********************************************************************
- *   Copyright 1996-2005, UCAR/Unidata
+ *   Copyright 1996-2018, UCAR/Unidata
  *   See COPYRIGHT file for copying and redistribution conditions.
  *   $Id: nc_test.c 2796 2014-10-28 03:40:29Z wkliao $
  *********************************************************************/
@@ -134,7 +134,7 @@ main(int argc, char *argv[])
 	     break;
 
 	  case NC_FORMAT_CDF5:
-#ifdef USE_CDF5
+#ifdef ENABLE_CDF5
         nc_set_default_format(NC_FORMAT_CDF5, NULL);
 	     fprintf(stderr, "\n\nSwitching to 64-bit data format.\n");
 	     strcpy(testfile, "nc_test_cdf5.nc");
@@ -153,7 +153,7 @@ main(int argc, char *argv[])
 
 
        case NC_FORMAT_NETCDF4_CLASSIC:
-#ifdef USE_NETCDF4
+#ifdef USE_HDF5
 	     nc_set_default_format(NC_FORMAT_NETCDF4_CLASSIC, NULL);
 	     strcpy(testfile, "nc_test_netcdf4.nc");
 	     fprintf(stderr, "\n\nSwitching to netCDF-4 format (with NC_CLASSIC_MODEL).\n");

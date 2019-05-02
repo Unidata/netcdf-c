@@ -1,5 +1,5 @@
 ## This is a automake file, part of Unidata's netCDF package.
-# Copyright 2005, see the COPYRIGHT file for more information.
+# Copyright 2018, see the COPYRIGHT file for more information.
 
 # This automake file generates the Makefile to build netCDF-4. The
 # generated makefile is not run unless the user selected to build
@@ -18,7 +18,6 @@ ocdata.c ocdebug.c ocdump.c  \
 ocinternal.c ocnode.c \
 ochttp.c \
 ocread.c ocutil.c \
-occurlflags.c \
 xxdr.c
 
 HDRS=oc.h ocx.h \
@@ -32,7 +31,7 @@ xxdr.h
 EXTRA_DIST = dap.y CMakeLists.txt auth.html.in oc.css
 
 noinst_LTLIBRARIES = liboc.la
-liboc_la_SOURCES = $(SRC) $(HDRS) 
+liboc_la_SOURCES = $(SRC) $(HDRS)
 liboc_la_CPPFLAGS = $(AM_CPPFLAGS)
 
 # These rule are used if someone wants to rebuild the grammar files.

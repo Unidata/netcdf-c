@@ -38,6 +38,8 @@
 #include "ncgen.h"
 #include "ncgeny.h"
 
+EXTERNL int fileno(FILE*);
+
 #define FILL_STRING "_"
 #define XDR_INT32_MIN (-2147483647-1)
 #define XDR_INT32_MAX 2147483647
@@ -80,6 +82,7 @@ static unsigned int MAX_UINT = NC_MAX_UINT;
 #define TAGCHARS "BbSsLlUu"
 
 #define tstdecimal(ch) ((ch) >= '0' && (ch) <= '9')
+#define tstoctal(ch) ((ch) == '0')
 
 /*Mnemonics*/
 #define ISIDENT 1
@@ -90,7 +93,7 @@ static unsigned int MAX_UINT = NC_MAX_UINT;
 
 char errstr[100];		/* for short error messages */
 
-int lineno;              /* line number for error messages */
+int lineno;                    /* line number for error messages */
 Bytebuffer* lextext;           /* name or string with escapes removed */
 
 #define YY_BREAK                /* defining as nothing eliminates unreachable
@@ -113,7 +116,7 @@ unsigned char ubyte_val;       /* last byte value read */
 
 static Symbol* makepath(char* text);
 static int lexdebug(int);
-static unsigned long long parseULL(char* text, int*);
+static unsigned long long parseULL(int radix, char* text, int*);
 static nc_type downconvert(unsigned long long uint64, int*, int, int);
 static int tagmatch(nc_type nct, int tag);
 static int nct2lexeme(nc_type nct);
@@ -224,7 +227,7 @@ USASCII   [\x01-\x7F]
                           break;
                         }
 
-\"{nonquotes}\"		{int len;
+\"{nonquotes}\"		{int len; char* s = NULL;
 			 /* In netcdf4, this will be used in a variety
                             of places, so only remove escapes */
 /*
@@ -233,18 +236,15 @@ yyerror("string too long, truncated\n");
 yytext[MAXTRST-1] = '\0';
 }
 */
-		        /* FIX: Assumes unescape also does normalization */
-			bbSetalloc(lextext,yyleng+1); /*+1 for nul */
-			/* Adjust length */
-		        bbSetlength(lextext,yyleng-2); /*-2 for quotes */
-			len = unescape(bbContents(lextext),
-                                       (char *)yytext+1,yyleng-2,!ISIDENT);
+			len = unescape((char *)yytext+1,yyleng-2,!ISIDENT,&s);
 			if(len < 0) {
 			    sprintf(errstr,"Illegal character: %s",yytext);
 			    yyerror(errstr);
 			}
-			bbSetlength(lextext,len);
+			bbClear(lextext);
+			bbAppendn(lextext,s,len);
 			bbNull(lextext);
+			if(s) efree(s);
 		 	return lexdebug(TERMSTRING);
 		        }
 
@@ -364,15 +364,15 @@ NIL|nil|Nil {
 		    return lexdebug(DATASETID);
 		}
 
-{ID}		{ char* id; int len;
-		    bbClear(lextext);
-		    bbAppendn(lextext,(char*)yytext,yyleng+1); /* include null */
-		    bbNull(lextext);
-		    id = bbContents(lextext);
-		    len = unescape(id,id,bbLength(lextext),ISIDENT);
-		    bbSetlength(lextext,len);
-		    if (STREQ(id, FILL_STRING)) return lexdebug(FILLMARKER);
+{ID}		{ char* id = NULL; int len;
+		    len = strlen(yytext);
+		    len = unescape(yytext,len,ISIDENT,&id);
+		    if(NCSTREQ(id, FILL_STRING)) {
+			efree(id);
+		        return lexdebug(FILLMARKER);
+		    }
 		    yylval.sym = install(id);
+		    efree(id);
 		    return lexdebug(IDENT);
 		}
 
@@ -381,6 +381,7 @@ NIL|nil|Nil {
 		  We need to try to see what size of integer ((u)int).
 		  Technically, the user should specify, but...
 		  If out of any integer range, then complain
+		  Also, if the digits begin with 0, then assume octal.
 		*/
 		    int slen = strlen(ncgtext);
 		    char* stag = NULL;
@@ -391,28 +392,40 @@ NIL|nil|Nil {
 		    nc_type nct = 0;
 		    char* pos = NULL;
 		    int hasU = 0;
+		    int radix = 10;
+
+		    pos = ncgtext;
 
 		    /* capture the tag string */
-		    tag = collecttag(ncgtext,&stag);
+		    tag = collecttag(pos,&stag);
 		    if(tag == NC_NAT) {
 			sprintf(errstr,"Illegal integer suffix: %s",stag);
 			yyerror(errstr);
 			goto done;
 		    }
+
 		    /* drop the tag from the input text */
 		    ncgtext[slen - strlen(stag)] = '\0';
 		    hasU = isuinttype(tag);
-		    if(!tstdecimal(c)) {
-			pos = ncgtext+1;
-			isneg = (c == '-');
-		    } else
-		        pos = ncgtext;
+
+		    /* Capture the sign, if any */
+		    isneg = (c == '-');
+		    /* skip leading sign */
+		    if(c == '-' || c == '+')
+			pos++;
+
+		    c = pos[0];
+		    if(tstoctal(c))
+			radix = 8;
+		    else
+			radix = 10;
+
 		    if(isneg && hasU) {
 			sprintf(errstr,"Unsigned integer cannot be signed: %s",ncgtext);
 			yyerror(errstr);
 			goto done;
 		    }
-		    uint64_val = parseULL(pos,&fail);
+		    uint64_val = parseULL(radix, pos,&fail);
 		    if(fail) {
 			sprintf(errstr,"integer constant out of range: %s",ncgtext);
 			yyerror(errstr);
@@ -608,45 +621,38 @@ makepath(char* text0)
         List* prefix = listnew();
 	/* split the text into IDENT chunks, convert to symbols */
         Symbol* container = rootgroup;
-	char *ident, *p;
-        char* text = strdup(text0);
-	int c,lastident;
+	char *ident, *p, *match;
+        char* text = estrdup(text0);
+	int lastident;
+
 	ident=text+1; p=ident; /* skip leading '/' */
+	lastident = 0;
 	do {
-	    lastident = 0;
-	    switch ((c=*p)) {
-	    default: p++; break;
-	    case '\\': p++; if(*p == '/') p++; break;
-	    case '\0': /* treat null terminator like trailing '/' (mostly) */
-		lastident=1; /* this is the last ident in the path */
-		/*fall thru */
-	    case '/':
-		*p='\0';
-		if(!lastident) {
-		    unescape(ident,ident,strlen(ident),ISIDENT);
-		    refsym = lookupingroup(NC_GRP,ident,container);
-		    if(refsym == NULL) {
-		        sprintf(errstr,"Undefined or forward referenced group: %s",ident);
-		        yyerror(errstr);
-			refsym = rootgroup;
-		    } else {
-		        listpush(prefix,(void*)refsym);
-		    }
-		} else { /* lastident is true */
-		    unescape(ident,ident,strlen(ident),ISIDENT);
-		    refsym = install(ident);
-		    refsym->objectclass = NC_GRP;/* tentative */
-		    refsym->ref.is_ref = 1;
-		    refsym->container = container;
-		    refsym->subnodes = listnew();
-		}
-		container = refsym;
-	        ident=p+1; p=ident;
-	        break;
+	    match = esc_strchr(p,'/',0);
+	    lastident = (*match == '\0');
+	    *match='\0';
+	    (void)unescape(p,strlen(p),ISIDENT,&ident);
+	    refsym = lookupingroup(NC_GRP,ident,container);
+	    if(!lastident) {
+	        if(refsym == NULL) {
+	            sprintf(errstr,"Undefined or forward referenced group: %s",ident);
+	            yyerror(errstr);
+		    refsym = rootgroup;
+	        } else
+	             listpush(prefix,(void*)refsym);
+	    } else {/* lasiident is true */
+		refsym = install(ident); /* create as symbol */
+	        refsym->objectclass = NC_GRP;/* tentative */
+		refsym->ref.is_ref = 1;
+		refsym->container = container;
+		refsym->subnodes = listnew();
 	    }
-	} while(c != '\0');
+   	    container = refsym;
+	    p = (lastident?match:match+1);
+	    if(ident) efree(ident);
+	} while(!lastident);
         refsym->prefix = prefix;
-	free(text);
+	efree(text);
     }
     return refsym;
 }
@@ -656,24 +662,26 @@ Parse a simple string of digits into an unsigned long long
 Return the value.
 */
 static unsigned long long
-parseULL(char* text, int* failp)
+parseULL(int radix, char* text, int* failp)
 {
     extern int errno;
     char* endptr;
     unsigned long long uint64 = 0;
 
     errno = 0; endptr = NULL;
-    assert(tstdecimal(text[0]));
 #ifdef HAVE_STRTOULL
-    uint64 = strtoull(text,&endptr,10);
+    uint64 = strtoull(text,&endptr,radix);
     if(errno == ERANGE) {
 	if(failp) *failp = ERANGE;
 	return 0;
     }
-#else /*!(defined HAVE_STRTOLL && defined HAVE_STRTOULL)*/
-    sscanf((char*)text, "%llu", &uint64);
+#else /*!defined HAVE_STRTOULL*/
     /* Have no useful way to detect out of range */
-#endif /*!(defined HAVE_STRTOLL && defined HAVE_STRTOULL)*/
+    if(radix == 8)
+        sscanf((char*)text, "%llo", &uint64);
+    else
+        sscanf((char*)text, "%llu", &uint64);
+#endif /*!defined HAVE_STRTOULL*/
     return uint64;
 }
 

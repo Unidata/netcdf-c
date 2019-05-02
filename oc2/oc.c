@@ -1,4 +1,4 @@
-/* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
+/* Copyright 2018, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
 
 #include "config.h"
@@ -1035,7 +1035,7 @@ oc_data_gridmap(OCobject link, OCobject grid, size_t index, OCobject* mapdatap)
 
 /*!
 Obtain the data instance corresponding to the container
-of a specied instance object.
+of a specified instance object.
 
 \param[in] link The link through which the server is accessed.
 \param[in] datanode The data instance of interest
@@ -1452,7 +1452,7 @@ and the read request cannot be completed.
 
 OCerror
 oc_data_readn(OCobject link, OCobject datanode,
-                 size_t* start, size_t N,
+                 const size_t* start, size_t N,
 	         size_t memsize, void* memory)
 {
     OCerror ocerr = OC_NOERR;
@@ -1962,6 +1962,7 @@ oc_dds_free(OCobject link, OCobject dds0)
 /**************************************************/
 /* Curl specific  options */
 
+#if 0
 /*!\defgroup Curl Curl-specifi Procedures
 @{*/
 
@@ -1992,6 +1993,7 @@ oc_set_curlopt(OClink link, const char* option, void* value)
 	return OCTHROW(OC_ECURL);
     return OCTHROW(ocset_curlopt(state,f->flag,value));
 }
+#endif
 
 /*!
 Set the absolute path to use for the .netrc file

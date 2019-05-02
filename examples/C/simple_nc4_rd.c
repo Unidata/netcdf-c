@@ -1,16 +1,19 @@
-/*! \file
-Read a simple file, with some of the features of netCDF-4.
-
-This is a very simple example which demonstrates some of the new
-features of netCDF-4.0.
-
-This example reads a simple file created by simple_nc4_wr.c. This is
-intended to illustrate the use of the netCDF-4 C API.
-
-This is part of the netCDF package. Copyright 2006-2011 University
-Corporation for Atmospheric Research/Unidata. See COPYRIGHT file for
-conditions of use. Full documentation of the netCDF can be found at
-http://www.unidata.ucar.edu/software/netcdf/docs.
+/* Copyright 2019 University Corporation for Atmospheric
+   Research/Unidata.  See COPYRIGHT file for conditions of use. */
+/**
+ * @file
+ * Read a simple file, with some of the features of netCDF-4.
+ *
+ * This is a very simple example which demonstrates some of the new
+ * features of netCDF-4.0.
+ *
+ * This example reads a simple file created by simple_nc4_wr.c. This is
+ * intended to illustrate the use of the netCDF-4 C API.
+ *
+ * This is part of the netCDF package. Full documentation of netCDF
+ * can be found at http://www.unidata.ucar.edu/software/netcdf/docs.
+ *
+ * @author Ed Hartnett
 */
 #include <stdlib.h>
 #include <stdio.h>
@@ -41,7 +44,7 @@ main()
    int x, y, retval;
 
    /* The following struct is written as a compound type. */
-   struct s1 
+   struct s1
    {
          int i1;
          int i2;
@@ -61,7 +64,7 @@ main()
 
    /* Get the varid of the uint64 data variable, based on its name, in
     * grp1. */
-   if ((retval = nc_inq_varid(grp1id, "data", &varid1))) 
+   if ((retval = nc_inq_varid(grp1id, "data", &varid1)))
       ERR(retval);
 
    /* Read the data. */
@@ -70,7 +73,7 @@ main()
 
    /* Get the varid of the compound data variable, based on its name,
     * in grp2. */
-   if ((retval = nc_inq_varid(grp2id, "data", &varid2))) 
+   if ((retval = nc_inq_varid(grp2id, "data", &varid2)))
       ERR(retval);
 
    /* Read the data. */

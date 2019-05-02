@@ -1,4 +1,4 @@
-/* Copyright 2009, UCAR/Unidata and OPeNDAP, Inc.
+/* Copyright 2018, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
 
 #include "config.h"
@@ -36,6 +36,15 @@
 #define CLBRACE '{'
 #define CRBRACE '}'
 
+#define OCBUFFERSIZE "HTTP.READ.BUFFERSIZE"
+#define OCKEEPALIVE "HTTP.KEEPALIVE"
+
+#ifdef HAVE_CURLOPT_BUFFERSIZE
+#ifndef CURL_MAX_READ_SIZE
+#define CURL_MAX_READ_SIZE  (512*1024)
+#endif
+#endif
+
 /*Forward*/
 static OCerror ocextractddsinmemory(OCstate*,OCtree*,int);
 static OCerror ocextractddsinfile(OCstate*,OCtree*,int);
@@ -45,6 +54,7 @@ static int dataError(XXDR* xdrs, OCstate*);
 static void ocremovefile(const char* path);
 
 static OCerror ocset_curlproperties(OCstate*);
+static OCerror ocget_rcproperties(OCstate*);
 
 extern OCnode* makeunlimiteddimension(void);
 
@@ -76,6 +86,9 @@ ocinternalinitialize(void)
     /* Compute some xdr related flags */
     xxdr_init();
 
+    /* Make sure that the rc file has been loaded */
+    (void)NC_rcload();
+
     return OCTHROW(stat);
 }
 
@@ -88,6 +101,9 @@ ocopen(OCstate** statep, const char* url)
     OCstate * state = NULL;
     NCURI* tmpurl = NULL;
     CURL* curl = NULL; /* curl handle*/
+
+    if(!ocinitialized)
+        ocinternalinitialize();
 
     if(ncuriparse(url,&tmpurl) != NCU_OK) {
 	OCTHROWCHK(stat=OC_EBADURL);
@@ -113,7 +129,11 @@ ocopen(OCstate** statep, const char* url)
     /* Initialize auth info from rc file */
     stat = NC_authsetup(&state->auth, state->uri);
 
-    /* capture curl properties for this link from rc file1*/
+    /* Initialize misc info from rc file */
+    stat = ocget_rcproperties(state);
+
+    /* Apply curl properties for this link;
+       assumes state has been initialized */
     stat = ocset_curlproperties(state);
     if(stat != OC_NOERR) goto fail;
 
@@ -307,14 +327,15 @@ createtempfile(OCstate* state, OCtree* tree)
     char* path = NULL;
     char* tmppath = NULL;
     int len;
+    NCRCglobalstate* globalstate = ncrc_getglobalstate();
 
     len =
-	  strlen(ncrc_globalstate.tempdir)
+	  strlen(globalstate->tempdir)
 	  + 1 /* '/' */
 	  + strlen(DATADDSFILE);
     path = (char*)malloc(len+1);
     if(path == NULL) return OC_ENOMEM;
-    occopycat(path,len,3,ncrc_globalstate.tempdir,"/",DATADDSFILE);
+    occopycat(path,len,3,globalstate->tempdir,"/",DATADDSFILE);
     tmppath = NC_mktmp(path);
     free(path);
     if(stat != OC_NOERR) goto fail;
@@ -442,8 +463,8 @@ fprintf(stderr,"missing bod: ddslen=%lu bod=%lu\n",
 }
 
 /* Allow these (non-alpha-numerics) to pass thru */
-static char okchars[] = "&/:;,.=?@'\"<>{}!|\\^[]`~";
-static char hexdigits[] = "0123456789abcdef";
+static const char okchars[] = "&/:;,.=?@'\"<>{}!|\\^[]`~";
+static const char hexdigits[] = "0123456789abcdef";
 
 /* Modify constraint to use %XX escapes */
 static char*
@@ -491,12 +512,56 @@ ocupdatelastmodifieddata(OCstate* state)
 }
 
 /*
-    Set curl properties for link based on rc files etc.
+    Extract state values from .rc file
+*/
+static OCerror
+ocget_rcproperties(OCstate* state)
+{
+    OCerror ocerr = OC_NOERR;
+    char* option = NULL;
+#ifdef HAVE_CURLOPT_BUFFERSIZE
+    option = NC_rclookup(OCBUFFERSIZE,state->uri->uri);
+    if(option != NULL && strlen(option) != 0) {
+	long bufsize;
+	if(strcasecmp(option,"max")==0) 
+	    bufsize = CURL_MAX_READ_SIZE;
+	else if(sscanf(option,"%ld",&bufsize) != 1 || bufsize <= 0)
+            fprintf(stderr,"Illegal %s size\n",OCBUFFERSIZE);
+	state->curlbuffersize = bufsize;
+    }
+#endif
+#ifdef HAVE_CURLOPT_KEEPALIVE
+    option = NC_rclookup(OCKEEPALIVE,state->uri->uri);
+    if(option != NULL && strlen(option) != 0) {
+	/* The keepalive value is of the form 0 or n/m,
+           where n is the idle time and m is the interval time;
+           setting either to zero will prevent that field being set. */
+	if(strcasecmp(option,"on")==0) {
+	    state->curlkeepalive.active = 1;
+	} else {
+	    unsigned long idle=0;
+	    unsigned long interval=0;
+	    if(sscanf(option,"%lu/%lu",&idle,&interval) != 2)
+	        fprintf(stderr,"Illegal KEEPALIVE VALUE: %s\n",option);
+	    state->curlkeepalive.idle = idle;
+	    state->curlkeepalive.interval = interval;
+	    state->curlkeepalive.active = 1;
+	}
+    }
+#endif
+    return ocerr;
+}
+
+
+/*
+    Set curl properties for link based on fields in the state.
 */
 static OCerror
 ocset_curlproperties(OCstate* state)
 {
     OCerror stat = OC_NOERR;
+    NCRCglobalstate* globalstate = ncrc_getglobalstate();
+
     if(state->auth.curlflags.useragent == NULL) {
         size_t len = strlen(DFALTUSERAGENT) + strlen(VERSION) + 1;
 	char* agent = (char*)malloc(len+1);
@@ -524,12 +589,12 @@ ocset_curlproperties(OCstate* state)
 	errno = 0;
 	/* Create the unique cookie file name */
         len =
-	  strlen(ncrc_globalstate.tempdir)
+	  strlen(globalstate->tempdir)
 	  + 1 /* '/' */
 	  + strlen("occookies");
         path = (char*)calloc(1,len+1);
         if(path == NULL) return OC_ENOMEM;
-        occopycat(path,len,3,ncrc_globalstate.tempdir,"/","occookies");
+        occopycat(path,len,3,globalstate->tempdir,"/","occookies");
         tmppath = NC_mktmp(path);
         free(path);
 	state->auth.curlflags.cookiejar = tmppath;
@@ -585,7 +650,7 @@ fail:
     return OCTHROW(stat);
 }
 
-static char* ERROR_TAG = "Error ";
+static const char* ERROR_TAG = "Error ";
 
 static int
 dataError(XXDR* xdrs, OCstate* state)
@@ -595,7 +660,7 @@ dataError(XXDR* xdrs, OCstate* state)
     off_t ckp=0,avail=0;
     int i=0;
     char* errmsg = NULL;
-    char errortext[16]; /* bigger thant |ERROR_TAG|*/
+    char errortext[16]; /* bigger than |ERROR_TAG|*/
     avail = xxdr_getavail(xdrs);
     if(avail < strlen(ERROR_TAG))
 	goto done; /* assume it is ok */

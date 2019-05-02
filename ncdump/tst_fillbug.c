@@ -1,5 +1,5 @@
 /* 
-This is part of the netCDF package. Copyright 2017 University
+This is part of the netCDF package. Copyright 2018 University
 Corporation for Atmospheric Research/Unidata. See COPYRIGHT file for
 conditions of use. See www.unidata.ucar.edu for more info.
 */
@@ -197,6 +197,7 @@ count_udtypes(int ncid) {
 	for (i=0; i < numgrps; i++) {
 	    ntypes += count_udtypes(ncids[i]);
 	}
+	free(ncids);
     }
     return ntypes;
 }

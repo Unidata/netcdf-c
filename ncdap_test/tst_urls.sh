@@ -82,7 +82,7 @@ COLUMBIA="http://iridl.ldeo.columbia.edu/SOURCES/.Models/.NMME/.NASA-GMAO/.MONTH
 # Known to fail
 
 XFAILTESTS=
-# Supress some tests if not windows platform.
+# Suppress some tests if not windows platform.
 if test "x$platform" == xmingw ; then
     XFAILTESTS="$XFAILTESTS test.67"
 fi

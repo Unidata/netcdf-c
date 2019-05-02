@@ -25,35 +25,38 @@
 /* Stuff below is for hdf4 files. */
 typedef struct NC_VAR_HDF4_INFO
 {
-   int sdsid;
-   int hdf4_data_type;
+    int sdsid;
+    int hdf4_data_type;
 } NC_VAR_HDF4_INFO_T;
 
 typedef struct NC_HDF4_FILE_INFO
 {
-   int sdid;
+    int sdid;
 } NC_HDF4_FILE_INFO_T;
 
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
-   extern int
-   NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp, 
-                int use_parallel, void* parameters, NC_Dispatch*, NC*);
+    extern int
+    NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
+                 void *parameters, const NC_Dispatch *, NC *);
 
-   extern int
-   NC_HDF4_close(int ncid);
+    extern int
+    NC_HDF4_abort(int ncid);
 
-   extern int
-   NC_HDF4_inq_format(int ncid, int *formatp);
+    extern int
+    NC_HDF4_close(int ncid, void *ignore);
 
-   extern int
-   NC_HDF4_inq_format_extended(int ncid, int *formatp, int *modep);
+    extern int
+    NC_HDF4_inq_format(int ncid, int *formatp);
 
-   extern int
-   NC_HDF4_get_vara(int ncid, int varid, const size_t *start, const size_t *count,
-                    void *value, nc_type);
+    extern int
+    NC_HDF4_inq_format_extended(int ncid, int *formatp, int *modep);
+
+    extern int
+    NC_HDF4_get_vara(int ncid, int varid, const size_t *start, const size_t *count,
+                     void *value, nc_type);
 
 #if defined(__cplusplus)
 }
