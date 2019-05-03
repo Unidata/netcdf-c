@@ -61,7 +61,6 @@ NCD4_initialize(void)
 int
 NCD4_finalize(void)
 {
-    curl_global_cleanup();
     return THROW(NC_NOERR);
 }
 
@@ -793,13 +792,6 @@ static int
 globalinit(void)
 {
     int stat = NC_NOERR;
-    {
-	CURLcode cstat = curl_global_init(CURL_GLOBAL_DEFAULT);
-	if(cstat != CURLE_OK)
-	    fprintf(stderr,"curl_global_init failed!\n");
-    }
-
-
     return stat;
 }
 

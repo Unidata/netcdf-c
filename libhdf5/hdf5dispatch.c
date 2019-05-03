@@ -125,7 +125,7 @@ NC_HDF5_initialize(void)
 
 #ifdef ENABLE_BYTERANGE
     (void)H5FD_http_init();
-#endif  
+#endif
     return NC4_provenance_init();
 }
 
