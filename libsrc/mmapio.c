@@ -446,7 +446,7 @@ mmapio_pad_length(ncio* nciop, off_t length)
 #else
         /* note: mmapio->mapfd >= 0 => persist */
         newmem = (char*)mmap(NULL,newsize,
-                                    mmpio->mapfd >= 0?(PROT_READ|PROT_WRITE):(PROT_READ),
+                                    mmapio->mapfd >= 0?(PROT_READ|PROT_WRITE):(PROT_READ),
 				    MAP_SHARED,
                                     mmapio->mapfd,0);
 	if(newmem == NULL) return NC_ENOMEM;
