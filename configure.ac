@@ -885,7 +885,7 @@ AC_ARG_ENABLE([byterange],
 test "x$enable_byterange" = xyes || enable_byterange=no
 AC_MSG_RESULT($enable_byterange)
 # Need curl for byte ranges
-if test "x$found_curl" = xno ; then
+if test "x$found_curl" = xno && test "x$enable_byterange" = xyes ; then
   AC_MSG_ERROR([curl required for byte range support. Install curl or build without --enable-byterange.])
   enable_byterange=no
 fi
