@@ -16,9 +16,10 @@ AM_LDFLAGS = ${top_builddir}/liblib/libnetcdf.la
 
 # These are the netCDF-3 examples.
 check_PROGRAMS = simple_xy_wr simple_xy_rd sfc_pres_temp_wr	\
-sfc_pres_temp_rd pres_temp_4D_wr pres_temp_4D_rd
+sfc_pres_temp_rd pres_temp_4D_wr pres_temp_4D_rd format		\
+quick_large_files
 
-TESTS = run_examples.sh
+TESTS = run_examples.sh format quick_large_files
 
 # To build netcdf-4, or not to build netcdf-4, that is the question...
 if USE_HDF5
