@@ -52,16 +52,22 @@ extern int NC_HDF4_finalize(void);
 #endif
 
 int NC_initialized = 0;
-int NC_finalized = 1;
+int NC_finalized = 0;
 
 /**
-This procedure invokes all defined
-initializers, and there is an initializer
-for every known dispatch table.
-So if you modify the format of NC_Dispatch,
-then you need to fix it everywhere.
-It also initializes appropriate external libraries.
-*/
+ * This function initializes the netcdf-c library.
+ * Calling this is not usually necessary because
+ * it will be automatically invoked when other functions
+ * are called and if the library has not been initialized.
+ * 
+ * This funcion invokes all defined
+ * initializers, and there is an initializer
+ * for every known dispatch table.
+ * It also initializes appropriate external libraries.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Dennis Heimbigner
+ */
 
 int
 nc_initialize()
@@ -69,6 +75,7 @@ nc_initialize()
     int stat = NC_NOERR;
 
     if(NC_initialized) return NC_NOERR;
+    if(NC_finalized) return NC_EINTERNAL;
     NC_initialized = 1;
     NC_finalized = 0;
 
@@ -101,6 +108,25 @@ done:
 }
 
 /**
+ * This function finalizes the netcdf-c library.
+ * Calling this function is not strictly necessary
+ * If, however, one is debugging memory use using, for example,
+ * valgrind, then it will report memory that has not been
+ * deallocated. Calling nc_finalize should reclaim all such memory.
+ * 
+ * WARNING: this function should be called when the program has
+ * completed all use of the netcdf-c library. Calling any function
+ * after nc_finalize() may cause a variety of memory-related errors.
+ * 
+ * This funcion invokes all defined
+ * finalizers, and there is a finalizer
+ * for every known dispatch table.
+ * It also finalizes appropriate external libraries.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Dennis Heimbigner
+ */
+
 This procedure invokes all defined
 finalizers, and there should be one
 for every known dispatch table.
