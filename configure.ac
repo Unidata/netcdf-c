@@ -186,29 +186,86 @@ fi
 
 # Does the user want to build netcdf-4?
 AC_MSG_CHECKING([whether we should build netCDF-4])
+
 AC_ARG_ENABLE([netcdf-4], [AS_HELP_STRING([--disable-netcdf-4],
               [do not build with netcdf-4 (else HDF5 and zlib required)])])
-test "x$enable_netcdf_4" = xno || enable_netcdf_4=yes
 
-# Synonym
 AC_ARG_ENABLE([netcdf4], [AS_HELP_STRING([--disable-netcdf4],
               [(just a synonym for --disable-netcdf-4)])])
-test "x$enable_netcdf4" = xno || enable_netcdf4=yesi
-if test "x$enable_netcdf4" = xno ; then
-enable_netcdf_4=no
-fi
-AC_MSG_RESULT([$enable_netcdf_4])
 
-# Does the user want to use HDF5?
-AC_MSG_CHECKING([whether we should build with HDF5])
-#enable_hdf5=$enable_netcdf_4
+# check conflicted command-line options
+if test "x$enable_netcdf_4" = xyes -a "x$enable_netcdf4" = xno ; then
+   AC_MSG_ERROR([conflicted options used: --enable-netcdf-4 and --disable-netcdf4])
+elif test "x$enable_netcdf_4" = xno -a "x$enable_netcdf4" = xyes ; then
+   AC_MSG_ERROR([conflicted options used: --disable-netcdf-4 and --enable-netcdf4])
+elif test "x$enable_netcdf_4" = x ; then
+   enable_netcdf_4=$enable_netcdf4
+fi
+
+AC_PROG_EGREP
+
 AC_ARG_ENABLE([hdf5], [AS_HELP_STRING([--disable-hdf5],
               [do not build with HDF5])])
-test "x$enable_hdf5" = xno || enable_hdf5=yes
-if test "x$enable_netcdf_4" = xno ; then
-enable_hdf5=no
+
+AC_ARG_WITH([hdf5],
+   [AS_HELP_STRING([--with-hdf5=/path/to/hdf5], [Specify HDF5 installation path(s):
+    --with-hdf5=INC,LIB for include directory and library directory separated by a comma
+    --with-hdf5=DIR for directory containing include/ and lib/ subdirectories
+   ])], [
+   case $withval in
+     *,*)
+        hdf5_inc="`echo $withval |cut -f1 -d,`"
+        hdf5_lib="`echo $withval |cut -f2 -d, -s`"
+        ;;
+     *)
+        if test -n "$withval"; then
+          hdf5_inc="$withval/include"
+          hdf5_lib="$withval/lib"
+        fi
+        ;;
+   esac
+   if test "x$hdf5_inc" != x ; then
+      if test "x$CPPFLAGS" = x ; then
+         CPPFLAGS="-I$hdf5_inc"
+      elif ! echo "${CPPFLAGS}" | ${EGREP} -q -w -- "-I$hdf5_inc" ; then
+         # append only if not already appear in CPPFLAGS
+         CPPFLAGS="$CPPFLAGS -I$hdf5_inc"
+      fi
+   fi
+   if test "x$hdf5_lib" != x ; then
+      if test "x$LDFLAGS" = x ; then
+         LDFLAGS="-L$hdf5_lib"
+      elif ! echo "${LDFLAGS}" | ${EGREP} -q -w -- "-L$hdf5_lib" ; then
+         # append only if not already appear in LDFLAGS
+         LDFLAGS="$LDFLAGS -L$hdf5_lib"
+      fi
+   fi
+])
+
+# check conflicted command-line options
+if test "x$enable_netcdf_4" = xyes -a "x$enable_hdf5" = xno ; then
+   AC_MSG_ERROR([conflicted options used: --enable-netcdf4 and --disable-hdf5])
+elif test "x$enable_netcdf_4" = xno -a "x$enable_hdf5" = xyes ; then
+   AC_MSG_ERROR([conflicted options used: --disable-netcdf4 and --enable-hdf5])
+elif test "x$enable_netcdf_4" = xno -a "x$with_hdf5" != x -a "x$with_hdf5" != xno ; then
+   AC_MSG_ERROR([conflicted options used: --disable-netcdf4 and --with-hdf5])
+elif test "x$enable_hdf5" = xyes -a "x$with_hdf5" = xno ; then
+   AC_MSG_ERROR([conflicted options used: --enable-hdf5 and --without-hdf5])
+elif test "x$enable_hdf5" = xno -a "x$with_hdf5" != x -a "x$with_hdf5" != xno ; then
+   AC_MSG_ERROR([conflicted options used: --disable-hdf5 and --with-hdf5])
+elif test "x$enable_netcdf_4" = x -a "x$enable_hdf5" = x ; then
+   if test "x$with_hdf5" = xno ; then
+      enable_netcdf_4=no
+      enable_hdf5=no
+   else
+      enable_netcdf_4=yes
+      enable_hdf5=yes
+   fi
+elif test "x$enable_netcdf_4" = x ; then
+   enable_netcdf_4=$enable_hdf5
+elif test "x$enable_hdf5" = x ; then
+   enable_hdf5=$enable_netcdf_4
 fi
-AC_MSG_RESULT([$enable_hdf5])
 
 # Does the user require dynamic loading?
 # This is only for those hdf5 installs that support it.
@@ -219,12 +276,59 @@ test "x$enable_dynamic_loading" = xno || enable_dynamic_loading=yes
 AC_MSG_RESULT([$enable_dynamic_loading])
 
 # Does the user want to turn on HDF4 read ability?
-AC_MSG_CHECKING([whether reading of HDF4 SD files is to be enabled])
 AC_ARG_ENABLE([hdf4], [AS_HELP_STRING([--enable-hdf4],
               [build netcdf-4 with HDF4 read capability (HDF4, HDF5 and zlib required)])])
-test "x$enable_hdf4" = xyes || enable_hdf4=no
+
+AC_ARG_WITH([hdf4],
+   [AS_HELP_STRING([--with-hdf4=/path/to/hdf4], [Specify HDF4 installation path(s):
+    --with-hdf4=INC,LIB for include directory and library directory separated by a comma
+    --with-hdf4=DIR for directory containing include/ and lib/ subdirectories
+   ])], [
+   case $withval in
+     *,*)
+        hdf4_inc="`echo $withval |cut -f1 -d,`"
+        hdf4_lib="`echo $withval |cut -f2 -d, -s`"
+        ;;
+     *)
+        if test -n "$withval"; then
+          hdf4_inc="$withval/include"
+          hdf4_lib="$withval/lib"
+        fi
+        ;;
+   esac
+   if test "x$hdf4_inc" != x ; then
+      if test "x$CPPFLAGS" = x ; then
+         CPPFLAGS="-I$hdf4_inc"
+      elif ! echo "${CPPFLAGS}" | ${EGREP} -q -w -- "-I$hdf4_inc" ; then
+         # append only if not already appear in CPPFLAGS
+         CPPFLAGS="$CPPFLAGS -I$hdf4_inc"
+      fi
+   fi
+   if test "x$hdf4_lib" != x ; then
+      if test "x$LDFLAGS" = x ; then
+         LDFLAGS="-L$hdf4_lib"
+      elif ! echo "${LDFLAGS}" | ${EGREP} -q -w -- "-L$hdf4_lib" ; then
+         # append only if not already appear in LDFLAGS
+         LDFLAGS="$LDFLAGS -L$hdf4_lib"
+      fi
+   fi
+])
+
+AC_MSG_CHECKING([whether reading of HDF4 SD files is to be enabled])
+# check conflicted command-line options
+if test "x$enable_hdf4" = xyes -a "x$with_hdf4" = xno ; then
+   AC_MSG_ERROR([conflicted options used: --enable-hdf4 and --without-hdf4])
+elif test "x$enable_hdf4" = xno -a "x$with_hdf4" != x -a "x$with_hdf4" != xno ; then
+   AC_MSG_ERROR([conflicted options used: --disable-hdf4 and --with-hdf4])
+fi
+if test "x$enable_hdf4" = x ; then
+   enable_hdf4=no
+   if test "x$with_hdf4" != x -a "x$with_hdf4" != xno ; then
+      enable_hdf4=yes
+   fi
+fi
 if test "x$enable_hdf4" = xyes -a "x$enable_netcdf_4" = xno; then
-      AC_MSG_ERROR([NetCDF-4 is required for HDF4 features])
+   AC_MSG_ERROR([NetCDF-4 is required for HDF4 features])
 fi
 AC_MSG_RESULT($enable_hdf4)
 
@@ -531,7 +635,7 @@ AC_ARG_ENABLE([benchmarks],
                               are timed. We use these tests to check netCDF performance.])])
 test "x$enable_benchmarks" = xyes || enable_benchmarks=no
 AC_MSG_RESULT($enable_benchmarks)
-if test "x$enable_netcdf4" = xno -a "x$enable_benchmarks" = xyes; then
+if test "x$enable_netcdf_4" = xno -a "x$enable_benchmarks" = xyes; then
 AC_MSG_ERROR([Can't use benchmarks if netCDF-4 is disabled.])
 fi
 AM_CONDITIONAL(BUILD_BENCHMARKS, [test x$enable_benchmarks = xyes])
@@ -825,8 +929,7 @@ AC_CHECK_FUNCS([strlcat snprintf \
 		getrlimit gettimeofday fsync MPI_Comm_f2c MPI_Info_f2c])
 
 # disable dap4 if netcdf-4 is disabled
-#if test "x$enable_netcdf_4" = "xno" ; then
-if test "x$enable_hdf5" = "xno" ; then
+if test "x$enable_netcdf_4" = "xno" ; then
     AC_MSG_WARN([netcdf-4 not enabled; disabling DAP4])
     enable_dap4=no
 fi
@@ -1119,10 +1222,57 @@ AC_MSG_RESULT($enable_parallel4)
 
 # We have already tested for parallel io in netcdf4
 # parallel I/O for CDF-1, 2, and 5 files can also be done through PnetCDF
-AC_MSG_CHECKING([whether parallel I/O for classic files is to be enabled])
 AC_ARG_ENABLE([pnetcdf], [AS_HELP_STRING([--enable-pnetcdf],
               [build with parallel I/O for classic files. @<:@default: disabled@:>@])])
-test "x$enable_pnetcdf" = xyes || enable_pnetcdf=no
+
+AC_ARG_WITH([pnetcdf],
+   [AS_HELP_STRING([--with-pnetcdf=/path/to/pnetcdf], [Specify PnetCDF installation path(s):
+    --with-pnetcdf=INC,LIB for include directory and library directory separated by a comma
+    --with-pnetcdf=DIR for directory containing include/ and lib/ subdirectories
+   ])], [
+   case $withval in
+     *,*)
+        pnetcdf_inc="`echo $withval |cut -f1 -d,`"
+        pnetcdf_lib="`echo $withval |cut -f2 -d, -s`"
+        ;;
+     *)
+        if test -n "$withval"; then
+          pnetcdf_inc="$withval/include"
+          pnetcdf_lib="$withval/lib"
+        fi
+        ;;
+   esac
+   if test "x$pnetcdf_inc" != x ; then
+      if test "x$CPPFLAGS" = x ; then
+         CPPFLAGS="-I$pnetcdf_inc"
+      elif ! echo "${CPPFLAGS}" | ${EGREP} -q -w -- "-I$pnetcdf_inc" ; then
+         # append only if not already appear in CPPFLAGS
+         CPPFLAGS="$CPPFLAGS -I$pnetcdf_inc"
+      fi
+   fi
+   if test "x$pnetcdf_lib" != x ; then
+      if test "x$LDFLAGS" = x ; then
+         LDFLAGS="-L$pnetcdf_lib"
+      elif ! echo "${LDFLAGS}" | ${EGREP} -q -w -- "-L$pnetcdf_lib" ; then
+         # append only if not already appear in LDFLAGS
+         LDFLAGS="$LDFLAGS -L$pnetcdf_lib"
+      fi
+   fi
+])
+
+AC_MSG_CHECKING([whether parallel I/O for classic files is to be enabled])
+# check conflicted command-line options
+if test "x$enable_pnetcdf" = xyes -a "x$with_pnetcdf" = xno ; then
+   AC_MSG_ERROR([conflicted options used: --enable-pnetcdf and --without-pnetcdf])
+elif test "x$enable_pnetcdf" = xno -a "x$with_pnetcdf" != x -a "x$with_pnetcdf" != xno ; then
+   AC_MSG_ERROR([conflicted options used: --disable-pnetcdf and --with-pnetcdf])
+fi
+if test "x$enable_pnetcdf" = x ; then
+   enable_pnetcdf=no
+   if test "x$with_pnetcdf" != x -a "x$with_pnetcdf" != xno ; then
+      enable_pnetcdf=yes
+   fi
+fi
 AC_MSG_RESULT($enable_pnetcdf)
 
 # See if the PnetCDF lib is available and of the
