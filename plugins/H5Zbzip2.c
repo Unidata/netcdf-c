@@ -93,7 +93,7 @@ size_t H5Z_filter_bzip2(unsigned int flags, size_t cd_nelmts,
 
     /* Prepare the output buffer. */
     outbuflen = nbytes * 3 + 1;  /* average bzip2 compression ratio is 3:1 */
-#ifdef HDF5_HAS_ALLOCATE_MEMORY
+#ifdef HAVE_H5ALLOCATE_MEMORY
     outbuf = H5allocate_memory(outbuflen,0);
 #else
     outbuf = (char*)malloc(outbuflen * sizeof(char));
@@ -130,7 +130,7 @@ size_t H5Z_filter_bzip2(unsigned int flags, size_t cd_nelmts,
       if (ret != BZ_STREAM_END && stream.avail_out == 0) {
         /* Grow the output buffer. */
         newbuflen = outbuflen * 2;
-#ifdef HDF5_HAS_RESIZE_MEMORY
+#ifdef HAVE_H5RESIZE_MEMORY
         newbuf = H5resize_memory(outbuf, newbuflen);
 #else
         newbuf = realloc(outbuf,newbuflen);
@@ -178,7 +178,7 @@ size_t H5Z_filter_bzip2(unsigned int flags, size_t cd_nelmts,
 
     /* Prepare the output buffer. */
     outbuflen = nbytes + nbytes / 100 + 600;  /* worst case (bzip2 docs) */
-#ifdef HDF5_HAS_ALLOCATE_MEMORY
+#ifdef HAVE_H5ALLOCATE_MEMORY
     outbuf = H5allocate_memory(outbuflen,0);
 #else
     outbuf = (char*)malloc(outbuflen * sizeof(char));
@@ -201,7 +201,7 @@ size_t H5Z_filter_bzip2(unsigned int flags, size_t cd_nelmts,
   }
 
   /* Always replace the input buffer with the output buffer. */
-#ifdef HDF5_HAS_H5FREE
+#ifdef HAVE_H5FREE_MEMORY
   H5free_memory(*buf);
 #else
   free(*buf);
@@ -213,7 +213,7 @@ size_t H5Z_filter_bzip2(unsigned int flags, size_t cd_nelmts,
 
  cleanupAndFail:
   if (outbuf)
-#ifdef HDF5_HAS_H5FREE
+#ifdef HAVE_H5FREE_MEMORY
     H5free_memory(outbuf);
 #else
   free(outbuf);

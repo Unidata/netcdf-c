@@ -32,7 +32,6 @@
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
-extern int fileno(FILE*);
 
 #include "ncdispatch.h"
 #include "netcdf_mem.h"
@@ -1828,7 +1827,7 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 {
    int stat = NC_NOERR;
    NC* ncp = NULL;
-   NC_Dispatch* dispatcher = NULL;
+   const NC_Dispatch* dispatcher = NULL;
    char* path = NULL;
    NCmodel model;
    char* newpath = NULL;
@@ -1968,7 +1967,7 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 {
     int stat = NC_NOERR;
     NC* ncp = NULL;
-    NC_Dispatch* dispatcher = NULL;
+    const NC_Dispatch* dispatcher = NULL;
     int inmemory = 0;
     int diskless = 0;
     int mmap = 0;
@@ -2116,6 +2115,7 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 	    return NC_ENOTNC;
 	}
     }
+
 
     /* If we can't figure out what dispatch table to use, give up. */
     if (!dispatcher) {stat = NC_ENOTNC; goto done;}

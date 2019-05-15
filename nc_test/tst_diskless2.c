@@ -15,6 +15,9 @@ See \ref copyright file for more info.
 #include <netcdf.h>
 
 
+#define FILENAME "tst_diskless2.nc"
+
+
 #define Clear ((unsigned char)0)
 #define Cumulonimbus ((unsigned char)1)
 #define Stratus ((unsigned char)2)
@@ -98,7 +101,7 @@ main() {/* create tst_diskless2.nc */
     int country_dims[RANK_country];
 
     /* enter define mode */
-    stat = nc_create("tst_diskless2.nc", NC_DISKLESS|NC_WRITE|NC_CLOBBER|NC_NETCDF4, &ncid);
+    stat = nc_create(FILENAME, NC_DISKLESS|NC_WRITE|NC_CLOBBER|NC_NETCDF4|NC_PERSIST, &ncid);
     check_err(stat,__LINE__,__FILE__);
     root_grp = ncid;
     stat = nc_def_grp(root_grp, "g", &g_grp);

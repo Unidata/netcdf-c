@@ -1,6 +1,6 @@
 #!/bin/sh
 # This shell script runs the ncdump tests.
-# $Id: run_tests.sh,v 1.18 2010/05/19 13:43:39 ed Exp $
+# Ed Hartnett, Dennis Heimbigner
 
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh

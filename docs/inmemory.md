@@ -24,7 +24,7 @@ write it back out to disk when nc_close() is called.
 of memory as if it were a netcdf file. At close, it is possible to ask
 for the final contents of the memory chunk. Be warned that there is
 some complexity to this as described below.
-4. MMAP -- (deprecated) Tell the netcdf-c library to use the *mmap()* operating
+4. MMAP -- Tell the netcdf-c library to use the *mmap()* operating
 system functionality to access a file.
 
 The first two capabilities are intertwined in the sense that the
@@ -34,10 +34,7 @@ capability can be used independently of the *diskless*
 capability.
 
 The *mmap()* capability provides a capability similar to *diskless* but
-using special capabilities of the underlying operating system. It turns out
-that the mmap capability has seen no significant use, so its use is deprecated
-and will be removed at some point in the future.
-
+using special capabilities of the underlying operating system.
 Note also that *diskless* and *inmemory* can be used for both
 *netcdf-3* (classic) and *netcdf-4* (enhanced) data. The *mmap*
 capability can only be used with *netcdf-3*.
@@ -203,10 +200,8 @@ In this way, it is possible to avoid memory reallocation while still
 allowing modifications to the file. You will still need to call
 *nc_close_memio()* to obtain the size of the final, modified, file.
 
-Enabling MMAP File Access (Deprecated) {#Enable_MMAP}
+Enabling MMAP File Access {#Enable_MMAP}
 --------------
-
-The MMAP functionality is deprecated.
 
 Some operating systems provide a capability called MMAP.
 This allows disk files to automatically be mapped to chunks of memory.

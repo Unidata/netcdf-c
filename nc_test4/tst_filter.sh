@@ -1,6 +1,5 @@
 #!/bin/sh
 
-export SETX=1
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
@@ -78,7 +77,7 @@ rm -f ./tst_filter.txt
 trimleft ./tst_filter2.txt ./tst_filter.txt
 rm -f ./tst_filter2.txt
 cat >./tst_filter2.txt <<EOF
-var:_Filter = "32768,1,239,23,65511,27,77,93,1145389056,3287505826,1097305129,1,2147483648,4294967295,4294967295" ;
+var:_Filter = "32768,2,239,23,65511,27,77,93,1145389056,3287505826,1097305129,1,2147483648,4294967295,4294967295" ;
 EOF
 diff -b -w ./tst_filter.txt ./tst_filter2.txt
 echo "*** Pass: parameter passing"

@@ -5,8 +5,11 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
+## 4.7.1 - TBD
 
-## 4.6.4 - TBD
+## 4.7.0 - April 29, 2019
+
+* [Enhancement] Updated behavior of `pkgconfig` and `nc-config` to allow the use of the `--static` flags, e.g. `nc-config --libs --static`, which will show information for linking against `libnetcdf` statically. See [Github #1360](https://github.com/Unidata/netcdf-c/issues/1360) and [Github #1257](https://github.com/Unidata/netcdf-c/issues/1257) for more information.
 
 * [Enhancement] Provide byte-range reading of remote datasets. This allows
 read-only access to, for example, Amazon S3 objects and also Thredds Server

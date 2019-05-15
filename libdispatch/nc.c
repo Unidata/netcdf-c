@@ -17,8 +17,6 @@
 
 #include "ncdispatch.h"
 
-int ncdebug = 0;
-
 /* This is the default create format for nc_create and nc__create. */
 static int default_create_format = NC_FORMAT_CLASSIC;
 
@@ -55,7 +53,7 @@ free_NC(NC *ncp)
 }
 
 int
-new_NC(NC_Dispatch* dispatcher, const char* path, int mode, NCmodel* model, NC** ncpp)
+new_NC(const NC_Dispatch* dispatcher, const char* path, int mode, NCmodel* model, NC** ncpp)
 {
     NC *ncp = (NC*)calloc(1,sizeof(NC));
     if(ncp == NULL) return NC_ENOMEM;

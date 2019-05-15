@@ -38,9 +38,9 @@ typedef struct NCRCglobalstate {
     NCRCinfo rcinfo; /* Currently only one rc file per session */
 } NCRCglobalstate;
 
-extern NCRCglobalstate ncrc_globalstate; /* singleton instance */
-
 /* From drc.c */
+extern NCRCglobalstate* ncrc_getglobalstate(void);
+extern void ncrc_freeglobalstate(void);
 /* read and compile the rc file, if any */
 extern int NC_rcload(void);
 extern char* NC_rclookup(const char* key, const char* hostport);

@@ -11,8 +11,6 @@
 extern char* ocfqn(OCddsnode);
 #endif
 
-CDFnode* v4node = NULL;
-
 /* Forward*/
 static NCerror sequencecheckr(CDFnode* node, NClist* vars, CDFnode* topseq);
 static NCerror restructr(NCDAPCOMMON*, CDFnode*, CDFnode*, NClist*);

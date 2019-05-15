@@ -98,6 +98,10 @@ main(int argc, char **argv)
 	else if(strcmp(argv[i],"persist")==0) persist=1;
 	else if(strcmp(argv[i],"mmap")==0) mmap=1;
 	else if(strcmp(argv[i],"diskless")==0) diskless=1;
+	else if(strncmp(argv[i],"file:",strlen("file:"))==0) {
+	    filename = argv[i];
+	    filename += strlen("file:");
+	}
 	/* ignore anything not recognized */
     }
 

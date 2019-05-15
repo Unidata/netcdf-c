@@ -11,7 +11,6 @@
 
 #include "ncdispatch.h"
 
-
 extern int NC3_initialize(void);
 extern int NC3_finalize(void);
 
@@ -51,9 +50,6 @@ extern int NC_HDF4_finalize(void);
 #include <io.h>
 #include <fcntl.h>
 #endif
-
-int NC_argc = 1;
-char* NC_argv[] = {"nc_initialize",NULL};
 
 int NC_initialized = 0;
 int NC_finalized = 1;
