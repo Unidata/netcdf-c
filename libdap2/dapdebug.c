@@ -9,8 +9,6 @@
 #include "dapincludes.h"
 #include "nclog.h"
 
-int ncdap3debug = 0;
-
 #ifdef CATCHERROR
 /* Place breakpoint here to catch errors close to where they occur*/
 int

@@ -420,6 +420,8 @@ static int
 mmapio_pad_length(ncio* nciop, off_t length)
 {
     NCMMAPIO* mmapio;
+    int persist = 0;
+
     if(nciop == NULL || nciop->pvt == NULL) return NC_EINVAL;
     mmapio = (NCMMAPIO*)nciop->pvt;
 
@@ -428,6 +430,9 @@ mmapio_pad_length(ncio* nciop, off_t length)
 
     if(mmapio->locked > 0)
 	return NC_EDISKLESS;
+
+    if(mmapio->mapfd >= 0)
+	persist = 1;
 
     if(length > mmapio->alloc) {
         /* Realloc the allocated memory to a multiple of the pagesize*/
@@ -450,12 +455,12 @@ mmapio_pad_length(ncio* nciop, off_t length)
 	newmem = (char*)mremap(mmapio->memory,mmapio->alloc,newsize,MREMAP_MAYMOVE);
 	if(newmem == NULL) return NC_ENOMEM;
 #else
-        newmemory = (char*)mmap(NULL,newsize,
+        newmem = (char*)mmap(NULL,newsize,
                                     persist?(PROT_READ|PROT_WRITE):(PROT_READ),
 				    MAP_SHARED,
                                     mmapio->mapfd,0);
 	if(newmem == NULL) return NC_ENOMEM;
-	memcpy(newmemory,mmapio->memory,mmapio->alloc);
+	memcpy(newmem,mmapio->memory,mmapio->alloc);
         munmap(mmapio->memory,mmapio->alloc);
 #endif
 

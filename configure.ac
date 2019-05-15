@@ -5,15 +5,12 @@
 # the COPYRIGHT file for more information.
 # Ed Hartnett, Ward Fisher, Dennis Heimbigner
 
-# Recall that ${VAR-exp} expands to $VAR if var is set (even to null),
-# and to exp otherwise.
-
 # Running autoconf on this file will trigger a warning if
 # autoconf is not at least the specified version.
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address.
-AC_INIT([netCDF], [4.6.4-development], [support-netcdf@unidata.ucar.edu], [netcdf-c])
+AC_INIT([netCDF], [4.7.1-development], [support-netcdf@unidata.ucar.edu], [netcdf-c])
 
 ##
 # Prefer an empty CFLAGS variable instead of the default -g -O2.
@@ -23,8 +20,8 @@ AC_INIT([netCDF], [4.6.4-development], [support-netcdf@unidata.ucar.edu], [netcd
 : ${CFLAGS=""}
 
 AC_SUBST([NC_VERSION_MAJOR]) NC_VERSION_MAJOR=4
-AC_SUBST([NC_VERSION_MINOR]) NC_VERSION_MINOR=6
-AC_SUBST([NC_VERSION_PATCH]) NC_VERSION_PATCH=4
+AC_SUBST([NC_VERSION_MINOR]) NC_VERSION_MINOR=7
+AC_SUBST([NC_VERSION_PATCH]) NC_VERSION_PATCH=1
 AC_SUBST([NC_VERSION_NOTE]) NC_VERSION_NOTE="-development"
 
 #####
@@ -249,15 +246,6 @@ AC_ARG_ENABLE([remote-fortran-bootstrap], [AS_HELP_STRING([--enable-remote-fortr
 test "x$enable_remote_fortran_bootstrap" = xyes || enable_remote_fortran_bootstrap=no
 AC_MSG_RESULT([$enable_remote_fortran_bootstrap])
 
-# Does the user want to run extra example tests
-AC_MSG_CHECKING([whether extra example tests should be run])
-AC_ARG_ENABLE([extra-example-tests],
-              [AS_HELP_STRING([--enable-extra-example-tests],
-                              [Run extra example tests; requires GNU sed. Ignored if \
-                               netCDF-4 is not enabled.])])
-test "x$enable_extra_example_tests" = xyes || enable_extra_example_tests=no
-AC_MSG_RESULT($enable_extra_example_tests)
-
 # Does the user want to run extra parallel tests when parallel netCDF-4 is built?
 AC_MSG_CHECKING([whether parallel IO tests should be run])
 AC_ARG_ENABLE([parallel-tests],
@@ -359,7 +347,7 @@ AC_ARG_ENABLE([dap],
 test "x$enable_dap" = xno || enable_dap=yes
 AC_MSG_RESULT($enable_dap)
 
-# We need curl for DAP.
+# We need curl for DAP and byterange
 AC_CHECK_LIB([curl],[curl_easy_setopt],[found_curl=yes],[found_curl=no])
 if test "x$enable_dap" = "xyes" ; then
    AC_SEARCH_LIBS([curl_easy_setopt],[curl curl.dll], [],
@@ -368,7 +356,7 @@ fi
 
 # --enable-dap => enable-dap4
 enable_dap4=$enable_dap
-# Default is now to always do the short remote tests
+# Default is to do the short remote tests.
 AC_MSG_CHECKING([whether dap remote testing should be enabled (default on)])
 AC_ARG_ENABLE([dap-remote-tests],
               [AS_HELP_STRING([--disable-dap-remote-tests],
@@ -379,7 +367,7 @@ if test "x$enable_dap" = "xno" ; then
 fi
 AC_MSG_RESULT($enable_dap_remote_tests)
 
-# Default is now to do the remote authorization tests
+# Default is not to do the remote authorization tests.
 AC_MSG_CHECKING([whether dap remote authorization testing should be enabled (default off)])
 AC_ARG_ENABLE([dap-auth-tests],
               [AS_HELP_STRING([--enable-dap-auth-tests],
@@ -543,6 +531,9 @@ AC_ARG_ENABLE([benchmarks],
                               are timed. We use these tests to check netCDF performance.])])
 test "x$enable_benchmarks" = xyes || enable_benchmarks=no
 AC_MSG_RESULT($enable_benchmarks)
+if test "x$enable_netcdf4" = xno -a "x$enable_benchmarks" = xyes; then
+AC_MSG_ERROR([Can't use benchmarks if netCDF-4 is disabled.])
+fi
 AM_CONDITIONAL(BUILD_BENCHMARKS, [test x$enable_benchmarks = xyes])
 
 # Does the user want to use extreme numbers in testing.
@@ -638,15 +629,6 @@ AC_ARG_WITH([udf1-magic-number],
                               [Specify a magic number for user-defined format 1 (ignored unless --with-udf1 is also used).])],
             [UDF1_MAGIC_NUMBER=$with_udf1_magic_number])
 AC_MSG_RESULT([$UDF1_MAGIC_NUMBER])
-
-# Did the user specify a default cache preemption?
-AC_MSG_CHECKING([whether a default cache preemption for HDF5 was specified])
-AC_ARG_WITH([chunk-cache-preemption],
-              [AS_HELP_STRING([--with-chunk-cache-preemption=<float between 0 and 1 inclusive>],
-                              [Specify default file chunk cache preemption policy for HDF5 files (a number between 0 and 1, inclusive).])],
-            [CHUNK_CACHE_PREEMPTION=$with_chunk_cache_preemption], [CHUNK_CACHE_PREEMPTION=0.75])
-AC_MSG_RESULT([$CHUNK_CACHE_PREEMPTION])
-AC_DEFINE_UNQUOTED([CHUNK_CACHE_PREEMPTION], [$CHUNK_CACHE_PREEMPTION], [default file chunk cache preemption policy.])
 
 # According to the autoconf mailing list gurus, we must test for
 # compilers unconditionally. That is, we can't skip looking for the
@@ -864,10 +846,15 @@ AC_ARG_ENABLE([mmap],
 test "x$enable_mmap" = xyes || enable_mmap=no
 AC_MSG_RESULT($enable_mmap)
 
-# check for mmap and mremap availability before committing to use mmap
+# check for mmap availability before committing to use mmap
 have_mmap="$enable_mmap"
-AC_CHECK_FUNCS([mmap],[],[have_mmap=no])
-AC_CHECK_FUNCS([mremap],[],[have_mmap=no])
+AC_CHECK_FUNCS([mmap],[havemmapfcn=yes],[havemmapfcn=no])
+if test "x$havemmapfcn" = xno ; then
+have_mmap=no
+fi
+
+# check for mremap availability; not strictly needed
+AC_CHECK_FUNCS([mremap],[havemremapfcn=yes],[havemmapfcn=no])
 
 # Check for MAP_ANONYMOUS
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
@@ -1015,7 +1002,6 @@ if test "x$enable_netcdf_4" = xyes || test "x$enable_dap" = xyes; then
    AC_SEARCH_LIBS([deflate], [zlibwapi zlibstat zlib zlib1 z], [], [
      AC_MSG_ERROR([Can't find or link to the z library. Turn off netCDF-4 and \
      DAP clients with --disable-netcdf-4 --disable-dap, or see config.log for errors.])])
-   AC_SEARCH_LIBS([SZ_Compress], [szip sz], [], [])
    AC_SEARCH_LIBS([dlopen], [dl dld], [], [])
 fi
 
@@ -1041,11 +1027,10 @@ if test "x$enable_hdf5" = xyes; then
    [AC_MSG_ERROR([Can't find or link to the hdf5 high-level. Use --disable-netcdf-4, or see config.log for errors.])])
 
    AC_CHECK_HEADERS([hdf5.h], [], [AC_MSG_ERROR([Compiling a test with HDF5 failed.  Either hdf5.h cannot be found, or config.log should be checked for other reason.])])
-   AC_CHECK_FUNCS([H5Z_SZIP])
 
    # H5Pset_fapl_mpiposix and H5Pget_fapl_mpiposix have been removed since HDF5 1.8.12.
    # Use H5Pset_fapl_mpio and H5Pget_fapl_mpio, instead.
-   AC_CHECK_FUNCS([H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5free_memory H5resize_memory H5allocate_memory H5Pset_libver_bounds H5Pset_all_coll_metadata_ops])
+   AC_CHECK_FUNCS([H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5free_memory H5resize_memory H5allocate_memory H5Pset_libver_bounds H5Pset_all_coll_metadata_ops H5Z_SZIP])
 
    # Check to see if HDF5 library has collective metadata APIs, (HDF5 >= 1.10.0)
    if test "x$ac_cv_func_H5Pset_all_coll_metadata_ops" = xyes; then
@@ -1059,6 +1044,13 @@ if test "x$enable_hdf5" = xyes; then
 
    AC_MSG_CHECKING([whether parallel io is enabled in hdf5])
    AC_MSG_RESULT([$hdf5_parallel])
+
+   # Check to see if we need to search for and link against szlib.
+   if test "x$ac_cv_func_H5Z_SZIP" = xyes; then
+      AC_SEARCH_LIBS([SZ_Compress], [szip sz], [],
+      [AC_MSG_ERROR([libhdf5 installed with szip support, but cannot find or link to the szip library.])])
+   fi
+
 
    if test "x$hdf5_parallel" = "xno"; then
       if test "x$enable_parallel_tests" = "xyes"; then
@@ -1074,22 +1066,6 @@ if test "x$enable_hdf5" = xyes; then
       AC_DEFINE([USE_SZIP], [1], [if true, compile in szip compression in netCDF-4 variables])
    fi
    AC_MSG_RESULT([$enable_szlib])
-
-   if test "x$ac_cv_func_H5free_memory" = xyes; then
-      AC_DEFINE([HDF5_HAS_H5FREE], [1], [if true, H5free_memory() will be used to free hdf5-allocated memory in nc4file.])
-   fi
-
-   if test "x$ac_cv_func_H5allocate_memory" = xyes; then
-      AC_DEFINE([HDF5_HAS_ALLOCATE_MEMORY], [1], [if true, H5allocate_memory() will be used.])
-   fi
-
-   if test "x$ac_cv_func_H5resize_memory" = xyes; then
-      AC_DEFINE([HDF5_HAS_resize_MEMORY], [1], [if true, H5resize_memory() will be used.])
-   fi
-
-   if test "x$ac_cv_func_H5Pset_libver_bounds" = xyes; then
-      AC_DEFINE([HDF5_HAS_LIBVER_BOUNDS], [1], [if true, netcdf4 file properties will be set using H5Pset_libver_bounds])
-   fi
 
 fi
 
@@ -1293,7 +1269,6 @@ AM_CONDITIONAL(ENABLE_CDF5, [test "x$enable_cdf5" = xyes])
 AM_CONDITIONAL(ENABLE_DAP_REMOTE_TESTS, [test "x$enable_dap_remote_tests" = xyes])
 AM_CONDITIONAL(ENABLE_DAP_AUTH_TESTS, [test "x$enable_dap_auth_tests" = xyes])
 AM_CONDITIONAL(ENABLE_DAP_LONG_TESTS, [test "x$enable_dap_long_tests" = xyes])
-AM_CONDITIONAL(EXTRA_EXAMPLE_TESTS, [test "x$enable_extra_example_tests" = xyes])
 AM_CONDITIONAL(USE_SZIP, [test "x$ac_cv_func_H5Z_SZIP" = xyes])
 AM_CONDITIONAL(USE_PNETCDF_DIR, [test ! "x$PNETCDFDIR" = x])
 AM_CONDITIONAL(USE_LOGGING, [test "x$enable_logging" = xyes])
@@ -1397,14 +1372,6 @@ AC_MSG_RESULT($enable_jna)
 if test "x$enable_jna" = xyes ; then
 AC_DEFINE([JNA], [1], [if true, include JNA bug fix])
 fi
-
-# Control large metadata performance test
-AC_MSG_CHECKING([whether large metadata performance testing should be run])
-AC_ARG_ENABLE([metadata-perf],
-              [AS_HELP_STRING([--enable-metadata-perf],
-                              [Test performance of nc_create and nc_open on large metadata])])
-test "x$enable_metadata_perf" = xyes || enable_metadata_perf=no
-AC_MSG_RESULT($enable_metadata_perf)
 
 # Control filter test/example
 AC_MSG_CHECKING([whether filter testing should be run])
@@ -1514,36 +1481,25 @@ AX_SET_META([NC_HAS_CDF5],[$enable_cdf5],[yes])
 AX_SET_META([NC_HAS_ERANGE_FILL], [$enable_erange_fill],[yes])
 AX_SET_META([NC_RELAX_COORD_BOUND], [$enable_zero_length_coord_bound],[yes])
 AX_SET_META([NC_HAS_BYTERANGE],[$enable_byterange],[yes])
-
-# Automake says that this is always run in top_builddir
-# and that srcdir is defined (== top_srcdir)
-abs_top_builddir=`pwd`
-cd $srcdir
-abs_top_srcdir=`pwd`
-cd $abs_top_builddir
-
-# test_common.sh setup
-AC_CONFIG_FILES(test_common.sh:test_common.in)
-#rm -f ${abs_top_builddir}/test_common.sh
-#sed -e "s|@TOPSRCDIR@|${abs_top_srcdir}|" -e "s|@TOPBUILDDIR@|${abs_top_builddir}|" <${abs_top_srcdir}/test_common.in >${abs_top_builddir}/test_common.sh
-
-# nc_test4/findplugin.sh setup
-AC_SUBST([ISCMAKE], [])
-AC_SUBST([MSVC], [])
-AC_CONFIG_FILES(nc_test4/findplugin.sh:nc_test4/findplugin.in)
-AC_CONFIG_FILES(examples/C/findplugin.sh:nc_test4/findplugin.in)
-
-# DAP 2/4 findtestserver[4].c setup
-AC_CONFIG_FILES(ncdap_test/findtestserver.c:ncdap_test/findtestserver.c.in)
-AC_CONFIG_FILES(dap4_test/findtestserver4.c:ncdap_test/findtestserver.c.in)
-
 #####
 # End netcdf_meta.h definitions.
 #####
 
+# This would be true for a cmake build.
+AC_SUBST([ISCMAKE], [])
+
+# This would be true for a visual studio build.
+AC_SUBST([MSVC], [])
+
 AC_MSG_NOTICE([generating header files and makefiles])
+AC_CONFIG_FILES(test_common.sh:test_common.in)
+AC_CONFIG_FILES(nc_test4/findplugin.sh:nc_test4/findplugin.in)
+AC_CONFIG_FILES(examples/C/findplugin.sh:nc_test4/findplugin.in)
+AC_CONFIG_FILES(ncdap_test/findtestserver.c:ncdap_test/findtestserver.c.in)
+AC_CONFIG_FILES(dap4_test/findtestserver4.c:ncdap_test/findtestserver.c.in)
 AC_CONFIG_FILES([nc_test4/run_par_test.sh], [chmod ugo+x nc_test4/run_par_test.sh])
-AC_CONFIG_FILES([nc_test4/run_par_bm_test.sh], [chmod ugo+x nc_test4/run_par_bm_test.sh])
+AC_CONFIG_FILES([nc_perf/run_par_bm_test.sh], [chmod ugo+x nc_perf/run_par_bm_test.sh])
+AC_CONFIG_FILES([examples/C/run_par_test.sh], [chmod ugo+x examples/C/run_par_test.sh])
 AC_CONFIG_FILES([nc-config], [chmod 755 nc-config])
 AC_CONFIG_FILES([Makefile
                  netcdf.pc
@@ -1575,6 +1531,7 @@ AC_CONFIG_FILES([Makefile
                  docs/images/Makefile
                  nctest/Makefile
                  nc_test4/Makefile
+                 nc_perf/Makefile
                  nc_test/Makefile
                  ncdap_test/Makefile
                  ncdap_test/testdata3/Makefile

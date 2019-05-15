@@ -676,7 +676,7 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
 	h5->http.iosp = 1;
 	/* Kill off any conflicting modes flags */
 	mode &= ~(NC_WRITE|NC_DISKLESS|NC_PERSIST|NC_INMEMORY);
-	parameters = NULL; /* kill off parallel */	    
+	parameters = NULL; /* kill off parallel */
     } else
 	h5->http.iosp = 0;
 #endif /*ENABLE_BYTERANGE*/
@@ -796,25 +796,24 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
        if ((h5->hdfid = H5Fopen(path, flags, fapl_id)) < 0)
           BAIL(NC_EHDFERR);
     }
- 
+
     /* Now read in all the metadata. Some types and dimscale
      * information may be difficult to resolve here, if, for example, a
      * dataset of user-defined type is encountered before the
      * definition of that type. */
     if ((retval = rec_read_metadata(nc4_info->root_grp)))
        BAIL(retval);
- 
+
     /* Check for classic model attribute. */
     if ((retval = check_for_classic_model(nc4_info->root_grp, &is_classic)))
        BAIL(retval);
     if (is_classic)
        nc4_info->cmode |= NC_CLASSIC_MODEL;
- 
-    /* See if this file contained _NCPROPERTIES, and if yes, process
-     * it, if no, then fake it. */
-    if ((retval = NC4_read_ncproperties(nc4_info)))
+
+    /* Set the provenance info for this file */
+    if ((retval = NC4_read_provenance(nc4_info)))
        BAIL(retval);
- 
+
     /* Now figure out which netCDF dims are indicated by the dimscale
      * information. */
     if ((retval = rec_match_dimscales(nc4_info->root_grp)))
@@ -863,7 +862,7 @@ exit:
  */
 int
 NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
-         void *parameters, NC_Dispatch *dispatch, NC *nc_file)
+         void *parameters, const NC_Dispatch *dispatch, NC *nc_file)
 {
     assert(nc_file && path && dispatch && nc_file &&
            nc_file->model->impl == NC_FORMATX_NC4);
@@ -1722,7 +1721,7 @@ hdf5free(void* memory)
 #ifndef JNA
     /* On Windows using the microsoft runtime, it is an error
        for one library to free memory allocated by a different library.*/
-#ifdef HDF5_HAS_H5FREE
+#ifdef HAVE_H5FREE_MEMORY
     if(memory != NULL) H5free_memory(memory);
 #else
 #ifndef _MSC_VER

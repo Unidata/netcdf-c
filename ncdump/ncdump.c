@@ -49,6 +49,7 @@ int optind;
 #include "nclog.h"
 #include "ncwinpath.h"
 #include "netcdf_aux.h"
+#include "nclist.h"
 #include "nc_provenance.h"
 
 #ifdef USE_NETCDF4

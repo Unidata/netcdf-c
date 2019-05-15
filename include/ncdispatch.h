@@ -104,23 +104,23 @@ typedef struct NC_MPI_INFO {
 extern int NCDISPATCH_initialize(void);
 extern int NCDISPATCH_finalize(void);
 
-extern NC_Dispatch* NC3_dispatch_table;
+extern const NC_Dispatch* NC3_dispatch_table;
 extern int NC3_initialize(void);
 extern int NC3_finalize(void);
 
 #ifdef ENABLE_DAP
-extern NC_Dispatch* NCD2_dispatch_table;
+extern const NC_Dispatch* NCD2_dispatch_table;
 extern int NCD2_initialize(void);
 extern int NCD2_finalize(void);
 #endif
 #ifdef ENABLE_DAP4
-extern NC_Dispatch* NCD4_dispatch_table;
+extern const NC_Dispatch* NCD4_dispatch_table;
 extern int NCD4_initialize(void);
 extern int NCD4_finalize(void);
 #endif
 
 #ifdef USE_PNETCDF
-extern NC_Dispatch* NCP_dispatch_table;
+extern const NC_Dispatch* NCP_dispatch_table;
 extern int NCP_initialize(void);
 extern int NCP_finalize(void);
 #endif
@@ -131,23 +131,18 @@ extern int NC4_finalize(void);
 #endif
 
 #ifdef USE_HDF5
-extern NC_Dispatch* HDF5_dispatch_table;
+extern const NC_Dispatch* HDF5_dispatch_table;
 extern int NC_HDF5_initialize(void);
 extern int NC_HDF5_finalize(void);
 #endif
 
 #ifdef USE_HDF4
-extern NC_Dispatch* HDF4_dispatch_table;
+extern const NC_Dispatch* HDF4_dispatch_table;
 extern int HDF4_initialize(void);
 extern int HDF4_finalize(void);
 #endif
 
-/* Vectors of ones and zeros */
-extern size_t nc_sizevector0[NC_MAX_VAR_DIMS];
-extern size_t nc_sizevector1[NC_MAX_VAR_DIMS];
-extern ptrdiff_t nc_ptrdiffvector1[NC_MAX_VAR_DIMS];
-
-/* User-defined formats. */
+/* User-defined formats.*/
 extern NC_Dispatch* UDF0_dispatch_table;
 extern char UDF0_magic_number[NC_MAX_MAGIC_NUMBER_LEN + 1];
 extern NC_Dispatch* UDF1_dispatch_table;
@@ -199,10 +194,10 @@ int model; /* one of the NC_FORMATX #'s */
 
 int (*create)(const char *path, int cmode,
               size_t initialsz, int basepe, size_t *chunksizehintp,
-              void* parameters, struct NC_Dispatch* table, NC* ncp);
+              void* parameters, const struct NC_Dispatch* table, NC* ncp);
 int (*open)(const char *path, int mode,
             int basepe, size_t *chunksizehintp,
-            void* parameters, struct NC_Dispatch* table, NC* ncp);
+            void* parameters, const struct NC_Dispatch* table, NC* ncp);
 
 int (*redef)(int);
 int (*_enddef)(int,size_t,size_t,size_t,size_t);
@@ -319,24 +314,13 @@ int (*nc_finalize)();
 typedef struct NCcommon {
 	int ext_ncid; /* uid << 16 */
 	int int_ncid; /* unspecified other id */
-	struct NC_Dispatch* dispatch;
+	const struct NC_Dispatch* dispatch;
 	void* dispatchdata; /* per-protocol instance data */
 	char* path; /* as specified at open or create */
 } NCcommon;
 
 EXTERNL size_t NC_atomictypelen(nc_type xtype);
 EXTERNL char* NC_atomictypename(nc_type xtype);
-
-#ifdef OBSOLETE
-/* Provide a dispatch table overlay facility */
-extern int NC_dispatch_overlay(const NC_Dispatch* overlay,
-                                        const NC_Dispatch* base,
-					NC_Dispatch* merge);
-
-/* Get/set the override dispatch table */
-extern NC_Dispatch* NC_get_dispatch_override(void);
-extern void NC_set_dispatch_override(NC_Dispatch*);
-#endif
 
 /* Misc */
 
@@ -354,11 +338,11 @@ extern int NC_inq_recvar(int ncid, int varid, int* nrecdims, int* is_recdim);
 #define TRACE(fname)
 #endif
 
-extern size_t NC_coord_zero[NC_MAX_VAR_DIMS];
-extern size_t NC_coord_one[NC_MAX_VAR_DIMS];
+/* Vectors of ones and zeros */
+extern const size_t NC_coord_zero[NC_MAX_VAR_DIMS];
+extern const size_t NC_coord_one[NC_MAX_VAR_DIMS];
+extern const ptrdiff_t NC_stride_one[NC_MAX_VAR_DIMS];
 
-extern int NC_argc;
-extern char* NC_argv[];
 extern int NC_initialized;
 
 /**
@@ -383,7 +367,7 @@ NCDISPATCH_get_att(int ncid, int varid, const char* name, void* value, nc_type t
 
 EXTERNL int NC_RO_create(const char *path, int cmode, size_t initialsz, int basepe,
                  size_t *chunksizehintp, void* parameters,
-                 NC_Dispatch*, NC*);
+                 const NC_Dispatch*, NC*);
 EXTERNL int NC_RO_redef(int ncid);
 EXTERNL int NC_RO__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree,
                   size_t r_align);

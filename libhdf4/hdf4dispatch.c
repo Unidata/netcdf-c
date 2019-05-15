@@ -14,7 +14,7 @@
 
 /* This is the dispatch object that holds pointers to all the
  * functions that make up the HDF4 dispatch interface. */
-static NC_Dispatch HDF4_dispatcher = {
+static const NC_Dispatch HDF4_dispatcher = {
 
     NC_FORMATX_NC_HDF4,
 
@@ -104,7 +104,7 @@ static NC_Dispatch HDF4_dispatcher = {
     NC_NOTNC4_get_var_chunk_cache
 };
 
-NC_Dispatch* HDF4_dispatch_table = NULL;
+const NC_Dispatch* HDF4_dispatch_table = NULL;
 
 /**
  * @internal Initialize HDF4 dispatch layer.

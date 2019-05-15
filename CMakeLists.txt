@@ -25,8 +25,8 @@ set(PACKAGE "netCDF" CACHE STRING "")
 #####
 
 SET(NC_VERSION_MAJOR 4)
-SET(NC_VERSION_MINOR 6)
-SET(NC_VERSION_PATCH 4)
+SET(NC_VERSION_MINOR 7)
+SET(NC_VERSION_PATCH 1)
 SET(NC_VERSION_NOTE "-development")
 SET(netCDF_VERSION ${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
@@ -315,7 +315,7 @@ SET(CHUNK_CACHE_PREEMPTION 0.75 CACHE STRING "Default file chunk cache preemptio
 SET(MAX_DEFAULT_CACHE_SIZE 67108864 CACHE STRING "Default maximum cache size.")
 SET(NETCDF_LIB_NAME "" CACHE STRING "Default name of the netcdf library.")
 SET(TEMP_LARGE "." CACHE STRING "Where to put large temp files if large file tests are run.")
-SET(NCPROPERTIES_EXTRA "" CACHE STRNG "Specify extra pairs for _NCProperties.")
+SET(NCPROPERTIES_EXTRA "" CACHE STRING "Specify extra pairs for _NCProperties.")
 SET(MPIEXEC "mpiexec" CACHE STRING "Command to run MPI programs if parallel tests are run.")
 
 IF(NOT NETCDF_LIB_NAME STREQUAL "")
@@ -735,10 +735,10 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     ENDIF()
   ENDIF()
 
-  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pset_libver_bounds "" HDF5_HAS_LIBVER_BOUNDS)
-  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5free_memory "" HDF5_HAS_H5FREE)
-  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5allocate_memory "" HDF5_HAS_ALLOCATE_MEMORY)
-  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5resize_memory "" HDF5_HAS_RESIZE_MEMORY)
+  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pset_libver_bounds "" HAVE_H5PSET_LIBVER_BOUNDS)
+  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5free_memory "" HAVE_H5FREE_MEMORY)
+  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5allocate_memory "" HAVE_H5ALLOCATE_MEMORY)
+  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5resize_memory "" HAVE_H5RESIZE_MEMORY)
 
   IF(HDF5_PARALLEL)
 	SET(HDF5_CC h5pcc)
@@ -765,68 +765,64 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
 
 ENDIF(USE_HDF5 OR ENABLE_NETCDF_4)
 
+# See if we have libcurl
+FIND_PACKAGE(CURL)
+ADD_DEFINITIONS(-DCURL_STATICLIB=1)
+INCLUDE_DIRECTORIES(${CURL_INCLUDE_DIRS})
+
+# Check to see if CURLOPT_USERNAME is defined.
+# It is present starting version 7.19.1.
+CHECK_C_SOURCE_COMPILES("
+#include <curl/curl.h>
+int main() {int x = CURLOPT_USERNAME;}" HAVE_CURLOPT_USERNAME)
+
+# Check to see if CURLOPT_PASSWORD is defined.
+# It is present starting version 7.19.1.
+CHECK_C_SOURCE_COMPILES("
+#include <curl/curl.h>
+int main() {int x = CURLOPT_PASSWORD;}" HAVE_CURLOPT_PASSWORD)
+
+# Check to see if CURLOPT_KEYPASSWD is defined.
+# It is present starting version 7.16.4.
+CHECK_C_SOURCE_COMPILES("
+#include <curl/curl.h>
+int main() {int x = CURLOPT_KEYPASSWD;}" HAVE_CURLOPT_KEYPASSWD)
+
+# Check to see if CURLINFO_RESPONSE_CODE is defined.
+# It showed up in curl 7.10.7.
+CHECK_C_SOURCE_COMPILES("
+#include <curl/curl.h>
+int main() {int x = CURLINFO_RESPONSE_CODE;}" HAVE_CURLINFO_RESPONSE_CODE)
+
+# Check to see if CURLINFO_HTTP_CONNECTCODE is defined.
+# It showed up in curl 7.10.7.
+CHECK_C_SOURCE_COMPILES("
+#include <curl/curl.h>
+int main() {int x = CURLINFO_HTTP_CONNECTCODE;}" HAVE_CURLINFO_HTTP_CONNECTCODE)
+
+# Check to see if CURLOPT_BUFFERSIZE is defined.
+# It is present starting version 7.59
+CHECK_C_SOURCE_COMPILES("
+#include <curl/curl.h>
+int main() {int x = CURLOPT_BUFFERSIZE;}" HAVE_CURLOPT_BUFFERSIZE)
+
+# Check to see if CURLOPT_TCP_KEEPALIVE is defined.
+# It is present starting version 7.25
+CHECK_C_SOURCE_COMPILES("
+#include <curl/curl.h>
+int main() {int x = CURLOPT_TCP_KEEPALIVE;}" HAVE_CURLOPT_KEEPALIVE)
+
 # Option to Build DAP2+DAP4 Clients
 OPTION(ENABLE_DAP "Enable DAP2 and DAP4 Client." ON)
 IF(ENABLE_DAP)
   SET(USE_DAP ON CACHE BOOL "")
   SET(ENABLE_DAP2 ON CACHE BOOL "")
 
-
   IF(ENABLE_NETCDF_4)
     SET(ENABLE_DAP4 ON CACHE BOOL "")
   ELSE(ENABLE_NETCDF_4)
     SET(ENABLE_DAP4 OFF CACHE BOOL "")
   ENDIF(ENABLE_NETCDF_4)
-
-  FIND_PACKAGE(CURL)
-  IF(NOT CURL_LIBRARY)
-    MESSAGE(FATAL_ERROR "DAP Support specified, CURL libraries are not found.")
-  ENDIF()
-
-  ADD_DEFINITIONS(-DCURL_STATICLIB=1)
-  INCLUDE_DIRECTORIES(${CURL_INCLUDE_DIRS})
-
-  # Check to see if CURLOPT_USERNAME is defined.
-  # It is present starting version 7.19.1.
-  CHECK_C_SOURCE_COMPILES("
-  #include <curl/curl.h>
-  int main() {int x = CURLOPT_USERNAME;}" HAVE_CURLOPT_USERNAME)
-
-  # Check to see if CURLOPT_PASSWORD is defined.
-  # It is present starting version 7.19.1.
-  CHECK_C_SOURCE_COMPILES("
-  #include <curl/curl.h>
-  int main() {int x = CURLOPT_PASSWORD;}" HAVE_CURLOPT_PASSWORD)
-
-  # Check to see if CURLOPT_KEYPASSWD is defined.
-  # It is present starting version 7.16.4.
-  CHECK_C_SOURCE_COMPILES("
-  #include <curl/curl.h>
-  int main() {int x = CURLOPT_KEYPASSWD;}" HAVE_CURLOPT_KEYPASSWD)
-
-  # Check to see if CURLINFO_RESPONSE_CODE is defined.
-  # It showed up in curl 7.10.7.
-  CHECK_C_SOURCE_COMPILES("
-  #include <curl/curl.h>
-  int main() {int x = CURLINFO_RESPONSE_CODE;}" HAVE_CURLINFO_RESPONSE_CODE)
-
-  # Check to see if CURLINFO_HTTP_CONNECTCODE is defined.
-  # It showed up in curl 7.10.7.
-  CHECK_C_SOURCE_COMPILES("
-  #include <curl/curl.h>
-  int main() {int x = CURLINFO_HTTP_CONNECTCODE;}" HAVE_CURLINFO_HTTP_CONNECTCODE)
-
-  # Check to see if CURLOPT_BUFFERSIZE is defined.
-  # It is present starting version 7.59
-  CHECK_C_SOURCE_COMPILES("
-  #include <curl/curl.h>
-  int main() {int x = CURLOPT_BUFFERSIZE;}" HAVE_CURLOPT_BUFFERSIZE)
-
-  # Check to see if CURLOPT_TCP_KEEPALIVE is defined.
-  # It is present starting version 7.25
-  CHECK_C_SOURCE_COMPILES("
-  #include <curl/curl.h>
-  int main() {int x = CURLOPT_TCP_KEEPALIVE;}" HAVE_CURLOPT_KEEPALIVE)
 
 ELSE()
   SET(ENABLE_DAP2 OFF)
@@ -835,13 +831,14 @@ ENDIF()
 
 # Option to support byte-range reading of remote datasets
 OPTION(ENABLE_BYTERANGE "Enable byte-range access to remote datasets.." OFF)
-IF(ENABLE_BYTERANGE)
-  FIND_PACKAGE(CURL)
-  IF(NOT CURL_LIBRARY)
+
+IF(NOT CURL_LIBRARY)
+  IF(ENABLE_BYTERANGE)
     MESSAGE(FATAL_ERROR "Byte-range support specified, CURL libraries are not found.")
-    SET(ENABLE_BYTERANGE OFF BOOL)
-  ELSE()
-    SET(ENABLE_BYTERANGE ON BOOL)
+  ENDIF()
+
+  IF(ENABLE_DAP2 OR ENABLE_DAP4)
+    MESSAGE(FATAL_ERROR "DAP support specified, CURL libraries are not found.")
   ENDIF()
 ENDIF()
 
@@ -1008,14 +1005,14 @@ IF(ENABLE_PARALLEL4 AND ENABLE_NETCDF_4)
     SET(STATUS_PARALLEL "ON")
     configure_file("${netCDF_SOURCE_DIR}/nc_test4/run_par_test.sh.in"
       "${netCDF_BINARY_DIR}/tmp/run_par_test.sh" @ONLY NEWLINE_STYLE LF)
-    configure_file("${netCDF_SOURCE_DIR}/nc_test4/run_par_test2.sh.in"
-      "${netCDF_BINARY_DIR}/tmp/run_par_test2.sh" @ONLY NEWLINE_STYLE LF)
+    #configure_file("${netCDF_SOURCE_DIR}/nc_test4/run_par_test2.sh.in"
+    #  "${netCDF_BINARY_DIR}/tmp/run_par_test2.sh" @ONLY NEWLINE_STYLE LF)
     FILE(COPY "${netCDF_BINARY_DIR}/tmp/run_par_test.sh"
       DESTINATION ${netCDF_BINARY_DIR}/nc_test4
       FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
-    FILE(COPY "${netCDF_BINARY_DIR}/tmp/run_par_test2.sh"
-      DESTINATION ${netCDF_BINARY_DIR}/nc_test4
-      FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+    #FILE(COPY "${netCDF_BINARY_DIR}/tmp/run_par_test2.sh"
+    #  DESTINATION ${netCDF_BINARY_DIR}/nc_test4
+    #  FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 
   ENDIF()
 ENDIF()
@@ -1418,18 +1415,24 @@ CHECK_FUNCTION_EXISTS(getrlimit HAVE_GETRLIMIT)
 CHECK_FUNCTION_EXISTS(_filelengthi64 HAVE_FILE_LENGTH_I64)
 CHECK_FUNCTION_EXISTS(mmap HAVE_MMAP)
 CHECK_FUNCTION_EXISTS(mremap HAVE_MREMAP)
+CHECK_FUNCTION_EXISTS(fileno HAVE_FILENO)
 
 # Check to see if MAP_ANONYMOUS is defined.
+IF(MSVC)
+MESSAGE(WARNING "mmap not supported under visual studio: disabling MMAP support.")
+SET(ENABLE_MMAP OFF)
+ELSE()
 CHECK_C_SOURCE_COMPILES("
-#include <sys/mmap.h>
+#include <sys/mman.h>
 int main() {int x = MAP_ANONYMOUS;}" HAVE_MAPANON)
-
-IF(NOT HAVE_MMMAP OR NOT HAVE_MREMAP OR NOT HAVE_MAPANON)
-  MESSAGE(WARNING "mmap or mremap or MAP_ANONYMOUS not found: disabling MMAP support.")
+IF(NOT HAVE_MMAP OR NOT HAVE_MAPANON)
+  MESSAGE(WARNING "mmap or MAP_ANONYMOUS not found: disabling MMAP support.")
   SET(ENABLE_MMAP OFF)
+ENDIF()
 ENDIF()
 
 IF(ENABLE_MMAP)
+  # Aliases
   SET(BUILD_MMAP ON)
   SET(USE_MMAP ON)
 ENDIF(ENABLE_MMAP)
@@ -1783,6 +1786,9 @@ IF(ENABLE_TESTS)
   IF(USE_NETCDF4)
     INCLUDE_DIRECTORIES(h5_test)
     ADD_SUBDIRECTORY(nc_test4)
+    IF(BUILD_BENCHMARKS)
+      ADD_SUBDIRECTORY(nc_perf)
+    ENDIF()
     ADD_SUBDIRECTORY(h5_test)
   ENDIF()
   IF(ENABLE_DAP2)
@@ -1856,6 +1862,8 @@ SET(CC ${CMAKE_C_COMPILER})
 # Process all dependency libraries and create a string
 # used when parsing netcdf.pc.in
 
+SET(NC_LIBS "")
+
 FOREACH(_LIB ${ALL_TLL_LIBS})
   GET_FILENAME_COMPONENT(_LIB_NAME ${_LIB} NAME_WE)
   STRING(REGEX REPLACE "^lib" "" _NAME ${_LIB_NAME})
@@ -1865,13 +1873,13 @@ FOREACH(_LIB ${ALL_TLL_LIBS})
 ENDFOREACH()
 
 #SET(NC_LIBS "-lnetcdf ${NC_LIBS}")
-
-STRING(REPLACE ";" " " NC_LIBS "${NC_LIBS}")
-STRING(REPLACE "-lhdf5::hdf5-shared" "-lhdf5" NC_LIBS ${NC_LIBS})
-STRING(REPLACE "-lhdf5::hdf5_hl-shared" "-lhdf5_hl" NC_LIBS ${NC_LIBS})
-STRING(REPLACE "-lhdf5::hdf5-static" "-lhdf5" NC_LIBS ${NC_LIBS})
-STRING(REPLACE "-lhdf5::hdf5_hl-static" "-lhdf5_hl" NC_LIBS ${NC_LIBS})
-
+IF(NC_LIBS)
+  STRING(REPLACE ";" " " NC_LIBS "${NC_LIBS}")
+  STRING(REPLACE "-lhdf5::hdf5-shared" "-lhdf5" NC_LIBS ${NC_LIBS})
+  STRING(REPLACE "-lhdf5::hdf5_hl-shared" "-lhdf5_hl" NC_LIBS ${NC_LIBS})
+  STRING(REPLACE "-lhdf5::hdf5-static" "-lhdf5" NC_LIBS ${NC_LIBS})
+  STRING(REPLACE "-lhdf5::hdf5_hl-static" "-lhdf5_hl" NC_LIBS ${NC_LIBS})
+ENDIF()
 
 STRING(REPLACE ";" " " LINKFLAGS "${LINKFLAGS}")
 

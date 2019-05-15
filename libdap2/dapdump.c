@@ -13,6 +13,8 @@
 
 #define CHECK(n) if((n) != NC_NOERR) {return (n);} else {}
 
+static char* indentstr = "  "; /* Used by dumpindent */
+
 static void dumptreer(CDFnode* root, NCbytes* buf, int indent, int visible);
 
 int
@@ -31,10 +33,10 @@ dumpmetadata(int ncid, NChdr** hdrp)
 		  &hdr->ngatts,
 		  &hdr->unlimid);
     CHECK(stat);
-    if(ncdap3debug > 0) {
+#ifdef DEBUG2
         fprintf(stdout,"ncid=%d ngatts=%d ndims=%d nvars=%d unlimid=%d\n",
 		hdr->ncid,hdr->ngatts,hdr->ndims,hdr->nvars,hdr->unlimid);
-    }
+#endif
     hdr->gatts = (NCattribute*)calloc(1,hdr->ngatts*sizeof(NCattribute));
     MEMCHECK(hdr->gatts,NC_ENOMEM);
     if(hdr->ngatts > 0)
@@ -200,10 +202,7 @@ char*
 dumpprojections(NClist* projections)
 {
     char* tmp;
-    int v = dceverbose;
-    dceverbose = 1;
     tmp = dcelisttostring(projections,",");
-    dceverbose = v;
     return tmp;
 }
 
@@ -211,10 +210,7 @@ char*
 dumpprojection(DCEprojection* proj)
 {
     char* tmp;
-    int v = dceverbose;
-    dceverbose = 1;
     tmp = dcetostring((DCEnode*)proj);
-    dceverbose = v;
     return tmp;
 }
 
@@ -234,10 +230,7 @@ char*
 dumpconstraint(DCEconstraint* con)
 {
     char* tmp;
-    int v = dceverbose;
-    dceverbose = 1;
     tmp = dcetostring((DCEnode*)con);
-    dceverbose = v;
     return tmp;
 }
 
@@ -271,7 +264,6 @@ dumppath(CDFnode* leaf)
 static void
 dumpindent(int indent, NCbytes* buf)
 {
-    static char* indentstr = "  ";
     int i;
     for(i=0;i<indent;i++) ncbytescat(buf,indentstr);
 }

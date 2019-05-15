@@ -436,7 +436,7 @@ EXTERNL OCerror oc_data_readscalar(OClink, OCdatanode, size_t, void*);
    and free'ing it.
    See also oc_dds_readn().
 */
-EXTERNL OCerror oc_data_readn(OClink, OCdatanode, size_t*, size_t, size_t, void*);
+EXTERNL OCerror oc_data_readn(OClink, OCdatanode, const size_t*, size_t, size_t, void*);
 
 /* Return the indices for this datas; Assumes the data
    was obtained using oc_data_ithelement or oc_data_ithrecord;

@@ -187,7 +187,7 @@ typedef struct Typeinfo {
 	nc_type         typecode;
         unsigned long   offset;   /* fields in struct*/
         unsigned long   alignment;/* fields in struct*/
-        NCConstant*      econst;   /* for enum values*/
+        NCConstant*     econst;   /* for enum values*/
         Dimset          dimset;     /* for NC_VAR/NC_FIELD/NC_ATT*/
         size_t   size;     /* for opaque, compound, etc.*/
 	size_t   cmpdalign; /* alignment needed for total size instances */

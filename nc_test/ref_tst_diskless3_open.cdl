@@ -1,0 +1,37 @@
+netcdf tst_mmap3 {
+dimensions:
+	Time = UNLIMITED ; // (10 currently)
+	X = 30 ;
+variables:
+	char Times(Time) ;
+		Times:a_97 = "a" ;
+		Times:a_98 = "b" ;
+		Times:a_99 = "c" ;
+		Times:a_100 = "d" ;
+		Times:a_101 = "e" ;
+		Times:a_102 = "f" ;
+		Times:a_103 = "g" ;
+		Times:a_104 = "h" ;
+		Times:a_105 = "i" ;
+		Times:a_106 = "j" ;
+	char var2(Time) ;
+		var2:a_97 = "a" ;
+		var2:a_98 = "b" ;
+		var2:a_99 = "c" ;
+		var2:a_100 = "d" ;
+		var2:a_101 = "e" ;
+		var2:a_102 = "f" ;
+		var2:a_103 = "g" ;
+		var2:a_104 = "h" ;
+		var2:a_105 = "i" ;
+		var2:a_106 = "j" ;
+	int var3(X) ;
+data:
+
+ Times = "abcdefghij" ;
+
+ var2 = "abcdefghij" ;
+
+ var3 = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 
+    20, 21, 22, 23, 24, 25, 26, 27, 28, 29 ;
+}

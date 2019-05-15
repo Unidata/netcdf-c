@@ -153,9 +153,10 @@ reclaim_datar(int ncid, int xtype, size_t typesize, Position* offset)
 static ptrdiff_t
 read_align(ptrdiff_t offset, size_t alignment)
 {
-    size_t delta = (offset % alignment);
-    if(delta == 0) return offset;
-    return offset + (alignment - delta);
+  size_t loc_align = (alignment == 0 ? 1 : alignment);
+  size_t delta = (offset % loc_align);
+  if(delta == 0) return offset;
+  return offset + (alignment - delta);
 }
 
 static int
@@ -422,7 +423,7 @@ ncaux_class_alignment(int ncclass)
 EXTERNL size_t
 ncaux_type_alignment(int xtype, int ncid)
 {
-    if(!NC_alignments_computed) {
+    if(!ncaux_initialized) {
 	NC_compute_alignments();
 	ncaux_initialized = 1;
     }
