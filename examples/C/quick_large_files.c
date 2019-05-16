@@ -1,8 +1,8 @@
 /* Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012,
-2013, 2014, 2015, 2016, 2017, 2018 University Corporation for
-Atmospheric Research/Unidata. See \ref copyright file for more
-info. */
+   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012,
+   2013, 2014, 2015, 2016, 2017, 2018 University Corporation for
+   Atmospheric Research/Unidata. See \ref copyright file for more
+   info. */
 /**
  * @file
  *
@@ -13,7 +13,7 @@ info. */
  * features.
  *
  * @author Ed Hartnett, 8/11/4
-*/
+ */
 
 #include <netcdf.h>
 #include <stdio.h>
@@ -22,11 +22,11 @@ info. */
 /* This macro handles errors by outputting a message to stdout and
    then exiting. */
 #define NC_EXAMPLE_ERROR 2 /* This is the exit code for failure. */
-#define BAIL(e) do { \
-printf("Bailing out in file %s, line %d, error:%s.\n", \
-__FILE__, __LINE__, nc_strerror(e)); \
-return NC_EXAMPLE_ERROR; \
-} while (0)
+#define BAIL(e) do {                                            \
+        printf("Bailing out in file %s, line %d, error:%s.\n",  \
+               __FILE__, __LINE__, nc_strerror(e));             \
+        return NC_EXAMPLE_ERROR;                                \
+    } while (0)
 
 #define NUMDIMS 1
 #define NUMVARS 2
@@ -38,41 +38,41 @@ return NC_EXAMPLE_ERROR; \
 int
 main()
 {
-   int ncid, spockid, kirkid, dimids[NUMDIMS];
-   double val_in, val_out = 999.99;
-   size_t index[NUMDIMS] = {DIM_LEN-1};
-   int i, res;
+    int ncid, spockid, kirkid, dimids[NUMDIMS];
+    double val_in, val_out = 999.99;
+    size_t index[NUMDIMS] = {DIM_LEN-1};
+    int i, res;
 
-   /* Create the netCDF 64-bit offset format file. */
-   if ((res = nc_create("example.nc", NC_CLOBBER|NC_64BIT_OFFSET, &ncid)))
-      BAIL(res);
+    /* Create the netCDF 64-bit offset format file. */
+    if ((res = nc_create("example.nc", NC_CLOBBER|NC_64BIT_OFFSET, &ncid)))
+        BAIL(res);
 
-   /* Turn off fill mode to speed things up. */
-   if ((res = nc_set_fill(ncid, NC_NOFILL, NULL)))
-       BAIL(res);
+    /* Turn off fill mode to speed things up. */
+    if ((res = nc_set_fill(ncid, NC_NOFILL, NULL)))
+        BAIL(res);
 
-   /* Define dimension. */
-   if ((res = nc_def_dim(ncid, "longdim", DIM_LEN, dimids)))
-      BAIL(res);
+    /* Define dimension. */
+    if ((res = nc_def_dim(ncid, "longdim", DIM_LEN, dimids)))
+        BAIL(res);
 
-   /* Define two variables. */
-   if ((res = nc_def_var(ncid, "spock", NC_DOUBLE, NUMDIMS,
-			 dimids, &spockid)))
-      BAIL(res);
-   if ((res = nc_def_var(ncid, "kirk", NC_DOUBLE, NUMDIMS,
-			 dimids, &kirkid)))
-      BAIL(res);
+    /* Define two variables. */
+    if ((res = nc_def_var(ncid, "spock", NC_DOUBLE, NUMDIMS,
+                          dimids, &spockid)))
+        BAIL(res);
+    if ((res = nc_def_var(ncid, "kirk", NC_DOUBLE, NUMDIMS,
+                          dimids, &kirkid)))
+        BAIL(res);
 
-   /* We're finished defining metadata. */
-   if ((res = nc_enddef(ncid)))
-      BAIL(res);
+    /* We're finished defining metadata. */
+    if ((res = nc_enddef(ncid)))
+        BAIL(res);
 
-   if ((res = nc_put_var1_double(ncid, kirkid, index, &val_out)))
-      BAIL(res);
+    if ((res = nc_put_var1_double(ncid, kirkid, index, &val_out)))
+        BAIL(res);
 
-   /* We're done! */
-   if ((res = nc_close(ncid)))
-      BAIL(res);
+    /* We're done! */
+    if ((res = nc_close(ncid)))
+        BAIL(res);
 
-   return 0;
+    return 0;
 }

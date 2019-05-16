@@ -21,6 +21,7 @@
 #include <unistd.h>
 #endif
 #include "nc3internal.h"
+#include "ncwinpath.h"
 
 #undef DEBUG
 
@@ -242,17 +243,13 @@ mmapio_create(const char* path, int ioflags,
     	oflags |= (O_CREAT|O_TRUNC);
         if(fIsSet(ioflags,NC_NOCLOBBER))
 	    oflags |= O_EXCL;
-#ifdef vms
-        fd = open(path, oflags, 0, "ctx=stm");
-#else
-        fd  = open(path, oflags, OPENMODE);
-#endif
+        fd  = NCopen3(path, oflags, OPENMODE);
         if(fd < 0) {status = errno; goto unwind_open;}
 	mmapio->mapfd = fd;
 
 	{ /* Cause the output file to have enough allocated space */
 	lseek(fd,mmapio->alloc-1,SEEK_SET); /* cause file to appear */
-        write(fd,"",mmapio->alloc);
+        write(fd,"",1);
 	lseek(fd,0,SEEK_SET); /* rewind */
 	}
         mmapio->memory = (char*)mmap(NULL,mmapio->alloc,
@@ -337,11 +334,7 @@ mmapio_open(const char* path,
     fSet(oflags, O_BINARY);
 #endif
     oflags |= O_EXCL;
-#ifdef vms
-    fd = open(path, oflags, 0, "ctx=stm");
-#else
-    fd  = open(path, oflags, OPENMODE);
-#endif
+    fd  = NCopen3(path, oflags, OPENMODE);
     if(fd < 0) {status = errno; goto unwind_open;}
 
     /* get current filesize  = max(|file|,initialize)*/
@@ -420,7 +413,6 @@ static int
 mmapio_pad_length(ncio* nciop, off_t length)
 {
     NCMMAPIO* mmapio;
-    int persist = 0;
 
     if(nciop == NULL || nciop->pvt == NULL) return NC_EINVAL;
     mmapio = (NCMMAPIO*)nciop->pvt;
@@ -430,9 +422,6 @@ mmapio_pad_length(ncio* nciop, off_t length)
 
     if(mmapio->locked > 0)
 	return NC_EDISKLESS;
-
-    if(mmapio->mapfd >= 0)
-	persist = 1;
 
     if(length > mmapio->alloc) {
         /* Realloc the allocated memory to a multiple of the pagesize*/
@@ -455,8 +444,9 @@ mmapio_pad_length(ncio* nciop, off_t length)
 	newmem = (char*)mremap(mmapio->memory,mmapio->alloc,newsize,MREMAP_MAYMOVE);
 	if(newmem == NULL) return NC_ENOMEM;
 #else
+        /* note: mmapio->mapfd >= 0 => persist */
         newmem = (char*)mmap(NULL,newsize,
-                                    persist?(PROT_READ|PROT_WRITE):(PROT_READ),
+                                    mmapio->mapfd >= 0?(PROT_READ|PROT_WRITE):(PROT_READ),
 				    MAP_SHARED,
                                     mmapio->mapfd,0);
 	if(newmem == NULL) return NC_ENOMEM;
