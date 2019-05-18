@@ -126,7 +126,7 @@ done:
  * @author Dennis Heimbigner
  */
 
-This procedure invokes all defined
+/*This procedure invokes all defined
 finalizers, and there should be one
 for every known dispatch table.
 So if you modify the format of NC_Dispatch,
