@@ -75,7 +75,7 @@ nc_initialize()
     int stat = NC_NOERR;
 
     if(NC_initialized) return NC_NOERR;
-    if(NC_finalized) return NC_EINTERNAL;
+    /* Allow repeated calls if nc_finalize has been called in-between */
     NC_initialized = 1;
     NC_finalized = 0;
 
@@ -114,9 +114,8 @@ done:
  * valgrind, then it will report memory that has not been
  * deallocated. Calling nc_finalize should reclaim all such memory.
  * 
- * WARNING: this function should be called when the program has
- * completed all use of the netcdf-c library. Calling any function
- * after nc_finalize() may cause a variety of memory-related errors.
+ * Once this function is called, it will be necessary to call
+ * nc_initialize again.
  * 
  * This funcion invokes all defined
  * finalizers, and there is a finalizer

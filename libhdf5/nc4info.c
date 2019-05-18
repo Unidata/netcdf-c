@@ -118,7 +118,10 @@ done:
 int
 NC4_provenance_finalize(void)
 {
-    return NC4_clear_provenance(&globalprovenance);
+    int stat = NC_NOERR;
+    stat = NC4_clear_provenance(&globalprovenance);
+    globalpropinitialized = 0;
+    return stat;
 }
 
 /**

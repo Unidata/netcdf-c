@@ -136,6 +136,9 @@ NCDISPATCH_initialize(void)
     return status;
 }
 
+/* Clean up globally allocated memory; make sure
+   that nc_initialize can be called.
+*/
 int
 NCDISPATCH_finalize(void)
 {
