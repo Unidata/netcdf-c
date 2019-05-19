@@ -2503,11 +2503,12 @@ done:
     return stat;
 }
 
-static int NC4_get_strict_att(NC_FILE_INFO_T*);
+static int NC4_get_special_att(NC_FILE_INFO_T*,const char*);
 static int NC4_walk(hid_t, int*);
 
 /**
- * @internal Determine whether file is netCDF-4.
+ * @internal Determine whether file appears to be a netCDF-4
+ *           subset of the HDF5 file format.
  *
  * We define a file as being from netcdf-4 if any of the following
  * are true:
@@ -2537,8 +2538,13 @@ NC4_isnetcdf4(struct NC_FILE_INFO* h5)
     int isnc4 = 0;
     int count;
 
+    /* Look for _NCProperties attribute */
+    isnc4 = NC4_get_special_att(h5, NCPROPS);
+    if(isnc4 > 0)
+        goto done;
+    /* attribute did not exist */
     /* Look for NC3_STRICT_ATT_NAME */
-    isnc4 = NC4_get_strict_att(h5);
+    isnc4 = NC4_get_special_att(h5, NC3_STRICT_ATT_NAME);
     if(isnc4 > 0)
         goto done;
     /* attribute did not exist */
@@ -2564,7 +2570,7 @@ done:
  * @author Dennis Heimbigner.
  */
 static int
-NC4_get_strict_att(NC_FILE_INFO_T *h5)
+NC4_get_special_att(NC_FILE_INFO_T *h5, const char* name)
 {
     hid_t grpid = -1;
     hid_t attid = -1;
@@ -2573,7 +2579,7 @@ NC4_get_strict_att(NC_FILE_INFO_T *h5)
     grpid = ((NC_HDF5_GRP_INFO_T *)(h5->root_grp->format_grp_info))->hdf_grpid;
 
     /* Try to extract the NC3_STRICT_ATT_NAME attribute */
-    attid = H5Aopen_name(grpid, NC3_STRICT_ATT_NAME);
+    attid = H5Aopen_name(grpid, name);
     H5Aclose(attid);
     return attid;
 }

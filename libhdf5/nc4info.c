@@ -93,9 +93,11 @@ NC4_provenance_init(void)
 #ifdef NCPROPERTIES_EXTRA
     /* Add any extra fields */
     p = NCPROPERTIES_EXTRA;
-    if(p[0] == NCPROPSSEP2) p++; /* If leading separator */
-    ncbytesappend(buffer,NCPROPSSEP2);
-    ncbytescat(buffer,p);
+    if(p[0] != '\0') {
+        if(p[0] == NCPROPSSEP2) p++; /* If leading separator */
+        ncbytesappend(buffer,NCPROPSSEP2);
+        ncbytescat(buffer,p);
+    }
 #endif
     ncbytesnull(buffer);
     globalprovenance.ncproperties = ncbytesextract(buffer);
@@ -276,6 +278,9 @@ NC4_read_ncproperties(NC_FILE_INFO_T* h5, char** propstring)
     {retval = NC_EHDFERR; goto done;}
     if((H5Aread(attid, ntype, text)) < 0)
     {retval = NC_EHDFERR; goto done;}
+    /* If trailing separator, then elide it */
+    if(size >  0 && text[(size_t)(size-1)] == NCPROPSSEP2)
+	size--;
     /* Make sure its null terminated */
     text[(size_t)size] = '\0';
     if(propstring) {*propstring = text; text = NULL;}
