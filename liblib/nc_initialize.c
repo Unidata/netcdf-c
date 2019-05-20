@@ -132,16 +132,29 @@ for every known dispatch table.
 So if you modify the format of NC_Dispatch,
 then you need to fix it everywhere.
 It also finalizes appropriate external libraries.
+If there are open files when this is called, then
+all of those open files are aborted.
 */
 
 int
 nc_finalize(void)
 {
     int stat = NC_NOERR;
+    int index;
+    NC* ncp;
 
     if(NC_finalized) return NC_NOERR;
     NC_initialized = 0;
     NC_finalized = 1;
+
+    /* Abort any open files */
+    index = 0;
+    ncp = NULL;
+    for(;;) {     * 
+	ncp = iterate_NCList(&index);
+	if(ncp == NULL) break;
+        (void)nc_abort(ncp->ext_ncid); /* don't care if fails */
+    }        
 
     /* Finalize each active protocol */
 

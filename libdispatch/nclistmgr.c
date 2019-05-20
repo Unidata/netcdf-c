@@ -117,12 +117,25 @@ find_in_NCList_by_name(const char* path)
    return f;
 }
 
-int
-iterate_NCList(int index, NC** ncp)
+NC*
+iterate_NCList(int* indexp)
 {
-    /* Walk from 0 ...; 0 return => stop */
+    int index = *indexp;
+    NC* ncp = NULL;
+
+    if(nc_filelist == NULL || numfiles == 0)
+	return NULL;
     if(index < 0 || index >= NCFILELISTLENGTH)
-	return NC_ERANGE;
-    if(ncp) *ncp = nc_filelist[index];
-    return NC_NOERR;
+	return NULL;
+    for(;index < NCFILELISTLENGTH;index++) {
+	if(nc_filelist[index] != NULL) {
+	    ncp = nc_filelist[index];
+	    goto done;	    	    
+        }
+    }
+    index = NCFILELISTLENGTH; /* no point in iterating further */
+    ncp = NULL;
+done:
+    *indexp = index;
+    return ncp;
 }

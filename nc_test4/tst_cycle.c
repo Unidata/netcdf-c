@@ -50,9 +50,7 @@ main(int argc, char **argv)
 #ifndef DEBUG
     /* Create a file */
     if((stat = nc_create(NCFILE,NC_CLOBBER|NC_NETCDF4,&ncid))) ERR; /* Indirectly call nc_initialize() */
-    /* Force file to be written */
-//    if((stat = nc_def_dim(ncid,"ignore",10,NULL))) ERR;
-    if((stat = nc_close(ncid))) ERR;    
+    /* Leave file open to force finalize to abort it */
     if((stat = nc_finalize())) ERR;
 #endif
 
