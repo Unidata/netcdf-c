@@ -18,11 +18,7 @@
 #undef DEBUG
 
 /* Created file */
-#ifdef DEBUG
 #define NCFILE "tst_cycle.nc"
-#else
-#define NCFILE "tc.nc"
-#endif
 
 #define ERR2 { \
     err++; \
@@ -47,19 +43,31 @@ main(int argc, char **argv)
     for memory errors
     */
 
-#ifndef DEBUG
     /* Create a file */
     if((stat = nc_create(NCFILE,NC_CLOBBER|NC_NETCDF4,&ncid))) ERR; /* Indirectly call nc_initialize() */
-    /* Leave file open to force finalize to abort it */
+    /* finalize and ensure that created file gets aborted */
     if((stat = nc_finalize())) ERR;
-#endif
+    /* Check that file does not exist */
+    {
+	FILE* f = fopen(NCFILE,"r");
+	if(f != NULL) {
+	    fprintf(stderr,"*** Fail: nc_finalize failed to abort %s\n",NCFILE);
+	    ERR;
+	    goto done;	    
+	}
+    }
+
+    /* Create a and keep file */
+    if((stat = nc_create(NCFILE,NC_CLOBBER|NC_NETCDF4,&ncid))) ERR; /* Indirectly call nc_initialize() */
+    if((stat = nc_close(ncid))) ERR;
+    if((stat = nc_finalize())) ERR;
 
     /* Re-open (including re-initialize) */
     if((stat = nc_open(NCFILE,NC_NOCLOBBER,&ncid))) ERR; /* Indirectly call nc_initialize() */
     /* Read the _NCProperties attribute */
     if((stat = nc_get_att_text(ncid,NC_GLOBAL,"_NCProperties",ncprop))) ERR;
     printf("|%s|\n",ncprop);
-    if((stat = nc_close(ncid))) ERR;    
+    /* Do not close so that finalize will be forced to abort it */    
     if((stat = nc_finalize())) ERR;
 
     /* Once more */
@@ -68,6 +76,7 @@ main(int argc, char **argv)
     if((stat = nc_close(ncid))) ERR;    
     if((stat = nc_finalize())) ERR;
 
+done:
     (void)unlink(NCFILE);
 
     SUMMARIZE_ERR;

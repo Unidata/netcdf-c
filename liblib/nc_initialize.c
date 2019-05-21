@@ -150,7 +150,7 @@ nc_finalize(void)
     /* Abort any open files */
     index = 0;
     ncp = NULL;
-    for(;;) {     * 
+    for(;;) {
 	ncp = iterate_NCList(&index);
 	if(ncp == NULL) break;
         (void)nc_abort(ncp->ext_ncid); /* don't care if fails */
