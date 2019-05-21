@@ -820,6 +820,8 @@ done:
 
 /* Propagate chunking from input to output taking -c flags into account. */
 /* Subsumes old set_var_chunked */
+/* Must make sure we do not override the default chunking when input
+   is classic */
 static int
 copy_chunking(int igrp, int i_varid, int ogrp, int o_varid, int ndims, int inkind, int outkind)
 {
@@ -850,7 +852,9 @@ copy_chunking(int igrp, int i_varid, int ogrp, int o_varid, int ndims, int inkin
 	goto done;
     }
 
-    { /* Try dim-specific chunking */
+    /* If dim-specific chunking is specified, then use that */
+    if(dimchunkspec_ndims() > 0) {
+        /* Try dim-specific chunking */
 	int idim;
 	/* size of a chunk: product of dimension chunksizes and size of value */
 	size_t csprod;
@@ -949,7 +953,8 @@ next:
 	} else {
 	    NC_CHECK(nc_def_var_chunking(ogrp, o_varid, NC_CHUNKED, ochunkp));
 	}
-    }
+    } /* else no chunk spec at all, let defaults set at nc_def_var() be used */
+ 
 done:
     return stat;
 }
