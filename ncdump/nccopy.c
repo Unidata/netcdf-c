@@ -2219,8 +2219,6 @@ main(int argc, char**argv)
 		option_min_chunk_bytes = 0;
 	    else
 	        option_min_chunk_bytes = atol(optarg);
-	    if(option_min_chunk_bytes < 0)
-		error("-M value must be non-negative integer");
 	    break;
 #else
 	    error("-M requires netcdf-4");
