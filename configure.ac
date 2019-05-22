@@ -1386,6 +1386,11 @@ AC_MSG_WARN([netCDF-4 disabled => --disable-filter-testing])
 enable_filter_testing=no
 fi
 
+if test "x$enable_hdf5" = xno ; then
+AC_MSG_WARN([HDF5 disabled => --disable-filter-testing])
+enable_filter_testing=no
+fi
+
 if test "x$enable_shared" = xno ; then
 AC_MSG_WARN([Shared libraries are disabled => --disable-filter-testing])
 enable_filter_testing=no
