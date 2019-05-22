@@ -275,8 +275,8 @@ main(int argc, char **argv)
    SUMMARIZE_ERR;
    fprintf(stderr,"*** test renaming affect on varids...");
    {
-      int ncid, dimid1, dimid2, varid1, varid2;
-      int dimid_in, varid_in;
+      int ncid, varid1, varid2;
+      int varid_in;
       char file_name[NC_MAX_NAME + 1];
 
       /* Create file with two scalar vars. */
