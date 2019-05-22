@@ -9,7 +9,9 @@
  */
 
 #include "config.h"
+#ifdef USE_HDF5
 #include <hdf5internal.h>
+#endif
 #include <math.h> /* For pow() used below. */
 
 /** @internal Default size for unlimited dim chunksize. */

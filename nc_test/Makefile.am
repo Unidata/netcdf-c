@@ -88,6 +88,7 @@ TESTS += test_byterange.sh
 endif
 if BUILD_MMAP
 TESTS += run_mmap.sh
+run_mmap.log: run_diskless.log
 endif
 endif
 
@@ -110,7 +111,7 @@ CMakeLists.txt
 CLEANFILES = nc_test_*.nc tst_*.nc t_nc.nc large_files.nc		\
 quick_large_files.nc tst_diskless3_file.cdl                             \
 tst_diskless4.cdl ref_tst_diskless4.cdl benchmark.nc                    \
-tst_http_nc3.cdl tst_http_nc4.cdl
+tst_http_nc3.cdl tst_http_nc4.cdl tmp*.cdl tmp*.nc
 
 EXTRA_DIST += bad_cdf5_begin.nc run_cdf5.sh
 if ENABLE_CDF5
