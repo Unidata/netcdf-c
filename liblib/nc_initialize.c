@@ -16,12 +16,12 @@ extern int NC3_finalize(void);
 
 #ifdef USE_NETCDF4
 #include "nc4internal.h"
-#include "hdf5internal.h"
 extern int NC4_initialize(void);
 extern int NC4_finalize(void);
 #endif
 
 #ifdef USE_HDF5
+#include "hdf5internal.h"
 extern int NC_HDF5_initialize(void);
 extern int NC_HDF5_finalize(void);
 #endif
