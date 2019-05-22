@@ -1047,7 +1047,7 @@ if test "x$enable_hdf5" = xyes; then
 
    # Check to see if we need to search for and link against szlib.
    if test "x$ac_cv_func_H5Z_SZIP" = xyes; then
-      AC_SEARCH_LIBS([SZ_Compress], [szip sz], [],
+      AC_SEARCH_LIBS([SZ_BufftoBuffCompress], [szip sz], [],
       [AC_MSG_ERROR([libhdf5 installed with szip support, but cannot find or link to the szip library.])])
    fi
 
