@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 	       {
 		  if (data[j + LON_LEN * i] != (start[0] + i + j) % 19)
 		  {
-		     printf("error on start[0]: %ld i: %ld j: %ld expected %d got %g\n",
+		     printf("error on start[0]: %ld i: %d j: %d expected %ld got %g\n",
 			    start[0], i, j, (start[0] + i + j), data[j + LON_LEN * i]);
 		     ERR_RET;
 		  }
