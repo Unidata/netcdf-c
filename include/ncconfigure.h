@@ -25,10 +25,6 @@ missing functions should be
 defined and missing types defined.
 */
 
-#ifndef HAVE_STRDUP
-extern char* strdup(const char*);
-#endif
-
 /* handle null arguments */
 #ifndef nulldup
 #ifdef HAVE_STRDUP
@@ -51,23 +47,31 @@ typedef SSIZE_T ssize_t;
 #ifndef _WIN32
 #if __STDC__ == 1 /*supposed to be same as -ansi flag */
 
-#ifndef strdup
+#ifndef HAVE_STRDUP
 extern char* strdup(const char*);
 #endif
 
-#ifndef strlcat
+#ifndef HAVE_STRLCAT
 extern size_t strlcat(char*,const char*,size_t);
 #endif
 
-#ifndef snprintf
+#ifndef HAVE_SNPRINTF
 extern int snprintf(char*, size_t, const char*, ...);
 #endif
 
+#ifndef HAVE_STRCASECMP
 extern int strcasecmp(const char*, const char*);
-extern long long int strtoll(const char*, char**, int);
-extern unsigned long long int strtoull(const char*, char**, int);
+#endif
 
-#ifndef fileno
+#ifndef HAVE_STRTOLL
+extern long long int strtoll(const char*, char**, int);
+#endif
+
+#ifndef HAVE_STRTOULL
+extern unsigned long long int strtoull(const char*, char**, int);
+#endif
+
+#ifndef HAVE_FILENO
 extern int fileno(FILE*);
 #endif
 
@@ -75,7 +79,7 @@ extern int fileno(FILE*);
 #endif /*!WIN32*/
 
 #ifdef _WIN32
-#ifndef strlcat
+#ifndef HAVE_STRLCAT
 #define strlcat(d,s,n) strcat_s((d),(n),(s))
 #endif
 #endif
