@@ -25,15 +25,6 @@ missing functions should be
 defined and missing types defined.
 */
 
-/* handle null arguments */
-#ifndef nulldup
-#ifdef HAVE_STRDUP
-#define nulldup(s) ((s)==NULL?NULL:strdup(s))
-#else
-char *nulldup(const char* s);
-#endif
-#endif
-
 #ifdef _MSC_VER
 #ifndef HAVE_SSIZE_T
 #include <basetsd.h>
@@ -47,33 +38,13 @@ typedef SSIZE_T ssize_t;
 #ifndef _WIN32
 #if __STDC__ == 1 /*supposed to be same as -ansi flag */
 
-#ifndef HAVE_STRDUP
 extern char* strdup(const char*);
-#endif
-
-#ifndef HAVE_STRLCAT
 extern size_t strlcat(char*,const char*,size_t);
-#endif
-
-#ifndef HAVE_SNPRINTF
 extern int snprintf(char*, size_t, const char*, ...);
-#endif
-
-#ifndef HAVE_STRCASECMP
 extern int strcasecmp(const char*, const char*);
-#endif
-
-#ifndef HAVE_STRTOLL
 extern long long int strtoll(const char*, char**, int);
-#endif
-
-#ifndef HAVE_STRTOULL
 extern unsigned long long int strtoull(const char*, char**, int);
-#endif
-
-#ifndef HAVE_FILENO
 extern int fileno(FILE*);
-#endif
 
 #endif /*STDC*/
 #endif /*!WIN32*/
@@ -86,11 +57,17 @@ extern int fileno(FILE*);
 
 /* handle null arguments */
 #ifndef nulldup
+#ifdef HAVE_STRDUP
 #define nulldup(s) ((s)==NULL?NULL:strdup(s))
+#else
+extern char *nulldup(const char* s);
 #endif
+#endif
+
 #ifndef nulllen
 #define nulllen(s) ((s)==NULL?0:strlen(s))
 #endif
+
 #ifndef nullfree
 #define nullfree(s) {if((s)!=NULL) {free(s);} else {}}
 #endif
