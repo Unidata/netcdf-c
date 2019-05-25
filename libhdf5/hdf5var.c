@@ -12,12 +12,11 @@
 #include <hdf5internal.h>
 #include <math.h> /* For pow() used below. */
 
-#undef REPORTCHUNKING
-#ifdef REPORTCHUNKING
+#ifdef LOGGING
 static void reportchunking(const char* title, NC_VAR_INFO_T* var)
 {
     int i;
-    fprintf(stderr,"XXX: %s: chunksizes var=%s sizes=",title,var->hdr.name);
+    fprintf(stderr,"LOG: %s: chunksizes var=%s sizes=",title,var->hdr.name);
     for(i=0;i<var->ndims;i++) {
         if(i > 0) fprintf(stderr,",");
         fprintf(stderr,"%ld",(unsigned long)var->chunksizes[i]);
@@ -235,7 +234,7 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
         }
     }
 
-#ifdef REPORTCHUNKING
+#ifdef LOGGING
 reportchunking("find_default: ",var);
 #endif
     return NC_NOERR;
@@ -741,7 +740,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
             return retval;
     }
 
-#ifdef REPORTCHUNKING
+#ifdef LOGGING
 {int dfalt=(chunksizes == NULL);
 reportchunking(dfalt?"extra: default: ":"extra: user: ",var);
 }
