@@ -1,3 +1,4 @@
+
 /* Copyright 2003-2019, University Corporation for Atmospheric
  * Research. See COPYRIGHT file for copying and redistribution
  * conditions.*/
@@ -13,15 +14,24 @@
 #include <math.h> /* For pow() used below. */
 
 #ifdef LOGGING
-static void reportchunking(const char* title, NC_VAR_INFO_T* var)
+static void
+reportchunking(const char* title, NC_VAR_INFO_T* var)
 {
     int i;
-    fprintf(stderr,"LOG: %s: chunksizes var=%s sizes=",title,var->hdr.name);
+    char buf[8192];
+
+    buf[0] = '\0'; /* for strlcat */
+    strlcat(buf,title,sizeof(buf));
+    strlcat(buf,"chunksizes for var ",sizeof(buf));
+    strlcat(buf,var->hdr.name,sizeof(buf));
+    strlcat(buf,"sizes=",sizeof(buf));
     for(i=0;i<var->ndims;i++) {
-        if(i > 0) fprintf(stderr,",");
-        fprintf(stderr,"%ld",(unsigned long)var->chunksizes[i]);
+        char digits[64];
+        if(i > 0) strlcat(buf,",",sizeof(buf));
+        snprintf(digits,sizeof(digits),"%ld",(unsigned long)var->chunksizes[i]);
+	strlcat(buf,digits,sizeof(buf));
     }
-    fprintf(stderr,"\n");
+    LOG((1,"%s",buf));
 }    
 #endif
 
