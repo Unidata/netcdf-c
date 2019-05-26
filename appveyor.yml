@@ -42,3 +42,4 @@ build_script:
 
 test_script:
   - cmd: cmake --build . --config Release --target install -- /maxcpucount:4
+  - cmd: cmake --build . --config Release --target RUN_TESTS -- /maxcpucount:4
