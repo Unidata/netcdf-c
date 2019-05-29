@@ -469,7 +469,7 @@ init(int argc, char** argv)
     totalproduct = 1;
     actualproduct = 1;
     chunkproduct = 1;
-    for(i=0;i<MAXDIMS;i++) {
+    for(i=0;i<NDIMS;i++) {
 	totalproduct *= dimsize[i];
         if(i < ndims) {
             actualproduct *= dimsize[i];

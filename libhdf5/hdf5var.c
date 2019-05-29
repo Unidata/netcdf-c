@@ -1,3 +1,4 @@
+
 /* Copyright 2003-2019, University Corporation for Atmospheric
  * Research. See COPYRIGHT file for copying and redistribution
  * conditions.*/
@@ -13,6 +14,28 @@
 #include <hdf5internal.h>
 #endif
 #include <math.h> /* For pow() used below. */
+
+#ifdef LOGGING
+static void
+reportchunking(const char* title, NC_VAR_INFO_T* var)
+{
+    int i;
+    char buf[8192];
+
+    buf[0] = '\0'; /* for strlcat */
+    strlcat(buf,title,sizeof(buf));
+    strlcat(buf,"chunksizes for var ",sizeof(buf));
+    strlcat(buf,var->hdr.name,sizeof(buf));
+    strlcat(buf,"sizes=",sizeof(buf));
+    for(i=0;i<var->ndims;i++) {
+        char digits[64];
+        if(i > 0) strlcat(buf,",",sizeof(buf));
+        snprintf(digits,sizeof(digits),"%ld",(unsigned long)var->chunksizes[i]);
+	strlcat(buf,digits,sizeof(buf));
+    }
+    LOG((1,"%s",buf));
+}    
+#endif
 
 /** @internal Default size for unlimited dim chunksize. */
 #define DEFAULT_1D_UNLIM_SIZE (4096)
@@ -223,6 +246,9 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
         }
     }
 
+#ifdef LOGGING
+reportchunking("find_default: ",var);
+#endif
     return NC_NOERR;
 }
 
@@ -624,7 +650,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
         return NC_ENOTVAR;
     assert(var && var->hdr.id == varid);
 
-    /* Can't turn on parallel and deflate/fletcher32/szip/shuffle. */
+    /* Can't turn on parallel and deflate/fletcher32/szip/shuffle (for now). */
     if (h5->parallel == NC_TRUE)
         if (deflate || fletcher32 || shuffle)
             return NC_EINVAL;
@@ -725,6 +751,12 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
         if ((retval = nc4_adjust_var_cache(grp, var)))
             return retval;
     }
+
+#ifdef LOGGING
+{int dfalt=(chunksizes == NULL);
+reportchunking(dfalt?"extra: default: ":"extra: user: ",var);
+}
+#endif
 
     /* Are we setting a fill modes? */
     if (no_fill)
@@ -1008,6 +1040,10 @@ NC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
     if (var->created)
         return NC_ELATEDEF;
 
+    /* Can't turn on parallel and filter (for now). */
+    if (h5->parallel == NC_TRUE)
+        return NC_EINVAL;
+
 #ifdef HAVE_H5Z_SZIP
     if(id == H5Z_FILTER_SZIP) {
         if(nparams != 2)
@@ -1038,6 +1074,17 @@ NC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
         if(var->params == NULL) return NC_ENOMEM;
         memcpy(var->params,parms,sizeof(unsigned int)*var->nparams);
     }
+    /* Filter => chunking */
+    var->contiguous = NC_FALSE;
+    /* Determine default chunksizes for this variable unless already specified */
+    if(var->chunksizes && !var->chunksizes[0]) {
+        if((retval = nc4_find_default_chunksizes2(grp, var)))
+	    return retval;
+        /* Adjust the cache. */
+        if ((retval = nc4_adjust_var_cache(grp, var)))
+            return retval;
+    }
+
     return NC_NOERR;
 }
 
