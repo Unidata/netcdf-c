@@ -90,7 +90,6 @@ ${NCCOPY} -c ivar:7,1,2,1,5,1,9 tst_nc5.nc tmp_nc5.nc
 ${NCDUMP} -n tst_nc5 tmp_nc5.nc > tmp_nc5.cdl
 # Verify that the core cdl is the same
 diff tst_nc5.cdl tmp_nc5.cdl
-
 # Look at the output chunking of ivar
 rm -f tmp_nc5a.cdl # reuse
 ${NCDUMP} -hs -n tst_nc5 tmp_nc5.nc > tmp_nc5.cdl
@@ -99,7 +98,6 @@ TESTLINE=`sed -e '/ivar:_ChunkSizes/p' -e d <tmp_nc5.cdl`
 # track line to match
 BASELINE='ivar:_ChunkSizes = 7, 1, 2, 1, 5, 1, 9 ;'
 verifychunkline "$TESTLINE" "$BASELINE"
-
 # Make sure that fvar was not chunked
 checkfvar tmp_nc5.cdl
 
@@ -153,7 +151,7 @@ if test "x$T4" = x1 ; then
 
 echo "*** Test nccopy -c with unlimited dimension; classic ->enhanced"
 reset
-./tst_chunking tst_nc5.nc unlimited
+./tst_chunking tst_nc5.nc unlimited # should produce modified tmp_nc5.nc iwth ivar of rank 2
 ${NCDUMP} -n tst_nc5 tst_nc5.nc > tst_nc5.cdl
 ${NCCOPY} -c ivar:5,3 tst_nc5.nc tmp_nc5.nc
 ${NCDUMP} -n tst_nc5 tmp_nc5.nc > tmp_nc5.cdl
