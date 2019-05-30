@@ -34,6 +34,7 @@ CFLAGS="-Wall -Wno-unused-parameter -Wno-char-subscripts -Wno-pointer-sign ${CFL
 #CFLAGS="-Wconversion"
 
 if test "x$MEM" = x1 ; then
+export NC_VLEN_NOTEST=1
 CFLAGS="-fsanitize=address ${CFLAGS}"
 fi
 
@@ -117,7 +118,7 @@ FLAGS="$FLAGS --enable-extreme-numbers"
 #FLAGS="$FLAGS --disable-testsets"
 #FLAGS="$FLAGS --disable-dap-remote-tests"
 #FLAGS="$FLAGS --enable-dap-auth-tests" -- requires a new remotetest server
-#FLAGS="$FLAGS --enable-doxygen --enable-internal-docs"
+FLAGS="$FLAGS --enable-doxygen --enable-internal-docs"
 FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --disable-diskless"
 FLAGS="$FLAGS --enable-mmap"
