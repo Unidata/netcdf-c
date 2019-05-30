@@ -16,6 +16,7 @@
  * the CDMS library, get the original sources from LLNL.
  */
 
+#include "config.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
@@ -23,7 +24,6 @@
 #include <string.h>
 #include <stdarg.h>
 #include <assert.h>
-#include "ncconfigure.h"
 #include "nctime.h"
 
 static const cdCompTime ZA = {1582, 10, 5, 0.0};
