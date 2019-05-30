@@ -9,6 +9,7 @@
 
 #ifndef NCCONFIGURE_H
 #define NCCONFIGURE_H 1
+#include "config.h"
 
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
