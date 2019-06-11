@@ -700,7 +700,7 @@ fprintf(stderr,"dimimprint %s/%d -> %s/%d\n",
 	    CDFnode* basedim = (CDFnode*)nclistget(basenode->array.dimset0,j);
 	    dim->dim.declsize0 = basedim->dim.declsize;
 #ifdef DEBUG
-fprintf(stderr,"dimimprint: %d: %lu -> %lu\n",i,basedim->dim.declsize,dim->dim.declsize0);
+fprintf(stderr,"dimimprint: %d: %lu -> %lu\n",i,(unsigned long)basedim->dim.declsize,(unsigned long)dim->dim.declsize0);
 #endif
         }
     }

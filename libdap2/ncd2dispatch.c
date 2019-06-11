@@ -761,7 +761,7 @@ if(ncrank > 0) {
 int k;
 for(k=0;k<ncrank;k++) {
 CDFnode* dim = (CDFnode*)nclistget(vardims,k);
-fprintf(stderr,"[%ld]",dim->dim.declsize);
+fprintf(stderr,"[%ld]",(long)dim->dim.declsize);
  }
  }
 fprintf(stderr,"\n");
@@ -2010,7 +2010,7 @@ fprintf(stderr,"array %s(%u).estimatedsize = %lu\n",
 	totalsize += var->estimatedsize;
     }
 #ifdef DEBUG1
-fprintf(stderr,"total estimatedsize = %lu\n",totalsize);
+fprintf(stderr,"total estimatedsize = %lu\n",(unsigned long)totalsize);
 #endif
     dapcomm->cdf.totalestimatedsize = totalsize;
 }
@@ -2233,7 +2233,9 @@ applyclientparamcontrols(NCDAPCOMMON* dapcomm)
     if(FLAGSET(dapcomm->controls,NCF_UNCONSTRAINABLE))
 	SETFLAG(dapcomm->controls,NCF_CACHE);
 
+#ifdef DEBUG
     if(dapparamcheck(dapcomm,"show","fetch"))
+#endif
 	SETFLAG(dapcomm->controls,NCF_SHOWFETCH);
 
     /* enable/disable _FillValue/Variable Mis-match */

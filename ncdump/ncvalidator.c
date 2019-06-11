@@ -1357,7 +1357,7 @@ val_get_NC_attrV(int         fd,
         memset(pad, 0, X_ALIGN-1);
         if (memcmp(gbp->pos, pad, padding) != 0) {
             /* This is considered not a fatal error, we continue to validate */
-            if (verbose) printf("Error @ [0x%8.8zx]:\n", ERR_ADDR);
+            if (verbose) printf("Error @ [0x%8.8zx]:\n", (size_t)ERR_ADDR);
             if (verbose) printf("\t%s: value padding is non-null byte\n", loc);
             DEBUG_ASSIGN_ERROR(status, NC_ENULLPAD)
             if (repair) {
@@ -1729,7 +1729,7 @@ val_get_NC_var(int          fd,
         err = val_check_buffer(fd, gbp, (gbp->version < 5 ? 4 : 8));
         if (err != NC_NOERR) {
             if (trace) printf("\n");
-            if (verbose) printf("Error @ [0x%8.8zx]:\n", ERR_ADDR);
+            if (verbose) printf("Error @ [0x%8.8zx]:\n", (size_t)ERR_ADDR);
             if (verbose) printf("\t%s: Fail to read dimid[%d]\n",xloc,dim);
             free_NC_var(varp);
             return err;
@@ -1791,7 +1791,7 @@ val_get_NC_var(int          fd,
 
     err = val_check_buffer(fd, gbp, (gbp->version == 1 ? 4 : 8));
     if (err != NC_NOERR) {
-        if (verbose) printf("Error @ [0x%8.8zx]:\n", ERR_ADDR);
+        if (verbose) printf("Error @ [0x%8.8zx]:\n", (size_t)ERR_ADDR);
         if (verbose) printf("\t%s: Fail to read begin\n",xloc);
         free_NC_var(varp);
         return err;
@@ -2278,7 +2278,6 @@ usage(char *argv0)
 
 int main(int argc, char **argv)
 {
-    extern int optind;
     char filename[512], *path;
     int i, omode, fd, status=NC_NOERR;
     NC *ncp=NULL;

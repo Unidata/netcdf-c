@@ -35,7 +35,7 @@ static struct NCLOGGLOBAL {
     FILE* nclogstream;
 } nclog_global = {0,0,NULL,NULL};
 
-static const char* nctagset[] = {"Warning","Error","Note","Debug"};
+static const char* nctagset[] = {"Note","Warning","Error","Debug"};
 static const int nctagsize = sizeof(nctagset)/sizeof(char*);
 
 /* Forward */

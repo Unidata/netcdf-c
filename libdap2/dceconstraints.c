@@ -61,9 +61,9 @@ slicedump(const char* prefix, DCEslice* s)
 #ifdef DCEVERBOSE
     fprintf(stderr,"%s: %s\n",prefix,dcetostring((DCEnode*)s));
 #else
-    size_t last = (s->first+s->length)-1;
-    fprintf(stderr,"%s: [%lu:%lu:%lu p=%lu l=%lu c=%lu]\n",
-	prefix,s->first,s->stride,last,s->stop,s->length,s->count);
+    size_t sstop = (s->first+s->length);
+    fprintf(stderr,"%s: [%lu:%lu:%lu p=%lu l=%lu c=%lu]\n",prefix,
+    (unsigned long)s->first,(unsigned long)s->stride,(unsigned long)s->last,(unsigned long)sstop,(unsigned long)s->length,(unsigned long)s->count);
 #endif
 }
 #endif
