@@ -21,7 +21,7 @@ Users who prefer to build the netCDF-C libraries from source in a Windows enviro
 
 # Getting pre-built netCDF-C Libraries for Visual Studio {#msvc-prebuilt}
 
-These libraries have been built using Visual Studio 2012.  The downloads are installer packages which contain the netCDF-C libraries and utilities (ncgen, ncgen3, ncdump and nccopy), as well as the associated dependencies.
+These libraries have been built using Visual Studio 2017.  The downloads are installer packages which contain the netCDF-C libraries and utilities (ncgen, ncgen3, ncdump and nccopy), as well as the associated dependencies.
 
 
 ## Included Dependencies {#msvc-inc-deps}
