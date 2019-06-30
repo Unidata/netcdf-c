@@ -305,6 +305,7 @@ main(int argc, char **argv)
              if (nc_set_default_format(format[f], NULL)) ERR;
              if (nc_create(NULL, 0, &ncid) != NC_EINVAL) ERR;
              if (nc_open(NULL, NC_NOWRITE, &ncid) != NC_EINVAL) ERR;
+             if (nc_delete(NULL) != NC_EINVAL) ERR;
          }
          SUMMARIZE_ERR;
       } /* next format */
