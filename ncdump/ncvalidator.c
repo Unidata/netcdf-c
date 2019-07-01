@@ -278,7 +278,7 @@ static const char ncmagic[] = {'C', 'D', 'F', 0x01};
 
 static int check_little_endian(void)
 {
-    // return 0 for big endian, 1 for little endian.
+    /* return 0 for big endian, 1 for little endian. */
     volatile uint32_t i=0x01234567;
     return (*((uint8_t*)(&i))) == 0x67;
 }
@@ -1104,8 +1104,8 @@ hdr_get_name(int          fd,
             /* This is considered not a fatal error, we continue to validate */
             if (verbose) printf("Error @ [0x%8.8zx]:\n", err_addr);
             if (verbose) printf("\t%s \"%s\": name padding is non-null byte\n", loc, *namep);
-            // free(*namep);
-            // *namep = NULL;
+            /* free(*namep);
+               *namep = NULL; */
             DEBUG_ASSIGN_ERROR(err, NC_ENULLPAD)
             if (repair) {
                 val_repair(fd, err_addr, (size_t)padding, (void*)nada);
