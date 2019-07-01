@@ -299,6 +299,15 @@ main(int argc, char **argv)
 
          }
          SUMMARIZE_ERR;
+         printf("*** testing bad name for nc_open/nc_create with format %d... ", format[f]);
+         {
+             int ncid;
+             if (nc_set_default_format(format[f], NULL)) ERR;
+             if (nc_create(NULL, 0, &ncid) != NC_EINVAL) ERR;
+             if (nc_open(NULL, NC_NOWRITE, &ncid) != NC_EINVAL) ERR;
+             if (nc_delete(NULL) != NC_EINVAL) ERR;
+         }
+         SUMMARIZE_ERR;
       } /* next format */
    }
    FINAL_RESULTS;
