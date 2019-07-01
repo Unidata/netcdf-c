@@ -1981,6 +1981,10 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 	if(stat) return stat;
     }
 
+    /* Check inputs. */
+    if (!path0)
+        return NC_EINVAL;
+
     /* Capture the inmemory related flags */
     mmap = ((omode & NC_MMAP) == NC_MMAP);
     diskless = ((omode & NC_DISKLESS) == NC_DISKLESS);
