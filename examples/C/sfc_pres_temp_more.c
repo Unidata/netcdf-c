@@ -134,6 +134,8 @@ main()
         return retval;
     if (!(att_in = malloc(len_in)))
         return NC_ENOMEM;
+    if ((retval = nc_get_att_text(ncid, NC_GLOBAL, SONNET_NAME, att_in)))
+        return retval;
     if (strcmp(att_in, poem))
         error++;
     free(att_in);
