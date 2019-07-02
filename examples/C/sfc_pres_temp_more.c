@@ -9,9 +9,11 @@
  * pressure and temperatures, and stores additional metadata as
  * dimension variables, an attribute.
  *
- * @author Ed Hartnett 2006/03/25
+ * @author Ed Hartnett started 2006/03/25, finished 2019/7/2
  */
 #include <netcdf.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define FILE_NAME "sfc_pres_temp_more.nc"
 #define NDIMS 2
@@ -113,9 +115,9 @@ main()
         return retval;
 
     /* Write the phoney data. */
-    if ((retval = nc_put_var_float(ncid, pres_varid, pres_out)))
+    if ((retval = nc_put_var_float(ncid, pres_varid, (float *)pres_out)))
         return retval;
-    if ((retval = nc_put_var_float(ncid, temp_varid, temp_out)))
+    if ((retval = nc_put_var_float(ncid, temp_varid, (float *)temp_out)))
         return retval;
 
     /* Close the file. */
@@ -132,16 +134,16 @@ main()
         return retval;
     if (!(att_in = malloc(len_in)))
         return NC_ENOMEM;
-    if (strcmp(att_in, data_poem))
+    if (strcmp(att_in, poem))
         error++;
     free(att_in);
     if (error)
         return -2;
 
     /* Read the data. */
-    if ((retval = nc_get_var_float(ncid, pres_varid, pres_in)))
+    if ((retval = nc_get_var_float(ncid, pres_varid, (float *)pres_in)))
         return retval;
-    if ((retval = nc_get_var_float(ncid, temp_varid, temp_in)))
+    if ((retval = nc_get_var_float(ncid, temp_varid, (float *)temp_in)))
         return retval;
 
     /* Check the data. */
