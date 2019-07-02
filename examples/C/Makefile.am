@@ -26,6 +26,7 @@ sfc_pres_temp_more simple
 if USE_HDF5
 check_PROGRAMS += simple_nc4_wr simple_nc4_rd simple_xy_nc4_wr	\
 simple_xy_nc4_rd
+TESTS += run_examples4.sh
 
 if ENABLE_FILTER_TESTING
 # filter_example.c should be same as nc_test4/test_filter.c
@@ -43,13 +44,10 @@ TESTS += run_par_test.sh
 endif #USE_PNETCDF
 endif # TEST_PARALLEL4
 
-if USE_HDF5
-TESTS += run_examples4.sh
-endif #USE_HDF5
-
 # These files are created by the tests.
 CLEANFILES = *.nc
 
-EXTRA_DIST = CMakeLists.txt run_examples.sh run_examples4.sh run_filter.sh
+EXTRA_DIST = CMakeLists.txt run_examples.sh run_examples4.sh	\
+run_filter.sh
 
 DISTCLEANFILES = findplugin.sh
