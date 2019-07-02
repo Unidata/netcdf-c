@@ -20,7 +20,7 @@ sfc_pres_temp_rd pres_temp_4D_wr pres_temp_4D_rd format		\
 quick_large_files quick_small_files sfc_pres_temp_more simple
 
 TESTS = run_examples.sh format quick_large_files quick_small_files	\
-sfc_pres_temp_more
+sfc_pres_temp_more simple
 
 # To build netcdf-4, or not to build netcdf-4, that is the question...
 if USE_HDF5
