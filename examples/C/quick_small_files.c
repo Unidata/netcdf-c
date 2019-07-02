@@ -44,9 +44,9 @@ int
 main()
 {
    int ncid, spockid, kirkid, dimids[NUMDIMS];
-   double val_in, val_out = 999.99;
+   double val_out = 999.99;
    size_t index[NUMDIMS] = {1};
-   int i, res;
+   int res;
 
    /* Create the netCDF classic format file. */
    if ((res = nc_create("example.nc", NC_CLOBBER, &ncid)))
