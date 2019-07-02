@@ -37,16 +37,17 @@ return NC_EXAMPLE_ERROR; \
 #define NUMVARS 2
 /* This dim len is the max size the first of two fixed size variables
    for an 8-byte type in classic format: int((2*31 - 4) / 8), that is,
-   2 GB minus a bit, on an 8 byte boundary. */
-#define DIM_LEN 268435455
+   2 GB minus a bit, on an 8 byte boundary. That number is
+   268435455. But this is the longest dim len which works. */
+#define DIM_LEN 268435440
 
 int
 main()
 {
    int ncid, spockid, kirkid, dimids[NUMDIMS];
-   double val_in, val_out = 999.99;
+   double val_out = 999.99;
    size_t index[NUMDIMS] = {1};
-   int i, res;
+   int res;
 
    /* Create the netCDF classic format file. */
    if ((res = nc_create("example.nc", NC_CLOBBER, &ncid)))
