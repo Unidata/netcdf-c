@@ -39,9 +39,9 @@ int
 main()
 {
     int ncid, spockid, kirkid, dimids[NUMDIMS];
-    double val_in, val_out = 999.99;
+    double val_out = 999.99;
     size_t index[NUMDIMS] = {DIM_LEN-1};
-    int i, res;
+    int res;
 
     /* Create the netCDF 64-bit offset format file. */
     if ((res = nc_create("example.nc", NC_CLOBBER|NC_64BIT_OFFSET, &ncid)))
