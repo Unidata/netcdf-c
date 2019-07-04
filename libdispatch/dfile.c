@@ -1223,12 +1223,6 @@ nc_abort(int ncid)
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
 
-#ifdef USE_REFCOUNT
-   /* What to do if refcount > 0? */
-   /* currently, forcibly abort */
-   ncp->refcount = 0;
-#endif
-
    stat = ncp->dispatch->abort(ncid);
    del_from_NCList(ncp);
    free_NC(ncp);
