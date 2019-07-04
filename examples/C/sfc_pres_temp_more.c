@@ -7,7 +7,7 @@
  *
  * This is a simple example which writes and then reads some surface
  * pressure and temperatures, and stores additional metadata as
- * dimension variables, an attribute.
+ * dimension variables, and an attribute with a nice poem about data.
  *
  * @author Ed Hartnett started 2006/03/25, finished 2019/7/2
  */
