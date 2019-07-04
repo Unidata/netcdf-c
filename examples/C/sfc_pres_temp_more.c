@@ -75,10 +75,10 @@ main()
 
     /* Add data sonnet. By using NC_GLOBAL we mean that this attribute
      * applies to the entire file, not just to one variable. Don't
-     * forget that sizeof does not include the null terminator, so if
+     * forget that strlen does not include the null terminator, so if
      * you want it, you need to add one more byte. */
     if ((retval = nc_put_att_text(ncid, NC_GLOBAL, SONNET_NAME,
-                                  sizeof(poem) + 1, poem)))
+                                  strlen(poem) + 1, poem)))
         return retval;
 
     /* Define the dimensions. */
