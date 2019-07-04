@@ -1893,11 +1893,6 @@ NC_create(const char *path0, int cmode, size_t initialsz,
     /* Add to list of known open files and define ext_ncid */
     add_to_NCList(ncp);
 
-#ifdef USE_REFCOUNT
-    /* bump the refcount */
-    ncp->refcount++;
-#endif
-
     /* Assume create will fill in remaining ncp fields */
     if ((stat = dispatcher->create(ncp->path, cmode, initialsz, basepe, chunksizehintp,
 				  parameters, dispatcher, ncp))) {
@@ -1987,17 +1982,6 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 	path = nulldup(p);
 #endif
    }
-
-#ifdef USE_REFCOUNT
-    /* If this path is already open, then bump the refcount and return it */
-    ncp = find_in_NCList_by_name(path);
-    if(ncp != NULL) {
-	nullfree(path);
-	ncp->refcount++;
-	if(ncidp) *ncidp = ncp->ext_ncid;
-	return NC_NOERR;
-    }
-#endif
 
     memset(&model,0,sizeof(model));
     /* Infer model implementation and format, possibly by reading the file */
@@ -2102,11 +2086,6 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 
     /* Add to list of known open files */
     add_to_NCList(ncp);
-
-#ifdef USE_REFCOUNT
-    /* bump the refcount */
-    ncp->refcount++;
-#endif
 
     /* Assume open will fill in remaining ncp fields */
     stat = dispatcher->open(ncp->path, omode, basepe, chunksizehintp,
