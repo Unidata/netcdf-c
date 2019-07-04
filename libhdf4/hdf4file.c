@@ -592,6 +592,7 @@ hdf4_read_var(NC_FILE_INFO_T *h5, int v)
  * @return ::NC_NOERR No error.
  * @return ::NC_EINVAL Invalid input.
  * @return ::NC_EHDFERR Error from HDF4 layer.
+ * @return ::NC_ENOMEM Out of memory.
  * @author Ed Hartnett
  */
 int
