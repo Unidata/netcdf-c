@@ -670,6 +670,7 @@ NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_EHDFERR Error from HDF4 layer.
  * @author Ed Hartnett
  */
 int
@@ -686,6 +687,7 @@ NC_HDF4_abort(int ncid)
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_EHDFERR Error from HDF4 layer.
  * @author Ed Hartnett
  */
 int
