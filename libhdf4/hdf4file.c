@@ -577,7 +577,7 @@ hdf4_read_var(NC_FILE_INFO_T *h5, int v)
 }
 
 /**
- * @internal Open a HDF4 file.
+ * @internal Open a HDF4 SD file for read-only access.
  *
  * @param path The file name of the file.
  * @param mode The open mode flag.
