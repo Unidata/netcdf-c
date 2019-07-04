@@ -586,10 +586,12 @@ hdf4_read_var(NC_FILE_INFO_T *h5, int v)
  * @param parameters pointer to struct holding extra data (e.g. for
  * parallel I/O) layer. Ignored if NULL.
  * @param dispatch Pointer to the dispatch table for this file.
- * @param nc_file Pointer to an instance of NC.
+ * @param nc_file Pointer to an instance of NC. The ncid has already
+ * been assigned, and is in nc_file->ext_ncid.
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EINVAL Invalid input.
+ * @return ::NC_EHDFERR Error from HDF4 layer.
  * @author Ed Hartnett
  */
 int
