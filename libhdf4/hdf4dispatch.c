@@ -2,7 +2,8 @@
  * and redistribution conditions.*/
 /**
  * @file
- * @internal Dispatch code for HDF4. HDF4 access is read-only.
+ * @internal Dispatch code for HDF4. HDF4 access is read-only, for
+ * HDF4 SD files only.
  *
  * @author Ed Hartnett
  */
