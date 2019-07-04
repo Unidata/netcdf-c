@@ -1276,18 +1276,12 @@ nc_close(int ncid)
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
 
-#ifdef USE_REFCOUNT
-   ncp->refcount--;
-   if(ncp->refcount <= 0)
-#endif
+   stat = ncp->dispatch->close(ncid,NULL);
+   /* Remove from the nc list */
+   if (!stat)
    {
-       stat = ncp->dispatch->close(ncid,NULL);
-       /* Remove from the nc list */
-       if (!stat)
-       {
-	   del_from_NCList(ncp);
-	   free_NC(ncp);
-       }
+       del_from_NCList(ncp);
+       free_NC(ncp);
    }
    return stat;
 }
@@ -1341,18 +1335,12 @@ nc_close_memio(int ncid, NC_memio* memio)
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
 
-#ifdef USE_REFCOUNT
-   ncp->refcount--;
-   if(ncp->refcount <= 0)
-#endif
+   stat = ncp->dispatch->close(ncid,memio);
+   /* Remove from the nc list */
+   if (!stat)
    {
-       stat = ncp->dispatch->close(ncid,memio);
-       /* Remove from the nc list */
-       if (!stat)
-       {
-	   del_from_NCList(ncp);
-	   free_NC(ncp);
-       }
+       del_from_NCList(ncp);
+       free_NC(ncp);
    }
    return stat;
 }
@@ -1854,15 +1842,6 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 	path = nulldup(p);
 #endif
    }
-
-#ifdef USE_REFCOUNT
-   /* If this path is already open, then fail */
-   ncp = find_in_NCList_by_name(path);
-   if(ncp != NULL) {
-	nullfree(path);
-	return NC_ENFILE;
-   }
-#endif
 
     memset(&model,0,sizeof(model));
     if((stat = NC_infermodel(path,&cmode,1,useparallel,NULL,&model,&newpath)))
