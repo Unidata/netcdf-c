@@ -27,6 +27,7 @@
 
  * @return ::NC_NOERR for success.
  * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_EINVAL Invalid input.
  * @author Ed Hartnett, Dennis Heimbigner
  */
 int
