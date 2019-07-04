@@ -613,9 +613,6 @@ NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
     if (mode & ILLEGAL_OPEN_FLAGS)
         return NC_EINVAL;
 
-    /* Open the file. */
-    nc_file->int_ncid = nc_file->ext_ncid;
-
     /* Open the file and initialize SD interface. */
     if ((sdid = SDstart(path, DFACC_READ)) == FAIL)
         return NC_EHDFERR;
