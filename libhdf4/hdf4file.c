@@ -584,7 +584,7 @@ hdf4_read_var(NC_FILE_INFO_T *h5, int v)
  * @param basepe Ignored by this function.
  * @param chunksizehintp Ignored by this function.
  * @param parameters pointer to struct holding extra data (e.g. for
- * parallel I/O) layer. Ignored if NULL.
+ * parallel I/O) layer. Ignored if NULL. Ignored by this function.
  * @param dispatch Pointer to the dispatch table for this file.
  * @param nc_file Pointer to an instance of NC. The ncid has already
  * been assigned, and is in nc_file->ext_ncid.
