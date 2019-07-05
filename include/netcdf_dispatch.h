@@ -58,7 +58,8 @@ struct NC_Dispatch
     int (*rename_var)(int, int, const char *);
 
     int (*get_vara)(int, int, const size_t *, const size_t *, void *, nc_type);
-    int (*put_vara)(int, int, const size_t *, const size_t *, const void *, nc_type);
+    int (*put_vara)(int, int, const size_t *, const size_t *,
+                    const void *, nc_type);
 
     int (*get_vars)(int, int, const size_t *, const size_t *, const ptrdiff_t *,
                     void *, nc_type);
@@ -102,26 +103,29 @@ struct NC_Dispatch
     int (*inq_user_type)(int, nc_type, char*, size_t*, nc_type*, size_t*, int*);
     int (*inq_typeid)(int, const char*, nc_type*);
 
-    int (*def_compound)(int, size_t, const char*, nc_type*);
-    int (*insert_compound)(int, nc_type, const char*, size_t, nc_type);
-    int (*insert_array_compound)(int, nc_type, const char*, size_t, nc_type, int, const int*);
-    int (*inq_compound_field)(int, nc_type, int, char*, size_t*, nc_type*, int*, int*);
-    int (*inq_compound_fieldindex)(int, nc_type, const char*, int*);
-    int (*def_vlen)(int, const char*, nc_type base_typeid, nc_type*);
-    int (*put_vlen_element)(int, int, void*, size_t, const void*);
-    int (*get_vlen_element)(int, int, const void*, size_t*, void*);
-    int (*def_enum)(int, nc_type, const char*, nc_type*);
-    int (*insert_enum)(int, nc_type, const char*, const void*);
-    int (*inq_enum_member)(int, nc_type, int, char*, void*);
-    int (*inq_enum_ident)(int, nc_type, long long, char*);
-    int (*def_opaque)(int, size_t, const char*, nc_type*);
+    int (*def_compound)(int, size_t, const char *, nc_type *);
+    int (*insert_compound)(int, nc_type, const char *, size_t, nc_type);
+    int (*insert_array_compound)(int, nc_type, const char *, size_t, nc_type,
+                                 int, const int *);
+    int (*inq_compound_field)(int, nc_type, int, char *, size_t *, nc_type *,
+                              int *, int *);
+    int (*inq_compound_fieldindex)(int, nc_type, const char *, int *);
+    int (*def_vlen)(int, const char *, nc_type base_typeid, nc_type *);
+    int (*put_vlen_element)(int, int, void *, size_t, const void *);
+    int (*get_vlen_element)(int, int, const void *, size_t *, void *);
+    int (*def_enum)(int, nc_type, const char *, nc_type *);
+    int (*insert_enum)(int, nc_type, const char *, const void *);
+    int (*inq_enum_member)(int, nc_type, int, char *, void *);
+    int (*inq_enum_ident)(int, nc_type, long long, char *);
+    int (*def_opaque)(int, size_t, const char *, nc_type*);
     int (*def_var_deflate)(int, int, int, int, int);
     int (*def_var_fletcher32)(int, int, int);
-    int (*def_var_chunking)(int, int, int, const size_t*);
+    int (*def_var_chunking)(int, int, int, const size_t *);
     int (*def_var_endian)(int, int, int);
-    int (*def_var_filter)(int, int, unsigned int, size_t, const unsigned int*);
+    int (*def_var_filter)(int, int, unsigned int, size_t, const unsigned int *);
     int (*set_var_chunk_cache)(int, int, size_t, size_t, float);
-    int (*get_var_chunk_cache)(int ncid, int varid, size_t *sizep, size_t *nelemsp, float *preemptionp);
+    int (*get_var_chunk_cache)(int ncid, int varid, size_t *sizep,
+                               size_t *nelemsp, float *preemptionp);
 #endif /*USE_NETCDF4*/
 };
 
