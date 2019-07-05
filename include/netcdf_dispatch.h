@@ -15,6 +15,8 @@
 #ifndef NETCDF_DISPATCH_H
 #define NETCDF_DISPATCH_H
 
+/* This is the dispatch table, with a pointer to each netCDF
+ * function. */
 struct NC_Dispatch
 {
     int model; /* one of the NC_FORMATX #'s */
@@ -51,7 +53,8 @@ struct NC_Dispatch
     int (*rename_att)(int, int, const char *, const char *);
     int (*del_att)(int, int, const char *);
     int (*get_att)(int, int, const char *, void *, nc_type);
-    int (*put_att)(int, int, const char *, nc_type, size_t, const void *, nc_type);
+    int (*put_att)(int, int, const char *, nc_type, size_t, const void *,
+                   nc_type);
 
     int (*def_var)(int, const char *, nc_type, int, const int *, int *);
     int (*inq_varid)(int, const char *, int *);
@@ -76,7 +79,8 @@ struct NC_Dispatch
                        int *shufflep, int *deflatep, int *deflate_levelp,
                        int *fletcher32p, int *contiguousp, size_t *chunksizesp,
                        int *no_fill, void *fill_valuep, int *endiannessp,
-                       unsigned int *idp, size_t *nparamsp, unsigned int *params);
+                       unsigned int *idp, size_t *nparamsp,
+                       unsigned int *params);
 
     int (*var_par_access)(int, int, int);
     int (*def_var_fill)(int, int, int, const void *);
