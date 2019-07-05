@@ -1907,6 +1907,14 @@ NC_create(const char *path0, int cmode, size_t initialsz,
         dispatcher = NCP_dispatch_table;
 	break;
 #endif
+#ifdef USE_NETCDF4
+    case NC_FORMATX_UDF0:
+        dispatcher = UDF0_dispatch_table;
+        break;
+    case NC_FORMATX_UDF1:
+        dispatcher = UDF1_dispatch_table;
+        break;
+#endif /* USE_NETCDF4 */
     case NC_FORMATX_NC3:
         dispatcher = NC3_dispatch_table;
 	break;
