@@ -577,19 +577,22 @@ hdf4_read_var(NC_FILE_INFO_T *h5, int v)
 }
 
 /**
- * @internal Open a HDF4 file.
+ * @internal Open a HDF4 SD file for read-only access.
  *
  * @param path The file name of the file.
  * @param mode The open mode flag.
  * @param basepe Ignored by this function.
  * @param chunksizehintp Ignored by this function.
  * @param parameters pointer to struct holding extra data (e.g. for
- * parallel I/O) layer. Ignored if NULL.
+ * parallel I/O) layer. Ignored if NULL. Ignored by this function.
  * @param dispatch Pointer to the dispatch table for this file.
- * @param nc_file Pointer to an instance of NC.
+ * @param nc_file Pointer to an instance of NC. The ncid has already
+ * been assigned, and is in nc_file->ext_ncid.
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EINVAL Invalid input.
+ * @return ::NC_EHDFERR Error from HDF4 layer.
+ * @return ::NC_ENOMEM Out of memory.
  * @author Ed Hartnett
  */
 int
@@ -612,9 +615,6 @@ NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
     /* Check the mode for validity */
     if (mode & ILLEGAL_OPEN_FLAGS)
         return NC_EINVAL;
-
-    /* Open the file. */
-    nc_file->int_ncid = nc_file->ext_ncid;
 
     /* Open the file and initialize SD interface. */
     if ((sdid = SDstart(path, DFACC_READ)) == FAIL)
@@ -670,6 +670,7 @@ NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_EHDFERR Error from HDF4 layer.
  * @author Ed Hartnett
  */
 int
@@ -686,6 +687,7 @@ NC_HDF4_abort(int ncid)
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_EHDFERR Error from HDF4 layer.
  * @author Ed Hartnett
  */
 int

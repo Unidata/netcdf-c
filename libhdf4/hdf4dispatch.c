@@ -2,7 +2,8 @@
  * and redistribution conditions.*/
 /**
  * @file
- * @internal Dispatch code for HDF4. HDF4 access is read-only.
+ * @internal Dispatch code for HDF4. HDF4 access is read-only, for
+ * HDF4 SD files only.
  *
  * @author Ed Hartnett
  */
@@ -104,7 +105,7 @@ static const NC_Dispatch HDF4_dispatcher = {
     NC_NOTNC4_get_var_chunk_cache
 };
 
-const NC_Dispatch* HDF4_dispatch_table = NULL;
+const NC_Dispatch *HDF4_dispatch_table = NULL;
 
 /**
  * @internal Initialize HDF4 dispatch layer.
