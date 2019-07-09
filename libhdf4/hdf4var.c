@@ -24,9 +24,12 @@
  * @param countp Array of counts.
  * @param ip pointer that gets the data.
  * @param memtype The type of these data after it is read into memory.
-
+ *
  * @return ::NC_NOERR for success.
  * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_EINVAL Invalid input.
+ * @return ::NC_EHDFERR HDF4 error.
+ * @return ::NC_ENOMEM Out of memory.
  * @author Ed Hartnett, Dennis Heimbigner
  */
 int
