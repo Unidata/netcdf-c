@@ -652,7 +652,14 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
     LOG((3, "%s: path %s mode %d", __func__, path, mode));
     assert(path && nc);
 
-    flags = (mode & NC_WRITE) ? H5F_ACC_RDWR : H5F_ACC_RDONLY;
+    if((mode & NC_WRITE)) {
+      flags = H5F_ACC_RDWR;
+    } else {
+      flags = H5F_ACC_RDONLY;
+      if((mode & NC_HDF5_SWMR)) {
+        flags |= H5F_ACC_SWMR_READ;
+      }
+    }
 
     /* Add necessary structs to hold netcdf-4 file data. */
     if ((retval = nc4_nc4f_list_add(nc, path, mode)))
@@ -828,6 +835,13 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
     /* Close the property list. */
     if (H5Pclose(fapl_id) < 0)
         BAIL(NC_EHDFERR);
+
+    /* Prepare for single writer multiple reader. */
+    if (mode & NC_WRITE && mode & NC_HDF5_SWMR) {
+      if ((retval = H5Fstart_swmr_write(h5->hdfid))) {
+        BAIL(retval);
+      }
+    }
 
     return NC_NOERR;
 

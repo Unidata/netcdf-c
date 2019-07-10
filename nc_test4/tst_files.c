@@ -292,6 +292,54 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
+   printf("*** testing HDF5 SWMR...");
+   {
+#define DATA_LEN 3
+
+      int ncid, ncid2, ncid3, varid, dimids[2];
+      int ndims, nvars, natts, unlimdimid;
+      int dimids_var[1], var_type;
+      size_t time_len, beam_len;
+      int i;
+      int values[DATA_LEN];
+      size_t start[2] = {0,0}, count[2] = {1, DATA_LEN};
+
+      /* Initialize some phony data. */
+      for (i = 0; i < DATA_LEN; i++)
+         values[i] = DATA_LEN*2 - i;
+
+      /* Create a file in SWMR mode for writing, create structure and close. */
+      if (nc_create("tst_swmr.nc", NC_NETCDF4|NC_HDF5_SWMR, &ncid)) ERR;
+      if (nc_def_dim(ncid, "time", NC_UNLIMITED, &dimids[0])) ERR;
+      if (nc_def_dim(ncid, "beam", NC_UNLIMITED, &dimids[1])) ERR;
+      if (nc_def_var(ncid, "depth", NC_INT, 2, dimids, &varid)) ERR;
+      if (nc_close(ncid)) ERR;
+
+      /* Open the file for SWMR reading and close. */
+      if (nc_open("tst_swmr.nc", NC_HDF5_SWMR, &ncid)) ERR;
+      if (nc_close(ncid)) ERR;
+
+      /* Open the file for SWMR writing, append data, and close. */
+      if (nc_open("tst_swmr.nc", NC_WRITE|NC_HDF5_SWMR, &ncid)) ERR;
+      if (nc_inq_varid(ncid, "depth", &varid)) ERR;
+      if (nc_put_vara_int(ncid, varid, start, count, values)) ERR;
+      if (nc_inq_dimlen(ncid, dimids[0], &time_len)) ERR;
+      if (time_len != 1) ERR;
+      if (nc_inq_dimlen(ncid, dimids[1], &beam_len)) ERR;
+      if (beam_len != DATA_LEN) ERR;
+      if (nc_close(ncid)) ERR;
+
+      /* Open the file for SWMR reading, verify data, and close. */
+      if (nc_open("tst_swmr.nc", NC_HDF5_SWMR, &ncid)) ERR;
+      if (nc_inq_varid(ncid, "depth", &varid)) ERR;
+      if (nc_put_vara_int(ncid, varid, start, count, values) == 0) ERR; // Writing should fail
+      if (nc_inq_dimlen(ncid, dimids[0], &time_len)) ERR;
+      if (time_len != 1) ERR;
+      if (nc_inq_dimlen(ncid, dimids[1], &beam_len)) ERR;
+      if (beam_len != DATA_LEN) ERR;
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
    printf("*** testing CLASSIC_MODEL flag with classic formats...");
    {
       int ncid;

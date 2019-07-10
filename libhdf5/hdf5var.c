@@ -1764,6 +1764,11 @@ exit:
         return retval;
     if (range_error)
         return NC_ERANGE;
+
+    /* Flush data for SWMR */
+    if (H5Dflush(hdf5_var->hdf_datasetid) < 0)
+      BAIL(NC_EHDFERR);
+
     return NC_NOERR;
 }
 
