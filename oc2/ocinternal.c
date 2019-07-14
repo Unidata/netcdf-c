@@ -48,7 +48,6 @@
 /*Forward*/
 static OCerror ocextractddsinmemory(OCstate*,OCtree*,int);
 static OCerror ocextractddsinfile(OCstate*,OCtree*,int);
-static char* constraintescape(const char* url);
 static OCerror createtempfile(OCstate*,OCtree*);
 static int dataError(XXDR* xdrs, OCstate*);
 static void ocremovefile(const char* path);
@@ -165,9 +164,7 @@ ocfetch(OCstate* state, const char* constraint, OCdxd kind, OCflags flags,
     memset((void*)tree,0,sizeof(OCtree));
     tree->dxdclass = kind;
     tree->state = state;
-    tree->constraint = constraintescape(constraint);
-    if(tree->constraint == NULL)
-	tree->constraint = nulldup(constraint);
+    tree->constraint = nulldup(constraint);
 
     /* Set per-fetch curl properties */
 #if 0 /* temporarily make per-link */
@@ -455,40 +452,6 @@ fprintf(stderr,"missing bod: ddslen=%lu bod=%lu\n",
        || tree->text == NULL)
 	stat = OC_EDATADDS;
     return OCTHROW(stat);
-}
-
-/* Allow these (non-alpha-numerics) to pass thru */
-static const char okchars[] = "&/:;,.=?@'\"<>{}!|\\^[]`~";
-static const char hexdigits[] = "0123456789abcdef";
-
-/* Modify constraint to use %XX escapes */
-static char*
-constraintescape(const char* url)
-{
-    size_t len;
-    char* p;
-    int c;
-    char* eurl;
-
-    if(url == NULL) return NULL;
-    len = strlen(url);
-    eurl = ocmalloc(1+3*len); /* worst case: c -> %xx */
-    MEMCHECK(eurl,NULL);
-    p = eurl;
-    *p = '\0';
-    while((c=*url++)) {
-	if(c >= '0' && c <= '9') {*p++ = c;}
-	else if(c >= 'a' && c <= 'z') {*p++ = c;}
-	else if(c >= 'A' && c <= 'Z') {*p++ = c;}
-	else if(strchr(okchars,c) != NULL) {*p++ = c;}
-	else {
-	    *p++ = '%';
-	    *p++ = hexdigits[(c & 0xf0)>>4];
-	    *p++ = hexdigits[(c & 0xf)];
-	}
-    }
-    *p = '\0';
-    return eurl;
 }
 
 OCerror
