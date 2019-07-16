@@ -724,6 +724,10 @@ NC_HDF4_close(int ncid, void *ignore)
     nclistfree(h5->allgroups);
     nclistfree(h5->alltypes);
 
+    /* Free the NC_FILE_INFO_T struct. */
+    if ((retval = nc4_nc4f_list_del(h5)))
+        return retval;
+
     /* Free the nc4_info struct; above code should have reclaimed
        everything else */
     free(h5);
