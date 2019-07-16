@@ -719,11 +719,6 @@ NC_HDF4_close(int ncid, void *ignore)
         return NC_EHDFERR;
     free(hdf4_file);
 
-    /* Misc. Cleanup */
-    nclistfree(h5->alldims);
-    nclistfree(h5->allgroups);
-    nclistfree(h5->alltypes);
-
     /* Free the NC_FILE_INFO_T struct. */
     if ((retval = nc4_nc4f_list_del(h5)))
         return retval;
