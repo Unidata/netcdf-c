@@ -1378,7 +1378,14 @@ nc4_att_list_del(NCindex *list, NC_ATT_INFO_T *att)
 int
 nc4_nc4f_list_del(NC_FILE_INFO_T *h5)
 {
+    int retval;
+
     assert(h5);
+
+    /* Delete all the list contents for vars, dims, and atts, in each
+     * group. */
+    if ((retval = nc4_rec_grp_del(h5->root_grp)))
+        return retval;
 
     /* Cleanup these (extra) lists of all dims, groups, and types. */
     nclistfree(h5->alldims);

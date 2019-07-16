@@ -252,11 +252,6 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio)
     /* Get HDF5 specific info. */
     hdf5_info = (NC_HDF5_FILE_INFO_T *)h5->format_file_info;
 
-    /* Delete all the list contents for vars, dims, and atts, in each
-     * group. */
-    if ((retval = nc4_rec_grp_del(h5->root_grp)))
-        return retval;
-
 #ifdef USE_PARALLEL4
     /* Free the MPI Comm & Info objects, if we opened the file in
      * parallel. */
