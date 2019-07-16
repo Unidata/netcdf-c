@@ -708,11 +708,6 @@ NC_HDF4_close(int ncid, void *ignore)
     if ((retval = hdf4_rec_grp_del(h5->root_grp)))
         return retval;
 
-    /* Delete all the list contents for vars, dims, and atts, in each
-     * group. */
-    if ((retval = nc4_rec_grp_del(h5->root_grp)))
-        return retval;
-
     /* Close hdf4 file and free HDF4 file info. */
     hdf4_file = (NC_HDF4_FILE_INFO_T *)h5->format_file_info;
     if (SDend(hdf4_file->sdid))
