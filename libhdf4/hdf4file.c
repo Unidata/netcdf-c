@@ -604,8 +604,7 @@ NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
     int32 num_datasets, num_gatts;
     int32 sdid;
     int v, a;
-    NC_FILE_INFO_T* nc4_info = NULL;
-    int retval = NC_NOERR;
+    int retval;
 
     /* Check inputs. */
     assert(nc_file && path);
