@@ -311,6 +311,10 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio)
     if (h5->format_file_info)
         free(h5->format_file_info);
 
+    /* Free the NC_FILE_INFO_T struct. */
+    if ((retval = nc4_nc4f_list_del(h5)))
+        return retval;
+
     /* Free the nc4_info struct; above code should have reclaimed
        everything else */
     free(h5);

@@ -1273,13 +1273,15 @@ dim_free(NC_DIM_INFO_T *dim)
  * @author Dennis Heimbigner
  */
 int
-nc4_dim_list_del(NC_GRP_INFO_T* grp, NC_DIM_INFO_T *dim)
+nc4_dim_list_del(NC_GRP_INFO_T *grp, NC_DIM_INFO_T *dim)
 {
-    if(grp && dim) {
-        int pos = ncindexfind(grp->dim,(NC_OBJ*)dim);
+    if (grp && dim)
+    {
+        int pos = ncindexfind(grp->dim, (NC_OBJ *)dim);
         if(pos >= 0)
-            ncindexidel(grp->dim,pos);
+            ncindexidel(grp->dim, pos);
     }
+
     return dim_free(dim);
 }
 
@@ -1362,6 +1364,22 @@ nc4_att_list_del(NCindex *list, NC_ATT_INFO_T *att)
     assert(att && list);
     ncindexidel(list, ((NC_OBJ *)att)->id);
     return att_free(att);
+}
+
+/**
+ * @internal Free all resources and memory associated with a
+ * NC_FILE_INFO_T.
+ *
+ * @param h5 Pointer to NC_FILE_INFO_T to be freed.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+ */
+int
+nc4_nc4f_list_del(NC_FILE_INFO_T *h5)
+{
+    assert(h5);
+    return NC_NOERR;
 }
 
 /**
