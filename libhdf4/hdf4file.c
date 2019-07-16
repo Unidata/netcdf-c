@@ -728,9 +728,5 @@ NC_HDF4_close(int ncid, void *ignore)
     if ((retval = nc4_nc4f_list_del(h5)))
         return retval;
 
-    /* Free the nc4_info struct; above code should have reclaimed
-       everything else */
-    free(h5);
-
     return NC_NOERR;
 }

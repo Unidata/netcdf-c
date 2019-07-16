@@ -1379,6 +1379,9 @@ int
 nc4_nc4f_list_del(NC_FILE_INFO_T *h5)
 {
     assert(h5);
+
+    free(h5);
+
     return NC_NOERR;
 }
 
