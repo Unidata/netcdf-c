@@ -1380,6 +1380,12 @@ nc4_nc4f_list_del(NC_FILE_INFO_T *h5)
 {
     assert(h5);
 
+    /* Cleanup these (extra) lists of all dims, groups, and types. */
+    nclistfree(h5->alldims);
+    nclistfree(h5->allgroups);
+    nclistfree(h5->alltypes);
+
+    /* Free the NC_FILE_INFO_T struct. */
     free(h5);
 
     return NC_NOERR;
