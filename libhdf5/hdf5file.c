@@ -283,15 +283,18 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio)
 
     /* If inmemory is used and user wants the final memory block,
        then capture and return the final memory block else free it */
-    if(h5->mem.inmemory) {
+    if (h5->mem.inmemory)
+    {
         /* Pull out the final memory */
         (void)NC4_extract_file_image(h5);
-        if(!abort && memio != NULL) {
+        if (!abort && memio != NULL)
+        {
             *memio = h5->mem.memio; /* capture it */
             h5->mem.memio.memory = NULL; /* avoid duplicate free */
         }
         /* If needed, reclaim extraneous memory */
-        if(h5->mem.memio.memory != NULL) {
+        if (h5->mem.memio.memory != NULL)
+        {
             /* If the original block of memory is not resizeable, then
                it belongs to the caller and we should not free it. */
             if(!h5->mem.locked)
