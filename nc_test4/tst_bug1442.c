@@ -30,8 +30,9 @@ main(int argc, char **argv)
     int other_var;
     size_t start[1];
     size_t count[1];
-    double three_zeros[3] = {0, 0, 0};
-    double* two_double = (double*)calloc(2, sizeof(double));
+    double five_zeros[5] = {0, 0, 0, 0, 0};
+    double one_two[2] = {1, 2};
+    double* four_double = (double*)calloc(4, sizeof(double));
 
     status = nc_create(FILENAME, NC_NETCDF4, &cdfid);
     if( status ) ERR;
@@ -48,25 +49,33 @@ main(int argc, char **argv)
     status = nc_enddef(cdfid);
     if( status ) ERR;
 
-    /* Write 3 elements to set the size of the unlimited dim to 3 */
+    /* Write 5 elements to set the size of the unlimited dim to 5 */
     start[0] = 0;
-    count[0] = 3;
-    status = nc_put_vara_double(cdfid, other_var, start, count, three_zeros);
+    count[0] = 5;
+    status = nc_put_vara_double(cdfid, other_var, start, count, five_zeros);
     if( status ) ERR;
 
-    /* Read 2 elements starting with index=1 */
-    start[0] = 1;
+    /* Write 2 elements in my_var */
+    start[0] = 0;
     count[0] = 2;
-    status = nc_get_vara_double(cdfid, varid, start, count, two_double);
+    status = nc_put_vara_double(cdfid, varid, start, count, one_two);
     if( status ) ERR;
 
-    if( two_double[0] != NC_FILL_DOUBLE ) ERR;
-    if( two_double[1] != NC_FILL_DOUBLE ) ERR;
+    /* Read 4 elements starting with index=1 */
+    start[0] = 1;
+    count[0] = 4;
+    status = nc_get_vara_double(cdfid, varid, start, count, four_double);
+    if( status ) ERR;
+
+    if( four_double[0] != 2 ) ERR;
+    if( four_double[1] != NC_FILL_DOUBLE ) ERR;
+    if( four_double[2] != NC_FILL_DOUBLE ) ERR;
+    if( four_double[3] != NC_FILL_DOUBLE ) ERR;
 
     status = nc_close(cdfid);
     if( status ) ERR;
 
-    free(two_double);
+    free(four_double);
 
     SUMMARIZE_ERR;
     FINAL_RESULTS;
