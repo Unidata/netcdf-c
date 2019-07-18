@@ -3,6 +3,8 @@
 Copyright 2019
 University Corporation for Atmospheric Research/Unidata.
 
+Author: Even Rouault
+
 See \ref copyright file for more info.
 
 */
@@ -12,7 +14,7 @@ See \ref copyright file for more info.
 #include <stdlib.h>
 #include <netcdf.h>
 
-#define FILENAME "tst_bug1442nc"
+#define FILENAME "tst_bug1442.nc"
 
 int
 main(int argc, char **argv)
