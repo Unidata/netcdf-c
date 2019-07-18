@@ -403,22 +403,27 @@ for each variable to be copied from input to output. The rules are
 written assuming we are trying to determine the chunking for a given
 output variable Vout that comes from an input variable Vin.
 .IP "1."
+If there is no '-c' option that applies to a variable and the
+corresponding input variable is contiguous or the input is some
+netcdf-3 variant, then let the netcdf-c library make all chunking
+decisions.
+.IP "2."
 For each dimension of Vout explicitly specified on the command line
 (using the '-c' option), apply the chunking value for that
 dimension regardless of input format or input properties.
-.IP "2."
-For dimensions of Vout not named on the command line, preserve chunk
-sizes from the corresponding input variable, if it is chunked.
 .IP "3."
+For dimensions of Vout not named on the command line in a '-c' option, preserve chunk
+sizes from the corresponding input variable, if it is chunked.
+.IP "4."
 If Vin is contiguous, and none of its dimensions are
 named on the command line, and chunking is not mandated by other
 options, then make Vout be contiguous.
-.IP "4."
+.IP "5."
 If the input variable is contiguous (or is some netcdf-3
 variant) and there are no options requiring chunking, or the '/'
 special case for the '-c' option is specified, then the output
 variable V is marked as contiguous.
-.IP "5."
+.IP "6."
 Final, default case: some or all chunk sizes are not
 determined by the command line or the input
 variable. This includes the non-chunked input cases such
