@@ -529,11 +529,7 @@ ncuribuild(NCURI* duri, const char* prefix, const char* suffix, int flags)
 {
     char* newuri = NULL;
     NCbytes* buf = ncbytesnew();
-#ifdef NEWESCAPE
     const int encode = (flags&NCURIENCODE ? 1 : 0);
-#else
-    const int encode = 0;
-#endif
 
     if(prefix != NULL)
 	ncbytescat(buf,prefix);
@@ -574,12 +570,18 @@ ncuribuild(NCURI* duri, const char* prefix, const char* suffix, int flags)
     if(suffix != NULL)
 	ncbytescat(buf,suffix);
 
-    if((flags & NCURIQUERY) && duri->querylist != NULL) {
+    /* The query and the querylist are assumed to be unencoded */
+    if(flags & NCURIQUERY && duri->querylist != NULL) {
 	char** p;
 	int first = 1;
 	for(p=duri->querylist;*p;p+=2,first=0) {
 	    ncbytescat(buf,(first?"?":"&"));
-	    ncbytescat(buf,p[0]);
+	    if(encode) {
+		char* encoded = ncuriencodeonly(p[0],queryallow);
+		ncbytescat(buf,encoded);
+	        nullfree(encoded);
+	    } else
+	        ncbytescat(buf,p[0]);
 	    if(p[1] != NULL && strlen(p[1]) > 0) {
 		ncbytescat(buf,"=");
 		if(encode) {

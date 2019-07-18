@@ -1224,8 +1224,10 @@ if test "x$enable_pnetcdf" = xyes; then
       AC_MSG_ERROR([PNetCDF must be built with relax-coord-bound])
    fi
 else
-   # default setting
-   enable_erange_fill=no
+   if test "x$enable_erange_fill" = xauto; then
+      # if --enable-erange-fill is not used, default setting is no
+      enable_erange_fill=no
+   fi
 fi
 
 if test "x$enable_zero_length_coord_bound" = xyes; then
