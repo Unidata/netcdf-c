@@ -1273,13 +1273,15 @@ dim_free(NC_DIM_INFO_T *dim)
  * @author Dennis Heimbigner
  */
 int
-nc4_dim_list_del(NC_GRP_INFO_T* grp, NC_DIM_INFO_T *dim)
+nc4_dim_list_del(NC_GRP_INFO_T *grp, NC_DIM_INFO_T *dim)
 {
-    if(grp && dim) {
-        int pos = ncindexfind(grp->dim,(NC_OBJ*)dim);
+    if (grp && dim)
+    {
+        int pos = ncindexfind(grp->dim, (NC_OBJ *)dim);
         if(pos >= 0)
-            ncindexidel(grp->dim,pos);
+            ncindexidel(grp->dim, pos);
     }
+
     return dim_free(dim);
 }
 
@@ -1362,6 +1364,38 @@ nc4_att_list_del(NCindex *list, NC_ATT_INFO_T *att)
     assert(att && list);
     ncindexidel(list, ((NC_OBJ *)att)->id);
     return att_free(att);
+}
+
+/**
+ * @internal Free all resources and memory associated with a
+ * NC_FILE_INFO_T.
+ *
+ * @param h5 Pointer to NC_FILE_INFO_T to be freed.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+ */
+int
+nc4_nc4f_list_del(NC_FILE_INFO_T *h5)
+{
+    int retval;
+
+    assert(h5);
+
+    /* Delete all the list contents for vars, dims, and atts, in each
+     * group. */
+    if ((retval = nc4_rec_grp_del(h5->root_grp)))
+        return retval;
+
+    /* Cleanup these (extra) lists of all dims, groups, and types. */
+    nclistfree(h5->alldims);
+    nclistfree(h5->allgroups);
+    nclistfree(h5->alltypes);
+
+    /* Free the NC_FILE_INFO_T struct. */
+    free(h5);
+
+    return NC_NOERR;
 }
 
 /**

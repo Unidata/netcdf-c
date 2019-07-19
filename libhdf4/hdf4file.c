@@ -604,8 +604,7 @@ NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
     int32 num_datasets, num_gatts;
     int32 sdid;
     int v, a;
-    NC_FILE_INFO_T* nc4_info = NULL;
-    int retval = NC_NOERR;
+    int retval;
 
     /* Check inputs. */
     assert(nc_file && path);
@@ -627,9 +626,8 @@ NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
     /* Add necessary structs to hold netcdf-4 file data. */
     if ((retval = nc4_nc4f_list_add(nc_file, path, mode)))
         return retval;
-    nc4_info = NC4_DATA(nc_file);
-    assert(nc4_info && nc4_info->root_grp);
-    h5 = nc4_info;
+    h5 = (NC_FILE_INFO_T *)nc_file->dispatchdata;
+    assert(h5 && h5->root_grp);
     h5->no_write = NC_TRUE;
     h5->root_grp->atts_read = 1;
 
@@ -710,25 +708,15 @@ NC_HDF4_close(int ncid, void *ignore)
     if ((retval = hdf4_rec_grp_del(h5->root_grp)))
         return retval;
 
-    /* Delete all the list contents for vars, dims, and atts, in each
-     * group. */
-    if ((retval = nc4_rec_grp_del(h5->root_grp)))
-        return retval;
-
     /* Close hdf4 file and free HDF4 file info. */
     hdf4_file = (NC_HDF4_FILE_INFO_T *)h5->format_file_info;
     if (SDend(hdf4_file->sdid))
         return NC_EHDFERR;
     free(hdf4_file);
 
-    /* Misc. Cleanup */
-    nclistfree(h5->alldims);
-    nclistfree(h5->allgroups);
-    nclistfree(h5->alltypes);
-
-    /* Free the nc4_info struct; above code should have reclaimed
-       everything else */
-    free(h5);
+    /* Free the NC_FILE_INFO_T struct. */
+    if ((retval = nc4_nc4f_list_del(h5)))
+        return retval;
 
     return NC_NOERR;
 }
