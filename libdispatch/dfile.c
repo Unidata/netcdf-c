@@ -87,7 +87,6 @@ interfaces, the rest of this chapter presents a detailed description
 of the interfaces for these operations.
 */
 
-#ifdef USE_NETCDF4
 /**
  * Add handling of user-defined format.
  *
@@ -172,7 +171,6 @@ nc_inq_user_format(int mode_flag, NC_Dispatch **dispatch_table, char *magic_numb
 
    return NC_NOERR;
 }
-#endif /* USE_NETCDF4 */
 
 /**  \ingroup datasets
 Create a new netCDF file.
