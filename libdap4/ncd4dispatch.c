@@ -464,8 +464,6 @@ NCD4_var_par_access(int ncid, int p2, int p3)
 }
 
 
-#ifdef USE_NETCDF4
-
 static int
 NCD4_inq_ncid(int ncid, const char* name, int* grp_ncid)
 {
@@ -727,8 +725,6 @@ NCD4_get_var_chunk_cache(int ncid, int p2, size_t* p3, size_t* p4, float* p5)
     return (ret);
 }
 
-#endif /*USE_NETCDF4*/
-
 /**************************************************/
 /*
 Following functions are overridden to handle 
@@ -847,7 +843,6 @@ NCD4_inq_var_all,
 NCD4_var_par_access,
 NCD4_def_var_fill,
 
-#ifdef USE_NETCDF4
 NCD4_show_metadata,
 NCD4_inq_unlimdims,
 NCD4_inq_ncid,
@@ -885,8 +880,6 @@ NCD4_def_var_endian,
 NCD4_def_var_filter,
 NCD4_set_var_chunk_cache,
 NCD4_get_var_chunk_cache,
-
-#endif /*USE_NETCDF4*/
 
 };
 

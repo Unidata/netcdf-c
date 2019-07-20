@@ -87,11 +87,12 @@ struct NC_Dispatch
     int (*var_par_access)(int, int, int);
     int (*def_var_fill)(int, int, int, const void *);
 
-/* Note the following may still be invoked by netcdf client code
-   even when the file is a classic file; they will just return an error or
-   be ignored.
+/* Note the following are specific to netcdf4, but must still be
+   implemented by all dispatch tables. They may still be invoked by
+   netcdf client code even when the file is a classic file; they
+   will just return an error or be ignored.
 */
-#ifdef USE_NETCDF4
+
     int (*show_metadata)(int);
     int (*inq_unlimdims)(int, int*, int*);
     int (*inq_ncid)(int, const char*, int*);
@@ -132,7 +133,6 @@ struct NC_Dispatch
     int (*set_var_chunk_cache)(int, int, size_t, size_t, float);
     int (*get_var_chunk_cache)(int ncid, int varid, size_t *sizep,
                                size_t *nelemsp, float *preemptionp);
-#endif /*USE_NETCDF4*/
 };
 
 /* Read-only dispatch layers can use these functions to return
