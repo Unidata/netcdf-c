@@ -138,7 +138,6 @@ NCD2_inq_var_all,
 NCD2_var_par_access,
 NCD2_def_var_fill,
 
-#ifdef USE_NETCDF4
 NCD2_show_metadata,
 NCD2_inq_unlimdims,
 NCD2_inq_ncid,
@@ -176,8 +175,6 @@ NCD2_def_var_endian,
 NCD2_def_var_filter,
 NCD2_set_var_chunk_cache,
 NCD2_get_var_chunk_cache,
-
-#endif /*USE_NETCDF4*/
 
 };
 
@@ -2484,8 +2481,6 @@ NCD2_def_var_fill(int ncid, int p2, int p3, const void* p4)
     return THROW(ret);
 }
 
-#ifdef USE_NETCDF4
-
 int
 NCD2_inq_ncid(int ncid, const char* name, int* grp_ncid)
 {
@@ -2852,4 +2847,3 @@ NCD2_get_var_chunk_cache(int ncid, int p2, size_t* p3, size_t* p4, float* p5)
     return THROW(ret);
 }
 
-#endif /* USE_NETCDF4 */

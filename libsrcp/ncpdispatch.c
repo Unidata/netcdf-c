@@ -1201,8 +1201,6 @@ NCP_var_par_access(int ncid, int varid, int par_access)
     return NC_NOERR;
 }
 
-#ifdef USE_NETCDF4
-
 static int
 NCP_show_metadata(int ncid)
 {
@@ -1375,8 +1373,6 @@ NCP_inq_user_type(int ncid, nc_type typeid, char *name, size_t *size,
     return NC_ENOTNC4;
 }
 
-#endif /*USE_NETCDF4*/
-
 /**************************************************/
 /* Pnetcdf Dispatch table */
 
@@ -1430,7 +1426,6 @@ NCP_inq_var_all,
 NCP_var_par_access,
 NCP_def_var_fill,
 
-#ifdef USE_NETCDF4
 NCP_show_metadata,
 NCP_inq_unlimdims,
 
@@ -1469,7 +1464,6 @@ NC_NOTNC4_def_var_endian,
 NC_NOTNC4_def_var_filter,
 NC_NOTNC4_set_var_chunk_cache,
 NC_NOTNC4_get_var_chunk_cache,
-#endif /*USE_NETCDF4*/
 
 };
 

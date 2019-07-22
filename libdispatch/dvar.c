@@ -311,7 +311,6 @@ nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
     return ncp->dispatch->def_var_fill(ncid,varid,no_fill,fill_value);
 }
 
-#ifdef USE_NETCDF4
 /**
    Set the compression settings for a netCDF-4/HDF5 variable.
 
@@ -651,7 +650,6 @@ nc_def_var_filter(int ncid, int varid, unsigned int id,
     if(stat != NC_NOERR) return stat;
     return ncp->dispatch->def_var_filter(ncid,varid,id,nparams,parms);
 }
-#endif /* USE_NETCDF4 */
 
 /** @} */
 
@@ -1096,7 +1094,6 @@ nc_free_string(size_t len, char **data)
 }
 /** @} */
 
-#ifdef USE_NETCDF4
 /**
    @name Variables Chunk Caches
 
@@ -1208,5 +1205,4 @@ nc_get_var_chunk_cache(int ncid, int varid, size_t *sizep, size_t *nelemsp,
                                               nelemsp, preemptionp);
 }
 /** @} */
-#endif /* USE_NETCDF4 */
 /** @} */
