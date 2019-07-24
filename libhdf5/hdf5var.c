@@ -2092,7 +2092,7 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
         /* Skip past the real data we've already read. */
         if (!no_read)
             for (real_data_size = file_type_size, d2 = 0; d2 < var->ndims; d2++)
-                real_data_size *= (count[d2] - start[d2]);
+                real_data_size *= count[d2];
 
         /* Get the fill value from the HDF5 variable. Memory will be
          * allocated. */
