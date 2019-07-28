@@ -294,7 +294,7 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
     /* Check the cmode for validity. Checking parallel against
      * NC_DISKLESS already done in NC_create(). */
     if((cmode & ILLEGAL_CREATE_FLAGS) != 0)
-        return NC_EINVAL
+        return NC_EINVAL;
 
     /* Create the netCDF-4/HDF5 file. */
     res = nc4_create_file(path, cmode, initialsz, parameters, nc_file);
