@@ -27,9 +27,10 @@ extern int NC4_create_image_file(NC_FILE_INFO_T* h5, size_t);
  *
  * @param path The file name of the new file.
  * @param cmode The creation mode flag.
- * @param initialsz The proposed initial file size (advisory)
- * @param parameters extra parameter info (like  MPI communicator)
- * @param nc Pointer to an instance of NC.
+ * @param initialsz The proposed initial file size (advisory, for
+ * in-memory netCDF-4/HDF5 files only).
+ * @param parameters extra parameter info (like MPI communicator).
+ * @param nc Pointer to an already-existing instance of NC.
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EINVAL Invalid input (check cmode).
