@@ -887,8 +887,6 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
     hdf5_set_log_level();
 #endif /* LOGGING */
 
-    nc_file->int_ncid = nc_file->ext_ncid;
-
     /* Open the file. */
     return nc4_open_file(path, mode, parameters, nc_file);
 }
