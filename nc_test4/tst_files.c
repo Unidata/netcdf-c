@@ -296,9 +296,7 @@ main(int argc, char **argv)
    {
 #define DATA_LEN 3
 
-      int ncid, ncid2, ncid3, varid, dimids[2];
-      int ndims, nvars, natts, unlimdimid;
-      int dimids_var[1], var_type;
+      int ncid, ncid2, varid, dimids[2];
       size_t time_len, beam_len;
       int i;
       int values[DATA_LEN];
@@ -309,18 +307,18 @@ main(int argc, char **argv)
          values[i] = DATA_LEN*2 - i;
 
       /* Create a file in SWMR mode for writing, create structure and close. */
-      if (nc_create("tst_swmr.nc", NC_NETCDF4|NC_HDF5_SWMR, &ncid)) ERR;
+      if (nc_create(FILE_NAME, NC_NETCDF4|NC_HDF5_SWMR, &ncid)) ERR;
       if (nc_def_dim(ncid, "time", NC_UNLIMITED, &dimids[0])) ERR;
       if (nc_def_dim(ncid, "beam", NC_UNLIMITED, &dimids[1])) ERR;
       if (nc_def_var(ncid, "depth", NC_INT, 2, dimids, &varid)) ERR;
       if (nc_close(ncid)) ERR;
 
       /* Open the file for SWMR reading and close. */
-      if (nc_open("tst_swmr.nc", NC_HDF5_SWMR, &ncid)) ERR;
+      if (nc_open(FILE_NAME, NC_HDF5_SWMR, &ncid)) ERR;
       if (nc_close(ncid)) ERR;
 
       /* Open the file for SWMR writing, append data, and close. */
-      if (nc_open("tst_swmr.nc", NC_WRITE|NC_HDF5_SWMR, &ncid)) ERR;
+      if (nc_open(FILE_NAME, NC_WRITE|NC_HDF5_SWMR, &ncid)) ERR;
       if (nc_inq_varid(ncid, "depth", &varid)) ERR;
       if (nc_put_vara_int(ncid, varid, start, count, values)) ERR;
       if (nc_inq_dimlen(ncid, dimids[0], &time_len)) ERR;
@@ -330,7 +328,7 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
 
       /* Open the file for SWMR reading, verify data, and close. */
-      if (nc_open("tst_swmr.nc", NC_HDF5_SWMR, &ncid)) ERR;
+      if (nc_open(FILE_NAME, NC_HDF5_SWMR, &ncid)) ERR;
       if (nc_inq_varid(ncid, "depth", &varid)) ERR;
       if (nc_put_vara_int(ncid, varid, start, count, values) == 0) ERR; // Writing should fail
       if (nc_inq_dimlen(ncid, dimids[0], &time_len)) ERR;
@@ -338,6 +336,31 @@ main(int argc, char **argv)
       if (nc_inq_dimlen(ncid, dimids[1], &beam_len)) ERR;
       if (beam_len != DATA_LEN) ERR;
       if (nc_close(ncid)) ERR;
+
+      /* Append data to the file from one writer (ncid1) and verify from a reader (ncid2) */
+      if (nc_open(FILE_NAME, NC_WRITE|NC_HDF5_SWMR, &ncid)) ERR;
+      if (nc_open(FILE_NAME, NC_HDF5_SWMR, &ncid2)) ERR;
+
+      // Verify length of time dimension == 1 in both reader and writer
+      if (nc_inq_dimlen(ncid, dimids[0], &time_len)) ERR;
+      if (time_len != 1) ERR;
+      if (nc_inq_dimlen(ncid2, dimids[0], &time_len)) ERR;
+      if (time_len != 1) ERR;
+
+      // Append data
+      start[0] = 1; start[1] = 0;
+      if (nc_inq_varid(ncid, "depth", &varid)) ERR;
+      if (nc_put_vara_int(ncid, varid, start, count, values)) ERR;
+
+      // Verify length of time dimension == 2 in both reader and writer
+      if (nc_inq_dimlen(ncid, dimids[0], &time_len)) ERR;
+      if (time_len != 2) ERR;
+      if (nc_inq_dimlen(ncid2, dimids[0], &time_len)) ERR;
+      if (time_len != 2) ERR;
+
+      if (nc_close(ncid)) ERR;
+      if (nc_close(ncid2)) ERR;
+
    }
    SUMMARIZE_ERR;
    printf("*** testing CLASSIC_MODEL flag with classic formats...");
