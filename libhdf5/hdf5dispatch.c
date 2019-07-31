@@ -65,7 +65,6 @@ static const NC_Dispatch HDF5_dispatcher = {
     NC4_var_par_access,
     NC4_def_var_fill,
 
-#ifdef USE_NETCDF4
     NC4_show_metadata,
     NC4_inq_unlimdims,
 
@@ -104,7 +103,6 @@ static const NC_Dispatch HDF5_dispatcher = {
     NC4_def_var_filter,
     NC4_HDF5_set_var_chunk_cache,
     NC4_get_var_chunk_cache,
-#endif
 
 };
 

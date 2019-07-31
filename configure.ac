@@ -819,7 +819,7 @@ AC_CHECK_HEADERS([sys/resource.h])
 AC_CHECK_HEADERS([ftw.h])
 
 # Check for these functions...
-AC_CHECK_FUNCS([strlcat snprintf \
+AC_CHECK_FUNCS([strlcat snprintf strcasecmp fileno \
                 strdup strtoll strtoull \
 		mkstemp mktemp random \
 		getrlimit gettimeofday fsync MPI_Comm_f2c MPI_Info_f2c])
@@ -1224,8 +1224,10 @@ if test "x$enable_pnetcdf" = xyes; then
       AC_MSG_ERROR([PNetCDF must be built with relax-coord-bound])
    fi
 else
-   # default setting
-   enable_erange_fill=no
+   if test "x$enable_erange_fill" = xauto; then
+      # if --enable-erange-fill is not used, default setting is no
+      enable_erange_fill=no
+   fi
 fi
 
 if test "x$enable_zero_length_coord_bound" = xyes; then

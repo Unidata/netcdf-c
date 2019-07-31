@@ -15,7 +15,7 @@ main(int argc, char** argv)
     unsigned char buffer[BUFLEN];
     size_t count, red, avail, trunc;
     unsigned char* p = buffer;
-    long i;
+    size_t i;
     FILE* input = stdin;
 
     if(argc > 1) {

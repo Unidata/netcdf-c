@@ -7,6 +7,11 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.7.1 - TBD
 
+* [Bug Fix] Reverted nccopy behavior so that if no -c parameters
+are given, then any default chunking is left to the netcdf-c library
+to decide.
+See [GitHub #1436](https://github.com/Unidata/netcdf-c/issues/1436)
+
 ## 4.7.0 - April 29, 2019
 
 * [Enhancement] Updated behavior of `pkgconfig` and `nc-config` to allow the use of the `--static` flags, e.g. `nc-config --libs --static`, which will show information for linking against `libnetcdf` statically. See [Github #1360](https://github.com/Unidata/netcdf-c/issues/1360) and [Github #1257](https://github.com/Unidata/netcdf-c/issues/1257) for more information.

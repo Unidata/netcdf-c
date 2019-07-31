@@ -577,19 +577,22 @@ hdf4_read_var(NC_FILE_INFO_T *h5, int v)
 }
 
 /**
- * @internal Open a HDF4 file.
+ * @internal Open a HDF4 SD file for read-only access.
  *
  * @param path The file name of the file.
  * @param mode The open mode flag.
  * @param basepe Ignored by this function.
  * @param chunksizehintp Ignored by this function.
  * @param parameters pointer to struct holding extra data (e.g. for
- * parallel I/O) layer. Ignored if NULL.
+ * parallel I/O) layer. Ignored if NULL. Ignored by this function.
  * @param dispatch Pointer to the dispatch table for this file.
- * @param nc_file Pointer to an instance of NC.
+ * @param nc_file Pointer to an instance of NC. The ncid has already
+ * been assigned, and is in nc_file->ext_ncid.
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EINVAL Invalid input.
+ * @return ::NC_EHDFERR Error from HDF4 layer.
+ * @return ::NC_ENOMEM Out of memory.
  * @author Ed Hartnett
  */
 int
@@ -601,8 +604,7 @@ NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
     int32 num_datasets, num_gatts;
     int32 sdid;
     int v, a;
-    NC_FILE_INFO_T* nc4_info = NULL;
-    int retval = NC_NOERR;
+    int retval;
 
     /* Check inputs. */
     assert(nc_file && path);
@@ -612,9 +614,6 @@ NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
     /* Check the mode for validity */
     if (mode & ILLEGAL_OPEN_FLAGS)
         return NC_EINVAL;
-
-    /* Open the file. */
-    nc_file->int_ncid = nc_file->ext_ncid;
 
     /* Open the file and initialize SD interface. */
     if ((sdid = SDstart(path, DFACC_READ)) == FAIL)
@@ -627,9 +626,8 @@ NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
     /* Add necessary structs to hold netcdf-4 file data. */
     if ((retval = nc4_nc4f_list_add(nc_file, path, mode)))
         return retval;
-    nc4_info = NC4_DATA(nc_file);
-    assert(nc4_info && nc4_info->root_grp);
-    h5 = nc4_info;
+    h5 = (NC_FILE_INFO_T *)nc_file->dispatchdata;
+    assert(h5 && h5->root_grp);
     h5->no_write = NC_TRUE;
     h5->root_grp->atts_read = 1;
 
@@ -670,6 +668,7 @@ NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_EHDFERR Error from HDF4 layer.
  * @author Ed Hartnett
  */
 int
@@ -686,6 +685,7 @@ NC_HDF4_abort(int ncid)
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_EHDFERR Error from HDF4 layer.
  * @author Ed Hartnett
  */
 int
@@ -708,25 +708,15 @@ NC_HDF4_close(int ncid, void *ignore)
     if ((retval = hdf4_rec_grp_del(h5->root_grp)))
         return retval;
 
-    /* Delete all the list contents for vars, dims, and atts, in each
-     * group. */
-    if ((retval = nc4_rec_grp_del(h5->root_grp)))
-        return retval;
-
     /* Close hdf4 file and free HDF4 file info. */
     hdf4_file = (NC_HDF4_FILE_INFO_T *)h5->format_file_info;
     if (SDend(hdf4_file->sdid))
         return NC_EHDFERR;
     free(hdf4_file);
 
-    /* Misc. Cleanup */
-    nclistfree(h5->alldims);
-    nclistfree(h5->allgroups);
-    nclistfree(h5->alltypes);
-
-    /* Free the nc4_info struct; above code should have reclaimed
-       everything else */
-    free(h5);
+    /* Free the NC_FILE_INFO_T struct. */
+    if ((retval = nc4_nc4f_list_del(h5)))
+        return retval;
 
     return NC_NOERR;
 }
