@@ -108,6 +108,11 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
     else
         flags = H5F_ACC_TRUNC;
 
+#ifndef HAVE_H5PSET_LIBVER_BOUNDS
+    if (cmode & NC_HDF5_SWMR)
+        flags |= H5F_ACC_SWMR_WRITE;
+#endif
+
     /* If this file already exists, and NC_NOCLOBBER is specified,
        return an error (unless diskless|inmemory) */
     if (!nc4_info->mem.diskless && !nc4_info->mem.inmemory) {
