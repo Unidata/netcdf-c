@@ -1736,6 +1736,10 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
                  mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
         BAIL(NC_EHDFERR);
 
+    /* Flush data for SWMR */
+    if (H5Dflush(hdf5_var->hdf_datasetid) < 0)
+      BAIL(NC_EHDFERR);
+
     /* Remember that we have written to this var so that Fill Value
      * can't be set for it. */
     if (!var->written_to)
@@ -1764,10 +1768,6 @@ exit:
         return retval;
     if (range_error)
         return NC_ERANGE;
-
-    /* Flush data for SWMR */
-    if (H5Dflush(hdf5_var->hdf_datasetid) < 0)
-      BAIL(NC_EHDFERR);
 
     return NC_NOERR;
 }
