@@ -638,11 +638,12 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
 {
     NC_FILE_INFO_T *nc4_info = NULL;
     NC_HDF5_FILE_INFO_T *h5 = NULL;
+    NC *nc1;
     hid_t fapl_id = H5P_DEFAULT;
     unsigned flags;
     int is_classic;
 #ifdef USE_PARALLEL4
-    NC_MPI_INFO* mpiinfo = NULL;
+    NC_MPI_INFO *mpiinfo = NULL;
     int comm_duped = 0; /* Whether the MPI Communicator was duplicated */
     int info_duped = 0; /* Whether the MPI Info object was duplicated */
 #endif
@@ -650,6 +651,11 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
 
     LOG((3, "%s: path %s mode %d", __func__, path, mode));
     assert(path && nc);
+
+    /* Find pointer to NC. */
+    if ((retval = NC_check_id(nc->ext_ncid, &nc1)))
+        return retval;
+    assert(nc1);
 
     /* Determine the HDF5 open flag to use. */
     flags = (mode & NC_WRITE) ? H5F_ACC_RDWR : H5F_ACC_RDONLY;
