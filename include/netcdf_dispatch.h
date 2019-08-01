@@ -25,9 +25,9 @@ struct NC_Dispatch
 
     int (*create)(const char *path, int cmode, size_t initialsz,
                   int basepe, size_t *chunksizehintp, void *parameters,
-                  const struct NC_Dispatch *table, NC *ncp);
+                  const struct NC_Dispatch *table, int ncid);
     int (*open)(const char *path, int mode, int basepe, size_t *chunksizehintp,
-                void *parameters, const struct NC_Dispatch *table, NC *ncp);
+                void *parameters, const struct NC_Dispatch *table, int ncid);
 
     int (*redef)(int);
     int (*_enddef)(int,size_t,size_t,size_t,size_t);
@@ -140,7 +140,7 @@ struct NC_Dispatch
 
 EXTERNL int NC_RO_create(const char *path, int cmode, size_t initialsz, int basepe,
                  size_t *chunksizehintp, void* parameters,
-                 const NC_Dispatch*, NC*);
+                 const NC_Dispatch*, int);
 EXTERNL int NC_RO_redef(int ncid);
 EXTERNL int NC_RO__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree,
                   size_t r_align);

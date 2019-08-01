@@ -622,7 +622,7 @@ check_for_classic_model(NC_GRP_INFO_T *root_grp, int *is_classic)
  * @param path The file name of the new file.
  * @param mode The open mode flag.
  * @param parameters File parameters.
- * @param nc Pointer to NC file info.
+ * @param ncid The ncid that has been assigned to this file.
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_ENOMEM Out of memory.
@@ -634,11 +634,11 @@ check_for_classic_model(NC_GRP_INFO_T *root_grp, int *is_classic)
  * @author Ed Hartnett, Dennis Heimbigner
  */
 static int
-nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
+nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 {
     NC_FILE_INFO_T *nc4_info = NULL;
     NC_HDF5_FILE_INFO_T *h5 = NULL;
-    NC *nc1;
+    NC *nc;
     hid_t fapl_id = H5P_DEFAULT;
     unsigned flags;
     int is_classic;
@@ -650,12 +650,12 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
     int retval;
 
     LOG((3, "%s: path %s mode %d", __func__, path, mode));
-    assert(path && nc);
+    assert(path);
 
     /* Find pointer to NC. */
-    if ((retval = NC_check_id(nc->ext_ncid, &nc1)))
+    if ((retval = NC_check_id(ncid, &nc)))
         return retval;
-    assert(nc1);
+    assert(nc && nc->model->impl == NC_FORMATX_NC4);
 
     /* Determine the HDF5 open flag to use. */
     flags = (mode & NC_WRITE) ? H5F_ACC_RDWR : H5F_ACC_RDONLY;
@@ -868,10 +868,9 @@ exit:
  */
 int
 NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
-         void *parameters, const NC_Dispatch *dispatch, NC *nc_file)
+         void *parameters, const NC_Dispatch *dispatch, int ncid)
 {
-    assert(nc_file && path && dispatch && nc_file &&
-           nc_file->model->impl == NC_FORMATX_NC4);
+    assert(path && dispatch);
 
     LOG((1, "%s: path %s mode %d params %x",
          __func__, path, mode, parameters));
@@ -894,7 +893,7 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 #endif /* LOGGING */
 
     /* Open the file. */
-    return nc4_open_file(path, mode, parameters, nc_file);
+    return nc4_open_file(path, mode, parameters, ncid);
 }
 
 /**
