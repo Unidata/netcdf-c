@@ -38,17 +38,22 @@ static const char* checkseps = "+,:;";
 int
 NCD4_open(const char * path, int mode,
           int basepe, size_t *chunksizehintp,
-          void *mpidata, const NC_Dispatch *dispatch, NC *nc)
+          void *mpidata, const NC_Dispatch *dispatch, NC *nc1)
 {
     int ret = NC_NOERR;
     NCD4INFO* d4info = NULL;
     const char* value;
     NCD4meta* meta;
+    NC* nc;
 
     if(path == NULL)
 	return THROW(NC_EDAPURL);
 
     assert(dispatch != NULL);
+
+    /* Find pointer to NC struct for this file. */
+    ret = NC_check_id(nc1->ext_ncid,&nc);
+    if(ret != NC_NOERR) {goto done;}
 
     /* Setup our NC and NCDAPCOMMON state*/
 

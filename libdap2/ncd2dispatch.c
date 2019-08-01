@@ -271,13 +271,18 @@ NCD2_get_vars(int ncid, int varid,
 /* See ncd2dispatch.c for other version */
 int
 NCD2_open(const char* path, int mode, int basepe, size_t *chunksizehintp,
-          void* mpidata, const NC_Dispatch* dispatch, NC* drno)
+          void* mpidata, const NC_Dispatch* dispatch, NC* drno1)
 {
     NCerror ncstat = NC_NOERR;
     OCerror ocstat = OC_NOERR;
     NCDAPCOMMON* dapcomm = NULL;
+    NC* drno;
     const char* value;
     int nc3id = -1;
+
+    /* Find pointer to NC struct for this file. */
+    ncstat = NC_check_id(drno1->ext_ncid,&drno);
+    if(ncstat != NC_NOERR) {goto done;}
 
     if(path == NULL)
 	{ncstat = NC_EDAPURL; goto done;}
