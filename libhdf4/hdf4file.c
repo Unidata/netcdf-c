@@ -601,6 +601,7 @@ NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 {
     NC_FILE_INFO_T *h5;
     NC_HDF4_FILE_INFO_T *hdf4_file;
+    NC *nc1;
     int32 num_datasets, num_gatts;
     int32 sdid;
     int v, a;
@@ -610,6 +611,10 @@ NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
     assert(nc_file && path);
 
     LOG((1, "%s: path %s mode %d params %x", __func__, path, mode, parameters));
+
+    /* Find pointer to NC. */
+    if ((retval = NC_check_id(nc_file->ext_ncid, &nc1)))
+        return retval;
 
     /* Check the mode for validity */
     if (mode & ILLEGAL_OPEN_FLAGS)
@@ -624,9 +629,9 @@ NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
         return NC_EHDFERR;
 
     /* Add necessary structs to hold netcdf-4 file data. */
-    if ((retval = nc4_nc4f_list_add(nc_file, path, mode)))
+    if ((retval = nc4_nc4f_list_add(nc1, path, mode)))
         return retval;
-    h5 = (NC_FILE_INFO_T *)nc_file->dispatchdata;
+    h5 = (NC_FILE_INFO_T *)nc1->dispatchdata;
     assert(h5 && h5->root_grp);
     h5->no_write = NC_TRUE;
     h5->root_grp->atts_read = 1;
