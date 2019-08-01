@@ -53,7 +53,7 @@ extern "C" {
     extern int
     NC3_create(const char *path, int cmode,
                size_t initialsz, int basepe, size_t *chunksizehintp,
-               void* mpidata, const struct NC_Dispatch*, NC* ncp);
+               void* mpidata, const struct NC_Dispatch*, int ncid);
 
 /* WARNING: this signature differs from external nc_open API*/
     extern int

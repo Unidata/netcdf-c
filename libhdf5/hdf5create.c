@@ -262,7 +262,8 @@ exit: /*failure exit*/
  * @param parameters pointer to struct holding extra data (e.g. for
  * parallel I/O) layer. Ignored if NULL.
  * @param dispatch Pointer to the dispatch table for this file.
- * @param nc_file Pointer to an instance of NC.
+ * @param ncid The ncid that has been assigned by the dispatch layer
+ * (aka ext_ncid).
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EINVAL Invalid input (check cmode).
@@ -272,11 +273,12 @@ exit: /*failure exit*/
 int
 NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
            size_t *chunksizehintp, void *parameters,
-           const NC_Dispatch *dispatch, NC *nc_file)
+           const NC_Dispatch *dispatch, int ncid)
 {
+    NC *nc_file;
     int res;
 
-    assert(nc_file && path);
+    assert(path);
 
     LOG((1, "%s: path %s cmode 0x%x parameters %p",
          __func__, path, cmode, parameters));
@@ -293,8 +295,13 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
 
     /* Check the cmode for validity. Checking parallel against
      * NC_DISKLESS already done in NC_create(). */
-    if((cmode & ILLEGAL_CREATE_FLAGS) != 0)
+    if (cmode & ILLEGAL_CREATE_FLAGS)
         return NC_EINVAL;
+
+    /* Find pointer to NC. */
+    if ((res = NC_check_id(ncid, &nc_file)))
+        return res;
+    assert(nc_file);
 
     /* Create the netCDF-4/HDF5 file. */
     res = nc4_create_file(path, cmode, initialsz, parameters, nc_file);
