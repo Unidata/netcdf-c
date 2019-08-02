@@ -30,7 +30,7 @@ extern int NC4_create_image_file(NC_FILE_INFO_T* h5, size_t);
  * @param initialsz The proposed initial file size (advisory, for
  * in-memory netCDF-4/HDF5 files only).
  * @param parameters extra parameter info (like MPI communicator).
- * @param nc Pointer to an already-existing instance of NC.
+ * @param ncid The already-assigned ncid for this file (aka ext_ncid).
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EINVAL Invalid input (check cmode).
@@ -41,13 +41,13 @@ extern int NC4_create_image_file(NC_FILE_INFO_T* h5, size_t);
  */
 static int
 nc4_create_file(const char *path, int cmode, size_t initialsz,
-                void* parameters, NC *nc)
+                void* parameters, int ncid)
 {
     hid_t fcpl_id, fapl_id = -1;
     unsigned flags;
     FILE *fp;
     int retval = NC_NOERR;
-    NC_FILE_INFO_T* nc4_info = NULL;
+    NC_FILE_INFO_T *nc4_info;
     NC_HDF5_FILE_INFO_T *hdf5_info;
     NC_HDF5_GRP_INFO_T *hdf5_grp;
 
@@ -59,13 +59,12 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
     int info_duped = 0; /* Whether the MPI Info object was duplicated */
 #endif /* !USE_PARALLEL4 */
 
-    assert(nc && path);
+    assert(path);
     LOG((3, "%s: path %s mode 0x%x", __func__, path, cmode));
 
     /* Add necessary structs to hold netcdf-4 file data. */
-    if ((retval = nc4_nc4f_list_add(nc, path, (NC_WRITE | cmode))))
+    if ((retval = nc4_file_list_add(ncid, path, NC_WRITE | cmode, (void **)&nc4_info)))
         BAIL(retval);
-    nc4_info = NC4_DATA(nc);
     assert(nc4_info && nc4_info->root_grp);
     nc4_info->root_grp->atts_read = 1;
 
@@ -275,7 +274,6 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
            size_t *chunksizehintp, void *parameters,
            const NC_Dispatch *dispatch, int ncid)
 {
-    NC *nc_file;
     int res;
 
     assert(path);
@@ -298,13 +296,8 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
     if (cmode & ILLEGAL_CREATE_FLAGS)
         return NC_EINVAL;
 
-    /* Find pointer to NC. */
-    if ((res = NC_check_id(ncid, &nc_file)))
-        return res;
-    assert(nc_file);
-
     /* Create the netCDF-4/HDF5 file. */
-    res = nc4_create_file(path, cmode, initialsz, parameters, nc_file);
+    res = nc4_create_file(path, cmode, initialsz, parameters, ncid);
 
     return res;
 }
