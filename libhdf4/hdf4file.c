@@ -629,9 +629,11 @@ NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
         return NC_EHDFERR;
 
     /* Add necessary structs to hold netcdf-4 file data. */
-    if ((retval = nc4_nc4f_list_add(nc, path, mode)))
+    /* if ((retval = nc4_nc4f_list_add(nc, path, mode))) */
+    /*     return retval; */
+    /* h5 = (NC_FILE_INFO_T *)nc->dispatchdata; */
+    if ((retval = nc4_file_list_add(ncid, path, mode, &h5)))
         return retval;
-    h5 = (NC_FILE_INFO_T *)nc->dispatchdata;
     assert(h5 && h5->root_grp);
     h5->no_write = NC_TRUE;
     h5->root_grp->atts_read = 1;
