@@ -83,6 +83,40 @@ nc4_check_name(const char *name, char *norm_name)
 }
 
 /**
+ * @internal Add a file to the list of libsrc4 open files. This is
+ * used by dispatch layers that wish to use the libsrc4 metadata
+ * model, but don't know about struct NC. This is the same as
+ * nc4_nc4f_list_add(), except it takes an ncid instead of an NC *.
+ *
+ * @param ncid The ncid of the file (aka ext_ncid).
+ * @param path The file name of the new file.
+ * @param mode The mode flag.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID No NC struct with this ext_ncid.
+ * @return ::NC_ENOMEM Out of memory.
+ * @author Ed Hartnett
+ */
+int
+nc4_file_list_add(int ncid, const char *path, int mode, void **dispatchdata)
+{
+    NC *nc;
+    int ret;
+
+    /* Find NC pointer for this file. */
+    if ((ret = NC_check_id(ncid, &nc)))
+        return ret;
+
+    /* Add necessary structs to hold netcdf-4 file data. */
+    if ((ret = nc4_nc4f_list_add(nc, path, mode)))
+        return ret;
+
+    *dispatchdata = nc->dispatchdata;
+
+    return NC_NOERR;
+}
+
+/**
  * @internal Given an NC pointer, add the necessary stuff for a
  * netcdf-4 file.
  *
