@@ -776,7 +776,6 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
             BAIL(NC_EHDFERR);
     }
     else
-    {
         if(nc4_info->mem.diskless) {   /* Process  NC_DISKLESS */
             size_t min_incr = 65536; /* Minimum buffer increment */
             /* Configure FAPL to use the core file driver */
@@ -788,7 +787,6 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
         }
 #ifdef ENABLE_BYTERANGE
         else
-        {
             if(h5->http.iosp) {   /* Arrange to use the byte-range driver */
                 /* Configure FAPL to use the byte-range file driver */
                 if (H5Pset_fapl_http(fapl_id) < 0)
@@ -804,8 +802,6 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
                 if ((h5->hdfid = H5Fopen(path, flags, fapl_id)) < 0)
                     BAIL(NC_EHDFERR);
             }
-        }
-    }
 
     /* Now read in all the metadata. Some types and dimscale
      * information may be difficult to resolve here, if, for example, a
