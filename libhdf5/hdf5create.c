@@ -63,7 +63,8 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
     LOG((3, "%s: path %s mode 0x%x", __func__, path, cmode));
 
     /* Add necessary structs to hold netcdf-4 file data. */
-    if ((retval = nc4_file_list_add(ncid, path, NC_WRITE | cmode, (void **)&nc4_info)))
+    if ((retval = nc4_file_list_add(ncid, path, NC_WRITE | cmode,
+                                    (void **)&nc4_info)))
         BAIL(retval);
     assert(nc4_info && nc4_info->root_grp);
     nc4_info->root_grp->atts_read = 1;
