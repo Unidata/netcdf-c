@@ -59,7 +59,7 @@ extern "C" {
     extern int
     NC3_open(const char *path, int mode,
              int basepe, size_t *chunksizehintp,
-             void* mpidata, const NC_Dispatch*, NC* ncp);
+             void* mpidata, const NC_Dispatch*, int ncid);
 
     extern int
     NC3_new_nc(NC**);
