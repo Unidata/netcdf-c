@@ -542,6 +542,7 @@ NC_NOTNC4_inq_varids(int ncid, int *nvars, int *varids)
 }
 
 /**
+ * @internal Not allowed for classic model.
  *
  * @param ncid Ignored.
  * @param ndims Ignored.
@@ -558,6 +559,7 @@ NC_NOTNC4_inq_dimids(int ncid, int *ndims, int *dimids, int include_parents)
 }
 
 /**
+ * @internal Not allowed for classic model.
  *
  * @param ncid Ignored.
  * @param ntypes Ignored.
@@ -568,6 +570,43 @@ NC_NOTNC4_inq_dimids(int ncid, int *ndims, int *dimids, int include_parents)
  */
 int
 NC_NOTNC4_inq_typeids(int ncid, int *ntypes, int *typeids)
+{
+    return NC_ENOTNC4;
+}
+
+/**
+ * @internal Not allowed for classic model.
+ *
+ * @param ncid Ignored.
+ * @param typeid1 Ignored.
+ * @param name Ignored.
+ * @param size Ignored.
+ * @param base_nc_typep Ignored.
+ * @param nfieldsp Ignored.
+ * @param classp Ignored.
+ *
+ * @return ::NC_ENOTNC4 Not allowed for classic model.
+ * @author Ed Hartnett
+ */
+int
+NC_NOTNC4_inq_user_type(int ncid, nc_type typeid1, char *name, size_t *size,
+                        nc_type *base_nc_typep, size_t *nfieldsp, int *classp)
+{
+    return NC_ENOTNC4;
+}
+
+/**
+ * @internal Get the id of a type from the name.
+ *
+ * @param ncid Ignored.
+ * @param name Ignored.
+ * @param typeidp Ignored.
+ *
+ * @return ::NC_ENOTNC4 Not allowed for classic model.
+ * @author Ed Hartnett
+ */
+int
+NC_NOTNC4_inq_typeid(int ncid, const char *name, nc_type *typeidp)
 {
     return NC_ENOTNC4;
 }
