@@ -1,7 +1,9 @@
 /* Copyright 2018, UCAR/Unidata See netcdf/COPYRIGHT file for copying
  * and redistribution conditions.*/
 /**
- * @file @internal The HDF4 file functions.
+ * @file
+ * @internal The HDF4 file functions. These provide a read-only
+ * interface to HDF4 SD files.
  *
  * @author Ed Hartnett
  */
