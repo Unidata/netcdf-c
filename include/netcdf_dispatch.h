@@ -165,6 +165,13 @@ EXTERNL int NC_RO_set_fill(int ncid, int fillmode, int *old_modep);
  * legacy functions. They return NC_ENOTNC3. */
 EXTERNL int NC_NOTNC3_set_base_pe(int ncid, int pe);
 EXTERNL int NC_NOTNC3_inq_base_pe(int ncid, int *pe);
+EXTERNL int NC_NOTNC3_put_varm(int ncid, int varid, const size_t * start,
+                               const size_t *edges, const ptrdiff_t *stride,
+                               const ptrdiff_t *imapp, const void *value0,
+                               nc_type memtype);
+EXTERNL int NC_NOTNC3_get_varm(int ncid, int varid, const size_t *start,
+                               const size_t *edges, const ptrdiff_t *stride,
+                               const ptrdiff_t *imapp, void *value0, nc_type memtype);
 
 /* These functions are for dispatch layers that don't implement the
  * enhanced model. They return NC_ENOTNC4. */
@@ -204,6 +211,8 @@ EXTERNL int NC_NOTNC4_inq_grp_full_ncid(int, const char *, int *);
 EXTERNL int NC_NOTNC4_inq_varids(int, int *, int *);
 EXTERNL int NC_NOTNC4_inq_dimids(int, int *, int *, int);
 EXTERNL int NC_NOTNC4_inq_typeids(int, int *, int *);
-
+EXTERNL int NC_NOTNC4_inq_user_type(int, nc_type, char *, size_t *,
+                                    nc_type *, size_t *, int *);
+EXTERNL int NC_NOTNC4_inq_typeid(int, const char *, nc_type *);
 
 #endif /* NETCDF_DISPATCH_H */
