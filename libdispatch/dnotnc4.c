@@ -26,7 +26,7 @@ int
 NC_NOTNC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
                          const unsigned int* parms)
 {
-   return NC_ENOTNC4;
+    return NC_ENOTNC4;
 }
 
 
@@ -43,7 +43,7 @@ NC_NOTNC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
 int
 NC_NOTNC4_def_grp(int parent_ncid, const char *name, int *new_ncid)
 {
-   return NC_ENOTNC4;
+    return NC_ENOTNC4;
 }
 
 /**
@@ -58,7 +58,7 @@ NC_NOTNC4_def_grp(int parent_ncid, const char *name, int *new_ncid)
 int
 NC_NOTNC4_rename_grp(int grpid, const char *name)
 {
-   return NC_ENOTNC4;
+    return NC_ENOTNC4;
 }
 
 /**
@@ -75,7 +75,7 @@ NC_NOTNC4_rename_grp(int grpid, const char *name)
 int
 NC_NOTNC4_def_compound(int ncid, size_t size, const char *name, nc_type *typeidp)
 {
-   return NC_ENOTNC4;
+    return NC_ENOTNC4;
 }
 
 /**
@@ -94,7 +94,7 @@ int
 NC_NOTNC4_insert_compound(int ncid, nc_type typeid1, const char *name, size_t offset,
                           nc_type field_typeid)
 {
-   return NC_ENOTNC4;
+    return NC_ENOTNC4;
 }
 
 /**
@@ -116,7 +116,7 @@ NC_NOTNC4_insert_array_compound(int ncid, int typeid1, const char *name,
                                 size_t offset, nc_type field_typeid,
                                 int ndims, const int *dim_sizesp)
 {
-   return NC_ENOTNC4;
+    return NC_ENOTNC4;
 }
 
 /**
@@ -139,7 +139,7 @@ NC_NOTNC4_inq_compound_field(int ncid, nc_type typeid1, int fieldid, char *name,
                              size_t *offsetp, nc_type *field_typeidp, int *ndimsp,
                              int *dim_sizesp)
 {
-   return NC_ENOTNC4;
+    return NC_ENOTNC4;
 }
 
 /**
@@ -156,7 +156,7 @@ NC_NOTNC4_inq_compound_field(int ncid, nc_type typeid1, int fieldid, char *name,
 int
 NC_NOTNC4_inq_compound_fieldindex(int ncid, nc_type typeid1, const char *name, int *fieldidp)
 {
-   return NC_ENOTNC4;
+    return NC_ENOTNC4;
 }
 
 /* Opaque type. */
@@ -176,7 +176,7 @@ int
 NC_NOTNC4_def_opaque(int ncid, size_t datum_size, const char *name,
                      nc_type *typeidp)
 {
-   return NC_ENOTNC4;
+    return NC_ENOTNC4;
 }
 
 /**
@@ -194,7 +194,7 @@ int
 NC_NOTNC4_def_vlen(int ncid, const char *name, nc_type base_typeid,
                    nc_type *typeidp)
 {
-   return NC_ENOTNC4;
+    return NC_ENOTNC4;
 }
 
 /**
@@ -212,7 +212,7 @@ int
 NC_NOTNC4_def_enum(int ncid, nc_type base_typeid, const char *name,
                    nc_type *typeidp)
 {
-   return NC_ENOTNC4;
+    return NC_ENOTNC4;
 }
 
 
@@ -230,7 +230,7 @@ NC_NOTNC4_def_enum(int ncid, nc_type base_typeid, const char *name,
 int
 NC_NOTNC4_inq_enum_ident(int ncid, nc_type xtype, long long value, char *identifier)
 {
-   return NC_ENOTNC4;
+    return NC_ENOTNC4;
 }
 
 /**
@@ -249,7 +249,7 @@ int
 NC_NOTNC4_inq_enum_member(int ncid, nc_type typeid1, int idx, char *identifier,
                           void *value)
 {
-   return NC_ENOTNC4;
+    return NC_ENOTNC4;
 }
 
 /**
@@ -267,7 +267,7 @@ int
 NC_NOTNC4_insert_enum(int ncid, nc_type typeid1, const char *identifier,
                       const void *value)
 {
-   return NC_ENOTNC4;
+    return NC_ENOTNC4;
 }
 
 /**
@@ -286,7 +286,7 @@ int
 NC_NOTNC4_put_vlen_element(int ncid, int typeid1, void *vlen_element,
                            size_t len, const void *data)
 {
-   return NC_ENOTNC4;
+    return NC_ENOTNC4;
 }
 
 /**
@@ -305,7 +305,7 @@ int
 NC_NOTNC4_get_vlen_element(int ncid, int typeid1, const void *vlen_element,
                            size_t *len, void *data)
 {
-   return NC_ENOTNC4;
+    return NC_ENOTNC4;
 }
 
 /**
@@ -324,7 +324,7 @@ int
 NC_NOTNC4_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
                               float preemption)
 {
-   return NC_ENOTNC4;
+    return NC_ENOTNC4;
 }
 
 /**
@@ -343,7 +343,7 @@ int
 NC_NOTNC4_get_var_chunk_cache(int ncid, int varid, size_t *sizep,
                               size_t *nelemsp, float *preemptionp)
 {
-   return NC_ENOTNC4;
+    return NC_ENOTNC4;
 }
 
 /**
@@ -362,7 +362,7 @@ int
 NC_NOTNC4_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
                           int deflate_level)
 {
-   return NC_ENOTNC4;
+    return NC_ENOTNC4;
 }
 
 /**
@@ -378,7 +378,7 @@ NC_NOTNC4_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
 int
 NC_NOTNC4_def_var_fletcher32(int ncid, int varid, int fletcher32)
 {
-   return NC_ENOTNC4;
+    return NC_ENOTNC4;
 }
 
 /**
@@ -395,7 +395,7 @@ NC_NOTNC4_def_var_fletcher32(int ncid, int varid, int fletcher32)
 int
 NC_NOTNC4_def_var_chunking(int ncid, int varid, int contiguous, const size_t *chunksizesp)
 {
-   return NC_EPERM;
+    return NC_EPERM;
 }
 
 
@@ -412,7 +412,7 @@ NC_NOTNC4_def_var_chunking(int ncid, int varid, int contiguous, const size_t *ch
 int
 NC_NOTNC4_def_var_endian(int ncid, int varid, int endianness)
 {
-   return NC_ENOTNC4;
+    return NC_ENOTNC4;
 }
 
 /**
@@ -428,5 +428,5 @@ NC_NOTNC4_def_var_endian(int ncid, int varid, int endianness)
 int
 NC_NOTNC4_var_par_access(int ncid, int varid, int par_access)
 {
-   return NC_ENOTNC4;
+    return NC_ENOTNC4;
 }
