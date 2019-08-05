@@ -336,6 +336,11 @@ int nc4_type_free(NC_TYPE_INFO_T *type);
 /* These list functions add and delete vars, atts. */
 int nc4_nc4f_list_add(NC *nc, const char *path, int mode);
 int nc4_nc4f_list_del(NC_FILE_INFO_T *h5);
+int nc4_file_list_add(int ncid, const char *path, int mode,
+                      void **dispatchdata);
+int nc4_file_list_get(int ncid, char **path, int *mode,
+                      void **dispatchdata);
+int nc4_file_list_del(int ncid);
 int nc4_var_list_add(NC_GRP_INFO_T* grp, const char* name, int ndims,
                      NC_VAR_INFO_T **var);
 int nc4_var_list_add2(NC_GRP_INFO_T* grp, const char* name,

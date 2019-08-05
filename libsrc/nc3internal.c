@@ -1039,12 +1039,17 @@ int NC3_new_nc(NC3_INFO** ncpp)
 int
 NC3_create(const char *path, int ioflags, size_t initialsz, int basepe,
            size_t *chunksizehintp, void *parameters,
-           const NC_Dispatch *dispatch, NC *nc)
+           const NC_Dispatch *dispatch, int ncid)
 {
 	int status = NC_NOERR;
 	void *xp = NULL;
 	int sizeof_off_t = 0;
+        NC *nc;
 	NC3_INFO* nc3 = NULL;
+
+        /* Find NC struct for this file. */
+        if ((status = NC_check_id(ncid, &nc)))
+            return status;
 
 	/* Create our specific NC3_INFO instance */
 	nc3 = new_NC3INFO(chunksizehintp);
@@ -1171,10 +1176,15 @@ nc_set_default_format(int format, int *old_formatp)
 
 int
 NC3_open(const char *path, int ioflags, int basepe, size_t *chunksizehintp,
-         void *parameters, const NC_Dispatch *dispatch, NC *nc)
+         void *parameters, const NC_Dispatch *dispatch, int ncid)
 {
 	int status;
 	NC3_INFO* nc3 = NULL;
+        NC *nc;
+
+        /* Find NC struct for this file. */
+        if ((status = NC_check_id(ncid, &nc)))
+            return status;
 
 	/* Create our specific NC3_INFO instance */
 	nc3 = new_NC3INFO(chunksizehintp);

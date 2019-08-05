@@ -83,8 +83,97 @@ nc4_check_name(const char *name, char *norm_name)
 }
 
 /**
+ * @internal Add a file to the list of libsrc4 open files. This is
+ * used by dispatch layers that wish to use the libsrc4 metadata
+ * model, but don't know about struct NC. This is the same as
+ * nc4_nc4f_list_add(), except it takes an ncid instead of an NC *,
+ * and also passes back the dispatchdata pointer.
+ *
+ * @param ncid The ncid of the file (aka ext_ncid).
+ * @param path The file name of the new file.
+ * @param mode The mode flag.
+ * @param dispatchdata Void * that gets pointer to dispatch data,
+ * which is the NC_FILE_INFO_T struct allocated for this file and its
+ * metadata. Ignored if NULL. (This is passed as a void to allow
+ * external user-defined formats to use this function.)
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID No NC struct with this ext_ncid.
+ * @return ::NC_ENOMEM Out of memory.
+ * @author Ed Hartnett
+ */
+int
+nc4_file_list_add(int ncid, const char *path, int mode, void **dispatchdata)
+{
+    NC *nc;
+    int ret;
+
+    /* Find NC pointer for this file. */
+    if ((ret = NC_check_id(ncid, &nc)))
+        return ret;
+
+    /* Add necessary structs to hold netcdf-4 file data. This is where
+     * the NC_FILE_INFO_T struct is allocated for the file. */
+    if ((ret = nc4_nc4f_list_add(nc, path, mode)))
+        return ret;
+
+    /* If the user wants a pointer to the NC_FILE_INFO_T, then provide
+     * it. */
+    if (dispatchdata)
+        *dispatchdata = nc->dispatchdata;
+
+    return NC_NOERR;
+}
+
+/**
+ * @internal Get info about a file on the list of libsrc4 open files. This is
+ * used by dispatch layers that wish to use the libsrc4 metadata
+ * model, but don't know about struct NC.
+ *
+ * @param ncid The ncid of the file (aka ext_ncid).
+ * @param path A pointer that gets file name (< NC_MAX_NAME). Igored
+ * if NULL.
+ * @param mode A pointer that gets the mode flag. Ignored if NULL.
+ * @param dispatchdata Void * that gets pointer to dispatch data,
+ * which is the NC_FILE_INFO_T struct allocated for this file and its
+ * metadata. Ignored if NULL. (This is passed as a void to allow
+ * external user-defined formats to use this function.)
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID No NC struct with this ext_ncid.
+ * @return ::NC_ENOMEM Out of memory.
+ * @author Ed Hartnett
+ */
+int
+nc4_file_list_get(int ncid, char **path, int *mode, void **dispatchdata)
+{
+    NC *nc;
+    int ret;
+
+    /* Find NC pointer for this file. */
+    if ((ret = NC_check_id(ncid, &nc)))
+        return ret;
+
+    /* If the user wants path, give it. */
+    if (path)
+        strncpy(*path, nc->path, NC_MAX_NAME);
+
+    /* If the user wants mode, give it. */
+    if (mode)
+        *mode = nc->mode;
+
+    /* If the user wants dispatchdata, give it. */
+    if (dispatchdata)
+        *dispatchdata = nc->dispatchdata;
+
+    return NC_NOERR;
+}
+
+/**
  * @internal Given an NC pointer, add the necessary stuff for a
- * netcdf-4 file.
+ * netcdf-4 file. This allocates the NC_FILE_INFO_T struct for the
+ * file, which is used by libhdf5 and libhdf4 (and perhaps other
+ * future dispatch layers) to hold the metadata for the file.
  *
  * @param nc Pointer to file's NC struct.
  * @param path The file name of the new file.
@@ -103,7 +192,7 @@ nc4_nc4f_list_add(NC *nc, const char *path, int mode)
     assert(nc && !NC4_DATA(nc) && path);
 
     /* We need to malloc and initialize the substructure
-       NC_HDF_FILE_INFO_T. */
+       NC_FILE_INFO_T. */
     if (!(h5 = calloc(1, sizeof(NC_FILE_INFO_T))))
         return NC_ENOMEM;
     nc->dispatchdata = h5;
@@ -1364,6 +1453,37 @@ nc4_att_list_del(NCindex *list, NC_ATT_INFO_T *att)
     assert(att && list);
     ncindexidel(list, ((NC_OBJ *)att)->id);
     return att_free(att);
+}
+
+/**
+ * @internal Free all resources and memory associated with a
+ * NC_FILE_INFO_T. This is the same as nc4_nc4f_list_del(), except it
+ * takes ncid. This function allows external dispatch layers, like
+ * PIO, to manipulate the file list without needing to know about
+ * internal netcdf structures.
+ *
+ * @param ncid The ncid of the file to release.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @author Ed Hartnett
+ */
+int
+nc4_file_list_del(int ncid)
+{
+    NC_FILE_INFO_T *h5;
+    int retval;
+
+    /* Find our metadata for this file. */
+    if ((retval = nc4_find_grp_h5(ncid, NULL, &h5)))
+        return retval;
+    assert(h5);
+
+    /* Delete the file resources. */
+    if ((retval = nc4_nc4f_list_del(h5)))
+        return retval;
+
+    return NC_NOERR;
 }
 
 /**
