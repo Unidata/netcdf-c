@@ -23,12 +23,12 @@ extern "C" {
     EXTERNL int
     NC4_create(const char *path, int cmode,
                size_t initialsz, int basepe, size_t *chunksizehintp,
-               void* parameters, const NC_Dispatch*, NC*);
+               void* parameters, const NC_Dispatch*, int);
 
     EXTERNL int
     NC4_open(const char *path, int mode,
              int basepe, size_t *chunksizehintp,
-             void* parameters, const NC_Dispatch*, NC*);
+             void* parameters, const NC_Dispatch*, int);
 
     EXTERNL int
     NC4_redef(int ncid);
