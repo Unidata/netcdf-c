@@ -292,6 +292,7 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
+#ifdef HDF5_HAS_SWMR
    printf("*** testing HDF5 SWMR...");
    {
 #define DATA_LEN 3
@@ -363,6 +364,7 @@ main(int argc, char **argv)
 
    }
    SUMMARIZE_ERR;
+#endif /* HDF_HAS_SWMR */
    printf("*** testing CLASSIC_MODEL flag with classic formats...");
    {
       int ncid;

@@ -656,9 +656,11 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
       flags = H5F_ACC_RDWR;
     } else {
       flags = H5F_ACC_RDONLY;
+#ifdef HDF5_HAS_SWMR
       if((mode & NC_HDF5_SWMR)) {
         flags |= H5F_ACC_SWMR_READ;
       }
+#endif
     }
 
     /* Add necessary structs to hold netcdf-4 file data. */
@@ -836,12 +838,14 @@ nc4_open_file(const char *path, int mode, void* parameters, NC *nc)
     if (H5Pclose(fapl_id) < 0)
         BAIL(NC_EHDFERR);
 
+#ifdef HDF5_HAS_SWMR
     /* Prepare for single writer multiple reader. */
     if (mode & NC_WRITE && mode & NC_HDF5_SWMR) {
       if ((retval = H5Fstart_swmr_write(h5->hdfid))) {
         BAIL(retval);
       }
     }
+#endif
 
     return NC_NOERR;
 

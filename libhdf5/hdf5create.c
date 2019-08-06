@@ -108,9 +108,11 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
     else
         flags = H5F_ACC_TRUNC;
 
+#ifdef HDF5_HAS_SWMR
 #ifndef HAVE_H5PSET_LIBVER_BOUNDS
     if (cmode & NC_HDF5_SWMR)
         flags |= H5F_ACC_SWMR_WRITE;
+#endif
 #endif
 
     /* If this file already exists, and NC_NOCLOBBER is specified,
@@ -168,10 +170,12 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
 #if H5_VERSION_GE(1,10,2)
     low = H5F_LIBVER_EARLIEST;
     high = H5F_LIBVER_V18;
+#ifdef HDF5_HAS_SWMR
     if ((cmode & NC_HDF5_SWMR)) {
       low = H5F_LIBVER_LATEST;
       high = H5F_LIBVER_LATEST;
     }
+#endif /* HDF5_HAS_SWMR */
 #else
     low = H5F_LIBVER_EARLIEST;
     high = H5F_LIBVER_LATEST;
@@ -252,11 +256,13 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
     if ((retval = NC4_new_provenance(nc4_info)))
         BAIL(retval);
 
+#ifdef HDF5_HAS_SWMR
     if ((cmode & NC_HDF5_SWMR)) {
       /* Prepare for single writer multiple readers */
       if ((retval = H5Fstart_swmr_write(hdf5_info->hdfid)))
         BAIL(retval);
     }
+#endif
 
     return NC_NOERR;
 
