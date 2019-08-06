@@ -1,7 +1,9 @@
 /* Copyright 2018, UCAR/Unidata See netcdf/COPYRIGHT file for copying
  * and redistribution conditions.*/
 /**
- * @file @internal The HDF4 file functions.
+ * @file
+ * @internal The HDF4 file functions. These provide a read-only
+ * interface to HDF4 SD files.
  *
  * @author Ed Hartnett
  */
@@ -597,19 +599,24 @@ hdf4_read_var(NC_FILE_INFO_T *h5, int v)
  */
 int
 NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
-             void *parameters, const NC_Dispatch *dispatch, NC *nc_file)
+             void *parameters, const NC_Dispatch *dispatch, int ncid)
 {
     NC_FILE_INFO_T *h5;
     NC_HDF4_FILE_INFO_T *hdf4_file;
+    NC *nc;
     int32 num_datasets, num_gatts;
     int32 sdid;
     int v, a;
     int retval;
 
     /* Check inputs. */
-    assert(nc_file && path);
+    assert(path);
 
     LOG((1, "%s: path %s mode %d params %x", __func__, path, mode, parameters));
+
+    /* Find pointer to NC. */
+    if ((retval = NC_check_id(ncid, &nc)))
+        return retval;
 
     /* Check the mode for validity */
     if (mode & ILLEGAL_OPEN_FLAGS)
@@ -624,9 +631,8 @@ NC_HDF4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
         return NC_EHDFERR;
 
     /* Add necessary structs to hold netcdf-4 file data. */
-    if ((retval = nc4_nc4f_list_add(nc_file, path, mode)))
+    if ((retval = nc4_file_list_add(ncid, path, mode, (void **)&h5)))
         return retval;
-    h5 = (NC_FILE_INFO_T *)nc_file->dispatchdata;
     assert(h5 && h5->root_grp);
     h5->no_write = NC_TRUE;
     h5->root_grp->atts_read = 1;

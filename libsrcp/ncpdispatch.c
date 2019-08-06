@@ -45,10 +45,15 @@ NCP_create(const char *path,
            size_t *chunksizehintp,
            void *mpidata,
            const struct NC_Dispatch *table,
-           NC *nc)
+           int ncid)
 {
     int status;
     NCP_INFO *nc5;
+    NC *nc;
+
+    /* Find pointer to NC for this file. */
+    status = NC_check_id(ncid, &nc);
+    if (status != NC_NOERR) return status;
 
     /* Check the cmode for only valid flags */
     if (cmode & ~LEGAL_CREATE_FLAGS) return NC_EINVAL;
@@ -82,10 +87,15 @@ NCP_open(const char *path,
          size_t *chunksizehintp,
          void *mpidata,
          const struct NC_Dispatch *table,
-         NC *nc)
+         int ncid)
 {
     int status;
     NCP_INFO *nc5;
+    NC *nc;
+
+    /* Find pointer to NC for this file. */
+    status = NC_check_id(ncid, &nc);
+    if (status != NC_NOERR) return status;
 
     /* Check the omode for only valid flags */
     if (omode & ~LEGAL_OPEN_FLAGS) return NC_EINVAL;

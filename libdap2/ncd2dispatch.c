@@ -63,7 +63,7 @@ static NCerror applyclientparams(NCDAPCOMMON*);
 static int
 NCD2_create(const char *path, int cmode,
            size_t initialsz, int basepe, size_t *chunksizehintp,
-           void* mpidata, const struct NC_Dispatch*,NC* ncp);
+           void* mpidata, const struct NC_Dispatch*,int);
 
 static int NCD2_redef(int ncid);
 static int NCD2__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree, size_t r_align);
@@ -227,7 +227,7 @@ NCD2_abort(int ncid)
 static int
 NCD2_create(const char *path, int cmode,
            size_t initialsz, int basepe, size_t *chunksizehintp,
-           void* mpidata, const NC_Dispatch* dispatch, NC* ncp)
+           void* mpidata, const NC_Dispatch* dispatch, int ncid)
 {
    return NC_EPERM;
 }
@@ -271,13 +271,18 @@ NCD2_get_vars(int ncid, int varid,
 /* See ncd2dispatch.c for other version */
 int
 NCD2_open(const char* path, int mode, int basepe, size_t *chunksizehintp,
-          void* mpidata, const NC_Dispatch* dispatch, NC* drno)
+          void* mpidata, const NC_Dispatch* dispatch, int ncid)
 {
     NCerror ncstat = NC_NOERR;
     OCerror ocstat = OC_NOERR;
     NCDAPCOMMON* dapcomm = NULL;
+    NC* drno;
     const char* value;
     int nc3id = -1;
+
+    /* Find pointer to NC struct for this file. */
+    ncstat = NC_check_id(ncid,&drno);
+    if(ncstat != NC_NOERR) {goto done;}
 
     if(path == NULL)
 	{ncstat = NC_EDAPURL; goto done;}
