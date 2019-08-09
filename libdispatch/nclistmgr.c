@@ -7,6 +7,8 @@
  *
  * Functions to manage the list of NC structs. There is one NC struct
  * for each open file.
+ *
+ * @author Dennis Heimbigner
 */
 
 #include "config.h"
@@ -15,17 +17,26 @@
 #include <assert.h>
 #include "ncdispatch.h"
 
+/** This shift is applied to the ext_ncid in order to get the index in
+ * the array of NC. */
 #define ID_SHIFT (16)
+
+/** This is the length of the NC list - the number of files that can
+ * be open at one time. We use 2^16 = 65536 entries in the array, but
+ * slot 0 is not used, so only 65535 files may be open at one
+ * time.. */
 #define NCFILELISTLENGTH 0x10000
 
-/* Version one just allocates the max space (sizeof(NC*)*2^16)*/
+/** This is the pointer to the array of NC, one for each open file. */
 static NC** nc_filelist = NULL;
 
+/** The number of files currently open. */
 static int numfiles = 0;
 
-/* Common */
 /**
+ * How many files are currently open?
  *
+ * @return number of open files.
  * @author Dennis Heimbigner
  */
 int
@@ -35,6 +46,8 @@ count_NCList(void)
 }
 
 /**
+ * Free an empty NCList. @note If list is not empty, function will
+ * silently exit.
  *
  * @author Dennis Heimbigner
  */
@@ -47,7 +60,22 @@ free_NCList(void)
 }
 
 /**
+ * Add an already-allocated NC to the list. It will be assigned an
+ * ncid in this function.
  *
+ * If this is the first file to be opened, the nc_filelist will be
+ * allocated and set to all 0.
+ *
+ * The ncid is assigned by finding the first open index in the
+ * nc_filelist array (skipping index 0). The ncid is this index
+ * left-shifted ID_SHIFT bits. This puts the file ID in the first two
+ * bytes of the 4-byte integer, and leaves the last two bytes for
+ * group IDs for netCDF-4 files.
+ *
+ * @param ncp Pointer to already-allocated and initialized NC struct.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_ENOMEM Out of memory.
  * @author Dennis Heimbigner
  */
 int
@@ -74,6 +102,13 @@ add_to_NCList(NC* ncp)
 }
 
 /**
+ * Delete an NC struct from the list. This happens when the file is
+ * closed.
+ *
+ * @note If the file list is empty, or this NC can't be found in the
+ * list, this function will silently exit.
+ *
+ * @param ncp Pointer to NC to be removed from list.
  *
  * @author Dennis Heimbigner
  */
@@ -93,7 +128,11 @@ del_from_NCList(NC* ncp)
 }
 
 /**
+ * Find an NC in the list, given an ncid.
  *
+ * @param ext_ncid The ncid of the file to find.
+ *
+ * @return pointer to NC or NULL if not found.
  * @author Dennis Heimbigner
  */
 NC *
@@ -111,11 +150,12 @@ find_in_NCList(int ext_ncid)
     return f;
 }
 
-/*
-  Added to support open by name
-*/
 /**
+ * Find an NC in the list using the file name.
  *
+ * @param path Name of the file.
+ *
+ * @return pointer to NC or NULL if not found.
  * @author Dennis Heimbigner
  */
 NC*
@@ -137,7 +177,15 @@ find_in_NCList_by_name(const char* path)
 }
 
 /**
+ * Find an NC in list based on its index. The index is ((unsigned
+ * int)ext_ncid) >> ID_SHIFT.
  *
+ * @param index The index in the NC list.
+ * @param ncp Pointer that gets pointer to the next NC. Igored if
+ * NULL.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_ERANGE Index out of range.
  * @author Dennis Heimbigner
  */
 int
