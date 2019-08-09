@@ -103,7 +103,7 @@ add_to_NCList(NC* ncp)
 
 /**
  * Delete an NC struct from the list. This happens when the file is
- * closed.
+ * closed. Relies on all memory in the NC already being deallocated.
  *
  * @note If the file list is empty, or this NC can't be found in the
  * list, this function will silently exit.
