@@ -10,8 +10,8 @@ include $(top_srcdir)/lib_flags.am
 
 AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
 
-#check_PROGRAMS = $(TESTPROGRAMS)
-#TESTS = $(TESTPROGRAMS) compare_test_files.sh
+check_PROGRAMS = tst_nclist
+TESTS = tst_nclist
 
 # If valgrind is present, add valgrind targets.
 @VALGRIND_CHECK_RULES@
