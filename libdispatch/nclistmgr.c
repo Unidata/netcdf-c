@@ -2,6 +2,12 @@
    Copyright 2018, UCAR/Unidata See netcdf/COPYRIGHT file for
    copying and redistribution conditions.
 *********************************************************************/
+/**
+ * @file
+ *
+ * Functions to manage the list of NC structs. There is one NC struct
+ * for each open file.
+*/
 
 #include "config.h"
 #include <stdlib.h>
@@ -18,13 +24,20 @@ static NC** nc_filelist = NULL;
 static int numfiles = 0;
 
 /* Common */
+/**
+ *
+ * @author Dennis Heimbigner
+ */
 int
 count_NCList(void)
 {
     return numfiles;
 }
 
-
+/**
+ *
+ * @author Dennis Heimbigner
+ */
 void
 free_NCList(void)
 {
@@ -33,6 +46,10 @@ free_NCList(void)
     nc_filelist = NULL;
 }
 
+/**
+ *
+ * @author Dennis Heimbigner
+ */
 int
 add_to_NCList(NC* ncp)
 {
@@ -56,6 +73,10 @@ add_to_NCList(NC* ncp)
     return NC_NOERR;
 }
 
+/**
+ *
+ * @author Dennis Heimbigner
+ */
 void
 del_from_NCList(NC* ncp)
 {
@@ -71,6 +92,10 @@ del_from_NCList(NC* ncp)
         free_NCList();
 }
 
+/**
+ *
+ * @author Dennis Heimbigner
+ */
 NC *
 find_in_NCList(int ext_ncid)
 {
@@ -89,6 +114,10 @@ find_in_NCList(int ext_ncid)
 /*
   Added to support open by name
 */
+/**
+ *
+ * @author Dennis Heimbigner
+ */
 NC*
 find_in_NCList_by_name(const char* path)
 {
@@ -107,6 +136,10 @@ find_in_NCList_by_name(const char* path)
     return f;
 }
 
+/**
+ *
+ * @author Dennis Heimbigner
+ */
 int
 iterate_NCList(int index, NC** ncp)
 {
