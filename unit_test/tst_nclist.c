@@ -9,6 +9,7 @@
 
 #include "config.h"
 #include <nc_tests.h>
+#include "nc.h"
 #include "err_macros.h"
 
 int
