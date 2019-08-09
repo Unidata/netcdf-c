@@ -10,6 +10,7 @@
 #include "config.h"
 #include <nc_tests.h>
 #include "nc.h"
+#include "ncdispatch.h"
 #include "err_macros.h"
 
 int
@@ -28,14 +29,19 @@ main(int argc, char **argv)
     SUMMARIZE_ERR;
     printf("Testing adding to NC list...");
     {
-        /* NC *ncp; */
-    /* int ret; */
+        NC *ncp;
+        int mode = 0;
+        NCmodel model;
+        char path[] = {"file.nc"};
+        int ret;
 
-        /* /\* Create the NC* instance and insert its dispatcher and model. *\/ */
-        /* if ((ret = new_NC(dispatcher, path, cmode, &model, &ncp))) ERR; */
+        /* Create the NC* instance and insert its dispatcher and model. */
+        if ((ret = new_NC(NULL, path, mode, &model, &ncp))) ERR;
 
-        /* /\* Add to list of known open files and define ext_ncid. *\/ */
-        /* add_to_NCList(ncp); */
+        /* Add to list of known open files and define ext_ncid. */
+        add_to_NCList(ncp);
+
+        /* Where is the allocated memory being freed? */
     }
     SUMMARIZE_ERR;
     FINAL_RESULTS;
