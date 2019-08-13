@@ -188,7 +188,7 @@ fi
 # analysis).
 AC_ARG_ENABLE([unit-tests],
   [AS_HELP_STRING([--disable-unit-tests],
-    [Disable unit tests.])])
+    [Disable tests in unit_test directory. Other tests still run.])])
 test "x$enable_unit_tests" = xno || enable_unit_tests=yes
 AM_CONDITIONAL([BUILD_UNIT_TESTS], [test "x$enable_unit_tests" = xyes])
 

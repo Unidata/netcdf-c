@@ -46,8 +46,8 @@ count_NCList(void)
 }
 
 /**
- * Free an empty NCList. @note If list is not empty, function will
- * silently exit.
+ * Free an empty NCList. @note If list is not empty, or has not been
+ * allocated, function will silently exit.
  *
  * @author Dennis Heimbigner
  */
