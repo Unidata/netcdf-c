@@ -48,7 +48,9 @@ NC_check_id(int ncid, NC** ncpp)
 }
 
 /**
- * Free an NC struct and its related resources.
+ * Free an NC struct and its related resources. Before this is done,
+ * be sure to remove the NC from the open file list with
+ * del_from_NCList().
  *
  * @param ncp Pointer to the NC struct to be freed.
  *
