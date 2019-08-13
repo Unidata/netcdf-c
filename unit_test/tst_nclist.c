@@ -42,6 +42,9 @@ main(int argc, char **argv)
         /* Create the NC* instance and insert its dispatcher and model. */
         if ((ret = new_NC(NULL, path, mode, &model, &ncp))) ERR;
 
+        /* Nothing to find yet. */
+        if (find_in_NCList(TEST_VAL_42)) ERR;
+
         /* Add to list of known open files and define ext_ncid. */
         add_to_NCList(ncp);
 
