@@ -129,7 +129,9 @@ del_from_NCList(NC* ncp)
 }
 
 /**
- * Find an NC in the list, given an ncid.
+ * Find an NC in the list, given an ext_ncid. The NC list is indexed
+ * with the first two bytes of ext_ncid. (The last two bytes specify
+ * the group for netCDF4 files, or are zeros for classic files.)
  *
  * @param ext_ncid The ncid of the file to find.
  *
@@ -140,14 +142,22 @@ NC *
 find_in_NCList(int ext_ncid)
 {
     NC* f = NULL;
+    /* Discard the first two bytes of ext_ncid to get ncid. */
     unsigned int ncid = ((unsigned int)ext_ncid) >> ID_SHIFT;
+
+    /* If we have a filelist, there will be an entry, possibly NULL,
+     * for this ncid. */
     if (nc_filelist)
     {
         assert(numfiles);
         f = nc_filelist[ncid];
     }
 
-    /* for classic files, ext_ncid must be a multiple of (1<<ID_SHIFT) */
+    /* For classic files, ext_ncid must be a multiple of
+     * (1<<ID_SHIFT). That is, the group part of the ext_ncid (the
+     * last two bytes) must be zero. If not, then return NULL, which
+     * will eventually lead to an NC_EBADID error being returned to
+     * user. */
     if (f != NULL && f->model->impl == NC_FORMATX_NC3 && (ext_ncid % (1<<ID_SHIFT)))
         return NULL;
 
