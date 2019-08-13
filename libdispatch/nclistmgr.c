@@ -191,7 +191,9 @@ find_in_NCList_by_name(const char* path)
 
 /**
  * Find an NC in list based on its index. The index is ((unsigned
- * int)ext_ncid) >> ID_SHIFT.
+ * int)ext_ncid) >> ID_SHIFT. This is the two high bytes of the
+ * ext_ncid. (The other two bytes are used for the group ID for
+ * netCDF-4 files.)
  *
  * @param index The index in the NC list.
  * @param ncp Pointer that gets pointer to the next NC. Igored if
