@@ -68,8 +68,8 @@ free_NCList(void)
  *
  * The ncid is assigned by finding the first open index in the
  * nc_filelist array (skipping index 0). The ncid is this index
- * left-shifted ID_SHIFT bits. This puts the file ID in the first two
- * bytes of the 4-byte integer, and leaves the last two bytes for
+ * left-shifted ID_SHIFT bits (16). This puts the file ID in the first
+ * two bytes of the 4-byte integer, and leaves the last two bytes for
  * group IDs for netCDF-4 files.
  *
  * @param ncp Pointer to already-allocated and initialized NC struct.
@@ -96,8 +96,7 @@ add_to_NCList(NC* ncp)
     if(new_id == 0) return NC_ENOMEM; /* no more slots */
     nc_filelist[new_id] = ncp;
     numfiles++;
-    new_id = (new_id << ID_SHIFT);
-    ncp->ext_ncid = new_id;
+    ncp->ext_ncid = (new_id << ID_SHIFT);
     return NC_NOERR;
 }
 

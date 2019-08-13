@@ -9,6 +9,7 @@
 include $(top_srcdir)/lib_flags.am
 
 AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
+LDADD = ${top_builddir}/liblib/libnetcdf.la
 
 check_PROGRAMS = tst_nclist
 TESTS = tst_nclist

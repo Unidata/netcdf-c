@@ -85,8 +85,14 @@ main(int argc, char **argv)
         for (i = 0; i < max_num_nc; i++)
         {
             if ((ret = new_NC(NULL, path, mode, &model, &ncp))) ERR;
-            add_to_NCList(ncp);
+            if (add_to_NCList(ncp)) ERR;
         }
+
+        /* Check the count. */
+        if (count_NCList() != max_num_nc) ERR;
+
+        /* Try and add another. It will fail. */
+        if (add_to_NCList(ncp) != NC_ENOMEM) ERR;
 
         /* Delete them all. */
         for (i = 0; i < max_num_nc; i++)
