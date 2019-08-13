@@ -32,7 +32,7 @@ main(int argc, char **argv)
     SUMMARIZE_ERR;
     printf("Testing adding to NC list...");
     {
-        /* int ncid; */
+        int ncid;
         NC *ncp, *ncp2;
         int mode = 0;
         NCmodel model;
@@ -57,12 +57,10 @@ main(int argc, char **argv)
         if (count_NCList() != 1) ERR;
 
         /* Delete it. */
-        /* ncid = ncp->ext_ncid; */
-        /* free_NC(ncp); */
-        /* del_from_NCList(ncp); */
-        /* if (find_in_NCList(ncid)) ERR; */
-
-        /* Where is the allocated memory being freed? */
+        ncid = ncp->ext_ncid;
+        del_from_NCList(ncp);
+        free_NC(ncp);
+        if (find_in_NCList(ncid)) ERR;
     }
     SUMMARIZE_ERR;
     FINAL_RESULTS;

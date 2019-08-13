@@ -24,7 +24,7 @@
 /** This is the length of the NC list - the number of files that can
  * be open at one time. We use 2^16 = 65536 entries in the array, but
  * slot 0 is not used, so only 65535 files may be open at one
- * time.. */
+ * time. */
 #define NCFILELISTLENGTH 0x10000
 
 /** This is the pointer to the array of NC, one for each open file. */
@@ -103,7 +103,8 @@ add_to_NCList(NC* ncp)
 
 /**
  * Delete an NC struct from the list. This happens when the file is
- * closed. Relies on all memory in the NC already being deallocated.
+ * closed. Relies on all memory in the NC being deallocated after this
+ * function with freeNC().
  *
  * @note If the file list is empty, or this NC can't be found in the
  * list, this function will silently exit.
