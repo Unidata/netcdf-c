@@ -134,15 +134,18 @@ del_from_NCList(NC* ncp)
  * @param ext_ncid The ncid of the file to find.
  *
  * @return pointer to NC or NULL if not found.
- * @author Dennis Heimbigner
+ * @author Dennis Heimbigner, Ed Hartnett
  */
 NC *
 find_in_NCList(int ext_ncid)
 {
     NC* f = NULL;
     unsigned int ncid = ((unsigned int)ext_ncid) >> ID_SHIFT;
-    if(numfiles > 0 && nc_filelist != NULL && ncid < NCFILELISTLENGTH)
+    if (nc_filelist)
+    {
+        assert(numfiles);
         f = nc_filelist[ncid];
+    }
 
     /* for classic files, ext_ncid must be a multiple of (1<<ID_SHIFT) */
     if (f != NULL && f->model->impl == NC_FORMATX_NC3 && (ext_ncid % (1<<ID_SHIFT)))
