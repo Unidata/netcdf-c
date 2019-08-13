@@ -59,12 +59,46 @@ main(int argc, char **argv)
         if ((ret = iterate_NCList(1, &ncp2))) ERR;
         if (count_NCList() != 1) ERR;
 
+        /* Won't do anything because list contains an entry. */
+        free_NCList();
+
         /* Delete it. */
         ncid = ncp->ext_ncid;
-        del_from_NCList(ncp);
+        del_from_NCList(ncp); /* Will free empty list. */
         free_NC(ncp);
         if (find_in_NCList(ncid)) ERR;
     }
     SUMMARIZE_ERR;
+#ifdef LARGE_FILE_TESTS
+    /* This test is slow, only run it on large file test builds. */
+    printf("Testing maxing out NC list...");
+    {
+        NC *ncp;
+        int mode = 0;
+        NCmodel model;
+        char path[] = {"file.nc"};
+        int max_num_nc = 65535;
+        int i;
+        int ret;
+
+        /* Fill the NC list. */
+        for (i = 0; i < max_num_nc; i++)
+        {
+            if ((ret = new_NC(NULL, path, mode, &model, &ncp))) ERR;
+            add_to_NCList(ncp);
+        }
+
+        /* Delete them all. */
+        for (i = 0; i < max_num_nc; i++)
+        {
+            if (iterate_NCList(i + 1, &ncp)) ERR;
+            if (!ncp) ERR;
+            del_from_NCList(ncp);
+            free_NC(ncp);
+        }
+    }
+    SUMMARIZE_ERR;
+#endif /* LARGE_FILE_TESTS */
+
     FINAL_RESULTS;
 }
