@@ -10,10 +10,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#if defined(LOCKNUMREC) /* && _CRAYMPP */
-#  include <mpp/shmem.h>
-#  include <intrinsics.h>
-#endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -47,11 +43,7 @@ free_NC3INFO(NC3_INFO *nc3)
 	free_NC_dimarrayV(&nc3->dims);
 	free_NC_attrarrayV(&nc3->attrs);
 	free_NC_vararrayV(&nc3->vars);
-#if _CRAYMPP && defined(LOCKNUMREC)
-	shfree(nc3);
-#else
 	free(nc3);
-#endif /* _CRAYMPP && LOCKNUMREC */
 }
 
 static NC3_INFO *
@@ -1017,11 +1009,7 @@ int NC3_new_nc(NC3_INFO** ncpp)
 	NC *nc;
 	NC3_INFO* nc3;
 
-#if _CRAYMPP && defined(LOCKNUMREC)
-	ncp = (NC *) shmalloc(sizeof(NC));
-#else
 	ncp = (NC *) malloc(sizeof(NC));
-#endif /* _CRAYMPP && LOCKNUMREC */
 	if(ncp == NULL)
 		return NC_ENOMEM;
 	(void) memset(ncp, 0, sizeof(NC));
@@ -1058,20 +1046,13 @@ NC3_create(const char *path, int ioflags, size_t initialsz, int basepe,
 	fSet(ioflags, NC_SHARE);
 #endif
 
-#if defined(LOCKNUMREC) /* && _CRAYMPP */
-	if (status = NC_init_pe(nc3, basepe)) {
-		return status;
-	}
-#else
 	/*
-	 * !_CRAYMPP, only pe 0 is valid
+	 * Only pe 0 is valid
 	 */
 	if(basepe != 0) {
-      if(nc3) free(nc3);
-      return NC_EINVAL;
-    }
-#endif
-
+            if(nc3) free(nc3);
+            return NC_EINVAL;
+        }
 	assert(nc3->flags == 0);
 
 	/* Now we can set min size */
@@ -1193,23 +1174,17 @@ NC3_open(const char *path, int ioflags, int basepe, size_t *chunksizehintp,
 	fSet(ioflags, NC_SHARE);
 #endif
 
-#if defined(LOCKNUMREC) /* && _CRAYMPP */
-	if (status = NC_init_pe(nc3, basepe)) {
-	    goto unwind_alloc;
-	}
-#else
 	/*
-	 * !_CRAYMPP, only pe 0 is valid
+	 * Only pe 0 is valid.
 	 */
 	if(basepe != 0) {
-      if(nc3) {
-        free(nc3);
-        nc3 = NULL;
-      }
-      status = NC_EINVAL;
-      goto unwind_alloc;
-    }
-#endif
+            if(nc3) {
+                free(nc3);
+                nc3 = NULL;
+            }
+            status = NC_EINVAL;
+            goto unwind_alloc;
+        }
 
 #ifdef ENABLE_BYTERANGE
     /* If the model specified the use of byte-ranges, then signal by
@@ -1608,71 +1583,36 @@ void NC_increase_numrecs(NC *nc3, size_t nrecs)
 
 #endif /* LOCKNUMREC */
 
-/* everyone in communicator group will be executing this */
-/*ARGSUSED*/
+/**
+ * This obsolete function is retained for backward compatibility. It
+ * does nothing.
+ *
+ * @param ncid Ignored.
+ * @param pe Ignored.
+ *
+ * @return NC_NOERR No error.
+ * @author Glenn Davis, Ed Hartnett
+ */
 int
 NC3_set_base_pe(int ncid, int pe)
 {
-#if _CRAYMPP && defined(LOCKNUMREC)
-	int status;
-	NC *nc;
-	NC3_INFO* nc3;
-	shmem_t numrecs;
-
-	if ((status = NC_check_id(ncid, &nc) != NC_NOERR) {
-		return status;
-	}
-	if (pe < 0 || pe >= _num_pes()) {
-		return NC_EINVAL; /* invalid base pe */
-	}
-	nc3 = NC3_DATA(nc);
-
-	numrecs = (shmem_t) NC_get_numrecs(nc3);
-
-	nc3->lock[LOCKNUMREC_VALUE] = (ushmem_t) numrecs;
-
-	/* update serving & lock values for a "smooth" transition */
-	/* note that the "real" server will being doing this as well */
-	/* as all the rest in the group */
-	/* must have synchronization before & after this step */
-	shmem_short_get(
-		(shmem_t *) nc3->lock + LOCKNUMREC_SERVING,
-		(shmem_t *) nc3->lock + LOCKNUMREC_SERVING,
-		1, nc3->lock[LOCKNUMREC_BASEPE]);
-
-	shmem_short_get(
-		(shmem_t *) nc3->lock + LOCKNUMREC_LOCK,
-		(shmem_t *) nc3->lock + LOCKNUMREC_LOCK,
-		1, nc3->lock[LOCKNUMREC_BASEPE]);
-
-	/* complete transition */
-	nc3->lock[LOCKNUMREC_BASEPE] = (ushmem_t) pe;
-
-#endif /* _CRAYMPP && LOCKNUMREC */
 	return NC_NOERR;
 }
 
-/*ARGSUSED*/
+/**
+ * This obsolete function is retained for backward compatibility. It
+ * does nothing, and always returns pe = 0.
+ *
+ * @param ncid Ignored.
+ * @param pe Pointer to int that gets a 0. Ignored if NULL.
+ *
+ * @return NC_NOERR No error.
+ * @author Glenn Davis, Ed Hartnett
+ */
 int
 NC3_inq_base_pe(int ncid, int *pe)
 {
-#if _CRAYMPP && defined(LOCKNUMREC)
-	int status;
-	NC *nc;
-	NC3_INFO* nc3;
-
-	if ((status = NC_check_id(ncid, &nc)) != NC_NOERR) {
-		return status;
-	}
-
-	*pe = (int) nc3->lock[LOCKNUMREC_BASEPE];
-	nc3 = NC3_DATA(nc);
-#else
-	/*
-	 * !_CRAYMPP, only pe 0 is valid
-	 */
 	if (pe) *pe = 0;
-#endif /* _CRAYMPP && LOCKNUMREC */
 	return NC_NOERR;
 }
 
@@ -1787,7 +1727,18 @@ NC3_inq_type(int ncid, nc_type typeid, char *name, size_t *size)
    return NC_NOERR;
 }
 
-/**************************************************/
+/**
+ * This is an obsolete form of nc_delete(), supported for backwards
+ * compatibility.
+ *
+ * @param path Filename to delete.
+ * @param basepe Must be 0.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EIO Couldn't delete file.
+ * @return ::NC_EINVAL Invaliod basepe. Must be 0.
+ * @author Glenn Davis, Ed Hartnett
+ */
 int
 nc_delete_mp(const char * path, int basepe)
 {
@@ -1801,17 +1752,11 @@ nc_delete_mp(const char * path, int basepe)
 	status = NC_check_id(ncid,&nc);
         if(status) return status;
 
-#if defined(LOCKNUMREC) /* && _CRAYMPP */
-	if (status = NC_init_pe(nc3, basepe)) {
-		return status;
-	}
-#else
 	/*
-	 * !_CRAYMPP, only pe 0 is valid
+	 * Only pe 0 is valid.
 	 */
 	if(basepe != 0)
 		return NC_EINVAL;
-#endif
 
 	(void) nc_close(ncid);
 	if(unlink(path) == -1) {
