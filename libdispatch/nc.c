@@ -16,10 +16,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#if defined(LOCKNUMREC) /* && _CRAYMPP */
-#  include <mpp/shmem.h>
-#  include <intrinsics.h>
-#endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -66,11 +62,7 @@ free_NC(NC *ncp)
     if(ncp->model)
         free(ncp->model);
     /* We assume caller has already cleaned up ncp->dispatchdata */
-#if _CRAYMPP && defined(LOCKNUMREC)
-    shfree(ncp);
-#else
     free(ncp);
-#endif /* _CRAYMPP && LOCKNUMREC */
 }
 
 /**
