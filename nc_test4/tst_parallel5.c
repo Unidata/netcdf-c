@@ -293,15 +293,20 @@ main(int argc, char **argv)
         /* This test is related to
          * https://github.com/Unidata/netcdf-c/issues/1462. */
         int ncid, varid;
+        signed char test_data_in, test_data = 42;
 
         /* Crate a file with a scalar NC_BYTE value. */
         if (nc_create_par(FILE, NC_NETCDF4, MPI_COMM_WORLD, MPI_INFO_NULL,
                           &ncid)) ERR;
         if (nc_def_var(ncid, "fred", NC_BYTE, 0, NULL, &varid)) ERR;
         if (nc_enddef(ncid)) ERR;
+        if (nc_put_var_schar(ncid, varid, &test_data));
         if (nc_close(ncid)) ERR;
 
+        /* Reopen the file and check. */
         if (nc_open_par(FILE, 0, comm, info, &ncid)) ERR;
+        if (nc_get_var_schar(ncid, varid, &test_data_in));
+        if (test_data_in != test_data) ERR;
         if (nc_close(ncid)) ERR;
     }
     if (!mpi_rank)

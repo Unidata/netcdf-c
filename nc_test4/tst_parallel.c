@@ -4,7 +4,7 @@ See COPYRIGHT file for copying and redistribution conditions.
 
 This program tests netcdf-4 parallel I/O.
 
-$Id: tst_parallel.c,v 1.7 2009/08/19 15:58:57 ed Exp $
+Ed Hartnett, 2009/08/19
 */
 
 /* Defining USE_MPE causes the MPE trace library to be used (and you
