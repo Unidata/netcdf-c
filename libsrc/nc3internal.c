@@ -940,21 +940,6 @@ NC_endef(NC3_INFO *ncp,
 	return ncio_sync(ncp->nciop);
 }
 
-#ifdef LOCKNUMREC
-static int
-NC_init_pe(NC *ncp, int basepe) {
-	if (basepe < 0 || basepe >= _num_pes()) {
-		return NC_EINVAL; /* invalid base pe */
-	}
-	/* initialize common values */
-	ncp->lock[LOCKNUMREC_VALUE] = 0;
-	ncp->lock[LOCKNUMREC_LOCK] = 0;
-	ncp->lock[LOCKNUMREC_SERVING] = 0;
-	ncp->lock[LOCKNUMREC_BASEPE] =  basepe;
-	return NC_NOERR;
-}
-#endif
-
 
 /*
  * Compute the expected size of the file.
@@ -1551,37 +1536,6 @@ NC3_set_fill(int ncid,
 
 	return NC_NOERR;
 }
-
-#ifdef LOCKNUMREC
-
-/* create function versions of the NC_*_numrecs macros */
-size_t
-NC_get_numrecs(const NC *nc3) {
-	shmem_t numrec;
-	shmem_short_get(&numrec, (shmem_t *) nc3->lock + LOCKNUMREC_VALUE, 1,
-		nc3->lock[LOCKNUMREC_BASEPE]);
-	return (size_t) numrec;
-}
-
-void
-NC_set_numrecs(NC *nc3, size_t nrecs)
-{
-    shmem_t numrec = (shmem_t) nrecs;
-    /* update local value too */
-    nc3->lock[LOCKNUMREC_VALUE] = (ushmem_t) numrec;
-    shmem_short_put((shmem_t *) nc3->lock + LOCKNUMREC_VALUE, &numrec, 1,
-    nc3->lock[LOCKNUMREC_BASEPE]);
-}
-
-void NC_increase_numrecs(NC *nc3, size_t nrecs)
-{
-    /* this is only called in one place that's already protected
-     * by a lock ... so don't worry about it */
-    if (nrecs > NC_get_numrecs(nc3))
-	NC_set_numrecs(nc3, nrecs);
-}
-
-#endif /* LOCKNUMREC */
 
 /**
  * This obsolete function is retained for backward compatibility. It

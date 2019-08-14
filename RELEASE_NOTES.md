@@ -7,6 +7,13 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.7.1 - TBD
 
+* [Bug Fix] Remove obsolete _CRAYMPP and LOCKNUMREC macros from
+code. Also brought documentation up to date in man page. These macros
+were used in ancient times, before modern parallel I/O systems were
+developed. Programmers interested in parallel I/O should see
+nc_open_par() and nc_create_par().
+See [GitHub #1436](https://github.com/Unidata/netcdf-c/issues/1459)
+
 * [Bug Fix] Reverted nccopy behavior so that if no -c parameters
 are given, then any default chunking is left to the netcdf-c library
 to decide.
