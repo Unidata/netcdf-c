@@ -118,12 +118,6 @@ NCD4_set_fill(int ncid, int fillmode, int* old_modep)
 }
 
 static int
-NCD4_set_base_pe(int ncid, int pe)
-{
-    return (NC_EPERM);
-}
-
-static int
 NCD4_def_dim(int ncid, const char* name, size_t len, int* idp)
 {
     return (NC_EPERM);
@@ -806,8 +800,6 @@ NCD4_sync,
 NCD4_abort,
 NCD4_close,
 NCD4_set_fill,
-NCD4_inq_base_pe,
-NCD4_set_base_pe,
 NCD4_inq_format,
 NCD4_inq_format_extended, /*inq_format_extended*/
 

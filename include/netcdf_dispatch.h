@@ -35,8 +35,8 @@ struct NC_Dispatch
     int (*abort)(int);
     int (*close)(int, void *);
     int (*set_fill)(int, int, int *);
-    int (*inq_base_pe)(int, int *);
-    int (*set_base_pe)(int, int);
+    /* int (*inq_base_pe)(int, int *); */
+    /* int (*set_base_pe)(int, int); */
     int (*inq_format)(int, int*);
     int (*inq_format_extended)(int, int *, int *);
 

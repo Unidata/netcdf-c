@@ -1454,8 +1454,8 @@ nc_set_fill(int ncid, int fillmode, int *old_modep)
  * @internal Learn base PE.
  *
  * @deprecated This function was used in the old days with the Cray at
- * NCAR. The Cray is long gone, and this call is supported only for
- * backward compatibility.
+ * NCAR. The Cray is long gone, and this call is now meaningless. The
+ * value returned for pe is always 0.
  *
  * @param ncid File and group ID.
  * @param pe Pointer for base PE.
@@ -1470,7 +1470,9 @@ nc_inq_base_pe(int ncid, int *pe)
    NC* ncp;
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
-   return ncp->dispatch->inq_base_pe(ncid,pe);
+   /* return ncp->dispatch->inq_base_pe(ncid,pe); */
+   if (pe) *pe = 0;
+   return NC_NOERR;
 }
 
 /**
@@ -1493,7 +1495,8 @@ nc_set_base_pe(int ncid, int pe)
    NC* ncp;
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
-   return ncp->dispatch->set_base_pe(ncid,pe);
+   /* return ncp->dispatch->set_base_pe(ncid,pe); */
+   return NC_NOERR;
 }
 
 /** \ingroup datasets
