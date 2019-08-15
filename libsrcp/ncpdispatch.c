@@ -239,19 +239,6 @@ NCP_set_fill(int ncid, int fillmode, int *old_mode_ptr)
 }
 
 static int
-NCP_inq_base_pe(int ncid, int *pep)
-{
-    if (pep) *pep = 0;
-    return NC_NOERR;
-}
-
-static int
-NCP_set_base_pe(int ncid, int pe)
-{
-    return NC_NOERR;
-}
-
-static int
 NCP_inq_format(int ncid, int *formatp)
 {
     NC *nc;
@@ -1399,8 +1386,6 @@ NCP_sync,
 NCP_abort,
 NCP_close,
 NCP_set_fill,
-NCP_inq_base_pe,
-NCP_set_base_pe,
 NCP_inq_format,
 NCP_inq_format_extended,
 

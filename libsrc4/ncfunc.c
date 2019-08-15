@@ -8,8 +8,7 @@
  * This file is part of netcdf-4, a netCDF-like interface for HDF5, or a
  * HDF5 backend for netCDF, depending on your point of view.
  *
- * This file handles the (useless) *_base_pe() functions, and the
- * inq_format functions.
+ * This file handles the inq_format functions.
  *
  * @author Ed Hartnett, Dennis Heimbigner
  */
