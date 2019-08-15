@@ -1470,7 +1470,6 @@ nc_inq_base_pe(int ncid, int *pe)
    NC* ncp;
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
-   /* return ncp->dispatch->inq_base_pe(ncid,pe); */
    if (pe) *pe = 0;
    return NC_NOERR;
 }
@@ -1495,27 +1494,25 @@ nc_set_base_pe(int ncid, int pe)
    NC* ncp;
    int stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) return stat;
-   /* return ncp->dispatch->set_base_pe(ncid,pe); */
    return NC_NOERR;
 }
 
-/** \ingroup datasets
-Inquire about the binary format of a netCDF file
-as presented by the API.
-
-This function returns the (rarely needed) format version.
-
-\param ncid NetCDF ID, from a previous call to nc_open() or
-nc_create().
-
-\param formatp Pointer to location for returned format version, one of
-NC_FORMAT_CLASSIC, NC_FORMAT_64BIT_OFFSET, NC_FORMAT_CDF5, NC_FORMAT_NETCDF4,
-NC_FORMAT_NETCDF4_CLASSIC.
-
-\returns ::NC_NOERR No error.
-
-\returns ::NC_EBADID Invalid ncid passed.
-
+/**
+ * @ingroup datasets
+ * Inquire about the binary format of a netCDF file
+ * as presented by the API.
+ *
+ * This function returns the (rarely needed) format version.
+ *
+ * @param ncid NetCDF ID, from a previous call to nc_open() or
+ * nc_create().
+ * @param formatp Pointer to location for returned format version, one
+ * of NC_FORMAT_CLASSIC, NC_FORMAT_64BIT_OFFSET, NC_FORMAT_CDF5,
+ * NC_FORMAT_NETCDF4, NC_FORMAT_NETCDF4_CLASSIC.
+ *
+ * @returns ::NC_NOERR No error.
+ * @returns ::NC_EBADID Invalid ncid passed.
+ * @author Dennis Heimbigner
  */
 int
 nc_inq_format(int ncid, int *formatp)
