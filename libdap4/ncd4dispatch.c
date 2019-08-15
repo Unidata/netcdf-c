@@ -248,18 +248,6 @@ However, it is necessary to modify the grpid(ncid) to point to the substrate.
 */
 
 static int
-NCD4_inq_base_pe(int ncid, int* pe)
-{
-    NC* ncp;
-    int ret = NC_NOERR;
-    int substrateid;
-    if((ret = NC_check_id(ncid, (NC**)&ncp)) != NC_NOERR) return (ret);
-    substrateid = makenc4id(ncp,ncid);
-    ret = nc_inq_base_pe(substrateid, pe);
-    return (ret);
-}
-
-static int
 NCD4_inq_format(int ncid, int* formatp)
 {
     NC* ncp;

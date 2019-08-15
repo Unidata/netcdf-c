@@ -58,12 +58,6 @@ extern int
 NCD2_set_fill(int ncid, int fillmode, int *old_modep);
 
 extern int
-NCD2_set_base_pe(int ncid, int pe);
-
-extern int
-NCD2_inq_base_pe(int ncid, int *pe);
-
-extern int
 NCD2_inq_format(int ncid, int *formatp);
 
 extern int

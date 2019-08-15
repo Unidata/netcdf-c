@@ -128,8 +128,8 @@ main(int argc, char **argv)
       if (nc_inq(ncid + TEST_VAL_42, NULL, NULL, NULL, NULL) != NC_EBADID) ERR;
 
       /* These only work for netCDF-3 files. */
-      if (nc_set_base_pe(ncid, 0) != NC_ENOTNC3) ERR;
-      if (nc_inq_base_pe(ncid, NULL) != NC_ENOTNC3) ERR;
+      if (nc_set_base_pe(ncid, 0)) ERR;
+      if (nc_inq_base_pe(ncid, NULL)) ERR;
 
       /* Attempt to write. */
       if (nc_rename_att(ncid, NC_GLOBAL, ATT_NAME, NAME_DUMB) != NC_EPERM) ERR;
