@@ -101,8 +101,6 @@ NCD2_sync,
 NCD2_abort,
 NCD2_close,
 NCD2_set_fill,
-NCD2_inq_base_pe,
-NCD2_set_base_pe,
 NCD2_inq_format,
 NCD2_inq_format_extended, /*inq_format_extended*/
 
