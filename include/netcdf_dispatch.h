@@ -35,8 +35,6 @@ struct NC_Dispatch
     int (*abort)(int);
     int (*close)(int, void *);
     int (*set_fill)(int, int, int *);
-    int (*inq_base_pe)(int, int *);
-    int (*set_base_pe)(int, int);
     int (*inq_format)(int, int*);
     int (*inq_format_extended)(int, int *, int *);
 
@@ -163,8 +161,6 @@ EXTERNL int NC_RO_set_fill(int ncid, int fillmode, int *old_modep);
 
 /* These functions are for dispatch layers that don't implement these
  * legacy functions. They return NC_ENOTNC3. */
-EXTERNL int NC_NOTNC3_set_base_pe(int ncid, int pe);
-EXTERNL int NC_NOTNC3_inq_base_pe(int ncid, int *pe);
 EXTERNL int NC_NOTNC3_put_varm(int ncid, int varid, const size_t * start,
                                const size_t *edges, const ptrdiff_t *stride,
                                const ptrdiff_t *imapp, const void *value0,

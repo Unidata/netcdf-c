@@ -77,8 +77,6 @@ NC_RO_sync,
 tst_abort,
 tst_close,
 NC_RO_set_fill,
-NC_NOTNC3_inq_base_pe,
-NC_NOTNC3_set_base_pe,
 tst_inq_format,
 tst_inq_format_extended,
 
