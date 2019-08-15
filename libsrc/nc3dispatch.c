@@ -91,8 +91,6 @@ NC3_sync,
 NC3_abort,
 NC3_close,
 NC3_set_fill,
-NC3_inq_base_pe,
-NC3_set_base_pe,
 NC3_inq_format,
 NC3_inq_format_extended,
 

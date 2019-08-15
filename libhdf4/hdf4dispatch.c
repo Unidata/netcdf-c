@@ -28,8 +28,6 @@ static const NC_Dispatch HDF4_dispatcher = {
     NC_HDF4_abort,
     NC_HDF4_close,
     NC_RO_set_fill,
-    NC_NOTNC3_inq_base_pe,
-    NC_NOTNC3_set_base_pe,
     NC_HDF4_inq_format,
     NC_HDF4_inq_format_extended,
 
