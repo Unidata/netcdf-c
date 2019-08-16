@@ -50,12 +50,6 @@ extern "C" {
     NC4_set_fill(int ncid, int fillmode, int *old_modep);
 
     EXTERNL int
-    NC4_set_base_pe(int ncid, int pe);
-
-    EXTERNL int
-    NC4_inq_base_pe(int ncid, int *pe);
-
-    EXTERNL int
     NC4_inq_format(int ncid, int *formatp);
 
     EXTERNL int

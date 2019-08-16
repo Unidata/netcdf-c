@@ -1538,39 +1538,6 @@ NC3_set_fill(int ncid,
 }
 
 /**
- * This obsolete function is retained for backward compatibility. It
- * does nothing.
- *
- * @param ncid Ignored.
- * @param pe Ignored.
- *
- * @return NC_NOERR No error.
- * @author Glenn Davis, Ed Hartnett
- */
-int
-NC3_set_base_pe(int ncid, int pe)
-{
-	return NC_NOERR;
-}
-
-/**
- * This obsolete function is retained for backward compatibility. It
- * does nothing, and always returns pe = 0.
- *
- * @param ncid Ignored.
- * @param pe Pointer to int that gets a 0. Ignored if NULL.
- *
- * @return NC_NOERR No error.
- * @author Glenn Davis, Ed Hartnett
- */
-int
-NC3_inq_base_pe(int ncid, int *pe)
-{
-	if (pe) *pe = 0;
-	return NC_NOERR;
-}
-
-/**
  * Return the file format.
  *
  * \param ncid the ID of the open file.
