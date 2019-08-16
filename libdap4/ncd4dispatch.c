@@ -118,12 +118,6 @@ NCD4_set_fill(int ncid, int fillmode, int* old_modep)
 }
 
 static int
-NCD4_set_base_pe(int ncid, int pe)
-{
-    return (NC_EPERM);
-}
-
-static int
 NCD4_def_dim(int ncid, const char* name, size_t len, int* idp)
 {
     return (NC_EPERM);
@@ -252,18 +246,6 @@ NCD4_set_var_chunk_cache(int ncid, int p2, size_t p3, size_t p4, float p5)
 Following functions basically return the netcdf-4 value WRT to the nc4id.
 However, it is necessary to modify the grpid(ncid) to point to the substrate.
 */
-
-static int
-NCD4_inq_base_pe(int ncid, int* pe)
-{
-    NC* ncp;
-    int ret = NC_NOERR;
-    int substrateid;
-    if((ret = NC_check_id(ncid, (NC**)&ncp)) != NC_NOERR) return (ret);
-    substrateid = makenc4id(ncp,ncid);
-    ret = nc_inq_base_pe(substrateid, pe);
-    return (ret);
-}
 
 static int
 NCD4_inq_format(int ncid, int* formatp)
@@ -806,8 +788,6 @@ NCD4_sync,
 NCD4_abort,
 NCD4_close,
 NCD4_set_fill,
-NCD4_inq_base_pe,
-NCD4_set_base_pe,
 NCD4_inq_format,
 NCD4_inq_format_extended, /*inq_format_extended*/
 
