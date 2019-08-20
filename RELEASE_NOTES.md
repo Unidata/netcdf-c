@@ -7,6 +7,12 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.7.1 - TBD
 
+* [Enhancement] Remove obsolete and deprecated functions
+nc_set_base_pe() and nc_inq_base_pe() from the dispatch table. (Both
+functions are still supported in the library, this is an internal
+change only.)
+See [GitHub #1436](https://github.com/Unidata/netcdf-c/issues/1468)
+ 
 * [Bug Fix] Reverted nccopy behavior so that if no -c parameters
 are given, then any default chunking is left to the netcdf-c library
 to decide.

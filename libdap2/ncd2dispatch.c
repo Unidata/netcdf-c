@@ -101,8 +101,6 @@ NCD2_sync,
 NCD2_abort,
 NCD2_close,
 NCD2_set_fill,
-NCD2_inq_base_pe,
-NCD2_set_base_pe,
 NCD2_inq_format,
 NCD2_inq_format_extended, /*inq_format_extended*/
 
@@ -2258,12 +2256,6 @@ NCD2_set_fill(int ncid, int fillmode, int* old_modep)
 }
 
 int
-NCD2_set_base_pe(int ncid, int pe)
-{
-    return THROW(NC_EPERM);
-}
-
-int
 NCD2_def_dim(int ncid, const char* name, size_t len, int* idp)
 {
     return THROW(NC_EPERM);
@@ -2286,16 +2278,6 @@ NCD2_def_var(int ncid, const char *name,
 /*
 Following functions basically return the netcdf-3 value WRT to the nc3id.
 */
-
-int
-NCD2_inq_base_pe(int ncid, int* pe)
-{
-    NC* drno;
-    int ret;
-    if((ret = NC_check_id(ncid, (NC**)&drno)) != NC_NOERR) return THROW(ret);
-    ret = nc_inq_base_pe(getnc3id(drno), pe);
-    return THROW(ret);
-}
 
 int
 NCD2_inq_format(int ncid, int* formatp)

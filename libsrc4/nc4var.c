@@ -1212,7 +1212,7 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
         case NC_FLOAT:
             for (dp = (double *)src, fp = dest; count < len; count++)
             {
-                if (*dp > X_FLOAT_MAX || *dp < X_FLOAT_MIN)
+                if (isgreater(*dp, X_FLOAT_MAX) || isless(*dp, X_FLOAT_MIN))
                     (*range_error)++;
                 *fp++ = *dp++;
             }
