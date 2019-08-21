@@ -33,54 +33,86 @@
 /* Always needed */
 #include "nc.h"
 
+/** The file ID is stored in the first two bytes of ncid. */
 #define FILE_ID_MASK (0xffff0000)
+
+/** The group ID is stored in the last two bytes of ncid. */
 #define GRP_ID_MASK (0x0000ffff)
+
+/** File and group IDs are each 16 bits of the ncid. */
 #define ID_SHIFT (16)
 
-typedef enum {GET, PUT} NC_PG_T;
+/* typedef enum {GET, PUT} NC_PG_T; */
+/** These are the different objects that can be in our hash-lists. */
 typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP} NC_SORT;
 
+/** The netCDF V2 error code. */
 #define NC_V2_ERR (-1)
 
-/* The name of the root group. */
+/** The name of the root group. */
 #define NC_GROUP_NAME "/"
 
+/** One mega-byte. */
 #define MEGABYTE 1048576
 
-/*
- * limits of the external representation
- */
-#define X_SCHAR_MIN     (-128)
-#define X_SCHAR_MAX     127
-#define X_UCHAR_MAX     255U
-#define X_SHORT_MIN     (-32768)
-#define X_SHRT_MIN      X_SHORT_MIN     /* alias compatible with limits.h */
-#define X_SHORT_MAX     32767
-#define X_SHRT_MAX      X_SHORT_MAX     /* alias compatible with limits.h */
-#define X_USHORT_MAX    65535U
-#define X_USHRT_MAX     X_USHORT_MAX    /* alias compatible with limits.h */
-#define X_INT_MIN       (-2147483647-1)
-#define X_INT_MAX       2147483647
-#define X_LONG_MIN      X_INT_MIN
-#define X_LONG_MAX      X_INT_MAX
-#define X_UINT_MAX      4294967295U
-#define X_INT64_MIN     (-9223372036854775807LL-1LL)
-#define X_INT64_MAX     9223372036854775807LL
-#define X_UINT64_MAX    18446744073709551615ULL
+#define X_SCHAR_MIN     (-128)          /**< Minimum signed char value. */
+#define X_SCHAR_MAX     127             /**< Maximum signed char value. */
+#define X_UCHAR_MAX     255U            /**< Maximum unsigned char value. */
+#define X_SHORT_MIN     (-32768)        /**< Minumum short value. */
+#define X_SHRT_MIN      X_SHORT_MIN     /**< This alias is compatible with limits.h. */
+#define X_SHORT_MAX     32767           /**< Maximum short value. */
+#define X_SHRT_MAX      X_SHORT_MAX     /**< This alias is compatible with limits.h. */
+#define X_USHORT_MAX    65535U          /**< Maximum unsigned short value. */
+#define X_USHRT_MAX     X_USHORT_MAX    /**< This alias is compatible with limits.h. */
+#define X_INT_MIN       (-2147483647-1) /**< Minimum int value. */
+#define X_INT_MAX       2147483647      /**< Maximum int value. */
+#define X_LONG_MIN      X_INT_MIN       /**< Minimum long value. */
+#define X_LONG_MAX      X_INT_MAX       /**< Maximum long value. */
+#define X_UINT_MAX      4294967295U     /**< Maximum unsigned int value. */
+#define X_INT64_MIN     (-9223372036854775807LL-1LL)  /**< Minimum int64 value. */
+#define X_INT64_MAX     9223372036854775807LL /**< Maximum int64 value. */
+#define X_UINT64_MAX    18446744073709551615ULL /**< Maximum unsigned int64 value. */
 #ifdef WIN32 /* Windows, of course, has to be a *little* different. */
 #define X_FLOAT_MAX     3.402823466e+38f
 #else
-#define X_FLOAT_MAX     3.40282347e+38f
+#define X_FLOAT_MAX     3.40282347e+38f /**< Maximum float value. */
 #endif /* WIN32 */
-#define X_FLOAT_MIN     (-X_FLOAT_MAX)
-#define X_DOUBLE_MAX    1.7976931348623157e+308
-#define X_DOUBLE_MIN    (-X_DOUBLE_MAX)
+#define X_FLOAT_MIN     (-X_FLOAT_MAX)  /**< Minimum float value. */
+#define X_DOUBLE_MAX    1.7976931348623157e+308 /**< Maximum double value. */
+#define X_DOUBLE_MIN    (-X_DOUBLE_MAX)         /**< Minimum double value. */
 
 /** This is the number of netCDF atomic types. */
 #define NUM_ATOMIC_TYPES (NC_MAX_ATOMIC_TYPE + 1)
 
 /** Number of parameters needed for ZLIB filter. */
 #define CD_NELEMS_ZLIB 1
+
+/* Define accessors for the dispatchdata */
+#define NC4_DATA(nc) ((NC_FILE_INFO_T*)(nc)->dispatchdata)
+#define NC4_DATA_SET(nc,data) ((nc)->dispatchdata = (void*)(data))
+
+/* Reserved attribute flags: must be powers of 2. */
+/* Hidden dimscale-related, per-variable attributes; immutable and
+ * unreadable thru API. */
+#define DIMSCALEFLAG 1
+
+/* Readonly global attributes; readable, but immutable thru the
+ * API. */
+#define READONLYFLAG 2
+
+/* Subset of readonly flags; readable by name only thru the API. */
+#define NAMEONLYFLAG 4
+
+/* Subset of readonly flags; Value is actually in file. */
+#define MATERIALIZEDFLAG 8
+
+/* Generic reserved Attributes */
+#define NC_ATT_REFERENCE_LIST "REFERENCE_LIST"
+#define NC_ATT_CLASS "CLASS"
+#define NC_ATT_DIMENSION_LIST "DIMENSION_LIST"
+#define NC_ATT_NAME "NAME"
+#define NC_ATT_COORDINATES COORDINATES /*defined above*/
+#define NC_ATT_FORMAT "_Format"
 
 /* Boolean type, to make the code easier to read */
 typedef enum {NC_FALSE = 0, NC_TRUE = 1} nc_bool_t;
@@ -101,12 +133,20 @@ struct NC_TYPE_INFO;
   MUST HAVE AN INSTANCE of NC_OBJ AS THE FIRST FIELD.
 */
 
-typedef struct NC_OBJ {
+typedef struct NC_OBJ
+{
     NC_SORT sort;
     char* name; /* assumed to be null terminated */
     size_t id;
     unsigned int hashkey; /* crc32(name) */
 } NC_OBJ;
+
+/* Reserved Attributes Info */
+typedef struct NC_reservedatt
+{
+    const char* name;
+    int flags;
+} NC_reservedatt;
 
 /* This is a struct to handle the dim metadata. */
 typedef struct NC_DIM_INFO
@@ -291,12 +331,14 @@ typedef struct  NC_FILE_INFO
 /* Variable Length Datatype struct in memory. Must be identical to
  * HDF5 hvl_t. (This is only used for VL sequences, not VL strings,
  * which are stored in char *'s) */
-typedef struct {
+typedef struct
+{
     size_t len; /* Length of VL data (in base type units) */
     void *p;    /* Pointer to VL data */
 } nc_hvl_t;
 
-extern const char* nc4_atomic_name[NC_MAX_ATOMIC_TYPE+1];
+/* The names of the atomic data types. */
+extern const char *nc4_atomic_name[NC_MAX_ATOMIC_TYPE + 1];
 
 /* These functions convert between netcdf and HDF5 types. */
 int nc4_get_typelen_mem(NC_FILE_INFO_T *h5, nc_type xtype, size_t *len);
@@ -396,35 +438,7 @@ extern void nc4_hdf5_finalize(void);
 int log_metadata_nc(NC_FILE_INFO_T *h5);
 #endif
 
-/* Define accessors for the dispatchdata */
-#define NC4_DATA(nc) ((NC_FILE_INFO_T*)(nc)->dispatchdata)
-#define NC4_DATA_SET(nc,data) ((nc)->dispatchdata = (void*)(data))
-
-/* Reserved Attributes Info */
-typedef struct NC_reservedatt {
-    const char* name;
-    int flags;
-} NC_reservedatt;
-
-/* Reserved attribute flags: must be powers of 2*/
-/* Hidden dimscale-related, per-variable attributes; immutable and unreadable thru API */
-#define DIMSCALEFLAG 1
-/* Readonly global attributes; readable, but immutable thru the API */
-#define READONLYFLAG 2
-/* Subset of readonly flags; readable by name only thru the API */
-#define NAMEONLYFLAG 4
-/* Subset of readonly flags; Value is actually in file */
-#define MATERIALIZEDFLAG 8
-
 /* Binary searcher for reserved attributes */
-extern const NC_reservedatt* NC_findreserved(const char* name);
-
-/* Generic reserved Attributes */
-#define NC_ATT_REFERENCE_LIST "REFERENCE_LIST"
-#define NC_ATT_CLASS "CLASS"
-#define NC_ATT_DIMENSION_LIST "DIMENSION_LIST"
-#define NC_ATT_NAME "NAME"
-#define NC_ATT_COORDINATES COORDINATES /*defined above*/
-#define NC_ATT_FORMAT "_Format"
+extern const NC_reservedatt *NC_findreserved(const char *name);
 
 #endif /* _NC4INTERNAL_ */
