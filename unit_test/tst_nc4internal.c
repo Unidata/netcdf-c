@@ -37,7 +37,8 @@ main(int argc, char **argv)
          * ncdispatch.h. */
         if(new_NC(NC3_dispatch_table, FILE_NAME, 0, &model, &ncp)) ERR;
 
-        /* Add to list of known open files and define ext_ncid. */
+        /* Add to array of open files nc_filelist and define
+         * ext_ncid by left-shifting the index 16 bits. */
         add_to_NCList(ncp);
 
         /* Create the NC_FILE_INFO_T instance associated empty lists
@@ -48,7 +49,7 @@ main(int argc, char **argv)
         if (nc4_file_list_del(ncp->ext_ncid)) ERR;
 
         /* Delete the ncp from the list. (In fact, just null out its
-         * entry in the array of file slots. */
+         * entry in the array of file slots.) */
         del_from_NCList(ncp); /* Will free empty list. */
 
         /* Now free the NC struct. */
