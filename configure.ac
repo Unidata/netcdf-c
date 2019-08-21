@@ -184,6 +184,14 @@ if test "x$enable_jna" = xyes ; then
 AC_DEFINE([JNA], [1], [if true, include jna bug workaround code])
 fi
 
+# Does the user want to turn off unit tests (useful for test coverage
+# analysis).
+AC_ARG_ENABLE([unit-tests],
+  [AS_HELP_STRING([--disable-unit-tests],
+    [Disable tests in unit_test directory. Other tests still run.])])
+test "x$enable_unit_tests" = xno || enable_unit_tests=yes
+AM_CONDITIONAL([BUILD_UNIT_TESTS], [test "x$enable_unit_tests" = xyes])
+
 # Does the user want to build netcdf-4?
 AC_MSG_CHECKING([whether we should build netCDF-4])
 AC_ARG_ENABLE([netcdf-4], [AS_HELP_STRING([--disable-netcdf-4],
@@ -1536,6 +1544,7 @@ AC_CONFIG_FILES([Makefile
                  ncdump/expected/Makefile
                  docs/Makefile
                  docs/images/Makefile
+                 unit_test/Makefile
                  nctest/Makefile
                  nc_test4/Makefile
                  nc_perf/Makefile

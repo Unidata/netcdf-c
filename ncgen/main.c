@@ -244,11 +244,6 @@ main(
 #endif
     memset(&globalspecials,0,sizeof(GlobalSpecialData));
 
-#if _CRAYMPP && 0
-    /* initialize CRAY MPP parallel-I/O library */
-    (void) par_io_init(32, 32);
-#endif
-
     while ((c = getopt(argc, argv, "134567bB:cdD:fhHk:l:M:no:Pv:xL:N:")) != EOF)
       switch(c) {
 	case 'd':

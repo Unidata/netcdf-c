@@ -10,10 +10,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#if defined(LOCKNUMREC) /* && _CRAYMPP */
-#  include <mpp/shmem.h>
-#  include <intrinsics.h>
-#endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -47,11 +43,7 @@ free_NC3INFO(NC3_INFO *nc3)
 	free_NC_dimarrayV(&nc3->dims);
 	free_NC_attrarrayV(&nc3->attrs);
 	free_NC_vararrayV(&nc3->vars);
-#if _CRAYMPP && defined(LOCKNUMREC)
-	shfree(nc3);
-#else
 	free(nc3);
-#endif /* _CRAYMPP && LOCKNUMREC */
 }
 
 static NC3_INFO *
@@ -948,21 +940,6 @@ NC_endef(NC3_INFO *ncp,
 	return ncio_sync(ncp->nciop);
 }
 
-#ifdef LOCKNUMREC
-static int
-NC_init_pe(NC *ncp, int basepe) {
-	if (basepe < 0 || basepe >= _num_pes()) {
-		return NC_EINVAL; /* invalid base pe */
-	}
-	/* initialize common values */
-	ncp->lock[LOCKNUMREC_VALUE] = 0;
-	ncp->lock[LOCKNUMREC_LOCK] = 0;
-	ncp->lock[LOCKNUMREC_SERVING] = 0;
-	ncp->lock[LOCKNUMREC_BASEPE] =  basepe;
-	return NC_NOERR;
-}
-#endif
-
 
 /*
  * Compute the expected size of the file.
@@ -1017,11 +994,7 @@ int NC3_new_nc(NC3_INFO** ncpp)
 	NC *nc;
 	NC3_INFO* nc3;
 
-#if _CRAYMPP && defined(LOCKNUMREC)
-	ncp = (NC *) shmalloc(sizeof(NC));
-#else
 	ncp = (NC *) malloc(sizeof(NC));
-#endif /* _CRAYMPP && LOCKNUMREC */
 	if(ncp == NULL)
 		return NC_ENOMEM;
 	(void) memset(ncp, 0, sizeof(NC));
@@ -1058,20 +1031,13 @@ NC3_create(const char *path, int ioflags, size_t initialsz, int basepe,
 	fSet(ioflags, NC_SHARE);
 #endif
 
-#if defined(LOCKNUMREC) /* && _CRAYMPP */
-	if (status = NC_init_pe(nc3, basepe)) {
-		return status;
-	}
-#else
 	/*
-	 * !_CRAYMPP, only pe 0 is valid
+	 * Only pe 0 is valid
 	 */
 	if(basepe != 0) {
-      if(nc3) free(nc3);
-      return NC_EINVAL;
-    }
-#endif
-
+            if(nc3) free(nc3);
+            return NC_EINVAL;
+        }
 	assert(nc3->flags == 0);
 
 	/* Now we can set min size */
@@ -1193,23 +1159,17 @@ NC3_open(const char *path, int ioflags, int basepe, size_t *chunksizehintp,
 	fSet(ioflags, NC_SHARE);
 #endif
 
-#if defined(LOCKNUMREC) /* && _CRAYMPP */
-	if (status = NC_init_pe(nc3, basepe)) {
-	    goto unwind_alloc;
-	}
-#else
 	/*
-	 * !_CRAYMPP, only pe 0 is valid
+	 * Only pe 0 is valid.
 	 */
 	if(basepe != 0) {
-      if(nc3) {
-        free(nc3);
-        nc3 = NULL;
-      }
-      status = NC_EINVAL;
-      goto unwind_alloc;
-    }
-#endif
+            if(nc3) {
+                free(nc3);
+                nc3 = NULL;
+            }
+            status = NC_EINVAL;
+            goto unwind_alloc;
+        }
 
 #ifdef ENABLE_BYTERANGE
     /* If the model specified the use of byte-ranges, then signal by
@@ -1577,37 +1537,6 @@ NC3_set_fill(int ncid,
 	return NC_NOERR;
 }
 
-#ifdef LOCKNUMREC
-
-/* create function versions of the NC_*_numrecs macros */
-size_t
-NC_get_numrecs(const NC *nc3) {
-	shmem_t numrec;
-	shmem_short_get(&numrec, (shmem_t *) nc3->lock + LOCKNUMREC_VALUE, 1,
-		nc3->lock[LOCKNUMREC_BASEPE]);
-	return (size_t) numrec;
-}
-
-void
-NC_set_numrecs(NC *nc3, size_t nrecs)
-{
-    shmem_t numrec = (shmem_t) nrecs;
-    /* update local value too */
-    nc3->lock[LOCKNUMREC_VALUE] = (ushmem_t) numrec;
-    shmem_short_put((shmem_t *) nc3->lock + LOCKNUMREC_VALUE, &numrec, 1,
-    nc3->lock[LOCKNUMREC_BASEPE]);
-}
-
-void NC_increase_numrecs(NC *nc3, size_t nrecs)
-{
-    /* this is only called in one place that's already protected
-     * by a lock ... so don't worry about it */
-    if (nrecs > NC_get_numrecs(nc3))
-	NC_set_numrecs(nc3, nrecs);
-}
-
-#endif /* LOCKNUMREC */
-
 /**
  * Return the file format.
  *
@@ -1719,7 +1648,18 @@ NC3_inq_type(int ncid, nc_type typeid, char *name, size_t *size)
    return NC_NOERR;
 }
 
-/**************************************************/
+/**
+ * This is an obsolete form of nc_delete(), supported for backwards
+ * compatibility.
+ *
+ * @param path Filename to delete.
+ * @param basepe Must be 0.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EIO Couldn't delete file.
+ * @return ::NC_EINVAL Invaliod basepe. Must be 0.
+ * @author Glenn Davis, Ed Hartnett
+ */
 int
 nc_delete_mp(const char * path, int basepe)
 {
@@ -1733,17 +1673,11 @@ nc_delete_mp(const char * path, int basepe)
 	status = NC_check_id(ncid,&nc);
         if(status) return status;
 
-#if defined(LOCKNUMREC) /* && _CRAYMPP */
-	if (status = NC_init_pe(nc3, basepe)) {
-		return status;
-	}
-#else
 	/*
-	 * !_CRAYMPP, only pe 0 is valid
+	 * Only pe 0 is valid.
 	 */
 	if(basepe != 0)
 		return NC_EINVAL;
-#endif
 
 	(void) nc_close(ncid);
 	if(unlink(path) == -1) {
