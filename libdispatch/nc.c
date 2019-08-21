@@ -68,10 +68,11 @@ free_NC(NC *ncp)
 /**
  * Create and initialize a new NC struct. The ncid is assigned later.
  *
- * @param dispatcher
+ * @param dispatcher An pointer to the NC_Dispatch table that should
+ * be used by this NC.
  * @param path The name of the file.
  * @param mode The open or create mode.
- * @param model
+ * @param model An NCmodel instance, provided by NC_infermodel().
  * @param ncpp A pointer that gets a pointer to the newlly allocacted
  * and initialized NC struct.
  *
