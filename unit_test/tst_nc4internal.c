@@ -18,6 +18,7 @@
 #define TEST_VAL_42 42
 
 #define FILE_NAME "tst_nc4internal.nc"
+#define VAR_NAME "Hilary_Duff"
 
 int
 main(int argc, char **argv)
@@ -133,6 +134,58 @@ main(int argc, char **argv)
         if (grp2->nc4_info->controller->ext_ncid != ncp->ext_ncid) ERR;
 
         /* Delete the NC_FILE_INFO_T and related storage. */
+        if (nc4_file_list_del(ncp->ext_ncid)) ERR;
+
+        /* Delete the ncp from the list. (In fact, just null out its
+         * entry in the array of file slots.) */
+        del_from_NCList(ncp); /* Will free empty list. */
+
+        /* Now free the NC struct. */
+        free_NC(ncp);
+    }
+    SUMMARIZE_ERR;
+    printf("Testing adding new var to nc4internal file...");
+    {
+        NC *ncp, *ncp_in;
+        NCmodel model;
+        NC_GRP_INFO_T *grp;
+        NC_VAR_INFO_T *var, *var_in;
+        NC_FILE_INFO_T *h5;
+
+        /* Create the NC* instance and insert its dispatcher and
+         * model. */
+        if (new_NC(NC3_dispatch_table, FILE_NAME, 0, &model, &ncp)) ERR;
+
+        /* Add to array of open files nc_filelist and define
+         * ext_ncid by left-shifting the index 16 bits. */
+        add_to_NCList(ncp);
+
+        /* Create the NC_FILE_INFO_T instance associated empty lists
+         * to hold dims, types, groups, and the root group. */
+        if (nc4_file_list_add(ncp->ext_ncid, FILE_NAME, 0, NULL)) ERR;
+
+        /* Find the file in the list. */
+        if (nc4_find_nc_grp_h5(ncp->ext_ncid, &ncp_in, &grp, &h5)) ERR;
+        if (ncp_in->ext_ncid != ncp->ext_ncid) ERR;
+
+        /* Add a var to the varlist. */
+        if (nc4_var_list_add(grp, VAR_NAME, 0, &var)) ERR;
+
+        /* Find the var. */
+        if (nc4_find_var(grp, VAR_NAME, &var_in)) ERR;
+        if (strcmp(var_in->hdr.name, var->hdr.name)) ERR;
+
+        /* Find it again. */
+        h5 = NULL;
+        grp = NULL;
+        var_in = NULL;
+        if (nc4_find_grp_h5_var(ncp->ext_ncid, 0, &h5, &grp, &var_in)) ERR;
+        if (h5->controller->ext_ncid != ncp->ext_ncid) ERR;
+        if (grp->nc4_info->controller->ext_ncid != ncp->ext_ncid) ERR;
+        if (strcmp(var_in->hdr.name, var->hdr.name)) ERR;
+
+        /* Delete the NC_FILE_INFO_T and related storage, including
+         * all vars, dims, types, etc. */
         if (nc4_file_list_del(ncp->ext_ncid)) ERR;
 
         /* Delete the ncp from the list. (In fact, just null out its
