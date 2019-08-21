@@ -125,30 +125,30 @@ nc4_file_list_add(int ncid, const char *path, int mode, void **dispatchdata)
     return NC_NOERR;
 }
 
-/**
- * @internal Change the ncid of an open file. This is needed for PIO
- * integration.
- *
- * @param ncid The ncid of the file (aka ext_ncid).
- * @param new_ncid The new ncid to use.
- *
- * @return ::NC_NOERR No error.
- * @return ::NC_EBADID No NC struct with this ext_ncid.
- * @return ::NC_ENOMEM Out of memory.
- * @author Ed Hartnett
- */
-int
-nc4_file_change_ncid(int ncid, int new_ncid)
-{
-    NC *nc;
-    int ret;
+/* /\** */
+/*  * @internal Change the ncid of an open file. This is needed for PIO */
+/*  * integration. */
+/*  * */
+/*  * @param ncid The ncid of the file (aka ext_ncid). */
+/*  * @param new_ncid The new ncid to use. */
+/*  * */
+/*  * @return ::NC_NOERR No error. */
+/*  * @return ::NC_EBADID No NC struct with this ext_ncid. */
+/*  * @return ::NC_ENOMEM Out of memory. */
+/*  * @author Ed Hartnett */
+/*  *\/ */
+/* int */
+/* nc4_file_change_ncid(int ncid, int new_ncid) */
+/* { */
+/*     NC *nc; */
+/*     int ret; */
 
-    /* Find NC pointer for this file. */
-    if ((ret = NC_check_id(ncid, &nc)))
-        return ret;
+/*     /\* Find NC pointer for this file. *\/ */
+/*     if ((ret = NC_check_id(ncid, &nc))) */
+/*         return ret; */
 
-    return NC_NOERR;
-}
+/*     return NC_NOERR; */
+/* } */
 
 /**
  * @internal Get info about a file on the list of libsrc4 open
