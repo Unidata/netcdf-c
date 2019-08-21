@@ -7,6 +7,13 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.7.1 - TBD
 
+* [Bug Fix] Remove obsolete _CRAYMPP and LOCKNUMREC macros from
+code. Also brought documentation up to date in man page. These macros
+were used in ancient times, before modern parallel I/O systems were
+developed. Programmers interested in parallel I/O should see
+nc_open_par() and nc_create_par().
+See [GitHub #1436](https://github.com/Unidata/netcdf-c/issues/1459)
+
 * [Enhancement] Remove obsolete and deprecated functions
 nc_set_base_pe() and nc_inq_base_pe() from the dispatch table. (Both
 functions are still supported in the library, this is an internal

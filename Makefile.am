@@ -21,6 +21,11 @@ test-driver-verbose test_common.in
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = netcdf.pc
 
+# Does the user want to build and run unit tests?
+if BUILD_UNIT_TESTS
+UNIT_TEST = unit_test
+endif # BUILD_UNIT_TESTS
+
 # Does the user want to build the V2 API?
 if BUILD_V2
 V2_TEST = nctest
@@ -85,8 +90,8 @@ endif # BUILD_BENCHMARKS
 
 # Define Test directories
 if BUILD_TESTSETS
-TESTDIRS = $(V2_TEST) nc_test $(NC_TEST4) $(BENCHMARKS_DIR)	\
-$(HDF4_TEST_DIR) $(NCDAP2TESTDIR) $(NCDAP4TESTDIR)
+TESTDIRS = $(UNIT_TEST) $(V2_TEST) nc_test $(NC_TEST4)			\
+$(BENCHMARKS_DIR) $(HDF4_TEST_DIR) $(NCDAP2TESTDIR) $(NCDAP4TESTDIR)
 endif
 
 # This is the list of subdirs for which Makefiles will be constructed
