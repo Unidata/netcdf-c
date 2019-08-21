@@ -23,10 +23,14 @@ int
 main(int argc, char **argv)
 {
     printf("\n*** Testing netcdf nc4internal functions.\n");
-    printf("Testing adding new file to nc4internal file lists...");
+    printf("Testing adding new file to nc4internal file lists with "
+           "nc4_file_list_add()...");
     {
         NC *ncp;
         NCmodel model;
+        char path[NC_MAX_NAME + 1];
+        void *dispatchdata;
+        int mode;
 
         /* This won't work because there is no NC in the NC list which
          * has an ncid of TEST_VAL_42. */
@@ -45,6 +49,13 @@ main(int argc, char **argv)
          * to hold dims, types, groups, and the root group. */
         if (nc4_file_list_add(ncp->ext_ncid, FILE_NAME, 0, NULL)) ERR;
 
+        /* Find the file in the list. */
+        if (nc4_file_list_get(ncp->ext_ncid, NULL, &mode, &dispatchdata)) ERR;
+        /* if (nc4_file_list_get(ncp->ext_ncid, (char **)&path, &mode, &dispatchdata)) ERR; */
+
+        /* This won't work. */
+        if (nc4_file_list_del(TEST_VAL_42) != NC_EBADID) ERR;
+
         /* Delete the NC_FILE_INFO_T and related storage. */
         if (nc4_file_list_del(ncp->ext_ncid)) ERR;
 
@@ -54,6 +65,11 @@ main(int argc, char **argv)
 
         /* Now free the NC struct. */
         free_NC(ncp);
+    }
+    SUMMARIZE_ERR;
+    printf("Testing adding new file to nc4internal file lists with "
+           "nc4_nc4f_list_add()...");
+    {
     }
     SUMMARIZE_ERR;
     /* printf("Testing changing ncid..."); */
