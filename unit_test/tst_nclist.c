@@ -46,7 +46,12 @@ main(int argc, char **argv)
         /* Nothing to find yet. */
         if (find_in_NCList(TEST_VAL_42)) ERR;
 
-        /* Add to list of known open files and define ext_ncid. */
+        /* Add to list of known open files and define ext_ncid. To get
+         * the ncid, we find the first open index > 1 in the
+         * nc_filelist array, which has a size of 65536. Then we
+         * left-shift that index 16 bits to put it in the first
+         * 2-bytes of the 4-byte ncid. (The other two bytes are
+         * reserved for grpid of netCDF-4 groups.) */
         add_to_NCList(ncp);
 
         /* These won't work! */
