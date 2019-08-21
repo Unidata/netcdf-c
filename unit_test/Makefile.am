@@ -21,5 +21,7 @@ endif # USE_NETCDF4
 check_PROGRAMS = tst_nclist $(NC4_TESTS)
 TESTS = tst_nclist $(NC4_TESTS)
 
+EXTRA_DIST = CMakeLists.txt
+
 # If valgrind is present, add valgrind targets.
 @VALGRIND_CHECK_RULES@

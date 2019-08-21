@@ -90,5 +90,3 @@ IF(TEST_PARALLEL4)
   build_bin_test(tst_simplerw_coll_r)
   add_sh_test(nc_test4 run_par_test)
 ENDIF()
-
-ADD_EXTRA_DIST(findplugin.in run_par_test.sh.in)
