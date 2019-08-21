@@ -341,6 +341,7 @@ int nc4_file_list_add(int ncid, const char *path, int mode,
 int nc4_file_list_get(int ncid, char **path, int *mode,
                       void **dispatchdata);
 int nc4_file_list_del(int ncid);
+int nc4_file_change_ncid(int ncid, int new_ncid);
 int nc4_var_list_add(NC_GRP_INFO_T* grp, const char* name, int ndims,
                      NC_VAR_INFO_T **var);
 int nc4_var_list_add2(NC_GRP_INFO_T* grp, const char* name,
