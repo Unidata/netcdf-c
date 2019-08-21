@@ -29,7 +29,7 @@ main(int argc, char **argv)
         NC *ncp;
         NCmodel model;
         char *path;
-        void *dispatchdata;
+        void *dispatchdata, *disspatchdata_in;
         int mode = 0, mode_in;
 
         /* This won't work because there is no NC in the NC list which
@@ -50,12 +50,12 @@ main(int argc, char **argv)
         if (nc4_file_list_add(ncp->ext_ncid, FILE_NAME, mode, NULL)) ERR;
 
         /* Find the file in the list. */
-        /* if (nc4_file_list_get(ncp->ext_ncid, NULL, &mode, &dispatchdata)) ERR; */
-        path = malloc(NC_MAX_NAME + 1);
-        if (nc4_file_list_get(ncp->ext_ncid, &path, &mode_in, &dispatchdata)) ERR;
+        if (!(path = malloc(NC_MAX_NAME + 1))) ERR;
+        if (nc4_file_list_get(ncp->ext_ncid, &path, &mode_in, &dispatchdata_in)) ERR;
         if (strcmp(path, FILE_NAME)) ERR;
-        if (mode_in != mode) ERR;
         free(path);
+        if (mode_in != mode) ERR;
+        if (dispatchdata_in != dispatchdata) ERR;
 
         /* This won't work. */
         if (nc4_file_list_del(TEST_VAL_42) != NC_EBADID) ERR;
