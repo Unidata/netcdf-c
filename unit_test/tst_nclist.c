@@ -16,6 +16,8 @@
 /* An integer value to use in testing. */
 #define TEST_VAL_42 42
 
+#define FILE_NAME "tst_nclist.nc"
+
 int
 main(int argc, char **argv)
 {
@@ -36,11 +38,10 @@ main(int argc, char **argv)
         NC *ncp, *ncp2;
         int mode = 0;
         NCmodel model;
-        char path[] = {"file.nc"};
         int ret;
 
         /* Create the NC* instance and insert its dispatcher and model. */
-        if ((ret = new_NC(NULL, path, mode, &model, &ncp))) ERR;
+        if ((ret = new_NC(NULL, FILE_NAME, mode, &model, &ncp))) ERR;
 
         /* Nothing to find yet. */
         if (find_in_NCList(TEST_VAL_42)) ERR;
@@ -55,7 +56,7 @@ main(int argc, char **argv)
 
         /* Find it in the list. */
         if (!(ncp2 = find_in_NCList(ncp->ext_ncid))) ERR;
-        if (!(ncp2 = find_in_NCList_by_name(path))) ERR;
+        if (!(ncp2 = find_in_NCList_by_name(FILE_NAME))) ERR;
         if ((ret = iterate_NCList(1, &ncp2))) ERR;
         if (count_NCList() != 1) ERR;
 
@@ -66,6 +67,8 @@ main(int argc, char **argv)
         ncid = ncp->ext_ncid;
         del_from_NCList(ncp); /* Will free empty list. */
         free_NC(ncp);
+
+        /* Ensure it is no longer in list. */
         if (find_in_NCList(ncid)) ERR;
     }
     SUMMARIZE_ERR;
@@ -76,7 +79,6 @@ main(int argc, char **argv)
         NC *ncp;
         int mode = 0;
         NCmodel model;
-        char path[] = {"file.nc"};
         int max_num_nc = 65535;
         int i;
         int ret;
@@ -84,7 +86,7 @@ main(int argc, char **argv)
         /* Fill the NC list. */
         for (i = 0; i < max_num_nc; i++)
         {
-            if ((ret = new_NC(NULL, path, mode, &model, &ncp))) ERR;
+            if ((ret = new_NC(NULL, FILE_NAME, mode, &model, &ncp))) ERR;
             if (add_to_NCList(ncp)) ERR;
         }
 

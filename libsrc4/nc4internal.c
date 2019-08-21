@@ -89,7 +89,7 @@ nc4_check_name(const char *name, char *norm_name)
  * nc4_nc4f_list_add(), except it takes an ncid instead of an NC *,
  * and also passes back the dispatchdata pointer.
  *
- * @param ncid The ncid of the file (aka ext_ncid).
+ * @param ncid The (already-assigned) ncid of the file (aka ext_ncid).
  * @param path The file name of the new file.
  * @param mode The mode flag.
  * @param dispatchdata Void * that gets pointer to dispatch data,
@@ -121,6 +121,31 @@ nc4_file_list_add(int ncid, const char *path, int mode, void **dispatchdata)
      * it. */
     if (dispatchdata)
         *dispatchdata = nc->dispatchdata;
+
+    return NC_NOERR;
+}
+
+/**
+ * @internal Change the ncid of an open file. This is needed for PIO
+ * integration.
+ *
+ * @param ncid The ncid of the file (aka ext_ncid).
+ * @param new_ncid The new ncid to use.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID No NC struct with this ext_ncid.
+ * @return ::NC_ENOMEM Out of memory.
+ * @author Ed Hartnett
+ */
+int
+nc4_file_change_ncid(int ncid, int new_ncid)
+{
+    NC *nc;
+    int ret;
+
+    /* Find NC pointer for this file. */
+    if ((ret = NC_check_id(ncid, &nc)))
+        return ret;
 
     return NC_NOERR;
 }
