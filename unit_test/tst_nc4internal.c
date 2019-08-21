@@ -28,9 +28,9 @@ main(int argc, char **argv)
     {
         NC *ncp;
         NCmodel model;
-        char path[NC_MAX_NAME + 1];
+        char *path;
         void *dispatchdata;
-        int mode;
+        int mode = 0, mode_in;
 
         /* This won't work because there is no NC in the NC list which
          * has an ncid of TEST_VAL_42. */
@@ -39,7 +39,7 @@ main(int argc, char **argv)
         /* Create the NC* instance and insert its dispatcher and
          * model. The NC3_dispatch_table is defined in
          * ncdispatch.h. */
-        if(new_NC(NC3_dispatch_table, FILE_NAME, 0, &model, &ncp)) ERR;
+        if(new_NC(NC3_dispatch_table, FILE_NAME, mode, &model, &ncp)) ERR;
 
         /* Add to array of open files nc_filelist and define
          * ext_ncid by left-shifting the index 16 bits. */
@@ -47,11 +47,15 @@ main(int argc, char **argv)
 
         /* Create the NC_FILE_INFO_T instance associated empty lists
          * to hold dims, types, groups, and the root group. */
-        if (nc4_file_list_add(ncp->ext_ncid, FILE_NAME, 0, NULL)) ERR;
+        if (nc4_file_list_add(ncp->ext_ncid, FILE_NAME, mode, NULL)) ERR;
 
         /* Find the file in the list. */
-        if (nc4_file_list_get(ncp->ext_ncid, NULL, &mode, &dispatchdata)) ERR;
-        /* if (nc4_file_list_get(ncp->ext_ncid, (char **)&path, &mode, &dispatchdata)) ERR; */
+        /* if (nc4_file_list_get(ncp->ext_ncid, NULL, &mode, &dispatchdata)) ERR; */
+        path = malloc(NC_MAX_NAME + 1);
+        if (nc4_file_list_get(ncp->ext_ncid, &path, &mode_in, &dispatchdata)) ERR;
+        if (strcmp(path, FILE_NAME)) ERR;
+        if (mode_in != mode) ERR;
+        free(path);
 
         /* This won't work. */
         if (nc4_file_list_del(TEST_VAL_42) != NC_EBADID) ERR;
