@@ -76,11 +76,13 @@ main(int argc, char **argv)
     printf("Testing adding new file to nc4internal file lists with "
            "nc4_nc4f_list_add()...");
     {
-        NC *ncp;
+        NC *ncp, *ncp_in, *ncp_in2;
         NCmodel model;
         char *path;
         void *dispatchdata_in;
         int mode = 0, mode_in;
+        NC_GRP_INFO_T *grp, *grp2;
+        NC_FILE_INFO_T *h5, *h52;
 
         /* Create the NC* instance and insert its dispatcher and
          * model. */
@@ -101,8 +103,34 @@ main(int argc, char **argv)
         free(path);
         if (mode_in != mode) ERR;
 
-        /* This won't work. */
-        if (nc4_file_list_del(TEST_VAL_42) != NC_EBADID) ERR;
+        /* Find it again. */
+        if (nc4_find_nc_grp_h5(ncp->ext_ncid, &ncp_in, &grp, &h5)) ERR;
+        if (ncp_in->ext_ncid != ncp->ext_ncid) ERR;
+        if (grp->nc4_info->controller->ext_ncid != ncp->ext_ncid) ERR;
+        if (h5->controller->ext_ncid != ncp->ext_ncid) ERR;
+
+        /* Any of the pointer parameters may be NULL. */
+        if (nc4_find_nc_grp_h5(ncp->ext_ncid, NULL, NULL, NULL)) ERR;
+        if (nc4_find_nc_grp_h5(ncp->ext_ncid, &ncp_in2, NULL, NULL)) ERR;
+        if (ncp_in2->ext_ncid != ncp->ext_ncid) ERR;
+        if (nc4_find_nc_grp_h5(ncp->ext_ncid, NULL, &grp2, NULL)) ERR;
+        if (grp2->nc4_info->controller->ext_ncid != ncp->ext_ncid) ERR;
+        if (nc4_find_nc_grp_h5(ncp->ext_ncid, NULL, NULL, &h52)) ERR;
+        if (h52->controller->ext_ncid != ncp->ext_ncid) ERR;
+
+        /* There are additional functions which use the NULL
+         * parameters of nc4_find_nc_grp_h5(). */
+        grp2 = NULL;
+        h52 = NULL;
+        if (nc4_find_grp_h5(ncp->ext_ncid, NULL, NULL)) ERR;
+        if (nc4_find_grp_h5(ncp->ext_ncid, &grp2, NULL)) ERR;
+        if (grp2->nc4_info->controller->ext_ncid != ncp->ext_ncid) ERR;
+        if (nc4_find_grp_h5(ncp->ext_ncid, NULL, &h52)) ERR;
+        if (h52->controller->ext_ncid != ncp->ext_ncid) ERR;
+        grp2 = NULL;
+        if (nc4_find_nc4_grp(ncp->ext_ncid, NULL)) ERR;
+        if (nc4_find_nc4_grp(ncp->ext_ncid, &grp2)) ERR;
+        if (grp2->nc4_info->controller->ext_ncid != ncp->ext_ncid) ERR;
 
         /* Delete the NC_FILE_INFO_T and related storage. */
         if (nc4_file_list_del(ncp->ext_ncid)) ERR;
