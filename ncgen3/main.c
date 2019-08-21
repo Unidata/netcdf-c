@@ -114,11 +114,6 @@ main(
     cmode_modifier = 0;
     nofill_flag = 0;
 
-#if _CRAYMPP && 0
-    /* initialize CRAY MPP parallel-I/O library */
-    (void) par_io_init(32, 32);
-#endif
-
     while ((c = getopt(argc, argv, "bcfk:l:no:v:x")) != EOF)
       switch(c) {
 	case 'c':		/* for c output, old version of "-lc" */
