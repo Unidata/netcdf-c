@@ -151,9 +151,9 @@ nc4_file_change_ncid(int ncid, int new_ncid)
 }
 
 /**
- * @internal Get info about a file on the list of libsrc4 open files. This is
- * used by dispatch layers that wish to use the libsrc4 metadata
- * model, but don't know about struct NC.
+ * @internal Get info about a file on the list of libsrc4 open
+ * files. This is used by dispatch layers that wish to use the libsrc4
+ * metadata model, but don't know about struct NC.
  *
  * @param ncid The ncid of the file (aka ext_ncid).
  * @param path A pointer that gets file name (< NC_MAX_NAME). Igored
@@ -237,7 +237,7 @@ nc4_nc4f_list_add(NC *nc, const char *path, int mode)
 
     /* There's always at least one open group - the root
      * group. Allocate space for one group's worth of information. Set
-     * its hdf id, name, and a pointer to it's file structure. */
+     * its grp id, name, and allocate associated empty lists. */
     if ((retval = nc4_grp_list_add(h5, NULL, NC_GROUP_NAME, &h5->root_grp)))
         return retval;
 
