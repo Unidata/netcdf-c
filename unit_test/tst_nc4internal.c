@@ -19,6 +19,12 @@
 
 #define FILE_NAME "tst_nc4internal.nc"
 #define VAR_NAME "Hilary_Duff"
+#define DIM_NAME "Foggy"
+#define DIM_LEN 5
+#define TYPE_NAME "Madonna"
+#define TYPE_SIZE TEST_VAL_42
+#define FIELD_NAME "Britany_Spears"
+#define FIELD_OFFSET 9
 
 int
 main(int argc, char **argv)
@@ -193,6 +199,69 @@ main(int argc, char **argv)
         del_from_NCList(ncp); /* Will free empty list. */
 
         /* Now free the NC struct. */
+        free_NC(ncp);
+    }
+    SUMMARIZE_ERR;
+    printf("Testing adding new dim to nc4internal file...");
+    {
+        NC *ncp;
+        NCmodel model;
+        NC_GRP_INFO_T *grp, *dim_grp;
+        NC_DIM_INFO_T *dim, *dim_in;
+
+        /* Create the NC, add it to nc_filelist array, add and init
+         * NC_FILE_INFO_T. */
+        if (new_NC(NC3_dispatch_table, FILE_NAME, 0, &model, &ncp)) ERR;
+        add_to_NCList(ncp);
+        if (nc4_file_list_add(ncp->ext_ncid, FILE_NAME, 0, NULL)) ERR;
+        if (nc4_find_nc_grp_h5(ncp->ext_ncid, NULL, &grp, NULL)) ERR;
+
+        /* Add a dim. */
+        if (nc4_dim_list_add(grp, DIM_NAME, DIM_LEN, 0, &dim)) ERR;
+
+        /* Find the dim. */
+        if (nc4_find_dim(grp, 0, &dim_in, &dim_grp)) ERR;
+        if (strcmp(dim_in->hdr.name, dim->hdr.name)) ERR;
+        if (strcmp(dim_grp->hdr.name, grp->hdr.name)) ERR;
+        dim_in = NULL;
+        if (nc4_find_dim(grp, 0, &dim_in, NULL)) ERR;
+        if (strcmp(dim_in->hdr.name, dim->hdr.name)) ERR;
+
+        /* Release resources. */
+        if (nc4_file_list_del(ncp->ext_ncid)) ERR;
+        del_from_NCList(ncp);
+        free_NC(ncp);
+    }
+    SUMMARIZE_ERR;
+    printf("Testing adding new type to nc4internal file...");
+    {
+        NC *ncp;
+        NCmodel model;
+        NC_GRP_INFO_T *grp;
+        NC_TYPE_INFO_T *type, *type_in;
+        NC_FILE_INFO_T *h5;
+
+        /* Create the NC, add it to nc_filelist array, add and init
+         * NC_FILE_INFO_T. */
+        if (new_NC(NC3_dispatch_table, FILE_NAME, 0, &model, &ncp)) ERR;
+        add_to_NCList(ncp);
+        if (nc4_file_list_add(ncp->ext_ncid, FILE_NAME, 0, NULL)) ERR;
+        if (nc4_find_nc_grp_h5(ncp->ext_ncid, NULL, &grp, &h5)) ERR;
+
+        /* Add a type. */
+        if (nc4_type_list_add(grp, TYPE_SIZE, TYPE_NAME, &type)) ERR;
+
+        /* Add a field to the type. */
+        /* if (nc4_field_list_add(type, FIELD_NAME, FIELD_OFFSET, NC_INT, 0, */
+        /*                        NULL)) ERR; */
+
+        /* Find it. */
+        if (nc4_find_type(h5, type->hdr.id, &type_in)) ERR;
+        if (strcmp(type_in->hdr.name, type->hdr.name)) ERR;
+
+        /* Release resources. */
+        if (nc4_file_list_del(ncp->ext_ncid)) ERR;
+        del_from_NCList(ncp);
         free_NC(ncp);
     }
     SUMMARIZE_ERR;
