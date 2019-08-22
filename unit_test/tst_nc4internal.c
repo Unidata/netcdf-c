@@ -271,7 +271,7 @@ main(int argc, char **argv)
         NCmodel model;
         NC_GRP_INFO_T *grp;
         NC_FILE_INFO_T *h5;
-        int new_ncid;
+        int old_ncid;
 
         /* Create the NC, add it to nc_filelist array, add and init
          * NC_FILE_INFO_T. */
@@ -281,8 +281,11 @@ main(int argc, char **argv)
         if (nc4_find_nc_grp_h5(ncp->ext_ncid, NULL, &grp, &h5)) ERR;
 
         /* Change the ncid. */
-        new_ncid = TEST_VAL_42 << ID_SHIFT;
-        if (nc4_file_change_ncid(ncp->ext_ncid, new_ncid)) ERR;
+        old_ncid = ncp->ext_ncid;
+        if (nc4_file_change_ncid(ncp->ext_ncid, TEST_VAL_42)) ERR;
+
+        /* Can't find old ncid. */
+        if (nc4_find_nc_grp_h5(old_ncid, NULL, NULL, NULL) != NC_EBADID) ERR;
 
         /* Delete it. */
         if (nc4_file_list_del(ncp->ext_ncid)) ERR;
