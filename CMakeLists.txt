@@ -936,6 +936,13 @@ IF(ENABLE_TESTS)
   OPTION(ENABLE_FAILING_TESTS "Run tests which are known to fail, check to see if any have been fixed." OFF)
 
   ###
+  # Option to turn on unit testing. See https://github.com/Unidata/netcdf-c/pull/1472 for more information.
+  # Currently (August 21, 2019): Will not work with Visual Studio
+  ###
+  IF(NOT MSVC)
+    OPTION(ENABLE_UNIT_TESTS "Run Unit Tests." ON)
+  ENDIF(NOT MSVC)
+  ###
   # End known-failures.
   ###
   MARK_AS_ADVANCED(ENABLE_FAILING_TESTS)
@@ -1621,6 +1628,7 @@ MACRO(print_conf_summary)
     MESSAGE(STATUS "Parallel Tests:    ${ENABLE_PARALLEL_TESTS}")
     MESSAGE(STATUS "Large File Tests:  ${ENABLE_LARGE_FILE_TESTS}")
     MESSAGE(STATUS "Extreme Numbers:   ${ENABLE_EXTREME_NUMBERS}")
+    MESSAGE(STATUS "Unit Tests:        ${ENABLE_UNIT_TESTS}")
   ENDIF()
 
   MESSAGE("")
@@ -1794,6 +1802,9 @@ IF(ENABLE_TESTS)
   IF(ENABLE_EXAMPLES)
     ADD_SUBDIRECTORY(examples)
   ENDIF()
+  IF(ENABLE_UNIT_TESTS)
+    ADD_SUBDIRECTORY(unit_test)
+  ENDIF(ENABLE_UNIT_TESTS)
 ENDIF()
 
 # Code to generate an export header
