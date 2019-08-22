@@ -252,8 +252,8 @@ main(int argc, char **argv)
         if (nc4_type_list_add(grp, TYPE_SIZE, TYPE_NAME, &type)) ERR;
 
         /* Add a field to the type. */
-        if (nc4_field_list_add(type, FIELD_NAME, FIELD_OFFSET, NC_INT, 0,
-                               NULL)) ERR;
+        /* if (nc4_field_list_add(type, FIELD_NAME, FIELD_OFFSET, NC_INT, 0, */
+        /*                        NULL)) ERR; */
 
         /* Find it. */
         if (nc4_find_type(h5, type->hdr.id, &type_in)) ERR;
