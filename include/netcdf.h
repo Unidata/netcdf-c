@@ -21,7 +21,7 @@ See \ref copyright file for more info.
 #include <malloc.h>
 #endif
 
-/*! The nc_type type is just an int. */
+/** The nc_type type is just an int. */
 typedef int nc_type;
 
 #if defined(__cplusplus)
@@ -78,7 +78,8 @@ extern "C" {
 #define NC_FILL_STRING  ((char *)"")
 /**@}*/
 
-/*! Max or min values for a type. Nothing greater/smaller can be
+/**
+ * Max or min values for a type. Nothing greater/smaller can be
  * stored in a netCDF file for their associated types. Recall that a C
  * compiler may define int to be any length it wants, but a NC_INT is
  * *always* a 4 byte signed int. On a platform with 64 bit ints,
@@ -248,25 +249,16 @@ Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_GLOBAL -1
 
 /**
-Maximum for classic library.
-
-In the classic netCDF model there are maximum values for the number of
-dimensions in the file (\ref NC_MAX_DIMS), the number of global or per
-variable attributes (\ref NC_MAX_ATTRS), the number of variables in
-the file (\ref NC_MAX_VARS), and the length of a name (\ref
-NC_MAX_NAME).
-
-These maximums are enforced by the interface, to facilitate writing
-applications and utilities.  However, nothing is statically allocated
-to these sizes internally.
-
-These maximums are not used for netCDF-4/HDF5 files unless they were
-created with the ::NC_CLASSIC_MODEL flag.
-
-As a rule, NC_MAX_VAR_DIMS <= NC_MAX_DIMS.
-
-NOTE: The NC_MAX_DIMS, NC_MAX_ATTRS, and NC_MAX_VARS limits
-      are *not* enforced after version 4.5.0
+ * Maximum for classic library.
+ *
+ * In the classic netCDF model there are maximum values for the number
+ * of dimensions in the file (@ref NC_MAX_DIMS), the number of global
+ * or per variable attributes (@ref NC_MAX_ATTRS), the number of
+ * variables in the file (@ref NC_MAX_VARS), and the length of a name
+ * (@ref NC_MAX_NAME).
+ *
+ * Only NC_MAX_NAME and NC_MAX_VAR_DIMS are enforced by the library,
+ * since version 4.5.0.
 */
 /**@{*/
 #define NC_MAX_DIMS     1024 /* not enforced after 4.5.0 */
@@ -276,11 +268,12 @@ NOTE: The NC_MAX_DIMS, NC_MAX_ATTRS, and NC_MAX_VARS limits
 #define NC_MAX_VAR_DIMS 1024 /**< max per variable dimensions */
 /**@}*/
 
-/** This is the max size of an SD dataset name in HDF4 (from HDF4 documentation).*/
+/** This is the max size of an SD dataset name in HDF4 (from HDF4
+ * documentation). */
 #define NC_MAX_HDF4_NAME 64
 
 /** In HDF5 files you can set the endianness of variables with
-    nc_def_var_endian(). This define is used there. */
+    nc_def_var_endian(). This define is used to specify endianness. */
 /**@{*/
 #define NC_ENDIAN_NATIVE 0
 #define NC_ENDIAN_LITTLE 1
@@ -288,7 +281,7 @@ NOTE: The NC_MAX_DIMS, NC_MAX_ATTRS, and NC_MAX_VARS limits
 /**@}*/
 
 /** In HDF5 files you can set storage for each variable to be either
- * contiguous or chunked, with nc_def_var_chunking().  This define is
+ * contiguous or chunked, with nc_def_var_chunking(). This define is
  * used there. */
 /**@{*/
 #define NC_CHUNKED    0
@@ -297,7 +290,7 @@ NOTE: The NC_MAX_DIMS, NC_MAX_ATTRS, and NC_MAX_VARS limits
 
 /** In HDF5 files you can set check-summing for each variable.
 Currently the only checksum available is Fletcher-32, which can be set
-with the function nc_def_var_fletcher32.  These defines are used
+with the function nc_def_var_fletcher32. These defines are used
 there. */
 /**@{*/
 #define NC_NOCHECKSUM 0
@@ -322,14 +315,10 @@ there. */
  */
 #define NC_ISSYSERR(err)        ((err) > 0)
 
-#define NC_NOERR        0          /**< No Error */
+#define NC_NOERR        0          /**< No Error. */
 #define NC2_ERR         (-1)       /**< Returned for all errors in the v2 API. */
 
-/** Not a netcdf id.
-
-The specified netCDF ID does not refer to an
-open netCDF dataset. */
-#define	NC_EBADID	(-33)
+#define	NC_EBADID	(-33)      /**< Not a netcdf id. */
 #define	NC_ENFILE	(-34)	   /**< Too many netcdfs open */
 #define	NC_EEXIST	(-35)	   /**< netcdf file exists && NC_NOCLOBBER */
 #define	NC_EINVAL	(-36)	   /**< Invalid Argument */
@@ -358,9 +347,8 @@ larger than the corresponding dimension length will cause an error. */
 
 /** NC_MAX_DIMS exceeded. Max number of dimensions exceeded in a
 classic or 64-bit offset file, or an netCDF-4 file with
-::NC_CLASSIC_MODEL on. */
-#define	NC_EMAXDIMS	(-41) /* not enforced after 4.5.0 */
-
+::NC_CLASSIC_MODEL on. (Not enforced after 4.5.0.) */
+#define	NC_EMAXDIMS	(-41)
 #define	NC_ENAMEINUSE	(-42)	   /**< String match to name in use */
 #define NC_ENOTATT	(-43)	   /**< Attribute not found */
 #define	NC_EMAXATTS	(-44)	   /**< NC_MAX_ATTRS exceeded - not enforced after 4.5.0 */
@@ -370,13 +358,9 @@ classic or 64-bit offset file, or an netCDF-4 file with
 
 /** NC_MAX_VARS exceeded. Max number of variables exceeded in a
 classic or 64-bit offset file, or an netCDF-4 file with
-::NC_CLASSIC_MODEL on. */
-#define	NC_EMAXVARS	(-48) /* not enforced after 4.5.0 */
-
-/** Variable not found.
-
-The variable ID is invalid for the specified netCDF dataset. */
-#define NC_ENOTVAR	(-49)
+::NC_CLASSIC_MODEL on. (Not enforced after 4.5.0.) */
+#define	NC_EMAXVARS	(-48)
+#define NC_ENOTVAR	(-49)      /**< Variable not found. */
 #define NC_EGLOBAL	(-50)	   /**< Action prohibited on NC_GLOBAL varid */
 #define NC_ENOTNC	(-51)	   /**< Not a netcdf file */
 #define NC_ESTS        	(-52)	   /**< In Fortran, string too short */

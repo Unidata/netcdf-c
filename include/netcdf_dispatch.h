@@ -135,80 +135,85 @@ struct NC_Dispatch
 
 /* Read-only dispatch layers can use these functions to return
  * NC_EPERM to all attempts to modify a file. */
-
-EXTERNL int NC_RO_create(const char *path, int cmode, size_t initialsz, int basepe,
-                         size_t *chunksizehintp, void* parameters,
-                         const NC_Dispatch*, int);
-EXTERNL int NC_RO_redef(int ncid);
-EXTERNL int NC_RO__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree,
-                          size_t r_align);
-EXTERNL int NC_RO_sync(int ncid);
-EXTERNL int NC_RO_def_var_fill(int, int, int, const void *);
-EXTERNL int NC_RO_rename_att(int ncid, int varid, const char *name,
-                             const char *newname);
-EXTERNL int NC_RO_del_att(int ncid, int varid, const char*);
-EXTERNL int NC_RO_put_att(int ncid, int varid, const char *name, nc_type datatype,
-                          size_t len, const void *value, nc_type);
-EXTERNL int NC_RO_def_var(int ncid, const char *name,
-                          nc_type xtype, int ndims, const int *dimidsp, int *varidp);
-EXTERNL int NC_RO_rename_var(int ncid, int varid, const char *name);
-EXTERNL int NC_RO_put_vara(int ncid, int varid,
-                           const size_t *start, const size_t *count,
-                           const void *value, nc_type);
-EXTERNL int NC_RO_def_dim(int ncid, const char *name, size_t len, int *idp);
-EXTERNL int NC_RO_rename_dim(int ncid, int dimid, const char *name);
-EXTERNL int NC_RO_set_fill(int ncid, int fillmode, int *old_modep);
+#if defined(__cplusplus)
+extern "C" {
+#endif
+    EXTERNL int NC_RO_create(const char *path, int cmode, size_t initialsz, int basepe,
+                             size_t *chunksizehintp, void* parameters,
+                             const NC_Dispatch*, int);
+    EXTERNL int NC_RO_redef(int ncid);
+    EXTERNL int NC_RO__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree,
+                              size_t r_align);
+    EXTERNL int NC_RO_sync(int ncid);
+    EXTERNL int NC_RO_def_var_fill(int, int, int, const void *);
+    EXTERNL int NC_RO_rename_att(int ncid, int varid, const char *name,
+                                 const char *newname);
+    EXTERNL int NC_RO_del_att(int ncid, int varid, const char*);
+    EXTERNL int NC_RO_put_att(int ncid, int varid, const char *name, nc_type datatype,
+                              size_t len, const void *value, nc_type);
+    EXTERNL int NC_RO_def_var(int ncid, const char *name,
+                              nc_type xtype, int ndims, const int *dimidsp, int *varidp);
+    EXTERNL int NC_RO_rename_var(int ncid, int varid, const char *name);
+    EXTERNL int NC_RO_put_vara(int ncid, int varid,
+                               const size_t *start, const size_t *count,
+                               const void *value, nc_type);
+    EXTERNL int NC_RO_def_dim(int ncid, const char *name, size_t len, int *idp);
+    EXTERNL int NC_RO_rename_dim(int ncid, int dimid, const char *name);
+    EXTERNL int NC_RO_set_fill(int ncid, int fillmode, int *old_modep);
 
 /* These functions are for dispatch layers that don't implement these
  * legacy functions. They return NC_ENOTNC3. */
-EXTERNL int NC_NOTNC3_put_varm(int ncid, int varid, const size_t * start,
-                               const size_t *edges, const ptrdiff_t *stride,
-                               const ptrdiff_t *imapp, const void *value0,
-                               nc_type memtype);
-EXTERNL int NC_NOTNC3_get_varm(int ncid, int varid, const size_t *start,
-                               const size_t *edges, const ptrdiff_t *stride,
-                               const ptrdiff_t *imapp, void *value0, nc_type memtype);
+    EXTERNL int NC_NOTNC3_put_varm(int ncid, int varid, const size_t * start,
+                                   const size_t *edges, const ptrdiff_t *stride,
+                                   const ptrdiff_t *imapp, const void *value0,
+                                   nc_type memtype);
+    EXTERNL int NC_NOTNC3_get_varm(int ncid, int varid, const size_t *start,
+                                   const size_t *edges, const ptrdiff_t *stride,
+                                   const ptrdiff_t *imapp, void *value0, nc_type memtype);
 
 /* These functions are for dispatch layers that don't implement the
  * enhanced model. They return NC_ENOTNC4. */
-EXTERNL int NC_NOTNC4_def_var_filter(int, int, unsigned int, size_t,
-                                     const unsigned int*);
-EXTERNL int NC_NOTNC4_def_grp(int, const char *, int *);
-EXTERNL int NC_NOTNC4_rename_grp(int, const char *);
-EXTERNL int NC_NOTNC4_def_compound(int, size_t, const char *, nc_type *);
-EXTERNL int NC_NOTNC4_insert_compound(int, nc_type, const char *, size_t, nc_type);
-EXTERNL int NC_NOTNC4_insert_array_compound(int, nc_type, const char *, size_t,
-                                            nc_type, int, const int *);
-EXTERNL int NC_NOTNC4_inq_typeid(int, const char *, nc_type *);
-EXTERNL int NC_NOTNC4_inq_compound_field(int, nc_type, int, char *, size_t *,
-                                         nc_type *, int *, int *);
-EXTERNL int NC_NOTNC4_inq_compound_fieldindex(int, nc_type, const char *, int *);
-EXTERNL int NC_NOTNC4_def_vlen(int, const char *, nc_type base_typeid, nc_type *);
-EXTERNL int NC_NOTNC4_put_vlen_element(int, int, void *, size_t, const void *);
-EXTERNL int NC_NOTNC4_get_vlen_element(int, int, const void *, size_t *, void *);
-EXTERNL int NC_NOTNC4_def_enum(int, nc_type, const char *, nc_type *);
-EXTERNL int NC_NOTNC4_insert_enum(int, nc_type, const char *, const void *);
-EXTERNL int NC_NOTNC4_inq_enum_member(int, nc_type, int, char *, void *);
-EXTERNL int NC_NOTNC4_inq_enum_ident(int, nc_type, long long, char *);
-EXTERNL int NC_NOTNC4_def_opaque(int, size_t, const char *, nc_type *);
-EXTERNL int NC_NOTNC4_def_var_deflate(int, int, int, int, int);
-EXTERNL int NC_NOTNC4_def_var_fletcher32(int, int, int);
-EXTERNL int NC_NOTNC4_def_var_chunking(int, int, int, const size_t *);
-EXTERNL int NC_NOTNC4_def_var_endian(int, int, int);
-EXTERNL int NC_NOTNC4_set_var_chunk_cache(int, int, size_t, size_t, float);
-EXTERNL int NC_NOTNC4_get_var_chunk_cache(int, int, size_t *, size_t *, float *);
-EXTERNL int NC_NOTNC4_var_par_access(int, int, int);
-EXTERNL int NC_NOTNC4_inq_ncid(int, const char *, int *);
-EXTERNL int NC_NOTNC4_inq_grps(int, int *, int *);
-EXTERNL int NC_NOTNC4_inq_grpname(int, char *);
-EXTERNL int NC_NOTNC4_inq_grpname_full(int, size_t *, char *);
-EXTERNL int NC_NOTNC4_inq_grp_parent(int, int *);
-EXTERNL int NC_NOTNC4_inq_grp_full_ncid(int, const char *, int *);
-EXTERNL int NC_NOTNC4_inq_varids(int, int *, int *);
-EXTERNL int NC_NOTNC4_inq_dimids(int, int *, int *, int);
-EXTERNL int NC_NOTNC4_inq_typeids(int, int *, int *);
-EXTERNL int NC_NOTNC4_inq_user_type(int, nc_type, char *, size_t *,
-                                    nc_type *, size_t *, int *);
-EXTERNL int NC_NOTNC4_inq_typeid(int, const char *, nc_type *);
+    EXTERNL int NC_NOTNC4_def_var_filter(int, int, unsigned int, size_t,
+                                         const unsigned int*);
+    EXTERNL int NC_NOTNC4_def_grp(int, const char *, int *);
+    EXTERNL int NC_NOTNC4_rename_grp(int, const char *);
+    EXTERNL int NC_NOTNC4_def_compound(int, size_t, const char *, nc_type *);
+    EXTERNL int NC_NOTNC4_insert_compound(int, nc_type, const char *, size_t, nc_type);
+    EXTERNL int NC_NOTNC4_insert_array_compound(int, nc_type, const char *, size_t,
+                                                nc_type, int, const int *);
+    EXTERNL int NC_NOTNC4_inq_typeid(int, const char *, nc_type *);
+    EXTERNL int NC_NOTNC4_inq_compound_field(int, nc_type, int, char *, size_t *,
+                                             nc_type *, int *, int *);
+    EXTERNL int NC_NOTNC4_inq_compound_fieldindex(int, nc_type, const char *, int *);
+    EXTERNL int NC_NOTNC4_def_vlen(int, const char *, nc_type base_typeid, nc_type *);
+    EXTERNL int NC_NOTNC4_put_vlen_element(int, int, void *, size_t, const void *);
+    EXTERNL int NC_NOTNC4_get_vlen_element(int, int, const void *, size_t *, void *);
+    EXTERNL int NC_NOTNC4_def_enum(int, nc_type, const char *, nc_type *);
+    EXTERNL int NC_NOTNC4_insert_enum(int, nc_type, const char *, const void *);
+    EXTERNL int NC_NOTNC4_inq_enum_member(int, nc_type, int, char *, void *);
+    EXTERNL int NC_NOTNC4_inq_enum_ident(int, nc_type, long long, char *);
+    EXTERNL int NC_NOTNC4_def_opaque(int, size_t, const char *, nc_type *);
+    EXTERNL int NC_NOTNC4_def_var_deflate(int, int, int, int, int);
+    EXTERNL int NC_NOTNC4_def_var_fletcher32(int, int, int);
+    EXTERNL int NC_NOTNC4_def_var_chunking(int, int, int, const size_t *);
+    EXTERNL int NC_NOTNC4_def_var_endian(int, int, int);
+    EXTERNL int NC_NOTNC4_set_var_chunk_cache(int, int, size_t, size_t, float);
+    EXTERNL int NC_NOTNC4_get_var_chunk_cache(int, int, size_t *, size_t *, float *);
+    EXTERNL int NC_NOTNC4_var_par_access(int, int, int);
+    EXTERNL int NC_NOTNC4_inq_ncid(int, const char *, int *);
+    EXTERNL int NC_NOTNC4_inq_grps(int, int *, int *);
+    EXTERNL int NC_NOTNC4_inq_grpname(int, char *);
+    EXTERNL int NC_NOTNC4_inq_grpname_full(int, size_t *, char *);
+    EXTERNL int NC_NOTNC4_inq_grp_parent(int, int *);
+    EXTERNL int NC_NOTNC4_inq_grp_full_ncid(int, const char *, int *);
+    EXTERNL int NC_NOTNC4_inq_varids(int, int *, int *);
+    EXTERNL int NC_NOTNC4_inq_dimids(int, int *, int *, int);
+    EXTERNL int NC_NOTNC4_inq_typeids(int, int *, int *);
+    EXTERNL int NC_NOTNC4_inq_user_type(int, nc_type, char *, size_t *,
+                                        nc_type *, size_t *, int *);
+    EXTERNL int NC_NOTNC4_inq_typeid(int, const char *, nc_type *);
+#if defined(__cplusplus)
+}
+#endif
 
 #endif /* NETCDF_DISPATCH_H */
