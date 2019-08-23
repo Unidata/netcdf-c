@@ -5,7 +5,9 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
-## 4.7.1 - TBD
+## 4.7.2 - TBD
+
+## 4.7.1 - August 26, 2019
 
 * [Enhancement] Added unit_test directory, which contains unit tests
 for the libdispatch and libsrc4 code (and any other directories that
@@ -25,7 +27,7 @@ nc_set_base_pe() and nc_inq_base_pe() from the dispatch table. (Both
 functions are still supported in the library, this is an internal
 change only.)
 See [GitHub #1468](https://github.com/Unidata/netcdf-c/issues/1468)
- 
+
 * [Bug Fix] Reverted nccopy behavior so that if no -c parameters
 are given, then any default chunking is left to the netcdf-c library
 to decide.
