@@ -7,7 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.7.2 - TBD
 
-## 4.7.1 - August 26, 2019
+## 4.7.1 - August 27, 2019
 
 * [Enhancement] Added unit_test directory, which contains unit tests
 for the libdispatch and libsrc4 code (and any other directories that
