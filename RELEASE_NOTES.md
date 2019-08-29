@@ -9,29 +9,13 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.7.1 - August 27, 2019
 
-* [Enhancement] Added unit_test directory, which contains unit tests
-for the libdispatch and libsrc4 code (and any other directories that
-want to put unit tests there). Use --disable-unit-tests to run without
-unit tests (ex. for code coverage analysis).
-See [GitHub #1458](https://github.com/Unidata/netcdf-c/issues/1458)
+* [Enhancement] Added unit_test directory, which contains unit tests for the libdispatch and libsrc4 code (and any other directories that want to put unit tests there). Use --disable-unit-tests to run without unit tests (ex. for code coverage analysis). See [GitHub #1458](https://github.com/Unidata/netcdf-c/issues/1458).
 
-* [Bug Fix] Remove obsolete _CRAYMPP and LOCKNUMREC macros from
-code. Also brought documentation up to date in man page. These macros
-were used in ancient times, before modern parallel I/O systems were
-developed. Programmers interested in parallel I/O should see
-nc_open_par() and nc_create_par().
-See [GitHub #1459](https://github.com/Unidata/netcdf-c/issues/1459)
+* [Bug Fix] Remove obsolete _CRAYMPP and LOCKNUMREC macros from code. Also brought documentation up to date in man page. These macros were used in ancient times, before modern parallel I/O systems were developed. Programmers interested in parallel I/O should see nc_open_par() and nc_create_par(). See [GitHub #1459](https://github.com/Unidata/netcdf-c/issues/1459).
 
-* [Enhancement] Remove obsolete and deprecated functions
-nc_set_base_pe() and nc_inq_base_pe() from the dispatch table. (Both
-functions are still supported in the library, this is an internal
-change only.)
-See [GitHub #1468](https://github.com/Unidata/netcdf-c/issues/1468)
+* [Enhancement] Remove obsolete and deprecated functions nc_set_base_pe() and nc_inq_base_pe() from the dispatch table. (Both functions are still supported in the library, this is an internal change only.) See [GitHub #1468](https://github.com/Unidata/netcdf-c/issues/1468).
 
-* [Bug Fix] Reverted nccopy behavior so that if no -c parameters
-are given, then any default chunking is left to the netcdf-c library
-to decide.
-See [GitHub #1436](https://github.com/Unidata/netcdf-c/issues/1436)
+* [Bug Fix] Reverted nccopy behavior so that if no -c parameters are given, then any default chunking is left to the netcdf-c library to decide. See [GitHub #1436](https://github.com/Unidata/netcdf-c/issues/1436).
 
 ## 4.7.0 - April 29, 2019
 
