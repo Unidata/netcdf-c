@@ -142,20 +142,22 @@ int
 nc4_file_change_ncid(int ncid, unsigned short new_ncid_index)
 {
     NC *nc;
-    int new_ext_ncid;
     int ret;
 
-    /* Shift the new index into the first two bytes. */
-    new_ext_ncid = new_ncid_index << ID_SHIFT;
+    LOG((2, "%s: ncid %d new_ncid_index %d", __func__, ncid, new_ncid_index));
 
     /* Find NC pointer for this file. */
     if ((ret = NC_check_id(ncid, &nc)))
         return ret;
 
-    /* Is new list spot already occupied? */
+    /* Move it in the list. It will faile if list spot is already
+     * occupied. */
+    LOG((3, "moving nc->ext_ncid %d nc->ext_ncid >> ID_SHIFT %d",
+         nc->ext_ncid, nc->ext_ncid >> ID_SHIFT));
     if (move_in_NCList(nc, new_ncid_index))
         return NC_EIO;
-
+    LOG((3, "moved to new_ncid_index %d new nc->ext_ncid %d", new_ncid_index,
+         nc->ext_ncid));
 
     return NC_NOERR;
 }
