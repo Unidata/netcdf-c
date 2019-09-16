@@ -72,6 +72,7 @@ extern int add_to_NCList(NC*);
 extern void del_from_NCList(NC*);/* does not free object */
 extern NC* find_in_NCList(int ext_ncid);
 extern NC* find_in_NCList_by_name(const char*);
+extern int move_in_NCList(NC *ncp, int new_id);
 extern void free_NCList(void);/* reclaim whole list */
 extern int count_NCList(void); /* return # of entries in NClist */
 extern int iterate_NCList(int i,NC**); /* Walk from 0 ...; ERANGE return => stop */
