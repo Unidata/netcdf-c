@@ -40,7 +40,7 @@ associated with the user-defined format, then netCDF will be able to
 correctly identify those files from nc_open(). It will not be
 necessary for the user to know or specify the underlying format.
 
-## Using User-Defined Formats from C Programms {#udf_With_C}
+## Using User-Defined Formats from C Programs {#udf_With_C}
 
 A user-defined format can be added dynamically in the case of C programs.
 
@@ -83,7 +83,7 @@ be specified with the --with-udf0-magic-number= argument.
 
 ## Creating a User-Defined Format {#udf_Create_UDF}
 
-Creators of user-defined format libraries will have to become familar
+Creators of user-defined format libraries will have to become familiar
 with the internals of the netCDF-4 code.
 
 ### Read-Only User-Defined Formats

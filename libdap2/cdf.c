@@ -1021,7 +1021,7 @@ buildcdftreer(NCDAPCOMMON* nccomm, OCddsnode ocnode, CDFnode* container,
 	break;
 
     case OC_Dimension:
-    default: PANIC1("buildcdftree: unexpect OC node type: %d",(int)octype);
+    default: PANIC1("buildcdftree: unexpected OC node type: %d",(int)octype);
 
     }
     /* Avoid a rare but perhaps possible null-dereference

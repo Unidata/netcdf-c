@@ -13,7 +13,7 @@
 /**********************************************/
 /* Define methods for a dimension dapodometer*/
 
-/* Build an odometer covering slices startslice upto,
+/* Build an odometer covering slices startslice up to,
    but not including, stopslice
 */
 
@@ -21,7 +21,7 @@
 Future optimization. It is sometimes the case that
 some suffix of the index set cover a contiguous chunk
 of the index space. This happens when the index positions
-starting at p upto rank have a start of zero, a count
+starting at p up to rank have a start of zero, a count
 the same as the max index size, and a stride of one.
 Then we can effectively tread indices 0 thru p-1 as
 a short odometer that steps through the chunks.

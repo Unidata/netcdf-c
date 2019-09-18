@@ -156,7 +156,7 @@ nc4_file_list_add(int ncid, const char *path, int mode, void **dispatchdata)
  * metadata model, but don't know about struct NC.
  *
  * @param ncid The ncid of the file (aka ext_ncid).
- * @param path A pointer that gets file name (< NC_MAX_NAME). Igored
+ * @param path A pointer that gets file name (< NC_MAX_NAME). Ignored
  * if NULL.
  * @param mode A pointer that gets the mode flag. Ignored if NULL.
  * @param dispatchdata Void * that gets pointer to dispatch data,

@@ -38,7 +38,7 @@ ocstrndup(const char* s, size_t len)
 }
 
 /* Do not trust strncmp semantics; this one
-   compares upto len chars or to null terminators */
+   compares up to len chars or to null terminators */
 int
 ocstrncmp(const char* s1, const char* s2, size_t len)
 {

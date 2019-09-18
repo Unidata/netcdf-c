@@ -111,7 +111,7 @@ See [GitHub #1251](https://github.com/Unidata/netcdf-c/issues/1251).
 (2) appending "#protocol=dap4" to the end of the url, or
 (3) appending "#dap4" to the end of the url
 Note that dap4 is enabled by default but remote-testing is
-disbled until the testserver situation is resolved.
+disabled until the testserver situation is resolved.
 * [Enhancement] The remote testing server can now be specified with the `--with-testserver` option to ./configure.
 * [Enhancement] Modified netCDF4 to use ASCII for NC_CHAR.  See [Github Pull request #316](https://github.com/Unidata/netcdf-c/pull/316) for more information.
 * [Bug Fix] Corrected an error with how dimsizes might be read. See [Github #410](https://github.com/unidata/netcdf-c/issues/410) for more information.
@@ -446,7 +446,7 @@ More details may be found at the Unidata JIRA Dashboard.  [NCF-316](https://bugt
 
 * Refactored how types are used for attributes, variables, and committed types, clarifying and categorizing fields in structs, and eliminating duplicated type information between variables and types they use.
 
-* Made type structure sharable by committed datatypes and variables that use it.
+* Made type structure shareable by committed datatypes and variables that use it.
 
 * Handled string datatypes correctly, particularly for fill value attributes. Expanded testing for string fill values.
 
@@ -1327,7 +1327,7 @@ variables.
 * Fixed ncgen to properly handle CDL input that uses Windows line endings
 ("\r\n"), instead of getting a syntax error.
 
-* Added "-s" option to ncdump to display performance characterisitics of
+* Added "-s" option to ncdump to display performance characteristics of
 netCDF-4 files as special virtual attributes, such as \_Chunking,
 \_DeflateLevel, \_Format, and \_Endianness.
 

@@ -113,7 +113,7 @@ computewhich() { # set REMOTETESTS and constrained
 
 constrain() {
   T="$1;;" # add semicolons to fake out the cut command
-  # see if we are using constraints will set testname and ce and testno and contrained
+  # see if we are using constraints will set testname and ce and testno and constrained
   testname=`echo -n $T | cut "-d;" -f1`
   testno=`echo -n $T | cut "-d;" -f2`
   ce=`echo -n $T | cut "-d;" -f3`

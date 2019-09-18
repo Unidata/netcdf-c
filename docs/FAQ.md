@@ -28,7 +28,7 @@ NetCDF data is:
     efficiently.
 -   *Appendable*. Data may be appended to a properly structured netCDF
     file without copying the dataset or redefining its structure.
--   *Sharable*. One writer and multiple readers may simultaneously
+-   *Shareable*. One writer and multiple readers may simultaneously
     access the same netCDF file.
 -   *Archivable*. Access to all earlier forms of netCDF data will be
     supported by current and future versions of the software.

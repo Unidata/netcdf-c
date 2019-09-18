@@ -54,7 +54,7 @@ endif
 man_MANS = ncdump.1 nccopy.1
 
 if BUILD_TESTSETS
-# C programs needed by shell scritps for classic tests.
+# C programs needed by shell scripts for classic tests.
 check_PROGRAMS = rewrite-scalar ref_ctest ref_ctest64 ncdump tst_utf8   \
 bom tst_dimsizes nctrunc
 

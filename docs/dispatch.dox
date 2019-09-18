@@ -23,5 +23,5 @@ netCDF-4/HDF5 files, and the remote data access features.
 
 Conceptually, the dispatch layer provides the same capabilities as the
 IOSP in the netCDF-Java library. However, unlike Java, C does not
-provide the advanced features to make this seemless.
+provide the advanced features to make this seamless.
 */

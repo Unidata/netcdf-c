@@ -77,7 +77,7 @@ caller, and it is the caller's responsibility to _free_ the memory.
 The implementation of in-memory support for netcdf-4 files
 is quite complicated. 
 
-The netCDF-4 implemention relies on the HDF5 library.  In order
+The netCDF-4 implementation relies on the HDF5 library.  In order
 to implement in-memory storage of data, the HDF5 core driver is
 used to manage underlying storage of the netcdf-c file.
 
@@ -248,7 +248,7 @@ then we cannot realloc and we must fake it as follows:
 
 1. If the chunk is big enough, then pretend to do a realloc by
    changing the vfd_image_size.
-2. If the chunk is not big enough to accomodate the requested new size,
+2. If the chunk is not big enough to accommodate the requested new size,
    then fail.
 
 There is one important complication. It turns out that the image_realloc
