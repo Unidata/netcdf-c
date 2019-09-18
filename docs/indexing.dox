@@ -176,7 +176,7 @@ use a hash table for name indexing, but rather keep a list sorted by name
 and use binary search to do name-based lookup. If this alternative were
 implemented, then it is probable that we could get rid of using the NC_hashmap
 structure altogether for netcdf-4. There is a performance cost since binary
-search is O(log n). In practice, it is probable that this is of negligable
+search is O(log n). In practice, it is probable that this is of negligible
 effect. The advantage is that rename operations become considerably simpler.
 
 \section Sglobal_object_access Global Object Access

@@ -2370,7 +2370,7 @@ Examine the translated DDS for the DAP source from the specified URL:
 \endcode
 
 Without dumping all the data, show the special virtual attributes that indicate
-performance-related characterisitics of a netCDF-4 file:
+performance-related characteristics of a netCDF-4 file:
 
 \code
    ncdump -h -s nc4file.nc
@@ -2782,7 +2782,7 @@ netCDF specification. The C source code is written to standard
 output. This is only useful for relatively small CDL files, since all
 the data is included in variable initializations in the generated
 program. The -c flag is deprecated and the -lc flag should be used
-intstead.
+instead.
 
 -f
 Generate FORTRAN source code that will create a netCDF dataset
@@ -2790,7 +2790,7 @@ matching the netCDF specification. The FORTRAN source code is written
 to standard output. This is only useful for relatively small CDL
 files, since all the data is included in variable initializations in
 the generated program. The -f flag is deprecated and the -lf77 flag
-should be used intstead.
+should be used instead.
 
 -k
 The -k file specifies the kind of netCDF file to generate. The

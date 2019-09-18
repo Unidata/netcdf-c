@@ -240,7 +240,7 @@ variables:
 	float tpt(time) ;
 		tpt:long_name = "Temperature" ;
 		tpt:units = "kelvin" ;
-		tpt:hieght = "Leave mispelled for NCO User\'s guide example" ;
+		tpt:hieght = "Leave misspelled for NCO User\'s guide example" ;
 	double rec_var_dbl_mss_val_dbl_upk(time) ;
 		rec_var_dbl_mss_val_dbl_upk:long_name = "record variable, double, with double missing values" ;
 		rec_var_dbl_mss_val_dbl_upk:purpose = "This variable is used to generate the packed variable rec_var_dbl_mss_val_dbl_pck, so its missing_value should not be too far out of range, i.e., it should be representable by a short. However, the missing_value should itself be the same type as the unpacked variable, NC_DOUBLE in this case." ;

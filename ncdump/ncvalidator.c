@@ -790,7 +790,7 @@ out :
     return NC_NOERR;
 }
 
-/* calculate the followings
+/* calculate the following
  *   ncp->begin_var           first variable's offset, file header extent
  *   ncp->begin_rec           first record variable's offset
  *   ncp->recsize             sum of all single record size of all variables
@@ -2149,7 +2149,7 @@ val_get_NC(int fd, NC *ncp)
     getbuf.pos = (char*)getbuf.pos + 4;
 
     if (memcmp(magic, ncmagic, 3) != 0) {
-        if (verbose) printf("Error: Unknow file signature\n");
+        if (verbose) printf("Error: Unknown file signature\n");
         if (verbose) printf("\tExpecting \"CDF1\", \"CDF2\", or \"CDF5\", but got \"%4s\"\n",magic);
         status = NC_ENOTNC;
         goto fn_exit;
@@ -2166,7 +2166,7 @@ val_get_NC(int fd, NC *ncp)
         getbuf.version = 5;
         ncp->format = 5;
     } else {
-        if (verbose) printf("Error: Unknow file signature\n");
+        if (verbose) printf("Error: Unknown file signature\n");
         if (verbose) printf("\tExpecting \"CDF1\", \"CDF2\", or \"CDF5\", but got \"%4s\"\n",magic);
         status = NC_ENOTNC;
         goto fn_exit;

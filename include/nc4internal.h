@@ -58,7 +58,7 @@ typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP} NC_SORT;
 #define X_SCHAR_MIN     (-128)          /**< Minimum signed char value. */
 #define X_SCHAR_MAX     127             /**< Maximum signed char value. */
 #define X_UCHAR_MAX     255U            /**< Maximum unsigned char value. */
-#define X_SHORT_MIN     (-32768)        /**< Minumum short value. */
+#define X_SHORT_MIN     (-32768)        /**< Minimum short value. */
 #define X_SHRT_MIN      X_SHORT_MIN     /**< This alias is compatible with limits.h. */
 #define X_SHORT_MAX     32767           /**< Maximum short value. */
 #define X_SHRT_MAX      X_SHORT_MAX     /**< This alias is compatible with limits.h. */

@@ -18,7 +18,7 @@
 #define NUM_VALS 12
 #define STR_LEN 255
 
-/* This seems like a good sonnet for enumation:
+/* This seems like a good sonnet for enumeration:
 
 How do I love thee? Let me count the ways.
 I love thee to the depth and breadth and height

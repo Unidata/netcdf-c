@@ -2236,7 +2236,7 @@ applyclientparamcontrols(NCDAPCOMMON* dapcomm)
     if(dapparamcheck(dapcomm,"show","fetch"))
 	SETFLAG(dapcomm->controls,NCF_SHOWFETCH);
 
-    /* enable/disable _FillValue/Variable Mis-match */
+    /* enable/disable _FillValue/Variable Mismatch */
     if(dapparamcheck(dapcomm,"fillmismatch",NULL))
 	SETFLAG(dapcomm->controls,NCF_FILLMISMATCH);
     else if(dapparamcheck(dapcomm,"nofillmismatch",NULL))

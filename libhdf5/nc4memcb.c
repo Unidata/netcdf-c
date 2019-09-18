@@ -140,7 +140,7 @@ static void tracefail(const char* fcn);
 #define H5LT_FILE_IMAGE_DONT_COPY    0x0002 /* The HDF5 lib won't copy   */
 /* user supplied image buffer. The same image is open with the core driver.  */
 #define H5LT_FILE_IMAGE_DONT_RELEASE 0x0004 /* The HDF5 lib won't        */
-/* deallocate user supplied image buffer. The user application is reponsible */
+/* deallocate user supplied image buffer. The user application is responsible */
 /* for doing so.                                                             */
 #define H5LT_FILE_IMAGE_ALL          0x0007
 
@@ -466,7 +466,7 @@ out:
 /* Modified:
 1. If the realloc new size is <= existing size,
    then pretend we did a realloc and return success.
-   This avoids unneccessary heap operations.
+   This avoids unnecessary heap operations.
 2. If the H5LT_FILE_IMAGE_DONT_COPY or
    H5LT_FILE_IMAGE_DONT_RELEASE flag is set and the
    realloc new size is > existing size, then fail
@@ -1003,7 +1003,7 @@ traceflags(int flags)
 	case H5LT_FILE_IMAGE_DONT_RELEASE: /* 0x0004 The HDF5 lib won't
                                               deallocate user supplied image
                                               buffer. The user application
-                                              is reponsible for doing so. */
+                                              is responsible for doing so. */
 	    strlcat(tmp,"DONT_RELEASE",sizeof(tmp));
 	    break;
 	default: break;

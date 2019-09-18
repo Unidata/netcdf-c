@@ -453,7 +453,7 @@ cmp_file(char *file1, char *file2, int *meta_read_us, int *data_read_us,
    return 0;
 }
 
-/* Copy a netCDF file, changing cmode if desired, applying chuncking,
+/* Copy a netCDF file, changing cmode if desired, applying chunking,
  * deflate, shuffle, and endianness parameters if desired. */
 static
 int copy_file(char *file_name_in, char *file_name_out, int cmode_out,

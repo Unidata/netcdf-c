@@ -317,10 +317,10 @@
 #     AC_MSG_RESULT($IDL_ROOT)
 #     AC_SUBST(IDL_ROOT)
 # 
-#     # Now find where the IDL 5.2 or later sharable libraries live.
+#     # Now find where the IDL 5.2 or later shareable libraries live.
 #     # NB: This won't work if libraries for several architecutures are 
 #     # installed for several machines.
-#     AC_MSG_CHECKING(for the IDL sharable library directory)
+#     AC_MSG_CHECKING(for the IDL shareable library directory)
 #     # cd to the IDL root because it is likely a symbolic link and find 
 #     # won't normally follow symbolic links.
 #     IDL_LIBS=`(cd $IDL_ROOT; find . -name 'libidl.so' -print)`

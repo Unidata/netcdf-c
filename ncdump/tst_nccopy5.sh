@@ -151,7 +151,7 @@ if test "x$T4" = x1 ; then
 
 echo "*** Test nccopy -c with unlimited dimension; classic ->enhanced"
 reset
-./tst_chunking tst_nc5.nc unlimited # should produce modified tmp_nc5.nc iwth ivar of rank 2
+./tst_chunking tst_nc5.nc unlimited # should produce modified tmp_nc5.nc with ivar of rank 2
 ${NCDUMP} -n tst_nc5 tst_nc5.nc > tst_nc5.cdl
 ${NCCOPY} -c ivar:5,3 tst_nc5.nc tmp_nc5.nc
 ${NCDUMP} -n tst_nc5 tmp_nc5.nc > tmp_nc5.cdl

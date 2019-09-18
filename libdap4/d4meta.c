@@ -652,7 +652,7 @@ savevarbyid(NCD4node* group, NCD4node* var)
     nclistinsert(group->group.varbyid,var->meta.id,var);
 }
 
-/* Collect FQN path from node upto (but not including)
+/* Collect FQN path from node up to (but not including)
    the first enclosing group and create an name from it
 */
 static char*

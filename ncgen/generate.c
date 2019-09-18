@@ -111,7 +111,7 @@ The basic idea is to split the set of dimensions into
 groups and iterate over each group by recursion.
 
 A group is defined as the range of indices starting at an
-unlimited dimension upto (but not including) the next
+unlimited dimension up to (but not including) the next
 unlimited.
 
 The first group starts at index 0, even if dimension 0 is not
@@ -199,7 +199,7 @@ generate_array(Symbol* vsym,
 /**
 The basic idea is to split the set of dimensions into groups
 and iterate over each group.  A group is defined as the
-range of indices starting at an unlimited dimension upto
+range of indices starting at an unlimited dimension up to
 (but not including) the next unlimited.  The first group
 starts at index 0, even if dimension 0 is not unlimited.
 The last group is everything from the last unlimited
@@ -252,7 +252,7 @@ generate_arrayr(Symbol* vsym,
     } else {/* !islastgroup */
         /* Our datalist must be a list of compounds representing
            the next unlimited; so walk the subarray from this index
-           upto next unlimited.
+           up to next unlimited.
         */
         ASSERT((dimindex < nextunlimited));
         ASSERT((isunlimited(dimset,nextunlimited)));
