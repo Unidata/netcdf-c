@@ -118,7 +118,7 @@ test_two_growing_with_att(const char *testfile)
    size_t start[ONE_DIM], count[ONE_DIM], index[ONE_DIM], len_in;
    int v, r;
 
-   /* Create a file with one ulimited dimensions, and one var. */
+   /* Create a file with one unlimited dimensions, and one var. */
    if((status=nc_create(testfile, diskmode|NC_CLOBBER, &ncid))) ERRSTAT(status);
    if((status=nc_def_dim(ncid, DIM1_NAME, NC_UNLIMITED, &dimid))) ERRSTAT(status);
    if((status=nc_def_var(ncid, VAR_NAME, NC_CHAR, 1, &dimid, &varid[0]))) ERRSTAT(status);

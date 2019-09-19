@@ -20,7 +20,7 @@ main()
    printf("*** checking 1D int dataset with extend...");
    {
 
-/* Misspelling is deliberite. Please dont correct. */
+/* Misspelling is deliberate. Please dont correct. */
 #define INTERGERS "Intergers"      
 #define NUM_STR 1
 #define NDIMS 1

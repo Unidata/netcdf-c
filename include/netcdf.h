@@ -1765,7 +1765,7 @@ EXTERNL int
 nc_delete(const char *path);
 
 /*
- * The following functions were written to accomodate the old Cray
+ * The following functions were written to accommodate the old Cray
  * systems. Modern HPC systems do not use these functions any more,
  * but use the nc_open_par()/nc_create_par() functions instead. These
  * functions are retained for backward compatibibility. These

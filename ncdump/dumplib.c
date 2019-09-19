@@ -651,7 +651,7 @@ ncvlen_val_equals(const nctype_t *this,
     return true;
 }
 
-/* Determine if two compound values are equal, by testing eqaulity of
+/* Determine if two compound values are equal, by testing equality of
  * each member field. */
 bool_t
 nccomp_val_equals(const nctype_t *this,

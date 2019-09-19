@@ -22,7 +22,7 @@
 
 #define NC_MAX_HDF5_NAME (NC_MAX_NAME + 10)
 
-/* These have to do with creating chuncked datasets in HDF5. */
+/* These have to do with creating chunked datasets in HDF5. */
 #define NC_HDF5_UNLIMITED_DIMSIZE (0)
 #define NC_HDF5_CHUNKSIZE_FACTOR (10)
 #define NC_HDF5_MIN_CHUNK_SIZE (2)

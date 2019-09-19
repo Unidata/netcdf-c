@@ -2,7 +2,7 @@
    Copyright 2018 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
-   The cdm_* tests confirm complience with the Common Data Model. This
+   The cdm_* tests confirm compliance with the Common Data Model. This
    file creates some sample data structures to hold sea soundings.
 
    $Id: cdm_sea_soundings.c,v 1.5 2010/05/25 13:53:04 ed Exp $

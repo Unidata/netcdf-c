@@ -945,7 +945,7 @@ current support (and test on) at Unidata. The only known work around is
 to build without the --enable-shared option.
 
 Any user who can debug this problem with the NAG compiler should send
-the resuts to support-netcdf@unidata.ucar.edu, so that it can be
+the results to support-netcdf@unidata.ucar.edu, so that it can be
 incorporated into the netCDF distribution.
 
 Interested users may also wish to subscribe to the [netcdf-porting

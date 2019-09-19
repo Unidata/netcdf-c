@@ -924,7 +924,7 @@ IF(ENABLE_TESTS)
   # same thing as an 'expected failure'. Rather, these
   # are tests that will need to be fixed eventually.
   #
-  # By placing them here, we can occasionaly turn this
+  # By placing them here, we can occasionally turn this
   # flag on and see if any known failures have been
   # fixed in the course of code improvement/other bug
   # fixes.

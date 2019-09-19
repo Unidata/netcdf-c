@@ -243,7 +243,7 @@ test_small_one(const char *testfile)
    int ndims, nvars, natts, unlimdimid;
    size_t start[NDIMS], count[NDIMS];
 
-   /* Create a file with one ulimited dimensions, and one var. */
+   /* Create a file with one unlimited dimensions, and one var. */
    if (file_create(testfile, NC_CLOBBER, &ncid)) ERR;
    if (nc_def_dim(ncid, DIM1_NAME, NC_UNLIMITED, &dimid)) ERR;
    if (nc_def_var(ncid, VAR_NAME, NC_CHAR, 1, &dimid, &varid)) ERR;
@@ -289,7 +289,7 @@ test_one_growing(const char *testfile)
    /* Run this with and without fill mode. */
    for (f = 0; f < 2; f++)
    {
-      /* Create a file with one ulimited dimensions, and one var. */
+      /* Create a file with one unlimited dimensions, and one var. */
       if (file_create(testfile, NC_CLOBBER, &ncid)) ERR;
       if (nc_def_dim(ncid, DIM1_NAME, NC_UNLIMITED, &dimid)) ERR;
       if (nc_def_var(ncid, VAR_NAME, NC_CHAR, 1, &dimid, &varid)) ERR;
@@ -347,7 +347,7 @@ test_one_growing_with_att(const char *testfile)
    size_t start[ONE_DIM], count[ONE_DIM], index[ONE_DIM], len_in;
    int r;
 
-   /* Create a file with one ulimited dimensions, and one var. */
+   /* Create a file with one unlimited dimensions, and one var. */
    if (file_create(testfile, NC_CLOBBER, &ncid)) ERR;
    if (nc_def_dim(ncid, DIM1_NAME, NC_UNLIMITED, &dimid)) ERR;
    if (nc_def_var(ncid, VAR_NAME, NC_CHAR, 1, &dimid, &varid)) ERR;
@@ -403,7 +403,7 @@ test_two_growing_with_att(const char *testfile)
    size_t start[ONE_DIM], count[ONE_DIM], index[ONE_DIM], len_in;
    int v, r;
 
-   /* Create a file with one ulimited dimensions, and one var. */
+   /* Create a file with one unlimited dimensions, and one var. */
    if (file_create(testfile, NC_CLOBBER, &ncid)) ERR;
    if (nc_def_dim(ncid, DIM1_NAME, NC_UNLIMITED, &dimid)) ERR;
    if (nc_def_var(ncid, VAR_NAME, NC_CHAR, 1, &dimid, &varid[0])) ERR;
@@ -464,7 +464,7 @@ test_one_with_att(const char *testfile)
    int ndims, nvars, natts, unlimdimid;
    size_t start[NDIMS], count[NDIMS];
 
-   /* Create a file with one ulimited dimensions, and one var. */
+   /* Create a file with one unlimited dimensions, and one var. */
    if (file_create(testfile, NC_CLOBBER, &ncid)) ERR;
    if (nc_def_dim(ncid, DIM1_NAME, NC_UNLIMITED, &dimid)) ERR;
    if (nc_def_var(ncid, VAR_NAME, NC_CHAR, 1, &dimid, &varid)) ERR;

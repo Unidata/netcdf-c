@@ -782,7 +782,7 @@ Learn about a variable length array type.
 .HP
 FDECL(free_vlen, (nc_vlen_t *vl))
 .sp
-Free memory comsumed by reading data of a variable length array type.
+Free memory consumed by reading data of a variable length array type.
 .HP
 FDECL(put_vlen_element, (INCID(), INCTYPE(), IVOIDP(vlen_element), ISIZET(len), IVOIDP(data)))
 .sp
@@ -794,7 +794,7 @@ Read one VLEN.
 .HP
 FDECL(free_string, (ISIZET(len), char **data))
 .sp
-Free memory comsumed by reading data of a string type.
+Free memory consumed by reading data of a string type.
 .HP
 FDECL(inq_user_type, (INCID(), INCTYPE(), ONAME(), OSIZET(), ONCTYPE(), OSIZET(), OINT()))
 .sp

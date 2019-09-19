@@ -22,7 +22,7 @@ else
 echo "*** XFail: ${NCDUMP} ${URL} failed"
 fi
 
-# Now check that with [fillmismatch], we get sucess
+# Now check that with [fillmismatch], we get success
 URL="[fillmismatch]${URL}"
 rm -f ./tmp_dap4_mismatch
 if ${NCDUMP} -h "${URL}" > ./tmp_dap4_mismatch ; then

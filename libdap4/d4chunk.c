@@ -20,7 +20,7 @@
 
 /*
 Given a packet as read from the wire via http (or a file), convert in
-place from chunked format to a single continguous set of bytes. If an
+place from chunked format to a single contiguous set of bytes. If an
 error packet is recovered, then make that available to the caller and
 return an error. Also return whether the data was big endian encoded
 and whether it has checksums.

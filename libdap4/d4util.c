@@ -159,7 +159,7 @@ NCD4_makeName(NCD4node* elem, const char* sep)
     NClist* path = nclistnew();
     char* fqn = NULL;
 
-    /* Collect the path upto, but not including, the first containing group */
+    /* Collect the path up to, but not including, the first containing group */
     for(estimate=0,n=elem;n->sort != NCD4_GROUP;n=n->container) {
 	nclistinsert(path,0,n);
 	estimate += (1+(2*strlen(n->name)));
