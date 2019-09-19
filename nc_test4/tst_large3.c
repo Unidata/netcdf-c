@@ -28,7 +28,7 @@
    bytes. */
 #define MAX_64OFFSET_BYTES 4294967292
 
-/* Handy for constucting tests. */
+/* Handy for constructing tests. */
 #define QTR_CLASSIC_MAX (MAX_CLASSIC_BYTES/4)
 
 /* We will create this file. */

@@ -37,12 +37,12 @@ typedef struct NC_memio {
 extern "C" {
 #endif
 
-/* Treate a memory block as a file; read-only */
+/* Treat a memory block as a file; read-only */
 EXTERNL int nc_open_mem(const char* path, int mode, size_t size, void* memory, int* ncidp);
 
 EXTERNL int nc_create_mem(const char* path, int mode, size_t initialsize, int* ncidp);
 
-/* Alternative to nc_open_mem with extended capabilites
+/* Alternative to nc_open_mem with extended capabilities
    See docs/inmemory.md
  */
 EXTERNL int nc_open_memio(const char* path, int mode, NC_memio* info, int* ncidp);

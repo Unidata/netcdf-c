@@ -1534,7 +1534,7 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
     LOG((5, "%s: att->hdr.id %d att->hdr.name %s att->nc_typeid %d att->len %d",
          __func__, att->hdr.id, att->hdr.name, (int)att->nc_typeid, att->len));
 
-    /* Get HDF5-sepecific info stuct for this attribute. */
+    /* Get HDF5-sepecific info struct for this attribute. */
     hdf5_att = (NC_HDF5_ATT_INFO_T *)att->format_att_info;
 
     /* Get type of attribute in file. */
@@ -2046,7 +2046,7 @@ att_read_callbk(hid_t loc_id, const char *att_name, const H5A_info_t *ainfo,
     att_iter_info *att_info = (att_iter_info *)att_data;
     int retval = NC_NOERR;
 
-    /* Determin what list is being added to. */
+    /* Determine what list is being added to. */
     list = att_info->var ? att_info->var->att : att_info->grp->att;
 
     /* This may be an attribute telling us that strict netcdf-3 rules
@@ -2112,7 +2112,7 @@ exit:
  * @param var Pointer to the var info. NULL for global att reads.
  *
  * @return ::NC_NOERR No error.
- * @return ::NC_EATTMETA Some error occured reading attributes.
+ * @return ::NC_EATTMETA Some error occurred reading attributes.
  * @author Ed Hartnett
  */
 int
@@ -2439,7 +2439,7 @@ read_hdf5_obj(hid_t grpid, const char *name, const H5L_info_t *info,
                                    &oinfo.statbuf)))
         {
             /* Allow NC_EBADTYPID to transparently skip over datasets
-             * which have a datatype that netCDF-4 doesn't undertand
+             * which have a datatype that netCDF-4 doesn't understand
              * (currently), but break out of iteration for other
              * errors. */
             if (retval != NC_EBADTYPID)

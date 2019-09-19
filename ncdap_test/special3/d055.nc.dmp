@@ -100,7 +100,7 @@ variables:
 		:DOC_040 = "Units        : millimeters         Missing Data Flag   : 9999     \r" ;
 		:DOC_041 = "Existing     : Yes                 Operational         : Yes      \r" ;
 		:DOC_042 = "Sat. Trans.  : Yes                 Distribution        : 1946-2008\r" ;
-		:DOC_043 = "Refernce Levl: All heights have been referred to the station tide \r" ;
+		:DOC_043 = "Reference Levl: All heights have been referred to the station tide \r" ;
 		:DOC_044 = "               staff zero which is linked to fixed bench marks.\r" ;
 		:DOC_045 = "               Based on residuals, a level shift was adjusted\r" ;
 		:DOC_046 = "               by adding -60 mm to 18Z 29 Dec 1950 to\r" ;

@@ -27,7 +27,7 @@ main()
    hsize_t dims[1];
 
    printf("\n*** Checking HDF5 variable functions.\n");
-   printf("*** Checking HDF5 boolen variables...");
+   printf("*** Checking HDF5 boolean variables...");
 
    /* Open file and create group. */
    if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,

@@ -136,7 +136,7 @@ main()
 	  H5Fclose(fileid) < 0) ERR;
 
       /* Now create the file again, to make sure that it really is not
-       * just mearly dead, but really most sincerely dead. */
+       * just nearly dead, but really most sincerely dead. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, 
 			      access_plist)) < 0) ERR;
       if (H5Fclose(fileid) < 0) ERR;

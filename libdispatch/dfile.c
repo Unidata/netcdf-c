@@ -2090,7 +2090,7 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
     /* Create the NC* instance and insert its dispatcher */
     if((stat = new_NC(dispatcher,path,omode,&model,&ncp))) goto done;
 
-    /* Add to list of known open files. This assignes an ext_ncid. */
+    /* Add to list of known open files. This assigns an ext_ncid. */
     add_to_NCList(ncp);
 
     /* Assume open will fill in remaining ncp fields */

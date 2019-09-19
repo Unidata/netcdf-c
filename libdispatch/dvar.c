@@ -227,7 +227,7 @@ nc_def_var(int ncid, const char *name, nc_type xtype,
    any existing filled values will not be recognized as fill values by
    applications reading the data. Best practice is to set the fill
    value after the variable has been defined, but before any data have
-   been written to that varibale. In NetCDF-4 files, this is enforced
+   been written to that variable. In NetCDF-4 files, this is enforced
    by the HDF5 library. For netCDF-4 files, an error is returned if
    the user attempts to set the fill value after writing data to the
    variable.
@@ -497,7 +497,7 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
    netCDF classic or 64-bit offset files, or for netCDF-4 files, when
    they wwere created with ::NC_CLASSIC_MODEL flag by nc_create().
    @return ::NC_EPERM Attempt to create object in read-only file.
-   @return ::NC_EBADCHUNK Retunrs if the chunk size specified for a
+   @return ::NC_EBADCHUNK Returns if the chunk size specified for a
    variable is larger than the length of the dimensions associated with
    variable.
 

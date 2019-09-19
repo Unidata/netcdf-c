@@ -113,6 +113,6 @@ Science Foundation, Unidata's primary sponsor. Development of the
 netCDF-4 interface was initially funded by NASA's Earth Science
 Technology Office. Addition of OPeNDAP client support to the netCDF
 library is based on work supported by the National Science Foundation.
-Any opinions, findings and conclusions or recomendations expressed in
+Any opinions, findings and conclusions or recommendations expressed in
 this material are those of the authors and do not necessarily reflect
 the views of the sponsoring organizations.

@@ -20,7 +20,7 @@ else
 echo "*** XFail: ${NCDUMP} ${URL} failed"
 fi
 
-# Now check that with [fillmismatch], we get sucess
+# Now check that with [fillmismatch], we get success
 URL="[fillmismatch]${URL}"
 rm -f ./tmp_tst_mismatch
 if ${NCDUMP} "${URL}" > ./tmp_tst_mismatch ; then

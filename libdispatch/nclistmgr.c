@@ -196,7 +196,7 @@ find_in_NCList_by_name(const char* path)
  * netCDF-4 files.)
  *
  * @param index The index in the NC list.
- * @param ncp Pointer that gets pointer to the next NC. Igored if
+ * @param ncp Pointer that gets pointer to the next NC. Ignored if
  * NULL.
  *
  * @return ::NC_NOERR No error.

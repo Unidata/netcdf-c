@@ -95,7 +95,7 @@ oc_close(OCobject link)
 This procedure is used to send requests to the server
 to obtain either a DAS, DDS, or DATADDS response
 and produce a corresponding tree.
-It fetchs and parses a given class of DXD the server specified
+It fetches and parses a given class of DXD the server specified
 at open time, and using a specified set of constraints
 and flags.
 

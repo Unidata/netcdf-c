@@ -502,7 +502,7 @@ parseSequence(NCD4parser* parser, NCD4node* container, ezxml_t xml, NCD4node** n
 	2. a vlen type whose basetype is #1
 	3. a variable whose basetype is #2.
 	If we can infer that the sequence was riginally produced
-	from a netcdf-4 vlen, then we can avoid createing #1.
+	from a netcdf-4 vlen, then we can avoid creating #1.
 	Naming is as follows. Assume the var name is V
 	and the NCD4_makeName of the var is V1..._Vn.
 	1. var name is V.

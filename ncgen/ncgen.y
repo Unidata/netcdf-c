@@ -1364,7 +1364,7 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
                     special->flags |= _FILTER_FLAG;
 		else {
 		    efree(special->_FilterParams);
-		    derror("_Filter: unparseable filter spec: %s",sdata);
+		    derror("_Filter: unparsable filter spec: %s",sdata);
 		}
 #else
 	        derror("%s: the filter attribute requires netcdf-4 to be enabled",specialname(tag));

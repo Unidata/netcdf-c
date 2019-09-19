@@ -908,7 +908,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
         }
     }
 
-    /* If the user wants to fletcher error correcton, set that up now. */
+    /* If the user wants to fletcher error correction, set that up now. */
     if (var->fletcher32)
         if (H5Pset_fletcher32(plistid) < 0)
             BAIL(NC_EHDFERR);
