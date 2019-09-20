@@ -77,6 +77,37 @@ main(int argc, char **argv)
         if (find_in_NCList(ncid)) ERR;
     }
     SUMMARIZE_ERR;
+    printf("Testing moving in NC list (needed for PIO)...");
+    {
+        int ncid;
+        NC *ncp, *ncp2;
+        int mode = 0;
+        NCmodel model;
+        int ret;
+
+        /* Create the NC* instance and add it to list. */
+        if ((ret = new_NC(NULL, FILE_NAME, mode, &model, &ncp))) ERR;
+        add_to_NCList(ncp);
+
+        /* Find it in the list. */
+        if (!(ncp2 = find_in_NCList(ncp->ext_ncid))) ERR;
+
+        /* Move it. */
+        ncid = ncp->ext_ncid;
+        if (move_in_NCList(ncp, TEST_VAL_42)) ERR;
+
+        /* Now we won't find old ncid in the list. */
+        if (find_in_NCList(ncid)) ERR;
+
+        /* Delete it. */
+        ncid = ncp->ext_ncid;
+        del_from_NCList(ncp); /* Will free empty list. */
+        free_NC(ncp);
+
+        /* Ensure it is no longer in list. */
+        if (find_in_NCList(ncid)) ERR;
+    }
+    SUMMARIZE_ERR;
 #ifdef LARGE_FILE_TESTS
     /* This test is slow, only run it on large file test builds. */
     printf("Testing maxing out NC list...");
