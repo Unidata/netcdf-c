@@ -101,6 +101,35 @@ add_to_NCList(NC* ncp)
 }
 
 /**
+ * Move an NC in the nc_filelist. This is required by PIO.
+ *
+ * @param ncp Pointer to already-allocated and initialized NC struct.
+ * @param new_id New index in the nc_filelist for this file.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EINVAL Invalid input.
+ * @author Ed Hartnett
+ */
+int
+move_in_NCList(NC *ncp, int new_id)
+{
+    /* If no files in list, error. */
+    if (!nc_filelist)
+        return NC_EINVAL;
+
+    /* If new slot is already taken, error. */
+    if (nc_filelist[new_id])
+        return NC_EINVAL;
+
+    /* Move the file. */
+    nc_filelist[ncp->ext_ncid >> ID_SHIFT] = NULL;
+    nc_filelist[new_id] = ncp;
+    ncp->ext_ncid = (new_id << ID_SHIFT);
+
+    return NC_NOERR;
+}
+
+/**
  * Delete an NC struct from the list. This happens when the file is
  * closed. Relies on all memory in the NC being deallocated after this
  * function with freeNC().
