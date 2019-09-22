@@ -14,6 +14,7 @@
 #define NETCDF_PAR_H 1
 
 #include <mpi.h>
+#include "ncexternl.h"
 
 #if defined(__cplusplus)
 extern "C" {
@@ -25,24 +26,24 @@ extern "C" {
 #define NC_COLLECTIVE 1
 
 /* Create a file and enable parallel I/O. */
-    extern int
+    EXTERNL int
     nc_create_par(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
                   int *ncidp);
 
 /* Open a file and enable parallel I/O. */
-    extern int
+    EXTERNL int
     nc_open_par(const char *path, int mode, MPI_Comm comm, MPI_Info info,
                 int *ncidp);
 
 /* Change a variable from independent (the default) to collective
  * access. */
-    extern int
+    EXTERNL int
     nc_var_par_access(int ncid, int varid, int par_access);
 
-    extern int
+    EXTERNL int
     nc_create_par_fortran(const char *path, int cmode, int comm,
                           int info, int *ncidp);
-    extern int
+    EXTERNL int
     nc_open_par_fortran(const char *path, int mode, int comm,
                         int info, int *ncidp);
 
