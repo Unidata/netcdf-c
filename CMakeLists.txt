@@ -615,7 +615,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     #####
     IF(MSVC)
       SET(SEARCH_PACKAGE_NAME ${HDF5_PACKAGE_NAME})
-      FIND_PACKAGE(HDF5 NAMES ${SEARCH_PACKAGE_NAME} COMPONENTS C HL NO_MODULES REQUIRED ${NC_HDF5_LINK_TYPE})
+      FIND_PACKAGE(HDF5 NAMES ${SEARCH_PACKAGE_NAME} COMPONENTS C HL CONFIG REQUIRED ${NC_HDF5_LINK_TYPE})
     ELSE(MSVC)
       FIND_PACKAGE(HDF5 COMPONENTS C HL REQUIRED)
     ENDIF(MSVC)
@@ -699,28 +699,23 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     SET(HDF5_C_LIBRARY_hdf5 "${HDF5_C_LIBRARY}")
   ENDIF()
 
-  ###
-  # The following options are not used in Windows currently.
-  ###
-  IF(NOT MSVC)
-    # Find out if HDF5 was built with parallel support.
-    # Do that by checking for the targets H5Pget_fapl_mpiposx and
-    # H5Pget_fapl_mpio in ${HDF5_LIB}.
+  # Find out if HDF5 was built with parallel support.
+  # Do that by checking for the targets H5Pget_fapl_mpiposx and
+  # H5Pget_fapl_mpio in ${HDF5_LIB}.
 
-    # H5Pset_fapl_mpiposix and H5Pget_fapl_mpiposix have been removed since HDF5 1.8.12.
-    # Use H5Pset_fapl_mpio and H5Pget_fapl_mpio, instead.
-    # CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pget_fapl_mpiposix "" HDF5_IS_PARALLEL_MPIPOSIX)
+  # H5Pset_fapl_mpiposix and H5Pget_fapl_mpiposix have been removed since HDF5 1.8.12.
+  # Use H5Pset_fapl_mpio and H5Pget_fapl_mpio, instead.
+  # CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pget_fapl_mpiposix "" HDF5_IS_PARALLEL_MPIPOSIX)
 
-    CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pget_fapl_mpio "" HDF5_IS_PARALLEL_MPIO)
-    IF(HDF5_IS_PARALLEL_MPIO)
-      SET(HDF5_PARALLEL ON)
-    ELSE()
-      SET(HDF5_PARALLEL OFF)
-    ENDIF()
+  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pget_fapl_mpio "" HDF5_IS_PARALLEL_MPIO)
+  IF(HDF5_IS_PARALLEL_MPIO)
+    SET(HDF5_PARALLEL ON)
+  ELSE()
+    SET(HDF5_PARALLEL OFF)
+  ENDIF()
 
-    #Check to see if HDF5 library has collective metadata APIs, (HDF5 >= 1.10.0)
-    CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pset_all_coll_metadata_ops "" HDF5_HAS_COLL_METADATA_OPS)
-  ENDIF(NOT MSVC)
+  #Check to see if HDF5 library has collective metadata APIs, (HDF5 >= 1.10.0)
+  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pset_all_coll_metadata_ops "" HDF5_HAS_COLL_METADATA_OPS)
 
   #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip.
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Z_SZIP "" USE_SZIP)
@@ -1006,6 +1001,10 @@ IF(ENABLE_PARALLEL4 AND ENABLE_NETCDF_4)
     SET(USE_PARALLEL OFF CACHE BOOL "")
     MESSAGE(STATUS "Cannot find HDF5 library built with parallel support. Disabling parallel build.")
   ELSE()
+    IF(MSVC)
+      FIND_PACKAGE(MPI REQUIRED)
+      INCLUDE_DIRECTORIES(${MPI_C_INCLUDE_PATH})
+    ENDIF()
     SET(HDF5_PARALLEL ON CACHE BOOL "")
     SET(USE_PARALLEL ON CACHE BOOL "")
     SET(USE_PARALLEL4 ON CACHE BOOL "")
