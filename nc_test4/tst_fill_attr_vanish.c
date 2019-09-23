@@ -26,7 +26,7 @@
 
 #define ATTNAME "TextAttribute"
 #define ATTVAL  "This is a text attribute used for testing."
-
+#define ATTLEN 42
 
 /*! Main function for tst_fill_attr_vanish.c
  *
@@ -78,11 +78,12 @@ int main()
 
   /* Query existing attribute. */
   {
-    char *attval = malloc(sizeof(char) * strlen(ATTVAL));
+    char attval[ATTLEN+1] = {"9"};
+
     printf("**** Checking that attribute still exists:\t");
     if(nc_get_att_text(ncid,test_id,ATTNAME,attval)) {printf("Fail\n"); ERR;}
     else {printf("%s\n",attval);}
-    free(attval);
+    //free(attval);
 
   }
 
@@ -98,11 +99,11 @@ int main()
 
   /* Query existing attribute. */
   {
-    char *attval = malloc(sizeof(char) * strlen(ATTVAL));
+    char attval[ATTLEN+1] = {"9"};
     printf("**** Checking that attribute still exists, pre-write:\t");
     if(nc_get_att_text(ncid,test_id,ATTNAME,attval)) {printf("Fail\n"); ERR;}
     else {printf("%s\n",attval);}
-    free(attval);
+
 
   }
 
@@ -118,12 +119,10 @@ int main()
 
   /* Query existing attribute. */
   {
-    char *attval = malloc(sizeof(char) * strlen(ATTVAL));
+    char attval[ATTLEN+1] = {"9"};
     printf("**** Checking that attribute still exists:\t");
     if(nc_get_att_text(ncid,test_id,ATTNAME,attval)) {printf("Fail\n"); ERR;}
     else {printf("%s\n",attval);}
-    free(attval);
-
   }
 
   if (nc_close(ncid)) ERR;
