@@ -7,6 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.7.2 - TBD
 
+* [Enhancement] [Parallel IO] Added support for parallel functions in MSVC. See [Github #1492](https://github.com/Unidata/netcdf-c/pull/1492) for more information.
 * [Enhancement] Added a function for changing the ncid of an open file.  This function should only be used if you know what you are doing, and is meant to be used primarily with PIO integration. See [GitHub #1483](https://github.com/Unidata/netcdf-c/pull/1483) and [GitHub #1487](https://github.com/Unidata/netcdf-c/pull/1487) for more information.
 
 ## 4.7.1 - August 27, 2019
