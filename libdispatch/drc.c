@@ -329,7 +329,7 @@ rccompile(const char* path)
             *rtag = '\0';
             /* compile the url and pull out the host */
             if(uri) ncurifree(uri);
-            if(ncuriparse(url,&uri) != NCU_OK) {
+            if(ncuriparse(url,&uri)) {
                 nclog(NCLOGERR, "Malformed [url] in %s entry: %s",path,line);
                 free(triple);
 		continue;

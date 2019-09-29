@@ -303,7 +303,7 @@ main(int argc, char **argv)
     }
 
     /* Compile the url */
-    if(ncuriparse(ocopt.surl,&ocopt.url) != NCU_OK) {
+    if(ncuriparse(ocopt.surl,&ocopt.url)) {
 	fprintf(stderr,"malformed source url: %s\n",ocopt.surl);
 	exit(1);
     }
@@ -346,7 +346,7 @@ main(int argc, char **argv)
     ocopt.surl = ncuribuild(ocopt.url,NULL,NULL,NCURIALL);
 
     /* Reparse */
-    if(ncuriparse(ocopt.surl,&ocopt.url) != NCU_OK) {
+    if(ncuriparse(ocopt.surl,&ocopt.url)) {
 	fprintf(stderr,"malformed source url: %s\n",ocopt.surl);
 	exit(1);
     }

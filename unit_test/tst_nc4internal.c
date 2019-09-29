@@ -34,7 +34,6 @@ main(int argc, char **argv)
            "nc4_file_list_add()...");
     {
         NC *ncp;
-        NCmodel model;
         char *path;
         /* The NC3_dispatch_table is defined in nc3dispatch.c and
          * externed in ncdispatch.h. But it will be 0 because we have
@@ -47,9 +46,8 @@ main(int argc, char **argv)
          * has an ncid of TEST_VAL_42. */
         if (nc4_file_list_add(TEST_VAL_42, FILE_NAME, 0, NULL) != NC_EBADID) ERR;
 
-        /* Create the NC* instance and insert its dispatcher and
-         * model. */
-        if (new_NC(dispatcher, FILE_NAME, mode, &model, &ncp)) ERR;
+        /* Create the NC* instance and insert its dispatcher */
+        if (new_NC(dispatcher, FILE_NAME, mode, &ncp)) ERR;
 
         /* Add to array of open files nc_filelist and define
          * ext_ncid by left-shifting the index 16 bits. */
@@ -84,16 +82,14 @@ main(int argc, char **argv)
            "nc4_nc4f_list_add()...");
     {
         NC *ncp, *ncp_in, *ncp_in2;
-        NCmodel model;
         char *path;
         void *dispatchdata_in;
         int mode = 0, mode_in;
         NC_GRP_INFO_T *grp, *grp2;
         NC_FILE_INFO_T *h5, *h52;
 
-        /* Create the NC* instance and insert its dispatcher and
-         * model. */
-        if (new_NC(NC3_dispatch_table, FILE_NAME, mode, &model, &ncp)) ERR;
+        /* Create the NC* instance and insert its dispatcher */
+        if (new_NC(NC3_dispatch_table, FILE_NAME, mode, &ncp)) ERR;
 
         /* Add to array of open files nc_filelist and define
          * ext_ncid by left-shifting the index 16 bits. */
@@ -153,14 +149,12 @@ main(int argc, char **argv)
     printf("Testing adding new var to nc4internal file...");
     {
         NC *ncp, *ncp_in;
-        NCmodel model;
         NC_GRP_INFO_T *grp;
         NC_VAR_INFO_T *var, *var_in;
         NC_FILE_INFO_T *h5;
 
-        /* Create the NC* instance and insert its dispatcher and
-         * model. */
-        if (new_NC(NC3_dispatch_table, FILE_NAME, 0, &model, &ncp)) ERR;
+        /* Create the NC* instance and insert its dispatcher */
+        if (new_NC(NC3_dispatch_table, FILE_NAME, 0, &ncp)) ERR;
 
         /* Add to array of open files nc_filelist and define
          * ext_ncid by left-shifting the index 16 bits. */
@@ -205,13 +199,12 @@ main(int argc, char **argv)
     printf("Testing adding new dim to nc4internal file...");
     {
         NC *ncp;
-        NCmodel model;
         NC_GRP_INFO_T *grp, *dim_grp;
         NC_DIM_INFO_T *dim, *dim_in;
 
         /* Create the NC, add it to nc_filelist array, add and init
          * NC_FILE_INFO_T. */
-        if (new_NC(NC3_dispatch_table, FILE_NAME, 0, &model, &ncp)) ERR;
+        if (new_NC(NC3_dispatch_table, FILE_NAME, 0, &ncp)) ERR;
         add_to_NCList(ncp);
         if (nc4_file_list_add(ncp->ext_ncid, FILE_NAME, 0, NULL)) ERR;
         if (nc4_find_nc_grp_h5(ncp->ext_ncid, NULL, &grp, NULL)) ERR;
@@ -236,14 +229,13 @@ main(int argc, char **argv)
     printf("Testing adding new type to nc4internal file...");
     {
         NC *ncp;
-        NCmodel model;
         NC_GRP_INFO_T *grp;
         NC_TYPE_INFO_T *type, *type_in;
         NC_FILE_INFO_T *h5;
 
         /* Create the NC, add it to nc_filelist array, add and init
          * NC_FILE_INFO_T. */
-        if (new_NC(NC3_dispatch_table, FILE_NAME, 0, &model, &ncp)) ERR;
+        if (new_NC(NC3_dispatch_table, FILE_NAME, 0, &ncp)) ERR;
         add_to_NCList(ncp);
         if (nc4_file_list_add(ncp->ext_ncid, FILE_NAME, 0, NULL)) ERR;
         if (nc4_find_nc_grp_h5(ncp->ext_ncid, NULL, &grp, &h5)) ERR;
@@ -268,14 +260,13 @@ main(int argc, char **argv)
     printf("Testing changing ncid...");
     {
         NC *ncp;
-        NCmodel model;
         NC_GRP_INFO_T *grp;
         NC_FILE_INFO_T *h5;
         int old_ncid;
 
         /* Create the NC, add it to nc_filelist array, add and init
          * NC_FILE_INFO_T. */
-        if (new_NC(NC3_dispatch_table, FILE_NAME, 0, &model, &ncp)) ERR;
+        if (new_NC(NC3_dispatch_table, FILE_NAME, 0, &ncp)) ERR;
         add_to_NCList(ncp);
         if (nc4_file_list_add(ncp->ext_ncid, FILE_NAME, 0, NULL)) ERR;
         if (nc4_find_nc_grp_h5(ncp->ext_ncid, NULL, &grp, &h5)) ERR;

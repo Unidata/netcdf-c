@@ -59,8 +59,6 @@ free_NC(NC *ncp)
         return;
     if(ncp->path)
         free(ncp->path);
-    if(ncp->model)
-        free(ncp->model);
     /* We assume caller has already cleaned up ncp->dispatchdata */
     free(ncp);
 }
@@ -81,17 +79,13 @@ free_NC(NC *ncp)
  * @author Glenn Davis, Dennis Heimbigner
  */
 int
-new_NC(const NC_Dispatch* dispatcher, const char* path, int mode,
-       NCmodel* model, NC** ncpp)
+new_NC(const NC_Dispatch* dispatcher, const char* path, int mode, NC** ncpp)
 {
     NC *ncp = (NC*)calloc(1,sizeof(NC));
     if(ncp == NULL) return NC_ENOMEM;
     ncp->dispatch = dispatcher;
     ncp->path = nulldup(path);
     ncp->mode = mode;
-    if((ncp->model = malloc(sizeof(NCmodel)))==NULL)
-        return NC_ENOMEM;
-    *ncp->model = *model; /* Make a copy */
     if(ncp->path == NULL) { /* fail */
         free_NC(ncp);
         return NC_ENOMEM;

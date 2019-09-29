@@ -65,7 +65,7 @@ NCD4_open(const char * path, int mode,
     d4info->controller = (NC*)nc;
 
     /* Parse url and params */
-    if(ncuriparse(nc->path,&d4info->uri) != NCU_OK)
+    if(ncuriparse(nc->path,&d4info->uri))
 	{ret = NC_EDAPURL; goto done;}
 
     /* Load auth info from rc file */

@@ -122,7 +122,7 @@ H5Z_filter_test(unsigned int flags, size_t cd_nelmts,
 #ifdef HAVE_H5ALLOCATE_MEMORY
         newbuf = H5allocate_memory(*buf_size,0);
 #else
-        newbuf = malloc(*buf_size * sizeof(void));
+        newbuf = malloc(*buf_size);
 #endif
         if(newbuf == NULL) abort();
         memcpy(newbuf,*buf,*buf_size);
@@ -140,7 +140,7 @@ H5Z_filter_test(unsigned int flags, size_t cd_nelmts,
 #ifdef HAVE_H5ALLOCATE_MEMORY
       newbuf = H5allocate_memory(*buf_size,0);
 #else
-      newbuf = malloc(*buf_size * sizeof(void));
+      newbuf = malloc(*buf_size);
 #endif
       if(newbuf == NULL) abort();
         memcpy(newbuf,*buf,*buf_size);
