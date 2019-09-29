@@ -655,7 +655,7 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
     /* Find pointer to NC. */
     if ((retval = NC_check_id(ncid, &nc)))
         return retval;
-    assert(nc && nc->model->impl == NC_FORMATX_NC4);
+    assert(nc);
 
     /* Determine the HDF5 open flag to use. */
     flags = (mode & NC_WRITE) ? H5F_ACC_RDWR : H5F_ACC_RDONLY;
@@ -678,7 +678,7 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 
 #ifdef ENABLE_BYTERANGE
     /* See if we want the byte range protocol */
-    if(nc->model->iosp == NC_IOSP_HTTP) {
+    if(NC_testmode(path,"bytes")) {
         h5->http.iosp = 1;
         /* Kill off any conflicting modes flags */
         mode &= ~(NC_WRITE|NC_DISKLESS|NC_PERSIST|NC_INMEMORY);

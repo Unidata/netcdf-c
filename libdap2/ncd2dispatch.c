@@ -322,7 +322,7 @@ NCD2_open(const char* path, int mode, int basepe, size_t *chunksizehintp,
     dapcomm->oc.rawurltext = strdup(path);
 #endif
 
-    if(ncuriparse(dapcomm->oc.rawurltext,&dapcomm->oc.url) != NCU_OK)
+    if(ncuriparse(dapcomm->oc.rawurltext,&dapcomm->oc.url))
 	{ncstat = NC_EURL; goto done;}
 
     if(!constrainable(dapcomm->oc.url))

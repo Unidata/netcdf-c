@@ -37,11 +37,10 @@ main(int argc, char **argv)
         int ncid;
         NC *ncp, *ncp2;
         int mode = 0;
-        NCmodel model;
         int ret;
 
         /* Create the NC* instance and insert its dispatcher and model. */
-        if ((ret = new_NC(NULL, FILE_NAME, mode, &model, &ncp))) ERR;
+        if ((ret = new_NC(NULL, FILE_NAME, mode, &ncp))) ERR;
 
         /* Nothing to find yet. */
         if (find_in_NCList(TEST_VAL_42)) ERR;
@@ -82,11 +81,10 @@ main(int argc, char **argv)
         int ncid;
         NC *ncp, *ncp2;
         int mode = 0;
-        NCmodel model;
         int ret;
 
         /* Create the NC* instance and add it to list. */
-        if ((ret = new_NC(NULL, FILE_NAME, mode, &model, &ncp))) ERR;
+        if ((ret = new_NC(NULL, FILE_NAME, mode, &ncp))) ERR;
         add_to_NCList(ncp);
 
         /* Find it in the list. */
@@ -122,7 +120,7 @@ main(int argc, char **argv)
         /* Fill the NC list. */
         for (i = 0; i < max_num_nc; i++)
         {
-            if ((ret = new_NC(NULL, FILE_NAME, mode, &model, &ncp))) ERR;
+            if ((ret = new_NC(NULL, FILE_NAME, mode, &ncp))) ERR;
             if (add_to_NCList(ncp)) ERR;
         }
 

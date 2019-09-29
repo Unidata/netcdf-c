@@ -1894,7 +1894,7 @@ NC_create(const char *path0, int cmode, size_t initialsz,
     }
 
     /* Create the NC* instance and insert its dispatcher and model */
-    if((stat = new_NC(dispatcher,path,cmode,&model,&ncp))) goto done;
+    if((stat = new_NC(dispatcher,path,cmode,&ncp))) goto done;
 
     /* Add to list of known open files and define ext_ncid */
     add_to_NCList(ncp);
@@ -2088,7 +2088,7 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
     if (!dispatcher) {stat = NC_ENOTNC; goto done;}
 
     /* Create the NC* instance and insert its dispatcher */
-    if((stat = new_NC(dispatcher,path,omode,&model,&ncp))) goto done;
+    if((stat = new_NC(dispatcher,path,omode,&ncp))) goto done;
 
     /* Add to list of known open files. This assigns an ext_ncid. */
     add_to_NCList(ncp);
