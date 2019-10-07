@@ -61,5 +61,6 @@ extern char* NC_entityescape(const char* s);
 extern int NC_readfile(const char* filename, NCbytes* content);
 extern int NC_writefile(const char* filename, size_t size, void* content);
 extern char* NC_mktmp(const char* base);
-
+extern int NC_getmodelist(const char* url, NClist** modelistp);
+extern int NC_testmode(const char* path, const char* tag);
 #endif /*NCRC_H*/
