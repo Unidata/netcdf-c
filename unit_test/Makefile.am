@@ -18,8 +18,8 @@ if USE_NETCDF4
 NC4_TESTS = tst_nc4internal
 endif # USE_NETCDF4
 
-check_PROGRAMS = tst_nclist $(NC4_TESTS)
-TESTS = tst_nclist $(NC4_TESTS)
+check_PROGRAMS = tst_nclist test_ncuri test_pathcvt $(NC4_TESTS)
+TESTS = tst_nclist test_ncuri test_pathcvt $(NC4_TESTS)
 
 EXTRA_DIST = CMakeLists.txt
 

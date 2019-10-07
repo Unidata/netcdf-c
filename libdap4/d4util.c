@@ -37,7 +37,7 @@ ncd4__testurl(const char* path, char** basenamep)
 {
     NCURI* uri;
     int ok = NC_NOERR;
-    if(ncuriparse(path,&uri) != NCU_OK)
+    if(ncuriparse(path,&uri))
 	ok = NC_EURL;
     else {
 	char* slash = (uri->path == NULL ? NULL : strrchr(uri->path, '/'));

@@ -18,6 +18,7 @@
 #include "netcdf_mem.h"
 #include "rnd.h"
 #include "ncx.h"
+#include "ncrc.h"
 
 /* These have to do with version numbers. */
 #define MAGIC_NUM_LEN 4
@@ -1175,7 +1176,7 @@ NC3_open(const char *path, int ioflags, int basepe, size_t *chunksizehintp,
     /* If the model specified the use of byte-ranges, then signal by
        a temporary hack using one of the flags in the ioflags.
     */
-    if(nc->model->iosp == NC_IOSP_HTTP)
+    if(NC_testmode(path,"bytes"))
         ioflags |= NC_HTTP;
 #endif /*ENABLE_BYTERANGE*/
 

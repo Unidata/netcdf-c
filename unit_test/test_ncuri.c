@@ -10,6 +10,7 @@ Test the ncuri parsing
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "netcdf.h"
 #include "ncuri.h"
 
 typedef struct Test {
@@ -42,12 +43,12 @@ static Test TESTS[] = {
 {"http://localhost","http://localhost/"},
 {"http:///x","http:///x"},
 {"file:///home/osboxes/git/dap4/dap4_test/daptestfiles/test_anon_dim.2.syn#dap4&debug=copy&substratename=./results/test_anon_dim.2.syn.nc","file:///home/osboxes/git/dap4/dap4_test/daptestfiles/test_anon_dim.2.syn#dap4&debug=copy&substratename=./results/test_anon_dim.2.syn.nc"},
+{"file://x/y","file://x/y"},
 {NULL,NULL}
 };
 
 /* Tests that should fail */
 static char* XTESTS[] = {
-"file://x/y",
 "[dap4http://localhost:8081/x",
 NULL
 };
@@ -63,7 +64,7 @@ main(int argc, char** argv)
 	int ret = 0;
 	NCURI* uri = NULL;
 	ret = ncuriparse(test->url,&uri);
-	if(ret != NCU_OK) {
+	if(ret != NC_NOERR) {
 	    fprintf(stderr,"Parse fail: %s\n",test->url);
 	    failcount++;
 	} else {
@@ -83,10 +84,8 @@ main(int argc, char** argv)
     }
 
     for(xtest=XTESTS;*xtest;xtest++) {
-	int ret = 0;
 	NCURI* uri = NULL;
-	ret = ncuriparse(*xtest,&uri);
-	if(ret == NCU_OK) {
+	if(!ncuriparse(*xtest,&uri)) {
 	    fprintf(stderr,"XTEST succeeded: %s\n",*xtest);
 	    failcount++;
 	}

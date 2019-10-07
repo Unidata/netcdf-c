@@ -48,7 +48,7 @@ NC_parseproxy(NCauth* auth, const char* surl)
     NCURI* uri = NULL;
     if(surl == NULL || strlen(surl) == 0)
 	return (NC_NOERR); /* nothing there*/
-    if(ncuriparse(surl,&uri) != NCU_OK)
+    if(ncuriparse(surl,&uri))
 	return (NC_EURL);
     auth->proxy.user = uri->user;
     auth->proxy.pwd = uri->password;

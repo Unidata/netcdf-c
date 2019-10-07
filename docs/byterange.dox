@@ -20,15 +20,15 @@ the remote server supports byte-range access.
 Two examples:
 
 1. An Amazon S3 object containing a netcdf classic file.
-   - location: "http://149.165.169.123:8080/thredds/fileServer/testdata/2004050300_eta_211.nc#bytes" 
+   - location: "http://149.165.169.123:8080/thredds/fileServer/testdata/2004050300_eta_211.nc#mode=bytes" 
 2. A Thredds Server dataset supporting the Thredds HTTPServer protocol.
    and containing a netcdf enhanced file.
-   - location: "http://noaa-goes16.s3.amazonaws.com/ABI-L1b-RadC/2017/059/03/OR_ABI-L1b-RadC-M3C13_G16_s20170590337505_e20170590340289_c20170590340316.nc#bytes"
+   - location: "http://noaa-goes16.s3.amazonaws.com/ABI-L1b-RadC/2017/059/03/OR_ABI-L1b-RadC-M3C13_G16_s20170590337505_e20170590340289_c20170590340316.nc#mode=bytes"
 
 Other remote servers may also provide byte-range access in a similar form.
 
 It is important to note that this is not intended as a true
-production capability because, as is known, this kind of access
+production capability because it is believed that this kind of access
 can be quite slow. In addition, the byte-range IO drivers do not
 currently do any sort of optimization or caching.
 
@@ -42,7 +42,7 @@ This capability requires access to *libcurl*, and an error will occur
 if byterange is enabled, but no *libcurl* could not be located.
 In this, it is similar to the DAP2 and DAP4 capabilities.
 
-Note also that the term "http" is often used as a synonym for *byterange*.
+Note also that here, the term "http" is often used as a synonym for *byterange*.
 
 # Run-time Usage {#byterange_url}
 
@@ -50,7 +50,7 @@ In order to use this capability at run-time, with *ncdump* for
 example, it is necessary to provide a URL pointing to the basic
 dataset to be accessed. The URL must be annotated to tell the
 netcdf-c library that byte-range access should be used. This is
-indicated by appending the phrase ````#bytes````
+indicated by appending the phrase ````#mode=bytes````
 to the end of the URL.
 The two examples above show how this will look.
 

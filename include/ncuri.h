@@ -6,19 +6,6 @@
 #ifndef NCURI_H
 #define NCURI_H
 
-/* Define error codes */
-#define NCU_OK (0)
-#define NCU_EINVAL        (1) /* Generic, mostly means bad argument */
-#define NCU_EBADURL       (2)
-#define NCU_ENOMEM        (3)
-#define NCU_EPROTO        (4)
-#define NCU_EPATH         (5)
-#define NCU_EUSRPWD       (6)
-#define NCU_EHOST         (7)
-#define NCU_EPORT         (8)
-#define NCU_EPARAMS       (9)
-#define NCU_ENOPARAM      (10)
-#define NCU_ECONSTRAINTS  (11)
 
 /* Define flags to control what is included by ncuribuild*/
 #define NCURIPATH      1
@@ -78,6 +65,9 @@ extern int ncurisetprotocol(NCURI*,const char* newprotocol);
 
 /* Replace the constraints */
 EXTERNL int ncurisetquery(NCURI*,const char* query);
+
+/* Replace the fragment list */
+extern int ncurisetfragments(NCURI*, const char* fragments);
 
 /* Construct a complete NC URI; caller frees returned string */
 EXTERNL char* ncuribuild(NCURI*,const char* prefix, const char* suffix, int flags);

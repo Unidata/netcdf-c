@@ -170,6 +170,7 @@ NC *
 find_in_NCList(int ext_ncid)
 {
     NC* f = NULL;
+
     /* Discard the first two bytes of ext_ncid to get ncid. */
     unsigned int ncid = ((unsigned int)ext_ncid) >> ID_SHIFT;
 
@@ -186,7 +187,8 @@ find_in_NCList(int ext_ncid)
      * last two bytes) must be zero. If not, then return NULL, which
      * will eventually lead to an NC_EBADID error being returned to
      * user. */
-    if (f != NULL && f->model->impl == NC_FORMATX_NC3 && (ext_ncid % (1<<ID_SHIFT)))
+    if (f != NULL && f->dispatch != NULL
+	&& f->dispatch->model == NC_FORMATX_NC3 && (ext_ncid % (1<<ID_SHIFT)))
         return NULL;
 
     return f;
