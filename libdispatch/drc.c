@@ -415,7 +415,6 @@ rclocate(const char* key, const char* hostport)
 
 /**
  * Locate rc file by searching in directory prefix.
- * Prefix must end in '/'
  */
 static
 int
