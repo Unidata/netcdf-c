@@ -10,7 +10,7 @@
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address.
-AC_INIT([netCDF], [4.7.3-development], [support-netcdf@unidata.ucar.edu], [netcdf-c])
+AC_INIT([netCDF], [4.7.2], [support-netcdf@unidata.ucar.edu], [netcdf-c])
 
 ##
 # Prefer an empty CFLAGS variable instead of the default -g -O2.
@@ -21,8 +21,8 @@ AC_INIT([netCDF], [4.7.3-development], [support-netcdf@unidata.ucar.edu], [netcd
 
 AC_SUBST([NC_VERSION_MAJOR]) NC_VERSION_MAJOR=4
 AC_SUBST([NC_VERSION_MINOR]) NC_VERSION_MINOR=7
-AC_SUBST([NC_VERSION_PATCH]) NC_VERSION_PATCH=3
-AC_SUBST([NC_VERSION_NOTE]) NC_VERSION_NOTE="-development"
+AC_SUBST([NC_VERSION_PATCH]) NC_VERSION_PATCH=2
+AC_SUBST([NC_VERSION_NOTE]) NC_VERSION_NOTE=""
 
 #####
 # Set some variables used to generate a libnetcdf.settings file,
@@ -70,6 +70,7 @@ AC_CONFIG_LINKS([hdf4_test/ref_chunked.hdf4:hdf4_test/ref_chunked.hdf4])
 AC_CONFIG_LINKS([hdf4_test/ref_contiguous.hdf4:hdf4_test/ref_contiguous.hdf4])
 
 AM_INIT_AUTOMAKE([foreign dist-zip subdir-objects])
+AM_MAINTAINER_MODE()
 
 # Check for the existence of this file before proceeding.
 AC_CONFIG_SRCDIR([include/netcdf.h])
