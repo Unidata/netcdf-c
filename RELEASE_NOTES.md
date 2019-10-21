@@ -7,7 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.7.3 - TBD
 
-## 4.7.2 - October 18, 2019
+## 4.7.2 - October 21, 2019
 
 * [Bug Fix][Enhancement] Various bug fixes and enhancements.
 * [Bug Fix][Enhancement] Corrected an issue where protected memory was being written to with some pointer slight-of-hand.  This has been in the code for a while, but appears to be caught by the compiler on OSX, under circumstances yet to be completely nailed down.  See [GitHub #1486](https://github.com/Unidata/netcdf-c/issues/1486) for more information.  
