@@ -1426,7 +1426,7 @@ new_NC_attr(char        *name,
     (*attrp)->nelems   = nelems;
     (*attrp)->xvalue   = NULL;
     (*attrp)->name     = name;
-    (*attrp)->name_len = strlen(name);
+    (*attrp)->name_len = (name?strlen(name):0);
 
     if (nelems > 0) {
         long long xsz = x_len_NC_attrV(xtype, nelems);
