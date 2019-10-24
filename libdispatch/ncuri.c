@@ -131,6 +131,9 @@ ncuriparse(const char* uri0, NCURI** durip)
     size_t len0;
     int pathchar;
 
+    tmp.fraglist = NULL;
+    tmp.querylist = NULL;
+
     if(uri0 == NULL)
 	{THROW(NC_EURL);}
 
@@ -401,8 +404,11 @@ done:
 
     freestringlist(params);
     freestringlist(querylist);
-    freestringvec(tmp.fraglist);
-    freestringvec(tmp.querylist);
+    if(tmp.fraglist)
+      freestringvec(tmp.fraglist);
+    if(tmp.querylist)
+      freestringvec(tmp.querylist);
+
     return ret;
 }
 
