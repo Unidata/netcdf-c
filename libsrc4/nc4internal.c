@@ -631,7 +631,7 @@ obj_track(NC_FILE_INFO_T* file, NC_OBJ* obj)
 int
 nc4_var_list_add2(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var)
 {
-    NC_VAR_INFO_T *new_var;
+    NC_VAR_INFO_T *new_var = NULL;
 
     /* Allocate storage for new variable. */
     if (!(new_var = calloc(1, sizeof(NC_VAR_INFO_T))))
@@ -646,8 +646,12 @@ nc4_var_list_add2(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var)
 
     /* Now fill in the values in the var info structure. */
     new_var->hdr.id = ncindexsize(grp->vars);
-    if (!(new_var->hdr.name = strdup(name)))
-        return NC_ENOMEM;
+    if (!(new_var->hdr.name = strdup(name))) {
+      if(new_var)
+        free(new_var);
+      return NC_ENOMEM;
+    }
+
     new_var->hdr.hashkey = NC_hashmapkey(new_var->hdr.name,
                                          strlen(new_var->hdr.name));
 
@@ -745,7 +749,7 @@ int
 nc4_dim_list_add(NC_GRP_INFO_T *grp, const char *name, size_t len,
                  int assignedid, NC_DIM_INFO_T **dim)
 {
-    NC_DIM_INFO_T *new_dim;
+    NC_DIM_INFO_T *new_dim = NULL;
 
     assert(grp && name);
 
@@ -762,8 +766,12 @@ nc4_dim_list_add(NC_GRP_INFO_T *grp, const char *name, size_t len,
         new_dim->hdr.id = grp->nc4_info->next_dimid++;
 
     /* Remember the name and create a hash. */
-    if (!(new_dim->hdr.name = strdup(name)))
-        return NC_ENOMEM;
+    if (!(new_dim->hdr.name = strdup(name))) {
+      if(new_dim)
+        free(new_dim);
+
+      return NC_ENOMEM;
+    }
     new_dim->hdr.hashkey = NC_hashmapkey(new_dim->hdr.name,
                                          strlen(new_dim->hdr.name));
 
@@ -801,7 +809,7 @@ nc4_dim_list_add(NC_GRP_INFO_T *grp, const char *name, size_t len,
 int
 nc4_att_list_add(NCindex *list, const char *name, NC_ATT_INFO_T **att)
 {
-    NC_ATT_INFO_T *new_att;
+    NC_ATT_INFO_T *new_att = NULL;
 
     LOG((3, "%s: name %s ", __func__, name));
 
@@ -811,9 +819,11 @@ nc4_att_list_add(NCindex *list, const char *name, NC_ATT_INFO_T **att)
 
     /* Fill in the information we know. */
     new_att->hdr.id = ncindexsize(list);
-    if (!(new_att->hdr.name = strdup(name)))
-        return NC_ENOMEM;
-
+    if (!(new_att->hdr.name = strdup(name))) {
+      if(new_att)
+        free(new_att);
+      return NC_ENOMEM;
+    }
     /* Create a hash of the name. */
     new_att->hdr.hashkey = NC_hashmapkey(name, strlen(name));
 

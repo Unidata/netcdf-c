@@ -422,7 +422,7 @@ rcsearch(const char* prefix, const char* rcname, char** pathp)
 {
     char* path = NULL;
     FILE* f = NULL;
-    size_t plen = strlen(prefix);
+    size_t plen = (prefix?strlen(prefix):0);
     size_t rclen = strlen(rcname);
     int ret = NC_NOERR;
 

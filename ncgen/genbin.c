@@ -286,7 +286,7 @@ static int
 genbin_deftype(Symbol* tsym)
 {
     unsigned long i;
-    int stat;
+    int stat = 0;
 
     ASSERT(tsym->objectclass == NC_TYPE);
     switch (tsym->subclass) {
@@ -424,7 +424,7 @@ genbin_writevar(Generator* generator, Symbol* vsym, Bytebuffer* memory,
     char* data = bbContents(memory);
     size_t nelems;
 
-    /* Compute total number of elements */ 
+    /* Compute total number of elements */
     for(nelems=1,i=0;i<rank;i++) nelems *= count[i];
 
 #ifdef GENDEBUG
