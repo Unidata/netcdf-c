@@ -1,5 +1,13 @@
 /* Copyright 2019 University Corporation for Atmospheric
    Research/Unidata. */
+
+/*
+ * In order to use any of the netcdf_XXX.h files, it is necessary
+ * to include netcdf.h followed by any netcdf_XXX.h files.
+ * Various things (like EXTERNL) are defined in netcdf.h
+ * to make them available for use by the netcdf_XXX.h files.
+*/
+
 /**
  * @file
  * This header contains the definition of the dispatch table. This
@@ -14,8 +22,6 @@
 
 #ifndef NETCDF_DISPATCH_H
 #define NETCDF_DISPATCH_H
-
-#include "netcdf.h"
 
 /* This is the dispatch table, with a pointer to each netCDF
  * function. */
