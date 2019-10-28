@@ -10,11 +10,17 @@
  * \author Ed Hartnett
  */
 
+/*
+ * In order to use any of the netcdf_XXX.h files, it is necessary
+ * to include netcdf.h followed by any netcdf_XXX.h files.
+ * Various things (like EXTERNL) are defined in netcdf.h
+ * to make them available for use by the netcdf_XXX.h files.
+*/
+
 #ifndef NETCDF_PAR_H
 #define NETCDF_PAR_H 1
 
 #include <mpi.h>
-#include "ncexternl.h"
 
 #if defined(__cplusplus)
 extern "C" {
