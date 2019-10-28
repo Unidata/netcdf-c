@@ -23,8 +23,6 @@
 #ifndef NETCDF_DISPATCH_H
 #define NETCDF_DISPATCH_H
 
-#include "netcdf.h"
-
 /* This is the dispatch table, with a pointer to each netCDF
  * function. */
 struct NC_Dispatch
