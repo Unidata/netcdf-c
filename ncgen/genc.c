@@ -434,16 +434,10 @@ genc_netcdf(void)
 static void
 genc_defineglobalspecials(void)
 {
-    const char* format = NULL;
     if(usingclassic) return;
     if(!/*Main.*/format_attribute) return;
-    /* Watch out, this is a global Attribute */
-    format = kind_string(globalspecials._Format);
-    bbprintf0(stmt,"%sstat = nc_put_att_text(ncid, NC_GLOBAL, \"_Format\", 1, \"%s\");\n",
-	          indented(1),
-		  format);
-    codedump(stmt);
-    codelined(1,"check_err(stat,__LINE__,__FILE__);");
+    /* There are currently no global specials that
+       can be defined using nc_put_att.*/
 }
 
 static void
