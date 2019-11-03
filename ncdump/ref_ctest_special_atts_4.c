@@ -30,7 +30,7 @@ check_err(const int stat, const int line, const char *file) {
 }
 
 int
-main() {/* create tst_special_atts.nc */
+main() {/* create ref_tst_special_atts.nc */
 
     int  stat;  /* return status */
     int  ncid;  /* netCDF id */
@@ -73,7 +73,7 @@ main() {/* create tst_special_atts.nc */
     int var5_dims[RANK_var5];
 
     /* enter define mode */
-    stat = nc_create("tst_special_atts.nc", NC_CLOBBER|NC_NETCDF4, &ncid);
+    stat = nc_create("ref_tst_special_atts.nc", NC_CLOBBER|NC_NETCDF4, &ncid);
     check_err(stat,__LINE__,__FILE__);
     tst_special_atts_grp = ncid;
 

@@ -109,7 +109,7 @@ endif
 
 if USE_HDF5
 # Re-activate the ncgen -lc tests
-TESTS += ctests.sh
+TESTS += tst_ctests.sh
 endif
 
 endif BUILD_TESTSETS
@@ -156,7 +156,7 @@ ref_nccopy_w.cdl tst_nccopy_w3.sh tst_nccopy_w4.sh ref_no_ncproperty.nc
 EXTRA_DIST += L512.bin
 
 EXTRA_DIST += ref_ctest_small_3.c ref_ctest_small_4.c \
-	ref_ctest_tst_special_atts_4.c
+	ref_ctest_special_atts_4.c
 
 # CDL files and Expected results
 SUBDIRS = cdl expected
