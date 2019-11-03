@@ -26,12 +26,13 @@ for f in $2 ; do
   echo "Testing ${f}"
   F="${f}${SF}"
   rm -f ./ctest_${F}.c 
-  ${NCGEN} -$K -lc ${srcdir}/${f}.cdl > ./ctest_${F}.c
+  ${NCGEN} -$K -lc ${srcdir}/ref_tst_${f}.cdl > ./ctest_${F}.c
   diff -w ./ctest_${F}.c ${srcdir}/ref_ctest_${F}.c
 done
 }
 
-dotest 3 "small"
+#dotest 3 "small"
 if test "x$NETCDF4" = x1 ; then
-  dotest 4 "small tst_special_atts"
+#  dotest 4 "small special_atts"
+  dotest 4 "special_atts"
 fi
