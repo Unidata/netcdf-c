@@ -10,6 +10,7 @@
 
 #ifndef _NC4INTERNAL_
 #define _NC4INTERNAL_
+#include "netcdf.h"
 
 #include "config.h"
 #include <stdio.h>
@@ -23,12 +24,12 @@
 #include "ncindex.h"
 #include "nc_provenance.h"
 
+
+#include "netcdf_f.h"
+#include "netcdf_mem.h"
 #ifdef USE_PARALLEL
 #include "netcdf_par.h"
 #endif /* USE_PARALLEL */
-#include "netcdf.h"
-#include "netcdf_f.h"
-#include "netcdf_mem.h"
 
 /* Always needed */
 #include "nc.h"
