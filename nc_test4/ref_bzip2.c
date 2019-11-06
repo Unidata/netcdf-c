@@ -48,8 +48,6 @@ main() {/* create bzip2.nc */
     /* enter define mode */
     stat = nc_create("bzip2.nc", NC_CLOBBER|NC_NETCDF4, &ncid);
     check_err(stat,__LINE__,__FILE__);
-    stat = nc_put_att_text(ncid, NC_GLOBAL, "_Format", 1, "netCDF-4");
-    check_err(stat,__LINE__,__FILE__);
     bzip2_grp = ncid;
 
     /* define dimensions */

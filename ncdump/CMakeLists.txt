@@ -264,6 +264,9 @@ ENDIF(MSVC)
   ENDIF(USE_NETCDF4)
 
   add_sh_test(ncdump test_radix)
+
+  add_sh_test(ncdump tst_ctests)
+
 ENDIF()
 
 ENDIF()
@@ -296,7 +299,7 @@ SET(MAN_FILES nccopy.1 ncdump.1)
 # Note, the L512.bin file is file containing exactly 512 bytes each of value 0.
 # It is used for creating hdf5 files with varying offsets for testing.
 
-FILE(GLOB COPY_FILES ${CMAKE_BINARY_DIR}/ncgen/*.nc ${CMAKE_BINARY_DIR}/nc_test4/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.ncml ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.cdl ${CMAKE_CURRENT_SOURCE_DIR}/*.sh ${CMAKE_CURRENT_SOURCE_DIR}/*.1 ${CMAKE_CURRENT_SOURCE_DIR}/L512.bin)
+FILE(GLOB COPY_FILES ${CMAKE_BINARY_DIR}/ncgen/*.nc ${CMAKE_BINARY_DIR}/nc_test4/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.ncml ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.cdl ${CMAKE_CURRENT_SOURCE_DIR}/*.sh ${CMAKE_CURRENT_SOURCE_DIR}/*.1 ${CMAKE_CURRENT_SOURCE_DIR}/L512.bin ${CMAKE_CURRENT_SOURCE_DIR}/ref_ctest*.c)
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
 
 ADD_SUBDIRECTORY(cdl)
