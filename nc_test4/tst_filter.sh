@@ -3,8 +3,6 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
-set -x
-
 # Which test cases to exercise
 API=1
 NG=1
