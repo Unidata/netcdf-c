@@ -141,7 +141,7 @@ int main()
 
     strlcat(url,"file://",sizeof(url));
     strlcat(url,topsrcdir,sizeof(url));
-    strlcat(url,"/ncdap_test/testdata3/test.02",sizeof(url));
+    strlcat(url,"/testdata3/test.02",sizeof(url));
 
     printf("*** Test: var conversions on URL: %s\n",url);
 
