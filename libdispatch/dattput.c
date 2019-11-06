@@ -83,9 +83,9 @@ be assigned or ::NC_GLOBAL for a global attribute.
 \param name Attribute \ref object_name. \ref attribute_conventions may
 apply.
 
-\param len Number of values provided for the attribute.
+\param len Length of `value` not including trailing null.
 
-\param value Pointer to one or more values.
+\param value Pointer to text value.
 
 \returns ::NC_NOERR No error.
 \returns ::NC_EINVAL More than one value for _FillValue or trying to set global _FillValue.
