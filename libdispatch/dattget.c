@@ -101,17 +101,92 @@ nc_get_att(int ncid, int varid, const char *name, void *value)
 
 /**
  * @ingroup attributes
- * Get an attribute.
+ * Get a text attribute.
+ *
+ * This function gets a text attribute from the netCDF
+ * file. Type conversions are not permitted.
+ *
+ * @param ncid NetCDF or group ID, from a previous call to nc_open(),
+ * nc_create(), nc_def_grp(), or associated inquiry functions such as
+ * nc_inq_ncid().
+ * @param varid Variable ID of the attribute's variable, or
+ * ::NC_GLOBAL for a global attribute.
+ * @param name Attribute name.
+
+ * @param value Pointer to location for returned char array. If you
+ * don't know how much space to reserve, call nc_inq_attlen() first to
+ * find out the length of the attribute. @note The handling of NULL
+ * terminators is not specified by netCDF. C programs can write
+ * attributes with or without NULL terminators. It is up to the reader
+ * to know whether NULL terminators have been used, and, if not, to
+ * add a NULL terminator when reading text attributes.
+ *
+ * <h1>Example</h1>
+ *
+ * Here is an example using nc_get_att_text() to read a global
+ * attribute named title in an existing netCDF dataset named foo.nc.
+ *
+ * In this example we learn the length of the attribute, so that an
+ * array may be allocated, adding 1 in case a NULL terminator is
+ * needed. We then take the precaution of setting the last element of
+ * the array to 0, to NULL terminate the string. If a NULL terminator
+ * was written with this attribute, strlen(title) will show the
+ * correct length (the number of chars before the first NULL
+ * terminator).
+
+@code
+     #include <netcdf.h>
+        ...
+     int  status;
+     int  ncid;
+     int  rh_id;
+     int  t_len;
+     char *title;
+
+        ...
+     status = nc_open("foo.nc", NC_NOWRITE, &ncid);
+     if (status != NC_NOERR) handle_error(status);
+        ...
+     status = nc_inq_varid (ncid, "rh", &rh_id);
+     if (status != NC_NOERR) handle_error(status);
+        ...
+     status = nc_inq_attlen (ncid, NC_GLOBAL, "title", &t_len);
+     if (status != NC_NOERR) handle_error(status);
+
+     title = (char *) malloc(t_len + 1);
+     status = nc_get_att_text(ncid, NC_GLOBAL, "title", title);
+     if (status != NC_NOERR) handle_error(status);
+     title[t_len] = '\0';
+        ...
+@endcode
+ *
+ * @return ::NC_NOERR for success.
+ * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ENOTVAR Bad varid.
+ * @return ::NC_EBADNAME Bad name. See \ref object_name.
+ * @return ::NC_EINVAL Invalid parameters.
+ * @return ::NC_ENOTATT Can't find attribute.
+ * @return ::NC_ECHAR Can't convert to or from NC_CHAR.
+ * @return ::NC_ENOMEM Out of memory.
+ * @return ::NC_ERANGE Data conversion went out of range.
+ * @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
+*/
+int
+nc_get_att_text(int ncid, int varid, const char *name, char *value)
+{
+   NC* ncp;
+   int stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) return stat;
+   TRACE(nc_get_att_text);
+   return ncp->dispatch->get_att(ncid, varid, name, (void *)value, NC_CHAR);
+}
+
+/**
+ * @ingroup attributes
+ * Get an attribute of an atomic type.
  *
  * This function gets an attribute of an atomic type from the netCDF
  * file.
- *
- * @note The netCDF library reads all attributes into memory when the
- * file is opened with nc_open(), or when the first attribute for that
- * file or group (for global attributes) or variable is accessed by
- * the user (after versuon 4.7.2). Getting an attribute copies the
- * value from the in-memory store, and does not incur any file I/O
- * penalties after the attributes have been read.
  *
  * @param ncid NetCDF or group ID, from a previous call to nc_open(),
  * nc_create(), nc_def_grp(), or associated inquiry functions such as
@@ -120,17 +195,16 @@ nc_get_att(int ncid, int varid, const char *name, void *value)
  * ::NC_GLOBAL for a global attribute.
  * @param name Attribute name.
  * @param value Pointer to location for returned attribute
- * value(s). All elements of the vector of attribute values are
- * returned, so you must allocate enough space to hold them. If you
- * don't know how much space to reserve, call nc_inq_attlen() first to
- * find out the length of the attribute.
+ * value(s). All elements attribute data array are returned, so you
+ * must allocate enough space to hold them. If you don't know how much
+ * space to reserve, call nc_inq_attlen() first to find out the length
+ * of the attribute.
  *
  * <h1>Example</h1>
  *
  * Here is an example using nc_get_att_double() to determine the
  * values of a variable attribute named valid_range for a netCDF
- * variable named rh and using nc_get_att_text() to read a global
- * attribute named title in an existing netCDF dataset named foo.nc.
+ * variable named rh from a netCDF dataset named foo.nc.
  *
  * In this example, it is assumed that we don't know how many values
  * will be returned, but that we do know the types of the
@@ -143,10 +217,8 @@ nc_get_att(int ncid, int varid, const char *name, void *value)
      int  status;
      int  ncid;
      int  rh_id;
-     int  vr_len, t_len;
+     int  vr_len;
      double *vr_val;
-     char *title;
-     extern char *malloc()
 
         ...
      status = nc_open("foo.nc", NC_NOWRITE, &ncid);
@@ -157,17 +229,11 @@ nc_get_att(int ncid, int varid, const char *name, void *value)
         ...
      status = nc_inq_attlen (ncid, rh_id, "valid_range", &vr_len);
      if (status != NC_NOERR) handle_error(status);
-     status = nc_inq_attlen (ncid, NC_GLOBAL, "title", &t_len);
-     if (status != NC_NOERR) handle_error(status);
 
      vr_val = (double *) malloc(vr_len * sizeof(double));
-     title = (char *) malloc(t_len + 1);
 
      status = nc_get_att_double(ncid, rh_id, "valid_range", vr_val);
      if (status != NC_NOERR) handle_error(status);
-     status = nc_get_att_text(ncid, NC_GLOBAL, "title", title);
-     if (status != NC_NOERR) handle_error(status);
-     title[t_len] = '\0';
         ...
 @endcode
 
@@ -183,16 +249,6 @@ nc_get_att(int ncid, int varid, const char *name, void *value)
  * @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
 */
 /** \{ */
-
-int
-nc_get_att_text(int ncid, int varid, const char *name, char *value)
-{
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
-   TRACE(nc_get_att_text);
-   return ncp->dispatch->get_att(ncid, varid, name, (void *)value, NC_CHAR);
-}
 
 int
 nc_get_att_schar(int ncid, int varid, const char *name, signed char *value)
