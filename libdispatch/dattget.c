@@ -20,20 +20,17 @@
  * @ingroup attributes
  * Get an attribute of any type.
  *
- * The nc_get_att() functions works for any type of attribute, and
- * must be used to get attributes of user-defined type. We recommend
- * that they type safe versions of this function be used for atomic
- * data types.
+ * The nc_get_att() function works for any type of attribute, and must
+ * be used to get attributes of user-defined type. We recommend that
+ * the type safe versions of this function be used for atomic data
+ * types.
  *
  * @param ncid NetCDF or group ID, from a previous call to nc_open(),
  * nc_create(), nc_def_grp(), or associated inquiry functions such as
  * nc_inq_ncid().
- *
  * @param varid Variable ID of the attribute's variable, or
  * ::NC_GLOBAL for a global attribute.
- *
  * @param name Attribute name.
- *
  * @param value Pointer to location for returned attribute
  * value(s). All elements of the vector of attribute values are
  * returned, so you must allocate enough space to hold them. Before
@@ -44,21 +41,11 @@
  * @note See documentation for nc_get_att_string() regarding a special
  * case where memory must be explicitly released.
  *
- * @return ::NC_NOERR for success.
- * @return ::NC_EBADID Bad ncid.
- * @return ::NC_ENOTVAR Bad varid.
- * @return ::NC_EBADNAME Bad name. See \ref object_name.
- * @return ::NC_EINVAL Invalid parameters.
- * @return ::NC_ENOTATT Can't find attribute.
- * @return ::NC_ECHAR Can't convert to or from NC_CHAR.
- * @return ::NC_ENOMEM Out of memory.
- * @return ::NC_ERANGE Data conversion went out of range.
+ * <h1>Example</h1>
  *
-<h1>Example</h1>
-
-Here is an example using nc_get_att() from nc_test4/tst_vl.c creates a
-VLEN attribute, then uses nc_get_att() to read it.
-
+ * Here is an example using nc_get_att() from nc_test4/tst_vl.c
+ * creates a VLEN attribute, then uses nc_get_att() to read it.
+ *
 @code
 #define FILE_NAME "tst_vl.nc"
 #define VLEN_NAME "vlen_name"
@@ -81,7 +68,17 @@ VLEN attribute, then uses nc_get_att() to read it.
       if (nc_close(ncid)) ERR;
 @endcode
 
-* @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
+ * @return ::NC_NOERR for success.
+ * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ENOTVAR Bad varid.
+ * @return ::NC_EBADNAME Bad name. See \ref object_name.
+ * @return ::NC_EINVAL Invalid parameters.
+ * @return ::NC_ENOTATT Can't find attribute.
+ * @return ::NC_ECHAR Can't convert to or from NC_CHAR.
+ * @return ::NC_ENOMEM Out of memory.
+ * @return ::NC_ERANGE Data conversion went out of range.
+ *
+ * @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
 */
 int
 nc_get_att(int ncid, int varid, const char *name, void *value)
@@ -106,51 +103,39 @@ nc_get_att(int ncid, int varid, const char *name, void *value)
  * @ingroup attributes
  * Get an attribute.
  *
- * This function gets an attribute from the netCDF file. The
- * nc_get_att() function works with any type of data, including user
- * defined types.
+ * This function gets an attribute of an atomic type from the netCDF
+ * file.
  *
  * @note The netCDF library reads all attributes into memory when the
- * file is opened with nc_open(). Getting an attribute copies the
+ * file is opened with nc_open(), or when the first attribute for that
+ * file or group (for global attributes) or variable is accessed by
+ * the user (after versuon 4.7.2). Getting an attribute copies the
  * value from the in-memory store, and does not incur any file I/O
- * penalties.
+ * penalties after the attributes have been read.
  *
  * @param ncid NetCDF or group ID, from a previous call to nc_open(),
  * nc_create(), nc_def_grp(), or associated inquiry functions such as
  * nc_inq_ncid().
- *
  * @param varid Variable ID of the attribute's variable, or
  * ::NC_GLOBAL for a global attribute.
- *
  * @param name Attribute name.
- *
  * @param value Pointer to location for returned attribute
  * value(s). All elements of the vector of attribute values are
  * returned, so you must allocate enough space to hold them. If you
  * don't know how much space to reserve, call nc_inq_attlen() first to
  * find out the length of the attribute.
  *
- * @return ::NC_NOERR for success.
- * @return ::NC_EBADID Bad ncid.
- * @return ::NC_ENOTVAR Bad varid.
- * @return ::NC_EBADNAME Bad name. See \ref object_name.
- * @return ::NC_EINVAL Invalid parameters.
- * @return ::NC_ENOTATT Can't find attribute.
- * @return ::NC_ECHAR Can't convert to or from NC_CHAR.
- * @return ::NC_ENOMEM Out of memory.
- * @return ::NC_ERANGE Data conversion went out of range.
-
-<h1>Example</h1>
-
-Here is an example using nc_get_att_double() to determine the values
-of a variable attribute named valid_range for a netCDF variable named
-rh and using nc_get_att_text() to read a global attribute named title
-in an existing netCDF dataset named foo.nc.
-
-In this example, it is assumed that we don't know how many values will
-be returned, but that we do know the types of the attributes. Hence,
-to allocate enough space to store them, we must first inquire about
-the length of the attributes.
+ * <h1>Example</h1>
+ *
+ * Here is an example using nc_get_att_double() to determine the
+ * values of a variable attribute named valid_range for a netCDF
+ * variable named rh and using nc_get_att_text() to read a global
+ * attribute named title in an existing netCDF dataset named foo.nc.
+ *
+ * In this example, it is assumed that we don't know how many values
+ * will be returned, but that we do know the types of the
+ * attributes. Hence, to allocate enough space to store them, we must
+ * first inquire about the length of the attributes.
 
 @code
      #include <netcdf.h>
@@ -186,7 +171,16 @@ the length of the attributes.
         ...
 @endcode
 
-* @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
+ * @return ::NC_NOERR for success.
+ * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ENOTVAR Bad varid.
+ * @return ::NC_EBADNAME Bad name. See \ref object_name.
+ * @return ::NC_EINVAL Invalid parameters.
+ * @return ::NC_ENOTATT Can't find attribute.
+ * @return ::NC_ECHAR Can't convert to or from NC_CHAR.
+ * @return ::NC_ENOMEM Out of memory.
+ * @return ::NC_ERANGE Data conversion went out of range.
+ * @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
 */
 /** \{ */
 
@@ -352,16 +346,6 @@ nc_get_att_ulonglong(int ncid, int varid, const char *name, unsigned long long *
  * don't know how much space to reserve, call nc_inq_attlen() first to
  * find out the length of the attribute.
  *
- * @return ::NC_NOERR for success.
- * @return ::NC_EBADID Bad ncid.
- * @return ::NC_ENOTVAR Bad varid.
- * @return ::NC_EBADNAME Bad name. See \ref object_name.
- * @return ::NC_EINVAL Invalid parameters.
- * @return ::NC_ENOTATT Can't find attribute.
- * @return ::NC_ECHAR Can't convert to or from NC_CHAR.
- * @return ::NC_ENOMEM Out of memory.
- * @return ::NC_ERANGE Data conversion went out of range.
- *
  * @section nc_get_att_string_example Example
  *
 @code{.c}
@@ -409,8 +393,18 @@ int main(int argc, char ** argv) {
 }
 @endcode
 
-* @author Ed Hartnett, Dennis Heimbigner
-*/
+ * @return ::NC_NOERR for success.
+ * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ENOTVAR Bad varid.
+ * @return ::NC_EBADNAME Bad name. See \ref object_name.
+ * @return ::NC_EINVAL Invalid parameters.
+ * @return ::NC_ENOTATT Can't find attribute.
+ * @return ::NC_ECHAR Can't convert to or from NC_CHAR.
+ * @return ::NC_ENOMEM Out of memory.
+ * @return ::NC_ERANGE Data conversion went out of range.
+ *
+ * @author Ed Hartnett, Dennis Heimbigner
+ */
 int
 nc_get_att_string(int ncid, int varid, const char *name, char **value)
 {
