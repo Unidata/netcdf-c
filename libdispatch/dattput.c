@@ -135,6 +135,8 @@ nc_put_att_string(int ncid, int varid, const char *name,
      status = nc_enddef(ncid);
      if (status != NC_NOERR) handle_error(status);
 @endcode
+
+* @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
 */
 int nc_put_att_text(int ncid, int varid, const char *name,
 		size_t len, const char *value)
@@ -225,6 +227,7 @@ int nc_put_att_text(int ncid, int varid, const char *name,
      status = nc_enddef(ncid);
      if (status != NC_NOERR) handle_error(status);
 @endcode
+* @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
 */
 /** \{*/
 int
