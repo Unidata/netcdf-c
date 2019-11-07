@@ -66,17 +66,19 @@ nc_put_att_string(int ncid, int varid, const char *name,
  *
  * Type conversion is not available with text attributes.
  *
+ * @note Whether or not this length includes the NULL character in C
+ * char arrays is a user decision. If the NULL character is not
+ * written, then all C programs must add the NULL character after
+ * reading a text attribute.
+ *
  * @param ncid NetCDF or group ID, from a previous call to nc_open(),
  * nc_create(), nc_def_grp(), or associated inquiry functions such as
  * nc_inq_ncid().
  * @param varid Variable ID of the variable to which the attribute
  * will be assigned or ::NC_GLOBAL for a global attribute.
- * @param name Attribute \ref object_name. \ref attribute_conventions
+ * @param name Attribute @ref object_name. @ref attribute_conventions
  * may apply.
- * @param len The length of the text array. @Note Whether or not this
- * length includes the NULL character in C char arrays is a user
- * decision. If the NULL character is not written, then all C programs
- * must add the NULL character after reading a text attribute.
+ * @param len The length of the text array.
  * @param value Pointer to the start of the character array.
  *
  * @return ::NC_NOERR No error.
