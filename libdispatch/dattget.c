@@ -1,55 +1,59 @@
-/** \file
-Attribute functions
-
-These functions read and write attributes.
-
-Copyright 2018 University Corporation for Atmospheric
-Research/Unidata. See \ref copyright file for more info.  */
+/* Copyright 2018 University Corporation for Atmospheric
+   Research/Unidata. See copyright file for more info.  */
+/**
+ * @file
+ * Attribute functions
+ *
+ * These functions in this file read attributes.
+ */
 
 #include "ncdispatch.h"
 
-/** \name Getting Attributes
-
-Functions to get the values of attributes.
+/**
+ * @name Getting Attributes
+ *
+ * Functions to get the values of attributes.
  */
-/*! \{ */
 
-/*!
-\ingroup attributes
-Get an attribute of any type.
-
-The nc_get_att() functions works for any type of attribute, and must
-be used to get attributes of user-defined type. We recommend that they
-type safe versions of this function be used for atomic data types.
-
-\param ncid NetCDF or group ID, from a previous call to nc_open(),
-nc_create(), nc_def_grp(), or associated inquiry functions such as
-nc_inq_ncid().
-
-\param varid Variable ID of the attribute's variable, or ::NC_GLOBAL
-for a global attribute.
-
-\param name Attribute name.
-
-\param value Pointer to location for returned attribute value(s). All
-elements of the vector of attribute values are returned, so you must
-allocate enough space to hold them. Before using the value as a C
-string, make sure it is null-terminated. Call nc_inq_attlen() first to
-find out the length of the attribute.
-
-\note See documentation for nc_get_att_string() regarding a special
-case where memory must be explicitly released.
-
-\returns ::NC_NOERR for success.
-\returns ::NC_EBADID Bad ncid.
-\returns ::NC_ENOTVAR Bad varid.
-\returns ::NC_EBADNAME Bad name. See \ref object_name.
-\returns ::NC_EINVAL Invalid parameters.
-\returns ::NC_ENOTATT Can't find attribute.
-\returns ::NC_ECHAR Can't convert to or from NC_CHAR.
-\returns ::NC_ENOMEM Out of memory.
-\returns ::NC_ERANGE Data conversion went out of range.
-
+/** \{ */
+/**
+ * @ingroup attributes
+ * Get an attribute of any type.
+ *
+ * The nc_get_att() functions works for any type of attribute, and
+ * must be used to get attributes of user-defined type. We recommend
+ * that they type safe versions of this function be used for atomic
+ * data types.
+ *
+ * @param ncid NetCDF or group ID, from a previous call to nc_open(),
+ * nc_create(), nc_def_grp(), or associated inquiry functions such as
+ * nc_inq_ncid().
+ *
+ * @param varid Variable ID of the attribute's variable, or
+ * ::NC_GLOBAL for a global attribute.
+ *
+ * @param name Attribute name.
+ *
+ * @param value Pointer to location for returned attribute
+ * value(s). All elements of the vector of attribute values are
+ * returned, so you must allocate enough space to hold them. Before
+ * using the value as a C string, make sure it is
+ * null-terminated. Call nc_inq_attlen() first to find out the length
+ * of the attribute.
+ *
+ * @note See documentation for nc_get_att_string() regarding a special
+ * case where memory must be explicitly released.
+ *
+ * @return ::NC_NOERR for success.
+ * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ENOTVAR Bad varid.
+ * @return ::NC_EBADNAME Bad name. See \ref object_name.
+ * @return ::NC_EINVAL Invalid parameters.
+ * @return ::NC_ENOTATT Can't find attribute.
+ * @return ::NC_ECHAR Can't convert to or from NC_CHAR.
+ * @return ::NC_ENOMEM Out of memory.
+ * @return ::NC_ERANGE Data conversion went out of range.
+ *
 <h1>Example</h1>
 
 Here is an example using nc_get_att() from nc_test4/tst_vl.c creates a
@@ -77,7 +81,7 @@ VLEN attribute, then uses nc_get_att() to read it.
       if (nc_close(ncid)) ERR;
 @endcode
 
-\author Glenn Davis, Ed Hartnett, Dennis Heimbigner
+* @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
 */
 int
 nc_get_att(int ncid, int varid, const char *name, void *value)
@@ -96,43 +100,45 @@ nc_get_att(int ncid, int varid, const char *name, void *value)
    TRACE(nc_get_att);
    return ncp->dispatch->get_att(ncid, varid, name, value, xtype);
 }
-/*! \} */
+/** \} */
 
-/*!
-\ingroup attributes
-Get an attribute.
-
-This function gets an attribute from the netCDF file. The nc_get_att()
-function works with any type of data, including user defined types.
-
-\note The netCDF library reads all attributes into memory when the
-file is opened with nc_open(). Getting an attribute copies the value
-from the in-memory store, and does not incur any file I/O penalties.
-
-\param ncid NetCDF or group ID, from a previous call to nc_open(),
-nc_create(), nc_def_grp(), or associated inquiry functions such as
-nc_inq_ncid().
-
-\param varid Variable ID of the attribute's variable, or ::NC_GLOBAL
-for a global attribute.
-
-\param name Attribute name.
-
-\param value Pointer to location for returned attribute value(s). All
-elements of the vector of attribute values are returned, so you must
-allocate enough space to hold them. If you don't know how much
-space to reserve, call nc_inq_attlen() first to find out the length of
-the attribute.
-
-\returns ::NC_NOERR for success.
-\returns ::NC_EBADID Bad ncid.
-\returns ::NC_ENOTVAR Bad varid.
-\returns ::NC_EBADNAME Bad name. See \ref object_name.
-\returns ::NC_EINVAL Invalid parameters.
-\returns ::NC_ENOTATT Can't find attribute.
-\returns ::NC_ECHAR Can't convert to or from NC_CHAR.
-\returns ::NC_ENOMEM Out of memory.
-\returns ::NC_ERANGE Data conversion went out of range.
+/**
+ * @ingroup attributes
+ * Get an attribute.
+ *
+ * This function gets an attribute from the netCDF file. The
+ * nc_get_att() function works with any type of data, including user
+ * defined types.
+ *
+ * @note The netCDF library reads all attributes into memory when the
+ * file is opened with nc_open(). Getting an attribute copies the
+ * value from the in-memory store, and does not incur any file I/O
+ * penalties.
+ *
+ * @param ncid NetCDF or group ID, from a previous call to nc_open(),
+ * nc_create(), nc_def_grp(), or associated inquiry functions such as
+ * nc_inq_ncid().
+ *
+ * @param varid Variable ID of the attribute's variable, or
+ * ::NC_GLOBAL for a global attribute.
+ *
+ * @param name Attribute name.
+ *
+ * @param value Pointer to location for returned attribute
+ * value(s). All elements of the vector of attribute values are
+ * returned, so you must allocate enough space to hold them. If you
+ * don't know how much space to reserve, call nc_inq_attlen() first to
+ * find out the length of the attribute.
+ *
+ * @return ::NC_NOERR for success.
+ * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ENOTVAR Bad varid.
+ * @return ::NC_EBADNAME Bad name. See \ref object_name.
+ * @return ::NC_EINVAL Invalid parameters.
+ * @return ::NC_ENOTATT Can't find attribute.
+ * @return ::NC_ECHAR Can't convert to or from NC_CHAR.
+ * @return ::NC_ENOMEM Out of memory.
+ * @return ::NC_ERANGE Data conversion went out of range.
 
 <h1>Example</h1>
 
@@ -146,7 +152,7 @@ be returned, but that we do know the types of the attributes. Hence,
 to allocate enough space to store them, we must first inquire about
 the length of the attributes.
 
-\code
+@code
      #include <netcdf.h>
         ...
      int  status;
@@ -178,10 +184,11 @@ the length of the attributes.
      if (status != NC_NOERR) handle_error(status);
      title[t_len] = '\0';
         ...
-\endcode
-\author Glenn Davis, Ed Hartnett, Dennis Heimbigner
+@endcode
+
+* @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
 */
-/*! \{ */
+/** \{ */
 
 int
 nc_get_att_text(int ncid, int varid, const char *name, char *value)
@@ -312,52 +319,52 @@ nc_get_att_ulonglong(int ncid, int varid, const char *name, unsigned long long *
    TRACE(nc_get_att_ulonglong);
    return ncp->dispatch->get_att(ncid, varid, name, (void *)value, NC_UINT64);
 }
-/*! \} */
+/** \} */
 
-/*!
-\ingroup attributes
-Get a variable-length string attribute.
-
-This function gets an attribute from netCDF file. The nc_get_att()
-function works with any type of data including user defined types, but
-this function will retrieve attributes which are of type
-variable-length string.
-
-\note Note that unlike most other nc_get_att functions,
-nc_get_att_string() allocates a chunk of memory which is returned to
-the calling function.  This chunk of memory must be specifically
-deallocated with nc_free_string() to avoid any memory leaks.  Also
-note that you must still preallocate the memory needed for the array
-of pointers passed to nc_get_att_string().
-
-\param ncid NetCDF or group ID, from a previous call to nc_open(),
-nc_create(), nc_def_grp(), or associated inquiry functions such as
-nc_inq_ncid().
-
-\param varid Variable ID of the attribute's variable, or ::NC_GLOBAL
-for a global attribute.
-
-\param name Attribute name.
-
-\param value Pointer to location for returned attribute value(s). All
-elements of the vector of attribute values are returned, so you must
-allocate enough space to hold them. If you don't know how much
-space to reserve, call nc_inq_attlen() first to find out the length of
-the attribute.
-
-\returns ::NC_NOERR for success.
-\returns ::NC_EBADID Bad ncid.
-\returns ::NC_ENOTVAR Bad varid.
-\returns ::NC_EBADNAME Bad name. See \ref object_name.
-\returns ::NC_EINVAL Invalid parameters.
-\returns ::NC_ENOTATT Can't find attribute.
-\returns ::NC_ECHAR Can't convert to or from NC_CHAR.
-\returns ::NC_ENOMEM Out of memory.
-\returns ::NC_ERANGE Data conversion went out of range.
-
-\section nc_get_att_string_example Example
-
-\code{.c}
+/**
+ * @ingroup attributes
+ * Get a variable-length string attribute.
+ *
+ * This function gets an attribute from netCDF file. The nc_get_att()
+ * function works with any type of data including user defined types,
+ * but this function will retrieve attributes which are of type
+ * variable-length string.
+ *
+ * @note Note that unlike most other nc_get_att functions,
+ * nc_get_att_string() allocates a chunk of memory which is returned
+ * to the calling function.  This chunk of memory must be specifically
+ * deallocated with nc_free_string() to avoid any memory leaks.  Also
+ * note that you must still preallocate the memory needed for the
+ * array of pointers passed to nc_get_att_string().
+ *
+ * @param ncid NetCDF or group ID, from a previous call to nc_open(),
+ * nc_create(), nc_def_grp(), or associated inquiry functions such as
+ * nc_inq_ncid().
+ *
+ * @param varid Variable ID of the attribute's variable, or
+ * ::NC_GLOBAL for a global attribute.
+ *
+ * @param name Attribute name.
+ *
+ * @param value Pointer to location for returned attribute
+ * value(s). All elements of the vector of attribute values are
+ * returned, so you must allocate enough space to hold them. If you
+ * don't know how much space to reserve, call nc_inq_attlen() first to
+ * find out the length of the attribute.
+ *
+ * @return ::NC_NOERR for success.
+ * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ENOTVAR Bad varid.
+ * @return ::NC_EBADNAME Bad name. See \ref object_name.
+ * @return ::NC_EINVAL Invalid parameters.
+ * @return ::NC_ENOTATT Can't find attribute.
+ * @return ::NC_ECHAR Can't convert to or from NC_CHAR.
+ * @return ::NC_ENOMEM Out of memory.
+ * @return ::NC_ERANGE Data conversion went out of range.
+ *
+ * @section nc_get_att_string_example Example
+ *
+@code{.c}
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -400,10 +407,10 @@ int main(int argc, char ** argv) {
 
   return 0;
 }
-\endcode
-\author Glenn Davis, Ed Hartnett, Dennis Heimbigner
-*/
+@endcode
 
+* @author Ed Hartnett, Dennis Heimbigner
+*/
 int
 nc_get_att_string(int ncid, int varid, const char *name, char **value)
 {
@@ -413,4 +420,4 @@ nc_get_att_string(int ncid, int varid, const char *name, char **value)
     TRACE(nc_get_att_string);
     return ncp->dispatch->get_att(ncid,varid,name,(void*)value, NC_STRING);
 }
-/*! \} */
+/** \} */
