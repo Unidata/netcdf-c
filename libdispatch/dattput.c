@@ -26,15 +26,11 @@
  * @param ncid NetCDF or group ID, from a previous call to nc_open(),
  * nc_create(), nc_def_grp(), or associated inquiry functions such as
  * nc_inq_ncid().
- *
  * @param varid Variable ID of the variable to which the attribute
  * will be assigned or ::NC_GLOBAL for a global or group attribute.
- *
  * @param name Attribute \ref object_name. \ref attribute_conventions
  * may apply.
- *
  * @param len Number of values provided for the attribute.
- *
  * @param value Pointer to one or more values.
  *
  * @return ::NC_NOERR No error.
@@ -68,38 +64,29 @@ nc_put_att_string(int ncid, int varid, const char *name,
  * netCDF dataset must be in define mode for classic formats (or
  * netCDF-4/HDF5 with NC_CLASSIC_MODEL).
  *
- * Although it's possible to create attributes of all types, text and
- * double attributes are adequate for most purposes.
- *
- * Use the nc_put_att function to create attributes of any type,
- * including user-defined types. We recommend using the type safe
- * versions of this function whenever possible.
+ * Type conversion is not available with text attributes.
  *
  * @param ncid NetCDF or group ID, from a previous call to nc_open(),
  * nc_create(), nc_def_grp(), or associated inquiry functions such as
  * nc_inq_ncid().
- *
  * @param varid Variable ID of the variable to which the attribute
  * will be assigned or ::NC_GLOBAL for a global attribute.
- *
  * @param name Attribute \ref object_name. \ref attribute_conventions
  * may apply.
- *
- * @param len Number of values provided for the attribute.
- *
- * @param value Pointer to one or more values.
+ * @param len The length of the text array. @Note Whether or not this
+ * length includes the NULL character in C char arrays is a user
+ * decision. If the NULL character is not written, then all C programs
+ * must add the NULL character after reading a text attribute.
+ * @param value Pointer to the start of the character array.
  *
  * @return ::NC_NOERR No error.
- * @return ::NC_EINVAL More than one value for _FillValue or trying to set global _FillValue.
+ * @return ::NC_EINVAL More than one value for _FillValue or trying to
+ * set global _FillValue.
  * @return ::NC_ENOTVAR Couldn't find varid.
  * @return ::NC_EBADTYPE Fill value and var must be same type.
  * @return ::NC_ENOMEM Out of memory
  * @return ::NC_ELATEFILL Fill values must be written while the file
  * is still in initial define mode.
- *
- * @note With netCDF-4 files, nc_put_att will notice if you are
- * writing a _Fill_Value_ attribute, and will tell the HDF5 layer to
- * use the specified fill value for that variable.
  *
  * @section nc_put_att_text_example Example
  *
@@ -152,36 +139,28 @@ int nc_put_att_text(int ncid, int varid, const char *name,
  * @ingroup attributes
  * Write an attribute.
  *
- * The function nc_put_att_ type adds or changes a variable attribute
+ * The function nc_put_att_<type> adds or changes a variable attribute
  * or global attribute of an open netCDF dataset. If this attribute is
  * new, or if the space required to store the attribute is greater
  * than before, the netCDF dataset must be in define mode for classic
  * formats (or netCDF-4/HDF5 with NC_CLASSIC_MODEL).
  *
- * With netCDF-4 files, nc_put_att will notice if you are writing a
- * _FillValue attribute, and will tell the HDF5 layer to use the
- * specified fill value for that variable.  With either classic or
+ * With netCDF-4 files, nc_put_att_<type> will notice if you are
+ * writing a _FillValue attribute, and will tell the HDF5 layer to use
+ * the specified fill value for that variable.  With either classic or
  * netCDF-4 files, a _FillValue attribute will be checked for
  * validity, to make sure it has only one value and that its type
  * matches the type of the associated variable.
  *
- * Although it's possible to create attributes of all types, text and
- * double attributes are adequate for most purposes.
- *
  * @param ncid NetCDF or group ID, from a previous call to nc_open(),
  * nc_create(), nc_def_grp(), or associated inquiry functions such as
  * nc_inq_ncid().
- *
  * @param varid Variable ID of the variable to which the attribute will
  * be assigned or ::NC_GLOBAL for a global or group attribute.
- *
  * @param name Attribute \ref object_name. \ref attribute_conventions
  * may apply.
- *
  * @param xtype \ref data_type of the attribute.
- *
  * @param len Number of values provided for the attribute.
- *
  * @param value Pointer to one or more values.
  *
  * @return ::NC_NOERR No error.
