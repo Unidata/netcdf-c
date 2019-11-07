@@ -37,8 +37,8 @@
  * mode. In classic format files, the data type, length, and value of
  * an attribute may be changed even when in data mode, as long as the
  * changed attribute requires no more space than the attribute as
- * originally defined. In netCDF-4/HDF5 files, attribute values may be
- * changed at any time.
+ * originally defined. In netCDF-4/HDF5 files, attribute name, length,
+ * and value may be changed at any time.
  *
  * It is also possible to have attributes that are not associated with
  * any variable. These are called global attributes and are identified
