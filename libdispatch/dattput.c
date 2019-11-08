@@ -11,8 +11,25 @@
 /**
  * @name Writing Attributes
  *
- * Functions to write attributes. */
-/** \{ */
+ * Functions to write attributes.
+ *
+ * Attribute data conversion automatically takes place when the type
+ * of the data does not match the xtype argument. All attribute data
+ * values are converted to xtype before being written to the file.
+ *
+ * If writing a new attribute, or if the space required to store
+ * the attribute is greater than before, the netCDF dataset must be in
+ * define mode for classic formats (or netCDF-4/HDF5 with
+ * NC_CLASSIC_MODEL).
+ *
+ * @note With netCDF-4 files, nc_put_att will notice if you are
+ * writing a _FillValue attribute, and will tell the HDF5 layer to use
+ * the specified fill value for that variable.  With either classic or
+ * netCDF-4 files, a _FillValue attribute will be checked for
+ * validity, to make sure it has only one value and that its type
+ * matches the type of the associated variable.
+ *
+*/
 
 /**
  * @ingroup attributes
@@ -23,24 +40,18 @@
  * only available in netCDF-4/HDF5 files, when ::NC_CLASSIC_MODEL has
  * not been used in nc_create().
  *
- * @param ncid NetCDF or group ID, from a previous call to nc_open(),
- * nc_create(), nc_def_grp(), or associated inquiry functions such as
- * nc_inq_ncid().
- * @param varid Variable ID of the variable to which the attribute
- * will be assigned or ::NC_GLOBAL for a global or group attribute.
- * @param name Attribute \ref object_name. \ref attribute_conventions
- * may apply.
+ * @param ncid NetCDF file or group ID.
+ * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
+ * @param name Attribute @ref object_name.
  * @param len Number of values provided for the attribute.
  * @param value Pointer to one or more values.
  *
  * @return ::NC_NOERR No error.
- * @return ::NC_EINVAL More than one value for _FillValue or trying to
- * set global _FillValue.
+ * @return ::NC_EINVAL Invalid or global _FillValue.
  * @return ::NC_ENOTVAR Couldn't find varid.
  * @return ::NC_EBADTYPE Fill value and var must be same type.
  * @return ::NC_ENOMEM Out of memory
- * @return ::NC_ELATEFILL Fill values must be written while the file
- * is still in initial define mode.
+ * @return ::NC_ELATEFILL Too late to set fill value.
  *
  * @author Ed Hartnett, Dennis Heimbigner
 */
@@ -71,24 +82,11 @@ nc_put_att_string(int ncid, int varid, const char *name,
  * written, then all C programs must add the NULL character after
  * reading a text attribute.
  *
- * @param ncid NetCDF or group ID, from a previous call to nc_open(),
- * nc_create(), nc_def_grp(), or associated inquiry functions such as
- * nc_inq_ncid().
- * @param varid Variable ID of the variable to which the attribute
- * will be assigned or ::NC_GLOBAL for a global attribute.
- * @param name Attribute @ref object_name. @ref attribute_conventions
- * may apply.
+ * @param ncid NetCDF file or group ID.
+ * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
+ * @param name Attribute @ref object_name.
  * @param len The length of the text array.
  * @param value Pointer to the start of the character array.
- *
- * @return ::NC_NOERR No error.
- * @return ::NC_EINVAL More than one value for _FillValue or trying to
- * set global _FillValue.
- * @return ::NC_ENOTVAR Couldn't find varid.
- * @return ::NC_EBADTYPE Fill value and var must be same type.
- * @return ::NC_ENOMEM Out of memory
- * @return ::NC_ELATEFILL Fill values must be written while the file
- * is still in initial define mode.
  *
  * @section nc_put_att_text_example Example
  *
@@ -125,7 +123,14 @@ nc_put_att_string(int ncid, int varid, const char *name,
      if (status != NC_NOERR) handle_error(status);
 @endcode
 
-* @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EINVAL Invalid or global _FillValue.
+ * @return ::NC_ENOTVAR Couldn't find varid.
+ * @return ::NC_EBADTYPE Fill value and var must be same type.
+ * @return ::NC_ENOMEM Out of memory
+ * @return ::NC_ELATEFILL Too late to set fill value.
+ *
+ * @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
 */
 int nc_put_att_text(int ncid, int varid, const char *name,
 		size_t len, const char *value)
@@ -136,43 +141,18 @@ int nc_put_att_text(int ncid, int varid, const char *name,
    return ncp->dispatch->put_att(ncid, varid, name, NC_CHAR, len,
 				 (void *)value, NC_CHAR);
 }
-/** \} */
+
 /**
  * @ingroup attributes
- * Write an attribute.
+ * Write an attribute of any type.
  *
- * The function nc_put_att_<type> adds or changes a variable attribute
- * or global attribute of an open netCDF dataset. If this attribute is
- * new, or if the space required to store the attribute is greater
- * than before, the netCDF dataset must be in define mode for classic
- * formats (or netCDF-4/HDF5 with NC_CLASSIC_MODEL).
- *
- * With netCDF-4 files, nc_put_att_<type> will notice if you are
- * writing a _FillValue attribute, and will tell the HDF5 layer to use
- * the specified fill value for that variable.  With either classic or
- * netCDF-4 files, a _FillValue attribute will be checked for
- * validity, to make sure it has only one value and that its type
- * matches the type of the associated variable.
- *
- * @param ncid NetCDF or group ID, from a previous call to nc_open(),
- * nc_create(), nc_def_grp(), or associated inquiry functions such as
- * nc_inq_ncid().
- * @param varid Variable ID of the variable to which the attribute will
- * be assigned or ::NC_GLOBAL for a global or group attribute.
- * @param name Attribute \ref object_name. \ref attribute_conventions
- * may apply.
- * @param xtype \ref data_type of the attribute.
+ * @param ncid NetCDF file or group ID.
+ * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
+ * @param name Attribute @ref object_name.
+ * @param xtype The type of attribute to write. Data will be converted
+ * to this type.
  * @param len Number of values provided for the attribute.
  * @param value Pointer to one or more values.
- *
- * @return ::NC_NOERR No error.
- * @return ::NC_EINVAL More than one value for _FillValue or trying to
- * set global _FillValue.
- * @return ::NC_ENOTVAR Couldn't find varid.
- * @return ::NC_EBADTYPE Fill value and var must be same type.
- * @return ::NC_ENOMEM Out of memory
- * @return ::NC_ELATEFILL Fill values must be written while the file
- * is still in initial define mode.
  *
  * @section nc_put_att_double_example Example
  *
@@ -208,9 +188,16 @@ int nc_put_att_text(int ncid, int varid, const char *name,
      status = nc_enddef(ncid);
      if (status != NC_NOERR) handle_error(status);
 @endcode
-* @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
+
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EINVAL Invalid or global _FillValue.
+ * @return ::NC_ENOTVAR Couldn't find varid.
+ * @return ::NC_EBADTYPE Fill value and var must be same type.
+ * @return ::NC_ENOMEM Out of memory
+ * @return ::NC_ELATEFILL Too late to set fill value.
+ *
+ * @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
 */
-/** \{*/
 int
 nc_put_att(int ncid, int varid, const char *name, nc_type xtype,
 	   size_t len, const void *value)
@@ -222,6 +209,27 @@ nc_put_att(int ncid, int varid, const char *name, nc_type xtype,
 				 value, xtype);
 }
 
+/**
+ * @ingroup attributes
+ * Write an attribute of type signed char.
+ *
+ * @param ncid NetCDF file or group ID.
+ * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
+ * @param name Attribute @ref object_name.
+ * @param xtype The type of attribute to write. Data will be converted
+ * to this type.
+ * @param len Number of values provided for the attribute.
+ * @param value Pointer to one or more values.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EINVAL Invalid or global _FillValue.
+ * @return ::NC_ENOTVAR Couldn't find varid.
+ * @return ::NC_EBADTYPE Fill value and var must be same type.
+ * @return ::NC_ENOMEM Out of memory
+ * @return ::NC_ELATEFILL Too late to set fill value.
+ *
+ * @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
+*/
 int
 nc_put_att_schar(int ncid, int varid, const char *name,
 		 nc_type xtype, size_t len, const signed char *value)
@@ -233,6 +241,27 @@ nc_put_att_schar(int ncid, int varid, const char *name,
 				 (void *)value, NC_BYTE);
 }
 
+/**
+ * @ingroup attributes
+ * Write an attribute of type unsigned char.
+ *
+ * @param ncid NetCDF file or group ID.
+ * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
+ * @param name Attribute @ref object_name.
+ * @param xtype The type of attribute to write. Data will be converted
+ * to this type.
+ * @param len Number of values provided for the attribute.
+ * @param value Pointer to one or more values.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EINVAL Invalid or global _FillValue.
+ * @return ::NC_ENOTVAR Couldn't find varid.
+ * @return ::NC_EBADTYPE Fill value and var must be same type.
+ * @return ::NC_ENOMEM Out of memory
+ * @return ::NC_ELATEFILL Too late to set fill value.
+ *
+ * @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
+*/
 int
 nc_put_att_uchar(int ncid, int varid, const char *name,
 		 nc_type xtype, size_t len, const unsigned char *value)
@@ -244,6 +273,27 @@ nc_put_att_uchar(int ncid, int varid, const char *name,
 				 (void *)value, NC_UBYTE);
 }
 
+/**
+ * @ingroup attributes
+ * Write an attribute of type short.
+ *
+ * @param ncid NetCDF file or group ID.
+ * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
+ * @param name Attribute @ref object_name.
+ * @param xtype The type of attribute to write. Data will be converted
+ * to this type.
+ * @param len Number of values provided for the attribute.
+ * @param value Pointer to one or more values.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EINVAL Invalid or global _FillValue.
+ * @return ::NC_ENOTVAR Couldn't find varid.
+ * @return ::NC_EBADTYPE Fill value and var must be same type.
+ * @return ::NC_ENOMEM Out of memory
+ * @return ::NC_ELATEFILL Too late to set fill value.
+ *
+ * @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
+*/
 int
 nc_put_att_short(int ncid, int varid, const char *name,
 		 nc_type xtype, size_t len, const short *value)
@@ -255,6 +305,27 @@ nc_put_att_short(int ncid, int varid, const char *name,
 				 (void *)value, NC_SHORT);
 }
 
+/**
+ * @ingroup attributes
+ * Write an attribute of type int.
+ *
+ * @param ncid NetCDF file or group ID.
+ * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
+ * @param name Attribute @ref object_name.
+ * @param xtype The type of attribute to write. Data will be converted
+ * to this type.
+ * @param len Number of values provided for the attribute.
+ * @param value Pointer to one or more values.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EINVAL Invalid or global _FillValue.
+ * @return ::NC_ENOTVAR Couldn't find varid.
+ * @return ::NC_EBADTYPE Fill value and var must be same type.
+ * @return ::NC_ENOMEM Out of memory
+ * @return ::NC_ELATEFILL Too late to set fill value.
+ *
+ * @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
+*/
 int
 nc_put_att_int(int ncid, int varid, const char *name,
 	       nc_type xtype, size_t len, const int *value)
@@ -266,6 +337,27 @@ nc_put_att_int(int ncid, int varid, const char *name,
 				 (void *)value, NC_INT);
 }
 
+/**
+ * @ingroup attributes
+ * Write an attribute of type long.
+ *
+ * @param ncid NetCDF file or group ID.
+ * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
+ * @param name Attribute @ref object_name.
+ * @param xtype The type of attribute to write. Data will be converted
+ * to this type.
+ * @param len Number of values provided for the attribute.
+ * @param value Pointer to one or more values.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EINVAL Invalid or global _FillValue.
+ * @return ::NC_ENOTVAR Couldn't find varid.
+ * @return ::NC_EBADTYPE Fill value and var must be same type.
+ * @return ::NC_ENOMEM Out of memory
+ * @return ::NC_ELATEFILL Too late to set fill value.
+ *
+ * @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
+*/
 int
 nc_put_att_long(int ncid, int varid, const char *name,
 		nc_type xtype, size_t len, const long *value)
@@ -277,6 +369,27 @@ nc_put_att_long(int ncid, int varid, const char *name,
 				 (void *)value, longtype);
 }
 
+/**
+ * @ingroup attributes
+ * Write an attribute of type float.
+ *
+ * @param ncid NetCDF file or group ID.
+ * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
+ * @param name Attribute @ref object_name.
+ * @param xtype The type of attribute to write. Data will be converted
+ * to this type.
+ * @param len Number of values provided for the attribute.
+ * @param value Pointer to one or more values.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EINVAL Invalid or global _FillValue.
+ * @return ::NC_ENOTVAR Couldn't find varid.
+ * @return ::NC_EBADTYPE Fill value and var must be same type.
+ * @return ::NC_ENOMEM Out of memory
+ * @return ::NC_ELATEFILL Too late to set fill value.
+ *
+ * @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
+*/
 int
 nc_put_att_float(int ncid, int varid, const char *name,
 		 nc_type xtype, size_t len, const float *value)
@@ -288,6 +401,27 @@ nc_put_att_float(int ncid, int varid, const char *name,
 				 (void *)value, NC_FLOAT);
 }
 
+/**
+ * @ingroup attributes
+ * Write an attribute of type double.
+ *
+ * @param ncid NetCDF file or group ID.
+ * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
+ * @param name Attribute @ref object_name.
+ * @param xtype The type of attribute to write. Data will be converted
+ * to this type.
+ * @param len Number of values provided for the attribute.
+ * @param value Pointer to one or more values.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EINVAL Invalid or global _FillValue.
+ * @return ::NC_ENOTVAR Couldn't find varid.
+ * @return ::NC_EBADTYPE Fill value and var must be same type.
+ * @return ::NC_ENOMEM Out of memory
+ * @return ::NC_ELATEFILL Too late to set fill value.
+ *
+ * @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
+*/
 int
 nc_put_att_double(int ncid, int varid, const char *name,
 		  nc_type xtype, size_t len, const double *value)
@@ -299,6 +433,27 @@ nc_put_att_double(int ncid, int varid, const char *name,
 				 (void *)value, NC_DOUBLE);
 }
 
+/**
+ * @ingroup attributes
+ * Write an attribute of type unsigned char.
+ *
+ * @param ncid NetCDF file or group ID.
+ * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
+ * @param name Attribute @ref object_name.
+ * @param xtype The type of attribute to write. Data will be converted
+ * to this type.
+ * @param len Number of values provided for the attribute.
+ * @param value Pointer to one or more values.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EINVAL Invalid or global _FillValue.
+ * @return ::NC_ENOTVAR Couldn't find varid.
+ * @return ::NC_EBADTYPE Fill value and var must be same type.
+ * @return ::NC_ENOMEM Out of memory
+ * @return ::NC_ELATEFILL Too late to set fill value.
+ *
+ * @author Ed Hartnett, Dennis Heimbigner
+*/
 int
 nc_put_att_ubyte(int ncid, int varid, const char *name,
 		 nc_type xtype, size_t len, const unsigned char *value)
@@ -310,6 +465,27 @@ nc_put_att_ubyte(int ncid, int varid, const char *name,
 				 (void *)value, NC_UBYTE);
 }
 
+/**
+ * @ingroup attributes
+ * Write an attribute of type unsigned short.
+ *
+ * @param ncid NetCDF file or group ID.
+ * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
+ * @param name Attribute @ref object_name.
+ * @param xtype The type of attribute to write. Data will be converted
+ * to this type.
+ * @param len Number of values provided for the attribute.
+ * @param value Pointer to one or more values.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EINVAL Invalid or global _FillValue.
+ * @return ::NC_ENOTVAR Couldn't find varid.
+ * @return ::NC_EBADTYPE Fill value and var must be same type.
+ * @return ::NC_ENOMEM Out of memory
+ * @return ::NC_ELATEFILL Too late to set fill value.
+ *
+ * @author Ed Hartnett, Dennis Heimbigner
+*/
 int
 nc_put_att_ushort(int ncid, int varid, const char *name,
 		  nc_type xtype, size_t len, const unsigned short *value)
@@ -321,6 +497,27 @@ nc_put_att_ushort(int ncid, int varid, const char *name,
 				 (void *)value, NC_USHORT);
 }
 
+/**
+ * @ingroup attributes
+ * Write an attribute of type unsigned int.
+ *
+ * @param ncid NetCDF file or group ID.
+ * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
+ * @param name Attribute @ref object_name.
+ * @param xtype The type of attribute to write. Data will be converted
+ * to this type.
+ * @param len Number of values provided for the attribute.
+ * @param value Pointer to one or more values.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EINVAL Invalid or global _FillValue.
+ * @return ::NC_ENOTVAR Couldn't find varid.
+ * @return ::NC_EBADTYPE Fill value and var must be same type.
+ * @return ::NC_ENOMEM Out of memory
+ * @return ::NC_ELATEFILL Too late to set fill value.
+ *
+ * @author Ed Hartnett, Dennis Heimbigner
+*/
 int
 nc_put_att_uint(int ncid, int varid, const char *name,
 		nc_type xtype, size_t len, const unsigned int *value)
@@ -332,6 +529,27 @@ nc_put_att_uint(int ncid, int varid, const char *name,
 				 (void *)value, NC_UINT);
 }
 
+/**
+ * @ingroup attributes
+ * Write an attribute of type long long.
+ *
+ * @param ncid NetCDF file or group ID.
+ * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
+ * @param name Attribute @ref object_name.
+ * @param xtype The type of attribute to write. Data will be converted
+ * to this type.
+ * @param len Number of values provided for the attribute.
+ * @param value Pointer to one or more values.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EINVAL Invalid or global _FillValue.
+ * @return ::NC_ENOTVAR Couldn't find varid.
+ * @return ::NC_EBADTYPE Fill value and var must be same type.
+ * @return ::NC_ENOMEM Out of memory
+ * @return ::NC_ELATEFILL Too late to set fill value.
+ *
+ * @author Ed Hartnett, Dennis Heimbigner
+*/
 int
 nc_put_att_longlong(int ncid, int varid, const char *name,
 		    nc_type xtype, size_t len,
@@ -344,6 +562,27 @@ nc_put_att_longlong(int ncid, int varid, const char *name,
 				 (void *)value, NC_INT64);
 }
 
+/**
+ * @ingroup attributes
+ * Write an attribute of type unsigned long long.
+ *
+ * @param ncid NetCDF file or group ID.
+ * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
+ * @param name Attribute @ref object_name.
+ * @param xtype The type of attribute to write. Data will be converted
+ * to this type.
+ * @param len Number of values provided for the attribute.
+ * @param value Pointer to one or more values.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EINVAL Invalid or global _FillValue.
+ * @return ::NC_ENOTVAR Couldn't find varid.
+ * @return ::NC_EBADTYPE Fill value and var must be same type.
+ * @return ::NC_ENOMEM Out of memory
+ * @return ::NC_ELATEFILL Too late to set fill value.
+ *
+ * @author Ed Hartnett, Dennis Heimbigner
+*/
 int
 nc_put_att_ulonglong(int ncid, int varid, const char *name,
 		     nc_type xtype, size_t len,

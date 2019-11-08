@@ -59,12 +59,6 @@
  * - Rename an attribute.
  * - Delete an attribute.
  *
- * @note The netCDF library reads all attributes into memory when the
- * file is opened with nc_open(), or when the first attribute for that
- * file or group (for global attributes) or variable is accessed by
- * the user (after versuon 4.7.2). Getting an attribute copies the
- * value from the in-memory store, and does not incur any file I/O
- * penalties after the attributes have been read.
 */
 
 /** \{*/
