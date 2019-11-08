@@ -4,11 +4,11 @@
 # University Corporation for Atmospheric Research/Unidata.
 
 # See netcdf-c/COPYRIGHT file for more info.
-add_definitions(-D"TOPSRCDIR=${CMAKE_SOURCE_DIR}")
-add_definitions(-D"TOPBINDIR=${CMAKE_BINARY_DIR}")
+add_definitions(-D"TOPSRCDIR=${CMAKE_CURRENT_SOURCE_DIR}/../")
+add_definitions(-D"TOPBINDIR=${CMAKE_CURRENT_BINARY_DIR}/../")
 
 remove_definitions(-DDLL_EXPORT)
-add_definitions(-D"TOPSRCDIR=${CMAKE_SOURCE_DIR}")
+# add_definitions(-D"TOPSRCDIR=${CMAKE_CURRENT_SOURCE_DIR}")
 
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 
