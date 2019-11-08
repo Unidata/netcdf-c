@@ -482,7 +482,7 @@ nc_get_att_double(int ncid, int varid, const char *name, double *value)
  * @return ::NC_ECHAR Can't convert to or from NC_CHAR.
  * @return ::NC_ENOMEM Out of memory.
  * @return ::NC_ERANGE Data conversion went out of range.
- * @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
+ * @author Ed Hartnett, Dennis Heimbigner
  */
 int
 nc_get_att_ubyte(int ncid, int varid, const char *name, unsigned char *value)
@@ -513,7 +513,7 @@ nc_get_att_ubyte(int ncid, int varid, const char *name, unsigned char *value)
  * @return ::NC_ECHAR Can't convert to or from NC_CHAR.
  * @return ::NC_ENOMEM Out of memory.
  * @return ::NC_ERANGE Data conversion went out of range.
- * @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
+ * @author Ed Hartnett, Dennis Heimbigner
  */
 int
 nc_get_att_ushort(int ncid, int varid, const char *name, unsigned short *value)
@@ -544,7 +544,7 @@ nc_get_att_ushort(int ncid, int varid, const char *name, unsigned short *value)
  * @return ::NC_ECHAR Can't convert to or from NC_CHAR.
  * @return ::NC_ENOMEM Out of memory.
  * @return ::NC_ERANGE Data conversion went out of range.
- * @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
+ * @author Ed Hartnett, Dennis Heimbigner
  */
 int
 nc_get_att_uint(int ncid, int varid, const char *name, unsigned int *value)
@@ -575,7 +575,7 @@ nc_get_att_uint(int ncid, int varid, const char *name, unsigned int *value)
  * @return ::NC_ECHAR Can't convert to or from NC_CHAR.
  * @return ::NC_ENOMEM Out of memory.
  * @return ::NC_ERANGE Data conversion went out of range.
- * @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
+ * @author Ed Hartnett, Dennis Heimbigner
  */
 int
 nc_get_att_longlong(int ncid, int varid, const char *name, long long *value)
@@ -606,7 +606,7 @@ nc_get_att_longlong(int ncid, int varid, const char *name, long long *value)
  * @return ::NC_ECHAR Can't convert to or from NC_CHAR.
  * @return ::NC_ENOMEM Out of memory.
  * @return ::NC_ERANGE Data conversion went out of range.
- * @author Glenn Davis, Ed Hartnett, Dennis Heimbigner
+ * @author Ed Hartnett, Dennis Heimbigner
  */
 int
 nc_get_att_ulonglong(int ncid, int varid, const char *name, unsigned long long *value)
