@@ -18,39 +18,22 @@
  * properties as units, special values, maximum and minimum valid
  * values, scaling factors, and offsets.
  *
- * For netCDF classic formats, attributes are defined when the dataset
- * is first created, while the netCDF dataset is in define
- * mode. Additional attributes may be added later by reentering define
- * mode. For netCDF-4/HDF5 netCDF files, attributes may be defined at
- * any time.
- *
- * A netCDF attribute has a netCDF variable to which it is assigned, a
- * name, a type, a length, and a sequence of one or more values.
+ * It is also possible to have attributes that are not associated with
+ * any variable. These are called global attributes and are identified
+ * by using ::NC_GLOBAL as a variable pseudo-ID. Global attributes are
+ * related to the netCDF dataset as a whole and may be used for
+ * purposes such as providing a title or processing history for a
+ * netCDF dataset. In netCDF-4/HDF5 files, global attributes are
+ * associated with a hierarchical group.
  *
  * An attribute is designated by its variable ID and name. When an
  * attribute name is not known, it may be designated by its variable
  * ID and number in order to determine its name, using the function
  * nc_inq_attname().
  *
- * The attributes associated with a variable are typically defined
- * immediately after the variable is created, while still in define
- * mode. In classic format files, the data type, length, and value of
- * an attribute may be changed even when in data mode, as long as the
- * changed attribute requires no more space than the attribute as
- * originally defined. In netCDF-4/HDF5 files, attribute name, length,
- * and value may be changed at any time.
- *
- * It is also possible to have attributes that are not associated with
- * any variable. These are called global attributes and are identified
- * by using ::NC_GLOBAL as a variable pseudo-ID. Global attributes are
- * usually related to the netCDF dataset as a whole and may be used
- * for purposes such as providing a title or processing history for a
- * netCDF dataset. In netCDF-4/HDF5 files, global attributes are
- * associated with a hierarchical group.
- *
  * Operations supported on attributes are:
  * - Create an attribute, given its variable ID, name, data type,
- *  length, and value.
+ *   length, and value.
  * - Get attribute's data type and length from its variable ID and
      name.
  * - Get attribute's value from its variable ID and name.
@@ -58,7 +41,6 @@
  * - Get name of attribute from its number.
  * - Rename an attribute.
  * - Delete an attribute.
- *
 */
 
 /** @{*/
@@ -67,7 +49,7 @@
  * @name Deleting and Renaming Attributes
  *
  * Functions to delete or rename an attribute. */
-/** @{ */
+/**@{*/  /* Start doxygen member group. */
 
 /**
  * Rename an attribute.
@@ -199,6 +181,6 @@ nc_del_att(int ncid, int varid, const char *name)
    stat = ncp->dispatch->del_att(ncid, varid, name);
    return stat;
 }
-/*! @} */
+/**@}*/  /* End doxygen member group. */
 
-/*! @} */
+/**@}*/

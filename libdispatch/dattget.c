@@ -10,22 +10,28 @@
 #include "ncdispatch.h"
 
 /**
+ * @anchor getting_attributes
  * @name Getting Attributes
  *
  * Functions to get the values of attributes.
  *
- * The netCDF library reads all attributes into memory when the
- * file is opened with nc_open(), or when the first attribute for that
- * file or group (for global attributes) or variable is accessed by
- * the user (after versuon 4.7.2). Getting an attribute copies the
- * value from the in-memory store, and does not incur any file I/O
- * penalties after the attributes have been read.
+ * For classic format files, the netCDF library reads all attributes
+ * into memory when the file is opened with nc_open().
+ *
+ * For netCDF-4/HDF5 files, since version 4.7.2, attributes are not
+ * read on file open. Instead, when the first read of a variable
+ * attribute is done, all attributes for that variable are
+ * read. Subsequent access to other attributes of that variable will
+ * not incur a disk read. Similarly, when the first NC_GLOBAL
+ * attribute is read in a group, all NC_GLOBAL attributes for that
+ * group will be read.
  *
  * @note All elements attribute data array are returned, so you must
  * allocate enough space to hold them. If you don't know how much
  * space to reserve, call nc_inq_attlen() first to find out the length
  * of the attribute.
  */
+/**@{*/  /* Start doxygen member group. */
 
 /**
  * @ingroup attributes
@@ -35,6 +41,8 @@
  * be used to get attributes of user-defined type. We recommend that
  * the type safe versions of this function be used for atomic data
  * types.
+ *
+ * Also see @ref getting_attributes "Getting Attributes"
  *
  * @param ncid NetCDF file or group ID.
  * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
@@ -109,12 +117,14 @@ nc_get_att(int ncid, int varid, const char *name, void *value)
  * This function gets a text attribute from the netCDF
  * file. Type conversions are not permitted.
  *
+ * Also see @ref getting_attributes "Getting Attributes"
+ *
  * @param ncid NetCDF file or group ID.
  * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
  * @param name Attribute name.
  * @param value Pointer that will get array of attribute value(s). Use
  * nc_inq_attlen() to learn length.
-
+ *
  * @note The handling of NULL terminators is not specified by
  * netCDF. C programs can write attributes with or without NULL
  * terminators. It is up to the reader to know whether NULL
@@ -185,6 +195,8 @@ nc_get_att_text(int ncid, int varid, const char *name, char *value)
  * @ingroup attributes
  * Get an attribute of an signed char type.
  *
+ * Also see @ref getting_attributes "Getting Attributes"
+ *
  * @param ncid NetCDF file or group ID.
  * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
  * @param name Attribute name.
@@ -215,6 +227,8 @@ nc_get_att_schar(int ncid, int varid, const char *name, signed char *value)
 /**
  * @ingroup attributes
  * Get an attribute of an atomic type.
+ *
+ * Also see @ref getting_attributes "Getting Attributes"
  *
  * This function gets an attribute of an atomic type from the netCDF
  * file.
@@ -281,6 +295,8 @@ nc_get_att_schar(int ncid, int varid, const char *name, signed char *value)
  * @ingroup attributes
  * Get an attribute of an signed char type.
  *
+ * Also see @ref getting_attributes "Getting Attributes"
+ *
  * @param ncid NetCDF file or group ID.
  * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
  * @param name Attribute name.
@@ -311,6 +327,8 @@ nc_get_att_uchar(int ncid, int varid, const char *name, unsigned char *value)
 /**
  * @ingroup attributes
  * Get an attribute array of type short.
+ *
+ * Also see @ref getting_attributes "Getting Attributes"
  *
  * @param ncid NetCDF file or group ID.
  * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
@@ -343,6 +361,8 @@ nc_get_att_short(int ncid, int varid, const char *name, short *value)
  * @ingroup attributes
  * Get an attribute array of type int.
  *
+ * Also see @ref getting_attributes "Getting Attributes"
+ *
  * @param ncid NetCDF file or group ID.
  * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
  * @param name Attribute name.
@@ -373,6 +393,8 @@ nc_get_att_int(int ncid, int varid, const char *name, int *value)
 /**
  * @ingroup attributes
  * Get an attribute array of type long.
+ *
+ * Also see @ref getting_attributes "Getting Attributes"
  *
  * @param ncid NetCDF file or group ID.
  * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
@@ -405,6 +427,8 @@ nc_get_att_long(int ncid, int varid, const char *name, long *value)
  * @ingroup attributes
  * Get an attribute array of type float.
  *
+ * Also see @ref getting_attributes "Getting Attributes"
+ *
  * @param ncid NetCDF file or group ID.
  * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
  * @param name Attribute name.
@@ -435,6 +459,8 @@ nc_get_att_float(int ncid, int varid, const char *name, float *value)
 /**
  * @ingroup attributes
  * Get an attribute array of type double.
+ *
+ * Also see @ref getting_attributes "Getting Attributes"
  *
  * @param ncid NetCDF file or group ID.
  * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
@@ -467,6 +493,8 @@ nc_get_att_double(int ncid, int varid, const char *name, double *value)
  * @ingroup attributes
  * Get an attribute array of type unsigned char.
  *
+ * Also see @ref getting_attributes "Getting Attributes"
+ *
  * @param ncid NetCDF file or group ID.
  * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
  * @param name Attribute name.
@@ -497,6 +525,8 @@ nc_get_att_ubyte(int ncid, int varid, const char *name, unsigned char *value)
 /**
  * @ingroup attributes
  * Get an attribute array of type unsigned short.
+ *
+ * Also see @ref getting_attributes "Getting Attributes"
  *
  * @param ncid NetCDF file or group ID.
  * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
@@ -529,6 +559,8 @@ nc_get_att_ushort(int ncid, int varid, const char *name, unsigned short *value)
  * @ingroup attributes
  * Get an attribute array of type unsigned int.
  *
+ * Also see @ref getting_attributes "Getting Attributes"
+ *
  * @param ncid NetCDF file or group ID.
  * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
  * @param name Attribute name.
@@ -560,6 +592,8 @@ nc_get_att_uint(int ncid, int varid, const char *name, unsigned int *value)
  * @ingroup attributes
  * Get an attribute array of type long long.
  *
+ * Also see @ref getting_attributes "Getting Attributes"
+ *
  * @param ncid NetCDF file or group ID.
  * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
  * @param name Attribute name.
@@ -590,6 +624,8 @@ nc_get_att_longlong(int ncid, int varid, const char *name, long long *value)
 /**
  * @ingroup attributes
  * Get an attribute array of type unsigned long long.
+ *
+ * Also see @ref getting_attributes "Getting Attributes"
  *
  * @param ncid NetCDF file or group ID.
  * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
@@ -626,6 +662,8 @@ nc_get_att_ulonglong(int ncid, int varid, const char *name, unsigned long long *
  * function works with any type of data including user defined types,
  * but this function will retrieve attributes which are of type
  * variable-length string.
+ *
+ * Also see @ref getting_attributes "Getting Attributes"
  *
  * @note Note that unlike most other nc_get_att functions,
  * nc_get_att_string() allocates a chunk of memory which is returned
@@ -708,3 +746,4 @@ nc_get_att_string(int ncid, int varid, const char *name, char **value)
     TRACE(nc_get_att_string);
     return ncp->dispatch->get_att(ncid,varid,name,(void*)value, NC_STRING);
 }
+/**@}*/  /* End doxygen member group. */

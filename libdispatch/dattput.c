@@ -9,9 +9,22 @@
 #include "ncdispatch.h"
 
 /**
+ * @anchor writing_attributes
  * @name Writing Attributes
  *
  * Functions to write attributes.
+ *
+ * For netCDF classic formats, attributes are defined when the dataset
+ * is first created, while the netCDF dataset is in define
+ * mode. Additional attributes may be added later by reentering define
+ * mode. For netCDF-4/HDF5 netCDF files, attributes may be defined at
+ * any time.
+ *
+ * In classic format files, the data type, length, and value of an
+ * attribute may be changed even when in data mode, as long as the
+ * changed attribute requires no more space than the attribute as
+ * originally defined. In netCDF-4/HDF5 files, attribute name, length,
+ * and value may be changed at any time.
  *
  * Attribute data conversion automatically takes place when the type
  * of the data does not match the xtype argument. All attribute data
@@ -31,6 +44,7 @@
  *
 */
 
+/**@{*/  /* Start doxygen member group. */
 /**
  * @ingroup attributes
  * Write a string attribute.
@@ -39,6 +53,8 @@
  * or global attribute of an open netCDF dataset. The string type is
  * only available in netCDF-4/HDF5 files, when ::NC_CLASSIC_MODEL has
  * not been used in nc_create().
+ *
+ * Also see @ref writing_attributes "Writing Attributes"
  *
  * @param ncid NetCDF file or group ID.
  * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
@@ -76,6 +92,8 @@ nc_put_att_string(int ncid, int varid, const char *name,
  * netCDF-4/HDF5 with NC_CLASSIC_MODEL).
  *
  * Type conversion is not available with text attributes.
+ *
+ * Also see @ref writing_attributes "Writing Attributes"
  *
  * @note Whether or not this length includes the NULL character in C
  * char arrays is a user decision. If the NULL character is not
@@ -146,6 +164,8 @@ int nc_put_att_text(int ncid, int varid, const char *name,
  * @ingroup attributes
  * Write an attribute of any type.
  *
+ * Also see @ref writing_attributes "Writing Attributes"
+ *
  * @param ncid NetCDF file or group ID.
  * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
  * @param name Attribute @ref object_name.
@@ -213,6 +233,8 @@ nc_put_att(int ncid, int varid, const char *name, nc_type xtype,
  * @ingroup attributes
  * Write an attribute of type signed char.
  *
+ * Also see @ref writing_attributes "Writing Attributes"
+ *
  * @param ncid NetCDF file or group ID.
  * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
  * @param name Attribute @ref object_name.
@@ -244,6 +266,8 @@ nc_put_att_schar(int ncid, int varid, const char *name,
 /**
  * @ingroup attributes
  * Write an attribute of type unsigned char.
+ *
+ * Also see @ref writing_attributes "Writing Attributes"
  *
  * @param ncid NetCDF file or group ID.
  * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
@@ -277,6 +301,8 @@ nc_put_att_uchar(int ncid, int varid, const char *name,
  * @ingroup attributes
  * Write an attribute of type short.
  *
+ * Also see @ref writing_attributes "Writing Attributes"
+ *
  * @param ncid NetCDF file or group ID.
  * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
  * @param name Attribute @ref object_name.
@@ -308,6 +334,8 @@ nc_put_att_short(int ncid, int varid, const char *name,
 /**
  * @ingroup attributes
  * Write an attribute of type int.
+ *
+ * Also see @ref writing_attributes "Writing Attributes"
  *
  * @param ncid NetCDF file or group ID.
  * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
@@ -341,6 +369,8 @@ nc_put_att_int(int ncid, int varid, const char *name,
  * @ingroup attributes
  * Write an attribute of type long.
  *
+ * Also see @ref writing_attributes "Writing Attributes"
+ *
  * @param ncid NetCDF file or group ID.
  * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
  * @param name Attribute @ref object_name.
@@ -372,6 +402,8 @@ nc_put_att_long(int ncid, int varid, const char *name,
 /**
  * @ingroup attributes
  * Write an attribute of type float.
+ *
+ * Also see @ref writing_attributes "Writing Attributes"
  *
  * @param ncid NetCDF file or group ID.
  * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
@@ -405,6 +437,8 @@ nc_put_att_float(int ncid, int varid, const char *name,
  * @ingroup attributes
  * Write an attribute of type double.
  *
+ * Also see @ref writing_attributes "Writing Attributes"
+ *
  * @param ncid NetCDF file or group ID.
  * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
  * @param name Attribute @ref object_name.
@@ -436,6 +470,8 @@ nc_put_att_double(int ncid, int varid, const char *name,
 /**
  * @ingroup attributes
  * Write an attribute of type unsigned char.
+ *
+ * Also see @ref writing_attributes "Writing Attributes"
  *
  * @param ncid NetCDF file or group ID.
  * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
@@ -469,6 +505,8 @@ nc_put_att_ubyte(int ncid, int varid, const char *name,
  * @ingroup attributes
  * Write an attribute of type unsigned short.
  *
+ * Also see @ref writing_attributes "Writing Attributes"
+ *
  * @param ncid NetCDF file or group ID.
  * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
  * @param name Attribute @ref object_name.
@@ -501,6 +539,8 @@ nc_put_att_ushort(int ncid, int varid, const char *name,
  * @ingroup attributes
  * Write an attribute of type unsigned int.
  *
+ * Also see @ref writing_attributes "Writing Attributes"
+ *
  * @param ncid NetCDF file or group ID.
  * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
  * @param name Attribute @ref object_name.
@@ -532,6 +572,8 @@ nc_put_att_uint(int ncid, int varid, const char *name,
 /**
  * @ingroup attributes
  * Write an attribute of type long long.
+ *
+ * Also see @ref writing_attributes "Writing Attributes"
  *
  * @param ncid NetCDF file or group ID.
  * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
@@ -566,6 +608,8 @@ nc_put_att_longlong(int ncid, int varid, const char *name,
  * @ingroup attributes
  * Write an attribute of type unsigned long long.
  *
+ * Also see @ref writing_attributes "Writing Attributes"
+ *
  * @param ncid NetCDF file or group ID.
  * @param varid Variable ID, or ::NC_GLOBAL for a global attribute.
  * @param name Attribute @ref object_name.
@@ -594,3 +638,5 @@ nc_put_att_ulonglong(int ncid, int varid, const char *name,
    return ncp->dispatch->put_att(ncid, varid, name, xtype, len,
 				 (void *)value, NC_UINT64);
 }
+
+/**@}*/  /* End doxygen member group. */

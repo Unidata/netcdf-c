@@ -778,11 +778,11 @@ INPUT = \
     @abs_top_srcdir@/libdispatch/dvar.c \
     @abs_top_srcdir@/libdispatch/dvarget.c \
     @abs_top_srcdir@/libdispatch/dvarinq.c \
-    @abs_top_srcdir@/libdispatch/dvarput.c \
-    @abs_top_srcdir@/libdispatch/datt.c \
-    @abs_top_srcdir@/libdispatch/dattget.c \
     @abs_top_srcdir@/libdispatch/dattinq.c \
+    @abs_top_srcdir@/libdispatch/dattget.c \
+    @abs_top_srcdir@/libdispatch/dvarput.c \
     @abs_top_srcdir@/libdispatch/dattput.c \
+    @abs_top_srcdir@/libdispatch/datt.c \
     @abs_top_srcdir@/libdispatch/dgroup.c \
     @abs_top_srcdir@/libdispatch/dtype.c \
     @abs_top_srcdir@/libdispatch/dcompound.c \
