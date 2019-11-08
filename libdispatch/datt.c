@@ -61,13 +61,13 @@
  *
 */
 
-/** \{*/
+/** @{*/
 
 /**
  * @name Deleting and Renaming Attributes
  *
  * Functions to delete or rename an attribute. */
-/** \{ */
+/** @{ */
 
 /**
  * Rename an attribute.
@@ -199,6 +199,6 @@ nc_del_att(int ncid, int varid, const char *name)
    stat = ncp->dispatch->del_att(ncid, varid, name);
    return stat;
 }
-/*! \} */
+/*! @} */
 
-/*! \} */
+/*! @} */
