@@ -512,7 +512,6 @@ put_att_grpa(NC_GRP_INFO_T *grp, int varid, NC_ATT_INFO_T *att)
     hid_t existing_att_typeid = 0, existing_attid = 0, existing_spaceid = 0;
     hsize_t dims[1]; /* netcdf attributes always 1-D. */
     htri_t attr_exists;
-    int reuse_att = 0; /* Will be true if we can re-use an existing att. */
     void *data;
     int phoney_data = 99;
     int retval = NC_NOERR;
@@ -612,31 +611,59 @@ put_att_grpa(NC_GRP_INFO_T *grp, int varid, NC_ATT_INFO_T *att)
             BAIL(NC_EATTMETA);
 
         /* How big is the attribute? */
-        if ((existing_spaceid = H5Aget_space(existing_attid)) < 0)
-            BAIL(NC_EATTMETA);
-        if ((npoints = H5Sget_simple_extent_npoints(existing_spaceid)) < 0)
-            BAIL(NC_EATTMETA);
-
-        /* Delete the attribute. */
-        if (file_typeid != existing_att_typeid || npoints != att->len)
-        {
-            if (H5Adelete(locid, att->hdr.name) < 0)
-                BAIL(NC_EHDFERR);
+        if (att->nc_typeid == NC_CHAR) {
+          /* For text attributes the size is specified in the datatype
+             and it is enough to compare types using H5Tequal(). Here
+             we set npoints to disable the second part of the
+             comparison below. */
+          npoints = att->len;
         }
         else
         {
-            reuse_att++;
+          if ((existing_spaceid = H5Aget_space(existing_attid)) < 0)
+            BAIL(NC_EATTMETA);
+          if ((npoints = H5Sget_simple_extent_npoints(existing_spaceid)) < 0)
+            BAIL(NC_EATTMETA);
         }
+
+        if (!H5Tequal(file_typeid, existing_att_typeid) || npoints != att->len)
+        {
+          /* The attribute exists but we cannot re-use it. */
+
+          /* Delete the attribute. */
+            if (H5Adelete(locid, att->hdr.name) < 0)
+                BAIL(NC_EHDFERR);
+
+            /* Re-create the attribute with the type and length
+               reflecting the new value (or values). */
+            if ((attid = H5Acreate(locid, att->hdr.name, file_typeid, spaceid,
+                                   H5P_DEFAULT)) < 0)
+              BAIL(NC_EATTMETA);
+
+            /* Write the values, (even if length is zero). */
+            if (H5Awrite(attid, file_typeid, data) < 0)
+              BAIL(NC_EATTMETA);
+        }
+        else
+        {
+          /* The attribute exists and we can re-use it. */
+
+          /* Write the values, re-using the existing attribute. */
+          if (H5Awrite(existing_attid, file_typeid, data) < 0)
+            BAIL(NC_EATTMETA);
+        }
+    } else {
+      /* The attribute does not exist yet. */
+
+      /* Create the attribute. */
+      if ((attid = H5Acreate(locid, att->hdr.name, file_typeid, spaceid,
+                             H5P_DEFAULT)) < 0)
+        BAIL(NC_EATTMETA);
+
+      /* Write the values, (even if length is zero). */
+      if (H5Awrite(attid, file_typeid, data) < 0)
+        BAIL(NC_EATTMETA);
     }
-
-    /* Create the attribute. */
-    if ((attid = H5Acreate(locid, att->hdr.name, file_typeid, spaceid,
-                           H5P_DEFAULT)) < 0)
-        BAIL(NC_EATTMETA);
-
-    /* Write the values, (even if length is zero). */
-    if (H5Awrite(attid, file_typeid, data) < 0)
-        BAIL(NC_EATTMETA);
 
 exit:
     if (file_typeid && H5Tclose(file_typeid))
