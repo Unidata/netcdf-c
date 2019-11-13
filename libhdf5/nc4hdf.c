@@ -611,22 +611,15 @@ put_att_grpa(NC_GRP_INFO_T *grp, int varid, NC_ATT_INFO_T *att)
             BAIL(NC_EATTMETA);
 
         /* How big is the attribute? */
-        if (att->nc_typeid == NC_CHAR) {
-          /* For text attributes the size is specified in the datatype
-             and it is enough to compare types using H5Tequal(). Here
-             we set npoints to disable the second part of the
-             comparison below. */
-          npoints = att->len;
-        }
-        else
-        {
-          if ((existing_spaceid = H5Aget_space(existing_attid)) < 0)
-            BAIL(NC_EATTMETA);
-          if ((npoints = H5Sget_simple_extent_npoints(existing_spaceid)) < 0)
-            BAIL(NC_EATTMETA);
-        }
+        if ((existing_spaceid = H5Aget_space(existing_attid)) < 0)
+          BAIL(NC_EATTMETA);
+        if ((npoints = H5Sget_simple_extent_npoints(existing_spaceid)) < 0)
+          BAIL(NC_EATTMETA);
 
-        if (!H5Tequal(file_typeid, existing_att_typeid) || npoints != att->len)
+        /* For text attributes the size is specified in the datatype
+           and it is enough to compare types using H5Tequal(). */
+        if (!H5Tequal(file_typeid, existing_att_typeid) ||
+            (att->nc_typeid != NC_CHAR && npoints != att->len))
         {
           /* The attribute exists but we cannot re-use it. */
 
