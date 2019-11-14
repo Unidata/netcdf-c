@@ -59,7 +59,7 @@ main(int argc, char **argv)
                ERR;
            if (nc_inq(ncid, &ndims, &nvars, &ngatts, &unlimdimid))
                ERR;
-           if (ndims != 1 || nvars != 1 || ngatts != 0 || unlimdimid != -1)
+           if (ndims != 2 || nvars != 1 || ngatts != 0 || unlimdimid != -1)
                ERR;
            if (nc_close(ncid))
                ERR;
