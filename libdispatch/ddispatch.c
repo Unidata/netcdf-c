@@ -26,7 +26,7 @@ See LICENSE.txt for license information.
 #include <curl/curl.h>
 #endif
 
-/* Define vectors of zeros and ones for use with various nc_get_varX function*/
+/* Define vectors of zeros and ones for use with various nc_get_varX functions */
 size_t NC_coord_zero[NC_MAX_VAR_DIMS] = {0};
 size_t NC_coord_one[NC_MAX_VAR_DIMS] = {1};
 ptrdiff_t NC_stride_one[NC_MAX_VAR_DIMS] = {1};
@@ -46,15 +46,10 @@ NCDISPATCH_initialize(void)
     int i;
     NCRCglobalstate* globalstate = NULL;
 
-    {
-	size_t* c0 = (size_t*)NC_coord_zero;
-	size_t* c1 = (size_t*)NC_coord_one;
-	ptrdiff_t* s1 = (ptrdiff_t*)NC_stride_one;
-        for(i=0;i<NC_MAX_VAR_DIMS;i++) {
-	    c0[0] = 0;
-	    c1[i] = 1;
-	    s1[i] = 1;
-	}
+    for(i=0;i<NC_MAX_VAR_DIMS;i++) {
+        NC_coord_zero[i] = 0;
+        NC_coord_one[i]  = 1;
+        NC_stride_one[i] = 1;
     }
 
     globalstate = ncrc_getglobalstate(); /* will allocate and clear */
