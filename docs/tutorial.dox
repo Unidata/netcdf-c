@@ -708,7 +708,9 @@ deserve what you get, which will be a mess.
 Additionally, netCDF stores some extra information for dimensions
 without dimension scale information. (That is, a dimension without an
 associated coordinate variable). So HDF5 users should not write data
-to a netCDF-4 file which extends any unlimited dimension.
+to a netCDF-4 file which extends any unlimited dimension, or change
+any of the extra attributes used by netCDF to track dimension
+information.
 
 Also there are some types allowed in HDF5, but not allowed in netCDF-4
 (for example the time type). Using any such type in a netCDF-4 file
@@ -736,7 +738,20 @@ example, a user might have 1D dimension scales for lat and lon, and a
 the second.
 
 If dimension scales are not used, then netCDF-4 can still edit the
-file, and will invent anonymous dimensions for each variable shape.
+file, and will invent anonymous dimensions for each variable
+shape. This is done by iterating through the space of each dataset. As
+each space size is encountered, a phony dimension of that size is
+checked for. It it does not exist, a new phony dimension is created
+for that size. In this way, a HDF5 file with datasets that are using
+shared dimensions can be seen properly in netCDF-4. (There is no
+shared dimension in HDF5, but data users will freqently write many
+datasets with the same shape, and intend these to be shared
+dimensions.)
+
+Starting with version 4.7.3, if a dataset is encountered with uses the
+same size for two or more of its dataspace lengths, then a new phony
+dimension will be created for each. That is, a dataset with size
+[100][100] will result in two phony dimensions, each of size 100.
 
 \page groups Groups
 
