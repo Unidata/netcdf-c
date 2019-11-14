@@ -357,8 +357,11 @@ dimscale_visitor(hid_t did, unsigned dim, hid_t dsid,
 }
 
 /**
- * @internal For files without any netCDF-4 dimensions defined, create phony
- * dimension to match the available datasets.
+ * @internal For files without any netCDF-4 dimensions defined, create
+ * phony dimension to match the available datasets. Each new dimension
+ * of a new size gets a phony dimension. However, if a var has more
+ * than one dimension defined, and they are the same size, they each
+ * get their own phony dimension (starting in netcdf-c-4.7.3).
  *
  * @param grp Pointer to the group info.
  * @param hdf_datasetid HDF5 datsetid for the var's dataset.
@@ -409,21 +412,35 @@ create_phony_dims(NC_GRP_INFO_T *grp, hid_t hdf_datasetid, NC_VAR_INFO_T *var)
     for (d = 0; d < var->ndims; d++)
     {
         int k;
-        int match;
+        int match = 0;
 
         /* Is there already a phony dimension of the correct size? */
-        for (match=-1, k = 0; k < ncindexsize(grp->dim); k++)
+        for (k = 0; k < ncindexsize(grp->dim); k++)
         {
             dim = (NC_DIM_INFO_T *)ncindexith(grp->dim, k);
             assert(dim);
             if ((dim->len == h5dimlen[d]) &&
                 ((h5dimlenmax[d] == H5S_UNLIMITED && dim->unlimited) ||
                  (h5dimlenmax[d] != H5S_UNLIMITED && !dim->unlimited)))
-            {match = k; break;}
+            {
+                int k1;
+
+                /* We found a match! */
+                match++;
+
+                /* If this phony dimension has already in use for this
+                 * var, we should not use it again. */
+                for (k1 = 0; k1 < d; k1++)
+                    if (var->dimids[k1] == dim->hdr.id)
+                        match = 0;
+
+                if (match)
+                    break;
+            }
         }
 
         /* Didn't find a phony dim? Then create one. */
-        if (match < 0)
+        if (!match)
         {
             char phony_dim_name[NC_MAX_NAME + 1];
             sprintf(phony_dim_name, "phony_dim_%d", grp->nc4_info->next_dimid);

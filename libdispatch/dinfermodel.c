@@ -395,6 +395,16 @@ NC_omodeinfer(int useparallel, int cmode, NCmodel* model)
 
     /* Process the cmode; may override some already set flags */
 
+    if(fIsSet(cmode,(NC_UDF0|NC_UDF1))) {
+	model->format = NC_FORMAT_NETCDF4;
+        if(fIsSet(cmode,NC_UDF0)) {
+	    model->impl = NC_FORMATX_UDF0;
+	} else {
+	    model->impl = NC_FORMATX_UDF1;
+	}
+	goto done;
+    }
+
     if(fIsSet(cmode,NC_64BIT_OFFSET)) {
 	model->impl = NC_FORMATX_NC3;
 	model->format = NC_FORMAT_64BIT_OFFSET;
@@ -414,16 +424,6 @@ NC_omodeinfer(int useparallel, int cmode, NCmodel* model)
 	else
 	    model->format = NC_FORMAT_NETCDF4;
         goto done;
-    }
-
-    if(fIsSet(cmode,(NC_UDF0|NC_UDF1))) {
-	model->format = NC_FORMAT_NETCDF4;
-        if(fIsSet(cmode,NC_UDF0)) {
-	    model->impl = NC_FORMATX_UDF0;
-	} else {
-	    model->impl = NC_FORMATX_UDF1;
-	}
-	goto done;
     }
 
     /* Default to classic model */
