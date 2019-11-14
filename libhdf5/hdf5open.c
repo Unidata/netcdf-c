@@ -357,8 +357,11 @@ dimscale_visitor(hid_t did, unsigned dim, hid_t dsid,
 }
 
 /**
- * @internal For files without any netCDF-4 dimensions defined, create phony
- * dimension to match the available datasets.
+ * @internal For files without any netCDF-4 dimensions defined, create
+ * phony dimension to match the available datasets. Each new dimension
+ * of a new size gets a phony dimension. However, if a var has more
+ * than one dimension defined, and they are the same size, they each
+ * get their own phony dimension (starting in netcdf-c-4.7.3).
  *
  * @param grp Pointer to the group info.
  * @param hdf_datasetid HDF5 datsetid for the var's dataset.
