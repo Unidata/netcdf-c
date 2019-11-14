@@ -7,6 +7,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.7.3 - TBD
 
+* [Bug Fix][Enhancement] Corrected assignment of anonymous (a.k.a. phony) dimensions in an HDF5 file. Now when a dataset uses multiple dimensions of the same size, netcdf assumes they are different dimensions. See [GitHub #1484](https://github.com/Unidata/netcdf-c/issues/1484) for more information.
+
 ## 4.7.2 - October 22, 2019
 
 * [Bug Fix][Enhancement] Various bug fixes and enhancements.
