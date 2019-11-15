@@ -184,7 +184,11 @@ main(int argc, char **argv)
          if (nc_open(FILE_NAME, mode[i], &ncid)) ERR;
          if (nc_close(ncid)) ERR;
 
-         /* Open file again and abort, which is the same as closing it. */
+         /* Open file again and abort, which is the same as closing
+          * it. This also tests that the UDF flags are given
+          * priority. If NC_NETCDF4 flag were given priority, then
+          * nc_abort() will not return TEST_VAL_42, but instead will
+          * return 0. */
          if (nc_open(FILE_NAME, mode[i]|NC_NETCDF4, &ncid)) ERR;
          if (nc_inq_format(ncid, NULL) != TEST_VAL_42) ERR;
          if (nc_inq_format_extended(ncid, NULL, NULL) != TEST_VAL_42) ERR;
