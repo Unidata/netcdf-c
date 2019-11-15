@@ -796,7 +796,27 @@ reportchunking(dfalt?"extra: default: ":"extra: user: ",var);
 
     /* Is the user setting the endianness? */
     if (endianness)
+    {
+        /* Setting endianness is only premitted on atomic integer and
+         * atomic float types. */
+        switch (var->type_info->hdr.id)
+        {
+        case NC_BYTE:
+        case NC_SHORT:
+        case NC_INT:
+        case NC_FLOAT:
+        case NC_DOUBLE:
+        case NC_UBYTE:
+        case NC_USHORT:
+        case NC_UINT:
+        case NC_INT64:
+        case NC_UINT64:
+            break;
+        default:
+            return NC_EINVAL;
+        }
         var->type_info->endianness = *endianness;
+    }
 
     return NC_NOERR;
 }
