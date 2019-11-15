@@ -934,9 +934,9 @@ IF(ENABLE_TESTS)
   # Option to turn on unit testing. See https://github.com/Unidata/netcdf-c/pull/1472 for more information.
   # Currently (August 21, 2019): Will not work with Visual Studio
   ###
-  IF(NOT MSVC)
+#  IF(NOT MSVC)
     OPTION(ENABLE_UNIT_TESTS "Run Unit Tests." ON)
-  ENDIF(NOT MSVC)
+#  ENDIF(NOT MSVC)
   ###
   # End known-failures.
   ###
