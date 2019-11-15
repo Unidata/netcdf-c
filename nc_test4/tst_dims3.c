@@ -4,7 +4,7 @@
 
    Test netcdf-4 dimensions inheritance.
 
-   $Id: tst_dims3.c,v 1.7 2010/05/25 13:53:04 ed Exp $
+   Ed Hartnett
 */
 
 #include <config.h>
