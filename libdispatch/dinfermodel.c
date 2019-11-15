@@ -393,8 +393,11 @@ NC_omodeinfer(int useparallel, int cmode, NCmodel* model)
     if(!fIsSet(cmode,NC_FORMAT_ALL))
 	set_default_mode(&cmode);
 
-    /* Process the cmode; may override some already set flags */
-
+    /* Process the cmode; may override some already set flags. The
+     * user-defined formats must be checked first. They may choose to
+     * use some of the other flags, like NC_NETCDF4, so we must fist
+     * check NC_UDF0 and NC_UDF1 before checking for any other
+     * flag. */
     if(fIsSet(cmode,(NC_UDF0|NC_UDF1))) {
 	model->format = NC_FORMAT_NETCDF4;
         if(fIsSet(cmode,NC_UDF0)) {
