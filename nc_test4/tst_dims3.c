@@ -198,6 +198,7 @@ main(int argc, char **argv)
 	ERR_RET;
    }
    SUMMARIZE_ERR;
+   printf("*** testing var and unlim dim with same name, but not related...");
    {
        /* This test code based on test code from Jeff Whitaker. See
         * https://github.com/Unidata/netcdf4-python/issues/975 and
@@ -207,32 +208,23 @@ main(int argc, char **argv)
        size_t count[1] = {1};
        double data[1] = {2};
 
-       nc_set_log_level(4);
        if (nc_create(FILE_NAME, NC_CLOBBER | NC_NETCDF4, &ncid)) ERR;
        if (nc_def_dim(ncid, "time", NC_UNLIMITED, &time_id)) ERR;
        if (nc_def_dim(ncid, "time_subset", 50, &timesubset_id)) ERR;
 
        /* Define vars. */
-
-       /* This works... */
-       /* nc_def_var(ncid, "time", NC_DOUBLE, 1, &time_id, &timevar_id); */
-       /* nc_def_var(ncid, "dummy", NC_DOUBLE, 1, &timesubset_id, &dummyvar_id); */
-
-       /* This produces ierr=-101 (HDF5 error) on close note: variable
-          is called 'time', same as unlimited dimension, but is
-          defined with a different (fixed) dimension. */
        if (nc_def_var(ncid, "time", NC_DOUBLE, 1, &timesubset_id, &timevar_id)) ERR;
        if (nc_def_var(ncid, "dummy", NC_DOUBLE, 1, &time_id, &dummyvar_id)) ERR;
        if (nc_enddef(ncid)) ERR;
 
        /* Write some data. */
-       /* if (nc_put_vara(ncid, dummyvar_id, start, count, data)) ERR; */
+       if (nc_put_vara(ncid, dummyvar_id, start, count, data)) ERR;
 
        if (nc_close(ncid)) ERR;
 
-       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
-       if (nc_put_vara_double(ncid, dummyvar_id, start, count, data)) ERR;
-       if (nc_close(ncid)) ERR;
+       /* if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR; */
+       /* if (nc_put_vara_double(ncid, dummyvar_id, start, count, data)) ERR; */
+       /* if (nc_close(ncid)) ERR; */
    }
    SUMMARIZE_ERR;
    FINAL_RESULTS;
