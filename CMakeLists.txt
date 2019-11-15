@@ -35,6 +35,9 @@ SET(netCDF_LIB_VERSION 15)
 SET(netCDF_SO_VERSION 15)
 SET(PACKAGE_VERSION ${VERSION})
 
+# Version of the dispatch table, in case we change it.
+SET(NC_DISPATCH_VERSION 1)
+
 # Get system configuration, Use it to determine osname, os release, cpu. These
 # will be used when committing to CDash.
 find_program(UNAME NAMES uname)
