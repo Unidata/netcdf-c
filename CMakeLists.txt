@@ -35,6 +35,9 @@ SET(netCDF_LIB_VERSION 15)
 SET(netCDF_SO_VERSION 15)
 SET(PACKAGE_VERSION ${VERSION})
 
+# Version of the dispatch table, in case we change it.
+SET(NC_DISPATCH_VERSION 1)
+
 # Get system configuration, Use it to determine osname, os release, cpu. These
 # will be used when committing to CDash.
 find_program(UNAME NAMES uname)
@@ -1971,7 +1974,6 @@ is_enabled(JNA HAS_JNA)
 is_enabled(ENABLE_ZERO_LENGTH_COORD_BOUND RELAX_COORD_BOUND)
 is_enabled(USE_CDF5 HAS_CDF5)
 is_enabled(ENABLE_ERANGE_FILL HAS_ERANGE_FILL)
-is_enabled(DISPATCH_VERSION 1)
 
 # Generate file from template.
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
