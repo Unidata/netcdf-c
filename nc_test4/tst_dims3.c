@@ -2,7 +2,8 @@
    Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
    conditions of use. See www.unidata.ucar.edu for more info.
 
-   Test netcdf-4 dimensions inheritance.
+   Test netcdf-4 dimensions inheritance, and dims with and without
+   coordinate variables.
 
    Ed Hartnett
 */
