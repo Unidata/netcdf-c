@@ -207,7 +207,9 @@ main(int argc, char **argv)
        int ncid, timesubset_id, time_id, timevar_id, dummyvar_id;
        size_t start[1] = {0};
        size_t count[1] = {1};
-       double data[1] = {2};
+       double data[1] = {TEST_VAL_42};
+       size_t len;
+       double data_in;
 
        if (nc_create(FILE_NAME, NC_CLOBBER | NC_NETCDF4, &ncid)) ERR;
        if (nc_def_dim(ncid, "time", NC_UNLIMITED, &time_id)) ERR;
@@ -221,11 +223,16 @@ main(int argc, char **argv)
        /* Write some data. */
        if (nc_put_vara(ncid, dummyvar_id, start, count, data)) ERR;
 
+       /* Close the file. */
        if (nc_close(ncid)) ERR;
 
-       /* if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR; */
-       /* if (nc_put_vara_double(ncid, dummyvar_id, start, count, data)) ERR; */
-       /* if (nc_close(ncid)) ERR; */
+       /* Reopen file and check. */
+       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+       if (nc_inq_dim(ncid, 0, NULL, &len)) ERR;
+       if (len != 1) ERR;
+       if (nc_get_vara_double(ncid, 1, start, count, &data_in)) ERR;
+       if (data_in != TEST_VAL_42) ERR;
+       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
    FINAL_RESULTS;
