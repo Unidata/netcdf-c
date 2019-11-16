@@ -179,7 +179,7 @@ main(int argc, char **argv)
       if (nc_insert_compound(ncid, typeid, BILLY, NC_COMPOUND_OFFSET(struct billy_bob, billy), NC_INT)) ERR;
       if (nc_insert_compound(ncid, typeid, BOB, NC_COMPOUND_OFFSET(struct billy_bob, bob), NC_INT)) ERR;
       if (nc_def_var(ncid, VAR_NAME1, typeid, 0, NULL, &varid)) ERR;
-      if (nc_def_var_endian(ncid, varid, NC_ENDIAN_BIG)) ERR;
+      if (nc_def_var_endian(ncid, varid, NC_ENDIAN_BIG) != NC_EINVAL) ERR;
       if (nc_close(ncid)) ERR;
 
       /* Open the file and check. */
