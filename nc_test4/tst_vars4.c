@@ -174,7 +174,6 @@ main(int argc, char **argv)
       int data_in;
 
       /* Create the test file with two scalar vars. */
-      nc_set_log_level(4);
       if (nc_create(FILE_NAME, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
       if (nc_def_var(ncid, CLAIR, NC_INT, 0, NULL, &varid1)) ERR;
       if (nc_def_var_endian(ncid, varid1, NC_ENDIAN_BIG)) ERR;
@@ -194,6 +193,36 @@ main(int argc, char **argv)
       if (nc_get_var(ncid, varid2, &data_in)) ERR;
       if (data_in != TEST_VAL_42 * 2) ERR;
       if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+   printf("**** testing scalar big endian vars...");
+   {
+       int ncid, enumid;
+       int bigid, littleid;
+       int endian_in;
+       /* Note: if no zero valued enum, then causes ncdump error */
+       int econst0 = 0;
+       int econst1 = 1;
+
+       if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
+
+       if (nc_def_enum(ncid, NC_INT, "enum_t", &enumid)) ERR;
+       if (nc_insert_enum(ncid, enumid, "econst0", &econst0)) ERR;
+       if (nc_insert_enum(ncid, enumid, "econst1", &econst1)) ERR;
+
+       if (nc_def_var(ncid, "little", enumid, 0, NULL, &littleid)) ERR;
+       if (nc_def_var(ncid, "big", enumid, 0, NULL, &bigid)) ERR;
+
+       if (nc_def_var_endian(ncid, littleid, NC_ENDIAN_LITTLE) != NC_EINVAL) ERR;
+       if (nc_def_var_endian(ncid, bigid, NC_ENDIAN_BIG) != NC_EINVAL) ERR;
+
+       /* Note that it is important to set endian ness before testing it */
+       if (nc_inq_var_endian(ncid, littleid, &endian_in)) ERR;
+       if (endian_in) ERR;
+       if (nc_inq_var_endian(ncid, bigid, &endian_in)) ERR;
+       if (endian_in) ERR;
+
+       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
    FINAL_RESULTS;

@@ -1863,10 +1863,10 @@ write_dim(NC_DIM_INFO_T *dim, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
         NC_VAR_INFO_T *v1 = NULL;
 
         assert(dim->unlimited);
-        /* If this is a dimension without a variable, then update
-         * the secret length information at the end of the NAME
-         * attribute. */
-        v1 = (NC_VAR_INFO_T *)ncindexlookup(grp->vars, dim->hdr.name);
+
+        /* If this is a dimension with an associated coordinate var,
+         * then update the length of that coord var. */
+        v1 = dim->coord_var;
         if (v1)
         {
             NC_HDF5_VAR_INFO_T *hdf5_v1;

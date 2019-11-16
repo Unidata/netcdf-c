@@ -2,9 +2,10 @@
    Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
    conditions of use. See www.unidata.ucar.edu for more info.
 
-   Test netcdf-4 dimensions inheritance.
+   Test netcdf-4 dimensions inheritance, and dims with and without
+   coordinate variables.
 
-   $Id: tst_dims3.c,v 1.7 2010/05/25 13:53:04 ed Exp $
+   Ed Hartnett
 */
 
 #include <config.h>
@@ -196,6 +197,42 @@ main(int argc, char **argv)
 
       if (nc_close(ncid))
 	ERR_RET;
+   }
+   SUMMARIZE_ERR;
+   printf("*** testing var and unlim dim with same name, but not related...");
+   {
+       /* This test code based on test code from Jeff Whitaker. See
+        * https://github.com/Unidata/netcdf4-python/issues/975 and
+        * https://github.com/Unidata/netcdf-c/issues/1496. */
+       int ncid, timesubset_id, time_id, timevar_id, dummyvar_id;
+       size_t start[1] = {0};
+       size_t count[1] = {1};
+       double data[1] = {TEST_VAL_42};
+       size_t len;
+       double data_in;
+
+       if (nc_create(FILE_NAME, NC_CLOBBER | NC_NETCDF4, &ncid)) ERR;
+       if (nc_def_dim(ncid, "time", NC_UNLIMITED, &time_id)) ERR;
+       if (nc_def_dim(ncid, "time_subset", 50, &timesubset_id)) ERR;
+
+       /* Define vars. */
+       if (nc_def_var(ncid, "time", NC_DOUBLE, 1, &timesubset_id, &timevar_id)) ERR;
+       if (nc_def_var(ncid, "dummy", NC_DOUBLE, 1, &time_id, &dummyvar_id)) ERR;
+       if (nc_enddef(ncid)) ERR;
+
+       /* Write some data. */
+       if (nc_put_vara(ncid, dummyvar_id, start, count, data)) ERR;
+
+       /* Close the file. */
+       if (nc_close(ncid)) ERR;
+
+       /* Reopen file and check. */
+       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+       if (nc_inq_dim(ncid, 0, NULL, &len)) ERR;
+       if (len != 1) ERR;
+       if (nc_get_vara_double(ncid, 1, start, count, &data_in)) ERR;
+       if (data_in != TEST_VAL_42) ERR;
+       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
    FINAL_RESULTS;
