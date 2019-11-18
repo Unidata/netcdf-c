@@ -7,6 +7,10 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.7.3 - TBD
 
+* [Enhancement] Add a dispatch version number to netcdf_meta.h and libnetcdf.settings, in case we decide to change dispatch table in future. See [https://github.com/Unidata/netcdf-c/issues/1469].
+* [Bug Fix] Now testing that endianness can only be set on atomic ints and floats. See [https://github.com/Unidata/netcdf-c/issues/1479].
+* [Bug Fix] Fix for subtle error involving var and unlimited dim of the same name, but unrelated, in netCDF-4. See [https://github.com/Unidata/netcdf-c/issues/1496].
+* [Enhancement] Update for attribute documentation. See [https://github.com/Unidata/netcdf-c/issues/1512].
 * [Bug Fix][Enhancement] Corrected assignment of anonymous (a.k.a. phony) dimensions in an HDF5 file. Now when a dataset uses multiple dimensions of the same size, netcdf assumes they are different dimensions. See [GitHub #1484](https://github.com/Unidata/netcdf-c/issues/1484) for more information.
 
 ## 4.7.2 - October 22, 2019
