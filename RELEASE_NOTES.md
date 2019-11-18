@@ -5,9 +5,6 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
-## 4.7.4 - TBD
-
-
 ## 4.7.3 - November 19, 2019
 
 * [Bug Fix]Fixed an issue where installs from tarballs will not properly compile in parallel environments.
