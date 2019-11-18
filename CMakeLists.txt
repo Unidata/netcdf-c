@@ -896,7 +896,7 @@ IF(ENABLE_TESTS)
   SET(NC_CTEST_PROJECT_NAME "netcdf-c" CACHE STRING "Project Name for CTest-based testing purposes.")
   SET(NC_CTEST_DROP_SITE "cdash.unidata.ucar.edu:443" CACHE STRING "Dashboard location for CTest-based testing purposes.")
   SET(NC_CTEST_DROP_LOC_PREFIX "" CACHE STRING "Prefix for Dashboard location on remote server when using CTest-based testing.")
-
+  SET(SUBMIT_URL "https://cdash.unidata.ucar.edu:443")
   FIND_PROGRAM(HOSTNAME_CMD NAMES hostname)
   IF(NOT MSVC)
     SET(HOSTNAME_ARG "-s")
