@@ -54,8 +54,8 @@ run_par_bm_test.log: tst_create_files.log
 endif # TEST_PARALLEL4
 endif # BUILD_UTILITIES
 
-EXTRA_DIST = run_par_bm_test.sh.in run_knmi_bm.sh	\
-perftest.sh run_bm_test1.sh run_bm_test2.sh \
+EXTRA_DIST = run_par_bm_test.sh.in run_knmi_bm.sh perftest.sh		\
+run_bm_test1.sh run_bm_test2.sh run_tst_chunks.sh run_bm_elena.sh	\
 CMakeLists.txt
 
 CLEANFILES = tst_*.nc bigmeta.nc bigvars.nc floats*.nc	\
