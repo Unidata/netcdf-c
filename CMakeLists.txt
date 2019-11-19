@@ -2043,6 +2043,7 @@ set(ConfigPackageLocation ${CMAKE_INSTALL_LIBDIR}/cmake/netCDF)
 install(EXPORT netCDFTargets
   DESTINATION ${ConfigPackageLocation}
   COMPONENT headers
+  NAMESPACE netCDF::
   )
 
 include(CMakePackageConfigHelpers)
@@ -2063,6 +2064,7 @@ INSTALL(
   COMPONENT headers
   )
 
+add_library(netCDF::netcdf ALIAS netcdf)
 target_include_directories(netcdf
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
