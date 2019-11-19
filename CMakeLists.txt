@@ -2063,6 +2063,12 @@ INSTALL(
   COMPONENT headers
   )
 
+target_include_directories(netcdf
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
+
 # Create export configuration
 write_basic_package_version_file(
   "${CMAKE_CURRENT_BINARY_DIR}/netCDF/netCDFConfigVersion.cmake"
