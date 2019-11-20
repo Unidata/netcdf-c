@@ -7,7 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.7.4 - TBD
 
-## 4.7.3 - November 19, 2019
+## 4.7.3 - November 20, 2019
 
 * [Bug Fix]Fixed an issue where installs from tarballs will not properly compile in parallel environments.
 * [Bug Fix] Library was modified so that rewriting the same attribute happens without deleting the attribute, to avoid a limit on how many times this may be done in HDF5. This fix was thought to be in 3.6.2 but was not. See [https://github.com/Unidata/netcdf-c/issues/350].
