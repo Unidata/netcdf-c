@@ -996,8 +996,14 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
 
         if (var->contiguous)
         {
+	  if (var->is_compact == 1) {
+            if (H5Pset_layout(plistid, H5D_COMPACT) < 0)
+	      BAIL(NC_EHDFERR);
+	  }
+	  else {
             if (H5Pset_layout(plistid, H5D_CONTIGUOUS) < 0)
                 BAIL(NC_EHDFERR);
+	  }
         }
         else
         {

@@ -205,6 +205,7 @@ typedef struct NC_VAR_INFO
     void *fill_value;
     size_t *chunksizes;
     nc_bool_t contiguous;        /**< True if variable is stored contiguously in HDF5 file */
+    nc_bool_t is_compact;
     int parallel_access;         /**< Type of parallel access for I/O on variable (collective or independent) */
     nc_bool_t dimscale;          /**< True if var is a dimscale */
     nc_bool_t *dimscale_attached;  /**< Array of flags that are true if dimscale is attached for that dim index */

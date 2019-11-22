@@ -52,6 +52,7 @@ reportchunking(const char *title, NC_VAR_INFO_T *var)
 }
 #endif
 
+int nc_use_compact_storage = 0;
 /**
  * @internal If the HDF5 dataset for this variable is open, then close
  * it and reopen it, with the perhaps new settings for chunk caching.
@@ -145,6 +146,7 @@ check_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, const size_t *chunksize
  * @returns ::NC_ENOTVAR Invalid variable ID.
  * @author Ed Hartnett, Dennis Heimbigner
  */
+
 static int
 nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
@@ -499,6 +501,9 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
      * same name as one of its dimensions. If it is a coordinate var,
      * is it a coordinate var in the same group as the dim? Also, check
      * whether we should use contiguous or chunked storage. */
+    if (nc_use_compact_storage == 1) {
+      var->is_compact = 1;
+    }
     var->contiguous = NC_TRUE;
     for (d = 0; d < ndims; d++)
     {
