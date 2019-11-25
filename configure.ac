@@ -304,7 +304,7 @@ AC_MSG_CHECKING([whether a default file cache size for HDF5 was specified])
 AC_ARG_WITH([chunk-cache-size],
               [AS_HELP_STRING([--with-chunk-cache-size=<integer>],
                               [Specify default file cache chunk size for HDF5 files in bytes.])],
-            [CHUNK_CACHE_SIZE=$with_chunk_cache_size], [CHUNK_CACHE_SIZE=4194304])
+            [CHUNK_CACHE_SIZE=$with_chunk_cache_size], [CHUNK_CACHE_SIZE=16777216])
 AC_MSG_RESULT([$CHUNK_CACHE_SIZE])
 AC_DEFINE_UNQUOTED([CHUNK_CACHE_SIZE], [$CHUNK_CACHE_SIZE], [default file chunk cache size in bytes.])
 
@@ -313,7 +313,7 @@ AC_MSG_CHECKING([whether a default file cache maximum number of elements for HDF
 AC_ARG_WITH([chunk-cache-nelems],
               [AS_HELP_STRING([--with-chunk-cache-nelems=<integer>],
                               [Specify default maximum number of elements in the file chunk cache chunk for HDF5 files (should be prime number).])],
-            [CHUNK_CACHE_NELEMS=$with_chunk_cache_nelems], [CHUNK_CACHE_NELEMS=1009])
+            [CHUNK_CACHE_NELEMS=$with_chunk_cache_nelems], [CHUNK_CACHE_NELEMS=4133])
 AC_MSG_RESULT([$CHUNK_CACHE_NELEMS])
 AC_DEFINE_UNQUOTED([CHUNK_CACHE_NELEMS], [$CHUNK_CACHE_NELEMS], [default file chunk cache nelems.])
 
