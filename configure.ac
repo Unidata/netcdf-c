@@ -1193,10 +1193,6 @@ AC_ARG_ENABLE([erange_fill],
    [enable_erange_fill=${enableval}], [enable_erange_fill=auto]
 )
 
-dnl Always build with relaxed coord bound checking, to prevent API
-dnl incompatibilities between different installs of netCDF.
-enable_zero_length_coord_bound=yes
-
 # check PnetCDF's settings on enable_erange_fill and relax_coord_bound
 if test "x$enable_pnetcdf" = xyes; then
    UD_CHECK_HEADER_PATH([pnetcdf.h])
