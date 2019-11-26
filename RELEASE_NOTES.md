@@ -7,6 +7,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.7.4 - TBD
 
+* [Enhancement] Increased default size of cache buffer to 16 MB, from 4 MB. Increased number of slots to 4133. See [https://github.com/Unidata/netcdf-c/issues/1541].
+
 ## 4.7.3 - November 20, 2019
 
 * [Bug Fix]Fixed an issue where installs from tarballs will not properly compile in parallel environments.
