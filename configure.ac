@@ -1196,10 +1196,6 @@ AC_ARG_ENABLE([erange_fill],
 dnl Always build with relaxed coord bound checking, to prevent API
 dnl incompatibilities between different installs of netCDF.
 enable_zero_length_coord_bound=yes
-dnl AC_ARG_ENABLE([zero-length-coord-bound],
-dnl    [AS_HELP_STRING([--disable-zero-length-coord-bound],
-dnl                    [Disable relaxed boundary error check. Deprecated. Using this can cause API incompatibilities. This option will be removed in the next release of netCDF.])])
-dnl test "x$enable_zero_length_coord_bound" = xno || enable_zero_length_coord_bound=yes
 
 # check PnetCDF's settings on enable_erange_fill and relax_coord_bound
 if test "x$enable_pnetcdf" = xyes; then
@@ -1425,7 +1421,7 @@ AC_SUBST(HAS_PARALLEL4,[$enable_parallel4])
 AC_SUBST(HAS_DISKLESS,[yes])
 AC_SUBST(HAS_MMAP,[$enable_mmap])
 AC_SUBST(HAS_JNA,[$enable_jna])
-AC_SUBST(RELAX_COORD_BOUND,[$enable_zero_length_coord_bound])
+#AC_SUBST(RELAX_COORD_BOUND,[$enable_zero_length_coord_bound])
 AC_SUBST(HAS_ERANGE_FILL,[$enable_erange_fill])
 AC_SUBST(HAS_BYTERANGE,[$enable_byterange])
 
