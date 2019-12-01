@@ -255,7 +255,10 @@ main(int argc, char **argv)
    }
    SUMMARIZE_ERR;
 #endif /* USE_SZIP */
-
+   /* This test suggested by user brentd42 to find a memory problem in
+    * function rec_read_metadata(). This test demonstrates the bug on
+    * address sanitizer runs. See
+    * https://github.com/Unidata/netcdf-c/issues/1558. */
    printf("*** testing error when opening HDF5 file without creating ordering...");
    {
        hid_t file_hid;
