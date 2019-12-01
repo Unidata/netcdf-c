@@ -263,7 +263,7 @@ main(int argc, char **argv)
    {
        hid_t file_hid;
        int ncid;
-       char *filename = "foo.h5";
+       char *filename = "tst_interops5.h5";
 
        /* Create a HDF5 file, but don't set creation ordering on. */
        file_hid = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
