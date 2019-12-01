@@ -342,24 +342,24 @@ main(int argc, char **argv)
        if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
 
        /* Read and check each value with nc_get_var1_int(). */
-       /* for (x = 0; x < NX; x++) */
-       /* { */
-       /*     for (y = 0; y < NY; y++) */
-       /*     { */
-       /*         size_t index[NDIM2] = {y, x}; */
-       /*         int data_in; */
+       for (x = 0; x < NX; x++)
+       {
+           for (y = 0; y < NY; y++)
+           {
+               size_t index[NDIM2] = {y, x};
+               int data_in;
 
-       /*         if (nc_get_var1_int(ncid, varid, index, &data_in)) ERR; */
-       /*         if (y == start2[0] && x == start2[1]) */
-       /*         { */
-       /*             if (data_in != data) ERR; */
-       /*         } */
-       /*         else */
-       /*         { */
-       /*             if (data_in != NC_FILL_INT) ERR; */
-       /*         } */
-       /*     } */
-       /* } */
+               if (nc_get_var1_int(ncid, varid, index, &data_in)) ERR;
+               if (y == start2[0] && x == start2[1])
+               {
+                   if (data_in != data) ERR;
+               }
+               else
+               {
+                   if (data_in != NC_FILL_INT) ERR;
+               }
+           }
+       }
 
        /* Read and check each row with nc_get_vara_int(). */
        for (y = 0; y < NY; y++)
