@@ -2532,6 +2532,10 @@ rec_read_metadata(NC_GRP_INFO_T *grp)
     /* Get HDF5-specific group info. */
     hdf5_grp = (NC_HDF5_GRP_INFO_T *)grp->format_grp_info;
 
+    /* Set user data for iteration over any child groups. */
+    udata.grp = grp;
+    udata.grps = nclistnew();
+
     /* Open this HDF5 group and retain its grpid. It will remain open
      * with HDF5 until this file is nc_closed. */
     if (!hdf5_grp->hdf_grpid)
@@ -2578,10 +2582,6 @@ rec_read_metadata(NC_GRP_INFO_T *grp)
 
         iter_index = H5_INDEX_NAME;
     }
-
-    /* Set user data for iteration over any child groups. */
-    udata.grp = grp;
-    udata.grps = nclistnew();
 
     /* Iterate over links in this group, building lists for the types,
      * datasets and groups encountered. A pointer to udata will be
