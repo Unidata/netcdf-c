@@ -390,52 +390,5 @@ main(int argc, char **argv)
        if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
-   /* printf("*** testing writing data with 2 unlim dims..."); */
-   /* { */
-   /*     /\* This test code based on test code from Jeff Whitaker. See */
-   /*      * https://github.com/Unidata/netcdf4-python/issues/1413. *\/ */
-   /*     int dimids[NDIM2]; */
-   /*     int ydata[NY]; */
-   /*     int xdata[NX]; */
-   /*     int data = TEST_VAL_42; */
-   /*     int varid1, varid2, varid, i, ncid; */
-   /*     size_t start[1]; */
-   /*     size_t count[1]; */
-   /*     size_t start2[2]; */
-   /*     size_t count2[2]; */
-
-   /*     /\* Fill two data arrays. *\/ */
-   /*     for (i = 0; i < NX; ++i) */
-   /*         xdata[i] = i; */
-   /*     for (i = 0; i < NY; ++i) */
-   /*         ydata[i] = i; */
-
-   /*     /\* Create two 1-D coord vars and a data var two unlimited */
-   /*      * dimensions. *\/ */
-   /*     if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR; */
-   /*     if (nc_def_dim(ncid, DIM_NAME1, NC_UNLIMITED, &dimids[0])) ERR; */
-   /*     if (nc_def_dim(ncid, DIM_NAME2, NC_UNLIMITED, &dimids[1])) ERR; */
-   /*     if (nc_def_var(ncid, DIM_NAME1, NC_INT, 1, &dimids[0], &varid1)) ERR; */
-   /*     if (nc_def_var(ncid, DIM_NAME2, NC_INT, 1, &dimids[1], &varid2)) ERR; */
-   /*     if (nc_def_var(ncid, VAR_NAME, NC_INT, NDIM2, dimids, &varid)) ERR; */
-
-   /*     /\* Write data to coordinate vars to define dimension */
-   /*      * lengths. *\/ */
-   /*     start[0]=0; */
-   /*     count[0]=NY; */
-   /*     if (nc_put_vara_int(ncid, varid1, start, count, ydata)) ERR; */
-   /*     count[0]=NX; */
-   /*     if (nc_put_vara_int(ncid, varid2, start, count, xdata)) ERR; */
-   /*     if (nc_sync(ncid)) ERR; */
-
-   /*     /\* write a single data point to the 2d variable *\/ */
-   /*     start2[0]=2; */
-   /*     start2[1]=3; */
-   /*     count2[0]=1; */
-   /*     count2[1]=1; */
-   /*     if (nc_put_vara_int(ncid, varid, start2, count2, &data)) ERR; */
-   /*     if (nc_close(ncid)) ERR; */
-   /* } */
-   /* SUMMARIZE_ERR; */
    FINAL_RESULTS;
 }
