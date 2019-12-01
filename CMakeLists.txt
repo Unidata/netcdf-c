@@ -26,7 +26,7 @@ set(PACKAGE "netCDF" CACHE STRING "")
 
 SET(NC_VERSION_MAJOR 4)
 SET(NC_VERSION_MINOR 7)
-SET(NC_VERSION_PATCH 3)
+SET(NC_VERSION_PATCH 4)
 SET(NC_VERSION_NOTE "-development")
 SET(netCDF_VERSION ${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
@@ -894,9 +894,9 @@ IF(ENABLE_TESTS)
 
   # Options for CTest-based tests, dashboards.
   SET(NC_CTEST_PROJECT_NAME "netcdf-c" CACHE STRING "Project Name for CTest-based testing purposes.")
-  SET(NC_CTEST_DROP_SITE "cdash.unidata.ucar.edu" CACHE STRING "Dashboard location for CTest-based testing purposes.")
+  SET(NC_CTEST_DROP_SITE "cdash.unidata.ucar.edu:443" CACHE STRING "Dashboard location for CTest-based testing purposes.")
   SET(NC_CTEST_DROP_LOC_PREFIX "" CACHE STRING "Prefix for Dashboard location on remote server when using CTest-based testing.")
-
+  SET(SUBMIT_URL "https://cdash.unidata.ucar.edu:443")
   FIND_PROGRAM(HOSTNAME_CMD NAMES hostname)
   IF(NOT MSVC)
     SET(HOSTNAME_ARG "-s")
@@ -912,7 +912,7 @@ IF(ENABLE_TESTS)
 
   # Create a CTestConfig file from the template.
   CONFIGURE_FILE("${netCDF_SOURCE_DIR}/CTestConfig.cmake.in"
-    "${netCDF_SOURCE_DIR}/CTestConfig.cmake"
+    "${netCDF_BINARY_DIR}/CTestConfig.cmake"
     @ONLY
     )
 
@@ -2043,6 +2043,7 @@ set(ConfigPackageLocation ${CMAKE_INSTALL_LIBDIR}/cmake/netCDF)
 install(EXPORT netCDFTargets
   DESTINATION ${ConfigPackageLocation}
   COMPONENT headers
+  NAMESPACE netCDF::
   )
 
 include(CMakePackageConfigHelpers)
@@ -2062,6 +2063,13 @@ INSTALL(
   DESTINATION "${ConfigPackageLocation}"
   COMPONENT headers
   )
+
+add_library(netCDF::netcdf ALIAS netcdf)
+target_include_directories(netcdf
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
 
 # Create export configuration
 write_basic_package_version_file(
