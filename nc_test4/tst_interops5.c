@@ -1,8 +1,10 @@
-/* This is part of the netCDF package. Copyright 2005-2018, University
-   Corporation for Atmospheric Research/Unidata.  See COPYRIGHT file
+/* This is part of the netCDF package. Copyright 2005-2019, University
+   Corporation for Atmospheric Research/Unidata. See COPYRIGHT file
    for conditions of use.
 
    Test that HDF5 and NetCDF-4 can read and write the same file.
+
+   Ed Hartnett
 */
 #include <config.h>
 #include <nc_tests.h>
@@ -253,5 +255,21 @@ main(int argc, char **argv)
    }
    SUMMARIZE_ERR;
 #endif /* USE_SZIP */
+
+   printf("*** testing error when opening HDF5 file without creating ordering...");
+   {
+       hid_t file_hid;
+       int ncid;
+       char *filename = "foo.h5";
+
+       /* Create a HDF5 file, but don't set creation ordering on. */
+       file_hid = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+       H5Fclose(file_hid);
+
+       /* Open the file with netCDF. */
+       nc_set_log_level(3);
+       if (nc_open(filename, NC_WRITE, &ncid) != NC_ECANTWRITE) ERR;
+   }
+   SUMMARIZE_ERR;
    FINAL_RESULTS;
 }
