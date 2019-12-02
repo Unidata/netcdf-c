@@ -1078,21 +1078,8 @@ IF(ENABLE_ERANGE_FILL) # enable or auto
 ENDIF(ENABLE_ERANGE_FILL)
 # Now ENABLE_ERANGE_FILL is either AUTO, ON, or OFF
 
-# Options to use a more relaxed coordinate argument boundary check
-SET(ENABLE_ZERO_LENGTH_COORD_BOUND AUTO CACHE STRING "AUTO")
-OPTION(ENABLE_ZERO_LENGTH_COORD_BOUND "Enable a more relaxed boundary error check NC_EINVALCOORDS to allow coordinate start argument equal to dimension size when argument count is zero." OFF)
-IF(ENABLE_ZERO_LENGTH_COORD_BOUND) # enable or auto
-   STRING(TOUPPER ${ENABLE_ZERO_LENGTH_COORD_BOUND} ENABLE_ZERO_LENGTH_COORD_BOUND)
-   IF(ENABLE_ZERO_LENGTH_COORD_BOUND AND NOT ENABLE_ZERO_LENGTH_COORD_BOUND STREQUAL "AUTO")
-      # explicitly enabled
-      SET(ENABLE_ZERO_LENGTH_COORD_BOUND ON)
-   ELSE()
-      IF(NOT ENABLE_ZERO_LENGTH_COORD_BOUND STREQUAL "AUTO")
-         SET(ENABLE_ZERO_LENGTH_COORD_BOUND OFF)
-      ENDIF()
-   ENDIF()
-ENDIF(ENABLE_ZERO_LENGTH_COORD_BOUND)
-# Now ENABLE_ZERO_LENGTH_COORD_BOUND is either AUTO, ON, or OFF
+# More relaxed coordinate check is now mandatory for all builds.
+SET(ENABLE_ZERO_LENGTH_COORD_BOUND ON)
 
 # check and conform with PnetCDF settings on ERANGE_FILL and RELAX_COORD_BOUND
 IF(STATUS_PNETCDF)
@@ -1123,17 +1110,9 @@ IF(STATUS_PNETCDF)
   ELSE()
      SET(relax_coord_bound_pnetcdf "OFF")
   ENDIF()
-  IF(ENABLE_ZERO_LENGTH_COORD_BOUND STREQUAL "AUTO") # not set on command line
-     SET(ENABLE_ZERO_LENGTH_COORD_BOUND "${relax_coord_bound_pnetcdf}")
-  ELSE()
-     # user explicitly set this option on command line
-     IF(NOT ENABLE_ZERO_LENGTH_COORD_BOUND STREQUAL "${relax_coord_bound_pnetcdf}")
-        IF(ENABLE_ZERO_LENGTH_COORD_BOUND)
-           MESSAGE(FATAL_ERROR "Enabling relax-coord-bound conflicts with PnetCDF setting")
-        ELSE()
-           MESSAGE(FATAL_ERROR "Disabling relax-coord-bound conflicts with PnetCDF setting")
-        ENDIF()
-     ENDIF()
+  # pnetcdf must have relaxed coord bounds to build with netCDF-4
+  IF(NOT ENABLE_ZERO_LENGTH_COORD_BOUND STREQUAL "${relax_coord_bound_pnetcdf}")
+     MESSAGE(FATAL_ERROR "Pnetcdf must be built with relax-coord-bound enabled")
   ENDIF()
 ENDIF()
 
