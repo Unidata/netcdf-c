@@ -1193,13 +1193,6 @@ AC_ARG_ENABLE([erange_fill],
    [enable_erange_fill=${enableval}], [enable_erange_fill=auto]
 )
 
-dnl Always build with relaxed coord bound checking, to prevent API
-dnl incompatibilities between different installs of netCDF.
-AC_ARG_ENABLE([zero-length-coord-bound],
-   [AS_HELP_STRING([--disable-zero-length-coord-bound],
-                   [Disable relaxed boundary error check. Deprecated. Using this can cause API incompatibilities. This option will be removed in the next release of netCDF.])])
-test "x$enable_zero_length_coord_bound" = xno || enable_zero_length_coord_bound=yes
-
 # check PnetCDF's settings on enable_erange_fill and relax_coord_bound
 if test "x$enable_pnetcdf" = xyes; then
    UD_CHECK_HEADER_PATH([pnetcdf.h])
@@ -1236,10 +1229,6 @@ else
       # if --enable-erange-fill is not used, default setting is no
       enable_erange_fill=no
    fi
-fi
-
-if test "x$enable_zero_length_coord_bound" = xyes; then
-   AC_DEFINE([RELAX_COORD_BOUND], [1], [if true, NC_EINVALCOORDS check is more relaxed])
 fi
 
 if test "x$enable_erange_fill" = xyes ; then
@@ -1424,7 +1413,6 @@ AC_SUBST(HAS_PARALLEL4,[$enable_parallel4])
 AC_SUBST(HAS_DISKLESS,[yes])
 AC_SUBST(HAS_MMAP,[$enable_mmap])
 AC_SUBST(HAS_JNA,[$enable_jna])
-AC_SUBST(RELAX_COORD_BOUND,[$enable_zero_length_coord_bound])
 AC_SUBST(HAS_ERANGE_FILL,[$enable_erange_fill])
 AC_SUBST(HAS_BYTERANGE,[$enable_byterange])
 
@@ -1494,7 +1482,6 @@ AX_SET_META([NC_HAS_PARALLEL],[$enable_parallel],[yes])
 AX_SET_META([NC_HAS_PARALLEL4],[$enable_parallel4],[yes])
 AX_SET_META([NC_HAS_CDF5],[$enable_cdf5],[yes])
 AX_SET_META([NC_HAS_ERANGE_FILL], [$enable_erange_fill],[yes])
-AX_SET_META([NC_RELAX_COORD_BOUND], [$enable_zero_length_coord_bound],[yes])
 AX_SET_META([NC_HAS_BYTERANGE],[$enable_byterange],[yes])
 AC_SUBST([NC_DISPATCH_VERSION], [1])
 #####
