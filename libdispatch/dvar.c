@@ -467,20 +467,21 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
    Note that this does not work for scalar variables. Only non-scalar
    variables can have chunking.
 
-   @param[in] ncid NetCDF ID, from a previous call to nc_open or
+   @param ncid NetCDF ID, from a previous call to nc_open or
    nc_create.
 
-   @param[in] varid Variable ID.
+   @param varid Variable ID.
 
-   @param[in] storage If ::NC_CONTIGUOUS, then contiguous storage is used
-   for this variable. Variables with one or more unlimited dimensions
-   cannot use contiguous storage. If contiguous storage is turned on, the
-   chunksizes parameter is ignored. If ::NC_CHUNKED, then chunked storage
-   is used for this variable. Chunk sizes may be specified with the
-   chunksizes parameter or default sizes will be used if that parameter
-   is NULL.
+   @param storage If ::NC_CONTIGUOUS or ::NC_COMPACT, then contiguous
+   or compact storage is used for this variable. Variables with one or
+   more unlimited dimensions cannot use contiguous or compact
+   storage. If contiguous or compact storage is turned on, the
+   chunksizes parameter is ignored. If ::NC_CHUNKED, then chunked
+   storage is used for this variable. Chunk sizes may be specified
+   with the chunksizes parameter or default sizes will be used if that
+   parameter is NULL.
 
-   @param[in] chunksizesp A pointer to an array list of chunk sizes. The
+   @param chunksizesp A pointer to an array list of chunk sizes. The
    array must have one chunksize for each dimension of the variable. If
    ::NC_CONTIGUOUS storage is set, then the chunksizes parameter is
    ignored.
@@ -539,6 +540,7 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
    if (chunksize[d] != chunksize_in[d]) ERR;
    if (storage_in != NC_CHUNKED) ERR;
    @endcode
+   @author Ed Hartnett, Dennis Heimbigner
 */
 int
 nc_def_var_chunking(int ncid, int varid, int storage,
