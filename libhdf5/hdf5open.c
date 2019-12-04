@@ -1088,8 +1088,10 @@ static int get_chunking_info(hid_t propid, NC_VAR_INFO_T *var)
         for (d = 0; d < var->ndims; d++)
             var->chunksizes[d] = chunksize[d];
     }
-    else if (layout == H5D_CONTIGUOUS || layout == H5D_COMPACT)
+    else if (layout == H5D_CONTIGUOUS)
         var->contiguous = NC_TRUE;
+    else if (layout == H5D_COMPACT)
+        var->compact = NC_TRUE;
 
     return NC_NOERR;
 }

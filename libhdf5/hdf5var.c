@@ -724,7 +724,6 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
             for (d = 0; d < var->ndims; d++)
                 if (var->dim[d]->unlimited)
                     return NC_EINVAL;
-            var->contiguous = NC_TRUE;
         }
 
         /* Handle chunked storage settings. */
@@ -751,6 +750,10 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
                     var->chunksizes[d] = chunksizes[d];
             }
         }
+        else if (*contiguous == NC_CONTIGUOUS)
+        {
+            var->contiguous = NC_TRUE;
+        }
         else if (*contiguous == NC_COMPACT)
         {
             size_t ndata = 1;
@@ -762,7 +765,9 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
             /* Ensure var is small enough to fit in compact storage. */
             if (ndata * var->type_info->size > SIXTY_FOUR_MB)
                 return NC_EINVAL;
-            var->compact++;
+
+            var->contiguous = NC_FALSE;
+            var->compact = NC_TRUE;
         }
     }
 
