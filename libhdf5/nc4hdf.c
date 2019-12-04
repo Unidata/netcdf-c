@@ -994,9 +994,15 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
             }
         }
 
+        /* Set the var storage to contiguous, compact, or chunked. */
         if (var->contiguous)
         {
             if (H5Pset_layout(plistid, H5D_CONTIGUOUS) < 0)
+                BAIL(NC_EHDFERR);
+        }
+        else if (var->compact)
+        {
+            if (H5Pset_layout(plistid, H5D_COMPACT) < 0)
                 BAIL(NC_EHDFERR);
         }
         else
