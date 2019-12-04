@@ -227,10 +227,23 @@ main(int argc, char **argv)
     SUMMARIZE_ERR;
     printf("**** testing compact storage...");
     {
-        int ncid;
+        int ncid, dimid, varid;
 
+        /* Create a file with one var with compact storage. */
         if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
+        if (nc_def_dim(ncid, X_NAME, XDIM_LEN, &dimid)) ERR;
+        if (nc_def_var(ncid, Y_NAME, NC_INT, 1, &dimid, &varid)) ERR;
         if (nc_close(ncid)) ERR;
+
+        /* Open the file and check it. */
+        {
+            int ndims, nvars;
+
+            if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+            if (nc_inq(ncid, &ndims, &nvars, NULL, NULL)) ERR;
+            if (ndims != 1 || nvars != 1) ERR;
+            if (nc_close(ncid)) ERR;
+        }
     }
     SUMMARIZE_ERR;
     FINAL_RESULTS;
