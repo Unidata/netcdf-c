@@ -246,10 +246,13 @@ main(int argc, char **argv)
         /* Open the file and check it. */
         {
             int ndims, nvars;
+            int storage_in;
 
             if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
             if (nc_inq(ncid, &ndims, &nvars, NULL, NULL)) ERR;
             if (ndims != 1 || nvars != 1) ERR;
+            if (nc_inq_var_chunking(ncid, varid, &storage_in, NULL)) ERR;
+            if (storage_in != NC_COMPACT) ERR;
             if (nc_close(ncid)) ERR;
         }
     }
