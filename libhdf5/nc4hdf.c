@@ -1112,9 +1112,11 @@ nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
     int d;
     int retval;
 
-    /* Nothing to be done. */
-    if (var->contiguous)
+    /* Nothing to be done for contiguous or compact data. */
+    if (var->contiguous || var->compact)
         return NC_NOERR;
+
+    /* No cache adjusting for parallel builds. */
 #ifdef USE_PARALLEL4
     return NC_NOERR;
 #endif
