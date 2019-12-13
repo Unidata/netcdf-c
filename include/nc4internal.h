@@ -212,6 +212,7 @@ typedef struct NC_VAR_INFO
     int deflate_level;
     nc_bool_t shuffle;           /**< True if var has shuffle filter applied */
     nc_bool_t fletcher32;        /**< True if var has fletcher32 filter applied */
+    int endianness;              /**< What endianness for the variable? */
     size_t chunk_cache_size, chunk_cache_nelems;
     float chunk_cache_preemption;
     void *format_var_info;       /**< Pointer to any binary format info. */
@@ -246,7 +247,6 @@ typedef struct NC_TYPE_INFO
     NC_OBJ hdr;            /**< The hdr contains the name and ID. */
     struct NC_GRP_INFO *container; /**< Containing group */
     unsigned rc;                 /**< Ref. count of objects using this type */
-    int endianness;              /**< What endianness for the type? */
     size_t size;                 /**< Size of the type in memory, in bytes */
     nc_bool_t committed;         /**< True when datatype is committed in the file */
     nc_type nc_type_class;       /**< NC_VLEN, NC_COMPOUND, NC_OPAQUE, NC_ENUM, NC_INT, NC_FLOAT, or NC_STRING. */

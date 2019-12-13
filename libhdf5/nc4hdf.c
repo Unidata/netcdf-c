@@ -855,7 +855,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
 
     /* Find the HDF5 type of the dataset. */
     if ((retval = nc4_get_hdf_typeid(grp->nc4_info, var->type_info->hdr.id, &typeid,
-                                     var->type_info->endianness)))
+                                     var->endianness)))
         BAIL(retval);
 
     /* Figure out what fill value to set, if any. */
@@ -1187,7 +1187,7 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
             field = (NC_FIELD_INFO_T *)nclistget(type->u.c.field, i);
             assert(field);
             if ((retval = nc4_get_hdf_typeid(grp->nc4_info, field->nc_typeid,
-                                             &hdf_base_typeid, type->endianness)))
+                                             &hdf_base_typeid, NC_ENDIAN_NATIVE)))
                 return retval;
 
             /* If this is an array, create a special array type. */
@@ -1223,7 +1223,7 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
     {
         /* Find the HDF typeid of the base type of this vlen. */
         if ((retval = nc4_get_hdf_typeid(grp->nc4_info, type->u.v.base_nc_typeid,
-                                         &base_hdf_typeid, type->endianness)))
+                                         &base_hdf_typeid, NC_ENDIAN_NATIVE)))
             return retval;
 
         /* Create a vlen type. */
@@ -1246,7 +1246,7 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
 
         /* Find the HDF typeid of the base type of this enum. */
         if ((retval = nc4_get_hdf_typeid(grp->nc4_info, type->u.e.base_nc_typeid,
-                                         &base_hdf_typeid, type->endianness)))
+                                         &base_hdf_typeid, NC_ENDIAN_NATIVE)))
             return retval;
 
         /* Create an enum type. */

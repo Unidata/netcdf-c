@@ -96,6 +96,7 @@ typedef struct {
  * @param h5 Pointer to HDF5 file info struct.
  * @param datasetid HDF5 dataset ID.
  * @param type_info Pointer to pointer that gets type info struct.
+ * @param endianp Pointer to pointer that gets type endianness
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
@@ -104,7 +105,7 @@ typedef struct {
  * @author Ed Hartnett
  */
 static int
-get_type_info2(NC_FILE_INFO_T *h5, hid_t datasetid, NC_TYPE_INFO_T **type_info)
+get_type_info2(NC_FILE_INFO_T *h5, hid_t datasetid, NC_TYPE_INFO_T **type_info, int* endianp)
 {
     NC_HDF5_TYPE_INFO_T *hdf5_type;
     htri_t is_str, equal = 0;
@@ -113,7 +114,9 @@ get_type_info2(NC_FILE_INFO_T *h5, hid_t datasetid, NC_TYPE_INFO_T **type_info)
     H5T_order_t order;
     int t;
 
-    assert(h5 && type_info);
+    assert(h5 && type_info && endianp);
+
+    *endianp = NC_ENDIAN_NATIVE;
 
     /* Because these N5T_NATIVE_* constants are actually function calls
      * (!) in H5Tpublic.h, I can't initialize this array in the usual
@@ -199,9 +202,9 @@ get_type_info2(NC_FILE_INFO_T *h5, hid_t datasetid, NC_TYPE_INFO_T **type_info)
                 return NC_EHDFERR;
 
             if (order == H5T_ORDER_LE)
-                (*type_info)->endianness = NC_ENDIAN_LITTLE;
+                (*endianp) = NC_ENDIAN_LITTLE;
             else if (order == H5T_ORDER_BE)
-                (*type_info)->endianness = NC_ENDIAN_BIG;
+                (*endianp) = NC_ENDIAN_BIG;
             else
                 return NC_EBADTYPE;
 
@@ -1371,7 +1374,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
      * HDF5 reference types, and then the var we just created will be
      * deleted, thus ignoring HDF5 reference type objects. */
     if ((retval = get_type_info2(var->container->nc4_info, hdf5_var->hdf_datasetid,
-                                 &var->type_info)))
+                                 &var->type_info, &var->endianness)))
         BAIL(retval);
 
     /* Indicate that the variable has a pointer to the type */

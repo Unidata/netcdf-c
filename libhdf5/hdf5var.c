@@ -417,7 +417,6 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
         /* Create new NC_TYPE_INFO_T struct for this atomic type. */
         if ((retval = nc4_type_new(len, nc4_atomic_name[xtype], xtype, &type)))
             BAIL(retval);
-        type->endianness = NC_ENDIAN_NATIVE;
         type->size = len;
 
         /* Allocate storage for HDF5-specific type info. */
@@ -427,7 +426,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
 
         /* Get HDF5 typeids. */
         if ((retval = nc4_get_hdf_typeid(h5, xtype, &hdf5_type->hdf_typeid,
-                                         type->endianness)))
+                                         NC_ENDIAN_NATIVE)))
             BAIL(retval);
 
         /* Get the native HDF5 typeid. */
@@ -824,7 +823,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
         default:
             return NC_EINVAL;
         }
-        var->type_info->endianness = *endianness;
+        var->endianness = *endianness;
     }
 
     return NC_NOERR;

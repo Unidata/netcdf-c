@@ -265,7 +265,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 
     /* Does the user want the endianness of this variable? */
     if (endiannessp)
-        *endiannessp = var->type_info->endianness;
+        *endiannessp = var->endianness;
 
     return NC_NOERR;
 }
