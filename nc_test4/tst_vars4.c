@@ -267,6 +267,8 @@ main(int argc, char **argv)
             if (ndims != 2 || nvars != 2) ERR;
             if (nc_inq_var_chunking(ncid, varid, &storage_in, NULL)) ERR;
             if (storage_in != NC_COMPACT) ERR;
+            if (nc_inq_var_chunking(ncid, varid2, &storage_in, NULL)) ERR;
+            if (storage_in != NC_CONTIGUOUS) ERR;
             if (nc_close(ncid)) ERR;
         }
     }
