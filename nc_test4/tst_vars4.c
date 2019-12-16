@@ -229,7 +229,7 @@ main(int argc, char **argv)
     SUMMARIZE_ERR;
     printf("**** testing compact storage...");
     {
-        int ncid, dimid[NDIM2], varid;
+        int ncid, dimid[NDIM2], varid, varid2;
         int data[XDIM_LEN];
         int x;
 
@@ -239,11 +239,21 @@ main(int argc, char **argv)
 
         /* Create a file with one var with compact storage. */
         if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
+
+        /* Define dims. */
         if (nc_def_dim(ncid, X_NAME, XDIM_LEN, &dimid[0])) ERR;
         if (nc_def_dim(ncid, Z_NAME, ZDIM_LEN, &dimid[1])) ERR;
-        if (nc_def_var(ncid, Y_NAME, NC_INT, 1, &dimid, &varid)) ERR;
+
+        /* Define vars. */
+        if (nc_def_var(ncid, Y_NAME, NC_INT, 1, dimid, &varid)) ERR;
         if (nc_def_var_chunking(ncid, varid, NC_COMPACT, NULL)) ERR;
+        if (nc_def_var(ncid, CLAIR, NC_INT, NDIM2, dimid, &varid2)) ERR;
+        if (nc_def_var_chunking(ncid, varid2, NC_COMPACT, NULL) != NC_EVARSIZE) ERR;
+
+        /* Write data. */
         if (nc_put_var_int(ncid, varid, data)) ERR;
+
+        /* Close file. */
         if (nc_close(ncid)) ERR;
 
         /* Open the file and check it. */
@@ -253,7 +263,7 @@ main(int argc, char **argv)
 
             if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
             if (nc_inq(ncid, &ndims, &nvars, NULL, NULL)) ERR;
-            if (ndims != 2 || nvars != 1) ERR;
+            if (ndims != 2 || nvars != 2) ERR;
             if (nc_inq_var_chunking(ncid, varid, &storage_in, NULL)) ERR;
             if (storage_in != NC_COMPACT) ERR;
             if (nc_close(ncid)) ERR;

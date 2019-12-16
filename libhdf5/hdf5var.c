@@ -22,8 +22,8 @@
  * order. */
 #define NC_TEMP_NAME "_netcdf4_temporary_variable_name_for_rename"
 
-/** Number of bytes in 64 MB. */
-#define SIXTY_FOUR_MB (67108864)
+/** Number of bytes in 64 KB. */
+#define SIXTY_FOUR_KB (65536)
 
 #ifdef LOGGING
 /**
@@ -763,8 +763,8 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
                 ndata *= var->dim[d]->len;
 
             /* Ensure var is small enough to fit in compact storage. */
-            if (ndata * var->type_info->size > SIXTY_FOUR_MB)
-                return NC_EINVAL;
+            if (ndata * var->type_info->size > SIXTY_FOUR_KB)
+                return NC_EVARSIZE;
 
             var->contiguous = NC_FALSE;
             var->compact = NC_TRUE;
