@@ -758,11 +758,12 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
         {
             size_t ndata = 1;
 
-            /* Ensure that total var is < 64 MB. */
+            /* Find the number of elements in the data. */
             for (d = 0; d < var->ndims; d++)
                 ndata *= var->dim[d]->len;
 
-            /* Ensure var is small enough to fit in compact storage. */
+            /* Ensure var is small enough to fit in compact
+             * storage. It must be <= 64 KB. */
             if (ndata * var->type_info->size > SIXTY_FOUR_KB)
                 return NC_EVARSIZE;
 
