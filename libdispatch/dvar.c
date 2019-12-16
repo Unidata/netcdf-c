@@ -452,9 +452,25 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
 /**
    Define chunking parameters for a variable
 
-   The function nc_def_var_chunking sets the chunking parameters for a
-   variable in a netCDF-4 file. It can set the chunk sizes to get chunked
-   storage, or it can set the contiguous flag to get contiguous storage.
+   The function nc_def_var_chunking sets the storage and, optionally,
+   the chunking parameters for a variable in a netCDF-4 file.
+
+   The storage may be set to NC_CONTIGUOUS, NC_COMPACT, or NC_CHUNKED.
+
+   Contiguous storage means the variable is stored as one block of
+   data in the file.
+
+   Compact storage means the variable is stored in the header record
+   of the file. This can have large performance benefits on HPC system
+   running many processors. Compact storage is only available for
+   variables whose data are 64 KB or less. Attempting to turn on
+   compact storage for a variable that is too large will result in the
+   ::NC_EVARSIZE error.
+
+   Chunked storage means the data are stored as chunks, of
+   user-configurable size. Chunked storage is required for variable
+   with one or more unlimted dimensions, or variable which use
+   compression.
 
    The total size of a chunk must be less than 4 GiB. That is, the
    product of all chunksizes and the size of the data (or the size of
@@ -467,8 +483,8 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
    Note that this does not work for scalar variables. Only non-scalar
    variables can have chunking.
 
-   @param ncid NetCDF ID, from a previous call to nc_open or
-   nc_create.
+   @param ncid NetCDF ID, from a previous call to nc_open() or
+   nc_create().
 
    @param varid Variable ID.
 
@@ -501,6 +517,10 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
    @return ::NC_EBADCHUNK Returns if the chunk size specified for a
    variable is larger than the length of the dimensions associated with
    variable.
+   @return ::NC_EVARSIZE Compact storage attempted for variable bigger
+   than 64 KB.
+   @return ::NC_EINVAL Attempt to set contiguous or compact storage
+   for var with one or more unlimited dimensions.
 
    @section nc_def_var_chunking_example Example
 
