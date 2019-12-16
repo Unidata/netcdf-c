@@ -18,7 +18,7 @@
 #define VAR_NAME Y_NAME
 #define XDIM_LEN 2
 #define YDIM_LEN 5
-#define ZDIM_LEN 50000
+#define ZDIM_LEN 8193
 #define CLAIR "Clair"
 #define JAMIE "Jamie"
 
@@ -248,6 +248,7 @@ main(int argc, char **argv)
         if (nc_def_var(ncid, Y_NAME, NC_INT, 1, dimid, &varid)) ERR;
         if (nc_def_var_chunking(ncid, varid, NC_COMPACT, NULL)) ERR;
         if (nc_def_var(ncid, CLAIR, NC_INT, NDIM2, dimid, &varid2)) ERR;
+        /* This won't work, the var is too big for compact! */
         if (nc_def_var_chunking(ncid, varid2, NC_COMPACT, NULL) != NC_EVARSIZE) ERR;
 
         /* Write data. */
