@@ -10,13 +10,15 @@
 #include "err_macros.h"
 
 #define FILE_NAME "tst_vars4.nc"
-#define NDIMS2 2
+#define NDIM2 2
 #define NUM_VARS 1
 #define Y_NAME "y"
 #define X_NAME "x"
+#define Z_NAME "z"
 #define VAR_NAME Y_NAME
 #define XDIM_LEN 2
 #define YDIM_LEN 5
+#define ZDIM_LEN 50000
 #define CLAIR "Clair"
 #define JAMIE "Jamie"
 
@@ -26,7 +28,7 @@ main(int argc, char **argv)
     printf("\n*** Testing netcdf-4 variable functions, even more.\n");
     printf("**** testing Jeff's dimension problem...");
     {
-        int varid, ncid, dims[NDIMS2], dims_in[NDIMS2];
+        int varid, ncid, dims[NDIM2], dims_in[NDIM2];
         int ndims, nvars, ngatts, unlimdimid, natts;
         char name_in[NC_MAX_NAME + 1];
         nc_type type_in;
@@ -37,9 +39,9 @@ main(int argc, char **argv)
         if (nc_def_dim(ncid, Y_NAME, YDIM_LEN, &dims[1])) ERR;
         if (nc_def_var(ncid, VAR_NAME, NC_FLOAT, 2, dims, &varid)) ERR;
         if (nc_inq(ncid, &ndims, &nvars, &ngatts, &unlimdimid)) ERR;
-        if (nvars != NUM_VARS || ndims != NDIMS2 || ngatts != 0 || unlimdimid != -1) ERR;
+        if (nvars != NUM_VARS || ndims != NDIM2 || ngatts != 0 || unlimdimid != -1) ERR;
         if (nc_inq_var(ncid, 0, name_in, &type_in, &ndims, dims_in, &natts)) ERR;
-        if (strcmp(name_in, VAR_NAME) || type_in != NC_FLOAT || ndims != NDIMS2 ||
+        if (strcmp(name_in, VAR_NAME) || type_in != NC_FLOAT || ndims != NDIM2 ||
             dims_in[0] != dims[0] || dims_in[1] != dims[1] || natts != 0) ERR;
         if (nc_inq_dim(ncid, 0, name_in, &len_in)) ERR;
         if (strcmp(name_in, X_NAME) || len_in != XDIM_LEN) ERR;
@@ -51,9 +53,9 @@ main(int argc, char **argv)
         /* Open the file and check. */
         if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
         if (nc_inq(ncid, &ndims, &nvars, &ngatts, &unlimdimid)) ERR;
-        if (nvars != NUM_VARS || ndims != NDIMS2 || ngatts != 0 || unlimdimid != -1) ERR;
+        if (nvars != NUM_VARS || ndims != NDIM2 || ngatts != 0 || unlimdimid != -1) ERR;
         if (nc_inq_var(ncid, 0, name_in, &type_in, &ndims, dims_in, &natts)) ERR;
-        if (strcmp(name_in, VAR_NAME) || type_in != NC_FLOAT || ndims != NDIMS2 ||
+        if (strcmp(name_in, VAR_NAME) || type_in != NC_FLOAT || ndims != NDIM2 ||
             dims_in[0] != dims[0] || dims_in[1] != dims[1] || natts != 0) ERR;
         if (nc_inq_dim(ncid, 0, name_in, &len_in)) ERR;
         if (strcmp(name_in, X_NAME) || len_in != XDIM_LEN) ERR;
@@ -65,9 +67,9 @@ main(int argc, char **argv)
     SUMMARIZE_ERR;
     printf("**** testing chunking turned on by fletcher...");
     {
-        int varid, ncid, dims[NDIMS2];
+        int varid, ncid, dims[NDIM2];
         int storage_in;
-        size_t chunksizes_in[NDIMS2];
+        size_t chunksizes_in[NDIM2];
 
         if (nc_create(FILE_NAME, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
         if (nc_def_dim(ncid, X_NAME, XDIM_LEN, &dims[0])) ERR;
@@ -87,9 +89,9 @@ main(int argc, char **argv)
     SUMMARIZE_ERR;
     printf("**** testing chunking turned on by shuffle...");
     {
-        int varid, ncid, dims[NDIMS2];
+        int varid, ncid, dims[NDIM2];
         int storage_in;
-        size_t chunksizes_in[NDIMS2];
+        size_t chunksizes_in[NDIM2];
 
         if (nc_create(FILE_NAME, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
         if (nc_def_dim(ncid, X_NAME, XDIM_LEN, &dims[0])) ERR;
@@ -227,7 +229,7 @@ main(int argc, char **argv)
     SUMMARIZE_ERR;
     printf("**** testing compact storage...");
     {
-        int ncid, dimid, varid;
+        int ncid, dimid[NDIM2], varid;
         int data[XDIM_LEN];
         int x;
 
@@ -237,7 +239,8 @@ main(int argc, char **argv)
 
         /* Create a file with one var with compact storage. */
         if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
-        if (nc_def_dim(ncid, X_NAME, XDIM_LEN, &dimid)) ERR;
+        if (nc_def_dim(ncid, X_NAME, XDIM_LEN, &dimid[0])) ERR;
+        if (nc_def_dim(ncid, Z_NAME, ZDIM_LEN, &dimid[1])) ERR;
         if (nc_def_var(ncid, Y_NAME, NC_INT, 1, &dimid, &varid)) ERR;
         if (nc_def_var_chunking(ncid, varid, NC_COMPACT, NULL)) ERR;
         if (nc_put_var_int(ncid, varid, data)) ERR;
@@ -250,7 +253,7 @@ main(int argc, char **argv)
 
             if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
             if (nc_inq(ncid, &ndims, &nvars, NULL, NULL)) ERR;
-            if (ndims != 1 || nvars != 1) ERR;
+            if (ndims != 2 || nvars != 1) ERR;
             if (nc_inq_var_chunking(ncid, varid, &storage_in, NULL)) ERR;
             if (storage_in != NC_COMPACT) ERR;
             if (nc_close(ncid)) ERR;
