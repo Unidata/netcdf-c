@@ -18,6 +18,8 @@ IF(ENABLE_BYTERANGE)
 ENDIF(ENABLE_BYTERANGE)
 
 add_library(dispatch OBJECT ${libdispatch_SOURCES})
+target_include_directories(dispatch PUBLIC ${MPI_C_INCLUDE_PATH})
+target_link_libraries(dispatch PUBLIC ${MPI_C_LIBRARIES})
 
 FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am)
