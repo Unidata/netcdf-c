@@ -659,8 +659,11 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
     assert(var && var->hdr.id == varid);
 
     /* Can't turn on parallel and deflate/fletcher32/szip/shuffle (for now). */
+    /* if (h5->parallel == NC_TRUE) */
+    /*     if (deflate || fletcher32 || shuffle) */
+    /*         return NC_EINVAL; */
     if (h5->parallel == NC_TRUE)
-        if (deflate || fletcher32 || shuffle)
+        if (fletcher32)
             return NC_EINVAL;
 
     /* If the HDF5 dataset has already been created, then it is too
