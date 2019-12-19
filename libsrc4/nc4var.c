@@ -187,16 +187,26 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
     if (nattsp)
         *nattsp = ncindexcount(var->att);
 
-    /* Chunking stuff. */
-    if (!var->contiguous && chunksizesp)
+    /* Did the user want the chunksizes? */
+    if (!var->contiguous && !var->compact && chunksizesp)
+    {
         for (d = 0; d < var->ndims; d++)
         {
             chunksizesp[d] = var->chunksizes[d];
             LOG((4, "chunksizesp[%d]=%d", d, chunksizesp[d]));
         }
+    }
 
+    /* Did the user inquire about the storage? */
     if (contiguousp)
-        *contiguousp = var->contiguous ? NC_CONTIGUOUS : NC_CHUNKED;
+    {
+        if (var->contiguous)
+            *contiguousp = NC_CONTIGUOUS;
+        else if (var->compact)
+            *contiguousp = NC_COMPACT;
+        else
+            *contiguousp = NC_CHUNKED;
+    }
 
     /* Filter stuff. */
     if (deflatep)
