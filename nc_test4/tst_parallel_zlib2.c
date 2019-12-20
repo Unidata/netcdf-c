@@ -51,7 +51,7 @@ main(int argc, char **argv)
     {
         nc_set_log_level(3);
         /* Create a parallel netcdf-4 file. */
-        if ((res = nc_create_par(FILE_NAME, NC_NETCDF4, comm, info, &ncid))) ERR;
+        if (nc_create_par(FILE_NAME, NC_NETCDF4, comm, info, &ncid)) ERR;
 
         /* Create three dimensions. */
         if (nc_def_dim(ncid, "d1", DIMSIZE, dimids)) ERR;
@@ -80,7 +80,7 @@ main(int argc, char **argv)
 #endif
 
         /* Write metadata to file. */
-        if ((res = nc_enddef(ncid))) ERR;
+        if (nc_enddef(ncid)) ERR;
 
         /* Set up slab for this process. */
         start[0] = mpi_rank * DIMSIZE/mpi_size;
@@ -100,7 +100,13 @@ main(int argc, char **argv)
             if (nc_put_vara_int(ncid, v1id, start, count, slab_data)) ERR;
 
         /* Close the netcdf file. */
-        if ((res = nc_close(ncid))) ERR;
+        if (nc_close(ncid)) ERR;
+
+        /* Reopen the file for parallel access. */
+        if (nc_open_par(FILE_NAME, NC_NOWRITE, comm, info, &ncid)) ERR;
+
+        /* Close the netcdf file. */
+        if (nc_close(ncid)) ERR;
     }
     if (!mpi_rank)
         SUMMARIZE_ERR;
