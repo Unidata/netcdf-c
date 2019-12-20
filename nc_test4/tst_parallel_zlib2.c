@@ -1,10 +1,10 @@
 /* Copyright 2019, UCAR/Unidata See COPYRIGHT file for copying and
-redistribution conditions.
+   redistribution conditions.
 
-This program tests netcdf-4 parallel I/O using zlib compression while
-writing.
+   This program tests netcdf-4 parallel I/O using zlib compression while
+   writing.
 
-Ed Hartnett, 12/19/2019
+   Ed Hartnett, 12/19/2019
 */
 
 #include <nc_tests.h>
