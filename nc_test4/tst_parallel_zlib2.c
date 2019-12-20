@@ -102,11 +102,20 @@ main(int argc, char **argv)
         /* Close the netcdf file. */
         if (nc_close(ncid)) ERR;
 
-        /* Reopen the file for parallel access. */
-        if (nc_open_par(FILE_NAME, NC_NOWRITE, comm, info, &ncid)) ERR;
+        /* Check file. */
+        {
+            int shuffle_in, deflate_in, deflate_level_in;
 
-        /* Close the netcdf file. */
-        if (nc_close(ncid)) ERR;
+            /* Reopen the file for parallel access. */
+            if (nc_open_par(FILE_NAME, NC_NOWRITE, comm, info, &ncid)) ERR;
+
+            /* Check state of deflate. */
+            if (nc_inq_var_deflate(ncid, 0, &shuffle_in, &deflate_in, &deflate_level_in)) ERR;
+            if (shuffle_in || !deflate_in || deflate_level_in != 1) ERR;
+
+            /* Close the netcdf file. */
+            if (nc_close(ncid)) ERR;
+        }
     }
     if (!mpi_rank)
         SUMMARIZE_ERR;
