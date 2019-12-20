@@ -8,6 +8,8 @@
 set -x
 set -e
 echo
+echo "Testing MPI parallel I/O with various other mode flags..."
+@MPIEXEC@ -n 1 ./tst_mode
 echo
 echo "Testing MPI parallel I/O without netCDF..."
 @MPIEXEC@ -n 4 ./tst_mpi_parallel
