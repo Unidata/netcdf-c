@@ -105,7 +105,14 @@ main(int argc, char **argv)
 
     /* Create one var. */
     if ((res = nc_def_var(ncid, "v1", NC_INT, NDIMS, dimids, &v1id))) ERR;
-    if ((res = nc_def_var_deflate(ncid, 0, 0, 1, 1))) ERR;
+    res = nc_def_var_deflate(ncid, 0, 0, 1, 1);
+    /* Setting deflate only will work for HDF5-1.10.2 and later
+     * versions. */
+#ifdef HDF5_1_10_2
+    if (res) ERR;
+#else
+    if (res != NC_EINVAL) ERR;
+#endif
 
     /* Write metadata to file. */
     if ((res = nc_enddef(ncid))) ERR;
