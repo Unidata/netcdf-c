@@ -662,9 +662,9 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
     /* if (h5->parallel == NC_TRUE) */
     /*     if (deflate || fletcher32 || shuffle) */
     /*         return NC_EINVAL; */
-    if (h5->parallel == NC_TRUE)
-        if (fletcher32)
-            return NC_EINVAL;
+    /* if (h5->parallel == NC_TRUE) */
+    /*     if (fletcher32) */
+    /*         return NC_EINVAL; */
 
     /* If the HDF5 dataset has already been created, then it is too
      * late to set all the extra stuff. */
