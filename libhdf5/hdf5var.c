@@ -22,6 +22,9 @@
  * order. */
 #define NC_TEMP_NAME "_netcdf4_temporary_variable_name_for_rename"
 
+/** Number of bytes in 64 KB. */
+#define SIXTY_FOUR_KB (65536)
+
 #ifdef LOGGING
 /**
  * Report the chunksizes selected for a variable.
@@ -721,41 +724,65 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
     }
 #endif /* USE_PARALLEL */
 
-    /* Does the user want a contiguous dataset? Not so fast! Make sure
-     * that there are no unlimited dimensions, and no filters in use
-     * for this data. */
-    if (contiguous && *contiguous)
+    /* Handle storage settings. */
+    if (contiguous)
     {
-        if (var->deflate || var->fletcher32 || var->shuffle)
-            return NC_EINVAL;
-
-        for (d = 0; d < var->ndims; d++)
-            if (var->dim[d]->unlimited)
-                return NC_EINVAL;
-        var->contiguous = NC_TRUE;
-    }
-
-    /* Chunksizes anyone? */
-    if (contiguous && *contiguous == NC_CHUNKED)
-    {
-        var->contiguous = NC_FALSE;
-
-        /* If the user provided chunksizes, check that they are not too
-         * big, and that their total size of chunk is less than 4 GB. */
-        if (chunksizes)
+        /* Does the user want a contiguous or compact dataset? Not so
+         * fast! Make sure that there are no unlimited dimensions, and
+         * no filters in use for this data. */
+        if (*contiguous)
         {
+            if (var->deflate || var->fletcher32 || var->shuffle)
+                return NC_EINVAL;
 
-            if ((retval = check_chunksizes(grp, var, chunksizes)))
-                return retval;
-
-            /* Ensure chunksize is smaller than dimension size */
             for (d = 0; d < var->ndims; d++)
-                if(!var->dim[d]->unlimited && var->dim[d]->len > 0 && chunksizes[d] > var->dim[d]->len)
-                    return NC_EBADCHUNK;
+                if (var->dim[d]->unlimited)
+                    return NC_EINVAL;
+        }
 
-            /* Set the chunksizes for this variable. */
+        /* Handle chunked storage settings. */
+        if (*contiguous == NC_CHUNKED)
+        {
+            var->contiguous = NC_FALSE;
+
+            /* If the user provided chunksizes, check that they are not too
+             * big, and that their total size of chunk is less than 4 GB. */
+            if (chunksizes)
+            {
+                /* Check the chunksizes for validity. */
+                if ((retval = check_chunksizes(grp, var, chunksizes)))
+                    return retval;
+
+                /* Ensure chunksize is smaller than dimension size */
+                for (d = 0; d < var->ndims; d++)
+                    if (!var->dim[d]->unlimited && var->dim[d]->len > 0 &&
+                        chunksizes[d] > var->dim[d]->len)
+                        return NC_EBADCHUNK;
+
+                /* Set the chunksizes for this variable. */
+                for (d = 0; d < var->ndims; d++)
+                    var->chunksizes[d] = chunksizes[d];
+            }
+        }
+        else if (*contiguous == NC_CONTIGUOUS)
+        {
+            var->contiguous = NC_TRUE;
+        }
+        else if (*contiguous == NC_COMPACT)
+        {
+            size_t ndata = 1;
+
+            /* Find the number of elements in the data. */
             for (d = 0; d < var->ndims; d++)
-                var->chunksizes[d] = chunksizes[d];
+                ndata *= var->dim[d]->len;
+
+            /* Ensure var is small enough to fit in compact
+             * storage. It must be <= 64 KB. */
+            if (ndata * var->type_info->size > SIXTY_FOUR_KB)
+                return NC_EVARSIZE;
+
+            var->contiguous = NC_FALSE;
+            var->compact = NC_TRUE;
         }
     }
 

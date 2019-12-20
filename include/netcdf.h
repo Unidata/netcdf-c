@@ -293,6 +293,7 @@ NOTE: The NC_MAX_DIMS, NC_MAX_ATTRS, and NC_MAX_VARS limits
 /**@{*/
 #define NC_CHUNKED    0
 #define NC_CONTIGUOUS 1
+#define NC_COMPACT    2
 /**@}*/
 
 /** In HDF5 files you can set check-summing for each variable.
