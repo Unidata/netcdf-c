@@ -326,11 +326,11 @@ nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
 
    @note Parallel I/O reads work with compressed data. Parallel I/O
    writes work with compressed data in netcdf-c-4.7.4 and later
-   releases, using hdf5-1.10.2 and later releases. Using the zlib (or
-   any) filter requires that collective access be used with the
-   variable. Turning on deflate for a variable in a file opened for
-   parallel I/O will automatically switch the access for that variable
-   to collective access.
+   releases, using hdf5-1.10.2 and later releases. Using the zlib,
+   shuffle (or any other) filter requires that collective access be
+   used with the variable. Turning on deflate and/or shuffle for a
+   variable in a file opened for parallel I/O will automatically
+   switch the access for that variable to collective access.
 
    @param ncid NetCDF or group ID, from a previous call to nc_open(),
    nc_create(), nc_def_grp(), or associated inquiry functions such as

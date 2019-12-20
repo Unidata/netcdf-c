@@ -706,6 +706,12 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
     {
         var->shuffle = *shuffle;
         var->contiguous = NC_FALSE;
+
+        /* If shuffle was turned on with parallel I/O writes, then
+         * switch to collective access. HDF5 requires collevtive
+         * access for filter use with parallel I/O. */
+        if (h5->parallel && var->shuffle)
+            var->parallel_access = NC_COLLECTIVE;
     }
 
     /* Fletcher32 checksum error protection? */
@@ -717,7 +723,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
         /* If fletcher32 was turned on with parallel I/O writes, then
          * switch to collective access. HDF5 requires collevtive
          * access for filter use with parallel I/O. */
-        if (h5->parallel && var->deflate)
+        if (h5->parallel && var->fletcher32)
             var->parallel_access = NC_COLLECTIVE;
     }
 
