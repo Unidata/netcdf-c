@@ -45,3 +45,8 @@ echo
 echo "Parallel I/O test with zlib."
 @MPIEXEC@ -n 1 ./tst_parallel_zlib
 @MPIEXEC@ -n 4 ./tst_parallel_zlib
+
+echo
+echo "Parallel I/O more tests with zlib."
+@MPIEXEC@ -n 1 ./tst_parallel_zlib2
+@MPIEXEC@ -n 4 ./tst_parallel_zlib2
