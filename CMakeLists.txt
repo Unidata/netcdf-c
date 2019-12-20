@@ -744,7 +744,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
   ENDIF()
 
   # Check to see if this is hdf5-1.10.2 or later.
-  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5DOread_chunk "" HDF5_1_10_2)
+  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5DOread_chunk "" HDF5_SUPPORTS_PAR_FILTERS)
 
   SET(H5_USE_16_API 1)
   OPTION(NC_ENABLE_HDF_16_API "Enable HDF5 1.6.x Compatibility(Required)" ON)

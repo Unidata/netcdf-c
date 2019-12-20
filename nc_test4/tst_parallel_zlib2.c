@@ -72,7 +72,7 @@ main(int argc, char **argv)
             /* Setting deflate only will work for HDF5-1.10.2 and later
              * versions. */
             res = nc_def_var_deflate(ncid, 0, s, 1, 1);
-#ifdef HDF5_1_10_2
+#ifdef HDF5_SUPPORTS_PAR_FILTERS
             if (res) ERR;
 #else
             if (res != NC_EINVAL) ERR;
@@ -81,7 +81,7 @@ main(int argc, char **argv)
             /* Setting fletcher32 only will work for HDF5-1.10.2 and later
              * versions. */
             res = nc_def_var_fletcher32(ncid, 0, 1);
-#ifdef HDF5_1_10_2
+#ifdef HDF5_SUPPORTS_PAR_FILTERS
             if (res) ERR;
 #else
             if (res != NC_EINVAL) ERR;

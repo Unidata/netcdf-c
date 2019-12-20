@@ -109,7 +109,7 @@ main(int argc, char **argv)
     /* Setting deflate only will work for HDF5-1.10.2 and later
      * versions. */
     res = nc_def_var_deflate(ncid, 0, 0, 1, 1);
-#ifdef HDF5_1_10_2
+#ifdef HDF5_SUPPORTS_PAR_FILTERS
     if (res) ERR;
 #else
     if (res != NC_EINVAL) ERR;
@@ -133,8 +133,8 @@ main(int argc, char **argv)
     /*printf("mpi_rank=%d start[0]=%d start[1]=%d count[0]=%d count[1]=%d\n",
       mpi_rank, start[0], start[1], count[0], count[1]);*/
 
+    /* Not necessary, but harmless. */
     if (nc_var_par_access(ncid, v1id, NC_COLLECTIVE)) ERR;
-/*    if (nc_var_par_access(ncid, v1id, NC_INDEPENDENT)) ERR;*/
 
     for (start[2] = 0; start[2] < NUM_SLABS; start[2]++)
     {
