@@ -49,6 +49,7 @@ main(int argc, char **argv)
        printf("*** testing simple write with zlib...");
     }
     {
+        nc_set_log_level(3);
         /* Create a parallel netcdf-4 file. */
         if ((res = nc_create_par(FILE_NAME, NC_NETCDF4, comm, info, &ncid))) ERR;
 
@@ -90,8 +91,8 @@ main(int argc, char **argv)
         /*printf("mpi_rank=%d start[0]=%d start[1]=%d count[0]=%d count[1]=%d\n",
           mpi_rank, start[0], start[1], count[0], count[1]);*/
 
-        if (nc_var_par_access(ncid, v1id, NC_COLLECTIVE)) ERR;
-/*    if (nc_var_par_access(ncid, v1id, NC_INDEPENDENT)) ERR;*/
+        /* if (nc_var_par_access(ncid, v1id, NC_COLLECTIVE)) ERR; */
+        /* if (nc_var_par_access(ncid, v1id, NC_INDEPENDENT)) ERR; */
 
         /* Write slabs of data. */
         for (start[2] = 0; start[2] < NUM_SLABS; start[2]++)
