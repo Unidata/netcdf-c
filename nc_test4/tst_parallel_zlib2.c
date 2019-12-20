@@ -91,8 +91,9 @@ main(int argc, char **argv)
         /*printf("mpi_rank=%d start[0]=%d start[1]=%d count[0]=%d count[1]=%d\n",
           mpi_rank, start[0], start[1], count[0], count[1]);*/
 
-        /* if (nc_var_par_access(ncid, v1id, NC_COLLECTIVE)) ERR; */
-        /* if (nc_var_par_access(ncid, v1id, NC_INDEPENDENT)) ERR; */
+        /* Should not be allowed to change access to independent,
+         * because filters are in use. */
+        if (nc_var_par_access(ncid, v1id, NC_INDEPENDENT) != NC_EINVAL) ERR;
 
         /* Write slabs of data. */
         for (start[2] = 0; start[2] < NUM_SLABS; start[2]++)
