@@ -693,12 +693,6 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
         if (*deflate)
             var->deflate_level = *deflate_level;
         LOG((3, "%s: *deflate_level %d", __func__, *deflate_level));
-
-        /* If deflate was turned on with parallel I/O writes, then
-         * switch to collective access. HDF5 requires collevtive
-         * access for filter use with parallel I/O. */
-        if (h5->parallel && var->deflate)
-            var->parallel_access = NC_COLLECTIVE;
     }
 
     /* Shuffle filter? */
@@ -706,12 +700,6 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
     {
         var->shuffle = *shuffle;
         var->contiguous = NC_FALSE;
-
-        /* If shuffle was turned on with parallel I/O writes, then
-         * switch to collective access. HDF5 requires collevtive
-         * access for filter use with parallel I/O. */
-        if (h5->parallel && var->shuffle)
-            var->parallel_access = NC_COLLECTIVE;
     }
 
     /* Fletcher32 checksum error protection? */
@@ -719,13 +707,19 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
     {
         var->fletcher32 = *fletcher32;
         var->contiguous = NC_FALSE;
+    }
 
-        /* If fletcher32 was turned on with parallel I/O writes, then
-         * switch to collective access. HDF5 requires collevtive
-         * access for filter use with parallel I/O. */
-        if (h5->parallel && var->fletcher32)
+#ifdef USE_PARALLEL
+        /* If deflate, shuffle, or fletcher32 was turned on with
+         * parallel I/O writes, then switch to collective access. HDF5
+         * requires collevtive access for filter use with parallel
+         * I/O. */
+    if (deflate || shuffle || fletcher32)
+    {
+        if (h5->parallel && (var->deflate || var->shuffle || var->fletcher32))
             var->parallel_access = NC_COLLECTIVE;
     }
+#endif /* USE_PARALLEL */
 
     /* Does the user want a contiguous dataset? Not so fast! Make sure
      * that there are no unlimited dimensions, and no filters in use
