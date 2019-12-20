@@ -31,16 +31,19 @@ main(int argc, char **argv)
     size_t start[NDIMS], count[NDIMS];
 
     int i, res;
-    int slab_data[DIMSIZE * DIMSIZE / 4]; /* one slab */
+    int *slab_data; /* one slab */
 
     /* Initialize MPI. */
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
 
+    /* Allocate data. */
+    if (!(slab_data = malloc(sizeof(int) * DIMSIZE * DIMSIZE / mpi_size))) ERR;
+
     /* Create phony data. We're going to write a 24x24 array of ints,
        in 4 sets of 144. */
-    for (i = 0; i < DIMSIZE * DIMSIZE / 4; i++)
+    for (i = 0; i < DIMSIZE * DIMSIZE / mpi_size; i++)
        slab_data[i] = mpi_rank;
 
     if (!mpi_rank)
@@ -105,6 +108,10 @@ main(int argc, char **argv)
         /* Check file. */
         {
             int shuffle_in, deflate_in, deflate_level_in;
+            int *slab_data_in;
+
+            /* Allocate data. */
+            if (!(slab_data_in = malloc(sizeof(int) * DIMSIZE * DIMSIZE / mpi_size))) ERR;
 
             /* Reopen the file for parallel access. */
             if (nc_open_par(FILE_NAME, NC_NOWRITE, comm, info, &ncid)) ERR;
@@ -113,9 +120,21 @@ main(int argc, char **argv)
             if (nc_inq_var_deflate(ncid, 0, &shuffle_in, &deflate_in, &deflate_level_in)) ERR;
             if (shuffle_in || !deflate_in || deflate_level_in != 1) ERR;
 
+            /* Use parallel I/O to read the data. */
+            for (start[2] = 0; start[2] < NUM_SLABS; start[2]++)
+            {
+                if (nc_get_vara_int(ncid, 0, start, count, slab_data_in)) ERR;
+                for (i = 0; i < DIMSIZE * DIMSIZE / mpi_size; i++)
+                    if (slab_data_in[i] != mpi_rank) ERR;
+            }
+
             /* Close the netcdf file. */
             if (nc_close(ncid)) ERR;
+
+            free(slab_data_in);
         }
+
+        free(slab_data);
     }
     if (!mpi_rank)
         SUMMARIZE_ERR;
