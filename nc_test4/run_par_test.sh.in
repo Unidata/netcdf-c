@@ -8,8 +8,6 @@
 set -x
 set -e
 echo
-echo "Testing MPI parallel I/O with various other mode flags..."
-@MPIEXEC@ -n 1 ./tst_mode
 echo
 echo "Testing MPI parallel I/O without netCDF..."
 @MPIEXEC@ -n 4 ./tst_mpi_parallel
@@ -42,3 +40,8 @@ echo "Parallel I/O test for Collective I/O, contributed by HDF Group."
 @MPIEXEC@ -n 1 ./tst_simplerw_coll_r
 @MPIEXEC@ -n 2 ./tst_simplerw_coll_r
 @MPIEXEC@ -n 4 ./tst_simplerw_coll_r
+
+echo
+echo "Parallel I/O test with zlib."
+@MPIEXEC@ -n 1 ./tst_parallel_zlib
+@MPIEXEC@ -n 4 ./tst_parallel_zlib
