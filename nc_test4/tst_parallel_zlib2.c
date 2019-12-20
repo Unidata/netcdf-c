@@ -68,6 +68,16 @@ main(int argc, char **argv)
 #else
         if (res != NC_EINVAL) ERR;
 #endif
+
+        /* Setting fletcher32 only will work for HDF5-1.10.2 and later
+         * versions. */
+        res = nc_def_var_fletcher32(ncid, 0, 1);
+#ifdef HDF5_1_10_2
+        if (res) ERR;
+#else
+        if (res != NC_EINVAL) ERR;
+#endif
+
         /* Write metadata to file. */
         if ((res = nc_enddef(ncid))) ERR;
 
