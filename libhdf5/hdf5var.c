@@ -663,7 +663,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
 
     /* Can't turn on parallel and deflate/fletcher32/szip/shuffle
      * before HDF5 1.10.2. */
-#ifndef HDF5_1_10_2
+#ifndef HDF5_SUPPORTS_PAR_FILTERS
     if (h5->parallel == NC_TRUE)
         if (deflate || fletcher32 || shuffle)
             return NC_EINVAL;

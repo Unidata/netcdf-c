@@ -1055,7 +1055,7 @@ if test "x$enable_hdf5" = xyes; then
 
    # Check to see if HDF5 library is 1.10.2 or greater. If so, allows parallel_zip.
    if test "x$ac_cv_func_H5DOread_chunk" = xyes; then
-      AC_DEFINE([HDF5_1_10_2], [1], [if true, HDF5 is at least version 1.10.2 and allows parallel I/O with zip])
+      AC_DEFINE([HDF5_SUPPORTS_PAR_FILTERS], [1], [if true, HDF5 is at least version 1.10.2 and allows parallel I/O with zip])
    fi
    AC_MSG_CHECKING([whether HDF5 is version 1.10.2 or greater])
    AC_MSG_RESULT([$ac_cv_func_H5DOread_chunk])
