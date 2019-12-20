@@ -687,13 +687,18 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
         if (!var->ndims)
             return NC_NOERR;
 
-        /* Well, if we couldn't find any errors, I guess we have to take
-         * the users settings. Darn! */
+        /* Set the deflate settings. */
         var->contiguous = NC_FALSE;
         var->deflate = *deflate;
         if (*deflate)
             var->deflate_level = *deflate_level;
         LOG((3, "%s: *deflate_level %d", __func__, *deflate_level));
+
+        /* If deflate was turned on with parallel I/O writes, then
+         * switch to collective access. HDF5 requires collevtive
+         * access for filter use with parallel I/O. */
+        if (h5->parallel && var->deflate)
+            var->parallel_access = NC_COLLECTIVE;
     }
 
     /* Shuffle filter? */
@@ -708,6 +713,12 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
     {
         var->fletcher32 = *fletcher32;
         var->contiguous = NC_FALSE;
+
+        /* If fletcher32 was turned on with parallel I/O writes, then
+         * switch to collective access. HDF5 requires collevtive
+         * access for filter use with parallel I/O. */
+        if (h5->parallel && var->deflate)
+            var->parallel_access = NC_COLLECTIVE;
     }
 
     /* Does the user want a contiguous dataset? Not so fast! Make sure
