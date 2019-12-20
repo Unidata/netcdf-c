@@ -162,9 +162,6 @@ main(int argc, char **argv)
     MPE_Log_event(e_close, 0, "end close file");
 #endif /* USE_MPE */
 
-    /* Delete this large file. */
-    /* remove(file_name); */
-
     /* Shut down MPI. */
     MPI_Finalize();
 
