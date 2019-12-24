@@ -12,6 +12,14 @@
 #include <nc_tests.h>
 #include "err_macros.h"
 
+#define NDIM2 2
+#define VAR_NAME "var"
+#define DIM_NAME1 "y"
+#define DIM_NAME2 "x"
+#define NY 3
+#define NX 3
+#define DIM_LEN 2
+
 int
 main(int argc, char **argv)
 {
@@ -232,6 +240,153 @@ main(int argc, char **argv)
        if (len != 1) ERR;
        if (nc_get_vara_double(ncid, 1, start, count, &data_in)) ERR;
        if (data_in != TEST_VAL_42) ERR;
+       if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+
+   printf("*** testing very simple case writing data with 2 unlim dims...");
+   {
+       /* This test code based on test code from Jeff Whitaker. See
+        * https://github.com/Unidata/netcdf4-python/issues/1413. This
+        * is a simplified version. */
+       int varid1, varid, ncid;
+       int dimids[NDIM2];
+       size_t start[1] = {0};
+       size_t count[1] = {NY};
+       int ydata[NY];
+       int y, i;
+       size_t len_in;
+
+       /* Fill Y data array. */
+       for (i = 0; i < NY; ++i)
+           ydata[i] = i;
+
+       /* Create a file. */
+       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+
+       /* Define two unlimited dims. */
+       if (nc_def_dim(ncid, DIM_NAME1, NC_UNLIMITED, &dimids[0])) ERR;
+       if (nc_def_dim(ncid, DIM_NAME2, NC_UNLIMITED, &dimids[1])) ERR;
+
+       /* Define coord var for first dim Y. */
+       if (nc_def_var(ncid, DIM_NAME1, NC_INT, 1, &dimids[0], &varid1)) ERR;
+
+       /* Define a data var with dims Y,X. */
+       if (nc_def_var(ncid, VAR_NAME, NC_INT, NDIM2, dimids, &varid)) ERR;
+
+       /* Write data to coordinate var to extend Y. */
+       if (nc_put_vara_int(ncid, varid1, start, count, ydata)) ERR;
+       if (nc_close(ncid)) ERR;
+
+       /* Reopen the file and check. */
+       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+       if (nc_inq_dimlen(ncid, 0, &len_in)) ERR;
+       if (len_in != NY) ERR;
+       if (nc_inq_dimlen(ncid, 1, &len_in)) ERR;
+       if (len_in != 0) ERR;
+
+       /* Read and check each value of the coordinate var. */
+       for (y = 0; y < NY; y++)
+       {
+           size_t index = y;
+           int data_in;
+
+           if (nc_get_var1_int(ncid, varid1, &index, &data_in)) ERR;
+           if (data_in != y) ERR;
+       }
+
+       if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+   printf("*** testing simple case writing data with 2 unlim dims...");
+   {
+       /* This test code based on test code from Jeff Whitaker. See
+        * https://github.com/Unidata/netcdf4-python/issues/1413. This
+        * is a simplified version. */
+       int varid1, varid, ncid;
+       int dimids[NDIM2];
+       size_t start[1] = {0};
+       size_t count[1] = {NY};
+       size_t start2[NDIM2] = {0, 2};
+       size_t count2[NDIM2] = {1, 1};
+       int ydata[NY];
+       int data = TEST_VAL_42;
+       int x, y, i;
+
+       /* Fill Y data array. */
+       for (i = 0; i < NY; ++i)
+           ydata[i] = i;
+
+       /* Create a file. */
+       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+
+       /* Define two unlimited dims. */
+       if (nc_def_dim(ncid, DIM_NAME1, NC_UNLIMITED, &dimids[0])) ERR;
+       if (nc_def_dim(ncid, DIM_NAME2, NC_UNLIMITED, &dimids[1])) ERR;
+
+       /* Define coord var for first dim Y. */
+       if (nc_def_var(ncid, DIM_NAME1, NC_INT, 1, &dimids[0], &varid1)) ERR;
+
+       /* Define a data var with dims Y,X. */
+       if (nc_def_var(ncid, VAR_NAME, NC_INT, NDIM2, dimids, &varid)) ERR;
+
+       /* Write data to coordinate var to extend Y. */
+       if (nc_put_vara_int(ncid, varid1, start, count, ydata)) ERR;
+       if (nc_sync(ncid)) ERR;
+
+       /* write a single data point to the 2d variable */
+       if (nc_put_vara_int(ncid, varid, start2, count2, &data)) ERR;
+       if (nc_close(ncid)) ERR;
+
+       /* Reopen the file and check. */
+       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+
+       /* Read and check each value with nc_get_var1_int(). */
+       for (x = 0; x < NX; x++)
+       {
+           for (y = 0; y < NY; y++)
+           {
+               size_t index[NDIM2] = {y, x};
+               int data_in;
+
+               if (nc_get_var1_int(ncid, varid, index, &data_in)) ERR;
+               if (y == start2[0] && x == start2[1])
+               {
+                   if (data_in != data) ERR;
+               }
+               else
+               {
+                   if (data_in != NC_FILL_INT) ERR;
+               }
+           }
+       }
+
+       /* Read and check each row with nc_get_vara_int(). */
+       for (y = 0; y < NY; y++)
+       {
+           size_t start_row[NDIM2] = {y, 0};
+           size_t count_row[NDIM2] = {1, NX};
+           int data_in[NX];
+
+           if (nc_get_vara_int(ncid, varid, start_row, count_row,
+                               data_in)) ERR;
+           if (y == start2[0])
+           {
+               /* This row has data. */
+               for (x = 0; x < NX; x++)
+                   if (data_in[x] != (x == start2[1] ? TEST_VAL_42 : NC_FILL_INT)) ERR;
+           }
+           else
+           {
+               /* This row is all fill. */
+               for (x = 0; x < NX; x++)
+               {
+                   printf("y %d x %d data %d\n", y, x, data_in[x]);
+                   if (data_in[x] != NC_FILL_INT) ERR;
+               }
+           }
+       }
+
        if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;

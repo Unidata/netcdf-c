@@ -1922,7 +1922,8 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 #endif
 
     /* Check dimension bounds. Remember that unlimited dimensions can
-     * put data beyond their current length. */
+     * get data beyond the length of the dataset, but within the
+     * lengths of the unlimited dimension(s). */
     for (d2 = 0; d2 < var->ndims; d2++)
     {
         hsize_t endindex = start[d2] + stride[d2] * (count[d2] - 1); /* last index read */
@@ -1947,20 +1948,26 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
             if (count[d2] && endindex >= ulen)
                 BAIL_QUIET(NC_EEDGE);
 
-            /* Things get a little tricky here. If we're getting
-               a GET request beyond the end of this var's
-               current length in an unlimited dimension, we'll
-               later need to return the fill value for the
-               variable. */
-            if (start[d2] >= (hssize_t)fdims[d2])
-                fill_value_size[d2] = count[d2];
-            else if (endindex >= fdims[d2])
-                fill_value_size[d2] = count[d2] - ((fdims[d2] - start[d2])/stride[d2]);
+            /* Things get a little tricky here. If we're getting a GET
+               request beyond the end of this var's current length in
+               an unlimited dimension, we'll later need to return the
+               fill value for the variable. */
+            if (!no_read)
+            {
+                if (start[d2] >= (hssize_t)fdims[d2])
+                    fill_value_size[d2] = count[d2];
+                else if (endindex >= fdims[d2])
+                    fill_value_size[d2] = count[d2] - ((fdims[d2] - start[d2])/stride[d2]);
+                else
+                    fill_value_size[d2] = 0;
+                count[d2] -= fill_value_size[d2];
+                if (count[d2] == 0)
+                    no_read++;
+                if (fill_value_size[d2])
+                    provide_fill++;
+            }
             else
-                fill_value_size[d2] = 0;
-            count[d2] -= fill_value_size[d2];
-            if (fill_value_size[d2])
-                provide_fill++;
+                fill_value_size[d2] = count[d2];
         }
         else /* Dim is not unlimited. */
         {
