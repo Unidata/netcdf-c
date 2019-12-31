@@ -38,8 +38,9 @@ endif
 # because the server may be down or inaccessible
 
 if ENABLE_DAP_REMOTE_TESTS
-noinst_PROGRAMS = findtestserver
+noinst_PROGRAMS = findtestserver pingurl
 findtestserver_SOURCES = findtestserver.c
+pingurl_SOURCES = pingurl.c
 endif
 
 if ENABLE_DAP_REMOTE_TESTS
@@ -54,20 +55,22 @@ if ENABLE_DAP_LONG_TESTS
 endif
 
 test_partvar_SOURCES = test_partvar.c
-test_varm3_SOURCES = test_varm3.c
-test_nstride_cached_SOURCES = test_nstride_cached.c
 
 t_misc_SOURCES = t_misc.c
 
-TESTS += test_varm3
+
 #TESTS += t_ncf330
-TESTS += test_nstride_cached
 TESTS += t_misc
 
-check_PROGRAMS += test_partvar
+test_nstride_cached_SOURCES = test_nstride_cached.c
+TESTS += test_nstride_cached
 check_PROGRAMS += test_nstride_cached
-check_PROGRAMS += t_misc
+test_varm3_SOURCES = test_varm3.c
+TESTS += test_varm3
 check_PROGRAMS += test_varm3
+
+check_PROGRAMS += test_partvar
+check_PROGRAMS += t_misc
 check_PROGRAMS += t_ncf330
 
 if ENABLE_DAP_AUTH_TESTS

@@ -1,3 +1,4 @@
+
 ##################################################
 # Remote test info
 ##################################################
@@ -11,7 +12,7 @@
 DTS=`${execdir}/findtestserver dap2 dts`
 if test "x$DTS" = "x" ; then
 echo "WARNING: Cannot locate test server for dts"
-exit 1
+exit 0
 fi
 
 if test "x$timing" = "x1" ; then TIMECMD="time"; else TIMECMD=""; fi
