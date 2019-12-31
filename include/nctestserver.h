@@ -9,6 +9,9 @@ See \ref copyright file for more info.
 
 */
 
+#ifndef NCTESTSERVER_H
+#define NCTESTSERVER_H 1
+
 #include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -220,3 +223,4 @@ done:
         curl_easy_cleanup(curl);
     return stat;
 }
+#endif /*NCTESTSERVER_H*/
