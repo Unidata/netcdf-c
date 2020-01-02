@@ -312,7 +312,7 @@ nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
 }
 
 /**
-   Set the compression settings for a netCDF-4/HDF5 variable.
+   Set the zlib compression settings for a netCDF-4/HDF5 variable.
 
    This function must be called after nc_def_var and before nc_enddef
    or any functions which writes data to the file.
@@ -324,15 +324,22 @@ nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
 
    If this function is called on a scalar variable, it is ignored.
 
+   @note Parallel I/O reads work with compressed data. Parallel I/O
+   writes work with compressed data in netcdf-c-4.7.4 and later
+   releases, using hdf5-1.10.2 and later releases. Using the zlib,
+   shuffle (or any other) filter requires that collective access be
+   used with the variable. Turning on deflate and/or shuffle for a
+   variable in a file opened for parallel I/O will automatically
+   switch the access for that variable to collective access.
+
    @param ncid NetCDF or group ID, from a previous call to nc_open(),
    nc_create(), nc_def_grp(), or associated inquiry functions such as
    nc_inq_ncid().
    @param varid Variable ID
    @param shuffle True to turn on the shuffle filter. The shuffle
-   filter can assist with the compression of integer data by changing
-   the byte order in the data stream. It makes no sense to use the
-   shuffle filter without setting a deflate level, or to use shuffle
-   on non-integer data.
+   filter can assist with the compression of data by changing the byte
+   order in the data stream. It makes no sense to use the shuffle
+   filter without setting a deflate level.
    @param deflate True to turn on deflation for this variable.
    @param deflate_level A number between 0 (no compression) and 9
    (maximum compression).
@@ -347,11 +354,8 @@ nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
    @return ::NC_ELATEDEF Too late to change settings for this variable.
    @return ::NC_ENOTINDEFINE Not in define mode.
    @return ::NC_EPERM File is read only.
-   @return ::NC_EMAXDIMS Classic model file exceeds ::NC_MAX_VAR_DIMS.
    @return ::NC_ESTRICTNC3 Attempting to create netCDF-4 type var in
    classic model file
-   @return ::NC_EBADTYPE Bad type.
-   @return ::NC_ENOMEM Out of memory.
    @return ::NC_EHDFERR Error returned by HDF5 layer.
    @return ::NC_EINVAL Invalid input. Deflate can't be set unless
    variable storage is NC_CHUNK.
@@ -421,6 +425,14 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
    variable with contiguous data, then the data is changed to chunked
    data, with default chunksizes. Use nc_def_var_chunking() to tune
    performance with user-defined chunksizes.
+
+   @note Parallel I/O reads work with fletcher32 encoded
+   data. Parallel I/O writes work with fletcher32 in netcdf-c-4.7.4
+   and later releases, using hdf5-1.10.2 and later releases. Using the
+   fletcher32 (or any) filter requires that collective access be used
+   with the variable. Turning on fletcher32 for a variable in a file
+   opened for parallel I/O will automatically switch the access for
+   that variable to collective access.
 
    @param ncid NetCDF or group ID, from a previous call to nc_open(),
    nc_create(), nc_def_grp(), or associated inquiry functions such as

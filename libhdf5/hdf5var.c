@@ -661,10 +661,13 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
         return NC_ENOTVAR;
     assert(var && var->hdr.id == varid);
 
-    /* Can't turn on parallel and deflate/fletcher32/szip/shuffle (for now). */
+    /* Can't turn on parallel and deflate/fletcher32/szip/shuffle
+     * before HDF5 1.10.2. */
+#ifndef HDF5_SUPPORTS_PAR_FILTERS
     if (h5->parallel == NC_TRUE)
         if (deflate || fletcher32 || shuffle)
             return NC_EINVAL;
+#endif
 
     /* If the HDF5 dataset has already been created, then it is too
      * late to set all the extra stuff. */
@@ -687,8 +690,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
         if (!var->ndims)
             return NC_NOERR;
 
-        /* Well, if we couldn't find any errors, I guess we have to take
-         * the users settings. Darn! */
+        /* Set the deflate settings. */
         var->contiguous = NC_FALSE;
         var->deflate = *deflate;
         if (*deflate)
@@ -709,6 +711,18 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
         var->fletcher32 = *fletcher32;
         var->contiguous = NC_FALSE;
     }
+
+#ifdef USE_PARALLEL
+        /* If deflate, shuffle, or fletcher32 was turned on with
+         * parallel I/O writes, then switch to collective access. HDF5
+         * requires collevtive access for filter use with parallel
+         * I/O. */
+    if (deflate || shuffle || fletcher32)
+    {
+        if (h5->parallel && (var->deflate || var->shuffle || var->fletcher32))
+            var->parallel_access = NC_COLLECTIVE;
+    }
+#endif /* USE_PARALLEL */
 
     /* Handle storage settings. */
     if (contiguous)
