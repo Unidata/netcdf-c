@@ -104,10 +104,10 @@ main()
     char* svc;
 
     /* Find Test Server */
-    svc = nc_findtestserver("thredds",0,REMOTETESTSERVERS);
+    svc = nc_findtestserver("thredds",REMOTETESTSERVERS);
 
     if(svc == NULL) {
-        fprintf(stderr,"Cannot locate test server\n");
+        fprintf(stderr,"WARNING: Cannot locate test server\n");
 	exit(0);
     }
 

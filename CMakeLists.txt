@@ -909,12 +909,6 @@ IF(ENABLE_TESTS)
     SET(SITE "${NC_CTEST_SITE}" CACHE STRING "")
   ENDIF()
 
-  # Create a CTestConfig file from the template.
-  CONFIGURE_FILE("${netCDF_SOURCE_DIR}/CTestConfig.cmake.in"
-    "${netCDF_BINARY_DIR}/CTestConfig.cmake"
-    @ONLY
-    )
-
   ###
   # This option dictates whether or not to turn on
   # tests which are known to fail.  This is not the
@@ -1990,6 +1984,7 @@ SET(TOPSRCDIR "${CMAKE_CURRENT_SOURCE_DIR}")
 SET(TOPBUILDDIR "${CMAKE_CURRENT_BINARY_DIR}")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test_common.in ${CMAKE_CURRENT_BINARY_DIR}/test_common.sh @ONLY NEWLINE_STYLE LF)
 
+
 #####
 # Build nc_test4/findplugin.sh
 #####
@@ -2005,6 +2000,11 @@ ENDIF()
 #####
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ncdap_test/findtestserver.c.in ${CMAKE_CURRENT_SOURCE_DIR}/ncdap_test/findtestserver.c @ONLY NEWLINE_STYLE LF)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ncdap_test/findtestserver.c.in ${CMAKE_CURRENT_SOURCE_DIR}/dap4_test/findtestserver4.c @ONLY NEWLINE_STYLE LF)
+
+#####
+# Build dap4_test/pingurl4.c
+#####
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ncdap_test/pingurl.c ${CMAKE_CURRENT_SOURCE_DIR}/dap4_test/pingurl4.c @ONLY NEWLINE_STYLE LF)
 
 ####
 # Export files

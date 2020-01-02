@@ -73,7 +73,12 @@ main(int argc, char** argv)
 
     fprintf(stderr,"Testing: Authorization\n");
 
-    dfaltsvc = nc_findtestserver("thredds",0,REMOTETESTSERVERS);
+    dfaltsvc = nc_findtestserver("thredds",REMOTETESTSERVERS);
+    if(svc == NULL) {
+        fprintf(stderr,"WARNING: Cannot locate test server\n");
+	exit(0);
+    }
+    
     snprintf(url1,sizeof(url1),URL1,USERPWD,dfaltsvc); /* embedded */
     snprintf(url2,sizeof(url2),URL2,dfaltsvc); /* using rc file */
 

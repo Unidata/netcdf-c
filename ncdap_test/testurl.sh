@@ -23,7 +23,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 DTS=`${execdir}/findtestserver dap2 dts`
 if test "x$DTS" = "x" ; then
 echo "WARNING: Cannot locate test server for dts"
-exit 1
+exit 0
 fi
 
 OCLOGFILE=stderr
