@@ -305,6 +305,13 @@ To obtain a good I/O performance, users are recommended to use collective mode.
 In addition, switching between collective and independent I/O mode can be
 expensive.
 
+In netcdf-c-4.7.4 or later, using hdf5-1.10.2 or later, the zlib and
+fletcher32 filters may be used when writing data with parallel
+I/O. The use of these filters require collective access. Turning on
+the zlib (deflate) or fletcher32 filter for a variable will
+automatically set its access to collective. Attempts to set access to
+independent will return ::NC_EINVAL.
+
 \param ncid NetCDF or group ID, from a previous call to nc_open_par(),
 nc_create_par(), nc_def_grp(), or associated inquiry functions such as
 nc_inq_ncid().
@@ -317,7 +324,8 @@ nc_inq_ncid().
 \returns ::NC_EBADID Invalid ncid passed.
 \returns ::NC_ENOTVAR Invalid varid passed.
 \returns ::NC_ENOPAR File was not opened with nc_open_par/nc_create_var.
-\returns ::NC_EINVAL Invalid par_access specified.
+\returns ::NC_EINVAL Invalid par_access specified, or attempt to set
+filtered variable to independent access.
 
 <h1>Example</h1>
 
