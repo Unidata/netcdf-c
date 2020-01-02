@@ -26,6 +26,7 @@ IF(ENABLE_DAP_REMOTE_TESTS)
     # Change name (add '4') to avoid cmake
     # complaint about duplicate targets.
     BUILD_BIN_TEST(findtestserver4)
+    BUILD_BIN_TEST(pingurl4)
 ENDIF()
 
 IF(ENABLE_TESTS)

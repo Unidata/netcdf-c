@@ -46,8 +46,9 @@ test_data.log: test_meta.log
 if ENABLE_DAP_REMOTE_TESTS
 # Note: This program name was changed to findtestserver4
 # to avoid cmake complaint about duplicate targets.
-noinst_PROGRAMS = findtestserver4
+noinst_PROGRAMS = findtestserver4 pingurl4
 findtestserver4_SOURCES = findtestserver4.c
+pingurl4_SOURCES = pingurl4.c
 endif
 
 if ENABLE_DAP_REMOTE_TESTS

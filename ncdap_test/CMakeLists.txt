@@ -17,6 +17,7 @@ FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSION
 
 IF(ENABLE_DAP_REMOTE_TESTS)
     BUILD_BIN_TEST(findtestserver)
+    BUILD_BIN_TEST(pingurl)
 ENDIF()
 
 IF(ENABLE_TESTS)
@@ -54,6 +55,7 @@ IF(ENABLE_TESTS)
     ENDIF()
 
     add_bin_test(ncdap test_varm3)
+    add_bin_test(ncdap test_nstride_cached)
 
     ###
     # This test relates to NCF-330 in
