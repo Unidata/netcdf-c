@@ -399,7 +399,7 @@ AC_ARG_WITH([testservers],
             [REMOTETESTSERVERS=$with_testservers], [REMOTETESTSERVERS=no])
 msg="$REMOTETESTSERVERS"
 if test "x$REMOTETESTSERVERS" = xno ; then
-  svclist="149.165.169.123:8080,remotetest.unidata.ucar.edu"
+  svclist="remotetest.unidata.ucar.edu"
   REMOTETESTSERVERS="$svclist"
 fi
 AC_MSG_RESULT([$svclist])

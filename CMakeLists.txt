@@ -851,7 +851,7 @@ ENDIF()
 # Option to Enable DAP long tests, remote tests.
 OPTION(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
 OPTION(ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." ON)
-SET(REMOTETESTSERVERS "149.165.169.123:8080,remotetest.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
+SET(REMOTETESTSERVERS "remotetest.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
 
 # Enable some developer-only tests
 OPTION(ENABLE_EXTRA_TESTS "Enable Extra tests. Some may not work because of known issues. Developers only." OFF)
