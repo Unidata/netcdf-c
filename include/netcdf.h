@@ -317,6 +317,9 @@ there. */
 #define NC_MIN_DEFLATE_LEVEL 0 /**< Minimum deflate level. */
 #define NC_MAX_DEFLATE_LEVEL 9 /**< Maximum deflate level. */
 
+#define NC_SZIP_EC 4  /**< Selects entropy coding method for szip. */
+#define NC_SZIP_NN 32 /**< Selects nearest neighbor coding method for szip. */
+
 /** The netcdf version 3 functions all return integer error status.
  * These are the possible values, in addition to certain values from
  * the system errno.h.
@@ -849,6 +852,10 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
 EXTERNL int
 nc_inq_var_deflate(int ncid, int varid, int *shufflep,
                    int *deflatep, int *deflate_levelp);
+
+/* Set szip compression for a variable. */
+EXTERNL int
+nc_def_var_szip(int ncid, int varid, int options_mask, int pixels_per_block);
 
 /* Find out szip settings of a var. */
 EXTERNL int
