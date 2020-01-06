@@ -1,8 +1,7 @@
 /* Copyright 2018, UCAR/Unidata See COPYRIGHT file for copying and
  * redistribution conditions.
  *
- * This program tests netcdf-4 parallel I/O. In this test I write data
- * on one task, while writing 0 items on others.
+ * This program tests netcdf-4 parallel I/O.
  *
  * Ed Hartnett
  */
@@ -311,6 +310,32 @@ main(int argc, char **argv)
     }
     if (!mpi_rank)
         SUMMARIZE_ERR;
+#ifdef USE_SZIP
+    if (!mpi_rank)
+        printf("*** testing NC_BYTE type and parallel I/O...");
+    {
+        /* This test is related to
+         * https://github.com/Unidata/netcdf-c/issues/1462. */
+        int ncid, varid;
+        signed char test_data_in, test_data = 42;
+
+        /* Crate a file with a scalar NC_BYTE value. */
+        if (nc_create_par(FILE, NC_NETCDF4, MPI_COMM_WORLD, MPI_INFO_NULL,
+                          &ncid)) ERR;
+        if (nc_def_var(ncid, "fred", NC_BYTE, 0, NULL, &varid)) ERR;
+        if (nc_enddef(ncid)) ERR;
+        if (nc_put_var_schar(ncid, varid, &test_data));
+        if (nc_close(ncid)) ERR;
+
+        /* Reopen the file and check. */
+        if (nc_open_par(FILE, 0, comm, info, &ncid)) ERR;
+        if (nc_get_var_schar(ncid, varid, &test_data_in));
+        if (test_data_in != test_data) ERR;
+        if (nc_close(ncid)) ERR;
+    }
+    if (!mpi_rank)
+        SUMMARIZE_ERR;
+#endif /* USE_SZIP */
 
     /* Shut down MPI. */
     MPI_Finalize();
