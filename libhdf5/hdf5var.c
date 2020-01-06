@@ -962,7 +962,7 @@ nc_def_var_szip(int ncid, int varid, int options_mask, int pixels_per_block)
     built = 1;
 #endif /* HAVE_H5Z_SZIP */
     if (!built)
-        return NC_ENOTBUILT;
+        return NC_EFILTER;
 
     /* Find info for this file and group, and set pointer to each. */
     if ((ret = nc4_find_nc_grp_h5(ncid, NULL, &grp, &h5)))
