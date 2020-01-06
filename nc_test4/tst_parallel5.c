@@ -320,6 +320,7 @@ main(int argc, char **argv)
     {
         int ncid, dimid, varid;
         float *data;
+        float *data_in;
         int elements_per_pe = SZIP_DIM_LEN/mpi_size;
         size_t start[NDIMS1], count[NDIMS1];
         int i;
@@ -343,11 +344,12 @@ main(int argc, char **argv)
 
         /* Reopen the file and check. */
         if (nc_open_par(FILE, 0, comm, info, &ncid)) ERR;
-        /* if (nc_get_var_schar(ncid, varid, &test_data_in)); */
-        /* if (test_data_in != test_data) ERR; */
+        if (!(data_in = malloc(elements_per_pe * sizeof(float)))) ERR;
+        if (nc_get_var_float(ncid, varid, start, count, data_in));
         if (nc_close(ncid)) ERR;
 
         /* Release resources. */
+        free(data_in);
         free(data);
     }
     if (!mpi_rank)
