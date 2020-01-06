@@ -590,6 +590,7 @@ main(int argc, char **argv)
       params[1] = NC_SZIP_EC_BPP_IN; /* bits_per_pixel */
       if (nc_def_var_chunking(ncid, varid, NC_CHUNKED, NULL)) ERR;
       if (nc_def_var_filter(ncid, varid, H5_FILTER_SZIP, NUM_PARAMS_IN, params) != NC_EFILTER) ERR;
+      if (nc_def_var_szip(ncid, varid, 0, 0) != NC_EFILTER) ERR;
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
