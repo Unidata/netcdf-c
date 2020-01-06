@@ -23,6 +23,16 @@
 #define V_MEDIUM "medium_var"
 #define V_LARGE "large_var"
 #define D_MAX_ONE_D 16384
+#define DIM_NAME_1 "one_dim"
+#define DIM_LEN_1 100
+#define H5_FILTER_SZIP 4
+#define VAR_NAME "var1"
+#define NUM_PARAMS_IN 2
+#define NUM_PARAMS_OUT 4
+#define NC_SZIP_NN_OPTION_MASK 32 /**< @internal SZIP NN option mask. */
+#define NC_SZIP_EC_OPTION_MASK 4  /**< @internal SZIP EC option mask. */
+#define NC_SZIP_EC_BPP_IN 32  /**< @internal bits per pixel input. */
+#define NC_SZIP_EC_BPP_OUT 64  /**< @internal bits per pixel output. */
 
 int
 main(int argc, char **argv)
@@ -411,17 +421,6 @@ main(int argc, char **argv)
 #ifdef USE_SZIP
    printf("**** testing simple szip filter setup...");
    {
-#define NDIMS1 1
-#define DIM_NAME_1 "one_dim"
-#define DIM_LEN_1 100
-#define VAR_NAME "var1"
-#define H5_FILTER_SZIP 4
-#define NUM_PARAMS_IN 2
-#define NUM_PARAMS_OUT 4
-#define NC_SZIP_NN_OPTION_MASK 32 /**< @internal SZIP NN option mask. */
-#define NC_SZIP_EC_OPTION_MASK 4  /**< @internal SZIP EC option mask. */
-#define NC_SZIP_EC_BPP_IN 32  /**< @internal bits per pixel input. */
-#define NC_SZIP_EC_BPP_OUT 64  /**< @internal bits per pixel output. */
       int ncid;
       int dimid;
       int varid;
@@ -466,7 +465,6 @@ main(int argc, char **argv)
    SUMMARIZE_ERR;
    printf("**** testing more complex use of szip...");
    {
-#define NDIMS1 1
 #define D_SMALL "small_dim"
 #define D_SMALL_LEN1 100
 #define D_MEDIUM "medium_dim"
@@ -476,7 +474,6 @@ main(int argc, char **argv)
 #define V_SMALL "small_var"
 #define V_MEDIUM "medium_var"
 #define V_LARGE "large_var"
-#define H5_FILTER_SZIP 4
 #define NUM_PARAMS 2
 #define NC_SZIP_NN_OPTION_MASK 32 /**< @internal SZIP NN option mask. */
 #define NC_SZIP_EC_OPTION_MASK 4  /**< @internal SZIP EC option mask. */
@@ -563,17 +560,6 @@ main(int argc, char **argv)
 #else
    printf("**** testing szip handling when szip not built...");
    {
-#define NDIMS1 1
-#define DIM_NAME_1 "one_dim"
-#define DIM_LEN_1 100
-#define VAR_NAME "var1"
-#define H5_FILTER_SZIP 4
-#define NUM_PARAMS_IN 2
-#define NUM_PARAMS_OUT 4
-#define NC_SZIP_NN_OPTION_MASK 32 /**< @internal SZIP NN option mask. */
-#define NC_SZIP_EC_OPTION_MASK 4  /**< @internal SZIP EC option mask. */
-#define NC_SZIP_EC_BPP_IN 32  /**< @internal bits per pixel input. */
-#define NC_SZIP_EC_BPP_OUT 64  /**< @internal bits per pixel output. */
       int ncid;
       int dimid;
       int varid;
@@ -590,7 +576,7 @@ main(int argc, char **argv)
       params[1] = NC_SZIP_EC_BPP_IN; /* bits_per_pixel */
       if (nc_def_var_chunking(ncid, varid, NC_CHUNKED, NULL)) ERR;
       if (nc_def_var_filter(ncid, varid, H5_FILTER_SZIP, NUM_PARAMS_IN, params) != NC_EFILTER) ERR;
-      if (nc_def_var_szip(ncid, varid, 0, 0) != NC_EFILTER) ERR;
+      if (nc_def_var_szip(ncid, varid, NC_SZIP_NN_OPTION_MASK, NC_SZIP_EC_BPP_IN) != NC_EFILTER) ERR;
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
