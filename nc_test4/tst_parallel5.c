@@ -311,27 +311,42 @@ main(int argc, char **argv)
     if (!mpi_rank)
         SUMMARIZE_ERR;
 #ifdef USE_SZIP
+#define SZIP_DIM_LEN 256
+#define SZIP_DIM_NAME "Barrels"
+#define SZIP_VAR_NAME "Best_Sligo_Rags"
     if (!mpi_rank)
-        printf("*** testing NC_BYTE type and parallel I/O...");
+        printf("*** testing szip compression with parallel I/O...");
     {
-        /* This test is related to
-         * https://github.com/Unidata/netcdf-c/issues/1462. */
-        int ncid, varid;
-        signed char test_data_in, test_data = 42;
+        int ncid, dimid, varid;
+        float *data;
+        int elements_per_pe = SZIP_DIM_LEN/mpi_size;
+        size_t start[NDIMS1], count[NDIMS1];
+        int i;
+
+        /* Create test data. */
+        if (!(data = malloc(elements_per_pe * sizeof(float)))) ERR;
+        for (i = 0; i < elements_per_pe; i++)
+            data[i] = mpi_rank + i * 0.1;
 
         /* Crate a file with a scalar NC_BYTE value. */
         if (nc_create_par(FILE, NC_NETCDF4, MPI_COMM_WORLD, MPI_INFO_NULL,
                           &ncid)) ERR;
-        if (nc_def_var(ncid, "fred", NC_BYTE, 0, NULL, &varid)) ERR;
+        if (nc_def_dim(ncid, SZIP_DIM_NAME, SZIP_DIM_LEN, &dimid)) ERR;
+        if (nc_def_var(ncid, SZIP_VAR_NAME, NC_FLOAT, NDIMS1, &dimid, &varid)) ERR;
         if (nc_enddef(ncid)) ERR;
-        if (nc_put_var_schar(ncid, varid, &test_data));
+        start[0] = mpi_rank * elements_per_pe;
+        count[0] = elements_per_pe;
+        if (nc_put_vara_float(ncid, varid, start, count, data));
         if (nc_close(ncid)) ERR;
 
         /* Reopen the file and check. */
         if (nc_open_par(FILE, 0, comm, info, &ncid)) ERR;
-        if (nc_get_var_schar(ncid, varid, &test_data_in));
-        if (test_data_in != test_data) ERR;
+        /* if (nc_get_var_schar(ncid, varid, &test_data_in)); */
+        /* if (test_data_in != test_data) ERR; */
         if (nc_close(ncid)) ERR;
+
+        /* Release resources. */
+        free(data);
     }
     if (!mpi_rank)
         SUMMARIZE_ERR;
