@@ -347,6 +347,8 @@ main(int argc, char **argv)
         if (!(data_in = malloc(elements_per_pe * sizeof(float)))) ERR;
         if (nc_get_vara_float(ncid, varid, start, count, data_in));
         if (nc_close(ncid)) ERR;
+        for (i = 0; i < elements_per_pe; i++)
+            if (data_in[i] != data[i]) ERR;
 
         /* Release resources. */
         free(data_in);
