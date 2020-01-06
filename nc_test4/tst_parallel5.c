@@ -345,7 +345,7 @@ main(int argc, char **argv)
         /* Reopen the file and check. */
         if (nc_open_par(FILE, 0, comm, info, &ncid)) ERR;
         if (!(data_in = malloc(elements_per_pe * sizeof(float)))) ERR;
-        if (nc_get_var_float(ncid, varid, start, count, data_in));
+        if (nc_get_vara_float(ncid, varid, start, count, data_in));
         if (nc_close(ncid)) ERR;
 
         /* Release resources. */
