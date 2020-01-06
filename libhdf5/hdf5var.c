@@ -55,7 +55,7 @@ reportchunking(const char *title, NC_VAR_INFO_T *var)
         char digits[64];
         if(i > 0) strlcat(buf,",",sizeof(buf));
         snprintf(digits,sizeof(digits),"%ld",(unsigned long)var->chunksizes[i]);
-	strlcat(buf,digits,sizeof(buf));
+        strlcat(buf,digits,sizeof(buf));
     }
     LOG((3,"%s",buf));
 }
@@ -718,10 +718,10 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
     }
 
 #ifdef USE_PARALLEL
-        /* If deflate, shuffle, or fletcher32 was turned on with
-         * parallel I/O writes, then switch to collective access. HDF5
-         * requires collevtive access for filter use with parallel
-         * I/O. */
+    /* If deflate, shuffle, or fletcher32 was turned on with
+     * parallel I/O writes, then switch to collective access. HDF5
+     * requires collevtive access for filter use with parallel
+     * I/O. */
     if (deflate || shuffle || fletcher32)
     {
         if (h5->parallel && (var->deflate || var->shuffle || var->fletcher32))
@@ -1252,7 +1252,7 @@ NC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
     /* Determine default chunksizes for this variable unless already specified */
     if(var->chunksizes && !var->chunksizes[0]) {
         if((retval = nc4_find_default_chunksizes2(grp, var)))
-	    return retval;
+            return retval;
         /* Adjust the cache. */
         if ((retval = nc4_adjust_var_cache(grp, var)))
             return retval;
