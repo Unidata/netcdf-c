@@ -560,6 +560,39 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
+#else
+   printf("**** testing szip handling when szip not built...");
+   {
+#define NDIMS1 1
+#define DIM_NAME_1 "one_dim"
+#define DIM_LEN_1 100
+#define VAR_NAME "var1"
+#define H5_FILTER_SZIP 4
+#define NUM_PARAMS_IN 2
+#define NUM_PARAMS_OUT 4
+#define NC_SZIP_NN_OPTION_MASK 32 /**< @internal SZIP NN option mask. */
+#define NC_SZIP_EC_OPTION_MASK 4  /**< @internal SZIP EC option mask. */
+#define NC_SZIP_EC_BPP_IN 32  /**< @internal bits per pixel input. */
+#define NC_SZIP_EC_BPP_OUT 64  /**< @internal bits per pixel output. */
+      int ncid;
+      int dimid;
+      int varid;
+      unsigned int params[NUM_PARAMS_IN];
+
+      /* Create a netcdf-4 file with one dimensions. */
+      if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+      if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_1, &dimid)) ERR;
+
+      /* Add a var. Try to turn on szip filter, but it will return
+       * error. */
+      if (nc_def_var(ncid, V_SMALL, NC_INT64, NDIMS1, &dimid, &varid)) ERR;
+      params[0] = NC_SZIP_NN_OPTION_MASK; /* options_mask */
+      params[1] = NC_SZIP_EC_BPP_IN; /* bits_per_pixel */
+      if (nc_def_var_chunking(ncid, varid, NC_CHUNKED, NULL)) ERR;
+      if (nc_def_var_filter(ncid, varid, H5_FILTER_SZIP, NUM_PARAMS_IN, params) != NC_EFILTER) ERR;
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
 #endif /* USE_SZIP */
    FINAL_RESULTS;
 }
