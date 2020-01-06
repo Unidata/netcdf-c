@@ -468,7 +468,6 @@ main(int argc, char **argv)
         int ncid;
         int dimid;
         int varid;
-        unsigned int params[NUM_PARAMS_IN];
         int options_mask, bits_per_pixel;
         size_t nparams;
         unsigned int filterid;
@@ -481,10 +480,7 @@ main(int argc, char **argv)
 
         /* Add a var. Turn on szip filter. */
         if (nc_def_var(ncid, V_SMALL, NC_INT64, NDIMS1, &dimid, &varid)) ERR;
-        params[0] = NC_SZIP_NN_OPTION_MASK; /* options_mask */
-        params[1] = NC_SZIP_EC_BPP_IN; /* bits_per_pixel */
-        if (nc_def_var_chunking(ncid, varid, NC_CHUNKED, NULL)) ERR;
-        if (nc_def_var_filter(ncid, varid, H5_FILTER_SZIP, NUM_PARAMS_IN, params)) ERR;
+        if (nc_def_var_szip(ncid, varid, NC_SZIP_NN_OPTION_MASK, NC_SZIP_EC_BPP_IN)) ERR;
         if (nc_close(ncid)) ERR;
 
         /* Open the file and check. */
@@ -503,7 +499,7 @@ main(int argc, char **argv)
         if (filterid != H5_FILTER_SZIP || nparams != 4) ERR;
         /* According to H5Zszip, the mapping should be as follows */
         if(params_out[0] != options_mask) ERR;
-        if(params[1] !=  bits_per_pixel) ERR;
+        if(params_out[1] !=  bits_per_pixel) ERR;
         if (nc_close(ncid)) ERR;
     }
     SUMMARIZE_ERR;
