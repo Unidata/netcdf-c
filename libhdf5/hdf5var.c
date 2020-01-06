@@ -951,7 +951,6 @@ nc_def_var_szip(int ncid, int varid, int options_mask, int pixels_per_block)
     NC_GRP_INFO_T *grp;
     NC_FILE_INFO_T *h5;
     NC_VAR_INFO_T *var;
-    unsigned int szip_params[NUM_SZIP_PARAM]; /* [0]=options_mask [1]=pixels_per_block */
     int built = 0;
     int ret;
 
@@ -994,11 +993,10 @@ nc_def_var_szip(int ncid, int varid, int options_mask, int pixels_per_block)
 #endif /* USE_PARALLEL */
 
     /* This will cause H5Pset_szip to be called when the var is created. */
-    szip_params[0] = options_mask == NC_SZIP_EC ? H5_SZIP_EC_OPTION_MASK:
-        H5_SZIP_NN_OPTION_MASK;
-    szip_params[1] = pixels_per_block;
-    if ((ret = nc_def_var_filter(ncid, varid, HDF5_FILTER_SZIP, 2, szip_params)))
-        return ret;
+    var->szip = 1;
+    var->contiguous = NC_FALSE;
+    var->options_mask = options_mask;
+    var->pixels_per_block = pixels_per_block;
 
     return NC_NOERR;
 }
