@@ -1637,7 +1637,8 @@ and then verify them in HDF5. (And vice versa).
 
 When data are first read or written to a netCDF-4/HDF5 variable, the
 HDF5 library opens a cache for that variable. The default size of that
-cache (settable with the –with-chunk-cache-size at netCDF build time).
+cache is 16 MB (settable with the –with-chunk-cache-size at netCDF
+build time).
 
 For good performance your chunk cache must be larger than one chunk of
 your data - preferably that it be large enough to hold multiple chunks
