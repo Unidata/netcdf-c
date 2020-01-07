@@ -10,7 +10,7 @@
 
 # Some unit testing
 
-SET(UNIT_TESTS tst_nclist)
+SET(UNIT_TESTS tst_nclist test_ncuri test_pathcvt)
 
 IF(ENABLE_NETCDF_4)
   SET(UNIT_TESTS ${UNIT_TESTS} tst_nc4internal)

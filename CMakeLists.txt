@@ -927,8 +927,12 @@ IF(ENABLE_TESTS)
   OPTION(ENABLE_FAILING_TESTS "Run tests which are known to fail, check to see if any have been fixed." OFF)
 
   ###
-  # Option to turn on unit testing. See https://github.com/Unidata/netcdf-c/pull/1472 for more information.
-  # Currently (August 21, 2019): Will not work with Visual Studio
+  # Option to turn on unit testing. See
+  # https://github.com/Unidata/netcdf-c/pull/1472 for more
+  # information.  Currently (August 21, 2019): Will not work with
+  # Visual Studio. The unit tests are for internal netCDF functions,
+  # so we don't want to make them external, which would be required to
+  # run on Windows.
   ###
   IF(NOT MSVC)
     OPTION(ENABLE_UNIT_TESTS "Run Unit Tests." ON)
