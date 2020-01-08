@@ -365,11 +365,12 @@ fi
 # --enable-dap => enable-dap4
 enable_dap4=$enable_dap
 # Default is to do the short remote tests.
+# Temporary: Change default to npt do these tests
 AC_MSG_CHECKING([whether dap remote testing should be enabled (default on)])
 AC_ARG_ENABLE([dap-remote-tests],
               [AS_HELP_STRING([--disable-dap-remote-tests],
                                  [disable dap remote tests])])
-test "x$enable_dap_remote_tests" = xno || enable_dap_remote_tests=yes
+test "x$enable_dap_remote_tests" = xyes || enable_dap_remote_tests=no
 if test "x$enable_dap" = "xno" ; then
   enable_dap_remote_tests=no
 fi
@@ -399,7 +400,7 @@ AC_ARG_WITH([testservers],
             [REMOTETESTSERVERS=$with_testservers], [REMOTETESTSERVERS=no])
 msg="$REMOTETESTSERVERS"
 if test "x$REMOTETESTSERVERS" = xno ; then
-  svclist="149.165.169.123:8080,remotetest.unidata.ucar.edu"
+  svclist="remotetest.unidata.ucar.edu"
   REMOTETESTSERVERS="$svclist"
 fi
 AC_MSG_RESULT([$svclist])
