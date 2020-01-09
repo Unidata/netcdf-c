@@ -184,7 +184,8 @@ timedping(const char* url, long timeout)
     CERR((curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 10L)));
     CERR((curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L)));
 
-    /* use a very short timeout: 10 seconds */
+    /* use very short timeouts: 10 seconds */
+    CERR((curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, (long)timeout)));
     CERR((curl_easy_setopt(curl, CURLOPT_TIMEOUT, (long)timeout)));
 
     /* fail on HTTP 400 code errors */
