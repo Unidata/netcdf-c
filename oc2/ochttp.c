@@ -274,7 +274,7 @@ ocfetchlastmodified(CURL* curl, char* url, long* filetime)
 
     /* Ask for head */
     cstat = CURLERR(curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30)); /* 30sec timeout*/
-    cstat = CURLERR(curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 2));
+    cstat = CURLERR(curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5));
     cstat = CURLERR(curl_easy_setopt(curl, CURLOPT_HEADER, 1));
     cstat = CURLERR(curl_easy_setopt(curl, CURLOPT_NOBODY, 1));
     cstat = CURLERR(curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1));
@@ -310,6 +310,11 @@ ocping(const char* url)
     if (cstat != CURLE_OK)
         goto done;
     cstat = CURLERR(curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L));
+    if (cstat != CURLE_OK)
+        goto done;
+
+    /* use a very short conn timeout: 10 seconds */
+    cstat = CURLERR(curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, (long)10));
     if (cstat != CURLE_OK)
         goto done;
 
