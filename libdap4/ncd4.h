@@ -45,6 +45,9 @@ defined here, including function-like #defines.
 #define FIXEDOPAQUE
 #define DFALTOPAQUESIZE 16
 
+/* Size of a chunk header */
+#define CHUNKHDRSIZE 4
+
 /**************************************************/
 
 #undef nullfree
@@ -137,6 +140,7 @@ extern char* NCD4_makeName(NCD4node*,const char* sep);
 extern int NCD4_parseFQN(const char* fqn0, NClist* pieces);
 extern char* NCD4_deescape(const char* esc);
 extern char* NCD4_entityescape(const char* s);
+extern size_t NCD4_elidenuls(char* s, size_t slen);
 
 /* From d4dump.c */
 extern void NCD4_dumpbytes(size_t size, const void* data0, int swap);

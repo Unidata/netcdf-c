@@ -1129,6 +1129,12 @@ nc_free_string(size_t len, char **data)
    until the file is closed. Once re-opened, the variable chunk cache
    returns to its default value.
 
+   Current cache settings for each var may be obtained with
+   nc_get_var_chunk_cache().
+
+   Default values for these settings may be changed for the whole file
+   with nc_set_chunk_cache().
+
    @param ncid NetCDF or group ID, from a previous call to nc_open(),
    nc_create(), nc_def_grp(), or associated inquiry functions such as
    nc_inq_ncid().
@@ -1190,7 +1196,10 @@ nc_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
 }
 
 /**
-   Get the per-variable chunk cache settings from the HDF5 layer.
+   Get the per-variable chunk cache settings from the HDF5
+   layer. These settings may be changed with nc_set_var_chunk_cache().
+
+   See nc_set_chunk_cache() for a full discussion of these settings.
 
    @param ncid NetCDF or group ID, from a previous call to nc_open(),
    nc_create(), nc_def_grp(), or associated inquiry functions such as
