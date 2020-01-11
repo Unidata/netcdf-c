@@ -177,9 +177,9 @@ const char *nc_strerror(int ncerr1)
       case NC_EDAS:
 	 return "NetCDF: Malformed or inaccessible DAP DAS";
       case NC_EDDS:
-	 return "NetCDF: Malformed or inaccessible DAP DDS";
+	 return "NetCDF: Malformed or inaccessible DAP2 DDS or DAP4 DMR response";
       case NC_EDATADDS:
-	 return "NetCDF: Malformed or inaccessible DAP DATADDS";
+	 return "NetCDF: Malformed or inaccessible DAP2 DATADDS or DAP4 DAP response";
       case NC_EDAPURL:
 	 return "NetCDF: Malformed URL";
       case NC_EDAPCONSTRAINT:
