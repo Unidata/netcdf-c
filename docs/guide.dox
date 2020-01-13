@@ -1442,8 +1442,8 @@ GiBytes. Assuming an operating system with LFS, the following
 restrictions apply to the CDF-2 format.
 
 No fixed-size variable can require more than 2^32 - 4 bytes (i.e. 4GiB
-- 4 bytes, or 4,294,967,292 bytes) of storage for its data, unless it
-is the last fixed-size variable and there are no record
+minus 4 bytes, or 4,294,967,292 bytes) of storage for its data, unless
+it is the last fixed-size variable and there are no record
 variables. When there are no record variables, the last fixed-size
 variable can be any size supported by the file system, e.g. terabytes.
 
