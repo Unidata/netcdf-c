@@ -30,7 +30,7 @@ if test "x$VS" = x1 ; then
   fi
 fi
 
-#TESTSERVERS="localhost:8080,149.165.169.123:8080"
+#TESTSERVERS="localhost:8080,remotetest.unidata.ucar.edu"
 
 #export NCPATHDEBUG=1
 
