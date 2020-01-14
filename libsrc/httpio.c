@@ -42,7 +42,7 @@
 
 typedef struct NCHTTP {
     CURL* curl; /* curl handle */
-    long long size; /* of the S3 object */
+    size64_t size; /* of the S3 object */
     NCbytes* region;
 } NCHTTP;
 

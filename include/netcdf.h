@@ -216,7 +216,7 @@ Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_FORMATX_DAP4      (6)
 #define NC_FORMATX_UDF0      (8)
 #define NC_FORMATX_UDF1      (9)
-#define NC_FORMATX_ZARR      (10)
+#define NC_FORMATX_NCZARR    (10)
 #define NC_FORMATX_UNDEFINED (0)
 
   /* To avoid breaking compatibility (such as in the python library),
@@ -472,7 +472,8 @@ by the desired type. */
 #define NC_ERCFILE       (-133)    /**< RC file failure */
 #define NC_ENULLPAD      (-134)    /**< Header Bytes not Null-Byte padded */
 #define NC_EINMEMORY     (-135)    /**< In-memory file error */
-#define NC4_LAST_ERROR   (-136)    /**< @internal All netCDF errors > this. */
+#define NC_ENCZARR         (-136)    /**< Error at NCZarr layer. */
+#define NC4_LAST_ERROR   (-137)    /**< @internal All netCDF errors > this. */
 
 /** @internal This is used in netCDF-4 files for dimensions without
  * coordinate vars. */

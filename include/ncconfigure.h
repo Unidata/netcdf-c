@@ -87,6 +87,17 @@ extern char *nulldup(const char* s);
 #define nullfree(s) {if((s)!=NULL) {free(s);} else {}}
 #endif
 
+#ifndef HAVE_SSIZE64_T
+typedef long long ssize64_t;
+#endif
+
+#ifndef HAVE_SIZE64_T
+typedef unsigned long long size64_t;
+#endif
+
+/* Provide a fixed size alternative to off_t or off64_t */
+typedef long long fileoffset_t;
+
 #ifndef HAVE_UCHAR
 typedef unsigned char uchar;
 #endif

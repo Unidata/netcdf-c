@@ -60,11 +60,12 @@ ncloginit(void)
     nclog_global.nclogstream = NULL;
     /* Use environment variables to preset nclogging state*/
     /* I hope this is portable*/
-    file = getenv(NCENVFLAG);
+    file = getenv(NCENVLOGFILE);
     if(file != NULL && strlen(file) > 0) {
-        if(nclogopen(file)) {
-	    ncsetlogging(1);
-	}
+        nclogopen(file);
+    }
+    if(getenv(NCENVLOGGING) != NULL) {
+	ncsetlogging(1);
     }
 }
 
@@ -167,7 +168,10 @@ nclog(int tag, const char* fmt, ...)
 
     if(!nclogginginitialized) ncloginit();
 
-    if(!nclog_global.nclogging || nclog_global.nclogstream == NULL) return;
+    if(!nclog_global.nclogging) return;
+
+    if(nclog_global.nclogstream == NULL)
+        nclog_global.nclogstream = stderr;
 
     prefix = nctagname(tag);
     fprintf(nclog_global.nclogstream,"%s:",prefix);

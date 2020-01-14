@@ -7,6 +7,7 @@ Copyright 2018 University Corporation for Atmospheric
 Research/Unidata. See COPYRIGHT file for more info.
 */
 
+#include "config.h"
 #include "ncdispatch.h"
 #ifdef USE_PNETCDF
 #include <pnetcdf.h>  /* for ncmpi_strerror() */
@@ -268,6 +269,8 @@ const char *nc_strerror(int ncerr1)
        return "NetCDF: File fails strict Null-Byte Header check.";
      case NC_EINMEMORY:
        return "NetCDF: In-memory File operation failed.";
+      case NC_ENCZARR:
+	 return "NetCDF: NCZarr error";
      default:
 #ifdef USE_PNETCDF
         /* The behavior of ncmpi_strerror here is to return

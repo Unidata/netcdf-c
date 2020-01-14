@@ -109,14 +109,6 @@ typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP} NC_SORT;
 /** Subset of readonly flags; Value is actually in file. */
 #define MATERIALIZEDFLAG 8
 
-/* Generic reserved Attributes */
-#define NC_ATT_REFERENCE_LIST "REFERENCE_LIST" /**< HDF5 reference list attribute name. */
-#define NC_ATT_CLASS "CLASS"                   /**< HDF5 class atttribute name. */
-#define NC_ATT_DIMENSION_LIST "DIMENSION_LIST" /**< HDF5 dimension list attribute name. */
-#define NC_ATT_NAME "NAME"                     /**< HDF5 name atttribute name. */
-#define NC_ATT_COORDINATES COORDINATES         /**< Coordinates atttribute name. */
-#define NC_ATT_FORMAT "_Format"                /**< Format atttribute name. */
-
 /** Boolean type, to make the code easier to read. */
 typedef enum {NC_FALSE = 0, NC_TRUE = 1} nc_bool_t;
 
@@ -211,8 +203,9 @@ typedef struct NC_VAR_INFO
     nc_bool_t *dimscale_attached;  /**< Array of flags that are true if dimscale is attached for that dim index */
     nc_bool_t deflate;           /**< True if var has deflate filter applied */
     int deflate_level;
-    nc_bool_t shuffle;           /**< True if var has shuffle filter applied */
-    nc_bool_t fletcher32;        /**< True if var has fletcher32 filter applied */
+    nc_bool_t shuffle;           /* True if var has shuffle filter applied */
+    nc_bool_t fletcher32;        /* True if var has fletcher32 filter applied */
+    int endianness;              /* What endianness for the var? */
     size_t chunk_cache_size, chunk_cache_nelems;
     float chunk_cache_preemption;
     void *format_var_info;       /**< Pointer to any binary format info. */
@@ -282,7 +275,9 @@ typedef struct NC_GRP_INFO
     NCindex* att;                /**< NCindex<NC_ATT_INFO_T> * */
     NCindex* type;               /**< NCindex<NC_TYPE_INFO_T> * */
     /* Note that this is the list of vars with position == varid */
-    NCindex* vars;               /**< NCindex<NC_VAR_INFO_T> * */
+    NCindex* vars;               /* NCindex<NC_VAR_INFO_T> * */
+    /* Track the endianness of the variable */
+    int endianness;              /* What endianness for the type? */
 } NC_GRP_INFO_T;
 
 /* These constants apply to the cmode parameter in the
@@ -344,8 +339,10 @@ typedef struct
     void *p;    /**< Pointer to VL data */
 } nc_hvl_t;
 
-/** The names of the atomic data types. */
-extern const char *nc4_atomic_name[NC_MAX_ATOMIC_TYPE + 1];
+/* Misc functions */
+int NC4_inq_atomic_type(nc_type typeid1, char *name, size_t *size);
+int NC4_lookup_atomic_type(const char *name, nc_type* idp, size_t *sizep);
+int NC4_inq_typeid(int ncid, const char *name, nc_type *typeidp);
 
 /* These functions convert between netcdf and HDF5 types. */
 int nc4_get_typelen_mem(NC_FILE_INFO_T *h5, nc_type xtype, size_t *len);
@@ -447,6 +444,16 @@ int log_metadata_nc(NC_FILE_INFO_T *h5);
 #endif
 
 /* Binary searcher for reserved attributes */
-extern const NC_reservedatt *NC_findreserved(const char *name);
+extern const NC_reservedatt* NC_findreserved(const char* name);
+
+/* Generic reserved Attributes */
+#define NC_ATT_REFERENCE_LIST "REFERENCE_LIST"
+#define NC_ATT_CLASS "CLASS"
+#define NC_ATT_DIMENSION_LIST "DIMENSION_LIST"
+#define NC_ATT_NAME "NAME"
+#define NC_ATT_COORDINATES "_Netcdf4Coordinates" /*see hdf5internal.h:COORDINATES*/
+#define NC_ATT_FORMAT "_Format"
+#define NC_ATT_DIMID_NAME "_Netcdf4Dimid"
+#define NC_ATT_NC3_STRICT_NAME "_nc3_strict"
 
 #endif /* _NC4INTERNAL_ */

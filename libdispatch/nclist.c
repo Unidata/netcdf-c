@@ -134,11 +134,11 @@ nclistinsert(NClist* l, size_t index, void* elem)
 }
 
 int
-nclistpush(NClist* l, void* elem)
+nclistpush(NClist* l, const void* elem)
 {
   if(l == NULL) return FALSE;
   if(l->length >= l->alloc) nclistsetalloc(l,0);
-  l->content[l->length] = elem;
+  l->content[l->length] = (void*)elem;
   l->length++;
   return TRUE;
 }
@@ -187,6 +187,22 @@ nclistcontains(NClist* l, void* elem)
     size_t i;
     for(i=0;i<nclistlength(l);i++) {
 	if(elem == nclistget(l,i)) return 1;
+    }
+    return 0;
+}
+
+int
+nclistmatch(NClist* l, const char* elem, int casesensitive)
+{
+    size_t i;
+    for(i=0;i<nclistlength(l);i++) {
+	const char* candidate = (const char*)nclistget(l,i);
+	int match;
+	if(casesensitive)
+	    match = strcmp(elem,candidate);
+	else
+	    match = strcasecmp(elem,candidate);
+	if(match == 0) return 1;
     }
     return 0;
 }

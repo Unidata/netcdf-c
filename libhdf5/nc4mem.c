@@ -25,7 +25,7 @@
 #include "netcdf.h"
 #include "nc4internal.h"
 
-#undef DEBUG
+#define DEBUG
 
 #ifndef HDrealloc
     #define HDrealloc(M,Z)    realloc(M,Z)

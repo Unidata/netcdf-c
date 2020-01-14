@@ -1,4 +1,3 @@
-
 /* Copyright 2003-2019, University Corporation for Atmospheric
  * Research. See COPYRIGHT file for copying and redistribution
  * conditions.*/
@@ -10,8 +9,9 @@
  */
 
 #include "config.h"
+#include "nc4internal.h"
 #ifdef USE_HDF5
-#include <hdf5internal.h>
+#include "hdf5internal.h"
 #endif
 #include <math.h> /* For pow() used below. */
 
@@ -412,13 +412,16 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
     if (xtype <= NC_STRING)
     {
         size_t len;
+	char name[NC_MAX_NAME];
 
         /* Get type length. */
         if ((retval = nc4_get_typelen_mem(h5, xtype, &len)))
             BAIL(retval);
 
         /* Create new NC_TYPE_INFO_T struct for this atomic type. */
-        if ((retval = nc4_type_new(len, nc4_atomic_name[xtype], xtype, &type)))
+	if((retval=NC4_inq_atomic_type(xtype,name,NULL)))
+	    BAIL(retval);
+        if ((retval = nc4_type_new(len, name, xtype, &type)))
             BAIL(retval);
         type->endianness = NC_ENDIAN_NATIVE;
         type->size = len;
@@ -490,6 +493,9 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
     var->type_info = type;
     var->type_info->rc++;
     type = NULL;
+
+    /* Propagate the endianness */
+    var->endianness = var->type_info->endianness;
 
     /* Set variables no_fill to match the database default unless the
      * variable type is variable length (NC_STRING or NC_VLEN) or is
@@ -866,6 +872,8 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
             return NC_EINVAL;
         }
         var->type_info->endianness = *endianness;
+	/* Propagate */
+	var->endianness = *endianness;
     }
 
     return NC_NOERR;

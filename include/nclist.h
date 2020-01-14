@@ -33,15 +33,18 @@ extern int nclistinsert(NClist*,size_t,void*);
 extern void* nclistremove(NClist* l, size_t i);
 
 /* Tail operations */
-extern int nclistpush(NClist*,void*); /* Add at Tail */
+extern int nclistpush(NClist*,const void*); /* Add at Tail */
 extern void* nclistpop(NClist*);
 extern void* nclisttop(NClist*);
 
 /* Duplicate and return the content (null terminate) */
 extern void** nclistdup(NClist*);
 
-/* Look for value match */
+/* Look for pointer match */
 extern int nclistcontains(NClist*, void*);
+
+/* Look for value match as string */
+extern int nclistmatch(NClist*, const char*, int casesensistive);
 
 /* Remove element by value; only removes first encountered */
 extern int nclistelemremove(NClist* l, void* elem);

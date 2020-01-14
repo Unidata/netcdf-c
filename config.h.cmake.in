@@ -132,11 +132,11 @@ are set when opening a binary file on Windows. */
 /* if true, build DAP4 Client */
 #cmakedefine ENABLE_DAP4 1
 
-/* if true, build DAP4 Client */
-#cmakedefine ENABLE_DAP4 1
-
 /* if true, do remote tests */
 #cmakedefine ENABLE_DAP_REMOTE_TESTS 1
+
+/* if true, enable NCZARR */
+#cmakedefine ENABLE_NCZARR 1
 
 /* define the possible sources for remote test servers */
 #cmakedefine REMOTETESTSERVERS	"${REMOTETESTSERVERS}"
