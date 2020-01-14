@@ -35,10 +35,10 @@ extern int NCZ_stringconvert(nc_type typeid, size_t len, void* data0, NCjson** j
 extern int ncz_sync_file(NC_FILE_INFO_T* file);
 extern int ncz_sync_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp);
 extern int ncz_sync_atts(NC_FILE_INFO_T*, NC_OBJ* container, NCindex* attlist);
-extern int ncz_read_file(NC_FILE_INFO_T* file);
 extern int ncz_read_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp);
 extern int ncz_read_atts(NC_FILE_INFO_T* file, NC_OBJ* container);
 extern int ncz_read_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp);
+extern int ncz_read_file(NC_FILE_INFO_T* file);
 
 /* zutil.c */
 extern int NCZ_grppath(NC_GRP_INFO_T* grp, char** pathp);

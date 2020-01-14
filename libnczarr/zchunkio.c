@@ -19,8 +19,13 @@ chunk with indices (2, 4) provides data for rows 2000-3000 and
 columns 4000-5000 and is stored under the key "2.4"; etc."
 */
 
+/**
+ * @param R Rank
+ * @param chunkindices The chunk indices
+ * @param keyp Return the chunk key string
+ */
 int
-buildchunkkey(int R, size_t* chunkindices, char** keyp)
+ncz_buildchunkkey(int R, size64_t* chunkindices, char** keyp)
 {
     int stat = NC_NOERR;
     int r;
@@ -41,10 +46,63 @@ buildchunkkey(int R, size_t* chunkindices, char** keyp)
     return stat;
 }
 
+/**
+ * @internal Push data to chunk of a file.
+ * If chunk does not exist, create it
+ *
+ * @param file Pointer to file info struct.
+ * @param proj Chunk projection
+ * @param data Buffer containing the chunk data to write
+ *
+ * @return ::NC_NOERR No error.
+ * @author Dennis Heimbigner
+ */
 int
-readchunk(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, size_t* chunkindices, void** chunkdatap)
+ncz_put_chunk(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, NCProjection* proj, void* data)
 {
-    /* set the contents of the specified chunk into chunkdatap */
-    return NC_NOERR;
-}
+    int stat = NC_NOERR;
+    NCZ_FILE_INFO* zinfo = NULL;
+    NCZ_VAR_INFO* zvar = NULL;
+    NCZMAP* map = NULL;
+    NCjson* json = NULL;
+    NCSlice* slice = NULL;
 
+    LOG((3, "%s: file: %p", __func__, file);
+
+    zinfo = file->format_file_info;
+    map = zinfo->map;
+    zvar = var->format_var_info;
+    slice = proj->slice;
+
+    if(slice->stride == 1) {
+	/* We can write directly to the chunk without pre-read */
+	if((stat = nczmap_write(map,chunk,start,count,data) != NC_NOERR))
+	    goto done;
+
+    } else {/*(slice->stride > 1)*/
+	/* We need to pre-read the chunk to avoid overwrites */
+	
+	if((stat = nczmap_write(map,chunk,start,count,data) != NC_NOERR))
+	    goto done;
+    }
+
+
+    /* Write .zarr and store in memory */
+    if((stat=NCZ_getdict(map,ZMETAROOT,&json)))
+	{stat = NC_ENCZARR; goto done;}
+    assert(json->sort = NCJ_DICT);
+    if((stat = NCJdictget(json,"zarr_format",&value)))
+	goto done;
+    if(value->sort != NCJ_INT)
+	{stat = NC_ENCZARR; goto done;}
+    sscanf(value->value,"%d",zinfo->zarr.zarr_version);
+    if((stat = NCJdictget(json,"nczarr_format",&value)))
+	goto done;
+    if(value->sort != NCJ_STRING)
+	{stat = NC_ENCZARR; goto done;}
+    zinfo->zarr.nczarr_version = strdup(value->value);
+
+done:
+    NCJreclaim(json);
+    return stat;
+}

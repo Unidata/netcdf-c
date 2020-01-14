@@ -33,14 +33,20 @@ ncchunking_init(void)
 
 /**************************************************/
 
-/* Goal: Given the projections for each slice being applied to
-   the variable, create and walk all possible combinations
-   of projection vectors that can be evaluated to provide
-   the output data
+/**
+Goal: Given the slices being applied to the variable, create
+and walk all possible combinations of projection vectors that
+can be evaluated to provide the output data.
+
+@param file Controlling file
+@param var Controlling variable
+@param slices Slices being applied to variable
+@param output
+@param typesize Size of type being written
 */
 
 int
-nc_evaluateslices(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var,
+ncz_evaluateslices(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var,
 		  NCZSlice* slices, void* output, size_t typesize)
 {
     int stat = NC_NOERR;

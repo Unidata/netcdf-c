@@ -159,11 +159,14 @@ ncz_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
         assert(var->dim[d]);
         if (! var->dim[d]->unlimited)
             num_values *= (float)var->dim[d]->len;
+#ifdef UNLIMITED
         else {
             num_unlim++;
             var->chunksizes[d] = 1; /* overwritten below, if all dims are unlimited */
         }
+#endif
     }
+#ifdef UNLIMITED
     /* Special case to avoid 1D vars with unlim dim taking huge amount
        of space (DEFAULT_CHUNK_SIZE bytes). Instead we limit to about
        4KB */
@@ -187,6 +190,7 @@ ncz_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
                  "chunksize %ld", __func__, var->hdr.name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[d]));
         }
     }
+#endif
 
     /* Pick a chunk length for each dimension, if one has not already
      * been picked above. */
@@ -432,9 +436,11 @@ NCZ_def_var(int ncid, const char *name, nc_type xtype, int ndims,
             BAIL(retval);
         assert(dim && dim->format_dim_info);
 
+#ifdef UNLIMITED
         /* Check for unlimited dimension and turn off contiguous storage. */
         if (dim->unlimited)
             var->contiguous = NC_FALSE;
+#endif
 
         /* Track dimensions for variable */
         var->dimids[d] = dimidsp[d];
@@ -589,10 +595,12 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
     {
         if (var->deflate || var->fletcher32 || var->shuffle)
             return NC_EINVAL;
+#ifdef UNLIMITED
         for (d = 0; d < var->ndims; d++) {
             if (var->dim[d]->unlimited)
                 return NC_EINVAL;
 	}
+#endif
         var->contiguous = NC_TRUE;
     }
 
@@ -1377,6 +1385,7 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     int need_to_convert = 0;
     int zero_count = 0; /* true if a count is zero */
     size_t len = 1;
+    NCZ_VAR_INFO_T* ncz_var = NULL;
 
     /* Find info for this file, group, and var. */
     if ((retval = nc4_find_grp_h5_var(ncid, varid, &h5, &grp, &var)))
@@ -1384,11 +1393,14 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     assert(h5 && grp && var && var->hdr.id == varid && var->format_var_info);
 
     /* Cannot convert to user-defined types. */
-    if (mem_nc_type >= NC_FIRSTUSERTYPEID)
-        mem_nc_type = NC_NAT;
-
     LOG((3, "%s: var->hdr.name %s mem_nc_type %d", __func__,
          var->hdr.name, mem_nc_type));
+
+    /* Get the ZARR-specific var info. */
+    ncz_var = (NCZ_VAR_INFO_T *)var->format_var_info;
+
+    if (mem_nc_type >= NC_FIRSTUSERTYPEID)
+	return THROW(NC_EINVAL);
 
     /* Check some stuff about the type and the file. If the file must
      * be switched from define mode, it happens here. */
@@ -1413,6 +1425,7 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
             zero_count++;
     }
 
+
 #ifdef LOOK
     /* Get file space of data. */
     if ((file_spaceid = H5Dget_space(ncz_var->hdf_datasetid)) < 0)
@@ -1431,7 +1444,7 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
      * put data beyond their current length. */
     for (d2 = 0; d2 < var->ndims; d2++)
     {
-        hsize_t endindex = start[d2] + stride[d2] * (count[d2] - 1); /* last index written */
+        size64_t endindex = start[d2] + stride[d2] * (count[d2] - 1); /* last index written */
         dim = var->dim[d2];
         assert(dim && dim->hdr.id == var->dimids[d2]);
         if (count[d2] == 0)
@@ -1440,13 +1453,13 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
         {
 #ifdef RELAX_COORD_BOUND
             /* Allow start to equal dim size if count is zero. */
-            if (start[d2] > (hssize_t)fdims[d2] ||
-                (start[d2] == (hssize_t)fdims[d2] && count[d2] > 0))
+            if (start[d2] > fdims[d2] ||
+                (start[d2] == fdims[d2] && count[d2] > 0))
                 BAIL_QUIET(NC_EINVALCOORDS);
             if (!zero_count && endindex >= fdims[d2])
                 BAIL_QUIET(NC_EEDGE);
 #else
-            if (start[d2] >= (hssize_t)fdims[d2])
+            if (start[d2] >= fdims[d2])
                 BAIL_QUIET(NC_EINVALCOORDS);
             if (endindex >= fdims[d2])
                 BAIL_QUIET(NC_EEDGE);
@@ -1477,10 +1490,11 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     }
 #endif
 
-    /* Are we going to convert any data? (No converting of compound or
-     * opaque types.) */
+    /* Are we going to convert any data? (No converting of user-defined types
+       except enum). */
     if (mem_nc_type != var->type_info->hdr.id &&
-        mem_nc_type != NC_COMPOUND && mem_nc_type != NC_OPAQUE)
+        mem_nc_type != NC_COMPOUND && mem_nc_type != NC_OPAQUE
+        mem_nc_type != NC_VLEN)
     {
         size_t file_type_size;
 
@@ -1531,6 +1545,7 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
                 endindex = start[d2];
             dim = var->dim[d2];
             assert(dim && dim->hdr.id == var->dimids[d2]);
+#ifdef UNLIMITED
             if (dim->unlimited)
             {
 #ifdef USE_PARALLEL4
@@ -1551,8 +1566,9 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
                 }
             }
             else
+#endif
             {
-                xtend_size[d2] = (long long unsigned)dim->len;
+                xtend_size[d2] = (size64_t)dim->len;
             }
         }
 
@@ -1571,12 +1587,12 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 #endif /* USE_PARALLEL4 */
 #endif /*LOOK*/
 
+#ifdef LOOK
         /* If we need to extend it, we also need a new file_spaceid
            to reflect the new size of the space. */
         if (need_to_extend)
         {
             LOG((4, "extending dataset"));
-#ifdef LOOK
 #ifdef USE_PARALLEL4
             if (h5->parallel)
             {
@@ -1590,12 +1606,10 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
                     BAIL(NC_EMPI);
             }
 #endif /* USE_PARALLEL4 */
-#endif /*LOOK*/
             /* Convert xtend_size back to hsize_t for use with
              * H5Dset_extent. */
             for (d2 = 0; d2 < var->ndims; d2++)
                 fdims[d2] = (size64_t)xtend_size[d2];
-#ifdef LOOK
             if (H5Dset_extent(ncz_var->hdf_datasetid, fdims) < 0)
                 BAIL(NC_EHDFERR);
             if (file_spaceid > 0 && H5Sclose(file_spaceid) < 0)
@@ -1605,8 +1619,8 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
             if (H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET,
                                     start, stride, count, NULL) < 0)
                 BAIL(NC_EHDFERR);
-#endif
         }
+#endif
     }
 
     /* Do we need to convert the data? */
@@ -1618,15 +1632,18 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
             BAIL(retval);
     }
 
-#ifdef LOOK
     /* Write the data. At last! */
     LOG((4, "about to write datasetid 0x%x mem_spaceid 0x%x "
          "file_spaceid 0x%x", ncz_var->hdf_datasetid, mem_spaceid, file_spaceid));
+#ifdef LOOK
     if (H5Dwrite(ncz_var->hdf_datasetid,
                  ((NCZ_TYPE_INFO_T *)var->type_info->format_type_info)->hdf_typeid,
                  mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
         BAIL(NC_EHDFERR);
 #endif /*LOOK*/
+
+    /* Write bufr to file */
+
 
     /* Remember that we have written to this var so that Fill Value
      * can't be set for it. */
