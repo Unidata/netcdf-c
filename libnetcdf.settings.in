@@ -41,3 +41,5 @@ CDF5 Support:		@HAS_CDF5@
 ERANGE Fill Support:	@HAS_ERANGE_FILL@
 Relaxed Boundary Check:	yes
 SZIP Support:           @HAS_SZLIB@
+SZIP Write Support:     @HAS_SZLIB@
+Parallel Filters:       @HAS_PAR_FILTERS@
