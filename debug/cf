@@ -16,7 +16,7 @@ FAST=1
 #PNETCDF=1
 #PAR4=1
 
-#TESTSERVERS="localhost:8080,149.165.169.123:8080"
+#TESTSERVERS="localhost:8080,remotetest.unidata.ucar.edu"
 
 if test $# != 0 ; then
 cmds=$@

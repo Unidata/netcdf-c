@@ -90,6 +90,10 @@ set_curlflag(NCD4INFO* state, int flag)
 	if(state->auth.curlflags.timeout)
 	    CHECK(state, CURLOPT_TIMEOUT, (OPTARG)((long)state->auth.curlflags.timeout));
 	break;
+    case CURLOPT_CONNECTTIMEOUT:
+	if(state->auth.curlflags.connecttimeout)
+	    CHECK(state, CURLOPT_CONNECTTIMEOUT, (OPTARG)((long)state->auth.curlflags.connecttimeout));
+	break;
     case CURLOPT_USERAGENT:
         if(state->auth.curlflags.useragent)
 	    CHECK(state, CURLOPT_USERAGENT, state->auth.curlflags.useragent);
@@ -373,6 +377,9 @@ NCD4_set_curlstate(NCD4INFO* state, int flag, void* value)
 	break;
     case CURLOPT_TIMEOUT:
 	info->curlflags.timeout = (long)value;
+	break;
+    case CURLOPT_CONNECTTIMEOUT:
+	info->curlflags.connecttimeout = (long)value;
 	break;
     case CURLOPT_USERAGENT:
         if(info->curlflags.useragent != NULL) free(info->curlflags.useragent);

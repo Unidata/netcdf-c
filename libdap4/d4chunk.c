@@ -28,7 +28,7 @@ Notes:
 */
 
 /* Define a local struct for convenience */
-struct HDR {unsigned int flags;	unsigned int count;};
+struct HDR {unsigned int flags; unsigned int count;};
 
 /* Forward */
 static void* getheader(void* p, struct HDR* hdr, int hostlittleendian);
@@ -60,15 +60,18 @@ NCD4_dechunk(NCD4meta* metadata)
     q = metadata->serial.rawdata;
     if(memcmp(q,"<?xml",strlen("<?xml"))==0
        || memcmp(q,"<Dataset",strlen("<Dataset"))==0) {
-	if(metadata->mode != NCD4_DMR) 
-	    return THROW(NC_EDMR);
-	/* setup as dmr only */
-	metadata->serial.dmr = (char*)metadata->serial.rawdata; /* temp */
-	metadata->serial.dmr[metadata->serial.rawsize-1] = '\0';
-	metadata->serial.dmr = strdup((char *)q);
-	if(metadata->serial.dmr == NULL)
-	    return THROW(NC_ENOMEM);
-	return THROW(NC_NOERR); 
+        if(metadata->mode != NCD4_DMR) 
+            return THROW(NC_EDMR);
+        /* setup as dmr only */
+        metadata->serial.dmr = (char*)metadata->serial.rawdata; /* temp */
+        /* Avoid strdup since rawdata might contain nul chars */
+        if((metadata->serial.dmr = malloc(metadata->serial.rawsize+1)) == NULL)
+            return THROW(NC_ENOMEM);    
+        memcpy(metadata->serial.dmr,metadata->serial.rawdata,metadata->serial.rawsize);
+        metadata->serial.dmr[metadata->serial.rawsize-1] = '\0';
+        /* Suppress nuls */
+        (void)NCD4_elidenuls(metadata->serial.dmr,metadata->serial.rawsize);
+        return THROW(NC_NOERR); 
     }
 
     /* We must be processing a DAP mode packet */
@@ -82,7 +85,7 @@ NCD4_dechunk(NCD4meta* metadata)
     /* Get the DMR chunk header*/
     p = getheader(p,&hdr,metadata->serial.hostlittleendian);
     if(hdr.count == 0)
-	return THROW(NC_EDMR);
+        return THROW(NC_EDMR);
     if(hdr.flags & ERR_CHUNK) {
         return processerrchunk(metadata, (void*)p, hdr.count);
     }
@@ -91,31 +94,40 @@ NCD4_dechunk(NCD4meta* metadata)
     metadata->localchecksumming = metadata->serial.remotechecksumming;
 
     metadata->serial.remotelittleendian = ((hdr.flags & LITTLE_ENDIAN_CHUNK) ? 1 : 0);
-    metadata->serial.dmr = (char*)p;
+    /* Again, avoid strxxx operations on dmr */
+    if((metadata->serial.dmr = malloc(hdr.count+1)) == NULL)
+        return THROW(NC_ENOMEM);        
+    memcpy(metadata->serial.dmr,p,hdr.count);
     metadata->serial.dmr[hdr.count-1] = '\0';
-    metadata->serial.dmr = strdup(metadata->serial.dmr);
-    if(metadata->serial.dmr == NULL)
-	return THROW(NC_ENOMEM);
-    p += hdr.count;
+    /* Suppress nuls */
+    (void)NCD4_elidenuls(metadata->serial.dmr,hdr.count);
 
     if(hdr.flags & LAST_CHUNK)
         return THROW(NC_ENODATA);
     /* Read and compress the data chunks */
-    q = metadata->serial.dap;
+    p = p + hdr.count; /* point to data chunk header */
+    /* Do a sanity check in case the server has shorted us with no data */
+    if((hdr.count + CHUNKHDRSIZE) >= metadata->serial.rawsize) {
+        /* Server only sent the DMR part */
+        metadata->serial.dapsize = 0;
+        return THROW(NC_EDATADDS);
+    }
+    q = metadata->serial.dap; 
     for(;;) {
-	p = getheader(p,&hdr,metadata->serial.hostlittleendian);
-	if(hdr.flags & ERR_CHUNK) {
+        p = getheader(p,&hdr,metadata->serial.hostlittleendian);
+        if(hdr.flags & ERR_CHUNK) {
             return processerrchunk(metadata, (void*)p, hdr.count);
-	}
-	/* data chunk; possibly last; possibly empty */
-	if(hdr.count > 0) {
-	    d4memmove(q,p,hdr.count); /* will overwrite the header */
-	    p += hdr.count;
-	    q += hdr.count;
-	}
-	if(hdr.flags & LAST_CHUNK) break;
+        }
+        /* data chunk; possibly last; possibly empty */
+        if(hdr.count > 0) {
+            d4memmove(q,p,hdr.count); /* will overwrite the header */
+            p += hdr.count;
+            q += hdr.count;
+        }
+        if(hdr.flags & LAST_CHUNK) break;
     }
     metadata->serial.dapsize = (size_t)DELTA(q,metadata->serial.dap);
+
 #ifdef D4DUMPDMR
     fprintf(stderr,"%s\n",metadata->serial.dmr);
     fflush(stderr);
@@ -169,8 +181,8 @@ getheader(void* p, struct HDR* hdr, int hostlittleendian)
     hyrax.count = *(unsigned int*)bytes; /* get count */
     /* See which makes more sense */
     if(hyrax.flags <= ALL_CHUNK_FLAGS && hyrax.count >= 0 && hyrax.count < hdr->count) {
-	/* Use hyrax version */
-	*hdr = hyrax;	
+        /* Use hyrax version */
+        *hdr = hyrax;   
     }
 #endif
     return p;
@@ -187,17 +199,17 @@ NCD4_infermode(NCD4meta* meta)
     char* raw = meta->serial.rawdata;
 
     if(size < 16)
-	return THROW(NC_EDAP); /* must have at least this to hold a hdr + partial dmr*/	
+        return THROW(NC_EDAP); /* must have at least this to hold a hdr + partial dmr*/ 
     if(memcmp(raw,"<?xml",strlen("<?xml"))==0
        || memcmp(raw,"<Dataset",strlen("<Dataset"))==0) {
-	meta->mode = NCD4_DMR;
-	goto done;
+        meta->mode = NCD4_DMR;
+        goto done;
     }
     raw += 4; /* Pretend we have a DAP hdr */
     if(memcmp(raw,"<?xml",strlen("<?xml"))==0
        || memcmp(raw,"<Dataset",strlen("<Dataset"))==0) {
-	meta->mode = NCD4_DAP;
-	goto done;
+        meta->mode = NCD4_DAP;
+        goto done;
     }
     /* Default to DSR */
     meta->mode = NCD4_DSR;

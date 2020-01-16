@@ -82,6 +82,11 @@ ocset_curlflag(OCstate* state, int flag)
 	    CHECK(state, CURLOPT_TIMEOUT, (OPTARG)((long)state->auth.curlflags.timeout));
 	break;
 
+    case CURLOPT_CONNECTTIMEOUT:
+	if(state->auth.curlflags.connecttimeout)
+	    CHECK(state, CURLOPT_CONNECTTIMEOUT, (OPTARG)((long)state->auth.curlflags.connecttimeout));
+	break;
+
     case CURLOPT_USERAGENT:
         if(state->auth.curlflags.useragent)
 	    CHECK(state, CURLOPT_USERAGENT, state->auth.curlflags.useragent);
@@ -189,6 +194,7 @@ ocset_flags_perlink(OCstate* state)
     if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_NETRC);
     if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_VERBOSE);
     if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_TIMEOUT);
+    if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_CONNECTTIMEOUT);
     if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_USERAGENT);
     if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_COOKIEJAR);
     if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_USERPWD);
