@@ -1023,6 +1023,7 @@ if test "x$enable_netcdf_4" = xyes; then
 fi
 
 hdf5_parallel=no
+hdf5_supports_par_filters=no
 if test "x$enable_hdf5" = xyes; then
 
    AC_DEFINE([USE_HDF5], [1], [if true, use HDF5])
@@ -1057,9 +1058,11 @@ if test "x$enable_hdf5" = xyes; then
    # Check to see if HDF5 library is 1.10.2 or greater. If so, allows parallel_zip.
    if test "x$ac_cv_func_H5DOread_chunk" = xyes; then
       AC_DEFINE([HDF5_SUPPORTS_PAR_FILTERS], [1], [if true, HDF5 is at least version 1.10.2 and allows parallel I/O with zip])
+      hdf5_supports_par_filters=yes
    fi
    AC_MSG_CHECKING([whether HDF5 is version 1.10.2 or greater])
    AC_MSG_RESULT([$ac_cv_func_H5DOread_chunk])
+   AC_SUBST([HAS_PAR_FILTERS], [$hdf5_supports_par_filters])
 
 # Check to see if we need to search for and link against szlib.
    if test "x$ac_cv_func_H5Z_SZIP" = xyes; then
@@ -1490,6 +1493,7 @@ AX_SET_META([NC_HAS_PARALLEL],[$enable_parallel],[yes])
 AX_SET_META([NC_HAS_PARALLEL4],[$enable_parallel4],[yes])
 AX_SET_META([NC_HAS_CDF5],[$enable_cdf5],[yes])
 AX_SET_META([NC_HAS_ERANGE_FILL], [$enable_erange_fill],[yes])
+AX_SET_META([NC_HAS_PAR_FILTERS], [$hdf5_supports_par_filters],[yes])
 AX_SET_META([NC_HAS_BYTERANGE],[$enable_byterange],[yes])
 AC_SUBST([NC_DISPATCH_VERSION], [1])
 #####
