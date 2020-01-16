@@ -667,7 +667,9 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
         return NC_ENOTVAR;
     assert(var && var->hdr.id == varid);
 
-    /* Can't turn on parallel and any filters before HDF5 1.10.2. */
+
+    /* Can't turn on parallel and deflate/fletcher32/szip/shuffle
+     * before HDF5 1.10.2. */
 #ifndef HDF5_SUPPORTS_PAR_FILTERS
     if (h5->parallel == NC_TRUE)
         if (deflate || fletcher32 || shuffle)
@@ -1078,8 +1080,8 @@ NC4_def_var_chunking(int ncid, int varid, int contiguous, const size_t *chunksiz
 int
 nc_def_var_chunking_ints(int ncid, int varid, int contiguous, int *chunksizesp)
 {
-    NC_VAR_INFO_T *var;
-    size_t *cs;
+    NC_VAR_INFO_T *var = NULL;
+    size_t *cs = NULL;
     int i, retval;
 
     /* Get pointer to the var. */
