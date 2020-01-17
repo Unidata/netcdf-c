@@ -580,7 +580,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
   # Accommodate developers who have hdf5 libraries and
   # headers on their system, but do not have a the hdf
   # .cmake files.  If this is the case, they should
-  # specify HDF5_HL_LIB, HDF5_LIB, HDF5_INCLUDE_DIR manually.
+  # specify HDF5_HL_LIBRARY, HDF5_LIBRARY, HDF5_INCLUDE_DIR manually.
   ##
   IF(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR)
     SET(HDF5_LIBRARIES ${HDF5_C_LIBRARY} ${HDF5_HL_LIBRARY})
@@ -631,6 +631,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     # Assert HDF5 version meets minimum required version.
     ##
     SET(HDF5_VERSION_REQUIRED 1.8.10)
+    SET(HDF5_PAR_FILTER_VERSION 1.10.2)
 
     IF(HDF5_VERSION_STRING AND NOT HDF5_VERSION)
       SET(HDF5_VERSION ${HDF5_VERSION_STRING})
@@ -645,6 +646,13 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
       ELSE()
         MESSAGE(STATUS "Found HDF5 libraries version ${HDF5_VERSION}")
       ENDIF()
+    ENDIF()
+
+    # Determine whether parallel filter operation is supported.
+    IF(${HDF5_VERSION} VERSION_LESS ${HDF5_PAR_FILTER_VERSION})
+      SET(HDF5_HAS_PAR_FILTERS, "no")
+    ELSE()
+      SET(HDF5_HAS_PAR_FILTERS, "yes")
     ENDIF()
 
     ##
@@ -1937,6 +1945,7 @@ is_enabled(ENABLE_NETCDF_4 HAS_NC4)
 is_enabled(ENABLE_HDF4 HAS_HDF4)
 is_enabled(ENABLE_NETCDF_4 HAS_HDF5)
 is_enabled(USE_SZIP HAS_SZIP)
+is_enabled(USE_SZIP HAS_SZIP_WRITE)
 is_enabled(STATUS_PNETCDF HAS_PNETCDF)
 is_enabled(STATUS_PARALLEL HAS_PARALLEL)
 is_enabled(ENABLE_PARALLEL4 HAS_PARALLEL4)
@@ -1950,6 +1959,7 @@ is_enabled(JNA HAS_JNA)
 is_enabled(ENABLE_ZERO_LENGTH_COORD_BOUND RELAX_COORD_BOUND)
 is_enabled(USE_CDF5 HAS_CDF5)
 is_enabled(ENABLE_ERANGE_FILL HAS_ERANGE_FILL)
+is_enabled(HDF5_HAS_PAR_FILTERS HAS_PAR_FILTERS)
 
 # Generate file from template.
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
