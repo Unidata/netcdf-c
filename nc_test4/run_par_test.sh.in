@@ -45,7 +45,7 @@ echo "Parallel I/O test for Collective I/O, contributed by HDF Group."
 
 # Only run these tests if HDF5 supports parallel filters (v1.10.2 and
 # later).
-if "@HAS_PAR_FILTERS@" = "yes"; then
+if test "@HAS_PAR_FILTERS@" = "yes"; then
     echo
     echo "Parallel I/O test with zlib."
     @MPIEXEC@ -n 1 ./tst_parallel_zlib
