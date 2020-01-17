@@ -143,7 +143,7 @@ main(int argc, char **argv)
 #ifdef USE_MPE
        MPE_Log_event(s_write, 0, "start write slab");
 #endif /* USE_MPE */
-
+       nc_set_log_level(3);
        /* Write slabs of phoney data. */
        if (nc_put_vara_int(ncid, v1id, start, count, slab_data)) ERR;
 #ifdef USE_MPE

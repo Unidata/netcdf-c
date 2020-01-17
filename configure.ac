@@ -1040,7 +1040,7 @@ if test "x$enable_hdf5" = xyes; then
 
    # H5Pset_fapl_mpiposix and H5Pget_fapl_mpiposix have been removed since HDF5 1.8.12.
    # Use H5Pset_fapl_mpio and H5Pget_fapl_mpio, instead.
-   AC_CHECK_FUNCS([H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5free_memory H5resize_memory H5allocate_memory H5Pset_libver_bounds H5Pset_all_coll_metadata_ops H5Z_SZIP H5DOread_chunk])
+   AC_CHECK_FUNCS([H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5free_memory H5resize_memory H5allocate_memory H5Pset_libver_bounds H5Pset_all_coll_metadata_ops H5Z_SZIP H5Dread_chunk])
 
    # Check to see if HDF5 library has collective metadata APIs, (HDF5 >= 1.10.0)
    if test "x$ac_cv_func_H5Pset_all_coll_metadata_ops" = xyes; then
@@ -1056,12 +1056,12 @@ if test "x$enable_hdf5" = xyes; then
    AC_MSG_RESULT([$hdf5_parallel])
 
    # Check to see if HDF5 library is 1.10.2 or greater. If so, allows parallel_zip.
-   if test "x$ac_cv_func_H5DOread_chunk" = xyes; then
+   if test "x$ac_cv_func_H5Dread_chunk" = xyes; then
       AC_DEFINE([HDF5_SUPPORTS_PAR_FILTERS], [1], [if true, HDF5 is at least version 1.10.2 and allows parallel I/O with zip])
       hdf5_supports_par_filters=yes
    fi
    AC_MSG_CHECKING([whether HDF5 is version 1.10.2 or greater])
-   AC_MSG_RESULT([$ac_cv_func_H5DOread_chunk])
+   AC_MSG_RESULT([$ac_cv_func_H5Dread_chunk])
    AC_SUBST([HAS_PAR_FILTERS], [$hdf5_supports_par_filters])
    AM_CONDITIONAL(HAS_PAR_FILTERS, [test x$hdf5_supports_par_filters = xyes ])
 
