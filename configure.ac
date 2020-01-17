@@ -1063,8 +1063,9 @@ if test "x$enable_hdf5" = xyes; then
    AC_MSG_CHECKING([whether HDF5 is version 1.10.2 or greater])
    AC_MSG_RESULT([$ac_cv_func_H5DOread_chunk])
    AC_SUBST([HAS_PAR_FILTERS], [$hdf5_supports_par_filters])
+   AM_CONDITIONAL(HAS_PAR_FILTERS, [test x$hdf5_supports_par_filters = xyes ])
 
-# Check to see if we need to search for and link against szlib.
+   # Check to see if we need to search for and link against szlib.
    if test "x$ac_cv_func_H5Z_SZIP" = xyes; then
       AC_SEARCH_LIBS([SZ_BufftoBuffCompress], [szip sz], [],
       [AC_MSG_ERROR([libhdf5 installed with szip support, but cannot find or link to the szip library.])])
