@@ -43,12 +43,16 @@ echo "Parallel I/O test for Collective I/O, contributed by HDF Group."
 @MPIEXEC@ -n 2 ./tst_simplerw_coll_r
 @MPIEXEC@ -n 4 ./tst_simplerw_coll_r
 
-echo
-echo "Parallel I/O test with zlib."
-@MPIEXEC@ -n 1 ./tst_parallel_zlib
-@MPIEXEC@ -n 4 ./tst_parallel_zlib
+# Only run these tests if HDF5 supports parallel filters (v1.10.2 and
+# later).
+if "@HAS_PAR_FILTERS@" = "yes"; then
+    echo
+    echo "Parallel I/O test with zlib."
+    @MPIEXEC@ -n 1 ./tst_parallel_zlib
+    @MPIEXEC@ -n 4 ./tst_parallel_zlib
 
-echo
-echo "Parallel I/O more tests with zlib."
-@MPIEXEC@ -n 1 ./tst_parallel_zlib2
-@MPIEXEC@ -n 4 ./tst_parallel_zlib2
+    echo
+    echo "Parallel I/O more tests with zlib."
+    @MPIEXEC@ -n 1 ./tst_parallel_zlib2
+    @MPIEXEC@ -n 4 ./tst_parallel_zlib2
+fi
