@@ -1063,7 +1063,6 @@ if test "x$enable_hdf5" = xyes; then
    AC_MSG_CHECKING([whether HDF5 is version 1.10.2 or greater])
    AC_MSG_RESULT([$ac_cv_func_H5Dread_chunk])
    AC_SUBST([HAS_PAR_FILTERS], [$hdf5_supports_par_filters])
-   AM_CONDITIONAL(HAS_PAR_FILTERS, [test x$hdf5_supports_par_filters = xyes ])
 
    # Check to see if we need to search for and link against szlib.
    if test "x$ac_cv_func_H5Z_SZIP" = xyes; then
@@ -1088,6 +1087,7 @@ if test "x$enable_hdf5" = xyes; then
    AC_MSG_RESULT([$enable_szlib])
 
 fi
+AM_CONDITIONAL(HAS_PAR_FILTERS, [test x$hdf5_supports_par_filters = xyes ])
 
 # If the user wants hdf4 built in, check it out.
 if test "x$enable_hdf4" = xyes; then
