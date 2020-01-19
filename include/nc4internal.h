@@ -342,7 +342,6 @@ typedef struct
 /* Misc functions */
 int NC4_inq_atomic_type(nc_type typeid1, char *name, size_t *size);
 int NC4_lookup_atomic_type(const char *name, nc_type* idp, size_t *sizep);
-int NC4_inq_typeid(int ncid, const char *name, nc_type *typeidp);
 
 /* These functions convert between netcdf and HDF5 types. */
 int nc4_get_typelen_mem(NC_FILE_INFO_T *h5, nc_type xtype, size_t *len);
