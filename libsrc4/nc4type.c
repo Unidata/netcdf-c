@@ -213,7 +213,7 @@ NC4_inq_type(int ncid, nc_type typeid1, char *name, size_t *size)
  * @return ::NC_EBADTYPE Type not found.
  * @author Ed Hartnett
  */
-int
+EXTERNL int
 NC4_inq_typeid(int ncid, const char *name, nc_type *typeidp)
 {
     NC_GRP_INFO_T *grp;
