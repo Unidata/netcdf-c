@@ -6,9 +6,8 @@
 
 #include "nclist.h"
 
-#ifndef strcasecmp
-/* See comment in include/ncconfigure.h */
-extern int strcasecmp(const char*, const char*);
+#ifdef _WIN32
+#define strcasecmp _stricmp
 #endif
 
 int nclistnull(void* e) {return e == NULL;}

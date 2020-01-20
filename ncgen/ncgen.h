@@ -6,7 +6,7 @@
  *   $Header: /upc/share/CVS/netcdf-3/ncgen/ncgen.h,v 1.18 2010/06/01 15:34:53 ed Exp $
 *********************************************************************/
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 #include <float.h>
 #include "../ncdump/isnan.h"
 #define strcasecmp _stricmp
