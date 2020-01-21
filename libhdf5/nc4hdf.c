@@ -1118,7 +1118,7 @@ nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 
 #ifdef USE_PARALLEL4
     /* Don't set cache for files using parallel I/O. */
-    if (var->nc4_info->parallel)
+    if (grp->nc4_info->parallel)
         return NC_NOERR;
 #endif
 
