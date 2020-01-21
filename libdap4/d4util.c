@@ -330,6 +330,22 @@ NCD4_entityescape(const char* s)
     return escaped;
 }
 
+/* Elide all nul characters from an XML document as a precaution*/
+size_t
+NCD4_elidenuls(char* s, size_t slen)
+{
+    size_t i,j;
+    for(j=0,i=0;i<slen;i++) {
+        int c = s[i];
+	if(c != 0)
+	    s[j++] = (char)c;
+    }       
+    /* if we remove any nuls then nul term */
+    if(j < i)
+	s[j] = '\0';
+    return j;
+}
+
 int
 NCD4_readfile(const char* filename, NCbytes* content)
 {

@@ -61,9 +61,11 @@ if USE_HDF5
 TESTPROGRAMS += tst_diskless6
 endif
 
+if ENABLE_DAP_REMOTE_TESTS
 if ENABLE_BYTERANGE
 TESTPROGRAMS += tst_byterange
 tst_byterange_SOURCES = tst_byterange.c
+endif
 endif
 
 # Set up the tests.

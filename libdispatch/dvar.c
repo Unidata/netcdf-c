@@ -312,7 +312,7 @@ nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
 }
 
 /**
-   Set the compression settings for a netCDF-4/HDF5 variable.
+   Set the zlib compression settings for a netCDF-4/HDF5 variable.
 
    This function must be called after nc_def_var and before nc_enddef
    or any functions which writes data to the file.
@@ -324,15 +324,22 @@ nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
 
    If this function is called on a scalar variable, it is ignored.
 
+   @note Parallel I/O reads work with compressed data. Parallel I/O
+   writes work with compressed data in netcdf-c-4.7.4 and later
+   releases, using hdf5-1.10.2 and later releases. Using the zlib,
+   shuffle (or any other) filter requires that collective access be
+   used with the variable. Turning on deflate and/or shuffle for a
+   variable in a file opened for parallel I/O will automatically
+   switch the access for that variable to collective access.
+
    @param ncid NetCDF or group ID, from a previous call to nc_open(),
    nc_create(), nc_def_grp(), or associated inquiry functions such as
    nc_inq_ncid().
    @param varid Variable ID
    @param shuffle True to turn on the shuffle filter. The shuffle
-   filter can assist with the compression of integer data by changing
-   the byte order in the data stream. It makes no sense to use the
-   shuffle filter without setting a deflate level, or to use shuffle
-   on non-integer data.
+   filter can assist with the compression of data by changing the byte
+   order in the data stream. It makes no sense to use the shuffle
+   filter without setting a deflate level.
    @param deflate True to turn on deflation for this variable.
    @param deflate_level A number between 0 (no compression) and 9
    (maximum compression).
@@ -347,11 +354,8 @@ nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
    @return ::NC_ELATEDEF Too late to change settings for this variable.
    @return ::NC_ENOTINDEFINE Not in define mode.
    @return ::NC_EPERM File is read only.
-   @return ::NC_EMAXDIMS Classic model file exceeds ::NC_MAX_VAR_DIMS.
    @return ::NC_ESTRICTNC3 Attempting to create netCDF-4 type var in
    classic model file
-   @return ::NC_EBADTYPE Bad type.
-   @return ::NC_ENOMEM Out of memory.
    @return ::NC_EHDFERR Error returned by HDF5 layer.
    @return ::NC_EINVAL Invalid input. Deflate can't be set unless
    variable storage is NC_CHUNK.
@@ -422,6 +426,14 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
    data, with default chunksizes. Use nc_def_var_chunking() to tune
    performance with user-defined chunksizes.
 
+   @note Parallel I/O reads work with fletcher32 encoded
+   data. Parallel I/O writes work with fletcher32 in netcdf-c-4.7.4
+   and later releases, using hdf5-1.10.2 and later releases. Using the
+   fletcher32 (or any) filter requires that collective access be used
+   with the variable. Turning on fletcher32 for a variable in a file
+   opened for parallel I/O will automatically switch the access for
+   that variable to collective access.
+
    @param ncid NetCDF or group ID, from a previous call to nc_open(),
    nc_create(), nc_def_grp(), or associated inquiry functions such as
    nc_inq_ncid().
@@ -452,9 +464,25 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
 /**
    Define chunking parameters for a variable
 
-   The function nc_def_var_chunking sets the chunking parameters for a
-   variable in a netCDF-4 file. It can set the chunk sizes to get chunked
-   storage, or it can set the contiguous flag to get contiguous storage.
+   The function nc_def_var_chunking sets the storage and, optionally,
+   the chunking parameters for a variable in a netCDF-4 file.
+
+   The storage may be set to NC_CONTIGUOUS, NC_COMPACT, or NC_CHUNKED.
+
+   Contiguous storage means the variable is stored as one block of
+   data in the file.
+
+   Compact storage means the variable is stored in the header record
+   of the file. This can have large performance benefits on HPC system
+   running many processors. Compact storage is only available for
+   variables whose data are 64 KB or less. Attempting to turn on
+   compact storage for a variable that is too large will result in the
+   ::NC_EVARSIZE error.
+
+   Chunked storage means the data are stored as chunks, of
+   user-configurable size. Chunked storage is required for variable
+   with one or more unlimted dimensions, or variable which use
+   compression.
 
    The total size of a chunk must be less than 4 GiB. That is, the
    product of all chunksizes and the size of the data (or the size of
@@ -467,20 +495,21 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
    Note that this does not work for scalar variables. Only non-scalar
    variables can have chunking.
 
-   @param[in] ncid NetCDF ID, from a previous call to nc_open or
-   nc_create.
+   @param ncid NetCDF ID, from a previous call to nc_open() or
+   nc_create().
 
-   @param[in] varid Variable ID.
+   @param varid Variable ID.
 
-   @param[in] storage If ::NC_CONTIGUOUS, then contiguous storage is used
-   for this variable. Variables with one or more unlimited dimensions
-   cannot use contiguous storage. If contiguous storage is turned on, the
-   chunksizes parameter is ignored. If ::NC_CHUNKED, then chunked storage
-   is used for this variable. Chunk sizes may be specified with the
-   chunksizes parameter or default sizes will be used if that parameter
-   is NULL.
+   @param storage If ::NC_CONTIGUOUS or ::NC_COMPACT, then contiguous
+   or compact storage is used for this variable. Variables with one or
+   more unlimited dimensions cannot use contiguous or compact
+   storage. If contiguous or compact storage is turned on, the
+   chunksizes parameter is ignored. If ::NC_CHUNKED, then chunked
+   storage is used for this variable. Chunk sizes may be specified
+   with the chunksizes parameter or default sizes will be used if that
+   parameter is NULL.
 
-   @param[in] chunksizesp A pointer to an array list of chunk sizes. The
+   @param chunksizesp A pointer to an array list of chunk sizes. The
    array must have one chunksize for each dimension of the variable. If
    ::NC_CONTIGUOUS storage is set, then the chunksizes parameter is
    ignored.
@@ -500,6 +529,10 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
    @return ::NC_EBADCHUNK Returns if the chunk size specified for a
    variable is larger than the length of the dimensions associated with
    variable.
+   @return ::NC_EVARSIZE Compact storage attempted for variable bigger
+   than 64 KB.
+   @return ::NC_EINVAL Attempt to set contiguous or compact storage
+   for var with one or more unlimited dimensions.
 
    @section nc_def_var_chunking_example Example
 
@@ -539,6 +572,7 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
    if (chunksize[d] != chunksize_in[d]) ERR;
    if (storage_in != NC_CHUNKED) ERR;
    @endcode
+   @author Ed Hartnett, Dennis Heimbigner
 */
 int
 nc_def_var_chunking(int ncid, int varid, int storage,
@@ -1107,6 +1141,12 @@ nc_free_string(size_t len, char **data)
    until the file is closed. Once re-opened, the variable chunk cache
    returns to its default value.
 
+   Current cache settings for each var may be obtained with
+   nc_get_var_chunk_cache().
+
+   Default values for these settings may be changed for the whole file
+   with nc_set_chunk_cache().
+
    @param ncid NetCDF or group ID, from a previous call to nc_open(),
    nc_create(), nc_def_grp(), or associated inquiry functions such as
    nc_inq_ncid().
@@ -1168,7 +1208,10 @@ nc_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
 }
 
 /**
-   Get the per-variable chunk cache settings from the HDF5 layer.
+   Get the per-variable chunk cache settings from the HDF5
+   layer. These settings may be changed with nc_set_var_chunk_cache().
+
+   See nc_set_chunk_cache() for a full discussion of these settings.
 
    @param ncid NetCDF or group ID, from a previous call to nc_open(),
    nc_create(), nc_def_grp(), or associated inquiry functions such as

@@ -42,3 +42,13 @@ echo "Parallel I/O test for Collective I/O, contributed by HDF Group."
 @MPIEXEC@ -n 1 ./tst_simplerw_coll_r
 @MPIEXEC@ -n 2 ./tst_simplerw_coll_r
 @MPIEXEC@ -n 4 ./tst_simplerw_coll_r
+
+echo
+echo "Parallel I/O test with zlib."
+@MPIEXEC@ -n 1 ./tst_parallel_zlib
+@MPIEXEC@ -n 4 ./tst_parallel_zlib
+
+echo
+echo "Parallel I/O more tests with zlib."
+@MPIEXEC@ -n 1 ./tst_parallel_zlib2
+@MPIEXEC@ -n 4 ./tst_parallel_zlib2

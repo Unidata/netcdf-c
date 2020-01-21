@@ -310,16 +310,15 @@ ENDIF()
 ################################
 
 # HDF5 cache variables.
-SET(DEFAULT_CHUNK_SIZE 4194304 CACHE STRING "Default Chunk Cache Size.")
+SET(DEFAULT_CHUNK_SIZE 16777216 CACHE STRING "Default Chunk Cache Size.")
 SET(DEFAULT_CHUNKS_IN_CACHE 10 CACHE STRING "Default number of chunks in cache.")
-SET(CHUNK_CACHE_SIZE 4194304 CACHE STRING "Default Chunk Cache Size.")
-SET(CHUNK_CACHE_NELEMS 1009 CACHE STRING "Default maximum number of elements in cache.")
+SET(CHUNK_CACHE_SIZE 16777216 CACHE STRING "Default Chunk Cache Size.")
+SET(CHUNK_CACHE_NELEMS 4133 CACHE STRING "Default maximum number of elements in cache.")
 SET(CHUNK_CACHE_PREEMPTION 0.75 CACHE STRING "Default file chunk cache preemption policy for HDf5 files(a number between 0 and 1, inclusive.")
 SET(MAX_DEFAULT_CACHE_SIZE 67108864 CACHE STRING "Default maximum cache size.")
 SET(NETCDF_LIB_NAME "" CACHE STRING "Default name of the netcdf library.")
 SET(TEMP_LARGE "." CACHE STRING "Where to put large temp files if large file tests are run.")
 SET(NCPROPERTIES_EXTRA "" CACHE STRING "Specify extra pairs for _NCProperties.")
-SET(MPIEXEC "mpiexec" CACHE STRING "Command to run MPI programs if parallel tests are run.")
 
 IF(NOT NETCDF_LIB_NAME STREQUAL "")
   SET(MOD_NETCDF_NAME ON)
@@ -744,6 +743,9 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
 	SET(HDF5_CC h5cc)
   ENDIF()
 
+  # Check to see if this is hdf5-1.10.2 or later.
+  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5DOread_chunk "" HDF5_SUPPORTS_PAR_FILTERS)
+
   SET(H5_USE_16_API 1)
   OPTION(NC_ENABLE_HDF_16_API "Enable HDF5 1.6.x Compatibility(Required)" ON)
   IF(NOT NC_ENABLE_HDF_16_API)
@@ -852,7 +854,7 @@ ENDIF()
 # Option to Enable DAP long tests, remote tests.
 OPTION(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
 OPTION(ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." ON)
-SET(REMOTETESTSERVERS "149.165.169.123:8080,remotetest.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
+SET(REMOTETESTSERVERS "remotetest.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
 
 # Enable some developer-only tests
 OPTION(ENABLE_EXTRA_TESTS "Enable Extra tests. Some may not work because of known issues. Developers only." OFF)
@@ -910,12 +912,6 @@ IF(ENABLE_TESTS)
     SET(SITE "${NC_CTEST_SITE}" CACHE STRING "")
   ENDIF()
 
-  # Create a CTestConfig file from the template.
-  CONFIGURE_FILE("${netCDF_SOURCE_DIR}/CTestConfig.cmake.in"
-    "${netCDF_BINARY_DIR}/CTestConfig.cmake"
-    @ONLY
-    )
-
   ###
   # This option dictates whether or not to turn on
   # tests which are known to fail.  This is not the
@@ -934,8 +930,12 @@ IF(ENABLE_TESTS)
   OPTION(ENABLE_FAILING_TESTS "Run tests which are known to fail, check to see if any have been fixed." OFF)
 
   ###
-  # Option to turn on unit testing. See https://github.com/Unidata/netcdf-c/pull/1472 for more information.
-  # Currently (August 21, 2019): Will not work with Visual Studio
+  # Option to turn on unit testing. See
+  # https://github.com/Unidata/netcdf-c/pull/1472 for more
+  # information.  Currently (August 21, 2019): Will not work with
+  # Visual Studio. The unit tests are for internal netCDF functions,
+  # so we don't want to make them external, which would be required to
+  # run on Windows.
   ###
   IF(NOT MSVC)
     OPTION(ENABLE_UNIT_TESTS "Run Unit Tests." ON)
@@ -1004,10 +1004,7 @@ IF(ENABLE_PARALLEL4 AND ENABLE_NETCDF_4)
     SET(USE_PARALLEL OFF CACHE BOOL "")
     MESSAGE(STATUS "Cannot find HDF5 library built with parallel support. Disabling parallel build.")
   ELSE()
-    IF(MSVC)
-      FIND_PACKAGE(MPI REQUIRED)
-      INCLUDE_DIRECTORIES(${MPI_C_INCLUDE_PATH})
-    ENDIF()
+    FIND_PACKAGE(MPI REQUIRED)
     SET(HDF5_PARALLEL ON CACHE BOOL "")
     SET(USE_PARALLEL ON CACHE BOOL "")
     SET(USE_PARALLEL4 ON CACHE BOOL "")
@@ -1994,6 +1991,7 @@ SET(TOPSRCDIR "${CMAKE_CURRENT_SOURCE_DIR}")
 SET(TOPBUILDDIR "${CMAKE_CURRENT_BINARY_DIR}")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test_common.in ${CMAKE_CURRENT_BINARY_DIR}/test_common.sh @ONLY NEWLINE_STYLE LF)
 
+
 #####
 # Build nc_test4/findplugin.sh
 #####
@@ -2009,6 +2007,11 @@ ENDIF()
 #####
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ncdap_test/findtestserver.c.in ${CMAKE_CURRENT_SOURCE_DIR}/ncdap_test/findtestserver.c @ONLY NEWLINE_STYLE LF)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ncdap_test/findtestserver.c.in ${CMAKE_CURRENT_SOURCE_DIR}/dap4_test/findtestserver4.c @ONLY NEWLINE_STYLE LF)
+
+#####
+# Build dap4_test/pingurl4.c
+#####
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ncdap_test/pingurl.c ${CMAKE_CURRENT_SOURCE_DIR}/dap4_test/pingurl4.c @ONLY NEWLINE_STYLE LF)
 
 ####
 # Export files

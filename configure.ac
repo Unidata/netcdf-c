@@ -304,7 +304,7 @@ AC_MSG_CHECKING([whether a default file cache size for HDF5 was specified])
 AC_ARG_WITH([chunk-cache-size],
               [AS_HELP_STRING([--with-chunk-cache-size=<integer>],
                               [Specify default file cache chunk size for HDF5 files in bytes.])],
-            [CHUNK_CACHE_SIZE=$with_chunk_cache_size], [CHUNK_CACHE_SIZE=4194304])
+            [CHUNK_CACHE_SIZE=$with_chunk_cache_size], [CHUNK_CACHE_SIZE=16777216])
 AC_MSG_RESULT([$CHUNK_CACHE_SIZE])
 AC_DEFINE_UNQUOTED([CHUNK_CACHE_SIZE], [$CHUNK_CACHE_SIZE], [default file chunk cache size in bytes.])
 
@@ -313,7 +313,7 @@ AC_MSG_CHECKING([whether a default file cache maximum number of elements for HDF
 AC_ARG_WITH([chunk-cache-nelems],
               [AS_HELP_STRING([--with-chunk-cache-nelems=<integer>],
                               [Specify default maximum number of elements in the file chunk cache chunk for HDF5 files (should be prime number).])],
-            [CHUNK_CACHE_NELEMS=$with_chunk_cache_nelems], [CHUNK_CACHE_NELEMS=1009])
+            [CHUNK_CACHE_NELEMS=$with_chunk_cache_nelems], [CHUNK_CACHE_NELEMS=4133])
 AC_MSG_RESULT([$CHUNK_CACHE_NELEMS])
 AC_DEFINE_UNQUOTED([CHUNK_CACHE_NELEMS], [$CHUNK_CACHE_NELEMS], [default file chunk cache nelems.])
 
@@ -365,11 +365,12 @@ fi
 # --enable-dap => enable-dap4
 enable_dap4=$enable_dap
 # Default is to do the short remote tests.
+# Temporary: Change default to npt do these tests
 AC_MSG_CHECKING([whether dap remote testing should be enabled (default on)])
 AC_ARG_ENABLE([dap-remote-tests],
               [AS_HELP_STRING([--disable-dap-remote-tests],
                                  [disable dap remote tests])])
-test "x$enable_dap_remote_tests" = xno || enable_dap_remote_tests=yes
+test "x$enable_dap_remote_tests" = xyes || enable_dap_remote_tests=no
 if test "x$enable_dap" = "xno" ; then
   enable_dap_remote_tests=no
 fi
@@ -399,7 +400,7 @@ AC_ARG_WITH([testservers],
             [REMOTETESTSERVERS=$with_testservers], [REMOTETESTSERVERS=no])
 msg="$REMOTETESTSERVERS"
 if test "x$REMOTETESTSERVERS" = xno ; then
-  svclist="149.165.169.123:8080,remotetest.unidata.ucar.edu"
+  svclist="remotetest.unidata.ucar.edu"
   REMOTETESTSERVERS="$svclist"
 fi
 AC_MSG_RESULT([$svclist])
@@ -1038,7 +1039,7 @@ if test "x$enable_hdf5" = xyes; then
 
    # H5Pset_fapl_mpiposix and H5Pget_fapl_mpiposix have been removed since HDF5 1.8.12.
    # Use H5Pset_fapl_mpio and H5Pget_fapl_mpio, instead.
-   AC_CHECK_FUNCS([H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5free_memory H5resize_memory H5allocate_memory H5Pset_libver_bounds H5Pset_all_coll_metadata_ops H5Z_SZIP])
+   AC_CHECK_FUNCS([H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5free_memory H5resize_memory H5allocate_memory H5Pset_libver_bounds H5Pset_all_coll_metadata_ops H5Z_SZIP H5DOread_chunk])
 
    # Check to see if HDF5 library has collective metadata APIs, (HDF5 >= 1.10.0)
    if test "x$ac_cv_func_H5Pset_all_coll_metadata_ops" = xyes; then
@@ -1053,7 +1054,14 @@ if test "x$enable_hdf5" = xyes; then
    AC_MSG_CHECKING([whether parallel io is enabled in hdf5])
    AC_MSG_RESULT([$hdf5_parallel])
 
-   # Check to see if we need to search for and link against szlib.
+   # Check to see if HDF5 library is 1.10.2 or greater. If so, allows parallel_zip.
+   if test "x$ac_cv_func_H5DOread_chunk" = xyes; then
+      AC_DEFINE([HDF5_SUPPORTS_PAR_FILTERS], [1], [if true, HDF5 is at least version 1.10.2 and allows parallel I/O with zip])
+   fi
+   AC_MSG_CHECKING([whether HDF5 is version 1.10.2 or greater])
+   AC_MSG_RESULT([$ac_cv_func_H5DOread_chunk])
+
+# Check to see if we need to search for and link against szlib.
    if test "x$ac_cv_func_H5Z_SZIP" = xyes; then
       AC_SEARCH_LIBS([SZ_BufftoBuffCompress], [szip sz], [],
       [AC_MSG_ERROR([libhdf5 installed with szip support, but cannot find or link to the szip library.])])
@@ -1500,6 +1508,7 @@ AC_CONFIG_FILES(nc_test4/findplugin.sh:nc_test4/findplugin.in)
 AC_CONFIG_FILES(examples/C/findplugin.sh:nc_test4/findplugin.in)
 AC_CONFIG_FILES(ncdap_test/findtestserver.c:ncdap_test/findtestserver.c.in)
 AC_CONFIG_FILES(dap4_test/findtestserver4.c:ncdap_test/findtestserver.c.in)
+AC_CONFIG_FILES(dap4_test/pingurl4.c:ncdap_test/pingurl.c)
 AC_CONFIG_FILES([nc_test4/run_par_test.sh], [chmod ugo+x nc_test4/run_par_test.sh])
 AC_CONFIG_FILES([nc_perf/run_par_bm_test.sh], [chmod ugo+x nc_perf/run_par_bm_test.sh])
 AC_CONFIG_FILES([examples/C/run_par_test.sh], [chmod ugo+x examples/C/run_par_test.sh])
