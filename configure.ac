@@ -1055,12 +1055,12 @@ if test "x$enable_hdf5" = xyes; then
    AC_MSG_CHECKING([whether parallel io is enabled in hdf5])
    AC_MSG_RESULT([$hdf5_parallel])
 
-   # Check to see if HDF5 library is 1.10.2 or greater. If so, allows parallel_zip.
+   # Check to see if HDF5 library is 1.10.3 or greater. If so, allows parallel_zip.
    if test "x$ac_cv_func_H5Dread_chunk" = xyes; then
-      AC_DEFINE([HDF5_SUPPORTS_PAR_FILTERS], [1], [if true, HDF5 is at least version 1.10.2 and allows parallel I/O with zip])
+      AC_DEFINE([HDF5_SUPPORTS_PAR_FILTERS], [1], [if true, HDF5 is at least version 1.10.3 and allows parallel I/O with zip])
       hdf5_supports_par_filters=yes
    fi
-   AC_MSG_CHECKING([whether HDF5 is version 1.10.2 or greater])
+   AC_MSG_CHECKING([whether HDF5 is version 1.10.3 or greater])
    AC_MSG_RESULT([$ac_cv_func_H5Dread_chunk])
    AC_SUBST([HAS_PAR_FILTERS], [$hdf5_supports_par_filters])
 
