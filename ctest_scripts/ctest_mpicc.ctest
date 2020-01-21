@@ -1,0 +1,49 @@
+###
+# Standard CTest Script for testing netCDF.
+# Requires a CDash Token.
+#
+# Set the CDASH_TOKEN environmental variable.
+#
+###
+
+SET(CTEST_SOURCE_DIRECTORY "..")
+SET(CTEST_BINARY_DIRECTORY ".")
+
+set(CDASH_TOKEN $ENV{CDASH_TOKEN})
+MESSAGE("Using cdash token: ${CDASH_TOKEN}")
+
+
+SITE_NAME(local_site_name)
+set(CTEST_SITE ${local_site_name})
+
+set(CTEST_BUILD_CONFIGURATION "Profiling")
+set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
+set(CTEST_BUILD_NAME "default")
+set(CTEST_BUILD_CONFIGURATION "Profiling")
+set(CTEST_DROP_METHOD "https")
+set(CTEST_DROP_SITE_CDASH TRUE)
+set(CTEST_PROJECT_NAME netcdf-c)
+set(CTEST_COMPILER mpicc)
+
+find_program(CMAKE_COMMAND cmake)
+find_program(CTEST_GIT_COMMAND NAMES git)
+find_program(CTEST_COVERAGE_COMMAND NAMES gcov)
+find_program(CTEST_MEMORYCHECK_COMMAND NAMES valgrind)
+
+set(CTEST_BUILD_OPTIONS "-DENABLE_COVERAGE_TESTS=TRUE -DENABLE_ERANGE_FILL=TRUE -DENABLE_LOGGING=TRUE -DENABLE_BYTERANGE=TRUE -DENABLE_LARGE_FILE_TESTS=FALSE -DCMAKE_C_COMPILER=${CTEST_COMPILER}")
+
+
+set(CTEST_DROP_METHOD https)
+set(CTEST_DROP_SITE "cdash.unidata.ucar.edu:443")
+set(CTEST_DROP_LOCATION "/submit.php?project=netcdf-c")
+
+set(CTEST_CONFIGURE_COMMAND "${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE:STRING=${CTEST_BUILD_CONFIGURATION} ${CTEST_BUILD_OPTIONS} ${CTEST_SOURCE_DIRECTORY}")
+
+ctest_start("Experimental")
+ctest_configure()
+ctest_build()
+ctest_test()
+ctest_coverage()
+if (NOT "${CDASH_TOKEN}" STREQUAL "")
+   ctest_submit(HTTPHEADER "Authorization: Bearer ${CDASH_TOKEN}")
+endif()

@@ -19,7 +19,7 @@ The way that this is tests is to establish two servlets running
 under a Tomcat server on some machine with a known IP address
 or DNS name. For example, accessing this URL.
 ````
-http://149.165.169.123:8080/dts/
+https://remotetest.unidata.ucar.edu/dts/
 ````
 will bring up a page with a variety of DAP2 accessible files.
 These files are accessed by the netcdf-c test case
@@ -30,7 +30,7 @@ Similarly, the DAP4 test case is
 _netcdf-c/ncdap_test/test_remote.sh_
 and it accesses the test server web page with this URL.
 ````
-http://149.165.169.123:8080/d4ts/
+https://remotetest.unidata.ucar.edu/d4ts/
 ````
 Setting up and Maintaining the test server involves a somewhat complex
 set of tasks. This document shows how to do those tasks.

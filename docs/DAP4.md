@@ -50,13 +50,13 @@ command to see the netCDF Classic translation.
 For example, if a web browser is given the following, this URL
 will return the DMR in XML format for the specified dataset.
 ````
-http://149.165.169.123:8080/d4ts/testfiles/test_one_var.nc.dmr.xml
+https://remotetest.unidata.ucar.edu/d4ts/testfiles/test_one_var.nc.dmr.xml
 ````
 
 Then by using the following ncdump command, it is possible to see the
 equivalent netCDF enhanced translation.
 ````
-ncdump -h http://149.165.169.123:8080/d4ts/testfiles/test_one_var.nc#dap4
+ncdump -h https://remotetest.unidata.ucar.edu/d4ts/testfiles/test_one_var.nc#dap4
 ````
 Note the use of the "dap4" fragment added at the end. This tells the netCDF
 library to use the DAP4 protocol instead of the default DAP2 protocol.
