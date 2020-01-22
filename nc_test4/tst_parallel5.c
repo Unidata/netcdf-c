@@ -1,8 +1,7 @@
 /* Copyright 2018, UCAR/Unidata See COPYRIGHT file for copying and
  * redistribution conditions.
  *
- * This program tests netcdf-4 parallel I/O. In this test I write data
- * on one task, while writing 0 items on others.
+ * This program tests netcdf-4 parallel I/O.
  *
  * Ed Hartnett
  */
@@ -311,6 +310,55 @@ main(int argc, char **argv)
     }
     if (!mpi_rank)
         SUMMARIZE_ERR;
+#ifdef USE_SZIP
+#ifdef HDF5_SUPPORTS_PAR_FILTERS
+#define SZIP_DIM_LEN 256
+#define SZIP_DIM_NAME "Barrels"
+#define SZIP_VAR_NAME "Best_Sligo_Rags"
+#define SZIP_PIXELS_PER_BLOCK 32
+    if (!mpi_rank)
+        printf("*** testing szip compression with parallel I/O...");
+    {
+        int ncid, dimid, varid;
+        float *data;
+        float *data_in;
+        int elements_per_pe = SZIP_DIM_LEN/mpi_size;
+        size_t start[NDIMS1], count[NDIMS1];
+        int i;
+
+        /* Create test data. */
+        if (!(data = malloc(elements_per_pe * sizeof(float)))) ERR;
+        for (i = 0; i < elements_per_pe; i++)
+            data[i] = mpi_rank + i * 0.1;
+
+        /* Crate a file with a scalar NC_BYTE value. */
+        if (nc_create_par(FILE, NC_NETCDF4, MPI_COMM_WORLD, MPI_INFO_NULL,
+                          &ncid)) ERR;
+        if (nc_def_dim(ncid, SZIP_DIM_NAME, SZIP_DIM_LEN, &dimid)) ERR;
+        if (nc_def_var(ncid, SZIP_VAR_NAME, NC_FLOAT, NDIMS1, &dimid, &varid)) ERR;
+        if (nc_def_var_szip(ncid, varid, NC_SZIP_NN, SZIP_PIXELS_PER_BLOCK)) ERR;
+        if (nc_enddef(ncid)) ERR;
+        start[0] = mpi_rank * elements_per_pe;
+        count[0] = elements_per_pe;
+        if (nc_put_vara_float(ncid, varid, start, count, data));
+        if (nc_close(ncid)) ERR;
+
+        /* Reopen the file and check. */
+        if (nc_open_par(FILE, 0, comm, info, &ncid)) ERR;
+        if (!(data_in = malloc(elements_per_pe * sizeof(float)))) ERR;
+        if (nc_get_vara_float(ncid, varid, start, count, data_in));
+        if (nc_close(ncid)) ERR;
+        for (i = 0; i < elements_per_pe; i++)
+            if (data_in[i] != data[i]) ERR;
+
+        /* Release resources. */
+        free(data_in);
+        free(data);
+    }
+    if (!mpi_rank)
+        SUMMARIZE_ERR;
+#endif /* HDF5_SUPPORTS_PAR_FILTERS */
+#endif /* USE_SZIP */
 
     /* Shut down MPI. */
     MPI_Finalize();

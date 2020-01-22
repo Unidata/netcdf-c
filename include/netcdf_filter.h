@@ -18,6 +18,9 @@
 #define H5Z_FILTER_SZIP 4
 #endif
 
+#define NC_SZIP_EC 4  /**< Selects entropy coding method for szip. */
+#define NC_SZIP_NN 32 /**< Selects nearest neighbor coding method for szip. */
+
 /* Define the known filter formats */
 #define NC_FILTER_FORMAT_HDF5 1 /* Use the H5Z_class2_t format */
 
@@ -50,6 +53,9 @@ EXTERNL void NC_filterfix8(unsigned char* mem, int decode);
 EXTERNL int nc_filter_register(NC_FILTER_INFO* filter_info);
 EXTERNL int nc_filter_unregister(int format, int id);
 EXTERNL int nc_filter_inq(int format, int id, NC_FILTER_INFO* filter_info);
+
+/* Set szip compression for a variable. */
+EXTERNL int nc_def_var_szip(int ncid, int varid, int options_mask, int pixels_per_block);
 
 #if defined(__cplusplus)
 }

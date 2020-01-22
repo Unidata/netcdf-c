@@ -210,9 +210,12 @@ typedef struct NC_VAR_INFO
     nc_bool_t dimscale;          /**< True if var is a dimscale */
     nc_bool_t *dimscale_attached;  /**< Array of flags that are true if dimscale is attached for that dim index */
     nc_bool_t deflate;           /**< True if var has deflate filter applied */
-    int deflate_level;
+    int deflate_level;           /**< If deflate is true, this is the deflate level, between 0 and 9. */
     nc_bool_t shuffle;           /**< True if var has shuffle filter applied */
     nc_bool_t fletcher32;        /**< True if var has fletcher32 filter applied */
+    nc_bool_t szip;              /**< True if szip filter is in use. */
+    int options_mask;            /**< Setting for szip filter, NC_SZIP_EC or NC_SZIP_NN. */
+    int pixels_per_block;        /**< Setting for szip filter, even and <= 32. */
     size_t chunk_cache_size, chunk_cache_nelems;
     float chunk_cache_preemption;
     void *format_var_info;       /**< Pointer to any binary format info. */

@@ -907,26 +907,39 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
             BAIL(NC_EHDFERR);
     }
 
-    /* If the user wants to deflate the data, set that up now. */
-    if (var->deflate) {
+    /* If the user wants to compress the data, using either zlib
+     * (a.k.a deflate) or szip, set that up now. Szip can be turned on
+     * either directly with nc_def_var_szip(), or using
+     * nc_def_var_filter() with H5Z_FILTER_SZIP as the id. If the user
+     * has specified a filter, it will be applied here. */
+    if (var->deflate)
+    {
+        /* Turn on zlip compression. */
         if (H5Pset_deflate(plistid, var->deflate_level) < 0)
             BAIL(NC_EHDFERR);
-    } else if(var->filterid) {
-        /* Handle szip case here */
-        if(var->filterid == H5Z_FILTER_SZIP) {
-            int options_mask;
-            int bits_per_pixel;
-            if(var->nparams != 2)
+    }
+    else if (var->szip)
+    {
+        /* Turn on szip compression. */
+        if (H5Pset_szip(plistid, var->options_mask, var->pixels_per_block) < 0)
+            BAIL(NC_EFILTER);
+    }
+    else if(var->filterid)
+    {
+        /* Handle szip set via nc_def_var_filter() case here. */
+        if (var->filterid == H5Z_FILTER_SZIP)
+        {
+            if (var->nparams != 2)
                 BAIL(NC_EFILTER);
-            options_mask = (int)var->params[0];
-            bits_per_pixel = (int)var->params[1];
-            if(H5Pset_szip(plistid, options_mask, bits_per_pixel) < 0)
+            if (H5Pset_szip(plistid, (int)var->params[0], (int)var->params[1]) < 0)
                 BAIL(NC_EFILTER);
-        } else {
-            herr_t code = H5Pset_filter(plistid, var->filterid, H5Z_FLAG_MANDATORY, var->nparams, var->params);
-            if(code < 0) {
+        }
+        else
+        {
+            /* There is a filter that is not szip. Apply it. */
+            if (H5Pset_filter(plistid, var->filterid, H5Z_FLAG_MANDATORY, var->nparams,
+                              var->params) < 0)
                 BAIL(NC_EFILTER);
-            }
         }
     }
 
@@ -954,7 +967,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
         /* If there are no unlimited dims, and no filters, and the user
          * has not specified chunksizes, use contiguous variable for
          * better performance. */
-        if (!var->shuffle && !var->deflate && !var->fletcher32 &&
+        if (!var->shuffle && !var->deflate && !var->szip && !var->fletcher32 &&
             (var->chunksizes == NULL || !var->chunksizes[0]) && !unlimdim)
             var->contiguous = NC_TRUE;
 
