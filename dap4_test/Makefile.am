@@ -70,7 +70,7 @@ CLEANFILES = *.exe
 # This should only be left behind if using parallel io
 CLEANFILES += tmp_*
 
-DISTCLEANFILES = findtestserver4.c
+DISTCLEANFILES = findtestserver4.c pingurl4.c
 
 # One last thing
 BUILT_SOURCES = .daprc
