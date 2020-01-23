@@ -1038,6 +1038,13 @@ if test "x$enable_hdf5" = xyes; then
 
    AC_CHECK_HEADERS([hdf5.h], [], [AC_MSG_ERROR([Compiling a test with HDF5 failed.  Either hdf5.h cannot be found, or config.log should be checked for other reason.])])
 
+   # Was HDF5 built with zlib as netCDF requires?
+   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include "H5pubconf.h"],
+   [[#if !H5_HAVE_ZLIB_H
+   # error
+   #endif]
+   ])], [], [AC_MSG_ERROR([HDF5 was not built with zlib, which is required. Rebuild HDF5 with zlib.])])
+
    # H5Pset_fapl_mpiposix and H5Pget_fapl_mpiposix have been removed since HDF5 1.8.12.
    # Use H5Pset_fapl_mpio and H5Pget_fapl_mpio, instead.
    AC_CHECK_FUNCS([H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5free_memory H5resize_memory H5allocate_memory H5Pset_libver_bounds H5Pset_all_coll_metadata_ops H5Z_SZIP H5Dread_chunk])
