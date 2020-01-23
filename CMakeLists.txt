@@ -778,6 +778,17 @@ FIND_PACKAGE(CURL)
 ADD_DEFINITIONS(-DCURL_STATICLIB=1)
 INCLUDE_DIRECTORIES(${CURL_INCLUDE_DIRS})
 
+# Check to ensure that HDF5 was built with zlib.
+CHECK_C_SOURCE_COMPILES("
+#include <H5pubconf.h>
+int main() {#if !H5_HAVE_ZLIB_H
+kkkk
+#endif
+int x = 1;}" HAVE_HDF5_ZLIB)
+IF(NOT HAVE_HDF5_ZLIB)
+    MESSAGE(FATAL_ERROR "HDF5 was built without zlib. Rebuild HDF5 with zlib.")
+ENDIF()
+
 # Check to see if CURLOPT_USERNAME is defined.
 # It is present starting version 7.19.1.
 CHECK_C_SOURCE_COMPILES("
