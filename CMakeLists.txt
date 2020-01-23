@@ -751,6 +751,16 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
 	SET(HDF5_CC h5cc)
   ENDIF()
 
+  # Check to ensure that HDF5 was built with zlib.
+  CHECK_C_SOURCE_COMPILES("#include <H5pubconf.h>
+   int main() {#if !H5_HAVE_ZLIB_H
+   #error
+   #endif
+   int x = 1;}" HAVE_HDF5_ZLIB)
+  IF(NOT HAVE_HDF5_ZLIB)
+    MESSAGE(FATAL_ERROR "HDF5 was built without zlib. Rebuild HDF5 with zlib.")
+  ENDIF()
+
   # Check to see if this is hdf5-1.10.3 or later.
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Dread_chunk "" HDF5_SUPPORTS_PAR_FILTERS)
 
@@ -777,17 +787,6 @@ ENDIF(USE_HDF5 OR ENABLE_NETCDF_4)
 FIND_PACKAGE(CURL)
 ADD_DEFINITIONS(-DCURL_STATICLIB=1)
 INCLUDE_DIRECTORIES(${CURL_INCLUDE_DIRS})
-
-# Check to ensure that HDF5 was built with zlib.
-CHECK_C_SOURCE_COMPILES("
-#include <H5pubconf.h>
-int main() {#if !H5_HAVE_ZLIB_H
-kkkk
-#endif
-int x = 1;}" HAVE_HDF5_ZLIB)
-IF(NOT HAVE_HDF5_ZLIB)
-    MESSAGE(FATAL_ERROR "HDF5 was built without zlib. Rebuild HDF5 with zlib.")
-ENDIF()
 
 # Check to see if CURLOPT_USERNAME is defined.
 # It is present starting version 7.19.1.
