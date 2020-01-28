@@ -8,8 +8,8 @@
 #ifndef NCHTTP_H
 #define NCHTTP_H
 
-extern int nc_http_open(const char* objecturl, void** curlp, fileoffset_t* filelenp);
-extern int nc_http_read(void* curl, const char* url, fileoffset_t start, fileoffset_t count, NCbytes* buf);
+extern int nc_http_open(const char* objecturl, void** curlp, size64_t* filelenp);
+extern int nc_http_read(void* curl, const char* url, size64_t start, size64_t count, NCbytes* buf);
 extern int nc_http_close(void* curl);
 
 #endif /*NCHTTP_H*/

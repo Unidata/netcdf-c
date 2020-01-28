@@ -1379,6 +1379,9 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
     /* Indicate that the variable has a pointer to the type */
     var->type_info->rc++;
 
+    /* Transfer endianness */
+    var->endianness = var->type_info->endianness; 
+
 exit:
     if (finalname)
         free(finalname);
@@ -2184,6 +2187,7 @@ nc4_read_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
  * @returns ::NC_NOERR No error.
  * @return ::NC_EHDFERR HDF5 returned error.
  * @author Ed Hartnett
+ * [Candidate for libsrc4]
  */
 static int
 read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,

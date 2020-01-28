@@ -65,7 +65,7 @@ Trace(const char* fcn)
 */
 
 int
-nc_http_open(const char* objecturl, void** curlp, long long* filelenp)
+nc_http_open(const char* objecturl, void** curlp, size64_t* filelenp)
 {
     int stat = NC_NOERR;
     CURL* curl = NULL;
@@ -130,7 +130,7 @@ Assume URL etc has already been set.
 */
 
 int
-nc_http_read(CURL* curl, const char* objecturl, fileoffset_t start, fileoffset_t count, NCbytes* buf)
+nc_http_read(CURL* curl, const char* objecturl, size64_t start, size64_t count, NCbytes* buf)
 {
     int stat = NC_NOERR;
     char range[64];

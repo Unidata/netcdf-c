@@ -1,0 +1,2 @@
+Test{R=1 dimlen=(4) chunklen=(2) slices=[0:4]}
+	SliceIndex{chunk0=0,nchunks=2,count=4,projections=[Projection{chunkindex=0,offset=0,limit=2,last=1,len=2,outpos=0,slices={Slice{0:2}}}Projection{chunkindex=1,offset=2,limit=4,last=1,len=2,outpos=2,slices={Slice{0:2}}}]}

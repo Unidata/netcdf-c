@@ -96,23 +96,24 @@ take URLs are included.
 static struct FORMATMODES {
     const char* tag;
     const int impl; /* NC_FORMATX_XXX value */
+    const int format; /* NC_FORMAT_XXX value */
 } formatmodes[] = {
-{"dap2",NC_FORMATX_DAP2},
-{"dap4",NC_FORMATX_DAP4},
-{"netcdf-3",NC_FORMATX_NC3},
-{"classic",NC_FORMATX_NC3},
-{"netcdf-4",NC_FORMATX_NC4},
-{"enhanced",NC_FORMATX_NC4},
-{"udf0",NC_FORMATX_UDF0},
-{"udf1",NC_FORMATX_UDF1},
-{"zarr",NC_FORMATX_ZARR},
+{"dap2",NC_FORMATX_DAP2,NC_FORMAT_CLASSIC},
+{"dap4",NC_FORMATX_DAP4,NC_FORMAT_NETCDF4},
+{"netcdf-3",NC_FORMATX_NC3,0}, /* Might be e.g. cdf5 */
+{"classic",NC_FORMATX_NC3,0}, /* ditto */
+{"netcdf-4",NC_FORMATX_NC4,NC_FORMAT_NETCDF4},
+{"enhanced",NC_FORMATX_NC4,NC_FORMAT_NETCDF4},
+{"udf0",NC_FORMATX_UDF0,NC_FORMAT_NETCDF4},
+{"udf1",NC_FORMATX_UDF1,NC_FORMAT_NETCDF4},
+{"nczarr",NC_FORMATX_NCZARR,NC_FORMAT_NETCDF4},
 {NULL,0},
 };
 
 /* Define the legal singleton mode tags;
    thse should also appear in the above mode table. */
 static const char* modesingles[] = {
-    "dap2", "dap4", "bytes", "zarr", NULL
+    "dap2", "dap4", "bytes", "nczarr", NULL
 };
 
 /* Map FORMATX to readability to get magic number */
@@ -128,7 +129,7 @@ static struct Readable {
 {NC_FORMATX_DAP4,0},
 {NC_FORMATX_UDF0,0},
 {NC_FORMATX_UDF1,0},
-{NC_FORMATX_ZARR,0},
+{NC_FORMATX_NCZARR,0}, /* eventually make readable */
 {0,0},
 };
 
@@ -354,7 +355,7 @@ list2string(NClist* modelist)
     return result;
 }
 
-/* Given a mode= argument, fill in the impl and possibly mode flags */
+/* Given a mode= argument, fill in the impl */
 static int
 processmodearg(const char* arg, NCmodel* model)
 {
@@ -362,10 +363,10 @@ processmodearg(const char* arg, NCmodel* model)
     struct FORMATMODES* format = formatmodes;
     for(;format->tag;format++) {
 	if(strcmp(format->tag,arg)==0) {
-	    model->impl = format->impl;
+            model->impl = format->impl;
+	    if(format->format != 0) model->format = format->format;
 	}
     }
-
     return check(stat);
 }
 
@@ -531,29 +532,33 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
     if(!modelcomplete(model))
 	{stat = NC_ENOTNC; goto done;}
 
-	    /* Force flag consistency */
+    /* Force flag consistency */
     switch (model->impl) {
     case NC_FORMATX_NC4:
     case NC_FORMATX_NC_HDF4:
     case NC_FORMATX_DAP4:
     case NC_FORMATX_UDF0:
     case NC_FORMATX_UDF1:
+    case NC_FORMATX_NCZARR:
+	/* Check for illegal flags */
+	if((omode & (NC_64BIT_OFFSET|NC_64BIT_DATA)) != 0) {stat = NC_EINVAL; goto done;}
 	omode |= NC_NETCDF4;
 	if(model->format == NC_FORMAT_NETCDF4_CLASSIC)
 	    omode |= NC_CLASSIC_MODEL;
 	break;
     case NC_FORMATX_NC3:
-	omode &= ~NC_NETCDF4; /* must be netcdf-3 (CDF-1, CDF-2, CDF-5) */
+	if((omode & (NC_NETCDF4)) != 0) {stat = NC_EINVAL; goto done;}
 	if(model->format == NC_FORMAT_64BIT_OFFSET) omode |= NC_64BIT_OFFSET;
 	else if(model->format == NC_FORMAT_64BIT_DATA) omode |= NC_64BIT_DATA;
 	break;
     case NC_FORMATX_PNETCDF:
-	omode &= ~NC_NETCDF4; /* must be netcdf-3 (CDF-1, CDF-2, CDF-5) */
+	if((omode & (NC_NETCDF4)) != 0) {stat = NC_EINVAL; goto done;}
 	if(model->format == NC_FORMAT_64BIT_OFFSET) omode |= NC_64BIT_OFFSET;
 	else if(model->format == NC_FORMAT_64BIT_DATA) omode |= NC_64BIT_DATA;
 	break;
     case NC_FORMATX_DAP2:
-	omode &= ~(NC_NETCDF4|NC_64BIT_OFFSET|NC_64BIT_DATA|NC_CLASSIC_MODEL);
+	if((omode & (NC_NETCDF4|NC_64BIT_OFFSET|NC_64BIT_DATA|NC_CLASSIC_MODEL)) != 0)
+	    {stat = NC_EINVAL; goto done;}
 	break;
     default:
 	{stat = NC_ENOTNC; goto done;}

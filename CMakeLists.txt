@@ -837,6 +837,12 @@ ELSE()
   SET(ENABLE_DAP4 OFF)
 ENDIF()
 
+# Option to Build NCZarr Clients
+OPTION(ENABLE_NCZARR "Enable NCZARR storage format." OFF)
+IF(NOT ENABLE_NETCDF_4)
+  SET(ENABLE_NCZARR OFF CACHE BOOL "")
+ENDIF(NOT ENABLE_NETCDF_4)
+
 # Option to support byte-range reading of remote datasets
 OPTION(ENABLE_BYTERANGE "Enable byte-range access to remote datasets.." OFF)
 
@@ -845,7 +851,7 @@ IF(NOT CURL_LIBRARY)
     MESSAGE(FATAL_ERROR "Byte-range support specified, CURL libraries are not found.")
   ENDIF()
 
-  IF(ENABLE_DAP2 OR ENABLE_DAP4)
+  IF(ENABLE_DAP2 OR ENABLE_DAP4 OR ENABLE_NCZARR)
     MESSAGE(FATAL_ERROR "DAP support specified, CURL libraries are not found.")
   ENDIF()
 ENDIF()
@@ -1593,6 +1599,7 @@ MACRO(print_conf_summary)
   MESSAGE(STATUS "Building DAP2 Support:         ${ENABLE_DAP2}")
   MESSAGE(STATUS "Building DAP4 Support:         ${ENABLE_DAP4}")
   MESSAGE(STATUS "Building Byte-range Support:   ${ENABLE_BYTERANGE}")
+  MESSAGE(STATUS "Building NCZARR Support:       ${ENABLE_NCZARR}")
   MESSAGE(STATUS "Building Utilities:            ${BUILD_UTILITIES}")
   IF(CMAKE_PREFIX_PATH)
     MESSAGE(STATUS "CMake Prefix Path:             ${CMAKE_PREFIX_PATH}")
@@ -1745,6 +1752,10 @@ IF(ENABLE_DAP4)
   ADD_SUBDIRECTORY(libdap4)
 ENDIF()
 
+IF(ENABLE_NCZARR)
+add_subdirectory(libnczarr)
+ENDIF()
+
 add_subdirectory(liblib)
 
 IF(ENABLE_FILTER_TESTING)
@@ -1784,6 +1795,9 @@ IF(ENABLE_TESTS)
   ENDIF()
   IF(ENABLE_DAP4)
     ADD_SUBDIRECTORY(dap4_test)
+  ENDIF()
+  IF(ENABLE_NCZARR)
+    ADD_SUBDIRECTORY(nczarr_test)
   ENDIF()
   IF(ENABLE_EXAMPLES)
     ADD_SUBDIRECTORY(examples)
@@ -1960,6 +1974,7 @@ is_enabled(ENABLE_ZERO_LENGTH_COORD_BOUND RELAX_COORD_BOUND)
 is_enabled(USE_CDF5 HAS_CDF5)
 is_enabled(ENABLE_ERANGE_FILL HAS_ERANGE_FILL)
 is_enabled(HDF5_HAS_PAR_FILTERS HAS_PAR_FILTERS)
+is_enabled(ENABLE_NCZARR HAS_NCZARR)
 
 # Generate file from template.
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"

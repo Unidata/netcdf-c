@@ -30,8 +30,10 @@
 #define NC_EMPTY_SCALE "NC_EMPTY_SCALE"
 
 /* This is an attribute I had to add to handle multidimensional
- * coordinate variables. */
-#define COORDINATES "_Netcdf4Coordinates"
+ * coordinate variables. See nc4internal.h:NC_ATT_COORDINATES.
+ * in nc4internal.h.
+ */
+#define COORDINATES NC_ATT_COORDINATES
 #define COORDINATES_LEN (NC_MAX_NAME * 5)
 
 /* This is used when the user defines a non-coordinate variable with
@@ -40,17 +42,17 @@
 
 /* An attribute in the HDF5 root group of this name means that the
  * file must follow strict netCDF classic format rules. */
-#define NC3_STRICT_ATT_NAME "_nc3_strict"
+#define NC3_STRICT_ATT_NAME NC_ATT_NC3_STRICT_NAME
 
 /* If this attribute is present on a dimscale variable, use the value
  * as the netCDF dimid. */
-#define NC_DIMID_ATT_NAME "_Netcdf4Dimid"
+#define NC_DIMID_ATT_NAME NC_ATT_DIMID_NAME /*See nc4internal.h*/
 
 /** This is the name of the class HDF5 dimension scale attribute. */
-#define HDF5_DIMSCALE_CLASS_ATT_NAME "CLASS"
+#define HDF5_DIMSCALE_CLASS_ATT_NAME NC_ATT_CLASS /*See nc4internal.h*/
 
 /** This is the name of the name HDF5 dimension scale attribute. */
-#define HDF5_DIMSCALE_NAME_ATT_NAME "NAME"
+#define HDF5_DIMSCALE_NAME_ATT_NAME NC_ATT_NAME
 
 /** Define Filter API Operations */
 #define FILTER_REG   1

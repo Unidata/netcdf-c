@@ -1,0 +1,6 @@
+netcdf t_ncgen {
+dimensions:
+	dim1 = 1 ;
+variables:
+	int var1 ;
+}
