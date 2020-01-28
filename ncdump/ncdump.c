@@ -158,7 +158,7 @@ name_path(const char *path)
 #ifdef vms
 #define FILE_DELIMITER ']'
 #endif
-#if defined(WIN32) || defined(msdos)
+#if defined(_WIN32) || defined(msdos)
 #define FILE_DELIMITER '\\'
 #endif
 #ifndef FILE_DELIMITER /* default to unix */
@@ -2160,7 +2160,7 @@ main(int argc, char *argv[])
 
     errmsg[0] = '\0';
 
-#if defined(WIN32) || defined(msdos) || defined(WIN64)
+#if defined(_WIN32) || defined(msdos) || defined(WIN64)
     putenv("PRINTF_EXPONENT_DIGITS=2"); /* Enforce unix/linux style exponent formatting. */
 #endif
 
