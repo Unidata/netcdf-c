@@ -8,6 +8,10 @@ This file contains a high-level description of this package's evolution. Release
 ## 4.7.4 - TBD
 
 * [Enhancement] Increased default size of cache buffer to 16 MB, from 4 MB. Increased number of slots to 4133. See [https://github.com/Unidata/netcdf-c/issues/1541].
+* [Enhancement] Allow zlib compression to be used with parallel I/O writes, if HDF5 version is 1.10.3 or greater. See [https://github.com/Unidata/netcdf-c/issues/1580].
+* [Enhancement] Restore use of szip compression when writing data (including writing in parallel if HDF5 version is 1.10.3 or greater). See [https://github.com/Unidata/netcdf-c/issues/1546].
+* [Enhancement] Enable use of compact storage option for small vars in netCDF/HDF5 files. See [https://github.com/Unidata/netcdf-c/issues/1570].
+* [Enhancement] Updated benchmarking program bm_file.c to better handle very large files. See [https://github.com/Unidata/netcdf-c/issues/1555].
 
 ## 4.7.3 - November 20, 2019
 
