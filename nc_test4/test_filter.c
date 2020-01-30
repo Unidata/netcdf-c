@@ -191,7 +191,7 @@ test_bzip2(void)
     CHECK(nc_def_var(ncid, "var", NC_FLOAT, actualdims, dimids, &varid));
 
     /* This attempt to set filter fails, because the var is
-     * contiguous. */
+     * contiguous by default. */
     if(nc_def_var_filter(ncid,varid,BZIP2_ID,1,&level) != NC_EINVAL)
         return NC_EINVAL;
 
