@@ -190,6 +190,11 @@ test_bzip2(void)
     /* Define the variable */
     CHECK(nc_def_var(ncid, "var", NC_FLOAT, actualdims, dimids, &varid));
 
+    /* This attempt to set filter fails, because the var is
+     * contiguous. */
+    if(nc_def_var_filter(ncid,varid,BZIP2_ID,1,&level) != NC_EINVAL)
+        return NC_EINVAL;
+
     /* Set chunking on the variable */
     CHECK(nc_def_var_chunking(ncid,varid,NC_CHUNKED,chunks));
 

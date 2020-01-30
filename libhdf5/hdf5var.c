@@ -1213,6 +1213,10 @@ NC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
     if (var->created)
         return NC_ELATEDEF;
 
+    /* Filters can only be applied to chunked data. */
+    if (var->contiguous || var->compact)
+        return NC_EINVAL;
+
     /* Can't turn on parallel and filter (for now). */
     if (h5->parallel == NC_TRUE)
         return NC_EINVAL;
