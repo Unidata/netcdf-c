@@ -1585,6 +1585,7 @@ main(int argc, char **argv)
     {
         int ncid, varid, dimid;
         float data[SZIP_DIM_LEN];
+        int options_mask;
         int i;
 
         /* Create data. */
@@ -1595,13 +1596,19 @@ main(int argc, char **argv)
         if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
         if (nc_def_dim(ncid, SZIP_DIM_NAME, SZIP_DIM_LEN, &dimid)) ERR;
         if (nc_def_var(ncid, SZIP_VAR_NAME, NC_FLOAT, 1, &dimid, &varid)) ERR;
+
+        /* Works but does nothing. */
+        if (nc_inq_var_szip(ncid, 0, NULL, NULL)) ERR;
+
+        /* Allows us to tell that szip is not on. */
+        if (nc_inq_var_szip(ncid, 0, &options_mask, NULL)) ERR;
+        if (options_mask != 0) ERR;
+
         if (nc_enddef(ncid)) ERR;
         if (nc_put_var(ncid, varid, data)) ERR;
         if (nc_close(ncid)) ERR;
 
         {
-            int options_mask;
-
             /* Open the file and check. */
             if (nc_open(FILE_NAME2, NC_WRITE, &ncid)) ERR;
 
