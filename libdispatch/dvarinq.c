@@ -660,33 +660,34 @@ nc_inq_var_filter(int ncid, int varid, unsigned int* idp, size_t* nparamsp, unsi
       idp, nparamsp, params);
 }
 
-/** \ingroup variables
+/**
+\ingroup variables
 Learn the szip settings of a variable.
-Similar to nc_inq_var_deflate.
 
-This function returns the szip settings for a variable.
-With the introduction of general filter support,
-szip inquiry is converted to use the filter interface.
-
-This is a wrapper for nc_inq_var_filter().
+This function returns the szip settings for a variable. For more
+information on HDF5 and szip see
+https://support.hdfgroup.org/HDF5/doc/RM/RM_H5P.html#Property-SetSzip
+and https://support.hdfgroup.org/doc_resource/SZIP/index.html.
 
 \param ncid NetCDF or group ID, from a previous call to nc_open(),
 nc_create(), nc_def_grp(), or associated inquiry functions such as
 nc_inq_ncid().
-
 \param varid Variable ID
-
 \param options_maskp The szip options mask will be copied to this
-pointer. \ref ignored_if_null.
-
+pointer. Note that the HDF5 layer modifies the options_mask, so this
+value will be different from the value used when setting szip
+compression. \ref ignored_if_null.
 \param pixels_per_blockp The szip pixels per block will be copied
-here. \ref ignored_if_null.
+here. The HDF5 layer may change this value, so this may not match the
+value passed in when setting szip compression. \ref ignored_if_null.
 
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Bad ncid.
 \returns ::NC_ENOTNC4 Not a netCDF-4 file.
 \returns ::NC_ENOTVAR Invalid variable ID.
 \returns ::NC_EFILTER Variable is not szip encoded
+
+\author Ed Hartnett, Dennis Heimbigner
 */
 int
 nc_inq_var_szip(int ncid, int varid, int *options_maskp, int *pixels_per_blockp)
