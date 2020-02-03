@@ -676,7 +676,8 @@ nc_inq_ncid().
 \param options_maskp The szip options mask will be copied to this
 pointer. Note that the HDF5 layer modifies the options_mask, so this
 value will be different from the value used when setting szip
-compression. \ref ignored_if_null.
+compression. If a zero is returned, then szip compression is not in
+use for this var. \ref ignored_if_null.
 \param pixels_per_blockp The szip pixels per block will be copied
 here. The HDF5 layer may change this value, so this may not match the
 value passed in when setting szip compression. \ref ignored_if_null.
@@ -723,8 +724,17 @@ nc_inq_var_szip(int ncid, int varid, int *options_maskp, int *pixels_per_blockp)
       NULL
       );
    if(stat != NC_NOERR) return stat;
+
+   /* If ID is not szip, then szip is not in use. */
+   if(id != H5Z_FILTER_SZIP)
+   {
+       if(options_maskp)
+           *options_maskp = 0;
+       return NC_NOERR;
+   }
+
    /* Warning: the szip filter internally expands the set of parameters */
-   if(id != H5Z_FILTER_SZIP || nparams != 4)
+   if(id == H5Z_FILTER_SZIP && nparams != 4)
 	return NC_EFILTER; /* not szip or bad # params */
    /* Get params */
    stat = ncp->dispatch->inq_var_all(
