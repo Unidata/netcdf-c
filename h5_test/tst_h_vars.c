@@ -420,6 +420,11 @@ main()
         hsize_t my_dims[NDIM1];
         int i;
 
+        /* For info about HDF5 and szip, see
+         * https://support.hdfgroup.org/HDF5/doc/RM/RM_H5P.html#Property-SetSzip
+         * and
+         * https://support.hdfgroup.org/doc_resource/SZIP/index.html. */
+
         for (i = 0; i < SZIP_DIM1_LEN; i++)
             data[i] = i;
 
