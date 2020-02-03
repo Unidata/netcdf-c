@@ -1578,5 +1578,47 @@ main(int argc, char **argv)
 
     }
     SUMMARIZE_ERR;
+    printf("**** testing szip inq functions...");
+    {
+        int cmode = 0;
+        int schar_data = 0;
+        size_t index[1] = {0};
+        int expected_ret;
+        int dimid;
+
+        /* Determined the expected result of setting fill value
+         * late. For historical reasons this is allowed for classic
+         * and 64-bit offset formats, but should never be done. */
+        if (cmode == 0 || cmode == NC_64BIT_OFFSET)
+            expected_ret = NC_NOERR;
+        else
+            expected_ret = NC_ELATEFILL;
+
+        /* Create a netcdf-4 file with one scalar var. Add fill
+         * value. */
+        if (nc_create(FILE_NAME2, cmode, &ncid)) ERR;
+        if (nc_def_dim(ncid, VAR_NAME, TEST_VAL_42, &dimid)) ERR;
+        if (nc_def_var(ncid, VAR_NAME, NC_BYTE, 1, &dimid, &varid)) ERR;
+        if (nc_put_att_schar(ncid, varid, _FillValue, NC_BYTE, 1, &fill_value)) ERR;
+        if (nc_enddef(ncid)) ERR;
+        if (nc_put_var1(ncid, varid, index, &schar_data)) ERR;
+        if (nc_redef(ncid)) ERR;
+        if (nc_put_att_schar(ncid, varid, _FillValue, NC_BYTE, 1,
+                             &fill_value) != expected_ret) ERR;
+        if (nc_close(ncid)) ERR;
+
+        /* Open the file and check. */
+        if (nc_open(FILE_NAME2, NC_WRITE, &ncid)) ERR;
+        if (nc_inq_varids(ncid, &nvars_in, varids_in)) ERR;
+        if (nvars_in != 1 || varids_in[0] != 0) ERR;
+        if (nc_inq_varname(ncid, 0, name_in)) ERR;
+        if (strcmp(name_in, VAR_NAME)) ERR;
+        if (nc_inq_att(ncid, varid, _FillValue, &xtype_in, &len_in)) ERR;
+        if (xtype_in != NC_BYTE || len_in != 1) ERR;
+        if (nc_get_att(ncid, varid, _FillValue, &fill_value_in)) ERR;
+        if (fill_value_in != fill_value) ERR;
+        if (nc_close(ncid)) ERR;
+    }
+    SUMMARIZE_ERR;
     FINAL_RESULTS;
 }
