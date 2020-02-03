@@ -1584,10 +1584,7 @@ main(int argc, char **argv)
     printf("**** testing szip inq functions (but szip not required for these tests) ...");
     {
         int ncid, varid, dimid;
-        int cmode = 0;
         float data[SZIP_DIM_LEN];
-        size_t index[1] = {0};
-        int dimid;
         int i;
 
         /* Create data. */
