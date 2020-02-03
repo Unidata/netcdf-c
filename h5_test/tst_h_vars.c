@@ -461,55 +461,27 @@ main()
             H5Fclose(fileid) < 0)
             ERR;
 
-        /* /\* Now reopen the file and check. *\/ */
-        /* int data[SZIP_DIM1_LEN], data_in[SZIP_DIM1_LEN]; */
-        /* hid_t typeid, native_typeid; */
-        /* hid_t native_did; */
-        /* H5T_order_t order; */
-        /* htri_t equal; */
-        /* int i; */
+        {
+            /* Now reopen the file and check. */
+            int data_in[SZIP_DIM1_LEN];
+            hid_t native_did;
+            int i;
 
-        /* if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) ERR; */
-        /* if ((grpid = H5Gopen(fileid, GRP_NAME)) < 0) ERR; */
+            if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) ERR;
+            if ((grpid = H5Gopen(fileid, GRP_NAME)) < 0) ERR;
 
-        /* if ((native_did = H5Dopen1(grpid, NATIVE_VAR_NAME)) < 0) ERR; */
-        /* if ((typeid = H5Dget_type(native_did)) < 0) ERR; */
-        /* if ((native_typeid = H5Tget_native_type(typeid, H5T_DIR_DESCEND)) < 0) ERR; */
-        /* if ((order = H5Tget_order(typeid)) < 0) ERR; */
-        /* if ((equal = H5Tequal(typeid, native_typeid)) < 0) ERR; */
-        /* if (!equal) ERR; */
+            if ((native_did = H5Dopen1(grpid, SZIP_VAR_NAME)) < 0) ERR;
 
-        /* if (H5Dread(native_did, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, */
-        /*             data_in) < 0) ERR; */
-        /* for (i = 0; i < SZIP_DIM1_LEN; i++) */
-        /*     if (data[i] != data_in[i]) ERR; */
+            if (H5Dread(native_did, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT,
+                        data_in) < 0) ERR;
+            for (i = 0; i < SZIP_DIM1_LEN; i++)
+                if (data[i] != data_in[i]) ERR;
 
-        /* if ((le_did = H5Dopen1(grpid, LE_VAR_NAME)) < 0) ERR; */
-        /* if ((typeid = H5Dget_type(le_did)) < 0) ERR; */
-        /* if ((order = H5Tget_order(typeid)) < 0) ERR; */
-        /* if (order != H5T_ORDER_LE) ERR; */
-
-        /* if (H5Dread(le_did, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, */
-        /*             data_in) < 0) ERR; */
-        /* for (i = 0; i < SZIP_DIM1_LEN; i++) */
-        /*     if (data[i] != data_in[i]) ERR; */
-
-        /* if ((be_did = H5Dopen1(grpid, BE_VAR_NAME)) < 0) ERR; */
-        /* if ((typeid = H5Dget_type(be_did)) < 0) ERR; */
-        /* if ((order = H5Tget_order(typeid)) < 0) ERR; */
-        /* if (order != H5T_ORDER_BE) ERR; */
-
-        /* if (H5Dread(be_did, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, */
-        /*             data_in) < 0) ERR; */
-        /* for (i = 0; i < SZIP_DIM1_LEN; i++) */
-        /*     if (data[i] != data_in[i]) ERR; */
-
-        /* if (H5Dclose(native_did) < 0 || */
-        /*     H5Dclose(le_did) < 0 || */
-        /*     H5Dclose(be_did) < 0 || */
-        /*     H5Gclose(grpid) < 0 || */
-        /*     H5Fclose(fileid) < 0) */
-        /*     ERR; */
+            if (H5Dclose(native_did) < 0 ||
+                H5Gclose(grpid) < 0 ||
+                H5Fclose(fileid) < 0)
+                ERR;
+        }
     }
     SUMMARIZE_ERR;
 #endif /* USE_SZIP */
