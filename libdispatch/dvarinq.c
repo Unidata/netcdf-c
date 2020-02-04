@@ -730,8 +730,8 @@ nc_inq_var_szip(int ncid, int varid, int *options_maskp, int *pixels_per_blockp)
       );
    if(stat != NC_NOERR) return stat;
    /* Warning: the szip filter internally expands the set of parameters */
-   if(id != H5Z_FILTER_SZIP || nparams != 4)
-	return NC_EFILTER; /* not szip or bad # params */
+   if(id != H5Z_FILTER_SZIP || (nparams != 4 && nparams !=2))
+        return NC_EFILTER; /* not szip or bad # params */
    /* Get params */
    stat = ncp->dispatch->inq_var_all(
       ncid, varid,
