@@ -481,6 +481,8 @@ main(int argc, char **argv)
         /* Add a var. Turn on szip filter. */
         if (nc_def_var(ncid, V_SMALL, NC_INT64, NDIMS1, &dimid, &varid)) ERR;
         if (nc_def_var_szip(ncid, varid, NC_SZIP_NN_OPTION_MASK, NC_SZIP_EC_BPP_IN)) ERR;
+        if (nc_inq_var_szip(ncid, varid, &options_mask, &bits_per_pixel)) ERR;
+        if (!(options_mask & NC_SZIP_NN_OPTION_MASK)) ERR;
         if (nc_close(ncid)) ERR;
 
         /* Open the file and check. */
