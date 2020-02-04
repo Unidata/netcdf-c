@@ -1000,6 +1000,15 @@ nc_def_var_szip(int ncid, int varid, int options_mask, int pixels_per_block)
     var->options_mask = options_mask;
     var->pixels_per_block = pixels_per_block;
 
+    /* We have to rememeber this in the filter info, or else
+     * nc_inq_var_szip() will not work properly. */
+    var->filterid = HDF5_FILTER_SZIP;
+    var->nparams = 2;
+    if (!(var->params = malloc(2 * sizeof(unsigned int))))
+        return NC_ENOMEM;
+    var->params[0] = options_mask;
+    var->params[1] = pixels_per_block;
+
     return NC_NOERR;
 }
 
