@@ -950,55 +950,13 @@ NC4_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
 int
 nc_def_var_szip(int ncid, int varid, int options_mask, int pixels_per_block)
 {
-    NC_GRP_INFO_T *grp;
-    NC_FILE_INFO_T *h5;
-    NC_VAR_INFO_T *var;
-    int built = 0;
     int ret;
 
     LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
 
-/*     /\* If HDF5 was not built with szip, then return error. *\/ */
-/* #ifdef HAVE_H5Z_SZIP */
-/*     built = 1; */
-/* #endif /\* HAVE_H5Z_SZIP *\/ */
-/*     if (!built) */
-/*         return NC_EFILTER; */
-
-    /* Find info for this file and group, and set pointer to each. */
-    if ((ret = nc4_find_nc_grp_h5(ncid, NULL, &grp, &h5)))
-        return ret;
-    assert(grp && h5);
-
-    /* Trying to write to a read-only file? No way, Jose! */
-    if (h5->no_write)
-        return NC_EPERM;
-
-/*     /\* Can't turn on parallel and szip before HDF5 1.10.2. *\/ */
-/* #ifdef USE_PARALLEL */
-/* #ifndef HDF5_SUPPORTS_PAR_FILTERS */
-/*     if (h5->parallel == NC_TRUE) */
-/*         return NC_EINVAL; */
-/* #endif /\* HDF5_SUPPORTS_PAR_FILTERS *\/ */
-/* #endif /\* USE_PARALLEL *\/ */
-
-    /* /\* Find the var. *\/ */
-    /* if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, varid))) */
-    /*     return NC_ENOTVAR; */
-    /* assert(var && var->hdr.id == varid); */
-
-/* #ifdef USE_PARALLEL */
-/*     /\* Switch to collective access. HDF5 requires collevtive access */
-/*      * for filter use with parallel I/O. *\/ */
-/*     if (h5->parallel) */
-/*         var->parallel_access = NC_COLLECTIVE; */
-/* #endif /\* USE_PARALLEL *\/ */
-
     /* This will cause H5Pset_szip to be called when the var is
      * created. */
-    unsigned int *params;
-    if (!(params = malloc(2 * sizeof(unsigned int))))
-        return NC_ENOMEM;
+    unsigned int params[2];
     params[0] = options_mask;
     params[1] = pixels_per_block;
     if ((ret = nc_def_var_filter(ncid, varid, HDF5_FILTER_SZIP, 2, params)))
