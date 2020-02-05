@@ -9,7 +9,7 @@ set_and_check(netCDF_INSTALL_PREFIX "@PACKAGE_CMAKE_INSTALL_PREFIX@")
 set_and_check(netCDF_INCLUDE_DIR "@PACKAGE_CMAKE_INSTALL_INCLUDEDIR@")
 set_and_check(netCDF_LIB_DIR "@PACKAGE_CMAKE_INSTALL_LIBDIR@")
 
-set(netCDF_LIBRARIES netcdf)
+set(netCDF_LIBRARIES netCDF::netcdf)
 
 # include target information
 include("${CMAKE_CURRENT_LIST_DIR}/netCDFTargets.cmake")
