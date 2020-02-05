@@ -59,13 +59,15 @@ main(int argc, char **argv)
        printf("\n*** Testing parallel writes with compression filters.\n");
     {
         int s;
-        for (f = 0; s < NUM_COMPRESSION_FILTERS; f++)
+        for (f = 0; f < NUM_COMPRESSION_FILTERS; f++)
         {
             for (s = 0; s < NUM_SHUFFLE_SETTINGS; s++)
             {
                 if (!mpi_rank)
+                {
                     printf("*** testing simple write with %s shuffle %d...",
                            (f ? "szip" : "zlib"), s);
+                }
 
                 /* nc_set_log_level(3); */
                 /* Create a parallel netcdf-4 file. */
@@ -95,7 +97,7 @@ main(int argc, char **argv)
                 if (res != NC_EINVAL) ERR;
 #endif
 
-                /* Setting fletcher32 only will work for HDF5-1.10.2 and later
+                /* Setting fletcher32 only will work for HDF5-1.10.3 and later
                  * versions. */
                 res = nc_def_var_fletcher32(ncid, 0, 1);
 #ifdef HDF5_SUPPORTS_PAR_FILTERS
@@ -130,6 +132,7 @@ main(int argc, char **argv)
                 /* Check file. */
                 {
                     int shuffle_in, deflate_in, deflate_level_in;
+                    int options_mask_in, pixels_per_block_in;
                     int *slab_data_in;
 
                     /* Allocate data. */
@@ -138,10 +141,19 @@ main(int argc, char **argv)
                     /* Reopen the file for parallel access. */
                     if (nc_open_par(FILE_NAME, NC_NOWRITE, comm, info, &ncid)) ERR;
 
-                    /* Check state of deflate. */
-                    if (nc_inq_var_deflate(ncid, 0, &shuffle_in, &deflate_in, &deflate_level_in)) ERR;
-                    if ((s && !shuffle_in) || (!s && shuffle_in)) ERR;
-                    if (!deflate_in || deflate_level_in != 1) ERR;
+                    /* Check state of compression. */
+                    if (!f)
+                    {
+                        if (nc_inq_var_deflate(ncid, 0, &shuffle_in, &deflate_in, &deflate_level_in)) ERR;
+                        if ((s && !shuffle_in) || (!s && shuffle_in)) ERR;
+                        if (!deflate_in || deflate_level_in != 1) ERR;
+                    }
+                    else
+                    {
+                        if (nc_inq_var_deflate(ncid, 0, &shuffle_in, NULL, NULL)) ERR;
+                        if ((s && !shuffle_in) || (!s && shuffle_in)) ERR;
+                        if (nc_inq_var_szip(ncid, 0, &options_mask_in, &pixels_per_block_in)) ERR;
+                    }
 
                     /* Use parallel I/O to read the data. */
                     for (start[2] = 0; start[2] < NUM_SLABS; start[2]++)
