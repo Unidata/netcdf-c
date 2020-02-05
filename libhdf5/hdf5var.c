@@ -958,12 +958,12 @@ nc_def_var_szip(int ncid, int varid, int options_mask, int pixels_per_block)
 
     LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
 
-    /* If HDF5 was not built with szip, then return error. */
-#ifdef HAVE_H5Z_SZIP
-    built = 1;
-#endif /* HAVE_H5Z_SZIP */
-    if (!built)
-        return NC_EFILTER;
+/*     /\* If HDF5 was not built with szip, then return error. *\/ */
+/* #ifdef HAVE_H5Z_SZIP */
+/*     built = 1; */
+/* #endif /\* HAVE_H5Z_SZIP *\/ */
+/*     if (!built) */
+/*         return NC_EFILTER; */
 
     /* Find info for this file and group, and set pointer to each. */
     if ((ret = nc4_find_nc_grp_h5(ncid, NULL, &grp, &h5)))
@@ -974,40 +974,35 @@ nc_def_var_szip(int ncid, int varid, int options_mask, int pixels_per_block)
     if (h5->no_write)
         return NC_EPERM;
 
-    /* Can't turn on parallel and szip before HDF5 1.10.2. */
-#ifdef USE_PARALLEL
-#ifndef HDF5_SUPPORTS_PAR_FILTERS
-    if (h5->parallel == NC_TRUE)
-        return NC_EINVAL;
-#endif /* HDF5_SUPPORTS_PAR_FILTERS */
-#endif /* USE_PARALLEL */
+/*     /\* Can't turn on parallel and szip before HDF5 1.10.2. *\/ */
+/* #ifdef USE_PARALLEL */
+/* #ifndef HDF5_SUPPORTS_PAR_FILTERS */
+/*     if (h5->parallel == NC_TRUE) */
+/*         return NC_EINVAL; */
+/* #endif /\* HDF5_SUPPORTS_PAR_FILTERS *\/ */
+/* #endif /\* USE_PARALLEL *\/ */
 
-    /* Find the var. */
-    if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, varid)))
-        return NC_ENOTVAR;
-    assert(var && var->hdr.id == varid);
+    /* /\* Find the var. *\/ */
+    /* if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, varid))) */
+    /*     return NC_ENOTVAR; */
+    /* assert(var && var->hdr.id == varid); */
 
-#ifdef USE_PARALLEL
-    /* Switch to collective access. HDF5 requires collevtive access
-     * for filter use with parallel I/O. */
-    if (h5->parallel)
-        var->parallel_access = NC_COLLECTIVE;
-#endif /* USE_PARALLEL */
+/* #ifdef USE_PARALLEL */
+/*     /\* Switch to collective access. HDF5 requires collevtive access */
+/*      * for filter use with parallel I/O. *\/ */
+/*     if (h5->parallel) */
+/*         var->parallel_access = NC_COLLECTIVE; */
+/* #endif /\* USE_PARALLEL *\/ */
 
-    /* This will cause H5Pset_szip to be called when the var is created. */
-    var->szip = 1;
-    var->contiguous = NC_FALSE;
-    var->options_mask = options_mask;
-    var->pixels_per_block = pixels_per_block;
-
-    /* We have to rememeber this in the filter info, or else
-     * nc_inq_var_szip() will not work properly. */
-    var->filterid = HDF5_FILTER_SZIP;
-    var->nparams = 2;
-    if (!(var->params = malloc(2 * sizeof(unsigned int))))
+    /* This will cause H5Pset_szip to be called when the var is
+     * created. */
+    unsigned int *params;
+    if (!(params = malloc(2 * sizeof(unsigned int))))
         return NC_ENOMEM;
-    var->params[0] = options_mask;
-    var->params[1] = pixels_per_block;
+    params[0] = options_mask;
+    params[1] = pixels_per_block;
+    if ((ret = nc_def_var_filter(ncid, varid, HDF5_FILTER_SZIP, 2, params)))
+        return ret;
 
     return NC_NOERR;
 }
@@ -1222,9 +1217,18 @@ NC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
     if (var->created)
         return NC_ELATEDEF;
 
-    /* Can't turn on parallel and filter (for now). */
+    /* Can't turn on parallel and szip before HDF5 1.10.3. */
+#ifdef USE_PARALLEL
+#ifndef HDF5_SUPPORTS_PAR_FILTERS
     if (h5->parallel == NC_TRUE)
         return NC_EINVAL;
+#endif /* HDF5_SUPPORTS_PAR_FILTERS */
+
+    /* Switch to collective access. HDF5 requires collevtive access
+     * for filter use with parallel I/O. */
+    if (h5->parallel)
+        var->parallel_access = NC_COLLECTIVE;
+#endif /* USE_PARALLEL */
 
 #ifdef HAVE_H5Z_SZIP
     if(id == H5Z_FILTER_SZIP) {
@@ -1256,7 +1260,7 @@ NC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
         if(var->params == NULL) return NC_ENOMEM;
         memcpy(var->params,parms,sizeof(unsigned int)*var->nparams);
     }
-    /* Filter => chunking */
+    /* Filters can only be applied to chunked datasets in HDF5. */
     var->contiguous = NC_FALSE;
     /* Determine default chunksizes for this variable unless already specified */
     if(var->chunksizes && !var->chunksizes[0]) {
