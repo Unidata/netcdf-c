@@ -25,7 +25,11 @@
 #define NUM_PROC 4
 #define NUM_SLABS 10
 #define NUM_SHUFFLE_SETTINGS 2
+#ifdef HAVE_H5Z_SZIP
+#define NUM_COMPRESSION_FILTERS 2
+#else
 #define NUM_COMPRESSION_FILTERS 1
+#endif
 
 int
 main(int argc, char **argv)
