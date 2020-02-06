@@ -21,6 +21,7 @@ ncdap_test/findtestserver.c
 #####
 
 ### 'Normal' gitignore files.
+netcdf-c.tag
 autom4te.cache
 debug.txt
 CTestConfig.cmake

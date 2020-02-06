@@ -31,6 +31,11 @@
     <filename>_o_pe_n_d_a_p_8dox</filename>
   </compound>
   <compound kind="file">
+    <name>types.dox</name>
+    <path>/home/wfisher/Desktop/gitprojects/netcdf-c/NUG/</path>
+    <filename>types_8dox</filename>
+  </compound>
+  <compound kind="file">
     <name>user_defined_formats.md</name>
     <path>/home/wfisher/Desktop/gitprojects/netcdf-c/NUG/</path>
     <filename>user__defined__formats_8md</filename>
@@ -126,135 +131,21 @@
     <filename>nug_users_guide_appendices</filename>
   </compound>
   <compound kind="page">
-    <name>BestPractices</name>
-    <title>Writing NetCDF Files: Best Practices</title>
-    <filename>_best_practices</filename>
-    <docanchor file="_best_practices" title="Best Practices ">bp_Best_Practices</docanchor>
-    <docanchor file="_best_practices" title="Conventions">bp_Conventions</docanchor>
-    <docanchor file="_best_practices" title="Coordinate Systems">bp_Coordinate-Systems</docanchor>
-    <docanchor file="_best_practices" title="Variable Grouping">bp_Variable-Grouping</docanchor>
-    <docanchor file="_best_practices" title="Variable Attributes">bp_Variable-Attributes</docanchor>
-    <docanchor file="_best_practices" title="Strings and Variables of type char">bp_Strings-and-Variables-of-type-char</docanchor>
-    <docanchor file="_best_practices" title="Calendar Date/Time">bp_Calendar-Date-Time</docanchor>
-    <docanchor file="_best_practices" title="Unsigned Data">bp_Unsigned-Data</docanchor>
-    <docanchor file="_best_practices" title="Packed Data Values">bp_Packed-Data-Values</docanchor>
-    <docanchor file="_best_practices" title="Missing Data Values">bp_Missing-Data-Values</docanchor>
-    <docanchor file="_best_practices" title="Miscellaneous tips">bp_Miscellaneous-tips</docanchor>
-    <docanchor file="_best_practices" title="Spelling netCDF: Best Practices">bp_Spelling-netCDF-Best-Practices</docanchor>
-  </compound>
-  <compound kind="page">
-    <name>getting_and_building_netcdf</name>
-    <title>Getting and Building netCDF</title>
-    <filename>getting_and_building_netcdf</filename>
-    <docanchor file="getting_and_building_netcdf" title="Getting netCDF-C ">getting</docanchor>
-    <docanchor file="getting_and_building_netcdf" title="Getting pre-built netCDF-C libraries. ">sec_get_pre_built</docanchor>
-    <docanchor file="getting_and_building_netcdf" title="Getting the latest netCDF-C Source Code ">sec_get_source</docanchor>
-    <docanchor file="getting_and_building_netcdf" title="The latest release">sec_latest_release</docanchor>
-    <docanchor file="getting_and_building_netcdf" title="The developer snapshot">sec_dev_snapshot</docanchor>
-    <docanchor file="getting_and_building_netcdf" title="Building netCDF-C ">building</docanchor>
-    <docanchor file="getting_and_building_netcdf" title="Requirements ">netcdf_requirements</docanchor>
-    <docanchor file="getting_and_building_netcdf" title="CMake and Windows support ">sub</docanchor>
-    <docanchor file="getting_and_building_netcdf" title="Building with netCDF-4 and the Remote Data Client ">build_default</docanchor>
-    <docanchor file="getting_and_building_netcdf" title="Optional: szip support">op_szip_support</docanchor>
-    <docanchor file="getting_and_building_netcdf" title="Building zlib from source">build_zlib_from_source</docanchor>
-    <docanchor file="getting_and_building_netcdf" title="Building hdf5 from source">build_hdf5_from_source</docanchor>
-    <docanchor file="getting_and_building_netcdf" title="Building netCDF-4 and the Remote Data Client from source">build_nc4_dap_from_source</docanchor>
-    <docanchor file="getting_and_building_netcdf" title="Building netCDF with Classic Library Only ">build_classic</docanchor>
-    <docanchor file="getting_and_building_netcdf" title="Building with HDF4 Support ">build_hdf4</docanchor>
-    <docanchor file="getting_and_building_netcdf" title="Building with Parallel I/O Support ">build_parallel</docanchor>
-    <docanchor file="getting_and_building_netcdf" title="Building PnetCDF from source">build_pnetcdf_from_source</docanchor>
-    <docanchor file="getting_and_building_netcdf" title="Linking to netCDF-C ">linking</docanchor>
-    <docanchor file="getting_and_building_netcdf" title="configure options ">configure_options</docanchor>
-    <docanchor file="getting_and_building_netcdf" title="Build Instructions for netCDF-C using CMake ">netCDF-CMake</docanchor>
-    <docanchor file="getting_and_building_netcdf" title="Overview">cmake_overview</docanchor>
-    <docanchor file="getting_and_building_netcdf" title="Requirements">cmake_requirements</docanchor>
-    <docanchor file="getting_and_building_netcdf" title="The CMake Build Process">cmake_build</docanchor>
-    <docanchor file="getting_and_building_netcdf" title="Configuration">cmake_configuration</docanchor>
-    <docanchor file="getting_and_building_netcdf" title="Common CMake Options">cmake_common_options</docanchor>
-    <docanchor file="getting_and_building_netcdf" title="Configuring your build from the command line.">cmake_command_line</docanchor>
-    <docanchor file="getting_and_building_netcdf" title="Building">cmake_building</docanchor>
-    <docanchor file="getting_and_building_netcdf" title="Testing">cmake_testing</docanchor>
-    <docanchor file="getting_and_building_netcdf" title="Installation">cmake_installation</docanchor>
-    <docanchor file="getting_and_building_netcdf" title="See Also">cmake_see_also</docanchor>
-  </compound>
-  <compound kind="page">
-    <name>dap4</name>
-    <title>DAP4 Protocol Support</title>
-    <filename>dap4</filename>
-    <docanchor file="dap4" title="DAP4 Introduction">dap4_introduction</docanchor>
-    <docanchor file="dap4" title="Accessing Data Using the DAP4 Prototocol">dap4_accessing_data</docanchor>
-    <docanchor file="dap4" title="Defined Client Parameters">dap4_defined_params</docanchor>
-    <docanchor file="dap4" title="Notes on Debugging DAP4 Access">dap4_debug</docanchor>
-    <docanchor file="dap4" title="HTTP Configuration.">dap4_http2_config</docanchor>
-    <docanchor file="dap4" title="Point of Contact">dap4_poc</docanchor>
-  </compound>
-  <compound kind="page">
-    <name>dap2</name>
-    <title>DAP2 Support</title>
-    <filename>dap2</filename>
-    <docanchor file="dap2" title="DAP2 (OPeNDAP) Introduction">dap_introduction</docanchor>
-    <docanchor file="dap2" title="OPeNDAP Documentation">dap_dap_information</docanchor>
-    <docanchor file="dap2" title="Accessing OPeNDAP Data">dap_accessing_data</docanchor>
-    <docanchor file="dap2" title="DAP to NetCDF Translation Rules">dap_to_netcdf</docanchor>
-    <docanchor file="dap2" title="netCDF-3 Translation Rules">nc3_trans_rules</docanchor>
-    <docanchor file="dap2" title="Variable Definition">var_def</docanchor>
-    <docanchor file="dap2" title="DAP2 Reserved Keywords">dap2_reserved_keywords</docanchor>
-    <docanchor file="dap2" title="Variable Dimension Translation">var_dim_trans</docanchor>
-    <docanchor file="dap2" title="Dimension translation">dim_trans</docanchor>
-    <docanchor file="dap2" title="Variable Name Translation">var_name_trans</docanchor>
-    <docanchor file="dap2" title="Translating DAP DDS Sequences">dap_translation</docanchor>
-    <docanchor file="dap2" title="Caching">dap_caching</docanchor>
-    <docanchor file="dap2" title="Defined Client Parameters">dap_defined_params</docanchor>
-    <docanchor file="dap2" title="Notes on Debugging OPeNDAP Access">dap_debug</docanchor>
-    <docanchor file="dap2" title="HTTP Configuration.">http_config</docanchor>
-  </compound>
-  <compound kind="page">
-    <name>user_defined_formats</name>
-    <title>User-Defined Formats for NetCDF</title>
-    <filename>user_defined_formats</filename>
-    <docanchor file="user_defined_formats" title="User-Defined Formats ">udf_user_defined_formats</docanchor>
-    <docanchor file="user_defined_formats" title="Introduction">udf_Introduction</docanchor>
-    <docanchor file="user_defined_formats" title="Magic Numbers">autotoc_md1</docanchor>
-    <docanchor file="user_defined_formats" title="Using User-Defined Formats from C Programs">udf_With_C</docanchor>
-    <docanchor file="user_defined_formats" title="Building NetCDF C Library with a User-Defined Format Library">udf_Build_NetCDF_With_UDF</docanchor>
-    <docanchor file="user_defined_formats" title="Creating a User-Defined Format">udf_Create_UDF</docanchor>
-    <docanchor file="user_defined_formats" title="Read-Only User-Defined Formats">autotoc_md2</docanchor>
-    <docanchor file="user_defined_formats" title="Examples">udf_Examples</docanchor>
-  </compound>
-  <compound kind="page">
     <name>md_filters</name>
     <title>NetCDF-4 Filter Support</title>
     <filename>md_filters</filename>
-    <docanchor file="md_filters" title="NetCDF-4 Filter Support ">filters</docanchor>
-    <docanchor file="md_filters" title="Introduction">filters_intro</docanchor>
-    <docanchor file="md_filters" title="Enabling A Compression Filter">filters_enable</docanchor>
-    <docanchor file="md_filters" title="Using The API">filters_API</docanchor>
-    <docanchor file="md_filters" title="Using ncgen">filters_NCGEN</docanchor>
     <docanchor file="md_filters" title="Example CDL File (Data elided)">autotoc_md3</docanchor>
-    <docanchor file="md_filters" title="Using nccopy">filters_NCCOPY</docanchor>
-    <docanchor file="md_filters" title="Parameter Encode/Decode">filters_paramcoding</docanchor>
     <docanchor file="md_filters" title="Encoding Algorithms">autotoc_md4</docanchor>
     <docanchor file="md_filters" title="Encoding">autotoc_md5</docanchor>
     <docanchor file="md_filters" title="Decoding">autotoc_md6</docanchor>
-    <docanchor file="md_filters" title="Filter Specification Syntax">filters_syntax</docanchor>
-    <docanchor file="md_filters" title="Dynamic Loading Process ">filters_Process</docanchor>
-    <docanchor file="md_filters" title="Plugin directory ">filters_Plugindir</docanchor>
-    <docanchor file="md_filters" title="Plugin Library Naming ">filters_Pluginlib</docanchor>
-    <docanchor file="md_filters" title="Plugin Verification ">filters_Pluginverify</docanchor>
-    <docanchor file="md_filters" title="Debugging ">filters_Debug</docanchor>
-    <docanchor file="md_filters" title="Test Case ">filters_TestCase</docanchor>
-    <docanchor file="md_filters" title="Example ">filters_Example</docanchor>
     <docanchor file="md_filters" title="Notes">autotoc_md7</docanchor>
     <docanchor file="md_filters" title="Memory Allocation Issues">autotoc_md8</docanchor>
     <docanchor file="md_filters" title="SZIP Issues">autotoc_md9</docanchor>
     <docanchor file="md_filters" title="Supported Systems">autotoc_md10</docanchor>
     <docanchor file="md_filters" title="Generic Plugin Build">autotoc_md11</docanchor>
-    <docanchor file="md_filters" title="Appendix A. Support Utilities ">filters_AppendixA</docanchor>
-    <docanchor file="md_filters" title="Appendix B. Programmatic Filter Definition ">filters_programmatic</docanchor>
     <docanchor file="md_filters" title="API Concepts">autotoc_md12</docanchor>
     <docanchor file="md_filters" title="NetCDF API">autotoc_md13</docanchor>
     <docanchor file="md_filters" title="Example">autotoc_md14</docanchor>
-    <docanchor file="md_filters" title="References">filters_References</docanchor>
     <docanchor file="md_filters" title="Point of Contact">autotoc_md15</docanchor>
   </compound>
   <compound kind="page">
