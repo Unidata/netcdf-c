@@ -767,6 +767,18 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     INCLUDE_DIRECTORIES(${HAVE_HDF5_H})
   ENDIF(NOT HAVE_HDF5_H)
 
+  # Check to ensure that HDF5 was built with zlib.
+  set (CMAKE_REQUIRED_INCLUDES ${HAVE_HDF5_H})
+  CHECK_C_SOURCE_COMPILES("#include <H5pubconf.h>
+   #if !H5_HAVE_ZLIB_H
+   #error
+   #endif
+   int main() {
+   int x = 1;}" HAVE_HDF5_ZLIB)
+  IF(NOT HAVE_HDF5_ZLIB)
+    MESSAGE(FATAL_ERROR "HDF5 was built without zlib. Rebuild HDF5 with zlib.")
+  ENDIF()
+
   #option to include HDF5 High Level header file (hdf5_hl.h) in case we are not doing a make install
   INCLUDE_DIRECTORIES(${HDF5_HL_INCLUDE_DIR})
 
