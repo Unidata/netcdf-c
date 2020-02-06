@@ -2135,6 +2135,7 @@ SKIP_FUNCTION_MACROS   = YES
 # run, you must also specify the path to the tagfile here.
 
 #TAGFILES               = ../../netcdf-c/netcdf-c.tag=../../../netcdf-c/html
+TAGFILES = ../netcdf-c.tag
 
 # When a file name is specified after GENERATE_TAGFILE, doxygen will create a
 # tag file that is based on the input files it reads. See section "Linking to
