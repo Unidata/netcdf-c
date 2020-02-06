@@ -1063,12 +1063,6 @@ if test "x$enable_hdf5" = xyes; then
    AC_MSG_CHECKING([whether HDF5 is version 1.10.3 or greater])
    AC_MSG_RESULT([$ac_cv_func_H5Dread_chunk])
 
-   # Check to see if we need to search for and link against szlib.
-   if test "x$ac_cv_func_H5Z_SZIP" = xyes; then
-      AC_SEARCH_LIBS([SZ_BufftoBuffCompress], [szip sz], [],
-      [AC_MSG_ERROR([libhdf5 installed with szip support, but cannot find or link to the szip library.])])
-   fi
-
    # Check to see if user asked for parallel build, but HDF5 does not support it.
    if test "x$hdf5_parallel" = "xno"; then
       if test "x$enable_parallel_tests" = "xyes"; then
@@ -1076,11 +1070,14 @@ if test "x$enable_hdf5" = xyes; then
       fi
    fi
 
-   # Check whether HDF5 was built with the SZLIB library.
+   # Check whether HDF5 was built with the SZLIB library. If so we
+   # must be able to link to szip library.
    AC_MSG_CHECKING([whether szlib was used when building HDF5])
    enable_szlib=no
    if test "x$ac_cv_func_H5Z_SZIP" = xyes; then
       enable_szlib=yes
+      AC_SEARCH_LIBS([SZ_BufftoBuffCompress], [szip sz], [],
+      [AC_MSG_ERROR([libhdf5 installed with szip support, but cannot find or link to the szip library.])])
       AC_DEFINE([USE_SZIP], [1], [if true, compile in szip compression in netCDF-4 variables])
    fi
    AC_MSG_RESULT([$enable_szlib])
