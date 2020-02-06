@@ -729,9 +729,26 @@ nc_inq_var_szip(int ncid, int varid, int *options_maskp, int *pixels_per_blockp)
       NULL
       );
    if(stat != NC_NOERR) return stat;
-   /* Warning: the szip filter internally expands the set of parameters */
-   if(id != H5Z_FILTER_SZIP || (nparams != 4 && nparams !=2))
+
+   /* Warning: the szip filter internally expands the set of
+    * parameters. This means the user submits 2, but once the filter
+    * is applied to the dataset, there are 4. How may we get back from
+    * inq_var_all() depends on whether or not the dataset has been
+    * created. */
+   if(id == H5Z_FILTER_SZIP && (nparams != 4 && nparams !=2))
         return NC_EFILTER; /* not szip or bad # params */
+
+   /* If the szip filter is not in use, return 0 for both
+    * parameters. */
+   if(id != H5Z_FILTER_SZIP)
+   {
+       if (options_maskp)
+           *options_maskp = 0;
+       if (pixels_per_blockp)
+           *pixels_per_blockp = 0;
+       return NC_NOERR;
+   }
+
    /* Get params */
    stat = ncp->dispatch->inq_var_all(
       ncid, varid,

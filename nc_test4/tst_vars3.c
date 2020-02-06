@@ -478,9 +478,17 @@ main(int argc, char **argv)
         if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
         if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_1, &dimid)) ERR;
 
-        /* Add a var. Turn on szip filter. */
+        /* Add a var. */
         if (nc_def_var(ncid, V_SMALL, NC_INT64, NDIMS1, &dimid, &varid)) ERR;
+
+        /* Check szip filter settings. */
+        if (nc_inq_var_szip(ncid, varid, &options_mask, &bits_per_pixel)) ERR;
+        if (options_mask != 0 || bits_per_pixel != 0) ERR;
+
+        /* Turn on szip filter. */
         if (nc_def_var_szip(ncid, varid, NC_SZIP_NN_OPTION_MASK, NC_SZIP_EC_BPP_IN)) ERR;
+
+        /* Check szip filter settings. */
         if (nc_inq_var_szip(ncid, varid, &options_mask, &bits_per_pixel)) ERR;
         if (!(options_mask & NC_SZIP_NN_OPTION_MASK)) ERR;
         if (nc_close(ncid)) ERR;
