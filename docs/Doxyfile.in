@@ -744,18 +744,11 @@ WARN_LOGFILE           =
 INPUT = \
     @abs_top_srcdir@/docs/mainpage.dox \
     @abs_top_srcdir@/RELEASE_NOTES.md \
-    @abs_top_srcdir@/docs/install.md \
     @abs_top_srcdir@/docs/install-fortran.md \
-    @abs_top_srcdir@/docs/types.dox \
     @abs_top_srcdir@/docs/windows-binaries.md \
-    @abs_top_srcdir@/docs/guide.dox \
     @abs_top_srcdir@/docs/attribute_conventions.md \
     @abs_top_srcdir@/docs/file_format_specifications.md \
     @abs_top_srcdir@/docs/byterange.dox \
-    @abs_top_srcdir@/docs/DAP2.dox \
-    @abs_top_srcdir@/docs/DAP4.dox \
-    @abs_top_srcdir@/docs/user_defined_formats.md \
-    @abs_top_srcdir@/docs/filters.md \
     @abs_top_srcdir@/docs/inmemory.md \
     @abs_top_srcdir@/docs/auth.md \
     @abs_top_srcdir@/docs/notes.md \
@@ -764,7 +757,6 @@ INPUT = \
     @abs_top_srcdir@/docs/known_problems.md \
     @abs_top_srcdir@/docs/COPYRIGHT.md \
     @abs_top_srcdir@/docs/credits.md \
-    @abs_top_srcdir@/docs/bestpractices.md \
     @abs_top_srcdir@/docs/tutorial.dox \
     @abs_top_srcdir@/docs/internal.dox \
     @abs_top_srcdir@/docs/inmeminternal.dox \
@@ -2065,6 +2057,7 @@ SKIP_FUNCTION_MACROS   = YES
 # run, you must also specify the path to the tagfile here.
 
 # TAGFILES               = html/guide.tag=./html_guide "html/tutorial.tag = ./html_tutorial"
+TAGFILES = ../../nug.tag=../../../NUG/html
 
 # When a file name is specified after GENERATE_TAGFILE, doxygen will create a
 # tag file that is based on the input files it reads. See section "Linking to
