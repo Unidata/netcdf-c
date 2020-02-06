@@ -1055,12 +1055,14 @@ if test "x$enable_hdf5" = xyes; then
    AC_MSG_CHECKING([whether parallel io is enabled in hdf5])
    AC_MSG_RESULT([$hdf5_parallel])
 
-   # Check to see if HDF5 library is 1.10.3 or greater. If so, allows parallel_zip.
+   # Check to see if HDF5 library is 1.10.3 or greater. If so, allows
+   # parallel I/O with filters. This allows zlib/szip compression to
+   # be used with parallel I/O, which is very helpful to HPC users.
    if test "x$ac_cv_func_H5Dread_chunk" = xyes; then
       AC_DEFINE([HDF5_SUPPORTS_PAR_FILTERS], [1], [if true, HDF5 is at least version 1.10.3 and allows parallel I/O with zip])
       hdf5_supports_par_filters=yes
    fi
-   AC_MSG_CHECKING([whether HDF5 is version 1.10.3 or greater])
+   AC_MSG_CHECKING([whether HDF5 allows parallel filters])
    AC_MSG_RESULT([$ac_cv_func_H5Dread_chunk])
 
    # Check to see if user asked for parallel build, but HDF5 does not support it.
@@ -1076,8 +1078,6 @@ if test "x$enable_hdf5" = xyes; then
    enable_szlib=no
    if test "x$ac_cv_func_H5Z_SZIP" = xyes; then
       enable_szlib=yes
-      AC_SEARCH_LIBS([SZ_BufftoBuffCompress], [szip sz], [],
-      [AC_MSG_ERROR([libhdf5 installed with szip support, but cannot find or link to the szip library.])])
       AC_DEFINE([USE_SZIP], [1], [if true, compile in szip compression in netCDF-4 variables])
    fi
    AC_MSG_RESULT([$enable_szlib])
