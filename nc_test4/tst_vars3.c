@@ -534,7 +534,7 @@ main(int argc, char **argv)
         int small_varid, medium_varid, large_varid;
         char var_name_in[NC_MAX_NAME + 1];
         nc_type xtype_in;
-        /* int options_mask_in, pixels_per_block_in; */
+        int options_mask_in, pixels_per_block_in;
         long long small_data[D_SMALL_LEN1], small_data_in[D_SMALL_LEN1];
         long long medium_data[D_MEDIUM_LEN1], medium_data_in[D_MEDIUM_LEN1];
         long long large_data[D_LARGE_LEN1], large_data_in[D_LARGE_LEN1];
@@ -584,12 +584,12 @@ main(int argc, char **argv)
 
         /* The following code should work, but doesn't. See issue 972 in github. */
         /* Make sure we have the szip settings we expect. */
-        /* if (nc_inq_var_szip(ncid, small_varid, &options_mask_in, &pixels_per_block_in)) ERR; */
-        /* if (options_mask_in != 0 || pixels_per_block_in !=0) ERR; */
-        /* if (nc_inq_var_szip(ncid, medium_varid, &options_mask_in, &pixels_per_block_in)) ERR; */
-        /* if (!(options_mask_in & NC_SZIP_EC_OPTION_MASK) || pixels_per_block_in != 32) ERR; */
-        /* if (nc_inq_var_szip(ncid, large_varid, &options_mask_in, &pixels_per_block_in)) ERR; */
-        /* if (!(options_mask_in & NC_SZIP_NN_OPTION_MASK) || pixels_per_block_in != 16) ERR; */
+        if (nc_inq_var_szip(ncid, small_varid, &options_mask_in, &pixels_per_block_in)) ERR;
+        if (options_mask_in != 0 || pixels_per_block_in !=0) ERR;
+        if (nc_inq_var_szip(ncid, medium_varid, &options_mask_in, &pixels_per_block_in)) ERR;
+        if (!(options_mask_in & NC_SZIP_NN_OPTION_MASK)) ERR;
+        if (nc_inq_var_szip(ncid, large_varid, &options_mask_in, &pixels_per_block_in)) ERR;
+        if (!(options_mask_in & NC_SZIP_NN_OPTION_MASK)) ERR;
 
         /* Read data. */
         if (nc_get_var_longlong(ncid, small_varid, small_data_in)) ERR;
