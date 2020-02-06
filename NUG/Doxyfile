@@ -791,9 +791,10 @@ WARN_LOGFILE           =
 # spaces. See also FILE_PATTERNS and EXTENSION_MAPPING
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = guide.md \
+INPUT                  = guide.dox \
                          bestpractices.md \
                          install.md \
+                         DAP2.dox \
                          DAP4.dox \
                          OPeNDAP.dox \
                          types.dox \
@@ -990,7 +991,7 @@ FILTER_SOURCE_PATTERNS =
 # (index.html). This can be useful if you have a project on for instance GitHub
 # and want to reuse the introduction page also for the doxygen output.
 
-USE_MDFILE_AS_MAINPAGE = guide.md
+USE_MDFILE_AS_MAINPAGE = guide.dox
 
 #---------------------------------------------------------------------------
 # Configuration options related to source browsing
@@ -1231,17 +1232,6 @@ HTML_COLORSTYLE_GAMMA  = 80
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
 HTML_TIMESTAMP         = NO
-
-# If the HTML_DYNAMIC_MENUS tag is set to YES then the generated HTML
-# documentation will contain a main index with vertical navigation menus that
-# are dynamically created via Javascript. If disabled, the navigation index will
-# consists of multiple levels of tabs that are statically embedded in every HTML
-# page. Disable this option to support browsers that do not have Javascript,
-# like the Qt help browser.
-# The default value is: YES.
-# This tag requires that the tag GENERATE_HTML is set to YES.
-
-HTML_DYNAMIC_MENUS     = YES
 
 # If the HTML_DYNAMIC_SECTIONS tag is set to YES then the generated HTML
 # documentation will contain sections that can be hidden and shown after the
@@ -2135,13 +2125,13 @@ SKIP_FUNCTION_MACROS   = YES
 # run, you must also specify the path to the tagfile here.
 
 #TAGFILES               = ../../netcdf-c/netcdf-c.tag=../../../netcdf-c/html
-TAGFILES = ../netcdf-c.tag
+TAGFILES = ../netcdf-c.tag=../../build-doc/docs/html
 
 # When a file name is specified after GENERATE_TAGFILE, doxygen will create a
 # tag file that is based on the input files it reads. See section "Linking to
 # external documentation" for more information about the usage of tag files.
 
-GENERATE_TAGFILE       = nug.tag
+GENERATE_TAGFILE       = ../nug.tag
 
 # If the ALLEXTERNALS tag is set to YES, all external class will be listed in
 # the class index. If set to NO, only the inherited external classes will be
