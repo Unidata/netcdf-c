@@ -679,19 +679,22 @@ nc_inq_ncid().
 \param varid Variable ID
 
 \param options_maskp The szip options mask will be copied to this
-pointer. Note that the HDF5 layer modifies the options_mask, so this
+pointer. Note that the HDF5 layer adds to the options_mask, so this
 value will be different from the value used when setting szip
-compression. \ref ignored_if_null.
+compression, however the bit set when setting szip compression will
+still be set in the options_maskp and can be checked for. If zero is
+returned, szip is not in use for this variable.\ref ignored_if_null.
 
 \param pixels_per_blockp The szip pixels per block will be copied
 here. The HDF5 layer may change this value, so this may not match the
-value passed in when setting szip compression. \ref ignored_if_null.
+value passed in when setting szip compression. If zero is returned,
+szip is not in use for this variable. \ref ignored_if_null.
 
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Bad ncid.
 \returns ::NC_ENOTNC4 Not a netCDF-4 file.
 \returns ::NC_ENOTVAR Invalid variable ID.
-\returns ::NC_EFILTER Variable is not szip encoded
+\returns ::NC_EFILTER Filter error.
 
 \author Ed Hartnett, Dennis Heimbigner
 */

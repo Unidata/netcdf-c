@@ -582,7 +582,6 @@ main(int argc, char **argv)
         if (strcmp(var_name_in, V_SMALL) || xtype_in != NC_INT64 || ndims_in != 1 ||
             natts_in != 0) ERR;
 
-        /* The following code should work, but doesn't. See issue 972 in github. */
         /* Make sure we have the szip settings we expect. */
         if (nc_inq_var_szip(ncid, small_varid, &options_mask_in, &pixels_per_block_in)) ERR;
         if (options_mask_in != 0 || pixels_per_block_in !=0) ERR;
