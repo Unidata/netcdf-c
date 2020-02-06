@@ -52,7 +52,7 @@ if test "@HAS_PAR_FILTERS@" = "yes"; then
     @MPIEXEC@ -n 4 ./tst_parallel_zlib
 
     echo
-    echo "Parallel I/O more tests with zlib."
-    @MPIEXEC@ -n 1 ./tst_parallel_zlib2
-    @MPIEXEC@ -n 4 ./tst_parallel_zlib2
+    echo "Parallel I/O more tests with zlib and szip (if present in HDF5)."
+    @MPIEXEC@ -n 1 ./tst_parallel_compress
+    @MPIEXEC@ -n 4 ./tst_parallel_compress
 fi
