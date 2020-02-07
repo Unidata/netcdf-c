@@ -650,15 +650,15 @@ main(int argc, char **argv)
     SUMMARIZE_ERR;
 #define SHORT_DIM_LEN_1 12
 #define NUM_MASK 2
-#define NUM_PPB 3
-#define FIRST_VALID 2
+#define NUM_PPB 5
+#define FIRST_VALID 3
     printf("**** testing different values for szip params...");
     {
         int ncid;
         int dimid;
         int varid;
         int option_mask[NUM_MASK] = {NC_SZIP_NN_OPTION_MASK, NC_SZIP_EC_OPTION_MASK};
-        int pixels_per_block[NUM_PPB] = {1, 34, 2};
+        int pixels_per_block[NUM_PPB] = {1, 34, 14, 2, 12};
         int option_mask_in, pixels_per_block_in;
         int m, p, ret;
 
