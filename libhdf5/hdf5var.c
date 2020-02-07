@@ -951,9 +951,7 @@ NC4_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
  * parameter affects compression ratio; the more pixel values vary,
  * the smaller this number should be to achieve better performance. If
  * pixels_per_block is bigger than the total number of elements in a
- * dataset chunk, H5Pset_szip will succeed but the subsequent call to
- * H5Dcreate will fail; the conflict can be detected only when the
- * property list is used.
+ * dataset chunk, ::NC_EINVAL will be returned.
  *
  * @returns ::NC_NOERR No error.
  * @returns ::NC_ENOTBUILT This HDF5 install was not built with szip.
