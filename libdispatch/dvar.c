@@ -324,9 +324,12 @@ nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
 
    If this function is called on a scalar variable, it is ignored.
 
+   If this function is called on a variable which already has szip
+   compression turned on, ::NC_EINVAL is returned.
+
    @note Parallel I/O reads work with compressed data. Parallel I/O
    writes work with compressed data in netcdf-c-4.7.4 and later
-   releases, using hdf5-1.10.2 and later releases. Using the zlib,
+   releases, using hdf5-1.10.3 and later releases. Using the zlib,
    shuffle (or any other) filter requires that collective access be
    used with the variable. Turning on deflate and/or shuffle for a
    variable in a file opened for parallel I/O will automatically
