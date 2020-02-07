@@ -744,18 +744,11 @@ WARN_LOGFILE           =
 INPUT = \
     @abs_top_srcdir@/docs/mainpage.dox \
     @abs_top_srcdir@/RELEASE_NOTES.md \
-    @abs_top_srcdir@/docs/install.md \
     @abs_top_srcdir@/docs/install-fortran.md \
-    @abs_top_srcdir@/docs/types.dox \
     @abs_top_srcdir@/docs/windows-binaries.md \
-    @abs_top_srcdir@/docs/guide.dox \
     @abs_top_srcdir@/docs/attribute_conventions.md \
     @abs_top_srcdir@/docs/file_format_specifications.md \
     @abs_top_srcdir@/docs/byterange.dox \
-    @abs_top_srcdir@/docs/DAP2.dox \
-    @abs_top_srcdir@/docs/DAP4.dox \
-    @abs_top_srcdir@/docs/user_defined_formats.md \
-    @abs_top_srcdir@/docs/filters.md \
     @abs_top_srcdir@/docs/inmemory.md \
     @abs_top_srcdir@/docs/auth.md \
     @abs_top_srcdir@/docs/notes.md \
@@ -764,7 +757,6 @@ INPUT = \
     @abs_top_srcdir@/docs/known_problems.md \
     @abs_top_srcdir@/docs/COPYRIGHT.md \
     @abs_top_srcdir@/docs/credits.md \
-    @abs_top_srcdir@/docs/bestpractices.md \
     @abs_top_srcdir@/docs/tutorial.dox \
     @abs_top_srcdir@/docs/internal.dox \
     @abs_top_srcdir@/docs/inmeminternal.dox \
@@ -2065,12 +2057,14 @@ SKIP_FUNCTION_MACROS   = YES
 # run, you must also specify the path to the tagfile here.
 
 # TAGFILES               = html/guide.tag=./html_guide "html/tutorial.tag = ./html_tutorial"
+#TAGFILES = ../../NUG/html/nug.tag=../../../NUG/html
+TAGFILES = ../../NUG/html/nug.tag=https://www.unidata.ucar.edu/software/netcdf/documentation/NUG
 
 # When a file name is specified after GENERATE_TAGFILE, doxygen will create a
 # tag file that is based on the input files it reads. See section "Linking to
 # external documentation" for more information about the usage of tag files.
 
-# GENERATE_TAGFILE       = html/main.tag
+GENERATE_TAGFILE       = html/netcdf-c.tag
 
 # If the ALLEXTERNALS tag is set to YES all external class will be listed in the
 # class index. If set to NO only the inherited external classes will be listed.
@@ -2092,12 +2086,6 @@ EXTERNAL_GROUPS        = NO
 
 EXTERNAL_PAGES         = NO
 
-# The PERL_PATH should be the absolute path and name of the perl script
-# interpreter (i.e. the result of 'which perl').
-# The default file (with absolute path) is: /usr/bin/perl.
-
-PERL_PATH              = /usr/bin/perl
-
 #---------------------------------------------------------------------------
 # Configuration options related to the dot tool
 #---------------------------------------------------------------------------
@@ -2110,15 +2098,6 @@ PERL_PATH              = /usr/bin/perl
 # The default value is: YES.
 
 CLASS_DIAGRAMS         = YES
-
-# You can define message sequence charts within doxygen comments using the \msc
-# command. Doxygen will then run the mscgen tool (see:
-# http://www.mcternan.me.uk/mscgen/)) to produce the chart and insert it in the
-# documentation. The MSCGEN_PATH tag allows you to specify the directory where
-# the mscgen tool resides. If left empty the tool is assumed to be found in the
-# default search path.
-
-MSCGEN_PATH            =
 
 # You can include diagrams made with dia in doxygen documentation. Doxygen will
 # then run dia to produce the diagram and insert it in the documentation. The
