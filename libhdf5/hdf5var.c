@@ -31,6 +31,10 @@
 /** The HDF5 ID for the szip filter. */
 #define HDF5_FILTER_SZIP 4
 
+/** The maximum allowed setting for pixels_per_block when calling
+ * nc_def_var_szip(). */
+#define NC_MAX_PIXELS_PER_BLOCK 32
+
 #ifdef LOGGING
 /**
  * Report the chunksizes selected for a variable.
@@ -1213,6 +1217,10 @@ NC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
 
         /* If zlib compression is already applied, return error. */
         if (var->deflate)
+            return NC_EINVAL;
+
+        /* Pixels per block must be an even number, < 32. */
+        if (parms[1] % 2 || parms[1] > NC_MAX_PIXELS_PER_BLOCK)
             return NC_EINVAL;
     }
 #else /*!HAVE_H5Z_SZIP*/

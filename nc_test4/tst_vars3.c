@@ -648,17 +648,19 @@ main(int argc, char **argv)
 
     }
     SUMMARIZE_ERR;
+#define SHORT_DIM_LEN_1 12
 #define NUM_MASK 2
-#define NUM_PPB 1
+#define NUM_PPB 3
+#define FIRST_VALID 2
     printf("**** testing different values for szip params...");
     {
         int ncid;
         int dimid;
         int varid;
         int option_mask[NUM_MASK] = {NC_SZIP_NN_OPTION_MASK, NC_SZIP_EC_OPTION_MASK};
-        int pixels_per_block[NUM_PPB] = {32};
+        int pixels_per_block[NUM_PPB] = {1, 34, 2};
         int option_mask_in, pixels_per_block_in;
-        int m, p;
+        int m, p, ret;
 
         /* Try different option masks. */
         for (m = 0; m < NUM_MASK; m++)
@@ -668,17 +670,25 @@ main(int argc, char **argv)
             {
                 /* Create a netcdf-4 file with one dimensions. */
                 if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
-                if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_1, &dimid)) ERR;
+                if (nc_def_dim(ncid, DIM_NAME_1, SHORT_DIM_LEN_1, &dimid)) ERR;
 
                 /* Add a var. */
                 if (nc_def_var(ncid, V_SMALL, NC_INT64, NDIMS1, &dimid, &varid)) ERR;
 
-                /* Turn on szip filter. */
-                if (nc_def_var_szip(ncid, varid, option_mask[m], pixels_per_block[p])) ERR;
+                /* Try to turn on szip filter. */
+                ret = nc_def_var_szip(ncid, varid, option_mask[m], pixels_per_block[p]);
+                if (ret != (p < FIRST_VALID ? NC_EINVAL : NC_NOERR)) ERR;
 
                 /* Check szip filter settings. */
                 if (nc_inq_var_szip(ncid, varid, &option_mask_in, &pixels_per_block_in)) ERR;
-                if (!(option_mask[m] & option_mask_in)) ERR;
+                if (p < FIRST_VALID)
+                {
+                    if (option_mask_in) ERR;
+                }
+                else
+                {
+                    if (!(option_mask[m] & option_mask_in)) ERR;
+                }
                 if (nc_close(ncid)) ERR;
 
                 {
@@ -689,16 +699,27 @@ main(int argc, char **argv)
                     /* Open the file and check. */
                     if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
                     if (nc_inq_var_szip(ncid, varid, &option_mask_in, &pixels_per_block_in)) ERR;
-                    if (!(option_mask_in & option_mask[m])) ERR;
-                    if (pixels_per_block_in !=  NC_SZIP_EC_BPP_IN &&
-                        pixels_per_block_in !=  NC_SZIP_EC_BPP_OUT) ERR;
+                    if (p < FIRST_VALID)
+                    {
+                        if (option_mask_in) ERR;
+                    }
+                    else
+                    {
+                        if (!(option_mask[m] & option_mask_in)) ERR;
+                    }
 
                     /* Also check using nc_inq_var_filter */
                     if (nc_inq_var_filter(ncid, varid, &filterid, &nparams, params_in)) ERR;
-                    if (filterid != H5_FILTER_SZIP || nparams != 4) ERR;
-                    /* According to H5Zszip, the mapping should be as follows */
-                    if(params_in[0] != option_mask_in) ERR;
-                    if(params_in[1] != pixels_per_block_in) ERR;
+                    if (p < FIRST_VALID)
+                    {
+                    }
+                    else
+                    {
+                        if (filterid != H5_FILTER_SZIP || nparams != 4) ERR;
+                        /* According to H5Zszip, the mapping should be as follows */
+                        if(params_in[0] != option_mask_in) ERR;
+                        if(params_in[1] != pixels_per_block_in) ERR;
+                    }
                     if (nc_close(ncid)) ERR;
                 }
             } /* next PPB */
