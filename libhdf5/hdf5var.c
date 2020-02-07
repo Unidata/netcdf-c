@@ -1164,7 +1164,7 @@ NC4_def_var_endian(int ncid, int varid, int endianness)
  * @returns ::NC_ELATEDEF Too late to change settings for this variable.
  * @returns ::NC_EFILTER Filter error.
  * @returns ::NC_EINVAL Invalid input
- * @author Dennis Heimbigner
+ * @author Dennis Heimbigner, Ed Hartnett
  */
 int
 NC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
@@ -1226,7 +1226,7 @@ NC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
 #else /*!HAVE_H5Z_SZIP*/
     if (id == H5Z_FILTER_SZIP)
         return NC_EFILTER; /* HDF5 was not built with szip. */
-#endif
+#endif /*!HAVE_H5Z_SZIP*/
 
 #if 0
     {
@@ -1240,16 +1240,9 @@ NC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
     }
 #endif /*0*/
 
-    var->filterid = id;
-    var->nparams = nparams;
-    var->params = NULL;
-    if(parms != NULL) {
-        var->params = (unsigned int*)calloc(nparams,sizeof(unsigned int));
-        if(var->params == NULL) return NC_ENOMEM;
-        memcpy(var->params,parms,sizeof(unsigned int)*var->nparams);
-    }
     /* Filters can only be applied to chunked datasets in HDF5. */
     var->contiguous = NC_FALSE;
+
     /* Determine default chunksizes for this variable unless already specified */
     if(var->chunksizes && !var->chunksizes[0]) {
         if((retval = nc4_find_default_chunksizes2(grp, var)))
@@ -1258,6 +1251,35 @@ NC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
         if ((retval = nc4_adjust_var_cache(grp, var)))
             return retval;
     }
+
+#ifdef HAVE_H5Z_SZIP
+    /* For szip, the pixels_per_block parameter must not be greater
+     * than the number of elements in a chunk of data. */
+    if (id == H5Z_FILTER_SZIP)
+    {
+        size_t num_elem = 1;
+        int d;
+
+        for (d = 0; d < var->ndims; d++)
+            num_elem *= var->dim[d]->len;
+
+        /* Pixels per block must be <= number of elements. */
+        if (parms[1] > num_elem)
+            return NC_EINVAL;
+    }
+#endif /*!HAVE_H5Z_SZIP*/
+
+    /* Remember the filter info for later. It will be applied when the
+     * dataset for this variable is created. */
+    var->filterid = id;
+    var->nparams = nparams;
+    var->params = NULL;
+    if(parms != NULL) {
+        var->params = (unsigned int*)calloc(nparams,sizeof(unsigned int));
+        if(var->params == NULL) return NC_ENOMEM;
+        memcpy(var->params,parms,sizeof(unsigned int)*var->nparams);
+    }
+
 
     return NC_NOERR;
 }
