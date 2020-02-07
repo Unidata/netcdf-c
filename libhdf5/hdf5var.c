@@ -923,6 +923,11 @@ NC4_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
  * * The nearest neighbor coding method preprocesses the data then the
  * applies EC method as above.
  *
+ * For more information about HDF5 and szip, see
+ * https://support.hdfgroup.org/HDF5/doc/RM/RM_H5P.html#Property-SetSzip
+ * and
+ * https://support.hdfgroup.org/doc_resource/SZIP/index.html.
+ *
  * @param ncid File ID.
  * @param varid Variable ID.
  * @param options_mask The options mask. Can be NC_SZIP_EC or
