@@ -916,6 +916,9 @@ NC4_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
  * SZIP compression cannot be applied to variables with any
  * user-defined type.
  *
+ * If zlib compression has already be turned on for a variable, then
+ * this function will return ::NC_EINVAL.
+ *
  * @note The options_mask parameter may be either NC_SZIP_EC (entropy
  * coding) or NC_SZIP_NN (nearest neighbor):
  * * The entropy coding method is best suited for data that has been
@@ -949,7 +952,8 @@ NC4_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
  * not netCDF-4/HDF5.
  * @returns ::NC_ELATEDEF Too late to change settings for this variable.
  * @returns ::NC_ENOTINDEFINE Not in define mode.
- * @returns ::NC_EINVAL Invalid input
+ * @returns ::NC_EINVAL Invalid input, or zlib filter already applied
+ * to this var.
  * @author Ed Hartnett
  */
 int
@@ -1194,9 +1198,13 @@ NC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
 #endif /* USE_PARALLEL */
 
 #ifdef HAVE_H5Z_SZIP
-    if(id == H5Z_FILTER_SZIP) {
-        if(nparams != 2)
+    if (id == H5Z_FILTER_SZIP)
+    {
+        if (nparams != 2)
             return NC_EFILTER; /* incorrect no. of parameters */
+        /* If zlib compression is already applied, return error. */
+        if (var->deflate)
+            return NC_EINVAL;
     }
 #else /*!HAVE_H5Z_SZIP*/
     if(id == H5Z_FILTER_SZIP)
