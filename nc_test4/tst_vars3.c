@@ -649,54 +649,59 @@ main(int argc, char **argv)
     }
     SUMMARIZE_ERR;
 #define NUM_MASK 2
+#define NUM_PPB 1
     printf("**** testing different values for szip params...");
     {
         int ncid;
         int dimid;
         int varid;
         int option_mask[NUM_MASK] = {NC_SZIP_NN_OPTION_MASK, NC_SZIP_EC_OPTION_MASK};
-        /* int pixels_per_block; */
+        int pixels_per_block[NUM_PPB] = {32};
         int option_mask_in, pixels_per_block_in;
-        int m;
+        int m, p;
 
         /* Try different option masks. */
         for (m = 0; m < NUM_MASK; m++)
         {
-            /* Create a netcdf-4 file with one dimensions. */
-            if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
-            if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_1, &dimid)) ERR;
-
-            /* Add a var. */
-            if (nc_def_var(ncid, V_SMALL, NC_INT64, NDIMS1, &dimid, &varid)) ERR;
-
-            /* Turn on szip filter. */
-            if (nc_def_var_szip(ncid, varid, option_mask[m], NC_SZIP_EC_BPP_IN)) ERR;
-
-            /* Check szip filter settings. */
-            if (nc_inq_var_szip(ncid, varid, &option_mask_in, &pixels_per_block_in)) ERR;
-            if (!(option_mask[m] & option_mask_in)) ERR;
-            if (nc_close(ncid)) ERR;
-
+            /* Try different option masks. */
+            for (p = 0; p < NUM_PPB; p++)
             {
-                unsigned int params_in[NUM_PARAMS_OUT];
-                size_t nparams;
-                unsigned int filterid;
+                /* Create a netcdf-4 file with one dimensions. */
+                if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+                if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_1, &dimid)) ERR;
 
-                /* Open the file and check. */
-                if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+                /* Add a var. */
+                if (nc_def_var(ncid, V_SMALL, NC_INT64, NDIMS1, &dimid, &varid)) ERR;
+
+                /* Turn on szip filter. */
+                if (nc_def_var_szip(ncid, varid, option_mask[m], pixels_per_block[p])) ERR;
+
+                /* Check szip filter settings. */
                 if (nc_inq_var_szip(ncid, varid, &option_mask_in, &pixels_per_block_in)) ERR;
-                if (!(option_mask_in & option_mask[m])) ERR;
-                if (pixels_per_block_in !=  NC_SZIP_EC_BPP_IN &&
-                    pixels_per_block_in !=  NC_SZIP_EC_BPP_OUT) ERR;
-
-                /* Also check using nc_inq_var_filter */
-                if (nc_inq_var_filter(ncid, varid, &filterid, &nparams, params_in)) ERR;
-                if (filterid != H5_FILTER_SZIP || nparams != 4) ERR;
-                /* According to H5Zszip, the mapping should be as follows */
-                if(params_in[0] != option_mask_in) ERR;
-                if(params_in[1] != pixels_per_block_in) ERR;
+                if (!(option_mask[m] & option_mask_in)) ERR;
                 if (nc_close(ncid)) ERR;
-            }
+
+                {
+                    unsigned int params_in[NUM_PARAMS_OUT];
+                    size_t nparams;
+                    unsigned int filterid;
+
+                    /* Open the file and check. */
+                    if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+                    if (nc_inq_var_szip(ncid, varid, &option_mask_in, &pixels_per_block_in)) ERR;
+                    if (!(option_mask_in & option_mask[m])) ERR;
+                    if (pixels_per_block_in !=  NC_SZIP_EC_BPP_IN &&
+                        pixels_per_block_in !=  NC_SZIP_EC_BPP_OUT) ERR;
+
+                    /* Also check using nc_inq_var_filter */
+                    if (nc_inq_var_filter(ncid, varid, &filterid, &nparams, params_in)) ERR;
+                    if (filterid != H5_FILTER_SZIP || nparams != 4) ERR;
+                    /* According to H5Zszip, the mapping should be as follows */
+                    if(params_in[0] != option_mask_in) ERR;
+                    if(params_in[1] != pixels_per_block_in) ERR;
+                    if (nc_close(ncid)) ERR;
+                }
+            } /* next PPB */
         } /* next mask */
     }
     SUMMARIZE_ERR;
