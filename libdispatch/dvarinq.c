@@ -664,13 +664,16 @@ nc_inq_var_filter(int ncid, int varid, unsigned int* idp, size_t* nparamsp, unsi
 \ingroup variables
 Learn the szip settings of a variable.
 
-This function returns the szip settings for a variable. For more
-information on HDF5 and szip see
+This function returns the szip settings for a variable. To turn on
+szip compression, use nc_def_var_szip(). Szip compression is only
+available if HDF5 was built with szip support.
+
+If a variable is not using szip, then a zero will be passed back
+for both options_maskp and pixels_per_blockp.
+
+For more information on HDF5 and szip see
 https://support.hdfgroup.org/HDF5/doc/RM/RM_H5P.html#Property-SetSzip
 and https://support.hdfgroup.org/doc_resource/SZIP/index.html.
-
-To if a variable is not using szip, then a zero will be passed back
-for both options_maskp and pixels_per_blockp.
 
 \param ncid NetCDF or group ID, from a previous call to nc_open(),
 nc_create(), nc_def_grp(), or associated inquiry functions such as
