@@ -606,6 +606,46 @@ main(int argc, char **argv)
         if (nc_close(ncid)) ERR;
     }
     SUMMARIZE_ERR;
+    printf("**** testing attempts to use both zlib and szip...");
+    {
+        int ncid;
+        int dimid;
+        int varid;
+        unsigned int params[NUM_PARAMS_IN] = {NC_SZIP_NN_OPTION_MASK,
+                                              NC_SZIP_EC_BPP_IN};
+
+        /* Create a netcdf-4 file with one dimensions. */
+        if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+        if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_1, &dimid)) ERR;
+
+        /* Add a var. */
+        if (nc_def_var(ncid, V_SMALL, NC_INT64, NDIMS1, &dimid, &varid)) ERR;
+        if (nc_def_var_chunking(ncid, varid, NC_CHUNKED, NULL)) ERR;
+
+        /* Turn on zlib. */
+        if (nc_def_var_deflate(ncid, varid, 0, 1, 3)) ERR;
+
+        /* Try to turn on szip filter - it will fail. */
+        if (nc_def_var_filter(ncid, varid, H5_FILTER_SZIP, NUM_PARAMS_IN, params) != NC_EINVAL) ERR;
+        if (nc_close(ncid)) ERR;
+
+                /* Create a netcdf-4 file with one dimensions. */
+        if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+        if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_1, &dimid)) ERR;
+
+        /* Add a var. */
+        if (nc_def_var(ncid, V_SMALL, NC_INT64, NDIMS1, &dimid, &varid)) ERR;
+        if (nc_def_var_chunking(ncid, varid, NC_CHUNKED, NULL)) ERR;
+
+        /* Turn on szip. */
+        if (nc_def_var_filter(ncid, varid, H5_FILTER_SZIP, NUM_PARAMS_IN, params)) ERR;
+
+        /* Try to turn on szip filter - it will fail. */
+        if (nc_def_var_deflate(ncid, varid, 0, 1, 3) != NC_EINVAL) ERR;
+        if (nc_close(ncid)) ERR;
+
+    }
+    SUMMARIZE_ERR;
 #else
     /* This code is run if szip is not present in HDF5. It checks that
      * nc_def_var_szip() returns NC_EFILTER in that case. */

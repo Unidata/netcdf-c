@@ -644,6 +644,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
     NC_GRP_INFO_T *grp;
     NC_FILE_INFO_T *h5;
     NC_VAR_INFO_T *var;
+    int option_mask;
     int d;
     int retval;
 
@@ -669,7 +670,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
 
 
     /* Can't turn on parallel and deflate/fletcher32/szip/shuffle
-     * before HDF5 1.10.2. */
+     * before HDF5 1.10.3. */
 #ifndef HDF5_SUPPORTS_PAR_FILTERS
     if (h5->parallel == NC_TRUE)
         if (deflate || fletcher32 || shuffle)
@@ -696,6 +697,12 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
         /* For scalars, just ignore attempt to deflate. */
         if (!var->ndims)
             return NC_NOERR;
+
+        /* If szip is in use, return an error. */
+        if ((retval = nc_inq_var_szip(ncid, varid, &option_mask, NULL)))
+            return retval;
+        if (option_mask)
+            return NC_EINVAL;
 
         /* Set the deflate settings. */
         var->contiguous = NC_FALSE;
@@ -1198,17 +1205,19 @@ NC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
 #endif /* USE_PARALLEL */
 
 #ifdef HAVE_H5Z_SZIP
+    /* We have special handling for the szip filter. */
     if (id == H5Z_FILTER_SZIP)
     {
         if (nparams != 2)
             return NC_EFILTER; /* incorrect no. of parameters */
+
         /* If zlib compression is already applied, return error. */
         if (var->deflate)
             return NC_EINVAL;
     }
 #else /*!HAVE_H5Z_SZIP*/
-    if(id == H5Z_FILTER_SZIP)
-        return NC_EFILTER; /* Not allowed */
+    if (id == H5Z_FILTER_SZIP)
+        return NC_EFILTER; /* HDF5 was not built with szip. */
 #endif
 
 #if 0
