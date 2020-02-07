@@ -15,6 +15,7 @@
 #include <hdf5.h>
 
 #define FILE_NAME "tst_h_vars.h5"
+#define TEST_NAME "tst_h_vars"
 #define GRP_NAME "Henry_V"
 #define VAR_BOOL_NAME "Southhamptons_Battle_Record"
 #define GRP2_NAME "Some_3D_Met_Data"
@@ -487,6 +488,93 @@ main()
                 H5Fclose(fileid) < 0)
                 ERR;
         }
+    }
+    SUMMARIZE_ERR;
+    printf("*** Checking using szip and zlib on same var...");
+#define SZIP_VAR_NAME "szip_var"
+#define SZIP_DIM1_LEN 32
+#define NUM_FILE 4
+#define MAX_STR 80
+    {
+        int data[DIM1_LEN];
+        hid_t plistid;
+        hsize_t chunksize[NDIM1] = {SZIP_DIM1_LEN};
+        int options_mask = 32, pixels_per_block = 4;
+        hsize_t my_dims[NDIM1];
+        int i, f;
+
+        /* Create data. */
+        for (i = 0; i < SZIP_DIM1_LEN; i++)
+            data[i] = i;
+
+        /* Run test 4 times. */
+        for (f = 0; f < NUM_FILE; f++)
+        {
+            char file_name[MAX_STR + 1];
+            char desc[NUM_FILE][MAX_STR + 1] = {"uncompressed", "zlib",
+                                               "szip", "zlib_and_szip"};
+
+            /* Open file and create group. */
+            sprintf(file_name, "%s_%s.h5", TEST_NAME, desc[f]);
+            if ((fileid = H5Fcreate(file_name, H5F_ACC_TRUNC, H5P_DEFAULT,
+                                    H5P_DEFAULT)) < 0) ERR;
+            if ((grpid = H5Gcreate(fileid, GRP_NAME, 0)) < 0) ERR;
+
+            /* Create dataset creation property list. */
+            if ((plistid = H5Pcreate(H5P_DATASET_CREATE)) < 0) ERR;
+
+            /* Turn on chunking. */
+            if (H5Pset_chunk(plistid, NDIM1, chunksize) < 0) ERR;
+
+            /* Turn off object tracking times in HDF5 (as netcdf-4 does). */
+            if (H5Pset_obj_track_times(plistid, 0) < 0) ERR;
+
+            /* Turn on szip compression. */
+            if (H5Pset_szip(plistid, options_mask, pixels_per_block) < 0) ERR;
+
+            /* Create a space. */
+            my_dims[0] = SZIP_DIM1_LEN;
+            if ((spaceid = H5Screate_simple(1, my_dims, my_dims)) < 0) ERR;
+
+            /* Create a dataset. */
+            if ((datasetid = H5Dcreate2(grpid, SZIP_VAR_NAME, H5T_NATIVE_INT,
+                                        spaceid, H5P_DEFAULT, plistid,
+                                        H5P_DEFAULT)) < 0) ERR;
+
+            /* Write data. */
+            if (H5Dwrite(datasetid, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT,
+                         data) < 0) ERR;
+
+            /* Release resources. */
+            if (H5Dclose(datasetid) < 0 ||
+                H5Sclose(spaceid) < 0 ||
+                H5Pclose(plistid) < 0 ||
+                H5Gclose(grpid) < 0 ||
+                H5Fclose(fileid) < 0)
+                ERR;
+
+            /* { */
+            /*     /\* Now reopen the file and check. *\/ */
+            /*     int data_in[SZIP_DIM1_LEN]; */
+            /*     hid_t native_did; */
+            /*     int i; */
+
+            /*     if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) ERR; */
+            /*     if ((grpid = H5Gopen(fileid, GRP_NAME)) < 0) ERR; */
+
+            /*     if ((native_did = H5Dopen1(grpid, SZIP_VAR_NAME)) < 0) ERR; */
+
+            /*     if (H5Dread(native_did, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, */
+            /*                 data_in) < 0) ERR; */
+            /*     for (i = 0; i < SZIP_DIM1_LEN; i++) */
+            /*         if (data[i] != data_in[i]) ERR; */
+
+            /*     if (H5Dclose(native_did) < 0 || */
+            /*         H5Gclose(grpid) < 0 || */
+            /*         H5Fclose(fileid) < 0) */
+            /*         ERR; */
+            /* } */
+        } /* next file */
     }
     SUMMARIZE_ERR;
 #endif /* USE_SZIP */
