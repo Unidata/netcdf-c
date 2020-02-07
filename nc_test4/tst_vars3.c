@@ -429,14 +429,14 @@ main(int argc, char **argv)
         size_t nparams;
         unsigned int filterid;
         unsigned int params_out[NUM_PARAMS_OUT];
-        unsigned int tmp;
 
         /* Create a netcdf-4 file with one dimensions. */
         if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
         if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_1, &dimid)) ERR;
 
-        /* Add a var. Turn on szip filter. */
+        /* Add a var. */
         if (nc_def_var(ncid, V_SMALL, NC_INT64, NDIMS1, &dimid, &varid)) ERR;
+        /* Turn on szip filter. */
         params[0] = NC_SZIP_NN_OPTION_MASK; /* options_mask */
         params[1] = NC_SZIP_EC_BPP_IN; /* pixels_per_block */
         if (nc_def_var_chunking(ncid, varid, NC_CHUNKED, NULL)) ERR;
@@ -445,12 +445,12 @@ main(int argc, char **argv)
 
         /* Open the file and check. */
         if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
-        /* The following code should work, but doesn't. See issue 972 in github. */
+
+        /* Check szip settings. */
         if (nc_inq_var_szip(ncid, varid, &options_mask, &pixels_per_block)) ERR;
         /* H5Zszip code will sometimes bump the pixels_per_block from 32 to 64
            and may add other flags to the options_mask */
-        tmp = options_mask & NC_SZIP_NN_OPTION_MASK;
-        if (tmp != NC_SZIP_NN_OPTION_MASK) ERR;
+        if (!(options_mask & NC_SZIP_NN_OPTION_MASK)) ERR;
         if (pixels_per_block !=  NC_SZIP_EC_BPP_IN && pixels_per_block !=  NC_SZIP_EC_BPP_OUT)
             ERR;
 
