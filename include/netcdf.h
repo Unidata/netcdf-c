@@ -850,6 +850,10 @@ EXTERNL int
 nc_inq_var_deflate(int ncid, int varid, int *shufflep,
                    int *deflatep, int *deflate_levelp);
 
+/* Set szip compression for a variable. */
+EXTERNL int nc_def_var_szip(int ncid, int varid, int options_mask,
+                            int pixels_per_block);
+
 /* Find out szip settings of a var. */
 EXTERNL int
 nc_inq_var_szip(int ncid, int varid, int *options_maskp, int *pixels_per_blockp);
