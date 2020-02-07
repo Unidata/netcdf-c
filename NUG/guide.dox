@@ -1,6 +1,9 @@
-/*! \page user_guide The NetCDF User's Guide
+/*! \mainpage The NetCDF User's Guide
 
-<H2>The sections of the netCDF User's Guide</H2>
+\section user_guide The NetCDF User's Guide
+
+
+\subsection user_guide_toc Table of Contents
 
 - \subpage netcdf_introduction
 - \subpage file_structure_and_performance
@@ -14,7 +17,7 @@
 - \subpage dap2
 - \subpage dap4
 
-<H2>The Purpose of NetCDF</H2>
+\section nc_purpose The Purpose of NetCDF
 
 The purpose of the Network Common Data Form (netCDF) interface is to
 allow you to create, access, and share array-oriented data in a form
