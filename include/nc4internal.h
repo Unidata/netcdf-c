@@ -56,6 +56,9 @@ typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP} NC_SORT;
 /** One mega-byte. */
 #define MEGABYTE 1048576
 
+/** The HDF5 ID for the szip filter. */
+#define HDF5_FILTER_SZIP 4
+
 #define X_SCHAR_MIN     (-128)          /**< Minimum signed char value. */
 #define X_SCHAR_MAX     127             /**< Maximum signed char value. */
 #define X_UCHAR_MAX     255U            /**< Maximum unsigned char value. */

@@ -28,9 +28,6 @@
 /** Number of parameters needed when turning on szip filter. */
 #define NUM_SZIP_PARAM 2
 
-/** The HDF5 ID for the szip filter. */
-#define HDF5_FILTER_SZIP 4
-
 /** The maximum allowed setting for pixels_per_block when calling
  * nc_def_var_szip(). */
 #define NC_MAX_PIXELS_PER_BLOCK 32
@@ -916,71 +913,6 @@ NC4_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
 {
     return nc_def_var_extra(ncid, varid, &shuffle, &deflate,
                             &deflate_level, NULL, NULL, NULL, NULL, NULL, NULL);
-}
-
-/**
- * Set szip compression settings on a variable. Szip is an
- * implementation of the extended-Rice lossless compression
- * algorithm. Szip is reported to provide fast and effective
- * compression.
- *
- * SZIP compression cannot be applied to variables with any
- * user-defined type.
- *
- * If zlib compression has already be turned on for a variable, then
- * this function will return ::NC_EINVAL.
- *
- * @note The options_mask parameter may be either NC_SZIP_EC (entropy
- * coding) or NC_SZIP_NN (nearest neighbor):
- * * The entropy coding method is best suited for data that has been
- * processed. The EC method works best for small numbers.
- * * The nearest neighbor coding method preprocesses the data then the
- * applies EC method as above.
- *
- * For more information about HDF5 and szip, see
- * https://support.hdfgroup.org/HDF5/doc/RM/RM_H5P.html#Property-SetSzip
- * and
- * https://support.hdfgroup.org/doc_resource/SZIP/index.html.
- *
- * @param ncid File ID.
- * @param varid Variable ID.
- * @param options_mask The options mask. Can be NC_SZIP_EC or
- * NC_SZIP_NN.
- * @param pixels_per_block Pixels per block. Must be even and not
- * greater than 32, with typical values being 8, 10, 16, or 32. This
- * parameter affects compression ratio; the more pixel values vary,
- * the smaller this number should be to achieve better performance. If
- * pixels_per_block is bigger than the total number of elements in a
- * dataset chunk, ::NC_EINVAL will be returned.
- *
- * @returns ::NC_NOERR No error.
- * @returns ::NC_ENOTBUILT This HDF5 install was not built with szip.
- * @returns ::NC_EBADID Bad ncid.
- * @returns ::NC_ENOTVAR Invalid variable ID.
- * @returns ::NC_ENOTNC4 Attempting netcdf-4 operation on file that is
- * not netCDF-4/HDF5.
- * @returns ::NC_ELATEDEF Too late to change settings for this variable.
- * @returns ::NC_ENOTINDEFINE Not in define mode.
- * @returns ::NC_EINVAL Invalid input, or zlib filter already applied
- * to this var.
- * @author Ed Hartnett
- */
-int
-nc_def_var_szip(int ncid, int varid, int options_mask, int pixels_per_block)
-{
-    int ret;
-
-    LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
-
-    /* This will cause H5Pset_szip to be called when the var is
-     * created. */
-    unsigned int params[2];
-    params[0] = options_mask;
-    params[1] = pixels_per_block;
-    if ((ret = nc_def_var_filter(ncid, varid, HDF5_FILTER_SZIP, 2, params)))
-        return ret;
-
-    return NC_NOERR;
 }
 
 /**
