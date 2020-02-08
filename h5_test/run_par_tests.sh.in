@@ -12,9 +12,9 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 echo ""
 echo "Testing parallel I/O with HDF5..."
 
-mpiexec -n 1 ./tst_h_par
-mpiexec -n 2 ./tst_h_par
-mpiexec -n 4 ./tst_h_par
+@MPIEXEC@ -n 1 ./tst_h_par
+@MPIEXEC@ -n 2 ./tst_h_par
+@MPIEXEC@ -n 4 ./tst_h_par
 echo "SUCCESS!!!"
 
 exit 0
