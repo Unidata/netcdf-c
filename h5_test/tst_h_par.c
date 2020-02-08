@@ -1,6 +1,6 @@
-/* This is part of the netCDF package.
-   Copyright 2018 University Corporation for Atmospheric Research/Unidata
-   See COPYRIGHT file for conditions of use.
+/* This is part of the netCDF package.  Copyright 2020 University
+   Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
+   conditions of use.
 
    Test HDF5 file code. These are not intended to be exhaustive tests,
    but they use HDF5 the same way that netCDF-4 does, so if these
@@ -8,7 +8,7 @@
 
    This files tests parallel I/O.
 
-   $Id: tst_h_par.c,v 1.15 2010/05/25 13:53:04 ed Exp $
+   Ed Hartnett
 */
 #include <nc_tests.h>
 #include "err_macros.h"
@@ -199,13 +199,13 @@ main(int argc, char **argv)
                 return 2;
             }
 
-/*       /\* Check the slice of data. *\/ */
-/*       for (i = 0; i < SC1; i++) */
-/*          if (data[i] != data_in[i])  */
-/*          { */
-/*             ERR; */
-/*             return 2; */
-/*          } */
+            /* Check the slice of data. */
+            for (i = 0; i < SC1; i++)
+                if (data[i] != data_in[i])
+                {
+                    ERR;
+                    return 2;
+                }
         }
         read_us = (MPI_Wtime() - ftime) * MILLION;
         MPI_Reduce(&read_us, &max_read_us, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
