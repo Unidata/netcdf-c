@@ -12,6 +12,7 @@ This file contains a high-level description of this package's evolution. Release
 * [Enhancement] Restore use of szip compression when writing data (including writing in parallel if HDF5 version is 1.10.3 or greater). See [https://github.com/Unidata/netcdf-c/issues/1546].
 * [Enhancement] Enable use of compact storage option for small vars in netCDF/HDF5 files. See [https://github.com/Unidata/netcdf-c/issues/1570].
 * [Enhancement] Updated benchmarking program bm_file.c to better handle very large files. See [https://github.com/Unidata/netcdf-c/issues/1555].
+* [Bug Fix] Fixed problem of growing memory when netCDF-4 files were opened and closed. See [https://github.com/Unidata/netcdf-c/issues/1575 and https://github.com/Unidata/netcdf-c/issues/1571].
 
 ## 4.7.3 - November 20, 2019
 
