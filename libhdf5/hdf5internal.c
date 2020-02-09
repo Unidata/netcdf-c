@@ -585,9 +585,11 @@ close_vars(NC_GRP_INFO_T *grp)
         /* Free the HDF5 typeids. */
         if (var->type_info->rc == 1)
         {
-            if (H5Tclose(((NC_HDF5_TYPE_INFO_T *)(var->type_info->format_type_info))->hdf_typeid) < 0)
+            if (((NC_HDF5_TYPE_INFO_T *)(var->type_info->format_type_info))->hdf_typeid &&
+                H5Tclose(((NC_HDF5_TYPE_INFO_T *)(var->type_info->format_type_info))->hdf_typeid) < 0)
                 return NC_EHDFERR;
-            if (H5Tclose(((NC_HDF5_TYPE_INFO_T *)(var->type_info->format_type_info))->native_hdf_typeid) < 0)
+            if (((NC_HDF5_TYPE_INFO_T *)(var->type_info->format_type_info))->native_hdf_typeid &&
+                H5Tclose(((NC_HDF5_TYPE_INFO_T *)(var->type_info->format_type_info))->native_hdf_typeid) < 0)
                 return NC_EHDFERR;
         }
 
