@@ -340,7 +340,8 @@ main(int argc, char **argv)
         for (i = 0; i < NUM_UDFS; i++)
         {
             /* Make sure our bad version format is rejected. */
-            if (nc_def_user_format(mode[i], &tst_dispatcher_bad_version, NULL) != NC_EINVAL) ERR;
+            if (nc_def_user_format(mode[i], &tst_dispatcher_bad_version,
+                                   NULL) != NC_EINVAL) ERR;
         }
     }
     SUMMARIZE_ERR;
