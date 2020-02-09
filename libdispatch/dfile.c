@@ -127,6 +127,9 @@ nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_numbe
     if (magic_number && strlen(magic_number) > NC_MAX_MAGIC_NUMBER_LEN)
         return NC_EINVAL;
 
+    /* Check the version of the dispatch table provided. */
+    if (dispatch_table->dispatch_version != NC_DISPATCH_VERSION)
+        return NC_EINVAL;
 
     /* Retain a pointer to the dispatch_table and a copy of the magic
      * number, if one was provided. */
