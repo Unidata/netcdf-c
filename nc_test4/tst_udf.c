@@ -67,6 +67,7 @@ tst_get_vara(int ncid, int varid, const size_t *start, const size_t *count,
 static NC_Dispatch tst_dispatcher = {
 
 NC_FORMATX_UDF0,
+NC_DISPATCH_VERSION,
 
 NC_RO_create,
 tst_open,
