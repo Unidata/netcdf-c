@@ -15,7 +15,7 @@
 #include <sys/resource.h>
 
 #define FILE_NAME "tst_mem1.nc"
-#define NUM_FILE_OPENS 100
+#define NUM_FILE_OPENS 10000
 
 int main()
 {
@@ -37,12 +37,16 @@ int main()
             if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
             if (nc_close(ncid)) ERR;
             getrusage(RUSAGE_SELF, &r_usage);
-            if (!(idx % 100))
-                printf("Memory usage: %ld kilobytes\n",r_usage.ru_maxrss);
-            /* if (!my_rss || idx < 10) */
-            /*     my_rss = r_usage.ru_maxrss; */
-            /* else */
-            /*     if (my_rss != r_usage.ru_maxrss) ERR; */
+            /* if (!(idx % 100)) */
+            /*     printf("Memory usage: %ld kilobytes\n",r_usage.ru_maxrss); */
+
+            /* Memory usage goes up in the first couple of opens, but
+             * should then remain steady. Check that it does not
+             * change after the first 10 iterations. */
+            if (!my_rss || idx < 10)
+                my_rss = r_usage.ru_maxrss;
+            else
+                if (my_rss != r_usage.ru_maxrss) ERR;
         };
     }
     SUMMARIZE_ERR;
