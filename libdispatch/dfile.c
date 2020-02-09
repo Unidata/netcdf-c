@@ -90,6 +90,22 @@ char UDF1_magic_number[NC_MAX_MAGIC_NUMBER_LEN + 1] = "";
 /**
  * Add handling of user-defined format.
  *
+ * User-defined formats allow users to write a library which can read
+ * their own proprietary format as if it were netCDF. This allows
+ * existing netCDF codes to work on non-netCDF data formats.
+ *
+ * User-defined formats work by specifying a netCDF dispatch
+ * table. The dispatch table is a struct of (mostly) C function
+ * pointers. It contains pointers to the key functions of the netCDF
+ * API. Once these functions are provided, and the dispatch table is
+ * specified, the netcdf-c library can read any format.
+ *
+ * @note Unlike the public netCDF API, the dispatch table may not be
+ * backward compatible between netCDF releases. Instead, it contains a
+ * dispatch version number. If this number is not correct (i.e. does
+ * not match the current dispatch table version), then ::NC_EINVAL
+ * will be returned.
+ *
  * @param mode_flag NC_UDF0 or NC_UDF1
  * @param dispatch_table Pointer to dispatch table to use for this user format.
  * @param magic_number Magic number used to identify file. Ignored if
@@ -110,6 +126,7 @@ nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_numbe
         return NC_EINVAL;
     if (magic_number && strlen(magic_number) > NC_MAX_MAGIC_NUMBER_LEN)
         return NC_EINVAL;
+
 
     /* Retain a pointer to the dispatch_table and a copy of the magic
      * number, if one was provided. */
