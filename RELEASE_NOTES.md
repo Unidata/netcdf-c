@@ -13,6 +13,7 @@ This file contains a high-level description of this package's evolution. Release
 * [Enhancement] Enable use of compact storage option for small vars in netCDF/HDF5 files. See [https://github.com/Unidata/netcdf-c/issues/1570].
 * [Enhancement] Updated benchmarking program bm_file.c to better handle very large files. See [https://github.com/Unidata/netcdf-c/issues/1555].
 * [Enhancement] Added version number to dispatch table, and now check version with nc_def_user_format(). See [https://github.com/Unidata/netcdf-c/issues/1599].
+* [Enhancement] Increased size of maximum allowed name in HDF4 files to NC_MAX_NAME. See [https://github.com/Unidata/netcdf-c/issues/1631].
 
 ## 4.7.3 - November 20, 2019
 
