@@ -204,6 +204,7 @@ main(int argc, char **argv)
 #define D3_DIM1_NAME "Brains"
 #define D3_DIM2_NAME "Money"
 #define D3_VAR_NAME "Batman"
+#define D3_VAR1_NAME "Aquaman"
         int ncid, varid, dimid[NDIM3];
         int data = TEST_VAL_42;
         int data_in;
@@ -217,6 +218,7 @@ main(int argc, char **argv)
         if (nc_def_dim(ncid, D3_DIM1_NAME, NC_UNLIMITED, &dimid[1])) ERR;
         if (nc_def_dim(ncid, D3_DIM2_NAME, NC_UNLIMITED, &dimid[2])) ERR;
         if (nc_def_var(ncid, D3_VAR_NAME, NC_INT, NDIM3, dimid, &varid)) ERR;
+        if (nc_def_var(ncid, D3_VAR1_NAME, NC_INT, NDIM3, dimid, &varid)) ERR;
         if (nc_close(ncid)) ERR;
 
         /* Check the file. */
@@ -235,6 +237,8 @@ main(int argc, char **argv)
         if (nc_inq_dim(ncid, 0, NULL, &len_in)) ERR;
         if (len_in != 2) ERR;
         if (nc_inq_dim(ncid, 1, NULL, &len_in)) ERR;
+        if (len_in != 2) ERR;
+        if (nc_inq_dim(ncid, 2, NULL, &len_in)) ERR;
         if (len_in != 2) ERR;
         if (nc_get_var1_int(ncid, 0, index, &data_in)) ERR;
         if (data_in != data) ERR;
