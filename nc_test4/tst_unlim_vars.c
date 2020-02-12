@@ -161,6 +161,7 @@ main(int argc, char **argv)
 #define VAR_NAME "Superman"
         int ncid, varid, dimid[NDIM2];
         int data = TEST_VAL_42;
+        int data_in;
         size_t index[NDIM2] = {1, 1};
         char name_in[NC_MAX_NAME + 1];
         size_t len_in;
@@ -187,6 +188,8 @@ main(int argc, char **argv)
         if (len_in != 2) ERR;
         if (nc_inq_dim(ncid, 1, NULL, &len_in)) ERR;
         if (len_in != 2) ERR;
+        if (nc_var_var1_int(ncid, 0, index, &data_in)) ERR;
+        if (data_in != data) ERR;
         if (nc_close(ncid)) ERR;
 
     }
