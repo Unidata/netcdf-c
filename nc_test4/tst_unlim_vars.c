@@ -246,6 +246,19 @@ main(int argc, char **argv)
         if (data_in != NC_FILL_INT) ERR;
         if (nc_close(ncid)) ERR;
 
+        /* Reopen file and check again. */
+        if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+        if (nc_inq_dim(ncid, 0, NULL, &len_in)) ERR;
+        if (len_in != 2) ERR;
+        if (nc_inq_dim(ncid, 1, NULL, &len_in)) ERR;
+        if (len_in != 2) ERR;
+        if (nc_inq_dim(ncid, 2, NULL, &len_in)) ERR;
+        if (len_in != 2) ERR;
+        if (nc_get_vara_int(ncid, 0, start, count, &data_in)) ERR;
+        if (data_in != data) ERR;
+        if (nc_get_vara_int(ncid, 1, start, count, &data_in)) ERR;
+        if (data_in != NC_FILL_INT) ERR;
+        if (nc_close(ncid)) ERR;
     }
     SUMMARIZE_ERR;
     FINAL_RESULTS;
