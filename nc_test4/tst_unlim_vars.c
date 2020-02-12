@@ -160,6 +160,10 @@ main(int argc, char **argv)
 #define DIM1_NAME "Height"
 #define VAR_NAME "Superman"
         int ncid, varid, dimid[NDIM2];
+        int data = TEST_VAL_42;
+        size_t index[NDIM2] = {1, 1};
+        char name_in[NC_MAX_NAME + 1];
+        size_t len_in;
 
         /* Create a file with 2 unlimited dims. */
         if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
@@ -169,15 +173,22 @@ main(int argc, char **argv)
         if (nc_close(ncid)) ERR;
 
         /* Check the file. */
-        {
-            char name_in[NC_MAX_NAME + 1];
-            size_t len_in;
+        if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+        if (nc_inq_dim(ncid, 0, name_in, &len_in)) ERR;
+        if (strcmp(name_in, DIM0_NAME) || len_in != 0) ERR;
+        if (nc_inq_dim(ncid, 1, name_in, &len_in)) ERR;
+        if (strcmp(name_in, DIM1_NAME) || len_in != 0) ERR;
+        if (nc_close(ncid)) ERR;
 
-            if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
-            if (nc_inq_dim(ncid, 0, name_in, &len_in)) ERR;
-            if (strcmp(name_in, DIM0_NAME)) ERR;
-            if (nc_close(ncid)) ERR;
-        }
+        /* Reopen the file and add data. */
+        if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+        if (nc_put_var1_int(ncid, 0, index, &data)) ERR;
+        if (nc_inq_dim(ncid, 0, NULL, &len_in)) ERR;
+        if (len_in != 2) ERR;
+        if (nc_inq_dim(ncid, 1, NULL, &len_in)) ERR;
+        if (len_in != 2) ERR;
+        if (nc_close(ncid)) ERR;
+
     }
     SUMMARIZE_ERR;
     FINAL_RESULTS;
