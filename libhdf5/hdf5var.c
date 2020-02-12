@@ -28,8 +28,9 @@
 /** Number of parameters needed when turning on szip filter. */
 #define NUM_SZIP_PARAM 2
 
-/** The HDF5 ID for the szip filter. */
-#define HDF5_FILTER_SZIP 4
+/** The maximum allowed setting for pixels_per_block when calling
+ * nc_def_var_szip(). */
+#define NC_MAX_PIXELS_PER_BLOCK 32
 
 #ifdef LOGGING
 /**
@@ -644,6 +645,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
     NC_GRP_INFO_T *grp;
     NC_FILE_INFO_T *h5;
     NC_VAR_INFO_T *var;
+    int option_mask;
     int d;
     int retval;
 
@@ -669,7 +671,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
 
 
     /* Can't turn on parallel and deflate/fletcher32/szip/shuffle
-     * before HDF5 1.10.2. */
+     * before HDF5 1.10.3. */
 #ifndef HDF5_SUPPORTS_PAR_FILTERS
     if (h5->parallel == NC_TRUE)
         if (deflate || fletcher32 || shuffle)
@@ -696,6 +698,12 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
         /* For scalars, just ignore attempt to deflate. */
         if (!var->ndims)
             return NC_NOERR;
+
+        /* If szip is in use, return an error. */
+        if ((retval = nc_inq_var_szip(ncid, varid, &option_mask, NULL)))
+            return retval;
+        if (option_mask)
+            return NC_EINVAL;
 
         /* Set the deflate settings. */
         var->contiguous = NC_FALSE;
@@ -908,102 +916,6 @@ NC4_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
 }
 
 /**
- * Set szip compression settings on a variable. Szip is an
- * implementation of the extended-Rice lossless compression
- * algorithm. Szip is reported to provide fast and effective
- * compression.
- *
- * SZIP compression cannot be applied to variables with any
- * user-defined type.
- *
- * @note The options_mask parameter may be either NC_SZIP_EC (entropy
- * coding) or NC_SZIP_NN (nearest neighbor):
- * * The entropy coding method is best suited for data that has been
- * processed. The EC method works best for small numbers.
- * * The nearest neighbor coding method preprocesses the data then the
- * applies EC method as above.
- *
- * @param ncid File ID.
- * @param varid Variable ID.
- * @param options_mask The options mask. Can be NC_SZIP_EC or
- * NC_SZIP_NN.
- * @param pixels_per_block Pixels per block. Must be even and not
- * greater than 32, with typical values being 8, 10, 16, or 32. This
- * parameter affects compression ratio; the more pixel values vary,
- * the smaller this number should be to achieve better performance. If
- * pixels_per_block is bigger than the total number of elements in a
- * dataset chunk, H5Pset_szip will succeed but the subsequent call to
- * H5Dcreate will fail; the conflict can be detected only when the
- * property list is used.
- *
- * @returns ::NC_NOERR No error.
- * @returns ::NC_ENOTBUILT This HDF5 install was not built with szip.
- * @returns ::NC_EBADID Bad ncid.
- * @returns ::NC_ENOTVAR Invalid variable ID.
- * @returns ::NC_ENOTNC4 Attempting netcdf-4 operation on file that is
- * not netCDF-4/HDF5.
- * @returns ::NC_ELATEDEF Too late to change settings for this variable.
- * @returns ::NC_ENOTINDEFINE Not in define mode.
- * @returns ::NC_EINVAL Invalid input
- * @author Ed Hartnett
- */
-int
-nc_def_var_szip(int ncid, int varid, int options_mask, int pixels_per_block)
-{
-    NC_GRP_INFO_T *grp;
-    NC_FILE_INFO_T *h5;
-    NC_VAR_INFO_T *var;
-    int built = 0;
-    int ret;
-
-    LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
-
-    /* If HDF5 was not built with szip, then return error. */
-#ifdef HAVE_H5Z_SZIP
-    built = 1;
-#endif /* HAVE_H5Z_SZIP */
-    if (!built)
-        return NC_EFILTER;
-
-    /* Find info for this file and group, and set pointer to each. */
-    if ((ret = nc4_find_nc_grp_h5(ncid, NULL, &grp, &h5)))
-        return ret;
-    assert(grp && h5);
-
-    /* Trying to write to a read-only file? No way, Jose! */
-    if (h5->no_write)
-        return NC_EPERM;
-
-    /* Can't turn on parallel and szip before HDF5 1.10.2. */
-#ifdef USE_PARALLEL
-#ifndef HDF5_SUPPORTS_PAR_FILTERS
-    if (h5->parallel == NC_TRUE)
-        return NC_EINVAL;
-#endif /* HDF5_SUPPORTS_PAR_FILTERS */
-#endif /* USE_PARALLEL */
-
-    /* Find the var. */
-    if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, varid)))
-        return NC_ENOTVAR;
-    assert(var && var->hdr.id == varid);
-
-#ifdef USE_PARALLEL
-    /* Switch to collective access. HDF5 requires collevtive access
-     * for filter use with parallel I/O. */
-    if (h5->parallel)
-        var->parallel_access = NC_COLLECTIVE;
-#endif /* USE_PARALLEL */
-
-    /* This will cause H5Pset_szip to be called when the var is created. */
-    var->szip = 1;
-    var->contiguous = NC_FALSE;
-    var->options_mask = options_mask;
-    var->pixels_per_block = pixels_per_block;
-
-    return NC_NOERR;
-}
-
-/**
  * @internal Set checksum on a variable. This is called by
  * nc_def_var_fletcher32().
  *
@@ -1182,7 +1094,7 @@ NC4_def_var_endian(int ncid, int varid, int endianness)
  * @returns ::NC_ELATEDEF Too late to change settings for this variable.
  * @returns ::NC_EFILTER Filter error.
  * @returns ::NC_EINVAL Invalid input
- * @author Dennis Heimbigner
+ * @author Dennis Heimbigner, Ed Hartnett
  */
 int
 NC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
@@ -1213,19 +1125,38 @@ NC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
     if (var->created)
         return NC_ELATEDEF;
 
-    /* Can't turn on parallel and filter (for now). */
+    /* Can't turn on parallel and szip before HDF5 1.10.3. */
+#ifdef USE_PARALLEL
+#ifndef HDF5_SUPPORTS_PAR_FILTERS
     if (h5->parallel == NC_TRUE)
         return NC_EINVAL;
+#endif /* HDF5_SUPPORTS_PAR_FILTERS */
+
+    /* Switch to collective access. HDF5 requires collevtive access
+     * for filter use with parallel I/O. */
+    if (h5->parallel)
+        var->parallel_access = NC_COLLECTIVE;
+#endif /* USE_PARALLEL */
 
 #ifdef HAVE_H5Z_SZIP
-    if(id == H5Z_FILTER_SZIP) {
-        if(nparams != 2)
+    /* We have special handling for the szip filter. */
+    if (id == H5Z_FILTER_SZIP)
+    {
+        if (nparams != 2)
             return NC_EFILTER; /* incorrect no. of parameters */
+
+        /* If zlib compression is already applied, return error. */
+        if (var->deflate)
+            return NC_EINVAL;
+
+        /* Pixels per block must be an even number, < 32. */
+        if (parms[1] % 2 || parms[1] > NC_MAX_PIXELS_PER_BLOCK)
+            return NC_EINVAL;
     }
 #else /*!HAVE_H5Z_SZIP*/
-    if(id == H5Z_FILTER_SZIP)
-        return NC_EFILTER; /* Not allowed */
-#endif
+    if (id == H5Z_FILTER_SZIP)
+        return NC_EFILTER; /* HDF5 was not built with szip. */
+#endif /*!HAVE_H5Z_SZIP*/
 
 #if 0
     {
@@ -1239,16 +1170,9 @@ NC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
     }
 #endif /*0*/
 
-    var->filterid = id;
-    var->nparams = nparams;
-    var->params = NULL;
-    if(parms != NULL) {
-        var->params = (unsigned int*)calloc(nparams,sizeof(unsigned int));
-        if(var->params == NULL) return NC_ENOMEM;
-        memcpy(var->params,parms,sizeof(unsigned int)*var->nparams);
-    }
-    /* Filter => chunking */
+    /* Filters can only be applied to chunked datasets in HDF5. */
     var->contiguous = NC_FALSE;
+
     /* Determine default chunksizes for this variable unless already specified */
     if(var->chunksizes && !var->chunksizes[0]) {
         if((retval = nc4_find_default_chunksizes2(grp, var)))
@@ -1257,6 +1181,35 @@ NC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
         if ((retval = nc4_adjust_var_cache(grp, var)))
             return retval;
     }
+
+#ifdef HAVE_H5Z_SZIP
+    /* For szip, the pixels_per_block parameter must not be greater
+     * than the number of elements in a chunk of data. */
+    if (id == H5Z_FILTER_SZIP)
+    {
+        size_t num_elem = 1;
+        int d;
+
+        for (d = 0; d < var->ndims; d++)
+            num_elem *= var->dim[d]->len;
+
+        /* Pixels per block must be <= number of elements. */
+        if (parms[1] > num_elem)
+            return NC_EINVAL;
+    }
+#endif /*!HAVE_H5Z_SZIP*/
+
+    /* Remember the filter info for later. It will be applied when the
+     * dataset for this variable is created. */
+    var->filterid = id;
+    var->nparams = nparams;
+    var->params = NULL;
+    if(parms != NULL) {
+        var->params = (unsigned int*)calloc(nparams,sizeof(unsigned int));
+        if(var->params == NULL) return NC_ENOMEM;
+        memcpy(var->params,parms,sizeof(unsigned int)*var->nparams);
+    }
+
 
     return NC_NOERR;
 }

@@ -1,5 +1,5 @@
 /* This is part of the netCDF package.
-   Copyright 2018 University Corporation for Atmospheric Research/Unidata
+   Copyright 2020 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
    Test netcdf-4 variables.
@@ -29,8 +29,6 @@
 #define VAR_NAME "var1"
 #define NUM_PARAMS_IN 2
 #define NUM_PARAMS_OUT 4
-#define NC_SZIP_NN_OPTION_MASK 32 /**< @internal SZIP NN option mask. */
-#define NC_SZIP_EC_OPTION_MASK 4  /**< @internal SZIP EC option mask. */
 #define NC_SZIP_EC_BPP_IN 32  /**< @internal bits per pixel input. */
 #define NC_SZIP_EC_BPP_OUT 64  /**< @internal bits per pixel output. */
 
@@ -425,33 +423,33 @@ main(int argc, char **argv)
         int dimid;
         int varid;
         unsigned int params[NUM_PARAMS_IN];
-        int options_mask, bits_per_pixel;
+        int options_mask, pixels_per_block;
         size_t nparams;
         unsigned int filterid;
         unsigned int params_out[NUM_PARAMS_OUT];
-        unsigned int tmp;
 
         /* Create a netcdf-4 file with one dimensions. */
         if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
         if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_1, &dimid)) ERR;
 
-        /* Add a var. Turn on szip filter. */
+        /* Add a var. */
         if (nc_def_var(ncid, V_SMALL, NC_INT64, NDIMS1, &dimid, &varid)) ERR;
-        params[0] = NC_SZIP_NN_OPTION_MASK; /* options_mask */
-        params[1] = NC_SZIP_EC_BPP_IN; /* bits_per_pixel */
+        /* Turn on szip filter. */
+        params[0] = NC_SZIP_NN; /* options_mask */
+        params[1] = NC_SZIP_EC_BPP_IN; /* pixels_per_block */
         if (nc_def_var_chunking(ncid, varid, NC_CHUNKED, NULL)) ERR;
         if (nc_def_var_filter(ncid, varid, H5_FILTER_SZIP, NUM_PARAMS_IN, params)) ERR;
         if (nc_close(ncid)) ERR;
 
         /* Open the file and check. */
         if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
-        /* The following code should work, but doesn't. See issue 972 in github. */
-        if (nc_inq_var_szip(ncid, varid, &options_mask, &bits_per_pixel)) ERR;
-        /* H5Zszip code will sometimes bump the bits_per_pixel from 32 to 64
+
+        /* Check szip settings. */
+        if (nc_inq_var_szip(ncid, varid, &options_mask, &pixels_per_block)) ERR;
+        /* H5Zszip code will sometimes bump the pixels_per_block from 32 to 64
            and may add other flags to the options_mask */
-        tmp = options_mask & NC_SZIP_NN_OPTION_MASK;
-        if (tmp != NC_SZIP_NN_OPTION_MASK) ERR;
-        if (bits_per_pixel !=  NC_SZIP_EC_BPP_IN && bits_per_pixel !=  NC_SZIP_EC_BPP_OUT)
+        if (!(options_mask & NC_SZIP_NN)) ERR;
+        if (pixels_per_block !=  NC_SZIP_EC_BPP_IN && pixels_per_block !=  NC_SZIP_EC_BPP_OUT)
             ERR;
 
         /* Also check using nc_inq_var_filter */
@@ -459,7 +457,7 @@ main(int argc, char **argv)
         if (filterid != H5_FILTER_SZIP || nparams != 4) ERR;
         /* According to H5Zszip, the mapping should be as follows */
         if(params_out[0] != options_mask) ERR;
-        if(params[1] !=  bits_per_pixel) ERR;
+        if(params[1] !=  pixels_per_block) ERR;
         if (nc_close(ncid)) ERR;
     }
     SUMMARIZE_ERR;
@@ -468,7 +466,7 @@ main(int argc, char **argv)
         int ncid;
         int dimid;
         int varid;
-        int options_mask, bits_per_pixel;
+        int options_mask, pixels_per_block;
         size_t nparams;
         unsigned int filterid;
         unsigned int params_out[NUM_PARAMS_OUT];
@@ -478,20 +476,30 @@ main(int argc, char **argv)
         if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
         if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_1, &dimid)) ERR;
 
-        /* Add a var. Turn on szip filter. */
+        /* Add a var. */
         if (nc_def_var(ncid, V_SMALL, NC_INT64, NDIMS1, &dimid, &varid)) ERR;
-        if (nc_def_var_szip(ncid, varid, NC_SZIP_NN_OPTION_MASK, NC_SZIP_EC_BPP_IN)) ERR;
+
+        /* Check szip filter settings. */
+        if (nc_inq_var_szip(ncid, varid, &options_mask, &pixels_per_block)) ERR;
+        if (options_mask != 0 || pixels_per_block != 0) ERR;
+
+        /* Turn on szip filter. */
+        if (nc_def_var_szip(ncid, varid, NC_SZIP_NN, NC_SZIP_EC_BPP_IN)) ERR;
+
+        /* Check szip filter settings. */
+        if (nc_inq_var_szip(ncid, varid, &options_mask, &pixels_per_block)) ERR;
+        if (!(options_mask & NC_SZIP_NN)) ERR;
         if (nc_close(ncid)) ERR;
 
         /* Open the file and check. */
         if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
         /* The following code should work, but doesn't. See issue 972 in github. */
-        if (nc_inq_var_szip(ncid, varid, &options_mask, &bits_per_pixel)) ERR;
-        /* H5Zszip code will sometimes bump the bits_per_pixel from 32 to 64
+        if (nc_inq_var_szip(ncid, varid, &options_mask, &pixels_per_block)) ERR;
+        /* H5Zszip code will sometimes bump the pixels_per_block from 32 to 64
            and may add other flags to the options_mask */
-        tmp = options_mask & NC_SZIP_NN_OPTION_MASK;
-        if (tmp != NC_SZIP_NN_OPTION_MASK) ERR;
-        if (bits_per_pixel !=  NC_SZIP_EC_BPP_IN && bits_per_pixel !=  NC_SZIP_EC_BPP_OUT)
+        tmp = options_mask & NC_SZIP_NN;
+        if (tmp != NC_SZIP_NN) ERR;
+        if (pixels_per_block !=  NC_SZIP_EC_BPP_IN && pixels_per_block !=  NC_SZIP_EC_BPP_OUT)
             ERR;
 
         /* Also check using nc_inq_var_filter */
@@ -499,7 +507,7 @@ main(int argc, char **argv)
         if (filterid != H5_FILTER_SZIP || nparams != 4) ERR;
         /* According to H5Zszip, the mapping should be as follows */
         if(params_out[0] != options_mask) ERR;
-        if(params_out[1] !=  bits_per_pixel) ERR;
+        if(params_out[1] !=  pixels_per_block) ERR;
         if (nc_close(ncid)) ERR;
     }
     SUMMARIZE_ERR;
@@ -515,8 +523,8 @@ main(int argc, char **argv)
 #define V_MEDIUM "medium_var"
 #define V_LARGE "large_var"
 #define NUM_PARAMS 2
-#define NC_SZIP_NN_OPTION_MASK 32 /**< @internal SZIP NN option mask. */
-#define NC_SZIP_EC_OPTION_MASK 4  /**< @internal SZIP EC option mask. */
+#define NC_SZIP_NN 32 /**< @internal SZIP NN option mask. */
+#define NC_SZIP_EC 4  /**< @internal SZIP EC option mask. */
         int ncid;
         int nvars, ndims, ngatts, unlimdimid;
         int ndims_in, natts_in, dimids_in;
@@ -524,7 +532,7 @@ main(int argc, char **argv)
         int small_varid, medium_varid, large_varid;
         char var_name_in[NC_MAX_NAME + 1];
         nc_type xtype_in;
-        /* int options_mask_in, bits_per_pixel_in; */
+        int options_mask_in, pixels_per_block_in;
         long long small_data[D_SMALL_LEN1], small_data_in[D_SMALL_LEN1];
         long long medium_data[D_MEDIUM_LEN1], medium_data_in[D_MEDIUM_LEN1];
         long long large_data[D_LARGE_LEN1], large_data_in[D_LARGE_LEN1];
@@ -548,7 +556,7 @@ main(int argc, char **argv)
         if (nc_def_var(ncid, V_SMALL, NC_INT64, NDIMS1, &small_dimid, &small_varid)) ERR;
 
         if (nc_def_var(ncid, V_MEDIUM, NC_INT64, NDIMS1, &medium_dimid, &medium_varid)) ERR;
-        params[0] = NC_SZIP_NN_OPTION_MASK;
+        params[0] = NC_SZIP_NN;
         params[1] = 32;
         if (nc_def_var_chunking(ncid, medium_varid, NC_CHUNKED, NULL)) ERR;
         if (nc_def_var_filter(ncid, medium_varid, H5_FILTER_SZIP, NUM_PARAMS, params)) ERR;
@@ -572,14 +580,13 @@ main(int argc, char **argv)
         if (strcmp(var_name_in, V_SMALL) || xtype_in != NC_INT64 || ndims_in != 1 ||
             natts_in != 0) ERR;
 
-        /* The following code should work, but doesn't. See issue 972 in github. */
         /* Make sure we have the szip settings we expect. */
-        /* if (nc_inq_var_szip(ncid, small_varid, &options_mask_in, &bits_per_pixel_in)) ERR; */
-        /* if (options_mask_in != 0 || bits_per_pixel_in !=0) ERR; */
-        /* if (nc_inq_var_szip(ncid, medium_varid, &options_mask_in, &bits_per_pixel_in)) ERR; */
-        /* if (!(options_mask_in & NC_SZIP_EC_OPTION_MASK) || bits_per_pixel_in != 32) ERR; */
-        /* if (nc_inq_var_szip(ncid, large_varid, &options_mask_in, &bits_per_pixel_in)) ERR; */
-        /* if (!(options_mask_in & NC_SZIP_NN_OPTION_MASK) || bits_per_pixel_in != 16) ERR; */
+        if (nc_inq_var_szip(ncid, small_varid, &options_mask_in, &pixels_per_block_in)) ERR;
+        if (options_mask_in != 0 || pixels_per_block_in !=0) ERR;
+        if (nc_inq_var_szip(ncid, medium_varid, &options_mask_in, &pixels_per_block_in)) ERR;
+        if (!(options_mask_in & NC_SZIP_NN)) ERR;
+        if (nc_inq_var_szip(ncid, large_varid, &options_mask_in, &pixels_per_block_in)) ERR;
+        if (!(options_mask_in & NC_SZIP_NN)) ERR;
 
         /* Read data. */
         if (nc_get_var_longlong(ncid, small_varid, small_data_in)) ERR;
@@ -597,7 +604,129 @@ main(int argc, char **argv)
         if (nc_close(ncid)) ERR;
     }
     SUMMARIZE_ERR;
+    printf("**** testing attempts to use both zlib and szip...");
+    {
+        int ncid;
+        int dimid;
+        int varid;
+        unsigned int params[NUM_PARAMS_IN] = {NC_SZIP_NN,
+                                              NC_SZIP_EC_BPP_IN};
+
+        /* Create a netcdf-4 file with one dimensions. */
+        if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+        if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_1, &dimid)) ERR;
+
+        /* Add a var. */
+        if (nc_def_var(ncid, V_SMALL, NC_INT64, NDIMS1, &dimid, &varid)) ERR;
+        if (nc_def_var_chunking(ncid, varid, NC_CHUNKED, NULL)) ERR;
+
+        /* Turn on zlib. */
+        if (nc_def_var_deflate(ncid, varid, 0, 1, 3)) ERR;
+
+        /* Try to turn on szip filter - it will fail. */
+        if (nc_def_var_filter(ncid, varid, H5_FILTER_SZIP, NUM_PARAMS_IN,
+                              params) != NC_EINVAL) ERR;
+        if (nc_close(ncid)) ERR;
+
+        /* Create a netcdf-4 file with one dimensions. */
+        if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+        if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_1, &dimid)) ERR;
+
+        /* Add a var. */
+        if (nc_def_var(ncid, V_SMALL, NC_INT64, NDIMS1, &dimid, &varid)) ERR;
+        if (nc_def_var_chunking(ncid, varid, NC_CHUNKED, NULL)) ERR;
+
+        /* Turn on szip. */
+        if (nc_def_var_filter(ncid, varid, H5_FILTER_SZIP, NUM_PARAMS_IN,
+                              params)) ERR;
+
+        /* Try to turn on zlib filter - it will fail. */
+        if (nc_def_var_deflate(ncid, varid, 0, 1, 3) != NC_EINVAL) ERR;
+        if (nc_close(ncid)) ERR;
+
+    }
+    SUMMARIZE_ERR;
+#define SHORT_DIM_LEN_1 12
+#define NUM_MASK 2
+#define NUM_PPB 10
+#define FIRST_VALID 5
+    printf("**** testing different values for szip params...");
+    {
+        int ncid;
+        int dimid;
+        int varid;
+        int option_mask[NUM_MASK] = {NC_SZIP_NN, NC_SZIP_EC};
+        int pixels_per_block[NUM_PPB] = {1, 34, 14, 16, 24, 2, 4, 6, 10, 12};
+        int option_mask_in, pixels_per_block_in;
+        int m, p, ret;
+
+        /* Try different option masks. */
+        for (m = 0; m < NUM_MASK; m++)
+        {
+            /* Try different option masks. */
+            for (p = 0; p < NUM_PPB; p++)
+            {
+                /* Create a netcdf-4 file with one dimensions. */
+                if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+                if (nc_def_dim(ncid, DIM_NAME_1, SHORT_DIM_LEN_1, &dimid)) ERR;
+
+                /* Add a var. */
+                if (nc_def_var(ncid, V_SMALL, NC_INT64, NDIMS1, &dimid, &varid)) ERR;
+
+                /* Try to turn on szip filter. */
+                ret = nc_def_var_szip(ncid, varid, option_mask[m], pixels_per_block[p]);
+                if (ret != (p < FIRST_VALID ? NC_EINVAL : NC_NOERR)) ERR;
+
+                /* Check szip filter settings. */
+                if (nc_inq_var_szip(ncid, varid, &option_mask_in, &pixels_per_block_in)) ERR;
+                if (p < FIRST_VALID)
+                {
+                    if (option_mask_in) ERR;
+                }
+                else
+                {
+                    if (!(option_mask[m] & option_mask_in)) ERR;
+                }
+                if (nc_close(ncid)) ERR;
+
+                {
+                    unsigned int params_in[NUM_PARAMS_OUT];
+                    size_t nparams;
+                    unsigned int filterid;
+
+                    /* Open the file and check. */
+                    if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+                    if (nc_inq_var_szip(ncid, varid, &option_mask_in, &pixels_per_block_in)) ERR;
+                    if (p < FIRST_VALID)
+                    {
+                        if (option_mask_in) ERR;
+                    }
+                    else
+                    {
+                        if (!(option_mask[m] & option_mask_in)) ERR;
+                    }
+
+                    /* Also check using nc_inq_var_filter */
+                    if (nc_inq_var_filter(ncid, varid, &filterid, &nparams, params_in)) ERR;
+                    if (p < FIRST_VALID)
+                    {
+                    }
+                    else
+                    {
+                        if (filterid != H5_FILTER_SZIP || nparams != 4) ERR;
+                        /* According to H5Zszip, the mapping should be as follows */
+                        if(params_in[0] != option_mask_in) ERR;
+                        if(params_in[1] != pixels_per_block_in) ERR;
+                    }
+                    if (nc_close(ncid)) ERR;
+                }
+            } /* next PPB */
+        } /* next mask */
+    }
+    SUMMARIZE_ERR;
 #else
+    /* This code is run if szip is not present in HDF5. It checks that
+     * nc_def_var_szip() returns NC_EFILTER in that case. */
     printf("**** testing szip handling when szip not built...");
     {
         int ncid;
@@ -612,11 +741,13 @@ main(int argc, char **argv)
         /* Add a var. Try to turn on szip filter, but it will return
          * error. */
         if (nc_def_var(ncid, V_SMALL, NC_INT64, NDIMS1, &dimid, &varid)) ERR;
-        params[0] = NC_SZIP_NN_OPTION_MASK; /* options_mask */
-        params[1] = NC_SZIP_EC_BPP_IN; /* bits_per_pixel */
+        params[0] = NC_SZIP_NN; /* options_mask */
+        params[1] = NC_SZIP_EC_BPP_IN; /* pixels_per_block */
         if (nc_def_var_chunking(ncid, varid, NC_CHUNKED, NULL)) ERR;
-        if (nc_def_var_filter(ncid, varid, H5_FILTER_SZIP, NUM_PARAMS_IN, params) != NC_EFILTER) ERR;
-        if (nc_def_var_szip(ncid, varid, NC_SZIP_NN_OPTION_MASK, NC_SZIP_EC_BPP_IN) != NC_EFILTER) ERR;
+        if (nc_def_var_filter(ncid, varid, H5_FILTER_SZIP, NUM_PARAMS_IN,
+                              params) != NC_EFILTER) ERR;
+        if (nc_def_var_szip(ncid, varid, NC_SZIP_NN,
+                            NC_SZIP_EC_BPP_IN) != NC_EFILTER) ERR;
         if (nc_close(ncid)) ERR;
     }
     SUMMARIZE_ERR;
