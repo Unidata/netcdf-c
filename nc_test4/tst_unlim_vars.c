@@ -156,21 +156,26 @@ main(int argc, char **argv)
     SUMMARIZE_ERR;
     printf("*** Testing netcdf-4 variable 2 unlimited dimensions...");
     {
-#define DIM1_NAME "Speed"
-#define DIM2_NAME "Height"
+#define DIM0_NAME "Speed"
+#define DIM1_NAME "Height"
 #define VAR_NAME "Superman"
         int ncid, varid, dimid[NDIM2];
 
         /* Create a file with 2 unlimited dims. */
         if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
-        if (nc_def_dim(ncid, DIM1_NAME, NC_UNLIMITED, &dimid[0])) ERR;
-        if (nc_def_dim(ncid, DIM2_NAME, NC_UNLIMITED, &dimid[1])) ERR;
+        if (nc_def_dim(ncid, DIM0_NAME, NC_UNLIMITED, &dimid[0])) ERR;
+        if (nc_def_dim(ncid, DIM1_NAME, NC_UNLIMITED, &dimid[1])) ERR;
         if (nc_def_var(ncid, VAR_NAME, NC_INT, NDIM2, dimid, &varid)) ERR;
         if (nc_close(ncid)) ERR;
 
         /* Check the file. */
         {
+            char name_in[NC_MAX_NAME + 1];
+            size_t len_in;
+
             if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+            if (nc_inq_dim(ncid, 0, name_in, &len_in)) ERR;
+            if (strcmp(name_in, DIM0_NAME)) ERR;
             if (nc_close(ncid)) ERR;
         }
     }
