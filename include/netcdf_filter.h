@@ -54,9 +54,6 @@ EXTERNL int nc_filter_register(NC_FILTER_INFO* filter_info);
 EXTERNL int nc_filter_unregister(int format, int id);
 EXTERNL int nc_filter_inq(int format, int id, NC_FILTER_INFO* filter_info);
 
-/* Set szip compression for a variable. */
-EXTERNL int nc_def_var_szip(int ncid, int varid, int options_mask, int pixels_per_block);
-
 #if defined(__cplusplus)
 }
 #endif
