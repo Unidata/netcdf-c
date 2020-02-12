@@ -209,6 +209,7 @@ main(int argc, char **argv)
         int data = TEST_VAL_42;
         int data_in;
         size_t start[NDIM3] = {1, 1, 1}, count[NDIM3] = {1, 1, 1};
+        size_t index[NDIM3] = {0, 0, 1};
         char name_in[NC_MAX_NAME + 1];
         size_t len_in;
 
@@ -234,6 +235,7 @@ main(int argc, char **argv)
         /* Reopen the file and add data. */
         if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
         if (nc_put_vara_int(ncid, 0, start, count, &data)) ERR;
+        if (nc_put_var1_int(ncid, 1, index, &data)) ERR;
         if (nc_inq_dim(ncid, 0, NULL, &len_in)) ERR;
         if (len_in != 2) ERR;
         if (nc_inq_dim(ncid, 1, NULL, &len_in)) ERR;
@@ -258,6 +260,8 @@ main(int argc, char **argv)
         if (data_in != data) ERR;
         if (nc_get_vara_int(ncid, 1, start, count, &data_in)) ERR;
         if (data_in != NC_FILL_INT) ERR;
+        if (nc_get_var1_int(ncid, 1, index, &data_in)) ERR;
+        if (data_in != data) ERR;
         if (nc_close(ncid)) ERR;
     }
     SUMMARIZE_ERR;
