@@ -660,15 +660,20 @@ nc_inq_var_filter(int ncid, int varid, unsigned int* idp, size_t* nparamsp, unsi
       idp, nparamsp, params);
 }
 
-/** \ingroup variables
+/**
+\ingroup variables
 Learn the szip settings of a variable.
-Similar to nc_inq_var_deflate.
 
-This function returns the szip settings for a variable.
-With the introduction of general filter support,
-szip inquiry is converted to use the filter interface.
+This function returns the szip settings for a variable. To turn on
+szip compression, use nc_def_var_szip(). Szip compression is only
+available if HDF5 was built with szip support.
 
-This is a wrapper for nc_inq_var_filter().
+If a variable is not using szip, then a zero will be passed back
+for both options_maskp and pixels_per_blockp.
+
+For more information on HDF5 and szip see
+https://support.hdfgroup.org/HDF5/doc/RM/RM_H5P.html#Property-SetSzip
+and https://support.hdfgroup.org/doc_resource/SZIP/index.html.
 
 \param ncid NetCDF or group ID, from a previous call to nc_open(),
 nc_create(), nc_def_grp(), or associated inquiry functions such as
@@ -677,16 +682,24 @@ nc_inq_ncid().
 \param varid Variable ID
 
 \param options_maskp The szip options mask will be copied to this
-pointer. \ref ignored_if_null.
+pointer. Note that the HDF5 layer adds to the options_mask, so this
+value will be different from the value used when setting szip
+compression, however the bit set when setting szip compression will
+still be set in the options_maskp and can be checked for. If zero is
+returned, szip is not in use for this variable.\ref ignored_if_null.
 
 \param pixels_per_blockp The szip pixels per block will be copied
-here. \ref ignored_if_null.
+here. The HDF5 layer may change this value, so this may not match the
+value passed in when setting szip compression. If zero is returned,
+szip is not in use for this variable. \ref ignored_if_null.
 
 \returns ::NC_NOERR No error.
 \returns ::NC_EBADID Bad ncid.
 \returns ::NC_ENOTNC4 Not a netCDF-4 file.
 \returns ::NC_ENOTVAR Invalid variable ID.
-\returns ::NC_EFILTER Variable is not szip encoded
+\returns ::NC_EFILTER Filter error.
+
+\author Ed Hartnett, Dennis Heimbigner
 */
 int
 nc_inq_var_szip(int ncid, int varid, int *options_maskp, int *pixels_per_blockp)
@@ -722,9 +735,26 @@ nc_inq_var_szip(int ncid, int varid, int *options_maskp, int *pixels_per_blockp)
       NULL
       );
    if(stat != NC_NOERR) return stat;
-   /* Warning: the szip filter internally expands the set of parameters */
-   if(id != H5Z_FILTER_SZIP || nparams != 4)
-	return NC_EFILTER; /* not szip or bad # params */
+
+   /* Warning: the szip filter internally expands the set of
+    * parameters. This means the user submits 2, but once the filter
+    * is applied to the dataset, there are 4. How may we get back from
+    * inq_var_all() depends on whether or not the dataset has been
+    * created. */
+   if(id == H5Z_FILTER_SZIP && (nparams != 4 && nparams !=2))
+        return NC_EFILTER; /* not szip or bad # params */
+
+   /* If the szip filter is not in use, return 0 for both
+    * parameters. */
+   if(id != H5Z_FILTER_SZIP)
+   {
+       if (options_maskp)
+           *options_maskp = 0;
+       if (pixels_per_blockp)
+           *pixels_per_blockp = 0;
+       return NC_NOERR;
+   }
+
    /* Get params */
    stat = ncp->dispatch->inq_var_all(
       ncid, varid,
