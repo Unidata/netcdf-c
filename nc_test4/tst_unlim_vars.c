@@ -159,7 +159,8 @@ main(int argc, char **argv)
 #define DIM0_NAME "Speed"
 #define DIM1_NAME "Height"
 #define VAR_NAME "Superman"
-        int ncid, varid, dimid[NDIM2];
+#define VAR1_NAME "Black_Widow"
+        int ncid, varid, varid1, dimid[NDIM2];
         int data = TEST_VAL_42;
         int data_in;
         size_t index[NDIM2] = {1, 1};
@@ -171,6 +172,7 @@ main(int argc, char **argv)
         if (nc_def_dim(ncid, DIM0_NAME, NC_UNLIMITED, &dimid[0])) ERR;
         if (nc_def_dim(ncid, DIM1_NAME, NC_UNLIMITED, &dimid[1])) ERR;
         if (nc_def_var(ncid, VAR_NAME, NC_INT, NDIM2, dimid, &varid)) ERR;
+        if (nc_def_var(ncid, VAR1_NAME, NC_INT, NDIM2, dimid, &varid1)) ERR;
         if (nc_close(ncid)) ERR;
 
         /* Check the file. */
@@ -190,6 +192,8 @@ main(int argc, char **argv)
         if (len_in != 2) ERR;
         if (nc_get_var1_int(ncid, 0, index, &data_in)) ERR;
         if (data_in != data) ERR;
+        if (nc_get_var1_int(ncid, 1, index, &data_in)) ERR;
+        if (data_in != NC_FILL_INT) ERR;
         if (nc_close(ncid)) ERR;
 
     }
