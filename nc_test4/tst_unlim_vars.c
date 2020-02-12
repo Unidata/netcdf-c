@@ -1,10 +1,10 @@
 /* This is part of the netCDF package.
-   Copyright 2018 University Corporation for Atmospheric Research/Unidata
+   Copyright 2020 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
    Test netcdf-4 variables with unlimited dimensions.
 
-   $Id: tst_unlim_vars.c,v 1.9 2010/05/25 13:53:04 ed Exp $
+   Ed Hartnett
 */
 
 #include <config.h>
@@ -25,7 +25,7 @@
 int
 main(int argc, char **argv)
 {
-    printf("\n*** Testing netcdf-4 variable with unlimited dimensions.\n");
+    printf("\n*** Testing netcdf-4 variables with unlimited dimensions.\n");
     printf("*** Testing file with one var, one unlim dim...");
     {
         int ncid, sfc_tempid;
@@ -242,6 +242,8 @@ main(int argc, char **argv)
         if (len_in != 2) ERR;
         if (nc_get_var1_int(ncid, 0, index, &data_in)) ERR;
         if (data_in != data) ERR;
+        if (nc_get_var1_int(ncid, 1, index, &data_in)) ERR;
+        if (data_in != NC_FILL_INT) ERR;
         if (nc_close(ncid)) ERR;
 
     }
