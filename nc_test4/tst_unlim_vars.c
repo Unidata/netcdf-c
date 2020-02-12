@@ -188,7 +188,7 @@ main(int argc, char **argv)
         if (len_in != 2) ERR;
         if (nc_inq_dim(ncid, 1, NULL, &len_in)) ERR;
         if (len_in != 2) ERR;
-        if (nc_var_var1_int(ncid, 0, index, &data_in)) ERR;
+        if (nc_get_var1_int(ncid, 0, index, &data_in)) ERR;
         if (data_in != data) ERR;
         if (nc_close(ncid)) ERR;
 
