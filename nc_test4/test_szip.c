@@ -47,6 +47,7 @@ main(void)
     int ncid, varid, dimids[2];
     size_t dims[2], chunk_size[2];
     unsigned int szip_params[2]; /* [0]=options_mask [1]=pixels_per_block */
+    int options_mask_in, pixels_per_block_in;
     int errcnt = 0;
 
     /* Create a new file using read/write access. */
@@ -85,6 +86,8 @@ main(void)
          ERR;
        }
     }
+    if(nc_inq_var_szip(ncid, varid, &options_mask_in, &pixels_per_block_in)) ERR;
+    if(!(options_mask_in & H5_SZIP_NN_OPTION_MASK)) ERR;
 #endif
 
     if(nc_enddef(ncid)) ERR;

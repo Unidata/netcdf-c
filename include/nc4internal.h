@@ -56,6 +56,9 @@ typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP} NC_SORT;
 /** One mega-byte. */
 #define MEGABYTE 1048576
 
+/** The HDF5 ID for the szip filter. */
+#define HDF5_FILTER_SZIP 4
+
 #define X_SCHAR_MIN     (-128)          /**< Minimum signed char value. */
 #define X_SCHAR_MAX     127             /**< Maximum signed char value. */
 #define X_UCHAR_MAX     255U            /**< Maximum unsigned char value. */
@@ -213,9 +216,6 @@ typedef struct NC_VAR_INFO
     int deflate_level;           /**< If deflate is true, this is the deflate level, between 0 and 9. */
     nc_bool_t shuffle;           /**< True if var has shuffle filter applied */
     nc_bool_t fletcher32;        /**< True if var has fletcher32 filter applied */
-    nc_bool_t szip;              /**< True if szip filter is in use. */
-    int options_mask;            /**< Setting for szip filter, NC_SZIP_EC or NC_SZIP_NN. */
-    int pixels_per_block;        /**< Setting for szip filter, even and <= 32. */
     size_t chunk_cache_size, chunk_cache_nelems;
     float chunk_cache_preemption;
     void *format_var_info;       /**< Pointer to any binary format info. */
