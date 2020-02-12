@@ -19,7 +19,8 @@
 #define LON_LEN 3
 #define TIME_NAME "time"
 #define NUM_TIMESTEPS 4
-#define NDIMS 3
+#define NDIM3 3
+#define NDIM2 2
 
 int
 main(int argc, char **argv)
@@ -30,12 +31,12 @@ main(int argc, char **argv)
         int ncid, sfc_tempid;
         float data_out[NUM_TIMESTEPS][LAT_LEN][LON_LEN], data_in[NUM_TIMESTEPS][LAT_LEN][LON_LEN];
         int lat, lon, time;
-        int dimids[NDIMS];
+        int dimids[NDIM3];
         nc_type xtype_in;
         int ndims_in, dimids_in[10], natts_in, nvars_in, unlimdimid_in;
         size_t len_in;
         char name_in[NC_MAX_NAME+1];
-        size_t start[NDIMS], count[NDIMS];
+        size_t start[NDIM3], count[NDIM3];
         int d;
 
 
@@ -54,9 +55,9 @@ main(int argc, char **argv)
         if (nc_def_dim(ncid, LON_NAME, LON_LEN, &dimids[2])) ERR;
 
         /* Define a var. */
-        for (d = 0; d < NDIMS; d++)
+        for (d = 0; d < NDIM3; d++)
             dimids[d] = d;
-        if (nc_def_var(ncid, SFC_TEMP_NAME, NC_FLOAT, NDIMS, dimids, &sfc_tempid)) ERR;
+        if (nc_def_var(ncid, SFC_TEMP_NAME, NC_FLOAT, NDIM3, dimids, &sfc_tempid)) ERR;
 
         /* Check some metadata. */
         if (nc_inq(ncid, &ndims_in, &nvars_in, &natts_in, &unlimdimid_in)) ERR;
@@ -65,7 +66,7 @@ main(int argc, char **argv)
                        &natts_in)) ERR;
         if (strcmp(name_in, SFC_TEMP_NAME) || xtype_in != NC_FLOAT ||
             ndims_in != 3 || natts_in != 0) ERR;
-        for (d = 0; d < NDIMS; d++)
+        for (d = 0; d < NDIM3; d++)
             if (dimids_in[d] != dimids[d]) ERR;
         if (nc_inq_dim(ncid, 0, name_in, &len_in)) ERR;
         if (len_in != 0 || strcmp(name_in, TIME_NAME)) ERR;
@@ -84,7 +85,7 @@ main(int argc, char **argv)
                        &natts_in)) ERR;
         if (strcmp(name_in, SFC_TEMP_NAME) || xtype_in != NC_FLOAT ||
             ndims_in != 3 || natts_in != 0) ERR;
-        for (d = 0; d < NDIMS; d++)
+        for (d = 0; d < NDIM3; d++)
             if (dimids_in[d] != dimids[d]) ERR;
         if (nc_inq_dim(ncid, 0, name_in, &len_in)) ERR;
         if (len_in != 0 || strcmp(name_in, TIME_NAME)) ERR;
@@ -104,7 +105,7 @@ main(int argc, char **argv)
                        &natts_in)) ERR;
         if (strcmp(name_in, SFC_TEMP_NAME) || xtype_in != NC_FLOAT ||
             ndims_in != 3 || natts_in != 0) ERR;
-        for (d = 0; d < NDIMS; d++)
+        for (d = 0; d < NDIM3; d++)
             if (dimids_in[d] != dimids[d]) ERR;
         if (nc_inq_dim(ncid, 0, name_in, &len_in)) ERR;
         if (len_in != 0 || strcmp(name_in, TIME_NAME)) ERR;
@@ -116,7 +117,7 @@ main(int argc, char **argv)
 
         /* Write some data to the var.*/
         if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
-        for (d = 0; d < NDIMS; d++)
+        for (d = 0; d < NDIM3; d++)
             start[d] = 0;
         count[0] = NUM_TIMESTEPS;
         count[1] = LAT_LEN;
@@ -130,7 +131,7 @@ main(int argc, char **argv)
                        &natts_in)) ERR;
         if (strcmp(name_in, SFC_TEMP_NAME) || xtype_in != NC_FLOAT ||
             ndims_in != 3 || natts_in != 0) ERR;
-        for (d = 0; d < NDIMS; d++)
+        for (d = 0; d < NDIM3; d++)
             if (dimids_in[d] != dimids[d]) ERR;
         if (nc_inq_dim(ncid, 0, name_in, &len_in)) ERR;
         if (len_in != NUM_TIMESTEPS || strcmp(name_in, TIME_NAME)) ERR;
@@ -151,6 +152,21 @@ main(int argc, char **argv)
                     if (data_in[time][lat][lon] != data_out[time][lat][lon]) ERR;
 
         if (nc_close(ncid)) ERR;
+    }
+    SUMMARIZE_ERR;
+    printf("*** Testing netcdf-4 variable 2 unlimited dimensions...");
+    {
+        int ncid, varid, dimid[NDIM2];
+
+        /* Create a file with 2 unlimited dims. */
+        if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+        if (nc_close(ncid)) ERR;
+
+        /* Check the file. */
+        {
+            if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+            if (nc_close(ncid)) ERR;
+        }
     }
     SUMMARIZE_ERR;
     FINAL_RESULTS;
