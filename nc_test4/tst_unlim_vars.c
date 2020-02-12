@@ -200,10 +200,10 @@ main(int argc, char **argv)
 #define D3_DIM1_NAME "Brains"
 #define D3_DIM2_NAME "Money"
 #define D3_VAR_NAME "Batman"
-        int ncid, varid, dimid[NDIM2];
+        int ncid, varid, dimid[NDIM3];
         int data = TEST_VAL_42;
         int data_in;
-        size_t index[NDIM2] = {1, 1};
+        size_t index[NDIM3] = {1, 1, 1};
         char name_in[NC_MAX_NAME + 1];
         size_t len_in;
 
@@ -221,18 +221,20 @@ main(int argc, char **argv)
         if (strcmp(name_in, D3_DIM0_NAME) || len_in != 0) ERR;
         if (nc_inq_dim(ncid, 1, name_in, &len_in)) ERR;
         if (strcmp(name_in, D3_DIM1_NAME) || len_in != 0) ERR;
+        if (nc_inq_dim(ncid, 2, name_in, &len_in)) ERR;
+        if (strcmp(name_in, D3_DIM2_NAME) || len_in != 0) ERR;
         if (nc_close(ncid)) ERR;
 
-        /* /\* Reopen the file and add data. *\/ */
-        /* if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR; */
-        /* if (nc_put_var1_int(ncid, 0, index, &data)) ERR; */
-        /* if (nc_inq_dim(ncid, 0, NULL, &len_in)) ERR; */
-        /* if (len_in != 2) ERR; */
-        /* if (nc_inq_dim(ncid, 1, NULL, &len_in)) ERR; */
-        /* if (len_in != 2) ERR; */
-        /* if (nc_get_var1_int(ncid, 0, index, &data_in)) ERR; */
-        /* if (data_in != data) ERR; */
-        /* if (nc_close(ncid)) ERR; */
+        /* Reopen the file and add data. */
+        if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+        if (nc_put_var1_int(ncid, 0, index, &data)) ERR;
+        if (nc_inq_dim(ncid, 0, NULL, &len_in)) ERR;
+        if (len_in != 2) ERR;
+        if (nc_inq_dim(ncid, 1, NULL, &len_in)) ERR;
+        if (len_in != 2) ERR;
+        if (nc_get_var1_int(ncid, 0, index, &data_in)) ERR;
+        if (data_in != data) ERR;
+        if (nc_close(ncid)) ERR;
 
     }
     SUMMARIZE_ERR;
