@@ -215,13 +215,13 @@ main(int argc, char **argv)
         if (nc_def_var(ncid, D3_VAR_NAME, NC_INT, NDIM3, dimid, &varid)) ERR;
         if (nc_close(ncid)) ERR;
 
-        /* /\* Check the file. *\/ */
-        /* if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR; */
-        /* if (nc_inq_dim(ncid, 0, name_in, &len_in)) ERR; */
-        /* if (strcmp(name_in, DIM0_NAME) || len_in != 0) ERR; */
-        /* if (nc_inq_dim(ncid, 1, name_in, &len_in)) ERR; */
-        /* if (strcmp(name_in, DIM1_NAME) || len_in != 0) ERR; */
-        /* if (nc_close(ncid)) ERR; */
+        /* Check the file. */
+        if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+        if (nc_inq_dim(ncid, 0, name_in, &len_in)) ERR;
+        if (strcmp(name_in, D3_DIM0_NAME) || len_in != 0) ERR;
+        if (nc_inq_dim(ncid, 1, name_in, &len_in)) ERR;
+        if (strcmp(name_in, D3_DIM1_NAME) || len_in != 0) ERR;
+        if (nc_close(ncid)) ERR;
 
         /* /\* Reopen the file and add data. *\/ */
         /* if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR; */
