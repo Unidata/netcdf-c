@@ -246,6 +246,7 @@ main()
         char file_name[STR_LEN + 1];
         char dimscale_wo_var[STR_LEN];
         void *bufr;
+        hsize_t num_obj;
         void *fillp = NULL;
 
         sprintf(file_name, "%s/%s", TEMP_LARGE, FILE_NAME);
