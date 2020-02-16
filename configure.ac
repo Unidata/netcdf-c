@@ -208,6 +208,7 @@ fi
 AC_MSG_RESULT([$enable_netcdf_4])
 
 # Does the user want to use HDF5?
+# WARNING: enable_hdf5 does not imply that use_netcdf_4 is enabled
 AC_MSG_CHECKING([whether we should build with HDF5])
 #enable_hdf5=$enable_netcdf_4
 AC_ARG_ENABLE([hdf5], [AS_HELP_STRING([--disable-hdf5],
@@ -1022,8 +1023,11 @@ if test "x$enable_netcdf_4" = xyes; then
    AC_DEFINE([USE_NETCDF4], [1], [if true, build netCDF-4])
 fi
 
+# Set defaults
 hdf5_parallel=no
 hdf5_supports_par_filters=no
+enable_szlib=no
+
 if test "x$enable_hdf5" = xyes; then
 
    AC_DEFINE([USE_HDF5], [1], [if true, use HDF5])
@@ -1082,16 +1086,12 @@ if test "x$enable_hdf5" = xyes; then
    # Check whether HDF5 was built with the SZLIB library. If so we
    # must be able to link to szip library.
    AC_MSG_CHECKING([whether szlib was used when building HDF5])
-   enable_szlib=no
    if test "x$ac_cv_func_H5Z_SZIP" = xyes; then
       enable_szlib=yes
       AC_DEFINE([USE_SZIP], [1], [if true, compile in szip compression in netCDF-4 variables])
    fi
    AC_MSG_RESULT([$enable_szlib])
-
 fi
-AM_CONDITIONAL(HAS_PAR_FILTERS, [test x$hdf5_supports_par_filters = xyes ])
-AC_SUBST([HAS_PAR_FILTERS], [$hdf5_supports_par_filters])
 
 # If the user wants hdf4 built in, check it out.
 if test "x$enable_hdf4" = xyes; then
@@ -1302,6 +1302,7 @@ AM_CONDITIONAL(SHOW_DOXYGEN_TAG_LIST, [test x$enable_doxygen_tasks = xyes])
 AM_CONDITIONAL(ENABLE_METADATA_PERF, [test x$enable_metadata_perf = xyes])
 AM_CONDITIONAL(ENABLE_BYTERANGE, [test "x$enable_byterange" = xyes])
 AM_CONDITIONAL(RELAX_COORD_BOUND, [test "xyes" = xyes])
+AM_CONDITIONAL(HAS_PAR_FILTERS, [test x$hdf5_supports_par_filters = xyes ])
 
 # If the machine doesn't have a long long, and we want netCDF-4, then
 # we've got problems!
@@ -1434,6 +1435,7 @@ AC_SUBST(HAS_JNA,[$enable_jna])
 AC_SUBST(HAS_ERANGE_FILL,[$enable_erange_fill])
 AC_SUBST(HAS_BYTERANGE,[$enable_byterange])
 AC_SUBST(RELAX_COORD_BOUND,[yes])
+AC_SUBST([HAS_PAR_FILTERS], [$hdf5_supports_par_filters])
 
 # Include some specifics for netcdf on windows.
 #AH_VERBATIM([_WIN32_STRICMP],

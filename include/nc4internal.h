@@ -16,7 +16,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <stdarg.h>
 #include <string.h>
 
 #include "ncdimscale.h"
@@ -27,6 +26,7 @@
 
 #include "netcdf_f.h"
 #include "netcdf_mem.h"
+#include "netcdf_filter.h"
 #ifdef USE_PARALLEL
 #include "netcdf_par.h"
 #endif /* USE_PARALLEL */
@@ -126,6 +126,7 @@ typedef enum {NC_FALSE = 0, NC_TRUE = 1} nc_bool_t;
 /* Forward declarations. */
 struct NC_GRP_INFO;
 struct NC_TYPE_INFO;
+struct NC_FIlterobject;
 
 /**
  * This struct provides indexed Access to Meta-data objects. See the
@@ -212,16 +213,12 @@ typedef struct NC_VAR_INFO
     int parallel_access;         /**< Type of parallel access for I/O on variable (collective or independent) */
     nc_bool_t dimscale;          /**< True if var is a dimscale */
     nc_bool_t *dimscale_attached;  /**< Array of flags that are true if dimscale is attached for that dim index */
-    nc_bool_t deflate;           /**< True if var has deflate filter applied */
-    int deflate_level;           /**< If deflate is true, this is the deflate level, between 0 and 9. */
     nc_bool_t shuffle;           /**< True if var has shuffle filter applied */
     nc_bool_t fletcher32;        /**< True if var has fletcher32 filter applied */
     size_t chunk_cache_size, chunk_cache_nelems;
     float chunk_cache_preemption;
     void *format_var_info;       /**< Pointer to any binary format info. */
-    unsigned int filterid;       /**< ID for arbitrary filter. */
-    size_t nparams;              /**< nparams for arbitrary filter. */
-    unsigned int *params;        /**< Params for arbitrary filter. */
+    NClist* filters;             /**< List<NC_FILTER_SPEC> */
 } NC_VAR_INFO_T;
 
 /** This is a struct to handle the field metadata from a user-defined
@@ -451,5 +448,58 @@ int log_metadata_nc(NC_FILE_INFO_T *h5);
 
 /* Binary searcher for reserved attributes */
 extern const NC_reservedatt *NC_findreserved(const char *name);
+
+/**************************************************/
+/* Internal filter related structures */
+
+/* Internal filter actions */
+#define NCFILTER_DEF		1
+#define NCFILTER_REMOVE  	2
+#define NCFILTER_INQ	    	3
+#define NCFILTER_FILTERIDS      4
+#define NCFILTER_INFO		5
+#define NCFILTER_FREESPEC	6
+#define NCFILTER_CLIENT_REG	10
+#define NCFILTER_CLIENT_UNREG	11
+#define NCFILTER_CLIENT_INQ	12
+
+typedef enum NC_FILTER_SORT {
+	NC_FILTER_SORT_SPEC=((int)1),
+	NC_FILTER_SORT_IDS=((int)2),
+	NC_FILTER_SORT_CLIENT=((int)3),
+} NC_FILTER_SORT;
+
+/* Provide structs to pass args to filter_actions function for HDF5*/
+
+typedef struct NC_FILTER_SPEC_HDF5 {
+    int active;            /**< true iff HDF5 library was told to activate filter */
+    unsigned int filterid; /**< ID for arbitrary filter. */
+    size_t nparams;        /**< nparams for arbitrary filter. */
+    unsigned int* params;  /**< Params for arbitrary filter. */
+} NC_FILTER_SPEC_HDF5;
+
+typedef struct NC_FILTERIDS_HDF5 {
+    size_t nfilters;          /**< number of filters */
+    unsigned int* filterids;  /**< Filter ids. */
+} NC_FILTERIDS_HDF5;
+
+typedef struct NC_FILTER_CLIENT_HDF5 {
+    unsigned int id;
+    /* The filter info for hdf5 */
+    /* Avoid needing hdf.h by using void* */
+    void* info;
+} NC_FILTER_CLIENT_HDF5;
+
+typedef struct NC_FILTER_OBJ_HDF5 {
+    NC_Filterobject hdr; /* So we can cast it */
+    NC_FILTER_SORT sort; /* discriminate union */
+    union {
+        NC_FILTER_SPEC_HDF5 spec;
+        NC_FILTERIDS_HDF5 ids;
+        NC_FILTER_CLIENT_HDF5 client;
+    } u;
+} NC_FILTER_OBJ_HDF5;
+
+extern void NC4_freefilterspec(NC_FILTER_SPEC_HDF5* f);
 
 #endif /* _NC4INTERNAL_ */

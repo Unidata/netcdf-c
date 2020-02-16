@@ -129,6 +129,9 @@ static void vercheck(int ncid);
 static long long extractint(NCConstant* con);
 #ifdef USE_NETCDF4
 static int parsefilterflag(const char* sdata0, Specialdata* special);
+#ifdef GENDEBUG1
+static void printfilters(size_t nfilters, NC_ParsedFilterSpec** filters);
+#endif
 #endif
 
 int yylex(void);
@@ -1363,7 +1366,6 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
 		if(parsefilterflag(sdata,special) == NC_NOERR)
                     special->flags |= _FILTER_FLAG;
 		else {
-		    efree(special->_FilterParams);
 		    derror("_Filter: unparsable filter spec: %s",sdata);
 		}
 #else
@@ -1485,12 +1487,18 @@ static int
 parsefilterflag(const char* sdata, Specialdata* special)
 {
     int stat = NC_NOERR;
+    int format;
 
     if(sdata == NULL || strlen(sdata) == 0) return NC_EINVAL;
 
-    stat = NC_parsefilterspec(sdata, &special->_FilterID, &special->nparams, &special->_FilterParams);
+    stat = NC_parsefilterlist(sdata, &format, &special->nfilters, (NC_Filterspec***)&special->_Filters);
     if(stat)
         derror("Malformed filter spec: %s",sdata);
+    if(format != NC_FILTER_FORMAT_HDF5)
+        derror("Non HDF5 filter format encountered");
+#ifdef GENDEBUG1
+printfilters(special->nfilters,special->_Filters);
+#endif
     return stat;
 }
 #endif
@@ -1566,3 +1574,31 @@ evaluate(Symbol* fcn, Datalist* arglist)
 done:
     return result;
 }
+
+#ifdef GENDEBUG1
+static void
+printfilters(size_t nfilters, NC_ParsedFilterSpec** filters)
+{
+    int i;
+    fprintf(stderr,"xxx: nfilters=%lu: ",(unsigned long)nfilters);
+    for(i=0;i<nfilters;i++) {
+	int k;
+	NC_ParsedFilterSpec* sp = filters[i];
+        fprintf(stderr,"{");
+        fprintf(stderr,"filterid=%llu format=%d nparams=%lu params=%p",
+		sp->filterid,sp->format,(unsigned long)sp->nparams,sp->params);
+	if(sp->nparams == 0 || sp->params != NULL) {
+            fprintf(stderr," params={");
+            for(k=0;k<sp->nparams;k++) {
+	        if(i==0) fprintf(stderr,",");
+	        fprintf(stderr,"%u",sp->params[i]);
+	    }
+            fprintf(stderr,"}");
+	} else
+            fprintf(stderr,"params=NULL");
+        fprintf(stderr,"}");
+    }
+    fprintf(stderr,"\n");
+    fflush(stderr);
+}
+#endif

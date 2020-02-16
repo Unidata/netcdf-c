@@ -1,22 +1,23 @@
 #!/bin/bash
 #NB=1
-DB=1
+#DB=1
 #X=-x
 
 #ANSI=1
-#MEM=1
+#MEM=1 # export NC_VLEN_NOTEST=1
 #NOTUIL=1
-FAST=1
+#FAST=1
 #PROF=1
 
-#HDF5=1
-#DAP=1
+#NCZARR=1
+HDF5=1
+DAP=1
 #SZIP=1
 #HDF4=1
 #PNETCDF=1
 #PAR4=1
 
-#TESTSERVERS="localhost:8080,remotetest.unidata.ucar.edu"
+#TESTSERVERS="localhost:8080,149.165.169.123:8080"
 
 if test $# != 0 ; then
 cmds=$@
@@ -31,11 +32,12 @@ CFLAGS=""
 #CFLAGS="-Wall -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-parameter -Wno-char-subscripts -Wno-pointer-sign -Wno-format ${CFLAGS}"
 CFLAGS="-Wall -Wno-unused-parameter -Wno-char-subscripts -Wno-pointer-sign ${CFLAGS}"
 #CFLAGS="-Wall ${CFLAGS}"
-#CFLAGS="-Wconversion"
+#CFLAGS="$CFLAGS -Wconversion"
+#CFLAGS="-Wall -Wunused-parameter -Wno-char-subscripts -Wno-pointer-sign ${CFLAGS}"
 
 if test "x$MEM" = x1 ; then
-export NC_VLEN_NOTEST=1
-CFLAGS="-fsanitize=address ${CFLAGS}"
+  export NC_VLEN_NOTEST=1
+  CFLAGS="-fsanitize=address ${CFLAGS}"
 fi
 
 if test "x$ANSI" = x1 ; then
@@ -118,11 +120,12 @@ FLAGS="$FLAGS --enable-extreme-numbers"
 #FLAGS="$FLAGS --disable-testsets"
 #FLAGS="$FLAGS --disable-dap-remote-tests"
 #FLAGS="$FLAGS --enable-dap-auth-tests" -- requires a new remotetest server
-FLAGS="$FLAGS --enable-doxygen --enable-internal-docs"
+#FLAGS="$FLAGS --enable-doxygen --enable-internal-docs"
 FLAGS="$FLAGS --enable-logging"
 #FLAGS="$FLAGS --disable-diskless"
 FLAGS="$FLAGS --enable-mmap"
 FLAGS="$FLAGS --enable-byterange"
+#FLAGS="$FLAGS --enable-atexit-finalize"
 #FLAGS="$FLAGS --with-udunits"
 #FLAGS="$FLAGS --with-libcf"
 #FLAGS="$FLAGS --enable-jna"
@@ -130,6 +133,7 @@ FLAGS="$FLAGS --enable-byterange"
 #FLAGS="$FLAGS --disable-silent-rules"
 #FLAGS="$FLAGS --disable-filter-testing"
 #FLAGS="$FLAGS --enable-metadata-perf"
+#FLAGS="$FLAGS --enable-extra-tests"
 #FLAGS="$FLAGS --with-ncproperties-extra=key1=value1,key2=value2"
 #FLAGS="$FLAGS --enable-valgrind"
 
@@ -139,6 +143,10 @@ fi
 
 if test "x$PAR4" != x1 ; then
 FLAGS="$FLAGS --disable-parallel4"
+fi
+
+if test "x$NCZARR" = x1 ; then
+FLAGS="$FLAGS --enable-nczarr"
 fi
 
 if test "x$NOUTIL" = x1 ; then

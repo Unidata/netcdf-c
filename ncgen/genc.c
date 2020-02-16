@@ -113,21 +113,28 @@ genc_netcdf(void)
                 codeline("} ;");
             }
             if(special->flags & _FILTER_FLAG) {
-                int i;
-                unsigned int* params = special->_FilterParams;
-                if(special->nparams == 0 || params == NULL) continue;
-                bbClear(tmp);
-                for(i=0;i<special->nparams;i++) {
-                    bbprintf(tmp,"%s%luU",
+		int k;
+		for(k=0;k<special->nfilters;k++) {
+		    int i;
+		    size_t nparams;
+		    unsigned int* params;
+		    NC4_Filterspec* nfs = (NC4_Filterspec*)special->_Filters[k];
+		    if(nfs->nparams == 0 || nfs->params == NULL) continue;
+	   	    bbClear(tmp);
+		    nparams = nfs->nparams;
+		    params = nfs->params;
+		    for(i=0;i<nparams;i++) {
+                        bbprintf(tmp,"%s%luU",
                             (i == 0?"":", "),params[i]);
+		    }
+                    bbprintf0(stmt,"static unsigned int %s_%d_filterparams[%d] = {",
+                            cname(var),k,nparams);
+                    codedump(stmt);
+                    codedump(tmp);
+                    codeline("} ;");
                 }
-                bbprintf0(stmt,"static unsigned int %s_filterparams[%d] = {",
-                            cname(var),special->nparams);
-                codedump(stmt);
-                codedump(tmp);
-                codeline("} ;");
-            }
-	    bbFree(tmp);
+	    }
+            bbFree(tmp);
         }
 	codeline("");
     }
@@ -505,46 +512,27 @@ genc_definespecialattributes(Symbol* vsym)
         codelined(1,"check_err(stat,__LINE__,__FILE__);");
     }
     if(special->flags & _FILTER_FLAG) {
-	/* Special check for alternate way to specify _Deflate */
-	if(special->_FilterID == ZIP_ID) {
-	    unsigned int level;
-	    if(special->nparams == 0 || special->_FilterParams == NULL)
-		level = 9; /* default */
-	    else
-		level = special->_FilterParams[0];
-	    if(level > 9)
-		derror("Illegal deflate level");		
-	    else {
-	        bbprintf0(stmt,
-	                "    stat = nc_def_var_deflate(%s, %s, %s, %d, %d);\n",
+	int k;
+	for(k=0;k<special->nfilters;k++) {
+	     NC4_Filterspec* nfs = (NC4_Filterspec*)special->_Filters[k];
+	     bbprintf0(stmt,
+	                "    stat = nc_def_var_filter(%s, %s, %u, %u, ",
 	                groupncid(vsym->container),
 	                varncid(vsym),
-	                (special->_Shuffle == 1?"NC_SHUFFLE":"NC_NOSHUFFLE"),
-	                1,
-			level);
+			nfs->filterid,
+			nfs->nparams
+			);
+	    codedump(stmt);
+	    if(nfs->nparams == 0 || nfs->params == NULL)
+	        codepartial("NULL");
+            else {
+	        bbprintf0(stmt,"%s_%d_filterparams",cname(vsym),k);
 	        codedump(stmt);
 	    }
-	} else {
-	        bbprintf0(stmt,
-	                "    stat = nc_def_var_filter(%s, %s, %u, %lu, ",
-	                groupncid(vsym->container),
-	                varncid(vsym),
-			special->_FilterID,
-			special->nparams
-			);
-	        codedump(stmt);
-	        if(special->nparams == 0 || special->_FilterParams == NULL)
-	            codepartial("NULL");
-        	else {
-	            bbprintf0(stmt,"%s_filterparams",cname(vsym));
-	            codedump(stmt);
-		}
-	        codeline(");");
+	    codeline(");");
+            codelined(1,"check_err(stat,__LINE__,__FILE__);");
 	}
-        codelined(1,"check_err(stat,__LINE__,__FILE__);");
     }
-
-
 }
 #endif /*USE_NETCDF4*/
 

@@ -19,7 +19,6 @@ include $(top_srcdir)/lib_flags.am
 TEST_EXTENSIONS = .sh
 
 # Link to our assembled library.
-AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
 LDADD = ${top_builddir}/liblib/libnetcdf.la
 
 # These are netCDF-4 C test programs which are built and run.
@@ -73,8 +72,9 @@ endif
 # Filter Tests (requires ncdump and ncgen)
 if ENABLE_FILTER_TESTING
 extradir =
-extra_PROGRAMS = test_filter test_filter_misc
+extra_PROGRAMS = test_filter test_filter_misc test_filter_order
 check_PROGRAMS += test_filter_reg
+check_PROGRAMS += tst_multifilter
 TESTS += tst_filter.sh test_filter_reg
 endif
 endif # BUILD_UTILITIES
@@ -95,7 +95,8 @@ run_empty_vlen_test.sh ref_hdf5_compat1.nc ref_hdf5_compat2.nc		\
 ref_hdf5_compat3.nc tst_misc.sh tdset.h5 tst_szip.sh ref_szip.h5	\
 ref_szip.cdl tst_filter.sh bzip2.cdl ref_filtered.cdl			\
 ref_unfiltered.cdl ref_bzip2.c findplugin.in ref_unfilteredvv.cdl	\
-ref_filteredvv.cdl
+ref_filteredvv.cdl ref_multi.cdl ref_filter_order.txt     \
+ref_ncgenF.cdl ref_nccopyF.cdl
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
 tst_floats_1D.cdl floats_1D_3.nc floats_1D.cdl tst_*.nc			\

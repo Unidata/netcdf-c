@@ -18,6 +18,9 @@
 #include "H5FDhttp.h"
 #endif
 
+/*Nemonic */
+#define FILTERACTIVE 1
+
 #define NUM_TYPES 12 /**< Number of netCDF atomic types. */
 #define CD_NELEMS_ZLIB 1 /**< Number of parameters needed for ZLIB filter. */
 
@@ -915,8 +918,8 @@ NC4_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 
 /**
  * @internal Find out what filters are applied to this HDF5 dataset,
- * fletcher32, deflate, and/or shuffle. All other filters are just
- * dumped The possible values of
+ * fletcher32, deflate, and/or shuffle. All other filters are
+ * captured.
  *
  * @param propid ID of HDF5 var creation properties list.
  * @param var Pointer to NC_VAR_INFO_T for this variable.
@@ -933,6 +936,7 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
     unsigned int cd_values_zip[CD_NELEMS_ZLIB];
     size_t cd_nelems = CD_NELEMS_ZLIB;
     int f;
+    int stat = NC_NOERR;
 
     assert(var);
 
@@ -955,46 +959,56 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
             break;
 
         case H5Z_FILTER_DEFLATE:
-            var->deflate = NC_TRUE;
             if (cd_nelems != CD_NELEMS_ZLIB ||
                 cd_values_zip[0] > NC_MAX_DEFLATE_LEVEL)
                 return NC_EHDFERR;
-            var->deflate_level = cd_values_zip[0];
+	    if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,cd_values_zip)))
+		return stat;
             break;
 
-        case H5Z_FILTER_SZIP:
+        case H5Z_FILTER_SZIP: {
             /* Szip is tricky because the filter code expands the set of parameters from 2 to 4
-               and changes some of the parameter values */
-            var->filterid = filter;
-            if(cd_nelems == 0)
-                var->params = NULL;
-            else {
+               and changes some of the parameter values; try to compensate */
+            if(cd_nelems == 0) {
+		if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,0,NULL)))
+		   return stat;
+            } else {
                 /* We have to re-read the parameters based on actual nparams,
                    which in the case of szip, differs from users original nparams */
-                var->params = (unsigned int*)calloc(1,sizeof(unsigned int)*cd_nelems);
-                if(var->params == NULL)
+                unsigned int* realparams = (unsigned int*)calloc(1,sizeof(unsigned int)*cd_nelems);
+                if(realparams == NULL)
                     return NC_ENOMEM;
                 if((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems,
-                                            var->params, 0, NULL, NULL)) < 0)
+                                            realparams, 0, NULL, NULL)) < 0) 
                     return NC_EHDFERR;
                 /* fix up the parameters and the #params */
-                var->nparams = cd_nelems;
+		if(cd_nelems != 4)
+		    return NC_EHDFERR;
+		cd_nelems = 2; /* ignore last two */		
+		/* Fix up changed params */
+		realparams[0] &= (H5_SZIP_ALL_MASKS);
+		/* Save info */
+		stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,realparams);
+		nullfree(realparams);
+		if(stat) return stat;
+
             }
-            break;
+            } break;
 
         default:
-            var->filterid = filter;
-            var->nparams = cd_nelems;
-            if(cd_nelems == 0)
-                var->params = NULL;
-            else {
+            if(cd_nelems == 0) {
+  	        if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,0,NULL))) return stat;
+            } else {
                 /* We have to re-read the parameters based on actual nparams */
-                var->params = (unsigned int*)calloc(1,sizeof(unsigned int)*var->nparams);
-                if(var->params == NULL)
+                unsigned int* realparams = (unsigned int*)calloc(1,sizeof(unsigned int)*cd_nelems);
+                if(realparams == NULL)
                     return NC_ENOMEM;
                 if((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems,
-                                            var->params, 0, NULL, NULL)) < 0)
+                                            realparams, 0, NULL, NULL)) < 0)
                     return NC_EHDFERR;
+  	        stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,realparams);
+		nullfree(realparams);
+		if(stat) return stat;
             }
             break;
         }
