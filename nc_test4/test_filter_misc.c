@@ -309,7 +309,7 @@ insert(int index, void* src, size_t size)
     void* dst = &baseline[index];
     if(size == 8) {
 	memcpy(src8,src,size);
-	NC_filterfix8(src8,0);
+	NC4_filterfix8(src8,0);
 	src = src8;
     }
     memcpy(dst,src,size);

@@ -4,7 +4,7 @@
 
 
 static size_t var_chunksizes[4] = {4, 4, 4, 4} ;
-static unsigned int var_filterparams[1] = {9U} ;
+static unsigned int var_0_filterparams[1] = {9U} ;
 
 void
 check_err(const int stat, const int line, const char *file) {
@@ -72,7 +72,7 @@ main() {/* create bzip2.nc */
     check_err(stat,__LINE__,__FILE__);
     stat = nc_def_var_fill(bzip2_grp, var_id, NC_NOFILL, NULL);
     check_err(stat,__LINE__,__FILE__);
-    stat = nc_def_var_filter(bzip2_grp, var_id, 307, 1, var_filterparams);
+    stat = nc_def_var_filter(bzip2_grp, var_id, 307, 1, var_0_filterparams);
     check_err(stat,__LINE__,__FILE__);
 
     /* leave define mode */

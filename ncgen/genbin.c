@@ -239,28 +239,14 @@ genbin_definespecialattributes(Symbol* var)
         check_err(stat,__LINE__,"ncgen");
     }
     if(special->flags & _FILTER_FLAG) {
-        /* Special check for alternate way to specify _Deflate */
-        if(special->_FilterID == ZIP_ID) {
-            unsigned int level;
-            if(special->nparams == 0 || special->_FilterParams == NULL)
-                level = 9; /* default */
-            else
-                level = special->_FilterParams[0];
-            if(level > 9)
-                derror("Illegal deflate level");
-            else {
-                stat = nc_def_var_deflate(var->container->nc_id,
-                        var->nc_id,
-                        (special->_Shuffle == 1?1:0),
-                        (level > 0?1:0),
-                        level);
-            }
-        } else {
+	int k;
+	for(k=0;k<special->nfilters;k++) {
+	    NC4_Filterspec* nfs = special->_Filters[k];
             stat = nc_def_var_filter(var->container->nc_id,
                         var->nc_id,
-                        special->_FilterID,
-                        special->nparams,
-                        special->_FilterParams
+			nfs->filterid,
+                        nfs->nparams,
+                        nfs->params
                         );
         }
         check_err(stat,__LINE__,"ncgen");

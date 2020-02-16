@@ -80,12 +80,7 @@ main(void)
      */
     szip_params[0] = H5_SZIP_NN_OPTION_MASK;
     szip_params[1] = H5_SZIP_MAX_PIXELS_PER_BLOCK_IN;
-    { int stat = nc_def_var_filter(ncid, varid, HDF5_FILTER_SZIP, 2, szip_params);
-       if(stat) {
-         fprintf(stderr,"XXX: %d %s\b",stat,nc_strerror(stat));
-         ERR;
-       }
-    }
+    if(nc_def_var_filter(ncid, varid, HDF5_FILTER_SZIP, 2, szip_params)) ERR;
     if(nc_inq_var_szip(ncid, varid, &options_mask_in, &pixels_per_block_in)) ERR;
     if(!(options_mask_in & H5_SZIP_NN_OPTION_MASK)) ERR;
 #endif
