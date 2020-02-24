@@ -231,6 +231,7 @@ main(int argc, char **argv)
     {
         int ncid, dimid[NDIM2], varid, varid2;
         int data[XDIM_LEN];
+        int storage_in;
         int x;
 
         /* Create some data. */
@@ -247,6 +248,8 @@ main(int argc, char **argv)
         /* Define vars. */
         if (nc_def_var(ncid, Y_NAME, NC_INT, 1, dimid, &varid)) ERR;
         if (nc_def_var_chunking(ncid, varid, NC_COMPACT, NULL)) ERR;
+        if (nc_inq_var_chunking(ncid, varid, &storage_in, NULL)) ERR;
+        if (storage_in != NC_COMPACT) ERR;
         if (nc_def_var(ncid, CLAIR, NC_INT, NDIM2, dimid, &varid2)) ERR;
         /* This won't work, the var is too big for compact! */
         if (nc_def_var_chunking(ncid, varid2, NC_COMPACT, NULL) != NC_EVARSIZE) ERR;
