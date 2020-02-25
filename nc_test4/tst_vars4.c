@@ -245,15 +245,20 @@ main(int argc, char **argv)
         if (nc_def_dim(ncid, X_NAME, XDIM_LEN, &dimid[0])) ERR;
         if (nc_def_dim(ncid, Z_NAME, ZDIM_LEN, &dimid[1])) ERR;
 
-        /* Define vars. */
+        /* Define vars1 to be compact. */
         if (nc_def_var(ncid, Y_NAME, NC_INT, 1, dimid, &varid)) ERR;
         if (nc_def_var_chunking(ncid, varid, NC_COMPACT, NULL)) ERR;
         if (nc_inq_var_chunking(ncid, varid, &storage_in, NULL)) ERR;
         if (storage_in != NC_COMPACT) ERR;
+
+        /* Define var2 - it's too big for compact. */
         if (nc_def_var(ncid, CLAIR, NC_INT, NDIM2, dimid, &varid2)) ERR;
         /* This won't work, the var is too big for compact! */
         if (nc_def_var_chunking(ncid, varid2, NC_COMPACT, NULL) != NC_EVARSIZE) ERR;
+
+        /* Define var3, a scalar. Scalars cannot be compact. */
         if (nc_def_var(ncid, JAMIE, NC_INT, 0, NULL, &varid3)) ERR;
+        if (nc_def_var_chunking(ncid, varid3, NC_CHUNKED, dimid)) ERR;
 
         /* Write data. */
         if (nc_put_var_int(ncid, varid, data)) ERR;
