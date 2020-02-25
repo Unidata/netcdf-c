@@ -229,7 +229,7 @@ main(int argc, char **argv)
     SUMMARIZE_ERR;
     printf("**** testing compact storage...");
     {
-        int ncid, dimid[NDIM2], varid, varid2;
+        int ncid, dimid[NDIM2], varid, varid2, varid3;
         int data[XDIM_LEN];
         int storage_in;
         int x;
@@ -253,6 +253,7 @@ main(int argc, char **argv)
         if (nc_def_var(ncid, CLAIR, NC_INT, NDIM2, dimid, &varid2)) ERR;
         /* This won't work, the var is too big for compact! */
         if (nc_def_var_chunking(ncid, varid2, NC_COMPACT, NULL) != NC_EVARSIZE) ERR;
+        if (nc_def_var(ncid, JAMIE, NC_INT, 0, NULL, &varid3)) ERR;
 
         /* Write data. */
         if (nc_put_var_int(ncid, varid, data)) ERR;
@@ -267,7 +268,7 @@ main(int argc, char **argv)
 
             if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
             if (nc_inq(ncid, &ndims, &nvars, NULL, NULL)) ERR;
-            if (ndims != 2 || nvars != 2) ERR;
+            if (ndims != 2 || nvars != 3) ERR;
             if (nc_inq_var_chunking(ncid, varid, &storage_in, NULL)) ERR;
             if (storage_in != NC_COMPACT) ERR;
             if (nc_inq_var_chunking(ncid, varid2, &storage_in, NULL)) ERR;
