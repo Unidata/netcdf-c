@@ -499,7 +499,6 @@ main()
         hid_t fapl_id, fcpl_id;
         hid_t datasetid;
         hid_t fileid, grpid, spaceid, plistid;
-        int data_in, data_out = 42;
         hsize_t chunksize = 1;
 
         /* Create file, setting latest_format in access propertly list
@@ -533,7 +532,7 @@ main()
                                    spaceid, plistid)) > 0) ERR;
 
         /* Turn on error messages back on. */
-        H5Eset_auto2(H5E_DEFAULT, (H5E_auto_t)&H5Eprint, stderr);
+        H5Eset_auto2(H5E_DEFAULT, (H5E_auto2_t)&H5Eprint, stderr);
 
         if (H5Pclose(fapl_id) < 0 ||
             H5Sclose(spaceid) < 0 ||
