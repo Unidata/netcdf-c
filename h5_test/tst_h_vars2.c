@@ -601,6 +601,51 @@ main()
             ERR;
     }
     SUMMARIZE_ERR;
+    printf("*** Checking that HDF5 does not allow chunked, scalar datasets...");
+    {
+        hid_t fapl_id, fcpl_id;
+        hid_t datasetid;
+        hid_t fileid, grpid, spaceid, plistid;
+        hsize_t chunksize = 1;
 
+        /* Create file, setting latest_format in access propertly list
+         * and H5P_CRT_ORDER_TRACKED in the creation property list. */
+        if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
+        if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
+        if ((fcpl_id = H5Pcreate(H5P_FILE_CREATE)) < 0) ERR;
+        if (H5Pset_link_creation_order(fcpl_id, H5P_CRT_ORDER_TRACKED|H5P_CRT_ORDER_INDEXED) < 0) ERR;
+        if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, fcpl_id, fapl_id)) < 0) ERR;
+
+        if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+
+        if ((spaceid = H5Screate(H5S_SCALAR)) < 0) ERR;
+
+        /* Create property list. */
+        if ((plistid = H5Pcreate(H5P_DATASET_CREATE)) < 0) ERR;
+
+        /* Set chunking. */
+        if (H5Pset_chunk(plistid, 1, &chunksize) < 0)ERR;
+
+        /* Turn off error messages. The next call will generate a
+         * bunch of error messages on the console. */
+        H5Eset_auto2(H5E_DEFAULT, NULL, NULL);
+
+        /* Create the variable. This will not work, because only
+         * chunked datasets can use filters, and scalars can't be
+         * chunked. The H5Dcreate() call will fail. */
+        if ((datasetid = H5Dcreate(grpid, SIMPLE_VAR_NAME1, H5T_NATIVE_INT,
+                                   spaceid, plistid)) > 0) ERR;
+
+        /* Turn on error messages back on. */
+        H5Eset_auto2(H5E_DEFAULT, (H5E_auto2_t)&H5Eprint, stderr);
+
+        if (H5Pclose(fapl_id) < 0 ||
+            H5Sclose(spaceid) < 0 ||
+            H5Gclose(grpid) < 0 ||
+            H5Fclose(fileid) < 0)
+            ERR;
+
+    }
+    SUMMARIZE_ERR;
     FINAL_RESULTS;
 }
