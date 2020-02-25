@@ -546,7 +546,9 @@ main()
         hid_t fapl_id, fcpl_id;
         hid_t datasetid;
         hid_t fileid, grpid, spaceid, plistid;
+        hid_t propid;
         int data_in, data_out = 42;
+        H5D_layout_t layout;
 
         /* Create file, setting latest_format in access propertly list
          * and H5P_CRT_ORDER_TRACKED in the creation property list. */
@@ -588,6 +590,9 @@ main()
 
         if ((datasetid = H5Dopen1(grpid, SIMPLE_VAR_NAME1)) < 0) ERR;
         if ((spaceid = H5Dget_space(datasetid)) < 0) ERR;
+        if ((propid = H5Dget_create_plist(datasetid)) < 0) ERR;
+        if ((layout = H5Pget_layout(propid)) < 0) ERR;
+        if (layout != H5D_COMPACT) ERR;
         if (H5Dread(datasetid, H5T_NATIVE_INT, H5S_ALL,
                     spaceid, H5P_DEFAULT, &data_in) < 0) ERR;
 
