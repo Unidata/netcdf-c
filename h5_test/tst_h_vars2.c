@@ -489,8 +489,7 @@ main()
             ERR;
     }
     SUMMARIZE_ERR;
-    /* I can't get this to work, I don't think it's allowed in HDF5. - Ed 7/12/7 */
-    printf("*** Checking HDF5 scalar variable compession...");
+    printf("*** Checking that HDF5 does not allow scalar variable compession...");
 
 #define MAX_NAME_LEN 50
 #define DEFLATE_LEVEL 3
@@ -513,9 +512,10 @@ main()
 
         if ((spaceid = H5Screate(H5S_SCALAR)) < 0) ERR;
 
-        /* Create property lust. */
+        /* Create property list. */
         if ((plistid = H5Pcreate(H5P_DATASET_CREATE)) < 0) ERR;
 
+        /* Set chunking. */
         if (H5Pset_chunk(plistid, 1, &chunksize) < 0)ERR;
 
         /* Set up compression. */
@@ -526,8 +526,8 @@ main()
         H5Eset_auto2(H5E_DEFAULT, NULL, NULL);
 
         /* Create the variable. This will not work, because only
-         * chunked datasets can use filters. The H5Dcreate() call will
-         * fail. */
+         * chunked datasets can use filters, and scalars can't be
+         * chunked. The H5Dcreate() call will fail. */
         if ((datasetid = H5Dcreate(grpid, SIMPLE_VAR_NAME1, H5T_NATIVE_INT,
                                    spaceid, plistid)) > 0) ERR;
 
