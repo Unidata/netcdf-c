@@ -490,7 +490,6 @@ main()
     }
     SUMMARIZE_ERR;
     printf("*** Checking that HDF5 does not allow scalar variable compession...");
-
 #define MAX_NAME_LEN 50
 #define DEFLATE_LEVEL 3
 #define SIMPLE_VAR_NAME1 "punches"
@@ -542,78 +541,66 @@ main()
 
     }
     SUMMARIZE_ERR;
-/*     printf("*** Checking HDF5 scalar variable compession..."); */
+    printf("*** Checking HDF5 scalar compact dataset...");
+    {
+        hid_t fapl_id, fcpl_id;
+        hid_t datasetid;
+        hid_t fileid, grpid, spaceid, plistid;
+        int data_in, data_out = 42;
 
-/* #define MAX_NAME_LEN 50 */
-/* #define DEFLATE_LEVEL 3 */
-/* #define SIMPLE_VAR_NAME1 "punches" */
-/*     { */
-/*         hid_t fapl_id, fcpl_id; */
-/*         hid_t datasetid; */
-/*         hid_t fileid, grpid, spaceid, plistid; */
-/*         int data_in, data_out = 42; */
-/*         hsize_t chunksize = 1; */
+        /* Create file, setting latest_format in access propertly list
+         * and H5P_CRT_ORDER_TRACKED in the creation property list. */
+        if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
+        if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
+        if ((fcpl_id = H5Pcreate(H5P_FILE_CREATE)) < 0) ERR;
+        if (H5Pset_link_creation_order(fcpl_id, H5P_CRT_ORDER_TRACKED|H5P_CRT_ORDER_INDEXED) < 0) ERR;
+        if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, fcpl_id, fapl_id)) < 0) ERR;
 
-/*         /\* Create file, setting latest_format in access propertly list */
-/*          * and H5P_CRT_ORDER_TRACKED in the creation property list. *\/ */
-/*         if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR; */
-/*         if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR; */
-/*         if ((fcpl_id = H5Pcreate(H5P_FILE_CREATE)) < 0) ERR; */
-/*         if (H5Pset_link_creation_order(fcpl_id, H5P_CRT_ORDER_TRACKED|H5P_CRT_ORDER_INDEXED) < 0) ERR; */
-/*         if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, fcpl_id, fapl_id)) < 0) ERR; */
+        if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
 
-/*         if ((grpid = H5Gopen(fileid, "/")) < 0) ERR; */
+        if ((spaceid = H5Screate(H5S_SCALAR)) < 0) ERR;
 
-/*         if ((spaceid = H5Screate(H5S_SCALAR)) < 0) ERR; */
+        /* Create property lust. */
+        if ((plistid = H5Pcreate(H5P_DATASET_CREATE)) < 0) ERR;
 
-/*         /\* Create property lust. *\/ */
-/*         if ((plistid = H5Pcreate(H5P_DATASET_CREATE)) < 0) ERR; */
+        if (H5Pset_layout(plistid, H5D_COMPACT) < 0)ERR;
 
-/*         if (H5Pset_chunk(plistid, 1, &chunksize) < 0)ERR; */
+        /* Create the variable. */
+        if ((datasetid = H5Dcreate(grpid, SIMPLE_VAR_NAME1, H5T_NATIVE_INT,
+                                   spaceid, plistid)) < 0) ERR;
 
-/*         /\* Set up compression. *\/ */
-/*         if (H5Pset_deflate(plistid, DEFLATE_LEVEL) < 0) ERR; */
+        /* Write the data. */
+        if (H5Dwrite(datasetid, H5T_NATIVE_INT, spaceid, spaceid,
+                     H5P_DEFAULT, &data_out) < 0) ERR;
 
-/*         /\* Turn off error messages. The next call will generate a */
-/*          * bunch of error messages on the console. *\/ */
-/*         H5Eset_auto2(H5E_DEFAULT, NULL, NULL); */
+        if (H5Pclose(fapl_id) < 0 ||
+            H5Dclose(datasetid) < 0 ||
+            H5Sclose(spaceid) < 0 ||
+            H5Gclose(grpid) < 0 ||
+            H5Fclose(fileid) < 0)
+            ERR;
 
-/*         /\* Create the variable. This will not work, because only */
-/*          * chunked datasets can use filters. The H5Dcreate() call will */
-/*          * fail. *\/ */
-/*         if ((datasetid = H5Dcreate(grpid, SIMPLE_VAR_NAME1, H5T_NATIVE_INT, */
-/*                                    spaceid, plistid)) > 0) ERR; */
+        /* Now reopen the file and check. */
+        if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
+        if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
+        if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, fapl_id)) < 0) ERR;
+        if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
 
-/*         /\* Turn on error messages back on. *\/ */
-/*         H5Eset_auto2(H5E_DEFAULT, (H5E_auto_t)&H5Eprint, stderr); */
+        if ((datasetid = H5Dopen1(grpid, SIMPLE_VAR_NAME1)) < 0) ERR;
+        if ((spaceid = H5Dget_space(datasetid)) < 0) ERR;
+        if (H5Dread(datasetid, H5T_NATIVE_INT, H5S_ALL,
+                    spaceid, H5P_DEFAULT, &data_in) < 0) ERR;
 
-/*         if (H5Pclose(fapl_id) < 0 || */
-/*             H5Sclose(spaceid) < 0 || */
-/*             H5Gclose(grpid) < 0 || */
-/*             H5Fclose(fileid) < 0) */
-/*             ERR; */
+        /* Check the data. */
+        if (data_in != data_out) ERR;
 
-/*         /\* /\\* Now reopen the file and check. *\\/ *\/ */
-/*         /\* if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR; *\/ */
-/*         /\* if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR; *\/ */
-/*         /\* if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, fapl_id)) < 0) ERR; *\/ */
-/*         /\* if ((grpid = H5Gopen(fileid, "/")) < 0) ERR; *\/ */
-
-/*         /\* if ((datasetid = H5Dopen1(grpid, SIMPLE_VAR_NAME1)) < 0) ERR; *\/ */
-/*         /\* if ((spaceid = H5Dget_space(datasetid)) < 0) *\/ */
-/*         /\*     if (H5Dread(datasetid, H5T_NATIVE_INT, H5S_ALL, *\/ */
-/*         /\*                 spaceid, H5P_DEFAULT, &data_in) < 0) ERR; *\/ */
-
-/*         /\* /\\* Check the data. *\\/ *\/ */
-/*         /\* if (data_in != data_out) ERR; *\/ */
-
-/*         /\* if (H5Pclose(fapl_id) < 0 || *\/ */
-/*         /\*     H5Dclose(datasetid) < 0 || *\/ */
-/*         /\*     H5Gclose(grpid) < 0 || *\/ */
-/*         /\*     H5Fclose(fileid) < 0) *\/ */
-/*         /\*     ERR; *\/ */
-/*     } */
-/*     SUMMARIZE_ERR; */
+        if (H5Pclose(fapl_id) < 0 ||
+            H5Dclose(datasetid) < 0 ||
+            H5Gclose(grpid) < 0 ||
+            H5Fclose(fileid) < 0)
+            ERR;
+    }
+    SUMMARIZE_ERR;
 
     FINAL_RESULTS;
 }
