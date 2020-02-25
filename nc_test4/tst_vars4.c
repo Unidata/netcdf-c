@@ -270,7 +270,7 @@ main(int argc, char **argv)
         {
             int ndims, nvars;
             int storage_in;
-
+            nc_set_log_level(3);
             if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
             if (nc_inq(ncid, &ndims, &nvars, NULL, NULL)) ERR;
             if (ndims != 2 || nvars != 3) ERR;
