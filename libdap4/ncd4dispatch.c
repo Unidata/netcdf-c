@@ -778,6 +778,7 @@ globalinit(void)
 static const NC_Dispatch NCD4_dispatch_base = {
 
 NC_FORMATX_DAP4,
+NC_DISPATCH_VERSION,
 
 NCD4_create,
 NCD4_open,
