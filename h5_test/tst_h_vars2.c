@@ -575,6 +575,9 @@ main()
         if (H5Dwrite(datasetid, H5T_NATIVE_INT, spaceid, spaceid,
                      H5P_DEFAULT, &data_out) < 0) ERR;
 
+        if ((layout = H5Pget_layout(plistid)) < 0) ERR;
+        if (layout != H5D_COMPACT) ERR;
+
         if (H5Pclose(fapl_id) < 0 ||
             H5Dclose(datasetid) < 0 ||
             H5Sclose(spaceid) < 0 ||
@@ -601,6 +604,7 @@ main()
 
         if (H5Pclose(fapl_id) < 0 ||
             H5Dclose(datasetid) < 0 ||
+            H5Pclose(propid) < 0 ||
             H5Gclose(grpid) < 0 ||
             H5Fclose(fileid) < 0)
             ERR;
