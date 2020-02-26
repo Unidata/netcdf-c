@@ -959,14 +959,15 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
                 unlimdim++;
         }
 
-        /* If there are no unlimited dims, and no filters, and the user
-         * has not specified chunksizes, use contiguous variable for
-         * better performance. */
+        /* If there are no unlimited dims, and no filters, and the
+         * user has not specified chunksizes, use contiguous variable
+         * for better performance. */
         if (!var->shuffle && !var->deflate && !var->filterid && !var->fletcher32 &&
             (var->chunksizes == NULL || !var->chunksizes[0]) && !unlimdim)
             var->contiguous = NC_TRUE;
 
-        /* Gather current & maximum dimension sizes, along with chunk sizes */
+        /* Gather current & maximum dimension sizes, along with chunk
+         * sizes. */
         for (d = 0; d < var->ndims; d++)
         {
             dim = var->dim[d];
@@ -1036,7 +1037,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
         BAIL(NC_EHDFERR);
 
     /* Set per-var chunk cache, for chunked datasets. */
-    if (!var->contiguous && var->chunk_cache_size)
+    if (!var->contiguous && !var->compact && var->chunk_cache_size)
         if (H5Pset_chunk_cache(access_plistid, var->chunk_cache_nelems,
                                var->chunk_cache_size, var->chunk_cache_preemption) < 0)
             BAIL(NC_EHDFERR);
