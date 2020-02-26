@@ -81,7 +81,7 @@ static int NC3_get_var_chunk_cache(int,int,size_t*,size_t*,float*);
 static const NC_Dispatch NC3_dispatcher = {
 
 NC_FORMATX_NC3,
-
+NC_DISPATCH_VERSION,
 NC3_create,
 NC3_open,
 
