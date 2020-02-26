@@ -234,7 +234,6 @@ main(int argc, char **argv)
         int data = TEST_VAL_42;
 
         /* Create a file with one var which is compact scalar. */
-        nc_set_log_level(3);
         if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
 
         /* Define a scalar. Scalars can also be compact. */
@@ -255,67 +254,66 @@ main(int argc, char **argv)
             if (nc_inq(ncid, &ndims, &nvars, NULL, NULL)) ERR;
             if (ndims != 0 || nvars != 1) ERR;
             if (nc_inq_var_chunking(ncid, 0, &storage_in, NULL)) ERR;
-            /* if (storage_in != NC_COMPACT) ERR; */
+            if (storage_in != NC_COMPACT) ERR;
             if (nc_close(ncid)) ERR;
         }
     }
     SUMMARIZE_ERR;
-    /* printf("**** testing compact storage..."); */
-    /* { */
-    /*     int ncid, dimid[NDIM2], varid, varid2, varid3; */
-    /*     int data[XDIM_LEN]; */
-    /*     int storage_in; */
-    /*     int x; */
+    printf("**** testing compact storage...");
+    {
+        int ncid, dimid[NDIM2], varid, varid2, varid3;
+        int data[XDIM_LEN];
+        int storage_in;
+        int x;
 
-    /*     /\* Create some data. *\/ */
-    /*     for (x = 0; x < XDIM_LEN; x++) */
-    /*         data[x] = x; */
+        /* Create some data. */
+        for (x = 0; x < XDIM_LEN; x++)
+            data[x] = x;
 
-    /*     /\* Create a file with one var with compact storage. *\/ */
-    /*     if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR; */
+        /* Create a file with one var with compact storage. */
+        if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
 
-    /*     /\* Define dims. *\/ */
-    /*     if (nc_def_dim(ncid, X_NAME, XDIM_LEN, &dimid[0])) ERR; */
-    /*     if (nc_def_dim(ncid, Z_NAME, ZDIM_LEN, &dimid[1])) ERR; */
+        /* Define dims. */
+        if (nc_def_dim(ncid, X_NAME, XDIM_LEN, &dimid[0])) ERR;
+        if (nc_def_dim(ncid, Z_NAME, ZDIM_LEN, &dimid[1])) ERR;
 
-    /*     /\* Define vars1 to be compact. *\/ */
-    /*     if (nc_def_var(ncid, Y_NAME, NC_INT, 1, dimid, &varid)) ERR; */
-    /*     if (nc_def_var_chunking(ncid, varid, NC_COMPACT, NULL)) ERR; */
-    /*     if (nc_inq_var_chunking(ncid, varid, &storage_in, NULL)) ERR; */
-    /*     if (storage_in != NC_COMPACT) ERR; */
+        /* Define vars1 to be compact. */
+        if (nc_def_var(ncid, Y_NAME, NC_INT, 1, dimid, &varid)) ERR;
+        if (nc_def_var_chunking(ncid, varid, NC_COMPACT, NULL)) ERR;
+        if (nc_inq_var_chunking(ncid, varid, &storage_in, NULL)) ERR;
+        if (storage_in != NC_COMPACT) ERR;
 
-    /*     /\* Define var2 - it's too big for compact. *\/ */
-    /*     if (nc_def_var(ncid, CLAIR, NC_INT, NDIM2, dimid, &varid2)) ERR; */
-    /*     /\* This won't work, the var is too big for compact! *\/ */
-    /*     if (nc_def_var_chunking(ncid, varid2, NC_COMPACT, NULL) != NC_EVARSIZE) ERR; */
+        /* Define var2 - it's too big for compact. */
+        if (nc_def_var(ncid, CLAIR, NC_INT, NDIM2, dimid, &varid2)) ERR;
+        /* This won't work, the var is too big for compact! */
+        if (nc_def_var_chunking(ncid, varid2, NC_COMPACT, NULL) != NC_EVARSIZE) ERR;
 
-    /*     /\* Define var3, a scalar. Scalars can also be compact. *\/ */
-    /*     if (nc_def_var(ncid, JAMIE, NC_INT, 0, NULL, &varid3)) ERR; */
-    /*     if (nc_def_var_chunking(ncid, varid3, NC_COMPACT, NULL)) ERR; */
+        /* Define var3, a scalar. Scalars can also be compact. */
+        if (nc_def_var(ncid, JAMIE, NC_INT, 0, NULL, &varid3)) ERR;
+        if (nc_def_var_chunking(ncid, varid3, NC_COMPACT, NULL)) ERR;
 
-    /*     /\* Write data. *\/ */
-    /*     if (nc_put_var_int(ncid, varid3, data)) ERR; */
+        /* Write data. */
+        if (nc_put_var_int(ncid, varid3, data)) ERR;
 
-    /*     /\* Close file. *\/ */
-    /*     if (nc_close(ncid)) ERR; */
+        /* Close file. */
+        if (nc_close(ncid)) ERR;
 
-    /*     /\* Open the file and check it. *\/ */
-    /*     { */
-    /*         int ndims, nvars; */
-    /*         int storage_in; */
-    /*         nc_set_log_level(3); */
-    /*         if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR; */
-    /*         if (nc_inq(ncid, &ndims, &nvars, NULL, NULL)) ERR; */
-    /*         if (ndims != 2 || nvars != 3) ERR; */
-    /*         if (nc_inq_var_chunking(ncid, varid, &storage_in, NULL)) ERR; */
-    /*         if (storage_in != NC_COMPACT) ERR; */
-    /*         if (nc_inq_var_chunking(ncid, varid2, &storage_in, NULL)) ERR; */
-    /*         if (storage_in != NC_CONTIGUOUS) ERR; */
-    /*         if (nc_inq_var_chunking(ncid, varid3, &storage_in, NULL)) ERR; */
-    /*         /\* if (storage_in != NC_COMPACT) ERR; *\/ */
-    /*         if (nc_close(ncid)) ERR; */
-    /*     } */
-    /* } */
-    /* SUMMARIZE_ERR; */
+        /* Open the file and check it. */
+        {
+            int ndims, nvars;
+            int storage_in;
+            if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+            if (nc_inq(ncid, &ndims, &nvars, NULL, NULL)) ERR;
+            if (ndims != 2 || nvars != 3) ERR;
+            if (nc_inq_var_chunking(ncid, varid, &storage_in, NULL)) ERR;
+            if (storage_in != NC_COMPACT) ERR;
+            if (nc_inq_var_chunking(ncid, varid2, &storage_in, NULL)) ERR;
+            if (storage_in != NC_CONTIGUOUS) ERR;
+            if (nc_inq_var_chunking(ncid, varid3, &storage_in, NULL)) ERR;
+            if (storage_in != NC_COMPACT) ERR;
+            if (nc_close(ncid)) ERR;
+        }
+    }
+    SUMMARIZE_ERR;
     FINAL_RESULTS;
 }

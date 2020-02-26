@@ -1004,23 +1004,6 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
             }
         }
 
-        /* Set the var storage to contiguous, compact, or chunked. */
-        if (var->contiguous)
-        {
-            if (H5Pset_layout(plistid, H5D_CONTIGUOUS) < 0)
-                BAIL(NC_EHDFERR);
-        }
-        else if (var->compact)
-        {
-            if (H5Pset_layout(plistid, H5D_COMPACT) < 0)
-                BAIL(NC_EHDFERR);
-        }
-        else
-        {
-            if (H5Pset_chunk(plistid, var->ndims, chunksize) < 0)
-                BAIL(NC_EHDFERR);
-        }
-
         /* Create the dataspace. */
         if ((spaceid = H5Screate_simple(var->ndims, dimsize, maxdimsize)) < 0)
             BAIL(NC_EHDFERR);
@@ -1028,6 +1011,25 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
     else
     {
         if ((spaceid = H5Screate(H5S_SCALAR)) < 0)
+            BAIL(NC_EHDFERR);
+    }
+
+    /* Set the var storage to contiguous, compact, or chunked. Don't
+     * try to set chunking for scalar vars, they will default to
+     * contiguous if not set to compact. */
+    if (var->contiguous)
+    {
+        if (H5Pset_layout(plistid, H5D_CONTIGUOUS) < 0)
+            BAIL(NC_EHDFERR);
+    }
+    else if (var->compact)
+    {
+        if (H5Pset_layout(plistid, H5D_COMPACT) < 0)
+            BAIL(NC_EHDFERR);
+    }
+    else if (var->ndims)
+    {
+        if (H5Pset_chunk(plistid, var->ndims, chunksize) < 0)
             BAIL(NC_EHDFERR);
     }
 
