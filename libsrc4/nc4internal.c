@@ -1689,7 +1689,9 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
                 strcat(dims_string, temp_string);
             }
         }
-        if (var->contiguous)
+        if (!var->meta_read)
+            strcat(storage_str, "unknown");
+        else if (var->contiguous)
             strcat(storage_str, "contiguous");
         else if (var->compact)
             strcat(storage_str, "compact");
