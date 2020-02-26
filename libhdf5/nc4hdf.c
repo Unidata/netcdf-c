@@ -959,21 +959,23 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
                 unlimdim++;
         }
 
-        /* If there are no unlimited dims, and no filters, and the user
-         * has not specified chunksizes, use contiguous variable for
-         * better performance. */
+        /* If there are no unlimited dims, and no filters, and the
+         * user has not specified chunksizes, use contiguous variable
+         * for better performance. */
         if (!var->shuffle && !var->deflate && !var->filterid && !var->fletcher32 &&
             (var->chunksizes == NULL || !var->chunksizes[0]) && !unlimdim)
             var->contiguous = NC_TRUE;
 
-        /* Gather current & maximum dimension sizes, along with chunk sizes */
+        /* Gather current & maximum dimension sizes, along with chunk
+         * sizes. */
         for (d = 0; d < var->ndims; d++)
         {
             dim = var->dim[d];
             assert(dim && dim->hdr.id == var->dimids[d]);
             dimsize[d] = dim->unlimited ? NC_HDF5_UNLIMITED_DIMSIZE : dim->len;
             maxdimsize[d] = dim->unlimited ? H5S_UNLIMITED : (hsize_t)dim->len;
-            if (!var->contiguous) {
+            if (!var->contiguous && !var->compact)
+            {
                 if (var->chunksizes[d])
                     chunksize[d] = var->chunksizes[d];
                 else
@@ -1002,23 +1004,6 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
             }
         }
 
-        /* Set the var storage to contiguous, compact, or chunked. */
-        if (var->contiguous)
-        {
-            if (H5Pset_layout(plistid, H5D_CONTIGUOUS) < 0)
-                BAIL(NC_EHDFERR);
-        }
-        else if (var->compact)
-        {
-            if (H5Pset_layout(plistid, H5D_COMPACT) < 0)
-                BAIL(NC_EHDFERR);
-        }
-        else
-        {
-            if (H5Pset_chunk(plistid, var->ndims, chunksize) < 0)
-                BAIL(NC_EHDFERR);
-        }
-
         /* Create the dataspace. */
         if ((spaceid = H5Screate_simple(var->ndims, dimsize, maxdimsize)) < 0)
             BAIL(NC_EHDFERR);
@@ -1029,13 +1014,32 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
             BAIL(NC_EHDFERR);
     }
 
+    /* Set the var storage to contiguous, compact, or chunked. Don't
+     * try to set chunking for scalar vars, they will default to
+     * contiguous if not set to compact. */
+    if (var->contiguous)
+    {
+        if (H5Pset_layout(plistid, H5D_CONTIGUOUS) < 0)
+            BAIL(NC_EHDFERR);
+    }
+    else if (var->compact)
+    {
+        if (H5Pset_layout(plistid, H5D_COMPACT) < 0)
+            BAIL(NC_EHDFERR);
+    }
+    else if (var->ndims)
+    {
+        if (H5Pset_chunk(plistid, var->ndims, chunksize) < 0)
+            BAIL(NC_EHDFERR);
+    }
+
     /* Turn on creation order tracking. */
     if (H5Pset_attr_creation_order(plistid, H5P_CRT_ORDER_TRACKED|
                                    H5P_CRT_ORDER_INDEXED) < 0)
         BAIL(NC_EHDFERR);
 
     /* Set per-var chunk cache, for chunked datasets. */
-    if (!var->contiguous && var->chunk_cache_size)
+    if (!var->contiguous && !var->compact && var->chunk_cache_size)
         if (H5Pset_chunk_cache(access_plistid, var->chunk_cache_nelems,
                                var->chunk_cache_size, var->chunk_cache_preemption) < 0)
             BAIL(NC_EHDFERR);

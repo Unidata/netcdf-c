@@ -1643,7 +1643,6 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
     NC_TYPE_INFO_T *type;
     NC_FIELD_INFO_T *field;
     char tabs[MAX_NESTS+1] = "";
-    char *dims_string = NULL;
     char temp_string[10];
     int t, retval, d, i;
 
@@ -1674,6 +1673,9 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
     for (i = 0; i < ncindexsize(grp->vars); i++)
     {
         int j;
+        char storage_str[NC_MAX_NAME] = "";
+        char *dims_string = NULL;
+
         var = (NC_VAR_INFO_T*)ncindexith(grp->vars,i);
         assert(var);
         if (var->ndims > 0)
@@ -1687,9 +1689,18 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
                 strcat(dims_string, temp_string);
             }
         }
-        LOG((2, "%s VARIABLE - varid: %d name: %s ndims: %d dimscale: %d dimids:%s",
-             tabs, var->hdr.id, var->hdr.name, var->ndims, (int)var->dimscale,
-             (dims_string ? dims_string : " -")));
+        if (!var->meta_read)
+            strcat(storage_str, "unknown");
+        else if (var->contiguous)
+            strcat(storage_str, "contiguous");
+        else if (var->compact)
+            strcat(storage_str, "compact");
+        else
+            strcat(storage_str, "chunked");
+        LOG((2, "%s VARIABLE - varid: %d name: %s ndims: %d dimscale: %d "
+             "dimids:%s storage: %s", tabs, var->hdr.id, var->hdr.name,
+             var->ndims, (int)var->dimscale,
+             (dims_string ? dims_string : " -"), storage_str));
         for (j = 0; j < ncindexsize(var->att); j++)
         {
             att = (NC_ATT_INFO_T *)ncindexith(var->att, j);

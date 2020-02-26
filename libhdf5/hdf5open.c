@@ -1058,7 +1058,7 @@ static int get_fill_info(hid_t propid, NC_VAR_INFO_T *var)
 }
 
 /**
- * @internal Learn the chunking settings of a var.
+ * @internal Learn the storage and (if chunked) chunksizes of a var.
  *
  * @param propid ID of HDF5 var creation properties list.
  * @param var Pointer to NC_VAR_INFO_T for this variable.
@@ -1068,7 +1068,8 @@ static int get_fill_info(hid_t propid, NC_VAR_INFO_T *var)
  * @return ::NC_EHDFERR HDF5 returned error.
  * @author Dennis Heimbigner, Ed Hartnett
  */
-static int get_chunking_info(hid_t propid, NC_VAR_INFO_T *var)
+static int
+get_chunking_info(hid_t propid, NC_VAR_INFO_T *var)
 {
     H5D_layout_t layout;
     hsize_t chunksize[H5S_MAX_RANK] = {0};
