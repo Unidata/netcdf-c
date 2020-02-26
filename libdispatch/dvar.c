@@ -474,7 +474,7 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
    The storage may be set to NC_CONTIGUOUS, NC_COMPACT, or NC_CHUNKED.
 
    Contiguous storage means the variable is stored as one block of
-   data in the file.
+   data in the file. This is the default storage.
 
    Compact storage means the variable is stored in the header record
    of the file. This can have large performance benefits on HPC system
@@ -496,8 +496,10 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
    before nc_enddef is called. Once the chunking parameters are set for a
    variable, they cannot be changed.
 
-   Note that this does not work for scalar variables. Only non-scalar
-   variables can have chunking.
+   Note scalar variables may have a storage of NC_CONTIGUOUS or
+   NC_COMPACT. Attempts to set chunking on a scalare variable will be
+   ignored by the library (but no error code is returned). Only
+   non-scalar variables can have chunking.
 
    @param ncid NetCDF ID, from a previous call to nc_open() or
    nc_create().

@@ -358,32 +358,33 @@ nc_inq_var_fletcher32(int ncid, int varid, int *fletcher32p)
       );
 }
 
-/** \ingroup variables
-
-This is a wrapper for nc_inq_var_all().
-
-\param ncid NetCDF or group ID, from a previous call to nc_open(),
-nc_create(), nc_def_grp(), or associated inquiry functions such as
-nc_inq_ncid().
-
-\param varid Variable ID
-
-\param storagep Address of returned storage property, returned as
-::NC_CONTIGUOUS if this variable uses contiguous storage, or
-::NC_CHUNKED if it uses chunked storage. \ref ignored_if_null.
-
-\param chunksizesp The chunksizes will be copied here. \ref
-ignored_if_null.
-
-\returns ::NC_NOERR No error.
-\returns ::NC_EBADID Bad ncid.
-\returns ::NC_ENOTNC4 Not a netCDF-4 file.
-\returns ::NC_ENOTVAR Invalid variable ID.
-
-
-\section nc_inq_var_chunking_example Example
-
-\code
+/**
+ * @ingroup variables
+ *
+ * Get the storage and (for chunked variables) the chunksizes of a
+ * variable. See nc_def_var_chunking() for explanation of storage.
+ *
+ * @param ncid NetCDF or group ID, from a previous call to nc_open(),
+ * nc_create(), nc_def_grp(), or associated inquiry functions such as
+ * nc_inq_ncid().
+ * @param varid Variable ID
+ * @param storagep Address of returned storage property, returned as
+ * ::NC_CONTIGUOUS if this variable uses contiguous storage,
+ * ::NC_CHUNKED if it uses chunked storage, or ::NC_COMPACT for
+ * compact storage. \ref ignored_if_null.
+ * @param chunksizesp The chunksizes will be copied here. \ref
+ * ignored_if_null.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @return ::NC_ENOTNC4 Not a netCDF-4 file.
+ * @return ::NC_ENOTVAR Invalid variable ID.
+ *
+ * @author Ed Hartnett
+ *
+ * @section nc_inq_var_chunking_example Example
+ *
+ * @code
         printf("**** testing contiguous storage...");
         {
      #define NDIMS6 1
@@ -415,8 +416,8 @@ ignored_if_null.
 
            if (nc_inq_var_chunking(ncid, 0, &storage_in, chunksize_in)) ERR;
            if (storage_in != NC_CONTIGUOUS) ERR;
-\endcode
-
+@endcode
+*
 */
 int
 nc_inq_var_chunking(int ncid, int varid, int *storagep, size_t *chunksizesp)
