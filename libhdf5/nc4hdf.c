@@ -971,7 +971,6 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
         if (!var->shuffle && !var->fletcher32 && nclistlength(var->filters) == 0 &&
             (var->chunksizes == NULL || !var->chunksizes[0]) && !unlimdim)
         {
-            var->contiguous = NC_TRUE;
             var->storage = NC_CONTIGUOUS;
         }
 

@@ -290,9 +290,9 @@ NOTE: The NC_MAX_DIMS, NC_MAX_ATTRS, and NC_MAX_VARS limits
 #define NC_ENDIAN_BIG    2
 /**@}*/
 
-/** In HDF5 files you can set storage for each variable to be either
- * contiguous or chunked, with nc_def_var_chunking().  This define is
- * used there. */
+/** In HDF5 files you can set storage for each variable to be
+ * contiguous, chunked, or compact with nc_def_var_chunking(). This
+ * define is used there. */
 /**@{*/
 #define NC_CHUNKED    0
 #define NC_CONTIGUOUS 1
