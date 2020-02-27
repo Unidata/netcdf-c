@@ -1102,11 +1102,18 @@ get_chunking_info(hid_t propid, NC_VAR_INFO_T *var)
             return NC_ENOMEM;
         for (d = 0; d < var->ndims; d++)
             var->chunksizes[d] = chunksize[d];
+        var->storage = NC_CHUNKED;
     }
     else if (layout == H5D_CONTIGUOUS)
+    {
         var->contiguous = NC_TRUE;
+        var->storage = NC_CONTIGUOUS;
+    }
     else if (layout == H5D_COMPACT)
+    {
         var->compact = NC_TRUE;
+        var->storage = NC_COMPACT;
+    }
 
     return NC_NOERR;
 }

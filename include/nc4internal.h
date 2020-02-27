@@ -23,7 +23,6 @@
 #include "ncindex.h"
 #include "nc_provenance.h"
 
-
 #include "netcdf_f.h"
 #include "netcdf_mem.h"
 #include "netcdf_filter.h"
@@ -210,6 +209,7 @@ typedef struct NC_VAR_INFO
     size_t *chunksizes;          /**< Array of chunksizes for the var, if chunked storage is used. */
     nc_bool_t contiguous;        /**< True if variable is stored contiguously in HDF5 file */
     nc_bool_t compact;           /**< True if variable is in comact storage in HDF5 file */
+    int storage;                 /**< HDF5 storage type: NC_CHUNKED, NC_CONTIGUOUS, or NC_COMPACT. */
     int parallel_access;         /**< Type of parallel access for I/O on variable (collective or independent) */
     nc_bool_t dimscale;          /**< True if var is a dimscale */
     nc_bool_t *dimscale_attached;  /**< Array of flags that are true if dimscale is attached for that dim index */
@@ -306,9 +306,9 @@ typedef struct  NC_FILE_INFO
 #endif
     int flags;      /**< Flags used to open the file. */
     int cmode;      /**< Create mode used to create the file. */
-    nc_bool_t parallel;   /**< True if file is open for parallel access */
-    nc_bool_t redef;      /**< True if redefining an existing file */
-    int fill_mode;        /**< Fill mode for vars - Unused internally currently */
+    nc_bool_t parallel;   /**< True if file is open for parallel access. */
+    nc_bool_t redef;      /**< True if redefining an existing file. */
+    int fill_mode;        /**< Fill mode for vars - Unused internally currently. */
     nc_bool_t no_write;   /**< true if nc_open has mode NC_NOWRITE. */
     NC_GRP_INFO_T *root_grp; /**< Pointer to root group. */
     short next_nc_grpid;  /**< Next available group ID. */

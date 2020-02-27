@@ -970,7 +970,10 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
          * better performance. */
         if (!var->shuffle && !var->fletcher32 && nclistlength(var->filters) == 0 &&
             (var->chunksizes == NULL || !var->chunksizes[0]) && !unlimdim)
+        {
             var->contiguous = NC_TRUE;
+            var->storage = NC_CONTIGUOUS;
+        }
 
         /* Gather current & maximum dimension sizes, along with chunk
          * sizes. */
@@ -1045,7 +1048,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
         BAIL(NC_EHDFERR);
 
     /* Set per-var chunk cache, for chunked datasets. */
-    if (!var->contiguous && !var->compact && var->chunk_cache_size)
+    if (var->storage == NC_CHUNKED && var->chunk_cache_size)
         if (H5Pset_chunk_cache(access_plistid, var->chunk_cache_nelems,
                                var->chunk_cache_size, var->chunk_cache_preemption) < 0)
             BAIL(NC_EHDFERR);
