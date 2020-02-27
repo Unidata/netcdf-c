@@ -1376,6 +1376,7 @@ NCP_inq_user_type(int ncid, nc_type typeid, char *name, size_t *size,
 static const NC_Dispatch NCP_dispatcher = {
 
 NC_FORMATX_PNETCDF,
+NC_DISPATCH_VERSION,
 
 NCP_create,
 NCP_open,

@@ -611,7 +611,7 @@ exit:
  * @param deflate Pointer to deflate setting.
  * @param deflate_level Pointer to deflate level.
  * @param fletcher32 Pointer to fletcher32 setting.
- * @param contiguous Pointer to contiguous setting.
+ * @param storage Pointer to storage setting.
  * @param chunksizes Array of chunksizes.
  * @param no_fill Pointer to no_fill setting.
  * @param fill_value Pointer to fill value.
@@ -633,7 +633,7 @@ exit:
  */
 static int
 nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
-                 int *unused2, int *fletcher32, int *contiguous,
+                 int *unused2, int *fletcher32, int *storage,
                  const size_t *chunksizes, int *no_fill,
                  const void *fill_value, int *endianness)
 {
@@ -731,12 +731,12 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 #endif /* USE_PARALLEL */
 
     /* Handle storage settings. */
-    if (contiguous)
+    if (storage)
     {
         /* Does the user want a contiguous or compact dataset? Not so
          * fast! Make sure that there are no unlimited dimensions, and
          * no filters in use for this data. */
-        if (*contiguous)
+        if (*storage)
         {
             if (nclistlength(var->filters) > 0 || var->fletcher32 || var->shuffle)
                 return NC_EINVAL;
@@ -747,7 +747,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
         }
 
         /* Handle chunked storage settings. */
-        if (*contiguous == NC_CHUNKED)
+        if (*storage == NC_CHUNKED)
         {
             var->contiguous = NC_FALSE;
 
@@ -770,11 +770,11 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
                     var->chunksizes[d] = chunksizes[d];
             }
         }
-        else if (*contiguous == NC_CONTIGUOUS)
+        else if (*storage == NC_CONTIGUOUS)
         {
             var->contiguous = NC_TRUE;
         }
-        else if (*contiguous == NC_COMPACT)
+        else if (*storage == NC_COMPACT)
         {
             size_t ndata = 1;
 
@@ -794,7 +794,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 
     /* Is this a variable with a chunksize greater than the current
      * cache size? */
-    if (!var->contiguous && (contiguous))
+    if (!var->contiguous && !var->compact)
     {
         /* Determine default chunksizes for this variable (do nothing
          * for scalar vars). */
@@ -948,7 +948,7 @@ NC4_def_var_fletcher32(int ncid, int varid, int fletcher32)
  *
  * @param ncid File ID.
  * @param varid Variable ID.
- * @param contiguous Pointer to contiguous setting.
+ * @param storage Pointer to storage setting.
  * @param chunksizesp Array of chunksizes.
  *
  * @returns ::NC_NOERR No error.
@@ -963,10 +963,10 @@ NC4_def_var_fletcher32(int ncid, int varid, int fletcher32)
  * @author Ed Hartnett, Dennis Heimbigner
  */
 int
-NC4_def_var_chunking(int ncid, int varid, int contiguous, const size_t *chunksizesp)
+NC4_def_var_chunking(int ncid, int varid, int storage, const size_t *chunksizesp)
 {
     return nc_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL,
-                            &contiguous, chunksizesp, NULL, NULL, NULL);
+                            &storage, chunksizesp, NULL, NULL, NULL);
 }
 
 /**
@@ -975,7 +975,7 @@ NC4_def_var_chunking(int ncid, int varid, int contiguous, const size_t *chunksiz
  *
  * @param ncid File ID.
  * @param varid Variable ID.
- * @param contiguous Pointer to contiguous setting.
+ * @param storage Pointer to storage setting.
  * @param chunksizesp Array of chunksizes.
  *
  * @returns ::NC_NOERR No error.
@@ -990,7 +990,7 @@ NC4_def_var_chunking(int ncid, int varid, int contiguous, const size_t *chunksiz
  * @author Ed Hartnett
  */
 int
-nc_def_var_chunking_ints(int ncid, int varid, int contiguous, int *chunksizesp)
+nc_def_var_chunking_ints(int ncid, int varid, int storage, int *chunksizesp)
 {
     NC_VAR_INFO_T *var = NULL;
     size_t *cs = NULL;
@@ -1011,7 +1011,7 @@ nc_def_var_chunking_ints(int ncid, int varid, int contiguous, int *chunksizesp)
         cs[i] = chunksizesp[i];
 
     retval = nc_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL,
-                              &contiguous, cs, NULL, NULL, NULL);
+                              &storage, cs, NULL, NULL, NULL);
 
     if (var->ndims)
         free(cs);
@@ -2180,7 +2180,7 @@ exit:
  * @param deflatep Gets deflate setting.
  * @param deflate_levelp Gets deflate level.
  * @param fletcher32p Gets fletcher32 setting.
- * @param contiguousp Gets contiguous setting.
+ * @param storagep Gets storage setting.
  * @param chunksizesp Gets chunksizes.
  * @param no_fill Gets fill mode.
  * @param fill_valuep Gets fill value.
@@ -2202,7 +2202,7 @@ int
 NC4_HDF5_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
                      int *ndimsp, int *dimidsp, int *nattsp,
                      int *shufflep, int *unused4, int *unused5,
-                     int *fletcher32p, int *contiguousp, size_t *chunksizesp,
+                     int *fletcher32p, int *storagep, size_t *chunksizesp,
                      int *no_fill, void *fill_valuep, int *endiannessp,
                      unsigned int *unused1, size_t *unused2, unsigned int *unused3)
 {
@@ -2224,7 +2224,7 @@ NC4_HDF5_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
      * get the answers. */
     return NC4_inq_var_all(ncid, varid, name, xtypep, ndimsp, dimidsp, nattsp,
                            shufflep, unused4, unused5, fletcher32p,
-                           contiguousp, chunksizesp, no_fill, fill_valuep,
+                           storagep, chunksizesp, no_fill, fill_valuep,
                            endiannessp, unused1, unused2, unused3);
 }
 

@@ -23,6 +23,10 @@
 #ifndef NETCDF_DISPATCH_H
 #define NETCDF_DISPATCH_H
 
+/* This is the version of the dispatch table. It should be changed
+ * when new functions are added to the dispatch table. */
+#define NC_DISPATCH_VERSION 2
+
 /* Forward */
 struct NC_Filterobject;
 
@@ -31,6 +35,7 @@ struct NC_Filterobject;
 struct NC_Dispatch
 {
     int model; /* one of the NC_FORMATX #'s */
+    int dispatch_version;
 
     int (*create)(const char *path, int cmode, size_t initialsz,
                   int basepe, size_t *chunksizehintp, void *parameters,

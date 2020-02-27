@@ -1,12 +1,13 @@
 #!/bin/sh
 
 # This .in file is processed at build time into a shell that runs some
-# parallel I/O tests for HDF5 parallel I/O.
+# parallel I/O tests for netCDF/HDF5 parallel I/O.
 
 # Ed Hartnett, Dennis Heimbigner, Ward Fisher
 
-set -x
-set -e
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
+. ../test_common.sh
+
 echo
 echo "Testing MPI parallel I/O with various other mode flags..."
 @MPIEXEC@ -n 1 ./tst_mode
@@ -26,6 +27,7 @@ echo "num_proc   time(s)  write_rate(B/s)"
 @MPIEXEC@ -n 4 ./tst_parallel4
 @MPIEXEC@ -n 8 ./tst_parallel4
 
+# These work but are commented out to speed up the testing.
 #@MPIEXEC@ -n 16 ./tst_parallel4
 #@MPIEXEC@ -n 32 ./tst_parallel4
 #@MPIEXEC@ -n 64 ./tst_parallel4
