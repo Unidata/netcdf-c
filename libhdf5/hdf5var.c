@@ -2202,7 +2202,6 @@ int
 NC4_HDF5_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
                      int *ndimsp, int *dimidsp, int *nattsp,
                      int *shufflep, int *unused4, int *unused5,
-                     int *shufflep, int *deflatep, int *deflate_levelp,
                      int *fletcher32p, int *storagep, size_t *chunksizesp,
                      int *no_fill, void *fill_valuep, int *endiannessp,
                      unsigned int *unused1, size_t *unused2, unsigned int *unused3)
