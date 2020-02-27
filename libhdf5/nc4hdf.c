@@ -1027,12 +1027,12 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
     /* Set the var storage to contiguous, compact, or chunked. Don't
      * try to set chunking for scalar vars, they will default to
      * contiguous if not set to compact. */
-    if (var->contiguous)
+    if (var->storage == NC_CONTIGUOUS)
     {
         if (H5Pset_layout(plistid, H5D_CONTIGUOUS) < 0)
             BAIL(NC_EHDFERR);
     }
-    else if (var->compact)
+    else if (var->storage == NC_COMPACT)
     {
         if (H5Pset_layout(plistid, H5D_COMPACT) < 0)
             BAIL(NC_EHDFERR);
@@ -1135,7 +1135,7 @@ nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
     int retval;
 
     /* Nothing to be done for contiguous or compact data. */
-    if (var->contiguous || var->compact)
+    if (var->storage != NC_CHUNKED)
         return NC_NOERR;
 
 #ifdef USE_PARALLEL4
