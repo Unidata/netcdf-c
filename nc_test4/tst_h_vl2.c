@@ -19,7 +19,11 @@ main()
    {
       hid_t fileid, grpid, fapl_id, hdf_typeid = 0, base_hdf_typeid = 0, attid = 0;
       hid_t file_typeid, spaceid, native_typeid;
+#if H5_VERSION_GE(1,12,0)
+      H5O_info2_t obj_info;
+#else
       H5O_info_t obj_info;
+#endif
       char obj_name[NC_MAX_NAME + 1];
       hsize_t num_obj, i;
       int obj_class;
@@ -41,8 +45,13 @@ main()
       if (H5Gget_num_objs(grpid, &num_obj) < 0) ERR;
       for (i = 0; i < num_obj; i++)
       {
+#if H5_VERSION_GE(1,12,0)
+	 if (H5Oget_info_by_idx3(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, 
+                                 i, &obj_info, H5O_INFO_BASIC, H5P_DEFAULT) < 0) ERR_RET;
+#else
 	 if (H5Oget_info_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, 
 				i, &obj_info, H5P_DEFAULT) < 0) ERR_RET;
+#endif
 	 obj_class = obj_info.type;
 	 if ((size = H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i,
 					NULL, 0, H5P_DEFAULT)) < 0) ERR_RET;
