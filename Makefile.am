@@ -49,10 +49,13 @@ LIBSRC4_DIR = libsrc4
 endif
 
 # Is the user building with HDF5?
+# Note that USE_HDF5 does not imply USE_NETCDF4
 if USE_HDF5
 H5_TEST_DIR = h5_test
 LIBHDF5 = libhdf5
+if USE_NETCDF4
 NC_TEST4 = nc_test4
+endif
 endif
 
 # Build the dap2 client

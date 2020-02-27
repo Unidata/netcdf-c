@@ -175,6 +175,8 @@ NCD2_def_var_filter,
 NCD2_set_var_chunk_cache,
 NCD2_get_var_chunk_cache,
 
+NC_NOTNC4_filter_actions,
+
 };
 
 const NC_Dispatch* NCD2_dispatch_table = NULL; /* moved here from ddispatch.c */

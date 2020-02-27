@@ -2,43 +2,9 @@
   Copyright 2018, UCAR/Unidata
   See COPYRIGHT file for copying and redistribution conditions.
 */
-/*
-This file is the same as nc_test4/test_filter.c 
-*/
 
 /*! \file
-Example program for write then read of a variable using bzip2 compression.
-
-\ingroup tutorial
-
-This is an example which 
-creates a file with a variable that is compressed using bzip2.
-Then it reads that file and verifies that it returned the correct
-uncompressed data.
-
-The meta-data (.cdl) for the created file is as follows:
-\code
-netcdf bzip2 {
-dimensions:
-	dim0 = 4 ;
-	dim1 = 4 ;
-	dim2 = 4 ;
-	dim3 = 4 ;
-variables:
-	float var(dim0, dim1, dim2, dim3) ;
-		var:_Storage = "chunked" ;
-		var:_ChunkSizes = 4, 4, 4, 4 ;
-		var:_Filter = "307,9" ;
-		var:_NoFill = "true" ;
-data:
-
- var =
-  0, 1, 2, 3,
-  4, 5, 6, 7,
-  ...
-  252, 253, 254, 255 ;
-}
-\endcode
+Test support for multiple filters per variable
 */
 
 #include "config.h"
@@ -55,7 +21,13 @@ data:
 /* The compression level used in this example */
 #define BZIP2_LEVEL 9
 
-#define TESTFILE "bzip2.nc"
+#define DEFLATE_LEVEL 2
+
+#define NOOP_ID 40000
+
+#define NFILTERS 3
+
+#define TESTFILE "multifilter.nc"
 
 /* Point at which we give up */
 #define MAXERRS 8
@@ -80,12 +52,10 @@ static int ncid, varid;
 static int dimids[NDIMS];
 static float* array = NULL;
 static float* expected = NULL;
-static unsigned int filterid = 0;
-static unsigned int* params = NULL;
 
 /* Forward */
 static void init(int argc, char** argv);
-static int test_bzip2(void);
+static int test_multi(void);
 static int verifychunks(void);
 
 #define ERRR do { \
@@ -145,7 +115,7 @@ compare(void)
 {
     int errs = 0;
     int i;
-    printf("data comparison: |array|=%ld\n",(unsigned long)actualproduct);
+    printf("data comparison: |array|=%lu\n",(unsigned long)actualproduct);
     for(i=0;i<actualproduct;i++) {
 	if(expected[i] != array[i]) {
 	    printf("mismatch: array[%d]=%f expected[%d]=%f\n",
@@ -162,18 +132,68 @@ compare(void)
    return (errs == 0 ? NC_NOERR: NC_EINVAL);
 }
 
+int
+verifyfilters(int ncid, int varid)
+{
+    size_t nfilters, nparams;
+    unsigned int filterids[NFILTERS];
+    unsigned int params[2];
+    
+    /* Read back the compression info and verify it */
+    CHECK(nc_inq_var_filterids(ncid,varid,&nfilters,filterids));
+    if(nfilters != NFILTERS) {
+	fprintf(stderr,"Fail: nfilters mismatch: expected=%d actual=%u\n",NFILTERS,(unsigned)nfilters);
+        return NC_EINVAL;
+    }    
+    if(filterids[0] != BZIP2_ID
+       || filterids[1] != H5Z_FILTER_DEFLATE
+       || filterids[2] != NOOP_ID
+       ) {
+	fprintf(stderr,"Fail: filter id mismatch: actual/expected={%u/%u,%u/%u,%u/%u}\n",
+	        filterids[0],BZIP2_ID,
+		filterids[1],H5Z_FILTER_DEFLATE,
+		filterids[2],NOOP_ID);
+        return NC_EINVAL;
+    }    
+    /* Get level for each filter */
+    CHECK(nc_inq_var_filter_info(ncid,varid,BZIP2_ID,&nparams,params));
+    if(nparams != 1) {
+	fprintf(stderr,"Fail: nparams mismatch: id=%u expected=1 actual=%u\n",filterids[0],(unsigned)nparams);
+        return NC_EINVAL;
+    }    
+    if(params[0] != BZIP2_LEVEL) {
+	fprintf(stderr,"Fail: parameter mismatch: expected=%u actual=%u\n",BZIP2_LEVEL,params[0]);
+        return NC_EINVAL;
+    }    
+    CHECK(nc_inq_var_filter_info(ncid,varid,H5Z_FILTER_DEFLATE,&nparams,params));
+    if(nparams != 1) {
+	fprintf(stderr,"Fail: nparams mismatch: id=%u expected=1 actual=%u\n",filterids[1],(unsigned)nparams);
+        return NC_EINVAL;
+    }    
+    if(params[0] != DEFLATE_LEVEL) {
+	fprintf(stderr,"Fail: parameter mismatch: expected=%u actual=%u\n",BZIP2_LEVEL,params[0]);
+        return NC_EINVAL;
+    }    
+    CHECK(nc_inq_var_filter_info(ncid,varid,NOOP_ID,&nparams,params));
+    if(nparams != 0) {
+	fprintf(stderr,"Fail: parameter mismatch: id=%u nparams: expected=0 actual=%u\n",NOOP_ID,(unsigned)nparams);
+        return NC_EINVAL;
+    }    
+    return NC_NOERR;
+}
+
 /*
 Create the file, write it, then re-read for comparison.
 */
 static int
-test_bzip2(void)
+test_multi(void)
 {
     int i;
-    unsigned int level = BZIP2_LEVEL;
-    size_t nparams = 0;
+    unsigned int params[2];
 
-    printf("\n*** Testing API: bzip2 compression.\n");
-
+    printf("\n*** Testing Multi-filter application: filter set = bzip2 deflate noop");
+    printf("\n");
+    
     /* Clear the data array */
     memset(array,0,sizeof(float)*actualproduct);
 
@@ -199,22 +219,26 @@ test_bzip2(void)
     /* Verify that chunking succeeded */
     if(!verifychunks())
 	return NC_EINVAL;
+
     /* Set bzip2 compression for the variable: takes one parameter == level */
-    CHECK(nc_def_var_filter(ncid,varid,BZIP2_ID,1,&level));
+    params[0] = BZIP2_LEVEL;
+    CHECK(nc_def_var_filter(ncid,varid,BZIP2_ID,1,params));
+
+    /* Set deflate (zip) compression for the variable: takes one parameter == level */
+    params[0] = DEFLATE_LEVEL;
+    CHECK(nc_def_var_filter(ncid,varid,H5Z_FILTER_DEFLATE,1,params));
+
+    /* Set noop) compression for the variable */
+    CHECK(nc_def_var_filter(ncid,varid,NOOP_ID,0,NULL));
 
     /* Read back the compression info and verify it */
-    level = 0;
-    CHECK(nc_inq_var_filter_info(ncid,varid,BZIP2_ID,&nparams,&level));
-    if(nparams != 1 || level != BZIP2_LEVEL) {
-        printf("test_filter: filter def/inq mismatch\n");
-	return NC_EFILTER;
-    }
-    /* Show the level */
-    printf("show parameters for bzip2: level=%u\n",level);
+    CHECK(verifyfilters(ncid,varid));
+    printf("filters verified\n");
+    
     /* Show chunking */ 
     printf("show chunks:");
     for(i=0;i<actualdims;i++)
-	printf("%s%ld",(i==0?" chunks=":","),(unsigned long)chunks[i]);
+	printf("%s%u",(i==0?" chunks=":","),(unsigned)chunks[i]);
     printf("\n");
 
     /* prepare to write */
@@ -231,7 +255,7 @@ test_bzip2(void)
     CHECK(nc_close(ncid));
 
     /* Now re-open and verify */
-    printf("\n*** Testing API: bzip2 decompression.\n");
+    printf("\n*** Testing Multi-filters.\n");
 
     /* Clear the data array */
     memset(array,0,sizeof(float)*actualproduct);
@@ -242,25 +266,8 @@ test_bzip2(void)
     /* Get the variable id */
     CHECK(nc_inq_varid(ncid, "var", &varid));
 
-    /* Check the compression algorithm */
-    filterid = 0;
-    nparams = 0;
-    params = NULL;
-    CHECK(nc_inq_var_filter(ncid,varid,&filterid,&nparams,NULL));
-    if(nparams > 0) {
-        params = (unsigned int*)malloc(sizeof(unsigned int)*nparams);
-	if(params == NULL)
-	    return NC_ENOMEM;
-        CHECK(nc_inq_var_filter(ncid,varid,&filterid,&nparams,params));
-    }
-    if(filterid != BZIP2_ID) {
-         printf("Bzip2 id mismatch: %d\n",filterid);
-	return NC_EFILTER;
-    }
-    if(nparams != 1 && params != NULL && params[0] != BZIP2_LEVEL) {
-	printf("Compression parameter mismatch\n");
-	return NC_EFILTER; 
-    }
+    CHECK(verifyfilters(ncid,varid));
+    printf("filters verified\n");
 
     /* Verify chunking */
     if(!verifychunks())
@@ -303,7 +310,7 @@ main(int argc, char **argv)
 {
     H5Eprint(stderr);
     init(argc,argv);
-    if(test_bzip2() != NC_NOERR) ERRR;
+    if(test_multi() != NC_NOERR) ERRR;
     exit(nerrs > 0?1:0);
 }
 

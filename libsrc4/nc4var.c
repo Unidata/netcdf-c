@@ -209,21 +209,32 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
     }
 
     /* Filter stuff. */
-    if (deflatep)
-        *deflatep = (int)var->deflate;
-    if (deflate_levelp)
-        *deflate_levelp = var->deflate_level;
     if (shufflep)
         *shufflep = (int)var->shuffle;
     if (fletcher32p)
         *fletcher32p = (int)var->fletcher32;
 
-    if (idp)
-        *idp = var->filterid;
-    if (nparamsp)
-        *nparamsp = (var->params == NULL ? 0 : var->nparams);
-    if (params && var->params != NULL)
-        memcpy(params,var->params,var->nparams*sizeof(unsigned int));
+    if (deflatep)
+	return NC_EFILTER;
+
+    if (idp) {
+#if 0
+        NC* nc = h5->controller;
+	NC_FILTER_ACTION action;
+	action.action = NCFILTER_INQ_FILTER;
+	action.format = NC_FORMATX_NC_HDF5;
+	action.id =  (idp)?*idp:0;
+	action.nelems = (nparamsp)?*nparamsp:0;
+	action.elems = params;
+	if((retval = nc->dispatch->filter_actions(ncid,varid,&action)) == NC_NOERR) {
+	    if(idp) *idp = action.id;
+	    if(nparamsp) *nparamsp = action.nelems;
+	}
+	return retval;
+#else
+	return NC_EFILTER;
+#endif
+    }
 
     /* Fill value stuff. */
     if (no_fill)
