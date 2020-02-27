@@ -804,7 +804,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 
     /* Is this a variable with a chunksize greater than the current
      * cache size? */
-    if (!var->contiguous && !var->compact)
+    if (var->storage == NC_CHUNKED)
     {
         /* Determine default chunksizes for this variable (do nothing
          * for scalar vars). */
