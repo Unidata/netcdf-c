@@ -247,7 +247,9 @@ main(int argc, char **argv)
     if (!nerrs)
        printf("SUCCESS!!\n");
 
-    if(pfs->params) free(pfs->params);
+    if(pfs && pfs->params) free(pfs->params);
+    if(pfs) free(pfs);
+    
     return (nerrs > 0 ? 1 : 0);
 }
 
