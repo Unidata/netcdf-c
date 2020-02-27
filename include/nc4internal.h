@@ -77,7 +77,7 @@ typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP} NC_SORT;
 #define X_INT64_MAX     9223372036854775807LL /**< Maximum int64 value. */
 #define X_UINT64_MAX    18446744073709551615ULL /**< Maximum unsigned int64 value. */
 #ifdef _WIN32 /* Windows, of course, has to be a *little* different. */
-#define X_FLOAT_MAX     3.402823466e+38f
+#define X_FLOAT_MAX     3.402823466e+38f /**< Maximum float value. */
 #else
 #define X_FLOAT_MAX     3.40282347e+38f /**< Maximum float value. */
 #endif /* _WIN32 */
@@ -193,21 +193,21 @@ typedef struct NC_VAR_INFO
     size_t ndims;           /**< Number of dims. */
     int *dimids;            /**< Dim IDs. */
     NC_DIM_INFO_T **dim;    /**< Pointer to dim. */
-    nc_bool_t is_new_var;        /**< True if variable is newly created */
-    nc_bool_t was_coord_var;     /**< True if variable was a coordinate var, but either the dim or var has been renamed */
-    nc_bool_t became_coord_var;  /**< True if variable _became_ a coordinate var, because either the dim or var has been renamed */
-    nc_bool_t fill_val_changed;  /**< True if variable's fill value changes after it has been created */
-    nc_bool_t attr_dirty;        /**< True if variable's attributes are dirty and should be rewritten */
-    nc_bool_t created;           /**< Variable has already been created (_not_ that it was just created) */
-    nc_bool_t written_to;        /**< True if variable has data written to it */
-    struct NC_TYPE_INFO *type_info;
+    nc_bool_t is_new_var;        /**< True if variable is newly created. */
+    nc_bool_t was_coord_var;     /**< True if variable was a coordinate var, but either the dim or var has been renamed. */
+    nc_bool_t became_coord_var;  /**< True if variable _became_ a coordinate var, because either the dim or var has been renamed. */
+    nc_bool_t fill_val_changed;  /**< True if variable's fill value changes after it has been created. */
+    nc_bool_t attr_dirty;        /**< True if variable's attributes are dirty and should be rewritten. */
+    nc_bool_t created;           /**< Variable has already been created (_not_ that it was just created). */
+    nc_bool_t written_to;        /**< True if variable has data written to it. */
+    struct NC_TYPE_INFO *type_info; /**< This struct holds all type information. */
     int atts_read;               /**< If true, the atts have been read. */
     nc_bool_t meta_read;         /**< True if this vars metadata has been completely read. */
     nc_bool_t coords_read;       /**< True if this var has hidden coordinates att, and it has been read. */
-    NCindex *att;                /**< NCindex<NC_ATT_INFO_T*> */
-    nc_bool_t no_fill;           /**< True if no fill value is defined for var */
-    void *fill_value;
-    size_t *chunksizes;
+    NCindex *att;                /**< Hashed list of all attributes. */
+    nc_bool_t no_fill;           /**< True if no fill value is defined for var. */
+    void *fill_value;            /**< Pointer to the fill value, or NULL. */
+    size_t *chunksizes;          /**< Array of chunksizes for the var, if chunked storage is used. */
     nc_bool_t contiguous;        /**< True if variable is stored contiguously in HDF5 file */
     nc_bool_t compact;           /**< True if variable is in comact storage in HDF5 file */
     int parallel_access;         /**< Type of parallel access for I/O on variable (collective or independent) */
@@ -215,10 +215,11 @@ typedef struct NC_VAR_INFO
     nc_bool_t *dimscale_attached;  /**< Array of flags that are true if dimscale is attached for that dim index */
     nc_bool_t shuffle;           /**< True if var has shuffle filter applied */
     nc_bool_t fletcher32;        /**< True if var has fletcher32 filter applied */
-    size_t chunk_cache_size, chunk_cache_nelems;
-    float chunk_cache_preemption;
+    size_t chunk_cache_size;     /**< Size, in bytes, of the chunk cache for this var. */
+    size_t chunk_cache_nelems;   /**< Number of slots in the chunk cache for this var. */
+    float chunk_cache_preemption; /**< Chunk cache preemption setting for this var. */
     void *format_var_info;       /**< Pointer to any binary format info. */
-    NClist* filters;             /**< List<NC_FILTER_SPEC> */
+    NClist* filters;             /**< Hashed list of all filters for this var. */
 } NC_VAR_INFO_T;
 
 /** This is a struct to handle the field metadata from a user-defined
