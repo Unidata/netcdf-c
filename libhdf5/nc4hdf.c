@@ -983,8 +983,9 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
             assert(dim && dim->hdr.id == var->dimids[d]);
             dimsize[d] = dim->unlimited ? NC_HDF5_UNLIMITED_DIMSIZE : dim->len;
             maxdimsize[d] = dim->unlimited ? H5S_UNLIMITED : (hsize_t)dim->len;
-            if (!var->contiguous && !var->compact)
+            if (var->storage != NC_CONTIGUOUS && var->storage != NC_COMPACT)
             {
+                var->storage = NC_CHUNKED;
                 if (var->chunksizes[d])
                     chunksize[d] = var->chunksizes[d];
                 else
