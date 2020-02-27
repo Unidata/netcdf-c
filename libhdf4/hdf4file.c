@@ -435,7 +435,10 @@ nc4_var_list_add_full(NC_GRP_INFO_T* grp, const char* name, int ndims, nc_type x
     }
 
     /* Var contiguous or chunked? */
-    (*var)->contiguous = contiguous;
+    if (contiguous)
+        (*var)->storage = NC_CONTIGUOUS;
+    else
+        (*var)->storage = NC_CHUNKED;
 
     /* Were chunksizes provided? */
     if (chunksizes)
