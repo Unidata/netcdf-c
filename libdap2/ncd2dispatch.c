@@ -91,6 +91,7 @@ static int NCD2_get_vars(int ncid, int varid,
 static const NC_Dispatch NCD2_dispatch_base = {
 
 NC_FORMATX_DAP2,
+NC_DISPATCH_VERSION,
 
 NCD2_create,
 NCD2_open,

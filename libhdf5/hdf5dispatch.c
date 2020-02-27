@@ -18,6 +18,7 @@
 static const NC_Dispatch HDF5_dispatcher = {
 
     NC_FORMATX_NC4,
+    NC_DISPATCH_VERSION,
 
     NC4_create,
     NC4_open,
