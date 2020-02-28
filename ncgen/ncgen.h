@@ -6,7 +6,7 @@
  *   $Header: /upc/share/CVS/netcdf-3/ncgen/ncgen.h,v 1.18 2010/06/01 15:34:53 ed Exp $
 *********************************************************************/
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 #include <float.h>
 #include "../ncdump/isnan.h"
 #define strcasecmp _stricmp
@@ -117,11 +117,6 @@ int k_flag;
 
 extern struct Kvalues legalkinds[];
 
-struct FilterID {
-char* name;
-unsigned int id;
-};
-
 #define ZIP_ID  0xFFFFFFFF
 #define SZIP_ID  0xFFFFFFFE
 #define BZIP2_ID 307U
@@ -140,9 +135,8 @@ typedef struct Specialdata {
     int           _Shuffle;      /* 0 => false, 1 => true*/
     int           _Endianness;   /* 1 =>little, 2 => big*/
     int           _Fill ;        /* 0 => false, 1 => true WATCHOUT: this is inverse of NOFILL*/
-    unsigned int  _FilterID;
-    size_t nparams;          /*  |_FilterParms| ; 0 => not specified*/
-        unsigned int* _FilterParams; /* NULL => defaults*/
+    NC4_Filterspec** _Filters;
+        size_t	  nfilters; /* |filters| */
 } Specialdata;
 
 typedef struct GlobalSpecialdata {

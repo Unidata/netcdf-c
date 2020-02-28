@@ -475,7 +475,13 @@ by the desired type. */
 #define NC_ERCFILE       (-133)    /**< RC file failure */
 #define NC_ENULLPAD      (-134)    /**< Header Bytes not Null-Byte padded */
 #define NC_EINMEMORY     (-135)    /**< In-memory file error */
-#define NC4_LAST_ERROR   (-136)    /**< @internal All netCDF errors > this. */
+#define NC_ENOFILTER     (-136)    /**< Filter not defined on variable. */
+
+#define NC4_LAST_ERROR   (-137)    /**< @internal All netCDF errors > this. */
+
+/* Errors for all remote access methods(e.g. DAP and CDMREMOTE)*/
+#define NC_EURL         (NC_EDAPURL)   /**< Malformed URL */
+#define NC_ECONSTRAINT  (NC_EDAPCONSTRAINT)   /**< Malformed Constraint*/
 
 /** @internal This is used in netCDF-4 files for dimensions without
  * coordinate vars. */
@@ -485,10 +491,6 @@ by the desired type. */
  * our mistake of having chunksizes be first ints, then
  * size_t. Doh! */
 #define NC_HAVE_NEW_CHUNKING_API 1
-
-/* Errors for all remote access methods(e.g. DAP and CDMREMOTE)*/
-#define NC_EURL         (NC_EDAPURL)   /**< Malformed URL */
-#define NC_ECONSTRAINT  (NC_EDAPCONSTRAINT)   /**< Malformed Constraint*/
 
 /*
  * The Interface
@@ -900,7 +902,7 @@ nc_inq_var_endian(int ncid, int varid, int *endianp);
 EXTERNL int
 nc_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams, const unsigned int* parms);
 
-/* Learn about the filter on a variable */
+/* Learn about the first filter on a variable */
 EXTERNL int
 nc_inq_var_filter(int ncid, int varid, unsigned int* idp, size_t* nparams, unsigned int* params);
 

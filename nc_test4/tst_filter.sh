@@ -10,6 +10,8 @@ NCP=1
 UNK=1
 NGC=1
 MISC=1
+MULTI=1
+ORDER=1
 
 # Load the findplugins function
 . ${builddir}/findplugin.sh
@@ -19,10 +21,10 @@ echo "findplugin.sh loaded"
 # These attributes might be platform dependent
 sclean() {
     cat $1 \
+ 	| sed -e '/:_IsNetcdf4/d' \
 	| sed -e '/:_Endianness/d' \
 	| sed -e '/_NCProperties/d' \
 	| sed -e '/_SuperblockVersion/d' \
-	| sed -e '/_IsNetcdf4/d' \
 	| cat > $2
 }
 
@@ -50,6 +52,14 @@ export HDF5_PLUGIN_PATH
 # Verify
 if ! test -f ${BZIP2PATH} ; then echo "Unable to locate ${BZIP2PATH}"; exit 1; fi
 if ! test -f ${MISCPATH} ; then echo "Unable to locate ${MISCPATH}"; exit 1; fi
+
+# See if we have szip
+HAVE_SZIP=0
+if test -f ${TOPBUILDDIR}/libnetcdf.settings ; then
+    if grep "SZIP Support:[ 	]*yes" <${TOPBUILDDIR}/libnetcdf.settings ; then
+       HAVE_SZIP=1
+    fi
+fi
 
 # Execute the specified tests
 
@@ -117,8 +127,8 @@ sclean ./tst_filtervv.txt ./filteredvv.dump
 diff -b -w ${srcdir}/ref_filteredvv.cdl ./filteredvv.dump
 echo "	*** Pass: nccopy '*' filter"
 
-echo "	*** Testing 'v|v' filter application"
-${NCCOPY} -M0 -F "var1|/g/var2,307,9,4" unfilteredvv.nc filteredvbar.nc
+echo "	*** Testing 'v&v' filter application"
+${NCCOPY} -M0 -F "var1&/g/var2,307,9,4" unfilteredvv.nc filteredvbar.nc
 ${NCDUMP} -n filteredvv -s filteredvbar.nc > ./tst_filtervbar.txt
 # Remove irrelevant -s output
 sclean ./tst_filtervbar.txt ./filteredvbar.dump
@@ -135,19 +145,19 @@ test -s tst_filter2.txt
 echo "	*** Pass: pass-thru of filters"
 
 echo "	*** Testing -F none"
-rm -f ./tst_filter.txt ./tst_filter2.txt ./tst_filter.nc
-${NCCOPY} -M0 -F none ./filtered.nc ./tst_filter.nc
-${NCDUMP} -s tst_filter.nc > ./tst_filter.txt
-sed -e '/_Filter/p' -e d < ./tst_filter.txt >./tst_filter2.txt
-test ! -s tst_filter2.txt
+rm -f ./tst_none.txt ./tst_none2.txt ./tst_none.nc
+${NCCOPY} -M0 -F none ./filtered.nc ./tst_none.nc
+${NCDUMP} -hs tst_none.nc > ./tst_none.txt
+sed -e '/_Filter/p' -e d < ./tst_none.txt >./tst_none2.txt
+test ! -s tst_none2.txt
 echo "	*** Pass: -F none"
 
 echo "	*** Testing -F var,none "
-rm -f ./tst_filter.txt ./tst_filter.nc
-${NCCOPY} -M0 -F "/g/var,none" ./filtered.nc ./tst_filter.nc
-${NCDUMP} -s tst_filter.nc > ./tst_filter.txt
-sed -e '/_Filter/p' -e d < ./tst_filter.txt >tst_filter2.txt
-test ! -s tst_filter2.txt
+rm -f ./tst_vnone.txt ./tst_vnone.nc tst_vnone2.txt
+${NCCOPY} -M0 -F "/g/var,none" ./filtered.nc ./tst_vnone.nc
+${NCDUMP} -s tst_vnone.nc > ./tst_vnone.txt
+sed -e '/_Filter/p' -e d < ./tst_vnone.txt >tst_vnone2.txt
+test ! -s tst_vnone2.txt
 echo "	*** Pass: -F var,none"
 
 echo "*** Pass: all nccopy filter tests"
@@ -183,13 +193,54 @@ diff -b -w ${srcdir}/ref_bzip2.c ./test_bzip2.c
 echo "*** Pass: ncgen dynamic filter"
 fi
 
-#cleanup
-rm -f ./bzip*.nc ./unfiltered.nc ./filtered.nc ./tst_filter.txt ./tst_filter2.txt *.dump bzip*hdr.*
-rm -f ./test_bzip2.c
-rm -f ./testmisc.nc
-rm -f ./tst_filter2.nc
-rm -f ./unfilteredvv.nc ./filteredvv.nc ./filteredvbar.nc
-rm -f ./tst_filtervv.txt ./tst_filtervbar.txt
+if test "x$MULTI" = x1 ; then
+echo "*** Testing multiple filters"
+rm -f ./multifilter.nc ./multi.txt ./smulti.cdl
+rm -f nccopyF.cdl nccopyF.nc ncgenF.cdl ncgenF.nc
+${execdir}/tst_multifilter
+${NCDUMP} -hs ./multifilter.nc >./multi.cdl
+# Remove irrelevant -s output
+sclean ./multi.cdl ./smulti.cdl
+diff -b -w ${srcdir}/ref_multi.cdl ./smulti.cdl
+echo "*** nccopy -F with multiple filters"
+if ! test -f unfiltered.nc ; then
+  ${NCGEN} -4 -lb -o unfiltered.nc ${srcdir}/ref_unfiltered.cdl
+fi
+${NCCOPY} "-F/g/var,307,4|40000" unfiltered.nc nccopyF.nc
+${NCDUMP} -hs nccopyF.nc > ./nccopyF.cdl
+sclean nccopyF.cdl nccopyFs.cdl 
+diff -b -w ${srcdir}/ref_nccopyF.cdl ./nccopyFs.cdl
+echo "*** ncgen with multiple filters"
+${NCGEN} -4 -lb -o ncgenF.nc ${srcdir}/ref_nccopyF.cdl
+# Need to fix name using -n
+${NCDUMP} -hs -n nccopyF ncgenF.nc > ./ncgenF.cdl
+sclean ncgenF.cdl ncgenFs.cdl 
+diff -b -w ${srcdir}/ref_nccopyF.cdl ./ncgenFs.cdl
+echo "*** Pass: multiple filters"
+fi
+
+if test "x$MULTI" = x1 ; then
+echo "*** Testing multiple filter order of invocation"
+rm -f filterorder.txt
+${execdir}/test_filter_order >filterorder.txt
+diff -b -w ${srcdir}/ref_filter_order.txt filterorder.txt
+fi
+
 echo "*** Pass: all selected tests passed"
 
+#cleanup
+rm -f testmisc.nc
+rm -f unfiltered.nc unfilteredvv.nc filtered.nc filtered.dump
+rm -f filteredvv.nc tst_filtervv.txt filteredvv.dump
+rm -f filteredvbar.nc tst_filtervbar.txt filteredvbar.dump
+rm -f tst_filter2.nc tst_filter2.txt
+rm -f tst_none.nc tst_none.txt tst_none2.txt testfilter_reg.nc
+rm -f tst_vnone.nc tst_vnone.txt tst_vnone2.txt
+rm -f bzip2.nc bzip2.dump tst_filter.txt bzip2x.dump
+rm -f test_bzip2.c
+rm -f multifilter.nc multi.cdl smulti.cdl
+rm -f nccopyF.nc nccopyF.cdl ncgenF.nc ncgenF.cdl
+rm -f filterorder.txt
+rm -f ncgenFs.cdl  nccopyFs.cdl
 exit 0
+

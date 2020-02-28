@@ -115,7 +115,7 @@ params (BE):
 static unsigned int baseline[MAXPARAMS]; /* Expected */
 
 static const char* spec = 
-"32768, -17b, 23ub, -25S, 27US, 77, 93U, 2147483647, -2147483648, 4294967295U, 789f, -9223372036854775807L, 18446744073709551615UL, 12345678.12345678d";
+"user-defined, -17b, 23ub, -25S, 27US, 77, 93U, 2147483647, -2147483648, 4294967295U, 789f, -9223372036854775807L, 18446744073709551615UL, 12345678.12345678d";
 
 /* Define the type strings for each spec entry */
 static const char* spectype[] = {"i", "b", "ub", "s", "us", "i", "ui", "i", "i", "ui", "f", "ll", "ull", "d"};
@@ -187,67 +187,69 @@ int
 main(int argc, char **argv)
 {
     int stat = 0;
-    unsigned int id = 0;
-    size_t i,nparams = 0;
-    unsigned int* params = NULL;
+    size_t i;
     /* Provide for 8-byte values */
     long long basell;
     unsigned long long baseull;
     float basef;
     double based;
+    NC4_Filterspec* pfs = NULL;
 
     printf("\nTesting filter parser.\n");
 
     buildbaseline(); /* Build our comparison vector */
 
-    stat = NC_parsefilterspec(spec,&id,&nparams,&params);
+    stat = NC_parsefilterspec(spec,NC_FILTER_FORMAT_HDF5,(NC_Filterspec**)&pfs);
     if(stat) {
 	fprintf(stderr,"NC_parsefilterspec failed\n");
 	exit(1);
     }
-    if(id != PARAMS_ID)
-        fprintf(stderr,"mismatch: id: expected=%u actual=%u\n",PARAMS_ID,id);
+    
+    if(pfs->filterid != PARAMS_ID)
+        fprintf(stderr,"mismatch: id: expected=%u actual=%u\n",(unsigned int)PARAMS_ID,pfs->filterid);
 
     /* Do all the 32 bit tests */
     for(i=0;i<=8;i++) {
-	if(baseline[i] != params[i])
-	    mismatch(i,params,spectype[i]);
+	if(baseline[i] != pfs->params[i])
+	    mismatch(i,pfs->params,spectype[i]);
     }
 
     /* float */
-    uf.ui = params[9];
+    uf.ui = pfs->params[9];
     memcpy(&basef,&baseline[9],4);
     if(uf.f != basef)
-	mismatch(9,params,"uf.f");
+	mismatch(9,pfs->params,"uf.f");
 
     /* signed long long */
-    ul.ui[0] = params[10];
-    ul.ui[1] = params[11];
-    NC_filterfix8((unsigned char*)&ul.ll,1);
+    ul.ui[0] = pfs->params[10];
+    ul.ui[1] = pfs->params[11];
+    NC4_filterfix8((unsigned char*)&ul.ll,1);
     memcpy(&basell,&baseline[10],8);
     if(ul.ll != basell)
-	mismatch2(10,params,"ul.ll");
+	mismatch2(10,pfs->params,"ul.ll");
 
     /* unsigned long long */
-    ul.ui[0] = params[12];
-    ul.ui[1] = params[13];
-    NC_filterfix8((unsigned char*)&ul.ull,1);
+    ul.ui[0] = pfs->params[12];
+    ul.ui[1] = pfs->params[13];
+    NC4_filterfix8((unsigned char*)&ul.ull,1);
     memcpy(&baseull,&baseline[12],8);
     if(ul.ull != baseull)
-	mismatch2(12,params,"ul.ull");
+	mismatch2(12,pfs->params,"ul.ull");
 
     /* double */
-    ud.ui[0] = params[14];
-    ud.ui[1] = params[15];
-    NC_filterfix8((unsigned char*)&ud.d,1);
+    ud.ui[0] = pfs->params[14];
+    ud.ui[1] = pfs->params[15];
+    NC4_filterfix8((unsigned char*)&ud.d,1);
     memcpy(&based,&baseline[14],8);
     if(ud.d != based)
-	mismatch2(14,params,"ud.d");
+	mismatch2(14,pfs->params,"ud.d");
 
     if (!nerrs)
        printf("SUCCESS!!\n");
 
-    if(params) free(params);
+    if(pfs && pfs->params) free(pfs->params);
+    if(pfs) free(pfs);
+    
     return (nerrs > 0 ? 1 : 0);
 }
 
@@ -282,151 +284,6 @@ gettype(const int q0, const int q1, int* isunsignedp)
     }
     if(isunsignedp) *isunsignedp = isunsigned;
     return type;
-}
-
-static int
-parsefilterspec(const char* spec, unsigned int* idp, size_t* nparamsp, unsigned int** paramsp)
-{
-    int stat = NC_NOERR;
-    int sstat; /* for scanf */
-    char* p;
-    char* sdata = NULL;
-    unsigned int id;
-    size_t count; /* no. of comma delimited params */
-    size_t nparams; /* final no. of unsigned ints */
-    size_t len;
-    int i;
-    unsigned int* ulist = NULL;
-    unsigned char mem[8];
-
-    if(spec == NULL || strlen(spec) == 0) goto fail;
-    sdata = strdup(spec);
-
-    /* Count number of parameters + id and delimit */
-    p=sdata;
-    for(count=0;;count++) {
-        char* q = strchr(p,',');
-	if(q == NULL) break;
-	*q++ = '\0';
-	p = q;
-    }
-    count++; /* for final piece */
-
-    if(count == 0)
-	goto fail; /* no id and no parameters */
-
-    /* Extract the filter id */
-    p = sdata;
-    sstat = sscanf(p,"%u",&id);
-    if(sstat != 1) goto fail;
-    /* skip past the filter id */
-    p = p + strlen(p) + 1;
-    count--;
-
-    /* Allocate the max needed space; *2 in case the params are all doubles */
-    ulist = (unsigned int*)malloc(sizeof(unsigned int)*(count)*2);
-    if(ulist == NULL) goto fail;
-
-    /* walk and convert */
-    nparams = 0; /* actual count */
-    for(i=0;i<count;i++) { /* step thru param strings */
-	unsigned long long val64u;
-	unsigned int val32u;
-	double vald;
-	float valf;
-	unsigned int *vector;
-	int isunsigned = 0;
-	int isnegative = 0;
-	int type = 0;
-	char* q;
-
-	len = strlen(p);
-	/* skip leading white space */
-	while(strchr(" 	",*p) != NULL) {p++; len--;}
-	/* Get leading sign character, if any */
-	if(*p == '-') isnegative = 1;
-        /* Get trailing type tag characters */
-	switch (len) {
-	case 0:
-	    goto fail; /* empty parameter */
-	case 1:
-	case 2:
-	    q = (p + len) - 1; /* point to last char */
-	    type = gettype(*q,'\0',&isunsigned);
-	    break;
-	default: /* > 2 => we might have a two letter tag */
-	    q = (p + len) - 2;
-	    type = gettype(*q,*(q+1),&isunsigned);
-	    break;
-	}
-
-	/* Now parse */
-	switch (type) {
-	case 'b':
-	case 's':
-	case 'i':
- 	    /* special case for a positive integer;for back compatibility.*/
-	    if(!isnegative)
-	        sstat = sscanf(p,"%u",&val32u);
-	    else
-                sstat = sscanf(p,"%d",(int*)&val32u);
-	    if(sstat != 1) goto fail;
-	    switch(type) {
-	    case 'b': val32u = (val32u & 0xFF); break;
-	    case 's': val32u = (val32u & 0xFFFF); break;
-	    }
-	    ulist[nparams++] = val32u;
-	    break;
-
-	case 'f':
-	    sstat = sscanf(p,"%lf",&vald);
-	    if(sstat != 1) goto fail;
-	    valf = (float)vald;
-	    ulist[nparams++] = *(unsigned int*)&valf;
-	    break;
-
-	/* The following are 8-byte values, so we must swap pieces if this
-           is a little endian machine */	
-	case 'd':
-	    sstat = sscanf(p,"%lf",&vald);
-	    if(sstat != 1) goto fail;
-	    memcpy(mem,&vald,sizeof(mem));
-	    NC_filterfix8(mem,0);
-	    vector = (unsigned int*)mem;
-	    ulist[nparams++] = vector[0];
-	    ulist[nparams++] = vector[1];
-	    break;
-	case 'l': /* long long */
-	    if(isunsigned)
-	        sstat = sscanf(p,"%llu",&val64u);
-	    else
-                sstat = sscanf(p,"%lld",(long long*)&val64u);
-	    if(sstat != 1) goto fail;
-	    memcpy(mem,&val64u,sizeof(mem));
-	    NC_filterfix8(mem,0);
-	    vector = (unsigned int*)&mem;
-	    ulist[nparams++] = vector[0];
-	    ulist[nparams++] = vector[1];
-	    break;
-	default:
-	    goto fail;
-	}
-        p = p + strlen(p) + 1; /* move to next param */
-    }
-    /* Now return results */
-    if(idp) *idp = id;
-    if(nparamsp) *nparamsp = nparams;
-    if(paramsp) {
-       *paramsp = ulist;
-       ulist = NULL; /* avoid duplicate free */
-    }
-done:
-    if(sdata) free(sdata);
-    if(ulist) free(ulist);
-    return stat;
-fail:
-    stat = NC_EFILTER;
-    goto done;
 }
 
 #ifdef WORDS_BIGENDIAN
@@ -464,8 +321,9 @@ byteswap4(unsigned char* mem)
 
 #endif
 
+#if 0
 static void
-NC_filterfix8(unsigned char* mem, int decode)
+NC4_filterfix8(unsigned char* mem, int decode)
 {
 #ifdef WORDS_BIGENDIAN
     if(decode) { /* Apply inverse of the encode case */
@@ -481,6 +339,7 @@ NC_filterfix8(unsigned char* mem, int decode)
     /* No action is necessary */
 #endif	    
 }
+#endif
 
 #endif /*DEBUG*/
 
