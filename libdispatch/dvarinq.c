@@ -6,15 +6,13 @@ Functions for inquiring about variables.
 */
 
 #include "config.h"
+#include "netcdf.h"
+#include "netcdf_filter.h"
 #include "ncdispatch.h"
+#include "nc4internal.h"
 #ifdef USE_HDF5
 #include <hdf5.h>
 #endif /* USE_HDF5 */
-
-#ifndef H5Z_FILTER_SZIP
-/** ID of HDF SZIP filter. */
-#define H5Z_FILTER_SZIP 4
-#endif
 
 /** \name Learning about Variables
 
@@ -284,13 +282,34 @@ variable, the deflate_level will be written here. \ref ignored_if_null.
 \returns ::NC_ENOTVAR Invalid variable ID.
 */
 int
-nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep,
-		   int *deflate_levelp)
+nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep, int *deflate_levelp)
 {
    NC* ncp;
+   size_t nparams;
+   unsigned int params[4];
+   int deflating = 0;
+
    int stat = NC_check_id(ncid,&ncp);
    if(stat != NC_NOERR) return stat;
    TRACE(nc_inq_var_deflate);
+
+   /* Verify id and  nparams */
+   stat = nc_inq_var_filter_info(ncid,varid,H5Z_FILTER_DEFLATE,&nparams,params);
+   switch (stat) {
+   case NC_ENOFILTER: deflating = 0; stat = NC_NOERR; break;
+   case NC_NOERR: deflating = 1; break;
+   default: return stat;
+   }
+   if(deflatep) *deflatep = deflating;
+   if(deflating) {
+        if(nparams != 1)
+	    return NC_EFILTER; /* bad # params */
+	/* Param[0] should be level */
+	if(deflate_levelp) *deflate_levelp = (int)params[0];
+    }
+    /* also get the shuffle state */
+    if(!shufflep)
+	return NC_NOERR;
    return ncp->dispatch->inq_var_all(
       ncid, varid,
       NULL, /*name*/
@@ -299,15 +318,15 @@ nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep,
       NULL, /*dimidsp*/
       NULL, /*nattsp*/
       shufflep, /*shufflep*/
-      deflatep, /*deflatep*/
-      deflate_levelp, /*deflatelevelp*/
+      NULL, /*deflatep*/
+      NULL, /*deflatelevelp*/
       NULL, /*fletcher32p*/
       NULL, /*contiguousp*/
       NULL, /*chunksizep*/
       NULL, /*nofillp*/
       NULL, /*fillvaluep*/
       NULL, /*endianp*/
-      NULL,NULL,NULL
+      NULL, NULL, NULL
       );
 }
 
@@ -460,10 +479,12 @@ nc_inq_var_fill(int ncid, int varid, int *no_fill, void *fill_valuep)
 {
    NC* ncp;
    int stat = NC_check_id(ncid,&ncp);
+
    if(stat != NC_NOERR) return stat;
    TRACE(nc_inq_var_fill);
+
    return ncp->dispatch->inq_var_all(
-      ncid, varid,
+      ncid,varid,
       NULL, /*name*/
       NULL, /*xtypep*/
       NULL, /*ndimsp*/
@@ -609,65 +630,13 @@ nc_inq_unlimdims(int ncid, int *nunlimdimsp, int *unlimdimidsp)
 }
 
 /**
-Find the filter (if any) associated with a variable.
-
-This is a wrapper for nc_inq_var_all().
-
-\param ncid NetCDF or group ID, from a previous call to nc_open(),
-nc_create(), nc_def_grp(), or associated inquiry functions such as
-nc_inq_ncid().
-
-\param varid Variable ID
-
-\param idp Storage which will get the filter id; a return value of zero means no filter
-
-\param nparamsp Storage which will get the number of parameters to the
-filter
-
-\param params Storage which will get associated parameters.
-Note: the caller must allocate and free.
-
-\returns ::NC_NOERR No error.
-\returns ::NC_ENOTNC4 Not a netCDF-4 file.
-\returns ::NC_EBADID Bad ncid.
-\returns ::NC_ENOTVAR Invalid variable ID.
-\returns ::NC_EFILTER No filter defined.
-\ingroup variables
-\author Dennis Heimbigner
-*/
-int
-nc_inq_var_filter(int ncid, int varid, unsigned int* idp, size_t* nparamsp, unsigned int* params)
-{
-   NC* ncp;
-   int stat = NC_check_id(ncid,&ncp);
-   if(stat != NC_NOERR) return stat;
-   TRACE(nc_inq_var_filter);
-   return ncp->dispatch->inq_var_all(
-      ncid, varid,
-      NULL, /*name*/
-      NULL, /*xtypep*/
-      NULL, /*ndimsp*/
-      NULL, /*dimidsp*/
-      NULL, /*nattsp*/
-      NULL, /*shufflep*/
-      NULL, /*deflatep*/
-      NULL, /*deflatelevelp*/
-      NULL, /*fletcher32p*/
-      NULL, /*contiguousp*/
-      NULL, /*chunksizep*/
-      NULL, /*nofillp*/
-      NULL, /*fillvaluep*/
-      NULL, /*endianp*/
-      idp, nparamsp, params);
-}
-
-/**
 \ingroup variables
 Learn the szip settings of a variable.
 
 This function returns the szip settings for a variable. To turn on
 szip compression, use nc_def_var_szip(). Szip compression is only
-available if HDF5 was built with szip support.
+available if HDF5 was built with szip support. The nc_def_var_filter
+function may also be used to set szip compression.
 
 If a variable is not using szip, then a zero will be passed back
 for both options_maskp and pixels_per_blockp.
@@ -684,7 +653,7 @@ nc_inq_ncid().
 
 \param options_maskp The szip options mask will be copied to this
 pointer. Note that the HDF5 layer adds to the options_mask, so this
-value will be different from the value used when setting szip
+value may be different from the value used when setting szip
 compression, however the bit set when setting szip compression will
 still be set in the options_maskp and can be checked for. If zero is
 returned, szip is not in use for this variable.\ref ignored_if_null.
@@ -701,12 +670,12 @@ szip is not in use for this variable. \ref ignored_if_null.
 \returns ::NC_EFILTER Filter error.
 
 \author Ed Hartnett, Dennis Heimbigner
+
 */
 int
 nc_inq_var_szip(int ncid, int varid, int *options_maskp, int *pixels_per_blockp)
 {
    NC* ncp;
-   unsigned int id;
    size_t nparams;
    unsigned int params[4];
 
@@ -714,75 +683,28 @@ nc_inq_var_szip(int ncid, int varid, int *options_maskp, int *pixels_per_blockp)
    if(stat != NC_NOERR) return stat;
    TRACE(nc_inq_var_szip);
 
-   /* Verify id and  nparams */
-   stat = ncp->dispatch->inq_var_all(
-      ncid, varid,
-      NULL, /*name*/
-      NULL, /*xtypep*/
-      NULL, /*ndimsp*/
-      NULL, /*dimidsp*/
-      NULL, /*nattsp*/
-      NULL, /*shufflep*/
-      NULL, /*deflatep*/
-      NULL, /*deflatelevelp*/
-      NULL, /*fletcher32p*/
-      NULL, /*contiguousp*/
-      NULL, /*chunksizep*/
-      NULL, /*nofillp*/
-      NULL, /*fillvaluep*/
-      NULL, /*endianp*/
-      &id,
-      &nparams,
-      NULL
-      );
-   if(stat != NC_NOERR) return stat;
-
-   /* Warning: the szip filter internally expands the set of
-    * parameters. This means the user submits 2, but once the filter
-    * is applied to the dataset, there are 4. How may we get back from
-    * inq_var_all() depends on whether or not the dataset has been
-    * created. */
-   if(id == H5Z_FILTER_SZIP && (nparams != 4 && nparams !=2))
-        return NC_EFILTER; /* not szip or bad # params */
-
-   /* If the szip filter is not in use, return 0 for both
-    * parameters. */
-   if(id != H5Z_FILTER_SZIP)
-   {
-       if (options_maskp)
-           *options_maskp = 0;
-       if (pixels_per_blockp)
-           *pixels_per_blockp = 0;
-       return NC_NOERR;
+   /* Verify id and nparams */
+   stat = nc_inq_var_filter_info(ncid,varid,H5Z_FILTER_SZIP,&nparams,params);
+   switch (stat) {
+   case NC_NOERR:
+        if(nparams != 2)
+	    return NC_EFILTER; /* bad # params */
+	break;
+   case NC_ENOFILTER:
+       /* If the szip filter is not in use, return 0 for both  parameters. */
+       params[0] = 0;
+       params[1] = 0;
+       stat = NC_NOERR;
+       break;	   
+   default:
+   	return stat;
    }
 
-   /* Get params */
-   stat = ncp->dispatch->inq_var_all(
-      ncid, varid,
-      NULL, /*name*/
-      NULL, /*xtypep*/
-      NULL, /*ndimsp*/
-      NULL, /*dimidsp*/
-      NULL, /*nattsp*/
-      NULL, /*shufflep*/
-      NULL, /*deflatep*/
-      NULL, /*deflatelevelp*/
-      NULL, /*fletcher32p*/
-      NULL, /*contiguousp*/
-      NULL, /*chunksizep*/
-      NULL, /*nofillp*/
-      NULL, /*fillvaluep*/
-      NULL, /*endianp*/
-      &id,
-      &nparams,
-      params
-      );
-   if(stat != NC_NOERR) return stat;
-   /* Param[0] should be options_mask with possibly some other flags set,
+   /* Param[0] should be options_mask
       Param[1] should be pixels_per_block */
    if(options_maskp) *options_maskp = (int)params[0];
    if(pixels_per_blockp) *pixels_per_blockp = (int)params[1];
-   return NC_NOERR;
+   return stat;
 }
 
 /*!
@@ -833,13 +755,14 @@ to store filter parameters.
 \internal
 \ingroup variables
 */
+#if 0
 int
 NC_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
                int *ndimsp, int *dimidsp, int *nattsp,
                int *shufflep, int *deflatep, int *deflate_levelp,
                int *fletcher32p, int *contiguousp, size_t *chunksizesp,
                int *no_fill, void *fill_valuep, int *endiannessp,
-	       unsigned int* idp, size_t* nparamsp, unsigned int* params
+	       unsigned int* unused1, size_t* unused2, unsigned int* unused3
                )
 {
    NC* ncp;
@@ -852,7 +775,8 @@ NC_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
       contiguousp, chunksizesp,
       no_fill, fill_valuep,
       endiannessp,
-      idp,nparamsp,params);
+      NULL, NULL, NULL);
 }
+#endif
 
 /*! \} */  /* End of named group ...*/

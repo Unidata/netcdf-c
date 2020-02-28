@@ -9,6 +9,7 @@ Research/Unidata. See \ref copyright file for more info.  */
 #include <getopt.h>
 #endif
 #ifdef _MSC_VER /* Microsoft Compilers */
+
 #include <io.h>
 #endif
 #ifdef HAVE_UNISTD_H
@@ -36,6 +37,7 @@ int optind;
 
 #include "netcdf.h"
 #include "netcdf_mem.h"
+#include "netcdf_filter.h"
 #include "netcdf_aux.h"
 #include "utils.h"
 #include "nccomps.h"
@@ -48,7 +50,6 @@ int optind;
 #include "cdl.h"
 #include "nclog.h"
 #include "ncwinpath.h"
-#include "netcdf_aux.h"
 #include "nclist.h"
 #include "nc_provenance.h"
 
@@ -1009,15 +1010,62 @@ pr_att_specials(
 	}
     }
 
-    /*_Deflate, _Shuffle */
+    /* _Filter (including deflate and shuffle) */
     {
-	int shuffle=NC_NOSHUFFLE, deflate=0, deflate_level=0;
-	NC_CHECK( nc_inq_var_deflate(ncid, varid, &shuffle,
-				     &deflate, &deflate_level) );
-	if(deflate != 0) {
-	    pr_att_name(ncid, varp->name, NC_ATT_DEFLATE);
-	    printf(" = %d ;\n", deflate_level);
+	size_t nparams, nfilters, nbytes;
+	int shuffle=NC_NOSHUFFLE;
+	unsigned int* filterids = NULL;
+	unsigned int* params = NULL;
+	int usedeflateatt = 0;
+
+	/* Get applicable filter ids */
+	NC_CHECK(nc_inq_var_filterids(ncid, varid, &nfilters, NULL));
+	/* Get set of filters for this variable */
+	if(nfilters > 0) {
+	    filterids = (unsigned int*)malloc(sizeof(unsigned int)*nfilters);
+	    if(filterids == NULL) NC_CHECK(NC_ENOMEM);
+	} else
+	    filterids = NULL;
+	NC_CHECK(nc_inq_var_filterids(ncid, varid, &nfilters, filterids));
+        if(nfilters > 0) {
+	    int k;
+	    int pratt = 0;
+	    for(k=0;k<nfilters;k++) {
+		NC_CHECK(nc_inq_var_filter_info(ncid, varid, filterids[k], &nparams, NULL));
+	        if(nparams > 0) {
+  	            params = (unsigned int*)calloc(1,sizeof(unsigned int)*nparams);
+	            NC_CHECK(nc_inq_var_filter_info(ncid, varid, filterids[k], &nbytes, params));
+		} else
+		    params = NULL;
+	        /* Use _Deflate if the first filter is zip */
+		if(k == 0 && filterids[k] == H5Z_FILTER_DEFLATE) {
+	            pr_att_name(ncid, varp->name, NC_ATT_DEFLATE);
+	            printf(" = %d", (int)params[0]);
+		    pratt = 1;
+		    usedeflateatt = 1;
+       	            nullfree(params); params = NULL;
+		    continue;
+		}
+		if(pratt || k == 0) {
+		    pr_att_name(ncid,varp->name,NC_ATT_FILTER);
+		    printf(" = \"");
+		    pratt = 0;
+		}
+	        if(k > 0) printf("|");
+		printf("%u",filterids[k]);
+		if(nparams > 0) {
+	            int i;
+		    for(i=0;i<nparams;i++)
+		        printf(",%u",params[i]);
+	        }
+       	        nullfree(params); params = NULL;
+	    }
+            if(!usedeflateatt) printf("\"");
+            printf(" ;\n");
 	}
+	if(filterids) free(filterids);
+        /* Finally, do Shuffle */
+	NC_CHECK( nc_inq_var_deflate(ncid, varid, &shuffle, NULL, NULL));
 	if(shuffle != NC_NOSHUFFLE) {
 	    pr_att_name(ncid, varp->name, NC_ATT_SHUFFLE);
 	    printf(" = \"true\" ;\n");
@@ -1053,28 +1101,6 @@ pr_att_specials(
 	    }
 	    printf(" ;\n");
 	}
-    }
-    /* _Filter */
-    {
-	unsigned int id;
-	size_t nparams;
-	unsigned int* params = NULL;
-	if(nc_inq_var_filter(ncid, varid, &id, &nparams, NULL) == NC_NOERR
-	   && id > 0) {
-	    if(nparams > 0) {
-	        params = (unsigned int*)calloc(1,sizeof(unsigned int)*nparams);
-	        NC_CHECK(nc_inq_var_filter(ncid, varid, &id, &nparams, params));
-	    }
-	    pr_att_name(ncid,varp->name,NC_ATT_FILTER);
-	    printf(" = \"%u",id);
-	    if(nparams > 0) {
-	        int i;
-		for(i=0;i<nparams;i++)
-		    printf(",%u",params[i]);
-	    }
-	    printf("\" ;\n");
-	}
-	if(params) free(params);
     }
     {
 	int no_fill = 0;

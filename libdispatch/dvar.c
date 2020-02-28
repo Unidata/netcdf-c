@@ -6,7 +6,11 @@
  * order of functions in this file affects the doxygen documentation.
  */
 
+#include "config.h"
+#include "netcdf.h"
+#include "netcdf_filter.h"
 #include "ncdispatch.h"
+#include "nc4internal.h"
 #include "netcdf_f.h"
 #include "nc4internal.h"
 
@@ -666,37 +670,6 @@ nc_def_var_endian(int ncid, int varid, int endian)
     int stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) return stat;
     return ncp->dispatch->def_var_endian(ncid,varid,endian);
-}
-
-/**
- * Define a new variable filter.
- *
- * HDF5 filters are plug-in libraries which can modify data when it is
- * being read or written.
- *
- * @note Variables must be chunked to use filters. Calling
- * nc_def_var_filter() on a variable causes its storage to be changed
- * to chunked; default chunksizes are selected.
- *
- * @param ncid File and group ID.
- * @param varid Variable ID.
- * @param id ID of the HDF5 filter.
- * @param nparams Number of filter parameters.
- * @param parms Filter parameters.
- *
- * @return ::NC_NOERR No error.
- * @return ::NC_EBADID Bad ID.
- * @return ::NC_EFILTER Filter error.
- * @author Dennis Heimbigner
- */
-int
-nc_def_var_filter(int ncid, int varid, unsigned int id,
-                  size_t nparams, const unsigned int* parms)
-{
-    NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->def_var_filter(ncid,varid,id,nparams,parms);
 }
 
 /**
