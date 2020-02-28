@@ -303,11 +303,14 @@ NC4_filter_actions(int ncid, int varid, int op, NC_Filterobject* args)
 	if((stat = NC4_hdf5_addfilter(var,!FILTERACTIVE,id,nparams,params)))
   	    goto done;
 #ifdef USE_PARALLEL
-#ifndef HDF5_SUPPORTS_PAR_FILTERS
-/* Switch to collective access. HDF5 requires collevtive access
+#ifdef HDF5_SUPPORTS_PAR_FILTERS
+        /* Switch to collective access. HDF5 requires collevtive access
          * for filter use with parallel I/O. */
         if (h5->parallel)
             var->parallel_access = NC_COLLECTIVE;
+#else
+        if (h5->parallel)
+            return NC_EINVAL;
 #endif /* HDF5_SUPPORTS_PAR_FILTERS */
 #endif /* USE_PARALLEL */
 	} break;
