@@ -28,6 +28,11 @@
 #define VAR3_RANK 3
 #define VAR4_NAME "var4"
 #define VAR4_RANK 3
+#define VAR5_NAME "var5"
+#define VAR5_RANK VAR1_RANK
+#define VAR6_NAME "var6"
+#define VAR6_RANK 1
+#define VAR7_NAME "var7"
 #define CHUNK1 (DIM1_LEN/2 + 1)
 #define CHUNK2 (DIM2_LEN/3 + 1)
 #define CHUNK3 (DIM3_LEN/4 + 1)
@@ -42,7 +47,7 @@ main(int argc, char **argv)
    int i, j, k, m;
 
    int dimids[VAR3_RANK];
-   int var1id, var2id, var3id, var4id, var5id;
+   int var1id, var2id, var3id, var4id, var5id, var6id, var7id;
    size_t chunksizes[] = {CHUNK1, CHUNK2, CHUNK3};
    int data1[DIM1_LEN];
    int data1_in[DIM1_LEN];
@@ -105,9 +110,11 @@ main(int argc, char **argv)
 			      NC_COMPOUND_OFFSET(struct obs_t, attention_span),
 			      NC_INT64)) ERR;
        /* create a variable of that compound type */
-       if (nc_def_var(ncid, "var5", typeid, VAR1_RANK, dimids, &var5id))
+       if (nc_def_var(ncid, VAR5_NAME, typeid, VAR5_RANK, dimids, &var5id))
 	   ERR;
    }
+   if (nc_def_var(ncid, VAR6_NAME, NC_INT, VAR6_RANK, dimids, &var6id)) ERR;
+   if (nc_def_var(ncid, VAR7_NAME, NC_INT, 0, NULL, &var7id)) ERR;
 
    /* Specify contiguous storage and endianness explicitly for var1. */
    if (nc_def_var_chunking(ncid, var1id, NC_CONTIGUOUS, NULL)) ERR;
@@ -135,6 +142,10 @@ main(int argc, char **argv)
    if (nc_def_var_fletcher32(ncid, var5id, NC_FLETCHER32)) ERR;
    if (nc_def_var_deflate(ncid, var5id, NC_SHUFFLE, COMPRESS, DEFLATE_LEVEL)) ERR;
 
+   /* Set _Storage as compact */
+   if (nc_def_var_chunking(ncid, var6id, NC_COMPACT, NULL)) ERR;
+   if (nc_def_var_chunking(ncid, var7id, NC_COMPACT, NULL)) ERR;
+
    if (nc_enddef(ncid)) ERR;
 
    /* Some artificial data */
@@ -154,6 +165,8 @@ main(int argc, char **argv)
    if(nc_put_var(ncid, var2id, &data2[0][0])) ERR;
    if(nc_put_var(ncid, var3id, &data3[0][0][0])) ERR;
    if(nc_put_var(ncid, var4id, &data3[0][0][0])) ERR;
+   if(nc_put_var(ncid, var6id, &data3[0][0][0])) ERR;
+   if(nc_put_var(ncid, var7id, &data3[0][0][0])) ERR;
 
    if (nc_close(ncid)) ERR;
 

@@ -736,7 +736,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
         /* Does the user want a contiguous or compact dataset? Not so
          * fast! Make sure that there are no unlimited dimensions, and
          * no filters in use for this data. */
-        if (*storage)
+        if (*storage != NC_CHUNKED)
         {
             if (nclistlength(var->filters) > 0 || var->fletcher32 || var->shuffle)
                 return NC_EINVAL;
@@ -747,9 +747,12 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
         }
 
         /* Handle chunked storage settings. */
-        if (*storage == NC_CHUNKED)
+        if (*storage == NC_CHUNKED && var->ndims == 0) {
+                var->contiguous = NC_TRUE;
+        } else if (*storage == NC_CHUNKED)
         {
             var->contiguous = NC_FALSE;
+            var->compact = NC_FALSE;
 
             /* If the user provided chunksizes, check that they are not too
              * big, and that their total size of chunk is less than 4 GB. */
