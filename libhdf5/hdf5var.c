@@ -173,6 +173,11 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
     total_chunk_size = (double) type_size;
 #endif
 
+    if(var->chunksizes == NULL) {
+	if((var->chunksizes = calloc(1,sizeof(size_t)*var->ndims)) == NULL)
+	    return NC_ENOMEM;
+    }
+
     /* How many values in the variable (or one record, if there are
      * unlimited dimensions). */
     for (d = 0; d < var->ndims; d++)
@@ -697,6 +702,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 
         /* Set the deflate settings. */
         var->contiguous = NC_FALSE;
+        var->compact = NC_FALSE;
         var->deflate = *deflate;
         if (*deflate)
             var->deflate_level = *deflate_level;
@@ -704,18 +710,27 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
     }
 #endif
 
+    /* Cannot set filters of any sort on scalars */
+    if(var->ndims == 0) {
+	if(shuffle && *shuffle)
+	    return NC_NOERR; /* ignore */
+	if(fletcher32 && *fletcher32)
+	    return NC_NOERR; /* ignore */
+    }
+
     /* Shuffle filter? */
     if (shuffle)
     {
         var->shuffle = *shuffle;
         var->contiguous = NC_FALSE;
-    }
+        var->compact = NC_FALSE;    }
 
     /* Fletcher32 checksum error protection? */
     if (fletcher32)
     {
         var->fletcher32 = *fletcher32;
         var->contiguous = NC_FALSE;
+        var->compact = NC_FALSE;
     }
 
 #ifdef USE_PARALLEL
@@ -749,6 +764,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
         /* Handle chunked storage settings. */
         if (*storage == NC_CHUNKED && var->ndims == 0) {
                 var->contiguous = NC_TRUE;
+		var->compact = NC_FALSE;
         } else if (*storage == NC_CHUNKED)
         {
             var->contiguous = NC_FALSE;
@@ -776,6 +792,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
         else if (*storage == NC_CONTIGUOUS)
         {
             var->contiguous = NC_TRUE;
+            var->compact = NC_FALSE;
         }
         else if (*storage == NC_COMPACT)
         {
@@ -801,7 +818,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
     {
         /* Determine default chunksizes for this variable (do nothing
          * for scalar vars). */
-        if (var->chunksizes && !var->chunksizes[0])
+        if (var->chunksizes == NULL || var->chunksizes[0] == 0)
             if ((retval = nc4_find_default_chunksizes2(grp, var)))
                 return retval;
 
