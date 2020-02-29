@@ -443,8 +443,8 @@ NC4_var_par_access(int ncid, int varid, int par_access)
     if (!var) return NC_ENOTVAR;
     assert(var->hdr.id == varid);
 
-    /* If zlib, shuffle, or fletcher32 filters are in use, then access
-     * must be collective. Fail an attempt to set such a variable to
+    /* If any filters filters are in use, then access must be
+     * collective. Fail an attempt to set such a variable to
      * independent access. */
     if ((nclistlength(var->filters) || var->shuffle || var->fletcher32) &&
         par_access == NC_INDEPENDENT)
