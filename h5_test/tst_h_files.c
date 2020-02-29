@@ -361,12 +361,6 @@ main()
         if (H5Gclose(grpid) < 0) ERR;
         if (H5Fclose(fileid) < 0) ERR;
 
-        /* Reopen the file and check it. */
-        if ((fileid = H5Fopen(file_name, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) ERR;
-        if (H5Gget_num_objs(fileid, &num_obj) < 0) ERR;
-        if (num_obj) ERR;
-        if (H5Fclose(fileid) < 0) ERR;
-
         /* Delete the huge data file we created. */
         (void) remove(file_name);
     }
