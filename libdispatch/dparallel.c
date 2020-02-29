@@ -289,42 +289,48 @@ nc_open_par_fortran(const char *path, int omode, int comm,
 #endif
 }
 
-/**\ingroup datasets
+/**
+@ingroup datasets
 
 This function will change the parallel access of a variable from independent to
-collective and vice versa. Note when file is opened/created to use PnetCDF
-library to perform parallel I/O underneath, argument varid is ignored and the
-mode changed by this function applies to all variables. This is because PnetCDF
-does not support access mode change for individual variables. In this case,
-users may use NC_GLOBAL in varid argument for better program readability. This
-function is collective, i.e. must be called by all MPI processes defined in the
-MPI communicator used in nc_create_par() or nc_open_par(). In addition, values
-of arguments of this function must be the same among all MPI processes.
+collective and vice versa.
+
+This function is collective, i.e. must be called by all MPI processes
+defined in the MPI communicator used in nc_create_par() or
+nc_open_par(). In addition, values of arguments of this function must
+be the same among all MPI processes.
 
 To obtain a good I/O performance, users are recommended to use collective mode.
 In addition, switching between collective and independent I/O mode can be
 expensive.
 
-In netcdf-c-4.7.4 or later, using hdf5-1.10.2 or later, the zlib and
-fletcher32 filters may be used when writing data with parallel
-I/O. The use of these filters require collective access. Turning on
-the zlib (deflate) or fletcher32 filter for a variable will
-automatically set its access to collective. Attempts to set access to
-independent will return ::NC_EINVAL.
+In netcdf-c-4.7.4 or later, using hdf5-1.10.2 or later, the zlib,
+shuffle, fletcher32 and other filters may be used when writing data
+with parallel I/O. The use of any filters require collective
+access. Turning on any filter for a variable will automatically set
+its access to collective. Attempts to set access to independent will
+return ::NC_EINVAL.
 
-\param ncid NetCDF or group ID, from a previous call to nc_open_par(),
+Note when file is opened/created to use PnetCDF library to perform
+parallel I/O underneath, argument varid is ignored and the mode
+changed by this function applies to all variables. This is because
+PnetCDF does not support access mode change for individual
+variables. In this case, users may use NC_GLOBAL in varid argument for
+better program readability.
+
+@param ncid NetCDF or group ID, from a previous call to nc_open_par(),
 nc_create_par(), nc_def_grp(), or associated inquiry functions such as
 nc_inq_ncid().
 
-\param varid Variable ID
+@param varid Variable ID
 
-\param par_access NC_COLLECTIVE or NC_INDEPENDENT.
+@param par_access NC_COLLECTIVE or NC_INDEPENDENT.
 
-\returns ::NC_NOERR No error.
-\returns ::NC_EBADID Invalid ncid passed.
-\returns ::NC_ENOTVAR Invalid varid passed.
-\returns ::NC_ENOPAR File was not opened with nc_open_par/nc_create_var.
-\returns ::NC_EINVAL Invalid par_access specified, or attempt to set
+@return ::NC_NOERR No error.
+@return ::NC_EBADID Invalid ncid passed.
+@return ::NC_ENOTVAR Invalid varid passed.
+@return ::NC_ENOPAR File was not opened with nc_open_par/nc_create_var.
+@return ::NC_EINVAL Invalid par_access specified, or attempt to set
 filtered variable to independent access.
 
 <h1>Example</h1>
@@ -332,7 +338,7 @@ filtered variable to independent access.
 Here is an example from examples/C/parallel_vara.c which changes the
 parallel access of a variable and then writes to it.
 
-\code
+@code
 #define NY 10
 #define NX 4
 
@@ -366,9 +372,8 @@ parallel access of a variable and then writes to it.
 
     err = nc_put_vara_int(ncid, varid, start, count, &buf[0][0]); ERR
 
-\endcode
-\author Ed Hartnett, Dennis Heimbigner
-\ingroup datasets
+@endcode
+@author Ed Hartnett, Dennis Heimbigner
  */
 int
 nc_var_par_access(int ncid, int varid, int par_access)
