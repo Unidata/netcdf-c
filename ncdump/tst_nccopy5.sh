@@ -86,7 +86,8 @@ ${NCDUMP} tst_nc5.nc > tst_nc5.cdl
 
 echo "*** Test nccopy -c with per-variable chunking; classic->enhanced"
 # This should produce same as -c dim0/,dim1/1,dim2/,dim3/1,dim4/,dim5/1,dim6/
-${NCCOPY} -c ivar:7,1,2,1,5,1,9 tst_nc5.nc tmp_nc5.nc
+# But note that the chunk product is less than default, so we need to reduce it (-M)
+${NCCOPY} -M1000 -c ivar:7,1,2,1,5,1,9 tst_nc5.nc tmp_nc5.nc
 ${NCDUMP} -n tst_nc5 tmp_nc5.nc > tmp_nc5.cdl
 # Verify that the core cdl is the same
 diff tst_nc5.cdl tmp_nc5.cdl
@@ -109,7 +110,8 @@ echo "*** Test nccopy -c with per-variable chunking; enhanced->enhanced"
 reset
 ./tst_chunking tst_nc5.nc deflate
 ${NCDUMP} -n tst_nc5 tst_nc5.nc > tst_nc5.cdl
-${NCCOPY} -c ivar:4,1,2,1,5,2,3 tst_nc5.nc tmp_nc5.nc
+# Use -M to ensure that chunking takes effect
+${NCCOPY} -M500 -c ivar:4,1,2,1,5,2,3 tst_nc5.nc tmp_nc5.nc
 ${NCDUMP} -n tst_nc5 tmp_nc5.nc > tmp_nc5.cdl
 diff tst_nc5.cdl tmp_nc5.cdl
 
@@ -121,7 +123,6 @@ TESTLINE=`sed -e '/ivar:_ChunkSizes/p' -e d <tmp_nc5.cdl`
 # track line to match
 BASELINE='ivar:_ChunkSizes = 4, 1, 2, 1, 5, 2, 3 ;'
 verifychunkline "$TESTLINE" "$BASELINE"
-
 # Make sure that fvar was not chunked
 checkfvar tmp_nc5.cdl
 
@@ -133,7 +134,7 @@ echo "*** Test nccopy -c with FQN var name; enhanced ->enhanced"
 reset
 ./tst_chunking tst_nc5.nc group
 ${NCDUMP} -n tst_nc5 tst_nc5.nc > tst_nc5.cdl
-${NCCOPY} -c /g/ivar:4,1,2,1,5,2,3 tst_nc5.nc tmp_nc5.nc
+${NCCOPY} -M500 -c /g/ivar:4,1,2,1,5,2,3 tst_nc5.nc tmp_nc5.nc
 ${NCDUMP} -n tst_nc5 tmp_nc5.nc > tmp_nc5.cdl
 diff tst_nc5.cdl tmp_nc5.cdl
 
@@ -153,7 +154,7 @@ echo "*** Test nccopy -c with unlimited dimension; classic ->enhanced"
 reset
 ./tst_chunking tst_nc5.nc unlimited # should produce modified tmp_nc5.nc with ivar of rank 2
 ${NCDUMP} -n tst_nc5 tst_nc5.nc > tst_nc5.cdl
-${NCCOPY} -c ivar:5,3 tst_nc5.nc tmp_nc5.nc
+${NCCOPY} -M500 -c ivar:5,3 tst_nc5.nc tmp_nc5.nc
 ${NCDUMP} -n tst_nc5 tmp_nc5.nc > tmp_nc5.cdl
 diff tst_nc5.cdl tmp_nc5.cdl
 
@@ -176,7 +177,7 @@ echo "*** Test nccopy -c fvar: to suppress chunking; classic ->enhanced"
 reset
 ./tst_chunking tst_nc5_omit.nc
 ${NCDUMP} -n tst_nc5_omit tst_nc5_omit.nc > tst_nc5_omit.cdl
-${NCCOPY} -c ivar:7,1,2,1,5,1,9 -c fvar: tst_nc5_omit.nc tmp_nc5_omit.nc
+${NCCOPY} -M500 -c ivar:7,1,2,1,5,1,9 -c fvar: tst_nc5_omit.nc tmp_nc5_omit.nc
 ${NCDUMP} -n tst_nc5_omit tmp_nc5_omit.nc > tmp_nc5_omit.cdl
 diff tst_nc5_omit.cdl tmp_nc5_omit.cdl
 

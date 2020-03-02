@@ -983,17 +983,19 @@ pr_att_specials(
     const ncvar_t *varp
     )
 {
+    int contig = NC_CHUNKED;
     /* No special variable attributes for classic or 64-bit offset data */
     if(kind == 1 || kind == 2)
 	return;
-    /* _Chunking */
-    if (varp->ndims > 0) {	/* no chunking for scalar variables */
-	int contig = 0;
-	NC_CHECK( nc_inq_var_chunking(ncid, varid, &contig, NULL ) );
-	if(contig == 1) {
-	    pr_att_name(ncid, varp->name, NC_ATT_STORAGE);
+    /* _Chunking tests */
+    NC_CHECK( nc_inq_var_chunking(ncid, varid, &contig, NULL ) );
+    if(contig == NC_CONTIGUOUS) {
+  	    pr_att_name(ncid, varp->name, NC_ATT_STORAGE);
 	    printf(" = \"contiguous\" ;\n");
-	} else {
+    } else if(contig == NC_COMPACT) {
+	    pr_att_name(ncid, varp->name, NC_ATT_STORAGE);
+	    printf(" = \"compact\" ;\n");
+    } else {
  	   size_t *chunkp;
 	   int i;
 	    pr_att_name(ncid, varp->name, NC_ATT_STORAGE);
@@ -1007,7 +1009,6 @@ pr_att_specials(
 		printf("%lu%s", (unsigned long)chunkp[i], i+1 < varp->ndims ? ", " : " ;\n");
 	    }
 	    free(chunkp);
-	}
     }
 
     /* _Filter (including deflate and shuffle) */

@@ -223,7 +223,7 @@ NC4_filter_actions(int ncid, int varid, int op, NC_Filterobject* args)
         /* If the HDF5 dataset has already been created, then it is too
          * late to set all the extra stuff. */
         if (!(h5->flags & NC_INDEF)) return THROW(NC_EINDEFINE);
-        if (!var->ndims) return NC_NOERR; /* For scalars, ignore */
+        if (!var->ndims) return NC_EINVAL; /* For scalars, complain */
         if (var->created)
              return THROW(NC_ELATEDEF);
         /* Can't turn on parallel and szip before HDF5 1.10.2. */
@@ -315,7 +315,7 @@ NC4_filter_actions(int ncid, int varid, int op, NC_Filterobject* args)
 #endif /* USE_PARALLEL */
 	} break;
     case NCFILTER_INQ: {
-        if (!var->ndims) return THROW(NC_ENOFILTER); /* For scalars, fail */
+        if (!var->ndims) return THROW(NC_EINVAL); /* For scalars, fail */
         if(obj->sort != NC_FILTER_SORT_SPEC) return THROW(NC_EFILTER);
 	idp = &obj->u.spec.filterid;
 	nparamsp = &obj->u.spec.nparams;

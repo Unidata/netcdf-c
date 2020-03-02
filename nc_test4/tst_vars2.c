@@ -1478,8 +1478,8 @@ main(int argc, char **argv)
             if (shuffle_in || deflate_in) ERR;
             if (nc_inq_var_deflate(ncid, varid, NULL, NULL, NULL)) ERR;
 
-            /* Deflate is ignored for scalar. */
-            if (nc_def_var_deflate(ncid, varid_scalar, 0, 1, 4)) ERR;
+            /* Deflate fails for scalar. */
+            if (nc_def_var_deflate(ncid, varid_scalar, 0, 1, 4) != NC_EINVAL) ERR;
             if (nc_inq_var_deflate(ncid, varid, &shuffle_in, &deflate_in, &deflate_level_in)) ERR;
             if (shuffle_in || deflate_in) ERR;
 

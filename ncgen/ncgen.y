@@ -1305,6 +1305,8 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
                 derror("_Storage: illegal NULL value");
               else if(strcmp(sdata,"contiguous") == 0)
                 special->_Storage = NC_CONTIGUOUS;
+              else if(strcmp(sdata,"compact") == 0)
+                special->_Storage = NC_COMPACT;
               else if(strcmp(sdata,"chunked") == 0)
                 special->_Storage = NC_CHUNKED;
               else

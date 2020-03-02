@@ -142,7 +142,7 @@ other filters such as checksums.  Changing the chunking in a netCDF
 file can also greatly speedup access, by choosing chunk shapes that
 are appropriate for the most common access patterns.
 .IP
-The \fIchunkspec\fP argument has two forms. The first form is the
+The \fIchunkspec\fP argument has several forms. The first form is the
 original, deprecated form and is a string of comma-separated associations,
 each specifying a dimension name, a '/' character, and optionally the
 corresponding chunk length for that dimension.  No blanks should
@@ -186,6 +186,12 @@ If the same variable is specified
 more than once, the second and later specifications are ignored.
 Also, this second form, per-variable chunking, takes precedence over any
 per-dimension chunking except the bare "/" case.
+.IP
+The third form of the \fIchunkspec\fP has the
+syntax: \fI var:compact\fP or \fI var:contiguous\fP.
+This explicitly attempts to set the variable storage type as
+compact or contiguous, respectively. These may be overridden
+if other flags require the variable to be chunked.
 .IP "\fB \-v \fP \fI var1,... \fP"
 The output will include data values for the specified variables, in
 addition to the declarations of all dimensions, variables, and
