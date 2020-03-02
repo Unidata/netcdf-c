@@ -414,7 +414,7 @@ main()
 #define SZIP_VAR_NAME "szip_var"
 #define SZIP_DIM1_LEN 32
     {
-        int data[DIM1_LEN];
+        int data[SZIP_DIM1_LEN];
         hid_t plistid;
         hsize_t chunksize[NDIM1] = {SZIP_DIM1_LEN};
         int options_mask = 32, pixels_per_block = 4;
