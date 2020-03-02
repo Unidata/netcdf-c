@@ -112,7 +112,6 @@ main(int argc, char **argv)
     {
         NC *ncp;
         int mode = 0;
-        NCmodel model;
         int max_num_nc = 65535;
         int i;
         int ret;
