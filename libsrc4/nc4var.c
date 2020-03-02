@@ -446,7 +446,7 @@ NC4_var_par_access(int ncid, int varid, int par_access)
     /* If zlib, shuffle, or fletcher32 filters are in use, then access
      * must be collective. Fail an attempt to set such a variable to
      * independent access. */
-    if ((var->deflate || var->shuffle || var->fletcher32) &&
+    if ((nclistlength(var->filters) > 0 || var->shuffle || var->fletcher32) &&
         par_access == NC_INDEPENDENT)
         return NC_EINVAL;
 

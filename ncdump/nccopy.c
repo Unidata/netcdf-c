@@ -368,7 +368,7 @@ done:
 }
 
 static int
-hasfilterspecsforvar(const char* ofqn)
+hasfilterspecforvar(const char* ofqn)
 {
   int i;	 
   /* See which output filter specs are defined for this output variable */
@@ -400,14 +400,14 @@ filterspecsforvar(const char* ofqn)
 }
 
 /* Return size of chunk in bytes for a variable varid in a group igrp, or 0 if
- * layout is contiguous */
+ * layout is contiguous|compact */
 static int
 inq_var_chunksize(int igrp, int varid, size_t* chunksizep) {
     int stat = NC_NOERR;
     int ndims;
     size_t *chunksizes;
     int dim;
-    int contig = 1;
+    int contig = NC_CONTIGUOUS;
     nc_type vartype;
     size_t value_size;
     size_t prod;
@@ -418,10 +418,9 @@ inq_var_chunksize(int igrp, int varid, size_t* chunksizep) {
     prod = value_size;
     NC_CHECK(nc_inq_varndims(igrp, varid, &ndims));
     chunksizes = (size_t *) emalloc((ndims + 1) * sizeof(size_t));
-    if(ndims > 0) {
-	NC_CHECK(nc_inq_var_chunking(igrp, varid, &contig, NULL));
-    }
-    if(contig == 1) {
+    contig = NC_CHUNKED;
+    NC_CHECK(nc_inq_var_chunking(igrp, varid, &contig, NULL));
+    if(contig != NC_CHUNKED) {
 	*chunksizep = 0;
     } else {
 	NC_CHECK(nc_inq_var_chunking(igrp, varid, &contig, chunksizes));
@@ -448,7 +447,7 @@ inq_var_chunking_params(int igrp, int ivarid, int ogrp, int ovarid,
     int ndims;
     size_t *ichunksizes, *ochunksizes;
     int dim;
-    int icontig = 1, ocontig = 1;
+    int icontig = NC_CONTIGUOUS, ocontig = NC_CONTIGUOUS;
     nc_type vartype;
     size_t value_size;
     size_t prod, iprod, oprod;
@@ -458,11 +457,10 @@ inq_var_chunking_params(int igrp, int ivarid, int ogrp, int ovarid,
     *chunkcache_preemptionp = COPY_CHUNKCACHE_PREEMPTION;
 
     NC_CHECK(nc_inq_varndims(igrp, ivarid, &ndims));
-    if(ndims > 0) {
-	NC_CHECK(nc_inq_var_chunking(igrp, ivarid, &icontig, NULL));
-	NC_CHECK(nc_inq_var_chunking(ogrp, ovarid, &ocontig, NULL));
-    }
-    if(icontig == 1 && ocontig == 1) { /* no chunking in input or output */
+    icontig = (ocontig = NC_CHUNKED);
+    NC_CHECK(nc_inq_var_chunking(igrp, ivarid, &icontig, NULL));
+    NC_CHECK(nc_inq_var_chunking(ogrp, ovarid, &ocontig, NULL));
+    if(icontig != NC_CHUNKED && ocontig != NC_CHUNKED) { /* no chunking in input or output */
 	*chunkcache_nelemsp = 0;
 	*chunkcache_sizep = 0;
 	*chunkcache_preemptionp = 0;
@@ -473,7 +471,7 @@ inq_var_chunking_params(int igrp, int ivarid, int ogrp, int ovarid,
     NC_CHECK(nc_inq_type(igrp, vartype, NULL, &value_size));
     iprod = value_size;
 
-    if(icontig == 0 && ocontig == 1) { /* chunking only in input */
+    if(icontig == NC_CHUNKED && ocontig != NC_CHUNKED) { /* chunking only in input */
 	*chunkcache_nelemsp = 1;       /* read one input chunk at a time */
 	*chunkcache_sizep = iprod;
 	*chunkcache_preemptionp = 1.0f;
@@ -481,7 +479,7 @@ inq_var_chunking_params(int igrp, int ivarid, int ogrp, int ovarid,
     }
 
     ichunksizes = (size_t *) emalloc((ndims + 1) * sizeof(size_t));
-    if(icontig == 1) { /* if input contiguous, treat as if chunked on
+    if(icontig != NC_CHUNKED) { /* if input contiguous|compact, treat as if chunked on
 			* first dimension */
 	ichunksizes[0] = 1;
 	for(dim = 1; dim < ndims; dim++) {
@@ -491,7 +489,7 @@ inq_var_chunking_params(int igrp, int ivarid, int ogrp, int ovarid,
 	NC_CHECK(nc_inq_var_chunking(igrp, ivarid, &icontig, ichunksizes));
     }
 
-    /* now can assume chunking in both input and output */
+    /* now can pretend chunking in both input and output */
     ochunksizes = (size_t *) emalloc((ndims + 1) * sizeof(size_t));
     NC_CHECK(nc_inq_var_chunking(ogrp, ovarid, &ocontig, ochunksizes));
 
@@ -903,148 +901,136 @@ copy_chunking(int igrp, int i_varid, int ogrp, int o_varid, int ndims, int inkin
     int outnc4 = (outkind == NC_FORMAT_NETCDF4 || outkind == NC_FORMAT_NETCDF4_CLASSIC);
     VarID ovid;
     char* ofqn = NULL;
-    int nochunkspec = 1 ; /* 1 => no -c option applies to this variable */
+    int icontig = NC_CONTIGUOUS;
+    int ocontig = NC_CONTIGUOUS;
+    size_t ichunkp[NC_MAX_VAR_DIMS];
+    size_t ochunkp[NC_MAX_VAR_DIMS];
+    size_t dimlens[NC_MAX_VAR_DIMS];
+    int is_unlimited = 0;
 
     /* First, check the file kinds */
     if(!outnc4)
 	return stat; /* no chunking */
 
-    /* See if a scalar */
-    if(ndims == 0)
-	return stat; /* scalars cannot be chunked */
+    memset(ichunkp,0,sizeof(ichunkp));
+    memset(ochunkp,0,sizeof(ochunkp));
+    memset(dimlens,0,sizeof(dimlens));
+
+    /* Get the chunking, if any, on the current input variable */
+    if(innc4) {
+  	    NC_CHECK(nc_inq_var_chunking(igrp, i_varid, &icontig, ichunkp));
+	    /* pretend that this is same as a -c option */
+    } else { /* !innc4 */
+	icontig = NC_CONTIGUOUS;
+	ichunkp[0] = 0;	    	
+    }
 
     /* If var specific chunking was specified for this output variable
        then it overrides all else.
     */
+
     /* Note, using goto done instead of nested if-then-else */
 
-    if(varchunkspec_exists(igrp,i_varid)) {
-	if(varchunkspec_omit(igrp,i_varid)) {
-	   NC_CHECK(nc_def_var_chunking(ogrp, o_varid, NC_CONTIGUOUS, NULL));
-	} else {
-	    size_t* ochunkp = varchunkspec_chunksizes(igrp,i_varid);
-	    NC_CHECK(nc_def_var_chunking(ogrp, o_varid, NC_CHUNKED, ochunkp));
-	}
-	goto done;
-    }
+    /* First check on output contiguous'ness */
+    /* Note: the chunkspecs are defined in terms of input variable+grp ids.
+       The grp may differ if !innc4 && outnc4 */
+    if(varchunkspec_omit(igrp,i_varid))
+	ocontig = NC_CONTIGUOUS;
+    else if(varchunkspec_exists(igrp,i_varid))
+	ocontig = varchunkspec_kind(igrp,i_varid);
+    else
+	ocontig = icontig;
 
-    /* See about dim-specific chunking */
+    /* Figure out the chunking even if we do not decide to do so*/
+    if(varchunkspec_exists(igrp,i_varid)
+	&& varchunkspec_kind(igrp,i_varid) == NC_CHUNKED)
+	memcpy(ochunkp,varchunkspec_chunksizes(igrp,i_varid),ndims*sizeof(size_t));
+
+    /* If any kind of output filter was specified, then not contiguous */
+    ovid.grpid = ogrp;
+    ovid.varid = o_varid;
+    if((stat=computeFQN(ovid,&ofqn))) goto done;
+    if(option_deflate_level >= 0 || hasfilterspecforvar(ofqn))
+	ocontig = NC_CHUNKED;
+
+    /* See about dim-specific chunking; does not override -c spec*/
     {
 	int idim;
 	/* size of a chunk: product of dimension chunksizes and size of value */
 	size_t csprod;
-	int is_unlimited = 0;
 	size_t typesize;
-	size_t ichunkp[NC_MAX_VAR_DIMS];
-	size_t ochunkp[NC_MAX_VAR_DIMS];
 	int dimids[NC_MAX_VAR_DIMS];
-	int icontig = 1;
-	int ocontig = 1; /* until proven otherwise */
 
 	/* See if dim-specific chunking was suppressed */
-	if(dimchunkspec_omit())
-	    goto next2;
+	if(dimchunkspec_omit()) /* use input chunksizes */
+    	    goto next2;
 
-	/* Setup for output chunking */
-	typesize = val_size(ogrp, o_varid);
+	/* Setup for possible output chunking */
+	typesize = val_size(igrp, i_varid);
 	csprod = typesize;
 	memset(&dimids,0,sizeof(dimids));
-	memset(&ichunkp,0,sizeof(ichunkp));
-	memset(&ochunkp,0,sizeof(ochunkp));
-
-	/* Get the chunking, if any, on the current input variable */
-        if(innc4) {
-  	    NC_CHECK(nc_inq_var_chunking(igrp, i_varid, &icontig, ichunkp));
-	    /* pretend that this is same as a -c option */
-            nochunkspec = 0;
-	} else {
-	    icontig = 1;
-	    ichunkp[0] = 0;	    	
-	}
-	if(!icontig)
-	    ocontig = 0; /* If input is chunked, then so is output */
 
 	/* Prepare to iterate over the dimids of this input variable */
 	NC_CHECK(nc_inq_vardimid(igrp, i_varid, dimids));
 
-        /* Assign chunk sizes for all dimensions of variable;
+        /* Capture dimension lengts for all dimensions of variable;
 	   even if we decide to not chunk */
         for(idim = 0; idim < ndims; idim++) {
             int idimid = dimids[idim];
             int odimid = dimmap_odimid(idimid);
-            size_t chunksize;
-            size_t dimlen;
 
             /* Get input dimension length */
-            NC_CHECK(nc_inq_dimlen(igrp, idimid, &dimlen));
+            NC_CHECK(nc_inq_dimlen(igrp, idimid, &dimlens[idim]));
 
             /* Check for unlimited */
             if(dimmap_ounlim(odimid)) {
                 is_unlimited = 1;
-                ocontig = 0; /* force chunking */
-            }
-
-            /* If the -c set a chunk size for this dimension, use it */
-            chunksize = dimchunkspec_size(idimid);
-            if(chunksize > 0) { /* found in chunkspec */
-                ochunkp[idim] = chunksize;
-                ocontig = 0; /* cannot use contiguous */
-		nochunkspec = 0; /* form of explicit chunking */
-                goto next;
-            }
-
-            /* Not specified in -c; Apply defaulting rules as defined in nccopy.1 */
-
-	    /* If input is chunked, then use that chunk size */
-	    if(!icontig) {
-		ochunkp[idim] = ichunkp[idim];
-		ocontig = 0;
-		goto next;
+		ocontig = NC_CHUNKED; /* force chunking */
 	    }
 
-	    /* If input is not netcdf-4 then use the input size as the chunk size;
-		but do not force chunking.
-             */
-            if(!innc4) {
-                ochunkp[idim] = dimlen;
-                goto next;
-            }
+	    if(dimchunkspec_exists(idimid)) {
+                /* If the -c set a chunk size for this dimension, use it */
+                dimlens[idim] = dimchunkspec_size(idimid); /* Save it */
+		ocontig = NC_CHUNKED; /* force chunking */
+	    }
 
             /* Default for unlimited is max(4 megabytes, current dim size) */
             if(is_unlimited) {
                 size_t mb4dimsize = DFALTUNLIMSIZE / typesize;
-                ochunkp[idim] = (dimlen > mb4dimsize ? mb4dimsize : dimlen);
-            } else {
-                /* final default is the current dimension size */
-                ochunkp[idim] = dimlen;
+		if(dimlens[idim] > mb4dimsize)
+                    dimlens[idim] = mb4dimsize;
             }
-
-next:
+	}
+	/* compute the final ochunksizes: precedence is output, input, dimeln */
+        for(idim = 0; idim < ndims; idim++) {
+	    if(ochunkp[idim] == 0) {
+	        if(ichunkp[idim] != 0)
+		    ochunkp[idim] = ichunkp[idim];
+	    }
+	    if(ochunkp[idim] == 0) {
+	        if(dimlens[idim] != 0)
+		    ochunkp[idim] = dimlens[idim];
+	    }
+	    if(ochunkp[idim] == 0) {stat = NC_EINTERNAL; goto done;}
             /* compute on-going dimension product */
             csprod *= ochunkp[idim];
 	}
-
-        /* Finally, if total chunksize is too small (and dim is not unlimited) => do not chunk */
-        if(csprod < option_min_chunk_bytes && !is_unlimited) {
-	    ocontig = 1; /* Force contiguous */
-        }
+        /* if total chunksize is too small (and dim is not unlimited) => do not chunk */
+        if(csprod < option_min_chunk_bytes && !is_unlimited)
+            ocontig = NC_CONTIGUOUS; /* Force contiguous */
+    }
 
 next2:
-	/* If any kind of output filter was specified, then not contiguous */
-	ovid.grpid = ogrp;
-        ovid.varid = o_varid;
-	if((stat=computeFQN(ovid,&ofqn))) goto done;
-	if(option_deflate_level >= 0 || hasfilterspecsforvar(ofqn))
-	    ocontig = 0;
-
-	/* Apply the chunking, if any */
-	if(!nochunkspec) {/* explicitly set chunking */
-	    if(ocontig) { /* We can use contiguous output */
-	        NC_CHECK(nc_def_var_chunking(ogrp, o_varid, NC_CONTIGUOUS, NULL));
-	    } else {
-	        NC_CHECK(nc_def_var_chunking(ogrp, o_varid, NC_CHUNKED, ochunkp));
-	    }
-	} /* else no chunk spec at all, let defaults set at nc_def_var() be used */
+    /* Apply the chunking, if any */
+    switch (ocontig) {
+    case NC_CHUNKED:
+        NC_CHECK(nc_def_var_chunking(ogrp, o_varid, NC_CHUNKED, ochunkp));
+	break;
+    case NC_CONTIGUOUS:
+    case NC_COMPACT:
+        NC_CHECK(nc_def_var_chunking(ogrp, o_varid, ocontig, NULL));
+	break;
+    default: stat = NC_EINVAL; goto done;
     }
 
 #ifdef USE_NETCDF4
@@ -1052,18 +1038,15 @@ next2:
     { int d;
 	size_t chunksizes[NC_MAX_VAR_DIMS];
 	char name[NC_MAX_NAME];
-	int contig = 0;
-	unsigned long long totalsize = 1;
-	NC_CHECK(nc_inq_var(ogrp,o_varid,name,NULL,NULL,NULL,NULL));
-        NC_CHECK(nc_inq_var_chunking(ogrp, o_varid, &contig, chunksizes));
-        fprintf(stderr,"xxx: chunk sizes: %s[",name);
-	if(contig) {
+	if(ocontig == NC_CONTIGUOUS) {
 	    fprintf(stderr,"contig]\n");
+	} else if(ocontig == NC_COMPACT) {
+	    fprintf(stderr,"compact]\n");
 	} else {
 	    for(d=0;d<ndims;d++) {
-	        totalsize *= chunksizes[d];
+	        totalsize *= ochunkp[d];
 	        if(d > 0) fprintf(stderr,",");
-	        fprintf(stderr,"%lu",(unsigned long)chunksizes[d]);
+	        fprintf(stderr,"%lu",(unsigned long)ochunkp[d]);
 	    }
             fprintf(stderr,"]=%llu\n",totalsize);
 	}
@@ -1086,18 +1069,19 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid, int inkind, int ou
     int innc4 = (inkind == NC_FORMAT_NETCDF4 || inkind == NC_FORMAT_NETCDF4_CLASSIC);
     int outnc4 = (outkind == NC_FORMAT_NETCDF4 || outkind == NC_FORMAT_NETCDF4_CLASSIC);
     int deflated = 0; /* true iff deflation is applied */
+    int ndims;
 
     if(!outnc4)
 	return stat; /* Ignore non-netcdf4 files */
 
     {				/* handle chunking parameters */
-	int ndims;
 	NC_CHECK(nc_inq_varndims(igrp, varid, &ndims));
 	if (ndims > 0) {		/* no chunking for scalar variables */
 	    NC_CHECK(copy_chunking(igrp, varid, ogrp, o_varid, ndims, inkind, outkind));
 	}
     }
 
+    if(ndims > 0)
     { /* handle compression parameters, copying from input, overriding
        * with command-line options */
 	int shuffle_in=0, deflate_in=0, deflate_level_in=0;
@@ -1129,7 +1113,7 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid, int inkind, int ou
 	}
     }
 
-    if(innc4 && outnc4)
+    if(innc4 && outnc4 && ndims > 0)
     {				/* handle checksum parameters */
 	int fletcher32 = 0;
 	NC_CHECK(nc_inq_var_fletcher32(igrp, varid, &fletcher32));
@@ -1147,7 +1131,7 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid, int inkind, int ou
 	}
     }
 
-    if(!deflated) {
+    if(!deflated && ndims > 0) {
         /* handle other general filters */
         NC_CHECK(copy_var_filter(igrp, varid, ogrp, o_varid, inkind, outkind));
     }
@@ -1267,9 +1251,9 @@ free_var_chunk_cache(int grp, int varid)
     int kind;
     NC_CHECK(nc_inq_format(grp, &kind));
     if(kind == NC_FORMAT_NETCDF4 || kind == NC_FORMAT_NETCDF4_CLASSIC) {
-	int contig = 1;
+	int contig = NC_CONTIGUOUS
 	NC_CHECK(nc_inq_var_chunking(grp, varid, &contig, NULL));
-	if(contig == 0) {	/* chunked */
+	if(contig == NC_CHUNKED) {	/* chunked */
 	    NC_CHECK(nc_set_var_chunk_cache(grp, varid, chunk_cache_size, cache_nelems, cache_preemp));
 	}
     }
@@ -1576,9 +1560,9 @@ copy_var_data(int igrp, int varid, int ogrp) {
     NC_CHECK(nc_inq_format(ogrp, &okind));
     if(okind == NC_FORMAT_NETCDF4 || okind == NC_FORMAT_NETCDF4_CLASSIC) {
 	/* if this variable chunked, set variable chunk cache size */
-	int contig = 1;
+	int contig = NC_CONTIGUOUS;
 	NC_CHECK(nc_inq_var_chunking(ogrp, ovarid, &contig, NULL));
-	if(contig == 0) {	/* chunked */
+	if(contig == NC_CHUNKED) {	/* chunked */
 	    if(option_compute_chunkcaches) {
 		/* Try to estimate variable-specific chunk cache,
 		 * depending on specific size and shape of this

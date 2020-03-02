@@ -453,13 +453,18 @@ genc_definespecialattributes(Symbol* vsym)
     Specialdata* special = vsym->var.special;
     if(usingclassic) return;
     if(special->flags & _STORAGE_FLAG) {
-        int storage = special->_Storage;
+        const char* storage = NULL;
         size_t* chunks = special->_ChunkSizes;
+	switch (special->_Storage) {
+	case NC_CONTIGUOUS: storage = "NC_CONTIGUOUS"; break;
+	case NC_COMPACT: storage = "NC_COMPACT"; break;
+	case NC_CHUNKED: storage = "NC_CHUNKED"; break;
+	}
         bbprintf0(stmt,
                 "    stat = nc_def_var_chunking(%s, %s, %s, ",
                 groupncid(vsym->container),
                 varncid(vsym),
-                (storage == NC_CONTIGUOUS?"NC_CONTIGUOUS":"NC_CHUNKED"));
+		storage);
         codedump(stmt);
         if(special->nchunks == 0 || chunks == NULL)
             codepartial("NULL");

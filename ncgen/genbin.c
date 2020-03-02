@@ -199,8 +199,9 @@ genbin_definespecialattributes(Symbol* var)
     int stat = NC_NOERR;
     Specialdata* special = var->var.special;
     if(special->flags & _STORAGE_FLAG) {
-	if(special->_Storage == NC_CONTIGUOUS) {
-	    stat = nc_def_var_chunking(var->container->nc_id, var->nc_id, NC_CONTIGUOUS, NULL);
+	if(special->_Storage == NC_CONTIGUOUS
+	   || special->_Storage == NC_COMPACT) {
+	    stat = nc_def_var_chunking(var->container->nc_id, var->nc_id, special->_Storage, NULL);
 	} else { /* chunked */
 	    if(special->nchunks == 0 || special->_ChunkSizes == NULL)
 	        derror("NC_CHUNKED requested, but no chunksizes specified");
