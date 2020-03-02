@@ -950,7 +950,7 @@ copy_chunking(int igrp, int i_varid, int ogrp, int o_varid, int ndims, int inkin
     ovid.grpid = ogrp;
     ovid.varid = o_varid;
     if((stat=computeFQN(ovid,&ofqn))) goto done;
-    if(option_deflate_level >= 0 || hasfilterspecforvar(ofqn) != NULL)
+    if(option_deflate_level >= 0 || hasfilterspecforvar(ofqn))
 	ocontig = NC_CHUNKED;
 
     /* See about dim-specific chunking; does not override -c spec*/
