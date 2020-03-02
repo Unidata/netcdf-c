@@ -677,39 +677,6 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
     if (var->created)
         return NC_ELATEDEF;
 
-#if 0
-    /* Check compression options. */
-    if (deflate && !deflate_level)
-        return NC_EINVAL;
-
-    /* Valid deflate level? */
-    if (deflate)
-    {
-        if (*deflate)
-            if (*deflate_level < NC_MIN_DEFLATE_LEVEL ||
-                *deflate_level > NC_MAX_DEFLATE_LEVEL)
-                return NC_EINVAL;
-
-        /* For scalars, just ignore attempt to deflate. */
-        if (!var->ndims)
-            return NC_NOERR;
-
-        /* If szip is in use, return an error. */
-        if ((retval = nc_inq_var_szip(ncid, varid, &option_mask, NULL)))
-            return retval;
-        if (option_mask)
-            return NC_EINVAL;
-
-        /* Set the deflate settings. */
-        var->contiguous = NC_FALSE;
-        var->compact = NC_FALSE;
-        var->deflate = *deflate;
-        if (*deflate)
-            var->deflate_level = *deflate_level;
-        LOG((3, "%s: *deflate_level %d", __func__, *deflate_level));
-    }
-#endif
-
     /* Cannot set filters of any sort on scalars */
     if(var->ndims == 0) {
 	if(shuffle && *shuffle)
