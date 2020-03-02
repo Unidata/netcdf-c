@@ -562,17 +562,16 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
      * variables which may be contiguous.) */
     LOG((4, "allocating array of %d size_t to hold chunksizes for var %s",
          var->ndims, var->hdr.name));
-    if (var->ndims)
+    if (var->ndims) {
         if (!(var->chunksizes = calloc(var->ndims, sizeof(size_t))))
             BAIL(NC_ENOMEM);
-
-    if ((retval = nc4_find_default_chunksizes2(grp, var)))
-        BAIL(retval);
-
-    /* Is this a variable with a chunksize greater than the current
-     * cache size? */
-    if ((retval = nc4_adjust_var_cache(grp, var)))
-        BAIL(retval);
+        if ((retval = nc4_find_default_chunksizes2(grp, var)))
+            BAIL(retval);
+        /* Is this a variable with a chunksize greater than the current
+         * cache size? */
+        if ((retval = nc4_adjust_var_cache(grp, var)))
+           BAIL(retval);
+    }
 
     /* If the user names this variable the same as a dimension, but
      * doesn't use that dimension first in its list of dimension ids,
