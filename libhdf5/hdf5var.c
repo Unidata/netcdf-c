@@ -679,9 +679,9 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
     /* Cannot set filters of any sort on scalars */
     if(var->ndims == 0) {
 	if(shuffle && *shuffle)
-	    return NC_NOERR; /* ignore */
+	    return NC_EINVAL;
 	if(fletcher32 && *fletcher32)
-	    return NC_NOERR; /* ignore */
+	    return NC_EINVAL;
     }
 
     /* Shuffle filter? */

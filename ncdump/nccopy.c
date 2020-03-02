@@ -1069,18 +1069,19 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid, int inkind, int ou
     int innc4 = (inkind == NC_FORMAT_NETCDF4 || inkind == NC_FORMAT_NETCDF4_CLASSIC);
     int outnc4 = (outkind == NC_FORMAT_NETCDF4 || outkind == NC_FORMAT_NETCDF4_CLASSIC);
     int deflated = 0; /* true iff deflation is applied */
+    int ndims;
 
     if(!outnc4)
 	return stat; /* Ignore non-netcdf4 files */
 
     {				/* handle chunking parameters */
-	int ndims;
 	NC_CHECK(nc_inq_varndims(igrp, varid, &ndims));
 	if (ndims > 0) {		/* no chunking for scalar variables */
 	    NC_CHECK(copy_chunking(igrp, varid, ogrp, o_varid, ndims, inkind, outkind));
 	}
     }
 
+    if(ndims > 0)
     { /* handle compression parameters, copying from input, overriding
        * with command-line options */
 	int shuffle_in=0, deflate_in=0, deflate_level_in=0;
@@ -1112,7 +1113,7 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid, int inkind, int ou
 	}
     }
 
-    if(innc4 && outnc4)
+    if(innc4 && outnc4 && ndims > 0)
     {				/* handle checksum parameters */
 	int fletcher32 = 0;
 	NC_CHECK(nc_inq_var_fletcher32(igrp, varid, &fletcher32));
@@ -1130,7 +1131,7 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid, int inkind, int ou
 	}
     }
 
-    if(!deflated) {
+    if(!deflated && ndims > 0) {
         /* handle other general filters */
         NC_CHECK(copy_var_filter(igrp, varid, ogrp, o_varid, inkind, outkind));
     }
