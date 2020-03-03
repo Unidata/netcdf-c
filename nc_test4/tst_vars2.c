@@ -912,18 +912,18 @@ main(int argc, char **argv)
         if (nc_def_var(ncid, VAR_NAME5_2, NC_INT, 0, NULL, &varid2)) ERR;
         if (nc_def_var(ncid, VAR_NAME5_3, NC_INT, 0, NULL, &varid3)) ERR;
         if (nc_def_var(ncid, VAR_NAME5_4, NC_INT, NDIMS5, dimids, &varid4)) ERR;
-        if (nc_def_var_chunking(ncid, varid2, NC_CHUNKED, chunksize)) ERR;
+        if (nc_def_var_chunking(ncid, varid2, NC_CHUNKED, chunksize) != NC_EINVAL) ERR;
         if (nc_def_var_chunking(ncid, varid3, NC_CONTIGUOUS, NULL)) ERR;
         if (nc_def_var_chunking(ncid, varid4, NC_CHUNKED, large_chunksize) != NC_EBADCHUNK) ERR;
-        if (nc_def_var_chunking_ints(ncid, varid2, NC_CHUNKED, chunksize_int)) ERR;
+        if (nc_def_var_chunking_ints(ncid, varid2, NC_CHUNKED, chunksize_int) != NC_EINVAL) ERR;
         if (nc_def_var_chunking_ints(ncid, varid1, NC_CHUNKED, chunksize_int)) ERR;
-        if (nc_inq_var_chunking_ints(ncid, varid2, NULL, chunksize_int_in)) ERR;
+        if (nc_inq_var_chunking_ints(ncid, varid2, &storage_in, NULL)) ERR;
+        if (storage_in != NC_CONTIGUOUS) ERR;
         if (nc_inq_var_chunking_ints(ncid, varid1, NULL, chunksize_int_in)) ERR;
         for (d = 0; d < NDIMS5; d++)
             if (chunksize_int_in[d] != chunksize[d] * 2) ERR;
         if (nc_inq_var_chunking_ints(ncid, varid1, &storage_in, NULL)) ERR;
         if (storage_in != NC_CHUNKED) ERR;
-        if (nc_inq_var_chunking_ints(ncid, varid2, NULL, chunksize_int_in)) ERR;
         if (nc_inq_var_chunking_ints(ncid, varid3, &storage_in, NULL)) ERR;
         if (storage_in != NC_CONTIGUOUS) ERR;
         if (nc_inq_var_chunking_ints(ncid, varid3, &storage_in, chunksize_int_in)) ERR;
