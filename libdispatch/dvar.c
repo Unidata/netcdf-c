@@ -470,10 +470,8 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
 }
 
 /**
-   Define chunking parameters for a variable
-
-   The function nc_def_var_chunking sets the storage and, optionally,
-   the chunking parameters for a variable in a netCDF-4 file.
+   Define storage and, if chunked storage is used, chunking parameters
+   for a variable
 
    The storage may be set to NC_CONTIGUOUS, NC_COMPACT, or NC_CHUNKED.
 
@@ -490,7 +488,7 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
    Chunked storage means the data are stored as chunks, of
    user-configurable size. Chunked storage is required for variable
    with one or more unlimted dimensions, or variable which use
-   compression.
+   compression, or any other filter.
 
    The total size of a chunk must be less than 4 GiB. That is, the
    product of all chunksizes and the size of the data (or the size of
@@ -500,16 +498,14 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
    before nc_enddef is called. Once the chunking parameters are set for a
    variable, they cannot be changed.
 
-   Note scalar variables may have a storage of NC_CONTIGUOUS or
-   NC_COMPACT. Attempts to set chunking on a scalare variable will be
-   ignored by the library (but no error code is returned). Only
-   non-scalar variables can have chunking.
+   @note Scalar variables may have a storage of NC_CONTIGUOUS or
+   NC_COMPACT. Attempts to set chunking on a scalare variable will
+   cause ::NC_EINVEL to be returned. Only non-scalar variables can
+   have chunking.
 
    @param ncid NetCDF ID, from a previous call to nc_open() or
    nc_create().
-
    @param varid Variable ID.
-
    @param storage If ::NC_CONTIGUOUS or ::NC_COMPACT, then contiguous
    or compact storage is used for this variable. Variables with one or
    more unlimited dimensions cannot use contiguous or compact
@@ -518,20 +514,19 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
    storage is used for this variable. Chunk sizes may be specified
    with the chunksizes parameter or default sizes will be used if that
    parameter is NULL.
-
    @param chunksizesp A pointer to an array list of chunk sizes. The
    array must have one chunksize for each dimension of the variable. If
    ::NC_CONTIGUOUS storage is set, then the chunksizes parameter is
-   ignored.
+   ignored. Ignored if NULL.
 
    @return ::NC_NOERR No error.
    @return ::NC_EBADID Bad ID.
    @return ::NC_ENOTNC4 Not a netCDF-4 file.
-   @return ::NC_ELATEDEF This variable has already been the subject of a
-   nc_enddef call.  In netCDF-4 files nc_enddef will be called
+   @return ::NC_ELATEDEF This variable has already been the subject of
+   a nc_enddef call.  In netCDF-4 files nc_enddef will be called
    automatically for any data read or write. Once nc_enddef has been
-   called after the nc_def_var call for a variable, it is impossible to
-   set the chunking for that variable.
+   called after the nc_def_var call for a variable, it is impossible
+   to set the chunking for that variable.
    @return ::NC_ENOTINDEFINE Not in define mode.  This is returned for
    netCDF classic or 64-bit offset files, or for netCDF-4 files, when
    they wwere created with ::NC_CLASSIC_MODEL flag by nc_create().
@@ -542,7 +537,8 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
    @return ::NC_EVARSIZE Compact storage attempted for variable bigger
    than 64 KB.
    @return ::NC_EINVAL Attempt to set contiguous or compact storage
-   for var with one or more unlimited dimensions.
+   for var with one or more unlimited dimensions, or chunking for a
+   scalar var.
 
    @section nc_def_var_chunking_example Example
 
@@ -585,8 +581,7 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
    @author Ed Hartnett, Dennis Heimbigner
 */
 int
-nc_def_var_chunking(int ncid, int varid, int storage,
-                    const size_t *chunksizesp)
+nc_def_var_chunking(int ncid, int varid, int storage, const size_t *chunksizesp)
 {
     NC* ncp;
     int stat = NC_check_id(ncid, &ncp);

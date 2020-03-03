@@ -246,7 +246,6 @@ main()
         char file_name[STR_LEN + 1];
         char dimscale_wo_var[STR_LEN];
         void *bufr;
-        hsize_t num_obj;
         void *fillp = NULL;
 
         sprintf(file_name, "%s/%s", TEMP_LARGE, FILE_NAME);
@@ -359,12 +358,6 @@ main()
         if (H5Dclose(dim2_dimscaleid) < 0) ERR;
         if (H5Dclose(datasetid) < 0) ERR;
         if (H5Gclose(grpid) < 0) ERR;
-        if (H5Fclose(fileid) < 0) ERR;
-
-        /* Reopen the file and check it. */
-        if ((fileid = H5Fopen(file_name, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) ERR;
-        if (H5Gget_num_objs(fileid, &num_obj) < 0) ERR;
-        if (num_obj) ERR;
         if (H5Fclose(fileid) < 0) ERR;
 
         /* Delete the huge data file we created. */
