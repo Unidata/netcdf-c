@@ -299,12 +299,12 @@ main(int argc, char **argv)
                           &ncid)) ERR;
         if (nc_def_var(ncid, "fred", NC_BYTE, 0, NULL, &varid)) ERR;
         if (nc_enddef(ncid)) ERR;
-        if (nc_put_var_schar(ncid, varid, &test_data));
+        if (nc_put_var_schar(ncid, varid, &test_data)) ERR;
         if (nc_close(ncid)) ERR;
 
         /* Reopen the file and check. */
         if (nc_open_par(FILE, 0, comm, info, &ncid)) ERR;
-        if (nc_get_var_schar(ncid, varid, &test_data_in));
+        if (nc_get_var_schar(ncid, varid, &test_data_in)) ERR;
         if (test_data_in != test_data) ERR;
         if (nc_close(ncid)) ERR;
     }
@@ -341,13 +341,13 @@ main(int argc, char **argv)
         if (nc_enddef(ncid)) ERR;
         start[0] = mpi_rank * elements_per_pe;
         count[0] = elements_per_pe;
-        if (nc_put_vara_float(ncid, varid, start, count, data));
+        if (nc_put_vara_float(ncid, varid, start, count, data)) ERR;
         if (nc_close(ncid)) ERR;
 
         /* Reopen the file and check. */
         if (nc_open_par(FILE, 0, comm, info, &ncid)) ERR;
         if (!(data_in = malloc(elements_per_pe * sizeof(float)))) ERR;
-        if (nc_get_vara_float(ncid, varid, start, count, data_in));
+        if (nc_get_vara_float(ncid, varid, start, count, data_in)) ERR;
         if (nc_close(ncid)) ERR;
         for (i = 0; i < elements_per_pe; i++)
             if (data_in[i] != data[i]) ERR;
