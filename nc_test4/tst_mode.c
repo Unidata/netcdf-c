@@ -21,7 +21,7 @@
 int
 main(int argc, char** argv)
 {
-    int ncid,varid;
+    int ncid,varid,dimid;
     int retval;
 
     printf("\n*** Testing illegal mode combinations\n");
@@ -30,7 +30,8 @@ main(int argc, char** argv)
 
     printf("*** Testing create + MPIO + fletcher32\n");
     if ((retval = nc_create_par(FILE_NAME, NC_CLOBBER|NC_NETCDF4, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid))) ERR;
-    if ((retval = nc_def_var(ncid,"whatever",NC_INT,0,NULL,&varid))) ERR;
+    if ((retval = nc_def_dim(ncid,"whatever",10,&dimid))) ERR;
+    if ((retval = nc_def_var(ncid,"whatever",NC_INT,1,&dimid,&varid))) ERR;
     retval = nc_def_var_fletcher32(ncid,varid,NC_FLETCHER32);
 #ifdef HDF5_SUPPORTS_PAR_FILTERS
     if(retval != NC_NOERR) ERR;
@@ -46,7 +47,8 @@ main(int argc, char** argv)
 
     printf("*** Testing create + MPIO + deflation\n");
     if ((retval = nc_create_par(FILE_NAME, NC_CLOBBER|NC_NETCDF4, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid))) ERR;
-    if ((retval = nc_def_var(ncid,"whatever",NC_INT,0,NULL,&varid))) ERR;
+    if ((retval = nc_def_dim(ncid,"whatever",10,&dimid))) ERR;
+    if ((retval = nc_def_var(ncid,"whatever",NC_INT,1,&dimid,&varid))) ERR;
     retval = nc_def_var_deflate(ncid,varid, NC_NOSHUFFLE, 1, 1);
 #ifdef HDF5_SUPPORTS_PAR_FILTERS
     if(retval != NC_NOERR) ERR;

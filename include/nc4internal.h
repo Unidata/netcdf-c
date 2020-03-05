@@ -187,38 +187,39 @@ typedef struct NC_ATT_INFO
 /** This is a struct to handle the var metadata. */
 typedef struct NC_VAR_INFO
 {
-    NC_OBJ hdr;             /**< The hdr contains the name and ID. */
-    char *hdf5_name;        /**< Used if name in HDF5 must be different from name. */
+    NC_OBJ hdr;                  /**< The hdr contains the name and ID. */
+    char *hdf5_name;             /**< Used if name in HDF5 must be different from name. */
     struct NC_GRP_INFO *container; /**< Pointer to containing group. */
-    size_t ndims;           /**< Number of dims. */
-    int *dimids;            /**< Dim IDs. */
-    NC_DIM_INFO_T **dim;    /**< Pointer to dim. */
-    nc_bool_t is_new_var;        /**< True if variable is newly created */
-    nc_bool_t was_coord_var;     /**< True if variable was a coordinate var, but either the dim or var has been renamed */
-    nc_bool_t became_coord_var;  /**< True if variable _became_ a coordinate var, because either the dim or var has been renamed */
-    nc_bool_t fill_val_changed;  /**< True if variable's fill value changes after it has been created */
-    nc_bool_t attr_dirty;        /**< True if variable's attributes are dirty and should be rewritten */
-    nc_bool_t created;           /**< Variable has already been created (_not_ that it was just created) */
-    nc_bool_t written_to;        /**< True if variable has data written to it */
-    struct NC_TYPE_INFO *type_info;
+    size_t ndims;                /**< Number of dims. */
+    int *dimids;                 /**< Dim IDs. */
+    NC_DIM_INFO_T **dim;         /**< Pointer to array of NC_DIM_INFO_T. */
+    nc_bool_t is_new_var;        /**< True if variable is newly created. */
+    nc_bool_t was_coord_var;     /**< True if variable was a coordinate var, but either the dim or var has been renamed. */
+    nc_bool_t became_coord_var;  /**< True if variable _became_ a coordinate var, because either the dim or var has been renamed. */
+    nc_bool_t fill_val_changed;  /**< True if variable's fill value changes after it has been created. */
+    nc_bool_t attr_dirty;        /**< True if variable's attributes are dirty and should be rewritten. */
+    nc_bool_t created;           /**< Variable has already been created (_not_ that it was just created). */
+    nc_bool_t written_to;        /**< True if variable has data written to it. */
+    struct NC_TYPE_INFO *type_info; /**< Contains info about the variable type. */
     int atts_read;               /**< If true, the atts have been read. */
     nc_bool_t meta_read;         /**< True if this vars metadata has been completely read. */
     nc_bool_t coords_read;       /**< True if this var has hidden coordinates att, and it has been read. */
-    NCindex *att;                /**< NCindex<NC_ATT_INFO_T*> */
-    nc_bool_t no_fill;           /**< True if no fill value is defined for var */
-    void *fill_value;
-    size_t *chunksizes;
-    nc_bool_t contiguous;        /**< True if variable is stored contiguously in HDF5 file */
-    nc_bool_t compact;           /**< True if variable is in comact storage in HDF5 file */
-    int parallel_access;         /**< Type of parallel access for I/O on variable (collective or independent) */
-    nc_bool_t dimscale;          /**< True if var is a dimscale */
-    nc_bool_t *dimscale_attached;  /**< Array of flags that are true if dimscale is attached for that dim index */
-    nc_bool_t shuffle;           /**< True if var has shuffle filter applied */
-    nc_bool_t fletcher32;        /**< True if var has fletcher32 filter applied */
-    size_t chunk_cache_size, chunk_cache_nelems;
-    float chunk_cache_preemption;
+    NCindex *att;                /**< List of NC_ATT_INFO_T. */
+    nc_bool_t no_fill;           /**< True if no fill value is defined for var. */
+    void *fill_value;            /**< Pointer to fill value, or NULL. */
+    size_t *chunksizes;          /**< For chunked storage, an array (size ndims) of chunksizes. */
+    nc_bool_t contiguous;        /**< True if variable is stored contiguously in HDF5 file. */
+    nc_bool_t compact;           /**< True if variable is in comact storage in HDF5 file. */
+    int parallel_access;         /**< Type of parallel access for I/O on variable (collective or independent). */
+    nc_bool_t dimscale;          /**< True if var is a dimscale. */
+    nc_bool_t *dimscale_attached;  /**< Array of flags that are true if dimscale is attached for that dim index. */
+    nc_bool_t shuffle;           /**< True if var has shuffle filter applied. */
+    nc_bool_t fletcher32;        /**< True if var has fletcher32 filter applied. */
+    size_t chunk_cache_size;     /**< Size in bytes of the var chunk chache. */
+    size_t chunk_cache_nelems;   /**< Number of slots in var chunk cache. */
+    float chunk_cache_preemption; /**< Chunk cache preemtion policy. */
     void *format_var_info;       /**< Pointer to any binary format info. */
-    NClist* filters;             /**< List<NC_FILTER_SPEC> */
+    NClist* filters;             /**< List of filters to be applied to var data.  */
 } NC_VAR_INFO_T;
 
 /** This is a struct to handle the field metadata from a user-defined
