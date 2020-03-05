@@ -217,7 +217,7 @@ NC_parsefilterspec(const char* txt, int format, NC_Filterspec** specp)
 	    break;
 
 	/* The following are 8-byte values, so we must swap pieces if this
-           is a little endian machine */	
+           is a little endian machine */
 	case 'd':
 	    sstat = sscanf(p,"%lf",&vald);
 	    if(sstat != 1) goto fail;
@@ -373,7 +373,7 @@ NC4_filterfix8(unsigned char* mem, int decode)
     }
 #else /* Little endian */
     /* No action is necessary */
-#endif	    
+#endif
 }
 
 
@@ -473,7 +473,7 @@ nc_inq_var_filterids(int ncid, int varid, size_t* nfiltersp, unsigned int* ids)
    ncids.sort = NC_FILTER_SORT_IDS;
    ncids.u.ids.nfilters = (nfiltersp?*nfiltersp:0);
    ncids.u.ids.filterids = ids;
-   
+
    if((stat = ncp->dispatch->filter_actions(ncid,varid, NCFILTER_FILTERIDS, (NC_Filterobject*)&ncids)) == NC_NOERR) {
        if(nfiltersp) *nfiltersp = ncids.u.ids.nfilters;
    }
@@ -597,7 +597,7 @@ nc_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams, const un
     NC* ncp;
     NC_FILTER_OBJ_HDF5 spec;
     int stat = NC_check_id(ncid,&ncp);
-   
+
     if(stat != NC_NOERR) return stat;
     TRACE(nc_def_var_filter_hdf5);
 
@@ -627,7 +627,7 @@ nc_var_filter_remove(int ncid, int varid, unsigned int id)
     NC* ncp;
     int stat = NC_check_id(ncid,&ncp);
     NC_FILTER_OBJ_HDF5 spec;
-    
+
     if(stat != NC_NOERR) return stat;
     TRACE(nc_var_filter_hdf5_remove);
 
@@ -648,7 +648,7 @@ gettype(const int q0, const int q1, int* isunsignedp)
     int type = 0;
     int isunsigned = 0;
     char typechar;
-    
+
     isunsigned = (q0 == 'u' || q0 == 'U');
     if(q1 == '\0')
 	typechar = q0; /* we were given only a single char */
@@ -674,7 +674,7 @@ gettype(const int q0, const int q1, int* isunsignedp)
 
 #ifdef WORDS_BIGENDIAN
 /* Byte swap an 8-byte integer in place */
-static void
+void
 byteswap8(unsigned char* mem)
 {
     unsigned char c;
@@ -693,7 +693,7 @@ byteswap8(unsigned char* mem)
 }
 
 /* Byte swap an 8-byte integer in place */
-static void
+void
 byteswap4(unsigned char* mem)
 {
     unsigned char c;
@@ -705,5 +705,3 @@ byteswap4(unsigned char* mem)
     mem[2] = c;
 }
 #endif
-
-
