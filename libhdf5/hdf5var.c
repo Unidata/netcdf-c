@@ -731,8 +731,6 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
         if (*storage == NC_CHUNKED && var->ndims == 0)
         {
             return NC_EINVAL;
-                /* var->contiguous = NC_TRUE; */
-		/* var->compact = NC_FALSE; */
         } else if (*storage == NC_CHUNKED)
         {
             var->contiguous = NC_FALSE;
