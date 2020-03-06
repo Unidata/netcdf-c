@@ -728,9 +728,9 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
         }
 
         /* Handle chunked storage settings. */
-        if (*storage == NC_CHUNKED && var->ndims == 0) {
-                var->contiguous = NC_TRUE;
-		var->compact = NC_FALSE;
+        if (*storage == NC_CHUNKED && var->ndims == 0)
+        {
+            return NC_EINVAL;
         } else if (*storage == NC_CHUNKED)
         {
             var->contiguous = NC_FALSE;

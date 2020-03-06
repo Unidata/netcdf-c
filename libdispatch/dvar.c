@@ -327,7 +327,8 @@ nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
    to chunked data, with default chunksizes. Use nc_def_var_chunking()
    to tune performance with user-defined chunksizes.
 
-   If this function is called on a scalar variable, it is ignored.
+   If this function is called on a scalar variable, ::NC_EINVAL is
+   returned. Only chunked variables may use filters.
 
    If this function is called on a variable which already has szip
    compression turned on, ::NC_EINVAL is returned.
