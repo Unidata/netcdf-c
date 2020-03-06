@@ -580,13 +580,16 @@ nc_inq_var_filter(int ncid, int varid, unsigned int* idp, size_t* nparamsp, unsi
 /**
    Define a new variable hdf5 filter.
 
+   Only variables with chunked storage can use filters.
+
    @param ncid File and group ID.
    @param varid Variable ID.
-   @param id
+   @param id Filter ID.
    @param nparams Number of filter parameters.
    @param parms Filter parameters.
 
    @return ::NC_NOERR No error.
+   @return ::NC_EINVAL Variable must be chunked.
    @return ::NC_EBADID Bad ID.
    @author Dennis Heimbigner
 */
