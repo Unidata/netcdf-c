@@ -1107,12 +1107,10 @@ get_chunking_info(hid_t propid, NC_VAR_INFO_T *var)
     else if (layout == H5D_CONTIGUOUS)
     {
 	var->storage = NC_CONTIGUOUS;
-        var->contiguous = NC_TRUE;
     }
     else if (layout == H5D_COMPACT)
     {
 	var->storage = NC_COMPACT;
-        var->compact = NC_TRUE;
     }
 
     return NC_NOERR;
