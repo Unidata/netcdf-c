@@ -1696,9 +1696,9 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
         }
         if (!var->meta_read)
             strcat(storage_str, "unknown");
-        else if (var->contiguous)
+        else if (var->storage == NC_CONTIGUOUS)
             strcat(storage_str, "contiguous");
-        else if (var->compact)
+        else if (var->storage == NC_COMPACT)
             strcat(storage_str, "compact");
         else
             strcat(storage_str, "chunked");

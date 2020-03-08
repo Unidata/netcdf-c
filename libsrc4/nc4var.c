@@ -323,7 +323,7 @@ nc_inq_var_chunking_ints(int ncid, int varid, int *storagep, int *chunksizesp)
                              NULL, NULL, NULL, NULL, NULL);
 
     /* Copy from size_t array. */
-    if (!retval && chunksizesp && var->contiguous == NC_CHUNKED)
+    if (!retval && chunksizesp && var->storage == NC_CHUNKED)
     {
         for (i = 0; i < var->ndims; i++)
         {
