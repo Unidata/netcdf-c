@@ -510,6 +510,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
      * is it a coordinate var in the same group as the dim? Also, check
      * whether we should use contiguous or chunked storage. */
     var->contiguous = NC_TRUE;
+    var->storage = NC_CONTIGUOUS;
     for (d = 0; d < ndims; d++)
     {
         NC_GRP_INFO_T *dim_grp;
@@ -549,9 +550,13 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
             }
         }
 
-        /* Check for unlimited dimension and turn off contiguous storage. */
+        /* Check for unlimited dimension. If present, we must use
+	 * chunked storage. */
         if (dim->unlimited)
+	{
             var->contiguous = NC_FALSE;
+	    var->storage = NC_CHUNKED;
+	}
 
         /* Track dimensions for variable */
         var->dimids[d] = dimidsp[d];
@@ -689,7 +694,9 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
     {
         var->shuffle = *shuffle;
         var->contiguous = NC_FALSE;
-        var->compact = NC_FALSE;    }
+        var->compact = NC_FALSE;
+	var->storage = NC_CHUNKED;
+    }
 
     /* Fletcher32 checksum error protection? */
     if (fletcher32)
@@ -697,6 +704,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
         var->fletcher32 = *fletcher32;
         var->contiguous = NC_FALSE;
         var->compact = NC_FALSE;
+	var->storage = NC_CHUNKED;
     }
 
 #ifdef USE_PARALLEL
@@ -730,11 +738,14 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
         /* Handle chunked storage settings. */
         if (*storage == NC_CHUNKED && var->ndims == 0)
         {
+	    /* Chunked not allowed for scalar vars. */
             return NC_EINVAL;
-        } else if (*storage == NC_CHUNKED)
+        }
+	else if (*storage == NC_CHUNKED)
         {
             var->contiguous = NC_FALSE;
             var->compact = NC_FALSE;
+	    var->storage = NC_CHUNKED;
 
             /* If the user provided chunksizes, check that they are not too
              * big, and that their total size of chunk is less than 4 GB. */
@@ -759,6 +770,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
         {
             var->contiguous = NC_TRUE;
             var->compact = NC_FALSE;
+	    var->storage = NC_CONTIGUOUS;
         }
         else if (*storage == NC_COMPACT)
         {
@@ -775,6 +787,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 
             var->contiguous = NC_FALSE;
             var->compact = NC_TRUE;
+	    var->storage = NC_COMPACT;
         }
     }
 
