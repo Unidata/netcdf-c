@@ -509,7 +509,6 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
      * same name as one of its dimensions. If it is a coordinate var,
      * is it a coordinate var in the same group as the dim? Also, check
      * whether we should use contiguous or chunked storage. */
-    var->contiguous = NC_TRUE;
     var->storage = NC_CONTIGUOUS;
     for (d = 0; d < ndims; d++)
     {
@@ -554,7 +553,6 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
 	 * chunked storage. */
         if (dim->unlimited)
 	{
-            var->contiguous = NC_FALSE;
 	    var->storage = NC_CHUNKED;
 	}
 
@@ -693,8 +691,6 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
     if (shuffle)
     {
         var->shuffle = *shuffle;
-        var->contiguous = NC_FALSE;
-        var->compact = NC_FALSE;
 	var->storage = NC_CHUNKED;
     }
 
@@ -702,8 +698,6 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
     if (fletcher32)
     {
         var->fletcher32 = *fletcher32;
-        var->contiguous = NC_FALSE;
-        var->compact = NC_FALSE;
 	var->storage = NC_CHUNKED;
     }
 
@@ -743,8 +737,6 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
         }
 	else if (*storage == NC_CHUNKED)
         {
-            var->contiguous = NC_FALSE;
-            var->compact = NC_FALSE;
 	    var->storage = NC_CHUNKED;
 
             /* If the user provided chunksizes, check that they are not too
@@ -768,8 +760,6 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
         }
         else if (*storage == NC_CONTIGUOUS)
         {
-            var->contiguous = NC_TRUE;
-            var->compact = NC_FALSE;
 	    var->storage = NC_CONTIGUOUS;
         }
         else if (*storage == NC_COMPACT)
@@ -785,8 +775,6 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
             if (ndata * var->type_info->size > SIXTY_FOUR_KB)
                 return NC_EVARSIZE;
 
-            var->contiguous = NC_FALSE;
-            var->compact = NC_TRUE;
 	    var->storage = NC_COMPACT;
         }
     }
