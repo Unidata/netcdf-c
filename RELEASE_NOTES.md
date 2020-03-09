@@ -7,6 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.7.4 - TBD
 
+* [Enhancement] Support has been added for HDF5-1.12.0.  See [https://github.com/Unidata/netcdf-c/issues/1528].
 * [Bug Fix] Attempts to set filters or chunked storage on scalar vars will now return NC_EINVAL. Scalar vars cannot be chunked, and only chunked vars can have filters. Previously the library ignored these attempts, and always storing scalars as contiguous storage. See [https://github.com/Unidata/netcdf-c/issues/1644].
 * [Enhancement] Support has been added for multiple filters per variable.  See [https://github.com/Unidata/netcdf-c/issues/1584].
 * [Enhancement] Now nc_inq_var_szip retuns 0 for parameter values if szip is not in use for var. See [https://github.com/Unidata/netcdf-c/issues/1618].
