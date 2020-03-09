@@ -174,8 +174,8 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 #endif
 
     if(var->chunksizes == NULL) {
-	if((var->chunksizes = calloc(1,sizeof(size_t)*var->ndims)) == NULL)
-	    return NC_ENOMEM;
+        if((var->chunksizes = calloc(1,sizeof(size_t)*var->ndims)) == NULL)
+            return NC_ENOMEM;
     }
 
     /* How many values in the variable (or one record, if there are
@@ -509,7 +509,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
      * same name as one of its dimensions. If it is a coordinate var,
      * is it a coordinate var in the same group as the dim? Also, check
      * whether we should use contiguous or chunked storage. */
-    var->contiguous = NC_TRUE;
+    var->storage = NC_CONTIGUOUS;
     for (d = 0; d < ndims; d++)
     {
         NC_GRP_INFO_T *dim_grp;
@@ -549,9 +549,12 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
             }
         }
 
-        /* Check for unlimited dimension and turn off contiguous storage. */
+        /* Check for unlimited dimension. If present, we must use
+         * chunked storage. */
         if (dim->unlimited)
-            var->contiguous = NC_FALSE;
+        {
+            var->storage = NC_CHUNKED;
+        }
 
         /* Track dimensions for variable */
         var->dimids[d] = dimidsp[d];
@@ -570,7 +573,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
         /* Is this a variable with a chunksize greater than the current
          * cache size? */
         if ((retval = nc4_adjust_var_cache(grp, var)))
-           BAIL(retval);
+            BAIL(retval);
     }
 
     /* If the user names this variable the same as a dimension, but
@@ -678,25 +681,24 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 
     /* Cannot set filters of any sort on scalars */
     if(var->ndims == 0) {
-	if(shuffle && *shuffle)
-	    return NC_EINVAL;
-	if(fletcher32 && *fletcher32)
-	    return NC_EINVAL;
+        if(shuffle && *shuffle)
+            return NC_EINVAL;
+        if(fletcher32 && *fletcher32)
+            return NC_EINVAL;
     }
 
     /* Shuffle filter? */
     if (shuffle)
     {
         var->shuffle = *shuffle;
-        var->contiguous = NC_FALSE;
-        var->compact = NC_FALSE;    }
+        var->storage = NC_CHUNKED;
+    }
 
     /* Fletcher32 checksum error protection? */
     if (fletcher32)
     {
         var->fletcher32 = *fletcher32;
-        var->contiguous = NC_FALSE;
-        var->compact = NC_FALSE;
+        var->storage = NC_CHUNKED;
     }
 
 #ifdef USE_PARALLEL
@@ -730,11 +732,12 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
         /* Handle chunked storage settings. */
         if (*storage == NC_CHUNKED && var->ndims == 0)
         {
+            /* Chunked not allowed for scalar vars. */
             return NC_EINVAL;
-        } else if (*storage == NC_CHUNKED)
+        }
+        else if (*storage == NC_CHUNKED)
         {
-            var->contiguous = NC_FALSE;
-            var->compact = NC_FALSE;
+            var->storage = NC_CHUNKED;
 
             /* If the user provided chunksizes, check that they are not too
              * big, and that their total size of chunk is less than 4 GB. */
@@ -757,8 +760,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
         }
         else if (*storage == NC_CONTIGUOUS)
         {
-            var->contiguous = NC_TRUE;
-            var->compact = NC_FALSE;
+            var->storage = NC_CONTIGUOUS;
         }
         else if (*storage == NC_COMPACT)
         {
@@ -773,14 +775,13 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
             if (ndata * var->type_info->size > SIXTY_FOUR_KB)
                 return NC_EVARSIZE;
 
-            var->contiguous = NC_FALSE;
-            var->compact = NC_TRUE;
+            var->storage = NC_COMPACT;
         }
     }
 
     /* Is this a variable with a chunksize greater than the current
      * cache size? */
-    if (!var->contiguous && !var->compact)
+    if (var->storage == NC_CHUNKED)
     {
         /* Determine default chunksizes for this variable (do nothing
          * for scalar vars). */
