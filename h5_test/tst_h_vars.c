@@ -1,6 +1,6 @@
-/* This is part of the netCDF package.
-   Copyright 2020 University Corporation for Atmospheric Research/Unidata
-   See COPYRIGHT file for conditions of use.
+/* This is part of the netCDF package. Copyright 2020 University
+   Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
+   conditions of use.
 
    Test HDF5 file code. These are not intended to be exhaustive tests,
    but they use HDF5 the same way that netCDF-4 does, so if these
