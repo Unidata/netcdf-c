@@ -1096,6 +1096,7 @@ get_chunking_info(hid_t propid, NC_VAR_INFO_T *var)
     /* Remember the layout and, if chunked, the chunksizes. */
     if (layout == H5D_CHUNKED)
     {
+	var->storage = NC_CHUNKED;
         if (H5Pget_chunk(propid, H5S_MAX_RANK, chunksize) < 0)
             return NC_EHDFERR;
         if (!(var->chunksizes = malloc(var->ndims * sizeof(size_t))))
@@ -1104,9 +1105,13 @@ get_chunking_info(hid_t propid, NC_VAR_INFO_T *var)
             var->chunksizes[d] = chunksize[d];
     }
     else if (layout == H5D_CONTIGUOUS)
-        var->contiguous = NC_TRUE;
+    {
+	var->storage = NC_CONTIGUOUS;
+    }
     else if (layout == H5D_COMPACT)
-        var->compact = NC_TRUE;
+    {
+	var->storage = NC_COMPACT;
+    }
 
     return NC_NOERR;
 }

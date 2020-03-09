@@ -123,7 +123,7 @@ nc_get_var_chunk_cache_ints(int ncid, int varid, int *sizep,
  * @param deflatep Gets deflate setting.
  * @param deflate_levelp Gets deflate level.
  * @param fletcher32p Gets fletcher32 setting.
- * @param storagep Gets contiguous setting.
+ * @param storagep Gets storage setting.
  * @param chunksizesp Gets chunksizes.
  * @param no_fill Gets fill mode.
  * @param fill_valuep Gets fill value.
@@ -188,7 +188,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
         *nattsp = ncindexcount(var->att);
 
     /* Did the user want the chunksizes? */
-    if (!var->contiguous && !var->compact && chunksizesp)
+    if (var->storage == NC_CHUNKED && chunksizesp)
     {
         for (d = 0; d < var->ndims; d++)
         {
@@ -199,14 +199,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 
     /* Did the user inquire about the storage? */
     if (storagep)
-    {
-        if (var->contiguous)
-            *storagep = NC_CONTIGUOUS;
-        else if (var->compact)
-            *storagep = NC_COMPACT;
-        else
-            *storagep = NC_CHUNKED;
-    }
+	*storagep = var->storage;
 
     /* Filter stuff. */
     if (shufflep)
@@ -330,7 +323,7 @@ nc_inq_var_chunking_ints(int ncid, int varid, int *storagep, int *chunksizesp)
                              NULL, NULL, NULL, NULL, NULL);
 
     /* Copy from size_t array. */
-    if (!retval && chunksizesp && var->contiguous == NC_CHUNKED)
+    if (!retval && chunksizesp && var->storage == NC_CHUNKED)
     {
         for (i = 0; i < var->ndims; i++)
         {
