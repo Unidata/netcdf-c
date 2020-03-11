@@ -28,4 +28,6 @@ ${NCGEN} -b -o "${UNISTRING}/tst_utf.nc" "${srcdir}/ref_tst_utf8.cdl"; ERR
 echo "*** Accessing binary file ${UNISTRING}/tst_utf.nc..."
 ${NCDUMP} -h "${UNISTRING}/tst_utf.nc"; ERR
 
-echo "Test Passed"
+echo "Test Passed. Cleaning up."
+rm "${UNISTRING}/tst_utf.nc"; ERR
+rmdir "${UNISTRING}"; ERR
