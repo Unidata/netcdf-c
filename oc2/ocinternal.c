@@ -229,7 +229,7 @@ ocfetch(OCstate* state, const char* constraint, OCdxd kind, OCflags flags,
     stat = DAPparse(state,tree,tree->text);
     /* Check and report on an error return from the server */
     if(stat == OC_EDAPSVC  && state->error.code != NULL) {
-	nclog(NCLOGERR,"oc_open: server error retrieving url: code=%s message=\"%s\"",
+	fprintf(stderr,"oc_open: server error retrieving url: code=%s message=\"%s\"",
 		  state->error.code,
 		  (state->error.message?state->error.message:""));
     }
@@ -286,7 +286,7 @@ fprintf(stderr,"ocfetch.datadds.memory: datasize=%lu bod=%lu\n",
          */
 	if(dataError(tree->data.xdrs,state)) {
 	    stat = OC_EDATADDS;
-	    nclog(NCLOGERR,"oc_open: server error retrieving url: code=%s message=\"%s\"",
+	    fprintf(stderr,"oc_open: server error retrieving url: code=%s message=\"%s\"",
 		  state->error.code,
 		  (state->error.message?state->error.message:""));
 	    goto fail;
