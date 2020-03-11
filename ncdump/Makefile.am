@@ -61,7 +61,7 @@ bom tst_dimsizes nctrunc
 # Tests for classic and 64-bit offset files.
 TESTS = tst_inttags.sh run_tests.sh tst_64bit.sh ref_ctest	\
 ref_ctest64 tst_output.sh tst_lengths.sh tst_calendars.sh	\
-run_utf8_tests.sh tst_unicode_directory.sh tst_nccopy3.sh tst_nccopy3_subset.sh		\
+run_utf8_tests.sh test_unicode_directory.sh tst_nccopy3.sh tst_nccopy3_subset.sh		\
 tst_charfill.sh tst_iter.sh tst_formatx3.sh tst_bom.sh		\
 tst_dimsizes.sh run_ncgen_tests.sh tst_ncgen4_classic.sh test_radix.sh
 
