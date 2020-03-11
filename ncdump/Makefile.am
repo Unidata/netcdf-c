@@ -122,7 +122,6 @@ tst_lengths.sh tst_ncml.cdl ref1.ncml ref_tst_group_data.cdl		\
 ref_tst_enum_data.cdl ref_tst_opaque_data.cdl ref_tst_string_data.cdl	\
 ref_tst_vlen_data.cdl ref_tst_comp.cdl ref_tst_unicode.cdl		\
 ref_tst_nans.cdl small.cdl small2.cdl $(man_MANS) run_utf8_tests.sh	\
-tst_unicode_directory.sh \
 ref_tst_utf8.cdl ref_tst_fillbug.cdl tst_fillbug.sh tst_calendars.cdl	\
 tst_calendars.sh ref_times.cdl ref_tst_special_atts.cdl			\
 ref_tst_noncoord.cdl ref_tst_compounds2.nc ref_tst_compounds2.cdl	\
@@ -150,7 +149,9 @@ tst_ncgen4.sh tst_ncgen4_classic.sh tst_ncgen4_diff.sh			\
 tst_ncgen4_cycle.sh tst_null_byte_padding.sh				\
 ref_null_byte_padding_test.nc ref_tst_irish_rover.nc ref_provenance_v1.nc \
 ref_tst_radix.cdl tst_radix.cdl test_radix.sh                           \
-ref_nccopy_w.cdl tst_nccopy_w3.sh tst_nccopy_w4.sh ref_no_ncproperty.nc
+ref_nccopy_w.cdl tst_nccopy_w3.sh tst_nccopy_w4.sh ref_no_ncproperty.nc \
+test_unicode_directory.sh
+
 
 # The L512.bin file is file containing exactly 512 bytes each of value 0.
 # It is used for creating hdf5 files with varying offsets for testing.
