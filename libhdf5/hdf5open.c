@@ -66,7 +66,11 @@ typedef struct hdf5_obj_info
 {
     hid_t oid;                          /* HDF5 object ID */
     char oname[NC_MAX_NAME + 1];        /* Name of object */
-    H5G_stat_t statbuf;                 /* Information about the object */
+#if H5_VERSION_GE(1,12,0)
+    H5O_info2_t statbuf;
+#else
+    H5G_stat_t statbuf;                /* Information about the object */
+#endif
     struct hdf5_obj_info *next; /* Pointer to next node in list */
 } hdf5_obj_info_t;
 
@@ -340,11 +344,22 @@ static herr_t
 dimscale_visitor(hid_t did, unsigned dim, hid_t dsid,
                  void *dimscale_hdf5_objids)
 {
-    H5G_stat_t statbuf;
 
     LOG((4, "%s", __func__));
 
     /* Get more info on the dimscale object.*/
+#if H5_VERSION_GE(1,12,0)
+    H5O_info2_t statbuf;
+
+    if (H5Oget_info3(dsid, &statbuf, H5O_INFO_BASIC) < 0)
+        return -1;
+
+    /* Pass this information back to caller. */
+    (*(HDF5_OBJID_T *)dimscale_hdf5_objids).fileno = statbuf.fileno;
+    (*(HDF5_OBJID_T *)dimscale_hdf5_objids).token = statbuf.token;
+#else
+    H5G_stat_t statbuf;
+
     if (H5Gget_objinfo(dsid, ".", 1, &statbuf) < 0)
         return -1;
 
@@ -353,6 +368,7 @@ dimscale_visitor(hid_t did, unsigned dim, hid_t dsid,
     (*(HDF5_OBJID_T *)dimscale_hdf5_objids).fileno[1] = statbuf.fileno[1];
     (*(HDF5_OBJID_T *)dimscale_hdf5_objids).objno[0] = statbuf.objno[0];
     (*(HDF5_OBJID_T *)dimscale_hdf5_objids).objno[1] = statbuf.objno[1];
+#endif
     return 0;
 }
 
@@ -570,10 +586,20 @@ rec_match_dimscales(NC_GRP_INFO_T *grp)
 
                             /* Check for exact match of fileno/objid arrays
                              * to find identical objects in HDF5 file. */
+#if H5_VERSION_GE(1,12,0)
+                            int token_cmp;
+                            if (H5Otoken_cmp(hdf5_var->hdf_datasetid,
+                                             &hdf5_var->dimscale_hdf5_objids[d].token,
+                                             &hdf5_dim->hdf5_objid.token, &token_cmp) < 0)
+                                return NC_EHDFERR;
+                            if (hdf5_var->dimscale_hdf5_objids[d].fileno == hdf5_dim->hdf5_objid.fileno &&
+                                token_cmp == 0)
+#else
                             if (hdf5_var->dimscale_hdf5_objids[d].fileno[0] == hdf5_dim->hdf5_objid.fileno[0] &&
                                 hdf5_var->dimscale_hdf5_objids[d].objno[0] == hdf5_dim->hdf5_objid.objno[0] &&
                                 hdf5_var->dimscale_hdf5_objids[d].fileno[1] == hdf5_dim->hdf5_objid.fileno[1] &&
                                 hdf5_var->dimscale_hdf5_objids[d].objno[1] == hdf5_dim->hdf5_objid.objno[1])
+#endif
                             {
                                 LOG((4, "%s: for dimension %d, found dim %s", __func__,
                                      d, dim->hdr.name));
@@ -2187,7 +2213,12 @@ nc4_read_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
  */
 static int
 read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
-           const H5G_stat_t *statbuf, hsize_t scale_size,
+#if H5_VERSION_GE(1,12,0)
+           const H5O_info2_t *statbuf,
+#else
+           const H5G_stat_t *statbuf,
+#endif
+           hsize_t scale_size,
            hsize_t max_scale_size, NC_DIM_INFO_T **dim)
 {
     NC_DIM_INFO_T *new_dim; /* Dimension added to group */
@@ -2243,12 +2274,17 @@ read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
 
     dimscale_created++;
 
-    /* Remember these 4 values to uniquely identify this dataset in the
+    /* Remember these 4 (or 2 for HDF5 1.12) values to uniquely identify this dataset in the
      * HDF5 file. */
+#if H5_VERSION_GE(1,12,0)
+    new_hdf5_dim->hdf5_objid.fileno = statbuf->fileno;
+    new_hdf5_dim->hdf5_objid.token = statbuf->token;
+#else
     new_hdf5_dim->hdf5_objid.fileno[0] = statbuf->fileno[0];
     new_hdf5_dim->hdf5_objid.fileno[1] = statbuf->fileno[1];
     new_hdf5_dim->hdf5_objid.objno[0] = statbuf->objno[0];
     new_hdf5_dim->hdf5_objid.objno[1] = statbuf->objno[1];
+#endif
 
     /* If the dimscale has an unlimited dimension, then this dimension
      * is unlimited. */
@@ -2319,7 +2355,12 @@ exit:
  */
 static int
 read_dataset(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
-             const H5G_stat_t *statbuf)
+#if H5_VERSION_GE(1,12,0)
+             const H5O_info2_t *statbuf
+#else
+             const H5G_stat_t *statbuf
+#endif
+)
 {
     NC_DIM_INFO_T *dim = NULL;   /* Dimension created for scales */
     NC_HDF5_DIM_INFO_T *hdf5_dim;
@@ -2431,8 +2472,13 @@ read_hdf5_obj(hid_t grpid, const char *name, const H5L_info_t *info,
         BAIL(H5_ITER_ERROR);
 
     /* Get info about the object.*/
+#if H5_VERSION_GE(1,12,0)
+    if (H5Oget_info3(oinfo.oid, &oinfo.statbuf, H5O_INFO_BASIC) < 0)
+        BAIL(H5_ITER_ERROR);
+#else
     if (H5Gget_objinfo(oinfo.oid, ".", 1, &oinfo.statbuf) < 0)
         BAIL(H5_ITER_ERROR);
+#endif
 
     strncpy(oinfo.oname, name, NC_MAX_NAME);
 

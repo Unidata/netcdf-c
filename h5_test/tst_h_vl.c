@@ -80,7 +80,11 @@ main()
 	 free(data[i].p);
 
       /* HDF5 allocated memory to store the data. Free that memory. */
+#if H5_VERSION_GE(1,12,0)
+      if (H5Treclaim(typeid, spaceid, H5P_DEFAULT, data_in) < 0) ERR;
+#else
       if (H5Dvlen_reclaim(typeid, spaceid, H5P_DEFAULT, data_in) < 0) ERR;
+#endif
 
       /* Close everything. */
       if (H5Aclose(attid) < 0 ||
