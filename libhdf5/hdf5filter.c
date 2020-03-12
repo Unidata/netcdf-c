@@ -277,7 +277,7 @@ NC4_filter_actions(int ncid, int varid, int op, NC_Filterobject* args)
             return THROW(NC_EFILTER); /* Not allowed */
 #endif
         /* Filter => chunking */
-        var->contiguous = NC_FALSE;
+	var->storage = NC_CHUNKED;
         /* Determine default chunksizes for this variable unless already specified */
         if(var->chunksizes && !var->chunksizes[0]) {
 	    /* Should this throw error? */

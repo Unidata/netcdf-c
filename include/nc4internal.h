@@ -208,8 +208,7 @@ typedef struct NC_VAR_INFO
     nc_bool_t no_fill;           /**< True if no fill value is defined for var. */
     void *fill_value;            /**< Pointer to fill value, or NULL. */
     size_t *chunksizes;          /**< For chunked storage, an array (size ndims) of chunksizes. */
-    nc_bool_t contiguous;        /**< True if variable is stored contiguously in HDF5 file. */
-    nc_bool_t compact;           /**< True if variable is in comact storage in HDF5 file. */
+    int storage;                 /**< Storage of this var, compact, contiguous, or chunked. */
     int parallel_access;         /**< Type of parallel access for I/O on variable (collective or independent). */
     nc_bool_t dimscale;          /**< True if var is a dimscale. */
     nc_bool_t *dimscale_attached;  /**< Array of flags that are true if dimscale is attached for that dim index. */
