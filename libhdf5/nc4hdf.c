@@ -970,7 +970,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
          * better performance. */
         if (!var->shuffle && !var->fletcher32 && nclistlength(var->filters) == 0 &&
             (var->chunksizes == NULL || !var->chunksizes[0]) && !unlimdim)
-            var->contiguous = NC_TRUE;
+	    var->storage = NC_CONTIGUOUS;
 
         /* Gather current & maximum dimension sizes, along with chunk
          * sizes. */
@@ -980,7 +980,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
             assert(dim && dim->hdr.id == var->dimids[d]);
             dimsize[d] = dim->unlimited ? NC_HDF5_UNLIMITED_DIMSIZE : dim->len;
             maxdimsize[d] = dim->unlimited ? H5S_UNLIMITED : (hsize_t)dim->len;
-            if (!var->contiguous && !var->compact)
+            if (var->storage == NC_CHUNKED)
             {
                 if (var->chunksizes[d])
                     chunksize[d] = var->chunksizes[d];
@@ -1023,12 +1023,12 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
     /* Set the var storage to contiguous, compact, or chunked. Don't
      * try to set chunking for scalar vars, they will default to
      * contiguous if not set to compact. */
-    if (var->contiguous)
+    if (var->storage == NC_CONTIGUOUS)
     {
         if (H5Pset_layout(plistid, H5D_CONTIGUOUS) < 0)
             BAIL(NC_EHDFERR);
     }
-    else if (var->compact)
+    else if (var->storage == NC_COMPACT)
     {
         if (H5Pset_layout(plistid, H5D_COMPACT) < 0)
             BAIL(NC_EHDFERR);
@@ -1045,7 +1045,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
         BAIL(NC_EHDFERR);
 
     /* Set per-var chunk cache, for chunked datasets. */
-    if (!var->contiguous && !var->compact && var->chunk_cache_size)
+    if (var->storage == NC_CHUNKED && var->chunk_cache_size)
         if (H5Pset_chunk_cache(access_plistid, var->chunk_cache_nelems,
                                var->chunk_cache_size, var->chunk_cache_preemption) < 0)
             BAIL(NC_EHDFERR);
@@ -1117,10 +1117,13 @@ exit:
  * @internal Adjust the chunk cache of a var for better
  * performance.
  *
+ * @note For contiguous and compact storage vars, or when parallel I/O
+ * is in use, this function will do nothing and return ::NC_NOERR;
+ *
  * @param grp Pointer to group info struct.
  * @param var Pointer to var info struct.
  *
- * @return NC_NOERR No error.
+ * @return ::NC_NOERR No error.
  * @author Ed Hartnett
  */
 int
@@ -1131,7 +1134,7 @@ nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
     int retval;
 
     /* Nothing to be done for contiguous or compact data. */
-    if (var->contiguous || var->compact)
+    if (var->storage != NC_CHUNKED)
         return NC_NOERR;
 
 #ifdef USE_PARALLEL4
