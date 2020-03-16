@@ -1578,5 +1578,31 @@ main(int argc, char **argv)
 
     }
     SUMMARIZE_ERR;
+#define DIM10_NAME "num_monkeys"
+#define DIM11_NAME "num_hats"
+#define VAR_NAME11 "Silly_Sally"
+#define NDIM2 2
+    printf("**** testing deflate_level value when deflate is not in use...");
+    {
+        int ncid;
+        int dimid[NDIM2];
+        int varid;
+	int deflate_in, deflate_level_in = 99;
+
+        /* Create a netcdf-4 file. */
+        if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+        if (nc_def_dim(ncid, DIM10_NAME, NC_UNLIMITED, &dimid[0])) ERR;
+        if (nc_def_dim(ncid, DIM11_NAME, NC_UNLIMITED, &dimid[1])) ERR;
+        if (nc_def_var(ncid, VAR_NAME11, NC_BYTE, NDIM2, dimid, &varid)) ERR;
+
+	/* Check the deflate_level. */
+        if (nc_inq_var_deflate(ncid, varid, NULL, &deflate_in, &deflate_level_in)) ERR;
+        if (deflate_in || deflate_level_in) ERR;
+
+        /* Close the file. */
+        if (nc_close(ncid)) ERR;
+
+    }
+    SUMMARIZE_ERR;
     FINAL_RESULTS;
 }

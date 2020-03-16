@@ -306,10 +306,11 @@ nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep, int *defla
 	    return NC_EFILTER; /* bad # params */
 	/* Param[0] should be level */
 	if(deflate_levelp) *deflate_levelp = (int)params[0];
-    }
-    /* also get the shuffle state */
-    if(!shufflep)
-	return NC_NOERR;
+   } else if (deflate_levelp)
+       *deflate_levelp = 0;
+   /* also get the shuffle state */
+   if(!shufflep)
+       return NC_NOERR;
    return ncp->dispatch->inq_var_all(
       ncid, varid,
       NULL, /*name*/
