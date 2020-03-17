@@ -2412,12 +2412,14 @@ main(int argc, char *argv[])
 			goto fail;
 		}
 		if (xml_out) {
-                   if(!ignore_classic_limit) {
-                       if(formatting_specs.nc_kind == NC_FORMAT_NETCDF4) {
+		    if(formatting_specs.nc_kind == NC_FORMAT_NETCDF4) {
+			if(ignore_classic_limit) {
+			    //fprintf(stderr,"Warning: Ignoring NcML classic model limit for XML output generation.");
+                        } else {
 			    snprintf(errmsg,sizeof(errmsg),"NcML output (-x) currently only permitted for netCDF classic model");
-                            goto fail;
-                       }
-                   }
+			    goto fail;
+			}
+		    }
 		    do_ncdumpx(ncid, path);
 		} else {
 		    do_ncdump(ncid, path);
