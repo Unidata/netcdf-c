@@ -134,7 +134,7 @@ usage(void)
   file             Name of netCDF file (or URL if DAP access enabled)\n"
 
     (void) fprintf(stderr,
-		   "%s [-c|-h] [-v ...] [[-b|-f] [c|f]] [-l len] [-n name] [-p n[,n]] [-k] [-x] [-s] [-t|-i] [-g ...] [-w] [-Ln] file\n%s",
+		   "%s [-c|-h] [-v ...] [[-b|-f] [c|f]] [-l len] [-n name] [-p n[,n]] [-k] [-x] [-Z] [-s] [-t|-i] [-g ...] [-w] [-Ln] file\n%s",
 		   progname,
 		   USAGE);
 
@@ -2208,7 +2208,7 @@ main(int argc, char *argv[])
        exit(EXIT_SUCCESS);
     }
 
-    while ((c = getopt(argc, argv, "b:cd:f:g:hikl:n:p:stv:xwKL:X:")) != EOF)
+    while ((c = getopt(argc, argv, "b:cd:f:g:hikl:n:p:stv:xZwKL:X:")) != EOF)
       switch(c) {
 	case 'h':		/* dump header only, no data */
 	  formatting_specs.header_only = true;
