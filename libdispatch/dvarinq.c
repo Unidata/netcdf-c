@@ -258,8 +258,6 @@ nc_inq_varnatts(int ncid, int varid, int *nattsp)
 /** \ingroup variables
 Learn the storage and deflate settings for a variable.
 
-This is a wrapper for nc_inq_var_all().
-
 \param ncid NetCDF or group ID, from a previous call to nc_open(),
 nc_create(), nc_def_grp(), or associated inquiry functions such as
 nc_inq_ncid().
@@ -274,12 +272,15 @@ function will write a 1 if the deflate filter is turned on for this
 variable, and a 0 otherwise. \ref ignored_if_null.
 
 \param deflate_levelp If the deflate filter is in use for this
-variable, the deflate_level will be written here. \ref ignored_if_null.
+variable, the deflate_level will be written here. If deflate is not in
+use, and deflate_levelp is provided, it will get a zero. (This
+behavior is expected by the Fortran APIs). \ref ignored_if_null.
 
 \returns ::NC_NOERR No error.
 \returns ::NC_ENOTNC4 Not a netCDF-4 file.
 \returns ::NC_EBADID Bad ncid.
 \returns ::NC_ENOTVAR Invalid variable ID.
+\author Ed Hartnett, Dennis Heimbigner
 */
 int
 nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep, int *deflate_levelp)
@@ -306,10 +307,11 @@ nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep, int *defla
 	    return NC_EFILTER; /* bad # params */
 	/* Param[0] should be level */
 	if(deflate_levelp) *deflate_levelp = (int)params[0];
-    }
-    /* also get the shuffle state */
-    if(!shufflep)
-	return NC_NOERR;
+   } else if (deflate_levelp)
+       *deflate_levelp = 0;
+   /* also get the shuffle state */
+   if(!shufflep)
+       return NC_NOERR;
    return ncp->dispatch->inq_var_all(
       ncid, varid,
       NULL, /*name*/
