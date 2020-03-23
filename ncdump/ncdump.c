@@ -2414,7 +2414,7 @@ main(int argc, char *argv[])
 		if (xml_out) {
 		    if(formatting_specs.nc_kind == NC_FORMAT_NETCDF4) {
 			if(ignore_classic_limit) {
-			    //fprintf(stderr,"Warning: Ignoring NcML classic model limit for XML output generation.");
+			    fprintf(stderr,"<!-- Warning: Ignoring NcML classic model limit for XML output generation. -->");
                         } else {
 			    snprintf(errmsg,sizeof(errmsg),"NcML output (-x) currently only permitted for netCDF classic model");
 			    goto fail;
