@@ -29,71 +29,81 @@ main()
 #define MAX_SYMBOL_LEN 2
 #define ELEMENTS_NAME "Elements"
     {
-	hid_t did[NUM_ELEMENTS], fapl_id, fcpl_id, gcpl_id;
-	hsize_t num_obj;
-	hid_t fileid, grpid, spaceid;
-	int i;
-	H5O_info_t obj_info;
-	char names[NUM_ELEMENTS][MAX_SYMBOL_LEN + 1] = {"H", "He", "Li", "Be", "B", "C"};
-	char name[MAX_SYMBOL_LEN + 1];
-	ssize_t size;
+        hid_t did[NUM_ELEMENTS], fapl_id, fcpl_id, gcpl_id;
+        hsize_t num_obj;
+        hid_t fileid, grpid, spaceid;
+        int i;
+#if H5_VERSION_GE(1,12,0)
+        H5O_info2_t obj_info;
+#else
+        H5O_info_t obj_info;
+#endif
+        char names[NUM_ELEMENTS][MAX_SYMBOL_LEN + 1] = {"H", "He", "Li", "Be", "B", "C"};
+        char name[MAX_SYMBOL_LEN + 1];
+        ssize_t size;
 
-	/* Create file, setting latest_format in access propertly list
-	 * and H5P_CRT_ORDER_TRACKED in the creation property list. */
-	if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
-	if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
-	if ((fcpl_id = H5Pcreate(H5P_FILE_CREATE)) < 0) ERR;
-	if (H5Pset_link_creation_order(fcpl_id, H5P_CRT_ORDER_TRACKED|H5P_CRT_ORDER_INDEXED) < 0) ERR;
-	if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, fcpl_id, fapl_id)) < 0) ERR;
+        /* Create file, setting latest_format in access propertly list
+         * and H5P_CRT_ORDER_TRACKED in the creation property list. */
+        if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
+        if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
+        if ((fcpl_id = H5Pcreate(H5P_FILE_CREATE)) < 0) ERR;
+        if (H5Pset_link_creation_order(fcpl_id, H5P_CRT_ORDER_TRACKED|H5P_CRT_ORDER_INDEXED) < 0) ERR;
+        if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, fcpl_id, fapl_id)) < 0) ERR;
 
-	/* Create group, with link_creation_order set in the group
-	 * creation property list. */
-	if ((gcpl_id = H5Pcreate(H5P_GROUP_CREATE)) < 0) ERR;
-	if (H5Pset_link_creation_order(gcpl_id, H5P_CRT_ORDER_TRACKED|H5P_CRT_ORDER_INDEXED) < 0) ERR;
-	if ((grpid = H5Gcreate_anon(fileid, gcpl_id, H5P_DEFAULT)) < 0) ERR;
-	if ((H5Olink(grpid, fileid, ELEMENTS_NAME, H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
+        /* Create group, with link_creation_order set in the group
+         * creation property list. */
+        if ((gcpl_id = H5Pcreate(H5P_GROUP_CREATE)) < 0) ERR;
+        if (H5Pset_link_creation_order(gcpl_id, H5P_CRT_ORDER_TRACKED|H5P_CRT_ORDER_INDEXED) < 0) ERR;
+        if ((grpid = H5Gcreate_anon(fileid, gcpl_id, H5P_DEFAULT)) < 0) ERR;
+        if ((H5Olink(grpid, fileid, ELEMENTS_NAME, H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
 
-	/* Create a scalar space. */
-	if ((spaceid = H5Screate(H5S_SCALAR)) < 0) ERR;
+        /* Create a scalar space. */
+        if ((spaceid = H5Screate(H5S_SCALAR)) < 0) ERR;
 
-	/* Create the variables, one per element. */
-	for (i = 0; i < NUM_ELEMENTS; i++)
-	{
-	    if ((did[i] = H5Dcreate(grpid, names[i], H5T_NATIVE_INT,
-				    spaceid, H5P_DEFAULT)) < 0) ERR;
-	    if (H5Dclose(did[i]) < 0) ERR;
-	}
+        /* Create the variables, one per element. */
+        for (i = 0; i < NUM_ELEMENTS; i++)
+        {
+            if ((did[i] = H5Dcreate(grpid, names[i], H5T_NATIVE_INT,
+                                    spaceid, H5P_DEFAULT)) < 0) ERR;
+            if (H5Dclose(did[i]) < 0) ERR;
+        }
 
-	if (H5Pclose(fapl_id) < 0 ||
-	    H5Pclose(gcpl_id) < 0 ||
-	    H5Sclose(spaceid) < 0 ||
-	    H5Gclose(grpid) < 0 ||
-	    H5Fclose(fileid) < 0)
-	    ERR;
+        if (H5Pclose(fapl_id) < 0 ||
+            H5Pclose(gcpl_id) < 0 ||
+            H5Sclose(spaceid) < 0 ||
+            H5Gclose(grpid) < 0 ||
+            H5Fclose(fileid) < 0)
+            ERR;
 
-	/* Now reopen the file and check the order. */
-	if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
-	if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
-	if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, fapl_id)) < 0) ERR;
-	if ((grpid = H5Gopen(fileid, ELEMENTS_NAME)) < 0) ERR;
+        /* Now reopen the file and check the order. */
+        if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
+        if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
+        if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, fapl_id)) < 0) ERR;
+        if ((grpid = H5Gopen(fileid, ELEMENTS_NAME)) < 0) ERR;
 
-	if (H5Gget_num_objs(grpid, &num_obj) < 0) ERR;
-	if (num_obj != NUM_ELEMENTS) ERR;
-	for (i = 0; i < num_obj; i++)
-	{
-	    if (H5Oget_info_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
-				   i, &obj_info, H5P_DEFAULT) < 0) ERR;
-	    if (obj_info.type != H5O_TYPE_DATASET) ERR;
-	    if ((size = H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i,
-					   NULL, 0, H5P_DEFAULT)) < 0) ERR;
-	    H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i,
-			       name, size+1, H5P_DEFAULT);
-	    if (strcmp(name, names[i])) ERR;
-	}
-	if (H5Pclose(fapl_id) < 0 ||
-	    H5Gclose(grpid) < 0 ||
-	    H5Fclose(fileid) < 0)
-	    ERR;
+        if (H5Gget_num_objs(grpid, &num_obj) < 0) ERR;
+        if (num_obj != NUM_ELEMENTS) ERR;
+        for (i = 0; i < num_obj; i++)
+        {
+#if H5_VERSION_GE(1,12,0)
+            if (H5Oget_info_by_idx3(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
+                                    i, &obj_info, H5O_INFO_BASIC, H5P_DEFAULT) < 0) ERR;
+#else
+            if (H5Oget_info_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
+                                   i, &obj_info, H5P_DEFAULT) < 0) ERR;
+#endif
+            if (obj_info.type != H5O_TYPE_DATASET) ERR;
+            if ((size = H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i,
+                                           NULL, 0, H5P_DEFAULT)) < 0) ERR;
+            H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i,
+                               name, size+1, H5P_DEFAULT);
+            if (strcmp(name, names[i])) ERR;
+        }
+        if (H5Pclose(fapl_id) < 0 ||
+            H5Gclose(grpid) < 0 ||
+            H5Fclose(fileid) < 0)
+            ERR;
+
     }
     SUMMARIZE_ERR;
     printf("*** Checking HDF5 variable ordering in root group...");
@@ -104,69 +114,79 @@ main()
 #define DIMSCALE_NAME "Joe"
 #define NAME_ATTRIBUTE "short"
     {
-	hid_t fapl_id, fcpl_id;
-	hid_t fileid, grpid;
-	hsize_t num_obj;
-	int i;
-	H5O_info_t obj_info;
-	char names[NUM_DIMSCALES][MAX_SYMBOL_LEN + 1] = {"b", "a"};
-	char name[MAX_SYMBOL_LEN + 1];
-	hid_t dimscaleid;
-	hid_t dimscale_spaceid;
-	hsize_t dimscale_dims[1] = {DIM1_LEN};
-	ssize_t size;
+        hid_t fapl_id, fcpl_id;
+        hid_t fileid, grpid;
+        hsize_t num_obj;
+        int i;
+#if H5_VERSION_GE(1,12,0)
+        H5O_info2_t obj_info;
+#else
+        H5O_info_t obj_info;
+#endif
+        char names[NUM_DIMSCALES][MAX_SYMBOL_LEN + 1] = {"b", "a"};
+        char name[MAX_SYMBOL_LEN + 1];
+        hid_t dimscaleid;
+        hid_t dimscale_spaceid;
+        hsize_t dimscale_dims[1] = {DIM1_LEN};
+        ssize_t size;
 
-	/* Create file, setting latest_format in access propertly list
-	 * and H5P_CRT_ORDER_TRACKED in the creation property list. */
-	if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
-	if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
-	if ((fcpl_id = H5Pcreate(H5P_FILE_CREATE)) < 0) ERR;
-	if (H5Pset_link_creation_order(fcpl_id, H5P_CRT_ORDER_TRACKED|H5P_CRT_ORDER_INDEXED) < 0) ERR;
-	if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, fcpl_id, fapl_id)) < 0) ERR;
+        /* Create file, setting latest_format in access propertly list
+         * and H5P_CRT_ORDER_TRACKED in the creation property list. */
+        if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
+        if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
+        if ((fcpl_id = H5Pcreate(H5P_FILE_CREATE)) < 0) ERR;
+        if (H5Pset_link_creation_order(fcpl_id, H5P_CRT_ORDER_TRACKED|H5P_CRT_ORDER_INDEXED) < 0) ERR;
+        if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, fcpl_id, fapl_id)) < 0) ERR;
 
-	if ((dimscale_spaceid = H5Screate_simple(1, dimscale_dims,
-						 dimscale_dims)) < 0) ERR;
-	/* Create the variables, one per element. */
-	for (i = 0; i < NUM_DIMSCALES; i++)
-	{
-	    /* Create our dimension scale. Use the built-in NAME attribute
-	     * on the dimscale. */
-	    if ((dimscaleid = H5Dcreate(fileid, names[i], H5T_NATIVE_INT,
-					dimscale_spaceid, H5P_DEFAULT)) < 0) ERR;
-	    if (H5DSset_scale(dimscaleid, NAME_ATTRIBUTE) < 0) ERR;
+        if ((dimscale_spaceid = H5Screate_simple(1, dimscale_dims,
+                                                 dimscale_dims)) < 0) ERR;
+        /* Create the variables, one per element. */
+        for (i = 0; i < NUM_DIMSCALES; i++)
+        {
+            /* Create our dimension scale. Use the built-in NAME attribute
+             * on the dimscale. */
+            if ((dimscaleid = H5Dcreate(fileid, names[i], H5T_NATIVE_INT,
+                                        dimscale_spaceid, H5P_DEFAULT)) < 0) ERR;
+            if (H5DSset_scale(dimscaleid, NAME_ATTRIBUTE) < 0) ERR;
 
-	    if (H5Dclose(dimscaleid) < 0) ERR;
-	}
+            if (H5Dclose(dimscaleid) < 0) ERR;
+        }
 
-	if (H5Pclose(fapl_id) < 0 ||
-	    H5Pclose(fcpl_id) < 0 ||
-	    H5Sclose(dimscale_spaceid) < 0 ||
-	    H5Fclose(fileid) < 0)
-	    ERR;
+        if (H5Pclose(fapl_id) < 0 ||
+            H5Pclose(fcpl_id) < 0 ||
+            H5Sclose(dimscale_spaceid) < 0 ||
+            H5Fclose(fileid) < 0)
+            ERR;
 
-	/* Now reopen the file and check the order. */
-	if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
-	if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
-	if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, fapl_id)) < 0) ERR;
-	if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+        /* Now reopen the file and check the order. */
+        if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
+        if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
+        if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, fapl_id)) < 0) ERR;
+        if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
 
-	if (H5Gget_num_objs(grpid, &num_obj) < 0) ERR;
-	if (num_obj != NUM_DIMSCALES) ERR;
-	for (i = 0; i < num_obj; i++)
-	{
-	    if (H5Oget_info_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
-				   i, &obj_info, H5P_DEFAULT) < 0) ERR;
-	    if (obj_info.type != H5O_TYPE_DATASET) ERR;
-	    if ((size = H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i,
-					   NULL, 0, H5P_DEFAULT)) < 0) ERR;
-	    if (H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i,
-				   name, size+1, H5P_DEFAULT) < 0) ERR;
-	    if (strcmp(name, names[i])) ERR;
-	}
-	if (H5Pclose(fapl_id) < 0 ||
-	    H5Gclose(grpid) < 0 ||
-	    H5Fclose(fileid) < 0)
-	    ERR;
+        if (H5Gget_num_objs(grpid, &num_obj) < 0) ERR;
+        if (num_obj != NUM_DIMSCALES) ERR;
+        for (i = 0; i < num_obj; i++)
+        {
+#if H5_VERSION_GE(1,12,0)
+            if (H5Oget_info_by_idx3(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
+                                    i, &obj_info, H5O_INFO_BASIC, H5P_DEFAULT) < 0) ERR;
+#else
+            if (H5Oget_info_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
+                                   i, &obj_info, H5P_DEFAULT) < 0) ERR;
+#endif
+            if (obj_info.type != H5O_TYPE_DATASET) ERR;
+            if ((size = H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i,
+                                           NULL, 0, H5P_DEFAULT)) < 0) ERR;
+            if (H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i,
+                                   name, size+1, H5P_DEFAULT) < 0) ERR;
+            if (strcmp(name, names[i])) ERR;
+        }
+        if (H5Pclose(fapl_id) < 0 ||
+            H5Gclose(grpid) < 0 ||
+            H5Fclose(fileid) < 0)
+            ERR;
+
     }
     SUMMARIZE_ERR;
     printf("*** Checking HDF5 variable ordering flags with redef-type situations...");
@@ -176,82 +196,93 @@ main()
 #define ELEMENTS_NAME "Elements"
 #define VAR_NAME "Sears_Zemansky_and_Young"
     {
-	hid_t did, fapl_id, fcpl_id, gcpl_id, attid;
-	hsize_t num_obj;
-	hid_t fileid, grpid, spaceid;
-	float val = 3.1495;
-	H5O_info_t obj_info;
-	char name[MAX_NAME_LEN + 1];
-	ssize_t size;
+        hid_t did, fapl_id, fcpl_id, gcpl_id, attid;
+        hsize_t num_obj;
+        hid_t fileid, grpid, spaceid;
+        float val = 3.1495;
+#if H5_VERSION_GE(1,12,0)
+        H5O_info2_t obj_info;
+#else
+        H5O_info_t obj_info;
+#endif
+        char name[MAX_NAME_LEN + 1];
+        ssize_t size;
 
-	/* Create file, setting latest_format in access propertly list
-	 * and H5P_CRT_ORDER_TRACKED in the creation property list. */
-	if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
-	if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
-	if ((fcpl_id = H5Pcreate(H5P_FILE_CREATE)) < 0) ERR;
-	if (H5Pset_link_creation_order(fcpl_id, H5P_CRT_ORDER_TRACKED|H5P_CRT_ORDER_INDEXED) < 0) ERR;
-	if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, fcpl_id, fapl_id)) < 0) ERR;
+        /* Create file, setting latest_format in access propertly list
+         * and H5P_CRT_ORDER_TRACKED in the creation property list. */
+        if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
+        if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
+        if ((fcpl_id = H5Pcreate(H5P_FILE_CREATE)) < 0) ERR;
+        if (H5Pset_link_creation_order(fcpl_id, H5P_CRT_ORDER_TRACKED|H5P_CRT_ORDER_INDEXED) < 0) ERR;
+        if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, fcpl_id, fapl_id)) < 0) ERR;
 
-	/* Create group, with link_creation_order set in the group
-	 * creation property list. */
-	if ((gcpl_id = H5Pcreate(H5P_GROUP_CREATE)) < 0) ERR;
-	if (H5Pset_link_creation_order(gcpl_id, H5P_CRT_ORDER_TRACKED|H5P_CRT_ORDER_INDEXED) < 0) ERR;
-	if ((grpid = H5Gcreate_anon(fileid, gcpl_id, H5P_DEFAULT)) < 0) ERR;
-	if ((H5Olink(grpid, fileid, ELEMENTS_NAME, H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
+        /* Create group, with link_creation_order set in the group
+         * creation property list. */
+        if ((gcpl_id = H5Pcreate(H5P_GROUP_CREATE)) < 0) ERR;
+        if (H5Pset_link_creation_order(gcpl_id, H5P_CRT_ORDER_TRACKED|H5P_CRT_ORDER_INDEXED) < 0) ERR;
+        if ((grpid = H5Gcreate_anon(fileid, gcpl_id, H5P_DEFAULT)) < 0) ERR;
+        if ((H5Olink(grpid, fileid, ELEMENTS_NAME, H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
 
-	/* Create a scalar space. */
-	if ((spaceid = H5Screate(H5S_SCALAR)) < 0) ERR;
+        /* Create a scalar space. */
+        if ((spaceid = H5Screate(H5S_SCALAR)) < 0) ERR;
 
-	/* Create a scalar variable. */
-	if ((did = H5Dcreate(grpid, VAR_NAME, H5T_NATIVE_INT,
-			     spaceid, H5P_DEFAULT)) < 0) ERR;
-	if (H5Dclose(did) < 0) ERR;
+        /* Create a scalar variable. */
+        if ((did = H5Dcreate(grpid, VAR_NAME, H5T_NATIVE_INT,
+                             spaceid, H5P_DEFAULT)) < 0) ERR;
+        if (H5Dclose(did) < 0) ERR;
 
-	/* Flush the HDF5 buffers. */
-	H5Fflush(fileid, H5F_SCOPE_GLOBAL);
+        /* Flush the HDF5 buffers. */
+        H5Fflush(fileid, H5F_SCOPE_GLOBAL);
 
-	/* Delete the variable. Just to be mean. */
-	if (H5Gunlink(grpid, VAR_NAME) < 0) ERR;
+        /* Delete the variable. Just to be mean. */
+        if (H5Gunlink(grpid, VAR_NAME) < 0) ERR;
 
-	/* Re-reate the scalar variable. */
-	if ((did = H5Dcreate(grpid, VAR_NAME, H5T_NATIVE_INT,
-			     spaceid, H5P_DEFAULT)) < 0) ERR;
+        /* Re-reate the scalar variable. */
+        if ((did = H5Dcreate(grpid, VAR_NAME, H5T_NATIVE_INT,
+                             spaceid, H5P_DEFAULT)) < 0) ERR;
 
-	/* Add an attribute. */
-	if ((attid = H5Acreate(did, "Some_Attribute", H5T_NATIVE_FLOAT, spaceid,
-			       H5P_DEFAULT)) < 0) ERR;
-	if (H5Awrite(attid, H5T_NATIVE_FLOAT, &val) < 0) ERR;
+        /* Add an attribute. */
+        if ((attid = H5Acreate(did, "Some_Attribute", H5T_NATIVE_FLOAT, spaceid,
+                               H5P_DEFAULT)) < 0) ERR;
+        if (H5Awrite(attid, H5T_NATIVE_FLOAT, &val) < 0) ERR;
 
-	if (H5Aclose(attid) < 0) ERR;
-	if (H5Dclose(did) < 0) ERR;
+        if (H5Aclose(attid) < 0) ERR;
+        if (H5Dclose(did) < 0) ERR;
 
-	if (H5Pclose(fapl_id) < 0 ||
-	    H5Pclose(gcpl_id) < 0 ||
-	    H5Sclose(spaceid) < 0 ||
-	    H5Gclose(grpid) < 0 ||
-	    H5Fclose(fileid) < 0)
-	    ERR;
+        if (H5Pclose(fapl_id) < 0 ||
+            H5Pclose(gcpl_id) < 0 ||
+            H5Sclose(spaceid) < 0 ||
+            H5Gclose(grpid) < 0 ||
+            H5Fclose(fileid) < 0)
+            ERR;
 
-	/* Now reopen the file and check the order. */
-	if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
-	if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
-	if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, fapl_id)) < 0) ERR;
-	if ((grpid = H5Gopen(fileid, ELEMENTS_NAME)) < 0) ERR;
+        /* Now reopen the file and check the order. */
+        if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
+        if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
+        if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, fapl_id)) < 0) ERR;
+        if ((grpid = H5Gopen(fileid, ELEMENTS_NAME)) < 0) ERR;
 
-	if (H5Gget_num_objs(grpid, &num_obj) < 0) ERR;
-	if (num_obj != 1) ERR;
-	if (H5Oget_info_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
-			       0, &obj_info, H5P_DEFAULT) < 0) ERR;
-	if (obj_info.type != H5O_TYPE_DATASET) ERR;
-	if ((size = H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, 0,
-				       NULL, 0, H5P_DEFAULT)) < 0) ERR;
-	H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, 0,
-			   name, size+1, H5P_DEFAULT);
-	if (strcmp(name, VAR_NAME)) ERR;
-	if (H5Pclose(fapl_id) < 0 ||
-	    H5Gclose(grpid) < 0 ||
-	    H5Fclose(fileid) < 0)
-	    ERR;
+        if (H5Gget_num_objs(grpid, &num_obj) < 0) ERR;
+        if (num_obj != 1) ERR;
+
+#if H5_VERSION_GE(1,12,0)
+        if (H5Oget_info_by_idx3(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
+                                0, &obj_info, H5O_INFO_BASIC, H5P_DEFAULT) < 0) ERR;
+#else
+        if (H5Oget_info_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
+                               0, &obj_info, H5P_DEFAULT) < 0) ERR;
+#endif
+        if (obj_info.type != H5O_TYPE_DATASET) ERR;
+        if ((size = H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, 0,
+                                       NULL, 0, H5P_DEFAULT)) < 0) ERR;
+        H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, 0,
+                           name, size+1, H5P_DEFAULT);
+        if (strcmp(name, VAR_NAME)) ERR;
+        if (H5Pclose(fapl_id) < 0 ||
+            H5Gclose(grpid) < 0 ||
+            H5Fclose(fileid) < 0)
+            ERR;
+
     }
     SUMMARIZE_ERR;
     printf("*** Checking HDF5 variable compession and filters...");
