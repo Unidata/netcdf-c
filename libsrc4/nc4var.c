@@ -72,7 +72,7 @@ NC4_get_var_chunk_cache(int ncid, int varid, size_t *sizep,
  *
  * @param ncid File ID.
  * @param varid Variable ID.
- * @param sizep Gets size in bytes of cache.
+ * @param sizep Gets size in MB of cache.
  * @param nelemsp Gets number of element slots in cache.
  * @param preemptionp Gets cache swapping setting.
  *
