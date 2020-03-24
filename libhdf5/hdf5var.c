@@ -2274,7 +2274,7 @@ NC4_HDF5_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
  *
  * @param ncid File ID.
  * @param varid Variable ID.
- * @param size Size in bytes to set cache.
+ * @param size Size in MB to set cache.
  * @param nelems Number of elements in cache.
  * @param preemption Controls cache swapping.
  *
@@ -2289,6 +2289,9 @@ nc_set_var_chunk_cache_ints(int ncid, int varid, int size, int nelems,
     size_t real_nelems = H5D_CHUNK_CACHE_NSLOTS_DEFAULT;
     float real_preemption = CHUNK_CACHE_PREEMPTION;
 
+    LOG((1, "%s: ncid 0x%x varid %d size %d nelems %d preemption %d",
+	 __func__, ncid, varid, size, nelems, preemptions));
+    
     if (size >= 0)
         real_size = ((size_t) size) * MEGABYTE;
 
