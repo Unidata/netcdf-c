@@ -33,7 +33,11 @@ main()
       hsize_t num_obj;
       hid_t fileid, grpid, spaceid;
       int i;
+#if H5_VERSION_GE(1,12,0)
+      H5O_info2_t obj_info;
+#else
       H5O_info_t obj_info;
+#endif
       char names[NUM_ELEMENTS][MAX_SYMBOL_LEN + 1] = {"H", "He", "Li", "Be", "B", "C"};
       char names2[NUM_ELEMENTS][MAX_SYMBOL_LEN + 1] = {"h", "He", "Li", "Be", "B", "C"};
       char name[MAX_SYMBOL_LEN + 1];
@@ -83,8 +87,13 @@ main()
       printf("Original order:\n");
       for (i = 0; i < num_obj; i++)
       {
+#if H5_VERSION_GE(1,12,0)
+	 if (H5Oget_info_by_idx3(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
+                                 i, &obj_info, H5O_INFO_BASIC, H5P_DEFAULT) < 0) ERR;
+#else
 	 if (H5Oget_info_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
 				i, &obj_info, H5P_DEFAULT) < 0) ERR;
+#endif
 	 if (obj_info.type != H5O_TYPE_DATASET) ERR;
 	 if ((size = H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i,
 					NULL, 0, H5P_DEFAULT)) < 0) ERR;
@@ -114,8 +123,13 @@ main()
       printf("New order:\n");
       for (i = 0; i < num_obj; i++)
       {
+#if H5_VERSION_GE(1,12,0)
+         if (H5Oget_info_by_idx3(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
+                                 i, &obj_info, H5O_INFO_BASIC, H5P_DEFAULT) < 0) ERR;
+#else
          if (H5Oget_info_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
         			i, &obj_info, H5P_DEFAULT) < 0) ERR;
+#endif
          if (obj_info.type != H5O_TYPE_DATASET) ERR;
          if ((size = H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i,
         				NULL, 0, H5P_DEFAULT)) < 0) ERR;
