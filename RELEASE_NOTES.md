@@ -5,7 +5,9 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
-## 4.7.4 - TBD
+## 4.8.0 - TBD
+
+## 4.7.4 - March 26, 2020
 
 * [Enhancement] Support has been added for HDF5-1.12.0.  See [https://github.com/Unidata/netcdf-c/issues/1528].
 * [Bug Fix] Correct behavior for the command line utilities when directly accessing a directory using utf8 characters. See [Github #1669](https://github.com/Unidata/netcdf-c/issues/1669), [Github #1668](https://github.com/Unidata/netcdf-c/issues/1668) and [Github #1666](https://github.com/Unidata/netcdf-c/issues/1666) for more information.
