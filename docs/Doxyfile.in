@@ -753,6 +753,7 @@ INPUT = \
     @abs_top_srcdir@/docs/auth.md \
     @abs_top_srcdir@/docs/notes.md \
     @abs_top_srcdir@/docs/all-error-codes.md \
+    @abs_top_srcdir@/docs/building-with-cmake.md \
     @abs_top_srcdir@/docs/FAQ.md \
     @abs_top_srcdir@/docs/known_problems.md \
     @abs_top_srcdir@/docs/COPYRIGHT.md \
