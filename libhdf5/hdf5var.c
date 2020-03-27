@@ -2290,7 +2290,7 @@ nc_set_var_chunk_cache_ints(int ncid, int varid, int size, int nelems,
     float real_preemption = CHUNK_CACHE_PREEMPTION;
 
     LOG((1, "%s: ncid 0x%x varid %d size %d nelems %d preemption %d",
-	 __func__, ncid, varid, size, nelems, preemptions));
+	 __func__, ncid, varid, size, nelems, preemption));
     
     if (size >= 0)
         real_size = ((size_t) size) * MEGABYTE;
