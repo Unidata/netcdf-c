@@ -1565,6 +1565,7 @@ nc4_nc4f_list_del(NC_FILE_INFO_T *h5, NCformatfree formatfree)
     nclistfree(h5->alltypes);
 
     /* Free the NC_FILE_INFO_T struct. */
+    nullfree(h5->hdr.name);
     free(h5);
 
     return NC_NOERR;
