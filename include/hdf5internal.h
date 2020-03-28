@@ -140,6 +140,7 @@ int nc4_get_hdf_typeid(NC_FILE_INFO_T *h5, nc_type xtype,
 int nc4_close_hdf5_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio);
 int nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp);
 int nc4_enddef_netcdf4_file(NC_FILE_INFO_T *h5);
+void nc_hdf5_formatfree(NC_OBJ* arg);
 
 /* Break & reform coordinate variables */
 int nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T *dim);

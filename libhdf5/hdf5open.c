@@ -213,6 +213,7 @@ get_type_info2(NC_FILE_INFO_T *h5, hid_t datasetid, NC_TYPE_INFO_T **type_info)
             else
                 (*type_info)->nc_type_class = NC_FLOAT;
         }
+	(*type_info)->hdr.sort = NCTYP;
         (*type_info)->hdr.id = nc_type_constant_g[t];
         (*type_info)->size = nc_type_size_g[t];
         if (!((*type_info)->hdr.name = strdup(nc_type_name_g[t])))
@@ -1409,7 +1410,7 @@ exit:
         if (incr_id_rc && H5Idec_ref(datasetid) < 0)
             BAIL2(NC_EHDFERR);
         if (var)
-            nc4_var_list_del(grp, var);
+            nc4_var_list_del(grp, var, nc_hdf5_formatfree);
     }
 
     return retval;
@@ -2130,7 +2131,7 @@ exit:
     {
         /* NC_EBADTYPID will be normally converted to NC_NOERR so that
            the parent iterator does not fail. */
-        retval = nc4_att_list_del(list, att);
+        retval = nc4_att_list_del(list, att, nc_hdf5_formatfree);
         att = NULL;
     }
     if (attid > 0 && H5Aclose(attid) < 0)
@@ -2313,7 +2314,7 @@ exit:
     if (retval && dimscale_created)
     {
         /* free the dimension */
-        if ((retval = nc4_dim_list_del(grp, new_dim)))
+        if ((retval = nc4_dim_list_del(grp, new_dim, nc_hdf5_formatfree)))
             BAIL2(retval);
 
         /* Reset the group's information */

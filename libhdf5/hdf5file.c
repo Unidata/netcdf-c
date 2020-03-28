@@ -301,11 +301,10 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio)
     }
 
     /* Free the HDF5-specific info. */
-    if (h5->format_file_info)
-        free(h5->format_file_info);
+    nc_hdf5_formatfree((NC_OBJ*)h5);
 
     /* Free the NC_FILE_INFO_T struct. */
-    if ((retval = nc4_nc4f_list_del(h5)))
+    if ((retval = nc4_nc4f_list_del(h5,nc_hdf5_formatfree)))
         return retval;
 
     return NC_NOERR;
@@ -774,3 +773,41 @@ nc4_enddef_netcdf4_file(NC_FILE_INFO_T *h5)
 
     return sync_netcdf4_file(h5);
 }
+
+/**************************************************/
+/* Reclaim the ->format_XXX_info fields */
+
+void
+nc_hdf5_formatfree(NC_OBJ* arg)
+{
+    if(arg == NULL) return;
+    switch (arg->sort) {
+    case NCVAR:
+	nullfree(((NC_VAR_INFO_T*)arg)->format_var_info);
+	break;
+    case NCDIM:
+	nullfree(((NC_DIM_INFO_T*)arg)->format_dim_info);
+	break;
+    case NCATT:
+	nullfree(((NC_ATT_INFO_T*)arg)->format_att_info);
+	break;
+    case NCTYP:
+	nullfree(((NC_TYPE_INFO_T*)arg)->format_type_info);
+	break;
+    case NCFLD:
+	nullfree(((NC_FIELD_INFO_T*)arg)->format_field_info);
+	break;
+    case NCGRP:
+	nullfree(((NC_GRP_INFO_T*)arg)->format_grp_info);
+	break;
+    case NCFIL: {
+	NC_HDF5_FILE_INFO_T* h5file = ((NC_FILE_INFO_T*)arg)->format_file_info;
+#ifdef ENABLE_BYTERANGE
+	ncurifree(h5file->http.uri);
+#endif
+	nullfree(h5file);
+	} break;
+    default: abort();
+    }
+}
+

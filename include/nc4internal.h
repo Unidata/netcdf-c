@@ -44,8 +44,9 @@
 #define ID_SHIFT (16)
 
 /* typedef enum {GET, PUT} NC_PG_T; */
+
 /** These are the different objects that can be in our hash-lists. */
-typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP} NC_SORT;
+typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP, NCFIL} NC_SORT;
 
 /** The netCDF V2 error code. */
 #define NC_V2_ERR (-1)
@@ -298,6 +299,7 @@ typedef struct NC_GRP_INFO
  * netcdf-4/HDF5 file. */
 typedef struct  NC_FILE_INFO
 {
+    NC_OBJ hdr; /**< The hdr contains the name and ID. */
     NC *controller; /**< Pointer to containing NC. */
 #ifdef USE_PARALLEL4
     MPI_Comm comm;  /**< Copy of MPI Communicator used to open the file. */
@@ -344,6 +346,9 @@ typedef struct
     void *p;    /**< Pointer to VL data */
 } nc_hvl_t;
 
+/* Define a function type for freeing format_XXX_info fields */
+typedef void (*NCformatfree)(NC_OBJ*);
+
 /** The names of the atomic data types. */
 extern const char *nc4_atomic_name[NC_MAX_ATOMIC_TYPE + 1];
 
@@ -380,41 +385,41 @@ int nc4_get_typeclass(const NC_FILE_INFO_T *h5, nc_type xtype,
                       int *type_class);
 
 /* Free various types */
-int nc4_type_free(NC_TYPE_INFO_T *type);
+int nc4_type_free(NC_TYPE_INFO_T *type, NCformatfree formatfree);
 
 /* These list functions add and delete vars, atts. */
 int nc4_nc4f_list_add(NC *nc, const char *path, int mode);
-int nc4_nc4f_list_del(NC_FILE_INFO_T *h5);
+int nc4_nc4f_list_del(NC_FILE_INFO_T *h5, NCformatfree);
 int nc4_file_list_add(int ncid, const char *path, int mode,
                       void **dispatchdata);
 int nc4_file_list_get(int ncid, char **path, int *mode,
                       void **dispatchdata);
-int nc4_file_list_del(int ncid);
+int nc4_file_list_del(int ncid, NCformatfree);
 int nc4_file_change_ncid(int ncid, unsigned short new_ncid_index);
 int nc4_var_list_add(NC_GRP_INFO_T* grp, const char* name, int ndims,
                      NC_VAR_INFO_T **var);
 int nc4_var_list_add2(NC_GRP_INFO_T* grp, const char* name,
                       NC_VAR_INFO_T **var);
 int nc4_var_set_ndims(NC_VAR_INFO_T *var, int ndims);
-int nc4_var_list_del(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
+int nc4_var_list_del(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NCformatfree);
 int nc4_dim_list_add(NC_GRP_INFO_T *grp, const char *name, size_t len,
                      int assignedid, NC_DIM_INFO_T **dim);
-int nc4_dim_list_del(NC_GRP_INFO_T *grp, NC_DIM_INFO_T *dim);
+int nc4_dim_list_del(NC_GRP_INFO_T *grp, NC_DIM_INFO_T *dim, NCformatfree);
 int nc4_type_new(size_t size, const char *name, int assignedid,
                  NC_TYPE_INFO_T **type);
 int nc4_type_list_add(NC_GRP_INFO_T *grp, size_t size, const char *name,
                       NC_TYPE_INFO_T **type);
-int nc4_type_list_del(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type);
-int nc4_type_free(NC_TYPE_INFO_T *type);
+int nc4_type_list_del(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type, NCformatfree);
+int nc4_type_free(NC_TYPE_INFO_T *type, NCformatfree);
 int nc4_field_list_add(NC_TYPE_INFO_T* parent, const char *name,
                        size_t offset, nc_type xtype, int ndims,
                        const int *dim_sizesp);
 int nc4_att_list_add(NCindex *list, const char *name, NC_ATT_INFO_T **att);
-int nc4_att_list_del(NCindex *list, NC_ATT_INFO_T *att);
+int nc4_att_list_del(NCindex *list, NC_ATT_INFO_T *att, NCformatfree);
 int nc4_grp_list_add(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *parent, char *name,
                      NC_GRP_INFO_T **grp);
 int nc4_build_root_grp(NC_FILE_INFO_T *h5);
-int nc4_rec_grp_del(NC_GRP_INFO_T *grp);
+int nc4_rec_grp_del(NC_GRP_INFO_T *grp, NCformatfree);
 int nc4_enum_member_add(NC_TYPE_INFO_T *type, size_t size, const char *name,
                         const void *value);
 

@@ -26,6 +26,11 @@
 #define FIELD_NAME "Britany_Spears"
 #define FIELD_OFFSET 9
 
+static void
+formatfree(NC_OBJ* o)
+{
+}
+
 int
 main(int argc, char **argv)
 {
@@ -65,10 +70,10 @@ main(int argc, char **argv)
         if (mode_in != mode) ERR;
 
         /* This won't work. */
-        if (nc4_file_list_del(TEST_VAL_42) != NC_EBADID) ERR;
+        if (nc4_file_list_del(TEST_VAL_42,formatfree) != NC_EBADID) ERR;
 
         /* Delete the NC_FILE_INFO_T and related storage. */
-        if (nc4_file_list_del(ncp->ext_ncid)) ERR;
+        if (nc4_file_list_del(ncp->ext_ncid,formatfree)) ERR;
 
         /* Delete the ncp from the list. (In fact, just null out its
          * entry in the array of file slots.) */
@@ -136,7 +141,7 @@ main(int argc, char **argv)
         if (grp2->nc4_info->controller->ext_ncid != ncp->ext_ncid) ERR;
 
         /* Delete the NC_FILE_INFO_T and related storage. */
-        if (nc4_file_list_del(ncp->ext_ncid)) ERR;
+        if (nc4_file_list_del(ncp->ext_ncid,formatfree)) ERR;
 
         /* Delete the ncp from the list. (In fact, just null out its
          * entry in the array of file slots.) */
@@ -186,7 +191,7 @@ main(int argc, char **argv)
 
         /* Delete the NC_FILE_INFO_T and related storage, including
          * all vars, dims, types, etc. */
-        if (nc4_file_list_del(ncp->ext_ncid)) ERR;
+        if (nc4_file_list_del(ncp->ext_ncid,formatfree)) ERR;
 
         /* Delete the ncp from the list. (In fact, just null out its
          * entry in the array of file slots.) */
@@ -221,7 +226,7 @@ main(int argc, char **argv)
         if (strcmp(dim_in->hdr.name, dim->hdr.name)) ERR;
 
         /* Release resources. */
-        if (nc4_file_list_del(ncp->ext_ncid)) ERR;
+        if (nc4_file_list_del(ncp->ext_ncid,formatfree)) ERR;
         del_from_NCList(ncp);
         free_NC(ncp);
     }
@@ -252,7 +257,7 @@ main(int argc, char **argv)
         if (strcmp(type_in->hdr.name, type->hdr.name)) ERR;
 
         /* Release resources. */
-        if (nc4_file_list_del(ncp->ext_ncid)) ERR;
+        if (nc4_file_list_del(ncp->ext_ncid,formatfree)) ERR;
         del_from_NCList(ncp);
         free_NC(ncp);
     }
@@ -279,7 +284,7 @@ main(int argc, char **argv)
         if (nc4_find_nc_grp_h5(old_ncid, NULL, NULL, NULL) != NC_EBADID) ERR;
 
         /* Delete it. */
-        if (nc4_file_list_del(ncp->ext_ncid)) ERR;
+        if (nc4_file_list_del(ncp->ext_ncid,formatfree)) ERR;
         del_from_NCList(ncp); /* Will free empty list. */
         free_NC(ncp);
 
@@ -290,3 +295,4 @@ main(int argc, char **argv)
     SUMMARIZE_ERR;
     FINAL_RESULTS;
 }
+

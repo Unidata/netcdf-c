@@ -325,7 +325,7 @@ NC4_HDF5_del_att(int ncid, int varid, const char *name)
     deletedid = att->hdr.id;
 
     /* Remove this attribute in this list */
-    if ((retval = nc4_att_list_del(attlist, att)))
+    if ((retval = nc4_att_list_del(attlist, att, nc_hdf5_formatfree)))
         return retval;
 
     /* Renumber all attributes with higher indices. */

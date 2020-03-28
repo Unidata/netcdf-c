@@ -29,6 +29,7 @@ size_t nc4_chunk_cache_nelems = CHUNK_CACHE_NELEMS;        /**< Default chunk ca
 float nc4_chunk_cache_preemption = CHUNK_CACHE_PREEMPTION; /**< Default chunk cache preemption. */
 
 static void freefilterlist(NClist* filters);
+static int NC4_move_in_NCList(NC* nc, int new_id);
 
 #ifdef LOGGING
 /* This is the severity level of messages which will be logged. Use
@@ -158,7 +159,7 @@ nc4_file_change_ncid(int ncid, unsigned short new_ncid_index)
      * occupied. */
     LOG((3, "moving nc->ext_ncid %d nc->ext_ncid >> ID_SHIFT %d",
          nc->ext_ncid, nc->ext_ncid >> ID_SHIFT));
-    if (move_in_NCList(nc, new_ncid_index))
+    if (NC4_move_in_NCList(nc, new_ncid_index))
         return NC_EIO;
     LOG((3, "moved to new_ncid_index %d new nc->ext_ncid %d", new_ncid_index,
          nc->ext_ncid));
@@ -238,6 +239,10 @@ nc4_nc4f_list_add(NC *nc, const char *path, int mode)
         return NC_ENOMEM;
     nc->dispatchdata = h5;
     h5->controller = nc;
+
+    h5->hdr.sort = NCFIL;
+    h5->hdr.name = strdup(path);    
+    h5->hdr.id = nc->ext_ncid;
 
     /* Hang on to cmode, and note that we're in define mode. */
     h5->cmode = mode | NC_INDEF;
@@ -972,14 +977,14 @@ nc4_type_new(size_t size, const char *name, int assignedid,
     if (!(new_type = calloc(1, sizeof(NC_TYPE_INFO_T))))
         return NC_ENOMEM;
     new_type->hdr.sort = NCTYP;
-
-    /* Remember info about this type. */
     new_type->hdr.id = assignedid;
-    new_type->size = size;
     if (!(new_type->hdr.name = strdup(name))) {
         free(new_type);
         return NC_ENOMEM;
     }
+
+    /* Remember info about this type. */
+    new_type->size = size;
 
     new_type->hdr.hashkey = NC_hashmapkey(name, strlen(name));
 
@@ -1144,14 +1149,14 @@ nc4_enum_member_add(NC_TYPE_INFO_T *parent, size_t size,
  * @author Ed Hartnett
  */
 static void
-field_free(NC_FIELD_INFO_T *field)
+field_free(NC_FIELD_INFO_T *field, NCformatfree formatfree)
 {
+    formatfree((NC_OBJ*)field);
     /* Free some stuff. */
     if (field->hdr.name)
         free(field->hdr.name);
     if (field->dim_size)
         free(field->dim_size);
-
     /* Nc_Free the memory. */
     free(field);
 }
@@ -1166,7 +1171,7 @@ field_free(NC_FIELD_INFO_T *field)
  * @author Ed Hartnett, Dennis Heimbigner
  */
 int
-nc4_type_free(NC_TYPE_INFO_T *type)
+nc4_type_free(NC_TYPE_INFO_T *type, NCformatfree formatfree)
 {
     int i;
 
@@ -1194,7 +1199,7 @@ nc4_type_free(NC_TYPE_INFO_T *type)
              * compound). */
             for(i=0;i<nclistlength(type->u.c.field);i++) {
                 field = nclistget(type->u.c.field,i);
-                field_free(field);
+                field_free(field,formatfree);
             }
             nclistfree(type->u.c.field);
         }
@@ -1220,8 +1225,7 @@ nc4_type_free(NC_TYPE_INFO_T *type)
         }
 
         /* Release any HDF5-specific type info. */
-        if (type->format_type_info)
-            free(type->format_type_info);
+	formatfree((NC_OBJ*)type);
 
         /* Release the memory. */
         free(type);
@@ -1239,12 +1243,16 @@ nc4_type_free(NC_TYPE_INFO_T *type)
  * @author Ed Hartnett
  */
 static int
-att_free(NC_ATT_INFO_T *att)
+att_free(NC_ATT_INFO_T *att, NCformatfree formatfree)
 {
     int i;
 
     assert(att);
     LOG((3, "%s: name %s ", __func__, att->hdr.name));
+
+    /* Free any format-sepecific info. Some formats use this (ex. HDF5)
+     * and some don't (ex. HDF4). So it may be NULL. */
+    formatfree((NC_OBJ*)att);
 
     /* Free memory that was malloced to hold data for this
      * attribute. */
@@ -1277,11 +1285,6 @@ att_free(NC_ATT_INFO_T *att)
         free(att->vldata);
     }
 
-    /* Free any format-sepecific info. Some formats use this (ex. HDF5)
-     * and some don't (ex. HDF4). So it may be NULL. */
-    if (att->format_att_info)
-        free(att->format_att_info);
-
     free(att);
     return NC_NOERR;
 }
@@ -1296,7 +1299,7 @@ att_free(NC_ATT_INFO_T *att)
  * @author Ed Hartnett, Dennis Heimbigner
  */
 static int
-var_free(NC_VAR_INFO_T *var)
+var_free(NC_VAR_INFO_T *var, NCformatfree formatfree)
 {
     int i;
     int retval;
@@ -1306,7 +1309,7 @@ var_free(NC_VAR_INFO_T *var)
 
     /* First delete all the attributes attached to this var. */
     for (i = 0; i < ncindexsize(var->att); i++)
-        if ((retval = att_free((NC_ATT_INFO_T *)ncindexith(var->att, i))))
+        if ((retval = att_free((NC_ATT_INFO_T *)ncindexith(var->att, i),formatfree)))
             return retval;
     ncindexfree(var->att);
 
@@ -1332,7 +1335,7 @@ var_free(NC_VAR_INFO_T *var)
 
     /* Release type information */
     if (var->type_info)
-        if ((retval = nc4_type_free(var->type_info)))
+        if ((retval = nc4_type_free(var->type_info,formatfree)))
             return retval;
 
     /* Delete information about the attachment status of dimscales. */
@@ -1343,8 +1346,7 @@ var_free(NC_VAR_INFO_T *var)
     freefilterlist(var->filters);
 
     /* Delete any format-specific info. */
-    if (var->format_var_info)
-        free(var->format_var_info);
+    formatfree((NC_OBJ*)var);
 
     /* Delete the var. */
     free(var);
@@ -1362,7 +1364,7 @@ var_free(NC_VAR_INFO_T *var)
  * @author Ed Hartnett, Dennis Heimbigner
  */
 int
-nc4_var_list_del(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
+nc4_var_list_del(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NCformatfree formatfree)
 {
     int i;
 
@@ -1373,7 +1375,7 @@ nc4_var_list_del(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
     if (i >= 0)
         ncindexidel(grp->vars, i);
 
-    return var_free(var);
+    return var_free(var,formatfree);
 }
 
 /**
@@ -1385,7 +1387,7 @@ nc4_var_list_del(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
  * @author Ed Hartnett, Ward Fisher
  */
 static int
-dim_free(NC_DIM_INFO_T *dim)
+dim_free(NC_DIM_INFO_T *dim, NCformatfree formatfree)
 {
     assert(dim);
     LOG((4, "%s: deleting dim %s", __func__, dim->hdr.name));
@@ -1395,8 +1397,7 @@ dim_free(NC_DIM_INFO_T *dim)
         free(dim->hdr.name);
 
     /* Release any format-specific information. */
-    if (dim->format_dim_info)
-        free(dim->format_dim_info);
+    formatfree((NC_OBJ*)dim);
 
     free(dim);
     return NC_NOERR;
@@ -1412,7 +1413,7 @@ dim_free(NC_DIM_INFO_T *dim)
  * @author Dennis Heimbigner
  */
 int
-nc4_dim_list_del(NC_GRP_INFO_T *grp, NC_DIM_INFO_T *dim)
+nc4_dim_list_del(NC_GRP_INFO_T *grp, NC_DIM_INFO_T *dim, NCformatfree formatfree)
 {
     if (grp && dim)
     {
@@ -1421,7 +1422,7 @@ nc4_dim_list_del(NC_GRP_INFO_T *grp, NC_DIM_INFO_T *dim)
             ncindexidel(grp->dim, pos);
     }
 
-    return dim_free(dim);
+    return dim_free(dim, formatfree);
 }
 
 /**
@@ -1434,7 +1435,7 @@ nc4_dim_list_del(NC_GRP_INFO_T *grp, NC_DIM_INFO_T *dim)
  * @author Ed Hartnett, Dennis Heimbigner
  */
 int
-nc4_rec_grp_del(NC_GRP_INFO_T *grp)
+nc4_rec_grp_del(NC_GRP_INFO_T *grp, NCformatfree formatfree)
 {
     int i;
     int retval;
@@ -1446,33 +1447,33 @@ nc4_rec_grp_del(NC_GRP_INFO_T *grp)
      * if there is an error. */
     for (i = 0; i < ncindexsize(grp->children); i++)
         if ((retval = nc4_rec_grp_del((NC_GRP_INFO_T *)ncindexith(grp->children,
-                                                                  i))))
+                                                                  i),formatfree)))
             return retval;
     ncindexfree(grp->children);
 
     /* Free attributes, but leave in parent list */
     for (i = 0; i < ncindexsize(grp->att); i++)
-        if ((retval = att_free((NC_ATT_INFO_T *)ncindexith(grp->att, i))))
+        if ((retval = att_free((NC_ATT_INFO_T *)ncindexith(grp->att, i),formatfree)))
             return retval;
     ncindexfree(grp->att);
 
     /* Delete all vars. */
     for (i = 0; i < ncindexsize(grp->vars); i++) {
 	NC_VAR_INFO_T* v = (NC_VAR_INFO_T *)ncindexith(grp->vars, i);
-        if ((retval = var_free(v)))
+        if ((retval = var_free(v,formatfree)))
             return retval;
     }
     ncindexfree(grp->vars);
 
     /* Delete all dims, and free the list of dims. */
     for (i = 0; i < ncindexsize(grp->dim); i++)
-        if ((retval = dim_free((NC_DIM_INFO_T *)ncindexith(grp->dim, i))))
+        if ((retval = dim_free((NC_DIM_INFO_T *)ncindexith(grp->dim, i),formatfree)))
             return retval;
     ncindexfree(grp->dim);
 
     /* Delete all types. */
     for (i = 0; i < ncindexsize(grp->type); i++)
-        if ((retval = nc4_type_free((NC_TYPE_INFO_T *)ncindexith(grp->type, i))))
+        if ((retval = nc4_type_free((NC_TYPE_INFO_T *)ncindexith(grp->type, i),formatfree)))
             return retval;
     ncindexfree(grp->type);
 
@@ -1480,8 +1481,7 @@ nc4_rec_grp_del(NC_GRP_INFO_T *grp)
     free(grp->hdr.name);
 
     /* Release any format-specific information about this group. */
-    if (grp->format_grp_info)
-        free(grp->format_grp_info);
+    formatfree((NC_OBJ*)grp);
 
     /* Free up this group */
     free(grp);
@@ -1500,11 +1500,11 @@ nc4_rec_grp_del(NC_GRP_INFO_T *grp)
  * @author Dennis Heimbigner
  */
 int
-nc4_att_list_del(NCindex *list, NC_ATT_INFO_T *att)
+nc4_att_list_del(NCindex *list, NC_ATT_INFO_T *att, NCformatfree formatfree)
 {
     assert(att && list);
     ncindexidel(list, ((NC_OBJ *)att)->id);
-    return att_free(att);
+    return att_free(att,formatfree);
 }
 
 /**
@@ -1521,7 +1521,7 @@ nc4_att_list_del(NCindex *list, NC_ATT_INFO_T *att)
  * @author Ed Hartnett
  */
 int
-nc4_file_list_del(int ncid)
+nc4_file_list_del(int ncid, NCformatfree formatfree)
 {
     NC_FILE_INFO_T *h5;
     int retval;
@@ -1532,7 +1532,7 @@ nc4_file_list_del(int ncid)
     assert(h5);
 
     /* Delete the file resources. */
-    if ((retval = nc4_nc4f_list_del(h5)))
+    if ((retval = nc4_nc4f_list_del(h5,formatfree)))
         return retval;
 
     return NC_NOERR;
@@ -1548,7 +1548,7 @@ nc4_file_list_del(int ncid)
  * @author Ed Hartnett
  */
 int
-nc4_nc4f_list_del(NC_FILE_INFO_T *h5)
+nc4_nc4f_list_del(NC_FILE_INFO_T *h5, NCformatfree formatfree)
 {
     int retval;
 
@@ -1556,7 +1556,7 @@ nc4_nc4f_list_del(NC_FILE_INFO_T *h5)
 
     /* Delete all the list contents for vars, dims, and atts, in each
      * group. */
-    if ((retval = nc4_rec_grp_del(h5->root_grp)))
+    if ((retval = nc4_rec_grp_del(h5->root_grp,formatfree)))
         return retval;
 
     /* Cleanup these (extra) lists of all dims, groups, and types. */
@@ -1836,4 +1836,16 @@ freefilterlist(NClist* filters)
 	NC4_freefilterspec(f);
     }
     nclistfree(filters);
+}
+
+static int
+NC4_move_in_NCList(NC* nc, int new_id)
+{
+    int stat = move_in_NCList(nc,new_id);
+    if(stat == NC_NOERR) {
+        /* Synchronize header */
+        if(nc->dispatchdata)
+	    ((NC_OBJ*)nc->dispatchdata)->id = nc->ext_ncid;
+    }
+    return stat;
 }
