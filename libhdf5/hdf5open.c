@@ -529,7 +529,7 @@ rec_match_dimscales(NC_GRP_INFO_T *grp)
         }
 
         /* Skip dimension scale variables */
-        if (var->dimscale)
+        if (hdf5_var->dimscale)
             continue;
 
         /* If we have already read hidden coordinates att, then we don't
@@ -538,7 +538,7 @@ rec_match_dimscales(NC_GRP_INFO_T *grp)
             continue;
 
         /* Skip dimension scale variables */
-        if (!var->dimscale)
+        if (!hdf5_var->dimscale)
         {
             int d;
             int j;
@@ -1151,13 +1151,13 @@ get_attached_info(NC_VAR_INFO_T *var, NC_HDF5_VAR_INFO_T *hdf5_var, int ndims,
 
     /* If an enddef has already been called, the dimscales will already
      * be taken care of. */
-    if (num_scales && ndims && !var->dimscale_attached)
+    if (num_scales && ndims && !hdf5_var->dimscale_attached)
     {
         /* Allocate space to remember whether the dimscale has been
          * attached for each dimension, and the HDF5 object IDs of the
          * scale(s). */
         assert(!hdf5_var->dimscale_hdf5_objids);
-        if (!(var->dimscale_attached = calloc(ndims, sizeof(nc_bool_t))))
+        if (!(hdf5_var->dimscale_attached = calloc(ndims, sizeof(nc_bool_t))))
             return NC_ENOMEM;
         if (!(hdf5_var->dimscale_hdf5_objids = malloc(ndims *
                                                       sizeof(struct hdf5_objid))))
@@ -1171,7 +1171,7 @@ get_attached_info(NC_VAR_INFO_T *var, NC_HDF5_VAR_INFO_T *hdf5_var, int ndims,
             if (H5DSiterate_scales(hdf5_var->hdf_datasetid, d, NULL, dimscale_visitor,
                                    &(hdf5_var->dimscale_hdf5_objids[d])) < 0)
                 return NC_EHDFERR;
-            var->dimscale_attached[d] = NC_TRUE;
+            hdf5_var->dimscale_attached[d] = NC_TRUE;
             LOG((4, "dimscale attached"));
         }
     }
@@ -1208,7 +1208,7 @@ get_scale_info(NC_GRP_INFO_T *grp, NC_DIM_INFO_T *dim, NC_VAR_INFO_T *var,
     if (dim)
     {
         assert(ndims);
-        var->dimscale = NC_TRUE;
+        hdf5_var->dimscale = NC_TRUE;
 
         /* If this is a multi-dimensional coordinate var, then the
          * dimids must be stored in the hidden coordinates attribute. */
@@ -1298,7 +1298,7 @@ nc4_get_var_meta(NC_VAR_INFO_T *var)
     if ((retval = nc4_adjust_var_cache(var->container, var)))
         BAIL(retval);
 
-    if (var->coords_read && !var->dimscale)
+    if (var->coords_read && !hdf5_var->dimscale)
         if ((retval = get_attached_info(var, hdf5_var, var->ndims, hdf5_var->hdf_datasetid)))
             return retval;
 
@@ -1408,6 +1408,8 @@ exit:
          * delete the var info struct we just created. */
         if (incr_id_rc && H5Idec_ref(datasetid) < 0)
             BAIL2(NC_EHDFERR);
+	if(var && var->format_var_info)
+	    free(var->format_var_info);
         if (var)
             nc4_var_list_del(grp, var);
     }
@@ -2130,6 +2132,8 @@ exit:
     {
         /* NC_EBADTYPID will be normally converted to NC_NOERR so that
            the parent iterator does not fail. */
+	/* Free up the format_att_info */
+        if((retval=nc4_HDF5_close_att(att))) return retval;
         retval = nc4_att_list_del(list, att);
         att = NULL;
     }

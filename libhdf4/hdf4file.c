@@ -69,6 +69,8 @@ hdf4_rec_grp_del(NC_GRP_INFO_T *grp)
          * scale. */
         if (hdf4_var->sdsid && SDendaccess(hdf4_var->sdsid) < 0)
             return NC_EHDFERR;
+
+        nullfree(hdf4_var);
     }
 
     return NC_NOERR;
