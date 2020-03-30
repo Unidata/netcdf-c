@@ -18,7 +18,7 @@ You can find the documentation for netCDF-Fortran here:
 \section this_release Learn more about the current NetCDF-C Release
 
 - \subpage RELEASE_NOTES
-- \ref getting_and_building_netcdf
+- <A href="https://www.unidata.ucar.edu/software/netcdf/documentation/NUG/getting_and_building_netcdf.html">Getting and Building NetCDF</A>
 
 \subsection nightly_status The Latest NetCDF Build Status
 
@@ -36,7 +36,7 @@ You can find the documentation for netCDF-Fortran here:
 \section learn-more Learn more about using NetCDF-C
 
 - \ref sec_tut
-- \ref user_guide
+- <A href="https://www.unidata.ucar.edu/software/netcdf/documentation/NUG/">The netCDF User's Guide</A>
 - \ref netcdf_working_with_netcdf_files
 - <a class="el" href="http://www.unidata.ucar.edu/software/netcdf/documentation/historic/">Older Documentation, plus details regarding netcdf-fortran and netcdf-cxx.</a>
 
