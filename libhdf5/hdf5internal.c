@@ -285,6 +285,7 @@ nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var,
                     NC_DIM_INFO_T *dim)
 {
     int retval;
+    NC_HDF5_VAR_INFO_T* coord_h5var = (NC_HDF5_VAR_INFO_T*)coord_var->format_var_info;
 
     /* Sanity checks */
     assert(grp && coord_var && dim && dim->coord_var == coord_var &&
@@ -305,16 +306,16 @@ nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var,
     if (coord_var->ndims)
     {
         /* Coordinate variables shouldn't have dimscales attached. */
-        assert(!coord_var->dimscale_attached);
+        assert(!coord_h5var->dimscale_attached);
 
         /* Allocate space for tracking them */
-        if (!(coord_var->dimscale_attached = calloc(coord_var->ndims,
+        if (!(coord_h5var->dimscale_attached = calloc(coord_var->ndims,
                                                     sizeof(nc_bool_t))))
             return NC_ENOMEM;
     }
 
     /* Detach dimension from variable */
-    coord_var->dimscale = NC_FALSE;
+    coord_h5var->dimscale = NC_FALSE;
     dim->coord_var = NULL;
 
     /* Set state transition indicators */
@@ -407,7 +408,7 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
     hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
 
     /* Detach dimscales from the [new] coordinate variable. */
-    if (var->dimscale_attached)
+    if (hdf5_var->dimscale_attached)
     {
         int dims_detached = 0;
         int finished = 0;
@@ -417,7 +418,7 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
         for (d = 0; d < var->ndims && !finished; d++)
         {
             /* Is there a dimscale attached to this axis? */
-            if (var->dimscale_attached[d])
+            if (hdf5_var->dimscale_attached[d])
             {
                 NC_GRP_INFO_T *g;
                 int k;
@@ -455,7 +456,7 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
                                                      dim_datasetid, d) < 0)
                                     BAIL(NC_EHDFERR);
                             }
-                            var->dimscale_attached[d] = NC_FALSE;
+                            hdf5_var->dimscale_attached[d] = NC_FALSE;
                             if (dims_detached++ == var->ndims)
                                 finished++;
                         }
@@ -465,8 +466,8 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
         } /* next variable dimension */
 
         /* Release & reset the array tracking attached dimscales. */
-        free(var->dimscale_attached);
-        var->dimscale_attached = NULL;
+        free(hdf5_var->dimscale_attached);
+        hdf5_var->dimscale_attached = NULL;
         need_to_reattach_scales++;
     }
 
@@ -485,7 +486,7 @@ nc4_reform_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, NC_DIM_INFO_T *dim)
     }
 
     /* Attach variable to dimension. */
-    var->dimscale = NC_TRUE;
+    hdf5_var->dimscale = NC_TRUE;
     dim->coord_var = var;
 
     /* Check if this variable used to be a coord. var */
@@ -526,9 +527,27 @@ close_gatts(NC_GRP_INFO_T *grp)
 
     for (a = 0; a < ncindexsize(grp->att); a++)
     {
+        att = (NC_ATT_INFO_T *)ncindexith(grp->att, a);
+        assert(att && att->format_att_info);
+        nc4_HDF5_close_att(att);
+    }
+    return NC_NOERR;
+}
+
+/**
+ * @internal Close HDF5 resources for a single attribute
+ *
+ * @param att Pointer to att info struct.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EHDFERR HDF5 error.
+ * @author Dennis Heimbigner, Ed Hartnett
+ */
+int
+nc4_HDF5_close_att(NC_ATT_INFO_T *att)
+{
         NC_HDF5_ATT_INFO_T *hdf5_att;
 
-        att = (NC_ATT_INFO_T *)ncindexith(grp->att, a);
         assert(att && att->format_att_info);
         hdf5_att = (NC_HDF5_ATT_INFO_T *)att->format_att_info;
 
@@ -536,7 +555,9 @@ close_gatts(NC_GRP_INFO_T *grp)
         if (hdf5_att->native_hdf_typeid &&
             H5Tclose(hdf5_att->native_hdf_typeid) < 0)
             return NC_EHDFERR;
-    }
+
+	nullfree(hdf5_att);
+	att->format_att_info = NULL;	
     return NC_NOERR;
 }
 
@@ -585,30 +606,25 @@ close_vars(NC_GRP_INFO_T *grp)
         /* Free the HDF5 typeids. */
         if (var->type_info->rc == 1)
         {
-            if (((NC_HDF5_TYPE_INFO_T *)(var->type_info->format_type_info))->hdf_typeid &&
-                H5Tclose(((NC_HDF5_TYPE_INFO_T *)(var->type_info->format_type_info))->hdf_typeid) < 0)
-                return NC_EHDFERR;
-            if (((NC_HDF5_TYPE_INFO_T *)(var->type_info->format_type_info))->native_hdf_typeid &&
-                H5Tclose(((NC_HDF5_TYPE_INFO_T *)(var->type_info->format_type_info))->native_hdf_typeid) < 0)
-                return NC_EHDFERR;
+	    if(var->type_info->hdr.id <= NC_STRING)
+		/* This was a constructed atomic type; free its info */ 
+		nc4_HDF5_close_type(var->type_info);
+        }
+
+        for (a = 0; a < ncindexsize(var->att); a++)
+        {
+            att = (NC_ATT_INFO_T *)ncindexith(var->att, a);
+            assert(att && att->format_att_info);
+	    nc4_HDF5_close_att(att);
         }
 
         /* Delete any HDF5 dimscale objid information. */
         if (hdf5_var->dimscale_hdf5_objids)
             free(hdf5_var->dimscale_hdf5_objids);
-
-        for (a = 0; a < ncindexsize(var->att); a++)
-        {
-            NC_HDF5_ATT_INFO_T *hdf5_att;
-            att = (NC_ATT_INFO_T *)ncindexith(var->att, a);
-            assert(att && att->format_att_info);
-            hdf5_att = (NC_HDF5_ATT_INFO_T *)att->format_att_info;
-
-            /* Close the HDF5 typeid if one is open. */
-            if (hdf5_att->native_hdf_typeid &&
-                H5Tclose(hdf5_att->native_hdf_typeid) < 0)
-                return NC_EHDFERR;
-        }
+	/* Delete information about the attachment status of dimscales. */
+	if (hdf5_var->dimscale_attached)
+	    free(hdf5_var->dimscale_attached);
+	nullfree(hdf5_var);
     }
 
     return NC_NOERR;
@@ -642,6 +658,7 @@ close_dims(NC_GRP_INFO_T *grp)
          * dim. */
         if (hdf5_dim->hdf_dimscaleid && H5Dclose(hdf5_dim->hdf_dimscaleid) < 0)
             return NC_EHDFERR;
+	nullfree(hdf5_dim);
     }
 
     return NC_NOERR;
@@ -666,9 +683,29 @@ close_types(NC_GRP_INFO_T *grp)
     for (i = 0; i < ncindexsize(grp->type); i++)
     {
         NC_TYPE_INFO_T *type;
-        NC_HDF5_TYPE_INFO_T *hdf5_type;
 
         type = (NC_TYPE_INFO_T *)ncindexith(grp->type, i);
+        assert(type && type->format_type_info);
+	nc4_HDF5_close_type(type);
+    }
+
+    return NC_NOERR;
+}
+
+/**
+ * @internal Close a single type instance
+ *
+ * @param type Pointer to type info struct.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EHDFERR HDF5 error.
+ * @author Dennis Heimbigner, Ed Hartnett
+ */
+int
+nc4_HDF5_close_type(NC_TYPE_INFO_T* type)
+{
+        NC_HDF5_TYPE_INFO_T *hdf5_type;
+
         assert(type && type->format_type_info);
 
         /* Get HDF5-specific type info. */
@@ -682,7 +719,7 @@ close_types(NC_GRP_INFO_T *grp)
             H5Tclose(hdf5_type->native_hdf_typeid) < 0)
             return NC_EHDFERR;
         hdf5_type->native_hdf_typeid = 0;
-    }
+	nullfree(hdf5_type);
 
     return NC_NOERR;
 }
@@ -736,6 +773,8 @@ nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp)
     LOG((4, "%s: closing group %s", __func__, grp->hdr.name));
     if (hdf5_grp->hdf_grpid && H5Gclose(hdf5_grp->hdf_grpid) < 0)
         return NC_EHDFERR;
+
+    nullfree(hdf5_grp);
 
     return NC_NOERR;
 }

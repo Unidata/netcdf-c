@@ -28,6 +28,7 @@ size_t nc4_chunk_cache_size = CHUNK_CACHE_SIZE;            /**< Default chunk ca
 size_t nc4_chunk_cache_nelems = CHUNK_CACHE_NELEMS;        /**< Default chunk cache number of elements. */
 float nc4_chunk_cache_preemption = CHUNK_CACHE_PREEMPTION; /**< Default chunk cache preemption. */
 
+static int NC4_move_in_NCList(NC* nc, int new_id);
 static void freefilterlist(NClist* filters);
 
 #ifdef LOGGING
@@ -158,7 +159,7 @@ nc4_file_change_ncid(int ncid, unsigned short new_ncid_index)
      * occupied. */
     LOG((3, "moving nc->ext_ncid %d nc->ext_ncid >> ID_SHIFT %d",
          nc->ext_ncid, nc->ext_ncid >> ID_SHIFT));
-    if (move_in_NCList(nc, new_ncid_index))
+    if (NC4_move_in_NCList(nc, new_ncid_index))
         return NC_EIO;
     LOG((3, "moved to new_ncid_index %d new nc->ext_ncid %d", new_ncid_index,
          nc->ext_ncid));
@@ -238,6 +239,10 @@ nc4_nc4f_list_add(NC *nc, const char *path, int mode)
         return NC_ENOMEM;
     nc->dispatchdata = h5;
     h5->controller = nc;
+
+    h5->hdr.sort = NCFIL;
+    h5->hdr.name = strdup(path);    
+    h5->hdr.id = nc->ext_ncid;
 
     /* Hang on to cmode, and note that we're in define mode. */
     h5->cmode = mode | NC_INDEF;
@@ -972,16 +977,15 @@ nc4_type_new(size_t size, const char *name, int assignedid,
     if (!(new_type = calloc(1, sizeof(NC_TYPE_INFO_T))))
         return NC_ENOMEM;
     new_type->hdr.sort = NCTYP;
+    new_type->hdr.hashkey = NC_hashmapkey(name, strlen(name));
+    new_type->hdr.id = assignedid;
 
     /* Remember info about this type. */
-    new_type->hdr.id = assignedid;
     new_type->size = size;
     if (!(new_type->hdr.name = strdup(name))) {
         free(new_type);
         return NC_ENOMEM;
     }
-
-    new_type->hdr.hashkey = NC_hashmapkey(name, strlen(name));
 
     /* Return a pointer to the new type. */
     *type = new_type;
@@ -1219,10 +1223,6 @@ nc4_type_free(NC_TYPE_INFO_T *type)
             break;
         }
 
-        /* Release any HDF5-specific type info. */
-        if (type->format_type_info)
-            free(type->format_type_info);
-
         /* Release the memory. */
         free(type);
     }
@@ -1238,8 +1238,8 @@ nc4_type_free(NC_TYPE_INFO_T *type)
  * @return ::NC_NOERR No error.
  * @author Ed Hartnett
  */
-static int
-att_free(NC_ATT_INFO_T *att)
+int
+nc4_att_free(NC_ATT_INFO_T *att)
 {
     int i;
 
@@ -1277,11 +1277,6 @@ att_free(NC_ATT_INFO_T *att)
         free(att->vldata);
     }
 
-    /* Free any format-sepecific info. Some formats use this (ex. HDF5)
-     * and some don't (ex. HDF4). So it may be NULL. */
-    if (att->format_att_info)
-        free(att->format_att_info);
-
     free(att);
     return NC_NOERR;
 }
@@ -1306,7 +1301,7 @@ var_free(NC_VAR_INFO_T *var)
 
     /* First delete all the attributes attached to this var. */
     for (i = 0; i < ncindexsize(var->att); i++)
-        if ((retval = att_free((NC_ATT_INFO_T *)ncindexith(var->att, i))))
+        if ((retval = nc4_att_free((NC_ATT_INFO_T *)ncindexith(var->att, i))))
             return retval;
     ncindexfree(var->att);
 
@@ -1314,8 +1309,8 @@ var_free(NC_VAR_INFO_T *var)
     if (var->chunksizes)
         free(var->chunksizes);
 
-    if (var->hdf5_name)
-        free(var->hdf5_name);
+    if (var->alt_name)
+        free(var->alt_name);
 
     if (var->hdr.name)
         free(var->hdr.name);
@@ -1335,16 +1330,8 @@ var_free(NC_VAR_INFO_T *var)
         if ((retval = nc4_type_free(var->type_info)))
             return retval;
 
-    /* Delete information about the attachment status of dimscales. */
-    if (var->dimscale_attached)
-        free(var->dimscale_attached);
-
     /* Release filter information. */
     freefilterlist(var->filters);
-
-    /* Delete any format-specific info. */
-    if (var->format_var_info)
-        free(var->format_var_info);
 
     /* Delete the var. */
     free(var);
@@ -1393,10 +1380,6 @@ dim_free(NC_DIM_INFO_T *dim)
     /* Free memory allocated for names. */
     if (dim->hdr.name)
         free(dim->hdr.name);
-
-    /* Release any format-specific information. */
-    if (dim->format_dim_info)
-        free(dim->format_dim_info);
 
     free(dim);
     return NC_NOERR;
@@ -1450,9 +1433,9 @@ nc4_rec_grp_del(NC_GRP_INFO_T *grp)
             return retval;
     ncindexfree(grp->children);
 
-    /* Free attributes, but leave in parent list */
+    /* Free attributes */
     for (i = 0; i < ncindexsize(grp->att); i++)
-        if ((retval = att_free((NC_ATT_INFO_T *)ncindexith(grp->att, i))))
+        if ((retval = nc4_att_free((NC_ATT_INFO_T *)ncindexith(grp->att, i))))
             return retval;
     ncindexfree(grp->att);
 
@@ -1479,10 +1462,6 @@ nc4_rec_grp_del(NC_GRP_INFO_T *grp)
     /* Free the name. */
     free(grp->hdr.name);
 
-    /* Release any format-specific information about this group. */
-    if (grp->format_grp_info)
-        free(grp->format_grp_info);
-
     /* Free up this group */
     free(grp);
 
@@ -1504,7 +1483,7 @@ nc4_att_list_del(NCindex *list, NC_ATT_INFO_T *att)
 {
     assert(att && list);
     ncindexidel(list, ((NC_OBJ *)att)->id);
-    return att_free(att);
+    return nc4_att_free(att);
 }
 
 /**
@@ -1565,6 +1544,7 @@ nc4_nc4f_list_del(NC_FILE_INFO_T *h5)
     nclistfree(h5->alltypes);
 
     /* Free the NC_FILE_INFO_T struct. */
+    nullfree(h5->hdr.name);
     free(h5);
 
     return NC_NOERR;
@@ -1702,9 +1682,9 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
             strcat(storage_str, "compact");
         else
             strcat(storage_str, "chunked");
-        LOG((2, "%s VARIABLE - varid: %d name: %s ndims: %d dimscale: %d "
+        LOG((2, "%s VARIABLE - varid: %d name: %s ndims: %d "
              "dimids:%s storage: %s", tabs, var->hdr.id, var->hdr.name,
-             var->ndims, (int)var->dimscale,
+             var->ndims,
              (dims_string ? dims_string : " -"), storage_str));
         for (j = 0; j < ncindexsize(var->att); j++)
         {
@@ -1836,4 +1816,16 @@ freefilterlist(NClist* filters)
 	NC4_freefilterspec(f);
     }
     nclistfree(filters);
+}
+
+static int
+NC4_move_in_NCList(NC* nc, int new_id)
+{
+    int stat = move_in_NCList(nc,new_id);
+    if(stat == NC_NOERR) {
+        /* Synchronize header */
+        if(nc->dispatchdata)
+	    ((NC_OBJ*)nc->dispatchdata)->id = nc->ext_ncid;
+    }
+    return stat;
 }

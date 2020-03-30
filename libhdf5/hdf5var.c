@@ -9,9 +9,7 @@
  */
 
 #include "config.h"
-#ifdef USE_HDF5
 #include <hdf5internal.h>
-#endif
 #include <math.h> /* For pow() used below. */
 
 #include "netcdf.h"
@@ -291,11 +289,11 @@ give_var_secret_name(NC_VAR_INFO_T *var, const char *name)
      * clash. */
     if (strlen(name) + strlen(NON_COORD_PREPEND) > NC_MAX_NAME)
         return NC_EMAXNAME;
-    if (!(var->hdf5_name = malloc((strlen(NON_COORD_PREPEND) +
+    if (!(var->alt_name = malloc((strlen(NON_COORD_PREPEND) +
                                    strlen(name) + 1) * sizeof(char))))
         return NC_ENOMEM;
 
-    sprintf(var->hdf5_name, "%s%s", NON_COORD_PREPEND, name);
+    sprintf(var->alt_name, "%s%s", NON_COORD_PREPEND, name);
 
     return NC_NOERR;
 }
@@ -342,6 +340,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
     NC_TYPE_INFO_T *type = NULL;
     NC_HDF5_TYPE_INFO_T *hdf5_type;
     NC_HDF5_GRP_INFO_T *hdf5_grp;
+    NC_HDF5_VAR_INFO_T* hdf5_var;
     char norm_name[NC_MAX_NAME + 1];
     int d;
     int retval;
@@ -488,6 +487,8 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
     if (!(var->format_var_info = calloc(1, sizeof(NC_HDF5_VAR_INFO_T))))
         BAIL(NC_ENOMEM);
 
+    hdf5_var = (NC_HDF5_VAR_INFO_T*)var->format_var_info;
+
     /* Set these state flags for the var. */
     var->is_new_var = NC_TRUE;
     var->meta_read = NC_TRUE;
@@ -524,7 +525,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
         /* Check for dim index 0 having the same name, in the same group */
         if (d == 0 && dim_grp == grp && strcmp(dim->hdr.name, norm_name) == 0)
         {
-            var->dimscale = NC_TRUE;
+            hdf5_var->dimscale = NC_TRUE;
             dim->coord_var = var;
 
             /* Use variable's dataset ID for the dimscale ID. So delete
@@ -590,8 +591,8 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
      * scale. (We found dim above.) Otherwise, allocate space to
      * remember whether dimension scales have been attached to each
      * dimension. */
-    if (!var->dimscale && ndims)
-        if (!(var->dimscale_attached = calloc(ndims, sizeof(nc_bool_t))))
+    if (!hdf5_var->dimscale && ndims)
+        if (!(hdf5_var->dimscale_attached = calloc(ndims, sizeof(nc_bool_t))))
             BAIL(NC_ENOMEM);
 
     /* Return the varid. */
@@ -1126,6 +1127,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
     NC_HDF5_GRP_INFO_T *hdf5_grp;
     NC_FILE_INFO_T *h5;
     NC_VAR_INFO_T *var;
+    NC_HDF5_VAR_INFO_T *hdf5_var;
     NC_DIM_INFO_T *other_dim;
     int use_secret_name = 0;
     int retval = NC_NOERR;
@@ -1190,13 +1192,16 @@ NC4_rename_var(int ncid, int varid, const char *name)
         use_secret_name++;
     }
 
+    hdf5_var = (NC_HDF5_VAR_INFO_T*)var->format_var_info;
+    assert(hdf5_var != NULL);
+
     /* Change the HDF5 file, if this var has already been created
        there. */
     if (var->created)
     {
         int v;
         char *hdf5_name; /* Dataset will be renamed to this. */
-        hdf5_name = use_secret_name ? var->hdf5_name: (char *)name;
+        hdf5_name = use_secret_name ? var->alt_name: (char *)name;
 
         /* Do we need to read var metadata? */
         if (!var->meta_read)
@@ -1261,7 +1266,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
 
     /* Check if this was a coordinate variable previously, but names
      * are different now */
-    if (var->dimscale && strcmp(var->hdr.name, var->dim[0]->hdr.name))
+    if (hdf5_var->dimscale && strcmp(var->hdr.name, var->dim[0]->hdr.name))
     {
         /* Break up the coordinate variable */
         if ((retval = nc4_break_coord_var(grp, var, var->dim[0])))
@@ -1269,7 +1274,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
     }
 
     /* Check if this should become a coordinate variable. */
-    if (!var->dimscale)
+    if (!hdf5_var->dimscale)
     {
         /* Only variables with >0 dimensions can become coordinate
          * variables. */
@@ -2290,7 +2295,7 @@ nc_set_var_chunk_cache_ints(int ncid, int varid, int size, int nelems,
     float real_preemption = CHUNK_CACHE_PREEMPTION;
 
     LOG((1, "%s: ncid 0x%x varid %d size %d nelems %d preemption %d",
-	 __func__, ncid, varid, size, nelems, preemptions));
+	 __func__, ncid, varid, size, nelems, preemption));
     
     if (size >= 0)
         real_size = ((size_t) size) * MEGABYTE;

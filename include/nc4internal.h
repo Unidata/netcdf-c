@@ -18,7 +18,6 @@
 #include <ctype.h>
 #include <string.h>
 
-#include "ncdimscale.h"
 #include "nc_logging.h"
 #include "ncindex.h"
 #include "nc_provenance.h"
@@ -45,7 +44,7 @@
 
 /* typedef enum {GET, PUT} NC_PG_T; */
 /** These are the different objects that can be in our hash-lists. */
-typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP} NC_SORT;
+typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP, NCFIL} NC_SORT;
 
 /** The netCDF V2 error code. */
 #define NC_V2_ERR (-1)
@@ -188,7 +187,7 @@ typedef struct NC_ATT_INFO
 typedef struct NC_VAR_INFO
 {
     NC_OBJ hdr;                  /**< The hdr contains the name and ID. */
-    char *hdf5_name;             /**< Used if name in HDF5 must be different from name. */
+    char *alt_name;              /**< Used if name in dispatcher must be different from hdr.name. */
     struct NC_GRP_INFO *container; /**< Pointer to containing group. */
     size_t ndims;                /**< Number of dims. */
     int *dimids;                 /**< Dim IDs. */
@@ -210,8 +209,6 @@ typedef struct NC_VAR_INFO
     size_t *chunksizes;          /**< For chunked storage, an array (size ndims) of chunksizes. */
     int storage;                 /**< Storage of this var, compact, contiguous, or chunked. */
     int parallel_access;         /**< Type of parallel access for I/O on variable (collective or independent). */
-    nc_bool_t dimscale;          /**< True if var is a dimscale. */
-    nc_bool_t *dimscale_attached;  /**< Array of flags that are true if dimscale is attached for that dim index. */
     nc_bool_t shuffle;           /**< True if var has shuffle filter applied. */
     nc_bool_t fletcher32;        /**< True if var has fletcher32 filter applied. */
     size_t chunk_cache_size;     /**< Size in bytes of the var chunk chache. */
@@ -298,6 +295,7 @@ typedef struct NC_GRP_INFO
  * netcdf-4/HDF5 file. */
 typedef struct  NC_FILE_INFO
 {
+    NC_OBJ hdr;
     NC *controller; /**< Pointer to containing NC. */
 #ifdef USE_PARALLEL4
     MPI_Comm comm;  /**< Copy of MPI Communicator used to open the file. */
@@ -417,6 +415,7 @@ int nc4_build_root_grp(NC_FILE_INFO_T *h5);
 int nc4_rec_grp_del(NC_GRP_INFO_T *grp);
 int nc4_enum_member_add(NC_TYPE_INFO_T *type, size_t size, const char *name,
                         const void *value);
+int nc4_att_free(NC_ATT_INFO_T *att);
 
 /* Check and normalize names. */
 int NC_check_name(const char *name);
