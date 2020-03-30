@@ -103,10 +103,12 @@ detect_preserve_dimids(NC_GRP_INFO_T *grp, nc_bool_t *bad_coord_orderp)
     /* Iterate over variables in this group */
     for (i=0; i < ncindexsize(grp->vars); i++)
     {
+        NC_HDF5_VAR_INFO_T *hdf5_var;
         var = (NC_VAR_INFO_T*)ncindexith(grp->vars,i);
         if (var == NULL) continue;
+	hdf5_var = (NC_HDF5_VAR_INFO_T*)var->format_var_info;
         /* Only matters for dimension scale variables, with non-scalar dimensionality */
-        if (var->dimscale && var->ndims)
+        if (hdf5_var->dimscale && var->ndims)
         {
             /* If the user writes coord vars in a different order then he
              * defined their dimensions, then, when the file is reopened, the
@@ -301,9 +303,11 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio)
     }
 
     /* Free the HDF5-specific info. */
-    if (h5->format_file_info)
-        free(h5->format_file_info);
-
+    if (h5->format_file_info) {
+	NC_HDF5_FILE_INFO_T* hdf5_file = (NC_HDF5_FILE_INFO_T*)h5->format_file_info;
+	free(hdf5_file);
+    }
+    
     /* Free the NC_FILE_INFO_T struct. */
     if ((retval = nc4_nc4f_list_del(h5)))
         return retval;
@@ -346,7 +350,7 @@ nc4_close_hdf5_file(NC_FILE_INFO_T *h5, int abort,  NC_memio *memio)
     if ((retval = nc4_rec_grp_HDF5_del(h5->root_grp)))
         return retval;
 
-    /* Release all intarnal lists and metadata associated with this
+    /* Release all internal lists and metadata associated with this
      * file. All HDF5 objects have already been released. */
     if ((retval = nc4_close_netcdf4_file(h5, abort, memio)))
         return retval;
