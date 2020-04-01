@@ -7,6 +7,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.8.0 - TBD
 
+* [Bug Fix][cmake] Correct an issue with parallel filter test logic in CMake-based builds.
+
 ## 4.7.4 - March 27, 2020
 
 * [Windows] Bumped packaged HDF5 to 1.10.6, HDF4 to 4.2.14, and libcurl to 7.60.0.
