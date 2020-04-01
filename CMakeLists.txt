@@ -650,9 +650,9 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
 
     # Determine whether parallel filter operation is supported.
     IF(${HDF5_VERSION} VERSION_LESS ${HDF5_PAR_FILTER_VERSION})
-      SET(HDF5_HAS_PAR_FILTERS, "no")
+      SET(HDF5_HAS_PAR_FILTERS FALSE CACHE BOOL "")
     ELSE()
-      SET(HDF5_HAS_PAR_FILTERS, "yes")
+      SET(HDF5_HAS_PAR_FILTERS TRUE CACHE BOOL "")
     ENDIF()
 
     ##
@@ -1978,8 +1978,8 @@ is_enabled(JNA HAS_JNA)
 is_enabled(ENABLE_ZERO_LENGTH_COORD_BOUND RELAX_COORD_BOUND)
 is_enabled(USE_CDF5 HAS_CDF5)
 is_enabled(ENABLE_ERANGE_FILL HAS_ERANGE_FILL)
-is_enabled(HDF5_HAS_PAR_FILTERS HAS_PAR_FILTERS)
 is_enabled(HAVE_H5Z_SZIP HAS_SZLIB)
+is_enabled(HDF5_HAS_PAR_FILTERS HAS_PAR_FILTERS)
 
 # Generate file from template.
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
