@@ -381,6 +381,10 @@ are set when opening a binary file on Windows. */
 /* if true, hdf5 has parallelism enabled */
 #cmakedefine HDF5_PARALLEL 1
 
+/* if true, HDF5 is at least version 1.10. 3 and allows parallel I/O
+with zip */
+#cmakedefine HDF5_SUPPORTS_PAR_FILTERS 1
+
 /* if true, include JNA bug fix */
 #cmakedefine JNA 1
 
