@@ -651,8 +651,10 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     # Determine whether parallel filter operation is supported.
     IF(${HDF5_VERSION} VERSION_LESS ${HDF5_PAR_FILTER_VERSION})
       SET(HDF5_HAS_PAR_FILTERS FALSE CACHE BOOL "")
+      SET(HAS_PAR_FILTERS no CACHE STRING "")
     ELSE()
       SET(HDF5_HAS_PAR_FILTERS TRUE CACHE BOOL "")
+      SET(HAS_PAR_FILTERS yes CACHE STRING "")
     ENDIF()
 
     ##
