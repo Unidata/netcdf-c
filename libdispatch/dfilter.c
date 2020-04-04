@@ -40,6 +40,10 @@ Unified filter related code
 
 /* Forward */
 static int gettype(const int q0, const int q1, int* unsignedp);
+#ifdef WORDS_BIGENDIAN
+static void byteswap8(unsigned char* mem);
+static void byteswap4(unsigned char* mem);
+#endif
 
 const struct LegalFormat {
     const char* tag;
