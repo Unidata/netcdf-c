@@ -28,6 +28,10 @@ env:
 
         - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc CFLAGS='-funsigned-char' AC_COPTS='--disable-dap-remote-tests' COPTS='-DCMAKE_C_FLAGS=-funsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=OFF' USECP=FALSE CURHOST=docker-gcc-x86-unsigned TESTFILTER=TRUE
 
+        - DOCKIMG=unidata/nctests:mpich USECMAKE=TRUE USEAC=TRUE USE_CC=gcc AC_COPTS='--enable-parallel-tests' COPTS='-DENABLE_PARALLEL_TESTS=TRUE' USECP=FALSE CURHOST=docker-gcc-x64-mpich TESTFILTER=TRUE
+
+        - DOCKIMG=unidata/nctests:mpich32 USECMAKE=TRUE USEAC=TRUE USE_CC=gcc AC_COPTS='--enable-parallel-tests' COPTS='-DENABLE_PARALLEL_TESTS=TRUE' USECP=FALSE CURHOST=docker-gcc-x64-mpich32 TESTFILTER=TRUE
+
 # Centos, Fedora
         - DOCKIMG=unidata/nctests:serial.centos USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc AC_COPTS='--disable-dap-remote-tests' COPTS='-DENABLE_DAP_REMOTE_TESTS=OFF' USECP=TRUE CURHOST=docker-gcc-x64-centos TESTFILTER=TRUE
         - DOCKIMG=unidata/nctests:serial.fedora USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc AC_COPTS='--disable-dap-remote-tests' COPTS='-DENABLE_DAP_REMOTE_TESTS=OFF' USECP=TRUE CURHOST=docker-gcc-x64-fedora TESTFILTER=TRUE
