@@ -122,6 +122,11 @@ static const char* spectype[] = {"i", "b", "ub", "s", "us", "i", "ui", "i", "i",
 
 static int nerrs = 0;
 
+#ifdef WORDS_BIGENDIAN
+static void byteswap8(unsigned char* mem);
+static void byteswap4(unsigned char* mem);
+#endif
+
 static void
 mismatch(size_t i, unsigned int *params, const char* tag)
 {
