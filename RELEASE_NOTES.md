@@ -8,6 +8,7 @@ This file contains a high-level description of this package's evolution. Release
 ## 4.8.0 - TBD
 
 * [Bug Fix][cmake] Correct an issue with parallel filter test logic in CMake-based builds.
+* [Bug Fix] Compiling on a big-endian machine exposes some missing forward delcarations in dfilter.c.
 
 ## 4.7.4 - March 27, 2020
 
