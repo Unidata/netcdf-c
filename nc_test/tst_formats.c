@@ -222,6 +222,18 @@ main(int argc, char **argv)
                   if (ret != (a ? NC_ELATEDEF: NC_ELATEFILL)) ERR;
                }
                if (nc_enddef(ncid)) ERR;
+
+	       /* There is (still!) no deflate on this var, and that
+		* is true in all formats. */
+	       if (nc_inq_var_deflate(ncid, varid, &shuffle_in, &deflate_in,
+				      &deflate_level_in)) ERR;
+	       if (shuffle_in || deflate_in || deflate_level_in) ERR;
+	       
+	       /* There is (still!) no szip on this var, and that is
+		* true in all formats. */
+	       if (nc_inq_var_szip(ncid, varid, &options_mask_in, &pixels_per_block_in)) ERR;
+	       if (options_mask_in || pixels_per_block_in) ERR;
+	       
                if (nc_close(ncid)) ERR;
 
                /* Open the file and check data. */
