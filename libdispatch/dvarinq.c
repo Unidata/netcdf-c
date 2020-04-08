@@ -718,8 +718,8 @@ nc_inq_var_szip(int ncid, int varid, int *options_maskp, int *pixels_per_blockp)
 	break;
    case NC_ENOFILTER:
    case NC_ENOTNC4:
-       /* If the szip filter is not in use, of if this is not a
-	* netCDF/HDF5 file, return 0 for both parameters. */
+       /* If the szip filter is not in use, or if this is not a HDF5
+	* file, return 0 for both parameters. */
        params[0] = 0;
        params[1] = 0;
        stat = NC_NOERR;
