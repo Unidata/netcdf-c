@@ -289,8 +289,10 @@ nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep, int *defla
    size_t nparams;
    unsigned int params[4];
    int deflating = 0;
-
-   int stat = NC_check_id(ncid,&ncp);
+   NC_FILE_INFO_T **h5;
+   int stat;
+   
+   stat = NC_check_id(ncid,&ncp);
    if(stat != NC_NOERR) return stat;
    TRACE(nc_inq_var_deflate);
 
@@ -299,6 +301,18 @@ nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep, int *defla
    switch (stat) {
    case NC_ENOFILTER: deflating = 0; stat = NC_NOERR; break;
    case NC_NOERR: deflating = 1; break;
+   case NC_ENOTNC4:
+       /* As a special case, to support behavior already coded into user
+	* applications, handle classic format files by reporting no
+	* deflation. */
+       if (shufflep)
+	   *shufflep = 0;
+       if (deflatep)
+	   *deflatep = 0;
+       if (deflate_levelp)
+	   *deflate_levelp = 0;
+       return NC_NOERR;
+       break;
    default: return stat;
    }
    if(deflatep) *deflatep = deflating;
