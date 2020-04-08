@@ -263,11 +263,10 @@ Learn the shuffle and deflate settings for a variable.
 Deflation is compression with the zlib library. Shuffle re-orders the
 data bytes to provide better compression (see nc_def_var_deflate()).
 
-Deflation is only
-available for HDF5 files. For classic and other files, this function
-will return setting that indicate that deflation is not in use, and
-that the shuffle filter is not in use. That is: shuffle off, deflate
-off, and a deflate level of 0.
+Deflation is only available for HDF5 files. For classic and other
+files, this function will return setting that indicate that deflation
+is not in use, and that the shuffle filter is not in use. That is:
+shuffle off, deflate off, and a deflate level of 0.
 
 \param ncid NetCDF or group ID, from a previous call to nc_open(),
 nc_create(), nc_def_grp(), or associated inquiry functions such as
