@@ -172,6 +172,7 @@ main(int argc, char **argv)
                int data_in;
                int fill_value = TEST_VAL_42 * 2;
 	       int shuffle_in, deflate_in, deflate_level_in;
+	       int options_mask_in, pixels_per_block_in;
 
                /* Try to set fill mode after data have been written. */
                sprintf(file_name, "%s_%d_%d_%d_elatefill.nc", FILE_NAME_BASE, format[f], d, a);
@@ -185,6 +186,11 @@ main(int argc, char **argv)
 	       if (nc_inq_var_deflate(ncid, varid, &shuffle_in, &deflate_in,
 				      &deflate_level_in)) ERR;
 	       if (shuffle_in || deflate_in || deflate_level_in) ERR;
+	       
+	       /* There is no szip on this var, and that is true in
+		* all formats. */
+	       if (nc_inq_var_szip(ncid, varid, &options_mask_in, &pixels_per_block_in)) ERR;
+	       if (options_mask_in || pixels_per_block_in) ERR;
 	       
                if (nc_enddef(ncid)) ERR;
                /* For netCDF-4, we don't actually have to write data to
