@@ -8,6 +8,7 @@ This file contains a high-level description of this package's evolution. Release
 ## 4.8.0 - TBD
 
 * [Bug Fix][cmake] Correct an issue with parallel filter test logic in CMake-based builds.
+* [Bug Fix] Now allow nc_inq_var_deflate to be called for all formats, not just netCDF-4. This reverts behavior that was changed in the 4.7.4 release. See [https://github.com/Unidata/netcdf-c/issues/1691].
 
 ## 4.7.4 - March 27, 2020
 
