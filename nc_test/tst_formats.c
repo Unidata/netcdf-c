@@ -171,6 +171,8 @@ main(int argc, char **argv)
                int data = TEST_VAL_42;
                int data_in;
                int fill_value = TEST_VAL_42 * 2;
+	       int shuffle_in, deflate_in, deflate_level_in;
+	       int options_mask_in, pixels_per_block_in;
 
                /* Try to set fill mode after data have been written. */
                sprintf(file_name, "%s_%d_%d_%d_elatefill.nc", FILE_NAME_BASE, format[f], d, a);
@@ -178,6 +180,18 @@ main(int argc, char **argv)
                if (nc_create(file_name, 0, &ncid)) ERR;
                if (nc_def_dim(ncid, DIM_NAME, DIM_LEN, &dimid)) ERR;
                if (nc_def_var(ncid, VAR_NAME, NC_INT, NDIM1, &dimid, &varid)) ERR;
+
+	       /* There is no deflate on this var, and that is true in
+		* all formats. */
+	       if (nc_inq_var_deflate(ncid, varid, &shuffle_in, &deflate_in,
+				      &deflate_level_in)) ERR;
+	       if (shuffle_in || deflate_in || deflate_level_in) ERR;
+	       
+	       /* There is no szip on this var, and that is true in
+		* all formats. */
+	       if (nc_inq_var_szip(ncid, varid, &options_mask_in, &pixels_per_block_in)) ERR;
+	       if (options_mask_in || pixels_per_block_in) ERR;
+	       
                if (nc_enddef(ncid)) ERR;
                /* For netCDF-4, we don't actually have to write data to
                 * prevent future setting of the fill value. Once the user
@@ -208,6 +222,18 @@ main(int argc, char **argv)
                   if (ret != (a ? NC_ELATEDEF: NC_ELATEFILL)) ERR;
                }
                if (nc_enddef(ncid)) ERR;
+
+	       /* There is (still!) no deflate on this var, and that
+		* is true in all formats. */
+	       if (nc_inq_var_deflate(ncid, varid, &shuffle_in, &deflate_in,
+				      &deflate_level_in)) ERR;
+	       if (shuffle_in || deflate_in || deflate_level_in) ERR;
+	       
+	       /* There is (still!) no szip on this var, and that is
+		* true in all formats. */
+	       if (nc_inq_var_szip(ncid, varid, &options_mask_in, &pixels_per_block_in)) ERR;
+	       if (options_mask_in || pixels_per_block_in) ERR;
+	       
                if (nc_close(ncid)) ERR;
 
                /* Open the file and check data. */
