@@ -178,6 +178,9 @@ are set when opening a binary file on Windows. */
 /* Is CURLOPT_USERNAME defined */
 #cmakedefine HAVE_CURLOPT_USERNAME 1
 
+/* Is LIBCURL version >= 7.66 */
+#cmakedefine HAVE_LIBCURL_766 1
+
 /* Define to 1 if you have the declaration of `isfinite', and to 0 if you
    don't. */
 #cmakedefine HAVE_DECL_ISFINITE 1
