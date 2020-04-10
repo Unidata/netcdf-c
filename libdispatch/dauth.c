@@ -30,6 +30,8 @@ See COPYRIGHT for license information.
 
 /* Define the curl flag defaults in envv style */
 static const char* AUTHDEFAULTS[] = {
+"HTTP.SSL.VERIFYPEER","-1", /* Use default */
+"HTTP.SSL.VERIFYHOST","-1", /* Use default */
 "HTTP.TIMEOUT","1800", /*seconds */ /* Long but not infinite */
 "HTTP.CONNECTTIMEOUT","50", /*seconds */ /* Long but not infinite */
 NULL
@@ -124,8 +126,6 @@ NC_authsetup(NCauth* auth, NCURI* uri)
 			NC_rclookup("HTTP.PROXY.SERVER",uri_hostport));
     setauthfield(auth,"HTTP.PROXY_SERVER",
 			NC_rclookup("HTTP.PROXY_SERVER",uri_hostport));
-    setauthfield(auth,"HTTP.SSL.VALIDATE",
-			NC_rclookup("HTTP.SSL.VALIDATE",uri_hostport));
     setauthfield(auth,"HTTP.SSL.CERTIFICATE",
 			NC_rclookup("HTTP.SSL.CERTIFICATE",uri_hostport));
     setauthfield(auth,"HTTP.SSL.KEY",
@@ -138,6 +138,11 @@ NC_authsetup(NCauth* auth, NCURI* uri)
 			NC_rclookup("HTTP.SSL.CAPATH",uri_hostport));
     setauthfield(auth,"HTTP.SSL.VERIFYPEER",
 			NC_rclookup("HTTP.SSL.VERIFYPEER",uri_hostport));
+    setauthfield(auth,"HTTP.SSL.VERIFYHOST",
+			NC_rclookup("HTTP.SSL.VERIFYHOST",uri_hostport));
+    /* Alias for VERIFYHOST + VERIFYPEER */
+    setauthfield(auth,"HTTP.SSL.VALIDATE",
+			NC_rclookup("HTTP.SSL.VALIDATE",uri_hostport));
     setauthfield(auth,"HTTP.NETRC",
 			NC_rclookup("HTTP.NETRC",uri_hostport));
 
@@ -255,13 +260,28 @@ setauthfield(NCauth* auth, const char* flag, const char* value)
             nclog(NCLOGNOTE,"HTTP.PROXY.SERVER: %s", value);
 #endif
     }
+    if(strcmp(flag,"HTTP.SSL.VERIFYPEER")==0) {
+	int v;
+        if((v = atol(value))) {
+	    auth->ssl.verifypeer = v;
+#ifdef D4DEBUG
+                nclog(NCLOGNOTE,"HTTP.SSL.VERIFYPEER: %d", v);
+#endif
+	}
+    }
+    if(strcmp(flag,"HTTP.SSL.VERIFYHOST")==0) {
+	int v;
+        if((v = atol(value))) {
+	    auth->ssl.verifyhost = v;
+#ifdef D4DEBUG
+                nclog(NCLOGNOTE,"HTTP.SSL.VERIFYHOST: %d", v);
+#endif
+	}
+    }
     if(strcmp(flag,"HTTP.SSL.VALIDATE")==0) {
         if(atoi(value)) {
 	    auth->ssl.verifypeer = 1;
-	    auth->ssl.verifyhost = 1;
-#ifdef D4DEBUG
-                nclog(NCLOGNOTE,"HTTP.SSL.VALIDATE: %ld", 1);
-#endif
+	    auth->ssl.verifyhost = 2;
 	}
     }
 
@@ -309,22 +329,6 @@ setauthfield(NCauth* auth, const char* flag, const char* value)
             nclog(NCLOGNOTE,"HTTP.SSL.CAPATH: %s", auth->ssl.capath);
 #endif
     }
-
-    if(strcmp(flag,"HTTP.SSL.VERIFYPEER")==0) {
-        const char* s = value;
-        int tf = 0;
-        if(s == NULL || strcmp(s,"0")==0 || strcasecmp(s,"false")==0)
-            tf = 0;
-        else if(strcmp(s,"1")==0 || strcasecmp(s,"true")==0)
-            tf = 1;
-        else
-            tf = 1; /* default if not null */
-        auth->ssl.verifypeer = tf;
-#ifdef D4DEBUG
-            nclog(NCLOGNOTE,"HTTP.SSL.VERIFYPEER: %d", auth->ssl.verifypeer);
-#endif
-    }
-
     if(strcmp(flag,"HTTP.NETRC")==0) {
         nullfree(auth->curlflags.netrc);
         auth->curlflags.netrc = strdup(value);
