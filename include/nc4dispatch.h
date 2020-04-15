@@ -110,8 +110,7 @@ extern "C" {
                     int *shufflep, int *deflatep, int *deflate_levelp,
                     int *fletcher32p, int *contiguousp, size_t *chunksizesp,
                     int *no_fill, void *fill_valuep, int *endiannessp,
-                    unsigned int* idp, size_t* nparamsp, unsigned int* params
-        );
+                    unsigned int* idp, size_t* nparamsp, unsigned int* params);
 
     EXTERNL int
     NC4_inq_varid(int ncid, const char *name, int *varidp);
