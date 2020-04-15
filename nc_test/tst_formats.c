@@ -241,6 +241,10 @@ main(int argc, char **argv)
 	       if (nc_inq_var_szip(ncid, varid, &options_mask_in, &pixels_per_block_in)) ERR;
 	       if (options_mask_in || pixels_per_block_in) ERR;
 	       
+	       /* Storage is (still) contiguous. */
+	       if (nc_inq_var_chunking(ncid, varid, &storage_in, NULL)) ERR;
+	       if (storage_in != NC_CONTIGUOUS) ERR;
+	       
                if (nc_close(ncid)) ERR;
 
                /* Open the file and check data. */
