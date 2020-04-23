@@ -9,6 +9,12 @@
 #include <nc_tests.h>
 #include "err_macros.h"
 #include "netcdf.h"
+#include "netcdf_filter.h"
+
+#define NC_SZIP_EC_BPP_IN 32  /**< @internal bits per pixel input. */
+#define NC_SZIP_EC_BPP_OUT 64  /**< @internal bits per pixel output. */
+#define NC_SZIP_NN 32 /**< @internal SZIP NN option mask. */
+#define NC_SZIP_EC 4  /**< @internal SZIP EC option mask. */
 
 #define FILE_NAME "tst_vars3.nc"
 #define NDIMS1 1
@@ -29,8 +35,6 @@
 #define VAR_NAME "var1"
 #define NUM_PARAMS_IN 2
 #define NUM_PARAMS_OUT 4
-#define NC_SZIP_EC_BPP_IN 32  /**< @internal bits per pixel input. */
-#define NC_SZIP_EC_BPP_OUT 64  /**< @internal bits per pixel output. */
 
 int
 main(int argc, char **argv)
@@ -454,10 +458,11 @@ main(int argc, char **argv)
 
         /* Also check using nc_inq_var_filter */
         if (nc_inq_var_filter(ncid, varid, &filterid, &nparams, params_out)) ERR;
-        if (filterid != H5_FILTER_SZIP || nparams != 4) ERR;
+        if (filterid != H5_FILTER_SZIP || nparams != 2) ERR;
         /* According to H5Zszip, the mapping should be as follows */
-        if(params_out[0] != options_mask) ERR;
-        if(params[1] !=  pixels_per_block) ERR;
+        if (!(options_mask & NC_SZIP_NN)) ERR;
+        if (pixels_per_block !=  NC_SZIP_EC_BPP_IN && pixels_per_block !=  NC_SZIP_EC_BPP_OUT)
+            ERR;
         if (nc_close(ncid)) ERR;
     }
     SUMMARIZE_ERR;
@@ -504,7 +509,7 @@ main(int argc, char **argv)
 
         /* Also check using nc_inq_var_filter */
         if (nc_inq_var_filter(ncid, varid, &filterid, &nparams, params_out)) ERR;
-        if (filterid != H5_FILTER_SZIP || nparams != 4) ERR;
+        if (filterid != H5_FILTER_SZIP || nparams != 2) ERR;
         /* According to H5Zszip, the mapping should be as follows */
         if(params_out[0] != options_mask) ERR;
         if(params_out[1] !=  pixels_per_block) ERR;
@@ -523,8 +528,7 @@ main(int argc, char **argv)
 #define V_MEDIUM "medium_var"
 #define V_LARGE "large_var"
 #define NUM_PARAMS 2
-#define NC_SZIP_NN 32 /**< @internal SZIP NN option mask. */
-#define NC_SZIP_EC 4  /**< @internal SZIP EC option mask. */
+
         int ncid;
         int nvars, ndims, ngatts, unlimdimid;
         int ndims_in, natts_in, dimids_in;
@@ -696,7 +700,8 @@ main(int argc, char **argv)
 
                     /* Open the file and check. */
                     if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
-                    if (nc_inq_var_szip(ncid, varid, &option_mask_in, &pixels_per_block_in)) ERR;
+                    if (nc_inq_var_szip(ncid, varid, &option_mask_in, &pixels_per_block_in))
+		        ERR;
                     if (p < FIRST_VALID)
                     {
                         if (option_mask_in) ERR;
@@ -707,13 +712,13 @@ main(int argc, char **argv)
                     }
 
                     /* Also check using nc_inq_var_filter */
-                    if (nc_inq_var_filter(ncid, varid, &filterid, &nparams, params_in)) ERR;
-                    if (p < FIRST_VALID)
-                    {
+                    ret = nc_inq_var_filter(ncid, varid, &filterid, &nparams, params_in);
+                    if (p < FIRST_VALID) {
+		        if(ret != NC_ENOFILTER) ERR;
                     }
                     else
                     {
-                        if (filterid != H5_FILTER_SZIP || nparams != 4) ERR;
+                        if (filterid != H5_FILTER_SZIP || nparams != 2) ERR;
                         /* According to H5Zszip, the mapping should be as follows */
                         if(params_in[0] != option_mask_in) ERR;
                         if(params_in[1] != pixels_per_block_in) ERR;
@@ -745,7 +750,7 @@ main(int argc, char **argv)
         params[1] = NC_SZIP_EC_BPP_IN; /* pixels_per_block */
         if (nc_def_var_chunking(ncid, varid, NC_CHUNKED, NULL)) ERR;
         if (nc_def_var_filter(ncid, varid, H5_FILTER_SZIP, NUM_PARAMS_IN,
-                              params) != NC_EFILTER) ERR;
+                              params) != NC_EFILTER) ERR;	
         if (nc_def_var_szip(ncid, varid, NC_SZIP_NN,
                             NC_SZIP_EC_BPP_IN) != NC_EFILTER) ERR;
         if (nc_close(ncid)) ERR;

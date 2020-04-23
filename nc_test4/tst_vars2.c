@@ -912,18 +912,18 @@ main(int argc, char **argv)
         if (nc_def_var(ncid, VAR_NAME5_2, NC_INT, 0, NULL, &varid2)) ERR;
         if (nc_def_var(ncid, VAR_NAME5_3, NC_INT, 0, NULL, &varid3)) ERR;
         if (nc_def_var(ncid, VAR_NAME5_4, NC_INT, NDIMS5, dimids, &varid4)) ERR;
-        if (nc_def_var_chunking(ncid, varid2, NC_CHUNKED, chunksize)) ERR;
+        if (nc_def_var_chunking(ncid, varid2, NC_CHUNKED, chunksize) != NC_EINVAL) ERR;
         if (nc_def_var_chunking(ncid, varid3, NC_CONTIGUOUS, NULL)) ERR;
         if (nc_def_var_chunking(ncid, varid4, NC_CHUNKED, large_chunksize) != NC_EBADCHUNK) ERR;
-        if (nc_def_var_chunking_ints(ncid, varid2, NC_CHUNKED, chunksize_int)) ERR;
+        if (nc_def_var_chunking_ints(ncid, varid2, NC_CHUNKED, chunksize_int) != NC_EINVAL) ERR;
         if (nc_def_var_chunking_ints(ncid, varid1, NC_CHUNKED, chunksize_int)) ERR;
-        if (nc_inq_var_chunking_ints(ncid, varid2, NULL, chunksize_int_in)) ERR;
+        if (nc_inq_var_chunking_ints(ncid, varid2, &storage_in, NULL)) ERR;
+        if (storage_in != NC_CONTIGUOUS) ERR;
         if (nc_inq_var_chunking_ints(ncid, varid1, NULL, chunksize_int_in)) ERR;
         for (d = 0; d < NDIMS5; d++)
             if (chunksize_int_in[d] != chunksize[d] * 2) ERR;
         if (nc_inq_var_chunking_ints(ncid, varid1, &storage_in, NULL)) ERR;
         if (storage_in != NC_CHUNKED) ERR;
-        if (nc_inq_var_chunking_ints(ncid, varid2, NULL, chunksize_int_in)) ERR;
         if (nc_inq_var_chunking_ints(ncid, varid3, &storage_in, NULL)) ERR;
         if (storage_in != NC_CONTIGUOUS) ERR;
         if (nc_inq_var_chunking_ints(ncid, varid3, &storage_in, chunksize_int_in)) ERR;
@@ -1478,8 +1478,8 @@ main(int argc, char **argv)
             if (shuffle_in || deflate_in) ERR;
             if (nc_inq_var_deflate(ncid, varid, NULL, NULL, NULL)) ERR;
 
-            /* Deflate is ignored for scalar. */
-            if (nc_def_var_deflate(ncid, varid_scalar, 0, 1, 4)) ERR;
+            /* Deflate fails for scalar. */
+            if (nc_def_var_deflate(ncid, varid_scalar, 0, 1, 4) != NC_EINVAL) ERR;
             if (nc_inq_var_deflate(ncid, varid, &shuffle_in, &deflate_in, &deflate_level_in)) ERR;
             if (shuffle_in || deflate_in) ERR;
 
@@ -1572,6 +1572,32 @@ main(int argc, char **argv)
         if (storage_in != NC_CHUNKED) ERR;
         if (chunksize_in[0] != chunksize[0] || chunksize_in[1] != chunksize[1]) ERR;
         if (nc_inq_var_chunking_ints(ncid, varid, &storage_in, chunksize_int_in) != NC_ERANGE) ERR;
+
+        /* Close the file. */
+        if (nc_close(ncid)) ERR;
+
+    }
+    SUMMARIZE_ERR;
+#define DIM10_NAME "num_monkeys"
+#define DIM11_NAME "num_hats"
+#define VAR_NAME11 "Silly_Sally"
+#define NDIM2 2
+    printf("**** testing deflate_level value when deflate is not in use...");
+    {
+        int ncid;
+        int dimid[NDIM2];
+        int varid;
+	int deflate_in, deflate_level_in = 99;
+
+        /* Create a netcdf-4 file. */
+        if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+        if (nc_def_dim(ncid, DIM10_NAME, NC_UNLIMITED, &dimid[0])) ERR;
+        if (nc_def_dim(ncid, DIM11_NAME, NC_UNLIMITED, &dimid[1])) ERR;
+        if (nc_def_var(ncid, VAR_NAME11, NC_BYTE, NDIM2, dimid, &varid)) ERR;
+
+	/* Check the deflate_level. */
+        if (nc_inq_var_deflate(ncid, varid, NULL, &deflate_in, &deflate_level_in)) ERR;
+        if (deflate_in || deflate_level_in) ERR;
 
         /* Close the file. */
         if (nc_close(ncid)) ERR;

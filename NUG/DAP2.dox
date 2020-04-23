@@ -619,9 +619,17 @@ follows.
         Type: String representing directory  
         Description: Path to a directory containing trusted certificates for validating server certificates.  
         Related CURL Flags: CURLOPT_CAPATH  
+1. HTTP.SSL.VERIFYPEER
+        Type: integer
+        Description: Set certificate checking on the server.
+        Related CURL Flags: CURLOPT_SSL_VERIFYHOST  
+1. HTTP.SSL.VERIFYPEER
+        Type: integer
+        Description: Set host validation for the server.
+        Related CURL Flags: CURLOPT_SSL_VERIFYPEER
 1. HTTP.SSL.VALIDATE  
         Type: boolean ("1"/"0")  
-        Description: Cause the client to verify the server's presented certificate.  
+        Description: Alias for VERIFYPEER=1 and VERIFYHOST=2
         Related CURL Flags: CURLOPT_SSL_VERIFYPEER, CURLOPT_SSL_VERIFYHOST  
 1. HTTP.TIMEOUT  
         Type: String ("dddddd")  

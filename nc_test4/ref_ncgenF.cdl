@@ -1,0 +1,21 @@
+netcdf multifiltered {
+dimensions:
+	dim0 = 4 ;
+	dim1 = 4 ;
+	dim2 = 4 ;
+	dim3 = 4 ;
+
+// global attributes:
+		:_Format = "netCDF-4" ;
+
+group: g {
+  variables:
+  	float var(dim0, dim1, dim2, dim3) ;
+  		var:_Storage = "chunked" ;
+  		var:_ChunkSizes = 4, 4, 4, 4 ;
+  		var:_Filter = "307,4|4,32,32" ;
+  		var:_NoFill = "true" ;
+
+  // group attributes:
+  } // group g
+}

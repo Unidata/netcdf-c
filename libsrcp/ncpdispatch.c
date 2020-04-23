@@ -1376,6 +1376,7 @@ NCP_inq_user_type(int ncid, nc_type typeid, char *name, size_t *size,
 static const NC_Dispatch NCP_dispatcher = {
 
 NC_FORMATX_PNETCDF,
+NC_DISPATCH_VERSION,
 
 NCP_create,
 NCP_open,
@@ -1460,6 +1461,7 @@ NC_NOTNC4_def_var_filter,
 NC_NOTNC4_set_var_chunk_cache,
 NC_NOTNC4_get_var_chunk_cache,
 
+NC_NOTNC4_filter_actions,
 };
 
 const NC_Dispatch *NCP_dispatch_table = NULL; /* moved here from ddispatch.c */

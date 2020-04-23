@@ -91,6 +91,7 @@ static int NCD2_get_vars(int ncid, int varid,
 static const NC_Dispatch NCD2_dispatch_base = {
 
 NC_FORMATX_DAP2,
+NC_DISPATCH_VERSION,
 
 NCD2_create,
 NCD2_open,
@@ -173,6 +174,8 @@ NCD2_def_var_endian,
 NCD2_def_var_filter,
 NCD2_set_var_chunk_cache,
 NCD2_get_var_chunk_cache,
+
+NC_NOTNC4_filter_actions,
 
 };
 

@@ -92,6 +92,8 @@ typedef struct NC_HDF5_VAR_INFO
 {
     hid_t hdf_datasetid;
     HDF5_OBJID_T *dimscale_hdf5_objids;
+    nc_bool_t dimscale;          /**< True if var is a dimscale. */
+    nc_bool_t *dimscale_attached;  /**< Array of flags that are true if dimscale is attached for that dim index. */
 } NC_HDF5_VAR_INFO_T;
 
 /* Struct to hold HDF5-specific info for a field. */
@@ -107,6 +109,9 @@ typedef struct NC_HDF5_TYPE_INFO
     hid_t hdf_typeid;
     hid_t native_hdf_typeid;
 } NC_HDF5_TYPE_INFO_T;
+
+/* Forward */
+struct NC_FILTER_OBJ_HDF5;
 
 /* Logging and debugging. */
 void reportopenobjects(int log, hid_t);
@@ -137,6 +142,7 @@ int nc4_get_hdf_typeid(NC_FILE_INFO_T *h5, nc_type xtype,
 int nc4_close_hdf5_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio);
 int nc4_rec_grp_HDF5_del(NC_GRP_INFO_T *grp);
 int nc4_enddef_netcdf4_file(NC_FILE_INFO_T *h5);
+int nc4_HDF5_close_type(NC_TYPE_INFO_T* type);
 
 /* Break & reform coordinate variables */
 int nc4_break_coord_var(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *coord_var, NC_DIM_INFO_T *dim);
@@ -166,16 +172,22 @@ int nc4_hdf5_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
 int nc4_hdf5_find_grp_h5_var(int ncid, int varid, NC_FILE_INFO_T **h5,
                              NC_GRP_INFO_T **grp, NC_VAR_INFO_T **var);
 
+int nc4_HDF5_close_att(NC_ATT_INFO_T *att);
+
 /* Perform lazy read of the rest of the metadata for a var. */
 int nc4_get_var_meta(NC_VAR_INFO_T *var);
 
 
 /* Define Filter API Function */
-int nc4_filter_action(int action, int formatx, int id, NC_FILTER_INFO* info);
+int nc4_global_filter_action(int action, unsigned int id, struct NC_FILTER_OBJ_HDF5* infop);
+int NC4_hdf5_addfilter(NC_VAR_INFO_T* var, int active, unsigned int id, size_t nparams, unsigned int* params);
+int NC4_hdf5_remove_filter(NC_VAR_INFO_T* var, unsigned int filterid);
+
 /* Support functions for provenance info (defined in nc4hdf.c) */
 extern int NC4_hdf5get_libversion(unsigned*,unsigned*,unsigned*);/*libsrc4/nc4hdf.c*/
 extern int NC4_hdf5get_superblock(struct NC_FILE_INFO*, int*);/*libsrc4/nc4hdf.c*/
 extern int NC4_isnetcdf4(struct NC_FILE_INFO*); /*libsrc4/nc4hdf.c*/
 
+extern int nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 
 #endif /* _HDF5INTERNAL_ */

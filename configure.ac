@@ -10,7 +10,7 @@
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address.
-AC_INIT([netCDF], [4.7.4-development], [support-netcdf@unidata.ucar.edu], [netcdf-c])
+AC_INIT([netCDF], [4.8.0-development], [support-netcdf@unidata.ucar.edu], [netcdf-c])
 
 ##
 # Prefer an empty CFLAGS variable instead of the default -g -O2.
@@ -20,8 +20,8 @@ AC_INIT([netCDF], [4.7.4-development], [support-netcdf@unidata.ucar.edu], [netcd
 : ${CFLAGS=""}
 
 AC_SUBST([NC_VERSION_MAJOR]) NC_VERSION_MAJOR=4
-AC_SUBST([NC_VERSION_MINOR]) NC_VERSION_MINOR=7
-AC_SUBST([NC_VERSION_PATCH]) NC_VERSION_PATCH=4
+AC_SUBST([NC_VERSION_MINOR]) NC_VERSION_MINOR=8
+AC_SUBST([NC_VERSION_PATCH]) NC_VERSION_PATCH=0
 AC_SUBST([NC_VERSION_NOTE]) NC_VERSION_NOTE="-development"
 
 #####
@@ -208,6 +208,7 @@ fi
 AC_MSG_RESULT([$enable_netcdf_4])
 
 # Does the user want to use HDF5?
+# WARNING: enable_hdf5 does not imply that use_netcdf_4 is enabled
 AC_MSG_CHECKING([whether we should build with HDF5])
 #enable_hdf5=$enable_netcdf_4
 AC_ARG_ENABLE([hdf5], [AS_HELP_STRING([--disable-hdf5],
@@ -749,6 +750,20 @@ AC_MSG_RESULT([${havecurloption}])
 if test $havecurloption = yes; then
   AC_DEFINE([HAVE_CURLOPT_KEEPALIVE],[1],[Is CURLOPT_TCP_KEEPALIVE defined])
 fi
+# CURLOPT_VERIFYHOST semantics differ depending on version
+AC_MSG_CHECKING([whether libcurl is version 7.66 or later?])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[#include "curl/curl.h"],
+[[
+#if LIBCURL_VERSION_NUM < 0x074200
+error "<7.66";
+#endif
+]])], [libcurl766=yes], [libcurl766=no])
+
+AC_MSG_RESULT([$libcurl766])
+if test x$libcurl66 = xno; then
+  AC_DEFINE([HAVE_LIBCURL_766],[1],[Is libcurl version 7.66 or later])
+fi
 
 CFLAGS="$SAVECFLAGS"
 
@@ -1022,8 +1037,11 @@ if test "x$enable_netcdf_4" = xyes; then
    AC_DEFINE([USE_NETCDF4], [1], [if true, build netCDF-4])
 fi
 
+# Set defaults
 hdf5_parallel=no
 hdf5_supports_par_filters=no
+enable_szlib=no
+
 if test "x$enable_hdf5" = xyes; then
 
    AC_DEFINE([USE_HDF5], [1], [if true, use HDF5])
@@ -1082,16 +1100,12 @@ if test "x$enable_hdf5" = xyes; then
    # Check whether HDF5 was built with the SZLIB library. If so we
    # must be able to link to szip library.
    AC_MSG_CHECKING([whether szlib was used when building HDF5])
-   enable_szlib=no
    if test "x$ac_cv_func_H5Z_SZIP" = xyes; then
       enable_szlib=yes
       AC_DEFINE([USE_SZIP], [1], [if true, compile in szip compression in netCDF-4 variables])
    fi
    AC_MSG_RESULT([$enable_szlib])
-
 fi
-AM_CONDITIONAL(HAS_PAR_FILTERS, [test x$hdf5_supports_par_filters = xyes ])
-AC_SUBST([HAS_PAR_FILTERS], [$hdf5_supports_par_filters])
 
 # If the user wants hdf4 built in, check it out.
 if test "x$enable_hdf4" = xyes; then
@@ -1302,6 +1316,7 @@ AM_CONDITIONAL(SHOW_DOXYGEN_TAG_LIST, [test x$enable_doxygen_tasks = xyes])
 AM_CONDITIONAL(ENABLE_METADATA_PERF, [test x$enable_metadata_perf = xyes])
 AM_CONDITIONAL(ENABLE_BYTERANGE, [test "x$enable_byterange" = xyes])
 AM_CONDITIONAL(RELAX_COORD_BOUND, [test "xyes" = xyes])
+AM_CONDITIONAL(HAS_PAR_FILTERS, [test x$hdf5_supports_par_filters = xyes ])
 
 # If the machine doesn't have a long long, and we want netCDF-4, then
 # we've got problems!
@@ -1434,6 +1449,7 @@ AC_SUBST(HAS_JNA,[$enable_jna])
 AC_SUBST(HAS_ERANGE_FILL,[$enable_erange_fill])
 AC_SUBST(HAS_BYTERANGE,[$enable_byterange])
 AC_SUBST(RELAX_COORD_BOUND,[yes])
+AC_SUBST([HAS_PAR_FILTERS], [$hdf5_supports_par_filters])
 
 # Include some specifics for netcdf on windows.
 #AH_VERBATIM([_WIN32_STRICMP],
@@ -1503,7 +1519,7 @@ AX_SET_META([NC_HAS_CDF5],[$enable_cdf5],[yes])
 AX_SET_META([NC_HAS_ERANGE_FILL], [$enable_erange_fill],[yes])
 AX_SET_META([NC_HAS_PAR_FILTERS], [$hdf5_supports_par_filters],[yes])
 AX_SET_META([NC_HAS_BYTERANGE],[$enable_byterange],[yes])
-AC_SUBST([NC_DISPATCH_VERSION], [1])
+AC_SUBST([NC_DISPATCH_VERSION], [2])
 #####
 # End netcdf_meta.h definitions.
 #####
@@ -1521,6 +1537,7 @@ AC_CONFIG_FILES(examples/C/findplugin.sh:nc_test4/findplugin.in)
 AC_CONFIG_FILES(ncdap_test/findtestserver.c:ncdap_test/findtestserver.c.in)
 AC_CONFIG_FILES(dap4_test/findtestserver4.c:ncdap_test/findtestserver.c.in)
 AC_CONFIG_FILES(dap4_test/pingurl4.c:ncdap_test/pingurl.c)
+AC_CONFIG_FILES([h5_test/run_par_tests.sh], [chmod ugo+x h5_test/run_par_tests.sh])
 AC_CONFIG_FILES([nc_test4/run_par_test.sh], [chmod ugo+x nc_test4/run_par_test.sh])
 AC_CONFIG_FILES([nc_perf/run_par_bm_test.sh], [chmod ugo+x nc_perf/run_par_bm_test.sh])
 AC_CONFIG_FILES([examples/C/run_par_test.sh], [chmod ugo+x examples/C/run_par_test.sh])

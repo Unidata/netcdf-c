@@ -178,6 +178,9 @@ are set when opening a binary file on Windows. */
 /* Is CURLOPT_USERNAME defined */
 #cmakedefine HAVE_CURLOPT_USERNAME 1
 
+/* Is LIBCURL version >= 7.66 */
+#cmakedefine HAVE_LIBCURL_766 1
+
 /* Define to 1 if you have the declaration of `isfinite', and to 0 if you
    don't. */
 #cmakedefine HAVE_DECL_ISFINITE 1
@@ -380,6 +383,10 @@ are set when opening a binary file on Windows. */
 
 /* if true, hdf5 has parallelism enabled */
 #cmakedefine HDF5_PARALLEL 1
+
+/* if true, HDF5 is at least version 1.10. 3 and allows parallel I/O
+with zip */
+#cmakedefine HDF5_SUPPORTS_PAR_FILTERS 1
 
 /* if true, include JNA bug fix */
 #cmakedefine JNA 1

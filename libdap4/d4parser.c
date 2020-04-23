@@ -211,6 +211,12 @@ traverse(NCD4parser* parser, ezxml_t dom)
     /* See if we have an <Error> or <Dataset> */
     if(strcmp(dom->name,"Error")==0) {
 	ret=parseError(parser,dom);
+        /* Report the error */
+	fprintf(stderr,"DAP4 Error: http-code=%d message=\"%s\" context=\"%s\"\n",
+		parser->metadata->error.httpcode,
+		parser->metadata->error.message,
+		parser->metadata->error.context);
+	fflush(stderr);
 	ret=NC_EDMR;
 	goto done;
     } else if(strcmp(dom->name,"Dataset")==0) {

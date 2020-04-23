@@ -48,6 +48,7 @@ data:
 
 #include <hdf5.h>
 #include "netcdf.h"
+#include "netcdf_filter.h"
 
 /* The HDF assigned id for bzip compression */
 #define BZIP2_ID 307
@@ -169,7 +170,6 @@ test_bzip2(void)
 {
     int i;
     unsigned int level = BZIP2_LEVEL;
-    unsigned int id=0;
     size_t nparams = 0;
 
     printf("\n*** Testing API: bzip2 compression.\n");
@@ -204,8 +204,8 @@ test_bzip2(void)
 
     /* Read back the compression info and verify it */
     level = 0;
-    CHECK(nc_inq_var_filter(ncid,varid,&id,&nparams,&level));
-    if(id != BZIP2_ID || nparams != 1 || level != BZIP2_LEVEL) {
+    CHECK(nc_inq_var_filter_info(ncid,varid,BZIP2_ID,&nparams,&level));
+    if(nparams != 1 || level != BZIP2_LEVEL) {
         printf("test_filter: filter def/inq mismatch\n");
 	return NC_EFILTER;
     }

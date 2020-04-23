@@ -133,8 +133,15 @@ set_curlflag(NCD4INFO* state, int flag)
     case CURLOPT_SSL_VERIFYPEER: case CURLOPT_SSL_VERIFYHOST:
     {
         struct ssl* ssl = &state->auth.ssl;
-        CHECK(state, CURLOPT_SSL_VERIFYPEER, (OPTARG)(ssl->verifypeer?1L:0L));
-        CHECK(state, CURLOPT_SSL_VERIFYHOST, (OPTARG)(ssl->verifyhost?1L:0L));
+	/* VERIFYPEER == 0 => VERIFYHOST == 0 */
+	/* We need to have 2 states: default and a set value */
+	/* So -1 => default, >= 0 => use value; */
+	if(ssl->verifypeer >= 0)
+            CHECK(state, CURLOPT_SSL_VERIFYPEER, (OPTARG)(ssl->verifypeer));
+#ifdef HAVE_LIBCURL_766
+	if(ssl->verifyhost >= 0)
+            CHECK(state, CURLOPT_SSL_VERIFYHOST, (OPTARG)(ssl->verifyhost));
+#endif
         if(ssl->certificate)
             CHECK(state, CURLOPT_SSLCERT, ssl->certificate);
         if(ssl->key)

@@ -1,4 +1,3 @@
-
 /* Copyright 2003-2019, University Corporation for Atmospheric
  * Research. See COPYRIGHT file for copying and redistribution
  * conditions.*/
@@ -10,10 +9,11 @@
  */
 
 #include "config.h"
-#ifdef USE_HDF5
 #include <hdf5internal.h>
-#endif
 #include <math.h> /* For pow() used below. */
+
+#include "netcdf.h"
+#include "netcdf_filter.h"
 
 /** @internal Default size for unlimited dim chunksize. */
 #define DEFAULT_1D_UNLIM_SIZE (4096)
@@ -24,13 +24,6 @@
 
 /** Number of bytes in 64 KB. */
 #define SIXTY_FOUR_KB (65536)
-
-/** Number of parameters needed when turning on szip filter. */
-#define NUM_SZIP_PARAM 2
-
-/** The maximum allowed setting for pixels_per_block when calling
- * nc_def_var_szip(). */
-#define NC_MAX_PIXELS_PER_BLOCK 32
 
 #ifdef LOGGING
 /**
@@ -155,7 +148,7 @@ check_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, const size_t *chunksize
  * @returns ::NC_ENOTVAR Invalid variable ID.
  * @author Ed Hartnett, Dennis Heimbigner
  */
-static int
+int
 nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
     int d;
@@ -177,6 +170,11 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
      * chunk. */
     total_chunk_size = (double) type_size;
 #endif
+
+    if(var->chunksizes == NULL) {
+        if((var->chunksizes = calloc(1,sizeof(size_t)*var->ndims)) == NULL)
+            return NC_ENOMEM;
+    }
 
     /* How many values in the variable (or one record, if there are
      * unlimited dimensions). */
@@ -291,11 +289,11 @@ give_var_secret_name(NC_VAR_INFO_T *var, const char *name)
      * clash. */
     if (strlen(name) + strlen(NON_COORD_PREPEND) > NC_MAX_NAME)
         return NC_EMAXNAME;
-    if (!(var->hdf5_name = malloc((strlen(NON_COORD_PREPEND) +
+    if (!(var->alt_name = malloc((strlen(NON_COORD_PREPEND) +
                                    strlen(name) + 1) * sizeof(char))))
         return NC_ENOMEM;
 
-    sprintf(var->hdf5_name, "%s%s", NON_COORD_PREPEND, name);
+    sprintf(var->alt_name, "%s%s", NON_COORD_PREPEND, name);
 
     return NC_NOERR;
 }
@@ -342,6 +340,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
     NC_TYPE_INFO_T *type = NULL;
     NC_HDF5_TYPE_INFO_T *hdf5_type;
     NC_HDF5_GRP_INFO_T *hdf5_grp;
+    NC_HDF5_VAR_INFO_T* hdf5_var;
     char norm_name[NC_MAX_NAME + 1];
     int d;
     int retval;
@@ -488,6 +487,8 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
     if (!(var->format_var_info = calloc(1, sizeof(NC_HDF5_VAR_INFO_T))))
         BAIL(NC_ENOMEM);
 
+    hdf5_var = (NC_HDF5_VAR_INFO_T*)var->format_var_info;
+
     /* Set these state flags for the var. */
     var->is_new_var = NC_TRUE;
     var->meta_read = NC_TRUE;
@@ -509,7 +510,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
      * same name as one of its dimensions. If it is a coordinate var,
      * is it a coordinate var in the same group as the dim? Also, check
      * whether we should use contiguous or chunked storage. */
-    var->contiguous = NC_TRUE;
+    var->storage = NC_CONTIGUOUS;
     for (d = 0; d < ndims; d++)
     {
         NC_GRP_INFO_T *dim_grp;
@@ -524,7 +525,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
         /* Check for dim index 0 having the same name, in the same group */
         if (d == 0 && dim_grp == grp && strcmp(dim->hdr.name, norm_name) == 0)
         {
-            var->dimscale = NC_TRUE;
+            hdf5_var->dimscale = NC_TRUE;
             dim->coord_var = var;
 
             /* Use variable's dataset ID for the dimscale ID. So delete
@@ -549,9 +550,12 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
             }
         }
 
-        /* Check for unlimited dimension and turn off contiguous storage. */
+        /* Check for unlimited dimension. If present, we must use
+         * chunked storage. */
         if (dim->unlimited)
-            var->contiguous = NC_FALSE;
+        {
+            var->storage = NC_CHUNKED;
+        }
 
         /* Track dimensions for variable */
         var->dimids[d] = dimidsp[d];
@@ -562,17 +566,16 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
      * variables which may be contiguous.) */
     LOG((4, "allocating array of %d size_t to hold chunksizes for var %s",
          var->ndims, var->hdr.name));
-    if (var->ndims)
+    if (var->ndims) {
         if (!(var->chunksizes = calloc(var->ndims, sizeof(size_t))))
             BAIL(NC_ENOMEM);
-
-    if ((retval = nc4_find_default_chunksizes2(grp, var)))
-        BAIL(retval);
-
-    /* Is this a variable with a chunksize greater than the current
-     * cache size? */
-    if ((retval = nc4_adjust_var_cache(grp, var)))
-        BAIL(retval);
+        if ((retval = nc4_find_default_chunksizes2(grp, var)))
+            BAIL(retval);
+        /* Is this a variable with a chunksize greater than the current
+         * cache size? */
+        if ((retval = nc4_adjust_var_cache(grp, var)))
+            BAIL(retval);
+    }
 
     /* If the user names this variable the same as a dimension, but
      * doesn't use that dimension first in its list of dimension ids,
@@ -588,8 +591,8 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
      * scale. (We found dim above.) Otherwise, allocate space to
      * remember whether dimension scales have been attached to each
      * dimension. */
-    if (!var->dimscale && ndims)
-        if (!(var->dimscale_attached = calloc(ndims, sizeof(nc_bool_t))))
+    if (!hdf5_var->dimscale && ndims)
+        if (!(hdf5_var->dimscale_attached = calloc(ndims, sizeof(nc_bool_t))))
             BAIL(NC_ENOMEM);
 
     /* Return the varid. */
@@ -616,7 +619,7 @@ exit:
  * @param deflate Pointer to deflate setting.
  * @param deflate_level Pointer to deflate level.
  * @param fletcher32 Pointer to fletcher32 setting.
- * @param contiguous Pointer to contiguous setting.
+ * @param storage Pointer to storage setting.
  * @param chunksizes Array of chunksizes.
  * @param no_fill Pointer to no_fill setting.
  * @param fill_value Pointer to fill value.
@@ -637,21 +640,16 @@ exit:
  * @author Ed Hartnett
  */
 static int
-nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
-                 int *deflate_level, int *fletcher32, int *contiguous,
+nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
+                 int *unused2, int *fletcher32, int *storage,
                  const size_t *chunksizes, int *no_fill,
                  const void *fill_value, int *endianness)
 {
     NC_GRP_INFO_T *grp;
     NC_FILE_INFO_T *h5;
     NC_VAR_INFO_T *var;
-    int option_mask;
     int d;
     int retval;
-
-    /* All or none of these will be provided. */
-    assert((deflate && deflate_level && shuffle) ||
-           (!deflate && !deflate_level && !shuffle));
 
     LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
 
@@ -669,12 +667,11 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
         return NC_ENOTVAR;
     assert(var && var->hdr.id == varid);
 
-
     /* Can't turn on parallel and deflate/fletcher32/szip/shuffle
      * before HDF5 1.10.3. */
 #ifndef HDF5_SUPPORTS_PAR_FILTERS
     if (h5->parallel == NC_TRUE)
-        if (deflate || fletcher32 || shuffle)
+        if (nclistlength(var->filters) > 0  || fletcher32 || shuffle)
             return NC_EINVAL;
 #endif
 
@@ -683,48 +680,26 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
     if (var->created)
         return NC_ELATEDEF;
 
-    /* Check compression options. */
-    if (deflate && !deflate_level)
-        return NC_EINVAL;
-
-    /* Valid deflate level? */
-    if (deflate)
-    {
-        if (*deflate)
-            if (*deflate_level < NC_MIN_DEFLATE_LEVEL ||
-                *deflate_level > NC_MAX_DEFLATE_LEVEL)
-                return NC_EINVAL;
-
-        /* For scalars, just ignore attempt to deflate. */
-        if (!var->ndims)
-            return NC_NOERR;
-
-        /* If szip is in use, return an error. */
-        if ((retval = nc_inq_var_szip(ncid, varid, &option_mask, NULL)))
-            return retval;
-        if (option_mask)
+    /* Cannot set filters of any sort on scalars */
+    if(var->ndims == 0) {
+        if(shuffle && *shuffle)
             return NC_EINVAL;
-
-        /* Set the deflate settings. */
-        var->contiguous = NC_FALSE;
-        var->deflate = *deflate;
-        if (*deflate)
-            var->deflate_level = *deflate_level;
-        LOG((3, "%s: *deflate_level %d", __func__, *deflate_level));
+        if(fletcher32 && *fletcher32)
+            return NC_EINVAL;
     }
 
     /* Shuffle filter? */
     if (shuffle)
     {
         var->shuffle = *shuffle;
-        var->contiguous = NC_FALSE;
+        var->storage = NC_CHUNKED;
     }
 
     /* Fletcher32 checksum error protection? */
     if (fletcher32)
     {
         var->fletcher32 = *fletcher32;
-        var->contiguous = NC_FALSE;
+        var->storage = NC_CHUNKED;
     }
 
 #ifdef USE_PARALLEL
@@ -732,22 +707,22 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
      * parallel I/O writes, then switch to collective access. HDF5
      * requires collevtive access for filter use with parallel
      * I/O. */
-    if (deflate || shuffle || fletcher32)
+    if (shuffle || fletcher32)
     {
-        if (h5->parallel && (var->deflate || var->shuffle || var->fletcher32))
+        if (h5->parallel && (nclistlength(var->filters) > 0 || var->shuffle || var->fletcher32))
             var->parallel_access = NC_COLLECTIVE;
     }
 #endif /* USE_PARALLEL */
 
     /* Handle storage settings. */
-    if (contiguous)
+    if (storage)
     {
         /* Does the user want a contiguous or compact dataset? Not so
          * fast! Make sure that there are no unlimited dimensions, and
          * no filters in use for this data. */
-        if (*contiguous)
+        if (*storage != NC_CHUNKED)
         {
-            if (var->deflate || var->fletcher32 || var->shuffle)
+            if (nclistlength(var->filters) > 0 || var->fletcher32 || var->shuffle)
                 return NC_EINVAL;
 
             for (d = 0; d < var->ndims; d++)
@@ -756,9 +731,14 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
         }
 
         /* Handle chunked storage settings. */
-        if (*contiguous == NC_CHUNKED)
+        if (*storage == NC_CHUNKED && var->ndims == 0)
         {
-            var->contiguous = NC_FALSE;
+            /* Chunked not allowed for scalar vars. */
+            return NC_EINVAL;
+        }
+        else if (*storage == NC_CHUNKED)
+        {
+            var->storage = NC_CHUNKED;
 
             /* If the user provided chunksizes, check that they are not too
              * big, and that their total size of chunk is less than 4 GB. */
@@ -779,11 +759,11 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
                     var->chunksizes[d] = chunksizes[d];
             }
         }
-        else if (*contiguous == NC_CONTIGUOUS)
+        else if (*storage == NC_CONTIGUOUS)
         {
-            var->contiguous = NC_TRUE;
+            var->storage = NC_CONTIGUOUS;
         }
-        else if (*contiguous == NC_COMPACT)
+        else if (*storage == NC_COMPACT)
         {
             size_t ndata = 1;
 
@@ -796,18 +776,17 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *deflate,
             if (ndata * var->type_info->size > SIXTY_FOUR_KB)
                 return NC_EVARSIZE;
 
-            var->contiguous = NC_FALSE;
-            var->compact = NC_TRUE;
+            var->storage = NC_COMPACT;
         }
     }
 
     /* Is this a variable with a chunksize greater than the current
      * cache size? */
-    if (!var->contiguous && (deflate || contiguous))
+    if (var->storage == NC_CHUNKED)
     {
         /* Determine default chunksizes for this variable (do nothing
          * for scalar vars). */
-        if (var->chunksizes && !var->chunksizes[0])
+        if (var->chunksizes == NULL || var->chunksizes[0] == 0)
             if ((retval = nc4_find_default_chunksizes2(grp, var)))
                 return retval;
 
@@ -911,8 +890,17 @@ int
 NC4_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
                     int deflate_level)
 {
-    return nc_def_var_extra(ncid, varid, &shuffle, &deflate,
-                            &deflate_level, NULL, NULL, NULL, NULL, NULL, NULL);
+    int stat = NC_NOERR;
+    unsigned int level = (unsigned int)deflate_level;
+    /* Set shuffle first */
+    if((stat = nc_def_var_extra(ncid, varid, &shuffle, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL))) goto done;
+    if(deflate)
+        stat = nc_def_var_filter(ncid, varid, H5Z_FILTER_DEFLATE,1,&level);
+    else
+        stat = nc_var_filter_remove(ncid, varid, H5Z_FILTER_DEFLATE);
+    if(stat) goto done;
+done:
+    return stat;
 }
 
 /**
@@ -948,7 +936,7 @@ NC4_def_var_fletcher32(int ncid, int varid, int fletcher32)
  *
  * @param ncid File ID.
  * @param varid Variable ID.
- * @param contiguous Pointer to contiguous setting.
+ * @param storage Pointer to storage setting.
  * @param chunksizesp Array of chunksizes.
  *
  * @returns ::NC_NOERR No error.
@@ -963,10 +951,10 @@ NC4_def_var_fletcher32(int ncid, int varid, int fletcher32)
  * @author Ed Hartnett, Dennis Heimbigner
  */
 int
-NC4_def_var_chunking(int ncid, int varid, int contiguous, const size_t *chunksizesp)
+NC4_def_var_chunking(int ncid, int varid, int storage, const size_t *chunksizesp)
 {
     return nc_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL,
-                            &contiguous, chunksizesp, NULL, NULL, NULL);
+                            &storage, chunksizesp, NULL, NULL, NULL);
 }
 
 /**
@@ -975,7 +963,7 @@ NC4_def_var_chunking(int ncid, int varid, int contiguous, const size_t *chunksiz
  *
  * @param ncid File ID.
  * @param varid Variable ID.
- * @param contiguous Pointer to contiguous setting.
+ * @param storage Pointer to storage setting.
  * @param chunksizesp Array of chunksizes.
  *
  * @returns ::NC_NOERR No error.
@@ -990,7 +978,7 @@ NC4_def_var_chunking(int ncid, int varid, int contiguous, const size_t *chunksiz
  * @author Ed Hartnett
  */
 int
-nc_def_var_chunking_ints(int ncid, int varid, int contiguous, int *chunksizesp)
+nc_def_var_chunking_ints(int ncid, int varid, int storage, int *chunksizesp)
 {
     NC_VAR_INFO_T *var = NULL;
     size_t *cs = NULL;
@@ -1011,7 +999,7 @@ nc_def_var_chunking_ints(int ncid, int varid, int contiguous, int *chunksizesp)
         cs[i] = chunksizesp[i];
 
     retval = nc_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL,
-                              &contiguous, cs, NULL, NULL, NULL);
+                              &storage, cs, NULL, NULL, NULL);
 
     if (var->ndims)
         free(cs);
@@ -1077,141 +1065,27 @@ NC4_def_var_endian(int ncid, int varid, int endianness)
                             NULL, NULL, NULL, &endianness);
 }
 
-/**
- * @internal Define filter settings. Called by nc_def_var_filter().
- *
- * @param ncid File ID.
- * @param varid Variable ID.
- * @param id Filter ID
- * @param nparams Number of parameters for filter.
- * @param parms Filter parameters.
- *
- * @returns ::NC_NOERR for success
- * @returns ::NC_EBADID Bad ncid.
- * @returns ::NC_ENOTVAR Invalid variable ID.
- * @returns ::NC_ENOTNC4 Attempting netcdf-4 operation on file that is
- * not netCDF-4/HDF5.
- * @returns ::NC_ELATEDEF Too late to change settings for this variable.
- * @returns ::NC_EFILTER Filter error.
- * @returns ::NC_EINVAL Invalid input
- * @author Dennis Heimbigner, Ed Hartnett
- */
 int
 NC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
-                   const unsigned int* parms)
+                   const unsigned int* params)
 {
     int retval = NC_NOERR;
     NC *nc;
-    NC_GRP_INFO_T *grp;
-    NC_FILE_INFO_T *h5;
-    NC_VAR_INFO_T *var;
+    NC_FILTER_OBJ_HDF5 spec;
 
     LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
 
-    /* Find info for this file and group, and set pointer to each. */
-    if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
-        return retval;
+    if((retval = NC_check_id(ncid,&nc))) return retval;
+    assert(nc);
 
-    assert(nc && grp && h5);
+    memset(&spec,0,sizeof(spec));
+    spec.hdr.format = NC_FILTER_FORMAT_HDF5;
+    spec.sort = NC_FILTER_SORT_SPEC;
+    spec.u.spec.filterid = id;
+    spec.u.spec.nparams = nparams;
+    spec.u.spec.params = (unsigned int*)params; /* Need to remove const */
 
-    /* Find the var. */
-    var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);
-    if(!var)
-        return NC_ENOTVAR;
-    assert(var->hdr.id == varid);
-
-    /* If the HDF5 dataset has already been created, then it is too
-     * late to set all the extra stuff. */
-    if (var->created)
-        return NC_ELATEDEF;
-
-    /* Can't turn on parallel and szip before HDF5 1.10.3. */
-#ifdef USE_PARALLEL
-#ifndef HDF5_SUPPORTS_PAR_FILTERS
-    if (h5->parallel == NC_TRUE)
-        return NC_EINVAL;
-#endif /* HDF5_SUPPORTS_PAR_FILTERS */
-
-    /* Switch to collective access. HDF5 requires collevtive access
-     * for filter use with parallel I/O. */
-    if (h5->parallel)
-        var->parallel_access = NC_COLLECTIVE;
-#endif /* USE_PARALLEL */
-
-#ifdef HAVE_H5Z_SZIP
-    /* We have special handling for the szip filter. */
-    if (id == H5Z_FILTER_SZIP)
-    {
-        if (nparams != 2)
-            return NC_EFILTER; /* incorrect no. of parameters */
-
-        /* If zlib compression is already applied, return error. */
-        if (var->deflate)
-            return NC_EINVAL;
-
-        /* Pixels per block must be an even number, < 32. */
-        if (parms[1] % 2 || parms[1] > NC_MAX_PIXELS_PER_BLOCK)
-            return NC_EINVAL;
-    }
-#else /*!HAVE_H5Z_SZIP*/
-    if (id == H5Z_FILTER_SZIP)
-        return NC_EFILTER; /* HDF5 was not built with szip. */
-#endif /*!HAVE_H5Z_SZIP*/
-
-#if 0
-    {
-        unsigned int fcfg = 0;
-        herr_t herr = H5Zget_filter_info(id,&fcfg);
-        if(herr < 0)
-            return NC_EFILTER;
-        if((H5Z_FILTER_CONFIG_ENCODE_ENABLED & fcfg) == 0
-           || (H5Z_FILTER_CONFIG_DECODE_ENABLED & fcfg) == 0)
-            return NC_EFILTER;
-    }
-#endif /*0*/
-
-    /* Filters can only be applied to chunked datasets in HDF5. */
-    var->contiguous = NC_FALSE;
-
-    /* Determine default chunksizes for this variable unless already specified */
-    if(var->chunksizes && !var->chunksizes[0]) {
-        if((retval = nc4_find_default_chunksizes2(grp, var)))
-            return retval;
-        /* Adjust the cache. */
-        if ((retval = nc4_adjust_var_cache(grp, var)))
-            return retval;
-    }
-
-#ifdef HAVE_H5Z_SZIP
-    /* For szip, the pixels_per_block parameter must not be greater
-     * than the number of elements in a chunk of data. */
-    if (id == H5Z_FILTER_SZIP)
-    {
-        size_t num_elem = 1;
-        int d;
-
-        for (d = 0; d < var->ndims; d++)
-            num_elem *= var->dim[d]->len;
-
-        /* Pixels per block must be <= number of elements. */
-        if (parms[1] > num_elem)
-            return NC_EINVAL;
-    }
-#endif /*!HAVE_H5Z_SZIP*/
-
-    /* Remember the filter info for later. It will be applied when the
-     * dataset for this variable is created. */
-    var->filterid = id;
-    var->nparams = nparams;
-    var->params = NULL;
-    if(parms != NULL) {
-        var->params = (unsigned int*)calloc(nparams,sizeof(unsigned int));
-        if(var->params == NULL) return NC_ENOMEM;
-        memcpy(var->params,parms,sizeof(unsigned int)*var->nparams);
-    }
-
-
-    return NC_NOERR;
+    return nc->dispatch->filter_actions(ncid,varid,NCFILTER_DEF,(NC_Filterobject*)&spec);
 }
 
 /**
@@ -1253,6 +1127,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
     NC_HDF5_GRP_INFO_T *hdf5_grp;
     NC_FILE_INFO_T *h5;
     NC_VAR_INFO_T *var;
+    NC_HDF5_VAR_INFO_T *hdf5_var;
     NC_DIM_INFO_T *other_dim;
     int use_secret_name = 0;
     int retval = NC_NOERR;
@@ -1317,13 +1192,16 @@ NC4_rename_var(int ncid, int varid, const char *name)
         use_secret_name++;
     }
 
+    hdf5_var = (NC_HDF5_VAR_INFO_T*)var->format_var_info;
+    assert(hdf5_var != NULL);
+
     /* Change the HDF5 file, if this var has already been created
        there. */
     if (var->created)
     {
         int v;
         char *hdf5_name; /* Dataset will be renamed to this. */
-        hdf5_name = use_secret_name ? var->hdf5_name: (char *)name;
+        hdf5_name = use_secret_name ? var->alt_name: (char *)name;
 
         /* Do we need to read var metadata? */
         if (!var->meta_read)
@@ -1388,7 +1266,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
 
     /* Check if this was a coordinate variable previously, but names
      * are different now */
-    if (var->dimscale && strcmp(var->hdr.name, var->dim[0]->hdr.name))
+    if (hdf5_var->dimscale && strcmp(var->hdr.name, var->dim[0]->hdr.name))
     {
         /* Break up the coordinate variable */
         if ((retval = nc4_break_coord_var(grp, var, var->dim[0])))
@@ -1396,7 +1274,7 @@ NC4_rename_var(int ncid, int varid, const char *name)
     }
 
     /* Check if this should become a coordinate variable. */
-    if (!var->dimscale)
+    if (!hdf5_var->dimscale)
     {
         /* Only variables with >0 dimensions can become coordinate
          * variables. */
@@ -2294,7 +2172,7 @@ exit:
  * @param deflatep Gets deflate setting.
  * @param deflate_levelp Gets deflate level.
  * @param fletcher32p Gets fletcher32 setting.
- * @param contiguousp Gets contiguous setting.
+ * @param storagep Gets storage setting.
  * @param chunksizesp Gets chunksizes.
  * @param no_fill Gets fill mode.
  * @param fill_valuep Gets fill value.
@@ -2315,10 +2193,10 @@ exit:
 int
 NC4_HDF5_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
                      int *ndimsp, int *dimidsp, int *nattsp,
-                     int *shufflep, int *deflatep, int *deflate_levelp,
-                     int *fletcher32p, int *contiguousp, size_t *chunksizesp,
+                     int *shufflep, int *unused4, int *unused5,
+                     int *fletcher32p, int *storagep, size_t *chunksizesp,
                      int *no_fill, void *fill_valuep, int *endiannessp,
-                     unsigned int *idp, size_t *nparamsp, unsigned int *params)
+                     unsigned int *unused1, size_t *unused2, unsigned int *unused3)
 {
     NC_FILE_INFO_T *h5;
     NC_GRP_INFO_T *grp;
@@ -2337,9 +2215,9 @@ NC4_HDF5_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
     /* Now that lazy atts have been read, use the libsrc4 function to
      * get the answers. */
     return NC4_inq_var_all(ncid, varid, name, xtypep, ndimsp, dimidsp, nattsp,
-                           shufflep, deflatep, deflate_levelp, fletcher32p,
-                           contiguousp, chunksizesp, no_fill, fill_valuep,
-                           endiannessp, idp, nparamsp, params);
+                           shufflep, unused4, unused5, fletcher32p,
+                           storagep, chunksizesp, no_fill, fill_valuep,
+                           endiannessp, unused1, unused2, unused3);
 }
 
 /**
@@ -2401,7 +2279,7 @@ NC4_HDF5_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
  *
  * @param ncid File ID.
  * @param varid Variable ID.
- * @param size Size in bytes to set cache.
+ * @param size Size in MB to set cache.
  * @param nelems Number of elements in cache.
  * @param preemption Controls cache swapping.
  *
@@ -2416,6 +2294,9 @@ nc_set_var_chunk_cache_ints(int ncid, int varid, int size, int nelems,
     size_t real_nelems = H5D_CHUNK_CACHE_NSLOTS_DEFAULT;
     float real_preemption = CHUNK_CACHE_PREEMPTION;
 
+    LOG((1, "%s: ncid 0x%x varid %d size %d nelems %d preemption %d",
+	 __func__, ncid, varid, size, nelems, preemption));
+    
     if (size >= 0)
         real_size = ((size_t) size) * MEGABYTE;
 

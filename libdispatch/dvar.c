@@ -6,7 +6,11 @@
  * order of functions in this file affects the doxygen documentation.
  */
 
+#include "config.h"
+#include "netcdf.h"
+#include "netcdf_filter.h"
 #include "ncdispatch.h"
+#include "nc4internal.h"
 #include "netcdf_f.h"
 #include "nc4internal.h"
 
@@ -313,20 +317,26 @@ nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
 }
 
 /**
-   Set the zlib compression settings for a netCDF-4/HDF5 variable.
+   Set the zlib compression and shuffle settings for a variable in an
+   netCDF/HDF5 file.
 
    This function must be called after nc_def_var and before nc_enddef
    or any functions which writes data to the file.
 
-   Deflation and shuffline require chunked data. If this function is
+   Deflation and shuffle are only available for HDF5 files. Attempting
+   to set them on non-HDF5 files will return ::NC_ENOTNC4.
+
+   Deflation and shuffle require chunked data. If this function is
    called on a variable with contiguous data, then the data is changed
    to chunked data, with default chunksizes. Use nc_def_var_chunking()
    to tune performance with user-defined chunksizes.
 
-   If this function is called on a scalar variable, it is ignored.
+   If this function is called on a scalar variable, ::NC_EINVAL is
+   returned. Only chunked variables may use filters.
 
-   If this function is called on a variable which already has szip
-   compression turned on, ::NC_EINVAL is returned.
+   Zlib compression cannot be used with szip compression. If this
+   function is called on a variable which already has szip compression
+   turned on, ::NC_EINVAL is returned.
 
    @note Parallel I/O reads work with compressed data. Parallel I/O
    writes work with compressed data in netcdf-c-4.7.4 and later
@@ -335,6 +345,28 @@ nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
    used with the variable. Turning on deflate and/or shuffle for a
    variable in a file opened for parallel I/O will automatically
    switch the access for that variable to collective access.
+
+   @note The HDF5 manual has this to say about shuffle:
+   
+      The shuffle filter de-interlaces a block of data by reordering
+      the bytes. All the bytes from one consistent byte position of
+      each data element are placed together in one block; all bytes
+      from a second consistent byte position of each data element are
+      placed together a second block; etc. For example, given three
+      data elements of a 4-byte datatype stored as 012301230123,
+      shuffling will re-order data as 000111222333. This can be a
+      valuable step in an effective compression algorithm because the
+      bytes in each byte position are often closely related to each
+      other and putting them together can increase the compression
+      ratio.
+
+      As implied above, the primary value of the shuffle filter lies
+      in its coordinated use with a compression filter; it does not
+      provide data compression when used alone. When the shuffle
+      filter is applied to a dataset immediately prior to the use of a
+      compression filter, the compression ratio achieved is often
+      superior to that achieved by the use of a compression filter
+      without the shuffle filter.
 
    @param ncid NetCDF or group ID, from a previous call to nc_open(),
    nc_create(), nc_def_grp(), or associated inquiry functions such as
@@ -466,15 +498,13 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
 }
 
 /**
-   Define chunking parameters for a variable
-
-   The function nc_def_var_chunking sets the storage and, optionally,
-   the chunking parameters for a variable in a netCDF-4 file.
+   Define storage and, if chunked storage is used, chunking parameters
+   for a variable
 
    The storage may be set to NC_CONTIGUOUS, NC_COMPACT, or NC_CHUNKED.
 
    Contiguous storage means the variable is stored as one block of
-   data in the file.
+   data in the file. This is the default storage.
 
    Compact storage means the variable is stored in the header record
    of the file. This can have large performance benefits on HPC system
@@ -486,7 +516,7 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
    Chunked storage means the data are stored as chunks, of
    user-configurable size. Chunked storage is required for variable
    with one or more unlimted dimensions, or variable which use
-   compression.
+   compression, or any other filter.
 
    The total size of a chunk must be less than 4 GiB. That is, the
    product of all chunksizes and the size of the data (or the size of
@@ -496,14 +526,14 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
    before nc_enddef is called. Once the chunking parameters are set for a
    variable, they cannot be changed.
 
-   Note that this does not work for scalar variables. Only non-scalar
-   variables can have chunking.
+   @note Scalar variables may have a storage of NC_CONTIGUOUS or
+   NC_COMPACT. Attempts to set chunking on a scalare variable will
+   cause ::NC_EINVEL to be returned. Only non-scalar variables can
+   have chunking.
 
    @param ncid NetCDF ID, from a previous call to nc_open() or
    nc_create().
-
    @param varid Variable ID.
-
    @param storage If ::NC_CONTIGUOUS or ::NC_COMPACT, then contiguous
    or compact storage is used for this variable. Variables with one or
    more unlimited dimensions cannot use contiguous or compact
@@ -512,20 +542,19 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
    storage is used for this variable. Chunk sizes may be specified
    with the chunksizes parameter or default sizes will be used if that
    parameter is NULL.
-
    @param chunksizesp A pointer to an array list of chunk sizes. The
    array must have one chunksize for each dimension of the variable. If
    ::NC_CONTIGUOUS storage is set, then the chunksizes parameter is
-   ignored.
+   ignored. Ignored if NULL.
 
    @return ::NC_NOERR No error.
    @return ::NC_EBADID Bad ID.
    @return ::NC_ENOTNC4 Not a netCDF-4 file.
-   @return ::NC_ELATEDEF This variable has already been the subject of a
-   nc_enddef call.  In netCDF-4 files nc_enddef will be called
+   @return ::NC_ELATEDEF This variable has already been the subject of
+   a nc_enddef call.  In netCDF-4 files nc_enddef will be called
    automatically for any data read or write. Once nc_enddef has been
-   called after the nc_def_var call for a variable, it is impossible to
-   set the chunking for that variable.
+   called after the nc_def_var call for a variable, it is impossible
+   to set the chunking for that variable.
    @return ::NC_ENOTINDEFINE Not in define mode.  This is returned for
    netCDF classic or 64-bit offset files, or for netCDF-4 files, when
    they wwere created with ::NC_CLASSIC_MODEL flag by nc_create().
@@ -536,7 +565,8 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
    @return ::NC_EVARSIZE Compact storage attempted for variable bigger
    than 64 KB.
    @return ::NC_EINVAL Attempt to set contiguous or compact storage
-   for var with one or more unlimited dimensions.
+   for var with one or more unlimited dimensions, or chunking for a
+   scalar var.
 
    @section nc_def_var_chunking_example Example
 
@@ -579,8 +609,7 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
    @author Ed Hartnett, Dennis Heimbigner
 */
 int
-nc_def_var_chunking(int ncid, int varid, int storage,
-                    const size_t *chunksizesp)
+nc_def_var_chunking(int ncid, int varid, int storage, const size_t *chunksizesp)
 {
     NC* ncp;
     int stat = NC_check_id(ncid, &ncp);
@@ -664,37 +693,6 @@ nc_def_var_endian(int ncid, int varid, int endian)
     int stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) return stat;
     return ncp->dispatch->def_var_endian(ncid,varid,endian);
-}
-
-/**
- * Define a new variable filter.
- *
- * HDF5 filters are plug-in libraries which can modify data when it is
- * being read or written.
- *
- * @note Variables must be chunked to use filters. Calling
- * nc_def_var_filter() on a variable causes its storage to be changed
- * to chunked; default chunksizes are selected.
- *
- * @param ncid File and group ID.
- * @param varid Variable ID.
- * @param id ID of the HDF5 filter.
- * @param nparams Number of filter parameters.
- * @param parms Filter parameters.
- *
- * @return ::NC_NOERR No error.
- * @return ::NC_EBADID Bad ID.
- * @return ::NC_EFILTER Filter error.
- * @author Dennis Heimbigner
- */
-int
-nc_def_var_filter(int ncid, int varid, unsigned int id,
-                  size_t nparams, const unsigned int* parms)
-{
-    NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->def_var_filter(ncid,varid,id,nparams,parms);
 }
 
 /**
