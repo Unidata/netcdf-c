@@ -117,8 +117,15 @@ freeSpecialdata(Specialdata* data)
     reclaimdatalist(data->_Fillvalue);
     if(data->_ChunkSizes)
         efree(data->_ChunkSizes);
-    if(data->_FilterParams)
-        efree(data->_FilterParams);
+    if(data->_Filters) {
+	int i;
+	for(i=0;i<data->nfilters;i++) {
+	    NC4_Filterspec* f = (NC4_Filterspec*)data->_Filters[i];
+            efree(f->params);
+	    efree(f);
+	}
+	efree(data->_Filters);
+    }
     efree(data);
 }
 

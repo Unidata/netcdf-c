@@ -57,6 +57,8 @@ main() {/* create ref_tst_special_atts.nc */
     int var3_id;
     int var4_id;
     int var5_id;
+    int var6_id;
+    int var7_id;
 
     /* rank (number of dimensions) for each variable */
 #   define RANK_var1 1
@@ -64,6 +66,8 @@ main() {/* create ref_tst_special_atts.nc */
 #   define RANK_var3 3
 #   define RANK_var4 3
 #   define RANK_var5 1
+#   define RANK_var6 1
+#   define RANK_var7 0
 
     /* variable shapes */
     int var1_dims[RANK_var1];
@@ -71,6 +75,7 @@ main() {/* create ref_tst_special_atts.nc */
     int var3_dims[RANK_var3];
     int var4_dims[RANK_var4];
     int var5_dims[RANK_var5];
+    int var6_dims[RANK_var6];
 
     /* enter define mode */
     stat = nc_create("ref_tst_special_atts.nc", NC_CLOBBER|NC_NETCDF4, &ncid);
@@ -156,6 +161,21 @@ main() {/* create ref_tst_special_atts.nc */
     stat = nc_def_var_deflate(tst_special_atts_grp, var5_id, NC_SHUFFLE, 1, 2);
     check_err(stat,__LINE__,__FILE__);
     stat = nc_def_var_fill(tst_special_atts_grp, var5_id, NC_NOFILL, NULL);
+    check_err(stat,__LINE__,__FILE__);
+
+    var6_dims[0] = dim1_dim;
+    stat = nc_def_var(tst_special_atts_grp, "var6", NC_INT, RANK_var6, var6_dims, &var6_id);
+    check_err(stat,__LINE__,__FILE__);
+    stat = nc_def_var_chunking(tst_special_atts_grp, var6_id, NC_COMPACT, NULL);
+    check_err(stat,__LINE__,__FILE__);
+    stat = nc_def_var_endian(tst_special_atts_grp, var6_id, NC_ENDIAN_LITTLE);
+    check_err(stat,__LINE__,__FILE__);
+
+    stat = nc_def_var(tst_special_atts_grp, "var7", NC_INT, RANK_var7, 0, &var7_id);
+    check_err(stat,__LINE__,__FILE__);
+    stat = nc_def_var_chunking(tst_special_atts_grp, var7_id, NC_COMPACT, NULL);
+    check_err(stat,__LINE__,__FILE__);
+    stat = nc_def_var_endian(tst_special_atts_grp, var7_id, NC_ENDIAN_LITTLE);
     check_err(stat,__LINE__,__FILE__);
 
     /* leave define mode */

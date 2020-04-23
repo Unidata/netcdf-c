@@ -69,6 +69,8 @@ hdf4_rec_grp_del(NC_GRP_INFO_T *grp)
          * scale. */
         if (hdf4_var->sdsid && SDendaccess(hdf4_var->sdsid) < 0)
             return NC_EHDFERR;
+
+        nullfree(hdf4_var);
     }
 
     return NC_NOERR;
@@ -435,7 +437,10 @@ nc4_var_list_add_full(NC_GRP_INFO_T* grp, const char* name, int ndims, nc_type x
     }
 
     /* Var contiguous or chunked? */
-    (*var)->contiguous = contiguous;
+    if (contiguous)
+	(*var)->storage = NC_CONTIGUOUS;
+    else
+	(*var)->storage = NC_CHUNKED;
 
     /* Were chunksizes provided? */
     if (chunksizes)

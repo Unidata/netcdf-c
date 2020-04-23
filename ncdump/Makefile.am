@@ -34,7 +34,7 @@ utils.h utils.c dimmap.h dimmap.c list.c list.h
 # netcdf-3 validator program
 # (https://github.com/Parallel-NetCDF/PnetCDF/blob/master/src/utils/ncvalidator/ncvalidator.c)
 # that prints out the structure of a netcdf-3 file.
-# This program is built but not installed. 
+# This program is built but not installed.
 noinst_PROGRAMS += ncvalidator
 ncvalidator_SOURCES = ncvalidator.c
 
@@ -61,7 +61,7 @@ bom tst_dimsizes nctrunc
 # Tests for classic and 64-bit offset files.
 TESTS = tst_inttags.sh run_tests.sh tst_64bit.sh ref_ctest	\
 ref_ctest64 tst_output.sh tst_lengths.sh tst_calendars.sh	\
-run_utf8_tests.sh tst_nccopy3.sh tst_nccopy3_subset.sh		\
+run_utf8_tests.sh test_unicode_directory.sh tst_nccopy3.sh tst_nccopy3_subset.sh		\
 tst_charfill.sh tst_iter.sh tst_formatx3.sh tst_bom.sh		\
 tst_dimsizes.sh run_ncgen_tests.sh tst_ncgen4_classic.sh test_radix.sh
 
@@ -149,7 +149,9 @@ tst_ncgen4.sh tst_ncgen4_classic.sh tst_ncgen4_diff.sh			\
 tst_ncgen4_cycle.sh tst_null_byte_padding.sh				\
 ref_null_byte_padding_test.nc ref_tst_irish_rover.nc ref_provenance_v1.nc \
 ref_tst_radix.cdl tst_radix.cdl test_radix.sh                           \
-ref_nccopy_w.cdl tst_nccopy_w3.sh tst_nccopy_w4.sh ref_no_ncproperty.nc
+ref_nccopy_w.cdl tst_nccopy_w3.sh tst_nccopy_w4.sh ref_no_ncproperty.nc \
+test_unicode_directory.sh
+
 
 # The L512.bin file is file containing exactly 512 bytes each of value 0.
 # It is used for creating hdf5 files with varying offsets for testing.

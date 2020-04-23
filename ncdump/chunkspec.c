@@ -24,6 +24,7 @@ struct VarChunkSpec {
     size_t rank;			/* number of dimensions in chunkspec string */
     size_t chunksizes[NC_MAX_VAR_DIMS]; /* corresponding chunk sizes */
     bool_t omit;			/* true if chunking to be turned off */
+    int kind;
     int igrpid;				/* container of the (input) variable */
     int ivarid;				/* (input) Variable whose chunks are specified */
 };
@@ -208,6 +209,20 @@ dimchunkspec_omit(void) {
 }
 
 
+/* Return whether chunking should be omitted, due to explicit
+ * command-line specification. */
+bool_t
+dimchunkspec_exists(int indimid) {
+    int idim;
+    for(idim = 0; idim < dimchunkspecs.ndims; idim++) {
+	if(indimid == dimchunkspecs.idimids[idim]) {
+	    return 1;
+	}
+    }
+    return 0;
+}
+
+
 /*
  * Parse per-variable chunkspec string and convert into varchunkspec structure.
  *   ncid: location ID of open netCDF file or group in an open file
@@ -260,6 +275,16 @@ varchunkspec_parse(int igrp, const char *spec0)
 	goto done;
     }
 
+    /* See if the remainder matches 'compact' or 'contiguous' */
+    if(strcasecmp(p,"compact")==0) {
+	chunkspec->kind = NC_COMPACT;
+	goto notchunked;
+    } if(strcasecmp(p,"contiguous")==0) {
+	chunkspec->kind = NC_CONTIGUOUS;
+	goto notchunked;
+    } else
+	chunkspec->kind = NC_CHUNKED;	
+
     /* Iterate over dimension sizes */
     while(*p) {
 	unsigned long dimsize;
@@ -293,6 +318,7 @@ varchunkspec_parse(int igrp, const char *spec0)
 	if(chunkspec->chunksizes[i] > len) {ret = NC_EBADCHUNK; goto done;}
     }
 
+notchunked:
     /* add the chunkspec to our list */
     listpush(varchunkspecs,chunkspec);
     chunkspec = NULL;
@@ -306,6 +332,19 @@ done:
 }
 
 /* Accessors */
+
+/* Return NC_CHUNKED || NC_CONTIGUOUS || NC_COMPACT */
+int
+varchunkspec_kind(int grpid, int varid)
+{
+    int i;
+    for(i=0;i<listlength(varchunkspecs);i++) {
+	struct VarChunkSpec* spec = listget(varchunkspecs,i);
+	if(spec->igrpid == grpid && spec->ivarid == varid) 
+	    return spec->kind;
+    }
+    return NC_CONTIGUOUS; /* default */
+}
 
 bool_t
 varchunkspec_exists(int igrpid, int ivarid)
