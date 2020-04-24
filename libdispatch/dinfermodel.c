@@ -490,6 +490,27 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
     int omode = *omodep;
     NClist* modeargs = nclistnew();
 
+#if H5_VERSION_GE(1,12,0)
+
+    hid_t fapl_id;
+    if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) goto done;
+    // printf("testing if %s accessible \n", path);
+    if( H5Fis_accessible(path, fapl_id) == 1 ) {
+
+      hid_t H5VL_id = H5VLget_connector_id(fapl_id);
+      if( H5VL_id != H5VL_NATIVE && H5VL_id != H5I_INVALID_HID) {
+        printf("DAOS OBJECT is %s accessible \n", path);
+        model->impl = NC_FORMATX_NC4;
+        model->format = NC_FORMAT_NETCDF4;
+        if (H5Pclose(fapl_id) < 0) goto done;
+        goto done;
+      }
+    }
+
+    if (H5Pclose(fapl_id) < 0) goto done;
+
+#endif
+
     /* Phase 1: Reformat the uri to canonical form; store canonical form
        into newpath. Return the "mode=" list in modeargs */
     if((stat = processuri(path, &uri, &newpath, modeargs))) goto done;
