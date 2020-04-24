@@ -45,6 +45,7 @@ herr_t alien_visitor(hid_t did, unsigned dim, hid_t dsid,
    objid->fileno = statbuf.fileno;
    objid->token = statbuf.token;
 #else
+   H5G_stat_t statbuf;
    if (H5Gget_objinfo(dsid, ".", 1, &statbuf) < 0) ERR;
    objid->fileno[0] = statbuf.fileno[0];
    objid->objno[0] = statbuf.objno[0];
