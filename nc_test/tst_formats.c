@@ -174,6 +174,7 @@ main(int argc, char **argv)
                     int shuffle_in, deflate_in, deflate_level_in;
                     int options_mask_in, pixels_per_block_in;
                     int storage_in;
+
 		    unsigned int filterid;
 		    size_t nfilters;
 
