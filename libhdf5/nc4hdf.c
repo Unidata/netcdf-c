@@ -2176,10 +2176,19 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
 
                             /* Check for exact match of fileno/objid arrays
                              * to find identical objects in HDF5 file. */
+#if H5_VERSION_GE(1,12,0)
+                            int token_cmp;
+                            if (H5Otoken_cmp(hdf5_var->hdf_datasetid, &hdf5_var->dimscale_hdf5_objids[d].token, &hdf5_dim->hdf5_objid.token, &token_cmp) < 0)
+                                return NC_EHDFERR;
+
+                            if (hdf5_var->dimscale_hdf5_objids[d].fileno == hdf5_dim->hdf5_objid.fileno &&
+                                token_cmp == 0)
+#else
                             if (hdf5_var->dimscale_hdf5_objids[d].fileno[0] == hdf5_dim->hdf5_objid.fileno[0] &&
                                 hdf5_var->dimscale_hdf5_objids[d].objno[0] == hdf5_dim->hdf5_objid.objno[0] &&
                                 hdf5_var->dimscale_hdf5_objids[d].fileno[1] == hdf5_dim->hdf5_objid.fileno[1] &&
                                 hdf5_var->dimscale_hdf5_objids[d].objno[1] == hdf5_dim->hdf5_objid.objno[1])
+#endif
                             {
                                 LOG((4, "%s: for dimension %d, found dim %s", __func__,
                                      d, dim->hdr.name));
