@@ -7,6 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.8.0 - TBD
 
+* [Bug Fix] Fixed a scalar annotation error when scalar == 0; see [Github #1707](https://github.com/Unidata/netcdf-c/issues/1707) for more information.
 * [Bug Fix] Use proper CURLOPT values for VERIFYHOST and VERIFYPEER; the semantics for VERIFYHOST in particular changed. Documented in NUG/DAP2.md. See  [https://github.com/Unidata/netcdf-c/issues/1684].
 * [Bug Fix][cmake] Correct an issue with parallel filter test logic in CMake-based builds.
 * [Bug Fix] Now allow nc_inq_var_deflate()/nc_inq_var_szip() to be called for all formats, not just HDF5. Non-HDF5 files return NC_NOERR and report no compression in use. This reverts behavior that was changed in the 4.7.4 release. See [https://github.com/Unidata/netcdf-c/issues/1691].
