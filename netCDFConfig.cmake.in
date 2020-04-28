@@ -10,6 +10,9 @@ set_and_check(netCDF_INCLUDE_DIR "@PACKAGE_CMAKE_INSTALL_INCLUDEDIR@")
 set_and_check(netCDF_LIB_DIR "@PACKAGE_CMAKE_INSTALL_LIBDIR@")
 
 set(netCDF_LIBRARIES netCDF::netcdf)
+if(@HAS_HDF5@ STREQUAL "yes")
+  find_package(HDF5 COMPONENTS C HL NO_MODULE QUIET)
+endif()
 
 # include target information
 include("${CMAKE_CURRENT_LIST_DIR}/netCDFTargets.cmake")
