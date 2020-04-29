@@ -1463,6 +1463,28 @@ copy_vars(int igrp, int ogrp)
     return stat;
 }
 
+static void
+report(int rank, size_t* start, size_t* count, void* buf)
+{
+    int i;
+    size_t prod = 1;    
+    for(i=0;i<rank;i++) prod *= count[i];
+    fprintf(stderr,"start=");
+    for(i=0;i<rank;i++)	
+	fprintf(stderr,"%s%ld",(i==0?"(":" "),(long)start[i]);
+    fprintf(stderr,")");
+    fprintf(stderr," count=");
+    for(i=0;i<rank;i++)	
+	fprintf(stderr,"%s%ld",(i==0?"(":" "),(long)count[i]);
+    fprintf(stderr,")");
+    fprintf(stderr," data=");
+    for(i=0;i<prod;i++)	
+	fprintf(stderr,"%s%d",(i==0?"(":" "),((int*)buf)[i]);
+    fprintf(stderr,"\n");
+    fflush(stderr);
+}
+
+
 /* Copy the schema in a group and all its subgroups, recursively, from
  * group igrp in input to parent group ogrp in destination.  Use
  * dimmap array to map input dimids to output dimids. */
@@ -1615,6 +1637,7 @@ copy_var_data(int igrp, int varid, int ogrp) {
      * subsequent calls. */
     while((ntoget = nc_next_iter(iterp, start, count)) > 0) {
 	NC_CHECK(nc_get_vara(igrp, varid, start, count, buf));
+report(iterp->rank,start,count,buf);
 	NC_CHECK(nc_put_vara(ogrp, ovarid, start, count, buf));
 #ifdef USE_NETCDF4
 	/* we have to explicitly free values for strings and vlens */
