@@ -176,8 +176,6 @@ NC4_inq_dim(int ncid, int dimid, char *name, size_t *lenp)
             else {
               *lenp = dim->len;
             }
-            if ((ret = nc4_find_dim_len(dim_grp, dimid, &lenp)))
-                return ret;
         }
         else
         {
