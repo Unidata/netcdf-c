@@ -166,8 +166,16 @@ NC4_inq_dim(int ncid, int dimid, char *name, size_t *lenp)
                of records from all the vars that share this
                dimension. */
             *lenp = 0;
-            if ((ret = nc4_find_dim_len(dim_grp, dimid, &lenp)))
-                return ret;
+            if (dim->len == 0) {
+              if ((ret = nc4_find_dim_len(dim_grp, dimid, &lenp)))
+                 return ret;
+              if (h5->no_write == NC_TRUE) {
+                dim->len = *lenp;
+              }
+            }
+            else {
+              *lenp = dim->len;
+            }
         }
         else
         {
