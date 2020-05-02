@@ -58,7 +58,7 @@ Copyright and licensing information can be found [here](http://www.unidata.ucar.
 To install the netCDF-C software, please see the file INSTALL in the
 netCDF-C distribution, or the (usually more up-to-date) document:
 
-* [Building NetCDF](http://www.unidata.ucar.edu/software/netcdf/docs/getting_and_building_netcdf.html)
+* [Building NetCDF](https://www.unidata.ucar.edu/software/netcdf/docs/winbin.html)
 
 ### Documentation
 A language-independent User's Guide for netCDF, and some other
