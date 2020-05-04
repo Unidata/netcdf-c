@@ -150,7 +150,10 @@ static NC_Dispatch tst_dispatcher = {
     NC_NOTNC4_def_var_endian,
     NC_NOTNC4_def_var_filter,
     NC_NOTNC4_set_var_chunk_cache,
-    NC_NOTNC4_get_var_chunk_cache
+    NC_NOTNC4_get_var_chunk_cache,
+#if NC_DISPATCH_VERSION >= 2
+    NC_NOOP_filter_actions
+#endif
 };
 
 /* This is the dispatch object that holds pointers to all the
@@ -242,7 +245,10 @@ static NC_Dispatch tst_dispatcher_bad_version = {
     NC_NOTNC4_def_var_endian,
     NC_NOTNC4_def_var_filter,
     NC_NOTNC4_set_var_chunk_cache,
-    NC_NOTNC4_get_var_chunk_cache
+    NC_NOTNC4_get_var_chunk_cache,
+#if NC_DISPATCH_VERSION >= 2
+    NC_NOOP_filter_actions
+#endif
 };
 
 #define NUM_UDFS 2

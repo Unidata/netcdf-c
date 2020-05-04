@@ -181,16 +181,6 @@ extern "C" {
     EXTERNL int NC_RO_set_fill(int ncid, int fillmode, int *old_modep);
 
     /* These functions are for dispatch layers that don't implement
-     * these legacy functions. They return NC_ENOTNC3. */
-    EXTERNL int NC_NOTNC3_put_varm(int ncid, int varid, const size_t * start,
-                                   const size_t *edges, const ptrdiff_t *stride,
-                                   const ptrdiff_t *imapp, const void *value0,
-                                   nc_type memtype);
-    EXTERNL int NC_NOTNC3_get_varm(int ncid, int varid, const size_t *start,
-                                   const size_t *edges, const ptrdiff_t *stride,
-                                   const ptrdiff_t *imapp, void *value0, nc_type memtype);
-
-    /* These functions are for dispatch layers that don't implement
      * the enhanced model. They return NC_ENOTNC4. */
     EXTERNL int NC_NOTNC4_def_var_filter(int, int, unsigned int, size_t,
                                          const unsigned int*);
@@ -230,8 +220,15 @@ extern "C" {
     EXTERNL int NC_NOTNC4_inq_typeids(int, int *, int *);
     EXTERNL int NC_NOTNC4_inq_user_type(int, nc_type, char *, size_t *,
                                         nc_type *, size_t *, int *);
-    EXTERNL int NC_NOTNC4_inq_typeid(int, const char *, nc_type *);
     EXTERNL int NC_NOTNC4_filter_actions(int, int, int, struct NC_Filterobject*);
+
+    /* These functions are for dispatch layers that don't implement
+     * the enhanced model, but want to succeed anyway.
+     * They return NC_NOERR plus properly set the out parameters.
+     * In some cases (filter actions), some cases may succeed and some
+     * will fail.
+     */
+    EXTERNL int NC_NOOP_filter_actions(int, int, int, struct NC_Filterobject*);
 
 #if defined(__cplusplus)
 }

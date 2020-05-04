@@ -7,6 +7,10 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.8.0 - TBD
 
+* [Bug Fix] Add functions to libdispatch/dnotnc4.c to support
+dispatch table operations that should work for any dispatch
+table, even if they do not do anything; functions such as
+nc_inq_var_filter [https://github.com/Unidata/netcdf-c/issues/1693].
 * [Bug Fix] Fixed a scalar annotation error when scalar == 0; see [Github #1707](https://github.com/Unidata/netcdf-c/issues/1707) for more information.
 * [Bug Fix] Use proper CURLOPT values for VERIFYHOST and VERIFYPEER; the semantics for VERIFYHOST in particular changed. Documented in NUG/DAP2.md. See  [https://github.com/Unidata/netcdf-c/issues/1684].
 * [Bug Fix][cmake] Correct an issue with parallel filter test logic in CMake-based builds.
