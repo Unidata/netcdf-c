@@ -831,6 +831,11 @@ main(int argc, char **argv)
       if (nc_def_dim(ncid, DIM4_NAME, DIM4_LEN, &dimids[0])) ERR;
       if (dimids[0] != 0) ERR;
       if (nc_def_var(ncid, VAR_NAME4, NC_INT64, NDIMS4, dimids, &varid)) ERR;
+      /* THis next line should work, setting the deflate to 4, only to
+       * have it changed by the next call to DELFLATE_LEVEL (6). But
+       * in 4.7.4 behavior changed. In 4.7.4 this line causes deflate
+       * level to be set to 4 and the following call to be ignored. */
+      /* if (nc_def_var_deflate(ncid, varid, NC_NOSHUFFLE, 1, DEFLATE_LEVEL_4)) ERR; */
       if (nc_def_var_deflate(ncid, varid, NC_NOSHUFFLE, 1, DEFLATE_LEVEL)) ERR;
       if (varid != 0) ERR;
 
