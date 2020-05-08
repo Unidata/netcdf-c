@@ -147,14 +147,18 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
             nc4_info->info = info;
         }
     }
-#else /* only set cache for non-parallel... */
-    if (H5Pset_cache(fapl_id, 0, nc4_chunk_cache_nelems, nc4_chunk_cache_size,
-                     nc4_chunk_cache_preemption) < 0)
-        BAIL(NC_EHDFERR);
-    LOG((4, "%s: set HDF raw chunk cache to size %d nelems %d preemption %f",
-         __func__, nc4_chunk_cache_size, nc4_chunk_cache_nelems,
-         nc4_chunk_cache_preemption));
 #endif /* USE_PARALLEL4 */
+
+    /* Only set cache for non-parallel creates. */
+    if (!nc4_info->parallel)
+    {
+	if (H5Pset_cache(fapl_id, 0, nc4_chunk_cache_nelems, nc4_chunk_cache_size,
+			 nc4_chunk_cache_preemption) < 0)
+	    BAIL(NC_EHDFERR);
+	LOG((4, "%s: set HDF raw chunk cache to size %d nelems %d preemption %f",
+	     __func__, nc4_chunk_cache_size, nc4_chunk_cache_nelems,
+	     nc4_chunk_cache_preemption));
+    }
 
 #ifdef HAVE_H5PSET_LIBVER_BOUNDS
 #if H5_VERSION_GE(1,10,2)
