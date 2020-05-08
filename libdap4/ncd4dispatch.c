@@ -241,14 +241,6 @@ NCD4_set_var_chunk_cache(int ncid, int p2, size_t p3, size_t p4, float p5)
     return (NC_EPERM);
 }
 
-struct NC_FILTER_ACTION;
-
-static int
-NCD4_filter_actions(int ncid, int varid, int action, struct NC_Filterobject* spec)
-{
-    return (NC_EPERM);
-}
-
 /**************************************************/
 /*
 Following functions basically return the netcdf-4 value WRT to the nc4id.
@@ -870,7 +862,7 @@ NCD4_def_var_filter,
 NCD4_set_var_chunk_cache,
 NCD4_get_var_chunk_cache,
 
-NCD4_filter_actions,
+NC_NOOP_filter_actions,
 };
 
 

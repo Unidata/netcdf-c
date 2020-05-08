@@ -745,7 +745,7 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
         BAIL(NC_EINTERNAL);
 
 #ifdef USE_PARALLEL4
-    mpiinfo = (NC_MPI_INFO*)parameters; /* assume, may be changed if inmemory is true */
+    mpiinfo = (NC_MPI_INFO *)parameters; /* assume, may be changed if inmemory is true */
 #endif /* !USE_PARALLEL4 */
 
     /* Need this access plist to control how HDF5 handles open objects
@@ -760,20 +760,19 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 #ifdef USE_PARALLEL4
     if (!(mode & (NC_INMEMORY | NC_DISKLESS)) && mpiinfo != NULL) {
         /* If this is a parallel file create, set up the file creation
-         * property list.
-         */
+         * property list. */
         nc4_info->parallel = NC_TRUE;
         LOG((4, "opening parallel file with MPI/IO"));
         if (H5Pset_fapl_mpio(fapl_id, mpiinfo->comm, mpiinfo->info) < 0)
             BAIL(NC_EPARINIT);
 
         /* Keep copies of the MPI Comm & Info objects */
-        if (MPI_SUCCESS != MPI_Comm_dup(mpiinfo->comm, &nc4_info->comm))
+        if (MPI_Comm_dup(mpiinfo->comm, &nc4_info->comm) != MPI_SUCCESS)
             BAIL(NC_EMPI);
         comm_duped++;
-        if (MPI_INFO_NULL != mpiinfo->info)
+        if (mpiinfo->info != MPI_INFO_NULL)
         {
-            if (MPI_SUCCESS != MPI_Info_dup(mpiinfo->info, &nc4_info->info))
+            if (MPI_Info_dup(mpiinfo->info, &nc4_info->info) != MPI_SUCCESS)
                 BAIL(NC_EMPI);
             info_duped++;
         }
@@ -785,18 +784,23 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
     }
 
 #ifdef HDF5_HAS_COLL_METADATA_OPS
+    /* If collective metadata operations are available in HDF5, turn
+     * them on. */
     if (H5Pset_all_coll_metadata_ops(fapl_id, 1) < 0)
         BAIL(NC_EPARINIT);
-#endif
-
-#else /* only set cache for non-parallel. */
-    if (H5Pset_cache(fapl_id, 0, nc4_chunk_cache_nelems, nc4_chunk_cache_size,
-                     nc4_chunk_cache_preemption) < 0)
-        BAIL(NC_EHDFERR);
-    LOG((4, "%s: set HDF raw chunk cache to size %d nelems %d preemption %f",
-         __func__, nc4_chunk_cache_size, nc4_chunk_cache_nelems,
-         nc4_chunk_cache_preemption));
+#endif /* HDF5_HAS_COLL_METADATA_OPS */
 #endif /* USE_PARALLEL4 */
+
+    /* Only set cache for non-parallel opens. */
+    if (!nc4_info->parallel)
+    {
+	if (H5Pset_cache(fapl_id, 0, nc4_chunk_cache_nelems, nc4_chunk_cache_size,
+			 nc4_chunk_cache_preemption) < 0)
+	    BAIL(NC_EHDFERR);
+	LOG((4, "%s: set HDF raw chunk cache to size %d nelems %d preemption %f",
+	     __func__, nc4_chunk_cache_size, nc4_chunk_cache_nelems,
+	     nc4_chunk_cache_preemption));
+    }
 
     /* Process  NC_INMEMORY */
     if(nc4_info->mem.inmemory) {

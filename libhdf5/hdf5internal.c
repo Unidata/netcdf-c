@@ -948,6 +948,49 @@ nc4_hdf5_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
     return NC_NOERR;
 }
 
+/**
+ * @internal Get the file chunk cache settings from HDF5.
+ *
+ * @param ncid File ID of a NetCDF/HDF5 file.
+ * @param sizep Pointer that gets size in bytes to set cache. Ignored
+ * if NULL.
+ * @param nelemsp Pointer that gets number of elements to hold in
+ * cache. Ignored if NULL.
+ * @param preemptionp Pointer that gets preemption stragety (between 0
+ * and 1). Ignored if NULL.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+ */
+int
+nc4_hdf5_get_chunk_cache(int ncid, size_t *sizep, size_t *nelemsp,
+		     float *preemptionp)
+{
+    NC_FILE_INFO_T *h5;
+    NC_HDF5_FILE_INFO_T *hdf5_info;
+    hid_t plistid;
+    double dpreemption;
+    int retval;
+    
+    /* Find info for this file, group, and h5 info. */
+    if ((retval = nc4_find_nc_grp_h5(ncid, NULL, NULL, &h5)))
+        return retval;
+    assert(h5 && h5->format_file_info);
+    hdf5_info = (NC_HDF5_FILE_INFO_T *)h5->format_file_info;
+
+    /* Get the file access property list. */
+    if ((plistid = H5Fget_access_plist(hdf5_info->hdfid)) < 0)
+	return NC_EHDFERR;
+
+    /* Get the chunk cache values from HDF5 for this property list. */
+    if (H5Pget_cache(plistid, NULL, nelemsp, sizep, &dpreemption) < 0)
+	return NC_EHDFERR;
+    if (preemptionp)
+	*preemptionp = dpreemption;
+
+    return NC_NOERR;
+}
+
 #ifdef LOGGING
 /* We will need to check against nc log level from nc4internal.c. */
 extern int nc_log_level;

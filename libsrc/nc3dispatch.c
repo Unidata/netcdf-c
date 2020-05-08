@@ -164,7 +164,7 @@ NC3_def_var_filter,
 NC3_set_var_chunk_cache,
 NC3_get_var_chunk_cache,
 
-NC_NOTNC4_filter_actions,
+NC_NOOP_filter_actions,
 };
 
 const NC_Dispatch* NC3_dispatch_table = NULL; /*!< NC3 Dispatch table, moved here from ddispatch.c */
