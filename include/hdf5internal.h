@@ -177,6 +177,9 @@ int nc4_HDF5_close_att(NC_ATT_INFO_T *att);
 /* Perform lazy read of the rest of the metadata for a var. */
 int nc4_get_var_meta(NC_VAR_INFO_T *var);
 
+/* Get the file chunk cache settings from HDF5. */
+int nc4_hdf5_get_chunk_cache(int ncid, size_t *sizep, size_t *nelemsp,
+			     float *preemptionp);
 
 /* Define Filter API Function */
 int nc4_global_filter_action(int action, unsigned int id, struct NC_FILTER_OBJ_HDF5* infop);
