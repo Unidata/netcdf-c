@@ -788,16 +788,19 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
      * them on. */
     if (H5Pset_all_coll_metadata_ops(fapl_id, 1) < 0)
         BAIL(NC_EPARINIT);
-#endif
-
-#else /* only set cache for non-parallel. */
-    if (H5Pset_cache(fapl_id, 0, nc4_chunk_cache_nelems, nc4_chunk_cache_size,
-                     nc4_chunk_cache_preemption) < 0)
-        BAIL(NC_EHDFERR);
-    LOG((4, "%s: set HDF raw chunk cache to size %d nelems %d preemption %f",
-         __func__, nc4_chunk_cache_size, nc4_chunk_cache_nelems,
-         nc4_chunk_cache_preemption));
+#endif /* HDF5_HAS_COLL_METADATA_OPS */
 #endif /* USE_PARALLEL4 */
+
+    /* Only set cache for non-parallel opens. */
+    if (!nc4_info->parallel)
+    {
+	if (H5Pset_cache(fapl_id, 0, nc4_chunk_cache_nelems, nc4_chunk_cache_size,
+			 nc4_chunk_cache_preemption) < 0)
+	    BAIL(NC_EHDFERR);
+	LOG((4, "%s: set HDF raw chunk cache to size %d nelems %d preemption %f",
+	     __func__, nc4_chunk_cache_size, nc4_chunk_cache_nelems,
+	     nc4_chunk_cache_preemption));
+    }
 
     /* Process  NC_INMEMORY */
     if(nc4_info->mem.inmemory) {

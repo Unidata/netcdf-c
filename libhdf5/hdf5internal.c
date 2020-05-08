@@ -966,14 +966,27 @@ int
 nc4_hdf5_get_chunk_cache(int ncid, size_t *sizep, size_t *nelemsp,
 		     float *preemptionp)
 {
-    NC_FILE_INFO_T *my_h5;
-    NC_GRP_INFO_T *my_grp;
+    NC_FILE_INFO_T *h5;
+    NC_HDF5_FILE_INFO_T *hdf5_info;
+    hid_t plistid;
+    double dpreemption;
     int retval;
     
     /* Find info for this file, group, and h5 info. */
-    if ((retval = nc4_find_nc_grp_h5(ncid, NULL, &my_grp, &my_h5)))
+    if ((retval = nc4_find_nc_grp_h5(ncid, NULL, NULL, &h5)))
         return retval;
-    assert(my_grp && my_h5);
+    assert(h5 && h5->format_file_info);
+    hdf5_info = (NC_HDF5_FILE_INFO_T *)h5->format_file_info;
+
+    /* Get the file access property list. */
+    if ((plistid = H5Fget_access_plist(hdf5_info->hdfid)) < 0)
+	return NC_EHDFERR;
+
+    /* Get the chunk cache values from HDF5 for this property list. */
+    if (H5Pget_cache(plistid, NULL, nelemsp, sizep, &dpreemption) < 0)
+	return NC_EHDFERR;
+    if (preemptionp)
+	*preemptionp = dpreemption;
 
     return NC_NOERR;
 }
