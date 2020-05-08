@@ -318,7 +318,7 @@ main(int argc, char **argv)
     if (!mpi_rank)
         SUMMARIZE_ERR;
     if (!mpi_rank)
-        printf("*** testing cache settings for sequential-opened files...");
+        printf("*** testing cache settings for sequentially-opened files...");
     {
         /* This test is related to
          * https://github.com/Unidata/netcdf-c/issues/1715. */
