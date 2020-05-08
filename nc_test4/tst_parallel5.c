@@ -19,6 +19,13 @@
 #define NUM_PROC 4
 #define NUM_SLABS 10
 #define NUM_ACCESS_TESTS 2
+#define HDF5_DEFAULT_CACHE_SIZE 1048576
+#define HDF5_DEFAULT_NELEMS 521
+#define HDF5_DEFAULT_PREEMPTION 0.75
+
+int
+nc4_hdf5_get_chunk_cache(int ncid, size_t *sizep, size_t *nelemsp,
+                         float *preemptionp);
 
 int
 main(int argc, char **argv)
@@ -297,7 +304,7 @@ main(int argc, char **argv)
         /* Crate a file with a scalar NC_BYTE value. */
         if (nc_create_par(FILE, NC_NETCDF4, MPI_COMM_WORLD, MPI_INFO_NULL,
                           &ncid)) ERR;
-        if (nc_def_var(ncid, "fred", NC_BYTE, 0, NULL, &varid)) ERR;
+        if (nc_def_var(ncid, VAR_NAME, NC_BYTE, 0, NULL, &varid)) ERR;
         if (nc_enddef(ncid)) ERR;
         if (nc_put_var_schar(ncid, varid, &test_data)) ERR;
         if (nc_close(ncid)) ERR;
@@ -307,6 +314,62 @@ main(int argc, char **argv)
         if (nc_get_var_schar(ncid, varid, &test_data_in)) ERR;
         if (test_data_in != test_data) ERR;
         if (nc_close(ncid)) ERR;
+    }
+    if (!mpi_rank)
+        SUMMARIZE_ERR;
+    if (!mpi_rank)
+        printf("*** testing cache settings for sequentially-opened files...");
+    {
+        /* This test is related to
+         * https://github.com/Unidata/netcdf-c/issues/1715. */
+        int ncid, varid;
+        int test_data_in, test_data = 42;
+        size_t size, nelems;
+        float preemption;
+
+        /* Create a file with parallel I/O and check cache settings. */
+        if (nc_create_par(FILE, NC_NETCDF4|NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL,
+                          &ncid)) ERR;
+        if (nc4_hdf5_get_chunk_cache(ncid, &size, &nelems, &preemption)) ERR;
+        if (size != HDF5_DEFAULT_CACHE_SIZE || nelems != HDF5_DEFAULT_NELEMS ||
+            preemption != HDF5_DEFAULT_PREEMPTION) ERR;
+        /* printf("%ld %ld %g\n", size, nelems, preemption); */
+        if (nc_close(ncid)) ERR;
+
+        /* Create a file with sequential I/O and check cache settings
+         * on processor 0. Now, instead of being set to the HDF5
+         * defaults, the chunk settings are set to the netCDF
+         * defaults. */
+        if (!mpi_rank)
+        {
+            if (nc_create(FILE, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
+            if (nc4_hdf5_get_chunk_cache(ncid, &size, &nelems, &preemption)) ERR;
+            /* printf("%ld %ld %g\n", size, nelems, preemption); */
+            if (size != CHUNK_CACHE_SIZE || nelems != CHUNK_CACHE_NELEMS ||
+                preemption != CHUNK_CACHE_PREEMPTION) ERR;
+            if (nc_close(ncid)) ERR;
+        }
+
+        /* Reopen the file and check. */
+        if (nc_open_par(FILE, 0, comm, info, &ncid)) ERR;
+        if (nc4_hdf5_get_chunk_cache(ncid, &size, &nelems, &preemption)) ERR;
+        if (size != HDF5_DEFAULT_CACHE_SIZE || nelems != HDF5_DEFAULT_NELEMS ||
+            preemption != HDF5_DEFAULT_PREEMPTION) ERR;
+        if (nc_close(ncid)) ERR;
+
+        /* Open the file with sequential I/O and check cache settings
+         * on processor 0. Now, instead of being set to the HDF5
+         * defaults, the chunk settings are set to the netCDF
+         * defaults. */
+        if (!mpi_rank)
+        {
+            if (nc_open(FILE, 0, &ncid)) ERR;
+            if (nc4_hdf5_get_chunk_cache(ncid, &size, &nelems, &preemption)) ERR;
+            if (size != CHUNK_CACHE_SIZE || nelems != CHUNK_CACHE_NELEMS ||
+                preemption != CHUNK_CACHE_PREEMPTION) ERR;
+            if (nc_close(ncid)) ERR;
+        }
+        nc_set_log_level(0);
     }
     if (!mpi_rank)
         SUMMARIZE_ERR;
