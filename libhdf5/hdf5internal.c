@@ -948,6 +948,36 @@ nc4_hdf5_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
     return NC_NOERR;
 }
 
+/**
+ * @internal Get the file chunk cache settings from HDF5.
+ *
+ * @param ncid File ID of a NetCDF/HDF5 file.
+ * @param sizep Pointer that gets size in bytes to set cache. Ignored
+ * if NULL.
+ * @param nelemsp Pointer that gets number of elements to hold in
+ * cache. Ignored if NULL.
+ * @param preemptionp Pointer that gets preemption stragety (between 0
+ * and 1). Ignored if NULL.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+ */
+int
+nc4_hdf5_get_chunk_cache(int ncid, size_t *sizep, size_t *nelemsp,
+		     float *preemptionp)
+{
+    NC_FILE_INFO_T *my_h5;
+    NC_GRP_INFO_T *my_grp;
+    int retval;
+    
+    /* Find info for this file, group, and h5 info. */
+    if ((retval = nc4_find_nc_grp_h5(ncid, NULL, &my_grp, &my_h5)))
+        return retval;
+    assert(my_grp && my_h5);
+
+    return NC_NOERR;
+}
+
 #ifdef LOGGING
 /* We will need to check against nc log level from nc4internal.c. */
 extern int nc_log_level;
