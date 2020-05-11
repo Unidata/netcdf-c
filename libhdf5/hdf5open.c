@@ -963,8 +963,8 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
 {
     H5Z_filter_t filter;
     int num_filters;
-    unsigned int cd_values_zip[CD_NELEMS_ZLIB];
-    size_t cd_nelems = CD_NELEMS_ZLIB;
+    unsigned int* cd_values = NULL;
+    size_t cd_nelems;
     int f;
     int stat = NC_NOERR;
 
@@ -975,8 +975,12 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
 
     for (f = 0; f < num_filters; f++)
     {
-        if ((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems, cd_values_zip,
-                                     0, NULL, NULL)) < 0)
+	cd_nelems = 0;
+        if ((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems, NULL, 0, NULL, NULL)) < 0)
+            return NC_EHDFERR;
+	if((cd_values = calloc(sizeof(unsigned int),cd_nelems))==NULL)
+	    return NC_ENOMEM;
+        if ((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems, cd_values, 0, NULL, NULL)) < 0)
             return NC_EHDFERR;
         switch (filter)
         {
@@ -990,36 +994,27 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
 
         case H5Z_FILTER_DEFLATE:
             if (cd_nelems != CD_NELEMS_ZLIB ||
-                cd_values_zip[0] > NC_MAX_DEFLATE_LEVEL)
+                cd_values[0] > NC_MAX_DEFLATE_LEVEL)
                 return NC_EHDFERR;
-	    if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,cd_values_zip)))
-		return stat;
+	    if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,cd_values,NULL)))
+	       return stat;
             break;
 
         case H5Z_FILTER_SZIP: {
             /* Szip is tricky because the filter code expands the set of parameters from 2 to 4
                and changes some of the parameter values; try to compensate */
             if(cd_nelems == 0) {
-		if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,0,NULL)))
+		if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,0,NULL,NULL)))
 		   return stat;
             } else {
-                /* We have to re-read the parameters based on actual nparams,
-                   which in the case of szip, differs from users original nparams */
-                unsigned int* realparams = (unsigned int*)calloc(1,sizeof(unsigned int)*cd_nelems);
-                if(realparams == NULL)
-                    return NC_ENOMEM;
-                if((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems,
-                                            realparams, 0, NULL, NULL)) < 0) 
-                    return NC_EHDFERR;
                 /* fix up the parameters and the #params */
 		if(cd_nelems != 4)
 		    return NC_EHDFERR;
 		cd_nelems = 2; /* ignore last two */		
 		/* Fix up changed params */
-		realparams[0] &= (H5_SZIP_ALL_MASKS);
+		cd_values[0] &= (H5_SZIP_ALL_MASKS);
 		/* Save info */
-		stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,realparams);
-		nullfree(realparams);
+		stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,cd_values,NULL);
 		if(stat) return stat;
 
             }
@@ -1027,21 +1022,14 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
 
         default:
             if(cd_nelems == 0) {
-  	        if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,0,NULL))) return stat;
+  	        if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,0,NULL,NULL))) return stat;
             } else {
-                /* We have to re-read the parameters based on actual nparams */
-                unsigned int* realparams = (unsigned int*)calloc(1,sizeof(unsigned int)*cd_nelems);
-                if(realparams == NULL)
-                    return NC_ENOMEM;
-                if((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems,
-                                            realparams, 0, NULL, NULL)) < 0)
-                    return NC_EHDFERR;
-  	        stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,realparams);
-		nullfree(realparams);
+  	        stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,cd_values,NULL);
 		if(stat) return stat;
             }
             break;
         }
+	nullfree(cd_values); cd_values = NULL;
     }
     return NC_NOERR;
 }
