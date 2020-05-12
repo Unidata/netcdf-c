@@ -1182,6 +1182,11 @@ IF(NOT BUILD_SHARED_LIBS)
   MESSAGE(WARNING "ENABLE_FILTER_TESTING requires shared libraries. Disabling.")
   SET(ENABLE_FILTER_TESTING OFF)
 ENDIF()
+OPTION(ENABLE_CLIENTSIDE_FILTERS "Enable client-side filter registration." OFF)
+IF(NOT ENABLE_FILTER_TESTING)
+SET(ENABLE_CLIENTSIDE_FILTERS OFF)
+ENDIF()
+
 
 # Determine whether or not to generate documentation.
 OPTION(ENABLE_DOXYGEN "Enable generation of doxygen-based documentation." OFF)
@@ -1776,6 +1781,7 @@ ENDIF()
 add_subdirectory(liblib)
 
 IF(ENABLE_FILTER_TESTING)
+  CONFIGURE_FILE(plugins/H5Znoop.c ${CMAKE_SOURCE_DIR}/plugins/H5Znoop1.c COPYONLY)
   add_subdirectory(plugins)
 ENDIF()
 
@@ -2109,8 +2115,6 @@ install(
 ####
 # End export files
 ####
-
-
 
 # CPack inclusion must come last.
 # INCLUDE(CPack)

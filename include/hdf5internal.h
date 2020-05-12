@@ -183,7 +183,7 @@ int nc4_hdf5_get_chunk_cache(int ncid, size_t *sizep, size_t *nelemsp,
 
 /* Define Filter API Function */
 int nc4_global_filter_action(int action, unsigned int id, struct NC_FILTER_OBJ_HDF5* infop);
-int NC4_hdf5_addfilter(NC_VAR_INFO_T* var, int active, unsigned int id, size_t nparams, unsigned int* params);
+int NC4_hdf5_addfilter(NC_VAR_INFO_T* var, int active, unsigned int id, size_t nparams, unsigned int* params, struct NC_FILTER_SPEC_HDF5**);
 int NC4_hdf5_remove_filter(NC_VAR_INFO_T* var, unsigned int filterid);
 
 /* Support functions for provenance info (defined in nc4hdf.c) */
