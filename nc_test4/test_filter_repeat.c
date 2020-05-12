@@ -123,58 +123,44 @@ create(void)
 }
 
 static void
-deffilters(void)
+deffilter(unsigned int id, size_t nparams, unsigned int* params)
 {
-    unsigned int params[1];
-    unsigned int filterids[2];
-    size_t nfilters = 0;
-    size_t nparams = 0;
+    /* Register filter */
+    CHECK(nc_def_var_filter(ncid,varid,id,nparams,params));
+}
 
-    /* Register filter 0 */
-    params[0] = 0;    
-    CHECK(nc_def_var_filter(ncid,varid,FILTER_ID,1,params));
-    params[0] = 1;
-    CHECK(nc_def_var_filter(ncid,varid,FILTER_ID+1,1,params));
-    CHECK(nc_inq_var_filterids(ncid,varid,&nfilters,filterids));
-    if(nfilters != 2) REPORT("nfilters mismatch");
-    if(filterids[0] != FILTER_ID+0) REPORT("0: filterids mismatch");
-    if(filterids[1] != FILTER_ID+1) REPORT("1: filterids mismatch");
-    CHECK(nc_inq_var_filter_info(ncid,varid,FILTER_ID+0,&nparams,params));;
-    if(nparams != 1) REPORT("0: nparams mismatch");
-    if(params[0] != 0) REPORT("0: param mismatch");
-    CHECK(nc_inq_var_filter_info(ncid,varid,FILTER_ID+1,&nparams,params));
-    if(nparams != 1) REPORT("1: nparams mismatch");
-    if(params[0] != 1) REPORT("1: param mismatch");
+static void
+printfilter(unsigned int id)
+{
+    size_t i,nparams = 0;
+    unsigned int params[MAXPARAMS];
+
+    CHECK(nc_inq_var_filter_info(ncid,varid,id,&nparams,params));;
+    if(nparams == 0) REPORT("no nparams");
+    printf("filter(%u): |params|=%u params=",id,(unsigned)nparams);
+    for(i=0;i<nparams;i++)
+	printf(" %u",params[i]);
+    printf("\n");
 }
 
 static int
 openfile(void)
 {
-    unsigned int filterids[2];
-    unsigned int params[1];
+    unsigned int filterids[MAXPARAMS];
     size_t nfilters = 0;
-    size_t nparams = 0;
     int k;
 
     /* Open the file and check it. */
     CHECK(nc_open(TESTFILE, NC_NOWRITE, &ncid));
     CHECK(nc_inq_varid(ncid, "var", &varid));
 
-    /* Check the compression algorithms */
-    CHECK(nc_inq_var_filterids(ncid,varid,&nfilters,filterids));
-    if(nfilters != 2)
-        return NC_EINVAL;
-    for(k=0;k<nfilters;k++) {
-        CHECK(nc_inq_var_filter_info(ncid,varid,filterids[k],&nparams,params));
-        if(nparams != 1) {
-            fprintf(stderr,"open: test nparams mismatch: %u\n",(unsigned)nparams);
-            return NC_EFILTER;
-	}
-    }
-
     /* Verify chunking */
     if(!verifychunks())
         return 0;
+    /* Check the compression algorithms */
+    CHECK(nc_inq_var_filterids(ncid,varid,&nfilters,filterids));
+    for(k=0;k<nfilters;k++)
+	printfilter(filterids[k]);
     fflush(stderr);
     return 1;
 }
@@ -253,13 +239,22 @@ static int
 filter_test1(void)
 {
     int ok = 1;
+    unsigned int params[MAXPARAMS];    
 
     reset();
 
-    printf("test1: filter order.\n");
+    printf("test1: def filter repeat .\n");
     create();
     setchunking();
-    deffilters();
+
+    params[0] = 1;
+    params[1] = 17;
+    deffilter(FILTER_ID,2,params);
+
+    params[0] = 0;
+    params[1] = 18;
+    deffilter(FILTER_ID,2,params);
+
     CHECK(nc_enddef(ncid));
 
     /* Fill in the array */

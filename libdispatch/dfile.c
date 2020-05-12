@@ -1855,9 +1855,9 @@ NC_create(const char *path0, int cmode, size_t initialsz,
         for(p=(const unsigned char*)path0;*p;p++) {if(*p > ' ') break;}
 #ifdef WINPATH
         /* Need to do path conversion */
-        path = NCpathcvt(p);
+        path = NCpathcvt((const char*)p);
 #else
-        path = nulldup(p);
+        path = nulldup((const char*)p);
 #endif
     }
 
@@ -1999,8 +1999,8 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 
     {
         /* Skip past any leading whitespace in path */
-        const unsigned char* p;
-        for(p=(const unsigned char*)path0;*p;p++) {if(*p > ' ') break;}
+        const char* p;
+        for(p=(const char*)path0;*p;p++) {if(*p < 0 || *p > ' ') break;}
 #ifdef WINPATH
         /* Need to do path conversion */
         path = NCpathcvt(p);

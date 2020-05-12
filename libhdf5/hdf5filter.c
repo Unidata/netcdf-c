@@ -23,23 +23,26 @@
 #define FILTERACTIVE 1
 
 
-/* WARNING: GLOBAL VARIABLE */
-
-/* Define list of registered filters */
-static NClist* NC4_registeredfilters = NULL; /** List<NC_FILTER_CLIENT_HDF5*> */
-
 /**************************************************/
 /* Filter registration support */
 
+#ifdef ENABLE_CLIENTSIZE_FILTERS
+
+/* WARNING: GLOBAL VARIABLE */
+/* Define list of registered filters */
+static NClist* NC4_registeredfilters = NULL; /** List<NC_FILTER_CLIENT_HDF5*> */
+
 static int
-filterlookup(unsigned int id)
+clientfilterlookup(unsigned int id)
 {
     int i;
     if(NC4_registeredfilters == NULL)
 	NC4_registeredfilters = nclistnew();
     for(i=0;i<nclistlength(NC4_registeredfilters);i++) {
 	NC_FILTER_CLIENT_HDF5* x = nclistget(NC4_registeredfilters,i);
-	if(x != NULL && x->id == id) return i; /* return position */
+	if(x != NULL && x->id == id) {
+	    return i; /* return position */
+	}
     }
     return -1;
 }
@@ -78,36 +81,6 @@ fail:
 }
 
 int
-NC4_hdf5_addfilter(NC_VAR_INFO_T* var, int active, unsigned int id, size_t nparams, unsigned int* inparams)
-{
-    int stat = NC_NOERR;
-    NC_FILTER_SPEC_HDF5* fi = NULL;
-    unsigned int* params = NULL;
-
-    if(var->filters == NULL) {
-	if((var->filters = nclistnew())==NULL) return THROW(NC_ENOMEM);
-    }
-
-    if(nparams > 0 && inparams == NULL)
-        return THROW(NC_EINVAL);
-    if(inparams != NULL) {
-        if((params = malloc(sizeof(unsigned int)*nparams)) == NULL)
-	    return THROW(NC_ENOMEM);
-        memcpy(params,inparams,sizeof(unsigned int)*nparams);
-    }
-    
-    if((fi = calloc(1,sizeof(NC_FILTER_SPEC_HDF5))) == NULL)
-    	{nullfree(params); return THROW(NC_ENOMEM);}
-
-    fi->active = active;
-    fi->filterid = id;
-    fi->nparams = nparams;
-    fi->params = params;
-    nclistpush(var->filters,fi);
-    return THROW(stat);
-}
-
-int
 nc4_global_filter_action(int op, unsigned int id, NC_FILTER_OBJ_HDF5* infop)
 {
     int stat = NC_NOERR;
@@ -129,7 +102,7 @@ nc4_global_filter_action(int op, unsigned int id, NC_FILTER_OBJ_HDF5* infop)
         if(id != h5filterinfo->id)
 	    {stat = NC_EINVAL; goto done;}
 	/* See if this filter is already defined */
-	if((pos = filterlookup(id)) >= 0)
+	if((pos = clientfilterlookup(id)) >= 0)
 	    {stat = NC_ENAMEINUSE; goto done;} /* Already defined */
 	if((herr = H5Zregister(h5filterinfo)) < 0)
 	    {stat = NC_EFILTER; goto done;}
@@ -144,7 +117,7 @@ nc4_global_filter_action(int op, unsigned int id, NC_FILTER_OBJ_HDF5* infop)
 	if(id <= 0)
 	    {stat = NC_ENOTNC4; goto done;}
 	/* See if this filter is already defined */
-	if((pos = filterlookup(id)) < 0)
+	if((pos = clientfilterlookup(id)) < 0)
 	    {stat = NC_ENOFILTER; goto done;} /* Not defined */
 	if((herr = H5Zunregister(id)) < 0)
 	    {stat = NC_EFILTER; goto done;}
@@ -153,7 +126,7 @@ nc4_global_filter_action(int op, unsigned int id, NC_FILTER_OBJ_HDF5* infop)
     case NCFILTER_CLIENT_INQ:
 	if(infop == NULL) goto done;
         /* Look up the id in our local table */
-   	if((pos = filterlookup(id)) < 0)
+   	if((pos = clientfilterlookup(id)) < 0)
 	    {stat = NC_ENOFILTER; goto done;} /* Not defined */
         elem = (NC_FILTER_CLIENT_HDF5*)nclistget(NC4_registeredfilters,pos);
 	if(elem == NULL) {stat = NC_EINTERNAL; goto done;}
@@ -167,6 +140,61 @@ nc4_global_filter_action(int op, unsigned int id, NC_FILTER_OBJ_HDF5* infop)
 done:
     return THROW(stat);
 } 
+
+#endif /*ENABLE_CLIENTSIDE_FILTERS*/
+
+/**************************************************/
+static int
+filterlookup(NC_VAR_INFO_T* var, unsigned int id, NC_FILTER_SPEC_HDF5** fp)
+{
+    int i;
+    if(var->filters == NULL)
+	var->filters = nclistnew();
+    for(i=0;i<nclistlength(var->filters);i++) {
+	NC_FILTER_SPEC_HDF5* x = nclistget(var->filters,i);
+	if(x != NULL && x->filterid == id) {
+	    if(fp) *fp = x;
+	    return i; /* return position */
+	}
+    }
+    return -1;
+}
+
+int
+NC4_hdf5_addfilter(NC_VAR_INFO_T* var, int active, unsigned int id, size_t nparams,
+                   unsigned int* inparams, NC_FILTER_SPEC_HDF5** filtspecp)
+{
+    int stat = NC_NOERR;
+    NC_FILTER_SPEC_HDF5* fi = NULL;
+    unsigned int* params = NULL;
+    int pos;
+
+    if(var->filters == NULL) {
+	if((var->filters = nclistnew())==NULL) return THROW(NC_ENOMEM);
+    }
+
+    if(nparams > 0 && inparams == NULL)
+        return THROW(NC_EINVAL);
+    if(inparams != NULL) {
+        if((params = malloc(sizeof(unsigned int)*nparams)) == NULL)
+	    return THROW(NC_ENOMEM);
+        memcpy(params,inparams,sizeof(unsigned int)*nparams);
+    }
+    if((pos=filterlookup(var, id,&fi)) < 0) {
+	if((fi = calloc(1,sizeof(NC_FILTER_SPEC_HDF5))) == NULL)
+    	    {nullfree(params); return THROW(NC_ENOMEM);}
+    }
+    assert(fi != NULL);
+    fi->active = active;
+    fi->filterid = id;
+    fi->nparams = nparams;
+    if(fi->params) free(fi->params);
+    fi->params = params;
+    if(filtspecp) *filtspecp = fi;
+    if(pos < 0) nclistpush(var->filters,fi);
+    fi = NULL;
+    return THROW(stat);
+}
 
 /**
  * @internal Define filter settings. Called by nc_def_var_filter().
@@ -238,7 +266,6 @@ NC4_filter_actions(int ncid, int varid, int op, NC_Filterobject* args)
 	params = obj->u.spec.params;
 #ifdef HAVE_H5_DEFLATE
         if(id == H5Z_FILTER_DEFLATE) {
-	    int k;
 	    int level;
             if(nparams != 1)
                 return THROW(NC_EFILTER); /* incorrect no. of parameters */
@@ -247,11 +274,8 @@ NC4_filter_actions(int ncid, int varid, int op, NC_Filterobject* args)
                 level > NC_MAX_DEFLATE_LEVEL)
                 return THROW(NC_EINVAL);
             /* If szip compression is already applied, return error. */
-	    for(k=0;k<nclistlength(var->filters);k++) {
-		NC_FILTER_SPEC_HDF5* f = nclistget(var->filters,k);
-                if (f->filterid == H5Z_FILTER_SZIP)
+	    if((filterlookup(var,H5Z_FILTER_SZIP,NULL)) >= 0)
                  return THROW(NC_EINVAL);
-	    }
         }
 #else /*!HAVE_H5_DEFLATE*/
         if(id == H5Z_FILTER_DEFLATE)
@@ -259,18 +283,14 @@ NC4_filter_actions(int ncid, int varid, int op, NC_Filterobject* args)
 #endif
 #ifdef HAVE_H5Z_SZIP
         if(id == H5Z_FILTER_SZIP) { /* Do error checking */
-	    int k;
             if(nparams != 2)
                 return THROW(NC_EFILTER); /* incorrect no. of parameters */
             /* Pixels per block must be an even number, < 32. */
             if (params[1] % 2 || params[1] > NC_MAX_PIXELS_PER_BLOCK)
                 return THROW(NC_EINVAL);
             /* If zlib compression is already applied, return error. */
-	    for(k=0;k<nclistlength(var->filters);k++) {
-		NC_FILTER_SPEC_HDF5* f = nclistget(var->filters,k);
-                if (f->filterid == H5Z_FILTER_DEFLATE)
+	    if((filterlookup(var,H5Z_FILTER_DEFLATE,NULL)) >= 0)
                  return THROW(NC_EINVAL);
-	    }
         }
 #else /*!HAVE_H5Z_SZIP*/
         if(id == H5Z_FILTER_SZIP)
@@ -300,8 +320,9 @@ NC4_filter_actions(int ncid, int varid, int op, NC_Filterobject* args)
                 return THROW(NC_EINVAL);
         }
 #endif
-	if((stat = NC4_hdf5_addfilter(var,!FILTERACTIVE,id,nparams,params)))
-  	    goto done;
+        if((stat = NC4_hdf5_addfilter(var,!FILTERACTIVE,id,nparams,params, NULL)))
+            goto done;
+
 #ifdef USE_PARALLEL
 #ifdef HDF5_SUPPORTS_PAR_FILTERS
         /* Switch to collective access. HDF5 requires collevtive access

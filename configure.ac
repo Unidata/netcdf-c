@@ -1428,6 +1428,20 @@ enable_filter_testing=no
 fi
 AM_CONDITIONAL(ENABLE_FILTER_TESTING, [test x$enable_filter_testing = xyes])
 
+# Enable client side filter registration
+AC_MSG_CHECKING([If client-side filters are enabled (default off)])
+AC_ARG_ENABLE([clientside-filters],
+              [AS_HELP_STRING([--enable-clientside-filters],
+                              [enable client side filters])],
+				[],
+				[enable_clientside_filters=no])
+test "x$enable_clientside_filters" = xyes || enable_clientside_filters=no
+AC_MSG_RESULT($enable_clientside_filters)
+if test "x$enable_clientside_filters" = xyes ; then
+AC_DEFINE([ENABLE_CLIENTSIDE_FILTERS], [1], [if true, enable client-side filters])
+fi
+AM_CONDITIONAL(ENABLE_CLIENTSIDE_FILTERS, [test x$enable_clientside_filters = xyes])
+
 AC_SUBST(NC_LIBS,[$NC_LIBS])
 AC_SUBST(HAS_DAP,[$enable_dap])
 AC_SUBST(HAS_DAP2,[$enable_dap])
