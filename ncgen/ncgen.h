@@ -41,7 +41,6 @@
 #define NC_NIL       32
 
 /* Must be a better way to do this */
-#ifndef NAN
 #ifndef INFINITE
 #ifdef _MSC_VER
 #define NC_INFINITE (DBL_MAX+DBL_MAX)
@@ -53,7 +52,6 @@
 #define NC_INFINITEF (1.0f/0.0f)
 #define NAN (0.0/0.0)
 #define NANF (0.0f/0.0f)
-#endif
 #endif
 
 #define NEGNC_INFINITEF (-NC_INFINITEF)
