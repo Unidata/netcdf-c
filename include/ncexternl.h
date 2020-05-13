@@ -7,6 +7,7 @@
 #ifndef NCEXTERNL_H
 #define NCEXTERNL_H
 
+#ifndef MSC_EXTRA
 #if defined(DLL_NETCDF) /* define when library is a DLL */
 #  if defined(DLL_EXPORT) /* define when building the library */
 #   define MSC_EXTRA __declspec(dllexport)
@@ -16,6 +17,7 @@
 #else
 #  define MSC_EXTRA
 #endif	/* defined(DLL_NETCDF) */
+#endif /*MSC_EXTRA*/
 #ifndef EXTERNL
 # define EXTERNL MSC_EXTRA extern
 #endif
