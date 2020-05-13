@@ -104,6 +104,15 @@ typedef unsigned short ushort;
 typedef unsigned int uint;
 #endif
 
+#ifndef _WIN32
+#ifndef HAVE_UINTPTR_T
+#if SIZEOF_VOIDP == 8
+typedef unsigned long uintptr_t;
+#else
+typedef unsigned int uintptr_t;
+#endif
+#endif
+#endif
 
 /* Provide a fixed size alternative to off_t or off64_t */
 typedef long long fileoffset_t;

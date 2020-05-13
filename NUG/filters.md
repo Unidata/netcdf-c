@@ -482,6 +482,34 @@ demonstrate how to build the hdf5 plugin for bzip2.
 Notes
 ==========
 
+Order of Invocation for Multiple Filters 
+-----------
+
+When multiple filters are defined on a variable, the
+order of application, when writing data to the file,
+is same as the order in which _nc_def_var_filter_ is called.
+When reading a file the order of application is of necessity
+the reverse.
+
+There are some special cases.
+
+1. The fletcher32 filter is always applied first, if enabled.
+1. If _nc_def_var_filter_ or _nc_def_var_deflate_ or _nc_def_var_szip_
+is called multiple times with the same filter id, but possibly
+with different sets of parameters, then the position of that filter
+in the sequence of applictions does not change. However the last set
+of parameters specified is used when actually writing the dataset.
+1. Deflate and shuffle -- these two are inextricably linked in the
+current API, but have quite different semantics.
+If you call _nc_def_var_deflate_ multiple times, then 
+the previous rule applies with respect to deflate. However,
+the shuffle filter, if enabled, is ''always'' applied before
+applying any other filters, except fletcher32.
+1. If you want to move the location of a filter in the application
+sequence, then you must remove it using _nc_var_filter_remove_
+or using _nc_def_var_deflate_. The next time you add the filter
+back, its position will be at the end of the current sequence.
+
 Memory Allocation Issues
 -----------
 

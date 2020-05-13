@@ -902,6 +902,12 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
         }
     }
 
+    /* If the user wants to fletcher error correction, set that up now. */
+    /* Since it is a checksum of sorts, flatcher is always applied first */
+    if (var->fletcher32)
+        if (H5Pset_fletcher32(plistid) < 0)
+            BAIL(NC_EHDFERR);
+
     /* If the user wants to shuffle the data, set that up now. */
     if (var->shuffle) {
         if (H5Pset_shuffle(plistid) < 0)
@@ -947,10 +953,6 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
 	}
     }
 
-    /* If the user wants to fletcher error correction, set that up now. */
-    if (var->fletcher32)
-        if (H5Pset_fletcher32(plistid) < 0)
-            BAIL(NC_EHDFERR);
 
     /* If ndims non-zero, get info for all dimensions. We look up the
        dimids and get the len of each dimension. We need this to create

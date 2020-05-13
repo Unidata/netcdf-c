@@ -50,9 +50,6 @@ noinst_PROGRAMS += ocprint
 ocprint_SOURCES = ocprint.c
 endif
 
-noinst_PROGRAMS += ncdumpchunks
-ncdumpchunks_SOURCES = ncdumpchunks.c
-
 # This is the man page.
 man_MANS = ncdump.1 nccopy.1
 

@@ -381,6 +381,7 @@ NC4_filterfix8(unsigned char* mem, int decode)
 }
 
 
+#ifdef ENABLE_CLIENTSIDE_FILTERS
 /* Support direct user defined filters */
 
 /* Use void* to avoid having to include hdf.h*/
@@ -442,6 +443,7 @@ nc_filter_client_inq(unsigned int id, void* infop)
 #endif
     return stat;
 }
+#endif /*ENABLE_CLIENTSIDE_FILTERS*/
 
 /**
 Find the set of filters (if any) associated with a variable.
