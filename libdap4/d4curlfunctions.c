@@ -9,7 +9,7 @@
 #define MAX_REDIRECTS 20L
 
 /* Mnemonic */
-#define OPTARG void*
+#define OPTARG uintptr_t
 
 /* Condition on libcurl version */
 /* Set up an alias as needed */

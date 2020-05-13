@@ -12,6 +12,7 @@ NGC=1
 MISC=1
 MULTI=1
 ORDER=1
+REP=1
 
 # Load the findplugins function
 . ${builddir}/findplugin.sh
@@ -219,11 +220,21 @@ diff -b -w ${srcdir}/ref_nccopyF.cdl ./ncgenFs.cdl
 echo "*** Pass: multiple filters"
 fi
 
-if test "x$MULTI" = x1 ; then
+if test "x$ORDER" = x1 ; then
 echo "*** Testing multiple filter order of invocation"
 rm -f filterorder.txt
 ${execdir}/test_filter_order >filterorder.txt
 diff -b -w ${srcdir}/ref_filter_order.txt filterorder.txt
+fi
+
+if test "x$REP" = x1 ; then
+echo "*** Testing filter re-definition invocation"
+rm -f filterrepeat.txt
+${execdir}/test_filter_repeat >filterrepeat.txt
+pwd
+ls -l *.txt
+ls -l ${srcdir}/*.txt
+diff -b -w ${srcdir}/ref_filter_repeat.txt filterrepeat.txt
 fi
 
 echo "*** Pass: all selected tests passed"
