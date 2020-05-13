@@ -17,6 +17,9 @@ Version: 2.1
 #include <sys/types.h>
 #endif
 
+#include "ncexternl.h"
+
+
 /*!\file oc.h
 */
 
@@ -577,6 +580,10 @@ EXTERNL OCerror oc_set_curlopt(OClink link, const char* option, void* value);
 
 /**************************************************/
 /* Experimental/Undocumented */
+
+/* Access the debug flags */
+EXTERNL int ocdebug;
+EXTERNL int cedebug;
 
 /* Given an arbitrary OCnode, return the connection of which it is a part */
 EXTERNL OCerror oc_get_connection(OCobject ocnode, OCobject* linkp);

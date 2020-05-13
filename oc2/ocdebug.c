@@ -5,10 +5,9 @@
 #ifdef HAVE_STDARG_H
 #include <stdarg.h>
 #endif
+#include "ncexternl.h"
 #include "ocinternal.h"
 #include "ocdebug.h"
-
-int ocdebug;
 
 #ifdef OCCATCHERROR
 /* Place breakpoint here to catch errors close to where they occur*/

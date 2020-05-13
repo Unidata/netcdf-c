@@ -22,7 +22,7 @@
 
 #include <errno.h>
 
-#include "ncrc.h"
+#include "oc.h"
 #include "ocinternal.h"
 #include "ocdebug.h"
 #include "occurlfunctions.h"
@@ -30,6 +30,7 @@
 #include "ocread.h"
 #include "dapparselex.h"
 #include "ncwinpath.h"
+#include "ncrc.h"
 
 #define DATADDSFILE "datadds"
 
@@ -44,6 +45,8 @@
 #define CURL_MAX_READ_SIZE  (512*1024)
 #endif
 #endif
+
+int ocdebug;
 
 /*Forward*/
 static OCerror ocextractddsinmemory(OCstate*,OCtree*,int);

@@ -5,6 +5,7 @@
 #include "config.h"
 #include "dapparselex.h"
 #include "dapy.h"
+#include "ocdebug.h"
 
 /* Forward */
 
