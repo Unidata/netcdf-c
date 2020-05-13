@@ -583,7 +583,6 @@ EXTERNL OCerror oc_set_curlopt(OClink link, const char* option, void* value);
 
 /* Access the debug flags */
 EXTERNL int ocdebug;
-EXTERNL int cedebug;
 
 /* Given an arbitrary OCnode, return the connection of which it is a part */
 EXTERNL OCerror oc_get_connection(OCobject ocnode, OCobject* linkp);

@@ -213,14 +213,7 @@ typedef struct OCtree
    The true external interface is defined in oc.h
 */
 
-#if 0
-/* Location: ceparselex.c*/
-extern int cedebug;
-extern NClist* CEparse(OCstate*,char* input);
-#endif
-
 extern int ocinitialized;
-
 
 extern OCerror ocopen(OCstate** statep, const char* url);
 extern void occlose(OCstate* state);

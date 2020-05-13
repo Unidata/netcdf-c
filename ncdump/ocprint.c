@@ -30,7 +30,7 @@
 #include "oc.h"
 #include "ocx.h"
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 #include "XGetopt.h"
 int opterr, optind;
 char* optarg;

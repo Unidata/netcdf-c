@@ -46,7 +46,7 @@
 #endif
 #endif
 
-int ocdebug;
+int ocdebug = 0;
 
 /*Forward*/
 static OCerror ocextractddsinmemory(OCstate*,OCtree*,int);
