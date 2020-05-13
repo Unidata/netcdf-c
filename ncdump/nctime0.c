@@ -85,7 +85,7 @@ calendar_type(int ncid, int varid) {
 	NC_CHECK(nc_get_att(ncid, varid, CF_CAL_ATT_NAME, calstr));	
 	calstr[catt.len] = '\0';
 	for(itype = 0; itype < ncals; itype++) {
-	    if(strncmp(calstr, calmap[itype].attname, catt.len) == 0) {
+	    if(strncasecmp(calstr, calmap[itype].attname, catt.len) == 0) {
 		ctype = calmap[itype].type;
 		break;
 	    }
@@ -128,28 +128,28 @@ is_valid_time_unit(const char *units) {
 	    return false;
 	/* Check for unit compatible with cdtime library, no attempt
 	 * to enforce CF-compliance or udunits compliance here ... */
-	if(!strncmp(charunits,"sec",3) || !strcmp(charunits,"s")){
+	if(!strncasecmp(charunits,"sec",3) || !strcasecmp(charunits,"s")){
 	    okunit = true;
 	}
-	else if(!strncmp(charunits,"min",3) || !strcmp(charunits,"mn")){
+	else if(!strncasecmp(charunits,"min",3) || !strcasecmp(charunits,"mn")){
 	    okunit = true;
 	}
-	else if(!strncmp(charunits,"hour",4) || !strcmp(charunits,"hr")){
+	else if(!strncasecmp(charunits,"hour",4) || !strcasecmp(charunits,"hr")){
 	    okunit = true;
 	}
-	else if(!strncmp(charunits,"day",3) || !strcmp(charunits,"dy")){
+	else if(!strncasecmp(charunits,"day",3) || !strcasecmp(charunits,"dy")){
 	    okunit = true;
 	}
-	else if(!strncmp(charunits,"week",4) || !strcmp(charunits,"wk")){
+	else if(!strncasecmp(charunits,"week",4) || !strcasecmp(charunits,"wk")){
 	    okunit = true;
 	}
-	else if(!strncmp(charunits,"month",5) || !strcmp(charunits,"mo")){
+	else if(!strncasecmp(charunits,"month",5) || !strcasecmp(charunits,"mo")){
 	    okunit = true;
 	}
-	else if(!strncmp(charunits,"season",6)){
+	else if(!strncasecmp(charunits,"season",6)){
 	    okunit = true;
 	}
-	else if(!strncmp(charunits,"year",4) || !strcmp(charunits,"yr")){
+	else if(!strncasecmp(charunits,"year",4) || !strcasecmp(charunits,"yr")){
 	    okunit = true;
 	}
 	if (!okunit)
