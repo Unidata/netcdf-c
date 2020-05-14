@@ -23,7 +23,7 @@ OBSOLETE = odom.c odom.h jdatastd.c jdatajni.c genjni.c cdfdata.c cmldata.c
 
 # Given a netcdf4 file, dump the actual chunk contents.
 # Used to validate nczarr chunking code.
-if USE_HDF5
+if ENABLE_NCDUMPCHUNKS
 noinst_PROGRAMS = ncdumpchunks
 ncdumpchunks_SOURCES = ncdumpchunks.c
 endif
