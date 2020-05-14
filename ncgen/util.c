@@ -99,19 +99,8 @@ tztrim(
     return;
 }
 
-#if 0
-/* Assume bytebuffer contains pointers to char**/
-void
-reclaimattptrs(void* buf, long count)
-{
-    int i;
-    char** ptrs = (char**)buf;
-    for(i=0;i<count;i++) {efree((void*)ptrs[i]);}
-}
-#endif
-
 static void
-freeSpecialdata(Specialdata* data)
+clearSpecialdata(Specialdata* data)
 {
     if(data == NULL) return;
     reclaimdatalist(data->_Fillvalue);
@@ -126,16 +115,15 @@ freeSpecialdata(Specialdata* data)
 	}
 	efree(data->_Filters);
     }
-    efree(data);
 }
 
 void
 freeSymbol(Symbol* sym)
 {
-    /* recurse first */
+    if(sym == NULL) return;
     switch (sym->objectclass) {
     case NC_VAR:
-	freeSpecialdata(sym->var.special);
+	clearSpecialdata(&sym->var.special);
 	listfree(sym->var.attributes);
 	break;
     case NC_TYPE:
@@ -554,7 +542,17 @@ reclaimSymbols(void)
 void
 cleanup()
 {
-  reclaimSymbols();
+    reclaimSymbols();
+    listfree(symlist);
+    listfree(grpdefs);
+    listfree(dimdefs);
+    listfree(attdefs);
+    listfree(gattdefs);
+    listfree(xattdefs);
+    listfree(typdefs);
+    listfree(vardefs);
+    filldatalist->readonly = 0;
+    freedatalist(filldatalist);
 }
 
 /* compute the total n-dimensional size as 1 long array;
@@ -589,18 +587,19 @@ extern int H5Eprint1(FILE * stream);
 #endif
 
 void
-check_err(const int stat, const int line, const char* file)
+check_err(const int stat, const int line, const char* file, const char* func)
 {
-    check_err2(stat,-1,line,file);
+    check_err2(stat,-1,line,file,func);
 }
 
-void check_err2(const int stat, const int cdlline, const int line, const char* file) {
+void check_err2(const int stat, const int cdlline, const int line, const char* file, const char* func)
+{
     if (stat != NC_NOERR) {
 	if(cdlline >= 0)
 	    fprintf(stderr, "ncgen: cdl line %d; %s\n", cdlline, nc_strerror(stat));
 	else
 	    fprintf(stderr, "ncgen: %s\n", nc_strerror(stat));
-	fprintf(stderr, "\t(%s:%d)\n", file,line);
+	fprintf(stderr, "\t(%s:%s:%d)\n", file,func,line);
 #ifdef USE_HDF5
 	H5Eprint1(stderr);
 #endif
@@ -668,3 +667,4 @@ kind_string(int kind)
     }
     return NULL;
 }
+

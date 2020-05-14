@@ -9,7 +9,6 @@ ncgen
 \%[\-\fIformat_code\fP]
 \%[\-1|3|4|5|6|7]
 \%[\-b]
-\%[\-B \fIbuffersize\fP]
 \%[\-c]
 \%[\-d]
 \%[\-D \fIdebuglevel\fP]
@@ -24,6 +23,7 @@ ncgen
 \%[\-N \fIdatasetname\fP]
 \%[\-o \fInetcdf_filename\fP]
 \%[\-P]
+.\%[\-W \fImaxwholevarsize\fP]
 \%[\-x]
 .hy
 .ft
@@ -69,8 +69,6 @@ Create a (binary) netCDF file.  If the \fB-o\fP option is absent, a
 default file name will be constructed from the basename of the CDL
 file, with any suffix replaced by the `.nc' extension.  If a
 file already exists with the specified name, it will be overwritten.
-.IP "\fB-B\fP \fRbuffersize\fP\fP"
-Specify the internal iterator buffer size.
 .IP "\fB-c\fP"
 Generate
 .B C
@@ -205,6 +203,10 @@ seekable.
 .IP "\fB-P\fP"
 Use NC_DISKLESS mode to create the file totally in memory
 before persisting it to disk.
+.IP "\fB-W\fP \fRmaxwholevarsize\fP"
+Set wholevarsizem where if total number of elements is less than maxwholevarsize
+then updata a variable using a single nc_put_var. Requires
+that the variable has no unlimited dimensions.
 .IP "\fB-x\fP"
 Don't initialize data with fill values.  This can speed up creation of
 large netCDF files greatly, but later attempts to read unwritten data

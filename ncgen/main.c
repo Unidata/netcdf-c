@@ -42,12 +42,14 @@ int usingclassic;
 int cmode_modifier;
 int diskless;
 int ncloglevel;
+int wholevarsize;
 
 GlobalSpecialData globalspecials;
 
-char* binary_ext = ".nc";
+size_t zerosvector[NC_MAX_VAR_DIMS];
+size_t onesvector[NC_MAX_VAR_DIMS];
 
-size_t nciterbuffersize;
+char* binary_ext = ".nc";
 
 struct Vlendata* vlendata;
 
@@ -141,22 +143,6 @@ struct Languages legallanguages[] = {
 };
 #endif
 
-#if 0 /*not used*/
-/* BOM Sequences */
-static char* U8   = "\xEF\xBB\xBF";    /* UTF-8 */
-static char* BE32 = "\x00\x00\xFE\xFF"; /* UTF-32; big-endian */
-static char* LE32 = "\xFF\xFE";       /* UTF-32; little-endian */
-static char* BE16 = "\xFE\xFF";       /* UTF-16; big-endian */
-static char* LE16 = "\xFF\xFE";       /* UTF-16; little-endian */
-#endif
-
-/* The default minimum iterator size depends
-   on whether we are doing binary or language
-   based output.
-*/
-#define DFALTBINNCITERBUFFERSIZE  0x40000 /* about 250k bytes */
-#define DFALTLANGNCITERBUFFERSIZE  0x4000 /* about 15k bytes */
-
 /* strip off leading path */
 /* result is malloc'd */
 
@@ -185,7 +171,6 @@ usage(void)
 " [-6]"
 " [-7]"
 " [-b]"
-" [-B buffersize]"
 " [-d]"
 " [-D debuglevel]"
 " [-h]"
@@ -199,6 +184,7 @@ usage(void)
 " [-N datasetname]"
 " [-L loglevel]"
 " [-H]"
+" [-W generate whole var upload]"
 " [file ... ]",
 	   progname);
     derror("netcdf library version %s", nc_inq_libvers());
@@ -229,7 +215,6 @@ main(
     syntax_only = 0;
     header_only = 0;
     mainname = "main";
-    nciterbuffersize = 0;
 
     k_flag = 0;
     format_attribute = 0;
@@ -237,6 +222,7 @@ main(
     cdf5_flag = 0;
     specials_flag = 0;
     diskless = 0;
+    wholevarsize = 1024;
 #ifdef LOGGING
     ncloglevel = NC_TURN_OFF_LOGGING;
 #else
@@ -244,7 +230,7 @@ main(
 #endif
     memset(&globalspecials,0,sizeof(GlobalSpecialData));
 
-    while ((c = getopt(argc, argv, "134567bB:cdD:fhHk:l:M:no:Pv:xL:N:")) != EOF)
+    while ((c = getopt(argc, argv, "134567bcdD:fhHk:l:M:no:Pv:xL:N:B:")) != EOF)
       switch(c) {
 	case 'd':
 	  debug = 1;
@@ -275,6 +261,9 @@ main(
 	  }
 	  l_flag = L_BINARY;
 	  break;
+	case 'B':
+	  /* ignore, but leave for back compatibility */
+	  break;
 	case 'H':
 	  header_only = 1;
 	  break;
@@ -292,9 +281,6 @@ main(
               derror("%s: output language is null", progname);
               return(1);
             }
-#if 0
-            lang_name = estrdup(optarg);
-#endif
             lang_name = (char*) emalloc(strlen(optarg)+1);
             (void)strcpy(lang_name, optarg);
 
@@ -329,6 +315,9 @@ main(
 	case 'N':		/* to explicitly specify dataset name */
 	  if(datasetname) efree(datasetname);
 	  datasetname = nulldup(optarg);
+	  break;
+	case 'W':
+	  wholevarsize = atoi(optarg);
 	  break;
 	case 'x': /* set nofill mode to speed up creation of large files */
 	  nofill_flag = 1;
@@ -385,9 +374,6 @@ main(
 	case 'M': /* Determine the name for the main function */
 	    mainname = nulldup(optarg);
 	    break;
-	case 'B':
-	  nciterbuffersize = atoi(optarg);
-	  break;
 	case 'P': /* diskless with persistence */
 	  diskless = 1;
 	  break;
@@ -401,15 +387,6 @@ main(
 	/* Treat -k or -o as an implicit -lb assuming no other -l flags */
         if(k_flag == 0 && netcdf_name == NULL)
 	    syntax_only = 1;
-    }
-
-    /* Compute/default the iterator buffer size */
-    if(l_flag == L_BINARY) {
-	if(nciterbuffersize == 0 )
-	    nciterbuffersize = DFALTBINNCITERBUFFERSIZE;
-    } else {
-	if(nciterbuffersize == 0)
-	    nciterbuffersize = DFALTLANGNCITERBUFFERSIZE;
     }
 
 #ifndef ENABLE_C
@@ -591,13 +568,22 @@ done:
 void
 init_netcdf(void) /* initialize global counts, flags */
 {
+    int i;
     memset((void*)&nullconstant,0,sizeof(NCConstant));
     fillconstant = nullconstant;
     fillconstant.nctype = NC_FILLVALUE;
 
+    filldatalist = builddatalist(1);
+    dlappend(filldatalist,&fillconstant);
+    filldatalist->readonly = 1;
+
     codebuffer = bbNew();
     stmt = bbNew();
     error_count = 0; /* Track # of errors */
+
+    for(i=0;i<NC_MAX_VAR_DIMS;i++) onesvector[i] = 1;
+    memset(zerosvector,0,sizeof(zerosvector));
+
 }
 
 void

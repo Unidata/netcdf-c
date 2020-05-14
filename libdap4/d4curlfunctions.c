@@ -26,18 +26,11 @@
 #endif
 #endif
 
-#define CHECK(state,flag,value) {if(check(state,flag,(void*)value) != NC_NOERR) {goto done;}}
+#define CHECK(state,flag,value) {if(set_curlopt(state,flag,(void*)value) != NC_NOERR) {goto done;}}
 
 /* forward */
 static int set_curlflag(NCD4INFO*, int flag);
 static int set_curlopt(NCD4INFO*, int flag, void* value);
-
-static int
-check(NCD4INFO* info, int flag, void* value)
-{
-    int ret = set_curlopt(info,flag,value);
-    return THROW(ret);
-}
 
 /*
 Set a specific curl flag; primary wrapper for curl_easy_setopt

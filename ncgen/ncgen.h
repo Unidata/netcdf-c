@@ -127,7 +127,7 @@ extern struct Kvalues legalkinds[];
 typedef struct Specialdata {
     int flags;
     Datalist*      _Fillvalue; /* This is a per-type ; points to the _FillValue attribute node */
-    int           _Storage;      /* NC_CHUNKED | NC_CONTIGUOUS*/
+    int           _Storage;      /* NC_CHUNKED | NC_CONTIGUOUS | NC_COMPACT*/
     size_t*       _ChunkSizes;     /* NULL => defaults*/
         int nchunks;     /*  |_Chunksize| ; 0 => not specified*/
     int           _Fletcher32;     /* 1=>fletcher32*/
@@ -194,7 +194,7 @@ typedef struct Typeinfo {
 typedef struct Varinfo {
     int		nattributes; /* |attributes|*/
     List*       attributes;  /* List<Symbol*>*/
-    Specialdata* special;
+    Specialdata special;
 } Varinfo;
 
 typedef struct Groupinfo {
