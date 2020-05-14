@@ -274,9 +274,14 @@ main(int argc, char **argv)
     if(ocopt.output == NULL)
 	ocopt.output = stdout;
 
+#ifndef _MSC_VER
+    /* For some reason, visual studio claims ocdebug
+       is an undefined reference; it is not seeing the
+       decl in ocinternal.c */
     if (ocopt.debug.debuglevel > 0) {
         ocdebug = ocopt.debug.debuglevel;
     }
+#endif
 
     if(ocopt.logging) {
 	ncloginit();
