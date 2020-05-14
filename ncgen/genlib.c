@@ -156,38 +156,3 @@ attfqn(Symbol* sym)
     strcat(fqn,fqnname);
     sym->fqn = fqn;
 }
-
-#if 0
-/* Result is pool alloc'd*/
-char*
-cprefixed(List* prefix, char* suffix, char* separator)
-{
-    int slen;
-    int plen;
-    int i;
-    char* result;
-
-    ASSERT(suffix != NULL);
-    plen = prefixlen(prefix);
-    if(prefix == NULL || plen == 0) return codify(suffix);
-    /* plen > 0*/
-    slen = 0;
-    for(i=0;i<plen;i++) {
-	Symbol* sym = (Symbol*)listget(prefix,i);
-	slen += (strlen(sym->name)+strlen(separator));
-    }
-    slen += strlen(suffix);
-    slen++; /* for null terminator*/
-    result = poolalloc(slen);
-    result[0] = '\0';
-    /* Leave off the root*/
-    i = (rootgroup == (Symbol*)listget(prefix,0))?1:0;
-    for(;i<plen;i++) {
-	Symbol* sym = (Symbol*)listget(prefix,i);
-        strcat(result,sym->name); /* append "<prefix[i]/>"*/
-	strcat(result,separator);
-    }
-    strcat(result,suffix); /* append "<suffix>"*/
-    return result;
-}
-#endif /*0*/

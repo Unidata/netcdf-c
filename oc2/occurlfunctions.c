@@ -20,16 +20,6 @@
 /* Define some .rc file entries of interest*/
 #define NETRCFILETAG "HTTP.NETRC"
 
-/* Check return value */
-#define CHECK(state,flag,value) {if(check(state,flag,(void*)value) != OC_NOERR) {goto done;}}
-
-static OCerror
-check(OCstate* state, int flag, void* value)
-{
-    OCerror stat = ocset_curlopt(state,flag,value);
-    return stat;
-}
-
 /*
 Set a specific curl flag; primary wrapper for curl_easy_setopt
 */
@@ -43,6 +33,9 @@ ocset_curlopt(OCstate* state, int flag, void* value)
 	stat = OC_ECURL;
     return stat;
 }
+
+/* Check return value */
+#define CHECK(state,flag,value) {if(ocset_curlopt(state,flag,(void*)value) != OC_NOERR) {goto done;}}
 
 /*
 Update a specific flag from state

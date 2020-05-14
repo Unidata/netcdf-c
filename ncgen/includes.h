@@ -44,6 +44,7 @@
 #include "nc4internal.h"
 #include "data.h"
 #include "ncgen.h"
+#include "generate.h"
 #include "genlib.h"
 #include "util.h"
 #include "debug.h"

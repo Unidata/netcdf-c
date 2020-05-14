@@ -13,11 +13,6 @@ extern int vsnprintf(char*, size_t, const char*, va_list ap);
 
 int error_count;
 
-#if 0
-#define vastart(argv,fmt) va_start(argv,fmt)
-#define vaend(argv,fmt) va_end(argv)
-#endif
-
 /*
  * For logging error conditions.
  * Designed to be called by other vararg procedures

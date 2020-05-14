@@ -7,6 +7,10 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.8.0 - TBD
 
+* [Bug Fix] IMPORTANT: Ncgen was not properly handling large data
+sections and was storing data in incorrect order. For small data sections
+is was correct. The value of "large" has not been determined, so
+users should verify the output of ncgen.
 * [Enhancement] When a filter is applied twice with different
 parameters, then the second set is used for writing the dataset
 [https://github.com/Unidata/netcdf-c/issues/1713].

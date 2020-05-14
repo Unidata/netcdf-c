@@ -108,7 +108,6 @@ List* gattdefs; /* global attributes only*/
 List* xattdefs; /* unknown attributes*/
 List* typdefs;
 List* vardefs;
-List* condefs; /* non-dimension constants used in type defs*/
 List* tmp;
 
 /* Forward */
@@ -522,9 +521,6 @@ vardecl:        typeref varlist
 		  	    sym->typ.basetype = $1;
 	                    addtogroup(sym);
 		            listpush(vardefs,(void*)sym);
-			    sym->var.special = ecalloc(sizeof(Specialdata));
-			    if(sym->var.special == NULL)
-			        derror("out of memory");
 			}
 		    }
 		    listsetlength(stack,stackbase);/* remove stack nodes*/
@@ -941,7 +937,6 @@ parse_init(void)
     xattdefs = listnew();
     typdefs = listnew();
     vardefs = listnew();
-    condefs = listnew();
     tmp = listnew();
     /* Create the primitive types */
     for(i=NC_NAT+1;i<=NC_STRING;i++) {
@@ -978,6 +973,7 @@ install(const char *sname)
     sp->lineno = lineno;
     sp->location = currentgroup();
     sp->container = currentgroup();
+    sp->var.special._Storage = NC_CONTIGUOUS;
     listpush(symlist,sp);
     return sp;
 }
@@ -1267,12 +1263,7 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
     } else {
         Specialdata* special;
         /* Set up special info */
-	if(vsym->var.special == NULL) {
-            vsym->var.special = ecalloc(sizeof(Specialdata));
-	    if(vsym->var.special == NULL)
-	        derror("Out of memory");
-	}
-        special = vsym->var.special;
+        special = &vsym->var.special;
         if(tag == _FILLVALUE_FLAG) {
             /* fillvalue must be a single value*/
 	    if(!isconst && datalistlen(list) != 1)
