@@ -60,6 +60,10 @@ are set when opening a binary file on Windows. */
       #define strcasecmp _stricmp
     #endif
 
+    #ifndef strincasecmp
+      #define strncasecmp _strnicmp
+    #endif
+
     #ifndef snprintf
      #if _MSC_VER<1900
        #define snprintf _snprintf
@@ -595,10 +599,14 @@ with zip */
 /* Define to `unsigned long if <sys/types.h> does not define. */
 #cmakedefine uintptr_t unsigned long
 
-/* Define strcasecmp, snprintf on Win32 systems. */
+/* Define strcasecmp, strncasecmp, snprintf on Win32 systems. */
 #ifdef _WIN32
     #ifndef HAVE_STRCASECMP
 	 #define strcasecmp _stricmp
+    #endif
+
+    #ifndef HAVE_STRNCASECMP
+	 #define strncasecmp _strnicmp
     #endif
 
     #ifndef HAVE_SNPRINTF
