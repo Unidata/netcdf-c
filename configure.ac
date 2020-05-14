@@ -498,7 +498,7 @@ else
    AC_DEFINE_UNQUOTED(USE_NETCDF_2, 1, [build the netCDF version 2 API])
 fi
 
-# Does the user want to disable ncgen/ncdump/nccopy?
+# Does the user want to disable ncgen/ncdump/nccopy/...?
 AC_MSG_CHECKING([whether the ncgen/ncdump/nccopy should be built])
 AC_ARG_ENABLE([utilities],
               [AS_HELP_STRING([--disable-utilities],
@@ -1105,7 +1105,15 @@ if test "x$enable_hdf5" = xyes; then
       AC_DEFINE([USE_SZIP], [1], [if true, compile in szip compression in netCDF-4 variables])
    fi
    AC_MSG_RESULT([$enable_szlib])
+
+   if test "x$nc_build_utilities" = xyes ; then
+       # See if H5Dread_chunk is available
+       AC_SEARCH_LIBS([H5Dread_chunk],[hdf5_hldll hdf5_hl], [enable_readchunks=yes], [enable_readdhunks=no])
+   else
+      enable_readchunks=no
+   fi
 fi
+AM_CONDITIONAL(ENABLE_NCDUMPCHUNKS, [test "x$enable_readchunks" = xyes ])
 
 # If the user wants hdf4 built in, check it out.
 if test "x$enable_hdf4" = xyes; then
