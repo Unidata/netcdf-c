@@ -1065,7 +1065,7 @@ if test "x$enable_hdf5" = xyes; then
 
    # H5Pset_fapl_mpiposix and H5Pget_fapl_mpiposix have been removed since HDF5 1.8.12.
    # Use H5Pset_fapl_mpio and H5Pget_fapl_mpio, instead.
-   AC_CHECK_FUNCS([H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5free_memory H5resize_memory H5allocate_memory H5Pset_libver_bounds H5Pset_all_coll_metadata_ops H5Dread_chunk])
+   AC_CHECK_FUNCS([H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5free_memory H5resize_memory H5allocate_memory H5Pset_libver_bounds H5Pset_all_coll_metadata_ops])
 
    # Check to see if HDF5 library has collective metadata APIs, (HDF5 >= 1.10.0)
    if test "x$ac_cv_func_H5Pset_all_coll_metadata_ops" = xyes; then
@@ -1076,19 +1076,21 @@ if test "x$enable_hdf5" = xyes; then
    if test "x$ac_cv_func_H5Pget_fapl_mpio" = xyes -o "x$ac_cv_func_H5Pget_fapl_mpiposix" = xyes; then
       hdf5_parallel=yes
    fi
-
    AC_MSG_CHECKING([whether parallel io is enabled in hdf5])
    AC_MSG_RESULT([$hdf5_parallel])
+
+   # See if H5Dread_chunk is available
+   AC_SEARCH_LIBS([H5Dread_chunk],[hdf5_hldll hdf5_hl], [has_readchunks=yes], [has_readdhunks=no])
 
    # Check to see if HDF5 library is 1.10.3 or greater. If so, allows
    # parallel I/O with filters. This allows zlib/szip compression to
    # be used with parallel I/O, which is very helpful to HPC users.
-   if test "x$ac_cv_func_H5Dread_chunk" = xyes; then
+   if test "x$has_readchunks" = xyes; then
       AC_DEFINE([HDF5_SUPPORTS_PAR_FILTERS], [1], [if true, HDF5 is at least version 1.10.3 and allows parallel I/O with zip])
       hdf5_supports_par_filters=yes
    fi
    AC_MSG_CHECKING([whether HDF5 allows parallel filters])
-   AC_MSG_RESULT([$ac_cv_func_H5Dread_chunk])
+   AC_MSG_RESULT([$has_readchunks])
 
    # Check to see if user asked for parallel build, but HDF5 does not support it.
    if test "x$hdf5_parallel" = "xno"; then
@@ -1106,14 +1108,8 @@ if test "x$enable_hdf5" = xyes; then
    fi
    AC_MSG_RESULT([$enable_szlib])
 
-   if test "x$nc_build_utilities" = xyes ; then
-       # See if H5Dread_chunk is available
-       AC_SEARCH_LIBS([H5Dread_chunk],[hdf5_hldll hdf5_hl], [enable_readchunks=yes], [enable_readdhunks=no])
-   else
-      enable_readchunks=no
-   fi
 fi
-AM_CONDITIONAL(ENABLE_NCDUMPCHUNKS, [test "x$enable_readchunks" = xyes ])
+AM_CONDITIONAL(ENABLE_NCDUMPCHUNKS, [test "x$has_readchunks" = xyes ])
 
 # If the user wants hdf4 built in, check it out.
 if test "x$enable_hdf4" = xyes; then
