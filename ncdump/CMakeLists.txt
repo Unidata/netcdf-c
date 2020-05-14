@@ -268,6 +268,7 @@ ENDIF(MSVC)
 
   add_sh_test(ncdump tst_ctests)
 
+  add_sh_test(ncdump tst_debug)
 ENDIF()
 
 ENDIF()

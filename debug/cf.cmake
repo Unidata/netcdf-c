@@ -43,11 +43,7 @@ fi
 FLAGS=
 
 if test "x$VS" != x -a "x$INSTALL" != x ; then
-<<<<<<< HEAD
-FLAGS="-DCMAKE_PREFIX_PATH=${NCC}"
-=======
 FLAGS="$FLAGS -DCMAKE_PREFIX_PATH=${NCC}"
->>>>>>> master
 fi
 FLAGS="$FLAGS -DCMAKE_INSTALL_PREFIX=/tmp/netcdf"
 
