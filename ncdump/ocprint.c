@@ -274,11 +274,12 @@ main(int argc, char **argv)
     if(ocopt.output == NULL)
 	ocopt.output = stdout;
 
-#if 0
+#ifdef _WIN32
+EXTERNL int ocdebug;
+#endif
     if (ocopt.debug.debuglevel > 0) {
         ocdebug = ocopt.debug.debuglevel;
     }
-#endif
 
     if(ocopt.logging) {
 	ncloginit();
