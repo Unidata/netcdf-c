@@ -7,10 +7,16 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.8.0 - TBD
 
-* [Bug Fix] IMPORTANT: Ncgen was not properly handling large data
-sections and was storing data in incorrect order. For small data sections
-is was correct. The value of "large" has not been determined, so
-users should verify the output of ncgen.
+* [Bug Fix] IMPORTANT: Ncgen was not properly handling large
+data sections. The problem manifests as incorrect ordering of
+data in the created file. Aside from examining the file with
+ncdump, the error can be detected by running ncgen with the -lc
+flag (to produce a C file). Examine the file to see if any
+variable is written in pieces as opposed to a single call to
+nc_put_vara. If multiple calls to nc_put_vara are used to write
+a variable, then it is probable that the data order is
+incorrect. Such multiple writes can occur for large variables
+and especially when one of the dimensions is unlimited.
 * [Enhancement] When a filter is applied twice with different
 parameters, then the second set is used for writing the dataset
 [https://github.com/Unidata/netcdf-c/issues/1713].
