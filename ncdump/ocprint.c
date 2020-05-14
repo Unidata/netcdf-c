@@ -274,9 +274,6 @@ main(int argc, char **argv)
     if(ocopt.output == NULL)
 	ocopt.output = stdout;
 
-#ifdef _WIN32
-EXTERNL int ocdebug;
-#endif
     if (ocopt.debug.debuglevel > 0) {
         ocdebug = ocopt.debug.debuglevel;
     }
