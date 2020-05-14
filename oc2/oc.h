@@ -596,9 +596,6 @@ EXTERNL OCerror oc_ping(const char* url);
 */
 EXTERNL OCerror oc_raw_xdrsize(OClink,OCddsnode,off_t*);
 
-/* Control parser debugging */
-EXTERNL int ocdebug;
-
 #ifdef __cplusplus
 }
 #endif

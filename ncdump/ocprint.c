@@ -56,6 +56,8 @@ char* optarg;
 /*Mnemonic*/
 #define TOPLEVEL 1
 
+int ocdebug;
+
 static OCerror ocstat;
 static OClink glink;
 

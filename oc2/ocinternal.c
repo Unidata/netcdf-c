@@ -57,8 +57,6 @@ static OCerror ocget_rcproperties(OCstate*);
 
 extern OCnode* makeunlimiteddimension(void);
 
-EXTERNL int ocdebug = 0;
-
 int ocinitialized = 0;
 
 OCerror
