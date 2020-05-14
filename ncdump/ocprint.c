@@ -274,9 +274,11 @@ main(int argc, char **argv)
     if(ocopt.output == NULL)
 	ocopt.output = stdout;
 
+#if 0
     if (ocopt.debug.debuglevel > 0) {
         ocdebug = ocopt.debug.debuglevel;
     }
+#endif
 
     if(ocopt.logging) {
 	ncloginit();
