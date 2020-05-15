@@ -128,12 +128,13 @@ usage(void)
   [-g grp1[,...]]  Data and metadata for group(s) <grp1>,... only\n\
   [-w]             With client-side caching of variables for DAP URLs\n\
   [-x]             Output XML (NcML) instead of CDL\n\
+  [-Z]             Ignore XML (NcML) classic model limit\n\
   [-Xp]            Unconditionally suppress output of the properties attribute\n\
   [-Ln]            Set log level to n (>= 0); ignore if logging not enabled.\n\
   file             Name of netCDF file (or URL if DAP access enabled)\n"
 
     (void) fprintf(stderr,
-		   "%s [-c|-h] [-v ...] [[-b|-f] [c|f]] [-l len] [-n name] [-p n[,n]] [-k] [-x] [-s] [-t|-i] [-g ...] [-w] [-Ln] file\n%s",
+		   "%s [-c|-h] [-v ...] [[-b|-f] [c|f]] [-l len] [-n name] [-p n[,n]] [-k] [-x] [-Z] [-s] [-t|-i] [-g ...] [-w] [-Ln] file\n%s",
 		   progname,
 		   USAGE);
 
@@ -2179,6 +2180,7 @@ main(int argc, char *argv[])
     int max_len = 80;		/* default maximum line length */
     int nameopt = 0;
     bool_t xml_out = false;    /* if true, output NcML instead of CDL */
+    bool_t ignore_classic_limit = false; /* if true, ignore NcML classic model limits */
     bool_t kind_out = false;	/* if true, just output kind of netCDF file */
     bool_t kind_out_extended = false;	/* output inq_format vs inq_format_extended */
     int Xp_flag = 0;    /* indicate that -Xp flag was set */
@@ -2206,7 +2208,7 @@ main(int argc, char *argv[])
        exit(EXIT_SUCCESS);
     }
 
-    while ((c = getopt(argc, argv, "b:cd:f:g:hikl:n:p:stv:xwKL:X:")) != EOF)
+    while ((c = getopt(argc, argv, "b:cd:f:g:hikl:n:p:stv:xZwKL:X:")) != EOF)
       switch(c) {
 	case 'h':		/* dump header only, no data */
 	  formatting_specs.header_only = true;
@@ -2273,6 +2275,9 @@ main(int argc, char *argv[])
 	  break;
         case 'x':		/* XML output (NcML) */
 	  xml_out = true;
+	  break;
+        case 'Z':		/* ignore XML (NcML) classic model limit */
+	  ignore_classic_limit = true;
 	  break;
         case 'k':	        /* just output what kind of netCDF file */
 	  kind_out = true;
@@ -2408,8 +2413,12 @@ main(int argc, char *argv[])
 		}
 		if (xml_out) {
 		    if(formatting_specs.nc_kind == NC_FORMAT_NETCDF4) {
-			snprintf(errmsg,sizeof(errmsg),"NcML output (-x) currently only permitted for netCDF classic model");
-			goto fail;
+			if(ignore_classic_limit) {
+			    fprintf(stderr,"<!-- Warning: Ignoring NcML classic model limit for XML output generation. -->");
+                        } else {
+			    snprintf(errmsg,sizeof(errmsg),"NcML output (-x) currently only permitted for netCDF classic model");
+			    goto fail;
+			}
 		    }
 		    do_ncdumpx(ncid, path);
 		} else {
