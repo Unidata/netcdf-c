@@ -19,7 +19,7 @@ man_MANS = ncgen3.1
 
 # These files all need to be distributed.
 EXTRA_DIST = ncgen.y ncgenyy.c ncgen.l c0.cdl run_tests.sh	\
-run_nc4_tests.sh XGetopt.c $(man_MANS)
+run_nc4_tests.sh $(man_MANS) CMakeLists.txt
 
 # There is a netcdf classic and netcdf-4 test script, but don't run
 # them for DLL builds.
@@ -33,7 +33,6 @@ endif # USE_HDF5
 
 CLEANFILES = c0.nc c0_64.nc c0_4.nc c0_4c.nc
 
-EXTRA_DIST += CMakeLists.txt XGetopt.c
 
 # This is used if someone wants to rebuild ncgenyy.c or ncgentab.c
 # Otherwise never invoked, but records how to do it. Don't forget to

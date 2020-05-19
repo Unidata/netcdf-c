@@ -82,9 +82,9 @@ EXTERNL int nc_var_filter_remove(int ncid, int varid, unsigned int id);
    last arg is void*, but is actually H5Z_class2_t*.
    It is void* to avoid having to reference hdf.h.
 */
-EXTERNL int nc_filter_client_register(unsigned int id, void*/*H5Z_class2_t* */);
+EXTERNL int nc_filter_client_register(unsigned int id, void*);
 EXTERNL int nc_filter_client_unregister(unsigned int id);
-EXTERNL int nc_filter_client_inq(unsigned int id, void*/*H5Z_class2_t* */);
+EXTERNL int nc_filter_client_inq(unsigned int id, void*);
 
 /* HDF5 specific filter info */
 typedef struct NC4_Filterspec {
