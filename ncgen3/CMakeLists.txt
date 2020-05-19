@@ -6,6 +6,10 @@
 # See netcdf-c/COPYRIGHT file for more info.
 SET(ncgen3_FILES main.c load.c escapes.c getfill.c init.c genlib.c ncgentab.c)
 
+IF(USE_X_GETOPT)
+  SET(ncgen3_FILES ${ncgen3_FILES} XGetopt.c)
+ENDIF()
+
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.sh ${CMAKE_CURRENT_SOURCE_DIR}/*.cdl)
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
 
@@ -18,10 +22,6 @@ IF(NOT EXISTS ${netCDF_SOURCE_DIR}/ncgen3/ncgentab.c AND NOT EXISTS
     COMMAND mv ncgen.tab.h ${netCDF_SOURCE_DIR}/ncgen3/ncgentab.h
     VERBATIM
     )
-ENDIF()
-
-IF(USE_X_GETOPT)
-  SET(ncgen3_FILES ${ncgen3_FILES} XGetopt.c)
 ENDIF()
 
 ADD_EXECUTABLE(ncgen3 ${ncgen3_FILES})
@@ -62,7 +62,7 @@ ENDIF()
 
 ## Specify files to be distributed by 'make dist'
 FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
-SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt XGetopt.c Makefile.am ncgen.y ncgenyy.c ncgen.l c0.cdl ncgen3.1)
+SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am ncgen.y ncgenyy.c ncgen.l c0.cdl ncgen3.1)
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")
 
 

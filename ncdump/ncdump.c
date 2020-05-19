@@ -8,22 +8,16 @@ Research/Unidata. See \ref copyright file for more info.  */
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
-#ifdef _MSC_VER /* Microsoft Compilers */
-
-#include <io.h>
+#ifdef _MSC_VER
+#include "XGetopt.h"
+#define snprintf _snprintf
 #endif
+
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
-
-#ifdef _MSC_VER
-#define snprintf _snprintf
-#include "XGetopt.h"
-int opterr;
-int optind;
 #endif
 
 #include <stdlib.h>
@@ -2194,7 +2188,6 @@ main(int argc, char *argv[])
 #ifdef HAVE_LOCALE_H
     setlocale(LC_ALL, "C");     /* CDL may be ambiguous with other locales */
 #endif /* HAVE_LOCALE_H */
-    opterr = 1;
     progname = argv[0];
     set_formats(FLT_DIGITS, DBL_DIGITS); /* default for float, double data */
 
@@ -2206,6 +2199,7 @@ main(int argc, char *argv[])
        exit(EXIT_SUCCESS);
     }
 
+    opterr = 1;
     while ((c = getopt(argc, argv, "b:cd:f:g:hikl:n:p:stv:xwKL:X:")) != EOF)
       switch(c) {
 	case 'h':		/* dump header only, no data */
