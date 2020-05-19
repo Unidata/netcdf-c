@@ -199,7 +199,7 @@ echo "*** Testing multiple filters"
 rm -f ./multifilter.nc ./multi.txt ./smulti.cdl
 rm -f nccopyF.cdl nccopyF.nc ncgenF.cdl ncgenF.nc
 ${execdir}/tst_multifilter
-${NCDUMP} -hs ./multifilter.nc >./multi.cdl
+${NCDUMP} -hs multifilter.nc >./multi.cdl
 # Remove irrelevant -s output
 sclean ./multi.cdl ./smulti.cdl
 diff -b -w ${srcdir}/ref_multi.cdl ./smulti.cdl
