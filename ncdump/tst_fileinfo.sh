@@ -41,9 +41,9 @@ rm -f ./tst_fileinfo.tmp
 
 if test -e $NCF ; then
    # look at the _IsNetcdf4 flag
-   N_IS=`${NCDUMP} -s $NCF | fgrep '_IsNetcdf4' | tr -d ' ;'`
+   N_IS=`${NCDUMP} -s $NCF | fgrep '_IsNetcdf4' | tr -d ' ;\r'`
    N_IS=`echo $N_IS | cut -d= -f2`
-   H_IS=`${NCDUMP} -s $HDF | fgrep '_IsNetcdf4' | tr -d ' ;'`
+   H_IS=`${NCDUMP} -s $HDF | fgrep '_IsNetcdf4' | tr -d ' ;\r'`
    H_IS=`echo $H_IS | cut -d= -f2`
    if test "x$N_IS" = 'x0' ;then
      echo "FAIL: $NCF is marked as not netcdf-4"

@@ -138,7 +138,7 @@ inttags.cdl inttags4.cdl ref_inttags.cdl ref_inttags4.cdl		\
 ref_tst_ncf213.cdl tst_h_scalar.sh run_utf8_nc4_tests.sh		\
 tst_formatx3.sh tst_formatx4.sh ref_tst_utf8_4.cdl			\
 ref_tst_nc4_utf8_4.cdl tst_inttags.sh tst_inttags4.sh CMakeLists.txt	\
-XGetopt.c tst_bom.sh tst_inmemory_nc3.sh tst_dimsizes.sh		\
+tst_bom.sh tst_inmemory_nc3.sh tst_dimsizes.sh		\
 tst_inmemory_nc4.sh tst_fileinfo.sh run_ncgen_tests.sh			\
 ref_test_360_day_1900.nc ref_test_365_day_1900.nc			\
 ref_test_366_day_1900.nc ref_test_360_day_1900.cdl			\

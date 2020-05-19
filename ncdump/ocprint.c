@@ -32,8 +32,6 @@
 
 #ifdef _MSC_VER
 #include "XGetopt.h"
-int opterr, optind;
-char* optarg;
 #endif
 
 #ifndef nulldup
@@ -55,8 +53,6 @@ char* optarg;
 
 /*Mnemonic*/
 #define TOPLEVEL 1
-
-int ocdebug;
 
 static OCerror ocstat;
 static OClink glink;

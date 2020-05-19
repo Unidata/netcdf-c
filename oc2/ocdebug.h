@@ -58,9 +58,6 @@ about how IO is getting along.
 */
 #undef OCPROGRESS
 
-EXTERNL int ocdebug;
-EXTERNL int cedebug;
-
 /*extern char* dent2(int n);*/
 /*/extern char* dent(int n);*/
 extern int ocpanic(const char* fmt, ...);

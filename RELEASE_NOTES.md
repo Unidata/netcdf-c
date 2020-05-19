@@ -7,6 +7,9 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.8.0 - TBD
 
+* [Bug Fix] Add necessary __declspec declarations to allow compilation
+of netcdf library without causing errors or (_declspec related)
+warnings [https://github.com/Unidata/netcdf-c/issues/1725].
 * [Enhancement] When a filter is applied twice with different
 parameters, then the second set is used for writing the dataset
 [https://github.com/Unidata/netcdf-c/issues/1713].

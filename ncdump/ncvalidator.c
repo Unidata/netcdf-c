@@ -77,8 +77,6 @@ THIS SOFTWARE.
 #include <io.h>
 #define snprintf _snprintf
 #include "XGetopt.h"
-int opterr;
-int optind;
 #endif
 
 #define X_ALIGN         4

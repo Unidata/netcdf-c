@@ -18,8 +18,6 @@
 #ifdef _MSC_VER
 #include "XGetopt.h"
 #define snprintf _snprintf
-int opterr;
-int optind;
 #endif
 
 #ifdef __hpux
@@ -89,9 +87,6 @@ main(
 	int argc,
 	char *argv[])
 {
-/*    MSC_EXTRA extern int optind;
-    MSC_EXTRA extern int opterr;
-    MSC_EXTRA extern char *optarg;*/
     int any_error;
     int c;
     FILE *fp;
@@ -104,7 +99,6 @@ main(
 	malloc_debug(2) ;	/* helps find malloc/free errors on Sun */
 #endif /* MDEBUG */
 
-    opterr = 1;			/* print error message if bad option */
     progname = ubasename(argv[0]);
     cdlname = "-";
 
