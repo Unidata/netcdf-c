@@ -6,6 +6,8 @@ dimensions:
 variables:
   double t1_days(time);
      t1_days:units = "days since 1500-1-1";
+  double t1_days_case(time);
+     t1_days_case:units = "DaYs since 1500-1-1";
   double t1_st_days(time);
      t1_st_days:calendar = "standard" ; // mixed julian-gregorian
      t1_st_days:units = "days since 1500-01-01 00:00:00";
@@ -96,6 +98,7 @@ variables:
 data:
    // Should all represent 2009-01-01 00:00:00
 	t1_days = 185900;
+	t1_days_case = 185900;
 	t1_st_days = 185900;
 	t1_gr_days = 185900;
 	t1_pg_days = 185909;

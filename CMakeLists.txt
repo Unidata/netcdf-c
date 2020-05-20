@@ -505,7 +505,6 @@ IF(WIN32)
     SET(BUILD_DLL ON CACHE BOOL "")
     ADD_DEFINITIONS(-DDLL_NETCDF)
     ADD_DEFINITIONS(-DDLL_EXPORT)
-    ADD_DEFINITIONS(-DUTF8PROC_DLLEXPORT)
   ENDIF()
 ENDIF()
 # Did the user specify a default minimum blocksize for posixio?
@@ -777,7 +776,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
 
   # Check to ensure that HDF5 was built with zlib.
   set (CMAKE_REQUIRED_INCLUDES ${HAVE_HDF5_H})
-  CHECK_C_SOURCE_COMPILES("#include <H5pubconf.h>
+  CHECK_C_SOURCE_COMPILES("#include <H5public.h>
    #if !H5_HAVE_ZLIB_H
    #error
    #endif
@@ -898,11 +897,20 @@ IF(ENABLE_EXTRA_TESTS)
 ENDIF()
 
 # Option to use bundled XGetopt in place of getopt(). This is mostly useful
-# for MSVC builds. If not building utilities, getopt() isn't required at all.
+# for MSVC builds. If not building utilities or some tests,
+# getopt() isn't required at all.
 IF(MSVC)
   OPTION(ENABLE_XGETOPT "Enable bundled XGetOpt instead of external getopt()." ON)
   IF(ENABLE_XGETOPT)
     SET(USE_X_GETOPT ON CACHE BOOL "")
+    # Copy XGetopt.c to everywhere it is needed. Avoids
+    # inconsistent code
+    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
+         DESTINATION ${netCDF_BINARY_DIR}/ncgen3/)
+    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
+         DESTINATION ${netCDF_BINARY_DIR}/ncgen/)
+    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
+         DESTINATION ${netCDF_BINARY_DIR}/ncdump/)
   ENDIF()
 ENDIF()
 

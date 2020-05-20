@@ -14,8 +14,6 @@
 
 #ifdef _MSC_VER
 #include "XGetopt.h"
-int opterr;
-int optind;
 #endif
 
 /* Default is netcdf-3 mode 1 */

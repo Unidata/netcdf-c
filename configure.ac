@@ -846,7 +846,8 @@ AC_CHECK_HEADERS([ftw.h])
 AC_CHECK_FUNCS([strlcat snprintf strcasecmp fileno \
                 strdup strtoll strtoull \
 		mkstemp mktemp random \
-		getrlimit gettimeofday fsync MPI_Comm_f2c MPI_Info_f2c])
+		getrlimit gettimeofday fsync MPI_Comm_f2c MPI_Info_f2c \
+		strncasecmp])
 
 # disable dap4 if netcdf-4 is disabled
 #if test "x$enable_netcdf_4" = "xno" ; then
@@ -1472,9 +1473,10 @@ AC_SUBST([HAS_PAR_FILTERS], [$hdf5_supports_par_filters])
 # Include some specifics for netcdf on windows.
 #AH_VERBATIM([_WIN32_STRICMP],
 AH_BOTTOM(
-[/* Define strcasecmp, snprintf on Win32 systems. */
+[/* Define strcasecmp, strncasecmp, snprintf on Win32 systems. */
 #ifdef _WIN32
 	#define strcasecmp _stricmp
+	#define strncasecmp _strnicmp
 	#define snprintf _snprintf
 #endif])
 
