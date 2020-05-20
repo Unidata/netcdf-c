@@ -768,7 +768,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
   ENDIF(NOT HAVE_HDF5_H)
 
   # Check to ensure that HDF5 was built with zlib.
-  set (CMAKE_REQUIRED_INCLUDES ${HAVE_HDF5_H})
+  set (CMAKE_REQUIRED_INCLUDES ${HDF5_INCLUDE_DIR})
   CHECK_C_SOURCE_COMPILES("#include <H5public.h>
    #if !H5_HAVE_ZLIB_H
    #error
