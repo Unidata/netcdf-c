@@ -17,6 +17,9 @@ nc_put_vara. If multiple calls to nc_put_vara are used to write
 a variable, then it is probable that the data order is
 incorrect. Such multiple writes can occur for large variables
 and especially when one of the dimensions is unlimited.
+* [Bug Fix] Add necessary __declspec declarations to allow compilation
+of netcdf library without causing errors or (_declspec related)
+warnings [https://github.com/Unidata/netcdf-c/issues/1725].
 * [Enhancement] When a filter is applied twice with different
 parameters, then the second set is used for writing the dataset
 [https://github.com/Unidata/netcdf-c/issues/1713].

@@ -21,13 +21,13 @@ ncgen.h ncgeny.h util.h)
 # Obsolete
 SET(OBSOLETE odom.c odom.h jdatastd.c jdatajni.c genjni.c cdfdata.c cmldata.c)
 
-# don't add the automatically determined parts of the RPATH
-# which point to directories outside the build tree to the install RPATH
-SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
-
 IF(USE_X_GETOPT)
   SET(ncgen_FILES ${ncgen_FILES} XGetopt.c)
 ENDIF()
+
+# don't add the automatically determined parts of the RPATH
+# which point to directories outside the build tree to the install RPATH
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
 
 ADD_EXECUTABLE(ncgen ${ncgen_FILES})
 TARGET_LINK_LIBRARIES(ncgen netcdf ${ALL_TLL_LIBS})
