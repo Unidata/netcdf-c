@@ -4,9 +4,10 @@
 # Process these files with m4.
 SET(m4_SOURCES attr ncx putget t_ncxx)
 foreach (f ${m4_SOURCES})
-  IF(HAVE_M4)
     GEN_m4(${f})
-  ENDIF()
+    IF(NOT EXISTS ${f}.c)
+      MESSAGE(FATAL_ERROR "m4 is required to generate ${f}.c. Please install m4 on the PATH and try again.")
+    ENDIF()
 endforeach(f)
 
 SET(libsrc_SOURCES v1hpg.c putget.c attr.c nc3dispatch.c

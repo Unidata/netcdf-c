@@ -1488,6 +1488,7 @@ IF(NC_M4)
   SET(HAVE_M4 TRUE)
 ELSE()
   MESSAGE(STATUS "m4 not found.")
+  SET(HAVE_M4 FALSE)
 ENDIF()
 
 MACRO(GEN_m4 filename)
