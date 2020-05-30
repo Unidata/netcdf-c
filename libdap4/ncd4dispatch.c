@@ -11,6 +11,7 @@
 #include <direct.h>
 #endif
 #include "ncd4dispatch.h"
+#include "nc4internal.h"
 #include "d4includes.h"
 #include "d4curlfunctions.h"
 
@@ -34,8 +35,21 @@ static const NC_Dispatch NCD4_dispatch_base;
 
 const NC_Dispatch* NCD4_dispatch_table = NULL; /* moved here from ddispatch.c */
 
+/**************************************************/
+/* Define a structure defining reserved attributes */
+
+/** @internal List of reserved attributes. */
+static const NC_reservedatt NCD4_reserved[] = {
+    {D4CHECKSUMATTR, READONLYFLAG|NAMEONLYFLAG},      /*_DAP4_Checksum_CRC32*/
+    {D4LEATTR, READONLYFLAG|NAMEONLYFLAG},            /*_DAP4_Little_Endian*/
+    {NULL, 0}
+};
+
 /* Forward */
 static int globalinit(void);
+static int ncd4_get_att_reserved(NC* ncp, int ncid, int varid, const char* name, void* value, nc_type t, const NC_reservedatt* rsvp);
+static int ncd4_inq_att_reserved(NC* ncp, int ncid, int varid, const char* name, nc_type* xtypep, size_t* lenp, const NC_reservedatt* rsvp);
+
 
 /**************************************************/
 int
@@ -326,10 +340,27 @@ NCD4_inq_att(int ncid, int varid, const char* name,
     NC* ncp;
     int ret;
     int substrateid;
+    const NC_reservedatt* rsvp = NULL;
+    
     if((ret = NC_check_id(ncid, (NC**)&ncp)) != NC_NOERR) return (ret);
     substrateid = makenc4id(ncp,ncid);
+
+    /* Is this a reserved attribute name? */
+    if(name && (rsvp = NCD4_lookupreserved(name)))
+	return ncd4_inq_att_reserved(ncp,ncid,varid,name,xtypep,lenp, rsvp);
     ret = nc_inq_att(substrateid, varid, name, xtypep, lenp);
     return (ret);
+}
+
+const struct NC_reservedatt*
+NCD4_lookupreserved(const char* name)
+{
+    const NC_reservedatt* p = NCD4_reserved;
+    for(;p->name;p++) {
+	if(strcmp(name,p->name)==0)
+	    return p;
+    }
+    return NULL;
 }
 
 static int
@@ -338,7 +369,12 @@ NCD4_inq_attid(int ncid, int varid, const char *name, int *idp)
     NC* ncp;
     int ret;
     int substrateid;
+    const NC_reservedatt* rsvp = NULL;
+
     if((ret = NC_check_id(ncid, (NC**)&ncp)) != NC_NOERR) return (ret);
+    /* Is this a reserved attribute name? */
+    if(name && (rsvp = NCD4_lookupreserved(name)))
+	return NC_EATTMETA;
     substrateid = makenc4id(ncp,ncid);
     ret = nc_inq_attid(substrateid, varid, name, idp);
     return (ret);
@@ -350,7 +386,12 @@ NCD4_inq_attname(int ncid, int varid, int attnum, char* name)
     NC* ncp;
     int ret;
     int substrateid;
+    const NC_reservedatt* rsvp = NULL;
+    
     if((ret = NC_check_id(ncid, (NC**)&ncp)) != NC_NOERR) return (ret);
+    /* Is this a reserved attribute name? */
+    if(name && (rsvp = NCD4_lookupreserved(name)))
+	return NC_EATTMETA;
     substrateid = makenc4id(ncp,ncid);
     ret = nc_inq_attname(substrateid, varid, attnum, name);
     return (ret);
@@ -362,21 +403,31 @@ NCD4_rename_att(int ncid, int varid, const char* name, const char* newname)
     NC* ncp;
     int ret;
     int substrateid;
+    const NC_reservedatt* rsvp = NULL;
+    
     if((ret = NC_check_id(ncid, (NC**)&ncp)) != NC_NOERR) return (ret);
+    /* Is this a reserved attribute name? */
+    if(name && (rsvp = NCD4_lookupreserved(name)))
+	return NC_EATTMETA;
     substrateid = makenc4id(ncp,ncid);
     ret = nc_rename_att(substrateid, varid, name, newname);
     return (ret);
 }
 
 static int
-NCD4_del_att(int ncid, int varid, const char* p3)
+NCD4_del_att(int ncid, int varid, const char* name)
 {
     NC* ncp;
     int ret;
     int substrateid;
+    const NC_reservedatt* rsvp = NULL;
+    
     if((ret = NC_check_id(ncid, (NC**)&ncp)) != NC_NOERR) return (ret);
+    /* Is this a reserved attribute name? */
+    if(name && (rsvp = NCD4_lookupreserved(name)))
+	return NC_EATTMETA;
     substrateid = makenc4id(ncp,ncid);
-    ret = nc_del_att(substrateid, varid, p3);
+    ret = nc_del_att(substrateid, varid, name);
     return (ret);
 }
 
@@ -386,7 +437,12 @@ NCD4_get_att(int ncid, int varid, const char* name, void* value, nc_type t)
     NC* ncp;
     int ret;
     int substrateid;
+    const NC_reservedatt* rsvp = NULL;
+    
     if((ret = NC_check_id(ncid, (NC**)&ncp)) != NC_NOERR) return (ret);
+    /* Is this a reserved attribute name? */
+    if(name && (rsvp = NCD4_lookupreserved(name)))
+	return ncd4_get_att_reserved(ncp,ncid,varid,name,value,t,rsvp);
     substrateid = makenc4id(ncp,ncid);
     ret = NCDISPATCH_get_att(substrateid, varid, name, value, t);
     return (ret);
@@ -764,6 +820,58 @@ done:
     return (ret);
 }
 
+static int
+ncd4_get_att_reserved(NC* ncp, int ncid, int varid, const char* name, void* value, nc_type t, const NC_reservedatt* rsvp)
+{
+    int ret = NC_NOERR;
+    NCD4INFO* info = (NCD4INFO*)(ncp->dispatchdata);
+    NCD4meta* meta = info->substrate.metadata;
+    NCD4node* var = NULL;
+
+    if(strcmp(rsvp->name,D4CHECKSUMATTR)==0) {
+	unsigned int* ip = (unsigned int*)value;
+	if(varid == NC_GLOBAL)
+            {ret = NC_EBADID; goto done;}
+	if(t != NC_UINT) {ret = NC_EBADTYPE; goto done;}
+        if((ret=NCD4_findvar(ncp,ncid,varid,&var,NULL))) goto done;
+	if(var->data.remotechecksummed == 0)
+	    {ret = NC_ENOTATT; goto done;} 
+	*ip = (var->data.remotechecksum);
+    } else if(strcmp(rsvp->name,D4LEATTR)==0) {
+	int* ip = (int*)value;
+	if(varid != NC_GLOBAL)
+            {ret = NC_EBADID; goto done;}
+	if(t != NC_INT) {ret = NC_EBADTYPE; goto done;}
+	*ip = (meta->serial.remotelittleendian?1:0);
+    }
+done:
+    return THROW(ret);
+}
+
+static int
+ncd4_inq_att_reserved(NC* ncp, int ncid, int varid, const char* name, nc_type* xtypep, size_t* lenp, const NC_reservedatt* rsvp)
+{
+    int ret = NC_NOERR;
+    NCD4node* var = NULL;
+
+    if(strcmp(rsvp->name,D4CHECKSUMATTR)==0) {
+	if(varid == NC_GLOBAL)
+            {ret = NC_EBADID; goto done;}
+        if((ret=NCD4_findvar(ncp,ncid,varid,&var,NULL))) goto done;
+	if(var->data.remotechecksummed == 0)
+	    {ret = NC_ENOTATT; goto done;} 
+	if(xtypep) *xtypep = NC_UINT;
+	if(lenp) *lenp = 1;
+    } else if(strcmp(rsvp->name,D4LEATTR)==0) {
+	if(varid != NC_GLOBAL)
+            {ret = NC_EBADID; goto done;}
+	if(xtypep) *xtypep = NC_INT;
+	if(lenp) *lenp = 1;
+    }
+done:
+    return THROW(ret);
+}
+
 /**************************************************/
 
 static int
@@ -864,5 +972,3 @@ NCD4_get_var_chunk_cache,
 
 NC_NOOP_filter_actions,
 };
-
-

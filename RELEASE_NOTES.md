@@ -7,6 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.8.0 - TBD
 
+* [Bug Fix] Fix some protocol bugs/differences between the netcdf-c library and the OPeNDAP Hyrax server. Also cleanup checksum handling [https://github.com/Unidata/netcdf-c/issues/1712].
 * [Bug Fix] Add necessary __declspec declarations to allow compilation
 of netcdf library without causing errors or (_declspec related)
 warnings [https://github.com/Unidata/netcdf-c/issues/1725].

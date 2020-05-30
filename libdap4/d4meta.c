@@ -64,14 +64,15 @@ NCD4_metabuild(NCD4meta* metadata, int ncid)
     metadata->root->meta.id = ncid;
 
     /* Fix up the atomic types */
-    for(i=0;i<nclistlength(metadata->allnodes);i++) {
-	NCD4node* n = (NCD4node*)nclistget(metadata->allnodes,i);
+    for(i=0;i<nclistlength(metadata->atomictypes);i++) {
+	NCD4node* n = (NCD4node*)nclistget(metadata->atomictypes,i);
 	if(n->sort != NCD4_TYPE) continue;
 	if(n->subsort > NC_MAX_ATOMIC_TYPE) continue;
 	n->meta.id = n->subsort;
         n->meta.isfixedsize = (n->subsort == NC_STRING ? 0 : 1);
 	if(n->subsort <= NC_STRING)
 	    n->meta.dapsize = NCD4_typesize(n->subsort);
+	n->container = metadata->root;
     }
 
     /* Topo sort the set of all nodes */
@@ -435,6 +436,10 @@ buildAttributes(NCD4meta* builder, NCD4node* varorgroup)
 
 	/* Suppress all UCARTAG attributes */
 	if(strncmp(attr->name,UCARTAG,strlen(UCARTAG)) == 0)
+	    continue;
+
+	/* Suppress all reserved attributes */
+	if(NCD4_lookupreserved(attr->name) != NULL)
 	    continue;
 
 	if(ISGROUP(varorgroup->sort))
@@ -1151,4 +1156,33 @@ markdapsize(NCD4meta* meta)
 	}
     }
     return NC_NOERR;
+}
+
+int
+NCD4_findvar(NC* ncp, int ncid, int varid, NCD4node** varp, NCD4node** grpp)
+{
+    int ret = NC_NOERR;
+    NCD4INFO* info = NULL;
+    NCD4meta* meta = NULL;
+    NCD4node* var = NULL;
+    NCD4node* group = NULL;
+    int grp_id;
+
+    info = getdap(ncp);
+    if(info == NULL)
+	return THROW(NC_EBADID);
+    meta = info->substrate.metadata;
+    if(meta == NULL)
+	return THROW(NC_EBADID);
+    /* Locate var node via (grpid,varid) */
+    grp_id = GROUPIDPART(ncid);
+    group = nclistget(meta->groupbyid,grp_id);
+    if(group == NULL)
+	return THROW(NC_EBADID);
+    var = nclistget(group->group.varbyid,varid);
+    if(var == NULL)
+	return THROW(NC_EBADID);
+    if(varp) *varp = var;
+    if(grpp) *grpp = group;
+    return ret;
 }

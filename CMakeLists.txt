@@ -835,9 +835,11 @@ int main() {int x = CURLOPT_TCP_KEEPALIVE;}" HAVE_CURLOPT_KEEPALIVE)
 # Check to see if we have libcurl 7.66 or later
 CHECK_C_SOURCE_COMPILES("
 #include <curl/curl.h>
-#if (LIBCURL_VERSION_MAJOR*1000 + LIBCURL_VERSION_MINOR >=  7066)
-      choke me
-#endif" HAVE_LIBCURL_766)
+int main() {
+#if (LIBCURL_VERSION_MAJOR*1000 + LIBCURL_VERSION_MINOR < 7066)
+      choke me;
+#endif
+}" HAVE_LIBCURL_766)
 
 # Option to Build DAP2+DAP4 Clients
 OPTION(ENABLE_DAP "Enable DAP2 and DAP4 Client." ON)
@@ -859,7 +861,7 @@ ENDIF()
 # Option to support byte-range reading of remote datasets
 OPTION(ENABLE_BYTERANGE "Enable byte-range access to remote datasets.." OFF)
 
-IF(NOT CURL_LIBRARY)
+IF(NOT CURL_LIBRARIES AND NOT CURL_LIBRARY)
   IF(ENABLE_BYTERANGE)
     MESSAGE(FATAL_ERROR "Byte-range support specified, CURL libraries are not found.")
   ENDIF()
