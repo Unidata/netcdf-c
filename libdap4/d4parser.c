@@ -60,6 +60,7 @@ static const struct KEYWORDINFO {
 {"UInt64", NCD4_VAR,NC_UINT64,NULL},
 {"UInt8", NCD4_VAR,NC_UBYTE,NULL},
 {"URL", NCD4_VAR,NC_STRING,"String"},
+{"Url", NCD4_VAR,NC_STRING,"String"},
 };
 typedef struct KEYWORDINFO KEYWORDINFO;
 
@@ -67,6 +68,7 @@ static const struct ATOMICTYPEINFO {
     char* name; nc_type type; size_t size;
 } atomictypeinfo[] = {
 /* Keep in sorted order for binary search */
+/* Use lower case for canonical comparison, but keep proper name here */
 {"Byte",NC_BYTE,sizeof(char)},
 {"Char",NC_CHAR,sizeof(char)},
 {"Float32",NC_FLOAT,sizeof(float)},
@@ -81,6 +83,7 @@ static const struct ATOMICTYPEINFO {
 {"UInt32",NC_UINT,sizeof(unsigned int)},
 {"UInt64",NC_UINT64,sizeof(unsigned long long)},
 {"UInt8",NC_UBYTE,sizeof(unsigned char)},
+{"Url",NC_STRING,sizeof(char*)},
 {NULL,NC_NAT,0}
 };
 
@@ -105,7 +108,7 @@ extern const char** ezxml_all_attr(ezxml_t xml, int* countp);
 /* Forwards */
 
 static int addOrigType(NCD4parser*, NCD4node* src, NCD4node* dst, const char* tag);
-static int defineAtomicTypes(NCD4parser*);
+static int defineAtomicTypes(NClist*);
 static void classify(NCD4node* container, NCD4node* node);
 static int convertString(union ATOMICS*, NCD4node* type, const char* s);
 static int downConvert(union ATOMICS*, NCD4node* type);
@@ -114,7 +117,7 @@ static NCD4node* getOpaque(NCD4parser*, ezxml_t varxml, NCD4node* group);
 static int getValueStrings(NCD4parser*, NCD4node*, ezxml_t xattr, NClist*);
 static int isReserved(const char* name);
 static const KEYWORDINFO* keyword(const char* name);
-static NCD4node* lookupAtomictype(NCD4parser*, const char* name);
+static NCD4node* lookupAtomicType(NClist*, const char* name);
 static NCD4node* lookFor(NClist* elems, const char* name, NCD4sort sort);
 static NCD4node* lookupFQN(NCD4parser*, const char* sfqn, NCD4sort);
 static int lookupFQNList(NCD4parser*, NClist* fqn, NCD4sort sort, NCD4node** result);
@@ -157,6 +160,10 @@ NCD4_parse(NCD4meta* metadata)
     int ilen;
     ezxml_t dom = NULL;
 
+    /* fill in the atomic types for meta*/
+    metadata->atomictypes = nclistnew();
+    if((ret=defineAtomicTypes(metadata->atomictypes))) goto done;
+
     /* Create and fill in the parser state */
     parser = (NCD4parser*)calloc(1,sizeof(NCD4parser));
     if(parser == NULL) {ret=NC_ENOMEM; goto done;}
@@ -184,19 +191,10 @@ done:
 static void
 reclaimParser(NCD4parser* parser)
 {
-    int i,len;
     if(parser == NULL) return;
     nclistfree(parser->types);
     nclistfree(parser->dims);
     nclistfree(parser->vars);
-    /* Reclaim unused atomic type nodes */
-    len = nclistlength(parser->atomictypes);    
-    for(i=0;i<len;i++) {
-	if(parser->used[i])
-	    reclaimNode((NCD4node*)nclistget(parser->atomictypes,i));
-    }
-    nclistfree(parser->atomictypes);
-    nullfree(parser->used);
     free (parser);
 }
 
@@ -232,8 +230,6 @@ traverse(NCD4parser* parser, ezxml_t dom)
 	if(xattr != NULL) parser->metadata->root->group.dapversion = strdup(xattr);
 	xattr = ezxml_attr(dom,"dmrVersion");
 	if(xattr != NULL) parser->metadata->root->group.dmrversion = strdup(xattr);
-        /* fill in the atomic types */
-        if((ret=defineAtomicTypes(parser))) goto done;
         /* Recursively walk the tree */
         if((ret = fillgroup(parser,parser->metadata->root,dom))) goto done;
     } else
@@ -760,9 +756,9 @@ parseAttributes(NCD4parser* parser, NCD4node* container, ezxml_t xml)
 	if((ret=makeNode(parser,container,x,NCD4_ATTR,NC_NULL,&attr))) goto done;
 	basetype = lookupFQN(parser,type,NCD4_TYPE);
 	if(basetype == NULL)
-	    FAIL(NC_EBADTYPE,"Unknown <Attribute> type: ",type);
+	    FAIL(NC_EBADTYPE,"Unknown <Attribute> type: %s",type);
 	if(basetype->subsort == NC_NAT && basetype->subsort != NC_ENUM)
-	    FAIL(NC_EBADTYPE,"<Attribute> type must be atomic or enum: ",type);
+	    FAIL(NC_EBADTYPE,"<Attribute> type must be atomic or enum: %s",type);
 	attr->basetype = basetype;
 	values = nclistnew();
 	if((ret=getValueStrings(parser,basetype,x,values))) {
@@ -939,7 +935,7 @@ splitOrigType(NCD4parser* parser, const char* fqn, NCD4node* type)
     /* It should be the case that the pieces are {/group}+/name */
     name = (char*)nclistpop(pieces);
     if((ret = lookupFQNList(parser,pieces,NCD4_GROUP,&group))) goto done;
-    if(group == NULL) {
+    if(ret) {
 	FAIL(NC_ENOGRP,"Non-existent group in FQN: ",fqn);
     }
     type->nc4.orig.name = strdup(name+1); /* plus 1 to skip the leading separator */
@@ -1021,6 +1017,8 @@ WARNING: This is highly specialized in that it assumes
 that the final object is one of: dimension, type, or var.
 This means that e.g. groups, attributes, econsts, cannot
 be found by this procedure.
+@return NC_NOERR found; result != NULL
+@return NC_EINVAL !found; result == NULL
 */
 static int
 lookupFQNList(NCD4parser* parser, NClist* fqn, NCD4sort sort, NCD4node** result)
@@ -1050,20 +1048,20 @@ lookupFQNList(NCD4parser* parser, NClist* fqn, NCD4sort sort, NCD4node** result)
 	3. i < (nsteps - 1) => need a compound var to continue
     */
     if(i == nsteps) {
-	if(sort != NCD4_GROUP) goto sortfail;
-	goto done;
+	if(sort != NCD4_GROUP) /* Right name, wrong sort */
+	goto notfound;
     }
     if(i == (nsteps - 1)) {
 	assert (node == NULL);
         node = lookFor(current->group.elements,name,sort);
-	if(node == NULL) goto sortfail;
+	if(node == NULL) goto notfound;
 	goto done;
     }
     assert (i < (nsteps - 1)); /* case 3 */
     /* We have steps to take, so node better be a compound var */
     node = lookFor(current->group.elements,name,NCD4_VAR);
     if(node == NULL || !ISCMPD(node->basetype->subsort))
-	goto fail;
+	goto notfound;
     /* So we are at a compound variable, so walk its fields recursively */
     /* Use the type to do the walk */
     current = node->basetype;
@@ -1079,21 +1077,18 @@ lookupFQNList(NCD4parser* parser, NClist* fqn, NCD4sort sort, NCD4node** result)
 		{node = field; break;}
 	}
 	if(node == NULL)
-	    goto sortfail; /* no match, so failed */
+	    goto notfound; /* no match, so failed */
 	if(i == (nsteps - 1))
 	    break;
 	if(!ISCMPD(node->basetype->subsort))
-	    goto fail; /* more steps, but no compound field, so failed */
+	    goto notfound; /* more steps, but no compound field, so failed */
 	current = node->basetype;
     }
 done:
     if(result) *result = node;
     return THROW(ret);
-fail:
+notfound:
     ret = NC_EINVAL;
-    goto done;
-sortfail:
-    ret = NC_EBADID;
     goto done;
 }
 
@@ -1136,7 +1131,7 @@ lookupFQN(NCD4parser* parser, const char* sfqn, NCD4sort sort)
 
     /* Short circuit atomic types */
     if(NCD4_TYPE == sort) {
-        match = lookupAtomictype(parser,(sfqn[0]=='/'?sfqn+1:sfqn));
+        match = lookupAtomicType(parser->metadata->atomictypes,(sfqn[0]=='/'?sfqn+1:sfqn));
         if(match != NULL)
 	    goto done;
     }
@@ -1181,7 +1176,7 @@ defineBytestringType(NCD4parser* parser)
         if(ret != NC_NOERR) goto done;
         SETNAME(bstring,"_bytestring");
 	bstring->opaque.size = 0;
-	bstring->basetype = lookupAtomictype(parser,"UInt8");
+	bstring->basetype = lookupAtomicType(parser,"UInt8");
         PUSH(parser->metadata->root->types,bstring);
 	parser->metadata->_bytestring = bstring;
     } else
@@ -1192,34 +1187,28 @@ done:
 #endif
 
 static int
-defineAtomicTypes(NCD4parser* parser)
+defineAtomicTypes(NClist* list)
 {
     int ret = NC_NOERR;
     NCD4node* node;
     const struct ATOMICTYPEINFO* ati;
-
-    parser->atomictypes = nclistnew();
-    if(parser->atomictypes == NULL)
-	return THROW(NC_ENOMEM);
+ 
+    if(list == NULL)
+	return THROW(NC_EINTERNAL);
     for(ati=atomictypeinfo;ati->name;ati++) {
-        if((ret=makeNode(parser,parser->metadata->root,NULL,NCD4_TYPE,ati->type,&node))) goto done;
+        if((ret=makeNode(NULL,NULL,NULL,NCD4_TYPE,ati->type,&node))) goto done;
 	SETNAME(node,ati->name);
-        node->container = parser->metadata->root;
-	record(parser,node);
-	PUSH(parser->atomictypes,node);
+	PUSH(list,node);
     }
-    parser->used = (char*)calloc(1,nclistlength(parser->atomictypes));
-    if(parser->used == NULL) {ret = NC_ENOMEM; goto done;}
-
 done:
     return THROW(ret);
 }
 
 /* Binary search the set of set of atomictypes */
 static NCD4node*
-lookupAtomictype(NCD4parser* parser, const char* name)
+lookupAtomicType(NClist* atomictypes, const char* name)
 {
-    int n = nclistlength(parser->atomictypes);
+    int n = nclistlength(atomictypes);
     int L = 0;
     int R = (n - 1);
     int m, cmp;
@@ -1228,9 +1217,10 @@ lookupAtomictype(NCD4parser* parser, const char* name)
     for(;;) {
 	if(L > R) break;
         m = (L + R) / 2;
-	p = (NCD4node*)nclistget(parser->atomictypes,m);
+	p = (NCD4node*)nclistget(atomictypes,m);
 	cmp = strcasecmp(p->name,name);
-	if(cmp == 0) return p;
+	if(cmp == 0)
+	    return p;
 	if(cmp < 0)
 	    L = (m + 1);
 	else /*cmp > 0*/
@@ -1265,7 +1255,7 @@ makeNode(NCD4parser* parser, NCD4node* parent, ezxml_t xml, NCD4sort sort, nc_ty
 	if(parent->sort == NCD4_GROUP)
 	    PUSH(parent->group.elements,node);
     }
-    track(parser,node);
+    if(parser) track(parser,node);
     if(nodep) *nodep = node;
     return THROW(ret);
 }
@@ -1540,3 +1530,20 @@ valueParse(NCD4node* type, const char* values0, NClist* vlist)
     return THROW(NC_NOERR);
 }
 #endif
+
+/* Define extra attributes not present in the xml */
+int
+NCD4_defineattr(NCD4meta* meta, NCD4node* parent, const char* aname, const char* typename, NCD4node** attrp)
+{
+    NCD4node* attr = NULL;
+    NCD4node* basetype = NULL;
+    if((basetype = lookupAtomicType(meta->atomictypes,typename))==NULL)
+	return NC_EINVAL;
+    if(makeNode(NULL,parent,NULL,NCD4_ATTR,NC_NULL,&attr))
+	return NC_EINVAL;
+    SETNAME(attr,strdup(aname));
+    attr->basetype = basetype;
+    PUSH(parent->attributes,attr);		
+    if(attrp) *attrp = attr;
+    return NC_NOERR;
+}

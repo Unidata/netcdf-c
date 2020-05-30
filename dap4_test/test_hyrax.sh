@@ -5,16 +5,15 @@ export srcdir;
 
 . ${srcdir}/../test_common.sh
 
-FRAG="#checksummode=ignore"
+. ${srcdir}/d4test_common.sh
+
+
+set -e
+echo "test_hyrax.sh:"
+
+#FRAG="#checksummode=ignore"
 
 F="\
-nc4_nc_classic_comp.nc \
-nc4_nc_classic_no_comp.nc \
-nc4_strings.nc \
-nc4_strings_comp.nc \
-nc4_unsigned_types.nc \
-nc4_unsigned_types_comp.nc \
-ref_tst_compounds.nc \
 "
 
 failure() {
