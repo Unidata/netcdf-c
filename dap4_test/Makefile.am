@@ -33,6 +33,7 @@ TESTS += test_parse.sh
 
 if BUILD_UTILITIES
 # These rely on ncdump
+TESTS += test_parse.sh
 TESTS += test_raw.sh
 TESTS += test_meta.sh
 TESTS += test_data.sh
