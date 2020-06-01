@@ -232,11 +232,11 @@ NCD4_open(const char * path, int mode,
     fflush(stderr);
   }
 #endif
-    if((ret = NCD4_metabuild(d4info->substrate.metadata,d4info->substrate.metadata->ncid))) goto done;
-    if(ret != NC_NOERR && ret != NC_EVARSIZE) goto done;
+    /* Build the substrate metadata */
     if((ret = NCD4_processdata(d4info->substrate.metadata))) goto done;
 
-    return THROW(ret);
+    ret = NCD4_metabuild(d4info->substrate.metadata,d4info->substrate.metadata->ncid);
+    if(ret != NC_NOERR && ret != NC_EVARSIZE) goto done;
 
 done:
     if(ret) {

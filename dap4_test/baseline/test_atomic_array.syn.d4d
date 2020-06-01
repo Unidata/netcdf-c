@@ -22,8 +22,6 @@ variables:
 	cloud_class_t primary_cloud(d5) ;
 		cloud_class_t primary_cloud:_FillValue = Missing ;
 
-// global attributes:
-		:_DAP4_Little_Endian = 1UB ;
 data:
 
  vu8 =

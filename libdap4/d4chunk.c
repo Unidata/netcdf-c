@@ -6,13 +6,19 @@
 #include "d4includes.h"
 #include "d4chunk.h"
 
+#define CHECKSUMFLAG
+
 /**************************************************/
 
 /* Header flags */
 #define LAST_CHUNK          (1)
 #define ERR_CHUNK           (2)
 #define LITTLE_ENDIAN_CHUNK (4)
+#ifdef CHECKSUMHACK
 #define NOCHECKSUM_CHUNK    (8)
+#else
+#define NOCHECKSUM_CHUNK    (0)
+#endif
 
 #define ALL_CHUNK_FLAGS (LAST_CHUNK|ERR_CHUNK|LITTLE_ENDIAN_CHUNK|NOCHECKSUM_CHUNK)
 
@@ -51,9 +57,9 @@ NCD4_dechunk(NCD4meta* metadata)
     metadata->serial.dap = NULL;
     metadata->serial.hostlittleendian = NCD4_isLittleEndian();
     metadata->serial.remotelittleendian = 0; /* do not actually know yet */
-    metadata->serial.remotechecksumming = 0; /* do not actually know yet */
-    metadata->localchecksumming = 0; /* do not actually know yet */
-
+#ifdef CHECKSUMHACK
+    metadata->serial.checksumhack = 0; /* do not actually know yet */
+#endif
     /* Assume proper mode has been inferred already. */
 
     /* Verify the mode; assume that the <?xml...?> is optional */
@@ -90,9 +96,13 @@ NCD4_dechunk(NCD4meta* metadata)
         return processerrchunk(metadata, (void*)p, hdr.count);
     }
 
-    metadata->serial.remotechecksumming = ((hdr.flags & NOCHECKSUM_CHUNK) ? 0 : 1);
-    metadata->localchecksumming = metadata->serial.remotechecksumming;
-
+#ifdef CHECKSUMHACK
+    /* Temporary hack; We mistakenly thought that bit 3 of the flags
+       of the first header indicated that checksumming was not in force.
+       Test for it, and propagate the _DAP4_Checksum_CRC32 attribute later */
+    metadata->serial.checksumhack = ((hdr.flags & NOCHECKSUM_CHUNK) ? 1 : 0);
+fprintf(stderr,"checksumhack=%d\n",metadata->serial.checksumhack);
+#endif
     metadata->serial.remotelittleendian = ((hdr.flags & LITTLE_ENDIAN_CHUNK) ? 1 : 0);
     /* Again, avoid strxxx operations on dmr */
     if((metadata->serial.dmr = malloc(hdr.count+1)) == NULL)
@@ -122,7 +132,7 @@ NCD4_dechunk(NCD4meta* metadata)
         if(hdr.count > 0) {
             d4memmove(q,p,hdr.count); /* will overwrite the header */
             p += hdr.count;
-            q += hdr.count;
+	    q += hdr.count;
         }
         if(hdr.flags & LAST_CHUNK) break;
     }
@@ -149,42 +159,19 @@ processerrchunk(NCD4meta* metadata, void* errchunk, unsigned int count)
     return THROW(NC_ENODATA); /* slight lie */
 }
 
-/* At the moment, the Hyrax test server
-       is serving up the chunk data as little endian.
-       So use a heuristic to see which endianness
-       makes the more sense.
-   This fails for very small dap data sections.
-*/
 static void*
 getheader(void* p, struct HDR* hdr, int hostlittleendian)
 {
     unsigned char bytes[4];
-#ifdef HYRAXHACK
-    struct HDR hyrax;
-    unsigned char orig[4];
-    memcpy(orig,p,sizeof(bytes));/* save a copy */
-#endif
     memcpy(bytes,p,sizeof(bytes));
     p = INCR(p,4); /* on-the-wire hdr is 4 bytes */
     /* assume header is network (big) order */
     hdr->flags = bytes[0]; /* big endian => flags are in byte 0 */
+    hdr->flags &= ALL_CHUNK_FLAGS; /* Ignore extraneous flags */
     bytes[0] = 0; /* so we can do byte swap to get count */
     if(hostlittleendian)
         swapinline32(bytes); /* host is little endian */
     hdr->count = *(unsigned int*)bytes; /* get count */
-#ifdef HYRAXHACK
-    memcpy(bytes,orig,sizeof(bytes)); /* restore */
-    hyrax.flags = bytes[3];
-    bytes[3] = 0; /* so we can do byte swap to get count */
-    if(!hostlittleendian)
-        swapinline32(bytes); /* host is big endian */
-    hyrax.count = *(unsigned int*)bytes; /* get count */
-    /* See which makes more sense */
-    if(hyrax.flags <= ALL_CHUNK_FLAGS && hyrax.count >= 0 && hyrax.count < hdr->count) {
-        /* Use hyrax version */
-        *hdr = hyrax;   
-    }
-#endif
     return p;
 }
 
