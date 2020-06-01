@@ -1,3 +1,5 @@
+if test "x$SETX" = x1 ; then set -x ; fi
+
 if test $# = 0 ; then
 TEST=1
 else
