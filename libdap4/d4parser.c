@@ -108,7 +108,7 @@ extern const char** ezxml_all_attr(ezxml_t xml, int* countp);
 /* Forwards */
 
 static int addOrigType(NCD4parser*, NCD4node* src, NCD4node* dst, const char* tag);
-static int defineAtomicTypes(NClist*);
+static int defineAtomicTypes(NCD4meta*,NClist*);
 static void classify(NCD4node* container, NCD4node* node);
 static int convertString(union ATOMICS*, NCD4node* type, const char* s);
 static int downConvert(union ATOMICS*, NCD4node* type);
@@ -123,6 +123,7 @@ static NCD4node* lookupFQN(NCD4parser*, const char* sfqn, NCD4sort);
 static int lookupFQNList(NCD4parser*, NClist* fqn, NCD4sort sort, NCD4node** result);
 static NCD4node* makeAnonDim(NCD4parser*, const char* sizestr);
 static int makeNode(NCD4parser*, NCD4node* parent, ezxml_t, NCD4sort, nc_type, NCD4node**);
+static int makeNodeStatic(NCD4meta* meta, NCD4node* parent, NCD4sort sort, nc_type subsort, NCD4node** nodep);
 static int parseAtomicVar(NCD4parser*, NCD4node* container, ezxml_t xml, NCD4node**);
 static int parseAttributes(NCD4parser*, NCD4node* container, ezxml_t xml);
 static int parseDimensions(NCD4parser*, NCD4node* group, ezxml_t xml);
@@ -143,7 +144,7 @@ static int parseVariable(NCD4parser*, NCD4node* group, ezxml_t xml, NCD4node**);
 static void reclaimParser(NCD4parser* parser);
 static void record(NCD4parser*, NCD4node* node);
 static int splitOrigType(NCD4parser*, const char* fqn, NCD4node* var);
-static void track(NCD4parser*, NCD4node* node);
+static void track(NCD4meta*, NCD4node* node);
 static int traverse(NCD4parser*, ezxml_t dom);
 #ifndef FIXEDOPAQUE
 static int defineBytestringType(NCD4parser*);
@@ -162,7 +163,7 @@ NCD4_parse(NCD4meta* metadata)
 
     /* fill in the atomic types for meta*/
     metadata->atomictypes = nclistnew();
-    if((ret=defineAtomicTypes(metadata->atomictypes))) goto done;
+    if((ret=defineAtomicTypes(metadata,metadata->atomictypes))) goto done;
 
     /* Create and fill in the parser state */
     parser = (NCD4parser*)calloc(1,sizeof(NCD4parser));
@@ -195,6 +196,7 @@ reclaimParser(NCD4parser* parser)
     nclistfree(parser->types);
     nclistfree(parser->dims);
     nclistfree(parser->vars);
+    nclistfree(parser->groups);
     free (parser);
 }
 
@@ -1187,7 +1189,7 @@ done:
 #endif
 
 static int
-defineAtomicTypes(NClist* list)
+defineAtomicTypes(NCD4meta* meta, NClist* list)
 {
     int ret = NC_NOERR;
     NCD4node* node;
@@ -1196,7 +1198,7 @@ defineAtomicTypes(NClist* list)
     if(list == NULL)
 	return THROW(NC_EINTERNAL);
     for(ati=atomictypeinfo;ati->name;ati++) {
-        if((ret=makeNode(NULL,NULL,NULL,NCD4_TYPE,ati->type,&node))) goto done;
+        if((ret=makeNodeStatic(meta,NULL,NCD4_TYPE,ati->type,&node))) goto done;
 	SETNAME(node,ati->name);
 	PUSH(list,node);
     }
@@ -1234,13 +1236,12 @@ lookupAtomicType(NClist* atomictypes, const char* name)
 static int
 makeNode(NCD4parser* parser, NCD4node* parent, ezxml_t xml, NCD4sort sort, nc_type subsort, NCD4node** nodep)
 {
-    int ret = NC_NOERR;
-    NCD4node* node = (NCD4node*)calloc(1,sizeof(NCD4node));
+    int ret = NC_NOERR;    
+    NCD4node* node = NULL;
+    
+    assert(parser);
+    if((ret = makeNodeStatic(parser->metadata,parent,sort,subsort,&node))) goto done;
 
-    if(node == NULL) return THROW(NC_ENOMEM);
-    node->sort = sort;
-    node->subsort = subsort;
-    node->container = parent;
     /* Set node name, if it exists */
     if(xml != NULL) {
         const char* name = ezxml_attr(xml,"name");
@@ -1251,11 +1252,27 @@ makeNode(NCD4parser* parser, NCD4node* parent, ezxml_t xml, NCD4sort sort, nc_ty
 	    SETNAME(node,name);
 	}
     }
+    if(nodep) *nodep = node;
+done:
+    return ret;
+}
+
+static int
+makeNodeStatic(NCD4meta* meta, NCD4node* parent, NCD4sort sort, nc_type subsort, NCD4node** nodep)
+{
+    int ret = NC_NOERR;
+    NCD4node* node = (NCD4node*)calloc(1,sizeof(NCD4node));
+
+    assert(meta);
+    if(node == NULL) return THROW(NC_ENOMEM);
+    node->sort = sort;
+    node->subsort = subsort;
+    node->container = parent;
     if(parent != NULL) {
 	if(parent->sort == NCD4_GROUP)
 	    PUSH(parent->group.elements,node);
     }
-    if(parser) track(parser,node);
+    track(meta,node);
     if(nodep) *nodep = node;
     return THROW(ret);
 }
@@ -1370,7 +1387,7 @@ forget(NCD4parser* parser, NCD4node* var)
 #endif
 
 static void
-track(NCD4parser* parser, NCD4node* node)
+track(NCD4meta* meta, NCD4node* node)
 {
 #ifdef D4DEBUG
     fprintf(stderr,"track: node=%lx sort=%d subsort=%d",(unsigned long)node,node->sort,node->subsort);
@@ -1378,9 +1395,9 @@ track(NCD4parser* parser, NCD4node* node)
         fprintf(stderr," name=%s\n",node->name);
     fprintf(stderr,"\n");
 #endif
-    PUSH(parser->metadata->allnodes,node);
+    PUSH(meta->allnodes,node);
 #ifdef D4DEBUG
-    fprintf(stderr,"track: |allnodes|=%ld\n",nclistlength(parser->metadata->allnodes));
+    fprintf(stderr,"track: |allnodes|=%ld\n",nclistlength(meta->allnodes));
     fflush(stderr);
 #endif
 }
