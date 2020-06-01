@@ -130,6 +130,7 @@ NCD4_reclaimMeta(NCD4meta* dataset)
     nullfree(dataset->error.otherinfo);
     nullfree(dataset->serial.errdata);
     nclistfree(dataset->groupbyid);
+    nclistfree(dataset->atomictypes);
 #if 0
     for(i=0;i<nclistlength(dataset->blobs);i++) {
 	void* p = nclistget(dataset->blobs,i);
