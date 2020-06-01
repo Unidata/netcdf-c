@@ -64,8 +64,8 @@ extern int nc__testurl(const char*,char**);
    we need to be careful about printing their attributes.
 */
 static const char* keywords[] = {
-"variable",
-"dimension",
+"variables",
+"dimensions",
 "data",
 "group",
 "types",
