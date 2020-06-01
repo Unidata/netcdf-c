@@ -11,7 +11,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 # reoccurs, then the following command would fail.
 
 # Figure our server; if none, then just stop
-SVCP=`${execdir}/pingurl test.opendap.org/opendap`
+SVCP=`${execdir}/pingurl test.opendap.org/opendap|tr -d '\r'`
 if test "x$SVCP" = xno ; then
     echo "WARNING: test.opendap.org is not accessible";
     exit 0;

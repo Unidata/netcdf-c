@@ -12,5 +12,4 @@ variables:
 
 // global attributes:
 		string :_dap4.ce = "/primary_cloud[1:2:4]" ;
-		:_DAP4_Little_Endian = 1UB ;
 }

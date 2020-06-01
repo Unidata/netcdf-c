@@ -14,7 +14,7 @@ include $(top_srcdir)/lib_flags.am
 #TESTS_ENVIRONMENT = export SETX=1;
 
 LDADD = ${top_builddir}/liblib/libnetcdf.la
-AM_CPPFLAGS += -I$(top_srcdir)/libdap4
+AM_CPPFLAGS += -I$(top_srcdir)/libdap4 -I${topdir}/include
 
 # Set up the tests; do the .sh first, then .c
 check_PROGRAMS =
@@ -28,10 +28,12 @@ check_PROGRAMS += test_parse test_meta test_data
 test_parse_SOURCES = test_parse.c test_common.h
 test_meta_SOURCES = test_meta.c test_common.h
 test_data_SOURCES = test_data.c test_common.h
+
 TESTS += test_parse.sh
 
 if BUILD_UTILITIES
 # These rely on ncdump
+TESTS += test_parse.sh
 TESTS += test_raw.sh
 TESTS += test_meta.sh
 TESTS += test_data.sh
@@ -43,10 +45,13 @@ test_raw.log: test_parse.log
 test_meta.log: test_raw.log
 test_data.log: test_meta.log
 
+noinst_PROGRAMS = dump
+dump_SOURCES = dump.c
+
 if ENABLE_DAP_REMOTE_TESTS
 # Note: This program name was changed to findtestserver4
 # to avoid cmake complaint about duplicate targets.
-noinst_PROGRAMS = findtestserver4 pingurl4
+noinst_PROGRAMS += findtestserver4 pingurl4
 findtestserver4_SOURCES = findtestserver4.c
 pingurl4_SOURCES = pingurl4.c
 endif
