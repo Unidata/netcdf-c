@@ -37,7 +37,7 @@ libnoop1_la_SOURCES = H5Znoop1.c H5Zutil.c h5noop.h
 endif #ENABLE_FILTER_TESTING
 
 BUILT_SOURCES = H5Znoop1.c
-CLEANFILES = H5Znoop1.c
+MOSTLYCLEANFILES = H5Znoop1.c
 H5Znoop1.c: Makefile H5Znoop.c
 	echo '#define NOOP_INSTANCE 1' > $@
 	cat ${srcdir}/H5Znoop.c >> $@
