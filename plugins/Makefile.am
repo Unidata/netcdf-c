@@ -4,20 +4,21 @@
 # Put Together AM_CPPFLAGS and AM_LDFLAGS
 include $(top_srcdir)/lib_flags.am
 
-LDFLAGS = -module -avoid-version -shared -export-dynamic -no-undefined -rpath ${abs_builddir}
+AM_LDFLAGS = -module -avoid-version -shared -export-dynamic	\
+-no-undefined -rpath ${abs_builddir}
 
-BZIP2HDRS=bzlib.h bzlib_private.h
-BZIP2SRC= blocksort.c huffman.c crctable.c randtable.c compress.c decompress.c bzlib.c
+BZIP2HDRS = bzlib.h bzlib_private.h
+BZIP2SRC = blocksort.c huffman.c crctable.c randtable.c compress.c decompress.c bzlib.c
 
-PLUGINSRC=H5Zbzip2.c
-PLUGINHDRS=h5bzip2.h
+PLUGINSRC = H5Zbzip2.c
+PLUGINHDRS = h5bzip2.h
 
-EXTRA_DIST=${PLUGINSRC} ${BZIP2SRC} ${PLUGINHDRS} ${BZIP2HDRS} \
-		H5Ztemplate.c H5Zmisc.c H5Zutil.c H5Znoop.c h5noop.h CMakeLists.txt
+EXTRA_DIST = ${PLUGINSRC} ${BZIP2SRC} ${PLUGINHDRS} ${BZIP2HDRS}	\
+H5Ztemplate.c H5Zmisc.c H5Zutil.c H5Znoop.c h5noop.h CMakeLists.txt
 
 # WARNING: This list must be kept consistent with the corresponding
 # AC_CONFIG_LINK commands near the end of configure.ac.
-HDF5PLUGINSRC=${PLUGINSRC} ${BZIP2SRC} ${PLUGINHDRS} ${BZIP2HDRS}
+HDF5PLUGINSRC = ${PLUGINSRC} ${BZIP2SRC} ${PLUGINHDRS} ${BZIP2HDRS}
 
 if ENABLE_FILTER_TESTING
 
