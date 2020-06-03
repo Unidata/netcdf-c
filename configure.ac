@@ -1177,8 +1177,7 @@ if test "x$enable_pnetcdf" = xyes; then
   # Pnetcdf did not support utf-8 until 1.6.0
 
   AC_MSG_CHECKING([Is libpnetcdf version 1.6.0 or later?])
-  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [[
-#include <pnetcdf.h>
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <pnetcdf.h>]], [[
 #if (PNETCDF_VERSION_MAJOR*1000 + PNETCDF_VERSION_MINOR < 1006)
       choke me
 #endif
@@ -1229,8 +1228,7 @@ if test "x$enable_pnetcdf" = xyes; then
    UD_CHECK_HEADER_PATH([pnetcdf.h])
 
    AC_MSG_CHECKING([if erange-fill is enabled in PnetCDF])
-   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [[
-#include <pnetcdf.h>
+   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <pnetcdf.h>]], [[
 #if !defined(PNETCDF_ERANGE_FILL) || PNETCDF_ERANGE_FILL == 0
       choke me
 #endif]])], [enable_erange_fill_pnetcdf=yes], [enable_erange_fill_pnetcdf=no])
@@ -1246,8 +1244,7 @@ if test "x$enable_pnetcdf" = xyes; then
    fi
 
    AC_MSG_CHECKING([if relax-coord-bound is enabled in PnetCDF])
-   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [[
-#include <pnetcdf.h>
+   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <pnetcdf.h>]], [[
 #if !defined(PNETCDF_RELAX_COORD_BOUND) || PNETCDF_RELAX_COORD_BOUND == 0
       choke me
 #endif]])], [relax_coord_bound_pnetcdf=yes], [relax_coord_bound_pnetcdf=no])
