@@ -230,6 +230,17 @@ extern "C" {
      */
     EXTERNL int NC_NOOP_filter_actions(int, int, int, struct NC_Filterobject*);
 
+    /* These functions are for dispatch layers that don't want to
+     * implement the deprecated varm functions. They return
+     * NC_ENOTNC3. */
+    EXTERNL int NC_NOTNC3_get_varm(int ncid, int varid, const size_t *start,
+				   const size_t *edges, const ptrdiff_t *stride,
+				   const ptrdiff_t *imapp, void *value0, nc_type memtype);
+    EXTERNL int NC_NOTNC3_put_varm(int ncid, int varid, const size_t * start,
+				   const size_t *edges, const ptrdiff_t *stride,
+				   const ptrdiff_t *imapp, const void *value0,
+				   nc_type memtype);
+
 #if defined(__cplusplus)
 }
 #endif
