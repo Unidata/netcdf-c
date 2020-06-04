@@ -64,11 +64,11 @@ netCDF-C distribution, or the (usually more up-to-date) document:
 A language-independent User's Guide for netCDF, and some other
 language-specific user-level documents are available from:
 
-* [Language-independent User's Guide](http://www.unidata.ucar.edu/software/netcdf/docs/user_guide.html)
+* [Language-independent User's Guide](https://www.unidata.ucar.edu/software/netcdf/documentation/NUG/index.html#user_guide)
 * [NetCDF-C Tutorial](http://www.unidata.ucar.edu/software/netcdf/docs/tutorial_8dox.html)
 * [Fortran-90 User's Guide](http://www.unidata.ucar.edu/software/netcdf/documentation/historic/netcdf-f90/index.html#Top)
 * [Fortran-77 User's Guide](http://www.unidata.ucar.edu/software/netcdf/documentation/historic/netcdf-f77/index.html#Top)
-* [netCDF-Java/Common Data Model library](http://www.unidata.ucar.edu/software/thredds/current/netcdf-java/)
+* [netCDF-Java/Common Data Model library](https://docs.unidata.ucar.edu/netcdf-java/current/userguide/index.html)
 * [netCDF4-python](http://unidata.github.io/netcdf4-python/)
 
 A mailing list, netcdfgroup@unidata.ucar.edu, exists for discussion of
