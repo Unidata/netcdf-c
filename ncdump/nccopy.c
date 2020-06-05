@@ -32,6 +32,7 @@
 #include "list.h"
 
 #undef DEBUGFILTER
+#undef DEBUGCHUNK
 
 /* default bytes of memory we are willing to allocate for variable
  * values during copy */
@@ -1462,6 +1463,7 @@ copy_vars(int igrp, int ogrp)
     return stat;
 }
 
+#ifdef DEBUGCHUNK
 static void
 report(int rank, size_t* start, size_t* count, void* buf)
 {
@@ -1482,7 +1484,7 @@ report(int rank, size_t* start, size_t* count, void* buf)
     fprintf(stderr,"\n");
     fflush(stderr);
 }
-
+#endif /*DEBUGCHUNK*/
 
 /* Copy the schema in a group and all its subgroups, recursively, from
  * group igrp in input to parent group ogrp in destination.  Use
@@ -1636,7 +1638,9 @@ copy_var_data(int igrp, int varid, int ogrp) {
      * subsequent calls. */
     while((ntoget = nc_next_iter(iterp, start, count)) > 0) {
 	NC_CHECK(nc_get_vara(igrp, varid, start, count, buf));
-report(iterp->rank,start,count,buf);
+#ifdef DEBUGCHUNK
+	report(iterp->rank,start,count,buf);
+#endif
 	NC_CHECK(nc_put_vara(ogrp, ovarid, start, count, buf));
 #ifdef USE_NETCDF4
 	/* we have to explicitly free values for strings and vlens */
