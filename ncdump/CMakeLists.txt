@@ -268,6 +268,10 @@ ENDIF(MSVC)
 
   add_sh_test(ncdump tst_ctests)
 
+  IF(USE_CDF5)
+  add_sh_test(ncdump test_keywords)
+  ENDIF()
+  
 ENDIF()
 
 ENDIF()

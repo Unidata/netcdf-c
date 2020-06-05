@@ -677,7 +677,7 @@ static const char *const yytname[] =
   "dim_or_attr_decl", "dimdeclist", "dimdecl", "dimd", "vasection",
   "vadecls", "vadecl_or_attr", "vardecl", "varlist", "varspec", "dimspec",
   "dimlist", "dimref", "fieldlist", "fieldspec", "fielddimspec",
-  "fielddimlist", "fielddim", "varref", "typeref", "type_var_ref",
+  "fielddimlist", "fielddim", "varref", "typeref", "ambiguous_ref",
   "attrdecllist", "attrdecl", "path", "datasection", "datadecls",
   "datadecl", "datalist", "datalist0", "datalist1", "dataitem",
   "constdata", "econstref", "function", "arglist", "simpleconstant",

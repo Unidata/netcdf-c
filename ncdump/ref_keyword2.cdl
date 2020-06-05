@@ -1,0 +1,6 @@
+netcdf keyword2 {
+dimensions:
+string = 128;
+variables:
+int string(string);
+}
