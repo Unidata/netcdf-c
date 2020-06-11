@@ -1812,7 +1812,7 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     hsize_t stride[NC_MAX_VAR_DIMS];
     void *fillvalue = NULL;
     int no_read = 0, provide_fill = 0;
-    int fill_value_size[NC_MAX_VAR_DIMS];
+    hssize_t fill_value_size[NC_MAX_VAR_DIMS];
     int scalar = 0, retval, range_error = 0, i, d2;
     void *bufr = NULL;
     int need_to_convert = 0;
