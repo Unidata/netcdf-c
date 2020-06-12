@@ -392,6 +392,9 @@ are set when opening a binary file on Windows. */
 with zip */
 #cmakedefine HDF5_SUPPORTS_PAR_FILTERS 1
 
+/* if true, backtrace support will be used. */
+#cmakedefine HAVE_EXECINFO_H 1
+
 /* if true, include JNA bug fix */
 #cmakedefine JNA 1
 

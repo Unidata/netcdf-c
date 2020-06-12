@@ -5,7 +5,7 @@
 #include "config.h"
 #include <stdarg.h>
 #include <stdio.h>
-#if !defined _WIN32 && !defined __CYGWIN__
+#ifdef HAVE_EXECINFO_H
 #include <execinfo.h>
 #endif
 
@@ -15,14 +15,14 @@
 
 #define STSIZE 1000
 
-#if !defined _WIN32 && !defined __CYGWIN__
+#ifdef HAVE_EXECINFO_H
 static void* stacktrace[STSIZE];
 #endif
 
 int
 nch5breakpoint(int err)
 {
-#if !defined _WIN32 && !defined __CYGWIN__
+#ifdef HAVE_EXECINFO_H
     int count = 0;
     char** trace = NULL;
     int i;
