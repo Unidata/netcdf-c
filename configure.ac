@@ -1058,7 +1058,7 @@ if test "x$enable_hdf5" = xyes; then
    AC_CHECK_HEADERS([hdf5.h], [], [AC_MSG_ERROR([Compiling a test with HDF5 failed.  Either hdf5.h cannot be found, or config.log should be checked for other reason.])])
 
    # Was HDF5 built with zlib as netCDF requires?
-   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include "H5pubconf.h"],
+   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include "H5public.h"],
    [[#if !H5_HAVE_ZLIB_H
    # error
    #endif]
