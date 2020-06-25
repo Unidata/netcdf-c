@@ -7,6 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.8.0 - TBD
 
+* [Bug Fix] Fix nccopy to properly set default chunking parameters when not otherwise specified. This can significantly improve performance in selected cases. Note that if seeing slow performance with nccopy, then, as a work-around, specifically set the chunking parameters. [https://github.com/Unidata/netcdf-c/issues/1763].
 * [Bug Fix] Fix some protocol bugs/differences between the netcdf-c library and the OPeNDAP Hyrax server. Also cleanup checksum handling [https://github.com/Unidata/netcdf-c/issues/1712].
 * [Bug Fix] Add necessary __declspec declarations to allow compilation
 of netcdf library without causing errors or (_declspec related)
