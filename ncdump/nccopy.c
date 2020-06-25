@@ -905,6 +905,7 @@ copy_chunking(int igrp, int i_varid, int ogrp, int o_varid, int ndims, int inkin
     size_t ichunkp[NC_MAX_VAR_DIMS];
     size_t ochunkp[NC_MAX_VAR_DIMS];
     size_t dimlens[NC_MAX_VAR_DIMS];
+    size_t dfaltchunkp[NC_MAX_VAR_DIMS]; /* default chunking for ovarid */
     int is_unlimited = 0;
 
     /* First, check the file kinds */
@@ -914,6 +915,7 @@ copy_chunking(int igrp, int i_varid, int ogrp, int o_varid, int ndims, int inkin
     memset(ichunkp,0,sizeof(ichunkp));
     memset(ochunkp,0,sizeof(ochunkp));
     memset(dimlens,0,sizeof(dimlens));
+    memset(dfaltchunkp,0,sizeof(dfaltchunkp));
 
     /* Get the chunking, if any, on the current input variable */
     if(innc4) {
@@ -1000,11 +1002,29 @@ copy_chunking(int igrp, int i_varid, int ogrp, int o_varid, int ndims, int inkin
                     dimlens[idim] = mb4dimsize;
             }
 	}
-	/* compute the final ochunksizes: precedence is output, input, dimeln */
+
+        /* Get the current default chunking on the output variable */
+        /* Unfortunately, there is no way to get this info except by 
+           forcing chunking */
+        if(ocontig == NC_CHUNKED) {
+	    /* this may fail if chunking is not possible, in which case ignore */
+            int ret = nc_def_var_chunking(ogrp, o_varid, NC_CHUNKED, dfaltchunkp);
+	    if(ret == NC_NOERR) {
+		int storage;
+	        NC_CHECK(nc_inq_var_chunking(ogrp, o_varid, &storage, dfaltchunkp));
+		if(storage != NC_CHUNKED) return NC_EINTERNAL;
+	    }
+        }
+
+	/* compute the final ochunksizes: precedence is output, input, defaults, dimelen */
         for(idim = 0; idim < ndims; idim++) {
 	    if(ochunkp[idim] == 0) {
 	        if(ichunkp[idim] != 0)
 		    ochunkp[idim] = ichunkp[idim];
+	    }
+	    if(ochunkp[idim] == 0) {
+	        if(dfaltchunkp[idim] != 0)
+		    ochunkp[idim] = dfaltchunkp[idim];
 	    }
 	    if(ochunkp[idim] == 0) {
 	        if(dimlens[idim] != 0)
@@ -1462,6 +1482,7 @@ copy_vars(int igrp, int ogrp)
     return stat;
 }
 
+#if 0
 static void
 report(int rank, size_t* start, size_t* count, void* buf)
 {
@@ -1482,7 +1503,7 @@ report(int rank, size_t* start, size_t* count, void* buf)
     fprintf(stderr,"\n");
     fflush(stderr);
 }
-
+#endif
 
 /* Copy the schema in a group and all its subgroups, recursively, from
  * group igrp in input to parent group ogrp in destination.  Use
@@ -1636,7 +1657,6 @@ copy_var_data(int igrp, int varid, int ogrp) {
      * subsequent calls. */
     while((ntoget = nc_next_iter(iterp, start, count)) > 0) {
 	NC_CHECK(nc_get_vara(igrp, varid, start, count, buf));
-report(iterp->rank,start,count,buf);
 	NC_CHECK(nc_put_vara(ogrp, ovarid, start, count, buf));
 #ifdef USE_NETCDF4
 	/* we have to explicitly free values for strings and vlens */
