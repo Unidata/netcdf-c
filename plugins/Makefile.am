@@ -4,7 +4,7 @@
 # Put Together AM_CPPFLAGS and AM_LDFLAGS
 include $(top_srcdir)/lib_flags.am
 
-AM_LDFLAGS = -module -avoid-version -shared -export-dynamic	\
+AM_LDFLAGS += -module -avoid-version -shared -export-dynamic	\
 -no-undefined -rpath ${abs_builddir}
 
 BZIP2HDRS = bzlib.h bzlib_private.h
