@@ -73,8 +73,8 @@ main(int argc, char **argv)
                 /* Create a parallel netcdf-4 file. */
                 if (nc_create_par(FILE_NAME, NC_NETCDF4, comm, info, &ncid)) ERR;
 		
-/*   ! Turn off fill mode. */
-/*   call check(nf90_set_fill(ncid, NF90_NOFILL, oldMode)) */
+		/* Turn off fill mode. */
+		nc_set_fill(ncid, NC_NOFILL, oldMode);
 
 /*   ! Define dimension grid_xt. */
 /*   call check(nf90_def_dim(ncid, trim(dim_name(1)), dim_len(1), dimid(1))) */
