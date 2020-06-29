@@ -1464,7 +1464,7 @@ main(int argc, char **argv)
             /* Set the var to contiguous. */
             if (nc_def_var_chunking(ncid, varid, NC_CONTIGUOUS, NULL)) ERR;
 
-            /* Now defalte will change the var to chunked. */
+            /* Now deflate will change the var to chunked. */
             if (nc_def_var_deflate(ncid, varid, 0, 1, 4)) ERR;
             if (nc_inq_var_chunking(ncid, varid, &contiguous_in, chunksizes_in)) ERR;
             if (contiguous_in) ERR;

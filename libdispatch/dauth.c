@@ -180,6 +180,7 @@ NC_authsetup(NCauth* auth, NCURI* uri)
 void
 NC_authclear(NCauth* auth)
 {
+    if(auth == NULL) return;
     if(auth->curlflags.cookiejarcreated) {
 #ifdef _MSC_VER
         DeleteFile(auth->curlflags.cookiejar);

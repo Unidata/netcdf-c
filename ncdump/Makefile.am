@@ -8,7 +8,7 @@
 #SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#TESTS_ENVIRONMENT = export SETX=1;
+#TESTS_ENVIRONMENT += export SETX=1;
 
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
@@ -17,6 +17,10 @@ noinst_PROGRAMS=
 # Note which tests depend on other tests. Necessary for make -j check.
 TEST_EXTENSIONS = .sh
 XFAIL_TESTS=""
+
+if ! ENABLE_UNFIXED_MEMORY_LEAKS
+AM_TESTS_ENVIRONMENT += export NC_VLEN_NOTEST=1;
+endif
 
 # This is the program we're building, and it's sources.
 bin_PROGRAMS = ncdump

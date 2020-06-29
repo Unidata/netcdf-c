@@ -15,8 +15,10 @@
 
 #include "netcdf.h"
 #include "netcdf_filter.h"
+#include "netcdf_aux.h"
 #include "ncdispatch.h"
 #include "nc4internal.h"
+#include "ncfilter.h"
 
 /**
  * @internal Not implemented in some dispatch tables
@@ -31,7 +33,7 @@
  * @author Ed Hartnett
  */
 int
-NC_NOTNC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
+NC_NOTNC4_def_var_filter(int ncid, int varid, unsigned int  id, size_t nparams,
                          const unsigned int* parms)
 {
     return NC_ENOTNC4;
@@ -627,11 +629,13 @@ NC_NOTNC4_inq_typeid(int ncid, const char *name, nc_type *typeidp)
  * @param varid Containing variable id
  * @param action Action to perform
  *
- * @return ::NC_ENOTNC4 Not implemented for a dispatch table.
+ * @return ::NC_NOERR Implemented as a no-op.
+ * @return ::NC_ENOTNC4 Not implemented
+ * @return ::NC_ENOFILTER No filter defined
  * @author D. Heimbigner
  */
 int
-NC_NOTNC4_filter_actions(int ncid, int varid, int action, struct NC_Filterobject* spec)
+NC_NOTNC4_filter_actions(int ncid, int varid, int action, void* args)
 {
     return NC_ENOTNC4;
 }
@@ -649,17 +653,17 @@ NC_NOTNC4_filter_actions(int ncid, int varid, int action, struct NC_Filterobject
  * @author D. Heimbigner
  */
 int
-NC_NOOP_filter_actions(int ncid, int varid, int action, struct NC_Filterobject* args)
+NC_NOOP_filter_actions(int ncid, int varid, int action, void* args)
 {
-    NC_FILTER_OBJ_HDF5* obj = (NC_FILTER_OBJ_HDF5*)args;
+    NC_FILTERX_OBJ* obj = (NC_FILTERX_OBJ*)args;
     switch (action) {
     case NCFILTER_FILTERIDS: 
 	obj->u.ids.nfilters = 0;
 	return NC_NOERR;
-    case NCFILTER_INQ: /* fall thrue */
     case NCFILTER_INFO:
 	return NC_ENOFILTER;
     default:
-	return NC_ENOTNC4;
+	return NC_EFILTER;
     }
 }
+

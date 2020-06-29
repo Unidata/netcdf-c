@@ -10,7 +10,7 @@
 cmake_minimum_required(VERSION 3.6.1)
 
 #Project Name
-project(netCDF C)
+project(netCDF LANGUAGES C CXX)
 set(PACKAGE "netCDF" CACHE STRING "")
 
 #####
@@ -232,7 +232,7 @@ IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
     MESSAGE(STATUS "Coverage Tests: On.")
   ENDIF()
 
-    # Warnings for 64-to-32 bit conversions.
+  # Warnings for 64-to-32 bit conversions.
   IF(ENABLE_CONVERSION_WARNINGS)
     CHECK_C_COMPILER_FLAG(-Wconversion CC_HAS_WCONVERSION)
     CHECK_C_COMPILER_FLAG(-Wshorten-64-to-32 CC_HAS_SHORTEN_64_32)
@@ -269,8 +269,6 @@ SET(CMAKE_REQUIRED_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/libsrc)
 ################################
 # End Compiler Configuration
 ################################
-
-
 
 ##
 # Configuration for post-install RPath
@@ -906,6 +904,8 @@ IF(MSVC)
          DESTINATION ${netCDF_BINARY_DIR}/ncgen/)
     FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
          DESTINATION ${netCDF_BINARY_DIR}/ncdump/)
+    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
+         DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
   ENDIF()
 ENDIF()
 
@@ -925,13 +925,49 @@ IF(NOT WIN32)
   ENDIF()
 ENDIF()
 
+# Option to Build NCZarr clients
+OPTION(ENABLE_NCZARR "Enable NCZarr Client." OFF)
+OPTION(ENABLE_S3_SDK "Enable NCZarr S3 support." ON)
+
+# See if aws-s3-sdk is available
+FIND_LIBRARY(AWS_CPP_SDK_CORE_LIB NAMES aws-cpp-sdk-core)
+FIND_LIBRARY(AWS_CPP_SDK_S3_LIB NAMES aws-cpp-sdk-s3)
+FIND_LIBRARY(AWS_C_COMMON_LIB NAMES aws-c-common)
+
+IF(NOT AWS_CPP_SDK_CORE_LIB)
+  SET(AWS_CPP_SDK_CORE_LIB OFF)
+ENDIF()
+IF(NOT AWS_CPP_SDK_S3_LIB)
+  SET(AWS_CPP_SDK_S3_LIB OFF)
+ENDIF()
+IF(NOT AWS_C_COMMON_LIB)
+  SET(AWS_C_COMMON_LIB OFF)
+ENDIF()
+
+IF(ENABLE_S3_SDK)
+  IF(NOT AWS_CPP_SDK_CORE_LIB
+     OR NOT AWS_CPP_SDK_S3_LIB
+     OR NOT AWS_C_COMMON_LIB)
+    MESSAGE(WARNING "One of aws-c-common, aws-cpp-sdk-s3, aws-cpp-sdk-core libraries is not available: Turning off S3 support")
+    SET(ENABLE_S3_SDK OFF)
+  ELSE()
+      MESSAGE(STATUS "Found aws sdk libraries")
+  ENDIF()
+ENDIF()
+
+IF(ENABLE_S3_SDK)
+IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
+#  SET(LDFLAGS "${LDFLAGS} ${AWS_CPP_SDK_CORE_LIB} ${AWS_CPP_SDK_S3_LIB} ${AWS_C_COMMON_LIB}")
+#  SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lstdc++")
+ENDIF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
+ENDIF(ENABLE_S3_SDK)
+
 ##
 # Enable Tests
 ##
 OPTION(ENABLE_TESTS "Enable basic tests, run with 'make test'." ON)
 IF(ENABLE_TESTS)
   SET(BUILD_TESTSETS ON CACHE BOOL "")
-
   # Options for CTest-based tests, dashboards.
   SET(NC_CTEST_PROJECT_NAME "netcdf-c" CACHE STRING "Project Name for CTest-based testing purposes.")
   SET(NC_CTEST_DROP_SITE "cdash.unidata.ucar.edu:443" CACHE STRING "Dashboard location for CTest-based testing purposes.")
@@ -966,6 +1002,10 @@ IF(ENABLE_TESTS)
   ###
 
   OPTION(ENABLE_FAILING_TESTS "Run tests which are known to fail, check to see if any have been fixed." OFF)
+
+  # There is a special class of tests that currently fail because of memory leaks.
+  # As with failing tests, they can be enabled to work on them
+  OPTION(ENABLE_UNFIXED_MEMORY_LEAKS "Run tests with unfixed memory leaks" OFF)
 
   ###
   # Option to turn on unit testing. See
@@ -1325,6 +1365,8 @@ CHECK_INCLUDE_FILE("string.h"  HAVE_STRING_H)
 CHECK_INCLUDE_FILE("winsock2.h" HAVE_WINSOCK2_H)
 CHECK_INCLUDE_FILE("ftw.h"  HAVE_FTW_H)
 CHECK_INCLUDE_FILE("libgen.h" HAVE_LIBGEN_H)
+CHECK_INCLUDE_FILE("execinfo.h" HAVE_EXECINFO_H)
+CHECK_INCLUDE_FILE("dirent.h" HAVE_DIRENT_H)
 
 # Symbol Exists
 CHECK_SYMBOL_EXISTS(isfinite "math.h" HAVE_DECL_ISFINITE)
@@ -1622,6 +1664,23 @@ MACRO(add_bin_test prefix F)
   ENDIF()
 ENDMACRO()
 
+# Binary tests which are used by a script looking for a specific name.
+MACRO(build_bin_test_sourced F)
+  ADD_EXECUTABLE(${F} ${F}.c ${ARGN})
+  TARGET_LINK_LIBRARIES(${F} netcdf ${ALL_TLL_LIBS})
+  IF(MSVC)
+    SET_TARGET_PROPERTIES(${F}
+      PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
+      )
+    SET_TARGET_PROPERTIES(${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY
+      ${CMAKE_CURRENT_BINARY_DIR})
+    SET_TARGET_PROPERTIES(${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG
+      ${CMAKE_CURRENT_BINARY_DIR})
+    SET_TARGET_PROPERTIES(${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
+      ${CMAKE_CURRENT_BINARY_DIR})
+  ENDIF()
+ENDMACRO()
+
 # A cmake script to print out information at the end of the configuration step.
 MACRO(print_conf_summary)
   MESSAGE("")
@@ -1785,6 +1844,10 @@ IF(ENABLE_DAP4)
   ADD_SUBDIRECTORY(libdap4)
 ENDIF()
 
+IF(ENABLE_NCZARR)
+  ADD_SUBDIRECTORY(libnczarr)
+ENDIF()
+
 add_subdirectory(liblib)
 
 IF(ENABLE_FILTER_TESTING)
@@ -1825,6 +1888,9 @@ IF(ENABLE_TESTS)
   ENDIF()
   IF(ENABLE_DAP4)
     ADD_SUBDIRECTORY(dap4_test)
+  ENDIF()
+  IF(ENABLE_NCZARR)
+    ADD_SUBDIRECTORY(nczarr_test)
   ENDIF()
   IF(ENABLE_EXAMPLES)
     ADD_SUBDIRECTORY(examples)
@@ -2002,6 +2068,8 @@ is_enabled(USE_CDF5 HAS_CDF5)
 is_enabled(ENABLE_ERANGE_FILL HAS_ERANGE_FILL)
 is_enabled(HAVE_H5Z_SZIP HAS_SZLIB)
 is_enabled(HDF5_HAS_PAR_FILTERS HAS_PAR_FILTERS)
+is_enabled(ENABLE_NCZARR HAS_NCZARR)
+is_enabled(ENABLE_S3_SDK HAS_S3_SDK)
 
 # Generate file from template.
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
@@ -2013,7 +2081,7 @@ CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
 # might also work on Windows.
 FILE(READ "${CMAKE_CURRENT_BINARY_DIR}/libnetcdf.settings"
   LIBNETCDF_SETTINGS)
-MESSAGE(${LIBNETCDF_SETTINGS})
+MESSAGE(STATUS ${LIBNETCDF_SETTINGS})
 
 # Install libnetcdf.settings file into same location
 # as the libraries.
