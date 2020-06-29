@@ -1,12 +1,12 @@
 /*
-   Copyright 2020, UCAR/Unidata See COPYRIGHT file for copying and
-   redistribution conditions.
+  Copyright 2020, UCAR/Unidata See COPYRIGHT file for copying and
+  redistribution conditions.
 
-   This program tests netcdf-4 parallel I/O using the same access
-   pattern as is used by NOAA's GFS when writing and reading model
-   data.
+  This program tests netcdf-4 parallel I/O using the same access
+  pattern as is used by NOAA's GFS when writing and reading model
+  data.
 
-   Ed Hartnett, 6/28/20
+  Ed Hartnett, 6/28/20
 */
 
 #include <nc_tests.h>
@@ -86,17 +86,17 @@ main(int argc, char **argv)
     /* Size of local (i.e. for this pe) grid_yt data. */
     grid_yt_loc_size = dim_len[1]/mpi_size;
     grid_yt_start = mpi_rank * grid_yt_loc_size;
-    if (mpi_rank == mpi_size - 1) 
+    if (mpi_rank == mpi_size - 1)
 	grid_yt_loc_size = grid_yt_loc_size + dim_len[1] % mpi_size;
     /* !print *, mpi_rank, 'grid_yt', dim_len(3), grid_yt_start, grid_yt_loc_size */
 
     /* Size of local (i.e. for this pe) pfull data. */
     pfull_loc_size = dim_len[2]/mpi_size;
     pfull_start = mpi_rank * pfull_loc_size;
-    if (mpi_rank == mpi_size - 1) 
+    if (mpi_rank == mpi_size - 1)
 	pfull_loc_size = pfull_loc_size + dim_len[2] % mpi_size;
     /* !print *, mpi_rank, 'pfull', dim_len(3), pfull_start, pfull_loc_size */
-  
+
     /* Size of local (i.e. for this pe) phalf data. */
     phalf_loc_size = dim_len[3]/mpi_size;
     phalf_start = mpi_rank * phalf_loc_size;
@@ -148,7 +148,7 @@ main(int argc, char **argv)
     if (!(value_lat_loc_in = malloc(lat_xt_loc_size * lat_yt_loc_size * sizeof(double)))) ERR;
     if (!(value_clwmr_loc = malloc(lat_xt_loc_size * lat_yt_loc_size * pfull_loc_size * sizeof(float)))) ERR;
     if (!(value_clwmr_loc_in = malloc(lat_xt_loc_size * lat_yt_loc_size * pfull_loc_size * sizeof(float)))) ERR;
-  
+
     /* Some fake data for this pe to write. */
     for (i = 0; i < pfull_loc_size; i++)
 	value_pfull_loc[i] = mpi_rank * 100 + i;
@@ -164,9 +164,9 @@ main(int argc, char **argv)
 		value_clwmr_loc[j * lon_xt_loc_size + i] = mpi_rank * 100 + i + j + k;
 	}
     }
-	
+
     if (!mpi_rank)
-       printf("\n*** Testing parallel writes with compression filters.\n");
+	printf("\n*** Testing parallel writes with compression filters.\n");
     {
         int s;
         for (f = 0; f < NUM_COMPRESSION_FILTERS; f++)
@@ -182,7 +182,7 @@ main(int argc, char **argv)
                 /* nc_set_log_level(3); */
                 /* Create a parallel netcdf-4 file. */
                 if (nc_create_par(FILE_NAME, NC_NETCDF4, comm, info, &ncid)) ERR;
-		
+
 		/* Turn off fill mode. */
 		if (nc_set_fill(ncid, NC_NOFILL, NULL)) ERR;
 
@@ -235,7 +235,7 @@ main(int argc, char **argv)
 		if (nc_def_var(ncid, var_name[6], var_type[6], 1, &dimid[4], &varid[6])) ERR;
 		if (nc_var_par_access(ncid, varid[6], NC_INDEPENDENT)) ERR;
 		if (nc_enddef(ncid)) ERR;
-		
+
 		/* In NOAA code, do all processors write the single time value? */
 		if (mpi_rank == 0)
 		    if (nc_put_var_double(ncid, varid[6], &value_time));
@@ -269,7 +269,7 @@ main(int argc, char **argv)
 		if (nc_put_vara_double(ncid, varid[3], start, count, value_lat_loc)) ERR;
 		if (nc_redef(ncid)) ERR;
 
-		
+
 		/* Define variable clwmr and write data (?) */
 		dimid_data[0] = dimid[4];
 		dimid_data[1] = dimid[2];
@@ -329,7 +329,7 @@ main(int argc, char **argv)
 		    for (d = 0; d < NDIM5; d++)
 		    {
 			size_t len_in;
-			
+
 			if (nc_inq_dim(ncid, d, name_in, &len_in)) ERR;
 			if (strcmp(name_in, dim_name[d]) && len_in != dim_len[d]) ERR;
 		    }
@@ -339,10 +339,15 @@ main(int argc, char **argv)
 		    {
 			int xtype_in, ndims_in, natts_in;
 			int dimids_in[NDIM4];
-			
+
 			if (nc_inq_var(ncid, v, name_in, &xtype_in, &ndims_in, dimids_in, &natts_in)) ERR;
 			if (strcmp(name_in, var_name[v]) || xtype_in != var_type[v] || ndims_in != var_ndims[v]) ERR;
 		    }
+
+		    /* Check pfull data. */
+		    if (nc_get_vara_float(ncid, varid[4], &pfull_start, &pfull_loc_size, value_pfull_loc_in)) ERR;
+		    for (i = 0; i < pfull_loc_size; i++)
+			if (value_pfull_loc_in[i] != value_pfull_loc[i]) ERR;
 
                     /* /\* Check state of compression. *\/ */
                     /* if (!f) */
@@ -397,7 +402,7 @@ main(int argc, char **argv)
     MPI_Finalize();
 
     if (!mpi_rank)
-       FINAL_RESULTS;
+	FINAL_RESULTS;
 
     return 0;
 }
