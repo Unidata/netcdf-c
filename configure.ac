@@ -459,26 +459,37 @@ if test "x$enable_nczarr" = xyes; then
 fi
 AM_CONDITIONAL(ENABLE_NCZARR, [test x$enable_nczarr = xyes])
 
-# Check for forced disabling of S3 support
-AC_MSG_CHECKING([whether netcdf zarr S3 storage should be enabled])
-AC_ARG_ENABLE([s3-sdk],
-              [AS_HELP_STRING([--disable-s3-sdk],
-                              [forcibly disable usage of netcdf zarr S3 sdk])])
-test "x$enable_s3_sdk" = xno || enable_s3_sdk=yes
-AC_MSG_RESULT($enable_s3_sdk)
-
 # Check for the AWS S3 SDK library
 AC_LANG_PUSH([C++])
 AC_SEARCH_LIBS([aws_allocator_is_valid],[aws-c-common aws-cpp-sdk-s3 aws-cpp-sdk-core], [have_aws=yes],[have_aws=no])
 AC_LANG_POP
 AC_MSG_CHECKING([whether AWS S3 SDK library is available])
 AC_MSG_RESULT([$have_aws])
-if test "x$have_aws" = xyes ; then
-  if test "x$enable_s3_sdk" = xno ; then
-    AC_MSG_WARN([--disable-s3 overrides access to aws s3 libraries])
-    have_aws=no
-  fi
+
+# Check for forced disabling of S3 support
+AC_MSG_CHECKING([whether netcdf zarr S3 support should be enabled])
+AC_ARG_ENABLE([s3-sdk],
+              [AS_HELP_STRING([--disable-s3-sdk],
+                              [forcibly disable usage of netcdf zarr S3 sdk])])
+test "x$enable_s3_sdk" = xno || enable_s3_sdk=yes
+AC_MSG_RESULT($enable_s3_sdk)
+
+if test "x$have_aws" = xno -a "x$enable_s3_sdk" = xno; then
+  have_aws=no
+  enable_s3_sdk=no
+elif test "x$have_aws" = xno -a "x$enable_s3_sdk" = xyes; then
+  AC_MSG_WARN([aws libraries not found, so default to --disable-s3-sdk])
+  have_aws=no
+  enable_s3_sdk=no
+elif test "x$have_aws" = xyes -a "x$enable_s3_sdk" = xno; then
+  AC_MSG_WARN([--disable-s3-sdk overrides presence of aws s3 libraries])
+  have_aws=no
+  enable_s3_sdk=no
+elif test "x$have_aws" = xyes -a "x$enable_s3_sdk" = xyes; then
+  have_aws=yes
+  enable_s3_sdk=yes
 fi
+
 if test "x$enable_s3_sdk" = xyes ; then
   AC_DEFINE([ENABLE_S3_SDK], [1], [if true, build libnczarr with S3 support enabled])
 fi
