@@ -14,8 +14,7 @@
 #include <mpi.h>
 
 #define FILE_NAME "tst_gfs_data_1.nc"
-#define NDIMS 3
-#define DIMSIZE 24
+#define NDIM5 5
 #define QTR_DATA (DIMSIZE * DIMSIZE / 4)
 #define NUM_PROC 4
 #define NUM_SLABS 10
@@ -34,13 +33,18 @@ main(int argc, char **argv)
     MPI_Comm comm = MPI_COMM_WORLD;
     MPI_Info info = MPI_INFO_NULL;
 
-    /* Netcdf-4 stuff. */
-    int ncid/*, v1id , dimids[NDIMS] */;
+    int ncid;
     /* size_t start[NDIMS], count[NDIMS]; */
 
-    int f, i;
+    /* Dimensions */
+    char dim_name[NDIM5][NC_MAX_NAME + 1] = {"grid_xt", "grid_yt", "pfull", "phalf", "time"};
+    int dim_len[NDIM5] = {3072, 1536, 127, 128, 1};
+    int dimid[NDIM5];
+
+    int f;
+    /* int i; */
     /* int res; */
-    int *slab_data; /* one slab */
+    /* int *slab_data; /\* one slab *\/ */
 
     /* Initialize MPI. */
     MPI_Init(&argc, &argv);
@@ -48,12 +52,12 @@ main(int argc, char **argv)
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
 
     /* Allocate data. */
-    if (!(slab_data = malloc(sizeof(int) * DIMSIZE * DIMSIZE / mpi_size))) ERR;
+    /* if (!(slab_data = malloc(sizeof(int) * DIMSIZE * DIMSIZE / mpi_size))) ERR; */
 
     /* Create phony data. We're going to write a 24x24 array of ints,
        in 4 sets of 144. */
-    for (i = 0; i < DIMSIZE * DIMSIZE / mpi_size; i++)
-       slab_data[i] = mpi_rank;
+    /* for (i = 0; i < DIMSIZE * DIMSIZE / mpi_size; i++) */
+    /*    slab_data[i] = mpi_rank; */
 
     if (!mpi_rank)
        printf("\n*** Testing parallel writes with compression filters.\n");
@@ -74,16 +78,16 @@ main(int argc, char **argv)
                 if (nc_create_par(FILE_NAME, NC_NETCDF4, comm, info, &ncid)) ERR;
 		
 		/* Turn off fill mode. */
-		nc_set_fill(ncid, NC_NOFILL, oldMode);
+		if (nc_set_fill(ncid, NC_NOFILL, NULL)) ERR;
 
-/*   ! Define dimension grid_xt. */
-/*   call check(nf90_def_dim(ncid, trim(dim_name(1)), dim_len(1), dimid(1))) */
+		/* Define dimension grid_xt. */
+		if (nc_def_dim(ncid, dim_name[0], dim_len[0], &dimid[0])) ERR;
 
-/*   ! Define dimension grid_yt. */
-/*   call check(nf90_def_dim(ncid, trim(dim_name(2)), dim_len(2), dimid(2))) */
+		/* Define dimension grid_yt. */
+		if (nc_def_dim(ncid, dim_name[1], dim_len[1], &dimid[1])) ERR;
 
-/*   ! Define variable grid_xt. */
-/*   call check(nf90_def_var(ncid, trim(var_name(1)), var_type(1), dimids=(/dimid(1)/), varid=varid(1))) */
+		/* Define variable grid_xt. */
+		/* if (nc_def_var(ncid, var_name[0], var_type(0), dimids=(/dimid(0)/), varid=varid(0))) ERR; */
 /*   call check(nf90_var_par_access(ncid, varid(1), NF90_INDEPENDENT)) */
 
 /*   ! Define variable lon. */
@@ -258,7 +262,7 @@ main(int argc, char **argv)
                     SUMMARIZE_ERR;
             } /* next shuffle filter test */
         } /* next compression filter (zlib and szip) */
-        free(slab_data);
+        /* free(slab_data); */
     }
 
     /* Shut down MPI. */
