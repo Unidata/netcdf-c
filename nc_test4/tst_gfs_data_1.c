@@ -71,7 +71,7 @@ main(int argc, char **argv)
 
     int f;
     int i, j, k;
-    /* int res; */
+    int res;
     /* int *slab_data; /\* one slab *\/ */
 
     /* Initialize MPI. */
@@ -255,7 +255,6 @@ main(int argc, char **argv)
 		start[1] = lon_yt_start;
 		count[0] = lon_xt_loc_size;
 		count[1] = lon_yt_loc_size;
-		nc_set_log_level(3);
 		if (nc_put_vara_double(ncid, varid[1], start, count, value_lon_loc)) ERR;
 		if (nc_redef(ncid)) ERR;
 
@@ -280,7 +279,23 @@ main(int argc, char **argv)
 		dimid_data[2] = dimid[1];
 		dimid_data[3] = dimid[0];
 		if (nc_def_var(ncid, var_name[7], var_type[7], NDIM4, dimid_data, &varid[7])) ERR;
-		/* , shuffle=.true., deflate_level=ideflate */
+
+                /* Setting any filter only will work for HDF5-1.10.3 and later */
+                /* versions. */
+                if (!f)
+                    res = nc_def_var_deflate(ncid, varid[7], s, 1, 4);
+                else
+                {
+                    res = nc_def_var_deflate(ncid, varid[7], s, 0, 0);
+                    if (!res)
+                        res = nc_def_var_szip(ncid, varid[7], 32, 32);
+                }
+#ifdef HDF5_SUPPORTS_PAR_FILTERS
+                if (res) ERR;
+#else
+                if (res != NC_EINVAL) ERR;
+#endif
+
 		if (nc_var_par_access(ncid, varid[7], NC_COLLECTIVE)) ERR;
 		if (nc_enddef(ncid)) ERR;
 		start[0] = 0;
@@ -296,32 +311,6 @@ main(int argc, char **argv)
 
 		/* Close the file. */
 		if (nc_close(ncid)) ERR;
-
-                /* Setting any filter only will work for HDF5-1.10.3 and later
-                 * versions. */
-/*                 if (!f) */
-/*                     res = nc_def_var_deflate(ncid, 0, s, 1, 1); */
-/*                 else */
-/*                 { */
-/*                     res = nc_def_var_deflate(ncid, 0, s, 0, 0); */
-/*                     if (!res) */
-/*                         res = nc_def_var_szip(ncid, 0, 32, 32); */
-/*                 } */
-/* #ifdef HDF5_SUPPORTS_PAR_FILTERS */
-/*                 if (res) ERR; */
-/* #else */
-/*                 if (res != NC_EINVAL) ERR; */
-/* #endif */
-
-/*                 /\* Setting fletcher32 only will work for HDF5-1.10.3 and later */
-/*                  * versions. *\/ */
-/*                 res = nc_def_var_fletcher32(ncid, 0, 1); */
-/* #ifdef HDF5_SUPPORTS_PAR_FILTERS */
-/*                 if (res) ERR; */
-/* #else */
-/*                 if (res != NC_EINVAL) ERR; */
-/* #endif */
-
 
                 /* /\* Check file. *\/ */
                 /* { */
