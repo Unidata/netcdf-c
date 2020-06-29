@@ -18,7 +18,7 @@
 #include "err_macros.h"
 #include <mpi.h>
 
-#define FILE_NAME "tst_parallel_compress.nc"
+#define FILE_NAME "tst_gfs_data_1.nc"
 #define NDIMS 3
 #define DIMSIZE 24
 #define QTR_DATA (DIMSIZE * DIMSIZE / 4)
