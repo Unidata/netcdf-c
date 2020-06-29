@@ -238,8 +238,8 @@ main(int argc, char **argv)
 
 		/* In NOAA code, do all processors write the single time value? */
 		if (mpi_rank == 0)
-		    if (nc_put_var_double(ncid, varid[6], &value_time));
-		if (nc_redef(ncid));
+		    if (nc_put_var_double(ncid, varid[6], &value_time)) ERR;;
+		if (nc_redef(ncid)) ERR;
 
 		/* Write variable grid_xt data. */
 		if (nc_enddef(ncid)) ERR;
@@ -313,6 +313,7 @@ main(int argc, char **argv)
                 {
 		    int ndims, nvars, natts, unlimdimid;
 		    char name_in[NC_MAX_NAME + 1];
+		    double value_time_in;
 		    int d, v;
 
                     /* int shuffle_in, deflate_in, deflate_level_in; */
@@ -348,6 +349,17 @@ main(int argc, char **argv)
 		    if (nc_get_vara_float(ncid, varid[4], &pfull_start, &pfull_loc_size, value_pfull_loc_in)) ERR;
 		    for (i = 0; i < pfull_loc_size; i++)
 			if (value_pfull_loc_in[i] != value_pfull_loc[i]) ERR;
+
+		    /* Check phalf data. */
+		    if (nc_get_vara_float(ncid, varid[5], &phalf_start, &phalf_loc_size, value_phalf_loc_in)) ERR;
+		    for (i = 0; i < phalf_loc_size; i++)
+			if (value_phalf_loc_in[i] != value_phalf_loc[i]) ERR;
+		    
+		    if (mpi_rank == 0)
+		    {
+			if (nc_get_var_double(ncid, varid[6], &value_time_in)) ERR;
+			if (value_time_in != value_time) ERR;
+		    }
 
                     /* /\* Check state of compression. *\/ */
                     /* if (!f) */
