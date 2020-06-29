@@ -223,7 +223,7 @@ ocfetch(OCstate* state, const char* constraint, OCdxd kind, OCflags flags,
     if(stat != OC_NOERR) {
 	if(state->error.httpcode >= 400) {
 	    nclog(NCLOGWARN,"oc_open: Could not read url (%s); http error = %l",
-		  state->uri,state->error.httpcode);
+		  ncuribuild(state->uri),state->error.httpcode);
 	} else {
 	    nclog(NCLOGWARN,"oc_open: Could not read url");
 	}

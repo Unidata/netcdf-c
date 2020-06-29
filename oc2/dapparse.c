@@ -51,7 +51,7 @@ dap_datasetbody(DAPparsestate* state, Object name, Object decls)
            at the dataset level; simulate an errorbody response
         */
 	ocnodes_free(dups);
-        dap_parse_error(state,"Duplicate dataset field names: %s",name,dupname);
+        dap_parse_error(state,"Duplicate dataset field names: %s",(char*)name,dupname);
 	state->error = OC_ENAMEINUSE;
 	return (Object)NULL;
     }
