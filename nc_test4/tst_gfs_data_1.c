@@ -354,12 +354,19 @@ main(int argc, char **argv)
 		    if (nc_get_vara_float(ncid, varid[5], &phalf_start, &phalf_loc_size, value_phalf_loc_in)) ERR;
 		    for (i = 0; i < phalf_loc_size; i++)
 			if (value_phalf_loc_in[i] != value_phalf_loc[i]) ERR;
-		    
+
+		    /* Check time. */
 		    if (mpi_rank == 0)
 		    {
 			if (nc_get_var_double(ncid, varid[6], &value_time_in)) ERR;
 			if (value_time_in != value_time) ERR;
 		    }
+
+		    /* Check grid_xt data. */
+		    if (nc_get_vara_double(ncid, varid[0], &grid_xt_start, &grid_xt_loc_size, value_grid_xt_loc_in)) ERR;
+
+		    /* Check grid_yt data. */
+		    if (nc_get_vara_double(ncid, varid[2], &grid_yt_start, &grid_yt_loc_size, value_grid_yt_loc_in)) ERR;
 
                     /* /\* Check state of compression. *\/ */
                     /* if (!f) */
