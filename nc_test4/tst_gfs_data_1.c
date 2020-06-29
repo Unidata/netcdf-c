@@ -43,6 +43,7 @@ main(int argc, char **argv)
     char dim_name[NDIM5][NC_MAX_NAME + 1] = {"grid_xt", "grid_yt", "pfull", "phalf", "time"};
     int dim_len[NDIM5] = {3072, 1536, 127, 128, 1};
     int dimid[NDIM5];
+    int dimid_data[NDIM4];
 
     /* Variables. */
 #define NUM_VARS 8
@@ -112,25 +113,25 @@ main(int argc, char **argv)
     lat_xt_loc_size = 1536;
     if (mpi_rank == 0 || mpi_rank == 2)
     {
-	lon_xt_start = 1;
-	lat_xt_start = 1;
+	lon_xt_start = 0;
+	lat_xt_start = 0;
     }
     else
     {
-	lon_xt_start = 1537;
-	lat_xt_start = 1537;
+	lon_xt_start = 1536;
+	lat_xt_start = 1536;
     }
     lon_yt_loc_size = 768;
     lat_yt_loc_size = 768;
     if (mpi_rank == 0 || mpi_rank == 1)
     {
-	lon_yt_start = 1;
-	lat_yt_start = 1;
+	lon_yt_start = 0;
+	lat_yt_start = 0;
     }
     else
     {
-	lon_yt_start = 769;
-	lat_yt_start = 769;
+	lon_yt_start = 768;
+	lat_yt_start = 768;
     }
     /* !  print *, mpi_rank, 'lon_xt_start', lon_xt_start, 'lon_yt_start', lon_yt_start */
     /* !  print *, mpi_rank, 'lon_xt_loc_size', lon_xt_loc_size, 'lon_yt_loc_size', lon_yt_loc_size */
@@ -167,14 +168,6 @@ main(int argc, char **argv)
 	}
     }
 	
-    /* Allocate data. */
-    /* if (!(slab_data = malloc(sizeof(int) * DIMSIZE * DIMSIZE / mpi_size))) ERR; */
-
-    /* Create phony data. We're going to write a 24x24 array of ints,
-       in 4 sets of 144. */
-    /* for (i = 0; i < DIMSIZE * DIMSIZE / mpi_size; i++) */
-    /*    slab_data[i] = mpi_rank; */
-
     if (!mpi_rank)
        printf("\n*** Testing parallel writes with compression filters.\n");
     {
@@ -262,26 +255,34 @@ main(int argc, char **argv)
 		start[1] = lon_yt_start;
 		count[0] = lon_xt_loc_size;
 		count[1] = lon_yt_loc_size;
-		/* if (nc_put_vara_double(ncid, varid[1], start, count, value_lon_loc)) ERR; */
+		nc_set_log_level(3);
+		if (nc_put_vara_double(ncid, varid[1], start, count, value_lon_loc)) ERR;
 		if (nc_redef(ncid)) ERR;
 
-/*   ! Write grid_yt data. */
-/*   if (nc_enddef(ncid)) */
-/*   if (nc_put_var(ncid, varid(3), start=(/grid_yt_start/), count=(/grid_yt_loc_size/), values=value_grid_yt_loc))   */
-/*   if (nc_redef(ncid)) */
+		/* Write grid_yt data. */
+		if (nc_enddef(ncid)) ERR;
+		if (nc_put_vara_double(ncid, varid[2], &grid_yt_start, &grid_yt_loc_size, value_grid_yt_loc)) ERR;
+		if (nc_redef(ncid)) ERR;
 
-/*   ! Write lat data. */
-/*   if (nc_enddef(ncid)) */
-/*   if (nc_put_var(ncid, varid(4), start=(/lat_xt_start, lat_yt_start/), count=(/lat_xt_loc_size, lat_yt_loc_size/), & */
-/*        values=value_lat_loc))   */
-/*   if (nc_redef(ncid)) */
+		/* Write lat data. */
+		if (nc_enddef(ncid)) ERR;
+		start[0] = lat_xt_start;
+		start[1] = lat_yt_start;
+		count[0] = lat_xt_loc_size;
+		count[1] = lat_yt_loc_size;
+		if (nc_put_vara_double(ncid, varid[3], start, count, value_lat_loc)) ERR;
+		if (nc_redef(ncid)) ERR;
 
-/*   ! Define variable clwmr and write data (?) */
-/*   if (nc_def_var(ncid, trim(var_name(8)), var_type(8), dimids=(/dimid(1), dimid(2), dimid(3), dimid(5)/), & */
-/*        varid=varid(8), shuffle=.true., deflate_level=ideflate)) */
-/*   if (nc_var_par_access(ncid, varid(8), NC_COLLECTIVE)) */
-/*   if (nc_enddef(ncid)) */
-/* !  if (nc_put_var(ncid, varid(8), values=value_clwmr))   */
+		
+		/* Define variable clwmr and write data (?) */
+		dimid_data[0] = dimid[4];
+		dimid_data[1] = dimid[2];
+		dimid_data[2] = dimid[1];
+		dimid_data[3] = dimid[0];
+		if (nc_def_var(ncid, var_name[7], var_type[7], NDIM4, dimid_data, &varid[7])) ERR;
+		/* , shuffle=.true., deflate_level=ideflate */
+		if (nc_var_par_access(ncid, varid[7], NC_COLLECTIVE)) ERR;
+		if (nc_enddef(ncid)) ERR;
 /*   if (nc_put_var(ncid, varid(8), start=(/lat_xt_start, lat_yt_start, pfull_start, 1/), & */
 /*        count=(/lat_xt_loc_size, lat_yt_loc_size, pfull_loc_size, 1/), values=value_clwmr_loc))   */
 /*   if (nc_redef(ncid)) */
