@@ -59,4 +59,8 @@ if test "@HAS_PAR_FILTERS@" = "yes"; then
     echo "Parallel I/O more tests with zlib and szip (if present in HDF5)."
     @MPIEXEC@ -n 1 ./tst_parallel_compress
     @MPIEXEC@ -n 4 ./tst_parallel_compress
+
+    echo
+    echo "Parallel I/O like the NOAA GFS writes and reads data."
+    @MPIEXEC@ -n 4 ./tst_gfs_data_1
 fi
