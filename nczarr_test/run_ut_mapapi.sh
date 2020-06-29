@@ -87,8 +87,12 @@ echo ""; echo "*** Test zmap_nz4"
 testmapcreate nz4; testmapmeta nz4; testmapdata nz4; testmapsearch nz4
 echo ""; echo "*** Test zmap_nzf"
 testmapcreate nzf; testmapmeta nzf; testmapdata nzf; testmapsearch nzf
+
+if test "x$NETCDF_S3_TESTS" != x ; then
 if test "x$HAVENCZARR" = x1 -a "x$HAVES3" = x1 ; then
 echo ""; echo "*** Test zmap_s3sdk"
 testmapcreate s3; testmapmeta s3; testmapdata s3; testmapsearch s3
 fi
+fi
+
 exit 0
