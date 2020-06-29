@@ -51,7 +51,8 @@ main(int argc, char **argv)
     int var_type[NUM_VARS] = {NC_DOUBLE, NC_DOUBLE, NC_DOUBLE, NC_DOUBLE, NC_FLOAT, NC_FLOAT, NC_DOUBLE, NC_FLOAT};
     /* integer :: var_ndims(NUM_VARS) = (/ 1, 2, 1, 2, 1, 1, 1, 4 /) */
     /* integer :: ideflate = 4 */
-    /* real*8 :: value_time = 2.0, value_time_in */
+    float value_time = 2.0;
+    /* float value_time_in; */
     /* real, allocatable :: value_clwmr(:,:,:,:) */
     size_t pfull_loc_size, pfull_start;
     float *value_pfull_loc, *value_pfull_loc_in;
@@ -231,18 +232,18 @@ main(int argc, char **argv)
 		if (nc_put_vara_float(ncid, varid[5], &phalf_start, &phalf_loc_size, value_phalf_loc)) ERR;
 		if (nc_redef(ncid)) ERR;
 
-/*   ! Define dimension time. */
-/*   if (nc_def_dim(ncid, trim(dim_name(5)), dim_len(5), dimid(5))) */
+		/* Define dimension time. */
+		if (nc_def_dim(ncid, dim_name[4], dim_len[4], &dimid[4])) ERR;
 
-/*   ! Define variable time and write data. */
-/*   if (nc_def_var(ncid, trim(var_name(7)), var_type(7), dimids=(/dimid(5)/), varid=varid(7))) */
-/*   if (nc_var_par_access(ncid, varid(7), NC_INDEPENDENT)) */
-/*   if (nc_enddef(ncid)) */
-/*   ! In NOAA code, do all processors write the single time value? */
-/*   if (mpi_rank == 0) then */
-/*      if (nc_put_var(ncid, varid(7), values=value_time)) */
-/*   endif */
-/*   if (nc_redef(ncid)) */
+		/* Define variable time and write data. */
+		if (nc_def_var(ncid, var_name[6], var_type[6], 1, &dimid[4], &varid[6])) ERR;
+		if (nc_var_par_access(ncid, varid[6], NC_INDEPENDENT));
+		if (nc_enddef(ncid)) ERR;
+		
+		/* In NOAA code, do all processors write the single time value? */
+		if (mpi_rank == 0)
+		    if (nc_put_var_float(ncid, varid[6], &value_time));
+		if (nc_redef(ncid));
 
 /*   ! Write variable grid_xt data. */
 /*   if (nc_enddef(ncid)) */
