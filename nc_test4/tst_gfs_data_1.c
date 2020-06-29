@@ -18,9 +18,11 @@
 #define QTR_DATA (DIMSIZE * DIMSIZE / 4)
 #define NUM_PROC 4
 #define NUM_SLABS 10
-#define NUM_SHUFFLE_SETTINGS 2
+#define NUM_SHUFFLE_SETTINGS 1
+/* #define NUM_SHUFFLE_SETTINGS 2 */
 #ifdef HAVE_H5Z_SZIP
-#define NUM_COMPRESSION_FILTERS 2
+#define NUM_COMPRESSION_FILTERS 1
+/* #define NUM_COMPRESSION_FILTERS 2 */
 #else
 #define NUM_COMPRESSION_FILTERS 1
 #endif
@@ -36,10 +38,34 @@ main(int argc, char **argv)
     int ncid;
     /* size_t start[NDIMS], count[NDIMS]; */
 
-    /* Dimensions */
+    /* Dimensions. */
     char dim_name[NDIM5][NC_MAX_NAME + 1] = {"grid_xt", "grid_yt", "pfull", "phalf", "time"};
     int dim_len[NDIM5] = {3072, 1536, 127, 128, 1};
     int dimid[NDIM5];
+    int def_dimid[NDIM5];
+
+    /* Variables. */
+#define NUM_VARS 8
+    char var_name[NUM_VARS][NC_MAX_NAME + 1] = {"grid_xt", "lon", "grid_yt", "lat", "pfull", "phalf", "time", "clwmr"};
+    int varid[NUM_VARS];
+    int var_type[NUM_VARS] = {NC_DOUBLE, NC_DOUBLE, NC_DOUBLE, NC_DOUBLE, NC_FLOAT, NC_FLOAT, NC_DOUBLE, NC_FLOAT};
+    /* integer :: var_ndims(NUM_VARS) = (/ 1, 2, 1, 2, 1, 1, 1, 4 /) */
+    /* integer :: ideflate = 4 */
+    /* real*8 :: value_time = 2.0, value_time_in */
+    /* real, allocatable :: value_clwmr(:,:,:,:) */
+    /* integer :: phalf_loc_size, phalf_start */
+    /* real, allocatable :: value_phalf_loc(:), value_phalf_loc_in(:) */
+    /* integer :: pfull_loc_size, pfull_start */
+    /* real, allocatable :: value_pfull_loc(:), value_pfull_loc_in(:) */
+    /* integer :: grid_xt_loc_size, grid_xt_start */
+    /* real, allocatable :: value_grid_xt_loc(:), value_grid_xt_loc_in(:) */
+    /* integer :: grid_yt_loc_size, grid_yt_start */
+    /* real, allocatable :: value_grid_yt_loc(:), value_grid_yt_loc_in(:) */
+    /* integer :: lon_xt_loc_size, lon_xt_start, lon_yt_loc_size, lon_yt_start */
+    /* real, allocatable :: value_lon_loc(:,:), value_lon_loc_in(:,:) */
+    /* integer :: lat_xt_loc_size, lat_xt_start, lat_yt_loc_size, lat_yt_start */
+    /* real, allocatable :: value_lat_loc(:,:), value_lat_loc_in(:,:) */
+    /* real, allocatable :: value_clwmr_loc(:,:,:,:), value_clwmr_loc_in(:,:,:,:) */
 
     int f;
     /* int i; */
@@ -87,88 +113,88 @@ main(int argc, char **argv)
 		if (nc_def_dim(ncid, dim_name[1], dim_len[1], &dimid[1])) ERR;
 
 		/* Define variable grid_xt. */
-		/* if (nc_def_var(ncid, var_name[0], var_type(0), dimids=(/dimid(0)/), varid=varid(0))) ERR; */
-/*   call check(nf90_var_par_access(ncid, varid(1), NF90_INDEPENDENT)) */
+		if (nc_def_var(ncid, var_name[0], var_type[0], 1, &dimid[0], &varid[0])) ERR;
+		if (nc_var_par_access(ncid, varid[0], NC_INDEPENDENT)) ERR;
 
-/*   ! Define variable lon. */
-/*   call check(nf90_def_var(ncid, trim(var_name(2)), var_type(2), dimids=(/dimid(1),  dimid(2)/), varid=varid(2))) */
-/* !  call check(nf90_var_par_access(ncid, varid(2), NF90_INDEPENDENT)) */
+		/* Define variable lon. */
+		if (nc_def_var(ncid, var_name[1], var_type[1], 2, dimid, &varid[1])) ERR;
+		if (nc_var_par_access(ncid, varid[1], NC_INDEPENDENT));
 
-/*   ! Define variable grid_yt. */
-/*   call check(nf90_def_var(ncid, trim(var_name(3)), var_type(3), dimids=(/dimid(2)/), varid=varid(3))) */
-/*   call check(nf90_var_par_access(ncid, varid(3), NF90_INDEPENDENT)) */
+		/* Define variable grid_yt. */
+		if (nc_def_var(ncid, var_name[2], var_type[2], 1, &dimid[1], &varid[2])) ERR;
+		if (nc_var_par_access(ncid, varid[2], NC_INDEPENDENT)) ERR;
 
-/*   ! Define variable lat. */
-/*   call check(nf90_def_var(ncid, trim(var_name(4)), var_type(4), dimids=(/dimid(1), dimid(2)/), varid=varid(4))) */
-/*   call check(nf90_var_par_access(ncid, varid(4), NF90_INDEPENDENT)) */
+		/* Define variable lat. */
+		if (nc_def_var(ncid, var_name[3], var_type[3], 2, dimid, &varid[3])) ERR;
+		if (nc_var_par_access(ncid, varid[3], NC_INDEPENDENT)) ERR;
 
-/*   ! Define dimension pfull. */
-/*   call check(nf90_def_dim(ncid, trim(dim_name(3)), dim_len(3), dimid(3))) */
+		/* Define dimension pfull. */
+		if (nc_def_dim(ncid, dim_name[2], dim_len[2], &dimid[2])) ERR;
 
-/*   ! Define variable pfull and write data. */
-/*   call check(nf90_def_var(ncid, trim(var_name(5)), var_type(5), dimids=(/dimid(3)/), varid=varid(5))) */
-/*   call check(nf90_var_par_access(ncid, varid(5), NF90_INDEPENDENT)) */
-/*   call check(nf90_enddef(ncid)) */
-/*   call check(nf90_put_var(ncid, varid(5), start=(/pfull_start/), count=(/pfull_loc_size/), values=value_pfull_loc)) */
-/*   call check(nf90_redef(ncid)) */
+		/* Define variable pfull and write data. */
+		if (nc_def_var(ncid, var_name[4], var_type[4], 1, &dimid[2], &varid[4])) ERR;
+		if (nc_var_par_access(ncid, varid[4], NC_INDEPENDENT)) ERR;
+		if (nc_enddef(ncid)) ERR;
+/*   if (nc_put_var(ncid, varid(5), start=(/pfull_start/), count=(/pfull_loc_size/), values=value_pfull_loc)) */
+/*   if (nc_redef(ncid)) */
 
 /*   ! Define dimension phalf. */
-/*   call check(nf90_def_dim(ncid, trim(dim_name(4)), dim_len(4), dimid(4))) */
+/*   if (nc_def_dim(ncid, trim(dim_name(4)), dim_len(4), dimid(4))) */
 
 /*   ! Define variable phalf and write data. */
-/*   call check(nf90_def_var(ncid, trim(var_name(6)), var_type(6), dimids=(/dimid(4)/), varid=varid(6))) */
-/*   call check(nf90_var_par_access(ncid, varid(6), NF90_INDEPENDENT)) */
-/*   call check(nf90_enddef(ncid)) */
-/*   call check(nf90_put_var(ncid, varid(6), start=(/phalf_start/), count=(/phalf_loc_size/), values=value_phalf_loc)) */
-/*   call check(nf90_redef(ncid)) */
+/*   if (nc_def_var(ncid, trim(var_name(6)), var_type(6), dimids=(/dimid(4)/), varid=varid(6))) */
+/*   if (nc_var_par_access(ncid, varid(6), NC_INDEPENDENT)) */
+/*   if (nc_enddef(ncid)) */
+/*   if (nc_put_var(ncid, varid(6), start=(/phalf_start/), count=(/phalf_loc_size/), values=value_phalf_loc)) */
+/*   if (nc_redef(ncid)) */
 
 /*   ! Define dimension time. */
-/*   call check(nf90_def_dim(ncid, trim(dim_name(5)), dim_len(5), dimid(5))) */
+/*   if (nc_def_dim(ncid, trim(dim_name(5)), dim_len(5), dimid(5))) */
 
 /*   ! Define variable time and write data. */
-/*   call check(nf90_def_var(ncid, trim(var_name(7)), var_type(7), dimids=(/dimid(5)/), varid=varid(7))) */
-/*   call check(nf90_var_par_access(ncid, varid(7), NF90_INDEPENDENT)) */
-/*   call check(nf90_enddef(ncid)) */
+/*   if (nc_def_var(ncid, trim(var_name(7)), var_type(7), dimids=(/dimid(5)/), varid=varid(7))) */
+/*   if (nc_var_par_access(ncid, varid(7), NC_INDEPENDENT)) */
+/*   if (nc_enddef(ncid)) */
 /*   ! In NOAA code, do all processors write the single time value? */
 /*   if (my_rank .eq. 0) then */
-/*      call check(nf90_put_var(ncid, varid(7), values=value_time)) */
+/*      if (nc_put_var(ncid, varid(7), values=value_time)) */
 /*   endif */
-/*   call check(nf90_redef(ncid)) */
+/*   if (nc_redef(ncid)) */
 
 /*   ! Write variable grid_xt data. */
-/*   call check(nf90_enddef(ncid)) */
-/*   call check(nf90_put_var(ncid, varid(1), start=(/grid_xt_start/), count=(/grid_xt_loc_size/), values=value_grid_xt_loc))   */
-/*   call check(nf90_redef(ncid)) */
+/*   if (nc_enddef(ncid)) */
+/*   if (nc_put_var(ncid, varid(1), start=(/grid_xt_start/), count=(/grid_xt_loc_size/), values=value_grid_xt_loc))   */
+/*   if (nc_redef(ncid)) */
 
 /*   ! Write lon data. */
-/*   call check(nf90_enddef(ncid)) */
-/*   call check(nf90_put_var(ncid, varid(2), start=(/lon_xt_start, lon_yt_start/), count=(/lon_xt_loc_size, lon_yt_loc_size/), & */
+/*   if (nc_enddef(ncid)) */
+/*   if (nc_put_var(ncid, varid(2), start=(/lon_xt_start, lon_yt_start/), count=(/lon_xt_loc_size, lon_yt_loc_size/), & */
 /*        values=value_lon_loc))   */
-/*   call check(nf90_redef(ncid)) */
+/*   if (nc_redef(ncid)) */
 
 /*   ! Write grid_yt data. */
-/*   call check(nf90_enddef(ncid)) */
-/*   call check(nf90_put_var(ncid, varid(3), start=(/grid_yt_start/), count=(/grid_yt_loc_size/), values=value_grid_yt_loc))   */
-/*   call check(nf90_redef(ncid)) */
+/*   if (nc_enddef(ncid)) */
+/*   if (nc_put_var(ncid, varid(3), start=(/grid_yt_start/), count=(/grid_yt_loc_size/), values=value_grid_yt_loc))   */
+/*   if (nc_redef(ncid)) */
 
 /*   ! Write lat data. */
-/*   call check(nf90_enddef(ncid)) */
-/*   call check(nf90_put_var(ncid, varid(4), start=(/lat_xt_start, lat_yt_start/), count=(/lat_xt_loc_size, lat_yt_loc_size/), & */
+/*   if (nc_enddef(ncid)) */
+/*   if (nc_put_var(ncid, varid(4), start=(/lat_xt_start, lat_yt_start/), count=(/lat_xt_loc_size, lat_yt_loc_size/), & */
 /*        values=value_lat_loc))   */
-/*   call check(nf90_redef(ncid)) */
+/*   if (nc_redef(ncid)) */
 
 /*   ! Define variable clwmr and write data (?) */
-/*   call check(nf90_def_var(ncid, trim(var_name(8)), var_type(8), dimids=(/dimid(1), dimid(2), dimid(3), dimid(5)/), & */
+/*   if (nc_def_var(ncid, trim(var_name(8)), var_type(8), dimids=(/dimid(1), dimid(2), dimid(3), dimid(5)/), & */
 /*        varid=varid(8), shuffle=.true., deflate_level=ideflate)) */
-/*   call check(nf90_var_par_access(ncid, varid(8), NF90_COLLECTIVE)) */
-/*   call check(nf90_enddef(ncid)) */
-/* !  call check(nf90_put_var(ncid, varid(8), values=value_clwmr))   */
-/*   call check(nf90_put_var(ncid, varid(8), start=(/lat_xt_start, lat_yt_start, pfull_start, 1/), & */
+/*   if (nc_var_par_access(ncid, varid(8), NC_COLLECTIVE)) */
+/*   if (nc_enddef(ncid)) */
+/* !  if (nc_put_var(ncid, varid(8), values=value_clwmr))   */
+/*   if (nc_put_var(ncid, varid(8), start=(/lat_xt_start, lat_yt_start, pfull_start, 1/), & */
 /*        count=(/lat_xt_loc_size, lat_yt_loc_size, pfull_loc_size, 1/), values=value_clwmr_loc))   */
-/*   call check(nf90_redef(ncid)) */
+/*   if (nc_redef(ncid)) */
 
 /*   ! Close the file. */
-/*   call check(nf90_close(ncid)) */
+/*   if (nc_close(ncid)) */
 
                 /* Setting any filter only will work for HDF5-1.10.3 and later
                  * versions. */
