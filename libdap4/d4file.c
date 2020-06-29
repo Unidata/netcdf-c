@@ -78,7 +78,7 @@ NCD4_open(const char * path, int mode,
 
     /* fail if we are unconstrainable but have constraints */
     if(FLAGSET(d4info->controls.flags,NCF_UNCONSTRAINABLE)) {
-	if(d4info->uri->query != NULL) {
+	if(d4info->uri != NULL && d4info->uri->query != NULL) {
 	    nclog(NCLOGWARN,"Attempt to constrain an unconstrainable data source: %s",
 		   d4info->uri->query);
 	    ret = THROW(NC_EDAPCONSTRAINT);
@@ -131,10 +131,7 @@ NCD4_open(const char * path, int mode,
     }
 
     /* Turn on logging; only do this after oc_open*/
-    if((value = ncurilookup(d4info->uri,"log")) != NULL) {
-	ncloginit();
-        if(nclogopen(value))
-	    ncsetlogging(1);
+    if((value = ncurifragmentlookup(d4info->uri,"log")) != NULL) {
 	ncloginit();
         if(nclogopen(value))
 	    ncsetlogging(1);
@@ -170,7 +167,7 @@ NCD4_open(const char * path, int mode,
 
     /* if the url goes astray to a random web page, then try to just dump it */
     {
-	char* response = ncbytescontents(d4info->curl->packet);
+	char* response = (char*)ncbytescontents(d4info->curl->packet);
 	size_t responselen = ncbyteslength(d4info->curl->packet);
 
         /* Apply some heuristics to see what we have.
@@ -178,7 +175,7 @@ NCD4_open(const char * path, int mode,
            be less than 0x0f (for now). However, it will not be zero if
            the data was little-endian
 	*/
-        if(responselen == 0 || response[0] >= ' ') {
+        if(responselen == 0 || ((unsigned char*)response)[0] > 0x0f) {
 	    /* does not look like a chunk, so probable server failure */
 	    if(responselen == 0)
 	        nclog(NCLOGERR,"Empty DAP4 response");
@@ -523,7 +520,7 @@ getparam(NCD4INFO* info, const char* key)
     const char* value;
 
     if(info == NULL || key == NULL) return NULL;
-    if((value=ncurilookup(info->uri,key)) == NULL)
+    if((value=ncurifragmentlookup(info->uri,key)) == NULL)
 	return NULL;
     return value;
 }

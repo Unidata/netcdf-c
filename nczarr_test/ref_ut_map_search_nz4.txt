@@ -1,0 +1,8 @@
+[0] /
+[1] /.nczarr
+[2] /meta1
+[3] /meta1/.zarray
+[4] /meta2
+[5] /meta2/.nczvar
+[6] /data1
+[7] /data1/0

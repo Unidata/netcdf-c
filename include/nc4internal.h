@@ -111,21 +111,13 @@ typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP, NCFIL} NC_SORT;
 /** Subset of readonly flags; Value is actually in file. */
 #define MATERIALIZEDFLAG 8
 
-/* Generic reserved Attributes */
-#define NC_ATT_REFERENCE_LIST "REFERENCE_LIST" /**< HDF5 reference list attribute name. */
-#define NC_ATT_CLASS "CLASS"                   /**< HDF5 class atttribute name. */
-#define NC_ATT_DIMENSION_LIST "DIMENSION_LIST" /**< HDF5 dimension list attribute name. */
-#define NC_ATT_NAME "NAME"                     /**< HDF5 name atttribute name. */
-#define NC_ATT_COORDINATES COORDINATES         /**< Coordinates atttribute name. */
-#define NC_ATT_FORMAT "_Format"                /**< Format atttribute name. */
-
 /** Boolean type, to make the code easier to read. */
 typedef enum {NC_FALSE = 0, NC_TRUE = 1} nc_bool_t;
 
 /* Forward declarations. */
 struct NC_GRP_INFO;
 struct NC_TYPE_INFO;
-struct NC_FIlterobject;
+struct NC_Filterobject;
 
 /**
  * This struct provides indexed Access to Meta-data objects. See the
@@ -208,6 +200,7 @@ typedef struct NC_VAR_INFO
     void *fill_value;            /**< Pointer to fill value, or NULL. */
     size_t *chunksizes;          /**< For chunked storage, an array (size ndims) of chunksizes. */
     int storage;                 /**< Storage of this var, compact, contiguous, or chunked. */
+    int endianness;              /**< What endianness for the var? */
     int parallel_access;         /**< Type of parallel access for I/O on variable (collective or independent). */
     nc_bool_t shuffle;           /**< True if var has shuffle filter applied. */
     nc_bool_t fletcher32;        /**< True if var has fletcher32 filter applied. */
@@ -215,7 +208,7 @@ typedef struct NC_VAR_INFO
     size_t chunk_cache_nelems;   /**< Number of slots in var chunk cache. */
     float chunk_cache_preemption; /**< Chunk cache preemtion policy. */
     void *format_var_info;       /**< Pointer to any binary format info. */
-    NClist* filters;             /**< List of filters to be applied to var data.  */
+    NClist* filters;             /**< List<NC_FILTERX_SPEC> of filters to be applied to var data; technically format dependent */
 } NC_VAR_INFO_T;
 
 /** This is a struct to handle the field metadata from a user-defined
@@ -284,15 +277,17 @@ typedef struct NC_GRP_INFO
 
 /* These constants apply to the cmode parameter in the
  * HDF5_FILE_INFO_T defined below. */
-#define NC_CREAT 2      /**< in create phase, cleared by ncendef */
-#define NC_INDEF 8      /**< in define mode, cleared by ncendef */
-#define NC_NSYNC 0x10   /**< synchronise numrecs on change */
-#define NC_HSYNC 0x20   /**< synchronise whole header on change */
-#define NC_NDIRTY 0x40  /**< numrecs has changed */
-#define NC_HDIRTY 0x80  /**< header info has changed */
+/* Make sure they do not conflict with defined flags in netcdf.h */
+#define NC_CREAT 0x10002      /**< in create phase, cleared by ncendef */
+#define NC_INDEF 0x10008      /**< in define mode, cleared by ncendef */
+#define NC_NSYNC 0x10010   /**< synchronise numrecs on change */
+#define NC_HSYNC 0x10020   /**< synchronise whole header on change */
+#define NC_NDIRTY 0x10040  /**< numrecs has changed */
+#define NC_HDIRTY 0x10080  /**< header info has changed */
 
 /** This is the metadata we need to keep track of for each
- * netcdf-4/HDF5 file. */
+  * netcdf-4/HDF5 file. */
+
 typedef struct  NC_FILE_INFO
 {
     NC_OBJ hdr;
@@ -342,8 +337,9 @@ typedef struct
     void *p;    /**< Pointer to VL data */
 } nc_hvl_t;
 
-/** The names of the atomic data types. */
-extern const char *nc4_atomic_name[NC_MAX_ATOMIC_TYPE + 1];
+/* Misc functions */
+int NC4_inq_atomic_type(nc_type typeid1, char *name, size_t *size);
+int NC4_lookup_atomic_type(const char *name, nc_type* idp, size_t *sizep);
 
 /* These functions convert between netcdf and HDF5 types. */
 int nc4_get_typelen_mem(NC_FILE_INFO_T *h5, nc_type xtype, size_t *len);
@@ -423,8 +419,11 @@ int nc4_check_name(const char *name, char *norm_name);
 int nc4_normalize_name(const char *name, char *norm_name);
 int nc4_check_dup_name(NC_GRP_INFO_T *grp, char *norm_name);
 
+/* Get the fill value for a var. */
+int nc4_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp);
+
 /* Find default fill value. */
-int nc4_get_default_fill_value(const NC_TYPE_INFO_T *type_info, void *fill_value);
+int nc4_get_default_fill_value(nc_type typecode, void *fill_value);
 
 /* Get an att given pointers to file, group, and perhaps ver info. */
 int nc4_get_att_ptrs(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var,
@@ -445,60 +444,19 @@ extern void nc4_hdf5_finalize(void);
 int log_metadata_nc(NC_FILE_INFO_T *h5);
 #endif
 
+/** @internal Names of atomic types. */
+extern const char* nc4_atomic_name[NUM_ATOMIC_TYPES];
+
 /* Binary searcher for reserved attributes */
-extern const NC_reservedatt *NC_findreserved(const char *name);
+extern const NC_reservedatt* NC_findreserved(const char* name);
 
-/**************************************************/
-/* Internal filter related structures */
-
-/* Internal filter actions */
-#define NCFILTER_DEF		1
-#define NCFILTER_REMOVE  	2
-#define NCFILTER_INQ	    	3
-#define NCFILTER_FILTERIDS      4
-#define NCFILTER_INFO		5
-#define NCFILTER_FREESPEC	6
-#define NCFILTER_CLIENT_REG	10
-#define NCFILTER_CLIENT_UNREG	11
-#define NCFILTER_CLIENT_INQ	12
-
-typedef enum NC_FILTER_SORT {
-	NC_FILTER_SORT_SPEC=((int)1),
-	NC_FILTER_SORT_IDS=((int)2),
-	NC_FILTER_SORT_CLIENT=((int)3),
-} NC_FILTER_SORT;
-
-/* Provide structs to pass args to filter_actions function for HDF5*/
-
-typedef struct NC_FILTER_SPEC_HDF5 {
-    int active;            /**< true iff HDF5 library was told to activate filter */
-    unsigned int filterid; /**< ID for arbitrary filter. */
-    size_t nparams;        /**< nparams for arbitrary filter. */
-    unsigned int* params;  /**< Params for arbitrary filter. */
-} NC_FILTER_SPEC_HDF5;
-
-typedef struct NC_FILTERIDS_HDF5 {
-    size_t nfilters;          /**< number of filters */
-    unsigned int* filterids;  /**< Filter ids. */
-} NC_FILTERIDS_HDF5;
-
-typedef struct NC_FILTER_CLIENT_HDF5 {
-    unsigned int id;
-    /* The filter info for hdf5 */
-    /* Avoid needing hdf.h by using void* */
-    void* info;
-} NC_FILTER_CLIENT_HDF5;
-
-typedef struct NC_FILTER_OBJ_HDF5 {
-    NC_Filterobject hdr; /* So we can cast it */
-    NC_FILTER_SORT sort; /* discriminate union */
-    union {
-        NC_FILTER_SPEC_HDF5 spec;
-        NC_FILTERIDS_HDF5 ids;
-        NC_FILTER_CLIENT_HDF5 client;
-    } u;
-} NC_FILTER_OBJ_HDF5;
-
-extern void NC4_freefilterspec(NC_FILTER_SPEC_HDF5* f);
-
+/* Generic reserved Attributes */
+#define NC_ATT_REFERENCE_LIST "REFERENCE_LIST"
+#define NC_ATT_CLASS "CLASS"
+#define NC_ATT_DIMENSION_LIST "DIMENSION_LIST"
+#define NC_ATT_NAME "NAME"
+#define NC_ATT_COORDINATES "_Netcdf4Coordinates" /*see hdf5internal.h:COORDINATES*/
+#define NC_ATT_FORMAT "_Format"
+#define NC_ATT_DIMID_NAME "_Netcdf4Dimid"
+#define NC_ATT_NC3_STRICT_NAME "_nc3_strict"
 #endif /* _NC4INTERNAL_ */

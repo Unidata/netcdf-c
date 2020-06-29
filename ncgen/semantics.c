@@ -10,6 +10,9 @@
 #include        "ncoffsets.h"
 #include        "netcdf_aux.h"
 
+#define floordiv(x,y) ((x) / (y))
+#define ceildiv(x,y) (((x) % (y)) == 0 ? ((x) / (y)) : (((x) / (y)) + 1))
+
 /* Forward*/
 static void filltypecodes(void);
 static void processenums(void);
@@ -22,6 +25,7 @@ static void processunlimiteddims(void);
 static void processeconstrefs(void);
 static void processeconstrefsR(Symbol*,Datalist*);
 static void processroot(void);
+static void processvardata(void);
 
 static void computefqns(void);
 static void fixeconstref(Symbol*,NCConstant* con);
@@ -32,13 +36,6 @@ static int tagvlentypes(Symbol* tsym);
 static void computefqns(void);
 static Symbol* uniquetreelocate(Symbol* refsym, Symbol* root);
 static char* createfilename(void);
-
-#if 0
-static Symbol* locateenumtype(Symbol* econst, Symbol* group, NCConstant*);
-static List* findecmatches(char* ident);
-static List* ecsearchgrp(Symbol* grp, List* candidates);
-static Symbol* checkeconst(Symbol* en, const char* refname);
-#endif
 
 List* vlenconstants;  /* List<Constant*>;*/
 			  /* ptr to vlen instances across all datalists*/
@@ -67,6 +64,8 @@ processsemantics(void)
     processeconstrefs();
     /* Compute the unlimited dimension sizes */
     processunlimiteddims();
+    /* Rebuild var datalists to show dim levels */
+    processvardata();
     /* check internal consistency*/
     checkconsistency();
 }
@@ -404,9 +403,6 @@ static void
 processenums(void)
 {
     unsigned long i,j;
-#if 0 /* Unused? */
-    List* enumids = listnew();
-#endif
     for(i=0;i<listlength(typdefs);i++) {
 	Symbol* sym = (Symbol*)listget(typdefs,i);
 	ASSERT(sym->objectclass == NC_TYPE);
@@ -414,9 +410,6 @@ processenums(void)
 	for(j=0;j<listlength(sym->subnodes);j++) {
 	    Symbol* esym = (Symbol*)listget(sym->subnodes,j);
 	    ASSERT(esym->subclass == NC_ECONST);
-#if 0 /* Unused? */
-	    listpush(enumids,(void*)esym);
-#endif
 	}
     }
     /* Convert enum values to match enum type*/
@@ -458,8 +451,8 @@ processeconstrefs(void)
 	Symbol* var = (Symbol*)listget(vardefs,i);
 	if(var->data != NULL && listlength(var->data) > 0)
 	    processeconstrefsR(var,var->data);
-	if(var->var.special->_Fillvalue != NULL)
-	    processeconstrefsR(var,var->var.special->_Fillvalue);
+	if(var->var.special._Fillvalue != NULL)
+	    processeconstrefsR(var,var->var.special._Fillvalue);
     }
 }
 
@@ -530,149 +523,6 @@ fixeconstref(Symbol* avsym, NCConstant* con)
     }
     semerror(con->lineno,"Undefined enum or enum constant reference: %s",refsym->name);
 }
-
-#if 0
-/* If we have an enum-valued group attribute, then we need to do
-extra work to find the containing enum type
-*/
-static Symbol*
-locateenumtype(Symbol* refsym, Symbol* parent, NCConstant* con)
-{
-    Symbol* match = NULL;
-    List* grpmatches;
-
-    /* Locate all possible matching enum constant definitions */
-    List* candidates = findecmatches(refsym->name);
-    if(candidates == NULL) {
-	semerror(con->lineno,"Undefined enum or enum constant reference: %s",refsym->name);
-	return NULL;
-    }
-    /* One hopes that 99% of the time, the match is unique */
-    if(listlength(candidates) == 1) {
-	match = listget(candidates,0);
-	goto done;
-    }
-    /* If this ref has a specified group prefix, then find that group
-       and search only within it for matches to the candidates */
-    if(refsym->is_prefixed && refsym->prefix != NULL) {
-	parent = lookupgroup(refsym->prefix);
-	if(parent == NULL) {
-	    semerror(con->lineno,"Undefined group reference: ",fullname(refsym));
-	    goto done;
-	}
-	/* Search this group only for matches */
-	grpmatches = ecsearchgrp(parent,candidates);
-	switch (listlength(grpmatches)) {
-	case 0:
-	    semerror(con->lineno,"Undefined enum or enum constant reference: ",refsym->name);
-	    listfree(grpmatches);
-	    goto done;
-	case 1:
-	    break;
-	default:
-	    semerror(con->lineno,"Ambiguous enum constant reference: %s", fullname(refsym));
-	}
-	match = listget(grpmatches,0);
-	listfree(grpmatches);
-	goto done;
-    }
-    /* Sigh, we have to search up the tree to see if any of our candidates are there */
-    assert(parent == NULL || parent->objectclass == NC_GRP);
-    while(parent != NULL && match == NULL) {
-	grpmatches = ecsearchgrp(parent,candidates);
-	switch (listlength(grpmatches)) {
-	case 0: break;
-	case 1: match = listget(grpmatches,0); break;
-	default:
-	    semerror(con->lineno,"Ambiguous enum constant reference: %s", fullname(refsym));
-	    match = listget(grpmatches,0);
-	    break;
-	}
-	listfree(grpmatches);
-    }
-    if(match != NULL) goto done;
-    /* Not unique and not in the parent tree, so complains and pick the first candidate */
-    semerror(con->lineno,"Ambiguous enum constant reference: %s", fullname(refsym));
-    match = (Symbol*)listget(candidates,0);
-done:
-    listfree(candidates);
-    return match;
-}
-
-/*
-Locate enums whose name is a prefix of ident
-and contains the suffix as an enum const
-and capture that enum constant.
-*/
-static List*
-findecmatches(char* ident)
-{
-    List* matches = listnew();
-    int i;
-
-    for(i=0;i<listlength(typdefs);i++) {
-	int len;
-	Symbol* ec;
-	Symbol* en = (Symbol*)listget(typdefs,i);
-	if(en->subclass != NC_ENUM)
-	    continue;
-        /* First, assume that the ident is the econst name only */
-	ec = checkeconst(en,ident);
-	if(ec != NULL)
-	    listpush(matches,ec);
-	/* Second, do the prefix check */
-	len = strlen(en->name);
-	if(strncmp(ident,en->name,len) == 0) {
-		Symbol *ec;
-		/* Find the matching ec constant, if any */
-	    if(*(ident+len) != '.') continue;
-	    ec = checkeconst(en,ident+len+1); /* +1 for the dot */
-	    if(ec != NULL)
-		listpush(matches,ec);
-	}
-    }
-    if(listlength(matches) == 0) {
-	listfree(matches);
-        matches = NULL;
-    }
-    return matches;
-}
-
-static List*
-ecsearchgrp(Symbol* grp, List* candidates)
-{
-    List* matches = listnew();
-    int i,j;
-    /* do the intersection of grp subnodes and candidates */
-    for(i=0;i<listlength(grp->subnodes);i++) {
-	Symbol* sub= (Symbol*)listget(grp->subnodes,i);
-	if(sub->subclass != NC_ENUM)
-	    continue;
-	for(j=0;j<listlength(candidates);j++) {
-	    Symbol* ec = (Symbol*)listget(candidates,j);
-	    if(ec->container == sub)
-		listpush(matches,ec);
-	}
-    }
-    if(listlength(matches) == 0) {
-        listfree(matches);
-	matches = NULL;
-    }
-    return matches;
-}
-
-static Symbol*
-checkeconst(Symbol* en, const char* refname)
-{
-    int i;
-    for(i=0;i<listlength(en->subnodes);i++) {
-	Symbol* ec = (Symbol*)listget(en->subnodes,i);
-	if(strcmp(ec->name,refname) == 0)
-	    return ec;
-    }
-    return NULL;
-}
-#endif
 
 /* Compute type sizes and compound offsets*/
 void
@@ -832,9 +682,9 @@ processattributes(void)
 		/* Generate a default fill value */
 	        asym->data = getfiller(asym->typ.basetype);
 	    }
-	    if(asym->att.var->var.special->_Fillvalue != NULL)
-	    	reclaimdatalist(asym->att.var->var.special->_Fillvalue);
-	    asym->att.var->var.special->_Fillvalue = clonedatalist(asym->data);
+	    if(asym->att.var->var.special._Fillvalue != NULL)
+	    	reclaimdatalist(asym->att.var->var.special._Fillvalue);
+	    asym->att.var->var.special._Fillvalue = clonedatalist(asym->data);
 	} else if(asym->typ.basetype == NULL) {
 	    inferattributetype(asym);
 	}
@@ -1206,7 +1056,10 @@ thisunlim->name,
 		    length += con->value.stringv.len;
 	            break;
 		case NC_COMPOUND:
-		    semwarn(datalistline(data),"Expected character constant, found {...}");
+		    if(con->subtype == NC_DIM)
+	  	        semwarn(datalistline(data),"Expected character constant, found {...}");
+		    else
+	     	        semwarn(datalistline(data),"Expected character constant, found (...)");
 		    break;
 		default:
 		    semwarn(datalistline(data),"Illegal character constant: %d",con->nctype);
@@ -1314,3 +1167,122 @@ createfilename(void)
     }
     return strdup(filename);
 }
+
+#if 1
+/* Recursive helper for processevardata */
+static NCConstant*
+processvardataR(Symbol* vsym, Dimset* dimset, Datalist* data, int dimindex)
+{
+    int rank;
+    size_t offset;
+    Datalist* newlist = NULL;
+    NCConstant* result;
+    size_t datalen;
+    Symbol* dim;
+
+    rank = dimset->ndims;
+    dim = dimset->dimsyms[dimindex];
+
+    if(rank == 0) {/* scalar */
+	ASSERT((datalistlen(data) == 1));
+	/* return clone of this data */
+	newlist = clonedatalist(data);
+	goto done;	
+    }
+
+    /* four cases to consider: (dimindex==rank-1 vs dimindex < rank-1) X (unlimited vs fixedsize)*/
+    if(dimindex == (rank-1)) {/* Stop recursion here */
+        if(dim->dim.isunlimited) {
+  	    /* return clone of this data */
+	    newlist = clonedatalist(data);
+        } else { /* !unlimited */
+  	    /* return clone of this data */
+	    newlist = clonedatalist(data);
+	}
+    } else {/* dimindex < rank-1 */
+        NCConstant* datacon;
+	Datalist* actual;
+        if(dim->dim.isunlimited && dimindex > 0) {
+	    /* Should have a sequence of {..} representing the unlimited in next dimension
+	       so, unbpack compound */
+	    ASSERT(datalistlen(data) == 1);
+	    datacon = datalistith(data,0);
+	    actual = compoundfor(datacon);	    		    
+	} else
+	    actual = data;
+        /* fall through */
+        {
+            newlist = builddatalist(0);
+            datalen = datalistlen(actual);
+            /* So we have a block of dims starting here */
+   	    int nextunlim = findunlimited(dimset,dimindex+1);
+            size_t dimblock;
+	    int i;
+	    /* compute the size of the subblocks */
+            for(dimblock=1,i=dimindex+1;i<nextunlim;i++)
+                dimblock *= dimset->dimsyms[i]->dim.declsize;
+
+            /* Divide this datalist into dimblock size sublists; last may be short and process each */
+            for(offset=0;;offset+=dimblock) {
+                size_t blocksize;
+		Datalist* subset;
+    	        NCConstant* newcon;
+                blocksize = (offset < datalen ? dimblock : (datalen - offset));
+		subset = builddatasubset(actual,offset,blocksize);
+                /* Construct a datalist to hold processed subset */
+		newcon = processvardataR(vsym,dimset,subset,dimindex+1);
+                dlappend(newlist,newcon);
+		reclaimdatalist(subset);		
+                if((offset+blocksize) >= datalen) break; /* done */
+            }           
+        }
+    }
+done:
+    result = list2const(newlist);
+    setsubtype(result,NC_DIM);
+    return result;
+}
+
+/* listify n-dimensional data lists */
+static void
+processvardata(void)
+{
+    int i;
+    for(i=0;i<listlength(vardefs);i++) {
+        Symbol* vsym = (Symbol*)listget(vardefs,i);
+	NCConstant* con;
+        if(vsym->data == NULL) continue;
+	/* Let char typed vars be handled by genchararray */
+	if(vsym->typ.basetype->typ.typecode == NC_CHAR) continue;
+	con = processvardataR(vsym,&vsym->typ.dimset,vsym->data,0);
+	reclaimdatalist(vsym->data);
+	ASSERT((islistconst(con)));
+	vsym->data = compoundfor(con);
+	clearconstant(con);
+	freeconst(con);
+    }
+}
+
+/* Convert char strings to 'x''... form */
+Datalist*
+explode(NCConstant* con)
+{
+    int i;
+    char* p;
+    size_t len;
+    Datalist* chars;
+    ASSERT((con->nctype == NC_STRING));
+    len = con->value.stringv.len;
+    chars = builddatalist(len);
+    p = con->value.stringv.stringv;
+fprintf(stderr,"p[%d]=|%s|\n",con->value.stringv.len,p);
+    for(i=0;i<len;i++,p++) {
+	NCConstant* chcon = nullconst();
+	chcon->nctype = NC_CHAR;
+	chcon->value.charv = *p;
+	dlappend(chars,chcon);
+    }
+fprintf(stderr,"|chars|=%d\n",(int)datalistlen(chars));
+    return chars;
+}
+#endif

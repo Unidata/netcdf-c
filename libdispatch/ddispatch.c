@@ -27,6 +27,7 @@ See LICENSE.txt for license information.
 #endif
 
 /* Define vectors of zeros and ones for use with various nc_get_varX functions */
+/* Note, this form of initialization fails under Cygwin */
 size_t NC_coord_zero[NC_MAX_VAR_DIMS] = {0};
 size_t NC_coord_one[NC_MAX_VAR_DIMS] = {1};
 ptrdiff_t NC_stride_one[NC_MAX_VAR_DIMS] = {1};
