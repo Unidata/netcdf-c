@@ -14,6 +14,7 @@
 #include <mpi.h>
 
 #define FILE_NAME "tst_gfs_data_1.nc"
+#define NDIM4 4
 #define NDIM5 5
 #define QTR_DATA (DIMSIZE * DIMSIZE / 4)
 #define NUM_PROC 4
@@ -36,13 +37,12 @@ main(int argc, char **argv)
     MPI_Info info = MPI_INFO_NULL;
 
     int ncid;
-    /* size_t start[NDIMS], count[NDIMS]; */
+    size_t start[NDIM4], count[NDIM4];
 
     /* Dimensions. */
     char dim_name[NDIM5][NC_MAX_NAME + 1] = {"grid_xt", "grid_yt", "pfull", "phalf", "time"};
     int dim_len[NDIM5] = {3072, 1536, 127, 128, 1};
     int dimid[NDIM5];
-    int def_dimid[NDIM5];
 
     /* Variables. */
 #define NUM_VARS 8
@@ -55,8 +55,8 @@ main(int argc, char **argv)
     /* real, allocatable :: value_clwmr(:,:,:,:) */
     /* integer :: phalf_loc_size, phalf_start */
     /* real, allocatable :: value_phalf_loc(:), value_phalf_loc_in(:) */
-    /* integer :: pfull_loc_size, pfull_start */
-    /* real, allocatable :: value_pfull_loc(:), value_pfull_loc_in(:) */
+    int pfull_loc_size, pfull_start;
+    float *value_pfull_loc, *value_pfull_loc_in;
     /* integer :: grid_xt_loc_size, grid_xt_start */
     /* real, allocatable :: value_grid_xt_loc(:), value_grid_xt_loc_in(:) */
     /* integer :: grid_yt_loc_size, grid_yt_start */
@@ -77,6 +77,92 @@ main(int argc, char **argv)
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
 
+    /* ! Size of local (i.e. for this pe) grid_xt data. */
+    /* grid_xt_loc_size = dim_len(1)/npes; */
+    /* grid_xt_start = mpi_rank * grid_xt_loc_size + 1 */
+    /* if (mpi_rank .eq. npes - 1) then */
+    /*    grid_xt_loc_size = grid_xt_loc_size + mod(dim_len(1), npes) */
+    /* endif */
+    /* !print *, mpi_rank, 'grid_xt', dim_len(3), grid_xt_start, grid_xt_loc_size */
+
+    /* ! Size of local (i.e. for this pe) grid_yt data. */
+    /* grid_yt_loc_size = dim_len(2)/npes; */
+    /* grid_yt_start = mpi_rank * grid_yt_loc_size + 1 */
+    /* if (mpi_rank .eq. npes - 1) then */
+    /*    grid_yt_loc_size = grid_yt_loc_size + mod(dim_len(2), npes) */
+    /* endif */
+    /* !print *, mpi_rank, 'grid_yt', dim_len(3), grid_yt_start, grid_yt_loc_size */
+
+    /* Size of local (i.e. for this pe) pfull data. */
+    pfull_loc_size = dim_len[2]/mpi_size;
+    pfull_start = mpi_rank * pfull_loc_size;
+    if (mpi_rank == mpi_size - 1) 
+	pfull_loc_size = pfull_loc_size + dim_len[2] % mpi_size;
+    /* !print *, mpi_rank, 'pfull', dim_len(3), pfull_start, pfull_loc_size */
+  
+    /* ! Size of local (i.e. for this pe) phalf data. */
+    /* phalf_loc_size = dim_len(4)/npes; */
+    /* phalf_start = mpi_rank * phalf_loc_size + 1 */
+    /* if (mpi_rank .eq. npes - 1) then */
+    /*    phalf_loc_size = phalf_loc_size + mod(dim_len(4), npes) */
+    /* endif */
+    /* !print *, mpi_rank, 'phalf', dim_len(4), phalf_start, phalf_loc_size */
+
+    /* ! Size of local arrays (i.e. for this pe) lon and lat data. This is */
+    /* ! specific to 4 pes. */
+    /* lon_xt_loc_size = 1536 */
+    /* lat_xt_loc_size = 1536 */
+    /* if (mpi_rank .eq. 0 .or. mpi_rank .eq. 2) then */
+    /*    lon_xt_start = 1 */
+    /*    lat_xt_start = 1 */
+    /* else */
+    /*    lon_xt_start = 1537 */
+    /*    lat_xt_start = 1537 */
+    /* endif */
+    /* lon_yt_loc_size = 768 */
+    /* lat_yt_loc_size = 768 */
+    /* if (mpi_rank .eq. 0 .or. mpi_rank .eq. 1) then */
+    /*    lon_yt_start = 1 */
+    /*    lat_yt_start = 1 */
+    /* else */
+    /*    lon_yt_start = 769 */
+    /*    lat_yt_start = 769 */
+    /* endif */
+    /* !  print *, mpi_rank, 'lon_xt_start', lon_xt_start, 'lon_yt_start', lon_yt_start */
+    /* !  print *, mpi_rank, 'lon_xt_loc_size', lon_xt_loc_size, 'lon_yt_loc_size', lon_yt_loc_size */
+
+    /* ! Allocate space on this pe to hold the data for this pe. */
+    /* allocate(value_grid_xt_loc(grid_xt_loc_size)) */
+    /* allocate(value_grid_xt_loc_in(grid_xt_loc_size)) */
+    /* allocate(value_grid_yt_loc(grid_yt_loc_size)) */
+    /* allocate(value_grid_yt_loc_in(grid_yt_loc_size)) */
+    if (!(value_pfull_loc = malloc(pfull_loc_size * sizeof(float)))) ERR;
+    if (!(value_pfull_loc_in = malloc(pfull_loc_size * sizeof(float)))) ERR;
+    /* allocate(value_phalf_loc(phalf_loc_size)) */
+    /* allocate(value_phalf_loc_in(phalf_loc_size)) */
+    /* allocate(value_lon_loc(lon_xt_loc_size, lon_yt_loc_size)) */
+    /* allocate(value_lon_loc_in(lon_xt_loc_size, lon_yt_loc_size)) */
+    /* allocate(value_lat_loc(lat_xt_loc_size, lat_yt_loc_size)) */
+    /* allocate(value_lat_loc_in(lat_xt_loc_size, lat_yt_loc_size)) */
+    /* allocate(value_clwmr_loc(lat_xt_loc_size, lat_yt_loc_size, pfull_loc_size, 1)) */
+    /* allocate(value_clwmr_loc_in(lat_xt_loc_size, lat_yt_loc_size, pfull_loc_size, 1)) */
+  
+    /* ! Some fake data for this pe to write. */
+    /* do i = 1, pfull_loc_size */
+    /*    value_pfull_loc(i) = mpi_rank * 100 + i; */
+    /* end do */
+    /* do i = 1, phalf_loc_size */
+    /*    value_phalf_loc(i) = mpi_rank * 100 + i; */
+    /* end do */
+    /* do i = 1, lon_xt_loc_size */
+    /*    do j = 1, lon_yt_loc_size */
+    /*       value_lon_loc(i, j) = mpi_rank * 100 + i +j */
+    /*       value_lat_loc(i, j) = mpi_rank * 100 + i +j */
+    /*       do k = 1, pfull_loc_size */
+    /*          value_clwmr_loc(i, j, k, 1) = mpi_rank * 100 + i + j + k */
+    /*       end do */
+    /*    end do */
+    /* end do */
     /* Allocate data. */
     /* if (!(slab_data = malloc(sizeof(int) * DIMSIZE * DIMSIZE / mpi_size))) ERR; */
 
@@ -135,8 +221,10 @@ main(int argc, char **argv)
 		if (nc_def_var(ncid, var_name[4], var_type[4], 1, &dimid[2], &varid[4])) ERR;
 		if (nc_var_par_access(ncid, varid[4], NC_INDEPENDENT)) ERR;
 		if (nc_enddef(ncid)) ERR;
-/*   if (nc_put_var(ncid, varid(5), start=(/pfull_start/), count=(/pfull_loc_size/), values=value_pfull_loc)) */
-/*   if (nc_redef(ncid)) */
+		start[0] = pfull_start;
+		count[0] = pfull_loc_size;
+		if (nc_put_vara_float(ncid, varid[4], start, count, value_pfull_loc)) ERR;
+		if (nc_redef(ncid)) ERR;
 
 /*   ! Define dimension phalf. */
 /*   if (nc_def_dim(ncid, trim(dim_name(4)), dim_len(4), dimid(4))) */
@@ -156,7 +244,7 @@ main(int argc, char **argv)
 /*   if (nc_var_par_access(ncid, varid(7), NC_INDEPENDENT)) */
 /*   if (nc_enddef(ncid)) */
 /*   ! In NOAA code, do all processors write the single time value? */
-/*   if (my_rank .eq. 0) then */
+/*   if (mpi_rank .eq. 0) then */
 /*      if (nc_put_var(ncid, varid(7), values=value_time)) */
 /*   endif */
 /*   if (nc_redef(ncid)) */
@@ -289,6 +377,22 @@ main(int argc, char **argv)
             } /* next shuffle filter test */
         } /* next compression filter (zlib and szip) */
         /* free(slab_data); */
+
+	/* Free resources. */
+	/* free(value_grid_xt_loc) */
+	/* free(value_grid_xt_loc_in) */
+	/* free(value_grid_yt_loc) */
+	/* free(value_grid_yt_loc_in) */
+	free(value_pfull_loc);
+	free(value_pfull_loc_in);
+	/* free(value_phalf_loc) */
+	/* free(value_phalf_loc_in) */
+	/* free(value_lon_loc) */
+	/* free(value_lon_loc_in) */
+	/* free(value_lat_loc) */
+	/* free(value_lat_loc_in) */
+	/* free(value_clwmr_loc) */
+	/* free(value_clwmr_loc_in) */
     }
 
     /* Shut down MPI. */
