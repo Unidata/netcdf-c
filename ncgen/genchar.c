@@ -371,7 +371,7 @@ gen_chararrayr(Dimset* dimset, int dimindex,
     if(bbLength(databuf) == 0 && expectedsize == 1) {
         /* this is okay */
     } else if(bbLength(databuf) > expectedsize) {
-        semwarn(data->data[0].lineno,"character data list too long; expected %d character constant, found %d: ",expectedsize,bbLength(databuf));
+        semwarn(data->data[0].lineno,"character data list too long; expected %lu character constant, found %lu: ",expectedsize,(unsigned long)bbLength(databuf));
     } else {
         size_t bufsize = bbLength(databuf);
         /* Pad to size dimproduct size */
