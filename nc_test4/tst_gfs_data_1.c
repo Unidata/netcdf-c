@@ -154,6 +154,10 @@ main(int argc, char **argv)
 	value_pfull_loc[i] = mpi_rank * 100 + i;
     for (i = 0; i < phalf_loc_size; i++)
 	value_phalf_loc[i] = mpi_rank * 100 + i;
+    for (i = 0; i < grid_xt_loc_size; i++)
+	value_grid_xt_loc[i] = mpi_rank * 100 + i;
+    for (i = 0; i < grid_yt_loc_size; i++)
+	value_grid_yt_loc[i] = mpi_rank * 100 + i;
     for (j = 0; j < lon_yt_loc_size; j++)
     {
 	for(i = 0; i < lon_xt_loc_size; i++)
@@ -364,9 +368,13 @@ main(int argc, char **argv)
 
 		    /* Check grid_xt data. */
 		    if (nc_get_vara_double(ncid, varid[0], &grid_xt_start, &grid_xt_loc_size, value_grid_xt_loc_in)) ERR;
+		    for (i = 0; i < grid_xt_loc_size; i++)
+			if (value_grid_xt_loc_in[i] != value_grid_xt_loc[i]) ERR;
 
 		    /* Check grid_yt data. */
 		    if (nc_get_vara_double(ncid, varid[2], &grid_yt_start, &grid_yt_loc_size, value_grid_yt_loc_in)) ERR;
+		    for (i = 0; i < grid_yt_loc_size; i++)
+			if (value_grid_yt_loc_in[i] != value_grid_yt_loc[i]) ERR;
 
                     /* /\* Check state of compression. *\/ */
                     /* if (!f) */
