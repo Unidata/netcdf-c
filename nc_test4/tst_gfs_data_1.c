@@ -37,7 +37,7 @@ main(int argc, char **argv)
     MPI_Info info = MPI_INFO_NULL;
 
     int ncid;
-    size_t start[NDIM4], count[NDIM4];
+    /* size_t start[NDIM4], count[NDIM4]; */
 
     /* Dimensions. */
     char dim_name[NDIM5][NC_MAX_NAME + 1] = {"grid_xt", "grid_yt", "pfull", "phalf", "time"};
@@ -53,10 +53,10 @@ main(int argc, char **argv)
     /* integer :: ideflate = 4 */
     /* real*8 :: value_time = 2.0, value_time_in */
     /* real, allocatable :: value_clwmr(:,:,:,:) */
-    /* integer :: phalf_loc_size, phalf_start */
-    /* real, allocatable :: value_phalf_loc(:), value_phalf_loc_in(:) */
-    int pfull_loc_size, pfull_start;
+    size_t pfull_loc_size, pfull_start;
     float *value_pfull_loc, *value_pfull_loc_in;
+    size_t phalf_loc_size, phalf_start;
+    float *value_phalf_loc, *value_phalf_loc_in;
     /* integer :: grid_xt_loc_size, grid_xt_start */
     /* real, allocatable :: value_grid_xt_loc(:), value_grid_xt_loc_in(:) */
     /* integer :: grid_yt_loc_size, grid_yt_start */
@@ -68,7 +68,7 @@ main(int argc, char **argv)
     /* real, allocatable :: value_clwmr_loc(:,:,:,:), value_clwmr_loc_in(:,:,:,:) */
 
     int f;
-    /* int i; */
+    int i;
     /* int res; */
     /* int *slab_data; /\* one slab *\/ */
 
@@ -100,19 +100,18 @@ main(int argc, char **argv)
 	pfull_loc_size = pfull_loc_size + dim_len[2] % mpi_size;
     /* !print *, mpi_rank, 'pfull', dim_len(3), pfull_start, pfull_loc_size */
   
-    /* ! Size of local (i.e. for this pe) phalf data. */
-    /* phalf_loc_size = dim_len(4)/npes; */
-    /* phalf_start = mpi_rank * phalf_loc_size + 1 */
-    /* if (mpi_rank .eq. npes - 1) then */
-    /*    phalf_loc_size = phalf_loc_size + mod(dim_len(4), npes) */
-    /* endif */
+    /* Size of local (i.e. for this pe) phalf data. */
+    phalf_loc_size = dim_len[3]/mpi_size;
+    phalf_start = mpi_rank * phalf_loc_size;
+    if (mpi_rank == mpi_size - 1)
+	phalf_loc_size = phalf_loc_size + dim_len[3] % mpi_size;
     /* !print *, mpi_rank, 'phalf', dim_len(4), phalf_start, phalf_loc_size */
 
     /* ! Size of local arrays (i.e. for this pe) lon and lat data. This is */
     /* ! specific to 4 pes. */
     /* lon_xt_loc_size = 1536 */
     /* lat_xt_loc_size = 1536 */
-    /* if (mpi_rank .eq. 0 .or. mpi_rank .eq. 2) then */
+    /* if (mpi_rank == 0 .or. mpi_rank == 2) then */
     /*    lon_xt_start = 1 */
     /*    lat_xt_start = 1 */
     /* else */
@@ -121,7 +120,7 @@ main(int argc, char **argv)
     /* endif */
     /* lon_yt_loc_size = 768 */
     /* lat_yt_loc_size = 768 */
-    /* if (mpi_rank .eq. 0 .or. mpi_rank .eq. 1) then */
+    /* if (mpi_rank == 0 .or. mpi_rank == 1) then */
     /*    lon_yt_start = 1 */
     /*    lat_yt_start = 1 */
     /* else */
@@ -138,8 +137,8 @@ main(int argc, char **argv)
     /* allocate(value_grid_yt_loc_in(grid_yt_loc_size)) */
     if (!(value_pfull_loc = malloc(pfull_loc_size * sizeof(float)))) ERR;
     if (!(value_pfull_loc_in = malloc(pfull_loc_size * sizeof(float)))) ERR;
-    /* allocate(value_phalf_loc(phalf_loc_size)) */
-    /* allocate(value_phalf_loc_in(phalf_loc_size)) */
+    if (!(value_phalf_loc = malloc(phalf_loc_size * sizeof(float)))) ERR;
+    if (!(value_phalf_loc_in = malloc(phalf_loc_size * sizeof(float)))) ERR;
     /* allocate(value_lon_loc(lon_xt_loc_size, lon_yt_loc_size)) */
     /* allocate(value_lon_loc_in(lon_xt_loc_size, lon_yt_loc_size)) */
     /* allocate(value_lat_loc(lat_xt_loc_size, lat_yt_loc_size)) */
@@ -147,13 +146,11 @@ main(int argc, char **argv)
     /* allocate(value_clwmr_loc(lat_xt_loc_size, lat_yt_loc_size, pfull_loc_size, 1)) */
     /* allocate(value_clwmr_loc_in(lat_xt_loc_size, lat_yt_loc_size, pfull_loc_size, 1)) */
   
-    /* ! Some fake data for this pe to write. */
-    /* do i = 1, pfull_loc_size */
-    /*    value_pfull_loc(i) = mpi_rank * 100 + i; */
-    /* end do */
-    /* do i = 1, phalf_loc_size */
-    /*    value_phalf_loc(i) = mpi_rank * 100 + i; */
-    /* end do */
+    /* Some fake data for this pe to write. */
+    for (i = 0; i < pfull_loc_size; i++)
+	value_pfull_loc[i] = mpi_rank * 100 + i;
+    for (i = 0; i < phalf_loc_size; i++)
+	value_phalf_loc[i] = mpi_rank * 100 + i;
     /* do i = 1, lon_xt_loc_size */
     /*    do j = 1, lon_yt_loc_size */
     /*       value_lon_loc(i, j) = mpi_rank * 100 + i +j */
@@ -221,20 +218,18 @@ main(int argc, char **argv)
 		if (nc_def_var(ncid, var_name[4], var_type[4], 1, &dimid[2], &varid[4])) ERR;
 		if (nc_var_par_access(ncid, varid[4], NC_INDEPENDENT)) ERR;
 		if (nc_enddef(ncid)) ERR;
-		start[0] = pfull_start;
-		count[0] = pfull_loc_size;
-		if (nc_put_vara_float(ncid, varid[4], start, count, value_pfull_loc)) ERR;
+		if (nc_put_vara_float(ncid, varid[4], &pfull_start, &pfull_loc_size, value_pfull_loc)) ERR;
 		if (nc_redef(ncid)) ERR;
 
-/*   ! Define dimension phalf. */
-/*   if (nc_def_dim(ncid, trim(dim_name(4)), dim_len(4), dimid(4))) */
+		/* Define dimension phalf. */
+		if (nc_def_dim(ncid, dim_name[3], dim_len[3], &dimid[3])) ERR;
 
-/*   ! Define variable phalf and write data. */
-/*   if (nc_def_var(ncid, trim(var_name(6)), var_type(6), dimids=(/dimid(4)/), varid=varid(6))) */
-/*   if (nc_var_par_access(ncid, varid(6), NC_INDEPENDENT)) */
-/*   if (nc_enddef(ncid)) */
-/*   if (nc_put_var(ncid, varid(6), start=(/phalf_start/), count=(/phalf_loc_size/), values=value_phalf_loc)) */
-/*   if (nc_redef(ncid)) */
+		/* Define variable phalf and write data. */
+		if (nc_def_var(ncid, var_name[5], var_type[5], 1, &dimid[3], &varid[5])) ERR;
+		if (nc_var_par_access(ncid, varid[5], NC_INDEPENDENT)) ERR;
+		if (nc_enddef(ncid)) ERR;
+		if (nc_put_vara_float(ncid, varid[5], &phalf_start, &phalf_loc_size, value_phalf_loc)) ERR;
+		if (nc_redef(ncid)) ERR;
 
 /*   ! Define dimension time. */
 /*   if (nc_def_dim(ncid, trim(dim_name(5)), dim_len(5), dimid(5))) */
@@ -244,7 +239,7 @@ main(int argc, char **argv)
 /*   if (nc_var_par_access(ncid, varid(7), NC_INDEPENDENT)) */
 /*   if (nc_enddef(ncid)) */
 /*   ! In NOAA code, do all processors write the single time value? */
-/*   if (mpi_rank .eq. 0) then */
+/*   if (mpi_rank == 0) then */
 /*      if (nc_put_var(ncid, varid(7), values=value_time)) */
 /*   endif */
 /*   if (nc_redef(ncid)) */
