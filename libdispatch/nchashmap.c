@@ -315,7 +315,7 @@ int
 NC_hashmapith(NC_hashmap* map, size_t i, uintptr_t* datap, const char** keyp)
 {
     NC_hentry* h = NULL;
-    if(map == NULL || i < 0 || i >= map->alloc) return NC_EINVAL;
+    if(map == NULL || i >= map->alloc) return NC_EINVAL;
     h = &map->table[i];
     if(h && (h->flags & ACTIVE)) {
 	if(datap) *datap = h->data;
