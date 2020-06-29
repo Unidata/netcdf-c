@@ -283,12 +283,19 @@ main(int argc, char **argv)
 		/* , shuffle=.true., deflate_level=ideflate */
 		if (nc_var_par_access(ncid, varid[7], NC_COLLECTIVE)) ERR;
 		if (nc_enddef(ncid)) ERR;
-/*   if (nc_put_var(ncid, varid(8), start=(/lat_xt_start, lat_yt_start, pfull_start, 1/), & */
-/*        count=(/lat_xt_loc_size, lat_yt_loc_size, pfull_loc_size, 1/), values=value_clwmr_loc))   */
-/*   if (nc_redef(ncid)) */
+		start[0] = 0;
+		start[1] = pfull_start;
+		start[2] = lat_yt_start;
+		start[3] = lat_xt_start;
+		count[0] = 1;
+		count[1] = pfull_loc_size;
+		count[2] = lat_yt_loc_size;
+		count[3] = lat_xt_loc_size;
+		if (nc_put_vara_float(ncid, varid[7], start, count, value_clwmr_loc)) ERR;
+		if (nc_redef(ncid)) ERR;
 
-/*   ! Close the file. */
-/*   if (nc_close(ncid)) */
+		/* Close the file. */
+		if (nc_close(ncid)) ERR;
 
                 /* Setting any filter only will work for HDF5-1.10.3 and later
                  * versions. */
@@ -315,28 +322,6 @@ main(int argc, char **argv)
 /*                 if (res != NC_EINVAL) ERR; */
 /* #endif */
 
-                /* /\* Write metadata to file. *\/ */
-                /* if (nc_enddef(ncid)) ERR; */
-
-                /* /\* Set up slab for this process. *\/ */
-                /* start[0] = mpi_rank * DIMSIZE/mpi_size; */
-                /* start[1] = 0; */
-                /* count[0] = DIMSIZE/mpi_size; */
-                /* count[1] = DIMSIZE; */
-                /* count[2] = 1; */
-                /* /\*printf("mpi_rank=%d start[0]=%d start[1]=%d count[0]=%d count[1]=%d\n", */
-                /*   mpi_rank, start[0], start[1], count[0], count[1]);*\/ */
-
-                /* /\* Should not be allowed to change access to independent, */
-                /*  * because filters are in use. *\/ */
-                /* if (nc_var_par_access(ncid, v1id, NC_INDEPENDENT) != NC_EINVAL) ERR; */
-
-                /* /\* Write slabs of data. *\/ */
-                /* for (start[2] = 0; start[2] < NUM_SLABS; start[2]++) */
-                /*     if (nc_put_vara_int(ncid, v1id, start, count, slab_data)) ERR; */
-
-                /* Close the netcdf file. */
-                if (nc_close(ncid)) ERR;
 
                 /* /\* Check file. *\/ */
                 /* { */
