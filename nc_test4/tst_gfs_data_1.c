@@ -14,11 +14,10 @@
 #include <mpi.h>
 
 #define FILE_NAME "tst_gfs_data_1.nc"
+#define NUM_VARS 8
 #define NDIM4 4
 #define NDIM5 5
-#define QTR_DATA (DIMSIZE * DIMSIZE / 4)
 #define NUM_PROC 4
-#define NUM_SLABS 10
 #define NUM_SHUFFLE_SETTINGS 1
 /* #define NUM_SHUFFLE_SETTINGS 2 */
 #ifdef HAVE_H5Z_SZIP
@@ -46,11 +45,10 @@ main(int argc, char **argv)
     int dimid_data[NDIM4];
 
     /* Variables. */
-#define NUM_VARS 8
     char var_name[NUM_VARS][NC_MAX_NAME + 1] = {"grid_xt", "lon", "grid_yt", "lat", "pfull", "phalf", "time", "clwmr"};
     int varid[NUM_VARS];
     int var_type[NUM_VARS] = {NC_DOUBLE, NC_DOUBLE, NC_DOUBLE, NC_DOUBLE, NC_FLOAT, NC_FLOAT, NC_DOUBLE, NC_FLOAT};
-    /* integer :: var_ndims(NUM_VARS) = (/ 1, 2, 1, 2, 1, 1, 1, 4 /) */
+    int var_ndims[NUM_VARS] = {1, 2, 1, 2, 1, 1, 1, 4};
     /* integer :: ideflate = 4 */
     double value_time = 2.0;
     /* float value_time_in; */
@@ -72,7 +70,6 @@ main(int argc, char **argv)
     int f;
     int i, j, k;
     int res;
-    /* int *slab_data; /\* one slab *\/ */
 
     /* Initialize MPI. */
     MPI_Init(&argc, &argv);
@@ -312,45 +309,57 @@ main(int argc, char **argv)
 		/* Close the file. */
 		if (nc_close(ncid)) ERR;
 
-                /* /\* Check file. *\/ */
-                /* { */
-                /*     int shuffle_in, deflate_in, deflate_level_in; */
-                /*     int options_mask_in, pixels_per_block_in; */
-                /*     int *slab_data_in; */
+                /* Check file. */
+                {
+		    int ndims, nvars, natts, unlimdimid;
+		    int v;
 
-                /*     /\* Allocate data. *\/ */
-                /*     if (!(slab_data_in = malloc(sizeof(int) * DIMSIZE * DIMSIZE / mpi_size))) ERR; */
+                    /* int shuffle_in, deflate_in, deflate_level_in; */
+                    /* int options_mask_in, pixels_per_block_in; */
 
-                /*     /\* Reopen the file for parallel access. *\/ */
-                /*     if (nc_open_par(FILE_NAME, NC_NOWRITE, comm, info, &ncid)) ERR; */
+                    /* Reopen the file for parallel access. */
+                    if (nc_open_par(FILE_NAME, NC_NOWRITE, comm, info, &ncid)) ERR;
 
-                /*     /\* Check state of compression. *\/ */
-                /*     if (!f) */
-                /*     { */
-                /*         if (nc_inq_var_deflate(ncid, 0, &shuffle_in, &deflate_in, &deflate_level_in)) ERR; */
-                /*         if ((s && !shuffle_in) || (!s && shuffle_in)) ERR; */
-                /*         if (!deflate_in || deflate_level_in != 1) ERR; */
-                /*     } */
-                /*     else */
-                /*     { */
-                /*         if (nc_inq_var_deflate(ncid, 0, &shuffle_in, NULL, NULL)) ERR; */
-                /*         if ((s && !shuffle_in) || (!s && shuffle_in)) ERR; */
-                /*         if (nc_inq_var_szip(ncid, 0, &options_mask_in, &pixels_per_block_in)) ERR; */
-                /*     } */
+		    /* Check file. */
+		    if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
+		    if (ndims != NDIM5 || nvars != NUM_VARS || natts != 0 || unlimdimid != -1) ERR;
 
-                /*     /\* Use parallel I/O to read the data. *\/ */
-                /*     for (start[2] = 0; start[2] < NUM_SLABS; start[2]++) */
-                /*     { */
-                /*         if (nc_get_vara_int(ncid, 0, start, count, slab_data_in)) ERR; */
-                /*         for (i = 0; i < DIMSIZE * DIMSIZE / mpi_size; i++) */
-                /*             if (slab_data_in[i] != mpi_rank) ERR; */
-                /*     } */
+		    /* Check vars. */
+		    for (v = 0; v < NUM_VARS; v++)
+		    {
+			char name_in[NC_MAX_NAME + 1];
+			int xtype_in, ndims_in, natts_in;
+			int dimids_in[NDIM4];
+			
+			if (nc_inq_var(ncid, v, name_in, &xtype_in, &ndims_in, dimids_in, &natts_in)) ERR;
+			if (strcmp(name_in, var_name[v]) || xtype_in != var_type[v] || ndims_in != var_ndims[v]) ERR;
+		    }
 
-                /*     /\* Close the netcdf file. *\/ */
-                /*     if (nc_close(ncid)) ERR; */
+                    /* /\* Check state of compression. *\/ */
+                    /* if (!f) */
+                    /* { */
+                    /*     if (nc_inq_var_deflate(ncid, 0, &shuffle_in, &deflate_in, &deflate_level_in)) ERR; */
+                    /*     if ((s && !shuffle_in) || (!s && shuffle_in)) ERR; */
+                    /*     if (!deflate_in || deflate_level_in != 1) ERR; */
+                    /* } */
+                    /* else */
+                    /* { */
+                    /*     if (nc_inq_var_deflate(ncid, 0, &shuffle_in, NULL, NULL)) ERR; */
+                    /*     if ((s && !shuffle_in) || (!s && shuffle_in)) ERR; */
+                    /*     if (nc_inq_var_szip(ncid, 0, &options_mask_in, &pixels_per_block_in)) ERR; */
+                    /* } */
 
-                /*     free(slab_data_in); */
-                /* } */
+                    /* /\* Use parallel I/O to read the data. *\/ */
+                    /* for (start[2] = 0; start[2] < NUM_SLABS; start[2]++) */
+                    /* { */
+                    /*     if (nc_get_vara_int(ncid, 0, start, count, slab_data_in)) ERR; */
+                    /*     for (i = 0; i < DIMSIZE * DIMSIZE / mpi_size; i++) */
+                    /*         if (slab_data_in[i] != mpi_rank) ERR; */
+                    /* } */
+
+                    /* Close the netcdf file. */
+                    if (nc_close(ncid)) ERR;
+                }
 
                 if (!mpi_rank)
                     SUMMARIZE_ERR;
