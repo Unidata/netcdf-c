@@ -312,7 +312,8 @@ main(int argc, char **argv)
                 /* Check file. */
                 {
 		    int ndims, nvars, natts, unlimdimid;
-		    int v;
+		    char name_in[NC_MAX_NAME + 1];
+		    int d, v;
 
                     /* int shuffle_in, deflate_in, deflate_level_in; */
                     /* int options_mask_in, pixels_per_block_in; */
@@ -324,10 +325,18 @@ main(int argc, char **argv)
 		    if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
 		    if (ndims != NDIM5 || nvars != NUM_VARS || natts != 0 || unlimdimid != -1) ERR;
 
+		    /* Check dims. */
+		    for (d = 0; d < NDIM5; d++)
+		    {
+			size_t len_in;
+			
+			if (nc_inq_dim(ncid, d, name_in, &len_in)) ERR;
+			if (strcmp(name_in, dim_name[d]) && len_in != dim_len[d]) ERR;
+		    }
+
 		    /* Check vars. */
 		    for (v = 0; v < NUM_VARS; v++)
 		    {
-			char name_in[NC_MAX_NAME + 1];
 			int xtype_in, ndims_in, natts_in;
 			int dimids_in[NDIM4];
 			
