@@ -60,6 +60,8 @@ if test "x$HAVE_SETTING" = x1 ; then HAVES3=1; fi
 main nz4
 main nzf
 
-if test "x$HAVENCZARR" = x1 -a "x$HAVES3" = x1 ; then
-main s3 'https://stratus.ucar.edu/unidata-netcdf-zarr-testing'
+if test "x$NETCDF_S3_TESTS" != x ; then
+    if test "x$HAVENCZARR" = x1 -a "x$HAVES3" = x1 ; then
+      main s3 'https://stratus.ucar.edu/unidata-netcdf-zarr-testing'
+    fi
 fi
