@@ -329,15 +329,15 @@ parseonchar(const char* s, int ch, NClist* segments)
 
     p = s;
     for(;;) {
-	char* s;
+	char* q;
 	ptrdiff_t slen;
 	endp = strchr(p,ch);
 	if(endp == NULL) endp = p + strlen(p);
 	slen = (endp - p);
-	if((s = malloc(slen+1)) == NULL) {stat = NC_ENOMEM; goto done;}
-	memcpy(s,p,slen);
-	s[slen] = '\0';
-	nclistpush(segments,s);
+	if((q = malloc(slen+1)) == NULL) {stat = NC_ENOMEM; goto done;}
+	memcpy(q,p,slen);
+	q[slen] = '\0';
+	nclistpush(segments,q);
 	if(*endp == '\0') break;
 	p = endp+1;
     }
