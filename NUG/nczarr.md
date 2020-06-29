@@ -346,15 +346,14 @@ These are as follows.
 
 1. _--enable-nczarr_ -- enable the NCZarr support. If disabled, then all of the following options are disabled or irrelevant.
 2. &nbsp;&nbsp;_aws-c-common aws-cpp-sdk-s3_ and _aws-cpp-sdk-core_ -- if these libraries are available, then Amazon S3 support is enabled for NCZarr.
-3. _--disable-s3_ -- even if the aws libraries are available, this option will forcibly disable Amazon S3 support.
+3. _--disable-s3-sdk_ -- even if the aws libraries are available, this option will forcibly disable Amazon S3 support for using them.
 <!--
 4. '--enable-xarray-dimension' -- this enables the xarray support described in the section on <a href="#nczarr_compatibility">compatibility</a>.
 -->
 
 The CMake equivalents are as follows:
 * _--enable-nczarr_ => ENABLE_NCZARR=ON
-* _--disable-s3_ => ENABLE_S3=OFF
-
+* _--disable-s3-sdk_ => ENABLE_S3_SDK=OFF
 
 If S3 support is desired, then LDFLAGS should be properly set, namely this.
 ````
@@ -365,6 +364,22 @@ requires modification if they were installed elsewhere.
 
 Note also that if S3 support is enabled, then you need to have a C++ compiler installed
 because part of the S3 support code is written in C++.
+
+## Testing S3 Support
+
+Currently testing of S3 with NCzarr is supported only for
+Unidata members of the NetCDF Development Group. This is because
+it uses a specific bucket on a specific internal S3 appliance that
+is inaccessible to the general user. This is controlled by
+an environment variable via this shell command:
+````
+export NETCDF_S3_TESTS=1
+````
+If that environment variable is set and the aws libraries are
+available, and --enable-s3-sdk is set, then the S3 tests will be
+attempted.  If someone else wants to attempt these tests, then
+they will need to modify the tests
+_nczarr_test/run_ut_mapapi.sh_ and _nczarr_test/run_it_test2.sh_.
 
 # Appendix B. Building aws-sdk-cpp {#nczarr_s3sdk}
 
