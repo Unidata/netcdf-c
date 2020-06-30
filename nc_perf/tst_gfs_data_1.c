@@ -28,8 +28,8 @@
 #else
 #define NUM_COMPRESSION_FILTERS 1
 #endif
-#define MILLION 1000000
-#define NUM_DATA_VARS 1
+#define THOUSAND 1000
+#define NUM_DATA_VARS 10
 
 int
 main(int argc, char **argv)
@@ -40,8 +40,8 @@ main(int argc, char **argv)
     MPI_Info info = MPI_INFO_NULL;
 
     /* For timing. */
-    double ftime;
-    int write_us;
+    double meta_start_time, meta_stop_time;
+    double data_start_time, data_stop_time;
     
     int ncid;
     size_t start[NDIM4], count[NDIM4];
@@ -60,24 +60,20 @@ main(int argc, char **argv)
     int data_varid[NUM_DATA_VARS];
     int var_type[NUM_META_VARS] = {NC_DOUBLE, NC_DOUBLE, NC_DOUBLE, NC_DOUBLE,
 			      NC_FLOAT, NC_FLOAT, NC_DOUBLE};
-    int var_ndims[NUM_META_VARS] = {1, 2, 1, 2, 1, 1, 1};
-    /* integer :: ideflate = 4 */
     double value_time = 2.0;
-    /* float value_time_in; */
-    /* real, allocatable :: value_clwmr(:,:,:,:) */
     size_t pfull_loc_size, pfull_start;
-    float *value_pfull_loc, *value_pfull_loc_in;
+    float *value_pfull_loc;
     size_t phalf_loc_size, phalf_start;
-    float *value_phalf_loc, *value_phalf_loc_in;
+    float *value_phalf_loc;
     size_t grid_xt_loc_size, grid_xt_start;
-    double *value_grid_xt_loc, *value_grid_xt_loc_in;
+    double *value_grid_xt_loc;
     size_t grid_yt_loc_size, grid_yt_start;
-    double *value_grid_yt_loc, *value_grid_yt_loc_in;
+    double *value_grid_yt_loc;
     size_t lon_xt_loc_size, lon_xt_start, lon_yt_loc_size, lon_yt_start;
-    double *value_lon_loc, *value_lon_loc_in;
+    double *value_lon_loc;
     size_t lat_xt_loc_size, lat_xt_start, lat_yt_loc_size, lat_yt_start;
-    double *value_lat_loc, *value_lat_loc_in;
-    float *value_clwmr_loc, *value_clwmr_loc_in;
+    double *value_lat_loc;
+    float *value_clwmr_loc;
 
     int f;
     int i, j, k, dv;
@@ -147,19 +143,12 @@ main(int argc, char **argv)
 
     /* ! Allocate space on this pe to hold the data for this pe. */
     if (!(value_pfull_loc = malloc(pfull_loc_size * sizeof(float)))) ERR;
-    if (!(value_pfull_loc_in = malloc(pfull_loc_size * sizeof(float)))) ERR;
     if (!(value_phalf_loc = malloc(phalf_loc_size * sizeof(float)))) ERR;
-    if (!(value_phalf_loc_in = malloc(phalf_loc_size * sizeof(float)))) ERR;
     if (!(value_grid_xt_loc = malloc(grid_xt_loc_size * sizeof(double)))) ERR;
-    if (!(value_grid_xt_loc_in = malloc(grid_xt_loc_size * sizeof(double)))) ERR;
     if (!(value_grid_yt_loc = malloc(grid_yt_loc_size * sizeof(double)))) ERR;
-    if (!(value_grid_yt_loc_in = malloc(grid_yt_loc_size * sizeof(double)))) ERR;
     if (!(value_lon_loc = malloc(lon_xt_loc_size * lon_yt_loc_size * sizeof(double)))) ERR;
-    if (!(value_lon_loc_in = malloc(lon_xt_loc_size * lon_yt_loc_size * sizeof(double)))) ERR;
     if (!(value_lat_loc = malloc(lat_xt_loc_size * lat_yt_loc_size * sizeof(double)))) ERR;
-    if (!(value_lat_loc_in = malloc(lat_xt_loc_size * lat_yt_loc_size * sizeof(double)))) ERR;
     if (!(value_clwmr_loc = malloc(lat_xt_loc_size * lat_yt_loc_size * pfull_loc_size * sizeof(float)))) ERR;
-    if (!(value_clwmr_loc_in = malloc(lat_xt_loc_size * lat_yt_loc_size * pfull_loc_size * sizeof(float)))) ERR;
 
     /* Some fake data for this pe to write. */
     for (i = 0; i < pfull_loc_size; i++)
@@ -197,7 +186,7 @@ main(int argc, char **argv)
 
                 /* nc_set_log_level(3); */
                 /* Create a parallel netcdf-4 file. */
-		ftime = MPI_Wtime();		
+		meta_start_time = MPI_Wtime();		
                 if (nc_create_par(FILE_NAME, NC_NETCDF4, comm, info, &ncid)) ERR;
 
 		/* Turn off fill mode. */
@@ -286,7 +275,7 @@ main(int argc, char **argv)
 		if (nc_put_vara_double(ncid, varid[3], start, count, value_lat_loc)) ERR;
 		if (nc_redef(ncid)) ERR;
 
-		/* Define dimensions for our data vars. */
+		/* Specify dimensions for our data vars. */
 		dimid_data[0] = dimid[4];
 		dimid_data[1] = dimid[2];
 		dimid_data[2] = dimid[1];
@@ -298,7 +287,7 @@ main(int argc, char **argv)
 		    char data_var_name[NC_MAX_NAME + 1];
 
 		    sprintf(data_var_name, "var_%d", dv);
-		    if (nc_def_var(ncid, data_var_name, NC_DOUBLE, NDIM4, dimid_data, &data_varid[dv])) ERR;
+		    if (nc_def_var(ncid, data_var_name, NC_FLOAT, NDIM4, dimid_data, &data_varid[dv])) ERR;
 
 		    /* Setting any filter only will work for HDF5-1.10.3 and later */
 		    /* versions. */
@@ -315,10 +304,14 @@ main(int argc, char **argv)
 #else
 		    if (res != NC_EINVAL) ERR;
 #endif
-
-		if (nc_var_par_access(ncid, data_varid[dv], NC_COLLECTIVE)) ERR;
-		if (nc_enddef(ncid)) ERR;
+		    
+		    if (nc_var_par_access(ncid, data_varid[dv], NC_COLLECTIVE)) ERR;
+		    if (nc_enddef(ncid)) ERR;
 		}
+		
+		MPI_Barrier(MPI_COMM_WORLD);
+		meta_stop_time = MPI_Wtime();
+		data_start_time = MPI_Wtime();
 		
 		/* Write one record each of the data variables. */
 		for (dv = 0; dv < NUM_DATA_VARS; dv++)
@@ -338,127 +331,32 @@ main(int argc, char **argv)
 		/* Close the file. */
 		if (nc_close(ncid)) ERR;
 		MPI_Barrier(MPI_COMM_WORLD);
-		write_us += (MPI_Wtime() - ftime) * MILLION;
+		data_stop_time = MPI_Wtime();
 		if (my_rank == 0)
-		    printf("%d: writing file took %d micro-seconds\n", my_rank, write_us);
+		    printf("meta %g data %g\n", meta_stop_time - meta_start_time, data_stop_time - data_start_time);
 		
-                /* Check file. */
-                {
-		    int ndims, nvars, natts, unlimdimid;
-		    char name_in[NC_MAX_NAME + 1];
-		    double value_time_in;
-		    int d, v;
-
-                    /* int shuffle_in, deflate_in, deflate_level_in; */
-                    /* int options_mask_in, pixels_per_block_in; */
-
-                    /* Reopen the file for parallel access. */
-                    if (nc_open_par(FILE_NAME, NC_NOWRITE, comm, info, &ncid)) ERR;
-
-		    /* Check file. */
-		    if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
-		    if (ndims != NDIM5 || nvars != NUM_META_VARS + NUM_DATA_VARS || natts != 0 || unlimdimid != -1) ERR;
-
-		    /* Check dims. */
-		    for (d = 0; d < NDIM5; d++)
-		    {
-			size_t len_in;
-
-			if (nc_inq_dim(ncid, d, name_in, &len_in)) ERR;
-			if (strcmp(name_in, dim_name[d]) && len_in != dim_len[d]) ERR;
-		    }
-
-		    /* Check vars. */
-		    for (v = 0; v < NUM_META_VARS; v++)
-		    {
-			int xtype_in, ndims_in, natts_in;
-			int dimids_in[NDIM4];
-
-			if (nc_inq_var(ncid, v, name_in, &xtype_in, &ndims_in, dimids_in, &natts_in)) ERR;
-			if (strcmp(name_in, var_name[v]) || xtype_in != var_type[v] || ndims_in != var_ndims[v]) ERR;
-		    }
-
-		    /* Check pfull data. */
-		    if (nc_get_vara_float(ncid, varid[4], &pfull_start, &pfull_loc_size, value_pfull_loc_in)) ERR;
-		    for (i = 0; i < pfull_loc_size; i++)
-			if (value_pfull_loc_in[i] != value_pfull_loc[i]) ERR;
-
-		    /* Check phalf data. */
-		    if (nc_get_vara_float(ncid, varid[5], &phalf_start, &phalf_loc_size, value_phalf_loc_in)) ERR;
-		    for (i = 0; i < phalf_loc_size; i++)
-			if (value_phalf_loc_in[i] != value_phalf_loc[i]) ERR;
-
-		    /* Check time. */
-		    if (my_rank == 0)
-		    {
-			if (nc_get_var_double(ncid, varid[6], &value_time_in)) ERR;
-			if (value_time_in != value_time) ERR;
-		    }
-
-		    /* Check grid_xt data. */
-		    if (nc_get_vara_double(ncid, varid[0], &grid_xt_start, &grid_xt_loc_size, value_grid_xt_loc_in)) ERR;
-		    for (i = 0; i < grid_xt_loc_size; i++)
-			if (value_grid_xt_loc_in[i] != value_grid_xt_loc[i]) ERR;
-
-		    /* Check grid_yt data. */
-		    if (nc_get_vara_double(ncid, varid[2], &grid_yt_start, &grid_yt_loc_size, value_grid_yt_loc_in)) ERR;
-		    for (i = 0; i < grid_yt_loc_size; i++)
-			if (value_grid_yt_loc_in[i] != value_grid_yt_loc[i]) ERR;
-
-                    /* /\* Check state of compression. *\/ */
-                    /* if (!f) */
-                    /* { */
-                    /*     if (nc_inq_var_deflate(ncid, 0, &shuffle_in, &deflate_in, &deflate_level_in)) ERR; */
-                    /*     if ((s && !shuffle_in) || (!s && shuffle_in)) ERR; */
-                    /*     if (!deflate_in || deflate_level_in != 1) ERR; */
-                    /* } */
-                    /* else */
-                    /* { */
-                    /*     if (nc_inq_var_deflate(ncid, 0, &shuffle_in, NULL, NULL)) ERR; */
-                    /*     if ((s && !shuffle_in) || (!s && shuffle_in)) ERR; */
-                    /*     if (nc_inq_var_szip(ncid, 0, &options_mask_in, &pixels_per_block_in)) ERR; */
-                    /* } */
-
-                    /* /\* Use parallel I/O to read the data. *\/ */
-                    /* for (start[2] = 0; start[2] < NUM_SLABS; start[2]++) */
-                    /* { */
-                    /*     if (nc_get_vara_int(ncid, 0, start, count, slab_data_in)) ERR; */
-                    /*     for (i = 0; i < DIMSIZE * DIMSIZE / mpi_size; i++) */
-                    /*         if (slab_data_in[i] != my_rank) ERR; */
-                    /* } */
-
-                    /* Close the netcdf file. */
-                    if (nc_close(ncid)) ERR;
-                }
-
-                if (!my_rank)
-                    SUMMARIZE_ERR;
             } /* next shuffle filter test */
         } /* next compression filter (zlib and szip) */
         /* free(slab_data); */
 
 	/* Free resources. */
 	free(value_grid_xt_loc);
-	free(value_grid_xt_loc_in);
 	free(value_grid_yt_loc);
-	free(value_grid_yt_loc_in);
 	free(value_pfull_loc);
-	free(value_pfull_loc_in);
 	free(value_phalf_loc);
-	free(value_phalf_loc_in);
 	free(value_lon_loc);
-	free(value_lon_loc_in);
 	free(value_lat_loc);
-	free(value_lat_loc_in);
 	free(value_clwmr_loc);
-	free(value_clwmr_loc_in);
     }
 
+    if (!my_rank)
+        SUMMARIZE_ERR;
+    
     /* Shut down MPI. */
     MPI_Finalize();
 
-    /* if (!my_rank) */
-    /* 	FINAL_RESULTS; */
+    if (!my_rank)
+    	FINAL_RESULTS;
 
     return 0;
 }
