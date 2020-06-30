@@ -20,7 +20,8 @@ LDADD = ${top_builddir}/liblib/libnetcdf.la
 check_PROGRAMS = tst_create_files bm_file tst_chunks3 tst_ar4	\
 tst_ar4_3d tst_ar4_4d bm_many_objs tst_h_many_atts bm_many_atts	\
 tst_files2 tst_files3 tst_mem tst_mem1 tst_knmi bm_netcdf4_recs	\
-tst_wrf_reads tst_attsperf bigmeta openbigmeta tst_bm_rando
+tst_wrf_reads tst_attsperf bigmeta openbigmeta tst_bm_rando	\
+tst_gfs_data_1
 
 bm_file_SOURCES = bm_file.c tst_utils.c
 bm_netcdf4_recs_SOURCES = bm_netcdf4_recs.c tst_utils.c
@@ -48,16 +49,16 @@ TESTS += run_bm_test1.sh run_bm_test2.sh
 run_bm_test1.log: tst_create_files.log
 run_bm_test2.log: tst_create_files.log
 
-# This will run a parallel I/O benchmark for parallel builds.
+# This will run parallel I/O benchmarks for parallel builds.
 if TEST_PARALLEL4
-TESTS += run_par_bm_test.sh
+TESTS += run_par_bm_test.sh run_gfs_test.sh
 run_par_bm_test.log: tst_create_files.log
 endif # TEST_PARALLEL4
 endif # BUILD_UTILITIES
 
 EXTRA_DIST = run_par_bm_test.sh.in run_knmi_bm.sh perftest.sh		\
 run_bm_test1.sh run_bm_test2.sh run_tst_chunks.sh run_bm_elena.sh	\
-CMakeLists.txt
+CMakeLists.txt run_gfs_test.sh.in
 
 CLEANFILES = tst_*.nc bigmeta.nc bigvars.nc floats*.nc	\
 floats*.cdl shorts*.nc shorts*.cdl ints*.nc ints*.cdl tst_*.cdl

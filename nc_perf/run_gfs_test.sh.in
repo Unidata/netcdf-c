@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# This shell file tests the GFS tests parallel I/O.
+# Ed Hartnett, 6/30/20
+
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
+. ../test_common.sh
+
+echo "*** Running tst_gfs_1..."
+@MPIEXEC@ -n 4 ./tst_gfs_data_1
+
+exit 0
