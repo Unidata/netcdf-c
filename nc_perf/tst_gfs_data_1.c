@@ -16,7 +16,7 @@
 #include <mpi.h>
 
 #define FILE_NAME "tst_gfs_data_1.nc"
-#define NUM_VARS 8
+#define NUM_META_VARS 7
 #define NDIM4 4
 #define NDIM5 5
 #define NUM_PROC 4
@@ -29,6 +29,7 @@
 #define NUM_COMPRESSION_FILTERS 1
 #endif
 #define MILLION 1000000
+#define NUM_DATA_VARS 1
 
 int
 main(int argc, char **argv)
@@ -53,13 +54,13 @@ main(int argc, char **argv)
     int dimid_data[NDIM4];
 
     /* Variables. */
-    char var_name[NUM_VARS][NC_MAX_NAME + 1] = {"grid_xt", "lon", "grid_yt",
-						"lat", "pfull", "phalf", "time",
-						"clwmr"};
-    int varid[NUM_VARS];
-    int var_type[NUM_VARS] = {NC_DOUBLE, NC_DOUBLE, NC_DOUBLE, NC_DOUBLE,
-			      NC_FLOAT, NC_FLOAT, NC_DOUBLE, NC_FLOAT};
-    int var_ndims[NUM_VARS] = {1, 2, 1, 2, 1, 1, 1, 4};
+    char var_name[NUM_META_VARS][NC_MAX_NAME + 1] = {"grid_xt", "lon", "grid_yt",
+						     "lat", "pfull", "phalf", "time"};
+    int varid[NUM_META_VARS];
+    int data_varid[NUM_DATA_VARS];
+    int var_type[NUM_META_VARS] = {NC_DOUBLE, NC_DOUBLE, NC_DOUBLE, NC_DOUBLE,
+			      NC_FLOAT, NC_FLOAT, NC_DOUBLE};
+    int var_ndims[NUM_META_VARS] = {1, 2, 1, 2, 1, 1, 1};
     /* integer :: ideflate = 4 */
     double value_time = 2.0;
     /* float value_time_in; */
@@ -79,7 +80,7 @@ main(int argc, char **argv)
     float *value_clwmr_loc, *value_clwmr_loc_in;
 
     int f;
-    int i, j, k;
+    int i, j, k, dv;
     int res;
 
     /* Initialize MPI. */
@@ -285,41 +286,54 @@ main(int argc, char **argv)
 		if (nc_put_vara_double(ncid, varid[3], start, count, value_lat_loc)) ERR;
 		if (nc_redef(ncid)) ERR;
 
-		/* Define variable clwmr and write data (?) */
+		/* Define dimensions for our data vars. */
 		dimid_data[0] = dimid[4];
 		dimid_data[1] = dimid[2];
 		dimid_data[2] = dimid[1];
 		dimid_data[3] = dimid[0];
-		if (nc_def_var(ncid, var_name[7], var_type[7], NDIM4, dimid_data, &varid[7])) ERR;
 
-                /* Setting any filter only will work for HDF5-1.10.3 and later */
-                /* versions. */
-                if (!f)
-                    res = nc_def_var_deflate(ncid, varid[7], s, 1, 4);
-                else
-                {
-                    res = nc_def_var_deflate(ncid, varid[7], s, 0, 0);
-                    if (!res)
-                        res = nc_def_var_szip(ncid, varid[7], 32, 32);
-                }
+		/* Define data variables. */
+		for (dv = 0; dv < NUM_DATA_VARS; dv++)
+		{
+		    char data_var_name[NC_MAX_NAME + 1];
+
+		    sprintf(data_var_name, "var_%d", dv);
+		    if (nc_def_var(ncid, data_var_name, NC_DOUBLE, NDIM4, dimid_data, &data_varid[dv])) ERR;
+
+		    /* Setting any filter only will work for HDF5-1.10.3 and later */
+		    /* versions. */
+		    if (!f)
+			res = nc_def_var_deflate(ncid, data_varid[dv], s, 1, 4);
+		    else
+		    {
+			res = nc_def_var_deflate(ncid, data_varid[dv], s, 0, 0);
+			if (!res)
+			    res = nc_def_var_szip(ncid, data_varid[dv], 32, 32);
+		    }
 #ifdef HDF5_SUPPORTS_PAR_FILTERS
-                if (res) ERR;
+		    if (res) ERR;
 #else
-                if (res != NC_EINVAL) ERR;
+		    if (res != NC_EINVAL) ERR;
 #endif
 
-		if (nc_var_par_access(ncid, varid[7], NC_COLLECTIVE)) ERR;
+		if (nc_var_par_access(ncid, data_varid[dv], NC_COLLECTIVE)) ERR;
 		if (nc_enddef(ncid)) ERR;
-		start[0] = 0;
-		start[1] = pfull_start;
-		start[2] = lat_yt_start;
-		start[3] = lat_xt_start;
-		count[0] = 1;
-		count[1] = pfull_loc_size;
-		count[2] = lat_yt_loc_size;
-		count[3] = lat_xt_loc_size;
-		if (nc_put_vara_float(ncid, varid[7], start, count, value_clwmr_loc)) ERR;
-		if (nc_redef(ncid)) ERR;
+		}
+		
+		/* Write one record each of the data variables. */
+		for (dv = 0; dv < NUM_DATA_VARS; dv++)
+		{
+		    start[0] = 0;
+		    start[1] = pfull_start;
+		    start[2] = lat_yt_start;
+		    start[3] = lat_xt_start;
+		    count[0] = 1;
+		    count[1] = pfull_loc_size;
+		    count[2] = lat_yt_loc_size;
+		    count[3] = lat_xt_loc_size;
+		    if (nc_put_vara_float(ncid, data_varid[dv], start, count, value_clwmr_loc)) ERR;
+		    if (nc_redef(ncid)) ERR;
+		}
 
 		/* Close the file. */
 		if (nc_close(ncid)) ERR;
@@ -327,7 +341,7 @@ main(int argc, char **argv)
 		write_us += (MPI_Wtime() - ftime) * MILLION;
 		if (my_rank == 0)
 		    printf("%d: writing file took %d micro-seconds\n", my_rank, write_us);
-
+		
                 /* Check file. */
                 {
 		    int ndims, nvars, natts, unlimdimid;
@@ -343,7 +357,7 @@ main(int argc, char **argv)
 
 		    /* Check file. */
 		    if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
-		    if (ndims != NDIM5 || nvars != NUM_VARS || natts != 0 || unlimdimid != -1) ERR;
+		    if (ndims != NDIM5 || nvars != NUM_META_VARS + NUM_DATA_VARS || natts != 0 || unlimdimid != -1) ERR;
 
 		    /* Check dims. */
 		    for (d = 0; d < NDIM5; d++)
@@ -355,7 +369,7 @@ main(int argc, char **argv)
 		    }
 
 		    /* Check vars. */
-		    for (v = 0; v < NUM_VARS; v++)
+		    for (v = 0; v < NUM_META_VARS; v++)
 		    {
 			int xtype_in, ndims_in, natts_in;
 			int dimids_in[NDIM4];

@@ -260,7 +260,7 @@ cmp_file(char *file1, char *file2, int *meta_read_us, size_t *data_read_us,
 #endif
     struct timeval start_time, end_time, diff_time;
     void *data = NULL, *data2 = NULL;
-    int a, v, d;
+    int a, v, d, dv;
     nc_type xtype, xtype2;
     int nvars, ndims, dimids[NC_MAX_VAR_DIMS], natts, real_ndims;
     int nvars2, ndims2, dimids2[NC_MAX_VAR_DIMS], natts2;
