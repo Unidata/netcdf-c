@@ -52,18 +52,20 @@ run_bm_test2.log: tst_create_files.log
 # This will run parallel I/O benchmarks for parallel builds.
 if TEST_PARALLEL4
 TESTS += run_par_bm_test.sh run_gfs_test.sh
-run_par_bm_test.log: tst_create_files.log
+run_par_bm_test.log: tst_create_files.log run_bm_test1.log
 endif # TEST_PARALLEL4
 endif # BUILD_UTILITIES
 
-EXTRA_DIST = run_par_bm_test.sh.in run_knmi_bm.sh perftest.sh		\
-run_bm_test1.sh run_bm_test2.sh run_tst_chunks.sh run_bm_elena.sh	\
-CMakeLists.txt run_gfs_test.sh.in
+# Extra files for the dist. Note that parallel tests end in .in,
+# because configure substitute in the launcher (usually mpiexec).
+EXTRA_DIST = run_knmi_bm.sh perftest.sh run_bm_test1.sh			\
+run_bm_test2.sh run_tst_chunks.sh run_bm_elena.sh CMakeLists.txt	\
+run_gfs_test.sh.in run_par_bm_test.sh.in
 
-CLEANFILES = tst_*.nc bigmeta.nc bigvars.nc floats*.nc	\
-floats*.cdl shorts*.nc shorts*.cdl ints*.nc ints*.cdl tst_*.cdl
+CLEANFILES = tst_*.nc bigmeta.nc bigvars.nc floats*.nc floats*.cdl	\
+shorts*.nc shorts*.cdl ints*.nc ints*.cdl tst_*.cdl
 
-DISTCLEANFILES = run_par_bm_test.sh MSGCPP_CWP_NC*.nc
+DISTCLEANFILES = run_par_bm_test.sh MSGCPP_CWP_NC*.nc run_gfs_test.sh
 
 # If valgrind is present, add valgrind targets.
 @VALGRIND_CHECK_RULES@

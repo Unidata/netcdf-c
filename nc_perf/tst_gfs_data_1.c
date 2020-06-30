@@ -10,6 +10,8 @@
 */
 
 #include <nc_tests.h>
+#include <time.h>
+#include <sys/time.h> /* Extra high precision time info. */
 #include "err_macros.h"
 #include <mpi.h>
 
@@ -26,28 +28,37 @@
 #else
 #define NUM_COMPRESSION_FILTERS 1
 #endif
+#define MILLION 1000000
 
 int
 main(int argc, char **argv)
 {
     /* MPI stuff. */
-    int mpi_size, mpi_rank;
+    int mpi_size, my_rank;
     MPI_Comm comm = MPI_COMM_WORLD;
     MPI_Info info = MPI_INFO_NULL;
 
+    /* For timing. */
+    double ftime;
+    int write_us;
+    
     int ncid;
     size_t start[NDIM4], count[NDIM4];
 
     /* Dimensions. */
-    char dim_name[NDIM5][NC_MAX_NAME + 1] = {"grid_xt", "grid_yt", "pfull", "phalf", "time"};
+    char dim_name[NDIM5][NC_MAX_NAME + 1] = {"grid_xt", "grid_yt", "pfull",
+					     "phalf", "time"};
     int dim_len[NDIM5] = {3072, 1536, 127, 128, 1};
     int dimid[NDIM5];
     int dimid_data[NDIM4];
 
     /* Variables. */
-    char var_name[NUM_VARS][NC_MAX_NAME + 1] = {"grid_xt", "lon", "grid_yt", "lat", "pfull", "phalf", "time", "clwmr"};
+    char var_name[NUM_VARS][NC_MAX_NAME + 1] = {"grid_xt", "lon", "grid_yt",
+						"lat", "pfull", "phalf", "time",
+						"clwmr"};
     int varid[NUM_VARS];
-    int var_type[NUM_VARS] = {NC_DOUBLE, NC_DOUBLE, NC_DOUBLE, NC_DOUBLE, NC_FLOAT, NC_FLOAT, NC_DOUBLE, NC_FLOAT};
+    int var_type[NUM_VARS] = {NC_DOUBLE, NC_DOUBLE, NC_DOUBLE, NC_DOUBLE,
+			      NC_FLOAT, NC_FLOAT, NC_DOUBLE, NC_FLOAT};
     int var_ndims[NUM_VARS] = {1, 2, 1, 2, 1, 1, 1, 4};
     /* integer :: ideflate = 4 */
     double value_time = 2.0;
@@ -74,41 +85,41 @@ main(int argc, char **argv)
     /* Initialize MPI. */
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
 
     /* Size of local (i.e. for this pe) grid_xt data. */
     grid_xt_loc_size = dim_len[0]/mpi_size;
-    grid_xt_start = mpi_rank * grid_xt_loc_size;
-    if (mpi_rank == mpi_size - 1)
+    grid_xt_start = my_rank * grid_xt_loc_size;
+    if (my_rank == mpi_size - 1)
 	grid_xt_loc_size = grid_xt_loc_size + dim_len[0] % mpi_size;
-    /* !print *, mpi_rank, 'grid_xt', dim_len(3), grid_xt_start, grid_xt_loc_size */
+    /* !print *, my_rank, 'grid_xt', dim_len(3), grid_xt_start, grid_xt_loc_size */
 
     /* Size of local (i.e. for this pe) grid_yt data. */
     grid_yt_loc_size = dim_len[1]/mpi_size;
-    grid_yt_start = mpi_rank * grid_yt_loc_size;
-    if (mpi_rank == mpi_size - 1)
+    grid_yt_start = my_rank * grid_yt_loc_size;
+    if (my_rank == mpi_size - 1)
 	grid_yt_loc_size = grid_yt_loc_size + dim_len[1] % mpi_size;
-    /* !print *, mpi_rank, 'grid_yt', dim_len(3), grid_yt_start, grid_yt_loc_size */
+    /* !print *, my_rank, 'grid_yt', dim_len(3), grid_yt_start, grid_yt_loc_size */
 
     /* Size of local (i.e. for this pe) pfull data. */
     pfull_loc_size = dim_len[2]/mpi_size;
-    pfull_start = mpi_rank * pfull_loc_size;
-    if (mpi_rank == mpi_size - 1)
+    pfull_start = my_rank * pfull_loc_size;
+    if (my_rank == mpi_size - 1)
 	pfull_loc_size = pfull_loc_size + dim_len[2] % mpi_size;
-    /* !print *, mpi_rank, 'pfull', dim_len(3), pfull_start, pfull_loc_size */
+    /* !print *, my_rank, 'pfull', dim_len(3), pfull_start, pfull_loc_size */
 
     /* Size of local (i.e. for this pe) phalf data. */
     phalf_loc_size = dim_len[3]/mpi_size;
-    phalf_start = mpi_rank * phalf_loc_size;
-    if (mpi_rank == mpi_size - 1)
+    phalf_start = my_rank * phalf_loc_size;
+    if (my_rank == mpi_size - 1)
 	phalf_loc_size = phalf_loc_size + dim_len[3] % mpi_size;
-    /* !print *, mpi_rank, 'phalf', dim_len(4), phalf_start, phalf_loc_size */
+    /* !print *, my_rank, 'phalf', dim_len(4), phalf_start, phalf_loc_size */
 
     /* Size of local arrays (i.e. for this pe) lon and lat data. This is */
     /* specific to 4 pes. */
     lon_xt_loc_size = 1536;
     lat_xt_loc_size = 1536;
-    if (mpi_rank == 0 || mpi_rank == 2)
+    if (my_rank == 0 || my_rank == 2)
     {
 	lon_xt_start = 0;
 	lat_xt_start = 0;
@@ -120,7 +131,7 @@ main(int argc, char **argv)
     }
     lon_yt_loc_size = 768;
     lat_yt_loc_size = 768;
-    if (mpi_rank == 0 || mpi_rank == 1)
+    if (my_rank == 0 || my_rank == 1)
     {
 	lon_yt_start = 0;
 	lat_yt_start = 0;
@@ -130,8 +141,8 @@ main(int argc, char **argv)
 	lon_yt_start = 768;
 	lat_yt_start = 768;
     }
-    /* !  print *, mpi_rank, 'lon_xt_start', lon_xt_start, 'lon_yt_start', lon_yt_start */
-    /* !  print *, mpi_rank, 'lon_xt_loc_size', lon_xt_loc_size, 'lon_yt_loc_size', lon_yt_loc_size */
+    /* !  print *, my_rank, 'lon_xt_start', lon_xt_start, 'lon_yt_start', lon_yt_start */
+    /* !  print *, my_rank, 'lon_xt_loc_size', lon_xt_loc_size, 'lon_yt_loc_size', lon_yt_loc_size */
 
     /* ! Allocate space on this pe to hold the data for this pe. */
     if (!(value_pfull_loc = malloc(pfull_loc_size * sizeof(float)))) ERR;
@@ -151,40 +162,41 @@ main(int argc, char **argv)
 
     /* Some fake data for this pe to write. */
     for (i = 0; i < pfull_loc_size; i++)
-	value_pfull_loc[i] = mpi_rank * 100 + i;
+	value_pfull_loc[i] = my_rank * 100 + i;
     for (i = 0; i < phalf_loc_size; i++)
-	value_phalf_loc[i] = mpi_rank * 100 + i;
+	value_phalf_loc[i] = my_rank * 100 + i;
     for (i = 0; i < grid_xt_loc_size; i++)
-	value_grid_xt_loc[i] = mpi_rank * 100 + i;
+	value_grid_xt_loc[i] = my_rank * 100 + i;
     for (i = 0; i < grid_yt_loc_size; i++)
-	value_grid_yt_loc[i] = mpi_rank * 100 + i;
+	value_grid_yt_loc[i] = my_rank * 100 + i;
     for (j = 0; j < lon_yt_loc_size; j++)
     {
 	for(i = 0; i < lon_xt_loc_size; i++)
 	{
-	    value_lon_loc[j * lon_xt_loc_size + i] = mpi_rank * 100 + i + j;
-	    value_lat_loc[j * lon_xt_loc_size + i] = mpi_rank * 100 + i + j;
+	    value_lon_loc[j * lon_xt_loc_size + i] = my_rank * 100 + i + j;
+	    value_lat_loc[j * lon_xt_loc_size + i] = my_rank * 100 + i + j;
 	    for (k = 0; k < pfull_loc_size; k++)
-		value_clwmr_loc[j * lon_xt_loc_size + i] = mpi_rank * 100 + i + j + k;
+		value_clwmr_loc[j * lon_xt_loc_size + i] = my_rank * 100 + i + j + k;
 	}
     }
 
-    if (!mpi_rank)
-	printf("\n*** Testing parallel writes with compression filters.\n");
+    /* if (!my_rank) */
+    /* 	printf("\n*** Testing parallel writes with compression filters.\n"); */
     {
         int s;
         for (f = 0; f < NUM_COMPRESSION_FILTERS; f++)
         {
             for (s = 0; s < NUM_SHUFFLE_SETTINGS; s++)
             {
-                if (!mpi_rank)
-                {
-                    printf("*** testing simple write with %s shuffle %d...",
-                           (f ? "szip" : "zlib"), s);
-                }
+                /* if (!my_rank) */
+                /* { */
+                /*     printf("*** testing simple write with %s shuffle %d...", */
+                /*            (f ? "szip" : "zlib"), s); */
+                /* } */
 
                 /* nc_set_log_level(3); */
                 /* Create a parallel netcdf-4 file. */
+		ftime = MPI_Wtime();		
                 if (nc_create_par(FILE_NAME, NC_NETCDF4, comm, info, &ncid)) ERR;
 
 		/* Turn off fill mode. */
@@ -241,7 +253,7 @@ main(int argc, char **argv)
 		if (nc_enddef(ncid)) ERR;
 
 		/* In NOAA code, do all processors write the single time value? */
-		if (mpi_rank == 0)
+		if (my_rank == 0)
 		    if (nc_put_var_double(ncid, varid[6], &value_time)) ERR;;
 		if (nc_redef(ncid)) ERR;
 
@@ -272,7 +284,6 @@ main(int argc, char **argv)
 		count[1] = lat_yt_loc_size;
 		if (nc_put_vara_double(ncid, varid[3], start, count, value_lat_loc)) ERR;
 		if (nc_redef(ncid)) ERR;
-
 
 		/* Define variable clwmr and write data (?) */
 		dimid_data[0] = dimid[4];
@@ -312,6 +323,10 @@ main(int argc, char **argv)
 
 		/* Close the file. */
 		if (nc_close(ncid)) ERR;
+		MPI_Barrier(MPI_COMM_WORLD);
+		write_us += (MPI_Wtime() - ftime) * MILLION;
+		if (my_rank == 0)
+		    printf("%d: writing file took %d micro-seconds\n", my_rank, write_us);
 
                 /* Check file. */
                 {
@@ -360,7 +375,7 @@ main(int argc, char **argv)
 			if (value_phalf_loc_in[i] != value_phalf_loc[i]) ERR;
 
 		    /* Check time. */
-		    if (mpi_rank == 0)
+		    if (my_rank == 0)
 		    {
 			if (nc_get_var_double(ncid, varid[6], &value_time_in)) ERR;
 			if (value_time_in != value_time) ERR;
@@ -395,14 +410,14 @@ main(int argc, char **argv)
                     /* { */
                     /*     if (nc_get_vara_int(ncid, 0, start, count, slab_data_in)) ERR; */
                     /*     for (i = 0; i < DIMSIZE * DIMSIZE / mpi_size; i++) */
-                    /*         if (slab_data_in[i] != mpi_rank) ERR; */
+                    /*         if (slab_data_in[i] != my_rank) ERR; */
                     /* } */
 
                     /* Close the netcdf file. */
                     if (nc_close(ncid)) ERR;
                 }
 
-                if (!mpi_rank)
+                if (!my_rank)
                     SUMMARIZE_ERR;
             } /* next shuffle filter test */
         } /* next compression filter (zlib and szip) */
@@ -428,8 +443,8 @@ main(int argc, char **argv)
     /* Shut down MPI. */
     MPI_Finalize();
 
-    if (!mpi_rank)
-	FINAL_RESULTS;
+    /* if (!my_rank) */
+    /* 	FINAL_RESULTS; */
 
     return 0;
 }
