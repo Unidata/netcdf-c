@@ -20,18 +20,47 @@
 #define NDIM4 4
 #define NDIM5 5
 #define NUM_PROC 4
-#define NUM_SHUFFLE_SETTINGS 2
+#define NUM_SHUFFLE_SETTINGS 1
+/* #define NUM_SHUFFLE_SETTINGS 2 */
 #ifdef HAVE_H5Z_SZIP
-#define NUM_COMPRESSION_FILTERS 2
+/* #define NUM_COMPRESSION_FILTERS 2 */
+#define NUM_COMPRESSION_FILTERS 1
 #else
 #define NUM_COMPRESSION_FILTERS 1
 #endif
 #define THOUSAND 1000
-#define NUM_DATA_VARS 10
+#define NUM_DATA_VARS 1
 
 int
 write_metadata(int ncid)
 {
+    return 0;
+}
+
+int
+decomp_4D(int my_rank, int mpi_size, int *dim_len, size_t *start, size_t *count)
+{
+    start[0] = 0;
+    count[0] = 1;
+    count[1] = dim_len[2]/mpi_size;
+    start[1] = my_rank * count[1];
+
+    if (my_rank == 0 || my_rank == 1)
+    {
+	start[2] = 0;
+	start[3] = 0;
+    }
+    else
+    {
+	start[2] = 768;
+	start[3] = 768;
+    }
+    count[2] = 768;
+    count[3] = 1536;
+
+    printf("%d: start %ld %ld %ld %ld count %ld %ld %ld %ld\n", my_rank, start[0],
+	   start[1], start[2], start[3], count[0], count[1], count[2], count[3]);  
+    
     return 0;
 }
 
@@ -49,6 +78,7 @@ main(int argc, char **argv)
     
     int ncid;
     size_t start[NDIM4], count[NDIM4];
+    size_t data_start[NDIM4], data_count[NDIM4];
 
     /* Dimensions. */
     char dim_name[NDIM5][NC_MAX_NAME + 1] = {"grid_xt", "grid_yt", "pfull",
@@ -87,6 +117,9 @@ main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+
+    /* Determine data decomposition. */
+    if (decomp_4D(my_rank, mpi_size, dim_len, data_start, data_count)) ERR;
 
     /* Size of local (i.e. for this pe) grid_xt data. */
     grid_xt_loc_size = dim_len[0]/mpi_size;
@@ -318,19 +351,11 @@ main(int argc, char **argv)
 		MPI_Barrier(MPI_COMM_WORLD);
 		meta_stop_time = MPI_Wtime();
 		data_start_time = MPI_Wtime();
-		
+
 		/* Write one record each of the data variables. */
 		for (dv = 0; dv < NUM_DATA_VARS; dv++)
 		{
-		    start[0] = 0;
-		    start[1] = pfull_start;
-		    start[2] = lat_yt_start;
-		    start[3] = lat_xt_start;
-		    count[0] = 1;
-		    count[1] = pfull_loc_size;
-		    count[2] = lat_yt_loc_size;
-		    count[3] = lat_xt_loc_size;
-		    if (nc_put_vara_float(ncid, data_varid[dv], start, count, value_clwmr_loc)) ERR;
+		    if (nc_put_vara_float(ncid, data_varid[dv], data_start, data_count, value_clwmr_loc)) ERR;
 		    if (nc_redef(ncid)) ERR;
 		}
 
