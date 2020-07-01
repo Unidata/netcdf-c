@@ -27,11 +27,12 @@
 #else
 #define NUM_COMPRESSION_FILTERS 1
 #endif
+#define NUM_DEFLATE_LEVELS 3
 #define THOUSAND 1000
-#define NUM_DATA_VARS 1
+#define NUM_DATA_VARS 10
 
 int
-write_metadata(int ncid, int *data_varid, int s, int f, int *dim_len, size_t phalf_loc_size, size_t phalf_start,
+write_metadata(int ncid, int *data_varid, int s, int f, int deflate, int *dim_len, size_t phalf_loc_size, size_t phalf_start,
 	       float *value_phalf_loc, size_t *data_start, size_t *data_count, float *value_pfull_loc,
 	       size_t grid_xt_start, size_t grid_xt_loc_size, double *value_grid_xt_loc, size_t grid_yt_start,
 	       size_t grid_yt_loc_size, double *value_grid_yt_loc, size_t *lat_start, size_t *lat_count,
@@ -153,7 +154,7 @@ write_metadata(int ncid, int *data_varid, int s, int f, int *dim_len, size_t pha
 	/* Setting any filter only will work for HDF5-1.10.3 and later */
 	/* versions. */
 	if (!f)
-	    res = nc_def_var_deflate(ncid, data_varid[dv], s, 1, 4);
+	    res = nc_def_var_deflate(ncid, data_varid[dv], s, 1, deflate);
 	else
 	{
 	    res = nc_def_var_deflate(ncid, data_varid[dv], s, 0, 0);
@@ -254,9 +255,10 @@ main(int argc, char **argv)
     double *value_lon_loc;
     double *value_lat_loc;
     float *value_data;
+    int deflate_level[NUM_DEFLATE_LEVELS] = {1, 4, 9};
 
     int f;
-    int i, j, k, dv;
+    int i, j, k, dv, dl;
 
     /* Initialize MPI. */
     MPI_Init(&argc, &argv);
@@ -345,7 +347,7 @@ main(int argc, char **argv)
     if (my_rank == 0)
     {
 	printf("Benchmarking creation of UFS file.\n");
-	printf("comp, shuffle, meta, data\n");
+	printf("comp, level, shuffle, meta, data\n");
     }
     {
         int s;
@@ -353,37 +355,39 @@ main(int argc, char **argv)
         {
             for (s = 0; s < NUM_SHUFFLE_SETTINGS; s++)
             {
-                /* nc_set_log_level(3); */
-                /* Create a parallel netcdf-4 file. */
-		meta_start_time = MPI_Wtime();		
-                if (nc_create_par(FILE_NAME, NC_NETCDF4, comm, info, &ncid)) ERR;
-
-		if (write_metadata(ncid, data_varid, s, f, dim_len, phalf_loc_size, phalf_start, value_phalf_loc, data_start, data_count, value_pfull_loc,
-				   grid_xt_start, grid_xt_loc_size, value_grid_xt_loc, grid_yt_start, grid_yt_loc_size, value_grid_yt_loc,
-				   lat_start, lat_count, value_lat_loc, lon_start, lon_count, value_lon_loc, my_rank)) ERR;
-		
-		
-		MPI_Barrier(MPI_COMM_WORLD);
-		meta_stop_time = MPI_Wtime();
-		data_start_time = MPI_Wtime();
-
-		/* Write one record each of the data variables. */
-		for (dv = 0; dv < NUM_DATA_VARS; dv++)
+		for (dl = 0; dl < NUM_DEFLATE_LEVELS; dl++)
 		{
-		    if (nc_put_vara_float(ncid, data_varid[dv], data_start, data_count, value_data)) ERR;
-		    if (nc_redef(ncid)) ERR;
-		}
+		    /* nc_set_log_level(3); */
+		    /* Create a parallel netcdf-4 file. */
+		    meta_start_time = MPI_Wtime();		
+		    if (nc_create_par(FILE_NAME, NC_NETCDF4, comm, info, &ncid)) ERR;
 
-		/* Close the file. */
-		if (nc_close(ncid)) ERR;
-		MPI_Barrier(MPI_COMM_WORLD);
-		data_stop_time = MPI_Wtime();
-		if (my_rank == 0)
-		    printf("%s, %d, %g, %g\n", (f ? "szip" : "zlib"), s, meta_stop_time - meta_start_time, data_stop_time - data_start_time);
+		    if (write_metadata(ncid, data_varid, s, f, deflate_level[dl], dim_len, phalf_loc_size, phalf_start, value_phalf_loc, data_start, data_count, value_pfull_loc,
+				       grid_xt_start, grid_xt_loc_size, value_grid_xt_loc, grid_yt_start, grid_yt_loc_size, value_grid_yt_loc,
+				       lat_start, lat_count, value_lat_loc, lon_start, lon_count, value_lon_loc, my_rank)) ERR;
 		
+		
+		    MPI_Barrier(MPI_COMM_WORLD);
+		    meta_stop_time = MPI_Wtime();
+		    data_start_time = MPI_Wtime();
+
+		    /* Write one record each of the data variables. */
+		    for (dv = 0; dv < NUM_DATA_VARS; dv++)
+		    {
+			if (nc_put_vara_float(ncid, data_varid[dv], data_start, data_count, value_data)) ERR;
+			if (nc_redef(ncid)) ERR;
+		    }
+
+		    /* Close the file. */
+		    if (nc_close(ncid)) ERR;
+		    MPI_Barrier(MPI_COMM_WORLD);
+		    data_stop_time = MPI_Wtime();
+		    if (my_rank == 0)
+			printf("%s, %d, %d, %g, %g\n", (f ? "szip" : "zlib"), deflate_level[dl], s, meta_stop_time - meta_start_time,
+			       data_stop_time - data_start_time);
+		} /* next deflate level */
             } /* next shuffle filter test */
         } /* next compression filter (zlib and szip) */
-        /* free(slab_data); */
 
 	/* Free resources. */
 	free(value_grid_xt_loc);
