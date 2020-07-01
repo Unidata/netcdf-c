@@ -85,7 +85,7 @@ extern int NC_hashmapget(NC_hashmap*, const char* key, size_t keysize, uintptr_t
 */
 extern int NC_hashmapsetdata(NC_hashmap*, const char* key, size_t keylen, uintptr_t newdata);
 
-/** Returns the number of saved elements. */
+/** Returns the number of active elements. */
 extern size_t NC_hashmapcount(NC_hashmap*);
 
 /** Reclaims the hashmap structure. */
@@ -93,6 +93,15 @@ extern int NC_hashmapfree(NC_hashmap*);
 
 /* Return the hash key for specified key; takes key+size*/
 extern unsigned int NC_hashmapkey(const char* key, size_t size);
+
+/* Return the ith entry info:
+@param map
+@param i
+@param entryp contains 0 if not active, otherwise the data
+@param keyp contains null if not active, otherwise the key
+@return NC_EINVAL if no more entries
+*/
+extern int NC_hashmapith(NC_hashmap* map, size_t i, uintptr_t* datap, const char** keyp);
 
 #endif /*NCHASHMAP_H*/
 

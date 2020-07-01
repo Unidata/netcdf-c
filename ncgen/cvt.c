@@ -5,10 +5,10 @@
 /* $Id: cvt.c,v 1.2 2010/05/24 19:59:56 dmh Exp $ */
 /* $Header: /upc/share/CVS/netcdf-3/ncgen/cvt.c,v 1.2 2010/05/24 19:59:56 dmh Exp $ */
 
-#include        "includes.h"
-#include        "bytebuffer.h"
-#include		"../ncdump/isnan.h"
-#include	    <math.h>
+#include "includes.h"
+#include "bytebuffer.h"
+#include "../ncdump/isnan.h"
+#include <math.h>
 
 static char stmp[256];
 

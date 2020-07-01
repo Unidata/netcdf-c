@@ -268,6 +268,11 @@ ENDIF(MSVC)
 
   add_sh_test(ncdump tst_ctests)
 
+  IF(ENABLE_UNFIXED_MEMORY_LEAKS)
+  SET_TESTS_PROPERTIES(ncdump_run_ncgen_nc4_tests.sh ncdump_tst_nccopy4.sh ncdump_tst_ncgen_shared.sh ncdump_tst_netcdf4.sh
+                       PROPERTIES ENVIRONMENT NC_VLEN_NOTEST=1)
+  ENDIF()
+  
 ENDIF()
 
 ENDIF()

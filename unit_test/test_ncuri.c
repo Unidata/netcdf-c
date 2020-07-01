@@ -59,8 +59,9 @@ main(int argc, char** argv)
     Test* test;
     char** xtest;
     int failcount = 0;
+    int index;
 
-    for(test=TESTS;test->url;test++) {
+    for(index=0,test=TESTS;test->url;test++,index++) {
 	int ret = 0;
 	NCURI* uri = NULL;
 	ret = ncuriparse(test->url,&uri);
@@ -74,7 +75,7 @@ main(int argc, char** argv)
 		failcount++;
 	    } else {
 		if(strcmp(test->expected,built) != 0) {
-	            fprintf(stderr,"Mismatch: expected=|%s| actual=|%s|\n",test->expected,built);
+	            fprintf(stderr,"Mismatch: [%d] expected=|%s| actual=|%s|\n",index,test->expected,built);
 		    failcount++;
 		}
 		free(built);

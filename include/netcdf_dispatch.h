@@ -148,7 +148,7 @@ struct NC_Dispatch
 
     /* Dispatch table Version 2 or later */
     /* Handle all filter related actions. */
-    int (*filter_actions)(int ncid, int varid, int action, struct NC_Filterobject*);
+    int (*filter_actions)(int ncid, int varid, int action, void*);
 };
 
 #if defined(__cplusplus)
@@ -220,7 +220,6 @@ extern "C" {
     EXTERNL int NC_NOTNC4_inq_typeids(int, int *, int *);
     EXTERNL int NC_NOTNC4_inq_user_type(int, nc_type, char *, size_t *,
                                         nc_type *, size_t *, int *);
-    EXTERNL int NC_NOTNC4_filter_actions(int, int, int, struct NC_Filterobject*);
 
     /* These functions are for dispatch layers that don't implement
      * the enhanced model, but want to succeed anyway.
@@ -228,7 +227,8 @@ extern "C" {
      * In some cases (filter actions), some cases may succeed and some
      * will fail.
      */
-    EXTERNL int NC_NOOP_filter_actions(int, int, int, struct NC_Filterobject*);
+    EXTERNL int NC_NOOP_filter_actions(int, int, int, void*);
+    EXTERNL int NC_NOTNC4_filter_actions(int, int, int, void*);
 
     /* These functions are for dispatch layers that don't want to
      * implement the deprecated varm functions. They return

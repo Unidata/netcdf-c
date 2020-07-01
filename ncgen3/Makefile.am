@@ -8,7 +8,7 @@
 include $(top_srcdir)/lib_flags.am
 
 # Link to the netCDF library.
-ncgen3_LDADD = ${top_builddir}/liblib/libnetcdf.la
+LDADD = ${top_builddir}/liblib/libnetcdf.la
 
 # Build ncgen from the listed sources.
 bin_PROGRAMS = ncgen3
