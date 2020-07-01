@@ -4,7 +4,7 @@
 
   This program tests netcdf-4 parallel I/O using the same access
   pattern as is used by NOAA's GFS when writing and reading model
-  data.
+  data. See https://github.com/Unidata/netcdf-fortran/issues/264
 
   Ed Hartnett, 6/28/20
 */
@@ -33,9 +33,11 @@
 #define NUM_DATA_VARS 1
 
 int
-write_metadata(int ncid, int *data_varid, int s, int f, int *dim_len, size_t phalf_loc_size, size_t phalf_start, float *value_phalf_loc, size_t *data_start, size_t *data_count, float *value_pfull_loc,
-	       size_t grid_xt_start, size_t grid_xt_loc_size, double *value_grid_xt_loc, size_t grid_yt_start, size_t grid_yt_loc_size, double *value_grid_yt_loc,
-	       size_t *lat_start, size_t *lat_count, double *value_lat_loc, size_t *lon_start, size_t *lon_count, double *value_lon_loc, int my_rank)
+write_metadata(int ncid, int *data_varid, int s, int f, int *dim_len, size_t phalf_loc_size, size_t phalf_start,
+	       float *value_phalf_loc, size_t *data_start, size_t *data_count, float *value_pfull_loc,
+	       size_t grid_xt_start, size_t grid_xt_loc_size, double *value_grid_xt_loc, size_t grid_yt_start,
+	       size_t grid_yt_loc_size, double *value_grid_yt_loc, size_t *lat_start, size_t *lat_count,
+	       double *value_lat_loc, size_t *lon_start, size_t *lon_count, double *value_lon_loc, int my_rank)
 {
     char dim_name[NDIM5][NC_MAX_NAME + 1] = {"grid_xt", "grid_yt", "pfull",
 					     "phalf", "time"};
@@ -66,6 +68,10 @@ write_metadata(int ncid, int *data_varid, int s, int f, int *dim_len, size_t pha
     /* Define variable lon. */
     if (nc_def_var(ncid, var_name[1], var_type[1], 2, dimid, &varid[1])) ERR;
     if (nc_var_par_access(ncid, varid[1], NC_INDEPENDENT));
+    if (nc_put_att_text(ncid, varid[1], "long_name", strlen("T-cell longitude"), "T-cell longitude")) ERR;
+    if (nc_put_att_text(ncid, varid[1], "units", strlen("degrees_E"), "degrees_E")) ERR;
+
+    if (nc_put_att_text(ncid, varid[0], "cartesian_axis", strlen("X"), "X")) ERR;
 
     /* Define variable grid_yt. */
     if (nc_def_var(ncid, var_name[2], var_type[2], 1, &dimid[1], &varid[2])) ERR;
@@ -74,7 +80,11 @@ write_metadata(int ncid, int *data_varid, int s, int f, int *dim_len, size_t pha
     /* Define variable lat. */
     if (nc_def_var(ncid, var_name[3], var_type[3], 2, dimid, &varid[3])) ERR;
     if (nc_var_par_access(ncid, varid[3], NC_INDEPENDENT)) ERR;
+    if (nc_put_att_text(ncid, varid[3], "long_name", strlen("T-cell latitude"), "T-cell latitude")) ERR;
+    if (nc_put_att_text(ncid, varid[3], "units", strlen("degrees_N"), "degrees_N")) ERR;
 
+    if (nc_put_att_text(ncid, varid[2], "cartesian_axis", strlen("Y"), "Y")) ERR;
+	
     /* Define dimension pfull. */
     if (nc_def_dim(ncid, dim_name[2], dim_len[2], &dimid[2])) ERR;
 
@@ -115,10 +125,6 @@ write_metadata(int ncid, int *data_varid, int s, int f, int *dim_len, size_t pha
 
     /* Write lon data. */
     if (nc_enddef(ncid)) ERR;
-    /* start[0] = lon_xt_start; */
-    /* start[1] = lon_yt_start; */
-    /* count[0] = lon_xt_loc_size; */
-    /* count[1] = lon_yt_loc_size; */
     if (nc_put_vara_double(ncid, varid[1], lon_start, lon_count, value_lon_loc)) ERR;
     if (nc_redef(ncid)) ERR;
 
@@ -129,12 +135,7 @@ write_metadata(int ncid, int *data_varid, int s, int f, int *dim_len, size_t pha
 
     /* Write lat data. */
     if (nc_enddef(ncid)) ERR;
-    /* start[0] = lat_xt_start; */
-    /* start[1] = lat_yt_start; */
-    /* count[0] = lat_xt_loc_size; */
-    /* count[1] = lat_yt_loc_size; */
     if (nc_put_vara_double(ncid, varid[3], lat_start, lat_count, value_lat_loc)) ERR;
-    if (nc_redef(ncid)) ERR;
 
     /* Specify dimensions for our data vars. */
     dimid_data[0] = dimid[4];
@@ -148,6 +149,7 @@ write_metadata(int ncid, int *data_varid, int s, int f, int *dim_len, size_t pha
 	char data_var_name[NC_MAX_NAME + 1];
 
 	sprintf(data_var_name, "var_%d", dv);
+	if (nc_redef(ncid)) ERR;
 	if (nc_def_var(ncid, data_var_name, NC_FLOAT, NDIM4, dimid_data, &data_varid[dv])) ERR;
 
 	/* Setting any filter only will work for HDF5-1.10.3 and later */
@@ -170,6 +172,25 @@ write_metadata(int ncid, int *data_varid, int s, int f, int *dim_len, size_t pha
 	if (nc_enddef(ncid)) ERR;
     }
 
+    if (nc_redef(ncid)) ERR;
+    if (nc_put_att_text(ncid, varid[0], "long_name", strlen("T-cell longitude"), "T-cell longitude")) ERR;
+    if (nc_put_att_text(ncid, varid[0], "units", strlen("degrees_E"), "degrees_E")) ERR;
+    
+    if (nc_put_att_text(ncid, varid[2], "long_name", strlen("T-cell latiitude"), "T-cell latiitude")) ERR;
+    if (nc_put_att_text(ncid, varid[2], "units", strlen("degrees_N"), "degrees_N")) ERR;
+    if (nc_enddef(ncid)) ERR;
+
+    if (nc_redef(ncid)) ERR;
+    
+    for (dv = 0; dv < NUM_DATA_VARS; dv++)
+    {
+	float compress_err = 42.22;
+	int nbits = 5;
+	if (nc_put_att_float(ncid, data_varid[dv], "max_abs_compression_error", NC_FLOAT, 1, &compress_err)) ERR;
+	if (nc_put_att_int(ncid, data_varid[dv], "nbits", NC_INT, 1, &nbits)) ERR;
+    }
+    
+    if (nc_enddef(ncid)) ERR;
     return 0;
 }
 
