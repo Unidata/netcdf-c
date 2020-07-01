@@ -23,57 +23,9 @@ static void dumpopenobjects(NC_FILE_INFO_T* h5);
     we log them or print to stdout. Default is to log. */
 #define LOGOPEN 1
 
-/** @internal Number of reserved attributes. These attributes are
- * hidden from the netcdf user, but exist in the HDF5 file to help
- * netcdf read the file. */
-#define NRESERVED 11 /*|NC_reservedatt|*/
-
-/** @internal List of reserved attributes. This list must be in sorted
- * order for binary search. */
-static const NC_reservedatt NC_reserved[NRESERVED] = {
-    {NC_ATT_CLASS, READONLYFLAG|DIMSCALEFLAG},            /*CLASS*/
-    {NC_ATT_DIMENSION_LIST, READONLYFLAG|DIMSCALEFLAG},   /*DIMENSION_LIST*/
-    {NC_ATT_NAME, READONLYFLAG|DIMSCALEFLAG},             /*NAME*/
-    {NC_ATT_REFERENCE_LIST, READONLYFLAG|DIMSCALEFLAG},   /*REFERENCE_LIST*/
-    {NC_ATT_FORMAT, READONLYFLAG},                        /*_Format*/
-    {ISNETCDF4ATT, READONLYFLAG|NAMEONLYFLAG},            /*_IsNetcdf4*/
-    {NCPROPS, READONLYFLAG|NAMEONLYFLAG|MATERIALIZEDFLAG},/*_NCProperties*/
-    {NC_ATT_COORDINATES, READONLYFLAG|DIMSCALEFLAG|MATERIALIZEDFLAG},/*_Netcdf4Coordinates*/
-    {NC_DIMID_ATT_NAME, READONLYFLAG|DIMSCALEFLAG|MATERIALIZEDFLAG},/*_Netcdf4Dimid*/
-    {SUPERBLOCKATT, READONLYFLAG|NAMEONLYFLAG},/*_SuperblockVersion*/
-    {NC3_STRICT_ATT_NAME, READONLYFLAG|MATERIALIZEDFLAG},  /*_nc3_strict*/
-};
-
 /* Forward */
 static int NC4_enddef(int ncid);
 static void dumpopenobjects(NC_FILE_INFO_T* h5);
-
-/**
- * @internal Define a binary searcher for reserved attributes
- * @param name for which to search
- * @return pointer to the matchig NC_reservedatt structure.
- * @return NULL if not found.
- * @author Dennis Heimbigner
- */
-const NC_reservedatt*
-NC_findreserved(const char* name)
-{
-    int n = NRESERVED;
-    int L = 0;
-    int R = (n - 1);
-    for(;;) {
-        if(L > R) break;
-        int m = (L + R) / 2;
-        const NC_reservedatt* p = &NC_reserved[m];
-        int cmp = strcmp(p->name,name);
-        if(cmp == 0) return p;
-        if(cmp < 0)
-            L = (m + 1);
-        else /*cmp > 0*/
-            R = (m - 1);
-    }
-    return NULL;
-}
 
 /**
  * @internal Recursively determine if there is a mismatch between

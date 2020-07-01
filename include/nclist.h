@@ -33,15 +33,15 @@ extern int nclistinsert(NClist*,size_t,void*);
 extern void* nclistremove(NClist* l, size_t i);
 
 /* Tail operations */
-extern int nclistpush(NClist*,void*); /* Add at Tail */
+extern int nclistpush(NClist*,const void*); /* Add at Tail */
 extern void* nclistpop(NClist*);
 extern void* nclisttop(NClist*);
 
-/* Duplicate and return the content (null terminate) */
-extern void** nclistdup(NClist*);
-
-/* Look for value match */
+/* Look for pointer match */
 extern int nclistcontains(NClist*, void*);
+
+/* Look for value match as string */
+extern int nclistmatch(NClist*, const char*, int casesensistive);
 
 /* Remove element by value; only removes first encountered */
 extern int nclistelemremove(NClist* l, void* elem);
@@ -49,8 +49,8 @@ extern int nclistelemremove(NClist* l, void* elem);
 /* remove duplicates */
 extern int nclistunique(NClist*);
 
-/* Create a clone of a list */
-extern NClist* nclistclone(NClist*);
+/* Create a clone of a list; if deep, then assume it is a list of strings */
+extern NClist* nclistclone(NClist*, int deep);
 
 extern void* nclistextract(NClist*);
 

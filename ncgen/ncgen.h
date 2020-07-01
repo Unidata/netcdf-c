@@ -113,6 +113,7 @@ typedef enum Language {
 struct Kvalues {
 char* name;
 int k_flag;
+int deprecated;
 };
 
 extern struct Kvalues legalkinds[];
@@ -127,7 +128,7 @@ extern struct Kvalues legalkinds[];
 typedef struct Specialdata {
     int flags;
     Datalist*      _Fillvalue; /* This is a per-type ; points to the _FillValue attribute node */
-    int           _Storage;      /* NC_CHUNKED | NC_CONTIGUOUS*/
+    int           _Storage;      /* NC_CHUNKED | NC_CONTIGUOUS | NC_COMPACT*/
     size_t*       _ChunkSizes;     /* NULL => defaults*/
         int nchunks;     /*  |_Chunksize| ; 0 => not specified*/
     int           _Fletcher32;     /* 1=>fletcher32*/
@@ -135,7 +136,7 @@ typedef struct Specialdata {
     int           _Shuffle;      /* 0 => false, 1 => true*/
     int           _Endianness;   /* 1 =>little, 2 => big*/
     int           _Fill ;        /* 0 => false, 1 => true WATCHOUT: this is inverse of NOFILL*/
-    NC4_Filterspec** _Filters;
+    NC_Filterspec** _Filters;
         size_t	  nfilters; /* |filters| */
 } Specialdata;
 
@@ -194,7 +195,7 @@ typedef struct Typeinfo {
 typedef struct Varinfo {
     int		nattributes; /* |attributes|*/
     List*       attributes;  /* List<Symbol*>*/
-    Specialdata* special;
+    Specialdata special;
 } Varinfo;
 
 typedef struct Groupinfo {

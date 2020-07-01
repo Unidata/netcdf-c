@@ -506,8 +506,8 @@ movetor(NCDAPCOMMON* nccomm,
     if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto done;}
 
 #ifdef DEBUG2
-fprintf(stderr,"moveto: nctype=%d depth=%d dimindex=%d mode=%s",
-        xnode->nctype, depth,dimindex,oc_data_modestring(mode));
+fprintf(stderr,"moveto: nctype=%d depth=%d dimindex=%d",
+        xnode->nctype, (int)depth, (int)dimindex);
 fprintf(stderr," segment=%s hasstringdim=%d\n",
 		dcetostring((DCEnode*)segment),hasstringdim);
 #endif
@@ -903,7 +903,7 @@ slicestring(OClink conn, char* stringmem, DCEslice* slice, struct NCMEMORY* memo
 fprintf(stderr,"moveto: slicestring: string/%lu=%s\n",stringlen,stringmem);
 fprintf(stderr,"slicestring: %lu string=|%s|\n",stringlen,stringmem);
 fprintf(stderr,"slicestring: slice=[%lu:%lu:%lu/%lu]\n",
-slice->first,slice->stride,slice->stop,slice->declsize);
+slice->first,slice->stride,slice->last,slice->declsize);
 #endif
 
     /* Stride across string; if we go past end of string, then pad*/

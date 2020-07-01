@@ -13,6 +13,7 @@
 #include "hdf5internal.h"
 #include "ncrc.h"
 #include "ncmodel.h"
+#include "ncfilter.h"
 
 #ifdef ENABLE_BYTERANGE
 #include "H5FDhttp.h"
@@ -967,21 +968,22 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
     size_t cd_nelems;
     int f;
     int stat = NC_NOERR;
+    NC_FILTERX_SPEC* spec = NULL;
 
     assert(var);
 
     if ((num_filters = H5Pget_nfilters(propid)) < 0)
-        return NC_EHDFERR;
+	{stat = NC_EHDFERR; goto done;}
 
     for (f = 0; f < num_filters; f++)
     {
 	cd_nelems = 0;
         if ((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems, NULL, 0, NULL, NULL)) < 0)
-            return NC_EHDFERR;
+	    {stat = NC_EHDFERR; goto done;}
 	if((cd_values = calloc(sizeof(unsigned int),cd_nelems))==NULL)
-	    return NC_ENOMEM;
+	    {stat = NC_EHDFERR; goto done;}
         if ((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems, cd_values, 0, NULL, NULL)) < 0)
-            return NC_EHDFERR;
+	    {stat = NC_EHDFERR; goto done;}
         switch (filter)
         {
         case H5Z_FILTER_SHUFFLE:
@@ -995,43 +997,45 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
         case H5Z_FILTER_DEFLATE:
             if (cd_nelems != CD_NELEMS_ZLIB ||
                 cd_values[0] > NC_MAX_DEFLATE_LEVEL)
-                return NC_EHDFERR;
-	    if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,cd_values,NULL)))
-	       return stat;
+		    {stat = NC_EHDFERR; goto done;}
+	    if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,cd_values)))
+	       goto done;
             break;
 
         case H5Z_FILTER_SZIP: {
             /* Szip is tricky because the filter code expands the set of parameters from 2 to 4
                and changes some of the parameter values; try to compensate */
             if(cd_nelems == 0) {
-		if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,0,NULL,NULL)))
-		   return stat;
+		if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,0,NULL)))
+		   goto done;
             } else {
                 /* fix up the parameters and the #params */
 		if(cd_nelems != 4)
-		    return NC_EHDFERR;
+		    {stat = NC_EHDFERR; goto done;}
 		cd_nelems = 2; /* ignore last two */		
 		/* Fix up changed params */
 		cd_values[0] &= (H5_SZIP_ALL_MASKS);
 		/* Save info */
-		stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,cd_values,NULL);
-		if(stat) return stat;
-
+		stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,cd_values);
+		if(stat) goto done;
             }
             } break;
 
         default:
             if(cd_nelems == 0) {
-  	        if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,0,NULL,NULL))) return stat;
+  	        if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,0,NULL))) goto done;
             } else {
-  	        stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,cd_values,NULL);
-		if(stat) return stat;
+  	        stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,cd_values);
+		if(stat) goto done;
             }
             break;
         }
 	nullfree(cd_values); cd_values = NULL;
     }
-    return NC_NOERR;
+done:
+    nullfree(cd_values);
+    NC4_filterx_free(spec);
+    return stat;
 }
 
 /**
@@ -1416,6 +1420,9 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
 
     /* Indicate that the variable has a pointer to the type */
     var->type_info->rc++;
+
+    /* Transfer endianness */
+    var->endianness = var->type_info->endianness; 
 
 exit:
     if (finalname)
@@ -2226,6 +2233,7 @@ nc4_read_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
  * @returns ::NC_NOERR No error.
  * @return ::NC_EHDFERR HDF5 returned error.
  * @author Ed Hartnett
+ * [Candidate for libsrc4]
  */
 static int
 read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,

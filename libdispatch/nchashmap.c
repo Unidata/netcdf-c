@@ -271,7 +271,7 @@ NC_hashmapget(NC_hashmap* hash, const char* key, size_t keysize, uintptr_t* data
 	    return 0; /* not present */
       h = &hash->table[index];
 	if(h->flags & ACTIVE) {
-      if(datap) *datap = h->data;
+	  if(datap) *datap = h->data;
 	    return 1;
         } else /* Not found */
 	    return 0;
@@ -309,6 +309,22 @@ NC_hashmapcount(NC_hashmap* hash)
 {
     Trace("NC_hashmapcount");
     return hash->active;
+}
+
+int
+NC_hashmapith(NC_hashmap* map, size_t i, uintptr_t* datap, const char** keyp)
+{
+    NC_hentry* h = NULL;
+    if(map == NULL || i >= map->alloc) return NC_EINVAL;
+    h = &map->table[i];
+    if(h && (h->flags & ACTIVE)) {
+	if(datap) *datap = h->data;
+	if(keyp) *((char**)keyp) = h->key;
+    } else {
+	if(datap) *datap = 0;
+	if(keyp) *((char**)keyp) = NULL;
+    }    
+    return NC_NOERR;
 }
 
 int
