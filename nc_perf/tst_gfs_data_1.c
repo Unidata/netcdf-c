@@ -20,11 +20,9 @@
 #define NDIM4 4
 #define NDIM5 5
 #define NUM_PROC 4
-#define NUM_SHUFFLE_SETTINGS 1
-/* #define NUM_SHUFFLE_SETTINGS 2 */
+#define NUM_SHUFFLE_SETTINGS 2
 #ifdef HAVE_H5Z_SZIP
-#define NUM_COMPRESSION_FILTERS 1
-/* #define NUM_COMPRESSION_FILTERS 2 */
+#define NUM_COMPRESSION_FILTERS 2
 #else
 #define NUM_COMPRESSION_FILTERS 1
 #endif
@@ -170,20 +168,17 @@ main(int argc, char **argv)
 	}
     }
 
-    /* if (!my_rank) */
-    /* 	printf("\n*** Testing parallel writes with compression filters.\n"); */
+    if (my_rank == 0)
+    {
+	printf("Benchmarking creation of UFS file.\n");
+	printf("comp, shuffle, meta, data\n");
+    }
     {
         int s;
         for (f = 0; f < NUM_COMPRESSION_FILTERS; f++)
         {
             for (s = 0; s < NUM_SHUFFLE_SETTINGS; s++)
             {
-                /* if (!my_rank) */
-                /* { */
-                /*     printf("*** testing simple write with %s shuffle %d...", */
-                /*            (f ? "szip" : "zlib"), s); */
-                /* } */
-
                 /* nc_set_log_level(3); */
                 /* Create a parallel netcdf-4 file. */
 		meta_start_time = MPI_Wtime();		
@@ -333,7 +328,7 @@ main(int argc, char **argv)
 		MPI_Barrier(MPI_COMM_WORLD);
 		data_stop_time = MPI_Wtime();
 		if (my_rank == 0)
-		    printf("meta %g data %g\n", meta_stop_time - meta_start_time, data_stop_time - data_start_time);
+		    printf("%s, %d, %g, %g\n", (f ? "szip" : "zlib"), s, meta_stop_time - meta_start_time, data_stop_time - data_start_time);
 		
             } /* next shuffle filter test */
         } /* next compression filter (zlib and szip) */
