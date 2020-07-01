@@ -20,8 +20,7 @@ LDADD = ${top_builddir}/liblib/libnetcdf.la
 check_PROGRAMS = tst_create_files bm_file tst_chunks3 tst_ar4	\
 tst_ar4_3d tst_ar4_4d bm_many_objs tst_h_many_atts bm_many_atts	\
 tst_files2 tst_files3 tst_mem tst_mem1 tst_knmi bm_netcdf4_recs	\
-tst_wrf_reads tst_attsperf bigmeta openbigmeta tst_bm_rando	\
-tst_gfs_data_1
+tst_wrf_reads tst_attsperf bigmeta openbigmeta tst_bm_rando	
 
 bm_file_SOURCES = bm_file.c tst_utils.c
 bm_netcdf4_recs_SOURCES = bm_netcdf4_recs.c tst_utils.c
@@ -51,6 +50,7 @@ run_bm_test2.log: tst_create_files.log
 
 # This will run parallel I/O benchmarks for parallel builds.
 if TEST_PARALLEL4
+check_PROGRAMS += tst_gfs_data_1
 TESTS += run_par_bm_test.sh run_gfs_test.sh
 run_par_bm_test.log: tst_create_files.log run_bm_test1.log
 endif # TEST_PARALLEL4
