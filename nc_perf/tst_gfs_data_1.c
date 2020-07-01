@@ -30,6 +30,12 @@
 #define NUM_DATA_VARS 10
 
 int
+write_metadata(int ncid)
+{
+    return 0;
+}
+
+int
 main(int argc, char **argv)
 {
     /* MPI stuff. */
@@ -184,124 +190,129 @@ main(int argc, char **argv)
 		meta_start_time = MPI_Wtime();		
                 if (nc_create_par(FILE_NAME, NC_NETCDF4, comm, info, &ncid)) ERR;
 
-		/* Turn off fill mode. */
-		if (nc_set_fill(ncid, NC_NOFILL, NULL)) ERR;
-
-		/* Define dimension grid_xt. */
-		if (nc_def_dim(ncid, dim_name[0], dim_len[0], &dimid[0])) ERR;
-
-		/* Define dimension grid_yt. */
-		if (nc_def_dim(ncid, dim_name[1], dim_len[1], &dimid[1])) ERR;
-
-		/* Define variable grid_xt. */
-		if (nc_def_var(ncid, var_name[0], var_type[0], 1, &dimid[0], &varid[0])) ERR;
-		if (nc_var_par_access(ncid, varid[0], NC_INDEPENDENT)) ERR;
-
-		/* Define variable lon. */
-		if (nc_def_var(ncid, var_name[1], var_type[1], 2, dimid, &varid[1])) ERR;
-		if (nc_var_par_access(ncid, varid[1], NC_INDEPENDENT));
-
-		/* Define variable grid_yt. */
-		if (nc_def_var(ncid, var_name[2], var_type[2], 1, &dimid[1], &varid[2])) ERR;
-		if (nc_var_par_access(ncid, varid[2], NC_INDEPENDENT)) ERR;
-
-		/* Define variable lat. */
-		if (nc_def_var(ncid, var_name[3], var_type[3], 2, dimid, &varid[3])) ERR;
-		if (nc_var_par_access(ncid, varid[3], NC_INDEPENDENT)) ERR;
-
-		/* Define dimension pfull. */
-		if (nc_def_dim(ncid, dim_name[2], dim_len[2], &dimid[2])) ERR;
-
-		/* Define variable pfull and write data. */
-		if (nc_def_var(ncid, var_name[4], var_type[4], 1, &dimid[2], &varid[4])) ERR;
-		if (nc_var_par_access(ncid, varid[4], NC_INDEPENDENT)) ERR;
-		if (nc_enddef(ncid)) ERR;
-		if (nc_put_vara_float(ncid, varid[4], &pfull_start, &pfull_loc_size, value_pfull_loc)) ERR;
-		if (nc_redef(ncid)) ERR;
-
-		/* Define dimension phalf. */
-		if (nc_def_dim(ncid, dim_name[3], dim_len[3], &dimid[3])) ERR;
-
-		/* Define variable phalf and write data. */
-		if (nc_def_var(ncid, var_name[5], var_type[5], 1, &dimid[3], &varid[5])) ERR;
-		if (nc_var_par_access(ncid, varid[5], NC_INDEPENDENT)) ERR;
-		if (nc_enddef(ncid)) ERR;
-		if (nc_put_vara_float(ncid, varid[5], &phalf_start, &phalf_loc_size, value_phalf_loc)) ERR;
-		if (nc_redef(ncid)) ERR;
-
-		/* Define dimension time. */
-		if (nc_def_dim(ncid, dim_name[4], dim_len[4], &dimid[4])) ERR;
-
-		/* Define variable time and write data. */
-		if (nc_def_var(ncid, var_name[6], var_type[6], 1, &dimid[4], &varid[6])) ERR;
-		if (nc_var_par_access(ncid, varid[6], NC_INDEPENDENT)) ERR;
-		if (nc_enddef(ncid)) ERR;
-
-		/* In NOAA code, do all processors write the single time value? */
-		if (my_rank == 0)
-		    if (nc_put_var_double(ncid, varid[6], &value_time)) ERR;;
-		if (nc_redef(ncid)) ERR;
-
-		/* Write variable grid_xt data. */
-		if (nc_enddef(ncid)) ERR;
-		if (nc_put_vara_double(ncid, varid[0], &grid_xt_start, &grid_xt_loc_size, value_grid_xt_loc)) ERR;
-		if (nc_redef(ncid)) ERR;
-
-		/* Write lon data. */
-		if (nc_enddef(ncid)) ERR;
-		start[0] = lon_xt_start;
-		start[1] = lon_yt_start;
-		count[0] = lon_xt_loc_size;
-		count[1] = lon_yt_loc_size;
-		if (nc_put_vara_double(ncid, varid[1], start, count, value_lon_loc)) ERR;
-		if (nc_redef(ncid)) ERR;
-
-		/* Write grid_yt data. */
-		if (nc_enddef(ncid)) ERR;
-		if (nc_put_vara_double(ncid, varid[2], &grid_yt_start, &grid_yt_loc_size, value_grid_yt_loc)) ERR;
-		if (nc_redef(ncid)) ERR;
-
-		/* Write lat data. */
-		if (nc_enddef(ncid)) ERR;
-		start[0] = lat_xt_start;
-		start[1] = lat_yt_start;
-		count[0] = lat_xt_loc_size;
-		count[1] = lat_yt_loc_size;
-		if (nc_put_vara_double(ncid, varid[3], start, count, value_lat_loc)) ERR;
-		if (nc_redef(ncid)) ERR;
-
-		/* Specify dimensions for our data vars. */
-		dimid_data[0] = dimid[4];
-		dimid_data[1] = dimid[2];
-		dimid_data[2] = dimid[1];
-		dimid_data[3] = dimid[0];
-
-		/* Define data variables. */
-		for (dv = 0; dv < NUM_DATA_VARS; dv++)
+		if (write_metadata(ncid)) ERR;
+		
 		{
-		    char data_var_name[NC_MAX_NAME + 1];
 
-		    sprintf(data_var_name, "var_%d", dv);
-		    if (nc_def_var(ncid, data_var_name, NC_FLOAT, NDIM4, dimid_data, &data_varid[dv])) ERR;
+		    /* Turn off fill mode. */
+		    if (nc_set_fill(ncid, NC_NOFILL, NULL)) ERR;
 
-		    /* Setting any filter only will work for HDF5-1.10.3 and later */
-		    /* versions. */
-		    if (!f)
-			res = nc_def_var_deflate(ncid, data_varid[dv], s, 1, 4);
-		    else
+		    /* Define dimension grid_xt. */
+		    if (nc_def_dim(ncid, dim_name[0], dim_len[0], &dimid[0])) ERR;
+
+		    /* Define dimension grid_yt. */
+		    if (nc_def_dim(ncid, dim_name[1], dim_len[1], &dimid[1])) ERR;
+
+		    /* Define variable grid_xt. */
+		    if (nc_def_var(ncid, var_name[0], var_type[0], 1, &dimid[0], &varid[0])) ERR;
+		    if (nc_var_par_access(ncid, varid[0], NC_INDEPENDENT)) ERR;
+
+		    /* Define variable lon. */
+		    if (nc_def_var(ncid, var_name[1], var_type[1], 2, dimid, &varid[1])) ERR;
+		    if (nc_var_par_access(ncid, varid[1], NC_INDEPENDENT));
+
+		    /* Define variable grid_yt. */
+		    if (nc_def_var(ncid, var_name[2], var_type[2], 1, &dimid[1], &varid[2])) ERR;
+		    if (nc_var_par_access(ncid, varid[2], NC_INDEPENDENT)) ERR;
+
+		    /* Define variable lat. */
+		    if (nc_def_var(ncid, var_name[3], var_type[3], 2, dimid, &varid[3])) ERR;
+		    if (nc_var_par_access(ncid, varid[3], NC_INDEPENDENT)) ERR;
+
+		    /* Define dimension pfull. */
+		    if (nc_def_dim(ncid, dim_name[2], dim_len[2], &dimid[2])) ERR;
+
+		    /* Define variable pfull and write data. */
+		    if (nc_def_var(ncid, var_name[4], var_type[4], 1, &dimid[2], &varid[4])) ERR;
+		    if (nc_var_par_access(ncid, varid[4], NC_INDEPENDENT)) ERR;
+		    if (nc_enddef(ncid)) ERR;
+		    if (nc_put_vara_float(ncid, varid[4], &pfull_start, &pfull_loc_size, value_pfull_loc)) ERR;
+		    if (nc_redef(ncid)) ERR;
+
+		    /* Define dimension phalf. */
+		    if (nc_def_dim(ncid, dim_name[3], dim_len[3], &dimid[3])) ERR;
+
+		    /* Define variable phalf and write data. */
+		    if (nc_def_var(ncid, var_name[5], var_type[5], 1, &dimid[3], &varid[5])) ERR;
+		    if (nc_var_par_access(ncid, varid[5], NC_INDEPENDENT)) ERR;
+		    if (nc_enddef(ncid)) ERR;
+		    if (nc_put_vara_float(ncid, varid[5], &phalf_start, &phalf_loc_size, value_phalf_loc)) ERR;
+		    if (nc_redef(ncid)) ERR;
+
+		    /* Define dimension time. */
+		    if (nc_def_dim(ncid, dim_name[4], dim_len[4], &dimid[4])) ERR;
+
+		    /* Define variable time and write data. */
+		    if (nc_def_var(ncid, var_name[6], var_type[6], 1, &dimid[4], &varid[6])) ERR;
+		    if (nc_var_par_access(ncid, varid[6], NC_INDEPENDENT)) ERR;
+		    if (nc_enddef(ncid)) ERR;
+
+		    /* In NOAA code, do all processors write the single time value? */
+		    if (my_rank == 0)
+			if (nc_put_var_double(ncid, varid[6], &value_time)) ERR;;
+		    if (nc_redef(ncid)) ERR;
+
+		    /* Write variable grid_xt data. */
+		    if (nc_enddef(ncid)) ERR;
+		    if (nc_put_vara_double(ncid, varid[0], &grid_xt_start, &grid_xt_loc_size, value_grid_xt_loc)) ERR;
+		    if (nc_redef(ncid)) ERR;
+
+		    /* Write lon data. */
+		    if (nc_enddef(ncid)) ERR;
+		    start[0] = lon_xt_start;
+		    start[1] = lon_yt_start;
+		    count[0] = lon_xt_loc_size;
+		    count[1] = lon_yt_loc_size;
+		    if (nc_put_vara_double(ncid, varid[1], start, count, value_lon_loc)) ERR;
+		    if (nc_redef(ncid)) ERR;
+
+		    /* Write grid_yt data. */
+		    if (nc_enddef(ncid)) ERR;
+		    if (nc_put_vara_double(ncid, varid[2], &grid_yt_start, &grid_yt_loc_size, value_grid_yt_loc)) ERR;
+		    if (nc_redef(ncid)) ERR;
+
+		    /* Write lat data. */
+		    if (nc_enddef(ncid)) ERR;
+		    start[0] = lat_xt_start;
+		    start[1] = lat_yt_start;
+		    count[0] = lat_xt_loc_size;
+		    count[1] = lat_yt_loc_size;
+		    if (nc_put_vara_double(ncid, varid[3], start, count, value_lat_loc)) ERR;
+		    if (nc_redef(ncid)) ERR;
+
+		    /* Specify dimensions for our data vars. */
+		    dimid_data[0] = dimid[4];
+		    dimid_data[1] = dimid[2];
+		    dimid_data[2] = dimid[1];
+		    dimid_data[3] = dimid[0];
+
+		    /* Define data variables. */
+		    for (dv = 0; dv < NUM_DATA_VARS; dv++)
 		    {
-			res = nc_def_var_deflate(ncid, data_varid[dv], s, 0, 0);
-			if (!res)
-			    res = nc_def_var_szip(ncid, data_varid[dv], 32, 32);
-		    }
+			char data_var_name[NC_MAX_NAME + 1];
+
+			sprintf(data_var_name, "var_%d", dv);
+			if (nc_def_var(ncid, data_var_name, NC_FLOAT, NDIM4, dimid_data, &data_varid[dv])) ERR;
+
+			/* Setting any filter only will work for HDF5-1.10.3 and later */
+			/* versions. */
+			if (!f)
+			    res = nc_def_var_deflate(ncid, data_varid[dv], s, 1, 4);
+			else
+			{
+			    res = nc_def_var_deflate(ncid, data_varid[dv], s, 0, 0);
+			    if (!res)
+				res = nc_def_var_szip(ncid, data_varid[dv], 32, 32);
+			}
 #ifdef HDF5_SUPPORTS_PAR_FILTERS
-		    if (res) ERR;
+			if (res) ERR;
 #else
-		    if (res != NC_EINVAL) ERR;
+			if (res != NC_EINVAL) ERR;
 #endif
 		    
-		    if (nc_var_par_access(ncid, data_varid[dv], NC_COLLECTIVE)) ERR;
-		    if (nc_enddef(ncid)) ERR;
+			if (nc_var_par_access(ncid, data_varid[dv], NC_COLLECTIVE)) ERR;
+			if (nc_enddef(ncid)) ERR;
+		    }
 		}
 		
 		MPI_Barrier(MPI_COMM_WORLD);
