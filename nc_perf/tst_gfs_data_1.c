@@ -32,7 +32,7 @@
 #define NUM_DATA_VARS 1
 
 int
-write_metadata(int ncid)
+write_metadata(int ncid, int *dim_len, size_t phalf_loc_size, size_t phalf_start, float *value_phalf_loc)
 {
     return 0;
 }
@@ -42,8 +42,12 @@ decomp_4D(int my_rank, int mpi_size, int *dim_len, size_t *start, size_t *count)
 {
     start[0] = 0;
     count[0] = 1;
+    
     count[1] = dim_len[2]/mpi_size;
     start[1] = my_rank * count[1];
+    /* Add any extra to the end. */
+    if (my_rank == mpi_size - 1)
+	count[1] = count[1] + dim_len[2] % mpi_size;
 
     if (my_rank == 0 || my_rank == 1)
     {
@@ -80,9 +84,6 @@ main(int argc, char **argv)
     size_t start[NDIM4], count[NDIM4];
     size_t data_start[NDIM4], data_count[NDIM4];
 
-    /* Dimensions. */
-    char dim_name[NDIM5][NC_MAX_NAME + 1] = {"grid_xt", "grid_yt", "pfull",
-					     "phalf", "time"};
     int dim_len[NDIM5] = {3072, 1536, 127, 128, 1};
     int dimid[NDIM5];
     int dimid_data[NDIM4];
@@ -95,7 +96,6 @@ main(int argc, char **argv)
     int var_type[NUM_META_VARS] = {NC_DOUBLE, NC_DOUBLE, NC_DOUBLE, NC_DOUBLE,
 			      NC_FLOAT, NC_FLOAT, NC_DOUBLE};
     double value_time = 2.0;
-    size_t pfull_loc_size, pfull_start;
     float *value_pfull_loc;
     size_t phalf_loc_size, phalf_start;
     float *value_phalf_loc;
@@ -107,7 +107,7 @@ main(int argc, char **argv)
     double *value_lon_loc;
     size_t lat_xt_loc_size, lat_xt_start, lat_yt_loc_size, lat_yt_start;
     double *value_lat_loc;
-    float *value_clwmr_loc;
+    float *value_data;
 
     int f;
     int i, j, k, dv;
@@ -126,28 +126,18 @@ main(int argc, char **argv)
     grid_xt_start = my_rank * grid_xt_loc_size;
     if (my_rank == mpi_size - 1)
 	grid_xt_loc_size = grid_xt_loc_size + dim_len[0] % mpi_size;
-    /* !print *, my_rank, 'grid_xt', dim_len(3), grid_xt_start, grid_xt_loc_size */
 
     /* Size of local (i.e. for this pe) grid_yt data. */
     grid_yt_loc_size = dim_len[1]/mpi_size;
     grid_yt_start = my_rank * grid_yt_loc_size;
     if (my_rank == mpi_size - 1)
 	grid_yt_loc_size = grid_yt_loc_size + dim_len[1] % mpi_size;
-    /* !print *, my_rank, 'grid_yt', dim_len(3), grid_yt_start, grid_yt_loc_size */
-
-    /* Size of local (i.e. for this pe) pfull data. */
-    pfull_loc_size = dim_len[2]/mpi_size;
-    pfull_start = my_rank * pfull_loc_size;
-    if (my_rank == mpi_size - 1)
-	pfull_loc_size = pfull_loc_size + dim_len[2] % mpi_size;
-    /* !print *, my_rank, 'pfull', dim_len(3), pfull_start, pfull_loc_size */
 
     /* Size of local (i.e. for this pe) phalf data. */
     phalf_loc_size = dim_len[3]/mpi_size;
     phalf_start = my_rank * phalf_loc_size;
     if (my_rank == mpi_size - 1)
 	phalf_loc_size = phalf_loc_size + dim_len[3] % mpi_size;
-    /* !print *, my_rank, 'phalf', dim_len(4), phalf_start, phalf_loc_size */
 
     /* Size of local arrays (i.e. for this pe) lon and lat data. This is */
     /* specific to 4 pes. */
@@ -175,20 +165,20 @@ main(int argc, char **argv)
 	lon_yt_start = 768;
 	lat_yt_start = 768;
     }
-    /* !  print *, my_rank, 'lon_xt_start', lon_xt_start, 'lon_yt_start', lon_yt_start */
-    /* !  print *, my_rank, 'lon_xt_loc_size', lon_xt_loc_size, 'lon_yt_loc_size', lon_yt_loc_size */
 
-    /* ! Allocate space on this pe to hold the data for this pe. */
-    if (!(value_pfull_loc = malloc(pfull_loc_size * sizeof(float)))) ERR;
+    /* Allocate space on this pe to hold the coordinate var data for this pe. */
+    if (!(value_pfull_loc = malloc(data_count[1] * sizeof(float)))) ERR;
     if (!(value_phalf_loc = malloc(phalf_loc_size * sizeof(float)))) ERR;
     if (!(value_grid_xt_loc = malloc(grid_xt_loc_size * sizeof(double)))) ERR;
     if (!(value_grid_yt_loc = malloc(grid_yt_loc_size * sizeof(double)))) ERR;
     if (!(value_lon_loc = malloc(lon_xt_loc_size * lon_yt_loc_size * sizeof(double)))) ERR;
     if (!(value_lat_loc = malloc(lat_xt_loc_size * lat_yt_loc_size * sizeof(double)))) ERR;
-    if (!(value_clwmr_loc = malloc(lat_xt_loc_size * lat_yt_loc_size * pfull_loc_size * sizeof(float)))) ERR;
+
+    /* Allocate space to hold the data. */
+    if (!(value_data = malloc(data_count[3] * data_count[2] * data_count[1] * sizeof(float)))) ERR;
 
     /* Some fake data for this pe to write. */
-    for (i = 0; i < pfull_loc_size; i++)
+    for (i = 0; i < data_count[1]; i++)
 	value_pfull_loc[i] = my_rank * 100 + i;
     for (i = 0; i < phalf_loc_size; i++)
 	value_phalf_loc[i] = my_rank * 100 + i;
@@ -202,8 +192,8 @@ main(int argc, char **argv)
 	{
 	    value_lon_loc[j * lon_xt_loc_size + i] = my_rank * 100 + i + j;
 	    value_lat_loc[j * lon_xt_loc_size + i] = my_rank * 100 + i + j;
-	    for (k = 0; k < pfull_loc_size; k++)
-		value_clwmr_loc[j * lon_xt_loc_size + i] = my_rank * 100 + i + j + k;
+	    for (k = 0; k < data_count[1]; k++)
+		value_data[j * lon_xt_loc_size + i] = my_rank * 100 + i + j + k;
 	}
     }
 
@@ -223,10 +213,14 @@ main(int argc, char **argv)
 		meta_start_time = MPI_Wtime();		
                 if (nc_create_par(FILE_NAME, NC_NETCDF4, comm, info, &ncid)) ERR;
 
-		if (write_metadata(ncid)) ERR;
+		if (write_metadata(ncid, dim_len, phalf_loc_size, phalf_start, value_phalf_loc)) ERR;
 		
 		{
 
+		    /* Dimensions. */
+		    char dim_name[NDIM5][NC_MAX_NAME + 1] = {"grid_xt", "grid_yt", "pfull",
+							     "phalf", "time"};
+		    
 		    /* Turn off fill mode. */
 		    if (nc_set_fill(ncid, NC_NOFILL, NULL)) ERR;
 
@@ -259,13 +253,13 @@ main(int argc, char **argv)
 		    if (nc_def_var(ncid, var_name[4], var_type[4], 1, &dimid[2], &varid[4])) ERR;
 		    if (nc_var_par_access(ncid, varid[4], NC_INDEPENDENT)) ERR;
 		    if (nc_enddef(ncid)) ERR;
-		    if (nc_put_vara_float(ncid, varid[4], &pfull_start, &pfull_loc_size, value_pfull_loc)) ERR;
+		    if (nc_put_vara_float(ncid, varid[4], &data_start[1], &data_count[1], value_pfull_loc)) ERR;
 		    if (nc_redef(ncid)) ERR;
 
-		    /* Define dimension phalf. */
+		    /* Define dimension phalf. This dim is only used by the phalf coord var. */
 		    if (nc_def_dim(ncid, dim_name[3], dim_len[3], &dimid[3])) ERR;
 
-		    /* Define variable phalf and write data. */
+		    /* Define coord variable phalf and write data. */
 		    if (nc_def_var(ncid, var_name[5], var_type[5], 1, &dimid[3], &varid[5])) ERR;
 		    if (nc_var_par_access(ncid, varid[5], NC_INDEPENDENT)) ERR;
 		    if (nc_enddef(ncid)) ERR;
@@ -355,7 +349,7 @@ main(int argc, char **argv)
 		/* Write one record each of the data variables. */
 		for (dv = 0; dv < NUM_DATA_VARS; dv++)
 		{
-		    if (nc_put_vara_float(ncid, data_varid[dv], data_start, data_count, value_clwmr_loc)) ERR;
+		    if (nc_put_vara_float(ncid, data_varid[dv], data_start, data_count, value_data)) ERR;
 		    if (nc_redef(ncid)) ERR;
 		}
 
@@ -377,7 +371,7 @@ main(int argc, char **argv)
 	free(value_phalf_loc);
 	free(value_lon_loc);
 	free(value_lat_loc);
-	free(value_clwmr_loc);
+	free(value_data);
     }
 
     if (!my_rank)

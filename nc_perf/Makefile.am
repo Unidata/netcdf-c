@@ -60,7 +60,7 @@ endif # BUILD_UTILITIES
 # because configure substitute in the launcher (usually mpiexec).
 EXTRA_DIST = run_knmi_bm.sh perftest.sh run_bm_test1.sh			\
 run_bm_test2.sh run_tst_chunks.sh run_bm_elena.sh CMakeLists.txt	\
-run_gfs_test.sh.in run_par_bm_test.sh.in
+run_gfs_test.sh.in run_par_bm_test.sh.in gfs_sample.cdl
 
 CLEANFILES = tst_*.nc bigmeta.nc bigvars.nc floats*.nc floats*.cdl	\
 shorts*.nc shorts*.cdl ints*.nc ints*.cdl tst_*.cdl
