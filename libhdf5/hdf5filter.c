@@ -317,7 +317,8 @@ NC4_filter_actions(int ncid, int varid, int op, void* args)
             size_t num_elem = 1;
             int d;
             for (d = 0; d < var->ndims; d++)
-                num_elem *= var->dim[d]->len;
+                if (var->dim[d]->len)
+		    num_elem *= var->dim[d]->len;
             /* Pixels per block must be <= number of elements. */
             if (params[1] > num_elem)
                 {stat = THROW(NC_EINVAL); goto done;}
