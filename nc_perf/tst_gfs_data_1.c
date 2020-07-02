@@ -15,6 +15,7 @@
 #include "err_macros.h"
 #include <mpi.h>
 
+
 #define FILE_NAME "tst_gfs_data_1.nc"
 #define NUM_META_VARS 7
 #define NDIM2 2
@@ -30,7 +31,26 @@
 #define NUM_DEFLATE_LEVELS 3
 #define THOUSAND 1000
 #define NUM_DATA_VARS 10
+#define ERR_AWFUL 1
 
+/* Get the size of a file in bytes. */
+int
+get_file_size(char *filename, size_t *file_size)
+{
+    FILE *fp;
+    assert(filename && file_size);
+    
+    fp = fopen(filename, "r");
+    if (fp)
+    {
+	fseek(fp, 0 , SEEK_END);
+	*file_size = ftell(fp);
+	fclose(fp);
+    }
+    return 0;
+}
+
+/* Write all the metadata, including coordinate variable data. */
 int
 write_metadata(int ncid, int *data_varid, int s, int f, int deflate, int *dim_len, size_t phalf_loc_size, size_t phalf_start,
 	       float *value_phalf_loc, size_t *data_start, size_t *data_count, float *value_pfull_loc,
@@ -104,8 +124,9 @@ write_metadata(int ncid, int *data_varid, int s, int f, int deflate, int *dim_le
     if (nc_put_vara_float(ncid, varid[5], &phalf_start, &phalf_loc_size, value_phalf_loc)) ERR;
     if (nc_redef(ncid)) ERR;
 
-    /* Define dimension time. */
-    if (nc_def_dim(ncid, dim_name[4], dim_len[4], &dimid[4])) ERR;
+    /* Define dimension time, the unlimited dimension. */
+    /* if (nc_def_dim(ncid, dim_name[4], NC_UNLIMITED, &dimid[4])) ERR; */
+    if (nc_def_dim(ncid, dim_name[4], 1, &dimid[4])) ERR;
 
     /* Define variable time and write data. */
     if (nc_def_var(ncid, var_name[6], var_type[6], 1, &dimid[4], &varid[6])) ERR;
@@ -193,6 +214,8 @@ write_metadata(int ncid, int *data_varid, int s, int f, int deflate, int *dim_le
     return 0;
 }
 
+/* Based on the MPI rank and number of tasks, calculate the
+ * decomposition of the 4D data. */
 int
 decomp_4D(int my_rank, int mpi_size, int *dim_len, size_t *start, size_t *count)
 {
@@ -205,21 +228,33 @@ decomp_4D(int my_rank, int mpi_size, int *dim_len, size_t *start, size_t *count)
     if (my_rank == mpi_size - 1)
 	count[1] = count[1] + dim_len[2] % mpi_size;
 
-    if (my_rank == 0 || my_rank == 1)
+    if (mpi_size == 4)
     {
-	start[2] = 0;
-	start[3] = 0;
+	if (my_rank == 0 || my_rank == 1)
+	{
+	    start[2] = 0;
+	    start[3] = 0;
+	}
+	else
+	{
+	    start[2] = 768;
+	    start[3] = 768;
+	}
+	count[2] = 768;
+	count[3] = 1536;
+    }
+    else if (mpi_size == 36)
+    {
+	start[2] = my_rank * 256;
+	start[3] = my_rank * 512;
+	count[2] = 256;
+	count[3] = 512;
     }
     else
-    {
-	start[2] = 768;
-	start[3] = 768;
-    }
-    count[2] = 768;
-    count[3] = 1536;
-
+	return ERR_AWFUL;
+    
     printf("%d: start %ld %ld %ld %ld count %ld %ld %ld %ld\n", my_rank, start[0],
-	   start[1], start[2], start[3], count[0], count[1], count[2], count[3]);  
+    	   start[1], start[2], start[3], count[0], count[1], count[2], count[3]);
     
     return 0;
 }
@@ -347,7 +382,7 @@ main(int argc, char **argv)
     if (my_rank == 0)
     {
 	printf("Benchmarking creation of UFS file.\n");
-	printf("comp, level, shuffle, meta, data\n");
+	printf("comp, level, shuffle, meta wr time (s), data wr time (s), file size\n");
     }
     {
         int s;
@@ -357,6 +392,11 @@ main(int argc, char **argv)
             {
 		for (dl = 0; dl < NUM_DEFLATE_LEVELS; dl++)
 		{
+		    size_t file_size;
+
+		    /* No deflate levels for szip. */
+		    if (f && dl) continue;
+		    
 		    /* nc_set_log_level(3); */
 		    /* Create a parallel netcdf-4 file. */
 		    meta_start_time = MPI_Wtime();		
@@ -380,11 +420,18 @@ main(int argc, char **argv)
 
 		    /* Close the file. */
 		    if (nc_close(ncid)) ERR;
+
+		    /* Stop the data timer. */
 		    MPI_Barrier(MPI_COMM_WORLD);
 		    data_stop_time = MPI_Wtime();
+
+		    /* Get the file size. */
+		    if (get_file_size(FILE_NAME, &file_size)) ERR;
+
+		    /* Print out results. */
 		    if (my_rank == 0)
-			printf("%s, %d, %d, %g, %g\n", (f ? "szip" : "zlib"), deflate_level[dl], s, meta_stop_time - meta_start_time,
-			       data_stop_time - data_start_time);
+			printf("%s, %d, %d, %g, %g, %ld\n", (f ? "szip" : "zlib"), deflate_level[dl], s, meta_stop_time - meta_start_time,
+			       data_stop_time - data_start_time, file_size);
 		} /* next deflate level */
             } /* next shuffle filter test */
         } /* next compression filter (zlib and szip) */
