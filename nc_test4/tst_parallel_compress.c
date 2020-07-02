@@ -176,9 +176,10 @@ main(int argc, char **argv)
                     SUMMARIZE_ERR;
             } /* next shuffle filter test */
         } /* next compression filter (zlib and szip) */
-
+	    
 	/* Now run tests with unlimited dim. */
-        for (f = 0; f < NUM_COMPRESSION_FILTERS; f++)
+        /* for (f = 0; f < NUM_COMPRESSION_FILTERS; f++) */
+        for (f = 1; f < NUM_COMPRESSION_FILTERS; f++)
         {
             for (s = 0; s < NUM_SHUFFLE_SETTINGS; s++)
             {
@@ -193,9 +194,9 @@ main(int argc, char **argv)
                 if (nc_create_par(FILE_NAME, NC_NETCDF4, comm, info, &ncid)) ERR;
 
                 /* Create three dimensions. */
-                if (nc_def_dim(ncid, "d1", DIMSIZE, dimids)) ERR;
-                if (nc_def_dim(ncid, "d2", DIMSIZE, &dimids[1])) ERR;
-                if (nc_def_dim(ncid, "d3", NUM_SLABS, &dimids[2])) ERR;
+                if (nc_def_dim(ncid, "d1", DIMSIZE, &dimids[1])) ERR;
+                if (nc_def_dim(ncid, "d2", DIMSIZE, &dimids[2])) ERR;
+                if (nc_def_dim(ncid, "d3", NC_UNLIMITED, &dimids[0])) ERR;
 
                 /* Create one var. Turn on deflation. */
                 if ((res = nc_def_var(ncid, "v1", NC_INT, NDIMS, dimids, &v1id))) ERR;
@@ -229,11 +230,11 @@ main(int argc, char **argv)
                 if (nc_enddef(ncid)) ERR;
 
                 /* Set up slab for this process. */
-                start[0] = mpi_rank * DIMSIZE/mpi_size;
-                start[1] = 0;
-                count[0] = DIMSIZE/mpi_size;
-                count[1] = DIMSIZE;
-                count[2] = 1;
+                start[1] = mpi_rank * DIMSIZE/mpi_size;
+                start[2] = 0;
+                count[1] = DIMSIZE/mpi_size;
+                count[2] = DIMSIZE;
+                count[0] = 1;
                 /*printf("mpi_rank=%d start[0]=%d start[1]=%d count[0]=%d count[1]=%d\n",
                   mpi_rank, start[0], start[1], count[0], count[1]);*/
 
@@ -242,7 +243,7 @@ main(int argc, char **argv)
                 if (nc_var_par_access(ncid, v1id, NC_INDEPENDENT) != NC_EINVAL) ERR;
 
                 /* Write slabs of data. */
-                for (start[2] = 0; start[2] < NUM_SLABS; start[2]++)
+                for (start[0] = 0; start[0] < NUM_SLABS; start[0]++)
                     if (nc_put_vara_int(ncid, v1id, start, count, slab_data)) ERR;
 
                 /* Close the netcdf file. */
@@ -275,7 +276,7 @@ main(int argc, char **argv)
                     }
 
                     /* Use parallel I/O to read the data. */
-                    for (start[2] = 0; start[2] < NUM_SLABS; start[2]++)
+                    for (start[0] = 0; start[0] < NUM_SLABS; start[0]++)
                     {
                         if (nc_get_vara_int(ncid, 0, start, count, slab_data_in)) ERR;
                         for (i = 0; i < DIMSIZE * DIMSIZE / mpi_size; i++)
