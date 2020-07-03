@@ -1,4 +1,4 @@
-netcdf \2004050412_eta_211 {
+netcdf \2004050300_eta_211 {
 dimensions:
 	record = UNLIMITED ; // (1 currently)
 	x = 135 ;

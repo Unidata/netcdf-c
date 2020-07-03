@@ -1,0 +1,54 @@
+# Test c output
+T=ut_projections
+
+XSRC=ut_util.c ../nczarr_test/ztest_util.c
+
+#ARGS=-r 1 -d 10 -c 5 -s '[0:15:2]'
+#ARGS=-r 1 -d 13 -c 5 -s '[0:11:2]'
+#ARGS=-r 2 -d 13,10 -c 5,3 -s '[0:11:2][1:9]'
+ARGS=-r 1 -d 10 -c 3 -s '[1:9]'
+
+#CMD=valgrind --leak-check=full
+CMD=gdb --args
+
+#PAR=1
+#SZIP=1
+
+#CFLAGS = -Wall -Wno-unused-variable -Wno-unused-function -g -O0 -I.. -I../include -I../libnczarr
+CFLAGS = -Wall -g -O0 -I.. -I../include -I../libnczarr
+
+LDFLAGS = ../liblib/.libs/libnetcdf.a -L/usr/local/lib -lhdf5_hl -lhdf5 -lz -ldl -lcurl -lm
+
+ifdef PAR
+CC=mpicc
+LDFLAGS += -lmpich
+else
+CC=gcc
+endif
+
+ifdef SZIP
+LDFLAGS += -lsz -laec
+endif
+
+LLP=/usr/local/lib:${LD_LIBRARY_PATH}
+
+all:: cmp
+	export LD_LIBRARY_PATH=${LLP}; export CFLAGS; export LDFLAGS; \
+	${CMD} ./t ${ARGS}
+
+cmp::
+	export LD_LIBRARY_PATH=${LLP}; export CFLAGS; export LDFLAGS; \
+	${CC} -o t ${CFLAGS} ${T}.c ${XSRC} ${FILTEROBJ} ${LDFLAGS}
+
+filter::
+	${CC} ${CFLAGS} -c hdf5plugins/${FILTER}.c ${LDFLAGS}
+
+cpp::
+	${CC} -E ${CFLAGS} ${T}.c > ${T}.txt
+
+H5=h5testszip
+EXT=testszip.nc
+h5::
+	export LD_LIBRARY_PATH=${LLP}; export CFLAGS; export LDFLAGS; \
+	${CC} -o h5 ${CFLAGS} ${H5}.c ${SRC} ${LDFLAGS}; \
+	${CMD} ./h5 ${EXT}

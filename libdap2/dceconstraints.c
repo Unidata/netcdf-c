@@ -63,7 +63,7 @@ slicedump(const char* prefix, DCEslice* s)
 #else
     size_t last = (s->first+s->length)-1;
     fprintf(stderr,"%s: [%lu:%lu:%lu p=%lu l=%lu c=%lu]\n",
-	prefix,s->first,s->stride,last,s->stop,s->length,s->count);
+	prefix,s->first,s->stride,last,s->last,s->length,s->count);
 #endif
 }
 #endif

@@ -22,6 +22,34 @@
 #include "nc.h" /* from libsrc */
 #include "ncdispatch.h" /* from libdispatch */
 #include "ncutf8.h"
+#include "ncfilter.h"
+#include "netcdf_aux.h"
+
+/** @internal Number of reserved attributes. These attributes are
+ * hidden from the netcdf user, but exist in the implementation
+ * datasets to help netcdf read the dataset.
+ * Moved here from hdf5file.c.
+ * These tables need to capture all reserved attributes
+ * across all possible dispatchers
+*/
+
+#define NRESERVED 11 /*|NC_reservedatt|*/
+
+/** @internal List of reserved attributes. This list must be in sorted
+ * order for binary search. */
+static const NC_reservedatt NC_reserved[NRESERVED] = {
+    {NC_ATT_CLASS, READONLYFLAG|DIMSCALEFLAG},            /*CLASS*/
+    {NC_ATT_DIMENSION_LIST, READONLYFLAG|DIMSCALEFLAG},   /*DIMENSION_LIST*/
+    {NC_ATT_NAME, READONLYFLAG|DIMSCALEFLAG},             /*NAME*/
+    {NC_ATT_REFERENCE_LIST, READONLYFLAG|DIMSCALEFLAG},   /*REFERENCE_LIST*/
+    {NC_ATT_FORMAT, READONLYFLAG},                        /*_Format*/
+    {ISNETCDF4ATT, READONLYFLAG|NAMEONLYFLAG},            /*_IsNetcdf4*/
+    {NCPROPS, READONLYFLAG|NAMEONLYFLAG|MATERIALIZEDFLAG},/*_NCProperties*/
+    {NC_ATT_COORDINATES, READONLYFLAG|DIMSCALEFLAG|MATERIALIZEDFLAG},/*_Netcdf4Coordinates*/
+    {NC_ATT_DIMID_NAME, READONLYFLAG|DIMSCALEFLAG|MATERIALIZEDFLAG},/*_Netcdf4Dimid*/
+    {SUPERBLOCKATT, READONLYFLAG|NAMEONLYFLAG},/*_SuperblockVersion*/
+    {NC_ATT_NC3_STRICT_NAME, READONLYFLAG|MATERIALIZEDFLAG}, /*_nc3_strict*/
+};
 
 /* These hold the file caching settings for the library. */
 size_t nc4_chunk_cache_size = CHUNK_CACHE_SIZE;            /**< Default chunk cache size. */
@@ -29,7 +57,6 @@ size_t nc4_chunk_cache_nelems = CHUNK_CACHE_NELEMS;        /**< Default chunk ca
 float nc4_chunk_cache_preemption = CHUNK_CACHE_PREEMPTION; /**< Default chunk cache preemption. */
 
 static int NC4_move_in_NCList(NC* nc, int new_id);
-static void freefilterlist(NClist* filters);
 
 #ifdef LOGGING
 /* This is the severity level of messages which will be logged. Use
@@ -1312,9 +1339,6 @@ var_free(NC_VAR_INFO_T *var)
     if (var->alt_name)
         free(var->alt_name);
 
-    if (var->hdr.name)
-        free(var->hdr.name);
-
     if (var->dimids)
         free(var->dimids);
 
@@ -1331,7 +1355,12 @@ var_free(NC_VAR_INFO_T *var)
             return retval;
 
     /* Release filter information. */
-    freefilterlist(var->filters);
+    NC4_filterx_freelist(var);
+    var->filters = NULL;
+
+    /* Do this last because debugging may need it */
+    if (var->hdr.name)
+        free(var->hdr.name);
 
     /* Delete the var. */
     free(var);
@@ -1806,16 +1835,31 @@ NC4_show_metadata(int ncid)
     return retval;
 }
 
-static void
-freefilterlist(NClist* filters)
+/**
+ * @internal Define a binary searcher for reserved attributes
+ * @param name for which to search
+ * @return pointer to the matching NC_reservedatt structure.
+ * @return NULL if not found.
+ * @author Dennis Heimbigner
+ */
+const NC_reservedatt*
+NC_findreserved(const char* name)
 {
-    int i;
-    if(filters == NULL) return;
-    for(i=0;i<nclistlength(filters);i++) {
-	NC_FILTER_SPEC_HDF5* f = nclistget(filters,i);
-	NC4_freefilterspec(f);
+    int n = NRESERVED;
+    int L = 0;
+    int R = (n - 1);
+    for(;;) {
+        if(L > R) break;
+        int m = (L + R) / 2;
+        const NC_reservedatt* p = &NC_reserved[m];
+        int cmp = strcmp(p->name,name);
+        if(cmp == 0) return p;
+        if(cmp < 0)
+            L = (m + 1);
+        else /*cmp > 0*/
+            R = (m - 1);
     }
-    nclistfree(filters);
+    return NULL;
 }
 
 static int

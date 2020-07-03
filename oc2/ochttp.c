@@ -139,7 +139,8 @@ fail:
 	nclog(NCLOGERR, "curl error: %s", curl_easy_strerror(cstat));
 	switch (httpcode) {
 	case 400: stat = OC_EBADURL; break;
-	case 401: stat = OC_EAUTH; break;
+	case 401: stat = OC_EACCESS; break;
+	case 403: stat = OC_EAUTH; break;
 	case 404: stat = OC_ENOFILE; break;
 	case 500: stat = OC_EDAPSVC; break;
 	case 200: break;

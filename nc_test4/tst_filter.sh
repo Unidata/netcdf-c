@@ -251,7 +251,6 @@ rm -f bzip2.nc bzip2.dump tst_filter.txt bzip2x.dump
 rm -f test_bzip2.c
 rm -f multifilter.nc multi.cdl smulti.cdl
 rm -f nccopyF.nc nccopyF.cdl ncgenF.nc ncgenF.cdl
-rm -f filterorder.txt
 rm -f ncgenFs.cdl  nccopyFs.cdl
 exit 0
 

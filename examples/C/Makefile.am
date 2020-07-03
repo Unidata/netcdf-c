@@ -9,10 +9,12 @@
 #SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 
-LDADD = -lm
-AM_CPPFLAGS = -I$(top_srcdir)/include
+# Put together AM_CPPFLAGS and AM_LDFLAGS.
+include $(top_srcdir)/lib_flags.am
+
+AM_CPPFLAGS += -I$(top_srcdir)/include
 AM_CPPFLAGS += -I$(top_builddir)/liblib
-AM_LDFLAGS = ${top_builddir}/liblib/libnetcdf.la
+AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la -lm
 
 # These are the netCDF-3 examples.
 check_PROGRAMS = simple_xy_wr simple_xy_rd sfc_pres_temp_wr	\

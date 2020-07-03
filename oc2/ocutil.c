@@ -404,6 +404,10 @@ ocerrstring(int err)
 	case OC_EAUTH:
 	    return "OC_EAUTH: authorization failure";
 
+	/* Access Error */
+	case OC_EACCESS:
+	    return "OC_EACCESS: access failure";
+
 	default: break;
     }
     return "<unknown error code>";

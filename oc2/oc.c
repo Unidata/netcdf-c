@@ -5,6 +5,9 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#endif
 
 #include "netcdf.h"
 #include "ocinternal.h"
