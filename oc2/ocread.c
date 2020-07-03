@@ -8,6 +8,9 @@
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#endif
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif

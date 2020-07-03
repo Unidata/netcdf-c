@@ -16,6 +16,7 @@
 
 #include "config.h"
 #include "hdf5internal.h"
+#include "ncfilter.h"
 
 #undef DEBUGH5
 
@@ -625,6 +626,7 @@ close_vars(NC_GRP_INFO_T *grp)
 	if (hdf5_var->dimscale_attached)
 	    free(hdf5_var->dimscale_attached);
 	nullfree(hdf5_var);
+
     }
 
     return NC_NOERR;

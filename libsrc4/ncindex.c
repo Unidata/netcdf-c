@@ -153,7 +153,7 @@ ncindexdup(NCindex* index)
 {
     if(index == NULL || nclistlength(index->list) == 0)
         return NULL;
-    return (NC_OBJ**)nclistdup(index->list);
+    return (NC_OBJ**)nclistclone(index->list,0/*!deep*/);
 }
 
 /* Count the non-null entries in an NCindex */

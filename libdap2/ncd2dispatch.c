@@ -346,7 +346,7 @@ NCD2_open(const char* path, int mode, int basepe, size_t *chunksizehintp,
 
     /* fail if we are unconstrainable but have constraints */
     if(FLAGSET(dapcomm->controls,NCF_UNCONSTRAINABLE)) {
-	if(dapcomm->oc.url->query != NULL) {
+	if(dapcomm->oc.url != NULL && dapcomm->oc.url->query != NULL) {
 	    nclog(NCLOGWARN,"Attempt to constrain an unconstrainable data source: %s",
 		   dapcomm->oc.url->query);
 	    ncstat = THROW(NC_EDAPCONSTRAINT);
@@ -393,7 +393,9 @@ NCD2_open(const char* path, int mode, int basepe, size_t *chunksizehintp,
      /* Parse constraints to make sure they are syntactically correct */
      ncstat = dapparsedapconstraints(dapcomm,dapcomm->oc.url->query,dapcomm->oc.dapconstraint);
      if(ncstat != NC_NOERR) {THROWCHK(ncstat); goto done;}
-
+#ifdef DEBUG2
+fprintf(stderr,"ce=%s\n",dumpconstraint(dapcomm->oc.dapconstraint));
+#endif
     /* Construct a url for oc minus any constraint and params*/
     dapcomm->oc.urltext = ncuribuild(dapcomm->oc.url,NULL,NULL,NCURIBASE);
 
@@ -822,7 +824,7 @@ fprintf(stderr,"\n");
 			nclistpush(unsignedatt->values,strdup("false"));
 		    } else if(att->etype != var->etype) {/* other mismatches */
 			/* Log a message */
-	                nclog(NCLOGERR,"_FillValue/Variable type mismatch: variable=%s",var->ncbasename);
+	                nclog(NCLOGWARN,"_FillValue/Variable type mismatch: variable=%s",var->ncbasename);
 			/* See if mismatch is allowed */
 			if(FLAGSET(dapcomm->controls,NCF_FILLMISMATCH)) {
 			    /* Forcibly change the attribute type to match */
@@ -1227,7 +1229,7 @@ paramlookup(NCDAPCOMMON* state, const char* key)
 {
     const char* value = NULL;
     if(state == NULL || key == NULL || state->oc.url == NULL) return NULL;
-    value = ncurilookup(state->oc.url,key);
+    value = ncurifragmentlookup(state->oc.url,key);
     return value;
 }
 

@@ -14,7 +14,7 @@ include $(top_srcdir)/lib_flags.am
 #TESTS_ENVIRONMENT = export SETX=1;
 
 LDADD = ${top_builddir}/liblib/libnetcdf.la
-AM_CPPFLAGS += -I$(top_srcdir)/libdap4 -I${topdir}/include
+AM_CPPFLAGS += -I$(top_srcdir)/libdap4
 
 # Set up the tests; do the .sh first, then .c
 check_PROGRAMS =

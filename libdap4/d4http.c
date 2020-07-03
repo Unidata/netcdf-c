@@ -144,7 +144,8 @@ fail:
         nclog(NCLOGERR, "curl error: %s", curl_easy_strerror(cstat));
         ret = curlerrtoncerr(cstat);
     } else switch (httpcode) {
-    case 401: ret = NC_EAUTH; break;
+    case 401: ret = NC_EACCESS; break;
+    case 403: ret = NC_EAUTH; break;
     case 404: ret = ENOENT; break;
     case 500: ret = NC_EDAPSVC; break;
     case 200: break;

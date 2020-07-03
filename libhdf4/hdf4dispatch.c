@@ -103,7 +103,7 @@ static const NC_Dispatch HDF4_dispatcher = {
     NC_NOTNC4_set_var_chunk_cache,
     NC_NOTNC4_get_var_chunk_cache,
 
-    NC_NOOP_filter_actions,
+    NC_NOTNC4_filter_actions,
 };
 
 const NC_Dispatch *HDF4_dispatch_table = NULL;

@@ -75,7 +75,6 @@ THIS SOFTWARE.
 
 #ifdef _MSC_VER
 #include "XGetopt.h"
-#include <io.h>
 #define snprintf _snprintf
 #endif
 
