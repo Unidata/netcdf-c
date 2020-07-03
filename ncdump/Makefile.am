@@ -188,6 +188,7 @@ compound_datasize_test.nc compound_datasize_test2.nc ncf199.nc		\
 tst_c0.cdl tst_c0_4.cdl tst_c0_4c.cdl tst_c0_64.cdl			\
 tst_compound_datasize_test.cdl tst_compound_datasize_test2.cdl		\
 tst_ncf199.cdl tst_tst_gattenum.cdl tst_tst_usuffix.cdl ctest.c		\
-ctest64.c nccopy3_subset_out.nc camrun.c tst_ncf213.cdl tst_ncf213.nc   \
-tst_radix.nc tmp_radix.cdl ctest_small_3.c ctest_small_4.c              \
-ctest_special_atts_4.c
+ctest64.c nccopy3_subset_out.nc camrun.c tst_ncf213.cdl tst_ncf213.nc	\
+tst_radix.nc tmp_radix.cdl ctest_small_3.c ctest_small_4.c		\
+ctest_special_atts_4.c tst_roman_szip_simple.cdl			\
+tst_roman_szip_unlim.cdl
