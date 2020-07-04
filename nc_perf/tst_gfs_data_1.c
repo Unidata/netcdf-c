@@ -230,8 +230,34 @@ write_metadata(int ncid, int *data_varid, int s, int f, int deflate, int *dim_le
 /* Based on the MPI rank and number of tasks, calculate the
  * decomposition of the 2D lat/lon coordinate variables. */
 int
-decomp_2D(int my_rank, int mpi_size, int *dim_len, size_t *start, size_t *count)
+decomp_2D(int my_rank, int mpi_size, int *dim_len, size_t *latlon_start,
+	  size_t *latlon_count)
 {
+
+    /* Size of local arrays (i.e. for this pe) lon and lat data. This
+     * is specific to 4 pes. */
+    latlon_count[0] = dim_len[0]/2;
+    if (my_rank == 0 || my_rank == 2)
+    {
+	latlon_start[0] = 0;
+    }
+    else
+    {
+	latlon_start[0] = dim_len[0]/2;
+    }
+    latlon_count[1] = dim_len[1]/2;
+    if (my_rank == 0 || my_rank == 1)
+    {
+	latlon_start[1] = 0;
+    }
+    else
+    {
+	latlon_start[1] = dim_len[1]/2;
+    }
+
+    printf("%d: latlon_start %ld %ld latlon_count %ld %ld\n", my_rank, latlon_start[0],
+	   latlon_start[1], latlon_count[0], latlon_count[1]);
+
     return 0;
 }
 
@@ -345,27 +371,6 @@ main(int argc, char **argv)
     phalf_start = my_rank * phalf_loc_size;
     if (my_rank == mpi_size - 1)
 	phalf_loc_size = phalf_loc_size + dim_len[3] % mpi_size;
-
-    /* Size of local arrays (i.e. for this pe) lon and lat data. This is */
-    /* specific to 4 pes. */
-    latlon_count[0] = GRID_YT_LEN;
-    if (my_rank == 0 || my_rank == 2)
-    {
-	latlon_start[0] = 0;
-    }
-    else
-    {
-	latlon_start[0] = GRID_YT_LEN;
-    }
-    latlon_count[1] = 768;
-    if (my_rank == 0 || my_rank == 1)
-    {
-	latlon_start[1] = 0;
-    }
-    else
-    {
-	latlon_start[1] = 768;
-    }
 
     /* Allocate space on this pe to hold the coordinate var data for this pe. */
     if (!(value_pfull_loc = malloc(data_count[1] * sizeof(float)))) ERR;
