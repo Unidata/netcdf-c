@@ -2,9 +2,13 @@
   Copyright 2020, UCAR/Unidata See COPYRIGHT file for copying and
   redistribution conditions.
 
-  This program tests netcdf-4 parallel I/O using the same access
-  pattern as is used by NOAA's GFS when writing and reading model
-  data. See https://github.com/Unidata/netcdf-fortran/issues/264
+  This program tests and benchmarks netcdf-4 parallel I/O using the
+  same access pattern as is used by NOAA's GFS when writing and
+  reading model data. See:
+  https://github.com/Unidata/netcdf-fortran/issues/264.
+
+  Also see the file gfs_sample.cdl to see what is being produced by
+  this program.
 
   Ed Hartnett, 6/28/20
 */
@@ -22,16 +26,25 @@
 #define NDIM4 4
 #define NDIM5 5
 #define NUM_PROC 4
-#define NUM_SHUFFLE_SETTINGS 2
+/* #define NUM_SHUFFLE_SETTINGS 2 */
+#define NUM_SHUFFLE_SETTINGS 1
 #ifdef HAVE_H5Z_SZIP
-#define NUM_COMPRESSION_FILTERS 2
+#define NUM_COMPRESSION_FILTERS 1
+/* #define NUM_COMPRESSION_FILTERS 2 */
 #else
 #define NUM_COMPRESSION_FILTERS 1
 #endif
-#define NUM_DEFLATE_LEVELS 3
+/* #define NUM_DEFLATE_LEVELS 3 */
+#define NUM_DEFLATE_LEVELS 1
 #define THOUSAND 1000
 #define NUM_DATA_VARS 10
 #define ERR_AWFUL 1
+
+#define GRID_XT_LEN 3072
+#define GRID_YT_LEN 1536
+#define PFULL_LEN 127
+#define PHALF_LEN 128
+#define TIME_LEN 1
 
 /* Get the size of a file in bytes. */
 int
@@ -55,8 +68,8 @@ int
 write_metadata(int ncid, int *data_varid, int s, int f, int deflate, int *dim_len, size_t phalf_loc_size, size_t phalf_start,
 	       float *value_phalf_loc, size_t *data_start, size_t *data_count, float *value_pfull_loc,
 	       size_t grid_xt_start, size_t grid_xt_loc_size, double *value_grid_xt_loc, size_t grid_yt_start,
-	       size_t grid_yt_loc_size, double *value_grid_yt_loc, size_t *lat_start, size_t *lat_count,
-	       double *value_lat_loc, size_t *lon_start, size_t *lon_count, double *value_lon_loc, int my_rank)
+	       size_t grid_yt_loc_size, double *value_grid_yt_loc, size_t *latlon_start, size_t *latlon_count,
+	       double *value_lat_loc, double *value_lon_loc, int my_rank)
 {
     char dim_name[NDIM5][NC_MAX_NAME + 1] = {"grid_xt", "grid_yt", "pfull",
 					     "phalf", "time"};
@@ -145,7 +158,7 @@ write_metadata(int ncid, int *data_varid, int s, int f, int deflate, int *dim_le
 
     /* Write lon data. */
     if (nc_enddef(ncid)) ERR;
-    if (nc_put_vara_double(ncid, varid[1], lon_start, lon_count, value_lon_loc)) ERR;
+    if (nc_put_vara_double(ncid, varid[1], latlon_start, latlon_count, value_lon_loc)) ERR;
     if (nc_redef(ncid)) ERR;
 
     /* Write grid_yt data. */
@@ -155,7 +168,7 @@ write_metadata(int ncid, int *data_varid, int s, int f, int deflate, int *dim_le
 
     /* Write lat data. */
     if (nc_enddef(ncid)) ERR;
-    if (nc_put_vara_double(ncid, varid[3], lat_start, lat_count, value_lat_loc)) ERR;
+    if (nc_put_vara_double(ncid, varid[3], latlon_start, latlon_count, value_lat_loc)) ERR;
 
     /* Specify dimensions for our data vars. */
     dimid_data[0] = dimid[4];
@@ -215,6 +228,14 @@ write_metadata(int ncid, int *data_varid, int s, int f, int deflate, int *dim_le
 }
 
 /* Based on the MPI rank and number of tasks, calculate the
+ * decomposition of the 2D lat/lon coordinate variables. */
+int
+decomp_2D(int my_rank, int mpi_size, int *dim_len, size_t *start, size_t *count)
+{
+    return 0;
+}
+
+/* Based on the MPI rank and number of tasks, calculate the 
  * decomposition of the 4D data. */
 int
 decomp_4D(int my_rank, int mpi_size, int *dim_len, size_t *start, size_t *count)
@@ -272,11 +293,11 @@ main(int argc, char **argv)
     double data_start_time, data_stop_time;
     
     int ncid;
-    size_t lat_start[NDIM2], lat_count[NDIM2];
-    size_t lon_start[NDIM2], lon_count[NDIM2];
+    size_t latlon_start[NDIM2], latlon_count[NDIM2];
     size_t data_start[NDIM4], data_count[NDIM4];
 
-    int dim_len[NDIM5] = {3072, 1536, 127, 128, 1};
+    int dim_len[NDIM5] = {GRID_XT_LEN, GRID_YT_LEN, PFULL_LEN, PHALF_LEN,
+			  TIME_LEN};
 
     /* Variables. */
     int data_varid[NUM_DATA_VARS];
@@ -290,7 +311,8 @@ main(int argc, char **argv)
     double *value_lon_loc;
     double *value_lat_loc;
     float *value_data;
-    int deflate_level[NUM_DEFLATE_LEVELS] = {1, 4, 9};
+    /* int deflate_level[NUM_DEFLATE_LEVELS] = {1, 4, 9}; */
+    int deflate_level[NUM_DEFLATE_LEVELS] = {1};
 
     int f;
     int i, j, k, dv, dl;
@@ -300,8 +322,11 @@ main(int argc, char **argv)
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
 
-    /* Determine data decomposition. */
+    /* Determine 4D data decomposition to write data vars. */
     if (decomp_4D(my_rank, mpi_size, dim_len, data_start, data_count)) ERR;
+
+    /* Determine 2D data decomposition to write lat/lon coordinate vars. */
+    if (decomp_2D(my_rank, mpi_size, dim_len, latlon_start, latlon_count)) ERR;
 
     /* Size of local (i.e. for this pe) grid_xt data. */
     grid_xt_loc_size = dim_len[0]/mpi_size;
@@ -323,29 +348,23 @@ main(int argc, char **argv)
 
     /* Size of local arrays (i.e. for this pe) lon and lat data. This is */
     /* specific to 4 pes. */
-    lon_count[0] = 1536;
-    lat_count[0] = 1536;
+    latlon_count[0] = GRID_YT_LEN;
     if (my_rank == 0 || my_rank == 2)
     {
-	lon_start[0] = 0;
-	lat_start[0] = 0;
+	latlon_start[0] = 0;
     }
     else
     {
-	lon_start[0] = 1536;
-	lat_start[0] = 1536;
+	latlon_start[0] = GRID_YT_LEN;
     }
-    lon_count[1] = 768;
-    lat_count[1] = 768;
+    latlon_count[1] = 768;
     if (my_rank == 0 || my_rank == 1)
     {
-	lon_start[1] = 0;
-	lat_start[1] = 0;
+	latlon_start[1] = 0;
     }
     else
     {
-	lon_start[1] = 768;
-	lat_start[1] = 768;
+	latlon_start[1] = 768;
     }
 
     /* Allocate space on this pe to hold the coordinate var data for this pe. */
@@ -353,8 +372,8 @@ main(int argc, char **argv)
     if (!(value_phalf_loc = malloc(phalf_loc_size * sizeof(float)))) ERR;
     if (!(value_grid_xt_loc = malloc(grid_xt_loc_size * sizeof(double)))) ERR;
     if (!(value_grid_yt_loc = malloc(grid_yt_loc_size * sizeof(double)))) ERR;
-    if (!(value_lon_loc = malloc(lon_count[0] * lon_count[1] * sizeof(double)))) ERR;
-    if (!(value_lat_loc = malloc(lat_count[0] * lat_count[1] * sizeof(double)))) ERR;
+    if (!(value_lon_loc = malloc(latlon_count[0] * latlon_count[1] * sizeof(double)))) ERR;
+    if (!(value_lat_loc = malloc(latlon_count[0] * latlon_count[1] * sizeof(double)))) ERR;
 
     /* Allocate space to hold the data. */
     if (!(value_data = malloc(data_count[3] * data_count[2] * data_count[1] * sizeof(float)))) ERR;
@@ -368,14 +387,14 @@ main(int argc, char **argv)
 	value_grid_xt_loc[i] = my_rank * 100 + i;
     for (i = 0; i < grid_yt_loc_size; i++)
 	value_grid_yt_loc[i] = my_rank * 100 + i;
-    for (j = 0; j < lon_count[1]; j++)
+    for (j = 0; j < latlon_count[1]; j++)
     {
-	for(i = 0; i < lon_count[0]; i++)
+	for(i = 0; i < latlon_count[0]; i++)
 	{
-	    value_lon_loc[j * lon_count[0] + i] = my_rank * 100 + i + j;
-	    value_lat_loc[j * lon_count[0] + i] = my_rank * 100 + i + j;
+	    value_lon_loc[j * latlon_count[0] + i] = my_rank * 100 + i + j;
+	    value_lat_loc[j * latlon_count[0] + i] = my_rank * 100 + i + j;
 	    for (k = 0; k < data_count[1]; k++)
-		value_data[j * lon_count[0] + i] = my_rank * 100 + i + j + k;
+		value_data[j * latlon_count[0] + i] = my_rank * 100 + i + j + k;
 	}
     }
 
@@ -404,7 +423,7 @@ main(int argc, char **argv)
 
 		    if (write_metadata(ncid, data_varid, s, f, deflate_level[dl], dim_len, phalf_loc_size, phalf_start, value_phalf_loc, data_start, data_count, value_pfull_loc,
 				       grid_xt_start, grid_xt_loc_size, value_grid_xt_loc, grid_yt_start, grid_yt_loc_size, value_grid_yt_loc,
-				       lat_start, lat_count, value_lat_loc, lon_start, lon_count, value_lon_loc, my_rank)) ERR;
+				       latlon_start, latlon_count, value_lat_loc, value_lon_loc, my_rank)) ERR;
 		
 		
 		    MPI_Barrier(MPI_COMM_WORLD);
@@ -414,7 +433,14 @@ main(int argc, char **argv)
 		    /* Write one record each of the data variables. */
 		    for (dv = 0; dv < NUM_DATA_VARS; dv++)
 		    {
-			if (nc_put_vara_float(ncid, data_varid[dv], data_start, data_count, value_data)) ERR;
+			int r;
+			if ((r = nc_put_vara_float(ncid, data_varid[dv], data_start, data_count, value_data)))
+			{
+			    printf("%d: r %d f %d s %d dl %d\n", my_rank, r, f, s, dl);
+			    printf("%d: data_start %ld %ld %ld %ld data_count %ld %ld %ld %ld\n", my_rank, data_start[0], data_start[1],
+				   data_start[2], data_start[3], data_count[0], data_count[1], data_count[2], data_count[3]);
+			    ERR;
+			}
 			if (nc_redef(ncid)) ERR;
 		    }
 
