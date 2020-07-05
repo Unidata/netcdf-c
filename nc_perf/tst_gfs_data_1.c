@@ -22,6 +22,7 @@
 
 #define FILE_NAME "tst_gfs_data_1.nc"
 #define NUM_META_VARS 7
+#define NUM_META_TRIES 2
 #define NDIM2 2
 #define NDIM4 4
 #define NDIM5 5
@@ -70,6 +71,170 @@ write_meta(int ncid, int *data_varid, int s, int f, int deflate, int *dim_len, s
            size_t grid_xt_start, size_t grid_xt_loc_size, double *value_grid_xt_loc, size_t grid_yt_start,
            size_t grid_yt_loc_size, double *value_grid_yt_loc, size_t *latlon_start, size_t *latlon_count,
            double *value_lat_loc, double *value_lon_loc, int my_rank)
+{
+    char dim_name[NDIM5][NC_MAX_NAME + 1] = {"grid_xt", "grid_yt", "pfull",
+                                             "phalf", "time"};
+    int dimid[NDIM5];
+    int dimid_data[NDIM4];
+    char var_name[NUM_META_VARS][NC_MAX_NAME + 1] = {"grid_xt", "lon", "grid_yt",
+                                                     "lat", "pfull", "phalf", "time"};
+    int var_type[NUM_META_VARS] = {NC_DOUBLE, NC_DOUBLE, NC_DOUBLE, NC_DOUBLE,
+                                   NC_FLOAT, NC_FLOAT, NC_DOUBLE};
+    int varid[NUM_META_VARS];
+    double value_time = 2.0;
+    int dv;
+    int res;
+
+    /* Turn off fill mode. */
+    if (nc_set_fill(ncid, NC_NOFILL, NULL)) ERR;
+
+    /* Define dimension grid_xt. */
+    if (nc_def_dim(ncid, dim_name[0], dim_len[0], &dimid[0])) ERR;
+
+    /* Define dimension grid_yt. */
+    if (nc_def_dim(ncid, dim_name[1], dim_len[1], &dimid[1])) ERR;
+
+    /* Define variable grid_xt. */
+    if (nc_def_var(ncid, var_name[0], var_type[0], 1, &dimid[0], &varid[0])) ERR;
+    if (nc_var_par_access(ncid, varid[0], NC_INDEPENDENT)) ERR;
+
+    /* Define variable lon. */
+    if (nc_def_var(ncid, var_name[1], var_type[1], 2, dimid, &varid[1])) ERR;
+    if (nc_var_par_access(ncid, varid[1], NC_INDEPENDENT));
+    if (nc_put_att_text(ncid, varid[1], "long_name", strlen("T-cell longitude"), "T-cell longitude")) ERR;
+    if (nc_put_att_text(ncid, varid[1], "units", strlen("degrees_E"), "degrees_E")) ERR;
+
+    if (nc_put_att_text(ncid, varid[0], "cartesian_axis", strlen("X"), "X")) ERR;
+
+    /* Define variable grid_yt. */
+    if (nc_def_var(ncid, var_name[2], var_type[2], 1, &dimid[1], &varid[2])) ERR;
+    if (nc_var_par_access(ncid, varid[2], NC_INDEPENDENT)) ERR;
+
+    /* Define variable lat. */
+    if (nc_def_var(ncid, var_name[3], var_type[3], 2, dimid, &varid[3])) ERR;
+    if (nc_var_par_access(ncid, varid[3], NC_INDEPENDENT)) ERR;
+    if (nc_put_att_text(ncid, varid[3], "long_name", strlen("T-cell latitude"), "T-cell latitude")) ERR;
+    if (nc_put_att_text(ncid, varid[3], "units", strlen("degrees_N"), "degrees_N")) ERR;
+
+    if (nc_put_att_text(ncid, varid[2], "cartesian_axis", strlen("Y"), "Y")) ERR;
+
+    /* Define dimension pfull. */
+    if (nc_def_dim(ncid, dim_name[2], dim_len[2], &dimid[2])) ERR;
+
+    /* Define variable pfull and write data. */
+    if (nc_def_var(ncid, var_name[4], var_type[4], 1, &dimid[2], &varid[4])) ERR;
+    if (nc_var_par_access(ncid, varid[4], NC_INDEPENDENT)) ERR;
+    if (nc_enddef(ncid)) ERR;
+    if (nc_put_vara_float(ncid, varid[4], &data_start[1], &data_count[1], value_pfull_loc)) ERR;
+    if (nc_redef(ncid)) ERR;
+
+    /* Define dimension phalf. This dim is only used by the phalf coord var. */
+    if (nc_def_dim(ncid, dim_name[3], dim_len[3], &dimid[3])) ERR;
+
+    /* Define coord variable phalf and write data. */
+    if (nc_def_var(ncid, var_name[5], var_type[5], 1, &dimid[3], &varid[5])) ERR;
+    if (nc_var_par_access(ncid, varid[5], NC_INDEPENDENT)) ERR;
+    if (nc_enddef(ncid)) ERR;
+    if (nc_put_vara_float(ncid, varid[5], &phalf_start, &phalf_loc_size, value_phalf_loc)) ERR;
+    if (nc_redef(ncid)) ERR;
+
+    /* Define dimension time, the unlimited dimension. */
+    /* if (nc_def_dim(ncid, dim_name[4], NC_UNLIMITED, &dimid[4])) ERR; */
+    if (nc_def_dim(ncid, dim_name[4], 1, &dimid[4])) ERR;
+
+    /* Define variable time and write data. */
+    if (nc_def_var(ncid, var_name[6], var_type[6], 1, &dimid[4], &varid[6])) ERR;
+    if (nc_var_par_access(ncid, varid[6], NC_INDEPENDENT)) ERR;
+    if (nc_enddef(ncid)) ERR;
+
+    /* In NOAA code, do all processors write the single time value? */
+    if (my_rank == 0)
+        if (nc_put_var_double(ncid, varid[6], &value_time)) ERR;;
+    if (nc_redef(ncid)) ERR;
+
+    /* Write variable grid_xt data. */
+    if (nc_enddef(ncid)) ERR;
+    if (nc_put_vara_double(ncid, varid[0], &grid_xt_start, &grid_xt_loc_size, value_grid_xt_loc)) ERR;
+    if (nc_redef(ncid)) ERR;
+
+    /* Write lon data. */
+    if (nc_enddef(ncid)) ERR;
+    if (nc_put_vara_double(ncid, varid[1], latlon_start, latlon_count, value_lon_loc)) ERR;
+    if (nc_redef(ncid)) ERR;
+
+    /* Write grid_yt data. */
+    if (nc_enddef(ncid)) ERR;
+    if (nc_put_vara_double(ncid, varid[2], &grid_yt_start, &grid_yt_loc_size, value_grid_yt_loc)) ERR;
+    if (nc_redef(ncid)) ERR;
+
+    /* Write lat data. */
+    if (nc_enddef(ncid)) ERR;
+    if (nc_put_vara_double(ncid, varid[3], latlon_start, latlon_count, value_lat_loc)) ERR;
+
+    /* Specify dimensions for our data vars. */
+    dimid_data[0] = dimid[4];
+    dimid_data[1] = dimid[2];
+    dimid_data[2] = dimid[1];
+    dimid_data[3] = dimid[0];
+
+    /* Define data variables. */
+    for (dv = 0; dv < NUM_DATA_VARS; dv++)
+    {
+        char data_var_name[NC_MAX_NAME + 1];
+
+        sprintf(data_var_name, "var_%d", dv);
+        if (nc_redef(ncid)) ERR;
+        if (nc_def_var(ncid, data_var_name, NC_FLOAT, NDIM4, dimid_data, &data_varid[dv])) ERR;
+
+        /* Setting any filter only will work for HDF5-1.10.3 and later */
+        /* versions. */
+        if (!f)
+            res = nc_def_var_deflate(ncid, data_varid[dv], s, 1, deflate);
+        else
+        {
+            res = nc_def_var_deflate(ncid, data_varid[dv], s, 0, 0);
+            if (!res)
+                res = nc_def_var_szip(ncid, data_varid[dv], 32, 32);
+        }
+#ifdef HDF5_SUPPORTS_PAR_FILTERS
+        if (res) ERR;
+#else
+        if (res != NC_EINVAL) ERR;
+#endif
+
+        if (nc_var_par_access(ncid, data_varid[dv], NC_COLLECTIVE)) ERR;
+        if (nc_enddef(ncid)) ERR;
+    }
+
+    if (nc_redef(ncid)) ERR;
+    if (nc_put_att_text(ncid, varid[0], "long_name", strlen("T-cell longitude"), "T-cell longitude")) ERR;
+    if (nc_put_att_text(ncid, varid[0], "units", strlen("degrees_E"), "degrees_E")) ERR;
+
+    if (nc_put_att_text(ncid, varid[2], "long_name", strlen("T-cell latiitude"), "T-cell latiitude")) ERR;
+    if (nc_put_att_text(ncid, varid[2], "units", strlen("degrees_N"), "degrees_N")) ERR;
+    if (nc_enddef(ncid)) ERR;
+
+    if (nc_redef(ncid)) ERR;
+
+    for (dv = 0; dv < NUM_DATA_VARS; dv++)
+    {
+        float compress_err = 42.22;
+        int nbits = 5;
+        if (nc_put_att_float(ncid, data_varid[dv], "max_abs_compression_error", NC_FLOAT, 1, &compress_err)) ERR;
+        if (nc_put_att_int(ncid, data_varid[dv], "nbits", NC_INT, 1, &nbits)) ERR;
+    }
+
+    if (nc_enddef(ncid)) ERR;
+    return 0;
+}
+
+/* Write all the metadata, including coordinate variable data. */
+int
+write_meta2(int ncid, int *data_varid, int s, int f, int deflate, int *dim_len, size_t phalf_loc_size, size_t phalf_start,
+	    float *value_phalf_loc, size_t *data_start, size_t *data_count, float *value_pfull_loc,
+	    size_t grid_xt_start, size_t grid_xt_loc_size, double *value_grid_xt_loc, size_t grid_yt_start,
+	    size_t grid_yt_loc_size, double *value_grid_yt_loc, size_t *latlon_start, size_t *latlon_count,
+	    double *value_lat_loc, double *value_lon_loc, int my_rank)
 {
     char dim_name[NDIM5][NC_MAX_NAME + 1] = {"grid_xt", "grid_yt", "pfull",
                                              "phalf", "time"};
@@ -436,7 +601,7 @@ main(int argc, char **argv)
     /* int deflate_level[NUM_DEFLATE_LEVELS] = {1, 4, 9}; */
     int deflate_level[NUM_DEFLATE_LEVELS] = {1};
 
-    int f;
+    int f, s, meta;
     int i, j, k, dv, dl;
 
     /* Initialize MPI. */
@@ -456,12 +621,14 @@ main(int argc, char **argv)
 		    &grid_yt_start, &grid_yt_size, &grid_xt, &grid_yt)) ERR;
 
     /* Decompose phalf and pfull. */
-    if (decomp_p(my_rank, mpi_size, data_count, dim_len, &phalf_start, &phalf_size, &phalf,
-		 &pfull)) ERR;
+    if (decomp_p(my_rank, mpi_size, data_count, dim_len, &phalf_start,
+		 &phalf_size, &phalf, &pfull)) ERR;
     
     /* Allocate space to hold the data. */
-    if (!(value_data = malloc(data_count[3] * data_count[2] * data_count[1] * sizeof(float)))) ERR;
+    if (!(value_data = malloc(data_count[3] * data_count[2] * data_count[1] *
+			      sizeof(float)))) ERR;
 
+    /* Create some data. */
     for (k = 0; k < data_count[1]; k++)
     	for (j = 0; j < data_count[2]; j++)
     	    for(i = 0; i < data_count[3]; i++)
@@ -470,11 +637,11 @@ main(int argc, char **argv)
     if (my_rank == 0)
     {
         printf("Benchmarking creation of UFS file.\n");
-        printf("comp, level, shuffle, meta wr time (s), data wr time (s), "
+        printf("meta, comp, level, shuffle, meta wr time (s), data wr time (s), "
 	       "file size\n");
     }
+    for (meta = 0; meta < NUM_META_TRIES; meta++)
     {
-        int s;
         for (f = 0; f < NUM_COMPRESSION_FILTERS; f++)
         {
             for (s = 0; s < NUM_SHUFFLE_SETTINGS; s++)
@@ -492,12 +659,24 @@ main(int argc, char **argv)
                     if (nc_create_par(FILE_NAME, NC_NETCDF4, comm, info,
 				      &ncid)) ERR;
 
-                    if (write_meta(ncid, data_varid, s, f, deflate_level[dl],
-                                   dim_len, phalf_size, phalf_start, phalf,
-				   data_start, data_count, pfull, grid_xt_start,
-				   grid_xt_size, grid_xt, grid_yt_start,
-				   grid_yt_size, grid_yt, latlon_start,
-				   latlon_count, lat, lon, my_rank)) ERR;
+		    if (meta)
+		    {
+			if (write_meta2(ncid, data_varid, s, f, deflate_level[dl],
+					dim_len, phalf_size, phalf_start, phalf,
+					data_start, data_count, pfull, grid_xt_start,
+					grid_xt_size, grid_xt, grid_yt_start,
+					grid_yt_size, grid_yt, latlon_start,
+					latlon_count, lat, lon, my_rank)) ERR;
+		    }
+		    else
+		    {
+			if (write_meta(ncid, data_varid, s, f, deflate_level[dl],
+				       dim_len, phalf_size, phalf_start, phalf,
+				       data_start, data_count, pfull, grid_xt_start,
+				       grid_xt_size, grid_xt, grid_yt_start,
+				       grid_yt_size, grid_yt, latlon_start,
+				       latlon_count, lat, lon, my_rank)) ERR;
+		    }
 
 		    /* Stop the timer for metadata writes. */
                     MPI_Barrier(MPI_COMM_WORLD);
@@ -507,18 +686,9 @@ main(int argc, char **argv)
                     /* Write one record each of the data variables. */
                     for (dv = 0; dv < NUM_DATA_VARS; dv++)
                     {
-                        int r;
-                        if ((r = nc_put_vara_float(ncid, data_varid[dv],
-						   data_start, data_count, value_data)))
-                        {
-                            printf("%d: r %d f %d s %d dl %d\n", my_rank, r, f, s, dl);
-                            printf("%d: data_start %ld %ld %ld %ld data_count %ld %ld %ld %ld\n",
-				   my_rank, data_start[0], data_start[1],
-                                   data_start[2], data_start[3], data_count[0],
-				   data_count[1], data_count[2], data_count[3]);
-                            ERR;
-                        }
-                        if (nc_redef(ncid)) ERR;
+                        if (nc_put_vara_float(ncid, data_varid[dv], data_start,
+					      data_count, value_data)) ERR;
+			if (nc_redef(ncid)) ERR;
                     }
 
                     /* Close the file. */
@@ -533,28 +703,28 @@ main(int argc, char **argv)
 
                     /* Print out results. */
                     if (my_rank == 0)
-                        printf("%s, %d, %d, %g, %g, %ld\n", (f ? "szip" : "zlib"),
+                        printf("%d, %s, %d, %d, %g, %g, %ld\n", meta, (f ? "szip" : "zlib"),
 			       deflate_level[dl], s, meta_stop_time - meta_start_time,
                                data_stop_time - data_start_time, file_size);
                 } /* next deflate level */
             } /* next shuffle filter test */
         } /* next compression filter (zlib and szip) */
+    } /* next ed */
 
-        /* Free resources. */
-        if (grid_xt)
-            free(grid_xt);
-        if (grid_yt)
-            free(grid_yt);
-        if (pfull)
-            free(pfull);
-        if (phalf)
-            free(phalf);
-        if (lon)
-            free(lon);
-        if (lat)
-            free(lat);
-        free(value_data);
-    }
+    /* Free resources. */
+    if (grid_xt)
+	free(grid_xt);
+    if (grid_yt)
+	free(grid_yt);
+    if (pfull)
+	free(pfull);
+    if (phalf)
+	free(phalf);
+    if (lon)
+	free(lon);
+    if (lat)
+	free(lat);
+    free(value_data);
 
     if (!my_rank)
         SUMMARIZE_ERR;
