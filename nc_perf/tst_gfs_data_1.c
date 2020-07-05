@@ -344,6 +344,38 @@ decomp_4D(int my_rank, int mpi_size, int *dim_len, size_t *start, size_t *count)
 }
 
 int
+decomp_grid(int my_rank, int mpi_size, int *dim_len, size_t *grid_xt_start, size_t *grid_xt_size,
+	    size_t *grid_yt_start, size_t *grid_yt_size, double **grid_xt, double **grid_yt)
+{
+    int i;
+
+   /* Size of local (i.e. for this pe) grid_xt data. */
+    *grid_xt_size = dim_len[0]/mpi_size;
+    *grid_xt_start = my_rank * *grid_xt_size;
+    if (my_rank == mpi_size - 1)
+        *grid_xt_size = *grid_xt_size + dim_len[0] % mpi_size;
+
+    /* Size of local (i.e. for this pe) grid_yt data. */
+    *grid_yt_size = dim_len[1]/mpi_size;
+    *grid_yt_start = my_rank * *grid_yt_size;
+    if (my_rank == mpi_size - 1)
+        *grid_yt_size = *grid_yt_size + dim_len[1] % mpi_size;
+
+    /* Allocate storage for the grid_xy and grid_yt coordinate
+     * variable data. */
+    if (!(*grid_xt = malloc(*grid_xt_size * sizeof(double)))) ERR;
+    if (!(*grid_yt = malloc(*grid_yt_size * sizeof(double)))) ERR;
+
+    /* Fill the grid_xt and grid_yt coordinate data arrays. */
+    for (i = 0; i < *grid_xt_size; i++)
+        (*grid_xt)[i] = my_rank * 100 + i;
+    for (i = 0; i < *grid_yt_size; i++)
+        (*grid_yt)[i] = my_rank * 100 + i;
+
+    return 0;
+}
+
+int
 main(int argc, char **argv)
 {
     /* MPI stuff. */
@@ -377,7 +409,7 @@ main(int argc, char **argv)
     int deflate_level[NUM_DEFLATE_LEVELS] = {1};
 
     int f;
-    int i, j, k, dv, dl;
+    int i, dv, dl;
 
     /* Initialize MPI. */
     MPI_Init(&argc, &argv);
@@ -391,18 +423,8 @@ main(int argc, char **argv)
     if (decomp_latlon(my_rank, mpi_size, dim_len, latlon_start, latlon_count,
 		      &lat, &lon)) ERR;
 
-    /* Size of local (i.e. for this pe) grid_xt data. */
-    grid_xt_size = dim_len[0]/mpi_size;
-    grid_xt_start = my_rank * grid_xt_size;
-    if (my_rank == mpi_size - 1)
-        grid_xt_size = grid_xt_size + dim_len[0] % mpi_size;
-
-    /* Size of local (i.e. for this pe) grid_yt data. */
-    grid_yt_size = dim_len[1]/mpi_size;
-    grid_yt_start = my_rank * grid_yt_size;
-    if (my_rank == mpi_size - 1)
-        grid_yt_size = grid_yt_size + dim_len[1] % mpi_size;
-
+    if (decomp_grid(my_rank, mpi_size, dim_len, &grid_xt_start, &grid_xt_size, &grid_yt_start, &grid_yt_size, &grid_xt, &grid_yt)) ERR;
+    
     /* Size of local (i.e. for this pe) phalf data. */
     phalf_size = dim_len[3]/mpi_size;
     phalf_start = my_rank * phalf_size;
@@ -412,8 +434,6 @@ main(int argc, char **argv)
     /* Allocate space on this pe to hold the coordinate var data for this pe. */
     if (!(pfull = malloc(data_count[1] * sizeof(float)))) ERR;
     if (!(phalf = malloc(phalf_size * sizeof(float)))) ERR;
-    if (!(grid_xt = malloc(grid_xt_size * sizeof(double)))) ERR;
-    if (!(grid_yt = malloc(grid_yt_size * sizeof(double)))) ERR;
 
     /* Allocate space to hold the data. */
     if (!(value_data = malloc(data_count[3] * data_count[2] * data_count[1] * sizeof(float)))) ERR;
@@ -423,10 +443,6 @@ main(int argc, char **argv)
         pfull[i] = my_rank * 100 + i;
     for (i = 0; i < phalf_size; i++)
         phalf[i] = my_rank * 100 + i;
-    for (i = 0; i < grid_xt_size; i++)
-        grid_xt[i] = my_rank * 100 + i;
-    for (i = 0; i < grid_yt_size; i++)
-        grid_yt[i] = my_rank * 100 + i;
     /* for (j = 0; j < latlon_count[1]; j++) */
     /* { */
     /*     for(i = 0; i < latlon_count[0]; i++) */
