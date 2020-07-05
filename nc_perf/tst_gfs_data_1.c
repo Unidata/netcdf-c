@@ -343,6 +343,8 @@ decomp_4D(int my_rank, int mpi_size, int *dim_len, size_t *start, size_t *count)
     return 0;
 }
 
+/* Decompose the grid_xt and grid_yt coordinate vars, and also come up
+ * with some data. */
 int
 decomp_grid(int my_rank, int mpi_size, int *dim_len, size_t *grid_xt_start, size_t *grid_xt_size,
 	    size_t *grid_yt_start, size_t *grid_yt_size, double **grid_xt, double **grid_yt)
@@ -374,6 +376,32 @@ decomp_grid(int my_rank, int mpi_size, int *dim_len, size_t *grid_xt_start, size
 
     return 0;
 }
+
+int
+decomp_p(int my_rank, int mpi_size, size_t *data_count, int *dim_len,
+	 size_t *phalf_start, size_t *phalf_size, float **phalf, float **pfull)
+{
+    int i;
+    
+    /* Size of local (i.e. for this pe) phalf data. */
+    *phalf_size = dim_len[3]/mpi_size;
+    *phalf_start = my_rank * *phalf_size;
+    if (my_rank == mpi_size - 1)
+        *phalf_size = *phalf_size + dim_len[3] % mpi_size;
+
+    /* Allocate space on this pe to hold the coordinate var data for this pe. */
+    if (!(*pfull = malloc(data_count[1] * sizeof(float)))) ERR;
+    if (!(*phalf = malloc(*phalf_size * sizeof(float)))) ERR;
+    
+    /* Some fake data for this pe to write. */
+    for (i = 0; i < data_count[1]; i++)
+        (*pfull)[i] = my_rank * 100 + i;
+    for (i = 0; i < *phalf_size; i++)
+        (*phalf)[i] = my_rank * 100 + i;
+
+    return 0;
+}
+
 
 int
 main(int argc, char **argv)
@@ -409,7 +437,7 @@ main(int argc, char **argv)
     int deflate_level[NUM_DEFLATE_LEVELS] = {1};
 
     int f;
-    int i, dv, dl;
+    int i, j, k, dv, dl;
 
     /* Initialize MPI. */
     MPI_Init(&argc, &argv);
@@ -423,36 +451,21 @@ main(int argc, char **argv)
     if (decomp_latlon(my_rank, mpi_size, dim_len, latlon_start, latlon_count,
 		      &lat, &lon)) ERR;
 
-    if (decomp_grid(my_rank, mpi_size, dim_len, &grid_xt_start, &grid_xt_size, &grid_yt_start, &grid_yt_size, &grid_xt, &grid_yt)) ERR;
+    /* Decompose grid_xt and grid_yt coordiate vars. */
+    if (decomp_grid(my_rank, mpi_size, dim_len, &grid_xt_start, &grid_xt_size,
+		    &grid_yt_start, &grid_yt_size, &grid_xt, &grid_yt)) ERR;
+
+    /* Decompose phalf and pfull. */
+    if (decomp_p(my_rank, mpi_size, data_count, dim_len, &phalf_start, &phalf_size, &phalf,
+		 &pfull)) ERR;
     
-    /* Size of local (i.e. for this pe) phalf data. */
-    phalf_size = dim_len[3]/mpi_size;
-    phalf_start = my_rank * phalf_size;
-    if (my_rank == mpi_size - 1)
-        phalf_size = phalf_size + dim_len[3] % mpi_size;
-
-    /* Allocate space on this pe to hold the coordinate var data for this pe. */
-    if (!(pfull = malloc(data_count[1] * sizeof(float)))) ERR;
-    if (!(phalf = malloc(phalf_size * sizeof(float)))) ERR;
-
     /* Allocate space to hold the data. */
     if (!(value_data = malloc(data_count[3] * data_count[2] * data_count[1] * sizeof(float)))) ERR;
 
-    /* Some fake data for this pe to write. */
-    for (i = 0; i < data_count[1]; i++)
-        pfull[i] = my_rank * 100 + i;
-    for (i = 0; i < phalf_size; i++)
-        phalf[i] = my_rank * 100 + i;
-    /* for (j = 0; j < latlon_count[1]; j++) */
-    /* { */
-    /*     for(i = 0; i < latlon_count[0]; i++) */
-    /*     { */
-    /*         lon[j * latlon_count[0] + i] = my_rank * 100 + i + j; */
-    /*         lat[j * latlon_count[0] + i] = my_rank * 100 + i + j; */
-    /*         for (k = 0; k < data_count[1]; k++) */
-    /*             value_data[j * latlon_count[0] + i] = my_rank * 100 + i + j + k; */
-    /*     } */
-    /* } */
+    for (k = 0; k < data_count[1]; k++)
+    	for (j = 0; j < data_count[2]; j++)
+    	    for(i = 0; i < data_count[3]; i++)
+                value_data[j * data_count[3] + i] = my_rank * 100 + i + j + k;
 
     if (my_rank == 0)
     {
