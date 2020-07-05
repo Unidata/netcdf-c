@@ -230,29 +230,59 @@ write_meta(int ncid, int *data_varid, int s, int f, int deflate, int *dim_len, s
 /* Based on the MPI rank and number of tasks, calculate the
  * decomposition of the 2D lat/lon coordinate variables. */
 int
-decomp_2D(int my_rank, int mpi_size, int *dim_len, size_t *latlon_start,
-          size_t *latlon_count)
+decomp_latlon(int my_rank, int mpi_size, int *dim_len, size_t *latlon_start,
+	      size_t *latlon_count, double **lat, double **lon)
 {
+    int i, j;
 
-    /* Size of local arrays (i.e. for this pe) lon and lat data. This
-     * is specific to 4 pes. */
-    latlon_count[0] = dim_len[0]/2;
-    if (my_rank == 0 || my_rank == 2)
+    assert(dim_len && latlon_start && latlon_count && lat && lon && !*lat &&
+	   !*lon);
+
+    /* Size of local arrays (i.e. for this pe) lon and lat data. */
+    if (mpi_size == 1)
     {
-        latlon_start[0] = 0;
+	latlon_start[0] = 0;
+	latlon_start[1] = 0;
+	latlon_count[0] = dim_len[0];
+	latlon_count[1] = dim_len[1];
     }
-    else
+    else if (mpi_size == 4)
     {
-        latlon_start[0] = dim_len[0]/2;
+	latlon_count[0] = dim_len[0]/2;
+	if (my_rank == 0 || my_rank == 2)
+	{
+	    latlon_start[0] = 0;
+	}
+	else
+	{
+	    latlon_start[0] = dim_len[0]/2;
+	}
+	latlon_count[1] = dim_len[1]/2;
+	if (my_rank == 0 || my_rank == 1)
+	{
+	    latlon_start[1] = 0;
+	}
+	else
+	{
+	    latlon_start[1] = dim_len[1]/2;
+	}
     }
-    latlon_count[1] = dim_len[1]/2;
-    if (my_rank == 0 || my_rank == 1)
+    else if (mpi_size == 36)
     {
-        latlon_start[1] = 0;
     }
-    else
+
+    /* Allocate storage. */
+    if (!(*lon = malloc(latlon_count[0] * latlon_count[1] * sizeof(double)))) ERR;
+    if (!(*lat = malloc(latlon_count[0] * latlon_count[1] * sizeof(double)))) ERR;
+
+    /* Now calculate some latlon values to write. */
+    for (i = 0; i < latlon_count[0]; i++)
     {
-        latlon_start[1] = dim_len[1]/2;
+	for (j = 0; j < latlon_count[1]; j++)
+        {
+            (*lon)[j * latlon_count[0] + i] = my_rank * 100 + i + j;
+            (*lat)[j * latlon_count[0] + i] = my_rank * 100 + i + j;
+        }
     }
 
     printf("%d: latlon_start %ld %ld latlon_count %ld %ld\n", my_rank, latlon_start[0],
@@ -275,7 +305,14 @@ decomp_4D(int my_rank, int mpi_size, int *dim_len, size_t *start, size_t *count)
     if (my_rank == mpi_size - 1)
         count[1] = count[1] + dim_len[2] % mpi_size;
 
-    if (mpi_size == 4)
+    if (mpi_size == 1)
+    {
+	start[2] = 0;
+	start[3] = 0;
+	count[2] = dim_len[2];
+	count[3] = dim_len[3];
+    }
+    else if (mpi_size == 4)
     {
         if (my_rank == 0 || my_rank == 1)
         {
@@ -321,7 +358,6 @@ main(int argc, char **argv)
     int ncid;
     size_t latlon_start[NDIM2], latlon_count[NDIM2];
     size_t data_start[NDIM4], data_count[NDIM4];
-
     int dim_len[NDIM5] = {GRID_XT_LEN, GRID_YT_LEN, PFULL_LEN, PHALF_LEN,
                           TIME_LEN};
 
@@ -352,7 +388,8 @@ main(int argc, char **argv)
     if (decomp_4D(my_rank, mpi_size, dim_len, data_start, data_count)) ERR;
 
     /* Determine 2D data decomposition to write lat/lon coordinate vars. */
-    if (decomp_2D(my_rank, mpi_size, dim_len, latlon_start, latlon_count)) ERR;
+    if (decomp_latlon(my_rank, mpi_size, dim_len, latlon_start, latlon_count,
+		      &lat, &lon)) ERR;
 
     /* Size of local (i.e. for this pe) grid_xt data. */
     grid_xt_size = dim_len[0]/mpi_size;
@@ -377,8 +414,6 @@ main(int argc, char **argv)
     if (!(phalf = malloc(phalf_size * sizeof(float)))) ERR;
     if (!(grid_xt = malloc(grid_xt_size * sizeof(double)))) ERR;
     if (!(grid_yt = malloc(grid_yt_size * sizeof(double)))) ERR;
-    if (!(lon = malloc(latlon_count[0] * latlon_count[1] * sizeof(double)))) ERR;
-    if (!(lat = malloc(latlon_count[0] * latlon_count[1] * sizeof(double)))) ERR;
 
     /* Allocate space to hold the data. */
     if (!(value_data = malloc(data_count[3] * data_count[2] * data_count[1] * sizeof(float)))) ERR;
@@ -392,16 +427,16 @@ main(int argc, char **argv)
         grid_xt[i] = my_rank * 100 + i;
     for (i = 0; i < grid_yt_size; i++)
         grid_yt[i] = my_rank * 100 + i;
-    for (j = 0; j < latlon_count[1]; j++)
-    {
-        for(i = 0; i < latlon_count[0]; i++)
-        {
-            lon[j * latlon_count[0] + i] = my_rank * 100 + i + j;
-            lat[j * latlon_count[0] + i] = my_rank * 100 + i + j;
-            for (k = 0; k < data_count[1]; k++)
-                value_data[j * latlon_count[0] + i] = my_rank * 100 + i + j + k;
-        }
-    }
+    /* for (j = 0; j < latlon_count[1]; j++) */
+    /* { */
+    /*     for(i = 0; i < latlon_count[0]; i++) */
+    /*     { */
+    /*         lon[j * latlon_count[0] + i] = my_rank * 100 + i + j; */
+    /*         lat[j * latlon_count[0] + i] = my_rank * 100 + i + j; */
+    /*         for (k = 0; k < data_count[1]; k++) */
+    /*             value_data[j * latlon_count[0] + i] = my_rank * 100 + i + j + k; */
+    /*     } */
+    /* } */
 
     if (my_rank == 0)
     {
