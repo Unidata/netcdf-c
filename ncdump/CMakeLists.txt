@@ -4,10 +4,10 @@
 # University Corporation for Atmospheric Research/Unidata.
 
 # See netcdf-c/COPYRIGHT file for more info.
-IF(BUILD_SHARED_LIBS AND WIN32)
-  remove_definitions(-DDLL_EXPORT)
-  remove_definitions(-DDLL_NETCDF)
-ENDIF()
+#IF(BUILD_SHARED_LIBS AND WIN32)
+#  remove_definitions(-DDLL_EXPORT)
+#  remove_definitions(-DDLL_NETCDF)
+#ENDIF()
 
 SET(ncdump_FILES ncdump.c vardata.c dumplib.c indent.c nctime0.c utils.c nciter.c)
 SET(nccopy_FILES nccopy.c nciter.c chunkspec.c utils.c dimmap.c list.c)
@@ -268,29 +268,31 @@ ENDIF(MSVC)
 
   add_sh_test(ncdump tst_ctests)
 
+  IF(ENABLE_UNFIXED_MEMORY_LEAKS)
+  SET_TESTS_PROPERTIES(ncdump_run_ncgen_nc4_tests.sh ncdump_tst_nccopy4.sh ncdump_tst_ncgen_shared.sh ncdump_tst_netcdf4.sh
+                       PROPERTIES ENVIRONMENT NC_VLEN_NOTEST=1)
+  ENDIF()
+  
 ENDIF()
 
 ENDIF()
 
-IF(MSVC)
-  SET_TARGET_PROPERTIES(ncdump
-    PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
-    )
-  SET_TARGET_PROPERTIES(nccopy
-    PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
-    )
-  SET_TARGET_PROPERTIES(ncvalidator
-    PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
-    )
-
-  IF(ENABLE_DAP)
-    SET_TARGET_PROPERTIES(ocprint
-      PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
-      )
-  ENDIF(ENABLE_DAP)
-
-ENDIF()
-
+#IF(MSVC)
+#  SET_TARGET_PROPERTIES(ncdump
+#    PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
+#    )
+#  SET_TARGET_PROPERTIES(nccopy
+#    PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
+#    )
+#  SET_TARGET_PROPERTIES(ncvalidator
+#    PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
+#    )
+#  IF(ENABLE_DAP)
+#    SET_TARGET_PROPERTIES(ocprint
+#      PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
+#      )
+#  ENDIF(ENABLE_DAP)
+#ENDIF()
 
 INSTALL(TARGETS ncdump RUNTIME DESTINATION bin COMPONENT utilities)
 INSTALL(TARGETS nccopy RUNTIME DESTINATION bin COMPONENT utilities)

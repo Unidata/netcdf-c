@@ -198,6 +198,16 @@ follows.
         Description: Path to a directory containing trusted certificates for validating server certificates.
         Related CURL Flags: CURLOPT_CAPATH
 
+-# HTTP.SSL.VERIFYPEER
+        Type: integer
+        Description: Set certificate checking on the server.
+        Related CURL Flags: CURLOPT_SSL_VERIFYHOST  
+
+-# HTTP.SSL.VERIFYPEER
+        Type: integer
+        Description: Set host validation for the server.
+        Related CURL Flags: CURLOPT_SSL_VERIFYPEER
+
 -# HTTP.SSL.VALIDATE
         Type: boolean ("1"/"0")
         Description: Cause the client to verify the server's presented certificate.

@@ -506,12 +506,12 @@ print_rows(
             }
 	}
 	if (formatting_specs.full_data_cmnts) {
-            for (j = 0; j < marks_pending; j++) {
+      for (j = 0; j < marks_pending; j++) {
 		sbuf_cat(sb, RBRACE);
-            }
-            printf("%s", sbuf_str(sb));
-            lastdelim (0, lastrow);
-            annotate (vp, cor, d0-1);
+      }
+      printf("%s", sbuf_str(sb));
+      lastdelim (0, lastrow);
+      annotate (vp, cor, (d0 > 0 ? d0-1 : d0));
 	} else {
             for (j = 0; j < marks_pending; j++) {
 		sbuf_cat(sb, RBRACE);

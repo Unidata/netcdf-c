@@ -11,7 +11,6 @@
 int verbose;
 char* fileurl;
 int debug;
-extern int ocdebug;
 
 /* Forward */
 static void usage(void);

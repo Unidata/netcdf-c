@@ -30,8 +30,10 @@
 #define NC_EMPTY_SCALE "NC_EMPTY_SCALE"
 
 /* This is an attribute I had to add to handle multidimensional
- * coordinate variables. */
-#define COORDINATES "_Netcdf4Coordinates"
+ * coordinate variables. See nc4internal.h:NC_ATT_COORDINATES.
+ * in nc4internal.h.
+ */
+#define COORDINATES NC_ATT_COORDINATES
 #define COORDINATES_LEN (NC_MAX_NAME * 5)
 
 /* This is used when the user defines a non-coordinate variable with
@@ -40,17 +42,17 @@
 
 /* An attribute in the HDF5 root group of this name means that the
  * file must follow strict netCDF classic format rules. */
-#define NC3_STRICT_ATT_NAME "_nc3_strict"
+#define NC3_STRICT_ATT_NAME NC_ATT_NC3_STRICT_NAME
 
 /* If this attribute is present on a dimscale variable, use the value
  * as the netCDF dimid. */
-#define NC_DIMID_ATT_NAME "_Netcdf4Dimid"
+#define NC_DIMID_ATT_NAME NC_ATT_DIMID_NAME /*See nc4internal.h*/
 
 /** This is the name of the class HDF5 dimension scale attribute. */
-#define HDF5_DIMSCALE_CLASS_ATT_NAME "CLASS"
+#define HDF5_DIMSCALE_CLASS_ATT_NAME NC_ATT_CLASS /*See nc4internal.h*/
 
 /** This is the name of the name HDF5 dimension scale attribute. */
-#define HDF5_DIMSCALE_NAME_ATT_NAME "NAME"
+#define HDF5_DIMSCALE_NAME_ATT_NAME NC_ATT_NAME
 
 /** Define Filter API Operations */
 #define FILTER_REG   1
@@ -159,9 +161,6 @@ extern int nc4_create_dim_wo_var(NC_DIM_INFO_T *dim);
  * name, but the var is not a coord var of that dim. */
 extern int nc4_give_var_secret_name(NC_VAR_INFO_T *var);
 
-/* Get the fill value for a var. */
-int nc4_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp);
-
 /* Find file, group, var, and att info, doing lazy reads if needed. */
 int nc4_hdf5_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
                               int use_name, char *norm_name, NC_FILE_INFO_T **h5,
@@ -177,11 +176,19 @@ int nc4_HDF5_close_att(NC_ATT_INFO_T *att);
 /* Perform lazy read of the rest of the metadata for a var. */
 int nc4_get_var_meta(NC_VAR_INFO_T *var);
 
+/* Get the file chunk cache settings from HDF5. */
+int nc4_hdf5_get_chunk_cache(int ncid, size_t *sizep, size_t *nelemsp,
+			     float *preemptionp);
 
+#ifdef ENABLE_CLIENTSIDE_FILTERS
 /* Define Filter API Function */
 int nc4_global_filter_action(int action, unsigned int id, struct NC_FILTER_OBJ_HDF5* infop);
+#endif
+
+/* Use this in dispatch table */
+int NC4_hdf5_remove_filter(NC_VAR_INFO_T* var, const char* filterid);
+/*Internal */
 int NC4_hdf5_addfilter(NC_VAR_INFO_T* var, int active, unsigned int id, size_t nparams, unsigned int* params);
-int NC4_hdf5_remove_filter(NC_VAR_INFO_T* var, unsigned int filterid);
 
 /* Support functions for provenance info (defined in nc4hdf.c) */
 extern int NC4_hdf5get_libversion(unsigned*,unsigned*,unsigned*);/*libsrc4/nc4hdf.c*/

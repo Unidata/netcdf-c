@@ -1,0 +1,7 @@
+[1] /.nczarr : (50) |{
+"foo": 42,
+"bar": "apples",
+"baz": [1, 2, 3, 4]}|
+[3] /meta1/.zarray : (34) |{
+"shape": [1,2,3],
+"dtype": "<1"}|

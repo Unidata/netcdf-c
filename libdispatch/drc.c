@@ -103,7 +103,7 @@ NC_rcload(void)
     NCRCglobalstate* globalstate = ncrc_getglobalstate();
 
     if(globalstate->rcinfo.ignore) {
-        nclog(NCLOGDBG,"No runtime configuration file specified; continuing");
+        nclog(NCLOGDBG,"No .daprc|.dodsrc runtime configuration file specified; continuing");
 	return (NC_NOERR);
     }
     if(globalstate->rcinfo.loaded) return (NC_NOERR);
@@ -132,7 +132,7 @@ NC_rcload(void)
 	}
     }
     if(path == NULL) {
-        nclog(NCLOGDBG,"Cannot find runtime configuration file; continuing");
+        nclog(NCLOGDBG,"No .daprc|.dodsrc runtime configuration file specified; continuing");
     } else {
 #ifdef D4DEBUG
         fprintf(stderr, "RC file: %s\n", path);

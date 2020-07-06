@@ -16,6 +16,7 @@ static char SccsId[] = "$Id: ncgen.y,v 1.42 2010/05/18 21:32:46 dmh Exp $";
 #include        "netcdf_aux.h"
 #include        "ncgeny.h"
 #include        "ncgen.h"
+#include        "ncfilter.h"
 #ifdef USE_NETCDF4
 #include        "netcdf_filter.h"
 #endif
@@ -108,7 +109,6 @@ List* gattdefs; /* global attributes only*/
 List* xattdefs; /* unknown attributes*/
 List* typdefs;
 List* vardefs;
-List* condefs; /* non-dimension constants used in type defs*/
 List* tmp;
 
 /* Forward */
@@ -522,9 +522,6 @@ vardecl:        typeref varlist
 		  	    sym->typ.basetype = $1;
 	                    addtogroup(sym);
 		            listpush(vardefs,(void*)sym);
-			    sym->var.special = ecalloc(sizeof(Specialdata));
-			    if(sym->var.special == NULL)
-			        derror("out of memory");
 			}
 		    }
 		    listsetlength(stack,stackbase);/* remove stack nodes*/
@@ -941,7 +938,6 @@ parse_init(void)
     xattdefs = listnew();
     typdefs = listnew();
     vardefs = listnew();
-    condefs = listnew();
     tmp = listnew();
     /* Create the primitive types */
     for(i=NC_NAT+1;i<=NC_STRING;i++) {
@@ -978,6 +974,7 @@ install(const char *sname)
     sp->lineno = lineno;
     sp->location = currentgroup();
     sp->container = currentgroup();
+    sp->var.special._Storage = NC_CONTIGUOUS;
     listpush(symlist,sp);
     return sp;
 }
@@ -1249,6 +1246,8 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
               globalspecials._Format = kvalue->k_flag;
 	      /*Main.*/format_attribute = 1;
               found = 1;
+	      if(kvalue->deprecated)
+		 fprintf(stderr,"_Format=%s is deprecated; use corresponding _Format=<name>\n",sdata);
               break;
             }
           }
@@ -1267,12 +1266,7 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
     } else {
         Specialdata* special;
         /* Set up special info */
-	if(vsym->var.special == NULL) {
-            vsym->var.special = ecalloc(sizeof(Specialdata));
-	    if(vsym->var.special == NULL)
-	        derror("Out of memory");
-	}
-        special = vsym->var.special;
+        special = &vsym->var.special;
         if(tag == _FILLVALUE_FLAG) {
             /* fillvalue must be a single value*/
 	    if(!isconst && datalistlen(list) != 1)
@@ -1489,15 +1483,12 @@ static int
 parsefilterflag(const char* sdata, Specialdata* special)
 {
     int stat = NC_NOERR;
-    int format;
 
     if(sdata == NULL || strlen(sdata) == 0) return NC_EINVAL;
 
-    stat = NC_parsefilterlist(sdata, &format, &special->nfilters, (NC_Filterspec***)&special->_Filters);
+    stat = ncaux_filterspec_parselist(sdata, NULL, &special->nfilters, &special->_Filters);
     if(stat)
         derror("Malformed filter spec: %s",sdata);
-    if(format != NC_FILTER_FORMAT_HDF5)
-        derror("Non HDF5 filter format encountered");
 #ifdef GENDEBUG1
 printfilters(special->nfilters,special->_Filters);
 #endif
@@ -1579,21 +1570,21 @@ done:
 
 #ifdef GENDEBUG1
 static void
-printfilters(size_t nfilters, NC_ParsedFilterSpec** filters)
+printfilters(size_t nfilters, NC_Filterspec** filters)
 {
     int i;
     fprintf(stderr,"xxx: nfilters=%lu: ",(unsigned long)nfilters);
     for(i=0;i<nfilters;i++) {
 	int k;
-	NC_ParsedFilterSpec* sp = filters[i];
+	NC_Filterspec* sp = filters[i];
         fprintf(stderr,"{");
-        fprintf(stderr,"filterid=%llu format=%d nparams=%lu params=%p",
+        fprintf(stderr,"filterid=%s format=%s nparams=%lu params=%p",
 		sp->filterid,sp->format,(unsigned long)sp->nparams,sp->params);
-	if(sp->nparams == 0 || sp->params != NULL) {
+	if(sp->nparams > 0 && sp->params != NULL) {
             fprintf(stderr," params={");
             for(k=0;k<sp->nparams;k++) {
 	        if(i==0) fprintf(stderr,",");
-	        fprintf(stderr,"%u",sp->params[i]);
+	        fprintf(stderr,"%s",sp->params[i]);
 	    }
             fprintf(stderr,"}");
 	} else

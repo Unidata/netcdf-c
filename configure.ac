@@ -184,12 +184,23 @@ if test "x$enable_jna" = xyes ; then
 AC_DEFINE([JNA], [1], [if true, include jna bug workaround code])
 fi
 
+# Should tests with unfixed memory leaks be run?
+AC_MSG_CHECKING([if unfixed tests with memory leaks should be enabled])
+AC_ARG_ENABLE([unfixed-memory-leaks],
+  [AS_HELP_STRING([--enable-unfixed-memory-leaks],
+    [Enable tests in the ncdump directory that have unfixed memory leaks])])
+test "x$enable_unfixed_memory_leaks" = xyes || enable_unfixed_memory_leaks=no
+AC_MSG_RESULT($enable_unfixed_memory_leaks)
+AM_CONDITIONAL([ENABLE_UNFIXED_MEMORY_LEAKS], [test "x$enable_unfixed_memory_leaks" = xyes])
+
 # Does the user want to turn off unit tests (useful for test coverage
 # analysis).
+AC_MSG_CHECKING([if unit tests should be disabled])
 AC_ARG_ENABLE([unit-tests],
   [AS_HELP_STRING([--disable-unit-tests],
     [Disable tests in unit_test directory. Other tests still run.])])
 test "x$enable_unit_tests" = xno || enable_unit_tests=yes
+AC_MSG_RESULT($enable_unit_tests)
 AM_CONDITIONAL([BUILD_UNIT_TESTS], [test "x$enable_unit_tests" = xyes])
 
 # Does the user want to build netcdf-4?
@@ -428,6 +439,61 @@ fi
 AC_MSG_RESULT([$enable_dap_long_tests])
 
 AM_CONDITIONAL(INTERNAL_OCLIB,[test "x" = "x"])
+
+# Control zarr storage
+AC_MSG_CHECKING([whether netcdf zarr storage format should be enabled])
+AC_ARG_ENABLE([nczarr],
+              [AS_HELP_STRING([--enable-nczarr],
+                              [enable netcdf zarr storage support; requires netCDF-4 and libcurl])])
+test "x$enable_nczarr" = xyes || enable_nczarr=no
+AC_MSG_RESULT($enable_nczarr)
+if test "x$enable_nczarr" = xyes ; then
+if test "x$enable_netcdf_4" = xno ; then
+AC_MSG_ERROR([netCDF-4 disabled, so you must not enable nczarr])
+enable_nczarr=no
+fi
+fi
+if test "x$enable_nczarr" = xyes; then
+   AC_DEFINE([ENABLE_NCZARR], [1], [if true, build NCZarr Client])
+   AC_SUBST(ENABLE_NCZARR)
+fi
+AM_CONDITIONAL(ENABLE_NCZARR, [test x$enable_nczarr = xyes])
+
+# Check for the AWS S3 SDK library
+AC_LANG_PUSH([C++])
+AC_SEARCH_LIBS([aws_allocator_is_valid],[aws-c-common aws-cpp-sdk-s3 aws-cpp-sdk-core], [have_aws=yes],[have_aws=no])
+AC_LANG_POP
+AC_MSG_CHECKING([whether AWS S3 SDK library is available])
+AC_MSG_RESULT([$have_aws])
+
+# Check for forced disabling of S3 support
+AC_MSG_CHECKING([whether netcdf zarr S3 support should be enabled])
+AC_ARG_ENABLE([s3-sdk],
+              [AS_HELP_STRING([--disable-s3-sdk],
+                              [forcibly disable usage of netcdf zarr S3 sdk])])
+test "x$enable_s3_sdk" = xno || enable_s3_sdk=yes
+AC_MSG_RESULT($enable_s3_sdk)
+
+if test "x$have_aws" = xno -a "x$enable_s3_sdk" = xno; then
+  have_aws=no
+  enable_s3_sdk=no
+elif test "x$have_aws" = xno -a "x$enable_s3_sdk" = xyes; then
+  AC_MSG_WARN([aws libraries not found, so default to --disable-s3-sdk])
+  have_aws=no
+  enable_s3_sdk=no
+elif test "x$have_aws" = xyes -a "x$enable_s3_sdk" = xno; then
+  AC_MSG_WARN([--disable-s3-sdk overrides presence of aws s3 libraries])
+  have_aws=no
+  enable_s3_sdk=no
+elif test "x$have_aws" = xyes -a "x$enable_s3_sdk" = xyes; then
+  have_aws=yes
+  enable_s3_sdk=yes
+fi
+
+if test "x$enable_s3_sdk" = xyes ; then
+  AC_DEFINE([ENABLE_S3_SDK], [1], [if true, build libnczarr with S3 support enabled])
+fi
+AM_CONDITIONAL(ENABLE_S3_SDK, [test "x$enable_s3_sdk" = xyes])
 
 # Check whether we want to enable strict null byte header padding.
 # See https://github.com/Unidata/netcdf-c/issues/657 for more information.
@@ -671,6 +737,7 @@ fi
 
 
 AC_PROG_CC
+AC_PROG_CXX
 AM_PROG_CC_C_O
 AC_C_CONST
 
@@ -750,6 +817,20 @@ AC_MSG_RESULT([${havecurloption}])
 if test $havecurloption = yes; then
   AC_DEFINE([HAVE_CURLOPT_KEEPALIVE],[1],[Is CURLOPT_TCP_KEEPALIVE defined])
 fi
+# CURLOPT_VERIFYHOST semantics differ depending on version
+AC_MSG_CHECKING([whether libcurl is version 7.66 or later?])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[#include "curl/curl.h"],
+[[
+#if LIBCURL_VERSION_NUM < 0x074200
+error "<7.66";
+#endif
+]])], [libcurl766=yes], [libcurl766=no])
+
+AC_MSG_RESULT([$libcurl766])
+if test x$libcurl66 = xno; then
+  AC_DEFINE([HAVE_LIBCURL_766],[1],[Is libcurl version 7.66 or later])
+fi
 
 CFLAGS="$SAVECFLAGS"
 
@@ -817,7 +898,7 @@ AC_CHECK_HEADERS([sys/param.h])
 AC_CHECK_HEADERS([libgen.h])
 #AC_CHECK_HEADERS([locale.h])
 AC_HEADER_STDC
-AC_CHECK_HEADERS([locale.h stdio.h stdarg.h fcntl.h malloc.h stdlib.h string.h strings.h unistd.h sys/stat.h getopt.h sys/time.h sys/types.h])
+AC_CHECK_HEADERS([locale.h stdio.h stdarg.h fcntl.h malloc.h stdlib.h string.h strings.h unistd.h sys/stat.h getopt.h sys/time.h sys/types.h dirent.h])
 
 # Do sys/resource.h separately
 #AC_CHECK_HEADERS([sys/resource.h],[havesysresource=1],[havesysresource=0])
@@ -828,11 +909,15 @@ AC_CHECK_HEADERS([sys/resource.h])
 # See if we have ftw.h to walk directory trees
 AC_CHECK_HEADERS([ftw.h])
 
+# See if we can do stack tracing programmatically
+AC_CHECK_HEADERS([execinfo.h])
+
 # Check for these functions...
 AC_CHECK_FUNCS([strlcat snprintf strcasecmp fileno \
                 strdup strtoll strtoull \
 		mkstemp mktemp random \
-		getrlimit gettimeofday fsync MPI_Comm_f2c MPI_Info_f2c])
+		getrlimit gettimeofday fsync MPI_Comm_f2c MPI_Info_f2c \
+		strncasecmp])
 
 # disable dap4 if netcdf-4 is disabled
 #if test "x$enable_netcdf_4" = "xno" ; then
@@ -908,7 +993,7 @@ AC_FUNC_ALLOCA
 AC_CHECK_DECLS([isnan, isinf, isfinite],,,[#include <math.h>])
 AC_STRUCT_ST_BLKSIZE
 UD_CHECK_IEEE
-AC_CHECK_TYPES([size_t, ssize_t, schar, uchar, longlong, ushort, uint, int64, uint64])
+AC_CHECK_TYPES([size_t, ssize_t, schar, uchar, longlong, ushort, uint, int64, uint64, size64_t, ssize64_t, _off64_t])
 AC_TYPE_OFF_T
 AC_TYPE_UINTPTR_T
 AC_C_CHAR_UNSIGNED
@@ -1043,7 +1128,7 @@ if test "x$enable_hdf5" = xyes; then
    AC_CHECK_HEADERS([hdf5.h], [], [AC_MSG_ERROR([Compiling a test with HDF5 failed.  Either hdf5.h cannot be found, or config.log should be checked for other reason.])])
 
    # Was HDF5 built with zlib as netCDF requires?
-   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include "H5pubconf.h"],
+   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include "H5public.h"],
    [[#if !H5_HAVE_ZLIB_H
    # error
    #endif]
@@ -1162,8 +1247,7 @@ if test "x$enable_pnetcdf" = xyes; then
   # Pnetcdf did not support utf-8 until 1.6.0
 
   AC_MSG_CHECKING([Is libpnetcdf version 1.6.0 or later?])
-  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [[
-#include <pnetcdf.h>
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <pnetcdf.h>]], [[
 #if (PNETCDF_VERSION_MAJOR*1000 + PNETCDF_VERSION_MINOR < 1006)
       choke me
 #endif
@@ -1214,8 +1298,7 @@ if test "x$enable_pnetcdf" = xyes; then
    UD_CHECK_HEADER_PATH([pnetcdf.h])
 
    AC_MSG_CHECKING([if erange-fill is enabled in PnetCDF])
-   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [[
-#include <pnetcdf.h>
+   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <pnetcdf.h>]], [[
 #if !defined(PNETCDF_ERANGE_FILL) || PNETCDF_ERANGE_FILL == 0
       choke me
 #endif]])], [enable_erange_fill_pnetcdf=yes], [enable_erange_fill_pnetcdf=no])
@@ -1231,8 +1314,7 @@ if test "x$enable_pnetcdf" = xyes; then
    fi
 
    AC_MSG_CHECKING([if relax-coord-bound is enabled in PnetCDF])
-   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [[
-#include <pnetcdf.h>
+   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <pnetcdf.h>]], [[
 #if !defined(PNETCDF_RELAX_COORD_BOUND) || PNETCDF_RELAX_COORD_BOUND == 0
       choke me
 #endif]])], [relax_coord_bound_pnetcdf=yes], [relax_coord_bound_pnetcdf=no])
@@ -1303,6 +1385,7 @@ AM_CONDITIONAL(ENABLE_METADATA_PERF, [test x$enable_metadata_perf = xyes])
 AM_CONDITIONAL(ENABLE_BYTERANGE, [test "x$enable_byterange" = xyes])
 AM_CONDITIONAL(RELAX_COORD_BOUND, [test "xyes" = xyes])
 AM_CONDITIONAL(HAS_PAR_FILTERS, [test x$hdf5_supports_par_filters = xyes ])
+AM_CONDITIONAL(ENABLE_NCZARR, [test "x$enable_nczarr" = xyes])
 
 # If the machine doesn't have a long long, and we want netCDF-4, then
 # we've got problems!
@@ -1377,19 +1460,6 @@ esac
 
 NC_FLIBS="-lnetcdff $NC_LIBS"
 
-# temporary to deal with a JNA problem
-AC_MSG_CHECKING([If compilation is for use with JNA])
-AC_ARG_ENABLE([jna],
-              [AS_HELP_STRING([--enable-jna],
-                              [enable jna bug fix])],
-				[],
-				[enable_jna=no])
-test "x$enable_jna" = xno || enable_jna=yes
-AC_MSG_RESULT($enable_jna)
-if test "x$enable_jna" = xyes ; then
-AC_DEFINE([JNA], [1], [if true, include JNA bug fix])
-fi
-
 # Control filter test/example
 AC_MSG_CHECKING([whether filter testing should be run])
 AC_ARG_ENABLE([filter-testing],
@@ -1398,9 +1468,35 @@ AC_ARG_ENABLE([filter-testing],
 test "x$enable_filter_testing" = xno || enable_filter_testing=yes
 AC_MSG_RESULT($enable_filter_testing)
 
+# Control client filters
+AC_MSG_CHECKING([whether client filters should be enabled])
+AC_ARG_ENABLE([client-filters],
+              [AS_HELP_STRING([--enable-clientfilters],
+                              [Enable client side filters; default off])])
+test "x$enable_client_filters" = xyes || enable_client_filters=no
+AC_MSG_RESULT($enable_client_filters)
+
 if test "x$enable_netcdf_4" = xno ; then
-AC_MSG_WARN([netCDF-4 disabled => --disable-filter-testing])
+AC_MSG_WARN([netCDF-4 disabled => --disable-filter-testing && --disable-client-filters])
 enable_filter_testing=no
+enable_client_filters=no
+fi
+
+if test "x$enable_hdf5" = xno ; then
+AC_MSG_WARN([HDF5 disabled => --disable-filter-testing])
+enable_filter_testing=no
+fi
+
+if test "x$enable_shared" = xno ; then
+AC_MSG_WARN([Shared libraries are disabled => --disable-filter-testing])
+enable_filter_testing=no
+fi
+AM_CONDITIONAL(ENABLE_CLIENT_FILTERS, [test x$enable_client_filters = xyes])
+
+if test "x$enable_netcdf_4" = xno ; then
+AC_MSG_WARN([netCDF-4 disabled => --disable-filter-testing && --disable-client-filters])
+enable_filter_testing=no
+enable_client_filters=no
 fi
 
 if test "x$enable_hdf5" = xno ; then
@@ -1413,6 +1509,20 @@ AC_MSG_WARN([Shared libraries are disabled => --disable-filter-testing])
 enable_filter_testing=no
 fi
 AM_CONDITIONAL(ENABLE_FILTER_TESTING, [test x$enable_filter_testing = xyes])
+
+# Enable client side filter registration
+AC_MSG_CHECKING([If client-side filters are enabled (default off)])
+AC_ARG_ENABLE([clientside-filters],
+              [AS_HELP_STRING([--enable-clientside-filters],
+                              [enable client side filters])],
+				[],
+				[enable_clientside_filters=no])
+test "x$enable_clientside_filters" = xyes || enable_clientside_filters=no
+AC_MSG_RESULT($enable_clientside_filters)
+if test "x$enable_clientside_filters" = xyes ; then
+AC_DEFINE([ENABLE_CLIENTSIDE_FILTERS], [1], [if true, enable client-side filters])
+fi
+AM_CONDITIONAL(ENABLE_CLIENTSIDE_FILTERS, [test x$enable_clientside_filters = xyes])
 
 AC_SUBST(NC_LIBS,[$NC_LIBS])
 AC_SUBST(HAS_DAP,[$enable_dap])
@@ -1436,13 +1546,16 @@ AC_SUBST(HAS_ERANGE_FILL,[$enable_erange_fill])
 AC_SUBST(HAS_BYTERANGE,[$enable_byterange])
 AC_SUBST(RELAX_COORD_BOUND,[yes])
 AC_SUBST([HAS_PAR_FILTERS], [$hdf5_supports_par_filters])
+AC_SUBST(HAS_NCZARR,[$enable_nczarr])
+AC_SUBST(HAS_S3_SDK,[$enable_s3_sdk])
 
 # Include some specifics for netcdf on windows.
 #AH_VERBATIM([_WIN32_STRICMP],
 AH_BOTTOM(
-[/* Define strcasecmp, snprintf on Win32 systems. */
+[/* Define strcasecmp, strncasecmp, snprintf on Win32 systems. */
 #ifdef _WIN32
 	#define strcasecmp _stricmp
+	#define strncasecmp _strnicmp
 	#define snprintf _snprintf
 #endif])
 
@@ -1505,7 +1618,10 @@ AX_SET_META([NC_HAS_CDF5],[$enable_cdf5],[yes])
 AX_SET_META([NC_HAS_ERANGE_FILL], [$enable_erange_fill],[yes])
 AX_SET_META([NC_HAS_PAR_FILTERS], [$hdf5_supports_par_filters],[yes])
 AX_SET_META([NC_HAS_BYTERANGE],[$enable_byterange],[yes])
+AX_SET_META([NC_HAS_NCZARR],[$enable_nczarr],[yes])
+AX_SET_META([NC_HAS_NCZARR_S3],[$enable_s3_sdk],[yes])
 AC_SUBST([NC_DISPATCH_VERSION], [2])
+
 #####
 # End netcdf_meta.h definitions.
 #####
@@ -1550,6 +1666,7 @@ AC_CONFIG_FILES([Makefile
                  libdap2/Makefile
                  libdap4/Makefile
                  libhdf4/Makefile
+                 libnczarr/Makefile
                  libdispatch/Makefile
                  liblib/Makefile
                  ncdump/cdl/Makefile
@@ -1567,6 +1684,7 @@ AC_CONFIG_FILES([Makefile
                  ncdap_test/expectremote3/Makefile
                  dap4_test/Makefile
                  plugins/Makefile
+		 nczarr_test/Makefile
                  ])
 AC_OUTPUT()
 

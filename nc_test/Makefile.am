@@ -61,13 +61,6 @@ if USE_HDF5
 TESTPROGRAMS += tst_diskless6
 endif
 
-if ENABLE_DAP_REMOTE_TESTS
-if ENABLE_BYTERANGE
-TESTPROGRAMS += tst_byterange
-tst_byterange_SOURCES = tst_byterange.c
-endif
-endif
-
 # Set up the tests.
 check_PROGRAMS += $(TESTPROGRAMS)
 
@@ -80,13 +73,18 @@ endif
 
 TESTS = $(TESTPROGRAMS)
 
+if ENABLE_BYTERANGE
+if BUILD_UTILITIES
+tst_byterange_SOURCES = tst_byterange.c
+check_PROGRAMS += tst_byterange
+TESTS += test_byterange.sh
+endif
+endif
+
 if BUILD_UTILITIES
 TESTS += run_diskless.sh run_diskless5.sh run_inmemory.sh
 if LARGE_FILE_TESTS
 TESTS += run_diskless2.sh
-endif
-if ENABLE_BYTERANGE
-TESTS += test_byterange.sh
 endif
 if BUILD_MMAP
 TESTS += run_mmap.sh

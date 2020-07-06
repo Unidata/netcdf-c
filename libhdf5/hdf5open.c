@@ -13,6 +13,7 @@
 #include "hdf5internal.h"
 #include "ncrc.h"
 #include "ncmodel.h"
+#include "ncfilter.h"
 
 #ifdef ENABLE_BYTERANGE
 #include "H5FDhttp.h"
@@ -69,7 +70,11 @@ typedef struct hdf5_obj_info
 {
     hid_t oid;                          /* HDF5 object ID */
     char oname[NC_MAX_NAME + 1];        /* Name of object */
-    H5G_stat_t statbuf;                 /* Information about the object */
+#if H5_VERSION_GE(1,12,0)
+    H5O_info2_t statbuf;
+#else
+    H5G_stat_t statbuf;                /* Information about the object */
+#endif
     struct hdf5_obj_info *next; /* Pointer to next node in list */
 } hdf5_obj_info_t;
 
@@ -343,11 +348,22 @@ static herr_t
 dimscale_visitor(hid_t did, unsigned dim, hid_t dsid,
                  void *dimscale_hdf5_objids)
 {
-    H5G_stat_t statbuf;
 
     LOG((4, "%s", __func__));
 
     /* Get more info on the dimscale object.*/
+#if H5_VERSION_GE(1,12,0)
+    H5O_info2_t statbuf;
+
+    if (H5Oget_info3(dsid, &statbuf, H5O_INFO_BASIC) < 0)
+        return -1;
+
+    /* Pass this information back to caller. */
+    (*(HDF5_OBJID_T *)dimscale_hdf5_objids).fileno = statbuf.fileno;
+    (*(HDF5_OBJID_T *)dimscale_hdf5_objids).token = statbuf.token;
+#else
+    H5G_stat_t statbuf;
+
     if (H5Gget_objinfo(dsid, ".", 1, &statbuf) < 0)
         return -1;
 
@@ -356,6 +372,7 @@ dimscale_visitor(hid_t did, unsigned dim, hid_t dsid,
     (*(HDF5_OBJID_T *)dimscale_hdf5_objids).fileno[1] = statbuf.fileno[1];
     (*(HDF5_OBJID_T *)dimscale_hdf5_objids).objno[0] = statbuf.objno[0];
     (*(HDF5_OBJID_T *)dimscale_hdf5_objids).objno[1] = statbuf.objno[1];
+#endif
     return 0;
 }
 
@@ -573,10 +590,20 @@ rec_match_dimscales(NC_GRP_INFO_T *grp)
 
                             /* Check for exact match of fileno/objid arrays
                              * to find identical objects in HDF5 file. */
+#if H5_VERSION_GE(1,12,0)
+                            int token_cmp;
+                            if (H5Otoken_cmp(hdf5_var->hdf_datasetid,
+                                             &hdf5_var->dimscale_hdf5_objids[d].token,
+                                             &hdf5_dim->hdf5_objid.token, &token_cmp) < 0)
+                                return NC_EHDFERR;
+                            if (hdf5_var->dimscale_hdf5_objids[d].fileno == hdf5_dim->hdf5_objid.fileno &&
+                                token_cmp == 0)
+#else
                             if (hdf5_var->dimscale_hdf5_objids[d].fileno[0] == hdf5_dim->hdf5_objid.fileno[0] &&
                                 hdf5_var->dimscale_hdf5_objids[d].objno[0] == hdf5_dim->hdf5_objid.objno[0] &&
                                 hdf5_var->dimscale_hdf5_objids[d].fileno[1] == hdf5_dim->hdf5_objid.fileno[1] &&
                                 hdf5_var->dimscale_hdf5_objids[d].objno[1] == hdf5_dim->hdf5_objid.objno[1])
+#endif
                             {
                                 LOG((4, "%s: for dimension %d, found dim %s", __func__,
                                      d, dim->hdr.name));
@@ -719,7 +746,7 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
         BAIL(NC_EINTERNAL);
 
 #ifdef USE_PARALLEL4
-    mpiinfo = (NC_MPI_INFO*)parameters; /* assume, may be changed if inmemory is true */
+    mpiinfo = (NC_MPI_INFO *)parameters; /* assume, may be changed if inmemory is true */
 #endif /* !USE_PARALLEL4 */
 
     /* Need this access plist to control how HDF5 handles open objects
@@ -734,20 +761,19 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 #ifdef USE_PARALLEL4
     if (!(mode & (NC_INMEMORY | NC_DISKLESS)) && mpiinfo != NULL) {
         /* If this is a parallel file create, set up the file creation
-         * property list.
-         */
+         * property list. */
         nc4_info->parallel = NC_TRUE;
         LOG((4, "opening parallel file with MPI/IO"));
         if (H5Pset_fapl_mpio(fapl_id, mpiinfo->comm, mpiinfo->info) < 0)
             BAIL(NC_EPARINIT);
 
         /* Keep copies of the MPI Comm & Info objects */
-        if (MPI_SUCCESS != MPI_Comm_dup(mpiinfo->comm, &nc4_info->comm))
+        if (MPI_Comm_dup(mpiinfo->comm, &nc4_info->comm) != MPI_SUCCESS)
             BAIL(NC_EMPI);
         comm_duped++;
-        if (MPI_INFO_NULL != mpiinfo->info)
+        if (mpiinfo->info != MPI_INFO_NULL)
         {
-            if (MPI_SUCCESS != MPI_Info_dup(mpiinfo->info, &nc4_info->info))
+            if (MPI_Info_dup(mpiinfo->info, &nc4_info->info) != MPI_SUCCESS)
                 BAIL(NC_EMPI);
             info_duped++;
         }
@@ -759,18 +785,23 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
     }
 
 #ifdef HDF5_HAS_COLL_METADATA_OPS
+    /* If collective metadata operations are available in HDF5, turn
+     * them on. */
     if (H5Pset_all_coll_metadata_ops(fapl_id, 1) < 0)
         BAIL(NC_EPARINIT);
-#endif
-
-#else /* only set cache for non-parallel. */
-    if (H5Pset_cache(fapl_id, 0, nc4_chunk_cache_nelems, nc4_chunk_cache_size,
-                     nc4_chunk_cache_preemption) < 0)
-        BAIL(NC_EHDFERR);
-    LOG((4, "%s: set HDF raw chunk cache to size %d nelems %d preemption %f",
-         __func__, nc4_chunk_cache_size, nc4_chunk_cache_nelems,
-         nc4_chunk_cache_preemption));
+#endif /* HDF5_HAS_COLL_METADATA_OPS */
 #endif /* USE_PARALLEL4 */
+
+    /* Only set cache for non-parallel opens. */
+    if (!nc4_info->parallel)
+    {
+	if (H5Pset_cache(fapl_id, 0, nc4_chunk_cache_nelems, nc4_chunk_cache_size,
+			 nc4_chunk_cache_preemption) < 0)
+	    BAIL(NC_EHDFERR);
+	LOG((4, "%s: set HDF raw chunk cache to size %d nelems %d preemption %f",
+	     __func__, nc4_chunk_cache_size, nc4_chunk_cache_nelems,
+	     nc4_chunk_cache_preemption));
+    }
 
     /* Process  NC_INMEMORY */
     if(nc4_info->mem.inmemory) {
@@ -933,21 +964,26 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
 {
     H5Z_filter_t filter;
     int num_filters;
-    unsigned int cd_values_zip[CD_NELEMS_ZLIB];
-    size_t cd_nelems = CD_NELEMS_ZLIB;
+    unsigned int* cd_values = NULL;
+    size_t cd_nelems;
     int f;
     int stat = NC_NOERR;
+    NC_FILTERX_SPEC* spec = NULL;
 
     assert(var);
 
     if ((num_filters = H5Pget_nfilters(propid)) < 0)
-        return NC_EHDFERR;
+	{stat = NC_EHDFERR; goto done;}
 
     for (f = 0; f < num_filters; f++)
     {
-        if ((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems, cd_values_zip,
-                                     0, NULL, NULL)) < 0)
-            return NC_EHDFERR;
+	cd_nelems = 0;
+        if ((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems, NULL, 0, NULL, NULL)) < 0)
+	    {stat = NC_EHDFERR; goto done;}
+	if((cd_values = calloc(sizeof(unsigned int),cd_nelems))==NULL)
+	    {stat = NC_EHDFERR; goto done;}
+        if ((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems, cd_values, 0, NULL, NULL)) < 0)
+	    {stat = NC_EHDFERR; goto done;}
         switch (filter)
         {
         case H5Z_FILTER_SHUFFLE:
@@ -960,10 +996,10 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
 
         case H5Z_FILTER_DEFLATE:
             if (cd_nelems != CD_NELEMS_ZLIB ||
-                cd_values_zip[0] > NC_MAX_DEFLATE_LEVEL)
-                return NC_EHDFERR;
-	    if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,cd_values_zip)))
-		return stat;
+                cd_values[0] > NC_MAX_DEFLATE_LEVEL)
+		    {stat = NC_EHDFERR; goto done;}
+	    if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,cd_values)))
+	       goto done;
             break;
 
         case H5Z_FILTER_SZIP: {
@@ -971,49 +1007,35 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
                and changes some of the parameter values; try to compensate */
             if(cd_nelems == 0) {
 		if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,0,NULL)))
-		   return stat;
+		   goto done;
             } else {
-                /* We have to re-read the parameters based on actual nparams,
-                   which in the case of szip, differs from users original nparams */
-                unsigned int* realparams = (unsigned int*)calloc(1,sizeof(unsigned int)*cd_nelems);
-                if(realparams == NULL)
-                    return NC_ENOMEM;
-                if((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems,
-                                            realparams, 0, NULL, NULL)) < 0) 
-                    return NC_EHDFERR;
                 /* fix up the parameters and the #params */
 		if(cd_nelems != 4)
-		    return NC_EHDFERR;
+		    {stat = NC_EHDFERR; goto done;}
 		cd_nelems = 2; /* ignore last two */		
 		/* Fix up changed params */
-		realparams[0] &= (H5_SZIP_ALL_MASKS);
+		cd_values[0] &= (H5_SZIP_ALL_MASKS);
 		/* Save info */
-		stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,realparams);
-		nullfree(realparams);
-		if(stat) return stat;
-
+		stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,cd_values);
+		if(stat) goto done;
             }
             } break;
 
         default:
             if(cd_nelems == 0) {
-  	        if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,0,NULL))) return stat;
+  	        if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,0,NULL))) goto done;
             } else {
-                /* We have to re-read the parameters based on actual nparams */
-                unsigned int* realparams = (unsigned int*)calloc(1,sizeof(unsigned int)*cd_nelems);
-                if(realparams == NULL)
-                    return NC_ENOMEM;
-                if((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems,
-                                            realparams, 0, NULL, NULL)) < 0)
-                    return NC_EHDFERR;
-  	        stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,realparams);
-		nullfree(realparams);
-		if(stat) return stat;
+  	        stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,cd_values);
+		if(stat) goto done;
             }
             break;
         }
+	nullfree(cd_values); cd_values = NULL;
     }
-    return NC_NOERR;
+done:
+    nullfree(cd_values);
+    NC4_filterx_free(spec);
+    return stat;
 }
 
 /**
@@ -1398,6 +1420,9 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
 
     /* Indicate that the variable has a pointer to the type */
     var->type_info->rc++;
+
+    /* Transfer endianness */
+    var->endianness = var->type_info->endianness; 
 
 exit:
     if (finalname)
@@ -2208,10 +2233,16 @@ nc4_read_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
  * @returns ::NC_NOERR No error.
  * @return ::NC_EHDFERR HDF5 returned error.
  * @author Ed Hartnett
+ * [Candidate for libsrc4]
  */
 static int
 read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
-           const H5G_stat_t *statbuf, hsize_t scale_size,
+#if H5_VERSION_GE(1,12,0)
+           const H5O_info2_t *statbuf,
+#else
+           const H5G_stat_t *statbuf,
+#endif
+           hsize_t scale_size,
            hsize_t max_scale_size, NC_DIM_INFO_T **dim)
 {
     NC_DIM_INFO_T *new_dim; /* Dimension added to group */
@@ -2267,12 +2298,17 @@ read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
 
     dimscale_created++;
 
-    /* Remember these 4 values to uniquely identify this dataset in the
+    /* Remember these 4 (or 2 for HDF5 1.12) values to uniquely identify this dataset in the
      * HDF5 file. */
+#if H5_VERSION_GE(1,12,0)
+    new_hdf5_dim->hdf5_objid.fileno = statbuf->fileno;
+    new_hdf5_dim->hdf5_objid.token = statbuf->token;
+#else
     new_hdf5_dim->hdf5_objid.fileno[0] = statbuf->fileno[0];
     new_hdf5_dim->hdf5_objid.fileno[1] = statbuf->fileno[1];
     new_hdf5_dim->hdf5_objid.objno[0] = statbuf->objno[0];
     new_hdf5_dim->hdf5_objid.objno[1] = statbuf->objno[1];
+#endif
 
     /* If the dimscale has an unlimited dimension, then this dimension
      * is unlimited. */
@@ -2343,7 +2379,12 @@ exit:
  */
 static int
 read_dataset(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
-             const H5G_stat_t *statbuf)
+#if H5_VERSION_GE(1,12,0)
+             const H5O_info2_t *statbuf
+#else
+             const H5G_stat_t *statbuf
+#endif
+)
 {
     NC_DIM_INFO_T *dim = NULL;   /* Dimension created for scales */
     NC_HDF5_DIM_INFO_T *hdf5_dim;
@@ -2455,8 +2496,13 @@ read_hdf5_obj(hid_t grpid, const char *name, const H5L_info_t *info,
         BAIL(H5_ITER_ERROR);
 
     /* Get info about the object.*/
+#if H5_VERSION_GE(1,12,0)
+    if (H5Oget_info3(oinfo.oid, &oinfo.statbuf, H5O_INFO_BASIC) < 0)
+        BAIL(H5_ITER_ERROR);
+#else
     if (H5Gget_objinfo(oinfo.oid, ".", 1, &oinfo.statbuf) < 0)
         BAIL(H5_ITER_ERROR);
+#endif
 
     strncpy(oinfo.oname, name, NC_MAX_NAME);
 

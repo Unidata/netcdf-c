@@ -8,7 +8,7 @@
 #SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#TESTS_ENVIRONMENT = export SETX=1;
+#TESTS_ENVIRONMENT += export SETX=1;
 
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
@@ -17,6 +17,10 @@ noinst_PROGRAMS=
 # Note which tests depend on other tests. Necessary for make -j check.
 TEST_EXTENSIONS = .sh
 XFAIL_TESTS=""
+
+if ! ENABLE_UNFIXED_MEMORY_LEAKS
+AM_TESTS_ENVIRONMENT += export NC_VLEN_NOTEST=1;
+endif
 
 # This is the program we're building, and it's sources.
 bin_PROGRAMS = ncdump
@@ -138,7 +142,7 @@ inttags.cdl inttags4.cdl ref_inttags.cdl ref_inttags4.cdl		\
 ref_tst_ncf213.cdl tst_h_scalar.sh run_utf8_nc4_tests.sh		\
 tst_formatx3.sh tst_formatx4.sh ref_tst_utf8_4.cdl			\
 ref_tst_nc4_utf8_4.cdl tst_inttags.sh tst_inttags4.sh CMakeLists.txt	\
-XGetopt.c tst_bom.sh tst_inmemory_nc3.sh tst_dimsizes.sh		\
+tst_bom.sh tst_inmemory_nc3.sh tst_dimsizes.sh		\
 tst_inmemory_nc4.sh tst_fileinfo.sh run_ncgen_tests.sh			\
 ref_test_360_day_1900.nc ref_test_365_day_1900.nc			\
 ref_test_366_day_1900.nc ref_test_360_day_1900.cdl			\

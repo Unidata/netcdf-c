@@ -48,6 +48,10 @@ defined here, including function-like #defines.
 /* Size of a chunk header */
 #define CHUNKHDRSIZE 4
 
+/* Special attributes */
+#define D4CHECKSUMATTR "_DAP4_Checksum_CRC32"
+#define D4LEATTR "_DAP4_Little_Endian" 
+
 /**************************************************/
 
 #undef nullfree
@@ -100,6 +104,7 @@ extern int NCD4_readDAP(NCD4INFO* state, int flags);
 extern int NCD4_parse(NCD4meta*);
 extern NCD4node* NCD4_findAttr(NCD4node* container, const char* attrname);
 extern NCD4node* NCD4_groupFor(NCD4node* node);
+extern int NCD4_defineattr(NCD4meta* meta, NCD4node* parent, const char* aname, const char* typename, NCD4node** attrp);
 
 /* From d4printer.c */
 extern int NCD4_print(NCD4meta*, NCbytes* output);
@@ -111,6 +116,7 @@ extern void reclaimNode(NCD4node* node);
 extern void NCD4_setdebuglevel(NCD4meta*,int);
 extern int NCD4_metabuild(NCD4meta*, int ncid);
 extern size_t NCD4_computeTypeSize(NCD4meta*, NCD4node* type);
+extern int NCD4_findvar(NC* ncp, int ncid, int varid, NCD4node** varp, NCD4node** grpp);
 
 /* From d4chunk.c */
 extern int NCD4_dechunk(NCD4meta*);
@@ -164,6 +170,10 @@ extern unsigned int NCD4_crc32(unsigned int crc, const void *buf, size_t size);
 
 /* d4file.c */
 extern void NCD4_applyclientparamcontrols(NCD4INFO*);
+
+/* ncd4dispatch.c */
+struct NC_reservedatt; /*forward*/
+extern const struct NC_reservedatt* NCD4_lookupreserved(const char* name);
 
 /* Add an extra function whose sole purpose is to allow
    configure(.ac) to test for the presence of this code.
@@ -219,8 +229,7 @@ extern int nc__dap4(void);
    to deal with issues in accessing hyrax
    using DAP4.
 */
-#undef HYRAXHACK
-
+#define HYRAXHACK
 
 #endif /*NCD4_H*/
 

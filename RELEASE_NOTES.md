@@ -7,6 +7,22 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.8.0 - TBD
 
+* [Enhancement] Add support for cloud storage using a variant of the Zarr storage format. Warning: this feature is highly experimental and is subject to rapid evolution [https://www.unidata.ucar.edu/blogs/developer/en/entry/overview-of-zarr-support-in].
+* [Bug Fix] Fix nccopy to properly set default chunking parameters when not otherwise specified. This can significantly improve performance in selected cases. Note that if seeing slow performance with nccopy, then, as a work-around, specifically set the chunking parameters. [https://github.com/Unidata/netcdf-c/issues/1763].
+* [Bug Fix] Fix some protocol bugs/differences between the netcdf-c library and the OPeNDAP Hyrax server. Also cleanup checksum handling [https://github.com/Unidata/netcdf-c/issues/1712].
+* [Bug Fix] Add necessary __declspec declarations to allow compilation
+of netcdf library without causing errors or (_declspec related)
+warnings [https://github.com/Unidata/netcdf-c/issues/1725].
+* [Enhancement] When a filter is applied twice with different
+parameters, then the second set is used for writing the dataset
+[https://github.com/Unidata/netcdf-c/issues/1713].
+* [Bug Fix] Now larger cache settings are used for sequential HDF5 file creates/opens on parallel I/O capable builds; see [Github #1716](https://github.com/Unidata/netcdf-c/issues/1716) for more information.
+* [Bug Fix] Add functions to libdispatch/dnotnc4.c to support
+dispatch table operations that should work for any dispatch
+table, even if they do not do anything; functions such as
+nc_inq_var_filter [https://github.com/Unidata/netcdf-c/issues/1693].
+* [Bug Fix] Fixed a scalar annotation error when scalar == 0; see [Github #1707](https://github.com/Unidata/netcdf-c/issues/1707) for more information.
+* [Bug Fix] Use proper CURLOPT values for VERIFYHOST and VERIFYPEER; the semantics for VERIFYHOST in particular changed. Documented in NUG/DAP2.md. See  [https://github.com/Unidata/netcdf-c/issues/1684].
 * [Bug Fix][cmake] Correct an issue with parallel filter test logic in CMake-based builds.
 * [Bug Fix] Now allow nc_inq_var_deflate()/nc_inq_var_szip() to be called for all formats, not just HDF5. Non-HDF5 files return NC_NOERR and report no compression in use. This reverts behavior that was changed in the 4.7.4 release. See [https://github.com/Unidata/netcdf-c/issues/1691].
 * [Bug Fix] Compiling on a big-endian machine exposes some missing forward delcarations in dfilter.c.

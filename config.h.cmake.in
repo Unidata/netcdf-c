@@ -60,6 +60,10 @@ are set when opening a binary file on Windows. */
       #define strcasecmp _stricmp
     #endif
 
+    #ifndef strincasecmp
+      #define strncasecmp _strnicmp
+    #endif
+
     #ifndef snprintf
      #if _MSC_VER<1900
        #define snprintf _snprintf
@@ -123,6 +127,9 @@ are set when opening a binary file on Windows. */
 /* if true, enable CDF5 Support */
 #cmakedefine ENABLE_CDF5 1
 
+/* if true, enable client side filters */
+#cmakedefine ENABLE_CLIENT_FILTERS 1
+
 /* if true, enable strict null byte header padding. */
 #cmakedefine USE_STRICT_NULL_BYTE_HEADER_PADDING 1
 
@@ -132,11 +139,11 @@ are set when opening a binary file on Windows. */
 /* if true, build DAP4 Client */
 #cmakedefine ENABLE_DAP4 1
 
-/* if true, build DAP4 Client */
-#cmakedefine ENABLE_DAP4 1
-
 /* if true, do remote tests */
 #cmakedefine ENABLE_DAP_REMOTE_TESTS 1
+
+/* if true, enable NCZARR */
+#cmakedefine ENABLE_NCZARR 1
 
 /* define the possible sources for remote test servers */
 #cmakedefine REMOTETESTSERVERS	"${REMOTETESTSERVERS}"
@@ -178,6 +185,9 @@ are set when opening a binary file on Windows. */
 /* Is CURLOPT_USERNAME defined */
 #cmakedefine HAVE_CURLOPT_USERNAME 1
 
+/* Is LIBCURL version >= 7.66 */
+#cmakedefine HAVE_LIBCURL_766 1
+
 /* Define to 1 if you have the declaration of `isfinite', and to 0 if you
    don't. */
 #cmakedefine HAVE_DECL_ISFINITE 1
@@ -189,6 +199,9 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the declaration of `isnan', and to 0 if you don't.
    */
 #cmakedefine HAVE_DECL_ISNAN 1
+
+/* Define to 1 if you have the <dirent.h> header file. */
+#cmakedefine HAVE_DIRENT_H 1
 
 /* Define to 1 if you have the <fcntl.h> header file. */
 #cmakedefine HAVE_FCNTL_H 1
@@ -592,10 +605,14 @@ with zip */
 /* Define to `unsigned long if <sys/types.h> does not define. */
 #cmakedefine uintptr_t unsigned long
 
-/* Define strcasecmp, snprintf on Win32 systems. */
+/* Define strcasecmp, strncasecmp, snprintf on Win32 systems. */
 #ifdef _WIN32
     #ifndef HAVE_STRCASECMP
 	 #define strcasecmp _stricmp
+    #endif
+
+    #ifndef HAVE_STRNCASECMP
+	 #define strncasecmp _strnicmp
     #endif
 
     #ifndef HAVE_SNPRINTF
