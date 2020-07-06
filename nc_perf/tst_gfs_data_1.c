@@ -64,13 +64,24 @@ get_file_size(char *filename, size_t *file_size)
     return 0;
 }
 
+/* Check all the metadata, including coordinate variable data. */
+int
+check_meta(int ncid, int *data_varid, int s, int f, int deflate, int *dim_len, size_t phalf_size, size_t phalf_start,
+           float *phalf, size_t *data_start, size_t *data_count, float *pfull,
+           size_t grid_xt_start, size_t grid_xt_size, double *grid_xt, size_t grid_yt_start,
+           size_t grid_yt_size, double *grid_yt, size_t *latlon_start, size_t *latlon_count,
+           double *lat, double *lon, int my_rank)
+{
+    return 0;
+}
+
 /* Write all the metadata, including coordinate variable data. */
 int
-write_meta(int ncid, int *data_varid, int s, int f, int deflate, int *dim_len, size_t phalf_loc_size, size_t phalf_start,
-           float *value_phalf_loc, size_t *data_start, size_t *data_count, float *value_pfull_loc,
-           size_t grid_xt_start, size_t grid_xt_loc_size, double *value_grid_xt_loc, size_t grid_yt_start,
-           size_t grid_yt_loc_size, double *value_grid_yt_loc, size_t *latlon_start, size_t *latlon_count,
-           double *value_lat_loc, double *value_lon_loc, int my_rank)
+write_meta(int ncid, int *data_varid, int s, int f, int deflate, int *dim_len, size_t phalf_size, size_t phalf_start,
+           float *phalf, size_t *data_start, size_t *data_count, float *pfull,
+           size_t grid_xt_start, size_t grid_xt_size, double *grid_xt, size_t grid_yt_start,
+           size_t grid_yt_size, double *grid_yt, size_t *latlon_start, size_t *latlon_count,
+           double *lat, double *lon, int my_rank)
 {
     char dim_name[NDIM5][NC_MAX_NAME + 1] = {"grid_xt", "grid_yt", "pfull",
                                              "phalf", "time"};
@@ -125,7 +136,7 @@ write_meta(int ncid, int *data_varid, int s, int f, int deflate, int *dim_len, s
     if (nc_def_var(ncid, var_name[4], var_type[4], 1, &dimid[2], &varid[4])) ERR;
     if (nc_var_par_access(ncid, varid[4], NC_INDEPENDENT)) ERR;
     if (nc_enddef(ncid)) ERR;
-    if (nc_put_vara_float(ncid, varid[4], &data_start[1], &data_count[1], value_pfull_loc)) ERR;
+    if (nc_put_vara_float(ncid, varid[4], &data_start[1], &data_count[1], pfull)) ERR;
     if (nc_redef(ncid)) ERR;
 
     /* Define dimension phalf. This dim is only used by the phalf coord var. */
@@ -135,7 +146,7 @@ write_meta(int ncid, int *data_varid, int s, int f, int deflate, int *dim_len, s
     if (nc_def_var(ncid, var_name[5], var_type[5], 1, &dimid[3], &varid[5])) ERR;
     if (nc_var_par_access(ncid, varid[5], NC_INDEPENDENT)) ERR;
     if (nc_enddef(ncid)) ERR;
-    if (nc_put_vara_float(ncid, varid[5], &phalf_start, &phalf_loc_size, value_phalf_loc)) ERR;
+    if (nc_put_vara_float(ncid, varid[5], &phalf_start, &phalf_size, phalf)) ERR;
     if (nc_redef(ncid)) ERR;
 
     /* Define dimension time, the unlimited dimension. */
@@ -154,22 +165,22 @@ write_meta(int ncid, int *data_varid, int s, int f, int deflate, int *dim_len, s
 
     /* Write variable grid_xt data. */
     if (nc_enddef(ncid)) ERR;
-    if (nc_put_vara_double(ncid, varid[0], &grid_xt_start, &grid_xt_loc_size, value_grid_xt_loc)) ERR;
+    if (nc_put_vara_double(ncid, varid[0], &grid_xt_start, &grid_xt_size, grid_xt)) ERR;
     if (nc_redef(ncid)) ERR;
 
     /* Write lon data. */
     if (nc_enddef(ncid)) ERR;
-    if (nc_put_vara_double(ncid, varid[1], latlon_start, latlon_count, value_lon_loc)) ERR;
+    if (nc_put_vara_double(ncid, varid[1], latlon_start, latlon_count, lon)) ERR;
     if (nc_redef(ncid)) ERR;
 
     /* Write grid_yt data. */
     if (nc_enddef(ncid)) ERR;
-    if (nc_put_vara_double(ncid, varid[2], &grid_yt_start, &grid_yt_loc_size, value_grid_yt_loc)) ERR;
+    if (nc_put_vara_double(ncid, varid[2], &grid_yt_start, &grid_yt_size, grid_yt)) ERR;
     if (nc_redef(ncid)) ERR;
 
     /* Write lat data. */
     if (nc_enddef(ncid)) ERR;
-    if (nc_put_vara_double(ncid, varid[3], latlon_start, latlon_count, value_lat_loc)) ERR;
+    if (nc_put_vara_double(ncid, varid[3], latlon_start, latlon_count, lat)) ERR;
 
     /* Specify dimensions for our data vars. */
     dimid_data[0] = dimid[4];
@@ -230,11 +241,11 @@ write_meta(int ncid, int *data_varid, int s, int f, int deflate, int *dim_len, s
 
 /* Write all the metadata, including coordinate variable data. */
 int
-write_meta2(int ncid, int *data_varid, int s, int f, int deflate, int *dim_len, size_t phalf_loc_size, size_t phalf_start,
-	    float *value_phalf_loc, size_t *data_start, size_t *data_count, float *value_pfull_loc,
-	    size_t grid_xt_start, size_t grid_xt_loc_size, double *value_grid_xt_loc, size_t grid_yt_start,
-	    size_t grid_yt_loc_size, double *value_grid_yt_loc, size_t *latlon_start, size_t *latlon_count,
-	    double *value_lat_loc, double *value_lon_loc, int my_rank)
+write_meta2(int ncid, int *data_varid, int s, int f, int deflate, int *dim_len, size_t phalf_size, size_t phalf_start,
+	    float *phalf, size_t *data_start, size_t *data_count, float *pfull,
+	    size_t grid_xt_start, size_t grid_xt_size, double *grid_xt, size_t grid_yt_start,
+	    size_t grid_yt_size, double *grid_yt, size_t *latlon_start, size_t *latlon_count,
+	    double *lat, double *lon, int my_rank)
 {
     char dim_name[NDIM5][NC_MAX_NAME + 1] = {"grid_xt", "grid_yt", "pfull",
                                              "phalf", "time"};
@@ -289,7 +300,7 @@ write_meta2(int ncid, int *data_varid, int s, int f, int deflate, int *dim_len, 
     if (nc_def_var(ncid, var_name[4], var_type[4], 1, &dimid[2], &varid[4])) ERR;
     if (nc_var_par_access(ncid, varid[4], NC_INDEPENDENT)) ERR;
     if (nc_enddef(ncid)) ERR;
-    if (nc_put_vara_float(ncid, varid[4], &data_start[1], &data_count[1], value_pfull_loc)) ERR;
+    if (nc_put_vara_float(ncid, varid[4], &data_start[1], &data_count[1], pfull)) ERR;
     if (nc_redef(ncid)) ERR;
 
     /* Define dimension phalf. This dim is only used by the phalf coord var. */
@@ -299,7 +310,7 @@ write_meta2(int ncid, int *data_varid, int s, int f, int deflate, int *dim_len, 
     if (nc_def_var(ncid, var_name[5], var_type[5], 1, &dimid[3], &varid[5])) ERR;
     if (nc_var_par_access(ncid, varid[5], NC_INDEPENDENT)) ERR;
     if (nc_enddef(ncid)) ERR;
-    if (nc_put_vara_float(ncid, varid[5], &phalf_start, &phalf_loc_size, value_phalf_loc)) ERR;
+    if (nc_put_vara_float(ncid, varid[5], &phalf_start, &phalf_size, phalf)) ERR;
     if (nc_redef(ncid)) ERR;
 
     /* Define dimension time, the unlimited dimension. */
@@ -318,22 +329,22 @@ write_meta2(int ncid, int *data_varid, int s, int f, int deflate, int *dim_len, 
 
     /* Write variable grid_xt data. */
     if (nc_enddef(ncid)) ERR;
-    if (nc_put_vara_double(ncid, varid[0], &grid_xt_start, &grid_xt_loc_size, value_grid_xt_loc)) ERR;
+    if (nc_put_vara_double(ncid, varid[0], &grid_xt_start, &grid_xt_size, grid_xt)) ERR;
     if (nc_redef(ncid)) ERR;
 
     /* Write lon data. */
     if (nc_enddef(ncid)) ERR;
-    if (nc_put_vara_double(ncid, varid[1], latlon_start, latlon_count, value_lon_loc)) ERR;
+    if (nc_put_vara_double(ncid, varid[1], latlon_start, latlon_count, lon)) ERR;
     if (nc_redef(ncid)) ERR;
 
     /* Write grid_yt data. */
     if (nc_enddef(ncid)) ERR;
-    if (nc_put_vara_double(ncid, varid[2], &grid_yt_start, &grid_yt_loc_size, value_grid_yt_loc)) ERR;
+    if (nc_put_vara_double(ncid, varid[2], &grid_yt_start, &grid_yt_size, grid_yt)) ERR;
     if (nc_redef(ncid)) ERR;
 
     /* Write lat data. */
     if (nc_enddef(ncid)) ERR;
-    if (nc_put_vara_double(ncid, varid[3], latlon_start, latlon_count, value_lat_loc)) ERR;
+    if (nc_put_vara_double(ncid, varid[3], latlon_start, latlon_count, lat)) ERR;
 
     /* Specify dimensions for our data vars. */
     dimid_data[0] = dimid[4];
@@ -700,6 +711,16 @@ main(int argc, char **argv)
 
                     /* Get the file size. */
                     if (get_file_size(FILE_NAME, &file_size)) ERR;
+
+		    /* Check the file for correctness. */
+                    if (nc_open_par(FILE_NAME, NC_NOWRITE, comm, info, &ncid)) ERR;
+		    if (check_meta(ncid, data_varid, s, f, deflate_level[dl],
+				   dim_len, phalf_size, phalf_start, phalf,
+				   data_start, data_count, pfull, grid_xt_start,
+				   grid_xt_size, grid_xt, grid_yt_start,
+				   grid_yt_size, grid_yt, latlon_start,
+				   latlon_count, lat, lon, my_rank)) ERR;
+                    if (nc_close(ncid)) ERR;
 
                     /* Print out results. */
                     if (my_rank == 0)
