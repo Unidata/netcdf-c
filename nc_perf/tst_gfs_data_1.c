@@ -88,7 +88,9 @@ check_meta(int ncid, int *data_varid, int s, int f, int deflate,
     int ndims_in;
     int dimids_in[NDIM4];
     size_t len_in;
-    int d, v;
+    double *grid_xt_in, *grid_yt_in;
+    float *phalf_in, *pfull_in;
+    int d, v, i;
 
     /* Check number of dims, vars, atts. */
     if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
@@ -107,8 +109,40 @@ check_meta(int ncid, int *data_varid, int s, int f, int deflate,
     {
 	if (nc_inq_var(ncid, v, name_in, &xtype_in, &ndims_in, dimids_in,
 		       &natts)) ERR;
-	if (strcmp(name_in, var_name[v])) ERR;
+	if (strcmp(name_in, var_name[v]) || xtype_in != var_type[v]) ERR;
     }
+
+    /* Check the values for grid_xt. */
+    if (!(grid_xt_in = malloc(grid_xt_size * sizeof(double)))) ERR;
+    if (nc_get_var_double(ncid, 0, grid_xt_in)) ERR;
+    for (i = 0; i < grid_xt_size; i++)
+	if (grid_xt_in[i] != grid_xt[i]) ERR;
+    free(grid_xt_in);
+    
+    /* Check the values for lon. */
+
+    /* Check the values for grid_yt. */
+    if (!(grid_yt_in = malloc(grid_yt_size * sizeof(double)))) ERR;
+    if (nc_get_var_double(ncid, 2, grid_yt_in)) ERR;
+    for (i = 0; i < grid_yt_size; i++)
+	if (grid_yt_in[i] != grid_yt[i]) ERR;
+    free(grid_yt_in);
+
+    /* Check the values for lat. */
+
+    /* Check the values for pfull. */
+    if (!(pfull_in = malloc(data_count[1] * sizeof(float)))) ERR;
+    if (nc_get_var_float(ncid, 4, pfull_in)) ERR;
+    for (i = 0; i < data_count[1]; i++)
+	if (pfull_in[i] != pfull[i]) ERR;
+    free(pfull_in);
+
+    /* Check the values for phalf. */
+    if (!(phalf_in = malloc(phalf_size * sizeof(float)))) ERR;
+    if (nc_get_var_float(ncid, 5, phalf_in)) ERR;
+    for (i = 0; i < phalf_size; i++)
+	if (phalf_in[i] != phalf[i]) ERR;
+    free(phalf_in);
     
     return 0;
 }
