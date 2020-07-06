@@ -47,6 +47,15 @@
 #define PHALF_LEN 128
 #define TIME_LEN 1
 
+char dim_name[NDIM5][NC_MAX_NAME + 1] = {"grid_xt", "grid_yt", "pfull",
+					 "phalf", "time"};
+char var_name[NUM_META_VARS][NC_MAX_NAME + 1] = {"grid_xt", "lon", "grid_yt",
+						 "lat", "pfull", "phalf", "time"};
+int var_type[NUM_META_VARS] = {NC_DOUBLE, NC_DOUBLE, NC_DOUBLE, NC_DOUBLE,
+			       NC_FLOAT, NC_FLOAT, NC_DOUBLE};
+int dim_len[NDIM5] = {GRID_XT_LEN, GRID_YT_LEN, PFULL_LEN, PHALF_LEN,
+		      TIME_LEN};
+
 /* Get the size of a file in bytes. */
 int
 get_file_size(char *filename, size_t *file_size)
@@ -66,31 +75,54 @@ get_file_size(char *filename, size_t *file_size)
 
 /* Check all the metadata, including coordinate variable data. */
 int
-check_meta(int ncid, int *data_varid, int s, int f, int deflate, int *dim_len, size_t phalf_size, size_t phalf_start,
-           float *phalf, size_t *data_start, size_t *data_count, float *pfull,
-           size_t grid_xt_start, size_t grid_xt_size, double *grid_xt, size_t grid_yt_start,
-           size_t grid_yt_size, double *grid_yt, size_t *latlon_start, size_t *latlon_count,
-           double *lat, double *lon, int my_rank)
+check_meta(int ncid, int *data_varid, int s, int f, int deflate,
+	   size_t phalf_size, size_t phalf_start, float *phalf, size_t *data_start,
+	   size_t *data_count, float *pfull, size_t grid_xt_start,
+	   size_t grid_xt_size, double *grid_xt, size_t grid_yt_start,
+           size_t grid_yt_size, double *grid_yt, size_t *latlon_start,
+	   size_t *latlon_count, double *lat, double *lon, int my_rank)
 {
+    int ndims, nvars, natts, unlimdimid;
+    char name_in[NC_MAX_NAME + 1];
+    int xtype_in;
+    int ndims_in;
+    int dimids_in[NDIM4];
+    size_t len_in;
+    int d, v;
+
+    /* Check number of dims, vars, atts. */
+    if (nc_inq(ncid, &ndims, &nvars, &natts, &unlimdimid)) ERR;
+    if (ndims != NDIM5 || nvars != NUM_META_VARS + NUM_DATA_VARS ||
+	natts != 0 || unlimdimid != 4) ERR;
+
+    /* Check the dimensions. */
+    for (d = 0; d < NDIM5; d++)
+    {
+	if (nc_inq_dim(ncid, d, name_in, &len_in)) ERR;
+	if (strcmp(name_in, dim_name[d]) || len_in != dim_len[d]) ERR;
+    }
+
+    /* Check metadata vars. */
+    for (v = 0; v < NUM_META_VARS; v++)
+    {
+	if (nc_inq_var(ncid, v, name_in, &xtype_in, &ndims_in, dimids_in,
+		       &natts)) ERR;
+	if (strcmp(name_in, var_name[v])) ERR;
+    }
+    
     return 0;
 }
 
 /* Write all the metadata, including coordinate variable data. */
 int
-write_meta(int ncid, int *data_varid, int s, int f, int deflate, int *dim_len, size_t phalf_size, size_t phalf_start,
+write_meta(int ncid, int *data_varid, int s, int f, int deflate, size_t phalf_size, size_t phalf_start,
            float *phalf, size_t *data_start, size_t *data_count, float *pfull,
            size_t grid_xt_start, size_t grid_xt_size, double *grid_xt, size_t grid_yt_start,
            size_t grid_yt_size, double *grid_yt, size_t *latlon_start, size_t *latlon_count,
            double *lat, double *lon, int my_rank)
 {
-    char dim_name[NDIM5][NC_MAX_NAME + 1] = {"grid_xt", "grid_yt", "pfull",
-                                             "phalf", "time"};
     int dimid[NDIM5];
     int dimid_data[NDIM4];
-    char var_name[NUM_META_VARS][NC_MAX_NAME + 1] = {"grid_xt", "lon", "grid_yt",
-                                                     "lat", "pfull", "phalf", "time"};
-    int var_type[NUM_META_VARS] = {NC_DOUBLE, NC_DOUBLE, NC_DOUBLE, NC_DOUBLE,
-                                   NC_FLOAT, NC_FLOAT, NC_DOUBLE};
     int varid[NUM_META_VARS];
     double value_time = 2.0;
     int dv;
@@ -150,8 +182,8 @@ write_meta(int ncid, int *data_varid, int s, int f, int deflate, int *dim_len, s
     if (nc_redef(ncid)) ERR;
 
     /* Define dimension time, the unlimited dimension. */
-    /* if (nc_def_dim(ncid, dim_name[4], NC_UNLIMITED, &dimid[4])) ERR; */
-    if (nc_def_dim(ncid, dim_name[4], 1, &dimid[4])) ERR;
+    if (nc_def_dim(ncid, dim_name[4], NC_UNLIMITED, &dimid[4])) ERR;
+    /* if (nc_def_dim(ncid, dim_name[4], 1, &dimid[4])) ERR; */
 
     /* Define variable time and write data. */
     if (nc_def_var(ncid, var_name[6], var_type[6], 1, &dimid[4], &varid[6])) ERR;
@@ -241,7 +273,7 @@ write_meta(int ncid, int *data_varid, int s, int f, int deflate, int *dim_len, s
 
 /* Write all the metadata, including coordinate variable data. */
 int
-write_meta2(int ncid, int *data_varid, int s, int f, int deflate, int *dim_len, size_t phalf_size, size_t phalf_start,
+write_meta2(int ncid, int *data_varid, int s, int f, int deflate, size_t phalf_size, size_t phalf_start,
 	    float *phalf, size_t *data_start, size_t *data_count, float *pfull,
 	    size_t grid_xt_start, size_t grid_xt_size, double *grid_xt, size_t grid_yt_start,
 	    size_t grid_yt_size, double *grid_yt, size_t *latlon_start, size_t *latlon_count,
@@ -314,8 +346,8 @@ write_meta2(int ncid, int *data_varid, int s, int f, int deflate, int *dim_len, 
     if (nc_redef(ncid)) ERR;
 
     /* Define dimension time, the unlimited dimension. */
-    /* if (nc_def_dim(ncid, dim_name[4], NC_UNLIMITED, &dimid[4])) ERR; */
-    if (nc_def_dim(ncid, dim_name[4], 1, &dimid[4])) ERR;
+    if (nc_def_dim(ncid, dim_name[4], NC_UNLIMITED, &dimid[4])) ERR;
+    /* if (nc_def_dim(ncid, dim_name[4], 1, &dimid[4])) ERR; */
 
     /* Define variable time and write data. */
     if (nc_def_var(ncid, var_name[6], var_type[6], 1, &dimid[4], &varid[6])) ERR;
@@ -594,8 +626,6 @@ main(int argc, char **argv)
     int ncid;
     size_t latlon_start[NDIM2], latlon_count[NDIM2];
     size_t data_start[NDIM4], data_count[NDIM4];
-    int dim_len[NDIM5] = {GRID_XT_LEN, GRID_YT_LEN, PFULL_LEN, PHALF_LEN,
-                          TIME_LEN};
 
     /* Variables. */
     int data_varid[NUM_DATA_VARS];
@@ -673,7 +703,7 @@ main(int argc, char **argv)
 		    if (meta)
 		    {
 			if (write_meta2(ncid, data_varid, s, f, deflate_level[dl],
-					dim_len, phalf_size, phalf_start, phalf,
+					phalf_size, phalf_start, phalf,
 					data_start, data_count, pfull, grid_xt_start,
 					grid_xt_size, grid_xt, grid_yt_start,
 					grid_yt_size, grid_yt, latlon_start,
@@ -682,7 +712,7 @@ main(int argc, char **argv)
 		    else
 		    {
 			if (write_meta(ncid, data_varid, s, f, deflate_level[dl],
-				       dim_len, phalf_size, phalf_start, phalf,
+				       phalf_size, phalf_start, phalf,
 				       data_start, data_count, pfull, grid_xt_start,
 				       grid_xt_size, grid_xt, grid_yt_start,
 				       grid_yt_size, grid_yt, latlon_start,
@@ -715,7 +745,7 @@ main(int argc, char **argv)
 		    /* Check the file for correctness. */
                     if (nc_open_par(FILE_NAME, NC_NOWRITE, comm, info, &ncid)) ERR;
 		    if (check_meta(ncid, data_varid, s, f, deflate_level[dl],
-				   dim_len, phalf_size, phalf_start, phalf,
+				   phalf_size, phalf_start, phalf,
 				   data_start, data_count, pfull, grid_xt_start,
 				   grid_xt_size, grid_xt, grid_yt_start,
 				   grid_yt_size, grid_yt, latlon_start,
