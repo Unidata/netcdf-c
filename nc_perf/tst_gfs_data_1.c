@@ -89,7 +89,7 @@ check_meta(int ncid, int *data_varid, int s, int f, int deflate,
     int dimids_in[NDIM4];
     size_t len_in;
     double *grid_xt_in, *grid_yt_in;
-    double *lat_in, lon_in;
+    double *lat_in, *lon_in;
     float *phalf_in, *pfull_in;
     int d, v, i;
 
@@ -123,8 +123,8 @@ check_meta(int ncid, int *data_varid, int s, int f, int deflate,
     /* Check the values for lon. */
     if (!(lon_in = malloc(latlon_count[0] * latlon_count[1] * sizeof(double)))) ERR;
     if (nc_get_vara_double(ncid, 1, latlon_start, latlon_count, lon_in)) ERR;
-    /* for (i = 0; i < grid_yt_size; i++) */
-    /* 	if (grid_yt_in[i] != grid_yt[i]) ERR; */
+    for (i = 0; i < latlon_count[0] * latlon_count[1]; i++)
+    	if (lon_in[i] != lon[i]) ERR;
     free(lon_in);
 
     /* Check the values for grid_yt. */
@@ -135,6 +135,11 @@ check_meta(int ncid, int *data_varid, int s, int f, int deflate,
     free(grid_yt_in);
 
     /* Check the values for lat. */
+    if (!(lat_in = malloc(latlon_count[0] * latlon_count[1] * sizeof(double)))) ERR;
+    if (nc_get_vara_double(ncid, 1, latlon_start, latlon_count, lat_in)) ERR;
+    for (i = 0; i < latlon_count[0] * latlon_count[1]; i++)
+    	if (lat_in[i] != lat[i]) ERR;
+    free(lat_in);
 
     /* Check the values for pfull. */
     if (!(pfull_in = malloc(data_count[1] * sizeof(float)))) ERR;
