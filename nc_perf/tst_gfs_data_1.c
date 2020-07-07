@@ -89,6 +89,7 @@ check_meta(int ncid, int *data_varid, int s, int f, int deflate,
     int dimids_in[NDIM4];
     size_t len_in;
     double *grid_xt_in, *grid_yt_in;
+    double *lat_in, lon_in;
     float *phalf_in, *pfull_in;
     int d, v, i;
 
