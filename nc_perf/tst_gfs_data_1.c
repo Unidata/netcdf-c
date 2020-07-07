@@ -27,16 +27,13 @@
 #define NDIM4 4
 #define NDIM5 5
 #define NUM_PROC 4
-/* #define NUM_SHUFFLE_SETTINGS 2 */
-#define NUM_SHUFFLE_SETTINGS 1
+#define NUM_SHUFFLE_SETTINGS 2
 #ifdef HAVE_H5Z_SZIP
-#define NUM_COMPRESSION_FILTERS 1
-/* #define NUM_COMPRESSION_FILTERS 2 */
+#define NUM_COMPRESSION_FILTERS 2
 #else
 #define NUM_COMPRESSION_FILTERS 1
 #endif
-/* #define NUM_DEFLATE_LEVELS 3 */
-#define NUM_DEFLATE_LEVELS 1
+#define NUM_DEFLATE_LEVELS 3
 #define THOUSAND 1000
 #define NUM_DATA_VARS 10
 #define ERR_AWFUL 1
@@ -685,8 +682,7 @@ main(int argc, char **argv)
     double *lon = NULL;
     double *lat = NULL;
     float *value_data;
-    /* int deflate_level[NUM_DEFLATE_LEVELS] = {1, 4, 9}; */
-    int deflate_level[NUM_DEFLATE_LEVELS] = {1};
+    int deflate_level[NUM_DEFLATE_LEVELS] = {1, 4, 9};
 
     int f, s, meta;
     int i, j, k, dv, dl;
@@ -724,8 +720,8 @@ main(int argc, char **argv)
     if (my_rank == 0)
     {
         printf("Benchmarking creation of UFS file.\n");
-        printf("meta, comp, level, shuffle, meta wr time (s), data wr time (s), "
-	       "file size\n");
+        printf("meta, comp, level, shuffle, meta wr time (s), data wr rate (MB/s), "
+	       "file size (MB)\n");
     }
     for (meta = 0; meta < NUM_META_TRIES; meta++)
     {
@@ -788,7 +784,7 @@ main(int argc, char **argv)
                     /* Get the file size. */
                     if (get_file_size(FILE_NAME, &file_size)) ERR;
 
-		    /* Check the file for correctness. */
+		    /* Check the file metadata for correctness. */
                     if (nc_open_par(FILE_NAME, NC_NOWRITE, comm, info, &ncid)) ERR;
 		    if (check_meta(ncid, data_varid, s, f, deflate_level[dl],
 				   phalf_size, phalf_start, phalf,
@@ -800,9 +796,17 @@ main(int argc, char **argv)
 
                     /* Print out results. */
                     if (my_rank == 0)
-                        printf("%d, %s, %d, %d, %g, %g, %ld\n", meta, (f ? "szip" : "zlib"),
-			       deflate_level[dl], s, meta_stop_time - meta_start_time,
-                               data_stop_time - data_start_time, file_size);
+		    {
+			float data_size, data_rate;
+			data_size = NUM_DATA_VARS * dim_len[0] * dim_len[1] *
+			    dim_len[3] * sizeof(float)/1000000;
+			data_rate = data_size / (data_stop_time - data_start_time);
+                        printf("%d, %s, %d, %d, %g, %g, %g\n", meta,
+			       (f ? "szip" : "zlib"), deflate_level[dl], s,
+			       meta_stop_time - meta_start_time, data_rate,
+			       (float)file_size/1000000);
+		    }
+                    MPI_Barrier(MPI_COMM_WORLD);
                 } /* next deflate level */
             } /* next shuffle filter test */
         } /* next compression filter (zlib and szip) */
