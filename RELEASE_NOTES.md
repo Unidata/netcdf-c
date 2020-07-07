@@ -7,7 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.8.0 - TBD
 
-* [Enhancement] Added new benchmark program nc_perf/tst_gfs_data_1.c, built only when --enable-benchmarks is in configure. See [https://github.com/Unidata/netcdf-c/pull/1777].
+* [Enhancement] Added new parallel I/O benchmark program to mimic NOAA UFS data writes, built when --enable-benchmarks is in configure. See [https://github.com/Unidata/netcdf-c/pull/1777].
 * [Bug Fix] Now allow szip to be used on variables with unlimited dimension [https://github.com/Unidata/netcdf-c/issues/1774].
 * [Enhancement] Add support for cloud storage using a variant of the Zarr storage format. Warning: this feature is highly experimental and is subject to rapid evolution [https://www.unidata.ucar.edu/blogs/developer/en/entry/overview-of-zarr-support-in].
 * [Bug Fix] Fix nccopy to properly set default chunking parameters when not otherwise specified. This can significantly improve performance in selected cases. Note that if seeing slow performance with nccopy, then, as a work-around, specifically set the chunking parameters. [https://github.com/Unidata/netcdf-c/issues/1763].
