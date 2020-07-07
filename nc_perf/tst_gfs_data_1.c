@@ -121,7 +121,11 @@ check_meta(int ncid, int *data_varid, int s, int f, int deflate,
     free(grid_xt_in);
     
     /* Check the values for lon. */
-    
+    if (!(lon_in = malloc(latlon_count[0] * latlon_count[1] * sizeof(double)))) ERR;
+    if (nc_get_vara_double(ncid, 1, latlon_start, latlon_count, lon_in)) ERR;
+    /* for (i = 0; i < grid_yt_size; i++) */
+    /* 	if (grid_yt_in[i] != grid_yt[i]) ERR; */
+    free(lon_in);
 
     /* Check the values for grid_yt. */
     if (!(grid_yt_in = malloc(grid_yt_size * sizeof(double)))) ERR;
