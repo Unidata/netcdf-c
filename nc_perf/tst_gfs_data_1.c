@@ -115,12 +115,13 @@ check_meta(int ncid, int *data_varid, int s, int f, int deflate,
 
     /* Check the values for grid_xt. */
     if (!(grid_xt_in = malloc(grid_xt_size * sizeof(double)))) ERR;
-    if (nc_get_var_double(ncid, 0, grid_xt_in)) ERR;
+    if (nc_get_vara_double(ncid, 0, &grid_xt_start, &grid_xt_size, grid_xt_in)) ERR;
     for (i = 0; i < grid_xt_size; i++)
 	if (grid_xt_in[i] != grid_xt[i]) ERR;
     free(grid_xt_in);
     
     /* Check the values for lon. */
+    
 
     /* Check the values for grid_yt. */
     if (!(grid_yt_in = malloc(grid_yt_size * sizeof(double)))) ERR;
