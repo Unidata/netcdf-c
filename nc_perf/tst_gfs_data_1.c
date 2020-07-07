@@ -125,7 +125,7 @@ check_meta(int ncid, int *data_varid, int s, int f, int deflate,
 
     /* Check the values for grid_yt. */
     if (!(grid_yt_in = malloc(grid_yt_size * sizeof(double)))) ERR;
-    if (nc_get_var_double(ncid, 2, grid_yt_in)) ERR;
+    if (nc_get_vara_double(ncid, 2, &grid_yt_start, &grid_yt_size, grid_yt_in)) ERR;
     for (i = 0; i < grid_yt_size; i++)
 	if (grid_yt_in[i] != grid_yt[i]) ERR;
     free(grid_yt_in);
@@ -134,14 +134,14 @@ check_meta(int ncid, int *data_varid, int s, int f, int deflate,
 
     /* Check the values for pfull. */
     if (!(pfull_in = malloc(data_count[1] * sizeof(float)))) ERR;
-    if (nc_get_var_float(ncid, 4, pfull_in)) ERR;
+    if (nc_get_vara_float(ncid, 4, &data_start[1], &data_count[1], pfull_in)) ERR;
     for (i = 0; i < data_count[1]; i++)
 	if (pfull_in[i] != pfull[i]) ERR;
     free(pfull_in);
 
     /* Check the values for phalf. */
     if (!(phalf_in = malloc(phalf_size * sizeof(float)))) ERR;
-    if (nc_get_var_float(ncid, 5, phalf_in)) ERR;
+    if (nc_get_vara_float(ncid, 5, &phalf_start, &phalf_size, phalf_in)) ERR;
     for (i = 0; i < phalf_size; i++)
 	if (phalf_in[i] != phalf[i]) ERR;
     free(phalf_in);
@@ -151,11 +151,12 @@ check_meta(int ncid, int *data_varid, int s, int f, int deflate,
 
 /* Write all the metadata, including coordinate variable data. */
 int
-write_meta(int ncid, int *data_varid, int s, int f, int deflate, size_t phalf_size, size_t phalf_start,
-           float *phalf, size_t *data_start, size_t *data_count, float *pfull,
-           size_t grid_xt_start, size_t grid_xt_size, double *grid_xt, size_t grid_yt_start,
-           size_t grid_yt_size, double *grid_yt, size_t *latlon_start, size_t *latlon_count,
-           double *lat, double *lon, int my_rank)
+write_meta(int ncid, int *data_varid, int s, int f, int deflate,
+	   size_t phalf_size, size_t phalf_start, float *phalf, size_t *data_start,
+	   size_t *data_count, float *pfull, size_t grid_xt_start,
+	   size_t grid_xt_size, double *grid_xt, size_t grid_yt_start,
+	   size_t grid_yt_size, double *grid_yt, size_t *latlon_start,
+	   size_t *latlon_count, double *lat, double *lon, int my_rank)
 {
     int dimid[NDIM5];
     int dimid_data[NDIM4];
