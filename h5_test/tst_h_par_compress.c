@@ -69,6 +69,7 @@ main(int argc, char **argv)
         printf("*** Creating file for parallel I/O read with compression, and rereading it...");
     {
         hid_t fapl_id, fileid, whole_spaceid, dsid, slice_spaceid, whole_spaceid1, xferid;
+	hid_t plistid;
         hsize_t start[NDIMS], count[NDIMS];
         hsize_t dims[1];
         int data[SC1], data_in[SC1];
@@ -104,8 +105,10 @@ main(int argc, char **argv)
         if ((whole_spaceid = H5Screate_simple(NDIMS, dims, NULL)) < 0) ERR;
 
         /* Create dataset. */
+	if ((plistid = H5Pcreate(H5P_DATASET_CREATE)) < 0) ERR;
+	
         if ((dsid = H5Dcreate2(fileid, VAR_NAME, H5T_NATIVE_INT,
-                               whole_spaceid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
+                               whole_spaceid, H5P_DEFAULT, plistid, H5P_DEFAULT)) < 0) ERR;
 
         /* Use collective write operations. */
         if ((xferid = H5Pcreate(H5P_DATASET_XFER)) < 0) ERR;
@@ -157,6 +160,7 @@ main(int argc, char **argv)
             H5Sclose(whole_spaceid) < 0 ||
             H5Sclose(slice_spaceid) < 0 ||
             H5Pclose(fapl_id) < 0 ||
+            H5Pclose(plistid) < 0 ||
             H5Fclose(fileid) < 0)
             ERR;
 
