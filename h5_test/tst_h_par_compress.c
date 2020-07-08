@@ -71,13 +71,14 @@ main(int argc, char **argv)
         hid_t fapl_id, fileid, whole_spaceid, dsid, slice_spaceid, whole_spaceid1, xferid;
 	hid_t plistid;
         hsize_t start[NDIMS], count[NDIMS];
-        hsize_t dims[1];
+        hsize_t dims[1], chunksize = SC1;
         int data[SC1], data_in[SC1];
         int num_steps;
         double ftime;
         int write_us, read_us;
         int max_write_us, max_read_us;
         float write_rate, read_rate;
+	int deflate_level = 4;
         int i, s;
 
         /* We will write the same slice of random data over and over to
@@ -104,9 +105,26 @@ main(int argc, char **argv)
         dims[0] = DIM2_LEN;
         if ((whole_spaceid = H5Screate_simple(NDIMS, dims, NULL)) < 0) ERR;
 
-        /* Create dataset. */
+        /* Create property list for dataset. */
 	if ((plistid = H5Pcreate(H5P_DATASET_CREATE)) < 0) ERR;
 	
+	/* Turn off object tracking times in HDF5 (as is done in nc4hdf.c). */
+	if (H5Pset_obj_track_times(plistid, 0) < 0) ERR;
+	
+        /* Required to truly turn HDF5 fill values off */
+        if (H5Pset_fill_time(plistid, H5D_FILL_TIME_NEVER) < 0) ERR;
+	
+        /* if (H5Pset_shuffle(plistid) < 0) */
+	if (H5Pset_deflate(plistid, deflate_level) < 0) ERR;
+
+	/* Set chunking. */
+	if (H5Pset_chunk(plistid, NDIMS, &chunksize) < 0) ERR;
+
+	/* Turn on creation order tracking. */
+	if (H5Pset_attr_creation_order(plistid, H5P_CRT_ORDER_TRACKED|
+				       H5P_CRT_ORDER_INDEXED) < 0) ERR;
+	
+        /* Create dataset. */
         if ((dsid = H5Dcreate2(fileid, VAR_NAME, H5T_NATIVE_INT,
                                whole_spaceid, H5P_DEFAULT, plistid, H5P_DEFAULT)) < 0) ERR;
 
