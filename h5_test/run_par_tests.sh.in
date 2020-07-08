@@ -17,4 +17,10 @@ echo "Testing parallel I/O with HDF5..."
 @MPIEXEC@ -n 4 ./tst_h_par
 echo "SUCCESS!!!"
 
+echo "Testing parallel I/O with HDF5 and compression..."
+@MPIEXEC@ -n 1 ./tst_h_par_compress
+@MPIEXEC@ -n 2 ./tst_h_par_compress
+@MPIEXEC@ -n 4 ./tst_h_par_compress
+echo "SUCCESS!!!"
+
 exit 0
