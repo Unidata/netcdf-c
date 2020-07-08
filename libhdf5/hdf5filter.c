@@ -206,7 +206,10 @@ NC4_filter_actions(int ncid, int varid, int op, void* args)
     size_t nfilters = 0;
     char* idx = NULL;
     NC_FILTERX_SPEC* oldspec = NULL;
-    int havedeflate, haveszip;
+    int haveszip;
+#ifdef HAVE_H5Z_SZIP
+    int havedeflate;
+#endif /* HAVE_H5Z_SZIP */
 
     LOG((2, "%s: ncid 0x%x varid %d op=%d", __func__, ncid, varid, op));
 
@@ -252,12 +255,14 @@ NC4_filter_actions(int ncid, int varid, int op, void* args)
 	}
 	/* See if deflate &/or szip is defined */
 	if((stat = NC_cvtI2X_id(H5Z_FILTER_DEFLATE,&idx,0))) goto done;
+#ifdef HAVE_H5Z_SZIP
 	switch ((stat = NC4_filterx_lookup(var,idx,NULL))) {
 	case NC_NOERR: havedeflate = 1; break;
 	case NC_ENOFILTER: havedeflate = 0; break;	
 	default: goto done;
 	}
 	nullfree(idx); idx = NULL;
+#endif /* HAVE_H5Z_SZIP */
 	if((stat = NC_cvtI2X_id(H5Z_FILTER_SZIP,&idx,0))) goto done;
 	switch ((stat = NC4_filterx_lookup(var,idx,NULL))) {
 	case NC_NOERR: haveszip = 1; break;
