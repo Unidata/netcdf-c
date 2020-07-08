@@ -54,10 +54,6 @@ main(int argc, char **argv)
 	    hsize_t dims[1], chunksize = SC1;
 	    int data[SC1], data_in[SC1];
 	    int num_steps;
-	    double ftime;
-	    int write_us, read_us;
-	    int max_write_us, max_read_us;
-	    float write_rate, read_rate;
 	    int deflate_level = 4;
 	    int i, s;
 
@@ -117,7 +113,6 @@ main(int argc, char **argv)
 	    if (H5Pset_dxpl_mpio(xferid, H5FD_MPIO_COLLECTIVE) < 0) ERR;
 
 	    /* Write the data in num_step steps. */
-	    ftime = MPI_Wtime();
 	    num_steps = (DIM2_LEN/SC1) / p;
 	    for (s = 0; s < num_steps; s++)
 	    {
@@ -130,13 +125,6 @@ main(int argc, char **argv)
 		if (H5Dwrite(dsid, H5T_NATIVE_INT, slice_spaceid, whole_spaceid,
 			     xferid, data) < 0) ERR;
 
-	    }
-	    write_us = (MPI_Wtime() - ftime) * MILLION;
-	    MPI_Reduce(&write_us, &max_write_us, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
-	    if (!my_rank)
-	    {
-		write_rate = (float)(DIM2_LEN * sizeof(int))/(float)max_write_us;
-		printf("\np=%d, write_rate=%g", p, write_rate);
 	    }
 
 	    /* Close. These collective operations will allow every process
@@ -165,8 +153,6 @@ main(int argc, char **argv)
 	    if ((dsid = H5Dopen(fileid, VAR_NAME)) < 0) ERR;
 	    if ((whole_spaceid1 = H5Dget_space(dsid)) < 0) ERR;
 
-	    ftime = MPI_Wtime();
-
 	    /* Read the data, a slice at a time. */
 	    for (s = 0; s < num_steps; s++)
 	    {
@@ -194,13 +180,6 @@ main(int argc, char **argv)
 			ERR;
 			return 2;
 		    }
-	    }
-	    read_us = (MPI_Wtime() - ftime) * MILLION;
-	    MPI_Reduce(&read_us, &max_read_us, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
-	    if (!my_rank)
-	    {
-		read_rate = (float)(DIM2_LEN * sizeof(int))/(float)max_read_us;
-		printf(", read_rate=%g\n", read_rate);
 	    }
 
 	    /* Close down. */
