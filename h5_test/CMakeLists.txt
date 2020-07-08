@@ -22,5 +22,6 @@ ENDFOREACH()
 
 IF(TEST_PARALLEL4)
   build_bin_test(tst_h_par)
+  build_bin_test(tst_h_par_compress)
   add_sh_test(h5_test run_par_tests)
 ENDIF()
