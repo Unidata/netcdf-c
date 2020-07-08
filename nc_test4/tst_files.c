@@ -501,6 +501,16 @@ test_redef(int format)
    if (nc_enddef(ncid)) ERR;
    if (nc_redef(ncid)) ERR;
 
+   /* NetCDF/HDF5 files ignore the repeated redef(). */
+   if (format != NC_FORMAT_NETCDF4)
+   {
+       if (nc_redef(ncid) != NC_EINDEFINE) ERR;
+   }
+   else
+   {
+       if (nc_redef(ncid)) ERR;
+   }
+   
    /* Close it up. */
    if (format != NC_FORMAT_NETCDF4)
       if (nc_enddef(ncid)) ERR;
