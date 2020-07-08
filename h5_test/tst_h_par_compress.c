@@ -66,7 +66,7 @@ main(int argc, char **argv)
     /* For builds with HDF5 prior to 1.10.3, just return success. */
 #ifdef HDF5_SUPPORTS_PAR_FILTERS
     if (!my_rank)
-        printf("*** Creating file for parallel I/O read, and rereading it...");
+        printf("*** Creating file for parallel I/O read with compression, and rereading it...");
     {
         hid_t fapl_id, fileid, whole_spaceid, dsid, slice_spaceid, whole_spaceid1, xferid;
         hsize_t start[NDIMS], count[NDIMS];
@@ -104,8 +104,8 @@ main(int argc, char **argv)
         if ((whole_spaceid = H5Screate_simple(NDIMS, dims, NULL)) < 0) ERR;
 
         /* Create dataset. */
-        if ((dsid = H5Dcreate1(fileid, VAR_NAME, H5T_NATIVE_INT,
-                               whole_spaceid, H5P_DEFAULT)) < 0) ERR;
+        if ((dsid = H5Dcreate2(fileid, VAR_NAME, H5T_NATIVE_INT,
+                               whole_spaceid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
 
         /* Use collective write operations. */
         if ((xferid = H5Pcreate(H5P_DATASET_XFER)) < 0) ERR;
