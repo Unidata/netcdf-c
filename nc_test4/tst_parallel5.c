@@ -322,8 +322,7 @@ main(int argc, char **argv)
     {
         /* This test is related to
          * https://github.com/Unidata/netcdf-c/issues/1715. */
-        int ncid, varid;
-        int test_data_in, test_data = 42;
+        int ncid;
         size_t size, nelems;
         float preemption;
 

@@ -7,6 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.8.0 - TBD
 
+* [Enhancement] Added new test for using compression with parallel I/O: nc_test4/tst_h_par_compress.c. See [https://github.com/Unidata/netcdf-c/pull/1784].
 * [Bug Fix] Now allow szip to be used on variables with unlimited dimension [https://github.com/Unidata/netcdf-c/issues/1774].
 * [Enhancement] Add support for cloud storage using a variant of the Zarr storage format. Warning: this feature is highly experimental and is subject to rapid evolution [https://www.unidata.ucar.edu/blogs/developer/en/entry/overview-of-zarr-support-in].
 * [Bug Fix] Fix nccopy to properly set default chunking parameters when not otherwise specified. This can significantly improve performance in selected cases. Note that if seeing slow performance with nccopy, then, as a work-around, specifically set the chunking parameters. [https://github.com/Unidata/netcdf-c/issues/1763].
