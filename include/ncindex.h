@@ -15,7 +15,6 @@ See COPYRIGHT for license information.
 
 #include "nclist.h"
 #include "nchashmap.h" /* Also includes name map and id map */
-#include "ncexternl.h"
 
 /* Forward (see nc4internal.h)*/
 struct NC_OBJ;
@@ -45,50 +44,50 @@ typedef struct NCindex {
 } NCindex;
 
 /* Locate object by name in an NCindex */
-EXTERNL struct NC_OBJ* ncindexlookup(NCindex* index, const char* name);
+extern struct NC_OBJ* ncindexlookup(NCindex* index, const char* name);
 
 /* Get ith object in the index vector */
-EXTERNL struct NC_OBJ* ncindexith(NCindex* index, size_t i);
+extern struct NC_OBJ* ncindexith(NCindex* index, size_t i);
 
 /* See if x is contained in the index and return its vector permission*/
-EXTERNL int ncindexfind(NCindex* index, struct NC_OBJ* o);
+extern int ncindexfind(NCindex* index, struct NC_OBJ* o);
 
 /* Add object to the end of the vector, also insert into the hashmaps; */
 /* Return 1 if ok, 0 otherwise.*/
-EXTERNL int ncindexadd(NCindex* index, struct NC_OBJ* obj);
+extern int ncindexadd(NCindex* index, struct NC_OBJ* obj);
 
 /* Insert object at ith position of the vector, also insert into the hashmaps; */
 /* Return 1 if ok, 0 otherwise.*/
-EXTERNL int ncindexset(NCindex* index, size_t i, struct NC_OBJ* obj);
+extern int ncindexset(NCindex* index, size_t i, struct NC_OBJ* obj);
 
 /* Get a copy of the vector contents */
-EXTERNL struct NC_OBJ** ncindexdup(NCindex* index);
+extern struct NC_OBJ** ncindexdup(NCindex* index);
 
 /* Count the non-null entries in an NCindex */
-EXTERNL int ncindexcount(NCindex* index);
+extern int ncindexcount(NCindex* index);
 
 /* Rebuild index using all objects in the vector */
 /* Return 1 if ok, 0 otherwise.*/
-EXTERNL int ncindexrebuild(NCindex* index);
+extern int ncindexrebuild(NCindex* index);
 
 /* "Remove" ith object from the index;
     WARNING: Replaces it with NULL in the list.
 */
 /* Return 1 if ok, 0 otherwise.*/
-EXTERNL int ncindexidel(NCindex* index,size_t i);
+extern int ncindexidel(NCindex* index,size_t i);
 
 /* Free an index. */
 /* Return 1 if ok; 0 otherwise */
-EXTERNL int ncindexfree(NCindex* index);
+extern int ncindexfree(NCindex* index);
 
 /* Create an index: size == 0 => use defaults */
 /* Return index if ok; NULL otherwise */
-EXTERNL NCindex* ncindexnew(size_t initsize);
+extern NCindex* ncindexnew(size_t initsize);
 
-EXTERNL int ncindexverify(NCindex* lm, int dump);
+extern int ncindexverify(NCindex* lm, int dump);
 
 /* Lookup object in index; return NULL if not found */
-EXTERNL struct NC_OBJ* ncindexlookup(NCindex*, const char* name);
+extern struct NC_OBJ* ncindexlookup(NCindex*, const char* name);
 
 /* Inline functions */
 
