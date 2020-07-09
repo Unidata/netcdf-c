@@ -425,9 +425,10 @@ NC4_redef(int ncid)
         return retval;
     assert(nc4_info);
 
-    /* If we're already in define mode, return an error. */
+    /* If we're already in define mode, return an error for classic
+     * files, or netCDF/HDF5 files when classic mode is in use. */
     if (nc4_info->flags & NC_INDEF)
-        return NC_EINDEFINE;
+	return (nc4_info->cmode & NC_CLASSIC_MODEL) ? NC_EINDEFINE : NC_NOERR;
 
     /* If the file is read-only, return an error. */
     if (nc4_info->no_write)
