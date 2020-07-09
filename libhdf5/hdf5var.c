@@ -1556,6 +1556,7 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
         start[i] = startp[i];
         count[i] = countp ? countp[i] : var->dim[i]->len;
         stride[i] = stridep ? stridep[i] : 1;
+	LOG((4, "start[%d] %ld count[%d] %ld stride[%d] %ld", i, start[i], i, count[i], i, stride[i]));
 
         /* Check to see if any counts are zero. */
         if (!count[i])
