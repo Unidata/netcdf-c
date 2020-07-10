@@ -104,7 +104,7 @@ main(int argc, char** argv)
         fflush(stderr);
 #endif
 	memset(chunkdata,0,sizeof(int)*chunkprod);
-#if 1
+#ifdef HDF5_SUPPORTS_PAR_FILTERS
         if(H5Dread_chunk(datasetid, dxpl_id, offset, &filter_mask, chunkdata) < 0) abort();
 	for(r=0;r<rank;r++)
             printf("[%lu/%lu]",(unsigned long)odom->index[r],(unsigned long)offset[r]);
