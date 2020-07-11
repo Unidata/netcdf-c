@@ -189,7 +189,7 @@ sbuf_cat(safebuf_t *sb, const char *s2) {
     assert(SAFEBUF_CHECK(sb));
     s2len = strlen(s2);
     sbuf_grow(sb, 1 + sb->cl + s2len);
-    res = strlcat(sb->buf + sb->cl, s2, sb->len);
+    res = strlcat(sb->buf + sb->cl, s2, sb->len - sb->cl);
     assert( res < sb->len );
     sb->cl += s2len;
     assert(SAFEBUF_CHECK(sb));
@@ -205,7 +205,7 @@ sbuf_catb(safebuf_t *s1, const safebuf_t *s2) {
     assert(SAFEBUF_CHECK(s2));
     s2len = sbuf_len(s2);
     sbuf_grow(s1, 1 + s1->cl + s2len);
-    res = strlcat(s1->buf + s1->cl, s2->buf, s1->len);
+    res = strlcat(s1->buf + s1->cl, s2->buf, s1->len - s1->cl);
     assert( res < s1->len );
     s1->cl += s2len;
     assert(SAFEBUF_CHECK(s1));
