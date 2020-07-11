@@ -2,8 +2,8 @@
    Copyright 2018 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
-   Test internal netcdf-4 file code.
-   $Id$
+   Test memory use of a netCDF-4 file with unlimited dimensions.
+   Ed Hartnett
 */
 
 #include <config.h>
