@@ -817,7 +817,7 @@ main(int argc, char **argv)
     extern int opterr;
     extern char *optarg;
     char file_in[NC_MAX_NAME + 1], file_out[NC_MAX_NAME + 1] = {""};
-    char file_out_2[NC_MAX_NAME + 1];
+    char file_out_2[NC_MAX_NAME + 10 + 1]; /* extra 10 to silence warning */
     int out_format, in_format, header = 0, doublecheck = 0;
     int convert_unlim = 0;
     char *str1, *str2, *token, *subtoken;
@@ -1068,7 +1068,7 @@ main(int argc, char **argv)
     if (doublecheck)
     {
         /* We need a string long enough for the copy command. */
-        char cmd[NC_MAX_NAME * 2 + 5];
+        char cmd[NC_MAX_NAME * 3 + 5];
 
 #ifdef USE_PARALLEL
         MPI_Barrier(MPI_COMM_WORLD);
