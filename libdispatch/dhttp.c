@@ -52,7 +52,7 @@ static void
 Trace(const char* fcn)
 {
     fprintf(stdout,"xxx: %s\n",fcn);
-dbgflush();
+    dbgflush();
 }
 #else
 #define dbgflush()

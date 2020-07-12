@@ -74,6 +74,77 @@ AM_INIT_AUTOMAKE([foreign dist-zip subdir-objects])
 # Check for the existence of this file before proceeding.
 AC_CONFIG_SRCDIR([include/netcdf.h])
 
+AC_MSG_NOTICE([checking supported formats])
+
+# An explicit setting of netcdf-4 | netcdf4 is treated as if it was enable-hdf5
+AC_MSG_CHECKING([whether we should build with netcdf4 (alias for HDF5)])
+AC_ARG_ENABLE([netcdf4], [AS_HELP_STRING([--disable-netcdf4],
+              [(synonym for --enable-hdf5)])])
+test "x$enable_netcdf4" = xno || enable_netcdf4=yes
+AC_MSG_RESULT([$enable_netcdf4])
+AC_MSG_CHECKING([whether we should build with netcdf-4 (alias for HDF5)])
+AC_ARG_ENABLE([netcdf-4], [AS_HELP_STRING([--disable-netcdf-4],
+              [(synonym for --disable-netcdf4)])])
+test "x$enable_netcdf_4" = xno || enable_netcdf_4=yes
+AC_MSG_RESULT([$enable_netcdf_4])
+if test "x$enable_netcdf_4" = xno ; then enable_netcdf4=no; fi
+if test "x$enable_netcdf4" = xno ; then enable_netcdf_4=no; fi
+
+# Does the user want to use HDF5?
+AC_MSG_CHECKING([whether we should build with HDF5])
+AC_ARG_ENABLE([hdf5], [AS_HELP_STRING([--disable-hdf5],
+              [do not build with HDF5])])
+test "x$enable_hdf5" = xno || enable_hdf5=yes
+if test "x$enable_netcdf4" = xno ; then enable_hdf5=no ; fi
+# netcdf4 is synonym for setting hdf5
+AC_MSG_RESULT([$enable_hdf5])
+
+# Check whether we want to enable CDF5 support.
+AC_MSG_CHECKING([whether CDF5 support should be disabled])
+AC_ARG_ENABLE([cdf5],
+              [AS_HELP_STRING([--disable-cdf5],
+                              [build without CDF5 support. @<:@default: auto@:>@])],
+              [enable_cdf5=${enableval}], [enable_cdf5=auto]
+)
+AC_MSG_RESULT($enable_cdf5)
+
+# Does the user want to turn on HDF4 read ability?
+AC_MSG_CHECKING([whether reading of HDF4 SD files is to be enabled])
+AC_ARG_ENABLE([hdf4], [AS_HELP_STRING([--enable-hdf4],
+              [build netcdf with HDF4 read capability (HDF4, HDF5 and zlib required)])])
+test "x$enable_hdf4" = xyes || enable_hdf4=no
+AC_MSG_RESULT($enable_hdf4)
+
+AC_MSG_CHECKING([whether parallel I/O for classic files is to be enabled])
+AC_ARG_ENABLE([pnetcdf], [AS_HELP_STRING([--enable-pnetcdf],
+              [build with parallel I/O for classic files. @<:@default: disabled@:>@])])
+test "x$enable_pnetcdf" = xyes || enable_pnetcdf=no
+AC_MSG_RESULT($enable_pnetcdf)
+
+## Capture the state of the --enable-dap flag => enable dap2+dap4
+AC_MSG_CHECKING([whether DAP client(s) are to be built])
+AC_ARG_ENABLE([dap],
+                 [AS_HELP_STRING([--disable-dap],
+                                 [build without DAP client support.])])
+test "x$enable_dap" = xno || enable_dap=yes
+AC_MSG_RESULT($enable_dap)
+
+AC_MSG_CHECKING([whether netcdf zarr storage format should be enabled])
+AC_ARG_ENABLE([nczarr],
+              [AS_HELP_STRING([--enable-nczarr],
+                              [enable netcdf zarr storage support; requires netCDF-4 and libcurl])])
+test "x$enable_nczarr" = xyes || enable_nczarr=no
+AC_MSG_RESULT($enable_nczarr)
+
+# HDF5 | HDF4 | NCZarr => netcdf-4
+if test "x$enable_hdf5" = xyes || test "x$enable_hdf4" = xyes || test "x$enable_nczarr" = xyes ; then
+enable_netcdf_4=yes
+fi
+AC_MSG_CHECKING([whether netcdf-4 should be forcibly enabled])
+AC_MSG_RESULT([$enable_netcdf_4])
+# Synonym
+enable_netcdf4=${enable_netcdf_4}
+
 AC_MSG_NOTICE([checking user options])
 
 # Did the user specify a default minimum blocksize (NCIO_MINBLOCKSIZE) for posixio?
@@ -203,33 +274,6 @@ test "x$enable_unit_tests" = xno || enable_unit_tests=yes
 AC_MSG_RESULT($enable_unit_tests)
 AM_CONDITIONAL([BUILD_UNIT_TESTS], [test "x$enable_unit_tests" = xyes])
 
-# Does the user want to build netcdf-4?
-AC_MSG_CHECKING([whether we should build netCDF-4])
-AC_ARG_ENABLE([netcdf-4], [AS_HELP_STRING([--disable-netcdf-4],
-              [do not build with netcdf-4 (else HDF5 and zlib required)])])
-test "x$enable_netcdf_4" = xno || enable_netcdf_4=yes
-
-# Synonym
-AC_ARG_ENABLE([netcdf4], [AS_HELP_STRING([--disable-netcdf4],
-              [(just a synonym for --disable-netcdf-4)])])
-test "x$enable_netcdf4" = xno || enable_netcdf4=yesi
-if test "x$enable_netcdf4" = xno ; then
-enable_netcdf_4=no
-fi
-AC_MSG_RESULT([$enable_netcdf_4])
-
-# Does the user want to use HDF5?
-# WARNING: enable_hdf5 does not imply that use_netcdf_4 is enabled
-AC_MSG_CHECKING([whether we should build with HDF5])
-#enable_hdf5=$enable_netcdf_4
-AC_ARG_ENABLE([hdf5], [AS_HELP_STRING([--disable-hdf5],
-              [do not build with HDF5])])
-test "x$enable_hdf5" = xno || enable_hdf5=yes
-if test "x$enable_netcdf_4" = xno ; then
-enable_hdf5=no
-fi
-AC_MSG_RESULT([$enable_hdf5])
-
 # Does the user require dynamic loading?
 # This is only for those hdf5 installs that support it.
 AC_MSG_CHECKING([do we require hdf5 dynamic-loading support])
@@ -238,15 +282,6 @@ AC_ARG_ENABLE([dynamic-loading], [AS_HELP_STRING([--enable-dynamic-loading],
 test "x$enable_dynamic_loading" = xno || enable_dynamic_loading=yes
 AC_MSG_RESULT([$enable_dynamic_loading])
 
-# Does the user want to turn on HDF4 read ability?
-AC_MSG_CHECKING([whether reading of HDF4 SD files is to be enabled])
-AC_ARG_ENABLE([hdf4], [AS_HELP_STRING([--enable-hdf4],
-              [build netcdf-4 with HDF4 read capability (HDF4, HDF5 and zlib required)])])
-test "x$enable_hdf4" = xyes || enable_hdf4=no
-if test "x$enable_hdf4" = xyes -a "x$enable_netcdf_4" = xno; then
-      AC_MSG_ERROR([NetCDF-4 is required for HDF4 features])
-fi
-AC_MSG_RESULT($enable_hdf4)
 
 # Does the user want to turn on extra HDF4 file tests?
 AC_MSG_CHECKING([whether to fetch some sample HDF4 files from Unidata ftp site to test HDF4 reading (requires wget)])
@@ -359,14 +394,6 @@ if test "x$enable_set_log_level_func" = xyes -a "x$enable_netcdf_4" = xyes; then
 fi
 AC_MSG_RESULT($enable_set_log_level_func)
 
-## Capture the state of the --enable-dap flag => enable dap2+dap4
-AC_MSG_CHECKING([whether DAP client(s) are to be built])
-AC_ARG_ENABLE([dap],
-                 [AS_HELP_STRING([--disable-dap],
-                                 [build without DAP client support.])])
-test "x$enable_dap" = xno || enable_dap=yes
-AC_MSG_RESULT($enable_dap)
-
 # We need curl for DAP and byterange
 AC_CHECK_LIB([curl],[curl_easy_setopt],[found_curl=yes],[found_curl=no])
 if test "x$enable_dap" = "xyes" ; then
@@ -441,12 +468,6 @@ AC_MSG_RESULT([$enable_dap_long_tests])
 AM_CONDITIONAL(INTERNAL_OCLIB,[test "x" = "x"])
 
 # Control zarr storage
-AC_MSG_CHECKING([whether netcdf zarr storage format should be enabled])
-AC_ARG_ENABLE([nczarr],
-              [AS_HELP_STRING([--enable-nczarr],
-                              [enable netcdf zarr storage support; requires netCDF-4 and libcurl])])
-test "x$enable_nczarr" = xyes || enable_nczarr=no
-AC_MSG_RESULT($enable_nczarr)
 if test "x$enable_nczarr" = xyes ; then
 if test "x$enable_netcdf_4" = xno ; then
 AC_MSG_ERROR([netCDF-4 disabled, so you must not enable nczarr])
@@ -459,41 +480,36 @@ if test "x$enable_nczarr" = xyes; then
 fi
 AM_CONDITIONAL(ENABLE_NCZARR, [test x$enable_nczarr = xyes])
 
-# Check for the AWS S3 SDK library
-AC_LANG_PUSH([C++])
-AC_SEARCH_LIBS([aws_allocator_is_valid],[aws-c-common aws-cpp-sdk-s3 aws-cpp-sdk-core], [have_aws=yes],[have_aws=no])
-AC_LANG_POP
-AC_MSG_CHECKING([whether AWS S3 SDK library is available])
-AC_MSG_RESULT([$have_aws])
-
-# Check for forced disabling of S3 support
+# Check for enabling S3 support
 AC_MSG_CHECKING([whether netcdf zarr S3 support should be enabled])
 AC_ARG_ENABLE([s3-sdk],
-              [AS_HELP_STRING([--disable-s3-sdk],
-                              [forcibly disable usage of netcdf zarr S3 sdk])])
-test "x$enable_s3_sdk" = xno || enable_s3_sdk=yes
+              [AS_HELP_STRING([--enable-s3-sdk],
+                              [enable netcdf zarr S3 support; make sure to set LDFLAGS])])
+test "x$enable_s3_sdk" = xyes || enable_s3_sdk=no
+have_aws=${enable_s3_sdk}
 AC_MSG_RESULT($enable_s3_sdk)
+if test "x$have_aws" = xyes ; then
+AC_DEFINE([ENABLE_S3_SDK], [1], [If true, then S3 sdk was found])
+fi
+AM_CONDITIONAL(ENABLE_S3_SDK, [test "x$have_aws" = xyes])
 
-if test "x$have_aws" = xno -a "x$enable_s3_sdk" = xno; then
-  have_aws=no
-  enable_s3_sdk=no
-elif test "x$have_aws" = xno -a "x$enable_s3_sdk" = xyes; then
-  AC_MSG_WARN([aws libraries not found, so default to --disable-s3-sdk])
-  have_aws=no
-  enable_s3_sdk=no
-elif test "x$have_aws" = xyes -a "x$enable_s3_sdk" = xno; then
-  AC_MSG_WARN([--disable-s3-sdk overrides presence of aws s3 libraries])
-  have_aws=no
-  enable_s3_sdk=no
-elif test "x$have_aws" = xyes -a "x$enable_s3_sdk" = xyes; then
-  have_aws=yes
-  enable_s3_sdk=yes
+# Check for enabling S3 testing
+AC_MSG_CHECKING([whether netcdf zarr S3 testing should be enabled])
+AC_ARG_ENABLE([s3-tests],
+              [AS_HELP_STRING([--enable-s3-tests],
+                              [enable netcdf zarr S3 testing])])
+test "x$enable_s3_tests" = xyes || enable_s3_tests=no
+AC_MSG_RESULT($enable_s3_tests)
+
+if test "x$have_aws" = xno ; then
+  AC_MSG_WARN([aws libraries not found, so default to --disable-s3-tests])
+  enable_s3_tests=no
 fi
 
-if test "x$enable_s3_sdk" = xyes ; then
-  AC_DEFINE([ENABLE_S3_SDK], [1], [if true, build libnczarr with S3 support enabled])
+if test "x$enable_s3_tests" = xyes ; then
+  AC_DEFINE([ENABLE_S3_TESTS], [1], [if true, build libnczarr with S3 tests enabled])
 fi
-AM_CONDITIONAL(ENABLE_S3_SDK, [test "x$enable_s3_sdk" = xyes])
+AM_CONDITIONAL(ENABLE_S3_TESTS, [test "x$enable_s3_tests" = xyes])
 
 # Check whether we want to enable strict null byte header padding.
 # See https://github.com/Unidata/netcdf-c/issues/657 for more information.
@@ -1031,13 +1047,7 @@ AC_CHECK_SIZEOF(size_t)
 $SLEEPCMD
 AC_CHECK_SIZEOF(unsigned long long)
 
-# Check whether we want to enable CDF5 support.
-AC_MSG_CHECKING([whether CDF5 support should be disabled])
-AC_ARG_ENABLE([cdf5],
-              [AS_HELP_STRING([--disable-cdf5],
-                              [build without CDF5 support. @<:@default: auto@:>@])],
-              [enable_cdf5=${enableval}], [enable_cdf5=auto]
-)
+
 if test "$ac_cv_sizeof_size_t" -lt "8" ; then
    if test "x${enable_cdf5}" = xyes ; then
       dnl unable to support CDF5, but --enable-cdf5 is explicitly set
@@ -1049,7 +1059,6 @@ else
       enable_cdf5=yes
    fi
 fi
-AC_MSG_RESULT($enable_cdf5)
 
 if test "x${enable_cdf5}" = xyes; then
    AC_DEFINE([ENABLE_CDF5], [1], [if true, enable CDF5 Support])
@@ -1228,12 +1237,6 @@ AC_MSG_RESULT($enable_parallel4)
 
 # We have already tested for parallel io in netcdf4
 # parallel I/O for CDF-1, 2, and 5 files can also be done through PnetCDF
-AC_MSG_CHECKING([whether parallel I/O for classic files is to be enabled])
-AC_ARG_ENABLE([pnetcdf], [AS_HELP_STRING([--enable-pnetcdf],
-              [build with parallel I/O for classic files. @<:@default: disabled@:>@])])
-test "x$enable_pnetcdf" = xyes || enable_pnetcdf=no
-AC_MSG_RESULT($enable_pnetcdf)
-
 # See if the PnetCDF lib is available and of the
 # right version (1.6.0 or later)
 if test "x$enable_pnetcdf" = xyes; then
@@ -1386,6 +1389,7 @@ AM_CONDITIONAL(ENABLE_BYTERANGE, [test "x$enable_byterange" = xyes])
 AM_CONDITIONAL(RELAX_COORD_BOUND, [test "xyes" = xyes])
 AM_CONDITIONAL(HAS_PAR_FILTERS, [test x$hdf5_supports_par_filters = xyes ])
 AM_CONDITIONAL(ENABLE_NCZARR, [test "x$enable_nczarr" = xyes])
+AM_CONDITIONAL(HAVE_AWS, [test "x$have_aws" = xyes])
 
 # If the machine doesn't have a long long, and we want netCDF-4, then
 # we've got problems!
@@ -1547,7 +1551,7 @@ AC_SUBST(HAS_BYTERANGE,[$enable_byterange])
 AC_SUBST(RELAX_COORD_BOUND,[yes])
 AC_SUBST([HAS_PAR_FILTERS], [$hdf5_supports_par_filters])
 AC_SUBST(HAS_NCZARR,[$enable_nczarr])
-AC_SUBST(HAS_S3_SDK,[$enable_s3_sdk])
+AC_SUBST(HAS_S3_SDK,[$have_aws])
 
 # Include some specifics for netcdf on windows.
 #AH_VERBATIM([_WIN32_STRICMP],
@@ -1619,7 +1623,8 @@ AX_SET_META([NC_HAS_ERANGE_FILL], [$enable_erange_fill],[yes])
 AX_SET_META([NC_HAS_PAR_FILTERS], [$hdf5_supports_par_filters],[yes])
 AX_SET_META([NC_HAS_BYTERANGE],[$enable_byterange],[yes])
 AX_SET_META([NC_HAS_NCZARR],[$enable_nczarr],[yes])
-AX_SET_META([NC_HAS_NCZARR_S3],[$enable_s3_sdk],[yes])
+AX_SET_META([NC_S3_SDK],[$have_aws],[yes])
+
 AC_SUBST([NC_DISPATCH_VERSION], [2])
 
 #####

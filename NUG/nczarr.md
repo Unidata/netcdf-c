@@ -56,7 +56,9 @@ NCZarr support can be disabled using the _--disable-dap_.
 
 In order to access a NCZarr data source through the netCDF API, the
 file name normally used is replaced with a URL with a specific
-format.
+format. Note specifically that there is no NC_NCZARR flag for
+the mode argument of _nc_create_ or _nc_open_. In this case, it is
+indicated by the URL path.
 
 ## URL Format
 The URL is the usual scheme:://host:port/path?query#fragment format.
@@ -335,51 +337,90 @@ zarr format.
 
 Currently only the following build cases are supported.
 
-Operating System | Supported Build Systems
-------------------------------------------
-Linux            | Automake, CMake
-OS-X             | Automake, CMake
-Visual Studio    | N.A.
+Operating System | Build System | NCZarr       | S3 Support
+-----------------------------------------------------------
+Linux            | Automake     | yes          | yes
+Linux            | CMake        | yes          | yes
+Cygwin           | Automake     | yes          | unknown
+OSX              | Automake     | unknown      | unknown
+OSX              | CMake        | unknown      | unknown
+Visual Studio    | CMake        | yes          | unknown
+
+Note: S3 support includes both compiling the S3 support code as well as running the S3 tests.
+
+# Automake
 
 There are several options relevant to NCZarr support and to Amazon S3 support.
 These are as follows.
 
 1. _--enable-nczarr_ -- enable the NCZarr support. If disabled, then all of the following options are disabled or irrelevant.
-2. &nbsp;&nbsp;_aws-c-common aws-cpp-sdk-s3_ and _aws-cpp-sdk-core_ -- if these libraries are available, then Amazon S3 support is enabled for NCZarr.
-3. _--disable-s3-sdk_ -- even if the aws libraries are available, this option will forcibly disable Amazon S3 support for using them.
+2. _--enable-s3-sdk_ -- enable the use of the aws s3 sdk.
+2. _--enable-s3-tests_ -- the s3 tests are currently only usable by Unidata personnel, so they are disabled by default.
 <!--
-4. '--enable-xarray-dimension' -- this enables the xarray support described in the section on <a href="#nczarr_compatibility">compatibility</a>.
+3. '--enable-xarray-dimension' -- this enables the xarray support described in the section on <a href="#nczarr_compatibility">compatibility</a>.
 -->
 
-The CMake equivalents are as follows:
-* _--enable-nczarr_ => ENABLE_NCZARR=ON
-* _--disable-s3-sdk_ => ENABLE_S3_SDK=OFF
-
-If S3 support is desired, then LDFLAGS should be properly set, namely this.
+A note about using S3 with Automake. Automake does not handle C++ libraries, so
+if S3 support is desired, and using Automake, then LDFLAGS
+must be properly set, namely to this.
 ````
-LDFLAGS="$LDFLAGS -L/usr/local/lib -laws-cpp-sdk-s3 aws-cpp-sdk-core"
+LDFLAGS="$LDFLAGS -L/usr/local/lib -laws-cpp-sdk-s3"
 ````
-The above assumes that these libraries were installed in '/usr/local/lib', so the above
-requires modification if they were installed elsewhere.
+The above assumes that these libraries were installed in
+'/usr/local/lib', so the above requires modification if they
+were installed elsewhere.
 
-Note also that if S3 support is enabled, then you need to have a C++ compiler installed
-because part of the S3 support code is written in C++.
+Note also that if S3 support is enabled, then you need to have a
+C++ compiler installed because part of the S3 support code is
+written in C++.
+
+# CMake
+
+The necessary CMake flags are as follows (with defaults)
+
+1. -DENABLE_NCZARR=on -- equivalent to the Automake _--enable-nczarr_ option.
+2. -DENABLE_S3_SDK=off -- quivalent to the Automake _--enable-s3-sdk_ option.
+3. -DENABLE_S3_TESTS=off -- equivalent to the Automake _--enable-s3-tests_ option.
+
+Note that unlike Automake, CMake can properly locate C++ libraries,
+so it should not be necessary to specify _-laws-cpp-sdk-s3_ assuming
+that the aws s3 libraries are installed in the default location.
+For CMake with Visual Studio, the default location is here:
+````
+C:/Program Files (x86)/aws-cpp-sdk-all
+````
 
 ## Testing S3 Support
 
-Currently testing of S3 with NCzarr is supported only for
+The relevant tests for S3 support are
+_nczarr_test/run_ut_mapapi.sh_ and _nczarr_test/run_it_test2.sh_.
+
+Currently, by default, testing of S3 with NCzarr is supported only for
 Unidata members of the NetCDF Development Group. This is because
 it uses a specific bucket on a specific internal S3 appliance that
 is inaccessible to the general user. This is controlled by
-an environment variable via this shell command:
+the _--enable_s3_tests_ option.
+
+However, an untested mechanism exists by which others may be able
+to run the tests. If someone else wants to attempt these tests, then
+they need to define the environment variable name _NCS3PATH_.
+The form of this variable is as follows:
 ````
-export NETCDF_S3_TESTS=1
+NCS3PATH="https://<host>/<bucket>/<prefix>
 ````
-If that environment variable is set and the aws libraries are
-available, and --enable-s3-sdk is set, then the S3 tests will be
-attempted.  If someone else wants to attempt these tests, then
-they will need to modify the tests
-_nczarr_test/run_ut_mapapi.sh_ and _nczarr_test/run_it_test2.sh_.
+This assumes a Path Style address (see above) where
+* host -- the complete host part of the url
+* bucket -- a bucket in which testing can occur without fear of
+damaging anything.
+* prefix - prefix of the key; the actual root, typically _test_,
+is appended to this to get the root key used by the test.
+
+Example:
+````
+s3.us-west.amazonaws.com/testingbucket/segment1/segment2
+````
+If anyone tries to use this mechanism, it would be appreciated
+it any difficulties were reported to Unidata.
 
 # Appendix B. Building aws-sdk-cpp {#nczarr_s3sdk}
 
@@ -390,8 +431,8 @@ As a starting point, here are the CMake options used by Unidata
 to build that library. It assumes that it is being executed
 in a build directory, `build` say, and that `build/../CMakeLists.txt exists`.
 ```
-cmake -DFORCE_CURL=ON -DBUILD_ONLY=s3 -DMINIMIZE_SIZE=ON -DBUILD_DEPS=OFF -DCMAKE_CXX_STANDARD=14 ..
-```
+cmake -DBUILD_ONLY=s3
+````
 
 The expected set of installed libraries are as follows:
 * aws-cpp-sdk-s3

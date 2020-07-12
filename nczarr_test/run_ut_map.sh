@@ -26,9 +26,9 @@ testmapcreate() {
   deletemap $1 $output
 
   # Create the test file
-  $CMD -k$1 -x create -o ./$output
+  $CMD -k$1 -x create -o $output
   cdl="ut_${tag}_create_${zext}.cdl"
-  dumpmap $zext ./$output ./$cdl
+  dumpmap $zext $output ./$cdl
   diff -wb ${srcdir}/ref_$cdl ./$cdl
   # delete the test file
   $CMD -k$1 -x delete -f $output
@@ -38,7 +38,7 @@ testmapcreate() {
     exit 1
   fi
   # re-create the test file
-  $CMD -k$1 -x create -o ./$output
+  $CMD -k$1 -x create -o $output
 }
 
 testmapmeta() {
@@ -47,14 +47,14 @@ testmapmeta() {
   tag="map"
   file="test$tag.$zext"
 
-  $CMD -k$1 -x writemeta -f ./$file
+  $CMD -k$1 -x writemeta -f $file
   cdl="ut_${tag}_writemeta_${zext}.cdl"
-  dumpmap $zext ./$file ./$cdl
+  dumpmap $zext $file ./$cdl
   diff -wb ${srcdir}/ref_$cdl ./$cdl
 
   $CMD -k$1 -x writemeta2 -o ./$file
   cdl="ut_${tag}_write2meta_${zext}.cdl"
-  dumpmap $zext ./$file ./$cdl
+  dumpmap $zext $file ./$cdl
   diff -wb ${srcdir}/ref_$cdl ./$cdl
 
   output="ut_${tag}_readmeta_$zext.txt"
@@ -68,13 +68,13 @@ testmapdata() {
   tag="map"
   file="test$tag.$zext"
 
-  $CMD -k$1 -x "writedata" -f ./$file
+  $CMD -k$1 -x "writedata" -f $file
   cdl="ut_${tag}_writedata_${zext}.cdl"
-  dumpmap $zext ./$file  ./$cdl
+  dumpmap $zext $file  ./$cdl
   diff -wb ${srcdir}/ref_$cdl ./$cdl
 
   # readata is verification only
-  $CMD -k$1 -x readdata -f ./$file
+  $CMD -k$1 -x readdata -f $file
 }
 
 testmapsearch() {
@@ -85,7 +85,7 @@ testmapsearch() {
 
   txt=ut_${tag}_search_$zext.txt
   rm -f $txt
-  $CMD -k$1 -x "search" -f ./$file > $txt
+  $CMD -k$1 -x "search" -f $file > $txt
   diff -wb ${srcdir}/ref_$txt ./$txt
 }
 

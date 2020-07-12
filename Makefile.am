@@ -99,9 +99,9 @@ endif # BUILD_BENCHMARKS
 
 # Define Test directories
 if BUILD_TESTSETS
-TESTDIRS = $(UNIT_TEST) $(V2_TEST) nc_test $(NC_TEST4)			\
-$(BENCHMARKS_DIR) $(HDF4_TEST_DIR) $(NCDAP2TESTDIR) $(NCDAP4TESTDIR) \
-${ZARR_TEST_DIR}
+TESTDIRS = $(UNIT_TEST) $(V2_TEST) nc_test $(NC_TEST4)
+TESTDIRS += $(BENCHMARKS_DIR) $(HDF4_TEST_DIR) $(NCDAP2TESTDIR) $(NCDAP4TESTDIR)
+TESTDIRS += ${ZARR_TEST_DIR}
 endif
 
 # This is the list of subdirs for which Makefiles will be constructed

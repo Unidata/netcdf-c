@@ -7,6 +7,7 @@
    modified version of nc_test4/tst_chunks.c
 */
 
+#include "ut_includes.h"
 #include "test_nczarr_utils.h"
 
 #define DEBUGNOFILL
@@ -46,7 +47,7 @@ main(int argc, char **argv)
       nc_type xtype_in;
 
       /* Create a netcdf-4 file with three dimensions. */
-      if (nc_create(options.path, NC_NETCDF4, &ncid)) ERR;
+      if (nc_create(itoptions.path, NC_NETCDF4, &ncid)) ERR;
       if (nc_def_dim(ncid, D_SMALL, D_SMALL_LEN, &small_dimid)) ERR;
       if (nc_def_dim(ncid, D_MEDIUM, D_MEDIUM_LEN, &medium_dimid)) ERR;
       if (nc_def_dim(ncid, D_LARGE, D_LARGE_LEN, &large_dimid)) ERR;
@@ -67,7 +68,7 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
 
       /* Open the file and check. */
-      if (nc_open(options.path, NC_WRITE, &ncid)) ERR;
+      if (nc_open(itoptions.path, NC_WRITE, &ncid)) ERR;
       if (nc_inq(ncid, &ndims, &nvars, &ngatts, &unlimdimid)) ERR;
       if (nvars != 3 || ndims != 3 || ngatts != 0 || unlimdimid != -1) ERR;
       if (nc_inq_var(ncid, 0, var_name_in, &xtype_in, &ndims_in, &dimids_in, &natts_in)) ERR;
@@ -102,7 +103,7 @@ main(int argc, char **argv)
       int d, t;
 
       /* Create a netcdf-4 file with NUM_DIM dimensions. */
-      if (nc_create(options.path, NC_NETCDF4, &ncid)) ERR;
+      if (nc_create(itoptions.path, NC_NETCDF4, &ncid)) ERR;
 #ifdef DEBUGNOFILL
 	 if(nc_set_fill(ncid,NC_NOFILL,&d)) ERR;
 #endif
@@ -134,7 +135,7 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
 
       /* Open the file and check. */
-      if (nc_open(options.path, NC_WRITE, &ncid)) ERR;
+      if (nc_open(itoptions.path, NC_WRITE, &ncid)) ERR;
       if (nc_inq(ncid, &ndims, &nvars, &ngatts, &unlimdimid)) ERR;
       if (nvars != NUM_TYPE || ndims != NUM_DIM || ngatts != 0 || unlimdimid == 0) ERR;
 
@@ -171,7 +172,7 @@ main(int argc, char **argv)
       nc_type xtype_in;
 
       /* Create a netcdf-4 file with three dimensions. */
-      if (nc_create(options.path, NC_NETCDF4, &ncid)) ERR;
+      if (nc_create(itoptions.path, NC_NETCDF4, &ncid)) ERR;
       if (nc_def_dim(ncid, D_SMALL, D_SMALL_LEN2, &small_dimid)) ERR;
       if (nc_def_dim(ncid, D_MEDIUM, D_MEDIUM_LEN, &medium_dimid)) ERR;
       if (nc_def_dim(ncid, D_LARGE, D_LARGE_LEN, &large_dimid)) ERR;
@@ -195,7 +196,7 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
 
       /* Open the file and check. */
-      if (nc_open(options.path, NC_WRITE, &ncid)) ERR;
+      if (nc_open(itoptions.path, NC_WRITE, &ncid)) ERR;
       if (nc_inq(ncid, &ndims, &nvars, &ngatts, &unlimdimid)) ERR;
       if (nvars != 3 || ndims != 3 || ngatts != 0 || unlimdimid != -1) ERR;
       if (nc_inq_var(ncid, 0, var_name_in, &xtype_in, &ndims_in, &dimids_in, &natts_in)) ERR;
@@ -233,7 +234,7 @@ main(int argc, char **argv)
       int i, j;
 
       /* Create a netcdf-4 file with three dimensions. */
-      if (nc_create(options.path, NC_NETCDF4, &ncid)) ERR;
+      if (nc_create(itoptions.path, NC_NETCDF4, &ncid)) ERR;
       if (nc_def_dim(ncid, D_SNEAKINESS, D_SNEAKINESS_LEN, &dimids[0])) ERR;
       if (nc_def_dim(ncid, D_CLEVERNESS, D_CLEVERNESS_LEN, &dimids[1])) ERR;
       if (nc_def_dim(ncid, D_EFFECTIVENESS, D_EFFECTIVENESS_LEN, &dimids[2])) ERR;
@@ -259,7 +260,7 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
 
       /* Open the file and check. */
-      if (nc_open(options.path, NC_WRITE, &ncid)) ERR;
+      if (nc_open(itoptions.path, NC_WRITE, &ncid)) ERR;
       /* Check the chunking. */
       for (i = 0; i < NUM_PLANS; i++)
       {
@@ -282,7 +283,7 @@ main(int argc, char **argv)
       size_t chunks[1];
 
       /* Create a netcdf-4 file with three dimensions. */
-      if (nc_create(options.path, NC_NETCDF4, &ncid)) ERR;
+      if (nc_create(itoptions.path, NC_NETCDF4, &ncid)) ERR;
       if (nc_def_dim(ncid, D_SMALL, D_SMALL_LEN2, &small_dimid)) ERR;
 
       /* Add one var. */
@@ -331,7 +332,7 @@ main(int argc, char **argv)
       float cache_preemption_in;
 
       /* Create a netcdf-4 file with two dimensions. */
-      if (nc_create(options.path, NC_NETCDF4, &ncid)) ERR;
+      if (nc_create(itoptions.path, NC_NETCDF4, &ncid)) ERR;
       if (nc_def_dim(ncid, DIM_NAME_X_CACHE_CHUNK, DIM_X_LEN, &dimid[0])) ERR;
       if (nc_def_dim(ncid, DIM_NAME_Y_CACHE_CHUNK, DIM_Y_LEN, &dimid[1])) ERR;
 
@@ -377,7 +378,7 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
 
       /* Reopen the file. */
-      if (nc_open(options.path, NC_NOWRITE, &ncid)) ERR;
+      if (nc_open(itoptions.path, NC_NOWRITE, &ncid)) ERR;
       
       /* Close the file. */
       if (nc_close(ncid)) ERR;

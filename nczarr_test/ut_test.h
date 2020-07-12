@@ -38,7 +38,7 @@ typedef struct NCZ_UT_PRINTER {
 } NCZ_UT_PRINTER;
 
 /* Arguments from command line */
-struct Options {
+struct UTOptions {
     int debug;
     char** cmds;
     char* file;
@@ -58,12 +58,12 @@ struct Test {
     int (*test)(void);
 };
 
-extern struct Options options;
+extern struct UTOptions utoptions;
 
 #define NCCHECK(expr) nccheck((expr),__LINE__)
 
 extern void usage(int err);
-extern int ut_init(int argc, char** argv, struct Options* test);
+extern int ut_init(int argc, char** argv, struct UTOptions* test);
 
 extern void nccheck(int stat, int line);
 extern char* makeurl(const char* file,NCZM_IMPL);

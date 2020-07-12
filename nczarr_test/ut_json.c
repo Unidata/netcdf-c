@@ -44,8 +44,8 @@ main(int argc, char** argv)
 {
     int stat = NC_NOERR;
 
-    if((stat = ut_init(argc, argv, &options))) goto done;
-    if((stat = runtests((const char**)options.cmds,tests))) goto done;
+    if((stat = ut_init(argc, argv, &utoptions))) goto done;
+    if((stat = runtests((const char**)utoptions.cmds,tests))) goto done;
 
 done:
     if(stat) usage(stat);

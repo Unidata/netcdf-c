@@ -18,41 +18,55 @@ FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSION
 IF(ENABLE_TESTS)
 
   SET(COMMONSRC ut_util.c ut_test.c)
+  IF(USE_X_GETOPT)
+    SET(COMMONSRC ${COMMONSRC} XGetopt.c)
+  ENDIF()
 
   # Base tests
   # The tests are set up as a combination of shell scripts and executables that
   # must be run in a particular order. It is painful but will use macros to help
   # keep it from being too bad.
 
-  BUILD_BIN_TEST_SOURCED(ut_map ${COMMONSRC})
-  BUILD_BIN_TEST_SOURCED(ut_mapapi ${COMMONSRC})
-  BUILD_BIN_TEST_SOURCED(ut_json ${COMMONSRC})
-  BUILD_BIN_TEST_SOURCED(ut_projections ${COMMONSRC})
-  BUILD_BIN_TEST_SOURCED(ut_chunking ${COMMONSRC})
+  BUILD_BIN_TEST(ut_map ${COMMONSRC})
+  BUILD_BIN_TEST(ut_mapapi ${COMMONSRC})
+  BUILD_BIN_TEST(ut_json ${COMMONSRC})
+  BUILD_BIN_TEST(ut_projections ${COMMONSRC})
+  BUILD_BIN_TEST(ut_chunking ${COMMONSRC})
+  BUILD_BIN_TEST(tst_chunks ${COMMONSRC})
+  BUILD_BIN_TEST(tst_chunks2 ${COMMONSRC})
 
   TARGET_INCLUDE_DIRECTORIES(ut_map PUBLIC ../libnczarr)
   TARGET_INCLUDE_DIRECTORIES(ut_mapapi PUBLIC ../libnczarr)
   TARGET_INCLUDE_DIRECTORIES(ut_json PUBLIC ../libnczarr)
   TARGET_INCLUDE_DIRECTORIES(ut_projections PUBLIC ../libnczarr)
   TARGET_INCLUDE_DIRECTORIES(ut_chunking PUBLIC ../libnczarr)
+  TARGET_INCLUDE_DIRECTORIES(tst_chunks PUBLIC ../libnczarr)
+  TARGET_INCLUDE_DIRECTORIES(tst_chunks2 PUBLIC ../libnczarr)
 
-  BUILD_BIN_TEST_SOURCED(zmapio ${COMMONSRC})
+  # Helper programs for testing
+  BUILD_BIN_TEST(zmapio ${COMMONSRC})
   TARGET_INCLUDE_DIRECTORIES(zmapio PUBLIC ../libnczarr)
-
-# Integration tests
-#  BUILD_BIN_TEST(it_meta)
-#  TARGET_INCLUDE_DIRECTORIES(it_meta PUBLIC ../libnczarr)
+  BUILD_BIN_TEST(zhex)
+  BUILD_BIN_TEST(zisjson)
+  TARGET_INCLUDE_DIRECTORIES(zisjson PUBLIC ../libnczarr)
+  BUILD_BIN_TEST(zs3parse ${COMMONSRC})
+  TARGET_INCLUDE_DIRECTORIES(zs3parse PUBLIC ../libnczarr)
 
   IF(BUILD_UTILITIES)
+    if(ENABLE_S3_TESTS)
+        set(ENV{ENABLE_S3_TESTS} "1")
+    endif()
     add_sh_test(nczarr_test run_ut_map)
     add_sh_test(nczarr_test run_ut_mapapi)
     add_sh_test(nczarr_test run_ut_misc)
     add_sh_test(nczarr_test run_ut_chunk)
+    add_sh_test(nczarr_test run_it_test1)
+    add_sh_test(nczarr_test run_it_test2)
   ENDIF(BUILD_UTILITIES)
 
 ENDIF(ENABLE_TESTS)
 
 ## Specify files to be distributed by 'make dist'
 FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh ${CMAKE_CURRENT_SOURCE_DIR}/*.cdl)
-SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am zmapio.c)
+SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am zmapio.c zhex.c)
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")

@@ -26,6 +26,7 @@ ENDIF()
 
 ADD_EXECUTABLE(ncgen3 ${ncgen3_FILES})
 TARGET_LINK_LIBRARIES(ncgen3 netcdf ${ALL_TLL_LIBS})
+
 ####
 # We have to do a little tweaking
 # to remove the Release/ and Debug/ directories

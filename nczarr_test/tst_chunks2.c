@@ -7,6 +7,7 @@
    modified version of nc_test4/tst_chunks2.c
 */
 
+#include "ut_includes.h"
 #include "test_nczarr_utils.h"
 
 #define FILE_NAME "tst_chunks2.nc"
@@ -101,7 +102,7 @@ main(int argc, char **argv)
       float waste = 0;
 
       /* Create a file with 3D var, turn on chunking, but don't provide chunksizes. */
-      if (nc_create(options.path, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
+      if (nc_create(itoptions.path, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
       if (nc_def_dim(ncid, X_NAME, XDIM_LEN, &dims[0])) ERR;
       if (nc_def_dim(ncid, Y_NAME, YDIM_LEN, &dims[1])) ERR;
       if (nc_def_dim(ncid, Z_NAME, ZDIM_LEN, &dims[2])) ERR;
@@ -125,7 +126,7 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
 
       /* Open the file and check again. */
-      if (nc_open(options.path, NC_WRITE, &ncid)) ERR;
+      if (nc_open(itoptions.path, NC_WRITE, &ncid)) ERR;
       if (nc_inq(ncid, &ndims, &nvars, &ngatts, &unlimdimid)) ERR;
       if (nvars != NUM_VARS || ndims != NDIMS3 || ngatts != 0 || unlimdimid != -1) ERR;
       if (nc_inq_var(ncid, 0, name_in, &type_in, &ndims, dims_in, &natts)) ERR;
@@ -159,7 +160,7 @@ main(int argc, char **argv)
       char dim_name[NC_MAX_NAME + 1];
       float waste;
 
-      if (nc_create(options.path, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
+      if (nc_create(itoptions.path, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
 
       /* Create a few dimensions. */
       for (d = 0; d < NDIMS3; d++)
@@ -181,7 +182,7 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
 
       /* Open the file and check. */
-      if (nc_open(options.path, NC_WRITE, &ncid)) ERR;
+      if (nc_open(itoptions.path, NC_WRITE, &ncid)) ERR;
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
@@ -197,7 +198,7 @@ main(int argc, char **argv)
       char dim_name[NC_MAX_NAME + 1];
       float waste;
 
-      if (nc_create(options.path, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
+      if (nc_create(itoptions.path, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
 
       /* Create a few dimensions. */
       for (d = 0; d < NDIMS3; d++)
@@ -219,7 +220,7 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
 
       /* Open the file and check. */
-      if (nc_open(options.path, NC_WRITE, &ncid)) ERR;
+      if (nc_open(itoptions.path, NC_WRITE, &ncid)) ERR;
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
@@ -235,7 +236,7 @@ main(int argc, char **argv)
       char dim_name[NC_MAX_NAME + 1];
       float waste;
 
-      if (nc_create(options.path, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
+      if (nc_create(itoptions.path, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
 
       /* Create a few dimensions. */
       for (d = 0; d < NDIMS3; d++)
@@ -257,7 +258,7 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
 
       /* Open the file and check. */
-      if (nc_open(options.path, NC_WRITE, &ncid)) ERR;
+      if (nc_open(itoptions.path, NC_WRITE, &ncid)) ERR;
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
@@ -276,7 +277,7 @@ main(int argc, char **argv)
       char dim_name[NC_MAX_NAME + 1];
       float waste;
 
-      if (nc_create(options.path, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
+      if (nc_create(itoptions.path, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
 
       /* Create a few dimensions. */
       for (d = 0; d < NDIMS3; d++)
@@ -298,7 +299,7 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
 
       /* Open the file and check. */
-      if (nc_open(options.path, NC_WRITE, &ncid)) ERR;
+      if (nc_open(itoptions.path, NC_WRITE, &ncid)) ERR;
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
@@ -316,7 +317,7 @@ main(int argc, char **argv)
       char dim_name[NC_MAX_NAME + 1];
       float waste;
 
-      if (nc_create(options.path, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
+      if (nc_create(itoptions.path, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
 
       /* Create a few dimensions. */
       for (d = 0; d < NDIMS3; d++)
@@ -338,7 +339,7 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
 
       /* Open the file and check. */
-      if (nc_open(options.path, NC_WRITE, &ncid)) ERR;
+      if (nc_open(itoptions.path, NC_WRITE, &ncid)) ERR;
       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
@@ -357,7 +358,7 @@ main(int argc, char **argv)
 
       for (t = 0; t < NUM_RANDOM_TESTS; t++)
       {
-	 if (nc_create(options.path, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
+	 if (nc_create(itoptions.path, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
 
 	 /* Create a few dimensions. */
 	 for (d = 0; d < NDIMS3; d++)
@@ -394,7 +395,7 @@ main(int argc, char **argv)
 
       for (t = 0; t < NUM_RANDOM_TESTS; t++)
       {
-	 if (nc_create(options.path, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
+	 if (nc_create(itoptions.path, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
 
 	 dim_len[0] = rand();
 	 dim_len[1] = rand();
@@ -433,7 +434,7 @@ main(int argc, char **argv)
 
       for (t = 0; t < NUM_RANDOM_TESTS; t++)
       {
-	 if (nc_create(options.path, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
+	 if (nc_create(itoptions.path, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
 
 	 dim_len[0] = rand();
 	 dim_len[1] = rand() % 1000;
