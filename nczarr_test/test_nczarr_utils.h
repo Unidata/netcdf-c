@@ -33,12 +33,12 @@
 
 static char* progname = NULL;
 
-struct Options {
+struct ITOptions {
     NCZM_IMPL impl;
     char* path;
     char* cloud;
     char* otherfragments;
-} options = {NCZM_UNDEF, NULL, NULL, NULL};
+} itoptions = {NCZM_UNDEF, NULL, NULL, NULL};
 
 static void
 test_usage(void)
@@ -65,16 +65,16 @@ ubasename(char *logident)
 static void
 setimpl(const char* name)
 {
-    if(strcasecmp(name,"s3")==0) options.impl = NCZM_S3;
-    else if(strcasecmp(name,"nz4")==0) options.impl = NCZM_NC4;
-    else if(strcasecmp(name,"nzf")==0) options.impl = NCZM_FILE;
+    if(strcasecmp(name,"s3")==0) itoptions.impl = NCZM_S3;
+    else if(strcasecmp(name,"nz4")==0) itoptions.impl = NCZM_NC4;
+    else if(strcasecmp(name,"nzf")==0) itoptions.impl = NCZM_FILE;
     else test_usage();
 }
 
 static const char*
 implname(void)
 {
-    switch (options.impl) {
+    switch (itoptions.impl) {
     case NCZM_S3: return "s3";
     case NCZM_NC4: return "nz4";
     case NCZM_FILE: return "nzf";
@@ -87,7 +87,7 @@ static void
 buildpath(const char* target,NCZM_IMPL impl)
 {
     NCbytes* buf = ncbytesnew();
-    switch(options.impl) {
+    switch(itoptions.impl) {
     case NCZM_NC4:
     case NCZM_FILE:
 	ncbytescat(buf,"file://");
@@ -99,8 +99,8 @@ buildpath(const char* target,NCZM_IMPL impl)
 	ncbytescat(buf,implname());
 	break;
     case NCZM_S3:
-	ncbytescat(buf,options.cloud);
-	if(options.cloud[strlen(options.cloud)-1] != '/')
+	ncbytescat(buf,itoptions.cloud);
+	if(itoptions.cloud[strlen(itoptions.cloud)-1] != '/')
 	    ncbytescat(buf,"/");
 	ncbytescat(buf,target);
 	ncbytescat(buf,"#mode=nczarr");
@@ -109,11 +109,11 @@ buildpath(const char* target,NCZM_IMPL impl)
 	break;
     default: test_usage();
     }
-    if(options.otherfragments != NULL) {
+    if(itoptions.otherfragments != NULL) {
         ncbytescat(buf,",");
-        ncbytescat(buf,options.otherfragments);
+        ncbytescat(buf,itoptions.otherfragments);
     }
-    options.path = ncbytesextract(buf);
+    itoptions.path = ncbytesextract(buf);
     ncbytesfree(buf);
 }
 
@@ -131,10 +131,10 @@ processoptions(int argc, char** argv, const char* base_file_name)
 	    setimpl(optarg);
 	    break;
 	case 'c': /* cloud appliance url prefix*/
-	    options.cloud = strdup(optarg);
+	    itoptions.cloud = strdup(optarg);
 	    break;
 	case 'F': /* fragments */
-	    options.otherfragments = strdup(optarg);
+	    itoptions.otherfragments = strdup(optarg);
 	    break;
 	case '?':
   	    test_usage();
@@ -144,19 +144,19 @@ processoptions(int argc, char** argv, const char* base_file_name)
     argc -= optind;
     argv += optind;
 
-    if(options.impl == NCZM_UNDEF) options.impl = NCZM_FILE;
-    if(options.impl == NCZM_S3 && options.cloud == NULL) test_usage();
+    if(itoptions.impl == NCZM_UNDEF) itoptions.impl = NCZM_FILE;
+    if(itoptions.impl == NCZM_S3 && itoptions.cloud == NULL) test_usage();
 
-    buildpath(base_file_name,options.impl);
+    buildpath(base_file_name,itoptions.impl);
 
 }
 
 static void
 clearoptions(void)
 {
-    nullfree(options.path);
-    nullfree(options.cloud);
-    nullfree(options.otherfragments);
+    nullfree(itoptions.path);
+    nullfree(itoptions.cloud);
+    nullfree(itoptions.otherfragments);
     nullfree(progname);
 }
 

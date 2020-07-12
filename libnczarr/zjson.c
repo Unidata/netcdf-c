@@ -5,6 +5,8 @@
 #include "zincludes.h"
 #include "zjson.h"
 
+#undef DEBUG
+
 #define NCJ_LBRACKET '['
 #define NCJ_RBRACKET ']'
 #define NCJ_LBRACE '{'
@@ -55,6 +57,9 @@ static int NCJappendquoted(const char* value, NCbytes* buf);
 static int NCJcloneArray(NClist* array, NCjson** clonep);
 static int NCJcloneDict(NClist* dict, NCjson** clonep);
 
+#ifdef DEBUG
+static char* tokenname(int token);
+#endif
 /**************************************************/
 int
 NCJparse(const char* text, unsigned flags, NCjson** jsonp)
@@ -64,7 +69,8 @@ NCJparse(const char* text, unsigned flags, NCjson** jsonp)
     NCJparser* parser = NULL;
     NCjson* json = NULL;
 
-    if(text == NULL)
+    /* Need at least 1 character of input */
+    if(text == NULL || text[0] == '\0')
 	{stat = NC_EINVAL; goto done;}
     if(jsonp == NULL) goto done;
     parser = calloc(1,sizeof(NCJparser));
@@ -79,6 +85,9 @@ NCJparse(const char* text, unsigned flags, NCjson** jsonp)
     parser->text[len] = '\0';
     parser->text[len+1] = '\0';
     parser->pos = &parser->text[0];
+#ifdef DEBUG
+fprintf(stderr,"json: |%s|\n",parser->text);
+#endif
     if((stat=NCJparseR(parser,&json))) goto done;
     *jsonp = json;
     json = NULL;
@@ -325,6 +334,9 @@ NCJlex(NCJparser* parser)
 	    if(NCJyytext(parser,parser->pos,1)) goto done;
 	    token = *parser->pos++;
 	}
+#ifdef DEBUG
+fprintf(stderr,"%s(%d): |%s|\n",tokenname(token),token,parser->yytext);
+#endif
     } /*for(;;)*/
 done:
     if(parser->err) token = NCJ_ERR;
@@ -369,6 +381,10 @@ testdouble(const char* word)
     if(strcasecmp("nan",word)==0) return NC_NOERR;
     if(strcasecmp("infinity",word)==0) return NC_NOERR;
     if(strcasecmp("-infinity",word)==0) return NC_NOERR;
+    /* Allow the XXXf versions as well */
+    if(strcasecmp("nanf",word)==0) return NC_NOERR;
+    if(strcasecmp("infinityf",word)==0) return NC_NOERR;
+    if(strcasecmp("-infinityf",word)==0) return NC_NOERR;
     /* Try to convert to number */
     ncvt = sscanf(word,"%lg%n",&d,&count);
     return (ncvt == 1 && strlen(word)==count ? NC_NOERR : NC_EINVAL);
@@ -799,3 +815,30 @@ NCJdump(const NCjson* json, int flags)
     fprintf(stderr,"%s\n",text);
     fflush(stderr);
 }
+
+#ifdef DEBUG
+static char*
+tokenname(int token)
+{
+    switch (token) {
+    case NCJ_STRING: return "NCJ_STRING";
+    case NCJ_INT: return "NCJ_INT";
+    case NCJ_DOUBLE: return "NCJ_DOUBLE";
+    case NCJ_BOOLEAN: return "NCJ_BOOLEAN";
+    case NCJ_DICT: return "NCJ_DICT";
+    case NCJ_ARRAY: return "NCJ_ARRAY";
+    case NCJ_NULL: return "NCJ_NULL";
+    default:
+	if(token > ' ' && token <= 127) {
+	    static char s[4];
+	    s[0] = '\'';
+	    s[1] = (char)token;
+	    s[2] = '\'';
+	    s[3] = '\0';
+	    return s;
+	} else
+	    break;
+    }
+    return "NCJ_UNDEF";
+}
+#endif

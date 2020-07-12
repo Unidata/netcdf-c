@@ -25,7 +25,7 @@ endif
 # This is the program we're building, and it's sources.
 bin_PROGRAMS = ncdump
 ncdump_SOURCES = ncdump.c vardata.c dumplib.c indent.c nctime0.c        \
-ncdump.h vardata.h dumplib.h indent.h isnan.h nctime0.h cdl.h utils.h   \
+ncdump.h vardata.h dumplib.h indent.h nctime0.h cdl.h utils.h   \
 utils.c nciter.h nciter.c nccomps.h
 
 # Another utility program that copies any netCDF file using only the

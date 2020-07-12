@@ -6,12 +6,18 @@
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
 
+TESTS_ENVIRONMENT =
+
 #TEST_EXTENSIONS = .sh
 
 #SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #TESTS_ENVIRONMENT = export SETX=1;
+
+if ENABLE_S3_TESTS
+TESTS_ENVIRONMENT += export ENABLE_S3_TESTS=1;
+endif
 
 AM_CFLAGS += -I${top_srcdir} -I${top_srcdir}/libnczarr
 AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
@@ -41,17 +47,26 @@ TESTS += run_ut_map.sh
 TESTS += run_ut_mapapi.sh
 TESTS += run_ut_misc.sh
 TESTS += run_ut_chunk.sh
-
 TESTS += run_it_test1.sh run_it_test2.sh
 
 ignorec = ut_allslices.c ut_transfer.c ut_vars.c ut_walk.c
 ignoresh = run_meta_tests.sh run_unittests.sh
 ignoreh = ut_varstest.h
 
+# These programs are used by the test cases
 noinst_PROGRAMS = zmapio
 zmapio_SOURCES = zmapio.c
+noinst_PROGRAMS += zhex
+zhex_SOURCES = zhex.c
+noinst_PROGRAMS += zisjson
+zisjson_SOURCES = zisjson.c
+noinst_PROGRAMS += zs3parse
+zs3parse_SOURCES = zs3parse.c
+
 
 EXTRA_DIST = \
+run_ut_map.sh run_ut_mapapi.sh run_ut_misc.sh run_ut_chunk.sh run_it_test1.sh run_it_test2.sh \
+test_nczarr.sh \
 ref_ut_map_readmeta_nzf.txt \
 ref_ut_map_writedata_nzf.cdl \
 ref_ut_map_writemeta_nzf.cdl \
@@ -79,8 +94,14 @@ ref_ut_mapapi_data_nzf.cdl \
 ref_ut_mapapi_data_s3.cdl \
 ref_ut_mapapi_meta_nz4.cdl \
 ref_ut_mapapi_meta_nzf.cdl \
-ref_ut_mapapi_meta_s3.cdl
+ref_ut_mapapi_meta_s3.cdl \
+ref_ut_mapapi_search_nz4.txt \
+ref_ut_mapapi_search_nzf.txt \
+ref_ut_mapapi_search_s3.txt
 
-#CLEANFILES = \
-#	ut_map*.cdl ut_map*.txt \
-#        ut_mapapi*.cdl ut_mapapi*.txt
+CLEANFILES = test.nzf test.nz4 test.nz4 tst_chunks.nc.nzf tst_chunks.nc.nz4 \
+testmap.nzf testmap.nz4 testmapapi.nzf testmapapi.nz4 \
+tst_chunks.nz4 tst_chunks.nzf tst_chunks2.nc.nz4 \
+ut_*.txt ut*.cdl
+
+#tst_group_data.dmp tst_nans.dmp tst_solar_1.dmp tst_nul4.dmp dimscope.dmp

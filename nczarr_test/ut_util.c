@@ -5,6 +5,8 @@
 
 #include "ut_includes.h"
 
+#undef DEBUG
+
 #define OPEN "[{("
 #define CLOSE "]})"
 
@@ -416,7 +418,7 @@ slices2vector(int rank, NCZSlice* slices, size64_t** startp, size64_t** stopp, s
 }
 
 void
-printoptions(struct Options* opts)
+printoptions(struct UTOptions* opts)
 {
     char** p;
     int i;
@@ -469,4 +471,29 @@ hasdriveletter(const char* f)
     if((f[0] < 'z' && f[0] >= 'a') || (f[0] < 'Z' && f[0] >= 'A'))
         return 1;
     return 0;
+}
+
+/* bubble sort a list of strings */
+void
+ut_sortlist(NClist* l)
+{
+    int i, switched;
+
+    if(nclistlength(l) <= 1) return;
+    do {
+	switched = 0;
+        for(i=0;i<nclistlength(l)-1;i++) {
+	    char* ith = nclistget(l,i);
+	    char* ith1 = nclistget(l,i+1);
+	    if(strcmp(ith,ith1) > 0) {
+	        nclistset(l,i,ith1);
+    	        nclistset(l,i+1,ith);
+	        switched = 1;
+	    }
+	}
+    } while(switched);
+#ifdef DEBUG
+for(i=0;i<nclistlength(l);i++)
+fprintf(stderr,"sorted: [%d] %s\n",i,(const char*)nclistget(l,i));
+#endif
 }

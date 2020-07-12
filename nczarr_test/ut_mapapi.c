@@ -28,7 +28,6 @@ static char* keyprefix = NULL; /* Hold, e.g. S3 bucket name */
 static void title(const char*);
 static int report(int pf, const char* op, NCZMAP*);
 static int reportx(int pf, const char* tag, const char* op, NCZMAP*);
-static void setkeyprefix(const char* path);
 static char* makekey(const char* key);
 
 static int simplecreate(void);
@@ -51,14 +50,14 @@ main(int argc, char** argv)
 {
     int stat = NC_NOERR;
 
-    if((stat = ut_init(argc, argv, &options))) goto done;
-    if(options.file == NULL && options.output != NULL) options.file = strdup(options.output);
-    if(options.output == NULL && options.file != NULL)options.output = strdup(options.file);
-    impl = kind2impl(options.kind);
-//    if(impl == NCZM_S3) setkeyprefix(options.file);
-    url = makeurl(options.file,impl);
+    if((stat = ut_init(argc, argv, &utoptions))) goto done;
+    if(utoptions.file == NULL && utoptions.output != NULL) utoptions.file = strdup(utoptions.output);
+    if(utoptions.output == NULL && utoptions.file != NULL)utoptions.output = strdup(utoptions.file);
+    impl = kind2impl(utoptions.kind);
+//    if(impl == NCZM_S3) setkeyprefix(utoptions.file);
+    url = makeurl(utoptions.file,impl);
 
-    if((stat = runtests((const char**)options.cmds,tests))) goto done;
+    if((stat = runtests((const char**)utoptions.cmds,tests))) goto done;
     
 done:
     nullfree(url); url = NULL;
@@ -374,6 +373,8 @@ search(void)
     /* Do a recursive search on root to get all object keys */
     if((stat=searchR(map,0,"/",objects)))
 	goto done;
+    /* sort list */
+    ut_sortlist(objects);
     /* Print out the list */
     for(i=0;i<nclistlength(objects);i++) {
 	const char* key = nclistget(objects,i);
