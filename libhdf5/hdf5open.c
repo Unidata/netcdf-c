@@ -62,6 +62,12 @@ extern int NC4_open_image_file(NC_FILE_INFO_T* h5);
 /* Defined later in this file. */
 static int rec_read_metadata(NC_GRP_INFO_T *grp);
 
+#ifdef _WIN32
+static hid_t nc4_H5Fopen(const char *filename, unsigned flags, hid_t fapl_id);
+#else
+#define nc4_H5Fopen  H5Fopen
+#endif
+
 /**
  * @internal Struct to track HDF5 object info, for
  * rec_read_metadata(). We get this info for every object in the
@@ -833,7 +839,7 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
             if (H5Pset_fapl_core(fapl_id, min_incr, (nc4_info->mem.persist?1:0)) < 0)
                 BAIL(NC_EHDFERR);
             /* Open the HDF5 file. */
-            if ((h5->hdfid = H5Fopen(path, flags, fapl_id)) < 0)
+            if ((h5->hdfid = nc4_H5Fopen(path, flags, fapl_id)) < 0)
                 BAIL(NC_EHDFERR);
         }
 #ifdef ENABLE_BYTERANGE
@@ -843,14 +849,14 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
                 if (H5Pset_fapl_http(fapl_id) < 0)
                     BAIL(NC_EHDFERR);
                 /* Open the HDF5 file. */
-                if ((h5->hdfid = H5Fopen(path, flags, fapl_id)) < 0)
+                if ((h5->hdfid = nc4_H5Fopen(path, flags, fapl_id)) < 0)
                     BAIL(NC_EHDFERR);
             }
 #endif
             else
             {
                 /* Open the HDF5 file. */
-                if ((h5->hdfid = H5Fopen(path, flags, fapl_id)) < 0)
+                if ((h5->hdfid = nc4_H5Fopen(path, flags, fapl_id)) < 0)
                     BAIL(NC_EHDFERR);
             }
 
@@ -2707,3 +2713,30 @@ exit:
 
     return retval;
 }
+
+#ifdef _WIN32
+
+/**
+ * Wrapper function for H5Fopen.
+ * Converts the filename from ANSI to UTF-8 as needed before calling H5Fopen.
+ *
+ * @param filename The filename encoded ANSI to access.
+ * @param flags File access flags.
+ * @param fapl_id File access property list identifier.
+ * @return A file identifier if succeeded. A negative value if failed.
+ */
+static hid_t
+nc4_H5Fopen(const char *filename, unsigned flags, hid_t fapl_id)
+{
+    pathbuf_t pb;
+    hid_t hid;
+
+    filename = nc4_ndf5_ansi_to_utf8(&pb, filename);
+    if (!filename)
+        return H5I_INVALID_HID;
+    hid = H5Fopen(filename, flags, fapl_id);
+    nc4_hdf5_free_pathbuf(&pb);
+    return hid;
+}
+
+#endif /* _WIN32 */
