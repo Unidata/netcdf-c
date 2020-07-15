@@ -42,7 +42,7 @@ parseslices(const char* s0, int* nslicesp, NCZSlice* slices)
 	if(*s == '[') nslices++;
     }
     
-    if(nslices > NC_MAX_VAR_DIMS) return NC_EINVAL; /* too many */
+    if(nslices > NC_MAX_VAR_DIMS) return THROW(NC_EINVAL); /* too many */
     if(nslicesp) *nslicesp = nslices;
 
     /* Extract the slices */
@@ -55,7 +55,7 @@ parseslices(const char* s0, int* nslicesp, NCZSlice* slices)
 	if(nchars == -1) {
 	    nchars = -1;
             count = sscanf(s,"[%lu:%lu:%lu]%n",&start,&stop,&stride,&nchars);
-	    if(count != 3) return NC_EINVAL;
+	    if(count != 3) return THROW(NC_EINVAL);
 	}
         sl->start = start;
         sl->stop = stop;
@@ -75,12 +75,12 @@ parsedimdef(const char* s0, Dimdef** defp)
     ptrdiff_t count;
     
     if((def = calloc(1,sizeof(struct Dimdef)))==NULL)
-	return NC_ENOMEM;
+	return THROW(NC_ENOMEM);
 
     /* Extract */
     s = s0;
     if((p = strchr(s,'=')) == NULL) abort();
-    if((count = (p - s)) == 0) return NC_EINVAL;
+    if((count = (p - s)) == 0) return THROW(NC_EINVAL);
     def->name = malloc(count+1);
     memcpy(def->name,s,count);
     def->name[count] = '\0';
@@ -105,15 +105,15 @@ parsevardef(const char* s0, NClist* dimdefs, Vardef** varp)
     char name[NC_MAX_NAME];
 
     if((vd = calloc(1,sizeof(Vardef)))==NULL)
-        return NC_ENOMEM;
+        return THROW(NC_ENOMEM);
 
     s=s0;
 
     /* Scan for the end of type name */
     p = strchr(s,BLANK);
-    if(p == NULL) return NC_EINVAL;
+    if(p == NULL) return THROW(NC_EINVAL);
     len = (p - s);  
-    if(len == 0) return NC_EINVAL;
+    if(len == 0) return THROW(NC_EINVAL);
     memcpy(name,s,len);
     name[len] = '\0';
     vd->typeid = ut_typeforname(name);
@@ -123,9 +123,9 @@ parsevardef(const char* s0, NClist* dimdefs, Vardef** varp)
 
     /* Scan for the end of var name */
     p = strchr(s,LPAREN);   
-    if(p == NULL) return NC_EINVAL;
+    if(p == NULL) return THROW(NC_EINVAL);
     len = (p - s);  
-    if(len == 0) return NC_EINVAL;
+    if(len == 0) return THROW(NC_EINVAL);
     memcpy(name,s,len);
     name[len] = '\0';
     vd->name = strdup(name);     
@@ -136,7 +136,7 @@ parsevardef(const char* s0, NClist* dimdefs, Vardef** varp)
         char* p;
         s++;
         count = parsestringvector(s,RPAREN,&names);
-        if(count >= NC_MAX_VAR_DIMS) return NC_EINVAL;
+        if(count >= NC_MAX_VAR_DIMS) return THROW(NC_EINVAL);
         vd->rank = count;
         if(vd->rank > 0) {
             int j;
@@ -146,7 +146,7 @@ parsevardef(const char* s0, NClist* dimdefs, Vardef** varp)
                 p = strchr(names[j],'/');
                 if(p) *p++ = '\0';              
                 if((dimref = finddim(names[j],dimdefs)) == NULL)
-                    return NC_EINVAL;
+                    return THROW(NC_EINVAL);
                 vd->dimrefs[j] = dimref;
 		vd->dimsizes[j] = dimref->size;
                 if(p == NULL)
@@ -176,7 +176,7 @@ parsestringvector(const char* s0, int stopchar, char*** namesp)
 
     /* First, compute number of elements */
     for(s=s0,nelems=1;*s;s++) {if(*s == ',') nelems++; if(*s == stopchar) break;}
-    if(nelems == 0) return NC_EINVAL;
+    if(nelems == 0) return THROW(NC_EINVAL);
     names = calloc(nelems+1,sizeof(char*));
     for(s=s0,i=0;i<nelems;i++) {
         ptrdiff_t len;
@@ -220,7 +220,7 @@ parseintvector(const char* s0, int typelen, void** vectorp)
         long long elem;
         nchars = -1;
         count = sscanf(s,"%lld%n",&elem,&nchars);
-        if(nchars == -1 || count != 1) return NC_EINVAL;
+        if(nchars == -1 || count != 1) return THROW(NC_EINVAL);
         s += nchars;
         if(*s == ',') s++;
         switch (typelen) {
@@ -323,7 +323,7 @@ ut_typesize(nc_type t)
     case NC_INT64: case NC_UINT64: return 8;
     case NC_FLOAT: return 4;
     case NC_DOUBLE: return 8;
-    default: usage(NC_EINVAL);
+    default: usage(THROW(NC_EINVAL));
     }
     return 0;
 }
@@ -341,7 +341,7 @@ ut_typeforname(const char* tname)
     if(strcasecmp("uint64",tname)==0) return NC_UINT64;
     if(strcasecmp("float",tname)==0) return NC_FLOAT;
     if(strcasecmp("double",tname)==0) return NC_DOUBLE;
-    usage(NC_EINVAL);
+    usage(THROW(NC_EINVAL));
     return NC_NAT;
 }
 

@@ -1,5 +1,7 @@
 #!/bin/sh
 
+ENABLE_S3_TESTS=$1
+
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
@@ -80,8 +82,8 @@ testmapcreate nz4; testmapmeta nz4; testmapdata nz4; testmapsearch nz4
 echo ""; echo "*** Test zmap_nzf"
 testmapcreate nzf; testmapmeta nzf; testmapdata nzf; testmapsearch nzf
 if test "x$ENABLE_S3_TESTS" != x ; then
-echo ""; echo "*** Test zmap_s3sdk"
-testmapcreate s3; testmapmeta s3; testmapdata s3; testmapsearch s3
+  echo ""; echo "*** Test zmap_s3sdk"
+  testmapcreate s3; testmapmeta s3; testmapdata s3; testmapsearch s3
 fi
 }
 

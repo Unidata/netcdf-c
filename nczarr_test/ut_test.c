@@ -59,7 +59,7 @@ ut_init(int argc, char** argv, struct UTOptions * options)
                 options->debug = 1;     
                 break;
             case 'x': /*execute*/
-		if(parsestringvector(optarg,0,&options->cmds) <= 0) usage(0);
+		if(parsestringvector(optarg,0,&options->cmds) <= 0) usage(THROW(0));
                 break;
             case 'f':
 		options->file = strdup(optarg);
@@ -71,17 +71,17 @@ ut_init(int argc, char** argv, struct UTOptions * options)
 		options->kind = strdup(optarg);
                 break;
             case 'd': /*dimdef*/
-		if((stat=parsedimdef(optarg,&dimdef))) usage(stat);
+		if((stat=parsedimdef(optarg,&dimdef))) usage(THROW(stat));
 		nclistpush(options->dimdefs,dimdef);
 		dimdef = NULL;
                 break;
             case 'v': /*vardef*/
-		if((stat=parsevardef(optarg,options->dimdefs,&vardef))) usage(stat);
+		if((stat=parsevardef(optarg,options->dimdefs,&vardef))) usage(THROW(stat));
 		nclistpush(options->vardefs,vardef);
 		vardef = NULL;
                 break;
             case 's': /*slices*/
-		if((stat=parseslices(optarg,&options->nslices,options->slices))) usage(stat);
+		if((stat=parseslices(optarg,&options->nslices,options->slices))) usage(THROW(stat));
                 break;
             case 'W': /*walk data*/
 		options->idatalen = parseintvector(optarg,4,(void**)&options->idata);
@@ -98,7 +98,7 @@ ut_init(int argc, char** argv, struct UTOptions * options)
     canonicalfile(&options->output);
     
 done:
-    return stat;
+    return THROW(stat);
 }
 
 static void
@@ -233,15 +233,15 @@ runtests(const char** cmds, struct Test* tests)
     int stat = NC_NOERR;
     struct Test* test = NULL;
     const char** cmd = NULL;
-    if(cmds == NULL) return NC_EINVAL;
+    if(cmds == NULL) return THROW(NC_EINVAL);
     for(cmd=cmds;*cmd;cmd++) {
         for(test=tests;test->cmd;test++) {
 	    if(strcmp(test->cmd,*cmd)==0) {
-		if(test->cmd == NULL) return NC_EINVAL;
+		if(test->cmd == NULL) return THROW(NC_EINVAL);
 		if((stat=test->test())) goto done; /* Execute */
 	    }
 	}
     }
 done:
-    return stat;
+    return THROW(stat);
 }
