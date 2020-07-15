@@ -17,6 +17,9 @@
 #include "config.h"
 #include "hdf5internal.h"
 #include "ncfilter.h"
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 #undef DEBUGH5
 
@@ -1027,3 +1030,91 @@ hdf5_set_log_level()
     return NC_NOERR;
 }
 #endif /* LOGGING */
+
+
+#ifdef _WIN32
+
+/**
+ * Converts the filename from ANSI to UTF-8 if HDF5 >= 1.10.6. 
+ * nc4_hdf5_free_pathbuf must be called to free pb.
+ *
+ * @param pb Pointer that conversion information is stored.
+ * @param path The filename to be converted.
+ *
+ * @return The converted filename if succeeded. NULL if failed.
+ */
+const char *
+nc4_ndf5_ansi_to_utf8(pathbuf_t *pb, const char *path)
+{
+    const uint UTF8_MAJNUM = 1;
+    const uint UTF8_MINNUM = 10;
+    const uint UTF8_RELNUM = 6;
+    static enum {UNDEF, ANSI, UTF8} hdf5_encoding = UNDEF;
+    wchar_t wbuf[MAX_PATH];
+    wchar_t *ws = NULL;
+    char *ns = NULL;
+    int n;
+
+    if (hdf5_encoding == UNDEF) {
+        uint majnum, minnum, relnum;
+        H5get_libversion(&majnum, &minnum, &relnum);
+        hdf5_encoding = (((majnum == UTF8_MAJNUM && minnum == UTF8_MINNUM && relnum >= UTF8_RELNUM)
+                          || (majnum == UTF8_MAJNUM && minnum > UTF8_MINNUM)
+                          || majnum > UTF8_MAJNUM)
+                         ? UTF8 : ANSI);
+    }
+    if (hdf5_encoding == ANSI) {
+        pb->ptr = NULL;
+        return path;
+    }
+
+    n = MultiByteToWideChar(CP_ACP, 0, path, -1, NULL, 0);
+    if (!n) {
+        errno = EILSEQ;
+        goto done;
+    }
+    ws = n <= _countof(wbuf) ? wbuf : malloc(sizeof *ws * n);
+    if (!ws)
+        goto done;
+    if (!MultiByteToWideChar(CP_ACP, 0, path, -1, ws, n)) {
+        errno = EILSEQ;
+        goto done;
+    }
+
+    n = WideCharToMultiByte(CP_UTF8, 0, ws, -1, NULL, 0, NULL, NULL);
+    if (!n) {
+        errno = EILSEQ;
+        goto done;
+    }
+    ns = n <= sizeof pb->buffer ? pb->buffer : malloc(n);
+    if (!ns)
+        goto done;
+    if (!WideCharToMultiByte(CP_UTF8, 0, ws, -1, ns, n, NULL, NULL)) {
+        if (ns != pb->buffer)
+            free(ns);
+        ns = NULL;
+        errno = EILSEQ;
+        goto done;
+    }
+
+done:
+    if (ws != wbuf)
+        free (ws);
+
+    pb->ptr = ns;
+    return ns;
+}
+
+/**
+ * Free the conversion information used by nc4_ndf5_ansi_to_utf8.
+ *
+ * @param pb Pointer that hold conversion information to be freed.
+ */
+void
+nc4_hdf5_free_pathbuf(pathbuf_t *pb)
+{
+    if (pb->ptr && pb->ptr != pb->buffer)
+        free(pb->ptr);
+}
+
+#endif /* _WIN32 */

@@ -197,4 +197,23 @@ extern int NC4_isnetcdf4(struct NC_FILE_INFO*); /*libsrc4/nc4hdf.c*/
 
 extern int nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 
+#ifdef _WIN32
+
+/* Maxinum length of a typical path in UTF-8.
+ * When converting from ANSI to UTF-8, the length will be up to 3 times,
+ * so round up 260*3 to 1024. (260=MAX_PATH) */
+#define MAX_PATHBUF_SIZE 1024
+
+/* Struct for converting ANSI to UTF-8. */
+typedef struct pathbuf
+{
+    void *ptr;
+    char buffer[MAX_PATHBUF_SIZE];
+} pathbuf_t;
+
+const char *nc4_ndf5_ansi_to_utf8(pathbuf_t *pb, const char *path);
+void nc4_hdf5_free_pathbuf(pathbuf_t *pb);
+
+#endif /* _WIN32 */
+
 #endif /* _HDF5INTERNAL_ */
