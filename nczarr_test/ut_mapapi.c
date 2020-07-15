@@ -62,7 +62,7 @@ main(int argc, char** argv)
 done:
     nullfree(url); url = NULL;
     nullfree(keyprefix);
-    if(stat) usage(stat);
+    if(stat) usage(THROW(stat));
     return 0;
 }
 
@@ -356,7 +356,7 @@ searchR(NCZMAP* map, int depth, const char* prefix, NClist* objects)
 
 done:
     nclistfreeall(matches);
-    return stat;
+    return THROW(stat);
 }
 
 static int

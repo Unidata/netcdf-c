@@ -341,10 +341,10 @@ Operating System | Build System | NCZarr       | S3 Support
 -----------------------------------------------------------
 Linux            | Automake     | yes          | yes
 Linux            | CMake        | yes          | yes
-Cygwin           | Automake     | yes          | unknown
+Cygwin           | Automake     | yes          | no
 OSX              | Automake     | unknown      | unknown
 OSX              | CMake        | unknown      | unknown
-Visual Studio    | CMake        | yes          | unknown
+Visual Studio    | CMake        | yes          | tests fail
 
 Note: S3 support includes both compiling the S3 support code as well as running the S3 tests.
 
