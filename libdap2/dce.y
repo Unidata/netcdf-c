@@ -58,7 +58,7 @@ projection:
 	  segmentlist
 	    {$$=projection(parsestate,$1);}
 	| function
-	    {$$=$1;}
+	    {$$=projection(parsestate,$1);}
 	;
 
 function:
