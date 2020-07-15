@@ -35,8 +35,9 @@ SET(netCDF_LIB_VERSION 18)
 SET(netCDF_SO_VERSION 18)
 SET(PACKAGE_VERSION ${VERSION})
 
-# Version of the dispatch table, in case we change it.
-SET(NC_DISPATCH_VERSION 1)
+# Version of the dispatch table. This must match the value in
+# configure.ac.
+SET(NC_DISPATCH_VERSION 2)
 
 # Get system configuration, Use it to determine osname, os release, cpu. These
 # will be used when committing to CDash.
