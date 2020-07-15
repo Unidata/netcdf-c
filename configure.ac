@@ -1620,6 +1620,12 @@ AX_SET_META([NC_HAS_PAR_FILTERS], [$hdf5_supports_par_filters],[yes])
 AX_SET_META([NC_HAS_BYTERANGE],[$enable_byterange],[yes])
 AX_SET_META([NC_HAS_NCZARR],[$enable_nczarr],[yes])
 AX_SET_META([NC_HAS_NCZARR_S3],[$enable_s3_sdk],[yes])
+
+# This is the version of the dispatch table. If the dispatch table is
+# changed, this should be incremented, so that user-defined format
+# applications like PIO can determine whether they have an appropriate
+# dispatch table to submit. If this is changed, make sure the value in
+# CMakeLists.txt also changes to match.
 AC_SUBST([NC_DISPATCH_VERSION], [2])
 
 #####
