@@ -22,6 +22,12 @@ static const int ILLEGAL_CREATE_FLAGS = (NC_NOWRITE|NC_MMAP|NC_64BIT_OFFSET|NC_C
 /* From nc4mem.c */
 extern int NC4_create_image_file(NC_FILE_INFO_T* h5, size_t);
 
+#ifdef _WIN32
+static hid_t nc4_H5Fcreate(const char *filename, unsigned flags, hid_t fcpl_id, hid_t fapl_id);
+#else
+#define nc4_H5Fcreate  H5Fcreate
+#endif
+
 /**
  * @internal Create a netCDF-4/HDF5 file.
  *
@@ -217,13 +223,13 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
             /* Configure FAPL to use the core file driver */
             if (H5Pset_fapl_core(fapl_id, alloc_incr, (nc4_info->mem.persist?1:0)) < 0)
                 BAIL(NC_EHDFERR);
-            if ((hdf5_info->hdfid = H5Fcreate(path, flags, fcpl_id, fapl_id)) < 0)
+            if ((hdf5_info->hdfid = nc4_H5Fcreate(path, flags, fcpl_id, fapl_id)) < 0)
                 BAIL(EACCES);
         }
         else /* Normal file */
         {
             /* Create the HDF5 file. */
-            if ((hdf5_info->hdfid = H5Fcreate(path, flags, fcpl_id, fapl_id)) < 0)
+            if ((hdf5_info->hdfid = nc4_H5Fcreate(path, flags, fcpl_id, fapl_id)) < 0)
                 BAIL(EACCES);
         }
 
@@ -306,3 +312,31 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
 
     return res;
 }
+
+#ifdef _WIN32
+
+/**
+ * Wrapper function for H5Fcreate.
+ * Converts the filename from ANSI to UTF-8 as needed before calling H5Fcreate.
+ *
+ * @param filename The filename encoded ANSI to access.
+ * @param flags File access flags.
+ * @param fcpl_id File creation property list identifier.
+ * @param fapl_id File access property list identifier.
+ * @return A file identifier if succeeded. A negative value if failed.
+ */
+static hid_t
+nc4_H5Fcreate(const char *filename, unsigned flags, hid_t fcpl_id, hid_t fapl_id)
+{
+    pathbuf_t pb;
+    hid_t hid;
+
+    filename = nc4_ndf5_ansi_to_utf8(&pb, filename);
+    if (!filename)
+        return H5I_INVALID_HID;
+    hid = H5Fcreate(filename, flags, fcpl_id, fapl_id);
+    nc4_hdf5_free_pathbuf(&pb);
+    return hid;
+}
+
+#endif /* _WIN32 */

@@ -1305,7 +1305,7 @@ yyreduce:
 
   case 13:
 #line 61 "dce.y" /* yacc.c:1646  */
-    {(yyval)=(yyvsp[0]);}
+    {(yyval)=projection(parsestate,(yyvsp[0]));}
 #line 1310 "dcetab.c" /* yacc.c:1646  */
     break;
 
