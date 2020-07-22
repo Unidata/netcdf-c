@@ -742,6 +742,7 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
    if (H5Pclose(fapl_id) < 0) goto done;
 //   } 
 #endif
+#endif
     printf("Done with check\n");
 
     /* Phase 1:
