@@ -377,7 +377,7 @@ execute(NC_HTTP_STATE* state, int headcmd)
     if(cstat != CURLE_OK) state->httpcode = 0;
 
     if(headcmd) {
-        cstat = CURLERR(curl_easy_setopt(state->curl, CURLOPT_NOBODY, 0L));
+        cstat = CURLERR(curl_easy_setopt(state->curl, CURLOPT_HTTPGET, 1L));
         if(cstat != CURLE_OK) goto fail;
     }
 
