@@ -215,7 +215,7 @@ dapparamvalue(NCDAPCOMMON* nccomm, const char* key)
     const char* value;
 
     if(nccomm == NULL || key == NULL) return 0;
-    value=ncurilookup(nccomm->oc.url,key);
+    value=ncurifragmentlookup(nccomm->oc.url,key);
     return value;
 }
 
@@ -231,7 +231,7 @@ dapparamcheck(NCDAPCOMMON* nccomm, const char* key, const char* subkey)
     char* p;
 
     if(nccomm == NULL || key == NULL) return 0;
-    if((value=ncurilookup(nccomm->oc.url,key)) == NULL)
+    if((value=ncurifragmentlookup(nccomm->oc.url,key)) == NULL)
 	return 0;
     if(subkey == NULL) return 1;
     p = strstr(value,subkey);
@@ -711,6 +711,8 @@ oc_dumpnode(conn,*rootp);
     } else if(httpcode >= 500) {
         ncstat = NC_EDAPSVC;
     } else if(httpcode == 401) {
+	ncstat = NC_EACCESS;
+    } else if(httpcode == 403) {
 	ncstat = NC_EAUTH;
     } else if(httpcode == 404) {
 	ncstat = NC_ENOTFOUND;

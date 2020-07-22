@@ -1855,9 +1855,9 @@ NC_create(const char *path0, int cmode, size_t initialsz,
         for(p=(const unsigned char*)path0;*p;p++) {if(*p > ' ') break;}
 #ifdef WINPATH
         /* Need to do path conversion */
-        path = NCpathcvt(p);
+        path = NCpathcvt((const char*)p);
 #else
-        path = nulldup(p);
+        path = nulldup((const char*)p);
 #endif
     }
 
@@ -1906,6 +1906,11 @@ NC_create(const char *path0, int cmode, size_t initialsz,
         dispatcher = UDF1_dispatch_table;
         break;
 #endif /* USE_NETCDF4 */
+#ifdef ENABLE_NCZARR
+    case NC_FORMATX_NCZARR:
+        dispatcher = NCZ_dispatch_table;
+	break;
+#endif
     case NC_FORMATX_NC3:
         dispatcher = NC3_dispatch_table;
         break;
@@ -1999,8 +2004,8 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 
     {
         /* Skip past any leading whitespace in path */
-        const unsigned char* p;
-        for(p=(const unsigned char*)path0;*p;p++) {if(*p > ' ') break;}
+        const char* p;
+        for(p=(const char*)path0;*p;p++) {if(*p < 0 || *p > ' ') break;}
 #ifdef WINPATH
         /* Need to do path conversion */
         path = NCpathcvt(p);
@@ -2016,6 +2021,7 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
     if(newpath) {
         nullfree(path);
         path = newpath;
+	newpath = NULL;
     }
 
     /* Still no implementation, give up */
@@ -2027,12 +2033,14 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
     }
 
     /* Suppress unsupported formats */
+    /* (should be more compact, table-driven, way to do this) */
     {
-        int hdf5built = 0;
-        int hdf4built = 0;
-        int cdf5built = 0;
-        int udf0built = 0;
-        int udf1built = 0;
+	int hdf5built = 0;
+	int hdf4built = 0;
+	int cdf5built = 0;
+	int udf0built = 0;
+	int udf1built = 0;
+	int nczarrbuilt = 0;
 #ifdef USE_NETCDF4
         hdf5built = 1;
 #ifdef USE_HDF4
@@ -2041,6 +2049,9 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 #endif
 #ifdef ENABLE_CDF5
         cdf5built = 1;
+#endif
+#ifdef ENABLE_NCZARR
+	nczarrbuilt = 1;
 #endif
         if(UDF0_dispatch_table != NULL)
             udf0built = 1;
@@ -2052,6 +2063,8 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
         if(!hdf4built && model.impl == NC_FORMATX_NC_HDF4)
         {stat = NC_ENOTBUILT; goto done;}
         if(!cdf5built && model.impl == NC_FORMATX_NC3 && model.format == NC_FORMAT_CDF5)
+        {stat = NC_ENOTBUILT; goto done;}
+	if(!nczarrbuilt && model.impl == NC_FORMATX_NCZARR)
         {stat = NC_ENOTBUILT; goto done;}
         if(!udf0built && model.impl == NC_FORMATX_UDF0)
         {stat = NC_ENOTBUILT; goto done;}
@@ -2070,6 +2083,11 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
         case NC_FORMATX_DAP4:
             dispatcher = NCD4_dispatch_table;
             break;
+#endif
+#ifdef ENABLE_NCZARR
+	case NC_FORMATX_NCZARR:
+	    dispatcher = NCZ_dispatch_table;
+	    break;
 #endif
 #ifdef USE_PNETCDF
         case NC_FORMATX_PNETCDF:
@@ -2098,8 +2116,8 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
             dispatcher = NC3_dispatch_table;
             break;
         default:
-            nullfree(path);
-            return NC_ENOTNC;
+            stat = NC_ENOTNC;
+	    goto done;
         }
     }
 
@@ -2125,6 +2143,7 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 
 done:
     nullfree(path);
+    nullfree(newpath);
     return stat;
 }
 

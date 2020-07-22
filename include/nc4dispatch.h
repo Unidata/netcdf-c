@@ -256,7 +256,7 @@ extern "C" {
     NC4_show_metadata(int);
 
     EXTERNL int
-    NC4_filter_actions(int, int, int, struct NC_Filterobject*);
+    NC4_filter_actions(int, int, int, void*);
 
 #if defined(__cplusplus)
 }

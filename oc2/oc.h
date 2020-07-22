@@ -132,6 +132,7 @@ OC_EBADTYPE=-27,
 OC_ESCALAR=-28,
 OC_EOVERRUN=-29,
 OC_EAUTH=-30,
+OC_EACCESS=-31,
 } OCerror;
 
 /*!\def OCLOGNOTE
@@ -595,6 +596,8 @@ EXTERNL OCerror oc_ping(const char* url);
    Zero implies it is not defined.
 */
 EXTERNL OCerror oc_raw_xdrsize(OClink,OCddsnode,off_t*);
+
+EXTERNL int ocdebug;
 
 #ifdef __cplusplus
 }

@@ -10,6 +10,7 @@
 
 #include <hdf5.h>
 #include "netcdf.h"
+#include "netcdf_aux.h"
 #include "netcdf_filter.h"
 
 #undef TESTODDSIZE
@@ -309,7 +310,7 @@ insert(int index, void* src, size_t size)
     void* dst = &baseline[index];
     if(size == 8) {
 	memcpy(src8,src,size);
-	NC4_filterfix8(src8,0);
+	ncaux_filterfix8(src8,0);
 	src = src8;
     }
     memcpy(dst,src,size);

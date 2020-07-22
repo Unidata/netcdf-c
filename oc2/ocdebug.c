@@ -8,8 +8,6 @@
 #include "ocinternal.h"
 #include "ocdebug.h"
 
-int ocdebug;
-
 #ifdef OCCATCHERROR
 /* Place breakpoint here to catch errors close to where they occur*/
 OCerror

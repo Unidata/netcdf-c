@@ -175,6 +175,9 @@ main(int argc, char **argv)
                     int options_mask_in, pixels_per_block_in;
                     int storage_in;
 
+		    unsigned int filterid;
+		    size_t nfilters;
+
                     /* Try to set fill mode after data have been written. */
                     sprintf(file_name, "%s_%d_%d_%d_elatefill.nc", FILE_NAME_BASE, format[f], d, a);
                     if (nc_set_default_format(format[f], NULL)) ERR;
@@ -198,6 +201,16 @@ main(int argc, char **argv)
                      * the var is contiguous. */
                     if (nc_inq_var_chunking(ncid, varid, &storage_in, NULL)) ERR;
                     if (storage_in != NC_CONTIGUOUS) ERR;
+
+		    /* Since there are no filters defined, all of these
+                       should succeed or return NC_ENOFILTER */
+		    if (nc_inq_var_filter(ncid, varid, &filterid, NULL, NULL) != NC_ENOFILTER) ERR;
+		    filterid = H5Z_FILTER_DEFLATE;
+		    if (nc_inq_var_filter_info(ncid, varid, filterid, NULL, NULL) != NC_ENOFILTER) ERR;
+		    nfilters = 0;
+		    if (nc_inq_var_filterids(ncid, varid, &nfilters, NULL)) 
+ERR;
+		    if(nfilters != 0) ERR;
 
                     if (nc_enddef(ncid)) ERR;
                     /* For netCDF-4, we don't actually have to write data to

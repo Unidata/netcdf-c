@@ -15,7 +15,10 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#ifdef _MSC_VER
+#ifdef HAVE_DIRENT_H
+#include <dirent.h>
+#endif
+#ifdef _WIN32
 #include <io.h>
 #endif
 
@@ -135,14 +138,14 @@ slashtrans:
 	if(*p == '/') {*p = '\\';}
     }
 #ifdef PATHFORMAT
-#ifndef _MSC_VER
+#ifndef _WIN32
 	p = outpath;
         /* Convert '\' back to '/' */
         for(;*p;p++) {
             if(*p == '\\') {*p = '/';}
 	}
     }
-#endif /*!_MSC_VER*/
+#endif /*!_WIN32*/
 #endif /*PATHFORMAT*/
 
 done:
@@ -166,6 +169,34 @@ makeabsolute(const char* relpath)
     if(path == NULL)
 	path = strdup(relpath);
     return path;    
+}
+
+/* Fix up a path in case extra escapes were added by shell */
+EXTERNL
+char*
+NCdeescape(const char* name)
+{
+    char* ename = NULL;
+    const char* p;
+    char* q;
+
+    if(name == NULL) return NULL;
+    ename = strdup(name);
+    if(ename == NULL) return NULL;
+    for(p=name,q=ename;*p;) {
+	switch (*p) {
+	case '\0': break;
+	case '\\':
+	    if(p[1] == '#') {
+	        p++;
+		break;
+	    }
+	    /* fall thru */
+        default: *q++ = *p++; break;
+	}
+    }
+    *q++ = '\0';
+    return ename;
 }
 
 #ifdef WINPATH
@@ -205,6 +236,32 @@ NCopen2(const char *path, int flags)
     return NCopen3(path,flags,0);
 }
 
+#ifdef HAVE_DIRENT_H
+EXTERNL
+DIR*
+NCopendir(const char* path)
+{
+    DIR* ent = NULL;
+    char* cvtname = NCpathcvt(path);
+    if(cvtname == NULL) return -1;
+    ent = opendir(cvtname);
+    free(cvtname);    
+    return ent;
+}
+
+EXTERNL
+int
+NCclosedir(DIR* ent)
+{
+    int stat = 0;
+    char* cvtname = NCpathcvt(path);
+    if(cvtname == NULL) return -1;
+    stat = closedir(cvtname);
+    free(cvtname);    
+    return stat;
+}
+#endif
+
 /*
 Provide wrappers for other file system functions
 */
@@ -217,7 +274,7 @@ NCaccess(const char* path, int mode)
     int status = 0;
     char* cvtname = NCpathcvt(path);
     if(cvtname == NULL) return -1;
-#ifdef _MSC_VER
+#ifdef _WIN32
     status = _access(cvtname,mode);
 #else
     status = access(cvtname,mode);
@@ -236,6 +293,39 @@ NCremove(const char* path)
     status = remove(cvtname);
     free(cvtname);    
     return status;
+}
+
+EXTERNL
+int
+NCmkdir(const char* path, int mode)
+{
+    int status = 0;
+    char* cvtname = NCpathcvt(path);
+    if(cvtname == NULL) return -1;
+    status = _mkdir(cvtname,mode);
+    free(cvtname);    
+    return status;
+}
+
+EXTERNL
+char*
+NCcwd(char* cwdbuf, size_t len)
+{
+    int ret = 0;
+    char* cvtname = NULL;
+
+    errno = 0;
+    if(cwdbuf == NULL || len == 0) {errno = ENAMETOOLONG; goto done;}
+    if(getcwd(cwdbuf,len) == NULL) {goto done;}
+    cvtname = NCpathcvt(cwdbuf);
+    if(cvtname == NULL || strlen(cvtname)+1 > len)
+	{errno = ENAMETOOLONG; goto done;}
+    cwdbuf[0] = '\0';
+    strlcat(cwdbuf,cvtname,len);
+done:
+    nullfree(cvtname);
+    if(errno) return NULL;
+    return cwdbuf;
 }
 
 #endif /*WINPATH*/

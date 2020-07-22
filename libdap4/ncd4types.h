@@ -13,6 +13,9 @@ are defined here.
 
 #undef COMPILEBYDEFAULT
 
+/* Turn on/off checksum hack; on until I can rebuild test cases*/
+#define CHECKSUMHACK
+
 #include "ncrc.h"
 #include "ncauth.h"
 
@@ -195,8 +198,11 @@ struct NCD4node {
     struct { /* Data compilation info */
         int flags; /* See d4data for actual flags */
 	D4blob dap4data; /* offset and start pos for this var's data in serialization */
-        unsigned int remotechecksum; /* toplevel variable checksum as sent by server*/    
+        int remotechecksummed; /* 1 => data includes checksum */
+        unsigned int remotechecksum; /* checksum from data as sent by server */
         unsigned int localchecksum; /* toplevel variable checksum as computed by client */    
+	int checksumattr; /* 1=> _DAP4_Checksum_CRC32 is defined */
+	int attrchecksum; /* _DAP4_Checksum_CRC32 value */
     } data;
     struct { /* Track netcdf-4 conversion info */
 	int isvlen;	/*  _edu.ucar.isvlen */
@@ -219,7 +225,9 @@ typedef struct NCD4serial {
     char* errdata; /* null || error chunk (null terminated) */
     int hostlittleendian; /* 1 if the host is little endian */
     int remotelittleendian; /* 1 if the packet says data is little endian */
-    int remotechecksumming; /* 1 if the packet says checksums are included */
+#ifdef CHECKSUMHACK
+    int checksumhack; /* 1 if the packet says checksums are NOT included */
+#endif
 } NCD4serial;
 
 /* This will be passed out of the parse */
@@ -240,11 +248,12 @@ struct NCD4meta {
     int debuglevel;
     NCD4serial serial;
     int ignorechecksums; /* 1=> compute but ignore */
-    int localchecksumming; /* 1=>compute local checksum */
     int swap; /* 1 => swap data */
     /* Define some "global" (to a DMR) data */
     NClist* groupbyid; /* NClist<NCD4node*> indexed by groupid >> 16; this is global */
     NCD4node* _bytestring; /* If needed */
+    /* Table of known atomictypes */
+    NClist* atomictypes; /*list<NCD4node>*/
 };
 
 typedef struct NCD4parser {
@@ -256,9 +265,6 @@ typedef struct NCD4parser {
     NClist* dims; /*list<NCD4node>*/
     NClist* vars; /*list<NCD4node>*/
     NClist* groups; /*list<NCD4node>*/
-    /* Convenience for short cut fqn detection */
-    NClist* atomictypes; /*list<NCD4node>*/
-    char* used; /* mark indices in atomictypes that have been used */
     NCD4node* dapopaque; /* Single non-fixed-size opaque type */
 } NCD4parser;
 

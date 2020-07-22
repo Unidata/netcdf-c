@@ -16,6 +16,10 @@
 
 #include "config.h"
 #include "hdf5internal.h"
+#include "ncfilter.h"
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 #undef DEBUGH5
 
@@ -625,6 +629,7 @@ close_vars(NC_GRP_INFO_T *grp)
 	if (hdf5_var->dimscale_attached)
 	    free(hdf5_var->dimscale_attached);
 	nullfree(hdf5_var);
+
     }
 
     return NC_NOERR;
@@ -948,6 +953,49 @@ nc4_hdf5_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
     return NC_NOERR;
 }
 
+/**
+ * @internal Get the file chunk cache settings from HDF5.
+ *
+ * @param ncid File ID of a NetCDF/HDF5 file.
+ * @param sizep Pointer that gets size in bytes to set cache. Ignored
+ * if NULL.
+ * @param nelemsp Pointer that gets number of elements to hold in
+ * cache. Ignored if NULL.
+ * @param preemptionp Pointer that gets preemption stragety (between 0
+ * and 1). Ignored if NULL.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+ */
+int
+nc4_hdf5_get_chunk_cache(int ncid, size_t *sizep, size_t *nelemsp,
+		     float *preemptionp)
+{
+    NC_FILE_INFO_T *h5;
+    NC_HDF5_FILE_INFO_T *hdf5_info;
+    hid_t plistid;
+    double dpreemption;
+    int retval;
+    
+    /* Find info for this file, group, and h5 info. */
+    if ((retval = nc4_find_nc_grp_h5(ncid, NULL, NULL, &h5)))
+        return retval;
+    assert(h5 && h5->format_file_info);
+    hdf5_info = (NC_HDF5_FILE_INFO_T *)h5->format_file_info;
+
+    /* Get the file access property list. */
+    if ((plistid = H5Fget_access_plist(hdf5_info->hdfid)) < 0)
+	return NC_EHDFERR;
+
+    /* Get the chunk cache values from HDF5 for this property list. */
+    if (H5Pget_cache(plistid, NULL, nelemsp, sizep, &dpreemption) < 0)
+	return NC_EHDFERR;
+    if (preemptionp)
+	*preemptionp = dpreemption;
+
+    return NC_NOERR;
+}
+
 #ifdef LOGGING
 /* We will need to check against nc log level from nc4internal.c. */
 extern int nc_log_level;
@@ -982,3 +1030,91 @@ hdf5_set_log_level()
     return NC_NOERR;
 }
 #endif /* LOGGING */
+
+
+#ifdef _WIN32
+
+/**
+ * Converts the filename from ANSI to UTF-8 if HDF5 >= 1.10.6. 
+ * nc4_hdf5_free_pathbuf must be called to free pb.
+ *
+ * @param pb Pointer that conversion information is stored.
+ * @param path The filename to be converted.
+ *
+ * @return The converted filename if succeeded. NULL if failed.
+ */
+const char *
+nc4_ndf5_ansi_to_utf8(pathbuf_t *pb, const char *path)
+{
+    const uint UTF8_MAJNUM = 1;
+    const uint UTF8_MINNUM = 10;
+    const uint UTF8_RELNUM = 6;
+    static enum {UNDEF, ANSI, UTF8} hdf5_encoding = UNDEF;
+    wchar_t wbuf[MAX_PATH];
+    wchar_t *ws = NULL;
+    char *ns = NULL;
+    int n;
+
+    if (hdf5_encoding == UNDEF) {
+        uint majnum, minnum, relnum;
+        H5get_libversion(&majnum, &minnum, &relnum);
+        hdf5_encoding = (((majnum == UTF8_MAJNUM && minnum == UTF8_MINNUM && relnum >= UTF8_RELNUM)
+                          || (majnum == UTF8_MAJNUM && minnum > UTF8_MINNUM)
+                          || majnum > UTF8_MAJNUM)
+                         ? UTF8 : ANSI);
+    }
+    if (hdf5_encoding == ANSI) {
+        pb->ptr = NULL;
+        return path;
+    }
+
+    n = MultiByteToWideChar(CP_ACP, 0, path, -1, NULL, 0);
+    if (!n) {
+        errno = EILSEQ;
+        goto done;
+    }
+    ws = n <= _countof(wbuf) ? wbuf : malloc(sizeof *ws * n);
+    if (!ws)
+        goto done;
+    if (!MultiByteToWideChar(CP_ACP, 0, path, -1, ws, n)) {
+        errno = EILSEQ;
+        goto done;
+    }
+
+    n = WideCharToMultiByte(CP_UTF8, 0, ws, -1, NULL, 0, NULL, NULL);
+    if (!n) {
+        errno = EILSEQ;
+        goto done;
+    }
+    ns = n <= sizeof pb->buffer ? pb->buffer : malloc(n);
+    if (!ns)
+        goto done;
+    if (!WideCharToMultiByte(CP_UTF8, 0, ws, -1, ns, n, NULL, NULL)) {
+        if (ns != pb->buffer)
+            free(ns);
+        ns = NULL;
+        errno = EILSEQ;
+        goto done;
+    }
+
+done:
+    if (ws != wbuf)
+        free (ws);
+
+    pb->ptr = ns;
+    return ns;
+}
+
+/**
+ * Free the conversion information used by nc4_ndf5_ansi_to_utf8.
+ *
+ * @param pb Pointer that hold conversion information to be freed.
+ */
+void
+nc4_hdf5_free_pathbuf(pathbuf_t *pb)
+{
+    if (pb->ptr && pb->ptr != pb->buffer)
+        free(pb->ptr);
+}
+
+#endif /* _WIN32 */

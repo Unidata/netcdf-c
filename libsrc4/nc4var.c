@@ -211,22 +211,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 	return NC_EFILTER;
 
     if (idp) {
-#if 0
-        NC* nc = h5->controller;
-	NC_FILTER_ACTION action;
-	action.action = NCFILTER_INQ_FILTER;
-	action.format = NC_FORMATX_NC_HDF5;
-	action.id =  (idp)?*idp:0;
-	action.nelems = (nparamsp)?*nparamsp:0;
-	action.elems = params;
-	if((retval = nc->dispatch->filter_actions(ncid,varid,&action)) == NC_NOERR) {
-	    if(idp) *idp = action.id;
-	    if(nparamsp) *nparamsp = action.nelems;
-	}
-	return retval;
-#else
 	return NC_EFILTER;
-#endif
     }
 
     /* Fill value stuff. */
@@ -263,7 +248,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
                 if (!(*(char **)fill_valuep = calloc(1, sizeof(char *))))
                     return NC_ENOMEM;
 
-                if ((retval = nc4_get_default_fill_value(var->type_info, (char **)fill_valuep)))
+                if ((retval = nc4_get_default_fill_value(var->type_info->hdr.id, (char **)fill_valuep)))
                 {
                     free(*(char **)fill_valuep);
                     return retval;
@@ -271,7 +256,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
             }
             else
             {
-                if ((retval = nc4_get_default_fill_value(var->type_info, fill_valuep)))
+                if ((retval = nc4_get_default_fill_value(var->type_info->hdr.id, fill_valuep)))
                     return retval;
             }
         }
@@ -279,7 +264,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 
     /* Does the user want the endianness of this variable? */
     if (endiannessp)
-        *endiannessp = var->type_info->endianness;
+        *endiannessp = var->endianness;
 
     return NC_NOERR;
 }
@@ -1262,6 +1247,87 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 }
 
 /**
+ * @internal What fill value should be used for a variable?
+ *
+ * @param h5 Pointer to HDF5 file info struct.
+ * @param var Pointer to variable info struct.
+ * @param fillp Pointer that gets pointer to fill value.
+ *
+ * @returns NC_NOERR No error.
+ * @returns NC_ENOMEM Out of memory.
+ * @author Ed Hartnett
+ */
+int
+nc4_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
+{
+    size_t size;
+    int retval;
+
+    /* Find out how much space we need for this type's fill value. */
+    if (var->type_info->nc_type_class == NC_VLEN)
+        size = sizeof(nc_vlen_t);
+    else if (var->type_info->nc_type_class == NC_STRING)
+        size = sizeof(char *);
+    else
+    {
+        if ((retval = nc4_get_typelen_mem(h5, var->type_info->hdr.id, &size)))
+            return retval;
+    }
+    assert(size);
+
+    /* Allocate the space. */
+    if (!((*fillp) = calloc(1, size)))
+        return NC_ENOMEM;
+
+    /* If the user has set a fill_value for this var, use, otherwise
+     * find the default fill value. */
+    if (var->fill_value)
+    {
+        LOG((4, "Found a fill value for var %s", var->hdr.name));
+        if (var->type_info->nc_type_class == NC_VLEN)
+        {
+            nc_vlen_t *in_vlen = (nc_vlen_t *)(var->fill_value), *fv_vlen = (nc_vlen_t *)(*fillp);
+            size_t basetypesize = 0;
+
+            if((retval=nc4_get_typelen_mem(h5, var->type_info->u.v.base_nc_typeid, &basetypesize)))
+                return retval;
+
+            fv_vlen->len = in_vlen->len;
+            if (!(fv_vlen->p = malloc(basetypesize * in_vlen->len)))
+            {
+                free(*fillp);
+                *fillp = NULL;
+                return NC_ENOMEM;
+            }
+            memcpy(fv_vlen->p, in_vlen->p, in_vlen->len * basetypesize);
+        }
+        else if (var->type_info->nc_type_class == NC_STRING)
+        {
+            if (*(char **)var->fill_value)
+                if (!(**(char ***)fillp = strdup(*(char **)var->fill_value)))
+                {
+                    free(*fillp);
+                    *fillp = NULL;
+                    return NC_ENOMEM;
+                }
+        }
+        else
+            memcpy((*fillp), var->fill_value, size);
+    }
+    else
+    {
+        if (nc4_get_default_fill_value(var->type_info->hdr.id, *fillp))
+        {
+            /* Note: release memory, but don't return error on failure */
+            free(*fillp);
+            *fillp = NULL;
+        }
+    }
+
+    return NC_NOERR;
+}
+
+/**
  * @internal Get the default fill value for an atomic type. Memory for
  * fill_value must already be allocated, or you are DOOMED!
  *
@@ -1273,9 +1339,9 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
  * @author Ed Hartnett
  */
 int
-nc4_get_default_fill_value(const NC_TYPE_INFO_T *type_info, void *fill_value)
+nc4_get_default_fill_value(nc_type typecode, void *fill_value)
 {
-    switch (type_info->hdr.id)
+    switch (typecode)
     {
     case NC_CHAR:
         *(char *)fill_value = NC_FILL_CHAR;

@@ -9,11 +9,13 @@
  */
 
 #include "config.h"
-#include <hdf5internal.h>
+#include "nc4internal.h"
+#include "hdf5internal.h"
 #include <math.h> /* For pow() used below. */
 
 #include "netcdf.h"
 #include "netcdf_filter.h"
+#include "ncfilter.h"
 
 /** @internal Default size for unlimited dim chunksize. */
 #define DEFAULT_1D_UNLIM_SIZE (4096)
@@ -418,13 +420,16 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
     if (xtype <= NC_STRING)
     {
         size_t len;
+	char name[NC_MAX_NAME];
 
         /* Get type length. */
         if ((retval = nc4_get_typelen_mem(h5, xtype, &len)))
             BAIL(retval);
 
         /* Create new NC_TYPE_INFO_T struct for this atomic type. */
-        if ((retval = nc4_type_new(len, nc4_atomic_name[xtype], xtype, &type)))
+	if((retval=NC4_inq_atomic_type(xtype,name,NULL)))
+	    BAIL(retval);
+        if ((retval = nc4_type_new(len, name, xtype, &type)))
             BAIL(retval);
         type->endianness = NC_ENDIAN_NATIVE;
         type->size = len;
@@ -498,6 +503,9 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
     var->type_info = type;
     var->type_info->rc++;
     type = NULL;
+
+    /* Propagate the endianness */
+    var->endianness = var->type_info->endianness;
 
     /* Set variables no_fill to match the database default unless the
      * variable type is variable length (NC_STRING or NC_VLEN) or is
@@ -692,14 +700,16 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
     if (shuffle)
     {
         var->shuffle = *shuffle;
-        var->storage = NC_CHUNKED;
+	if(var->shuffle)
+            var->storage = NC_CHUNKED;
     }
 
     /* Fletcher32 checksum error protection? */
     if (fletcher32)
     {
         var->fletcher32 = *fletcher32;
-        var->storage = NC_CHUNKED;
+	if(var->fletcher32)
+            var->storage = NC_CHUNKED;
     }
 
 #ifdef USE_PARALLEL
@@ -860,6 +870,8 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
             return NC_EINVAL;
         }
         var->type_info->endianness = *endianness;
+	/* Propagate */
+	var->endianness = *endianness;
     }
 
     return NC_NOERR;
@@ -894,11 +906,14 @@ NC4_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
     unsigned int level = (unsigned int)deflate_level;
     /* Set shuffle first */
     if((stat = nc_def_var_extra(ncid, varid, &shuffle, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL))) goto done;
-    if(deflate)
-        stat = nc_def_var_filter(ncid, varid, H5Z_FILTER_DEFLATE,1,&level);
-    else
-        stat = nc_var_filter_remove(ncid, varid, H5Z_FILTER_DEFLATE);
-    if(stat) goto done;
+    if(deflate) {
+        if((stat = nc_def_var_filter(ncid, varid, H5Z_FILTER_DEFLATE,1,&level))) goto done;
+    } else {
+        switch (stat = nc_var_filter_remove(ncid, varid, H5Z_FILTER_DEFLATE)) {
+	case NC_NOERR: case NC_ENOFILTER: stat = NC_NOERR; break; /* ok if not previously defined */
+	default: goto done;
+	}
+    }
 done:
     return stat;
 }
@@ -1071,21 +1086,30 @@ NC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
 {
     int retval = NC_NOERR;
     NC *nc;
-    NC_FILTER_OBJ_HDF5 spec;
+    NC_FILTERX_OBJ obj;
+    char* xid = NULL;
+    char** xparams = NULL;
 
     LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
 
     if((retval = NC_check_id(ncid,&nc))) return retval;
     assert(nc);
 
-    memset(&spec,0,sizeof(spec));
-    spec.hdr.format = NC_FILTER_FORMAT_HDF5;
-    spec.sort = NC_FILTER_SORT_SPEC;
-    spec.u.spec.filterid = id;
-    spec.u.spec.nparams = nparams;
-    spec.u.spec.params = (unsigned int*)params; /* Need to remove const */
+    if((retval=NC_cvtI2X_idlist(1,&id,&xid))) goto done;
+    if((xparams = malloc(nparams*sizeof(char*)))==NULL)
+        {retval = NC_ENOMEM; goto done;}
+    if((retval=NC_cvtI2X_params(nparams,params,xparams))) goto done;
 
-    return nc->dispatch->filter_actions(ncid,varid,NCFILTER_DEF,(NC_Filterobject*)&spec);
+    memset(&obj,0,sizeof(obj));
+    obj.usort = NC_FILTER_UNION_SPEC;
+    obj.u.spec.filterid = xid;
+    obj.u.spec.nparams = nparams;
+    obj.u.spec.params = (char**)xparams; /* Need to remove const */
+
+    if((retval=nc->dispatch->filter_actions(ncid,varid,NCFILTER_DEF,&obj))) goto done;
+    
+done:
+    return retval;
 }
 
 /**
@@ -1532,6 +1556,7 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
         start[i] = startp[i];
         count[i] = countp ? countp[i] : var->dim[i]->len;
         stride[i] = stridep ? stridep[i] : 1;
+	LOG((4, "start[%d] %ld count[%d] %ld stride[%d] %ld", i, start[i], i, count[i], i, stride[i]));
 
         /* Check to see if any counts are zero. */
         if (!count[i])
@@ -1812,7 +1837,7 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     hsize_t stride[NC_MAX_VAR_DIMS];
     void *fillvalue = NULL;
     int no_read = 0, provide_fill = 0;
-    int fill_value_size[NC_MAX_VAR_DIMS];
+    hssize_t fill_value_size[NC_MAX_VAR_DIMS];
     int scalar = 0, retval, range_error = 0, i, d2;
     void *bufr = NULL;
     int need_to_convert = 0;

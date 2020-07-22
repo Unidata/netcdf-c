@@ -338,28 +338,28 @@ cdParseRelunits(cdCalenType timetype, char* relunits, cdUnitTime* unit, cdCompTi
 	}
 					     /* Get the units */
 	cdTrim(charunits,CD_MAX_RELUNITS);
-	if(!strncmp(charunits,"sec",3) || !strcmp(charunits,"s")){
+	if(!strncasecmp(charunits,"sec",3) || !strcasecmp(charunits,"s")){
 		*unit = cdSecond;
 	}
-	else if(!strncmp(charunits,"min",3) || !strcmp(charunits,"mn")){
+	else if(!strncasecmp(charunits,"min",3) || !strcasecmp(charunits,"mn")){
 		*unit = cdMinute;
 	}
-	else if(!strncmp(charunits,"hour",4) || !strcmp(charunits,"hr")){
+	else if(!strncasecmp(charunits,"hour",4) || !strcasecmp(charunits,"hr")){
 		*unit = cdHour;
 	}
-	else if(!strncmp(charunits,"day",3) || !strcmp(charunits,"dy")){
+	else if(!strncasecmp(charunits,"day",3) || !strcasecmp(charunits,"dy")){
 		*unit = cdDay;
 	}
-	else if(!strncmp(charunits,"week",4) || !strcmp(charunits,"wk")){
+	else if(!strncasecmp(charunits,"week",4) || !strcasecmp(charunits,"wk")){
 		*unit = cdWeek;
 	}
-	else if(!strncmp(charunits,"month",5) || !strcmp(charunits,"mo")){
+	else if(!strncasecmp(charunits,"month",5) || !strcasecmp(charunits,"mo")){
 		*unit = cdMonth;
 	}
-	else if(!strncmp(charunits,"season",6)){
+	else if(!strncasecmp(charunits,"season",6)){
 		*unit = cdSeason;
 	}
-	else if(!strncmp(charunits,"year",4) || !strcmp(charunits,"yr")){
+	else if(!strncasecmp(charunits,"year",4) || !strcasecmp(charunits,"yr")){
 		if(!(timetype & cdStandardCal)){
 			cdError("Error on relative units conversion: climatological units cannot be 'years'.\n");
 			return 1;

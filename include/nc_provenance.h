@@ -20,6 +20,8 @@
  * - Per file: _NCProperties attribute
  *
  * @author Dennis Heimbigner, Ward Fisher
+ *
+ * [This file is too hdf5 specific, need to clean so we can use with Zarr]
 */
 
 #ifndef _NCPROVENANCE_

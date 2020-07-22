@@ -1,17 +1,9 @@
 test1: filter order.
-set var filter 0
-test: nparams=1: params= 0
-dimsizes=4,4,4,4
-chunksizes=4,4,4,4
-set var filter 1
-test: nparams=1: params= 1
-dimsizes=4,4,4,4
-chunksizes=4,4,4,4
 test1: compression.
-Apply filter: 0
-Apply filter: 1
+cd_nelmts=1 cd_values= 0
+cd_nelmts=1 cd_values= 1
 test1: decompression.
-Apply filter: 1
-Apply filter: 0
+cd_nelmts=1 cd_values= 1
+cd_nelmts=1 cd_values= 0
 data comparison: |array|=256
 no data errors
