@@ -18,6 +18,7 @@
 #include "netcdf.h"
 #include "nc4internal.h"
 #include "ncdispatch.h"
+#include "ncfilter.h"
 #include "hdf5internal.h"
 #include "hdf5debug.h"
 #include <math.h>
@@ -224,87 +225,6 @@ nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset)
     }
 
     *dataset = hdf5_var->hdf_datasetid;
-
-    return NC_NOERR;
-}
-
-/**
- * @internal What fill value should be used for a variable?
- *
- * @param h5 Pointer to HDF5 file info struct.
- * @param var Pointer to variable info struct.
- * @param fillp Pointer that gets pointer to fill value.
- *
- * @returns NC_NOERR No error.
- * @returns NC_ENOMEM Out of memory.
- * @author Ed Hartnett
- */
-int
-nc4_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
-{
-    size_t size;
-    int retval;
-
-    /* Find out how much space we need for this type's fill value. */
-    if (var->type_info->nc_type_class == NC_VLEN)
-        size = sizeof(nc_vlen_t);
-    else if (var->type_info->nc_type_class == NC_STRING)
-        size = sizeof(char *);
-    else
-    {
-        if ((retval = nc4_get_typelen_mem(h5, var->type_info->hdr.id, &size)))
-            return retval;
-    }
-    assert(size);
-
-    /* Allocate the space. */
-    if (!((*fillp) = calloc(1, size)))
-        return NC_ENOMEM;
-
-    /* If the user has set a fill_value for this var, use, otherwise
-     * find the default fill value. */
-    if (var->fill_value)
-    {
-        LOG((4, "Found a fill value for var %s", var->hdr.name));
-        if (var->type_info->nc_type_class == NC_VLEN)
-        {
-            nc_vlen_t *in_vlen = (nc_vlen_t *)(var->fill_value), *fv_vlen = (nc_vlen_t *)(*fillp);
-            size_t basetypesize = 0;
-
-            if((retval=nc4_get_typelen_mem(h5, var->type_info->u.v.base_nc_typeid, &basetypesize)))
-                return retval;
-
-            fv_vlen->len = in_vlen->len;
-            if (!(fv_vlen->p = malloc(basetypesize * in_vlen->len)))
-            {
-                free(*fillp);
-                *fillp = NULL;
-                return NC_ENOMEM;
-            }
-            memcpy(fv_vlen->p, in_vlen->p, in_vlen->len * basetypesize);
-        }
-        else if (var->type_info->nc_type_class == NC_STRING)
-        {
-            if (*(char **)var->fill_value)
-                if (!(**(char ***)fillp = strdup(*(char **)var->fill_value)))
-                {
-                    free(*fillp);
-                    *fillp = NULL;
-                    return NC_ENOMEM;
-                }
-        }
-        else
-            memcpy((*fillp), var->fill_value, size);
-    }
-    else
-    {
-        if (nc4_get_default_fill_value(var->type_info, *fillp))
-        {
-            /* Note: release memory, but don't return error on failure */
-            free(*fillp);
-            *fillp = NULL;
-        }
-    }
 
     return NC_NOERR;
 }
@@ -835,6 +755,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
     NC_DIM_INFO_T *dim = NULL;
     char *name_to_use;
     int retval;
+    unsigned int* params = NULL;
 
     assert(grp && grp->format_grp_info && var && var->format_var_info);
 
@@ -902,6 +823,12 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
         }
     }
 
+    /* If the user wants to fletcher error correction, set that up now. */
+    /* Since it is a checksum of sorts, flatcher is always applied first */
+    if (var->fletcher32)
+        if (H5Pset_fletcher32(plistid) < 0)
+            BAIL(NC_EHDFERR);
+
     /* If the user wants to shuffle the data, set that up now. */
     if (var->shuffle) {
         if (H5Pset_shuffle(plistid) < 0)
@@ -917,40 +844,46 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
     if(var->filters != NULL) {
 	int j;
 	for(j=0;j<nclistlength(var->filters);j++) {
-	    NC_FILTER_SPEC_HDF5* fi = (NC_FILTER_SPEC_HDF5*)nclistget(var->filters,j);
+	    NC_FILTERX_SPEC* fi = (NC_FILTERX_SPEC*)nclistget(var->filters,j);
+	    unsigned int filterid;
 	    size_t nparams;
-	    unsigned int* params;
-	    nparams = fi->nparams;
-	    params = fi->params;
-            if(fi->filterid == H5Z_FILTER_DEFLATE) {/* Handle zip case here */
-                unsigned level;
-                if(nparams != 1)
-                    BAIL(NC_EFILTER);
-                level = (int)params[0];
-                if(H5Pset_deflate(plistid, level) < 0)
-                    BAIL(NC_EFILTER);
-            } else if(fi->filterid == H5Z_FILTER_SZIP) {/* Handle szip case here */
-                int options_mask;
-                int bits_per_pixel;
-                if(nparams != 2)
-                    BAIL(NC_EFILTER);
-                options_mask = (int)params[0];
-                bits_per_pixel = (int)params[1];
-                if(H5Pset_szip(plistid, options_mask, bits_per_pixel) < 0)
-                    BAIL(NC_EFILTER);
-            } else {
-                herr_t code = H5Pset_filter(plistid, (unsigned int)fi->filterid, H5Z_FLAG_MANDATORY, nparams, params);
-                if(code < 0) {
-                    BAIL(NC_EFILTER);
-                }
-            }
-	}
-    }
 
-    /* If the user wants to fletcher error correction, set that up now. */
-    if (var->fletcher32)
-        if (H5Pset_fletcher32(plistid) < 0)
-            BAIL(NC_EHDFERR);
+	    if(!fi->active) {
+	        nparams = fi->nparams;
+  	        /* Do the conversions */
+	        if((retval = NC_cvtX2I_id(fi->filterid,&filterid))) BAIL(retval);
+	        if((params = malloc(nparams*sizeof(unsigned int)))==NULL)
+	            BAIL(NC_ENOMEM);
+    	        if((retval = NC_cvtX2I_params(nparams,(const char**)fi->params,params))) BAIL(retval);
+                if(filterid == H5Z_FILTER_DEFLATE) {/* Handle zip case here */
+                    unsigned level;
+                    if(nparams != 1)
+                        BAIL(NC_EFILTER);
+                    level = (int)params[0];
+                    if(H5Pset_deflate(plistid, level) < 0)
+                        BAIL(NC_EFILTER);
+		    fi->active = 1;
+  	        } else if(filterid == H5Z_FILTER_SZIP) {/* Handle szip case here */
+                    int options_mask;
+                    int bits_per_pixel;
+                    if(nparams != 2)
+                        BAIL(NC_EFILTER);
+                    options_mask = (int)params[0];
+                    bits_per_pixel = (int)params[1];
+                    if(H5Pset_szip(plistid, options_mask, bits_per_pixel) < 0)
+                        BAIL(NC_EFILTER);
+		    fi->active = 1;
+                } else {
+                    herr_t code = H5Pset_filter(plistid, filterid, H5Z_FLAG_MANDATORY, nparams, params);
+                    if(code < 0)
+                        BAIL(NC_EFILTER);
+		    fi->active = 1;
+		}
+            }
+	    /* reclaim */
+	    nullfree(params); params = NULL;
+        }
+    }
 
     /* If ndims non-zero, get info for all dimensions. We look up the
        dimids and get the len of each dimension. We need this to create
@@ -1096,6 +1029,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
     var->attr_dirty = NC_FALSE;
 
 exit:
+    nullfree(params);
     if (typeid > 0 && H5Tclose(typeid) < 0)
         BAIL2(NC_EHDFERR);
     if (plistid > 0 && H5Pclose(plistid) < 0)
@@ -2710,19 +2644,21 @@ NC4_walk(hid_t gid, int* countp)
 }
 
 int
-NC4_hdf5_remove_filter(NC_VAR_INFO_T* var, unsigned int filterid)
+NC4_hdf5_remove_filter(NC_VAR_INFO_T* var, const char* filterid)
 {
     int stat = NC_NOERR;
     NC_HDF5_VAR_INFO_T *hdf5_var;
     hid_t propid = -1;
     herr_t herr = -1;
     H5Z_filter_t hft;
+    unsigned int id;
 
     hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
     if ((propid = H5Dget_create_plist(hdf5_var->hdf_datasetid)) < 0)
 	{stat = NC_EHDFERR; goto done;}
 
-    hft = filterid;
+    if((stat = NC_cvtX2I_id(filterid,&id))) goto done;    
+    hft = id;
     if((herr = H5Premove_filter(propid,hft)) < 0)
 	{stat = NC_EHDFERR; goto done;}
 done:

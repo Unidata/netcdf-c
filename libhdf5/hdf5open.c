@@ -13,6 +13,7 @@
 #include "hdf5internal.h"
 #include "ncrc.h"
 #include "ncmodel.h"
+#include "ncfilter.h"
 
 #ifdef ENABLE_BYTERANGE
 #include "H5FDhttp.h"
@@ -60,6 +61,12 @@ extern int NC4_open_image_file(NC_FILE_INFO_T* h5);
 
 /* Defined later in this file. */
 static int rec_read_metadata(NC_GRP_INFO_T *grp);
+
+#ifdef _WIN32
+static hid_t nc4_H5Fopen(const char *filename, unsigned flags, hid_t fapl_id);
+#else
+#define nc4_H5Fopen  H5Fopen
+#endif
 
 /**
  * @internal Struct to track HDF5 object info, for
@@ -745,7 +752,7 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
         BAIL(NC_EINTERNAL);
 
 #ifdef USE_PARALLEL4
-    mpiinfo = (NC_MPI_INFO*)parameters; /* assume, may be changed if inmemory is true */
+    mpiinfo = (NC_MPI_INFO *)parameters; /* assume, may be changed if inmemory is true */
 #endif /* !USE_PARALLEL4 */
 
     /* Need this access plist to control how HDF5 handles open objects
@@ -760,20 +767,19 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 #ifdef USE_PARALLEL4
     if (!(mode & (NC_INMEMORY | NC_DISKLESS)) && mpiinfo != NULL) {
         /* If this is a parallel file create, set up the file creation
-         * property list.
-         */
+         * property list. */
         nc4_info->parallel = NC_TRUE;
         LOG((4, "opening parallel file with MPI/IO"));
         if (H5Pset_fapl_mpio(fapl_id, mpiinfo->comm, mpiinfo->info) < 0)
             BAIL(NC_EPARINIT);
 
         /* Keep copies of the MPI Comm & Info objects */
-        if (MPI_SUCCESS != MPI_Comm_dup(mpiinfo->comm, &nc4_info->comm))
+        if (MPI_Comm_dup(mpiinfo->comm, &nc4_info->comm) != MPI_SUCCESS)
             BAIL(NC_EMPI);
         comm_duped++;
-        if (MPI_INFO_NULL != mpiinfo->info)
+        if (mpiinfo->info != MPI_INFO_NULL)
         {
-            if (MPI_SUCCESS != MPI_Info_dup(mpiinfo->info, &nc4_info->info))
+            if (MPI_Info_dup(mpiinfo->info, &nc4_info->info) != MPI_SUCCESS)
                 BAIL(NC_EMPI);
             info_duped++;
         }
@@ -785,18 +791,23 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
     }
 
 #ifdef HDF5_HAS_COLL_METADATA_OPS
+    /* If collective metadata operations are available in HDF5, turn
+     * them on. */
     if (H5Pset_all_coll_metadata_ops(fapl_id, 1) < 0)
         BAIL(NC_EPARINIT);
-#endif
-
-#else /* only set cache for non-parallel. */
-    if (H5Pset_cache(fapl_id, 0, nc4_chunk_cache_nelems, nc4_chunk_cache_size,
-                     nc4_chunk_cache_preemption) < 0)
-        BAIL(NC_EHDFERR);
-    LOG((4, "%s: set HDF raw chunk cache to size %d nelems %d preemption %f",
-         __func__, nc4_chunk_cache_size, nc4_chunk_cache_nelems,
-         nc4_chunk_cache_preemption));
+#endif /* HDF5_HAS_COLL_METADATA_OPS */
 #endif /* USE_PARALLEL4 */
+
+    /* Only set cache for non-parallel opens. */
+    if (!nc4_info->parallel)
+    {
+	if (H5Pset_cache(fapl_id, 0, nc4_chunk_cache_nelems, nc4_chunk_cache_size,
+			 nc4_chunk_cache_preemption) < 0)
+	    BAIL(NC_EHDFERR);
+	LOG((4, "%s: set HDF raw chunk cache to size %d nelems %d preemption %f",
+	     __func__, nc4_chunk_cache_size, nc4_chunk_cache_nelems,
+	     nc4_chunk_cache_preemption));
+    }
 
     /* Process  NC_INMEMORY */
     if(nc4_info->mem.inmemory) {
@@ -828,7 +839,7 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
             if (H5Pset_fapl_core(fapl_id, min_incr, (nc4_info->mem.persist?1:0)) < 0)
                 BAIL(NC_EHDFERR);
             /* Open the HDF5 file. */
-            if ((h5->hdfid = H5Fopen(path, flags, fapl_id)) < 0)
+            if ((h5->hdfid = nc4_H5Fopen(path, flags, fapl_id)) < 0)
                 BAIL(NC_EHDFERR);
         }
 #ifdef ENABLE_BYTERANGE
@@ -838,14 +849,14 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
                 if (H5Pset_fapl_http(fapl_id) < 0)
                     BAIL(NC_EHDFERR);
                 /* Open the HDF5 file. */
-                if ((h5->hdfid = H5Fopen(path, flags, fapl_id)) < 0)
+                if ((h5->hdfid = nc4_H5Fopen(path, flags, fapl_id)) < 0)
                     BAIL(NC_EHDFERR);
             }
 #endif
             else
             {
                 /* Open the HDF5 file. */
-                if ((h5->hdfid = H5Fopen(path, flags, fapl_id)) < 0)
+                if ((h5->hdfid = nc4_H5Fopen(path, flags, fapl_id)) < 0)
                     BAIL(NC_EHDFERR);
             }
 
@@ -959,21 +970,26 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
 {
     H5Z_filter_t filter;
     int num_filters;
-    unsigned int cd_values_zip[CD_NELEMS_ZLIB];
-    size_t cd_nelems = CD_NELEMS_ZLIB;
+    unsigned int* cd_values = NULL;
+    size_t cd_nelems;
     int f;
     int stat = NC_NOERR;
+    NC_FILTERX_SPEC* spec = NULL;
 
     assert(var);
 
     if ((num_filters = H5Pget_nfilters(propid)) < 0)
-        return NC_EHDFERR;
+	{stat = NC_EHDFERR; goto done;}
 
     for (f = 0; f < num_filters; f++)
     {
-        if ((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems, cd_values_zip,
-                                     0, NULL, NULL)) < 0)
-            return NC_EHDFERR;
+	cd_nelems = 0;
+        if ((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems, NULL, 0, NULL, NULL)) < 0)
+	    {stat = NC_EHDFERR; goto done;}
+	if((cd_values = calloc(sizeof(unsigned int),cd_nelems))==NULL)
+	    {stat = NC_EHDFERR; goto done;}
+        if ((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems, cd_values, 0, NULL, NULL)) < 0)
+	    {stat = NC_EHDFERR; goto done;}
         switch (filter)
         {
         case H5Z_FILTER_SHUFFLE:
@@ -986,10 +1002,10 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
 
         case H5Z_FILTER_DEFLATE:
             if (cd_nelems != CD_NELEMS_ZLIB ||
-                cd_values_zip[0] > NC_MAX_DEFLATE_LEVEL)
-                return NC_EHDFERR;
-	    if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,cd_values_zip)))
-		return stat;
+                cd_values[0] > NC_MAX_DEFLATE_LEVEL)
+		    {stat = NC_EHDFERR; goto done;}
+	    if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,cd_values)))
+	       goto done;
             break;
 
         case H5Z_FILTER_SZIP: {
@@ -997,49 +1013,35 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
                and changes some of the parameter values; try to compensate */
             if(cd_nelems == 0) {
 		if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,0,NULL)))
-		   return stat;
+		   goto done;
             } else {
-                /* We have to re-read the parameters based on actual nparams,
-                   which in the case of szip, differs from users original nparams */
-                unsigned int* realparams = (unsigned int*)calloc(1,sizeof(unsigned int)*cd_nelems);
-                if(realparams == NULL)
-                    return NC_ENOMEM;
-                if((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems,
-                                            realparams, 0, NULL, NULL)) < 0) 
-                    return NC_EHDFERR;
                 /* fix up the parameters and the #params */
 		if(cd_nelems != 4)
-		    return NC_EHDFERR;
+		    {stat = NC_EHDFERR; goto done;}
 		cd_nelems = 2; /* ignore last two */		
 		/* Fix up changed params */
-		realparams[0] &= (H5_SZIP_ALL_MASKS);
+		cd_values[0] &= (H5_SZIP_ALL_MASKS);
 		/* Save info */
-		stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,realparams);
-		nullfree(realparams);
-		if(stat) return stat;
-
+		stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,cd_values);
+		if(stat) goto done;
             }
             } break;
 
         default:
             if(cd_nelems == 0) {
-  	        if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,0,NULL))) return stat;
+  	        if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,0,NULL))) goto done;
             } else {
-                /* We have to re-read the parameters based on actual nparams */
-                unsigned int* realparams = (unsigned int*)calloc(1,sizeof(unsigned int)*cd_nelems);
-                if(realparams == NULL)
-                    return NC_ENOMEM;
-                if((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems,
-                                            realparams, 0, NULL, NULL)) < 0)
-                    return NC_EHDFERR;
-  	        stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,realparams);
-		nullfree(realparams);
-		if(stat) return stat;
+  	        stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,cd_values);
+		if(stat) goto done;
             }
             break;
         }
+	nullfree(cd_values); cd_values = NULL;
     }
-    return NC_NOERR;
+done:
+    nullfree(cd_values);
+    NC4_filterx_free(spec);
+    return stat;
 }
 
 /**
@@ -1424,6 +1426,9 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
 
     /* Indicate that the variable has a pointer to the type */
     var->type_info->rc++;
+
+    /* Transfer endianness */
+    var->endianness = var->type_info->endianness; 
 
 exit:
     if (finalname)
@@ -2234,6 +2239,7 @@ nc4_read_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
  * @returns ::NC_NOERR No error.
  * @return ::NC_EHDFERR HDF5 returned error.
  * @author Ed Hartnett
+ * [Candidate for libsrc4]
  */
 static int
 read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
@@ -2707,3 +2713,30 @@ exit:
 
     return retval;
 }
+
+#ifdef _WIN32
+
+/**
+ * Wrapper function for H5Fopen.
+ * Converts the filename from ANSI to UTF-8 as needed before calling H5Fopen.
+ *
+ * @param filename The filename encoded ANSI to access.
+ * @param flags File access flags.
+ * @param fapl_id File access property list identifier.
+ * @return A file identifier if succeeded. A negative value if failed.
+ */
+static hid_t
+nc4_H5Fopen(const char *filename, unsigned flags, hid_t fapl_id)
+{
+    pathbuf_t pb;
+    hid_t hid;
+
+    filename = nc4_ndf5_ansi_to_utf8(&pb, filename);
+    if (!filename)
+        return H5I_INVALID_HID;
+    hid = H5Fopen(filename, flags, fapl_id);
+    nc4_hdf5_free_pathbuf(&pb);
+    return hid;
+}
+
+#endif /* _WIN32 */

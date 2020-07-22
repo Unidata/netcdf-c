@@ -10,10 +10,6 @@
 #include <assert.h>
 #include <sys/types.h>
 
-#include <hdf5.h>
-/* Older versions of the hdf library may define H5PL_type_t here */
-#include <H5PLextern.h>
-
 #include "netcdf.h"
 #include "netcdf_filter.h"
 
@@ -21,7 +17,7 @@
 
 #undef DEBUG
 
-#define FILTER_ID 32768
+#define FILTER_ID 40000
 
 #define MAXERRS 8
 
@@ -52,17 +48,6 @@ static size_t odom[MAXDIMS];
 static float* array = NULL;
 static float* expected = NULL;
 
-static size_t nparams = 0;
-static unsigned int params[MAXPARAMS];
-static unsigned int baseline[2][NPARAMS] = {{0},{1}};
-
-static struct Base {
-    unsigned int id;
-    H5Z_class2_t* info;
-} baseinfo;
-
-static const H5Z_class2_t H5Z_REG[2];
-
 /* Forward */
 static int filter_test1(void);
 static void init(int argc, char** argv);
@@ -72,7 +57,6 @@ static int odom_more(void);
 static int odom_next(void);
 static int odom_offset(void);
 static float expectedvalue(void);
-static void verifyparams(int);
 
 #define ERRR do { \
 fflush(stdout); /* Make sure our stdout is synced with stderr. */ \
@@ -138,87 +122,29 @@ create(void)
     return NC_NOERR;
 }
 
-static int
-verifyfilterinfo(struct Base* info, struct Base* base)
-{
-    int stat = NC_NOERR;
-    if(info->id != base->id)
-	{stat = NC_EINVAL; fprintf(stderr,"verifyfilterinfo: id mismatch\n");}
-#ifdef USE_HDF5
-    H5Z_class2_t* h5info = info->info;
-    H5Z_class2_t* h5base = base->info;
-    if(info->id != base->id)
-        {stat = NC_EINVAL; fprintf(stderr,"verifyfilterinfo: H5Z_class_t: id mismatch\n");}
-    if(h5info->encoder_present != h5base->encoder_present)
-        {stat = NC_EINVAL; fprintf(stderr,"verifyfilterinfo: H5Z_class_t: encoder_present mismatch\n");}
-    if(h5info->decoder_present != h5base->decoder_present)
-	    {stat = NC_EINVAL; fprintf(stderr,"verifyfilterinfo: H5Z_class_t: decoder_present mismatch\n");}
-    if(h5info->decoder_present != h5base->decoder_present)
-	    {stat = NC_EINVAL; fprintf(stderr,"verifyfilterinfo: H5Z_class_t: decoder_present mismatch\n");}
-    if(strcmp(h5info->name,h5base->name) != 0)
-	    {stat = NC_EINVAL; fprintf(stderr,"verifyfilterinfo: H5Z_class_t: name mismatch\n");}
-    if(h5info->can_apply != h5base->can_apply)
-	    {stat = NC_EINVAL; fprintf(stderr,"verifyfilterinfo: H5Z_class_t: can_apply mismatch\n");}
-    if(h5info->set_local != h5base->set_local)
-	    {stat = NC_EINVAL; fprintf(stderr,"verifyfilterinfo: H5Z_class_t: set_local mismatch\n");}
-    if(h5info->filter != h5base->filter)
-	    {stat = NC_EINVAL; fprintf(stderr,"verifyfilterinfo: H5Z_class_t: filter mismatch\n");}
-#else
-     stat = NC_ENOTBUILT; fprintf(stderr,"Unknown format\n")}
-#endif
-    return stat;
-}
-
 static void
-registerfilters(void)
+deffilters(void)
 {
-    struct Base inqinfo;
+    unsigned int params[1];
+    unsigned int filterids[2];
+    size_t nfilters = 0;
+    size_t nparams = 0;
 
     /* Register filter 0 */
-    baseinfo.id = FILTER_ID;
-    baseinfo.info = (H5Z_class2_t*)&H5Z_REG[0];
-    CHECK(nc_filter_client_register(baseinfo.id,baseinfo.info));
-    /* Verify by inquiry */
-    memset(&inqinfo,0,sizeof(struct Base));
-    inqinfo.id = FILTER_ID;
-    if((inqinfo.info = (H5Z_class2_t*)calloc(1,sizeof(H5Z_class2_t))) == NULL)
-        CHECK(NC_ENOMEM);
-    CHECK((nc_filter_client_inq(inqinfo.id,(void*)inqinfo.info)));
-    CHECK((verifyfilterinfo(&inqinfo,&baseinfo)));
-    nullfree(inqinfo.info);
-
-    /* Register filter 1 */
-    baseinfo.id = FILTER_ID+1;
-    baseinfo.info = (H5Z_class2_t*)&H5Z_REG[1];
-    CHECK(nc_filter_client_register(baseinfo.id,baseinfo.info));
-    /* Verify by inquiry */
-    memset(&inqinfo,0,sizeof(struct Base));
-    inqinfo.id = FILTER_ID+1;
-    if((inqinfo.info = (H5Z_class2_t*)calloc(1,sizeof(H5Z_class2_t))) == NULL)
-        CHECK(NC_ENOMEM);
-    CHECK((nc_filter_client_inq(inqinfo.id,(void*)inqinfo.info)));
-    CHECK((verifyfilterinfo(&inqinfo,&baseinfo)));
-    nullfree(inqinfo.info);
-}
-
-static void
-setvarfilter(int index)
-{
-    /* NOOP the params */
-    CHECK(nc_def_var_filter(ncid,varid,FILTER_ID+index,NPARAMS,baseline[index]));
-    verifyparams(index);
-}
-
-static void
-verifyparams(int index)
-{
-    int i;
-    CHECK(nc_inq_var_filter_info(ncid,varid,FILTER_ID+index,&nparams,params));
-    if(nparams != NPARAMS) REPORT("nparams mismatch");
-    for(i=0;i<nparams;i++) {
-        if(params[i] != baseline[index][i])
-            REPORT("param mismatch");
-    }
+    params[0] = 0;    
+    CHECK(nc_def_var_filter(ncid,varid,FILTER_ID,1,params));
+    params[0] = 1;
+    CHECK(nc_def_var_filter(ncid,varid,FILTER_ID+1,1,params));
+    CHECK(nc_inq_var_filterids(ncid,varid,&nfilters,filterids));
+    if(nfilters != 2) REPORT("nfilters mismatch");
+    if(filterids[0] != FILTER_ID+0) REPORT("0: filterids mismatch");
+    if(filterids[1] != FILTER_ID+1) REPORT("1: filterids mismatch");
+    CHECK(nc_inq_var_filter_info(ncid,varid,FILTER_ID+0,&nparams,params));;
+    if(nparams != 1) REPORT("0: nparams mismatch");
+    if(params[0] != 0) REPORT("0: param mismatch");
+    CHECK(nc_inq_var_filter_info(ncid,varid,FILTER_ID+1,&nparams,params));
+    if(nparams != 1) REPORT("1: nparams mismatch");
+    if(params[0] != 1) REPORT("1: param mismatch");
 }
 
 static int
@@ -227,6 +153,7 @@ openfile(void)
     unsigned int filterids[2];
     unsigned int params[1];
     size_t nfilters = 0;
+    size_t nparams = 0;
     int k;
 
     /* Open the file and check it. */
@@ -322,32 +249,6 @@ compare(void)
    return (errs == 0);
 }
 
-static void
-showparameters(void)
-{
-    int i;
-    printf("test: nparams=%ld: params=",(unsigned long)nparams);
-    for(i=0;i<nparams;i++) {
-        printf(" %u",params[i]);
-    }
-    printf("\n");
-    for(i=0;i<ndims;i++) {
-	if(i==0)
-            printf("dimsizes=%ld",(unsigned long)dimsize[i]);
-	else
-            printf(",%ld",(unsigned long)dimsize[i]);
-    }
-    printf("\n");
-    for(i=0;i<ndims;i++) {
-	if(i==0)
-            printf("chunksizes=%ld",(unsigned long)chunksize[i]);
-	else
-            printf(",%ld",(unsigned long)chunksize[i]);
-    }
-    printf("\n");
-    fflush(stderr);
-}
-
 static int
 filter_test1(void)
 {
@@ -358,12 +259,7 @@ filter_test1(void)
     printf("test1: filter order.\n");
     create();
     setchunking();
-    printf("set var filter 0\n");
-    setvarfilter(0);
-    showparameters();
-    printf("set var filter 1\n");
-    setvarfilter(1);
-    showparameters();
+    deffilters();
     CHECK(nc_enddef(ncid));
 
     /* Fill in the array */
@@ -461,8 +357,6 @@ init(int argc, char** argv)
     /* Allocate max size */
     array = (float*)calloc(1,sizeof(float)*actualproduct);
     expected = (float*)calloc(1,sizeof(float)*actualproduct);
-    /* Register the filter */
-    registerfilters();
 }
 
 /**************************************************/
@@ -477,133 +371,3 @@ main(int argc, char **argv)
     if(!filter_test1()) ERRR;
     exit(nerrs > 0?1:0);
 }
-
-/**************************************************/
-/* In-line filter code */
-
-#define H5Z_FILTER_REG0 FILTER_ID
-#define H5Z_FILTER_REG1 (FILTER_ID+1)
-
-#ifndef DLL_EXPORT
-#define DLL_EXPORT
-#endif
-
-static int paramcheck(size_t nparams, const unsigned int* params);
-
-/* Forward */
-static int paramcheck(size_t nparams, const unsigned int* params);
-
-/* Make this explicit */
-/*
- * The "can_apply" callback returns positive a valid combination, zero for an
- * invalid combination and negative for an error.
- */
-static htri_t
-H5Z_reg_can_apply(hid_t dcpl_id, hid_t type_id, hid_t space_id)
-{
-    return 1; /* Assume it can always apply */
-}
-
-/*
-As a filter, it is the identity function,
-passing input to output unchanged.
-*/
-
-size_t
-H5Z_filter_reg(unsigned int flags, size_t cd_nelmts,
-                     const unsigned int cd_values[], size_t nbytes,
-                     size_t *buf_size, void **buf)
-{
-    void* newbuf;
-
-    if(cd_nelmts == 0)
-	goto fail;
-
-    if(!paramcheck(cd_nelmts,cd_values))
-	goto fail;
-
-    printf("Apply filter: %u\n",cd_values[0]);
-
-    if (flags & H5Z_FLAG_REVERSE) {
-        /* Replace buffer */
-#ifdef HAVE_H5ALLOCATE_MEMORY
-        newbuf = H5allocate_memory(*buf_size,0);
-#else
-        newbuf = malloc(*buf_size);
-#endif
-        if(newbuf == NULL) abort();
-	if(*buf != NULL) {
-            memcpy(newbuf,*buf,*buf_size);
-            /* reclaim old buffer */
-#ifdef HAVE_H5FREE_MEMORY
-            H5free_memory(*buf);
-#else
-            free(*buf);
-#endif
-	}
-        *buf = newbuf;
-
-    } else {
-
-        /* Replace buffer */
-#ifdef HAVE_H5ALLOCATE_MEMORY
-        newbuf = H5allocate_memory(*buf_size,0);
-#else
-	newbuf = malloc(*buf_size);
-#endif
-	if(newbuf == NULL) abort();
-	if(*buf != NULL) {
-            memcpy(newbuf,*buf,*buf_size);
-    	    /* reclaim old buffer */
-#ifdef HAVE_H5FREE_MEMORY
-            H5free_memory(*buf);
-#else
-            free(*buf);
-#endif
-	}
-        *buf = newbuf;
-
-    }
-
-    return *buf_size;
-
-fail:
-    return 0;
-}
-
-static int
-paramcheck(size_t nparams, const unsigned int* params)
-{
-    if(nparams != 1) {
-	fprintf(stderr,"Incorrect parameter count: need=1 sent=%ld\n",(unsigned long)nparams);
-	goto fail;
-    }
-
-    return 1;
-
-fail:
-    return 0;
-}
-
-static const H5Z_class2_t H5Z_REG[2] = {
-{
-    H5Z_CLASS_T_VERS,                /* H5Z_class_t version */
-    (H5Z_filter_t)(H5Z_FILTER_REG0), /* Filter id number */
-    1,                               /* encoder_present flag (set to true) */
-    1,                               /* decoder_present flag (set to true) */
-    "registered0",                   /* Filter name for debugging    */
-    (H5Z_can_apply_func_t)H5Z_reg_can_apply, /* The "can apply" callback  */
-    NULL,			     /* The "set local" callback  */
-    (H5Z_func_t)H5Z_filter_reg,     /* The actual filter function   */
-},
-{
-    H5Z_CLASS_T_VERS,                /* H5Z_class_t version */
-    (H5Z_filter_t)(H5Z_FILTER_REG1), /* Filter id number */
-    1,                               /* encoder_present flag (set to true) */
-    1,                               /* decoder_present flag (set to true) */
-    "registered1",                   /* Filter name for debugging    */
-    (H5Z_can_apply_func_t)H5Z_reg_can_apply, /* The "can apply" callback  */
-    NULL,			     /* The "set local" callback  */
-    (H5Z_func_t)H5Z_filter_reg,     /* The actual filter function   */
-}
-};

@@ -4,6 +4,4 @@ dimensions:
 variables:
 	int t(d2) ;
 
-// global attributes:
-		:_DAP4_Little_Endian = 1UB ;
 }

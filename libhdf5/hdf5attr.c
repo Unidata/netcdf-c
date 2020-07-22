@@ -22,6 +22,7 @@
  *
  * @return NC_NOERR No error.
  * @author Dennis Heimbigner, Ed Hartnett
+ * [Candidate for moving to libsrc4]
  */
 static int
 getattlist(NC_GRP_INFO_T *grp, int varid, NC_VAR_INFO_T **varp,

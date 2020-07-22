@@ -4,7 +4,6 @@
  *********************************************************************/
 
 #include "includes.h"
-#include "nc_iter.h"
 
 #ifdef ENABLE_F77
 

@@ -10,7 +10,7 @@
 cmake_minimum_required(VERSION 3.6.1)
 
 #Project Name
-project(netCDF C)
+project(netCDF LANGUAGES C CXX)
 set(PACKAGE "netCDF" CACHE STRING "")
 
 #####
@@ -232,7 +232,7 @@ IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
     MESSAGE(STATUS "Coverage Tests: On.")
   ENDIF()
 
-    # Warnings for 64-to-32 bit conversions.
+  # Warnings for 64-to-32 bit conversions.
   IF(ENABLE_CONVERSION_WARNINGS)
     CHECK_C_COMPILER_FLAG(-Wconversion CC_HAS_WCONVERSION)
     CHECK_C_COMPILER_FLAG(-Wshorten-64-to-32 CC_HAS_SHORTEN_64_32)
@@ -269,8 +269,6 @@ SET(CMAKE_REQUIRED_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/libsrc)
 ################################
 # End Compiler Configuration
 ################################
-
-
 
 ##
 # Configuration for post-install RPath
@@ -505,7 +503,6 @@ IF(WIN32)
     SET(BUILD_DLL ON CACHE BOOL "")
     ADD_DEFINITIONS(-DDLL_NETCDF)
     ADD_DEFINITIONS(-DDLL_EXPORT)
-    ADD_DEFINITIONS(-DUTF8PROC_DLLEXPORT)
   ENDIF()
 ENDIF()
 # Did the user specify a default minimum blocksize for posixio?
@@ -631,7 +628,6 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
     # Assert HDF5 version meets minimum required version.
     ##
     SET(HDF5_VERSION_REQUIRED 1.8.10)
-    SET(HDF5_PAR_FILTER_VERSION 1.10.3)
 
     IF(HDF5_VERSION_STRING AND NOT HDF5_VERSION)
       SET(HDF5_VERSION ${HDF5_VERSION_STRING})
@@ -646,15 +642,6 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
       ELSE()
         MESSAGE(STATUS "Found HDF5 libraries version ${HDF5_VERSION}")
       ENDIF()
-    ENDIF()
-
-    # Determine whether parallel filter operation is supported.
-    IF(${HDF5_VERSION} VERSION_LESS ${HDF5_PAR_FILTER_VERSION})
-      SET(HDF5_HAS_PAR_FILTERS FALSE CACHE BOOL "")
-      SET(HAS_PAR_FILTERS no CACHE STRING "")
-    ELSE()
-      SET(HDF5_HAS_PAR_FILTERS TRUE CACHE BOOL "")
-      SET(HAS_PAR_FILTERS yes CACHE STRING "")
     ENDIF()
 
     ##
@@ -756,6 +743,13 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
 
   # Check to see if this is hdf5-1.10.3 or later.
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Dread_chunk "" HDF5_SUPPORTS_PAR_FILTERS)
+  IF (HDF5_SUPPORTS_PAR_FILTERS)
+    SET(HDF5_HAS_PAR_FILTERS TRUE CACHE BOOL "")
+    SET(HAS_PAR_FILTERS yes CACHE STRING "")
+  ELSE()
+    SET(HDF5_HAS_PAR_FILTERS FALSE CACHE BOOL "")
+    SET(HAS_PAR_FILTERS no CACHE STRING "")
+  ENDIF()
 
   SET(H5_USE_16_API 1)
   OPTION(NC_ENABLE_HDF_16_API "Enable HDF5 1.6.x Compatibility(Required)" ON)
@@ -773,7 +767,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
 
   # Check to ensure that HDF5 was built with zlib.
   set (CMAKE_REQUIRED_INCLUDES ${HAVE_HDF5_H})
-  CHECK_C_SOURCE_COMPILES("#include <H5pubconf.h>
+  CHECK_C_SOURCE_COMPILES("#include <H5public.h>
    #if !H5_HAVE_ZLIB_H
    #error
    #endif
@@ -839,9 +833,11 @@ int main() {int x = CURLOPT_TCP_KEEPALIVE;}" HAVE_CURLOPT_KEEPALIVE)
 # Check to see if we have libcurl 7.66 or later
 CHECK_C_SOURCE_COMPILES("
 #include <curl/curl.h>
-#if (LIBCURL_VERSION_MAJOR*1000 + LIBCURL_VERSION_MINOR >=  7066)
-      choke me
-#endif" HAVE_LIBCURL_766)
+int main() {
+#if (LIBCURL_VERSION_MAJOR*1000 + LIBCURL_VERSION_MINOR < 7066)
+      choke me;
+#endif
+}" HAVE_LIBCURL_766)
 
 # Option to Build DAP2+DAP4 Clients
 OPTION(ENABLE_DAP "Enable DAP2 and DAP4 Client." ON)
@@ -863,7 +859,7 @@ ENDIF()
 # Option to support byte-range reading of remote datasets
 OPTION(ENABLE_BYTERANGE "Enable byte-range access to remote datasets.." OFF)
 
-IF(NOT CURL_LIBRARY)
+IF(NOT CURL_LIBRARIES AND NOT CURL_LIBRARY)
   IF(ENABLE_BYTERANGE)
     MESSAGE(FATAL_ERROR "Byte-range support specified, CURL libraries are not found.")
   ENDIF()
@@ -894,11 +890,22 @@ IF(ENABLE_EXTRA_TESTS)
 ENDIF()
 
 # Option to use bundled XGetopt in place of getopt(). This is mostly useful
-# for MSVC builds. If not building utilities, getopt() isn't required at all.
+# for MSVC builds. If not building utilities or some tests,
+# getopt() isn't required at all.
 IF(MSVC)
   OPTION(ENABLE_XGETOPT "Enable bundled XGetOpt instead of external getopt()." ON)
   IF(ENABLE_XGETOPT)
     SET(USE_X_GETOPT ON CACHE BOOL "")
+    # Copy XGetopt.c to everywhere it is needed. Avoids
+    # inconsistent code
+    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
+         DESTINATION ${netCDF_BINARY_DIR}/ncgen3/)
+    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
+         DESTINATION ${netCDF_BINARY_DIR}/ncgen/)
+    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
+         DESTINATION ${netCDF_BINARY_DIR}/ncdump/)
+    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
+         DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
   ENDIF()
 ENDIF()
 
@@ -918,13 +925,49 @@ IF(NOT WIN32)
   ENDIF()
 ENDIF()
 
+# Option to Build NCZarr clients
+OPTION(ENABLE_NCZARR "Enable NCZarr Client." OFF)
+OPTION(ENABLE_S3_SDK "Enable NCZarr S3 support." ON)
+
+# See if aws-s3-sdk is available
+FIND_LIBRARY(AWS_CPP_SDK_CORE_LIB NAMES aws-cpp-sdk-core)
+FIND_LIBRARY(AWS_CPP_SDK_S3_LIB NAMES aws-cpp-sdk-s3)
+FIND_LIBRARY(AWS_C_COMMON_LIB NAMES aws-c-common)
+
+IF(NOT AWS_CPP_SDK_CORE_LIB)
+  SET(AWS_CPP_SDK_CORE_LIB OFF)
+ENDIF()
+IF(NOT AWS_CPP_SDK_S3_LIB)
+  SET(AWS_CPP_SDK_S3_LIB OFF)
+ENDIF()
+IF(NOT AWS_C_COMMON_LIB)
+  SET(AWS_C_COMMON_LIB OFF)
+ENDIF()
+
+IF(ENABLE_S3_SDK)
+  IF(NOT AWS_CPP_SDK_CORE_LIB
+     OR NOT AWS_CPP_SDK_S3_LIB
+     OR NOT AWS_C_COMMON_LIB)
+    MESSAGE(WARNING "One of aws-c-common, aws-cpp-sdk-s3, aws-cpp-sdk-core libraries is not available: Turning off S3 support")
+    SET(ENABLE_S3_SDK OFF)
+  ELSE()
+      MESSAGE(STATUS "Found aws sdk libraries")
+  ENDIF()
+ENDIF()
+
+IF(ENABLE_S3_SDK)
+IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
+#  SET(LDFLAGS "${LDFLAGS} ${AWS_CPP_SDK_CORE_LIB} ${AWS_CPP_SDK_S3_LIB} ${AWS_C_COMMON_LIB}")
+#  SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lstdc++")
+ENDIF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
+ENDIF(ENABLE_S3_SDK)
+
 ##
 # Enable Tests
 ##
 OPTION(ENABLE_TESTS "Enable basic tests, run with 'make test'." ON)
 IF(ENABLE_TESTS)
   SET(BUILD_TESTSETS ON CACHE BOOL "")
-
   # Options for CTest-based tests, dashboards.
   SET(NC_CTEST_PROJECT_NAME "netcdf-c" CACHE STRING "Project Name for CTest-based testing purposes.")
   SET(NC_CTEST_DROP_SITE "cdash.unidata.ucar.edu:443" CACHE STRING "Dashboard location for CTest-based testing purposes.")
@@ -959,6 +1002,10 @@ IF(ENABLE_TESTS)
   ###
 
   OPTION(ENABLE_FAILING_TESTS "Run tests which are known to fail, check to see if any have been fixed." OFF)
+
+  # There is a special class of tests that currently fail because of memory leaks.
+  # As with failing tests, they can be enabled to work on them
+  OPTION(ENABLE_UNFIXED_MEMORY_LEAKS "Run tests with unfixed memory leaks" OFF)
 
   ###
   # Option to turn on unit testing. See
@@ -1182,6 +1229,11 @@ IF(NOT BUILD_SHARED_LIBS)
   MESSAGE(WARNING "ENABLE_FILTER_TESTING requires shared libraries. Disabling.")
   SET(ENABLE_FILTER_TESTING OFF)
 ENDIF()
+OPTION(ENABLE_CLIENTSIDE_FILTERS "Enable client-side filter registration." OFF)
+IF(NOT ENABLE_FILTER_TESTING)
+SET(ENABLE_CLIENTSIDE_FILTERS OFF)
+ENDIF()
+
 
 # Determine whether or not to generate documentation.
 OPTION(ENABLE_DOXYGEN "Enable generation of doxygen-based documentation." OFF)
@@ -1313,6 +1365,8 @@ CHECK_INCLUDE_FILE("string.h"  HAVE_STRING_H)
 CHECK_INCLUDE_FILE("winsock2.h" HAVE_WINSOCK2_H)
 CHECK_INCLUDE_FILE("ftw.h"  HAVE_FTW_H)
 CHECK_INCLUDE_FILE("libgen.h" HAVE_LIBGEN_H)
+CHECK_INCLUDE_FILE("execinfo.h" HAVE_EXECINFO_H)
+CHECK_INCLUDE_FILE("dirent.h" HAVE_DIRENT_H)
 
 # Symbol Exists
 CHECK_SYMBOL_EXISTS(isfinite "math.h" HAVE_DECL_ISFINITE)
@@ -1610,6 +1664,23 @@ MACRO(add_bin_test prefix F)
   ENDIF()
 ENDMACRO()
 
+# Binary tests which are used by a script looking for a specific name.
+MACRO(build_bin_test_sourced F)
+  ADD_EXECUTABLE(${F} ${F}.c ${ARGN})
+  TARGET_LINK_LIBRARIES(${F} netcdf ${ALL_TLL_LIBS})
+  IF(MSVC)
+    SET_TARGET_PROPERTIES(${F}
+      PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
+      )
+    SET_TARGET_PROPERTIES(${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY
+      ${CMAKE_CURRENT_BINARY_DIR})
+    SET_TARGET_PROPERTIES(${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG
+      ${CMAKE_CURRENT_BINARY_DIR})
+    SET_TARGET_PROPERTIES(${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
+      ${CMAKE_CURRENT_BINARY_DIR})
+  ENDIF()
+ENDMACRO()
+
 # A cmake script to print out information at the end of the configuration step.
 MACRO(print_conf_summary)
   MESSAGE("")
@@ -1773,9 +1844,14 @@ IF(ENABLE_DAP4)
   ADD_SUBDIRECTORY(libdap4)
 ENDIF()
 
+IF(ENABLE_NCZARR)
+  ADD_SUBDIRECTORY(libnczarr)
+ENDIF()
+
 add_subdirectory(liblib)
 
 IF(ENABLE_FILTER_TESTING)
+  CONFIGURE_FILE(plugins/H5Znoop.c ${CMAKE_SOURCE_DIR}/plugins/H5Znoop1.c COPYONLY)
   add_subdirectory(plugins)
 ENDIF()
 
@@ -1812,6 +1888,9 @@ IF(ENABLE_TESTS)
   ENDIF()
   IF(ENABLE_DAP4)
     ADD_SUBDIRECTORY(dap4_test)
+  ENDIF()
+  IF(ENABLE_NCZARR)
+    ADD_SUBDIRECTORY(nczarr_test)
   ENDIF()
   IF(ENABLE_EXAMPLES)
     ADD_SUBDIRECTORY(examples)
@@ -1972,8 +2051,8 @@ is_enabled(ENABLE_V2_API HAS_NC2)
 is_enabled(ENABLE_NETCDF_4 HAS_NC4)
 is_enabled(ENABLE_HDF4 HAS_HDF4)
 is_enabled(ENABLE_NETCDF_4 HAS_HDF5)
-is_enabled(USE_SZIP HAS_SZLIB)
-is_enabled(USE_SZIP HAS_SZLIB_WRITE)
+is_enabled(USE_SZIP HAS_SZIP)
+is_enabled(USE_SZIP HAS_SZIP_WRITE)
 is_enabled(STATUS_PNETCDF HAS_PNETCDF)
 is_enabled(STATUS_PARALLEL HAS_PARALLEL)
 is_enabled(ENABLE_PARALLEL4 HAS_PARALLEL4)
@@ -1989,6 +2068,8 @@ is_enabled(USE_CDF5 HAS_CDF5)
 is_enabled(ENABLE_ERANGE_FILL HAS_ERANGE_FILL)
 is_enabled(HAVE_H5Z_SZIP HAS_SZLIB)
 is_enabled(HDF5_HAS_PAR_FILTERS HAS_PAR_FILTERS)
+is_enabled(ENABLE_NCZARR HAS_NCZARR)
+is_enabled(ENABLE_S3_SDK HAS_S3_SDK)
 
 # Generate file from template.
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
@@ -2000,7 +2081,7 @@ CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
 # might also work on Windows.
 FILE(READ "${CMAKE_CURRENT_BINARY_DIR}/libnetcdf.settings"
   LIBNETCDF_SETTINGS)
-MESSAGE(${LIBNETCDF_SETTINGS})
+MESSAGE(STATUS ${LIBNETCDF_SETTINGS})
 
 # Install libnetcdf.settings file into same location
 # as the libraries.
@@ -2109,8 +2190,6 @@ install(
 ####
 # End export files
 ####
-
-
 
 # CPack inclusion must come last.
 # INCLUDE(CPack)

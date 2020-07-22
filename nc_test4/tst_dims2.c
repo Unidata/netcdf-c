@@ -82,7 +82,8 @@ main(int argc, char **argv)
       nc_type xtype_in;
       char name_in[NC_MAX_NAME + 1];
       int i;
-      nc_set_log_level(4);
+      nc_set_log_level(0);
+
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
 
       /*create dimensions*/

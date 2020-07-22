@@ -174,11 +174,17 @@ verifyfilterinfo(struct Base* info, struct Base* base)
 static void
 registerfilter(void)
 {
+    int stat;
     struct Base inqinfo;
 
     baseinfo.id = FILTER_ID;
     baseinfo.info = (H5Z_class2_t*)&H5Z_REG[0];
-    CHECK(nc_filter_client_register(baseinfo.id,baseinfo.info));
+    stat = nc_filter_client_register(baseinfo.id,baseinfo.info);
+    if(stat == NC_ENOTBUILT) {
+	fprintf(stderr,"client side filters not implemented: test skipped\n");
+	exit(0);
+    }
+    CHECK(stat);
     /* Verify by inquiry */
     memset(&inqinfo,0,sizeof(struct Base));
     inqinfo.id = FILTER_ID;

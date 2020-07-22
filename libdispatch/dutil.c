@@ -303,7 +303,7 @@ NC_getmodelist(const char* path, NClist** modelistp)
 
     /* Get the mode= arg from the fragment */
     modelist = nclistnew();    
-    modestr = ncurilookup(uri,"mode");
+    modestr = ncurifragmentlookup(uri,"mode");
     if(modestr == NULL || strlen(modestr) == 0) goto done;
     /* Parse the mode string at the commas or EOL */
     p = modestr;
