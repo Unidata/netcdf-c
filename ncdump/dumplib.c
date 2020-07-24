@@ -239,19 +239,19 @@ void
 set_formats(int float_digits, int double_digits)
 {
     int res;
-    res = snprintf(float_var_fmt, strlen(float_var_fmt) + 1, "%%.%dg",
+    res = snprintf(float_var_fmt, sizeof float_var_fmt, "%%.%dg",
 		   float_digits) + 1;
     assert(res <= sizeof(float_var_fmt));
-    res = snprintf(double_var_fmt, strlen(double_var_fmt) + 1, "%%.%dg",
+    res = snprintf(double_var_fmt, sizeof double_var_fmt, "%%.%dg",
 		   double_digits) + 1;
     assert(res <= sizeof(double_var_fmt));
-    res = snprintf(float_att_fmt, strlen(float_att_fmt) + 1, "%%#.%dgf",
+    res = snprintf(float_att_fmt, sizeof float_att_fmt, "%%#.%dgf",
 		   float_digits) + 1;
     assert(res <= sizeof(float_att_fmt));
-    res = snprintf(float_attx_fmt, strlen(float_attx_fmt) + 1, "%%#.%dg",
+    res = snprintf(float_attx_fmt, sizeof float_attx_fmt, "%%#.%dg",
 		   float_digits) + 1;
     assert(res <= sizeof(float_attx_fmt));
-    res = snprintf(double_att_fmt, strlen(double_att_fmt) + 1, "%%#.%dg",
+    res = snprintf(double_att_fmt, sizeof double_att_fmt, "%%#.%dg",
 		   double_digits) + 1;
     assert(res <= sizeof(double_att_fmt));
 }
