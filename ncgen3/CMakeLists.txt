@@ -16,6 +16,7 @@ FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSION
 IF(NOT EXISTS ${netCDF_SOURCE_DIR}/ncgen3/ncgeny.c AND NOT EXISTS
     ${netCDF_SOURCE_DIR}/ncgen3/ncgeny.h)
   ADD_CUSTOM_COMMAND(
+  OUTPUT ncgentab.h
   COMMAND flex -Pncg -8 ncgen.l
   COMMAND rm -f ncgenl.c
   COMMAND mv lex.ncg.c ncgenl.c
