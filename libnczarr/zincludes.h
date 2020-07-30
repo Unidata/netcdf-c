@@ -43,6 +43,7 @@ extern "C" {
 #include "nclog.h"
 #include "ncrc.h"
 #include "ncfilter.h"
+#include "ncindex.h"
 
 #include "zmap.h"
 #include "zinternal.h"
