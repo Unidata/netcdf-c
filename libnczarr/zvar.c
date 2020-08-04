@@ -1358,7 +1358,7 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 #ifdef LOOK
     hid_t file_spaceid = 0, mem_spaceid = 0, xfer_plistid = 0;
 #endif
-    size64_t fdims[NC_MAX_VAR_DIMS], fmaxdims[NC_MAX_VAR_DIMS];
+    size64_t fdims[NC_MAX_VAR_DIMS];
     size64_t start[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
     size64_t stride[NC_MAX_VAR_DIMS];
 #ifdef USE_PARALLEL4
@@ -1369,6 +1369,9 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     int need_to_convert = 0;
     int zero_count = 0; /* true if a count is zero */
     size_t len = 1;
+    size64_t fmaxdims[NC_MAX_VAR_DIMS];
+
+    NC_UNUSED(fmaxdims);
 
 #ifndef LOOK
     NC_UNUSED(fmaxdims);
@@ -1695,7 +1698,8 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     NC_DIM_INFO_T *dim;
     size_t file_type_size;
     size64_t count[NC_MAX_VAR_DIMS];
-    size64_t fdims[NC_MAX_VAR_DIMS], fmaxdims[NC_MAX_VAR_DIMS];
+    size64_t fdims[NC_MAX_VAR_DIMS];
+    size64_t fmaxdims[NC_MAX_VAR_DIMS];
     size64_t start[NC_MAX_VAR_DIMS];
     size64_t stride[NC_MAX_VAR_DIMS];
     void *fillvalue = NULL;
@@ -1706,9 +1710,7 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     int need_to_convert = 0;
     size_t len = 1;
 
-#ifndef LOOK
     NC_UNUSED(fmaxdims);
-#endif
 
     /* Find info for this file, group, and var. */
     if ((retval = nc4_find_grp_h5_var(ncid, varid, &h5, &grp, &var)))
