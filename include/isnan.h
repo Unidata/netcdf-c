@@ -25,7 +25,10 @@
 #ifndef INFINITYF
 #define INFINITYF ((float)INFINITY)
 #endif
-
+#ifdef __APPLE__
+extern int isinf(double x);
+extern int isnan(double x);
+#else
 #if ! (defined(isinf) || HAVE_DECL_ISINF)
 #define isinf(x) (DBL_MAX/((double)(x))==0.0)
 #endif /* !HAVE_DECL_ISINF */
@@ -35,5 +38,6 @@
 #if ! (defined(isfinite) || HAVE_DECL_ISFINITE)
 #define isfinite(x) (!(isinf(x)||isnan(x)))
 #endif /* !HAVE_DECL_ISFINITE */
+#endif /*!APPLE*/
 
 #endif /* _ISNAN_H */
