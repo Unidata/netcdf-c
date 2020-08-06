@@ -586,7 +586,7 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
         var->storage = NC_CHUNKED;
     }
 
-#ifdef USE_PARALLEL
+#if defined LOOK && defined USE_PARALLEL
     /* If deflate, shuffle, or fletcher32 was turned on with
      * parallel I/O writes, then switch to collective access. HDF5
      * requires collevtive access for filter use with parallel
@@ -1280,7 +1280,7 @@ log_dim_info(NC_VAR_INFO_T *var, size64_t *fdims, size64_t *fmaxdims,
 }
 #endif /* LOGGING */
 
-#ifdef USE_PARALLEL4
+#if defined LOOK && defined USE_PARALLEL4
 /**
  * @internal Set the parallel access for a var (collective
  * vs. independent).
@@ -1361,7 +1361,7 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     size64_t fdims[NC_MAX_VAR_DIMS];
     size64_t start[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
     size64_t stride[NC_MAX_VAR_DIMS];
-#ifdef USE_PARALLEL4
+#if defined LOOK && defined USE_PARALLEL4
     int extend_possible = 0;
 #endif
     int retval, range_error = 0, i, d2;
@@ -1507,7 +1507,7 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     if ((xfer_plistid = H5Pcreate(H5P_DATASET_XFER)) < 0)
         BAIL(NC_EHDFERR);
 
-#ifdef USE_PARALLEL4
+#if defined LOOK && defined USE_PARALLEL4
     /* Set up parallel I/O, if needed. */
     if ((retval = set_par_access(h5, var, xfer_plistid)))
         BAIL(retval);
@@ -1529,7 +1529,7 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
             assert(dim && dim->hdr.id == var->dimids[d2]);
             if (dim->unlimited)
             {
-#ifdef USE_PARALLEL4
+#if defined LOOK && defined USE_PARALLEL4
                 extend_possible = 1;
 #endif
                 if (!zero_count && endindex >= fdims[d2])
@@ -1554,7 +1554,7 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 #endif
 
 #ifdef LOOK
-#ifdef USE_PARALLEL4
+#if defined LOOK && defined USE_PARALLEL4
         /* Check if anyone wants to extend. */
         if (extend_possible && h5->parallel &&
             NC_COLLECTIVE == var->parallel_access)
@@ -1574,7 +1574,7 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
         if (need_to_extend)
         {
             LOG((4, "extending dataset"));
-#ifdef USE_PARALLEL4
+#if defined LOOK && defined USE_PARALLEL4
             if (h5->parallel)
             {
                 if (NC_COLLECTIVE != var->parallel_access)
@@ -1905,7 +1905,7 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
         if ((xfer_plistid = H5Pcreate(H5P_DATASET_XFER)) < 0)
             BAIL(NC_EHDFERR);
 
-#ifdef USE_PARALLEL4
+#if defined LOOK && defined USE_PARALLEL4
         /* Set up parallel I/O, if needed. */
         if ((retval = set_par_access(h5, var, xfer_plistid)))
             BAIL(retval);
@@ -1942,7 +1942,7 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     else
     {
 #ifdef LOOK
-#ifdef USE_PARALLEL4 /* Start block contributed by HDF group. */
+#if defined LOOK && defined USE_PARALLEL4 /* Start block contributed by HDF group. */
         /* For collective IO read, some processes may not have any element for reading.
            Collective requires all processes to participate, so we use H5Sselect_none
            for these processes. */
