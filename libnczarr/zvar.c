@@ -586,18 +586,6 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
         var->storage = NC_CHUNKED;
     }
 
-#if defined LOOK && defined USE_PARALLEL
-    /* If deflate, shuffle, or fletcher32 was turned on with
-     * parallel I/O writes, then switch to collective access. HDF5
-     * requires collevtive access for filter use with parallel
-     * I/O. */
-    if (shuffle || fletcher32)
-    {
-        if (h5->parallel && (nclistlength(var->filters) > 0 || var->shuffle || var->fletcher32))
-            var->parallel_access = NC_COLLECTIVE;
-    }
-#endif /* USE_PARALLEL */
-
     /* Handle storage settings. */
     if (storagep)
     {
@@ -1280,44 +1268,6 @@ log_dim_info(NC_VAR_INFO_T *var, size64_t *fdims, size64_t *fmaxdims,
 }
 #endif /* LOGGING */
 
-#if defined LOOK && defined USE_PARALLEL4
-/**
- * @internal Set the parallel access for a var (collective
- * vs. independent).
- *
- * @param h5 Pointer to ZARR file info struct.
- * @param var Pointer to var info struct.
- * @param xfer_plistid H5FD_MPIO_COLLECTIVE or H5FD_MPIO_INDEPENDENT.
- *
- * @returns NC_NOERR No error.
- * @author Dennis Heimbigner, Ed Hartnett
- */
-static int
-set_par_access(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, hid_t xfer_plistid)
-{
-    /* If netcdf is built with parallel I/O, then parallel access can
-     * be used, and, if this file was opened or created for parallel
-     * access, we need to set the transfer mode. */
-    if (h5->parallel)
-    {
-        H5FD_mpio_xfer_t ncz_xfer_mode;
-
-        /* Decide on collective or independent. */
-        ncz_xfer_mode = (var->parallel_access != NC_INDEPENDENT) ?
-            H5FD_MPIO_COLLECTIVE : H5FD_MPIO_INDEPENDENT;
-
-        /* Set the mode in the transfer property list. */
-        if (H5Pset_dxpl_mpio(xfer_plistid, ncz_xfer_mode) < 0)
-            return NC_EPARINIT;
-
-        LOG((4, "%s: %d H5FD_MPIO_COLLECTIVE: %d H5FD_MPIO_INDEPENDENT: %d",
-             __func__, (int)ncz_xfer_mode, H5FD_MPIO_COLLECTIVE,
-             H5FD_MPIO_INDEPENDENT));
-    }
-    return NC_NOERR;
-}
-#endif /* USE_PARALLEL4 */
-
 /**
  * @internal Write a strided array of data to a variable. This is
  * called by nc_put_vars() and other nc_put_vars_* functions, for
@@ -1361,9 +1311,6 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     size64_t fdims[NC_MAX_VAR_DIMS];
     size64_t start[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
     size64_t stride[NC_MAX_VAR_DIMS];
-#if defined LOOK && defined USE_PARALLEL4
-    int extend_possible = 0;
-#endif
     int retval, range_error = 0, i, d2;
     void *bufr = NULL;
     int need_to_convert = 0;
@@ -1507,11 +1454,6 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     if ((xfer_plistid = H5Pcreate(H5P_DATASET_XFER)) < 0)
         BAIL(NC_EHDFERR);
 
-#if defined LOOK && defined USE_PARALLEL4
-    /* Set up parallel I/O, if needed. */
-    if ((retval = set_par_access(h5, var, xfer_plistid)))
-        BAIL(retval);
-#endif
 #endif /*LOOK*/
 
     /* Read this hyperslab from memory. Does the dataset have to be
@@ -1529,9 +1471,6 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
             assert(dim && dim->hdr.id == var->dimids[d2]);
             if (dim->unlimited)
             {
-#if defined LOOK && defined USE_PARALLEL4
-                extend_possible = 1;
-#endif
                 if (!zero_count && endindex >= fdims[d2])
                 {
                     xtend_size[d2] = (long long unsigned)(endindex+1);
@@ -1554,39 +1493,11 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 #endif
 
 #ifdef LOOK
-#if defined LOOK && defined USE_PARALLEL4
-        /* Check if anyone wants to extend. */
-        if (extend_possible && h5->parallel &&
-            NC_COLLECTIVE == var->parallel_access)
-        {
-            /* Form consensus opinion among all processes about whether
-             * to perform collective I/O.  */
-            if (MPI_SUCCESS != MPI_Allreduce(MPI_IN_PLACE, &need_to_extend, 1,
-                                             MPI_INT, MPI_BOR, h5->comm))
-                BAIL(NC_EMPI);
-        }
-#endif /* USE_PARALLEL4 */
-#endif /*LOOK*/
-
-#ifdef LOOK
         /* If we need to extend it, we also need a new file_spaceid
            to reflect the new size of the space. */
         if (need_to_extend)
         {
             LOG((4, "extending dataset"));
-#if defined LOOK && defined USE_PARALLEL4
-            if (h5->parallel)
-            {
-                if (NC_COLLECTIVE != var->parallel_access)
-                    BAIL(NC_ECANTEXTEND);
-
-                /* Reach consensus about dimension sizes to extend to */
-                if (MPI_SUCCESS != MPI_Allreduce(MPI_IN_PLACE, xtend_size, var->ndims,
-                                                 MPI_UNSIGNED_LONG_LONG, MPI_MAX,
-                                                 h5->comm))
-                    BAIL(NC_EMPI);
-            }
-#endif /* USE_PARALLEL4 */
             /* Convert xtend_size back to hsize_t for use with
              * H5Dset_extent. */
             for (d2 = 0; d2 < var->ndims; d2++)
@@ -1905,12 +1816,6 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
         if ((xfer_plistid = H5Pcreate(H5P_DATASET_XFER)) < 0)
             BAIL(NC_EHDFERR);
 
-#if defined LOOK && defined USE_PARALLEL4
-        /* Set up parallel I/O, if needed. */
-        if ((retval = set_par_access(h5, var, xfer_plistid)))
-            BAIL(retval);
-#endif
-
         /* Read this hyperslab into memory. */
         LOG((5, "About to H5Dread some data..."));
         if (H5Dread(ncz_var->hdf_datasetid,
@@ -1939,44 +1844,6 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
                 range_error = 0;
         }
     } /* endif ! no_read */
-    else
-    {
-#ifdef LOOK
-#if defined LOOK && defined USE_PARALLEL4 /* Start block contributed by HDF group. */
-        /* For collective IO read, some processes may not have any element for reading.
-           Collective requires all processes to participate, so we use H5Sselect_none
-           for these processes. */
-        if (var->parallel_access == NC_COLLECTIVE)
-        {
-            /* Create the data transfer property list. */
-            if ((xfer_plistid = H5Pcreate(H5P_DATASET_XFER)) < 0)
-                BAIL(NC_EHDFERR);
-
-            if ((retval = set_par_access(h5, var, xfer_plistid)))
-                BAIL(retval);
-
-            if (H5Sselect_none(file_spaceid) < 0)
-                BAIL(NC_EHDFERR);
-
-            /* Since no element will be selected, we just get the memory
-             * space the same as the file space. */
-            if ((mem_spaceid = H5Dget_space(ncz_var->hdf_datasetid)) < 0)
-                BAIL(NC_EHDFERR);
-            if (H5Sselect_none(mem_spaceid) < 0)
-                BAIL(NC_EHDFERR);
-
-            /* Read this hyperslab into memory. */
-            LOG((5, "About to H5Dread some data..."));
-#ifdef LOOK
-            if (H5Dread(ncz_var->hdf_datasetid,
-                        ((NCZ_TYPE_INFO_T *)var->type_info->format_type_info)->native_hdf_typeid,
-                        mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
-                BAIL(NC_EHDFERR);
-#endif
-        }
-#endif /* USE_PARALLEL4 */
-#endif /*LOOK*/
-    }
     /* Now we need to fake up any further data that was asked for,
        using the fill values instead. First skip past the data we
        just read, if any. */
