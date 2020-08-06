@@ -4,7 +4,7 @@
 # University Corporation for Atmospheric Research/Unidata.
 
 # See netcdf-c/COPYRIGHT file for more info.
-SET(ncgen3_FILES main.c load.c escapes.c getfill.c init.c genlib.c ncgentab.c)
+SET(ncgen3_FILES main.c load.c escapes.c getfill.c init.c genlib.c ncgeny.c)
 
 IF(USE_X_GETOPT)
   SET(ncgen3_FILES ${ncgen3_FILES} XGetopt.c)
@@ -13,14 +13,21 @@ ENDIF()
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.sh ${CMAKE_CURRENT_SOURCE_DIR}/*.cdl)
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
 
-IF(NOT EXISTS ${netCDF_SOURCE_DIR}/ncgen3/ncgentab.c AND NOT EXISTS
-    ${netCDF_SOURCE_DIR}/ncgen3/ncgentab.h)
+IF(NOT EXISTS ${netCDF_SOURCE_DIR}/ncgen3/ncgeny.c AND NOT EXISTS
+    ${netCDF_SOURCE_DIR}/ncgen3/ncgeny.h)
   ADD_CUSTOM_COMMAND(
-    OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/ncgentab.c ${CMAKE_CURRENT_SOURCE_DIR}/ncgentab.h
-    COMMAND bison -pncg -d ${netCDF_SOURCE_DIR}/ncgen3/ncgen.y
-    COMMAND mv ncgen.tab.c ${netCDF_SOURCE_DIR}/ncgen3/ncgentab.c
-    COMMAND mv ncgen.tab.h ${netCDF_SOURCE_DIR}/ncgen3/ncgentab.h
-    VERBATIM
+  OUTPUT ncgentab.h
+  COMMAND flex -Pncg -8 ncgen.l
+  COMMAND rm -f ncgenl.c
+  COMMAND mv lex.ncg.c ncgenl.c
+  COMMAND bison -pncg -t -d ncgen.y
+  COMMAND rm -f ncgeny.c ncgeny.h
+  COMMAND mv ncgen.tab.c ncgeny.c
+  COMMAND mv ncgen.tab.h ncgeny.h
+  COMMAND mv ncgeny.h ${CMAKE_CURRENT_SOURCE_DIR}
+  COMMAND mv ncgeny.c ${CMAKE_CURRENT_SOURCE_DIR}
+  COMMAND mv ncgenl.c ${CMAKE_CURRENT_SOURCE_DIR}
+  VERBATIM
     )
 ENDIF()
 
