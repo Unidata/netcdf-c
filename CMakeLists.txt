@@ -1535,22 +1535,23 @@ ELSE()
   MESSAGE(STATUS "m4 not found.")
 ENDIF()
 
-MACRO(GEN_m4 filename)
-
+MACRO(GEN_m4 filename dest)
+  set(${dest} "${CMAKE_CURRENT_BINARY_DIR}/${filename}.c")
   IF(HAVE_M4)
-
-  # If m4 is available, remove generated file if it exists.
-  IF(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
-    FILE(REMOVE ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
-  ENDIF()
-
-  ADD_CUSTOM_COMMAND(
-    OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
-    COMMAND ${NC_M4}
-    ARGS ${M4FLAGS} ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.m4 > ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
-    VERBATIM
+    ADD_CUSTOM_COMMAND(
+      OUTPUT ${${dest}}
+      COMMAND ${NC_M4}
+      ARGS ${M4FLAGS} ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.m4 > ${${dest}}
+      VERBATIM
     )
-ENDIF(HAVE_M4)
+  ELSE(HAVE_M4)
+    IF(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
+      FILE(COPY ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
+           DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+    ELSE()
+        MESSAGE(FATAL_ERROR "File ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c does not exists, and can not be generated")
+    ENDIF()
+  ENDIF(HAVE_M4)
 ENDMACRO(GEN_m4)
 
 # Binary tests, but ones which depend on value of 'TEMP_LARGE' being defined.
