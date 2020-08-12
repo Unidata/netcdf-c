@@ -40,8 +40,8 @@ char errstr[100];		/* for short error messages */
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include "ncgeny.h"
 #include "genlib.h"
-#include "ncgentab.h"
 
 #define YY_BREAK                /* defining as nothing eliminates unreachable
 				   statement warnings from flex output,
