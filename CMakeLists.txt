@@ -2100,10 +2100,7 @@ INSTALL(FILES "${netCDF_BINARY_DIR}/libnetcdf.settings"
 #####
 configure_file(
   ${netCDF_SOURCE_DIR}/include/netcdf_meta.h.in
-  ${netCDF_SOURCE_DIR}/include/netcdf_meta.h @ONLY)
-
-FILE(COPY ${netCDF_SOURCE_DIR}/include/netcdf_meta.h
-  DESTINATION ${netCDF_BINARY_DIR}/include/)
+  ${netCDF_BINARY_DIR}/include/netcdf_meta.h @ONLY)
 
 #####
 # Build test_common.sh
