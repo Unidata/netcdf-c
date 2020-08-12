@@ -1,10 +1,10 @@
-/* This is part of the netCDF package. Copyright 2005-2018 University
+/* This is part of the netCDF package. Copyright 2005-2020 University
    Corporation for Atmospheric Research/Unidata. See COPYRIGHT file
    for conditions of use.
 
    Test attributes.
 
-   Ed Hartnett, WK Liao, 1996
+   Ed Hartnett, WK Liao
 */
 
 #include "config.h"
