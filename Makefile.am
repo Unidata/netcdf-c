@@ -53,7 +53,7 @@ endif
 if USE_HDF5
 H5_TEST_DIR = h5_test
 LIBHDF5 = libhdf5
-if USE_NETCDF4
+if USE_HDF5
 NC_TEST4 = nc_test4
 endif
 endif

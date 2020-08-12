@@ -1,7 +1,5 @@
 #!/bin/sh
 
-ENABLE_S3_TESTS=$1
-
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
@@ -77,11 +75,13 @@ testmapsearch() {
 main() {
 echo ""
 echo "*** Map Unit Testing"
-echo ""; echo "*** Test zmap_nz4"
-testmapcreate nz4; testmapmeta nz4; testmapdata nz4; testmapsearch nz4
 echo ""; echo "*** Test zmap_nzf"
 testmapcreate nzf; testmapmeta nzf; testmapdata nzf; testmapsearch nzf
-if test "x$ENABLE_S3_TESTS" != x ; then
+if test "x$FEATURE_HDF5" = xyes ; then
+echo ""; echo "*** Test zmap_nz4"
+testmapcreate nz4; testmapmeta nz4; testmapdata nz4; testmapsearch nz4
+fi
+if test "x$FEATURE_S3TESTS" = xyes ; then
   echo ""; echo "*** Test zmap_s3sdk"
   testmapcreate s3; testmapmeta s3; testmapdata s3; testmapsearch s3
 fi

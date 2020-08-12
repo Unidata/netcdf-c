@@ -44,7 +44,7 @@ endif # USE_PNETCDF
 if USE_HDF5
 AM_CPPFLAGS += -I${top_srcdir}/libhdf5
 libnetcdf_la_LIBADD += ${top_builddir}/libhdf5/libnchdf5.la
-endif # USE_NETCDF4
+endif # USE_HDF5
 
 # + hdf4
 if USE_HDF4

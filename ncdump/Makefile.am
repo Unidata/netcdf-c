@@ -84,7 +84,7 @@ TESTS += tst_iter.sh
 endif
 
 if USE_HDF5
-# NetCDF-4 has some extra C programs to build. These will be run by
+# HDF5 has some extra C programs to build. These will be run by
 # the shell script tests.
 check_PROGRAMS += tst_fileinfo tst_create_files tst_h_rdc0	\
 tst_group_data tst_enum_data tst_opaque_data tst_string_data	\

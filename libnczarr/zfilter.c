@@ -21,7 +21,7 @@
 
 /* WARNING: GLOBAL VARIABLE */
 
-#ifdef ENABLE_CLIENT_FILTERS
+#ifdef ENABLE_CLIENTSIDE_FILTERS
 /* Define list of registered filters */
 static NClist* NCZ_registeredfilters = NULL; /** List<NC_FILTER_CLIENT_ZARR*> */
 
