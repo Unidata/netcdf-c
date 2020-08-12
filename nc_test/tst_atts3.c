@@ -419,8 +419,6 @@ main(int argc, char **argv)
     {
         int ncid;
 
-        /*int int_in[ATT_LEN], int_out[ATT_LEN] = {NC_MIN_INT, 128, NC_MAX_INT};*/
-
         /* Create a file with a global attribute of each type of zero length. */
 #ifdef TEST_PNETCDF
         if (nc_create_par(FILE_NAME, NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL,&ncid)) ERR;
@@ -441,7 +439,6 @@ main(int argc, char **argv)
         int ncid;
         signed char schar_in[ATT_LEN];
         short short_in[ATT_LEN];
-        /*int int_in[ATT_LEN], int_out[ATT_LEN] = {NC_MIN_INT, 128, NC_MAX_INT};*/
         int int_in[ATT_LEN];
         float float_in[ATT_LEN];
         double double_in[ATT_LEN];
