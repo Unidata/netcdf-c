@@ -1858,7 +1858,6 @@ ENDIF()
 add_subdirectory(liblib)
 
 IF(ENABLE_FILTER_TESTING)
-  CONFIGURE_FILE(plugins/H5Znoop.c ${CMAKE_SOURCE_DIR}/plugins/H5Znoop1.c COPYONLY)
   add_subdirectory(plugins)
 ENDIF()
 
