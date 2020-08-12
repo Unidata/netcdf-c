@@ -854,12 +854,11 @@ main(int argc, char **argv)
         int ncid;
         long long int i = 50;
 
-
+	/* Try to write a file with a global att, but it won't work,
+	 * since NC_INT64 is not supported in classic binary
+	 * format. */
         if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
-        if (nc_put_att_longlong(ncid, NC_GLOBAL, ATT_1, NC_INT64, 1, &i)) ERR;
-        if (nc_close(ncid)) ERR;
-
-        if (nc_open(FILE_NAME, 0, &ncid)) ERR;
+        if (nc_put_att_longlong(ncid, NC_GLOBAL, ATT_1, NC_INT64, 1, &i) != NC_EBADTYPE) ERR;
         if (nc_close(ncid)) ERR;
     }
 
