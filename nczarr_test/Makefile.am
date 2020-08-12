@@ -15,10 +15,6 @@ TESTS_ENVIRONMENT =
 #LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #TESTS_ENVIRONMENT = export SETX=1;
 
-if ENABLE_S3_TESTS
-TESTS_ENVIRONMENT += export ENABLE_S3_TESTS=1;
-endif
-
 AM_CFLAGS += -I${top_srcdir} -I${top_srcdir}/libnczarr
 AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
 LDADD = ${top_builddir}/liblib/libnetcdf.la
@@ -47,7 +43,10 @@ TESTS += run_ut_map.sh
 TESTS += run_ut_mapapi.sh
 TESTS += run_ut_misc.sh
 TESTS += run_ut_chunk.sh
-TESTS += run_it_test1.sh run_it_test2.sh
+TESTS += run_it_test2.sh
+if USE_HDF5
+TESTS += run_it_test1.sh
+endif
 
 ignorec = ut_allslices.c ut_transfer.c ut_vars.c ut_walk.c
 ignoresh = run_meta_tests.sh run_unittests.sh

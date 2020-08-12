@@ -440,10 +440,17 @@ ENDIF()
 # Format Option checks
 ################################
 
+# We need to now treat enable-netcdf4 and enable-hdf5 as separate,
+# but for back compatability, we need to treat enable-netcdf4
+# as equivalent to enable-hdf5.
+# We detect this using these rules:
+# 1. if ENABLE_HDF5 is off then disable hdf5
+# 2. if ENABLE_NETCDF4 is off then disable hdf5
+# 3. else enable hdf5
 OPTION(ENABLE_NETCDF_4 "Use HDF5." ON)
 OPTION(ENABLE_NETCDF4 "Use HDF5." ON)
 OPTION(ENABLE_HDF5 "Use HDF5." ON)
-IF(NOT ENABLE_NETCDF4 OR NOT ENABLE_NETCDF_4)
+IF(NOT ENABLE_HDF5 OR NOT ENABLE_NETCDF4 OR NOT ENABLE_NETCDF_4)
   SET(ENABLE_HDF5 OFF CACHE BOOL "Use HDF5" FORCE)
 ENDIF()
 OPTION(ENABLE_HDF4 "Build netCDF-4 with HDF4 read capability(HDF4, HDF5 and Zlib required)." OFF)
@@ -591,9 +598,7 @@ ENDIF(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING)
 # *
 ##
 SET(USE_HDF5 ${ENABLE_HDF5})
-IF(USE_HDF5 OR ENABLE_NETCDF_4)
-  SET(USE_HDF5 ON)
-  SET(USE_NETCDF4 ON)
+IF(USE_HDF5)
   ##
   # Accommodate developers who have hdf5 libraries and
   # headers on their system, but do not have a the hdf
@@ -801,8 +806,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
   #option to include HDF5 High Level header file (hdf5_hl.h) in case we are not doing a make install
   INCLUDE_DIRECTORIES(${HDF5_HL_INCLUDE_DIR})
 
-
-ENDIF(USE_HDF5 OR ENABLE_NETCDF_4)
+ENDIF(USE_HDF5)
 
 # See if we have libcurl
 FIND_PACKAGE(CURL)
@@ -864,11 +868,9 @@ IF(ENABLE_DAP)
   SET(USE_DAP ON CACHE BOOL "")
   SET(ENABLE_DAP2 ON CACHE BOOL "")
 
-  IF(ENABLE_NETCDF_4)
+  IF(ENABLE_HDF5)
     SET(ENABLE_DAP4 ON CACHE BOOL "")
-  ELSE(ENABLE_NETCDF_4)
-    SET(ENABLE_DAP4 OFF CACHE BOOL "")
-  ENDIF(ENABLE_NETCDF_4)
+  ENDIF(ENABLE_HDF5)
 
 ELSE()
   SET(ENABLE_DAP2 OFF)
@@ -1072,15 +1074,15 @@ IF(ENABLE_LARGE_FILE_SUPPORT)
   ENDIF()
 ENDIF()
 
-OPTION(ENABLE_EXAMPLE_TESTS "Run extra example tests.  Requires GNU Sed. Ignored if netCDF-4 is not Enabled" OFF)
-IF(NOT ENABLE_NETCDF_4 AND ENABLE_EXAMPLE_TESTS)
+OPTION(ENABLE_EXAMPLE_TESTS "Run extra example tests.  Requires GNU Sed. Ignored if HDF5 is not Enabled" OFF)
+IF(NOT ENABLE_HDF5 AND ENABLE_EXAMPLE_TESTS)
   SET(ENABLE_EXAMPLE_TESTS OFF)
 ENDIF()
 
 # Enable Parallel IO with netCDF-4/HDF5 files using HDF5 parallel I/O.
 SET(STATUS_PARALLEL "OFF")
 OPTION(ENABLE_PARALLEL4 "Build netCDF-4 with parallel IO" "${HDF5_PARALLEL}")
-IF(ENABLE_PARALLEL4 AND ENABLE_NETCDF_4)
+IF(ENABLE_PARALLEL4 AND ENABLE_HDF5)
   IF(NOT HDF5_PARALLEL)
     SET(USE_PARALLEL OFF CACHE BOOL "")
     MESSAGE(STATUS "Cannot find HDF5 library built with parallel support. Disabling parallel build.")
@@ -1221,9 +1223,9 @@ IF (ENABLE_PARALLEL_TESTS AND NOT USE_PARALLEL)
 ENDIF()
 
 # Enable special filter test; experimental when using cmake.
-OPTION(ENABLE_FILTER_TESTING "Enable filter testing. Ignored if shared libraries or netCDF4 are not enabled" ${ENABLE_NETCDF_4})
-IF(ENABLE_FILTER_TESTING AND NOT ENABLE_NETCDF_4)
-  MESSAGE(WARNING "ENABLE_FILTER_TESTING requires netCDF-4. Disabling.")
+OPTION(ENABLE_FILTER_TESTING "Enable filter testing. Ignored if shared libraries or netCDF4 are not enabled" ${ENABLE_HDF5})
+IF(ENABLE_FILTER_TESTING AND NOT ENABLE_HDF5)
+  MESSAGE(WARNING "ENABLE_FILTER_TESTING requires HDF5. Disabling.")
   SET(ENABLE_FILTER_TESTING OFF)
 ENDIF()
 IF(NOT BUILD_SHARED_LIBS)
@@ -1859,7 +1861,7 @@ IF(ENABLE_TESTS)
     ADD_SUBDIRECTORY(nctest)
   ENDIF()
   ADD_SUBDIRECTORY(nc_test)
-  IF(USE_NETCDF4)
+  IF(USE_HDF5)
     INCLUDE_DIRECTORIES(h5_test)
     ADD_SUBDIRECTORY(nc_test4)
     IF(BUILD_BENCHMARKS)
@@ -2034,7 +2036,7 @@ is_enabled(BUILD_SHARED_LIBS enable_shared)
 is_enabled(ENABLE_V2_API HAS_NC2)
 is_enabled(ENABLE_NETCDF_4 HAS_NC4)
 is_enabled(ENABLE_HDF4 HAS_HDF4)
-is_enabled(ENABLE_NETCDF_4 HAS_HDF5)
+is_enabled(USE_HDF5 HAS_HDF5)
 is_enabled(USE_SZIP HAS_SZIP)
 is_enabled(USE_SZIP HAS_SZIP_WRITE)
 is_enabled(STATUS_PNETCDF HAS_PNETCDF)
@@ -2053,6 +2055,7 @@ is_enabled(ENABLE_ERANGE_FILL HAS_ERANGE_FILL)
 is_enabled(HAVE_H5Z_SZIP HAS_SZLIB)
 is_enabled(HDF5_HAS_PAR_FILTERS HAS_PAR_FILTERS)
 is_enabled(ENABLE_NCZARR HAS_NCZARR)
+is_enabled(ENABLE_S3_TESTS DO_S3_TESTS)
 
 # Generate file from template.
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"

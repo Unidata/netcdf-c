@@ -93,9 +93,12 @@ echo ""
 
 echo "*** Map Unit Testing"
 
-echo ""; echo "*** Test zmap_nz4"
-testmapcreate nz4; testmapmeta nz4; testmapdata nz4; testmapsearch nz4
 echo ""; echo "*** Test zmap_nzf"
 testmapcreate nzf; testmapmeta nzf; testmapdata nzf; testmapsearch nzf
+
+if test "x$FEATURE_HDF5" = xyes ; then
+echo ""; echo "*** Test zmap_nz4"
+testmapcreate nz4; testmapmeta nz4; testmapdata nz4; testmapsearch nz4
+fi
 
 exit 0

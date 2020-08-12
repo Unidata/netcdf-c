@@ -1,7 +1,5 @@
 #!/bin/sh
 
-ENABLE_S3_TESTS=$1
-
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
 . ../test_common.sh
 
@@ -53,9 +51,11 @@ ${execdir}/tst_chunks2 -e $1 $CLOUD
 }
 
 main() {
-ittest nz4
 ittest nzf
-if test "x$ENABLE_S3_TESTS" != x ; then
+if test "xFEATURE_HDF5" = xyes ; then
+ittest nz4
+fi
+if test "x$FEATURE_S3TESTS" = xyes ; then
  ittest s3 'https://stratus.ucar.edu/unidata-netcdf-zarr-testing'
 fi
 }

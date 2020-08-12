@@ -10,10 +10,11 @@ SET(liblib_LIBS dispatch netcdf3)
 # Add target objects/modules based on options.
 #####
 
-IF(USE_HDF5 OR USE_NETCDF4)
+IF(USE_NETCDF4)
   SET(liblib_LIBS ${liblib_LIBS} netcdf4)
+ENDIF()
+IF(USE_HDF5)
   SET(liblib_LIBS ${liblib_LIBS} netcdfhdf5)
-
 ENDIF()
 
 IF(USE_PNETCDF)
@@ -71,7 +72,7 @@ IF(HAVE_LIBDL)
   SET(TLL_LIBS ${LIBDL} ${TLL_LIBS})
 ENDIF()
 
-IF(USE_HDF5 OR USE_NETCDF4)
+IF(USE_HDF5)
   IF(NOT MSVC)
     # Some version of cmake define HDF5_hdf5_LIBRARY instead of
     # HDF5_LIBRARY. Same with HDF5_HL_LIBRARIES

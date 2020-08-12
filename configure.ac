@@ -76,7 +76,7 @@ AC_CONFIG_SRCDIR([include/netcdf.h])
 
 AC_MSG_NOTICE([checking supported formats])
 
-# An explicit setting of netcdf-4 | netcdf4 is treated as if it was enable-hdf5
+# An explicit disable of netcdf-4 | netcdf4 is treated as if it was disable-hdf5
 AC_MSG_CHECKING([whether we should build with netcdf4 (alias for HDF5)])
 AC_ARG_ENABLE([netcdf4], [AS_HELP_STRING([--disable-netcdf4],
               [(synonym for --enable-hdf5)])])
@@ -87,6 +87,7 @@ AC_ARG_ENABLE([netcdf-4], [AS_HELP_STRING([--disable-netcdf-4],
               [(synonym for --disable-netcdf4)])])
 test "x$enable_netcdf_4" = xno || enable_netcdf_4=yes
 AC_MSG_RESULT([$enable_netcdf_4])
+# Propagate the alias
 if test "x$enable_netcdf_4" = xno ; then enable_netcdf4=no; fi
 if test "x$enable_netcdf4" = xno ; then enable_netcdf_4=no; fi
 
@@ -96,7 +97,7 @@ AC_ARG_ENABLE([hdf5], [AS_HELP_STRING([--disable-hdf5],
               [do not build with HDF5])])
 test "x$enable_hdf5" = xno || enable_hdf5=yes
 if test "x$enable_netcdf4" = xno ; then enable_hdf5=no ; fi
-# netcdf4 is synonym for setting hdf5
+# disable-netcdf4 is synonym for disable-hdf5
 AC_MSG_RESULT([$enable_hdf5])
 
 # Check whether we want to enable CDF5 support.
@@ -623,8 +624,8 @@ AC_ARG_ENABLE([benchmarks],
                               are timed. We use these tests to check netCDF performance.])])
 test "x$enable_benchmarks" = xyes || enable_benchmarks=no
 AC_MSG_RESULT($enable_benchmarks)
-if test "x$enable_netcdf4" = xno -a "x$enable_benchmarks" = xyes; then
-AC_MSG_ERROR([Can't use benchmarks if netCDF-4 is disabled.])
+if test "x$enable_HDF5" = xno -a "x$enable_benchmarks" = xyes; then
+AC_MSG_ERROR([Can't use benchmarks if HDF5 is disabled.])
 fi
 AM_CONDITIONAL(BUILD_BENCHMARKS, [test x$enable_benchmarks = xyes])
 
@@ -1102,10 +1103,10 @@ AC_CHECK_SIZEOF(ssize_t)
 $SLEEPCMD
 AC_CHECK_SIZEOF([void*])
 
-if test "x$enable_netcdf_4" = xyes || test "x$enable_dap" = xyes; then
+if test "x$enable_hdf5" = xyes || test "x$enable_dap" = xyes; then
    AC_SEARCH_LIBS([deflate], [zlibwapi zlibstat zlib zlib1 z], [], [
      AC_MSG_ERROR([Can't find or link to the z library. Turn off netCDF-4 and \
-     DAP clients with --disable-netcdf-4 --disable-dap, or see config.log for errors.])])
+     DAP clients with --disable-hdf5 --disable-dap, or see config.log for errors.])])
    AC_SEARCH_LIBS([dlopen], [dl dld], [], [])
 fi
 
@@ -1130,9 +1131,9 @@ if test "x$enable_hdf5" = xyes; then
    # Check for the main hdf5 and hdf5_hl library.
 
    AC_SEARCH_LIBS([H5Fflush], [hdf5dll hdf5], [],
-   [AC_MSG_ERROR([Can't find or link to the hdf5 library. Use --disable-netcdf-4, or see config.log for errors.])])
+   [AC_MSG_ERROR([Can't find or link to the hdf5 library. Use --disable-hdf5, or see config.log for errors.])])
    AC_SEARCH_LIBS([H5DSis_scale], [hdf5_hldll hdf5_hl], [],
-   [AC_MSG_ERROR([Can't find or link to the hdf5 high-level. Use --disable-netcdf-4, or see config.log for errors.])])
+   [AC_MSG_ERROR([Can't find or link to the hdf5 high-level. Use --disable-hdf5, or see config.log for errors.])])
 
    AC_CHECK_HEADERS([hdf5.h], [], [AC_MSG_ERROR([Compiling a test with HDF5 failed.  Either hdf5.h cannot be found, or config.log should be checked for other reason.])])
 
@@ -1472,48 +1473,6 @@ AC_ARG_ENABLE([filter-testing],
 test "x$enable_filter_testing" = xno || enable_filter_testing=yes
 AC_MSG_RESULT($enable_filter_testing)
 
-# Control client filters
-AC_MSG_CHECKING([whether client filters should be enabled])
-AC_ARG_ENABLE([client-filters],
-              [AS_HELP_STRING([--enable-clientfilters],
-                              [Enable client side filters; default off])])
-test "x$enable_client_filters" = xyes || enable_client_filters=no
-AC_MSG_RESULT($enable_client_filters)
-
-if test "x$enable_netcdf_4" = xno ; then
-AC_MSG_WARN([netCDF-4 disabled => --disable-filter-testing && --disable-client-filters])
-enable_filter_testing=no
-enable_client_filters=no
-fi
-
-if test "x$enable_hdf5" = xno ; then
-AC_MSG_WARN([HDF5 disabled => --disable-filter-testing])
-enable_filter_testing=no
-fi
-
-if test "x$enable_shared" = xno ; then
-AC_MSG_WARN([Shared libraries are disabled => --disable-filter-testing])
-enable_filter_testing=no
-fi
-AM_CONDITIONAL(ENABLE_CLIENT_FILTERS, [test x$enable_client_filters = xyes])
-
-if test "x$enable_netcdf_4" = xno ; then
-AC_MSG_WARN([netCDF-4 disabled => --disable-filter-testing && --disable-client-filters])
-enable_filter_testing=no
-enable_client_filters=no
-fi
-
-if test "x$enable_hdf5" = xno ; then
-AC_MSG_WARN([HDF5 disabled => --disable-filter-testing])
-enable_filter_testing=no
-fi
-
-if test "x$enable_shared" = xno ; then
-AC_MSG_WARN([Shared libraries are disabled => --disable-filter-testing])
-enable_filter_testing=no
-fi
-AM_CONDITIONAL(ENABLE_FILTER_TESTING, [test x$enable_filter_testing = xyes])
-
 # Enable client side filter registration
 AC_MSG_CHECKING([If client-side filters are enabled (default off)])
 AC_ARG_ENABLE([clientside-filters],
@@ -1526,7 +1485,20 @@ AC_MSG_RESULT($enable_clientside_filters)
 if test "x$enable_clientside_filters" = xyes ; then
 AC_DEFINE([ENABLE_CLIENTSIDE_FILTERS], [1], [if true, enable client-side filters])
 fi
+
+if test "x$enable_hdf5" = xno ; then
+AC_MSG_WARN([HDF5 disabled => --disable-filter-testing && --disable-client-filters])
+enable_filter_testing=no
+enable_clientside_filters=no
+fi
+
 AM_CONDITIONAL(ENABLE_CLIENTSIDE_FILTERS, [test x$enable_clientside_filters = xyes])
+AM_CONDITIONAL(ENABLE_FILTER_TESTING, [test x$enable_filter_testing = xyes])
+
+if test "x$enable_shared" = xno ; then
+AC_MSG_WARN([Shared libraries are disabled => --disable-filter-testing])
+enable_filter_testing=no
+fi
 
 AC_SUBST(NC_LIBS,[$NC_LIBS])
 AC_SUBST(HAS_DAP,[$enable_dap])
@@ -1551,6 +1523,7 @@ AC_SUBST(HAS_BYTERANGE,[$enable_byterange])
 AC_SUBST(RELAX_COORD_BOUND,[yes])
 AC_SUBST([HAS_PAR_FILTERS], [$hdf5_supports_par_filters])
 AC_SUBST(HAS_NCZARR,[$enable_nczarr])
+AC_SUBST(DO_S3_TESTS,[$enable_s3_tests])
 
 # Include some specifics for netcdf on windows.
 #AH_VERBATIM([_WIN32_STRICMP],
@@ -1607,7 +1580,7 @@ AC_SUBST([NC_VERSION]) NC_VERSION=$VERSION
 AX_SET_META([NC_HAS_NC2],[$nc_build_v2],[yes])
 AX_SET_META([NC_HAS_NC4],[$enable_netcdf_4],[yes])
 AX_SET_META([NC_HAS_HDF4],[$enable_hdf4],[yes])
-AX_SET_META([NC_HAS_HDF5],[$enable_netcdf_4],[yes])
+AX_SET_META([NC_HAS_HDF5],[$enable_hdf5],[yes])
 AX_SET_META([NC_HAS_SZIP],[$ac_cv_func_H5Z_SZIP],[yes])
 AX_SET_META([NC_HAS_DAP2],[$enable_dap],[yes])
 AX_SET_META([NC_HAS_DAP4],[$enable_dap4],[yes])
