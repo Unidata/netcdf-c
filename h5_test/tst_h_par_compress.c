@@ -35,6 +35,7 @@
 int
 main(int argc, char **argv)
 {
+    int cf;
     int p, my_rank;
 
     MPI_Init(&argc, &argv);
@@ -43,7 +44,7 @@ main(int argc, char **argv)
 
     /* For builds with HDF5 prior to 1.10.3, just return success. */
 #ifdef HDF5_SUPPORTS_PAR_FILTERS
-    for (int cf = 0; cf < NUM_COMPRESS_FILTERS; cf++)
+    for (cf = 0; cf < NUM_COMPRESS_FILTERS; cf++)
     {
 	if (!my_rank)
 	    printf("*** Testing parallel I/O with %s compression...", cf ? "szip" : "zlib");
