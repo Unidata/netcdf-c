@@ -15,22 +15,21 @@ add_definitions(-D"TOPBINDIR=${CMAKE_BINARY_DIR}")
 
 INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include)
 
-SET (nc_test_m4_SOURCES test_get test_put test_read test_write)
-FOREACH (F ${nc_test_m4_SOURCES})
-  GEN_m4(${F})
-ENDFOREACH()
-
 SET (nc_test_SRC
   nc_test.c
   error.c
-  test_get.c
-  test_put.c
-  test_read.c
-  test_write.c
   util.c
   )
 
+
+SET (nc_test_m4_SOURCES test_get test_put test_read test_write)
+FOREACH (F ${nc_test_m4_SOURCES})
+  GEN_m4(${F} dest)
+  LIST(APPEND nc_test_SRC ${dest})
+ENDFOREACH()
+
 ADD_EXECUTABLE(nc_test ${nc_test_SRC})
+TARGET_INCLUDE_DIRECTORIES(nc_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 TARGET_LINK_LIBRARIES(nc_test
   netcdf
   ${HAVE_LIBM}

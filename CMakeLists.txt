@@ -1534,22 +1534,23 @@ ELSE()
   MESSAGE(STATUS "m4 not found.")
 ENDIF()
 
-MACRO(GEN_m4 filename)
-
+MACRO(GEN_m4 filename dest)
+  set(${dest} "${CMAKE_CURRENT_BINARY_DIR}/${filename}.c")
   IF(HAVE_M4)
-
-  # If m4 is available, remove generated file if it exists.
-  IF(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
-    FILE(REMOVE ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
-  ENDIF()
-
-  ADD_CUSTOM_COMMAND(
-    OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
-    COMMAND ${NC_M4}
-    ARGS ${M4FLAGS} ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.m4 > ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
-    VERBATIM
+    ADD_CUSTOM_COMMAND(
+      OUTPUT ${${dest}}
+      COMMAND ${NC_M4}
+      ARGS ${M4FLAGS} ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.m4 > ${${dest}}
+      VERBATIM
     )
-ENDIF(HAVE_M4)
+  ELSE(HAVE_M4)
+    IF(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
+      FILE(COPY ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
+           DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+    ELSE()
+        MESSAGE(FATAL_ERROR "File ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c does not exists, and can not be generated")
+    ENDIF()
+  ENDIF(HAVE_M4)
 ENDMACRO(GEN_m4)
 
 # Binary tests, but ones which depend on value of 'TEMP_LARGE' being defined.
@@ -1595,7 +1596,12 @@ ENDMACRO()
 
 # Build a binary used by a script, but don't make a test out of it.
 MACRO(build_bin_test F)
-  ADD_EXECUTABLE(${F} ${F}.c ${ARGN})
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${F}.c")
+    ADD_EXECUTABLE(${F} "${CMAKE_CURRENT_SOURCE_DIR}/${F}.c" ${ARGN})
+  else()
+    # File should have been copied to the binary directory
+    ADD_EXECUTABLE(${F} "${CMAKE_CURRENT_BINARY_DIR}/${F}.c" ${ARGN})
+  endif()
   TARGET_LINK_LIBRARIES(${F} netcdf ${ALL_TLL_LIBS})
   IF(MSVC)
     SET_TARGET_PROPERTIES(${F}
@@ -1837,7 +1843,6 @@ ENDIF()
 add_subdirectory(liblib)
 
 IF(ENABLE_FILTER_TESTING)
-  CONFIGURE_FILE(plugins/H5Znoop.c ${CMAKE_SOURCE_DIR}/plugins/H5Znoop1.c COPYONLY)
   add_subdirectory(plugins)
 ENDIF()
 
@@ -2084,10 +2089,7 @@ INSTALL(FILES "${netCDF_BINARY_DIR}/libnetcdf.settings"
 #####
 configure_file(
   ${netCDF_SOURCE_DIR}/include/netcdf_meta.h.in
-  ${netCDF_SOURCE_DIR}/include/netcdf_meta.h @ONLY)
-
-FILE(COPY ${netCDF_SOURCE_DIR}/include/netcdf_meta.h
-  DESTINATION ${netCDF_BINARY_DIR}/include/)
+  ${netCDF_BINARY_DIR}/include/netcdf_meta.h @ONLY)
 
 #####
 # Build test_common.sh
@@ -2108,16 +2110,18 @@ IF(ENABLE_EXAMPLES)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/examples/C/findplugin.sh @ONLY NEWLINE_STYLE LF)
 ENDIF()
 
-#####
-# Build ncdap_test|dap4_test/findtestserver[4].c
-#####
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ncdap_test/findtestserver.c.in ${CMAKE_CURRENT_SOURCE_DIR}/ncdap_test/findtestserver.c @ONLY NEWLINE_STYLE LF)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ncdap_test/findtestserver.c.in ${CMAKE_CURRENT_SOURCE_DIR}/dap4_test/findtestserver4.c @ONLY NEWLINE_STYLE LF)
+IF(ENABLE_TESTS)
+    #####
+    # Build ncdap_test|dap4_test/findtestserver[4].c
+    #####
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ncdap_test/findtestserver.c.in ${CMAKE_CURRENT_BINARY_DIR}/ncdap_test/findtestserver.c @ONLY NEWLINE_STYLE LF)
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ncdap_test/findtestserver.c.in ${CMAKE_CURRENT_BINARY_DIR}/dap4_test/findtestserver4.c @ONLY NEWLINE_STYLE LF)
 
-#####
-# Build dap4_test/pingurl4.c
-#####
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ncdap_test/pingurl.c ${CMAKE_CURRENT_SOURCE_DIR}/dap4_test/pingurl4.c @ONLY NEWLINE_STYLE LF)
+    #####
+    # Build dap4_test/pingurl4.c
+    #####
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ncdap_test/pingurl.c ${CMAKE_CURRENT_BINARY_DIR}/dap4_test/pingurl4.c @ONLY NEWLINE_STYLE LF)
+ENDIF()
 
 ####
 # Export files
