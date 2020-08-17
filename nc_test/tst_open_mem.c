@@ -21,7 +21,7 @@ See \ref copyright file for more info.
 #include "ncbytes.h"
 #include "nc_tests.h"
 
-#ifdef USE_HDF5
+#ifdef USE_NETCDF4
 #include <hdf5.h>
 extern int H5Eprint1(FILE * stream);
 #endif

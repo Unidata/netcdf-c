@@ -25,7 +25,7 @@ endif
 # This is the program we're building, and it's sources.
 bin_PROGRAMS = ncdump
 ncdump_SOURCES = ncdump.c vardata.c dumplib.c indent.c nctime0.c        \
-ncdump.h vardata.h dumplib.h indent.h nctime0.h cdl.h utils.h   \
+ncdump.h vardata.h dumplib.h indent.h isnan.h nctime0.h cdl.h utils.h   \
 utils.c nciter.h nciter.c nccomps.h
 
 # Another utility program that copies any netCDF file using only the
@@ -84,7 +84,7 @@ TESTS += tst_iter.sh
 endif
 
 if USE_HDF5
-# HDF5 has some extra C programs to build. These will be run by
+# NetCDF-4 has some extra C programs to build. These will be run by
 # the shell script tests.
 check_PROGRAMS += tst_fileinfo tst_create_files tst_h_rdc0	\
 tst_group_data tst_enum_data tst_opaque_data tst_string_data	\

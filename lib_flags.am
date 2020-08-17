@@ -13,7 +13,7 @@ if USE_DAP
 AM_CPPFLAGS += -I${top_srcdir}/oc2
 endif
 
-if HAVE_AWS
+if ENABLE_S3_SDK
 AM_LDFLAGS += -lstdc++
 endif
 

@@ -13,22 +13,6 @@
 #endif /* NO_FLOAT_H */
 #include <math.h>
 
-#ifndef NAN
-#error "NAN undefined"
-#endif
-#ifndef INFINITY
-#error "INFINITY undefined"
-#endif
-#ifndef NANF
-#define NANF ((float)NAN)
-#endif
-#ifndef INFINITYF
-#define INFINITYF ((float)INFINITY)
-#endif
-#ifdef __APPLE__
-extern int isinf(double x);
-extern int isnan(double x);
-#else
 #if ! (defined(isinf) || HAVE_DECL_ISINF)
 #define isinf(x) (DBL_MAX/((double)(x))==0.0)
 #endif /* !HAVE_DECL_ISINF */
@@ -38,6 +22,5 @@ extern int isnan(double x);
 #if ! (defined(isfinite) || HAVE_DECL_ISFINITE)
 #define isfinite(x) (!(isinf(x)||isnan(x)))
 #endif /* !HAVE_DECL_ISFINITE */
-#endif /*!APPLE*/
 
 #endif /* _ISNAN_H */

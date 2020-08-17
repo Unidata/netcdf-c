@@ -3,15 +3,13 @@
 #ifndef NCLIST_H
 #define NCLIST_H 1
 
-#include "ncexternl.h"
-
 /* Define the type of the elements in the list*/
 
 #if defined(_CPLUSPLUS_) || defined(__CPLUSPLUS__)
 extern "C" {
 #endif
 
-EXTERNL int nclistnull(void*);
+extern int nclistnull(void*);
 
 typedef struct NClist {
   size_t alloc;
@@ -19,42 +17,42 @@ typedef struct NClist {
   void** content;
 } NClist;
 
-EXTERNL NClist* nclistnew(void);
-EXTERNL int nclistfree(NClist*);
-EXTERNL int nclistfreeall(NClist*);
-EXTERNL int nclistsetalloc(NClist*,size_t);
-EXTERNL int nclistsetlength(NClist*,size_t);
+extern NClist* nclistnew(void);
+extern int nclistfree(NClist*);
+extern int nclistfreeall(NClist*);
+extern int nclistsetalloc(NClist*,size_t);
+extern int nclistsetlength(NClist*,size_t);
 
 /* Set the ith element; will overwrite previous contents; expand if needed */
-EXTERNL int nclistset(NClist*,size_t,void*);
+extern int nclistset(NClist*,size_t,void*);
 /* Get value at position i */
-EXTERNL void* nclistget(NClist*,size_t);/* Return the ith element of l */
+extern void* nclistget(NClist*,size_t);/* Return the ith element of l */
 /* Insert at position i; will push up elements i..|seq|. */
-EXTERNL int nclistinsert(NClist*,size_t,void*);
+extern int nclistinsert(NClist*,size_t,void*);
 /* Remove element at position i; will move higher elements down */
-EXTERNL void* nclistremove(NClist* l, size_t i);
+extern void* nclistremove(NClist* l, size_t i);
 
 /* Tail operations */
-EXTERNL int nclistpush(NClist*,const void*); /* Add at Tail */
-EXTERNL void* nclistpop(NClist*);
-EXTERNL void* nclisttop(NClist*);
+extern int nclistpush(NClist*,const void*); /* Add at Tail */
+extern void* nclistpop(NClist*);
+extern void* nclisttop(NClist*);
 
 /* Look for pointer match */
-EXTERNL int nclistcontains(NClist*, void*);
+extern int nclistcontains(NClist*, void*);
 
 /* Look for value match as string */
-EXTERNL int nclistmatch(NClist*, const char*, int casesensistive);
+extern int nclistmatch(NClist*, const char*, int casesensistive);
 
 /* Remove element by value; only removes first encountered */
-EXTERNL int nclistelemremove(NClist* l, void* elem);
+extern int nclistelemremove(NClist* l, void* elem);
 
 /* remove duplicates */
-EXTERNL int nclistunique(NClist*);
+extern int nclistunique(NClist*);
 
 /* Create a clone of a list; if deep, then assume it is a list of strings */
-EXTERNL NClist* nclistclone(NClist*, int deep);
+extern NClist* nclistclone(NClist*, int deep);
 
-EXTERNL void* nclistextract(NClist*);
+extern void* nclistextract(NClist*);
 
 /* Following are always "in-lined"*/
 #define nclistclear(l) nclistsetlength((l),0)

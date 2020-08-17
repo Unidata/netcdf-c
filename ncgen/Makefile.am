@@ -45,9 +45,9 @@ tst_gattenum.cdl tst_usuffix.cdl
 # Moved to ncdump as these tests rely on ncdump having been built.
 ##
 #TESTS = run_tests.sh
-#if USE_HDF5
+#if USE_NETCDF4
 #TESTS += run_nc4_tests.sh
-#endif # USE_HDF5
+#endif # USE_NETCDF4
 #endif # !BUILD_DLL
 
 CLEANFILES = c0.nc c0_64.nc c0_4.nc c0_4c.nc ref_camrun.c \
