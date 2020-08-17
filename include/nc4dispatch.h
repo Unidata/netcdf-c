@@ -64,19 +64,10 @@ extern "C" {
 /* Begin _dim */
 
     EXTERNL int
-    NC4_def_dim(int ncid, const char *name, size_t len, int *idp);
-
-    EXTERNL int
     NC4_inq_dimid(int ncid, const char *name, int *idp);
 
     EXTERNL int
-    NC4_inq_dim(int ncid, int dimid, char *name, size_t *lenp);
-
-    EXTERNL int
     NC4_inq_unlimdim(int ncid, int *unlimdimidp);
-
-    EXTERNL int
-    NC4_rename_dim(int ncid, int dimid, const char *name);
 
 /* End _dim */
 /* Begin _att */

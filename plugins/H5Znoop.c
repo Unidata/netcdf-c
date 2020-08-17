@@ -97,6 +97,13 @@ H5Z_filter_noop(unsigned int flags, size_t cd_nelmts,
     void* newbuf;
     size_t i;    
     
+#if NOOP_INSTANCE == 0
+    NC_UNUSED(instance0);
+#endif
+#if NOOP_INSTANCE == 1
+    NC_UNUSED(instance1);
+#endif
+
     printf("cd_nelmts=%lu cd_values=",(unsigned long)cd_nelmts);
     for(i=0;i<cd_nelmts;i++)
 	printf(" %u",cd_values[i]);

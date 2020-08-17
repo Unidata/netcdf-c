@@ -5,10 +5,11 @@
 
 #include "zincludes.h"
 #include <math.h>
-
 #ifdef _MSC_VER
 #include <crtdbg.h>
 #endif
+
+#include "isnan.h"
 
 /*
 Code taken directly from libdap4/d4cvt.c
@@ -46,6 +47,8 @@ NCZ_convert1(NCjson* jsrc, nc_type dsttype, char* memory)
 	/* Capture nan and infinity values */
 	if(strcasecmp(jsrc->value,"nan")==0)
 	    zcvt.float64v = NAN;
+	else if(strcasecmp(jsrc->value,"-nan")==0)
+	    zcvt.float64v = - NAN;
 	else if(strcasecmp(jsrc->value,"infinity")==0)
 	    zcvt.float64v = INFINITY;
 	else if(strcasecmp(jsrc->value,"-infinity")==0)
@@ -324,6 +327,8 @@ NCZ_stringconvert(nc_type typeid, size_t len, void* data0, NCjson** jdatap)
     } else { /* for all other values, create an array of values */
 	if((stat = NCJnew(NCJ_ARRAY,&jdata))) goto done;
 	for(i=0;i<len;i++) {
+  	    char* special = NULL;
+	    double d;
 	    if((stat = NCZ_stringconvert1(typeid, src, &str)))
 		goto done;
 	    switch (typeid) {
@@ -331,14 +336,39 @@ NCZ_stringconvert(nc_type typeid, size_t len, void* data0, NCjson** jdatap)
 	    case NC_UBYTE: case NC_USHORT: case NC_UINT: case NC_UINT64:
 		if((stat=NCJnew(NCJ_INT,&jvalue))) goto done;
 		break;
-	    case NC_FLOAT: case NC_DOUBLE:
+	    case NC_FLOAT:
+	    case NC_DOUBLE: {
+		if(typeid == NC_FLOAT)
+	  	    d = (double)(*((float*)src));
+		else
+	  	    d = *((double*)src);
+#ifdef _WIN32
+		switch (_fpclass(d)) {
+		case _FPCLASS_SNAN: case _FPCLASS_QNAN:
+		     special = "Nan"; break;
+		case _FPCLASS_NINF:
+		      special = "-Infinity"; break;
+		case _FPCLASS_PINF:
+		      special = "Infinity"; break;
+		default: break;
+		}
+#else
+		if(isnan(d))
+		     special = "NaN";
+		else if(isinf(d) < 0)
+		      special = "-Infinity";
+		else if(isinf(d) > 0)
+		      special = "Infinity";
+		else {}
+#endif
 		if((stat=NCJnew(NCJ_DOUBLE,&jvalue))) goto done;
-		break;
+		} break;
 	    case NC_CHAR:
 		if((stat=NCJnew(NCJ_STRING,&jvalue))) goto done;
 		break;
 	    default: stat = NC_EINTERNAL; goto done;
 	    }
+	    if(special) {nullfree(str); str = strdup(special);}	    
 	    jvalue->value = str;
 	    str = NULL;
 	    nclistpush(jdata->contents,jvalue);

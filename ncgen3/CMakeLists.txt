@@ -33,6 +33,7 @@ ENDIF()
 
 ADD_EXECUTABLE(ncgen3 ${ncgen3_FILES})
 TARGET_LINK_LIBRARIES(ncgen3 netcdf ${ALL_TLL_LIBS})
+
 ####
 # We have to do a little tweaking
 # to remove the Release/ and Debug/ directories
@@ -52,7 +53,7 @@ ENDIF()
 
 IF(ENABLE_TESTS)
   SET(NCGEN3_TESTS run_tests)
-  IF(USE_NETCDF4)
+  IF(USE_HDF5)
     SET(NCGEN3_TESTS ${NCGEN3_TESTS} run_nc4_tests)
   ENDIF()
 

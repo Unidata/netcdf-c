@@ -24,11 +24,6 @@ HDRS= nccommon.h constraints.h ncd2dispatch.h dapincludes.h 	\
 dapodom.h getvara.h dapnc.h daputil.h dapdebug.h dapdump.h		\
 dceconstraints.h dcetab.h dceparselex.h
 
-if USE_NETCDF4
-#SRC += cdf4.c constraints4.c ncd4dispatch.c ncdap4.c getvara4.c
-#HDRS +=constraints4.h ncd4dispatch.h ncdap4.h
-endif
-
 if ENABLE_DAP
 
 if USE_NETCDF4
