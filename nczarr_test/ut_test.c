@@ -6,15 +6,7 @@
 #include "ut_includes.h"
 #include "ncwinpath.h"
 
-#ifdef HAVE_GETOPT_H
-#include <getopt.h>
-#endif
-
-#ifdef _MSC_VER
-#include "XGetopt.h"
-#endif
-
-struct UTOptions utoptions;
+struct Options options;
 
 /*Forward*/
 static void canonicalfile(char** fp);
@@ -41,7 +33,7 @@ usage(int err)
 }
 
 int
-ut_init(int argc, char** argv, struct UTOptions * options)
+ut_init(int argc, char** argv, struct Options * options)
 {
     int stat = NC_NOERR;
     int c;
@@ -59,7 +51,7 @@ ut_init(int argc, char** argv, struct UTOptions * options)
                 options->debug = 1;     
                 break;
             case 'x': /*execute*/
-		if(parsestringvector(optarg,0,&options->cmds) <= 0) usage(THROW(0));
+		if(parsestringvector(optarg,0,&options->cmds) <= 0) usage(0);
                 break;
             case 'f':
 		options->file = strdup(optarg);
@@ -71,17 +63,17 @@ ut_init(int argc, char** argv, struct UTOptions * options)
 		options->kind = strdup(optarg);
                 break;
             case 'd': /*dimdef*/
-		if((stat=parsedimdef(optarg,&dimdef))) usage(THROW(stat));
+		if((stat=parsedimdef(optarg,&dimdef))) usage(stat);
 		nclistpush(options->dimdefs,dimdef);
 		dimdef = NULL;
                 break;
             case 'v': /*vardef*/
-		if((stat=parsevardef(optarg,options->dimdefs,&vardef))) usage(THROW(stat));
+		if((stat=parsevardef(optarg,options->dimdefs,&vardef))) usage(stat);
 		nclistpush(options->vardefs,vardef);
 		vardef = NULL;
                 break;
             case 's': /*slices*/
-		if((stat=parseslices(optarg,&options->nslices,options->slices))) usage(THROW(stat));
+		if((stat=parseslices(optarg,&options->nslices,options->slices))) usage(stat);
                 break;
             case 'W': /*walk data*/
 		options->idatalen = parseintvector(optarg,4,(void**)&options->idata);
@@ -98,7 +90,7 @@ ut_init(int argc, char** argv, struct UTOptions * options)
     canonicalfile(&options->output);
     
 done:
-    return THROW(stat);
+    return stat;
 }
 
 static void
@@ -131,7 +123,7 @@ canonicalfile(char** fp)
     ncuriparse(f,&uri);
     if(uri != NULL) {ncurifree(uri); return;} /* its a url */
 #ifdef _WIN32
-    for(p=f;*p;p++) {if(*p == '\\') {*p = '/';}}
+    for(f32=0,p=f;*p;p++) {if(*p == '\\') {*p = '/'; f32 = 1;}}
 #endif
     if(len >= 2 && memcmp(f,"./",2)==0) {
 	offset = 1; /* leave the '/' */
@@ -178,20 +170,23 @@ nccheck(int stat, int line)
 char*
 makeurl(const char* file, NCZM_IMPL impl)
 {
+    char wd[4096];
     char* url = NULL;
     NCbytes* buf = ncbytesnew();
     NCURI* uri = NULL;
     const char* kind = impl2kind(impl);
-    char* path = NULL;
 
     if(file && strlen(file) > 0) {
 	switch (impl) {
 	case NCZM_NC4: /* fall thru */
 	case NCZM_FILE:
-            /* Massage file to make it usable as URL path */
-            if((path = NCurlpath(file))==NULL) return NULL;
             ncbytescat(buf,"file://");
-            ncbytescat(buf,path);
+            if(file[0] != '/') {
+                (void)getcwd(wd, sizeof(wd));
+                ncbytescat(buf,wd);
+                ncbytescat(buf,"/");
+            }
+            ncbytescat(buf,file);
             ncbytescat(buf,"#mode=nczarr"); /* => use default file: format */
 	    ncbytescat(buf,",");
 	    ncbytescat(buf,kind);
@@ -211,7 +206,6 @@ makeurl(const char* file, NCZM_IMPL impl)
     }
     ncurifree(uri);
     ncbytesfree(buf);
-    nullfree(path);
     fprintf(stderr,"url=|%s|\n",url);
     fflush(stderr);
     return url;
@@ -233,15 +227,15 @@ runtests(const char** cmds, struct Test* tests)
     int stat = NC_NOERR;
     struct Test* test = NULL;
     const char** cmd = NULL;
-    if(cmds == NULL) return THROW(NC_EINVAL);
+    if(cmds == NULL) return NC_EINVAL;
     for(cmd=cmds;*cmd;cmd++) {
         for(test=tests;test->cmd;test++) {
 	    if(strcmp(test->cmd,*cmd)==0) {
-		if(test->cmd == NULL) return THROW(NC_EINVAL);
+		if(test->cmd == NULL) return NC_EINVAL;
 		if((stat=test->test())) goto done; /* Execute */
 	    }
 	}
     }
 done:
-    return THROW(stat);
+    return stat;
 }

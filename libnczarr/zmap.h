@@ -100,14 +100,9 @@ generic nczm_xxx functions below.
 #ifndef ZMAP_H
 #define ZMAP_H
 
-#include "ncexternl.h"
-
 #define NCZM_SEP "/"
 
 #define NCZM_DOT '.'
-
-/*Mnemonic*/
-#define LOCALIZE 1
 
 /* Forward */
 typedef struct NCZMAP_API NCZMAP_API;
@@ -184,7 +179,7 @@ Check if a specified content-bearing object exists or not.
 @return NC_ENOTFOUND if the object does not exist
 @return NC_EXXX if the operation failed for one of several possible reasons
 */
-EXTERNL int nczmap_exists(NCZMAP* map, const char* key);
+extern int nczmap_exists(NCZMAP* map, const char* key);
 
 /**
 Return the current size of a specified content-bearing object exists or not.
@@ -195,7 +190,7 @@ Return the current size of a specified content-bearing object exists or not.
 @return NC_ENOTFOUND if the object does not exist
 @return NC_EXXX if the operation failed for one of several possible reasons
 */
-EXTERNL int nczmap_len(NCZMAP* map, const char* key, size64_t* sizep);
+extern int nczmap_len(NCZMAP* map, const char* key, size64_t* sizep);
 
 /**
 Create a specified content-bearing object.
@@ -205,7 +200,7 @@ Create a specified content-bearing object.
 @return NC_ENOTFOUND if the object does not exist
 @return NC_EXXX if the operation failed for one of several possible reasons
 */
-EXTERNL int nczmap_defineobj(NCZMAP* map, const char* key);
+extern int nczmap_defineobj(NCZMAP* map, const char* key);
 
 /**
 Read the content of a specified content-bearing object.
@@ -218,7 +213,7 @@ Read the content of a specified content-bearing object.
 @return NC_ENOTFOUND if the object does not exist
 @return NC_EXXX if the operation failed for one of several possible reasons
 */
-EXTERNL int nczmap_read(NCZMAP* map, const char* key, size64_t start, size64_t count, void* content);
+extern int nczmap_read(NCZMAP* map, const char* key, size64_t start, size64_t count, void* content);
 
 /**
 Write the content of a specified content-bearing object.
@@ -231,7 +226,7 @@ Write the content of a specified content-bearing object.
 @return NC_ENOTFOUND if the object does not exist
 @return NC_EXXX if the operation failed for one of several possible reasons
 */
-EXTERNL int nczmap_write(NCZMAP* map, const char* key, size64_t start, size64_t count, const void* content);
+extern int nczmap_write(NCZMAP* map, const char* key, size64_t start, size64_t count, const void* content);
 
 /**
 Return a vector of keys representing the content-bearing
@@ -242,7 +237,7 @@ objects that are immediately contained by the prefix key.
 @return NC_NOERR if the operation succeeded
 @return NC_EXXX if the operation failed for one of several possible reasons
 */
-EXTERNL int nczmap_search(NCZMAP* map, const char* prefix, NClist* matches);
+extern int nczmap_search(NCZMAP* map, const char* prefix, NClist* matches);
 
 /**
 Close a map
@@ -252,45 +247,36 @@ Close a map
 @return NC_ENOTFOUND if the object does not exist
 @return NC_EXXX if the operation failed for one of several possible reasons
 */
-EXTERNL int nczmap_close(NCZMAP* map, int deleteit);
+extern int nczmap_close(NCZMAP* map, int deleteit);
 
 /* Create/open and control a dataset using a specific implementation */
-EXTERNL int nczmap_create(NCZM_IMPL impl, const char *path, int mode, size64_t flags, void* parameters, NCZMAP** mapp);
-EXTERNL int nczmap_open(NCZM_IMPL impl, const char *path, int mode, size64_t flags, void* parameters, NCZMAP** mapp);
+extern int nczmap_create(NCZM_IMPL impl, const char *path, int mode, size64_t flags, void* parameters, NCZMAP** mapp);
+extern int nczmap_open(NCZM_IMPL impl, const char *path, int mode, size64_t flags, void* parameters, NCZMAP** mapp);
 
 /* Utility functions */
 
 /** Split a path into pieces along '/' character; elide any leading '/' */
-EXTERNL int nczm_split(const char* path, NClist* segments);
+extern int nczm_split(const char* path, NClist* segments);
 
 /* Split a path into pieces along some character; elide any leading char */
-EXTERNL int nczm_split_delim(const char* path, char delim, NClist* segments);
+extern int nczm_split_delim(const char* path, char delim, NClist* segments);
 
 /* Convenience: Join all segments into a path using '/' character */
-EXTERNL int nczm_join(NClist* segments, char** pathp);
-
-/* Convenience: Join all segments into a path using '/' character
-   but taking possible lead windows drive letter into account
-*/
-EXTERNL int nczm_joinpath(NClist* segments, char** pathp);
+extern int nczm_join(NClist* segments, char** pathp);
 
 /* Convenience: concat two strings; caller frees */
-EXTERNL int nczm_concat(const char* prefix, const char* suffix, char** pathp);
+extern int nczm_concat(const char* prefix, const char* suffix, char** pathp);
 
 /* Break a key into prefix and suffix, where prefix is the first nsegs segments;
    nsegs can be negative to specify that suffix is |nsegs| long
 */
-EXTERNL int nczm_divide_at(const char* key, int nsegs, char** prefixp, char** suffixp);
+extern int nczm_divide_at(const char* key, int nsegs, char** prefixp, char** suffixp);
 
 /* Reclaim the content of a map but not the map itself */
-EXTERNL int nczm_clear(NCZMAP* map);
+extern int nczm_clear(NCZMAP* map);
 
 /* Return 1 if path is absolute; takes Windows drive letters into account */
-EXTERNL int nczm_isabsolutepath(const char* path);
-
-/* Convert forward to back slash if needed */
-EXTERNL int nczm_localize(const char* path, char** newpathp, int local);
-EXTERNL int nczm_canonicalpath(const char* path, char** cpathp);
+extern int nczm_isabsolutepath(const char* path);
 
 #ifdef __cplusplus
 }

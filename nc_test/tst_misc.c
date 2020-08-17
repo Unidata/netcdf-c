@@ -61,7 +61,7 @@ main(int argc, char **argv)
    }
 
    SUMMARIZE_ERR;
-#ifndef USE_HDF5
+#ifndef USE_NETCDF4
    printf("*** Trying to create netCDF-4 file without netCDF-4...");
    {
        int ncid;
@@ -70,7 +70,7 @@ main(int argc, char **argv)
 	   ERR;
    }
    SUMMARIZE_ERR;
-#endif /* USE_HDF5 undefined */
+#endif /* USE_NETCDF4 undefined */
 
 #ifdef TEST_PNETCDF
    MPI_Finalize();
