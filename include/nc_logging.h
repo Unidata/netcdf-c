@@ -51,7 +51,7 @@ void nc_log_hdf5(void);
 
 #define BAIL_QUIET BAIL
 
-#ifdef USE_NETCDF_4
+#ifdef USE_NETCDF4
 #ifndef ENABLE_SET_LOG_LEVEL
 /* Define away any calls to nc_set_log_level(), if its not enabled. */
 #define nc_set_log_level(e)

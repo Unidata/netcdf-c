@@ -105,7 +105,7 @@ main(int argc, char **argv)
 	/* ignore anything not recognized */
     }
 
-#ifndef USE_NETCDF4
+#ifndef USE_HDF5
     fprintf(stderr,"netcdf-4 not supported; ignored\n");
     usenetcdf4 = 0;
 #endif

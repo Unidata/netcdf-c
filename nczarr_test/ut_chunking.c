@@ -26,18 +26,18 @@ main(int argc, char** argv)
     memset(&slpv,0,sizeof(slpv));
     memset(&common,0,sizeof(common));
 
-    if((stat = ut_init(argc, argv, &options))) goto done;
+    if((stat = ut_init(argc, argv, &utoptions))) goto done;
 
     /* Set the printer */
     zutest.tests = UTEST_RANGE;
     zutest.print = ut_chunk_print;
 
-    var = nclistget(options.vardefs,0);
+    var = nclistget(utoptions.vardefs,0);
 
     /* Fill in parts of common */
     common.rank = var->rank;
 
-    if((stat = NCZ_projectslices(var->dimsizes, var->chunksizes, options.slices, &common, &odom)))
+    if((stat = NCZ_projectslices(var->dimsizes, var->chunksizes, utoptions.slices, &common, &odom)))
 	goto done;
 
 #if 0

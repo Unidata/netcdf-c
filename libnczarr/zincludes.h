@@ -20,12 +20,14 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
-#include <malloc.h>
 #include <stddef.h> /* size_t, ptrdiff_t */
 #include <assert.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#endif
+#ifdef _MSC_VER
+#include <malloc.h>
 #endif
 
 #ifdef __cplusplus
