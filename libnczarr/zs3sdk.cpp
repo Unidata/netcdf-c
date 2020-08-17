@@ -5,6 +5,7 @@
 
 #define NOOP
 
+
 #include "awsincludes.h"
 #include <stdlib.h>
 #include <string.h>
@@ -12,10 +13,6 @@
 #include <streambuf>
 #include "netcdf.h"
 #include "zs3sdk.h"
-
-#ifdef __CYGWIN__
-extern char* strdup(const char*);
-#endif
 
 #define size64_t unsigned long long
 

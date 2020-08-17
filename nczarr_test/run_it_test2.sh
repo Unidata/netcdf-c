@@ -43,22 +43,25 @@ for x in ${TESTSET} ; do
 done
 }
 
-ittest() {
+
+main() {
 extfor $1
 if test "x$2" != x ; then CLOUD="-c $2"; fi
 ${execdir}/tst_chunks -e $1 $CLOUD
 ${execdir}/tst_chunks2 -e $1 $CLOUD
 }
 
-main() {
-ittest nzf
-if test "xFEATURE_HDF5" = xyes ; then
-ittest nz4
-fi
-if test "x$FEATURE_S3TESTS" = xyes ; then
- ittest s3 'https://stratus.ucar.edu/unidata-netcdf-zarr-testing'
-fi
-}
+# check settings
+checksetting "NCZarr Support"
+if test "x$HAVE_SETTING" = x1 ; then HAVENCZARR=1; fi
+checksetting "NCZarr S3"
+if test "x$HAVE_SETTING" = x1 ; then HAVES3=1; fi
 
-main
+main nz4
+main nzf
 
+if test "x$NETCDF_S3_TESTS" != x ; then
+    if test "x$HAVENCZARR" = x1 -a "x$HAVES3" = x1 ; then
+      main s3 'https://stratus.ucar.edu/unidata-netcdf-zarr-testing'
+    fi
+fi
