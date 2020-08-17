@@ -4,16 +4,15 @@ NCC="c:/tools/hdf5"
 
 # Is netcdf-4 and/or DAP enabled?
 NCZARR=1
-HDF5=1
+NC4=1
 DAP=1
-S3=1
-#S3TEST=1
 #CDF5=1
-#HDF4=1
+HDF4=1
+#S3=1
 
 #TR=--trace
 
-export SETX=1
+#export SETX=1
 
 for arg in "$@" ; do
 case "$arg" in
@@ -61,8 +60,8 @@ if test "x$DAP" = x ; then
 FLAGS="$FLAGS -DENABLE_DAP=false"
 fi
 
-if test "x$HDF5" = x ; then
-FLAGS="$FLAGS -DENABLE_HDF5=false"
+if test "x$NC4" = x ; then
+FLAGS="$FLAGS -DENABLE_NETCDF_4=false"
 else
 ignore=1
 #FLAGS="$FLAGS -DDEFAULT_API_VERSION:STRING=v110"
@@ -83,21 +82,16 @@ if test "x$TESTSERVERS" != x ; then
 FLAGS="$FLAGS -DREMOTETESTSERVERS=${TESTSERVERS}"
 fi
 
-if test "x$S3" != x ; then
-FLAGS="$FLAGS -DENABLE_S3_SDK=true"
-else
-FLAGS="$FLAGS -DENABLE_S3_SDK=false"
-fi
-if test "x$S3TEST" != x ; then
-FLAGS="$FLAGS -DENABLE_S3_TESTS=true"
-fi
-
 # Enables
 FLAGS="$FLAGS -DENABLE_DAP_REMOTE_TESTS=true"
 FLAGS="$FLAGS -DENABLE_LOGGING=true"
 #FLAGS="$FLAGS -DENABLE_DOXYGEN=true -DENABLE_INTERNAL_DOCS=true"
 #FLAGS="$FLAGS -DENABLE_LARGE_FILE_TESTS=true"
-#FLAGS="$FLAGS -DENABLE_FILTER_TESTING=true"
+FLAGS="$FLAGS -DENABLE_FILTER_TESTING=true"
+
+if test "x$S3" = x ; then
+FLAGS="$FLAGS -DENABLE_S3_SDK=false"
+fi
 
 # Disables
 FLAGS="$FLAGS -DENABLE_EXAMPLES=false"
@@ -105,9 +99,8 @@ FLAGS="$FLAGS -DENABLE_CONVERSION_WARNINGS=false"
 #FLAGS="$FLAGS -DENABLE_TESTS=false"
 #FLAGS="$FLAGS -DENABLE_DISKLESS=false"
 FLAGS="$FLAGS -DBUILD_UTILITIES=true"
-FLAGS="$FLAGS -DENABLE_FILTER_TESTING=false"
 
-FLAGS="$FLAGS -DCURL_NO_CURL_CMAKE=TRUE"
+#FLAGS="$FLAGS -DCURL_NO_CURL_CMAKE=TRUE"
 
 # Withs
 FLAGS="$FLAGS -DNCPROPERTIES_EXTRA=\"key1=value1|key2=value2\""
@@ -142,7 +135,7 @@ NCLIB="${NCLIB}/build/liblib"
 #T="--trace-expand"
 cmake "${G}" $FLAGS ..
 if test "x$NOBUILD" = x ; then
-make all
+make VERBOSE=1 all
 fi
 if test "x$NOTEST" = x ; then
 make test

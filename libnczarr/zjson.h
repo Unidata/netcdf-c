@@ -5,8 +5,6 @@
 #ifndef NCJSON_H
 #define NCJSON_H 1
 
-#include "ncexternl.h"
-
 /* Json object sorts */
 #define NCJ_UNDEF    0
 #define NCJ_STRING   1
@@ -39,46 +37,46 @@ typedef struct NCjson {
 #define NCJF_MULTILINE 1
 
 /* Parse */
-EXTERNL int NCJparse(const char* text, unsigned flags, NCjson** jsonp);
+extern int NCJparse(const char* text, unsigned flags, NCjson** jsonp);
 
 /* Build */
-EXTERNL int NCJnew(int sort, NCjson** object);
+extern int NCJnew(int sort, NCjson** object);
 
 /* Convert a nul terminated string value to an NCjson object */
-EXTERNL int NCJnewstring(int sort, const char* value, NCjson** jsonp);
+extern int NCJnewstring(int sort, const char* value, NCjson** jsonp);
 
 /* Convert a counted string value to an NCjson object (+ nul term)*/
-EXTERNL int NCJnewstringn(int sort, size_t len, const char* value, NCjson** jsonp);
+extern int NCJnewstringn(int sort, size_t len, const char* value, NCjson** jsonp);
 
 /* Insert key-value pair into a dict object.
    key will be strdup'd.
 */
-EXTERNL int NCJinsert(NCjson* object, char* key, NCjson* value);
+extern int NCJinsert(NCjson* object, char* key, NCjson* value);
 
 /* Insert a string value into a json Dict|Array */
-EXTERNL int NCJaddstring(NCjson* dictarray, int sort, const char* value);
+extern int NCJaddstring(NCjson* dictarray, int sort, const char* value);
 
 /* Get ith pair from dict */
-EXTERNL int NCJdictith(NCjson* object, size_t i, const char** keyp, NCjson** valuep);
+extern int NCJdictith(NCjson* object, size_t i, const char** keyp, NCjson** valuep);
 
 /* Get value for key from dict */
-EXTERNL int NCJdictget(NCjson* object, const char* key, NCjson** valuep);
+extern int NCJdictget(NCjson* object, const char* key, NCjson** valuep);
 
 /* Append value to an array or dict object. */
-EXTERNL int NCJappend(NCjson* object, NCjson* value);
+extern int NCJappend(NCjson* object, NCjson* value);
 
 /* Get ith element from array */
-EXTERNL int NCJarrayith(NCjson* object, size_t i, NCjson** valuep);
+extern int NCJarrayith(NCjson* object, size_t i, NCjson** valuep);
 
 /* Unparser to convert NCjson object to text in buffer */
-EXTERNL int NCJunparse(const NCjson* json, int flags, char** textp);
+extern int NCJunparse(const NCjson* json, int flags, char** textp);
 
 /* Utilities */
-EXTERNL void NCJreclaim(NCjson*);
-EXTERNL int NCJclone(NCjson* json, NCjson** clonep); /* deep clone */
+extern void NCJreclaim(NCjson*);
+extern int NCJclone(NCjson* json, NCjson** clonep); /* deep clone */
 
 /* dump NCjson* object */
-EXTERNL void NCJdump(const NCjson* json, int flags);
+extern void NCJdump(const NCjson* json, int flags);
 
 /* Macro defined functions */
 #define NCJlength(json) \
