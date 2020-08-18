@@ -41,6 +41,9 @@
 /* Path Converter */
 EXTERNL char* NCpathcvt(const char* path);
 
+/* path -> URL Path converter */
+EXTERNL char* NCurlpath(const char* path);
+
 /* Fix path in case it was escaped by shell */
 EXTERNL char* NCdeescape(const char* name);
 
@@ -78,5 +81,6 @@ EXTERNL int NCclosedir(DIR* ent);
 /* Platform independent */
 #define NCclose(fd) close(fd)
 
+EXTERNL int NChasdriveletter(const char* path);
 
 #endif /* _NCWINIO_H_ */

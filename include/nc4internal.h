@@ -338,100 +338,100 @@ typedef struct
 } nc_hvl_t;
 
 /* Misc functions */
-int NC4_inq_atomic_type(nc_type typeid1, char *name, size_t *size);
-int NC4_lookup_atomic_type(const char *name, nc_type* idp, size_t *sizep);
+extern int NC4_inq_atomic_type(nc_type typeid1, char *name, size_t *size);
+extern int NC4_lookup_atomic_type(const char *name, nc_type* idp, size_t *sizep);
 
 /* These functions convert between netcdf and HDF5 types. */
-int nc4_get_typelen_mem(NC_FILE_INFO_T *h5, nc_type xtype, size_t *len);
-int nc4_convert_type(const void *src, void *dest, const nc_type src_type,
+extern int nc4_get_typelen_mem(NC_FILE_INFO_T *h5, nc_type xtype, size_t *len);
+extern int nc4_convert_type(const void *src, void *dest, const nc_type src_type,
                      const nc_type dest_type, const size_t len, int *range_error,
                      const void *fill_value, int strict_nc3);
 
 /* These functions do HDF5 things. */
-int nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
-int nc4_read_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
+extern int nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
+extern int nc4_read_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 
 /* Find items in the in-memory lists of metadata. */
-int nc4_find_nc_grp_h5(int ncid, NC **nc, NC_GRP_INFO_T **grp,
+extern int nc4_find_nc_grp_h5(int ncid, NC **nc, NC_GRP_INFO_T **grp,
                        NC_FILE_INFO_T **h5);
-int nc4_find_grp_h5(int ncid, NC_GRP_INFO_T **grp, NC_FILE_INFO_T **h5);
-int nc4_find_nc4_grp(int ncid, NC_GRP_INFO_T **grp);
-int nc4_find_dim(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T **dim,
+extern int nc4_find_grp_h5(int ncid, NC_GRP_INFO_T **grp, NC_FILE_INFO_T **h5);
+extern int nc4_find_nc4_grp(int ncid, NC_GRP_INFO_T **grp);
+extern int nc4_find_dim(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T **dim,
                  NC_GRP_INFO_T **dim_grp);
-int nc4_find_var(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var);
-int nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len);
-int nc4_find_type(const NC_FILE_INFO_T *h5, int typeid1, NC_TYPE_INFO_T **type);
-NC_TYPE_INFO_T *nc4_rec_find_named_type(NC_GRP_INFO_T *start_grp, char *name);
-NC_TYPE_INFO_T *nc4_rec_find_equal_type(NC_GRP_INFO_T *start_grp, int ncid1,
+extern int nc4_find_var(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var);
+extern int nc4_find_dim_len(NC_GRP_INFO_T *grp, int dimid, size_t **len);
+extern int nc4_find_type(const NC_FILE_INFO_T *h5, int typeid1, NC_TYPE_INFO_T **type);
+extern NC_TYPE_INFO_T *nc4_rec_find_named_type(NC_GRP_INFO_T *start_grp, char *name);
+extern NC_TYPE_INFO_T *nc4_rec_find_equal_type(NC_GRP_INFO_T *start_grp, int ncid1,
                                         NC_TYPE_INFO_T *type);
-int nc4_find_nc_att(int ncid, int varid, const char *name, int attnum,
+extern int nc4_find_nc_att(int ncid, int varid, const char *name, int attnum,
                     NC_ATT_INFO_T **att);
-int nc4_find_grp_h5_var(int ncid, int varid, NC_FILE_INFO_T **h5,
+extern int nc4_find_grp_h5_var(int ncid, int varid, NC_FILE_INFO_T **h5,
                         NC_GRP_INFO_T **grp, NC_VAR_INFO_T **var);
-int nc4_find_grp_att(NC_GRP_INFO_T *grp, int varid, const char *name,
+extern int nc4_find_grp_att(NC_GRP_INFO_T *grp, int varid, const char *name,
                      int attnum, NC_ATT_INFO_T **att);
-int nc4_get_typeclass(const NC_FILE_INFO_T *h5, nc_type xtype,
+extern int nc4_get_typeclass(const NC_FILE_INFO_T *h5, nc_type xtype,
                       int *type_class);
 
 /* Free various types */
-int nc4_type_free(NC_TYPE_INFO_T *type);
+extern int nc4_type_free(NC_TYPE_INFO_T *type);
 
 /* These list functions add and delete vars, atts. */
-int nc4_nc4f_list_add(NC *nc, const char *path, int mode);
-int nc4_nc4f_list_del(NC_FILE_INFO_T *h5);
-int nc4_file_list_add(int ncid, const char *path, int mode,
+extern int nc4_nc4f_list_add(NC *nc, const char *path, int mode);
+extern int nc4_nc4f_list_del(NC_FILE_INFO_T *h5);
+extern int nc4_file_list_add(int ncid, const char *path, int mode,
                       void **dispatchdata);
-int nc4_file_list_get(int ncid, char **path, int *mode,
+extern int nc4_file_list_get(int ncid, char **path, int *mode,
                       void **dispatchdata);
-int nc4_file_list_del(int ncid);
-int nc4_file_change_ncid(int ncid, unsigned short new_ncid_index);
-int nc4_var_list_add(NC_GRP_INFO_T* grp, const char* name, int ndims,
+extern int nc4_file_list_del(int ncid);
+extern int nc4_file_change_ncid(int ncid, unsigned short new_ncid_index);
+extern int nc4_var_list_add(NC_GRP_INFO_T* grp, const char* name, int ndims,
                      NC_VAR_INFO_T **var);
-int nc4_var_list_add2(NC_GRP_INFO_T* grp, const char* name,
+extern int nc4_var_list_add2(NC_GRP_INFO_T* grp, const char* name,
                       NC_VAR_INFO_T **var);
-int nc4_var_set_ndims(NC_VAR_INFO_T *var, int ndims);
-int nc4_var_list_del(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
-int nc4_dim_list_add(NC_GRP_INFO_T *grp, const char *name, size_t len,
+extern int nc4_var_set_ndims(NC_VAR_INFO_T *var, int ndims);
+extern int nc4_var_list_del(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
+extern int nc4_dim_list_add(NC_GRP_INFO_T *grp, const char *name, size_t len,
                      int assignedid, NC_DIM_INFO_T **dim);
-int nc4_dim_list_del(NC_GRP_INFO_T *grp, NC_DIM_INFO_T *dim);
-int nc4_type_new(size_t size, const char *name, int assignedid,
+extern int nc4_dim_list_del(NC_GRP_INFO_T *grp, NC_DIM_INFO_T *dim);
+extern int nc4_type_new(size_t size, const char *name, int assignedid,
                  NC_TYPE_INFO_T **type);
-int nc4_type_list_add(NC_GRP_INFO_T *grp, size_t size, const char *name,
+extern int nc4_type_list_add(NC_GRP_INFO_T *grp, size_t size, const char *name,
                       NC_TYPE_INFO_T **type);
-int nc4_type_list_del(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type);
-int nc4_type_free(NC_TYPE_INFO_T *type);
-int nc4_field_list_add(NC_TYPE_INFO_T* parent, const char *name,
+extern int nc4_type_list_del(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type);
+extern int nc4_type_free(NC_TYPE_INFO_T *type);
+extern int nc4_field_list_add(NC_TYPE_INFO_T* parent, const char *name,
                        size_t offset, nc_type xtype, int ndims,
                        const int *dim_sizesp);
-int nc4_att_list_add(NCindex *list, const char *name, NC_ATT_INFO_T **att);
-int nc4_att_list_del(NCindex *list, NC_ATT_INFO_T *att);
-int nc4_grp_list_add(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *parent, char *name,
+extern int nc4_att_list_add(NCindex *list, const char *name, NC_ATT_INFO_T **att);
+extern int nc4_att_list_del(NCindex *list, NC_ATT_INFO_T *att);
+extern int nc4_grp_list_add(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *parent, char *name,
                      NC_GRP_INFO_T **grp);
-int nc4_build_root_grp(NC_FILE_INFO_T *h5);
-int nc4_rec_grp_del(NC_GRP_INFO_T *grp);
-int nc4_enum_member_add(NC_TYPE_INFO_T *type, size_t size, const char *name,
+extern int nc4_build_root_grp(NC_FILE_INFO_T *h5);
+extern int nc4_rec_grp_del(NC_GRP_INFO_T *grp);
+extern int nc4_enum_member_add(NC_TYPE_INFO_T *type, size_t size, const char *name,
                         const void *value);
-int nc4_att_free(NC_ATT_INFO_T *att);
+extern int nc4_att_free(NC_ATT_INFO_T *att);
 
 /* Check and normalize names. */
-int NC_check_name(const char *name);
-int nc4_check_name(const char *name, char *norm_name);
-int nc4_normalize_name(const char *name, char *norm_name);
-int nc4_check_dup_name(NC_GRP_INFO_T *grp, char *norm_name);
+extern int NC_check_name(const char *name);
+extern int nc4_check_name(const char *name, char *norm_name);
+extern int nc4_normalize_name(const char *name, char *norm_name);
+extern int nc4_check_dup_name(NC_GRP_INFO_T *grp, char *norm_name);
 
 /* Get the fill value for a var. */
-int nc4_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp);
+extern int nc4_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp);
 
 /* Find default fill value. */
-int nc4_get_default_fill_value(nc_type typecode, void *fill_value);
+extern int nc4_get_default_fill_value(nc_type typecode, void *fill_value);
 
 /* Get an att given pointers to file, group, and perhaps ver info. */
-int nc4_get_att_ptrs(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var,
+extern int nc4_get_att_ptrs(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var,
                      const char *name, nc_type *xtype, nc_type mem_type,
                      size_t *lenp, int *attnum, void *data);
 
 /* Close the file. */
-int nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio);
+extern int nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio);
 
 /* HDF5 initialization/finalization */
 extern int nc4_hdf5_initialized;
@@ -441,7 +441,7 @@ extern void nc4_hdf5_finalize(void);
 /* This is only included if --enable-logging is used for configure; it
    prints info about the metadata to stderr. */
 #ifdef LOGGING
-int log_metadata_nc(NC_FILE_INFO_T *h5);
+extern int log_metadata_nc(NC_FILE_INFO_T *h5);
 #endif
 
 /** @internal Names of atomic types. */
@@ -459,4 +459,5 @@ extern const NC_reservedatt* NC_findreserved(const char* name);
 #define NC_ATT_FORMAT "_Format"
 #define NC_ATT_DIMID_NAME "_Netcdf4Dimid"
 #define NC_ATT_NC3_STRICT_NAME "_nc3_strict"
+
 #endif /* _NC4INTERNAL_ */
