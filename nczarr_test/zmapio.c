@@ -8,20 +8,15 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-
-#ifdef HAVE_STDARG_H
-#include <stdarg.h>
-#endif
-
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
-
 #ifdef _WIN32
 #include "XGetopt.h"
 #endif
 
 #include "zincludes.h"
+#include "ncwinpath.h"
 
 #define DEBUG
 
@@ -59,6 +54,7 @@ static void printcontent(size64_t len, const char* content,int ismeta);
 static int depthR(NCZMAP* map, char* key, NClist* stack);
 static char* rootpathfor(const char* path);
 static int ismetakey(const char* key);
+static void sortlist(NClist* l);
 
 #define NCCHECK(expr) nccheck((expr),__LINE__)
 static void nccheck(int stat, int line)
@@ -128,7 +124,7 @@ main(int argc, char** argv)
 	fprintf(stderr, "zmapio: no input file specified\n");
 	goto fail;
     }
-    dumpoptions.infile = strdup(argv[0]);
+    dumpoptions.infile = NCdeescape(argv[0]);
 
     if((dumpoptions.impl = implfor(dumpoptions.infile))== NCZM_UNDEF)
         zmapusage();
@@ -304,6 +300,8 @@ depthR(NCZMAP* map, char* key, NClist* stack)
 
     nclistpush(stack,key);
     if((stat=nczmap_search(map,key,nextlevel))) goto done;
+    /* Sort nextlevel */
+    sortlist(nextlevel);
     /* Push new names onto the stack and recurse */
     while(nclistlength(nextlevel) > 0) {
         char* subkey = nclistremove(nextlevel,0);
@@ -346,4 +344,29 @@ ismetakey(const char* key)
     }
     nullfree(suffix);
     return ismeta;
+}
+
+/* bubble sort a list of strings */
+static void
+sortlist(NClist* l)
+{
+    size_t i, switched;
+
+    if(nclistlength(l) <= 1) return;
+    do {
+	switched = 0;
+        for(i=0;i<nclistlength(l)-1;i++) {
+	    char* ith = nclistget(l,i);
+	    char* ith1 = nclistget(l,i+1);
+	    if(strcmp(ith,ith1) > 0) {
+	        nclistset(l,i,ith1);
+    	        nclistset(l,i+1,ith);
+	        switched = 1;
+	    }
+	}
+    } while(switched);
+#if 0
+for(i=0;i<nclistlength(l);i++)
+fprintf(stderr,"sorted: [%d] %s\n",i,(const char*)nclistget(l,i));
+#endif
 }

@@ -38,7 +38,7 @@
  * @author Ed Hartnett
  */
 int
-NC4_def_dim(int ncid, const char *name, size_t len, int *idp)
+HDF5_def_dim(int ncid, const char *name, size_t len, int *idp)
 {
     NC *nc;
     NC_GRP_INFO_T *grp;
@@ -132,7 +132,7 @@ NC4_def_dim(int ncid, const char *name, size_t len, int *idp)
  * @author Ed Hartnett
  */
 int
-NC4_inq_dim(int ncid, int dimid, char *name, size_t *lenp)
+HDF5_inq_dim(int ncid, int dimid, char *name, size_t *lenp)
 {
     NC *nc;
     NC_FILE_INFO_T *h5;
@@ -217,7 +217,7 @@ NC4_inq_dim(int ncid, int dimid, char *name, size_t *lenp)
  * @author Ed Hartnett
  */
 int
-NC4_rename_dim(int ncid, int dimid, const char *name)
+HDF5_rename_dim(int ncid, int dimid, const char *name)
 {
     NC_GRP_INFO_T *grp;
     NC_DIM_INFO_T *dim;

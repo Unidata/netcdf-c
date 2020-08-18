@@ -145,6 +145,12 @@ are set when opening a binary file on Windows. */
 /* if true, enable NCZARR */
 #cmakedefine ENABLE_NCZARR 1
 
+/* if true, enable S3 support */
+#cmakedefine ENABLE_S3_SDK 1
+
+/* if true, enable S3 testing*/
+#cmakedefine ENABLE_S3_TESTS 1
+
 /* define the possible sources for remote test servers */
 #cmakedefine REMOTETESTSERVERS	"${REMOTETESTSERVERS}"
 
