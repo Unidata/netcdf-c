@@ -5,8 +5,13 @@
 
 # See netcdf-c/COPYRIGHT file for more info.
 
+# Define location of execution
 TOPSRCDIR='@abs_top_srcdir@'
 TOPBUILDDIR='@abs_top_builddir@'
+
+# Define selected features of the build
+FEATURE_HDF5=@HAS_HDF5@
+FEATURE_S3TESTS=@DO_S3_TESTS@
 
 set -e
 

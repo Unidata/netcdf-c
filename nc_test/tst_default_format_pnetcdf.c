@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
                __FILE__, __LINE__, err);
         nerrs++;
     }
-#ifdef USE_NETCDF4
+#ifdef USE_HDF5
     /* check illegal cmode */
     cmode = NC_NETCDF4 | NC_64BIT_OFFSET;
     err = nc_create_par(fname, cmode, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);

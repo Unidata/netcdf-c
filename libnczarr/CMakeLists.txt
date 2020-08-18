@@ -49,13 +49,19 @@ zdebug.h
 )
 
 IF(ENABLE_S3_SDK) 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 SET(libnczarr_SOURCES ${libnczarr_SOURCES} zs3sdk.cpp zmap_s3sdk.c awsincludes.h zs3sdk.h)
 ENDIF()
 
 # Build the Zarr dispatch layer as a library that will be included in
 # the netCDF library.
 add_library(nczarr OBJECT ${libnczarr_SOURCES})
+
+IF(ENABLE_S3_SDK) 
+IF(NOT MSVC)
+target_compile_features(nczarr PUBLIC cxx_std_11)
+ENDIF()
+target_include_directories(nczarr PRIVATE ${AWSSDK_INCLUDE_DIR})
+ENDIF()
 
 # Remember to package this file for CMake builds.
 ADD_EXTRA_DIST(${libnczarr_SOURCES} CMakeLists.txt)

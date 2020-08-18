@@ -45,7 +45,6 @@ Rules:
 All other cases are passed thru unchanged
 */
 
-
 /* Define legal windows drive letters */
 static const char* windrive = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -63,8 +62,15 @@ NCpathcvt(const char* path)
     char* p;
     char* q;
     size_t pathlen;
+    int forwardslash;
 
     if(path == NULL) goto done; /* defensive driving */
+
+#ifdef _WIN32
+    forwardslash = 0;
+#else
+    forwardslash = 1;
+#endif
 
     /* Check for path debug env vars */
     if(pathdebug < 0) {
@@ -110,6 +116,7 @@ NCpathcvt(const char* path)
     }
 
     /* 3. Look for leading D: where D is a single-char drive letter */
+    /* This could be cygwin or Windows or mingw */
     if(pathlen >= 2
 	&& strchr(windrive,path[0]) != NULL
 	&& path[1] == ':'
@@ -129,23 +136,24 @@ NCpathcvt(const char* path)
     goto done;
 
 slashtrans:
-      /* In order to help debugging, and if not using MSC_VER or MINGW,
+      /* In order to help debugging, and if not using MSC_VER or MINGW or CYGWIN,
 	 convert back slashes to forward, else convert forward to back
       */
-    p = outpath;
-    /* In all #1 or #2 cases, translate '/' -> '\\' */
-    for(;*p;p++) {
-	if(*p == '/') {*p = '\\';}
+    if(!forwardslash) {
+        p = outpath;
+        /* In all #1 or #2 cases, translate '/' -> '\\' */
+        for(;*p;p++) {
+	    if(*p == '/') {*p = '\\';}
+	}
     }
 #ifdef PATHFORMAT
-#ifndef _WIN32
+    if(forwardslash) {
 	p = outpath;
         /* Convert '\' back to '/' */
         for(;*p;p++) {
             if(*p == '\\') {*p = '/';}
 	}
     }
-#endif /*!_WIN32*/
 #endif /*PATHFORMAT*/
 
 done:
@@ -155,6 +163,19 @@ done:
         fflush(stderr);
     }
     return outpath;
+}
+
+/* Make path suitable for inclusion in url */
+EXTERNL
+char* /* caller frees */
+NCurlpath(const char* path)
+{
+    char* upath = NCpathcvt(path);
+    char* p = upath;
+    for(;*p;p++) {
+	if(*p == '\\') {*p = '/';}
+    }
+    return upath;    
 }
 
 static char*
@@ -197,6 +218,18 @@ NCdeescape(const char* name)
     }
     *q++ = '\0';
     return ename;
+}
+
+
+int
+NChasdriveletter(const char* path)
+{
+    /* Check for windows drive letter */
+    if(path == NULL || strlen(path) < 2)
+        return 0;
+    if(strchr(windrive,path[0]) != NULL && path[1] == ':')
+        return 1; /* windows path with drive letter */
+    return 0;
 }
 
 #ifdef WINPATH
@@ -302,7 +335,7 @@ NCmkdir(const char* path, int mode)
     int status = 0;
     char* cvtname = NCpathcvt(path);
     if(cvtname == NULL) return -1;
-    status = _mkdir(cvtname,mode);
+    status = mkdir(cvtname,mode);
     free(cvtname);    
     return status;
 }
@@ -327,5 +360,4 @@ done:
     if(errno) return NULL;
     return cwdbuf;
 }
-
 #endif /*WINPATH*/
