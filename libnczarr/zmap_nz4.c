@@ -35,7 +35,7 @@ For the object API, the mapping is as follows:
 /* Define the "subclass" of NCZMAP */
 typedef struct Z4MAP {
     NCZMAP map;
-    char* path;
+    char* root;
     int ncid;
 } Z4MAP;
 
@@ -51,7 +51,6 @@ static int zcreatedim(Z4MAP*, int, int* dimidp);
 static int parseurl(const char* path0, NCURI** urip);
 static void nc4ify(const char* zname, char* nc4name);
 static void zify(const char* nc4name, char* zname);
-static int z4getcwd(char** cwdp);
 static int testcontentbearing(int grpid);
 
 /* Define the Dataset level API */
@@ -61,14 +60,11 @@ znc4create(const char *path, int mode, size64_t flags, void* parameters, NCZMAP*
 {
     int stat = NC_NOERR;
     char* truepath = NULL;
+    char* local = NULL; /* localized truepath */
     Z4MAP* z4map = NULL;
     int ncid;
     NCURI* url = NULL;
-    char* z4cwd = NULL;
     
-    if((stat=parseurl(path,&url)))
-	goto done;
-
     /* Fix up mode */
     mode = (NC_NETCDF4 | NC_WRITE | mode);
     if(flags & FLAG_BYTERANGE)
@@ -77,19 +73,14 @@ znc4create(const char *path, int mode, size64_t flags, void* parameters, NCZMAP*
     if(!(mode & NC_WRITE))
         {stat = NC_EPERM; goto done;}
 
-    /* Get cwd so we can use absolute paths */
-    if((stat = z4getcwd(&z4cwd))) goto done;
+    if((stat=parseurl(path,&url)))
+	goto done;
 
-    if(flags & FLAG_BYTERANGE)    
-	truepath = ncuribuild(url,NULL,NULL,NCURIALL);	
-    else {
-        /* Make the root path be absolute */
-        if(!nczm_isabsolutepath(url->path)) {
-	    if((stat = nczm_concat(z4cwd,url->path,&truepath))) goto done;
-	} else
-	    truepath = strdup(url->path);
-    }
-    
+    /* Canonicalize the root path */
+    if((stat = nczm_canonicalpath(url->path,&truepath))) goto done;
+    /* Also get local path */
+    if((stat = nczm_localize(truepath,&local,LOCALIZE))) goto done;
+
     /* Build the z4 state */
     if((z4map = calloc(1,sizeof(Z4MAP))) == NULL)
 	{stat = NC_ENOMEM; goto done;}
@@ -99,10 +90,10 @@ znc4create(const char *path, int mode, size64_t flags, void* parameters, NCZMAP*
     z4map->map.mode = mode;
     z4map->map.flags = flags;
     z4map->map.api = &zapi;
-    z4map->path = truepath;
+    z4map->root= truepath;
         truepath = NULL;
 
-    if((stat=nc_create(z4map->path,mode,&ncid)))
+    if((stat=nc_create(local,mode,&ncid)))
         {stat = NC_EEMPTY; goto done;} /* could not open */
     z4map->ncid = ncid;
     
@@ -111,7 +102,7 @@ znc4create(const char *path, int mode, size64_t flags, void* parameters, NCZMAP*
 done:
     ncurifree(url);
     nullfree(truepath);
-    nullfree(z4cwd);
+    nullfree(local);
     if(stat) znc4close((NCZMAP*)z4map,1);
     return (stat);
 }
@@ -121,10 +112,10 @@ znc4open(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** 
 {
     int stat = NC_NOERR;
     char* truepath = NULL;
+    char* local = NULL;
     Z4MAP* z4map = NULL;
     int ncid;
     NCURI* url = NULL;
-    char* z4cwd = NULL;
 	
     /* Fixup mode */
     mode = NC_NETCDF4 | mode;
@@ -134,18 +125,10 @@ znc4open(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** 
     if((stat=parseurl(path,&url)))
 	goto done;
 
-    /* Get cwd so we can use absolute paths */
-    if((stat = z4getcwd(&z4cwd))) goto done;
-
-    if(flags & FLAG_BYTERANGE)    
-	truepath = ncuribuild(url,NULL,NULL,NCURIALL);	
-    else {
-        /* Make the root path be absolute */
-        if(!nczm_isabsolutepath(url->path)) {
-	    if((stat = nczm_concat(z4cwd,url->path,&truepath))) goto done;
-	} else
-	    truepath = strdup(url->path);
-    }
+    /* Canonicalize the root path */
+    if((stat = nczm_canonicalpath(url->path,&truepath))) goto done;
+    /* Also get local path */
+    if((stat = nczm_localize(truepath,&local,LOCALIZE))) goto done;
 
     /* Build the z4 state */
     if((z4map = calloc(1,sizeof(Z4MAP))) == NULL)
@@ -156,10 +139,10 @@ znc4open(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** 
     z4map->map.mode = mode;
     z4map->map.flags = flags;
     z4map->map.api = (NCZMAP_API*)&zapi;
-    z4map->path = truepath;
+    z4map->root = truepath;
         truepath = NULL;
 
-    if((stat=nc_open(z4map->path,mode,&ncid)))
+    if((stat=nc_open(local,mode,&ncid)))
         {stat = NC_EEMPTY; goto done;} /* could not open */
     z4map->ncid = ncid;
     
@@ -167,7 +150,7 @@ znc4open(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** 
 
 done:
     nullfree(truepath);
-    nullfree(z4cwd);
+    nullfree(local);
     ncurifree(url);
     if(stat) znc4close((NCZMAP*)z4map,0);
     return (stat);
@@ -185,7 +168,7 @@ znc4close(NCZMAP* map, int delete)
 
     if(map == NULL) return NC_NOERR;
 
-    path = z4map->path;
+    path = z4map->root;
         
     if((stat = nc_close(z4map->ncid)))
 	goto done;
@@ -195,7 +178,7 @@ znc4close(NCZMAP* map, int delete)
     }
 
 done:
-    nullfree(z4map->path);
+    nullfree(z4map->root);
     nczm_clear(map);
     free(z4map);
     return (stat);
@@ -606,17 +589,6 @@ nc4ify(const char* zname, char* nc4name)
     nc4name[0] = '\0';
     strlcat(nc4name,zname,NC_MAX_NAME);
     if(nc4name[0] == NCZM_DOT) nc4name[0] = ZDOTNC4;
-}
-
-static int
-z4getcwd(char** cwdp)
-{
-    char buf[4096];
-    char* cwd = NULL;
-    cwd = NCcwd(buf,sizeof(buf));
-    if(cwd == NULL) return errno;
-    if(cwdp) *cwdp = strdup(buf);
-    return NC_NOERR;
 }
 
 /**************************************************/

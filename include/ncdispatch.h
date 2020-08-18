@@ -55,9 +55,7 @@
 #define T_uint   NC_UINT
 #define T_longlong  NC_INT64
 #define T_ulonglong  NC_UINT64
-#ifdef USE_NETCDF4
 #define T_string NC_STRING
-#endif
 
 /* Synthetic type to handle special memtypes */
 #define T_uchar  NC_UBYTE
