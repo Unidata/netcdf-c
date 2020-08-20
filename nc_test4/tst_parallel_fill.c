@@ -77,12 +77,12 @@ main(int argc, char **argv)
 		case NC_BYTE:
 		    if (nc_get_vara_schar(ncid, 0, start, count, dbyte)) ERR;
 		    for (d = 0; d < elements_per_pe; d++)
-			if (dbyte[d] != df ? exp_byte : NC_FILL_BYTE) ERR;
+			if (dbyte[d] != (df ? exp_byte : NC_FILL_BYTE)) ERR;
 		    break;
 		case NC_INT:
 		    if (nc_get_vara_int(ncid, 0, start, count, dint)) ERR;
 		    for (d = 0; d < elements_per_pe; d++)
-			if (dint[d] != df ? exp_int : NC_FILL_INT) ERR;
+			if (dint[d] != (df ? exp_int : NC_FILL_INT)) ERR;
 		    break;
 		}
 		if (nc_close(ncid)) ERR;
