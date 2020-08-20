@@ -58,9 +58,9 @@ main(int argc, char **argv)
 		int ndims, nvars, natts, unlimdimid;
 		int xtype_in, dimid_in;
 		char name_in[NC_MAX_NAME +1];
-		signed char dbyte[MAX_SIZE];
-		int dint[MAX_SIZE];
 		size_t start[NDIM1] = {0}, count[NDIM1];
+		signed char dbyte[MAX_SIZE], exp_byte = NC_FILL_BYTE;
+		int dint[MAX_SIZE], exp_int = NC_FILL_INT;
 		int d;
 		
 		if (nc_open_par(FILE_NAME, NC_NOWRITE, comm, info, &ncid)) ERR;
@@ -77,12 +77,12 @@ main(int argc, char **argv)
 		case NC_BYTE:
 		    if (nc_get_vara_schar(ncid, 0, start, count, dbyte)) ERR;
 		    for (d = 0; d < elements_per_pe; d++)
-			if (dbyte[d] != NC_FILL_BYTE) ERR;
+			if (dbyte[d] != df ? exp_byte : NC_FILL_BYTE) ERR;
 		    break;
 		case NC_INT:
 		    if (nc_get_vara_int(ncid, 0, start, count, dint)) ERR;
 		    for (d = 0; d < elements_per_pe; d++)
-			if (dint[d] != NC_FILL_INT) ERR;
+			if (dint[d] != df ? exp_int : NC_FILL_INT) ERR;
 		    break;
 		}
 		if (nc_close(ncid)) ERR;
