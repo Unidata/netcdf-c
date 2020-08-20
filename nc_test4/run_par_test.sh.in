@@ -61,3 +61,9 @@ if test "@HAS_PAR_FILTERS@" = "yes"; then
     @MPIEXEC@ -n 4 ./tst_parallel_compress
 
 fi
+
+echo
+echo "Parallel I/O test for fill values."
+@MPIEXEC@ -n 1 ./tst_parallel_fill
+@MPIEXEC@ -n 4 ./tst_parallel_fill
+
