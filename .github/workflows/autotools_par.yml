@@ -1,4 +1,4 @@
-name: netcdf-4.7.4_pnetcdf-12.1_ncint_2
+name: autotools_par
 
 on:
   push:
@@ -27,15 +27,15 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ~/hdf5
-        key: hdf5-${{ runner.os }}-1.10.6-test
+        key: hdf5-${{ runner.os }}-1.12.1-test
 
     - name: build-hdf5
       if: steps.cache-hdf5-test.outputs.cache-hit != 'true'
       run: |
         set -x
-        wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.6/src/hdf5-1.10.6.tar.gz &> /dev/null
-        tar -xzf hdf5-1.10.6.tar.gz
-        pushd hdf5-1.10.6
+        wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.12/hdf5-1.12.1/src/hdf5-1.12.1.tar.gz &> /dev/null
+        tar -xzf hdf5-1.12.1.tar.gz
+        pushd hdf5-1.12.1
         ./configure --prefix=/home/runner/hdf5 --enable-parallel --disable-tools --disable-fortran --disable-cxx
         make check
         sudo make install
