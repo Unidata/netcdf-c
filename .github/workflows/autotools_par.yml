@@ -1,0 +1,51 @@
+name: netcdf-4.7.4_pnetcdf-12.1_ncint_2
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    env:
+      CC: mpicc
+      FC: mpifort
+      CPPFLAGS: "-I/home/runner/hdf5/include"
+      LDFLAGS: "-L/home/runner/hdf5/lib"
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Installs
+      run: |
+        sudo apt-get install doxygen graphviz wget gfortran libjpeg-dev libz-dev openmpi-bin libopenmpi-dev 
+    - name: cache-hdf5-test
+      id: cache-hdf5-test
+      uses: actions/cache@v2
+      with:
+        path: ~/hdf5
+        key: hdf5-${{ runner.os }}-1.10.6-test
+
+    - name: build-hdf5
+      if: steps.cache-hdf5-test.outputs.cache-hit != 'true'
+      run: |
+        set -x
+        wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.6/src/hdf5-1.10.6.tar.gz &> /dev/null
+        tar -xzf hdf5-1.10.6.tar.gz
+        pushd hdf5-1.10.6
+        ./configure --prefix=/home/runner/hdf5 --enable-parallel --disable-tools --disable-fortran --disable-cxx
+        make check
+        sudo make install
+        popd
+
+    - name: autoreconf
+      run: autoreconf -i
+    - name: configure
+      run: |
+        ./configure --disable-dap-remote-tests
+    - name: make check
+      run: make -j check
+      
