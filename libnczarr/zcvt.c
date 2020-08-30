@@ -355,9 +355,9 @@ NCZ_stringconvert(nc_type typeid, size_t len, void* data0, NCjson** jdatap)
 #else
 		if(isnan(d))
 		     special = "NaN";
-		else if(isinf(d) < 0)
+		else if(isinf(d) && d < 0)
 		      special = "-Infinity";
-		else if(isinf(d) > 0)
+		else if(isinf(d) && d > 0)
 		      special = "Infinity";
 		else {}
 #endif
@@ -368,7 +368,7 @@ NCZ_stringconvert(nc_type typeid, size_t len, void* data0, NCjson** jdatap)
 		break;
 	    default: stat = NC_EINTERNAL; goto done;
 	    }
-	    if(special) {nullfree(str); str = strdup(special);}	    
+	    if(special) {nullfree(str); str = strdup(special);}
 	    jvalue->value = str;
 	    str = NULL;
 	    nclistpush(jdata->contents,jvalue);
