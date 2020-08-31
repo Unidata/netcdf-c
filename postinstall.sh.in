@@ -20,7 +20,7 @@ fi
 ##
 # Check for 'git', exit if it's not found.
 ##
-hash git 2>/dev/null1
+hash git 2>/dev/null
 if [ $? -eq 1 ]; then
     echo "ERROR: 'git' is required to install netcdf-fortran automatically"
     echo "through this method. Please reinstall git and try again."

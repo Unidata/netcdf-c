@@ -1,5 +1,5 @@
 
-#line 2 "lex.ncg.c"
+#line 2 "ncgenl.c"
 
 #define  YY_INT_ALIGNED short int
 
@@ -1096,15 +1096,15 @@ char errstr[100];		/* for short error messages */
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include "ncgeny.h"
 #include "genlib.h"
-#include "ncgentab.h"
 
 #define YY_BREAK                /* defining as nothing eliminates unreachable
 				   statement warnings from flex output,
                                    but make sure every action ends with
                                    "return" or "break"! */
 
-#line 1107 "lex.ncg.c"
+#line 1107 "ncgenl.c"
 /* The most correct (validating) version of UTF8 character set
    (Taken from: http://www.w3.org/2005/03/23-lex-U)
 
@@ -1144,7 +1144,7 @@ ID ([A-Za-z_]|{UTF8})([A-Z.@#\[\]a-z_0-9+-]|{UTF8})*
 /* Note: this definition of string will work for utf8 as well,
    although it is a very relaxed definition
 */
-#line 1147 "lex.ncg.c"
+#line 1147 "ncgenl.c"
 
 #define INITIAL 0
 
@@ -1363,7 +1363,7 @@ YY_DECL
 	{
 #line 109 "ncgen.l"
 
-#line 1366 "lex.ncg.c"
+#line 1366 "ncgenl.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1714,7 +1714,7 @@ YY_RULE_SETUP
 #line 287 "ncgen.l"
 ECHO;
 	YY_BREAK
-#line 1717 "lex.ncg.c"
+#line 1717 "ncgenl.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 

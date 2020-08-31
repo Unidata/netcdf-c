@@ -1910,7 +1910,7 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 
             /* We can't go beyond the largest current extent of
                the unlimited dim. */
-            if ((retval = NC4_inq_dim(ncid, dim->hdr.id, NULL, &ulen)))
+            if ((retval = HDF5_inq_dim(ncid, dim->hdr.id, NULL, &ulen)))
                 BAIL(retval);
 
             /* Check for out of bound requests. */

@@ -51,13 +51,13 @@ main(int argc, char** argv)
 {
     int stat = NC_NOERR;
 
-    if((stat = ut_init(argc, argv, &options))) goto done;
-    if(options.file == NULL && options.output != NULL) options.file = strdup(options.output);
-    if(options.output == NULL && options.file != NULL)options.output = strdup(options.file);
-    impl = kind2impl(options.kind);
-    url = makeurl(options.file,impl);
+    if((stat = ut_init(argc, argv, &utoptions))) goto done;
+    if(utoptions.file == NULL && utoptions.output != NULL) utoptions.file = strdup(utoptions.output);
+    if(utoptions.output == NULL && utoptions.file != NULL)utoptions.output = strdup(utoptions.file);
+    impl = kind2impl(utoptions.kind);
+    url = makeurl(utoptions.file,impl);
 
-    if((stat = runtests((const char**)options.cmds,tests))) goto done;
+    if((stat = runtests((const char**)utoptions.cmds,tests))) goto done;
     
 done:
     if(stat) usage(stat);
@@ -306,17 +306,18 @@ searchR(NCZMAP* map, int depth, const char* prefix, NClist* objects)
     
     /* add this prefix to object list */
     nclistpush(objects,strdup(prefix));
-    
     /* get next level object keys **below** the prefix */
-    if((stat = nczmap_search(map, prefix, matches)))
-	goto done;
+    switch (stat = nczmap_search(map, prefix, matches)) {
+    case NC_NOERR: break;
+    case NC_ENOTFOUND: stat = NC_NOERR; break;/* prefix is not a dir */
+    default: goto done;
+    }
     for(i=0;i<nclistlength(matches);i++) {
 	const char* key = nclistget(matches,i);
         if((stat = searchR(map,depth+1,key,objects))) goto done;
 	if(stat != NC_NOERR)
 	    goto done;
     }
-
 done:
     nclistfreeall(matches);
     return stat;
@@ -335,6 +336,8 @@ search(void)
     /* Do a recursive search on root to get all object keys */
     if((stat=searchR(map,0,"/",objects)))
 	goto done;
+    /* Sort */
+    ut_sortlist(objects);
     /* Print out the list */
     for(i=0;i<nclistlength(objects);i++) {
 	const char* key = nclistget(objects,i);
