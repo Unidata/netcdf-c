@@ -39,16 +39,6 @@ See \ref copyright file for more info.
 #define DIMSIZE 25
 #define STRLEN 64
 
-#ifndef USE_NETCDF4
-#define	NC_UBYTE 	7	/* unsigned 1 byte int */
-#define	NC_USHORT 	8	/* unsigned 2-byte int */
-#define	NC_UINT 	9	/* unsigned 4-byte int */
-#define	NC_INT64 	10	/* signed 8-byte int */
-#define	NC_UINT64 	11	/* unsigned 8-byte int */
-#define	NC_STRING 	12	/* string */
-#endif
-
-
 #define CHECK(expr) check(expr,__FILE__,__LINE__);
 
 #define COMMA (i==0?"":",")

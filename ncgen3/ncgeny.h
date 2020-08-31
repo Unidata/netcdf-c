@@ -34,7 +34,7 @@
 # define YY_NCG_NCGEN_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
-# define YYDEBUG 0
+# define YYDEBUG 1
 #endif
 #if YYDEBUG
 extern int ncgdebug;

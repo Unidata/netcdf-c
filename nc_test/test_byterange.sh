@@ -9,10 +9,6 @@ set -e
 URL3="https://remotetest.unidata.ucar.edu/thredds/fileServer/testdata/2004050300_eta_211.nc#bytes"
 URL4="https://noaa-goes16.s3.amazonaws.com/ABI-L1b-RadC/2017/059/03/OR_ABI-L1b-RadC-M3C13_G16_s20170590337505_e20170590340289_c20170590340316.nc#mode=bytes"
 
-# See if netcdf-4 support is enabled
-HAVENC4=`cat ${TOPBUILDDIR}/libnetcdf.settings | sed -e '/NetCDF-4[ ]*API:[ 	]*yes/p' -e d`
-if test "x$HAVENC4" = x ; then HAVENC4=no; else HAVENC4=yes; fi
-
 rm -f tst_http_nc3.cdl tst_http_nc4.cdl 
 
 echo ""
@@ -30,7 +26,7 @@ ${NCDUMP} -h "$URL3" >tst_http_nc3.cdl
 # compare
 diff tst_http_nc3.cdl ${srcdir}/ref_tst_http_nc3.cdl 
 
-if test "x$HAVENC4" = xyes ; then
+if test "x$FEATURE_HDF5" = xyes ; then
 echo "*** Testing reading NetCDF-4 file with http"
 # Test using -k flag
 K=`${NCDUMP} -k "$URL4"`

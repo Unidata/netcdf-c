@@ -37,6 +37,7 @@
 
 #include "ncgen.h"
 #include "ncgeny.h"
+#include "isnan.h"
 
 EXTERNL int fileno(FILE*);
 
@@ -290,9 +291,9 @@ group:			{return lexdebug(GROUP);}
 
 DoubleInf|-?Infinity { /* missing value (pre-2.4 backward compatibility) */
                 if (yytext[0] == '-') {
-		    double_val = NEGNC_INFINITE;
+		    double_val = -INFINITY;
                 } else {
-		    double_val = NC_INFINITE;
+		    double_val = INFINITY;
                 }
 		specialconstants = 1;
 		return lexdebug(DOUBLE_CONST);
@@ -305,9 +306,9 @@ NaN|nan { /* missing value (pre-2.4 backward compatibility) */
 
 FloatInf|-?Infinityf|-?Inff {/* missing value (pre-2.4 backward compatibility)*/
                 if (yytext[0] == '-') {
-		    float_val = NEGNC_INFINITEF;
+		    float_val = -INFINITYF;
                 } else {
-		    float_val = NC_INFINITEF;
+		    float_val = INFINITYF;
                 }
 		specialconstants = 1;
 		return lexdebug(FLOAT_CONST);
