@@ -14,6 +14,9 @@
 #ifdef HAVE_DIRENT_H
 #include <dirent.h>
 #endif
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
 #include "ncexternl.h"
 
 #ifndef WINPATH
@@ -31,6 +34,14 @@
 #define ACCESS_MODE_R 4
 #define ACCESS_MODE_W 2
 #define ACCESS_MODE_RW 6
+#ifndef O_RDONLY
+#define O_RDONLY _O_RDONLY
+#define O_RDWR _O_RDWR
+#define O_APPEND _O_APPEND
+#define O_BINARY _O_BINARY
+#define O_CREAT _O_CREAT
+#define O_EXCL _O_EXCL
+#endif
 #else
 #define ACCESS_MODE_EXISTS (F_OK)
 #define ACCESS_MODE_R (R_OK)
