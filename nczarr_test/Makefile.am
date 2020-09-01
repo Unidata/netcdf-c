@@ -24,7 +24,7 @@ check_PROGRAMS =
 TESTS =
 
 # Unit Tests
-check_PROGRAMS += ut_map ut_mapapi ut_json ut_projections ut_chunking
+check_PROGRAMS += ut_map ut_mapapi ut_json ut_projections ut_chunking 
 
 commonsrc = ut_util.c ut_test.c ut_includes.h ut_test.h ut_util.h test_nczarr_utils.h
 
@@ -34,18 +34,19 @@ ut_json_SOURCES = ut_json.c ${commonsrc}
 ut_projections_SOURCES = ut_projections.c ${commonsrc}
 ut_chunking_SOURCES = ut_chunking.c ${commonsrc}
 
-# Integration Tests
-#check_PROGRAMS += it_meta
-
-check_PROGRAMS += tst_chunks tst_chunks2
+check_PROGRAMS += tst_chunks tst_chunks2 tst_chunks3
 
 TESTS += run_ut_map.sh
 TESTS += run_ut_mapapi.sh
 TESTS += run_ut_misc.sh
 TESTS += run_ut_chunk.sh
-TESTS += run_it_test2.sh
+
+if BUILD_UTILITIES
 if USE_HDF5
+TESTS += tst_nccopyz.sh
 TESTS += run_it_test1.sh
+endif
+TESTS += run_it_test2.sh
 endif
 
 ignorec = ut_allslices.c ut_transfer.c ut_vars.c ut_walk.c
@@ -65,7 +66,7 @@ zs3parse_SOURCES = zs3parse.c
 
 EXTRA_DIST = \
 run_ut_map.sh run_ut_mapapi.sh run_ut_misc.sh run_ut_chunk.sh run_it_test1.sh run_it_test2.sh \
-test_nczarr.sh \
+test_nczarr.sh tst_nccopyz.sh \
 ref_ut_map_readmeta_nzf.txt \
 ref_ut_map_writedata_nzf.cdl \
 ref_ut_map_writemeta_nzf.cdl \
@@ -96,11 +97,12 @@ ref_ut_mapapi_meta_nzf.cdl \
 ref_ut_mapapi_meta_s3.cdl \
 ref_ut_mapapi_search_nz4.txt \
 ref_ut_mapapi_search_nzf.txt \
-ref_ut_mapapi_search_s3.txt
+ref_ut_mapapi_search_s3.txt \
+ref_perdimspecs.cdl
 
 CLEANFILES = test.nzf test.nz4 test.nz4 tst_chunks.nc.nzf tst_chunks.nc.nz4 \
 testmap.nzf testmap.nz4 testmapapi.nzf testmapapi.nz4 \
 tst_chunks.nz4 tst_chunks.nzf tst_chunks2.nc.nz4 \
-ut_*.txt ut*.cdl
+ut_*.txt ut*.cdl tmp*.nc tmp*.cdl
 
 #tst_group_data.dmp tst_nans.dmp tst_solar_1.dmp tst_nul4.dmp dimscope.dmp
