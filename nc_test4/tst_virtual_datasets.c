@@ -43,7 +43,9 @@ create_dataset_b() {
     H5DSset_scale(dset, VARIABLE_NAME);
 
     H5Dclose(dset);
+    H5Pclose(dcpl);
     H5Sclose(space);
+    H5Sclose(src_space);
     H5Fclose(file);
 }
 
