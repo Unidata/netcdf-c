@@ -1709,8 +1709,10 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
             strcat(storage_str, "contiguous");
         else if (var->storage == NC_COMPACT)
             strcat(storage_str, "compact");
-        else
+        else if (var->storage == NC_CHUNKED)
             strcat(storage_str, "chunked");
+        else
+            strcat(storage_str, "unknown");
         LOG((2, "%s VARIABLE - varid: %d name: %s ndims: %d "
              "dimids:%s storage: %s", tabs, var->hdr.id, var->hdr.name,
              var->ndims,

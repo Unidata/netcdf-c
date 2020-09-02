@@ -1140,6 +1140,10 @@ get_chunking_info(hid_t propid, NC_VAR_INFO_T *var)
     {
 	var->storage = NC_COMPACT;
     }
+    else
+    {
+    var->storage = NC_UNKNOWN_STORAGE;
+    }
 
     return NC_NOERR;
 }
