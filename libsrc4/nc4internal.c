@@ -1711,6 +1711,8 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
             strcat(storage_str, "compact");
         else if (var->storage == NC_CHUNKED)
             strcat(storage_str, "chunked");
+        else if (var->storage == NC_VIRTUAL)
+            strcat(storage_str, "virtual");
         else
             strcat(storage_str, "unknown");
         LOG((2, "%s VARIABLE - varid: %d name: %s ndims: %d "
