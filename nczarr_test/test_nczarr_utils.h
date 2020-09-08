@@ -117,7 +117,7 @@ buildpath(const char* target,NCZM_IMPL impl)
     ncbytesfree(buf);
 }
 
-static void
+void
 processoptions(int argc, char** argv, const char* base_file_name)
 {
     int c;
@@ -151,7 +151,7 @@ processoptions(int argc, char** argv, const char* base_file_name)
 
 }
 
-static void
+void
 clearoptions(void)
 {
     nullfree(itoptions.path);
