@@ -57,6 +57,16 @@
 #define rshift(buf,buflen) {memmove(buf+1,buf,buflen+1);}
 
 /* Allowable character sets for encode */
+
+/* ascii = " !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~" */
+
+/* Classes according to the URL RFC" */
+#define RFCRESERVED " !*'();:@&=+$,/?#[]"
+#define RFCUNRESERVED "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.~"
+#define RFCOTHER "\"%<>\\^`{|}"
+
+/* I really hate the URL encoding mess */
+
 static const char* pathallow =
 "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!#$&'()*+,-./:;=?@_~";
 
@@ -868,9 +878,7 @@ ncuriencodeonly(const char* s, const char* allowable)
 
     for(inptr=s,outptr=encoded;*inptr;) {
 	int c = *inptr++;
-        if(c == ' ') {
-	    *outptr++ = '+';
-        } else {
+	{
             /* search allowable */
 	    char* p = strchr(allowable,c);
 	    if(p != NULL) {
