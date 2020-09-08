@@ -397,10 +397,103 @@ AC_MSG_RESULT($enable_set_log_level_func)
 
 # We need curl for DAP and byterange
 AC_CHECK_LIB([curl],[curl_easy_setopt],[found_curl=yes],[found_curl=no])
-if test "x$enable_dap" = "xyes" ; then
-   AC_SEARCH_LIBS([curl_easy_setopt],[curl curl.dll], [],
-      [AC_MSG_ERROR([curl required for remote access. Install curl or build with --disable-dap.])])
+if test "x$found_curl" = "xyes" ; then
+   AC_SEARCH_LIBS([curl_easy_setopt],[curl curl.dll cygcurl.dll], [],
+      [AC_MSG_ERROR([curl required for remote access. Install curl or disable relevant options.])])
 fi
+
+# CURLOPT_USERNAME is not defined until curl version 7.19.1
+# CURLOPT_PASSWORD is not defined until curl version 7.19.1
+# CURLOPT_KEYPASSWD is not defined until curl version 7.16.4
+# CURLINFO_RESPONSE_CODE is not defined until curl version 7.10.7
+# CURLOPT_CHUNK_BGN_FUNCTION is not defined until curl version 7.21.0
+# CURL_MAX_READ_SIZE is not defined until 7.59
+
+# Save/restore CFLAGS
+SAVECFLAGS="$CFLAGS"
+CFLAGS="${curl_cflags}"
+
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[#include "curl/curl.h"],
+[[int x = CURLOPT_USERNAME;]])],
+                   [haveusername=yes],
+                   [haveusername=no])
+AC_MSG_CHECKING([whether CURLOPT_USERNAME is defined])
+AC_MSG_RESULT([${haveusername}])
+if test $haveusername = yes; then
+  AC_DEFINE([HAVE_CURLOPT_USERNAME],[1],[Is CURLOPT_USERNAME defined])
+fi
+
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[#include "curl/curl.h"],
+[[int x = CURLOPT_PASSWORD;]])],
+                   [havepassword=yes],
+                   [havepassword=no])
+AC_MSG_CHECKING([whether CURLOPT_PASSWORD is defined])
+AC_MSG_RESULT([${havepassword}])
+if test $havepassword = yes; then
+  AC_DEFINE([HAVE_CURLOPT_PASSWORD],[1],[Is CURLOPT_PASSWORD defined])
+fi
+
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[#include "curl/curl.h"],
+[[int x = CURLOPT_KEYPASSWD;]])],
+                   [havekeypassword=yes],
+                   [havekeypassword=no])
+AC_MSG_CHECKING([whether CURLOPT_KEYPASSWD is defined])
+AC_MSG_RESULT([${havekeypassword}])
+if test $havekeypassword = yes; then
+  AC_DEFINE([HAVE_CURLOPT_KEYPASSWD],[1],[Is CURLOPT_KEYPASSWD defined])
+fi
+
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[#include "curl/curl.h"],
+[[int x = CURLINFO_RESPONSE_CODE;]])],
+                   [haveresponsecode=yes],
+                   [haveresponsecode=no])
+AC_MSG_CHECKING([whether CURLINFO_RESPONSE_CODE is defined])
+AC_MSG_RESULT([${haveresponsecode}])
+if test $haveresponsecode = yes; then
+  AC_DEFINE([HAVE_CURLINFO_RESPONSE_CODE],[1],[Is CURLINFO_RESPONSE_CODE defined])
+fi
+
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[#include "curl/curl.h"],
+[[int x = CURLOPT_BUFFERSIZE;]])],
+                   [havecurloption=yes],
+                   [havecurloption=no])
+AC_MSG_CHECKING([whether CURLOPT_BUFFERSIZE is defined])
+AC_MSG_RESULT([${havecurloption}])
+if test $havecurloption = yes; then
+  AC_DEFINE([HAVE_CURLOPT_BUFFERSIZE],[1],[Is CURLOPT_BUFFERSIZE defined])
+fi
+
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[#include "curl/curl.h"],
+[[int x = CURLOPT_TCP_KEEPALIVE;]])],
+                   [havecurloption=yes],
+                   [havecurloption=no])
+AC_MSG_CHECKING([whether CURLOPT_TCP_KEEPALIVE is defined])
+AC_MSG_RESULT([${havecurloption}])
+if test $havecurloption = yes; then
+  AC_DEFINE([HAVE_CURLOPT_KEEPALIVE],[1],[Is CURLOPT_TCP_KEEPALIVE defined])
+fi
+# CURLOPT_VERIFYHOST semantics differ depending on version
+AC_MSG_CHECKING([whether libcurl is version 7.66 or later?])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+[#include "curl/curl.h"],
+[[
+#if LIBCURL_VERSION_NUM < 0x074200
+error "<7.66";
+#endif
+]])], [libcurl766=yes], [libcurl766=no])
+
+AC_MSG_RESULT([$libcurl766])
+if test x$libcurl66 = xno; then
+  AC_DEFINE([HAVE_LIBCURL_766],[1],[Is libcurl version 7.66 or later])
+fi
+
+CFLAGS="$SAVECFLAGS"
 
 # --enable-dap => enable-dap4
 enable_dap4=$enable_dap
@@ -465,8 +558,6 @@ if test "x$enable_dap_remote_tests" = "xno" ; then
   enable_dap_long_tests=no
 fi
 AC_MSG_RESULT([$enable_dap_long_tests])
-
-AM_CONDITIONAL(INTERNAL_OCLIB,[test "x" = "x"])
 
 # Control zarr storage
 if test "x$enable_nczarr" = xyes ; then
@@ -757,99 +848,6 @@ AC_PROG_CC
 AC_PROG_CXX
 AM_PROG_CC_C_O
 AC_C_CONST
-
-# CURLOPT_USERNAME is not defined until curl version 7.19.1
-# CURLOPT_PASSWORD is not defined until curl version 7.19.1
-# CURLOPT_KEYPASSWD is not defined until curl version 7.16.4
-# CURLINFO_RESPONSE_CODE is not defined until curl version 7.10.7
-# CURLOPT_CHUNK_BGN_FUNCTION is not defined until curl version 7.21.0
-# CURL_MAX_READ_SIZE is not defined until 7.59
-
-# Save/restore CFLAGS
-SAVECFLAGS="$CFLAGS"
-CFLAGS="${curl_cflags}"
-
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-[#include "curl/curl.h"],
-[[int x = CURLOPT_USERNAME;]])],
-                   [haveusername=yes],
-                   [haveusername=no])
-AC_MSG_CHECKING([whether CURLOPT_USERNAME is defined])
-AC_MSG_RESULT([${haveusername}])
-if test $haveusername = yes; then
-  AC_DEFINE([HAVE_CURLOPT_USERNAME],[1],[Is CURLOPT_USERNAME defined])
-fi
-
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-[#include "curl/curl.h"],
-[[int x = CURLOPT_PASSWORD;]])],
-                   [havepassword=yes],
-                   [havepassword=no])
-AC_MSG_CHECKING([whether CURLOPT_PASSWORD is defined])
-AC_MSG_RESULT([${havepassword}])
-if test $havepassword = yes; then
-  AC_DEFINE([HAVE_CURLOPT_PASSWORD],[1],[Is CURLOPT_PASSWORD defined])
-fi
-
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-[#include "curl/curl.h"],
-[[int x = CURLOPT_KEYPASSWD;]])],
-                   [havekeypassword=yes],
-                   [havekeypassword=no])
-AC_MSG_CHECKING([whether CURLOPT_KEYPASSWD is defined])
-AC_MSG_RESULT([${havekeypassword}])
-if test $havekeypassword = yes; then
-  AC_DEFINE([HAVE_CURLOPT_KEYPASSWD],[1],[Is CURLOPT_KEYPASSWD defined])
-fi
-
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-[#include "curl/curl.h"],
-[[int x = CURLINFO_RESPONSE_CODE;]])],
-                   [haveresponsecode=yes],
-                   [haveresponsecode=no])
-AC_MSG_CHECKING([whether CURLINFO_RESPONSE_CODE is defined])
-AC_MSG_RESULT([${haveresponsecode}])
-if test $haveresponsecode = yes; then
-  AC_DEFINE([HAVE_CURLINFO_RESPONSE_CODE],[1],[Is CURLINFO_RESPONSE_CODE defined])
-fi
-
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-[#include "curl/curl.h"],
-[[int x = CURLOPT_BUFFERSIZE;]])],
-                   [havecurloption=yes],
-                   [havecurloption=no])
-AC_MSG_CHECKING([whether CURLOPT_BUFFERSIZE is defined])
-AC_MSG_RESULT([${havecurloption}])
-if test $havecurloption = yes; then
-  AC_DEFINE([HAVE_CURLOPT_BUFFERSIZE],[1],[Is CURLOPT_BUFFERSIZE defined])
-fi
-
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-[#include "curl/curl.h"],
-[[int x = CURLOPT_TCP_KEEPALIVE;]])],
-                   [havecurloption=yes],
-                   [havecurloption=no])
-AC_MSG_CHECKING([whether CURLOPT_TCP_KEEPALIVE is defined])
-AC_MSG_RESULT([${havecurloption}])
-if test $havecurloption = yes; then
-  AC_DEFINE([HAVE_CURLOPT_KEEPALIVE],[1],[Is CURLOPT_TCP_KEEPALIVE defined])
-fi
-# CURLOPT_VERIFYHOST semantics differ depending on version
-AC_MSG_CHECKING([whether libcurl is version 7.66 or later?])
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-[#include "curl/curl.h"],
-[[
-#if LIBCURL_VERSION_NUM < 0x074200
-error "<7.66";
-#endif
-]])], [libcurl766=yes], [libcurl766=no])
-
-AC_MSG_RESULT([$libcurl766])
-if test x$libcurl66 = xno; then
-  AC_DEFINE([HAVE_LIBCURL_766],[1],[Is libcurl version 7.66 or later])
-fi
-
-CFLAGS="$SAVECFLAGS"
 
 # Set up libtool.
 AC_MSG_NOTICE([setting up libtool])

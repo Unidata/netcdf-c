@@ -41,6 +41,13 @@ currently unsupported.
 - String type
 - User-defined types (enum, opaque, VLEN, and Compound)
 - Unlimited dimensions
+- Contiguous or compact storage
+
+Note that contiguous and compact are not actually supported  because they are HDF5 specific.
+When specified, they are treated as chunked where the file consists of only one chunk.
+This means that testing for contiguous or compact is not possible, the _nc_inq_var_chunking_
+function will always return NC_CHUNKED and the chunksizes will be the same as the dimension sizes
+of the variable's dimensions.
 
 # Enabling NCZarr Support {#nczarr_enable}
 
