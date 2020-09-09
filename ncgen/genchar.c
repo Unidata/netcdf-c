@@ -125,7 +125,7 @@ gen_leafchararray(Dimset* dimset, int dimindex, Datalist* data,
     concatenated with any trailing or leading string (with double quotes).
     */
     rebuildsingletons(data);
-    
+
     /* Compute crossproduct from dimindex up to (but not including) the last dimension */
     xproduct = crossproduct(dimset,dimindex,rank-1);
 
@@ -162,7 +162,7 @@ gen_leafchararray(Dimset* dimset, int dimindex, Datalist* data,
         }
     }
     freedatalist(flat);
-    
+
     /* If |databuf| > expectedsize, complain: exception is zero length */
     if(bbLength(charbuf) == 0 && expectedsize == 1) {
         /* this is okay */
@@ -260,7 +260,7 @@ getfillchar(Datalist* fillsrc)
         NCConstant* ccon = fillsrc->data[0];
         if(ccon->nctype == NC_CHAR) {
             fillchar = ccon->value.charv;
-        } else if(ccon->nctype == NC_STRING) {      
+        } else if(ccon->nctype == NC_STRING) {
             if(ccon->value.stringv.len > 0) {
                 fillchar = ccon->value.stringv.stringv[0];
             }

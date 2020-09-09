@@ -67,7 +67,7 @@ main(int argc, char** argv)
     size_t chunkprod;
     Odometer* odom = NULL;
     hsize_t offset[NC_MAX_VAR_DIMS];
-    
+
     if(argc < 3)
 	usage(0);
     file_name = argv[1];
@@ -80,15 +80,15 @@ main(int argc, char** argv)
     if(rank == 0) usage(NC_EDIMSIZE);
     if((stat=nc_inq_var_chunking(ncid,varid,&storage,chunklens))) usage(stat);
     if(storage != NC_CHUNKED) usage(NC_EBADCHUNK);
-    
+
     chunkprod = 1;
     for(i=0;i<rank;i++) {
 	if((stat=nc_inq_dimlen(ncid,dimids[i],&dimlens[i]))) usage(stat);
 	chunkcounts[i] = ceildiv(dimlens[i],chunklens[i]);
-	chunkprod *= chunklens[i];	
+	chunkprod *= chunklens[i];
     }
     if((stat=nc_close(ncid))) usage(stat);
-    
+
     if ((fileid = H5Fopen(file_name, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) usage(NC_EHDFERR);
     if ((grpid = H5Gopen(fileid, "/", H5P_DEFAULT)) < 0) usage(NC_EHDFERR);
     if ((datasetid = H5Dopen1(grpid, var_name)) < 0) usage(NC_EHDFERR);
@@ -98,7 +98,7 @@ main(int argc, char** argv)
     if((chunkdata = calloc(sizeof(int),chunkprod))==NULL) usage(NC_ENOMEM);
 
     while(odom_more(odom)) {
-        setoffset(odom,chunklens,offset);			
+        setoffset(odom,chunklens,offset);
 #ifdef DEBUG
 	fprintf(stderr,"(");
 	for(i=0;i<rank;i++)
@@ -139,7 +139,7 @@ odom_new(size_t rank, const size_t* stop, const size_t* max)
     if((odom = calloc(1,sizeof(Odometer))) == NULL)
 	return NULL;
     odom->rank = rank;
-    for(i=0;i<rank;i++) { 
+    for(i=0;i<rank;i++) {
 	odom->stop[i] = stop[i];
 	odom->max[i] = max[i];
 	odom->index[i] = 0;
@@ -171,7 +171,7 @@ odom_next(Odometer* odom)
     }
     return 1;
 }
-  
+
 /* Get the value of the odometer */
 size_t*
 odom_indices(Odometer* odom)
@@ -189,7 +189,7 @@ odom_offset(Odometer* odom)
     for(i=0;i<odom->rank;i++) {
         offset *= odom->max[i];
         offset += odom->index[i];
-    } 
+    }
     return offset;
 }
 
