@@ -6,7 +6,7 @@
 #define DEBUG_H
 
 /* Warning: setting CATCHERROR has significant performance impact */
-#define CATCHERROR
+#undef CATCHERROR
 
 #if 0
 #define DAPDEBUG 2
