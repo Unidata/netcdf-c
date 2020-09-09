@@ -107,9 +107,9 @@ typedef unsigned int uint;
 #ifndef _WIN32
 #ifndef HAVE_UINTPTR_T
 #if SIZEOF_VOIDP == 8
-typedef unsigned long uintptr_t;
+#define uintptr_t unsigned long
 #else
-typedef unsigned int uintptr_t;
+#define uintptr_t unsigned int
 #endif
 #endif
 #endif
