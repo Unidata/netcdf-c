@@ -1,35 +1,34 @@
 ## This is a CMake file, part of Unidata's netCDF package.
 # Copyright 2012-2018, see the COPYRIGHT file for more information.
 
-# Process these files with m4.
-SET(m4_SOURCES attr ncx putget t_ncxx)
-foreach (f ${m4_SOURCES})
-  IF(HAVE_M4)
-    GEN_m4(${f})
-  ENDIF()
-endforeach(f)
-
 SET(libsrc_SOURCES v1hpg.c putget.c attr.c nc3dispatch.c
   nc3internal.c var.c dim.c ncx.c lookup3.c ncio.c)
 
-SET(libsrc_SOURCES ${libsrc_SOURCES} pstdint.h ncio.h ncx.h)
+# Process these files with m4.
+SET(m4_SOURCES attr ncx putget)
+foreach (f ${m4_SOURCES})
+  GEN_m4(${f} dest)
+  LIST(APPEND libsrc_SOURCES ${dest})
+endforeach(f)
 
-SET(libsrc_SOURCES ${libsrc_SOURCES} memio.c)
+LIST(APPEND libsrc_SOURCES pstdint.h ncio.h ncx.h)
+
+LIST(APPEND libsrc_SOURCES memio.c)
 
 IF (BUILD_MMAP)
-  SET(libsrc_SOURCES ${libsrc_SOURCES} mmapio.c)
+  LIST(APPEND libsrc_SOURCES mmapio.c)
 ENDIF( BUILD_MMAP)
 
 IF (USE_FFIO)
-  SET(libsrc_SOURCES ${libsrc_SOURCES} ffio.c)
+  LIST(APPEND libsrc_SOURCES ffio.c)
 ELSEIF (USE_STDIO)
-    SET(libsrc_SORUCES ${libsrc_SOURCES} ncstdio.c)
+   IST(APPEND libsrc_SOURCES ncstdio.c)
 ELSE (USE_FFIO)
-  SET(libsrc_SOURCES ${libsrc_SOURCES} posixio.c)
+  LIST(APPEND libsrc_SOURCES posixio.c)
 ENDIF (USE_FFIO)
 
 IF (ENABLE_BYTERANGE)
-  SET(libsrc_SOURCES ${libsrc_SOURCES} httpio.c)
+  LIST(APPEND libsrc_SOURCES httpio.c)
 ENDIF(ENABLE_BYTERANGE)
 
 add_library(netcdf3 OBJECT ${libsrc_SOURCES})
@@ -40,9 +39,9 @@ SET(MAN_FILES netcdf.3)
 
 set(ARGS_MANPAGE -DAPI=C)
 
-IF (USE_NETCDF4)
+IF (USE_HDF5)
   SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DNETCDF4=TRUE)
-ENDIF(USE_NETCDF4)
+ENDIF(USE_HDF5)
 
 IF (BUILD_DAP)
   SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DDAP=TRUE)

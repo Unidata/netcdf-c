@@ -16,14 +16,6 @@
 #include <stdarg.h>
 #endif
 
-#ifdef HAVE_GETOPT_H
-#include <getopt.h>
-#endif
-
-#ifdef _WIN32
-#include "XGetopt.h"
-#endif
-
 #include "netcdf.h"
 #include "nclist.h"
 #include "ncbytes.h"
