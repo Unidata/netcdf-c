@@ -386,7 +386,7 @@ generate_arrayR(struct Args* args, int dimindex, size_t* index, Datalist* data)
 	if(dimindex > 0 && dim->dim.isunlimited) {
 	    /* Get the unlimited list */
 	    NCConstant* con = datalistith(data,0);
-	    actual = compoundfor(con);    
+	    actual = compoundfor(con);
 	} else
 	    actual = data;
         /* For last index, dump all of its elements */
@@ -401,7 +401,7 @@ generate_arrayR(struct Args* args, int dimindex, size_t* index, Datalist* data)
         count[dimindex] = stop;
         args->writer(args->generator,args->vsym,args->code,args->rank,index,count);
         bbClear(args->code);
-    } else {    
+    } else {
         actual = data;
         /* Iterate over this dimension */
         for(counter = 0;counter < stop; counter++) {
@@ -441,7 +441,7 @@ generate_array(Symbol* vsym, Bytebuffer* code, Datalist* filler, Generator* gene
     args.typecode = vsym->typ.basetype->typ.typecode;
 
     assert(args.rank > 0);
-    
+
     totalsize = 1; /* total # elements in the array */
     for(i=0;i<args.rank;i++) {
         args.dimsizes[i] = args.dimset->dimsyms[i]->dim.declsize;
@@ -474,7 +474,7 @@ generate_array(Symbol* vsym, Bytebuffer* code, Datalist* filler, Generator* gene
     if(totalsize <= wholevarsize && nunlimited == 0) {
 	Symbol* basetype = args.vsym->typ.basetype;
 	size_t counter;
-	int uid;	
+	int uid;
 	Datalist* flat = flatten(vsym->data,args.rank);
         args.generator->listbegin(args.generator,basetype,NULL,LISTDATA,totalsize,args.code,&uid);
         for(counter=0;counter<totalsize;counter++) {
@@ -488,5 +488,5 @@ generate_array(Symbol* vsym, Bytebuffer* code, Datalist* filler, Generator* gene
         args.writer(args.generator,args.vsym,args.code,args.rank,zerosvector,args.dimsizes);
 	freedatalist(flat);
     } else
-        generate_arrayR(&args, 0, index, vsym->data);    
+        generate_arrayR(&args, 0, index, vsym->data);
 }
