@@ -435,11 +435,11 @@ zs3write(NCZMAP* map, const char* key, size64_t start, size64_t count, const voi
     }
     if(newsize > objsize) {
         /* Zeroize the part of the object added */
-	memset(chunk+objsize,0,(newsize-objsize));
+	memset(((char*)chunk)+objsize,0,(newsize-objsize));
 	objsize = newsize;
     }
     /* overwrite with the contents */
-    memcpy(chunk+start,content,count); /* remember there may be data above start+count */
+    memcpy(((char*)chunk)+start,content,count); /* remember there may be data above start+count */
     if((stat = NCZ_s3sdkwriteobject(z3map->s3client, z3map->bucket, truekey, objsize, chunk, &z3map->errmsg)))
         goto done;
 

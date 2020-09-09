@@ -21,6 +21,7 @@ typedef struct Test {
 
 /* Path conversion tests */
 static Test PATHTESTS[] = {
+#ifdef _MSC_VER
 {"/xxx/a/b","/xxx/a/b"},
 {"d:/x/y","d:\\x\\y"},
 {"/cygdrive/d/x/y","d:\\x\\y"},
@@ -29,6 +30,16 @@ static Test PATHTESTS[] = {
 {"/d","d:\\"},
 {"/cygdrive/d/git/netcdf-c/dap4_test/daptestfiles/test_anon_dim.2.syn","d:\\git\\netcdf-c\\dap4_test\\daptestfiles\\test_anon_dim.2.syn"},
 {"[dap4]file:///cygdrive/d/git/netcdf-c/dap4_test/daptestfiles/test_anon_dim.2.syn","[dap4]file:///cygdrive/d/git/netcdf-c/dap4_test/daptestfiles/test_anon_dim.2.syn"},
+#else
+{"/xxx/a/b","/xxx/a/b"},
+{"d:/x/y","d:/x/y"},
+{"/cygdrive/d/x/y","d:/x/y"},
+{"/d/x/y","d:/x/y"},
+{"/cygdrive/d","d:/"},
+{"/d","d:/"},
+{"/cygdrive/d/git/netcdf-c/dap4_test/daptestfiles/test_anon_dim.2.syn","d:/git/netcdf-c/dap4_test/daptestfiles/test_anon_dim.2.syn"},
+{"[dap4]file:///cygdrive/d/git/netcdf-c/dap4_test/daptestfiles/test_anon_dim.2.syn","[dap4]file:///cygdrive/d/git/netcdf-c/dap4_test/daptestfiles/test_anon_dim.2.syn"},
+#endif
 {NULL,NULL}
 };
 

@@ -24,23 +24,23 @@ main(int argc, char** argv)
     memset(&slpv,0,sizeof(slpv));
     memset(&common,0,sizeof(common));
 
-    if((stat = ut_init(argc, argv, &options))) goto done;
+    if((stat = ut_init(argc, argv, &utoptions))) goto done;
 
     /* printer off for these tests */
     zutest.tests = 0;
     zutest.print = NULL;
 
-    var = nclistget(options.vardefs,0);
+    var = nclistget(utoptions.vardefs,0);
 
-    printoptions(&options);
+    printoptions(&utoptions);
 
     /* Compute chunk ranges */
-    if((stat = NCZ_compute_chunk_ranges(var->rank,options.slices,var->chunksizes,ncrv)))
+    if((stat = NCZ_compute_chunk_ranges(var->rank,utoptions.slices,var->chunksizes,ncrv)))
 	goto done;
 
     if((stat=NCZ_compute_all_slice_projections(
 	var->rank,
-        options.slices,
+        utoptions.slices,
         var->dimsizes,
         var->chunksizes,
         ncrv,
@@ -50,7 +50,7 @@ main(int argc, char** argv)
     for(r=0;r<var->rank;r++) {
 	NCZSliceProjections* slp = &slpv[r];
         if(r != slp->r) usage(NC_EINTERNAL);
-        printf("[r=%d] %s %s\n",r,nczprint_chunkrange(slp->range),nczprint_slice(options.slices[r]));
+        printf("[r=%d] %s %s\n",r,nczprint_chunkrange(slp->range),nczprint_slice(utoptions.slices[r]));
         for(i=0;i<slp->count;i++) {
             NCZProjection* proj = &slp->projections[i];
             printf("[%d] %s\n",i,nczprint_projection(*proj));
@@ -65,7 +65,7 @@ main(int argc, char** argv)
     for(r=0;r<var->rank;r++) {
         if((stat = NCZ_compute_per_slice_projections(
 			r,
-			&options.slices[r],
+			&utoptions.slices[r],
 			&ncrv[r],
 			var->dimsizes[r],
 			var->chunksizes[r],
@@ -78,7 +78,7 @@ main(int argc, char** argv)
 	char *sr, *sl;
         if(r != slp->r) usage(NC_EINTERNAL);
 	sr = nczprint_chunkrange(slp->range);
-	sl = nczprint_slice(options.slices[r]);
+	sl = nczprint_slice(utoptions.slices[r]);
         printf("[r=%d] %s %s\n",r,sr,sl);
 	nullfree(sr); nullfree(sl);
         for(i=0;i<slp->count;i++) {

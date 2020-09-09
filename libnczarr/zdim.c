@@ -271,4 +271,3 @@ NCZ_inq_unlimdims(int ncid, int *ndimsp, int *unlimdimidsp)
     if(ndimsp) *ndimsp = 0;
     return NC_NOERR;
 }
-
