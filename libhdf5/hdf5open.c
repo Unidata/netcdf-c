@@ -1141,10 +1141,12 @@ get_chunking_info(hid_t propid, NC_VAR_INFO_T *var)
     {
 	var->storage = NC_COMPACT;
     }
+#ifdef H5D_VIRTUAL
     else if (layout == H5D_VIRTUAL)
     {
 	var->storage = NC_VIRTUAL;
     }
+#endif
     else
     {
     var->storage = NC_UNKNOWN_STORAGE;
