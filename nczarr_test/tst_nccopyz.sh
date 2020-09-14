@@ -60,7 +60,7 @@ CHUNKSIZES=`cat tmppds.cdl | sed -e '/tas:_ChunkSizes/p' -ed | tr -d '\t \r'`
 test "x$CHUNKSIZES" = 'xtas:_ChunkSizes=10,15,20;'
 
 # Cleanup
-rm -f tmp*.nc tmp*.cdl
+rm -fr tmp*.nc tmp*.cdl
 rm -fr tmp*.nzf
 
 echo "*** All nccopy nczarr tests passed!"
