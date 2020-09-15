@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include "hdf4dispatch.h"
 #include "nc4dispatch.h"
+#include "hdf5dispatch.h"
 
 /* This is the dispatch object that holds pointers to all the
  * functions that make up the HDF4 dispatch interface. */
@@ -37,7 +38,7 @@ static const NC_Dispatch HDF4_dispatcher = {
 
     NC_RO_def_dim,
     NC4_inq_dimid,
-    NC4_inq_dim,
+    HDF5_inq_dim,
     NC4_inq_unlimdim,
     NC_RO_rename_dim,
 

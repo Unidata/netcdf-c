@@ -17,7 +17,7 @@ See LICENSE.txt for license information.
 #endif
 
 /* Required for getcwd, other functions. */
-#ifdef _MSC_VER
+#ifdef _WIN32
 #include <direct.h>
 #define getcwd _getcwd
 #endif
@@ -61,7 +61,7 @@ NCDISPATCH_initialize(void)
 	char* p;
 	char* q;
 	char cwd[4096];
-#ifdef _MSC_VER
+#ifdef _WIN32
         tempdir = getenv("TEMP");
 #else
 	tempdir = "/tmp";
@@ -78,7 +78,7 @@ NCDISPATCH_initialize(void)
 	    *q = *p;
 	}
 	*q = '\0';
-#ifdef _MSC_VER
+#ifdef _WIN32
 #else
         /* Canonicalize */
 	for(p=globalstate->tempdir;*p;p++) {
@@ -105,7 +105,7 @@ NCDISPATCH_initialize(void)
 	    *q = *p;
 	}
 	*q = '\0';
-#ifdef _MSC_VER
+#ifdef _WIN32
 #else
         /* Canonicalize */
 	for(p=home;*p;p++) {

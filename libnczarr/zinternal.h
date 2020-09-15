@@ -204,7 +204,7 @@ int ncz_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 
 /* zfilter.c */
 int NCZ_filter_actions(int ncid, int varid, int op, void* args);
-#ifdef ENABLE_CLIENT_FILTERS
+#ifdef ENABLE_CLIENTSIDE_FILTERS
 int NCZ_global_filter_action(int op, unsigned int id, NC_FILTER_OBJ_HDF5* infop);
 #endif
 

@@ -17,6 +17,10 @@ ERR() {
     fi
 }
 
+LC_ALL="C.UTF-8"
+export LC_ALL
+
+#UNISTRING='海'
 UNISTRING=$(echo '\xe6\xb5\xb7')
 
 echo ""

@@ -910,6 +910,7 @@ copy_chunking(int igrp, int i_varid, int ogrp, int o_varid, int ndims, int inkin
     size_t ichunkp[NC_MAX_VAR_DIMS];
     size_t ochunkp[NC_MAX_VAR_DIMS];
     size_t dimlens[NC_MAX_VAR_DIMS];
+    size_t perdimchunklen[NC_MAX_VAR_DIMS]; /* the values of relevant -c dim/n specifications */
     size_t dfaltchunkp[NC_MAX_VAR_DIMS]; /* default chunking for ovarid */
     int is_unlimited = 0;
 
@@ -920,6 +921,7 @@ copy_chunking(int igrp, int i_varid, int ogrp, int o_varid, int ndims, int inkin
     memset(ichunkp,0,sizeof(ichunkp));
     memset(ochunkp,0,sizeof(ochunkp));
     memset(dimlens,0,sizeof(dimlens));
+    memset(perdimchunklen,0,sizeof(perdimchunklen));
     memset(dfaltchunkp,0,sizeof(dfaltchunkp));
 
     /* Get the chunking, if any, on the current input variable */
@@ -959,7 +961,7 @@ copy_chunking(int igrp, int i_varid, int ogrp, int o_varid, int ndims, int inkin
     if(option_deflate_level >= 0 || hasfilteroptforvar(ofqn))
 	ocontig = NC_CHUNKED;
 
-    /* See about dim-specific chunking; does not override -c spec*/
+    /* See about dim-specific chunking; does not override specific variable chunk spec*/
     {
 	int idim;
 	/* size of a chunk: product of dimension chunksizes and size of value */
@@ -968,8 +970,10 @@ copy_chunking(int igrp, int i_varid, int ogrp, int o_varid, int ndims, int inkin
 	int dimids[NC_MAX_VAR_DIMS];
 
 	/* See if dim-specific chunking was suppressed */
-	if(dimchunkspec_omit()) /* use input chunksizes */
+	if(dimchunkspec_omit()) { /* no chunking at all on output, except as overridden by e.g. compression */
+	   ocontig = NC_CONTIGUOUS;
     	    goto next2;
+	}
 
 	/* Setup for possible output chunking */
 	typesize = val_size(igrp, i_varid);
@@ -979,8 +983,8 @@ copy_chunking(int igrp, int i_varid, int ogrp, int o_varid, int ndims, int inkin
 	/* Prepare to iterate over the dimids of this input variable */
 	NC_CHECK(nc_inq_vardimid(igrp, i_varid, dimids));
 
-        /* Capture dimension lengts for all dimensions of variable;
-	   even if we decide to not chunk */
+        /* Capture dimension lengths for all dimensions of variable */
+	/* Also, capture per-dimension -c specs even if we decide to not chunk */
         for(idim = 0; idim < ndims; idim++) {
             int idimid = dimids[idim];
             int odimid = dimmap_odimid(idimid);
@@ -995,8 +999,8 @@ copy_chunking(int igrp, int i_varid, int ogrp, int o_varid, int ndims, int inkin
 	    }
 
 	    if(dimchunkspec_exists(idimid)) {
-                /* If the -c set a chunk size for this dimension, use it */
-                dimlens[idim] = dimchunkspec_size(idimid); /* Save it */
+                /* If the -c set a chunk size for this dimension, capture it */
+                perdimchunklen[idim] = dimchunkspec_size(idimid); /* Save it */
 		ocontig = NC_CHUNKED; /* force chunking */
 	    }
 
@@ -1021,17 +1025,21 @@ copy_chunking(int igrp, int i_varid, int ogrp, int o_varid, int ndims, int inkin
 	    }
         }
 
-	/* compute the final ochunksizes: precedence is output, input, defaults, dimelen */
+	/* compute the final ochunksizes: precedence is output, per-dim-spec, input, defaults, dimlen */
         for(idim = 0; idim < ndims; idim++) {
-	    if(ochunkp[idim] == 0) {
+	    if(ochunkp[idim] == 0) { /* use -c dim/n if specified */
+	        if(perdimchunklen[idim] != 0)
+		    ochunkp[idim] = perdimchunklen[idim];
+	    }
+	    if(ochunkp[idim] == 0) { /* use input chunk size */
 	        if(ichunkp[idim] != 0)
 		    ochunkp[idim] = ichunkp[idim];
 	    }
-	    if(ochunkp[idim] == 0) {
+	    if(ochunkp[idim] == 0) { /* use chunk defaults */
 	        if(dfaltchunkp[idim] != 0)
 		    ochunkp[idim] = dfaltchunkp[idim];
 	    }
-	    if(ochunkp[idim] == 0) {
+	    if(ochunkp[idim] == 0) { /* last resort: use full dimension size */
 	        if(dimlens[idim] != 0)
 		    ochunkp[idim] = dimlens[idim];
 	    }
@@ -1104,7 +1112,6 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid, int inkind, int ou
 	    NC_CHECK(copy_chunking(igrp, varid, ogrp, o_varid, ndims, inkind, outkind));
 	}
     }
-
     if(ndims > 0)
     { /* handle compression parameters, copying from input, overriding
        * with command-line options */
@@ -1136,7 +1143,6 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid, int inkind, int ou
 	    deflated = deflate_out;
 	}
     }
-
     if(innc4 && outnc4 && ndims > 0)
     {				/* handle checksum parameters */
 	int fletcher32 = 0;
@@ -1145,7 +1151,6 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid, int inkind, int ou
 	    NC_CHECK(nc_def_var_fletcher32(ogrp, o_varid, fletcher32));
 	}
     }
-
     if(innc4 && outnc4)
     {				/* handle endianness */
 	int endianness = 0;
@@ -1159,7 +1164,6 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid, int inkind, int ou
         /* handle other general filters */
         NC_CHECK(copy_var_filter(igrp, varid, ogrp, o_varid, inkind, outkind));
     }
-
     return stat;
 }
 
@@ -2457,4 +2461,3 @@ freefilterlist(size_t nfilters, NC_Filterspec** filters)
 }
 
 #endif
-

@@ -44,4 +44,3 @@ SZIP Support:           @HAS_SZLIB@
 SZIP Write Support:     @HAS_SZLIB_WRITE@
 Parallel Filters:       @HAS_PAR_FILTERS@
 NCZarr Support:		@HAS_NCZARR@
-NCZarr S3:		@HAS_S3_SDK@

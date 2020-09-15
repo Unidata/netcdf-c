@@ -6,6 +6,8 @@
 #ifndef ZCHUNKING_H
 #define ZCHUNKING_H
 
+#include "ncexternl.h"
+
 /* Callback functions so we can use with unit tests */
 
 typedef int (*NCZ_reader)(void* source, size64_t* chunkindices, void** chunkdata);
@@ -73,29 +75,29 @@ struct Common {
 
 /**************************************************/
 /* From zchunking.c */
-extern int NCZ_compute_chunk_ranges(int rank, const NCZSlice*, const size64_t*, NCZChunkRange* ncr);
-extern int NCZ_compute_projections(size64_t dimlen, size64_t chunklen, size64_t chunkindex, const NCZSlice* slice, size_t n, NCZProjection* projections);
-extern int NCZ_compute_per_slice_projections(int rank, const NCZSlice*, const NCZChunkRange*, size64_t dimlen, size64_t chunklen, NCZSliceProjections* slp);
-extern int NCZ_compute_all_slice_projections(int rank, const NCZSlice* slices, const size64_t* dimlen, const size64_t* chunklen, const NCZChunkRange*, NCZSliceProjections*);
+EXTERNL int NCZ_compute_chunk_ranges(int rank, const NCZSlice*, const size64_t*, NCZChunkRange* ncr);
+EXTERNL int NCZ_compute_projections(size64_t dimlen, size64_t chunklen, size64_t chunkindex, const NCZSlice* slice, size_t n, NCZProjection* projections);
+EXTERNL int NCZ_compute_per_slice_projections(int rank, const NCZSlice*, const NCZChunkRange*, size64_t dimlen, size64_t chunklen, NCZSliceProjections* slp);
+EXTERNL int NCZ_compute_all_slice_projections(int rank, const NCZSlice* slices, const size64_t* dimlen, const size64_t* chunklen, const NCZChunkRange*, NCZSliceProjections*);
 
 /* From zwalk.c */
-extern int ncz_chunking_init(void);
-extern int NCZ_transferslice(NC_VAR_INFO_T* var, int reading,
+EXTERNL int ncz_chunking_init(void);
+EXTERNL int NCZ_transferslice(NC_VAR_INFO_T* var, int reading,
 		  size64_t* start, size64_t* count, size64_t* stride,
 		  void* memory, nc_type typecode);
-extern int NCZ_transfer(struct Common* common, NCZSlice* slices);
-extern size64_t NCZ_computelinearoffset(size_t, const size64_t*, const size64_t*);
+EXTERNL int NCZ_transfer(struct Common* common, NCZSlice* slices);
+EXTERNL size64_t NCZ_computelinearoffset(size_t, const size64_t*, const size64_t*);
 
 /* Special entry points for unit testing */
 struct Common;
 struct NCZOdometer;
-extern int NCZ_projectslices(size64_t* dimlens,
+EXTERNL int NCZ_projectslices(size64_t* dimlens,
 		  size64_t* chunklens,
 		  NCZSlice* slices,
 		  struct Common*, struct NCZOdometer**);
-extern int NCZ_chunkindexodom(int rank, const NCZChunkRange* ranges, size64_t*, struct NCZOdometer** odom);
-extern void NCZ_clearsliceprojections(int count, NCZSliceProjections* slpv);
-extern void NCZ_clearcommon(struct Common* common);
+EXTERNL int NCZ_chunkindexodom(int rank, const NCZChunkRange* ranges, size64_t*, struct NCZOdometer** odom);
+EXTERNL void NCZ_clearsliceprojections(int count, NCZSliceProjections* slpv);
+EXTERNL void NCZ_clearcommon(struct Common* common);
 
 #define floordiv(x,y) ((x) / (y))
 

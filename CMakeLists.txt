@@ -35,8 +35,9 @@ SET(netCDF_LIB_VERSION 18)
 SET(netCDF_SO_VERSION 18)
 SET(PACKAGE_VERSION ${VERSION})
 
-# Version of the dispatch table, in case we change it.
-SET(NC_DISPATCH_VERSION 1)
+# Version of the dispatch table. This must match the value in
+# configure.ac.
+SET(NC_DISPATCH_VERSION 2)
 
 # Get system configuration, Use it to determine osname, os release, cpu. These
 # will be used when committing to CDash.
@@ -435,8 +436,37 @@ ENDIF()
 # End user-specified dependent libraries.
 ###
 
-# Option to use HDF4
+################################
+# Format Option checks
+################################
+
+# We need to now treat enable-netcdf4 and enable-hdf5 as separate,
+# but for back compatability, we need to treat enable-netcdf4
+# as equivalent to enable-hdf5.
+# We detect this using these rules:
+# 1. if ENABLE_HDF5 is off then disable hdf5
+# 2. if ENABLE_NETCDF4 is off then disable hdf5
+# 3. else enable hdf5
+OPTION(ENABLE_NETCDF_4 "Use HDF5." ON)
+OPTION(ENABLE_NETCDF4 "Use HDF5." ON)
+OPTION(ENABLE_HDF5 "Use HDF5." ON)
+IF(NOT ENABLE_HDF5 OR NOT ENABLE_NETCDF4 OR NOT ENABLE_NETCDF_4)
+  SET(ENABLE_HDF5 OFF CACHE BOOL "Use HDF5" FORCE)
+ENDIF()
 OPTION(ENABLE_HDF4 "Build netCDF-4 with HDF4 read capability(HDF4, HDF5 and Zlib required)." OFF)
+OPTION(ENABLE_DAP "Enable DAP2 and DAP4 Client." ON)
+OPTION(ENABLE_NCZARR "Enable NCZarr Client." ON)
+OPTION(ENABLE_PNETCDF "Build with parallel I/O for CDF-1, 2, and 5 files using PnetCDF." OFF)
+SET(ENABLE_CDF5 AUTO CACHE STRING "AUTO")
+OPTION(ENABLE_CDF5 "Enable CDF5 support" ON)
+
+# Netcdf-4 support (i.e. libsrc4) is required by more than just HDF5 (e.g. NCZarr)
+# So depending on what above formats are enabled, enable netcdf-4
+if(ENABLE_HDF5 OR ENABLE_HDF4 OR ENABLE_NCZARR)
+SET(ENABLE_NETCDF_4 ON CACHE BOOL "Enable netCDF-4 API" FORCE)
+SET(ENABLE_NETCDF4 ON CACHE BOOL "Enable netCDF4 Alias" FORCE)
+endif()
+
 IF(ENABLE_HDF4)
   SET(USE_HDF4 ON)
   # Check for include files, libraries.
@@ -508,8 +538,6 @@ ENDIF()
 # Did the user specify a default minimum blocksize for posixio?
 SET(NCIO_MINBLOCKSIZE 256 CACHE STRING "Minimum I/O Blocksize for netCDF classic and 64-bit offset format files.")
 
-# Build netCDF4
-OPTION(ENABLE_NETCDF_4 "Enable netCDF-4" ON)
 IF(ENABLE_NETCDF_4)
   SET(USE_NETCDF4 ON CACHE BOOL "")
   SET(ENABLE_NETCDF_4 ON CACHE BOOL "")
@@ -547,10 +575,10 @@ IF(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING)
 ENDIF(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING)
 
 # Option for building RPC
-OPTION(ENABLE_RPC "Enable RPC Client and Server." OFF)
-IF(ENABLE_RPC)
-  SET(BUILD_RPC ON CACHE BOOL "")
-ENDIF()
+#OPTION(ENABLE_RPC "Enable RPC Client and Server." OFF)
+#IF(ENABLE_RPC)
+#  SET(BUILD_RPC ON CACHE BOOL "")
+#ENDIF()
 
 ##
 # Option to Enable HDF5
@@ -569,10 +597,8 @@ ENDIF()
 # * HDF5_INCLUDE_DIR
 # *
 ##
-OPTION(USE_HDF5 "Use HDF5." ${ENABLE_NETCDF_4})
-IF(USE_HDF5 OR ENABLE_NETCDF_4)
-  SET(USE_HDF5 ON)
-  SET(USE_NETCDF4 ON)
+SET(USE_HDF5 ${ENABLE_HDF5})
+IF(USE_HDF5)
   ##
   # Accommodate developers who have hdf5 libraries and
   # headers on their system, but do not have a the hdf
@@ -741,8 +767,15 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
 	SET(HDF5_CC h5cc)
   ENDIF()
 
+  # Check to see if H5Dread_chunk is available
+  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Dread_chunk "" HAS_READCHUNKS)
+
   # Check to see if this is hdf5-1.10.3 or later.
-  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Dread_chunk "" HDF5_SUPPORTS_PAR_FILTERS)
+  IF(HAS_READCHUNKS)
+    SET(HDF5_SUPPORTS_PAR_FILTERS ON)
+    SET(ENABLE_NCDUMPCHUNKS ON)
+  ENDIF()
+
   IF (HDF5_SUPPORTS_PAR_FILTERS)
     SET(HDF5_HAS_PAR_FILTERS TRUE CACHE BOOL "")
     SET(HAS_PAR_FILTERS yes CACHE STRING "")
@@ -780,8 +813,7 @@ IF(USE_HDF5 OR ENABLE_NETCDF_4)
   #option to include HDF5 High Level header file (hdf5_hl.h) in case we are not doing a make install
   INCLUDE_DIRECTORIES(${HDF5_HL_INCLUDE_DIR})
 
-
-ENDIF(USE_HDF5 OR ENABLE_NETCDF_4)
+ENDIF(USE_HDF5)
 
 # See if we have libcurl
 FIND_PACKAGE(CURL)
@@ -839,17 +871,13 @@ int main() {
 #endif
 }" HAVE_LIBCURL_766)
 
-# Option to Build DAP2+DAP4 Clients
-OPTION(ENABLE_DAP "Enable DAP2 and DAP4 Client." ON)
 IF(ENABLE_DAP)
   SET(USE_DAP ON CACHE BOOL "")
   SET(ENABLE_DAP2 ON CACHE BOOL "")
 
-  IF(ENABLE_NETCDF_4)
+  IF(ENABLE_HDF5)
     SET(ENABLE_DAP4 ON CACHE BOOL "")
-  ELSE(ENABLE_NETCDF_4)
-    SET(ENABLE_DAP4 OFF CACHE BOOL "")
-  ENDIF(ENABLE_NETCDF_4)
+  ENDIF(ENABLE_HDF5)
 
 ELSE()
   SET(ENABLE_DAP2 OFF)
@@ -925,42 +953,26 @@ IF(NOT WIN32)
   ENDIF()
 ENDIF()
 
-# Option to Build NCZarr clients
-OPTION(ENABLE_NCZARR "Enable NCZarr Client." OFF)
-OPTION(ENABLE_S3_SDK "Enable NCZarr S3 support." ON)
+# Options to Extend NCZarr support
+OPTION(ENABLE_S3_SDK "Enable Search for AWS libraries." OFF)
+OPTION(ENABLE_S3_TESTS "Enable NCZarr S3 tests." OFF)
 
-# See if aws-s3-sdk is available
-FIND_LIBRARY(AWS_CPP_SDK_CORE_LIB NAMES aws-cpp-sdk-core)
-FIND_LIBRARY(AWS_CPP_SDK_S3_LIB NAMES aws-cpp-sdk-s3)
-FIND_LIBRARY(AWS_C_COMMON_LIB NAMES aws-c-common)
-
-IF(NOT AWS_CPP_SDK_CORE_LIB)
-  SET(AWS_CPP_SDK_CORE_LIB OFF)
-ENDIF()
-IF(NOT AWS_CPP_SDK_S3_LIB)
-  SET(AWS_CPP_SDK_S3_LIB OFF)
-ENDIF()
-IF(NOT AWS_C_COMMON_LIB)
-  SET(AWS_C_COMMON_LIB OFF)
-ENDIF()
-
-IF(ENABLE_S3_SDK)
-  IF(NOT AWS_CPP_SDK_CORE_LIB
-     OR NOT AWS_CPP_SDK_S3_LIB
-     OR NOT AWS_C_COMMON_LIB)
-    MESSAGE(WARNING "One of aws-c-common, aws-cpp-sdk-s3, aws-cpp-sdk-core libraries is not available: Turning off S3 support")
-    SET(ENABLE_S3_SDK OFF)
-  ELSE()
-      MESSAGE(STATUS "Found aws sdk libraries")
+IF(NOT ENABLE_S3_SDK)
+  IF(ENABLE_S3_TESTS)
+     message(WARNING "DISABLE_S3_SDK => DISABLE_S3_TESTS")
+     SET(ENABLE_S3_TESTS OFF CACHE BOOL "S3 tests" FORCE)
   ENDIF()
 ENDIF()
 
 IF(ENABLE_S3_SDK)
-IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
-#  SET(LDFLAGS "${LDFLAGS} ${AWS_CPP_SDK_CORE_LIB} ${AWS_CPP_SDK_S3_LIB} ${AWS_C_COMMON_LIB}")
-#  SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lstdc++")
-ENDIF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
-ENDIF(ENABLE_S3_SDK)
+# See if aws-s3-sdk is available
+find_package(AWSSDK REQUIRED)
+set(SERVICE s3)
+AWSSDK_DETERMINE_LIBS_TO_LINK(SERVICE AWSSDK_LINK_LIBRARIES)
+IF(NOT AWSSDK_FOUND)
+  SET(ENABLE_S3_SDK OFF CACHE BOOL "S3 SDK" FORCE)
+ENDIF()
+ENDIF()
 
 ##
 # Enable Tests
@@ -1069,15 +1081,15 @@ IF(ENABLE_LARGE_FILE_SUPPORT)
   ENDIF()
 ENDIF()
 
-OPTION(ENABLE_EXAMPLE_TESTS "Run extra example tests.  Requires GNU Sed. Ignored if netCDF-4 is not Enabled" OFF)
-IF(NOT ENABLE_NETCDF_4 AND ENABLE_EXAMPLE_TESTS)
+OPTION(ENABLE_EXAMPLE_TESTS "Run extra example tests.  Requires GNU Sed. Ignored if HDF5 is not Enabled" OFF)
+IF(NOT ENABLE_HDF5 AND ENABLE_EXAMPLE_TESTS)
   SET(ENABLE_EXAMPLE_TESTS OFF)
 ENDIF()
 
 # Enable Parallel IO with netCDF-4/HDF5 files using HDF5 parallel I/O.
 SET(STATUS_PARALLEL "OFF")
 OPTION(ENABLE_PARALLEL4 "Build netCDF-4 with parallel IO" "${HDF5_PARALLEL}")
-IF(ENABLE_PARALLEL4 AND ENABLE_NETCDF_4)
+IF(ENABLE_PARALLEL4 AND ENABLE_HDF5)
   IF(NOT HDF5_PARALLEL)
     SET(USE_PARALLEL OFF CACHE BOOL "")
     MESSAGE(STATUS "Cannot find HDF5 library built with parallel support. Disabling parallel build.")
@@ -1102,8 +1114,6 @@ ENDIF()
 
 # Options to enable parallel IO for classic formats with PnetCDF library.
 SET(STATUS_PNETCDF "OFF")
-OPTION(ENABLE_PNETCDF "Build with parallel I/O for CDF-1, 2, and 5 files using PnetCDF." OFF)
-
 IF(ENABLE_PNETCDF)
   # Check for ncmpi_create in libpnetcdf, define USE_PNETCDF
   # Does the user want to turn on PnetCDF read ability?
@@ -1220,9 +1230,9 @@ IF (ENABLE_PARALLEL_TESTS AND NOT USE_PARALLEL)
 ENDIF()
 
 # Enable special filter test; experimental when using cmake.
-OPTION(ENABLE_FILTER_TESTING "Enable filter testing. Ignored if shared libraries or netCDF4 are not enabled" ${ENABLE_NETCDF_4})
-IF(ENABLE_FILTER_TESTING AND NOT ENABLE_NETCDF_4)
-  MESSAGE(WARNING "ENABLE_FILTER_TESTING requires netCDF-4. Disabling.")
+OPTION(ENABLE_FILTER_TESTING "Enable filter testing. Ignored if shared libraries or netCDF4 are not enabled" ${ENABLE_HDF5})
+IF(ENABLE_FILTER_TESTING AND NOT ENABLE_HDF5)
+  MESSAGE(WARNING "ENABLE_FILTER_TESTING requires HDF5. Disabling.")
   SET(ENABLE_FILTER_TESTING OFF)
 ENDIF()
 IF(NOT BUILD_SHARED_LIBS)
@@ -1301,7 +1311,6 @@ ENDIF()
 
 # Always enable DISKLESS
 OPTION(ENABLE_DISKLESS "Enable in-memory files" ON)
-
 
 # By default, MSVC has a stack size of 1000000.
 # Allow a user to override this.
@@ -1415,8 +1424,6 @@ CHECK_TYPE_SIZE("_Bool"     SIZEOF__BOOL)
 CHECK_TYPE_SIZE("size_t"    SIZEOF_SIZE_T)
 
 # Check whether to turn on or off CDF5 support.
-SET(ENABLE_CDF5 AUTO CACHE STRING "AUTO")
-OPTION(ENABLE_CDF5 "Enable CDF5 support" ON)
 IF(SIZEOF_SIZE_T EQUAL 4)
    IF(ENABLE_CDF5) # enable or auto
       STRING(TOUPPER ${ENABLE_CDF5} ENABLE_CDF5)
@@ -1534,22 +1541,23 @@ ELSE()
   MESSAGE(STATUS "m4 not found.")
 ENDIF()
 
-MACRO(GEN_m4 filename)
-
+MACRO(GEN_m4 filename dest)
+  set(${dest} "${CMAKE_CURRENT_BINARY_DIR}/${filename}.c")
   IF(HAVE_M4)
-
-  # If m4 is available, remove generated file if it exists.
-  IF(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
-    FILE(REMOVE ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
-  ENDIF()
-
-  ADD_CUSTOM_COMMAND(
-    OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
-    COMMAND ${NC_M4}
-    ARGS ${M4FLAGS} ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.m4 > ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
-    VERBATIM
+    ADD_CUSTOM_COMMAND(
+      OUTPUT ${${dest}}
+      COMMAND ${NC_M4}
+      ARGS ${M4FLAGS} ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.m4 > ${${dest}}
+      VERBATIM
     )
-ENDIF(HAVE_M4)
+  ELSE(HAVE_M4)
+    IF(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
+      FILE(COPY ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
+           DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+    ELSE()
+        MESSAGE(FATAL_ERROR "File ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c does not exists, and can not be generated")
+    ENDIF()
+  ENDIF(HAVE_M4)
 ENDMACRO(GEN_m4)
 
 # Binary tests, but ones which depend on value of 'TEMP_LARGE' being defined.
@@ -1595,7 +1603,12 @@ ENDMACRO()
 
 # Build a binary used by a script, but don't make a test out of it.
 MACRO(build_bin_test F)
-  ADD_EXECUTABLE(${F} ${F}.c)
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${F}.c")
+    ADD_EXECUTABLE(${F} "${CMAKE_CURRENT_SOURCE_DIR}/${F}.c" ${ARGN})
+  else()
+    # File should have been copied to the binary directory
+    ADD_EXECUTABLE(${F} "${CMAKE_CURRENT_BINARY_DIR}/${F}.c" ${ARGN})
+  endif()
   TARGET_LINK_LIBRARIES(${F} netcdf ${ALL_TLL_LIBS})
   IF(MSVC)
     SET_TARGET_PROPERTIES(${F}
@@ -1660,23 +1673,6 @@ MACRO(add_bin_test prefix F)
     SET_TARGET_PROPERTIES(${prefix}_${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG
       ${CMAKE_CURRENT_BINARY_DIR})
     SET_TARGET_PROPERTIES(${prefix}_${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
-      ${CMAKE_CURRENT_BINARY_DIR})
-  ENDIF()
-ENDMACRO()
-
-# Binary tests which are used by a script looking for a specific name.
-MACRO(build_bin_test_sourced F)
-  ADD_EXECUTABLE(${F} ${F}.c ${ARGN})
-  TARGET_LINK_LIBRARIES(${F} netcdf ${ALL_TLL_LIBS})
-  IF(MSVC)
-    SET_TARGET_PROPERTIES(${F}
-      PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
-      )
-    SET_TARGET_PROPERTIES(${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY
-      ${CMAKE_CURRENT_BINARY_DIR})
-    SET_TARGET_PROPERTIES(${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG
-      ${CMAKE_CURRENT_BINARY_DIR})
-    SET_TARGET_PROPERTIES(${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
       ${CMAKE_CURRENT_BINARY_DIR})
   ENDIF()
 ENDMACRO()
@@ -1760,7 +1756,7 @@ ENDIF(ENABLE_BASH_SCRIPT_TESTING)
 
 MACRO(add_sh_test prefix F)
   IF(HAVE_BASH)
-    ADD_TEST(${prefix}_${F} bash "-c" "export srcdir=${CMAKE_CURRENT_SOURCE_DIR};export TOPSRCDIR=${CMAKE_SOURCE_DIR};${CMAKE_CURRENT_BINARY_DIR}/${F}.sh")
+    ADD_TEST(${prefix}_${F} bash "-c" "export srcdir=${CMAKE_CURRENT_SOURCE_DIR};export TOPSRCDIR=${CMAKE_SOURCE_DIR};${CMAKE_CURRENT_BINARY_DIR}/${F}.sh ${F}.sh ${ARGN}")
   ENDIF()
 ENDMACRO()
 
@@ -1825,8 +1821,11 @@ IF(USE_PNETCDF)
   add_subdirectory(libsrcp)
 ENDIF(USE_PNETCDF)
 
-IF(USE_HDF5)
+IF(USE_NETCDF4)
   add_subdirectory(libsrc4)
+ENDIF()
+
+IF(USE_HDF5)
   add_subdirectory(libhdf5)
 ENDIF(USE_HDF5)
 
@@ -1851,7 +1850,6 @@ ENDIF()
 add_subdirectory(liblib)
 
 IF(ENABLE_FILTER_TESTING)
-  CONFIGURE_FILE(plugins/H5Znoop.c ${CMAKE_SOURCE_DIR}/plugins/H5Znoop1.c COPYONLY)
   add_subdirectory(plugins)
 ENDIF()
 
@@ -1875,7 +1873,7 @@ IF(ENABLE_TESTS)
     ADD_SUBDIRECTORY(nctest)
   ENDIF()
   ADD_SUBDIRECTORY(nc_test)
-  IF(USE_NETCDF4)
+  IF(USE_HDF5)
     INCLUDE_DIRECTORIES(h5_test)
     ADD_SUBDIRECTORY(nc_test4)
     IF(BUILD_BENCHMARKS)
@@ -1889,15 +1887,15 @@ IF(ENABLE_TESTS)
   IF(ENABLE_DAP4)
     ADD_SUBDIRECTORY(dap4_test)
   ENDIF()
-  IF(ENABLE_NCZARR)
-    ADD_SUBDIRECTORY(nczarr_test)
-  ENDIF()
   IF(ENABLE_EXAMPLES)
     ADD_SUBDIRECTORY(examples)
   ENDIF()
   IF(ENABLE_UNIT_TESTS)
     ADD_SUBDIRECTORY(unit_test)
   ENDIF(ENABLE_UNIT_TESTS)
+  IF(ENABLE_NCZARR)
+    ADD_SUBDIRECTORY(nczarr_test)
+  ENDIF()
 ENDIF()
 
 # Code to generate an export header
@@ -2050,7 +2048,7 @@ is_enabled(BUILD_SHARED_LIBS enable_shared)
 is_enabled(ENABLE_V2_API HAS_NC2)
 is_enabled(ENABLE_NETCDF_4 HAS_NC4)
 is_enabled(ENABLE_HDF4 HAS_HDF4)
-is_enabled(ENABLE_NETCDF_4 HAS_HDF5)
+is_enabled(USE_HDF5 HAS_HDF5)
 is_enabled(USE_SZIP HAS_SZIP)
 is_enabled(USE_SZIP HAS_SZIP_WRITE)
 is_enabled(STATUS_PNETCDF HAS_PNETCDF)
@@ -2069,7 +2067,7 @@ is_enabled(ENABLE_ERANGE_FILL HAS_ERANGE_FILL)
 is_enabled(HAVE_H5Z_SZIP HAS_SZLIB)
 is_enabled(HDF5_HAS_PAR_FILTERS HAS_PAR_FILTERS)
 is_enabled(ENABLE_NCZARR HAS_NCZARR)
-is_enabled(ENABLE_S3_SDK HAS_S3_SDK)
+is_enabled(ENABLE_S3_TESTS DO_S3_TESTS)
 
 # Generate file from template.
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
@@ -2098,10 +2096,7 @@ INSTALL(FILES "${netCDF_BINARY_DIR}/libnetcdf.settings"
 #####
 configure_file(
   ${netCDF_SOURCE_DIR}/include/netcdf_meta.h.in
-  ${netCDF_SOURCE_DIR}/include/netcdf_meta.h @ONLY)
-
-FILE(COPY ${netCDF_SOURCE_DIR}/include/netcdf_meta.h
-  DESTINATION ${netCDF_BINARY_DIR}/include/)
+  ${netCDF_BINARY_DIR}/include/netcdf_meta.h @ONLY)
 
 #####
 # Build test_common.sh
@@ -2122,16 +2117,18 @@ IF(ENABLE_EXAMPLES)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/examples/C/findplugin.sh @ONLY NEWLINE_STYLE LF)
 ENDIF()
 
-#####
-# Build ncdap_test|dap4_test/findtestserver[4].c
-#####
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ncdap_test/findtestserver.c.in ${CMAKE_CURRENT_SOURCE_DIR}/ncdap_test/findtestserver.c @ONLY NEWLINE_STYLE LF)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ncdap_test/findtestserver.c.in ${CMAKE_CURRENT_SOURCE_DIR}/dap4_test/findtestserver4.c @ONLY NEWLINE_STYLE LF)
+IF(ENABLE_TESTS)
+    #####
+    # Build ncdap_test|dap4_test/findtestserver[4].c
+    #####
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ncdap_test/findtestserver.c.in ${CMAKE_CURRENT_BINARY_DIR}/ncdap_test/findtestserver.c @ONLY NEWLINE_STYLE LF)
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ncdap_test/findtestserver.c.in ${CMAKE_CURRENT_BINARY_DIR}/dap4_test/findtestserver4.c @ONLY NEWLINE_STYLE LF)
 
-#####
-# Build dap4_test/pingurl4.c
-#####
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ncdap_test/pingurl.c ${CMAKE_CURRENT_SOURCE_DIR}/dap4_test/pingurl4.c @ONLY NEWLINE_STYLE LF)
+    #####
+    # Build dap4_test/pingurl4.c
+    #####
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ncdap_test/pingurl.c ${CMAKE_CURRENT_BINARY_DIR}/dap4_test/pingurl4.c @ONLY NEWLINE_STYLE LF)
+ENDIF()
 
 ####
 # Export files

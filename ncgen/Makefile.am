@@ -45,9 +45,9 @@ tst_gattenum.cdl tst_usuffix.cdl
 # Moved to ncdump as these tests rely on ncdump having been built.
 ##
 #TESTS = run_tests.sh
-#if USE_NETCDF4
+#if USE_HDF5
 #TESTS += run_nc4_tests.sh
-#endif # USE_NETCDF4
+#endif # USE_HDF5
 #endif # !BUILD_DLL
 
 CLEANFILES = c0.nc c0_64.nc c0_4.nc c0_4c.nc ref_camrun.c \
@@ -71,7 +71,7 @@ makeparser::
 	flex -Pncg -8 ncgen.l
 	sed -e s/lex.ncg.c/ncgenl.c/g <lex.ncg.c >ncgenl.c
 	bison -pncg -t -d ncgen.y
-	rm -f ncgeny.c ncgeny.h 
+	rm -f ncgeny.c ncgeny.h
 	sed -e s/ncgen.tab.c/ncgeny.c/g -e s/ncgen.tab.h/ncgeny.h/g <ncgen.tab.c >ncgeny.c
 	sed -e s/ncgen.tab.c/ncgeny.c/g -e s/ncgen.tab.h/ncgeny.h/g <ncgen.tab.h >ncgeny.h
 	rm -f lex.ncg.c ncgen.tab.h ncgen.tab.c

@@ -351,3 +351,22 @@ done:
     nclistfreeall(modelist);
     return found;
 }
+
+#ifdef __APPLE__
+int isinf(double x)
+{
+    union { unsigned long long u; double f; } ieee754;
+    ieee754.f = x;
+    return ( (unsigned)(ieee754.u >> 32) & 0x7fffffff ) == 0x7ff00000 &&
+           ( (unsigned)ieee754.u == 0 );
+}
+
+int isnan(double x)
+{
+    union { unsigned long long u; double f; } ieee754;
+    ieee754.f = x;
+    return ( (unsigned)(ieee754.u >> 32) & 0x7fffffff ) +
+           ( (unsigned)ieee754.u != 0 ) > 0x7ff00000;
+}
+
+#endif /*APPLE*/

@@ -1,2 +1,2 @@
-./testmap.nzf
-./testmap.nzf/.nczarr : ||
+testmap.nzf
+testmap.nzf/.nczarr : ||
