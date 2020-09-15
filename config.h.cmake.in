@@ -145,6 +145,12 @@ are set when opening a binary file on Windows. */
 /* if true, enable NCZARR */
 #cmakedefine ENABLE_NCZARR 1
 
+/* if true, enable S3 support */
+#cmakedefine ENABLE_S3_SDK 1
+
+/* if true, enable S3 testing*/
+#cmakedefine ENABLE_S3_TESTS 1
+
 /* define the possible sources for remote test servers */
 #cmakedefine REMOTETESTSERVERS	"${REMOTETESTSERVERS}"
 
@@ -298,6 +304,12 @@ are set when opening a binary file on Windows. */
 
 /* Define to 1 if the system has the type `ssize_t'. */
 #cmakedefine HAVE_SSIZE_T 1
+
+/* Define to 1 if the system has the type `ptrdiff_t'. */
+#cmakedefine HAVE_PTRDIFF_T 1
+
+/* Define to 1 if the system has the type `uintptr_t'. */
+#cmakedefine HAVE_UINTPTR_T 1
 
 /* Define to 1 if you have the <stdarg.h> header file. */
 #cmakedefine HAVE_STDARG_H 1
@@ -601,6 +613,9 @@ with zip */
 
 /* Define to `int' if <sys/types.h> does not define. */
 #cmakedefine ssize_t int
+
+/* Define to `signed long if <sys/types.h> does not define. */
+#cmakedefine ptrdiff_t signed long
 
 /* Define to `unsigned long if <sys/types.h> does not define. */
 #cmakedefine uintptr_t unsigned long

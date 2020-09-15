@@ -35,6 +35,9 @@ ocset_curlopt(OCstate* state, int flag, void* value)
     return stat;
 }
 
+/* Check return value */
+#define CHECK(state,flag,value) {if(ocset_curlopt(state,flag,(void*)value) != OC_NOERR) {goto done;}}
+
 /*
 Update a specific flag from state
 */

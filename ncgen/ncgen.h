@@ -8,7 +8,7 @@
 
 #ifdef _WIN32
 #include <float.h>
-#include "../ncdump/isnan.h"
+#include "isnan.h"
 #define strcasecmp _stricmp
 #endif
 
@@ -40,23 +40,8 @@
 /* Extend nc types with NIL value*/
 #define NC_NIL       32
 
-/* Must be a better way to do this */
-#ifndef INFINITE
-#ifdef _MSC_VER
-#define NC_INFINITE (DBL_MAX+DBL_MAX)
-#define NC_INFINITEF NC_INFINITE
-#define NAN (NC_INFINITE-NC_INFINITE)
-#define NANF NAN
-#else
-#define NC_INFINITE (1.0/0.0)
-#define NC_INFINITEF (1.0f/0.0f)
-#define NAN (0.0/0.0)
-#define NANF (0.0f/0.0f)
-#endif
-
 #define NEGNC_INFINITEF (-NC_INFINITEF)
 #define NEGNC_INFINITE (-NC_INFINITEF)
-#endif
 
 /* nc_class is one of:
         NC_GRP NC_DIM NC_VAR NC_ATT NC_TYPE

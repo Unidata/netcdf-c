@@ -6,6 +6,7 @@
 #ifndef NCURI_H
 #define NCURI_H
 
+#include "ncexternl.h"
 
 /* Define flags to control what is included by ncuribuild*/
 #define NCURIPATH      1
@@ -39,6 +40,7 @@ typedef struct NCURI {
 #endif
 } NCURI;
 
+#if 0
 /* Declaration modifiers for DLL support (MSC et al) */
 #if defined(DLL_NETCDF) /* define when library is a DLL */
 #  if defined(DLL_EXPORT) /* define when building the library */
@@ -52,6 +54,7 @@ typedef struct NCURI {
 #endif  /* defined(DLL_NETCDF) */
 
 #define EXTERNL MSC_EXTRA extern /**< Needed for DLL build. */
+#endif
 
 #if defined(_CPLUSPLUS_) || defined(__CPLUSPLUS__) || defined(__CPLUSPLUS)
 extern "C" {

@@ -44,7 +44,7 @@ endif # USE_PNETCDF
 if USE_HDF5
 AM_CPPFLAGS += -I${top_srcdir}/libhdf5
 libnetcdf_la_LIBADD += ${top_builddir}/libhdf5/libnchdf5.la
-endif # USE_NETCDF4
+endif # USE_HDF5
 
 # + hdf4
 if USE_HDF4
@@ -73,6 +73,9 @@ endif #USE_NETCDF4
 if ENABLE_NCZARR
 AM_CPPFLAGS += -I${top_srcdir}/libnczarr
 libnetcdf_la_LIBADD += ${top_builddir}/libnczarr/libnczarr.la
+if ENABLE_S3_SDK
+libnetcdf_la_LIBADD += ${aws_cpp_sdk_core_LIBS} ${aws_cpp_sdk_s3_LIBS}
+endif
 endif #ENABLE_NCZARR
 
 if ISCYGWIN

@@ -1,5 +1,5 @@
 
-#line 3 "ncgenl.c"
+#line 3 "lex.ncg.c"
 
 #define  YY_INT_ALIGNED short int
 
@@ -26,8 +26,8 @@
 
 #define FLEX_SCANNER
 #define YY_FLEX_MAJOR_VERSION 2
-#define YY_FLEX_MINOR_VERSION 6
-#define YY_FLEX_SUBMINOR_VERSION 0
+#define YY_FLEX_MINOR_VERSION 5
+#define YY_FLEX_SUBMINOR_VERSION 35
 #if YY_FLEX_SUBMINOR_VERSION > 0
 #define FLEX_BETA
 #endif
@@ -65,6 +65,7 @@ typedef int16_t flex_int16_t;
 typedef uint16_t flex_uint16_t;
 typedef int32_t flex_int32_t;
 typedef uint32_t flex_uint32_t;
+typedef uint64_t flex_uint64_t;
 #else
 typedef signed char flex_int8_t;
 typedef short int flex_int16_t;
@@ -72,6 +73,7 @@ typedef int flex_int32_t;
 typedef unsigned char flex_uint8_t; 
 typedef unsigned short int flex_uint16_t;
 typedef unsigned int flex_uint32_t;
+#endif /* ! C99 */
 
 /* Limits of integral types. */
 #ifndef INT8_MIN
@@ -101,8 +103,6 @@ typedef unsigned int flex_uint32_t;
 #ifndef UINT32_MAX
 #define UINT32_MAX             (4294967295U)
 #endif
-
-#endif /* ! C99 */
 
 #endif /* ! FLEXINT_H */
 
@@ -160,15 +160,7 @@ typedef unsigned int flex_uint32_t;
 
 /* Size of default input buffer. */
 #ifndef YY_BUF_SIZE
-#ifdef __ia64__
-/* On IA-64, the buffer size is 16k, not 8k.
- * Moreover, YY_BUF_SIZE is 2*YY_READ_BUF_SIZE in the general case.
- * Ditto for the __ia64__ case accordingly.
- */
-#define YY_BUF_SIZE 32768
-#else
 #define YY_BUF_SIZE 16384
-#endif /* __ia64__ */
 #endif
 
 /* The state buf must be large enough to hold one state per character in the main buffer.
@@ -194,7 +186,6 @@ extern FILE *ncgin, *ncgout;
 #define EOB_ACT_LAST_MATCH 2
 
     #define YY_LESS_LINENO(n)
-    #define YY_LINENO_REWIND_TO(ptr)
     
 /* Return all but the first "n" matched characters back to the input stream. */
 #define yyless(n) \
@@ -229,7 +220,7 @@ struct yy_buffer_state
 	/* Number of characters read into yy_ch_buf, not including EOB
 	 * characters.
 	 */
-	int yy_n_chars;
+	yy_size_t yy_n_chars;
 
 	/* Whether we "own" the buffer - i.e., we know we created it,
 	 * and can realloc() it to grow it, and should free() it to
@@ -299,7 +290,7 @@ static YY_BUFFER_STATE * yy_buffer_stack = 0; /**< Stack as an array. */
 
 /* yy_hold_char holds the character lost when ncgtext is formed. */
 static char yy_hold_char;
-static int yy_n_chars;		/* number of characters read into yy_ch_buf */
+static yy_size_t yy_n_chars;		/* number of characters read into yy_ch_buf */
 yy_size_t ncgleng;
 
 /* Points to current character in buffer. */
@@ -371,17 +362,11 @@ extern int ncglineno;
 int ncglineno = 1;
 
 extern char *ncgtext;
-#ifdef yytext_ptr
-#undef yytext_ptr
-#endif
 #define yytext_ptr ncgtext
 
 static yy_state_type yy_get_previous_state (void );
 static yy_state_type yy_try_NUL_trans (yy_state_type current_state  );
 static int yy_get_next_buffer (void );
-#if defined(__GNUC__) && __GNUC__ >= 3
-__attribute__((__noreturn__))
-#endif
 static void yy_fatal_error (yyconst char msg[]  );
 
 /* Done after the current pattern has been matched and before the
@@ -389,7 +374,7 @@ static void yy_fatal_error (yyconst char msg[]  );
  */
 #define YY_DO_BEFORE_ACTION \
 	(yytext_ptr) = yy_bp; \
-	ncgleng = (size_t) (yy_cp - yy_bp); \
+	ncgleng = (yy_size_t) (yy_cp - yy_bp); \
 	(yy_hold_char) = *yy_cp; \
 	*yy_cp = '\0'; \
 	(yy_c_buf_p) = yy_cp;
@@ -454,7 +439,7 @@ static yyconst flex_int16_t yy_accept[422] =
         0
     } ;
 
-static yyconst YY_CHAR yy_ec[256] =
+static yyconst flex_int32_t yy_ec[256] =
     {   0,
         1,    1,    1,    1,    1,    1,    1,    1,    2,    3,
         1,    2,    2,    1,    1,    1,    1,    1,    1,    1,
@@ -486,7 +471,7 @@ static yyconst YY_CHAR yy_ec[256] =
         1,    1,    1,    1,    1
     } ;
 
-static yyconst YY_CHAR yy_meta[69] =
+static yyconst flex_int32_t yy_meta[69] =
     {   0,
         1,    1,    2,    1,    1,    1,    3,    4,    5,    5,
         6,    7,    8,    8,    8,    8,    8,    8,    8,    1,
@@ -497,7 +482,7 @@ static yyconst YY_CHAR yy_meta[69] =
        11,   11,   11,   14,    1,   11,   11,   11
     } ;
 
-static yyconst flex_uint16_t yy_base[440] =
+static yyconst flex_int16_t yy_base[440] =
     {   0,
         0,    0,  325,  321,  264,  255,  318, 2387,   67, 2387,
        64,  269,   61,   62,   95,   77,  136,  259,   51,   61,
@@ -601,7 +586,7 @@ static yyconst flex_int16_t yy_def[440] =
       421,  421,  421,  421,  421,  421,  421,  421,  421
     } ;
 
-static yyconst flex_uint16_t yy_nxt[2456] =
+static yyconst flex_int16_t yy_nxt[2456] =
     {   0,
         8,    9,   10,    9,    8,   11,   12,    8,   13,   14,
        15,   16,   17,   18,   18,   18,   18,   18,   18,    8,
@@ -1203,6 +1188,7 @@ char *ncgtext;
 
 #include "ncgen.h"
 #include "ncgeny.h"
+#include "isnan.h"
 
 EXTERNL int fileno(FILE*);
 
@@ -1348,7 +1334,7 @@ ID ([A-Za-z_]|{UTF8})([A-Z.@#\[\]a-z_0-9+-]|{UTF8})*
 /* Note: this definition of string will work for utf8 as well,
    although it is a very relaxed definition
 */
-#line 1352 "ncgenl.c"
+#line 1338 "lex.ncg.c"
 
 #define INITIAL 0
 #define ST_C_COMMENT 1
@@ -1383,11 +1369,11 @@ void ncgset_extra (YY_EXTRA_TYPE user_defined  );
 
 FILE *ncgget_in (void );
 
-void ncgset_in  (FILE * _in_str  );
+void ncgset_in  (FILE * in_str  );
 
 FILE *ncgget_out (void );
 
-void ncgset_out  (FILE * _out_str  );
+void ncgset_out  (FILE * out_str  );
 
 yy_size_t ncgget_leng (void );
 
@@ -1395,7 +1381,7 @@ char *ncgget_text (void );
 
 int ncgget_lineno (void );
 
-void ncgset_lineno (int _line_number  );
+void ncgset_lineno (int line_number  );
 
 /* Macros after this point can all be overridden by user definitions in
  * section 1.
@@ -1409,12 +1395,8 @@ extern int ncgwrap (void );
 #endif
 #endif
 
-#ifndef YY_NO_UNPUT
-    
     static void yyunput (int c,char *buf_ptr  );
     
-#endif
-
 #ifndef yytext_ptr
 static void yy_flex_strncpy (char *,yyconst char *,int );
 #endif
@@ -1435,12 +1417,7 @@ static int input (void );
 
 /* Amount of stuff to slurp up with each read. */
 #ifndef YY_READ_BUF_SIZE
-#ifdef __ia64__
-/* On IA-64, the buffer size is 16k, not 8k */
-#define YY_READ_BUF_SIZE 16384
-#else
 #define YY_READ_BUF_SIZE 8192
-#endif /* __ia64__ */
 #endif
 
 /* Copy whatever the last rule matched to the standard output. */
@@ -1448,7 +1425,7 @@ static int input (void );
 /* This used to be an fputs(), but since the string might contain NUL's,
  * we now use fwrite().
  */
-#define ECHO do { if (fwrite( ncgtext, ncgleng, 1, ncgout )) {} } while (0)
+#define ECHO fwrite( ncgtext, ncgleng, 1, ncgout )
 #endif
 
 /* Gets input and stuffs it into "buf".  number of characters read, or YY_NULL,
@@ -1459,7 +1436,7 @@ static int input (void );
 	if ( YY_CURRENT_BUFFER_LVALUE->yy_is_interactive ) \
 		{ \
 		int c = '*'; \
-		size_t n; \
+		yy_size_t n; \
 		for ( n = 0; n < max_size && \
 			     (c = getc( ncgin )) != EOF && c != '\n'; ++n ) \
 			buf[n] = (char) c; \
@@ -1527,7 +1504,7 @@ extern int ncglex (void);
 
 /* Code executed at the end of each rule. */
 #ifndef YY_BREAK
-#define YY_BREAK /*LINTED*/break;
+#define YY_BREAK break;
 #endif
 
 #define YY_RULE_SETUP \
@@ -1537,10 +1514,14 @@ extern int ncglex (void);
  */
 YY_DECL
 {
-	yy_state_type yy_current_state;
-	char *yy_cp, *yy_bp;
-	int yy_act;
+	register yy_state_type yy_current_state;
+	register char *yy_cp, *yy_bp;
+	register int yy_act;
     
+#line 222 "ncgen.l"
+
+#line 1524 "lex.ncg.c"
+
 	if ( !(yy_init) )
 		{
 		(yy_init) = 1;
@@ -1567,12 +1548,7 @@ YY_DECL
 		ncg_load_buffer_state( );
 		}
 
-	{
-#line 221 "ncgen.l"
-
-#line 1574 "ncgenl.c"
-
-	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
+	while ( 1 )		/* loops until end-of-file is reached */
 		{
 		yy_cp = (yy_c_buf_p);
 
@@ -1588,7 +1564,7 @@ YY_DECL
 yy_match:
 		do
 			{
-			YY_CHAR yy_c = yy_ec[YY_SC_TO_UI(*yy_cp)] ;
+			register YY_CHAR yy_c = yy_ec[YY_SC_TO_UI(*yy_cp)];
 			if ( yy_accept[yy_current_state] )
 				{
 				(yy_last_accepting_state) = yy_current_state;
@@ -1629,14 +1605,14 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 222 "ncgen.l"
+#line 223 "ncgen.l"
 { /* whitespace */
 		  break;
 		}
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 226 "ncgen.l"
+#line 227 "ncgen.l"
 { /* comment */
                           break;
                         }
@@ -1644,7 +1620,7 @@ YY_RULE_SETUP
 case 3:
 /* rule 3 can match eol */
 YY_RULE_SETUP
-#line 230 "ncgen.l"
+#line 231 "ncgen.l"
 {int len; char* s = NULL;
 			 /* In netcdf4, this will be used in a variety
                             of places, so only remove escapes */
@@ -1668,7 +1644,7 @@ ncgtext[MAXTRST-1] = '\0';
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 251 "ncgen.l"
+#line 252 "ncgen.l"
 { /* drop leading 0x; pad to even number of chars */
 		char* p = ncgtext+2;
 		int len = ncgleng - 2;
@@ -1683,123 +1659,123 @@ YY_RULE_SETUP
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 263 "ncgen.l"
+#line 264 "ncgen.l"
 {return lexdebug(COMPOUND);}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 264 "ncgen.l"
+#line 265 "ncgen.l"
 {return lexdebug(ENUM);}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 265 "ncgen.l"
+#line 266 "ncgen.l"
 {return lexdebug(OPAQUE_);}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 267 "ncgen.l"
+#line 268 "ncgen.l"
 {return lexdebug(FLOAT_K);}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 268 "ncgen.l"
+#line 269 "ncgen.l"
 {return lexdebug(CHAR_K);}
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 269 "ncgen.l"
+#line 270 "ncgen.l"
 {return lexdebug(BYTE_K);}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 270 "ncgen.l"
+#line 271 "ncgen.l"
 {return lexdebug(UBYTE_K);}
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 271 "ncgen.l"
+#line 272 "ncgen.l"
 {return lexdebug(SHORT_K);}
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 272 "ncgen.l"
+#line 273 "ncgen.l"
 {return lexdebug(USHORT_K);}
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 273 "ncgen.l"
+#line 274 "ncgen.l"
 {return lexdebug(INT_K);}
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 274 "ncgen.l"
+#line 275 "ncgen.l"
 {return lexdebug(UINT_K);}
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 275 "ncgen.l"
+#line 276 "ncgen.l"
 {return lexdebug(INT64_K);}
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 276 "ncgen.l"
+#line 277 "ncgen.l"
 {return lexdebug(UINT64_K);}
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 277 "ncgen.l"
+#line 278 "ncgen.l"
 {return lexdebug(DOUBLE_K);}
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 278 "ncgen.l"
+#line 279 "ncgen.l"
 {return lexdebug(STRING_K);}
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 280 "ncgen.l"
+#line 281 "ncgen.l"
 {int32_val = -1;
 			 return lexdebug(NC_UNLIMITED_K);}
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 283 "ncgen.l"
+#line 284 "ncgen.l"
 {return lexdebug(TYPES);}
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 284 "ncgen.l"
+#line 285 "ncgen.l"
 {return lexdebug(DIMENSIONS);}
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 285 "ncgen.l"
+#line 286 "ncgen.l"
 {return lexdebug(VARIABLES);}
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 286 "ncgen.l"
+#line 287 "ncgen.l"
 {return lexdebug(DATA);}
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 287 "ncgen.l"
+#line 288 "ncgen.l"
 {return lexdebug(GROUP);}
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 289 "ncgen.l"
+#line 290 "ncgen.l"
 {BEGIN(TEXT);return lexdebug(NETCDF);}
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 291 "ncgen.l"
+#line 292 "ncgen.l"
 { /* missing value (pre-2.4 backward compatibility) */
                 if (ncgtext[0] == '-') {
-		    double_val = NEGNC_INFINITE;
+		    double_val = -INFINITY;
                 } else {
-		    double_val = NC_INFINITE;
+		    double_val = INFINITY;
                 }
 		specialconstants = 1;
 		return lexdebug(DOUBLE_CONST);
@@ -1807,7 +1783,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 300 "ncgen.l"
+#line 301 "ncgen.l"
 { /* missing value (pre-2.4 backward compatibility) */
 		double_val = NAN;
 		specialconstants = 1;
@@ -1816,12 +1792,12 @@ YY_RULE_SETUP
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 306 "ncgen.l"
+#line 307 "ncgen.l"
 {/* missing value (pre-2.4 backward compatibility)*/
                 if (ncgtext[0] == '-') {
-		    float_val = NEGNC_INFINITEF;
+		    float_val = -INFINITYF;
                 } else {
-		    float_val = NC_INFINITEF;
+		    float_val = INFINITYF;
                 }
 		specialconstants = 1;
 		return lexdebug(FLOAT_CONST);
@@ -1829,7 +1805,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 315 "ncgen.l"
+#line 316 "ncgen.l"
 { /* missing value (pre-2.4 backward compatibility) */
 		float_val = NANF;
 		specialconstants = 1;
@@ -1838,7 +1814,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 321 "ncgen.l"
+#line 322 "ncgen.l"
 {
 #ifdef USE_NETCDF4
 		if(l_flag == L_C || l_flag == L_BINARY)
@@ -1851,7 +1827,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 331 "ncgen.l"
+#line 332 "ncgen.l"
 {
 		bbClear(lextext);
 		bbAppendn(lextext,(char*)ncgtext,ncgleng+1); /* include null */
@@ -1862,7 +1838,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 340 "ncgen.l"
+#line 341 "ncgen.l"
 {struct Specialtoken* st;
 		bbClear(lextext);
 		bbAppendn(lextext,(char*)ncgtext,ncgleng+1); /* include null */
@@ -1876,7 +1852,7 @@ YY_RULE_SETUP
 case 34:
 /* rule 34 can match eol */
 YY_RULE_SETUP
-#line 350 "ncgen.l"
+#line 351 "ncgen.l"
 {
 		    int c;
 		    char* p; char* q;
@@ -1896,7 +1872,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 367 "ncgen.l"
+#line 368 "ncgen.l"
 { char* id = NULL; int len;
 		    len = strlen(ncgtext);
 		    len = unescape(ncgtext,len,ISIDENT,&id);
@@ -1911,7 +1887,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 379 "ncgen.l"
+#line 380 "ncgen.l"
 {
 		/*
 		  We need to try to see what size of integer ((u)int).
@@ -1992,7 +1968,7 @@ done: return 0;
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 457 "ncgen.l"
+#line 458 "ncgen.l"
 {
 		int c;
 		int token = 0;
@@ -2043,7 +2019,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 504 "ncgen.l"
+#line 505 "ncgen.l"
 {
 		if (sscanf((char*)ncgtext, "%le", &double_val) != 1) {
 		    sprintf(errstr,"bad long or double constant: %s",(char*)ncgtext);
@@ -2054,7 +2030,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 511 "ncgen.l"
+#line 512 "ncgen.l"
 {
 		if (sscanf((char*)ncgtext, "%e", &float_val) != 1) {
 		    sprintf(errstr,"bad float constant: %s",(char*)ncgtext);
@@ -2066,7 +2042,7 @@ YY_RULE_SETUP
 case 40:
 /* rule 40 can match eol */
 YY_RULE_SETUP
-#line 518 "ncgen.l"
+#line 519 "ncgen.l"
 {
 	        (void) sscanf((char*)&ncgtext[1],"%c",&byte_val);
 		return lexdebug(BYTE_CONST);
@@ -2074,7 +2050,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 522 "ncgen.l"
+#line 523 "ncgen.l"
 {
 		int oct = unescapeoct(&ncgtext[2]);
 		if(oct < 0) {
@@ -2087,7 +2063,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 531 "ncgen.l"
+#line 532 "ncgen.l"
 {
 		int hex = unescapehex(&ncgtext[3]);
 		if(byte_val < 0) {
@@ -2100,7 +2076,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 540 "ncgen.l"
+#line 541 "ncgen.l"
 {
 	       switch ((char)ncgtext[2]) {
 	          case 'a': byte_val = '\007'; break; /* not everyone under-
@@ -2122,7 +2098,7 @@ YY_RULE_SETUP
 case 44:
 /* rule 44 can match eol */
 YY_RULE_SETUP
-#line 558 "ncgen.l"
+#line 559 "ncgen.l"
 {
 		lineno++ ;
                 break;
@@ -2130,7 +2106,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 563 "ncgen.l"
+#line 564 "ncgen.l"
 {/*initial*/
 	    BEGIN(ST_C_COMMENT);
 	    break;
@@ -2139,21 +2115,21 @@ YY_RULE_SETUP
 case 46:
 /* rule 46 can match eol */
 YY_RULE_SETUP
-#line 568 "ncgen.l"
+#line 569 "ncgen.l"
 {/* continuation */
 				     break;
 				}
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 572 "ncgen.l"
+#line 573 "ncgen.l"
 {/* final */
 			    BEGIN(INITIAL);
 			    break;
 			}
 	YY_BREAK
 case YY_STATE_EOF(ST_C_COMMENT):
-#line 577 "ncgen.l"
+#line 578 "ncgen.l"
 {/* final, error */
 			    fprintf(stderr,"unterminated /**/ comment");
 			    BEGIN(INITIAL);
@@ -2162,17 +2138,17 @@ case YY_STATE_EOF(ST_C_COMMENT):
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 583 "ncgen.l"
+#line 584 "ncgen.l"
 {/* Note: this next rule will not work for UTF8 characters */
 		return lexdebug(ncgtext[0]) ;
 		}
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 586 "ncgen.l"
+#line 587 "ncgen.l"
 ECHO;
 	YY_BREAK
-#line 2176 "ncgenl.c"
+#line 2152 "lex.ncg.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(TEXT):
 	yyterminate();
@@ -2304,7 +2280,6 @@ case YY_STATE_EOF(TEXT):
 			"fatal flex scanner internal error--no action found" );
 	} /* end of action switch */
 		} /* end of scanning one token */
-	} /* end of user's declarations */
 } /* end of ncglex */
 
 /* yy_get_next_buffer - try to read in a new buffer
@@ -2316,9 +2291,9 @@ case YY_STATE_EOF(TEXT):
  */
 static int yy_get_next_buffer (void)
 {
-    	char *dest = YY_CURRENT_BUFFER_LVALUE->yy_ch_buf;
-	char *source = (yytext_ptr);
-	yy_size_t number_to_move, i;
+    	register char *dest = YY_CURRENT_BUFFER_LVALUE->yy_ch_buf;
+	register char *source = (yytext_ptr);
+	register int number_to_move, i;
 	int ret_val;
 
 	if ( (yy_c_buf_p) > &YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[(yy_n_chars) + 1] )
@@ -2347,7 +2322,7 @@ static int yy_get_next_buffer (void)
 	/* Try to read more data. */
 
 	/* First move last chars to start of buffer. */
-	number_to_move = (yy_size_t) ((yy_c_buf_p) - (yytext_ptr)) - 1;
+	number_to_move = (int) ((yy_c_buf_p) - (yytext_ptr)) - 1;
 
 	for ( i = 0; i < number_to_move; ++i )
 		*(dest++) = *(source++);
@@ -2367,7 +2342,7 @@ static int yy_get_next_buffer (void)
 			{ /* Not enough room in the buffer - grow it. */
 
 			/* just a shorter name for the current buffer */
-			YY_BUFFER_STATE b = YY_CURRENT_BUFFER_LVALUE;
+			YY_BUFFER_STATE b = YY_CURRENT_BUFFER;
 
 			int yy_c_buf_p_offset =
 				(int) ((yy_c_buf_p) - b->yy_ch_buf);
@@ -2429,9 +2404,9 @@ static int yy_get_next_buffer (void)
 	else
 		ret_val = EOB_ACT_CONTINUE_SCAN;
 
-	if ((int) ((yy_n_chars) + number_to_move) > YY_CURRENT_BUFFER_LVALUE->yy_buf_size) {
+	if ((yy_size_t) ((yy_n_chars) + number_to_move) > YY_CURRENT_BUFFER_LVALUE->yy_buf_size) {
 		/* Extend the array by 50%, plus the number we really need. */
-		int new_size = (yy_n_chars) + number_to_move + ((yy_n_chars) >> 1);
+		yy_size_t new_size = (yy_n_chars) + number_to_move + ((yy_n_chars) >> 1);
 		YY_CURRENT_BUFFER_LVALUE->yy_ch_buf = (char *) ncgrealloc((void *) YY_CURRENT_BUFFER_LVALUE->yy_ch_buf,new_size  );
 		if ( ! YY_CURRENT_BUFFER_LVALUE->yy_ch_buf )
 			YY_FATAL_ERROR( "out of dynamic memory in yy_get_next_buffer()" );
@@ -2450,14 +2425,14 @@ static int yy_get_next_buffer (void)
 
     static yy_state_type yy_get_previous_state (void)
 {
-	yy_state_type yy_current_state;
-	char *yy_cp;
+	register yy_state_type yy_current_state;
+	register char *yy_cp;
     
 	yy_current_state = (yy_start);
 
 	for ( yy_cp = (yytext_ptr) + YY_MORE_ADJ; yy_cp < (yy_c_buf_p); ++yy_cp )
 		{
-		YY_CHAR yy_c = (*yy_cp ? yy_ec[YY_SC_TO_UI(*yy_cp)] : 1);
+		register YY_CHAR yy_c = (*yy_cp ? yy_ec[YY_SC_TO_UI(*yy_cp)] : 1);
 		if ( yy_accept[yy_current_state] )
 			{
 			(yy_last_accepting_state) = yy_current_state;
@@ -2482,10 +2457,10 @@ static int yy_get_next_buffer (void)
  */
     static yy_state_type yy_try_NUL_trans  (yy_state_type yy_current_state )
 {
-	int yy_is_jam;
-    	char *yy_cp = (yy_c_buf_p);
+	register int yy_is_jam;
+    	register char *yy_cp = (yy_c_buf_p);
 
-	YY_CHAR yy_c = 1;
+	register YY_CHAR yy_c = 1;
 	if ( yy_accept[yy_current_state] )
 		{
 		(yy_last_accepting_state) = yy_current_state;
@@ -2500,14 +2475,12 @@ static int yy_get_next_buffer (void)
 	yy_current_state = yy_nxt[yy_base[yy_current_state] + (unsigned int) yy_c];
 	yy_is_jam = (yy_current_state == 421);
 
-		return yy_is_jam ? 0 : yy_current_state;
+	return yy_is_jam ? 0 : yy_current_state;
 }
 
-#ifndef YY_NO_UNPUT
-
-    static void yyunput (int c, char * yy_bp )
+    static void yyunput (int c, register char * yy_bp )
 {
-	char *yy_cp;
+	register char *yy_cp;
     
     yy_cp = (yy_c_buf_p);
 
@@ -2517,10 +2490,10 @@ static int yy_get_next_buffer (void)
 	if ( yy_cp < YY_CURRENT_BUFFER_LVALUE->yy_ch_buf + 2 )
 		{ /* need to shift things up to make room */
 		/* +2 for EOB chars. */
-		yy_size_t number_to_move = (yy_n_chars) + 2;
-		char *dest = &YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[
+		register yy_size_t number_to_move = (yy_n_chars) + 2;
+		register char *dest = &YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[
 					YY_CURRENT_BUFFER_LVALUE->yy_buf_size + 2];
-		char *source =
+		register char *source =
 				&YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[number_to_move];
 
 		while ( source > YY_CURRENT_BUFFER_LVALUE->yy_ch_buf )
@@ -2541,8 +2514,6 @@ static int yy_get_next_buffer (void)
 	(yy_hold_char) = *yy_cp;
 	(yy_c_buf_p) = yy_cp;
 }
-
-#endif
 
 #ifndef YY_NO_INPUT
 #ifdef __cplusplus
@@ -2592,7 +2563,7 @@ static int yy_get_next_buffer (void)
 				case EOB_ACT_END_OF_FILE:
 					{
 					if ( ncgwrap( ) )
-						return EOF;
+						return 0;
 
 					if ( ! (yy_did_buffer_switch_on_eof) )
 						YY_NEW_FILE;
@@ -2693,7 +2664,7 @@ static void ncg_load_buffer_state  (void)
 	if ( ! b )
 		YY_FATAL_ERROR( "out of dynamic memory in ncg_create_buffer()" );
 
-	b->yy_buf_size = (yy_size_t)size;
+	b->yy_buf_size = size;
 
 	/* yy_ch_buf has to be 2 characters longer than the size given because
 	 * we need to put in 2 end-of-buffer characters.
@@ -2728,6 +2699,10 @@ static void ncg_load_buffer_state  (void)
 	ncgfree((void *) b  );
 }
 
+#ifndef __cplusplus
+extern int isatty (int );
+#endif /* __cplusplus */
+    
 /* Initializes or reinitializes a buffer.
  * This function is sometimes called more than once on the same buffer,
  * such as during a ncgrestart() or at EOF.
@@ -2848,7 +2823,7 @@ static void ncgensure_buffer_stack (void)
 		 * scanner will even need a stack. We use 2 instead of 1 to avoid an
 		 * immediate realloc on the next call.
          */
-		num_to_alloc = 1; /* After all that talk, this was set to 1 anyways... */
+		num_to_alloc = 1;
 		(yy_buffer_stack) = (struct yy_buffer_state**)ncgalloc
 								(num_to_alloc * sizeof(struct yy_buffer_state*)
 								);
@@ -2865,7 +2840,7 @@ static void ncgensure_buffer_stack (void)
 	if ((yy_buffer_stack_top) >= ((yy_buffer_stack_max)) - 1){
 
 		/* Increase the buffer to prepare for a possible push. */
-		yy_size_t grow_size = 8 /* arbitrary grow size */;
+		int grow_size = 8 /* arbitrary grow size */;
 
 		num_to_alloc = (yy_buffer_stack_max) + grow_size;
 		(yy_buffer_stack) = (struct yy_buffer_state**)ncgrealloc
@@ -2932,8 +2907,8 @@ YY_BUFFER_STATE ncg_scan_string (yyconst char * yystr )
 
 /** Setup the input buffer state to scan the given bytes. The next call to ncglex() will
  * scan from a @e copy of @a bytes.
- * @param yybytes the byte buffer to scan
- * @param _yybytes_len the number of bytes in the buffer pointed to by @a bytes.
+ * @param bytes the byte buffer to scan
+ * @param len the number of bytes in the buffer pointed to by @a bytes.
  * 
  * @return the newly allocated buffer state object.
  */
@@ -2941,8 +2916,7 @@ YY_BUFFER_STATE ncg_scan_bytes  (yyconst char * yybytes, yy_size_t  _yybytes_len
 {
 	YY_BUFFER_STATE b;
 	char *buf;
-	yy_size_t n;
-	yy_size_t i;
+	yy_size_t n, i;
     
 	/* Get memory for full buffer, including space for trailing EOB's. */
 	n = _yybytes_len + 2;
@@ -2973,7 +2947,7 @@ YY_BUFFER_STATE ncg_scan_bytes  (yyconst char * yybytes, yy_size_t  _yybytes_len
 
 static void yy_fatal_error (yyconst char* msg )
 {
-			(void) fprintf( stderr, "%s\n", msg );
+    	(void) fprintf( stderr, "%s\n", msg );
 	exit( YY_EXIT_FAILURE );
 }
 
@@ -3039,29 +3013,29 @@ char *ncgget_text  (void)
 }
 
 /** Set the current line number.
- * @param _line_number line number
+ * @param line_number
  * 
  */
-void ncgset_lineno (int  _line_number )
+void ncgset_lineno (int  line_number )
 {
     
-    ncglineno = _line_number;
+    ncglineno = line_number;
 }
 
 /** Set the input stream. This does not discard the current
  * input buffer.
- * @param _in_str A readable stream.
+ * @param in_str A readable stream.
  * 
  * @see ncg_switch_to_buffer
  */
-void ncgset_in (FILE *  _in_str )
+void ncgset_in (FILE *  in_str )
 {
-        ncgin = _in_str ;
+        ncgin = in_str ;
 }
 
-void ncgset_out (FILE *  _out_str )
+void ncgset_out (FILE *  out_str )
 {
-        ncgout = _out_str ;
+        ncgout = out_str ;
 }
 
 int ncgget_debug  (void)
@@ -3069,9 +3043,9 @@ int ncgget_debug  (void)
         return ncg_flex_debug;
 }
 
-void ncgset_debug (int  _bdebug )
+void ncgset_debug (int  bdebug )
 {
-        ncg_flex_debug = _bdebug ;
+        ncg_flex_debug = bdebug ;
 }
 
 static int yy_init_globals (void)
@@ -3131,8 +3105,7 @@ int ncglex_destroy  (void)
 #ifndef yytext_ptr
 static void yy_flex_strncpy (char* s1, yyconst char * s2, int n )
 {
-		
-	int i;
+	register int i;
 	for ( i = 0; i < n; ++i )
 		s1[i] = s2[i];
 }
@@ -3141,7 +3114,7 @@ static void yy_flex_strncpy (char* s1, yyconst char * s2, int n )
 #ifdef YY_NEED_STRLEN
 static int yy_flex_strlen (yyconst char * s )
 {
-	int n;
+	register int n;
 	for ( n = 0; s[n]; ++n )
 		;
 
@@ -3151,12 +3124,11 @@ static int yy_flex_strlen (yyconst char * s )
 
 void *ncgalloc (yy_size_t  size )
 {
-			return (void *) malloc( size );
+	return (void *) malloc( size );
 }
 
 void *ncgrealloc  (void * ptr, yy_size_t  size )
 {
-		
 	/* The cast to (char *) in the following accommodates both
 	 * implementations that use char* generic pointers, and those
 	 * that use void* generic pointers.  It works with the latter
@@ -3169,12 +3141,12 @@ void *ncgrealloc  (void * ptr, yy_size_t  size )
 
 void ncgfree (void * ptr )
 {
-			free( (char *) ptr );	/* see ncgrealloc() for (char *) cast */
+	free( (char *) ptr );	/* see ncgrealloc() for (char *) cast */
 }
 
 #define YYTABLES_NAME "yytables"
 
-#line 586 "ncgen.l"
+#line 587 "ncgen.l"
 
 
 static int
