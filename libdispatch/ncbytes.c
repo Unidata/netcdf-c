@@ -62,7 +62,7 @@ ncbytessetalloc(NCbytes* bb, unsigned long sz)
   return TRUE;
 }
 
-void
+EXTERNL void
 ncbytesfree(NCbytes* bb)
 {
   if(bb == NULL) return;
