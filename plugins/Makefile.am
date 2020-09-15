@@ -5,8 +5,7 @@
 include $(top_srcdir)/lib_flags.am
 
 AM_LDFLAGS += -module -avoid-version -shared -export-dynamic	\
--no-undefined
-#-rpath ${abs_builddir}
+-no-undefined -rpath ${abs_builddir}
 
 BZIP2HDRS = bzlib.h bzlib_private.h
 BZIP2SRC = blocksort.c huffman.c crctable.c randtable.c compress.c decompress.c bzlib.c
