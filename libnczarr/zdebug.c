@@ -11,6 +11,13 @@
 /* Mnemonic */
 #define RAW 1
 
+/**************************************************/
+/* Data Structure  */
+
+struct ZUTEST* zutest = NULL;
+
+/**************************************************/
+
 #ifdef ZCATCH
 /* Place breakpoint here to catch errors close to where they occur*/
 int
@@ -32,13 +39,6 @@ zthrow(int err, const char* file, int line)
 #endif
     return zbreakpoint(err);
 }
-#endif
-
-/**************************************************/
-/* Data Structure  */
-
-#ifdef ZUT
-struct ZUTEST zutest;
 #endif
 
 /**************************************************/
