@@ -5,9 +5,6 @@
 #ifndef ZDEBUG_H
 #define ZDEBUG_H
 
-/* Enable unit testing; on by default */
-#define ZUT
-
 #undef ZDEBUG /* general debug */
 #undef ZDEBUG1 /* detailed debug */
 
@@ -65,12 +62,11 @@ EXTERNL void NCZbacktrace(void);
 #define UTEST_WALK	2
 #define UTEST_TRANSFER	4
 
-#ifdef ZUT
-EXTERNL struct ZUTEST {
+struct ZUTEST {
     int tests;
     void (*print)(int sort,...);
-} zutest;
-#endif
+};
+EXTERNL struct ZUTEST* zutest;
 
 #endif /*ZDEBUG_H*/
 
