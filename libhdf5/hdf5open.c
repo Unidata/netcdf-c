@@ -19,6 +19,10 @@
 #include "H5FDhttp.h"
 #endif
 
+#ifdef ENABLE_HDF5_ROS3
+#include <H5FDros3.h>
+#endif
+
 /*Nemonic */
 #define FILTERACTIVE 1
 
@@ -66,6 +70,10 @@ static int rec_read_metadata(NC_GRP_INFO_T *grp);
 static hid_t nc4_H5Fopen(const char *filename, unsigned flags, hid_t fapl_id);
 #else
 #define nc4_H5Fopen  H5Fopen
+#endif
+
+#ifdef ENABLE_HDF5_ROS3
+static int ros3info(NCURI* uri, char** hostportp, char** regionp);
 #endif
 
 /**
@@ -845,9 +853,44 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 #ifdef ENABLE_BYTERANGE
         else
             if(h5->http.iosp) {   /* Arrange to use the byte-range driver */
-                /* Configure FAPL to use the byte-range file driver */
+#ifdef ENABLE_HDF5_ROS3
+		NCURI* uri = NULL;
+		H5FD_ros3_fapl_t fa;
+		char* hostport = NULL;
+		char* region = NULL;
+		char* accessid = NULL;
+		char* secretkey = NULL;
+		ncuriparse(path,&uri);
+		if(uri == NULL)
+		    BAIL(NC_EINVAL);		
+		/* Extract auth related info */
+		if((ros3info(uri,&hostport,&region)))
+		    BAIL(NC_EINVAL);
+		accessid = NC_rclookup("HTTP.CREDENTIALS.USER",hostport);
+		secretkey = NC_rclookup("HTTP.CREDENTIALS.PASSWORD",hostport);
+                fa.version = 1;
+		fa.aws_region[0] = '\0';
+	        fa.secret_id[0] = '\0';
+		fa.secret_key[0] = '\0';
+		if(accessid == NULL || secretkey == NULL) {
+	  	    /* default, non-authenticating, "anonymous" fapl configuration */
+		    fa.authenticate = (hbool_t)0;
+		} else {
+		    fa.authenticate = (hbool_t)1;
+		    strlcat(fa.aws_region,region,H5FD_ROS3_MAX_REGION_LEN);
+		    strlcat(fa.secret_id, accessid, H5FD_ROS3_MAX_SECRET_ID_LEN);
+                    strlcat(fa.secret_key, secretkey, H5FD_ROS3_MAX_SECRET_KEY_LEN);
+		}
+	        nullfree(region);
+		nullfree(hostport);
+                /* create and set fapl entry */
+                if(H5Pset_fapl_ros3(fapl_id, &fa) < 0)
+                    BAIL(NC_EHDFERR);
+#else
+                /* Configure FAPL to use our byte-range file driver */
                 if (H5Pset_fapl_http(fapl_id) < 0)
                     BAIL(NC_EHDFERR);
+#endif
                 /* Open the HDF5 file. */
                 if ((h5->hdfid = nc4_H5Fopen(path, flags, fapl_id)) < 0)
                     BAIL(NC_EHDFERR);
@@ -2713,6 +2756,50 @@ exit:
 
     return retval;
 }
+
+#ifdef ENABLE_HDF5_ROS3
+static int
+ros3info(NCURI* uri, char** hostportp, char** regionp)
+{
+    int stat = NC_NOERR;
+    size_t len;
+    char* hostport = NULL;
+    char* region = NULL;    
+    char* p;
+
+    if(uri == NULL || uri->host == NULL)
+	{stat = NC_EINVAL; goto done;}
+    len = strlen(uri->host);
+    if(uri->port != NULL)
+        len += 1+strlen(uri->port);
+    len++; /* nul term */
+    if((hostport = malloc(len)) == NULL)
+	{stat = NC_ENOMEM; goto done;}    
+    hostport[0] = '\0';
+    strlcat(hostport,uri->host,len);
+    if(uri->port != NULL) {
+        strlcat(hostport,":",len);
+	strlcat(hostport,uri->port,len);
+    }
+    /* We only support path urls, not virtual urls, so the
+       host past the first dot must be "s3.amazonaws.com" */
+    p = strchr(uri->host,'.');
+    if(p != NULL && strcmp(p+1,"s3.amazonaws.com")==0) {
+	len = (size_t)((p - uri->host)-1);
+	region = calloc(1,len+1);
+	memcpy(region,uri->host,len);
+	region[len] = '\0';
+    } else /* cannot find region: use "" */
+	region = strdup("");
+    if(hostportp) {*hostportp = hostport; hostport = NULL;}
+    if(regionp) {*regionp = region; region = NULL;}
+
+done:
+    nullfree(hostport);
+    nullfree(region);
+    return stat;
+}
+#endif /*ENABLE_HDF5_ROS3*/
 
 #ifdef _WIN32
 

@@ -770,10 +770,18 @@ IF(USE_HDF5)
   # Check to see if H5Dread_chunk is available
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Dread_chunk "" HAS_READCHUNKS)
 
+  # Check to see if H5Pset_fapl_ros3 is available
+  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pset_fapl_ros3 "" HAS_HDF5_ROS3)
+
   # Check to see if this is hdf5-1.10.3 or later.
   IF(HAS_READCHUNKS)
     SET(HDF5_SUPPORTS_PAR_FILTERS ON)
     SET(ENABLE_NCDUMPCHUNKS ON)
+  ENDIF()
+
+  # Check to see if this is hdf5-1.10.6 or later.
+  IF(HAS_HDF5_ROS3)
+    SET(ENABLE_HDF5_ROS3 ON)
   ENDIF()
 
   IF (HDF5_SUPPORTS_PAR_FILTERS)
