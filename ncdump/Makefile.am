@@ -46,7 +46,7 @@ ncvalidator_SOURCES = ncvalidator.c
 if USE_HDF5
 bin_PROGRAMS += nc4print
 noinst_PROGRAMS += nc4print
-nc4print_SOURCES = nc4print.c
+nc4print_SOURCES = nc4print.c nc4printer.c
 endif
 
 # Conditionally build the ocprint program, but do not install

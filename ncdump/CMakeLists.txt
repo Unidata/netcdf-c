@@ -26,8 +26,7 @@ ADD_EXECUTABLE(nccopy ${nccopy_FILES})
 ADD_EXECUTABLE(ncvalidator ${ncvalidator_FILES})
 
 IF(USE_HDF5)
-  SET(nc4print_FILES nc4print.c)
-  ADD_EXECUTABLE(nc4print ${nc4print_FILES})
+  ADD_EXECUTABLE(nc4print nc4print.c nc4printer.c)
 ENDIF(USE_HDF5)
 
 IF(ENABLE_DAP)
