@@ -1120,6 +1120,7 @@ fi
 hdf5_parallel=no
 hdf5_supports_par_filters=no
 enable_szlib=no
+has_ross3=no
 
 if test "x$enable_hdf5" = xyes; then
 
@@ -1160,6 +1161,12 @@ if test "x$enable_hdf5" = xyes; then
 
    # See if H5Dread_chunk is available
    AC_SEARCH_LIBS([H5Dread_chunk],[hdf5_hldll hdf5_hl], [has_readchunks=yes], [has_readdhunks=no])
+
+   # See if hdf5 library supports Read-Only S3 (byte-range) driver 
+   AC_SEARCH_LIBS([H5Pset_fapl_ros3],[hdf5_hldll hdf5_hl], [has_ros3=yes], [has_ros3=no])
+   if test "x$has_ros3" = xyes; then
+    AC_DEFINE([ENABLE_HDF5_ROS3], [1], [if true, support byte-range using hdf5 virtual file driver.])
+   fi
 
    # Check to see if HDF5 library is 1.10.3 or greater. If so, allows
    # parallel I/O with filters. This allows zlib/szip compression to

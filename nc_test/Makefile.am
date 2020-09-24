@@ -104,14 +104,15 @@ test_write.m4 ref_tst_diskless2.cdl tst_diskless5.cdl                   \
 ref_tst_diskless3_create.cdl ref_tst_diskless3_open.cdl                 \
 run_inmemory.sh run_mmap.sh                                             \
 f03tst_open_mem.nc                                                      \
-test_byterange.sh ref_tst_http_nc3.cdl ref_tst_http_nc4.cdl             \
+test_byterange.sh ref_tst_http_nc3.cdl                                  \
+ref_tst_http_nc4a.cdl ref_tst_http_nc4b.cdl ref_tst_http_nc4c.cdl       \
 CMakeLists.txt
 
 # These files are created by the tests.
 CLEANFILES = nc_test_*.nc tst_*.nc t_nc.nc large_files.nc		\
 quick_large_files.nc tst_diskless3_file.cdl                             \
 tst_diskless4.cdl ref_tst_diskless4.cdl benchmark.nc                    \
-tst_http_nc3.cdl tst_http_nc4.cdl tmp*.cdl tmp*.nc
+tst_http_nc3.cdl tst_http_nc4?.cdl tmp*.cdl tmp*.nc
 
 EXTRA_DIST += bad_cdf5_begin.nc run_cdf5.sh
 if ENABLE_CDF5
