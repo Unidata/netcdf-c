@@ -17,7 +17,7 @@ create other tools.
 #include "netcdf.h"
 #include "ncbytes.h"
 
-extern int NC4print(NCbytes* buf, int ncid);
+EXTERNL int NC4print(NCbytes* buf, int ncid);
 
 int
 main(int argc, char** argv)

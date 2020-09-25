@@ -767,8 +767,23 @@ IF(USE_HDF5)
 	SET(HDF5_CC h5cc)
   ENDIF()
 
+  # Check to see if H5Dread_chunk is available
+  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Dread_chunk "" HAS_READCHUNKS)
+
+  # Check to see if H5Pset_fapl_ros3 is available
+  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pset_fapl_ros3 "" HAS_HDF5_ROS3)
+
   # Check to see if this is hdf5-1.10.3 or later.
-  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Dread_chunk "" HDF5_SUPPORTS_PAR_FILTERS)
+  IF(HAS_READCHUNKS)
+    SET(HDF5_SUPPORTS_PAR_FILTERS ON)
+    SET(ENABLE_NCDUMPCHUNKS ON)
+  ENDIF()
+
+  # Check to see if this is hdf5-1.10.6 or later.
+  IF(HAS_HDF5_ROS3)
+    SET(ENABLE_HDF5_ROS3 ON)
+  ENDIF()
+
   IF (HDF5_SUPPORTS_PAR_FILTERS)
     SET(HDF5_HAS_PAR_FILTERS TRUE CACHE BOOL "")
     SET(HAS_PAR_FILTERS yes CACHE STRING "")
@@ -2044,6 +2059,7 @@ is_enabled(ENABLE_HDF4 HAS_HDF4)
 is_enabled(USE_HDF5 HAS_HDF5)
 is_enabled(USE_SZIP HAS_SZIP)
 is_enabled(USE_SZIP HAS_SZIP_WRITE)
+is_enabled(USE_SZIP HAS_SZLIB_WRITE)
 is_enabled(STATUS_PNETCDF HAS_PNETCDF)
 is_enabled(STATUS_PARALLEL HAS_PARALLEL)
 is_enabled(ENABLE_PARALLEL4 HAS_PARALLEL4)

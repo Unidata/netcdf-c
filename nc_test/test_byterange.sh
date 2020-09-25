@@ -6,39 +6,43 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 set -e
 
 #Constants
-URL3="https://remotetest.unidata.ucar.edu/thredds/fileServer/testdata/2004050300_eta_211.nc#bytes"
-URL4="https://noaa-goes16.s3.amazonaws.com/ABI-L1b-RadC/2017/059/03/OR_ABI-L1b-RadC-M3C13_G16_s20170590337505_e20170590340289_c20170590340316.nc#mode=bytes"
-
-rm -f tst_http_nc3.cdl tst_http_nc4.cdl 
+URL3="https://thredds-test.unidata.ucar.edu/thredds/fileServer/pointData/cf_dsg/example/point.nc#mode=bytes"
+#URL3="https://remotetest.unidata.ucar.edu/thredds/fileServer/testdata/2004050300_eta_211.nc#bytes"
+URL4a="https://noaa-goes16.s3.amazonaws.com/ABI-L1b-RadC/2017/059/03/OR_ABI-L1b-RadC-M3C13_G16_s20170590337505_e20170590340289_c20170590340316.nc#mode=bytes"
+URL4b="https://coawst-public.s3-us-west-2.amazonaws.com/testing/HadCRUT.4.6.0.0.median.nc#mode=bytes"
+URL4c="https://thredds-test.unidata.ucar.edu/thredds/fileServer/irma/metar/files/METAR_20170910_0000.nc#bytes"
 
 echo ""
 
-echo "*** Testing reading NetCDF-3 file with http"
-# Test using -k flag
-K=`${NCDUMP} -k "$URL3"`
-EXPECTED="classic"
-if test "x$K" != "x$EXPECTED" ; then
-   echo "test_http: -k flag mismatch: expected=$EXPECTED have=$K"
-   exit 1
-fi
-# Now test the reading of at least the metadata
-${NCDUMP} -h "$URL3" >tst_http_nc3.cdl
-# compare
-diff tst_http_nc3.cdl ${srcdir}/ref_tst_http_nc3.cdl 
+rm -f tst_http_nc3.cdl tst_http_nc4?.cdl 
 
-if test "x$FEATURE_HDF5" = xyes ; then
-echo "*** Testing reading NetCDF-4 file with http"
-# Test using -k flag
-K=`${NCDUMP} -k "$URL4"`
-EXPECTED="netCDF-4"
+testbytes() {
+TAG="$1"
+EXPECTED="$2"
+U="$3"
+K=`${NCDUMP} -k "$U" | tr -d '\r'`
 if test "x$K" != "x$EXPECTED" ; then
    echo "test_http: -k flag mismatch: expected=$EXPECTED have=$K"
    exit 1
 fi
+rm -f tst_http_$TAG.cdl
 # Now test the reading of at least the metadata
-${NCDUMP} -h "$URL4" >tst_http_nc4.cdl
+${NCDUMP} -h "$U" >tst_http_$TAG.cdl
 # compare
-diff tst_http_nc4.cdl ${srcdir}/ref_tst_http_nc4.cdl 
+diff -wb tst_http_$TAG.cdl ${srcdir}/ref_tst_http_$TAG.cdl 
+}
+
+echo "*** Testing reading NetCDF-3 file with http"
+
+echo "***Test remote classic file"
+testbytes nc3 classic "$URL3"
+if test "x$FEATURE_HDF5" = xyes ; then
+echo "***Test remote netdf-4 file: s3"
+testbytes nc4a netCDF-4 "$URL4a"
+echo "***Test remote netdf-4 file: s3"
+testbytes nc4b netCDF-4 "$URL4b"
+echo "***Test remote netcdf-4 file: non-s3"
+testbytes nc4c netCDF-4 "$URL4c"
 fi
 
 exit

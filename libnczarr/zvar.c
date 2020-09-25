@@ -1678,6 +1678,38 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     log_dim_info(var, fdims, fmaxdims, start, count);
 #endif
 
+    /* Check the type_info fields. */
+    assert(var->type_info && var->type_info->size &&
+           var->type_info->format_type_info);
+
+    /* Later on, we will need to know the size of this type in the
+     * file. */
+    file_type_size = var->type_info->size;
+
+    /* Are we going to convert any data? (No converting of compound or
+     * opaque types.) */
+    if (mem_nc_type != var->type_info->hdr.id &&
+        mem_nc_type != NC_COMPOUND && mem_nc_type != NC_OPAQUE)
+    {
+        /* We must convert - allocate a buffer. */
+        need_to_convert++;
+        if (var->ndims)
+            for (d2 = 0; d2 < var->ndims; d2++)
+                len *= countp[d2];
+        LOG((4, "converting data for var %s type=%d len=%d", var->hdr.name,
+        var->type_info->hdr.id, len));
+
+        /* If we're reading, we need bufr to have enough memory to store
+         * the data in the file. If we're writing, we need bufr to be
+         * big enough to hold all the data in the file's type. */
+        if (len > 0)
+            if (!(bufr = malloc(len * file_type_size)))
+                BAIL(NC_ENOMEM);
+    }
+    else
+        if (!bufr)
+            bufr = data;
+
     /* Check dimension bounds. Remember that unlimited dimensions can
      * put data beyond their current length. */
     for (d2 = 0; d2 < var->ndims; d2++)
@@ -1739,14 +1771,6 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 	}
     }
 
-    /* Check the type_info fields. */
-    assert(var->type_info && var->type_info->size &&
-	   var->type_info->format_type_info);
-
-    /* Later on, we will need to know the size of this type in the
-     * file. */
-    file_type_size = var->type_info->size;
-
     if (!no_read)
     {
 #ifdef LOOK
@@ -1792,29 +1816,6 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 	    bufr = *(char **)data;
 	}
 #endif
-	/* Are we going to convert any data? (No converting of compound or
-	 * opaque types.) */
-	if (mem_nc_type != var->type_info->hdr.id &&
-	    mem_nc_type != NC_COMPOUND && mem_nc_type != NC_OPAQUE)
-	{
-	    /* We must convert - allocate a buffer. */
-	    need_to_convert++;
-	    if (var->ndims)
-		for (d2 = 0; d2 < var->ndims; d2++)
-		    len *= countp[d2];
-	    LOG((4, "converting data for var %s type=%d len=%d", var->hdr.name,
-		 var->type_info->hdr.id, len));
-
-	    /* If we're reading, we need bufr to have enough memory to store
-	     * the data in the file. If we're writing, we need bufr to be
-	     * big enough to hold all the data in the file's type. */
-	    if (len > 0)
-		if (!(bufr = malloc(len * file_type_size)))
-		    BAIL(NC_ENOMEM);
-	}
-	else
-	    if (!bufr)
-		bufr = data;
 
 #ifdef LOOK
 	/* Create the data transfer property list. */
@@ -1831,24 +1832,8 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 
 	if((retval = NCZ_transferslice(var, READING, start, count, stride, bufr, var->type_info->hdr.id)))
 	    BAIL(retval);
-
-	/* Convert data type if needed. */
-	if (need_to_convert)
-	{
-	    if ((retval = nc4_convert_type(bufr, data, var->type_info->hdr.id, mem_nc_type,
-					   len, &range_error, var->fill_value,
-					   (h5->cmode & NC_CLASSIC_MODEL))))
-		BAIL(retval);
-
-	    /* For strict netcdf-3 rules, ignore erange errors between UBYTE
-	     * and BYTE types. */
-	    if ((h5->cmode & NC_CLASSIC_MODEL) &&
-		(var->type_info->hdr.id == NC_UBYTE || var->type_info->hdr.id == NC_BYTE) &&
-		(mem_nc_type == NC_UBYTE || mem_nc_type == NC_BYTE) &&
-		range_error)
-		range_error = 0;
-	}
     } /* endif ! no_read */
+
     /* Now we need to fake up any further data that was asked for,
        using the fill values instead. First skip past the data we
        just read, if any. */
@@ -1900,6 +1885,22 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 		memcpy(filldata, fillvalue, file_type_size);
 	    filldata = (char *)filldata + file_type_size;
 	}
+    }
+
+    /* Convert data type if needed. */
+    if (need_to_convert)
+    {
+	if ((retval = nc4_convert_type(bufr, data, var->type_info->hdr.id, mem_nc_type,
+					   len, &range_error, var->fill_value,
+					   (h5->cmode & NC_CLASSIC_MODEL))))
+	   BAIL(retval);
+        /* For strict netcdf-3 rules, ignore erange errors between UBYTE
+	 * and BYTE types. */
+	if ((h5->cmode & NC_CLASSIC_MODEL) &&
+		(var->type_info->hdr.id == NC_UBYTE || var->type_info->hdr.id == NC_BYTE) &&
+		(mem_nc_type == NC_UBYTE || mem_nc_type == NC_BYTE) &&
+		range_error)
+		range_error = 0;
     }
 
 exit:

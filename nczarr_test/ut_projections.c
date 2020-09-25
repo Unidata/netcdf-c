@@ -27,8 +27,9 @@ main(int argc, char** argv)
     if((stat = ut_init(argc, argv, &utoptions))) goto done;
 
     /* printer off for these tests */
-    zutest.tests = 0;
-    zutest.print = NULL;
+    zutester.tests = 0;
+    zutester.print = NULL;
+    zutest = &zutester;
 
     var = nclistget(utoptions.vardefs,0);
 

@@ -117,5 +117,5 @@ FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SO
 SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am)
 SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} test_get.m4 test_put.m4 test_read.m4 test_write.m4 ref_tst_diskless2.cdl tst_diskless5.cdl
 ref_tst_diskless3_create.cdl ref_tst_diskless3_open.cdl
-ref_tst_http_nc3.cdl ref_tst_http_nc4.cdl)
+ref_tst_http_nc3.cdl ref_tst_http_nc4a.cdl ref_tst_http_nc4b.cdl ref_tst_http_nc4c.cdl)
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")
