@@ -306,7 +306,8 @@ read_coord_dimids(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
     /* There is a hidden attribute telling us the ids of the
      * dimensions that apply to this multi-dimensional coordinate
      * variable. Read it. */
-    if ((coord_attid = H5Aopen_name(hdf5_var->hdf_datasetid, COORDINATES)) < 0)
+    if ((coord_attid = H5Aopen_by_name(hdf5_var->hdf_datasetid, ".", COORDINATES, 
+                                       H5P_DEFAULT, H5P_DEFAULT)) < 0)
         BAIL(NC_EATTMETA);
 
     if ((coord_att_typeid = H5Aget_type(coord_attid)) < 0)
@@ -2314,7 +2315,8 @@ read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
         BAIL(NC_EHDFERR);
     if (attr_exists)
     {
-        if ((attid = H5Aopen_name(datasetid, NC_DIMID_ATT_NAME)) < 0)
+        if ((attid = H5Aopen_by_name(datasetid,".", NC_DIMID_ATT_NAME,
+                                     H5P_DEFAULT, H5P_DEFAULT)) < 0)
             BAIL(NC_EHDFERR);
 
         if (H5Aread(attid, H5T_NATIVE_INT, &assigned_id) < 0)
