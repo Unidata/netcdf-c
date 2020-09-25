@@ -9,16 +9,19 @@ DB=1
 #NOTUIL=1
 FAST=1
 #PROF=1
+#BENCH=1
 
-NCZARR=1
-HDF5=1
+#NCZARR=1
+#HDF5=1
 DAP=1
-S3=1
+#S3=1
 #S3TEST=1
 #SZIP=1
 #HDF4=1
 #PNETCDF=1
 #PAR4=1
+
+AWSSDK_DIR="/cygdrive/c/tools/aws-cpp-sdk-all"
 
 #TESTSERVERS="149.165.169.123:8080,remotetest.unidata.ucar.edu"
 #TESTSERVERS="localhost:8080,149.165.169.123:8080"
@@ -120,9 +123,25 @@ if test "x$NCZARR" != "x" ; then
 FLAGS="$FLAGS --enable-nczarr"
 fi
 
+if test "x$S3" != x ; then
+FLAGS="$FLAGS --enable-s3-sdk"
+else
+FLAGS="$FLAGS --disable-s3-sdk"
+fi
+if test "x$S3TEST" != x ; then
+FLAGS="$FLAGS --enable-s3-tests"
+export AWSSDK_DIR="${AWSSDK_DIR}"
+LDFLAGS="$LDFLAGS $AWSSDK_DIR/bin/aws-cpp-sdk-s3.dll"
+CPPFLAGS="$CPPFLAGS -I${AWSSDK_DIR}/include"
+fi
+
 if test "x${PROF}" = x1 ; then
 CFLAGS="${CFLAGS} -pg"
 LDFLAGS="${LDFLAGS} -pg"
+fi
+
+if test "x${BENCH}" = x1 ; then
+FLAGS="$FLAGS --enable-benchmarks"
 fi
 
 export PATH

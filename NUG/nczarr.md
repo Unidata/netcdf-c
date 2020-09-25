@@ -456,6 +456,33 @@ for all objects limited to 5 Terabytes.
 2. S3 key names can be any UNICODE name with a maximum length of 1024
 bytes. Note that the limit is defined in terms of bytes and not (Unicode) characters. This affects the depth to which groups can be nested because the key encodes the full path name of a group.
 
+# Appendix D. Alternative Mechanisms for Accessing Remote Datasets 
+
+The NetCDF-C library contains an alternate mechanism for accessing data
+store in Amazon S3: The byte-range mechanism.
+The idea is to treat the remote data as if it was a big file. This remote
+"file" can be randomly accessed using the HTTP Byte-Range header.
+
+In the Amazon S3 context, a copy of a dataset, a netcdf-3 or netdf-4 file,
+is uploaded into a single object in some bucket. Then using the key to this object,
+it is possible to tell the netcdf-c library to treat the object as a remote file
+and to use the HTTP Byte-Range protocol to access the contents of the object.
+The dataset object is referenced using a URL with the trailing fragment containing
+the string ````#mode=bytes````.
+
+An examination of the test program _nc_test/test_byterange.sh_ shows simple examples
+using the _ncdump_ program. One such test is specified as follows:
+````
+https://noaa-goes16.s3.amazonaws.com/ABI-L1b-RadC/2017/059/03/OR_ABI-L1b-RadC-M3C13_G16_s20170590337505_e20170590340289_c20170590340316.nc#mode=bytes
+````
+
+This mechanism generalizes to work with most servers that support byte-range access.
+Specifically, Thredds servers support such access using the HttpServer access method
+as can be seen from this URL taken from the above test program.
+````
+https://thredds-test.unidata.ucar.edu/thredds/fileServer/irma/metar/files/METAR_20170910_0000.nc#bytes
+````
+
 # __Point of Contact__ {#nczarr_poc}
 
 __Author__: Dennis Heimbigner<br>

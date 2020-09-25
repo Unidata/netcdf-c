@@ -672,6 +672,14 @@ entries should have same value, which is the file path for the
 certificate produced by MyProxyLogon. The HTTP.SSL.CAPATH entry should
 be the path to the "certificates" directory produced by MyProxyLogon.
 
+## URL escaping
+
+The DAP2 standard specifies the use of URL %xx escaping as also
+the escape mechanism for DAP2 itself. This can cause some confusion.
+To try to simplify this, the netcdf-c library DAP2 code assumes
+that all URL path and constraint information is unescaped. It is assumed
+that just before transmission, the constructed URL will be properly escaped.
+
 # Point of Contact {#dap2_poc}
 
 __Author__: Dennis Heimbigner<br>
