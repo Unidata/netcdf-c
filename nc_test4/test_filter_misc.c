@@ -310,7 +310,7 @@ insert(int index, void* src, size_t size)
     void* dst = &baseline[index];
     if(size == 8) {
 	memcpy(src8,src,size);
-	ncaux_filterfix8(src8,0);
+	ncaux_h5filterspec_fix8(src8,0);
 	src = src8;
     }
     memcpy(dst,src,size);

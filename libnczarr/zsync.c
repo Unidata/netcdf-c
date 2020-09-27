@@ -1210,6 +1210,9 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 	var->format_var_info = zvar;
 	zvar->common.file = file;
 
+	/* Set filter list */
+	var->filters = (void*)nclistnew();
+
 	/* Construct var path */
 	if((stat = NCZ_varkey(var,&varpath)))
 	    goto done;

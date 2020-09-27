@@ -42,10 +42,11 @@ for x in ${TESTSET} ; do
    done
    # determine if this is an xfailtest
    checkxfail ${x}
-   deletemap ${x}        
-   rm -f ${x}.dmp
+   deletemap ${execdir}/${x}        
+   rm -f ${execdir}/${x}.dmp
    fileargs
    ${NCGEN} -b -${KFLAG} -N ref_${x} -o "${fileurl}" ${cdl}/ref_${x}.cdl
+pwd
    ${NCDUMP} ${headflag} ${specflag} -n ref_${x} ${fileurl} > ${x}.dmp
    # compare the expected (silently if XFAIL)
    if test "x$isxfail" = "x1" -a "x$SHOWXFAILS" = "x" ; then
@@ -69,7 +70,6 @@ extfor $1
 if test "x$2" != x ; then CLOUD=$2; fi
 echo "*** Testing ncgen with -${KFLAG} and zmap=${zext}"
 diffcycle $zext
-cd ..
 }
 
 main() {

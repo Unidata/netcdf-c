@@ -117,7 +117,6 @@ typedef enum {NC_FALSE = 0, NC_TRUE = 1} nc_bool_t;
 /* Forward declarations. */
 struct NC_GRP_INFO;
 struct NC_TYPE_INFO;
-struct NC_Filterobject;
 
 /**
  * This struct provides indexed Access to Meta-data objects. See the
@@ -208,7 +207,7 @@ typedef struct NC_VAR_INFO
     size_t chunk_cache_nelems;   /**< Number of slots in var chunk cache. */
     float chunk_cache_preemption; /**< Chunk cache preemtion policy. */
     void *format_var_info;       /**< Pointer to any binary format info. */
-    NClist* filters;             /**< List<NC_FILTERX_SPEC> of filters to be applied to var data; technically format dependent */
+    void* filters;             /**< Record of the list of filters to be applied to var data; format dependent */
 } NC_VAR_INFO_T;
 
 /** This is a struct to handle the field metadata from a user-defined
@@ -432,6 +431,10 @@ extern int nc4_get_att_ptrs(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *grp, NC_VAR_INFO_
 
 /* Close the file. */
 extern int nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio);
+
+/* Compute default chunksizes */
+extern int nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
+extern int nc4_check_chunksizes(NC_GRP_INFO_T* grp, NC_VAR_INFO_T* var, const size_t* chunksizes);
 
 /* HDF5 initialization/finalization */
 extern int nc4_hdf5_initialized;
