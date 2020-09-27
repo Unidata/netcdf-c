@@ -16,7 +16,6 @@
 
 #include "config.h"
 #include "hdf5internal.h"
-#include "ncfilter.h"
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -630,6 +629,11 @@ close_vars(NC_GRP_INFO_T *grp)
 	    free(hdf5_var->dimscale_attached);
 	nullfree(hdf5_var);
 
+	/* Reclaim filters */
+	if(var->filters != NULL) {
+	    (void)NC4_hdf5_filter_freelist(var);
+	}
+	var->filters = NULL;
     }
 
     return NC_NOERR;
@@ -804,34 +808,15 @@ int
 nc4_hdf5_find_grp_h5_var(int ncid, int varid, NC_FILE_INFO_T **h5,
                          NC_GRP_INFO_T **grp, NC_VAR_INFO_T **var)
 {
-    NC_FILE_INFO_T *my_h5;
-    NC_GRP_INFO_T *my_grp;
     NC_VAR_INFO_T *my_var;
     int retval;
-
-    /* Look up file and group metadata. */
-    if ((retval = nc4_find_grp_h5(ncid, &my_grp, &my_h5)))
-        return retval;
-    assert(my_grp && my_h5);
-
-    /* Find the var. */
-    if (!(my_var = (NC_VAR_INFO_T *)ncindexith(my_grp->vars, varid)))
-        return NC_ENOTVAR;
-    assert(my_var && my_var->hdr.id == varid);
-
-    /* Do we need to read var metadata? */
+    /* Delegate to libsrc4 */
+    if((retval = nc4_find_grp_h5_var(ncid,varid,h5,grp,&my_var))) return retval;
+    /* Do we need to read var metadata? (hdf5 specific) */
     if (!my_var->meta_read && my_var->created)
         if ((retval = nc4_get_var_meta(my_var)))
             return retval;
-
-    /* Return pointers that caller wants. */
-    if (h5)
-        *h5 = my_h5;
-    if (grp)
-        *grp = my_grp;
-    if (var)
-        *var = my_var;
-
+    if (var) *var = my_var;
     return NC_NOERR;
 }
 

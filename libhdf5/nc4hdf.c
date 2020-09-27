@@ -18,7 +18,6 @@
 #include "netcdf.h"
 #include "nc4internal.h"
 #include "ncdispatch.h"
-#include "ncfilter.h"
 #include "hdf5internal.h"
 #include "hdf5debug.h"
 #include <math.h>
@@ -843,45 +842,38 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
      * has specified a filter, it will be applied here. */
     if(var->filters != NULL) {
 	int j;
-	for(j=0;j<nclistlength(var->filters);j++) {
-	    NC_FILTERX_SPEC* fi = (NC_FILTERX_SPEC*)nclistget(var->filters,j);
-	    unsigned int filterid;
-	    size_t nparams;
-
-	    if(!fi->active) {
-	        nparams = fi->nparams;
-  	        /* Do the conversions */
-	        if((retval = NC_cvtX2I_id(fi->filterid,&filterid))) BAIL(retval);
-	        if((params = malloc(nparams*sizeof(unsigned int)))==NULL)
-	            BAIL(NC_ENOMEM);
-    	        if((retval = NC_cvtX2I_params(nparams,(const char**)fi->params,params))) BAIL(retval);
-                if(filterid == H5Z_FILTER_DEFLATE) {/* Handle zip case here */
+	NClist* filters = (NClist*)var->filters;
+	for(j=0;j<nclistlength(filters);j++) {
+	    struct NC_HDF5_Filter* fi = (struct NC_HDF5_Filter*)nclistget(filters,j);
+	    {
+                if(fi->filterid == H5Z_FILTER_DEFLATE) {/* Handle zip case here */
                     unsigned level;
-                    if(nparams != 1)
+                    if(fi->nparams != 1)
                         BAIL(NC_EFILTER);
-                    level = (int)params[0];
+                    level = (int)fi->params[0];
                     if(H5Pset_deflate(plistid, level) < 0)
                         BAIL(NC_EFILTER);
-		    fi->active = 1;
-  	        } else if(filterid == H5Z_FILTER_SZIP) {/* Handle szip case here */
+  	        } else if(fi->filterid == H5Z_FILTER_SZIP) {/* Handle szip case here */
                     int options_mask;
                     int bits_per_pixel;
-                    if(nparams != 2)
+                    if(fi->nparams != 2)
                         BAIL(NC_EFILTER);
-                    options_mask = (int)params[0];
-                    bits_per_pixel = (int)params[1];
+                    options_mask = (int)fi->params[0];
+                    bits_per_pixel = (int)fi->params[1];
                     if(H5Pset_szip(plistid, options_mask, bits_per_pixel) < 0)
                         BAIL(NC_EFILTER);
-		    fi->active = 1;
                 } else {
-                    herr_t code = H5Pset_filter(plistid, filterid, H5Z_FLAG_MANDATORY, nparams, params);
+                    herr_t code = H5Pset_filter(plistid, fi->filterid,
+#if 0
+		    				H5Z_FLAG_MANDATORY,
+#else
+		    				H5Z_FLAG_OPTIONAL,
+#endif
+						fi->nparams, fi->params);
                     if(code < 0)
                         BAIL(NC_EFILTER);
-		    fi->active = 1;
 		}
             }
-	    /* reclaim */
-	    nullfree(params); params = NULL;
         }
     }
 
@@ -904,7 +896,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
         /* If there are no unlimited dims, and no filters, and the user
          * has not specified chunksizes, use contiguous variable for
          * better performance. */
-        if (!var->shuffle && !var->fletcher32 && nclistlength(var->filters) == 0 &&
+        if (!var->shuffle && !var->fletcher32 && nclistlength((NClist*)var->filters) == 0 &&
             (var->chunksizes == NULL || !var->chunksizes[0]) && !unlimdim)
 	    var->storage = NC_CONTIGUOUS;
 
@@ -2571,24 +2563,3 @@ NC4_walk(hid_t gid, int* countp)
     return ncstat;
 }
 
-int
-NC4_hdf5_remove_filter(NC_VAR_INFO_T* var, const char* filterid)
-{
-    int stat = NC_NOERR;
-    NC_HDF5_VAR_INFO_T *hdf5_var;
-    hid_t propid = -1;
-    herr_t herr = -1;
-    H5Z_filter_t hft;
-    unsigned int id;
-
-    hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
-    if ((propid = H5Dget_create_plist(hdf5_var->hdf_datasetid)) < 0)
-	{stat = NC_EHDFERR; goto done;}
-
-    if((stat = NC_cvtX2I_id(filterid,&id))) goto done;    
-    hft = id;
-    if((herr = H5Premove_filter(propid,hft)) < 0)
-	{stat = NC_EHDFERR; goto done;}
-done:
-    return stat;
-}

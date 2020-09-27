@@ -231,9 +231,6 @@ if test "x$REP" = x1 ; then
 echo "*** Testing filter re-definition invocation"
 rm -f filterrepeat.txt
 ${execdir}/test_filter_repeat >filterrepeat.txt
-pwd
-ls -l *.txt
-ls -l ${srcdir}/*.txt
 diff -b -w ${srcdir}/ref_filter_repeat.txt filterrepeat.txt
 fi
 
@@ -252,5 +249,6 @@ rm -f test_bzip2.c
 rm -f multifilter.nc multi.cdl smulti.cdl
 rm -f nccopyF.nc nccopyF.cdl ncgenF.nc ncgenF.cdl
 rm -f ncgenFs.cdl  nccopyFs.cdl
+
 exit 0
 

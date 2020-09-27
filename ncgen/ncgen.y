@@ -16,7 +16,6 @@ static char SccsId[] = "$Id: ncgen.y,v 1.42 2010/05/18 21:32:46 dmh Exp $";
 #include        "netcdf_aux.h"
 #include        "ncgeny.h"
 #include        "ncgen.h"
-#include        "ncfilter.h"
 #ifdef USE_NETCDF4
 #include        "netcdf_filter.h"
 #endif
@@ -130,7 +129,7 @@ static long long extractint(NCConstant* con);
 #ifdef USE_NETCDF4
 static int parsefilterflag(const char* sdata0, Specialdata* special);
 #ifdef GENDEBUG1
-static void printfilters(size_t nfilters, NC_ParsedFilterSpec** filters);
+static void printfilters(int nfilters, NC_ParsedFilterSpec** filters);
 #endif
 #endif
 
@@ -1486,7 +1485,7 @@ parsefilterflag(const char* sdata, Specialdata* special)
 
     if(sdata == NULL || strlen(sdata) == 0) return NC_EINVAL;
 
-    stat = ncaux_filterspec_parselist(sdata, NULL, &special->nfilters, &special->_Filters);
+    stat = ncaux_h5filterspec_parselist(sdata, NULL, &special->nfilters, &special->_Filters);
     if(stat)
         derror("Malformed filter spec: %s",sdata);
 #ifdef GENDEBUG1
@@ -1570,7 +1569,7 @@ done:
 
 #ifdef GENDEBUG1
 static void
-printfilters(size_t nfilters, NC_Filterspec** filters)
+printfilters(int nfilters, NC_Filterspec** filters)
 {
     int i;
     fprintf(stderr,"xxx: nfilters=%lu: ",(unsigned long)nfilters);

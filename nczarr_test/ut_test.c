@@ -14,6 +14,8 @@
 #include "XGetopt.h"
 #endif
 
+struct ZUTEST zutester;
+
 struct UTOptions utoptions;
 
 /*Forward*/

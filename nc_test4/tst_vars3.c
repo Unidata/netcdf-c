@@ -714,7 +714,7 @@ main(int argc, char **argv)
                     /* Also check using nc_inq_var_filter */
                     ret = nc_inq_var_filter(ncid, varid, &filterid, &nparams, params_in);
                     if (p < FIRST_VALID) {
-		        if(ret != NC_ENOFILTER) ERR;
+		        if(ret != NC_NOERR || filterid != 0) ERR;
                     }
                     else
                     {

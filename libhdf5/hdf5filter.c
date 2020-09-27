@@ -16,18 +16,20 @@
 #include <stdlib.h>
 #include "hdf5internal.h"
 #include "hdf5debug.h"
-#include "ncfilter.h"
+#include "netcdf.h"
+#include "netcdf_filter.h"
 
-#define HAVE_H5_DEFLATE
+#undef TFILTERS
 
-/* Mnemonic */
-#define FILTERACTIVE 1
-
+static int NC4_hdf5_filter_free(struct NC_HDF5_Filter* spec);
 
 /**************************************************/
 /* Filter registration support */
 
 #ifdef ENABLE_CLIENTSIDE_FILTERS
+
+/* Mnemonic */
+#define FILTERACTIVE 1
 
 /* WARNING: GLOBAL VARIABLE */
 /* Define list of registered filters */
@@ -150,70 +152,207 @@ done:
 #endif /*ENABLE_CLIENTSIDE_FILTERS*/
 
 /**************************************************/
+/**************************************************/
+/**
+ * @file
+ * @internal
+ * Internal netcdf hdf5 filter functions.
+ *
+ * This file contains functions internal to the libhdf5 library.
+ * None of the functions in this file are exposed in the exetnal API. These
+ * functions all relate to the manipulation of netcdf-4's var->filters list.
+ *
+ * @author Dennis Heimbigner
+ */
+#ifdef TFILTERS
+static void
+printfilter1(struct NC_HDF5_Filter* nfs)
+{
+    int i;
+    if(nfs == NULL) {
+	fprintf(stderr,"{null}");
+	return;
+    }
+    fprintf(stderr,"{%u,(%u)",nfs->filterid,(int)nfs->nparams);
+    for(i=0;i<nfs->nparams;i++) {
+      fprintf(stderr," %s",nfs->params[i]);
+    }
+    fprintf(stderr,"}");
+}
+
+static void
+printfilter(struct NC_HDF5_Filter* nfs, const char* tag, int line)
+{
+    fprintf(stderr,"%s: line=%d: ",tag,line);
+    printfilter1(nfs);
+    fprintf(stderr,"\n");
+}
+
+static void
+printfilterlist(NC_VAR_INFO_T* var, const char* tag, int line)
+{
+    int i;
+    const char* name;
+    if(var == NULL) name = "null";
+    else if(var->hdr.name == NULL) name = "?";
+    else name = var->hdr.name;
+    fprintf(stderr,"%s: line=%d: var=%s filters=",tag,line,name);
+    if(var != NULL) {
+	NClist* filters = (NClist*)var->filters;
+        for(i=0;i<nclistlength(filters);i++) {
+	    struct NC_HDF5_Filter* nfs = (struct NC_HDF5_Filter*)nclistget(filters,i);
+	    fprintf(stderr,"[%d]",i);
+	    printfilter1(nfs);
+	}
+    }
+    fprintf(stderr,"\n");
+}
+
+#define PRINTFILTER(nfs, tag) printfilter(nfs,tag,__LINE__)
+#define PRINTFILTERLIST(var,tag) printfilterlist(var,tag,__LINE__)
+#else
+#define PRINTFILTER(nfs, tag)
+#define PRINTFILTERLIST(var,tag)
+#endif
 
 int
-NC4_hdf5_addfilter(NC_VAR_INFO_T* var, int active, unsigned int id, size_t nparams, unsigned int* inparams)
+NC4_hdf5_filter_freelist(NC_VAR_INFO_T* var)
+{
+    int i, stat=NC_NOERR;
+    NClist* filters = (NClist*)var->filters;
+
+    if(filters == NULL) goto done;
+PRINTFILTERLIST(var,"free: before");
+    /* Free the filter list backward */
+    for(i=nclistlength(filters)-1;i>=0;i--) {
+	struct NC_HDF5_Filter* spec = (struct NC_HDF5_Filter*)nclistremove(filters,i);
+	if(spec->nparams > 0) nullfree(spec->params);
+	nullfree(spec);
+    }
+PRINTFILTERLIST(var,"free: after");
+    nclistfree(filters);
+    var->filters = NULL;
+done:
+    return stat;
+}
+
+static int
+NC4_hdf5_filter_free(struct NC_HDF5_Filter* spec)
+{
+    if(spec == NULL) goto done;
+PRINTFILTER(spec,"free");
+    if(spec->nparams > 0) nullfree(spec->params)
+    free(spec);
+done:
+    return NC_NOERR;
+}
+
+int
+NC4_hdf5_addfilter(NC_VAR_INFO_T* var, unsigned int id, size_t nparams, const unsigned int* params)
 {
     int stat = NC_NOERR;
-    char* idx = NULL;
-    char** paramsx = NULL;
-
-    if((nparams > 0 && inparams == NULL) || id == 0)
-        return THROW(NC_EINVAL);
-    if((stat=NC_cvtI2X_id(id,&idx,0))) goto done;
-    if(inparams != NULL) {
-        if((paramsx = malloc(sizeof(char*)*nparams)) == NULL)
-	    return THROW(NC_ENOMEM);
-	if((stat = NC_cvtI2X_params(nparams,inparams,paramsx))) goto done;
+    struct NC_HDF5_Filter* fi = NULL;
+    int olddef = 0; /* 1=>already defined */
+    NClist* flist = (NClist*)var->filters;
+    
+    if(nparams > 0 && params == NULL)
+	{stat = NC_EINVAL; goto done;}
+    
+    if((stat=NC4_hdf5_filter_lookup(var,id,&fi))==NC_NOERR) {
+	assert(fi != NULL);
+        /* already exists */
+	olddef = 1;	
+    } else {
+	stat = NC_NOERR;
+        if((fi = calloc(1,sizeof(struct NC_HDF5_Filter))) == NULL)
+	    {stat = NC_ENOMEM; goto done;}
+        fi->filterid = id;
+	olddef = 0;
+    }    
+    fi->nparams = nparams;
+    if(fi->params != NULL) {
+	nullfree(fi->params);
+	fi->params = NULL;
     }
-    if((stat = NC4_filterx_add(var,active,idx,nparams,(const char**)paramsx))) goto done;
+    assert(fi->params == NULL);
+    if(fi->nparams > 0) {
+	if((fi->params = (unsigned int*)malloc(sizeof(unsigned int)*fi->nparams)) == NULL)
+	    {stat = NC_ENOMEM; goto done;}
+        memcpy(fi->params,params,sizeof(unsigned int)*fi->nparams);
+    }
+    if(!olddef) {
+        nclistpush(flist,fi);
+PRINTFILTERLIST(var,"add");
+    }
+    fi = NULL; /* either way,its in the var->filters list */
+
 done:
-    nullfree(idx);
-    NC_filterx_freestringvec(nparams,paramsx);
+    if(fi) NC4_hdf5_filter_free(fi);    
     return THROW(stat);
 }
 
-/**
- * @internal Define filter settings. Called by nc_def_var_filter().
- *
- * @param ncid File ID.
- * @param varid Variable ID.
- * @param id Filter ID
- * @param nparams Number of parameters for filter.
- * @param parms Filter parameters.
- *
- * @returns ::NC_NOERR for success
- * @returns ::NC_EBADID Bad ncid.
- * @returns ::NC_ENOTVAR Invalid variable ID.
- * @returns ::NC_ENOTNC4 Attempting netcdf-4 operation on file that is
- * not netCDF-4/HDF5.
- * @returns ::NC_ELATEDEF Too late to change settings for this variable.
- * @returns ::NC_EFILTER Filter error.
- * @returns ::NC_EINVAL Invalid input
- * @author Dennis Heimbigner
- */
 int
-NC4_filter_actions(int ncid, int varid, int op, void* args)
+NC4_hdf5_filter_remove(NC_VAR_INFO_T* var, unsigned int id)
+{
+    int k;
+    NClist* flist = (NClist*)var->filters;
+
+    /* Walk backwards */
+    for(k=nclistlength(flist)-1;k>=0;k--) {
+	struct NC_HDF5_Filter* f = (struct NC_HDF5_Filter*)nclistget(flist,k);
+        if(f->filterid == id) {
+	    /* Remove from variable */
+    	    nclistremove(flist,k);
+#ifdef TFILTERS
+PRINTFILTERLIST(var,"remove");
+fprintf(stderr,"\tid=%s\n",id);
+#endif
+	    /* Reclaim */
+	    NC4_hdf5_filter_free(f);
+	    return NC_NOERR;
+	}
+    }
+    return NC_ENOFILTER;
+}
+
+int
+NC4_hdf5_filter_lookup(NC_VAR_INFO_T* var, unsigned int id, struct NC_HDF5_Filter** specp)
+{
+    int i;
+    NClist* flist = (NClist*)var->filters;
+    
+    if(flist == NULL) {
+	if((flist = nclistnew())==NULL)
+	    return NC_ENOMEM;
+	var->filters = (void*)flist;
+    }
+    for(i=0;i<nclistlength(flist);i++) {
+	struct NC_HDF5_Filter* spec = (struct NC_HDF5_Filter*)nclistget(flist,i);
+	if(id == spec->filterid) {
+	    if(specp) *specp = spec;
+	    return NC_NOERR;
+	}
+    }
+    return NC_ENOFILTER;
+}
+
+int
+NC4_hdf5_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
+                   const unsigned int* params)
 {
     int stat = NC_NOERR;
-    NC_GRP_INFO_T *grp = NULL;
-    NC_FILE_INFO_T *h5 = NULL;
-    NC_VAR_INFO_T *var = NULL;
-    NC_FILTERX_OBJ* obj = (NC_FILTERX_OBJ*)args;
-    unsigned int id = 0;
-    size_t nparams = 0;
-    unsigned int* params = NULL;
-    size_t nfilters = 0;
-    char* idx = NULL;
-    NC_FILTERX_SPEC* oldspec = NULL;
-    int haveszip;
-#ifdef HAVE_H5Z_SZIP
-    int havedeflate;
-#endif /* HAVE_H5Z_SZIP */
+    NC *nc;
+    NC_FILE_INFO_T* h5 = NULL;
+    NC_GRP_INFO_T* grp = NULL;
+    NC_VAR_INFO_T* var = NULL;
+    struct NC_HDF5_Filter* oldspec = NULL;
+    int havedeflate = 0;
+    int haveszip = 0;
 
-    LOG((2, "%s: ncid 0x%x varid %d op=%d", __func__, ncid, varid, op));
+    LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
 
-    if(args == NULL) {stat = THROW(NC_EINVAL); goto done;}
+    if((stat = NC_check_id(ncid,&nc))) return stat;
+    assert(nc);
 
     /* Find info for this file and group and var, and set pointer to each. */
     if ((stat = nc4_hdf5_find_grp_h5_var(ncid, varid, &h5, &grp, &var)))
@@ -221,59 +360,44 @@ NC4_filter_actions(int ncid, int varid, int op, void* args)
 
     assert(h5 && var && var->hdr.id == varid);
 
-    nfilters = nclistlength(var->filters);
-
-    switch (op) {
-    case NCFILTER_DEF: {
-        if(obj->usort != NC_FILTER_UNION_SPEC)
-	    {stat = THROW(NC_EFILTER); goto done;}
-        /* If the HDF5 dataset has already been created, then it is too
-         * late to set all the extra stuff. */
-        if (!(h5->flags & NC_INDEF))
-	    {stat = THROW(NC_EINDEFINE); goto done;}
-        if (!var->ndims)
-	    {stat = NC_EINVAL; goto done;} /* For scalars, complain */
-        if (var->created)
-             {stat = THROW(NC_ELATEDEF); goto done;}
-        /* Can't turn on parallel and szip before HDF5 1.10.2. */
+    /* If the HDF5 dataset has already been created, then it is too
+     * late to set all the extra stuff. */
+    if (!(h5->flags & NC_INDEF))
+	{stat = THROW(NC_EINDEFINE); goto done;}
+    if (!var->ndims)
+	{stat = NC_EINVAL; goto done;} /* For scalars, complain */
+    if (var->created)
+        {stat = THROW(NC_ELATEDEF); goto done;}
+    /* Can't turn on parallel and szip before HDF5 1.10.2. */
 #ifdef USE_PARALLEL
 #ifndef HDF5_SUPPORTS_PAR_FILTERS
-        if (h5->parallel == NC_TRUE)
-            {stat = THROW(NC_EINVAL); goto done;}
+    if (h5->parallel == NC_TRUE)
+        {stat = THROW(NC_EINVAL); goto done;}
 #endif /* HDF5_SUPPORTS_PAR_FILTERS */
 #endif /* USE_PARALLEL */
-	nparams = obj->u.spec.nparams;
+
 	/* Lookup incoming id to see if already defined */
-	if((stat = NC_cvtX2I_id(obj->u.spec.filterid,&id))) goto done;
-	if((params = calloc(sizeof(unsigned int),nparams))==NULL) {stat = NC_ENOMEM; goto done;}
-	if((stat = NC_cvtX2I_params(nparams,(const char**)obj->u.spec.params,params))) goto done;
-	oldspec = NULL;
-        switch((stat=NC4_filterx_lookup(var,obj->u.spec.filterid,&oldspec))) {
+        switch((stat=NC4_hdf5_filter_lookup(var,id,&oldspec))) {
 	case NC_NOERR: break; /* already defined */
         case NC_ENOFILTER: break; /*not defined*/
         default: goto done;
 	}
 	/* See if deflate &/or szip is defined */
-	if((stat = NC_cvtI2X_id(H5Z_FILTER_DEFLATE,&idx,0))) goto done;
-#ifdef HAVE_H5Z_SZIP
-	switch ((stat = NC4_filterx_lookup(var,idx,NULL))) {
+	switch ((stat = NC4_hdf5_filter_lookup(var,H5Z_FILTER_DEFLATE,NULL))) {
 	case NC_NOERR: havedeflate = 1; break;
 	case NC_ENOFILTER: havedeflate = 0; break;	
 	default: goto done;
 	}
-	nullfree(idx); idx = NULL;
-#endif /* HAVE_H5Z_SZIP */
-	if((stat = NC_cvtI2X_id(H5Z_FILTER_SZIP,&idx,0))) goto done;
-	switch ((stat = NC4_filterx_lookup(var,idx,NULL))) {
+#ifdef HAVE_H5Z_SZIP
+	switch ((stat = NC4_hdf5_filter_lookup(var,H5Z_FILTER_SZIP,NULL))) {
 	case NC_NOERR: haveszip = 1; break;
 	case NC_ENOFILTER: haveszip = 0; break;	
 	default: goto done;
 	}
-	nullfree(idx); idx = NULL;
+#endif /* HAVE_H5Z_SZIP */
 
 	/* If incoming filter not already defined, then check for conflicts */
 	if(oldspec == NULL) {
-#ifdef HAVE_H5_DEFLATE
             if(id == H5Z_FILTER_DEFLATE) {
 		int level;
                 if(nparams != 1)
@@ -281,13 +405,11 @@ NC4_filter_actions(int ncid, int varid, int op, void* args)
    	        level = (int)params[0];
                 if (level < NC_MIN_DEFLATE_LEVEL || level > NC_MAX_DEFLATE_LEVEL)
                     {stat = THROW(NC_EINVAL); goto done;}
+#ifdef HAVE_H5Z_SZIP
                 /* If szip compression is already applied, return error. */
 	        if(haveszip) {stat = THROW(NC_EINVAL); goto done;}
-            }
-#else /*!HAVE_H5_DEFLATE*/
-            if(id == H5Z_FILTER_DEFLATE)
-                {stat = THROW(NC_EFILTER); /* Not allowed */ goto done;}
 #endif
+            }
 #ifdef HAVE_H5Z_SZIP
             if(id == H5Z_FILTER_SZIP) { /* Do error checking */
                 if(nparams != 2)
@@ -330,7 +452,7 @@ NC4_filter_actions(int ncid, int varid, int op, void* args)
         }
 #endif
 	/* addfilter can handle case where filter is already defined, and will just replace parameters */
-        if((stat = NC4_hdf5_addfilter(var,!FILTERACTIVE,id,nparams,params)))
+        if((stat = NC4_hdf5_addfilter(var,id,nparams,params)))
                 goto done;
 #ifdef USE_PARALLEL
 #ifdef HDF5_SUPPORTS_PAR_FILTERS
@@ -343,66 +465,78 @@ NC4_filter_actions(int ncid, int varid, int op, void* args)
             {stat = THROW(NC_EINVAL); goto done;}
 #endif /* HDF5_SUPPORTS_PAR_FILTERS */
 #endif /* USE_PARALLEL */
-	} break;
-    case NCFILTER_FILTERIDS: {
-        if(obj->usort != NC_FILTER_UNION_IDS)
-	     {stat = THROW(NC_EFILTER); goto done;}
-	nfilters = nclistlength(var->filters);
-	obj->u.ids.nfilters = nfilters;
-        if(nfilters > 0) {
-	    int k;
-	    if((obj->u.ids.filterids = calloc(sizeof(char*),nfilters+1))==NULL)
-	        {stat = NC_ENOMEM; goto done;}
-	    for(k=0;k<nfilters;k++) {
-		NC_FILTERX_SPEC* f = (NC_FILTERX_SPEC*)nclistget(var->filters,k);
-		if((obj->u.ids.filterids[k] = strdup(f->filterid)) == NULL)
-		    {stat = NC_ENOMEM; goto done;}
-	    }
-	}
-	} break;
-    case NCFILTER_INFO: {
-	int k,found;
-        if(obj->usort != NC_FILTER_UNION_SPEC)
-	    {stat = THROW(NC_EFILTER); goto done;}
-        for(found=0,k=0;k<nfilters;k++) {
-	    NC_FILTERX_SPEC* f = (NC_FILTERX_SPEC*)nclistget(var->filters,k);
-	    if(strcmp(f->filterid,obj->u.spec.filterid)==0) {
-	        obj->u.spec.nparams = f->nparams;
-		if(f->params != NULL && f->nparams > 0) {
-		    if((stat=NC_filterx_copy(f->nparams,(const char**)f->params,&obj->u.spec.params))) goto done;
-		}
-		found = 1;
-		break;
-	    }
-	}
-	if(!found) {stat = NC_ENOFILTER; goto done;}
-	} break;
-    case NCFILTER_REMOVE: {
-        if (!(h5->flags & NC_INDEF))
-	    {stat = THROW(NC_EINDEFINE); goto done;}
-        if(obj->usort != NC_FILTER_UNION_SPEC)
-	    {stat = THROW(NC_EFILTER); goto done;}
-	/* Lookup filter */
-	if((stat = NC4_filterx_lookup(var,obj->u.spec.filterid,&oldspec))) goto done;
-	if(oldspec && oldspec->active)/* Cannot remove */
-	    {stat = NC_EFILTER; goto done;}
-        if((stat = NC4_filterx_remove(var,obj->u.spec.filterid))) goto done;
-	} break;
-    default:
-	{stat = NC_EINTERNAL; goto done;}	
-    }
 
 done:
-    nullfree(idx);
-    nullfree(params);
-    return THROW(stat);
+    return stat;
 }
 
-void
-NC4_freefilterspec(NC_FILTERX_SPEC* f)
+int
+NC4_hdf5_inq_var_filter_ids(int ncid, int varid, size_t* nfiltersp, unsigned int* ids)
 {
-    if(f) {
-        if(f->params != NULL) {NC_filterx_freestringvec(f->nparams,f->params);}
-	free(f);
+    int stat = NC_NOERR;
+    NC *nc;
+    NC_FILE_INFO_T* h5 = NULL;
+    NC_GRP_INFO_T* grp = NULL;
+    NC_VAR_INFO_T* var = NULL;
+    NClist* flist = NULL;
+    size_t nfilters;
+
+    LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
+
+    if((stat = NC_check_id(ncid,&nc))) return stat;
+    assert(nc);
+
+    /* Find info for this file and group and var, and set pointer to each. */
+    if ((stat = nc4_hdf5_find_grp_h5_var(ncid, varid, &h5, &grp, &var)))
+	{stat = THROW(stat); goto done;}
+
+    assert(h5 && var && var->hdr.id == varid);
+
+    flist = var->filters;
+
+    nfilters = nclistlength(flist);
+    if(nfilters > 0 && ids != NULL) {
+	int k;
+	for(k=0;k<nfilters;k++) {
+	    struct NC_HDF5_Filter* f = (struct NC_HDF5_Filter*)nclistget(flist,k);
+	    ids[k] = f->filterid;
+	}
     }
+    if(nfiltersp) *nfiltersp = nfilters;
+ 
+done:
+    return stat;
+
+}
+
+int
+NC4_hdf5_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparamsp, unsigned int* params)
+{
+    int stat = NC_NOERR;
+    NC *nc;
+    NC_FILE_INFO_T* h5 = NULL;
+    NC_GRP_INFO_T* grp = NULL;
+    NC_VAR_INFO_T* var = NULL;
+    struct NC_HDF5_Filter* spec = NULL;
+
+    LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
+
+    if((stat = NC_check_id(ncid,&nc))) return stat;
+    assert(nc);
+
+    /* Find info for this file and group and var, and set pointer to each. */
+    if ((stat = nc4_hdf5_find_grp_h5_var(ncid, varid, &h5, &grp, &var)))
+	{stat = THROW(stat); goto done;}
+
+    assert(h5 && var && var->hdr.id == varid);
+
+    if((stat = NC4_hdf5_filter_lookup(var,id,&spec))) goto done;
+    if(nparamsp) *nparamsp = spec->nparams;
+    if(params && spec->nparams > 0) {
+	memcpy(params,spec->params,sizeof(unsigned int)*spec->nparams);
+    }
+ 
+done:
+    return stat;
+
 }

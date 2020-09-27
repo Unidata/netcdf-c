@@ -13,7 +13,6 @@
 #include "hdf5internal.h"
 #include "ncrc.h"
 #include "ncmodel.h"
-#include "ncfilter.h"
 
 #ifdef ENABLE_BYTERANGE
 #include "H5FDhttp.h"
@@ -866,6 +865,7 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 		/* Extract auth related info */
 		if((ros3info(uri,&hostport,&region)))
 		    BAIL(NC_EINVAL);
+		ncurifree(uri); uri = NULL;
 		accessid = NC_rclookup("HTTP.CREDENTIALS.USER",hostport);
 		secretkey = NC_rclookup("HTTP.CREDENTIALS.PASSWORD",hostport);
                 fa.version = 1;
@@ -1017,7 +1017,6 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
     size_t cd_nelems;
     int f;
     int stat = NC_NOERR;
-    NC_FILTERX_SPEC* spec = NULL;
 
     assert(var);
 
@@ -1047,7 +1046,7 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
             if (cd_nelems != CD_NELEMS_ZLIB ||
                 cd_values[0] > NC_MAX_DEFLATE_LEVEL)
 		    {stat = NC_EHDFERR; goto done;}
-	    if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,cd_values)))
+	    if((stat = NC4_hdf5_addfilter(var,filter,cd_nelems,cd_values)))
 	       goto done;
             break;
 
@@ -1055,7 +1054,7 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
             /* Szip is tricky because the filter code expands the set of parameters from 2 to 4
                and changes some of the parameter values; try to compensate */
             if(cd_nelems == 0) {
-		if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,0,NULL)))
+		if((stat = NC4_hdf5_addfilter(var,filter,0,NULL)))
 		   goto done;
             } else {
                 /* fix up the parameters and the #params */
@@ -1065,16 +1064,16 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
 		/* Fix up changed params */
 		cd_values[0] &= (H5_SZIP_ALL_MASKS);
 		/* Save info */
-		stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,cd_values);
+		stat = NC4_hdf5_addfilter(var,filter,cd_nelems,cd_values);
 		if(stat) goto done;
             }
             } break;
 
         default:
             if(cd_nelems == 0) {
-  	        if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,0,NULL))) goto done;
+  	        if((stat = NC4_hdf5_addfilter(var,filter,0,NULL))) goto done;
             } else {
-  	        stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,cd_values);
+  	        stat = NC4_hdf5_addfilter(var,filter,cd_nelems,cd_values);
 		if(stat) goto done;
             }
             break;
@@ -1083,7 +1082,6 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
     }
 done:
     nullfree(cd_values);
-    NC4_filterx_free(spec);
     return stat;
 }
 
@@ -1448,6 +1446,9 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
     var->created = NC_TRUE;
     var->atts_read = 0;
 
+    /* Create filter list */
+    var->filters = (void*)nclistnew();
+
     /* Try and read the dimids from the COORDINATES attribute. If it's
      * not present, we will have to do dimsscale matching to locate the
      * dims for this var. */
@@ -1484,6 +1485,8 @@ exit:
             BAIL2(NC_EHDFERR);
 	if(var && var->format_var_info)
 	    free(var->format_var_info);
+	if(var && var->filters)
+	    nclistfree(var->filters);
         if (var)
             nc4_var_list_del(grp, var);
     }

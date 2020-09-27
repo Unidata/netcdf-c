@@ -25,10 +25,7 @@
 
 /* This is the version of the dispatch table. It should be changed
  * when new functions are added to the dispatch table. */
-#define NC_DISPATCH_VERSION 2
-
-/* Forward */
-struct NC_Filterobject;
+#define NC_DISPATCH_VERSION 3
 
 /* This is the dispatch table, with a pointer to each netCDF
  * function. */
@@ -145,10 +142,9 @@ struct NC_Dispatch
     int (*set_var_chunk_cache)(int, int, size_t, size_t, float);
     int (*get_var_chunk_cache)(int ncid, int varid, size_t *sizep,
                                size_t *nelemsp, float *preemptionp);
-
-    /* Dispatch table Version 2 or later */
-    /* Handle all filter related actions. */
-    int (*filter_actions)(int ncid, int varid, int action, void*);
+    /* Version 3 Replace filteractions with more specific functions */
+    int (*inq_var_filter_ids)(int ncid, int varid, size_t* nfilters, unsigned int* filterids);
+    int (*inq_var_filter_info)(int ncid, int varid, unsigned int id, size_t* nparams, unsigned int* params);
 };
 
 #if defined(__cplusplus)
@@ -184,6 +180,11 @@ extern "C" {
      * the enhanced model. They return NC_ENOTNC4. */
     EXTERNL int NC_NOTNC4_def_var_filter(int, int, unsigned int, size_t,
                                          const unsigned int*);
+    EXTERNL int NC_NOTNC4_inq_var_filter_ids(int ncid, int varid, size_t* nfilters, unsigned int* filterids);
+    EXTERNL int NC_NOTNC4_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparams, unsigned int* params);
+    EXTERNL int NC_NOOP_inq_var_filter_ids(int ncid, int varid, size_t* nfilters, unsigned int* filterids);
+    EXTERNL int NC_NOOP_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparams, unsigned int* params);
+
     EXTERNL int NC_NOTNC4_def_grp(int, const char *, int *);
     EXTERNL int NC_NOTNC4_rename_grp(int, const char *);
     EXTERNL int NC_NOTNC4_def_compound(int, size_t, const char *, nc_type *);
@@ -224,11 +225,7 @@ extern "C" {
     /* These functions are for dispatch layers that don't implement
      * the enhanced model, but want to succeed anyway.
      * They return NC_NOERR plus properly set the out parameters.
-     * In some cases (filter actions), some cases may succeed and some
-     * will fail.
      */
-    EXTERNL int NC_NOOP_filter_actions(int, int, int, void*);
-    EXTERNL int NC_NOTNC4_filter_actions(int, int, int, void*);
 
     /* These functions are for dispatch layers that don't want to
      * implement the deprecated varm functions. They return

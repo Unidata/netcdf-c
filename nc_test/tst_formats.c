@@ -203,13 +203,12 @@ main(int argc, char **argv)
                     if (storage_in != NC_CONTIGUOUS) ERR;
 
 		    /* Since there are no filters defined, all of these
-                       should succeed or return NC_ENOFILTER */
-		    if (nc_inq_var_filter(ncid, varid, &filterid, NULL, NULL) != NC_ENOFILTER) ERR;
+                       should succeed */
+		    if (nc_inq_var_filter(ncid, varid, &filterid, NULL, NULL)) ERR;
 		    filterid = H5Z_FILTER_DEFLATE;
 		    if (nc_inq_var_filter_info(ncid, varid, filterid, NULL, NULL) != NC_ENOFILTER) ERR;
 		    nfilters = 0;
-		    if (nc_inq_var_filterids(ncid, varid, &nfilters, NULL)) 
-ERR;
+		    if (nc_inq_var_filter_ids(ncid, varid, &nfilters, NULL)) ERR;
 		    if(nfilters != 0) ERR;
 
                     if (nc_enddef(ncid)) ERR;
