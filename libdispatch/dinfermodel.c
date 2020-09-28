@@ -697,7 +697,7 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
     NClist* modeargs = nclistnew();
     char* sfrag = NULL;
     const char* modeval = NULL;
-
+#if 0
 #if H5_VERSION_GE(1,12,0)
     hid_t fapl_id;
     if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) goto done;
@@ -705,8 +705,8 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
       
     htri_t accessible;      
     accessible = H5Fis_accessible(path, fapl_id);
-    printf("IS H5Fis_accessible %d \n",accessible);
-    if(accessible) {
+    printf("%s IS H5Fis_accessible %d \n",path,accessible);
+    if(accessible > 0) {
         int rc=0;
         FILE *fp;
         char *cmd;
@@ -730,7 +730,7 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
    }
    if (H5Pclose(fapl_id) < 0) goto done;
 #endif
-
+#endif
     /* Phase 1:
        1. convert special protocols to http|https
        2. begin collecting fragments
