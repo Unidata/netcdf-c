@@ -59,6 +59,7 @@ ncindexlookup(NCindex* ncindex, const char* name)
         assert(ncindex->map != NULL);
         if(!NC_hashmapget(ncindex->map,(void*)name,strlen(name),&index))
             return NULL; /* not present */
+        printf("lkjdsf\n");
         obj = (NC_OBJ*)nclistget(ncindex->list,(size_t)index);
 #else
         int i;
