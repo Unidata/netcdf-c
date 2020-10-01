@@ -135,7 +135,7 @@ deffilters(void)
     CHECK(nc_def_var_filter(ncid,varid,FILTER_ID,1,params));
     params[0] = 1;
     CHECK(nc_def_var_filter(ncid,varid,FILTER_ID+1,1,params));
-    CHECK(nc_inq_var_filterids(ncid,varid,&nfilters,filterids));
+    CHECK(nc_inq_var_filter_ids(ncid,varid,&nfilters,filterids));
     if(nfilters != 2) REPORT("nfilters mismatch");
     if(filterids[0] != FILTER_ID+0) REPORT("0: filterids mismatch");
     if(filterids[1] != FILTER_ID+1) REPORT("1: filterids mismatch");
@@ -161,7 +161,7 @@ openfile(void)
     CHECK(nc_inq_varid(ncid, "var", &varid));
 
     /* Check the compression algorithms */
-    CHECK(nc_inq_var_filterids(ncid,varid,&nfilters,filterids));
+    CHECK(nc_inq_var_filter_ids(ncid,varid,&nfilters,filterids));
     if(nfilters != 2)
         return NC_EINVAL;
     for(k=0;k<nfilters;k++) {

@@ -1013,14 +1013,14 @@ pr_att_specials(
 	int usedeflateatt = 0;
 
 	/* Get applicable filter ids */
-	NC_CHECK(nc_inq_var_filterids(ncid, varid, &nfilters, NULL));
+	NC_CHECK(nc_inq_var_filter_ids(ncid, varid, &nfilters, NULL));
 	/* Get set of filters for this variable */
 	if(nfilters > 0) {
 	    filterids = (unsigned int*)malloc(sizeof(unsigned int)*nfilters);
 	    if(filterids == NULL) NC_CHECK(NC_ENOMEM);
 	} else
 	    filterids = NULL;
-	NC_CHECK(nc_inq_var_filterids(ncid, varid, &nfilters, filterids));
+	NC_CHECK(nc_inq_var_filter_ids(ncid, varid, &nfilters, filterids));
         if(nfilters > 0) {
 	    int k;
 	    int pratt = 0;

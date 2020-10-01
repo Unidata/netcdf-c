@@ -41,7 +41,7 @@ will generate an error.
 
 #undef DEBUG
 
-extern void NC_filterfix8(void* mem, int decode);
+extern void NC_h5filterspec_fix8(void* mem, int decode);
 
 static htri_t H5Z_noop_can_apply(hid_t dcpl_id, hid_t type_id, hid_t space_id);
 static size_t H5Z_filter_noop(unsigned int, size_t, const unsigned int cd_values[], size_t, size_t*, void**);

@@ -603,6 +603,12 @@ if test "x$enable_s3_tests" = xyes ; then
 fi
 AM_CONDITIONAL(ENABLE_S3_TESTS, [test "x$enable_s3_tests" = xyes])
 
+# This has multiversion capability
+AC_MSG_CHECKING([whether multi-filter support is enabled])
+have_multifilters=yes
+AC_MSG_RESULT($have_multifilters)
+AC_DEFINE([HAVE_MULTIFILTERS], [1], [if true, multi-filter support enabled])
+
 # Check whether we want to enable strict null byte header padding.
 # See https://github.com/Unidata/netcdf-c/issues/657 for more information.
 AC_MSG_CHECKING([whether to enable strict null-byte header padding when reading (default off)])
@@ -1400,6 +1406,7 @@ AM_CONDITIONAL(RELAX_COORD_BOUND, [test "xyes" = xyes])
 AM_CONDITIONAL(HAS_PAR_FILTERS, [test x$hdf5_supports_par_filters = xyes ])
 AM_CONDITIONAL(ENABLE_NCZARR, [test "x$enable_nczarr" = xyes])
 AM_CONDITIONAL(HAVE_AWS, [test "x$have_aws" = xyes])
+AM_CONDITIONAL(HAVE_MULTIFILTERS, [test "x$have_multifilters" = xyes])
 
 # If the machine doesn't have a long long, and we want netCDF-4, then
 # we've got problems!
@@ -1482,23 +1489,12 @@ AC_ARG_ENABLE([filter-testing],
 test "x$enable_filter_testing" = xno || enable_filter_testing=yes
 AC_MSG_RESULT($enable_filter_testing)
 
-# Enable client side filter registration
-AC_MSG_CHECKING([If client-side filters are enabled (default off)])
-AC_ARG_ENABLE([clientside-filters],
-              [AS_HELP_STRING([--enable-clientside-filters],
-                              [enable client side filters])],
-				[],
-				[enable_clientside_filters=no])
-test "x$enable_clientside_filters" = xyes || enable_clientside_filters=no
-AC_MSG_RESULT($enable_clientside_filters)
-if test "x$enable_clientside_filters" = xyes ; then
-AC_DEFINE([ENABLE_CLIENTSIDE_FILTERS], [1], [if true, enable client-side filters])
-fi
+# Client side filter registration is permanently disabled
+enable_clientside_filters=no
 
 if test "x$enable_hdf5" = xno ; then
 AC_MSG_WARN([HDF5 disabled => --disable-filter-testing && --disable-client-filters])
 enable_filter_testing=no
-enable_clientside_filters=no
 fi
 
 if test "x$enable_shared" = xno ; then
@@ -1534,6 +1530,7 @@ AC_SUBST(RELAX_COORD_BOUND,[yes])
 AC_SUBST([HAS_PAR_FILTERS], [$hdf5_supports_par_filters])
 AC_SUBST(HAS_NCZARR,[$enable_nczarr])
 AC_SUBST(DO_S3_TESTS,[$enable_s3_tests])
+AC_SUBST(HAS_MULTIFILTERS,[$have_multifilters])
 
 # Include some specifics for netcdf on windows.
 #AH_VERBATIM([_WIN32_STRICMP],
@@ -1605,6 +1602,7 @@ AX_SET_META([NC_HAS_ERANGE_FILL], [$enable_erange_fill],[yes])
 AX_SET_META([NC_HAS_PAR_FILTERS], [$hdf5_supports_par_filters],[yes])
 AX_SET_META([NC_HAS_BYTERANGE],[$enable_byterange],[yes])
 AX_SET_META([NC_HAS_NCZARR],[$enable_nczarr],[yes])
+AX_SET_META([NC_HAS_MULTIFILTERS],[$have_multifilters],[yes])
 
 # This is the version of the dispatch table. If the dispatch table is
 # changed, this should be incremented, so that user-defined format

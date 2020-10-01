@@ -54,11 +54,6 @@
 /** This is the name of the name HDF5 dimension scale attribute. */
 #define HDF5_DIMSCALE_NAME_ATT_NAME NC_ATT_NAME
 
-/** Define Filter API Operations */
-#define FILTER_REG   1
-#define FILTER_UNREG 2
-#define FILTER_INQ   3
-
 /** Struct to hold HDF5-specific info for the file. */
 typedef struct NC_HDF5_FILE_INFO {
    hid_t hdfid;
@@ -111,9 +106,6 @@ typedef struct NC_HDF5_TYPE_INFO
     hid_t hdf_typeid;
     hid_t native_hdf_typeid;
 } NC_HDF5_TYPE_INFO_T;
-
-/* Forward */
-struct NC_FILTER_OBJ_HDF5;
 
 /* Logging and debugging. */
 void reportopenobjects(int log, hid_t);
@@ -179,23 +171,30 @@ int nc4_get_var_meta(NC_VAR_INFO_T *var);
 /* Get the file chunk cache settings from HDF5. */
 int nc4_hdf5_get_chunk_cache(int ncid, size_t *sizep, size_t *nelemsp,
 			     float *preemptionp);
+/* Filter Dispatch Entries */
+int NC4_hdf5_def_var_filter(int ncid, int varid, unsigned int filterid, size_t nparams, const unsigned int *params);
+int NC4_hdf5_inq_var_filter_ids(int ncid, int varid, size_t* nfiltersp, unsigned int *filterids);
+int NC4_hdf5_inq_var_filter_info(int ncid, int varid, unsigned int filterid, size_t* nparamsp, unsigned int *params);
 
-#ifdef ENABLE_CLIENTSIDE_FILTERS
-/* Define Filter API Function */
-int nc4_global_filter_action(int action, unsigned int id, struct NC_FILTER_OBJ_HDF5* infop);
-#endif
+/* Filterlist management */
 
-/* Use this in dispatch table */
-int NC4_hdf5_remove_filter(NC_VAR_INFO_T* var, const char* filterid);
-/*Internal */
-int NC4_hdf5_addfilter(NC_VAR_INFO_T* var, int active, unsigned int id, size_t nparams, unsigned int* params);
+/* The NC_VAR_INFO_T->filters field is an NClist of this struct */
+struct NC_HDF5_Filter {
+    int flags;             /**< Flags describing state of this filter. */
+    unsigned int filterid; /**< ID for arbitrary filter. */
+    size_t nparams;        /**< nparams for arbitrary filter. */
+    unsigned int* params;  /**< Params for arbitrary filter. */
+};
+
+int NC4_hdf5_filter_remove(NC_VAR_INFO_T* var, unsigned int id);
+int NC4_hdf5_filter_lookup(NC_VAR_INFO_T* var, unsigned int id, struct NC_HDF5_Filter** fi);
+int NC4_hdf5_addfilter(NC_VAR_INFO_T* var, unsigned int id, size_t nparams, const unsigned int* params);
+int NC4_hdf5_filter_freelist(NC_VAR_INFO_T* var);
 
 /* Support functions for provenance info (defined in nc4hdf.c) */
 extern int NC4_hdf5get_libversion(unsigned*,unsigned*,unsigned*);/*libsrc4/nc4hdf.c*/
 extern int NC4_hdf5get_superblock(struct NC_FILE_INFO*, int*);/*libsrc4/nc4hdf.c*/
 extern int NC4_isnetcdf4(struct NC_FILE_INFO*); /*libsrc4/nc4hdf.c*/
-
-extern int nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 
 #ifdef _WIN32
 

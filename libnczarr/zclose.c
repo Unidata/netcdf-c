@@ -162,6 +162,11 @@ zclose_vars(NC_GRP_INFO_T* grp)
 	    nullfree(zatt);
 	    att->format_att_info = NULL; /* avoid memory errors */
         }
+	/* Reclaim filters */
+	if(var->filters != NULL) {
+	    (void)NCZ_filter_freelist(var);
+	}
+	var->filters = NULL;
 	/* Reclaim the type */
 	(void)zclose_type(var->type_info);
         NCZ_free_chunk_cache(zvar->cache);

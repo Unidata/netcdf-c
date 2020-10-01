@@ -1472,15 +1472,15 @@ main(int argc, char **argv)
             /* Now I can't turn contiguous on, because deflate is on. */
             if (nc_def_var_chunking(ncid, varid, NC_CONTIGUOUS, NULL) != NC_EINVAL) ERR;
 
-            /* Turn off deflation. */
+            /* Verify that we cannot turn off deflation (shuffle is already off) */
             if (nc_def_var_deflate(ncid, varid, 0, 0, 0)) ERR;
             if (nc_inq_var_deflate(ncid, varid, &shuffle_in, &deflate_in, &deflate_level_in)) ERR;
-            if (shuffle_in || deflate_in) ERR;
+            if (shuffle_in || !deflate_in) ERR;
             if (nc_inq_var_deflate(ncid, varid, NULL, NULL, NULL)) ERR;
 
             /* Deflate fails for scalar. */
             if (nc_def_var_deflate(ncid, varid_scalar, 0, 1, 4) != NC_EINVAL) ERR;
-            if (nc_inq_var_deflate(ncid, varid, &shuffle_in, &deflate_in, &deflate_level_in)) ERR;
+            if (nc_inq_var_deflate(ncid, varid_scalar, &shuffle_in, &deflate_in, &deflate_level_in)) ERR;
             if (shuffle_in || deflate_in) ERR;
 
             /* Turn on shuffle. */
@@ -1498,11 +1498,6 @@ main(int argc, char **argv)
             /* Now I can't turn contiguous on, because fletcher32 is on. */
             if (nc_def_var_chunking(ncid, varid, NC_CONTIGUOUS, NULL) != NC_EINVAL) ERR;
 
-            /* Turn off fletcher32. */
-            if (nc_def_var_fletcher32(ncid, varid, 0)) ERR;
-
-            /* Now I can make it contiguous again. */
-            if (nc_def_var_chunking(ncid, varid, NC_CONTIGUOUS, NULL)) ERR;
             if (nc_close(ncid)) ERR;
         }
     }

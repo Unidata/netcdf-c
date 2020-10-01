@@ -55,31 +55,20 @@ EXTERNL size_t ncaux_type_alignment(int xtype, int ncid);
 EXTERNL size_t ncaux_class_alignment(int ncclass);
 
 /**************************************************/
-
-#define NCAUX_FILTERSPEC_VERSION 1
-
-/* String specific filter info */
-typedef struct NC_Filterspec {
-    int version;
-    char* filterid; /**< ID for arbitrary filter. */
-    size_t nparams;
-    char** params;   /**< Params for arbitrary filter. */
-} NC_Filterspec;
-
-/* HDF5 specific filter info */
+/* Capture the id and parameters for a filter
+   using the HDF5 unsigned int format
+*/
 typedef struct NC_H5_Filterspec {
     unsigned int filterid; /**< ID for arbitrary filter. */
     size_t nparams;        /**< nparams for arbitrary filter. */
     unsigned int* params;  /**< Params for arbitrary filter. */
 } NC_H5_Filterspec;
 
-EXTERNL void ncaux_filterfix8(unsigned char* mem, int decode);
-
-EXTERNL int ncaux_filterspec_parselist(const char* listspec, char** formatp, size_t* nfilters, NC_Filterspec*** filtersp);
-EXTERNL int ncaux_filterspec_parse(const char* txt, NC_Filterspec** specp);
-EXTERNL void ncaux_filterspec_free(NC_Filterspec*);
-EXTERNL int ncaux_filterspec_cvt(const NC_Filterspec* spec, NC_H5_Filterspec** spech5p);
-
+EXTERNL int ncaux_h5filterspec_parse(const char* txt, unsigned int* idp, size_t* nparamsp, unsigned int** paramsp);
+EXTERNL int ncaux_h5filterspec_parselist(const char* txt0, int* formatp, size_t* nspecsp, struct NC_H5_Filterspec*** vectorp);
+EXTERNL void ncaux_h5filterspec_free(struct NC_H5_Filterspec* f);
+EXTERNL void ncaux_h5filterspec_fix8(unsigned char* mem, int decode);
+	    
 #if defined(__cplusplus)
 }
 #endif

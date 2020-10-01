@@ -22,7 +22,6 @@
 #include "nc.h" /* from libsrc */
 #include "ncdispatch.h" /* from libdispatch */
 #include "ncutf8.h"
-#include "ncfilter.h"
 #include "netcdf_aux.h"
 
 /** @internal Number of reserved attributes. These attributes are
@@ -1353,10 +1352,6 @@ var_free(NC_VAR_INFO_T *var)
     if (var->type_info)
         if ((retval = nc4_type_free(var->type_info)))
             return retval;
-
-    /* Release filter information. */
-    NC4_filterx_freelist(var);
-    var->filters = NULL;
 
     /* Do this last because debugging may need it */
     if (var->hdr.name)

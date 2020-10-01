@@ -78,10 +78,6 @@ extradir =
 check_PROGRAMS += test_filter test_filter_misc test_filter_order test_filter_repeat
 check_PROGRAMS += tst_multifilter
 TESTS += tst_filter.sh
-if ENABLE_CLIENTSIDE_FILTERS
-#check_PROGRAMS += test_filter_reg
-TESTS += test_filter_reg
-endif
 endif
 endif # BUILD_UTILITIES
 
