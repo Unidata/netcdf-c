@@ -31,7 +31,7 @@ For now, this document is strongly influenced by the HDF5 mechanism.
 When other implementations (e.g. Zarr) support filters, this document
 will have multiple sections: one for each mechanism.
 
-# A Warning on Backward Compatibility
+# A Warning on Backward Compatibility {#filters_compatibility}
 
 The API defined in this document should accurately reflect
 the current state of filters in the netCDF-c library. Be aware
@@ -51,6 +51,9 @@ is requested about from a variable that has no filters or does not have a specif
 have been moved to __netcdf_aux.h__. See <a href="#filters_appendixa">Appendix A</a>.
 * It is no longer possible to use a filter name, such as "szip";
 one must use the assigned filter id, 4 for szip.
+
+For additional information, see <a href="#filters_appendixb">Appendix B</a>.
+
 
 # Enabling A HDF5 Compression Filter {#filters_enable}
 
@@ -702,7 +705,7 @@ This struct in effect encapsulates all of the information about
 and HDF5 formatted filter &mdash; the id, the number of parameters, and
 the parameters themselves. 
 
-Appendix B. Build Flags for Detecting the Filter Mechanism {#filters_appendixc}
+Appendix B. Build Flags for Detecting the Filter Mechanism {#filters_appendixb}
 ==========
 
 The include file _netcdf_meta.h contains the following definition.
@@ -711,7 +714,8 @@ The include file _netcdf_meta.h contains the following definition.
 ````
 
 This, in conjunction with the error code _NC_ENOFILTER_ in _netcdf.h_
-can be used to see what filter mechanism is in place.
+can be used to see what filter mechanism is in place as described
+in the section on <a href="#filters_compatibility">incompatibities</a>.
 
 1. !defined(NC_ENOFILTER) && !defined(NC_HAS_MULTIFILTERS) &mdash; indicates that the old pre-4.7.4
 mechanism is in place. It does not support multiple filters.
