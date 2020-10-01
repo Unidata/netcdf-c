@@ -167,9 +167,11 @@ EXTERNL int NCZ_def_var_fill(int, int, int, const void *);
 
 EXTERNL int NCZ_def_var_endian(int, int, int);
 
-EXTERNL int NCZ_def_var_filter(int, int, unsigned int, size_t, const unsigned int*);
-
 EXTERNL int NCZ_inq_unlimdims(int, int *, int *);
+
+EXTERNL int NCZ_def_var_filter(int ncid, int varid, unsigned int filterid, size_t nparams, const unsigned int *params);
+EXTERNL int NCZ_inq_var_filter_ids(int ncid, int varid, size_t* nfiltersp, unsigned int *filterids);
+EXTERNL int NCZ_inq_var_filter_info(int ncid, int varid, unsigned int filterid, size_t* nparamsp, unsigned int *params);
 
 #if defined(__cplusplus)
 }

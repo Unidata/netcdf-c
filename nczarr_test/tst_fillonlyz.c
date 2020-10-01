@@ -57,6 +57,9 @@ main(int argc, char *argv[] )
 	}
     }
 
+
+    if(fdat) free(fdat);
+    if(idat) free(idat);
     return 0;
 }
 

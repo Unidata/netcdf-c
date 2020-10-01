@@ -28,7 +28,6 @@ See COPYRIGHT for license information.
 #include "ncoffsets.h"
 #include "nclog.h"
 #include "netcdf_filter.h"
-#include "ncfilter.h"
 
 struct NCAUX_FIELD {
     char* name;
@@ -69,7 +68,8 @@ static int reclaim_opaque(int ncid, int xtype, size_t size, Position* offset);
 static int computefieldinfo(struct NCAUX_CMPD* cmpd);
 #endif /* USE_NETCDF4 */
 
-static void ncaux_freestringvec(int n, char** vec);
+static int filterspec_cvt(const char* txt, size_t* nparamsp, unsigned int* params);
+
 /**************************************************/
 
 /**
@@ -552,33 +552,6 @@ done:
 
 static int gettype(const int q0, const int q1, int* unsignedp);
 
-const struct LegalFormat {
-    const char* tag;
-    int format;
-} legalformats[] = {
-    {"hdf5", NC_FILTER_FORMAT_HDF5},
-    {NULL, 0},
-};
-
-
-void
-ncaux_filterfix8(unsigned char* mem, int decode)
-{
-#ifdef WORDS_BIGENDIAN
-    if(decode) { /* Apply inverse of the encode case */
-	byteswap4(mem); /* step 1: byte-swap each piece */
-	byteswap4(mem+4);
-	byteswap8(mem); /* step 2: convert to little endian format */
-    } else { /* encode */
-	byteswap8(mem); /* step 1: convert to little endian format */
-	byteswap4(mem); /* step 2: byte-swap each piece */
-	byteswap4(mem+4);
-    }
-#else /* Little endian */
-    /* No action is necessary */
-#endif	    
-}
-
 /* Look at q0 and q1) to determine type */
 static int
 gettype(const int q0, const int q1, int* isunsignedp)
@@ -644,27 +617,68 @@ byteswap4(unsigned char* mem)
 }
 #endif
 
+/**************************************************/
+/* Moved here from netcdf_filter.h */
+
+/*
+This function implements the 8-byte conversion algorithms for HDF5
+Before calling *nc_def_var_filter* (unless *NC_parsefilterspec* was used),
+the client must call this function with the decode argument set to 0.
+Inside the filter code, this function should be called with the decode
+argument set to 1.
+
+* @params mem8 is a pointer to the 8-byte value either to fix.
+* @params decode is 1 if the function should apply the 8-byte decoding algorithm
+          else apply the encoding algorithm.
+*/
+
+void
+ncaux_h5filterspec_fix8(unsigned char* mem8, int decode)
+{
+#ifdef WORDS_BIGENDIAN
+    if(decode) { /* Apply inverse of the encode case */
+	byteswap4(mem8); /* step 1: byte-swap each piece */
+	byteswap4(mem8+4);
+	byteswap8(mem8); /* step 2: convert to little endian format */
+    } else { /* encode */
+	byteswap8(mem8); /* step 1: convert to little endian format */
+	byteswap4(mem8); /* step 2: byte-swap each piece */
+	byteswap4(mem8+4);
+    }
+#else /* Little endian */
+    /* No action is necessary */
+#endif	    
+}
+
 /*
 Parse a filter spec string into a NC_FILTER_SPEC*
+Note that this differs from the usual case in that the
+function is called once to get both the number of parameters
+and the parameters themselves (hence the unsigned int** paramsp).
+
 @param txt - a string containing the spec as a sequence of
-              constants separated by commas.
-@param specp - store the parsed filter here -- caller frees
+              constants separated by commas, where first constant
+	      is the filter id and the rest are parameters.
+@param idp - store the parsed filter id here
+@param nparamsp - store the number of parameters here
+@param paramsp - store the vector of parameters here; caller frees.
 @return NC_NOERR if parse succeeded
 @return NC_EINVAL otherwise
 */
 
 EXTERNL int
-ncaux_filterspec_parse(const char* txt, NC_Filterspec** specp)
+ncaux_h5filterspec_parse(const char* txt, unsigned int* idp, size_t* nparamsp, unsigned int** paramsp)
 {
     int i,stat = NC_NOERR;
     char* p;
     char* sdata0 = NULL; /* what to free */
     char* sdata = NULL; /* sdata0 with leading prefix skipped */
     size_t nparams; /* no. of comma delimited params */
-    char* filterid = NULL;
-    char** params = NULL;
+    size_t nactual; /* actual number of unsigned int's */
+    const char* sid = NULL;
+    unsigned int filterid = 0;
+    unsigned int* params = NULL;
     size_t len;
-    NC_Filterspec* pfs = NULL;
     
     if(txt == NULL)
         {stat = NC_EINVAL; goto done;}
@@ -693,49 +707,42 @@ ncaux_filterspec_parse(const char* txt, NC_Filterspec** specp)
     p = sdata;
 
     /* Extract the filter id */
-    if((filterid=strdup(p))==NULL)
-        {stat = NC_ENOMEM; goto done;}
+    sid = p;
+    if((sscanf(sid,"%u",&filterid)) != 1) {stat = NC_EINVAL; goto done;}
     nparams--;
 
     /* skip past the filter id */
     p = p + strlen(p) + 1;
 
-    /* Allocate the max needed space */
-    if((params = (char**)calloc(sizeof(char*),(nparams)))==NULL)
+    /* Allocate the max needed space (assume all params are 64 bit) */
+    if((params = (unsigned int*)calloc(sizeof(unsigned int),(nparams)*2))==NULL)
 	{stat = NC_ENOMEM; goto done;}
 
     /* walk and capture */
-    for(i=0;i<nparams;i++) { /* step thru param strings */
+    for(nactual=0,i=0;i<nparams;i++) { /* step thru param strings */
+	size_t count = 0;
 	len = strlen(p);
 	/* skip leading white space */
 	while(strchr(" 	",*p) != NULL) {p++; len--;}
-	if((params[i] = strdup(p))==NULL) goto done;
-        p = p + strlen(p) + 1; /* move to next param */
+	if((stat = filterspec_cvt(p,&count,params+nactual))) goto done;
+	nactual += count;
+        p = p + strlen(p) + 1; /* move to next param string */
     }
     /* Now return results */
-    if(*specp != NULL) abort();
-    {
-        pfs = calloc(1,sizeof(NC_Filterspec));
-        if(pfs == NULL) {stat = NC_ENOMEM; goto done;}
-	pfs->version = NCAUX_FILTERSPEC_VERSION;
-        pfs->filterid = filterid; filterid = NULL;
-        pfs->nparams = nparams;;
-        pfs->params = params; params = NULL;
-	*specp = pfs; pfs = NULL;
-    }
-
+    if(idp) *idp = filterid;
+    if(nparamsp) *nparamsp = nactual;
+    if(paramsp) {*paramsp = params; params = NULL;}
 done:
-    ncaux_filterspec_free(pfs);
+    nullfree(params);
     nullfree(sdata);
-    nullfree(filterid);
-    ncaux_freestringvec(nparams,params);
     return stat;
 }
 
 /*
 Parse a string containing multiple '|' separated filter specs.
-
-@param spec0 - a string containing the list of filter specs.
+Use a vector of NC_Filterspec structs to return results.
+@param txt0 - a string containing the list of filter specs.
+@param formatp - store any leading format integer here
 @param nspecsp - # of parsed specs
 @param specsp - pointer to hold vector of parsed specs. Caller frees
 @return NC_NOERR if parse succeeded
@@ -743,14 +750,13 @@ Parse a string containing multiple '|' separated filter specs.
 */
 
 EXTERNL int
-ncaux_filterspec_parselist(const char* txt0, char** formatp, size_t* nspecsp, NC_Filterspec*** vectorp)
+ncaux_h5filterspec_parselist(const char* txt0, int* formatp, size_t* nspecsp, NC_H5_Filterspec*** vectorp)
 {
     int stat = NC_NOERR;
-    char* format = NULL;
+    int format = 0;
     size_t len = 0;
     size_t nspecs = 0;
-    NC_Filterspec** vector = NULL;
-    char* spec0 = NULL; /* with prefix */
+    NC_H5_Filterspec** vector = NULL;
     char* spec = NULL; /* without prefix */
     char* p = NULL;
     char* q = NULL;
@@ -760,7 +766,6 @@ ncaux_filterspec_parselist(const char* txt0, char** formatp, size_t* nspecsp, NC
     len = strlen(txt0);
     if((spec = calloc(1,len+1+1)) == NULL) {stat = NC_ENOMEM; goto done;}
     memcpy(spec,txt0,len); /* Note double ending nul */
-    spec0 = spec; /* Save for later free */
 
     /* See if there is a prefix '[format]' tag */
     if(spec[0] == LBRACK) {
@@ -768,8 +773,7 @@ ncaux_filterspec_parselist(const char* txt0, char** formatp, size_t* nspecsp, NC
 	q = strchr(p,RBRACK);
 	if(q == NULL) {stat = NC_EINVAL; goto done;}
 	*q++ = '\0'; /* delimit tag */
-	if((format = strdup(p))==NULL)
-	    {stat = NC_ENOMEM; goto done;}
+	if(sscanf(p,"%d",&format) != 1) {stat = NC_EINVAL; goto done;}
 	spec = q; /* skip tag wrt later processing */
     }
 
@@ -784,176 +788,154 @@ ncaux_filterspec_parselist(const char* txt0, char** formatp, size_t* nspecsp, NC
     }
     if(nspecs >  0) {
 	int count = 0;
-	if((vector = (NC_Filterspec**)calloc(sizeof(NC_Filterspec*),nspecs)) == NULL)
+	if((vector = (NC_H5_Filterspec**)calloc(sizeof(NC_H5_Filterspec*),nspecs)) == NULL)
 	    {stat = NC_ENOMEM; goto done;}
 	/* pass 2: parse */
 	p = spec;
 	for(count=0;count<nspecs;count++) {
-	    NC_Filterspec* aspec = NULL;
+	    NC_H5_Filterspec* spec = (NC_H5_Filterspec*)calloc(1,sizeof(NC_H5_Filterspec));
+	    if(spec == NULL) {stat = NC_ENOMEM; goto done;}
+	    vector[count] = spec;
 	    q = strchr(p,'|');
 	    if(q == NULL) q = p + strlen(p); /* fake it */
 	    *q = '\0';
-	    if((stat=ncaux_filterspec_parse(p,&aspec))) goto done;
-	    vector[count] = aspec; aspec = NULL;
+	    if((stat=ncaux_h5filterspec_parse(p,&spec->filterid,&spec->nparams,&spec->params))) goto done;
 	    p = q+1; /* ok because of double nul */
 	}
     }
-    if(formatp) {*formatp = format; format = NULL;}
+    if(formatp) *formatp = format;
     if(nspecsp) *nspecsp = nspecs;
     if(vectorp) {*vectorp = vector; vector = NULL;}
 done:
-    nullfree(spec0);
-    nullfree(format);
+    nullfree(spec);
     if(vector) {
 	int i;
         for(i=0;i<nspecs;i++)
-            ncaux_filterspec_free(vector[i]);
+	    ncaux_h5filterspec_free(vector[i]);
 	nullfree(vector);
     }
     return stat;
 }
 
-void
-ncaux_filterspec_free(NC_Filterspec* spec)
-{
-    if(spec) {
-	nullfree(spec->filterid);
-	if(spec->params != NULL)
-	    ncaux_freestringvec(spec->nparams,spec->params);
-	free(spec);
-    }
-}
-
-static void
-ncaux_freestringvec(int n, char** vec)
-{
-    int i;
-    if(vec) {
-        for(i=0;i<n;i++)
-            nullfree(vec[i]);
-	nullfree(vec);
-    }
-}
-
-
 /*
-Convert an NC_Filterspec to equivalent NC_H5_Filterspec.
-
-@param spec - (in) NC_Filterspec instance
-@param spech5p - (out) NC_H5_Filterspec poinbter
+Parse a string containing multiple '|' separated filter specs.
+Use a vector of NC_Filterspec structs to return results.
+@param txt0 - a string containing the list of filter specs.
+@param formatp - store any leading format integer here
+@param nspecsp - # of parsed specs
+@param specsp - pointer to hold vector of parsed specs. Caller frees
 @return NC_NOERR if parse succeeded
 @return NC_EINVAL if bad parameters or parse failed
 */
 
-EXTERNL int
-ncaux_filterspec_cvt(const NC_Filterspec* spec, NC_H5_Filterspec** spech5p)
+EXTERNL void
+ncaux_h5filterspec_free(NC_H5_Filterspec* f)
 {
-    int i,stat = NC_NOERR;
-    NC_H5_Filterspec* h5spec = NULL;
-    unsigned int* h5params = NULL;
-    size_t nparams = 0; /*actual count*/
-    
-    if((h5spec = calloc(1,sizeof(NC_H5_Filterspec))) == NULL)
-        {stat = NC_ENOMEM; goto done;}
-    /* Try to name convert the filter id */
-    if((stat = NC_cvtX2I_id(spec->filterid,&h5spec->filterid))) goto done;
-    if(spec->nparams >  0) {
-        if((h5params = (unsigned int*)calloc(sizeof(unsigned int),(spec->nparams)*2)) == NULL) /* Assume all are 8-byte */
-            {stat = NC_ENOMEM; goto done;}
-	/* Walk and convert */
-	for(nparams=0,i=0;i<spec->nparams;i++) {
-	    unsigned long long val64u;
-	    unsigned int val32u;
-	    double vald;
-	    float valf;
-	    unsigned int *vector;
-    	    unsigned char mem[8];
-	    int isunsigned = 0;
-	    int isnegative = 0;
-	    int type = 0;
-    	    char* q;
-	    char* p = spec->params[i];
-   	    size_t len = strlen(p);
-	    int sstat;
-	    /* skip leading white space */
-    	    while(strchr(" 	",*p) != NULL) {p++; len--;}
-	    /* Get leading sign character, if any */
-	    if(*p == '-') isnegative = 1;
-            /* Get trailing type tag characters */
-	    switch (len) {
-	    case 0: stat = NC_EINVAL; goto done; /* empty parameter */
-	    case 1: case 2:
-	        q = (p + len) - 1; /* point to last char */
-	        type = gettype(*q,'\0',&isunsigned);
-	        break;
-	    default: /* > 2 => we might have a two letter tag */
-	        q = (p + len) - 2;
-	        type = gettype(*q,*(q+1),&isunsigned);
-	        break;
-	    }
-	    /* Now parse */
-	    switch (type) {
-	    case 'b': case 's': case 'i':
- 	        /* special case for a positive integer;for back compatibility.*/
-	        if(!isnegative)
-	            sstat = sscanf(p,"%u",&val32u);
-	        else
-                    sstat = sscanf(p,"%d",(int*)&val32u);
-	        if(sstat != 1) {stat = NC_EINVAL; goto done;}
-	        switch(type) {
-	        case 'b': val32u = (val32u & 0xFF); break;
-	        case 's': val32u = (val32u & 0xFFFF); break;
-	        }
-	        h5params[nparams++] = val32u;
-	        break;
-  	    case 'f':
-                sstat = sscanf(p,"%lf",&vald);
-                if(sstat != 1) {stat = NC_EINVAL; goto done;}
-                valf = (float)vald;
-                h5params[nparams++] = *(unsigned int*)&valf;
-                break;
-            /* The following are 8-byte values, so we must swap pieces if this
-               is a little endian machine */        
-            case 'd':
-                sstat = sscanf(p,"%lf",&vald);
-                if(sstat != 1) {stat = NC_EINVAL; goto done;};
-                memcpy(mem,&vald,sizeof(mem));
-                ncaux_filterfix8(mem,0);
-                vector = (unsigned int*)mem;
-                h5params[nparams++] = vector[0];
-                h5params[nparams++] = vector[1];
-                break;
-            case 'l': /* long long */
-                if(isunsigned)
-                    sstat = sscanf(p,"%llu",&val64u);
-                else
-                    sstat = sscanf(p,"%lld",(long long*)&val64u);
-                if(sstat != 1) {stat = NC_EINVAL; goto done;};
-                memcpy(mem,&val64u,sizeof(mem));
-                ncaux_filterfix8(mem,0);
-                vector = (unsigned int*)&mem;
-                h5params[nparams++] = vector[0];
-                h5params[nparams++] = vector[1];
-                break;
-            default:
-                {stat = NC_EINVAL; goto done;};
-            }
- 	}
-	h5spec->params = h5params;
-	h5params = NULL;
-    }
+    if(f) nullfree(f->params);
+    nullfree(f);
+}
 
-    if(spech5p) {*spech5p = h5spec; h5spec = NULL;}
+
+/*
+Convert a parameter string to one or two unsigned ints/
+@param txt - (in) string constant
+@param nparamsp - (out) # of unsigned ints produced
+@param params - (out) produced unsigned ints
+@return NC_NOERR if parse succeeded
+@return NC_EINVAL if bad parameters or parse failed
+*/
+
+static int
+filterspec_cvt(const char* txt, size_t* nparamsp, unsigned int* params)
+{
+    int stat = NC_NOERR;
+    size_t nparams = 0; /*actual count*/
+    unsigned long long val64u;
+    unsigned int val32u;
+    double vald;
+    float valf;
+    unsigned int *vector;
+    unsigned char mem[8];
+    int isunsigned = 0;
+    int isnegative = 0;
+    int type = 0;
+    const char* q;
+    const char* p = txt;
+    size_t len = strlen(p);
+    int sstat;
+
+    /* skip leading white space */
+    while(strchr(" 	",*p) != NULL) {p++; len--;}
+    /* Get leading sign character, if any */
+    if(*p == '-') isnegative = 1;
+    /* Get trailing type tag characters */
+    switch (len) {
+    case 0: stat = NC_EINVAL; goto done; /* empty parameter */
+    case 1: case 2:
+        q = (p + len) - 1; /* point to last char */
+        type = gettype(*q,'\0',&isunsigned);
+        break;
+    default: /* > 2 => we might have a two letter tag */
+        q = (p + len) - 2;
+        type = gettype(*q,*(q+1),&isunsigned);
+        break;
+    }
+    /* Now parse */
+    switch (type) {
+    case 'b': case 's': case 'i':
+         /* special case for a positive integer;for back compatibility.*/
+        if(!isnegative)
+	     sstat = sscanf(p,"%u",&val32u);
+        else
+	    sstat = sscanf(p,"%d",(int*)&val32u);
+        if(sstat != 1) {stat = NC_EINVAL; goto done;}
+        switch(type) {
+        case 'b': val32u = (val32u & 0xFF); break;
+        case 's': val32u = (val32u & 0xFFFF); break;
+        }
+        params[nparams++] = val32u;
+        break;
+    case 'f':
+        sstat = sscanf(p,"%lf",&vald);
+        if(sstat != 1) {stat = NC_EINVAL; goto done;}
+        valf = (float)vald;
+        params[nparams++] = *(unsigned int*)&valf;
+        break;
+    /* The following are 8-byte values, so we must swap pieces if this
+    is a little endian machine */        
+    case 'd':
+        sstat = sscanf(p,"%lf",&vald);
+        if(sstat != 1) {stat = NC_EINVAL; goto done;};
+        memcpy(mem,&vald,sizeof(mem));
+        ncaux_h5filterspec_fix8(mem,0);
+        vector = (unsigned int*)mem;
+        params[nparams++] = vector[0];
+        params[nparams++] = vector[1];
+        break;
+    case 'l': /* long long */
+        if(isunsigned)
+            sstat = sscanf(p,"%llu",&val64u);
+        else
+            sstat = sscanf(p,"%lld",(long long*)&val64u);
+        if(sstat != 1) {stat = NC_EINVAL; goto done;};
+        memcpy(mem,&val64u,sizeof(mem));
+        ncaux_h5filterspec_fix8(mem,0);
+        vector = (unsigned int*)&mem;
+        params[nparams++] = vector[0];
+        params[nparams++] = vector[1];
+        break;
+    default:
+        {stat = NC_EINVAL; goto done;};
+    }
+    *nparamsp = nparams;
 
 done:
-    if(h5spec) {
-        nullfree(h5spec->params);
-	nullfree(h5spec);
-    }
     return stat;
 }
     
-    
+
+
+
 #if 0
 /*
 Parse a filter spec string into a NC_H5_Filterspec*

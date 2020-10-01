@@ -152,8 +152,9 @@ static NC_Dispatch tst_dispatcher = {
     NC_NOTNC4_def_var_filter,
     NC_NOTNC4_set_var_chunk_cache,
     NC_NOTNC4_get_var_chunk_cache,
-#if NC_DISPATCH_VERSION >= 2
-    NC_NOOP_filter_actions
+#if NC_DISPATCH_VERSION >= 3
+    NC_NOOP_inq_var_filter_ids,
+    NC_NOOP_inq_var_filter_info,
 #endif
 };
 
@@ -248,7 +249,8 @@ static NC_Dispatch tst_dispatcher_bad_version = {
     NC_NOTNC4_set_var_chunk_cache,
     NC_NOTNC4_get_var_chunk_cache,
 #if NC_DISPATCH_VERSION >= 2
-    NC_NOOP_filter_actions
+    NC_NOOP_inq_var_filter_ids,
+    NC_NOOP_inq_var_filter_info,
 #endif
 };
 

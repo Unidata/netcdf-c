@@ -12,11 +12,6 @@
 #define NETCDF_FILTER_H 1
 
 /* API for libdispatch/dfilter.c
-   Note that since this filter_actions() is visible
-   thru the dispatch table (via netcdf_dispatch.h)
-   and that can be seen by clients using user-defined
-   formats, then all argument types need
-   to be user visible as well.
 */
 
 /* Must match values in <H5Zpublic.h> */
@@ -44,12 +39,8 @@
 extern "C" {
 #endif
 
-/* Define the formats for NC_FILTER classes as aliases for NC_FORMATX_XXX*/
-#define NC_FILTER_FORMAT_HDF5 (NC_FORMATX_NC_HDF5)
-#define NCX_FILTER_FORMAT (NC_FORMATX_NCZARR)
-
 /**************************************************/
-/* HDF5 Specific filter functions (Deprecated) */
+/* HDF5 Format filter functions */
 
 /*Define a filter for a variable */
 EXTERNL int
@@ -62,60 +53,14 @@ nc_inq_var_filter(int ncid, int varid, unsigned int* idp, size_t* nparams, unsig
 /* Support inquiry about all the filters associated with a variable */
 /* As is usual, it is expected that this will be called twice: 
    once to get the number of filters, and then a second time to read the ids */
-EXTERNL int nc_inq_var_filterids(int ncid, int varid, size_t* nfilters, unsigned int* filterids);
+EXTERNL int nc_inq_var_filter_ids(int ncid, int varid, size_t* nfilters, unsigned int* filterids);
 
 /* Learn about the filter with specified id wrt a variable */
-EXTERNL int
-nc_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparams, unsigned int* params);
+EXTERNL int nc_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparams, unsigned int* params);
 
-/* Remove filter from variable*/
-EXTERNL int nc_var_filter_remove(int ncid, int varid, unsigned int id);
 
-/* Support direct user defined filters if enabled during configure;
-   last arg is void*, but is actually H5Z_class2_t*.
-   It is void* to avoid having to reference hdf.h.
-*/
-EXTERNL int nc_filter_client_register(unsigned int id, void*);
-EXTERNL int nc_filter_client_unregister(unsigned int id);
-EXTERNL int nc_filter_client_inq(unsigned int id, void*);
-
-/* End HDF5 Specific Declarations */
-
+/* End HDF5 Format Declarations */
 /**************************************************/
-/* X (String-based extension) Declarations */
-
-/*Define a filter for a variable */
-EXTERNL int
-nc_def_var_filterx(int ncid, int varid, const char* id, size_t nparams, const char** params);
-
-/* Support inquiry about all the filters associated with a variable */
-/* As is usual, it is expected that this will be called twice: 
-   once to get the number of filters, and then a second time to read the ids */
-EXTERNL int
-nc_inq_var_filterx_ids(int ncid, int varid, size_t* nfilters, char** filteridsp);
-
-/* Learn about the filter with specified id wrt a variable */
-EXTERNL int
-nc_inq_var_filterx_info(int ncid, int varid, const char* id, size_t* nparamsp, char** paramsp);
-
-/* Remove filter from variable*/
-EXTERNL int
-nc_var_filterx_remove(int ncid, int varid, const char* id);
-
-/* Support direct user defined filters if enabled during configure;
-   last arg is void*, but is actually H5Z_class2_t*.
-   It is void* to avoid having to reference hdf.h.
-*/
-EXTERNL int nc_filterx_client_register(const char* id, void*);
-EXTERNL int nc_filterx_client_unregister(const char* id);
-EXTERNL int nc_filterx_client_inq(const char* id, void*);
-
-/* End X (String-based extension) Declarations */
-
-/**************************************************/
-
-/* Set szip compression for a variable. */
-EXTERNL int nc_def_var_szip(int ncid, int varid, int options_mask, int pixels_per_block);
 
 #if defined(__cplusplus)
 }

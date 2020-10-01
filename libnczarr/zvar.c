@@ -383,6 +383,9 @@ NCZ_def_var(int ncid, const char *name, nc_type xtype, int ndims,
     var->meta_read = NC_TRUE;
     var->atts_read = NC_TRUE;
 
+    /* Set the filter list */
+    var->filters = (void*)nclistnew();
+
     /* Point to the type, and increment its ref. count */
     var->type_info = type;
 #ifdef LOOK
@@ -531,7 +534,7 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
      * before HDF5 1.10.3. */
 #ifndef HDF5_SUPPORTS_PAR_FILTERS
     if (h5->parallel == NC_TRUE)
-	if (nclistlength(var->filters) > 0  || fletcher32 || shuffle)
+	if (nclistlength(((NClist*)var->filters)) > 0  || fletcher32 || shuffle)
 	    return NC_EINVAL;
 #endif
 
@@ -575,14 +578,14 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
     /* Shuffle filter? */
     if (shuffle)
     {
-	var->shuffle = *shuffle;
+	if(*shuffle) var->shuffle = *shuffle;
 	var->storage = NC_CHUNKED;
     }
 
     /* Fletcher32 checksum error protection? */
     if (fletcher32)
     {
-	var->fletcher32 = *fletcher32;
+	if(*fletcher32) var->fletcher32 = *fletcher32;
 	var->storage = NC_CHUNKED;
     }
 
@@ -595,7 +598,7 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	 * no filters in use for this data. */
 	if (storage != NC_CHUNKED)
 	{
-	    if (nclistlength(var->filters) > 0 || var->fletcher32 || var->shuffle)
+	    if (nclistlength(((NClist*)var->filters)) > 0 || var->fletcher32 || var->shuffle)
 		return NC_EINVAL;
 	    for (d = 0; d < var->ndims; d++)
 		if (var->dim[d]->unlimited)
@@ -763,8 +766,6 @@ NCZ_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
     if((stat = ncz_def_var_extra(ncid, varid, &shuffle, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL))) goto done;
     if(deflate)
 	stat = nc_def_var_filter(ncid, varid, H5Z_FILTER_DEFLATE,1,&level);
-    else
-	stat = nc_var_filter_remove(ncid, varid, H5Z_FILTER_DEFLATE);
     if(stat) goto done;
 done:
     return stat;
@@ -930,32 +931,6 @@ NCZ_def_var_endian(int ncid, int varid, int endianness)
 {
     return ncz_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL, NULL,
 			    NULL, NULL, NULL, &endianness);
-}
-
-/**
- * @internal Define filter settings. Called by nc_def_var_filter().
- *
- * @param ncid File ID.
- * @param varid Variable ID.
- * @param id Filter ID
- * @param nparams Number of parameters for filter.
- * @param parms Filter parameters.
- *
- * @returns ::NC_NOERR for success
- * @returns ::NC_EBADID Bad ncid.
- * @returns ::NC_ENOTVAR Invalid variable ID.
- * @returns ::NC_ENOTNC4 Attempting netcdf-4 operation on file that is
- * not netCDF-4/NCZ.
- * @returns ::NC_ELATEDEF Too late to change settings for this variable.
- * @returns ::NC_EFILTER Filter error.
- * @returns ::NC_EINVAL Invalid input
- * @author Dennis Heimbigner
- */
-int
-NCZ_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
-		   const unsigned int* params)
-{
-    return NC_ENCZARR;
 }
 
 /**

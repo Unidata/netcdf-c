@@ -99,11 +99,12 @@ static const NC_Dispatch HDF5_dispatcher = {
     NC4_def_var_fletcher32,
     NC4_def_var_chunking,
     NC4_def_var_endian,
-    NC4_def_var_filter,
+    NC4_hdf5_def_var_filter,
     NC4_HDF5_set_var_chunk_cache,
     NC4_get_var_chunk_cache,
 
-    NC4_filter_actions,    
+    NC4_hdf5_inq_var_filter_ids,
+    NC4_hdf5_inq_var_filter_info,
 };
 
 const NC_Dispatch* HDF5_dispatch_table = NULL; /* moved here from ddispatch.c */

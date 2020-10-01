@@ -585,6 +585,9 @@ with zip */
 /* if true, compile in szip compression in netCDF-4 variables */
 #cmakedefine USE_SZIP 1
 
+/* if true, multi-filters enabled*/
+#cmakedefine HAVE_MULTIFILTERS 1
+
 /* Version number of package */
 #cmakedefine VERSION "${netCDF_VERSION}"
 

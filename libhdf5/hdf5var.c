@@ -15,10 +15,6 @@
 
 #include "netcdf.h"
 #include "netcdf_filter.h"
-#include "ncfilter.h"
-
-/** @internal Default size for unlimited dim chunksize. */
-#define DEFAULT_1D_UNLIM_SIZE (4096)
 
 /** @internal Temp name used when renaming vars to preserve varid
  * order. */
@@ -100,173 +96,6 @@ nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
             return NC_EHDFERR;
     }
 
-    return NC_NOERR;
-}
-
-/**
- * @internal Check a set of chunksizes to see if they specify a chunk
- * that is too big.
- *
- * @param grp Pointer to the group info.
- * @param var Pointer to the var info.
- * @param chunksizes Array of chunksizes to check.
- *
- * @returns ::NC_NOERR No error.
- * @returns ::NC_EBADID Bad ncid.
- * @returns ::NC_ENOTVAR Invalid variable ID.
- * @returns ::NC_EBADCHUNK Bad chunksize.
- */
-static int
-check_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, const size_t *chunksizes)
-{
-    double dprod;
-    size_t type_len;
-    int d;
-    int retval;
-
-    if ((retval = nc4_get_typelen_mem(grp->nc4_info, var->type_info->hdr.id, &type_len)))
-        return retval;
-    if (var->type_info->nc_type_class == NC_VLEN)
-        dprod = (double)sizeof(hvl_t);
-    else
-        dprod = (double)type_len;
-    for (d = 0; d < var->ndims; d++)
-        dprod *= (double)chunksizes[d];
-
-    if (dprod > (double) NC_MAX_UINT)
-        return NC_EBADCHUNK;
-
-    return NC_NOERR;
-}
-
-/**
- * @internal Determine some default chunksizes for a variable.
- *
- * @param grp Pointer to the group info.
- * @param var Pointer to the var info.
- *
- * @returns ::NC_NOERR for success
- * @returns ::NC_EBADID Bad ncid.
- * @returns ::NC_ENOTVAR Invalid variable ID.
- * @author Ed Hartnett, Dennis Heimbigner
- */
-int
-nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
-{
-    int d;
-    size_t type_size;
-    float num_values = 1, num_unlim = 0;
-    int retval;
-    size_t suggested_size;
-#ifdef LOGGING
-    double total_chunk_size;
-#endif
-
-    if (var->type_info->nc_type_class == NC_STRING)
-        type_size = sizeof(char *);
-    else
-        type_size = var->type_info->size;
-
-#ifdef LOGGING
-    /* Later this will become the total number of bytes in the default
-     * chunk. */
-    total_chunk_size = (double) type_size;
-#endif
-
-    if(var->chunksizes == NULL) {
-        if((var->chunksizes = calloc(1,sizeof(size_t)*var->ndims)) == NULL)
-            return NC_ENOMEM;
-    }
-
-    /* How many values in the variable (or one record, if there are
-     * unlimited dimensions). */
-    for (d = 0; d < var->ndims; d++)
-    {
-        assert(var->dim[d]);
-        if (! var->dim[d]->unlimited)
-            num_values *= (float)var->dim[d]->len;
-        else {
-            num_unlim++;
-            var->chunksizes[d] = 1; /* overwritten below, if all dims are unlimited */
-        }
-    }
-    /* Special case to avoid 1D vars with unlim dim taking huge amount
-       of space (DEFAULT_CHUNK_SIZE bytes). Instead we limit to about
-       4KB */
-    if (var->ndims == 1 && num_unlim == 1) {
-        if (DEFAULT_CHUNK_SIZE / type_size <= 0)
-            suggested_size = 1;
-        else if (DEFAULT_CHUNK_SIZE / type_size > DEFAULT_1D_UNLIM_SIZE)
-            suggested_size = DEFAULT_1D_UNLIM_SIZE;
-        else
-            suggested_size = DEFAULT_CHUNK_SIZE / type_size;
-        var->chunksizes[0] = suggested_size / type_size;
-        LOG((4, "%s: name %s dim %d DEFAULT_CHUNK_SIZE %d num_values %f type_size %d "
-             "chunksize %ld", __func__, var->hdr.name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[0]));
-    }
-    if (var->ndims > 1 && var->ndims == num_unlim) { /* all dims unlimited */
-        suggested_size = pow((double)DEFAULT_CHUNK_SIZE/type_size, 1.0/(double)(var->ndims));
-        for (d = 0; d < var->ndims; d++)
-        {
-            var->chunksizes[d] = suggested_size ? suggested_size : 1;
-            LOG((4, "%s: name %s dim %d DEFAULT_CHUNK_SIZE %d num_values %f type_size %d "
-                 "chunksize %ld", __func__, var->hdr.name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[d]));
-        }
-    }
-
-    /* Pick a chunk length for each dimension, if one has not already
-     * been picked above. */
-    for (d = 0; d < var->ndims; d++)
-        if (!var->chunksizes[d])
-        {
-            suggested_size = (pow((double)DEFAULT_CHUNK_SIZE/(num_values * type_size),
-                                  1.0/(double)(var->ndims - num_unlim)) * var->dim[d]->len - .5);
-            if (suggested_size > var->dim[d]->len)
-                suggested_size = var->dim[d]->len;
-            var->chunksizes[d] = suggested_size ? suggested_size : 1;
-            LOG((4, "%s: name %s dim %d DEFAULT_CHUNK_SIZE %d num_values %f type_size %d "
-                 "chunksize %ld", __func__, var->hdr.name, d, DEFAULT_CHUNK_SIZE, num_values, type_size, var->chunksizes[d]));
-        }
-
-#ifdef LOGGING
-    /* Find total chunk size. */
-    for (d = 0; d < var->ndims; d++)
-        total_chunk_size *= (double) var->chunksizes[d];
-    LOG((4, "total_chunk_size %f", total_chunk_size));
-#endif
-
-    /* But did this result in a chunk that is too big? */
-    retval = check_chunksizes(grp, var, var->chunksizes);
-    if (retval)
-    {
-        /* Other error? */
-        if (retval != NC_EBADCHUNK)
-            return retval;
-
-        /* Chunk is too big! Reduce each dimension by half and try again. */
-        for ( ; retval == NC_EBADCHUNK; retval = check_chunksizes(grp, var, var->chunksizes))
-            for (d = 0; d < var->ndims; d++)
-                var->chunksizes[d] = var->chunksizes[d]/2 ? var->chunksizes[d]/2 : 1;
-    }
-
-    /* Do we have any big data overhangs? They can be dangerous to
-     * babies, the elderly, or confused campers who have had too much
-     * beer. */
-    for (d = 0; d < var->ndims; d++)
-    {
-        size_t num_chunks;
-        size_t overhang;
-        assert(var->chunksizes[d] > 0);
-        num_chunks = (var->dim[d]->len + var->chunksizes[d] - 1) / var->chunksizes[d];
-        if(num_chunks > 0) {
-            overhang = (num_chunks * var->chunksizes[d]) - var->dim[d]->len;
-            var->chunksizes[d] -= overhang / num_chunks;
-        }
-    }
-
-#ifdef LOGGING
-    reportchunking("find_default: ",var);
-#endif
     return NC_NOERR;
 }
 
@@ -499,6 +328,9 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
     var->meta_read = NC_TRUE;
     var->atts_read = NC_TRUE;
 
+    /* Create filter list */
+    var->filters = (void*)nclistnew();
+
     /* Point to the type, and increment its ref. count */
     var->type_info = type;
     var->type_info->rc++;
@@ -679,7 +511,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
      * before HDF5 1.10.3. */
 #ifndef HDF5_SUPPORTS_PAR_FILTERS
     if (h5->parallel == NC_TRUE)
-        if (nclistlength(var->filters) > 0  || fletcher32 || shuffle)
+        if (nclistlength((NClist*)var->filters) > 0  || fletcher32 || shuffle)
             return NC_EINVAL;
 #endif
 
@@ -699,7 +531,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
     /* Shuffle filter? */
     if (shuffle)
     {
-        var->shuffle = *shuffle;
+        if(*shuffle) var->shuffle = *shuffle; /* Once set, cannot be unset */
 	if(var->shuffle)
             var->storage = NC_CHUNKED;
     }
@@ -707,7 +539,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
     /* Fletcher32 checksum error protection? */
     if (fletcher32)
     {
-        var->fletcher32 = *fletcher32;
+        if(*fletcher32) var->fletcher32 = *fletcher32; /* cannot be unset */
 	if(var->fletcher32)
             var->storage = NC_CHUNKED;
     }
@@ -719,7 +551,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
      * I/O. */
     if (shuffle || fletcher32)
     {
-        if (h5->parallel && (nclistlength(var->filters) > 0 || var->shuffle || var->fletcher32))
+        if (h5->parallel && (nclistlength((NClist*)var->filters) > 0 || var->shuffle || var->fletcher32))
             var->parallel_access = NC_COLLECTIVE;
     }
 #endif /* USE_PARALLEL */
@@ -732,10 +564,9 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
          * no filters in use for this data. */
         if (*storage != NC_CHUNKED)
         {
-            if (nclistlength(var->filters) > 0 || var->fletcher32 || var->shuffle)
+            if (nclistlength(((NClist*)var->filters)) > 0 || var->fletcher32 || var->shuffle)
                 return NC_EINVAL;
-
-            for (d = 0; d < var->ndims; d++)
+	    for (d = 0; d < var->ndims; d++)
                 if (var->dim[d]->unlimited)
                     return NC_EINVAL;
         }
@@ -755,7 +586,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
             if (chunksizes)
             {
                 /* Check the chunksizes for validity. */
-                if ((retval = check_chunksizes(grp, var, chunksizes)))
+                if ((retval = nc4_check_chunksizes(grp, var, chunksizes)))
                     return retval;
 
                 /* Ensure chunksize is smaller than dimension size */
@@ -908,15 +739,46 @@ NC4_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
     if((stat = nc_def_var_extra(ncid, varid, &shuffle, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL))) goto done;
     if(deflate) {
         if((stat = nc_def_var_filter(ncid, varid, H5Z_FILTER_DEFLATE,1,&level))) goto done;
-    } else {
-        switch (stat = nc_var_filter_remove(ncid, varid, H5Z_FILTER_DEFLATE)) {
-	case NC_NOERR: case NC_ENOFILTER: stat = NC_NOERR; break; /* ok if not previously defined */
-	default: goto done;
-	}
-    }
+    } /* else ignore */
+
 done:
     return stat;
 }
+
+#if 0
+/**
+ * @internal Remove a filter from filter list for a variable
+ *
+ * @param ncid File ID.
+ * @param varid Variable ID.
+ * @param id filter id to remove
+ *
+ * @returns ::NC_NOERR No error.
+ * @returns ::NC_EBADID Bad ncid.
+ * @returns ::NC_ENOTVAR Invalid variable ID.
+ * @returns ::NC_ENOTNC4 Attempting netcdf-4 operation on file that is
+ * not netCDF-4/HDF5.
+ * @returns ::NC_ELATEDEF Too late to change settings for this variable.
+ * @returns ::NC_ENOTINDEFINE Not in define mode.
+ * @returns ::NC_EINVAL Invalid input
+ * @author Dennis Heimbigner
+ */
+int
+nc_var_filter_remove(int ncid, int varid, unsigned int filterid)
+{
+    NC_VAR_INFO_T *var = NULL;
+    int stat;
+
+    /* Get pointer to the var. */
+    if ((stat = nc4_hdf5_find_grp_h5_var(ncid, varid, NULL, NULL, &var)))
+        return stat;
+    assert(var);
+
+    stat = NC4_hdf5_filter_remove(var,filterid);
+
+    return stat;
+}
+#endif
 
 /**
  * @internal Set checksum on a variable. This is called by
@@ -1078,38 +940,6 @@ NC4_def_var_endian(int ncid, int varid, int endianness)
 {
     return nc_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL, NULL,
                             NULL, NULL, NULL, &endianness);
-}
-
-int
-NC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
-                   const unsigned int* params)
-{
-    int retval = NC_NOERR;
-    NC *nc;
-    NC_FILTERX_OBJ obj;
-    char* xid = NULL;
-    char** xparams = NULL;
-
-    LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
-
-    if((retval = NC_check_id(ncid,&nc))) return retval;
-    assert(nc);
-
-    if((retval=NC_cvtI2X_idlist(1,&id,&xid))) goto done;
-    if((xparams = malloc(nparams*sizeof(char*)))==NULL)
-        {retval = NC_ENOMEM; goto done;}
-    if((retval=NC_cvtI2X_params(nparams,params,xparams))) goto done;
-
-    memset(&obj,0,sizeof(obj));
-    obj.usort = NC_FILTER_UNION_SPEC;
-    obj.u.spec.filterid = xid;
-    obj.u.spec.nparams = nparams;
-    obj.u.spec.params = (char**)xparams; /* Need to remove const */
-
-    if((retval=nc->dispatch->filter_actions(ncid,varid,NCFILTER_DEF,&obj))) goto done;
-    
-done:
-    return retval;
 }
 
 /**

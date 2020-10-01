@@ -10,7 +10,7 @@
 #include "ut_includes.h"
 #include "test_nczarr_utils.h"
 
-#define FILE_NAME "tst_chunks2.nc"
+#define FILE_NAME "tst_chunks2"
 #define MAX_WASTE 25.0
 #define NUM_RANDOM_TESTS 3
 #define NDIMS3 3
