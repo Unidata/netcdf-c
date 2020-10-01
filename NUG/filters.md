@@ -42,18 +42,21 @@ for previously working code because of these reversions. In that case,
 please revise your code to adhere to this document. Apologies are extended
 for any inconvenience. 
 
-The primary user-visible incompatibiltities are as follows:
-* Some functions (e.g. nc_inq_var_filter_ids) had a different name
-in the previous releases.
-* The functions _nc_inq_var_filter_info_ and nc_inq_var_filter return the _NC_ENOFILTER_ error when information
-is requested about from a variable that has no filters or does not have a specified filter attached.
+A user may encounter an incompatibility if any of the following
+appears in user code.
+
+* The function _nc_inq_var_filter_ was returning the error value _NC_ENOFILTER_
+  if a variable had no associated filters. It has been reverted to the previous
+  case where it returned _NC_NOERR_ and the returned filter id was set to zero
+  if the variable had no filters.
+* The function _nc_inq_var_filterids_ was renamed to _nc_inq_var_filter_ids_.
 * Some auxilliary functions for parsing textual filter specifications
-have been moved to __netcdf_aux.h__. See <a href="#filters_appendixa">Appendix A</a>.
-* It is no longer possible to use a filter name, such as "szip";
-one must use the assigned filter id, 4 for szip.
+  have been moved to __netcdf_aux.h__. See <a href="#filters_appendixa">Appendix A</a>.
+* All of the "filterx" functions have been removed. This is
+  unlikely to cause problems because they had limited
+  visibility.
 
 For additional information, see <a href="#filters_appendixb">Appendix B</a>.
-
 
 # Enabling A HDF5 Compression Filter {#filters_enable}
 
