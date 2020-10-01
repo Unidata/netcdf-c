@@ -258,7 +258,7 @@ NC4_read_ncproperties(NC_FILE_INFO_T* h5, char** propstring)
     }
 
     /* NCPROPS Attribute exists, make sure it is legitimate */
-    attid = H5Aopen_name(hdf5grpid, NCPROPS);
+    attid = H5Aopen_by_name(hdf5grpid, ".", NCPROPS, H5P_DEFAULT, H5P_DEFAULT);
     assert(attid > 0);
     aspace = H5Aget_space(attid);
     atype = H5Aget_type(attid);
