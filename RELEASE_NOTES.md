@@ -7,6 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.8.0 - TBD
 
+* [Documentation] Migrated the documents in the NUG/ directory to the dedicated NUG repository found at https://github.com/Unidata/netcdf
 * [Bug Fix] Revert the internal filter code to simplify it. From
 the user's point of view, the only visible change should be that
 (1) the functions that convert text to filter specs have had
