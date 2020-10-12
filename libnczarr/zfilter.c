@@ -444,8 +444,8 @@ printfilterlist(NC_VAR_INFO_T* var, const char* tag, int line)
     else name = var->hdr.name;
     fprintf(stderr,"%s: line=%d: var=%s filters=",tag,line,name);
     if(var != NULL) {
-        for(i=0;i<nclistlength(var->filters);i++) {
-	    struct NCZ_Filter* nfs = nclistget(var->filters,i);
+        for(i=0;i<nclistlength((NClist*)var->filters);i++) {
+	    struct NCZ_Filter* nfs = nclistget((NClist*)var->filters,i);
 	    fprintf(stderr,"[%d]",i);
 	    printfilter1(nfs);
 	}
