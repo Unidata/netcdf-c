@@ -8,14 +8,14 @@ set -e
 # Uncomment to run big test
 #BIGTEST=1
 
-#Constants
+# Test Urls (S3 URLS must be in path format)
 URL3="https://thredds-test.unidata.ucar.edu/thredds/fileServer/pointData/cf_dsg/example/point.nc#mode=bytes"
 #URL3="https://remotetest.unidata.ucar.edu/thredds/fileServer/testdata/2004050300_eta_211.nc#bytes"
-URL4a="https://noaa-goes16.s3.amazonaws.com/ABI-L1b-RadC/2017/059/03/OR_ABI-L1b-RadC-M3C13_G16_s20170590337505_e20170590340289_c20170590340316.nc#mode=bytes"
+URL4a="https://s3.us-east-1.amazonaws.com/noaa-goes16/ABI-L1b-RadC/2017/059/03/OR_ABI-L1b-RadC-M3C13_G16_s20170590337505_e20170590340289_c20170590340316.nc#mode=bytes"
 URL4b="https://thredds-test.unidata.ucar.edu/thredds/fileServer/irma/metar/files/METAR_20170910_0000.nc#bytes"
 # Do not use unless we know it has some permanence (note the segment 'testing' in the URL);
 if test "x$BIGTEST" = x1 ; then
-URL4c="https://coawst-public.s3-us-west-2.amazonaws.com/testing/HadCRUT.4.6.0.0.median.nc#mode=bytes"
+URL4c="https://s3.us-west-2.amazonaws.com/coawst-public/testing/HadCRUT.4.6.0.0.median.nc#mode=bytes"
 fi
 
 echo ""
