@@ -17,7 +17,7 @@
 #endif
 
 #include "ncdispatch.h"
-#include "ncwinpath.h"
+#include "ncpathmgr.h"
 #include "ncurlmodel.h"
 
 /*

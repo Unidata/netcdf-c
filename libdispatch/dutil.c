@@ -24,7 +24,7 @@
 #include "ncbytes.h"
 #include "nclist.h"
 #include "nclog.h"
-#include "ncwinpath.h"
+#include "ncpathmgr.h"
 
 extern int mkstemp(char *template);
 

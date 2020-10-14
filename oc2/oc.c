@@ -17,7 +17,7 @@
 #include "ncrc.h"
 #include "occurlfunctions.h"
 #include "ochttp.h"
-#include "ncwinpath.h"
+#include "ncpathmgr.h"
 
 #undef TRACK
 

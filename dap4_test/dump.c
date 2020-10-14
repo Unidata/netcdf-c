@@ -22,7 +22,7 @@
     
 #include "netcdf.h"
 #include "ncbytes.h"
-#include "ncwinpath.h"
+#include "ncpathmgr.h"
 
 extern void NCD4_dumpbytes(size_t size, const void* data0, int swap);
 extern void NCD4_tagdump(size_t size, const void* data0, int swap, const char* tag);

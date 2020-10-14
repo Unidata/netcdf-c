@@ -31,7 +31,7 @@
 #include "dimmap.h"
 #include "nccomps.h"
 #include "list.h"
-#include "ncwinpath.h"
+#include "ncpathmgr.h"
 
 #undef DEBUGFILTER
 

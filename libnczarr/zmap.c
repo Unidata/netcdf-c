@@ -4,7 +4,7 @@
  */
 
 #include "zincludes.h"
-#include "ncwinpath.h"
+#include "ncpathmgr.h"
 
 /**************************************************/
 /* Import the current implementations */

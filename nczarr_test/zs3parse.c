@@ -16,7 +16,7 @@
 #endif
 
 #include "zincludes.h"
-#include "ncwinpath.h"
+#include "ncpathmgr.h"
 
 #define DEBUG
 
