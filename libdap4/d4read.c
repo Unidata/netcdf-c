@@ -14,7 +14,7 @@ See \ref copyright file for more info.
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
-#include "ncwinpath.h"
+#include "ncpathmgr.h"
 
 /* Do conversion if this code was compiled via Vis. Studio or Mingw */
 
