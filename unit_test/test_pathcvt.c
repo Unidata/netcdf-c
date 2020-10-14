@@ -10,7 +10,7 @@ Test the NCpathcvt
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "ncwinpath.h"
+#include "ncpathmgr.h"
 
 #undef VERBOSE
 

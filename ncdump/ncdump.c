@@ -43,7 +43,7 @@ Research/Unidata. See \ref copyright file for more info.  */
 #include "isnan.h"
 #include "cdl.h"
 #include "nclog.h"
-#include "ncwinpath.h"
+#include "ncpathmgr.h"
 #include "nclist.h"
 #include "ncuri.h"
 #include "nc_provenance.h"
