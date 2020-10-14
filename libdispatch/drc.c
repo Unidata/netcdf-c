@@ -18,7 +18,7 @@ See COPYRIGHT for license information.
 #include "ncuri.h"
 #include "ncrc.h"
 #include "nclog.h"
-#include "ncwinpath.h"
+#include "ncpathmgr.h"
 
 #define RCFILEENV "DAPRCFILE"
 
