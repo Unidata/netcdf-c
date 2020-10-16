@@ -1041,12 +1041,11 @@ nc4_ndf5_ansi_to_utf8(pathbuf_t *pb, const char *path)
     int n;
 
     if (hdf5_encoding == UNDEF) {
-        uint majnum, minnum, relnum;
-        H5get_libversion(&majnum, &minnum, &relnum);
-        hdf5_encoding = (((majnum == UTF8_MAJNUM && minnum == UTF8_MINNUM && relnum >= UTF8_RELNUM)
-                          || (majnum == UTF8_MAJNUM && minnum > UTF8_MINNUM)
-                          || majnum > UTF8_MAJNUM)
-                         ? UTF8 : ANSI);
+#ifdef HDF5_UTF8_PATHS
+	hdf5_encoding = UTF8;
+#else
+	hdf5_encoding = ANSI;
+#endif
     }
     if (hdf5_encoding == ANSI) {
         pb->ptr = NULL;
