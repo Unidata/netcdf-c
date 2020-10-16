@@ -566,6 +566,9 @@ IF(ENABLE_NETCDF_4 AND NOT ENABLE_LOGGING AND ENABLE_SET_LOG_LEVEL_FUNC)
   SET(ENABLE_SET_LOG_LEVEL ON)
 ENDIF()
 
+# This has multiversion capability
+SET(HAS_MULTIFILTERS yes CACHE BOOL "")
+
 # Option to allow for strict null file padding.
 # See https://github.com/Unidata/netcdf-c/issues/657 for more information
 OPTION(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING "Enable strict null byte header padding." OFF)
@@ -779,7 +782,7 @@ IF(USE_HDF5)
     SET(ENABLE_NCDUMPCHUNKS ON)
   ENDIF()
 
-  # Check to see if this is hdf5-1.10.6 or later.
+  # Record if ROS3 Driver is available
   IF(HAS_HDF5_ROS3)
     SET(ENABLE_HDF5_ROS3 ON)
   ENDIF()
@@ -820,6 +823,19 @@ IF(USE_HDF5)
 
   #option to include HDF5 High Level header file (hdf5_hl.h) in case we are not doing a make install
   INCLUDE_DIRECTORIES(${HDF5_HL_INCLUDE_DIR})
+
+  # Check to see if we have libcurl 7.66 or later
+  CHECK_C_SOURCE_COMPILES("
+  #include <H5public.h>
+  int main() {
+#if (H5_VERS_MAJOR*10000 + H5_VERS_MINOR*100 + H5_VERS_RELEASE < 11006)
+      choke me;
+#endif
+  }" HDF5_VERSION_1106)
+
+  IF(HDF5_VERSION_1106)
+   SET(HDF5_UTF8_PATHS ON)
+  ENDIF()
 
 ENDIF(USE_HDF5)
 
@@ -962,24 +978,36 @@ IF(NOT WIN32)
 ENDIF()
 
 # Options to Extend NCZarr support
-OPTION(ENABLE_S3_SDK "Enable Search for AWS libraries." OFF)
-OPTION(ENABLE_S3_TESTS "Enable NCZarr S3 tests." OFF)
+OPTION(ENABLE_NCZARR_S3 "Enable NCZarr S3 support." OFF)
+OPTION(ENABLE_NCZARR_S3_TESTS "Enable NCZarr S3 tests." OFF)
 
-IF(NOT ENABLE_S3_SDK)
-  IF(ENABLE_S3_TESTS)
-     message(WARNING "DISABLE_S3_SDK => DISABLE_S3_TESTS")
-     SET(ENABLE_S3_TESTS OFF CACHE BOOL "S3 tests" FORCE)
-  ENDIF()
+IF(ENABLE_NCZARR_S3_TESTS AND NOT ENABLE_NCZARR_S3)
+  message(FATAL_ERROR "NCZarr S3 support is disabled; please specify option -DENABLE_NCZARR_S3_TESTS=no")
+  SET(ENABLE_NCZARR_S3_TESTS OFF CACHE BOOL "NCARR S3 TESTS" FORCE)  
 ENDIF()
 
-IF(ENABLE_S3_SDK)
 # See if aws-s3-sdk is available
+# But only if enabled
+IF(ENABLE_NCZARR_S3)
 find_package(AWSSDK REQUIRED)
 set(SERVICE s3)
 AWSSDK_DETERMINE_LIBS_TO_LINK(SERVICE AWSSDK_LINK_LIBRARIES)
-IF(NOT AWSSDK_FOUND)
+IF(AWSSDK_FOUND)
+  SET(ENABLE_S3_SDK ON CACHE BOOL "S3 SDK" FORCE)  
+ELSE()
   SET(ENABLE_S3_SDK OFF CACHE BOOL "S3 SDK" FORCE)
 ENDIF()
+ELSE(ENABLE_NCZARR_S3)
+# Unconditionally disable
+SET(ENABLE_S3_SDK OFF CACHE BOOL "S3 SDK" FORCE)
+ENDIF(ENABLE_NCZARR_S3)
+
+IF(NOT ENABLE_S3_SDK)
+  IF(ENABLE_NCZARR_S3 OR ENABLE_NCZARR_S3_TESTS)
+    message(FATAL_ERROR "AWS S3 libraries not found; please specify options DENABLE_NCZARR_S3=NO AND -DENABLE-NCZARR-S3-TESTS=NO")
+    SET(ENABLE_NCZARR_S3 OFF CACHE BOOL "NCZARR S3 support" FORCE)
+    SET(ENABLE_NCZARR_S3_TESTS OFF CACHE BOOL "S3 tests" FORCE)
+  ENDIF()
 ENDIF()
 
 ##
@@ -2076,7 +2104,7 @@ is_enabled(ENABLE_ERANGE_FILL HAS_ERANGE_FILL)
 is_enabled(HAVE_H5Z_SZIP HAS_SZLIB)
 is_enabled(HDF5_HAS_PAR_FILTERS HAS_PAR_FILTERS)
 is_enabled(ENABLE_NCZARR HAS_NCZARR)
-is_enabled(ENABLE_S3_TESTS DO_S3_TESTS)
+is_enabled(ENABLE_NCZARR_S3_TESTS DO_S3_TESTS)
 
 # Generate file from template.
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
@@ -2120,6 +2148,10 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test_common.in ${CMAKE_CURRENT_BINARY
 # Build nc_test4/findplugin.sh
 #####
 SET(ISCMAKE "1")
+IF(MSVC)
+SET(ISMSVC "1")
+ENDIF()
+
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/nc_test4/findplugin.sh @ONLY NEWLINE_STYLE LF)
 
 IF(ENABLE_EXAMPLES)
