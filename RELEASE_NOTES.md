@@ -7,17 +7,11 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.8.0 - TBD
 
+
+* [Bug Fix] Fix time zone parser bug.  See more information at [Github #1866](https://github.com/Unidata/netcdf-c/pull/1866) for more information.
 * [Documentation] Migrated the documents in the NUG/ directory to the dedicated NUG repository found at https://github.com/Unidata/netcdf
-* [Bug Fix] Revert the internal filter code to simplify it. From
-the user's point of view, the only visible change should be that
-(1) the functions that convert text to filter specs have had
-their signature reverted and renamed and have been moved to
-netcdf_aux.h, and (2) Some filter API functions now return
-NC_ENOFILTER when inquiry is made about some filter. Internally,
-the dispatch table has been modified to get rid of the complex
-structures.
-* [Bug Fix] If the HDF5 byte-range Virtual File Driver is available )HDf5 1.10.6 or later) then use
-it because it has better performance than the one currently built into the netcdf library.
+* [Bug Fix] Revert the internal filter code to simplify it. From the user's point of view, the only visible change should be that (1) the functions that convert text to filter specs have had their signature reverted and renamed and have been moved to netcdf_aux.h, and (2) Some filter API functions now return NC_ENOFILTER when inquiry is made about some filter. Internally, the dispatch table has been modified to get rid of the complex structures.
+* [Bug Fix] If the HDF5 byte-range Virtual File Driver is available )HDf5 1.10.6 or later) then use it because it has better performance than the one currently built into the netcdf library.
 * [Bug Fix] Fixed byte-range support with cURL > 7.69. See [https://github.com/Unidata/netcdf-c/pull/1798].
 * [Enhancement] Added new test for using compression with parallel I/O: nc_test4/tst_h_par_compress.c. See [https://github.com/Unidata/netcdf-c/pull/1784].
 * [Bug Fix] Don't return error for extra calls to nc_redef() for netCDF/HDF5 files, unless classic model is in use. See [https://github.com/Unidata/netcdf-c/issues/1779].

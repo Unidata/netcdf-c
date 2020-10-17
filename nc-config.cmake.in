@@ -73,7 +73,7 @@ else
     has_hdf5="yes"
 fi
 
-has_szlib="@USE_SZLIB@"
+has_szlib="@USE_SZIP@"
 if [ -z "$has_szlib" -o "$has_szlib" = "OFF" ]; then
     has_szlib="no"
 else

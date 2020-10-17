@@ -19,7 +19,7 @@ See COPYRIGHT for license information.
 #include "ncuri.h"
 #include "ncauth.h"
 #include "nclog.h"
-#include "ncwinpath.h"
+#include "ncpathmgr.h"
 
 #ifdef _MSC_VER
 #include <windows.h>

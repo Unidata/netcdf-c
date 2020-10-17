@@ -7,7 +7,7 @@
 
 #include "includes.h"
 #include "ncoffsets.h"
-#include "ncwinpath.h"
+#include "ncpathmgr.h"
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif

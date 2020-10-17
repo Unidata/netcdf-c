@@ -18,7 +18,7 @@
 #endif
 
 #include "ncdispatch.h"
-#include "ncwinpath.h"
+#include "ncpathmgr.h"
 #include "netcdf_mem.h"
 #include "fbits.h"
 #include "ncbytes.h"
