@@ -6,7 +6,7 @@
 #include "zincludes.h"
 
 #include "fbits.h"
-#include "ncwinpath.h"
+#include "ncpathmgr.h"
 
 /*
 Do a simple mapping of our simplified map model

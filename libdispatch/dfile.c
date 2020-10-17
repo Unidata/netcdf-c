@@ -35,7 +35,7 @@
 
 #include "ncdispatch.h"
 #include "netcdf_mem.h"
-#include "ncwinpath.h"
+#include "ncpathmgr.h"
 #include "fbits.h"
 
 #undef DEBUG

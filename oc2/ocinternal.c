@@ -32,7 +32,7 @@
 #include "ochttp.h"
 #include "ocread.h"
 #include "dapparselex.h"
-#include "ncwinpath.h"
+#include "ncpathmgr.h"
 
 #define DATADDSFILE "datadds"
 
