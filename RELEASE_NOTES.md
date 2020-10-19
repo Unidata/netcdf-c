@@ -7,7 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.8.0 - TBD
 
-
+* [Bug Fix] Support aligned access for selected ARM processors.  See [Github #1871](https://github.com/Unidata/netcdf-c/pull/1871) for more information.
 * [Bug Fix] Fix time zone parser bug.  See more information at [Github #1866](https://github.com/Unidata/netcdf-c/pull/1866) for more information.
 * [Documentation] Migrated the documents in the NUG/ directory to the dedicated NUG repository found at https://github.com/Unidata/netcdf
 * [Bug Fix] Revert the internal filter code to simplify it. From the user's point of view, the only visible change should be that (1) the functions that convert text to filter specs have had their signature reverted and renamed and have been moved to netcdf_aux.h, and (2) Some filter API functions now return NC_ENOFILTER when inquiry is made about some filter. Internally, the dispatch table has been modified to get rid of the complex structures.
