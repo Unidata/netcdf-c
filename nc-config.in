@@ -28,7 +28,6 @@ has_szlib="@HAS_SZLIB@"
 has_parallel="@HAS_PARALLEL@"
 has_parallel4="@HAS_PARALLEL4@"
 has_nczarr="@HAS_NCZARR@"
-has_s3_sdk="@HAS_S3_SDK@"
 version="@PACKAGE_NAME@ @PACKAGE_VERSION@"
 HAS_STATIC=""
 
@@ -94,7 +93,6 @@ Available values for OPTION include:
   --has-parallel4 whether has parallel IO support via HDF5
   --has-parallel  whether has parallel IO support via HDF5 or PnetCDF
   --has-nczarr    whether nczarr enabled
-  --has-s3-sdk    whether AWS S3 support enabled
   --libs          library linking information for netcdf
   --static        library linking information for statically-compiled netcdf
   --prefix        Install prefix
@@ -177,7 +175,6 @@ fi
         echo "  --has-parallel4 -> $has_parallel4"
         echo "  --has-parallel  -> $has_parallel"
         echo "  --has-nczarr    -> $has_nczarr"
-        echo "  --has-s3-sdk    -> $has_s3_sdk"
         echo
         echo "  --prefix        -> $prefix"
         echo "  --includedir    -> $includedir"
@@ -282,10 +279,6 @@ while test $# -gt 0; do
 
     --has-nczarr)
         echo $has_nczarr
-        ;;
-
-    --has-s3-sdk)
-        echo $has_s3_sdk
         ;;
 
     --libs)
