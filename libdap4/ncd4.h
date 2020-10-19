@@ -197,7 +197,17 @@ extern int nc__dap4(void);
 
 #undef GETCOUNTER
 #undef SKIPCOUNTER
+
+/* Unclear which macros are defined for which compilers.
+   see: https://sourceforge.net/p/predef/wiki/Architectures/
+*/
+#if defined(__arm__) && __ARM_ARCH < 8
+EXTERNL d4size_t NCD4_getcounter(void* p);
+#define GETCOUNTER(p) NCD4_getcounter(p)
+#else
 #define GETCOUNTER(p) ((d4size_t)*((COUNTERTYPE*)(p)))
+#endif /*defined(__arm__) && __ARM_ARCH < 8*/
+
 #define SKIPCOUNTER(p) {p=INCR(p,COUNTERSIZE);}
 
 #undef PUSH
