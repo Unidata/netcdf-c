@@ -202,9 +202,8 @@ extern int nc__dap4(void);
    see: https://sourceforge.net/p/predef/wiki/Architectures/
 */
 #if defined(__arm__) && __ARM_ARCH < 8
-static d4size_t
-GETCOUNTER(void* p)
-{COUNTERTYPE v; memcpy(v,p,sizeof(v)); return (d4size_t)v;}
+EXTERNL d4size_t NCD4_getcounter(void* p);
+#define GETCOUNTER(p) NCD4_getcounter(p)
 #else
 #define GETCOUNTER(p) ((d4size_t)*((COUNTERTYPE*)(p)))
 #endif /*defined(__arm__) && __ARM_ARCH < 8*/
