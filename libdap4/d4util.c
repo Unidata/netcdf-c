@@ -459,3 +459,11 @@ NCD4_errorNC(int code, const int line, const char* file)
 {
     return NCD4_error(code,line,file,nc_strerror(code));
 }
+
+d4size_t
+NCD4_getcounter(void* p)
+{
+    COUNTERTYPE v;
+    memcpy(&v,p,sizeof(v));
+    return (d4size_t)v;
+}
