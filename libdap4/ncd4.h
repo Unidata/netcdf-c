@@ -201,13 +201,14 @@ extern int nc__dap4(void);
 /* Unclear which macros are defined for which compilers.
    see: https://sourceforge.net/p/predef/wiki/Architectures/
 */
-#if defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_6__)
+#if defined(__arm__) && __ARM_ARCH < 8
 static d4size_t
 GETCOUNTER(void* p)
 {COUNTERTYPE v; memcpy(v,p,sizeof(v)); return (d4size_t)v;}
 #else
 #define GETCOUNTER(p) ((d4size_t)*((COUNTERTYPE*)(p)))
-#endif
+#endif /*defined(__arm__) && __ARM_ARCH < 8*/
+
 #define SKIPCOUNTER(p) {p=INCR(p,COUNTERSIZE);}
 
 #undef PUSH
