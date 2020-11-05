@@ -180,14 +180,14 @@ ocfetch(OCstate* state, const char* constraint, OCdxd kind, OCflags flags,
 
     switch (kind) {
     case OCDAS:
-        stat = readDAS(state,tree);
+        stat = readDAS(state,tree,flags);
 	if(stat == OC_NOERR) {
             tree->text = ncbytesdup(state->packet);
 	    if(tree->text == NULL) stat = OC_EDAS;
 	}
 	break;
     case OCDDS:
-        stat = readDDS(state,tree);
+        stat = readDDS(state,tree,flags);
 	if(stat == OC_NOERR) {
             tree->text = ncbytesdup(state->packet);
 	    if(tree->text == NULL) stat = OC_EDDS;
@@ -460,12 +460,15 @@ fprintf(stderr,"missing bod: ddslen=%lu bod=%lu\n",
 }
 
 OCerror
-ocupdatelastmodifieddata(OCstate* state)
+ocupdatelastmodifieddata(OCstate* state, OCflags ocflags)
 {
     OCerror status = OC_NOERR;
     long lastmodified;
     char* base = NULL;
-    base = ncuribuild(state->uri,NULL,NULL,NCURIENCODE);
+    int flags = 0;
+    if(ocflags & OCENCODEPATH) flags |= NCURIENCODEPATH;
+    if(ocflags & OCENCODEQUERY) flags |= NCURIENCODEQUERY;
+    base = ncuribuild(state->uri,NULL,NULL,flags);
     status = ocfetchlastmodified(state->curl, base, &lastmodified);
     free(base);
     if(status == OC_NOERR) {
