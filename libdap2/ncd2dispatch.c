@@ -2207,6 +2207,8 @@ fixzerodims(NCDAPCOMMON* dapcomm)
 static void
 applyclientparamcontrols(NCDAPCOMMON* dapcomm)
 {
+    const char* value = NULL;
+
     /* clear the flags */
     CLRFLAG(dapcomm->controls,NCF_CACHE);
     CLRFLAG(dapcomm->controls,NCF_SHOWFETCH);
@@ -2214,6 +2216,8 @@ applyclientparamcontrols(NCDAPCOMMON* dapcomm)
     CLRFLAG(dapcomm->controls,NCF_NCDAP);
     CLRFLAG(dapcomm->controls,NCF_PREFETCH);
     CLRFLAG(dapcomm->controls,NCF_PREFETCH_EAGER);
+    CLRFLAG(dapcomm->controls,NCF_ENCODE_PATH);
+    CLRFLAG(dapcomm->controls,NCF_ENCODE_QUERY);
 
     /* Turn on any default on flags */
     SETFLAG(dapcomm->controls,DFALT_ON_FLAGS);
@@ -2248,6 +2252,30 @@ applyclientparamcontrols(NCDAPCOMMON* dapcomm)
     else if(dapparamcheck(dapcomm,"nofillmismatch",NULL))
 	CLRFLAG(dapcomm->controls,NCF_FILLMISMATCH);
 
+    if((value=dapparamvalue(dapcomm,"encode")) != NULL) {
+	int i;
+	NClist* encode = nclistnew();
+	if(dapparamparselist(value,',',encode)) 
+            nclog(NCLOGERR,"Malformed encode parameter: %s",value);
+	else {
+	    /* First, turn off all the encode flags */
+            CLRFLAG(dapcomm->controls,NCF_ENCODE_PATH|NCF_ENCODE_QUERY);
+	    for(i=0;i<nclistlength(encode);i++) {
+	        char* s = nclistremove(encode,i);
+	        if(strcmp(s,"path")==0)
+	            SETFLAG(dapcomm->controls,NCF_ENCODE_PATH);
+	        else if(strcmp(s,"query")==0)
+	            SETFLAG(dapcomm->controls,NCF_ENCODE_QUERY);
+	        else if(strcmp(s,"all")==0)
+	            SETFLAG(dapcomm->controls,NCF_ENCODE_PATH|NCF_ENCODE_QUERY);
+	        else if(strcmp(s,"none")==0)
+	            CLRFLAG(dapcomm->controls,NCF_ENCODE_PATH|NCF_ENCODE_QUERY);
+	    }
+	}
+        nclistfree(encode);
+    } else { /* Set defaults */
+	SETFLAG(dapcomm->controls,NCF_ENCODE_QUERY);
+    }
     nclog(NCLOGNOTE,"Caching=%d",FLAGSET(dapcomm->controls,NCF_CACHE));
 
 }
