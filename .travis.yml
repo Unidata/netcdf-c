@@ -1,0 +1,40 @@
+# blocklist
+branches:
+  except:
+  - /.*[.]dmh/
+  - /.*[.]wif/
+
+sudo: required
+language: c
+services:
+    - docker
+
+env:
+    matrix:
+# Ubuntu
+        - DOCKIMG=unidata/nctests:serial   USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc CFLAGS='-fsigned-char' AC_COPTS='--disable-hdf5 --disable-hdf4 --disable-dap-remote-tests --enable-cdf5 --enable-byterange' COPTS='-DENABLE_HDF5=OFF -DENABLE_HDF4=OFF -DCMAKE_C_FLAGS=-fsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=TRUE -DENABLE_BYTERANGE=TRUE' USECP=FALSE CURHOST=docker-gcc-x64-signed TESTFILTER=FALSE
+
+        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc CFLAGS='-fsigned-char' AC_COPTS='--disable-hdf5 --disable-hdf4 --disable-dap-remote-tests' COPTS='-DENABLE_HDF5=OFF -DENABLE_HDF4=OFF -DCMAKE_C_FLAGS=-fsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=OFF' USECP=FALSE CURHOST=docker-gcc-x86-signed TESTFILTER=FALSE
+
+        - DOCKIMG=unidata/nctests:serial   USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc CFLAGS='-funsigned-char' AC_COPTS='--disable-hdf5 --disable-hdf4 --disable-dap-remote-tests --enable-cdf5' COPTS='-DENABLE_HDF5=OFF -DENABLE_HDF4=OFF -DCMAKE_C_FLAGS=-funsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=TRUE' USECP=FALSE CURHOST=docker-gcc-x64-unsigned TESTFILTER=FALSE
+
+        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc CFLAGS='-funsigned-char' AC_COPTS='--disable-hdf5 --disable-hdf4 --disable-dap-remote-tests' COPTS='-DENABLE_HDF5=OFF -DENABLE_HDF4=OFF -DCMAKE_C_FLAGS=-funsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=OFF' USECP=FALSE CURHOST=docker-gcc-x86-unsigned TESTFILTER=FALSE
+
+        - DOCKIMG=unidata/nctests:serial   USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc CFLAGS='-fsigned-char' AC_COPTS='--disable-dap-remote-tests --enable-cdf5' COPTS='-DCMAKE_C_FLAGS=-fsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=TRUE' USECP=FALSE CURHOST=docker-gcc-x64-signed TESTFILTER=TRUE
+
+        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc CFLAGS='-fsigned-char' AC_COPTS='--disable-dap-remote-tests' COPTS='-DCMAKE_C_FLAGS=-fsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=OFF' USECP=FALSE CURHOST=docker-gcc-x86-signed TESTFILTER=TRUE
+
+        - DOCKIMG=unidata/nctests:serial   USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc CFLAGS='-funsigned-char' AC_COPTS='--disable-dap-remote-tests --enable-cdf5' COPTS='-DCMAKE_C_FLAGS=-funsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=TRUE' USECP=FALSE CURHOST=docker-gcc-x64-unsigned TESTFILTER=TRUE
+
+        - DOCKIMG=unidata/nctests:serial32 USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc CFLAGS='-funsigned-char' AC_COPTS='--disable-dap-remote-tests' COPTS='-DCMAKE_C_FLAGS=-funsigned-char -DENABLE_DAP_REMOTE_TESTS=OFF -DENABLE_CDF5=OFF' USECP=FALSE CURHOST=docker-gcc-x86-unsigned TESTFILTER=TRUE
+
+# Centos, Fedora
+        - DOCKIMG=unidata/nctests:serial.centos USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc AC_COPTS='--disable-dap-remote-tests' COPTS='-DENABLE_DAP_REMOTE_TESTS=OFF' USECP=TRUE CURHOST=docker-gcc-x64-centos TESTFILTER=TRUE
+        - DOCKIMG=unidata/nctests:serial.fedora USECMAKE=TRUE USEAC=TRUE DISTCHECK=TRUE USE_CC=gcc AC_COPTS='--disable-dap-remote-tests' COPTS='-DENABLE_DAP_REMOTE_TESTS=OFF' USECP=TRUE CURHOST=docker-gcc-x64-fedora TESTFILTER=TRUE
+
+before_install:
+    - docker pull $DOCKIMG > /dev/null
+
+script:
+
+    - docker run --privileged --rm -it -h "$CURHOST" -e USEDASH=FALSE -e RUNF=OFF -e RUNCXX=OFF -e RUNP=OFF -e RUNNCO=OFF -e USECMAKE=$USECMAKE -e USEAC=$USEAC -e DISTCHECK=$DISTCHECK -e COPTS="$COPTS" -e AC_COPTS="$AC_COPTS" -e CTEST_OUTPUT_ON_FAILURE=1 -v $(pwd):/netcdf-c -e USE_LOCAL_CP=$USECP -e USE_CC=$USE_CC -e TESTPROC=100  -e ENABLE_FILTER_TESTING=$TESTFILTER -e ENABLE_C_MEMCHECK=OFF -e CFLAGS="$CFLAGS" $DOCKIMG
