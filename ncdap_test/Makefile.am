@@ -45,7 +45,7 @@ endif
 
 if ENABLE_DAP_REMOTE_TESTS
 if BUILD_UTILITIES
-TESTS += tst_ber.sh tst_remote3.sh tst_formatx.sh testurl.sh tst_fillmismatch.sh tst_zero_len_var.sh
+TESTS += tst_ber.sh tst_remote3.sh tst_formatx.sh testurl.sh tst_fillmismatch.sh tst_zero_len_var.sh tst_encode.sh
 endif
 
 TESTS += test_partvar
