@@ -1804,12 +1804,12 @@ oc_raw_xdrsize(OCobject link, OCobject ddsroot, off_t* xdrsizep)
 
 /* Resend a url as a head request to check the Last-Modified time */
 OCerror
-oc_update_lastmodified_data(OCobject link)
+oc_update_lastmodified_data(OCobject link, OCflags flags)
 {
     OCstate* state;
     OCVERIFY(OC_State,link);
     OCDEREF(OCstate*,state,link);
-    return OCTHROW(ocupdatelastmodifieddata(state));
+    return OCTHROW(ocupdatelastmodifieddata(state,flags));
 }
 
 long
