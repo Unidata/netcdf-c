@@ -9,15 +9,16 @@
 #include "ncexternl.h"
 
 /* Define flags to control what is included by ncuribuild*/
-#define NCURIPATH      1
-#define NCURIPWD       2
-#define NCURIQUERY     4
-#define NCURIFRAG      8
-#define NCURIENCODE    16 /* If output should be encoded */
-#define NCURIBASE    (NCURIPWD|NCURIPATH)
-#define NCURISVC     (NCURIQUERY|NCURIBASE) /* for sending to server  */
-#define NCURIALL     (NCURIPATH|NCURIPWD|NCURIQUERY|NCURIFRAG) /* for rebuilding after changes */
-
+#define NCURIPATH	    1
+#define NCURIPWD	    2
+#define NCURIQUERY	    4
+#define NCURIFRAG	    8
+#define NCURIENCODEPATH	    16 /* If output url path should be encoded */
+#define NCURIENCODEQUERY    32 /* If output url query should be encoded */
+#define NCURIENCODE	    (NCURIENCODEPATH|NCURIENCODEQUERY)
+#define NCURIBASE	    (NCURIPWD|NCURIPATH)
+#define NCURISVC	    (NCURIQUERY|NCURIBASE) /* for sending to server  */
+#define NCURIALL	    (NCURIPATH|NCURIPWD|NCURIQUERY|NCURIFRAG) /* for rebuilding after changes */
 
 /*! This is an open structure meaning
 	it is ok to directly access its fields
