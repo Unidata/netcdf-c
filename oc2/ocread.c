@@ -29,12 +29,12 @@
 #include "ncpathmgr.h"
 
 /*Forward*/
-static int readpacket(OCstate* state, NCURI*, NCbytes*, OCdxd, long*);
+static int readpacket(OCstate* state, NCURI*, NCbytes*, OCdxd, OCflags, long*);
 static int readfile(const char* path, const char* suffix, NCbytes* packet);
 static int readfiletofile(const char* path, const char* suffix, FILE* stream, off_t*);
 
 int
-readDDS(OCstate* state, OCtree* tree)
+readDDS(OCstate* state, OCtree* tree, OCflags flags)
 {
     int stat = OC_NOERR;
     long lastmodified = -1;
@@ -44,7 +44,7 @@ readDDS(OCstate* state, OCtree* tree)
 #ifdef OCDEBUG
 fprintf(stderr,"readDDS:\n");
 #endif
-    stat = readpacket(state,state->uri,state->packet,OCDDS,
+    stat = readpacket(state,state->uri,state->packet,OCDDS, flags,
 			&lastmodified);
     if(stat == OC_NOERR) state->ddslastmodified = lastmodified;
 
@@ -52,7 +52,7 @@ fprintf(stderr,"readDDS:\n");
 }
 
 int
-readDAS(OCstate* state, OCtree* tree)
+readDAS(OCstate* state, OCtree* tree, OCflags flags)
 {
     int stat = OC_NOERR;
 
@@ -60,7 +60,7 @@ readDAS(OCstate* state, OCtree* tree)
 #ifdef OCDEBUG
 fprintf(stderr,"readDAS:\n");
 #endif
-    stat = readpacket(state,state->uri,state->packet,OCDAS,NULL);
+    stat = readpacket(state,state->uri,state->packet,OCDAS,flags,NULL);
 
     return stat;
 }
@@ -86,7 +86,7 @@ ocdxdextension(OCdxd dxd)
 }
 
 static int
-readpacket(OCstate* state, NCURI* url,NCbytes* packet,OCdxd dxd,long* lastmodified)
+readpacket(OCstate* state, NCURI* url, NCbytes* packet, OCdxd dxd, OCflags ocflags, long* lastmodified)
 {
    int stat = OC_NOERR;
    int fileprotocol = 0;
@@ -102,8 +102,9 @@ readpacket(OCstate* state, NCURI* url,NCbytes* packet,OCdxd dxd,long* lastmodifi
 	stat = readfile(fetchurl,suffix,packet);
     } else {
 	int flags = NCURIBASE;
+	if(ocflags & OCENCODEPATH)flags |= NCURIENCODEPATH;
+	if(ocflags & OCENCODEQUERY) flags |= NCURIENCODEQUERY;
 	if(!fileprotocol) flags |= NCURIQUERY;
-	flags |= NCURIENCODE;
         fetchurl = ncuribuild(url,NULL,suffix,flags);
 	MEMCHECK(fetchurl,OC_ENOMEM);
 	if(ocdebug > 0)
@@ -125,7 +126,7 @@ fprintf(stderr,"readpacket: packet.size=%lu\n",
 }
 
 int
-readDATADDS(OCstate* state, OCtree* tree, OCflags flags)
+readDATADDS(OCstate* state, OCtree* tree, OCflags ocflags)
 {
     int stat = OC_NOERR;
     long lastmod = -1;
@@ -133,9 +134,9 @@ readDATADDS(OCstate* state, OCtree* tree, OCflags flags)
 #ifdef OCDEBUG
 fprintf(stderr,"readDATADDS:\n");
 #endif
-    if((flags & OCONDISK) == 0) {
+    if((ocflags & OCONDISK) == 0) {
         ncurisetquery(state->uri,tree->constraint);
-        stat = readpacket(state,state->uri,state->packet,OCDATADDS,&lastmod);
+        stat = readpacket(state,state->uri,state->packet,OCDATADDS,ocflags,&lastmod);
         if(stat == OC_NOERR)
             state->datalastmodified = lastmod;
         tree->data.datasize = ncbyteslength(state->packet);
@@ -151,8 +152,11 @@ fprintf(stderr,"readDATADDS:\n");
             stat = readfiletofile(readurl, ".dods", tree->data.file, &tree->data.datasize);
         } else {
             int flags = NCURIBASE;
+	    if(ocflags & OCENCODEPATH)
+	        flags |= NCURIENCODEPATH;
+	    if(ocflags & OCENCODEQUERY)
+	        flags |= NCURIENCODEQUERY;
             if(!fileprotocol) flags |= NCURIQUERY;
-            flags |= NCURIENCODE;
             ncurisetquery(url,tree->constraint);
             readurl = ncuribuild(url,NULL,".dods",flags);
             MEMCHECK(readurl,OC_ENOMEM);
