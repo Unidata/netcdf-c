@@ -644,6 +644,8 @@ putNCvx_$1_$2(NC3_INFO* ncp, const NC_var *varp,
 	void *xp;
         void *fillp=NULL;
 
+	NC_UNUSED(fillp);
+
 	if(nelems == 0)
 		return NC_NOERR;
 
@@ -847,7 +849,9 @@ getNCvx_$1_$2(const NC3_INFO* ncp, const NC_var *varp,
 }
 ')dnl
 
+#if 0 /*unused*/
 GETNCVX(char, char)
+#endif
 
 GETNCVX(schar, schar)
 GETNCVX(schar, short)

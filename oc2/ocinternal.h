@@ -229,7 +229,7 @@ extern int oc_network_order;
 extern int oc_invert_xdr_double;
 extern OCerror ocinternalinitialize(void);
 
-extern OCerror ocupdatelastmodifieddata(OCstate* state);
+extern OCerror ocupdatelastmodifieddata(OCstate* state, OCflags);
 
 extern OCerror ocset_useragent(OCstate* state, const char* agent);
 extern OCerror ocset_netrc(OCstate* state, const char* path);
