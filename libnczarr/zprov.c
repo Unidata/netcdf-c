@@ -90,6 +90,7 @@ NCZ_provenance_init(void)
 #endif
 
 #ifdef NCPROPERTIES_EXTRA
+    if(NCPROPERTIES_EXTRA != NULL && strlen(NCPROPERTIES_EXTRA) > 0)
     {
     /* Add any extra fields */
     const char* p = NCPROPERTIES_EXTRA;
