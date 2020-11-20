@@ -88,15 +88,19 @@ NC_combinehostport(NCURI* uri)
 }
 
 int
-NC_authsetup(NCauth* auth, NCURI* uri)
+NC_authsetup(NCauth** authp, NCURI* uri)
 {
     int ret = NC_NOERR;
     char* uri_hostport = NULL;
+    NCauth* auth = NULL;
 
     if(uri != NULL)
       uri_hostport = NC_combinehostport(uri);
     else
       return NC_EDAP; /* Generic EDAP error. */
+    if((auth=calloc(1,sizeof(NCauth)))==NULL)
+        return NC_ENOMEM;
+
     setdefaults(auth);
 
     /* Note, we still must do this function even if
@@ -145,6 +149,10 @@ NC_authsetup(NCauth* auth, NCURI* uri)
 			NC_rclookup("HTTP.SSL.VALIDATE",uri_hostport));
     setauthfield(auth,"HTTP.NETRC",
 			NC_rclookup("HTTP.NETRC",uri_hostport));
+    setauthfield(auth,"HTTP.S3.ACCESSID",
+			NC_rclookup("HTTP.S3.ACCESSID",uri_hostport));
+    setauthfield(auth,"HTTP.S3.SECRETKEY",
+			NC_rclookup("HTTP.S3.SECRETKEY",uri_hostport));
 
     { /* Handle various cases for user + password */
       /* First, see if the user+pwd was in the original url */
@@ -174,11 +182,12 @@ NC_authsetup(NCauth* auth, NCURI* uri)
       nullfree(pwd);
       nullfree(uri_hostport);
     }
+    if(authp) {*authp = auth; auth = NULL;}
     return (ret);
 }
 
 void
-NC_authclear(NCauth* auth)
+NC_authfree(NCauth* auth)
 {
     if(auth == NULL) return;
     if(auth->curlflags.cookiejarcreated) {
@@ -201,6 +210,9 @@ NC_authclear(NCauth* auth)
     nullfree(auth->proxy.pwd);
     nullfree(auth->creds.user);
     nullfree(auth->creds.pwd);
+    nullfree(auth->s3creds.accessid);
+    nullfree(auth->s3creds.secretkey);
+    nullfree(auth);
 }
 
 /**************************************************/
@@ -348,6 +360,17 @@ setauthfield(NCauth* auth, const char* flag, const char* value)
         nullfree(auth->creds.pwd);
         auth->creds.pwd = strdup(value);
         MEMCHECK(auth->creds.pwd);
+    }
+
+    if(strcmp(flag,"HTTP.S3.ACCESSID")==0) {
+        nullfree(auth->s3creds.accessid);
+        auth->s3creds.accessid = strdup(value);
+        MEMCHECK(auth->s3creds.accessid);
+    }
+    if(strcmp(flag,"HTTP.S3.SECRETKEY")==0) {
+        nullfree(auth->s3creds.secretkey);
+        auth->s3creds.secretkey = strdup(value);
+        MEMCHECK(auth->s3creds.secretkey);
     }
 
 done:

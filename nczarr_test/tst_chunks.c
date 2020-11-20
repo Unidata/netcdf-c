@@ -341,7 +341,7 @@ main(int argc, char **argv)
       if (nc_def_var(ncid, VAR_NAME_CACHE_CHUNK_2, NC_INT64, NDIM2, dimid, &varid2)) ERR;
       if (nc_def_var(ncid, VAR_NAME_CACHE_CHUNK_3, NC_INT64, NDIM2, dimid, &varid3)) ERR;
 
-      /* Set the var cache. */
+      /* Set the var cache to something arbitrary but small */
       if (nc_set_var_chunk_cache(ncid, varid, cache_size, cache_nelems,
                                  cache_preemption)) ERR;
 
@@ -363,9 +363,10 @@ main(int argc, char **argv)
           cache_preemption_in != cache_preemption) ERR;
       if (nc_get_var_chunk_cache(ncid, varid2, &cache_size_in, &cache_nelems_in,
                                  &cache_preemption_in)) ERR;
-      if (cache_size_in != CHUNK_CACHE_SIZE || cache_nelems_in != CHUNK_CACHE_NELEMS ||
-          cache_preemption_in != CHUNK_CACHE_PREEMPTION) ERR;
+      if (cache_size_in != CHUNK_CACHE_SIZE_NCZARR) ERR;
 
+#if 0
+      /* Inapplicable to zarr */
       /* The cache_size has been increased due to larger chunksizes
        * for varid3. */
       if (nc_get_var_chunk_cache(ncid, varid3, &cache_size_in, &cache_nelems_in,
@@ -373,6 +374,7 @@ main(int argc, char **argv)
       if (cache_nelems_in != CHUNK_CACHE_NELEMS ||
           cache_preemption_in != CHUNK_CACHE_PREEMPTION) ERR;
       /* printf("cache_size_in %ld\n", cache_size_in); */
+#endif
 
       /* Close the file. */
       if (nc_close(ncid)) ERR;

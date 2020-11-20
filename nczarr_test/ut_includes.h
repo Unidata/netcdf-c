@@ -12,10 +12,6 @@
 #include <unistd.h>
 #endif
 
-#ifdef HAVE_STDARG_H
-#include <stdarg.h>
-#endif
-
 #include "netcdf.h"
 #include "nclist.h"
 #include "ncbytes.h"

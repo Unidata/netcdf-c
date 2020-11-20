@@ -165,9 +165,6 @@ extern int NCD4_rcdefault(NCD4INFO*);
 /* From d4cvt.c */
 extern int NCD4_convert(nc_type srctype, nc_type dsttype, char* memory0, char* value0, size_t count);
 
-/* From d4crc32.c */
-extern unsigned int NCD4_crc32(unsigned int crc, const void *buf, size_t size);
-
 /* d4file.c */
 extern void NCD4_applyclientparamcontrols(NCD4INFO*);
 

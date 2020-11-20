@@ -55,8 +55,8 @@ static const NC_Dispatch NCZ_dispatcher = {
     NCZ_rename_var,
     NCZ_get_vara,
     NCZ_put_vara,
-    NCZ_get_vars,
-    NCZ_put_vars,
+    NCDEFAULT_get_vars,
+    NCDEFAULT_put_vars,
     NCDEFAULT_get_varm,
     NCDEFAULT_put_varm,
 

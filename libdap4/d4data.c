@@ -9,6 +9,7 @@
 #include "ezxml.h"
 #include "d4includes.h"
 #include "d4odom.h"
+#include "nccrc.h"
 
 /**
 This code serves two purposes
@@ -39,11 +40,11 @@ static unsigned int debugcrc32(unsigned int crc, const void *buf, size_t size)
     fprintf(stderr,"crc32: ");
     for(i=0;i<size;i++) {fprintf(stderr,"%02x",((unsigned char*)buf)[i]);}
     fprintf(stderr,"\n");
-    return NCD4_crc32(crc,buf,size);
+    return NC_crc32(crc,buf,size);
 }
 #define CRC32 debugcrc32
 #else
-#define CRC32 NCD4_crc32
+#define CRC32 NC_crc32
 #endif
 
 #define ISTOPLEVEL(var) ((var)->container == NULL || (var)->container->sort == NCD4_GROUP)

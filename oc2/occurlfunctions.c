@@ -49,46 +49,46 @@ ocset_curlflag(OCstate* state, int flag)
     switch (flag) {
 
     case CURLOPT_USERPWD: /* Does both user and pwd */
-        if(state->auth.creds.user != NULL && state->auth.creds.pwd != NULL) {
-	    SETCURLOPT(state, CURLOPT_USERNAME, state->auth.creds.user);
-	    SETCURLOPT(state, CURLOPT_PASSWORD, state->auth.creds.pwd);
+        if(state->auth->creds.user != NULL && state->auth->creds.pwd != NULL) {
+	    SETCURLOPT(state, CURLOPT_USERNAME, state->auth->creds.user);
+	    SETCURLOPT(state, CURLOPT_PASSWORD, state->auth->creds.pwd);
             SETCURLOPT(state, CURLOPT_HTTPAUTH, (OPTARG)CURLAUTH_ANY);
 	}
 	break;
 
     case CURLOPT_COOKIEJAR: case CURLOPT_COOKIEFILE:
-        if(state->auth.curlflags.cookiejar) {
+        if(state->auth->curlflags.cookiejar) {
 	    /* Assume we will read and write cookies to same place */
-	    SETCURLOPT(state, CURLOPT_COOKIEJAR, state->auth.curlflags.cookiejar);
-	    SETCURLOPT(state, CURLOPT_COOKIEFILE, state->auth.curlflags.cookiejar);
+	    SETCURLOPT(state, CURLOPT_COOKIEJAR, state->auth->curlflags.cookiejar);
+	    SETCURLOPT(state, CURLOPT_COOKIEFILE, state->auth->curlflags.cookiejar);
         }
 	break;
 
     case CURLOPT_NETRC: case CURLOPT_NETRC_FILE:
-	if(state->auth.curlflags.netrc) {
+	if(state->auth->curlflags.netrc) {
 	    SETCURLOPT(state, CURLOPT_NETRC, (OPTARG)CURL_NETRC_REQUIRED);
-	    SETCURLOPT(state, CURLOPT_NETRC_FILE, state->auth.curlflags.netrc);
+	    SETCURLOPT(state, CURLOPT_NETRC_FILE, state->auth->curlflags.netrc);
         }
 	break;
 
     case CURLOPT_VERBOSE:
-	if(state->auth.curlflags.verbose)
+	if(state->auth->curlflags.verbose)
 	    SETCURLOPT(state, CURLOPT_VERBOSE, (OPTARG)1L);
 	break;
 
     case CURLOPT_TIMEOUT:
-	if(state->auth.curlflags.timeout)
-	    SETCURLOPT(state, CURLOPT_TIMEOUT, (OPTARG)((long)state->auth.curlflags.timeout));
+	if(state->auth->curlflags.timeout)
+	    SETCURLOPT(state, CURLOPT_TIMEOUT, (OPTARG)((long)state->auth->curlflags.timeout));
 	break;
 
     case CURLOPT_CONNECTTIMEOUT:
-	if(state->auth.curlflags.connecttimeout)
-	    SETCURLOPT(state, CURLOPT_CONNECTTIMEOUT, (OPTARG)((long)state->auth.curlflags.connecttimeout));
+	if(state->auth->curlflags.connecttimeout)
+	    SETCURLOPT(state, CURLOPT_CONNECTTIMEOUT, (OPTARG)((long)state->auth->curlflags.connecttimeout));
 	break;
 
     case CURLOPT_USERAGENT:
-        if(state->auth.curlflags.useragent)
-	    SETCURLOPT(state, CURLOPT_USERAGENT, state->auth.curlflags.useragent);
+        if(state->auth->curlflags.useragent)
+	    SETCURLOPT(state, CURLOPT_USERAGENT, state->auth->curlflags.useragent);
 	break;
 
     case CURLOPT_FOLLOWLOCATION:
@@ -105,19 +105,19 @@ ocset_curlflag(OCstate* state, int flag)
 
     case CURLOPT_ENCODING:
 #ifdef CURLOPT_ENCODING
-	if(state->auth.curlflags.compress) {
+	if(state->auth->curlflags.compress) {
 	    SETCURLOPT(state, CURLOPT_ENCODING,"deflate, gzip");
         }
 #endif
 	break;
 
     case CURLOPT_PROXY:
-	if(state->auth.proxy.host != NULL) {
-	    SETCURLOPT(state, CURLOPT_PROXY, state->auth.proxy.host);
-	    SETCURLOPT(state, CURLOPT_PROXYPORT, (OPTARG)(long)state->auth.proxy.port);
-	    if(state->auth.proxy.user != NULL && state->auth.proxy.pwd != NULL) {
-                SETCURLOPT(state, CURLOPT_PROXYUSERNAME, state->auth.proxy.user);
-                SETCURLOPT(state, CURLOPT_PROXYPASSWORD, state->auth.proxy.pwd);
+	if(state->auth->proxy.host != NULL) {
+	    SETCURLOPT(state, CURLOPT_PROXY, state->auth->proxy.host);
+	    SETCURLOPT(state, CURLOPT_PROXYPORT, (OPTARG)(long)state->auth->proxy.port);
+	    if(state->auth->proxy.user != NULL && state->auth->proxy.pwd != NULL) {
+                SETCURLOPT(state, CURLOPT_PROXYUSERNAME, state->auth->proxy.user);
+                SETCURLOPT(state, CURLOPT_PROXYPASSWORD, state->auth->proxy.pwd);
 #ifdef CURLOPT_PROXYAUTH
 	        SETCURLOPT(state, CURLOPT_PROXYAUTH, (long)CURLAUTH_ANY);
 #endif
@@ -129,7 +129,7 @@ ocset_curlflag(OCstate* state, int flag)
     case CURLOPT_SSLCERT: case CURLOPT_SSLKEY:
     case CURLOPT_SSL_VERIFYPEER: case CURLOPT_SSL_VERIFYHOST:
     {
-        struct ssl* ssl = &state->auth.ssl;
+        struct ssl* ssl = &state->auth->ssl;
 	/* VERIFYPEER == 0 => VERIFYHOST == 0 */
 	/* We need to have 2 states: default and a set value */
 	/* So -1 => default >= 0 => use value */
@@ -228,7 +228,7 @@ ocset_flags_perlink(OCstate* state)
 void
 oc_curl_debug(OCstate* state)
 {
-    state->auth.curlflags.verbose = 1;
+    state->auth->curlflags.verbose = 1;
     ocset_curlflag(state,CURLOPT_VERBOSE);
     ocset_curlflag(state,CURLOPT_ERRORBUFFER);
 }
@@ -239,7 +239,7 @@ int
 ocrc_netrc_required(OCstate* state)
 {
     char* netrcfile = NC_rclookup(NETRCFILETAG,state->uri->uri);
-    return (netrcfile != NULL || state->auth.curlflags.netrc != NULL ? 0 : 1);
+    return (netrcfile != NULL || state->auth->curlflags.netrc != NULL ? 0 : 1);
 }
 
 void
@@ -257,6 +257,6 @@ oc_curl_protocols(OCstate* state)
     curldata = curl_version_info(CURLVERSION_NOW);
     for(proto=curldata->protocols;*proto;proto++) {
         if(strcmp("http",*proto)==0)
-	    state->auth.curlflags.proto_https=1;
+	    state->auth->curlflags.proto_https=1;
     }
 }

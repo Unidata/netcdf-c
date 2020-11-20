@@ -21,13 +21,6 @@ ncgen.h ncgeny.h util.h
 # Obsolete
 OBSOLETE = odom.c odom.h jdatastd.c jdatajni.c genjni.c cdfdata.c cmldata.c
 
-# Given a netcdf4 file, dump the actual chunk contents.
-# Used to validate nczarr chunking code.
-if USE_HDF5
-noinst_PROGRAMS = ncdumpchunks
-ncdumpchunks_SOURCES = ncdumpchunks.c
-endif
-
 # This is the man page.
 man_MANS = ncgen.1
 

@@ -368,7 +368,7 @@ NCZ_def_var(int ncid, const char *name, nc_type xtype, int ndims,
     if((retval = ncz_gettype(h5,grp,xtype,&type)))
 	BAIL(retval);
 
-    /* Create a new var and fill in some ZARR cache setting values. */
+    /* Create a new var and fill in some cache setting values. */
     if ((retval = nc4_var_list_add(grp, norm_name, ndims, &var)))
 	BAIL(retval);
 
@@ -377,6 +377,7 @@ NCZ_def_var(int ncid, const char *name, nc_type xtype, int ndims,
 	BAIL(NC_ENOMEM);
     zvar = var->format_var_info;
     zvar->common.file = h5;
+    zvar->scalar = (ndims == 0 ? 1 : 0);
 
     /* Set these state flags for the var. */
     var->is_new_var = NC_TRUE;
@@ -443,10 +444,13 @@ var->type_info->rc++;
     
     /* Compute the chunksize cross product */
     zvar->chunkproduct = 1;
-    for(d=0;d<var->ndims;d++) {zvar->chunkproduct *= var->chunksizes[d];}
+    for(d=0;d<var->ndims+zvar->scalar;d++) {zvar->chunkproduct *= var->chunksizes[d];}
+    zvar->chunksize = zvar->chunkproduct * var->type_info->size;
 
-    /* Copy cache parameters */
-    zvar->chunk_cache_nelems = var->chunk_cache_nelems;
+    /* Override the cache setting to use NCZarr defaults */
+    var->chunk_cache_size = CHUNK_CACHE_SIZE_NCZARR;
+    var->chunk_cache_nelems = ceildiv(var->chunk_cache_size,zvar->chunksize);
+    var->chunk_cache_preemption = 1; /* not used */
 
     /* Create the cache */
     if((retval=NCZ_create_chunk_cache(var,zvar->chunkproduct*var->type_info->size,&zvar->cache)))
@@ -655,11 +659,10 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	    zvar->chunkproduct = 1;
 	    for (d = 0; d < var->ndims; d++)
 		zvar->chunkproduct *= var->chunksizes[d];
-#ifdef LOOK
+            zvar->chunksize = zvar->chunkproduct * var->type_info->size;
 	    /* Adjust the cache. */
-	    if ((retval = ncz_adjust_var_cache(grp, var)))
+	    if ((retval = NCZ_adjust_var_cache(grp, var)))
 		return THROW(retval);
-#endif
 	}
     
 #ifdef LOGGING
@@ -1096,8 +1099,7 @@ NCZ_rename_var(int ncid, int varid, const char *name)
 	return NC_ENOMEM;
     LOG((3, "var is now %s", var->hdr.name));
 
-    /* Fix hash key and rebuild index. */
-    var->hdr.hashkey = NC_hashmapkey(var->hdr.name, strlen(var->hdr.name));
+    /* rebuild index. */
     if (!ncindexrebuild(grp->vars))
 	return NC_EINTERNAL;
 
@@ -1297,6 +1299,7 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     int zero_count = 0; /* true if a count is zero */
     size_t len = 1;
     size64_t fmaxdims[NC_MAX_VAR_DIMS];
+    NCZ_VAR_INFO_T* zvar;
 
     NC_UNUSED(fmaxdims);
 
@@ -1312,6 +1315,8 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     LOG((3, "%s: var->hdr.name %s mem_nc_type %d", __func__,
 	 var->hdr.name, mem_nc_type));
 
+    zvar = (NCZ_VAR_INFO_T*)var->format_var_info;
+
     /* Cannot convert to user-defined types. */
     if (mem_nc_type >= NC_FIRSTUSERTYPEID)
 	return THROW(NC_EINVAL);
@@ -1324,21 +1329,26 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 
     /* Convert from size_t and ptrdiff_t to size64_t */
     /* Also do sanity checks */
-    for (i = 0; i < var->ndims; i++)
-    {
-	/* Check for non-positive stride. */
-	if (stridep && stridep[i] <= 0)
-	    return NC_ESTRIDE;
+    if(var->ndims == 0) { /* scalar */
+	start[0] = 0;
+	count[0] = 1;
+	stride[0] = 1;
+    } else {
+        for (i = 0; i < var->ndims; i++)
+        {
+    	    /* Check for non-positive stride. */
+	    if (stridep && stridep[i] <= 0)
+	        return NC_ESTRIDE;
 
-	start[i] = startp[i];
-	count[i] = countp ? countp[i] : var->dim[i]->len;
-	stride[i] = stridep ? stridep[i] : 1;
+	    start[i] = startp[i];
+	    count[i] = countp ? countp[i] : var->dim[i]->len;
+	    stride[i] = stridep ? stridep[i] : 1;
 
-	/* Check to see if any counts are zero. */
-	if (!count[i])
-	    zero_count++;
-	fdims[i] = var->dim[i]->len;
-
+  	    /* Check to see if any counts are zero. */
+	    if (!count[i])
+	        zero_count++;
+	    fdims[i] = var->dim[i]->len;
+	}
     }
 
 #ifdef LOOK
@@ -1408,9 +1418,8 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 
 	/* We must convert - allocate a buffer. */
 	need_to_convert++;
-	if (var->ndims)
-	    for (d2=0; d2<var->ndims; d2++)
-		len *= countp[d2];
+        for (d2=0; d2<(var->ndims+zvar->scalar); d2++)
+	    len *= countp[d2];
 	LOG((4, "converting data for var %s type=%d len=%d", var->hdr.name,
 	     var->type_info->hdr.id, len));
 
@@ -1596,10 +1605,11 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     void *fillvalue = NULL;
     int no_read = 0, provide_fill = 0;
     int fill_value_size[NC_MAX_VAR_DIMS];
-    int scalar = 0, retval, range_error = 0, i, d2;
+    int retval, range_error = 0, i, d2;
     void *bufr = NULL;
     int need_to_convert = 0;
     size_t len = 1;
+    NCZ_VAR_INFO_T* zvar = NULL;
 
     NC_UNUSED(fmaxdims);
 
@@ -1613,6 +1623,8 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     LOG((3, "%s: var->hdr.name %s mem_nc_type %d", __func__,
 	 var->hdr.name, mem_nc_type));
 
+    zvar = (NCZ_VAR_INFO_T*)var->format_var_info;
+
     /* Check some stuff about the type and the file. Also end define
      * mode, if needed. */
     if ((retval = check_for_vara(&mem_nc_type, var, h5)))
@@ -1621,20 +1633,26 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 
     /* Convert from size_t and ptrdiff_t to size64_t. Also do sanity
      * checks. */
-    for (i = 0; i < var->ndims; i++)
-    {
-	/* If any of the stride values are non-positive, fail. */
-	if (stridep && stridep[i] <= 0)
-	    return NC_ESTRIDE;
-	start[i] = startp[i];
-	count[i] = countp[i];
-	stride[i] = stridep ? stridep[i] : 1;
-	/* if any of the count values are zero don't actually read. */
-	if (count[i] == 0)
-	    no_read++;
-	/* Get dimension sizes also */
-	fdims[i] = var->dim[i]->len;
-	fmaxdims[i] = fdims[i];
+    if(var->ndims == 0) { /* scalar */
+	start[0] = 0;
+	count[0] = 1;
+	stride[0] = 1;
+    } else {
+        for (i = 0; i < var->ndims; i++)
+        {
+	    /* If any of the stride values are non-positive, fail. */
+	    if (stridep && stridep[i] <= 0)
+	        return NC_ESTRIDE;
+	    start[i] = startp[i];
+	    count[i] = countp[i];
+	    stride[i] = stridep ? stridep[i] : 1;
+	    /* if any of the count values are zero don't actually read. */
+	    if (count[i] == 0)
+	        no_read++;
+	    /* Get dimension sizes also */
+	    fdims[i] = var->dim[i]->len;
+	    fmaxdims[i] = fdims[i];
+	}
     }
 
 #ifdef LOOK
@@ -1668,11 +1686,10 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     {
         /* We must convert - allocate a buffer. */
         need_to_convert++;
-        if (var->ndims)
-            for (d2 = 0; d2 < var->ndims; d2++)
-                len *= countp[d2];
+        for (d2 = 0; d2 < (var->ndims+zvar->scalar); d2++)
+            len *= countp[d2];
         LOG((4, "converting data for var %s type=%d len=%d", var->hdr.name,
-        var->type_info->hdr.id, len));
+ 		       var->type_info->hdr.id, len));
 
         /* If we're reading, we need bufr to have enough memory to store
          * the data in the file. If we're writing, we need bufr to be
@@ -1812,7 +1829,7 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     /* Now we need to fake up any further data that was asked for,
        using the fill values instead. First skip past the data we
        just read, if any. */
-    if (!scalar && provide_fill)
+    if (!zvar->scalar && provide_fill)
     {
 	void *filldata;
 	size_t real_data_size = 0;

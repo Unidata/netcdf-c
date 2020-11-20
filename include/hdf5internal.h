@@ -54,13 +54,17 @@
 /** This is the name of the name HDF5 dimension scale attribute. */
 #define HDF5_DIMSCALE_NAME_ATT_NAME NC_ATT_NAME
 
+/* forward */
+struct NCauth;
+
 /** Struct to hold HDF5-specific info for the file. */
 typedef struct NC_HDF5_FILE_INFO {
    hid_t hdfid;
-#ifdef ENABLE_BYTERANGE
+#if defined(ENABLE_BYTERANGE) || defined(ENABLE_HDF5_ROS3) || defined(ENABLE_S3_SDK)
    struct HTTP {
 	NCURI* uri; /* Parse of the incoming path, if url */
 	int iosp; /* We are using the S3 rawvirtual file driver */
+	struct NCauth* auth;
    } http;
 #endif
 } NC_HDF5_FILE_INFO_T;

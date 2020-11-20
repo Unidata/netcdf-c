@@ -275,8 +275,7 @@ HDF5_rename_dim(int ncid, int dimid, const char *name)
         return NC_ENOMEM;
     LOG((3, "dim is now named %s", dim->hdr.name));
 
-    /* Fix hash key and rebuild index. */
-    dim->hdr.hashkey = NC_hashmapkey(dim->hdr.name,strlen(dim->hdr.name));
+    /* rebuild index. */
     if (!ncindexrebuild(grp->dim))
         return NC_EINTERNAL;
 

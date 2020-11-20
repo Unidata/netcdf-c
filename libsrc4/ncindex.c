@@ -379,8 +379,8 @@ printindexlist(NClist* lm)
         if(o == NULL)
             fprintf(stderr,"[%ld] <null>\n",(unsigned long)i);
         else
-            fprintf(stderr,"[%ld] sort=%s name=|%s| id=%lu hashkey=%lu\n",
-                    (unsigned long)i,sortname(o->sort),o->name,(unsigned long)o->id,(unsigned long)o->hashkey);
+            fprintf(stderr,"[%ld] sort=%s name=|%s| id=%lu\n",
+                    (unsigned long)i,sortname(o->sort),o->name,(unsigned long)o->id);
     }
 }
 

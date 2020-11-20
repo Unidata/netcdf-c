@@ -21,15 +21,19 @@ nczodom_new(int rank, const size64_t* start, const size64_t* stop, const size64_
     int i;
     NCZOdometer* odom = NULL;
     if(buildodom(rank,&odom)) return NULL;
+    odom->properties.stride1 = 1; /* assume */
+    odom->properties.start0 = 1; /* assume */
     for(i=0;i<rank;i++) { 
 	odom->start[i] = (size64_t)start[i];
 	odom->stop[i] = (size64_t)stop[i];
 	odom->stride[i] = (size64_t)stride[i];
 	odom->max[i] = (size64_t)len[i];
+	if(odom->start[i] != 0) odom->properties.start0 = 0;
+	if(odom->stride[i] != 1) odom->properties.stride1 = 0;
     }
     nczodom_reset(odom);
     for(i=0;i<rank;i++)
-        assert(stop[i] > 0 && stride[i] > 0 && len[i] >= stop[i]);
+        assert(stop[i] >= start[i] && stride[i] > 0 && (len[i]+1) >= stop[i]);
     return odom;
 }
 
@@ -40,15 +44,20 @@ nczodom_fromslices(int rank, const NCZSlice* slices)
     NCZOdometer* odom = NULL;
 
     if(buildodom(rank,&odom)) return NULL;
+    odom->properties.stride1 = 1; /* assume */
+    odom->properties.start0 = 1; /* assume */
     for(i=0;i<rank;i++) {    
 	odom->start[i] = slices[i].start;
 	odom->stop[i] = slices[i].stop;
 	odom->stride[i] = slices[i].stride;
 	odom->max[i] = slices[i].len;
+	if(odom->start[i] != 0) odom->properties.start0 = 0;
+	if(odom->stride[i] != 1) odom->properties.stride1 = 0;
     }
     nczodom_reset(odom);
     for(i=0;i<rank;i++)
-        assert(slices[i].stop > 0 && slices[i].stride > 0 && slices[i].len >= slices[i].stop);
+    if(!(slices[i].stop >= slices[i].start && slices[i].stride > 0 && (slices[i].len+1) >= slices[i].stop))
+        assert(slices[i].stop >= slices[i].start && slices[i].stride > 0 && (slices[i].len+1) >= slices[i].stop);
     return odom;
 }
   
@@ -65,7 +74,7 @@ nczodom_free(NCZOdometer* odom)
 }
 
 int
-nczodom_more(NCZOdometer* odom)
+nczodom_more(const NCZOdometer* odom)
 {
     return (odom->index[0] < odom->stop[0]);
 }
@@ -77,7 +86,10 @@ nczodom_next(NCZOdometer* odom)
     int rank;
     rank = odom->rank;
     for(i=rank-1;i>=0;i--) {
-	odom->index[i] += odom->stride[i];
+        if(i == rank-1 && odom->properties.optimized) {
+	    odom->index[i] = odom->stop[i];	   
+    	} else
+	    odom->index[i] += odom->stride[i];
         if(odom->index[i] < odom->stop[i]) break;
         if(i == 0) goto done; /* leave the 0th entry if it overflows */
         odom->index[i] = odom->start[i]; /* reset this position */
@@ -88,13 +100,13 @@ done:
   
 /* Get the value of the odometer */
 size64_t*
-nczodom_indices(NCZOdometer* odom)
+nczodom_indices(const NCZOdometer* odom)
 {
     return odom->index;
 }
 
 size64_t
-nczodom_offset(NCZOdometer* odom)
+nczodom_offset(const NCZOdometer* odom)
 {
     int i;
     size64_t offset;
@@ -133,17 +145,50 @@ nomem:
 }
 
 size64_t
-nczodom_avail(NCZOdometer* odom)
+nczodom_avail(const NCZOdometer* odom)
 {
     size64_t avail;
     /* The best we can do is compute the count for the rightmost index */
-    if(odom->stride[odom->rank-1] == 1)
-        avail = (odom->stop[odom->rank-1]  - odom->start[odom->rank-1]);
+    if(odom->properties.optimized)
+	avail = (odom->stop[odom->rank-1] - odom->start[odom->rank-1]);
     else
         avail = 1;
     return avail;
 }
 
+size64_t
+nczodom_laststride(const NCZOdometer* odom)
+{
+    return odom->stride[odom->rank-1];
+}
+
+size64_t
+nczodom_lastlen(const NCZOdometer* odom)
+{
+    return odom->max[odom->rank-1];
+}
+
+/**
+Do limited amount of optimization:
+assert:
+    odom->stride[odom->rank-1] == 1
+    odom->stop[odom->rank-1] == 0
+then
+    odom->stride[odom->rank-1] = odom->stop[odom->rank-1]
+*/
+
+void
+nczodom_optimize(NCZOdometer* odom)
+{
+    if(odom) {
+#if 0
+        if(odom->stride[odom->rank-1] == 1)
+#endif
+	    odom->properties.optimized = 1;
+    }
+}
+
+#if 0
 void
 nczodom_incr(NCZOdometer* odom, size64_t count)
 {
@@ -151,4 +196,11 @@ nczodom_incr(NCZOdometer* odom, size64_t count)
 	nczodom_next(odom); //temporary
     }
 }
+
+void
+nczodom_reducerank(NCZOdometer* odom)
+{
+    odom->rank--;
+}
+#endif
 

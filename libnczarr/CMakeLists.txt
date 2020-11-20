@@ -11,7 +11,7 @@
 SET(libnczarr_SOURCES
 zarr.c
 zattr.c
-zcache.c
+zxcache.c
 zchunking.c
 zclose.c
 zcreate.c

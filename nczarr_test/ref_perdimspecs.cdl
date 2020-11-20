@@ -1,8 +1,8 @@
 netcdf ref_tst_perdimspecs {
 dimensions:
 	lon = 40 ;
-	lat = 41 ;
-	time = 42;
+	lat = 40 ;
+	time = 40;
 variables:
 	float lon(lon) ;
 	float lat(lat) ;
