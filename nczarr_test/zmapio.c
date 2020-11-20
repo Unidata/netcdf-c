@@ -3,7 +3,9 @@
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 
+#ifdef HAVE_CONFIG_H
 #include "config.h"
+#endif
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>

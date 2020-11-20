@@ -66,6 +66,6 @@ extern void NCZ_freestringvec(size_t len, char** vec);
 extern int NCZ_create_fill_chunk(size64_t chunksize, size_t typesize, void* fill, void** fillchunkp);
 
 /* zwalk.c */
-extern int NCZ_read_chunk(int ncid, int varid, size64_t* zindices, void* chunkdata);
+EXTERNL int NCZ_read_chunk(int ncid, int varid, size64_t* zindices, void* chunkdata);
 
 #endif /*ZARR_H*/

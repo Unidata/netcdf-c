@@ -13,12 +13,14 @@ SET(ncdump_FILES ncdump.c vardata.c dumplib.c indent.c nctime0.c utils.c nciter.
 SET(nccopy_FILES nccopy.c nciter.c chunkspec.c utils.c dimmap.c list.c)
 SET(ocprint_FILES ocprint.c)
 SET(ncvalidator_FILES ncvalidator.c)
+SET(ncdumpchunks_FILES ncdumpchunks.c)
 
 IF(USE_X_GETOPT)
   SET(ncdump_FILES ${ncdump_FILES} XGetopt.c)
   SET(nccopy_FILES ${nccopy_FILES} XGetopt.c)
   SET(ocprint_FILES ${ocprint_FILES} XGetopt.c)
   SET(ncvalidator_FILES ${ncvalidator_FILES} XGetopt.c)
+  SET(ncdumpchunks_FILES ${ncdumpchunks_FILES} XGetopt.c)
 ENDIF()
 
 ADD_EXECUTABLE(ncdump ${ncdump_FILES})
@@ -32,8 +34,8 @@ ENDIF(USE_HDF5)
 # Given a netcdf4 file, dump the actual chunk contents.
 # Used to validate nczarr chunking code.
 IF(USE_HDF5 OR ENABLE_NCZARR)
-  SET(ncdumpchunks_FILES ncdumpchunks.c)
   ADD_EXECUTABLE(ncdumpchunks ${ncdumpchunks_FILES})
+  TARGET_INCLUDE_DIRECTORIES(ncdumpchunks PUBLIC ../libnczarr)
   TARGET_LINK_LIBRARIES(ncdumpchunks netcdf ${ALL_TLL_LIBS})
   SET_TARGET_PROPERTIES(ncdumpchunks PROPERTIES RUNTIME_OUTPUT_DIRECTORY
     ${CMAKE_CURRENT_BINARY_DIR})
@@ -41,11 +43,11 @@ IF(USE_HDF5 OR ENABLE_NCZARR)
     ${CMAKE_CURRENT_BINARY_DIR})
   SET_TARGET_PROPERTIES(ncdumpchunks PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
     ${CMAKE_CURRENT_BINARY_DIR})
-IF(MSVC)
-  SET_TARGET_PROPERTIES(ncdumpchunks
-    PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
-    )
-ENDIF(MSVC)
+#IF(MSVC)
+#  SET_TARGET_PROPERTIES(ncdumpchunks
+#    PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
+#    )
+#ENDIF(MSVC)
 ENDIF(USE_HDF5 OR ENABLE_NCZARR)
 
 IF(ENABLE_DAP)

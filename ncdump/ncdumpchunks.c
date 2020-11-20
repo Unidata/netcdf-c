@@ -1,12 +1,19 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
+#ifdef HAVE_GETOPT_H
 #include <getopt.h>
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
 #endif
+
+#ifdef _WIN32
+#include "XGetopt.h"
+#endif
+
 #include "netcdf.h"
 #ifdef HAVE_HDF5_H
 #include <hdf5.h>
