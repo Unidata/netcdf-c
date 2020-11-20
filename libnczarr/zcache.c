@@ -103,6 +103,9 @@ NCZ_set_var_chunk_cache(int ncid, int varid, size_t cachesize, size_t nelems, fl
 int
 NCZ_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 {
+    /* Reset the cache parameters since var chunking may have changed */
+    
+
     return NC_NOERR;
 }
 
@@ -126,12 +129,16 @@ NCZ_create_chunk_cache(NC_VAR_INFO_T* var, size64_t chunksize, NCZChunkCache** c
     NCZChunkCache* cache = NULL;
     void* fill = NULL;
     size_t nelems, cachesize;
+    NCZ_VAR_INFO_T* zvar = NULL;
 	
     if(chunksize == 0) return NC_EINVAL;
 
+    zvar = (NCZ_VAR_INFO_T*)var->format_var_info;
+    
     if((cache = calloc(1,sizeof(NCZChunkCache))) == NULL)
 	{stat = NC_ENOMEM; goto done;}
     cache->var = var;
+    cache->ndims = var->ndims + zvar->scalar;
     cache->chunksize = chunksize;
     assert(cache->fillchunk == NULL);
     cache->fillchunk = NULL;
@@ -199,7 +206,7 @@ NCZ_read_cache_chunk(NCZChunkCache* cache, const size64_t* indices, void** datap
 {
     int stat = NC_NOERR;
     char* key = NULL;
-    int rank = cache->var->ndims;
+    int rank = cache->ndims;
     NC_FILE_INFO_T* file = cache->var->container->nc4_info;
     NCZCacheEntry* entry = NULL;
     int i;
@@ -268,7 +275,7 @@ NCZ_write_cache_chunk(NCZChunkCache* cache, const size64_t* indices, void** data
 {
     int stat = NC_NOERR;
     char* key = NULL;
-    int i,rank = cache->var->ndims;
+    int i,rank = cache->ndims;
     NCZCacheEntry* entry = NULL;
     
     /* Create the key for this cache */
@@ -358,7 +365,7 @@ NCZ_chunk_cache_modified(NCZChunkCache* cache, const size64_t* indices)
     int stat = NC_NOERR;
     char* key = NULL;
     NCZCacheEntry* entry = NULL;
-    int rank = cache->var->ndims;
+    int rank = cache->ndims;
 
     /* Create the key for this cache */
     if((stat=buildchunkkey(rank, indices, &key))) goto done;
@@ -518,7 +525,7 @@ NCZ_buildchunkpath(NCZChunkCache* cache, const size64_t* chunkindices, char** ke
     char* key = NULL;
 
     /* Get the chunk object name */
-    if((stat = buildchunkkey(cache->var->ndims, chunkindices, &chunkname))) goto done;
+    if((stat = buildchunkkey(cache->ndims, chunkindices, &chunkname))) goto done;
     /* Get the var object key */
     if((stat = NCZ_varkey(cache->var,&varkey))) goto done;
     /* Prefix the path to the containing variable object */

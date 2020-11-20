@@ -49,6 +49,18 @@ noinst_PROGRAMS += nc4print
 nc4print_SOURCES = nc4print.c nc4printer.c
 endif
 
+# Given a netcdf4|NCZarr file, dump the actual chunk contents.
+# Used to validate nczarr chunking code.
+if ENABLE_NCZARR
+AM_CPPFLAGS += -I$(top_srcdir)/libnczarr
+noinst_PROGRAMS = ncdumpchunks
+else
+if USE_HDF5
+noinst_PROGRAMS = ncdumpchunks
+endif
+endif
+ncdumpchunks_SOURCES = ncdumpchunks.c
+
 # Conditionally build the ocprint program, but do not install
 if ENABLE_DAP
 bin_PROGRAMS += ocprint

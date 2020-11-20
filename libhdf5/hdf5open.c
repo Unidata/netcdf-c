@@ -12,6 +12,7 @@
 #include "config.h"
 #include "hdf5internal.h"
 #include "ncrc.h"
+#include "ncauth.h"
 #include "ncmodel.h"
 
 #ifdef ENABLE_BYTERANGE
@@ -72,7 +73,7 @@ static hid_t nc4_H5Fopen(const char *filename, unsigned flags, hid_t fapl_id);
 #endif
 
 #ifdef ENABLE_HDF5_ROS3
-static int ros3info(NCURI* uri, char** hostportp, char** regionp);
+static int ros3info(NCauth** auth, NCURI* uri, char** hostportp, char** regionp);
 #endif
 
 /**
@@ -858,29 +859,24 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 		H5FD_ros3_fapl_t fa;
 		char* hostport = NULL;
 		char* region = NULL;
-		char* accessid = NULL;
-		char* secretkey = NULL;
 		ncuriparse(path,&uri);
 		if(uri == NULL)
 		    BAIL(NC_EINVAL);		
-		/* Extract auth related info */
-		if((ros3info(uri,&hostport,&region)))
+		if((ros3info(&h5->http.auth,uri,&hostport,&region)))
 		    BAIL(NC_EINVAL);
 		ncurifree(uri); uri = NULL;
-		accessid = NC_rclookup("HTTP.CREDENTIALS.USER",hostport);
-		secretkey = NC_rclookup("HTTP.CREDENTIALS.PASSWORD",hostport);
                 fa.version = 1;
 		fa.aws_region[0] = '\0';
 	        fa.secret_id[0] = '\0';
 		fa.secret_key[0] = '\0';
-		if(accessid == NULL || secretkey == NULL) {
+		if(h5->http.auth->s3creds.accessid == NULL || h5->http.auth->s3creds.secretkey == NULL) {
 	  	    /* default, non-authenticating, "anonymous" fapl configuration */
 		    fa.authenticate = (hbool_t)0;
 		} else {
 		    fa.authenticate = (hbool_t)1;
 		    strlcat(fa.aws_region,region,H5FD_ROS3_MAX_REGION_LEN);
-		    strlcat(fa.secret_id, accessid, H5FD_ROS3_MAX_SECRET_ID_LEN);
-                    strlcat(fa.secret_key, secretkey, H5FD_ROS3_MAX_SECRET_KEY_LEN);
+		    strlcat(fa.secret_id, h5->http.auth->s3creds.accessid, H5FD_ROS3_MAX_SECRET_ID_LEN);
+                    strlcat(fa.secret_key, h5->http.auth->s3creds.secretkey, H5FD_ROS3_MAX_SECRET_KEY_LEN);
 		}
 	        nullfree(region);
 		nullfree(hostport);
@@ -2764,7 +2760,7 @@ exit:
 
 #ifdef ENABLE_HDF5_ROS3
 static int
-ros3info(NCURI* uri, char** hostportp, char** regionp)
+ros3info(NCauth** authp, NCURI* uri, char** hostportp, char** regionp)
 {
     int stat = NC_NOERR;
     size_t len;
@@ -2798,6 +2794,10 @@ ros3info(NCURI* uri, char** hostportp, char** regionp)
 	region = strdup("");
     if(hostportp) {*hostportp = hostport; hostport = NULL;}
     if(regionp) {*regionp = region; region = NULL;}
+
+    /* Extract auth related info */
+    if((stat=NC_authsetup(authp, uri)))
+	goto done;
 
 done:
     nullfree(hostport);

@@ -67,7 +67,7 @@ NCZ_s3sdkcreateconfig(const char* host, const char* region, void** configp)
     int stat = NC_NOERR;
     Aws::Client::ClientConfiguration *config = new Aws::Client::ClientConfiguration();
     config->scheme = Aws::Http::Scheme::HTTPS;
-    config->connectTimeoutMs = 30000;
+    config->connectTimeoutMs = 300000;
     config->requestTimeoutMs = 600000;
     if(region) config->region = region;
     if(host) config->endpointOverride = host;

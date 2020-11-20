@@ -165,8 +165,7 @@ NCZ_rename_grp(int grpid, const char *name)
     if (!(grp->hdr.name = strdup(norm_name)))
         return NC_ENOMEM;
 
-    /* Update the hash and rebuild index. */
-    grp->hdr.hashkey = NC_hashmapkey(grp->hdr.name,strlen(grp->hdr.name));
+    /* rebuild index. */
     if(!ncindexrebuild(grp->parent->children))
         return NC_EINTERNAL;
 

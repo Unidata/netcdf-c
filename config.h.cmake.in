@@ -101,6 +101,9 @@ are set when opening a binary file on Windows. */
 /* default file chunk cache size in bytes. */
 #cmakedefine CHUNK_CACHE_SIZE ${CHUNK_CACHE_SIZE}
 
+/* default nczarr chunk cache size in bytes. */
+#cmakedefine CHUNK_CACHE_SIZE_NCZARR ${CHUNK_CACHE_SIZE_NCZARR}
+
 /* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
    systems. This function is required for `alloca.c' support on those systems.
    */
@@ -383,6 +386,9 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the <sys/types.h> header file. */
 #cmakedefine HAVE_SYS_TYPES_H 1
 
+/* Define to 1 if you have the <time.h> header file. */
+#cmakedefine HAVE_TIME_H 1
+
 /* Define to 1 if the system has the type `uchar'. */
 #cmakedefine HAVE_UCHAR 1
 
@@ -391,6 +397,9 @@ are set when opening a binary file on Windows. */
 
 /* Define to 1 if the system has the type `uint64'. */
 #cmakedefine HAVE_UINT64 1
+
+/* Define to 1 if the system has the type `uint64_t'. */
+#cmakedefine HAVE_UINT64_t 1
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #cmakedefine HAVE_UNISTD_H 1

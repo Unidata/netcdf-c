@@ -174,7 +174,7 @@ struct OCstate {
     CURL* curl; /* curl handle*/
     char curlerror[CURL_ERROR_SIZE];
     void* usercurldata;
-    NCauth auth; /* curl auth data */
+    NCauth* auth; /* curl auth data */
     long ddslastmodified;
     long datalastmodified;
     long curlbuffersize;
