@@ -563,7 +563,7 @@ done:
 }
 
 /* Debugging Interface: return the contents of a specified chunk */
-int
+EXTERNL int
 NCZ_read_chunk(int ncid, int varid, size64_t* zindices, void* chunkdata)
 {
     int stat = NC_NOERR;
