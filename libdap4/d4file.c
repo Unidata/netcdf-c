@@ -315,7 +315,7 @@ freeInfo(NCD4INFO* d4info)
     }
     nullfree(d4info->substrate.filename); /* always reclaim */
     NCD4_reclaimMeta(d4info->substrate.metadata);
-    NC_authclear(&d4info->auth);
+    NC_authfree(d4info->auth);
     nclistfree(d4info->blobs);
     free(d4info);
 }
@@ -353,26 +353,26 @@ set_curl_properties(NCD4INFO* d4info)
 {
     int ret = NC_NOERR;
 
-    if(d4info->auth.curlflags.useragent == NULL) {
+    if(d4info->auth->curlflags.useragent == NULL) {
 	char* agent;
         size_t len = strlen(DFALTUSERAGENT) + strlen(VERSION);
 	len++; /*strlcat nul*/
 	agent = (char*)malloc(len+1);
 	strncpy(agent,DFALTUSERAGENT,len);
 	strlcat(agent,VERSION,len);
-        d4info->auth.curlflags.useragent = agent;
+        d4info->auth->curlflags.useragent = agent;
     }
 
     /* Some servers (e.g. thredds and columbia) appear to require a place
        to put cookies in order for some security functions to work
     */
-    if(d4info->auth.curlflags.cookiejar != NULL
-       && strlen(d4info->auth.curlflags.cookiejar) == 0) {
-	free(d4info->auth.curlflags.cookiejar);
-	d4info->auth.curlflags.cookiejar = NULL;
+    if(d4info->auth->curlflags.cookiejar != NULL
+       && strlen(d4info->auth->curlflags.cookiejar) == 0) {
+	free(d4info->auth->curlflags.cookiejar);
+	d4info->auth->curlflags.cookiejar = NULL;
     }
 
-    if(d4info->auth.curlflags.cookiejar == NULL) {
+    if(d4info->auth->curlflags.cookiejar == NULL) {
 	/* If no cookie file was defined, define a default */
         char* path = NULL;
         char* newpath = NULL;
@@ -395,16 +395,16 @@ set_curl_properties(NCD4INFO* d4info)
 	    fprintf(stderr,"Cannot create cookie file\n");
 	    goto fail;
 	}
-	d4info->auth.curlflags.cookiejar = newpath;
-	d4info->auth.curlflags.cookiejarcreated = 1;
+	d4info->auth->curlflags.cookiejar = newpath;
+	d4info->auth->curlflags.cookiejarcreated = 1;
 	errno = 0;
     }
-    assert(d4info->auth.curlflags.cookiejar != NULL);
+    assert(d4info->auth->curlflags.cookiejar != NULL);
 
     /* Make sure the cookie jar exists and can be read and written */
     {
 	FILE* f = NULL;
-	char* fname = d4info->auth.curlflags.cookiejar;
+	char* fname = d4info->auth->curlflags.cookiejar;
 	/* See if the file exists already */
         f = fopen(fname,"r");
 	if(f == NULL) {

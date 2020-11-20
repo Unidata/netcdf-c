@@ -18,7 +18,6 @@ LDADD=
 #d4curlflags.c
 
 SRC= \
-d4crc32.c \
 d4curlfunctions.c \
 d4fix.c \
 d4data.c \

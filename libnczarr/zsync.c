@@ -257,12 +257,15 @@ ncz_sync_var(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var)
 	NC_DIM_INFO_T* dim = var->dim[i];
 	shape[i] = dim->len;
     }
+    /* but might be scalar */
+    if(var->ndims == 0)
+        shape[0] = 1;
 
     /* shape key */
     /* Integer list defining the length of each dimension of the array.*/
     /* Create the list */
     if((stat = NCJnew(NCJ_ARRAY,&jtmp))) goto done;
-    for(i=0;i<var->ndims;i++) {
+    for(i=0;i<var->ndims+zvar->scalar;i++) {
 	snprintf(number,sizeof(number),"%llu",shape[i]);
 	NCJaddstring(jtmp,NCJ_INT,number);
     }
@@ -297,7 +300,7 @@ ncz_sync_var(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var)
     if((stat = NCJaddstring(jvar,NCJ_STRING,"chunks"))) goto done;
     /* Create the list */
     if((stat = NCJnew(NCJ_ARRAY,&jtmp))) goto done;
-    for(i=0;i<var->ndims;i++) {
+    for(i=0;i<(var->ndims+zvar->scalar);i++) {
 	size64_t len = (var->storage == NC_CONTIGUOUS ? shape[i] : var->chunksizes[i]);
 	snprintf(number,sizeof(number),"%lld",len);
 	NCJaddstring(jtmp,NCJ_INT,number);
@@ -377,13 +380,17 @@ ncz_sync_var(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var)
 	/* Create the NCZVAR json object */
 	if((stat = NCJnew(NCJ_DICT,&jncvar)))
 	    goto done;
+	
 	/* Insert dimrefs  */
 	if((stat = NCJinsert(jncvar,"dimrefs",jdimrefs)))
 	    goto done;
 	jdimrefs = NULL; /* Avoid memory problems */
 
 	/* Add the _Storage flag */
-	if(var->storage == NC_CONTIGUOUS) {
+	/* Record if this is a scalar; use the storage field */	
+	if(var->ndims == 0) {
+	    if((stat = NCJnewstring(NCJ_STRING,"scalar",&jtmp)))goto done;
+	} else if(var->storage == NC_CONTIGUOUS) {
 	     if((stat = NCJnewstring(NCJ_STRING,"contiguous",&jtmp)))goto done;
 	} else if(var->storage == NC_COMPACT) {
 	     if((stat = NCJnewstring(NCJ_STRING,"compact",&jtmp)))goto done;
@@ -451,14 +458,22 @@ ncz_write_var(NC_VAR_INFO_T* var)
     size64_t stop[NC_MAX_VAR_DIMS];
     size64_t stride[NC_MAX_VAR_DIMS];
     char* key = NULL;
+
+    if(var->ndims == 0) { /* scalar */
+	start[i] = 0;
+	stop[i] = 1;
+        stride[i] = 1;
+    } else {
         for(i=0;i<var->ndims;i++) {
 	    size64_t nchunks = ceildiv(var->dim[i]->len,var->chunksizes[i]);
 	    start[i] = 0;
 	    stop[i] = nchunks;
 	    stride[i] = 1;
         }
+    }
+
 	/* Iterate over all the chunks to create missing ones */
-	if((chunkodom = nczodom_new(var->ndims,start,stop,stride,stop))==NULL)
+	if((chunkodom = nczodom_new(var->ndims+zvar->scalar,start,stop,stride,stop))==NULL)
 	    {stat = NC_ENOMEM; goto done;}
 	for(;nczodom_more(chunkodom);nczodom_next(chunkodom)) {
 	    size64_t* indices = nczodom_indices(chunkodom);	
@@ -1152,7 +1167,8 @@ define_dims(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* diminfo)
 
 	/* Create the NC_DIM_INFO_T object */
 	sscanf(value,"%lld",&len); /* Get length */
-	if(len < 0) {stat = NC_EDIMSIZE; goto done;}
+	if(len <= 0)
+	    {stat = NC_EDIMSIZE; goto done;}
 	if((stat = nc4_dim_list_add(grp, name, (size_t)len, -1, &dim)))
 	    goto done;
 	if((dim->format_dim_info = calloc(1,sizeof(NCZ_DIM_INFO_T))) == NULL)
@@ -1240,9 +1256,12 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 		goto done;
 	    if(jvalue != NULL) {
 		if(strcmp(jvalue->value,"chunked") == 0) {
-		    var->storage = NC_CHUNKED;
+		    var->storage = NC_CHUNKED;	
 		} else if(strcmp(jvalue->value,"compact") == 0) {
 		    var->storage = NC_COMPACT;
+		} else if(strcmp(jvalue->value,"scalar") == 0) {
+		    var->storage = NC_CONTIGUOUS;
+		    zvar->scalar = 1;		    
 		} else { /*storage = NC_CONTIGUOUS;*/
 		    var->storage = NC_CONTIGUOUS;
 		}
@@ -1302,7 +1321,10 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 	    if((stat = NCJdictget(jvar,"shape",&jvalue))) goto done;
 	    if(jvalue->sort != NCJ_ARRAY) {stat = THROW(NC_ENCZARR); goto done;}
 	    /* Verify the rank */
-	    rank = nclistlength(jvalue->contents);
+	    if(zvar->scalar)
+		rank = 0;
+	    else
+	        rank = nclistlength(jvalue->contents);
 	    if(hasdimrefs) { /* verify rank consistency */
 		if(nclistlength(dimrefs) != rank)
 		    {stat = THROW(NC_ENCZARR); goto done;}
@@ -1333,7 +1355,7 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 	    rank = nclistlength(jvalue->contents);
 	    if(rank > 0) {
 		var->storage = NC_CHUNKED;
-		if(var->ndims != rank)
+		if(var->ndims+zvar->scalar != rank)
 		    {stat = THROW(NC_ENCZARR); goto done;}
 		if((var->chunksizes = malloc(sizeof(size_t)*rank)) == NULL)
 		    {stat = NC_ENOMEM; goto done;}
@@ -1347,8 +1369,8 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 		    var->chunksizes[j] = (size_t)chunks[j];
 		    zvar->chunkproduct *= chunks[j];
 		}
+		zvar->chunksize = zvar->chunkproduct * var->type_info->size;
 		/* Create the cache */
-		zvar->chunk_cache_nelems = var->chunk_cache_nelems;
 		if((stat = NCZ_create_chunk_cache(var,var->type_info->size*zvar->chunkproduct,&zvar->cache)))
 		    goto done;
 	    }
@@ -1466,7 +1488,7 @@ parse_group_content(NCjson* jcontent, NClist* dimdefs, NClist* varnames, NClist*
 		{stat = NC_EBADNAME; goto done;}
 	    /* check the length */
 	    sscanf(jlen->value,"%lld",&len);
-	    if(len <= 0)
+	    if(len < 0)
 		{stat = NC_EDIMSIZE; goto done;}		
 	    nclistpush(dimdefs,strdup(norm_name));
 	    nclistpush(dimdefs,strdup(jlen->value));

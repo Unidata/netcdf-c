@@ -34,24 +34,6 @@ TARGET_LINK_LIBRARIES(ncgen netcdf ${ALL_TLL_LIBS})
 
 # Given a netcdf4 file, dump the actual chunk contents.
 # Used to validate nczarr chunking code.
-IF(USE_HDF5)
-IF(ENABLE_NCDUMPCHUNKS)
-  SET(ncdumpchunks_FILES ncdumpchunks.c)
-  ADD_EXECUTABLE(ncdumpchunks ${ncdumpchunks_FILES})
-  TARGET_LINK_LIBRARIES(ncdumpchunks netcdf ${ALL_TLL_LIBS})
-  SET_TARGET_PROPERTIES(ncdumpchunks PROPERTIES RUNTIME_OUTPUT_DIRECTORY
-    ${CMAKE_CURRENT_BINARY_DIR})
-  SET_TARGET_PROPERTIES(ncdumpchunks PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG
-    ${CMAKE_CURRENT_BINARY_DIR})
-  SET_TARGET_PROPERTIES(ncdumpchunks PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
-    ${CMAKE_CURRENT_BINARY_DIR})
-IF(MSVC)
-  SET_TARGET_PROPERTIES(ncdumpchunks
-    PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
-    )
-ENDIF()
-ENDIF()
-ENDIF()
 
 ####
 # We have to do a little tweaking

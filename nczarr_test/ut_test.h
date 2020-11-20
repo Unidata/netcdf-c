@@ -6,6 +6,8 @@
 #ifndef ZTEST_H
 #define ZTEST_H
 
+#include "nclist.h"
+
 typedef struct Dimdef {
     char* name;
     size64_t size;
