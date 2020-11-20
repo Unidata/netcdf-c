@@ -319,7 +319,7 @@ struct NCD4INFO {
 	char substratename[NC_MAX_NAME];
 	size_t opaquesize; /* default opaque size */
     } controls;
-    NCauth auth;
+    NCauth* auth;
     struct {
 	char* filename;
     } fileproto;

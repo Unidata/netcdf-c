@@ -13,9 +13,9 @@ TESTS_ENVIRONMENT =
 #SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#TESTS_ENVIRONMENT = export SETX=1;
+#TESTS_ENVIRONMENT += export SETX=1;
 
-AM_CFLAGS += -I${top_srcdir} -I${top_srcdir}/libnczarr
+AM_CPPFLAGS += -I${top_srcdir} -I${top_srcdir}/libnczarr
 AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
 LDADD = ${top_builddir}/liblib/libnetcdf.la
 
@@ -23,7 +23,6 @@ LDADD = ${top_builddir}/liblib/libnetcdf.la
 check_PROGRAMS =
 TESTS =
 
-# Unit Tests
 check_PROGRAMS += ut_map ut_mapapi ut_json ut_projections ut_chunking 
 
 commonsrc = ut_util.c ut_test.c ut_includes.h ut_test.h ut_util.h test_nczarr_utils.h
@@ -42,13 +41,15 @@ TESTS += run_ut_misc.sh
 TESTS += run_ut_chunk.sh
 
 if BUILD_UTILITIES
+
 if USE_HDF5
 TESTS += tst_nccopyz.sh
 TESTS += run_it_test1.sh
 TESTS += test_fillonlyz.sh
 endif
 TESTS += run_it_test2.sh
-endif
+
+endif #BUILD_UTILITIES
 
 ignorec = ut_allslices.c ut_transfer.c ut_vars.c ut_walk.c
 ignoresh = run_meta_tests.sh run_unittests.sh
@@ -63,7 +64,6 @@ noinst_PROGRAMS += zisjson
 zisjson_SOURCES = zisjson.c
 noinst_PROGRAMS += zs3parse
 zs3parse_SOURCES = zs3parse.c
-
 
 EXTRA_DIST = \
 run_ut_map.sh run_ut_mapapi.sh run_ut_misc.sh run_ut_chunk.sh run_it_test1.sh run_it_test2.sh \
@@ -108,6 +108,40 @@ tst_chunks.nz4 tst_chunks2.nc.nz4 \
 ut_*.txt ut*.cdl tmp*.nc tmp*.cdl *.dmp test.nzf \
 tst_chunks3.nc
 
+if AX_IGNORE
+if BUILD_BENCHMARKS
+
+BMCOMMON=bm_utils.c ut_util.c ut_test.c
+
+if AX_IGNORE
+BENCHMARKS = bm_chunks3 bm_many_atts bm_many_objs
+bm_chunks3_SOURCES = bm_chunks3.c ${BMCOMMON}
+bm_many_atts_SOURCES = bm_many_atts.c ${BMCOMMON}
+bm_many_objs_SOURCES = bm_many_objs.c ${BMCOMMON}
+else
+BENCHMARKS = bm_many_atts bm_many_objs
+bm_many_atts_SOURCES = bm_many_atts.c ${BMCOMMON}
+bm_many_objs_SOURCES = bm_many_objs.c ${BMCOMMON}
+endif
+
+#PG = -pg
+AM_CFLAGS += ${PG}
+AM_LDFLAGS += ${PG}
+
+check_PROGRAMS += ${BENCHMARKS}
+TESTS += run_bm_many_atts.sh
+TESTS += run_bm_many_objs.sh
+
+EXTRA_DIST += bm_common.sh run_bm_metatest.sh run_bm_many_atts.sh run_bm_many_objs.sh
+
+CLEANFILES += bm_many_atts.nc4 bm_many_atts.nzf
+CLEANFILES += bm_many_objs.nc4 bm_many_objs.nzf
+
+endif
+endif
+
 # Remove directories
 clean-local:
 	rm -fr tst_chunks.nzf tst_chunks2.nzf tst_perdimspecs.nzf testmap.nzf testmapapi.nzf test.nzf
+	rm -fr bm_many_*.nzf
+	

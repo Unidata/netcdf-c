@@ -8,7 +8,7 @@
 #undef ZDEBUG /* general debug */
 #undef ZDEBUG1 /* detailed debug */
 
-#undef ZCATCH /* Warning: significant performance impact */
+#define ZCATCH /* Warning: significant performance impact */
 #undef ZTRACING /* Warning: significant performance impact */
 
 #include "ncexternl.h"
@@ -36,22 +36,20 @@ EXTERNL int zthrow(int err, const char* fname, int line);
 /* printers */
 EXTERNL void nczprint_reclaim(void);
 EXTERNL char* nczprint_slice(NCZSlice);
-EXTERNL char* nczprint_slices(int rank, NCZSlice*);
-EXTERNL char* nczprint_slab(int rank, NCZSlice*);
-EXTERNL char* nczprint_odom(NCZOdometer*);
-EXTERNL char* nczprint_chunkrange(NCZChunkRange);
-EXTERNL char* nczprint_projection(NCZProjection);
-EXTERNL char* nczprint_sliceprojections(NCZSliceProjections);
-EXTERNL char* nczprint_allsliceprojections(int r, NCZSliceProjections* slp);
-EXTERNL char* nczprint_vector(size_t,size64_t*);
-EXTERNL char* nczprint_slicex(NCZSlice slice, int raw);
-EXTERNL char* nczprint_slicesx(int rank, NCZSlice* slices, int raw);
-EXTERNL char* nczprint_projectionx(NCZProjection proj, int raw);
-EXTERNL char* nczprint_sliceprojectionsx(NCZSliceProjections slp, int raw);
+EXTERNL char* nczprint_slices(int rank, const NCZSlice*);
+EXTERNL char* nczprint_slab(int rank, const NCZSlice*);
+EXTERNL char* nczprint_odom(const NCZOdometer*);
+EXTERNL char* nczprint_chunkrange(const NCZChunkRange);
+EXTERNL char* nczprint_projection(const NCZProjection);
+EXTERNL char* nczprint_sliceprojections(const NCZSliceProjections);
+EXTERNL char* nczprint_allsliceprojections(int r, const NCZSliceProjections* slp);
+EXTERNL char* nczprint_vector(size_t,const size64_t*);
+EXTERNL char* nczprint_slicex(const NCZSlice slice, int raw);
+EXTERNL char* nczprint_slicesx(int rank, const NCZSlice* slices, int raw);
+EXTERNL char* nczprint_projectionx(const NCZProjection proj, int raw);
+EXTERNL char* nczprint_sliceprojectionsx(const NCZSliceProjections slp, int raw);
 
-#ifdef ZDEBUG
-EXTERNL void zdumpcommon(struct Common*);
-#endif
+EXTERNL void zdumpcommon(const struct Common*);
 
 #ifdef HAVE_EXECINFO_H
 EXTERNL void NCZbacktrace(void);

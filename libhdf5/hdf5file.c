@@ -14,6 +14,7 @@
 #include "config.h"
 #include "hdf5internal.h"
 #include "ncrc.h"
+#include "ncauth.h"
 
 extern int NC4_extract_file_image(NC_FILE_INFO_T* h5); /* In nc4memcb.c */
 
@@ -221,6 +222,10 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio)
     /* Free the fileinfo struct, which holds info from the fileinfo
      * hidden attribute. */
     NC4_clear_provenance(&h5->provenance);
+
+    /* Free the http info */
+    ncurifree(hdf5_info->http.uri);
+    NC_authfree(hdf5_info->http.auth);
 
     /* Close hdf file. It may not be open, since this function is also
      * called by NC_create() when a file opening is aborted. */

@@ -687,9 +687,6 @@ nc4_var_list_add2(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var)
       return NC_ENOMEM;
     }
 
-    new_var->hdr.hashkey = NC_hashmapkey(new_var->hdr.name,
-                                         strlen(new_var->hdr.name));
-
     /* Create an indexed list for the attributes. */
     new_var->att = ncindexnew(0);
 
@@ -807,8 +804,6 @@ nc4_dim_list_add(NC_GRP_INFO_T *grp, const char *name, size_t len,
 
       return NC_ENOMEM;
     }
-    new_dim->hdr.hashkey = NC_hashmapkey(new_dim->hdr.name,
-                                         strlen(new_dim->hdr.name));
 
     /* Is dimension unlimited? */
     new_dim->len = len;
@@ -859,8 +854,6 @@ nc4_att_list_add(NCindex *list, const char *name, NC_ATT_INFO_T **att)
         free(new_att);
       return NC_ENOMEM;
     }
-    /* Create a hash of the name. */
-    new_att->hdr.hashkey = NC_hashmapkey(name, strlen(name));
 
     /* Add object to list as specified by its number */
     ncindexadd(list, (NC_OBJ *)new_att);
@@ -915,8 +908,6 @@ nc4_grp_list_add(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *parent, char *name,
         free(new_grp);
         return NC_ENOMEM;
     }
-    new_grp->hdr.hashkey = NC_hashmapkey(new_grp->hdr.name,
-                                         strlen(new_grp->hdr.name));
 
     /* Set up new indexed lists for stuff this group can contain. */
     new_grp->children = ncindexnew(0);
@@ -1003,7 +994,6 @@ nc4_type_new(size_t size, const char *name, int assignedid,
     if (!(new_type = calloc(1, sizeof(NC_TYPE_INFO_T))))
         return NC_ENOMEM;
     new_type->hdr.sort = NCTYP;
-    new_type->hdr.hashkey = NC_hashmapkey(name, strlen(name));
     new_type->hdr.id = assignedid;
 
     /* Remember info about this type. */
@@ -1097,7 +1087,6 @@ nc4_field_list_add(NC_TYPE_INFO_T *parent, const char *name,
         free(field);
         return NC_ENOMEM;
     }
-    field->hdr.hashkey = NC_hashmapkey(field->hdr.name,strlen(field->hdr.name));
     field->nc_typeid = xtype;
     field->offset = offset;
     field->ndims = ndims;

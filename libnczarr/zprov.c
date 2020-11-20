@@ -51,6 +51,7 @@ NCZ_provenance_init(void)
     int stat = NC_NOERR;
     char* name = NULL;
     char* value = NULL;
+    unsigned long major, minor, release;
     NCbytes* buffer = NULL; /* for constructing the global _NCProperties */
     char printbuf[1024];
 
@@ -78,16 +79,14 @@ NCZ_provenance_init(void)
     ncbytescat(buffer,"=");
     ncbytescat(buffer,PACKAGE_VERSION);
 
-#if 0
     /* This should be redundant since netcdf version => zarr format */
     /* Insert the ZARR as underlying storage format library */
     ncbytesappend(buffer,NCPROPSSEP2);
     ncbytescat(buffer,NCPNCZLIB);
     ncbytescat(buffer,"=");
-    if((stat = NCZ_get_libversion(&major,&minor,&release))) goto done;
+    if((stat = NCZ_get_libversion(&major,&minor,&release))) return stat;
     snprintf(printbuf,sizeof(printbuf),"%lu.%lu.%lu",major,minor,release);
     ncbytescat(buffer,printbuf);
-#endif
 
 #ifdef NCPROPERTIES_EXTRA
     if(NCPROPERTIES_EXTRA != NULL && strlen(NCPROPERTIES_EXTRA) > 0)
