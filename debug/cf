@@ -102,6 +102,8 @@ fi
 
 if test "x$DAP" = "x" ; then
 FLAGS="$FLAGS --disable-dap"
+else
+FLAGS="$FLAGS --enable-dap-remote-tests"
 fi
 
 if test "x$MPIO" = x1 ; then
@@ -124,9 +126,9 @@ FLAGS="$FLAGS --enable-nczarr"
 fi
 
 if test "x$S3" != x ; then
-FLAGS="$FLAGS --enable-s3-sdk"
+FLAGS="$FLAGS --enable-nczarr-s3"
 else
-FLAGS="$FLAGS --disable-s3-sdk"
+FLAGS="$FLAGS --disable-nczarr-s3"
 fi
 if test "x$S3TEST" != x ; then
 FLAGS="$FLAGS --enable-nczarr-s3-tests"
@@ -145,6 +147,8 @@ FLAGS="$FLAGS --enable-benchmarks"
 fi
 
 FLAGS="$FLAGS --enable-byterange"
+FLAGS="$FLAGS --disable-filter-testing"
+#FLAGS="$FLAGS --enable-erange-fill"
 
 export PATH
 export CC
