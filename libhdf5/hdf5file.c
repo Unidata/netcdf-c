@@ -224,8 +224,10 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio)
     NC4_clear_provenance(&h5->provenance);
 
     /* Free the http info */
+#ifdef ENABLE_HDF5_ROS3
     ncurifree(hdf5_info->http.uri);
     NC_authfree(hdf5_info->http.auth);
+#endif
 
     /* Close hdf file. It may not be open, since this function is also
      * called by NC_create() when a file opening is aborted. */
