@@ -108,33 +108,7 @@ tst_chunks.nz4 tst_chunks2.nc.nz4 \
 ut_*.txt ut*.cdl tmp*.nc tmp*.cdl *.dmp test.nzf \
 tst_chunks3.nc
 
-if AX_IGNORE
-if BUILD_BENCHMARKS
-
-BMCOMMON=bm_utils.c ut_util.c ut_test.c
-
-BENCHMARKS = bm_many_atts bm_many_objs
-bm_many_atts_SOURCES = bm_many_atts.c ${BMCOMMON}
-bm_many_objs_SOURCES = bm_many_objs.c ${BMCOMMON}
-
-#PG = -pg
-AM_CFLAGS += ${PG}
-AM_LDFLAGS += ${PG}
-
-check_PROGRAMS += ${BENCHMARKS}
-TESTS += run_bm_many_atts.sh
-TESTS += run_bm_many_objs.sh
-
-EXTRA_DIST += bm_common.sh run_bm_metatest.sh run_bm_many_atts.sh run_bm_many_objs.sh
-
-CLEANFILES += bm_many_atts.nc4 bm_many_atts.nzf
-CLEANFILES += bm_many_objs.nc4 bm_many_objs.nzf
-
-endif
-endif
-
 # Remove directories
 clean-local:
 	rm -fr tst_chunks.nzf tst_chunks2.nzf tst_perdimspecs.nzf testmap.nzf testmapapi.nzf test.nzf
-	rm -fr bm_many_*.nzf
 	
