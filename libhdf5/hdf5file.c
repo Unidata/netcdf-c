@@ -225,6 +225,7 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio)
 
 #if defined(ENABLE_BYTERANGE) || defined(ENABLE_HDF5_ROS3) || defined(ENABLE_S3_SDK)
     /* Free the http info */
+#ifdef ENABLE_HDF5_ROS3
     ncurifree(hdf5_info->http.uri);
     NC_authfree(hdf5_info->http.auth);
 #endif
