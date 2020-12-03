@@ -53,10 +53,10 @@ endif
 # Used to validate nczarr chunking code.
 if ENABLE_NCZARR
 AM_CPPFLAGS += -I$(top_srcdir)/libnczarr
-noinst_PROGRAMS = ncdumpchunks
+noinst_PROGRAMS += ncdumpchunks
 else
 if USE_HDF5
-noinst_PROGRAMS = ncdumpchunks
+noinst_PROGRAMS += ncdumpchunks
 endif
 endif
 ncdumpchunks_SOURCES = ncdumpchunks.c
