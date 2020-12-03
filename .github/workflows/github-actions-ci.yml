@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        hdf5: [ 1.8.20, 1.10.7 ]
+        hdf5: [ 1.10.7 ]
         use_nc4: [ nc3, nc4 ]
         use_dap: [ dap_off, dap_on ]
     steps:
