@@ -31,6 +31,8 @@ jobs:
     - run: echo "ENABLE_DAP=--enable-dap" >> $GITHUB_ENV
       if: matrix.use_dap == 'dap_on'
 
+    - run: echo "LDFLAGS=-lrt" >> $GITHUB_ENV
+
 ###
 # Configure and Build and Run Tests
 ###
