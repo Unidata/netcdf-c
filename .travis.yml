@@ -1,7 +1,7 @@
 # blocklist
 branches:
   except:
-  - /.*[.]dmh/
+#  - /.*[.]dmh/
   - /.*[.]wif/
 
 sudo: required

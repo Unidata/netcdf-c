@@ -13,7 +13,7 @@ platform:
 
 branches:
   except:
-    - /.*[.]dmh/
+#    - /.*[.]dmh/
     - /.*[.]wif/
 
 # Do not build feature branch with open Pull Requests
