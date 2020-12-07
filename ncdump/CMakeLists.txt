@@ -307,11 +307,18 @@ ENDIF(MSVC)
 
   add_sh_test(ncdump tst_ctests)
 
+<<<<<<< HEAD
   IF(ENABLE_UNFIXED_MEMORY_LEAKS)
   SET_TESTS_PROPERTIES(ncdump_run_ncgen_nc4_tests.sh ncdump_tst_nccopy4.sh ncdump_tst_ncgen_shared.sh ncdump_tst_netcdf4.sh
                        PROPERTIES ENVIRONMENT NC_VLEN_NOTEST=1)
   ENDIF()
 
+=======
+  IF(USE_CDF5)
+  add_sh_test(ncdump test_keywords)
+  ENDIF()
+  
+>>>>>>> 90b912b7e8675f857b618a440610ada3327f4190
 ENDIF()
 
 ENDIF()
