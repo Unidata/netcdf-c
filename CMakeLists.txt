@@ -984,7 +984,7 @@ OPTION(ENABLE_NCZARR_S3_TESTS "Enable NCZarr S3 tests." OFF)
 
 IF(ENABLE_NCZARR_S3_TESTS AND NOT ENABLE_NCZARR_S3)
   message(FATAL_ERROR "NCZarr S3 support is disabled; please specify option -DENABLE_NCZARR_S3_TESTS=no")
-  SET(ENABLE_NCZARR_S3_TESTS OFF CACHE BOOL "NCARR S3 TESTS" FORCE)  
+  SET(ENABLE_NCZARR_S3_TESTS OFF CACHE BOOL "NCARR S3 TESTS" FORCE)
 ENDIF()
 
 # See if aws-s3-sdk is available
@@ -994,7 +994,7 @@ find_package(AWSSDK REQUIRED)
 set(SERVICE s3)
 AWSSDK_DETERMINE_LIBS_TO_LINK(SERVICE AWSSDK_LINK_LIBRARIES)
 IF(AWSSDK_FOUND)
-  SET(ENABLE_S3_SDK ON CACHE BOOL "S3 SDK" FORCE)  
+  SET(ENABLE_S3_SDK ON CACHE BOOL "S3 SDK" FORCE)
 ELSE()
   SET(ENABLE_S3_SDK OFF CACHE BOOL "S3 SDK" FORCE)
 ENDIF()
@@ -1580,24 +1580,34 @@ IF(NC_M4)
   SET(HAVE_M4 TRUE)
 ELSE()
   MESSAGE(STATUS "m4 not found.")
+  SET(HAVE_M4 FALSE)
 ENDIF()
 
-MACRO(GEN_m4 filename dest)
-  set(${dest} "${CMAKE_CURRENT_BINARY_DIR}/${filename}.c")
-  IF(HAVE_M4)
-    ADD_CUSTOM_COMMAND(
-      OUTPUT ${${dest}}
-      COMMAND ${NC_M4}
-      ARGS ${M4FLAGS} ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.m4 > ${${dest}}
-      VERBATIM
-    )
-  ELSE(HAVE_M4)
-    IF(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
-      FILE(COPY ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
-           DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-    ELSE()
-        MESSAGE(FATAL_ERROR "File ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c does not exists, and can not be generated")
+MACRO(GEN_m4 filename)
+
+set(dest "${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c")
+
+  # If m4 isn't present, and the generated file doesn't exist,
+  # it cannot be generated and an error should be thrown.
+  IF(NOT HAVE_M4)
+    IF(NOT EXISTS ${dest})
+      MESSAGE(FATAL_ERROR "m4 is required to generate ${filename}.c. Please install m4 so that it is on the PATH and try again.")
     ENDIF()
+  ENDIF(NOT HAVE_M4)
+
+  IF(HAVE_M4)
+    # If m4 is available, remove generated file if it exists.
+    IF(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
+      FILE(REMOVE ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
+    ENDIF()
+
+    ADD_CUSTOM_COMMAND(
+      OUTPUT ${dest}
+      COMMAND ${NC_M4}
+      ARGS ${M4FLAGS} ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.m4 > ${dest}
+      VERBATIM
+      )
+
   ENDIF(HAVE_M4)
 ENDMACRO(GEN_m4)
 
