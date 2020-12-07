@@ -7,9 +7,8 @@ SET(libsrc_SOURCES v1hpg.c putget.c attr.c nc3dispatch.c
 # Process these files with m4.
 SET(m4_SOURCES attr ncx putget)
 foreach (f ${m4_SOURCES})
-
-  GEN_m4(${f})
-
+  GEN_m4(${f} dest)
+  LIST(APPEND libsrc_SOURCES ${dest})
 endforeach(f)
 
 LIST(APPEND libsrc_SOURCES pstdint.h ncio.h ncx.h)
