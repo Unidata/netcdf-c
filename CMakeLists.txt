@@ -1585,10 +1585,12 @@ ENDIF()
 
 MACRO(GEN_m4 filename)
 
+set(dest "${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c")
+
   # If m4 isn't present, and the generated file doesn't exist,
   # it cannot be generated and an error should be thrown.
   IF(NOT HAVE_M4)
-    IF(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${filename.c})
+    IF(NOT EXISTS ${dest})
       MESSAGE(FATAL_ERROR "m4 is required to generate ${filename}.c. Please install m4 so that it is on the PATH and try again.")
     ENDIF()
   ENDIF(NOT HAVE_M4)
@@ -1600,9 +1602,9 @@ MACRO(GEN_m4 filename)
     ENDIF()
 
     ADD_CUSTOM_COMMAND(
-      OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
+      OUTPUT ${dest}
       COMMAND ${NC_M4}
-      ARGS ${M4FLAGS} ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.m4 > ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
+      ARGS ${M4FLAGS} ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.m4 > ${dest}
       VERBATIM
       )
 
