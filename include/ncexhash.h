@@ -10,21 +10,7 @@ See LICENSE.txt for license information.
 #include "config.h"
 #endif
 #include <stdint.h>
-#include <netcdf.h>
-
-#if 0
-#ifndef EXTERNL
-# ifdef _WIN32
-#  ifdef DLL_EXPORT /* define when building the library */
-#   define EXTERNL __declspec(dllexport) extern
-#  else
-#   define EXTERNL __declspec(dllimport) extern
-#  endif
-# else /*!_WIN32*/
-#  define EXTERNL extern
-# endif /* _WIN32 */
-#endif
-#endif
+#include "netcdf.h"
 
 /*
 Implement extendible hashing as defined in:

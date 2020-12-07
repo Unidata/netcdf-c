@@ -92,6 +92,7 @@ UCAR
 #  endif /* !DYNAMIC_CRC_TABLE */
 #endif /* MAKECRCH */
 
+#include "ncexternl.h"
 
 /* Definitions for doing the crc four data bytes at a time. */
 #if !defined(NOBYFOUR) && defined(Z_U4)
@@ -294,7 +295,7 @@ local unsigned long ZEXPORT crc32_z(crc, buf, len)
 }
 
 /* ========================================================================= */
-unsigned int ZEXPORT
+EXTERNL unsigned int ZEXPORT
 NC_crc32(unsigned int crc, const void* buf, unsigned int len)
 {
     unsigned long value = (unsigned long)crc;

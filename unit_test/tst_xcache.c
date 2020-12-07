@@ -11,35 +11,28 @@ Test the NCxcache data structure
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#ifdef HAVE_TIME_H
-#include <time.h>
-#endif
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#endif
-#ifdef HAVE_SYS_RESOURCE_H
-#include <sys/resource.h>
-#endif
 #include <assert.h>
 
 #include "netcdf.h"
 #include "ncexhash.h"
 #include "ncxcache.h"
 
+#include "timer_utils.h"
+
+#ifdef _WIN32
+#define srandom srand
+#define random (long)rand
+#endif
+
 #define DEBUG 0
 
+/* Approximate average times; if we get out of this range, then
+   something is drastically wrong */
+static const struct TimeRange insertrange = {0,50000};
+static const struct TimeRange readrange = {0,5000};
 
-static struct rusage ru;
-static clockid_t clk_id = CLOCK_MONOTONIC;
-static struct timespec xinserttime[2];
-static long inserttime[2];
-static struct timespec xreadtime[2];
-static long readtime[2];
-#if 0
-static struct timespec xremtime[2];
-static long readtime[2];
-static long remtime[2];
-#endif
+static Nanotime inserttime[2];
+static Nanotime readtime[2];
 
 #define CHECK(expr) check((expr),__LINE__)
 void check(int stat, int line)
@@ -49,40 +42,6 @@ void check(int stat, int line)
 	fflush(stderr);
 	exit(1);
     }
-}
-
-#if 0
-static void
-reporttime(unsigned nelems, long* times, const char* tag)
-{
-    NC_UNUSED(nelems);
-    NC_UNUSED(times);
-    NC_UNUSED(tag);
-#if 0
-    double delta;
-    double deltasec;
-    delta = (double)(times[1] - times[0]);
-    deltasec = delta / 1000000.0;
-    fprintf(stderr,"\t%s:\t%5.1lf sec",tag,deltasec);
-    fprintf(stderr," avg=%5.1lf usec\n",delta/nelems);
-#endif
-}
-#endif
-
-static void
-xreporttime(unsigned nelems, struct timespec* times, const char* tag)
-{
-    double delta;
-    double deltasec;
-    long long nsec[2];
-    
-    nsec[0] = times[0].tv_nsec+(1000000000 * times[0].tv_sec);
-    nsec[1] = times[1].tv_nsec+(1000000000 * times[1].tv_sec);
-
-    delta = (double)(nsec[1] - nsec[0]);
-    deltasec = delta / 1000000000.0;
-    fprintf(stderr,"\t%s:\t%8.6lf sec",tag,deltasec);
-    fprintf(stderr," avg=%5.2lf nsec\n",delta/nelems);
 }
 
 /*
@@ -166,6 +125,8 @@ main(int argc, char** argv)
     int* np = NULL;
     void* content = NULL;
 
+    NCT_inittimer();
+
     for(np=N;*np;np++) {    
 	int ns,i;
 
@@ -176,10 +137,7 @@ main(int argc, char** argv)
 
         if((stat =  ncxcachenew(2,&cache))) goto done;
 
-        getrusage(RUSAGE_SELF, &ru);
-        inserttime[0] = (1000000*(ru.ru_utime.tv_sec + ru.ru_stime.tv_sec)
-		     + ru.ru_utime.tv_usec + ru.ru_stime.tv_usec);
-        clock_gettime(clk_id,&xinserttime[0]);
+	NCT_marktime(&inserttime[0]);
 
 	for(i=0;i<ns;i++) {
 	    hkey = ncexhashkey(strings[i].string,strlen(strings[i].string));
@@ -187,25 +145,19 @@ main(int argc, char** argv)
 	}
 	assert(ncxcachecount(cache) == ns);
 
-        clock_gettime(clk_id,&xinserttime[1]);
-        getrusage(RUSAGE_SELF, &ru);
-        inserttime[1] = (1000000*(ru.ru_utime.tv_sec + ru.ru_stime.tv_sec)
-		     + ru.ru_utime.tv_usec + ru.ru_stime.tv_usec);
+	NCT_marktime(&inserttime[1]);
 
 #if DEBUG > 0
 	ncxcacheprint(cache);
 #endif
 
-        xreporttime(ns, xinserttime, "insert");
+        NCT_reporttime(ns, inserttime, insertrange, "insert");
 
 	/* Try to touch and extract all the entries */
 
 	fprintf(stderr,"read:\n");
 
-        getrusage(RUSAGE_SELF, &ru);
-        readtime[0] = (1000000*(ru.ru_utime.tv_sec + ru.ru_stime.tv_sec)
-		     + ru.ru_utime.tv_usec + ru.ru_stime.tv_usec);
-        clock_gettime(clk_id,&xreadtime[0]);
+	NCT_marktime(&readtime[0]);
 
 	for(i=0;i<ns;i++) {
 	    void* top = NULL;
@@ -216,16 +168,13 @@ main(int argc, char** argv)
 	    if(top != content) {stat = NC_EINTERNAL; goto done;}
 	}
 
-        clock_gettime(clk_id,&xreadtime[1]);
-        getrusage(RUSAGE_SELF, &ru);
-        readtime[1] = (1000000*(ru.ru_utime.tv_sec + ru.ru_stime.tv_sec)
-		     + ru.ru_utime.tv_usec + ru.ru_stime.tv_usec);
+	NCT_marktime(&readtime[1]);
 
 #if DEBUG > 0
 	ncxcacheprint(cache);
 #endif
 
-        xreporttime(ns, xreadtime, "read");
+	NCT_reporttime(ns, readtime, readrange, "read");
 
 	for(i=0;i<ns;i++) {
 	    void* top = NULL;
