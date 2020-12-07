@@ -216,7 +216,7 @@ NCConstant*    constant;
 	    attrdecl enumid path dimref fielddim fieldspec
 %type <sym> typeref
 %type <sym> varref
-%type <sym> type_var_ref
+%type <sym> ambiguous_ref
 %type <mark> enumidlist fieldlist fields varlist dimspec dimlist field
 	     fielddimspec fielddimlist
 %type <constant> dataitem constdata constint conststring constbool
@@ -666,7 +666,7 @@ fielddim:
 /* Use this when referencing defined objects */
 
 varref:
-	type_var_ref
+	ambiguous_ref
 	    {Symbol* vsym = $1;
 		if(vsym->objectclass != NC_VAR) {
 		    derror("Undefined or forward referenced variable: %s",vsym->name);
@@ -677,7 +677,7 @@ varref:
 	  ;
 
 typeref:
-	type_var_ref
+	ambiguous_ref
 	    {Symbol* tsym = $1;
 		if(tsym->objectclass != NC_TYPE) {
 		    derror("Undefined or forward referenced type: %s",tsym->name);
@@ -687,7 +687,7 @@ typeref:
 	    }
 	;
 
-type_var_ref:
+ambiguous_ref:
 	path
 	    {Symbol* tvsym = $1; Symbol* sym;
 		/* disambiguate*/
@@ -725,7 +725,7 @@ attrdecl:
 	    {$$ = makespecial(_SUPERBLOCK_FLAG,NULL,NULL,(void*)$4,ISCONST);}
 	| ':' ident '=' datalist
 	    { $$=makeattribute($2,NULL,NULL,$4,ATTRGLOBAL);}
-	| typeref type_var_ref ':' ident '=' datalist
+	| typeref ambiguous_ref ':' ident '=' datalist
 	    {Symbol* tsym = $1; Symbol* vsym = $2; Symbol* asym = $4;
 		if(vsym->objectclass == NC_VAR) {
 		    $$=makeattribute(asym,vsym,tsym,$6,ATTRVAR);
@@ -734,7 +734,7 @@ attrdecl:
 		    YYABORT;
 		}
 	    }
-	| type_var_ref ':' ident '=' datalist
+	| ambiguous_ref ':' ident '=' datalist
 	    {Symbol* sym = $1; Symbol* asym = $3;
 		if(sym->objectclass == NC_VAR) {
 		    $$=makeattribute(asym,sym,NULL,$5,ATTRVAR);
@@ -745,25 +745,25 @@ attrdecl:
 		    YYABORT;
 		}
 	    }
-	| type_var_ref ':' _FILLVALUE '=' datalist
+	| ambiguous_ref ':' _FILLVALUE '=' datalist
 	    {$$ = makespecial(_FILLVALUE_FLAG,$1,NULL,(void*)$5,ISLIST);}
-	| typeref type_var_ref ':' _FILLVALUE '=' datalist
+	| typeref ambiguous_ref ':' _FILLVALUE '=' datalist
 	    {$$ = makespecial(_FILLVALUE_FLAG,$2,$1,(void*)$6,ISLIST);}
-	| type_var_ref ':' _STORAGE '=' conststring
+	| ambiguous_ref ':' _STORAGE '=' conststring
 	    {$$ = makespecial(_STORAGE_FLAG,$1,NULL,(void*)$5,ISCONST);}
-	| type_var_ref ':' _CHUNKSIZES '=' intlist
+	| ambiguous_ref ':' _CHUNKSIZES '=' intlist
 	    {$$ = makespecial(_CHUNKSIZES_FLAG,$1,NULL,(void*)$5,ISLIST);}
-	| type_var_ref ':' _FLETCHER32 '=' constbool
+	| ambiguous_ref ':' _FLETCHER32 '=' constbool
 	    {$$ = makespecial(_FLETCHER32_FLAG,$1,NULL,(void*)$5,ISCONST);}
-	| type_var_ref ':' _DEFLATELEVEL '=' constint
+	| ambiguous_ref ':' _DEFLATELEVEL '=' constint
 	    {$$ = makespecial(_DEFLATE_FLAG,$1,NULL,(void*)$5,ISCONST);}
-	| type_var_ref ':' _SHUFFLE '=' constbool
+	| ambiguous_ref ':' _SHUFFLE '=' constbool
 	    {$$ = makespecial(_SHUFFLE_FLAG,$1,NULL,(void*)$5,ISCONST);}
-	| type_var_ref ':' _ENDIANNESS '=' conststring
+	| ambiguous_ref ':' _ENDIANNESS '=' conststring
 	    {$$ = makespecial(_ENDIAN_FLAG,$1,NULL,(void*)$5,ISCONST);}
-	| type_var_ref ':' _FILTER '=' conststring
+	| ambiguous_ref ':' _FILTER '=' conststring
 	    {$$ = makespecial(_FILTER_FLAG,$1,NULL,(void*)$5,ISCONST);}
-	| type_var_ref ':' _NOFILL '=' constbool
+	| ambiguous_ref ':' _NOFILL '=' constbool
 	    {$$ = makespecial(_NOFILL_FLAG,$1,NULL,(void*)$5,ISCONST);}
 	| ':' _FORMAT '=' conststring
 	    {$$ = makespecial(_FORMAT_FLAG,NULL,NULL,(void*)$4,ISCONST);}

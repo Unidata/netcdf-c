@@ -140,6 +140,35 @@ struct Specialtoken specials[] = {
 {NULL,0} /* null terminate */
 };
 
+/* Track keywords that may be identifiers depending on
+   format being produced */
+/* Define the possible format classes */
+#define KWALL (1<<NC_FORMAT_CLASSIC|1<<NC_FORMAT_64BIT_OFFSET|1<<NC_FORMAT_NETCDF4|1<<NC_FORMAT_NETCDF4_CLASSIC|1<<NC_FORMAT_64BIT_DATA) /* Used in all formats */
+#define KWCDF5 (1<<NC_FORMAT_64BIT_DATA) /* Used in cdf5 */
+#define KWNC4 (1<<NC_FORMAT_NETCDF4) /* Used in netcdf-4 */
+
+#define NKWIDENT 12
+struct KWIDENT {
+    int token;
+    const char* keyword;
+    int formats; /* Which formats use this keyword */
+} kwident[NKWIDENT] = {
+/* Order by token for binary search */
+{CHAR_K, "char", KWALL},
+{BYTE_K, "byte", KWALL},
+{SHORT_K, "short", KWALL},
+{INT_K, "int", KWALL},
+{FLOAT_K, "float", KWALL},
+{DOUBLE_K, "double", KWALL},
+{UBYTE_K, "ubyte", KWCDF5|KWNC4},
+{USHORT_K, "ushort", KWCDF5|KWNC4},
+{UINT_K, "uint", KWCDF5|KWNC4},
+{INT64_K, "int64", KWCDF5|KWNC4},
+{UINT64_K, "uint64", KWCDF5|KWNC4},
+{STRING_K, "string", KWNC4}
+};
+static int identorkw(int token);
+
 %}
 %x ST_C_COMMENT
 %x TEXT
@@ -261,26 +290,27 @@ yytext[MAXTRST-1] = '\0';
 		return lexdebug(OPAQUESTRING);
 		}
 
-compound|struct|structure {return lexdebug(COMPOUND);}
-enum				{return lexdebug(ENUM);}
+compound|struct|structure {return lexdebug(identorkw(COMPOUND));}
+enum				{return lexdebug(identorkw(ENUM));}
 opaque				{return lexdebug(OPAQUE_);}
 
-float|real		{return lexdebug(FLOAT_K);}
-char			{return lexdebug(CHAR_K);}
-byte			{return lexdebug(BYTE_K);}
-ubyte			{return lexdebug(UBYTE_K);}
-short			{return lexdebug(SHORT_K);}
-ushort			{return lexdebug(USHORT_K);}
-long|int|integer	{return lexdebug(INT_K);}
-ulong|uint|uinteger	{return lexdebug(UINT_K);}
-int64			{return lexdebug(INT64_K);}
-uint64			{return lexdebug(UINT64_K);}
-double			{return lexdebug(DOUBLE_K);}
-string                  {return lexdebug(STRING_K);}
+float|real		{return lexdebug(identorkw(FLOAT_K));}
+char			{return lexdebug(identorkw(CHAR_K));}
+byte			{return lexdebug(identorkw(BYTE_K));}
+ubyte			{return lexdebug(identorkw(UBYTE_K));}
+short			{return lexdebug(identorkw(SHORT_K));}
+ushort			{return lexdebug(identorkw(USHORT_K));}
+long|int|integer	{return lexdebug(identorkw(INT_K));}
+ulong|uint|uinteger	{return lexdebug(identorkw(UINT_K));}
+int64			{return lexdebug(identorkw(INT64_K));}
+uint64			{return lexdebug(identorkw(UINT64_K));}
+double			{return lexdebug(identorkw(DOUBLE_K));}
+string                  {return lexdebug(identorkw(STRING_K));}
 
 unlimited|UNLIMITED	{int32_val = -1;
-			 return lexdebug(NC_UNLIMITED_K);}
+			 return lexdebug(identorkw(NC_UNLIMITED_K));}
 
+			/* These are currently only keywords */
 types:			{return lexdebug(TYPES);}
 dimensions:		{return lexdebug(DIMENSIONS);}
 variables:		{return lexdebug(VARIABLES);}
@@ -875,4 +905,40 @@ collecttag(char* text, char** stagp)
 	tag = NC_NAT;
     }
     return tag;
+}
+
+/* Depending on the format, a name may be a keword or an ident */
+static int
+identorkw(int token)
+{
+    /* Binary search for yytext */
+    int n = NKWIDENT;
+    int L = 0;
+    int R = (n - 1);
+    int m, cmp;
+    struct KWIDENT* p;
+    int found = 0;
+    size_t len;
+    char* id = NULL;
+
+    for(;;) {
+	if(L > R) break;
+        m = (L + R) / 2;
+	p = &kwident[m];
+	cmp = (p->token - token);
+	if(cmp == 0) {found = 1; break;}
+	if(cmp < 0)
+	    L = (m + 1);
+	else /*cmp > 0*/
+	    R = (m - 1);
+    }
+    if(!found) return token; /* Not a keyword of interest */
+    /* See if the format applies */
+    if(p->formats & ((int)1<<k_flag)) return token;
+    /* Need to convert a non-ident token to an ident symbol */
+    len = strlen(yytext);
+    len = unescape(yytext,len,ISIDENT,&id);
+    yylval.sym = install(id);
+    efree(id);
+    return IDENT; /* treat as identifier */
 }
