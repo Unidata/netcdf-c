@@ -245,6 +245,12 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the `gettimeofday' function. */
 #cmakedefine HAVE_GETTIMEOFDAY 1
 
+/* Define to 1 if you have the `clock_gettime' function. */
+#cmakedefine HAVE_CLOCK_GETTIME 1
+
+/* Define to 1 if you have the `gettimeofday' function. */
+#cmakedefine HAVE_STRUCT_TIMESPEC 1
+
 /* if true, netcdf4 file properties will be set using H5Pset_libver_bounds */
 #cmakedefine HAVE_H5PSET_LIBVER_BOUNDS 1
 

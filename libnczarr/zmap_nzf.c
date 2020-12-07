@@ -3,6 +3,8 @@
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 
+#undef DEBUG
+
 /* Not sure this has any effect */
 #define _LARGEFILE_SOURCE 1
 #define _LARGEFILE64_SOURCE 1
@@ -863,7 +865,7 @@ platformdircontent(ZFMAP* zfmap, const char* truepath, NClist* contents)
     int ret = NC_NOERR;
     errno = 0;
     WIN32_FIND_DATA FindFileData;
-    HANDLE dir;
+    HANDLE dir = NULL;
     char* ffpath = NULL;
     char* lpath = NULL;
     size_t len;
@@ -1012,10 +1014,9 @@ platformdeleter(ZFMAP* zfmap, NClist* segments, int depth)
 done:
     if(dir) NCclosedir(dir);
     /* delete this file|dir */
-    remove(path);
+    ret = NCremove(path);
     nullfree(path);
     nullfree(tmp);
-    errno = 0;
     return THROW(ret);
 }
 #endif /*0*/
@@ -1029,7 +1030,18 @@ platformdeleter(ZFMAP* zfmap, NCbytes* truepath, int delroot, int depth)
     size_t tpathlen = ncbyteslength(truepath);
     char* local = NULL;
 
+#ifdef DEBUG
+fprintf(stderr,"xxx: platformdeleter: depth=%d delroot=%d truepath=%s\n",depth,delroot,ncbytescontents(truepath));
+#endif
     ret = platformdircontent(zfmap, ncbytescontents(truepath), contents);
+#ifdef DEBUG
+    {int i;
+	fprintf(stderr,"xxx: contents:\n");
+	for(i=0;i<nclistlength(contents);i++)
+	    fprintf(stderr,"\t%s\n",(const char*)nclistget(contents,i));
+	fprintf(stderr,"xxx: end contents\n");
+    }
+#endif
     switch (ret) {
     case NC_NOERR: /* recurse to remove levels below */
         for(i=0;i<nclistlength(contents);i++) {
@@ -1045,7 +1057,16 @@ platformdeleter(ZFMAP* zfmap, NCbytes* truepath, int delroot, int depth)
 	if(depth > 0 || delroot) {
 	    /* localize and delete */
 	    if((ret = nczm_localize(ncbytescontents(truepath),&local,LOCALIZE))) goto done;
-            rmdir(local); /* kill this dir */
+#ifdef DEBUG
+fprintf(stderr,"xxx: remove:  %s\n",local);
+#endif
+            if(NCrmdir(local) < 0) { /* kill this dir */
+#ifdef DEBUG
+fprintf(stderr,"xxx: remove: errno=%d|%s\n",errno,nc_strerror(errno));
+#endif
+		ret = errno;
+		goto done;
+	    }
 	}
 	break;    
     case NC_EEMPTY: /* Not a directory */
@@ -1053,7 +1074,16 @@ platformdeleter(ZFMAP* zfmap, NCbytes* truepath, int delroot, int depth)
         /* localize and delete */
 	if(local) {nullfree(local); local = NULL;}
 	if((ret = nczm_localize(ncbytescontents(truepath),&local,LOCALIZE))) goto done;
-        unlink(local); /* kill this file */
+#ifdef DEBUG
+fprintf(stderr,"xxx: remove:  %s\n",local);
+#endif
+        if(NCremove(local) < 0) {/* kill this file */
+#ifdef DEBUG
+fprintf(stderr,"xxx: remove: errno=%d|%s\n",errno,nc_strerror(errno));
+#endif
+	    ret = errno;
+	    goto done;
+	}
 	break;
     case NC_ENOTFOUND:
     default:

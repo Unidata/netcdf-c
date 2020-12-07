@@ -48,6 +48,8 @@ test_data.log: test_meta.log
 noinst_PROGRAMS = dump
 dump_SOURCES = dump.c
 
+# Disable Dap4 Remote Tests until the test server is working
+if AX_IGNORE
 if ENABLE_DAP_REMOTE_TESTS
 # Note: This program name was changed to findtestserver4
 # to avoid cmake complaint about duplicate targets.
@@ -60,6 +62,7 @@ if ENABLE_DAP_REMOTE_TESTS
 if BUILD_UTILITIES
   # relies on ncdump
   TESTS += test_remote.sh
+endif
 endif
 endif
 

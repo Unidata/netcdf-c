@@ -20,6 +20,7 @@
 #endif
 #ifdef _WIN32
 #include <io.h>
+#include <direct.h>
 #endif
 
 #include "ncexternl.h"
@@ -28,6 +29,13 @@
 extern char *realpath(const char *path, char *resolved_path);
 
 #undef PATHFORMAT
+
+#ifdef _WIN32
+#define access _access 
+#define mkdir _mkdir
+#define rmdir _rmdir
+#define getcwd _getcwd
+#endif
 
 /*
 Code to provide some path conversion code so that
@@ -276,7 +284,7 @@ NCopendir(const char* path)
 {
     DIR* ent = NULL;
     char* cvtname = NCpathcvt(path);
-    if(cvtname == NULL) return -1;
+    if(cvtname == NULL) return NULL;
     ent = opendir(cvtname);
     free(cvtname);    
     return ent;
@@ -286,9 +294,9 @@ EXTERNL
 int
 NCclosedir(DIR* ent)
 {
-    int stat = 0;
+    int stat = NC_NOERR;
     char* cvtname = NCpathcvt(path);
-    if(cvtname == NULL) return -1;
+    if(cvtname == NULL) {errno = ENOENT; return -1;}
     stat = closedir(cvtname);
     free(cvtname);    
     return stat;
@@ -307,11 +315,7 @@ NCaccess(const char* path, int mode)
     int status = 0;
     char* cvtname = NCpathcvt(path);
     if(cvtname == NULL) return -1;
-#ifdef _WIN32
-    status = _access(cvtname,mode);
-#else
     status = access(cvtname,mode);
-#endif
     free(cvtname);    
     return status;
 }
@@ -322,7 +326,7 @@ NCremove(const char* path)
 {
     int status = 0;
     char* cvtname = NCpathcvt(path);
-    if(cvtname == NULL) return ENOENT;
+    if(cvtname == NULL) {errno = ENOENT; return -1;}
     status = remove(cvtname);
     free(cvtname);    
     return status;
@@ -334,8 +338,20 @@ NCmkdir(const char* path, int mode)
 {
     int status = 0;
     char* cvtname = NCpathcvt(path);
-    if(cvtname == NULL) return -1;
+    if(cvtname == NULL) {errno = ENOENT; return -1;}
     status = mkdir(cvtname,mode);
+    free(cvtname);    
+    return status;
+}
+
+EXTERNL
+int
+NCrmdir(const char* path)
+{
+    int status = 0;
+    char* cvtname = NCpathcvt(path);
+    if(cvtname == NULL) {errno = ENOENT; return -1;}
+    status = rmdir(cvtname);
     free(cvtname);    
     return status;
 }
@@ -347,7 +363,6 @@ NCcwd(char* cwdbuf, size_t len)
     int ret = 0;
     char* cvtname = NULL;
 
-    errno = 0;
     if(cwdbuf == NULL || len == 0) {errno = ENAMETOOLONG; goto done;}
     if(getcwd(cwdbuf,len) == NULL) {goto done;}
     cvtname = NCpathcvt(cwdbuf);

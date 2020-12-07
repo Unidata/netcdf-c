@@ -1058,15 +1058,10 @@ IF(ENABLE_TESTS)
 
   ###
   # Option to turn on unit testing. See
-  # https://github.com/Unidata/netcdf-c/pull/1472 for more
-  # information.  Currently (August 21, 2019): Will not work with
-  # Visual Studio. The unit tests are for internal netCDF functions,
-  # so we don't want to make them external, which would be required to
-  # run on Windows.
+  # https://github.com/Unidata/netcdf-c/pull/1472 for more information.
   ###
-  IF(NOT MSVC)
-    OPTION(ENABLE_UNIT_TESTS "Run Unit Tests." ON)
-  ENDIF(NOT MSVC)
+  OPTION(ENABLE_UNIT_TESTS "Run Unit Tests." OFF)
+
   ###
   # End known-failures.
   ###
@@ -1536,6 +1531,9 @@ CHECK_FUNCTION_EXISTS(mmap HAVE_MMAP)
 CHECK_FUNCTION_EXISTS(mremap HAVE_MREMAP)
 CHECK_FUNCTION_EXISTS(fileno HAVE_FILENO)
 
+CHECK_FUNCTION_EXISTS(clock_gettime  HAVE_CLOCK_GETTIME)
+CHECK_SYMBOL_EXISTS("struct timespec" "time.h" HAVE_STRUCT_TIMESPEC)
+
 # Check to see if MAP_ANONYMOUS is defined.
 IF(MSVC)
 MESSAGE(WARNING "mmap not supported under visual studio: disabling MMAP support.")
@@ -1668,7 +1666,7 @@ ENDMACRO()
 
 # Binary tests which are used by a script looking for a specific name.
 MACRO(add_bin_test_no_prefix F)
-  build_bin_test(${F})
+  build_bin_test(${F} ${ARGN})
   ADD_TEST(${F} ${EXECUTABLE_OUTPUT_PATH}/${F})
   IF(MSVC)
     SET_PROPERTY(TEST ${F} PROPERTY FOLDER "tests/")
@@ -1696,7 +1694,7 @@ MACRO(build_bin_test_no_prefix F)
 ENDMACRO()
 
 MACRO(add_bin_test prefix F)
-  ADD_EXECUTABLE(${prefix}_${F} ${F}.c)
+  ADD_EXECUTABLE(${prefix}_${F} ${F}.c ${ARGN})
   TARGET_LINK_LIBRARIES(${prefix}_${F}
     ${ALL_TLL_LIBS}
     netcdf
