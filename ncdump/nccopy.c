@@ -34,6 +34,7 @@
 #include "ncpathmgr.h"
 
 #undef DEBUGFILTER
+#undef DEBUGCHUNK
 
 /* default bytes of memory we are willing to allocate for variable
  * values during copy */
@@ -307,7 +308,7 @@ parsefilterspec(const char* optarg0, List* speclist)
     }
     /* Parse the variable list */
     if((vlist = listnew()) == NULL) {stat = NC_ENOMEM; goto done;}
-    if((stat=parsevarlist(optarg,vlist))) goto done;        
+    if((stat=parsevarlist(optarg,vlist))) goto done;
 
     if(strcasecmp(remainder,"none") != 0) {
         /* Collect the id+parameters */
@@ -324,7 +325,7 @@ parsefilterspec(const char* optarg0, List* speclist)
 	    filters[0] = nilspec; nilspec = NULL;
 	}
     }
-    
+
     /* Construct a spec entry for each element in vlist */
     for(i=0;i<listlength(vlist);i++) {
 	int k;
@@ -358,7 +359,7 @@ parsefilterspec(const char* optarg0, List* speclist)
 	    filtopt = NULL;
 	}
     }
-    
+
 done:
     freefilterlist(nfilters,filters);
     if(vlist) listfreeall(vlist);
@@ -369,7 +370,7 @@ done:
 static int
 hasfilteroptforvar(const char* ofqn)
 {
-  int i;	 
+  int i;
   /* See which output filter options are defined for this output variable */
   for(i=0;i<listlength(filteroptions);i++) {
       struct FilterOption* opt = listget(filteroptions,i);
@@ -382,7 +383,7 @@ hasfilteroptforvar(const char* ofqn)
 static List*
 filteroptsforvar(const char* ofqn)
 {
-  int i;	 
+  int i;
   List* list = listnew();
   /* See which output filter options are defined for this output variable */
   for(i=0;i<listlength(filteroptions);i++) {
@@ -798,7 +799,7 @@ copy_var_filter(int igrp, int varid, int ogrp, int o_varid, int inkind, int outk
     /* Only bother to look if input is netcdf-4 variant */
     if(innc4) {
       size_t nfilters;
-      unsigned int* ids = NULL;      
+      unsigned int* ids = NULL;
       int k;
       if((stat = nc_inq_var_filter_ids(vid.grpid,vid.varid,&nfilters,NULL)))
 	goto done;
@@ -806,7 +807,7 @@ copy_var_filter(int igrp, int varid, int ogrp, int o_varid, int inkind, int outk
       if((stat = nc_inq_var_filter_ids(vid.grpid,vid.varid,&nfilters,ids)))
 	goto done;
       memset(&inspec,0,sizeof(inspec));
-      
+
       for(k=0;k<nfilters;k++) {
 	  inspec.pfs.filterid = ids[k];
           stat=nc_inq_var_filter_info(vid.grpid,vid.varid,inspec.pfs.filterid,&inspec.pfs.nparams,NULL);
@@ -926,7 +927,7 @@ copy_chunking(int igrp, int i_varid, int ogrp, int o_varid, int ndims, int inkin
 	    /* pretend that this is same as a -c option */
     } else { /* !innc4 */
 	icontig = NC_CONTIGUOUS;
-	ichunkp[0] = 0;	    	
+	ichunkp[0] = 0;
     }
 
     /* If var specific chunking was specified for this output variable
@@ -1009,7 +1010,7 @@ copy_chunking(int igrp, int i_varid, int ogrp, int o_varid, int ndims, int inkin
 	}
 
         /* Get the current default chunking on the output variable */
-        /* Unfortunately, there is no way to get this info except by 
+        /* Unfortunately, there is no way to get this info except by
            forcing chunking */
         if(ocontig == NC_CHUNKED) {
 	    /* this may fail if chunking is not possible, in which case ignore */
@@ -1082,7 +1083,7 @@ next2:
     }
 #endif /*DEBUGFILTER*/
 #endif /*USE_NETCDF4*/
- 
+
 done:
     if(ofqn) free(ofqn);
     return stat;
@@ -1487,23 +1488,23 @@ copy_vars(int igrp, int ogrp)
     return stat;
 }
 
-#if 0
+#if DEBUGCHUNK
 static void
 report(int rank, size_t* start, size_t* count, void* buf)
 {
     int i;
-    size_t prod = 1;    
+    size_t prod = 1;
     for(i=0;i<rank;i++) prod *= count[i];
     fprintf(stderr,"start=");
-    for(i=0;i<rank;i++)	
+    for(i=0;i<rank;i++)
 	fprintf(stderr,"%s%ld",(i==0?"(":" "),(long)start[i]);
     fprintf(stderr,")");
     fprintf(stderr," count=");
-    for(i=0;i<rank;i++)	
+    for(i=0;i<rank;i++)
 	fprintf(stderr,"%s%ld",(i==0?"(":" "),(long)count[i]);
     fprintf(stderr,")");
     fprintf(stderr," data=");
-    for(i=0;i<prod;i++)	
+    for(i=0;i<prod;i++)
 	fprintf(stderr,"%s%d",(i==0?"(":" "),((int*)buf)[i]);
     fprintf(stderr,"\n");
     fflush(stderr);
@@ -1663,6 +1664,9 @@ copy_var_data(int igrp, int varid, int ogrp)
      * subsequent calls. */
     while((ntoget = nc_next_iter(iterp, start, count)) > 0) {
 	NC_CHECK(nc_get_vara(igrp, varid, start, count, buf));
+#ifdef DEBUGCHUNK
+	report(iterp->rank,start,count,buf);
+#endif
 	NC_CHECK(nc_put_vara(ogrp, ovarid, start, count, buf));
 #ifdef USE_NETCDF4
 	/* we have to explicitly free values for strings and vlens */

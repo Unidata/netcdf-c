@@ -312,6 +312,10 @@ ENDIF(MSVC)
                        PROPERTIES ENVIRONMENT NC_VLEN_NOTEST=1)
   ENDIF()
 
+  IF(USE_CDF5)
+  add_sh_test(ncdump test_keywords)
+  ENDIF()
+
 ENDIF()
 
 ENDIF()
