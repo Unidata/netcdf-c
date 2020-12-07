@@ -7,10 +7,9 @@ SET(libsrc_SOURCES v1hpg.c putget.c attr.c nc3dispatch.c
 # Process these files with m4.
 SET(m4_SOURCES attr ncx putget)
 foreach (f ${m4_SOURCES})
-    GEN_m4(${f})
-    IF(NOT EXISTS ${f}.c)
-      MESSAGE(FATAL_ERROR "m4 is required to generate ${f}.c. Please install m4 on the PATH and try again.")
-    ENDIF()
+
+  GEN_m4(${f})
+
 endforeach(f)
 
 LIST(APPEND libsrc_SOURCES pstdint.h ncio.h ncx.h)
