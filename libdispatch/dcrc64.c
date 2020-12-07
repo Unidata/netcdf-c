@@ -42,6 +42,8 @@
 #include <inttypes.h>
 #include <assert.h>
 
+#include "ncexternl.h"
+
 /* The include of pthread.h below can be commented out in order to not use the
    pthread library for table initialization.  In that case, the initialization
    will not be thread-safe.  That's fine, so long as it can be assured that
@@ -214,7 +216,7 @@ static inline uint64 crc64_big(uint64 crc, void *buf, size_t len)
 
 static int littleendian = -1;
 
-uint64
+EXTERNL uint64
 NC_crc64(uint64 crc, void *buf, unsigned int len)
 {
     /* Is this machine big vs little endian? */
