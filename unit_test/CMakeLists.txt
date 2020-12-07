@@ -8,14 +8,24 @@
 # This is the cmake build file for unit_test/ directory.
 # @author Ward Fisher
 
-# Some unit testing
+# Currently (August 21, 2019): Some tests will not work with
+# Visual Studio. The unit tests are for internal netCDF functions,
+# so we don't want to make them external, which would be required to
+# run on Windows.
 
-SET(UNIT_TESTS tst_nclist test_ncuri test_pathcvt tst_exhash tst_xcache)
+SET(UNIT_TESTS test_ncuri test_pathcvt)
 
-IF(ENABLE_NETCDF_4)
-  SET(UNIT_TESTS ${UNIT_TESTS} tst_nc4internal)
-ENDIF(ENABLE_NETCDF_4)
+IF(NOT MSVC)
+  IF(ENABLE_NETCDF_4)
+    SET(UNIT_TESTS ${UNIT_TESTS} tst_nclist tst_nc4internal)
+  ENDIF(ENABLE_NETCDF_4)
+ENDIF(NOT MSVC)
 
 FOREACH(CTEST ${UNIT_TESTS})
   add_bin_test(unit_test ${CTEST})
 ENDFOREACH()
+
+# Performance tests
+add_bin_test(unit_test tst_exhash timer_utils.c)
+add_bin_test(unit_test tst_xcache timer_utils.c)
+

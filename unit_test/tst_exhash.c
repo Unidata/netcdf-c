@@ -11,20 +11,12 @@ Test the Extendible Hash Implementation of ncexhash
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#ifdef HAVE_TIME_H
-#include <time.h>
-#endif
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#endif
-#ifdef HAVE_SYS_RESOURCE_H
-#include <sys/resource.h>
-#endif
 #include <assert.h>
-
 #include "netcdf.h"
 #include "ncexhash.h"
 #include "nccrc.h"
+
+#include "timer_utils.h"
 
 #define LEAFN 16
 
@@ -37,6 +29,12 @@ Test the Extendible Hash Implementation of ncexhash
 #else
 #define CRC NC_crc32
 #endif
+
+/* Approximate average times; if we get out of this range, then
+   something is drastically wrong */
+static const struct TimeRange insertrange = {0, 50000};
+static const struct TimeRange readrange = {0, 5000};
+static const struct TimeRange remrange = {0,5000};
 
 static unsigned N[] = {1000, 10000, 100000, 1000000, 0};
 
@@ -58,7 +56,7 @@ hkeyfor(unsigned key)
 
     switch (HMODE) {
     case 1:
-        hashkey = ncexhashkey((char*)&key,sizeof(key));
+        hashkey = ncexhashkey((unsigned char*)&key,sizeof(key));
 	break;
     case 2:
         for(i=0;i<NCEXHASHKEYBITS;i++) {
@@ -75,77 +73,26 @@ hkeyfor(unsigned key)
     return hashkey;
 }
 
-static void
-reporttime(unsigned nelems, long* times, const char* tag)
-{
-    NC_UNUSED(nelems);
-    NC_UNUSED(times);
-    NC_UNUSED(tag);
-#if 0
-    double delta;
-    double deltasec;
-    delta = (double)(times[1] - times[0]);
-    deltasec = delta / 1000000.0;
-    fprintf(stderr,"\t%s:\t%5.1lf sec",tag,deltasec);
-    fprintf(stderr," avg=%5.1lf usec\n",delta/nelems);
-#endif
-}
-
-static void
-xreporttime(unsigned nelems, struct timespec* times, const char* tag)
-{
-    double delta;
-    double deltasec;
-    long long nsec[2];
-    
-    nsec[0] = times[0].tv_nsec+(1000000000 * times[0].tv_sec);
-    nsec[1] = times[1].tv_nsec+(1000000000 * times[1].tv_sec);
-
-    delta = (double)(nsec[1] - nsec[0]);
-    deltasec = delta / 1000000000.0;
-    fprintf(stderr,"\t%s:\t%8.6lf sec",tag,deltasec);
-    fprintf(stderr," avg=%5.2lf nsec\n",delta/nelems);
-}
-
 int
 main(int argc, char** argv)
 {
     int stat = NC_NOERR;
     NCexhashmap* map = NULL;
     unsigned key;
-    struct rusage ru;
-    clockid_t clk_id = CLOCK_MONOTONIC;
-    struct timespec xinserttime[2];
-    struct timespec xreadtime[2];
-    struct timespec xremtime[2];
-    long  inserttime[2], readtime[2], remtime[2]; /* elapsed time in microseconds */
     unsigned* np;
     uintptr_t data;
     ncexhashkey_t hashkey;
+    Nanotime inserttime[2];
+    Nanotime readtime[2];
+    Nanotime remtime[2];
+
+    NCT_inittimer();
 
     fprintf(stderr,"insert:\n");
 
-#ifdef VERBOSE
-    {
-    long microcvt, seccvt;
-    struct timespec res;
-    if(clock_getres(clk_id, &res) < 0)
-	abort();
-    fprintf(stderr,"xxx: tv_sec=%lld tv_nsec=%ld\n",(long long)res.tv_sec,res.tv_nsec);
-    microcvt = res.tv_nsec;
-    seccvt = microcvt * 1000000;
-    fprintf(stderr,"xxx: seccvt=%lld microcvt=%lld\n",
-		(long long)seccvt,(long long)microcvt);
-    }
-#endif
-
     for(np=N;*np;np++) {
 
-    getrusage(RUSAGE_SELF, &ru);
-    inserttime[0] = (1000000*(ru.ru_utime.tv_sec + ru.ru_stime.tv_sec)
-	     + ru.ru_utime.tv_usec + ru.ru_stime.tv_usec);
-    clock_gettime(clk_id,&xinserttime[0]);
-
+    NCT_marktime(&inserttime[0]);
     map=ncexhashnew(LEAFN);
     if(map == NULL) CHECK(NC_EINVAL);
 #ifdef VERBOSE
@@ -162,16 +109,11 @@ main(int argc, char** argv)
     fprintf(stderr,"insert.after:");ncexhashprint(map);    
 #endif
 
-    clock_gettime(clk_id,&xinserttime[1]);
-    getrusage(RUSAGE_SELF, &ru);
-    inserttime[1] = (1000000*(ru.ru_utime.tv_sec + ru.ru_stime.tv_sec)
-	     + ru.ru_utime.tv_usec + ru.ru_stime.tv_usec);
+    NCT_marktime(&inserttime[1]);
+
     fprintf(stderr,"read:\n");
 
-    getrusage(RUSAGE_SELF, &ru);
-    readtime[0] = (1000000*(ru.ru_utime.tv_sec + ru.ru_stime.tv_sec)
-	     + ru.ru_utime.tv_usec + ru.ru_stime.tv_usec);
-    clock_gettime(clk_id,&xreadtime[0]);
+    NCT_marktime(&readtime[0]);
 
     for(key=0;key<*np;key++) {
 	uintptr_t data = 0;
@@ -183,19 +125,13 @@ main(int argc, char** argv)
 	if(data != key) fprintf(stderr,"\tMISMATCH\n");
     }
 
-    clock_gettime(clk_id,&xreadtime[1]);
-    getrusage(RUSAGE_SELF, &ru);
-    readtime[1] = (1000000*(ru.ru_utime.tv_sec + ru.ru_stime.tv_sec)
-	     + ru.ru_utime.tv_usec + ru.ru_stime.tv_usec);
+    NCT_marktime(&readtime[1]);
 
     fprintf(stderr,"statistics:\n"); ncexhashprintstats(map);    
     fprintf(stderr,"times: N=%u\n",*np);
 
-    reporttime(*np, inserttime, "insert");
-    reporttime(*np, readtime, "read");
-
-    xreporttime(*np, xinserttime, "insert");
-    xreporttime(*np, xreadtime, "read");
+    if(!NCT_reporttime(*np, inserttime, insertrange, "insert")) goto fail;
+    if(!NCT_reporttime(*np, readtime, readrange, "read")) goto fail;
 
     /* Test iterator */
     {
@@ -256,10 +192,7 @@ main(int argc, char** argv)
 
 	fprintf(stderr,"removing: %u\n",*np);
 
-        getrusage(RUSAGE_SELF, &ru);
-        remtime[0] = (1000000*(ru.ru_utime.tv_sec + ru.ru_stime.tv_sec)
-	     + ru.ru_utime.tv_usec + ru.ru_stime.tv_usec);
-        clock_gettime(clk_id,&xremtime[0]);
+	NCT_marktime(&remtime[0]);
 
         for(key=0;key<*np;key++) {
 	    ncexhashkey_t hashkey = hkeyfor(key);
@@ -275,12 +208,8 @@ main(int argc, char** argv)
         CHECK(ncexhashinqmap(map,NULL,NULL,&nactive,NULL,NULL));
 	fprintf(stderr,"removal: final nactive=%d\n",nactive);
 
-        clock_gettime(clk_id,&xremtime[1]);
- 	getrusage(RUSAGE_SELF, &ru);
-        remtime[1] = (1000000*(ru.ru_utime.tv_sec + ru.ru_stime.tv_sec)
-		     + ru.ru_utime.tv_usec + ru.ru_stime.tv_usec);
-        reporttime(*np, remtime, "removal");
-        xreporttime(*np, xremtime, "removal");
+	NCT_marktime(&remtime[1]);
+        if(!NCT_reporttime(*np, remtime, remrange, "removal")) goto fail;
     }
     
     ncexhashmapfree(map);
@@ -289,4 +218,6 @@ main(int argc, char** argv)
 
 
     return 0;
+fail:
+    return 1;
 }

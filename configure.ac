@@ -971,6 +971,10 @@ AC_CHECK_FUNCS([strlcat snprintf strcasecmp fileno \
 		getrlimit gettimeofday fsync MPI_Comm_f2c MPI_Info_f2c \
 		strncasecmp])
 
+# See if clock_gettime is available and its arg types.
+AC_CHECK_FUNCS([clock_gettime])
+AC_CHECK_TYPES([struct timespec])
+
 # disable dap4 if netcdf-4 is disabled
 #if test "x$enable_netcdf_4" = "xno" ; then
 if test "x$enable_hdf5" = "xno" ; then
