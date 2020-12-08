@@ -43,7 +43,7 @@ jobs:
           wget https://support.hdfgroup.org/ftp/HDF/releases/HDF4.2.15/src/hdf-4.2.15.tar.bz2
           tar -jxf hdf-4.2.15.tar.bz2
           pushd hdf-4.2.15
-          ./configure --prefix=${HOME}/environments/${{ matrix.hdf5 }} --disable-static --enable-shared --disable-fortran --disable-netcdf --with-szlib
+          ./configure --prefix=${HOME}/environments/${{ matrix.hdf5 }} --disable-static --enable-shared --disable-fortran --disable-netcdf #--with-szlib
           make -j
           make install -j
           popd
