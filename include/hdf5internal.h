@@ -114,6 +114,7 @@ typedef struct NC_HDF5_TYPE_INFO
 /* Logging and debugging. */
 void reportopenobjects(int log, hid_t);
 int hdf5_set_log_level();
+void nc_log_hdf5(void);
 
 /* These functions deal with HDF5 dimension scales. */
 int rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid);

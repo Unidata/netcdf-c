@@ -13,7 +13,7 @@ typedef struct NCZOdometer {
     size64_t* start;
     size64_t* stop; /* start + (count*stride) */
     size64_t* stride;
-    size64_t* max; /* full dimension length */
+    size64_t* len; /* for computing offset */
     size64_t* index; /* current value of the odometer*/
     struct NCZOprop {
 	int stride1; /* all strides == 1 */

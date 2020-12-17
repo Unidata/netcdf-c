@@ -25,6 +25,8 @@
 
 #undef DEBUG
 
+static int NCT_initialized = 0;
+
 #ifdef _WIN32
 LARGE_INTEGER frequency;
 LARGE_INTEGER starttime;
@@ -32,27 +34,35 @@ LARGE_INTEGER starttime;
 void
 NCT_inittimer(void)
 {
+    if(NCT_initialized) return;
+#ifdef DEBUG
     fprintf(stderr,"timer mechanism: QueryPerformanceCounter\n");
+#endif
     LARGE_INTEGER li;
     (void)QueryPerformanceFrequency(&frequency);
     QueryPerformanceCounter(&starttime);
 #ifdef DEBUG
 fprintf(stderr,"frequency=%lld starttime=%lld\n",frequency.QuadPart,starttime.QuadPart);
 #endif
+    NCT_initialized = 1;
 }
 #else
 void
 NCT_inittimer(void)
 {
-#ifdef HAVE_CLOCK_GETTIME
+    if(NCT_initialized) return;
+#ifdef DEBUG
+#if defined HAVE_CLOCK_GETTIME
     fprintf(stderr,"timer mechanism: clock_gettime\n");
-#elif defined HAVE_GETTIMEOFDAY
+#elif defined HAVE_GETTIMEOFDAY 
     fprintf(stderr,"timer mechanism: gettimeofday\n");
 #elif defined HAVE_GETRUSAGE
     fprintf(stderr,"timer mechanism: getrusage\n");
 #else
     fprintf(stderr,"timer mechanism: Unknown\n");
 #endif
+#endif /*DEBUG*/
+    NCT_initialized = 1;
 }
 #endif
 
@@ -133,8 +143,7 @@ fprintf(stderr,"dsec=%g dnsec=%g\n",dsec,dnsec);
      fprintf(stderr,"range: min=%lld max=%lld\n",range.min,range.max);
 #endif
     if(!NCT_rangetest(avg,range)) {
-        fprintf(stderr,"*** FAIL: rangetest: %s\n",tag);
-	return 0;
+        fprintf(stderr,"*** WARNING: unexpectedly large timing values%s\n",tag);
     }
     return 1;
 }

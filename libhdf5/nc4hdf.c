@@ -19,6 +19,7 @@
 #include "nc4internal.h"
 #include "ncdispatch.h"
 #include "hdf5internal.h"
+#include "hdf5err.h" /* For BAIL2 */
 #include "hdf5debug.h"
 #include <math.h>
 
@@ -2439,9 +2440,10 @@ static int NC4_walk(hid_t, int*);
 
  * @note WARNINGS:
  *   1. False negatives are possible for a small subset of netcdf-4
- *   created files.
+ *      created files; especially if the file looks like a simple
+        netcdf classic file.
  *   2. Deliberate falsification in the file can be used to cause
- *   a false positive.
+ *      a false positive.
  *
  * @param h5 Pointer to HDF5 file info struct.
  *
