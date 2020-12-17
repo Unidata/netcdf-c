@@ -140,7 +140,7 @@ main(int argc, char** argv)
 	NCT_marktime(&inserttime[0]);
 
 	for(i=0;i<ns;i++) {
-	    hkey = ncexhashkey(strings[i].string,strlen(strings[i].string));
+	    hkey = ncexhashkey((unsigned char*)strings[i].string,strlen(strings[i].string));
 	    if((stat=ncxcacheinsert(cache,hkey,&strings[i]))) goto done;
 	}
 	assert(ncxcachecount(cache) == ns);
@@ -161,7 +161,7 @@ main(int argc, char** argv)
 
 	for(i=0;i<ns;i++) {
 	    void* top = NULL;
-	    hkey = ncexhashkey(strings[i].string,strlen(strings[i].string));
+	    hkey = ncexhashkey((unsigned char*)strings[i].string,strlen(strings[i].string));
 	    if((stat=ncxcachelookup(cache,hkey,&content))) goto done;
     	    if((stat=ncxcachetouch(cache,hkey))) goto done;
 	    top = ncxcachefirst(cache);
@@ -178,7 +178,7 @@ main(int argc, char** argv)
 
 	for(i=0;i<ns;i++) {
 	    void* top = NULL;
-	    hkey = ncexhashkey(strings[i].string,strlen(strings[i].string));
+	    hkey = ncexhashkey((unsigned char*)strings[i].string,strlen(strings[i].string));
 	    if((stat=ncxcachetouch(cache,hkey))) goto done;
 	    top = ncxcachefirst(cache);
 	    if(top != &strings[i])

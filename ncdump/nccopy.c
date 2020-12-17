@@ -73,8 +73,6 @@ struct FilterOption {
 static List* filteroptions = NULL;
 static int suppressfilters = 0; /* 1 => do not apply any output filters unless specified */
 
-extern int nc__testurl(const char*,char**);
-
 /* Forward declaration, because copy_type, copy_vlen_type call each other */
 static int copy_type(int igrp, nc_type typeid, int ogrp);
 static void freefilteroptlist(List* specs);

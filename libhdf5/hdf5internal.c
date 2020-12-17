@@ -16,6 +16,7 @@
 
 #include "config.h"
 #include "hdf5internal.h"
+#include "hdf5err.h" /* For BAIL2 */
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -1014,6 +1015,15 @@ hdf5_set_log_level()
 
     return NC_NOERR;
 }
+
+void
+nc_log_hdf5(void)
+{
+#ifdef USE_HDF5
+    H5Eprint(NULL);
+#endif /* USE_HDF5 */
+}
+
 #endif /* LOGGING */
 
 

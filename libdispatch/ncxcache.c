@@ -1,4 +1,3 @@
-
 /*
   Copyright (c) 1998-2018 University Corporation for Atmospheric Research/Unidata
   See LICENSE.txt for license information.
@@ -63,6 +62,27 @@ static int throw(int x)
 static void insertafter(NCxnode* current, NCxnode* node);
 static void unlinknode(NCxnode* node);
 
+#if DEBUG > 0
+void verifylru(NCxcache* cache);
+
+static void
+xverify(NCxcache* cache)
+{
+    verifylru(cache);
+}
+
+void
+verifylru(NCxcache* cache)
+{
+    NCxnode* p;
+    for(p=cache->lru.next;p != &cache->lru;p=p->next) {
+        if(p->next == NULL || p->prev == NULL) {
+	    xverify(cache);
+	}
+    }
+}
+#endif
+
 /* Locate object by hashkey in an NCxcache */
 int
 ncxcachelookup(NCxcache* NCxcache, ncexhashkey_t hkey, void** op)
@@ -98,7 +118,10 @@ ncxcachetouch(NCxcache* cache, ncexhashkey_t hkey)
     unlinknode(node);
     /* Relink into front of chain */
     insertafter(&cache->lru,node);
-    
+#if DEBUG > 0
+verifylru(cache);
+#endif
+
 done:
     return stat;
 }
@@ -120,12 +143,15 @@ ncxcacheinsert(NCxcache* cache, const ncexhashkey_t hkey, void* o)
 #endif
     node->content = o; /* Cheat and make content point to the node part*/
     inode = (uintptr_t)node;
-    if((stat = ncexhashput(cache->map,hkey,inode)))
+    stat = ncexhashput(cache->map,hkey,inode);
+    if(stat)
 	goto done;
     /* link into the LRU chain at front */
     insertafter(&cache->lru,node);
+#if DEBUG > 0
+verifylru(cache);
+#endif
     node = NULL;
-
 done:
 #ifndef NCXUSER
     if(node) nullfree(node);
@@ -149,6 +175,9 @@ ncxcacheremove(NCxcache* cache, ncexhashkey_t hkey, void** op)
     node = (NCxnode*)inode;
     /* unlink */
     unlinknode(node);
+#if DEBUG > 0
+verifylru(cache);
+#endif
     if(op) {
         *op = node->content;
     }
@@ -261,12 +290,15 @@ insertafter(NCxnode* current, NCxnode* node)
 static void
 unlinknode(NCxnode* node)
 {
-    NCxnode* next = node->next;
-    NCxnode* prev = node->prev;
-    node->next = node->prev = NULL;
+    NCxnode* next;
+    NCxnode* prev;
+    assert(node != NULL);
+    next = node->next;
+    prev = node->prev;
     /* repair the chain */
     next->prev = prev;
     prev->next = next;
+    node->next = node->prev = NULL;
 }
 
 
@@ -275,3 +307,4 @@ ncxcachekey(const void* key, size_t size)
 {
     return ncexhashkey((unsigned char*)key,size);
 }
+

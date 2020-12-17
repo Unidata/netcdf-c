@@ -468,7 +468,7 @@ var->type_info->rc++;
 exit:
     if (type)
 	if ((retval = nc4_type_free(type)))
-	    BAIL2(retval);
+	    BAILLOG(retval);
 
     return THROW(retval);
 }

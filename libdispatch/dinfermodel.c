@@ -892,33 +892,35 @@ NC_testurl(const char* path)
 /**
  * Provide a hidden interface to allow utilities
  * to check if a given path name is really a url.
- * If not, put null in basenamep, else put basename of the url
+ * If not, put null in basenamep, else put basename of the url path
  * minus any extension into basenamep; caller frees.
  * Return 1 if it looks like a url, 0 otherwise.
  */
 
 int
-nc__testurl(const char* path, char** basenamep)
+nc__testurl(const char* path0, char** basenamep)
 {
-    NCURI* uri;
+    NCURI* uri = NULL;
     int ok = 0;
-    if(!ncuriparse(path,&uri)) {
-	char* slash = (uri->path == NULL ? NULL : strrchr(uri->path, '/'));
-	char* dot;
-	if(slash == NULL) slash = (char*)path; else slash++;
-        slash = nulldup(slash);
-        if(slash == NULL)
-            dot = NULL;
-        else
-            dot = strrchr(slash, '.');
-        if(dot != NULL &&  dot != slash) *dot = '\0';
+    char* path = NULL;
+    
+    if(!ncuriparse(path0,&uri)) {
+	char* p;
+	char* q;
+	path = strdup(uri->path);
+	if(path == NULL||strlen(path)==0) goto done;
+        p = strrchr(path, '/');
+	if(p == NULL) p = path; else p++;
+	q = strrchr(p,'.');
+        if(q != NULL) *q = '\0';
+	if(strlen(p) == 0) goto done;
 	if(basenamep)
-            *basenamep=slash;
-        else if(slash)
-            free(slash);
-        ncurifree(uri);
+            *basenamep = strdup(p);
 	ok = 1;
     }
+done:
+    ncurifree(uri);
+    nullfree(path);
     return ok;
 }
 

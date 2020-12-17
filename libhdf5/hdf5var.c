@@ -11,6 +11,7 @@
 #include "config.h"
 #include "nc4internal.h"
 #include "hdf5internal.h"
+#include "hdf5err.h" /* For BAIL2 */
 #include <math.h> /* For pow() used below. */
 
 #include "netcdf.h"

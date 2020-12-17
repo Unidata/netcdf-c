@@ -11,7 +11,7 @@
  */
 
 #include "config.h"
-#include "hdf5internal.h"
+#include "nc4internal.h"
 
 /* These are the default chunk cache sizes for HDF5 files created or
  * opened with netCDF-4. */

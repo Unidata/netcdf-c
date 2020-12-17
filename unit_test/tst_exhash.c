@@ -149,7 +149,7 @@ main(int argc, char** argv)
 	    nmatches++;
         }
 	for(key=0;key<*np;key++) {
-	    if(found[key] == 0) fprintf(stderr,"iterator missing: %u\n",key);
+	    if(found[key] == 0) fprintf(stderr,"iterator missing key: %u\n",key);
 	}
 	fprintf(stderr,"iterating: |keys|=%u  |matches|=%u\n",*np,nmatches);
 	if(found) free(found);
