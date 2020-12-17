@@ -209,8 +209,8 @@ NCZ_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
     NC_GRP_INFO_T* grp = NULL;
     NC_VAR_INFO_T* var = NULL;
     struct NCZ_Filter* oldspec = NULL;
-    int havedeflate = 0;
 #ifdef HAVE_H5Z_SZIP
+    int havedeflate = 0;
     int haveszip = 0;
 #endif
 
@@ -247,13 +247,13 @@ NCZ_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
         case NC_ENOFILTER: break; /*not defined*/
         default: goto done;
 	}
+#ifdef HAVE_H5Z_SZIP
 	/* See if deflate &/or szip is defined */
 	switch ((stat = NCZ_filter_lookup(var,H5Z_FILTER_DEFLATE,NULL))) {
 	case NC_NOERR: havedeflate = 1; break;
 	case NC_ENOFILTER: havedeflate = 0; break;	
 	default: goto done;
 	}
-#ifdef HAVE_H5Z_SZIP
 	switch ((stat = NCZ_filter_lookup(var,H5Z_FILTER_SZIP,NULL))) {
 	case NC_NOERR: haveszip = 1; break;
 	case NC_ENOFILTER: haveszip = 0; break;	

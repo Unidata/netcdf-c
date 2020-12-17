@@ -2261,7 +2261,7 @@ applyclientparamcontrols(NCDAPCOMMON* dapcomm)
 	    /* First, turn off all the encode flags */
             CLRFLAG(dapcomm->controls,NCF_ENCODE_PATH|NCF_ENCODE_QUERY);
 	    for(i=0;i<nclistlength(encode);i++) {
-	        char* s = nclistremove(encode,i);
+	        const char* s = nclistget(encode,i);
 	        if(strcmp(s,"path")==0)
 	            SETFLAG(dapcomm->controls,NCF_ENCODE_PATH);
 	        else if(strcmp(s,"query")==0)
@@ -2271,13 +2271,12 @@ applyclientparamcontrols(NCDAPCOMMON* dapcomm)
 	        else if(strcmp(s,"none")==0)
 	            CLRFLAG(dapcomm->controls,NCF_ENCODE_PATH|NCF_ENCODE_QUERY);
 	    }
+            nclistfreeall(encode);
 	}
-        nclistfree(encode);
     } else { /* Set defaults */
 	SETFLAG(dapcomm->controls,NCF_ENCODE_QUERY);
     }
     nclog(NCLOGNOTE,"Caching=%d",FLAGSET(dapcomm->controls,NCF_CACHE));
-
 }
 
 /*

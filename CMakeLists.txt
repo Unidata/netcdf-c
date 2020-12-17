@@ -1896,6 +1896,10 @@ ENDIF()
 
 IF(ENABLE_NCZARR)
   ADD_SUBDIRECTORY(libnczarr)
+  FILE(COPY ${netCDF_SOURCE_DIR}/unit_test/timer_utils.h
+       DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
+  FILE(COPY ${netCDF_SOURCE_DIR}/unit_test/timer_utils.c
+       DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
 ENDIF()
 
 add_subdirectory(liblib)
@@ -1927,9 +1931,6 @@ IF(ENABLE_TESTS)
   IF(USE_HDF5)
     INCLUDE_DIRECTORIES(h5_test)
     ADD_SUBDIRECTORY(nc_test4)
-    IF(BUILD_BENCHMARKS)
-      ADD_SUBDIRECTORY(nc_perf)
-    ENDIF()
     ADD_SUBDIRECTORY(h5_test)
   ENDIF()
   IF(ENABLE_DAP2)

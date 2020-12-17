@@ -68,7 +68,7 @@ static struct Type {
 struct Dumpptions {
     int debug;
     Mapop mop;
-    char* infile;
+    char infile[4096];
     NCZM_IMPL impl;    
     char* rootpath;
     const struct Type* nctype;
@@ -82,6 +82,7 @@ static int depthR(NCZMAP* map, char* key, NClist* stack);
 static char* rootpathfor(const char* path);
 static OBJKIND keykind(const char* key);
 static void sortlist(NClist* l);
+static const char* filenamefor(const char* f0);
 
 #define NCCHECK(expr) nccheck((expr),__LINE__)
 static void nccheck(int stat, int line)
@@ -96,7 +97,7 @@ static void nccheck(int stat, int line)
 static void
 zmapusage(void)
 {
-    fprintf(stderr,"usage: zmapio [-d][-v][-x] <file>\n");
+    fprintf(stderr,"usage: zmapio [-t <type>][-d][-v][-x] <file>\n");
     exit(1);
 }
 
@@ -168,7 +169,12 @@ main(int argc, char** argv)
 	fprintf(stderr, "zmapio: no input file specified\n");
 	goto fail;
     }
-    dumpoptions.infile = NCdeescape(argv[0]);
+
+    {
+        char* p = NCdeescape(argv[0]);
+        strcpy(dumpoptions.infile,filenamefor(p));
+	if(p) free(p);
+    }
 
     if((dumpoptions.impl = implfor(dumpoptions.infile))== NCZM_UNDEF)
         zmapusage();
@@ -187,7 +193,6 @@ main(int argc, char** argv)
 
 done:
     /* Reclaim dumpoptions */
-    nullfree(dumpoptions.infile);
     nullfree(dumpoptions.rootpath);
     if(stat)
 	fprintf(stderr,"fail: %s\n",nc_strerror(stat));
@@ -448,4 +453,32 @@ sortlist(NClist* l)
 for(i=0;i<nclistlength(l);i++)
 fprintf(stderr,"sorted: [%d] %s\n",i,(const char*)nclistget(l,i));
 #endif
+}
+
+static const char* urlexts[] = {"nzf", "nz4", NULL};
+
+static const char*
+filenamefor(const char* f0)
+{
+    static char result[4096];
+    const char** extp;
+    char* p;
+
+    strcpy(result,f0); /* default */
+    if(nc__testurl(f0,NULL)) goto done;
+    /* Not a URL */
+    p = strrchr(f0,'.'); /* look at the extension, if any */
+    if(p == NULL) goto done; /* No extension */
+    p++;
+    for(extp=urlexts;*extp;extp++) {
+        if(strcmp(p,*extp)==0) break;
+    }
+    if(*extp == NULL) goto done; /* not found */
+    /* Assemble the url */
+    strcpy(result,"file://");
+    strcat(result,f0); /* core path */
+    strcat(result,"#mode=nczarr,");
+    strcat(result,*extp);
+done:
+    return result;
 }

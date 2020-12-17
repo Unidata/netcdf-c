@@ -27,7 +27,6 @@
 static int get_chunk(NCZChunkCache* cache, NCZCacheEntry* entry);
 static int put_chunk(NCZChunkCache* cache, const NCZCacheEntry*);
 static int create_chunk(NCZChunkCache* cache, NCZCacheEntry* entry);
-static int buildchunkkey(size_t R, const size64_t* chunkindices, char** keyp);
 static int makeroom(NCZChunkCache* cache);
 
 /**************************************************/
@@ -242,11 +241,12 @@ NCZ_read_cache_chunk(NCZChunkCache* cache, const size64_t* indices, void** datap
     /* the hash key */
     hkey = ncxcachekey(indices,sizeof(size64_t)*cache->ndims);
     /* See if already in cache */
-    switch (stat = ncxcachelookup(cache->xcache,hkey,(void**)&entry)) {
+    stat = ncxcachelookup(cache->xcache,hkey,(void**)&entry);
+    switch(stat) {
     case NC_NOERR:
         /* Move to front of the lru */
-	(void)ncxcachetouch(cache->xcache,hkey);
-	break;
+        (void)ncxcachetouch(cache->xcache,hkey);
+        break;
     case NC_ENOTFOUND:
         entry = NULL; /* not found; */
 	break;
@@ -402,7 +402,7 @@ NCZ_chunk_cache_modified(NCZChunkCache* cache, const size64_t* indices)
     int rank = cache->ndims;
 
     /* Create the key for this cache */
-    if((stat=buildchunkkey(rank, indices, &key))) goto done;
+    if((stat=NCZ_buildchunkkey(rank, indices, &key))) goto done;
 
     /* See if already in cache */
     if(NC_hashmapget(cache->mru, key, strlen(key), (uintptr_t*)entry)) { /* found */
@@ -436,8 +436,8 @@ columns 4000-5000 and is stored under the key "2.4"; etc."
  * @param chunkindices The chunk indices
  * @param keyp Return the chunk key string
  */
-static int
-buildchunkkey(size_t R, const size64_t* chunkindices, char** keyp)
+int
+NCZ_buildchunkkey(size_t R, const size64_t* chunkindices, char** keyp)
 {
     int stat = NC_NOERR;
     int r;
@@ -559,7 +559,7 @@ NCZ_buildchunkpath(NCZChunkCache* cache, const size64_t* chunkindices, char** ke
     char* key = NULL;
 
     /* Get the chunk object name */
-    if((stat = buildchunkkey(cache->ndims, chunkindices, &chunkname))) goto done;
+    if((stat = NCZ_buildchunkkey(cache->ndims, chunkindices, &chunkname))) goto done;
     /* Get the var object key */
     if((stat = NCZ_varkey(cache->var,&varkey))) goto done;
     /* Prefix the path to the containing variable object */

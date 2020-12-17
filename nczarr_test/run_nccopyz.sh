@@ -22,7 +22,7 @@ verifychunking() {
   done
 }
 
-./tst_chunks3 -e nzf
+./tst_zchunks3 -e nzf
 echo "*** Test that nccopy -c can chunk files"
 ${NCCOPY} -M0 tst_chunks3.nc 'file://tmp.nzf#mode=nczarr,nzf'
 ${NCDUMP} -n tmp -sh 'file://tmp.nzf#mode=nczarr,nzf' > tmp.cdl

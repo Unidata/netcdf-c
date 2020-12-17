@@ -17,6 +17,7 @@ See LICENSE.txt for license information.
 #define DEBUG 0
 #undef DEBUGTRACE
 #undef CATCH
+#define INLINED
 
 #ifdef CATCH
 #define THROW(x) throw(x)
@@ -53,6 +54,17 @@ static int throw(int x)
 
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
+#ifdef INLINED
+#define exhashlinkleaf(map,leaf) {\
+    if(leaf && map) { leaf->next = map->leaves; map->leaves = leaf; } \
+}
+
+#define exhashfreeleaf(map,leaf) { \
+    if(leaf) {{if(leaf->entries) free(leaf->entries);} free(leaf);} \
+}
+
+#endif /*INLINED*/
+
 static int ncexinitialized = 0;
 
 /* Define a vector of bit masks */
@@ -82,6 +94,13 @@ static int exhashsplit(NCexhashmap* map, ncexhashkey_t hkey, NCexleaf* leaf);
 static int exhashdouble(NCexhashmap* map);
 static int exbinsearch(ncexhashkey_t hkey, NCexleaf* leaf, int* indexp);
 static void exhashnewentry(NCexhashmap* map, NCexleaf* leaf, ncexhashkey_t hkey, int* indexp);
+static int exhashnewleaf(NCexhashmap* map, NCexleaf** leaf);
+static void exhashunlinkleaf(NCexhashmap* map, NCexleaf* leaf);
+
+#ifndef INLINED
+static void exhashlinkleaf(NCexhashmap* map, NCexleaf* leaf);
+static void exhashfreeleaf(NCexhashmap* map, NCexleaf* leaf);
+#endif /*INLINED*/
 
 /**************************************************/
 
@@ -114,41 +133,27 @@ ncexhashnew(int leaflen)
     gdepth = MINDEPTH;
     if(leaflen < MINLEAFLEN) leaflen = MINLEAFLEN;
     
-    /* Create 2 leaves so we can set the initial leaf depth to one */
-    if((leaf[0] = calloc(1,sizeof(NCexleaf))) == NULL)
-	goto done;
-    if((leaf[1] = calloc(1,sizeof(NCexleaf))) == NULL)
-	goto done;
-    /* Fill in the leaves */
-    if((leaf[0]->entries = calloc(leaflen,sizeof(NCexentry))) == NULL)
-	goto done;
-    if((leaf[1]->entries = calloc(leaflen,sizeof(NCexentry))) == NULL)
-	goto done;
-    leaf[0]->depth = 1;
-    leaf[1]->depth = 1;
-    /* Create the top level vector */
-    if((topvector = calloc(1<<gdepth,sizeof(NCexleaf*))) == NULL)
-	goto done;
-    /* Fill it in */
-    for(i=0;i<(1<<gdepth);i++) topvector[i] = (i & 0x1?leaf[1]:leaf[0]);
     /* Create the table */
     if((map = (NCexhashmap*)calloc(1,sizeof(NCexhashmap))) == NULL)
 	goto done;
-    /* leaf chain */
-    map->leaves = leaf[1];
-    leaf[1]->next = leaf[0];
-    map->depth = gdepth;
-    map->directory = topvector;
     map->leaflen = leaflen;
+    /* Create the top level vector */
+    if((topvector = calloc(1<<gdepth,sizeof(NCexleaf*))) == NULL)
+	goto done;
+    map->directory = topvector;
+    if(exhashnewleaf(map,&leaf[0])) goto done;
+    if(exhashnewleaf(map,&leaf[1])) goto done;
+    exhashlinkleaf(map,leaf[0]);
+    exhashlinkleaf(map,leaf[1]);
+    /* Fill in vector */
+    for(i=0;i<(1<<gdepth);i++) topvector[i] = (i & 0x1?leaf[1]:leaf[0]);
     topvector = NULL;
-    leaf[0]->uid = map->uid++;
-    leaf[1]->uid = map->uid++;
     leaf[0] = leaf[1] = NULL;
+    map->depth = gdepth;
+    assert(map->leaves != NULL);
 done:
-    if(leaf[0]) nullfree(leaf[0]->entries);
-    if(leaf[1]) nullfree(leaf[1]->entries);
-    if(leaf[0]) free(leaf[0]);
-    if(leaf[1]) free(leaf[1]);
+    if(leaf[0]) {exhashunlinkleaf(map,leaf[0]); exhashfreeleaf(map,leaf[0]);}
+    if(leaf[1]) {exhashunlinkleaf(map,leaf[1]); exhashfreeleaf(map,leaf[1]);}
     if(topvector) free(topvector);
     return map;
 }
@@ -165,8 +170,7 @@ ncexhashmapfree(NCexhashmap* map)
     current = map->leaves; next = NULL;
     while(current) {
 	next = current->next;	
-	nullfree(current->entries);
-	free(current);
+	exhashfreeleaf(map,current);
 	current = next;	
     }
     nullfree(map->directory);    
@@ -385,12 +389,9 @@ exhashsplit(NCexhashmap* map, ncexhashkey_t hkey, NCexleaf* leaf)
 	{stat = NC_ENOMEM; goto done;}
     leaf->active = 0;
 
-    /* Allocate the new leaf */
-    if((newleaf = (NCexleaf*)calloc(1,sizeof(NCexleaf)))==NULL)
-	{stat = NC_ENOMEM; goto done;}
-    if((newleaf->entries = (NCexentry*)calloc(map->leaflen,sizeof(NCexentry))) == NULL)
-	{stat = NC_ENOMEM; goto done;}
-    newleaf->uid = map->uid++;
+    /* Allocate and link the new leaf */
+    if((stat = exhashnewleaf(map,&newleaf))) goto done;
+    exhashlinkleaf(map,newleaf);
     newleaf->depth = leaf->depth;
 #if DEBUG >= 3
      fprintf(stderr,"split.split: newleaf=");ncexhashprintleaf(map,newleaf);
@@ -415,9 +416,6 @@ exhashsplit(NCexhashmap* map, ncexhashkey_t hkey, NCexleaf* leaf)
     fprintf(stderr,"split.after: leaf=%d newleaf=%d",leaf->uid,newleaf->uid); ncexhashprint(map);
 #endif
 
-    /* link in newleaf and release local pointer */
-    newleaf->next = map->leaves; /* add to leaf list */
-    map->leaves = newleaf;    
     newleaf = NULL; /* no longer needed */
 
     /* Now re-insert the entries */
@@ -449,16 +447,13 @@ done:
     if(stat) { /* unwind */
         nullfree(leaf->entries);
 	*leaf = entries; 
-	if(newleaf)
-            map->leaves = newleaf->next;
     } else {
         nullfree(entries.entries);
     }
-        
     if(newleaf) {
-        nullfree(newleaf->entries);
-	nullfree(newleaf);
-    }    
+	exhashunlinkleaf(map,newleaf);
+	exhashfreeleaf(map,newleaf);
+    }
     return THROW(stat);
 }
 
@@ -515,7 +510,6 @@ static void
 exhashnewentry(NCexhashmap* map, NCexleaf* leaf, ncexhashkey_t hkey, int* indexp)
 {
     int stat;
-    int dst,src;
     int index;
 
     /* Figure out where the key should be inserted (*indexp + 1)*/
@@ -524,10 +518,12 @@ exhashnewentry(NCexhashmap* map, NCexleaf* leaf, ncexhashkey_t hkey, int* indexp
     index = *indexp;
     assert(index >= 0 && index <= leaf->active);
     assert(index == leaf->active || leaf->entries[index].hashkey > hkey);
-    dst = leaf->active;
-    src = leaf->active - 1;
-    for(;src >= index;src--,dst--)
-        leaf->entries[dst] = leaf->entries[src];
+    if(leaf->active > 0) {
+	int dst = leaf->active;
+        int src = leaf->active - 1;
+        for(;src >= index;src--,dst--)
+            leaf->entries[dst] = leaf->entries[src];
+    }
 #if 0
     leaf->entries[index].hashkey = hkey;
 #else
@@ -536,6 +532,70 @@ exhashnewentry(NCexhashmap* map, NCexleaf* leaf, ncexhashkey_t hkey, int* indexp
     leaf->entries[index].data = 0;
     leaf->active++;
     map->nactive++;
+}
+
+#ifndef INLINED
+static void
+exhashlinkleaf(NCexhashmap* map, NCexleaf* leaf)
+{
+    if(leaf && map) {
+        assert(!map->iterator.walking);
+	leaf->next = map->leaves;
+	map->leaves = leaf;
+        assert(leaf->next == NULL || leaf->next != leaf);
+    }
+}
+
+static void
+exhashfreeleaf(NCexhashmap* map, NCexleaf* leaf)
+{
+    assert(!map->iterator.walking);
+    if(leaf) {
+	nullfree(leaf->entries);
+	nullfree(leaf);
+    }
+}
+
+#endif /*INLINED*/
+
+static void
+exhashunlinkleaf(NCexhashmap* map, NCexleaf* leaf)
+{
+    if(leaf && map && map->leaves) {
+        assert(!map->iterator.walking);
+	if(map->leaves == leaf) {/* special case */
+	    map->leaves = leaf->next;
+	} else {
+	    NCexleaf* cur;
+	    for(cur = map->leaves;cur != NULL;cur=cur->next) {
+	        if(cur->next == leaf) {
+		    cur->next = leaf->next;
+		    break;			
+		}
+	    }
+	}
+    }
+}
+
+static int
+exhashnewleaf(NCexhashmap* map, NCexleaf** leafp)
+{
+    int stat = NC_NOERR;
+    NCexleaf* leaf = NULL;
+    assert(!map->iterator.walking);
+    if(leafp) {
+        if((leaf = calloc(1,sizeof(NCexleaf))) == NULL)
+	    goto done;
+	assert(map->leaflen > 0);
+        if((leaf->entries = calloc(map->leaflen,sizeof(NCexentry))) == NULL)
+	    goto done;	
+        leaf->uid = map->uid++;
+	*leafp = leaf; leaf = NULL;
+    }
+done:
+    if(leaf) nullfree(leaf->entries);
+    nullfree(leaf);
+    return stat;
 }
 
 /**

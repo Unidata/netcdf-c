@@ -825,5 +825,6 @@ dapparamparselist(const char* s0, int delim, NClist* list)
 	    nclistpush(list,strdup(p));
     }
 done:
+    nullfree(s);
     return stat;
 }

@@ -34,8 +34,8 @@ typedef struct NCProjection {
     size64_t chunkindex; /* which chunk are we projecting */
     size64_t first;  /* absolute first position to be touched in this chunk */
     size64_t last;   /* absolute position of last value touched */
+    size64_t stop;   /* absolute position of last value touched */
     size64_t limit;  /* Actual limit of chunk WRT start of chunk */
-    size64_t len;    /* Actual len of chunk WRT start of chunk */
     size64_t iopos;    /* start point in the data memory to access the data */
     size64_t iocount;  /* no. of I/O items */
     NCZSlice chunkslice;  /* slice relative to this chunk */
@@ -76,7 +76,7 @@ struct Common {
 /**************************************************/
 /* From zchunking.c */
 EXTERNL int NCZ_compute_chunk_ranges(int rank, const NCZSlice*, const size64_t*, NCZChunkRange* ncr);
-EXTERNL int NCZ_compute_projections(size64_t dimlen, size64_t chunklen, size64_t chunkindex, const NCZSlice* slice, size_t n, NCZProjection* projections);
+EXTERNL int NCZ_compute_projections(int r, size64_t dimlen, size64_t chunklen, size64_t chunkindex, const NCZSlice* slice, size_t n, NCZProjection* projections);
 EXTERNL int NCZ_compute_per_slice_projections(int rank, const NCZSlice*, const NCZChunkRange*, size64_t dimlen, size64_t chunklen, NCZSliceProjections* slp);
 EXTERNL int NCZ_compute_all_slice_projections(int rank, const NCZSlice* slices, const size64_t* dimlen, const size64_t* chunklen, const NCZChunkRange*, NCZSliceProjections*);
 

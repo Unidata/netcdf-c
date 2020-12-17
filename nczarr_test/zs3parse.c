@@ -26,7 +26,7 @@ typedef enum S3op {
 S3_NONE=0,
 S3_HOST=1,
 S3_BUCKET=2,
-S3_PREFIX=3,
+S3_KEY=3,
 } S3op;
 
 /* Command line options */
@@ -42,7 +42,7 @@ static int processurl(S3op op, const char* url, char** piece);
 static void
 zs3usage(void)
 {
-    fprintf(stderr,"usage: zs3parse [-h|-b|-p] <url>\n");
+    fprintf(stderr,"usage: zs3parse [-h|-b|-k] <url>|<file>\n");
     exit(1);
 }
 
@@ -55,7 +55,7 @@ main(int argc, char** argv)
 
     memset((void*)&s3options,0,sizeof(s3options));
 
-    while ((c = getopt(argc, argv, "vhbp")) != EOF) {
+    while ((c = getopt(argc, argv, "vhbk")) != EOF) {
 	switch(c) {
 	case 'b': 
 	    s3options.op = S3_BUCKET;
@@ -63,8 +63,8 @@ main(int argc, char** argv)
 	case 'h': 
 	    s3options.op = S3_HOST;
 	    break;
-	case 'p': 
-	    s3options.op = S3_PREFIX;
+	case 'k': 
+	    s3options.op = S3_KEY;
 	    break;
 	case 'v': 
 	    zs3usage();
@@ -75,16 +75,16 @@ main(int argc, char** argv)
 	}
     }
 
-    /* get url argument */
+    /* get url|file argument */
     argc -= optind;
     argv += optind;
 
     if (argc > 1) {
-	fprintf(stderr, "zs3parse: only one url argument permitted\n");
+	fprintf(stderr, "zs3parse: only one url|file argument permitted\n");
 	goto fail;
     }
     if (argc == 0) {
-	fprintf(stderr, "zs3parse: no url specified\n");
+	fprintf(stderr, "zs3parse: no url|file specified\n");
 	goto fail;
     }
     s3options.url = NCdeescape(argv[0]);
@@ -95,6 +95,7 @@ main(int argc, char** argv)
 	printf("%s",piece);
     }    
 done:
+    nullfree(piece);
     /* Reclaim s3options */
     nullfree(s3options.url);
     if(stat)
@@ -150,13 +151,14 @@ processurl(S3op op, const char* surl, char** piece)
     switch (op) {
     case S3_HOST: value = host; host = NULL; break;
     case S3_BUCKET: value = bucket; bucket = NULL; break;
-    case S3_PREFIX: value = prefix; prefix = NULL; break;
+    case S3_KEY: value = prefix; prefix = NULL; break;
     default: stat = NC_EURL; goto done;
     }
     
     if(piece) {*piece = value; value = NULL;}
 
 done:
+    ncurifree(url);
     nullfree(value); 
     nullfree(host);
     nullfree(bucket);
