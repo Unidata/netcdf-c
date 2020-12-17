@@ -59,6 +59,7 @@ EXTERNL void NCZbacktrace(void);
 #define UTEST_RANGE	1
 #define UTEST_WALK	2
 #define UTEST_TRANSFER	4
+#define UTEST_WHOLEVAR	8
 
 struct ZUTEST {
     int tests;

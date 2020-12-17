@@ -218,6 +218,7 @@ main(int argc, char **argv)
        /* Write the data. */
        if (nc_put_var(ncid, varid, idata)) ERR;
        if (nc_close(ncid)) ERR;
+       free(idata);
     }
 
     SUMMARIZE_ERR;

@@ -1149,7 +1149,7 @@ platformread(ZFMAP* zfmap, FD* fd, size64_t count, void* content)
     while(need > 0) {
         ssize_t red;
         if((red = read(fd->fd,readpoint,need)) <= 0)
-	    {stat = NC_EACCESS; goto done;}
+	    {stat = errno; goto done;}
         need -= red;
 	readpoint += red;
     }

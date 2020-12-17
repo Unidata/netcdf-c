@@ -22,7 +22,7 @@
 
 #define ESCAPECHARS "\\=|,"
 
-#define NCPNCZLIB "zarr"
+#define NCPNCZLIB "nczarr"
 
 /** @internal Check NetCDF return code. */
 #define NCHECK(expr) {if((expr)!=NC_NOERR) {goto done;}}
