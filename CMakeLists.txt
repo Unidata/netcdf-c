@@ -568,7 +568,7 @@ IF(ENABLE_NETCDF_4 AND NOT ENABLE_LOGGING AND ENABLE_SET_LOG_LEVEL_FUNC)
 ENDIF()
 
 # This has multiversion capability
-SET(HAS_MULTIFILTERS yes CACHE BOOL "")
+SET(ENABLE_MULTIFILTERS yes CACHE BOOL "")
 
 # Option to allow for strict null file padding.
 # See https://github.com/Unidata/netcdf-c/issues/657 for more information
@@ -2121,6 +2121,7 @@ is_enabled(HAVE_H5Z_SZIP HAS_SZLIB)
 is_enabled(HDF5_HAS_PAR_FILTERS HAS_PAR_FILTERS)
 is_enabled(ENABLE_NCZARR HAS_NCZARR)
 is_enabled(ENABLE_NCZARR_S3_TESTS DO_S3_TESTS)
+is_enabled(ENABLE_MULTIFILTERS HAS_MULTIFILTERS)
 
 # Generate file from template.
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
