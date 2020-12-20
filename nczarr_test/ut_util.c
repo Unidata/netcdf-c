@@ -497,3 +497,17 @@ for(i=0;i<nclistlength(l);i++)
 fprintf(stderr,"sorted: [%d] %s\n",i,(const char*)nclistget(l,i));
 #endif
 }
+
+/* Fill in parts of common */
+void
+fillcommon(struct Common* common, Vardef* var)
+{
+    memset(common,0,sizeof(struct Common));
+    common->typesize = sizeof(int);
+    if(var != NULL) {
+        common->rank = var->rank;
+        common->dimlens = var->dimsizes;
+        common->chunklens = var->chunksizes;
+        common->memshape = common->dimlens; /* fake it */
+    }
+}

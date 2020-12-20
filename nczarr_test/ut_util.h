@@ -26,5 +26,6 @@ extern void slices2vector(int rank, NCZSlice* slices, size64_t** startp, size64_
 extern void printoptions(struct UTOptions* opts);
 extern int hasdriveletter(const char* f);
 extern void ut_sortlist(NClist* l);
+extern void fillcommon(struct Common* common, Vardef* var);
 
 #endif /*UT_UTIL_H*/

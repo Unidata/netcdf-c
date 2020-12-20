@@ -1,4 +1,4 @@
-netcdf tmp_skip {
+netcdf tmp_skipw {
 dimensions:
 	d0 = 6 ;
 	d1 = 6 ;

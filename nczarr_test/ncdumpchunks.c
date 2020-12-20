@@ -219,16 +219,65 @@ setoffset(Odometer* odom, size_t* chunksizes, size_t* offset)
 }
 
 static void
-printchunk(Format* format, int* chunkdata)
+printindent(size_t indent)
 {
-    int k;
-    unsigned cols = format->chunklens[format->rank - 1];
+    while(indent-- > 0) printf(" ");
+}
 
+static void
+printchunk(Format* format, int* chunkdata, size_t indent)
+{
+    int k[3];
+    unsigned cols[3], pos;
+    size_t* chl = format->chunklens;
+
+    memset(cols,0,sizeof(cols));
+
+    switch (format->rank) {
+    case 1:
+        cols[0] = 1;
+        cols[1] = 1;
+        cols[2] = chl[0];	
+	break;
+    case 2:
+        cols[0] = 1;
+        cols[1] = chl[0];
+        cols[2] = chl[1];	
+	break;
+    case 3:
+        cols[0] = chl[0];
+        cols[1] = chl[1];
+        cols[2] = chl[2];	
+	break;
+    default:	
+	cols[0] = 1;
+	cols[1] = 1;
+	cols[2] = format->chunkprod;
+	break;
+    }
+//		offset = (((k0*chl[0])+k1)*chl[1])+k2;
+    pos = 0;
+    for(k[0]=0;k[0]<cols[0];k[0]++) {
+        if(k[0] > 0) printindent(indent);
+	k[1] = 0; k[2] = 0; /* reset */
+        for(k[1]=0;k[1]<cols[1];k[1]++) {
+	    k[2] = 0;
+	    if(k[1] > 0) printf(" |");
+	    for(k[2]=0;k[2]<cols[2];k[2]++) {
+                printf(" %02d", chunkdata[pos]);
+		pos++;
+	    }
+	}
+	printf("\n");
+    }
+
+#if 0
     for(k=0;k<format->chunkprod;k++) {
 	if(k > 0 && k % cols == 0) printf(" |");
         printf(" %02d", chunkdata[k]);
     }
     printf("\n");
+#endif
 }
 
 
@@ -240,6 +289,7 @@ dump(Format* format)
     int r;
     size_t offset[NC_MAX_VAR_DIMS];
     int holechunk = 0;
+    char sindices[64];
 #ifdef H5
     int i;
     hid_t fileid, grpid, datasetid;
@@ -332,10 +382,15 @@ dump(Format* format)
 	    for(i=0;i<format->chunkprod;i++)
 	        idata[i] = format->fillvalue;
 	}
-	for(r=0;r<format->rank;r++)
-	    printf("[%lu/%lu]",(unsigned long)odom->index[r],(unsigned long)offset[r]);
-	printf(" =");
-	printchunk(format,chunkdata);
+	sindices[0] = '\0';
+	for(r=0;r<format->rank;r++) {
+	    char sstep[64];
+	    snprintf(sstep,sizeof(sstep),"[%lu/%lu]",(unsigned long)odom->index[r],(unsigned long)offset[r]);
+	    strcat(sindices,sstep);
+	}
+	strcat(sindices," =");
+	printf("%s",sindices);
+	printchunk(format,chunkdata,strlen(sindices));
 	fflush(stdout);
 	odom_next(odom);
      }
