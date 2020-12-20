@@ -72,7 +72,8 @@ mapexists() {
 
 fileargs() {
   f="$1"
-  if test "x$zext" = xs3 ; then
+  case "$zext" in
+  s3)
     if test "x$NCS3PATH" = x ; then
 	S3PATH="https://stratus.ucar.edu/unidata-netcdf-zarr-testing"
     else
@@ -83,10 +84,12 @@ fileargs() {
     S3HOST=`${execdir}/zs3parse -h $S3PATH`
     S3BUCKET=`${execdir}/zs3parse -b $S3PATH`
     S3PREFIX=`${execdir}/zs3parse -k $S3PATH`
-  else
+    ;;
+  *)
     file="${f}.$zext"
     fileurl="file://${f}.$zext#mode=nczarr,$zext"
-  fi
+    ;;
+  esac
 }
 
 dumpmap1() {
