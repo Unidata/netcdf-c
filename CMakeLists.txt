@@ -728,6 +728,28 @@ IF(USE_HDF5)
     SET(HDF5_C_LIBRARY_hdf5 "${HDF5_C_LIBRARY}")
   ENDIF()
 
+  #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip library.
+  set (CMAKE_REQUIRED_INCLUDES ${HAVE_HDF5_H})
+  CHECK_C_SOURCE_COMPILES("#include <H5public.h>
+   #if !H5_HAVE_FILTER_SZIP
+   #error
+   #endif
+   int main() {
+   int x = 1;}" USE_SZIP)
+  IF(USE_SZIP)
+    # If user has specified the `SZIP_LIBRARY`, use it; otherwise try to find...
+    IF(NOT SZIP_LIBRARY)
+      FIND_LIBRARY(SZIP PATH NAMES szip sz)
+      SET(SZIP_LIBRARY ${SZIP})
+      IF(NOT SZIP)
+        MESSAGE(FATAL_ERROR "HDF5 Requires SZIP, but cannot find libszip or libsz.")
+      ENDIF()
+    ENDIF()
+    SET(HAVE_H5Z_SZIP 1)
+    SET(CMAKE_REQUIRED_LIBRARIES ${SZIP_LIBRARY} ${CMAKE_REQUIRED_LIBRARIES})
+    MESSAGE(STATUS "HDF5 has szip.")
+  ENDIF()
+  
   # Find out if HDF5 was built with parallel support.
   # Do that by checking for the targets H5Pget_fapl_mpiposx and
   # H5Pget_fapl_mpio in ${HDF5_LIB}.
@@ -745,21 +767,6 @@ IF(USE_HDF5)
 
   #Check to see if HDF5 library has collective metadata APIs, (HDF5 >= 1.10.0)
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pset_all_coll_metadata_ops "" HDF5_HAS_COLL_METADATA_OPS)
-
-  #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip.
-  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Z_SZIP "" USE_SZIP)
-  IF(USE_SZIP)
-    FIND_LIBRARY(SZIP NAMES szip sz)
-    IF(SZIP)
-      SET(HAVE_H5Z_SZIP 1)
-      SET(SZIP_LIBRARY ${SZIP})
-      SET(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} ${SZIP})
-      MESSAGE(STATUS "HDF5 has szip.")
-    ELSE()
-      MESSAGE(FATAL_ERROR "HDF5 Requires SZIP, but cannot find libszip or libsz.")
-    ENDIF()
-  ENDIF()
-
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pset_libver_bounds "" HAVE_H5PSET_LIBVER_BOUNDS)
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5free_memory "" HAVE_H5FREE_MEMORY)
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5allocate_memory "" HAVE_H5ALLOCATE_MEMORY)
