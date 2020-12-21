@@ -7,7 +7,6 @@
 #define MAX(a,b) ((a)>(b)?(a):(b))
 #define MIN(a,b) ((a)<(b)?(a):(b))
 
-
 static int pcounter = 0;
 
 /* Forward */
@@ -62,13 +61,13 @@ This is somewhat complex because:
 */
 
 int
-NCZ_compute_projections(int r, size64_t dimlen, size64_t chunklen, size64_t chunkindex, const NCZSlice* slice, size_t n, NCZProjection* projections)
+NCZ_compute_projections(struct Common* common,  int r, size64_t chunkindex, const NCZSlice* slice, size_t n, NCZProjection* projections)
 {
     int stat = NC_NOERR;
     size64_t offset;
     NCZProjection* projection = NULL;
-
-    NC_UNUSED(r);
+    size64_t dimlen = common->dimlens[r]; /* the dimension length for r'th dimension */
+    size64_t chunklen = common->chunklens[r]; /* the chunk length corresponding to the dimension */
 
     projection = &projections[n];
 
@@ -113,11 +112,14 @@ NCZ_compute_projections(int r, size64_t dimlen, size64_t chunklen, size64_t chun
 	if(rem)
 	    projection->first += (slice->stride - rem);
 	projection->iopos = ceildiv((offset - slice->start),slice->stride);
+//	{ int i; for(i=0;i<n;i++) projection->iopos += projections[i].iocount;}
     }
     if(slice->stop > projection->limit)
 	projection->stop = chunklen;
     else
 	projection->stop = slice->stop - offset;
+
+    projection->iocount = ceildiv((projection->stop - projection->first),slice->stride);
 
     /* Compute the slice relative to this chunk.
        Recall the possibility that start+stride >= projection->limit */
@@ -126,17 +128,19 @@ NCZ_compute_projections(int r, size64_t dimlen, size64_t chunklen, size64_t chun
     projection->chunkslice.stride = slice->stride;
     projection->chunkslice.len = chunklen;
 
-    projection->iocount = ceildiv((projection->stop - projection->first),slice->stride);
     /* Last place to be touched */
     projection->last = projection->first + (slice->stride * (projection->iocount - 1));
 
     projection->memslice.start = projection->iopos;
     projection->memslice.stop = projection->iopos + projection->iocount;
-//    projection->memslice.stride = 1;
-    projection->memslice.stride = slice->stride;
-    projection->memslice.len = projection->memslice.stop;
-//    projection->memslice.len = dimlen;
-//    projection->memslice.len = chunklen;
+    projection->memslice.stride = 1;
+//    projection->memslice.stride = slice->stride;
+//    projection->memslice.len = projection->memslice.stop;
+    projection->memslice.len = common->memshape[r];
+#ifdef NEVERUSE
+   projection->memslice.len = dimlen;
+   projection->memslice.len = chunklen;
+#endif
 done:
     return stat;
 }
@@ -164,11 +168,10 @@ Create a vector of projections wrt a slice and a sequence of chunks.
 
 int
 NCZ_compute_per_slice_projections(
+	struct Common* common,
 	int r, /* which dimension are we projecting? */
         const NCZSlice* slice, /* the slice for which projections are computed */
 	const NCZChunkRange* range, /* range */
-	size64_t dimlen, /* the dimension length for r'th dimension */
-	size64_t chunklen, /* the chunk length corresponding to the dimension */
 	NCZSliceProjections* slp)
 {
     int stat = NC_NOERR;
@@ -189,7 +192,7 @@ NCZ_compute_per_slice_projections(
 
     /* Iterate over each chunk that intersects slice to produce projection */
     for(n=0,index=range->start;index<range->stop;index++,n++) {
-	if((stat = NCZ_compute_projections(r,dimlen, chunklen, index, slice, n, slp->projections)))
+	if((stat = NCZ_compute_projections(common, r, index, slice, n, slp->projections)))
 	    goto done;
     }
 
@@ -204,25 +207,22 @@ done:
 */
 int
 NCZ_compute_all_slice_projections(
-	int rank, /* variable rank */
+	struct Common* common,
         const NCZSlice* slices, /* the complete set of slices |slices| == R*/
-	const size64_t* dimlen, /* the dimension lengths associated with a variable */
-	const size64_t* chunklen, /* the chunk length corresponding to the dimensions */
         const NCZChunkRange* ranges,
         NCZSliceProjections* results)
 {
     int stat = NC_NOERR;
     size64_t r; 
 
-    for(r=0;r<rank;r++) {
+    for(r=0;r<common->rank;r++) {
 	/* Compute each of the rank SliceProjections instances */
 	NCZSliceProjections* slp = &results[r];
         if((stat=NCZ_compute_per_slice_projections(
+					common,
 					r,
 					&slices[r],
 					&ranges[r],
-					dimlen[r],
-					chunklen[r],
                                         slp))) goto done;
     }
 

@@ -1,3 +1,8 @@
+/*
+Additonal optimizations:
+1. slice covers all of exactly one chunk: we can just tranfer whole chunk to/from memory
+
+*/
 /*********************************************************************
  *   Copyright 2018, UCAR/Unidata
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
@@ -86,6 +91,7 @@ NCZ_transferslice(NC_VAR_INFO_T* var, int reading,
     int r,stat = NC_NOERR;
     size64_t dimlens[NC_MAX_VAR_DIMS];
     size64_t chunklens[NC_MAX_VAR_DIMS];
+    size64_t memshape[NC_MAX_VAR_DIMS];
     NCZSlice slices[NC_MAX_VAR_DIMS];
     struct Common common;
     NCZ_FILE_INFO_T* zfile = NULL;
@@ -137,17 +143,21 @@ NCZ_transferslice(NC_VAR_INFO_T* var, int reading,
 	slices[r].stop = minimum(start[r]+(count[r]*stride[r]),dimlens[r]);
 	slices[r].len = dimlens[r];
 	common.chunkcount *= chunklens[r];
+	memshape[r] = count[r];
     }
+
     if(wdebug >= 1) {
         fprintf(stderr,"\trank=%d",common.rank);
         if(!common.scalar) {
             fprintf(stderr," dimlens=%s",nczprint_vector(common.rank,dimlens));
             fprintf(stderr," chunklens=%s",nczprint_vector(common.rank,chunklens));
+            fprintf(stderr," memshape=%s",nczprint_vector(common.rank,memshape));
         }
 	fprintf(stderr,"\n");
     }
-    common.dimlens = dimlens;
-    common.chunklens = chunklens;
+    common.dimlens = dimlens; /* BAD: storing stack vector in a pointer; do not free */
+    common.chunklens = chunklens; /* ditto */
+    common.memshape = memshape; /* ditto */
     common.reader.source = ((NCZ_VAR_INFO_T*)(var->format_var_info))->cache;
     common.reader.read = readfromcache;
 
@@ -247,8 +257,13 @@ NCZ_transfer(struct Common* common, NCZSlice* slices)
         NCZSlice slpslices[NC_MAX_VAR_DIMS];
         NCZSlice memslices[NC_MAX_VAR_DIMS];
         NCZProjection* proj[NC_MAX_VAR_DIMS];
+	size64_t shape[NC_MAX_VAR_DIMS];
 
 	chunkindices = nczodom_indices(chunkodom);
+	if(wdebug >= 1) {
+	    fprintf(stderr,"chunkindices: %s\n",nczprint_vector(common->rank,chunkindices));
+	}
+
 	for(r=0;r<common->rank;r++) {
 	    NCZSliceProjections* slp = &common->allprojections[r];
 	    NCZProjection* projlist = slp->projections;
@@ -261,6 +276,16 @@ NCZ_transfer(struct Common* common, NCZSlice* slices)
 	    NCZProjection* pr = &projlist[indexr];
 	    proj[r] = pr;
 	}
+
+	if(wdebug > 0) {
+  	    fprintf(stderr,"Selected projections:\n");
+	    for(r=0;r<common->rank;r++) {
+  	        fprintf(stderr,"\t[%d] %s\n",r,nczprint_projection(*proj[r]));
+		shape[r] = proj[r]->iocount;
+	    }
+	    fprintf(stderr,"\tshape=%s\n",nczprint_vector(common->rank,shape));
+	}
+
 	for(r=0;r<common->rank;r++) {
 	    slpslices[r] = proj[r]->chunkslice;
 	    memslices[r] = proj[r]->memslice;
@@ -269,10 +294,6 @@ NCZ_transfer(struct Common* common, NCZSlice* slices)
 	    zutest->print(UTEST_TRANSFER, common, chunkodom, slpslices, memslices);
 
         /* Read from cache */
-	if(wdebug >= 1) {
-	    fprintf(stderr,"chunkindices: %s\n",nczprint_vector(common->rank,chunkindices));
-	}
-
         stat = common->reader.read(common->reader.source, chunkindices, &chunkdata);
 	switch (stat) {
         case NC_ENOTFOUND: /* cache created the chunk */
@@ -288,7 +309,6 @@ NCZ_transfer(struct Common* common, NCZSlice* slices)
 	{ /* walk with odometer, possibly optimized */
 	    if(wdebug >= 1)
 	    fprintf(stderr,"case: odometer; slp.optimized=%d:\n",slpodom->properties.optimized);
-
   	    /* This is the key action: walk this set of slices and transfer data */
   	    if((stat = NCZ_walk(proj,chunkodom,slpodom,memodom,common,chunkdata))) goto done;
 	}
@@ -485,7 +505,7 @@ NCZ_projectslices(size64_t* dimlens,
         goto done;
 
     /* Compute the slice index vector */
-    if((stat=NCZ_compute_all_slice_projections(common->rank,slices,common->dimlens,common->chunklens,ranges,allprojections)))
+    if((stat=NCZ_compute_all_slice_projections(common,slices,ranges,allprojections)))
         goto done;
 
     /* Verify */

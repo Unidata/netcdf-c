@@ -1,6 +1,11 @@
 #!/bin/sh
+if ! test -f travis.yml ; then
+  if test -f .travis.yml ; then
+    cp .travis.yml travis.yml
+  fi
+fi
 if test -f .travis.yml ; then
-  git mv   .travis.yml travis.yml
+git rm .travis.yml
 fi
 if test -f .github/workflows/run_tests.yml ; then
 rm -f .github/workflows/tmp0.yml .github/workflows/tmp1.yml
