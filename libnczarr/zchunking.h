@@ -62,6 +62,7 @@ struct Common {
     int scalar; /* 1 => scalar variable */
     size64_t* dimlens;
     size64_t* chunklens;
+    size64_t* memshape;
     void* memory;
     size_t typesize;
     void* fillvalue;
@@ -76,9 +77,9 @@ struct Common {
 /**************************************************/
 /* From zchunking.c */
 EXTERNL int NCZ_compute_chunk_ranges(int rank, const NCZSlice*, const size64_t*, NCZChunkRange* ncr);
-EXTERNL int NCZ_compute_projections(int r, size64_t dimlen, size64_t chunklen, size64_t chunkindex, const NCZSlice* slice, size_t n, NCZProjection* projections);
-EXTERNL int NCZ_compute_per_slice_projections(int rank, const NCZSlice*, const NCZChunkRange*, size64_t dimlen, size64_t chunklen, NCZSliceProjections* slp);
-EXTERNL int NCZ_compute_all_slice_projections(int rank, const NCZSlice* slices, const size64_t* dimlen, const size64_t* chunklen, const NCZChunkRange*, NCZSliceProjections*);
+EXTERNL int NCZ_compute_projections(struct Common*, int r, size64_t chunkindex, const NCZSlice* slice, size_t n, NCZProjection* projections);
+EXTERNL int NCZ_compute_per_slice_projections(struct Common*, int rank, const NCZSlice*, const NCZChunkRange*, NCZSliceProjections* slp);
+EXTERNL int NCZ_compute_all_slice_projections(struct Common*, const NCZSlice* slices, const NCZChunkRange*, NCZSliceProjections*);
 
 /* From zwalk.c */
 EXTERNL int ncz_chunking_init(void);
