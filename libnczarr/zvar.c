@@ -258,7 +258,7 @@ give_var_secret_name(NC_VAR_INFO_T *var, const char *name)
  * @param ncid File ID.
  * @param name Name.
  * @param xtype Type.
- * @param ndims Number of dims. ZARR has maximim of 32.
+ * @param ndims Number of dims. ZARR has maximum of 32.
  * @param dimidsp Array of dim IDs.
  * @param varidp Gets the var ID.
  *
