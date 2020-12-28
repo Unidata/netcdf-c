@@ -1971,6 +1971,8 @@ ncrecget(int ncid, long recnum, void **datap);
 EXTERNL int
 ncrecput(int ncid, long recnum, void *const *datap);
 
+EXTERNL double dt_h5dwrite;
+EXTERNL double dt_h5dread;
 /* This function may be called to force the library to
    initialize itself. It is not required, however.
 */
