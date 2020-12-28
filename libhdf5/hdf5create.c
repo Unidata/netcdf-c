@@ -168,7 +168,7 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
 
 #ifdef HAVE_H5PSET_LIBVER_BOUNDS
 #if H5_VERSION_GE(1,10,2)
-    if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_EARLIEST, H5F_LIBVER_V18) < 0)
+    if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_EARLIEST, H5F_LIBVER_V112) < 0)
 #else
         if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_EARLIEST,
                                  H5F_LIBVER_LATEST) < 0)

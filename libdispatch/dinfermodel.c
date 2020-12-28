@@ -697,7 +697,7 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
     NClist* modeargs = nclistnew();
     char* sfrag = NULL;
     const char* modeval = NULL;
-#if 0
+#if 1
 #if H5_VERSION_GE(1,12,0)
     hid_t fapl_id;
     if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) goto done;

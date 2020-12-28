@@ -50,8 +50,8 @@ HDF5_def_dim(int ncid, const char *name, size_t len, int *idp)
 
     LOG((2, "%s: ncid 0x%x name %s len %d", __func__, ncid, name,
          (int)len));
-    printf("%s: ncid 0x%x name %s len %d \n", __func__, ncid, name,
-         (int)len);
+    //printf("%s: ncid 0x%x name %s len %d \n", __func__, ncid, name,
+    //     (int)len);
     /* Find our global metadata structure. */
     if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
         return retval;
@@ -85,14 +85,14 @@ HDF5_def_dim(int ncid, const char *name, size_t len, int *idp)
     if (h5->cmode & NC_CLASSIC_MODEL)
         if(len > X_UINT_MAX) /* Backward compat */
             return NC_EDIMSIZE;
-    printf("HDF5 77\n");
+   // printf("HDF5 77\n");
     /* Make sure the name is not already in use. */
     dim = (NC_DIM_INFO_T*)ncindexlookup(grp->dim,norm_name);
     if(dim != NULL){
 	printf("ncindexlookup eerr HDF5 7x7\n");
         return NC_ENAMEINUSE;
 }
-    printf("HDF5 88\n");
+    //printf("HDF5 88\n");
     /* If it's not in define mode, enter define mode. Do this only
      * after checking all input data, so we only enter define mode if
      * input is good. */
