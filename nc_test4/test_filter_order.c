@@ -25,7 +25,7 @@
 
 #define MAXDIMS 8
 
-#define TESTFILE "testfilter_reg.nc"
+#define TESTFILE "testfilter_order.nc"
 
 #define NPARAMS 1
 #define PARAMVAL 17
@@ -36,6 +36,7 @@ static size_t chunksize[NDIMS] = {4,4,4,4};
 
 static size_t ndims = NDIMS;
 
+static int creating = 1; /* Default is to do filter test 1 */
 static size_t totalproduct = 1; /* x-product over max dims */
 static size_t actualproduct = 1; /* x-product over actualdims */
 static size_t chunkproduct = 1; /* x-product over actual chunks */
@@ -126,23 +127,35 @@ static void
 deffilters(void)
 {
     unsigned int params[1];
+
+    /* Register filter 0 */
+    params[0] = 0;    
+    printf("def filter id[0]=%d nparams=1 params[0]=%d\n",(int)FILTER_ID,(int)params[0]); fflush(stdout);
+    CHECK(nc_def_var_filter(ncid,varid,FILTER_ID,1,params));
+    params[0] = 1;
+    printf("def filter id[1]=%d nparams=1 params[0]=%d\n",(int)FILTER_ID+1,(int)params[0]); fflush(stdout);
+    CHECK(nc_def_var_filter(ncid,varid,FILTER_ID+1,1,params));
+}
+
+static void
+inqfilters(void)
+{
+    unsigned int params[1];
     unsigned int filterids[2];
     size_t nfilters = 0;
     size_t nparams = 0;
 
-    /* Register filter 0 */
-    params[0] = 0;    
-    CHECK(nc_def_var_filter(ncid,varid,FILTER_ID,1,params));
-    params[0] = 1;
-    CHECK(nc_def_var_filter(ncid,varid,FILTER_ID+1,1,params));
     CHECK(nc_inq_var_filter_ids(ncid,varid,&nfilters,filterids));
+    printf("inq filter ids(%d)=[%d,%d]\n",(int)nfilters,(int)filterids[0],(int)filterids[1]); fflush(stdout);
     if(nfilters != 2) REPORT("nfilters mismatch");
     if(filterids[0] != FILTER_ID+0) REPORT("0: filterids mismatch");
     if(filterids[1] != FILTER_ID+1) REPORT("1: filterids mismatch");
-    CHECK(nc_inq_var_filter_info(ncid,varid,FILTER_ID+0,&nparams,params));;
+    CHECK(nc_inq_var_filter_info(ncid,varid,filterids[0],&nparams,params));;
+    printf("inq filter id[0]=%d nparams=%d params[0]=%d\n",(int)filterids[0],(int)nparams,(int)params[0]); fflush(stdout);
     if(nparams != 1) REPORT("0: nparams mismatch");
     if(params[0] != 0) REPORT("0: param mismatch");
-    CHECK(nc_inq_var_filter_info(ncid,varid,FILTER_ID+1,&nparams,params));
+    CHECK(nc_inq_var_filter_info(ncid,varid,filterids[1],&nparams,params));
+    printf("inq filter id[1]=%d nparams=%d params[0]=%d\n",(int)filterids[1],(int)nparams,(int)params[0]); fflush(stdout);
     if(nparams != 1) REPORT("1: nparams mismatch");
     if(params[0] != 1) REPORT("1: param mismatch");
 }
@@ -214,7 +227,7 @@ static int
 compare(void)
 {
     int errs = 0;
-    printf("data comparison: |array|=%ld\n",(unsigned long)actualproduct);
+    printf("data comparison: |array|=%ld\n",(unsigned long)actualproduct); fflush(stdout);
     if(1)
     {
         int i;
@@ -245,10 +258,11 @@ compare(void)
    }
 
    if(errs == 0)
-        printf("no data errors\n");
+        {printf("no data errors\n"); fflush(stdout);}
    return (errs == 0);
 }
 
+/* Test filter order on creation */
 static int
 filter_test1(void)
 {
@@ -256,23 +270,50 @@ filter_test1(void)
 
     reset();
 
-    printf("test1: filter order.\n");
+    printf("test1: filter order: create\n"); fflush(stdout);
     create();
     setchunking();
     deffilters();
+    inqfilters();
     CHECK(nc_enddef(ncid));
 
     /* Fill in the array */
     fill();
 
-    printf("test1: compression.\n");
+    nc_sync(ncid);
+
+    printf("test1: compression.\n"); fflush(stdout);
     /* write array */
     CHECK(nc_put_var(ncid,varid,expected));
+
+    printf("test1: decompression.\n"); fflush(stdout);
+    CHECK(nc_get_var_float(ncid, varid, array));
+    ok = compare();
+
     CHECK(nc_close(ncid));
 
-    printf("test1: decompression.\n");
+    return ok;
+}
+
+/* Test filter order on read */
+static int
+filter_test2(void)
+{
+    int ok = 1;
+
+    reset();
+
+    printf("test2: filter order: read\n"); fflush(stdout);
+
+    /* Fill in the array */
+    fill();
+
+    printf("test2: decompression.\n"); fflush(stdout);
     reset();
     openfile();
+    inqfilters();
+
+    printf("test2: decompression.\n"); fflush(stdout);
     CHECK(nc_get_var_float(ncid, varid, array));
     ok = compare();
 
@@ -343,6 +384,11 @@ static void
 init(int argc, char** argv)
 {
     int i;
+
+    creating = 1; /* default is test1 */
+    if(argc > 1 && strcmp(argv[1],"read")==0)
+        creating = 0;
+
     /* Setup various variables */
     totalproduct = 1;
     actualproduct = 1;
@@ -368,6 +414,10 @@ main(int argc, char **argv)
     nc_set_log_level(1);
 #endif
     init(argc,argv);
-    if(!filter_test1()) ERRR;
+    if(creating) {
+        if(!filter_test1()) ERRR;
+    } else {
+        if(!filter_test2()) ERRR;
+    }
     exit(nerrs > 0?1:0);
 }
