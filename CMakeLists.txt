@@ -852,6 +852,13 @@ FIND_PACKAGE(CURL)
 ADD_DEFINITIONS(-DCURL_STATICLIB=1)
 INCLUDE_DIRECTORIES(${CURL_INCLUDE_DIRS})
 
+# Define a test flag for have curl library
+IF(CURL_LIBRARIES OR CURL_LIBRARY)
+  SET(FOUND_CURL TRUE)
+ELSE()
+  SET(FOUND_CURL FALSE)
+ENDIF()
+
 # Check to see if CURLOPT_USERNAME is defined.
 # It is present starting version 7.19.1.
 CHECK_C_SOURCE_COMPILES("
@@ -918,16 +925,6 @@ ENDIF()
 
 # Option to support byte-range reading of remote datasets
 OPTION(ENABLE_BYTERANGE "Enable byte-range access to remote datasets.." OFF)
-
-IF(NOT CURL_LIBRARIES AND NOT CURL_LIBRARY)
-  IF(ENABLE_BYTERANGE)
-    MESSAGE(FATAL_ERROR "Byte-range support specified, CURL libraries are not found.")
-  ENDIF()
-
-  IF(ENABLE_DAP2 OR ENABLE_DAP4)
-    MESSAGE(FATAL_ERROR "DAP support specified, CURL libraries are not found.")
-  ENDIF()
-ENDIF()
 
 # Check for the math library so it can be explicitly linked.
 IF(NOT WIN32)
@@ -1017,6 +1014,25 @@ IF(NOT ENABLE_S3_SDK)
     SET(ENABLE_NCZARR_S3_TESTS OFF CACHE BOOL "S3 tests" FORCE)
   ENDIF()
 ENDIF()
+
+# Start disabling if curl not found
+IF(NOT FOUND_CURL)
+  IF(ENABLE_BYTERANGE)
+    MESSAGE(FATAL_ERROR "Byte-range support specified, CURL libraries are not found.")
+  ENDIF()
+
+  IF(ENABLE_DAP2 OR ENABLE_DAP4)
+    MESSAGE(FATAL_ERROR "DAP support specified, CURL libraries are not found.")
+  ENDIF()
+
+  IF(ENABLE_HDF5_ROS3)
+    MESSAGE(FATAL_ERROR "ROS3 support specified, CURL libraries are not found.")
+  ENDIF()
+
+  IF(ENABLE_NCZARR_S3)
+    MESSAGE(FATAL_ERROR "NCZarr S3 support specified, CURL libraries are not found.")
+  ENDIF()
+ENDIF(NOT FOUND_CURL)
 
 ##
 # Enable Tests
