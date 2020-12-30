@@ -16,8 +16,9 @@
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
-
-extern FILE* fdopen(int fd, const char *mode);
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
  
 #include "nclog.h"
 
