@@ -1,0 +1,12 @@
+test1: filter order: create
+def filter id[0]=40000 nparams=1 params[0]=0
+def filter id[1]=40001 nparams=1 params[0]=1
+inq filter ids(2)=[40000,40001]
+inq filter id[0]=40000 nparams=1 params[0]=0
+inq filter id[1]=40001 nparams=1 params[0]=1
+test1: compression.
+test1: decompression.
+data comparison: |array|=256
+no data errors
+direction=compress id=40000 cd_nelmts=1 cd_values= 0
+direction=compress id=40001 cd_nelmts=1 cd_values= 1

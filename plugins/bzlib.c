@@ -30,7 +30,7 @@
 
 #include "bzlib_private.h"
 
-extern FILE* fdopen(int,const char*);
+//extern FILE* fdopen(int,const char*);
 
 /*---------------------------------------------------*/
 /*--- Compression stuff                           ---*/
@@ -1382,8 +1382,8 @@ const char * BZ_API(BZ2_bzlibVersion)(void)
 #endif
 static
 BZFILE * bzopen_or_bzdopen
-               ( const char *path,   /* no use when bzdopen */
-                 int fd,             /* no use when bzdopen */
+               ( const char *path,   /* not used when bzdopen */
+                 int fd,             /* not used when bzdopen */
                  const char *mode,
                  int open_mode)      /* bzopen: 0, bzdopen:1 */
 {
@@ -1426,10 +1426,14 @@ BZFILE * bzopen_or_bzdopen
         fp = fopen(path,mode2);
       }
    } else {
+#if 0
 #ifdef BZ_STRICT_ANSI
       fp = NULL;
 #else
       fp = fdopen(fd,mode2);
+#endif
+#else
+     fp = NULL;
 #endif
    }
    if (fp == NULL) return NULL;
@@ -1467,13 +1471,14 @@ BZFILE * BZ_API(BZ2_bzopen)
 
 
 /*---------------------------------------------------*/
+#if 0
 BZFILE * BZ_API(BZ2_bzdopen)
                ( int fd,
                  const char *mode )
 {
    return bzopen_or_bzdopen(NULL,fd,mode,/*bzdopen*/1);
 }
-
+#endif
 
 /*---------------------------------------------------*/
 int BZ_API(BZ2_bzread) (BZFILE* b, void* buf, int len )
