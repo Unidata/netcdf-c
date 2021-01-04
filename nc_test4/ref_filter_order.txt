@@ -1,9 +1,0 @@
-test1: filter order.
-test1: compression.
-cd_nelmts=1 cd_values= 0
-cd_nelmts=1 cd_values= 1
-test1: decompression.
-cd_nelmts=1 cd_values= 1
-cd_nelmts=1 cd_values= 0
-data comparison: |array|=256
-no data errors
