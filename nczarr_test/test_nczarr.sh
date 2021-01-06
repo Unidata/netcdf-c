@@ -133,12 +133,12 @@ for t in ${TESTS} ; do
    checkprops ${t}
    ref="ref_${t}"
    rm -fr ${t}.$zext
-   rm -f ${t}.dmp
+   rm -f tmp_${t}.dmp
    fileargs $t
    ${NCGEN} -4 -lb -o ${fileurl} ${cdl}/${ref}.cdl
-   ${NCDUMP} ${headflag} ${specflag} -n ${ref} ${fileurl} > ${t}.dmp
+   ${NCDUMP} ${headflag} ${specflag} -n ${ref} ${fileurl} > tmp_${t}.dmp
    # compare the expected (silently if XFAIL)
-   if diff -b -w ${expected}/${ref}.dmp ${t}.dmp > ${t}.diff ; then ok=1; else ok=0; fi
+   if diff -b -w ${expected}/${ref}.dmp tmp_${t}.dmp > ${t}.diff ; then ok=1; else ok=0; fi
    if test "x$ok" = "x1" ; then
      echo "*** SUCCEED: ${t}"
    elif test "x${isxfail}" = "x1" ; then

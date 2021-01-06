@@ -133,8 +133,7 @@ NCD4_open(const char * path, int mode,
     /* Turn on logging; only do this after oc_open*/
     if((value = ncurifragmentlookup(d4info->uri,"log")) != NULL) {
 	ncloginit();
-        if(nclogopen(value))
-	    ncsetlogging(1);
+	ncsetlogging(1);
     }
 
     /* Setup a curl connection */

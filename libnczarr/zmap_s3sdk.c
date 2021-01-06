@@ -136,7 +136,7 @@ zs3create(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
     NC_UNUSED(flags);
     NC_UNUSED(parameters);
 
-    ZTRACE("","");
+    ZTRACE(1,"%s:",__func__);
 
     if(!zs3initialized) zs3initialize();
 
@@ -212,7 +212,7 @@ zs3open(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** m
     NC_UNUSED(flags);
     NC_UNUSED(parameters);
 
-    ZTRACE("","");
+    ZTRACE(1,"%s: ",__func__);
 
     if(!zs3initialized) zs3initialize();
 
@@ -272,7 +272,7 @@ zs3close(NCZMAP* map, int deleteit)
     int stat = NC_NOERR;
     ZS3MAP* z3map = (ZS3MAP*)map;
 
-    ZTRACE("","");
+    ZTRACE(1,"%s: ",__func__);
     if(deleteit)
         s3clear(z3map,z3map->rootkey);
     NCZ_s3sdkclose(z3map->s3client, z3map->s3config, z3map->bucket, z3map->rootkey, deleteit, &z3map->errmsg);
@@ -312,7 +312,7 @@ zs3len(NCZMAP* map, const char* key, size64_t* lenp)
     ZS3MAP* z3map = (ZS3MAP*)map;
     char* truekey = NULL;
 
-    ZTRACE("","");
+    ZTRACE(1,"%s: ",__func__);
 
     if((stat = maketruekey(z3map->rootkey,key,&truekey))) goto done;
 
@@ -342,7 +342,7 @@ zs3defineobj(NCZMAP* map, const char* key)
     int stat = NC_NOERR;
     ZS3MAP* z3map = (ZS3MAP*)map; /* cast to true type */
     
-    ZTRACE("%s",key);
+    ZTRACE(1,"%s: key=%s",__func__,key);
 
     switch(stat = zs3exists(map,key)) {
     case NC_NOERR: goto done; /* Already exists */
@@ -372,7 +372,7 @@ zs3read(NCZMAP* map, const char* key, size64_t start, size64_t count, void* cont
     size64_t size = 0;
     char* truekey = NULL;
  
-    ZTRACE("%s",key);
+    ZTRACE(1,"%s: key=%s",__func__,key);
 
     if((stat = maketruekey(z3map->rootkey,key,&truekey))) goto done;
     
@@ -409,7 +409,7 @@ zs3write(NCZMAP* map, const char* key, size64_t start, size64_t count, const voi
     size64_t newsize = start+count;
     char* truekey = NULL;
 	
-    ZTRACE("%s",key);
+    ZTRACE(1,"%s: key=%s",__func__,key);
 
     if(count == 0) {stat = NC_EEDGE; goto done;}
 
@@ -468,7 +468,7 @@ zs3search(NCZMAP* map, const char* prefix, NClist* matches)
     NClist* tmp = NULL;
     char* trueprefix = NULL;
 
-    ZTRACE("%s",prefix);
+    ZTRACE(1,"%s: prefix=%s",__func__,prefix);
     
     if((stat = maketruekey(z3map->rootkey,prefix,&trueprefix))) goto done;
     

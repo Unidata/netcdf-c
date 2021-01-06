@@ -32,8 +32,8 @@ static unsigned dimprod;
 static int* data = NULL;
 static size_t datasize = 0;
 
-static int setupwholevar(void);
-static int reportwholevar(void);
+static int setupwholechunk(void);
+static int reportwholechunk(void);
 static void zutest_print(int sort, ...);
 
 static int
@@ -42,21 +42,18 @@ writedata(void)
     int ret = NC_NOERR;
     int i;
 
-    if((ret = getmetadata(1)))
-        ERR(ret);
-
     for(i=0;i<dimprod;i++) data[i] = i;
  
-    if(options->wholevar)
-        setupwholevar();
+    if(options->wholechunk)
+        setupwholechunk();
 
     if(options->debug >= 1) {
         fprintf(stderr,"write: dimlens=%s chunklens=%s\n",
             printvector(options->rank,options->dimlens),printvector(options->rank,options->chunks));
     }
-    if(options->wholevar) {
-        fprintf(stderr,"write var: wholevar\n");
-        if((ret = nc_put_var(meta->ncid,meta->varid,data)))
+    if(options->wholechunk) {
+        fprintf(stderr,"write var: wholechunk\n");
+        if((ret = nc_put_vars(meta->ncid,meta->varid,options->start,options->count,(ptrdiff_t*)options->stride,data)))
 	    ERR(ret);
     } else {
         fprintf(stderr,"write vars: start=%s count=%s stride=%s\n",
@@ -65,8 +62,8 @@ writedata(void)
 	    ERR(ret);
     }
 
-    if(options->wholevar) {
-	if((ret=reportwholevar()))
+    if(options->wholechunk) {
+	if((ret=reportwholechunk()))
 	    ERR(ret);
     }
 
@@ -79,41 +76,34 @@ readdata(void)
     int ret = NC_NOERR;
     int i;
     
-    if((ret = getmetadata(0)))
-        ERR(ret);
-
     memset(data,0,datasize);
 
-    if(options->wholevar) {
-        setupwholevar();
+    if(options->wholechunk) {
+        setupwholechunk();
     }
 
     if(options->debug >= 1)
         fprintf(stderr,"read: dimlens=%s chunklens=%s\n",
             printvector(options->rank,options->dimlens),printvector(options->rank,options->chunks));
-    if(options->wholevar) {
-        fprintf(stderr,"read var: wholevar\n");
-        if((ret = nc_get_var(meta->ncid,meta->varid,data)))
-	    ERR(ret);
-    } else {
-        fprintf(stderr,"read vars: start=%s count=%s stride=%s\n",
-                printvector(options->rank,options->start),printvector(options->rank,options->count),printvector(options->rank,options->stride));
-        if((ret = nc_get_vars(meta->ncid,meta->varid,options->start,options->count,(ptrdiff_t*)options->stride,data)))
-	    ERR(ret);
-    }
+    fprintf(stderr,"read vars: start=%s count=%s stride=%s",
+                printvector(options->rank,options->start),
+		printvector(options->rank,options->count),
+		printvector(options->rank,options->stride));
+    if(options->wholechunk)
+        fprintf(stderr," wholechunk");
+    fprintf(stderr,"\n");
+    if((ret = nc_get_vars(meta->ncid,meta->varid,options->start,options->count,(ptrdiff_t*)options->stride,data)))
+        ERR(ret);
 
     for(i=0;i<dimprod;i++) {
         printf("[%d] %d\n",i,data[i]);
     }
-
-    if(options->wholevar) {
-	reportwholevar();
-    }
+    if(options->wholechunk)
+	reportwholechunk();
     
     return 0;
 }
 
- 
 static int
 genodom(void)
 {
@@ -131,19 +121,19 @@ done:
     return ret;
 }
 
-static int wholevarcalls;
+static int wholechunkcalls = 0;
 static struct ZUTEST zutester;
 
 static int
-setupwholevar(void)
+setupwholechunk(void)
 {
     int ret = NC_NOERR;
 
-    wholevarcalls = 0;
+    wholechunkcalls = 0;
     
 #ifdef ENABLE_NCZARR
     /* Set the printer */
-    zutester.tests = UTEST_WHOLEVAR;
+    zutester.tests = UTEST_WHOLECHUNK;
     zutester.print = zutest_print;
     zutest = &zutester; /* See zdebug.h */
 #endif
@@ -156,6 +146,7 @@ zutest_print(int sort, ...)
 {
     va_list ap;    
     struct Common* common = NULL;    
+    size64_t* chunkindices;
 
     NC_UNUSED(common);
 
@@ -163,23 +154,26 @@ zutest_print(int sort, ...)
     
     switch (sort) {
     default: break; /* ignore */
-    case UTEST_WHOLEVAR:
+    case UTEST_WHOLECHUNK:
 	common = va_arg(ap,struct Common*);
-	wholevarcalls++;
+	chunkindices = va_arg(ap,size64_t*);
+	if(options->debug >= 1)
+	    fprintf(stderr,"wholechunk: indices=%s\n",printvector64(common->rank,chunkindices));
+	wholechunkcalls++;
 	break;
     }
     va_end(ap);
 }
 
 static int
-reportwholevar(void)
+reportwholechunk(void)
 {
     int ret = NC_NOERR;
 #ifdef ENABLE_NCZARR
-    if(options->debug > 0) {
-	fprintf(stderr,"wholevarcalls=%d\n",wholevarcalls);
-    }
-    if(wholevarcalls != 1) return NC_ENCZARR;
+    if(options->debug > 0)
+        fprintf(stderr,"wholechunkcalls=%d\n",wholechunkcalls);
+    if(wholechunkcalls != 1)
+        return NC_EINVAL;
 #endif
     return ret;
 }
@@ -195,11 +189,21 @@ main(int argc, char** argv)
 
     if((stat=getoptions(&argc,&argv))) goto done;
     
+    if(options->formatx != NC_FORMATX_NCZARR && options->wholechunk) {
+	fprintf(stderr,"Format is not NCZarr; -OW_ ignored\n");
+	options->wholechunk = 0;
+    }
+
     switch (options->op) {
     case Read:
-    case Write:
-    case Wholevar:
+        if((stat = getmetadata(0)))
+            ERR(stat);
         if (argc == 0) {fprintf(stderr, "no input file specified\n");exit(1);}
+	break;
+    case Write:
+        if((stat = getmetadata(1)))
+            ERR(stat);
+        if (argc == 0) {fprintf(stderr, "no output file specified\n");exit(1);}
 	break;
     default:
 	break; /* do not need a file */
