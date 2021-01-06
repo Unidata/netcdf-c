@@ -8,6 +8,7 @@
 #include <ncpathmgr.h>
 #include <nclist.h>
 #include <ncuri.h>
+#include <nclog.h>
 
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
@@ -55,8 +56,11 @@ getoptions(int* argcp, char*** argvp)
     /* Set defaults */
     options->mode = 0; /* classic netcdf-3 */
 
-    while ((c = getopt(*argcp, *argvp, "34c:d:e:f:n:m:p:s:D:X:O:")) != EOF) {
+    while ((c = getopt(*argcp, *argvp, "T:34c:d:e:f:n:m:p:s:D:O:X:")) != EOF) {
 	switch(c) {
+	case 'T':
+	    nctracelevel(atoi(optarg));
+	    break;	
 	case '3':
 	    options->mode = 0;
 	    break;
@@ -102,7 +106,7 @@ getoptions(int* argcp, char*** argvp)
 	        switch (*p) {
 	        case 'r': options->op = Read; break;
     	        case 'w': options->op = Write; break;
-	        case 'W': options->wholevar = 1; break;
+	        case 'W': options->wholechunk = 1; break;
     	        case 'o': options->op = Odom; break;
 		default: fprintf(stderr,"Unknown operation '%c'\n",*p); exit(1);
 	        }
@@ -144,6 +148,16 @@ getoptions(int* argcp, char*** argvp)
 	    options->formatx = NC_FORMATX_NCZARR; /* assume */
 	    ncurifree(uri);
 	}
+    }
+    if(options->debug) {
+	const char* fmt = "unknown";
+	switch(options->formatx) {
+	case NC_FORMATX_NC3: fmt = "NC3"; break;
+	case NC_FORMATX_NC4: fmt = "NC4"; break;
+	case NC_FORMATX_NCZARR: fmt = "NCZARR"; break;
+	default: break;
+	}
+	fprintf(stderr,"Formatx: %s\n",fmt);
     }
 
 #ifndef _WIN32
@@ -228,6 +242,13 @@ getmetadata(int create)
             if((ret = nc_inq_dimlen(meta->ncid,meta->dimids[i],&options->dimlens[i]))) goto done;
         }
         if((ret = nc_inq_varid(meta->ncid,"v",&meta->varid))) goto done;
+        if(options->formatx == NC_FORMATX_NC4 || options->formatx == NC_FORMATX_NCZARR) {
+	    int storage = -1;
+	    /* Get chunk sizes also */
+            if((ret = nc_inq_var_chunking(meta->ncid,meta->varid,&storage,options->chunks))) goto done;
+	    if(storage != NC_CHUNKED) {ret = NC_EBADCHUNK; goto done;}
+	}
+	
     }
 
 done:
@@ -268,6 +289,15 @@ parsevector(const char* s0, size_t* vec)
 
 const char*
 printvector(int rank, const size_t* vec)
+{
+    size64_t v64[NC_MAX_VAR_DIMS];
+    int r;
+    for(r=0;r<rank;r++) v64[r]= (size64_t)vec[r];
+    return printvector64(rank,v64);
+}
+
+const char*
+printvector64(int rank, const size64_t* vec)
 {
     char s[NC_MAX_VAR_DIMS*3+1];
     int i;

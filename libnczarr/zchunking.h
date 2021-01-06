@@ -31,7 +31,9 @@ typedef struct NCZSlice {
 
 typedef struct NCProjection {
     int id;
+    int skip; /* Should this projection be skipped? */
     size64_t chunkindex; /* which chunk are we projecting */
+    size64_t offset; /* Absolute offset of this chunk (== chunklen*chunkindex) */
     size64_t first;  /* absolute first position to be touched in this chunk */
     size64_t last;   /* absolute position of last value touched */
     size64_t stop;   /* absolute position of last value touched */

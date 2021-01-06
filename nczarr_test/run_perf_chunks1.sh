@@ -31,8 +31,8 @@ echo '*** SUCCESS!!!'
 }
 
 
-#testcases nzf
-#if test "x$FEATURE_HDF5" = xyes ; then testcases nz4; fi
+testcases nzf
+if test "x$FEATURE_HDF5" = xyes ; then testcases nz4; fi
 if test "x$FEATURE_S3TESTS" = xyes ; then testcases s3; fi
 
 exit 0
