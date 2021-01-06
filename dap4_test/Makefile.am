@@ -16,6 +16,7 @@ TEST_EXTENSIONS = .sh
 
 LDADD = ${top_builddir}/liblib/libnetcdf.la
 AM_CPPFLAGS += -I$(top_srcdir)/liblib
+AM_CPPFLAGS += -I$(top_srcdir)/libdap4
 AM_CPPFLAGS += -DTOPSRCDIR=${abs_top_srcdir}
 AM_CPPFLAGS += -DTOPBINDIR=${abs_top_bindir}
 
@@ -23,28 +24,35 @@ AM_CPPFLAGS += -DTOPBINDIR=${abs_top_bindir}
 check_PROGRAMS =
 TESTS =
 
+check_PROGRAMS += test_parse test_meta test_data
+
 noinst_PROGRAMS =
 
-# Disable Dap4 Remote Tests until the test server is working
-if AX_IGNORE
-if ENABLE_DAP_REMOTE_TESTS
+TESTS += test_parse.sh test_meta.sh test_data.sh test_fillmismatch.sh test_raw.sh 
+
+# Note tst_curlopt.sh is intended to be run manually; see comments in file.
+
 # Note: This program name was changed to findtestserver4
 # to avoid cmake complaint about duplicate targets.
 noinst_PROGRAMS += findtestserver4 pingurl4
 findtestserver4_SOURCES = findtestserver4.c
 pingurl4_SOURCES = pingurl4.c
+
+# Disable Dap4 Remote Tests until the test server is working
+if AX_IGNORE
+if ENABLE_DAP_REMOTE_TESTS
 if BUILD_UTILITIES
   # relies on ncdump
   TESTS += test_remote.sh
 endif
 endif
-endif #AX_IGNORE
+endif
 
 EXTRA_DIST = test_parse.sh test_meta.sh test_data.sh \
              test_raw.sh test_remote.sh test_hyrax.sh test_fillmismatch.sh \
              tst_curlopt.sh d4test_common.sh \
 	     daptestfiles dmrtestfiles cdltestfiles nctestfiles misctestfiles \
-	     baseline baselineraw baselineremote CMakeLists.txt
+	     baseline baselineraw baselineremote CMakeLists.txt test_common.h
 
 CLEANFILES = *.exe
 # This should only be left behind if using parallel io
