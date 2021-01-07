@@ -209,7 +209,11 @@ main()
       hid_t file_typeid1[NUM_OBJ_1], native_typeid1[NUM_OBJ_1];
       hid_t file_typeid2, native_typeid2;
       hsize_t num_obj;
+#if H5_VERSION_GE(1,12,0)
+      H5O_info2_t obj_info;
+#else
       H5O_info_t obj_info;
+#endif
       char obj_name[STR_LEN + 1];
       hsize_t dims[1] = {ATT_LEN}; /* netcdf attributes always 1-D. */
 
