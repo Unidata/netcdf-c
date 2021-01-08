@@ -4,10 +4,6 @@
  *********************************************************************/
 #include "zincludes.h"
 
-#ifdef HAVE_EXECINFO_H
-#include <execinfo.h>
-#endif
-
 /* Mnemonic */
 #define RAW 1
 
@@ -27,19 +23,13 @@ zbreakpoint(int err)
 }
 
 int
-zthrow(int err, const char* file, int line)
+zthrow(int err, const char* file, const char* fcn, int line)
 {
     if(err == 0) return err;
-#ifdef ZDEBUG
-    fprintf(stderr,"THROW: %s/%d: (%d) %s\n",file,line,err,nc_strerror(err));
-    fflush(stderr);
-#endif
-#ifdef HAVE_EXECINFO_H
-    NCZbacktrace();
-#endif
+    ncbacktrace();
     return zbreakpoint(err);
 }
-#endif
+#endif /*ZCATCH*/
 
 /**************************************************/
 /* Data Structure printers */
@@ -148,7 +138,7 @@ nczprint_odom(const NCZOdometer* odom)
     char value[128];
     char* txt = NULL;
 
-    snprintf(value,sizeof(value),"Odometer{rank=%d optimized=%d",odom->rank,odom->properties.optimized);
+    snprintf(value,sizeof(value),"Odometer{rank=%d ",odom->rank);
     ncbytescat(buf,value);
 
     ncbytescat(buf," start=");
@@ -198,6 +188,7 @@ nczprint_projectionx(const NCZProjection proj, int raw)
     ncbytescat(buf,"Projection{");
     snprintf(value,sizeof(value),"id=%d,",proj.id);
     ncbytescat(buf,value);
+    if(proj.skip) ncbytescat(buf,"*");
     snprintf(value,sizeof(value),"chunkindex=%lu",(unsigned long)proj.chunkindex);
     ncbytescat(buf,value);
     snprintf(value,sizeof(value),",first=%lu",(unsigned long)proj.first);
@@ -289,6 +280,24 @@ nczprint_chunkrange(const NCZChunkRange range)
 }
 
 char*
+nczprint_idvector(size_t len, const int* ids)
+{
+    size64_t v[4096];
+    size_t i;
+    for(i=0;i<len;i++) v[i] = ids[i];    
+    return nczprint_vector(len,v);
+}
+
+char*
+nczprint_sizevector(size_t len, const size_t* sizes)
+{
+    size64_t v[4096];
+    size_t i;
+    for(i=0;i<len;i++) v[i] = sizes[i];    
+    return nczprint_vector(len,v);
+}
+
+char*
 nczprint_vector(size_t len, const size64_t* vec)
 {
     char* result = NULL;
@@ -301,6 +310,29 @@ nczprint_vector(size_t len, const size64_t* vec)
         if(i > 0) ncbytescat(buf,",");
         snprintf(value,sizeof(value),"%lu",(unsigned long)vec[i]);	
 	ncbytescat(buf,value);
+    }
+    ncbytescat(buf,")");
+    result = ncbytesextract(buf);
+    ncbytesfree(buf);
+    return capture(result);
+}
+
+char*
+nczprint_envv(const char** envv)
+{
+    char* result = NULL;
+    int i;
+    NCbytes* buf = ncbytesnew();
+    const char** p;
+
+    ncbytescat(buf,"(");
+    if(envv) {
+        for(i=0,p=envv;*p;p++,i++) {
+        if(i > 0) ncbytescat(buf,",");
+	    ncbytescat(buf,"'");
+	    ncbytescat(buf,*p);
+	    ncbytescat(buf,"'");
+	}
     }
     ncbytescat(buf,")");
     result = ncbytesextract(buf);
@@ -332,27 +364,3 @@ zdumpcommon(const struct Common* c)
         fprintf(stderr,"\t\t[%d] %s\n",r,nczprint_sliceprojectionsx(c->allprojections[r],RAW));
     fflush(stderr);
 }
-
-#ifdef HAVE_EXECINFO_H
-#define MAXSTACKDEPTH 100
-void
-NCZbacktrace(void)
-{
-    int j, nptrs;
-    void* buffer[MAXSTACKDEPTH];
-    char **strings;
-
-    if(getenv("NCZBACKTRACE") == NULL) return;
-    nptrs = backtrace(buffer, MAXSTACKDEPTH);
-    strings = backtrace_symbols(buffer, nptrs);
-    if (strings == NULL) {
-        perror("backtrace_symbols");
-        errno = 0;
-	return;
-    }
-    fprintf(stderr,"Backtrace:\n");
-    for(j = 0; j < nptrs; j++)
-	fprintf(stderr,"%s\n", strings[j]);
-    free(strings);
-}
-#endif

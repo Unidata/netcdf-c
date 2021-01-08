@@ -148,7 +148,7 @@ static int zfinitialized = 0;
 static void zfinitialize(void)
 {
     if(!zfinitialized) {
-        ZTRACE("","");
+        ZTRACE(5,NULL);
 	const char* env = NULL;
 	int perms = 0;
 	env = getenv("NC_DEFAULT_CREATE_PERMS");
@@ -160,6 +160,7 @@ static void zfinitialize(void)
 	    if(sscanf(env,"%d",&perms) == 1) NC_DEFAULT_DIR_PERMS = perms;
 	}
         zfinitialized = 1;
+	ZUNTRACE(NC_NOERR);
     }
 }
 
@@ -183,7 +184,7 @@ zfilecreate(const char *path, int mode, size64_t flags, void* parameters, NCZMAP
     NCURI* url = NULL;
 	
     NC_UNUSED(parameters);
-    ZTRACE("%s %d %llu %p",path,mode,flags,parameters);
+    ZTRACE(5,"path=%s mode=%d flag=%llu",path,mode,flags);
 
     if(!zfinitialized) zfinitialize();
 
@@ -239,7 +240,7 @@ done:
     nullfree(truepath);
     if(stat)
     	zfileclose((NCZMAP*)zfmap,1);
-    return (stat);
+    return ZUNTRACE(stat);
 }
 
 /*
@@ -260,7 +261,7 @@ zfileopen(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
     NCURI*url = NULL;
     
     NC_UNUSED(parameters);
-    ZTRACE("%s %d %llu %p",path,mode,flags,parameters);
+    ZTRACE(5,"path=%s mode=%d flags=%llu",path,mode,flags);
 
     if(!zfinitialized) zfinitialize();
 
@@ -306,7 +307,7 @@ done:
     ncurifree(url);
     nullfree(truepath);
     if(stat) zfileclose((NCZMAP*)zfmap,0);
-    return (stat);
+    return ZUNTRACE(stat);
 }
 
 /**************************************************/
@@ -319,7 +320,7 @@ zfileexists(NCZMAP* map, const char* key)
     ZFMAP* zfmap = (ZFMAP*)map;
     FD fd = FDNUL;
 
-    ZTRACE("%s",key);
+    ZTRACE(5,"map=%s key=%s",zfmap->map.url,key);
     switch(stat=zflookupobj(zfmap,key,&fd)) {
     case NC_NOERR: break;
     case NC_ENOTFOUND: stat = NC_EEMPTY;
@@ -327,7 +328,7 @@ zfileexists(NCZMAP* map, const char* key)
     default: break;
     }
     zfrelease(zfmap,&fd);    
-    return (stat);
+    return ZUNTRACE(stat);
 }
 
 static int
@@ -338,7 +339,7 @@ zfilelen(NCZMAP* map, const char* key, size64_t* lenp)
     size64_t len = 0;
     FD fd = FDNUL;
 
-    ZTRACE("%s",key);
+    ZTRACE(5,"map=%s key=%s",map->url,key);
 
     switch (stat=zflookupobj(zfmap,key,&fd)) {
     case NC_NOERR:
@@ -353,7 +354,7 @@ zfilelen(NCZMAP* map, const char* key, size64_t* lenp)
     if(lenp) *lenp = len;
 
 done:
-    return THROW(stat);
+    return ZUNTRACEX(stat,"len=%llu",(lenp?*lenp:777777777777));
 }
 
 static int
@@ -363,7 +364,7 @@ zfiledefineobj(NCZMAP* map, const char* key)
     FD fd = FDNUL;
     ZFMAP* zfmap = (ZFMAP*)map; /* cast to true type */
 
-    ZTRACE("%s",key);
+    ZTRACE(5,"map=%s key=%s",map->url,key);
 
 #ifdef VERIFY
     if(!verify(key,!FLAG_ISDIR))
@@ -389,7 +390,7 @@ zfiledefineobj(NCZMAP* map, const char* key)
 
 done:
     zfrelease(zfmap,&fd);
-    return (stat);
+    return ZUNTRACE(stat);
 }
 
 static int
@@ -399,7 +400,7 @@ zfileread(NCZMAP* map, const char* key, size64_t start, size64_t count, void* co
     FD fd = FDNUL;
     ZFMAP* zfmap = (ZFMAP*)map; /* cast to true type */
 
-    ZTRACE("%s %llu %llu",key,start,count);
+    ZTRACE(5,"map=%s key=%s start=%llu count=%llu",map->url,key,start,count);
 
 #ifdef VERIFY
     if(!verify(key,!FLAG_ISDIR))
@@ -418,7 +419,7 @@ zfileread(NCZMAP* map, const char* key, size64_t start, size64_t count, void* co
     
 done:
     zfrelease(zfmap,&fd);
-    return (stat);
+    return ZUNTRACE(stat);
 }
 
 static int
@@ -428,7 +429,7 @@ zfilewrite(NCZMAP* map, const char* key, size64_t start, size64_t count, const v
     FD fd = FDNUL;
     ZFMAP* zfmap = (ZFMAP*)map; /* cast to true type */
 
-    ZTRACE("%s %llu %llu",key,start,count);
+    ZTRACE(5,"map=%s key=%s start=%llu count=%llu",map->url,key,start,count);
 
 #ifdef VERIFY
     if(!verify(key,!FLAG_ISDIR))
@@ -447,7 +448,7 @@ zfilewrite(NCZMAP* map, const char* key, size64_t start, size64_t count, const v
 
 done:
     zfrelease(zfmap,&fd);
-    return (stat);
+    return ZUNTRACE(stat);
 }
 
 static int
@@ -456,7 +457,7 @@ zfileclose(NCZMAP* map, int delete)
     int stat = NC_NOERR;
     ZFMAP* zfmap = (ZFMAP*)map;
 
-    ZTRACE("%d",delete);
+    ZTRACE(5,"map=%s delete=%d",map->url,delete);
     if(zfmap == NULL) return NC_NOERR;
     
     /* Delete the subtree below the root and the root */
@@ -468,7 +469,7 @@ zfileclose(NCZMAP* map, int delete)
     nullfree(zfmap->root);
     zfmap->root = NULL;
     free(zfmap);
-    return (stat);
+    return ZUNTRACE(stat);
 }
 
 /*
@@ -488,7 +489,7 @@ zfilesearch(NCZMAP* map, const char* prefixkey, NClist* matches)
     NCbytes* buf = ncbytesnew();
     int trailing;
 
-    ZTRACE("%s",prefixkey);
+    ZTRACE(5,"map=%s prefixkey=%s",map->url,prefixkey);
 
     /* Make the root path be true */
     if(prefixkey == NULL || strlen(prefixkey)==0 || strcmp(prefixkey,"/")==0)
@@ -519,7 +520,7 @@ done:
     nclistfreeall(nextlevel);
     ncbytesfree(buf);
     nullfree(truepath);
-    return THROW(stat);
+    return ZUNTRACEX(stat,"|matches|=%d",(int)nclistlength(matches));
 }
 
 /**************************************************/
@@ -536,7 +537,7 @@ zfcreategroup(ZFMAP* zfmap, const char* key, int nskip)
     NCbytes* path = ncbytesnew();
     NClist* segments = nclistnew();
 
-    ZTRACE("%s %d",key,nskip);
+    ZTRACE(5,"map=%s key=%s nskip=%d",zfmap->map.url,key,nskip);
     if((stat=nczm_split(key,segments)))
 	goto done;    
     len = nclistlength(segments);
@@ -554,7 +555,7 @@ done:
     nullfree(fullpath);
     ncbytesfree(path);
     nclistfreeall(segments);
-    return (stat);
+    return ZUNTRACE(stat);
 }
 
 /* Lookup an object
@@ -568,7 +569,7 @@ zflookupobj(ZFMAP* zfmap, const char* key, FD* fd)
     int stat = NC_NOERR;
     char* path = NULL;
 
-    ZTRACE("%s",key);
+    ZTRACE(5,"map=%s key=%s",zfmap->map.url,key);
 
     if((stat = zffullpath(zfmap,key,&path)))
 	{goto done;}    
@@ -584,15 +585,16 @@ zflookupobj(ZFMAP* zfmap, const char* key, FD* fd)
 done:
     errno = 0;
     nullfree(path);
-    return (stat);    
+    return ZUNTRACE(stat);
 }
 
 /* When we are finished accessing object */
 static void
 zfrelease(ZFMAP* zfmap, FD* fd)
 {
-    ZTRACE("",NULL);
+    ZTRACE(5,"map=%s fd=%d",zfmap->map.url,(fd?fd->fd:-1));
     platformrelease(zfmap,fd);
+    ZUNTRACE(NC_NOERR);
 }
 
 /* Create an object file corresponding to a key; create any
@@ -605,7 +607,7 @@ zfcreateobj(ZFMAP* zfmap, const char* key, FD* fd)
     int stat = NC_NOERR;
     char* fullpath = NULL;
 
-    ZTRACE("%s",key);
+    ZTRACE(5,"map=%s key=%s",zfmap->map.url,key);
 
 #ifdef VERIFY
     if(!verify(key,!FLAG_ISDIR))
@@ -620,7 +622,7 @@ zfcreateobj(ZFMAP* zfmap, const char* key, FD* fd)
 	goto done;
 done:
     nullfree(fullpath);
-    return (stat);
+    return ZUNTRACE(stat);
 }
 
 /**************************************************/
@@ -673,6 +675,7 @@ zfparseurl(const char* path0, NCURI** urip)
 {
     int stat = NC_NOERR;
     NCURI* uri = NULL;
+    ZTRACE(6,"path0=%s",path0);
     ncuriparse(path0,&uri);
     if(uri == NULL)
 	{stat = NC_EURL; goto done;}
@@ -680,6 +683,7 @@ zfparseurl(const char* path0, NCURI** urip)
 
 done:
     ncurifree(uri);
+    return ZUNTRACEX(stat,"uri=%p",(urip?(void*)*urip:(void*)urip));
     return stat;
 }
 
@@ -709,6 +713,8 @@ platformtestcontentbearing(ZFMAP* zfmap, const char* truepath)
     struct stat buf;
     char* local = NULL;
     
+    ZTRACE(6,"map=%s truepath=%s",zfmap->map.url,truepath);
+
     /* Localize */
     if((ret = nczm_localize(truepath,&local,LOCALIZE))) goto done;
 
@@ -722,7 +728,7 @@ platformtestcontentbearing(ZFMAP* zfmap, const char* truepath)
 done:
     nullfree(local);
     errno = 0;
-    return ret;
+    return ZUNTRACE(ret);
 }
 
 /* Create a file */
@@ -735,6 +741,8 @@ platformcreatefile(ZFMAP* zfmap, const char* truepath, FD* fd)
     int mode = zfmap->map.mode;
     int permissions = NC_DEFAULT_ROPEN_PERMS;
 
+    ZTRACE(6,"map=%s truepath=%s",zfmap->map.url,truepath);
+    
     errno = 0;
     if(!fIsSet(mode, NC_WRITE))
         ioflags |= (O_RDONLY);
@@ -762,7 +770,7 @@ platformcreatefile(ZFMAP* zfmap, const char* truepath, FD* fd)
     }
 done:
     errno = 0;
-    return THROW(stat);
+    return ZUNTRACEX(stat,"fd=%d",(fd?fd->fd:-1));
 }
 
 /* Open a file; fail if it does not exist */
@@ -773,6 +781,8 @@ platformopenfile(ZFMAP* zfmap, const char* truepath, FD* fd)
     int ioflags = 0;
     int mode = zfmap->map.mode;
     int permissions = 0;
+
+    ZTRACE(6,"map=%s truepath=%s",zfmap->map.url,truepath);
 
     errno = 0;
     if(!fIsSet(mode, NC_WRITE)) {
@@ -797,7 +807,7 @@ platformopenfile(ZFMAP* zfmap, const char* truepath, FD* fd)
         {stat = platformerr(errno); goto done;} /* could not open */
 done:
     errno = 0;
-    return THROW(stat);
+    return ZUNTRACEX(stat,"fd=%d",(fd?fd->fd:-1));
 }
 
 /* Create a dir */
@@ -806,6 +816,8 @@ platformcreatedir(ZFMAP* zfmap, const char* truepath)
 {
     int ret = NC_NOERR;
     int mode = zfmap->map.mode;
+
+    ZTRACE(6,"map=%s truepath=%s",zfmap->map.url,truepath);
 
     errno = 0;
     /* Try to access file as if it exists */
@@ -826,7 +838,7 @@ platformcreatedir(ZFMAP* zfmap, const char* truepath)
 
 done:
     errno = 0;
-    return THROW(ret);
+    return ZUNTRACE(ret);
 }
 
 /* Open a dir; fail if it does not exist */
@@ -835,6 +847,8 @@ platformopendir(ZFMAP* zfmap, const char* truepath)
 {
     int ret = NC_NOERR;
 
+    ZTRACE(6,"map=%s truepath=%s",zfmap->map.url,truepath);
+
     errno = 0;
     /* Try to access file as if it exists */
     ret = NCaccess(truepath,ACCESS_MODE_EXISTS);
@@ -842,7 +856,7 @@ platformopendir(ZFMAP* zfmap, const char* truepath)
 	{ret = platformerr(errno); goto done;}	
 done:
     errno = 0;
-    return THROW(ret);
+    return ZUNTRACE(ret);
 }
 
 /**
@@ -870,6 +884,8 @@ platformdircontent(ZFMAP* zfmap, const char* truepath, NClist* contents)
     char* lpath = NULL;
     size_t len;
     char* d = NULL;
+
+    ZTRACE(6,"map=%s truepath=%s",zfmap->map.url,truepath);
 
     switch (ret = platformtestcontentbearing(zfmap, truepath)) {
     case NC_EEMPTY: ret = NC_NOERR; break; /* directory */    
@@ -919,7 +935,7 @@ done:
     nullfree(ffpath);
     nullfree(d);
     errno = 0;
-    return THROW(ret);
+    return ZUNTRACEX(ret,"|contents|=%d",(int)nclistlength(contents));
 }
 
 #else /*!_WIN32*/
@@ -930,6 +946,8 @@ platformdircontent(ZFMAP* zfmap, const char* truepath, NClist* contents)
     int ret = NC_NOERR;
     errno = 0;
     DIR* dir = NULL;
+
+    ZTRACE(6,"map=%s truepath=%s",zfmap->map.url,truepath);
 
     switch (ret = platformtestcontentbearing(zfmap, truepath)) {
     case NC_EEMPTY: ret = NC_NOERR; break; /* directory */    
@@ -955,7 +973,7 @@ platformdircontent(ZFMAP* zfmap, const char* truepath, NClist* contents)
 done:
     if(dir) NCclosedir(dir);
     errno = 0;
-    return THROW(ret);
+    return ZUNTRACEX(ret,"|contents|=%d",(int)nclistlength(contents));
 }
 #endif /*_WIN32*/
 
@@ -1017,7 +1035,7 @@ done:
     ret = NCremove(path);
     nullfree(path);
     nullfree(tmp);
-    return THROW(ret);
+    return ZUNTRACE(ret);
 }
 #endif /*0*/
 
@@ -1030,9 +1048,8 @@ platformdeleter(ZFMAP* zfmap, NCbytes* truepath, int delroot, int depth)
     size_t tpathlen = ncbyteslength(truepath);
     char* local = NULL;
 
-#ifdef DEBUG
-fprintf(stderr,"xxx: platformdeleter: depth=%d delroot=%d truepath=%s\n",depth,delroot,ncbytescontents(truepath));
-#endif
+    ZTRACE(6,"map=%s truepath=%s delroot=%d depth=%d",zfmap->map.url,truepath,delroot,depth);
+
     ret = platformdircontent(zfmap, ncbytescontents(truepath), contents);
 #ifdef DEBUG
     {int i;
@@ -1095,7 +1112,7 @@ done:
     nullfree(local);
     ncbytessetlength(truepath,tpathlen);
     ncbytesnull(truepath);
-    return THROW(ret);
+    return ZUNTRACE(ret);
 }
 
 /* Deep file/dir deletion; depth first */
@@ -1105,6 +1122,8 @@ platformdelete(ZFMAP* zfmap, const char* rootpath, int delroot)
     int stat = NC_NOERR;
     NCbytes* truepath = ncbytesnew();
 
+    ZTRACE(6,"map=%s rootpath=%s delroot=%d",zfmap->map.url,rootpath,delroot);
+    
     if(rootpath == NULL || strlen(rootpath) == 0) goto done;
     ncbytescat(truepath,rootpath);
     if(rootpath[strlen(rootpath)-1] == '/') /* elide trailing '/' */
@@ -1113,7 +1132,7 @@ platformdelete(ZFMAP* zfmap, const char* rootpath, int delroot)
 done:
     ncbytesfree(truepath);
     errno = 0;
-    return THROW(stat);
+    return ZUNTRACE(stat);
 }
 
 static int
@@ -1125,6 +1144,8 @@ platformseek(ZFMAP* zfmap, FD* fd, int pos, size64_t* sizep)
     
     assert(fd && fd->fd >= 0);
     
+    ZTRACE(6,"map=%s fd=%d pos=%d",zfmap->map.url,(fd?fd->fd:-1),pos);
+
     errno = 0;
     ret = fstat(fd->fd, &statbuf);    
     if(ret < 0)
@@ -1134,7 +1155,7 @@ platformseek(ZFMAP* zfmap, FD* fd, int pos, size64_t* sizep)
     if(sizep) *sizep = newsize;
 done:
     errno = 0;
-    return THROW(ret);
+    return ZUNTRACEX(ret,"sizep=%llu",*sizep);
 }
 
 static int
@@ -1146,6 +1167,8 @@ platformread(ZFMAP* zfmap, FD* fd, size64_t count, void* content)
 
     assert(fd && fd->fd >= 0);
 
+    ZTRACE(6,"map=%s fd=%d count=%llu",zfmap->map.url,(fd?fd->fd:-1),count);
+
     while(need > 0) {
         ssize_t red;
         if((red = read(fd->fd,readpoint,need)) <= 0)
@@ -1154,7 +1177,7 @@ platformread(ZFMAP* zfmap, FD* fd, size64_t count, void* content)
 	readpoint += red;
     }
 done:
-    return THROW(stat);
+    return ZUNTRACE(stat);
 }
 
 static int
@@ -1166,6 +1189,8 @@ platformwrite(ZFMAP* zfmap, FD* fd, size64_t count, const void* content)
 
     assert(fd && fd->fd >= 0);
     
+    ZTRACE(6,"map=%s fd=%d count=%llu",zfmap->map.url,(fd?fd->fd:-1),count);
+
     while(need > 0) {
         ssize_t red = 0;
         if((red = write(fd->fd,(void*)writepoint,need)) <= 0)	
@@ -1174,7 +1199,7 @@ platformwrite(ZFMAP* zfmap, FD* fd, size64_t count, const void* content)
 	writepoint += red;
     }
 done:
-    return THROW(ret);
+    return ZUNTRACE(ret);
 }
 
 #if 0
@@ -1196,8 +1221,10 @@ platformcwd(char** cwdp)
 static void
 platformrelease(ZFMAP* zfmap, FD* fd)
 {
+    ZTRACE(6,"map=%s fd=%d",zfmap->map.url,(fd?fd->fd:-1));
     if(fd->fd >=0) NCclose(fd->fd);
     fd->fd = -1;
+    ZUNTRACE(NC_NOERR);
 }
 
 #if 0
@@ -1267,6 +1294,6 @@ done:
     errno = 0;
     nullfree(tmp);
     nullfree(truepath);
-    return THROW(ret);    
+    return ZUNTRACE(ret);    
 }
 #endif /* 0 */

@@ -346,8 +346,10 @@ NC4_hdf5_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
     NC_GRP_INFO_T* grp = NULL;
     NC_VAR_INFO_T* var = NULL;
     struct NC_HDF5_Filter* oldspec = NULL;
+#ifdef HAVE_H5Z_SZIP
     int havedeflate = 0;
     int haveszip = 0;
+#endif
 
     LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
 
@@ -382,13 +384,13 @@ NC4_hdf5_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
         case NC_ENOFILTER: break; /*not defined*/
         default: goto done;
 	}
+#ifdef HAVE_H5Z_SZIP
 	/* See if deflate &/or szip is defined */
 	switch ((stat = NC4_hdf5_filter_lookup(var,H5Z_FILTER_DEFLATE,NULL))) {
 	case NC_NOERR: havedeflate = 1; break;
 	case NC_ENOFILTER: havedeflate = 0; break;	
 	default: goto done;
 	}
-#ifdef HAVE_H5Z_SZIP
 	switch ((stat = NC4_hdf5_filter_lookup(var,H5Z_FILTER_SZIP,NULL))) {
 	case NC_NOERR: haveszip = 1; break;
 	case NC_ENOFILTER: haveszip = 0; break;	

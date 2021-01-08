@@ -33,6 +33,8 @@ ncz_close_file(NC_FILE_INFO_T* file, int abort)
     int stat = NC_NOERR;
     NCZ_FILE_INFO_T* zinfo = NULL;
  
+    ZTRACE(2,"file=%s abort=%d",file->hdr.name,abort);
+
     if(!abort) {
         /* Flush | create all chunks for all vars */
         if((stat=zwrite_vars(file->root_grp))) goto done;
@@ -51,7 +53,7 @@ ncz_close_file(NC_FILE_INFO_T* file, int abort)
     nullfree(zinfo);
 
 done:
-    return stat;
+    return ZUNTRACE(stat);
 }
 
 /**************************************************/

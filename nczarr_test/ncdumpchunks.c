@@ -16,6 +16,7 @@
 
 #include "netcdf.h"
 #include "ncpathmgr.h"
+#include "nclog.h"
 
 #ifdef HAVE_HDF5_H
 #include <hdf5.h>
@@ -458,13 +459,16 @@ main(int argc, char** argv)
 
     memset(&format,0,sizeof(format));
 
-    while ((c = getopt(argc, argv, "v:D")) != EOF) {
+    while ((c = getopt(argc, argv, "v:DT:")) != EOF) {
     switch(c) {
 	case 'v':
 	    strcpy(format.var_name,optarg);
 	    break;
 	case 'D':
 	    format.debug = 1;
+	    break;
+	case 'T':
+	    nctracelevel(atoi(optarg));
 	    break;
 	case '?':
 	   fprintf(stderr,"unknown option: '%c'\n",c);

@@ -87,10 +87,7 @@ nczodom_next(NCZOdometer* odom)
     int rank;
     rank = odom->rank;
     for(i=rank-1;i>=0;i--) {
-        if(i == rank-1 && odom->properties.optimized) {
-	    odom->index[i] = odom->stop[i];	   
-    	} else
-	    odom->index[i] += odom->stride[i];
+	odom->index[i] += odom->stride[i];
         if(odom->index[i] < odom->stop[i]) break;
         if(i == 0) goto done; /* leave the 0th entry if it overflows */
         odom->index[i] = odom->start[i]; /* reset this position */
@@ -149,63 +146,40 @@ nomem:
     goto done;
 }
 
+/* Compute the total avail in last position */
 size64_t
 nczodom_avail(const NCZOdometer* odom)
 {
     size64_t avail;
     /* The best we can do is compute the count for the rightmost index */
-    if(odom->properties.optimized)
-	avail = (odom->stop[odom->rank-1] - odom->start[odom->rank-1]);
-    else
-        avail = 1;
+    avail = (odom->stop[odom->rank-1] - odom->start[odom->rank-1]);
     return avail;
 }
 
+/*
+Incr the odometer by nczodom_avail() values.
+Calling nczodom_next at that point should properly increment
+rest of the odometer.
+*/
+void
+nczodom_skipavail(NCZOdometer* odom)
+{
+    if(odom->rank > 0)
+        odom->index[odom->rank-1] = odom->stop[odom->rank-1];
+}
+
+#if 0
 size64_t
 nczodom_laststride(const NCZOdometer* odom)
 {
+    assert(odom != NULL && odom->rank > 0);
     return odom->stride[odom->rank-1];
 }
 
 size64_t
 nczodom_lastlen(const NCZOdometer* odom)
 {
+    assert(odom != NULL && odom->rank > 0);
     return odom->len[odom->rank-1];
 }
-
-/**
-Do limited amount of optimization:
-assert:
-    odom->stride[odom->rank-1] == 1
-    odom->stop[odom->rank-1] == 0
-then
-    odom->stride[odom->rank-1] = odom->stop[odom->rank-1]
-*/
-
-void
-nczodom_optimize(NCZOdometer* odom)
-{
-    if(odom) {
-#if 0
-        if(odom->stride[odom->rank-1] == 1)
 #endif
-	    odom->properties.optimized = 1;
-    }
-}
-
-#if 0
-void
-nczodom_incr(NCZOdometer* odom, size64_t count)
-{
-    for(;count > 0;count--) {
-	nczodom_next(odom); //temporary
-    }
-}
-
-void
-nczodom_reducerank(NCZOdometer* odom)
-{
-    odom->rank--;
-}
-#endif
-

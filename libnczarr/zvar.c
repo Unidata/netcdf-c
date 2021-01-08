@@ -67,10 +67,10 @@ check_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, const size_t *chunksize
     double dprod;
     size_t type_len;
     int d;
-    int retval;
+    int retval = NC_NOERR;
 
     if ((retval = nc4_get_typelen_mem(grp->nc4_info, var->type_info->hdr.id, &type_len)))
-	return THROW(retval);
+	goto done;
     if (var->type_info->nc_type_class == NC_VLEN)
 	dprod = (double)sizeof(nc_hvl_t);
     else
@@ -79,9 +79,9 @@ check_chunksizes(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, const size_t *chunksize
 	dprod *= (double)chunksizes[d];
 
     if (dprod > (double) NC_MAX_UINT)
-	return NC_EBADCHUNK;
-
-    return NC_NOERR;
+	{retval = NC_EBADCHUNK; goto done;}
+done:
+    return retval;
 }
 
 /**
@@ -296,6 +296,8 @@ NCZ_def_var(int ncid, const char *name, nc_type xtype, int ndims,
     int d;
     int retval;
 
+    ZTRACE(1,"ncid=%d name=%s xtype=%d ndims=%d dimids=%s",ncid,name,xtype,ndims,nczprint_idvector(ndims,dimidsp));
+    
     /* Find info for this file and group, and set pointer to each. */
     if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
 	BAIL(retval);
@@ -470,7 +472,7 @@ exit:
 	if ((retval = nc4_type_free(type)))
 	    BAILLOG(retval);
 
-    return THROW(retval);
+    return ZUNTRACE(retval);
 }
 
 /**
@@ -515,42 +517,52 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
     NC_VAR_INFO_T *var;
     NCZ_VAR_INFO_T *zvar;
     int d;
-    int retval;
+    int retval = NC_NOERR;
     int storage = NC_CHUNKED;
 
     LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
 
+    ZTRACE(2,"ncid=%d varid=%d shuffle=%d fletcher32=%d no_fill=%d, fill_value=%p endianness=%d",
+           ncid,varid,
+	   (shuffle?*shuffle:-1),
+   	   (fletcher32?*fletcher32:-1),
+	   (no_fill?*no_fill:-1),
+	   fill_value,
+	   (endianness?*endianness:-1));
+
     /* Find info for this file and group, and set pointer to each. */
     if ((retval = nc4_find_nc_grp_h5(ncid, NULL, &grp, &h5)))
-	return THROW(retval);
+	goto done;
     assert(grp && h5);
 
     /* Trying to write to a read-only file? No way, Jose! */
     if (h5->no_write)
-	return NC_EPERM;
+	{retval = NC_EPERM; goto done;}
 
     /* Find the var. */
     if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, varid)))
-	return NC_ENOTVAR;
+	{retval = NC_ENOTVAR; goto done;}
     assert(var && var->hdr.id == varid);
 
+    ZTRACEMORE(1,"\tstoragep=%d chunksizes=%s",(storagep?*storagep:-1),(chunksizes?nczprint_sizevector(var->ndims,chunksizes):"null"));
+    
     /* Can't turn on parallel and deflate/fletcher32/szip/shuffle
      * before HDF5 1.10.3. */
 #ifndef HDF5_SUPPORTS_PAR_FILTERS
     if (h5->parallel == NC_TRUE)
 	if (nclistlength(((NClist*)var->filters)) > 0  || fletcher32 || shuffle)
-	    return NC_EINVAL;
+	    {retval = NC_EINVAL; goto done;}
 #endif
 
     /* If the HDF5 dataset has already been created, then it is too
      * late to set all the extra stuff. */
     if (var->created)
-	return NC_ELATEDEF;
+        {retval = NC_ELATEDEF; goto done;}
 
 #if 0
     /* Check compression options. */
     if (deflate && !deflate_level)
-	return NC_EINVAL;
+	{retval = NC_EINVAL; goto done;}
 
     /* Valid deflate level? */
     if (deflate)
@@ -558,17 +570,17 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	if (*deflate)
 	    if (*deflate_level < NC_MIN_DEFLATE_LEVEL ||
 		*deflate_level > NC_MAX_DEFLATE_LEVEL)
-		return NC_EINVAL;
+		{retval = NC_EINVAL; goto done;}
 
 	/* For scalars, just ignore attempt to deflate. */
 	if (!var->ndims)
-	    return NC_NOERR;
+	    goto done;
 
 	/* If szip is in use, return an error. */
 	if ((retval = nc_inq_var_szip(ncid, varid, &option_mask, NULL)))
-	    return THROW(retval);
+	    goto done;
 	if (option_mask)
-	    return NC_EINVAL;
+	    {retval = NC_EINVAL; goto done;}
 
 	/* Set the deflate settings. */
 	var->contiguous = NC_FALSE;
@@ -603,16 +615,16 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	if (storage != NC_CHUNKED)
 	{
 	    if (nclistlength(((NClist*)var->filters)) > 0 || var->fletcher32 || var->shuffle)
-		return NC_EINVAL;
+		{retval = NC_EINVAL; goto done;}
 	    for (d = 0; d < var->ndims; d++)
 		if (var->dim[d]->unlimited)
-		    return NC_EINVAL;
+		    {retval = NC_EINVAL; goto done;}
 	    storage = NC_CHUNKED; /*only chunked supported */
 	}
 
 	/* Handle chunked storage settings. */
 	if (storage == NC_CHUNKED && var->ndims == 0) {
-	    return THROW(NC_EINVAL);
+	    {retval = NC_EINVAL; goto done;}
 	} else if (storage == NC_CHUNKED && var->ndims > 0) {
 	    var->storage = NC_CHUNKED;
 
@@ -622,13 +634,13 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	    {
 		/* Check the chunksizes for validity. */
 		if ((retval = check_chunksizes(grp, var, chunksizes)))
-		    return THROW(retval);
+		    goto done;
 
 		/* Ensure chunksize is smaller than dimension size */
 		for (d = 0; d < var->ndims; d++)
 		    if (!var->dim[d]->unlimited && var->dim[d]->len > 0 &&
 			chunksizes[d] > var->dim[d]->len)
-			return NC_EBADCHUNK;
+			{retval = NC_EBADCHUNK; goto done;}
 	    }
 	}
 	else if (storage == NC_CONTIGUOUS || storage == NC_COMPACT)
@@ -652,7 +664,7 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	    /* If chunksizes == NULL or anyzero then use defaults */
 	    if(chunksizes == NULL || anyzero) { /* Use default chunking */
 		if ((retval = ncz_find_default_chunksizes2(grp, var)))
-		    return THROW(retval);
+		    goto done;
 	    }
 	    assert(var->chunksizes != NULL);
 	    /* Set the chunksize product for this variable. */
@@ -662,7 +674,7 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
             zvar->chunksize = zvar->chunkproduct * var->type_info->size;
 	    /* Adjust the cache. */
 	    if ((retval = NCZ_adjust_var_cache(grp, var)))
-		return THROW(retval);
+		goto done;
 	}
     
 #ifdef LOGGING
@@ -682,7 +694,7 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	     * by HDF5 and will cause a HDF5 error later. */
 	    if (*no_fill)
 		if (var->type_info->hdr.id == NC_STRING)
-		    return NC_EINVAL;
+		    {retval = NC_EINVAL; goto done;}
 
 	    /* Set the no-fill mode. */
 	    var->no_fill = NC_TRUE;
@@ -701,12 +713,12 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	/* If there's a _FillValue attribute, delete it. */
 	retval = NCZ_del_att(ncid, varid, _FillValue);
 	if (retval && retval != NC_ENOTATT)
-	    return THROW(retval);
+	    goto done;
 
 	/* Create a _FillValue attribute. */
 	if ((retval = nc_put_att(ncid, varid, _FillValue, var->type_info->hdr.id,
 				 1, fill_value)))
-	    return THROW(retval);
+	    goto done;
     }
 
     /* Is the user setting the endianness? */
@@ -728,14 +740,15 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	case NC_UINT64:
 	    break;
 	default:
-	    return NC_EINVAL;
+	    {retval = NC_EINVAL; goto done;}
 	}
 	var->type_info->endianness = *endianness;
 	/* Propagate */
 	var->endianness = *endianness;
     }
 
-    return NC_NOERR;
+done:
+    return ZUNTRACE(retval);
 }
 
 /**
@@ -980,6 +993,8 @@ NCZ_rename_var(int ncid, int varid, const char *name)
 	return NC_EINVAL;
 
     LOG((2, "%s: ncid 0x%x varid %d name %s", __func__, ncid, varid, name));
+
+    ZTRACE(1,"ncid=%d varid=%d name='%s'",ncid,varid,name);
 
     /* Find info for this file and group, and set pointer to each. */
     if ((retval = nc4_find_grp_h5(ncid, &grp, &h5)))
@@ -1973,21 +1988,35 @@ NCZ_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
     NC_VAR_INFO_T *var = NULL;
     int retval;
 
+    ZTRACE(1,"ncid=%d varid=%d",ncid,varid);
+
     LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
 
     /* Find the file, group, and var info, and do lazy att read if
      * needed. */
     if ((retval = ncz_find_grp_var_att(ncid, varid, NULL, 0, 0, NULL,
 					    &h5, &grp, &var, NULL)))
-	return THROW(retval);
+	goto done;
     assert(grp && h5);
 
     /* Now that lazy atts have been read, use the libsrc4 function to
      * get the answers. */
-    return NC4_inq_var_all(ncid, varid, name, xtypep, ndimsp, dimidsp, nattsp,
+    retval = NC4_inq_var_all(ncid, varid, name, xtypep, ndimsp, dimidsp, nattsp,
 			   shufflep, unused4, unused5, fletcher32p,
 			   storagep, chunksizesp, no_fill, fill_valuep,
 			   endiannessp, unused1, unused2, unused3);
+done:
+    return ZUNTRACEX(retval,"xtype=%d natts=%d shuffle=%d fletcher32=%d no_fill=%d endianness=%d ndims=%d dimids=%s storage=%d chunksizes=%s",
+	   (xtypep?*xtypep:-1),
+   	   (nattsp?*nattsp:-1),
+   	   (shufflep?*shufflep:-1),
+   	   (fletcher32p?*fletcher32p:-1),
+	   (no_fill?*no_fill:-1),
+	   (endiannessp?*endiannessp:-1),
+   	   (ndimsp?*ndimsp:-1), 
+	   (dimidsp?nczprint_idvector(var->ndims,dimidsp):"null"),
+	   (storagep?*storagep:-1),
+	   (chunksizesp?nczprint_sizevector(var->ndims,chunksizesp):"null"));
 }
 
 #ifdef LOOK
