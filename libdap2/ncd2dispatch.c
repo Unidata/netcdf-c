@@ -189,9 +189,8 @@ NCD2_initialize(void)
     ncd2initialized = 1;
 #ifdef DEBUG
     /* force logging to go to stderr */
-    nclogclose();
-    if(nclogopen(NULL))
-        ncsetlogging(1); /* turn it on */
+    ncsetlogging(1); /* turn it on */
+    nclogopen(NULL))
 #endif
     return NC_NOERR;
 }
@@ -416,12 +415,8 @@ fprintf(stderr,"ce=%s\n",dumpconstraint(dapcomm->oc.dapconstraint));
 
     /* Turn on logging; only do this after oc_open*/
     if((value = dapparamvalue(dapcomm,"log")) != NULL) {
-	ncloginit();
-        if(nclogopen(value))
-	    ncsetlogging(1);
-	ncloginit();
-        if(nclogopen(value))
-	    ncsetlogging(1);
+        ncsetlogging(1);
+        nclogopen(NULL);
     }
 
     /* fetch and build the unconstrained DDS for use as

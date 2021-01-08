@@ -79,9 +79,7 @@ IF(ENABLE_TESTS)
     add_sh_test(nczarr_test run_fillonlyz)
     ENDIF()
     add_sh_test(nczarr_test run_ncgen4)
-IF(FALSE) # Suppress for now
     add_sh_test(nczarr_test run_chunkcases)
-ENDIF()
   ENDIF(BUILD_UTILITIES)
 
 ENDIF(ENABLE_TESTS)
