@@ -43,7 +43,7 @@ typedef unsigned int NCFLAGS;
 #define NCF_COLUMBIA        (0x80000000) /* Hack for columbia server */
 
 /* Define all the default on flags */
-#define DFALT_ON_FLAGS (NCF_CACHE|NCF_PREFETCH)
+#define DFALT_ON_FLAGS (NCF_CACHE|NCF_PREFETCH|NCF_FILLMISMATCH)
 
 typedef struct NCCONTROLS {
     NCFLAGS  flags;

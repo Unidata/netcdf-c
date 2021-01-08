@@ -819,13 +819,13 @@ fprintf(stderr,"\n");
 			if(val) free(val);
 			nclistpush(unsignedatt->values,strdup("false"));
 		    } else if(att->etype != var->etype) {/* other mismatches */
-			/* Log a message */
-	                nclog(NCLOGWARN,"_FillValue/Variable type mismatch: variable=%s",var->ncbasename);
 			/* See if mismatch is allowed */
 			if(FLAGSET(dapcomm->controls,NCF_FILLMISMATCH)) {
 			    /* Forcibly change the attribute type to match */
 			    att->etype = var->etype;
 			} else {
+	  		    /* Log a message */
+	                    nclog(NCLOGWARN,"_FillValue/Variable type mismatch: variable=%s",var->ncbasename);
 			    ncstat = NC_EBADTYPE; /* fail */
 			    goto done;
 			}
