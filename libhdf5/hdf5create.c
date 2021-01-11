@@ -166,7 +166,6 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
 	     nc4_chunk_cache_preemption));
     }
 
-#ifdef HAVE_H5PSET_LIBVER_BOUNDS
 #if H5_VERSION_GE(1,10,2)
     /* lib versions 1.10.2 and higher */
     if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_V18, H5F_LIBVER_LATEST) < 0)
@@ -180,7 +179,6 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
 #endif
 #endif
         BAIL(NC_EHDFERR);
-#endif
 
     /* Create the property list. */
     if ((fcpl_id = H5Pcreate(H5P_FILE_CREATE)) < 0)
