@@ -169,14 +169,14 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
 #ifdef HAVE_H5PSET_LIBVER_BOUNDS
 #if H5_VERSION_LT(1,10,0)
     /* all HDF5 1.8 lib versions */
-    if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0); 
+    if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0)
 #else
 #if H5_VERSION_LE(1,10,1)
     /* lib versions 1.10.0, 1.10.1 */
-    if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_EARLIEST, H5F_LIBVER_LATEST) < 0);
+    if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_EARLIEST, H5F_LIBVER_LATEST) < 0)
 #else
     /* lib versions 1.10.2 and higher */
-    if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_V18, H5F_LIBVER_LATEST) < 0);
+    if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_V18, H5F_LIBVER_LATEST) < 0)
 #endif
 #endif
         BAIL(NC_EHDFERR);
