@@ -178,6 +178,7 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
     /* lib versions 1.10.2 and higher */
     if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_V18, H5F_LIBVER_LATEST) < 0);
 #endif
+#endif
         BAIL(NC_EHDFERR);
 #endif
 
