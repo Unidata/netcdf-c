@@ -45,7 +45,7 @@ variables:
 
 // global attributes:
  		:_NCProperties = "version=2,netcdf=4.6.2-development,hdf5=1.10.1" ;
-		:_SuperblockVersion = 2 ;
+		:_SuperblockVersion = 0 ;
 		:_IsNetcdf4 = 1 ;
 		:_Format = "netCDF-4" ;
 }
