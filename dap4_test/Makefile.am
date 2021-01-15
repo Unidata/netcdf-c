@@ -53,7 +53,7 @@ EXTRA_DIST = test_parse.sh test_meta.sh test_data.sh \
              test_raw.sh test_remote.sh test_hyrax.sh test_fillmismatch.sh \
              tst_curlopt.sh d4test_common.sh \
 	     daptestfiles dmrtestfiles cdltestfiles nctestfiles misctestfiles \
-	     baseline baselineraw baselineremote CMakeLists.txt test_common.h
+	     baseline baselineraw baselineremote baselinehyrax CMakeLists.txt test_common.h
 
 CLEANFILES = *.exe
 # This should only be left behind if using parallel io
