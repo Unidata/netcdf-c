@@ -28,6 +28,8 @@ static void freeInfo(NCD4INFO*);
 static int paramcheck(NCD4INFO*, const char* key, const char* subkey);
 static const char* getparam(NCD4INFO* info, const char* key);
 static int set_curl_properties(NCD4INFO*);
+static int makesubstrate(NCD4INFO* d4info);
+static void resetInfoforRead(NCD4INFO* d4info);
 
 /**************************************************/
 /* Constants */
@@ -43,8 +45,10 @@ NCD4_open(const char * path, int mode,
     int ret = NC_NOERR;
     NCD4INFO* d4info = NULL;
     const char* value;
-    NCD4meta* meta;
     NC* nc;
+    NCD4meta* meta = NULL;
+    size_t len = 0;
+    void* contents = NULL;
 
     if(path == NULL)
 	return THROW(NC_EDAPURL);
@@ -101,33 +105,10 @@ NCD4_open(const char * path, int mode,
 	else
             snprintf(tmpname,sizeof(tmpname),"tmp_%d",nc->int_ncid);
 
-        /* Now, use the file to create the hidden substrate netcdf file.
-	   We want this hidden file to always be NC_NETCDF4, so we need to
-           force default format temporarily in case user changed it.
-	   Since diskless is enabled, create file in-memory.
-	*/
-	{
-	    int new = NC_NETCDF4;
-	    int old = 0;
-	    int ncid = 0;
-	    int ncflags = NC_NETCDF4|NC_CLOBBER;
-	    ncflags |= NC_DISKLESS;
-	    if(FLAGSET(d4info->controls.debugflags,NCF_DEBUG_COPY)) {
-		/* Cause data to be dumped to real file */
-		ncflags |= NC_WRITE;
-		ncflags &= ~(NC_DISKLESS); /* use real file */
-	    }
-	    nc_set_default_format(new,&old); /* save and change */
-            ret = nc_create(tmpname,ncflags,&ncid);
-	    nc_set_default_format(old,&new); /* restore */
-	    d4info->substrate.realfile = ((ncflags & NC_DISKLESS) == 0);
-	    d4info->substrate.filename = strdup(tmpname);
-	    if(d4info->substrate.filename == NULL) ret = NC_ENOMEM;
-	    d4info->substrate.nc4id = ncid;
-	}
-        if(ret != NC_NOERR) goto done;
-	/* Avoid fill */
-	nc_set_fill(getnc4id(nc),NC_NOFILL,NULL);
+	/* Compute the relevant names for the substrate file */
+        d4info->substrate.filename = strdup(tmpname);
+	if(d4info->substrate.filename == NULL)
+            {ret = NC_ENOMEM; goto done;}
     }
 
     /* Turn on logging; only do this after oc_open*/
@@ -158,53 +139,28 @@ NCD4_open(const char * path, int mode,
     d4info->curl->packet = ncbytesnew();
     ncbytessetalloc(d4info->curl->packet,DFALTPACKETSIZE); /*initial reasonable size*/
 
-    /* fetch the dmr + data*/
-    {
-	int inmem = FLAGSET(d4info->controls.flags,NCF_ONDISK) ? 0 : 1;
-        if((ret = NCD4_readDAP(d4info,inmem))) goto done;
-    }
+    /* Reset the substrate */
+    if((ret=makesubstrate(d4info))) goto done;
 
-    /* if the url goes astray to a random web page, then try to just dump it */
-    {
-	char* response = (char*)ncbytescontents(d4info->curl->packet);
-	size_t responselen = ncbyteslength(d4info->curl->packet);
+    /* Always start by reading the DMR only */
+    /* reclaim substrate.metadata */
+    resetInfoforRead(d4info);
 
-        /* Apply some heuristics to see what we have.
-           The leading byte will have the chunk flags, which should
-           be less than 0x0f (for now). However, it will not be zero if
-           the data was little-endian
-	*/
-        if(responselen == 0 || ((unsigned char*)response)[0] > 0x0f) {
-	    /* does not look like a chunk, so probable server failure */
-	    if(responselen == 0)
-	        nclog(NCLOGERR,"Empty DAP4 response");
-	    else {/* probable html response */
-		nclog(NCLOGERR,"Unexpected DAP response:");
-		nclog(NCLOGERR,"==============================");
-		nclogtext(NCLOGERR,response);
-		nclog(NCLOGERR,"==============================\n");
-	    }
-	    ret = NC_EDAPSVC;
-  	    fflush(stderr);
-	    goto done;
-	}
-    }
+    if((ret=NCD4_readDMR(d4info, d4info->controls.flags.flags))) goto done;
 
-    /* Build the meta data */
-    if((d4info->substrate.metadata=NCD4_newmeta(ncbyteslength(d4info->curl->packet),
-        ncbytescontents(d4info->curl->packet)))==NULL)
+    /* (Re)Build the meta data; sets serial.rawdata */
+    len = ncbyteslength(d4info->curl->packet);
+    contents = ncbytesextract(d4info->curl->packet);
+    if((d4info->substrate.metadata=NCD4_newmeta(d4info, len, contents))==NULL)
 	{ret = NC_ENOMEM; goto done;}
+
     meta = d4info->substrate.metadata;
-    meta->controller = d4info;
-    meta->ncid = getnc4id(nc); /* Transfer netcdf ncid */
 
     /* process meta control parameters */
     applyclientmetacontrols(meta);
 
     /* Infer the mode */
     if((ret=NCD4_infermode(meta))) goto done;
-
-    if((ret=NCD4_dechunk(meta))) goto done;
 
 #ifdef D4DUMPDMR
   {
@@ -215,7 +171,11 @@ NCD4_open(const char * path, int mode,
   }
 #endif
 
+    /* Process the dmr part */
+    if((ret=NCD4_dechunk(meta))) goto done;
+
     if((ret = NCD4_parse(d4info->substrate.metadata))) goto done;
+
 #ifdef D4DEBUGMETA
   {
     fprintf(stderr,"\n/////////////\n");
@@ -228,9 +188,8 @@ NCD4_open(const char * path, int mode,
     fflush(stderr);
   }
 #endif
-    /* Build the substrate metadata */
-    if((ret = NCD4_processdata(d4info->substrate.metadata))) goto done;
 
+    /* Build the substrate metadata */
     ret = NCD4_metabuild(d4info->substrate.metadata,d4info->substrate.metadata->ncid);
     if(ret != NC_NOERR && ret != NC_EVARSIZE) goto done;
 
@@ -317,6 +276,30 @@ freeInfo(NCD4INFO* d4info)
     NC_authfree(d4info->auth);
     nclistfree(d4info->blobs);
     free(d4info);
+}
+
+/* Reset NCD4INFO instance for new read request */
+static void
+resetInfoforRead(NCD4INFO* d4info)
+{
+    if(d4info == NULL) return;
+    if(d4info->substrate.realfile
+	&& !FLAGSET(d4info->controls.debugflags,NCF_DEBUG_COPY)) {
+	/* We used real file, so we need to delete the temp file
+           unless we are debugging.
+	   Assume caller has done nc_close|nc_abort on the ncid.
+           Note that in theory, this should not be necessary since
+           AFAIK the substrate file is still in def mode, and
+           when aborted, it should be deleted. But that is not working
+           for some reason, so we delete it ourselves.
+	*/
+	if(d4info->substrate.filename != NULL) {
+	    unlink(d4info->substrate.filename);
+        }
+    }
+    NCD4_resetMeta(d4info->substrate.metadata);
+    nullfree(d4info->substrate.metadata);
+    d4info->substrate.metadata = NULL;
 }
 
 static void
@@ -523,3 +506,40 @@ getparam(NCD4INFO* info, const char* key)
 	return NULL;
     return value;
 }
+
+/**************************************************/
+
+static int
+makesubstrate(NCD4INFO* d4info)
+{
+    int ret = NC_NOERR;
+    int new = NC_NETCDF4;
+    int old = 0;
+    int ncid = 0;
+    int ncflags = NC_NETCDF4|NC_CLOBBER;
+
+    if(d4info->substrate.filename != NULL) {
+        /* reset the substrate */
+        nc_abort(d4info->substrate.nc4id);
+        d4info->substrate.nc4id = 0;
+    }
+    /* Create the hidden substrate netcdf file.
+	We want this hidden file to always be NC_NETCDF4, so we need to
+	force default format temporarily in case user changed it.
+	Since diskless is enabled, create file in-memory.
+	*/
+    ncflags |= NC_DISKLESS;
+    if(FLAGSET(d4info->controls.debugflags,NCF_DEBUG_COPY)) {
+	/* Cause data to be dumped to real file */
+	ncflags |= NC_WRITE;
+	ncflags &= ~(NC_DISKLESS); /* use real file */
+    }
+    nc_set_default_format(new,&old); /* save and change */
+    ret = nc_create(d4info->substrate.filename,ncflags,&ncid);
+    nc_set_default_format(old,&new); /* restore */
+    /* Avoid fill on the substrate */
+    nc_set_fill(ncid,NC_NOFILL,NULL);
+    d4info->substrate.nc4id = ncid;
+    return THROW(ret);
+}
+
