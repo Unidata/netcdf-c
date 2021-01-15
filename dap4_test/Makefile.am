@@ -39,10 +39,11 @@ findtestserver4_SOURCES = findtestserver4.c
 pingurl4_SOURCES = pingurl4.c
 
 # Disable Dap4 Remote Tests until the test server is working
-if AX_IGNORE
 if ENABLE_DAP_REMOTE_TESTS
 if BUILD_UTILITIES
   # relies on ncdump
+  TESTS += test_hyrax.sh
+if AX_IGNORE
   TESTS += test_remote.sh
 endif
 endif
@@ -71,7 +72,8 @@ clean-local: clean-local-check
 .PHONY: clean-local-check
 
 clean-local-check:
-	-rm -rf results
+	-rm -rf results results_test_parse results_test_data \
+                results_test_hyrax results_test_meta
 	-rm -f .dodsrc .daprc
 
 # The shell file maketests.sh is used to build the testdata
