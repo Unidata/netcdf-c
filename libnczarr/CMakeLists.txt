@@ -56,6 +56,10 @@ ENDIF()
 # the netCDF library.
 add_library(nczarr OBJECT ${libnczarr_SOURCES})
 
+IF(MPI_C_INCLUDE_PATH)
+    target_include_directories(nczarr PUBLIC ${MPI_C_INCLUDE_PATH})
+ENDIF(MPI_C_INCLUDE_PATH)
+
 IF(ENABLE_S3_SDK) 
 IF(NOT MSVC)
 target_compile_features(nczarr PUBLIC cxx_std_11)
