@@ -1090,17 +1090,21 @@ cdComp2Iso(cdCalenType timetype, int separator, cdCompTime comptime, char* time)
 	double dtmp, sec;
 	int ihr, imin, isec;
 	int nskip;
+        const double epssec = 0.5e-6;  /* microsecond*/
+        const double epsmin = epssec / 60.; /*maximum error for comptime.hour < 24 , in hour */
+        const double epshr  = epsmin / 60.; /*maximum error for comptime.hour < 24 , in hour */
+
 
 	if(cdValidateTime(timetype,comptime))
 		return;
 
-	ihr = (int)comptime.hour;
+	ihr = (int)(comptime.hour + epshr);
 	dtmp = 60.0 * (comptime.hour - (double)ihr);
-	imin = (int)dtmp;
+	imin = (int)(dtmp + epsmin);
 	sec = 60.0 * (dtmp - (double)imin);
-	isec = (int)sec;
+	isec = (int)(sec + epssec);
 
-	if(sec == isec)
+	if( sec - isec < epssec)
 	    if(isec == 0)
 		if(imin == 0)
 		    if(ihr == 0)
