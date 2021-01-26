@@ -33,9 +33,9 @@ getfiller(Symbol* tvsym)
     Datalist* filler = NULL;
     ASSERT(tvsym->objectclass == NC_VAR || tvsym->objectclass == NC_TYPE);
     if(tvsym->objectclass == NC_VAR) {
-        if(tvsym->var.special->_Fillvalue !=  NULL) {
+        if(tvsym->var.special._Fillvalue !=  NULL) {
 	    /* We have a _FillValue Attribute specified */
-	    filler = tvsym->var.special->_Fillvalue;
+	    filler = tvsym->var.special._Fillvalue;
         } else { /* otherwise create a fillvalue for the base type */
 	    filler = getfiller(tvsym->typ.basetype);
 	}

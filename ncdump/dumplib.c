@@ -189,7 +189,7 @@ sbuf_cat(safebuf_t *sb, const char *s2) {
     assert(SAFEBUF_CHECK(sb));
     s2len = strlen(s2);
     sbuf_grow(sb, 1 + sb->cl + s2len);
-    res = strlcat(sb->buf + sb->cl, s2, sb->len);
+    res = strlcat(sb->buf + sb->cl, s2, sb->len - sb->cl);
     assert( res < sb->len );
     sb->cl += s2len;
     assert(SAFEBUF_CHECK(sb));
@@ -205,7 +205,7 @@ sbuf_catb(safebuf_t *s1, const safebuf_t *s2) {
     assert(SAFEBUF_CHECK(s2));
     s2len = sbuf_len(s2);
     sbuf_grow(s1, 1 + s1->cl + s2len);
-    res = strlcat(s1->buf + s1->cl, s2->buf, s1->len);
+    res = strlcat(s1->buf + s1->cl, s2->buf, s1->len - s1->cl);
     assert( res < s1->len );
     s1->cl += s2len;
     assert(SAFEBUF_CHECK(s1));
@@ -239,19 +239,19 @@ void
 set_formats(int float_digits, int double_digits)
 {
     int res;
-    res = snprintf(float_var_fmt, strlen(float_var_fmt) + 1, "%%.%dg",
+    res = snprintf(float_var_fmt, sizeof float_var_fmt, "%%.%dg",
 		   float_digits) + 1;
     assert(res <= sizeof(float_var_fmt));
-    res = snprintf(double_var_fmt, strlen(double_var_fmt) + 1, "%%.%dg",
+    res = snprintf(double_var_fmt, sizeof double_var_fmt, "%%.%dg",
 		   double_digits) + 1;
     assert(res <= sizeof(double_var_fmt));
-    res = snprintf(float_att_fmt, strlen(float_att_fmt) + 1, "%%#.%dgf",
+    res = snprintf(float_att_fmt, sizeof float_att_fmt, "%%#.%dgf",
 		   float_digits) + 1;
     assert(res <= sizeof(float_att_fmt));
-    res = snprintf(float_attx_fmt, strlen(float_attx_fmt) + 1, "%%#.%dg",
+    res = snprintf(float_attx_fmt, sizeof float_attx_fmt, "%%#.%dg",
 		   float_digits) + 1;
     assert(res <= sizeof(float_attx_fmt));
-    res = snprintf(double_att_fmt, strlen(double_att_fmt) + 1, "%%#.%dg",
+    res = snprintf(double_att_fmt, sizeof double_att_fmt, "%%#.%dg",
 		   double_digits) + 1;
     assert(res <= sizeof(double_att_fmt));
 }

@@ -1,0 +1,10 @@
+netcdf testmap {
+
+group: _nczarr {
+  dimensions:
+  	data_dim = UNLIMITED ; // (0 currently)
+  variables:
+  	ubyte data(data_dim) ;
+  data:
+  } // group _nczarr
+}

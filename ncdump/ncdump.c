@@ -43,17 +43,16 @@ Research/Unidata. See \ref copyright file for more info.  */
 #include "isnan.h"
 #include "cdl.h"
 #include "nclog.h"
-#include "ncwinpath.h"
+#include "ncpathmgr.h"
 #include "nclist.h"
+#include "ncuri.h"
 #include "nc_provenance.h"
 
 #ifdef USE_NETCDF4
 #include "nc4internal.h" /* to get name of the special properties file */
 #endif
 
-#ifdef USE_DAP
 extern int nc__testurl(const char*,char**);
-#endif
 
 #define XML_VERSION "1.0"
 
@@ -64,8 +63,8 @@ extern int nc__testurl(const char*,char**);
    we need to be careful about printing their attributes.
 */
 static const char* keywords[] = {
-"variable",
-"dimension",
+"variables",
+"dimensions",
 "data",
 "group",
 "types",
@@ -160,17 +159,14 @@ name_path(const char *path)
 #define FILE_DELIMITER '/'
 #endif
 
-#ifdef USE_DAP
     /* See if this is a url */
     {
 	char* base;
-        extern int nc__testurl(const char*,char**);
  	if(nc__testurl(path,&base)) {
  	    return base; /* Looks like a url */
 	}
 	/* else fall thru and treat like a file path */
     }
-#endif /*USE_DAP*/
 
     cp = strrchr(path, FILE_DELIMITER);
     if (cp == 0)		/* no delimiter */
@@ -1014,14 +1010,14 @@ pr_att_specials(
 	int usedeflateatt = 0;
 
 	/* Get applicable filter ids */
-	NC_CHECK(nc_inq_var_filterids(ncid, varid, &nfilters, NULL));
+	NC_CHECK(nc_inq_var_filter_ids(ncid, varid, &nfilters, NULL));
 	/* Get set of filters for this variable */
 	if(nfilters > 0) {
 	    filterids = (unsigned int*)malloc(sizeof(unsigned int)*nfilters);
 	    if(filterids == NULL) NC_CHECK(NC_ENOMEM);
 	} else
 	    filterids = NULL;
-	NC_CHECK(nc_inq_var_filterids(ncid, varid, &nfilters, filterids));
+	NC_CHECK(nc_inq_var_filter_ids(ncid, varid, &nfilters, filterids));
         if(nfilters > 0) {
 	    int k;
 	    int pratt = 0;
@@ -2145,21 +2141,22 @@ set_precision(const char *optarg)
 
 
 #ifdef USE_DAP
-#define DAP_CLIENT_CACHE_DIRECTIVE	"[cache]"
+#define DAP_CLIENT_CACHE_DIRECTIVE	"cache"
 /* replace path string with same string prefixed by
  * DAP_CLIENT_NCDUMP_DIRECTIVE */
-static
-void adapt_url_for_cache(char **pathp) {
-    char prefix[] = DAP_CLIENT_CACHE_DIRECTIVE;
+static void
+adapt_url_for_cache(char **pathp)
+{
     char* path = *pathp;
-    char *tmp_path = strdup(path);
-    path = (char *)emalloc(strlen(prefix) + strlen(tmp_path) + 1);
-    path[0] = '\0';
-    strncat(path, prefix, strlen(prefix));
-    strncat(path, tmp_path, strlen(tmp_path));
-    if(tmp_path) free(tmp_path);
-    if(*path) free(*pathp);
-    *pathp = path;
+    NCURI* url = NULL;
+    ncuriparse(path,&url);
+    if(url == NULL) return;
+    ncuriappendfragmentkey(url,DAP_CLIENT_CACHE_DIRECTIVE,NULL);
+    if(*pathp) free(*pathp);
+    path = ncuribuild(url,NULL,NULL,NCURIALL);
+    if(pathp) {*pathp = path; path = NULL;}
+    ncurifree(url);
+    nullfree(path);
     return;
 }
 #endif
@@ -2345,25 +2342,28 @@ main(int argc, char *argv[])
 
     init_epsilons();
 
-    path = strdup(argv[i]);
-    if(!path) {
+    /* Deescape the user name */
+    path = NCdeescape(argv[i]);
+    if(path == NULL) {
 	snprintf(errmsg,sizeof(errmsg),"out of memory copying argument %s", argv[i]);
 	goto fail;
     }
+
     if (!nameopt)
         formatting_specs.name = name_path(path);
     if (argc > 0) {
         int ncid;
-	/* If path is a URL, prefix with client-side directive to
-         * make ncdump reasonably efficient */
+	/* If path is a URL, do some fixups */
+	if(nc__testurl(path, NULL)) {/* See if this is a url */
+	    /*  Prefix with client-side directive to
+             * make ncdump reasonably efficient */
 #ifdef USE_DAP
 	    if(formatting_specs.with_cache) { /* by default, don't use cache directive */
-		if(nc__testurl(path, NULL)) /* See if this is a url */
-		    adapt_url_for_cache(&path);
-		/* else fall thru and treat like a file path */
+	        adapt_url_for_cache(&path);
 	    }
-#endif /*USE_DAP*/
-	    if(formatting_specs.xopt_inmemory) {
+#endif
+	} /* else fall thru and treat like a file path */
+        if(formatting_specs.xopt_inmemory) {
 #if 0
 		size_t size = 0;
 		void* mem = NULL;
@@ -2412,15 +2412,15 @@ main(int argc, char *argv[])
 	    }
 	    NC_CHECK( nc_close(ncid) );
     }
-    if(path) {free(path); path = NULL;}
+    nullfree(path) path = NULL;
     exit(EXIT_SUCCESS);
 
 fail: /* ncstat failures */
     path = (path?path:strdup("<unknown>"));
     if(ncstat && strlen(errmsg) == 0)
 	snprintf(errmsg,sizeof(errmsg),"%s: %s", path, nc_strerror(ncstat));
+    nullfree(path); path = NULL;
     if(strlen(errmsg) > 0)
-	error("%s: %s", path, errmsg);
-    if(path) free(path);
+	error("%s", errmsg);
     exit(EXIT_FAILURE);
 }

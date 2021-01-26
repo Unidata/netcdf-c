@@ -897,4 +897,6 @@ clearout(void)	/* reset symbol table to empty */
 #define YY_NO_UNPUT
 #define YY_NO_INPUT
 
-#include "ncgenyy.c"
+#include "ncgenl.c"
+
+

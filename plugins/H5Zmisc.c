@@ -39,8 +39,6 @@ will generate an error.
 static int paramcheck(size_t nparams, const unsigned int* params);
 static void mismatch(size_t i, const char* which);
 
-extern void NC_filterfix8(void* mem, int decode);
-
 const H5Z_class2_t H5Z_TEST[1] = {{
     H5Z_CLASS_T_VERS,                /* H5Z_class_t version */
     (H5Z_filter_t)(H5Z_FILTER_TEST), /* Filter id number */
@@ -216,7 +214,7 @@ paramcheck(size_t nparams, const unsigned int* params)
         case 8: {/*double*/
             double x;
 	    memcpy(mem,&params[i],sizeof(mem));
-	    NC_filterfix8(mem,1); /* Fix up endianness */
+	    NC_h5filterspec_fix8(mem,1); /* Fix up endianness */
             x = *(double*)mem;
 	    dval = DBLVAL;
             i++; /* takes two parameters */
@@ -228,9 +226,9 @@ paramcheck(size_t nparams, const unsigned int* params)
         case 10: {/*signed long long*/
             signed long long x;
 	    memcpy(mem,&params[i],sizeof(mem));
-	    NC_filterfix8(mem,1); /* Fix up endianness */
+	    NC_h5filterspec_fix8(mem,1); /* Fix up endianness */
             x = *(signed long long*)mem;
-	    NC_filterfix8(&x,1); /* Fix up endianness */
+	    NC_h5filterspec_fix8(&x,1); /* Fix up endianness */
 	    lval = -9223372036854775807L;
             i++; /* takes two parameters */
             if(lval != x) {
@@ -241,7 +239,7 @@ paramcheck(size_t nparams, const unsigned int* params)
         case 12: {/*unsigned long long*/
             unsigned long long x;
 	    memcpy(mem,&params[i],sizeof(mem));
-	    NC_filterfix8(mem,1); /* Fix up endianness */
+	    NC_h5filterspec_fix8(mem,1); /* Fix up endianness */
             x = *(unsigned long long*)mem;
 	    lval = 18446744073709551615UL;
             i++; /* takes two parameters */

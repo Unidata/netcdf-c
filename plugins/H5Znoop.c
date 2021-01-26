@@ -14,10 +14,10 @@
 #endif
 
 #if NOOP_INSTANCE == 1
-const static int instance1 = 1;
+const static int instance[1] = {1};
 #endif
 #if NOOP_INSTANCE == 0
-const static int instance0 = 1;
+const static int instance[1] = {0};
 #endif
 
 /* use a temporary */
@@ -41,7 +41,7 @@ will generate an error.
 
 #undef DEBUG
 
-extern void NC_filterfix8(void* mem, int decode);
+extern void NC_h5filterspec_fix8(void* mem, int decode);
 
 static htri_t H5Z_noop_can_apply(hid_t dcpl_id, hid_t type_id, hid_t space_id);
 static size_t H5Z_filter_noop(unsigned int, size_t, const unsigned int cd_values[], size_t, size_t*, void**);
@@ -96,11 +96,15 @@ H5Z_filter_noop(unsigned int flags, size_t cd_nelmts,
 {
     void* newbuf;
     size_t i;    
+    const char* direction = (flags & H5Z_FLAG_REVERSE) ? "decompress" : "compress";
     
-    printf("cd_nelmts=%lu cd_values=",(unsigned long)cd_nelmts);
+    NC_UNUSED(instance);
+
+    printf("direction=%s id=%lu cd_nelmts=%lu cd_values=",direction,(unsigned long)H5Z_NOOP[0].id,(unsigned long)cd_nelmts);
     for(i=0;i<cd_nelmts;i++)
 	printf(" %u",cd_values[i]);
     printf("\n");
+    fflush(stdout);
 
     if (flags & H5Z_FLAG_REVERSE) {
         /* Replace buffer */
@@ -120,7 +124,7 @@ H5Z_filter_noop(unsigned int flags, size_t cd_nelmts,
         *buf = newbuf;
 
     } else {
-        /* Replace buffer */
+    /* Replace buffer */
 #ifdef HAVE_H5ALLOCATE_MEMORY
       newbuf = H5allocate_memory(*buf_size,0);
 #else

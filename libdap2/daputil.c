@@ -215,7 +215,7 @@ dapparamvalue(NCDAPCOMMON* nccomm, const char* key)
     const char* value;
 
     if(nccomm == NULL || key == NULL) return 0;
-    value=ncurilookup(nccomm->oc.url,key);
+    value=ncurifragmentlookup(nccomm->oc.url,key);
     return value;
 }
 
@@ -231,7 +231,7 @@ dapparamcheck(NCDAPCOMMON* nccomm, const char* key, const char* subkey)
     char* p;
 
     if(nccomm == NULL || key == NULL) return 0;
-    if((value=ncurilookup(nccomm->oc.url,key)) == NULL)
+    if((value=ncurifragmentlookup(nccomm->oc.url,key)) == NULL)
 	return 0;
     if(subkey == NULL) return 1;
     p = strstr(value,subkey);
@@ -654,8 +654,8 @@ dap_fetch(NCDAPCOMMON* nccomm, OClink conn, const char* ce,
     NCerror ncstat = NC_NOERR;
     OCerror ocstat = OC_NOERR;
     char* ext = NULL;
-    OCflags flags = 0;
     int httpcode = 0;
+    OCflags ocflags = 0;
 #ifdef HAVE_GETTIMEOFDAY
     struct timeval time0;
     struct timeval time1;
@@ -668,13 +668,14 @@ dap_fetch(NCDAPCOMMON* nccomm, OClink conn, const char* ce,
     if(ce != NULL && strlen(ce) == 0)
 	ce = NULL;
 
-    if(FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE)) {
+    if(FLAGSET(nccomm->controls,NCF_UNCONSTRAINABLE))
 	ce = NULL;
-    }
-
-    if(FLAGSET(nccomm->controls,NCF_ONDISK)) {
-	flags |= OCONDISK;
-    }
+    if(FLAGSET(nccomm->controls,NCF_ONDISK))
+	ocflags |= OCONDISK;
+    if(FLAGSET(nccomm->controls,NCF_ENCODE_PATH))
+	ocflags |= OCENCODEPATH;
+    if(FLAGSET(nccomm->controls,NCF_ENCODE_QUERY))
+	ocflags |= OCENCODEQUERY;
 
     if(SHOWFETCH) {
 	/* Build uri string minus the constraint and #tag */
@@ -688,7 +689,7 @@ dap_fetch(NCDAPCOMMON* nccomm, OClink conn, const char* ce,
 	gettimeofday(&time0,NULL);
 #endif
     }
-    ocstat = oc_fetch(conn,ce,dxd,flags,rootp);
+    ocstat = oc_fetch(conn,ce,dxd,ocflags,rootp);
     if(FLAGSET(nccomm->controls,NCF_SHOWFETCH)) {
 #ifdef HAVE_GETTIMEOFDAY
         double secs;
@@ -711,6 +712,8 @@ oc_dumpnode(conn,*rootp);
     } else if(httpcode >= 500) {
         ncstat = NC_EDAPSVC;
     } else if(httpcode == 401) {
+	ncstat = NC_EACCESS;
+    } else if(httpcode == 403) {
 	ncstat = NC_EAUTH;
     } else if(httpcode == 404) {
 	ncstat = NC_ENOTFOUND;
@@ -808,3 +811,20 @@ nccpadding(unsigned long offset, int alignment)
     return pad;
 }
 
+int
+dapparamparselist(const char* s0, int delim, NClist* list)
+{
+    int stat = NC_NOERR;
+    char* s = strdup(s0);
+    char* p;
+    int i,count = 1;
+    if(s0 == NULL || strlen(s) == 0) goto done;
+    for(p=s;*p;p++) {if(*p == delim) {*p = '\0'; count++;}}
+    for(i=0,p=s;i<count;i++,p+=(strlen(p)+1)) {
+	if(strlen(p)>0)
+	    nclistpush(list,strdup(p));
+    }
+done:
+    nullfree(s);
+    return stat;
+}

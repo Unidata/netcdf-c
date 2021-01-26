@@ -13,6 +13,7 @@ cleanncprops() {
   dst="$2"
   rm -f $dst
   cat $src \
+  | sed -e '/:_Endianness/d' \
   | sed -e 's/_SuperblockVersion = 1/_SuperblockVersion = 0/' \
   | sed -e 's/\(netcdflibversion\|netcdf\)=.*|/\1=NNNN|/' \
   | sed -e 's/\(hdf5libversion\|hdf5\)=.*"/\1=HHHH"/' \
@@ -47,6 +48,14 @@ ${NCDUMP} tst_solar_1.nc | sed 's/e+0/e+/g' > tst_solar_1.cdl ; ERR
 diff -b tst_solar_1.cdl $srcdir/ref_tst_solar_1.cdl ; ERR
 ${NCDUMP} tst_solar_2.nc | sed 's/e+0/e+/g' > tst_solar_2.cdl ; ERR
 diff -b tst_solar_2.cdl $srcdir/ref_tst_solar_2.cdl ; ERR
+
+if test -f tst_roman_szip_simple.nc; then
+  echo "*** Testing szip compression."    
+  ${NCDUMP} tst_roman_szip_simple.nc | sed 's/e+0/e+/g' > tst_roman_szip_simple.cdl ; ERR
+  diff -b tst_roman_szip_simple.cdl $srcdir/ref_roman_szip_simple.cdl ; ERR
+  ${NCDUMP} tst_roman_szip_unlim.nc | sed 's/e+0/e+/g' > tst_roman_szip_unlim.cdl ; ERR
+  diff -b tst_roman_szip_unlim.cdl $srcdir/ref_roman_szip_unlim.cdl ; ERR
+fi
 
 echo "*** Running tst_group_data.c to create test files."
 ${execdir}/tst_group_data ; ERR

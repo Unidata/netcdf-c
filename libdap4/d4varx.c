@@ -133,7 +133,6 @@ getvarx(int ncid, int varid, NCD4INFO** infop, NCD4node** varp,
     NCD4node* type;
     nc_type xtype, actualtype;
     size_t instancesize, xsize;
-    int grp_id;
 
     if((ret = NC_check_id(ncid, (NC**)&ncp)) != NC_NOERR)
 	goto done;
@@ -145,15 +144,8 @@ getvarx(int ncid, int varid, NCD4INFO** infop, NCD4node** varp,
     if(meta == NULL)
 	{ret = THROW(NC_EBADID); goto done;}
 
-    /* Locate var node via (grpid,varid) */
-    grp_id = GROUPIDPART(ncid);
-        
-    group = nclistget(meta->groupbyid,grp_id);
-    if(group == NULL)
-	return THROW(NC_EBADID);
-    var = nclistget(group->group.varbyid,varid);
-    if(var == NULL)
-	return THROW(NC_EBADID);
+    if((ret = NCD4_findvar(ncp,ncid,varid,&var,&group))) goto done;
+
     type = var->basetype;
     actualtype = type->meta.id;
     instancesize = type->meta.memsize;

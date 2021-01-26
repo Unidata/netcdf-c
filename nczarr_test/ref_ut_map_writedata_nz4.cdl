@@ -1,0 +1,59 @@
+netcdf testmap {
+
+group: _nczarr {
+  dimensions:
+  	data_dim = UNLIMITED ; // (0 currently)
+  variables:
+  	ubyte data(data_dim) ;
+  data:
+  } // group _nczarr
+
+group: meta1 {
+
+  group: _zarray {
+    dimensions:
+    	data_dim = UNLIMITED ; // (50 currently)
+    variables:
+    	ubyte data(data_dim) ;
+    data:
+
+     data = 123, 10, 34, 102, 111, 111, 34, 58, 32, 52, 50, 44, 10, 34, 98, 
+        97, 114, 34, 58, 32, 34, 97, 112, 112, 108, 101, 115, 34, 44, 10, 34, 
+        98, 97, 122, 34, 58, 32, 91, 49, 44, 32, 50, 44, 32, 51, 44, 32, 52, 
+        93, 125 ;
+    } // group _zarray
+  } // group meta1
+
+group: meta2 {
+
+  group: _nczvar {
+    dimensions:
+    	data_dim = UNLIMITED ; // (64 currently)
+    variables:
+    	ubyte data(data_dim) ;
+    data:
+
+     data = 123, 10, 34, 102, 111, 111, 34, 58, 32, 52, 50, 44, 10, 34, 98, 
+        97, 114, 34, 58, 32, 34, 97, 112, 112, 108, 101, 115, 34, 44, 10, 34, 
+        98, 97, 122, 34, 58, 32, 91, 49, 44, 32, 50, 44, 32, 51, 44, 32, 52, 
+        93, 44, 10, 34, 101, 120, 116, 114, 97, 34, 58, 32, 49, 51, 55, 125 ;
+    } // group _nczvar
+  } // group meta2
+
+group: data1 {
+
+  group: \0 {
+    dimensions:
+    	data_dim = UNLIMITED ; // (100 currently)
+    variables:
+    	ubyte data(data_dim) ;
+    data:
+
+     data = 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 4, 0, 0, 0, 5, 0, 
+        0, 0, 6, 0, 0, 0, 7, 0, 0, 0, 8, 0, 0, 0, 9, 0, 0, 0, 10, 0, 0, 0, 
+        11, 0, 0, 0, 12, 0, 0, 0, 13, 0, 0, 0, 14, 0, 0, 0, 15, 0, 0, 0, 16, 
+        0, 0, 0, 17, 0, 0, 0, 18, 0, 0, 0, 19, 0, 0, 0, 20, 0, 0, 0, 21, 0, 
+        0, 0, 22, 0, 0, 0, 23, 0, 0, 0, 24, 0, 0, 0 ;
+    } // group \0
+  } // group data1
+}

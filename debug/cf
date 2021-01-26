@@ -5,20 +5,26 @@
 #X=-x
 
 #ANSI=1
-#MEM=1 # export NC_VLEN_NOTEST=1
+MEM=1
 #NOTUIL=1
-#FAST=1
+FAST=1
 #PROF=1
 
-#NCZARR=1
+NCZARR=1
 HDF5=1
-DAP=1
+#DAP=1
+S3=1
+S3TEST=1
 #SZIP=1
 #HDF4=1
 #PNETCDF=1
 #PAR4=1
+#NOCDF5=1
 
+#TESTSERVERS="149.165.169.123:8080,remotetest.unidata.ucar.edu"
 #TESTSERVERS="localhost:8080,149.165.169.123:8080"
+#TESTSERVERS="149.165.169.123:8080"
+#TESTSERVERS="remotetest.unidata.ucar.edu"
 
 if test $# != 0 ; then
 cmds=$@
@@ -37,8 +43,7 @@ CFLAGS="-Wall -Wno-unused-parameter -Wno-char-subscripts -Wno-pointer-sign ${CFL
 #CFLAGS="-Wall -Wunused-parameter -Wno-char-subscripts -Wno-pointer-sign ${CFLAGS}"
 
 if test "x$MEM" = x1 ; then
-  export NC_VLEN_NOTEST=1
-  CFLAGS="-fsanitize=address ${CFLAGS}"
+CFLAGS="-fsanitize=address ${CFLAGS}"
 fi
 
 if test "x$ANSI" = x1 ; then
@@ -73,120 +78,37 @@ CC=gcc
 MALLOC_CHECK=""
 
 CPPFLAGS=""
-LDFLAGS=""
+LDFLAGS="-L/usr/lib -L${stddir}/lib"
+#LD_LIBRARY_PATH="/usr/lib:${stddir}/lib:$LD_LIBRARY_PATH"
 
 CFLAGS="-g -O0 $CFLAGS -Wno-undefined"
 
 MAKE=make
 IGNORE="test 0 = 1"
 
-if test "x$HDF5" = "x1" ; then
-CPPFLAGS="-I${stddir}/include $CPPFLAGS"
-LDFLAGS="-L${stddir}/lib -lhdf5_hl -lhdf5 -lz $LDFLAGS"
-LD_LIBRARY_PATH="${stddir}/lib:$LD_LIBRARY_PATH"
-fi
-
-if test "x$HDF4" = "x1" ; then
-LDFLAGS="$LDFLAGS -lmfhdf -ldf -ljpeg"
-fi
-
-if test "x$SZIP" = "x1" ; then
-LDFLAGS="$LDFLAGS -lsz -laec"
-fi
-
-export PKG_CONFIG_PATH=/usr/lib/pkgconfig
-if curl-config --version >/dev/null ; then
-TMP=`curl-config --cflags`
-CPPFLAGS="$TMP $CPPFLAGS"
-WH=`curl-config --prefix`
-WH="${WH}/lib"
-TMP=`curl-config --libs`
-LDFLAGS="$LDFLAGS -L$WH $TMP"
-LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$WH"
-else
-  LDFLAGS="${LDFLAGS} -lcurl"
-fi
-
-CXXFLAGS="$CPPFLAGS $CXXFLAGS"
-
-FLAGS="--prefix ${PREFIX}"
-#FLAGS="$FLAGS --disable-cxx"
-#FLAGS="$FLAGS --disable-examples"
-#FLAGS="$FLAGS --enable-cxx-4"
-#FLAGS="$FLAGS --enable-dap-long-tests"
-#FLAGS="$FLAGS --enable-ffio"
-#FLAGS="$FLAGS --enable-benchmarks"
-FLAGS="$FLAGS --enable-extreme-numbers"
-#FLAGS="$FLAGS --enable-large-file-tests"
-#FLAGS="$FLAGS --disable-testsets"
-#FLAGS="$FLAGS --disable-dap-remote-tests"
-#FLAGS="$FLAGS --enable-dap-auth-tests" -- requires a new remotetest server
-#FLAGS="$FLAGS --enable-doxygen --enable-internal-docs"
 FLAGS="$FLAGS --enable-logging"
-#FLAGS="$FLAGS --disable-diskless"
-FLAGS="$FLAGS --enable-mmap"
 FLAGS="$FLAGS --enable-byterange"
-#FLAGS="$FLAGS --enable-atexit-finalize"
-#FLAGS="$FLAGS --with-udunits"
-#FLAGS="$FLAGS --with-libcf"
-#FLAGS="$FLAGS --enable-jna"
-#FLAGS="$FLAGS --disable-properties-attribute"
-#FLAGS="$FLAGS --disable-silent-rules"
-#FLAGS="$FLAGS --disable-filter-testing"
-#FLAGS="$FLAGS --enable-metadata-perf"
 #FLAGS="$FLAGS --enable-extra-tests"
-#FLAGS="$FLAGS --with-ncproperties-extra=key1=value1,key2=value2"
-#FLAGS="$FLAGS --enable-valgrind"
+FLAGS="$FLAGS --enable-mmap"
+FLAGS="$FLAGS --enable-examples"
+FLAGS="$FLAGS --enable-unit-tests"
+FLAGS="$FLAGS --enable-benchmarks"
 
-if test "x$TESTSERVERS" != x ; then
-FLAGS="$FLAGS --with-testservers=$TESTSERVERS"
-fi
-
-if test "x$PAR4" != x1 ; then
-FLAGS="$FLAGS --disable-parallel4"
-fi
-
-if test "x$NCZARR" = x1 ; then
-FLAGS="$FLAGS --enable-nczarr"
-fi
-
-if test "x$NOUTIL" = x1 ; then
-FLAGS="$FLAGS --disable-utilities"
-fi
-
-if test "x${DB}" = x1 ; then
-FLAGS="$FLAGS --disable-shared --enable-static"
-#FLAGS="$FLAGS --enable-static"
+if test "x$HDF5" != x ; then
+CPPFLAGS="-I${stddir}/include $CPPFLAGS"
+LDFLAGS="-lhdf5_hl -lhdf5 -lz $LDFLAGS"
 else
-FLAGS="$FLAGS --enable-shared"
+FLAGS="$FLAGS --disable-hdf5"
 fi
 
-#TMP=
-#rm -f ./test_mpi.tmp
-#if test -f $stddir/lib/libhdf5.a ; then
-#  nm $stddir/lib/libhdf5.a | grep mpich_mpi_float$ >./test_mpi.tmp
-#else
-#  if test -f $stddir/lib/libhdf5.so ; then
-#    nm $stddir/lib/libhdf5.so | grep mpich_mpi_float$ >./test_mpi.tmp
-#  fi
-#fi
-#if test -s ./test_mpi.tmp ; then
-#  PAR=1
-#fi
-#rm -f ./test_mpi.tmp
-
-if test "x${PAR}" != x ; then
-FLAGS="$FLAGS --enable-parallel"
-fi
-
-if test "x$HDF5" = "x" ; then
-FLAGS="$FLAGS --disable-netcdf-4"
-fi
 if test "x$HDF4" = x1 ; then
 FLAGS="$FLAGS --enable-hdf4 --enable-hdf4-file-tests"
 fi
+
 if test "x$DAP" = "x" ; then
 FLAGS="$FLAGS --disable-dap"
+else
+FLAGS="$FLAGS --enable-dap-remote-tests"
 fi
 
 if test "x$MPIO" = x1 ; then
@@ -200,13 +122,29 @@ if test "x$MPIO" = x1 ; then
   FLAGS="$FLAGS --enable-parallel-tests"
 fi
 
+if test "x$NOCDF5" = "x1" ; then
+FLAGS="$FLAGS --disable-cdf5"
+fi
+
 if test "x$PNETCDF" = x1 ; then
   FLAGS="$FLAGS --enable-pnetcdf"
+fi
+
+if test "x$NCZARR" != "x" ; then
+FLAGS="$FLAGS --enable-nczarr"
+if test "x$S3" != x ; then
+    FLAGS="$FLAGS --enable-nczarr-s3"
+    LDFLAGS="$LDFLAGS -laws-cpp-sdk-s3 -laws-cpp-sdk-core -laws-c-common"
+    if test "x$S3TEST" != x ; then
+        FLAGS="$FLAGS --enable-nczarr-s3-tests"
+    fi  
+fi
 fi
 
 if test "x${PROF}" = x1 ; then
 CFLAGS="${CFLAGS} -pg"
 LDFLAGS="${LDFLAGS} -pg"
+FLAGS="$FLAGS --enable-static --disable-shared"
 fi
 
 export PATH

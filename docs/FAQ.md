@@ -139,8 +139,8 @@ attributes; what order to use for the dimensions of multidimensional
 variables; what variables to include in the same netCDF file; and how to
 use variable attributes to capture the structure and meaning of data. We
 provide some guidelines in the NetCDF User's Guide (e.g., the section on
-[Differences between Attributes and Variables](http://www.unidata.ucar.edu/software/netcdf/docs/netcdf/Differences-between-Attributes-and-Variables.html#Differences%20between%20Attributes%20and%20Variables))
-and in a new web document [Writing NetCDF Files: BestPractices](http://www.unidata.ucar.edu/software/netcdf/BestPractices.html), but we've found that
+[Differences between Attributes and Variables](https://www.unidata.ucar.edu/software/netcdf/documentation/NUG/netcdf_data_set_components.html#differences_atts_vars))
+and in a new web document [Writing NetCDF Files: BestPractices](https://www.unidata.ucar.edu/software/netcdf/documentation/NUG/_best_practices.html), but we've found that
 a little experience helps. Occasionally we have decided it was useful to
 change the structure of netCDF files after experience with how the data
 is used.

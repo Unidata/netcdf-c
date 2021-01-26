@@ -14,12 +14,20 @@ include $(top_srcdir)/lib_flags.am
 # Find and link to the netcdf-c library.
 LDADD = ${top_builddir}/liblib/libnetcdf.la
 
+check_PROGRAMS =
+
+check_PROGRAMS += tst_nclist test_ncuri test_pathcvt
+
+# Performance tests
+check_PROGRAMS += tst_exhash tst_xcache
+tst_exhash_SOURCES = tst_exhash.c timer_utils.c timer_utils.h 
+tst_xcache_SOURCES = tst_xcache.c timer_utils.c timer_utils.h
+
 if USE_NETCDF4
-NC4_TESTS = tst_nc4internal
+check_PROGRAMS += tst_nc4internal
 endif # USE_NETCDF4
 
-check_PROGRAMS = tst_nclist test_ncuri test_pathcvt $(NC4_TESTS)
-TESTS = tst_nclist test_ncuri test_pathcvt $(NC4_TESTS)
+TESTS = ${check_PROGRAMS}
 
 EXTRA_DIST = CMakeLists.txt
 

@@ -34,7 +34,7 @@ TESTS = $(H5TESTS)
 
 # The parallel program is run from a script.
 if TEST_PARALLEL4
-check_PROGRAMS += tst_h_par
+check_PROGRAMS += tst_h_par tst_h_par_compress
 TESTS += run_par_tests.sh
 endif
 

@@ -158,7 +158,7 @@ openfile(void)
     if(!verifychunks())
         return 0;
     /* Check the compression algorithms */
-    CHECK(nc_inq_var_filterids(ncid,varid,&nfilters,filterids));
+    CHECK(nc_inq_var_filter_ids(ncid,varid,&nfilters,filterids));
     for(k=0;k<nfilters;k++)
 	printfilter(filterids[k]);
     fflush(stderr);

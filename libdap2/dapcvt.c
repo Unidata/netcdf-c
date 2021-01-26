@@ -28,7 +28,6 @@ dapconvert(nc_type srctype, nc_type dsttype, char* memory0, char* value0, size_t
     size_t i;
     char* memory = memory0;
     char* value = value0;
-
     /* In order to deal with the DAP upgrade problem,
 	try to preserve the bit patterns
     */

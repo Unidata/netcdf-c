@@ -511,7 +511,7 @@ main()
         /* Run test 4 times. */
         for (f = 0; f < NUM_FILE; f++)
         {
-            char file_name[MAX_STR + 1];
+            char file_name[MAX_STR * 2 + 1];
             char desc[NUM_FILE][MAX_STR + 1] = {"uncompressed", "zlib",
                                                 "szip", "zlib_and_szip",
                                                 "szip_and_zlib"};

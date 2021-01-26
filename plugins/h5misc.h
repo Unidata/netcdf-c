@@ -32,4 +32,6 @@ DECLSPEC htri_t H5Z_test_can_apply(hid_t dcpl_id, hid_t type_id, hid_t space_id)
 DECLSPEC size_t H5Z_filter_test(unsigned flags,size_t cd_nelmts,const unsigned cd_values[],
                     size_t nbytes,size_t *buf_size,void**buf);
 
+DECLSPEC void NC_h5filterspec_fix8(void* mem0, int decode);
+
 #endif /*H5MISC_H*/

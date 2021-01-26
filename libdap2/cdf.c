@@ -748,7 +748,7 @@ definedimsetplus(NCDAPCOMMON* nccomm/*notused*/, CDFnode* node)
 
     if(node->array.dimset0 != NULL)
         /* copy the dimset0 into dimset */
-        dimset = nclistclone(node->array.dimset0);
+        dimset = nclistclone(node->array.dimset0, 0);
     /* Insert the sequence or string dims */
     if(node->array.stringdim != NULL) {
         if(dimset == NULL) dimset = nclistnew();
