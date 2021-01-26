@@ -42,11 +42,27 @@ Currently turned off because semantics are unclear.
 typedef struct NCD4INFO NCD4INFO;
 typedef enum NCD4CSUM NCD4CSUM;
 typedef enum NCD4mode NCD4mode;
+typedef enum NCD4format NCD4format;
 typedef enum NCD4translation NCD4translation;
 typedef struct NCD4curl NCD4curl;
 typedef struct NCD4meta NCD4meta;
 typedef struct NCD4node NCD4node;
 typedef struct NCD4params NCD4params;
+typedef struct NCD4HDR NCD4HDR;
+
+/* Define the NCD4HDR flags */
+/* Header flags */
+#define NCD4_LAST_CHUNK          (1)
+#define NCD4_ERR_CHUNK           (2)
+#define NCD4_LITTLE_ENDIAN_CHUNK (4)
+#ifdef CHECKSUMHACK
+#define NCD4_NOCHECKSUM_CHUNK    (8)
+#else
+#define NCD4_NOCHECKSUM_CHUNK    (0)
+#endif
+
+#define NCD4_ALL_CHUNK_FLAGS (NCD4_LAST_CHUNK|NCD4_ERR_CHUNK|NCD4_LITTLE_ENDIAN_CHUNK|NCD4_NOCHECKSUM_CHUNK)
+
 
 /**************************************************/
 /* DMR Tree node sorts */
@@ -117,6 +133,11 @@ NCD4_DAP = 2,
 NCD4_DSR = 4
 };
 
+/* Define possible retrieval formats */
+enum NCD4format {
+NCD4_FORMAT_NONE = 0,
+NCD4_FORMAT_XML = 1
+};
 
 /* Define storage for all the primitive types (plus vlen) */
 union ATOMICS {
@@ -141,6 +162,11 @@ union ATOMICS {
 };
 
 /**************************************************/
+/* Define the structure of the chunk header */
+
+struct NCD4HDR {unsigned int flags; unsigned int count;};
+
+/**************************************************/
 /* !Node type for the NetCDF-4 metadata produced from
    parsing the DMR tree.
    We only use a single node type tagged with the sort.
@@ -158,6 +184,7 @@ struct NCD4node {
     NClist* types;   /* NClist<NCD4node*> types in group */
     NClist* dims;    /* NClist<NCD4node*>; dimdefs in group, dimrefs in vars */
     NClist* attributes; /* NClist<NCD4node*> */
+    NClist* mapnames;       /* NClist<char*> */
     NClist* maps;       /* NClist<NCD4node*> */
     NClist* xmlattributes; /* NClist<String> */
     NCD4node* basetype;
@@ -261,7 +288,7 @@ typedef struct NCD4parser {
     int debuglevel;
     NCD4meta* metadata;
     /* Capture useful subsets of dataset->allnodes */
-    NClist* types; /*list<NCD4node>*/
+    NClist* types; /*list<NCD4node>; user-defined types only*/
     NClist* dims; /*list<NCD4node>*/
     NClist* vars; /*list<NCD4node>*/
     NClist* groups; /*list<NCD4node>*/
