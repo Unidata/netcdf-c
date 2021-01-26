@@ -138,11 +138,25 @@ getvarx(int ncid, int varid, NCD4INFO** infop, NCD4node** varp,
 	goto done;
 
     info = getdap(ncp);
-    if(info == NULL)
-	{ret = THROW(NC_EBADID); goto done;}
     meta = info->substrate.metadata;
-    if(meta == NULL)
-	{ret = THROW(NC_EBADID); goto done;}
+
+    /* If the data has not already been read and processed, then do so. */
+    if(meta->serial.dap == NULL) {
+	size_t len = 0;
+	void* content = NULL;
+        /* (Re)Build the meta data; sets serial.rawdata */
+        NCD4_resetMeta(info->substrate.metadata);
+        meta->controller = info;
+        meta->ncid = info->substrate.nc4id; /* Transfer netcdf ncid */
+
+        if((ret=NCD4_readDAP(info, info->controls.flags.flags))) goto done;
+	len = ncbyteslength(info->curl->packet);
+	content = ncbytesextract(info->curl->packet);
+	NCD4_resetSerial(&meta->serial, len, content);
+        /* Process the data part */
+        if((ret=NCD4_dechunk(meta))) goto done;
+            if((ret = NCD4_processdata(info->substrate.metadata))) goto done;
+    }
 
     if((ret = NCD4_findvar(ncp,ncid,varid,&var,&group))) goto done;
 
