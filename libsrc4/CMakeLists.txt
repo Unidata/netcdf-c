@@ -12,6 +12,10 @@ ncindex.c nc4cache.c)
 
 add_library(netcdf4 OBJECT ${libsrc4_SOURCES})
 
+IF(MPI_C_INCLUDE_PATH)
+    target_include_directories(netcdf4 PUBLIC ${MPI_C_INCLUDE_PATH})
+ENDIF(MPI_C_INCLUDE_PATH)
+
 # Files for make dist
 FILE(GLOB libsrc4_HEADERS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 SET(CUR_EXTRA_DIST CMakeLists.txt Makefile.am)

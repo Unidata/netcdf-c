@@ -5,7 +5,7 @@
 
 #define ERR(e) report(e,__LINE__)
 
-typedef enum Op {None, Read, Write, Wholevar, Odom} Op;
+typedef enum Op {None, Read, Write, Wholechunk, Odom} Op;
 
 /* Bit mask of defined options; powers of 2*/
 #define HAS_DIMLENS (1<<0)
@@ -22,7 +22,7 @@ typedef struct Options {
     unsigned debug;
     unsigned wdebug;
     int optimize;
-    int wholevar;
+    int wholechunk;
     Op op;
     int mode;
     int formatx;
@@ -66,8 +66,9 @@ EXTERNL const char* odom_print(Odometer* odom);
 EXTERNL const char* odom_printshort(Odometer* odom);
 
 EXTERNL int parsevector(const char* s0, size_t* vec);
-EXTERNL const char* printvector(int rank, const size_t* vec);
 EXTERNL const char* filenamefor(const char* f0);
+EXTERNL const char* printvector(int rank, const size_t* vec);
+EXTERNL const char* printvector64(int rank, const size64_t* vec);
 
 EXTERNL int getoptions(int* argcp, char*** argvp);
 EXTERNL int getmetadata(int create);
