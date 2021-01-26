@@ -19,6 +19,7 @@
 #include "nc4internal.h"
 #include "ncdispatch.h"
 #include "hdf5internal.h"
+#include "hdf5err.h" /* For BAIL2 */
 #include "hdf5debug.h"
 #include <math.h>
 
@@ -224,87 +225,6 @@ nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset)
     }
 
     *dataset = hdf5_var->hdf_datasetid;
-
-    return NC_NOERR;
-}
-
-/**
- * @internal What fill value should be used for a variable?
- *
- * @param h5 Pointer to HDF5 file info struct.
- * @param var Pointer to variable info struct.
- * @param fillp Pointer that gets pointer to fill value.
- *
- * @returns NC_NOERR No error.
- * @returns NC_ENOMEM Out of memory.
- * @author Ed Hartnett
- */
-int
-nc4_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
-{
-    size_t size;
-    int retval;
-
-    /* Find out how much space we need for this type's fill value. */
-    if (var->type_info->nc_type_class == NC_VLEN)
-        size = sizeof(nc_vlen_t);
-    else if (var->type_info->nc_type_class == NC_STRING)
-        size = sizeof(char *);
-    else
-    {
-        if ((retval = nc4_get_typelen_mem(h5, var->type_info->hdr.id, &size)))
-            return retval;
-    }
-    assert(size);
-
-    /* Allocate the space. */
-    if (!((*fillp) = calloc(1, size)))
-        return NC_ENOMEM;
-
-    /* If the user has set a fill_value for this var, use, otherwise
-     * find the default fill value. */
-    if (var->fill_value)
-    {
-        LOG((4, "Found a fill value for var %s", var->hdr.name));
-        if (var->type_info->nc_type_class == NC_VLEN)
-        {
-            nc_vlen_t *in_vlen = (nc_vlen_t *)(var->fill_value), *fv_vlen = (nc_vlen_t *)(*fillp);
-            size_t basetypesize = 0;
-
-            if((retval=nc4_get_typelen_mem(h5, var->type_info->u.v.base_nc_typeid, &basetypesize)))
-                return retval;
-
-            fv_vlen->len = in_vlen->len;
-            if (!(fv_vlen->p = malloc(basetypesize * in_vlen->len)))
-            {
-                free(*fillp);
-                *fillp = NULL;
-                return NC_ENOMEM;
-            }
-            memcpy(fv_vlen->p, in_vlen->p, in_vlen->len * basetypesize);
-        }
-        else if (var->type_info->nc_type_class == NC_STRING)
-        {
-            if (*(char **)var->fill_value)
-                if (!(**(char ***)fillp = strdup(*(char **)var->fill_value)))
-                {
-                    free(*fillp);
-                    *fillp = NULL;
-                    return NC_ENOMEM;
-                }
-        }
-        else
-            memcpy((*fillp), var->fill_value, size);
-    }
-    else
-    {
-        if (nc4_get_default_fill_value(var->type_info, *fillp))
-        {
-            /* Note: release memory, but don't return error on failure */
-            free(*fillp);
-            *fillp = NULL;
-        }
-    }
 
     return NC_NOERR;
 }
@@ -835,6 +755,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
     NC_DIM_INFO_T *dim = NULL;
     char *name_to_use;
     int retval;
+    unsigned int* params = NULL;
 
     assert(grp && grp->format_grp_info && var && var->format_var_info);
 
@@ -922,37 +843,40 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
      * has specified a filter, it will be applied here. */
     if(var->filters != NULL) {
 	int j;
-	for(j=0;j<nclistlength(var->filters);j++) {
-	    NC_FILTER_SPEC_HDF5* fi = (NC_FILTER_SPEC_HDF5*)nclistget(var->filters,j);
-	    size_t nparams;
-	    unsigned int* params;
-	    nparams = fi->nparams;
-	    params = fi->params;
-            if(fi->filterid == H5Z_FILTER_DEFLATE) {/* Handle zip case here */
-                unsigned level;
-                if(nparams != 1)
-                    BAIL(NC_EFILTER);
-                level = (int)params[0];
-                if(H5Pset_deflate(plistid, level) < 0)
-                    BAIL(NC_EFILTER);
-            } else if(fi->filterid == H5Z_FILTER_SZIP) {/* Handle szip case here */
-                int options_mask;
-                int bits_per_pixel;
-                if(nparams != 2)
-                    BAIL(NC_EFILTER);
-                options_mask = (int)params[0];
-                bits_per_pixel = (int)params[1];
-                if(H5Pset_szip(plistid, options_mask, bits_per_pixel) < 0)
-                    BAIL(NC_EFILTER);
-            } else {
-                herr_t code = H5Pset_filter(plistid, (unsigned int)fi->filterid, H5Z_FLAG_MANDATORY, nparams, params);
-                if(code < 0) {
-                    BAIL(NC_EFILTER);
-                }
+	NClist* filters = (NClist*)var->filters;
+	for(j=0;j<nclistlength(filters);j++) {
+	    struct NC_HDF5_Filter* fi = (struct NC_HDF5_Filter*)nclistget(filters,j);
+	    {
+                if(fi->filterid == H5Z_FILTER_DEFLATE) {/* Handle zip case here */
+                    unsigned level;
+                    if(fi->nparams != 1)
+                        BAIL(NC_EFILTER);
+                    level = (int)fi->params[0];
+                    if(H5Pset_deflate(plistid, level) < 0)
+                        BAIL(NC_EFILTER);
+  	        } else if(fi->filterid == H5Z_FILTER_SZIP) {/* Handle szip case here */
+                    int options_mask;
+                    int bits_per_pixel;
+                    if(fi->nparams != 2)
+                        BAIL(NC_EFILTER);
+                    options_mask = (int)fi->params[0];
+                    bits_per_pixel = (int)fi->params[1];
+                    if(H5Pset_szip(plistid, options_mask, bits_per_pixel) < 0)
+                        BAIL(NC_EFILTER);
+                } else {
+                    herr_t code = H5Pset_filter(plistid, fi->filterid,
+#if 0
+		    				H5Z_FLAG_MANDATORY,
+#else
+		    				H5Z_FLAG_OPTIONAL,
+#endif
+						fi->nparams, fi->params);
+                    if(code < 0)
+                        BAIL(NC_EFILTER);
+		}
             }
-	}
+        }
     }
-
 
     /* If ndims non-zero, get info for all dimensions. We look up the
        dimids and get the len of each dimension. We need this to create
@@ -973,7 +897,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
         /* If there are no unlimited dims, and no filters, and the user
          * has not specified chunksizes, use contiguous variable for
          * better performance. */
-        if (!var->shuffle && !var->fletcher32 && nclistlength(var->filters) == 0 &&
+        if (!var->shuffle && !var->fletcher32 && nclistlength((NClist*)var->filters) == 0 &&
             (var->chunksizes == NULL || !var->chunksizes[0]) && !unlimdim)
 	    var->storage = NC_CONTIGUOUS;
 
@@ -1098,6 +1022,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
     var->attr_dirty = NC_FALSE;
 
 exit:
+    nullfree(params);
     if (typeid > 0 && H5Tclose(typeid) < 0)
         BAIL2(NC_EHDFERR);
     if (plistid > 0 && H5Pclose(plistid) < 0)
@@ -2303,78 +2228,6 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
 }
 
 /**
- * @internal Get the class of a type
- *
- * @param h5 Pointer to the HDF5 file info struct.
- * @param xtype NetCDF type ID.
- * @param type_class Pointer that gets class of type, NC_INT,
- * NC_FLOAT, NC_CHAR, or NC_STRING, NC_ENUM, NC_VLEN, NC_COMPOUND, or
- * NC_OPAQUE.
- *
- * @return ::NC_NOERR No error.
- * @author Ed Hartnett
- */
-int
-nc4_get_typeclass(const NC_FILE_INFO_T *h5, nc_type xtype, int *type_class)
-{
-    int retval = NC_NOERR;
-
-    LOG((4, "%s xtype: %d", __func__, xtype));
-    assert(type_class);
-
-    /* If this is an atomic type, the answer is easy. */
-    if (xtype <= NC_STRING)
-    {
-        switch (xtype)
-        {
-        case NC_BYTE:
-        case NC_UBYTE:
-        case NC_SHORT:
-        case NC_USHORT:
-        case NC_INT:
-        case NC_UINT:
-        case NC_INT64:
-        case NC_UINT64:
-            /* NC_INT is class used for all integral types */
-            *type_class = NC_INT;
-            break;
-
-        case NC_FLOAT:
-        case NC_DOUBLE:
-            /* NC_FLOAT is class used for all floating-point types */
-            *type_class = NC_FLOAT;
-            break;
-
-        case NC_CHAR:
-            *type_class = NC_CHAR;
-            break;
-
-        case NC_STRING:
-            *type_class = NC_STRING;
-            break;
-
-        default:
-            BAIL(NC_EBADTYPE);
-        }
-    }
-    else
-    {
-        NC_TYPE_INFO_T *type;
-
-        /* See if it's a used-defined type */
-        if ((retval = nc4_find_type(h5, xtype, &type)))
-            BAIL(retval);
-        if (!type)
-            BAIL(NC_EBADTYPE);
-
-        *type_class = type->nc_type_class;
-    }
-
-exit:
-    return retval;
-}
-
-/**
  * @internal Report information about an open HDF5 object. This is
  * called on any still-open objects when a HDF5 file close is
  * attempted.
@@ -2587,9 +2440,10 @@ static int NC4_walk(hid_t, int*);
 
  * @note WARNINGS:
  *   1. False negatives are possible for a small subset of netcdf-4
- *   created files.
+ *      created files; especially if the file looks like a simple
+        netcdf classic file.
  *   2. Deliberate falsification in the file can be used to cause
- *   a false positive.
+ *      a false positive.
  *
  * @param h5 Pointer to HDF5 file info struct.
  *
@@ -2711,22 +2565,3 @@ NC4_walk(hid_t gid, int* countp)
     return ncstat;
 }
 
-int
-NC4_hdf5_remove_filter(NC_VAR_INFO_T* var, unsigned int filterid)
-{
-    int stat = NC_NOERR;
-    NC_HDF5_VAR_INFO_T *hdf5_var;
-    hid_t propid = -1;
-    herr_t herr = -1;
-    H5Z_filter_t hft;
-
-    hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
-    if ((propid = H5Dget_create_plist(hdf5_var->hdf_datasetid)) < 0)
-	{stat = NC_EHDFERR; goto done;}
-
-    hft = filterid;
-    if((herr = H5Premove_filter(propid,hft)) < 0)
-	{stat = NC_EHDFERR; goto done;}
-done:
-    return stat;
-}

@@ -10,6 +10,7 @@
 
 #include "netcdf.h"
 #include "netcdf_filter.h"
+#include "netcdf_aux.h"
 
 #undef DEBUG
 
@@ -115,7 +116,7 @@ params (BE):
 static unsigned int baseline[MAXPARAMS]; /* Expected */
 
 static const char* spec = 
-"user-defined, -17b, 23ub, -25S, 27US, 77, 93U, 2147483647, -2147483648, 4294967295U, 789f, -9223372036854775807L, 18446744073709551615UL, 12345678.12345678d";
+"32768, -17b, 23ub, -25S, 27US, 77, 93U, 2147483647, -2147483648, 4294967295U, 789f, -9223372036854775807L, 18446744073709551615UL, 12345678.12345678d";
 
 /* Define the type strings for each spec entry */
 static const char* spectype[] = {"i", "b", "ub", "s", "us", "i", "ui", "i", "i", "ui", "f", "ll", "ull", "d"};
@@ -198,64 +199,67 @@ main(int argc, char **argv)
     unsigned long long baseull;
     float basef;
     double based;
-    NC4_Filterspec* pfs = NULL;
+    unsigned int filterid = 0;
+    size_t nparams;
+    unsigned int* params = NULL;
 
     printf("\nTesting filter parser.\n");
 
     buildbaseline(); /* Build our comparison vector */
 
-    stat = NC_parsefilterspec(spec,NC_FILTER_FORMAT_HDF5,(NC_Filterspec**)&pfs);
+    stat = ncaux_h5filterspec_parse(spec,&filterid,&nparams,&params);
     if(stat) {
-	fprintf(stderr,"NC_parsefilterspec failed\n");
-	exit(1);
+	fprintf(stderr,"ncaux_filter_parsespec failed\n");
+	goto done;
     }
     
-    if(pfs->filterid != PARAMS_ID)
-        fprintf(stderr,"mismatch: id: expected=%u actual=%u\n",(unsigned int)PARAMS_ID,pfs->filterid);
+    if(filterid != PARAMS_ID) {
+        fprintf(stderr,"mismatch: id: expected=%u actual=%u\n",(unsigned int)PARAMS_ID,filterid);
+	nerrs++;
+    }
 
     /* Do all the 32 bit tests */
     for(i=0;i<=8;i++) {
-	if(baseline[i] != pfs->params[i])
-	    mismatch(i,pfs->params,spectype[i]);
+	if(baseline[i] != params[i])
+	    mismatch(i,params,spectype[i]);
     }
 
     /* float */
-    uf.ui = pfs->params[9];
+    uf.ui = params[9];
     memcpy(&basef,&baseline[9],4);
     if(uf.f != basef)
-	mismatch(9,pfs->params,"uf.f");
+	mismatch(9,params,"uf.f");
 
     /* signed long long */
-    ul.ui[0] = pfs->params[10];
-    ul.ui[1] = pfs->params[11];
-    NC4_filterfix8((unsigned char*)&ul.ll,1);
+    ul.ui[0] = params[10];
+    ul.ui[1] = params[11];
+    ncaux_h5filterspec_fix8((unsigned char*)&ul.ll,1);
     memcpy(&basell,&baseline[10],8);
     if(ul.ll != basell)
-	mismatch2(10,pfs->params,"ul.ll");
+	mismatch2(10,params,"ul.ll");
 
     /* unsigned long long */
-    ul.ui[0] = pfs->params[12];
-    ul.ui[1] = pfs->params[13];
-    NC4_filterfix8((unsigned char*)&ul.ull,1);
+    ul.ui[0] = params[12];
+    ul.ui[1] = params[13];
+    ncaux_h5filterspec_fix8((unsigned char*)&ul.ull,1);
     memcpy(&baseull,&baseline[12],8);
     if(ul.ull != baseull)
-	mismatch2(12,pfs->params,"ul.ull");
+	mismatch2(12,params,"ul.ull");
 
     /* double */
-    ud.ui[0] = pfs->params[14];
-    ud.ui[1] = pfs->params[15];
-    NC4_filterfix8((unsigned char*)&ud.d,1);
+    ud.ui[0] = params[14];
+    ud.ui[1] = params[15];
+    ncaux_h5filterspec_fix8((unsigned char*)&ud.d,1);
     memcpy(&based,&baseline[14],8);
     if(ud.d != based)
-	mismatch2(14,pfs->params,"ud.d");
+	mismatch2(14,params,"ud.d");
 
     if (!nerrs)
        printf("SUCCESS!!\n");
 
-    if(pfs && pfs->params) free(pfs->params);
-    if(pfs) free(pfs);
-    
-    return (nerrs > 0 ? 1 : 0);
+done:
+    if(params) free(params);
+    return (stat || nerrs > 0 ? 1 : 0);
 }
 
 #ifdef DEBUG
@@ -328,7 +332,7 @@ byteswap4(unsigned char* mem)
 
 #if 0
 static void
-NC4_filterfix8(unsigned char* mem, int decode)
+NC4_h5filterspec_fix8(unsigned char* mem, int decode)
 {
 #ifdef WORDS_BIGENDIAN
     if(decode) { /* Apply inverse of the encode case */

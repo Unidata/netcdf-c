@@ -15,6 +15,7 @@
 
 #include "netcdf.h"
 #include "netcdf_filter.h"
+#include "netcdf_aux.h"
 #include "ncdispatch.h"
 #include "nc4internal.h"
 
@@ -31,12 +32,35 @@
  * @author Ed Hartnett
  */
 int
-NC_NOTNC4_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
-                         const unsigned int* parms)
+NC_NOTNC4_def_var_filter(int ncid, int varid, unsigned int  id, size_t nparams, const unsigned int* parms)
 {
     return NC_ENOTNC4;
 }
 
+int
+NC_NOTNC4_inq_var_filter_ids(int ncid, int varid, size_t* nfilters, unsigned int* filterids)
+{
+    return NC_ENOTNC4;
+}
+
+int
+NC_NOTNC4_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparams, unsigned int* params)
+{
+    return NC_ENOTNC4;
+}
+
+int
+NC_NOOP_inq_var_filter_ids(int ncid, int varid, size_t* nfilters, unsigned int* filterids)
+{
+    if(nfilters) *nfilters = 0;
+    return NC_NOERR;
+}
+
+int
+NC_NOOP_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparams, unsigned int* params)
+{
+    return NC_ENOFILTER;
+}
 
 /**
  * @internal Not allowed for classic model.
@@ -618,48 +642,4 @@ NC_NOTNC4_inq_typeid(int ncid, const char *name, nc_type *typeidp)
 {
     /* Note that this should actually work for atomic types */
     return NC_ENOTNC4;
-}
-
-/**
- * @internal Carry out one of several filter actions
- *
- * @param ncid Containing group id
- * @param varid Containing variable id
- * @param action Action to perform
- *
- * @return ::NC_ENOTNC4 Not implemented for a dispatch table.
- * @author D. Heimbigner
- */
-int
-NC_NOTNC4_filter_actions(int ncid, int varid, int action, struct NC_Filterobject* spec)
-{
-    return NC_ENOTNC4;
-}
-
-/**
- * @internal Carry out one of several filter actions
- *
- * @param ncid Containing group id
- * @param varid Containing variable id
- * @param action Action to perform
- *
- * @return ::NC_NOERR Implemented as a no-op.
- * @return ::NC_ENOTNC4 Not implemented
- * @return ::NC_ENOFILTER No filter defined
- * @author D. Heimbigner
- */
-int
-NC_NOOP_filter_actions(int ncid, int varid, int action, struct NC_Filterobject* args)
-{
-    NC_FILTER_OBJ_HDF5* obj = (NC_FILTER_OBJ_HDF5*)args;
-    switch (action) {
-    case NCFILTER_FILTERIDS: 
-	obj->u.ids.nfilters = 0;
-	return NC_NOERR;
-    case NCFILTER_INQ: /* fall thrue */
-    case NCFILTER_INFO:
-	return NC_ENOFILTER;
-    default:
-	return NC_ENOTNC4;
-    }
 }

@@ -7,10 +7,14 @@
 # Process these files with m4.
 
 SET(libsrc4_SOURCES nc4dispatch.c nc4attr.c nc4dim.c nc4grp.c
-nc4internal.c nc4type.c nc4var.c ncfunc.c error4.c nc4printer.c
-ncindex.c)
+nc4internal.c nc4type.c nc4var.c ncfunc.c error4.c
+ncindex.c nc4cache.c)
 
 add_library(netcdf4 OBJECT ${libsrc4_SOURCES})
+
+IF(MPI_C_INCLUDE_PATH)
+    target_include_directories(netcdf4 PUBLIC ${MPI_C_INCLUDE_PATH})
+ENDIF(MPI_C_INCLUDE_PATH)
 
 # Files for make dist
 FILE(GLOB libsrc4_HEADERS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
@@ -31,9 +35,9 @@ set(man_MANS netcdf.3)
 
 set(ARGS_MANPAGE -DAPI=C)
 
-IF (USE_NETCDF4)
+IF (USE_HDF5)
   SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DNETCDF4=TRUE)
-ENDIF(USE_NETCDF4)
+ENDIF(USE_HDF5)
 
 IF (BUILD_DAP)
   SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DDAP=TRUE)

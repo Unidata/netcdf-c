@@ -14,7 +14,6 @@ FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
 
-
 IF(ENABLE_DAP_REMOTE_TESTS)
     BUILD_BIN_TEST(findtestserver)
     BUILD_BIN_TEST(pingurl)
@@ -41,7 +40,8 @@ IF(ENABLE_TESTS)
       add_sh_test(ncdap tst_ber)
       add_sh_test(ncdap tst_remote3)
       add_sh_test(ncdap tst_zero_len_var)
-# not yet      add_sh_test(ncdap tst_hyrax)
+      add_sh_test(ncdap tst_encode)
+      # not yet      add_sh_test(ncdap tst_hyrax)
       add_sh_test(ncdap tst_fillmismatch)
       IF(ENABLE_DAP_LONG_TESTS)
         add_sh_test(ncdap tst_longremote3)

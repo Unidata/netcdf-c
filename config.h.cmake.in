@@ -46,7 +46,9 @@ are set when opening a binary file on Windows. */
    #define read _read
    #define lseek _lseeki64
 
+   #ifndef __clang__
    #define fstat _fstat64
+   #endif
 
    #define off_t __int64
    #define _off_t __int64
@@ -101,6 +103,9 @@ are set when opening a binary file on Windows. */
 /* default file chunk cache size in bytes. */
 #cmakedefine CHUNK_CACHE_SIZE ${CHUNK_CACHE_SIZE}
 
+/* default nczarr chunk cache size in bytes. */
+#cmakedefine CHUNK_CACHE_SIZE_NCZARR ${CHUNK_CACHE_SIZE_NCZARR}
+
 /* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
    systems. This function is required for `alloca.c' support on those systems.
    */
@@ -124,8 +129,14 @@ are set when opening a binary file on Windows. */
 /* if true, build byte-range Client */
 #cmakedefine ENABLE_BYTERANGE 1
 
+/* if true, use hdf5 S3 virtual file reader */
+#cmakedefine ENABLE_HDF5_ROS3 1
+
 /* if true, enable CDF5 Support */
 #cmakedefine ENABLE_CDF5 1
+
+/* if true, enable client side filters */
+#cmakedefine ENABLE_CLIENT_FILTERS 1
 
 /* if true, enable strict null byte header padding. */
 #cmakedefine USE_STRICT_NULL_BYTE_HEADER_PADDING 1
@@ -136,11 +147,20 @@ are set when opening a binary file on Windows. */
 /* if true, build DAP4 Client */
 #cmakedefine ENABLE_DAP4 1
 
-/* if true, build DAP4 Client */
-#cmakedefine ENABLE_DAP4 1
-
 /* if true, do remote tests */
 #cmakedefine ENABLE_DAP_REMOTE_TESTS 1
+
+/* if true, enable NCZARR */
+#cmakedefine ENABLE_NCZARR 1
+
+/* if true, enable S3 support */
+#cmakedefine ENABLE_NCZARR_S3 1
+
+/* if true, enable S3 testing*/
+#cmakedefine ENABLE_NCZARR_S3_TESTS 1
+
+/* if true, S3 SDK is available */
+#cmakedefine ENABLE_S3_SDK 1
 
 /* define the possible sources for remote test servers */
 #cmakedefine REMOTETESTSERVERS	"${REMOTETESTSERVERS}"
@@ -197,6 +217,9 @@ are set when opening a binary file on Windows. */
    */
 #cmakedefine HAVE_DECL_ISNAN 1
 
+/* Define to 1 if you have the <dirent.h> header file. */
+#cmakedefine HAVE_DIRENT_H 1
+
 /* Define to 1 if you have the <fcntl.h> header file. */
 #cmakedefine HAVE_FCNTL_H 1
 
@@ -223,6 +246,12 @@ are set when opening a binary file on Windows. */
 
 /* Define to 1 if you have the `gettimeofday' function. */
 #cmakedefine HAVE_GETTIMEOFDAY 1
+
+/* Define to 1 if you have the `clock_gettime' function. */
+#cmakedefine HAVE_CLOCK_GETTIME 1
+
+/* Define to 1 if you have the `gettimeofday' function. */
+#cmakedefine HAVE_STRUCT_TIMESPEC 1
 
 /* if true, netcdf4 file properties will be set using H5Pset_libver_bounds */
 #cmakedefine HAVE_H5PSET_LIBVER_BOUNDS 1
@@ -293,6 +322,12 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if the system has the type `ssize_t'. */
 #cmakedefine HAVE_SSIZE_T 1
 
+/* Define to 1 if the system has the type `ptrdiff_t'. */
+#cmakedefine HAVE_PTRDIFF_T 1
+
+/* Define to 1 if the system has the type `uintptr_t'. */
+#cmakedefine HAVE_UINTPTR_T 1
+
 /* Define to 1 if you have the <stdarg.h> header file. */
 #cmakedefine HAVE_STDARG_H 1
 
@@ -359,6 +394,9 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the <sys/types.h> header file. */
 #cmakedefine HAVE_SYS_TYPES_H 1
 
+/* Define to 1 if you have the <time.h> header file. */
+#cmakedefine HAVE_TIME_H 1
+
 /* Define to 1 if the system has the type `uchar'. */
 #cmakedefine HAVE_UCHAR 1
 
@@ -367,6 +405,9 @@ are set when opening a binary file on Windows. */
 
 /* Define to 1 if the system has the type `uint64'. */
 #cmakedefine HAVE_UINT64 1
+
+/* Define to 1 if the system has the type `uint64_t'. */
+#cmakedefine HAVE_UINT64_T 1
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #cmakedefine HAVE_UNISTD_H 1
@@ -391,6 +432,9 @@ are set when opening a binary file on Windows. */
 /* if true, HDF5 is at least version 1.10. 3 and allows parallel I/O
 with zip */
 #cmakedefine HDF5_SUPPORTS_PAR_FILTERS 1
+
+/* if true, HDF5 is at least version 1.10.5 and supports UTF8 paths */
+#cmakedefine HDF5_UTF8_PATHS 1
 
 /* if true, include JNA bug fix */
 #cmakedefine JNA 1
@@ -564,6 +608,9 @@ with zip */
 /* if true, compile in szip compression in netCDF-4 variables */
 #cmakedefine USE_SZIP 1
 
+/* if true, multi-filters enabled*/
+#cmakedefine HAVE_MULTIFILTERS 1
+
 /* Version number of package */
 #cmakedefine VERSION "${netCDF_VERSION}"
 
@@ -595,6 +642,9 @@ with zip */
 
 /* Define to `int' if <sys/types.h> does not define. */
 #cmakedefine ssize_t int
+
+/* Define to `signed long if <sys/types.h> does not define. */
+#cmakedefine ptrdiff_t signed long
 
 /* Define to `unsigned long if <sys/types.h> does not define. */
 #cmakedefine uintptr_t unsigned long

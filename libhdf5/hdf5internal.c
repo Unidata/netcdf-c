@@ -16,6 +16,10 @@
 
 #include "config.h"
 #include "hdf5internal.h"
+#include "hdf5err.h" /* For BAIL2 */
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 #undef DEBUGH5
 
@@ -625,6 +629,12 @@ close_vars(NC_GRP_INFO_T *grp)
 	if (hdf5_var->dimscale_attached)
 	    free(hdf5_var->dimscale_attached);
 	nullfree(hdf5_var);
+
+	/* Reclaim filters */
+	if(var->filters != NULL) {
+	    (void)NC4_hdf5_filter_freelist(var);
+	}
+	var->filters = NULL;
     }
 
     return NC_NOERR;
@@ -799,34 +809,15 @@ int
 nc4_hdf5_find_grp_h5_var(int ncid, int varid, NC_FILE_INFO_T **h5,
                          NC_GRP_INFO_T **grp, NC_VAR_INFO_T **var)
 {
-    NC_FILE_INFO_T *my_h5;
-    NC_GRP_INFO_T *my_grp;
     NC_VAR_INFO_T *my_var;
     int retval;
-
-    /* Look up file and group metadata. */
-    if ((retval = nc4_find_grp_h5(ncid, &my_grp, &my_h5)))
-        return retval;
-    assert(my_grp && my_h5);
-
-    /* Find the var. */
-    if (!(my_var = (NC_VAR_INFO_T *)ncindexith(my_grp->vars, varid)))
-        return NC_ENOTVAR;
-    assert(my_var && my_var->hdr.id == varid);
-
-    /* Do we need to read var metadata? */
+    /* Delegate to libsrc4 */
+    if((retval = nc4_find_grp_h5_var(ncid,varid,h5,grp,&my_var))) return retval;
+    /* Do we need to read var metadata? (hdf5 specific) */
     if (!my_var->meta_read && my_var->created)
         if ((retval = nc4_get_var_meta(my_var)))
             return retval;
-
-    /* Return pointers that caller wants. */
-    if (h5)
-        *h5 = my_h5;
-    if (grp)
-        *grp = my_grp;
-    if (var)
-        *var = my_var;
-
+    if (var) *var = my_var;
     return NC_NOERR;
 }
 
@@ -1024,4 +1015,100 @@ hdf5_set_log_level()
 
     return NC_NOERR;
 }
+
+void
+nc_log_hdf5(void)
+{
+#ifdef USE_HDF5
+    H5Eprint(NULL);
+#endif /* USE_HDF5 */
+}
+
 #endif /* LOGGING */
+
+
+#ifdef _WIN32
+
+/**
+ * Converts the filename from ANSI to UTF-8 if HDF5 >= 1.10.6. 
+ * nc4_hdf5_free_pathbuf must be called to free pb.
+ *
+ * @param pb Pointer that conversion information is stored.
+ * @param path The filename to be converted.
+ *
+ * @return The converted filename if succeeded. NULL if failed.
+ */
+const char *
+nc4_ndf5_ansi_to_utf8(pathbuf_t *pb, const char *path)
+{
+    const uint UTF8_MAJNUM = 1;
+    const uint UTF8_MINNUM = 10;
+    const uint UTF8_RELNUM = 6;
+    static enum {UNDEF, ANSI, UTF8} hdf5_encoding = UNDEF;
+    wchar_t wbuf[MAX_PATH];
+    wchar_t *ws = NULL;
+    char *ns = NULL;
+    int n;
+
+    if (hdf5_encoding == UNDEF) {
+#ifdef HDF5_UTF8_PATHS
+	hdf5_encoding = UTF8;
+#else
+	hdf5_encoding = ANSI;
+#endif
+    }
+    if (hdf5_encoding == ANSI) {
+        pb->ptr = NULL;
+        return path;
+    }
+
+    n = MultiByteToWideChar(CP_ACP, 0, path, -1, NULL, 0);
+    if (!n) {
+        errno = EILSEQ;
+        goto done;
+    }
+    ws = n <= _countof(wbuf) ? wbuf : malloc(sizeof *ws * n);
+    if (!ws)
+        goto done;
+    if (!MultiByteToWideChar(CP_ACP, 0, path, -1, ws, n)) {
+        errno = EILSEQ;
+        goto done;
+    }
+
+    n = WideCharToMultiByte(CP_UTF8, 0, ws, -1, NULL, 0, NULL, NULL);
+    if (!n) {
+        errno = EILSEQ;
+        goto done;
+    }
+    ns = n <= sizeof pb->buffer ? pb->buffer : malloc(n);
+    if (!ns)
+        goto done;
+    if (!WideCharToMultiByte(CP_UTF8, 0, ws, -1, ns, n, NULL, NULL)) {
+        if (ns != pb->buffer)
+            free(ns);
+        ns = NULL;
+        errno = EILSEQ;
+        goto done;
+    }
+
+done:
+    if (ws != wbuf)
+        free (ws);
+
+    pb->ptr = ns;
+    return ns;
+}
+
+/**
+ * Free the conversion information used by nc4_ndf5_ansi_to_utf8.
+ *
+ * @param pb Pointer that hold conversion information to be freed.
+ */
+void
+nc4_hdf5_free_pathbuf(pathbuf_t *pb)
+{
+    if (pb->ptr && pb->ptr != pb->buffer)
+        free(pb->ptr);
+}
+
+#endif /* _WIN32 */

@@ -11,11 +11,17 @@
 
 #include "config.h"
 #include "hdf5internal.h"
+#include "hdf5err.h"
 #include "ncrc.h"
+#include "ncauth.h"
 #include "ncmodel.h"
 
 #ifdef ENABLE_BYTERANGE
 #include "H5FDhttp.h"
+#endif
+
+#ifdef ENABLE_HDF5_ROS3
+#include <H5FDros3.h>
 #endif
 
 /*Nemonic */
@@ -60,6 +66,16 @@ extern int NC4_open_image_file(NC_FILE_INFO_T* h5);
 
 /* Defined later in this file. */
 static int rec_read_metadata(NC_GRP_INFO_T *grp);
+
+#ifdef _WIN32
+static hid_t nc4_H5Fopen(const char *filename, unsigned flags, hid_t fapl_id);
+#else
+#define nc4_H5Fopen  H5Fopen
+#endif
+
+#ifdef ENABLE_HDF5_ROS3
+static int ros3info(NCauth** auth, NCURI* uri, char** hostportp, char** regionp);
+#endif
 
 /**
  * @internal Struct to track HDF5 object info, for
@@ -291,7 +307,8 @@ read_coord_dimids(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
     /* There is a hidden attribute telling us the ids of the
      * dimensions that apply to this multi-dimensional coordinate
      * variable. Read it. */
-    if ((coord_attid = H5Aopen_name(hdf5_var->hdf_datasetid, COORDINATES)) < 0)
+    if ((coord_attid = H5Aopen_by_name(hdf5_var->hdf_datasetid, ".", COORDINATES, 
+                                       H5P_DEFAULT, H5P_DEFAULT)) < 0)
         BAIL(NC_EATTMETA);
 
     if ((coord_att_typeid = H5Aget_type(coord_attid)) < 0)
@@ -832,24 +849,55 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
             if (H5Pset_fapl_core(fapl_id, min_incr, (nc4_info->mem.persist?1:0)) < 0)
                 BAIL(NC_EHDFERR);
             /* Open the HDF5 file. */
-            if ((h5->hdfid = H5Fopen(path, flags, fapl_id)) < 0)
+            if ((h5->hdfid = nc4_H5Fopen(path, flags, fapl_id)) < 0)
                 BAIL(NC_EHDFERR);
         }
 #ifdef ENABLE_BYTERANGE
         else
             if(h5->http.iosp) {   /* Arrange to use the byte-range driver */
-                /* Configure FAPL to use the byte-range file driver */
+#ifdef ENABLE_HDF5_ROS3
+		NCURI* uri = NULL;
+		H5FD_ros3_fapl_t fa;
+		char* hostport = NULL;
+		char* region = NULL;
+		ncuriparse(path,&uri);
+		if(uri == NULL)
+		    BAIL(NC_EINVAL);		
+		if((ros3info(&h5->http.auth,uri,&hostport,&region)))
+		    BAIL(NC_EINVAL);
+		ncurifree(uri); uri = NULL;
+                fa.version = 1;
+		fa.aws_region[0] = '\0';
+	        fa.secret_id[0] = '\0';
+		fa.secret_key[0] = '\0';
+		if(h5->http.auth->s3creds.accessid == NULL || h5->http.auth->s3creds.secretkey == NULL) {
+	  	    /* default, non-authenticating, "anonymous" fapl configuration */
+		    fa.authenticate = (hbool_t)0;
+		} else {
+		    fa.authenticate = (hbool_t)1;
+		    strlcat(fa.aws_region,region,H5FD_ROS3_MAX_REGION_LEN);
+		    strlcat(fa.secret_id, h5->http.auth->s3creds.accessid, H5FD_ROS3_MAX_SECRET_ID_LEN);
+                    strlcat(fa.secret_key, h5->http.auth->s3creds.secretkey, H5FD_ROS3_MAX_SECRET_KEY_LEN);
+		}
+	        nullfree(region);
+		nullfree(hostport);
+                /* create and set fapl entry */
+                if(H5Pset_fapl_ros3(fapl_id, &fa) < 0)
+                    BAIL(NC_EHDFERR);
+#else
+                /* Configure FAPL to use our byte-range file driver */
                 if (H5Pset_fapl_http(fapl_id) < 0)
                     BAIL(NC_EHDFERR);
+#endif
                 /* Open the HDF5 file. */
-                if ((h5->hdfid = H5Fopen(path, flags, fapl_id)) < 0)
+                if ((h5->hdfid = nc4_H5Fopen(path, flags, fapl_id)) < 0)
                     BAIL(NC_EHDFERR);
             }
 #endif
             else
             {
                 /* Open the HDF5 file. */
-                if ((h5->hdfid = H5Fopen(path, flags, fapl_id)) < 0)
+                if ((h5->hdfid = nc4_H5Fopen(path, flags, fapl_id)) < 0)
                     BAIL(NC_EHDFERR);
             }
 
@@ -971,17 +1019,17 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
     assert(var);
 
     if ((num_filters = H5Pget_nfilters(propid)) < 0)
-        return NC_EHDFERR;
+	{stat = NC_EHDFERR; goto done;}
 
     for (f = 0; f < num_filters; f++)
     {
 	cd_nelems = 0;
         if ((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems, NULL, 0, NULL, NULL)) < 0)
-            return NC_EHDFERR;
+	    {stat = NC_EHDFERR; goto done;}
 	if((cd_values = calloc(sizeof(unsigned int),cd_nelems))==NULL)
-	    return NC_ENOMEM;
+	    {stat = NC_EHDFERR; goto done;}
         if ((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems, cd_values, 0, NULL, NULL)) < 0)
-            return NC_EHDFERR;
+	    {stat = NC_EHDFERR; goto done;}
         switch (filter)
         {
         case H5Z_FILTER_SHUFFLE:
@@ -995,43 +1043,44 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
         case H5Z_FILTER_DEFLATE:
             if (cd_nelems != CD_NELEMS_ZLIB ||
                 cd_values[0] > NC_MAX_DEFLATE_LEVEL)
-                return NC_EHDFERR;
-	    if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,cd_values,NULL)))
-	       return stat;
+		    {stat = NC_EHDFERR; goto done;}
+	    if((stat = NC4_hdf5_addfilter(var,filter,cd_nelems,cd_values)))
+	       goto done;
             break;
 
         case H5Z_FILTER_SZIP: {
             /* Szip is tricky because the filter code expands the set of parameters from 2 to 4
                and changes some of the parameter values; try to compensate */
             if(cd_nelems == 0) {
-		if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,0,NULL,NULL)))
-		   return stat;
+		if((stat = NC4_hdf5_addfilter(var,filter,0,NULL)))
+		   goto done;
             } else {
                 /* fix up the parameters and the #params */
 		if(cd_nelems != 4)
-		    return NC_EHDFERR;
+		    {stat = NC_EHDFERR; goto done;}
 		cd_nelems = 2; /* ignore last two */		
 		/* Fix up changed params */
 		cd_values[0] &= (H5_SZIP_ALL_MASKS);
 		/* Save info */
-		stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,cd_values,NULL);
-		if(stat) return stat;
-
+		stat = NC4_hdf5_addfilter(var,filter,cd_nelems,cd_values);
+		if(stat) goto done;
             }
             } break;
 
         default:
             if(cd_nelems == 0) {
-  	        if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,0,NULL,NULL))) return stat;
+  	        if((stat = NC4_hdf5_addfilter(var,filter,0,NULL))) goto done;
             } else {
-  	        stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,cd_values,NULL);
-		if(stat) return stat;
+  	        stat = NC4_hdf5_addfilter(var,filter,cd_nelems,cd_values);
+		if(stat) goto done;
             }
             break;
         }
 	nullfree(cd_values); cd_values = NULL;
     }
-    return NC_NOERR;
+done:
+    nullfree(cd_values);
+    return stat;
 }
 
 /**
@@ -1395,6 +1444,9 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
     var->created = NC_TRUE;
     var->atts_read = 0;
 
+    /* Create filter list */
+    var->filters = (void*)nclistnew();
+
     /* Try and read the dimids from the COORDINATES attribute. If it's
      * not present, we will have to do dimsscale matching to locate the
      * dims for this var. */
@@ -1417,6 +1469,9 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
     /* Indicate that the variable has a pointer to the type */
     var->type_info->rc++;
 
+    /* Transfer endianness */
+    var->endianness = var->type_info->endianness; 
+
 exit:
     if (finalname)
         free(finalname);
@@ -1428,6 +1483,8 @@ exit:
             BAIL2(NC_EHDFERR);
 	if(var && var->format_var_info)
 	    free(var->format_var_info);
+	if(var && var->filters)
+	    nclistfree(var->filters);
         if (var)
             nc4_var_list_del(grp, var);
     }
@@ -2226,6 +2283,7 @@ nc4_read_atts(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
  * @returns ::NC_NOERR No error.
  * @return ::NC_EHDFERR HDF5 returned error.
  * @author Ed Hartnett
+ * [Candidate for libsrc4]
  */
 static int
 read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
@@ -2257,7 +2315,8 @@ read_scale(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
         BAIL(NC_EHDFERR);
     if (attr_exists)
     {
-        if ((attid = H5Aopen_name(datasetid, NC_DIMID_ATT_NAME)) < 0)
+        if ((attid = H5Aopen_by_name(datasetid,".", NC_DIMID_ATT_NAME,
+                                     H5P_DEFAULT, H5P_DEFAULT)) < 0)
             BAIL(NC_EHDFERR);
 
         if (H5Aread(attid, H5T_NATIVE_INT, &assigned_id) < 0)
@@ -2699,3 +2758,78 @@ exit:
 
     return retval;
 }
+
+#ifdef ENABLE_HDF5_ROS3
+static int
+ros3info(NCauth** authp, NCURI* uri, char** hostportp, char** regionp)
+{
+    int stat = NC_NOERR;
+    size_t len;
+    char* hostport = NULL;
+    char* region = NULL;    
+    char* p;
+
+    if(uri == NULL || uri->host == NULL)
+	{stat = NC_EINVAL; goto done;}
+    len = strlen(uri->host);
+    if(uri->port != NULL)
+        len += 1+strlen(uri->port);
+    len++; /* nul term */
+    if((hostport = malloc(len)) == NULL)
+	{stat = NC_ENOMEM; goto done;}    
+    hostport[0] = '\0';
+    strlcat(hostport,uri->host,len);
+    if(uri->port != NULL) {
+        strlcat(hostport,":",len);
+	strlcat(hostport,uri->port,len);
+    }
+    /* We only support path urls, not virtual urls, so the
+       host past the first dot must be "s3.amazonaws.com" */
+    p = strchr(uri->host,'.');
+    if(p != NULL && strcmp(p+1,"s3.amazonaws.com")==0) {
+	len = (size_t)((p - uri->host)-1);
+	region = calloc(1,len+1);
+	memcpy(region,uri->host,len);
+	region[len] = '\0';
+    } else /* cannot find region: use "" */
+	region = strdup("");
+    if(hostportp) {*hostportp = hostport; hostport = NULL;}
+    if(regionp) {*regionp = region; region = NULL;}
+
+    /* Extract auth related info */
+    if((stat=NC_authsetup(authp, uri)))
+	goto done;
+
+done:
+    nullfree(hostport);
+    nullfree(region);
+    return stat;
+}
+#endif /*ENABLE_HDF5_ROS3*/
+
+#ifdef _WIN32
+
+/**
+ * Wrapper function for H5Fopen.
+ * Converts the filename from ANSI to UTF-8 as needed before calling H5Fopen.
+ *
+ * @param filename The filename encoded ANSI to access.
+ * @param flags File access flags.
+ * @param fapl_id File access property list identifier.
+ * @return A file identifier if succeeded. A negative value if failed.
+ */
+static hid_t
+nc4_H5Fopen(const char *filename, unsigned flags, hid_t fapl_id)
+{
+    pathbuf_t pb;
+    hid_t hid;
+
+    filename = nc4_ndf5_ansi_to_utf8(&pb, filename);
+    if (!filename)
+        return H5I_INVALID_HID;
+    hid = H5Fopen(filename, flags, fapl_id);
+    nc4_hdf5_free_pathbuf(&pb);
+    return hid;
+}
+
+#endif /* _WIN32 */

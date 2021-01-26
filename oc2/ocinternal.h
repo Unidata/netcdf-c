@@ -174,7 +174,7 @@ struct OCstate {
     CURL* curl; /* curl handle*/
     char curlerror[CURL_ERROR_SIZE];
     void* usercurldata;
-    NCauth auth; /* curl auth data */
+    NCauth* auth; /* curl auth data */
     long ddslastmodified;
     long datalastmodified;
     long curlbuffersize;
@@ -229,7 +229,7 @@ extern int oc_network_order;
 extern int oc_invert_xdr_double;
 extern OCerror ocinternalinitialize(void);
 
-extern OCerror ocupdatelastmodifieddata(OCstate* state);
+extern OCerror ocupdatelastmodifieddata(OCstate* state, OCflags);
 
 extern OCerror ocset_useragent(OCstate* state, const char* agent);
 extern OCerror ocset_netrc(OCstate* state, const char* path);

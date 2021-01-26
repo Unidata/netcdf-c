@@ -26,7 +26,6 @@
 #define D4DUMPDAP
 #endif
 
-
 #undef D4CATCH /* Warning: significant performance impact */
 
 #define PANIC(msg) assert(d4panic(msg));

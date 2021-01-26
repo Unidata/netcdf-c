@@ -1,3 +1,5 @@
+if test "x$SETX" = x1 ; then set -x ; fi
+
 if test $# = 0 ; then
 TEST=1
 else
@@ -21,7 +23,7 @@ cd ${srcdir}/cdltestfiles; CDLTESTFILES=`pwd` ; cd ${WD}
 cd ${srcdir}/baseline; BASELINE=`pwd` ; cd ${WD}
 cd ${srcdir}/baselineraw; BASELINERAW=`pwd` ; cd ${WD}
 cd ${srcdir}/baselineremote; BASELINEREM=`pwd` ; cd ${WD}
-BASELINEH=${BASELINEREM}
+#cd ${srcdir}/baselinehyrax; BASELINEH=`pwd` ; cd ${WD}
 
 setresultdir() {
 rm -fr ${builddir}/$1

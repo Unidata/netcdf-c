@@ -17,7 +17,7 @@ See LICENSE.txt for license information.
 #endif
 
 /* Required for getcwd, other functions. */
-#ifdef _MSC_VER
+#ifdef _WIN32
 #include <direct.h>
 #define getcwd _getcwd
 #endif
@@ -27,6 +27,7 @@ See LICENSE.txt for license information.
 #endif
 
 /* Define vectors of zeros and ones for use with various nc_get_varX functions */
+/* Note, this form of initialization fails under Cygwin */
 size_t NC_coord_zero[NC_MAX_VAR_DIMS] = {0};
 size_t NC_coord_one[NC_MAX_VAR_DIMS] = {1};
 ptrdiff_t NC_stride_one[NC_MAX_VAR_DIMS] = {1};
@@ -60,7 +61,7 @@ NCDISPATCH_initialize(void)
 	char* p;
 	char* q;
 	char cwd[4096];
-#ifdef _MSC_VER
+#ifdef _WIN32
         tempdir = getenv("TEMP");
 #else
 	tempdir = "/tmp";
@@ -77,7 +78,7 @@ NCDISPATCH_initialize(void)
 	    *q = *p;
 	}
 	*q = '\0';
-#ifdef _MSC_VER
+#ifdef _WIN32
 #else
         /* Canonicalize */
 	for(p=globalstate->tempdir;*p;p++) {
@@ -104,7 +105,7 @@ NCDISPATCH_initialize(void)
 	    *q = *p;
 	}
 	*q = '\0';
-#ifdef _MSC_VER
+#ifdef _WIN32
 #else
         /* Canonicalize */
 	for(p=home;*p;p++) {

@@ -243,7 +243,6 @@ nc4_set_var_type(nc_type xtype, int endianness, size_t type_size, char *type_nam
     type->endianness = endianness;
     type->size = type_size;
     type->hdr.id = (size_t)xtype;
-    type->hdr.hashkey = NC_hashmapkey(type->hdr.name, strlen(type->hdr.name));
 
     /* Return to caller. */
     *typep = type;
@@ -425,6 +424,8 @@ nc4_var_list_add_full(NC_GRP_INFO_T* grp, const char* name, int ndims, nc_type x
     if ((retval = nc4_set_var_type(xtype, endianness, type_size, type_name,
                                    &(*var)->type_info)))
         return retval;
+    /* Propate the endianness to the variable */
+    (*var)->endianness = (*var)->type_info->endianness;
 
     (*var)->type_info->rc++;
 

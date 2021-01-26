@@ -4,11 +4,10 @@
 
 # Ed Hartnett, Dennis Heimbigner, Ward Fisher
 
-
 #SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#TESTS_ENVIRONMENT = export SETX=1;
+#TESTS_ENVIRONMENT += export SETX=1;
 
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
@@ -18,10 +17,14 @@ noinst_PROGRAMS=
 TEST_EXTENSIONS = .sh
 XFAIL_TESTS=""
 
+if ! ENABLE_UNFIXED_MEMORY_LEAKS
+AM_TESTS_ENVIRONMENT += export NC_VLEN_NOTEST=1;
+endif
+
 # This is the program we're building, and it's sources.
 bin_PROGRAMS = ncdump
 ncdump_SOURCES = ncdump.c vardata.c dumplib.c indent.c nctime0.c        \
-ncdump.h vardata.h dumplib.h indent.h isnan.h nctime0.h cdl.h utils.h   \
+ncdump.h vardata.h dumplib.h indent.h nctime0.h cdl.h utils.h   \
 utils.c nciter.h nciter.c nccomps.h
 
 # Another utility program that copies any netCDF file using only the
@@ -40,12 +43,14 @@ ncvalidator_SOURCES = ncvalidator.c
 
 # A simple netcdf-4 metadata -> xml printer. Do not install.
 if USE_HDF5
+bin_PROGRAMS += nc4print
 noinst_PROGRAMS += nc4print
-nc4print_SOURCES = nc4print.c
+nc4print_SOURCES = nc4print.c nc4printer.c
 endif
 
 # Conditionally build the ocprint program, but do not install
 if ENABLE_DAP
+bin_PROGRAMS += ocprint
 noinst_PROGRAMS += ocprint
 ocprint_SOURCES = ocprint.c
 endif
@@ -80,7 +85,7 @@ TESTS += tst_iter.sh
 endif
 
 if USE_HDF5
-# NetCDF-4 has some extra C programs to build. These will be run by
+# HDF5 has some extra C programs to build. These will be run by
 # the shell script tests.
 check_PROGRAMS += tst_fileinfo tst_create_files tst_h_rdc0	\
 tst_group_data tst_enum_data tst_opaque_data tst_string_data	\
@@ -112,6 +117,11 @@ if USE_HDF5
 TESTS += tst_ctests.sh
 endif
 
+if ENABLE_CDF5
+# Test for keywords as identifiers
+TESTS += test_keywords.sh
+endif
+
 endif BUILD_TESTSETS
 
 # These files all have to be included with the distribution.
@@ -128,29 +138,31 @@ ref_tst_noncoord.cdl ref_tst_compounds2.nc ref_tst_compounds2.cdl	\
 ref_tst_compounds3.nc ref_tst_compounds3.cdl ref_tst_compounds4.nc	\
 ref_tst_compounds4.cdl ref_tst_group_data_v23.cdl tst_mslp.cdl		\
 tst_bug321.cdl ref_tst_format_att.cdl ref_tst_format_att_64.cdl		\
-tst_nccopy3.sh tst_nccopy4.sh tst_nccopy5.sh ref_nc_test_netcdf4_4_0.nc		\
-run_back_comp_tests.sh ref_nc_test_netcdf4.cdl				\
-ref_tst_special_atts3.cdl tst_brecs.cdl ref_tst_grp_spec0.cdl		\
-ref_tst_grp_spec.cdl tst_grp_spec.sh ref_tst_charfill.cdl		\
-tst_charfill.cdl tst_charfill.sh tst_iter.sh tst_mud.sh			\
-ref_tst_mud4.cdl ref_tst_mud4-bc.cdl ref_tst_mud4_chars.cdl		\
-inttags.cdl inttags4.cdl ref_inttags.cdl ref_inttags4.cdl		\
-ref_tst_ncf213.cdl tst_h_scalar.sh run_utf8_nc4_tests.sh		\
-tst_formatx3.sh tst_formatx4.sh ref_tst_utf8_4.cdl			\
-ref_tst_nc4_utf8_4.cdl tst_inttags.sh tst_inttags4.sh CMakeLists.txt	\
-tst_bom.sh tst_inmemory_nc3.sh tst_dimsizes.sh		\
-tst_inmemory_nc4.sh tst_fileinfo.sh run_ncgen_tests.sh			\
-ref_test_360_day_1900.nc ref_test_365_day_1900.nc			\
+tst_nccopy3.sh tst_nccopy4.sh tst_nccopy5.sh				\
+ref_nc_test_netcdf4_4_0.nc run_back_comp_tests.sh			\
+ref_nc_test_netcdf4.cdl ref_tst_special_atts3.cdl tst_brecs.cdl		\
+ref_tst_grp_spec0.cdl ref_tst_grp_spec.cdl tst_grp_spec.sh		\
+ref_tst_charfill.cdl tst_charfill.cdl tst_charfill.sh tst_iter.sh	\
+tst_mud.sh ref_tst_mud4.cdl ref_tst_mud4-bc.cdl				\
+ref_tst_mud4_chars.cdl inttags.cdl inttags4.cdl ref_inttags.cdl		\
+ref_inttags4.cdl ref_tst_ncf213.cdl tst_h_scalar.sh			\
+run_utf8_nc4_tests.sh tst_formatx3.sh tst_formatx4.sh			\
+ref_tst_utf8_4.cdl ref_tst_nc4_utf8_4.cdl tst_inttags.sh		\
+tst_inttags4.sh CMakeLists.txt tst_bom.sh tst_inmemory_nc3.sh		\
+tst_dimsizes.sh tst_inmemory_nc4.sh tst_fileinfo.sh			\
+run_ncgen_tests.sh ref_test_360_day_1900.nc ref_test_365_day_1900.nc	\
 ref_test_366_day_1900.nc ref_test_360_day_1900.cdl			\
 ref_test_365_day_1900.cdl ref_test_366_day_1900.cdl			\
 tst_hdf5_offset.sh run_ncgen_nc4_tests.sh tst_nccopy3_subset.sh		\
 ref_nccopy3_subset.nc ref_test_corrupt_magic.nc tst_ncgen_shared.sh	\
 tst_ncgen4.sh tst_ncgen4_classic.sh tst_ncgen4_diff.sh			\
 tst_ncgen4_cycle.sh tst_null_byte_padding.sh				\
-ref_null_byte_padding_test.nc ref_tst_irish_rover.nc ref_provenance_v1.nc \
-ref_tst_radix.cdl tst_radix.cdl test_radix.sh                           \
-ref_nccopy_w.cdl tst_nccopy_w3.sh tst_nccopy_w4.sh ref_no_ncproperty.nc \
-test_unicode_directory.sh
+ref_null_byte_padding_test.nc ref_tst_irish_rover.nc			\
+ref_provenance_v1.nc ref_tst_radix.cdl tst_radix.cdl test_radix.sh	\
+ref_nccopy_w.cdl tst_nccopy_w3.sh tst_nccopy_w4.sh			\
+ref_no_ncproperty.nc test_unicode_directory.sh				\
+ref_roman_szip_simple.cdl ref_roman_szip_unlim.cdl ref_tst_perdimspecs.cdl \
+test_keywords.sh ref_keyword1.cdl ref_keyword2.cdl
 
 
 # The L512.bin file is file containing exactly 512 bytes each of value 0.
@@ -184,6 +196,8 @@ compound_datasize_test.nc compound_datasize_test2.nc ncf199.nc		\
 tst_c0.cdl tst_c0_4.cdl tst_c0_4c.cdl tst_c0_64.cdl			\
 tst_compound_datasize_test.cdl tst_compound_datasize_test2.cdl		\
 tst_ncf199.cdl tst_tst_gattenum.cdl tst_tst_usuffix.cdl ctest.c		\
-ctest64.c nccopy3_subset_out.nc camrun.c tst_ncf213.cdl tst_ncf213.nc   \
-tst_radix.nc tmp_radix.cdl ctest_small_3.c ctest_small_4.c              \
-ctest_special_atts_4.c
+ctest64.c nccopy3_subset_out.nc camrun.c tst_ncf213.cdl tst_ncf213.nc	\
+tst_radix.nc tmp_radix.cdl ctest_small_3.c ctest_small_4.c		\
+ctest_special_atts_4.c tst_roman_szip_simple.cdl			\
+tst_roman_szip_unlim.cdl tst_perdimpspecs.nc tmppds.* \
+keyword1.nc keyword2.nc tmp_keyword1.cdl tmp_keyword2.cdl

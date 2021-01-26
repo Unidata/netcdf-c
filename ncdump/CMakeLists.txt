@@ -25,6 +25,10 @@ ADD_EXECUTABLE(ncdump ${ncdump_FILES})
 ADD_EXECUTABLE(nccopy ${nccopy_FILES})
 ADD_EXECUTABLE(ncvalidator ${ncvalidator_FILES})
 
+IF(USE_HDF5)
+  ADD_EXECUTABLE(nc4print nc4print.c nc4printer.c)
+ENDIF(USE_HDF5)
+
 IF(ENABLE_DAP)
   ADD_EXECUTABLE(ocprint ${ocprint_FILES})
 ENDIF(ENABLE_DAP)
@@ -32,6 +36,10 @@ ENDIF(ENABLE_DAP)
 TARGET_LINK_LIBRARIES(ncdump netcdf ${ALL_TLL_LIBS})
 TARGET_LINK_LIBRARIES(nccopy netcdf ${ALL_TLL_LIBS})
 TARGET_LINK_LIBRARIES(ncvalidator netcdf ${ALL_TLL_LIBS})
+
+IF(USE_HDF5)
+  TARGET_LINK_LIBRARIES(nc4print netcdf ${ALL_TLL_LIBS})
+ENDIF(USE_HDF5)
 
 IF(ENABLE_DAP)
   TARGET_LINK_LIBRARIES(ocprint netcdf ${ALL_TLL_LIBS})
@@ -65,6 +73,16 @@ IF(MSVC)
   SET_TARGET_PROPERTIES(ncvalidator PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
     ${CMAKE_CURRENT_BINARY_DIR})
 
+  IF(USE_HDF5)
+
+    SET_TARGET_PROPERTIES(ncvalidator PROPERTIES RUNTIME_OUTPUT_DIRECTORY
+      ${CMAKE_CURRENT_BINARY_DIR})
+    SET_TARGET_PROPERTIES(ncvalidator PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG
+      ${CMAKE_CURRENT_BINARY_DIR})
+    SET_TARGET_PROPERTIES(ncvalidator PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
+      ${CMAKE_CURRENT_BINARY_DIR})
+  ENDIF(USE_HDF5)
+
   IF(ENABLE_DAP)
     SET_TARGET_PROPERTIES(ocprint PROPERTIES RUNTIME_OUTPUT_DIRECTORY
       ${CMAKE_CURRENT_BINARY_DIR})
@@ -86,7 +104,7 @@ IF(ENABLE_TESTS)
   TARGET_LINK_LIBRARIES(bom netcdf)
   TARGET_LINK_LIBRARIES(tst_dimsizes netcdf)
 
-  IF(USE_NETCDF4)
+  IF(USE_HDF5)
     ADD_EXECUTABLE(tst_fileinfo tst_fileinfo.c)
     TARGET_LINK_LIBRARIES(tst_fileinfo netcdf)
   ENDIF()
@@ -120,7 +138,7 @@ IF(ENABLE_TESTS)
     SET_TARGET_PROPERTIES(nctrunc PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
       ${CMAKE_CURRENT_BINARY_DIR})
 
-    IF(USE_NETCDF4)
+    IF(USE_HDF5)
       SET_TARGET_PROPERTIES(tst_fileinfo PROPERTIES RUNTIME_OUTPUT_DIRECTORY
         ${CMAKE_CURRENT_BINARY_DIR})
       SET_TARGET_PROPERTIES(tst_fileinfo PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG
@@ -128,7 +146,7 @@ IF(ENABLE_TESTS)
       SET_TARGET_PROPERTIES(tst_fileinfo PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
         ${CMAKE_CURRENT_BINARY_DIR})
 
-  ENDIF(USE_NETCDF4)
+  ENDIF(USE_HDF5)
 ENDIF(MSVC)
 
   # Base tests
@@ -146,11 +164,11 @@ ENDIF(MSVC)
   add_sh_test(ncdump tst_calendars)
   build_bin_test_no_prefix(tst_utf8)
   add_sh_test(ncdump run_utf8_tests)
-  IF(USE_NETCDF4)
+  IF(USE_HDF5)
     add_sh_test(ncdump run_utf8_nc4_tests)
     add_sh_test(ncdump tst_fileinfo)
     add_sh_test(ncdump tst_hdf5_offset)
-  ENDIF(USE_NETCDF4)
+  ENDIF(USE_HDF5)
   add_sh_test(ncdump test_unicode_directory)
 
   add_sh_test(ncdump tst_null_byte_padding)
@@ -180,12 +198,12 @@ ENDIF(MSVC)
 
   add_sh_test(ncdump tst_inmemory_nc3)
   add_sh_test(ncdump tst_nccopy_w3)
-  IF(USE_NETCDF4)
+  IF(USE_HDF5)
       add_sh_test(ncdump tst_inmemory_nc4)
       add_sh_test(ncdump tst_nccopy_w4)
-  ENDIF(USE_NETCDF4)
+  ENDIF(USE_HDF5)
 
-  IF(USE_NETCDF4)
+  IF(USE_HDF5)
     build_bin_test_no_prefix(tst_create_files)
     build_bin_test_no_prefix(tst_group_data)
     build_bin_test_no_prefix(tst_enum_data)
@@ -237,9 +255,9 @@ ENDIF(MSVC)
     # only ran after ncdump was built.
     ###
     add_sh_test(ncdump run_ncgen_tests)
-    IF(USE_NETCDF4)
+    IF(USE_HDF5)
       add_sh_test(ncdump run_ncgen_nc4_tests)
-    ENDIF(USE_NETCDF4)
+    ENDIF(USE_HDF5)
 
     add_sh_test(ncdump tst_grp_spec)
     add_sh_test(ncdump tst_mud)
@@ -255,18 +273,27 @@ ENDIF(MSVC)
       SET_TESTS_PROPERTIES(ncdump_tst_nccopy5 PROPERTIES RUN_SERIAL TRUE)
     ENDIF(HAVE_BASH)
 
-    IF(USE_NETCDF4)
+    IF(USE_HDF5)
       add_sh_test(ncdump tst_ncgen4)
-    ENDIF(USE_NETCDF4)
+    ENDIF(USE_HDF5)
 
   add_sh_test(ncdump tst_inttags)
-  IF(USE_NETCDF4)
+  IF(USE_HDF5)
     add_sh_test(ncdump tst_inttags4)
-  ENDIF(USE_NETCDF4)
+  ENDIF(USE_HDF5)
 
   add_sh_test(ncdump test_radix)
 
   add_sh_test(ncdump tst_ctests)
+
+  IF(ENABLE_UNFIXED_MEMORY_LEAKS)
+  SET_TESTS_PROPERTIES(ncdump_run_ncgen_nc4_tests.sh ncdump_tst_nccopy4.sh ncdump_tst_ncgen_shared.sh ncdump_tst_netcdf4.sh
+                       PROPERTIES ENVIRONMENT NC_VLEN_NOTEST=1)
+  ENDIF()
+
+  IF(USE_CDF5)
+  add_sh_test(ncdump test_keywords)
+  ENDIF()
 
 ENDIF()
 

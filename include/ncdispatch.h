@@ -55,9 +55,7 @@
 #define T_uint   NC_UINT
 #define T_longlong  NC_INT64
 #define T_ulonglong  NC_UINT64
-#ifdef USE_NETCDF4
 #define T_string NC_STRING
-#endif
 
 /* Synthetic type to handle special memtypes */
 #define T_uchar  NC_UBYTE
@@ -141,6 +139,12 @@ extern int NC_HDF5_finalize(void);
 extern const NC_Dispatch* HDF4_dispatch_table;
 extern int HDF4_initialize(void);
 extern int HDF4_finalize(void);
+#endif
+
+#ifdef ENABLE_NCZARR
+extern const NC_Dispatch* NCZ_dispatch_table;
+extern int NCZ_initialize(void);
+extern int NCZ_finalize(void);
 #endif
 
 /* User-defined formats.*/

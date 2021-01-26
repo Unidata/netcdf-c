@@ -1,0 +1,13 @@
+Options: -ddim1=4 -v '4 v[dim1/2]' -s [0:4|0]
+[r=0] ChunkRange{start=0 stop=2} Slice{0:4|0}
+[0] Projection{id=1,chunkindex=0,first=0,last=1,limit=2,iopos=0,iocount=2,chunkslice=Slice{0:2|2},memslice=Slice{0:2|4}
+[1] Projection{id=2,chunkindex=1,first=0,last=1,limit=2,iopos=2,iocount=2,chunkslice=Slice{0:2|2},memslice=Slice{2:4|4}
+Options: -ddim1=6 -v '4 v[dim1/3]' -s [0:5|0]
+[r=0] ChunkRange{start=0 stop=2} Slice{0:5|0}
+[0] Projection{id=1,chunkindex=0,first=0,last=2,limit=3,iopos=0,iocount=3,chunkslice=Slice{0:3|3},memslice=Slice{0:3|6}
+[1] Projection{id=2,chunkindex=1,first=0,last=1,limit=2,iopos=3,iocount=2,chunkslice=Slice{0:2|3},memslice=Slice{3:5|6}
+Options: -ddim1=4 -ddim2=2 -v '4 v[dim1/2,dim2/2]' -s [2:3|0][0:2|0]
+[r=0] ChunkRange{start=1 stop=2} Slice{2:3|0}
+[0] Projection{id=1,chunkindex=1,first=0,last=0,limit=1,iopos=0,iocount=1,chunkslice=Slice{0:1|2},memslice=Slice{0:1|4}
+[r=1] ChunkRange{start=0 stop=1} Slice{0:2|0}
+[0] Projection{id=2,chunkindex=0,first=0,last=1,limit=2,iopos=0,iocount=2,chunkslice=Slice{0:2|2},memslice=Slice{0:2|2}

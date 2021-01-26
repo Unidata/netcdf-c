@@ -25,7 +25,7 @@
 #endif
     
 #include "netcdf.h"
-#include "ncwinpath.h"
+#include "ncpathmgr.h"
 
 #include "generic.h"
 #include "ncgen.h"

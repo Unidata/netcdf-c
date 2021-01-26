@@ -24,7 +24,7 @@
 #include "ncbytes.h"
 #include "nclist.h"
 #include "nclog.h"
-#include "ncwinpath.h"
+#include "ncpathmgr.h"
 
 extern int mkstemp(char *template);
 
@@ -303,7 +303,7 @@ NC_getmodelist(const char* path, NClist** modelistp)
 
     /* Get the mode= arg from the fragment */
     modelist = nclistnew();    
-    modestr = ncurilookup(uri,"mode");
+    modestr = ncurifragmentlookup(uri,"mode");
     if(modestr == NULL || strlen(modestr) == 0) goto done;
     /* Parse the mode string at the commas or EOL */
     p = modestr;
@@ -351,3 +351,22 @@ done:
     nclistfreeall(modelist);
     return found;
 }
+
+#ifdef __APPLE__
+int isinf(double x)
+{
+    union { unsigned long long u; double f; } ieee754;
+    ieee754.f = x;
+    return ( (unsigned)(ieee754.u >> 32) & 0x7fffffff ) == 0x7ff00000 &&
+           ( (unsigned)ieee754.u == 0 );
+}
+
+int isnan(double x)
+{
+    union { unsigned long long u; double f; } ieee754;
+    ieee754.f = x;
+    return ( (unsigned)(ieee754.u >> 32) & 0x7fffffff ) +
+           ( (unsigned)ieee754.u != 0 ) > 0x7ff00000;
+}
+
+#endif /*APPLE*/

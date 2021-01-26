@@ -4,7 +4,6 @@
  *********************************************************************/
 
 #include "includes.h"
-#include "nc_iter.h"
 #include "nclog.h"
 
 #ifdef ENABLE_BINARY

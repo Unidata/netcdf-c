@@ -12,6 +12,8 @@ Test the netcdf-4 data building process.
 #include <stdio.h>
 #include "netcdf.h"
 
+#undef DEBUG
+
 static void
 fail(int code)
 {
@@ -37,10 +39,17 @@ main(int argc, char** argv)
     }
 
     /* build the url */
-    snprintf(url,sizeof(url),"file://%s#dap4&debug=copy&substratename=%s",argv[0],argv[1]);
+    snprintf(url,sizeof(url),"file://%s#dap4&debug=copy",argv[0]);
+    if(argc >= 3) {
+        strlcat(url,"&substratename=",sizeof(url));
+	strlcat(url,argv[1],sizeof(url));
+    }
+#ifdef DEBUG
+    strlcat(url,"&log",sizeof(url));
+#endif
 
 #ifdef DEBUG
-    fprintf(stderr,"t_dmrbuild %s -> %s\n",url,outfile);
+    fprintf(stderr,"test_data url=%s\n",url);
 #endif
   
     /* Use the open/close mechanism */
