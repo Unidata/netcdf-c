@@ -58,6 +58,7 @@ zarr.h \
 zcache.h \
 zchunking.h \
 zdispatch.h \
+ztracedispatch.h \
 zincludes.h \
 zinternal.h \
 zjson.h \

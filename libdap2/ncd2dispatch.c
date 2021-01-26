@@ -189,9 +189,8 @@ NCD2_initialize(void)
     ncd2initialized = 1;
 #ifdef DEBUG
     /* force logging to go to stderr */
-    nclogclose();
-    if(nclogopen(NULL))
-        ncsetlogging(1); /* turn it on */
+    ncsetlogging(1); /* turn it on */
+    nclogopen(NULL))
 #endif
     return NC_NOERR;
 }
@@ -416,12 +415,8 @@ fprintf(stderr,"ce=%s\n",dumpconstraint(dapcomm->oc.dapconstraint));
 
     /* Turn on logging; only do this after oc_open*/
     if((value = dapparamvalue(dapcomm,"log")) != NULL) {
-	ncloginit();
-        if(nclogopen(value))
-	    ncsetlogging(1);
-	ncloginit();
-        if(nclogopen(value))
-	    ncsetlogging(1);
+        ncsetlogging(1);
+        nclogopen(NULL);
     }
 
     /* fetch and build the unconstrained DDS for use as
@@ -824,13 +819,13 @@ fprintf(stderr,"\n");
 			if(val) free(val);
 			nclistpush(unsignedatt->values,strdup("false"));
 		    } else if(att->etype != var->etype) {/* other mismatches */
-			/* Log a message */
-	                nclog(NCLOGWARN,"_FillValue/Variable type mismatch: variable=%s",var->ncbasename);
 			/* See if mismatch is allowed */
 			if(FLAGSET(dapcomm->controls,NCF_FILLMISMATCH)) {
 			    /* Forcibly change the attribute type to match */
 			    att->etype = var->etype;
 			} else {
+	  		    /* Log a message */
+	                    nclog(NCLOGWARN,"_FillValue/Variable type mismatch: variable=%s",var->ncbasename);
 			    ncstat = NC_EBADTYPE; /* fail */
 			    goto done;
 			}

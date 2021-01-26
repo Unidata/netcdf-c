@@ -1,6 +1,19 @@
 #!/bin/sh
 
+
 export SETX=1
+
+# Note that this test builds a special results.<pid> directory in
+# which to run the tests, where <pid> is the process id number of
+# the bash shell instance.  The reason for doing this is so that
+# it works correctly under Github actions. By empirical
+# observation, it appears that the various workflow matrix
+# elements are not running in isolation when using cmake.  Rather
+# they appear to be running simultaneously while sharing the build
+# directory for cmake.  By running the tests in a separate
+# results.<pid> I can guarantee that isolation is preserved.
+
+
 
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
@@ -10,6 +23,17 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 set -e
 
 TC="${execdir}/tst_chunkcases -4"
+ZM="${execdir}/zmapio -t int"
+
+remfile() {
+  case "$zext" in
+  nc4) rm -fr $1 ;;
+  nz4) rm -fr $1 ;;
+  nzf) rm -fr $1 ;;
+  s3) ;;
+  *) echo "no such extension: $zext" ; exit 1;;
+  esac
+}
 
 remfile() {
   case "$zext" in
@@ -48,6 +72,7 @@ echo "XFAIL: wholechunk with bad -f"
 fi
 remfile $file
 if ! $TC -d 8,8 -c 4,4 -f 4,4 -e 1,4 -X w -OWw $F  >> tmp_err_${zext}.txt ; then
+
 echo "XFAIL: wholechunk with bad -e"
 fi
 remfile $file
@@ -71,12 +96,14 @@ diff -b ${srcdir}/ref_skip.cdl tmp_skip_${zext}.cdl
 echo "Test chunk skipping during write"
 makefile tmp_skipw
 rm -f tmp_skipw_${zext}.cdl
+
 $TC -d 6,6 -s 5,5 -p 6,6 -Ow $F
 ${NCDUMP} $F > tmp_skipw_${zext}.cdl
 diff -b ${srcdir}/ref_skipw.cdl tmp_skipw_${zext}.cdl
 
 echo "Test dimlen % chunklen != 0"
 makefile tmp_rem
+
 rm -f tmp_rem_${zext}.txt tmp_rem_${zext}.cdl
 $TC -d 8,8 -c 3,3 -Ow $F
 ${NCDUMP} $F > tmp_rem_${zext}.cdl

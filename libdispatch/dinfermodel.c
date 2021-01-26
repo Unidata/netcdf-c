@@ -975,7 +975,7 @@ check_file_type(const char *path, int omode, int use_parallel,
     /* Look at the magic number */
     if(NC_interpret_magic_number(magic,model) == NC_NOERR
 	&& model->format != 0) {
-        if (model->format == NC_FORMAT_NC3 && use_parallel)
+        if (use_parallel && (model->format == NC_FORMAT_NC3 || model->impl == NC_FORMATX_NC3))
             /* this is called from nc_open_par() and file is classic */
             model->impl = NC_FORMATX_PNETCDF;
         goto done; /* found something */
