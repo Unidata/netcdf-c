@@ -41,7 +41,6 @@ IF(ENABLE_TESTS)
   BUILD_BIN_TEST(tst_zchunks2 ${COMMONSRC})
   BUILD_BIN_TEST(tst_zchunks3 ${COMMONSRC})
   BUILD_BIN_TEST(tst_fillonlyz)
-  BUILD_BIN_TEST(tst_chunkcases ${TSTCOMMONSRC})
 
   TARGET_INCLUDE_DIRECTORIES(ut_map PUBLIC ../libnczarr)
   TARGET_INCLUDE_DIRECTORIES(ut_mapapi PUBLIC ../libnczarr)
@@ -51,7 +50,6 @@ IF(ENABLE_TESTS)
   TARGET_INCLUDE_DIRECTORIES(tst_zchunks PUBLIC ../libnczarr)
   TARGET_INCLUDE_DIRECTORIES(tst_zchunks2 PUBLIC ../libnczarr)
   TARGET_INCLUDE_DIRECTORIES(tst_zchunks3 PUBLIC ../libnczarr)
-  TARGET_INCLUDE_DIRECTORIES(tst_chunkcases PUBLIC ../libnczarr)
 
   # Helper programs for testing
   BUILD_BIN_TEST(zmapio ${COMMONSRC})
@@ -81,6 +79,8 @@ IF(ENABLE_TESTS)
     add_sh_test(nczarr_test run_ncgen4)
 
     IF(FALSE) # Suppress for now
+      BUILD_BIN_TEST(tst_chunkcases ${TSTCOMMONSRC})
+      TARGET_INCLUDE_DIRECTORIES(tst_chunkcases PUBLIC ../libnczarr)
       add_sh_test(nczarr_test run_chunkcases)
     ENDIF()
 
