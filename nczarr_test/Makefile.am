@@ -50,9 +50,12 @@ endif
 
 TESTS += run_ncgen4.sh
 
+# Temporarily disable
+if AX_IGNORE
 check_PROGRAMS += tst_chunkcases
 tst_chunkcases_SOURCES = tst_chunkcases.c ${tstcommonsrc}
 TESTS += run_chunkcases.sh
+endif
 
 endif
 
