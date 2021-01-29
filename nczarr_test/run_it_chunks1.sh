@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Run (tst_chunks,tst_chunks2) X (nzf,nc4,s3)
+# Run (tst_chunks,tst_chunks2) X (file,zip,s3)
 
 
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
@@ -19,9 +19,10 @@ ${execdir}/tst_chunks -e $1 $CLOUD
 ${execdir}/tst_chunks2 -e $1 $CLOUD
 }
 
-ittest nzf
-if test "xFEATURE_HDF5" = xyes ; then ittest nz4; fi
-if test "x$FEATURE_S3TESTS" = xyes ; then ittest s3 'https://stratus.ucar.edu/unidata-netcdf-zarr-testing'; fi
+ittest file
+if test "x$FEATURE_NCZARR_ZIP" = xyes ; then ittest zip; fi
+if test "x$FEATURE_S3TESTS" = xyes ; then ittest s3 "${NCZARR_S3_TEST_URL}/netcdf-c'; fi
 }
+
 
 

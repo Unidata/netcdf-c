@@ -76,9 +76,6 @@ ncz_create_dataset(NC_FILE_INFO_T* file, NC_GRP_INFO_T* root, const char** contr
     if((stat = nczmap_create(zinfo->features.mapimpl,nc->path,nc->mode,zinfo->features.flags,NULL,&zinfo->map)))
 	goto done;
 
-    /* Create super block (NCZMETAROOT) */
-    if((stat = ncz_create_superblock(zinfo))) goto done;
-
 done:
     ncurifree(uri);
     NCJreclaim(json);
@@ -386,14 +383,9 @@ applycontrols(NCZ_FILE_INFO_T* zinfo)
     for(i=0;i<nclistlength(modelist);i++) {
         const char* p = nclistget(modelist,i);
 	if(strcasecmp(p,PUREZARR)==0) zinfo->features.flags |= FLAG_PUREZARR;
-	else if(strcasecmp(p,"bytes")==0) zinfo->features.flags |= FLAG_BYTERANGE;
+	else if(strcasecmp(p,"zip")==0) zinfo->features.mapimpl = NCZM_ZIP;
+	else if(strcasecmp(p,"file")==0) zinfo->features.mapimpl = NCZM_FILE;
 	else if(strcasecmp(p,"s3")==0) zinfo->features.mapimpl = NCZM_S3;
-	else if(strcasecmp(p,"nz4")==0) zinfo->features.mapimpl = NCZM_NC4;
-	else if(strcasecmp(p,"nzf")==0) zinfo->features.mapimpl = NCZM_FILE;
-	else if(strcasecmp(p,"nzrf")==0)
-	    {zinfo->features.mapimpl = NCZM_FILE; zinfo->features.flags |= FLAG_BYTERANGE;}
-	else if(strcasecmp(p,"nzr4")==0)
-	    {zinfo->features.mapimpl = NCZM_NC4; zinfo->features.flags |= FLAG_BYTERANGE;}
     }
     /* Process other controls */
     if((value = controllookup((const char**)zinfo->controls,"log")) != NULL) {

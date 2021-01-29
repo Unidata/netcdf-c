@@ -32,7 +32,7 @@ extern int NCZ_stringconvert1(nc_type typid, char* src, char** strp);
 extern int NCZ_stringconvert(nc_type typid, size_t len, void* data0, NCjson** jdatap);
 
 /* zsync.c */
-extern int ncz_sync_file(NC_FILE_INFO_T* file);
+extern int ncz_sync_file(NC_FILE_INFO_T* file, int isclose);
 extern int ncz_sync_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp);
 extern int ncz_sync_atts(NC_FILE_INFO_T*, NC_OBJ* container, NCindex* attlist);
 extern int ncz_read_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp);
@@ -64,6 +64,9 @@ extern int NCZ_swapatomicdata(size_t datalen, void* data, int typesize);
 extern char** NCZ_clonestringvec(size_t len, const char** vec);
 extern void NCZ_freestringvec(size_t len, char** vec);
 extern int NCZ_create_fill_chunk(size64_t chunksize, size_t typesize, void* fill, void** fillchunkp);
+extern int NCZ_s3clear(ZS3INFO* s3);
+/* Export */
+EXTERNL int NCZ_s3urlprocess(NCURI* url, ZS3INFO* s3);
 
 /* zwalk.c */
 EXTERNL int NCZ_read_chunk(int ncid, int varid, size64_t* zindices, void* chunkdata);

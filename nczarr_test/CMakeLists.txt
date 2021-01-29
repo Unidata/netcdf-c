@@ -40,7 +40,7 @@ IF(ENABLE_TESTS)
   BUILD_BIN_TEST(tst_zchunks ${COMMONSRC})
   BUILD_BIN_TEST(tst_zchunks2 ${COMMONSRC})
   BUILD_BIN_TEST(tst_zchunks3 ${COMMONSRC})
-  BUILD_BIN_TEST(tst_fillonlyz)
+  BUILD_BIN_TEST(tst_fillonlyz ${TSTCOMMONSRC})
 
   TARGET_INCLUDE_DIRECTORIES(ut_map PUBLIC ../libnczarr)
   TARGET_INCLUDE_DIRECTORIES(ut_mapapi PUBLIC ../libnczarr)
@@ -50,6 +50,7 @@ IF(ENABLE_TESTS)
   TARGET_INCLUDE_DIRECTORIES(tst_zchunks PUBLIC ../libnczarr)
   TARGET_INCLUDE_DIRECTORIES(tst_zchunks2 PUBLIC ../libnczarr)
   TARGET_INCLUDE_DIRECTORIES(tst_zchunks3 PUBLIC ../libnczarr)
+  TARGET_INCLUDE_DIRECTORIES(tst_fillonlyz PUBLIC ../libnczarr)
 
   # Helper programs for testing
   BUILD_BIN_TEST(zmapio ${COMMONSRC})
@@ -59,6 +60,10 @@ IF(ENABLE_TESTS)
   TARGET_INCLUDE_DIRECTORIES(zisjson PUBLIC ../libnczarr)
   BUILD_BIN_TEST(zs3parse ${COMMONSRC})
   TARGET_INCLUDE_DIRECTORIES(zs3parse PUBLIC ../libnczarr)
+  if(ENABLE_NCZARR_S3)
+      BUILD_BIN_TEST(s3util ${COMMONSRC})
+      TARGET_INCLUDE_DIRECTORIES(s3util PUBLIC ../libnczarr)
+  endif()
   
   SET(ncdumpchunks_SOURCE ncdumpchunks.c)
   IF(USE_X_GETOPT)
@@ -78,12 +83,13 @@ IF(ENABLE_TESTS)
     ENDIF()
     add_sh_test(nczarr_test run_ncgen4)
 
-    IF(FALSE) # Suppress for now
       BUILD_BIN_TEST(tst_chunkcases ${TSTCOMMONSRC})
       TARGET_INCLUDE_DIRECTORIES(tst_chunkcases PUBLIC ../libnczarr)
       add_sh_test(nczarr_test run_chunkcases)
-    ENDIF()
 
+    if(ENABLE_NCZARR_S3)
+	add_sh_test(nczarr_test run_s3_cleanup)
+    ENDIF()
   ENDIF(BUILD_UTILITIES)
 
 ENDIF(ENABLE_TESTS)

@@ -30,6 +30,7 @@ static int simpledelete(void);
 static int writemeta(void);
 static int writemeta2(void);
 static int readmeta(void);
+static int readmeta2(void);
 static int writedata(void);
 static int readdata(void);
 static int search(void);
@@ -40,6 +41,7 @@ struct Test tests[] = {
 {"writemeta", writemeta},
 {"writemeta2", writemeta2},
 {"readmeta", readmeta},
+{"readmeta2", readmeta2},
 {"writedata", writedata},
 {"readdata", readdata},
 {"search", search},
@@ -77,13 +79,14 @@ simplecreate(void)
 
     if((stat=nczm_concat(NULL,NCZMETAROOT,&path)))
 	goto done;
-    if((stat = nczmap_defineobj(map, path)))
+
+    /* Write empty metadata content */
+    if((stat = nczmap_write(map, path, 0, 0, (const void*)"")))
 	goto done;
 
-    /* Do not delete so we can look at it with ncdump */
-    if((stat = nczmap_close(map,0)))
-	goto done;
 done:
+    /* Do not delete so we can look at it with ncdump */
+    stat = nczmap_close(map,0);
     nullfree(path);
     return THROW(stat);
 }
@@ -111,18 +114,10 @@ writemeta(void)
     NCZMAP* map = NULL;
     char* path = NULL;
 
-    if((stat = nczmap_create(impl,url,0,0,NULL,&map)))
+    if((stat = nczmap_open(impl,url,NC_WRITE,0,NULL,&map)))
 	goto done;
-
-    if((stat=nczm_concat(NULL,NCZMETAROOT,&path)))
-	goto done;
-    if((stat = nczmap_defineobj(map, path)))
-	goto done;
-    free(path); path = NULL;
 
     if((stat=nczm_concat(META1,ZARRAY,&path)))
-	goto done;
-    if((stat = nczmap_defineobj(map, path)))
 	goto done;
     if((stat = nczmap_write(map, path, 0, strlen(metadata1), metadata1)))
 	goto done;
@@ -147,8 +142,6 @@ writemeta2(void)
 
     if((stat=nczm_concat(META2,NCZVAR,&path)))
 	goto done;
-    if((stat = nczmap_defineobj(map,path)))
-	goto done;
     if((stat = nczmap_write(map, path, 0, strlen(metadata2), metadata2)))
 	goto done;
 
@@ -160,18 +153,14 @@ done:
 }
 
 static int
-readmeta(void)
+readkey(NCZMAP* map, const char* prefix, const char* object)
 {
     int stat = NC_NOERR;
-    NCZMAP* map = NULL;
     char* path = NULL;
     size64_t olen;
     char* content = NULL;
 
-    if((stat = nczmap_open(impl,url,0,0,NULL,&map)))
-	goto done;
-
-    if((stat=nczm_concat(META1,ZARRAY,&path)))
+    if((stat=nczm_concat(prefix,object,&path)))
 	goto done;
 
     /* Get length */
@@ -191,9 +180,41 @@ readmeta(void)
     printf("%s: |%s|\n",path,content);
 
 done:
-    (void)nczmap_close(map,0);
     nullfree(content);
     nullfree(path);
+    return THROW(stat);
+}
+
+static int
+readmeta(void)
+{
+    int stat = NC_NOERR;
+    NCZMAP* map = NULL;
+
+    if((stat = nczmap_open(impl,url,0,0,NULL,&map)))
+	goto done;
+
+    if((stat = readkey(map,META1,ZARRAY))) goto done;
+
+done:
+    (void)nczmap_close(map,0);
+    return THROW(stat);
+}
+
+static int
+readmeta2(void)
+{
+    int stat = NC_NOERR;
+    NCZMAP* map = NULL;
+
+    if((stat = nczmap_open(impl,url,0,0,NULL,&map)))
+	goto done;
+
+    if((stat = readkey(map,META2,NCZVAR)))
+        goto done;
+
+done:
+    (void)nczmap_close(map,0);
     return THROW(stat);
 }
 
@@ -207,6 +228,7 @@ writedata(void)
     int i;
     size64_t totallen;
     char* data1p = (char*)&data1[0]; /* byte level version of data1 */
+    NCZM_PROPERTIES props;
 
     /* Create the data */
     for(i=0;i<DATA1LEN;i++) data1[i] = i;
@@ -219,21 +241,23 @@ writedata(void)
     if((stat=nczm_concat(DATA1,"0",&path)))
 	goto done;
 
-    if((stat = nczmap_defineobj(map,path)))
-	goto done;
-
-    /* Write in 3 slices */
-    for(i=0;i<3;i++) {
-        size64_t start, count, third, last;
-	third = (totallen+2) / 3; /* round up */
-        start = i * third;
-	last = start + third;
-	if(last > totallen) 
-	    last = totallen;
-	count = last - start;
-        
-	if((stat = nczmap_write(map, path, start, count, &data1p[start])))
-	     goto done;
+    props = nczmap_properties(impl);
+    if((NCZM_ZEROSTART & props) || (NCZM_WRITEONCE & props)) {
+	if((stat = nczmap_write(map, path, 0, totallen, data1p)))
+	    goto done;
+    } else {
+        /* Write in 3 slices */
+        for(i=0;i<3;i++) {
+            size64_t start, count, third, last;
+	    third = (totallen+2) / 3; /* round up */
+            start = i * third;
+	    last = start + third;
+	    if(last > totallen) 
+	        last = totallen;
+  	    count = last - start;
+	    if((stat = nczmap_write(map, path, start, count, &data1p[start])))
+	        goto done;
+	}
     }
 
 done:
@@ -299,28 +323,41 @@ done:
 }
 
 static int
-searchR(NCZMAP* map, int depth, const char* prefix, NClist* objects)
+searchR(NCZMAP* map, int depth, const char* prefix0, NClist* objects)
 {
     int i,stat = NC_NOERR;
     NClist* matches = nclistnew();
+    char prefix[4096]; /* only ok because we know testdata */
+    size_t prefixlen;
     
-    /* add this prefix to object list */
-    nclistpush(objects,strdup(prefix));
-    /* get next level object keys **below** the prefix */
+    nclistpush(objects,strdup(prefix0));
+
+    prefix[0] = '\0';
+    strlcat(prefix,prefix0,sizeof(prefix));
+    prefixlen = strlen(prefix);
+
+    /* get next level object keys **below** the prefix: should have form: <name> */
     switch (stat = nczmap_search(map, prefix, matches)) {
     case NC_NOERR: break;
     case NC_ENOTFOUND: stat = NC_NOERR; break;/* prefix is not a dir */
     default: goto done;
     }
+    /* recurse */
     for(i=0;i<nclistlength(matches);i++) {
 	const char* key = nclistget(matches,i);
-        if((stat = searchR(map,depth+1,key,objects))) goto done;
+	/* ensure trailing '/' */
+        if(prefix[prefixlen-1] != '/')
+	    strlcat(prefix,"/",sizeof(prefix));
+	strlcat(prefix,key,sizeof(prefix));
+        if((stat = searchR(map,depth+1,prefix,objects))) goto done;
+	/* restore prefix */
+	prefix[prefixlen] = '\0';
 	if(stat != NC_NOERR)
 	    goto done;
     }
 done:
     nclistfreeall(matches);
-    return stat;
+    return THROW(stat);
 }
 
 static int
