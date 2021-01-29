@@ -25,7 +25,6 @@ zinternal.c
 zjson.c
 zmap.c
 zmap_file.c
-zmap_zip.c
 zodom.c
 zopen.c
 zprov.c
@@ -47,6 +46,10 @@ zodom.h
 zprovenance.h
 zdebug.h
 )
+
+IF(ENABLE_NCZARR_ZIP)
+SET(libnczarr_SOURCES ${libnczarr_SOURCES} zmap_zip.c)
+ENDIF()
 
 IF(ENABLE_S3_SDK) 
 SET(libnczarr_SOURCES ${libnczarr_SOURCES} zs3sdk.cpp zmap_s3sdk.c awsincludes.h zs3sdk.h)
