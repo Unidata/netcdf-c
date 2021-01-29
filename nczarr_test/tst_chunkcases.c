@@ -2,18 +2,13 @@
 #include "config.h"
 #endif
 #include <stdlib.h>
+#ifdef HAVE_CONFIG_H
 #include <stdio.h>
+#endif
 #include <string.h>
 #include <netcdf.h>
 #include <ncpathmgr.h>
 #include <nclist.h>
-
-#ifdef HAVE_GETOPT_H
-#include <getopt.h>
-#endif
-#ifdef _WIN32
-#include "XGetopt.h"
-#endif
 
 #ifdef HAVE_HDF5_H
 #include <hdf5.h>

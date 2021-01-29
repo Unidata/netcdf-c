@@ -65,6 +65,8 @@ NCJ_INT, /*NC_INT64*/
 NCJ_INT, /*NC_UINT64*/
 };
 
+/* Forward */
+static int endswith(const char* s, const char* suffix);
 
 /**************************************************/
 
@@ -214,24 +216,6 @@ done:
 }
 
 /**
-@internal  Create a specified object exists; do nothing if already exists.
-@param zmap - [in] controlling zarr map
-@param key - [in] .z... object to create
-
-@return NC_NOERR
-@author Dennis Heimbigner
-*/
-int
-NCZ_createobject(NCZMAP* zmap, const char* key, size64_t size)
-{
-    int stat = NC_NOERR;
-
-    /* create the target */
-    stat = nczmap_defineobj(zmap, key);
-    return stat;
-}
-
-/**
 @internal  Upload a modified json tree to a .z... structure.
 @param zmap - [in] controlling zarr map
 @param key - [in] .z... object to load
@@ -244,24 +228,24 @@ NCZ_uploadjson(NCZMAP* zmap, const char* key, NCjson* json)
 {
     int stat = NC_NOERR;
     char* content = NULL;
+
+    ZTRACE(4,"zmap=%p key=%s",zmap,key);
+
 #ifdef DEBUG
 fprintf(stderr,"uploadjson: %s\n",key); fflush(stderr);
 #endif
     /* Unparse the modified json tree */
     if((stat = NCJunparse(json,0,&content)))
 	goto done;
-
-    /* create the target */
-    if((stat = nczmap_defineobj(zmap, key)))
-	goto done;
-
+    ZTRACEMORE(4,"\tjson=%s",content);
+    
     /* Write the metadata */
     if((stat = nczmap_write(zmap, key, 0, strlen(content), content)))
 	goto done;
 
 done:
     nullfree(content);
-    return stat;
+    return ZUNTRACE(stat);
 }
 
 #if 0
@@ -473,30 +457,30 @@ NCZ_subobjects(NCZMAP* map, const char* prefix, const char* tag, NClist* objlist
     NClist* matches = nclistnew();
     NCbytes* path = ncbytesnew();
 
-    /* Get the list of object keys just below prefix */
+    /* Get the list of names just below prefix */
     if((stat = nczmap_search(map,prefix,matches))) goto done;
     for(i=0;i<nclistlength(matches);i++) {
 	const char* p;
-	const char* key = nclistget(matches,i);
-	size_t keylen = strlen(key);	
+	const char* name = nclistget(matches,i);
+	size_t namelen= strlen(name);	
 	/* Ignore keys that start with .z or .nc or a potential chunk name */
-	if(keylen >= 3 && key[0] == '.' && key[1] == 'n' && key[2] == 'c')
+	if(namelen >= 3 && name[0] == '.' && name[1] == 'n' && name[2] == 'c')
 	    continue;
-	if(keylen >= 2 && key[0] == '.' && key[1] == 'z')
+	if(namelen >= 2 && name[0] == '.' && name[1] == 'z')
 	    continue;
-	for(p=key;*p;p++) {
+	for(p=name;*p;p++) {
 	    if(*p != '.' && strchr("0123456789",*p) == NULL) break;
 	}
 	if(*p == '\0') continue; /* looks like a chunk name */
-	/* Create <prefix>/<key>/<tag> and see if it exists */
+	/* Create <prefix>/<name>/<tag> and see if it exists */
 	ncbytesclear(path);
 	ncbytescat(path,prefix);
 	ncbytescat(path,"/");
-	ncbytescat(path,key);
+	ncbytescat(path,name);
 	ncbytescat(path,tag);
 	/* See if this object exists */
         if((stat = nczmap_exists(map,ncbytescontents(path))) == NC_NOERR)
-	    nclistpush(objlist,key);
+	    nclistpush(objlist,name);
     }
 
 done:
@@ -777,3 +761,120 @@ NCZ_create_fill_chunk(size64_t chunksize, size_t typesize, void* fill, void** fi
     return NC_NOERR;
 }
     
+/**************************************************/
+/* S3 utilities */
+
+EXTERNL int
+NCZ_s3urlprocess(NCURI* url, ZS3INFO* s3)
+{
+    int stat = NC_NOERR;
+    NClist* segments = NULL;
+    NCbytes* buf = ncbytesnew();
+
+    if(url == NULL)
+        {stat = NC_EURL; goto done;}
+    /* do some verification */
+    if(strcmp(url->protocol,"https") != 0)
+        {stat = NC_EURL; goto done;}
+
+    /* Path better look absolute */
+    if(!nczm_isabsolutepath(url->path))
+    	{stat = NC_EURL; goto done;}
+
+    /* Distinguish path-style from virtual-host style from other:
+       Virtual: https://bucket-name.s3.Region.amazonaws.com/<root>
+       Path: https://s3.Region.amazonaws.com/bucket-name/<root>
+       Other: https://<host>/bucketname/<root>
+    */
+    if(url->host == NULL || strlen(url->host) == 0)
+        {stat = NC_EURL; goto done;}
+    if(endswith(url->host,AWSHOST)) { /* Virtual or path */
+        segments = nclistnew();
+        /* split the hostname by "." */
+        if((stat = nczm_split_delim(url->host,'.',segments))) goto done;
+	switch (nclistlength(segments)) {
+	default: stat = NC_EURL; goto done;
+	case 4:
+            if(strcasecmp(nclistget(segments,0),"s3")!=0)
+	        {stat = NC_EURL; goto done;}
+	    s3->urlformat = UF_PATH; 
+	    s3->region = strdup(nclistget(segments,1));
+	    break;
+	case 5:
+            if(strcasecmp(nclistget(segments,1),"s3")!=0)
+	        {stat = NC_EURL; goto done;}
+	    s3->urlformat = UF_VIRTUAL;
+	    s3->region = strdup(nclistget(segments,2));
+    	    s3->bucket = strdup(nclistget(segments,0));
+	    break;
+	}
+	/* Rebuild host to look like path-style */
+	ncbytescat(buf,"s3.");
+	ncbytescat(buf,s3->region);
+	ncbytescat(buf,AWSHOST);
+        s3->host = ncbytesextract(buf);
+    } else {
+        s3->urlformat = UF_OTHER;
+        if((s3->host = strdup(url->host))==NULL)
+	    {stat = NC_ENOMEM; goto done;}
+    }
+    /* Do fixups to make everything look like it was path style */
+    switch (s3->urlformat) {
+    case UF_PATH:
+    case UF_OTHER:
+	/* We have to process the path to get the bucket, and remove it in the path */
+	if(url->path != NULL && strlen(url->path) > 0) {
+            /* split the path by "/"  */
+   	    nclistfreeall(segments);
+	    segments = nclistnew();
+            if((stat = nczm_split_delim(url->path,'/',segments))) goto done;
+	    if(nclistlength(segments) == 0)
+	    	{stat = NC_EURL; goto done;}
+	    s3->bucket = ((char*)nclistremove(segments,0));
+	    if(nclistlength(segments) > 0) {
+	        if((stat = nczm_join(segments,&s3->rootkey))) goto done;
+	    } else
+	    	s3->rootkey = NULL;
+	    nclistfreeall(segments); segments = NULL;
+	}
+	break;
+    case UF_VIRTUAL:
+	if(url->path == NULL || strlen(url->path) == 0)
+	    s3->rootkey = NULL;
+        else
+	    s3->rootkey = strdup(url->path);
+	break;
+    default: stat = NC_EURL; goto done;
+    }
+    
+done:
+    ncbytesfree(buf);
+    nclistfreeall(segments);
+    return stat;
+}
+
+int
+NCZ_s3clear(ZS3INFO* s3)
+{
+    if(s3) {
+	nullfree(s3->host);
+	nullfree(s3->region);
+	nullfree(s3->bucket);
+	nullfree(s3->rootkey);
+    }
+    return NC_NOERR;
+}
+
+static int
+endswith(const char* s, const char* suffix)
+{
+    ssize_t ls, lsf, delta;
+    if(s == NULL || suffix == NULL) return 0;
+    ls = strlen(s);
+    lsf = strlen(suffix);
+    delta = (ls - lsf);
+    if(delta < 0) return 0;
+    if(memcmp(s+delta,suffix,lsf)!=0) return 0;
+    return 1;
+}
+

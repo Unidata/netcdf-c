@@ -416,7 +416,7 @@ odom_printshort(Odometer* odom)
     return odom_print1(odom,1);
 }
 
-static const char* urlexts[] = {"nzf", "nz4", NULL};
+static const char* urlexts[] = {"nzf", "zip", "nz4", NULL};
 
 const char*
 filenamefor(const char* f0)
@@ -442,4 +442,26 @@ filenamefor(const char* f0)
     strcat(result,*extp);
 done:
     return result;
+}
+
+static char s3testurl[8192];
+static char* s3testurlp = NULL;
+
+const char*
+ncz_gets3testurl(void)
+{
+    char* s;
+    if(s3testurlp == NULL) {
+	s3testurl[0] = '\0';
+	strcat(s3testurl,"https://");
+        s = getenv("NCZARR_S3_TEST_HOST");
+	if(s == NULL) s = "stratus.ucar.edu";
+	strcat(s3testurl,s);
+	strcat(s3testurl,"/");
+        s = getenv("NCZARR_S3_TEST_BUCKET");
+	if(s == NULL) s = "unidata-netcdf-zarr-testing";
+	strcat(s3testurl,s);
+	s3testurlp = s3testurl;
+    }
+    return s3testurlp;
 }

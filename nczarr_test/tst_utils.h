@@ -76,6 +76,8 @@ EXTERNL void cleanup(void);
 
 EXTERNL int nc__testurl(const char*,char**);
 
+EXTERNL const char* ncz_gets3testurl(void);
+
 static void
 report(int err, int lineno)
 {

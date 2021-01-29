@@ -26,7 +26,6 @@
 /* Forward */
 static int get_chunk(NCZChunkCache* cache, NCZCacheEntry* entry);
 static int put_chunk(NCZChunkCache* cache, const NCZCacheEntry*);
-static int create_chunk(NCZChunkCache* cache, NCZCacheEntry* entry);
 static int makeroom(NCZChunkCache* cache);
 
 /**************************************************/
@@ -195,6 +194,9 @@ void
 NCZ_free_chunk_cache(NCZChunkCache* cache)
 {
     if(cache == NULL) return;
+
+    ZTRACE(4,"cache.var=%s",cache->var->hdr.name);
+
     /* Iterate over the entries */
     while(nclistlength(cache->mru) > 0) {
 	void* ptr;
@@ -211,6 +213,7 @@ fprintf(stderr,"|cache.free|=%ld\n",nclistlength(cache->mru));
     cache->mru = NULL;
     nullfree(cache->fillchunk);
     nullfree(cache);
+    (void)ZUNTRACE(NC_NOERR);
 }
 
 size64_t
@@ -271,12 +274,8 @@ NCZ_read_cache_chunk(NCZChunkCache* cache, const size64_t* indices, void** datap
 	switch (stat) {
 	case NC_NOERR: break;
 	case NC_EEMPTY:
-	case NC_ENOTFOUND: /*signals the chunk needs to be created */
 	    /* If the file is read-only, then fake the chunk */
-	    entry->modified = (!file->no_write);
-	    if(!file->no_write) {
-                if((stat = create_chunk(cache,entry))) goto done;
-	    }
+	    entry->modified = (file->no_write?0:1);
 #ifdef FILLONREAD
 	    /* apply fill value */
 	    memcpy(entry->data,cache->fillchunk,cache->chunksize);
@@ -295,9 +294,9 @@ fprintf(stderr,"|cache.read.lru|=%ld\n",nclistlength(cache->mru));
 #endif
     if(datap) *datap = entry->data;
     entry = NULL;
-    if(created) stat = NC_ENOTFOUND;
-
+    
 done:
+    if(created && stat == NC_NOERR)  stat = NC_EEMPTY; /* tell upper layers */
     if(entry) {nullfree(entry->data); nullfree(entry->key);}
     nullfree(entry);
     return THROW(stat);
@@ -375,6 +374,8 @@ NCZ_flush_chunk_cache(NCZChunkCache* cache)
     int stat = NC_NOERR;
     size_t i;
 
+    ZTRACE(4,"cache.var=%s |cache|=%d",cache->var->hdr.name,(int)nclistlength(cache->mru));
+
     if(NCZ_cache_size(cache) == 0) goto done;
     
     /* Iterate over the entries in hashmap */
@@ -389,7 +390,7 @@ NCZ_flush_chunk_cache(NCZChunkCache* cache)
     }
 
 done:
-    return THROW(stat);
+    return ZUNTRACE(stat);
 }
 
 #if 0
@@ -478,6 +479,7 @@ put_chunk(NCZChunkCache* cache, const NCZCacheEntry* entry)
     NCZ_FILE_INFO_T* zfile = NULL;
     NCZMAP* map = NULL;
 
+    ZTRACE(5,"cache.var=%s entry.key=%s",cache->var->hdr.name,entry->key);
     LOG((3, "%s: var: %p", __func__, cache->var));
 
     zfile = ((cache->var->container)->nc4_info)->format_file_info;
@@ -485,18 +487,13 @@ put_chunk(NCZChunkCache* cache, const NCZCacheEntry* entry)
 
     stat = nczmap_write(map,entry->key,0,cache->chunksize,entry->data);
     switch(stat) {
-    case NC_NOERR: break;
-    case NC_EEMPTY:
-	/* Create the chunk */
-	if((stat = nczmap_defineobj(map,entry->key))) goto done;
-	/* write again */
-	if((stat = nczmap_write(map,entry->key,0,cache->chunksize,entry->data)))
-	    goto done;
+    case NC_NOERR:
 	break;
+    case NC_EEMPTY:
     default: goto done;
     }
 done:
-    return THROW(stat);
+    return ZUNTRACE(stat);
 }
 
 /**
@@ -517,6 +514,8 @@ get_chunk(NCZChunkCache* cache, NCZCacheEntry* entry)
     NC_FILE_INFO_T* file = NULL;
     NCZ_FILE_INFO_T* zfile = NULL;
 
+    ZTRACE(5,"cache.var=%s entry.key=%s",cache->var->hdr.name,entry->key);
+    
     LOG((3, "%s: file: %p", __func__, file));
 
     file = (cache->var->container)->nc4_info;
@@ -526,29 +525,9 @@ get_chunk(NCZChunkCache* cache, NCZCacheEntry* entry)
 
     stat = nczmap_read(map,entry->key,0,cache->chunksize,(char*)entry->data);
 
-    return THROW(stat);
+    return ZUNTRACE(stat);
 }
 
-static int
-create_chunk(NCZChunkCache* cache, NCZCacheEntry* entry)
-{
-    int stat = NC_NOERR;
-    NC_FILE_INFO_T* file = NULL;
-    NCZ_FILE_INFO_T* zfile = NULL;
-    NCZMAP* map = NULL;
-
-    file = (cache->var->container)->nc4_info;
-    zfile = file->format_file_info;
-    map = zfile->map;
-
-    /* Create the chunk */
-    if((stat = nczmap_defineobj(map,entry->key))) goto done;
-    entry->modified = 1; /* mark as modified */
-    /* let higher function decide on fill */
-
-done:
-    return THROW(stat);
-}
 
 int
 NCZ_buildchunkpath(NCZChunkCache* cache, const size64_t* chunkindices, char** keyp)

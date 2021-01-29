@@ -53,6 +53,9 @@
 
 #define PUREZARR "zarr"
 
+/* Mnemonics */
+#define ZCLOSE    1 /* this is closeorabort as opposed to enddef */
+
 /**************************************************/
 /* Forward */
 
@@ -90,7 +93,6 @@ typedef struct NCZ_FILE_INFO {
 #		define FLAG_PUREZARR  1
 #		define FLAG_SHOWFETCH 2
 #		define FLAG_LOGGING   4
-#		define FLAG_BYTERANGE 8
 	NCZM_IMPL mapimpl;
     } features;
 } NCZ_FILE_INFO_T;
