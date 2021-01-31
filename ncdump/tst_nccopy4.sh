@@ -103,8 +103,14 @@ test "x$STORAGE" = 'xtas:_Storage="chunked";'
 CHUNKSIZES=`cat tmppds.cdl | sed -e '/tas:_ChunkSizes/p' -ed | tr -d '\t \r'`
 test "x$CHUNKSIZES" = 'xtas:_ChunkSizes=10,15,20;'
 
-rm -f tst_chunking.nc tmp.nc tmp.cdl tmp-chunked.nc tmp-chunked.* tmp-unchunked2.*
-rm -fr tst_perdimspecs.nc tmppds.cdl tmppds.nc
+echo "*** Test that nccopy -F var1,none works as intended "
+${NCGEN} -4 -b -o tst_nofilters.nc $srcdir/ref_tst_nofilters.cdl
+${NCCOPY} -M0 -4 -F var1,none -c / tst_nofilters.nc tmp_nofilters.nc
+${NCDUMP} -hs tmp_nofilters.nc > tmp_nofilters.cdl
+STORAGE=`cat tmp_nofilters.cdl | sed -e '/var1:_Storage/p' -ed | tr -d '\t \r'`
+test "x$STORAGE" = 'xvar1:_Storage="contiguous";'
+FILTERS=`cat tmp_nofilters.cdl | sed -e '/var1:_Filters/p' -ed | tr -d '\t \r'`
+test "x$FILTERS" = 'x'
 
 echo "*** All nccopy tests passed!"
 exit 0
