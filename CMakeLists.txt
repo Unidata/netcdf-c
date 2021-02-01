@@ -37,7 +37,7 @@ SET(PACKAGE_VERSION ${VERSION})
 
 # Version of the dispatch table. This must match the value in
 # configure.ac.
-SET(NC_DISPATCH_VERSION 2)
+SET(NC_DISPATCH_VERSION 3)
 
 # Get system configuration, Use it to determine osname, os release, cpu. These
 # will be used when committing to CDash.
@@ -163,8 +163,6 @@ SET(EXTRA_DEPS "")
 # Set CTest Properties
 ################################
 
-
-
 ENABLE_TESTING()
 INCLUDE(CTest)
 
@@ -262,6 +260,7 @@ ENDIF()
 #####
 # System inspection checks
 #####
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}/include)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/include)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/oc2)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/libsrc)
@@ -2176,6 +2175,13 @@ INSTALL(FILES "${netCDF_BINARY_DIR}/libnetcdf.settings"
 configure_file(
   ${netCDF_SOURCE_DIR}/include/netcdf_meta.h.in
   ${netCDF_BINARY_DIR}/include/netcdf_meta.h @ONLY)
+
+#####
+# Create 'netcdf_dispatch.h' include file.
+#####
+configure_file(
+  ${netCDF_SOURCE_DIR}/include/netcdf_dispatch.h.in
+  ${netCDF_BINARY_DIR}/include/netcdf_dispatch.h @ONLY NEWLINE_STYLE LF)
 
 #####
 # Build test_common.sh
