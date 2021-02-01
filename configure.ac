@@ -1667,7 +1667,9 @@ AX_SET_META([NC_HAS_MULTIFILTERS],[$has_multifilters],[yes])
 # applications like PIO can determine whether they have an appropriate
 # dispatch table to submit. If this is changed, make sure the value in
 # CMakeLists.txt also changes to match.
-AC_SUBST([NC_DISPATCH_VERSION], [2])
+
+AC_SUBST([NC_DISPATCH_VERSION], [3])
+AC_DEFINE_UNQUOTED([NC_DISPATCH_VERSION], [${NC_DISPATCH_VERSION}], [Dispatch table version.])
 
 #####
 # End netcdf_meta.h definitions.
@@ -1701,6 +1703,7 @@ AC_CONFIG_FILES([Makefile
                  libnetcdf.settings
                  postinstall.sh
                  include/netcdf_meta.h
+                 include/netcdf_dispatch.h
                  include/Makefile
                  h5_test/Makefile
                  hdf4_test/Makefile

@@ -17,6 +17,9 @@
 #define FALSE 0
 #endif
 
+/* Define an alias for int to indicate an error return */
+typedef int NCerror;
+
 #ifndef nullfree
 #define nullfree(m) {if((m)!=NULL) {free(m);} else {}}
 #endif
