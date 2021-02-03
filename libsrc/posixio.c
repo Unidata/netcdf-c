@@ -27,7 +27,7 @@
 #endif
 
 /* Windows platforms, including MinGW, Cygwin, Visual Studio */
-#if defined(_WIN32) || defined(_WIN64)
+#ifdef _WIN32
 #include <windows.h>
 #include <winbase.h>
 #include <io.h>
@@ -146,7 +146,7 @@ static size_t
 pagesize(void)
 {
   size_t pgsz;
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(_WIN32)
   SYSTEM_INFO info;
 #endif
 /* Hmm, aren't standards great? */
@@ -155,7 +155,7 @@ pagesize(void)
 #endif
 
   /* For MinGW Builds */
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(_WIN32)
   GetSystemInfo(&info);
   pgsz = (size_t)info.dwPageSize;
 #elif defined(_SC_PAGESIZE)

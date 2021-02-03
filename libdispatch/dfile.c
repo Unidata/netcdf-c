@@ -2182,3 +2182,169 @@ nc__pseudofd(void)
     }
     return pseudofd++;
 }
+
+/**
+\internal
+\ingroup datasets
+Provide open, read and close for use when searching for magic numbers
+*/
+static int
+openmagic(struct MagicFile* file)
+{
+    int status = NC_NOERR;
+    assert((!file->diskless && file->inmemory) ? file->parameters != NULL : 1);
+    if(file->inmemory && !file->diskless) {
+	/* Get its length */
+	NC_memio* meminfo = (NC_memio*)file->parameters;
+	file->filelen = (long long)meminfo->size;
+	goto done;
+    }
+#ifdef USE_PARALLEL
+    if (file->use_parallel) {
+	int retval;
+	MPI_Offset size;
+        assert(file->parameters);
+	if((retval = MPI_File_open(((NC_MPI_INFO*)file->parameters)->comm,
+                                   (char*)file->path,MPI_MODE_RDONLY,
+                                   ((NC_MPI_INFO*)file->parameters)->info,
+                                   &file->fh)) != MPI_SUCCESS)
+	    {status = NC_EPARINIT; goto done;}
+	/* Get its length */
+	if((retval=MPI_File_get_size(file->fh, &size)) != MPI_SUCCESS)
+	    {status = NC_EPARINIT; goto done;}
+	file->filelen = (long long)size;
+	goto done;
+    }
+#endif /* USE_PARALLEL */
+    {
+        if(file->path == NULL || strlen(file->path)==0)
+	    {status = NC_EINVAL; goto done;}
+#ifdef _WIN32
+        file->fp = fopen(file->path, "rb");
+#else
+        file->fp = fopen(file->path, "r");
+#endif
+	if(file->fp == NULL)
+	    {status = errno; goto done;}
+	/* Get its length */
+	{
+	int fd = fileno(file->fp);
+#ifdef _MSC_VER
+	__int64 len64 = _filelengthi64(fd);
+	if(len64 < 0)
+            {status = errno; goto done;}
+	file->filelen = (long long)len64;
+#else
+	off_t size;
+	size = lseek(fd, 0, SEEK_END);
+	if(size == -1)
+	    {status = errno; goto done;}
+	file->filelen = (long long)size;
+#endif
+	rewind(file->fp);
+	}
+	goto done;
+    }
+
+done:
+    return status;
+}
+
+static int
+readmagic(struct MagicFile* file, long pos, char* magic)
+{
+    int status = NC_NOERR;
+    memset(magic,0,MAGIC_NUMBER_LEN);
+    if(file->inmemory && !file->diskless) {
+	char* mempos;
+	NC_memio* meminfo = (NC_memio*)file->parameters;
+	if((pos + MAGIC_NUMBER_LEN) > meminfo->size)
+	    {status = NC_EDISKLESS; goto done;}
+	mempos = ((char*)meminfo->memory) + pos;
+	memcpy((void*)magic,mempos,MAGIC_NUMBER_LEN);
+#ifdef DEBUG
+	printmagic("XXX: readmagic",magic,file);
+#endif
+	goto done;
+    }
+#ifdef USE_PARALLEL
+    if (file->use_parallel) {
+	MPI_Status mstatus;
+	int retval;
+	if((retval = MPI_File_read_at_all(file->fh, pos, magic,
+                     MAGIC_NUMBER_LEN, MPI_CHAR, &mstatus)) != MPI_SUCCESS)
+	    {status = NC_EPARINIT; goto done;}
+	goto done;
+    }
+#endif /* USE_PARALLEL */
+    {
+	int count;
+	int i = fseek(file->fp,pos,SEEK_SET);
+	if(i < 0)
+	    {status = errno; goto done;}
+	for(i=0;i<MAGIC_NUMBER_LEN;) {/* make sure to read proper # of bytes */
+	    count=fread(&magic[i],1,(size_t)(MAGIC_NUMBER_LEN-i),file->fp);
+	    if(count == 0 || ferror(file->fp))
+		{status = errno; goto done;}
+	    i += count;
+	}
+	goto done;
+    }
+done:
+    if(file && file->fp) clearerr(file->fp);
+    return status;
+}
+
+/**
+ * Close the file opened to check for magic number.
+ *
+ * @param file pointer to the MagicFile struct for this open file.
+ * @returns NC_NOERR for success
+ * @returns NC_EPARINIT if there was a problem closing file with MPI
+ * (parallel builds only).
+ * @author Dennis Heimbigner
+ */
+static int
+closemagic(struct MagicFile* file)
+{
+    int status = NC_NOERR;
+    if(file->inmemory) goto done; /* noop*/
+#ifdef USE_PARALLEL
+    if (file->use_parallel) {
+	int retval;
+	if((retval = MPI_File_close(&file->fh)) != MPI_SUCCESS)
+		{status = NC_EPARINIT; goto done;}
+	goto done;
+    }
+#endif
+    {
+	if(file->fp) fclose(file->fp);
+	goto done;
+    }
+done:
+    return status;
+}
+
+#ifdef DEBUG
+static void
+printmagic(const char* tag, char* magic, struct MagicFile* f)
+{
+    int i;
+    fprintf(stderr,"%s: inmem=%d ispar=%d magic=",tag,f->inmemory,f->use_parallel);
+    for(i=0;i<MAGIC_NUMBER_LEN;i++) {
+        unsigned int c = (unsigned int)magic[i];
+	c = c & 0x000000FF;
+	if(c == '\n')
+	    fprintf(stderr," 0x%0x/'\\n'",c);
+	else if(c == '\r')
+	    fprintf(stderr," 0x%0x/'\\r'",c);
+	else if(c < ' ')
+	    fprintf(stderr," 0x%0x/'?'",c);
+	else
+	    fprintf(stderr," 0x%0x/'%c'",c,c);
+    }
+    fprintf(stderr,"\n");
+    fflush(stderr);
+}
+#endif
+

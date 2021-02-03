@@ -164,6 +164,32 @@ NC_entityescape(const char* s)
     return escaped;
 }
 
+int
+NC_readfile(const char* filename, NCbytes* content)
+{
+    int ret = NC_NOERR;
+    FILE* stream = NULL;
+    char part[1024];
+
+#ifdef _WIN32
+    stream = NCfopen(filename,"rb");
+#else
+    stream = NCfopen(filename,"r");
+#endif
+    if(stream == NULL) {ret=errno; goto done;}
+    for(;;) {
+	size_t count = fread(part, 1, sizeof(part), stream);
+	if(count <= 0) break;
+	ncbytesappendn(content,part,count);
+	if(ferror(stream)) {ret = NC_EIO; goto done;}
+	if(feof(stream)) break;
+    }
+    ncbytesnull(content);
+done:
+    if(stream) fclose(stream);
+    return ret;
+}
+
 /**
 Wrap mktmp and return the generated path,
 or null if failed.
@@ -214,7 +240,7 @@ NC_mktmp(const char* base)
             strncat(tmp,spid,sizeof(tmp) - strlen(tmp) - 1);
 	}
 #endif /* HAVE_MKTEMP */
-#ifdef _MSC_VER
+#ifdef _WIN32
         fd=NCopen3(tmp,O_RDWR|O_BINARY|O_CREAT, _S_IREAD|_S_IWRITE);
 #else
         fd=NCopen3(tmp,O_RDWR|O_CREAT|O_EXCL, S_IRWXU);
