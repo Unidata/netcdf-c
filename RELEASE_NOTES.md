@@ -7,6 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.8.0 - TBD
 
+* [Enhancement] Bump the NC_DISPATCH_VERSION from 2 to 3, and as a side effect, unify the definition of NC_DISPATCH_VERSION so it only needs to be defined in CMakeLists.txt and configure.ac. See [Github #1945](https://github.com/Unidata/netcdf-c/pull/1945) for more information.
 * [Bug Fixes] Make fillmismatch the default for DAP2 and DAP4; too many servers ignore this requirement.
 * [Bug Fixes] Fix some memory leaks in NCZarr, fix a bug with long strides in NCZarr. See [Github #1913](https://github.com/Unidata/netcdf-c/pull/1913) for more information.
 * [Enhancement] Add some optimizations to NCZarr, dosome cleanup of code cruft, add some NCZarr test cases, add a performance test to NCZarr. See [Github #1908](https://github.com/Unidata/netcdf-c/pull/1908) for more information.
