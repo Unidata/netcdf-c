@@ -9,9 +9,6 @@
 #include "dapincludes.h"
 
 /* Mnemonics */
-#ifndef BOOL
-#define BOOL int
-#endif
 #ifndef TRUE
 #define TRUE 1
 #define FALSE 0
@@ -209,7 +206,7 @@ typedef struct NCD2alignment {
 } NCD2alignment;
 
 typedef struct NCtypesize {
-    BOOL             aligned; /*  have instance and field been defined? */
+    int             aligned; /*  have instance and field been defined? */
     NCD2alignment      instance; /* Alignment, etc for instance data */
     NCD2alignment      field; /* Alignment, etc WRT to parent */
 } NCtypesize;
@@ -235,13 +232,13 @@ typedef struct CDFnode {
     int              ncid;          /* relevant NC id for this object*/
     unsigned long    maxstringlength;
     unsigned long    sequencelimit; /* 0=>unlimited */
-    BOOL	     usesequence;   /* If this sequence is usable */
-    BOOL             elided;        /* 1 => node does not partipate in naming*/
+    int	     usesequence;   /* If this sequence is usable */
+    int             elided;        /* 1 => node does not partipate in naming*/
     struct CDFnode*  basenode;      /* derived tree map to pattern tree */
-    BOOL	     invisible;     /* 1 => do not show to user */
-    BOOL	     zerodim;       /* 1 => node has a zero dimension */
+    int	     invisible;     /* 1 => do not show to user */
+    int	     zerodim;       /* 1 => node has a zero dimension */
     /* These two flags track the effects on grids of constraints */
-    BOOL             nc_virtual;       /* node added by regrid */
+    int             nc_virtual;       /* node added by regrid */
     struct CDFnode* attachment;     /* DDS<->DATADDS cross link*/
     struct CDFnode* pattern;       /* temporary field for regridding */
     /* Fields for use by libncdap4 */
@@ -252,8 +249,8 @@ typedef struct CDFnode {
     char*            vlenname;      /* for sequence types */
     int              singleton;     /* for singleton sequences */
     unsigned long    estimatedsize; /* > 0 Only for var nodes */
-    BOOL             whole;         /* projected as whole node */
-    BOOL             prefetchable;  /* eligible to be prefetched (if whole) */
+    int             whole;         /* projected as whole node */
+    int             prefetchable;  /* eligible to be prefetched (if whole) */
 } CDFnode;
 
 /**************************************************/
