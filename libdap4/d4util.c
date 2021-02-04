@@ -467,3 +467,19 @@ NCD4_getcounter(void* p)
     memcpy(&v,p,sizeof(v));
     return (d4size_t)v;
 }
+
+void*
+NCD4_getheader(void* p, NCD4HDR* hdr, int hostlittleendian)
+{
+    unsigned char bytes[4];
+    memcpy(bytes,p,sizeof(bytes));
+    p = INCR(p,4); /* on-the-wire hdr is 4 bytes */
+    /* assume header is network (big) order */
+    hdr->flags = bytes[0]; /* big endian => flags are in byte 0 */
+    hdr->flags &= NCD4_ALL_CHUNK_FLAGS; /* Ignore extraneous flags */
+    bytes[0] = 0; /* so we can do byte swap to get count */
+    if(hostlittleendian)
+        swapinline32(bytes); /* host is little endian */
+    hdr->count = *(unsigned int*)bytes; /* get count */
+    return p;
+}

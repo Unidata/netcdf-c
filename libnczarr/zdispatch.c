@@ -55,8 +55,8 @@ static const NC_Dispatch NCZ_dispatcher = {
     NCZ_rename_var,
     NCZ_get_vara,
     NCZ_put_vara,
-    NCDEFAULT_get_vars,
-    NCDEFAULT_put_vars,
+    NCZ_get_vars,
+    NCZ_put_vars,
     NCDEFAULT_get_varm,
     NCDEFAULT_put_varm,
 
@@ -109,6 +109,10 @@ static const NC_Dispatch NCZ_dispatcher = {
 
 const NC_Dispatch* NCZ_dispatch_table = NULL; /* moved here from ddispatch.c */
 
+#ifdef ZTRACING
+#include "ztracedispatch.h"
+#endif
+
 /**
  * @internal Initialize the ZARR dispatch layer.
  *
@@ -121,7 +125,11 @@ int
 NCZ_initialize(void)
 {
     int stat;
+#ifdef ZTRACING
+    NCZ_dispatch_table = &NCZ_dispatcher_trace;
+#else
     NCZ_dispatch_table = &NCZ_dispatcher;
+#endif
     if (!ncz_initialized)
         NCZ_initialize_internal();
     stat = NCZ_provenance_init();

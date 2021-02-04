@@ -146,6 +146,7 @@ static void record(NCD4parser*, NCD4node* node);
 static int splitOrigType(NCD4parser*, const char* fqn, NCD4node* var);
 static void track(NCD4meta*, NCD4node* node);
 static int traverse(NCD4parser*, ezxml_t dom);
+static int parseForwards(NCD4parser* parser, NCD4node* root);
 #ifndef FIXEDOPAQUE
 static int defineBytestringType(NCD4parser*);
 #endif
@@ -179,7 +180,7 @@ NCD4_parse(NCD4meta* metadata)
     parser->debuglevel = 1;
 #endif
 
-    /*Walk the DOM tree */
+    /*Walk the DOM tree to build the DAP4 node tree*/
     ret = traverse(parser,dom);
 
 done:
@@ -234,6 +235,12 @@ traverse(NCD4parser* parser, ezxml_t dom)
 	if(xattr != NULL) parser->metadata->root->group.dmrversion = strdup(xattr);
         /* Recursively walk the tree */
         if((ret = fillgroup(parser,parser->metadata->root,dom))) goto done;
+
+        /* Walk a second time to parse allowed forward refs:
+	   1. <Map>
+	*/
+        if((ret = parseForwards(parser,parser->metadata->root))) goto done;
+
     } else
 	FAIL(NC_EINVAL,"Unexpected dom root name: %s",dom->name);
 done:
@@ -379,8 +386,9 @@ parseVariable(NCD4parser* parser, NCD4node* container, ezxml_t xml, NCD4node** n
     default:
 	ret = parseAtomicVar(parser,container,xml,&node);
     }
-    *nodep = node;
-
+    if(ret == NC_NOERR) {
+        *nodep = node;
+    }
     return THROW(ret);
 }
 
@@ -429,8 +437,6 @@ parseStructure(NCD4parser* parser, NCD4node* container, ezxml_t xml, NCD4node** 
 
     /* Parse attributes, dims, and maps into the var */
     if((ret = parseMetaData(parser,var,xml))) goto done;
-
-    record(parser,var);
 
     /* See if this var has UCARTAGORIGTYPE attribute */
     if(parser->metadata->controller->controls.translation == NCD4_TRANSNC4) {
@@ -573,8 +579,6 @@ parseSequence(NCD4parser* parser, NCD4node* container, ezxml_t xml, NCD4node** n
     /* Parse attributes, dims, and maps into var*/
     if((ret = parseMetaData(parser,var,xml))) goto done;
 
-    record(parser,var);
-
     /* See if this var has UCARTAGORIGTYPE attribute */
     if(parser->metadata->controller->controls.translation == NCD4_TRANSNC4) {
 	const char* typetag = ezxml_attr(xml,UCARTAGORIGTYPE);
@@ -601,10 +605,10 @@ parseGroups(NCD4parser* parser, NCD4node* parent, ezxml_t xml)
 	if(name == NULL) FAIL(NC_EBADNAME,"Group has no name");
 	if((ret=makeNode(parser,parent,x,NCD4_GROUP,NC_NULL,&group))) goto done;
 	group->group.varbyid = nclistnew();
+	classify(parent,group);
         if((ret = fillgroup(parser,group,x))) goto done;
         /* Parse group attributes */
         if((ret = parseAttributes(parser,group,x))) goto done;
-	PUSH(parent->groups,group);
     }
 done:
     return THROW(ret);
@@ -699,15 +703,11 @@ parseMaps(NCD4parser* parser, NCD4node* var, ezxml_t xml)
     ezxml_t x;
 
     for(x=ezxml_child(xml, "Map");x!= NULL;x=ezxml_next(x)) {
-	NCD4node* mapref = NULL;
 	const char* fqn;
 	fqn = ezxml_attr(x,"name");
 	if(fqn == NULL)
 	    FAIL(NC_ENOTVAR,"<Map> has no name attribute");
-        mapref = lookupFQN(parser,fqn,NCD4_VAR);
-	if(mapref == NULL)
-	    FAIL(NC_ENOTVAR,"<Map> name does not refer to a variable: %s",fqn);
-	PUSH(var->maps,mapref);
+	PUSH(var->mapnames,strdup(fqn));
     }
 done:
     return THROW(ret);
@@ -730,8 +730,8 @@ parseAttributes(NCD4parser* parser, NCD4node* container, ezxml_t xml)
 	    container->xmlattributes = nclistnew();
 	    for(p=all;*p;p+=2) {
 		if(isReserved(*p)) {
-		    nclistpush(container->xmlattributes,strdup(p[0]));
-		    nclistpush(container->xmlattributes,strdup(p[1]));
+		    PUSH(container->xmlattributes,strdup(p[0]));
+		    PUSH(container->xmlattributes,strdup(p[1]));
 		}
 	    }
 	}
@@ -853,8 +853,6 @@ getOpaque(NCD4parser* parser, ezxml_t varxml, NCD4node* group)
 	        goto done;
   	    SETNAME(opaquetype,name);
 	    opaquetype->opaque.size = len;
-	    if(opaquetype != NULL)
-	        record(parser,opaquetype);
 	}
     }
 done:
@@ -886,7 +884,7 @@ getValueStrings(NCD4parser* parser, NCD4node* type, ezxml_t xattr, NClist* svalu
 	    /* Need to de-escape the string */
 	    es = NCD4_entityescape(s);
 	    ds = NCD4_deescape(es);
-	    nclistpush(svalues,ds);
+	    PUSH(svalues,ds);
 	    nullfree(es);
 	}
     }
@@ -1252,6 +1250,7 @@ makeNode(NCD4parser* parser, NCD4node* parent, ezxml_t xml, NCD4sort sort, nc_ty
 	    SETNAME(node,name);
 	}
     }
+    record(parser,node);
     if(nodep) *nodep = node;
 done:
     return ret;
@@ -1268,10 +1267,12 @@ makeNodeStatic(NCD4meta* meta, NCD4node* parent, NCD4sort sort, nc_type subsort,
     node->sort = sort;
     node->subsort = subsort;
     node->container = parent;
+#if 0
     if(parent != NULL) {
 	if(parent->sort == NCD4_GROUP)
-	    PUSH(parent->group.elements,node);
+	    classify(parent,node);
     }
+#endif
     track(meta,node);
     if(nodep) *nodep = node;
     return THROW(ret);
@@ -1296,7 +1297,7 @@ makeAnonDim(NCD4parser* parser, const char* sizestr)
 	SETNAME(dim,name+1); /* leave out the '/' separator */
 	dim->dim.size = (long long)size;
 	dim->dim.isanonymous = 1;
-	PUSH(root->dims,dim);
+	classify(root,dim);
     }
 done:
     return (ret?NULL:dim);
@@ -1310,7 +1311,7 @@ static void
 classify(NCD4node* container, NCD4node* node)
 {
     if(ISGROUP(container->sort))
-	nclistpush(container->group.elements,node);
+	PUSH(container->group.elements,node);
     switch (node->sort) {
     case NCD4_GROUP:
 	PUSH(container->groups,node);
@@ -1508,7 +1509,7 @@ valueParse(NCD4node* type, const char* values0, NClist* vlist)
 	    q = p - 1;
 	    *p++ = '\0';
 	    if(*q == '\r') {*q = '\0';}
-            nclistpush(vlist,strdup(line));
+            PUSH(vlist,strdup(line));
 	}
 	break;
     case NC_CHAR:
@@ -1526,7 +1527,7 @@ valueParse(NCD4node* type, const char* values0, NClist* vlist)
 	    if(len > 0) {
 		c[0] = *q;
 		c[1] = '\0';
-		nclistpush(vlist,strdup(c));
+		PUSH(vlist,strdup(c));
 	    }
 	}
 	break;
@@ -1538,7 +1539,7 @@ valueParse(NCD4node* type, const char* values0, NClist* vlist)
 	for(line=values;*line;) {
 	    size_t size = strlen(line);
 	    if(size > 0)
-	        nclistpush(vlist,strdup(line));
+	        PUSH(vlist,strdup(line));
 	    line += (size+1); /* skip terminating nul */
 	}
 	break;
@@ -1563,4 +1564,32 @@ NCD4_defineattr(NCD4meta* meta, NCD4node* parent, const char* aname, const char*
     PUSH(parent->attributes,attr);		
     if(attrp) *attrp = attr;
     return NC_NOERR;
+}
+
+/*
+Fill in forward references for selected Node:
+1. <Map>
+*/
+static int
+parseForwards(NCD4parser* parser, NCD4node* root)
+{
+    int ret = NC_NOERR;
+    int i,j;
+
+    /* process all vars */
+    for(i=0;i<nclistlength(parser->vars);i++) {
+        NCD4node* var = (NCD4node*)nclistget(parser->vars,i);
+	/* Process the variable's maps */
+	for(j=0;j<nclistlength(var->mapnames);j++) {
+            const char* mapname = (const char*)nclistget(var->mapnames,j);
+            /* Find the corresponding variable */
+            NCD4node* mapref = lookupFQN(parser,mapname,NCD4_VAR);
+	    if(mapref == NULL)
+	        FAIL(NC_ENOTVAR,"<Map> name does not refer to a variable: %s",mapname);
+	    PUSH(var->maps,mapref);
+	}
+    }
+    
+done:
+    return THROW(ret);
 }
