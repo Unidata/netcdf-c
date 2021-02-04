@@ -50,8 +50,8 @@ endif
 
 TESTS += run_ncgen4.sh
 
+# Temporarily disable
 if AX_IGNORE
-# suppress for now
 check_PROGRAMS += tst_chunkcases
 tst_chunkcases_SOURCES = tst_chunkcases.c ${tstcommonsrc}
 TESTS += run_chunkcases.sh
@@ -90,7 +90,7 @@ AM_CPPFLAGS += -I$(top_srcdir)/libnczarr
 noinst_PROGRAMS += ncdumpchunks
 ncdumpchunks_SOURCES = ncdumpchunks.c
 
-EXTRA_DIST = \
+EXTRA_DIST = CMakeLists.txt \
 run_ut_map.sh run_ut_mapapi.sh run_ut_misc.sh run_ut_chunk.sh run_ncgen4.sh \
 run_nccopyz.sh run_fillonlyz.sh run_chunkcases.sh test_nczarr.sh run_perf_chunks1.sh \
 ref_ut_map_readmeta_nzf.txt \
@@ -127,16 +127,17 @@ ref_ut_mapapi_search_s3.txt \
 ref_perdimspecs.cdl ref_fillonly.cdl \
 ref_whole.cdl ref_whole.txt \
 ref_skip.cdl ref_skip.txt ref_skipw.cdl \
-ref_rem.cdl ref_rem.txt ref_ndims.cdl  ref_ndims.txt \
-ref_misc1.cdl ref_misc1.txt
- 
+ref_rem.cdl ref_rem.dmp ref_ndims.cdl  ref_ndims.dmp \
+ref_misc1.cdl ref_misc1.dmp \
+ref_avail1.cdl ref_avail1.dmp ref_avail1.txt
+
 CLEANFILES = test.nzf test.nz4 test.nz4 \
 testmap.nzf testmap.nz4 testmapapi.nzf testmapapi.nz4 \
 tst_chunks.nz4 tst_chunks2.nc.nz4 \
-ut_*.txt ut*.cdl tmp*.nc tmp*.cdl *.dmp tmp*.txt test.nzf \
+ut_*.txt ut*.cdl tmp*.nc tmp*.cdl tmp*.txt tmp*.dmp test.nzf \
 tst_chunks3.nc
 
 # Remove directories
 clean-local:
 	rm -fr tst_chunks.nzf tst_chunks2.nzf tst_perdimspecs.nzf testmap.nzf test.nzf tmp*.nzf \
-	test_mapapi.nzf test_mapapi.nz4
+	test_mapapi.nzf test_mapapi.nz4 tmp*.nz4
