@@ -96,17 +96,19 @@ storage format for performance. Credit is due to NCO for use of these
 numeric codes instead of the old and confusing format numbers.
 .IP "\fB \-d \fP \fI n \fP"
 For netCDF-4 output, including netCDF-4 classic model, specify
-deflation level (level of compression) for variable data output.  0
-corresponds to no compression and 9 to maximum compression, with
-higher levels of compression requiring marginally more time to
-compress or uncompress than lower levels.  Compression achieved may
-also depend on output chunking parameters.  If this option is
-specified for a classic format or 64-bit offset format input file, it
-is not necessary to also specify that the output should be netCDF-4
-classic model, as that will be the default.  If this option is not
-specified and the input file has compressed variables, the compression
-will still be preserved in the output, using the same chunking as in
-the input by default.
+deflation level (level of compression) for variable data output.
+0 corresponds to no compression and 9 to maximum compression,
+with higher levels of compression requiring marginally more time
+to compress or uncompress than lower levels. As a side effect
+specifying a compression level of 0 (via "-d 0") actually turns
+off deflation altogether.  Compression achieved may also depend
+on output chunking parameters.  If this option is specified for
+a classic format or 64-bit offset format input file, it is not
+necessary to also specify that the output should be netCDF-4
+classic model, as that will be the default.  If this option is
+not specified and the input file has compressed variables, the
+compression will still be preserved in the output, using the
+same chunking as in the input by default.
 .IP
 Note that \fBnccopy\fP requires all variables to be compressed using the
 same compression level, but the API has no such restriction.  With

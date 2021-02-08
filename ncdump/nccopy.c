@@ -365,32 +365,49 @@ done:
     return stat;
 }
 
+/* Return 1 if variable has only active (ie not none) filters */
 static int
-hasfilteroptforvar(const char* ofqn)
+varfiltersactive(const char* ofqn)
 {
   int i;
+  int hasnone = 0;
+  int hasactive = 0;
   /* See which output filter options are defined for this output variable */
   for(i=0;i<listlength(filteroptions);i++) {
       struct FilterOption* opt = listget(filteroptions,i);
-      if(strcmp(opt->fqn,"*")==0) return 1;
-      if(strcmp(opt->fqn,ofqn)==0) return 1;
+      if(strcmp(opt->fqn,"*")==0 || strcmp(opt->fqn,ofqn)==0)
+	{if(opt->nofilter) hasnone = 1;} else {hasactive = 1;}
   }
-  return 0;
+  return (hasactive && !hasnone ? 1 : 0);
 }
 
+/* Return 1 if variable has "none" filters */
+static int
+varfilterssuppress(const char* ofqn)
+{
+  int i;
+  int hasnone = 0;
+  /* See which output filter options are defined for this output variable */
+  for(i=0;i<listlength(filteroptions);i++) {
+      struct FilterOption* opt = listget(filteroptions,i);
+      if(strcmp(opt->fqn,"*")==0 || strcmp(opt->fqn,ofqn)==0)
+	{if(opt->nofilter) hasnone = 1;}
+  }
+  return hasnone || suppressfilters;
+}
+
+/* Return list of active filters */
 static List*
 filteroptsforvar(const char* ofqn)
 {
   int i;
   List* list = listnew();
-  /* See which output filter options are defined for this output variable */
+  /* See which output filter options are defined for this output variable;
+     both active and none. */
   for(i=0;i<listlength(filteroptions);i++) {
       struct FilterOption* opt = listget(filteroptions,i);
-      if(strcmp(opt->fqn,"*")==0) {
-	  /* Add to the list */
-	  listpush(list,opt);
-      } else if(strcmp(opt->fqn,ofqn)==0) {
-	  /* Add to the list */
+      if(strcmp(opt->fqn,"*")==0 || strcmp(opt->fqn,ofqn)==0) {
+	if(!opt->nofilter) /* Add to the list */
 	  listpush(list,opt);
       }
   }
@@ -770,6 +787,7 @@ copy_var_filter(int igrp, int varid, int ogrp, int o_varid, int inkind, int outk
     int inputdefined, outputdefined, unfiltered;
     int innc4 = (inkind == NC_FORMAT_NETCDF4 || inkind == NC_FORMAT_NETCDF4_CLASSIC);
     int outnc4 = (outkind == NC_FORMAT_NETCDF4 || outkind == NC_FORMAT_NETCDF4_CLASSIC);
+    int suppressvarfilters = 0;
 
     if(!outnc4)
 	goto done; /* Can only use filter when output is some netcdf4 variant */
@@ -782,15 +800,15 @@ copy_var_filter(int igrp, int varid, int ogrp, int o_varid, int inkind, int outk
     ospecs = NULL;
     actualspecs = NULL;
 
+    if(varfilterssuppress(ofqn) || option_deflate_level == 0)
+        suppressvarfilters = 1;
+
     /* Is there one or more filters on the output variable */
     outputdefined = 0; /* default is no filter defined */
-    /* Only bother to look if output is netcdf-4 variant */
-    if(outnc4) {
-      /* See if any output filter spec is defined for this output variable */
-      ospecs = filteroptsforvar(ofqn);
-      if(listlength(ospecs) > 0)
+    /* See if any output filter spec is defined for this output variable */
+    ospecs = filteroptsforvar(ofqn);
+    if(listlength(ospecs) > 0 && !suppressfilters && !suppressvarfilters)
           outputdefined = 1;
-    }
 
     /* Is there already a filter on the input variable */
     inputdefined = 0; /* default is no filter defined */
@@ -825,7 +843,7 @@ copy_var_filter(int igrp, int varid, int ogrp, int o_varid, int inkind, int outk
 	nullfree(ids);
     }
 
-    /* Rules for choosing output filter are as follows:
+    /* Rules for choosing output filter are as follows (Ugh!):
 
 	   global	output		input	  Actual Output
 	   suppress	filter(s)	filter(s) filter
@@ -843,27 +861,18 @@ copy_var_filter(int igrp, int varid, int ogrp, int o_varid, int inkind, int outk
     unfiltered = 0;
     if(suppressfilters && !outputdefined) /* row 1 */
       unfiltered = 1;
-    else if(suppressfilters && outputdefined) { /* row 2 */
-	int k;
-        /* Walk the set of filters to apply to see if "none" was specified */
-        for(k=0;k<listlength(ospecs);k++) {
-	    struct FilterOption* opt = (struct FilterOption*)listget(actualspecs,k);
-	    if(opt->nofilter) {unfiltered = 1; break;}
-        }
-    } else if(suppressfilters && outputdefined) /* row 3 */
-      actualspecs = ospecs;
+    else if(suppressfilters || suppressvarfilters) /* row 2 */
+       unfiltered = 1;
+    else if(suppressfilters && outputdefined) /* row 3 */
+       actualspecs = ospecs;
     else if(!suppressfilters && !outputdefined && inputdefined) /* row 4 */
-      actualspecs = inspecs;
-    else if(!suppressfilters && outputdefined) { /* row 5 & 6*/
-	int k;
-        /* Walk the set of filters to apply to see if "none" was specified */
-        for(k=0;k<listlength(ospecs);k++) {
-	    struct FilterOption* opt = (struct FilterOption*)listget(ospecs,k);
-	    if(opt->nofilter) {unfiltered = 1; break;}
-        }
-	if(!unfiltered) actualspecs = ospecs;
-    } else if(!suppressfilters && !outputdefined && !inputdefined) /* row 7 */
-      unfiltered = 1;
+       actualspecs = inspecs;
+    else if(!suppressfilters && suppressvarfilters) /* row 5 */
+       unfiltered = 1;
+    else if(!suppressfilters && outputdefined) /* row 6*/
+       actualspecs = ospecs;
+    else if(!suppressfilters && !outputdefined && !inputdefined) /* row 7 */
+       unfiltered = 1;
     else if(!suppressfilters && outputdefined && inputdefined) /* row 8 */
       actualspecs = ospecs;
 
@@ -953,7 +962,7 @@ copy_chunking(int igrp, int i_varid, int ogrp, int o_varid, int ndims, int inkin
     ovid.grpid = ogrp;
     ovid.varid = o_varid;
     if((stat=computeFQN(ovid,&ofqn))) goto done;
-    if(option_deflate_level >= 0 || hasfilteroptforvar(ofqn))
+    if(!varfilterssuppress(ofqn) && (option_deflate_level > 0 || varfiltersactive(ofqn)))
 	ocontig = NC_CHUNKED;
 
     /* See about dim-specific chunking; does not override specific variable chunk spec*/
@@ -1097,6 +1106,9 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid, int inkind, int ou
     int outnc4 = (outkind == NC_FORMAT_NETCDF4 || outkind == NC_FORMAT_NETCDF4_CLASSIC);
     int deflated = 0; /* true iff deflation is applied */
     int ndims;
+    char* ofqn = NULL;
+    int nofilters = 0;
+    VarID ovid = {ogrp,o_varid};
 
     if(!outnc4)
 	return stat; /* Ignore non-netcdf4 files */
@@ -1107,7 +1119,11 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid, int inkind, int ou
 	    NC_CHECK(copy_chunking(igrp, varid, ogrp, o_varid, ndims, inkind, outkind));
 	}
     }
-    if(ndims > 0)
+
+    if((stat=computeFQN(ovid,&ofqn))) goto done;
+    nofilters = varfilterssuppress(ofqn);
+
+    if(ndims > 0 && !nofilters)
     { /* handle compression parameters, copying from input, overriding
        * with command-line options */
 	int shuffle_in=0, deflate_in=0, deflate_level_in=0;
@@ -1129,7 +1145,7 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid, int inkind, int ou
 	    deflate_out = 0;
 	    deflate_level_out = 0;
 	}
-	/* Apply output deflation */
+	/* Apply output deflation (unless suppressed) */
 	if(outnc4) {
 	    /* Note that if we invoke this function and even if shuffle and deflate flags are 0,
                then default chunking will be turned on; so do a special check for that. */
@@ -1138,7 +1154,7 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid, int inkind, int ou
 	    deflated = deflate_out;
 	}
     }
-    if(innc4 && outnc4 && ndims > 0)
+    if(!nofilters && innc4 && outnc4 && ndims > 0)
     {				/* handle checksum parameters */
 	int fletcher32 = 0;
 	NC_CHECK(nc_inq_var_fletcher32(igrp, varid, &fletcher32));
@@ -1155,10 +1171,12 @@ copy_var_specials(int igrp, int varid, int ogrp, int o_varid, int inkind, int ou
 	}
     }
 
-    if(!deflated && ndims > 0) {
+    if(!nofilters && !deflated && ndims > 0) {
         /* handle other general filters */
         NC_CHECK(copy_var_filter(igrp, varid, ogrp, o_varid, inkind, outkind));
     }
+done:
+    if(ofqn) free(ofqn);
     return stat;
 }
 
