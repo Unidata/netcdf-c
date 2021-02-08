@@ -27,6 +27,7 @@ See COPYRIGHT for license information.
 #include "netcdf_aux.h"
 #include "ncoffsets.h"
 #include "nclog.h"
+#include "ncrc.h"
 #include "netcdf_filter.h"
 
 struct NCAUX_FIELD {
@@ -1049,3 +1050,24 @@ done:
     return stat;
 }
 #endif
+
+/**************************************************/
+/* Wrappers to export selected functions from libnetcdf */
+
+EXTERNL int
+ncaux_readfile(const char* filename, size_t* sizep, void** contentp)
+{
+    int stat = NC_NOERR;
+    NCbytes* content = ncbytesnew();
+    stat = NC_readfile(filename,content);
+    if(stat == NC_NOERR && contentp)
+        *contentp = ncbytesextract(content);
+    ncbytesfree(content);
+    return stat;        
+}
+
+EXTERNL int
+ncaux_writefile(const char* filename, size_t size, void* content)
+{
+    return NC_writefile(filename,size,content);
+}

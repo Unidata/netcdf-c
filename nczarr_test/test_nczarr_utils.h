@@ -66,8 +66,8 @@ static void
 setimpl(const char* name)
 {
     if(strcasecmp(name,"s3")==0) itoptions.impl = NCZM_S3;
-    else if(strcasecmp(name,"nz4")==0) itoptions.impl = NCZM_NC4;
-    else if(strcasecmp(name,"nzf")==0) itoptions.impl = NCZM_FILE;
+    else if(strcasecmp(name,"file")==0) itoptions.impl = NCZM_FILE;
+    else if(strcasecmp(name,"zip")==0) itoptions.impl = NCZM_ZIP;
     else test_usage();
 }
 
@@ -76,8 +76,8 @@ implname(void)
 {
     switch (itoptions.impl) {
     case NCZM_S3: return "s3";
-    case NCZM_NC4: return "nz4";
-    case NCZM_FILE: return "nzf";
+    case NCZM_FILE: return "file";
+    case NCZM_ZIP: return "zip";
     default: test_usage();
     }
     return NULL;
@@ -88,7 +88,7 @@ buildpath(const char* target,NCZM_IMPL impl)
 {
     NCbytes* buf = ncbytesnew();
     switch(itoptions.impl) {
-    case NCZM_NC4:
+    case NCZM_ZIP:
     case NCZM_FILE:
 	ncbytescat(buf,"file://");
 	ncbytescat(buf,target);

@@ -19,6 +19,8 @@
 
 #include "zincludes.h"
 #include "ncpathmgr.h"
+#include "nclog.h"
+#include "ncuri.h"
 
 #define DEBUG
 
@@ -33,7 +35,8 @@ MOP_CLEAR=2
 typedef enum OBJKIND {
 OK_NONE=0,
 OK_META=1,
-OK_CHUNK=2
+OK_CHUNK=2,
+OK_GROUP=3
 } OBJKIND;
 
 static struct Mops {
@@ -78,7 +81,7 @@ struct Dumpptions {
 static int objdump(void);
 static NCZM_IMPL implfor(const char* path);
 static void printcontent(size64_t len, const char* content, OBJKIND kind);
-static int depthR(NCZMAP* map, char* key, NClist* stack);
+static int breadthfirst(NCZMAP* map, const char*, NClist* stack);
 static char* rootpathfor(const char* path);
 static OBJKIND keykind(const char* key);
 static void sortlist(NClist* l);
@@ -105,7 +108,7 @@ static Mapop
 decodeop(const char* name)
 {
     struct Mops* p = mapops;
-    while(p->opname != NULL) {
+    for(;p->opname != NULL;p++) {
 	if(strcasecmp(p->opname,name)==0) return p->mapop;
     }
     return MOP_NONE;
@@ -129,7 +132,7 @@ main(int argc, char** argv)
 
     memset((void*)&dumpoptions,0,sizeof(dumpoptions));
 
-    while ((c = getopt(argc, argv, "dvx:t:")) != EOF) {
+    while ((c = getopt(argc, argv, "dvx:t:T:")) != EOF) {
 	switch(c) {
 	case 'd': 
 	    dumpoptions.debug = 1;	    
@@ -144,6 +147,9 @@ main(int argc, char** argv)
 	case 'x': 
 	    dumpoptions.mop = decodeop(optarg);
 	    if(dumpoptions.mop == MOP_NONE) zmapusage();
+	    break;
+	case 'T':
+	    nctracelevel(atoi(optarg));
 	    break;
 	case '?':
 	   fprintf(stderr,"unknown option\n");
@@ -219,8 +225,8 @@ implfor(const char* path)
     NCCHECK(nczm_split_delim(mode,',',segments));
     for(i=0;i<nclistlength(segments);i++) {
         const char* value = nclistget(segments,i);
-	if(strcmp(value,"nz4")==0) {impl = NCZM_NC4; goto done;}
-	if(strcmp(value,"nzf")==0) {impl = NCZM_FILE; goto done;}
+	if(strcmp(value,"file")==0) {impl = NCZM_FILE; goto done;}
+	if(strcmp(value,"zip")==0) {impl = NCZM_ZIP; goto done;}
 	if(strcmp(value,"s3")==0) {impl = NCZM_S3; goto done;}
     }
 done:
@@ -242,7 +248,7 @@ rootpathfor(const char* path)
     if(uri == NULL) goto done;
     switch (dumpoptions.impl) {
     case NCZM_FILE:
-    case NCZM_NC4:
+    case NCZM_ZIP:
 	rootpath = strdup("/"); /*constant*/
 	break;
     case NCZM_S3:
@@ -272,7 +278,6 @@ objdump(void)
 {
     int stat = NC_NOERR;
     NCZMAP* map = NULL;
-    NClist* matches = nclistnew();
     NClist* stack = nclistnew();
     char* obj = NULL;
     char* content = NULL;
@@ -281,11 +286,8 @@ objdump(void)
     if((stat=nczmap_open(dumpoptions.impl, dumpoptions.infile, NC_NOCLOBBER, 0, NULL, &map)))
         goto done;
 
-    
     /* Depth first walk all the groups to get all keys */
-    obj = strdup("/");
-    if((stat = depthR(map,obj,stack))) goto done;
-    obj = NULL; /* its now in the stack */
+    if((stat = breadthfirst(map,"/",stack))) goto done;
 
     if(dumpoptions.debug) {
 	int i;
@@ -298,6 +300,7 @@ objdump(void)
 	OBJKIND kind = 0;
 	int hascontent = 0;
 	obj = nclistremove(stack,0); /* zero pos is always top of stack */
+	kind = keykind(obj);
 	/* Now print info for this obj key */
         switch (stat=nczmap_len(map,obj,&len)) {
 	    case NC_NOERR: hascontent = 1; break;
@@ -316,7 +319,6 @@ objdump(void)
 	if(hascontent) {
 	    if(len > 0) {
 	        assert(content != NULL);
-		kind = keykind(obj);
 		if(kind == OK_CHUNK) len /= dumpoptions.nctype->typesize;
                 printf("[%d] %s : (%llu)",depth,obj,len);
                 if(kind == OK_CHUNK) printf(" (%s)",dumpoptions.nctype->typename);
@@ -337,30 +339,58 @@ done:
     nullfree(obj);
     nullfree(content);
     nczmap_close(map,0);
-    nclistfreeall(matches);
     nclistfreeall(stack);
     return stat;
 }
 
 /* Depth first walk all the groups to get all keys */
 static int
-depthR(NCZMAP* map, char* key, NClist* stack)
+breadthfirstR(NCZMAP* map, NCbytes* prefix, NClist* stack)
 {
     int stat = NC_NOERR;
     NClist* nextlevel = nclistnew();
+    size_t mark;
+    const char* content;
+    int isroot = 0;
 
-    nclistpush(stack,key);
-    if((stat=nczmap_search(map,key,nextlevel))) goto done;
+    content = ncbytescontents(prefix);
+    if(content[0] == '/' && content[1] == '\0') isroot = 1;
+    if((stat=nczmap_search(map,content,nextlevel))) goto done;
     /* Sort nextlevel */
     sortlist(nextlevel);
     /* Push new names onto the stack and recurse */
+    mark = ncbyteslength(prefix); /* save this position */
     while(nclistlength(nextlevel) > 0) {
         char* subkey = nclistremove(nextlevel,0);
-	if((stat = depthR(map,subkey,stack))) goto done;
+	if(!isroot) ncbytescat(prefix,"/");
+	ncbytescat(prefix,subkey);
+	nullfree(subkey);
+        nclistpush(stack,ncbytesdup(prefix));
+	if((stat = breadthfirstR(map,prefix,stack))) goto done;
+	ncbytessetlength(prefix,mark); ncbytesnull(prefix);
     }
 done:
    nclistfreeall(nextlevel);
    return stat;
+}
+
+/* Depth first walk all the groups to get all keys */
+static int
+breadthfirst(NCZMAP* map, const char* key, NClist* stack)
+{
+    int stat = NC_NOERR;
+    NCbytes* prefix = ncbytesnew();
+
+    if(key == NULL || key[0] == '\0')
+        key = "/";
+    ncbytescat(prefix,key);
+    if(strlen(key) > 1 && key[strlen(key)-1]=='/') {
+        ncbytessetlength(prefix,ncbyteslength(prefix)-1); /* remove trailing '/' */
+	ncbytesnull(prefix);
+    }
+    stat = breadthfirstR(map,prefix,stack);
+    ncbytesfree(prefix);
+    return stat;
 }
 
 static char hex[16] = "0123456789abcdef";
@@ -417,6 +447,8 @@ keykind(const char* key)
 		kind = OK_NONE;
 	    else if(suffix[1] == '.')
 	        kind = OK_META;
+            else if(suffix[strlen(suffix)-1] == '/')
+		kind = OK_GROUP;
 	    else {
 		char* p = suffix+1;
 	        for(;*p;p++) {
@@ -455,7 +487,7 @@ fprintf(stderr,"sorted: [%d] %s\n",i,(const char*)nclistget(l,i));
 #endif
 }
 
-static const char* urlexts[] = {"nzf", "nz4", NULL};
+static const char* urlexts[] = {"nzf", "zip", "nz4", NULL};
 
 static const char*
 filenamefor(const char* f0)
@@ -463,22 +495,26 @@ filenamefor(const char* f0)
     static char result[4096];
     const char** extp;
     char* p;
+    NCURI* uri = NULL;
 
     strcpy(result,f0); /* default */
-    if(nc__testurl(f0,NULL)) goto done;
-    /* Not a URL */
-    p = strrchr(f0,'.'); /* look at the extension, if any */
-    if(p == NULL) goto done; /* No extension */
-    p++;
-    for(extp=urlexts;*extp;extp++) {
-        if(strcmp(p,*extp)==0) break;
+    ncuriparse(f0,&uri);
+    if(uri == NULL) {
+        /* Not a URL */
+        p = strrchr(f0,'.'); /* look at the extension, if any */
+        if(p == NULL) goto done; /* No extension */
+        p++;
+        for(extp=urlexts;*extp;extp++) {
+            if(strcmp(p,*extp)==0) break;
+        }
+        if(*extp == NULL) goto done; /* not found */
+        /* Assemble the url */
+        strcpy(result,"file://");
+        strcat(result,f0); /* core path */
+        strcat(result,"#mode=nczarr,");
+        strcat(result,*extp);
     }
-    if(*extp == NULL) goto done; /* not found */
-    /* Assemble the url */
-    strcpy(result,"file://");
-    strcat(result,f0); /* core path */
-    strcat(result,"#mode=nczarr,");
-    strcat(result,*extp);
 done:
+    ncurifree(uri);
     return result;
 }

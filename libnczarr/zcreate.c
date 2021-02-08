@@ -49,8 +49,10 @@ ncz_create_file(const char *path, int cmode, size_t initialsz, const char** cont
     h5->mem.persist = ((cmode & NC_PERSIST) == NC_PERSIST);
 
     /* Do format specific setup */
+
     /* Should check if file already exists, and if NC_NOCLOBBER is specified,
-       return an error */
+       return an error; but defer to the map */
+	
     if((retval = ncz_create_dataset(h5,h5->root_grp,controls)))
 	BAIL(retval);
 

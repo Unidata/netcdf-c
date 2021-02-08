@@ -12,6 +12,8 @@
 #include <unistd.h>
 #endif
 
+#include "zmap.h"
+
 #include "netcdf.h"
 #include "nclist.h"
 #include "ncbytes.h"

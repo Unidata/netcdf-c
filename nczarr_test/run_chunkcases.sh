@@ -28,8 +28,8 @@ ZM="${execdir}/zmapio -t int"
 remfile() {
   case "$zext" in
   nc4) rm -fr $1 ;;
-  nz4) rm -fr $1 ;;
-  nzf) rm -fr $1 ;;
+  file) rm -fr $1 ;;
+  zip) rm -fr $1 ;;
   s3) ;;
   *) echo "no such extension: $zext" ; exit 1;;
   esac
@@ -38,8 +38,8 @@ remfile() {
 remfile() {
   case "$zext" in
   nc4) rm -fr $1 ;;
-  nz4) rm -fr $1 ;;
-  nzf) rm -fr $1 ;;
+  file) rm -fr $1 ;;
+  zip) rm -fr $1 ;;
   s3) ;;
   *) echo "no such extension: $zext" ; exit 1;;
   esac
@@ -50,8 +50,8 @@ makefile() {
   remfile $file
   case "$zext" in
   nc4) F=$file;;
-  nz4) F=$fileurl;;
-  nzf) F=$fileurl;;
+  file) F=$fileurl;;
+  zip) F=$fileurl;;
   s3) F=$fileurl;;
   *) echo "no such extension: $zext" ; exit 1;;
   esac
@@ -84,7 +84,7 @@ ${NCDUMP} $F > tmp_whole_${zext}.cdl
 diff -b ${srcdir}/ref_whole.cdl tmp_whole_${zext}.cdl
 
 # Test skipping whole chunks
-necho "Test chunk skipping during read"
+echo "Test chunk skipping during read"
 makefile tmp_skip
 rm -f tmp_skip_${zext}.txt tmp_skip_${zext}.cdl
 $TC -d 6,6 -c 2,2 -Ow $F
@@ -109,7 +109,7 @@ $TC -d 8,8 -c 3,3 -Ow $F
 ${NCDUMP} $F > tmp_rem_${zext}.cdl
 diff -b ${srcdir}/ref_rem.cdl tmp_rem_${zext}.cdl
 ${execdir}/ncdumpchunks -v v $F > tmp_rem_${zext}.txt
-diff -b ${srcdir}/ref_rem.txt tmp_rem_${zext}.txt
+diff -b ${srcdir}/ref_rem.dmp tmp_rem_${zext}.txt
 
 echo "Test rank > 2"
 makefile tmp_ndims
@@ -117,8 +117,8 @@ rm -f tmp_ndims_${zext}.txt tmp_ndims_${zext}.cdl
 $TC -d 8,8,8,8 -c 3,3,4,4 -Ow $F
 ${NCDUMP} $F > tmp_ndims_${zext}.cdl
 diff -b ${srcdir}/ref_ndims.cdl tmp_ndims_${zext}.cdl
-${execdir}/ncdumpchunks -v v $F > tmp_ndims_${zext}.txt
-diff -b ${srcdir}/ref_ndims.txt tmp_ndims_${zext}.txt
+${execdir}/ncdumpchunks -v v $F > tmp_ndims_${zext}.dmp
+diff -b ${srcdir}/ref_ndims.dmp tmp_ndims_${zext}.dmp
 
 echo "Test miscellaneous 1"
 makefile tmp_misc1
@@ -126,11 +126,12 @@ rm -f tmp_misc1_${zext}.txt tmp_misc1_${zext}.cdl
 $TC -d 6,12,4 -c 2,3,1 -f 0,0,0 -e 6,1,4 -Ow $F
 ${NCDUMP} $F > tmp_misc1_${zext}.cdl
 diff -b ${srcdir}/ref_misc1.cdl tmp_misc1_${zext}.cdl
-${execdir}/ncdumpchunks -v v $F > tmp_misc1_${zext}.txt
-diff -b ${srcdir}/ref_misc1.txt tmp_misc1_${zext}.txt
+${execdir}/ncdumpchunks -v v $F > tmp_misc1_${zext}.dmp
+diff -b ${srcdir}/ref_misc1.dmp tmp_misc1_${zext}.dmp
 
 } # testcases()
 
-testcases nzf
-if test "x$FEATURE_HDF5" = xyes ; then testcases nz4; fi
+testcases file
+if test "x$FEATURE_NCZARR_ZIP" = xyes ; then testcases zip; fi
 if test "x$FEATURE_S3TESTS" = xyes ; then testcases s3; fi
+

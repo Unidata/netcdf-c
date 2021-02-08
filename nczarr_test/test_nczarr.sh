@@ -2,10 +2,20 @@
 
 if test "x$SETX" != x; then set -x; fi
 
+# Figure out which cloud repo to use
+if test "x$NCZARR_S3_TEST_HOST" = x ; then
+export NCZARR_S3_TEST_HOST=stratus.ucar.edu
+fi
+if test "x$NCZARR_S3_TEST_BUCKET" = x ; then
+export NCZARR_S3_TEST_BUCKET=unidata-netcdf-zarr-testing
+fi
+export NCZARR_S3_TEST_URL="https://${NCZARR_S3_TEST_HOST}/${NCZARR_S3_TEST_BUCKET}"
+
 ZMD="${execdir}/zmapio"
 
 awsdelete() {
-aws s3api delete-object --endpoint-url=https://stratus.ucar.edu --bucket=unidata-netcdf-zarr-testing --key="$1"
+${execdir}/s3util -u "${NCZARR_S3_TEST_URL}/" -k "$1" clear
+#aws s3api delete-object --endpoint-url=https://${NCZARR_S3_TEST_HOST} --bucket=${NCZARR_S3_TEST_BUCKET} --key="netcdf-c/$1"
 }
 
 # Check settings
@@ -39,8 +49,8 @@ checkprops() {
 
 extfor() {
     case "$1" in
-    nz4) zext="nz4" ;;
-    nzf) zext="nzf" ;;
+    file) zext="file" ;;
+    zip) zext="zip" ;;
     s3) zext="s3" ;;
     *) echo "unknown kind: $1" ; exit 1;;
     esac
@@ -48,25 +58,18 @@ extfor() {
 
 deletemap() {
     case "$1" in
-    nz4) rm -fr $2;;
-    nzf) rm -fr $2;;
+    file) rm -fr $2;;
+    zip) rm -f $2;;
     s3) S3KEY=`${execdir}/zs3parse -k $2`; awsdelete $S3KEY;;
     *) echo "unknown kind: $1" ; exit 1;;
     esac
 }
 
-mapexists() {
-    mapexists=1
-    case "$1" in
-    nz4) if test -f $file; then mapexists=0; fi ;;
-    nzf) if test -f $file; then mapexists=0; fi ;;		 
-    s3)
-	if "./zmapio $fileurl" ; then mapexists=1; else mapexists=0; fi
-        ;;
-    *) echo unknown format: $1 : abort ; exit 1 ;;
-    esac
-    if test $mapexists = 1 ; then
+mapstillexists() {
+    mapstillexists=0
+    if "./zmapio $fileurl" ; then
       echo "delete failed: $1"
+      mapstillexists=1
     fi
 }
 
@@ -74,11 +77,7 @@ fileargs() {
   f="$1"
   case "$zext" in
   s3)
-    if test "x$NCS3PATH" = x ; then
-	S3PATH="https://stratus.ucar.edu/unidata-netcdf-zarr-testing"
-    else
-	S3PATH="${NCS3PATH}"
-    fi
+    S3PATH="${NCZARR_S3_TEST_URL}/netcdf-c"
     fileurl="${S3PATH}/${f}#mode=nczarr,$zext"
     file=$fileurl
     S3HOST=`${execdir}/zs3parse -h $S3PATH`
@@ -92,36 +91,11 @@ fileargs() {
   esac
 }
 
-dumpmap1() {
-    local ISJSON
-    tmp=
-    if test -f $1 ; then
-      ISJSON=`${execdir}/zisjson <$1`
-      if test "x$ISJSON" = x1 ; then
-	  tmp=`tr '\r\n' '  ' <$1`
-      else
-	  tmp=`${execdir}/zhex <$1`
-      fi
-      echo "$1 : |$tmp|" >> $2
-    else
-      echo "$1" >> $2
-    fi
-}
-
 dumpmap() {
-    case "$1" in
-    nz4) rm -f $3 ; ${NCDUMP} $2 > $3 ;;
-    nzf)
-	rm -f $3
-	export LC_ALL=C
-	lr=`find $2 | sort| tr  '\r\n' '  '`
-	for f in $lr ; do  dumpmap1 $f $3 ; done
-	;;
-    s3)
-        aws s3api list-objects --endpoint-url=$S3HOST --bucket=$S3BUCKET
-	;;
-    *) echo "dumpmap failed" ; exit 1;
-    esac
+    zext=$1
+    zbase=`basename $2 ".$zext"`
+    fileargs $zbase
+    ${execdir}/zmapio -t int -x objdump $fileurl > $3
 }
 
 difftest() {
