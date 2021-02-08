@@ -21,12 +21,12 @@
 #endif
     
 #include "netcdf.h"
+#include "netcdf_aux.h"
 #include "ncbytes.h"
 #include "ncpathmgr.h"
 
 extern void NCD4_dumpbytes(size_t size, const void* data0, int swap);
 extern void NCD4_tagdump(size_t size, const void* data0, int swap, const char* tag);
-extern int NC_readfile(const char* filename, NCbytes* content);
 
 static char* progname = NULL;
 
@@ -42,7 +42,6 @@ main(int argc, char *argv[])
 {
     int c;
     char* fname = NULL;
-    NCbytes* contents = ncbytesnew();
     char* tag = NULL;
     size_t offset = 0;
     size_t len = 0;
@@ -81,12 +80,10 @@ main(int argc, char *argv[])
     }
 
     if(tag == NULL) tag = strdup(progname);    
-    if(NC_readfile(fname,contents)) usage();
-    len = ncbyteslength(contents) - offset;
-    data = (char*)ncbytescontents(contents);
+    if(ncaux_readfile(fname,&len,&((void*)data))) usage();
     data += offset;
     NCD4_tagdump(len,data,swap,tag);
-
+    nullfree(data);
     return 0;
 }
 

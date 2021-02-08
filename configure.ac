@@ -629,6 +629,27 @@ if test "x$enable_nczarr_s3_tests" = xyes ; then
 fi
 AM_CONDITIONAL(ENABLE_NCZARR_S3_TESTS, [test "x$enable_nczarr_s3_tests" = xyes])
 
+if test "x$enable_nczarr_s3_tests" = xyes ; then
+  AC_MSG_WARN([*** DO NOT ENABLE_NCZARR_S3_TESTS UNLESS YOU HAVE ACCESS TO THE UNIDATA S3 BUCKET! ***])
+fi
+
+# Set default
+# See if we have libzip
+AC_CHECK_LIB([zip],[zip_open],[have_zip=yes],[have_zip=no])
+if test "x$have_zip" = "xyes" ; then
+   AC_SEARCH_LIBS([zip_open],[zip zip.dll cygzip.dll], [],
+      [AC_MSG_ERROR([libzip search failed.])])
+fi
+AC_MSG_CHECKING([whether libzip library is available])
+AC_MSG_RESULT([${have_zip}])
+
+enable_nczarr_zip=${have_zip} # alias
+
+if test "x$enable_nczarr_zip" = xyes ; then
+AC_DEFINE([ENABLE_NCZARR_ZIP], [1], [If true, then libzip found])
+fi
+AM_CONDITIONAL(ENABLE_NCZARR_ZIP, [test "x$enable_nczarr_zip" = xyes])
+
 # Did the user specify a default cache size for NCZarr?
 AC_MSG_CHECKING([whether a default file cache size for NCZarr was specified])
 AC_ARG_WITH([chunk-cache-size-nczarr],
@@ -1589,6 +1610,7 @@ AC_SUBST([HAS_PAR_FILTERS], [$hdf5_supports_par_filters])
 AC_SUBST(HAS_NCZARR,[$enable_nczarr])
 AC_SUBST(DO_NCZARR_S3_TESTS,[$enable_nczarr_s3_tests])
 AC_SUBST(HAS_MULTIFILTERS,[$has_multifilters])
+AC_SUBST(DO_NCZARR_ZIP_TESTS,[$enable_nczarr_zip])
 
 # Include some specifics for netcdf on windows.
 #AH_VERBATIM([_WIN32_STRICMP],
