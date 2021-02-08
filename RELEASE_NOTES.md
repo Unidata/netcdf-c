@@ -7,6 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.8.0 - TBD
 
+* [Bug Fixes] The nccopy program was treating -d0 as turning deflation on rather than interpreting it as "turn off deflation". See [Github #1944](https://github.com/Unidata/netcdf-c/pull/1944) for more information.
 * [Enhancement] Add support for storing NCZarr data in zip files. See [Github #1942](https://github.com/Unidata/netcdf-c/pull/1942) for more information.
 * [Bug Fixes] Make fillmismatch the default for DAP2 and DAP4; too many servers ignore this requirement.
 * [Bug Fixes] Fix some memory leaks in NCZarr, fix a bug with long strides in NCZarr. See [Github #1913](https://github.com/Unidata/netcdf-c/pull/1913) for more information.
