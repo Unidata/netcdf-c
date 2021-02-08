@@ -295,7 +295,7 @@ NCJlex(NCJparser* parser)
 	    start = parser->pos;
 	    for(;;) {
 		c = *parser->pos++;
-		if(strchr(WORD,c) == NULL) break; /* end of word */
+		if(c == '\0' || strchr(WORD,c) == NULL) break; /* end of word */
 	    }
 	    /* Pushback c if not whitespace */
 	    if(c > ' ' && c != '\177') parser->pos--;

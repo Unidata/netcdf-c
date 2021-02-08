@@ -361,8 +361,8 @@ NCZM_IMPL
 kind2impl(const char* kind)
 {
     if(strcasecmp("s3",kind)==0) return NCZM_S3;
-    else if(strcasecmp("nz4",kind)==0) return NCZM_NC4;
-    else if(strcasecmp("nzf",kind)==0) return NCZM_FILE;
+    else if(strcasecmp("file",kind)==0) return NCZM_FILE;
+    else if(strcasecmp("zip",kind)==0) return NCZM_ZIP;
     else return NCZM_UNDEF;
 }
 
@@ -371,8 +371,8 @@ impl2kind(NCZM_IMPL impl)
 {
     switch (impl) {
     case NCZM_S3: return "s3";
-    case NCZM_NC4: return "nz4";
-    case NCZM_FILE: return "nzf";
+    case NCZM_FILE: return "file";
+    case NCZM_ZIP: return "zip";
     case NCZM_UNDEF: break;
     }
     return NULL;

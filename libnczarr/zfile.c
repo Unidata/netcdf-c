@@ -16,7 +16,7 @@
 
 /* Forward */
 static int NCZ_enddef(int ncid);
-static int ncz_sync_netcdf4_file(NC_FILE_INFO_T* file);
+static int ncz_sync_netcdf4_file(NC_FILE_INFO_T* file, int isclose);
 
 /**
  * @internal Put the file back in redef mode. This is done
@@ -137,8 +137,8 @@ done:
 int
 NCZ_sync(int ncid)
 {
-    NC_FILE_INFO_T* file = NULL;
     int stat = NC_NOERR;
+    NC_FILE_INFO_T* file = NULL;
 
     ZTRACE(0,"ncid=%d",ncid);
 
@@ -157,7 +157,9 @@ NCZ_sync(int ncid)
             return stat;
     }
 
-    return ncz_sync_netcdf4_file(file);
+    /* do not do this if file is writeonce */
+    stat = ncz_sync_netcdf4_file(file,!ZCLOSE);
+    return stat;
 }
 
 /**
@@ -244,7 +246,7 @@ ncz_closeorabort(NC_FILE_INFO_T* h5, void* params, int abort)
 	if(h5->flags & NC_INDEF) h5->flags ^= NC_INDEF;
 	/* Sync the file unless this is a read-only file. */
 	if(!h5->no_write) {
-	    if((stat = ncz_sync_netcdf4_file(h5)))
+	    if((stat = ncz_sync_netcdf4_file(h5,ZCLOSE)))
 		goto done;
 	}
     }
@@ -356,7 +358,7 @@ NCZ_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
  */
 
 static int
-ncz_sync_netcdf4_file(NC_FILE_INFO_T* file)
+ncz_sync_netcdf4_file(NC_FILE_INFO_T* file, int isclose)
 {
     int stat = NC_NOERR;
 
@@ -392,7 +394,7 @@ ncz_sync_netcdf4_file(NC_FILE_INFO_T* file)
             goto done;
 
         /* Write all the metadata. */
-	if((stat = ncz_sync_file(file)))
+	if((stat = ncz_sync_file(file,isclose)))
 	    goto done;
     }
 done:
@@ -424,7 +426,7 @@ ncz_enddef_netcdf4_file(NC_FILE_INFO_T* file)
     /* Redef mode needs to be tracked separately for nc_abort. */
     file->redef = NC_FALSE;
 
-    return ncz_sync_netcdf4_file(file);
+    return ncz_sync_netcdf4_file(file,!ZCLOSE);
 }
 
 /**

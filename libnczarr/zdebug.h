@@ -8,8 +8,8 @@
 #undef ZDEBUG /* general debug */
 #undef ZDEBUG1 /* detailed debug */
 
-#define ZCATCH /* Warning: significant performance impact */
-#define ZTRACING /* Warning: significant performance impact */
+#undef ZCATCH /* Warning: significant performance impact */
+#undef ZTRACING /* Warning: significant performance impact */
 
 #include "ncexternl.h"
 #include "nclog.h"
@@ -32,8 +32,9 @@ EXTERNL int zthrow(int err, const char* fname, const char* fcn, int line);
 #define ZUNTRACEX(e,fmt,...) ncuntrace(__func__,(e),fmt,##__VA_ARGS__)
 #else
 #define ZTRACE(level,fmt,...)
-#define ZUNTRACE(e)
-#define ZUNTRACEX(e,fmt,...)
+#define ZTRACEMORE(level,fmt,...)
+#define ZUNTRACE(e) (e)
+#define ZUNTRACEX(e,fmt,...) (e)
 #endif
 
 /* printers */
