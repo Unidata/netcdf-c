@@ -69,6 +69,11 @@ EXTERNL int ncaux_h5filterspec_parselist(const char* txt0, int* formatp, size_t*
 EXTERNL void ncaux_h5filterspec_free(struct NC_H5_Filterspec* f);
 EXTERNL void ncaux_h5filterspec_fix8(unsigned char* mem, int decode);
 	    
+/* Wrappers to export selected functions from libnetcdf */
+
+EXTERNL int ncaux_readfile(const char* filename, size_t* sizep, void** content);
+EXTERNL int ncaux_writefile(const char* filename, size_t size, void* content);
+
 #if defined(__cplusplus)
 }
 #endif

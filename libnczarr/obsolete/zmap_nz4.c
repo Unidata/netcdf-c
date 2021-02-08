@@ -52,6 +52,7 @@ static int parseurl(const char* path0, NCURI** urip);
 static void nc4ify(const char* zname, char* nc4name);
 static void zify(const char* nc4name, char* zname);
 static int testcontentbearing(int grpid);
+static int errno2ncerr(int err);
 
 /* Define the Dataset level API */
 
@@ -143,7 +144,7 @@ znc4open(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** 
         truepath = NULL;
 
     if((stat=nc_open(local,mode,&ncid)))
-        {stat = NC_EEMPTY; goto done;} /* could not open */
+       goto done; /* could not open */
     z4map->ncid = ncid;
     
     if(mapp) *mapp = (NCZMAP*)z4map;    
@@ -153,7 +154,7 @@ done:
     nullfree(local);
     ncurifree(url);
     if(stat) znc4close((NCZMAP*)z4map,0);
-    return (stat);
+    return errno2ncerr(stat);
 }
 
 /**************************************************/
@@ -340,7 +341,6 @@ znc4search(NCZMAP* map, const char* prefix, NClist* matches)
     int* vars = NULL;
     int i;
     NCbytes* key = ncbytesnew();
-    int trailing = 0;
 	
     if((stat=nczm_split(prefix,segments)))
 	goto done;    
@@ -375,17 +375,13 @@ znc4search(NCZMAP* map, const char* prefix, NClist* matches)
     if((stat = nc_inq_grps(grpid,&ngrps,subgrps)))
 	goto done;
     /* Add the subgroup keys to the list of matches (zified) */
-    trailing = (prefix[strlen(prefix)-1] == '/'); /* does prefix end with '/' */
     for(i=0;i<ngrps;i++) {
 	char gname[NC_MAX_NAME];
 	char zname[NC_MAX_NAME];
 	/* See if this group is content-bearing */
         if((stat = nc_inq_grpname(subgrps[i],gname))) goto done;
         zify(gname,zname);
-	ncbytescat(key,prefix);
-	if(!trailing) ncbytescat(key,"/");
-	ncbytescat(key,zname);
-	nclistpush(matches,ncbytesextract(key));
+	nclistpush(matches,strdup(zname));
     }
 
 done:
@@ -591,11 +587,26 @@ nc4ify(const char* zname, char* nc4name)
     if(nc4name[0] == NCZM_DOT) nc4name[0] = ZDOTNC4;
 }
 
+/* Convert errno to closest NC_EXXX error */
+static int
+errno2ncerr(int err)
+{
+     switch (err) {
+     case ENOENT: err = NC_ENOTFOUND; break; /* File does not exist */
+     case ENOTDIR: err = NC_EEMPTY; break; /* no content */
+     case EACCES: err = NC_EAUTH; break; /* file permissions */
+     case EPERM:  err = NC_EAUTH; break; /* ditto */
+     default: break;
+     }
+     return err;
+}
+
 /**************************************************/
 /* External API objects */
 
 NCZMAP_DS_API zmap_nz4 = {
     NCZM_NC4_V1,
+    0,
     znc4create,
     znc4open,
 };

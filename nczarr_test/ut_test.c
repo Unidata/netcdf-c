@@ -1,10 +1,11 @@
 /*
- *      Copyright 2018, University Corporation for Atmospheric Research
+x *      Copyright 2018, University Corporation for Atmospheric Research
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 
 #include "ut_includes.h"
 #include "ncpathmgr.h"
+#include "nclog.h"
 
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
@@ -55,8 +56,11 @@ ut_init(int argc, char** argv, struct UTOptions * options)
     if(options != NULL) {
 	options->dimdefs = nclistnew();
 	options->vardefs = nclistnew();
-        while ((c = getopt(argc, argv, "Dx:f:o:k:d:v:s:W:")) != EOF) {
+        while ((c = getopt(argc, argv, "T:Dx:f:o:k:d:v:s:W:")) != EOF) {
             switch(c) {
+            case 'T':  
+	        nctracelevel(atoi(optarg));
+                break;
             case 'D':  
                 options->debug = 1;     
                 break;
@@ -188,8 +192,8 @@ makeurl(const char* file, NCZM_IMPL impl)
 
     if(file && strlen(file) > 0) {
 	switch (impl) {
-	case NCZM_NC4: /* fall thru */
 	case NCZM_FILE:
+	case NCZM_ZIP:
             /* Massage file to make it usable as URL path */
             if((path = NCurlpath(file))==NULL) return NULL;
             ncbytescat(buf,"file://");

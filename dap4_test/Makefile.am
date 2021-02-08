@@ -73,7 +73,7 @@ clean-local: clean-local-check
 
 clean-local-check:
 	-rm -rf results results_test_parse results_test_data \
-                results_test_hyrax results_test_meta
+                results_test_hyrax results_test_meta results_test_raw
 	-rm -f .dodsrc .daprc
 
 # The shell file maketests.sh is used to build the testdata

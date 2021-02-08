@@ -454,7 +454,10 @@ put_chunk(NCZChunkCache* cache, const char* key, const NCZCacheEntry* entry)
     case NC_NOERR: break;
     case NC_EEMPTY:
 	/* Create the chunk */
-	if((stat = nczmap_defineobj(map,key))) goto done;
+	switch (stat = nczmap_defineobj(map,key)) {
+	case NC_NOERR: case NC_EFOUND: break;
+	default: goto done;
+	}
 	/* write again */
 	if((stat = nczmap_write(map,key,0,cache->chunksize,entry->data)))
 	    goto done;
