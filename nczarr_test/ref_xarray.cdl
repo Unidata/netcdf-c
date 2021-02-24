@@ -1,0 +1,12 @@
+netcdf tmp_xarray {
+dimensions:
+	x = 2 ;
+	y = 5 ;
+variables:
+	int i(x, y) ;
+data:
+
+ i =
+  _, _, _, _, _,
+  _, _, _, _, _ ;
+}
