@@ -158,7 +158,7 @@ NCZM_S3=3,	/* Amazon S3 implementation */
 #define NCZM_DEFAULT NCZM_ZIP
 
 /* Define the per-implementation limitations flags */
-typedef size64_t NCZM_PROPERTIES;
+typedef size64_t NCZM_FEATURES;
 /* powers of 2 */
 #define NCZM_UNIMPLEMENTED 1 /* Unknown/ unimplemented */
 #define NCZM_WRITEONCE 2     /* Objects can only be written once */
@@ -218,7 +218,7 @@ struct NCZMAP_API {
 /* Define the Dataset level API */
 typedef struct NCZMAP_DS_API {
     int version;
-    NCZM_PROPERTIES properties;
+    NCZM_FEATURES features;
     int (*create)(const char *path, int mode, size64_t constraints, void* parameters, NCZMAP** mapp);
     int (*open)(const char *path, int mode, size64_t constraints, void* parameters, NCZMAP** mapp);
 } NCZMAP_DS_API;
@@ -234,7 +234,7 @@ Get limitations of a particular implementation.
 @return NC_NOERR if the operation succeeded
 @return NC_EXXX if the operation failed for one of several possible reasons
 */
-EXTERNL NCZM_PROPERTIES nczmap_properties(NCZM_IMPL);
+EXTERNL NCZM_FEATURES nczmap_features(NCZM_IMPL);
 
 /* Object API Wrappers; note that there are no group operations
    because group keys do not map to directories.
@@ -350,6 +350,7 @@ EXTERNL int nczm_localize(const char* path, char** newpathp, int local);
 EXTERNL int nczm_canonicalpath(const char* path, char** cpathp);
 EXTERNL int nczm_basename(const char* path, char** basep);
 EXTERNL int nczm_segment1(const char* path, char** seg1p);
+EXTERNL int nczm_lastsegment(const char* path, char** lastp);
 
 /* bubble sorts (note arguments) */
 EXTERNL void nczm_sortlist(struct NClist* l);

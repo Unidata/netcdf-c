@@ -122,6 +122,7 @@ static const struct MACRODEF {
 {"dap4","mode","dap4"},
 {"s3","mode","nczarr,s3"},
 {"bytes","mode","bytes"},
+{"xarray","mode","nczarr,zarr,xarray"},
 {NULL,NULL,NULL}
 };
 

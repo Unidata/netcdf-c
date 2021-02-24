@@ -82,6 +82,7 @@ IF(ENABLE_TESTS)
     add_sh_test(nczarr_test run_fillonlyz)
     ENDIF()
     add_sh_test(nczarr_test run_ncgen4)
+    add_sh_test(nczarr_test run_purezarr)
 
       BUILD_BIN_TEST(tst_chunkcases ${TSTCOMMONSRC})
       TARGET_INCLUDE_DIRECTORIES(tst_chunkcases PUBLIC ../libnczarr)

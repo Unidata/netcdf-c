@@ -5,4 +5,4 @@
 [4] /meta1
 [5] /meta1/.zarray
 [6] /meta2
-[7] /meta2/.nczvar
+[7] /meta2/.nczarray

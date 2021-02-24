@@ -44,14 +44,22 @@
 
 #define NCZMETAROOT "/.nczarr"
 #define NCZGROUP ".nczgroup"
-#define NCZVAR ".nczvar"
-#define NCZATTR ".nczattr"
+#define NCZARRAY ".nczarray"
+#define NCZATTRS ".nczattrs"
+
+/* Deprecated */
+#define NCZVARDEP ".nczvar"
+#define NCZATTRDEP ".nczattr"
 
 #define ZGROUP ".zgroup"
 #define ZATTRS ".zattrs"
 #define ZARRAY ".zarray"
 
-#define PUREZARR "zarr"
+#define PUREZARRCONTROL "zarr"
+#define XARRAYCONTROL "xarray"
+
+/* Mnemonics */
+#define ZCLOSE    1 /* this is closeorabort as opposed to enddef */
 
 /* Mnemonics */
 #define ZCLOSE    1 /* this is closeorabort as opposed to enddef */
@@ -59,6 +67,7 @@
 /**************************************************/
 /* Forward */
 
+struct NClist;
 struct NCjson;
 struct NCauth;
 struct NCZMAP;
@@ -87,14 +96,15 @@ typedef struct NCZ_FILE_INFO {
     } zarr;
     int created; /* 1=> created 0=>open */
     int native_endianness; /* NC_ENDIAN_LITTLE | NC_ENDIAN_BIG */
-    char** controls; /* Envv format */
-    struct Features {
+    char** envv_controls; /* Envv format */
+    struct Controls {
         size64_t flags;
-#		define FLAG_PUREZARR  1
-#		define FLAG_SHOWFETCH 2
-#		define FLAG_LOGGING   4
+#		define FLAG_PUREZARR    1
+#		define FLAG_SHOWFETCH   2
+#		define FLAG_LOGGING     4
+#		define FLAG_XARRAYDIMS  8
 	NCZM_IMPL mapimpl;
-    } features;
+    } controls;
 } NCZ_FILE_INFO_T;
 
 /* This is a struct to handle the dim metadata. */
@@ -132,6 +142,7 @@ typedef struct NCZ_VAR_INFO {
     int order; /* 1=>column major, 0=>row major (default); not currently enforced */
     size_t scalar;
     struct NCZChunkCache* cache;
+    struct NClist* xarray; /* names from _ARRAY_DIMENSIONS */
 } NCZ_VAR_INFO_T;
 
 /* Struct to hold ZARR-specific info for a field. */
