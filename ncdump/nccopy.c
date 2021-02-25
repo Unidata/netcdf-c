@@ -2273,6 +2273,7 @@ main(int argc, char**argv)
 		if(kvalue->name == NULL) {
 		    error("invalid output format: %s", kind_name);
 		}
+		nullfree(kind_name);
 	    }
 	    break;
 	case '3':		/* output format is classic (netCDF-3) */
