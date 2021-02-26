@@ -1655,8 +1655,8 @@ experimental version is available now in the snapshot distributions.
 
 Other clients and servers support access through a netCDF interface to
 netCDF and other kinds of data, including clients written using the
-[netCDF-Java library](http://www.unidata.ucar.edu/software/netcdf-java/) and servers that use the
-[THREDDS Data Server](/software/thredds/current/tds/TDS.html).
+[netCDF-Java library](https://www.unidata.ucar.edu/software/netcdf-java/) and servers that use the
+[THREDDS Data Server](https://www.unidata.ucar.edu/software/tds/).
 
 The [GrADS Data Server](http://grads.iges.org/grads/gds/) provides
 subsetting and analysis services across the Internet for any
@@ -1677,7 +1677,7 @@ Several programs and packages have been developed that convert between
 [GDAL](http://www.gdal.org/), [GrADS](software.html#GrADS), and
 [wgrib2](http://www.cpc.noaa.gov/products/wesley/wgrib2/).
 
-The Unidata [netCDF Java Library](http://www.unidata.ucar.edu/software/netcdf-java/index.html) can
+The Unidata [netCDF Java Library](https://www.unidata.ucar.edu/software/netcdf-java/) can
 read GRIB1 and GRIB2 data (and many other data formats) through a netCDF
 interface. As a command-line example, you could convert *fileIn.grib* to
 *fileOut.nc* as follows:
@@ -1987,8 +1987,6 @@ What other future work on netCDF is planned? {#What-other-future-work-on-netCDF-
 
 Issues, bugs, and plans for netCDF are maintained in the Unidata issue
 tracker sites for
-[netCDF-C](https://www.unidata.ucar.edu/jira/browse/NCF), [Common Data Model / NetCDF-Java](https://www.unidata.ucar.edu/jira/browse/CDM),
-[netCDF-Fortran](https://www.unidata.ucar.edu/jira/browse/NCFORTRAN),
-and [netCDF-CXX4](https://www.unidata.ucar.edu/jira/browse/NCXXF), and
-[old netCDF-C++
-(deprecated)](https://www.unidata.ucar.edu/jira/browse/NCCPP).
+[netCDF-C](https://github.com/Unidata/netcdf-c/issues), [Common Data Model / NetCDF-Java](https://github.com/Unidata/netcdf-java/issues),
+[netCDF-Fortran](https://github.com/Unidata/netcdf-fortran/issues),
+and [netCDF-CXX4](https://github.com/Unidata/netcdf-cxx4/issues), and
