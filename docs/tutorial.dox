@@ -116,7 +116,7 @@ support-netcdf@unidata.ucar.edu.
 Unidata supports netCDF APIs in C, C++, Fortran 77, Fortran 90, and
 Java.
 
-The <a href="http://www.unidata.ucar.edu/software/netcdf-java">netCDF
+The <a href="https://www.unidata.ucar.edu/software/netcdf-java/">netCDF
 Java</a> API is a complete implementation of netCDF in Java. It is
 distributed independently of the other APIs. If you are writing web
 server software, you should certainly be doing so in Java.
@@ -169,7 +169,7 @@ C, C++, Fortran 77, Fortran 90, and Java APIs:
 - C++ - The NetCDF C++ Interface Guide.
 - Fortran 77 - The NetCDF Fortran 77 Interface Guide.
 - Fortran 90 - The NetCDF Fortran 90 Interface Guide.
-- Java <a href="http://www.unidata.ucar.edu/software/netcdf-java/v2.1/NetcdfJavaUserManual.htm">The netCDF-Java Users Guide</a>.
+- Java - <a href="https://docs.unidata.ucar.edu/netcdf-java/current/userguide/">The netCDF-Java User Guide</a>.
 
 Man pages for the C, F77, and F90 interfaces, and ncgen and ncdump,
 are available on the documentation page of the netCDF web site

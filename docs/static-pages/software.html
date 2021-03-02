@@ -1212,7 +1212,7 @@ or using ECMWF reanalysis on a reduced grid
         </li>
         <li>
           Support for non-gridded data through the <a
-          href="/software/netcdf-java/CDM/" >Common Data Model (CDM)</a>
+          href="https://docs.unidata.ucar.edu/netcdf-java/current/userguide/common_data_model_overview.html">Common Data Model (CDM)</a>
         </li>
       </ul>
       The IDV uses the <a href="http://www.ssec.wisc.edu/~billh/visad.html"
@@ -1377,23 +1377,25 @@ or using ECMWF reanalysis on a reduced grid
     <h2><a id="Java interface" name="Java interface">Java interface</a></h2>
     <p>
       The <a href="/software/netcdf-java/"
-      >NetCDF-Java 4.2 Library</a> is a Java interface to netCDF files,
+      >NetCDF-Java Library</a> is a Java interface to netCDF files,
       as well as to many other types of scientific data formats. It
       is freely available and the source code is released under the
-      (MIT-style) netCDF C library license. Previous versions use the GNU
-      Lesser General Public License (LGPL).
+      BSD-3 license. Previous versions used the (MIT-style) netCDF C
+      library license, and prior to that, the GNU Lesser General
+      Public License (LGPL).
     </p>
     <p>
       The library implements a Common Data Model (<a
-      href="/software/netcdf-java/CDM/" >CDM</a>), a generalization
+      href="https://docs.unidata.ucar.edu/netcdf-java/current/userguide/common_data_model_overview.html" >CDM</a>), a generalization
       of the netCDF, OpenDAP and HDF5 data models. The library is a
       prototype for the netCDF-4 project, which provides a C language API
       for the "data access layer" of the CDM, on top of the HDF5 file
       format. The NetCDF-Java library is a 100% Java framework for <em>reading</em> netCDF
       and other file formats into the CDM, as well as <em>writing</em> to the
-      netCDF-3 file format.
+      netCDF-3 file format. Write support for the netCDF-4 is provided by 
+      native calls to the netCDF-C library.
       The library also implements <a
-      href="http://www.unidata.ucar.edu/software/netcdf/ncml/">NcML</a>,
+      href="https://docs.unidata.ucar.edu/netcdf-java/current/userguide/ncml_overview.html">NcML</a>,
       which allows you to add metadata to CDM datasets, as well as to create
       virtual datasets through aggregation.
     </p>
@@ -1913,7 +1915,7 @@ or using ECMWF reanalysis on a reduced grid
       <a
       href="http://nctoolbox.github.io/nctoolbox/" >nctoolbox</a> is a MATLAB
       interface that provides read-only access to <a
-      href="/software/netcdf-java/CDM/index.html" >Common Data Model</a>
+      href="https://docs.unidata.ucar.edu/netcdf-java/current/userguide/common_data_model_overview.html" >Common Data Model</a>
       datasets.
       Under the hood, nctoolbox uses Unidata's NetCDF-Java as the data access layer.
       This allows nctoolbox to access to netCDF, OPeNDAP, HDF5, GRIB, GRIB2, HDF4,
@@ -2964,7 +2966,7 @@ or using ECMWF reanalysis on a reduced grid
     </p>
     <p>
       xray adopts the <a
-      href="http://www.unidata.ucar.edu/software/thredds/current/netcdf-java/CDM"
+      href="https://docs.unidata.ucar.edu/netcdf-java/current/userguide/common_data_model_overview.html"
       >Common Data Model</a> for self-describing scientific data in
       widespread use in the Earth sciences (e.g., netCDF and OPeNDAP):
       xray.Dataset is an in-memory representation of a netCDF file.
