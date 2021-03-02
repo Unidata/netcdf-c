@@ -57,6 +57,10 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
     NC_HDF5_FILE_INFO_T *hdf5_info;
     NC_HDF5_GRP_INFO_T *hdf5_grp;
 
+#ifdef HAVE_H5PSET_LIBVER_BOUNDS
+    H5F_libver_t low, high;
+#endif
+
 #ifdef USE_PARALLEL4
     NC_MPI_INFO *mpiinfo = NULL;
     MPI_Comm comm;
@@ -110,6 +114,13 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
         flags = H5F_ACC_EXCL;
     else
         flags = H5F_ACC_TRUNC;
+
+#ifdef HDF5_HAS_SWMR
+#ifndef HAVE_H5PSET_LIBVER_BOUNDS
+    if (cmode & NC_HDF5_SWMR)
+        flags |= H5F_ACC_SWMR_WRITE;
+#endif
+#endif
 
     /* If this file already exists, and NC_NOCLOBBER is specified,
        return an error (unless diskless|inmemory) */
@@ -168,12 +179,20 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
 
 #ifdef HAVE_H5PSET_LIBVER_BOUNDS
 #if H5_VERSION_GE(1,10,2)
-    if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_EARLIEST, H5F_LIBVER_V18) < 0)
+    low = H5F_LIBVER_EARLIEST;
+    high = H5F_LIBVER_V18;
+#ifdef HDF5_HAS_SWMR
+    if ((cmode & NC_HDF5_SWMR)) {
+      low = H5F_LIBVER_LATEST;
+      high = H5F_LIBVER_LATEST;
+    }
+#endif /* HDF5_HAS_SWMR */
 #else
-        if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_EARLIEST,
-                                 H5F_LIBVER_LATEST) < 0)
+    low = H5F_LIBVER_EARLIEST;
+    high = H5F_LIBVER_LATEST;
 #endif
-            BAIL(NC_EHDFERR);
+    if (H5Pset_libver_bounds(fapl_id, low, high) < 0)
+        BAIL(NC_EHDFERR);
 #endif
 
     /* Create the property list. */
@@ -247,6 +266,14 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
     /* Save the HDF5 superblock number and set the _NCProperties attribute. */
     if ((retval = NC4_new_provenance(nc4_info)))
         BAIL(retval);
+
+#ifdef HDF5_HAS_SWMR
+    if ((cmode & NC_HDF5_SWMR)) {
+      /* Prepare for single writer multiple readers */
+      if ((retval = H5Fstart_swmr_write(hdf5_info->hdfid)))
+        BAIL(retval);
+    }
+#endif
 
     return NC_NOERR;
 

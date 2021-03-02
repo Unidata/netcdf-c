@@ -160,6 +160,7 @@ Use this in mode flags for both nc_create() and nc_open(). */
 
 #define NC_PERSIST       0x4000  /**< Save diskless contents to disk. Mode flag for nc_open() or nc_create() */
 #define NC_INMEMORY      0x8000  /**< Read from memory. Mode flag for nc_open() or nc_create() */
+#define NC_HDF5_SWMR     0x2000 /** Reuse deprecated MPIIO flag for SWMR **/
 
 #define NC_MAX_MAGIC_NUMBER_LEN 8 /**< Max len of user-defined format magic number. */
 
