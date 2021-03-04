@@ -485,6 +485,15 @@ ncurisetprotocol(NCURI* duri,const char* protocol)
     return (NC_NOERR);
 }
 
+/* Replace the path */
+int
+ncurisetpath(NCURI* duri,const char* newpath)
+{
+    nullfree(duri->path);
+    duri->path = strdup(newpath);
+    return (NC_NOERR);
+}
+
 /* Replace the query */
 int
 ncurisetquery(NCURI* duri,const char* query)

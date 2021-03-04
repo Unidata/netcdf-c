@@ -163,7 +163,7 @@ main(int argc, char** argv)
 	    dumpoptions.nctype = typefor(optarg);
 	    break;
 	case 'u': {
- 	        char* p = NCdeescape(optarg);
+ 	        char* p = NC_backslashUnescape(optarg);
 		ncuriparse(p,&dumpoptions.url);
 		nullfree(p);
 		if(dumpoptions.url == NULL) {
