@@ -20,10 +20,6 @@
 #define snprintf _snprintf
 #endif
 
-#ifdef __hpux
-#include <locale.h>
-#endif
-    
 #include "netcdf.h"
 #include "ncpathmgr.h"
 
@@ -91,10 +87,6 @@ main(
     int c;
     FILE *fp;
 
-#ifdef __hpux
-    setlocale(LC_CTYPE,"");
-#endif
-    
 #ifdef MDEBUG
 	malloc_debug(2) ;	/* helps find malloc/free errors on Sun */
 #endif /* MDEBUG */
@@ -213,6 +205,9 @@ main(
     argv += optind;
 
     if (argc > 1) {
+int i;
+for(i=0;i<argc;i++)
+fprintf(stderr,"xarg(%d): |%s|\n",i,argv[i]);
 	derror ("%s: only one input file argument permitted",progname);
 	return(6);
     }

@@ -79,9 +79,9 @@ AC_MSG_NOTICE([checking supported formats])
 # An explicit disable of netcdf-4 | netcdf4 is treated as if it was disable-hdf5
 AC_MSG_CHECKING([whether we should build with netcdf4 (alias for HDF5)])
 AC_ARG_ENABLE([netcdf4], [AS_HELP_STRING([--disable-netcdf4],
-              [(synonym for --enable-hdf5)])])
+              [(deprecated synonym for --enable-hdf5)])])
 test "x$enable_netcdf4" = xno || enable_netcdf4=yes
-AC_MSG_RESULT([$enable_netcdf4])
+AC_MSG_RESULT([$enable_netcdf4 (deprecated; Please use with --disable-hdf5)])
 AC_MSG_CHECKING([whether we should build with netcdf-4 (alias for HDF5)])
 AC_ARG_ENABLE([netcdf-4], [AS_HELP_STRING([--disable-netcdf-4],
               [(synonym for --disable-netcdf4)])])

@@ -67,6 +67,9 @@ EXTERNL void ncurifree(NCURI* ncuri);
 /* Replace the protocol */
 EXTERNL int ncurisetprotocol(NCURI*,const char* newprotocol);
 
+/* Replace the path */
+EXTERNL int ncurisetpath(NCURI*,const char* newpath);
+
 /* Replace the constraints */
 EXTERNL int ncurisetquery(NCURI*,const char* query);
 
