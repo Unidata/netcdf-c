@@ -15,7 +15,7 @@ S3TEST=1
 #CDF5=1
 #HDF4=1
 
-#TR=--trace
+H518=1
 
 for arg in "$@" ; do
 case "$arg" in

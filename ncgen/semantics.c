@@ -9,6 +9,7 @@
 #include        "dump.h"
 #include        "ncoffsets.h"
 #include        "netcdf_aux.h"
+#include	"ncpathmgr.h"
 
 #define floordiv(x,y) ((x) / (y))
 #define ceildiv(x,y) (((x) % (y)) == 0 ? ((x) / (y)) : (((x) / (y)) + 1))

@@ -10,61 +10,113 @@ Test the NCpathcvt
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "netcdf.h"
 #include "ncpathmgr.h"
 
-#undef VERBOSE
+#define DEBUG
+
+#define NKINDS 4
+static const int kinds[NKINDS] = {NCPD_NIX,NCPD_MSYS,NCPD_CYGWIN,NCPD_WIN};
 
 typedef struct Test {
-    char* path;
-    char* expected;
+    char* test;
+    char* expected[NKINDS];
 } Test;
 
 /* Path conversion tests */
 static Test PATHTESTS[] = {
-#ifdef _MSC_VER
-{"/xxx/a/b","/xxx/a/b"},
-{"d:/x/y","d:\\x\\y"},
-{"/cygdrive/d/x/y","d:\\x\\y"},
-{"/d/x/y","d:\\x\\y"},
-{"/cygdrive/d","d:\\"},
-{"/d","d:\\"},
-{"/cygdrive/d/git/netcdf-c/dap4_test/daptestfiles/test_anon_dim.2.syn","d:\\git\\netcdf-c\\dap4_test\\daptestfiles\\test_anon_dim.2.syn"},
-{"[dap4]file:///cygdrive/d/git/netcdf-c/dap4_test/daptestfiles/test_anon_dim.2.syn","[dap4]file:///cygdrive/d/git/netcdf-c/dap4_test/daptestfiles/test_anon_dim.2.syn"},
-#else
-{"/xxx/a/b","/xxx/a/b"},
-{"d:/x/y","d:/x/y"},
-{"/cygdrive/d/x/y","d:/x/y"},
-{"/d/x/y","d:/x/y"},
-{"/cygdrive/d","d:/"},
-{"/d","d:/"},
-{"/cygdrive/d/git/netcdf-c/dap4_test/daptestfiles/test_anon_dim.2.syn","d:/git/netcdf-c/dap4_test/daptestfiles/test_anon_dim.2.syn"},
-{"[dap4]file:///cygdrive/d/git/netcdf-c/dap4_test/daptestfiles/test_anon_dim.2.syn","[dap4]file:///cygdrive/d/git/netcdf-c/dap4_test/daptestfiles/test_anon_dim.2.syn"},
+{"/xxx/a/b",{"/xxx/a/b", "/c/xxx/a/b", "/cygdrive/c/xxx/a/b", "c:\\xxx\\a\\b"}},
+{"d:/x/y",{ "/d/x/y", "/d/x/y",  "/cygdrive/d/x/y",  "d:\\x\\y"}},
+{"/cygdrive/d/x/y",{ "/d/x/y", "/d/x/y", "/cygdrive/d/x/y",  "d:\\x\\y"}},
+{"/d/x/y",{ "/d/x/y", "/d/x/y",  "/cygdrive/d/x/y",  "d:\\x\\y"}},
+{"/cygdrive/d",{ "/d", "/d",  "/cygdrive/d",  "d:"}},
+{"/d", {"/d", "/d",  "/cygdrive/d",  "d:"}},
+{"/cygdrive/d/git/netcdf-c/dap4_test/test_anon_dim.2.syn",{
+    "/d/git/netcdf-c/dap4_test/test_anon_dim.2.syn",
+    "/d/git/netcdf-c/dap4_test/test_anon_dim.2.syn",
+    "/cygdrive/d/git/netcdf-c/dap4_test/test_anon_dim.2.syn",
+    "d:\\git\\netcdf-c\\dap4_test\\test_anon_dim.2.syn"}},
+/* Test relative path */
+{"x/y",{ "x/y", "x/y", "x/y",  "x\\y"}},
+#ifndef _WIN32
+/* Test utf8 path */
+{"/海/海",{ "/海/海", "/c/海/海", "/cygdrive/c/海/海",  "c:\\海\\海"}},
 #endif
-{NULL,NULL}
+{NULL, {NULL, NULL, NULL, NULL}}
 };
+
+/*Forward */
+static const char* kind2string(int kind);
 
 int
 main(int argc, char** argv)
 {
     Test* test;
     int failcount = 0;
+    char* cvt = NULL;
+    int k;
+    int drive = 'c';
 
-    for(test=PATHTESTS;test->path;test++) {
-	char* cvt = NCpathcvt(test->path);
-	if(cvt == NULL) {
-	    fprintf(stderr,"TEST returned NULL: %s\n",test->path);
-	    exit(1);
-	}
-	if(strcmp(cvt,test->expected) != 0) {
-	    fprintf(stderr,"NCpathcvt failed:: input: |%s| expected=|%s| actual=|%s|\n",test->path,test->expected,cvt);
-	    failcount++;
-	}
-#ifdef VERBOSE
-	fprintf(stderr,"NCpathcvt:: input: |%s| actual=|%s|\n",test->path,cvt);
+    nc_initialize();
+
+    /* Test localkind X path kind */
+    for(k=0;k<NKINDS;k++) {
+	int kind = kinds[k];
+	/* Iterate over the test paths */
+        for(test=PATHTESTS;test->test;test++) {
+	    /* Compare output for the localkind */
+            if(test->expected[k] == NULL) {
+#ifdef DEBUG
+	        fprintf(stderr,"TEST local=%s: %s ignored\n",kind2string(kind),test->test);
 #endif
-	free(cvt);
+	        continue;
+	    }
+   	    cvt = NCpathcvt_test(test->test,kind,drive);
+#ifdef DEBUG
+	    fprintf(stderr,"TEST local=%s: input: |%s| expected=|%s| actual=|%s|: ",
+			kind2string(kind),test->test,test->expected[k],cvt);
+#endif
+	    fflush(stderr); fflush(stdout);
+	    if(cvt == NULL) {
+#ifdef DEBUG
+		fprintf(stderr," ILLEGAL");
+#endif
+		failcount++;
+	    } else if(strcmp(cvt,test->expected[k]) != 0) {
+#ifdef DEBUG
+		fprintf(stderr," FAIL");
+#endif
+	        failcount++;
+	    } else {
+#ifdef DEBUG
+		fprintf(stderr," PASS");
+#endif
+	    }
+#ifdef DEBUG
+	    fprintf(stderr,"\n");
+#endif	    
+	    nullfree( cvt); cvt = NULL;
+	}
     }
-
-    fprintf(stderr,"%s test_ncuri\n",failcount > 0 ? "***FAIL":"***PASS");
+    nullfree(cvt);
+    fprintf(stderr,"%s test_pathcvt\n",failcount > 0 ? "***FAIL":"***PASS");
+    nc_finalize();
     return (failcount > 0 ? 1 : 0);
+}
+
+static const char*
+kind2string(int kind)
+{
+    switch(kind) {
+    case NCPD_NIX:
+	return "Linux";
+    case NCPD_MSYS:
+	return "MSYS";
+    case NCPD_CYGWIN:
+	return "Cygwin";
+    case NCPD_WIN:
+	return "Windows";
+    default: break;
+    }
+    return "unknown";
 }

@@ -20,6 +20,7 @@ typedef struct NC_HTTP_STATE {
     const char** headset; /* which headers to capture */
     NClist* headers;
     NCbytes* buf;
+    char errbuf[1024]; /* assert(CURL_ERROR_SIZE <= 1024) */
 } NC_HTTP_STATE;
 
 extern int nc_http_open(const char* objecturl, NC_HTTP_STATE** state, size64_t* lenp);
