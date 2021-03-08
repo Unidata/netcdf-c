@@ -317,7 +317,7 @@ IF(ENABLE_TESTS)
   add_sh_test(ncdump test_keywords)
   ENDIF()
 
-  IF(USE_CDF5)
+  IF(USE_HDF5)
   add_sh_test(ncdump test_scope)
   ENDIF()
 
