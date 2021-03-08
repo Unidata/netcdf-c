@@ -433,7 +433,7 @@ rcsearch(const char* prefix, const char* rcname, char** pathp)
     strncat(path,"/",pathlen);
     strncat(path,rcname,pathlen);
     /* see if file is readable */
-    f = fopen(path,"r");
+    f = NCfopen(path,"r");
     if(f != NULL)
         nclog(NCLOGDBG, "Found rc file=%s",path);
 done:

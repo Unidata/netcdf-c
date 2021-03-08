@@ -200,9 +200,7 @@ main(
     int c;
     FILE *fp;
 	struct Languages* langs;
-#ifdef __hpux
-    setlocale(LC_CTYPE,"");
-#endif
+
     init_netcdf();
 
     opterr = 1;			/* print error message if bad option */
@@ -353,7 +351,7 @@ main(
 	  break;
 	case 'o':		/* to explicitly specify output name */
 	  if(netcdf_name) efree(netcdf_name);
-	  netcdf_name = NCdeescape(optarg);
+	  netcdf_name = NC_backslashUnescape(optarg);
 	  break;
 	case 'P': /* diskless with persistence */
 	  diskless = 1;
@@ -462,7 +460,7 @@ main(
 	}
     }
 
-    cdlname = nulldup(argv[0]);
+    cdlname = NC_backslashUnescape(argv[0]);
     if(cdlname != NULL) {
 	if(strlen(cdlname) > NC_MAX_NAME)
 	  cdlname[NC_MAX_NAME] = '\0';
