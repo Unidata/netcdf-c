@@ -7,7 +7,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.8.0 - TBD
 
-* [Bug Fixes] The netcdf-c programlibrary was incorrectly determining the scope of types referred to by nc_inq_type_equal. See [Github #1959](https://github.com/Unidata/netcdf-c/pull/1959) for more information.
+* [Bug Fixes] The netcdf-c library was incorrectly determining the scope of types referred to by nc_inq_type_equal. See [Github #1959](https://github.com/Unidata/netcdf-c/pull/1959) for more information.
+* [Enhancement] Provide better cross platform path name management. This converts paths for various platforms (e.g. Windows, MSYS, etc.) so that they are in the proper format for the executing platform. See [Github #1958](https://github.com/Unidata/netcdf-c/pull/1958) for more information.
 * [Bug Fixes] The nccopy program was treating -d0 as turning deflation on rather than interpreting it as "turn off deflation". See [Github #1944](https://github.com/Unidata/netcdf-c/pull/1944) for more information.
 * [Enhancement] Add support for storing NCZarr data in zip files. See [Github #1942](https://github.com/Unidata/netcdf-c/pull/1942) for more information.
 * [Bug Fixes] Make fillmismatch the default for DAP2 and DAP4; too many servers ignore this requirement.

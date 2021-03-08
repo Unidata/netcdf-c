@@ -182,7 +182,8 @@ NC_mktmp(const char* base)
     mode_t mask;
 #endif
 
-    /* Make sure that this path conversion has been applied */
+    /* Make sure that this path conversion has been applied
+       since we do not wrap mkstemp */
     cvtpath = NCpathcvt(base);
     strncpy(tmp,cvtpath,sizeof(tmp));
     nullfree(cvtpath);
@@ -214,7 +215,7 @@ NC_mktmp(const char* base)
             strncat(tmp,spid,sizeof(tmp) - strlen(tmp) - 1);
 	}
 #endif /* HAVE_MKTEMP */
-#ifdef _MSC_VER
+#ifdef _WIN32
         fd=NCopen3(tmp,O_RDWR|O_BINARY|O_CREAT, _S_IREAD|_S_IWRITE);
 #else
         fd=NCopen3(tmp,O_RDWR|O_CREAT|O_EXCL, S_IRWXU);
