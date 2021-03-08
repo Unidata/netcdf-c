@@ -171,7 +171,8 @@ ref_no_ncproperty.nc test_unicode_directory.sh				\
 ref_roman_szip_simple.cdl ref_roman_szip_unlim.cdl ref_tst_perdimspecs.cdl \
 test_keywords.sh ref_keyword1.cdl ref_keyword2.cdl ref_tst_nofilters.cdl \
 test_scope.sh type_group_only.cdl type_ancestor_only.cdl                \
-type_ancestor_subgroup.cdl type_preorder.cdl
+type_ancestor_subgroup.cdl type_preorder.cdl                            \
+test_unicode_path.sh
 
 # The L512.bin file is file containing exactly 512 bytes each of value 0.
 # It is used for creating hdf5 files with varying offsets for testing.

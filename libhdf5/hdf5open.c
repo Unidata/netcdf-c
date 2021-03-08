@@ -15,6 +15,8 @@
 #include "ncrc.h"
 #include "ncauth.h"
 #include "ncmodel.h"
+#include "ncfilter.h"
+#include "ncpathmgr.h"
 
 #ifdef ENABLE_BYTERANGE
 #include "H5FDhttp.h"
@@ -67,14 +69,10 @@ extern int NC4_open_image_file(NC_FILE_INFO_T* h5);
 /* Defined later in this file. */
 static int rec_read_metadata(NC_GRP_INFO_T *grp);
 
-#ifdef _WIN32
-static hid_t nc4_H5Fopen(const char *filename, unsigned flags, hid_t fapl_id);
-#else
-#define nc4_H5Fopen  H5Fopen
-#endif
-
+#ifdef ENABLE_BYTERANGE
 #ifdef ENABLE_HDF5_ROS3
 static int ros3info(NCauth** auth, NCURI* uri, char** hostportp, char** regionp);
+#endif
 #endif
 
 /**
@@ -2759,6 +2757,7 @@ exit:
     return retval;
 }
 
+#ifdef ENABLE_BYTERANGE
 #ifdef ENABLE_HDF5_ROS3
 static int
 ros3info(NCauth** authp, NCURI* uri, char** hostportp, char** regionp)
@@ -2806,8 +2805,7 @@ done:
     return stat;
 }
 #endif /*ENABLE_HDF5_ROS3*/
-
-#ifdef _WIN32
+#endif /*ENABLE_BYTERANGE*/
 
 /**
  * Wrapper function for H5Fopen.
@@ -2818,18 +2816,23 @@ done:
  * @param fapl_id File access property list identifier.
  * @return A file identifier if succeeded. A negative value if failed.
  */
-static hid_t
-nc4_H5Fopen(const char *filename, unsigned flags, hid_t fapl_id)
+hid_t
+nc4_H5Fopen(const char *filename0, unsigned flags, hid_t fapl_id)
 {
-    pathbuf_t pb;
     hid_t hid;
+    char* localname = NULL;
+    char* filename = NULL;
 
-    filename = nc4_ndf5_ansi_to_utf8(&pb, filename);
-    if (!filename)
-        return H5I_INVALID_HID;
-    hid = H5Fopen(filename, flags, fapl_id);
-    nc4_hdf5_free_pathbuf(&pb);
+#ifdef HDF5_UTF8_PATHS
+    NCpath2utf8(filename0,&filename);
+#else    
+    filename = strdup(filename0);
+#endif
+    if((localname = NCpathcvt(filename))==NULL)
+	{hid = H5I_INVALID_HID; goto done;}
+    hid = H5Fopen(localname, flags, fapl_id);
+done:
+    nullfree(filename);
+    nullfree(localname);
     return hid;
 }
-
-#endif /* _WIN32 */

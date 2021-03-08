@@ -2487,5 +2487,3 @@ clearout(void)	/* reset symbol table to empty */
 #define YY_NO_INPUT
 
 #include "ncgenl.c"
-
-

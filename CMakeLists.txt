@@ -662,7 +662,6 @@ IF(USE_HDF5)
     IF(HDF5_VERSION_STRING AND NOT HDF5_VERSION)
       SET(HDF5_VERSION ${HDF5_VERSION_STRING})
     ENDIF()
-
     IF("${HDF5_VERSION}" STREQUAL "")
       MESSAGE(STATUS "Unable to determine hdf5 version.  NetCDF requires at least version ${HDF5_VERSION_REQUIRED}")
     ELSE()
@@ -802,6 +801,15 @@ IF(USE_HDF5)
     SET(HDF5_HAS_PAR_FILTERS FALSE CACHE BOOL "")
     SET(HAS_PAR_FILTERS no CACHE STRING "")
   ENDIF()
+
+  # Check to see if HDF5 library is 1.10.6 or greater.
+  # Used to control path name conversion
+  IF(${HDF5_VERSION} VERSION_LESS "1.10.6")
+    SET(HDF5_UTF8_PATHS FALSE)
+  ELSE()
+    SET(HDF5_UTF8_PATHS TRUE)
+  ENDIF()
+  MESSAGE("-- Checking for HDF5 version 1.10.6 or later: ${HDF5_UTF8_PATHS}")
 
   SET(H5_USE_16_API 1)
   OPTION(NC_ENABLE_HDF_16_API "Enable HDF5 1.6.x Compatibility(Required)" ON)
@@ -2204,6 +2212,7 @@ configure_file(
 SET(EXTRA_DIST ${EXTRA_DIST} ${CMAKE_CURRENT_SOURCE_DIR}/test_common.in)
 SET(TOPSRCDIR "${CMAKE_CURRENT_SOURCE_DIR}")
 SET(TOPBUILDDIR "${CMAKE_CURRENT_BINARY_DIR}")
+SET(ISMSVC "${MSVC}")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test_common.in ${CMAKE_CURRENT_BINARY_DIR}/test_common.sh @ONLY NEWLINE_STYLE LF)
 
 

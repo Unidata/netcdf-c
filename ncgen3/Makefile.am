@@ -37,6 +37,7 @@ CLEANFILES = c0.nc c0_64.nc c0_4.nc c0_4c.nc
 # This is used if someone wants to rebuild the parser and lexer
 # Otherwise never invoked, but records how to do it.
 makeparser::
+	rm -f ncgenl.c lex.ncg.c
 	flex -Pncg -8 ncgen.l
 	rm -f ncgenl.c
 	sed -e s/lex.ncg.c/ncgenl.c/g <lex.ncg.c >ncgenl.c
@@ -45,10 +46,3 @@ makeparser::
 	sed -e s/ncgen.tab.c/ncgeny.c/g -e s/ncgen.tab.h/ncgeny.h/g <ncgen.tab.c >ncgeny.c
 	sed -e s/ncgen.tab.c/ncgeny.c/g -e s/ncgen.tab.h/ncgeny.h/g <ncgen.tab.h >ncgeny.h
 	rm -f ncgen.tab.c ncgen.tab.h
-
-makeparserold::
-	flex -Pncg -8 ncgen.l
-	mv lex.ncg.c ncgenyy.c
-	bison -pncg -d ncgen.y
-	mv ncgen.tab.c ncgentab.c
-	mv ncgen.tab.h ncgentab.h
