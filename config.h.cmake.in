@@ -310,6 +310,9 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the `MPI_Comm_f2c' function. */
 #cmakedefine HAVE_MPI_COMM_F2C 1
 
+/* Define to 1 if you have the `MPI_Info_f2c' function. */
+#cmakedefine HAVE_MPI_INFO_F2C 1
+
 /* Define to 1 if you have the `mremap' function. */
 #cmakedefine HAVE_MREMAP 1
 
