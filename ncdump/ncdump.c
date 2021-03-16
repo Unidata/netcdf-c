@@ -25,9 +25,6 @@ Research/Unidata. See \ref copyright file for more info.  */
 #include <ctype.h>
 #include <assert.h>
 #include <math.h>
-#ifdef HAVE_LOCALE_H
-#include <locale.h>
-#endif	/* HAVE_LOCALE_H */
 
 #include "netcdf.h"
 #include "netcdf_mem.h"
@@ -47,6 +44,7 @@ Research/Unidata. See \ref copyright file for more info.  */
 #include "nclist.h"
 #include "ncuri.h"
 #include "nc_provenance.h"
+#include "ncpathmgr.h"
 
 #ifdef USE_NETCDF4
 #include "nc4internal.h" /* to get name of the special properties file */
@@ -145,39 +143,35 @@ usage(void)
 static char *
 name_path(const char *path)
 {
-    const char *cp;
-    char *new;
-    char *sp;
+    char* cvtpath = NULL;
+    const char *cp = NULL;
+    char *sp = NULL;
+    size_t cplen = 0;
+    char* base = NULL;
 
-#ifdef vms
-#define FILE_DELIMITER ']'
-#endif
-#if defined(_WIN32) || defined(msdos)
-#define FILE_DELIMITER '\\'
-#endif
-#ifndef FILE_DELIMITER /* default to unix */
-#define FILE_DELIMITER '/'
-#endif
+    if((cvtpath = NCpathcvt(path))==NULL)
+        return NULL;
 
     /* See if this is a url */
-    {
-	char* base;
- 	if(nc__testurl(path,&base)) {
- 	    return base; /* Looks like a url */
-	}
-	/* else fall thru and treat like a file path */
-    }
+    if(nc__testurl(cvtpath,&base))
+ 	 goto done; /* Looks like a url */
+    /* else fall thru and treat like a file path */
 
-    cp = strrchr(path, FILE_DELIMITER);
-    if (cp == 0)		/* no delimiter */
-      cp = path;
+    cp = strrchr(cvtpath, '/');
+    if (cp == NULL)		/* no delimiter */
+      cp = cvtpath;
     else			/* skip delimiter */
       cp++;
-    new = (char *) emalloc((unsigned) (strlen(cp)+1));
-    (void) strncpy(new, cp, strlen(cp) + 1);	/* copy last component of path */
-    if ((sp = strrchr(new, '.')) != NULL)
+    cplen = strlen(cp);
+    base = (char *) emalloc((unsigned) (cplen+1));
+    base[0] = '\0';
+    strlcat(base,cp,cplen+1);
+    if ((sp = strrchr(base, '.')) != NULL)
       *sp = '\0';		/* strip off any extension */
-    return new;
+
+done:
+    nullfree(cvtpath);
+    return base;
 }
 
 /* Return primitive type name */
@@ -333,7 +327,7 @@ fileopen(const char* path, void** memp, size_t* sizep)
 #endif
     oflags |= O_EXCL;
 #ifdef vms
-    fd = open(path, oflags, 0, "ctx=stm");
+    fd = NCopen3(path, oflags, 0, "ctx=stm");
 #else
     fd  = NCopen2(path, oflags);
 #endif
@@ -2182,9 +2176,6 @@ main(int argc, char *argv[])
     putenv("PRINTF_EXPONENT_DIGITS=2"); /* Enforce unix/linux style exponent formatting. */
 #endif
 
-#ifdef HAVE_LOCALE_H
-    setlocale(LC_ALL, "C");     /* CDL may be ambiguous with other locales */
-#endif /* HAVE_LOCALE_H */
     progname = argv[0];
     set_formats(FLT_DIGITS, DBL_DIGITS); /* default for float, double data */
 
@@ -2342,10 +2333,11 @@ main(int argc, char *argv[])
 
     init_epsilons();
 
-    /* Deescape the user name */
-    path = NCdeescape(argv[i]);
+    /* We need to look for escape characters because the argument
+       may have come in via a shell script */
+    path = NC_backslashUnescape(argv[i]);
     if(path == NULL) {
-	snprintf(errmsg,sizeof(errmsg),"out of memory copying argument %s", argv[i]);
+	snprintf(errmsg,sizeof(errmsg),"out of memory un-escaping argument %s", argv[i]);
 	goto fail;
     }
 
