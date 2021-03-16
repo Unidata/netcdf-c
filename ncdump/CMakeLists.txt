@@ -94,7 +94,6 @@ IF(MSVC)
 
 ENDIF()
 
-
 IF(ENABLE_TESTS)
   ADD_EXECUTABLE(rewrite-scalar rewrite-scalar.c)
   ADD_EXECUTABLE(bom bom.c)
@@ -146,8 +145,8 @@ IF(ENABLE_TESTS)
       SET_TARGET_PROPERTIES(tst_fileinfo PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
         ${CMAKE_CURRENT_BINARY_DIR})
 
-  ENDIF(USE_HDF5)
-ENDIF(MSVC)
+    ENDIF(USE_HDF5)
+  ENDIF(MSVC)
 
   # Base tests
   # The tests are set up as a combination of shell scripts and executables that
@@ -169,7 +168,6 @@ ENDIF(MSVC)
     add_sh_test(ncdump tst_fileinfo)
     add_sh_test(ncdump tst_hdf5_offset)
   ENDIF(USE_HDF5)
-  add_sh_test(ncdump test_unicode_directory)
 
   add_sh_test(ncdump tst_null_byte_padding)
   IF(USE_STRICT_NULL_BYTE_HEADER_PADDING)
@@ -240,8 +238,6 @@ ENDIF(MSVC)
       build_bin_test_no_prefix(tst_h_rdc0)
     ENDIF()
 
-    build_bin_test_no_prefix(tst_unicode)
-
     build_bin_test_no_prefix(tst_fillbug)
     add_sh_test(ncdump_sh tst_fillbug)
 
@@ -277,6 +273,8 @@ ENDIF(MSVC)
       add_sh_test(ncdump tst_ncgen4)
     ENDIF(USE_HDF5)
 
+  ENDIF(USE_HDF5)
+
   add_sh_test(ncdump tst_inttags)
   IF(USE_HDF5)
     add_sh_test(ncdump tst_inttags4)
@@ -291,13 +289,23 @@ ENDIF(MSVC)
                        PROPERTIES ENVIRONMENT NC_VLEN_NOTEST=1)
   ENDIF()
 
+  # The unicode tests are complicated
+  IF(USE_HDF5)
+    IF(HAVE_BASH)
+      build_bin_test_no_prefix(tst_unicode)
+      IF(NOT MSVC)
+        # These tests do not work under windows
+        add_sh_test(ncdump test_unicode_directory)
+        add_sh_test(ncdump test_unicode_path)
+      ENDIF(NOT MSVC)
+    ENDIF(HAVE_BASH)
+  ENDIF(USE_HDF5)
+
   IF(USE_CDF5)
   add_sh_test(ncdump test_keywords)
   ENDIF()
 
-ENDIF()
-
-ENDIF()
+ENDIF(ENABLE_TESTS)
 
 #IF(MSVC)
 #  SET_TARGET_PROPERTIES(ncdump

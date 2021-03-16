@@ -32,6 +32,7 @@
 #include "nccomps.h"
 #include "list.h"
 #include "ncpathmgr.h"
+#include "ncfilter.h"
 
 #undef DEBUGFILTER
 #undef DEBUGCHUNK
@@ -2273,6 +2274,7 @@ main(int argc, char**argv)
 		if(kvalue->name == NULL) {
 		    error("invalid output format: %s", kind_name);
 		}
+		nullfree(kind_name);
 	    }
 	    break;
 	case '3':		/* output format is classic (netCDF-3) */
@@ -2409,10 +2411,9 @@ main(int argc, char**argv)
     if (argc != 2) {
 	error("one input file and one output file required");
     }
-    /* Escape the file names in case bash escaped them */
-    inputfile = NCdeescape(argv[0]);
-    outputfile = NCdeescape(argv[1]);
-
+    /* Canonicalize the input and output files names */
+    inputfile = NC_backslashUnescape(argv[0]); /* Remove shell added escapes */
+    outputfile = NC_backslashUnescape(argv[1]);
     if(strcmp(inputfile, outputfile) == 0) {
 	error("output would overwrite input");
     }

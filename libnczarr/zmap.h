@@ -356,7 +356,6 @@ EXTERNL void nczm_sortlist(struct NClist* l);
 EXTERNL void nczm_sortenvv(int n, char** envv);
 EXTERNL void NCZ_freeenvv(int n, char** envv);
 
-
 #ifdef __cplusplus
 }
 #endif
