@@ -246,18 +246,18 @@ fi
 echo "*** Pass: all selected tests passed"
 
 #cleanup
-#rm -f testmisc.nc
-#rm -f unfiltered.nc unfilteredvv.nc filtered.nc filtered.dump
-#rm -f filteredvv.nc tst_filtervv.txt filteredvv.dump
-#rm -f filteredvbar.nc tst_filtervbar.txt filteredvbar.dump
-#rm -f tst_filter2.nc tst_filter2.txt
-#rm -f tst_none.nc tst_none.txt tst_none2.txt testfilter_reg.nc
-#rm -f tst_vnone.nc tst_vnone.txt tst_vnone2.txt
-#rm -f bzip2.nc bzip2.dump tst_filter.txt bzip2x.dump
-#rm -f test_bzip2.c
-#rm -f multifilter.nc multi.cdl smulti.cdl
-#rm -f nccopyF.nc nccopyF.cdl ncgenF.nc ncgenF.cdl
-#rm -f ncgenFs.cdl  nccopyFs.cdl
-#rm -f crfilterorder.txt rdfilterorder.txt
+rm -f testmisc.nc
+rm -f unfiltered.nc unfilteredvv.nc filtered.nc filtered.dump
+rm -f filteredvv.nc tst_filtervv.txt filteredvv.dump
+rm -f filteredvbar.nc tst_filtervbar.txt filteredvbar.dump
+rm -f tst_filter2.nc tst_filter2.txt
+rm -f tst_none.nc tst_none.txt tst_none2.txt testfilter_reg.nc
+rm -f tst_vnone.nc tst_vnone.txt tst_vnone2.txt
+rm -f bzip2.nc bzip2.dump tst_filter.txt bzip2x.dump
+rm -f test_bzip2.c
+rm -f multifilter.nc multi.cdl smulti.cdl
+rm -f nccopyF.nc nccopyF.cdl ncgenF.nc ncgenF.cdl
+rm -f ncgenFs.cdl  nccopyFs.cdl
+rm -f crfilterorder.txt rdfilterorder.txt
 
 exit 0
