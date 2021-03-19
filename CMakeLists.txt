@@ -31,8 +31,8 @@ SET(NC_VERSION_NOTE "-development")
 SET(netCDF_VERSION ${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
 SET(NC_VERSION ${netCDF_VERSION})
-SET(netCDF_LIB_VERSION 18)
-SET(netCDF_SO_VERSION 18)
+SET(netCDF_LIB_VERSION 19)
+SET(netCDF_SO_VERSION 19)
 SET(PACKAGE_VERSION ${VERSION})
 
 # Version of the dispatch table. This must match the value in
@@ -748,7 +748,7 @@ IF(USE_HDF5)
     SET(CMAKE_REQUIRED_LIBRARIES ${SZIP_LIBRARY} ${CMAKE_REQUIRED_LIBRARIES})
     MESSAGE(STATUS "HDF5 has szip.")
   ENDIF()
-  
+
   # Find out if HDF5 was built with parallel support.
   # Do that by checking for the targets H5Pget_fapl_mpiposx and
   # H5Pget_fapl_mpio in ${HDF5_LIB}.
