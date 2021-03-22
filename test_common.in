@@ -8,10 +8,16 @@
 # Define location of execution
 TOPSRCDIR='@abs_top_srcdir@'
 TOPBUILDDIR='@abs_top_builddir@'
+FP_ISCMAKE=@ISCMAKE@
+FP_ISMSVC=@ISMSVC@
+
+# Feature flags
+FEATURE_HDF5=@HAS_HDF5@
 
 # Define selected features of the build
 FEATURE_HDF5=@HAS_HDF5@
 FEATURE_S3TESTS=@DO_NCZARR_S3_TESTS@
+FEATURE_NCZARR_ZIP=@DO_NCZARR_ZIP_TESTS@
 
 set -e
 

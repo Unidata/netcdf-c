@@ -26,6 +26,7 @@
 #include "ncuri.h"
 #include "ncbytes.h"
 #include "nclog.h"
+#include "ncpathmgr.h"
 
 #include "oc.h"
 #include "ocx.h"

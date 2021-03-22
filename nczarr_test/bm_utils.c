@@ -105,6 +105,7 @@ getoptions(int* argcp, char*** argvp, struct Options* opt)
     int tag;
     int argc = *argcp;
     char** argv = *argvp;
+    const char* nczarr_s3_test_url = ncz_gets3testurl();
 
     memset((void*)opt,0,sizeof(struct Options));
     if(argc <= 1) return NC_NOERR;
@@ -144,13 +145,15 @@ fprintf(stderr,"arg=%s value=%s\n",argv[optind-1],optarg);
 	        opt->pathtemplate = strdup(optarg);
 	        break;
 	    case OPT_FORMAT:
-		if(strcasecmp(optarg,"nz4")==0)
-		    opt->format = NC_FORMATX_NC4;
-		else if(strcasecmp(optarg,"nzf")==0)
+		if(strcasecmp(optarg,"file")==0)
 		    opt->format = NC_FORMATX_NCZARR;
+		    opt->impl = NCZM_FILE;
+		else if(strcasecmp(optarg,"zip")==0)
+		    opt->format = NC_FORMATX_NCZARR;
+		    opt->impl = NCZM_ZIP;
 		else if(strcasecmp(optarg,"s3")==0) {
 		    opt->format = NC_FORMATX_NCZARR;
-		    opt->iss3 = 1;
+		    opt->impl = NCZM_S3;
 		} else 
 		    {fprintf(stderr,"illegal format\n"); return NC_EINVAL;}
 		break;
@@ -190,10 +193,21 @@ fprintf(stderr,"arg=%s value=%s\n",argv[optind-1],optarg);
     switch(opt->format) {
     case NC_FORMATX_NCZARR:
         if(opt->pathtemplate == NULL) {
-	    if(opt->iss3)
-	        opt->pathtemplate = strdup("https://stratus.ucar.edu/unidata-netcdf-zarr-testing/%s.%s#mode=nczarr,s3");
-	    else
-	        opt->pathtemplate = strdup("file://%s.%s#mode=nczarr,nzf");
+	    size_t ptlen;
+	    switch (opt->impl) {
+	    case NCZM_S3:
+		ptlen = strlen(nczarr_s3_test_url) + strlen("/netcdf-c/%s.%s#mode=nczarr,s3");
+	        opt->pathtemplate = (char*)calloc(1,ptlen+1);
+		if(opt->template == NULL) return NC_ENOMEM;
+		strlcat(opt->pathtemplate,nczarr_s3_test_url,ptlen+1);
+		strlcat(opt->pathtemplate,"/netcdf-c/%s.%s#mode=nczarr,s3",ptlen+1);
+		break;
+	    case NCZM_FILE:
+		opt->pathtemplate = strdup("file://%s.%s#mode=nczarr,file");
+	    case NCZM_ZIP:
+	        opt->pathtemplate = strdup("file://%s.%s#mode=nczarr,zip");
+	    default: abort();
+	    }
 	}
 	break;
     case NC_FORMATX_NC4:
@@ -232,7 +246,13 @@ EXTERNL const char*
 formatname(const struct Options* o)
 {
     switch (o->format) {
-    case NC_FORMATX_NCZARR: return (o->iss3?"s3":"nzf");
+    case NC_FORMATX_NCZARR:
+	switch (o->impl) {
+	case NCZM_S3: return "s3";
+	case NCZM_NC4: return "nz4";
+	case NCZM_FILE: return "file";
+	case NCZM_ZIP: return "zip";
+	break;
     case NC_FORMATX_NC4: /* fall thru */
 	return "nz4";
     default:

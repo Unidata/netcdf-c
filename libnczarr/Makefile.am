@@ -43,8 +43,7 @@ zgrp.c \
 zinternal.c \
 zjson.c \
 zmap.c \
-zmap_nz4.c \
-zmap_nzf.c \
+zmap_file.c \
 zodom.c \
 zopen.c \
 zprov.c \
@@ -66,6 +65,10 @@ zmap.h \
 zodom.h \
 zprovenance.h \
 zdebug.h
+
+if ENABLE_NCZARR_ZIP
+libnczarr_la_SOURCES += zmap_zip.c 
+endif
 
 if ENABLE_S3_SDK
 libnczarr_la_SOURCES += zmap_s3sdk.c

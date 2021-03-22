@@ -8,7 +8,6 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
-
 ERR() {
     RES=$?
     if [ $RES -ne 0 ]; then
@@ -17,21 +16,28 @@ ERR() {
     fi
 }
 
-LC_ALL="C.UTF-8"
-export LC_ALL
-
-#UNISTRING='海'
-UNISTRING=$(echo '\xe6\xb5\xb7')
+#UNISTRING=$(echo '\xe6\xb5\xb7')
+UNISTRING='海'
 
 echo ""
 echo "Creating Unicode String Directory ${UNISTRING}"
-mkdir -p ${UNISTRING}; ERR
+mkdir -p "${UNISTRING}"; ERR
+ls -ld "${UNISTRING}"
 
-echo "*** Generating binary file ${UNISTRING}/tst_utf.nc..."
+# Do test for netcdf-3 and (optionally) netcdf-4
+
+echo "*** Generating netcdf-3 binary file ${UNISTRING}/tst_utf.nc..."
 ${NCGEN} -b -o "${UNISTRING}/tst_utf.nc" "${srcdir}/ref_tst_utf8.cdl"; ERR
 echo "*** Accessing binary file ${UNISTRING}/tst_utf.nc..."
 ${NCDUMP} -h "${UNISTRING}/tst_utf.nc"; ERR
 
+if test "x$FEATURE_HDF5" = xyes ; then
+echo "*** Generating netcdf-4 binary file ${UNISTRING}/tst_utf.nc..."
+rm -f "${UNISTRING}/tst_utf.nc"
+${NCGEN} -4 -b -o "${UNISTRING}/tst_utf.nc" "${srcdir}/ref_tst_utf8.cdl"; ERR
+echo "*** Accessing binary file ${UNISTRING}/tst_utf.nc..."
+${NCDUMP} -h "${UNISTRING}/tst_utf.nc"; ERR
+fi
+
 echo "Test Passed. Cleaning up."
-rm "${UNISTRING}/tst_utf.nc"; ERR
-rmdir "${UNISTRING}"; ERR
+rm -fr "${UNISTRING}"; ERR
