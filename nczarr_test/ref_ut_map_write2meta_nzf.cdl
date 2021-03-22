@@ -1,6 +1,0 @@
-testmap.nzf
-testmap.nzf/.nczarr : ||
-testmap.nzf/meta1
-testmap.nzf/meta1/.zarray : |{ "foo": 42, "bar": "apples", "baz": [1, 2, 3, 4]}|
-testmap.nzf/meta2
-testmap.nzf/meta2/.nczvar : |{ "foo": 42, "bar": "apples", "baz": [1, 2, 3, 4], "extra": 137}|

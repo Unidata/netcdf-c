@@ -369,7 +369,7 @@ dump(Format* format)
 	    for(r=0;r<format->rank;r++) zindices[r] = (size64_t)odom->index[r];
             switch (stat=NCZ_read_chunk(ncid, varid, zindices, chunkdata)) {
 	    case NC_NOERR: break;
-	    case NC_ENOTFOUND: holechunk = 1; break;
+	    case NC_EEMPTY: holechunk = 1; break;
 	    default: usage(stat);
 	    }
 	    break;
@@ -418,8 +418,7 @@ dump(Format* format)
     return 0;
 }
 
-
-static const char* urlexts[] = {"nzf", "nz4", NULL};
+static const char* urlexts[] = {"file", "zip", NULL};
 
 static const char*
 filenamefor(const char* f0)
@@ -486,7 +485,7 @@ main(int argc, char** argv)
     }
 
     {
-        char* s = NCdeescape(argv[0]);
+        char* s = NC_backslashUnescape(argv[0]);
 	strcpy(format.file_name,filenamefor(s));
 	nullfree(s);
     }

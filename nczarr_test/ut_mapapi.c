@@ -85,13 +85,14 @@ simplecreate(void)
     printf("Pass: create: create: %s\n",url);
 
     truekey = makekey(NCZMETAROOT);
-    if((stat = nczmap_defineobj(map, truekey)))
+    if((stat = nczmap_write(map, truekey, 0, 0, NULL)))
 	goto done;
     printf("Pass: create: defineobj: %s\n",truekey);
     
     /* Do not delete */
     if((stat = nczmap_close(map,0)))
 	goto done;
+    map = NULL;
     printf("Pass: create: close\n");
     
     /* Reopen and see if exists */
@@ -106,6 +107,7 @@ simplecreate(void)
     /* close again */
     if((stat = nczmap_close(map,0)))
 	goto done;
+    map = NULL;
     printf("Pass: create: close\n");
 
 done:
@@ -126,24 +128,24 @@ simpledelete(void)
     case NC_NOERR:
         report(PASS,"open",map);
 	break;
-    case NC_EEMPTY:
-        {report(XFAIL,"open",map); stat = NC_NOERR; goto done;}
     default:
         {report(FAIL,"open",map); goto done;}
     }     
     /* Delete dataset while closing */
     if((stat = nczmap_close(map,1))) goto done;
+    map = NULL;
     report(PASS,"close: delete",map);
 
     switch ((stat = nczmap_open(impl,url,0,0,NULL,&map))) {
-    default:
     case NC_NOERR:
         report(FAIL,"open",map);
 	break;
-    case NC_EEMPTY:
+    case NC_ENOTFOUND:
         report(XFAIL,"open",map);
 	stat = NC_NOERR;
 	break;
+    case NC_EEMPTY:
+    default: abort();
     }     
 
 done:
@@ -166,20 +168,21 @@ simplemeta(void)
 	goto done;
     report(PASS,"open",map);
 	
+    /* Make sure .nczarr exists (from simplecreate) */
     truekey = makekey(NCZMETAROOT);
-    if((stat = nczmap_defineobj(map, truekey)))
+    if((stat = nczmap_exists(map,truekey)))
 	goto done;
-    report(PASS,".nczarr: def",map);
+    report(PASS,".nczarr: exists",map);
     free(truekey); truekey = NULL;
 
     if((stat=nczm_concat(META1,ZARRAY,&key)))
 	goto done;
     truekey = makekey(key);
     nullfree(key); key = NULL;
-    if((stat = nczmap_defineobj(map, truekey)))
+    if((stat = nczmap_write(map, truekey, 0, 0, NULL)))
 	goto done;
     report(PASS,".zarray: def",map);
-    free(truekey); key = NULL;
+    free(truekey); truekey = NULL;
 
     truekey = makekey(NCZMETAROOT);
     if((stat = nczmap_write(map, truekey, 0, strlen(metadata1), metadata1)))
@@ -199,6 +202,7 @@ simplemeta(void)
     
     if((stat = nczmap_close(map,0)))
 	goto done;
+    map = NULL;
     report(PASS,"close",map);
 
     if((stat = nczmap_open(impl,url,0,0,NULL,&map)))
@@ -251,9 +255,11 @@ simplemeta(void)
     
     if((stat = nczmap_close(map,0)))
 	goto done;
+    map = NULL;
     report(PASS,"close",map);
 
 done:
+    if(map) nczmap_close(map,0);
     nullfree(content);
     nullfree(truekey);
     nullfree(key);
@@ -271,6 +277,7 @@ simpledata(void)
     int i;
     size64_t totallen, size;
     char* data1p = (char*)&data1[0]; /* byte level version of data1 */
+    NCZM_PROPERTIES props;
 
     title(__func__);
 
@@ -283,26 +290,30 @@ simpledata(void)
     report(PASS,"open",map);
 	
     truekey = makekey(DATA1);
-    if((stat = nczmap_defineobj(map, truekey)))
-	goto done;
-    report(PASS,DATA1": def",map);
 
-    /* Write in 3 slices */
-    for(i=0;i<3;i++) {
-        size64_t start, count, third, last;
-	third = (totallen+2) / 3; /* round up */
-        start = i * third;
-	last = start + third;
-	if(last > totallen) 
-	    last = totallen;
-	count = last - start;
-	if((stat = nczmap_write(map, truekey, start, count, &data1p[start])))
-	     goto done;
+    props = nczmap_properties(impl);
+    if((NCZM_ZEROSTART & props) || (NCZM_WRITEONCE & props)) {
+	if((stat = nczmap_write(map, truekey, 0, totallen, data1p)))
+	    goto done;
+    } else {
+        /* Write in 3 slices */
+        for(i=0;i<3;i++) {
+            size64_t start, count, third, last;
+	    third = (totallen+2) / 3; /* round up */
+            start = i * third;
+	    last = start + third;
+	    if(last > totallen) 
+	        last = totallen;
+  	    count = last - start;
+	    if((stat = nczmap_write(map, truekey, start, count, &data1p[start])))
+	        goto done;
+	}
     }
     report(PASS,DATA1": write",map);
     
     if((stat = nczmap_close(map,0)))
 	goto done;
+    map = NULL;
     report(PASS,"close",map);
 
     if((stat = nczmap_open(impl,url,0,0,NULL,&map)))
@@ -328,32 +339,47 @@ simpledata(void)
 
 done:
     /* Do not delete so we can look at it with ncdump */
-    if((stat = nczmap_close(map,0)))
+    if(map && (stat = nczmap_close(map,0)))
 	goto done;
     nullfree(truekey);
     return THROW(stat);
 }
 
 static int
-searchR(NCZMAP* map, int depth, const char* prefix, NClist* objects)
+searchR(NCZMAP* map, int depth, const char* prefix0, NClist* objects)
 {
     int i,stat = NC_NOERR;
     NClist* matches = nclistnew();
+    char prefix[4096]; /* only ok because we know testdata */
+    size_t prefixlen;
     
-    /* add this prefix to object list */
-    nclistpush(objects,strdup(prefix));
-    
-    /* get next level object keys **below** the prefix */
-    if((stat = nczmap_search(map, prefix, matches)))
-	goto done;
+    nclistpush(objects,strdup(prefix0));
+
+    prefix[0] = '\0';
+    strlcat(prefix,prefix0,sizeof(prefix));
+    prefixlen = strlen(prefix);
+
+    /* get next level object keys **below** the prefix: should have form: <name> */
+    switch (stat = nczmap_search(map, prefix, matches)) {
+    case NC_NOERR: break;
+    case NC_ENOTFOUND: stat = NC_NOERR; break;/* prefix is not a dir */
+    default: goto done;
+    }
     reportx(PASS,prefix,"search",map);
+
+    /* recurse */
     for(i=0;i<nclistlength(matches);i++) {
 	const char* key = nclistget(matches,i);
-        if((stat = searchR(map,depth+1,key,objects))) goto done;
+	/* ensure trailing '/' */
+        if(prefix[prefixlen-1] != '/')
+	    strlcat(prefix,"/",sizeof(prefix));
+	strlcat(prefix,key,sizeof(prefix));
+        if((stat = searchR(map,depth+1,prefix,objects))) goto done;
+	/* restore prefix */
+	prefix[prefixlen] = '\0';
 	if(stat != NC_NOERR)
 	    goto done;
     }
-
 done:
     nclistfreeall(matches);
     return THROW(stat);
@@ -373,7 +399,7 @@ search(void)
     /* Do a recursive search on root to get all object keys */
     if((stat=searchR(map,0,"/",objects)))
 	goto done;
-    /* sort list */
+    /* Sort */
     ut_sortlist(objects);
     /* Print out the list */
     for(i=0;i<nclistlength(objects);i++) {
@@ -383,8 +409,10 @@ search(void)
 
 done:
     /* Do not delete so later tests can use it */
-    (void)nczmap_close(map,0);
-    report(PASS,"close",map);
+    if(map) {
+        (void)nczmap_close(map,0);
+        report(PASS,"close",map);
+    }
     nclistfreeall(objects);
     return THROW(stat);
 }

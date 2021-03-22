@@ -11,6 +11,7 @@
 #include <iostream>
 #include <streambuf>
 #include "netcdf.h"
+#include "zincludes.h"
 #include "zs3sdk.h"
 
 #ifdef __CYGWIN__
@@ -25,24 +26,27 @@ static Aws::SDKOptions zs3options;
 static Aws::S3::Model::BucketLocationConstraint s3findregion(const char* name);
 static int s3objectinfo1(const Aws::S3::Model::Object& s3_object, char** fullkeyp, size64_t* lenp);
 static int s3objectsinfo(Aws::Vector<Aws::S3::Model::Object> list, size_t*, char*** keysp, size64_t** lenp);
+static int s3commonprefixes(Aws::Vector<Aws::S3::Model::CommonPrefix> list, char*** keysp);
 static void freestringenvv(char** ss);
 static int makes3key(const char* pathkey, const char** keyp);
+static int makes3keydir(const char* prefix, char** prefixdirp);
+static char** mergekeysets(size_t nkeys1, char** keys1, size_t nkeys2, char** keys2);
     
-#ifndef nullfree
-#define nullfree(x) {if(x) {free(x);}}
-#endif
-
 void
 NCZ_s3sdkinitialize(void)
 {
+    ZTRACE(11,NULL);
 //    zs3options.loggingOptions.logLevel = Aws::Utils::Logging::LogLevel::Error;
     Aws::InitAPI(zs3options);
+    ZUNTRACE(NC_NOERR);
 }
 
 void
 NCZ_s3sdkfinalize(void)
 {
+    ZTRACE(11,NULL);
     Aws::ShutdownAPI(zs3options);
+    ZUNTRACE(NC_NOERR);
 }
 
 static char*
@@ -65,6 +69,8 @@ int
 NCZ_s3sdkcreateconfig(const char* host, const char* region, void** configp)
 {
     int stat = NC_NOERR;
+    ZTRACE(11,"host=%s region=%s");
+
     Aws::Client::ClientConfiguration *config = new Aws::Client::ClientConfiguration();
     config->scheme = Aws::Http::Scheme::HTTPS;
     config->connectTimeoutMs = 300000;
@@ -74,12 +80,13 @@ NCZ_s3sdkcreateconfig(const char* host, const char* region, void** configp)
     config->enableEndpointDiscovery = true;
     config->followRedirects = true;
     if(configp) * configp = config;
-    return stat;
+    return ZUNTRACE(stat);
 }
 
 int
 NCZ_s3sdkcreateclient(void* config0, void** clientp)
 {
+    ZTRACE(11,NULL);
     Aws::Client::ClientConfiguration* config = (Aws::Client::ClientConfiguration*) config0;
     Aws::S3::S3Client *s3client
         = new Aws::S3::S3Client(*config,
@@ -88,7 +95,7 @@ NCZ_s3sdkcreateclient(void* config0, void** clientp)
 			       Aws::S3::US_EAST_1_REGIONAL_ENDPOINT_OPTION::NOT_SET
 			       );
     if(clientp) *clientp = (void*)s3client;
-    return NC_NOERR;
+    return ZUNTRACE(NC_NOERR);
 }
 
 int
@@ -97,7 +104,7 @@ NCZ_s3sdkbucketexists(void* s3client0, const char* bucket, int* existsp, char** 
     int stat = NC_NOERR;
     int exists = 0;
     Aws::S3::S3Client* s3client = (Aws::S3::S3Client*)s3client0;
-
+    ZTRACE(11,"bucket=%s",bucket);
     if(errmsgp) *errmsgp = NULL;
     auto result = s3client->ListBuckets();
     if(!result.IsSuccess()) {
@@ -111,13 +118,15 @@ NCZ_s3sdkbucketexists(void* s3client0, const char* bucket, int* existsp, char** 
 	}
     }
     if(existsp) *existsp = exists;
-    return stat;    
+    return ZUNTRACEX(stat,"exists=%d",*existsp);
 }
 
 int
 NCZ_s3sdkbucketcreate(void* s3client0, const char* region, const char* bucket, char** errmsgp)
 {
     int stat = NC_NOERR;
+    
+    ZTRACE(11,"region=%s bucket=%s",region,bucket);
     Aws::S3::S3Client* s3client = (Aws::S3::S3Client*)s3client0;
     if(errmsgp) *errmsgp = NULL;
     const Aws::S3::Model::BucketLocationConstraint &awsregion = s3findregion(region);
@@ -143,13 +152,16 @@ NCZ_s3sdkbucketcreate(void* s3client0, const char* region, const char* bucket, c
     fprintf(stderr,"create bucket: %s\n",bucket); fflush(stderr);
 #endif
 
-    return stat;    
+    return ZUNTRACE(stat);    
 }
 
 int
 NCZ_s3sdkbucketdelete(void* s3client0, void* config0, const char* region, const char* bucket, char** errmsgp)
 {
     int stat = NC_NOERR;
+
+    ZTRACE(11,"region=%s bucket=%s",region,bucket);
+
     Aws::S3::S3Client* s3client = (Aws::S3::S3Client*)s3client0;
     Aws::Client::ClientConfiguration *config = (Aws::Client::ClientConfiguration*)config0;
 
@@ -174,7 +186,7 @@ NCZ_s3sdkbucketdelete(void* s3client0, void* config0, const char* region, const 
     fprintf(stderr,"delete bucket: %s\n",bucket); fflush(stderr);
 #endif
 
-    return stat;    
+    return ZUNTRACE(stat);    
 }
 
 /**************************************************/
@@ -189,13 +201,15 @@ int
 NCZ_s3sdkinfo(void* s3client0, const char* bucket, const char* pathkey, size64_t* lenp, char** errmsgp)
 {
     int stat = NC_NOERR;
-    Aws::S3::S3Client* s3client = (Aws::S3::S3Client*)s3client0;
-    Aws::S3::Model::HeadObjectRequest head_request;
     const char* key = NULL;
 
+    ZTRACE(11,"bucket=%s pathkey=%s",bucket,pathkey);
+
+    Aws::S3::S3Client* s3client = (Aws::S3::S3Client*)s3client0;
+    Aws::S3::Model::HeadObjectRequest head_request;
     if(*pathkey != '/') return NC_EINTERNAL;
     /* extract the true s3 key*/
-    if((stat = makes3key(pathkey,&key))) return stat;
+    if((stat = makes3key(pathkey,&key))) return ZUNTRACE(stat);
 
     if(errmsgp) *errmsgp = NULL;
     head_request.SetBucket(bucket);
@@ -205,6 +219,7 @@ NCZ_s3sdkinfo(void* s3client0, const char* bucket, const char* pathkey, size64_t
 	long long l  = head_outcome.GetResult().GetContentLength(); 
 	if(lenp) *lenp = (size64_t)l;
     } else {
+	if(lenp) *lenp = 0;
 	/* Distinquish not-found from other errors */
 	switch (head_outcome.GetError().GetErrorType()) {
 	case Aws::S3::S3Errors::RESOURCE_NOT_FOUND:
@@ -219,33 +234,7 @@ NCZ_s3sdkinfo(void* s3client0, const char* bucket, const char* pathkey, size64_t
 	    break;
 	}
     }
-    return (stat);
-}
-
-/* Define object key 
-@return NC_NOERR if success
-@return NC_EXXX if fail
-*/
-int
-NCZ_s3sdkcreatekey(void* s3client0, const char* bucket, const char* pathkey, char** errmsgp)
-{
-    int stat = NC_NOERR;
-    const char* key = NULL;
-    Aws::S3::S3Client* s3client = (Aws::S3::S3Client*)s3client0;
-    Aws::S3::Model::PutObjectRequest put_request;
-
-    if(*pathkey != '/') return NC_EINTERNAL;
-    if((stat = makes3key(pathkey,&key))) return stat;
-    
-    if(errmsgp) *errmsgp = NULL;
-    put_request.SetBucket(bucket);
-    put_request.SetKey(key);
-    auto put_result = s3client->PutObject(put_request);
-    if(!put_result.IsSuccess()) {
-        if(errmsgp) *errmsgp = makeerrmsg(put_result.GetError(),key);
-        stat = NC_ES3;
-    }
-    return (stat);
+    return ZUNTRACEX(stat,"len=%d",(int)(lenp?*lenp:-1));
 }
 
 /*
@@ -256,17 +245,24 @@ int
 NCZ_s3sdkread(void* s3client0, const char* bucket, const char* pathkey, size64_t start, size64_t count, void* content, char** errmsgp)
 {
     int stat = NC_NOERR;
-    Aws::S3::S3Client* s3client = (Aws::S3::S3Client*)s3client0;
-    Aws::S3::Model::GetObjectRequest object_request;
     char range[1024];
     const char* key = NULL;
+    size64_t rangeend;
+
+    ZTRACE(11,"bucket=%s pathkey=%s start=%llu count=%llu content=%p",bucket,pathkey,start,count,content);
+
+    Aws::S3::S3Client* s3client = (Aws::S3::S3Client*)s3client0;
+    Aws::S3::Model::GetObjectRequest object_request;
+
+    if(count == 0) return ZUNTRACE(stat);
 
     if(*pathkey != '/') return NC_EINTERNAL;
-    if((stat = makes3key(pathkey,&key))) return stat;
+    if((stat = makes3key(pathkey,&key))) return ZUNTRACE(stat);
     
     object_request.SetBucket(bucket);
     object_request.SetKey(key);
-    snprintf(range,sizeof(range),"bytes=%llu-%llu",start,(start+count)-1);
+    rangeend = (start+count)-1;
+    snprintf(range,sizeof(range),"bytes=%llu-%llu",start,rangeend);
     object_request.SetRange(range);
     auto get_object_result = s3client->GetObject(object_request);
     if(!get_object_result.IsSuccess()) {
@@ -283,7 +279,7 @@ NCZ_s3sdkread(void* s3client0, const char* bucket, const char* pathkey, size64_t
 	if(content)
 	    memcpy(content,s,slen);
     }
-    return (stat);
+    return ZUNTRACE(stat);
 }
 
 /*
@@ -295,11 +291,14 @@ NCZ_s3sdkwriteobject(void* s3client0, const char* bucket, const char* pathkey,  
 {
     int stat = NC_NOERR;
     const char* key = NULL;
+
+    ZTRACE(11,"bucket=%s pathkey=%s count=%lld content=%p",bucket,pathkey,count,content);
+    
     Aws::S3::S3Client* s3client = (Aws::S3::S3Client*)s3client0;
     Aws::S3::Model::PutObjectRequest put_request;
 
-    if(*pathkey != '/') return NC_EINTERNAL;
-    if((stat = makes3key(pathkey,&key))) return stat;
+    if(*pathkey != '/') return ZUNTRACE(NC_EINTERNAL);
+    if((stat = makes3key(pathkey,&key))) return ZUNTRACE(stat);
     
     if(errmsgp) *errmsgp = NULL;
     put_request.SetBucket(bucket);
@@ -314,70 +313,16 @@ NCZ_s3sdkwriteobject(void* s3client0, const char* bucket, const char* pathkey,  
         if(errmsgp) *errmsgp = makeerrmsg(put_result.GetError(),key);
         stat = NC_ES3;
     }
-    return (stat);
+    return ZUNTRACE(stat);
 }
-
-#if 0
-/*
-@return NC_NOERR if success
-@return NC_EXXX if fail
-*/
-int
-NCZ_s3sdkreadobject(void* s3client0, const char* bucket, const char* pathkey, size64_t* sizep, void** contentp, char** errmsgp)
-{
-    int stat = NC_NOERR;
-    Aws::S3::S3Client* s3client = (Aws::S3::S3Client*)s3client0;
-    Aws::S3::Model::GetObjectRequest object_request;
-    size64_t size, red;
-    void* content = NULL;
-    const char* key = NULL;
-
-    if(*pathkey != '/') return NC_EINTERNAL;
-    if((stat = makes3key(pathkey,&key))) return stat;
-
-    if(errmsgp) *errmsgp = NULL;
-    object_request.SetBucket(bucket);
-    object_request.SetKey(key);
-    auto get_result = s3client->GetObject(object_request);
-    if(!get_result.IsSuccess()) {
-	if(errmsgp) *errmsgp = makeerrmsg(get_result.GetError(),key);
-        stat = NC_ES3;
-    } else {
-	/* Get the size */
-	size = (size64_t)get_result.GetResult().GetContentLength();	
-	/* Get the whole result */
-        Aws::IOStream &result = get_result.GetResultWithOwnership().GetBody();
-#if 0
-        std::string str((std::istreambuf_iterator<char>(result)),std::istreambuf_iterator<char>());
-	red = str.length();
-	if((content = malloc(red))==NULL)
-	    {stat = NC_ENOMEM; goto done;}
-	memcpy(content,str.c_str(),red);
-#else
-        red = result.rdbuf()->pubseekoff(0,std::ios::ios_base::end);
-        result.rdbuf()->pubseekoff(0,std::ios::ios_base::beg); /* reset for reading */
-	if((content = malloc(red))==NULL)
-	    stat = NC_ENOMEM;
-	else
-   	    result.rdbuf()->sgetn((char*)content,red);
-#endif
-	if(!stat) {
-  	    /* Verify actual result size */
-	    if(red != size) {stat = NC_ES3; goto done;}
-	    if(sizep) *sizep = red;
-	    if(contentp) {*contentp = content; content = NULL;}
-	}
-    }
-done:
-    nullfree(content);
-    return (stat);
-}
-#endif /*0*/
 
 int
 NCZ_s3sdkclose(void* s3client0, void* config0, const char* bucket, const char* rootkey, int deleteit, char** errmsgp)
 {
     int stat = NC_NOERR;
+
+    ZTRACE(11,"bucket=%s rootkey=%s deleteit=%d content=%p",bucket,rootkey,deleteit);
+    
     Aws::S3::S3Client* s3client = (Aws::S3::S3Client*)s3client0;
     Aws::Client::ClientConfiguration *config = (Aws::Client::ClientConfiguration*)config0;
     if(deleteit) {
@@ -390,53 +335,151 @@ NCZ_s3sdkclose(void* s3client0, void* config0, const char* bucket, const char* r
     }
     delete s3client;
     delete config;
-    return (stat);
+
+    return ZUNTRACE(stat);
 }
 
 /*
-Return a list of keys for objects "below" a specified rootkey.
+Return a list of names of legal objects immediately below a specified key.
 In theory, the returned list should be sorted in lexical order,
 but it possible that it is not.
 */
 int
-NCZ_s3sdkgetkeys(void* s3client0, const char* bucket, const char* rootkey0, size_t* nkeysp, char*** keysp, char** errmsgp)
+NCZ_s3sdkgetkeys(void* s3client0, const char* bucket, const char* prefixkey0, size_t* nkeysp, char*** keysp, char** errmsgp)
 {
     int stat = NC_NOERR;
-    Aws::S3::S3Client* s3client = (Aws::S3::S3Client*)s3client0;
     size_t nkeys = 0;
-    const char* rootkey = NULL;
+    const char* prefix = NULL;
+    char* prefixdir = NULL;
+    char** realkeys = NULL;
+    char** commonkeys = NULL;
+    char** allkeys = NULL;
+
+    ZTRACE(11,"bucket=%s prefixkey0=%s",bucket,prefixkey0);
+    
+    Aws::S3::S3Client* s3client = (Aws::S3::S3Client*)s3client0;
     Aws::S3::Model::ListObjectsV2Request objects_request;
 
-    if(*rootkey0 != '/') return NC_EINTERNAL;
-    if((stat = makes3key(rootkey0,&rootkey))) return stat;
+    if(*prefixkey0 != '/') return ZUNTRACE(NC_EINTERNAL);
+    /* Make sure that the prefix ends with '/' */
+    if((stat = makes3keydir(prefixkey0,&prefixdir))) return ZUNTRACE(stat);        
+    /* remove leading '/' */
+    if((stat = makes3key(prefixdir,&prefix))) return ZUNTRACE(stat);
 
     if(errmsgp) *errmsgp = NULL;
     objects_request.SetBucket(bucket);
-    objects_request.SetPrefix(rootkey);
+    objects_request.SetPrefix(prefix);
+    objects_request.SetDelimiter("/"); /* Force return of common prefixes */
     auto objects_outcome = s3client->ListObjectsV2(objects_request);
     if(objects_outcome.IsSuccess()) {
+	size_t nrealkeys = 0;
+	size_t ncommonkeys = 0;	
         Aws::Vector<Aws::S3::Model::Object> object_list =
             objects_outcome.GetResult().GetContents();
-        nkeys = (size_t)object_list.size();
-        if(nkeysp) *nkeysp = nkeys;
-        stat = s3objectsinfo(object_list,NULL,keysp,NULL);
+        nrealkeys = (size_t)object_list.size();
+        stat = s3objectsinfo(object_list,NULL,&realkeys,NULL);
+	/* Add common prefixes */
+        Aws::Vector<Aws::S3::Model::CommonPrefix> common_list =
+            objects_outcome.GetResult().GetCommonPrefixes();
+        ncommonkeys = (size_t)common_list.size();
+        stat = s3commonprefixes(common_list,&commonkeys);
+	/* merge the two lists */
+	if((allkeys=mergekeysets(nrealkeys, realkeys, ncommonkeys, commonkeys))==NULL)
+	    stat = NC_ENOMEM;
+	if(stat == NC_NOERR) {
+            if(nkeysp) {*nkeysp = nrealkeys + ncommonkeys;}
+	    if(keysp) {*keysp = allkeys; allkeys = NULL;}
+	}
+	freestringenvv(allkeys);
+	freestringenvv(realkeys);
+	freestringenvv(commonkeys);
     } else {
         if(errmsgp) *errmsgp = makeerrmsg(objects_outcome.GetError());
         stat = NC_ES3;
     }
-    return stat;
+    if(prefixdir) free(prefixdir);
+    return ZUNTRACEX(stat,"nkeys=%u",(unsigned)*nkeysp);
+}
+
+/*
+Return a list of full keys  of legal objects immediately below a specified key.
+Not necessarily sorted.
+*/
+int
+NCZ_s3sdksearch(void* s3client0, const char* bucket, const char* prefixkey0, size_t* nkeysp, char*** keysp, char** errmsgp)
+{
+    int stat = NC_NOERR;
+    size_t nkeys = 0;
+    const char* prefix = NULL;
+    char* prefixdir = NULL;
+    char** keys = NULL;
+
+    ZTRACE(11,"bucket=%s prefixkey0=%s",bucket,prefixkey0);
+
+    Aws::S3::S3Client* s3client = (Aws::S3::S3Client*)s3client0;
+    Aws::S3::Model::ListObjectsV2Request objects_request;
+
+    if(*prefixkey0 != '/') return ZUNTRACE(NC_EINTERNAL);
+    /* Make sure that the prefix ends with '/' */
+    if((stat = makes3keydir(prefixkey0,&prefixdir))) return ZUNTRACE(stat);        
+    /* remove leading '/' */
+    if((stat = makes3key(prefixdir,&prefix))) return ZUNTRACE(stat);
+
+    if(errmsgp) *errmsgp = NULL;
+    objects_request.SetBucket(bucket);
+    objects_request.SetPrefix(prefix);
+    /* Do not use delimiter so we get all full key paths */
+    auto objects_outcome = s3client->ListObjectsV2(objects_request);
+    if(objects_outcome.IsSuccess()) {
+	size_t nkeys = 0;
+        Aws::Vector<Aws::S3::Model::Object> object_list =
+            objects_outcome.GetResult().GetContents();
+        nkeys = (size_t)object_list.size();
+        if((keys=(char**)calloc(sizeof(char*),(nkeys+1)))==NULL) /* NULL terminate list */
+            stat = NC_ENOMEM;
+        if(!stat)  {
+	    int i;
+            i = 0;
+            for (auto const &s3obj : object_list) {
+		const char* s;
+	        const Aws::String& name = s3obj.GetKey();
+		s = name.c_str();
+		if(s != NULL) {
+		    char* p;
+		    size_t slen = name.length();
+		    p = (char*)malloc(slen+1+1); /* nul plus leading '/' */
+		    if(s[0] != '/') {p[0] = '/'; memcpy(p+1,s,slen); slen++;} else {memcpy(p,s,slen);}
+		    p[slen] = '\0';
+		    keys[i++] = p;
+		}
+	    }
+	}
+	if(stat == NC_NOERR) {
+            if(nkeysp) {*nkeysp = nkeys;}
+	    if(keysp) {*keysp = keys; keys = NULL;}
+	}
+	freestringenvv(keys);
+    } else {
+        if(errmsgp) *errmsgp = makeerrmsg(objects_outcome.GetError());
+        stat = NC_ES3;
+    }
+    if(prefixdir) free(prefixdir);
+    return ZUNTRACEX(stat,"nkeys=%u",(unsigned)*nkeysp);
 }
 
 int
 NCZ_s3sdkdeletekey(void* s3client0, const char* bucket, const char* pathkey, char** errmsgp)
 {
     int stat = NC_NOERR;
-    Aws::S3::S3Client* s3client = (Aws::S3::S3Client*)s3client0;
-    Aws::S3::Model::DeleteObjectRequest delete_request;
     const char* key = NULL;
 
+    ZTRACE(11,"bucket=%s pathkey=%s",bucket,pathkey);
+
+    Aws::S3::S3Client* s3client = (Aws::S3::S3Client*)s3client0;
+    Aws::S3::Model::DeleteObjectRequest delete_request;
+
     if(*pathkey != '/') return NC_EINTERNAL;
-    if((stat = makes3key(pathkey,&key))) return stat;
+    if((stat = makes3key(pathkey,&key))) return ZUNTRACE(stat);
     /* Delete this key object */
     delete_request.SetBucket(bucket);
     delete_request.SetKey(key);
@@ -445,7 +488,7 @@ NCZ_s3sdkdeletekey(void* s3client0, const char* bucket, const char* pathkey, cha
         if(errmsgp) *errmsgp = makeerrmsg(delete_result.GetError(),key);
         stat = NC_ES3;
     }
-    return stat;
+    return ZUNTRACE(stat);
 }
 
 /*
@@ -483,7 +526,7 @@ s3objectinfo1(const Aws::S3::Model::Object& s3_object, char** fullkeyp, size64_t
     if(!stat) {
         if(lenp) *lenp = (size64_t)s3_object.GetSize();
     }
-    nullfree(cstr);
+    if(cstr) free(cstr);
     return stat;
 }
 
@@ -524,6 +567,39 @@ s3objectsinfo(Aws::Vector<Aws::S3::Model::Object> list, size_t* nkeysp, char*** 
     return stat;
 }
 
+static int
+s3commonprefixes(Aws::Vector<Aws::S3::Model::CommonPrefix> list, char*** keysp)
+{
+    int stat = NC_NOERR;
+    char** keys = NULL;
+    size_t nkeys;
+    int i;
+
+    nkeys = list.size();
+    if((keys=(char**)calloc(sizeof(char*),(nkeys+1)))==NULL)
+        stat = NC_ENOMEM;
+    if(!stat)  {
+        i = 0;
+        for (auto const &s3prefix : list) {
+	    char* p; char* p1;
+	    size_t len;
+	    const Aws::String& prefix = s3prefix.GetPrefix();
+	    len = prefix.length();
+	    if((p = (char*) malloc(len+1+1))==NULL) /* for nul + leading '/' */
+		stat = NC_ENOMEM;
+	    if(stat == NC_NOERR) {
+		if(*p == '/') {p1 = p;} else {*p = '/'; p1 = p+1;}
+		memcpy(p1,prefix.c_str(),len);
+		p1[len] = '\0';
+	        keys[i++] = p;
+	    }
+	}
+    }
+    if(keysp) {keys[nkeys] = NULL; *keysp = keys; keys = NULL;}
+    if(keys != NULL) freestringenvv(keys);
+    return stat;
+}
+
 static Aws::S3::Model::BucketLocationConstraint
 s3findregion(const char* name)
 {
@@ -543,7 +619,7 @@ freestringenvv(char** ss)
     char** p;
     if(ss != NULL) {
         for(p=ss;*p;p++)
-            nullfree(*p);
+            if(*p) free(*p);
         free(ss);
     }
 }
@@ -554,4 +630,42 @@ makes3key(const char* pathkey, const char** keyp)
     assert(pathkey != NULL && pathkey[0] == '/');
     if(keyp) *keyp = pathkey+1;
     return NC_NOERR;    
+}
+
+static int
+makes3keydir(const char* prefix, char** prefixdirp)
+{
+    size_t plen = strlen(prefix);
+    char* prefixdir = (char*)malloc(plen+1+1); /* '/' + nul */
+    if(prefixdir == NULL) return NC_ENOMEM;
+    memcpy(prefixdir,prefix,plen);
+    if(prefixdir[plen-1] != '/') {
+	prefixdir[plen++] = '/';
+    }
+    prefixdir[plen] = '\0';
+    *prefixdirp = prefixdir; prefixdir = NULL;
+    return NC_NOERR;
+}
+
+static char**
+mergekeysets(size_t nkeys1, char** keys1, size_t nkeys2, char** keys2)
+{
+    char** merge = NULL;
+    char** p1;
+    char** p2;
+
+    merge = (char**)malloc(sizeof(char*)*(nkeys1+nkeys2+1));
+    if(merge == NULL) return NULL;
+    if(nkeys1 > 0) {
+        memcpy(merge,keys1,sizeof(char*)*nkeys1);
+        /* avoid double free */
+        memset(keys1,0,sizeof(char*)*nkeys1);
+    }
+    if(nkeys2 > 0) {
+        memcpy(merge+nkeys1,keys2,sizeof(char*)*nkeys2);
+        /* avoid double free */
+        memset(keys2,0,sizeof(char*)*nkeys2);
+    }
+    merge[nkeys1+nkeys2] = NULL;   
+    return merge;
 }

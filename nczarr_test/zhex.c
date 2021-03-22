@@ -21,9 +21,17 @@ main(int argc, char** argv)
 {
     unsigned char c;
     unsigned int c0,c1;
+    FILE* f = NULL;
+
+    if(argc > 1) {
+	/* use argv[1] as input */
+	f = fopen(argv[1],"r");
+	if(f == NULL) {fprintf(stderr,"No such file: %s\n",argv[1]); exit(1);}
+    } else
+        f = stdin;
 
     for(;;) {
-	int ret = fread(&c, 1, 1, stdin);
+	int ret = fread(&c, 1, 1, f);
 	if(ret != 1) break;
         c1 = c;
         c0 = c1 & 0xf;
@@ -32,5 +40,6 @@ main(int argc, char** argv)
         c1 = hex[c1];
         printf("%c%c",(char)c1,(char)c0);
     }
+    if(f != stdin) fclose(f);
     return 0;
 }

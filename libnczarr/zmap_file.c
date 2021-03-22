@@ -122,7 +122,6 @@ static NCZMAP_API zapi;
 static int zfileclose(NCZMAP* map, int delete);
 static int zfcreategroup(ZFMAP*, const char* key, int nskip);
 static int zflookupobj(ZFMAP*, const char* key, FD* fd);
-static int zfcreateobj(ZFMAP*, const char* key,FD*);
 static int zfparseurl(const char* path0, NCURI** urip);
 static int zffullpath(ZFMAP* zfmap, const char* key, char**);
 static void zfrelease(ZFMAP* zfmap, FD* fd);
@@ -160,7 +159,7 @@ static void zfinitialize(void)
 	    if(sscanf(env,"%d",&perms) == 1) NC_DEFAULT_DIR_PERMS = perms;
 	}
         zfinitialized = 1;
-	ZUNTRACE(NC_NOERR);
+	(void)ZUNTRACE(NC_NOERR);
     }
 }
 
@@ -189,9 +188,7 @@ zfilecreate(const char *path, int mode, size64_t flags, void* parameters, NCZMAP
     if(!zfinitialized) zfinitialize();
 
     /* Fixup mode flags */
-    mode = (NC_NETCDF4 | NC_WRITE | mode);
-    if(flags & FLAG_BYTERANGE)
-        mode &=  ~(NC_CLOBBER | NC_WRITE);
+    mode |= (NC_NETCDF4 | NC_WRITE);
 
     if(!(mode & NC_WRITE))
         {stat = NC_EPERM; goto done;}
@@ -267,8 +264,6 @@ zfileopen(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
 
     /* Fixup mode flags */
     mode = (NC_NETCDF4 | mode);
-    if(flags & FLAG_BYTERANGE)
-        mode &=  ~(NC_CLOBBER | NC_WRITE);
 
     /* path must be a url with file: protocol*/
     if((stat=zfparseurl(path,&url)))
@@ -292,12 +287,8 @@ zfileopen(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
 	truepath = NULL;
     
     /* Verify root dir exists */
-    switch (stat = platformopendir(zfmap,zfmap->root)) {
-    case NC_NOERR: break;
-    case NC_ENOTFOUND: stat = NC_EEMPTY; /* fall thru */
-    default:
+    if((stat = platformopendir(zfmap,zfmap->root)))
 	goto done;
-    }
     
     /* Dataset superblock will be read by higher layer */
     
@@ -358,48 +349,12 @@ done:
 }
 
 static int
-zfiledefineobj(NCZMAP* map, const char* key)
-{
-    int stat = NC_NOERR;
-    FD fd = FDNUL;
-    ZFMAP* zfmap = (ZFMAP*)map; /* cast to true type */
-
-    ZTRACE(5,"map=%s key=%s",map->url,key);
-
-#ifdef VERIFY
-    if(!verify(key,!FLAG_ISDIR))
-        assert(!"expected file, have dir");
-#endif
-
-    /* Create the intermediate groups as directories */
-    if((stat = zfcreategroup(zfmap,key,SKIPLAST)))
-	goto done;
-    stat = zflookupobj(zfmap,key,&fd);
-    zfrelease(zfmap,&fd);
-    switch (stat) {
-    case NC_NOERR: /* Already exists */
-	goto done;
-    case NC_ENOTFOUND: stat = NC_EEMPTY; /* file does not exist */
-    case NC_EEMPTY: /* empty */
-        if((stat = zfcreateobj(zfmap,key,&fd)))
-            goto done;
-	break;
-    default:
-	goto done;
-    }
-
-done:
-    zfrelease(zfmap,&fd);
-    return ZUNTRACE(stat);
-}
-
-static int
 zfileread(NCZMAP* map, const char* key, size64_t start, size64_t count, void* content)
 {
     int stat = NC_NOERR;
     FD fd = FDNUL;
     ZFMAP* zfmap = (ZFMAP*)map; /* cast to true type */
-
+    
     ZTRACE(5,"map=%s key=%s start=%llu count=%llu",map->url,key,start,count);
 
 #ifdef VERIFY
@@ -428,6 +383,7 @@ zfilewrite(NCZMAP* map, const char* key, size64_t start, size64_t count, const v
     int stat = NC_NOERR;
     FD fd = FDNUL;
     ZFMAP* zfmap = (ZFMAP*)map; /* cast to true type */
+    char* truepath = NULL;
 
     ZTRACE(5,"map=%s key=%s start=%llu count=%llu",map->url,key,start,count);
 
@@ -437,16 +393,24 @@ zfilewrite(NCZMAP* map, const char* key, size64_t start, size64_t count, const v
 #endif
 
     switch (stat = zflookupobj(zfmap,key,&fd)) {
+    case NC_ENOTFOUND:
+    case NC_EEMPTY:
+	/* Create the directories leading to this */
+	if((stat = zfcreategroup(zfmap,key,SKIPLAST))) goto done;
+        /* Create truepath */
+        if((stat = zffullpath(zfmap,key,&truepath))) goto done;
+	/* Create file */
+	if((stat = platformcreatefile(zfmap,truepath,&fd))) goto done;
+	/* Fall thru to write the object */
     case NC_NOERR:
         if((stat = platformseek(zfmap, &fd, SEEK_SET, &start))) goto done;
         if((stat = platformwrite(zfmap, &fd, count, content))) goto done;
 	break;
-    case NC_ENOTFOUND: stat = NC_EEMPTY;
-    case NC_EEMPTY: break;
     default: break;
     }
 
 done:
+    nullfree(truepath);
     zfrelease(zfmap,&fd);
     return ZUNTRACE(stat);
 }
@@ -473,7 +437,7 @@ zfileclose(NCZMAP* map, int delete)
 }
 
 /*
-Return a list of keys immediately "below" a specified prefix key.
+Return a list of names immediately "below" a specified prefix key.
 In theory, the returned list should be sorted in lexical order,
 but it possible that it is not.
 The prefix key is not included. 
@@ -482,21 +446,18 @@ int
 zfilesearch(NCZMAP* map, const char* prefixkey, NClist* matches)
 {
     int stat = NC_NOERR;
-    int i;
     ZFMAP* zfmap = (ZFMAP*)map;
     char* truepath = NULL;
     NClist* nextlevel = nclistnew();
     NCbytes* buf = ncbytesnew();
-    int trailing;
 
     ZTRACE(5,"map=%s prefixkey=%s",map->url,prefixkey);
 
     /* Make the root path be true */
     if(prefixkey == NULL || strlen(prefixkey)==0 || strcmp(prefixkey,"/")==0)
-        truepath = strdup(zfmap->root);
+	truepath = strdup(zfmap->root);
     else if((stat = nczm_concat(zfmap->root,prefixkey,&truepath))) goto done;
 
-    trailing = (prefixkey[strlen(prefixkey)-1] == '/');
     /* get names of the next level path entries */
     switch (stat = platformdircontent(zfmap, truepath, nextlevel)) {
     case NC_NOERR: /* ok */
@@ -508,12 +469,9 @@ zfilesearch(NCZMAP* map, const char* prefixkey, NClist* matches)
     default:
 	goto done;
     }
-    for(i=0;i<nclistlength(nextlevel);i++) {
-	const char* segment = nclistget(nextlevel,i);
-	ncbytescat(buf,prefixkey);
-	if(!trailing) ncbytescat(buf,"/");
-	ncbytescat(buf,segment);
-	nclistpush(matches,ncbytesextract(buf));
+    while(nclistlength(nextlevel) > 0) {
+	char* segment = nclistremove(nextlevel,0);
+	nclistpush(matches,segment);
     }
     
 done:
@@ -594,42 +552,15 @@ zfrelease(ZFMAP* zfmap, FD* fd)
 {
     ZTRACE(5,"map=%s fd=%d",zfmap->map.url,(fd?fd->fd:-1));
     platformrelease(zfmap,fd);
-    ZUNTRACE(NC_NOERR);
-}
-
-/* Create an object file corresponding to a key; create any
-   necessary intermediate groups. Assumed that we actually
-   want to create this as a file.
-*/
-static int
-zfcreateobj(ZFMAP* zfmap, const char* key, FD* fd)
-{
-    int stat = NC_NOERR;
-    char* fullpath = NULL;
-
-    ZTRACE(5,"map=%s key=%s",zfmap->map.url,key);
-
-#ifdef VERIFY
-    if(!verify(key,!FLAG_ISDIR))
-        assert(!"expected file, have dir");
-#endif
-
-    /* Create all the prefix groups as directories */
-    if((stat = zfcreategroup(zfmap, key, SKIPLAST))) goto done;
-    /* Create the final object */
-    if((stat=zffullpath(zfmap,key,&fullpath))) goto done;
-    if((stat = platformcreatefile(zfmap,fullpath,fd)))
-	goto done;
-done:
-    nullfree(fullpath);
-    return ZUNTRACE(stat);
+    (void)ZUNTRACE(NC_NOERR);
 }
 
 /**************************************************/
 /* External API objects */
 
-NCZMAP_DS_API zmap_nzf = {
+NCZMAP_DS_API zmap_file = {
     NCZM_FILE_V1,
+    0,
     zfilecreate,
     zfileopen,
 };
@@ -639,7 +570,6 @@ static NCZMAP_API zapi = {
     zfileclose,
     zfileexists,
     zfilelen,
-    zfiledefineobj,
     zfileread,
     zfilewrite,
     zfilesearch,
@@ -1224,7 +1154,7 @@ platformrelease(ZFMAP* zfmap, FD* fd)
     ZTRACE(6,"map=%s fd=%d",zfmap->map.url,(fd?fd->fd:-1));
     if(fd->fd >=0) NCclose(fd->fd);
     fd->fd = -1;
-    ZUNTRACE(NC_NOERR);
+    (void)ZUNTRACE(NC_NOERR);
 }
 
 #if 0

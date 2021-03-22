@@ -79,9 +79,9 @@ AC_MSG_NOTICE([checking supported formats])
 # An explicit disable of netcdf-4 | netcdf4 is treated as if it was disable-hdf5
 AC_MSG_CHECKING([whether we should build with netcdf4 (alias for HDF5)])
 AC_ARG_ENABLE([netcdf4], [AS_HELP_STRING([--disable-netcdf4],
-              [(synonym for --enable-hdf5)])])
+              [(deprecated synonym for --enable-hdf5)])])
 test "x$enable_netcdf4" = xno || enable_netcdf4=yes
-AC_MSG_RESULT([$enable_netcdf4])
+AC_MSG_RESULT([$enable_netcdf4 (deprecated; Please use with --disable-hdf5)])
 AC_MSG_CHECKING([whether we should build with netcdf-4 (alias for HDF5)])
 AC_ARG_ENABLE([netcdf-4], [AS_HELP_STRING([--disable-netcdf-4],
               [(synonym for --disable-netcdf4)])])
@@ -628,6 +628,27 @@ if test "x$enable_nczarr_s3_tests" = xyes ; then
   AC_DEFINE([ENABLE_NCZARR_S3_TESTS], [1], [if true, build libnczarr with S3 tests enabled])
 fi
 AM_CONDITIONAL(ENABLE_NCZARR_S3_TESTS, [test "x$enable_nczarr_s3_tests" = xyes])
+
+if test "x$enable_nczarr_s3_tests" = xyes ; then
+  AC_MSG_WARN([*** DO NOT ENABLE_NCZARR_S3_TESTS UNLESS YOU HAVE ACCESS TO THE UNIDATA S3 BUCKET! ***])
+fi
+
+# Set default
+# See if we have libzip
+AC_CHECK_LIB([zip],[zip_open],[have_zip=yes],[have_zip=no])
+if test "x$have_zip" = "xyes" ; then
+   AC_SEARCH_LIBS([zip_open],[zip zip.dll cygzip.dll], [],
+      [AC_MSG_ERROR([libzip search failed.])])
+fi
+AC_MSG_CHECKING([whether libzip library is available])
+AC_MSG_RESULT([${have_zip}])
+
+enable_nczarr_zip=${have_zip} # alias
+
+if test "x$enable_nczarr_zip" = xyes ; then
+AC_DEFINE([ENABLE_NCZARR_ZIP], [1], [If true, then libzip found])
+fi
+AM_CONDITIONAL(ENABLE_NCZARR_ZIP, [test "x$enable_nczarr_zip" = xyes])
 
 # Did the user specify a default cache size for NCZarr?
 AC_MSG_CHECKING([whether a default file cache size for NCZarr was specified])
@@ -1589,6 +1610,7 @@ AC_SUBST([HAS_PAR_FILTERS], [$hdf5_supports_par_filters])
 AC_SUBST(HAS_NCZARR,[$enable_nczarr])
 AC_SUBST(DO_NCZARR_S3_TESTS,[$enable_nczarr_s3_tests])
 AC_SUBST(HAS_MULTIFILTERS,[$has_multifilters])
+AC_SUBST(DO_NCZARR_ZIP_TESTS,[$enable_nczarr_zip])
 
 # Include some specifics for netcdf on windows.
 #AH_VERBATIM([_WIN32_STRICMP],

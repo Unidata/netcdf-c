@@ -661,7 +661,6 @@ IF(USE_HDF5)
     IF(HDF5_VERSION_STRING AND NOT HDF5_VERSION)
       SET(HDF5_VERSION ${HDF5_VERSION_STRING})
     ENDIF()
-
     IF("${HDF5_VERSION}" STREQUAL "")
       MESSAGE(STATUS "Unable to determine hdf5 version.  NetCDF requires at least version ${HDF5_VERSION_REQUIRED}")
     ELSE()
@@ -723,7 +722,7 @@ IF(USE_HDF5)
   FIND_PACKAGE(Threads)
 
   # There is a missing case in the above code so default it
-  IF(NOT HDF5_C_LIBRARY_HDF5 OR "${HDF5_C_LIBRARY_hdf5}" STREQUAL "" )
+  IF(NOT HDF5_C_LIBRARY_hdf5 OR "${HDF5_C_LIBRARY_hdf5}" STREQUAL "" )
     SET(HDF5_C_LIBRARY_hdf5 "${HDF5_C_LIBRARY}")
   ENDIF()
 
@@ -802,6 +801,15 @@ IF(USE_HDF5)
     SET(HAS_PAR_FILTERS no CACHE STRING "")
   ENDIF()
 
+  # Check to see if HDF5 library is 1.10.6 or greater.
+  # Used to control path name conversion
+  IF(${HDF5_VERSION} VERSION_LESS "1.10.6")
+    SET(HDF5_UTF8_PATHS FALSE)
+  ELSE()
+    SET(HDF5_UTF8_PATHS TRUE)
+  ENDIF()
+  MESSAGE("-- Checking for HDF5 version 1.10.6 or later: ${HDF5_UTF8_PATHS}")
+
   SET(H5_USE_16_API 1)
   OPTION(NC_ENABLE_HDF_16_API "Enable HDF5 1.6.x Compatibility(Required)" ON)
   IF(NOT NC_ENABLE_HDF_16_API)
@@ -833,7 +841,7 @@ IF(USE_HDF5)
   #option to include HDF5 High Level header file (hdf5_hl.h) in case we are not doing a make install
   INCLUDE_DIRECTORIES(${HDF5_HL_INCLUDE_DIR})
 
-  # Check to see if we have libcurl 7.66 or later
+  # Check HDF5 version
   CHECK_C_SOURCE_COMPILES("
   #include <H5public.h>
   int main() {
@@ -941,6 +949,17 @@ OPTION(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
 OPTION(ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." ON)
 SET(REMOTETESTSERVERS "remotetest.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
 
+# See if we have libzip
+FIND_PACKAGE(Zip)
+
+# Define a test flag for have curl library
+IF(Zip_FOUND)
+  INCLUDE_DIRECTORIES(${Zip_INCLUDE_DIRS})
+  SET(ENABLE_NCZARR_ZIP TRUE)
+ELSE()
+  SET(ENABLE_NCZARR_ZIP FALSE)
+ENDIF()
+
 # Enable some developer-only tests
 OPTION(ENABLE_EXTRA_TESTS "Enable Extra tests. Some may not work because of known issues. Developers only." OFF)
 IF(ENABLE_EXTRA_TESTS)
@@ -1016,6 +1035,10 @@ IF(NOT ENABLE_S3_SDK)
   ENDIF()
 ENDIF()
 
+IF(ENABLE_NCZARR_S3_TESTS)
+  message(WARNING "**** DO NOT ENABLE_NCZARR_S3_TESTS UNLESS YOU HAVE ACCESS TO THE UNIDATA S3 BUCKET! ***")
+ENDIF()
+
 # Start disabling if curl not found
 IF(NOT FOUND_CURL)
   IF(ENABLE_BYTERANGE)
@@ -1034,6 +1057,11 @@ IF(NOT FOUND_CURL)
     MESSAGE(FATAL_ERROR "NCZarr S3 support specified, CURL libraries are not found.")
   ENDIF()
 ENDIF(NOT FOUND_CURL)
+
+IF(NOT ENABLE_BYTERANGE AND ENABLE_HDF5_ROS3)
+    MESSAGE(WARNING "ROS3 support requires ENABLE_BYTERANGE=TRUE; disabling ROS3 support")
+    SET(ENABLE_HDF5_ROS3 OFF CACHE BOOL "ROS3 support" FORCE)
+ENDIF()
 
 ##
 # Enable Tests
@@ -2144,8 +2172,9 @@ is_enabled(ENABLE_ERANGE_FILL HAS_ERANGE_FILL)
 is_enabled(HAVE_H5Z_SZIP HAS_SZLIB)
 is_enabled(HDF5_HAS_PAR_FILTERS HAS_PAR_FILTERS)
 is_enabled(ENABLE_NCZARR HAS_NCZARR)
-is_enabled(ENABLE_NCZARR_S3_TESTS DO_S3_TESTS)
+is_enabled(ENABLE_NCZARR_S3_TESTS DO_NCZARR_S3_TESTS)
 is_enabled(ENABLE_MULTIFILTERS HAS_MULTIFILTERS)
+is_enabled(ENABLE_NCZARR_ZIP DO_NCZARR_ZIP_TESTS)
 
 # Generate file from template.
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
@@ -2189,6 +2218,7 @@ configure_file(
 SET(EXTRA_DIST ${EXTRA_DIST} ${CMAKE_CURRENT_SOURCE_DIR}/test_common.in)
 SET(TOPSRCDIR "${CMAKE_CURRENT_SOURCE_DIR}")
 SET(TOPBUILDDIR "${CMAKE_CURRENT_BINARY_DIR}")
+SET(ISMSVC "${MSVC}")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test_common.in ${CMAKE_CURRENT_BINARY_DIR}/test_common.sh @ONLY NEWLINE_STYLE LF)
 
 
