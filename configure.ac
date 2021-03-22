@@ -1216,7 +1216,8 @@ if test "x$enable_hdf5" = xyes; then
 
    # H5Pset_fapl_mpiposix and H5Pget_fapl_mpiposix have been removed since HDF5 1.8.12.
    # Use H5Pset_fapl_mpio and H5Pget_fapl_mpio, instead.
-   AC_CHECK_FUNCS([H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5free_memory H5resize_memory H5allocate_memory H5Pset_libver_bounds H5Pset_all_coll_metadata_ops H5Literate])
+
+   AC_CHECK_FUNCS([H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5free_memory H5resize_memory H5allocate_memory H5Pset_all_coll_metadata_ops H5Literate])
 
    # Check to see if HDF5 library has H5Literate (HDF5 1.8.x, 1.10.x)
    if test "x$ac_cv_func_H5Literate" = xno; then
@@ -1228,6 +1229,7 @@ if test "x$enable_hdf5" = xyes; then
       ])], [], [AC_MSG_RESULT(no); AC_MSG_ERROR([HDF5 was not built with API compatibility version v18. Please recompile your libhdf5 install using '--with-default-api-version=v18'.])])
       AC_MSG_RESULT(yes)
    fi
+
 
    # Check to see if HDF5 library has collective metadata APIs, (HDF5 >= 1.10.0)
    if test "x$ac_cv_func_H5Pset_all_coll_metadata_ops" = xyes; then
@@ -1700,7 +1702,9 @@ AX_SET_META([NC_HAS_MULTIFILTERS],[$has_multifilters],[yes])
 # applications like PIO can determine whether they have an appropriate
 # dispatch table to submit. If this is changed, make sure the value in
 # CMakeLists.txt also changes to match.
-AC_SUBST([NC_DISPATCH_VERSION], [2])
+
+AC_SUBST([NC_DISPATCH_VERSION], [3])
+AC_DEFINE_UNQUOTED([NC_DISPATCH_VERSION], [${NC_DISPATCH_VERSION}], [Dispatch table version.])
 
 #####
 # End netcdf_meta.h definitions.
@@ -1734,6 +1738,7 @@ AC_CONFIG_FILES([Makefile
                  libnetcdf.settings
                  postinstall.sh
                  include/netcdf_meta.h
+                 include/netcdf_dispatch.h
                  include/Makefile
                  h5_test/Makefile
                  hdf4_test/Makefile
