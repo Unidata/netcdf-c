@@ -1216,7 +1216,18 @@ if test "x$enable_hdf5" = xyes; then
 
    # H5Pset_fapl_mpiposix and H5Pget_fapl_mpiposix have been removed since HDF5 1.8.12.
    # Use H5Pset_fapl_mpio and H5Pget_fapl_mpio, instead.
-   AC_CHECK_FUNCS([H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5free_memory H5resize_memory H5allocate_memory H5Pset_libver_bounds H5Pset_all_coll_metadata_ops])
+   AC_CHECK_FUNCS([H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5free_memory H5resize_memory H5allocate_memory H5Pset_libver_bounds H5Pset_all_coll_metadata_ops H5Literate])
+
+   # Check to see if HDF5 library has H5Literate (HDF5 1.8.x, 1.10.x)
+   if test "x$ac_cv_func_H5Literate" = xno; then
+      AC_MSG_CHECKING([for H5Literate macro])
+      AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include "H5public.h"],
+      [[#if !(H5Literate_vers == 1)
+      # error
+      #endif]
+      ])], [], [AC_MSG_RESULT(no); AC_MSG_ERROR([HDF5 was not built with API compatibility version v18. Please recompile your libhdf5 install using '--with-default-api-version=v18'.])])
+      AC_MSG_RESULT(yes)
+   fi
 
    # Check to see if HDF5 library has collective metadata APIs, (HDF5 >= 1.10.0)
    if test "x$ac_cv_func_H5Pset_all_coll_metadata_ops" = xyes; then
