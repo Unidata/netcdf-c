@@ -14,7 +14,7 @@ cleanncprops() {
   rm -f $dst
   cat $src \
   | sed -e '/:_Endianness/d' \
-  | sed -e 's/_SuperblockVersion = 1/_SuperblockVersion = 0/' \
+  | sed -e 's/_SuperblockVersion = [12]/_SuperblockVersion = 0/' \
   | sed -e 's/\(netcdflibversion\|netcdf\)=.*|/\1=NNNN|/' \
   | sed -e 's/\(hdf5libversion\|hdf5\)=.*"/\1=HHHH"/' \
   | grep -v '_NCProperties' \
