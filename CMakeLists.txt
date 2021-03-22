@@ -771,6 +771,18 @@ IF(USE_HDF5)
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5allocate_memory "" HAVE_H5ALLOCATE_MEMORY)
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5resize_memory "" HAVE_H5RESIZE_MEMORY)
 
+  ##
+  # Starting with libhdf5 1.12.0, we need to specify the option
+  # `--with-default-api-version=v18` when configuring libhdf5. Otherwise,
+  # the symbol H5Literate is not found.  Check for this and return an error if it's not found.
+  ##
+
+  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Literate "" HAVE_H5Literate)
+
+  IF(NOT HAVE_H5Literate)
+      MESSAGE(FATAL_ERROR "${HDF5_C_LIBRARY_hdf5} does not contain symbol '_H5Literate'.  Please recompile your libhdf5 install using '--with-default-api-version=v18'.")
+  ENDIF(NOT HAVE_H5Literate)
+
   IF(HDF5_PARALLEL)
 	SET(HDF5_CC h5pcc)
   ELSE()
