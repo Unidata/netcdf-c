@@ -435,7 +435,7 @@ simplepathstring(NClist* names,  char* separator)
 /* Define a number of location tests */
 
 /* Is node contained (transitively) in a sequence ? */
-BOOL
+int
 dapinsequence(CDFnode* node)
 {
     if(node == NULL || node->container == NULL) return TRUE;
@@ -446,7 +446,7 @@ dapinsequence(CDFnode* node)
 }
 
 /* Is node contained (transitively) in a structure array */
-BOOL
+int
 dapinstructarray(CDFnode* node)
 {
     if(node == NULL) return TRUE;
@@ -459,7 +459,7 @@ dapinstructarray(CDFnode* node)
 }
 
 /* Is node a map field of a grid? */
-BOOL
+int
 dapgridmap(CDFnode* node)
 {
     if(node != NULL && node->container != NULL
@@ -471,7 +471,7 @@ dapgridmap(CDFnode* node)
 }
 
 /* Is node an array field of a grid? */
-BOOL
+int
 dapgridarray(CDFnode* node)
 {
     if(node != NULL && node->container != NULL
@@ -482,7 +482,7 @@ dapgridarray(CDFnode* node)
     return FALSE;
 }
 
-BOOL
+int
 dapgridelement(CDFnode* node)
 {
     return dapgridarray(node)
@@ -490,7 +490,7 @@ dapgridelement(CDFnode* node)
 }
 
 /* Is node a top-level grid node? */
-BOOL
+int
 daptopgrid(CDFnode* grid)
 {
     if(grid == NULL || grid->nctype != NC_Grid) return FALSE;
@@ -498,7 +498,7 @@ daptopgrid(CDFnode* grid)
 }
 
 /* Is node a top-level sequence node? */
-BOOL
+int
 daptopseq(CDFnode* seq)
 {
     if(seq == NULL || seq->nctype != NC_Sequence) return FALSE;
@@ -506,7 +506,7 @@ daptopseq(CDFnode* seq)
 }
 
 /* Is node a top-level node? */
-BOOL
+int
 daptoplevel(CDFnode* node)
 {
     if(node->container == NULL
