@@ -780,8 +780,18 @@ IF(USE_HDF5)
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Literate "" HAVE_H5Literate)
 
   IF(NOT HAVE_H5Literate)
-      MESSAGE(FATAL_ERROR "${HDF5_C_LIBRARY_hdf5} does not contain symbol '_H5Literate'.  Please recompile your libhdf5 install using '--with-default-api-version=v18'.")
+  CHECK_C_SOURCE_COMPILES("#include <H5public.h>
+   #if !(H5Literate_vers == 1)
+   #error
+   #endif
+   int main() {int x = 1;}" HAVE_H5Literate_Macro)
+  ELSE()
+   SET(HAVE_H5Literate_Macro 1)
   ENDIF(NOT HAVE_H5Literate)
+
+  IF(NOT HAVE_H5Literate_Macro)
+      MESSAGE(FATAL_ERROR "${HDF5_C_LIBRARY_hdf5} does not contain symbol '_H5Literate'.  Please recompile your libhdf5 install using '--with-default-api-version=v18'.")
+  ENDIF(NOT HAVE_H5Literate_Macro)
 
   IF(HDF5_PARALLEL)
 	SET(HDF5_CC h5pcc)
