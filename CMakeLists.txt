@@ -775,6 +775,9 @@ IF(USE_HDF5)
   # Starting with libhdf5 1.12.0, we need to specify the option
   # `--with-default-api-version=v18` when configuring libhdf5. Otherwise,
   # the symbol H5Literate is not found.  Check for this and return an error if it's not found.
+  #
+  # We first check for the symbol in the library, for versions 1.8.x and 1.10.x.  If this fails,
+  # we must then check for its usage as a macro (version 1.12.x).
   ##
 
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Literate "" HAVE_H5Literate)
@@ -792,6 +795,10 @@ IF(USE_HDF5)
   IF(NOT HAVE_H5Literate_Macro)
       MESSAGE(FATAL_ERROR "${HDF5_C_LIBRARY_hdf5} does not contain symbol '_H5Literate'.  Please recompile your libhdf5 install using '--with-default-api-version=v18'.")
   ENDIF(NOT HAVE_H5Literate_Macro)
+
+  ##
+  # End H5Literate checks
+  ##
 
   IF(HDF5_PARALLEL)
 	SET(HDF5_CC h5pcc)
