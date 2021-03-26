@@ -5,7 +5,7 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
-## 4.8.0 - March 22, 2021
+## 4.8.0 - March 29, 2021
 
 * [Enhancement] Bump the NC_DISPATCH_VERSION from 2 to 3, and as a side effect, unify the definition of NC_DISPATCH_VERSION so it only needs to be defined in CMakeLists.txt and configure.ac. See [Github #1945](https://github.com/Unidata/netcdf-c/pull/1945) for more information.
 * [Enhancement] Provide better cross platform path name management. This converts paths for various platforms (e.g. Windows, MSYS, etc.) so that they are in the proper format for the executing platform. See [Github #1958](https://github.com/Unidata/netcdf-c/pull/1958) for more information.
