@@ -26,18 +26,18 @@ set(PACKAGE "netCDF" CACHE STRING "")
 
 SET(NC_VERSION_MAJOR 4)
 SET(NC_VERSION_MINOR 8)
-SET(NC_VERSION_PATCH 0)
+SET(NC_VERSION_PATCH 1)
 SET(NC_VERSION_NOTE "-development")
 SET(netCDF_VERSION ${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
 SET(NC_VERSION ${netCDF_VERSION})
-SET(netCDF_LIB_VERSION 18)
-SET(netCDF_SO_VERSION 18)
+SET(netCDF_LIB_VERSION 19)
+SET(netCDF_SO_VERSION 19)
 SET(PACKAGE_VERSION ${VERSION})
 
 # Version of the dispatch table. This must match the value in
 # configure.ac.
-SET(NC_DISPATCH_VERSION 2)
+SET(NC_DISPATCH_VERSION 3)
 
 # Get system configuration, Use it to determine osname, os release, cpu. These
 # will be used when committing to CDash.
@@ -163,8 +163,6 @@ SET(EXTRA_DEPS "")
 # Set CTest Properties
 ################################
 
-
-
 ENABLE_TESTING()
 INCLUDE(CTest)
 
@@ -262,6 +260,7 @@ ENDIF()
 #####
 # System inspection checks
 #####
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}/include)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/include)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/oc2)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/libsrc)
@@ -748,7 +747,7 @@ IF(USE_HDF5)
     SET(CMAKE_REQUIRED_LIBRARIES ${SZIP_LIBRARY} ${CMAKE_REQUIRED_LIBRARIES})
     MESSAGE(STATUS "HDF5 has szip.")
   ENDIF()
-  
+
   # Find out if HDF5 was built with parallel support.
   # Do that by checking for the targets H5Pget_fapl_mpiposx and
   # H5Pget_fapl_mpio in ${HDF5_LIB}.
@@ -766,10 +765,38 @@ IF(USE_HDF5)
 
   #Check to see if HDF5 library has collective metadata APIs, (HDF5 >= 1.10.0)
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pset_all_coll_metadata_ops "" HDF5_HAS_COLL_METADATA_OPS)
-  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pset_libver_bounds "" HAVE_H5PSET_LIBVER_BOUNDS)
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5free_memory "" HAVE_H5FREE_MEMORY)
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5allocate_memory "" HAVE_H5ALLOCATE_MEMORY)
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5resize_memory "" HAVE_H5RESIZE_MEMORY)
+
+  ##
+  # Starting with libhdf5 1.12.0, we need to specify the option
+  # `--with-default-api-version=v18` when configuring libhdf5. Otherwise,
+  # the symbol H5Literate is not found.  Check for this and return an error if it's not found.
+  #
+  # We first check for the symbol in the library, for versions 1.8.x and 1.10.x.  If this fails,
+  # we must then check for its usage as a macro (version 1.12.x).
+  ##
+
+  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Literate "" HAVE_H5Literate)
+
+  IF(NOT HAVE_H5Literate)
+  CHECK_C_SOURCE_COMPILES("#include <H5public.h>
+   #if !(H5Literate_vers == 1)
+   #error
+   #endif
+   int main() {int x = 1;}" HAVE_H5Literate_Macro)
+  ELSE()
+   SET(HAVE_H5Literate_Macro 1)
+  ENDIF(NOT HAVE_H5Literate)
+
+  IF(NOT HAVE_H5Literate_Macro)
+      MESSAGE(FATAL_ERROR "${HDF5_C_LIBRARY_hdf5} does not contain symbol '_H5Literate'.  Please recompile your libhdf5 install using '--with-default-api-version=v18'.")
+  ENDIF(NOT HAVE_H5Literate_Macro)
+
+  ##
+  # End H5Literate checks
+  ##
 
   IF(HDF5_PARALLEL)
 	SET(HDF5_CC h5pcc)
@@ -2205,6 +2232,13 @@ INSTALL(FILES "${netCDF_BINARY_DIR}/libnetcdf.settings"
 configure_file(
   ${netCDF_SOURCE_DIR}/include/netcdf_meta.h.in
   ${netCDF_BINARY_DIR}/include/netcdf_meta.h @ONLY)
+
+#####
+# Create 'netcdf_dispatch.h' include file.
+#####
+configure_file(
+  ${netCDF_SOURCE_DIR}/include/netcdf_dispatch.h.in
+  ${netCDF_BINARY_DIR}/include/netcdf_dispatch.h @ONLY NEWLINE_STYLE LF)
 
 #####
 # Build test_common.sh
