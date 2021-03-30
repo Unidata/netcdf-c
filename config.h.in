@@ -156,6 +156,9 @@
 /* Define to 1 if you have the `H5free_memory' function. */
 #undef HAVE_H5FREE_MEMORY
 
+/* Define to 1 if you have the `H5Literate' function. */
+#undef HAVE_H5LITERATE
+
 /* Define to 1 if you have the `H5Pget_fapl_mpio' function. */
 #undef HAVE_H5PGET_FAPL_MPIO
 
@@ -164,9 +167,6 @@
 
 /* Define to 1 if you have the `H5Pset_deflate' function. */
 #undef HAVE_H5PSET_DEFLATE
-
-/* Define to 1 if you have the `H5Pset_libver_bounds' function. */
-#undef HAVE_H5PSET_LIBVER_BOUNDS
 
 /* Define to 1 if you have the `H5resize_memory' function. */
 #undef HAVE_H5RESIZE_MEMORY
@@ -210,7 +210,7 @@
 /* Define to 1 if the system has the type `longlong'. */
 #undef HAVE_LONGLONG
 
-/* Define to 1 if the system has the type `long long int'. */
+/* Define to 1 if the system has the type 'long long int'. */
 #undef HAVE_LONG_LONG_INT
 
 /* Define to 1 if you have the <malloc.h> header file. */
@@ -349,7 +349,7 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
-/* Define to 1 if the system has the type `unsigned long long int'. */
+/* Define to 1 if the system has the type 'unsigned long long int'. */
 #undef HAVE_UNSIGNED_LONG_LONG_INT
 
 /* Define to 1 if the system has the type `ushort'. */
@@ -391,6 +391,9 @@
 
 /* Extra pairs for _NCProperties */
 #undef NCPROPERTIES_EXTRA
+
+/* Dispatch table version. */
+#undef NC_DISPATCH_VERSION
 
 /* no IEEE float on this platform */
 #undef NO_IEEE_FLOAT
