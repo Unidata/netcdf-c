@@ -74,7 +74,8 @@ check_PROGRAMS += t_misc
 check_PROGRAMS += t_ncf330
 
 if ENABLE_DAP_AUTH_TESTS
-TESTS += testbasicauth.sh
+check_PROGRAMS += t_auth
+TESTS += testauth.sh
 TESTS += testcontainerauth.sh
 endif
 
