@@ -71,7 +71,7 @@ Trace(const char* fcn)
 */
 
 int
-nc_http_open(const char* objecturl, NC_HTTP_STATE** statep, size64_t* filelenp)
+nc_http_open(const char* objecturl, NC_HTTP_STATE** statep, long long* filelenp)
 {
     int stat = NC_NOERR;
     int i;
