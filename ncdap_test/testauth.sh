@@ -4,7 +4,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
 # Enable if using localhost
-LOCAL=1
+#LOCAL=1
 
 RCEMBED=1
 RCLOCAL=1
@@ -41,12 +41,13 @@ fi
 
 # Major parameters
 
-BASICCOMBO="tiggeUser:tigge"
-BADCOMBO="tiggeUser:xxxxx"
-URLPATH="thredds/dodsC/testRestrictedDataset/testData2.nc"
-PROTO=http
+AUTHSERVER="thredds-dev.unidata.ucar.edu"
+BASICCOMBO="authuser:auth"
+BADCOMBO="authuser:xxxxx"
+URLPATH="thredds/dodsC/test2/testData.nc"
+PROTO=https
 if test "x$LOCAL" = x ; then
-URLSERVER="remotetest.unidata.ucar.edu"
+URLSERVER=${AUTHSERVER}
 else
 URLSERVER="localhost:8081"
 fi
