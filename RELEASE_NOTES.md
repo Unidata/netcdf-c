@@ -4,6 +4,9 @@ Release Notes       {#RELEASE_NOTES}
 \brief Release notes file for the netcdf-c package.
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
+## 4.8.1 - TBD
+
+* [Bug Fix] Corrected HDF5 version detection logic as described in [Github #1962](https://github.com/Unidata/netcdf-c/issues/1962).  
 
 ## 4.8.0 - March 30, 2021
 
