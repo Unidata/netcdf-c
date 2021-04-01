@@ -298,7 +298,7 @@ NCJlex(NCJparser* parser)
 		if(c == '\0' || strchr(WORD,c) == NULL) break; /* end of word */
 	    }
 	    /* Pushback c if not whitespace */
-	    if(c > ' ' && c != '\177') parser->pos--;
+	    parser->pos--;
 	    count = ((parser->pos) - start);
 	    if(NCJyytext(parser,start,count)) goto done;
 	    /* Discriminate the word string to get the proper sort */
