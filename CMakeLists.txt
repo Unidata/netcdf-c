@@ -832,7 +832,7 @@ IF(USE_HDF5)
   # Check to see if HDF5 library is 1.10.6 or greater.
   # Used to control path name conversion
   # Check HDF5 version
-  SET(HDF5_UT8_PATHS OFF)
+  SET(HDF5_UTF8_PATHS OFF)
   CHECK_C_SOURCE_COMPILES("
   #include <H5public.h>
   int main() {
