@@ -861,34 +861,6 @@ nullify(const char* s)
 #endif
 
 /**************************************************/
-#if 0
-/* return 1 if path looks like a url; 0 otherwise */
-int
-NC_testurl(const char* path)
-{
-    int isurl = 0;
-    NCURI* tmpurl = NULL;
-
-    if(path == NULL) return 0;
-
-    /* Ok, try to parse as a url */
-    if(ncuriparse(path,&tmpurl)==NCU_OK) {
-	/* Do some extra testing to make sure this really is a url */
-        /* Look for a known/accepted protocol */
-        struct NCPROTOCOLLIST* protolist;
-        for(protolist=ncprotolist;protolist->protocol;protolist++) {
-	    if(strcmp(tmpurl->protocol,protolist->protocol) == 0) {
-	        isurl=1;
-		break;
-	    }
-	}
-	ncurifree(tmpurl);
-	return isurl;
-    }
-    return 0;
-}
-#endif
-
 /**************************************************/
 /**
  * Provide a hidden interface to allow utilities

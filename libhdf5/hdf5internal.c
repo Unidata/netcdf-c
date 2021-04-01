@@ -1026,7 +1026,7 @@ nc_log_hdf5(void)
 
 #endif /* LOGGING */
 
-
+#if 0
 #ifdef _WIN32
 
 /**
@@ -1112,3 +1112,4 @@ nc4_hdf5_free_pathbuf(pathbuf_t *pb)
 }
 
 #endif /* _WIN32 */
+#endif /*0*/
