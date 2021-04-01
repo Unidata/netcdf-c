@@ -2240,7 +2240,13 @@ configure_file(
   ${netCDF_SOURCE_DIR}/include/netcdf_dispatch.h.in
   ${netCDF_BINARY_DIR}/include/netcdf_dispatch.h @ONLY NEWLINE_STYLE LF)
 
-#####
+# Used in the `configure_file` calls below
+SET(ISCMAKE "1")
+IF(MSVC)
+SET(ISMSVC "1")
+ENDIF()
+
+####
 # Build test_common.sh
 #####
 SET(EXTRA_DIST ${EXTRA_DIST} ${CMAKE_CURRENT_SOURCE_DIR}/test_common.in)
@@ -2249,15 +2255,9 @@ SET(TOPBUILDDIR "${CMAKE_CURRENT_BINARY_DIR}")
 SET(ISMSVC "${MSVC}")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test_common.in ${CMAKE_CURRENT_BINARY_DIR}/test_common.sh @ONLY NEWLINE_STYLE LF)
 
-
 #####
 # Build nc_test4/findplugin.sh
 #####
-SET(ISCMAKE "1")
-IF(MSVC)
-SET(ISMSVC "1")
-ENDIF()
-
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/nc_test4/findplugin.sh @ONLY NEWLINE_STYLE LF)
 
 IF(ENABLE_EXAMPLES)
