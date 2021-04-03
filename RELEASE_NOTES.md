@@ -6,9 +6,9 @@ Release Notes       {#RELEASE_NOTES}
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 ## 4.8.1 - TBD
 
+* [Enhancement] Add support for reading/writing pure Zarr storage format that supports the XArray _ARRAY_DIMENSIONS attribute. See [Github #1952](https://github.com/Unidata/netcdf-c/pull/1952) for more information.
 * [Update] Updated version of bzip2 used in filter testing/functionality, in support of [Github #1969](https://github.com/Unidata/netcdf-c/issues/1969).
 * [Bug Fix] Corrected HDF5 version detection logic as described in [Github #1962](https://github.com/Unidata/netcdf-c/issues/1962).  
-* [Enhancement] Add support for reading/writing pure Zarr storage format that supports the XArray _ARRAY_DIMENSIONS attribute. See [Github #1952](https://github.com/Unidata/netcdf-c/pull/1952) for more information.
 
 ## 4.8.0 - March 30, 2021
 
