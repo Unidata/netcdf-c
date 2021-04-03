@@ -662,7 +662,7 @@ NCJappend(NCjson* object, NCjson* value)
 int
 NCJarrayith(NCjson* object, size_t i, NCjson** valuep)
 {
-    if(object == NULL || object->sort != NCJ_DICT)
+    if(object == NULL || object->sort != NCJ_ARRAY)
 	return NC_EINTERNAL;
     if(valuep) *valuep = nclistget(object->contents,i);
     return NC_NOERR;

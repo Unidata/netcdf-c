@@ -897,7 +897,7 @@ computeattrdata(nc_type* typeidp, NCjson* values, size_t* lenp, void** datap)
     if(typeid == NC_NAT) inferattrtype(values,&typeid);
     if(typeid == NC_NAT) {stat = NC_EBADTYPE; goto done;}
 
-    /* Collect the length of the attribute */
+    /* Collect the length of the attribute; might be a singleton  */
     switch (values->sort) {
     case NCJ_DICT: stat = NC_EINTERNAL; goto done;
     case NCJ_ARRAY:
@@ -927,7 +927,8 @@ computeattrdata(nc_type* typeidp, NCjson* values, size_t* lenp, void** datap)
 
     if(lenp) *lenp = datalen;
     if(datap) {*datap = data; data = NULL;}
-
+    if(typeidp) *typeidp = typeid; /* return possibly inferred type */
+    
 done:
     nullfree(data);
     return THROW(stat);
@@ -961,9 +962,24 @@ inferattrtype(NCjson* values, nc_type* typeidp)
 	case NCJ_BOOLEAN:
 	    typeid = NC_UBYTE;
 	    break;
-	default: return NC_EINVAL;
+	default: return NC_EINTERNAL;
 	}
 	break;
+    /* Might be a singleton */
+    case NCJ_INT:
+ 	    if(values->value[0] == '-') {
+		sscanf(values->value,"%lld",&i64);
+		u64 = (unsigned long long)i64;
+	    } else
+		sscanf(values->value,"%llu",&u64);
+	    typeid = mininttype(u64);
+	    break;
+    case NCJ_DOUBLE:
+	    typeid = NC_DOUBLE;
+	    break;
+    case NCJ_BOOLEAN:
+	    typeid = NC_UBYTE;
+	    break;
     case NCJ_STRING: /* requires special handling as an array of characters */
 	typeid = NC_CHAR;
 	break;
