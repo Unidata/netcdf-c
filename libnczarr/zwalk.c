@@ -206,8 +206,9 @@ NCZ_transfer(struct Common* common, NCZSlice* slices)
 		  common, &chunkodom)))
 	goto done;
 
-    if(wdebug >= 4)
+    if(wdebug >= 4) {
 	fprintf(stderr,"allprojections:\n%s",nczprint_allsliceprojections(common->rank,common->allprojections)); fflush(stderr);
+    }
 
     wholechunk = iswholechunk(common,slices);
 

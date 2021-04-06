@@ -7,6 +7,7 @@ include $(top_srcdir)/lib_flags.am
 AM_LDFLAGS += -module -avoid-version -shared -export-dynamic	\
  -rpath ${abs_builddir} ${NOUNDEFINED}
 
+# BZIP2 version 1.0.8 (https://sourceware.org/bzip2/)
 BZIP2HDRS = bzlib.h bzlib_private.h
 BZIP2SRC = blocksort.c huffman.c crctable.c randtable.c compress.c decompress.c bzlib.c
 
@@ -41,3 +42,9 @@ DISTCLEANFILES = H5Znoop1.c
 H5Znoop1.c: Makefile H5Znoop.c
 	echo '#define NOOP_INSTANCE 1' > $@
 	cat ${srcdir}/H5Znoop.c >> $@
+
+# For reference: updating bzip2 
+BZIP2DIR=/cygdrive/d/bzip2-1.0.8
+updatebzip2:
+	for b in ${BZIP2HDRS} ${BZIP2SRC} ; do cp -f ${BZIP2DIR}/$${b} . ; done
+

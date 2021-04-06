@@ -3,6 +3,8 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
+set -e
+
 # Which test cases to exercise
 API=1
 NG=1
@@ -209,13 +211,13 @@ if ! test -f unfiltered.nc ; then
 fi
 ${NCCOPY} "-F/g/var,307,4|40000" unfiltered.nc nccopyF.nc
 ${NCDUMP} -hs nccopyF.nc > ./nccopyF.cdl
-sclean nccopyF.cdl nccopyFs.cdl 
+sclean nccopyF.cdl nccopyFs.cdl
 diff -b -w ${srcdir}/ref_nccopyF.cdl ./nccopyFs.cdl
 echo "*** ncgen with multiple filters"
 ${NCGEN} -4 -lb -o ncgenF.nc ${srcdir}/ref_nccopyF.cdl
 # Need to fix name using -n
 ${NCDUMP} -hs -n nccopyF ncgenF.nc > ./ncgenF.cdl
-sclean ncgenF.cdl ncgenFs.cdl 
+sclean ncgenF.cdl ncgenFs.cdl
 diff -b -w ${srcdir}/ref_nccopyF.cdl ./ncgenFs.cdl
 echo "*** Pass: multiple filters"
 fi
@@ -256,7 +258,6 @@ rm -f test_bzip2.c
 rm -f multifilter.nc multi.cdl smulti.cdl
 rm -f nccopyF.nc nccopyF.cdl ncgenF.nc ncgenF.cdl
 rm -f ncgenFs.cdl  nccopyFs.cdl
-#rm -f crfilterorder.txt rdfilterorder.txt
+rm -f crfilterorder.txt rdfilterorder.txt
 
 exit 0
-

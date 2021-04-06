@@ -39,7 +39,7 @@ ${NCCOPY} -M0 -c dim0/,dim1/1,dim2/,dim3/1,dim4/,dim5/1,dim6/ tmp_chunks3.nc "$f
 ${NCDUMP} -sh -n tmp "$fileurl" > tmp_chunked.cdl
 verifychunking tmp_chunked.cdl "ivar:_ChunkSizes=7,1,2,1,5,1,9;" "fvar:_ChunkSizes=9,1,5,1,2,1,7;"
 chunkclean tmp.cdl tmpx.cdl
-chunkclean tmp_chunked.cdl tmp_chunkedx.cdl 
+chunkclean tmp_chunked.cdl tmp_chunkedx.cdl
 diff tmpx.cdl tmp_chunkedx.cdl
 
 # Note that unchunked means that there is only one chunk
@@ -48,15 +48,15 @@ fileargs tmp_unchunked
 ${NCCOPY} -M0 -c dim0/,dim1/,dim2/,dim3/,dim4/,dim5/,dim6/ "$SRC" "$fileurl"
 ${NCDUMP} -sh -n tmp "$fileurl" > tmp_unchunked.cdl
 verifychunking tmp_unchunked.cdl "ivar:_ChunkSizes=7,4,2,3,5,6,9;" "fvar:_ChunkSizes=9,6,5,3,2,4,7;"
-chunkclean tmp_unchunked.cdl tmp_unchunkedx.cdl 
+chunkclean tmp_unchunked.cdl tmp_unchunkedx.cdl
 diff tmpx.cdl tmp_unchunkedx.cdl
 
 # Test -c /
 fileargs tmp_unchunked2
-${NCCOPY} -M0 -c "/" "$SRC" "$fileurl"
+${NCCOPY} -M0 -c "//" "$SRC" "$fileurl"
 ${NCDUMP} -sh -n tmp "$fileurl" > tmp_unchunked2.cdl
 verifychunking tmp_unchunked.cdl "ivar:_ChunkSizes=7,4,2,3,5,6,9;" "fvar:_ChunkSizes=9,6,5,3,2,4,7;"
-chunkclean tmp_unchunked.cdl tmp_unchunkedx.cdl 
+chunkclean tmp_unchunked.cdl tmp_unchunkedx.cdl
 diff tmpx.cdl tmp_unchunkedx.cdl
 
 echo "*** Test that nccopy -c dim/n is used "
@@ -80,4 +80,3 @@ if test "x$FEATURE_S3TESTS" = xyes ; then testcase s3; fi
 
 echo "*** All nccopy nczarr tests passed!"
 exit 0
-
