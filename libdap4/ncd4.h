@@ -71,18 +71,6 @@ extern int dsp_close(ND4dsp* dsp);
 /* DSP API */
 extern int dsp_open(const char* path, ND4dsp** dspp);
 
-/*
-extern NCerror dapbuildvaraprojection(CDFnode*,
-		     const size_t* startp, const size_t* countp, const ptrdiff_t* stridep,
-		     struct DCEprojection** projectionlist);
-
-extern NCerror NCD4_getvarx(int ncid, int varid,
-	    const size_t *startp,
-	    const size_t *countp,
-	    const ptrdiff_t *stridep,
-	    void *data,
-	    nc_type dsttype0);
-*/
 #endif
 
 /**************************************************/
