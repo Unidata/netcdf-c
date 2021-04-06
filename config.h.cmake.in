@@ -256,9 +256,6 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the `gettimeofday' function. */
 #cmakedefine HAVE_STRUCT_TIMESPEC 1
 
-/* if true, netcdf4 file properties will be set using H5Pset_libver_bounds */
-#cmakedefine HAVE_H5PSET_LIBVER_BOUNDS 1
-
 /* Define to 1 if you have the `H5Z_SZIP' function. */
 #cmakedefine HAVE_H5Z_SZIP 1
 
@@ -462,6 +459,9 @@ with zip */
 
 /* Add extra properties to _NCProperties attribute */
 #cmakedefine NCPROPERTIES_EXTRA ${NCPROPERTIES_EXTRA}
+
+/* Idspatch table version */
+#cmakedefine NC_DISPATCH_VERSION ${NC_DISPATCH_VERSION}
 
 /* no IEEE float on this platform */
 #cmakedefine NO_IEEE_FLOAT 1
