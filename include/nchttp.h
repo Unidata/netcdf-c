@@ -23,7 +23,7 @@ typedef struct NC_HTTP_STATE {
     char errbuf[1024]; /* assert(CURL_ERROR_SIZE <= 1024) */
 } NC_HTTP_STATE;
 
-extern int nc_http_open(const char* objecturl, NC_HTTP_STATE** state, size64_t* lenp);
+extern int nc_http_open(const char* objecturl, NC_HTTP_STATE** state, long long* lenp);
 extern int nc_http_size(NC_HTTP_STATE* state, const char* url, size64_t* sizep);
 extern int nc_http_read(NC_HTTP_STATE* state, const char* url, size64_t start, size64_t count, NCbytes* buf);
 extern int nc_http_close(NC_HTTP_STATE* state);
