@@ -3,14 +3,11 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
-# Enable if using localhost
-#LOCAL=1
-
 RCEMBED=1
-RCLOCAL=1
-RCHOME=1
-RCENV=1
-RCPREC=1
+#RCLOCAL=1
+#RCHOME=1
+#RCENV=1
+#RCPREC=1
 
 # Not currently testable in netcdf
 #RCSPEC=1
@@ -34,34 +31,18 @@ COOKIES="${WD}/test_auth_cookies"
 
 RC=.daprc
 
-OCLOGFILE=stderr
 if test "x$DBG" = x1 ; then
 SHOW=1
 fi
 
 # Major parameters
 
-AUTHSERVER="thredds-dev.unidata.ucar.edu"
-BASICCOMBO="authuser:auth"
-BADCOMBO="authuser:xxxxx"
-URLPATH="thredds/dodsC/test2/testData.nc"
+AUTHSERVER="thredds.ucar.edu"
+BASICCOMBO="authtester:auth"
+BADCOMBO="authtester:xxxxx"
+URLPATH="thredds/dodsC/test3/testData.nc"
 PROTO=https
-if test "x$LOCAL" = x ; then
 URLSERVER=${AUTHSERVER}
-else
-URLSERVER="localhost:8081"
-fi
-
-# See if we need to override
-if test "x$URS" != "x" ; then
-#https://54.86.135.31/opendap/data/nc/fnoc1.nc.dds
-URLSERVER="54.86.135.31"
-URLPATH="opendap/data/nc/fnoc1.nc"
-BASICCOMBO="$URS"
-RCEMBED=0
-NETRC=$NETRCFILE
-PROTO=https
-fi
 
 if test "x$DBG" = x1 ; then
 URLPATH="${URLPATH}#log&show=fetch"
@@ -70,8 +51,6 @@ fi
 # Split the combo
 BASICUSER=`echo $BASICCOMBO | cut -d: -f1`
 BASICPWD=`echo $BASICCOMBO | cut -d: -f2`
-
-OUTPUT="./.output"
 
 if test "x$TEMP" = x ; then
   TEMP="/tmp"
@@ -83,6 +62,10 @@ HOMERC=${HOME}/$RC
 HOMERC=`echo "$HOMERC" | sed -e "s|//|/|g"`
 SPECRC="$TEMP/temprc"
 ENVRC="$WD/envrc"
+
+show() {
+echo "=================================================="
+}
 
 createrc() {
   RCP="$1" ; shift
@@ -157,8 +140,8 @@ createnetrc() {
 }
 
 reset() {
-  for f in ./$RC $HOME/$RC $SPECRC $ENVRC $COOKIES $NETRC $OUTPUT ; do
-    rm -f ${f}
+  for f in ./$RC $HOME/$RC $SPECRC $ENVRC $COOKIES $NETRC ; do
+echo    rm -f ${f}
   done      
   unset DAPRCFILE
 }
@@ -186,11 +169,6 @@ save() {
   done      
 }
 
-show() {
-  if test "x$SHOW" = x1 ; then cat $OUTPUT; fi
-  if test "x$OUTPUT" != "x"; then rm -f $OUTPUT; fi
-}
-
 # Assemble the ncdump command
 if test "x$DBG" = x1; then
 NCDUMP="$NCDUMP -D1"
@@ -212,8 +190,7 @@ if test "x$RCEMBED" = x1 ; then
   URL="${PROTO}://${BASICCOMBO}@${URLSERVER}/$URLPATH"
   unset NETRC
   # Invoke ncdump to extract a file the URL
-  echo "command: ${NCDUMP} -h ${URL} > $OUTPUT"
-  ${NCDUMP} -h "$URL" > $OUTPUT
+  ${NCDUMP} -h "$URL"
   show
 fi
 
@@ -229,8 +206,7 @@ if test "x$RCLOCAL" = x1 ; then
   createrc $LOCALRC
 
   # Invoke ncdump to extract a file using the URL
-  echo "command: ${NCDUMP} -h ${URL} > $OUTPUT"
-  ${NCDUMP} -h "$URL" > $OUTPUT
+  ${NCDUMP} -h "$URL"
   show
 fi
 
@@ -242,8 +218,7 @@ if test "x$RCHOME" = x1 ; then
   createrc $HOMERC
 
   # Invoke ncdump to extract a file the URL
-  echo "command: ${NCDUMP} -h ${URL} > $OUTPUT"
-  ${NCDUMP} -h "$URL" > $OUTPUT
+  ${NCDUMP} -h "$URL"
   show
 fi
 
@@ -255,8 +230,7 @@ if test "x$RCSPEC" == x1 ; then
   createrc $SPECRC
 
   # Invoke ncdump to extract a file the URL
-  echo "command: ${NCDUMP} -h ${URL} > $OUTPUT"
-  ${NCDUMP} -h "$URL" > $OUTPUT
+  ${NCDUMP} -h "$URL"
   show
 fi
 
@@ -270,8 +244,7 @@ if test "x$RCENV" = x1 ; then
   createrc $DAPRCFILE
 
   # Invoke ncdump to extract a file the URL
-  echo "command: ${NCDUMP} -h ${URL} > $OUTPUT"
-  ${NCDUMP} -h "$URL" > $OUTPUT
+  ${NCDUMP} -h "$URL"
   show
   export DAPRCFILE=
 fi
@@ -287,8 +260,7 @@ if test "x$RCPREC" = x1 ; then
   createrc $LOCALRC
 
   # Invoke ncdump to extract a file using the URL
-  echo "command: ${NCDUMP} -h ${URL} > $OUTPUT"
-  ${NCDUMP} -h "$URL" > $OUTPUT
+  ${NCDUMP} -h "$URL"
   ${NCDUMP} -h "$URL"
   show
 fi
