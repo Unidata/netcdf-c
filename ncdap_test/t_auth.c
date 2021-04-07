@@ -28,17 +28,17 @@ See \ref copyright file for more info.
 
 #define KEEPRC
 
-#define AUTHTESTSERVER "thredds-dev.unidata.ucar.edu"
+#define AUTHTESTSERVER "thredds.ucar.edu"
 
 #define RC ".daprc"
 #define SPECRC "./daprc"
 
-#define USERPWD "authuser:auth"
+#define USERPWD "authtester:auth"
 #define COOKIEFILE "./cookies"
 
-#define URL1 "https://%s@%s/dodsC/test2/testData.nc"
-#define URL2 "https://%s/dodsC/test2/testData.nc"
-#define URL3 "https://%s@" AUTHTESTSERVER "/thredds/dodsC/test2/testData.nc"
+#define URL1 "https://%s@%s/thredds/dodsC/test3/testData.nc"
+#define URL2 "https://thredds/%s/dodsC/test3/testData.nc"
+#define URL3 "https://%s@" AUTHTESTSERVER "/thredds/dodsC/test3/testData.nc"
 
 /* Embedded user:pwd */
 static char url1[1024];
