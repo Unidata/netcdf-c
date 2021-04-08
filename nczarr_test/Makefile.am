@@ -50,6 +50,8 @@ TESTS += run_fillonlyz.sh
 endif
 
 TESTS += run_ncgen4.sh
+TESTS += run_purezarr.sh
+TESTS += run_interop.sh
 
 check_PROGRAMS += tst_chunkcases
 tst_chunkcases_SOURCES = tst_chunkcases.c ${tstcommonsrc}
@@ -97,6 +99,7 @@ ncdumpchunks_SOURCES = ncdumpchunks.c
 EXTRA_DIST = CMakeLists.txt \
 run_ut_map.sh run_ut_mapapi.sh run_ut_misc.sh run_ut_chunk.sh run_ncgen4.sh \
 run_nccopyz.sh run_fillonlyz.sh run_chunkcases.sh test_nczarr.sh run_perf_chunks1.sh run_s3_cleanup.sh \
+run_purezarr.sh run_interop.sh \
 ref_ut_map_create.cdl ref_ut_map_writedata.cdl ref_ut_map_writemeta2.cdl ref_ut_map_writemeta.cdl \
 ref_ut_map_readmeta.txt ref_ut_map_readmeta2.txt ref_ut_map_search.txt \
 ref_ut_mapapi_create.cdl ref_ut_mapapi_data.cdl ref_ut_mapapi_meta.cdl ref_ut_mapapi_search.txt \
@@ -108,10 +111,15 @@ ref_whole.cdl ref_whole.txt \
 ref_skip.cdl ref_skip.txt ref_skipw.cdl \
 ref_rem.cdl ref_rem.dmp ref_ndims.cdl  ref_ndims.dmp \
 ref_misc1.cdl ref_misc1.dmp \
-ref_avail1.cdl ref_avail1.dmp ref_avail1.txt
+ref_avail1.cdl ref_avail1.dmp ref_avail1.txt \
+ref_xarray.cdl ref_purezarr.cdl ref_purezarr_base.cdl
+
+# Interoperability files
+EXTRA_DIST += power_901_constants.zip ref_power_901_constants.cdl
 
 CLEANFILES = ut_*.txt ut*.cdl tmp*.nc tmp*.cdl tmp*.txt tmp*.dmp tmp*.zip tmp*.nc
 
 # Remove directories
 clean-local:
 	rm -fr tmp*.file results.file results.s3 results.zip
+	rm -fr power_901_constants.file

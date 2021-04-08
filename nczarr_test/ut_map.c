@@ -140,7 +140,7 @@ writemeta2(void)
     if((stat = nczmap_open(impl,url,NC_WRITE,0,NULL,&map)))
 	goto done;
 
-    if((stat=nczm_concat(META2,NCZVAR,&path)))
+    if((stat=nczm_concat(META2,NCZARRAY,&path)))
 	goto done;
     if((stat = nczmap_write(map, path, 0, strlen(metadata2), metadata2)))
 	goto done;
@@ -210,7 +210,7 @@ readmeta2(void)
     if((stat = nczmap_open(impl,url,0,0,NULL,&map)))
 	goto done;
 
-    if((stat = readkey(map,META2,NCZVAR)))
+    if((stat = readkey(map,META2,NCZARRAY)))
         goto done;
 
 done:
@@ -228,7 +228,7 @@ writedata(void)
     int i;
     size64_t totallen;
     char* data1p = (char*)&data1[0]; /* byte level version of data1 */
-    NCZM_PROPERTIES props;
+    NCZM_FEATURES features;
 
     /* Create the data */
     for(i=0;i<DATA1LEN;i++) data1[i] = i;
@@ -241,8 +241,8 @@ writedata(void)
     if((stat=nczm_concat(DATA1,"0",&path)))
 	goto done;
 
-    props = nczmap_properties(impl);
-    if((NCZM_ZEROSTART & props) || (NCZM_WRITEONCE & props)) {
+    features = nczmap_features(impl);
+    if((NCZM_ZEROSTART & features) || (NCZM_WRITEONCE & features)) {
 	if((stat = nczmap_write(map, path, 0, totallen, data1p)))
 	    goto done;
     } else {

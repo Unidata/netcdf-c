@@ -52,7 +52,7 @@ ncz_create_dataset(NC_FILE_INFO_T* file, NC_GRP_INFO_T* root, const char** contr
     zinfo->created = 1;
     zinfo->common.file = file;
     zinfo->native_endianness = (NCZ_isLittleEndian() ? NC_ENDIAN_LITTLE : NC_ENDIAN_BIG);
-    if((zinfo->controls=NCZ_clonestringvec(0,controls)) == NULL)
+    if((zinfo->envv_controls=NCZ_clonestringvec(0,controls)) == NULL)
 	{stat = NC_ENOMEM; goto done;}
 
     /* fill in some of the zinfo and zroot fields */
@@ -73,7 +73,7 @@ ncz_create_dataset(NC_FILE_INFO_T* file, NC_GRP_INFO_T* root, const char** contr
     }
 
     /* initialize map handle*/
-    if((stat = nczmap_create(zinfo->features.mapimpl,nc->path,nc->mode,zinfo->features.flags,NULL,&zinfo->map)))
+    if((stat = nczmap_create(zinfo->controls.mapimpl,nc->path,nc->mode,zinfo->controls.flags,NULL,&zinfo->map)))
 	goto done;
 
 done:
@@ -122,7 +122,7 @@ ncz_open_dataset(NC_FILE_INFO_T* file, const char** controls)
     zinfo->created = 0;
     zinfo->common.file = file;
     zinfo->native_endianness = (NCZ_isLittleEndian() ? NC_ENDIAN_LITTLE : NC_ENDIAN_BIG);
-    if((zinfo->controls = NCZ_clonestringvec(0,controls))==NULL) /*0=>envv style*/
+    if((zinfo->envv_controls = NCZ_clonestringvec(0,controls))==NULL) /*0=>envv style*/
 	{stat = NC_ENOMEM; goto done;}
 
     /* Add struct to hold NCZ-specific group info. */
@@ -134,10 +134,10 @@ ncz_open_dataset(NC_FILE_INFO_T* file, const char** controls)
     if((stat = applycontrols(zinfo))) goto done;
 
     /* initialize map handle*/
-    if((stat = nczmap_open(zinfo->features.mapimpl,nc->path,mode,zinfo->features.flags,NULL,&zinfo->map)))
+    if((stat = nczmap_open(zinfo->controls.mapimpl,nc->path,mode,zinfo->controls.flags,NULL,&zinfo->map)))
 	goto done;
 
-    if(!(zinfo->features.flags & FLAG_PUREZARR)
+    if(!(zinfo->controls.flags & FLAG_PUREZARR)
         && (stat = NCZ_downloadjson(zinfo->map, NCZMETAROOT, &json)) == NC_NOERR) {
         /* Extract the information from it */
         for(i=0;i<nclistlength(json->contents);i+=2) {
@@ -153,7 +153,7 @@ ncz_open_dataset(NC_FILE_INFO_T* file, const char** controls)
 		    &zinfo->zarr.nczarr_version.release);
 	    }
 	}
-    } else { /* zinfo->features.purezarr || no object */
+    } else { /* zinfo->controls.purezarr || no object */
 	zinfo->zarr.zarr_version = ZARRVERSION;
 	sscanf(NCZARRVERSION,"%lu.%lu.%lu",
 		    &zinfo->zarr.nczarr_version.major,
@@ -335,9 +335,9 @@ ncz_unload_jatts(NCZ_FILE_INFO_T* zinfo, NC_OBJ* container, NCjson* jattrs, NCjs
     if((stat=NCZ_uploadjson(map,tkey,jattrs)))
 	goto done;
 
-    if(!(zinfo->features.flags & FLAG_PUREZARR)) {
+    if(!(zinfo->controls.flags & FLAG_PUREZARR)) {
         /* Construct the path to the .nczattr object */
-        if((stat = nczm_concat(fullpath,NCZATTR,&tkey)))
+        if((stat = nczm_concat(fullpath,NCZATTRS,&tkey)))
    	    goto done;
         /* Upload the .nczattr object */
         if((stat=NCZ_uploadjson(map,tkey,jtypes)))
@@ -356,10 +356,10 @@ done:
 }
 
 static const char*
-controllookup(const char** controls, const char* key)
+controllookup(const char** envv_controls, const char* key)
 {
     const char** p;
-    for(p=controls;*p;p++) {
+    for(p=envv_controls;*p;p+=2) {
 	if(strcasecmp(key,*p)==0) {
 	    return p[1];
 	}
@@ -375,26 +375,27 @@ applycontrols(NCZ_FILE_INFO_T* zinfo)
     const char* value = NULL;
     NClist* modelist = nclistnew();
 
-    if((value = controllookup((const char**)zinfo->controls,"mode")) != NULL) {
+    if((value = controllookup((const char**)zinfo->envv_controls,"mode")) != NULL) {
 	if((stat = NCZ_comma_parse(value,modelist))) goto done;
     }
     /* Process the modelist first */
-    zinfo->features.mapimpl = NCZM_DEFAULT;
+    zinfo->controls.mapimpl = NCZM_DEFAULT;
     for(i=0;i<nclistlength(modelist);i++) {
         const char* p = nclistget(modelist,i);
-	if(strcasecmp(p,PUREZARR)==0) zinfo->features.flags |= FLAG_PUREZARR;
-	else if(strcasecmp(p,"zip")==0) zinfo->features.mapimpl = NCZM_ZIP;
-	else if(strcasecmp(p,"file")==0) zinfo->features.mapimpl = NCZM_FILE;
-	else if(strcasecmp(p,"s3")==0) zinfo->features.mapimpl = NCZM_S3;
+	if(strcasecmp(p,PUREZARRCONTROL)==0) zinfo->controls.flags |= FLAG_PUREZARR;
+	else if(strcasecmp(p,XARRAYCONTROL)==0) zinfo->controls.flags |= (FLAG_XARRAYDIMS|FLAG_PUREZARR); /*xarray=>zarr*/
+	else if(strcasecmp(p,"zip")==0) zinfo->controls.mapimpl = NCZM_ZIP;
+	else if(strcasecmp(p,"file")==0) zinfo->controls.mapimpl = NCZM_FILE;
+	else if(strcasecmp(p,"s3")==0) zinfo->controls.mapimpl = NCZM_S3;
     }
     /* Process other controls */
-    if((value = controllookup((const char**)zinfo->controls,"log")) != NULL) {
-	zinfo->features.flags |= FLAG_LOGGING;
+    if((value = controllookup((const char**)zinfo->envv_controls,"log")) != NULL) {
+	zinfo->controls.flags |= FLAG_LOGGING;
         ncsetlogging(1);
     }
-    if((value = controllookup((const char**)zinfo->controls,"show")) != NULL) {
+    if((value = controllookup((const char**)zinfo->envv_controls,"show")) != NULL) {
 	if(strcasecmp(value,"fetch")==0)
-	    zinfo->features.flags |= FLAG_SHOWFETCH;
+	    zinfo->controls.flags |= FLAG_SHOWFETCH;
     }
 done:
     nclistfreeall(modelist);
