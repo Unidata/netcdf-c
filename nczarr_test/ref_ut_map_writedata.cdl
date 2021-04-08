@@ -4,7 +4,7 @@
 "foo": 42,
 "bar": "apples",
 "baz": [1, 2, 3, 4]}|
-[6] /meta2/.nczvar : (64) |{
+[6] /meta2/.nczarray : (64) |{
 "foo": 42,
 "bar": "apples",
 "baz": [1, 2, 3, 4],

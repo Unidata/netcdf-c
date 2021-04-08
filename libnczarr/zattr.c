@@ -13,6 +13,7 @@
 
 #undef ADEBUG
 
+
 /**
  * @internal Get the attribute list for either a varid or NC_GLOBAL
  *
@@ -443,8 +444,8 @@ ncz_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
         if (nc->ext_ncid == ncid && varid == NC_GLOBAL && grp->parent == NULL
             && (ra->flags & READONLYFLAG))
             return NC_ENAMEINUSE;
-        /* case 2: grp=NA, varid!=NC_GLOBAL, flags & DIMSCALEFLAG */
-        if (varid != NC_GLOBAL && (ra->flags & DIMSCALEFLAG))
+        /* case 2: grp=NA, varid!=NC_GLOBAL, flags & HIDDENATTRFLAG */
+        if (varid != NC_GLOBAL && (ra->flags & HIDDENATTRFLAG))
             return NC_ENAMEINUSE;
     }
 
