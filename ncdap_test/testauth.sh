@@ -3,33 +3,25 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
-RCEMBED=1
-#RCLOCAL=1
-#RCHOME=1
-#RCENV=1
-#RCPREC=1
-
-# Not currently testable in netcdf
-#RCSPEC=1
-
 #SHOW=1
 #DBG=1
 
-# Choose at most 1
-#GDB=1
-#VG=1
-
-NFL=1
+if test -d "/home/dmh" ; then
+    RCHOME=1
+fi
 
 WD=`pwd`
 
-NETRCFILE=$WD/test_auth_netrc
-# This is the control variable; set when needed
-unset NETRC
-
-COOKIES="${WD}/test_auth_cookies"
+COOKIES="${WD}/.cookies_test"
 
 RC=.daprc
+NETRC=.netrc_test
+
+NETRCFILE=$WD/$NETRC
+DAPRCFILE=$WD/$RC
+
+HOMENETRCFILE=$HOME/$NETRC
+HOMEDAPRCFILE=$HOME/$RC
 
 if test "x$DBG" = x1 ; then
 SHOW=1
@@ -39,7 +31,6 @@ fi
 
 AUTHSERVER="thredds.ucar.edu"
 BASICCOMBO="authtester:auth"
-BADCOMBO="authtester:xxxxx"
 URLPATH="thredds/dodsC/test3/testData.nc"
 PROTO=https
 URLSERVER=${AUTHSERVER}
@@ -57,216 +48,124 @@ if test "x$TEMP" = x ; then
 fi
 TEMP=`echo "$TEMP" | sed -e "s|/$||"`
 
-LOCALRC=./$RC
+LOCALRC=${WD}/$RC
+LOCALNETRC=${WD}/$NETRC
 HOMERC=${HOME}/$RC
 HOMERC=`echo "$HOMERC" | sed -e "s|//|/|g"`
-SPECRC="$TEMP/temprc"
-ENVRC="$WD/envrc"
-
-show() {
-echo "=================================================="
-}
+HOMENETRC=${HOME}/$NETRC
+HOMENETRC=`echo "$HOMENETRC" | sed -e "s|//|/|g"`
 
 createrc() {
-  RCP="$1" ; shift
-  unset NOPWD
-  unset BADPWD
-  while [[ $# > 0 ]] ; do
-    case "$1" in
-    nopwd) NOPWD=1 ;;
-    badpwd) BADPWD=1 ;;
-    *) ;;
-    esac
-    shift
-  done
-  if test "x$RCP" != x ; then
-    rm -f $RCP
-    echo "Creating rc file $RCP"
-  else
+    local RCP
+    local NETRC
+  RCP="$1"
+  if test "x$RCP" = x ; then
     echo "createrc: no rc specified"
     exit 1
   fi
-  if test "x${DBG}" != x ; then
+  shift
+  NETRC="$1"
+  echo "Creating rc file $RCP"
+  if test "x${DBG}" = x1 ; then
     echo "HTTP.VERBOSE=1" >>$RCP
   fi	
-  echo "HTTP.COOKIEJAR=${COOKIES}" >>$RCP
-  if test "x${URS}" = x ; then
-    if test "x${NOPWD}" = x ; then
-      if test "x${BADPWD}" = x ; then
-        echo "HTTP.CREDENTIALS.USERPASSWORD=${BASICCOMBO}" >>$RCP
-      else
-        echo "HTTP.CREDENTIALS.USERPASSWORD=${BADCOMBO}" >>$RCP
-      fi
-    fi
-  fi
-  if test "x${NETRC}" != x && test "x$NFL" = x ; then
+  if test "x$NETRC" = x ; then
+    echo "HTTP.CREDENTIALS.USERPASSWORD=${BASICCOMBO}" >>$RCP
+  elif test "x$NETRC" != ximplicit ; then
     echo "HTTP.NETRC=${NETRC}" >>$RCP
   fi
+  echo "HTTP.COOKIEJAR=${COOKIES}" >>$RCP
 }
 
 createnetrc() {
-  NCP="$1" ; shift
-  unset NOPWD
-  unset BADPWD
-  while [[ $# > 0 ]] ; do
-    case "$1" in
-    nopwd) NOPWD=1 ;;
-    badpwd) BADPWD=1 ;;
-    *) ;;
-    esac
-    shift
-  done
-  if test "x$NCP" != x ; then
-    rm -f $NCP
-    echo "Creating netrc file $NCP"
-  else
-    echo "createnetrc: no rc specified"
-    exit 1
-  fi
-  if test "x$URS" != x ; then
-    echo "machine uat.urs.earthdata.nasa.gov login $BASICUSER password $BASICPWD" >>$NCP
-    #echo "machine 54.86.135.31 login $BASICUSER password $BASICPWD" >>$1
-  else
-    echo -n "${PROTO}://$URLSERVER/$URLPATH" >>$NCP
-    if test "x$NOPWD" = x ; then
-      if test "x$BADPWD" = x ; then
-        echo -n " login $BASICUSER password $BASICPWD" >>$NCP
-      else
-        echo -n " login $BASICUSER password xxxxxx" >>$NCP
-      fi
-    fi
-    echo "" >>$NCP
-  fi
+    local NETRC
+  NETRC="$1"; # netrc file path
+  if test "x$NETRC" = x ; then return; fi
+  echo "Creating netrc file $NETRC"
+  echo -n "${PROTO}://$URLSERVER/$URLPATH" >>$NETRC
+  echo  -n "  login $BASICUSER password $BASICPWD" >>$NETRC
+  echo "" >>$NETRC
+  chmod go-rwx $NETRC
+}
+
+# Test cases
+
+# Case: !daprc !netrc embedded usr:pwd
+rcembed() {
+  echo "***Testing with embedded user:pwd"
+  reset
+  URL="${PROTO}://${BASICCOMBO}@${URLSERVER}/$URLPATH"
+  # Invoke ncdump to extract a file the URL
+  ${NCDUMP} -h "$URL" > testauthoutput
+}
+
+# Case: local daprc no netrc no embed
+rclocal() {
+  echo "***Testing rc file in local directory"
+  reset
+  # Create the rc file and (optional) netrc fil in ./
+  createrc $LOCALRC $LOCALNETRC
+
+  # Invoke ncdump to extract a file using the URL
+  ${NCDUMP} -h "$URL" > testauthoutput
+}
+
+# Case: local daprc local netrc no embed
+rclocalnetrc() {
+  echo "***Testing rc file in local directory"
+  reset
+  # Create the rc file and (optional) netrc fil in ./
+  createnetrc $LOCALNETRC
+  createrc $LOCALRC $LOCALNETRC
+
+  # Invoke ncdump to extract a file using the URL
+  ${NCDUMP} -h "$URL" > testauthoutput
+}
+
+rchome() {
+  echo "***Testing rc file and netrc in home directory"
+  reset
+  # Create the rc file and (optional) netrc file in ./
+  createnetrc $HOMENETRC
+  createrc $HOMERC $HOMENETRC
+
+  # Invoke ncdump to extract a file the URL
+  ${NCDUMP} -h "$URL" > testauthoutput
+}
+
+rchome2() {
+  echo "***Testing local rc file and .netrc implicit in home directory"
+  reset
+  # Create the rc file and (optional) netrc file in ./
+  createnetrc $HOME/.netrc
+  createrc $HOMERC implicit
+
+  # Invoke ncdump to extract a file the URL
+  ${NCDUMP} -h "$URL" > testauthoutput
 }
 
 reset() {
-  for f in ./$RC $HOME/$RC $SPECRC $ENVRC $COOKIES $NETRC ; do
-echo    rm -f ${f}
-  done      
-  unset DAPRCFILE
+if test "x$RCHOME" = x1 ; then rm -f $HOMENETRCFILE $HOMEDAPRCFILE; fi
+rm -f $NETRCFILE $DAPRCFILE $LOCALRC $LOCALNETRC
+unset DAPRCFILE
+rm -f testauthoutput
 }
 
-restore() {
-  reset
-  for f in ./$RC $HOME/$RC $SPECRC $ENVRC $COOKIES $NETRC ; do
-    if test -f ${f}.save ; then
-      echo "restoring old ${f}"
-      cp ${f}.save ${f}
-    fi      
-  done      
-}
+rcembed
 
-save() {
-  for f in ./$RC $HOME/$RC $SPECRC $ENVRC $COOKIES $NETRC ; do
-    if test -f $f ; then
-      if test -f ${f}.save ; then
-        ignore=1
-      else
-        echo "saving $f"
-        cp ${f} ${f}.save
-      fi
-    fi      
-  done      
-}
-
-# Assemble the ncdump command
-if test "x$DBG" = x1; then
-NCDUMP="$NCDUMP -D1"
-fi
-
-if test "x$GDB" = x1 ; then
-  NCDUMP="gdb --args $NCDUMP"
-fi
-if test "x$VG" = x1 ; then
-NCDUMP="valgrind --leak-check=full $NCDUMP"
-fi
-
-# Initialize
-save
-reset
-
-if test "x$RCEMBED" = x1 ; then
-  echo "***Testing rc file with embedded user:pwd"
-  URL="${PROTO}://${BASICCOMBO}@${URLSERVER}/$URLPATH"
-  unset NETRC
-  # Invoke ncdump to extract a file the URL
-  ${NCDUMP} -h "$URL"
-  show
-fi
-
-# Rest of tests assume these defaults
+# Next set tests assume these defaults
 URL="${PROTO}://${URLSERVER}/$URLPATH"
-NETRC=$NETRCFILE
 
-if test "x$RCLOCAL" = x1 ; then
-  echo "***Testing rc file in local directory"
-  # Create the rc file and (optional) netrc fil in ./
-  reset
-  createnetrc $NETRC
-  createrc $LOCALRC
+rclocal
+rclocalnetrc
 
-  # Invoke ncdump to extract a file using the URL
-  ${NCDUMP} -h "$URL"
-  show
-fi
-
+# Do not do this unless you know what you are doing
 if test "x$RCHOME" = x1 ; then
-  echo "***Testing rc file in home directory"
-  # Create the rc file and (optional) netrc file in ./
-  reset
-  createnetrc $NETRC
-  createrc $HOMERC
-
-  # Invoke ncdump to extract a file the URL
-  ${NCDUMP} -h "$URL"
-  show
-fi
-
-if test "x$RCSPEC" == x1 ; then
-  echo "*** Testing rc file in specified directory"
-  # Create the rc file and (optional) netrc file
-  reset
-  createnetrc $NETRC
-  createrc $SPECRC
-
-  # Invoke ncdump to extract a file the URL
-  ${NCDUMP} -h "$URL"
-  show
-fi
-
-if test "x$RCENV" = x1 ; then
-  echo "*** Testing rc file using env variable"
-  # Create the rc file and (optional) netrc file
-  reset
-  createnetrc $NETRC
-  echo "ENV: export DAPRCFILE=$ENVRC"
-  export DAPRCFILE=$ENVRC
-  createrc $DAPRCFILE
-
-  # Invoke ncdump to extract a file the URL
-  ${NCDUMP} -h "$URL"
-  show
-  export DAPRCFILE=
-fi
-
-# Test that .daprc overrides netcrc for password
-URL="${PROTO}://${URLSERVER}/$URLPATH"
-NETRC=$NETRCFILE
-if test "x$RCPREC" = x1 ; then
-  echo "***Testing rc vs netrc file precedence"
-  # Create the rc file and (optional) netrc file in ./
-  reset
-  createnetrc $NETRC badpwd
-  createrc $LOCALRC
-
-  # Invoke ncdump to extract a file using the URL
-  ${NCDUMP} -h "$URL"
-  ${NCDUMP} -h "$URL"
-  show
+    rchome
+    rchome2
 fi
 
 reset
-restore
 
 exit
 
