@@ -48,7 +48,7 @@ ncz_close_file(NC_FILE_INFO_T* file, int abort)
 
     if((stat = nczmap_close(zinfo->map,(abort && zinfo->created)?1:0)))
 	goto done;
-    NCZ_freestringvec(0,zinfo->controls);
+    NCZ_freestringvec(0,zinfo->envv_controls);
     NC_authfree(zinfo->auth);
     nullfree(zinfo);
 
@@ -171,6 +171,8 @@ zclose_vars(NC_GRP_INFO_T* grp)
 	/* Reclaim the type */
 	(void)zclose_type(var->type_info);
         NCZ_free_chunk_cache(zvar->cache);
+	/* reclaim xarray */
+	nclistfreeall(zvar->xarray);
 	nullfree(zvar);
 	var->format_var_info = NULL; /* avoid memory errors */
     }
