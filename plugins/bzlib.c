@@ -8,8 +8,8 @@
    This file is part of bzip2/libbzip2, a program and library for
    lossless, block-sorting data compression.
 
-   bzip2/libbzip2 version 1.0.6 of 6 September 2010
-   Copyright (C) 1996-2010 Julian Seward <jseward@bzip.org>
+   bzip2/libbzip2 version 1.0.8 of 13 July 2019
+   Copyright (C) 1996-2019 Julian Seward <jseward@acm.org>
 
    Please read the WARNING, DISCLAIMER and PATENTS sections in the 
    README file.
@@ -30,6 +30,7 @@
 
 #include "bzlib_private.h"
 
+
 /*---------------------------------------------------*/
 /*--- Compression stuff                           ---*/
 /*---------------------------------------------------*/
@@ -42,12 +43,12 @@ void BZ2_bz__AssertH__fail ( int errcode )
    fprintf(stderr, 
       "\n\nbzip2/libbzip2: internal error number %d.\n"
       "This is a bug in bzip2/libbzip2, %s.\n"
-      "Please report it to me at: jseward@bzip.org.  If this happened\n"
+      "Please report it to: bzip2-devel@sourceware.org.  If this happened\n"
       "when you were using some program which uses libbzip2 as a\n"
       "component, you should also report this bug to the author(s)\n"
       "of that program.  Please make an effort to report this bug;\n"
       "timely and accurate bug reports eventually lead to higher\n"
-      "quality software.  Thanks.  Julian Seward, 10 December 2007.\n\n",
+      "quality software.  Thanks.\n\n",
       errcode,
       BZ2_bzlibVersion()
    );
@@ -1380,8 +1381,8 @@ const char * BZ_API(BZ2_bzlibVersion)(void)
 #endif
 static
 BZFILE * bzopen_or_bzdopen
-               ( const char *path,   /* not used when bzdopen */
-                 int fd,             /* not used when bzdopen */
+               ( const char *path,   /* no use when bzdopen */
+                 int fd,             /* no use when bzdopen */
                  const char *mode,
                  int open_mode)      /* bzopen: 0, bzdopen:1 */
 {
@@ -1424,14 +1425,10 @@ BZFILE * bzopen_or_bzdopen
         fp = fopen(path,mode2);
       }
    } else {
-#if 0
 #ifdef BZ_STRICT_ANSI
       fp = NULL;
 #else
       fp = fdopen(fd,mode2);
-#endif
-#else
-     fp = NULL;
 #endif
    }
    if (fp == NULL) return NULL;
@@ -1469,14 +1466,13 @@ BZFILE * BZ_API(BZ2_bzopen)
 
 
 /*---------------------------------------------------*/
-#if 0
 BZFILE * BZ_API(BZ2_bzdopen)
                ( int fd,
                  const char *mode )
 {
    return bzopen_or_bzdopen(NULL,fd,mode,/*bzdopen*/1);
 }
-#endif
+
 
 /*---------------------------------------------------*/
 int BZ_API(BZ2_bzread) (BZFILE* b, void* buf, int len )

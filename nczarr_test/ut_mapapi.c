@@ -277,7 +277,7 @@ simpledata(void)
     int i;
     size64_t totallen, size;
     char* data1p = (char*)&data1[0]; /* byte level version of data1 */
-    NCZM_PROPERTIES props;
+    NCZM_FEATURES features;
 
     title(__func__);
 
@@ -291,8 +291,8 @@ simpledata(void)
 	
     truekey = makekey(DATA1);
 
-    props = nczmap_properties(impl);
-    if((NCZM_ZEROSTART & props) || (NCZM_WRITEONCE & props)) {
+    features = nczmap_features(impl);
+    if((NCZM_ZEROSTART & features) || (NCZM_WRITEONCE & features)) {
 	if((stat = nczmap_write(map, truekey, 0, totallen, data1p)))
 	    goto done;
     } else {

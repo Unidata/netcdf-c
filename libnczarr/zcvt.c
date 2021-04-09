@@ -241,7 +241,7 @@ NCZ_stringconvert1(nc_type srctype, char* src, char** strp)
     nc_type dsttype = NC_NAT;
     char s[1024];
 
-    assert(srctype >= NC_NAT && srctype != NC_CHAR && srctype < NC_STRING);
+    assert(srctype >= NC_NAT && srctype != NC_CHAR && srctype < NC_STRING);    
     /* Convert to a restricted set of values */
     switch (srctype) {
     case NC_BYTE: {
