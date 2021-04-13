@@ -82,6 +82,7 @@ extern struct Datalist* getfiller(Symbol*); /* symbol isa variable|type */
 
 /* from: ncgen.y */
 extern Symbol* install(const char *sname);
+extern Symbol* installin(const char *sname,Symbol* grp);
 extern void freesymbol(Symbol*);
 extern Symbol* basetypefor(nc_type nctype);/* Convert nctype to a Symbol*/
 extern Symbol* makearraytype(Symbol*, Dimset*);

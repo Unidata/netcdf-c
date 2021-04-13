@@ -162,8 +162,9 @@ ref_provenance_v1.nc ref_tst_radix.cdl tst_radix.cdl test_radix.sh	\
 ref_nccopy_w.cdl tst_nccopy_w3.sh tst_nccopy_w4.sh			\
 ref_no_ncproperty.nc test_unicode_directory.sh				\
 ref_roman_szip_simple.cdl ref_roman_szip_unlim.cdl ref_tst_perdimspecs.cdl \
-test_keywords.sh ref_keyword1.cdl ref_keyword2.cdl ref_tst_nofilters.cdl \
-test_unicode_path.sh
+test_keywords.sh ref_keyword1.cdl ref_keyword2.cdl                      \
+ref_keyword3.cdl ref_keyword4.cdl                                       \
+ref_tst_nofilters.cdl test_unicode_path.sh
 
 # The L512.bin file is file containing exactly 512 bytes each of value 0.
 # It is used for creating hdf5 files with varying offsets for testing.
@@ -199,5 +200,7 @@ tst_ncf199.cdl tst_tst_gattenum.cdl tst_tst_usuffix.cdl ctest.c		\
 ctest64.c nccopy3_subset_out.nc camrun.c tst_ncf213.cdl tst_ncf213.nc	\
 tst_radix.nc tmp_radix.cdl ctest_small_3.c ctest_small_4.c		\
 ctest_special_atts_4.c tst_roman_szip_simple.cdl			\
-tst_roman_szip_unlim.cdl tst_perdimpspecs.nc tmppds.* \
-keyword1.nc keyword2.nc tmp_keyword1.cdl tmp_keyword2.cdl
+tst_roman_szip_unlim.cdl tst_perdimpspecs.nc tmppds.*                   \
+keyword1.nc keyword2.nc keyword3.nc keyword4.nc                         \
+tmp_keyword1.cdl tmp_keyword2.cdl tmp_keyword3.cdl tmp_keyword4.cdl
+
