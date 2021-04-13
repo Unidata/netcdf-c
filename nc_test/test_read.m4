@@ -1031,14 +1031,14 @@ TestFunc(inq_vartype)(VarArgs)
 int
 TestFunc(get_var1)(VarArgs)
 {
-    int ncid;
-    int i;
-    int err;
-    double expect;
+    int ncid = 0;
+    int i = 0;
+    int err = 0;
+    double expect = 0;
     int nok = 0;                /* count of valid comparisons */
-    double buf[1];              /* (void *) buffer */
-    double value[1];
-    IntType j, index[MAX_RANK];
+    double buf[1] = {0};              /* (void *) buffer */
+    double value[1] = {0};
+    IntType j = 0, index[MAX_RANK] = {0};
     ifdef(`PNETCDF', `MPI_Datatype datatype;')
 
     err = FileOpen(testfile, NC_NOWRITE, &ncid);
@@ -1124,16 +1124,16 @@ ifdef(`PNETCDF',`dnl
 int
 TestFunc(get_vara)(VarArgs)
 {
-    int ncid, d, i, k, err, nslabs;
+    int ncid = 0, d = 0, i = 0, k = 0, err = 0, nslabs = 0;
     int nok = 0;      /* count of valid comparisons */
-    IntType j, nels;
-    IntType start[MAX_RANK];
-    IntType edge[MAX_RANK];
-    IntType index[MAX_RANK];
-    IntType mid[MAX_RANK];
+    IntType j = 0, nels = 0;
+    IntType start[MAX_RANK]= {0};
+    IntType edge[MAX_RANK] = {0};
+    IntType index[MAX_RANK] = {0};
+    IntType mid[MAX_RANK] = {0};
     ifdef(`PNETCDF', `MPI_Datatype datatype;')
-    double buf[MAX_NELS];        /* (void *) buffer */
-    double expect;
+    double buf[MAX_NELS] = {0};        /* (void *) buffer */
+    double expect = 0;
 
     err = FileOpen(testfile, NC_NOWRITE, &ncid);
     IF (err != NC_NOERR)
