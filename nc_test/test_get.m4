@@ -98,11 +98,11 @@ define(`TEST_NC_GET_VAR1',dnl
 int
 TestFunc(var1)_$1(VarArgs)
 {
-    int i, err, ncid, cdf_format;
+    int i=0, err=0, ncid=0, cdf_format=0;
     int nok = 0;        /* count of valid comparisons */
-    int canConvert;     /* Both text or both numeric */
-    IntType j, index[MAX_RANK];
-    double expect;
+    int canConvert=0;     /* Both text or both numeric */
+    IntType j=0, index[MAX_RANK];
+    double expect=0;
     $1 value[1];
 
     err = FileOpen(testfile, NC_NOWRITE);
@@ -1348,4 +1348,3 @@ TEST_NC_GET_ATT(ushort)
 TEST_NC_GET_ATT(uint)
 TEST_NC_GET_ATT(longlong)
 TEST_NC_GET_ATT(ulonglong)
-
