@@ -26,6 +26,8 @@ static char SccsId[] = "$Id: ncgen.y,v 1.42 2010/05/18 21:32:46 dmh Exp $";
 #define ncvar_t void
 #include "nctime.h"
 
+#undef GENLIB1
+
 /* parser controls */
 #define YY_NO_INPUT 1
 
@@ -967,13 +969,18 @@ makeprimitivetype(nc_type nctype)
 Symbol*
 install(const char *sname)
 {
+    return installin(sname,currentgroup());
+}
+
+Symbol*
+installin(const char *sname, Symbol* grp)
+{
     Symbol* sp;
     sp = (Symbol*) ecalloc (sizeof (struct Symbol));
     sp->name = nulldup(sname);
     sp->lineno = lineno;
-    sp->location = currentgroup();
-    sp->container = currentgroup();
-    sp->var.special._Storage = NC_CONTIGUOUS;
+    sp->location = grp;
+    sp->container = grp;
     listpush(symlist,sp);
     return sp;
 }
@@ -1245,8 +1252,6 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
               globalspecials._Format = kvalue->k_flag;
 	      /*Main.*/format_attribute = 1;
               found = 1;
-	      if(kvalue->deprecated)
-		 fprintf(stderr,"_Format=%s is deprecated; use corresponding _Format=<name>\n",sdata);
               break;
             }
           }
@@ -1569,7 +1574,7 @@ done:
 
 #ifdef GENDEBUG1
 static void
-printfilters(int nfilters, NC_Filterspec** filters)
+printfilters(int nfilters, NC_FilterSpec** filters)
 {
     int i;
     fprintf(stderr,"xxx: nfilters=%lu: ",(unsigned long)nfilters);
@@ -1577,13 +1582,13 @@ printfilters(int nfilters, NC_Filterspec** filters)
 	int k;
 	NC_Filterspec* sp = filters[i];
         fprintf(stderr,"{");
-        fprintf(stderr,"filterid=%s format=%s nparams=%lu params=%p",
+        fprintf(stderr,"filterid=%llu format=%d nparams=%lu params=%p",
 		sp->filterid,sp->format,(unsigned long)sp->nparams,sp->params);
 	if(sp->nparams > 0 && sp->params != NULL) {
             fprintf(stderr," params={");
             for(k=0;k<sp->nparams;k++) {
 	        if(i==0) fprintf(stderr,",");
-	        fprintf(stderr,"%s",sp->params[i]);
+	        fprintf(stderr,"%u",sp->params[i]);
 	    }
             fprintf(stderr,"}");
 	} else
