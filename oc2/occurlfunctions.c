@@ -66,8 +66,10 @@ ocset_curlflag(OCstate* state, int flag)
 
     case CURLOPT_NETRC: case CURLOPT_NETRC_FILE:
 	if(state->auth->curlflags.netrc) {
-	    SETCURLOPT(state, CURLOPT_NETRC, (OPTARG)CURL_NETRC_REQUIRED);
-	    SETCURLOPT(state, CURLOPT_NETRC_FILE, state->auth->curlflags.netrc);
+	    SETCURLOPT(state, CURLOPT_NETRC, (OPTARG)CURL_NETRC_OPTIONAL);
+	    /* IF HTTP.NETRC is set with "", then assume the default .netrc file (which is apparently CWD) */
+	    if(strlen(state->auth->curlflags.netrc)>0)
+	        SETCURLOPT(state, CURLOPT_NETRC_FILE, state->auth->curlflags.netrc);
         }
 	break;
 
