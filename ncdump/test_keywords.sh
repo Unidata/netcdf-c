@@ -20,4 +20,25 @@ ${NCDUMP} -h keyword2.nc > tmp_keyword2.cdl
 echo "*** comparing tmp_keyword2.cdl to ref_keyword2.cdl..."
 diff -b -w tmp_keyword2.cdl $srcdir/ref_keyword2.cdl
 
+echo "*** Test use of type aliases such as 'long' or 'real'..."
+echo "*** classic: creating keyword3.nc from ref_keyword3.cdl..."
+${NCGEN} -3 -lb -o keyword3.nc $srcdir/ref_keyword3.cdl
+echo "*** creating tmp_keyword3.cdl from keyword3.nc..."
+# We need to convert float back to real and int back to long
+${NCDUMP} -h keyword3.nc | sed -e 's/float/real/g' -e 's/int/long/g' >tmp_keyword3.cdl
+echo "*** comparing tmp_keyword3.cdl to ref_keyword3.cdl..."
+diff -b -w tmp_keyword3.cdl $srcdir/ref_keyword3.cdl
+
+echo "*** Test use of keywords both pass and fail"
+# This should succeed
+${NCGEN} -3 -lb -o keyword4.nc $srcdir/ref_keyword4.cdl
+echo "***pass: ncgen -3 X ref_keyword4"
+# This should (x)fail
+if ${NCGEN} -4 -lb -o keyword4.nc $srcdir/ref_keyword4.cdl ; then
+echo "***erroneous pass: ncgen -4 X ref_keyword4"
+exit 1
+else
+echo "***xfail: ncgen -4 X ref_keyword4"
+fi
+
 exit 0
