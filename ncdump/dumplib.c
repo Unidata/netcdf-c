@@ -696,8 +696,11 @@ ncbyte_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp) {
 int
 ncchar_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp) {
     char sout[PRIM_LEN];
+    char cstr[2];
     int res;
-    res = snprintf(sout, PRIM_LEN, typ->fmt, *(char *)valp);
+cstr[0] = *(char*)valp;
+cstr[1] = '\0';
+    res = snprintf(sout, PRIM_LEN, typ->fmt, cstr);
     assert(res < PRIM_LEN);
     sbuf_cpy(sfbf, sout);
     return sbuf_len(sfbf);
