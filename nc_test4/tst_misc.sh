@@ -17,7 +17,7 @@ ECODE=1
 fi
 
 echo "*** Testing char(*) type printout error in ncdump"
-rm -f tst_charvlenbug.nc ./tmp
+rm -f ./tst_charvlenbug.nc ./tmp
 ${execdir}/tst_charvlenbug
 if $NCDUMP ./tst_charvlenbug.nc 2>1 >./tmp ; then
     echo "*** Pass: char(*) ncdump printout"
