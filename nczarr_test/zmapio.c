@@ -177,7 +177,7 @@ main(int argc, char** argv)
     }
 
     {
-        char* p = NC_backslashUnescape(argv[0]);
+        char* p = NC_shellUnescape(argv[0]);
         strcpy(dumpoptions.infile,filenamefor(p));
 	if(p) free(p);
     }

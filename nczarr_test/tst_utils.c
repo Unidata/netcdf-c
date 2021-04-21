@@ -129,7 +129,7 @@ getoptions(int* argcp, char*** argvp)
     *argvp += optind;
 
     if(*argcp > 0) {
-	char* p = NC_backslashUnescape((*argvp)[0]);
+	char* p = NC_shellUnescape((*argvp)[0]);
         strcpy(options->file,filenamefor(p));
 	nullfree(p);
     }
