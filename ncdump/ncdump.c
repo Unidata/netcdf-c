@@ -2335,7 +2335,7 @@ main(int argc, char *argv[])
 
     /* We need to look for escape characters because the argument
        may have come in via a shell script */
-    path = NC_backslashUnescape(argv[i]);
+    path = NC_shellUnescape(argv[i]);
     if(path == NULL) {
 	snprintf(errmsg,sizeof(errmsg),"out of memory un-escaping argument %s", argv[i]);
 	goto fail;
