@@ -1979,7 +1979,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
                 if ((ndims = H5Tget_array_ndims(member_hdf_typeid)) < 0)
                     return NC_EHDFERR;
 
-                if (H5Tget_array_dims(member_hdf_typeid, dims, NULL) != ndims)
+                if (H5Tget_array_dims(member_hdf_typeid, dims) != ndims)
                     return NC_EHDFERR;
 
                 for (d = 0; d < ndims; d++)

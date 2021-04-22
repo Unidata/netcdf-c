@@ -43,12 +43,12 @@ main()
 			      access_plist)) < 0) ERR;
       /* Add an opaque type. */
       if ((typeid = H5Tcreate(H5T_OPAQUE, OPAQUE_SIZE)) < 0) ERR;
-      if (H5Tcommit(fileid, OPAQUE_NAME, typeid) < 0) ERR;
+      if (H5Tcommit1(fileid, OPAQUE_NAME, typeid) < 0) ERR;
       
       /* Add attribute of this type. */
       dims[0] = 3;
       if ((spaceid = H5Screate_simple(1, dims, NULL)) < 0) ERR;
-      if ((attid = H5Acreate(fileid, ATT_NAME, typeid, spaceid, H5P_DEFAULT)) < 0) ERR;
+      if ((attid = H5Acreate1(fileid, ATT_NAME, typeid, spaceid, H5P_DEFAULT)) < 0) ERR;
       if (H5Awrite(attid, typeid, data) < 0) ERR;
 
       if (H5Aclose(attid) < 0) ERR;
