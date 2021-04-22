@@ -485,7 +485,7 @@ main(int argc, char** argv)
     }
 
     {
-        char* s = NC_backslashUnescape(argv[0]);
+        char* s = NC_shellUnescape(argv[0]);
 	strcpy(format.file_name,filenamefor(s));
 	nullfree(s);
     }
