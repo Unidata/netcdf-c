@@ -309,7 +309,7 @@ init(int argc, char** argv)
 int
 main(int argc, char **argv)
 {
-    H5Eprint(stderr);
+    H5Eprint1(stderr);
     init(argc,argv);
     if(test_multi() != NC_NOERR) ERRR;
     exit(nerrs > 0?1:0);

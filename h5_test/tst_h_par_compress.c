@@ -151,7 +151,7 @@ main(int argc, char **argv)
 	    if ((slice_spaceid = H5Screate_simple(NDIMS, dims, NULL)) < 0) ERR;
 
 	    /* Open the dataset. */
-	    if ((dsid = H5Dopen(fileid, VAR_NAME)) < 0) ERR;
+	    if ((dsid = H5Dopen1(fileid, VAR_NAME)) < 0) ERR;
 	    if ((whole_spaceid1 = H5Dget_space(dsid)) < 0) ERR;
 
 	    /* Read the data, a slice at a time. */

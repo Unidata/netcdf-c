@@ -90,15 +90,15 @@ main(int argc, char **argv)
       if ((pres_spaceid = H5Screate_simple(DIMS_2, dims, dims)) < 0) ERR;
 
       /* Create our dimension scales. */
-      if ((lat_dimscaleid = H5Dcreate(fileid, LAT_NAME, H5T_NATIVE_INT,
+      if ((lat_dimscaleid = H5Dcreate1(fileid, LAT_NAME, H5T_NATIVE_INT,
 				      lat_spaceid, H5P_DEFAULT)) < 0) ERR;
       if (H5DSset_scale(lat_dimscaleid, NULL) < 0) ERR;
-      if ((lon_dimscaleid = H5Dcreate(fileid, LON_NAME, H5T_NATIVE_INT,
+      if ((lon_dimscaleid = H5Dcreate1(fileid, LON_NAME, H5T_NATIVE_INT,
 				      lon_spaceid, H5P_DEFAULT)) < 0) ERR;
       if (H5DSset_scale(lon_dimscaleid, NULL) < 0) ERR;
 
       /* Create a variable which uses these two dimscales. */
-      if ((pres_datasetid = H5Dcreate(fileid, PRES_NAME, H5T_NATIVE_FLOAT,
+      if ((pres_datasetid = H5Dcreate1(fileid, PRES_NAME, H5T_NATIVE_FLOAT,
 				      pres_spaceid, H5P_DEFAULT)) < 0) ERR;
       if (H5DSattach_scale(pres_datasetid, lat_dimscaleid, 0) < 0) ERR;
       if (H5DSattach_scale(pres_datasetid, lon_dimscaleid, 1) < 0) ERR;
@@ -159,7 +159,7 @@ main(int argc, char **argv)
 
       /* Open the file. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
 
       /* Check it out. */
       if ((datasetid = H5Dopen1(grpid, PRES_NAME)) < 0) ERR;
@@ -209,7 +209,7 @@ main(int argc, char **argv)
       if ((pres_spaceid = H5Screate_simple(DIMS_2, dims, dims)) < 0) ERR;
 
       /* Create a variable. It will not have dimension scales. */
-      if ((pres_datasetid = H5Dcreate(fileid, PRES_NAME, H5T_NATIVE_FLOAT,
+      if ((pres_datasetid = H5Dcreate1(fileid, PRES_NAME, H5T_NATIVE_FLOAT,
 				      pres_spaceid, H5P_DEFAULT)) < 0) ERR;
 
       /* Ring down the curtain. */
@@ -245,7 +245,7 @@ main(int argc, char **argv)
       if ((pres_spaceid = H5Screate_simple(DIMS_2, dims, dims)) < 0) ERR;
 
       /* Create a variable. It will not have dimension scales. */
-      if ((pres_datasetid = H5Dcreate(fileid, PRES_NAME, H5T_NATIVE_FLOAT,
+      if ((pres_datasetid = H5Dcreate1(fileid, PRES_NAME, H5T_NATIVE_FLOAT,
 				      pres_spaceid, H5P_DEFAULT)) < 0) ERR;
 
       /* Ring down the curtain. */
@@ -281,9 +281,9 @@ main(int argc, char **argv)
       if ((spaceid = H5Screate_simple(DIMS_2, dims, dims)) < 0) ERR;
 
       /* Create two datasets. They will not have dimension scales. */
-      if ((pres_datasetid = H5Dcreate(fileid, PRES_NAME, H5T_NATIVE_FLOAT,
+      if ((pres_datasetid = H5Dcreate1(fileid, PRES_NAME, H5T_NATIVE_FLOAT,
 				      spaceid, H5P_DEFAULT)) < 0) ERR;
-      if ((temp_datasetid = H5Dcreate(fileid, TEMP_NAME, H5T_NATIVE_FLOAT,
+      if ((temp_datasetid = H5Dcreate1(fileid, TEMP_NAME, H5T_NATIVE_FLOAT,
 				      spaceid, H5P_DEFAULT)) < 0) ERR;
 
       /* Ring down the curtain. */
@@ -328,7 +328,7 @@ main(int argc, char **argv)
 
       /* Write an attribute of this (string) type. */
       if ((spaceid = H5Screate_simple(1, dims, NULL)) < 0) ERR;
-      if ((attid = H5Acreate(fileid, ATT_NAME2, typeid, spaceid,
+      if ((attid = H5Acreate1(fileid, ATT_NAME2, typeid, spaceid,
 			     H5P_DEFAULT)) < 0) ERR;
       if (H5Awrite(attid, typeid, data) < 0) ERR;
 
