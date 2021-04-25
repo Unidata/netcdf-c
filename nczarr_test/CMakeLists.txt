@@ -93,9 +93,12 @@ IF(ENABLE_TESTS)
     if(ENABLE_NCZARR_S3)
 	add_sh_test(nczarr_test run_s3_cleanup)
     ENDIF()
+# These do not work for older versions of CMake (pre 3.20?)
+IF(FALSE)
     SET_TESTS_PROPERTIES(run_chunkcases PROPERTIES DEPENDS "run_misc")
     SET_TESTS_PROPERTIES(run_misc PROPERTIES DEPENDS "run_interop")
     SET_TESTS_PROPERTIES(run_interop PROPERTIES DEPENDS "run_purezarr")
+ENDIF()
 
   ENDIF(BUILD_UTILITIES)
 
