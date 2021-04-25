@@ -16,7 +16,7 @@ testcasefile() {
   ref=$1
   mode=$2
   if test "x$3" = xmetaonly ; then flags="-h"; fi
-  fileargs ${srcdir}/$ref "mode=$mode,$zext"
+  fileargs ${execdir}/$ref "mode=$mode,$zext"
   rm -f tmp_${ref}_${zext}.cdl
   ${NCDUMP} $flags $fileurl > tmp_${ref}_${zext}.cdl
   diff -b ${srcdir}/ref_${ref}.cdl tmp_${ref}_${zext}.cdl
@@ -27,7 +27,7 @@ testcasezip() {
   ref=$1
   mode=$2
   if test "x$3" = xmetaonly ; then flags="-h"; fi
-  fileargs ${srcdir}/$ref "mode=$mode,$zext"
+  fileargs ${execdir}/$ref "mode=$mode,$zext"
   rm -f tmp_${ref}_${zext}.cdl
   ${NCDUMP} $flags $fileurl > tmp_${ref}_${zext}.cdl
   diff -b ${srcdir}/ref_${ref}.cdl tmp_${ref}_${zext}.cdl
@@ -41,16 +41,20 @@ case "$zext" in
 	rm -fr power_901_constants power_901_constants.file
 	unzip ${srcdir}/power_901_constants.zip > /dev/null
 	mv power_901_constants power_901_constants.file
-	testcasefile power_901_constants xarray metaonly
+	testcasefile power_901_constants zarr metaonly; # test xarray as default
 	;;
     zip)
+	# Move into position
+	if test "x$srcdir" != "x$execdir" ; then
+	    cp ${srcdir}/power_901_constants.zip ${execdir}
+	fi
 	testcasezip power_901_constants xarray metaonly
 	;;
     *) echo "unimplemented kind: $1" ; exit 1;;
 esac
 }
 
-#testallcases file
+testallcases file
 if test "x$FEATURE_NCZARR_ZIP" = xyes ; then testallcases zip; fi
 #No examples yet: if test "x$FEATURE_S3TESTS" = xyes ; then testallcases s3; fi
 

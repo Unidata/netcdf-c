@@ -381,6 +381,9 @@ NCZ_def_var(int ncid, const char *name, nc_type xtype, int ndims,
     zvar->common.file = h5;
     zvar->scalar = (ndims == 0 ? 1 : 0);
 
+    zvar->dimension_separator = ncrc_getglobalstate()->zarr.dimension_separator;
+    assert(zvar->dimension_separator != 0);
+
     /* Set these state flags for the var. */
     var->is_new_var = NC_TRUE;
     var->meta_read = NC_TRUE;
@@ -455,7 +458,7 @@ var->type_info->rc++;
     var->chunk_cache_preemption = 1; /* not used */
 
     /* Create the cache */
-    if((retval=NCZ_create_chunk_cache(var,zvar->chunkproduct*var->type_info->size,&zvar->cache)))
+    if((retval=NCZ_create_chunk_cache(var,zvar->chunkproduct*var->type_info->size,zvar->dimension_separator,&zvar->cache)))
 	BAIL(retval);
 
     /* Is this a variable with a chunksize greater than the current cache size? */

@@ -368,6 +368,17 @@ ncz_sync_var(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var)
     if((stat = NCJappend(jvar,jtmp))) goto done;
     jtmp = NULL;
 
+    /* dimension_separator key */
+    /* Single char defining the separator in chunk keys */
+    if(zvar->dimension_separator != DFALT_DIM_SEPARATOR) {
+	char sep[2];
+	sep[0] = zvar->dimension_separator;/* make separator a string*/
+	sep[1] = '\0';
+        if((stat = NCJnewstring(NCJ_STRING,sep,&jtmp))) goto done;
+        if((stat = NCJinsert(jvar,"dimension_separator",jtmp))) goto done;
+        jtmp = NULL;
+    }
+
     /* build .zarray path */
     if((stat = nczm_concat(fullpath,ZARRAY,&key)))
 	goto done;
@@ -1380,6 +1391,22 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 	        {stat = THROW(NC_ENOMEM); goto done;}
 	    if((stat = decodeints(jvalue, shapes))) goto done;
 	}
+	/* Capture dimension_separator (must precede chunk cache creation) */
+	{
+	    NCRCglobalstate* ngs = ncrc_getglobalstate();
+	    assert(ngs != NULL);
+	    zvar->dimension_separator = 0;
+	    if((stat = NCJdictget(jvar,"dimension_separator",&jvalue))) goto done;
+	    if(jvalue != NULL) {
+	        /* Verify its value */
+		if(jvalue->sort == NCJ_STRING && jvalue->value != NULL && strlen(jvalue->value) == 1)
+		   zvar->dimension_separator = jvalue->value[0];
+	    }
+	    /* If value is invalid, then use global default */
+	    if(!islegaldimsep(zvar->dimension_separator))
+	        zvar->dimension_separator = ngs->zarr.dimension_separator; /* use global value */
+	    assert(islegaldimsep(zvar->dimension_separator)); /* we are hosed */
+	}
 	/* chunks */
 	{
 	    int rank;
@@ -1406,7 +1433,7 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 		}
 		zvar->chunksize = zvar->chunkproduct * var->type_info->size;
 		/* Create the cache */
-		if((stat = NCZ_create_chunk_cache(var,var->type_info->size*zvar->chunkproduct,&zvar->cache)))
+		if((stat = NCZ_create_chunk_cache(var,var->type_info->size*zvar->chunkproduct,zvar->dimension_separator,&zvar->cache)))
 		    goto done;
 	    }
 	}
@@ -1970,17 +1997,18 @@ computedimrefs(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int purezarr, int xarra
     /* xarray => purezarr */
     assert(!xarray || purezarr);
 
-    if(xarray) {/* Read in the attributes to get xarray dimdef attribute */
+    if(xarray) {/* Read in the attributes to get xarray dimdef attribute; Note that it might not exist */
         char zdimname[4096];
 	if(zvar->xarray == NULL) {
 	    assert(nclistlength(dimnames) == 0);
 	    if((stat = ncz_read_atts(file,(NC_OBJ*)var))) goto done;
 	}
-	assert(zvar->xarray != NULL);
-	/* convert xarray to the dimnames */
-	for(i=0;i<nclistlength(zvar->xarray);i++) {
-	    snprintf(zdimname,sizeof(zdimname),"/%s",(const char*)nclistget(zvar->xarray,i));
-	    nclistpush(dimnames,strdup(zdimname));
+	if(zvar->xarray != NULL) {
+	    /* convert xarray to the dimnames */
+	    for(i=0;i<nclistlength(zvar->xarray);i++) {
+	        snprintf(zdimname,sizeof(zdimname),"/%s",(const char*)nclistget(zvar->xarray,i));
+	        nclistpush(dimnames,strdup(zdimname));
+	    }
 	}
 	createdims = 1; /* may need to create them */
     }

@@ -155,7 +155,7 @@ NCZM_S3=3,	/* Amazon S3 implementation */
 } NCZM_IMPL;
 
 /* Define the default map implementation */
-#define NCZM_DEFAULT NCZM_ZIP
+#define NCZM_DEFAULT NCZM_FILE
 
 /* Define the per-implementation limitations flags */
 typedef size64_t NCZM_FEATURES;

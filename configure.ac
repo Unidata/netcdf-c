@@ -122,6 +122,12 @@ AC_ARG_ENABLE([pnetcdf], [AS_HELP_STRING([--enable-pnetcdf],
 test "x$enable_pnetcdf" = xyes || enable_pnetcdf=no
 AC_MSG_RESULT($enable_pnetcdf)
 
+# We need curl for remote operations
+AC_CHECK_LIB([curl],[curl_easy_setopt],[found_curl=yes],[found_curl=no])
+if test "x$found_curl" = "xyes" ; then
+   AC_SEARCH_LIBS([curl_easy_setopt],[curl curl.dll cygcurl.dll], [],[])
+fi
+
 ## Capture the state of the --enable-dap flag => enable dap2+dap4
 AC_MSG_CHECKING([whether DAP client(s) are to be built])
 AC_ARG_ENABLE([dap],
@@ -130,11 +136,16 @@ AC_ARG_ENABLE([dap],
 test "x$enable_dap" = xno || enable_dap=yes
 AC_MSG_RESULT($enable_dap)
 
-AC_MSG_CHECKING([whether netcdf zarr storage format should be enabled])
+if test "x$enable_dap" = xyes & test "x$found_curl" = xno ; then
+  AC_MSG_WARN([curl required for dap access. DAP support disabled.])
+  enable_dap=no
+fi
+
+AC_MSG_CHECKING([whether netcdf zarr storage format should be disabled])
 AC_ARG_ENABLE([nczarr],
-              [AS_HELP_STRING([--enable-nczarr],
-                              [enable netcdf zarr storage support; requires netCDF-4 and libcurl])])
-test "x$enable_nczarr" = xyes || enable_nczarr=no
+              [AS_HELP_STRING([--disable-nczarr],
+                              [disable netcdf zarr storage support])])
+test "x$enable_nczarr" = xno || enable_nczarr=yes
 AC_MSG_RESULT($enable_nczarr)
 
 # HDF5 | HDF4 | NCZarr => netcdf-4
@@ -395,12 +406,6 @@ if test "x$enable_set_log_level_func" = xyes -a "x$enable_netcdf_4" = xyes; then
 fi
 AC_MSG_RESULT($enable_set_log_level_func)
 
-# We need curl for DAP and byterange
-AC_CHECK_LIB([curl],[curl_easy_setopt],[found_curl=yes],[found_curl=no])
-if test "x$found_curl" = "xyes" ; then
-   AC_SEARCH_LIBS([curl_easy_setopt],[curl curl.dll cygcurl.dll], [],
-      [AC_MSG_ERROR([curl required for remote access. Install curl or disable relevant options.])])
-fi
 
 # CURLOPT_USERNAME is not defined until curl version 7.19.1
 # CURLOPT_PASSWORD is not defined until curl version 7.19.1
@@ -560,16 +565,39 @@ AC_MSG_RESULT([$enable_dap_long_tests])
 
 # Control zarr storage
 if test "x$enable_nczarr" = xyes ; then
-if test "x$enable_netcdf_4" = xno ; then
-AC_MSG_ERROR([netCDF-4 disabled, so you must not enable nczarr])
-enable_nczarr=no
+  if test "x$enable_netcdf_4" = xno ; then
+    AC_MSG_WARN([netCDF-4 disabled, so you must not enable nczarr])
+    enable_nczarr=no
+  fi
 fi
-fi
+
 if test "x$enable_nczarr" = xyes; then
    AC_DEFINE([ENABLE_NCZARR], [1], [if true, build NCZarr Client])
    AC_SUBST(ENABLE_NCZARR)
 fi
 AM_CONDITIONAL(ENABLE_NCZARR, [test x$enable_nczarr = xyes])
+
+# See if we have libzip
+AC_CHECK_LIB([zip],[zip_open],[have_zip=yes],[have_zip=no])
+if test "x$have_zip" = "xyes" ; then
+   AC_SEARCH_LIBS([zip_open],[zip zip.dll cygzip.dll], [], [])
+fi
+AC_MSG_CHECKING([whether libzip library is available])
+AC_MSG_RESULT([${have_zip}])
+
+enable_nczarr_zip=${have_zip} # alias
+
+if test "x$enable_nczarr" = xno ; then
+enable_nczarr_zip=no
+fi
+
+AC_MSG_CHECKING([whether nczarr zip support is enabled])
+AC_MSG_RESULT([${enable_nczarr_zip}])
+
+if test "x$enable_nczarr_zip" = xyes ; then
+AC_DEFINE([ENABLE_NCZARR_ZIP], [1], [If true, then libzip found])
+fi
+AM_CONDITIONAL(ENABLE_NCZARR_ZIP, [test "x$enable_nczarr_zip" = xyes])
 
 # Check for enabling of S3 support
 AC_MSG_CHECKING([whether netcdf zarr S3 support should be enabled])
@@ -577,7 +605,33 @@ AC_ARG_ENABLE([nczarr-s3],
               [AS_HELP_STRING([--enable-nczarr-s3],
                               [enable netcdf zarr S3 support; make sure to set LDFLAGS])])
 test "x$enable_nczarr_s3" = xyes || enable_nczarr_s3=no
+if test "x$enable_nczarr" = xno ; then
+enable_nczarr_s3=no
+fi
 AC_MSG_RESULT($enable_nczarr_s3)
+
+# Note we check for the library after checking for enable_nczarr_s3
+# because for some reason this screws up if we unconditionally test for sdk
+# and it is not available. Fix someday
+have_aws=no
+if test "x$enable_nczarr_s3" = xyes ; then
+# See if we have the s3 aws library
+# Check for the AWS S3 SDK library
+AC_LANG_PUSH([C++])
+AC_SEARCH_LIBS([aws_allocator_is_valid],[aws-c-common aws-cpp-sdk-s3 aws-cpp-sdk-core], [have_aws=yes],[have_aws=no])
+AC_LANG_POP
+fi
+
+AC_MSG_CHECKING([whether AWS S3 SDK library is available])
+AC_MSG_RESULT([$have_aws])
+
+if test "x$have_aws" = xno ; then
+AC_MSG_WARN([AWS SDK not found; disabling S3 support])
+enable_nczarr_s3=no
+else
+AC_DEFINE([ENABLE_S3_SDK], [1], [If true, then S3 sdk was found])
+fi
+AM_CONDITIONAL(ENABLE_S3_SDK, [test "x$have_aws" = xyes])
 
 # Check for enabling S3 testing
 AC_MSG_CHECKING([whether netcdf zarr S3 testing should be enabled])
@@ -589,34 +643,8 @@ AC_MSG_RESULT($enable_nczarr_s3_tests)
 
 # Disable S3 tests if S3 support is disabled
 if test "x$enable_nczarr_s3" = xno && test "x$enable_nczarr_s3_tests" = xyes ; then
-    AC_MSG_ERROR([NCZarr S3 support is disabled; please specify option --disable-nczarr-s3-tests])
+    AC_MSG_ERROR([NCZarr S3 support is disabled; please remove option --enable-nczarr-s3-tests])
     enable_nczarr_s3_tests=no
-fi
-
-# Set default
-have_aws=no
-
-if test "x$enable_nczarr_s3" = xyes ; then
-# See if we have the s3 aws library
-# Check for the AWS S3 SDK library
-AC_LANG_PUSH([C++])
-AC_SEARCH_LIBS([aws_allocator_is_valid],[aws-c-common aws-cpp-sdk-s3 aws-cpp-sdk-core], [have_aws=yes],[have_aws=no])
-AC_LANG_POP
-AC_MSG_CHECKING([whether AWS S3 SDK library is available])
-AC_MSG_RESULT([$have_aws])
-
-if test "x$have_aws" = xyes ; then
-AC_DEFINE([ENABLE_S3_SDK], [1], [If true, then S3 sdk was found])
-fi
-fi
-AM_CONDITIONAL(ENABLE_S3_SDK, [test "x$have_aws" = xyes])
-
-if test "x$have_aws" = xno ; then
-  if test "x$enable_nczarr_s3" = xyes || test "x$enable_nczarr_s3_tests" = xyes ; then
-    AC_MSG_ERROR([AWS S3 libraries not found; please specify options --disable-nczarr-s3 and --disable-nczarr-s3-tests])
-    enable_nczarr_s3_tests=no
-    enable_nczarr_s3=no
-  fi
 fi
 
 if test "x$enable_nczarr_s3" = xyes ; then
@@ -634,22 +662,6 @@ if test "x$enable_nczarr_s3_tests" = xyes ; then
 fi
 
 # Set default
-# See if we have libzip
-AC_CHECK_LIB([zip],[zip_open],[have_zip=yes],[have_zip=no])
-if test "x$have_zip" = "xyes" ; then
-   AC_SEARCH_LIBS([zip_open],[zip zip.dll cygzip.dll], [],
-      [AC_MSG_ERROR([libzip search failed.])])
-fi
-AC_MSG_CHECKING([whether libzip library is available])
-AC_MSG_RESULT([${have_zip}])
-
-enable_nczarr_zip=${have_zip} # alias
-
-if test "x$enable_nczarr_zip" = xyes ; then
-AC_DEFINE([ENABLE_NCZARR_ZIP], [1], [If true, then libzip found])
-fi
-AM_CONDITIONAL(ENABLE_NCZARR_ZIP, [test "x$enable_nczarr_zip" = xyes])
-
 # Did the user specify a default cache size for NCZarr?
 AC_MSG_CHECKING([whether a default file cache size for NCZarr was specified])
 AC_ARG_WITH([chunk-cache-size-nczarr],
