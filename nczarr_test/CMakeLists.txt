@@ -93,9 +93,9 @@ IF(ENABLE_TESTS)
     if(ENABLE_NCZARR_S3)
 	add_sh_test(nczarr_test run_s3_cleanup)
     ENDIF()
-    SET_TESTS_PROPERTIES(nczarr_test_run_chunkcases PROPERTIES DEPENDS "nczarr_test_run_misc")
-    SET_TESTS_PROPERTIES(nczarr_test_run_misc PROPERTIES DEPENDS "nczarr_test_run_interop")
-    SET_TESTS_PROPERTIES(nczarr_test_run_interop PROPERTIES DEPENDS "nczarr_test_run_purezarr")
+    SET_TESTS_PROPERTIES(run_chunkcases PROPERTIES DEPENDS "run_misc")
+    SET_TESTS_PROPERTIES(run_misc PROPERTIES DEPENDS "run_interop")
+    SET_TESTS_PROPERTIES(run_interop PROPERTIES DEPENDS "run_purezarr")
 
   ENDIF(BUILD_UTILITIES)
 
