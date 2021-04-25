@@ -55,9 +55,9 @@ TESTS += run_interop.sh
 TESTS += run_misc.sh
 
 # Inter-test dependencies
-run_misc.sh: run_interop.sh
-run_interop.sh: run_purezarr.sh
-run_chunkcases.sh: run_misc.sh
+run_misc.sh.log: run_interop.sh.log
+run_interop.sh.log: run_purezarr.sh.log
+run_chunkcases.sh.log: run_misc.sh.log
 
 check_PROGRAMS += tst_chunkcases
 tst_chunkcases_SOURCES = tst_chunkcases.c ${tstcommonsrc}
