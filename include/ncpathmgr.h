@@ -117,8 +117,7 @@ EXTERNL int NCaccess(const char* path, int mode);
 EXTERNL int NCremove(const char* path);
 EXTERNL int NCmkdir(const char* path, int mode);
 EXTERNL int NCrmdir(const char* path);
-EXTERNL char* NCcwd(char* cwdbuf, size_t len);
-EXTERNL char* NCcwd(char* cwdbuf, size_t len);
+EXTERNL char* NCgetcwd(char* cwdbuf, size_t len);
 #ifdef HAVE_SYS_STAT_H
 EXTERNL int NCstat(char* path, struct stat* buf);
 #endif

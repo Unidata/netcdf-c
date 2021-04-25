@@ -31,7 +31,7 @@ HDF5 Support:		@HAS_HDF5@
 NetCDF-4 API:		@HAS_NC4@
 NC-4 Parallel Support:	@HAS_PARALLEL4@
 PnetCDF Support:	@HAS_PNETCDF@
-DAP2 Support:		@HAS_DAP@
+DAP2 Support:		@HAS_DAP2@
 DAP4 Support:		@HAS_DAP4@
 Byte-Range Support:	@HAS_BYTERANGE@
 Diskless Support:	@HAS_DISKLESS@

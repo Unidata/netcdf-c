@@ -84,14 +84,19 @@ IF(ENABLE_TESTS)
     add_sh_test(nczarr_test run_ncgen4)
     add_sh_test(nczarr_test run_purezarr)
     add_sh_test(nczarr_test run_interop)
+    add_sh_test(nczarr_test run_misc)
 
-      BUILD_BIN_TEST(tst_chunkcases ${TSTCOMMONSRC})
-      TARGET_INCLUDE_DIRECTORIES(tst_chunkcases PUBLIC ../libnczarr)
-      add_sh_test(nczarr_test run_chunkcases)
+    BUILD_BIN_TEST(tst_chunkcases ${TSTCOMMONSRC})
+    TARGET_INCLUDE_DIRECTORIES(tst_chunkcases PUBLIC ../libnczarr)
+    add_sh_test(nczarr_test run_chunkcases)
 
     if(ENABLE_NCZARR_S3)
 	add_sh_test(nczarr_test run_s3_cleanup)
     ENDIF()
+    SET_TESTS_PROPERTIES(nczarr_test_run_chunkcases PROPERTIES DEPENDS "nczarr_test_run_misc")
+    SET_TESTS_PROPERTIES(nczarr_test_run_misc PROPERTIES DEPENDS "nczarr_test_run_interop")
+    SET_TESTS_PROPERTIES(nczarr_test_run_interop PROPERTIES DEPENDS "nczarr_test_run_purezarr")
+
   ENDIF(BUILD_UTILITIES)
 
 ENDIF(ENABLE_TESTS)

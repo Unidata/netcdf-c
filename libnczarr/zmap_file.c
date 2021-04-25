@@ -647,9 +647,11 @@ platformtestcontentbearing(ZFMAP* zfmap, const char* truepath)
 
     /* Localize */
     if((ret = nczm_localize(truepath,&local,LOCALIZE))) goto done;
-
+    
     errno = 0;
-    if((ret = stat(local, &buf)) < 0) {
+    ret = stat(local, &buf);
+    ZTRACEMORE(6,"stat: local=%s ret=%d, errno=%d st_mode=%d",local,ret,errno,buf.st_mode);
+    if(ret < 0) {
 	ret = platformerr(errno);
     } else if(S_ISDIR(buf.st_mode)) {
         ret = NC_EEMPTY;

@@ -451,7 +451,7 @@ is an object in the map.
 Note: need to test with "/", "", and with and without trailing "/".
 */
 int
-NCZ_subobjects(NCZMAP* map, const char* prefix, const char* tag, NClist* objlist)
+NCZ_subobjects(NCZMAP* map, const char* prefix, const char* tag, char dimsep, NClist* objlist)
 {
     int i,stat=NC_NOERR;
     NClist* matches = nclistnew();
@@ -460,7 +460,6 @@ NCZ_subobjects(NCZMAP* map, const char* prefix, const char* tag, NClist* objlist
     /* Get the list of names just below prefix */
     if((stat = nczmap_search(map,prefix,matches))) goto done;
     for(i=0;i<nclistlength(matches);i++) {
-	const char* p;
 	const char* name = nclistget(matches,i);
 	size_t namelen= strlen(name);	
 	/* Ignore keys that start with .z or .nc or a potential chunk name */
@@ -468,10 +467,8 @@ NCZ_subobjects(NCZMAP* map, const char* prefix, const char* tag, NClist* objlist
 	    continue;
 	if(namelen >= 2 && name[0] == '.' && name[1] == 'z')
 	    continue;
-	for(p=name;*p;p++) {
-	    if(*p != '.' && strchr("0123456789",*p) == NULL) break;
-	}
-	if(*p == '\0') continue; /* looks like a chunk name */
+	if(NCZ_ischunkname(name,dimsep))
+	    continue;
 	/* Create <prefix>/<name>/<tag> and see if it exists */
 	ncbytesclear(path);
 	ncbytescat(path,prefix);
@@ -878,3 +875,32 @@ endswith(const char* s, const char* suffix)
     return 1;
 }
 
+int
+NCZ_ischunkname(const char* name,char dimsep)
+{
+    int stat = NC_NOERR;
+    const char* p;
+    if(strchr("0123456789",name[0])== NULL)
+        stat = NC_ENCZARR;
+    else for(p=name;*p;p++) {
+        if(*p != dimsep && strchr("0123456789",*p) == NULL) /* approximate */
+	    {stat = NC_ENCZARR; break;}
+    }
+    return stat;
+}
+
+char*
+NCZ_chunkpath(struct ChunkKey key,char dimsep)
+{
+    size_t plen = nulllen(key.varkey)+1+nulllen(key.chunkkey);
+    char* path = (char*)malloc(plen+1);
+    char sdimsep[2];
+    
+    if(path == NULL) return NULL;
+    path[0] = '\0';
+    strlcat(path,key.varkey,plen+1);
+    sdimsep[0] = dimsep; sdimsep[1] = '\0';
+    strlcat(path,sdimsep,plen+1);
+    strlcat(path,key.chunkkey,plen+1);
+    return path;    
+}

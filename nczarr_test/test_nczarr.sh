@@ -125,3 +125,19 @@ for t in ${TESTS} ; do
    fi
 done
 }
+
+# Clear out any existing .rc files
+WD=`pwd`
+if test "x$NCAUTH_HOMETEST" != x ; then RCHOME=1; fi
+
+resetrc() {
+  if test "x$RCHOME" = x1 ; then
+      rm -f ${HOME}/.dodsrc ${HOME}/.daprc ${HOME}/.ncrc
+  fi
+  rm -f ${WD}/.dodsrc ${WD}/.daprc ${WD}/.ncrc
+  unset NCRCENV_IGNORE
+  unset NCRCENV_RC
+  unset DAPRCFILE
+}
+
+resetrc
