@@ -16,11 +16,24 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 #    6. $CWD/.docsrc
 #    Entries in later files override any of the >earlier >files
 
+# Since this involves a shared resource: the .rc files in current working directory,
+# we need to isolate from any other test.
+
+# Make sure execdir and srcdir absolute paths are available
+WD=`pwd`
+cd $srcdir ; abs_srcdir=`pwd` ; cd $WD
+cd $execdir ; abs_execdir=`pwd` ; cd $WD
+
+# Now create a special directory
+# And enter it to execute tests
+rm -fr rcmergedir
+mkdir rcmergedir
+cd rcmergedir
+WD=`pwd`
+
 if test "x$NCAUTH_HOMETEST" != x ; then
     RCHOME=1
 fi
-
-WD=`pwd`
 
 HOMERCFILES="$HOME/.ncrc $HOME/.daprc $HOME/.dodsrc"
 LOCALRCFILES="$WD/.ncrc $WD/.daprc $WD/.dodsrc"
@@ -41,11 +54,11 @@ mergecase1() {
         if test "x$RCHOME" = x1 ; then echo "${r}_home=${r}" >> $HOME/".${r}"; fi
         echo "${r}_local=${r}" >> $WD/".${r}"
     done;
-    ${execdir}/tst_rcmerge > tmpoutput.txt
+    ${abs_execdir}/tst_rcmerge > tmpoutput.txt
     if test "x$RCHOME" = x1 ; then
-	cp ${srcdir}/ref_rcmerge1.txt tmp_rcmerge1.txt
+	cp ${abs_srcdir}/ref_rcmerge1.txt tmp_rcmerge1.txt
     else
-	sed -e '/_local/p' -e d <${srcdir}/ref_rcmerge1.txt > tmp_rcmerge1.txt
+	sed -e '/_local/p' -e d <${abs_srcdir}/ref_rcmerge1.txt > tmp_rcmerge1.txt
     fi
     diff -b tmp_rcmerge1.txt tmpoutput.txt
 }
@@ -58,8 +71,8 @@ mergecase2() {
         if test "x$RCHOME" = x1 ; then echo "${r}=${r}" >> $HOME/".${r}"; fi
         echo "${r}=${r}" >> $WD/".${r}"
     done;
-    ${execdir}/tst_rcmerge > tmpoutput.txt
-    diff -b ${srcdir}/ref_rcmerge2.txt tmpoutput.txt
+    ${abs_execdir}/tst_rcmerge > tmpoutput.txt
+    diff -b ${abs_srcdir}/ref_rcmerge2.txt tmpoutput.txt
 }
 
 mergecase3() {
@@ -79,9 +92,8 @@ mergecase3() {
     fi
     echo "daprc=daprc" >> $WD/.dodsrc
     echo "ncrcx=ncrcy" >> $WD/.dodsrc
-
-    ${execdir}/tst_rcmerge > tmpoutput.txt
-    diff -b ${srcdir}/ref_rcmerge3.txt tmpoutput.txt
+    ${abs_execdir}/tst_rcmerge > tmpoutput.txt
+    diff -b ${abs_srcdir}/ref_rcmerge3.txt tmpoutput.txt
 }
 
 resetrc

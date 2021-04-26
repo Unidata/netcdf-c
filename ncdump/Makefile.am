@@ -205,3 +205,6 @@ tst_roman_szip_unlim.cdl tst_perdimpspecs.nc tmppds.*                   \
 keyword1.nc keyword2.nc keyword3.nc keyword4.nc                         \
 tmp_keyword1.cdl tmp_keyword2.cdl tmp_keyword3.cdl tmp_keyword4.cdl
 
+# Remove directories
+clean-local:
+	rm -fr rcmergedir

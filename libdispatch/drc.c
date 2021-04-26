@@ -20,6 +20,8 @@ See COPYRIGHT for license information.
 #include "nclog.h"
 #include "ncpathmgr.h"
 
+#undef DRCDEBUG
+
 #define RTAG ']'
 #define LTAG '['
 
@@ -402,10 +404,10 @@ rccompile(const char* path)
         rctrim(triple->key);
         rctrim(triple->value);
 
-#ifdef D4DEBUG
+#ifdef DRCDEBUG
 	fprintf(stderr,"rc: host=%s key=%s value=%s\n",
 		(triple->host != NULL ? triple->host : "<null>"),
-		triple->key,triple->valu);
+		triple->key,triple->value);
 #endif
 
 	triple = NULL;

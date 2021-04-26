@@ -5,6 +5,14 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 . "$srcdir/test_nczarr.sh"
 
+# This test uses a shared resource: the .rc files; so run in a special directory
+# Create a special directory
+# And enter it to execute tests
+rm -fr rcmiscdir
+mkdir rcmiscdir
+cd rcmiscdir
+WD=`pwd`
+
 # This shell script provides a miscellaneous set of tests
 
 set -e
@@ -16,7 +24,7 @@ cleanup() {
 # Setup the .rc files
 
 createrc() {
-  RCP="./.ncrc"
+  RCP="${WD}/.ncrc"
   echo "Creating rc file $RCP"
   echo "ZARR.DIMENSION_SEPARATOR=/" >>$RCP
 }
@@ -28,9 +36,9 @@ fileargs tmp_dimsep "mode=nczarr,$zext"
 deletemap $zext $file
 cleanup
 createrc
-${NCGEN} -4 -lb -o $fileurl ref_misc1.cdl
+${NCGEN} -4 -lb -o $fileurl ${abs_srcdir}/ref_misc1.cdl
 ${NCDUMP} -n tmp_misc1 $fileurl > tmp_misc1_$zext.cdl
-diff -bw ${srcdir}/ref_misc1.cdl tmp_misc1_$zext.cdl
+diff -bw ${abs_srcdir}/ref_misc1.cdl tmp_misc1_$zext.cdl
 }
 
 testcase2() {
@@ -40,9 +48,9 @@ fileargs tmp_extra "mode=nczarr,$zext"
 deletemap $zext $file
 cleanup
 createrc
-${NCGEN} -4 -lb -o "$fileurl" ref_misc2.cdl
+${NCGEN} -4 -lb -o "$fileurl" ${abs_srcdir}/ref_misc2.cdl
 ${NCDUMP} -n tmp_misc2 $fileurl > tmp_misc2_$zext.cdl
-diff -wb ${srcdir}/ref_misc2.cdl tmp_misc2_$zext.cdl
+diff -wb ${abs_srcdir}/ref_misc2.cdl tmp_misc2_$zext.cdl
 }
 
 testcase1 file
