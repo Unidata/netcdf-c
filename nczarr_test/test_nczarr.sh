@@ -126,6 +126,11 @@ for t in ${TESTS} ; do
 done
 }
 
+# Make sure execdir and srcdir absolute paths are available
+WD=`pwd`
+cd $srcdir ; abs_srcdir=`pwd` ; cd $WD
+cd $execdir ; abs_execdir=`pwd` ; cd $WD
+
 # Clear out any existing .rc files
 WD=`pwd`
 if test "x$NCAUTH_HOMETEST" != x ; then RCHOME=1; fi

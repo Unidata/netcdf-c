@@ -44,24 +44,20 @@ TESTS += run_ut_chunk.sh
 
 if BUILD_UTILITIES
 
+TESTS += run_ncgen4.sh
+
 if USE_HDF5
 TESTS += run_nccopyz.sh
 TESTS += run_fillonlyz.sh
 endif
 
-TESTS += run_ncgen4.sh
-TESTS += run_purezarr.sh
-TESTS += run_interop.sh
-TESTS += run_misc.sh
-
-# Inter-test dependencies
-run_misc.sh.log: run_interop.sh.log
-run_interop.sh.log: run_purezarr.sh.log
-run_chunkcases.sh.log: run_misc.sh.log
-
 check_PROGRAMS += tst_chunkcases
 tst_chunkcases_SOURCES = tst_chunkcases.c ${tstcommonsrc}
 TESTS += run_chunkcases.sh
+
+TESTS += run_purezarr.sh
+TESTS += run_interop.sh
+TESTS += run_misc.sh
 
 endif
 
@@ -105,7 +101,7 @@ ncdumpchunks_SOURCES = ncdumpchunks.c
 EXTRA_DIST = CMakeLists.txt \
 run_ut_map.sh run_ut_mapapi.sh run_ut_misc.sh run_ut_chunk.sh run_ncgen4.sh \
 run_nccopyz.sh run_fillonlyz.sh run_chunkcases.sh test_nczarr.sh run_perf_chunks1.sh run_s3_cleanup.sh \
-run_purezarr.sh run_interop.sh run_misc.sh \
+run_purezarr.sh run_interop.sh run_misc.sh  \
 ref_ut_map_create.cdl ref_ut_map_writedata.cdl ref_ut_map_writemeta2.cdl ref_ut_map_writemeta.cdl \
 ref_ut_map_readmeta.txt ref_ut_map_readmeta2.txt ref_ut_map_search.txt \
 ref_ut_mapapi_create.cdl ref_ut_mapapi_data.cdl ref_ut_mapapi_meta.cdl ref_ut_mapapi_search.txt \
@@ -129,3 +125,4 @@ CLEANFILES = ut_*.txt ut*.cdl tmp*.nc tmp*.cdl tmp*.txt tmp*.dmp tmp*.zip tmp*.n
 clean-local:
 	rm -fr tmp*.file results.file results.s3 results.zip
 	rm -fr power_901_constants.file
+	rm -fr rcmiscdir
