@@ -57,6 +57,13 @@
 
 #define PUREZARRCONTROL "zarr"
 #define XARRAYCONTROL "xarray"
+#define NOXARRAYCONTROL "noxarray"
+
+#define LEGAL_DIM_SEPARATORS "./"
+#define DFALT_DIM_SEPARATOR '.'
+
+#define islegaldimsep(c) ((c) != '\0' && strchr(LEGAL_DIM_SEPARATORS,(c)) != NULL)
+
 
 /* Mnemonics */
 #define ZCLOSE    1 /* this is closeorabort as opposed to enddef */
@@ -112,7 +119,7 @@ typedef struct NCZ_DIM_INFO {
     NCZcommon common;
 } NCZ_DIM_INFO_T;
 
-/** Strut to hold ZARR-specific info for attributes. */
+/** Struct to hold ZARR-specific info for attributes. */
 typedef struct  NCZ_ATT_INFO {
     NCZcommon common;
 } NCZ_ATT_INFO_T;
@@ -143,6 +150,7 @@ typedef struct NCZ_VAR_INFO {
     size_t scalar;
     struct NCZChunkCache* cache;
     struct NClist* xarray; /* names from _ARRAY_DIMENSIONS */
+    char dimension_separator; /* '.' | '/' */
 } NCZ_VAR_INFO_T;
 
 /* Struct to hold ZARR-specific info for a field. */

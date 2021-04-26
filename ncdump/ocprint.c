@@ -556,8 +556,7 @@ printdata_container(OClink link, OCdatanode datanode, NCbytes* buffer, int istop
 	pushstack(field);
         FAIL(printdata_indices(link,field,buffer,istoplevel));
 	popstack();
-	if(oc_data_free(link,field) != OC_NOERR)
-	    break;
+	oc_data_free(link,field);
     }
     return stat;
 }

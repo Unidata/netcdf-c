@@ -6,6 +6,7 @@ Release Notes       {#RELEASE_NOTES}
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 ## 4.8.1 - TBD
 
+* [Enhancement] Add support for the new "dimension_separator" enhancement to Zarr v2. See [Github #1990](https://github.com/Unidata/netcdf-c/pull/1990) for more information.
 * [Bug Fix] Fix hack for handling failure of shell programs to properly handle escape characters. See [Github #1989](https://github.com/Unidata/netcdf-c/issues/1989).  
 * [Bug Fix] Allow some primitive type names to be used as identifiers depending on the file format. See [Github #1984](https://github.com/Unidata/netcdf-c/issues/1984).  
 * [Enhancement] Add support for reading/writing pure Zarr storage format that supports the XArray _ARRAY_DIMENSIONS attribute. See [Github #1952](https://github.com/Unidata/netcdf-c/pull/1952) for more information.

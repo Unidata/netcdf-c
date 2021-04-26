@@ -323,7 +323,7 @@ zipread(NCZMAP* map, const char* key, size64_t start, size64_t count, void* cont
     char* buffer = NULL;
     char* truekey = NULL;
     zip_int64_t red = 0;
-    
+
     ZTRACE(6,"map=%s key=%s start=%llu count=%llu",map->url,key,start,count);
 
     switch(stat = zzlookupobj(zzmap,key,&zindex)) {
@@ -382,7 +382,7 @@ zipwrite(NCZMAP* map, const char* key, size64_t start, size64_t count, const voi
     zip_int32_t compression = 0;
     zip_error_t zerror;
     void* localbuffer = NULL;
-    
+
     ZTRACE(6,"map=%s key=%s start=%llu count=%llu",map->url,key,start,count);
 
     zip_error_init(&zerror);
