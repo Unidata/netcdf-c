@@ -144,7 +144,7 @@ NCZ_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
  * @author Dennis Heimbigner, Ed Hartnett
  */
 int
-NCZ_create_chunk_cache(NC_VAR_INFO_T* var, size64_t chunksize, NCZChunkCache** cachep)
+NCZ_create_chunk_cache(NC_VAR_INFO_T* var, size64_t chunksize, char dimsep, NCZChunkCache** cachep)
 {
     int stat = NC_NOERR;
     NCZChunkCache* cache = NULL;
@@ -163,6 +163,7 @@ NCZ_create_chunk_cache(NC_VAR_INFO_T* var, size64_t chunksize, NCZChunkCache** c
     assert(cache->fillchunk == NULL);
     cache->fillchunk = NULL;
     cache->chunksize = chunksize;
+    cache->dimension_separator = dimsep;
 
     /* Figure out the actual cache size */
     cachesize = var->chunk_cache_size;
@@ -203,7 +204,7 @@ NCZ_free_chunk_cache(NCZChunkCache* cache)
         NCZCacheEntry* entry = nclistremove(cache->mru,0);
 	(void)ncxcacheremove(cache->xcache,entry->hashkey,&ptr);
 	assert(ptr == entry);
-	nullfree(entry->data); nullfree(entry->key); nullfree(entry);
+	nullfree(entry->data); nullfree(entry->key.varkey); nullfree(entry->key.chunkkey); nullfree(entry);
     }
 #ifdef DEBUG
 fprintf(stderr,"|cache.free|=%ld\n",nclistlength(cache->mru));
@@ -297,7 +298,7 @@ fprintf(stderr,"|cache.read.lru|=%ld\n",nclistlength(cache->mru));
     
 done:
     if(created && stat == NC_NOERR)  stat = NC_EEMPTY; /* tell upper layers */
-    if(entry) {nullfree(entry->data); nullfree(entry->key);}
+    if(entry) {nullfree(entry->data); nullfree(entry->key.varkey); nullfree(entry->key.chunkkey);}
     nullfree(entry);
     return THROW(stat);
 }
@@ -333,7 +334,7 @@ fprintf(stderr,"|cache.write|=%ld\n",nclistlength(cache->mru));
     entry = NULL;
 
 done:
-    if(entry) {nullfree(entry->data); nullfree(entry->key);}
+    if(entry) {nullfree(entry->data); nullfree(entry->key.varkey); nullfree(entry->key.chunkkey);}
     nullfree(entry);
     return THROW(stat);
 }
@@ -359,7 +360,7 @@ makeroom(NCZChunkCache* cache)
 	if(e->modified) /* flush to file */
 	    stat=put_chunk(cache,e);
 	/* reclaim */
-        nullfree(e->data); nullfree(e->key); nullfree(e);
+        nullfree(e->data); nullfree(e->key.varkey); nullfree(e->key.chunkkey); nullfree(e);
     }
 #ifdef DEBUG
 fprintf(stderr,"|cache.makeroom|=%ld\n",nclistlength(cache->mru));
@@ -423,32 +424,36 @@ From Zarr V2 Specification:
 a key formed from the index of the chunk within the grid of
 chunks representing the array.  To form a string key for a
 chunk, the indices are converted to strings and concatenated
-with the period character (".") separating each index. For
-example, given an array with shape (10000, 10000) and chunk
-shape (1000, 1000) there will be 100 chunks laid out in a 10 by
-10 grid. The chunk with indices (0, 0) provides data for rows
-0-1000 and columns 0-1000 and is stored under the key "0.0"; the
-chunk with indices (2, 4) provides data for rows 2000-3000 and
-columns 4000-5000 and is stored under the key "2.4"; etc."
+with the dimension_separator character ('.' or '/') separating
+each index. For example, given an array with shape (10000,
+10000) and chunk shape (1000, 1000) there will be 100 chunks
+laid out in a 10 by 10 grid. The chunk with indices (0, 0)
+provides data for rows 0-1000 and columns 0-1000 and is stored
+under the key "0.0"; the chunk with indices (2, 4) provides data
+for rows 2000-3000 and columns 4000-5000 and is stored under the
+key "2.4"; etc."
 */
 
 /**
  * @param R Rank
  * @param chunkindices The chunk indices
+ * @param dimsep the dimension separator
  * @param keyp Return the chunk key string
  */
 int
-NCZ_buildchunkkey(size_t R, const size64_t* chunkindices, char** keyp)
+NCZ_buildchunkkey(size_t R, const size64_t* chunkindices, char dimsep, char** keyp)
 {
     int stat = NC_NOERR;
     int r;
     NCbytes* key = ncbytesnew();
 
     if(keyp) *keyp = NULL;
+
+    assert(islegaldimsep(dimsep));
     
     for(r=0;r<R;r++) {
 	char sindex[64];
-        if(r > 0) ncbytescat(key,".");
+        if(r > 0) ncbytesappend(key,dimsep);
 	/* Print as decimal with no leading zeros */
 	snprintf(sindex,sizeof(sindex),"%lu",(unsigned long)chunkindices[r]);	
 	ncbytescat(key,sindex);
@@ -485,7 +490,11 @@ put_chunk(NCZChunkCache* cache, const NCZCacheEntry* entry)
     zfile = ((cache->var->container)->nc4_info)->format_file_info;
     map = zfile->map;
 
-    stat = nczmap_write(map,entry->key,0,cache->chunksize,entry->data);
+    {
+    char* path = NCZ_chunkpath(entry->key,cache->dimension_separator);
+    stat = nczmap_write(map,path,0,cache->chunksize,entry->data);
+    nullfree(path);
+    }
     switch(stat) {
     case NC_NOERR:
 	break;
@@ -514,7 +523,7 @@ get_chunk(NCZChunkCache* cache, NCZCacheEntry* entry)
     NC_FILE_INFO_T* file = NULL;
     NCZ_FILE_INFO_T* zfile = NULL;
 
-    ZTRACE(5,"cache.var=%s entry.key=%s",cache->var->hdr.name,entry->key);
+    ZTRACE(5,"cache.var=%s entry.key=%s sep=%d",cache->var->hdr.name,entry->key,cache->dimension_separator);
     
     LOG((3, "%s: file: %p", __func__, file));
 
@@ -523,32 +532,33 @@ get_chunk(NCZChunkCache* cache, NCZCacheEntry* entry)
     map = zfile->map;
     assert(map && entry->data);
 
-    stat = nczmap_read(map,entry->key,0,cache->chunksize,(char*)entry->data);
+    {
+    char* path = NCZ_chunkpath(entry->key,cache->dimension_separator);
+    stat = nczmap_read(map,path,0,cache->chunksize,(char*)entry->data);
+    nullfree(path);
+    }
 
     return ZUNTRACE(stat);
 }
 
-
 int
-NCZ_buildchunkpath(NCZChunkCache* cache, const size64_t* chunkindices, char** keyp)
+NCZ_buildchunkpath(NCZChunkCache* cache, const size64_t* chunkindices, struct ChunkKey* key)
 {
     int stat = NC_NOERR;
     char* chunkname = NULL;
     char* varkey = NULL;
-    char* key = NULL;
 
+    assert(key != NULL);
     /* Get the chunk object name */
-    if((stat = NCZ_buildchunkkey(cache->ndims, chunkindices, &chunkname))) goto done;
+    if((stat = NCZ_buildchunkkey(cache->ndims, chunkindices, cache->dimension_separator, &chunkname))) goto done;
     /* Get the var object key */
     if((stat = NCZ_varkey(cache->var,&varkey))) goto done;
-    /* Prefix the path to the containing variable object */
-    if((stat=nczm_concat(varkey,chunkname,&key))) goto done;
-    if(keyp) {*keyp = key; key = NULL;}
+    key->varkey = varkey; varkey = NULL;
+    key->chunkkey = chunkname; chunkname = NULL;    
 
 done:
     nullfree(chunkname);
     nullfree(varkey);
-    nullfree(key);
     return THROW(stat);
 }
 

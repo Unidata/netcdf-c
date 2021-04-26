@@ -12,6 +12,8 @@
 #ifndef ZARR_H
 #define ZARR_H
 
+struct ChunkKey;
+
 /* zarr.c */
 extern int ncz_create_dataset(NC_FILE_INFO_T*, NC_GRP_INFO_T*, const char** controls);
 extern int ncz_open_dataset(NC_FILE_INFO_T*, const char** controls);
@@ -56,7 +58,7 @@ extern int NCZ_createobject(NCZMAP* zmap, const char* key, size64_t size);
 extern int NCZ_uploadjson(NCZMAP* zmap, const char* key, NCjson* json);
 extern int NCZ_downloadjson(NCZMAP* zmap, const char* key, NCjson** jsonp);
 extern int NCZ_isLittleEndian(void);
-extern int NCZ_subobjects(NCZMAP* map, const char* prefix, const char* tag, NClist* objlist);
+extern int NCZ_subobjects(NCZMAP* map, const char* prefix, const char* tag, char dimsep, NClist* objlist);
 extern int NCZ_grpname_full(int gid, char** pathp);
 extern int ncz_get_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var);
 extern int NCZ_comma_parse(const char* s, NClist* list);
@@ -65,6 +67,9 @@ extern char** NCZ_clonestringvec(size_t len, const char** vec);
 extern void NCZ_freestringvec(size_t len, char** vec);
 extern int NCZ_create_fill_chunk(size64_t chunksize, size_t typesize, void* fill, void** fillchunkp);
 extern int NCZ_s3clear(ZS3INFO* s3);
+extern int NCZ_ischunkname(const char* name,char dimsep);
+extern char* NCZ_chunkpath(struct ChunkKey key,char dimsep);
+
 /* Export */
 EXTERNL int NCZ_s3urlprocess(NCURI* url, ZS3INFO* s3);
 

@@ -61,14 +61,14 @@ man_MANS = ncdump.1 nccopy.1
 if BUILD_TESTSETS
 # C programs needed by shell scripts for classic tests.
 check_PROGRAMS = rewrite-scalar ref_ctest ref_ctest64 ncdump tst_utf8   \
-bom tst_dimsizes nctrunc
+bom tst_dimsizes nctrunc tst_rcmerge
 
 # Tests for classic and 64-bit offset files.
 TESTS = tst_inttags.sh run_tests.sh tst_64bit.sh ref_ctest	\
 ref_ctest64 tst_output.sh tst_lengths.sh tst_calendars.sh	\
 run_utf8_tests.sh test_unicode_directory.sh tst_nccopy3.sh tst_nccopy3_subset.sh		\
 tst_charfill.sh tst_iter.sh tst_formatx3.sh tst_bom.sh		\
-tst_dimsizes.sh run_ncgen_tests.sh tst_ncgen4_classic.sh test_radix.sh
+tst_dimsizes.sh run_ncgen_tests.sh tst_ncgen4_classic.sh test_radix.sh test_rcmerge.sh
 
 # The tst_nccopy3.sh test uses output from a bunch of other
 # tests. This records the dependency so parallel builds work.
@@ -164,7 +164,8 @@ ref_no_ncproperty.nc test_unicode_directory.sh				\
 ref_roman_szip_simple.cdl ref_roman_szip_unlim.cdl ref_tst_perdimspecs.cdl \
 test_keywords.sh ref_keyword1.cdl ref_keyword2.cdl                      \
 ref_keyword3.cdl ref_keyword4.cdl                                       \
-ref_tst_nofilters.cdl test_unicode_path.sh
+ref_tst_nofilters.cdl test_unicode_path.sh test_rcmerge.sh              \
+ref_rcmerge1.txt ref_rcmerge2.txt ref_rcmerge3.txt
 
 # The L512.bin file is file containing exactly 512 bytes each of value 0.
 # It is used for creating hdf5 files with varying offsets for testing.
@@ -176,7 +177,7 @@ EXTRA_DIST += tst_ctests.sh ref_ctest_small_3.c ref_ctest_small_4.c \
 # CDL files and Expected results
 SUBDIRS = cdl expected
 
-CLEANFILES = tst_*.nc tmp*.nc test*.nc iter.* tmp*.cdl			\
+CLEANFILES = tst_*.nc tmp*.nc test*.nc iter.* tmp*.cdl tmp*.txt         \
 tst_output_*.cdl tst_output_*.c tst_utf8_*.cdl *.tmp tst_tst8.cdl	\
 tst_netcdf4_*.cdl test1_ncdump.cdl test2_ncdump.cdl test1.cdl		\
 ctest1.cdl test1_cdf5.cdl test2_cdf5.cdl test1_offset.cdl		\
@@ -204,3 +205,6 @@ tst_roman_szip_unlim.cdl tst_perdimpspecs.nc tmppds.*                   \
 keyword1.nc keyword2.nc keyword3.nc keyword4.nc                         \
 tmp_keyword1.cdl tmp_keyword2.cdl tmp_keyword3.cdl tmp_keyword4.cdl
 
+# Remove directories
+clean-local:
+	rm -fr rcmergedir
