@@ -211,7 +211,7 @@ main(int argc, char **argv)
       /* Open file and create group. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
 			      H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gcreate(fileid, GRP_NAME, 0)) < 0) ERR;
+      if ((grpid = H5Gcreate1(fileid, GRP_NAME, 0)) < 0) ERR;
 
       /* Write an array of bools, with szip compression. */
       if ((propid = H5Pcreate(H5P_DATASET_CREATE)) < 0) ERR;
