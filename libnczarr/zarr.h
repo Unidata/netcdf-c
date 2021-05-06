@@ -29,8 +29,8 @@ extern int ncz_unload_jatts(NCZ_FILE_INFO_T*, NC_OBJ* container, NCjson* jattrs,
 extern int ncz_close_file(NC_FILE_INFO_T* file, int abort);
 
 /* zcvt.c */
-extern int NCZ_convert1(NCjson* jsrc, nc_type, char* memory0);
-extern int NCZ_stringconvert1(nc_type typid, char* src, char** strp);
+extern int NCZ_convert1(NCjson* jsrc, nc_type, unsigned char* memory0);
+extern int NCZ_stringconvert1(nc_type typid, unsigned char* src, char** strp);
 extern int NCZ_stringconvert(nc_type typid, size_t len, void* data0, NCjson** jdatap);
 
 /* zsync.c */
