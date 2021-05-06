@@ -1,4 +1,4 @@
-netcdf power_901_constants {
+netcdf ref_power_901_constants {
 dimensions:
 	lat = 361 ;
 	lon = 576 ;
