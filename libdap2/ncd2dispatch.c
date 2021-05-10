@@ -1626,7 +1626,6 @@ getseqdimsize(NCDAPCOMMON* dapcomm, CDFnode* seq, size_t* sizep)
     NCerror ncstat = NC_NOERR;
     OCerror ocstat = OC_NOERR;
     OClink conn = dapcomm->oc.conn;
-    OCdatanode rootcontent = NULL;
     OCddsnode ocroot;
     CDFnode* dxdroot;
     CDFnode* xseq;
@@ -1685,7 +1684,6 @@ fprintf(stderr,"sequencesize: %s = %lu\n",seq->ocname,(unsigned long)seqsize);
 
 fail:
     ncbytesfree(seqcountconstraints);
-    oc_data_free(conn,rootcontent);
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     return ncstat;
 }
