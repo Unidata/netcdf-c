@@ -56,7 +56,7 @@ NCDISPATCH_initialize(void)
     /* Capture temp dir*/
     {
 	char* tempdir = NULL;
-#if defined _WIN32 || defined __MSYS__
+#if defined _WIN32 || defined __MSYS__ || defined __CYGWIN__
         tempdir = getenv("TEMP");
 #else
 	tempdir = "/tmp";

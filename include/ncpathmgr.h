@@ -118,6 +118,8 @@ EXTERNL int NCremove(const char* path);
 EXTERNL int NCmkdir(const char* path, int mode);
 EXTERNL int NCrmdir(const char* path);
 EXTERNL char* NCgetcwd(char* cwdbuf, size_t len);
+EXTERNL int NCmkstemp(char* buf);
+
 #ifdef HAVE_SYS_STAT_H
 EXTERNL int NCstat(char* path, struct stat* buf);
 #endif
@@ -133,6 +135,7 @@ EXTERNL int NCclosedir(DIR* ent);
 #define NCaccess(path,mode) access(path,mode)
 #define NCmkdir(path,mode) mkdir(path,mode)
 #define NCgetcwd(buf,len) getcwd(buf,len)
+#define NCmkstemp(buf) mkstemp(buf);
 #ifdef HAVE_SYS_STAT_H
 #define NCstat(path,buf) stat(path,buf)
 #endif
