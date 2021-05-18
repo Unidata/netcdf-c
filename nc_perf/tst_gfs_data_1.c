@@ -13,37 +13,53 @@
   Ed Hartnett, 6/28/20
 */
 
+#include <config.h>
 #include <nc_tests.h>
 #include <time.h>
 #include <sys/time.h> /* Extra high precision time info. */
 #include "err_macros.h"
 #include <mpi.h>
 
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+#include <netcdf.h>
+#include <netcdf_par.h>
+#include <netcdf_meta.h>
 
-#define FILE_NAME "tst_gfs_data_1.nc"
+#define TEST_NAME "tst_gfs_data_1"
 #define NUM_META_VARS 7
 #define NUM_META_TRIES 2
 #define NDIM2 2
 #define NDIM4 4
 #define NDIM5 5
 #define NUM_PROC 4
-#define NUM_SHUFFLE_SETTINGS 2
-#ifdef HAVE_H5Z_SZIP
-#define NUM_COMPRESSION_FILTERS 2
-#else
-#define NUM_COMPRESSION_FILTERS 1
-#endif
+#define NUM_SHUFFLE_SETTINGS 1
+/* #define NUM_DEFLATE_LEVELS 3 */
 #define NUM_DEFLATE_LEVELS 3
 #define NUM_UNLIM_TRIES 1
 #define THOUSAND 1000
-#define NUM_DATA_VARS 10
+#define NUM_DATA_VARS 3
 #define ERR_AWFUL 1
 
+/* #define USE_SMALL 1 */
+
+#ifdef USE_SMALL
+#define GRID_XT_LEN 8
+#define GRID_YT_LEN 4
+#define PFULL_LEN 4
+#define PHALF_LEN 5
+#else
 #define GRID_XT_LEN 3072
 #define GRID_YT_LEN 1536
 #define PFULL_LEN 127
 #define PHALF_LEN 128
+#endif /* USE_SMALL */
 #define TIME_LEN 1
+
+#define MAX_COMPRESSION_FILTERS 4
+char compression_filter_name[MAX_COMPRESSION_FILTERS][NC_MAX_NAME + 1];
+int deflate_level[MAX_COMPRESSION_FILTERS][NUM_DEFLATE_LEVELS];
 
 char dim_name[NDIM5][NC_MAX_NAME + 1] = {"grid_xt", "grid_yt", "pfull",
 					 "phalf", "time"};
@@ -171,7 +187,6 @@ write_meta(int ncid, int *data_varid, int s, int f, int deflate, int u,
     int varid[NUM_META_VARS];
     double value_time = 2.0;
     int dv;
-    int res;
 
     /* Turn off fill mode. */
     if (nc_set_fill(ncid, NC_NOFILL, NULL)) ERR;
@@ -275,21 +290,15 @@ write_meta(int ncid, int *data_varid, int s, int f, int deflate, int u,
         if (nc_def_var(ncid, data_var_name, NC_FLOAT, NDIM4, dimid_data, &data_varid[dv])) ERR;
 
         /* Setting any filter only will work for HDF5-1.10.3 and later */
-        /* versions. */
-        if (!f)
-            res = nc_def_var_deflate(ncid, data_varid[dv], s, 1, deflate);
-        else
-        {
-            res = nc_def_var_deflate(ncid, data_varid[dv], s, 0, 0);
-            if (!res)
-                res = nc_def_var_szip(ncid, data_varid[dv], 32, 32);
-        }
-#ifdef HDF5_SUPPORTS_PAR_FILTERS
-        if (res) ERR;
-#else
-        if (res != NC_EINVAL) ERR;
-#endif
-
+        /* versions. Do nothing for "none". */
+        if (!strcmp(compression_filter_name[f], "zlib"))
+            if (nc_def_var_deflate(ncid, data_varid[dv], s, 1, deflate)) ERR;
+        
+#if NC_HAS_SZIP_WRITE
+        if (!strcmp(compression_filter_name[f], "szip"))
+            if (nc_def_var_szip(ncid, data_varid[dv], 32, 32)) ERR;
+#endif /* NC_HAS_SZIP_WRITE */
+        
         if (nc_var_par_access(ncid, data_varid[dv], NC_COLLECTIVE)) ERR;
         if (nc_enddef(ncid)) ERR;
     }
@@ -356,9 +365,8 @@ decomp_latlon(int my_rank, int mpi_size, int *dim_len, size_t *latlon_start,
 	    latlon_start[1] = dim_len[1]/2;
 	}
     }
-    else if (mpi_size == 36)
-    {
-    }
+    else 
+        return ERR_AWFUL;
 
     /* Allocate storage. */
     if (!(*lon = malloc(latlon_count[0] * latlon_count[1] * sizeof(double)))) ERR;
@@ -374,8 +382,8 @@ decomp_latlon(int my_rank, int mpi_size, int *dim_len, size_t *latlon_start,
         }
     }
 
-    printf("%d: latlon_start %ld %ld latlon_count %ld %ld\n", my_rank, latlon_start[0],
-           latlon_start[1], latlon_count[0], latlon_count[1]);
+    /* printf("%d: latlon_start %ld %ld latlon_count %ld %ld\n", my_rank, latlon_start[0], */
+    /*        latlon_start[1], latlon_count[0], latlon_count[1]); */
 
     return 0;
 }
@@ -385,9 +393,11 @@ decomp_latlon(int my_rank, int mpi_size, int *dim_len, size_t *latlon_start,
 int
 decomp_4D(int my_rank, int mpi_size, int *dim_len, size_t *start, size_t *count)
 {
+    /* Time dimension. */
     start[0] = 0;
     count[0] = 1;
 
+    /* Vertical dimension (pfull). */
     count[1] = dim_len[2];
     start[1] = 0;
     
@@ -395,36 +405,28 @@ decomp_4D(int my_rank, int mpi_size, int *dim_len, size_t *start, size_t *count)
     {
 	start[2] = 0;
 	start[3] = 0;
-	count[2] = dim_len[2];
-	count[3] = dim_len[3];
+	count[2] = dim_len[1];
+	count[3] = dim_len[0];
     }
     else if (mpi_size == 4)
     {
-        if (my_rank == 0 || my_rank == 1)
-        {
-            start[2] = 0;
-            start[3] = 0;
-        }
-        else
-        {
-            start[2] = 768;
-            start[3] = 768;
-        }
+#ifdef USE_SMALL
+        start[2] = (my_rank < 2) ? 0 : 2;
+        start[3] = (!my_rank || my_rank == 2) ? 0 : 4;
+        count[2] = 2;
+        count[3] = 4;
+#else
+        start[2] = (my_rank < 2) ? 0 : 768;
+        start[3] = (!my_rank || my_rank == 2) ? 0 : 1536;        
         count[2] = 768;
         count[3] = 1536;
-    }
-    else if (mpi_size == 36)
-    {
-        start[2] = my_rank * 256;
-        start[3] = my_rank * 512;
-        count[2] = 256;
-        count[3] = 512;
+#endif /* USE_SMALL */
     }
     else
         return ERR_AWFUL;
 
-    printf("%d: start %ld %ld %ld %ld count %ld %ld %ld %ld\n", my_rank, start[0],
-           start[1], start[2], start[3], count[0], count[1], count[2], count[3]);
+    /* printf("%d: start %ld %ld %ld %ld count %ld %ld %ld %ld\n", my_rank, start[0], */
+    /*        start[1], start[2], start[3], count[0], count[1], count[2], count[3]); */
 
     return 0;
 }
@@ -495,6 +497,34 @@ decomp_p(int my_rank, int mpi_size, size_t *data_count, int *dim_len,
     return 0;
 }
 
+/* Determine what compression filters are present. */
+int
+find_filters(int *num_compression_filters, char compression_filter_name[][NC_MAX_NAME + 1],
+             int deflate_level[][NUM_DEFLATE_LEVELS])
+{
+    int nfilters = 0;
+       
+    /* Try with no compression. */
+    strcpy(compression_filter_name[nfilters], "none");
+    nfilters++;
+
+    /* zlib is always present. */
+    strcpy(compression_filter_name[nfilters], "zlib");
+    deflate_level[nfilters][0] = 1;
+    deflate_level[nfilters][1] = 4;
+    deflate_level[nfilters][2] = 9;
+    nfilters++;
+
+    /* szip is optionally present. */
+#if NC_HAS_SZIP_WRITE
+    strcpy(compression_filter_name[nfilters], "szip");
+    nfilters++;
+#endif /* NC_HAS_SZIP_WRITE */
+
+    *num_compression_filters = nfilters;
+    return 0;
+}
+
 int
 main(int argc, char **argv)
 {
@@ -524,15 +554,22 @@ main(int argc, char **argv)
     double *lon = NULL;
     double *lat = NULL;
     float *value_data;
-    int deflate_level[NUM_DEFLATE_LEVELS] = {1, 4, 9};
+
+    /* Compression filter info. */
+    int num_compression_filters;
 
     int f, s, u;
     int i, j, k, dv, dl;
+    int ret;
 
     /* Initialize MPI. */
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+
+    /* Determine what compression filters are present. */
+    if ((ret = find_filters(&num_compression_filters, compression_filter_name, deflate_level)))
+        return ret;       
 
     /* Determine 4D data decomposition to write data vars. */
     if (decomp_4D(my_rank, mpi_size, dim_len, data_start, data_count)) ERR;
@@ -548,42 +585,60 @@ main(int argc, char **argv)
     /* Decompose phalf and pfull. */
     if (decomp_p(my_rank, mpi_size, data_count, dim_len, &phalf_start,
 		 &phalf_size, &phalf, &pfull_start, &pfull_size, &pfull)) ERR;
+
+    /* printf("%d: data_count[3] %ld data_count[2] %ld data_count[1] %ld\n", my_rank, */
+    /*        data_count[3], data_count[2], data_count[1]); */
     
     /* Allocate space to hold the data. */
     if (!(value_data = malloc(data_count[3] * data_count[2] * data_count[1] *
 			      sizeof(float)))) ERR;
 
     /* Create some data. */
+    size_t cnt = 0;
     for (k = 0; k < data_count[1]; k++)
+    {
     	for (j = 0; j < data_count[2]; j++)
+        {
     	    for(i = 0; i < data_count[3]; i++)
-                value_data[j * data_count[3] + i] = my_rank * 100 + i + j + k;
+            {
+                value_data[cnt] = my_rank * 1000 + cnt / sqrt(my_rank + cnt + 1);
+                /* printf("%d: value_data[%ld] %g\n", my_rank, cnt, value_data[cnt]); */
+                cnt++;
+            }
+        }
+    }
 
     if (my_rank == 0)
     {
-        printf("Benchmarking creation of UFS file.\n");
+        printf("Benchmarking creation of file similar to one produced by the UFS.\n");
         printf("unlim, comp, level, shuffle, meta wr time (s), data wr rate (MB/s), "
 	       "file size (MB)\n");
     }
     for (u = 0; u < NUM_UNLIM_TRIES; u++)
     {
-	for (f = 0; f < NUM_COMPRESSION_FILTERS; f++)
+	for (f = 0; f < num_compression_filters; f++)
 	{
 	    for (s = 0; s < NUM_SHUFFLE_SETTINGS; s++)
 	    {
 		for (dl = 0; dl < NUM_DEFLATE_LEVELS; dl++)
 		{
 		    size_t file_size;
+                    char file_name[NC_MAX_NAME * 3 + 1];
 
-		    /* No deflate levels for szip. */
-		    if (f && dl) continue;
+		    /* No deflate levels for szip or none. */
+                    if (!strcmp(compression_filter_name[f], "szip") && dl) continue;
+                    if (!strcmp(compression_filter_name[f], "none") && dl) continue;
+
+                    /* Use the same filename every time, so we don't
+                     * create many large files, just one. ;-) */
+                    sprintf(file_name, "%s.nc", TEST_NAME);
 
 		    /* nc_set_log_level(3); */
 		    /* Create a parallel netcdf-4 file. */
 		    meta_start_time = MPI_Wtime();
-		    if (nc_create_par(FILE_NAME, NC_NETCDF4, comm, info,
+		    if (nc_create_par(file_name, NC_NETCDF4, comm, info,
 				      &ncid)) ERR;
-		    if (write_meta(ncid, data_varid, s, f, deflate_level[dl], u,
+		    if (write_meta(ncid, data_varid, s, f, deflate_level[f][dl], u,
 				   phalf_size, phalf_start, phalf,
 				   data_start, data_count, pfull_start, pfull_size, pfull, grid_xt_start,
 				   grid_xt_size, grid_xt, grid_yt_start,
@@ -598,8 +653,11 @@ main(int argc, char **argv)
 		    /* Write one record each of the data variables. */
 		    for (dv = 0; dv < NUM_DATA_VARS; dv++)
 		    {
-			if (nc_put_vara_float(ncid, data_varid[dv], data_start,
-					      data_count, value_data)) ERR;
+                        /* printf("%d: data_start %ld %ld %ld %ld data_count %ld %ld %ld %ld\n", my_rank, data_start[0], data_start[1], */
+                        /*        data_start[2], data_start[3], data_count[0], data_count[1], data_count[2], data_count[3]); */
+                        /* MPI_Barrier(MPI_COMM_WORLD); */
+                        if (nc_put_vara_float(ncid, data_varid[dv], data_start, data_count,
+                                              value_data)) ERR;
 			if (nc_redef(ncid)) ERR;
 		    }
 
@@ -611,28 +669,29 @@ main(int argc, char **argv)
 		    data_stop_time = MPI_Wtime();
 
 		    /* Get the file size. */
-		    if (get_file_size(FILE_NAME, &file_size)) ERR;
+		    if (get_file_size(file_name, &file_size)) ERR;
 
 		    /* Check the file metadata for correctness. */
-		    if (nc_open_par(FILE_NAME, NC_NOWRITE, comm, info, &ncid)) ERR;
-		    if (check_meta(ncid, data_varid, s, f, deflate_level[dl], u,
-				   phalf_size, phalf_start, phalf,
-				   data_start, data_count, pfull_start, pfull_size,
-				   pfull, grid_xt_start, grid_xt_size, grid_xt,
-				   grid_yt_start, grid_yt_size, grid_yt, latlon_start,
-				   latlon_count, lat, lon, my_rank)) ERR;
+		    if (nc_open_par(file_name, NC_NOWRITE, comm, info, &ncid)) ERR;
+		    if (check_meta(ncid, data_varid, s, f, deflate_level[f][dl], u,
+		        	   phalf_size, phalf_start, phalf,
+		        	   data_start, data_count, pfull_start, pfull_size,
+		        	   pfull, grid_xt_start, grid_xt_size, grid_xt,
+		        	   grid_yt_start, grid_yt_size, grid_yt, latlon_start,
+		        	   latlon_count, lat, lon, my_rank)) ERR;
 		    if (nc_close(ncid)) ERR;
 
 		    /* Print out results. */
 		    if (my_rank == 0)
 		    {
 			float data_size, data_rate;
-			data_size = NUM_DATA_VARS * dim_len[0] * dim_len[1] *
-			    dim_len[3] * sizeof(float)/1000000;
+			data_size = (NUM_DATA_VARS * dim_len[0] * dim_len[1] * dim_len[2] *
+                                     dim_len[4] * sizeof(float))/MILLION;
+                        /* printf("data_size %f (data_stop_time - data_start_time) %g\n", data_size, (data_stop_time - data_start_time)); */
 			data_rate = data_size / (data_stop_time - data_start_time);
-			printf("%d %s, %d, %d, %g, %g, %g\n", u, (f ? "szip" : "zlib"),
-			       deflate_level[dl], s, meta_stop_time - meta_start_time,
-			       data_rate, (float)file_size/1000000);
+			printf("%d, %s, %d, %d, %g, %g, %g\n", u, compression_filter_name[f],
+			       deflate_level[f][dl], s, meta_stop_time - meta_start_time,
+			       data_rate, (float)file_size/MILLION);
 		    }
 		    MPI_Barrier(MPI_COMM_WORLD);
 		} /* next deflate level */
