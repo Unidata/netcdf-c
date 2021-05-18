@@ -203,6 +203,9 @@ else
 fi
 # Restore the filter code
 unhidebzip2
+# Verify we can see filter when using -h
+rm -f ./tst_filter.txt
+${NCDUMP} -hs bzip2.nc > ./tst_filter.txt
 echo "*** Pass: unknown filter"
 fi
 
