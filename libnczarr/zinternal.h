@@ -225,6 +225,7 @@ int ncz_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 /* The NC_VAR_INFO_T->filters field is an NClist of this struct */
 struct NCZ_Filter {
     int flags;             /**< Flags describing state of this filter. */
+#define NCZ_FILTER_MISSING 1 /* Signal filter implementation is not available */
     unsigned int filterid; /**< ID for arbitrary filter. */
     size_t nparams;        /**< nparams for arbitrary filter. */
     unsigned int* params;  /**< Params for arbitrary filter. */
