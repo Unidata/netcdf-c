@@ -26,7 +26,7 @@
 #include <unistd.h>
 #endif
 #endif
-#ifdef _MSC_VER
+#ifdef _WIN32
 #include <malloc.h>
 #endif
 

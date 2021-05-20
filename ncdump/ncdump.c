@@ -8,7 +8,7 @@ Research/Unidata. See \ref copyright file for more info.  */
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
-#ifdef _MSC_VER
+#ifdef _WIN32
 #include "XGetopt.h"
 #define snprintf _snprintf
 #endif
