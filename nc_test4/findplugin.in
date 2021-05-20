@@ -27,14 +27,8 @@ FP_NAME="$1"
 # Figure out the compiler (some values from ./configure)
 FP_ISCMAKE=@ISCMAKE@
 FP_ISMSVC=@ISMSVC@
-
-# Are we operating under OS-X? (test using uname)
-FP_OS=`uname | cut -d '_'  -f 1`
-if test "x$FP_OS" = xDarwin ; then FP_ISOSX=1; fi
-
-# Are we operating under CYGWIN? (test using uname)
-FP_OS=`uname | cut -d '_'  -f 1`
-if test "x$FP_OS" = xCYGWIN ; then FP_ISCYGWIN=1; fi
+FP_ISCYGWIN=@ISCYGWIN@
+FP_ISOSX=@ISOSX@
 
 FP_PLUGINS="$TOPBUILDDIR/plugins"
 
