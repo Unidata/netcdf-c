@@ -3,7 +3,6 @@
 if test "x$srcdir" = "x"; then srcdir=`dirname $0`; fi
 export srcdir;
 
-if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
 . ../test_common.sh
 
 . ${srcdir}/d4test_common.sh
@@ -30,15 +29,7 @@ setresultdir results_test_hyrax
 
 if test "x${RESET}" = x1 ; then rm -fr ${BASELINEH}/*.hyrax ; fi
 for f in $F ; do
-    constraint=`echo "$f" | cut -d '?' -f2`
-    unconstrained=`echo "$f" | cut -d '?' -f1`
-    base=`basename $unconstrained`
-    prefix=`dirname $unconstrained`
-    if test "x$constraint" = "x$unconstrained" ; then
-        URL="dap4://test.opendap.org:8080/opendap/${prefix}/${base}${FRAG}"
-    else
-	URL="dap4://test.opendap.org:8080/opendap/${prefix}/${base}?$constraint${FRAG}"
-    fi
+    makeurl "dap4://test.opendap.org/opendap" "$f"
     echo "testing: $URL"
     if ! ${NCDUMP} "${URL}" > ./results_test_hyrax/${base}.hyrax; then
         failure "${URL}"

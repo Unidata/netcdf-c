@@ -96,18 +96,25 @@ done:
 */
 
 NCD4meta*
-NCD4_newmeta(NCD4INFO* info, size_t rawsize, void* rawdata)
+NCD4_newmeta(NCD4INFO* info)
 {
     NCD4meta* meta = (NCD4meta*)calloc(1,sizeof(NCD4meta));
     if(meta == NULL) return NULL;
     meta->allnodes = nclistnew();
-    NCD4_resetSerial(&meta->serial,rawsize,rawdata);
 #ifdef D4DEBUG
     meta->debuglevel = 1;
 #endif
     meta->controller = info;
     meta->ncid = info->substrate.nc4id; /* Transfer netcdf ncid */
     return meta;
+}
+
+/* Attach raw data to metadata */
+void
+NCD4_attachraw(NCD4meta* meta, size_t rawsize, void* rawdata)
+{
+    assert(meta != NULL);
+    NCD4_resetSerial(&meta->serial,rawsize,rawdata);
 }
 
 void
