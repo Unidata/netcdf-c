@@ -166,7 +166,7 @@ static struct NCPROTOCOLLIST {
     {"file",NULL,NULL},
     {"dods","http","dap2"},
     {"dap4","http","dap4"},
-    {"s3","http","s3"},
+    {"s3","https","s3"},
     {NULL,NULL,NULL} /* Terminate search */
 };
 
