@@ -23,7 +23,7 @@ LDADD = ${top_builddir}/liblib/libnetcdf.la
 check_PROGRAMS =
 TESTS =
 
-check_PROGRAMS += ut_map ut_mapapi ut_json ut_projections ut_chunking 
+check_PROGRAMS += ut_map ut_mapapi ut_json ut_projections ut_chunking
 
 commonsrc = ut_util.c ut_test.c ut_includes.h ut_test.h ut_util.h test_nczarr_utils.h
 tstcommonsrc = tst_utils.c tst_utils.h
@@ -62,7 +62,7 @@ TESTS += run_misc.sh
 endif
 
 if BUILD_BENCHMARKS
-if BUILD_UTILITIES 
+if BUILD_UTILITIES
 
 UTILSRC = bm_utils.c timer_utils.c tst_utils.c
 
@@ -126,3 +126,4 @@ clean-local:
 	rm -fr tmp*.file results.file results.s3 results.zip
 	rm -fr power_901_constants.file
 	rm -fr rcmiscdir
+	rm -rf ref_power_901_constants.file
