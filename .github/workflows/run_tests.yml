@@ -149,9 +149,10 @@ jobs:
         run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check -j
         if: ${{ success() }}
 
-      #- name: Make Distcheck
-      #  shell: bash -l {0}
-      #  run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make distcheck -j
+      - name: Make Distcheck
+        shell: bash -l {0}
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make distcheck -j
+        if: ${{ success() }}
 
   nc-cmake:
 
