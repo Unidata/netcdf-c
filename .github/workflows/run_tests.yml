@@ -151,7 +151,7 @@ jobs:
 
       - name: Make Distcheck
         shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} DISTCHECK_CONFIGURE_FLAGS="${ENABLE_HDF4} ${ENABLE_NC4} ${ENABLE_DAP} ${ENABLE_NCZARR}" make distcheck -j
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} DISTCHECK_CONFIGURE_FLAGS="${ENABLE_HDF4} ${ENABLE_NC4} ${ENABLE_DAP} ${ENABLE_NCZARR}" make distcheck
         if: ${{ success() }}
 
   nc-cmake:
