@@ -114,10 +114,8 @@ ref_skip.cdl ref_skip.txt ref_skipw.cdl \
 ref_rem.cdl ref_rem.dmp ref_ndims.cdl  ref_ndims.dmp \
 ref_misc1.cdl ref_misc1.dmp ref_misc2.cdl \
 ref_avail1.cdl ref_avail1.dmp ref_avail1.txt \
-ref_xarray.cdl ref_purezarr.cdl ref_purezarr_base.cdl ref_nczarr2zarr.cdl
-
-# Interoperability files
-EXTRA_DIST += ref_power_901_constants.zip ref_power_901_constants.cdl ref_quotes.zip ref_quotes.cdl
+ref_xarray.cdl ref_purezarr.cdl ref_purezarr_base.cdl ref_nczarr2zarr.cdl \
+ref_power_901_constants.zip ref_power_901_constants.cdl ref_quotes.zip ref_quotes.cdl
 
 CLEANFILES = ut_*.txt ut*.cdl tmp*.nc tmp*.cdl tmp*.txt tmp*.dmp tmp*.zip tmp*.nc
 
