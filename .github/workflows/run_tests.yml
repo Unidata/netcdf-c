@@ -84,12 +84,10 @@ jobs:
       - run: |
           echo "ENABLE_HDF4=--disable-hdf4" >> $GITHUB_ENV
           echo "ENABLE_NC4=--disable-hdf5" >> $GITHUB_ENV
-          echo "ENABLE_NC4=--disable-netcdf-4" >> $GITHUB_ENV
         if: matrix.use_nc4 == 'nc3'
       - run: |
           echo "ENABLE_HDF4=--enable-hdf4" >> $GITHUB_ENV
           echo "ENABLE_NC4=--enable-hdf5" >> $GITHUB_ENV
-          echo "ENABLE_NC4=--enable-netcdf-4" >> $GITHUB_ENV
         if: matrix.use_nc4 == 'nc4'
       - run: echo "ENABLE_DAP=--disable-dap" >> $GITHUB_ENV
         if: matrix.use_dap == 'dap_off'
