@@ -102,6 +102,9 @@ EXTERNL int NChasdriveletter(const char* path);
 /* Canonicalize and make absolute by prefixing the current working directory */
 EXTERNL char* NCpathabsolute(const char* name);
 
+/* Check if this path appears to start with a windows drive letter */
+EXTERNL int NChasdriveletter(const char* path);
+
 /* Convert from the local coding (e.g. ANSI) to utf-8;
    note that this can produce unexpected results for Windows
    because it first converts to wide character and then to utf8. */
