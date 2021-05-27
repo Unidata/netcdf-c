@@ -11,7 +11,7 @@ x *      Copyright 2018, University Corporation for Atmospheric Research
 #include <getopt.h>
 #endif
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 #include "XGetopt.h"
 #endif
 
