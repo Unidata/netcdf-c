@@ -23,16 +23,16 @@ extern NCZMAP_DS_API zmap_s3sdk;
 
 /**************************************************/
 
-NCZM_PROPERTIES
-nczmap_properties(NCZM_IMPL impl)
+NCZM_FEATURES
+nczmap_features(NCZM_IMPL impl)
 {
     switch (impl) {
-    case NCZM_FILE: return zmap_file.properties;
+    case NCZM_FILE: return zmap_file.features;
 #ifdef ENABLE_NCZARR_ZIP
-    case NCZM_ZIP: return zmap_zip.properties;
+    case NCZM_ZIP: return zmap_zip.features;
 #endif
 #ifdef ENABLE_S3_SDK
-    case NCZM_S3: return zmap_s3sdk.properties;
+    case NCZM_S3: return zmap_s3sdk.features;
 #endif
     default: break;
     }
@@ -154,10 +154,27 @@ nczmap_write(NCZMAP* map, const char* key, size64_t start, size64_t count, const
     return map->api->write(map, key, start, count, content);
 }
 
+/* Define a static qsort comparator for strings for use with qsort */
+static int
+cmp_strings(const void* a1, const void* a2)
+{
+    const char** s1 = (const char**)a1;
+    const char** s2 = (const char**)a2;
+    return strcmp(*s1,*s2);
+}
+
 int
 nczmap_search(NCZMAP* map, const char* prefix, NClist* matches)
 {
-    return map->api->search(map, prefix, matches);
+    int stat = NC_NOERR;
+    if((stat = map->api->search(map, prefix, matches)) == NC_NOERR) {
+        /* sort the list */
+        if(nclistlength(matches) > 1) {
+	    void* base = nclistcontents(matches);
+            qsort(base, nclistlength(matches), sizeof(char*), cmp_strings);
+	}
+    }
+    return stat;
 }
 
 /**************************************************/
@@ -360,13 +377,16 @@ nczm_localize(const char* path, char** localpathp, int localize)
     char* p;
     int forward = 1;
     int offset = 0;
+    static const char* windrive = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 #ifdef _MSC_VER
     forward = (localize?0:1);
 #endif
     /* If path comes from a url, then it may start with: /x:/...
        where x is a drive letter. If so, then remove leading / */
-    if(path[0] == '/' && NChasdriveletter(path+1))
+    if(strlen(path) >= 4
+       && path[0] == '/' && strchr(windrive,path[1]) != NULL
+       && path[2] == ':' && path[3] == '/')
 	offset = 1;
     if((localpath = strdup(path+offset))==NULL) return NC_ENOMEM;
 
@@ -437,6 +457,28 @@ done:
 }
 
 /*
+Extract the last segment from path.
+*/
+
+int
+nczm_lastsegment(const char* path, char** lastp)
+{
+    int ret = NC_NOERR;
+    const char* last = NULL;
+
+    if(path == NULL)
+	{if(lastp) *lastp = NULL; goto done;}
+
+    last = strrchr(path,'/');
+    if(last == NULL) last = path; else last++;
+
+    if(lastp) *lastp = strdup(last);
+
+done:
+    return THROW(ret);    
+}
+
+/*
 Extract the basename from a path.
 Basename is last segment minus one extension.
 */
@@ -444,30 +486,27 @@ Basename is last segment minus one extension.
 int
 nczm_basename(const char* path, char** basep)
 {
-    int ret = NC_NOERR;
+    int stat = NC_NOERR;
     char* base = NULL;
+    char* last = NULL;
     const char* p = NULL;
-    const char* q = NULL;
     ptrdiff_t delta;
 
-    if(path == NULL) 
-	{base = NULL; goto done;}
+    if((stat=nczm_lastsegment(path,&last))) goto done;
 
-    p = strrchr(path,'/');
-    if(p == NULL) p = path; else p++;
-    q = strrchr(p,'.');
-    if(q == NULL) q = p + strlen(p);
-    
-    delta = (q-p);
+    if(last == NULL) goto done;
+    p = strrchr(last,'.');
+    if(p == NULL) p = last+strlen(last);
+    delta = (p - last);
     if((base = (char*)malloc(delta+1))==NULL)
-        {ret = NC_ENOMEM; goto done;}
-    memcpy(base,p,delta);
+        {stat = NC_ENOMEM; goto done;}
+    memcpy(base,last,delta);
     base[delta] = '\0';
-
     if(basep) {*basep = base; base = NULL;}
 done:
+    nullfree(last);
     nullfree(base);
-    return THROW(ret);    
+    return THROW(stat);    
 }
 
 /* bubble sort a list of strings */

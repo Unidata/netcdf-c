@@ -13,7 +13,8 @@
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
-#ifdef _WIN32
+
+#if defined(_WIN32) && !defined(__MINGW32__)
 #include "XGetopt.h"
 #endif
 
@@ -163,7 +164,7 @@ main(int argc, char** argv)
 	    dumpoptions.nctype = typefor(optarg);
 	    break;
 	case 'u': {
- 	        char* p = NC_backslashUnescape(optarg);
+ 	        char* p = NC_shellUnescape(optarg);
 		ncuriparse(p,&dumpoptions.url);
 		nullfree(p);
 		if(dumpoptions.url == NULL) {

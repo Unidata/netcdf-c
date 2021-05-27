@@ -164,6 +164,37 @@ NC_entityescape(const char* s)
     return escaped;
 }
 
+char*
+/*
+Depending on the platform, the shell will sometimes
+pass an escaped octotherpe character without removing
+the backslash. So this function is appropriate to be called
+on possible url paths to unescape such cases. See e.g. ncgen.
+*/
+NC_shellUnescape(const char* esc)
+{
+    size_t len;
+    char* s;
+    const char* p;
+    char* q;
+
+    if(esc == NULL) return NULL;
+    len = strlen(esc);
+    s = (char*)malloc(len+1);
+    if(s == NULL) return NULL;
+    for(p=esc,q=s;*p;) {
+	switch (*p) {
+	case '\\':
+	     if(p[1] == '#')
+	         p++;
+	     /* fall thru */
+	default: *q++ = *p++; break;
+	}
+    }
+    *q = '\0';
+    return s;
+}
+
 /**
 Wrap mktmp and return the generated path,
 or null if failed.
@@ -371,3 +402,4 @@ int isnan(double x)
 }
 
 #endif /*APPLE*/
+

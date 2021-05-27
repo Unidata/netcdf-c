@@ -23,7 +23,7 @@ struct ZCVT {
 };
 
 int
-NCZ_convert1(NCjson* jsrc, nc_type dsttype, char* memory)
+NCZ_convert1(NCjson* jsrc, nc_type dsttype, unsigned char* memory)
 {
     int stat = NC_NOERR;
     nc_type srctype;
@@ -234,14 +234,14 @@ done:
 }
 
 int
-NCZ_stringconvert1(nc_type srctype, char* src, char** strp)
+NCZ_stringconvert1(nc_type srctype, unsigned char* src, char** strp)
 {
     int stat = NC_NOERR;
     struct ZCVT zcvt;
     nc_type dsttype = NC_NAT;
     char s[1024];
 
-    assert(srctype >= NC_NAT && srctype != NC_CHAR && srctype < NC_STRING);
+    assert(srctype >= NC_NAT && srctype != NC_CHAR && srctype < NC_STRING);    
     /* Convert to a restricted set of values */
     switch (srctype) {
     case NC_BYTE: {
