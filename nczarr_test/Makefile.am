@@ -23,7 +23,7 @@ LDADD = ${top_builddir}/liblib/libnetcdf.la
 check_PROGRAMS =
 TESTS =
 
-check_PROGRAMS += ut_map ut_mapapi ut_json ut_projections ut_chunking 
+check_PROGRAMS += ut_map ut_mapapi ut_json ut_projections ut_chunking
 
 commonsrc = ut_util.c ut_test.c ut_includes.h ut_test.h ut_util.h test_nczarr_utils.h
 tstcommonsrc = tst_utils.c tst_utils.h
@@ -44,21 +44,25 @@ TESTS += run_ut_chunk.sh
 
 if BUILD_UTILITIES
 
+TESTS += run_ncgen4.sh
+
 if USE_HDF5
 TESTS += run_nccopyz.sh
 TESTS += run_fillonlyz.sh
 endif
 
-TESTS += run_ncgen4.sh
-
 check_PROGRAMS += tst_chunkcases
 tst_chunkcases_SOURCES = tst_chunkcases.c ${tstcommonsrc}
 TESTS += run_chunkcases.sh
 
+TESTS += run_purezarr.sh
+TESTS += run_interop.sh
+TESTS += run_misc.sh
+
 endif
 
 if BUILD_BENCHMARKS
-if BUILD_UTILITIES 
+if BUILD_UTILITIES
 
 UTILSRC = bm_utils.c timer_utils.c tst_utils.c
 
@@ -97,6 +101,7 @@ ncdumpchunks_SOURCES = ncdumpchunks.c
 EXTRA_DIST = CMakeLists.txt \
 run_ut_map.sh run_ut_mapapi.sh run_ut_misc.sh run_ut_chunk.sh run_ncgen4.sh \
 run_nccopyz.sh run_fillonlyz.sh run_chunkcases.sh test_nczarr.sh run_perf_chunks1.sh run_s3_cleanup.sh \
+run_purezarr.sh run_interop.sh run_misc.sh  \
 ref_ut_map_create.cdl ref_ut_map_writedata.cdl ref_ut_map_writemeta2.cdl ref_ut_map_writemeta.cdl \
 ref_ut_map_readmeta.txt ref_ut_map_readmeta2.txt ref_ut_map_search.txt \
 ref_ut_mapapi_create.cdl ref_ut_mapapi_data.cdl ref_ut_mapapi_meta.cdl ref_ut_mapapi_search.txt \
@@ -107,11 +112,16 @@ ref_perdimspecs.cdl ref_fillonly.cdl \
 ref_whole.cdl ref_whole.txt \
 ref_skip.cdl ref_skip.txt ref_skipw.cdl \
 ref_rem.cdl ref_rem.dmp ref_ndims.cdl  ref_ndims.dmp \
-ref_misc1.cdl ref_misc1.dmp \
-ref_avail1.cdl ref_avail1.dmp ref_avail1.txt
+ref_misc1.cdl ref_misc1.dmp ref_misc2.cdl \
+ref_avail1.cdl ref_avail1.dmp ref_avail1.txt \
+ref_xarray.cdl ref_purezarr.cdl ref_purezarr_base.cdl ref_nczarr2zarr.cdl \
+ref_power_901_constants.zip ref_power_901_constants.cdl ref_quotes.zip ref_quotes.cdl
 
 CLEANFILES = ut_*.txt ut*.cdl tmp*.nc tmp*.cdl tmp*.txt tmp*.dmp tmp*.zip tmp*.nc
 
 # Remove directories
 clean-local:
 	rm -fr tmp*.file results.file results.s3 results.zip
+	rm -fr power_901_constants.file
+	rm -fr rcmiscdir
+	rm -rf ref_power_901_constants.file

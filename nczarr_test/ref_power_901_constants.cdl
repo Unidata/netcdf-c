@@ -1,0 +1,38 @@
+netcdf ref_power_901_constants {
+dimensions:
+	lat = 361 ;
+	lon = 576 ;
+variables:
+	float FRLAKE(lat, lon) ;
+		FRLAKE:fmissing_value = 999999986991104. ;
+		FRLAKE:long_name = "fraction_of_lake" ;
+		FRLAKE:standard_name = "fraction_of_lake" ;
+		FRLAKE:units = "1" ;
+		FRLAKE:valid_range = -999999986991104., 999999986991104. ;
+		FRLAKE:vmax = 999999986991104. ;
+		FRLAKE:vmin = -999999986991104. ;
+	float FRLAND(lat, lon) ;
+		FRLAND:fmissing_value = 999999986991104. ;
+		FRLAND:long_name = "fraction_of_land" ;
+		FRLAND:standard_name = "fraction_of_land" ;
+		FRLAND:units = "1" ;
+		FRLAND:valid_range = -999999986991104., 999999986991104. ;
+		FRLAND:vmax = 999999986991104. ;
+		FRLAND:vmin = -999999986991104. ;
+	float FRLANDICE(lat, lon) ;
+		FRLANDICE:fmissing_value = 999999986991104. ;
+		FRLANDICE:long_name = "fraction_of_land_ice" ;
+		FRLANDICE:standard_name = "fraction_of_land_ice" ;
+		FRLANDICE:units = "1" ;
+		FRLANDICE:valid_range = -999999986991104., 999999986991104. ;
+		FRLANDICE:vmax = 999999986991104. ;
+		FRLANDICE:vmin = -999999986991104. ;
+	float FROCEAN(lat, lon) ;
+		FROCEAN:fmissing_value = 999999986991104. ;
+		FROCEAN:long_name = "fraction_of_ocean" ;
+		FROCEAN:standard_name = "fraction_of_ocean" ;
+		FROCEAN:units = "1" ;
+		FROCEAN:valid_range = -999999986991104., 999999986991104. ;
+		FROCEAN:vmax = 999999986991104. ;
+		FROCEAN:vmin = -999999986991104. ;
+}

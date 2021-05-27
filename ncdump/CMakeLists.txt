@@ -111,9 +111,12 @@ IF(ENABLE_TESTS)
   ADD_EXECUTABLE(bom bom.c)
   ADD_EXECUTABLE(tst_dimsizes tst_dimsizes.c)
   ADD_EXECUTABLE(nctrunc nctrunc.c)
+  ADD_EXECUTABLE(tst_rcmerge tst_rcmerge.c)
   TARGET_LINK_LIBRARIES(rewrite-scalar netcdf)
   TARGET_LINK_LIBRARIES(bom netcdf)
   TARGET_LINK_LIBRARIES(tst_dimsizes netcdf)
+  TARGET_LINK_LIBRARIES(nctrunc netcdf)
+  TARGET_LINK_LIBRARIES(tst_rcmerge netcdf)
 
   IF(USE_HDF5)
     ADD_EXECUTABLE(tst_fileinfo tst_fileinfo.c)
@@ -147,6 +150,13 @@ IF(ENABLE_TESTS)
     SET_TARGET_PROPERTIES(nctrunc PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG
       ${CMAKE_CURRENT_BINARY_DIR})
     SET_TARGET_PROPERTIES(nctrunc PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
+      ${CMAKE_CURRENT_BINARY_DIR})
+
+    SET_TARGET_PROPERTIES(tst_rcmerge PROPERTIES RUNTIME_OUTPUT_DIRECTORY
+      ${CMAKE_CURRENT_BINARY_DIR})
+    SET_TARGET_PROPERTIES(tst_rcmerge PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG
+      ${CMAKE_CURRENT_BINARY_DIR})
+    SET_TARGET_PROPERTIES(tst_rcmerge PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
       ${CMAKE_CURRENT_BINARY_DIR})
 
     IF(USE_HDF5)
@@ -317,9 +327,13 @@ IF(ENABLE_TESTS)
   add_sh_test(ncdump test_keywords)
   ENDIF()
 
+
   IF(USE_HDF5)
   add_sh_test(ncdump test_scope)
   ENDIF()
+
+  add_sh_test(ncdump test_rcmerge)
+
 
 ENDIF(ENABLE_TESTS)
 

@@ -14,6 +14,9 @@
 #ifdef HAVE_DIRENT_H
 #include <dirent.h>
 #endif
+#ifdef HAVE_SYS_STAT_H
+#include <sys/stat.h>
+#endif
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
@@ -120,8 +123,7 @@ EXTERNL int NCaccess(const char* path, int mode);
 EXTERNL int NCremove(const char* path);
 EXTERNL int NCmkdir(const char* path, int mode);
 EXTERNL int NCrmdir(const char* path);
-EXTERNL char* NCcwd(char* cwdbuf, size_t len);
-EXTERNL char* NCcwd(char* cwdbuf, size_t len);
+EXTERNL char* NCgetcwd(char* cwdbuf, size_t len);
 #ifdef HAVE_SYS_STAT_H
 EXTERNL int NCstat(char* path, struct stat* buf);
 #endif
@@ -137,11 +139,11 @@ EXTERNL int NCclosedir(DIR* ent);
 #define NCaccess(path,mode) access(path,mode)
 #define NCmkdir(path,mode) mkdir(path,mode)
 #define NCgetcwd(buf,len) getcwd(buf,len)
+#define NCcwd(buf, len) getcwd(buf,len)
+#define NCrmdir(path) rmdir(path)
 #ifdef HAVE_SYS_STAT_H
 #define NCstat(path,buf) stat(path,buf)
 #endif
-#define NCcwd(buf, len) getcwd(buf,len)
-#define NCrmdir(path) rmdir(path)
 #ifdef HAVE_DIRENT_H
 #define NCopendir(path) opendir(path)
 #define NCclosedir(ent) closedir(ent)
@@ -171,5 +173,6 @@ EXTERNL void printutf8hex(const char* s, char* sx);
 /* From dutil.c */
 EXTERNL char* NC_backslashEscape(const char* s);
 EXTERNL char* NC_backslashUnescape(const char* esc);
+EXTERNL char* NC_shellUnescape(const char* esc);
 
 #endif /* _NCPATHMGR_H_ */

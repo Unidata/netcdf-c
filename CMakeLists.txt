@@ -727,7 +727,7 @@ IF(USE_HDF5)
   ENDIF()
 
   #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip library.
-  set (CMAKE_REQUIRED_INCLUDES ${HAVE_HDF5_H})
+  set (CMAKE_REQUIRED_INCLUDES ${HDF5_INCLUDE_DIR})
   CHECK_C_SOURCE_COMPILES("#include <H5public.h>
    #if !H5_HAVE_FILTER_SZIP
    #error
@@ -781,8 +781,9 @@ IF(USE_HDF5)
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Literate "" HAVE_H5Literate)
 
   IF(NOT HAVE_H5Literate)
+  set (CMAKE_REQUIRED_INCLUDES ${HDF5_INCLUDE_DIR})
   CHECK_C_SOURCE_COMPILES("#include <H5public.h>
-   #if !(H5Literate_vers == 1)
+   #if !defined H5Literate_vers
    #error
    #endif
    int main() {int x = 1;}" HAVE_H5Literate_Macro)
@@ -1071,11 +1072,14 @@ IF(NOT FOUND_CURL)
   ENDIF()
 
   IF(ENABLE_DAP2 OR ENABLE_DAP4)
-    MESSAGE(FATAL_ERROR "DAP support specified, CURL libraries are not found.")
+    MESSAGE(WARNING "CURL libraries are not found; DAP support disabled")
+    SET(ENABLE_DAP2 OFF CACHE BOOL "Use DAP2" FORCE)
+    SET(ENABLE_DAP4 OFF CACHE BOOL "Use DAP4" FORCE)
   ENDIF()
 
   IF(ENABLE_HDF5_ROS3)
-    MESSAGE(FATAL_ERROR "ROS3 support specified, CURL libraries are not found.")
+    MESSAGE(WARNING "CURL libraries are not found; ROS3 support disabled.")
+    SET(ENABLE_HDF5_ROS3 OFF CACHE BOOL "Use ROS3" FORCE)
   ENDIF()
 
   IF(ENABLE_NCZARR_S3)
@@ -2185,7 +2189,7 @@ is_enabled(STATUS_PNETCDF HAS_PNETCDF)
 is_enabled(STATUS_PARALLEL HAS_PARALLEL)
 is_enabled(ENABLE_PARALLEL4 HAS_PARALLEL4)
 is_enabled(ENABLE_DAP HAS_DAP)
-is_enabled(ENABLE_DAP HAS_DAP2)
+is_enabled(ENABLE_DAP2 HAS_DAP2)
 is_enabled(ENABLE_DAP4 HAS_DAP4)
 is_enabled(ENABLE_BYTERANGE HAS_BYTERANGE)
 is_enabled(ENABLE_DISKLESS HAS_DISKLESS)

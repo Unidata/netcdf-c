@@ -11,7 +11,7 @@ x *      Copyright 2018, University Corporation for Atmospheric Research
 #include <getopt.h>
 #endif
 
-#ifdef _MSC_VER
+#if defined(_WIN32) && !defined(__MINGW32__)
 #include "XGetopt.h"
 #endif
 
@@ -107,6 +107,7 @@ done:
     return THROW(stat);
 }
 
+#if 0
 static void
 getpathcwd(char** cwdp)
 {
@@ -114,15 +115,14 @@ getpathcwd(char** cwdp)
     (void)NCgetcwd(buf,sizeof(buf));
     if(cwdp) *cwdp = strdup(buf);
 }
+#endif
 
 static void
 canonicalfile(char** fp)
 {
-    size_t len, len2, offset;
+    size_t len;
     char* f = NULL;
     char* abspath = NULL;
-    char* p = NULL;
-    char* cwd = NULL;
     NCURI* uri = NULL;
 #ifdef _WIN32
     int fwin32=0, cwd32=0;
