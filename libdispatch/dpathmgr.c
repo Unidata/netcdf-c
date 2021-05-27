@@ -356,10 +356,7 @@ int
 NCclosedir(DIR* ent)
 {
     int stat = NC_NOERR;
-    char* cvtname = NCpathcvt(path);
-    if(cvtname == NULL) {errno = ENOENT; return -1;}
-    stat = closedir(cvtname);
-    free(cvtname);    
+    if(closedir(ent) < 0) stat = errno;
     return stat;
 }
 #endif
@@ -911,33 +908,3 @@ printutf8hex(const char* s, char* sx)
     }
     *q = '\0';
 }
-
-/**************************************************/
-#if 0
-#ifdef HAVE_DIRENT_H
-EXTERNL
-DIR*
-NCopendir(const char* path)
-{
-    DIR* ent = NULL;
-    char* cvtpath = NCpathcvt(path);
-    if(cvtpath == NULL) return -1;
-    ent = opendir(cvtpath);
-    free(cvtpath);    
-    return ent;
-}
-
-EXTERNL
-int
-NCclosedir(DIR* ent)
-{
-    int stat = 0;
-    char* cvtpath = NCpathcvt(path);
-    if(cvtpath == NULL) return -1;
-    stat = closedir(cvtpath);
-    free(cvtpath);    
-    return stat;
-}
-#endif
-#endif /*0*/
-

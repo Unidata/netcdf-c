@@ -12,7 +12,7 @@
 #include <getopt.h>
 #endif
 
-#ifdef _MSC_VER
+#if defined(_WIN32) && !defined(__MINGW32__)
 #include "XGetopt.h"
 #endif
 
@@ -351,7 +351,7 @@ main(
 	  break;
 	case 'o':		/* to explicitly specify output name */
 	  if(netcdf_name) efree(netcdf_name);
-	  netcdf_name = NC_backslashUnescape(optarg);
+	  netcdf_name = NC_shellUnescape(optarg);
 	  break;
 	case 'P': /* diskless with persistence */
 	  diskless = 1;
@@ -460,7 +460,7 @@ main(
 	}
     }
 
-    cdlname = NC_backslashUnescape(argv[0]);
+    cdlname = NC_shellUnescape(argv[0]);
     if(cdlname != NULL) {
 	if(strlen(cdlname) > NC_MAX_NAME)
 	  cdlname[NC_MAX_NAME] = '\0';
