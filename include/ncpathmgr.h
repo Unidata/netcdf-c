@@ -14,6 +14,9 @@
 #ifdef HAVE_DIRENT_H
 #include <dirent.h>
 #endif
+#ifdef HAVE_SYS_STAT_H
+#include <sys/stat.h>
+#endif
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
@@ -133,11 +136,11 @@ EXTERNL int NCclosedir(DIR* ent);
 #define NCaccess(path,mode) access(path,mode)
 #define NCmkdir(path,mode) mkdir(path,mode)
 #define NCgetcwd(buf,len) getcwd(buf,len)
+#define NCcwd(buf, len) getcwd(buf,len)
+#define NCrmdir(path) rmdir(path)
 #ifdef HAVE_SYS_STAT_H
 #define NCstat(path,buf) stat(path,buf)
 #endif
-#define NCcwd(buf, len) getcwd(buf,len)
-#define NCrmdir(path) rmdir(path)
 #ifdef HAVE_DIRENT_H
 #define NCopendir(path) opendir(path)
 #define NCclosedir(ent) closedir(ent)
