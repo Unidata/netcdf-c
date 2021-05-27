@@ -73,7 +73,7 @@ THIS SOFTWARE.
 #include <unistd.h>     /* read() getopt() */
 #endif
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 #include <io.h>
 #include "XGetopt.h"
 #define snprintf _snprintf
