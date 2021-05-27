@@ -318,7 +318,7 @@ NCJlex(NCJparser* parser)
 	    start = parser->pos;
 	    for(;;) {
 		c = *parser->pos++;
-		if(c == NCJ_ESCAPE) c++;
+		if(c == NCJ_ESCAPE) parser->pos++;
 		else if(c == NCJ_QUOTE || c == '\0') break;
 	    }
 	    if(c == '\0') {

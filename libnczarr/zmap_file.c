@@ -647,9 +647,11 @@ platformtestcontentbearing(ZFMAP* zfmap, const char* truepath)
 
     /* Localize */
     if((ret = nczm_localize(truepath,&local,LOCALIZE))) goto done;
-
+    
     errno = 0;
-    if((ret = stat(local, &buf)) < 0) {
+    ret = NCstat(local, &buf);
+    ZTRACEMORE(6,"stat: local=%s ret=%d, errno=%d st_mode=%d",local,ret,errno,buf.st_mode);
+    if(ret < 0) {
 	ret = platformerr(errno);
     } else if(S_ISDIR(buf.st_mode)) {
         ret = NC_EEMPTY;
@@ -926,7 +928,7 @@ platformdeleter(ZFMAP* zfmap, NClist* segments, int depth)
     if((path = NCpathcvt(tmp))==NULL) {ret = NC_ENOMEM; goto done;}
 
     errno = 0;
-    ret = stat(path, &statbuf);
+    ret = NCstat(path, &statbuf);
     if(ret < 0) {
         if(errno == ENOENT) {ret = NC_NOERR; goto done;}
 	else {ret = platformerr(errno); goto done;}
@@ -1184,7 +1186,7 @@ verify(const char* path, int isdir)
     ret = NCaccess(path,ACCESS_MODE_EXISTS);
     if(ret < 0)
         return 1; /* If it does not exist, then it can be anything */
-    ret = stat(path,&buf);
+    ret = NCstat(path,&buf);
     if(ret < 0) abort();
     if(isdir && S_ISDIR(buf.st_mode)) return 1;
     if(!isdir && S_ISREG(buf.st_mode)) return 1;           
@@ -1207,7 +1209,7 @@ testifdir(const char* path, int* isdirp, char** truepathp)
     if((truepath = NCpathcvt(tmp))==NULL) {ret = NC_ENOMEM; goto done;}
 
     errno = 0;
-    ret = stat(truepath, &statbuf);
+    ret = NCstat(truepath, &statbuf);
     if(ret < 0) {
         if(errno == ENOENT)
 	    ret = NC_ENOTFOUND;  /* path does not exist */

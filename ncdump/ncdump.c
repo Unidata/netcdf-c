@@ -8,7 +8,8 @@ Research/Unidata. See \ref copyright file for more info.  */
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
-#ifdef _MSC_VER
+
+#if defined(_WIN32) && !defined(__MINGW32__)
 #include "XGetopt.h"
 #define snprintf _snprintf
 #endif
@@ -2335,7 +2336,7 @@ main(int argc, char *argv[])
 
     /* We need to look for escape characters because the argument
        may have come in via a shell script */
-    path = NC_backslashUnescape(argv[i]);
+    path = NC_shellUnescape(argv[i]);
     if(path == NULL) {
 	snprintf(errmsg,sizeof(errmsg),"out of memory un-escaping argument %s", argv[i]);
 	goto fail;
