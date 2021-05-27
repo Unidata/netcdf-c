@@ -4,8 +4,10 @@ Release Notes       {#RELEASE_NOTES}
 \brief Release notes file for the netcdf-c package.
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
+
 ## 4.8.1 - TBD
 
+* [Bug Fixes] The netcdf-c library was incorrectly determining the scope of types referred to by nc_inq_type_equal. See [Github #1959](https://github.com/Unidata/netcdf-c/pull/1959) for more information.
 * [Bug Fix] Fix bug in use of XGetopt when building under Mingw. See [Github #2009](https://github.com/Unidata/netcdf-c/issues/2009).
 * [Enhancement] Improve the error reporting when attempting to use a filter for which no implementation can be found in HDF5_PLUGIN_PATH. See [Github #2000](https://github.com/Unidata/netcdf-c/pull/2000) for more information.
 * [Bug Fix] Fix `make distcheck` issue in `nczarr_test/` directory. See [Github #2007](https://github.com/Unidata/netcdf-c/issues/2007).
