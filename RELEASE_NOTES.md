@@ -6,6 +6,7 @@ Release Notes       {#RELEASE_NOTES}
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 ## 4.8.1 - TBD
 
+* [Enhancement] Improve the error reporting when attempting to use a filter for which no implementation can be found in HDF5_PLUGIN_PATH. See [Github #2000](https://github.com/Unidata/netcdf-c/pull/2000) for more information.
 * [Bug Fix] Fix `make distcheck` issue in `nczarr_test/` directory. See [Github #2007](https://github.com/Unidata/netcdf-c/issues/2007).
 * [Bug Fix] Fix bug in NCclosedir in dpathmgr.c. See [Github #2003](https://github.com/Unidata/netcdf-c/issues/2003).
 * [Bug Fix] Fix bug in ncdump that assumes that there is a relationship between the total number of dimensions and the max dimension id. See [Github #2004](https://github.com/Unidata/netcdf-c/issues/2004).  
@@ -20,7 +21,6 @@ This file contains a high-level description of this package's evolution. Release
 ## 4.8.0 - March 30, 2021
 
 * [Enhancement] Bump the NC_DISPATCH_VERSION from 2 to 3, and as a side effect, unify the definition of NC_DISPATCH_VERSION so it only needs to be defined in CMakeLists.txt and configure.ac. See [Github #1945](https://github.com/Unidata/netcdf-c/pull/1945) for more information.
->>>>>>> master
 * [Enhancement] Provide better cross platform path name management. This converts paths for various platforms (e.g. Windows, MSYS, etc.) so that they are in the proper format for the executing platform. See [Github #1958](https://github.com/Unidata/netcdf-c/pull/1958) for more information.
 * [Bug Fixes] The nccopy program was treating -d0 as turning deflation on rather than interpreting it as "turn off deflation". See [Github #1944](https://github.com/Unidata/netcdf-c/pull/1944) for more information.
 * [Enhancement] Add support for storing NCZarr data in zip files. See [Github #1942](https://github.com/Unidata/netcdf-c/pull/1942) for more information.
