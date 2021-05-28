@@ -3,15 +3,27 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
+# Since this involves a shared resource: the .rc files in current working directory,
+# we need to isolate from any other test.
+
+# Make sure execdir and srcdir absolute paths are available
+WD=`pwd`
+cd $srcdir ; abs_srcdir=`pwd` ; cd $WD
+cd $execdir ; abs_execdir=`pwd` ; cd $WD
+
+# Now create a special directory
+# And enter it to execute tests
+rm -fr rcauthdir
+mkdir rcauthdir
+cd rcauthdir
+WD=`pwd`
+
 #SHOW=1
 #DBG=1
 
 if test "x$NCAUTH_HOMETEST" != x ; then
     RCHOME=1
 fi
-RCHOME=1
-
-WD=`pwd`
 
 COOKIES="${WD}/.cookies_test"
 
@@ -185,25 +197,22 @@ reset() {
   rm -f ./testauthoutput
 }
 
-set -x
-
-#rcembed
+rcembed
 
 # Next set tests assume these defaults
 URL="${PROTO}://${URLSERVER}/$URLPATH"
 
-#rclocal1
-#rclocal2
+rclocal1
+rclocal2
 
 # Do not do this unless you know what you are doing
 if test "x$RCHOME" = x1 ; then
-#    rchome1
-#    rchome2
-#    rchome3
+    rchome1
+    rchome2
+    rchome3
     rchome4
 fi
 
-#reset
-
+reset
 exit
 

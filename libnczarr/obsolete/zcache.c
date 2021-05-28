@@ -388,7 +388,7 @@ From Zarr V2 Specification:
 a key formed from the index of the chunk within the grid of
 chunks representing the array.  To form a string key for a
 chunk, the indices are converted to strings and concatenated
-with the period character (".") separating each index. For
+with the dimension_separator character ('/' or '.') separating each index. For
 example, given an array with shape (10000, 10000) and chunk
 shape (1000, 1000) there will be 100 chunks laid out in a 10 by
 10 grid. The chunk with indices (0, 0) provides data for rows

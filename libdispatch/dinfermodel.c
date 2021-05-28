@@ -44,7 +44,7 @@ struct MagicFile {
     struct NCURI* uri;
     int omode;
     NCmodel* model;
-    long long filelen;
+    size64_t filelen;
     int use_parallel;
     void* parameters; /* !NULL if inmemory && !diskless */
     FILE* fp;
@@ -123,6 +123,7 @@ static const struct MACRODEF {
 {"s3","mode","nczarr,s3"},
 {"bytes","mode","bytes"},
 {"xarray","mode","nczarr,zarr,xarray"},
+{"noxarray","mode","nczarr,zarr,noxarray"},
 {NULL,NULL,NULL}
 };
 
@@ -133,6 +134,7 @@ static const struct MODEINFER {
 } modeinferences[] = {
 {"zarr","nczarr"},
 {"xarray","zarr"},
+{"noxarray","zarr"},
 {NULL,NULL}
 };
 

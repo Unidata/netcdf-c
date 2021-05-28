@@ -10,6 +10,7 @@ TOPSRCDIR='@abs_top_srcdir@'
 TOPBUILDDIR='@abs_top_builddir@'
 FP_ISCMAKE=@ISCMAKE@
 FP_ISMSVC=@ISMSVC@
+FP_ISCYGWIN=@ISCYGWIN@
 
 # Feature flags
 FEATURE_HDF5=@HAS_HDF5@
