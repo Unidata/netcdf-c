@@ -490,7 +490,6 @@ movetor(NCDAPCOMMON* nccomm,
     CDFnode* xnode = (CDFnode*)nclistget(path,depth);
     OCdatanode reccontent = NULL;
     OCdatanode dimcontent = NULL;
-    OCdatanode fieldcontent = NULL;
     Dapodometer* odom = NULL;
     int hasstringdim = 0;
     DCEsegment* segment;
@@ -605,7 +604,6 @@ fprintf(stderr," segment=%s hasstringdim=%d\n",
 
 done:
     oc_data_free(conn,dimcontent);
-    oc_data_free(conn,fieldcontent);
     oc_data_free(conn,reccontent);
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     if(odom) dapodom_free(odom);
@@ -627,8 +625,6 @@ movetofield(NCDAPCOMMON* nccomm,
     size_t fieldindex,gridindex;
     OClink conn = nccomm->oc.conn;
     CDFnode* xnode = (CDFnode*)nclistget(path,depth);
-    OCdatanode reccontent = NULL;
-    OCdatanode dimcontent = NULL;
     OCdatanode fieldcontent = NULL;
     CDFnode* xnext;
     int newdepth;
@@ -675,9 +671,7 @@ movetofield(NCDAPCOMMON* nccomm,
 		     segments);
 
 done:
-    oc_data_free(conn,dimcontent);
     oc_data_free(conn,fieldcontent);
-    oc_data_free(conn,reccontent);
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     return THROW(ncstat);
 }
