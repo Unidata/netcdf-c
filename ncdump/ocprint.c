@@ -31,7 +31,7 @@
 #include "oc.h"
 #include "ocx.h"
 
-#ifdef _MSC_VER
+#if defined(_WIN32) && !defined(__MINGW32__)
 #include "XGetopt.h"
 #endif
 

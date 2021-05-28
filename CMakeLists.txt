@@ -727,7 +727,7 @@ IF(USE_HDF5)
   ENDIF()
 
   #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip library.
-  set (CMAKE_REQUIRED_INCLUDES ${HAVE_HDF5_H})
+  set (CMAKE_REQUIRED_INCLUDES ${HDF5_INCLUDE_DIR})
   CHECK_C_SOURCE_COMPILES("#include <H5public.h>
    #if !H5_HAVE_FILTER_SZIP
    #error
@@ -768,11 +768,6 @@ IF(USE_HDF5)
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5free_memory "" HAVE_H5FREE_MEMORY)
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5allocate_memory "" HAVE_H5ALLOCATE_MEMORY)
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5resize_memory "" HAVE_H5RESIZE_MEMORY)
-
-
-  ##
-  # End H5Literate checks
-  ##
 
   IF(HDF5_PARALLEL)
 	SET(HDF5_CC h5pcc)
