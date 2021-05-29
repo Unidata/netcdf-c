@@ -26,7 +26,10 @@ IF(ENABLE_TESTS)
   # keep it from being too bad.
   # Binary Test Macro
 
-  add_sh_test(ncdap tst_ncdap3)
+  IF(BUILD_UTILITIES)
+    add_sh_test(ncdap tst_ncdap3)
+    add_sh_test(ncdap testpathcvt)
+  ENDIF()
 
   IF(NOT MSVC)
     add_bin_env_test(ncdap t_dap3a)

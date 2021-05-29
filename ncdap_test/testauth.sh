@@ -39,9 +39,14 @@ fi
 
 LOCALRCFILES="$WD/.dodsrc $WD/.daprc $WD/.ncrc $WD/$NETRC $WD/$NETRCIMP"
 HOMERCFILES="$HOME/.dodsrc $HOME/.daprc $HOME/.ncrc $HOME/$NETRC $HOME/$NETRCIMP"
-
 NETRCFILE=$WD/$NETRC
 DAPRCFILE=$WD/$RC
+if test "x$FPISMSVC" = x1 ; then
+    LOCALRCFILES=`${execdir}/pathcvt -w "$LOCALRCFILES"`
+    HOMERCFILES=`${execdir}/pathcvt -w "$HOMERCFILES"`
+    NETRCFILE=`${execdir}/pathcvt -w "$NETRCFILE"`
+    DAPRCFILE=`${execdir}/pathcvt -w "$DAPRCFILE"`
+fi
 
 HOMENETRCFILE=$HOME/$NETRC
 HOMEDAPRCFILE=$HOME/$RC
