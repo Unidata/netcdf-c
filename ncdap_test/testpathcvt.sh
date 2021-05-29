@@ -21,13 +21,17 @@ echo "path: $1:"
     testcase1 "-w" "$1"
 }    
 
-testcase "/xxx/a/b"
-testcase "d:/x/y"
-testcase "d:\\x\\y"
-testcase "/cygdrive/d/x/y"
-testcase "/d/x/y"
-testcase "/cygdrive/d"
-testcase "/d"
-testcase "/cygdrive/d/git/netcdf-c/dap4_test/test_anon_dim.2.syn"
+rm -f tmp_pathcvt.txt
+
+testcase "/xxx/a/b" >> tmp_pathcvt.txt
+testcase "d:/x/y" >> tmp_pathcvt.txt
+testcase "d:\\x\\y" >> tmp_pathcvt.txt
+testcase "/cygdrive/d/x/y" >> tmp_pathcvt.txt
+testcase "/d/x/y" >> tmp_pathcvt.txt
+testcase "/cygdrive/d" >> tmp_pathcvt.txt
+testcase "/d" >> tmp_pathcvt.txt
+testcase "/cygdrive/d/git/netcdf-c/dap4_test/test_anon_dim.2.syn" >> tmp_pathcvt.txt
+
+diff -w ${srcdir}/ref_pathcvt.txt ./tmp_pathcvt.txt
 
 exit 0
