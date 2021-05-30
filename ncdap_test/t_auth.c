@@ -28,15 +28,17 @@ See \ref copyright file for more info.
 
 #define KEEPRC
 
-#define RC ".ocrc"
-#define SPECRC "./ocrc"
+#define AUTHTESTSERVER "thredds.ucar.edu"
 
-#define USERPWD "tiggeUser:tigge"
+#define RC ".daprc"
+#define SPECRC "./daprc"
+
+#define USERPWD "authtester:auth"
 #define COOKIEFILE "./cookies"
 
-#define URL1 "https://%s@%s/dodsC/restrict/testData.nc"
-#define URL2 "https://%s/dodsC/restrict/testData.nc"
-#define URL3 "https://%s@thredds-test.ucar.edu/thredds/dodsC/restrict/testData.nc"
+#define URL1 "https://%s@%s/thredds/dodsC/test3/testData.nc"
+#define URL2 "https://thredds/%s/dodsC/test3/testData.nc"
+#define URL3 "https://%s@" AUTHTESTSERVER "/thredds/dodsC/test3/testData.nc"
 
 /* Embedded user:pwd */
 static char url1[1024];
@@ -45,36 +47,25 @@ static char url1[1024];
 static char url2[1024];
 
 /* Test redirect from different machine*/
+#ifndef NOREDIR
 static char url3[1024];
+#endif
 
 static int testrc(const char* prefix, const char* url);
 static void fillrc(const char* path);
 static void killrc();
 
-#ifdef DEBUG
-static void
-CHECK(int e, const char* msg)
-{
-    if(e == NC_NOERR) return;
-    if(msg == NULL) msg = "Error";
-    fprintf(stderr,"%s: %s\n", msg, nc_strerror(e));
-    exit(1);
-}
-#endif
-
 int
 main(int argc, char** argv)
 {
     int ncid,retval,pass;
-    FILE* rc;
     const char* dfaltsvc;
-    char buffer[8192];
     const char* home;
 
     fprintf(stderr,"Testing: Authorization\n");
 
-    dfaltsvc = nc_findtestserver("thredds",REMOTETESTSERVERS);
-    if(svc == NULL) {
+    dfaltsvc = nc_findtestserver("thredds",AUTHTESTSERVER);
+    if(dfaltsvc == NULL) {
         fprintf(stderr,"WARNING: Cannot locate test server\n");
 	exit(0);
     }
@@ -110,7 +101,7 @@ fflush(stderr);
 #ifndef NOLOCAL
     {
         /* Test 1: RC in ./ */
-        fprintf(stderr,"Testing: user:pwd in %s/%s: %s\n",".",RC);
+        fprintf(stderr,"Testing: user:pwd in %s/%s\n",".",RC);
 	if(!testrc(".",url2)) {
 	    fprintf(stderr,"user:pwd in %s/%s failed\n",".",RC);
 	    exit(1);
@@ -122,7 +113,7 @@ fflush(stderr);
     {
         /* Test 1: RC in HOME  */
 	home = getenv("HOME");
-        fprintf(stderr,"user:pwd in %s/%s: %s\n",home,RC);
+        fprintf(stderr,"user:pwd in %s/%s\n",home,RC);
 	if(!testrc(home,url2)) {
 	    fprintf(stderr,"user:pwd in %s/%s failed\n",home,RC);
 	    exit(1);
@@ -205,10 +196,10 @@ static void
 killrc()
 {
     const char* home;
-    char path[1024];
 #ifdef KEEPRC
     fprintf(stderr,"kill: ./%s\n",RC);
-#else
+#else 
+    char path[1024];
     snprintf(path,sizeof(path),"%s/%s",".",RC);
     unlink(path); /* delete the file */
 #endif

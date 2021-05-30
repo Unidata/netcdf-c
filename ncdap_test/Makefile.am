@@ -32,15 +32,17 @@ check_PROGRAMS += t_dap3a test_cvt3 test_vara
 TESTS += t_dap3a test_cvt3 test_vara
 if BUILD_UTILITIES
 TESTS += tst_ncdap3.sh
+TESTS += testpathcvt.sh
 endif
 
 # remote tests are optional
 # because the server may be down or inaccessible
 
 if ENABLE_DAP_REMOTE_TESTS
-noinst_PROGRAMS = findtestserver pingurl
+noinst_PROGRAMS = findtestserver pingurl pathcvt
 findtestserver_SOURCES = findtestserver.c
 pingurl_SOURCES = pingurl.c
+pathcvt_SOURCES = pathcvt.c
 endif
 
 if ENABLE_DAP_REMOTE_TESTS
@@ -90,10 +92,10 @@ EXTRA_DIST = tst_ncdap3.sh  \
   	     tst_zero_len_var.sh \
              tst_filelists.sh tst_urls.sh tst_utils.sh \
 	     t_dap.c CMakeLists.txt tst_formatx.sh testauth.sh testurl.sh \
-	     t_ncf330.c tst_ber.sh tst_fillmismatch.sh tst_encode.sh \
-	     findtestserver.c.in
+	     t_ncf330.c tst_ber.sh tst_fillmismatch.sh tst_encode.sh testpathcvt.sh \
+	     findtestserver.c.in ref_pathcvt.txt
 
-CLEANFILES = test_varm3 test_cvt3 file_results/* remote_results/* datadds* t_dap3a test_nstride_cached *.exe
+CLEANFILES = test_varm3 test_cvt3 file_results/* remote_results/* datadds* t_dap3a test_nstride_cached *.exe tmp*.txt
 # This should only be left behind if using parallel io
 CLEANFILES += tmp_*
 
