@@ -142,9 +142,9 @@ rclocal1() {
 
 # Case: local daprc local netrc no embed
 rclocal2() {
-  echo "***Testing rc file in local directory"
+  echo "***Testing rc file + .netrc in local directory"
   reset
-  # Create the rc file and (optional) netrc fil in ./
+  # Create the rc file and (optional) netrc file in ./
   createnetrc $LOCALNETRC
   createrc $LOCALRC $LOCALNETRC
   # Invoke ncdump to extract a file using the URL
@@ -208,6 +208,7 @@ rcembed
 URL="${PROTO}://${URLSERVER}/$URLPATH"
 
 rclocal1
+exit
 rclocal2
 
 # Do not do this unless you know what you are doing
