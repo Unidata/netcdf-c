@@ -41,11 +41,11 @@ LOCALRCFILES="$WD/.dodsrc $WD/.daprc $WD/.ncrc $WD/$NETRC $WD/$NETRCIMP"
 HOMERCFILES="$HOME/.dodsrc $HOME/.daprc $HOME/.ncrc $HOME/$NETRC $HOME/$NETRCIMP"
 NETRCFILE=$WD/$NETRC
 DAPRCFILE=$WD/$RC
-if test "x$FPISMSVC" = x1 ; then
-    LOCALRCFILES=`${execdir}/pathcvt -w "$LOCALRCFILES"`
-    HOMERCFILES=`${execdir}/pathcvt -w "$HOMERCFILES"`
-    NETRCFILE=`${execdir}/pathcvt -w "$NETRCFILE"`
-    DAPRCFILE=`${execdir}/pathcvt -w "$DAPRCFILE"`
+if test "x$FP_ISMSVC" = x1 ; then
+    LOCALRCFILES=`${execdir}/pathcvt "$LOCALRCFILES"`
+    HOMERCFILES=`${execdir}/pathcvt "$HOMERCFILES"`
+    NETRCFILE=`${execdir}/pathcvt "$NETRCFILE"`
+    DAPRCFILE=`${execdir}/pathcvt "$DAPRCFILE"`
 fi
 
 HOMENETRCFILE=$HOME/$NETRC
@@ -208,7 +208,6 @@ rcembed
 URL="${PROTO}://${URLSERVER}/$URLPATH"
 
 rclocal1
-exit
 rclocal2
 
 # Do not do this unless you know what you are doing

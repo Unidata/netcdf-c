@@ -32,10 +32,13 @@ pathcvt [-u|-w|-m|-c] PATH
 Options
 
 Output type options:
-  -u (default) convert to Unix form of path
+  -u convert to Unix form of path
   -w convert to Windows form of path
   -m convert to MSYS form of path
   -c convert to Cygwin form of path
+
+Default is to convert to the format used by the platform.
+
 */
 
 #define DEBUG
@@ -77,7 +80,6 @@ main(int argc, char** argv)
 	   break;
 	}
     }
-    if(cvtoptions.target == NCPD_UNKNOWN) usage("No conversion type specified");
 
     argc -= optind;
     argv += optind;
@@ -89,7 +91,10 @@ main(int argc, char** argv)
        usage("more than one path specified");
     inpath = argv[0];
 
-    cvtpath = NCpathcvt_test(inpath,cvtoptions.target,'c');
+    if(cvtoptions.target == NCPD_UNKNOWN)
+        cvtpath = NCpathcvt(inpath);
+    else
+        cvtpath = NCpathcvt_test(inpath,cvtoptions.target,'c');
     printf("%s",cvtpath);
     if(cvtpath) free(cvtpath);
     return 0;
