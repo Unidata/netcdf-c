@@ -14,13 +14,18 @@ FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
 
-IF(ENABLE_DAP_REMOTE_TESTS)
+IF(ENABLE_TESTS)
+
+  IF(ENABLE_DAP_REMOTE_TESTS)
     BUILD_BIN_TEST(findtestserver)
     BUILD_BIN_TEST(pingurl)
-    BUILD_BIN_TEST(pathcvt XGetopt.c)
-ENDIF()
+  ENDIF()
 
-IF(ENABLE_TESTS)
+  IF(USE_X_GETOPT)
+    SET(XGSRC XGetopt.c)
+  ENDIF()
+  BUILD_BIN_TEST(pathcvt ${XGSRC})
+
   # Base tests
   # The tests are set up as a combination of shell scripts and executables that
   # must be run in a particular order. It is painful but will use macros to help
