@@ -537,7 +537,7 @@ NC4_inq_enum_member(int ncid, nc_type typeid1, int idx, char *identifier,
  * @internal Get the id of a type from the name.
  *
  * @param ncid File and group ID.
- * @param name Name of type.
+ * @param name Name of type; might be fully qualified.
  * @param typeidp Pointer that will get the type ID.
  *
  * @return ::NC_NOERR No error.

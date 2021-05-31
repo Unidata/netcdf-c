@@ -51,9 +51,10 @@ Research/Unidata. See \ref copyright file for more info.  */
 #include "nc4internal.h" /* to get name of the special properties file */
 #endif
 
-extern int nc__testurl(const char*,char**);
-
 #define XML_VERSION "1.0"
+
+#define LPAREN "("
+#define RPAREN ")"
 
 #define int64_t long long
 #define uint64_t unsigned long long
@@ -69,6 +70,10 @@ static const char* keywords[] = {
 "types",
 NULL
 };
+
+/*Forward*/
+static int searchgrouptreedim(int ncid, int dimid, int* parentidp);
+extern int nc__testurl(const char*,char**);
 
 static int iskeyword(const char* kw)
 {
@@ -1548,6 +1553,7 @@ do_ncdump_rec(int ncid, const char *path)
    int ngatts;			/* number of global attributes */
    int xdimid;			/* id of unlimited dimension */
    int varid;			/* variable id */
+   int rootncid;		/* id of root group */
    ncdim_t *dims;		/* dimensions */
    size_t *vdims=0;	        /* dimension sizes for a single variable */
    ncvar_t var;			/* variable */
@@ -1573,6 +1579,7 @@ do_ncdump_rec(int ncid, const char *path)
    if (nc_inq_grp_parent(ncid, NULL) != NC_ENOGRP)
        is_root = 0;
 #endif /* USE_NETCDF4 */
+   NC_CHECK(nc_inq_ncid(ncid,NULL,&rootncid)); /* get root group ncid */
 
    /*
     * If any vars were specified with -v option, get list of
@@ -1733,11 +1740,13 @@ do_ncdump_rec(int ncid, const char *path)
       if (var.ndims > 0)
 	 printf ("(");
       for (id = 0; id < var.ndims; id++) {
-	 /* This dim may be in a parent group, so let's look up the
-	  * name. */
+	 /* Get the base name of the dimension */
 	 NC_CHECK( nc_inq_dimname(ncid, var.dims[id], dim_name) );
 #ifdef USE_NETCDF4
-	 /* Subtlety: The following code block is needed because
+	 /* This dim may be in a parent group, so let's look up dimid
+	  * parent group; if it is not current group, then we will print
+	  * the fully qualified name.
+	  * Subtlety: The following code block is needed because
 	  * nc_inq_dimname() currently returns only a simple dimension
 	  * name, without a prefix identifying the group it came from.
 	  * That's OK unless the dimid identifies a dimension in an
@@ -1746,45 +1755,83 @@ do_ncdump_rec(int ncid, const char *path)
 	  * group), in which case the simple name is ambiguous.  This
 	  * code tests for that case and provides an absolute dimname
 	  * only in the case where a simple name would be
-	  * ambiguous. */
-	 {
-	     int dimid_test;	/* to see if dimname is ambiguous */
-	     int target_dimid;  /* from variable dim list */
-	     int locid;		/* group id where dimension is defined */
-	     /*Locate the innermost definition of a dimension with given name*/
-	     NC_CHECK( nc_inq_dimid(ncid, dim_name, &dimid_test) );
+	  * ambiguous.
+	  * The algorithm is as follows:
+	  * 1. Search up the tree of ancestor groups.
+	  * 2. If one of those groups contains the dimid, then call it dimgrp.
+	  * 3. If one of those groups contains a dim with the same name as the dimid,
+	  *    but with a different dimid, then record that as duplicate=true.
+	  * 4. If dimgrp is defined and duplicate == false, then we do not need an fqn.
+	  * 5. If dimgrp is defined and duplicate == true, then we do need an fqn to avoid using the duplicate.
+	  * 6. if dimgrp is undefined, then do a preorder breadth-first search of all the groups looking for the
+	  *    dimid.
+	  * 7. If found, then use the fqn of that dimension location.
+  	  * 8. If not found, then signal NC_EBADDIM.
+          */	 
 
-	     /* Now, starting with current group, walk the parent chain
-                upward looking for the target dim_id */
-	     target_dimid = var.dims[id];
-	     locid = ncid;
-	     while(target_dimid != dimid_test) {/*not in locid, try ancestors*/
-		 int parent_id;
-		 NC_CHECK( nc_inq_grp_parent(locid, &parent_id) );
-		 locid = parent_id;
-		 /* Is dim of this name defined in this group or higher? */
-		 NC_CHECK( nc_inq_dimid(locid, dim_name, &dimid_test) );
+	  int target_dimid, dimgrp, duplicate, stopsearch, usefqn;
+
+	  target_dimid = var.dims[id];
+	  dimgrp = ncid; /* start with the parent group of the variable */
+	  duplicate = 0;
+	  usefqn = 0;
+
+	  /* Walk up the ancestor groups */
+	  for(stopsearch=0;stopsearch==0;) {
+	     int tmpid;
+	     int localdimid;
+	     int ret = NC_NOERR;
+	     ret = nc_inq_dimid(dimgrp,dim_name,&localdimid);
+	     switch (ret) {
+	     case NC_NOERR: /* We have a name match */
+	         if(localdimid == target_dimid) stopsearch = 1; /* 1 means stop because found */
+		 else duplicate = 1;
+		 break;
+	     case NC_EBADDIM:
+		 break; /* no match at all */
+	     default: NC_CHECK(ret);
 	     }
-	     /* innermost dimid with given name is in group locid.
-                If this is not current group, then use fully qualified
-                name (fqn) for the dimension name by prefixing dimname
+	     if(stopsearch != 0) break; /* no need to continue */
+	     /* move to ancestor group */
+	     ret = nc_inq_grp_parent(dimgrp,&tmpid);
+	     switch(ret) {
+	     case NC_NOERR:
+	         dimgrp = tmpid;
+		 break;
+	     case NC_ENOGRP:
+		 /* we processed the root, so try the breadth-first search */
+		 stopsearch = -1; /* -1 means we hit the root group but did not find it */
+		 rootncid = dimgrp;
+		 break;		 
+	     default: NC_CHECK(ret);
+	     }
+	  }
+	  assert(stopsearch != 0);
+	  if(stopsearch == 1) {
+	      /* We found it; do we need to use fqn */
+	      usefqn = duplicate;
+	  } else { /* stopsearch == -1 */
+	      /* do the whole-tree search */
+	      usefqn = 1;
+	      NC_CHECK(searchgrouptreedim(rootncid,target_dimid,&dimgrp));
+              /* group containing target dimid is in group dimgrp */
+	  }
+	  if(usefqn) {
+             /* use fully qualified name (fqn) for the dimension name by prefixing dimname
                 with group name */
-	     if(locid != ncid) { /* We need to use fqn */
-		 size_t len;
-		 char *locname;	/* the group name */
-		 NC_CHECK( nc_inq_grpname_full(locid, &len, NULL) );
-		 locname = emalloc(len + 1);
-		 NC_CHECK( nc_inq_grpname_full(locid, &len, locname) );
-		 print_name (locname);
-		 if(strcmp("/", locname) != 0) { /* not the root group */
-		     printf("/");		 /* ensure a trailing slash */
-		 }
-		 free(locname);
-	     }
-	 }
-#endif	/* USE_NETCDF4 */
-	 print_name (dim_name);
-	 printf ("%s", id < var.ndims-1 ? ", " : ")");
+	      size_t len;
+	      char *grpfqn = NULL;	/* the group fqn */
+	      NC_CHECK( nc_inq_grpname_full(dimgrp, &len, NULL) );
+	      grpfqn = emalloc(len + 1);
+	      NC_CHECK( nc_inq_grpname_full(dimgrp, &len, grpfqn) );
+	      print_name (grpfqn);
+	      if(strcmp("/", grpfqn) != 0) /* not the root group */
+	          printf("/");		 /* ensure a trailing slash */
+	      free(grpfqn);
+	   }
+#endif /*USE_NETCDF4*/
+	   print_name (dim_name);
+	   printf ("%s", id < var.ndims-1 ? ", " : RPAREN);
       }
       printf (" ;\n");
 
@@ -2416,4 +2463,84 @@ fail: /* ncstat failures */
     if(strlen(errmsg) > 0)
 	error("%s", errmsg);
     exit(EXIT_FAILURE);
+}
+
+/* Helper function for searchgrouptreedim
+   search a specified group for matching dimid.
+*/
+static int
+searchgroupdim(int grp, int dimid)
+{
+    int i,ret = NC_NOERR;
+    int nids;
+    int* ids = NULL;
+
+    /* Get all dimensions in parentid */
+    if ((ret = nc_inq_dimids(grp, &nids, NULL, 0)))
+	goto done;
+    if (nids > 0) {
+	if (!(ids = (int *)malloc((size_t)nids * sizeof(int))))
+	    {ret = NC_ENOMEM; goto done;}
+	if ((ret = nc_inq_dimids(grp, &nids, ids, 0)))
+	    goto done;
+	for(i = 0; i < nids; i++) {
+	    if(ids[i] == dimid) goto done;
+	}
+    } else
+        ret = NC_EBADDIM;
+
+done:
+    nullfree(ids);
+    return ret;
+}
+
+/* Helper function for do_ncdump_rec
+   search a tree of groups for a matching dimid
+   using a breadth first queue. Return the
+   immediately enclosing group.
+*/
+static int
+searchgrouptreedim(int ncid, int dimid, int* parentidp)
+{
+    int i,ret = NC_NOERR;
+    int nids;
+    int* ids = NULL;
+    NClist* queue = nclistnew();
+    int gid;
+    uintptr_t id;
+
+    id = ncid;
+    nclistpush(queue,(void*)id); /* prime the queue */
+    while(nclistlength(queue) > 0) {
+        id = (uintptr_t)nclistremove(queue,0);
+	gid  = (int)id;
+        switch (ret = searchgroupdim(gid,dimid)) {
+	case NC_NOERR: /* found it */
+	    if(parentidp) *parentidp = gid;
+	    goto done;
+	case NC_EBADDIM: /* not in this group; keep looking */
+	    break;
+	default: goto done;
+	}
+	/* Get subgroups of gid and push onto front of the queue (for breadth first) */
+        if((ret = nc_inq_grps(gid,&nids,NULL)))
+            goto done;
+        if (!(ids = (int *)malloc((size_t)nids * sizeof(int))))
+	    {ret = NC_ENOMEM; goto done;}
+        if ((ret = nc_inq_grps(gid, &nids, ids)))
+            goto done;
+	/* push onto the end of the queue */
+        for(i=0;i<nids;i++) {
+	    id = ids[i];
+	    nclistpush(queue,(void*)id);
+	}
+	free(ids); ids = NULL;
+    }
+    /* Not found */
+    ret = NC_EBADDIM;
+
+done:
+    nclistfree(queue);
+    nullfree(ids);
+    return ret;
 }
