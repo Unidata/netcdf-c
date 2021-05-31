@@ -2,9 +2,28 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+
+#if defined(_WIN32) && ! defined(__MINGW32__)
+#include "XGetopt.h"
+#else
+#include <getopt.h>
+#endif
+
 #include <netcdf.h>
 
 #define CHECK(err) {if(err) report(err,__LINE__);}
+
+/* Command line options */
+struct Options {
+    int debug;
+    enum What {NONE=0, DIM=1, TYPE=2} what;
+    char file[4096];
+    char var[NC_MAX_NAME+1];
+    char object[NC_MAX_NAME+1];
+} options;
+
+/**************************************************/
+
 
 static void
 report(int err, int lineno)
@@ -16,25 +35,30 @@ report(int err, int lineno)
 void
 usage(void)
 {
-    fprintf(stderr,"usage: printfqn <filename> <varname>\n");
+    fprintf(stderr,"usage: printfqn [-D] [-V] -t|-d -v <varname> -f <filename> \n");
     exit(0);
 }
 
 int
-get_type_parent(int ncid, int tid, int* parentp)
+get_id_parent(int ncid, int id, int* parentp, enum What what)
 {
     int stat = NC_NOERR;
     int i;
     int nids;
     int ids[4096];
 
-    /* Does this group have the type we are searching for? */
-    if((stat=nc_inq_typeids(ncid,&nids,ids))) goto done;
+    /* Does this group have the id we are searching for? */
+    if(what == TYPE) {
+        if((stat=nc_inq_typeids(ncid,&nids,ids))) goto done;
+    } else if(what == DIM) {
+        if((stat=nc_inq_dimids(ncid,&nids,ids,0))) goto done;
+    } else
+        abort();
     assert(nids < 4096);
 
-    /* Search for this typeid */
+    /* Search for this id */
     for(i=0;i<nids;i++) {
-	if(ids[i] == tid) {
+	if(ids[i] == id) {
 	    if(parentp) *parentp = ncid;
 	    goto done;
 	}
@@ -46,13 +70,13 @@ get_type_parent(int ncid, int tid, int* parentp)
 
     /* Recurse on each subgroup */
     for(i=0;i<nids;i++) {
-	switch (stat = get_type_parent(ids[i],tid,parentp)) {
-	case NC_EBADTYPE: break; /* not found; keep looking */
+	switch (stat = get_id_parent(ids[i],id,parentp,what)) {
+	case NC_ENOTFOUND: break; /* not found; keep looking */
 	case NC_NOERR: goto done; /* found it */
 	default: goto done; /* some other error */
 	}
     }
-    stat = NC_EBADTYPE; /* Not found */
+    stat = NC_ENOTFOUND; /* Not found */
 
 done:
     return stat;
@@ -60,7 +84,7 @@ done:
 }
 
 int
-get_variable_info(int ncid, const char* name, int* gidp, int* vidp)
+get_variable_info(int ncid, const char* name, int* gidp, int* vidp, int* tidp, int* ndimsp, int* dimids)
 {
     int stat = NC_NOERR;
     int i;
@@ -80,6 +104,9 @@ get_variable_info(int ncid, const char* name, int* gidp, int* vidp)
 	if(strcmp(name,varname)==0) {
 	    if(gidp) *gidp = ncid;
 	    if(vidp) *vidp = ids[i];
+	    if((stat = nc_inq_vartype(ncid,ids[i],tidp))) goto done;
+    	    if((stat = nc_inq_varndims(ncid,ids[i],ndimsp))) goto done;
+       	    if((stat = nc_inq_vardimid(ncid,ids[i],dimids))) goto done;
 	    goto done;
 	}
     }
@@ -90,7 +117,7 @@ get_variable_info(int ncid, const char* name, int* gidp, int* vidp)
 
     /* Recurse on each subgroup */
     for(i=0;i<nids;i++) {
-	switch (stat = get_variable_info(ids[i],name,gidp,vidp)) {
+	switch (stat = get_variable_info(ids[i],name,gidp,vidp,tidp,ndimsp,dimids)) {
 	case NC_ENOTVAR: break; /* not found; keep looking */
 	case NC_NOERR: goto done; /* found it */
 	default: goto done; /* some other error */
@@ -106,38 +133,69 @@ int
 main(int argc, char** argv)
 {
     int ncid, varid, gid, tid;
-    const char* filename = NULL;
-    char varname[NC_MAX_NAME];
     size_t fqnlen, namelen;
     char fqn[4096];
     char name[NC_MAX_NAME];
-    
-    if(argc < 3) usage();
+    int ndims;
+    int dimids[NC_MAX_VAR_DIMS];
+    int c;
 
-    filename = argv[1];
-    strcpy(varname,argv[2]);
+    memset((void*)&options,0,sizeof(options));
 
-    CHECK(nc_open(filename,NC_NETCDF4,&ncid));
+    while ((c = getopt(argc, argv, "DVdtv:f:")) != EOF) {
+	switch(c) {
+	case 'D': 
+	    options.debug = 1;	    
+	    break;
+	case 'V': 
+	    usage();
+	    break;
+	case 'd':
+	    options.what = DIM;
+	    break;
+	case 't':
+	    options.what = TYPE;
+	    break;
+	case 'v':
+	    strcpy(options.var,optarg);
+	    break;
+	case 'f':
+	    strcpy(options.file,optarg);
+	    break;
+	case ':':
+	   fprintf(stderr,"option has no argument: %c\n",c);
+	    usage();
+	case '?':
+	   fprintf(stderr,"unknown option\n");
+	    usage();
+	}
+    }
+
+    CHECK(nc_open(options.file,NC_NETCDF4,&ncid));
 
     /* Locate the parent group for the variable */
-    CHECK(get_variable_info(ncid,varname,&gid,&varid));
+    CHECK(get_variable_info(ncid,options.var,&gid,&varid,&tid,&ndims,dimids));
 
-    /* Get the type id of the variable */
-    CHECK(nc_inq_vartype(gid,varid,&tid));
-    /* Get the type name */
-    CHECK(nc_inq_type(ncid,tid,name,&namelen));
+    if(options.what == TYPE) {
+        /* Get the simple type name from the variable */
+        CHECK(nc_inq_type(ncid,tid,name,&namelen));
+	/* Get the containing group id for the type (might not be same as ncid) */
+        CHECK(get_id_parent(ncid,tid,&gid,TYPE));
+    } else if(options.what == DIM) {
+	/* get name of dimids[0] from the variable */
+        CHECK(nc_inq_dimname(ncid,dimids[0],name));
+        /* Get the containing group id for the type */
+        CHECK(get_id_parent(ncid,dimids[0],&gid,DIM));
+    }
 
-    /* Get the containing group id for the type */
-    CHECK(get_type_parent(ncid,tid,&gid));
-
-    /* Get the FQN name for the containing type */
+    /* Get the FQN name for the containing group of the id */
     CHECK(nc_inq_grpname_full(gid,&fqnlen,fqn));
     assert(fqnlen < sizeof(fqn));
 
     if(strcmp(fqn,"/")==0) fqn[0] = '\0';
 
     /* report result  with no newline */
-    printf("|%s/%s|",fqn,name);
+    printf("%s/%s",fqn,name);
 
     return 0;
 }
