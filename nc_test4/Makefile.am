@@ -111,7 +111,7 @@ foo1.nc tst_*.h4 test.nc testszip.nc test.h5 szip_dump.cdl		\
 perftest.txt bigmeta.nc bigvars.nc *.gz MSGCPP_*.nc	                \
 floats*.nc floats*.cdl shorts*.nc shorts*.cdl ints*.nc ints*.cdl        \
 testfilter_reg.nc filterrepeat.txt tmp_fillonly.nc                      \
-testfilter_order.nc crfilterorder.txt rdfilterorder.txt
+testfilter_order.nc crfilterorder.txt rdfilterorder.txt 1
 
 DISTCLEANFILES = findplugin.sh run_par_test.sh
 
