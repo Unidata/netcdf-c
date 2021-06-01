@@ -214,8 +214,8 @@ readfile(const char* path, const char* suffix, NCbytes* packet)
     char filename[1024];
     /* check for leading file:/// */
     if(ocstrncmp(path,"file://",7)==0) path += 7; /* assume absolute path*/
-    if(!occopycat(filename,sizeof(filename),2,path,(suffix != NULL ? suffix : "")))
-	return OCTHROW(OC_EOVERRUN);
+    strncpy(filename,path,sizeof(filename));
+    strlcat(filename,(suffix != NULL ? suffix : ""),sizeof(filename));
     stat = NC_readfile(filename,packet);
     return OCTHROW(stat);
 }

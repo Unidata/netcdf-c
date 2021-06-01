@@ -54,12 +54,13 @@ TESTS += test_partvar
 
 if ENABLE_DAP_LONG_TESTS
  TESTS += tst_longremote3.sh
+ check_PROGRAMS += test_manyurls
+ TESTS += test_manyurls
 endif
 
 test_partvar_SOURCES = test_partvar.c
 
 t_misc_SOURCES = t_misc.c
-
 
 #TESTS += t_ncf330
 TESTS += t_misc
