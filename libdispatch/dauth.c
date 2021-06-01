@@ -81,8 +81,8 @@ NC_combinehostport(NCURI* uri)
     if(hp == NULL) return NULL;
     strncpy(hp,host,len);
     if(port != NULL) {
-	strncat(hp,":",len);
-	strncat(hp,port,len);
+	strlcat(hp,":",len+1);
+	strlcat(hp,port,len+1);
     }
     return hp;
 }

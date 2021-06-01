@@ -472,12 +472,12 @@ rcsearch(const char* prefix, const char* rcname, char** pathp)
     size_t rclen = strlen(rcname);
     int ret = NC_NOERR;
 
-    size_t pathlen = plen+rclen+1; /*+1 for '/' */
-    path = (char*)malloc(pathlen+1); /* +1 for nul*/
+    size_t pathlen = plen+rclen+1+1; /*+1 for '/' +1 for nul */
+    path = (char*)malloc(pathlen); /* +1 for nul*/
     if(path == NULL) {ret = NC_ENOMEM;	goto done;}
     strncpy(path,prefix,pathlen);
-    strncat(path,"/",pathlen);
-    strncat(path,rcname,pathlen);
+    strlcat(path,"/",pathlen);
+    strlcat(path,rcname,pathlen);
     /* see if file is readable */
     f = NCfopen(path,"r");
     if(f != NULL)
