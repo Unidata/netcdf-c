@@ -1,0 +1,45 @@
+path: /xxx/a/b
+	/xxx/a/b
+	/cygdrive/c/xxx/a/b
+	/c/xxx/a/b
+	c:\\xxx\\a\\b
+path: d:/x/y
+	/d/x/y
+	/cygdrive/d/x/y
+	/d/x/y
+	d:\\x\\y
+path: /cygdrive/d/x/y
+	/d/x/y
+	/cygdrive/d/x/y
+	/d/x/y
+	d:\\x\\y
+path: /d/x/y
+	/d/x/y
+	/cygdrive/d/x/y
+	/d/x/y
+	d:\\x\\y
+path: /cygdrive/d
+	/d
+	/cygdrive/d
+	/d
+	d:
+path: /d
+	/d
+	/cygdrive/d
+	/d
+	d:
+path: /cygdrive/d/git/netcdf-c/dap4_test/test_anon_dim.2.syn
+	/d/git/netcdf-c/dap4_test/test_anon_dim.2.syn
+	/cygdrive/d/git/netcdf-c/dap4_test/test_anon_dim.2.syn
+	/d/git/netcdf-c/dap4_test/test_anon_dim.2.syn
+	d:\\git\\netcdf-c\\dap4_test\\test_anon_dim.2.syn
+path: d:\x\y
+	/d/x/y
+	/cygdrive/d/x/y
+	/d/x/y
+	d:\\x\\y
+path: d:\x\y w\z
+	/d/x/y w/z
+	/cygdrive/d/x/y w/z
+	/d/x/y w/z
+	d:\\x\\y\\ w\\z

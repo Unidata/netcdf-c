@@ -14,19 +14,28 @@ FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
 
-IF(ENABLE_DAP_REMOTE_TESTS)
+IF(ENABLE_TESTS)
+
+  IF(ENABLE_DAP_REMOTE_TESTS)
     BUILD_BIN_TEST(findtestserver)
     BUILD_BIN_TEST(pingurl)
-ENDIF()
+  ENDIF()
 
-IF(ENABLE_TESTS)
+  IF(USE_X_GETOPT)
+    SET(XGSRC XGetopt.c)
+  ENDIF()
+  BUILD_BIN_TEST(pathcvt ${XGSRC})
+
   # Base tests
   # The tests are set up as a combination of shell scripts and executables that
   # must be run in a particular order. It is painful but will use macros to help
   # keep it from being too bad.
   # Binary Test Macro
 
-  add_sh_test(ncdap tst_ncdap3)
+  IF(BUILD_UTILITIES)
+    add_sh_test(ncdap tst_ncdap3)
+    add_sh_test(ncdap testpathcvt)
+  ENDIF()
 
   IF(NOT MSVC)
     add_bin_env_test(ncdap t_dap3a)
@@ -45,6 +54,7 @@ IF(ENABLE_TESTS)
       add_sh_test(ncdap tst_fillmismatch)
       IF(ENABLE_DAP_LONG_TESTS)
         add_sh_test(ncdap tst_longremote3)
+        add_bin_test(ncdap test_manyurls)
       ENDIF(ENABLE_DAP_LONG_TESTS)
 
     ENDIF(BUILD_UTILITIES)

@@ -39,9 +39,14 @@ fi
 
 LOCALRCFILES="$WD/.dodsrc $WD/.daprc $WD/.ncrc $WD/$NETRC $WD/$NETRCIMP"
 HOMERCFILES="$HOME/.dodsrc $HOME/.daprc $HOME/.ncrc $HOME/$NETRC $HOME/$NETRCIMP"
-
 NETRCFILE=$WD/$NETRC
 DAPRCFILE=$WD/$RC
+if test "x$FP_ISMSVC" = x1 ; then
+    LOCALRCFILES=`${execdir}/pathcvt "$LOCALRCFILES"`
+    HOMERCFILES=`${execdir}/pathcvt "$HOMERCFILES"`
+    NETRCFILE=`${execdir}/pathcvt "$NETRCFILE"`
+    DAPRCFILE=`${execdir}/pathcvt "$DAPRCFILE"`
+fi
 
 HOMENETRCFILE=$HOME/$NETRC
 HOMEDAPRCFILE=$HOME/$RC
@@ -137,9 +142,9 @@ rclocal1() {
 
 # Case: local daprc local netrc no embed
 rclocal2() {
-  echo "***Testing rc file in local directory"
+  echo "***Testing rc file + .netrc in local directory"
   reset
-  # Create the rc file and (optional) netrc fil in ./
+  # Create the rc file and (optional) netrc file in ./
   createnetrc $LOCALNETRC
   createrc $LOCALRC $LOCALNETRC
   # Invoke ncdump to extract a file using the URL
@@ -214,6 +219,5 @@ if test "x$RCHOME" = x1 ; then
 fi
 
 reset
-
 exit
 

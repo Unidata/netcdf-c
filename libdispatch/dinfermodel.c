@@ -44,7 +44,7 @@ struct MagicFile {
     struct NCURI* uri;
     int omode;
     NCmodel* model;
-    long long filelen;
+    size64_t filelen;
     int use_parallel;
     void* parameters; /* !NULL if inmemory && !diskless */
     FILE* fp;

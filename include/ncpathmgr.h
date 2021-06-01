@@ -102,6 +102,9 @@ EXTERNL int NChasdriveletter(const char* path);
 /* Canonicalize and make absolute by prefixing the current working directory */
 EXTERNL char* NCpathabsolute(const char* name);
 
+/* Check if this path appears to start with a windows drive letter */
+EXTERNL int NChasdriveletter(const char* path);
+
 /* Convert from the local coding (e.g. ANSI) to utf-8;
    note that this can produce unexpected results for Windows
    because it first converts to wide character and then to utf8. */
@@ -121,6 +124,8 @@ EXTERNL int NCremove(const char* path);
 EXTERNL int NCmkdir(const char* path, int mode);
 EXTERNL int NCrmdir(const char* path);
 EXTERNL char* NCgetcwd(char* cwdbuf, size_t len);
+EXTERNL int NCmkstemp(char* buf);
+
 #ifdef HAVE_SYS_STAT_H
 EXTERNL int NCstat(char* path, struct stat* buf);
 #endif
@@ -136,6 +141,7 @@ EXTERNL int NCclosedir(DIR* ent);
 #define NCaccess(path,mode) access(path,mode)
 #define NCmkdir(path,mode) mkdir(path,mode)
 #define NCgetcwd(buf,len) getcwd(buf,len)
+#define NCmkstemp(buf) mkstemp(buf);
 #define NCcwd(buf, len) getcwd(buf,len)
 #define NCrmdir(path) rmdir(path)
 #ifdef HAVE_SYS_STAT_H

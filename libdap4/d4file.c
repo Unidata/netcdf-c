@@ -117,6 +117,11 @@ NCD4_open(const char * path, int mode,
 	ncsetlogging(1);
     }
 
+    /* Check env values */
+    if(getenv("CURLOPT_VERBOSE") != NULL)
+        d4info->auth->curlflags.verbose = 1;
+
+
     /* Setup a curl connection */
     {
         CURL* curl = NULL; /* curl handle*/
