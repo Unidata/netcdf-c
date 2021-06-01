@@ -104,15 +104,15 @@ main()
 		    H5T_NATIVE_FLOAT) < 0) ERR;
       if (H5Tinsert(s1_typeid, Y_NAME, offsetof(struct s1, y),
 		    H5T_NATIVE_DOUBLE) < 0) ERR;
-      if (H5Tcommit(grpid, S1_TYPE_NAME, s1_typeid) < 0) ERR;
+      if (H5Tcommit1(grpid, S1_TYPE_NAME, s1_typeid) < 0) ERR;
 
       /* Create a vlen type. Its a vlen of struct s1. */
       if ((vlen_typeid = H5Tvlen_create(s1_typeid)) < 0) ERR;
-      if (H5Tcommit(grpid, VLEN_TYPE_NAME, vlen_typeid) < 0) ERR;
+      if (H5Tcommit1(grpid, VLEN_TYPE_NAME, vlen_typeid) < 0) ERR;
 
       /* Create an attribute of this new type. */
       if ((spaceid = H5Screate_simple(1, dims, NULL)) < 0) ERR;
-      if ((attid = H5Acreate(grpid, ATT_NAME, vlen_typeid, spaceid,
+      if ((attid = H5Acreate1(grpid, ATT_NAME, vlen_typeid, spaceid,
 			     H5P_DEFAULT)) < 0) ERR;
       if (H5Awrite(attid, vlen_typeid, vc_out) < 0) ERR;
 
@@ -132,7 +132,7 @@ main()
 
       /* Reopen the file. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
 
       /* How many objects in this group? (There should be 2, the
        * types. Atts don't count as objects to HDF5.) */

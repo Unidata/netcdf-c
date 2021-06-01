@@ -49,7 +49,7 @@ main()
       /* Open file. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
 			      H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gcreate(fileid, GRP_NAME1, 0)) < 0) ERR;
+      if ((grpid = H5Gcreate1(fileid, GRP_NAME1, 0)) < 0) ERR;
 
       /* Create string type. */
       if ((typeid =  H5Tcopy(H5T_C_S1)) < 0) ERR;
@@ -59,7 +59,7 @@ main()
       if ((spaceid = H5Screate_simple(1, dims, NULL)) < 0) ERR;
       if ((plistid = H5Pcreate(H5P_DATASET_CREATE)) < 0) ERR;
       if (H5Pset_fill_value(plistid, typeid, &f1) < 0) ERR;
-      if ((datasetid = H5Dcreate(grpid, VAR_NAME1, typeid,
+      if ((datasetid = H5Dcreate1(grpid, VAR_NAME1, typeid,
 				 spaceid, plistid)) < 0) ERR;
       if (H5Dwrite(datasetid, typeid, H5S_ALL, H5S_ALL, H5P_DEFAULT,
 		   data) < 0) ERR;

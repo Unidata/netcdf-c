@@ -64,20 +64,20 @@ main()
       /* Open file and create group. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
                               H5P_DEFAULT)) < 0) ERR;
-      if ((osmonds_grpid = H5Gcreate(fileid, OSMONDS, 0)) < 0) ERR;
+      if ((osmonds_grpid = H5Gcreate1(fileid, OSMONDS, 0)) < 0) ERR;
 
       /* Create a simple compound type. */
       if ((typeid = H5Tcreate(H5T_COMPOUND, sizeof(struct s1))) < 0) ERR;
       if (H5Tinsert(typeid, BEER_OR_WINE, HOFFSET(struct s1, i1), H5T_NATIVE_INT) < 0) ERR;
       if (H5Tinsert(typeid, LIQUOR, HOFFSET(struct s1, i2), H5T_NATIVE_INT) < 0) ERR;
-      if (H5Tcommit(osmonds_grpid, COMPOUND_NAME, typeid) < 0) ERR;
+      if (H5Tcommit1(osmonds_grpid, COMPOUND_NAME, typeid) < 0) ERR;
 
       /* Create a space. */
       dims[0] = DIM1_LEN;
       if ((spaceid = H5Screate_simple(1, dims, dims)) < 0) ERR;
 
       /* Create a dataset of this compound type. */
-      if ((datasetid = H5Dcreate(osmonds_grpid, BOOZE_VAR, typeid,
+      if ((datasetid = H5Dcreate1(osmonds_grpid, BOOZE_VAR, typeid,
                                  spaceid, H5P_DEFAULT)) < 0) ERR;
 
       /* Write some data. */
@@ -93,7 +93,7 @@ main()
 
       /* Now open the file and read it. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) ERR;
-      if ((osmonds_grpid = H5Gopen(fileid, OSMONDS)) < 0) ERR;
+      if ((osmonds_grpid = H5Gopen1(fileid, OSMONDS)) < 0) ERR;
       if ((datasetid = H5Dopen1(osmonds_grpid, BOOZE_VAR)) < 0) ERR;
       if ((typeid = H5Dget_type(datasetid)) < 0) ERR;
       if (H5Tget_class(typeid) != H5T_COMPOUND) ERR;
@@ -116,21 +116,21 @@ main()
       /* Open file and create two group. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
                               H5P_DEFAULT)) < 0) ERR;
-      if ((osmonds_grpid = H5Gcreate(fileid, OSMONDS, 0)) < 0) ERR;
-      if ((who_grpid = H5Gcreate(fileid, WHO, 0)) < 0) ERR;
+      if ((osmonds_grpid = H5Gcreate1(fileid, OSMONDS, 0)) < 0) ERR;
+      if ((who_grpid = H5Gcreate1(fileid, WHO, 0)) < 0) ERR;
 
       /* Create a simple compound type. */
       if ((typeid = H5Tcreate(H5T_COMPOUND, sizeof(struct s1))) < 0) ERR;
       if (H5Tinsert(typeid, BEER_OR_WINE, HOFFSET(struct s1, i1), H5T_NATIVE_INT) < 0) ERR;
       if (H5Tinsert(typeid, LIQUOR, HOFFSET(struct s1, i2), H5T_NATIVE_INT) < 0) ERR;
-      if (H5Tcommit(osmonds_grpid, COMPOUND_NAME, typeid) < 0) ERR;
+      if (H5Tcommit1(osmonds_grpid, COMPOUND_NAME, typeid) < 0) ERR;
 
       /* Create a space. */
       dims[0] = DIM1_LEN;
       if ((spaceid = H5Screate_simple(1, dims, dims)) < 0) ERR;
 
       /* Create a dataset of this compound type in the same group. */
-      if ((datasetid = H5Dcreate(osmonds_grpid, BOOZE_VAR, typeid,
+      if ((datasetid = H5Dcreate1(osmonds_grpid, BOOZE_VAR, typeid,
                                  spaceid, H5P_DEFAULT)) < 0) ERR;
 
       /* Write some data. */
@@ -138,7 +138,7 @@ main()
                    H5P_DEFAULT, data) < 0) ERR;
 
       /* Create a dataset of this compound type in a different group. */
-      if ((datasetid1 = H5Dcreate(who_grpid, BOOZE_VAR, typeid,
+      if ((datasetid1 = H5Dcreate1(who_grpid, BOOZE_VAR, typeid,
                                   spaceid, H5P_DEFAULT)) < 0) ERR;
 
       /* Write some data. */
@@ -163,7 +163,7 @@ main()
 
          /* Now open the file and read it. */
          if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) ERR;
-         if ((osmonds_grpid = H5Gopen(fileid, OSMONDS)) < 0) ERR;
+         if ((osmonds_grpid = H5Gopen1(fileid, OSMONDS)) < 0) ERR;
          if (H5Gget_num_objs(osmonds_grpid, &num_obj) < 0) ERR;
          for (i=0; i<num_obj; i++)
          {
@@ -175,7 +175,7 @@ main()
                   if ((datasetid = H5Dopen1(osmonds_grpid, name)) < 0) ERR;
                   break;
                case H5G_TYPE:
-                  if ((typeid = H5Topen(osmonds_grpid, name)) < 0) ERR;
+                  if ((typeid = H5Topen1(osmonds_grpid, name)) < 0) ERR;
                   if (H5Tget_class(typeid) != H5T_COMPOUND) ERR;
                   if (H5Tget_nmembers(typeid) != 2) ERR;
                   if (strcmp(name, COMPOUND_NAME)) ERR;
@@ -186,7 +186,7 @@ main()
          }
 
          /* Open the other dataset, and learn about its type. */
-         if ((who_grpid = H5Gopen(fileid, WHO)) < 0) ERR;
+         if ((who_grpid = H5Gopen1(fileid, WHO)) < 0) ERR;
          if ((datasetid1 = H5Dopen1(who_grpid, BOOZE_VAR)) < 0) ERR;
          if ((typeid1 = H5Dget_type(datasetid1)) < 0) ERR;
          if ((equal = H5Tequal(typeid, typeid1)) < 0) ERR;
@@ -214,23 +214,23 @@ main()
       /* Open file and create group. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
                               H5P_DEFAULT)) < 0) ERR;
-      if ((osmonds_grpid = H5Gcreate(fileid, OSMONDS, 0)) < 0) ERR;
+      if ((osmonds_grpid = H5Gcreate1(fileid, OSMONDS, 0)) < 0) ERR;
 
       /* Create an array type. */
-      if ((array_typeid = H5Tarray_create(H5T_NATIVE_INT, 1, array_dims, NULL)) < 0) ERR;
+      if ((array_typeid = H5Tarray_create1(H5T_NATIVE_INT, 1, array_dims, NULL)) < 0) ERR;
 
       /* Create a compound type containing an array. */
       if ((typeid = H5Tcreate(H5T_COMPOUND, sizeof(struct s2))) < 0) ERR;
       if (H5Tinsert(typeid, BEER_OR_WINE, HOFFSET(struct s2, i1), array_typeid) < 0) ERR;
       if (H5Tinsert(typeid, LIQUOR, HOFFSET(struct s2, i2), H5T_NATIVE_INT) < 0) ERR;
-      if (H5Tcommit(osmonds_grpid, COMPOUND_NAME, typeid) < 0) ERR;
+      if (H5Tcommit1(osmonds_grpid, COMPOUND_NAME, typeid) < 0) ERR;
 
       /* Create a space. */
       dims[0] = DIM1_LEN;
       if ((spaceid = H5Screate_simple(1, dims, dims)) < 0) ERR;
 
       /* Create a dataset of this compound type. */
-      if ((datasetid = H5Dcreate(osmonds_grpid, BOOZE_VAR, typeid,
+      if ((datasetid = H5Dcreate1(osmonds_grpid, BOOZE_VAR, typeid,
                                  spaceid, H5P_DEFAULT)) < 0) ERR;
 
       /* Write some data. */
@@ -247,7 +247,7 @@ main()
 
       /* Now open the file and read it. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) ERR;
-      if ((osmonds_grpid = H5Gopen(fileid, OSMONDS)) < 0) ERR;
+      if ((osmonds_grpid = H5Gopen1(fileid, OSMONDS)) < 0) ERR;
       if ((datasetid = H5Dopen1(osmonds_grpid, BOOZE_VAR)) < 0) ERR;
       if ((typeid = H5Dget_type(datasetid)) < 0) ERR;
       if (H5Tget_class(typeid) != H5T_COMPOUND) ERR;
@@ -310,7 +310,7 @@ main()
 
       /* Open file and create group. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
 
       /* Create a compound type containing some different types. */
       if ((typeid = H5Tcreate(H5T_COMPOUND, sizeof(struct obs_t))) < 0) ERR;
@@ -319,14 +319,14 @@ main()
       if (H5Tinsert(typeid, COUNT, HOFFSET(struct obs_t, count), H5T_NATIVE_INT) < 0) ERR;
       if (H5Tinsert(typeid, RELHUM, HOFFSET(struct obs_t, relhum), H5T_NATIVE_FLOAT) < 0) ERR;
       if (H5Tinsert(typeid, TIME, HOFFSET(struct obs_t, time), H5T_NATIVE_DOUBLE) < 0) ERR;
-      if (H5Tcommit(grpid, OBS_T, typeid) < 0) ERR;
+      if (H5Tcommit1(grpid, OBS_T, typeid) < 0) ERR;
 
       /* Create a space. */
       dims[0] = DIM6_LEN;
       if ((spaceid = H5Screate_simple(1, dims, dims)) < 0) ERR;
 
       /* Create a dataset of this compound type. */
-      if ((datasetid = H5Dcreate(grpid, OBS_VAR, typeid, spaceid, H5P_DEFAULT)) < 0) ERR;
+      if ((datasetid = H5Dcreate1(grpid, OBS_VAR, typeid, spaceid, H5P_DEFAULT)) < 0) ERR;
 
       /* Write some data. */
       if (H5Dwrite(datasetid, typeid, H5S_ALL, H5S_ALL, H5P_DEFAULT, obsdata) < 0) ERR;
@@ -340,7 +340,7 @@ main()
 
       /* Now open the file and read it. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
       if ((datasetid = H5Dopen1(grpid, OBS_VAR)) < 0) ERR;
       if ((typeid = H5Dget_type(datasetid)) < 0) ERR;
       if ((size_in = H5Tget_size(typeid)) == 0) ERR;
@@ -384,7 +384,7 @@ main()
          strcpy(file_in, REF_FILE_NAME);
 
       if ((fileid = H5Fopen(file_in, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
       if ((datasetid = H5Dopen1(grpid, OBS_VAR)) < 0) ERR;
       if ((typeid = H5Dget_type(datasetid)) < 0) ERR;
       if ((mem_type = H5Tget_native_type(typeid, H5T_DIR_DEFAULT)) < 0) ERR;
@@ -460,7 +460,7 @@ main()
 
       /* Open file and get root group. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
 
       /* Create a compound type. */
       if ((typeid_inner = H5Tcreate(H5T_COMPOUND, sizeof(struct s1))) < 0) ERR;
@@ -478,14 +478,14 @@ main()
       if (H5Tinsert(typeid, "min_temp", HOFFSET(struct hr_rec, min_temp), H5T_NATIVE_FLOAT) < 0) ERR;
       if (H5Tinsert(typeid, "percent_transporter_errosion", HOFFSET(struct hr_rec, percent_transporter_errosion),
                     H5T_NATIVE_DOUBLE) < 0) ERR;
-      if (H5Tcommit(grpid, "hr_rec", typeid) < 0) ERR;
+      if (H5Tcommit1(grpid, "hr_rec", typeid) < 0) ERR;
 
       /* Create a space. */
       dims[0] = DIM1_LEN;
       if ((spaceid = H5Screate_simple(1, dims, dims)) < 0) ERR;
 
       /* Create a dataset of this compound type. */
-      if ((datasetid = H5Dcreate(grpid, DATASET_NAME, typeid, spaceid, H5P_DEFAULT)) < 0) ERR;
+      if ((datasetid = H5Dcreate1(grpid, DATASET_NAME, typeid, spaceid, H5P_DEFAULT)) < 0) ERR;
 
       /* Write some data. */
       if (H5Dwrite(datasetid, typeid, H5S_ALL, H5S_ALL, H5P_DEFAULT, hr_data_out) < 0) ERR;
@@ -501,7 +501,7 @@ main()
 
       /* Now open the file and read it. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
       if ((datasetid = H5Dopen1(grpid, DATASET_NAME)) < 0) ERR;
       if ((typeid = H5Dget_type(datasetid)) < 0) ERR;
       if (H5Tget_class(typeid) != H5T_COMPOUND) ERR;
@@ -565,7 +565,7 @@ main()
 
       /* Open file and get root group. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
 
       /* Create a compound type. */
       if ((typeid_inner = H5Tcreate(H5T_COMPOUND, sizeof(struct s1))) < 0) ERR;
@@ -585,14 +585,14 @@ main()
       if (H5Tinsert(typeid, "min_temp", HOFFSET(struct hr_rec, min_temp), H5T_NATIVE_FLOAT) < 0) ERR;
       if (H5Tinsert(typeid, "percent_transporter_errosion", HOFFSET(struct hr_rec, percent_transporter_errosion),
                     H5T_NATIVE_DOUBLE) < 0) ERR;
-      if (H5Tcommit(grpid, "hr_rec", typeid) < 0) ERR;
+      if (H5Tcommit1(grpid, "hr_rec", typeid) < 0) ERR;
 
       /* Create a space. */
       dims[0] = DIM1_LEN;
       if ((spaceid = H5Screate_simple(1, dims, dims)) < 0) ERR;
 
       /* Create a dataset of this compound type. */
-      if ((datasetid = H5Dcreate(grpid, DATASET_NAME, typeid, spaceid, H5P_DEFAULT)) < 0) ERR;
+      if ((datasetid = H5Dcreate1(grpid, DATASET_NAME, typeid, spaceid, H5P_DEFAULT)) < 0) ERR;
 
       /* Write some data. */
       if (H5Dwrite(datasetid, typeid, H5S_ALL, H5S_ALL, H5P_DEFAULT, hr_data_out) < 0) ERR;
@@ -609,7 +609,7 @@ main()
 
       /* Now open the file and read it. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
       if ((datasetid = H5Dopen1(grpid, DATASET_NAME)) < 0) ERR;
       if ((typeid = H5Dget_type(datasetid)) < 0) ERR;
       if (H5Tget_class(typeid) != H5T_COMPOUND) ERR;
@@ -673,7 +673,7 @@ main()
 
       /* Open file and get root group. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
 
       /* Create a compound type. */
       if ((typeid_inner = H5Tcreate(H5T_COMPOUND, sizeof(struct s1))) < 0) ERR;
@@ -691,7 +691,7 @@ main()
       if (H5Tinsert(typeid, "min_temp", HOFFSET(struct hr_rec, min_temp), H5T_NATIVE_FLOAT) < 0) ERR;
       if (H5Tinsert(typeid, "percent_transporter_errosion", HOFFSET(struct hr_rec, percent_transporter_errosion),
                     H5T_NATIVE_DOUBLE) < 0) ERR;
-      if (H5Tcommit(grpid, "hr_rec", typeid) < 0) ERR;
+      if (H5Tcommit1(grpid, "hr_rec", typeid) < 0) ERR;
 
       /* Create a space. */
       dims[0] = DIM1_LEN;
@@ -713,7 +713,7 @@ main()
 
       /* Now open the file and read it. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
       if ((attid = H5Aopen_by_name(grpid, ".", ATT_NAME1, H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
       if ((typeid = H5Aget_type(attid)) < 0) ERR;
       if ((native_typeid = H5Tget_native_type(typeid, H5T_DIR_DEFAULT)) < 0) ERR;
@@ -762,7 +762,7 @@ main()
 
       /* Open file and get root group. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
 
       /* Create a compound type. */
       if ((typeid = H5Tcreate(H5T_COMPOUND, sizeof(struct hr_rec))) < 0) ERR;
@@ -774,14 +774,14 @@ main()
         sizeof(struct hr_rec), HOFFSET(struct hr_rec, name), HOFFSET(struct hr_rec, max_temp));*/
       if (H5Tinsert(typeid, "name", HOFFSET(struct hr_rec, name), array1_tid) < 0) ERR;
       if (H5Tinsert(typeid, "max_temp", HOFFSET(struct hr_rec, max_temp), H5T_NATIVE_FLOAT) < 0) ERR;
-      if (H5Tcommit(grpid, "hr_rec", typeid) < 0) ERR;
+      if (H5Tcommit1(grpid, "hr_rec", typeid) < 0) ERR;
 
       /* Create a space. */
       dims[0] = DIM1_LEN;
       if ((spaceid = H5Screate_simple(1, dims, dims)) < 0) ERR;
 
       /* Create a dataset of this compound type. */
-      if ((datasetid = H5Dcreate(grpid, DATASET_NAME, typeid, spaceid, H5P_DEFAULT)) < 0) ERR;
+      if ((datasetid = H5Dcreate1(grpid, DATASET_NAME, typeid, spaceid, H5P_DEFAULT)) < 0) ERR;
 
       /* Write some data. */
       if (H5Dwrite(datasetid, typeid, H5S_ALL, H5S_ALL, H5P_DEFAULT, hr_data_out) < 0) ERR;
@@ -797,7 +797,7 @@ main()
 
       /* Now open the file and read it. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
       if ((datasetid = H5Dopen1(grpid, DATASET_NAME)) < 0) ERR;
       if ((typeid = H5Dget_type(datasetid)) < 0) ERR;
       if (H5Tget_class(typeid) != H5T_COMPOUND) ERR;
@@ -847,7 +847,7 @@ main()
 
       /* Open file and get root group. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
 
       /* Create a compound type. */
       if ((typeid = H5Tcreate(H5T_COMPOUND, sizeof(struct hr_rec))) < 0) ERR;
@@ -858,7 +858,7 @@ main()
         sizeof(struct hr_rec), HOFFSET(struct hr_rec, name), HOFFSET(struct hr_rec, max_temp));*/
       if (H5Tinsert(typeid, "Name", HOFFSET(struct hr_rec, name), array1_tid) < 0) ERR;
       if (H5Tinsert(typeid, "Max_Temp", HOFFSET(struct hr_rec, max_temp), H5T_NATIVE_FLOAT) < 0) ERR;
-      if (H5Tcommit(grpid, "SF_HR_Record", typeid) < 0) ERR;
+      if (H5Tcommit1(grpid, "SF_HR_Record", typeid) < 0) ERR;
 
       /* Create a space. */
       dims[0] = DIM2_LEN;
@@ -881,7 +881,7 @@ main()
 
       /* Now open the file and read it. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
       if ((attid = H5Aopen_by_name(grpid, ".", ATT_NAME, H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
       if ((typeid = H5Aget_type(attid)) < 0) ERR;
       if (H5Tget_class(typeid) != H5T_COMPOUND) ERR;
@@ -938,14 +938,14 @@ main()
 
       /* Open file and get root group. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, fcpl_id, fapl_id)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
 
       /* Create a compound type. */
       if ((typeid = H5Tcreate(H5T_COMPOUND, sizeof(struct s1))) < 0) ERR;
       if ((array1_tid = H5Tarray_create2(H5T_NATIVE_UCHAR, 1, dims)) < 0) ERR;
       if (H5Tinsert(typeid, "x", HOFFSET(struct s1, x), array1_tid) < 0) ERR;
       if (H5Tinsert(typeid, "y", HOFFSET(struct s1, y), H5T_NATIVE_FLOAT) < 0) ERR;
-      if (H5Tcommit(grpid, "c", typeid) < 0) ERR;
+      if (H5Tcommit1(grpid, "c", typeid) < 0) ERR;
 
       /* Create a space. */
       dims[0] = DISC_DIM1_LEN;
@@ -967,7 +967,7 @@ main()
 
       /* Now open the file and read it. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
       if ((attid = H5Aopen_by_name(grpid, ".", DISC_ATT_NAME, H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
       if ((typeid = H5Aget_type(attid)) < 0) ERR;
       if (H5Tget_class(typeid) != H5T_COMPOUND) ERR;
@@ -1039,18 +1039,18 @@ main()
 
       /* Create file and get root group. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, fcpl_id, fapl_id)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
 
       /* Create the inner compound type. */
       if ((typeid_inner = H5Tcreate(H5T_COMPOUND, sizeof(struct s1))) < 0) ERR;
       if (H5Tinsert(typeid_inner, "x", HOFFSET(struct s1, x), H5T_NATIVE_FLOAT) < 0) ERR;
       if (H5Tinsert(typeid_inner, "y", HOFFSET(struct s1, y), H5T_NATIVE_DOUBLE) < 0) ERR;
-      if (H5Tcommit(grpid, INNER_TYPE_NAME, typeid_inner) < 0) ERR;
+      if (H5Tcommit1(grpid, INNER_TYPE_NAME, typeid_inner) < 0) ERR;
 
       /* Create a compound type containing a compound type. */
       if ((typeid_outer = H5Tcreate(H5T_COMPOUND, sizeof(struct s2))) < 0) ERR;
       if (H5Tinsert(typeid_outer, INNER_TYPE_NAME, HOFFSET(struct s2, s1), typeid_inner) < 0) ERR;
-      if (H5Tcommit(grpid, OUTER_TYPE_NAME, typeid_outer) < 0) ERR;
+      if (H5Tcommit1(grpid, OUTER_TYPE_NAME, typeid_outer) < 0) ERR;
 
       /* Create a space. */
       dims[0] = DIM_CMP_LEN;
@@ -1072,7 +1072,7 @@ main()
 
       /* Now open the file and get the type of the attribute. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
       if ((attid = H5Aopen_by_name(grpid, ".", ATT_CMP_NAME1, H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
       if ((att_typeid = H5Aget_type(attid)) < 0) ERR;
       if ((att_native_typeid = H5Tget_native_type(att_typeid, H5T_DIR_DEFAULT)) < 0) ERR;
@@ -1141,18 +1141,18 @@ main()
 
       /* Create file and get root group. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, fcpl_id, fapl_id)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
 
       /* Create the inner compound type. */
       if ((typeid_inner = H5Tcreate(H5T_COMPOUND, sizeof(struct s1))) < 0) ERR;
       if (H5Tinsert(typeid_inner, "x", HOFFSET(struct s1, x), H5T_NATIVE_FLOAT) < 0) ERR;
       if (H5Tinsert(typeid_inner, "y", HOFFSET(struct s1, y), H5T_NATIVE_DOUBLE) < 0) ERR;
-      if (H5Tcommit(grpid, INNER_TYPE_NAME, typeid_inner) < 0) ERR;
+      if (H5Tcommit1(grpid, INNER_TYPE_NAME, typeid_inner) < 0) ERR;
 
       /* Create a compound type containing a compound type. */
       if ((typeid_outer = H5Tcreate(H5T_COMPOUND, sizeof(struct s2))) < 0) ERR;
       if (H5Tinsert(typeid_outer, INNER_TYPE_NAME, HOFFSET(struct s2, s1), typeid_inner) < 0) ERR;
-      if (H5Tcommit(grpid, OUTER_TYPE_NAME, typeid_outer) < 0) ERR;
+      if (H5Tcommit1(grpid, OUTER_TYPE_NAME, typeid_outer) < 0) ERR;
 
       /* Create a space. */
       dims[0] = DIM_CMP_LEN;
@@ -1174,7 +1174,7 @@ main()
 
       /* Now open the file and get the type of the attribute. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
       if ((attid = H5Aopen_by_name(grpid, ".", ATT_CMP_NAME1, H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
       if ((att_typeid = H5Aget_type(attid)) < 0) ERR;
       if ((att_native_typeid = H5Tget_native_type(att_typeid, H5T_DIR_DEFAULT)) < 0) ERR;
