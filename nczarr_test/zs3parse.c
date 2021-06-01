@@ -5,13 +5,16 @@
 
 #include "config.h"
 
+#include <stdlib.h>
+#include <stdio.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
-#ifdef _WIN32
+
+#if defined(_WIN32) && !defined(__MINGW32__)
 #include "XGetopt.h"
 #endif
 

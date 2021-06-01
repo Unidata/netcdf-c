@@ -14,6 +14,9 @@
 #ifdef HAVE_DIRENT_H
 #include <dirent.h>
 #endif
+#ifdef HAVE_SYS_STAT_H
+#include <sys/stat.h>
+#endif
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
@@ -99,6 +102,9 @@ EXTERNL int NChasdriveletter(const char* path);
 /* Canonicalize and make absolute by prefixing the current working directory */
 EXTERNL char* NCpathabsolute(const char* name);
 
+/* Check if this path appears to start with a windows drive letter */
+EXTERNL int NChasdriveletter(const char* path);
+
 /* Convert from the local coding (e.g. ANSI) to utf-8;
    note that this can produce unexpected results for Windows
    because it first converts to wide character and then to utf8. */
@@ -136,11 +142,11 @@ EXTERNL int NCclosedir(DIR* ent);
 #define NCmkdir(path,mode) mkdir(path,mode)
 #define NCgetcwd(buf,len) getcwd(buf,len)
 #define NCmkstemp(buf) mkstemp(buf);
+#define NCcwd(buf, len) getcwd(buf,len)
+#define NCrmdir(path) rmdir(path)
 #ifdef HAVE_SYS_STAT_H
 #define NCstat(path,buf) stat(path,buf)
 #endif
-#define NCcwd(buf, len) getcwd(buf,len)
-#define NCrmdir(path) rmdir(path)
 #ifdef HAVE_DIRENT_H
 #define NCopendir(path) opendir(path)
 #define NCclosedir(ent) closedir(ent)
