@@ -28,6 +28,12 @@ failure() {
 
 setresultdir results_test_hyrax
 
+TESTSERVER=`${execdir}/findtestserver4 dap4 opendap test.opendap.org`
+if test "x$TESTSERVER" = x ; then
+echo "***XFAIL: Cannot find test.opendap.org testserver; test skipped"
+exit 0
+fi
+
 if test "x${RESET}" = x1 ; then rm -fr ${BASELINEH}/*.hyrax ; fi
 for f in $F ; do
     constraint=`echo "$f" | cut -d '?' -f2`
@@ -35,9 +41,9 @@ for f in $F ; do
     base=`basename $unconstrained`
     prefix=`dirname $unconstrained`
     if test "x$constraint" = "x$unconstrained" ; then
-        URL="dap4://test.opendap.org:8080/opendap/${prefix}/${base}${FRAG}"
+        URL="dap4://test.opendap.org/opendap/${prefix}/${base}${FRAG}"
     else
-	URL="dap4://test.opendap.org:8080/opendap/${prefix}/${base}?$constraint${FRAG}"
+	URL="dap4://test.opendap.org/opendap/${prefix}/${base}?$constraint${FRAG}"
     fi
     echo "testing: $URL"
     if ! ${NCDUMP} "${URL}" > ./results_test_hyrax/${base}.hyrax; then
