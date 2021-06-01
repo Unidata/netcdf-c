@@ -45,6 +45,7 @@ IF(ENABLE_TESTS)
       add_sh_test(ncdap tst_fillmismatch)
       IF(ENABLE_DAP_LONG_TESTS)
         add_sh_test(ncdap tst_longremote3)
+        add_bin_test(ncdap test_manyurls)
       ENDIF(ENABLE_DAP_LONG_TESTS)
 
     ENDIF(BUILD_UTILITIES)

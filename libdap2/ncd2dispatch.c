@@ -1306,8 +1306,8 @@ applyclientparams(NCDAPCOMMON* nccomm)
 	strlcat(tmpname,pathstr,sizeof(tmpname));
 	value = paramlookup(nccomm,tmpname);
 	if(value == NULL) {
-	    strcpy(tmpname,"maxstrlen_");
-	    strncat(tmpname,pathstr,NC_MAX_NAME);
+	    strncpy(tmpname,"maxstrlen_",sizeof(tmpname));
+	    strlcat(tmpname,pathstr,sizeof(tmpname));
 	    value = paramlookup(nccomm,tmpname);
         }
 	nullfree(pathstr);
