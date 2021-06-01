@@ -79,6 +79,8 @@ fprintf(stderr,"%s.maxstrlen=%d\n",node->ocname,(int)node->dodsspecial.maxstrlen
 #endif
 		} else if(strcmp(ocname,"DODS.dimName")==0
 		   || strcmp(ocname,"DODS_EXTRA.dimName")==0) {
+	            nullfree(node->dodsspecial.dimname); /* in case repeated */
+		    node->dodsspecial.dimname = NULL;
 		    if(values != NULL) {
 			nullfree(node->dodsspecial.dimname);
 		        node->dodsspecial.dimname = nulldup(values[0]);

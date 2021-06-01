@@ -7,8 +7,9 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.8.1 - TBD
 
-
 * [Bug Fixes] The netcdf-c library was incorrectly determining the scope of dimension; similar to the type scope problem. See [Github #2012](https://github.com/Unidata/netcdf-c/pull/2012) for more information.
+* [Bug Fix] Re-enable DAP2 authorization testing. See [Github #2011](https://github.com/Unidata/netcdf-c/issues/2011).  
+* [Bug Fix] Fix bug with windows version of mkstemp that causes failure to create more than 26 temp files. See [Github #1998](https://github.com/Unidata/netcdf-c/pull/1998).  
 * [Bug Fix] Fix ncdump bug when printing VLENs with basetype char. See [Github #1986](https://github.com/Unidata/netcdf-c/issues/1986).  
 * [Bug Fixes] The netcdf-c library was incorrectly determining the scope of types referred to by nc_inq_type_equal. See [Github #1959](https://github.com/Unidata/netcdf-c/pull/1959) for more information.
 * [Bug Fix] Fix bug in use of XGetopt when building under Mingw. See [Github #2009](https://github.com/Unidata/netcdf-c/issues/2009).

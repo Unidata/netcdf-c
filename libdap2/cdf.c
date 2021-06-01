@@ -1089,6 +1089,7 @@ free1cdfnode(CDFnode* node)
     nullfree(node->ocname);
     nullfree(node->ncbasename);
     nullfree(node->ncfullname);
+    nullfree(node->dodsspecial.dimname);
     if(node->attributes != NULL) {
 	for(j=0;j<nclistlength(node->attributes);j++) {
 	    NCattribute* att = (NCattribute*)nclistget(node->attributes,j);
@@ -1099,7 +1100,6 @@ free1cdfnode(CDFnode* node)
 	    nullfree(att);
 	}
     }
-    nullfree(node->dodsspecial.dimname);
     nclistfree(node->subnodes);
     nclistfree(node->attributes);
     nclistfree(node->array.dimsetplus);
