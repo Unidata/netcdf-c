@@ -739,7 +739,7 @@ NCZ_set_log_level()
     else
     {
 #ifdef LOOK
-        if (set_auto((H5E_auto_t)&H5Eprint, stderr) < 0)
+        if (set_auto((H5E_auto_t)&H5Eprint1, stderr) < 0)
             LOG((0, "H5Eset_auto failed!"));
 #endif
         LOG((1, "NCZ error messages turned on."));

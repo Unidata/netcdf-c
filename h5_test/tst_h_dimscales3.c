@@ -99,12 +99,12 @@ main()
       if (H5Pset_chunk(cparmsid, NDIMS, dims) < 0) ERR;
 
       /* Create our dimension scale, as an unlimited dataset. */
-      if ((dimscaleid = H5Dcreate(fileid, DIMSCALE_NAME, H5T_NATIVE_INT,
+      if ((dimscaleid = H5Dcreate1(fileid, DIMSCALE_NAME, H5T_NATIVE_INT,
 				  spaceid, cparmsid)) < 0) ERR;
       if (H5DSset_scale(dimscaleid, NAME_ATTRIBUTE) < 0) ERR;
 
       /* Create a variable which uses it. */
-      if ((datasetid = H5Dcreate(fileid, VAR1_NAME, H5T_NATIVE_INT,
+      if ((datasetid = H5Dcreate1(fileid, VAR1_NAME, H5T_NATIVE_INT,
 				 spaceid, cparmsid)) < 0) ERR;
       if (H5DSattach_scale(datasetid, dimscaleid, 0) < 0) ERR;
       if (H5DSset_label(datasetid, 0, DIMSCALE_LABEL) < 0) ERR;
@@ -151,7 +151,7 @@ main()
 		  break;
 	       case H5G_DATASET:
 		  /* Open the dataset. */
-		  if ((datasetid = H5Dopen(fileid, obj_name)) < 0) ERR;
+		  if ((datasetid = H5Dopen1(fileid, obj_name)) < 0) ERR;
 
 		  /* This should be an unlimited dataset. */
 		  if ((spaceid = H5Dget_space(datasetid)) < 0) ERR;
