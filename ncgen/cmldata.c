@@ -337,9 +337,9 @@ xconst(Constant* ci)
 	bstring = poolalloc(bslen+2+1);
 	p = ci->value.opaquev.stringv;
 	while(*p) {
-	    strcat(bstring,"&#");
-	    strncat(bstring,p,2);
-	    strcat(bstring,";");
+	    strlcat(bstring,"&#",bslen+3);
+	    strlcat(bstring,p,bslen+3);
+	    strlcat(bstring,";",bslen+3);
 	    p += 2;
 	}
 	return bstring;
