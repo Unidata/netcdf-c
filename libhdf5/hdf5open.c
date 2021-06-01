@@ -1013,22 +1013,35 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
     size_t cd_nelems;
     int f;
     int stat = NC_NOERR;
+    NC_HDF5_VAR_INFO_T *hdf5_var;
 
     assert(var);
+
+    /* Get HDF5-sepecific var info. */
+    hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
 
     if ((num_filters = H5Pget_nfilters(propid)) < 0)
 	{stat = NC_EHDFERR; goto done;}
 
     for (f = 0; f < num_filters; f++)
     {
+	int flags = 0;
+	htri_t avail = -1;
 	cd_nelems = 0;
         if ((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems, NULL, 0, NULL, NULL)) < 0)
-	    {stat = NC_EHDFERR; goto done;}
+ 	    {stat = NC_ENOFILTER; goto done;} /* Assume this means an unknown filter */
+	if((avail = H5Zfilter_avail(filter)) < 0)
+ 	    {stat = NC_EHDFERR; goto done;} /* Something in HDF5 went wrong */
+	if(!avail) {
+	    flags |= NC_HDF5_FILTER_MISSING;
+	    /* mark variable as unreadable */
+	    hdf5_var->flags |= NC_HDF5_VAR_FILTER_MISSING;
+	}
 	if((cd_values = calloc(sizeof(unsigned int),cd_nelems))==NULL)
-	    {stat = NC_EHDFERR; goto done;}
+ 	    {stat = NC_ENOMEM; goto done;}
         if ((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems, cd_values, 0, NULL, NULL)) < 0)
-	    {stat = NC_EHDFERR; goto done;}
-        switch (filter)
+ 	    {stat = NC_EHDFERR; goto done;} /* Something in HDF5 went wrong */
+	switch (filter)
         {
         case H5Z_FILTER_SHUFFLE:
             var->shuffle = NC_TRUE;
@@ -1042,7 +1055,7 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
             if (cd_nelems != CD_NELEMS_ZLIB ||
                 cd_values[0] > NC_MAX_DEFLATE_LEVEL)
 		    {stat = NC_EHDFERR; goto done;}
-	    if((stat = NC4_hdf5_addfilter(var,filter,cd_nelems,cd_values)))
+	    if((stat = NC4_hdf5_addfilter(var,filter,cd_nelems,cd_values,flags)))
 	       goto done;
             break;
 
@@ -1050,7 +1063,7 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
             /* Szip is tricky because the filter code expands the set of parameters from 2 to 4
                and changes some of the parameter values; try to compensate */
             if(cd_nelems == 0) {
-		if((stat = NC4_hdf5_addfilter(var,filter,0,NULL)))
+		if((stat = NC4_hdf5_addfilter(var,filter,0,NULL,flags)))
 		   goto done;
             } else {
                 /* fix up the parameters and the #params */
@@ -1060,16 +1073,16 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
 		/* Fix up changed params */
 		cd_values[0] &= (H5_SZIP_ALL_MASKS);
 		/* Save info */
-		stat = NC4_hdf5_addfilter(var,filter,cd_nelems,cd_values);
+		stat = NC4_hdf5_addfilter(var,filter,cd_nelems,cd_values,flags);
 		if(stat) goto done;
             }
             } break;
 
         default:
             if(cd_nelems == 0) {
-  	        if((stat = NC4_hdf5_addfilter(var,filter,0,NULL))) goto done;
+  	        if((stat = NC4_hdf5_addfilter(var,filter,0,NULL,flags))) goto done;
             } else {
-  	        stat = NC4_hdf5_addfilter(var,filter,cd_nelems,cd_values);
+  	        stat = NC4_hdf5_addfilter(var,filter,cd_nelems,cd_values,flags);
 		if(stat) goto done;
             }
             break;
