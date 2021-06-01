@@ -403,9 +403,8 @@ fprintf(stderr,"ce=%s\n",dumpconstraint(dapcomm->oc.dapconstraint));
     ocstat = oc_open(dapcomm->oc.urltext,&dapcomm->oc.conn);
     if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto done;}
 
-#ifdef DEBUG1
-    (void)oc_trace_curl(dapcomm->oc.conn);
-#endif
+    if(getenv("CURLOPT_VERBOSE") != NULL)
+        (void)oc_trace_curl(dapcomm->oc.conn);
 
     nullfree(dapcomm->oc.urltext); /* clean up */
     dapcomm->oc.urltext = NULL;
@@ -1306,8 +1305,8 @@ applyclientparams(NCDAPCOMMON* nccomm)
 	strlcat(tmpname,pathstr,sizeof(tmpname));
 	value = paramlookup(nccomm,tmpname);
 	if(value == NULL) {
-	    strcpy(tmpname,"maxstrlen_");
-	    strncat(tmpname,pathstr,NC_MAX_NAME);
+	    strncpy(tmpname,"maxstrlen_",sizeof(tmpname));
+	    strlcat(tmpname,pathstr,sizeof(tmpname));
 	    value = paramlookup(nccomm,tmpname);
         }
 	nullfree(pathstr);

@@ -124,6 +124,7 @@ jobs:
       - name: Configure
         shell: bash -l {0}
         run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure ${ENABLE_HDF4} ${ENABLE_NC4} ${ENABLE_DAP} ${ENABLE_NCZARR}
+        if: ${{ success() }}
 
       - name: Look at config.log if error
         shell: bash -l {0}
@@ -149,9 +150,17 @@ jobs:
         run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check -j
         if: ${{ success() }}
 
-      #- name: Make Distcheck
-      #  shell: bash -l {0}
-      #  run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make distcheck -j
+     # - name: Make Distcheck
+     #   shell: bash -l {0}
+     #   run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} DISTCHECK_CONFIGURE_FLAGS="${ENABLE_HDF4} ${ENABLE_NC4} ${ENABLE_DAP} ${ENABLE_NCZARR}" make distcheck
+     #   if: ${{ success() }}
+
+      #- name: Start SSH Debug
+      #  uses: luchihoratiu/debug-via-ssh@main
+      #  with:
+      #    NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
+      #    SSH_PASS: ${{ secrets.SSH_PASS }}
+      #  if: ${{ failure() }}
 
   nc-cmake:
 

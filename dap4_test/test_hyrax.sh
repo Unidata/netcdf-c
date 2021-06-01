@@ -27,9 +27,17 @@ failure() {
 
 setresultdir results_test_hyrax
 
+TESTSERVER=`${execdir}/findtestserver4 dap4 opendap test.opendap.org`
+if test "x$TESTSERVER" = x ; then
+echo "***XFAIL: Cannot find test.opendap.org testserver; test skipped"
+exit 0
+fi
+
 if test "x${RESET}" = x1 ; then rm -fr ${BASELINEH}/*.hyrax ; fi
 for f in $F ; do
+
     makeurl "dap4://test.opendap.org/opendap" "$f"
+
     echo "testing: $URL"
     if ! ${NCDUMP} "${URL}" > ./results_test_hyrax/${base}.hyrax; then
         failure "${URL}"

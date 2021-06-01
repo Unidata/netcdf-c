@@ -383,7 +383,7 @@ NCD4_mktmp(const char* base, char** tmpnamep)
 
     strncpy(tmp,base,sizeof(tmp));
 #ifdef HAVE_MKSTEMP
-    strncat(tmp,"XXXXXX", sizeof(tmp) - strlen(tmp) - 1);
+    strlcat(tmp,"XXXXXX", sizeof(tmp));
     /* Note Potential problem: old versions of this function
        leave the file in mode 0666 instead of 0600 */
     mask=umask(0077);
@@ -396,7 +396,7 @@ NCD4_mktmp(const char* base, char** tmpnamep)
 	char spid[7];
 	if(rno < 0) rno = -rno;
         snprintf(spid,sizeof(spid),"%06d",rno);
-        strncat(tmp,spid,sizeof(tmp));
+        strlcat(tmp,spid,sizeof(tmp));
 #if defined(_WIN32) || defined(_WIN64)
         fd=open(tmp,O_RDWR|O_BINARY|O_CREAT, _S_IREAD|_S_IWRITE);
 #  else
@@ -417,12 +417,12 @@ void
 NCD4_hostport(NCURI* uri, char* space, size_t len)
 {
     if(space != NULL && len >  0) {
-	space[0] = '\0'; /* so we can use strncat */
+	space[0] = '\0'; /* so we can use strlcat */
         if(uri->host != NULL) {
-	    strncat(space,uri->host,len);
+	    strlcat(space,uri->host,len);
             if(uri->port != NULL) {
-	        strncat(space,":",len);
-	        strncat(space,uri->port,len);
+	        strlcat(space,":",len);
+	        strlcat(space,uri->port,len);
 	    }
 	}
     }
@@ -432,11 +432,11 @@ void
 NCD4_userpwd(NCURI* uri, char* space, size_t len)
 {
     if(space != NULL && len > 0) {
-	space[0] = '\0'; /* so we can use strncat */
+	space[0] = '\0'; /* so we can use strlcat */
         if(uri->user != NULL && uri->password != NULL) {
-            strncat(space,uri->user,len);
-            strncat(space,":",len);
-            strncat(space,uri->password,len);
+            strlcat(space,uri->user,len);
+            strlcat(space,":",len);
+            strlcat(space,uri->password,len);
 	}
     }
 }
