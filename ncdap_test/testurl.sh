@@ -1,8 +1,8 @@
 #!/bin/sh
 
-#NOP=1 
-#NOS=1
-#NOB=1
+NOP=1 
+NOS=1
+NOB=1
 
 #SHOW=1
 #DBG=1
