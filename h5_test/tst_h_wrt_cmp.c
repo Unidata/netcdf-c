@@ -54,14 +54,14 @@ main()
       if ((typeid = H5Tcreate(H5T_COMPOUND, sizeof(struct s1))) < 0) ERR;
       if (H5Tinsert(typeid, "c1", HOFFSET(struct s1, c1), H5T_NATIVE_UCHAR) < 0) ERR;
       if (H5Tinsert(typeid, "d", HOFFSET(struct s1, d), H5T_NATIVE_DOUBLE) < 0) ERR;
-      if (H5Tcommit(fileid, COMPOUND_NAME, typeid) < 0) ERR;
+      if (H5Tcommit1(fileid, COMPOUND_NAME, typeid) < 0) ERR;
 
       /* Create a space. */
       dims[0] = DIM1_LEN;
       if ((spaceid = H5Screate_simple(1, dims, dims)) < 0) ERR;
 
       /* Create a dataset of this compound type. */
-      if ((datasetid = H5Dcreate(fileid, VAR_NAME, typeid, spaceid,
+      if ((datasetid = H5Dcreate1(fileid, VAR_NAME, typeid, spaceid,
                                  H5P_DEFAULT)) < 0) ERR;
 
       /* Write some data. */

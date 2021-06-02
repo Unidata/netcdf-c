@@ -83,18 +83,18 @@ main()
 
       /* Create file and get root group. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, fcpl_id, fapl_id)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
 
       /* Create the inner compound type. */
       if ((typeid_inner = H5Tcreate(H5T_COMPOUND, sizeof(struct s1))) < 0) ERR;
       if (H5Tinsert(typeid_inner, "x", HOFFSET(struct s1, x), H5T_NATIVE_FLOAT) < 0) ERR;
       if (H5Tinsert(typeid_inner, "y", HOFFSET(struct s1, y), H5T_NATIVE_DOUBLE) < 0) ERR;
-      if (H5Tcommit(grpid, INNER_TYPE_NAME, typeid_inner) < 0) ERR;
+      if (H5Tcommit1(grpid, INNER_TYPE_NAME, typeid_inner) < 0) ERR;
 
       /* Create a compound type containing a compound type. */
       if ((typeid_outer = H5Tcreate(H5T_COMPOUND, sizeof(struct s2))) < 0) ERR;
       if (H5Tinsert(typeid_outer, INNER_TYPE_NAME, HOFFSET(struct s2, s1), typeid_inner) < 0) ERR;
-      if (H5Tcommit(grpid, OUTER_TYPE_NAME, typeid_outer) < 0) ERR;
+      if (H5Tcommit1(grpid, OUTER_TYPE_NAME, typeid_outer) < 0) ERR;
 
       /* Create a space. */
       dims[0] = DIM_CMP_LEN;
@@ -116,7 +116,7 @@ main()
 
       /* Now open the file and get the type of the attribute. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
       if ((attid = H5Aopen_by_name(grpid, ".", ATT_NAME1, H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
       if ((att_typeid = H5Aget_type(attid)) < 0) ERR;
       if ((att_native_typeid = H5Tget_native_type(att_typeid, H5T_DIR_DEFAULT)) < 0) ERR;
@@ -184,7 +184,7 @@ main()
          strcpy(file_in, REF_FILE_IN);
 
       if ((fileid = H5Fopen(file_in, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
       if ((attid = H5Aopen_by_name(grpid, ".", ATT_NAME1, H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
       if ((att_typeid = H5Aget_type(attid)) < 0) ERR;
       if ((att_native_typeid = H5Tget_native_type(att_typeid, H5T_DIR_DEFAULT)) < 0) ERR;

@@ -349,6 +349,7 @@ buildbaseline(unsigned int testcasenumber)
         insert(12,&val8,sizeof(val8)); /* 12 unsigned long long */
 	break;
     case 2:
+    case 3:
     	break;
     default:
 	fprintf(stderr,"Unknown testcase number: %d\n",testcasenumber);
@@ -410,6 +411,41 @@ test_test2(void)
     CHECK(nc_close(ncid));
 
     fprintf(stderr,"test2: dimsize %% chunksize != 0: decompress.\n");
+    reset();
+    openfile();
+    CHECK(nc_get_var_float(ncid, varid, array));
+    ok = compare();
+    CHECK(nc_close(ncid));
+    return ok;
+}
+
+static int
+test_test3(void)
+{
+    int ok = 1;
+    int stat = NC_NOERR;
+
+    reset();
+
+    buildbaseline(3);
+
+    fprintf(stderr,"test3: dimsize %% chunksize != 0: compress.\n");
+    create();
+    setchunking();
+    setvarfilter();
+    showparameters();
+    CHECK(nc_enddef(ncid));
+
+    /* Fill in the array */
+    fill();
+    /* write array */
+    stat = nc_put_var(ncid,varid,expected);
+
+    fprintf(stderr,"test3: error code = %d\n",stat);
+
+    CHECK(nc_close(ncid));
+
+    fprintf(stderr,"test3: dimsize %% chunksize != 0: decompress.\n");
     reset();
     openfile();
     CHECK(nc_get_var_float(ncid, varid, array));
@@ -504,11 +540,12 @@ int
 main(int argc, char **argv)
 {
 #ifdef DEBUG
-    H5Eprint(stderr);
+    H5Eprint1(stderr);
     nc_set_log_level(1);
 #endif
     init(argc,argv);
     if(!test_test1()) ERRR;
     if(!test_test2()) ERRR;
+    if(!test_test3()) ERRR;
     exit(nerrs > 0?1:0);
 }

@@ -767,6 +767,7 @@ searchgrouptree(int ncid1, int tid1, int grp, int* tid2)
 	    id = ids[i];
 	    nclistpush(queue,(void*)id);
 	}
+	free(ids); ids = NULL;
     }
     /* Not found */
     ret = NC_EBADTYPE;

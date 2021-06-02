@@ -22,7 +22,7 @@ redistribution conditions.
 
 #ifdef USE_HDF5
 #include <hdf5.h>
-extern int H5Eprint1(FILE * stream);
+extern int H5Eprint11(FILE * stream);
 #endif
 
 #define FLAGS4 (NC_INMEMORY|NC_NETCDF4|NC_CLOBBER)
