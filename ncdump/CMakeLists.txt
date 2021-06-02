@@ -20,7 +20,8 @@ IF(USE_X_GETOPT)
   SET(nccopy_FILES ${nccopy_FILES} XGetopt.c)
   SET(ocprint_FILES ${ocprint_FILES} XGetopt.c)
   SET(ncvalidator_FILES ${ncvalidator_FILES} XGetopt.c)
-ENDIF()
+  SET(printfqn_FILES ${printfqn_FILES} XGetopt.c)
+ENDIF(USE_X_GETOPT)
 
 ADD_EXECUTABLE(ncdump ${ncdump_FILES})
 ADD_EXECUTABLE(nccopy ${nccopy_FILES})
@@ -327,13 +328,16 @@ IF(ENABLE_TESTS)
   add_sh_test(ncdump test_keywords)
   ENDIF()
 
+  IF(USE_HDF5)
+  add_sh_test(ncdump test_scope)
+  ENDIF()
+  add_sh_test(ncdump test_rcmerge)
 
   IF(USE_HDF5)
   add_sh_test(ncdump test_scope)
   ENDIF()
 
   add_sh_test(ncdump test_rcmerge)
-
 
 ENDIF(ENABLE_TESTS)
 

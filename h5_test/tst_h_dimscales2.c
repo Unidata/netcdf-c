@@ -95,12 +95,12 @@ main()
       if (H5Pset_chunk(cparmsid, NDIMS, dims) < 0) ERR;
 
       /* Create our dimension scale, as an unlimited dataset. */
-      if ((dimscaleid = H5Dcreate(fileid, DIMSCALE_NAME, H5T_NATIVE_INT,
+      if ((dimscaleid = H5Dcreate1(fileid, DIMSCALE_NAME, H5T_NATIVE_INT,
 				  spaceid, cparmsid)) < 0) ERR;
       if (H5DSset_scale(dimscaleid, NAME_ATTRIBUTE) < 0) ERR;
 
       /* Create a variable which uses it. */
-      if ((datasetid = H5Dcreate(fileid, VAR1_NAME, H5T_NATIVE_INT,
+      if ((datasetid = H5Dcreate1(fileid, VAR1_NAME, H5T_NATIVE_INT,
 				 spaceid, cparmsid)) < 0) ERR;
       if (H5DSattach_scale(datasetid, dimscaleid, 0) < 0) ERR;
       if (H5DSset_label(datasetid, 0, DIMSCALE_LABEL) < 0) ERR;
@@ -255,15 +255,15 @@ main()
       if ((pres_spaceid = H5Screate_simple(DIMS_2, dims, dims)) < 0) ERR;
 
       /* Create our dimension scales. */
-      if ((lat_dimscaleid = H5Dcreate(fileid, LAT_NAME, H5T_NATIVE_INT,
+      if ((lat_dimscaleid = H5Dcreate1(fileid, LAT_NAME, H5T_NATIVE_INT,
 				      lat_spaceid, H5P_DEFAULT)) < 0) ERR;
       if (H5DSset_scale(lat_dimscaleid, NULL) < 0) ERR;
-      if ((lon_dimscaleid = H5Dcreate(fileid, LON_NAME, H5T_NATIVE_INT,
+      if ((lon_dimscaleid = H5Dcreate1(fileid, LON_NAME, H5T_NATIVE_INT,
 				      lon_spaceid, H5P_DEFAULT)) < 0) ERR;
       if (H5DSset_scale(lon_dimscaleid, NULL) < 0) ERR;
 
       /* Create a variable which uses these two dimscales. */
-      if ((pres_datasetid = H5Dcreate(fileid, PRES_NAME, H5T_NATIVE_FLOAT,
+      if ((pres_datasetid = H5Dcreate1(fileid, PRES_NAME, H5T_NATIVE_FLOAT,
 				      pres_spaceid, H5P_DEFAULT)) < 0) ERR;
       if (H5DSattach_scale(pres_datasetid, lat_dimscaleid, 0) < 0) ERR;
       if (H5DSattach_scale(pres_datasetid, lon_dimscaleid, 1) < 0) ERR;
@@ -463,10 +463,10 @@ main()
 				     H5P_CRT_ORDER_INDEXED) < 0) ERR;
 
       /* Create our dimension scales. */
-      if ((lat_dimscaleid = H5Dcreate(grpid, U1_NAME, H5T_NATIVE_INT,
+      if ((lat_dimscaleid = H5Dcreate1(grpid, U1_NAME, H5T_NATIVE_INT,
 				      lat_spaceid, plistid)) < 0) ERR;
       if (H5DSset_scale(lat_dimscaleid, NULL) < 0) ERR;
-      if ((lon_dimscaleid = H5Dcreate(grpid, U2_NAME, H5T_NATIVE_INT,
+      if ((lon_dimscaleid = H5Dcreate1(grpid, U2_NAME, H5T_NATIVE_INT,
 				      lon_spaceid, plistid)) < 0) ERR;
       if (H5DSset_scale(lon_dimscaleid, NULL) < 0) ERR;
 
@@ -477,7 +477,7 @@ main()
 				     H5P_CRT_ORDER_INDEXED) < 0) ERR;
 
       /* Create a variable which uses these two dimscales. */
-      if ((pres_datasetid = H5Dcreate(grpid, VNAME, H5T_NATIVE_DOUBLE, pres_spaceid,
+      if ((pres_datasetid = H5Dcreate1(grpid, VNAME, H5T_NATIVE_DOUBLE, pres_spaceid,
 				      plistid2)) < 0) ERR;
       if (H5DSattach_scale(pres_datasetid, lat_dimscaleid, 0) < 0) ERR;
       if (H5DSattach_scale(pres_datasetid, lon_dimscaleid, 1) < 0) ERR;

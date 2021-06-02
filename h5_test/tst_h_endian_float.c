@@ -56,16 +56,16 @@ main()
     /* Open file and create group. */
     if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
                             H5P_DEFAULT)) < 0) ERR;
-    if ((grpid = H5Gcreate(fileid, GRP_NAME, 0)) < 0) ERR;
+    if ((grpid = H5Gcreate1(fileid, GRP_NAME, 0)) < 0) ERR;
 
     /* Create a dataset of native endian. */
     dims[0] = DIM1_LEN;
     if ((spaceid = H5Screate_simple(1, dims, dims)) < 0) ERR;
-    if ((native_did = H5Dcreate(grpid, NATIVE_VAR_NAME, H5T_STD_I32BE,
+    if ((native_did = H5Dcreate1(grpid, NATIVE_VAR_NAME, H5T_STD_I32BE,
                                 spaceid, H5P_DEFAULT)) < 0) ERR;
-    if ((le_did = H5Dcreate(grpid, LE_VAR_NAME, H5T_IEEE_F32LE,
+    if ((le_did = H5Dcreate1(grpid, LE_VAR_NAME, H5T_IEEE_F32LE,
                             spaceid, H5P_DEFAULT)) < 0) ERR;
-    if ((be_did = H5Dcreate(grpid, BE_VAR_NAME, H5T_IEEE_F32BE,
+    if ((be_did = H5Dcreate1(grpid, BE_VAR_NAME, H5T_IEEE_F32BE,
                             spaceid, H5P_DEFAULT)) < 0) ERR;
 
     if (H5Dclose(native_did) < 0 ||

@@ -63,12 +63,12 @@ rec_scan_group(hid_t grpid)
       switch(obj_class)
       {
 	 case H5G_GROUP:
-	    if ((child_grpid = H5Gopen(grpid, obj_name)) < 0) ERR;
+	    if ((child_grpid = H5Gopen1(grpid, obj_name)) < 0) ERR;
 	    if (rec_scan_group(child_grpid)) ERR;
 	    break;
 	 case H5G_DATASET:
 	    /* Open the dataset. */
-	    if ((datasetid = H5Dopen(grpid, obj_name)) < 0) ERR;
+	    if ((datasetid = H5Dopen1(grpid, obj_name)) < 0) ERR;
 	    /*printf("\nobj_name %s\n", obj_name);*/
 
 	    /* Get the dimensions of this dataset. */
@@ -138,32 +138,32 @@ main()
       /* Open file and create group. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
 			      H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gcreate(fileid, GRP_NAME, 0)) < 0) ERR;
+      if ((grpid = H5Gcreate1(fileid, GRP_NAME, 0)) < 0) ERR;
 
       /* Create our dimension scale. Use the built-in NAME attribute
        * on the dimscale. */
       if ((dimscale_spaceid = H5Screate_simple(1, dimscale_dims,
 					       dimscale_dims)) < 0) ERR;
-      if ((dimscaleid = H5Dcreate(grpid, DIMSCALE_NAME, H5T_NATIVE_INT,
+      if ((dimscaleid = H5Dcreate1(grpid, DIMSCALE_NAME, H5T_NATIVE_INT,
 				  dimscale_spaceid, H5P_DEFAULT)) < 0) ERR;
       if (H5DSset_scale(dimscaleid, NAME_ATTRIBUTE) < 0) ERR;
 
       /* Create a 1D variable which uses the dimscale. Attach a label
        * to this scale. */
       if ((var1_spaceid = H5Screate_simple(1, dims, dims)) < 0) ERR;
-      if ((var1_datasetid = H5Dcreate(grpid, VAR1_NAME, H5T_NATIVE_INT,
+      if ((var1_datasetid = H5Dcreate1(grpid, VAR1_NAME, H5T_NATIVE_INT,
 				      var1_spaceid, H5P_DEFAULT)) < 0) ERR;
       if (H5DSattach_scale(var1_datasetid, dimscaleid, 0) < 0) ERR;
       if (H5DSset_label(var1_datasetid, 0, FIFTIES_SONG) < 0) ERR;
 
       /* Create a 1D variabls that doesn't use the dimension scale. */
-      if ((var2_datasetid = H5Dcreate(grpid, VAR2_NAME, H5T_NATIVE_INT,
+      if ((var2_datasetid = H5Dcreate1(grpid, VAR2_NAME, H5T_NATIVE_INT,
 				      var1_spaceid, H5P_DEFAULT)) < 0) ERR;
 
       /* Create a 2D dataset which uses the scale for one of its
        * dimensions. */
       if ((var3_spaceid = H5Screate_simple(2, dims, dims)) < 0) ERR;
-      if ((var3_datasetid = H5Dcreate(grpid, VAR3_NAME, H5T_NATIVE_INT,
+      if ((var3_datasetid = H5Dcreate1(grpid, VAR3_NAME, H5T_NATIVE_INT,
 				      var3_spaceid, H5P_DEFAULT)) < 0) ERR;
       if (H5DSattach_scale(var3_datasetid, dimscaleid, 0) < 0) ERR;
 
@@ -198,7 +198,7 @@ main()
 
       /* Reopen the file and group. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, GRP_NAME)) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, GRP_NAME)) < 0) ERR;
 
       /* Loop through datasets to find variables. */
       if (H5Gget_num_objs(grpid, &num_obj) < 0) ERR;
@@ -225,7 +225,7 @@ main()
 		  H5Dclose(datasetid);
 	       }
 
-	       if ((datasetid = H5Dopen(grpid, obj_name)) < 0) ERR;
+	       if ((datasetid = H5Dopen1(grpid, obj_name)) < 0) ERR;
 	       if ((is_scale = H5DSis_scale(datasetid)) < 0) ERR;
 	       if (is_scale && strcmp(obj_name, DIMSCALE_NAME)) ERR;
 	       if (is_scale)
@@ -294,13 +294,13 @@ main()
       /* Open file and create group. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
 			      H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gcreate(fileid, GRP_NAME, 0)) < 0) ERR;
+      if ((grpid = H5Gcreate1(fileid, GRP_NAME, 0)) < 0) ERR;
 
       /* Create our dimension scale. Use the built-in NAME attribute
        * on the dimscale. */
       if ((dimscale_spaceid = H5Screate_simple(1, dimscale_dims,
 					       dimscale_dims)) < 0) ERR;
-      if ((dimscaleid = H5Dcreate(grpid, DIMSCALE_NAME, H5T_NATIVE_INT,
+      if ((dimscaleid = H5Dcreate1(grpid, DIMSCALE_NAME, H5T_NATIVE_INT,
 				  dimscale_spaceid, H5P_DEFAULT)) < 0) ERR;
       if (H5DSset_scale(dimscaleid, NAME_ATTRIBUTE) < 0) ERR;
 
@@ -309,7 +309,7 @@ main()
       for (v = 0; v < NUM_DATASETS; v++)
       {
 	 sprintf(var_name, "var_%d", v);
-	 if ((var1_datasetid[v] = H5Dcreate(grpid, var_name, H5T_NATIVE_INT,
+	 if ((var1_datasetid[v] = H5Dcreate1(grpid, var_name, H5T_NATIVE_INT,
 					    var1_spaceid, H5P_DEFAULT)) < 0) ERR;
 	 if (H5DSattach_scale(var1_datasetid[v], dimscaleid, 0) < 0) ERR;
       }
@@ -334,7 +334,7 @@ main()
       /* Create file and group. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
 			      H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gcreate(fileid, GRP_NAME, 0)) < 0) ERR;
+      if ((grpid = H5Gcreate1(fileid, GRP_NAME, 0)) < 0) ERR;
 
       if ((spaceid = H5Screate_simple(1, dims, maxdims)) < 0) ERR;
 
@@ -343,12 +343,12 @@ main()
       if (H5Pset_chunk(cparmsid, 1, dims) < 0) ERR;
 
       /* Create our dimension scale, as an unlimited dataset. */
-      if ((dimscaleid = H5Dcreate(grpid, DIMSCALE_NAME, H5T_NATIVE_INT,
+      if ((dimscaleid = H5Dcreate1(grpid, DIMSCALE_NAME, H5T_NATIVE_INT,
 				  spaceid, cparmsid)) < 0) ERR;
       if (H5DSset_scale(dimscaleid, NAME_ATTRIBUTE) < 0) ERR;
 
       /* Create a variable which uses it. */
-      if ((datasetid = H5Dcreate(grpid, VAR1_NAME, H5T_NATIVE_INT,
+      if ((datasetid = H5Dcreate1(grpid, VAR1_NAME, H5T_NATIVE_INT,
 				 spaceid, cparmsid)) < 0) ERR;
       if (H5DSattach_scale(datasetid, dimscaleid, 0) < 0) ERR;
       if (H5DSset_label(datasetid, 0, "dimension label") < 0) ERR;
@@ -375,7 +375,7 @@ main()
 
       /* Reopen the file and group. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, GRP_NAME)) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, GRP_NAME)) < 0) ERR;
 
       /* Loop through datasets to find variables. */
       if (H5Gget_num_objs(grpid, (hsize_t *)&num_obj) < 0) ERR;
@@ -402,7 +402,7 @@ main()
 	       }
 
 	       /* Open the dataset. */
-	       if ((datasetid = H5Dopen(grpid, obj_name)) < 0) ERR;
+	       if ((datasetid = H5Dopen1(grpid, obj_name)) < 0) ERR;
 
 	       /* This should be an unlimited dataset. */
 	       if ((spaceid = H5Dget_space(datasetid)) < 0) ERR;
@@ -482,7 +482,7 @@ main()
       /* Create file and group. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
 			      H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gcreate(fileid, GRP_NAME, 0)) < 0) ERR;
+      if ((grpid = H5Gcreate1(fileid, GRP_NAME, 0)) < 0) ERR;
 
       /* Create 3 1D spaces for the 3 dimension scale datasets. Time
        * starts out as size 0. It's an unlimited dimension scale. */
@@ -502,13 +502,13 @@ main()
       if (H5Pset_chunk(cparmsid, 1, dims) < 0) ERR;
 
       /* Create our dimension scales. */
-      if ((time_scaleid = H5Dcreate(grpid, TIME_NAME, H5T_NATIVE_INT,
+      if ((time_scaleid = H5Dcreate1(grpid, TIME_NAME, H5T_NATIVE_INT,
 				    time_spaceid, cparmsid)) < 0) ERR;
       if (H5DSset_scale(time_scaleid, TIME_NAME) < 0) ERR;
-      if ((lat_scaleid = H5Dcreate(grpid, LAT_NAME, H5T_NATIVE_FLOAT,
+      if ((lat_scaleid = H5Dcreate1(grpid, LAT_NAME, H5T_NATIVE_FLOAT,
 				   lat_spaceid, H5P_DEFAULT)) < 0) ERR;
       if (H5DSset_scale(lat_scaleid, LAT_NAME) < 0) ERR;
-      if ((lon_scaleid = H5Dcreate(grpid, LON_NAME, H5T_NATIVE_FLOAT,
+      if ((lon_scaleid = H5Dcreate1(grpid, LON_NAME, H5T_NATIVE_FLOAT,
 				   lon_spaceid, H5P_DEFAULT)) < 0) ERR;
       if (H5DSset_scale(lon_scaleid, LON_NAME) < 0) ERR;
 
@@ -524,7 +524,7 @@ main()
       /* Create two variables which use them, and attach the dimension scales. */
       dims[TIME_DIM] = 1;
       if (H5Pset_chunk(cparmsid, NDIMS, dims) < 0) ERR;
-      if ((pres_dsid = H5Dcreate(grpid, PRES_NAME, H5T_NATIVE_FLOAT,
+      if ((pres_dsid = H5Dcreate1(grpid, PRES_NAME, H5T_NATIVE_FLOAT,
 				 spaceid, cparmsid)) < 0) ERR;
       if (H5DSattach_scale(pres_dsid, time_scaleid, 0) < 0) ERR;
       if (H5DSattach_scale(pres_dsid, lat_scaleid, 1) < 0) ERR;
@@ -532,7 +532,7 @@ main()
       if (H5DSset_label(pres_dsid, TIME_DIM, TIME_NAME) < 0) ERR;
       if (H5DSset_label(pres_dsid, LAT_DIM, LAT_NAME) < 0) ERR;
       if (H5DSset_label(pres_dsid, LON_DIM, LON_NAME) < 0) ERR;
-      if ((temp_dsid = H5Dcreate(grpid, TEMP_NAME, H5T_NATIVE_FLOAT,
+      if ((temp_dsid = H5Dcreate1(grpid, TEMP_NAME, H5T_NATIVE_FLOAT,
 				 spaceid, cparmsid)) < 0) ERR;
       if (H5DSattach_scale(temp_dsid, time_scaleid, 0) < 0) ERR;
       if (H5DSattach_scale(temp_dsid, lat_scaleid, 1) < 0) ERR;
@@ -567,7 +567,7 @@ main()
 
       /* Reopen the file and group. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, GRP_NAME)) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, GRP_NAME)) < 0) ERR;
 
       /* Loop through datasets to find variables. */
       if (H5Gget_num_objs(grpid, &num_obj) < 0) ERR;
@@ -586,7 +586,7 @@ main()
 	       break;
 	    case H5G_DATASET:
 	       /* Open the dataset. */
-	       if ((datasetid = H5Dopen(grpid, obj_name)) < 0) ERR;
+	       if ((datasetid = H5Dopen1(grpid, obj_name)) < 0) ERR;
 	       /*printf("\nobj_name %s\n", obj_name);*/
 
 	       /* Get the dimensions of this dataset. */
@@ -687,9 +687,9 @@ main()
       /* Create file and group. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
 			      H5P_DEFAULT)) < 0) ERR;
-      if ((adam_grpid = H5Gcreate(fileid, FATHER, 0)) < 0) ERR;
-      if ((able_grpid = H5Gcreate(adam_grpid, GOOD_CHILD, 0)) < 0) ERR;
-      if ((cain_grpid = H5Gcreate(adam_grpid, BAD_CHILD, 0)) < 0) ERR;
+      if ((adam_grpid = H5Gcreate1(fileid, FATHER, 0)) < 0) ERR;
+      if ((able_grpid = H5Gcreate1(adam_grpid, GOOD_CHILD, 0)) < 0) ERR;
+      if ((cain_grpid = H5Gcreate1(adam_grpid, BAD_CHILD, 0)) < 0) ERR;
 
       /* Create 3 1D spaces for the 3 dimension scale datasets. Time
        * and smelliness starts out as 0. They are unlimited dimension
@@ -710,13 +710,13 @@ main()
       if (H5Pset_chunk(cparmsid, 1, dims) < 0) ERR;
 
       /* Create our dimension scales. */
-      if ((time_scaleid = H5Dcreate(adam_grpid, TIME_NAME, H5T_NATIVE_INT,
+      if ((time_scaleid = H5Dcreate1(adam_grpid, TIME_NAME, H5T_NATIVE_INT,
 				    time_spaceid, cparmsid)) < 0) ERR;
       if (H5DSset_scale(time_scaleid, TIME_NAME) < 0) ERR;
-      if ((smelliness_scaleid = H5Dcreate(adam_grpid, SMELLINESS_NAME, H5T_NATIVE_FLOAT,
+      if ((smelliness_scaleid = H5Dcreate1(adam_grpid, SMELLINESS_NAME, H5T_NATIVE_FLOAT,
 					  smelliness_spaceid, cparmsid)) < 0) ERR;
       if (H5DSset_scale(smelliness_scaleid, SMELLINESS_NAME) < 0) ERR;
-      if ((distance_scaleid = H5Dcreate(adam_grpid, DISTANCE_NAME, H5T_NATIVE_FLOAT,
+      if ((distance_scaleid = H5Dcreate1(adam_grpid, DISTANCE_NAME, H5T_NATIVE_FLOAT,
 					distance_spaceid, H5P_DEFAULT)) < 0) ERR;
       if (H5DSset_scale(distance_scaleid, DISTANCE_NAME) < 0) ERR;
 
@@ -735,12 +735,12 @@ main()
       if (H5Pset_chunk(cparmsid, NDIMS, dims) < 0) ERR;
 
       /* Create two variables which use them, and attach the dimension scales. */
-      if ((goat_dsid = H5Dcreate(able_grpid, GOAT_NAME, H5T_NATIVE_FLOAT,
+      if ((goat_dsid = H5Dcreate1(able_grpid, GOAT_NAME, H5T_NATIVE_FLOAT,
 				 spaceid, cparmsid)) < 0) ERR;
       if (H5DSattach_scale(goat_dsid, time_scaleid, 0) < 0) ERR;
       if (H5DSattach_scale(goat_dsid, smelliness_scaleid, 1) < 0) ERR;
       if (H5DSattach_scale(goat_dsid, distance_scaleid, 2) < 0) ERR;
-      if ((camel_dsid = H5Dcreate(cain_grpid, CAMEL_NAME, H5T_NATIVE_FLOAT,
+      if ((camel_dsid = H5Dcreate1(cain_grpid, CAMEL_NAME, H5T_NATIVE_FLOAT,
 				  spaceid, cparmsid)) < 0) ERR;
       if (H5DSattach_scale(camel_dsid, time_scaleid, 0) < 0) ERR;
       if (H5DSattach_scale(camel_dsid, smelliness_scaleid, 1) < 0) ERR;
@@ -767,7 +767,7 @@ main()
 
       /* Reopen the file and group. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, FATHER)) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, FATHER)) < 0) ERR;
 
       /* If we can't scan the group, crash into a flaming heap of
        * smoking, smoldering rubbish. */

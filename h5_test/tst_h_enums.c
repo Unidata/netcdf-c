@@ -73,7 +73,7 @@ main()
       /* Open file. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
 			      H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gcreate(fileid, GRP_NAME, 0)) < 0) ERR;
+      if ((grpid = H5Gcreate1(fileid, GRP_NAME, 0)) < 0) ERR;
 
       /* Create enum type. */
       /* Both methods do the same thing, but Quincey says to prefer
@@ -87,7 +87,7 @@ main()
 
       /* Write an attribute of this type. */
       if ((spaceid = H5Screate_simple(1, dims, NULL)) < 0) ERR;
-      if ((attid = H5Acreate(grpid, ATT_NAME, typeid, spaceid,
+      if ((attid = H5Acreate1(grpid, ATT_NAME, typeid, spaceid,
 			     H5P_DEFAULT)) < 0) ERR;
       if (H5Awrite(attid, typeid, data) < 0) ERR;
 
@@ -100,7 +100,7 @@ main()
       /* Reopen the file. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDWR,
 			    H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, GRP_NAME)) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, GRP_NAME)) < 0) ERR;
 
       /* Check the attribute's type. */
       if ((attid = H5Aopen_name(grpid, ATT_NAME)) < 0) ERR;
@@ -174,7 +174,7 @@ main()
       /* Open file. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
 			      H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gcreate(fileid, GRP_NAME2, 0)) < 0) ERR;
+      if ((grpid = H5Gcreate1(fileid, GRP_NAME2, 0)) < 0) ERR;
 
       /* Create enum type. */
       if ((typeid =  H5Tenum_create(H5T_NATIVE_SHORT)) < 0) ERR;
@@ -187,13 +187,13 @@ main()
       if ((spaceid = H5Screate_simple(1, dims, NULL)) < 0) ERR;
       if ((plistid = H5Pcreate(H5P_DATASET_CREATE)) < 0) ERR;
       if (H5Pset_fill_value(plistid, typeid, &fill_value) < 0) ERR;
-      if ((datasetid = H5Dcreate(grpid, VAR_LANG_NAME, typeid,
+      if ((datasetid = H5Dcreate1(grpid, VAR_LANG_NAME, typeid,
 				 spaceid, plistid)) < 0) ERR;
 
       /* Create a netCDFstyle _FillValue attribute, though it will be
        * ignored by HDF5. */
       if ((att_spaceid = H5Screate(H5S_SCALAR)) < 0) ERR;
-      if ((attid = H5Acreate(grpid, FV_NAME, typeid, att_spaceid,
+      if ((attid = H5Acreate1(grpid, FV_NAME, typeid, att_spaceid,
 			     H5P_DEFAULT)) < 0) ERR;
       if (H5Awrite(attid, typeid, &fill_value) < 0) ERR;
 
@@ -218,7 +218,7 @@ main()
 
       /* Reopen the file. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, GRP_NAME2)) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, GRP_NAME2)) < 0) ERR;
 
       /* Check the variable's type. */
       if ((datasetid = H5Dopen1(grpid, VAR_LANG_NAME)) < 0) ERR;
@@ -273,7 +273,7 @@ main()
 /*       /\* Open file. *\/ */
 /*       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,  */
 /* 			      H5P_DEFAULT)) < 0) ERR; */
-/*       if ((grpid = H5Gcreate(fileid, GRP_NAME3, 0)) < 0) ERR; */
+/*       if ((grpid = H5Gcreate1(fileid, GRP_NAME3, 0)) < 0) ERR; */
 
 /*       /\* Create enum type. *\/ */
 /*       if ((typeid =  H5Tenum_create(H5T_NATIVE_SHORT)) < 0) ERR; */

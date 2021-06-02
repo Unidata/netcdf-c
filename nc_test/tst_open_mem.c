@@ -24,7 +24,6 @@ See \ref copyright file for more info.
 
 #ifdef USE_HDF5
 #include <hdf5.h>
-extern int H5Eprint1(FILE * stream);
 #endif
 
 static int
