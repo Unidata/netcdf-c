@@ -878,7 +878,6 @@ IF (HAVE_LIBCURL_766)
   set(HAVE_CURLINFO_HTTP_CONNECTCODE TRUE)
   set(HAVE_CURLOPT_BUFFERSIZE TRUE)
   set(HAVE_CURLOPT_KEEPALIVE TRUE)
-  MESSAGE("-- Skipping CURL tests: ${HAVE_LIBCURL_766}")
 ELSE()
   # Check to see if CURLOPT_USERNAME is defined.
   # It is present starting version 7.19.1.
