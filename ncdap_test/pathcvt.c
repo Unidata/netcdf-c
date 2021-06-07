@@ -27,10 +27,11 @@
 /*
 Synopsis
 
-pathcvt [-u|-w|-m|-c] [-e] PATH
+pathcvt [-u|-w|-m|-c] [-e] [-d <driveletter>] PATH
 
 Options
   -e add backslash escapes to '\' and ' '
+  -d <driveletter> use driveletter when needed; defaults to 'c'
 Output type options:
   -u convert to Unix form of path
   -w convert to Windows form of path
@@ -45,7 +46,8 @@ Default is to convert to the format used by the platform.
 
 struct Options {
     int target;
-    int escape;
+    int escapes;
+    int drive;
     int debug;
 } cvtoptions;
 
@@ -60,11 +62,13 @@ main(int argc, char** argv)
     char* inpath;
 
     memset((void*)&cvtoptions,0,sizeof(cvtoptions));
+    cvtoptions.drive = 'c';
 
-    while ((c = getopt(argc, argv, "cD:ehmuw")) != EOF) {
+    while ((c = getopt(argc, argv, "cD:d:ehmuw")) != EOF) {
 	switch(c) {
 	case 'c': cvtoptions.target = NCPD_CYGWIN; break;
-	case 'e': cvtoptions.escape = 1; break;
+	case 'd': cvtoptions.drive = optarg[0]; break;
+	case 'e': cvtoptions.escapes = 1; break;
 	case 'h': usage(NULL); break;
 	case 'm': cvtoptions.target = NCPD_MSYS; break;
 	case 'u': cvtoptions.target = NCPD_NIX; break;
@@ -90,8 +94,8 @@ main(int argc, char** argv)
     if(cvtoptions.target == NCPD_UNKNOWN)
         cvtpath = NCpathcvt(inpath);
     else
-        cvtpath = NCpathcvt_test(inpath,cvtoptions.target,'c');
-    if(cvtpath && cvtoptions.escape) {
+        cvtpath = NCpathcvt_test(inpath,cvtoptions.target,(char)cvtoptions.drive);
+    if(cvtpath && cvtoptions.escapes) {
 	char* path = cvtpath; cvtpath = NULL;
         cvtpath = escape(path);
 	free(path);
@@ -116,20 +120,16 @@ escape(const char* path)
     const char* p;
     char* q;
     char* epath = NULL;
+    const char* escapes = " \\";
 
     epath = (char*)malloc((2*slen) + 1);
     if(epath == NULL) usage("out of memtory");
     p = path;
     q = epath;
     for(;*p;p++) {
-	switch (*p) {
-	case '\\': case ' ':
+	if(strchr(escapes,*p) != NULL)
 	    *q++ = '\\';
-	    /* fall thru */
-	default:
-	    *q++ = *p;
-	    break;
-	}
+        *q++ = *p;
     }
     *q = '\0';
     return epath;
