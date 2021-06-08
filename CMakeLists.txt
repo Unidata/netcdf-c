@@ -858,56 +858,69 @@ ELSE()
   SET(FOUND_CURL FALSE)
 ENDIF()
 
-# Check to see if CURLOPT_USERNAME is defined.
-# It is present starting version 7.19.1.
-CHECK_C_SOURCE_COMPILES("
-#include <curl/curl.h>
-int main() {int x = CURLOPT_USERNAME;}" HAVE_CURLOPT_USERNAME)
-
-# Check to see if CURLOPT_PASSWORD is defined.
-# It is present starting version 7.19.1.
-CHECK_C_SOURCE_COMPILES("
-#include <curl/curl.h>
-int main() {int x = CURLOPT_PASSWORD;}" HAVE_CURLOPT_PASSWORD)
-
-# Check to see if CURLOPT_KEYPASSWD is defined.
-# It is present starting version 7.16.4.
-CHECK_C_SOURCE_COMPILES("
-#include <curl/curl.h>
-int main() {int x = CURLOPT_KEYPASSWD;}" HAVE_CURLOPT_KEYPASSWD)
-
-# Check to see if CURLINFO_RESPONSE_CODE is defined.
-# It showed up in curl 7.10.7.
-CHECK_C_SOURCE_COMPILES("
-#include <curl/curl.h>
-int main() {int x = CURLINFO_RESPONSE_CODE;}" HAVE_CURLINFO_RESPONSE_CODE)
-
-# Check to see if CURLINFO_HTTP_CONNECTCODE is defined.
-# It showed up in curl 7.10.7.
-CHECK_C_SOURCE_COMPILES("
-#include <curl/curl.h>
-int main() {int x = CURLINFO_HTTP_CONNECTCODE;}" HAVE_CURLINFO_HTTP_CONNECTCODE)
-
-# Check to see if CURLOPT_BUFFERSIZE is defined.
-# It is present starting version 7.59
-CHECK_C_SOURCE_COMPILES("
-#include <curl/curl.h>
-int main() {int x = CURLOPT_BUFFERSIZE;}" HAVE_CURLOPT_BUFFERSIZE)
-
-# Check to see if CURLOPT_TCP_KEEPALIVE is defined.
-# It is present starting version 7.25
-CHECK_C_SOURCE_COMPILES("
-#include <curl/curl.h>
-int main() {int x = CURLOPT_TCP_KEEPALIVE;}" HAVE_CURLOPT_KEEPALIVE)
-
+set (CMAKE_REQUIRED_INCLUDES ${CURL_INCLUDE_DIRS})
 # Check to see if we have libcurl 7.66 or later
 CHECK_C_SOURCE_COMPILES("
 #include <curl/curl.h>
 int main() {
-#if (LIBCURL_VERSION_MAJOR*1000 + LIBCURL_VERSION_MINOR < 7066)
+#if LIBCURL_VERSION_NUM < 0x074200
       choke me;
 #endif
 }" HAVE_LIBCURL_766)
+
+IF (HAVE_LIBCURL_766)
+  # If libcurl version is >= 7.66, then can skip tests 
+  # for these symbols which were added in an earlier version
+  set(HAVE_CURLOPT_USERNAME TRUE)
+  set(HAVE_CURLOPT_PASSWORD TRUE)
+  set(HAVE_CURLOPT_KEYPASSWD TRUE)
+  set(HAVE_CURLINFO_RESPONSE_CODE TRUE)
+  set(HAVE_CURLINFO_HTTP_CONNECTCODE TRUE)
+  set(HAVE_CURLOPT_BUFFERSIZE TRUE)
+  set(HAVE_CURLOPT_KEEPALIVE TRUE)
+ELSE()
+  # Check to see if CURLOPT_USERNAME is defined.
+  # It is present starting version 7.19.1.
+  CHECK_C_SOURCE_COMPILES("
+  #include <curl/curl.h>
+  int main() {int x = CURLOPT_USERNAME;}" HAVE_CURLOPT_USERNAME)
+
+  # Check to see if CURLOPT_PASSWORD is defined.
+  # It is present starting version 7.19.1.
+  CHECK_C_SOURCE_COMPILES("
+  #include <curl/curl.h>
+  int main() {int x = CURLOPT_PASSWORD;}" HAVE_CURLOPT_PASSWORD)
+
+  # Check to see if CURLOPT_KEYPASSWD is defined.
+  # It is present starting version 7.16.4.
+  CHECK_C_SOURCE_COMPILES("
+  #include <curl/curl.h>
+  int main() {int x = CURLOPT_KEYPASSWD;}" HAVE_CURLOPT_KEYPASSWD)
+
+  # Check to see if CURLINFO_RESPONSE_CODE is defined.
+  # It showed up in curl 7.10.7.
+  CHECK_C_SOURCE_COMPILES("
+  #include <curl/curl.h>
+  int main() {int x = CURLINFO_RESPONSE_CODE;}" HAVE_CURLINFO_RESPONSE_CODE)
+
+  # Check to see if CURLINFO_HTTP_CONNECTCODE is defined.
+  # It showed up in curl 7.10.7.
+  CHECK_C_SOURCE_COMPILES("
+  #include <curl/curl.h>
+  int main() {int x = CURLINFO_HTTP_CONNECTCODE;}" HAVE_CURLINFO_HTTP_CONNECTCODE)
+
+  # Check to see if CURLOPT_BUFFERSIZE is defined.
+  # It is present starting version 7.59
+  CHECK_C_SOURCE_COMPILES("
+  #include <curl/curl.h>
+  int main() {int x = CURLOPT_BUFFERSIZE;}" HAVE_CURLOPT_BUFFERSIZE)
+
+  # Check to see if CURLOPT_TCP_KEEPALIVE is defined.
+  # It is present starting version 7.25
+  CHECK_C_SOURCE_COMPILES("
+  #include <curl/curl.h>
+  int main() {int x = CURLOPT_TCP_KEEPALIVE;}" HAVE_CURLOPT_KEEPALIVE)
+ENDIF()
 
 IF(ENABLE_DAP)
   SET(USE_DAP ON CACHE BOOL "")
