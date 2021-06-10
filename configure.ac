@@ -868,7 +868,7 @@ AC_ARG_WITH([temp-large],
             [TEMP_LARGE=$with_temp_large])
 TEMP_LARGE=${TEMP_LARGE-.}
 AC_MSG_RESULT($TEMP_LARGE)
-#AC_SUBST(TEMP_LARGE)
+AC_SUBST(TEMP_LARGE)
 AC_DEFINE_UNQUOTED([TEMP_LARGE], ["$TEMP_LARGE"], [Place to put very large netCDF test files.])
 
 # Specify extra values to add to _NCProperties attribute
@@ -1902,6 +1902,7 @@ AC_CONFIG_FILES(ncdap_test/findtestserver.c:ncdap_test/findtestserver.c.in)
 AC_CONFIG_FILES(dap4_test/findtestserver4.c:ncdap_test/findtestserver.c.in)
 AC_CONFIG_FILES(dap4_test/pingurl4.c:ncdap_test/pingurl.c)
 AC_CONFIG_FILES([h5_test/run_par_tests.sh], [chmod ugo+x h5_test/run_par_tests.sh])
+AC_CONFIG_FILES([nc_test/run_pnetcdf_test.sh], [chmod ugo+x nc_test/run_pnetcdf_test.sh])
 AC_CONFIG_FILES([nc_test4/run_par_test.sh], [chmod ugo+x nc_test4/run_par_test.sh])
 AC_CONFIG_FILES([nc_perf/run_par_bm_test.sh], [chmod ugo+x nc_perf/run_par_bm_test.sh])
 AC_CONFIG_FILES([nc_perf/run_gfs_test.sh], [chmod ugo+x nc_perf/run_gfs_test.sh])
