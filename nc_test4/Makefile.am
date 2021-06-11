@@ -33,7 +33,7 @@ tst_endian_fill tst_atts t_type cdm_sea_soundings tst_camrun tst_vl	\
 tst_atts1 tst_atts2 tst_vars2 tst_files5 tst_files6 tst_sync		\
 tst_h_scalar tst_rename tst_rename2 tst_rename3 tst_h5_endians		\
 tst_atts_string_rewrite tst_hdf5_file_compat tst_fill_attr_vanish	\
-tst_rehash tst_filterparser tst_bug324 tst_types tst_atts3		\
+tst_rehash tst_filterparser tst_bug324 tst_types		\
 tst_put_vars tst_elatefill tst_udf tst_put_vars_two_unlim_dim		\
 tst_bug1442 tst_quantize
 
@@ -45,6 +45,15 @@ endif
 # Build test programs plus programs used in test scripts.
 check_PROGRAMS = $(NC4_TESTS) tst_empty_vlen_unlim tst_charvlenbug
 TESTS = $(NC4_TESTS) run_empty_vlen_test.sh
+
+# This test calls MPI_Init if pnetcdf is turned on
+if USE_PNETCDF
+check_PROGRAMS += tst_atts3
+TESTS += run_atts3
+else
+TESTS += tst_atts3
+endif
+
 
 # Add these if large file tests are turned on.
 if LARGE_FILE_TESTS

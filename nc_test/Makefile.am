@@ -25,21 +25,28 @@ TEST_EXTENSIONS = .sh
 check_PROGRAMS =
 
 # These are the tests which are always run.
-TESTPROGRAMS = t_nc tst_small nc_test tst_misc tst_norm tst_names	\
-tst_nofill tst_nofill2 tst_nofill3 tst_atts3 tst_meta tst_inq_type	\
+TESTPROGRAMS = tst_names	\
+tst_nofill2 tst_nofill3 tst_meta tst_inq_type	\
 tst_utf8_validate tst_utf8_phrases tst_global_fillval			\
 tst_max_var_dims tst_formats tst_def_var_fill tst_err_enddef		\
 tst_default_format
+TESTS = $(TESTPROGRAMS)
 
 if USE_PNETCDF
-check_PROGRAMS += tst_parallel2 tst_pnetcdf tst_addvar
-TESTPROGRAMS += tst_formatx_pnetcdf tst_default_format_pnetcdf
+check_PROGRAMS += t_nc nc_test tst_parallel2 tst_pnetcdf tst_addvar \
+tst_formatx_pnetcdf tst_default_format_pnetcdf \
+tst_atts3 tst_misc tst_nofill tst_norm tst_small
+TESTS += run_formatx_pnetcdf run_default_format_pnetcdf \
+run_atts3 run_misc run_nofill run_norm run_small run_t_nc run_nc_test
+else
+TESTPROGRAMS += t_nc nc_test tst_atts3 tst_misc tst_nofill tst_norm tst_small
 endif
 
 if TEST_PARALLEL4
 if USE_PNETCDF
 if ENABLE_CDF5
-TESTPROGRAMS += tst_cdf5format
+check_PROGRAMS += tst_cdf5format
+TESTS += run_cdf5format
 endif
 endif
 endif
@@ -72,8 +79,6 @@ tst_diskless5 tst_inmemory tst_open_mem
 if USE_HDF5
 check_PROGRAMS += tst_diskless2
 endif
-
-TESTS = $(TESTPROGRAMS)
 
 if ENABLE_BYTERANGE
 if BUILD_UTILITIES
