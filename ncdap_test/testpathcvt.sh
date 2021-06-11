@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
@@ -11,6 +11,7 @@ P="$2"
 echo -n "path: $T: |$P| => |" >>tmp_pathcvt.txt
 ${execdir}/pathcvt "$T" -e "$P" >>tmp_pathcvt.txt
 echo "|" >> tmp_pathcvt.txt
+
 }
 
 testcase() {
@@ -18,7 +19,7 @@ testcase() {
     testcase1 "-c" "$1"
     testcase1 "-m" "$1"
     testcase1 "-w" "$1"
-}    
+}
 
 rm -f tmp_pathcvt.txt
 
