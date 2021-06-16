@@ -778,7 +778,9 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
     NClist* modeargs = nclistnew();
     char* sfrag = NULL;
     const char* modeval = NULL;
-#if 1
+
+    /* Check for a DAOS contianer */
+#ifdef USE_NETCDF4
 #if H5_VERSION_GE(1,12,0)
     hid_t fapl_id;
     if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) goto done;
@@ -786,7 +788,6 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
       
     htri_t accessible;      
     accessible = H5Fis_accessible(path, fapl_id);
-    printf("%s IS H5Fis_accessible %d \n",path,accessible);
     if(accessible > 0) {
         int rc=0;
         FILE *fp;
@@ -802,7 +803,7 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
         }
         free(cmd);
         if(rc == 1) {
-          printf(" \033[37;01m %s IS A DAOS OBJECT \033[0m \n", path);
+          /* Is a DAOS container */
           model->impl = NC_FORMATX_NC4;
           model->format = NC_FORMAT_NETCDF4;
           if (H5Pclose(fapl_id) < 0) goto done;
@@ -812,6 +813,7 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
    if (H5Pclose(fapl_id) < 0) goto done;
 #endif
 #endif
+
     /* Phase 1:
        1. convert special protocols to http|https
        2. begin collecting fragments
