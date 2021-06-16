@@ -22,7 +22,6 @@
 #include "nc.h" /* from libsrc */
 #include "ncdispatch.h" /* from libdispatch */
 #include "ncutf8.h"
-#include "ncfilter.h"
 #include "netcdf_aux.h"
 
 /** @internal Number of reserved attributes. These attributes are
@@ -33,23 +32,23 @@
  * across all possible dispatchers
 */
 
-#define NRESERVED 11 /*|NC_reservedatt|*/
-
-/** @internal List of reserved attributes. This list must be in sorted
- * order for binary search. */
-static const NC_reservedatt NC_reserved[NRESERVED] = {
-    {NC_ATT_CLASS, READONLYFLAG|DIMSCALEFLAG},            /*CLASS*/
-    {NC_ATT_DIMENSION_LIST, READONLYFLAG|DIMSCALEFLAG},   /*DIMENSION_LIST*/
-    {NC_ATT_NAME, READONLYFLAG|DIMSCALEFLAG},             /*NAME*/
-    {NC_ATT_REFERENCE_LIST, READONLYFLAG|DIMSCALEFLAG},   /*REFERENCE_LIST*/
-    {NC_ATT_FORMAT, READONLYFLAG},                        /*_Format*/
-    {ISNETCDF4ATT, READONLYFLAG|NAMEONLYFLAG},            /*_IsNetcdf4*/
-    {NCPROPS, READONLYFLAG|NAMEONLYFLAG|MATERIALIZEDFLAG},/*_NCProperties*/
-    {NC_ATT_COORDINATES, READONLYFLAG|DIMSCALEFLAG|MATERIALIZEDFLAG},/*_Netcdf4Coordinates*/
-    {NC_ATT_DIMID_NAME, READONLYFLAG|DIMSCALEFLAG|MATERIALIZEDFLAG},/*_Netcdf4Dimid*/
-    {SUPERBLOCKATT, READONLYFLAG|NAMEONLYFLAG},/*_SuperblockVersion*/
-    {NC_ATT_NC3_STRICT_NAME, READONLYFLAG|MATERIALIZEDFLAG}, /*_nc3_strict*/
+/** @internal List of reserved attributes.
+    WARNING: This list must be in sorted order for binary search. */
+static const NC_reservedatt NC_reserved[] = {
+    {NC_ATT_CLASS, READONLYFLAG|HIDDENATTRFLAG},			/*CLASS*/
+    {NC_ATT_DIMENSION_LIST, READONLYFLAG|HIDDENATTRFLAG},		/*DIMENSION_LIST*/
+    {NC_ATT_NAME, READONLYFLAG|HIDDENATTRFLAG},				/*NAME*/
+    {NC_ATT_REFERENCE_LIST, READONLYFLAG|HIDDENATTRFLAG},		/*REFERENCE_LIST*/
+    {NC_XARRAY_DIMS, READONLYFLAG|HIDDENATTRFLAG},			/*_ARRAY_DIMENSIONS*/
+    {NC_ATT_FORMAT, READONLYFLAG},					/*_Format*/
+    {ISNETCDF4ATT, READONLYFLAG|NAMEONLYFLAG},				/*_IsNetcdf4*/
+    {NCPROPS, READONLYFLAG|NAMEONLYFLAG|MATERIALIZEDFLAG},		/*_NCProperties*/
+    {NC_ATT_COORDINATES, READONLYFLAG|HIDDENATTRFLAG|MATERIALIZEDFLAG},	/*_Netcdf4Coordinates*/
+    {NC_ATT_DIMID_NAME, READONLYFLAG|HIDDENATTRFLAG|MATERIALIZEDFLAG},	/*_Netcdf4Dimid*/
+    {SUPERBLOCKATT, READONLYFLAG|NAMEONLYFLAG},				/*_SuperblockVersion*/
+    {NC_ATT_NC3_STRICT_NAME, READONLYFLAG|MATERIALIZEDFLAG},		/*_nc3_strict*/
 };
+#define NRESERVED (sizeof(NC_reserved) / sizeof(NC_reservedatt))  /*|NC_reservedatt|*/
 
 /* These hold the file caching settings for the library. */
 size_t nc4_chunk_cache_size = CHUNK_CACHE_SIZE;            /**< Default chunk cache size. */
@@ -688,9 +687,6 @@ nc4_var_list_add2(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var)
       return NC_ENOMEM;
     }
 
-    new_var->hdr.hashkey = NC_hashmapkey(new_var->hdr.name,
-                                         strlen(new_var->hdr.name));
-
     /* Create an indexed list for the attributes. */
     new_var->att = ncindexnew(0);
 
@@ -808,8 +804,6 @@ nc4_dim_list_add(NC_GRP_INFO_T *grp, const char *name, size_t len,
 
       return NC_ENOMEM;
     }
-    new_dim->hdr.hashkey = NC_hashmapkey(new_dim->hdr.name,
-                                         strlen(new_dim->hdr.name));
 
     /* Is dimension unlimited? */
     new_dim->len = len;
@@ -860,8 +854,6 @@ nc4_att_list_add(NCindex *list, const char *name, NC_ATT_INFO_T **att)
         free(new_att);
       return NC_ENOMEM;
     }
-    /* Create a hash of the name. */
-    new_att->hdr.hashkey = NC_hashmapkey(name, strlen(name));
 
     /* Add object to list as specified by its number */
     ncindexadd(list, (NC_OBJ *)new_att);
@@ -916,8 +908,6 @@ nc4_grp_list_add(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *parent, char *name,
         free(new_grp);
         return NC_ENOMEM;
     }
-    new_grp->hdr.hashkey = NC_hashmapkey(new_grp->hdr.name,
-                                         strlen(new_grp->hdr.name));
 
     /* Set up new indexed lists for stuff this group can contain. */
     new_grp->children = ncindexnew(0);
@@ -1004,7 +994,6 @@ nc4_type_new(size_t size, const char *name, int assignedid,
     if (!(new_type = calloc(1, sizeof(NC_TYPE_INFO_T))))
         return NC_ENOMEM;
     new_type->hdr.sort = NCTYP;
-    new_type->hdr.hashkey = NC_hashmapkey(name, strlen(name));
     new_type->hdr.id = assignedid;
 
     /* Remember info about this type. */
@@ -1098,7 +1087,6 @@ nc4_field_list_add(NC_TYPE_INFO_T *parent, const char *name,
         free(field);
         return NC_ENOMEM;
     }
-    field->hdr.hashkey = NC_hashmapkey(field->hdr.name,strlen(field->hdr.name));
     field->nc_typeid = xtype;
     field->offset = offset;
     field->ndims = ndims;
@@ -1353,10 +1341,6 @@ var_free(NC_VAR_INFO_T *var)
     if (var->type_info)
         if ((retval = nc4_type_free(var->type_info)))
             return retval;
-
-    /* Release filter information. */
-    NC4_filterx_freelist(var);
-    var->filters = NULL;
 
     /* Do this last because debugging may need it */
     if (var->hdr.name)

@@ -10,18 +10,6 @@
 
 /**************************************************/
 
-/* Header flags */
-#define LAST_CHUNK          (1)
-#define ERR_CHUNK           (2)
-#define LITTLE_ENDIAN_CHUNK (4)
-#ifdef CHECKSUMHACK
-#define NOCHECKSUM_CHUNK    (8)
-#else
-#define NOCHECKSUM_CHUNK    (0)
-#endif
-
-#define ALL_CHUNK_FLAGS (LAST_CHUNK|ERR_CHUNK|LITTLE_ENDIAN_CHUNK|NOCHECKSUM_CHUNK)
-
 /**************************************************/
 
 /*
@@ -33,110 +21,114 @@ and whether it has checksums.
 Notes:
 */
 
-/* Define a local struct for convenience */
-struct HDR {unsigned int flags; unsigned int count;};
-
 /* Forward */
-static void* getheader(void* p, struct HDR* hdr, int hostlittleendian);
 static int processerrchunk(NCD4meta* metadata, void* errchunk, unsigned int count);
 
 /**************************************************/
 
+void
+NCD4_resetSerial(NCD4serial* serial, size_t rawsize, void* rawdata)
+{
+    nullfree(serial->errdata);
+    nullfree(serial->dmr);
+    nullfree(serial->dap);
+    nullfree(serial->rawdata);
+    /* clear all fields */
+    memset(serial,0,sizeof(NCD4serial));
+    /* Reset fields */
+    serial->hostlittleendian = NCD4_isLittleEndian();
+    serial->rawsize = rawsize;
+    serial->rawdata = rawdata;
+}
+
 int
 NCD4_dechunk(NCD4meta* metadata)
 {
-    unsigned char* p;
-    unsigned char* q;
-    struct HDR hdr;
+    unsigned char *praw, *phdr, *pdap;
+    NCD4HDR hdr;
 
     if(metadata->mode == NCD4_DSR) 
         return THROW(NC_EDMR);
 
-    metadata->serial.errdata = NULL;
-    metadata->serial.dmr = NULL;
-    metadata->serial.dap = NULL;
-    metadata->serial.hostlittleendian = NCD4_isLittleEndian();
-    metadata->serial.remotelittleendian = 0; /* do not actually know yet */
-#ifdef CHECKSUMHACK
-    metadata->serial.checksumhack = 0; /* do not actually know yet */
-#endif
     /* Assume proper mode has been inferred already. */
 
     /* Verify the mode; assume that the <?xml...?> is optional */
-    q = metadata->serial.rawdata;
-    if(memcmp(q,"<?xml",strlen("<?xml"))==0
-       || memcmp(q,"<Dataset",strlen("<Dataset"))==0) {
+    praw = metadata->serial.rawdata;
+    if(memcmp(praw,"<?xml",strlen("<?xml"))==0
+       || memcmp(praw,"<Dataset",strlen("<Dataset"))==0) {
+	size_t len = 0;
         if(metadata->mode != NCD4_DMR) 
             return THROW(NC_EDMR);
         /* setup as dmr only */
-        metadata->serial.dmr = (char*)metadata->serial.rawdata; /* temp */
         /* Avoid strdup since rawdata might contain nul chars */
-        if((metadata->serial.dmr = malloc(metadata->serial.rawsize+1)) == NULL)
+	len = metadata->serial.rawsize;
+        if((metadata->serial.dmr = malloc(len+1)) == NULL)
             return THROW(NC_ENOMEM);    
-        memcpy(metadata->serial.dmr,metadata->serial.rawdata,metadata->serial.rawsize);
-        metadata->serial.dmr[metadata->serial.rawsize-1] = '\0';
+        memcpy(metadata->serial.dmr,praw,len);
+        metadata->serial.dmr[len] = '\0';
         /* Suppress nuls */
-        (void)NCD4_elidenuls(metadata->serial.dmr,metadata->serial.rawsize);
+        (void)NCD4_elidenuls(metadata->serial.dmr,len);
         return THROW(NC_NOERR); 
     }
-
-    /* We must be processing a DAP mode packet */
-    p = metadata->serial.rawdata;
-    metadata->serial.dap = p;
 
 #ifdef D4DUMPRAW
     NCD4_tagdump(metadata->serial.rawsize,metadata->serial.rawdata,0,"RAW");
 #endif
 
+    /* We must be processing a DAP mode packet */
+    praw = (metadata->serial.dap = metadata->serial.rawdata);
+    metadata->serial.rawdata = NULL;
+
     /* Get the DMR chunk header*/
-    p = getheader(p,&hdr,metadata->serial.hostlittleendian);
+    phdr = NCD4_getheader(praw,&hdr,metadata->serial.hostlittleendian);
     if(hdr.count == 0)
         return THROW(NC_EDMR);
-    if(hdr.flags & ERR_CHUNK) {
-        return processerrchunk(metadata, (void*)p, hdr.count);
+    if(hdr.flags & NCD4_ERR_CHUNK) {
+        return processerrchunk(metadata, (void*)phdr, hdr.count);
     }
 
 #ifdef CHECKSUMHACK
     /* Temporary hack; We mistakenly thought that bit 3 of the flags
        of the first header indicated that checksumming was not in force.
        Test for it, and propagate the _DAP4_Checksum_CRC32 attribute later */
-    metadata->serial.checksumhack = ((hdr.flags & NOCHECKSUM_CHUNK) ? 1 : 0);
+    metadata->serial.checksumhack = ((hdr.flags & NCD4_NOCHECKSUM_CHUNK) ? 1 : 0);
 fprintf(stderr,"checksumhack=%d\n",metadata->serial.checksumhack);
 #endif
-    metadata->serial.remotelittleendian = ((hdr.flags & LITTLE_ENDIAN_CHUNK) ? 1 : 0);
+    metadata->serial.remotelittleendian = ((hdr.flags & NCD4_LITTLE_ENDIAN_CHUNK) ? 1 : 0);
     /* Again, avoid strxxx operations on dmr */
     if((metadata->serial.dmr = malloc(hdr.count+1)) == NULL)
         return THROW(NC_ENOMEM);        
-    memcpy(metadata->serial.dmr,p,hdr.count);
+    memcpy(metadata->serial.dmr,phdr,hdr.count);
     metadata->serial.dmr[hdr.count-1] = '\0';
     /* Suppress nuls */
     (void)NCD4_elidenuls(metadata->serial.dmr,hdr.count);
 
-    if(hdr.flags & LAST_CHUNK)
+    if(hdr.flags & NCD4_LAST_CHUNK)
         return THROW(NC_ENODATA);
-    /* Read and compress the data chunks */
-    p = p + hdr.count; /* point to data chunk header */
+
+    /* Read and concat together the data chunks */
+    phdr = phdr + hdr.count; /* point to data chunk header */
     /* Do a sanity check in case the server has shorted us with no data */
     if((hdr.count + CHUNKHDRSIZE) >= metadata->serial.rawsize) {
         /* Server only sent the DMR part */
         metadata->serial.dapsize = 0;
         return THROW(NC_EDATADDS);
     }
-    q = metadata->serial.dap; 
+    pdap = metadata->serial.dap; 
     for(;;) {
-        p = getheader(p,&hdr,metadata->serial.hostlittleendian);
-        if(hdr.flags & ERR_CHUNK) {
-            return processerrchunk(metadata, (void*)p, hdr.count);
+        phdr = NCD4_getheader(phdr,&hdr,metadata->serial.hostlittleendian);
+        if(hdr.flags & NCD4_ERR_CHUNK) {
+            return processerrchunk(metadata, (void*)phdr, hdr.count);
         }
         /* data chunk; possibly last; possibly empty */
         if(hdr.count > 0) {
-            d4memmove(q,p,hdr.count); /* will overwrite the header */
-            p += hdr.count;
-	    q += hdr.count;
+            d4memmove(pdap,phdr,hdr.count); /* will overwrite the header */
+            phdr += hdr.count;
+	    pdap += hdr.count;
         }
-        if(hdr.flags & LAST_CHUNK) break;
+        if(hdr.flags & NCD4_LAST_CHUNK) break;
     }
-    metadata->serial.dapsize = (size_t)DELTA(q,metadata->serial.dap);
+    metadata->serial.dapsize = (size_t)DELTA(pdap,metadata->serial.dap);
 
 #ifdef D4DUMPDMR
     fprintf(stderr,"%s\n",metadata->serial.dmr);
@@ -157,22 +149,6 @@ processerrchunk(NCD4meta* metadata, void* errchunk, unsigned int count)
     memcpy(metadata->serial.errdata,errchunk,count);
     metadata->serial.errdata[count] = '\0';
     return THROW(NC_ENODATA); /* slight lie */
-}
-
-static void*
-getheader(void* p, struct HDR* hdr, int hostlittleendian)
-{
-    unsigned char bytes[4];
-    memcpy(bytes,p,sizeof(bytes));
-    p = INCR(p,4); /* on-the-wire hdr is 4 bytes */
-    /* assume header is network (big) order */
-    hdr->flags = bytes[0]; /* big endian => flags are in byte 0 */
-    hdr->flags &= ALL_CHUNK_FLAGS; /* Ignore extraneous flags */
-    bytes[0] = 0; /* so we can do byte swap to get count */
-    if(hostlittleendian)
-        swapinline32(bytes); /* host is little endian */
-    hdr->count = *(unsigned int*)bytes; /* get count */
-    return p;
 }
 
 /**

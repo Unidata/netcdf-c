@@ -106,21 +106,21 @@ main()
 		    H5T_NATIVE_FLOAT) < 0) ERR;
       if (H5Tinsert(s1_typeid, Y_NAME, offsetof(struct s1, y),
 		    H5T_NATIVE_DOUBLE) < 0) ERR;
-      if (H5Tcommit(grpid, S1_TYPE_NAME, s1_typeid) < 0) ERR;
+      if (H5Tcommit1(grpid, S1_TYPE_NAME, s1_typeid) < 0) ERR;
 
       /* Create a vlen type. Its a vlen of struct s1. */
       if ((vlen_typeid = H5Tvlen_create(s1_typeid)) < 0) ERR;
-      if (H5Tcommit(grpid, VLEN_TYPE_NAME, vlen_typeid) < 0) ERR;
+      if (H5Tcommit1(grpid, VLEN_TYPE_NAME, vlen_typeid) < 0) ERR;
 
       /* Create the struct s3 type, which contains the vlen. */
       if ((s3_typeid = H5Tcreate(H5T_COMPOUND, sizeof(struct s3))) < 0) ERR;
       if (H5Tinsert(s3_typeid, VL_NAME, offsetof(struct s3, data),
 		    vlen_typeid) < 0) ERR;
-      if (H5Tcommit(grpid, S3_TYPE_NAME, s3_typeid) < 0) ERR;
+      if (H5Tcommit1(grpid, S3_TYPE_NAME, s3_typeid) < 0) ERR;
 
       /* Create an attribute of this new type. */
       if ((spaceid = H5Screate_simple(1, dims, NULL)) < 0) ERR;
-      if ((attid = H5Acreate(grpid, S3_ATT_NAME, s3_typeid, spaceid,
+      if ((attid = H5Acreate1(grpid, S3_ATT_NAME, s3_typeid, spaceid,
 			     H5P_DEFAULT)) < 0) ERR;
       if (H5Awrite(attid, s3_typeid, cvc_out) < 0) ERR;
 
@@ -141,7 +141,7 @@ main()
 
       /* Reopen the file. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
 
       /* How many objects in this group? (There should be 3, the
        * types. Atts don't count as objects to HDF5.) */
@@ -209,7 +209,11 @@ main()
       hid_t file_typeid1[NUM_OBJ_1], native_typeid1[NUM_OBJ_1];
       hid_t file_typeid2, native_typeid2;
       hsize_t num_obj;
+#if H5_VERSION_GE(1,12,0)
+      H5O_info2_t obj_info;
+#else
       H5O_info_t obj_info;
+#endif
       char obj_name[STR_LEN + 1];
       hsize_t dims[1] = {ATT_LEN}; /* netcdf attributes always 1-D. */
 
@@ -243,11 +247,11 @@ main()
 
       /* Create a vlen type. Its a vlen of int. */
       if ((vlen_typeid = H5Tvlen_create(H5T_NATIVE_INT)) < 0) ERR;
-      if (H5Tcommit(grpid, VLEN_TYPE_NAME, vlen_typeid) < 0) ERR;
+      if (H5Tcommit1(grpid, VLEN_TYPE_NAME, vlen_typeid) < 0) ERR;
 
       /* Create an attribute of this new type. */
       if ((spaceid = H5Screate_simple(1, dims, NULL)) < 0) ERR;
-      if ((attid = H5Acreate(grpid, ATT_NAME, vlen_typeid, spaceid,
+      if ((attid = H5Acreate1(grpid, ATT_NAME, vlen_typeid, spaceid,
 			     H5P_DEFAULT)) < 0) ERR;
       if (H5Awrite(attid, vlen_typeid, vc_out) < 0) ERR;
 
@@ -266,7 +270,7 @@ main()
 
       /* Reopen the file. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
 
       /* How many objects in this group? (There should be 2, the
        * types. Atts don't count as objects to HDF5.) */

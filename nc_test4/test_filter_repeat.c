@@ -158,7 +158,7 @@ openfile(void)
     if(!verifychunks())
         return 0;
     /* Check the compression algorithms */
-    CHECK(nc_inq_var_filterids(ncid,varid,&nfilters,filterids));
+    CHECK(nc_inq_var_filter_ids(ncid,varid,&nfilters,filterids));
     for(k=0;k<nfilters;k++)
 	printfilter(filterids[k]);
     fflush(stderr);
@@ -359,7 +359,7 @@ int
 main(int argc, char **argv)
 {
 #ifdef DEBUG
-    H5Eprint(stderr);
+    H5Eprint1(stderr);
     nc_set_log_level(1);
 #endif
     init(argc,argv);

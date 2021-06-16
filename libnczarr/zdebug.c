@@ -4,10 +4,6 @@
  *********************************************************************/
 #include "zincludes.h"
 
-#ifdef HAVE_EXECINFO_H
-#include <execinfo.h>
-#endif
-
 /* Mnemonic */
 #define RAW 1
 
@@ -27,19 +23,13 @@ zbreakpoint(int err)
 }
 
 int
-zthrow(int err, const char* file, int line)
+zthrow(int err, const char* file, const char* fcn, int line)
 {
     if(err == 0) return err;
-#ifdef ZDEBUG
-    fprintf(stderr,"THROW: %s/%d: (%d) %s\n",file,line,err,nc_strerror(err));
-    fflush(stderr);
-#endif
-#ifdef HAVE_EXECINFO_H
-    NCZbacktrace();
-#endif
+    ncbacktrace();
     return zbreakpoint(err);
 }
-#endif
+#endif /*ZCATCH*/
 
 /**************************************************/
 /* Data Structure printers */
@@ -69,13 +59,13 @@ nczprint_reclaim(void)
 }
 
 char*
-nczprint_slice(NCZSlice slice)
+nczprint_slice(const NCZSlice slice)
 {
     return nczprint_slicex(slice,!RAW);
 }
 
 char*
-nczprint_slicex(NCZSlice slice, int raw)
+nczprint_slicex(const NCZSlice slice, int raw)
 {
     char* result = NULL;
     NCbytes* buf = ncbytesnew();
@@ -108,13 +98,13 @@ nczprint_slicex(NCZSlice slice, int raw)
 }
 
 char*
-nczprint_slices(int rank, NCZSlice* slices)
+nczprint_slices(int rank, const NCZSlice* slices)
 {
     return nczprint_slicesx(rank, slices, !RAW);
 }
 
 char*
-nczprint_slicesx(int rank, NCZSlice* slices, int raw)
+nczprint_slicesx(int rank, const NCZSlice* slices, int raw)
 {
     int i;
     char* result = NULL;
@@ -135,20 +125,20 @@ nczprint_slicesx(int rank, NCZSlice* slices, int raw)
 }
 
 char*
-nczprint_slab(int rank, NCZSlice* slices)
+nczprint_slab(int rank, const NCZSlice* slices)
 {
     return nczprint_slicesx(rank,slices,RAW);
 }
 
 char*
-nczprint_odom(NCZOdometer* odom)
+nczprint_odom(const NCZOdometer* odom)
 {
     char* result = NULL;
     NCbytes* buf = ncbytesnew();
     char value[128];
     char* txt = NULL;
 
-    snprintf(value,sizeof(value),"Odometer{rank=%d,",odom->rank);
+    snprintf(value,sizeof(value),"Odometer{rank=%d ",odom->rank);
     ncbytescat(buf,value);
 
     ncbytescat(buf," start=");
@@ -157,17 +147,23 @@ nczprint_odom(NCZOdometer* odom)
     ncbytescat(buf," stop=");
     txt = nczprint_vector(odom->rank,odom->stop);
     ncbytescat(buf,txt);
+    ncbytescat(buf," len=");
+    txt = nczprint_vector(odom->rank,odom->len);
+    ncbytescat(buf,txt);
     ncbytescat(buf," stride=");
     txt = nczprint_vector(odom->rank,odom->stride);
-    ncbytescat(buf,txt);
-    ncbytescat(buf," max=");
-    txt = nczprint_vector(odom->rank,odom->max);
     ncbytescat(buf,txt);
     ncbytescat(buf," index=");
     txt = nczprint_vector(odom->rank,odom->index);
     ncbytescat(buf,txt);
     ncbytescat(buf," offset=");
     snprintf(value,sizeof(value),"%llu",nczodom_offset(odom));
+    ncbytescat(buf,value);
+    ncbytescat(buf," avail=");
+    snprintf(value,sizeof(value),"%llu",nczodom_avail(odom));
+    ncbytescat(buf,value);
+    ncbytescat(buf," more=");
+    snprintf(value,sizeof(value),"%d",nczodom_more(odom));
     ncbytescat(buf,value);
     
     ncbytescat(buf,"}");
@@ -177,13 +173,13 @@ nczprint_odom(NCZOdometer* odom)
 }
 
 char*
-nczprint_projection(NCZProjection proj)
+nczprint_projection(const NCZProjection proj)
 {
    return nczprint_projectionx(proj,!RAW);
 }
 
 char*
-nczprint_projectionx(NCZProjection proj, int raw)
+nczprint_projectionx(const NCZProjection proj, int raw)
 {
     char* result = NULL;
     NCbytes* buf = ncbytesnew();
@@ -192,13 +188,12 @@ nczprint_projectionx(NCZProjection proj, int raw)
     ncbytescat(buf,"Projection{");
     snprintf(value,sizeof(value),"id=%d,",proj.id);
     ncbytescat(buf,value);
+    if(proj.skip) ncbytescat(buf,"*");
     snprintf(value,sizeof(value),"chunkindex=%lu",(unsigned long)proj.chunkindex);
     ncbytescat(buf,value);
     snprintf(value,sizeof(value),",first=%lu",(unsigned long)proj.first);
     ncbytescat(buf,value);
     snprintf(value,sizeof(value),",last=%lu",(unsigned long)proj.last);
-    ncbytescat(buf,value);
-    snprintf(value,sizeof(value),",len=%lu",(unsigned long)proj.len);
     ncbytescat(buf,value);
     snprintf(value,sizeof(value),",limit=%lu",(unsigned long)proj.limit);
     ncbytescat(buf,value);
@@ -218,7 +213,7 @@ nczprint_projectionx(NCZProjection proj, int raw)
 }
 
 char*
-nczprint_allsliceprojections(int r, NCZSliceProjections* slp)
+nczprint_allsliceprojections(int r, const NCZSliceProjections* slp)
 {
     int i;
     char* s;    
@@ -233,13 +228,13 @@ nczprint_allsliceprojections(int r, NCZSliceProjections* slp)
 }
 
 char*
-nczprint_sliceprojections(NCZSliceProjections slp)
+nczprint_sliceprojections(const NCZSliceProjections slp)
 {
     return nczprint_sliceprojectionsx(slp,!RAW);
 }
 
 char*
-nczprint_sliceprojectionsx(NCZSliceProjections slp, int raw)
+nczprint_sliceprojectionsx(const NCZSliceProjections slp, int raw)
 {
     char* result = NULL;
     NCbytes* buf = ncbytesnew();
@@ -266,7 +261,7 @@ nczprint_sliceprojectionsx(NCZSliceProjections slp, int raw)
 }
 
 char*
-nczprint_chunkrange(NCZChunkRange range)
+nczprint_chunkrange(const NCZChunkRange range)
 {
     char* result = NULL;
     NCbytes* buf = ncbytesnew();
@@ -285,7 +280,25 @@ nczprint_chunkrange(NCZChunkRange range)
 }
 
 char*
-nczprint_vector(size_t len, size64_t* vec)
+nczprint_idvector(size_t len, const int* ids)
+{
+    size64_t v[4096];
+    size_t i;
+    for(i=0;i<len;i++) v[i] = ids[i];    
+    return nczprint_vector(len,v);
+}
+
+char*
+nczprint_sizevector(size_t len, const size_t* sizes)
+{
+    size64_t v[4096];
+    size_t i;
+    for(i=0;i<len;i++) v[i] = sizes[i];    
+    return nczprint_vector(len,v);
+}
+
+char*
+nczprint_vector(size_t len, const size64_t* vec)
 {
     char* result = NULL;
     int i;
@@ -304,9 +317,31 @@ nczprint_vector(size_t len, size64_t* vec)
     return capture(result);
 }
 
-#ifdef ZDEBUG
+char*
+nczprint_envv(const char** envv)
+{
+    char* result = NULL;
+    int i;
+    NCbytes* buf = ncbytesnew();
+    const char** p;
+
+    ncbytescat(buf,"(");
+    if(envv) {
+        for(i=0,p=envv;*p;p++,i++) {
+        if(i > 0) ncbytescat(buf,",");
+	    ncbytescat(buf,"'");
+	    ncbytescat(buf,*p);
+	    ncbytescat(buf,"'");
+	}
+    }
+    ncbytescat(buf,")");
+    result = ncbytesextract(buf);
+    ncbytesfree(buf);
+    return capture(result);
+}
+
 void
-zdumpcommon(struct Common* c)
+zdumpcommon(const struct Common* c)
 {
     int r;
     fprintf(stderr,"Common:\n");
@@ -329,28 +364,3 @@ zdumpcommon(struct Common* c)
         fprintf(stderr,"\t\t[%d] %s\n",r,nczprint_sliceprojectionsx(c->allprojections[r],RAW));
     fflush(stderr);
 }
-#endif
-
-#ifdef HAVE_EXECINFO_H
-#define MAXSTACKDEPTH 100
-void
-NCZbacktrace(void)
-{
-    int j, nptrs;
-    void* buffer[MAXSTACKDEPTH];
-    char **strings;
-
-    if(getenv("NCZBACKTRACE") == NULL) return;
-    nptrs = backtrace(buffer, MAXSTACKDEPTH);
-    strings = backtrace_symbols(buffer, nptrs);
-    if (strings == NULL) {
-        perror("backtrace_symbols");
-        errno = 0;
-	return;
-    }
-    fprintf(stderr,"Backtrace:\n");
-    for(j = 0; j < nptrs; j++)
-	fprintf(stderr,"%s\n", strings[j]);
-    free(strings);
-}
-#endif

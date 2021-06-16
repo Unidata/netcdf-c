@@ -2,6 +2,22 @@
 
 if test "x$SETX" != x; then set -x; fi
 
+# Figure out which cloud repo to use
+if test "x$NCZARR_S3_TEST_HOST" = x ; then
+export NCZARR_S3_TEST_HOST=stratus.ucar.edu
+fi
+if test "x$NCZARR_S3_TEST_BUCKET" = x ; then
+export NCZARR_S3_TEST_BUCKET=unidata-netcdf-zarr-testing
+fi
+export NCZARR_S3_TEST_URL="https://${NCZARR_S3_TEST_HOST}/${NCZARR_S3_TEST_BUCKET}"
+
+ZMD="${execdir}/zmapio"
+
+awsdelete() {
+${execdir}/s3util -u "${NCZARR_S3_TEST_URL}/" -k "$1" clear
+#aws s3api delete-object --endpoint-url=https://${NCZARR_S3_TEST_HOST} --bucket=${NCZARR_S3_TEST_BUCKET} --key="netcdf-c/$1"
+}
+
 # Check settings
 checksetting() {
 if test -f ${TOPBUILDDIR}/libnetcdf.settings ; then
@@ -15,11 +31,26 @@ if test -f ${TOPBUILDDIR}/libnetcdf.settings ; then
 fi
 }
 
+checkprops() {
+   specflag=
+   headflag=
+   isxfail=
+   # determine if this is an xfailtest
+   for t in ${XFAILTESTS} ; do
+     if test "x${t}" = "x${x}" ; then isxfail=1; fi
+   done
+   for t in ${SPECTESTS} ; do
+      if test "x${t}" = "x${f}" ; then specflag="-s"; fi
+   done
+   for t in ${HEADTESTS} ; do
+      if test "x${t}" = "x${f}" ; then headflag="-h"; fi
+   done
+}
+
 extfor() {
     case "$1" in
-    nc4) zext="nz4" ;;
-    nz4) zext="nz4" ;;
-    nzf) zext="nzf" ;;
+    file) zext="file" ;;
+    zip) zext="zip" ;;
     s3) zext="s3" ;;
     *) echo "unknown kind: $1" ; exit 1;;
     esac
@@ -27,75 +58,91 @@ extfor() {
 
 deletemap() {
     case "$1" in
-    nc4) rm -fr $2;;
-    nz4) rm -fr $2;;
-    nzf) rm -fr $2;;
+    file) rm -fr $2;;
+    zip) rm -f $2;;
+    s3) S3KEY=`${execdir}/zs3parse -k $2`; awsdelete $S3KEY;;
+    *) echo "unknown kind: $1" ; exit 1;;
     esac
 }
 
-mapexists() {
-    mapexists=1
-    case "$1" in
-    nz4) if test -f $file; then mapexists=0; fi ;;
-    nzf) if test -f $file; then mapexists=0; fi ;;		 
-    s3)
-	if "./zmapio $fileurl" ; then mapexists=1; else mapexists=0; fi
-        ;;
-    *) echo unknown format: $1 : abort ; exit 1 ;;
-    esac
-    if test $mapexists = 1 ; then
-      echo "delete did not delete $1"
+mapstillexists() {
+    mapstillexists=0
+    if "./zmapio $fileurl" ; then
+      echo "delete failed: $1"
+      mapstillexists=1
     fi
 }
 
 fileargs() {
-  if test "x$zext" = xs3 ; then
-    if test "x$NCS3PATH" = x ; then
-	S3PATH="https://stratus.ucar.edu/unidata-netcdf-zarr-testing"
-    else
-	S3PATH="${NCS3PATH}"
-    fi
-    fileurl="${S3PATH}/test$tag#mode=nczarr,$zext"
+  f="$1"
+  frag="$2"
+  if test "x$frag" = x ; then frag="mode=nczarr,$zext" ; fi
+  case "$zext" in
+  s3)
+    S3PATH="${NCZARR_S3_TEST_URL}/netcdf-c"
+    fileurl="${S3PATH}/${f}#${frag}"
     file=$fileurl
     S3HOST=`${execdir}/zs3parse -h $S3PATH`
     S3BUCKET=`${execdir}/zs3parse -b $S3PATH`
-    S3PREFIX=`${execdir}/zs3parse -p $S3PATH`
-  else
-    file="test$tag.$zext"
-    fileurl="file://test$tag.$zext#mode=nczarr,$zext"
-  fi
-}
-
-dumpmap1() {
-    local ISJSON
-    tmp=
-    if test -f $1 ; then
-      ISJSON=`${execdir}/zisjson <$1`
-      if test "x$ISJSON" = x1 ; then
-	  tmp=`tr '\r\n' '  ' <$1`
-      else
-	  tmp=`${execdir}/zhex <$1`
-      fi
-      echo "$1 : |$tmp|" >> $2
-    else
-      echo "$1" >> $2
-    fi
+    S3PREFIX=`${execdir}/zs3parse -k $S3PATH`
+    ;;
+  *)
+    file="${f}.$zext"
+    fileurl="file://${f}.$zext#${frag}"
+    ;;
+  esac
 }
 
 dumpmap() {
-    case "$1" in
-    nz4) rm -f $3 ; ${NCDUMP} $2 > $3 ;;
-    nzf)
-	rm -f $3
-	export LC_ALL=C
-	lr=`find $2 | sort| tr  '\r\n' '  '`
-	for f in $lr ; do  dumpmap1 $f $3 ; done
-	;;
-    s3)
-        aws s3api list-objects --endpoint-url=$S3HOST --bucket=$S3BUCKET
-	;;
-    *) echo "dumpmap failed" ; exit 1;
-    esac
+    zext=$1
+    zbase=`basename $2 ".$zext"`
+    fileargs $zbase
+    ${execdir}/zmapio -t int -x objdump $fileurl > $3
 }
 
-ZMD="${execdir}/zmapio"
+difftest() {
+echo ""; echo "*** Test zext=$zext"
+for t in ${TESTS} ; do
+   echo "*** Testing: ${t}"
+   # determine if we need the specflag set
+   # determine properties
+   checkprops ${t}
+   ref="ref_${t}"
+   rm -fr ${t}.$zext
+   rm -f tmp_${t}.dmp
+   fileargs $t
+   ${NCGEN} -4 -lb -o ${fileurl} ${cdl}/${ref}.cdl
+   ${NCDUMP} ${headflag} ${specflag} -n ${ref} ${fileurl} > tmp_${t}.dmp
+   # compare the expected (silently if XFAIL)
+   if diff -b -w ${expected}/${ref}.dmp tmp_${t}.dmp > ${t}.diff ; then ok=1; else ok=0; fi
+   if test "x$ok" = "x1" ; then
+     echo "*** SUCCEED: ${t}"
+   elif test "x${isxfail}" = "x1" ; then
+     echo "*** XFAIL : ${t}"
+   else
+     echo "*** FAIL: ${t}"
+     exit 1
+   fi
+done
+}
+
+# Make sure execdir and srcdir absolute paths are available
+WD=`pwd`
+cd $srcdir ; abs_srcdir=`pwd` ; cd $WD
+cd $execdir ; abs_execdir=`pwd` ; cd $WD
+
+# Clear out any existing .rc files
+WD=`pwd`
+if test "x$NCAUTH_HOMETEST" != x ; then RCHOME=1; fi
+
+resetrc() {
+  if test "x$RCHOME" = x1 ; then
+      rm -f ${HOME}/.dodsrc ${HOME}/.daprc ${HOME}/.ncrc
+  fi
+  rm -f ${WD}/.dodsrc ${WD}/.daprc ${WD}/.ncrc
+  unset NCRCENV_IGNORE
+  unset NCRCENV_RC
+  unset DAPRCFILE
+}
+
+resetrc

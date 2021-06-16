@@ -18,7 +18,7 @@
 #endif
 
 #include "ncdispatch.h"
-#include "ncwinpath.h"
+#include "ncpathmgr.h"
 #include "netcdf_mem.h"
 #include "fbits.h"
 #include "ncbytes.h"
@@ -45,7 +45,7 @@ struct MagicFile {
     struct NCURI* uri;
     int omode;
     NCmodel* model;
-    fileoffset_t filelen;
+    size64_t filelen;
     int use_parallel;
     void* parameters; /* !NULL if inmemory && !diskless */
     FILE* fp;
@@ -123,7 +123,20 @@ static const struct MACRODEF {
 {"dap4","mode","dap4"},
 {"s3","mode","nczarr,s3"},
 {"bytes","mode","bytes"},
+{"xarray","mode","nczarr,zarr,xarray"},
+{"noxarray","mode","nczarr,zarr,noxarray"},
 {NULL,NULL,NULL}
+};
+
+/* Mode inferences */
+static const struct MODEINFER {
+    char* key;
+    char* inference;
+} modeinferences[] = {
+{"zarr","nczarr"},
+{"xarray","zarr"},
+{"noxarray","zarr"},
+{NULL,NULL}
 };
 
 /* Map FORMATX to readability to get magic number */
@@ -454,6 +467,74 @@ done:
     return check(stat);
 }
 
+/* Process mode flag inferences */
+static int
+processinferences(NClist* fraglenv)
+{
+    int stat = NC_NOERR;
+    const struct MODEINFER* inferences = NULL;
+    NClist* modes = NULL;
+    int inferred,i,pos = -1;
+    char* modeval = NULL;
+    char* newmodeval = NULL;
+
+    if(fraglenv == NULL || nclistlength(fraglenv) == 0) goto done;
+
+    /* Get "mode" entry */
+    for(i=0;i<nclistlength(fraglenv);i+=2) {
+	char* key = NULL;
+	key = nclistget(fraglenv,i);
+	if(strcasecmp(key,"mode")==0) {
+	    pos = i;
+	    break;
+	}
+    }
+    if(pos < 0) 
+	goto done; /* no modes defined */
+
+    /* Get the mode as list */
+    modes = nclistnew();
+    modeval = (char*)nclistget(fraglenv,pos+1);
+    /* split on commas */
+    if((stat=parseonchar(modeval,',',modes))) goto done;
+
+    /* Repeatedly walk the mode list until no more new inferences */
+    do {
+	inferred = 0;
+	for(i=0;i<nclistlength(modes);i++) {
+	    const char* mode = nclistget(modes,i);
+            for(inferences=modeinferences;inferences->key;inferences++) {
+                if(strcasecmp(inferences->key,mode)==0) {
+		    int j;
+		    int exists = 0;
+	            for(j=0;j<nclistlength(modes);j++) {
+		        const char* candidate = nclistget(modes,j);
+			if(strcasecmp(candidate,inferences->inference)==0)
+			    {exists = 1; break;}
+		    }
+		    if(!exists) {
+		        /* append the inferred mode if not already present */
+		        nclistpush(modes,strdup(inferences->inference));
+		        inferred = 1;
+		    }
+		}
+	    }
+	}
+    } while(inferred);
+
+    /* Store new mode value */
+    if((newmodeval = list2string(modes))== NULL)
+	{stat = NC_ENOMEM; goto done;}        
+    nclistset(fraglenv,pos+1,newmodeval);
+    nullfree(modeval);
+    modeval = NULL;
+
+done:
+    nclistfreeall(modes);
+    return check(stat);
+}
+
+
 static int
 mergekey(NClist** valuesp)
 {
@@ -748,6 +829,12 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
 	printlist(fraglenv,"processmacros");
 #endif
 
+        /* Phase 2a: Expand mode inferences and add to fraglenv */
+        if((stat = processinferences(fraglenv))) goto done;
+#ifdef DEBUG
+	printlist(fraglenv,"processinferences");
+#endif
+
         /* Phase 3: coalesce duplicate fragment keys and remove duplicate values */
         if((stat = cleanfragments(&fraglenv))) goto done;
 #ifdef DEBUG
@@ -894,65 +981,39 @@ nullify(const char* s)
 #endif
 
 /**************************************************/
-#if 0
-/* return 1 if path looks like a url; 0 otherwise */
-int
-NC_testurl(const char* path)
-{
-    int isurl = 0;
-    NCURI* tmpurl = NULL;
-
-    if(path == NULL) return 0;
-
-    /* Ok, try to parse as a url */
-    if(ncuriparse(path,&tmpurl)==NCU_OK) {
-	/* Do some extra testing to make sure this really is a url */
-        /* Look for a known/accepted protocol */
-        struct NCPROTOCOLLIST* protolist;
-        for(protolist=ncprotolist;protolist->protocol;protolist++) {
-	    if(strcmp(tmpurl->protocol,protolist->protocol) == 0) {
-	        isurl=1;
-		break;
-	    }
-	}
-	ncurifree(tmpurl);
-	return isurl;
-    }
-    return 0;
-}
-#endif
-
 /**************************************************/
 /**
  * Provide a hidden interface to allow utilities
  * to check if a given path name is really a url.
- * If not, put null in basenamep, else put basename of the url
+ * If not, put null in basenamep, else put basename of the url path
  * minus any extension into basenamep; caller frees.
  * Return 1 if it looks like a url, 0 otherwise.
  */
 
 int
-nc__testurl(const char* path, char** basenamep)
+nc__testurl(const char* path0, char** basenamep)
 {
-    NCURI* uri;
+    NCURI* uri = NULL;
     int ok = 0;
-    if(!ncuriparse(path,&uri)) {
-	char* slash = (uri->path == NULL ? NULL : strrchr(uri->path, '/'));
-	char* dot;
-	if(slash == NULL) slash = (char*)path; else slash++;
-        slash = nulldup(slash);
-        if(slash == NULL)
-            dot = NULL;
-        else
-            dot = strrchr(slash, '.');
-        if(dot != NULL &&  dot != slash) *dot = '\0';
+    char* path = NULL;
+    
+    if(!ncuriparse(path0,&uri)) {
+	char* p;
+	char* q;
+	path = strdup(uri->path);
+	if(path == NULL||strlen(path)==0) goto done;
+        p = strrchr(path, '/');
+	if(p == NULL) p = path; else p++;
+	q = strrchr(p,'.');
+        if(q != NULL) *q = '\0';
+	if(strlen(p) == 0) goto done;
 	if(basenamep)
-            *basenamep=slash;
-        else if(slash)
-            free(slash);
-        ncurifree(uri);
+            *basenamep = strdup(p);
 	ok = 1;
     }
+done:
+    ncurifree(uri);
+    nullfree(path);
     return ok;
 }
 
@@ -997,7 +1058,7 @@ check_file_type(const char *path, int omode, int use_parallel,
     if((status = openmagic(&magicinfo))) goto done;
 
     /* Verify we have a large enough file */
-    if(magicinfo.filelen < MAGIC_NUMBER_LEN)
+    if(magicinfo.filelen < (long long)MAGIC_NUMBER_LEN)
 	{status = NC_ENOTNC; goto done;}
     if((status = readmagic(&magicinfo,0L,magic)) != NC_NOERR) {
 	status = NC_ENOTNC;
@@ -1007,7 +1068,7 @@ check_file_type(const char *path, int omode, int use_parallel,
     /* Look at the magic number */
     if(NC_interpret_magic_number(magic,model) == NC_NOERR
 	&& model->format != 0) {
-        if (model->format == NC_FORMAT_NC3 && use_parallel)
+        if (use_parallel && (model->format == NC_FORMAT_NC3 || model->impl == NC_FORMATX_NC3))
             /* this is called from nc_open_par() and file is classic */
             model->impl = NC_FORMATX_PNETCDF;
         goto done; /* found something */

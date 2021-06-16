@@ -29,11 +29,19 @@ main(int argc, char** argv)
     char text[MAXREAD+1];
     NCjson* json = NULL;
     int i, red;
+    FILE* f = NULL;
+
+    if(argc > 1) {
+	/* use argv[1] as input */
+	f = fopen(argv[1],"r");
+	if(f == NULL) {fprintf(stderr,"No such file: %s\n",argv[1]); exit(1);}
+    } else
+        f = stdin;
 
     /* Read json from stdin */
     for(i=0;;i++) {
 	unsigned char c;
-	red = fread(&c, 1, 1, stdin);
+	red = fread(&c, 1, 1, f);
 	if(red != 1) break;
 	if(i < MAXREAD) text[i] = (char)c;
     }
@@ -49,5 +57,6 @@ main(int argc, char** argv)
 	NCJreclaim(json);
     }
     printf("%d",(stat==NC_NOERR?1:0)); /* parse success|failure */    
+    if(f != stdin) fclose(f);
     return 0;
 }

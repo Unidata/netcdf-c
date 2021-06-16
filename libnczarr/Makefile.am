@@ -30,7 +30,7 @@ noinst_LTLIBRARIES = libnczarr.la
 libnczarr_la_SOURCES = \
 zarr.c \
 zattr.c \
-zcache.c \
+zxcache.c \
 zchunking.c \
 zclose.c \
 zcreate.c \
@@ -43,8 +43,7 @@ zgrp.c \
 zinternal.c \
 zjson.c \
 zmap.c \
-zmap_nz4.c \
-zmap_nzf.c \
+zmap_file.c \
 zodom.c \
 zopen.c \
 zprov.c \
@@ -58,6 +57,7 @@ zarr.h \
 zcache.h \
 zchunking.h \
 zdispatch.h \
+ztracedispatch.h \
 zincludes.h \
 zinternal.h \
 zjson.h \
@@ -65,6 +65,10 @@ zmap.h \
 zodom.h \
 zprovenance.h \
 zdebug.h
+
+if ENABLE_NCZARR_ZIP
+libnczarr_la_SOURCES += zmap_zip.c 
+endif
 
 if ENABLE_S3_SDK
 libnczarr_la_SOURCES += zmap_s3sdk.c

@@ -66,6 +66,5 @@ for f in $F ; do
 	fi
     fi
 done
-rm -rf ${builddir}/results_test_raw
 
 finish

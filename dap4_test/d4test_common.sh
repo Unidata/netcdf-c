@@ -23,7 +23,8 @@ cd ${srcdir}/cdltestfiles; CDLTESTFILES=`pwd` ; cd ${WD}
 cd ${srcdir}/baseline; BASELINE=`pwd` ; cd ${WD}
 cd ${srcdir}/baselineraw; BASELINERAW=`pwd` ; cd ${WD}
 cd ${srcdir}/baselineremote; BASELINEREM=`pwd` ; cd ${WD}
-#cd ${srcdir}/baselinehyrax; BASELINEH=`pwd` ; cd ${WD}
+cd ${srcdir}/baselinehyrax; BASELINEH=`pwd` ; cd ${WD}
+#cd ${srcdir}/baselinethredds; BASELINETH=`pwd` ; cd ${WD}
 
 setresultdir() {
 rm -fr ${builddir}/$1

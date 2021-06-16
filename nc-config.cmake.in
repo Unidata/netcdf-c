@@ -73,7 +73,7 @@ else
     has_hdf5="yes"
 fi
 
-has_szlib="@USE_SZLIB@"
+has_szlib="@USE_SZIP@"
 if [ -z "$has_szlib" -o "$has_szlib" = "OFF" ]; then
     has_szlib="no"
 else
@@ -99,6 +99,13 @@ if [ -z $has_parallel ]; then
     has_parallel="no"
 else
     has_parallel="yes"
+fi
+
+has_nczarr="@ENABLE_NCZARR@"
+if [ -z "$has_nczarr" -o "$has_nczarr" = "OFF" -o "$has_nczarr" = "FALSE" ]; then
+    has_nczarr="no"
+else
+    has_nczarr="yes"
 fi
 
 version="@PACKAGE@ @VERSION@"
@@ -164,6 +171,7 @@ Available values for OPTION include:
   --has-cdf5      whether cdf5 support is included in build
   --has-parallel4 whether has parallel IO support via HDF5
   --has-parallel  whether has parallel IO support via HDF5 or PnetCDF
+  --has-nczarr    whether nczarr enabled
   --libs          library linking information for netcdf
   --static        library linking information for statically-compiled netcdf
   --prefix        Install prefix
@@ -245,6 +253,7 @@ fi
         echo "  --has-cdf5      -> $has_cdf5"
         echo "  --has-parallel4 -> $has_parallel4"
         echo "  --has-parallel  -> $has_parallel"
+        echo "  --has-nczarr    -> $has_nczarr"
         echo
         echo "  --prefix        -> $prefix"
         echo "  --includedir    -> $includedir"
@@ -344,6 +353,10 @@ while test $# -gt 0; do
 
     --has-parallel)
         echo $has_parallel
+        ;;
+
+    --has-nczarr)
+        echo $has_nczarr
         ;;
 
     --libs)

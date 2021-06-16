@@ -35,7 +35,7 @@
 
 #include "ncdispatch.h"
 #include "netcdf_mem.h"
-#include "ncwinpath.h"
+#include "ncpathmgr.h"
 #include "fbits.h"
 
 #undef DEBUG
@@ -1853,17 +1853,15 @@ NC_create(const char *path0, int cmode, size_t initialsz,
         /* Skip past any leading whitespace in path */
         const unsigned char* p;
         for(p=(const unsigned char*)path0;*p;p++) {if(*p > ' ') break;}
-#ifdef WINPATH
-        /* Need to do path conversion */
-        path = NCpathcvt((const char*)p);
-#else
         path = nulldup((const char*)p);
-#endif
     }
 
     memset(&model,0,sizeof(model));
-    if((stat = NC_infermodel(path,&cmode,1,useparallel,NULL,&model,&newpath)))
+    newpath = NULL;
+    if((stat = NC_infermodel(path,&cmode,1,useparallel,NULL,&model,&newpath))) {
+	nullfree(newpath);
         goto done;
+    }
     if(newpath) {
         nullfree(path);
         path = newpath;
@@ -2006,12 +2004,7 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
         /* Skip past any leading whitespace in path */
         const char* p;
         for(p=(const char*)path0;*p;p++) {if(*p < 0 || *p > ' ') break;}
-#ifdef WINPATH
-        /* Need to do path conversion */
-        path = NCpathcvt(p);
-#else
         path = nulldup(p);
-#endif
     }
 
     memset(&model,0,sizeof(model));

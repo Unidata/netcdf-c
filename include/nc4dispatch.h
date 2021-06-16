@@ -247,7 +247,9 @@ extern "C" {
     NC4_show_metadata(int);
 
     EXTERNL int
-    NC4_filter_actions(int, int, int, void*);
+    NC4_inq_var_filter_ids(int ncid, int varid, size_t* nfilters, unsigned int* filterids);
+    EXTERNL int
+    NC4_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparams, unsigned int* params);
 
 #if defined(__cplusplus)
 }

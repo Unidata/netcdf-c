@@ -66,13 +66,15 @@ check_for_classic_model(NC_GRP_INFO_T *root_grp, int *is_classic)
 static int
 ncz_open_file(const char *path, int mode, const char** controls, int ncid)
 {
-    int stat;
+    int stat = NC_NOERR;
     NC_FILE_INFO_T *h5 = NULL;
     int is_classic;
     NC* nc = NULL;
 
     LOG((3, "%s: path %s mode %d", __func__, path, mode));
     assert(path);
+
+    ZTRACE(2,"path=%s,mode=%d,ncid=%d,controls=%s)",path,mode,ncid,(controls?nczprint_envv(controls):"null"));
 
     /* Convert ncid to an NC* structure pointer */
     if((stat = NC_check_id(ncid,&nc))) goto exit;
@@ -120,12 +122,10 @@ ncz_open_file(const char *path, int mode, const char** controls, int ncid)
     log_metadata_nc(h5);
 #endif
 
-    return NC_NOERR;
-
 exit:
-    if (h5)
+    if (stat && h5)
 	ncz_close_file(h5, 1); /*  treat like abort*/
-    return stat;
+    return ZUNTRACE(stat);
 }
 
 /**
@@ -150,6 +150,8 @@ NCZ_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 {
     int stat = NC_NOERR;
     NCURI* uri = NULL;
+
+    ZTRACE(0,"path=%s,mode=%d,ncid=%d)",path,mode,ncid);
 
     NC_UNUSED(parameters);
 
@@ -183,6 +185,6 @@ NCZ_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 
 done:
     ncurifree(uri);
-    return stat;
+    return ZUNTRACE(stat);
 }
 

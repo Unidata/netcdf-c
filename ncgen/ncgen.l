@@ -115,6 +115,7 @@ char char_val;                 /* last char value read */
 signed char byte_val;                 /* last byte value read */
 unsigned char ubyte_val;       /* last byte value read */
 
+/* Forward */
 static Symbol* makepath(char* text);
 static int lexdebug(int);
 static unsigned long long parseULL(int radix, char* text, int*);
@@ -122,6 +123,7 @@ static nc_type downconvert(unsigned long long uint64, int*, int, int);
 static int tagmatch(nc_type nct, int tag);
 static int nct2lexeme(nc_type nct);
 static int collecttag(char* text, char** stagp);
+static int identcheck(int token);
 
 struct Specialtoken specials[] = {
 {"_FillValue",_FILLVALUE,_FILLVALUE_FLAG},
@@ -265,18 +267,25 @@ compound|struct|structure {return lexdebug(COMPOUND);}
 enum				{return lexdebug(ENUM);}
 opaque				{return lexdebug(OPAQUE_);}
 
-float|real		{return lexdebug(FLOAT_K);}
+float			{return lexdebug(FLOAT_K);}
+double			{return lexdebug(DOUBLE_K);}
 char			{return lexdebug(CHAR_K);}
 byte			{return lexdebug(BYTE_K);}
-ubyte			{return lexdebug(UBYTE_K);}
 short			{return lexdebug(SHORT_K);}
-ushort			{return lexdebug(USHORT_K);}
-long|int|integer	{return lexdebug(INT_K);}
-ulong|uint|uinteger	{return lexdebug(UINT_K);}
-int64			{return lexdebug(INT64_K);}
-uint64			{return lexdebug(UINT64_K);}
-double			{return lexdebug(DOUBLE_K);}
-string                  {return lexdebug(STRING_K);}
+int			{return lexdebug(INT_K);}
+ubyte			{return lexdebug(identcheck(UBYTE_K));}
+ushort			{return lexdebug(identcheck(USHORT_K));}
+uint			{return lexdebug(identcheck(UINT_K));}
+int64			{return lexdebug(identcheck(INT64_K));}
+uint64			{return lexdebug(identcheck(UINT64_K));}
+string                  {return lexdebug(identcheck(STRING_K));}
+
+real			{return lexdebug(FLOAT_K);}
+long			{return lexdebug(INT_K);}
+integer			{return lexdebug(INT_K);}
+ulong			{return lexdebug(identcheck(UINT_K));}
+uinteger		{return lexdebug(identcheck(UINT_K));}
+
 
 unlimited|UNLIMITED	{int32_val = -1;
 			 return lexdebug(NC_UNLIMITED_K);}
@@ -590,9 +599,7 @@ lexdebug(int token)
 {
     if(debug >= 2)
     {
-	char* text = yytext;
-	text[yyleng] = 0;
-        fprintf(stderr,"Token=%d |%s| line=%d\n",token,text,lineno);
+        fprintf(stderr,"Token=%d |%s| line=%d\n",token,yytext,lineno);
     }
     return token;
 }
@@ -875,4 +882,30 @@ collecttag(char* text, char** stagp)
 	tag = NC_NAT;
     }
     return tag;
+}
+
+static int
+identcheck(int token)
+{
+    switch (token) {
+    case UBYTE_K:
+    case USHORT_K:
+    case UINT_K:
+    case INT64_K:
+    case UINT64_K:
+	if(k_flag != NC_FORMAT_NETCDF4 	&& k_flag != NC_FORMAT_64BIT_DATA) {
+	    yylval.sym = install(yytext);
+   	    token = IDENT;
+	}
+	break;
+    case STRING_K:
+	if(k_flag != NC_FORMAT_NETCDF4) {
+	    yylval.sym = install(yytext);
+   	    token = IDENT;
+	}
+	break;
+    default:
+         break;    
+    }
+    return token;
 }

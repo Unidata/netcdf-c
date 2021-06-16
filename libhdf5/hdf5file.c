@@ -14,9 +14,7 @@
 #include "config.h"
 #include "hdf5internal.h"
 #include "ncrc.h"
-#include <math.h>
-double dt_h5dwrite= 0.;
-double dt_h5dread = 0.;
+#include "ncauth.h"
 
 extern int NC4_extract_file_image(NC_FILE_INFO_T* h5); /* In nc4memcb.c */
 
@@ -202,11 +200,6 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio)
 {
     NC_HDF5_FILE_INFO_T *hdf5_info;
     int retval;
-    int rank, nprocs, i;
-    double *rtimers=NULL;    /* All timers from ranks */
-    double min[2];
-    double max[2];
-    double mean[2];
 
     assert(h5 && h5->root_grp && h5->format_file_info);
     LOG((3, "%s: h5->path %s abort %d", __func__, h5->controller->path, abort));
@@ -217,42 +210,6 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio)
 #ifdef USE_PARALLEL4
     /* Free the MPI Comm & Info objects, if we opened the file in
      * parallel. */
-    MPI_Comm_rank(h5->comm, &rank);
-    MPI_Comm_size(h5->comm, &nprocs);
-    if(rank == 0)  {
-        rtimers = (double *) malloc(nprocs*sizeof(double));
-        mean[0] = 0.;
-        min[0] = dt_h5dwrite;
-        max[0] = dt_h5dwrite;
-    } 
-    MPI_Gather(&dt_h5dwrite, 1, MPI_DOUBLE, rtimers, 1, MPI_DOUBLE, 0, h5->comm);
-    if(rank == 0) {
-        for(i = 0; i < nprocs; i++) {
-            if(rtimers[i] > max[0])  max[0] = rtimers[i];
-            if(rtimers[i] < min[0])  min[0] = rtimers[i];
-            mean[0] += rtimers[i];
-        }
-        mean[0] /= nprocs;
-        free(rtimers);
-    }
-    if(rank == 0)  {
-        rtimers = (double *) malloc(nprocs*sizeof(double));
-        mean[1] = 0.;
-        min[1] = dt_h5dread;
-        max[1] = dt_h5dread;
-    }
-
-    MPI_Gather(&dt_h5dread, 1, MPI_DOUBLE, rtimers, 1, MPI_DOUBLE, 0, h5->comm);
-    if(rank == 0) {
-        for(i = 0; i < nprocs; i++) {
-            if(rtimers[i] > max[1])  max[1] = rtimers[i];
-            if(rtimers[i] < min[1])  min[1] = rtimers[i];
-            mean[1] += rtimers[i];
-        }
-        mean[1] /= nprocs;
-        printf("%s %d %d %f %f %f %f %f %f\n","#wr", rank, nprocs, mean[0], min[0], max[0], mean[1], min[1], max[1]);
-        free(rtimers);
-    }
     if (h5->parallel)
     {
         if (h5->comm != MPI_COMM_NULL)
@@ -266,6 +223,12 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio)
      * hidden attribute. */
     NC4_clear_provenance(&h5->provenance);
 
+#if defined(ENABLE_BYTERANGE) || defined(ENABLE_HDF5_ROS3) || defined(ENABLE_S3_SDK)
+    /* Free the http info */
+    ncurifree(hdf5_info->http.uri);
+    NC_authfree(hdf5_info->http.auth);
+#endif
+
     /* Close hdf file. It may not be open, since this function is also
      * called by NC_create() when a file opening is aborted. */
     if (hdf5_info->hdfid > 0 && H5Fclose(hdf5_info->hdfid) < 0)
@@ -273,7 +236,7 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio)
         dumpopenobjects(h5);
         return NC_EHDFERR;
     }
-    
+
     /* If inmemory is used and user wants the final memory block,
        then capture and return the final memory block else free it */
     if (h5->mem.inmemory)

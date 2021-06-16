@@ -11,7 +11,7 @@
 SET(libnczarr_SOURCES
 zarr.c
 zattr.c
-zcache.c
+zxcache.c
 zchunking.c
 zclose.c
 zcreate.c
@@ -24,8 +24,7 @@ zgrp.c
 zinternal.c
 zjson.c
 zmap.c
-zmap_nz4.c
-zmap_nzf.c
+zmap_file.c
 zodom.c
 zopen.c
 zprov.c
@@ -48,13 +47,22 @@ zprovenance.h
 zdebug.h
 )
 
+IF(ENABLE_NCZARR_ZIP)
+SET(libnczarr_SOURCES ${libnczarr_SOURCES} zmap_zip.c)
+ENDIF()
+
 IF(ENABLE_S3_SDK) 
 SET(libnczarr_SOURCES ${libnczarr_SOURCES} zs3sdk.cpp zmap_s3sdk.c awsincludes.h zs3sdk.h)
 ENDIF()
 
 # Build the Zarr dispatch layer as a library that will be included in
 # the netCDF library.
+
 add_library(nczarr OBJECT ${libnczarr_SOURCES})
+
+IF(MPI_C_INCLUDE_PATH)
+    target_include_directories(nczarr PUBLIC ${MPI_C_INCLUDE_PATH})
+ENDIF(MPI_C_INCLUDE_PATH)
 
 IF(ENABLE_S3_SDK) 
 IF(NOT MSVC)

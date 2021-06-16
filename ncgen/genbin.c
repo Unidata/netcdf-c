@@ -247,12 +247,12 @@ genbin_definespecialattributes(Symbol* var)
     if(special->flags & _FILTER_FLAG) {
 	int k;
 	for(k=0;k<special->nfilters;k++) {
-	    NC_Filterspec* nfs = special->_Filters[k];
-            stat = nc_def_var_filterx(var->container->nc_id,
+	    NC_H5_Filterspec* nfs = special->_Filters[k];
+            stat = nc_def_var_filter(var->container->nc_id,
                         var->nc_id,
 			nfs->filterid,
                         nfs->nparams,
-                        (const char**)nfs->params
+                        nfs->params
                         );
         }
         CHECK_ERR(stat);

@@ -16,6 +16,9 @@
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#endif
 
 /*
 This is included in bottom
@@ -102,6 +105,14 @@ typedef unsigned short ushort;
 
 #ifndef HAVE_UINT
 typedef unsigned int uint;
+#endif
+
+#ifndef HAVE_UINT64
+typedef unsigned long long uint64;
+#endif
+
+#ifndef HAVE_UINT64_T
+typedef unsigned long long uint64_t;
 #endif
 
 #ifndef _WIN32

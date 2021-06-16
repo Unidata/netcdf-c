@@ -31,19 +31,19 @@ main(int argc, char** argv)
     zutester.print = NULL;
     zutest = &zutester;
 
+    printoptions(&utoptions);
+
     var = nclistget(utoptions.vardefs,0);
 
-    printoptions(&utoptions);
+    fillcommon(&common,var);
 
     /* Compute chunk ranges */
     if((stat = NCZ_compute_chunk_ranges(var->rank,utoptions.slices,var->chunksizes,ncrv)))
 	goto done;
 
     if((stat=NCZ_compute_all_slice_projections(
-	var->rank,
+	&common,
         utoptions.slices,
-        var->dimsizes,
-        var->chunksizes,
         ncrv,
 	slpv))) goto done;
 

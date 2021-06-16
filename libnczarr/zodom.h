@@ -13,21 +13,26 @@ typedef struct NCZOdometer {
     size64_t* start;
     size64_t* stop; /* start + (count*stride) */
     size64_t* stride;
-    size64_t* max; /* full dimension length */
+    size64_t* len; /* for computing offset */
     size64_t* index; /* current value of the odometer*/
+    struct NCZOprop {
+	int stride1; /* all strides == 1 */
+	int start0;  /* all starts == 0 */
+//        int optimized; /* stride[rank-1]==1 && start[rank-1]==0 */
+    } properties;
 } NCZOdometer;
 
 /**************************************************/
 /* From zodom.c */
 extern NCZOdometer* nczodom_new(int rank, const size64_t*, const size64_t*, const size64_t*, const size64_t*);
 extern NCZOdometer* nczodom_fromslices(int rank, const struct NCZSlice* slices);
-extern int nczodom_more(NCZOdometer*);
+extern int nczodom_more(const NCZOdometer*);
 extern void nczodom_next(NCZOdometer*);
-extern size64_t* nczodom_indices(NCZOdometer*);
-extern size64_t nczodom_offset(NCZOdometer*);
+extern size64_t* nczodom_indices(const NCZOdometer*);
+extern size64_t nczodom_offset(const NCZOdometer*);
 extern void nczodom_reset(NCZOdometer* odom);
 extern void nczodom_free(NCZOdometer*);
-extern size64_t nczodom_avail(NCZOdometer*);
-extern void nczodom_incr(NCZOdometer*,size64_t);
+extern size64_t nczodom_avail(const NCZOdometer*);
+extern void nczodom_skipavail(NCZOdometer* odom);
 
 #endif /*ZODOM_H*/

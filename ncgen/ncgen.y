@@ -16,7 +16,6 @@ static char SccsId[] = "$Id: ncgen.y,v 1.42 2010/05/18 21:32:46 dmh Exp $";
 #include        "netcdf_aux.h"
 #include        "ncgeny.h"
 #include        "ncgen.h"
-#include        "ncfilter.h"
 #ifdef USE_NETCDF4
 #include        "netcdf_filter.h"
 #endif
@@ -26,6 +25,8 @@ static char SccsId[] = "$Id: ncgen.y,v 1.42 2010/05/18 21:32:46 dmh Exp $";
 #define ncatt_t void*
 #define ncvar_t void
 #include "nctime.h"
+
+#undef GENLIB1
 
 /* parser controls */
 #define YY_NO_INPUT 1
@@ -130,7 +131,7 @@ static long long extractint(NCConstant* con);
 #ifdef USE_NETCDF4
 static int parsefilterflag(const char* sdata0, Specialdata* special);
 #ifdef GENDEBUG1
-static void printfilters(size_t nfilters, NC_ParsedFilterSpec** filters);
+static void printfilters(int nfilters, NC_ParsedFilterSpec** filters);
 #endif
 #endif
 
@@ -217,7 +218,7 @@ NCConstant*    constant;
 	    attrdecl enumid path dimref fielddim fieldspec
 %type <sym> typeref
 %type <sym> varref
-%type <sym> type_var_ref
+%type <sym> ambiguous_ref
 %type <mark> enumidlist fieldlist fields varlist dimspec dimlist field
 	     fielddimspec fielddimlist
 %type <constant> dataitem constdata constint conststring constbool
@@ -667,7 +668,7 @@ fielddim:
 /* Use this when referencing defined objects */
 
 varref:
-	type_var_ref
+	ambiguous_ref
 	    {Symbol* vsym = $1;
 		if(vsym->objectclass != NC_VAR) {
 		    derror("Undefined or forward referenced variable: %s",vsym->name);
@@ -678,7 +679,7 @@ varref:
 	  ;
 
 typeref:
-	type_var_ref
+	ambiguous_ref
 	    {Symbol* tsym = $1;
 		if(tsym->objectclass != NC_TYPE) {
 		    derror("Undefined or forward referenced type: %s",tsym->name);
@@ -688,7 +689,7 @@ typeref:
 	    }
 	;
 
-type_var_ref:
+ambiguous_ref:
 	path
 	    {Symbol* tvsym = $1; Symbol* sym;
 		/* disambiguate*/
@@ -726,7 +727,7 @@ attrdecl:
 	    {$$ = makespecial(_SUPERBLOCK_FLAG,NULL,NULL,(void*)$4,ISCONST);}
 	| ':' ident '=' datalist
 	    { $$=makeattribute($2,NULL,NULL,$4,ATTRGLOBAL);}
-	| typeref type_var_ref ':' ident '=' datalist
+	| typeref ambiguous_ref ':' ident '=' datalist
 	    {Symbol* tsym = $1; Symbol* vsym = $2; Symbol* asym = $4;
 		if(vsym->objectclass == NC_VAR) {
 		    $$=makeattribute(asym,vsym,tsym,$6,ATTRVAR);
@@ -735,7 +736,7 @@ attrdecl:
 		    YYABORT;
 		}
 	    }
-	| type_var_ref ':' ident '=' datalist
+	| ambiguous_ref ':' ident '=' datalist
 	    {Symbol* sym = $1; Symbol* asym = $3;
 		if(sym->objectclass == NC_VAR) {
 		    $$=makeattribute(asym,sym,NULL,$5,ATTRVAR);
@@ -746,25 +747,25 @@ attrdecl:
 		    YYABORT;
 		}
 	    }
-	| type_var_ref ':' _FILLVALUE '=' datalist
+	| ambiguous_ref ':' _FILLVALUE '=' datalist
 	    {$$ = makespecial(_FILLVALUE_FLAG,$1,NULL,(void*)$5,ISLIST);}
-	| typeref type_var_ref ':' _FILLVALUE '=' datalist
+	| typeref ambiguous_ref ':' _FILLVALUE '=' datalist
 	    {$$ = makespecial(_FILLVALUE_FLAG,$2,$1,(void*)$6,ISLIST);}
-	| type_var_ref ':' _STORAGE '=' conststring
+	| ambiguous_ref ':' _STORAGE '=' conststring
 	    {$$ = makespecial(_STORAGE_FLAG,$1,NULL,(void*)$5,ISCONST);}
-	| type_var_ref ':' _CHUNKSIZES '=' intlist
+	| ambiguous_ref ':' _CHUNKSIZES '=' intlist
 	    {$$ = makespecial(_CHUNKSIZES_FLAG,$1,NULL,(void*)$5,ISLIST);}
-	| type_var_ref ':' _FLETCHER32 '=' constbool
+	| ambiguous_ref ':' _FLETCHER32 '=' constbool
 	    {$$ = makespecial(_FLETCHER32_FLAG,$1,NULL,(void*)$5,ISCONST);}
-	| type_var_ref ':' _DEFLATELEVEL '=' constint
+	| ambiguous_ref ':' _DEFLATELEVEL '=' constint
 	    {$$ = makespecial(_DEFLATE_FLAG,$1,NULL,(void*)$5,ISCONST);}
-	| type_var_ref ':' _SHUFFLE '=' constbool
+	| ambiguous_ref ':' _SHUFFLE '=' constbool
 	    {$$ = makespecial(_SHUFFLE_FLAG,$1,NULL,(void*)$5,ISCONST);}
-	| type_var_ref ':' _ENDIANNESS '=' conststring
+	| ambiguous_ref ':' _ENDIANNESS '=' conststring
 	    {$$ = makespecial(_ENDIAN_FLAG,$1,NULL,(void*)$5,ISCONST);}
-	| type_var_ref ':' _FILTER '=' conststring
+	| ambiguous_ref ':' _FILTER '=' conststring
 	    {$$ = makespecial(_FILTER_FLAG,$1,NULL,(void*)$5,ISCONST);}
-	| type_var_ref ':' _NOFILL '=' constbool
+	| ambiguous_ref ':' _NOFILL '=' constbool
 	    {$$ = makespecial(_NOFILL_FLAG,$1,NULL,(void*)$5,ISCONST);}
 	| ':' _FORMAT '=' conststring
 	    {$$ = makespecial(_FORMAT_FLAG,NULL,NULL,(void*)$4,ISCONST);}
@@ -968,13 +969,18 @@ makeprimitivetype(nc_type nctype)
 Symbol*
 install(const char *sname)
 {
+    return installin(sname,currentgroup());
+}
+
+Symbol*
+installin(const char *sname, Symbol* grp)
+{
     Symbol* sp;
     sp = (Symbol*) ecalloc (sizeof (struct Symbol));
     sp->name = nulldup(sname);
     sp->lineno = lineno;
-    sp->location = currentgroup();
-    sp->container = currentgroup();
-    sp->var.special._Storage = NC_CONTIGUOUS;
+    sp->location = grp;
+    sp->container = grp;
     listpush(symlist,sp);
     return sp;
 }
@@ -1246,8 +1252,6 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
               globalspecials._Format = kvalue->k_flag;
 	      /*Main.*/format_attribute = 1;
               found = 1;
-	      if(kvalue->deprecated)
-		 fprintf(stderr,"_Format=%s is deprecated; use corresponding _Format=<name>\n",sdata);
               break;
             }
           }
@@ -1486,7 +1490,7 @@ parsefilterflag(const char* sdata, Specialdata* special)
 
     if(sdata == NULL || strlen(sdata) == 0) return NC_EINVAL;
 
-    stat = ncaux_filterspec_parselist(sdata, NULL, &special->nfilters, &special->_Filters);
+    stat = ncaux_h5filterspec_parselist(sdata, NULL, &special->nfilters, &special->_Filters);
     if(stat)
         derror("Malformed filter spec: %s",sdata);
 #ifdef GENDEBUG1
@@ -1570,7 +1574,7 @@ done:
 
 #ifdef GENDEBUG1
 static void
-printfilters(size_t nfilters, NC_Filterspec** filters)
+printfilters(int nfilters, NC_FilterSpec** filters)
 {
     int i;
     fprintf(stderr,"xxx: nfilters=%lu: ",(unsigned long)nfilters);
@@ -1578,13 +1582,13 @@ printfilters(size_t nfilters, NC_Filterspec** filters)
 	int k;
 	NC_Filterspec* sp = filters[i];
         fprintf(stderr,"{");
-        fprintf(stderr,"filterid=%s format=%s nparams=%lu params=%p",
+        fprintf(stderr,"filterid=%llu format=%d nparams=%lu params=%p",
 		sp->filterid,sp->format,(unsigned long)sp->nparams,sp->params);
 	if(sp->nparams > 0 && sp->params != NULL) {
             fprintf(stderr," params={");
             for(k=0;k<sp->nparams;k++) {
 	        if(i==0) fprintf(stderr,",");
-	        fprintf(stderr,"%s",sp->params[i]);
+	        fprintf(stderr,"%u",sp->params[i]);
 	    }
             fprintf(stderr,"}");
 	} else

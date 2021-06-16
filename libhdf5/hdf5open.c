@@ -11,9 +11,12 @@
 
 #include "config.h"
 #include "hdf5internal.h"
+#include "hdf5err.h"
 #include "ncrc.h"
+#include "ncauth.h"
 #include "ncmodel.h"
 #include "ncfilter.h"
+#include "ncpathmgr.h"
 
 #ifdef ENABLE_BYTERANGE
 #include "H5FDhttp.h"
@@ -66,14 +69,10 @@ extern int NC4_open_image_file(NC_FILE_INFO_T* h5);
 /* Defined later in this file. */
 static int rec_read_metadata(NC_GRP_INFO_T *grp);
 
-#ifdef _WIN32
-static hid_t nc4_H5Fopen(const char *filename, unsigned flags, hid_t fapl_id);
-#else
-#define nc4_H5Fopen  H5Fopen
-#endif
-
+#ifdef ENABLE_BYTERANGE
 #ifdef ENABLE_HDF5_ROS3
-static int ros3info(NCURI* uri, char** hostportp, char** regionp);
+static int ros3info(NCauth** auth, NCURI* uri, char** hostportp, char** regionp);
+#endif
 #endif
 
 /**
@@ -859,28 +858,24 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 		H5FD_ros3_fapl_t fa;
 		char* hostport = NULL;
 		char* region = NULL;
-		char* accessid = NULL;
-		char* secretkey = NULL;
 		ncuriparse(path,&uri);
 		if(uri == NULL)
 		    BAIL(NC_EINVAL);		
-		/* Extract auth related info */
-		if((ros3info(uri,&hostport,&region)))
+		if((ros3info(&h5->http.auth,uri,&hostport,&region)))
 		    BAIL(NC_EINVAL);
-		accessid = NC_rclookup("HTTP.CREDENTIALS.USER",hostport);
-		secretkey = NC_rclookup("HTTP.CREDENTIALS.PASSWORD",hostport);
+		ncurifree(uri); uri = NULL;
                 fa.version = 1;
 		fa.aws_region[0] = '\0';
 	        fa.secret_id[0] = '\0';
 		fa.secret_key[0] = '\0';
-		if(accessid == NULL || secretkey == NULL) {
+		if(h5->http.auth->s3creds.accessid == NULL || h5->http.auth->s3creds.secretkey == NULL) {
 	  	    /* default, non-authenticating, "anonymous" fapl configuration */
 		    fa.authenticate = (hbool_t)0;
 		} else {
 		    fa.authenticate = (hbool_t)1;
 		    strlcat(fa.aws_region,region,H5FD_ROS3_MAX_REGION_LEN);
-		    strlcat(fa.secret_id, accessid, H5FD_ROS3_MAX_SECRET_ID_LEN);
-                    strlcat(fa.secret_key, secretkey, H5FD_ROS3_MAX_SECRET_KEY_LEN);
+		    strlcat(fa.secret_id, h5->http.auth->s3creds.accessid, H5FD_ROS3_MAX_SECRET_ID_LEN);
+                    strlcat(fa.secret_key, h5->http.auth->s3creds.secretkey, H5FD_ROS3_MAX_SECRET_KEY_LEN);
 		}
 	        nullfree(region);
 		nullfree(hostport);
@@ -1018,23 +1013,35 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
     size_t cd_nelems;
     int f;
     int stat = NC_NOERR;
-    NC_FILTERX_SPEC* spec = NULL;
+    NC_HDF5_VAR_INFO_T *hdf5_var;
 
     assert(var);
+
+    /* Get HDF5-sepecific var info. */
+    hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
 
     if ((num_filters = H5Pget_nfilters(propid)) < 0)
 	{stat = NC_EHDFERR; goto done;}
 
     for (f = 0; f < num_filters; f++)
     {
+	int flags = 0;
+	htri_t avail = -1;
 	cd_nelems = 0;
         if ((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems, NULL, 0, NULL, NULL)) < 0)
-	    {stat = NC_EHDFERR; goto done;}
+ 	    {stat = NC_ENOFILTER; goto done;} /* Assume this means an unknown filter */
+	if((avail = H5Zfilter_avail(filter)) < 0)
+ 	    {stat = NC_EHDFERR; goto done;} /* Something in HDF5 went wrong */
+	if(!avail) {
+	    flags |= NC_HDF5_FILTER_MISSING;
+	    /* mark variable as unreadable */
+	    hdf5_var->flags |= NC_HDF5_VAR_FILTER_MISSING;
+	}
 	if((cd_values = calloc(sizeof(unsigned int),cd_nelems))==NULL)
-	    {stat = NC_EHDFERR; goto done;}
+ 	    {stat = NC_ENOMEM; goto done;}
         if ((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems, cd_values, 0, NULL, NULL)) < 0)
-	    {stat = NC_EHDFERR; goto done;}
-        switch (filter)
+ 	    {stat = NC_EHDFERR; goto done;} /* Something in HDF5 went wrong */
+	switch (filter)
         {
         case H5Z_FILTER_SHUFFLE:
             var->shuffle = NC_TRUE;
@@ -1048,7 +1055,7 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
             if (cd_nelems != CD_NELEMS_ZLIB ||
                 cd_values[0] > NC_MAX_DEFLATE_LEVEL)
 		    {stat = NC_EHDFERR; goto done;}
-	    if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,cd_values)))
+	    if((stat = NC4_hdf5_addfilter(var,filter,cd_nelems,cd_values,flags)))
 	       goto done;
             break;
 
@@ -1056,7 +1063,7 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
             /* Szip is tricky because the filter code expands the set of parameters from 2 to 4
                and changes some of the parameter values; try to compensate */
             if(cd_nelems == 0) {
-		if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,0,NULL)))
+		if((stat = NC4_hdf5_addfilter(var,filter,0,NULL,flags)))
 		   goto done;
             } else {
                 /* fix up the parameters and the #params */
@@ -1066,16 +1073,16 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
 		/* Fix up changed params */
 		cd_values[0] &= (H5_SZIP_ALL_MASKS);
 		/* Save info */
-		stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,cd_values);
+		stat = NC4_hdf5_addfilter(var,filter,cd_nelems,cd_values,flags);
 		if(stat) goto done;
             }
             } break;
 
         default:
             if(cd_nelems == 0) {
-  	        if((stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,0,NULL))) goto done;
+  	        if((stat = NC4_hdf5_addfilter(var,filter,0,NULL,flags))) goto done;
             } else {
-  	        stat = NC4_hdf5_addfilter(var,FILTERACTIVE,filter,cd_nelems,cd_values);
+  	        stat = NC4_hdf5_addfilter(var,filter,cd_nelems,cd_values,flags);
 		if(stat) goto done;
             }
             break;
@@ -1084,7 +1091,6 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
     }
 done:
     nullfree(cd_values);
-    NC4_filterx_free(spec);
     return stat;
 }
 
@@ -1449,6 +1455,9 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
     var->created = NC_TRUE;
     var->atts_read = 0;
 
+    /* Create filter list */
+    var->filters = (void*)nclistnew();
+
     /* Try and read the dimids from the COORDINATES attribute. If it's
      * not present, we will have to do dimsscale matching to locate the
      * dims for this var. */
@@ -1485,6 +1494,8 @@ exit:
             BAIL2(NC_EHDFERR);
 	if(var && var->format_var_info)
 	    free(var->format_var_info);
+	if(var && var->filters)
+	    nclistfree(var->filters);
         if (var)
             nc4_var_list_del(grp, var);
     }
@@ -1981,7 +1992,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
                 if ((ndims = H5Tget_array_ndims(member_hdf_typeid)) < 0)
                     return NC_EHDFERR;
 
-                if (H5Tget_array_dims(member_hdf_typeid, dims, NULL) != ndims)
+                if (H5Tget_array_dims1(member_hdf_typeid, dims, NULL) != ndims)
                     return NC_EHDFERR;
 
                 for (d = 0; d < ndims; d++)
@@ -2762,9 +2773,10 @@ exit:
     return retval;
 }
 
+#ifdef ENABLE_BYTERANGE
 #ifdef ENABLE_HDF5_ROS3
 static int
-ros3info(NCURI* uri, char** hostportp, char** regionp)
+ros3info(NCauth** authp, NCURI* uri, char** hostportp, char** regionp)
 {
     int stat = NC_NOERR;
     size_t len;
@@ -2799,14 +2811,17 @@ ros3info(NCURI* uri, char** hostportp, char** regionp)
     if(hostportp) {*hostportp = hostport; hostport = NULL;}
     if(regionp) {*regionp = region; region = NULL;}
 
+    /* Extract auth related info */
+    if((stat=NC_authsetup(authp, uri)))
+	goto done;
+
 done:
     nullfree(hostport);
     nullfree(region);
     return stat;
 }
 #endif /*ENABLE_HDF5_ROS3*/
-
-#ifdef _WIN32
+#endif /*ENABLE_BYTERANGE*/
 
 /**
  * Wrapper function for H5Fopen.
@@ -2817,18 +2832,23 @@ done:
  * @param fapl_id File access property list identifier.
  * @return A file identifier if succeeded. A negative value if failed.
  */
-static hid_t
-nc4_H5Fopen(const char *filename, unsigned flags, hid_t fapl_id)
+hid_t
+nc4_H5Fopen(const char *filename0, unsigned flags, hid_t fapl_id)
 {
-    pathbuf_t pb;
     hid_t hid;
+    char* localname = NULL;
+    char* filename = NULL;
 
-    filename = nc4_ndf5_ansi_to_utf8(&pb, filename);
-    if (!filename)
-        return H5I_INVALID_HID;
-    hid = H5Fopen(filename, flags, fapl_id);
-    nc4_hdf5_free_pathbuf(&pb);
+#ifdef HDF5_UTF8_PATHS
+    NCpath2utf8(filename0,&filename);
+#else    
+    filename = strdup(filename0);
+#endif
+    if((localname = NCpathcvt(filename))==NULL)
+	{hid = H5I_INVALID_HID; goto done;}
+    hid = H5Fopen(localname, flags, fapl_id);
+done:
+    nullfree(filename);
+    nullfree(localname);
     return hid;
 }
-
-#endif /* _WIN32 */

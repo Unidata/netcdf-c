@@ -33,6 +33,8 @@ ncz_close_file(NC_FILE_INFO_T* file, int abort)
     int stat = NC_NOERR;
     NCZ_FILE_INFO_T* zinfo = NULL;
  
+    ZTRACE(2,"file=%s abort=%d",file->hdr.name,abort);
+
     if(!abort) {
         /* Flush | create all chunks for all vars */
         if((stat=zwrite_vars(file->root_grp))) goto done;
@@ -46,13 +48,12 @@ ncz_close_file(NC_FILE_INFO_T* file, int abort)
 
     if((stat = nczmap_close(zinfo->map,(abort && zinfo->created)?1:0)))
 	goto done;
-    NCZ_freestringvec(0,zinfo->controls);
-    NC_authclear(zinfo->auth);
-    nullfree(zinfo->auth);
+    NCZ_freestringvec(0,zinfo->envv_controls);
+    NC_authfree(zinfo->auth);
     nullfree(zinfo);
 
 done:
-    return stat;
+    return ZUNTRACE(stat);
 }
 
 /**************************************************/
@@ -162,9 +163,16 @@ zclose_vars(NC_GRP_INFO_T* grp)
 	    nullfree(zatt);
 	    att->format_att_info = NULL; /* avoid memory errors */
         }
+	/* Reclaim filters */
+	if(var->filters != NULL) {
+	    (void)NCZ_filter_freelist(var);
+	}
+	var->filters = NULL;
 	/* Reclaim the type */
 	(void)zclose_type(var->type_info);
         NCZ_free_chunk_cache(zvar->cache);
+	/* reclaim xarray */
+	nclistfreeall(zvar->xarray);
 	nullfree(zvar);
 	var->format_var_info = NULL; /* avoid memory errors */
     }

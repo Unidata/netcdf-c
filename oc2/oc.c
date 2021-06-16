@@ -17,7 +17,7 @@
 #include "ncrc.h"
 #include "occurlfunctions.h"
 #include "ochttp.h"
-#include "ncwinpath.h"
+#include "ncpathmgr.h"
 
 #undef TRACK
 
@@ -1804,12 +1804,12 @@ oc_raw_xdrsize(OCobject link, OCobject ddsroot, off_t* xdrsizep)
 
 /* Resend a url as a head request to check the Last-Modified time */
 OCerror
-oc_update_lastmodified_data(OCobject link)
+oc_update_lastmodified_data(OCobject link, OCflags flags)
 {
     OCstate* state;
     OCVERIFY(OC_State,link);
     OCDEREF(OCstate*,state,link);
-    return OCTHROW(ocupdatelastmodifieddata(state));
+    return OCTHROW(ocupdatelastmodifieddata(state,flags));
 }
 
 long
@@ -1943,6 +1943,7 @@ oc_data_mode(OCobject link, OCobject datanode, OCDT* modep)
     return OC_NOERR;
 }
 
+#if 0
 /* Free up a datanode that is no longer being used;
    Currently does nothing
 */
@@ -1951,6 +1952,7 @@ oc_data_free(OCobject link, OCobject datanode)
 {
     return OCTHROW(OC_NOERR);
 }
+#endif
 
 /* Free up a ddsnode that is no longer being used;
    Currently does nothing

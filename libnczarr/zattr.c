@@ -13,6 +13,7 @@
 
 #undef ADEBUG
 
+
 /**
  * @internal Get the attribute list for either a varid or NC_GLOBAL
  *
@@ -213,7 +214,6 @@ NCZ_rename_att(int ncid, int varid, const char *name, const char *newname)
     if(att->hdr.name) free(att->hdr.name);
     if (!(att->hdr.name = strdup(norm_newname)))
         return NC_ENOMEM;
-    att->hdr.hashkey = NC_hashmapkey(att->hdr.name,strlen(att->hdr.name)); /* Fix hash key */
 
     att->dirty = NC_TRUE;
 
@@ -444,8 +444,8 @@ ncz_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
         if (nc->ext_ncid == ncid && varid == NC_GLOBAL && grp->parent == NULL
             && (ra->flags & READONLYFLAG))
             return NC_ENAMEINUSE;
-        /* case 2: grp=NA, varid!=NC_GLOBAL, flags & DIMSCALEFLAG */
-        if (varid != NC_GLOBAL && (ra->flags & DIMSCALEFLAG))
+        /* case 2: grp=NA, varid!=NC_GLOBAL, flags & HIDDENATTRFLAG */
+        if (varid != NC_GLOBAL && (ra->flags & HIDDENATTRFLAG))
             return NC_ENAMEINUSE;
     }
 
@@ -707,7 +707,9 @@ ncz_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
             /* Just copy the data, for non-atomic types */
             if (type_class == NC_OPAQUE || type_class == NC_COMPOUND || type_class == NC_ENUM)
                 memcpy(att->data, data, len * type_size);
-            else
+            else if(mem_type == file_type) {
+                memcpy(att->data, data, len * type_size);
+	    } else /* need to convert */
             {
                 /* Data types are like religions, in that one can convert.  */
                 if ((retval = nc4_convert_type(data, att->data, mem_type, file_type,
