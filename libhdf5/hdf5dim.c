@@ -50,8 +50,7 @@ HDF5_def_dim(int ncid, const char *name, size_t len, int *idp)
 
     LOG((2, "%s: ncid 0x%x name %s len %d", __func__, ncid, name,
          (int)len));
-    //printf("%s: ncid 0x%x name %s len %d \n", __func__, ncid, name,
-    //     (int)len);
+
     /* Find our global metadata structure. */
     if ((retval = nc4_find_nc_grp_h5(ncid, &nc, &grp, &h5)))
         return retval;
@@ -60,6 +59,7 @@ HDF5_def_dim(int ncid, const char *name, size_t len, int *idp)
     /* If the file is read-only, return an error. */
     if (h5->no_write)
         return NC_EPERM;
+
     /* Check some stuff if strict nc3 rules are in effect. */
     if (h5->cmode & NC_CLASSIC_MODEL)
     {
@@ -76,6 +76,7 @@ HDF5_def_dim(int ncid, const char *name, size_t len, int *idp)
         if (!(h5->flags & NC_INDEF))
             return NC_ENOTINDEFINE;
     }
+
     /* Make sure this is a valid netcdf name. */
     if ((retval = nc4_check_name(name, norm_name)))
         return retval;
@@ -85,20 +86,19 @@ HDF5_def_dim(int ncid, const char *name, size_t len, int *idp)
     if (h5->cmode & NC_CLASSIC_MODEL)
         if(len > X_UINT_MAX) /* Backward compat */
             return NC_EDIMSIZE;
-   // printf("HDF5 77\n");
+
     /* Make sure the name is not already in use. */
     dim = (NC_DIM_INFO_T*)ncindexlookup(grp->dim,norm_name);
-    if(dim != NULL){
-	printf("ncindexlookup eerr HDF5 7x7\n");
+    if(dim != NULL)
         return NC_ENAMEINUSE;
-}
-    //printf("HDF5 88\n");
+
     /* If it's not in define mode, enter define mode. Do this only
      * after checking all input data, so we only enter define mode if
      * input is good. */
     if (!(h5->flags & NC_INDEF))
         if ((retval = NC4_redef(ncid)))
             return retval;
+
     /* Add a dimension to the list. The ID must come from the file
      * information, since dimids are visible in more than one group. */
     if ((retval = nc4_dim_list_add(grp, norm_name, len, -1, &dim)))

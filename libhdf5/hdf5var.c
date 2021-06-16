@@ -1591,14 +1591,11 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     /* Write the data. At last! */
     LOG((4, "about to H5Dwrite datasetid 0x%x mem_spaceid 0x%x "
          "file_spaceid 0x%x", hdf5_var->hdf_datasetid, mem_spaceid, file_spaceid));
-    double t1, t2;
-    t1 =  MPI_Wtime();
     if (H5Dwrite(hdf5_var->hdf_datasetid,
                  ((NC_HDF5_TYPE_INFO_T *)var->type_info->format_type_info)->hdf_typeid,
                  mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
         BAIL(NC_EHDFERR);
-     t2 = MPI_Wtime();
-     dt_h5dwrite = dt_h5dwrite + (t2-t1);
+
     /* Remember that we have written to this var so that Fill Value
      * can't be set for it. */
     if (!var->written_to)
@@ -1892,13 +1889,10 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 
         /* Read this hyperslab into memory. */
         LOG((5, "About to H5Dread some data..."));
-        double t1 = MPI_Wtime();
         if (H5Dread(hdf5_var->hdf_datasetid,
                     ((NC_HDF5_TYPE_INFO_T *)var->type_info->format_type_info)->native_hdf_typeid,
                     mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
             BAIL(NC_EHDFERR);
-         double t2 = MPI_Wtime();
-         dt_h5dread = dt_h5dread + (t2-t1);
     } /* endif ! no_read */
     else
     {

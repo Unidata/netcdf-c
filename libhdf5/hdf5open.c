@@ -909,7 +909,6 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
     /* Check for classic model attribute. */
     if ((retval = check_for_classic_model(nc4_info->root_grp, &is_classic)))
         BAIL(retval);
-
     if (is_classic)
         nc4_info->cmode |= NC_CLASSIC_MODEL;
 
@@ -931,6 +930,7 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
     /* Close the property list. */
     if (H5Pclose(fapl_id) < 0)
         BAIL(NC_EHDFERR);
+
     return NC_NOERR;
 
 exit:
@@ -2464,7 +2464,6 @@ read_dataset(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
     /* Is this a dimscale? */
     if ((is_scale = H5DSis_scale(datasetid)) < 0)
         BAIL(NC_EHDFERR);
-
     if (is_scale)
     {
         hsize_t dims[H5S_MAX_RANK];
@@ -2549,7 +2548,6 @@ static int
 read_hdf5_obj(hid_t grpid, const char *name, const H5L_info_t *info,
               void *_op_data)
 {
-
     /* Pointer to user data for callback */
     user_data_t *udata = (user_data_t *)_op_data;
     hdf5_obj_info_t oinfo;    /* Pointer to info for object */
@@ -2575,6 +2573,7 @@ read_hdf5_obj(hid_t grpid, const char *name, const H5L_info_t *info,
     {
     case H5G_GROUP:
         LOG((3, "found group %s", oinfo.oname));
+
         /* Defer descending into child group immediately, so that the
          * types in the current group can be processed and be ready for
          * use by vars in the child group(s). */
@@ -2584,12 +2583,12 @@ read_hdf5_obj(hid_t grpid, const char *name, const H5L_info_t *info,
 
     case H5G_DATASET:
         LOG((3, "found dataset %s", oinfo.oname));
+
         /* Learn all about this dataset, which may be a dimscale
          * (i.e. dimension metadata), or real data. */
         if ((retval = read_dataset(udata->grp, oinfo.oid, oinfo.oname,
                                    &oinfo.statbuf)))
         {
-
             /* Allow NC_EBADTYPID to transparently skip over datasets
              * which have a datatype that netCDF-4 doesn't understand
              * (currently), but break out of iteration for other
@@ -2704,7 +2703,6 @@ rec_read_metadata(NC_GRP_INFO_T *grp)
     if (H5Pget_link_creation_order(pid, &crt_order_flags) < 0)
         BAIL(NC_EHDFERR);
 
-
     /* Set the iteration index to use. */
     if (crt_order_flags & H5P_CRT_ORDER_TRACKED)
         iter_index = H5_INDEX_CRT_ORDER;
@@ -2724,7 +2722,6 @@ rec_read_metadata(NC_GRP_INFO_T *grp)
      * passed as a parameter to the callback function
      * read_hdf5_obj(). (I have also tried H5Oiterate(), but it is much
      * slower iterating over the same file - Ed.) */
-
     if (H5Literate(hdf5_grp->hdf_grpid, iter_index, H5_ITER_INC, &idx,
                    read_hdf5_obj, (void *)&udata) < 0)
         BAIL(NC_EHDFERR);
