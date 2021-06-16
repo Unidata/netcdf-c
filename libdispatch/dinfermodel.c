@@ -819,7 +819,7 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
        2. begin collecting fragments
     */
     if((stat = processuri(path, &uri, fraglenv))) goto done;
-  
+
     if(uri != NULL) {
 #ifdef DEBUG
 	printlist(fraglenv,"processuri");
