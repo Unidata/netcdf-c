@@ -7,7 +7,6 @@
  * Copyright 2018 University Corporation for Atmospheric
  * Research/Unidata. See COPYRIGHT file for more info.
 */
-#include <unistd.h>
 #include "config.h"
 #include <stdlib.h>
 #ifdef HAVE_UNISTD_H
@@ -28,6 +27,7 @@
 #include "nchttp.h"
 #endif
 #ifdef USE_HDF5
+#include <unistd.h>
 #include <hdf5.h>
 #endif /* USE_HDF5 */
 
@@ -782,7 +782,7 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
     const char* modeval = NULL;
 
     /* Check for a DAOS container */
-#ifdef USE_NETCDF4
+#ifdef USE_HDF5
 #if H5_VERSION_GE(1,12,0)
     hid_t fapl_id;
     if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) goto done;
