@@ -27,10 +27,9 @@
 #ifdef ENABLE_BYTERANGE
 #include "nchttp.h"
 #endif
-
-#ifdef USE_NETCDF4
-#include "hdf5.h"
-#endif
+#ifdef USE_HDF5
+#include <hdf5.h>
+#endif /* USE_HDF5 */
 
 #undef DEBUG
 
