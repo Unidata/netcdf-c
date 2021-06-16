@@ -26,10 +26,12 @@
 #ifdef ENABLE_BYTERANGE
 #include "nchttp.h"
 #endif
+#ifndef _WIN32
 #ifdef USE_HDF5
 #include <unistd.h>
 #include <hdf5.h>
 #endif /* USE_HDF5 */
+#endif /* _WIN32 */
 
 #undef DEBUG
 
@@ -782,6 +784,7 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
     const char* modeval = NULL;
 
     /* Check for a DAOS container */
+#ifndef _WIN32
 #ifdef USE_HDF5
 #if H5_VERSION_GE(1,12,0)
     hid_t fapl_id;
@@ -813,6 +816,7 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
         }
    }
    if (H5Pclose(fapl_id) < 0) goto done;
+#endif
 #endif
 #endif
 
