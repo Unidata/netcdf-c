@@ -779,7 +779,7 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
     char* sfrag = NULL;
     const char* modeval = NULL;
 
-    /* Check for a DAOS contianer */
+    /* Check for a DAOS container */
 #ifdef USE_NETCDF4
 #if H5_VERSION_GE(1,12,0)
     hid_t fapl_id;
