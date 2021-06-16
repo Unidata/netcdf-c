@@ -18,8 +18,8 @@
 #include "netcdf.h"
 #include "nc4internal.h"
 #include "ncdispatch.h"
-#include "ncfilter.h"
 #include "hdf5internal.h"
+#include "hdf5err.h" /* For BAIL2 */
 #include "hdf5debug.h"
 #include <math.h>
 
@@ -550,8 +550,8 @@ put_att_grpa(NC_GRP_INFO_T *grp, int varid, NC_ATT_INFO_T *att)
 
             /* Re-create the attribute with the type and length
                reflecting the new value (or values). */
-            if ((attid = H5Acreate(locid, att->hdr.name, file_typeid, spaceid,
-                                   H5P_DEFAULT)) < 0)
+            if ((attid = H5Acreate1(locid, att->hdr.name, file_typeid, spaceid,
+				    H5P_DEFAULT)) < 0)
                 BAIL(NC_EATTMETA);
 
             /* Write the values, (even if length is zero). */
@@ -572,7 +572,7 @@ put_att_grpa(NC_GRP_INFO_T *grp, int varid, NC_ATT_INFO_T *att)
         /* The attribute does not exist yet. */
 
         /* Create the attribute. */
-        if ((attid = H5Acreate(locid, att->hdr.name, file_typeid, spaceid,
+        if ((attid = H5Acreate1(locid, att->hdr.name, file_typeid, spaceid,
                                H5P_DEFAULT)) < 0)
             BAIL(NC_EATTMETA);
 
@@ -663,7 +663,7 @@ write_coord_dimids(NC_VAR_INFO_T *var)
         BAIL(NC_EHDFERR);
 
     /* Create the attribute. */
-    if ((c_attid = H5Acreate(hdf5_var->hdf_datasetid, COORDINATES,
+    if ((c_attid = H5Acreate1(hdf5_var->hdf_datasetid, COORDINATES,
                              H5T_NATIVE_INT, c_spaceid, H5P_DEFAULT)) < 0)
         BAIL(NC_EHDFERR);
 
@@ -708,7 +708,7 @@ write_netcdf4_dimid(hid_t datasetid, int dimid)
                                       H5P_DEFAULT, H5P_DEFAULT);
     else
         /* Create the attribute if needed. */
-        dimid_attid = H5Acreate(datasetid, NC_DIMID_ATT_NAME,
+        dimid_attid = H5Acreate1(datasetid, NC_DIMID_ATT_NAME,
                                 H5T_NATIVE_INT, dimid_spaceid, H5P_DEFAULT);
     if (dimid_attid  < 0)
         BAIL(NC_EHDFERR);
@@ -843,45 +843,38 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
      * has specified a filter, it will be applied here. */
     if(var->filters != NULL) {
 	int j;
-	for(j=0;j<nclistlength(var->filters);j++) {
-	    NC_FILTERX_SPEC* fi = (NC_FILTERX_SPEC*)nclistget(var->filters,j);
-	    unsigned int filterid;
-	    size_t nparams;
-
-	    if(!fi->active) {
-	        nparams = fi->nparams;
-  	        /* Do the conversions */
-	        if((retval = NC_cvtX2I_id(fi->filterid,&filterid))) BAIL(retval);
-	        if((params = malloc(nparams*sizeof(unsigned int)))==NULL)
-	            BAIL(NC_ENOMEM);
-    	        if((retval = NC_cvtX2I_params(nparams,(const char**)fi->params,params))) BAIL(retval);
-                if(filterid == H5Z_FILTER_DEFLATE) {/* Handle zip case here */
+	NClist* filters = (NClist*)var->filters;
+	for(j=0;j<nclistlength(filters);j++) {
+	    struct NC_HDF5_Filter* fi = (struct NC_HDF5_Filter*)nclistget(filters,j);
+	    {
+                if(fi->filterid == H5Z_FILTER_DEFLATE) {/* Handle zip case here */
                     unsigned level;
-                    if(nparams != 1)
+                    if(fi->nparams != 1)
                         BAIL(NC_EFILTER);
-                    level = (int)params[0];
+                    level = (int)fi->params[0];
                     if(H5Pset_deflate(plistid, level) < 0)
                         BAIL(NC_EFILTER);
-		    fi->active = 1;
-  	        } else if(filterid == H5Z_FILTER_SZIP) {/* Handle szip case here */
+  	        } else if(fi->filterid == H5Z_FILTER_SZIP) {/* Handle szip case here */
                     int options_mask;
                     int bits_per_pixel;
-                    if(nparams != 2)
+                    if(fi->nparams != 2)
                         BAIL(NC_EFILTER);
-                    options_mask = (int)params[0];
-                    bits_per_pixel = (int)params[1];
+                    options_mask = (int)fi->params[0];
+                    bits_per_pixel = (int)fi->params[1];
                     if(H5Pset_szip(plistid, options_mask, bits_per_pixel) < 0)
                         BAIL(NC_EFILTER);
-		    fi->active = 1;
                 } else {
-                    herr_t code = H5Pset_filter(plistid, filterid, H5Z_FLAG_MANDATORY, nparams, params);
+                    herr_t code = H5Pset_filter(plistid, fi->filterid,
+#if 0
+		    				H5Z_FLAG_MANDATORY,
+#else
+		    				H5Z_FLAG_OPTIONAL,
+#endif
+						fi->nparams, fi->params);
                     if(code < 0)
                         BAIL(NC_EFILTER);
-		    fi->active = 1;
 		}
             }
-	    /* reclaim */
-	    nullfree(params); params = NULL;
         }
     }
 
@@ -904,7 +897,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
         /* If there are no unlimited dims, and no filters, and the user
          * has not specified chunksizes, use contiguous variable for
          * better performance. */
-        if (!var->shuffle && !var->fletcher32 && nclistlength(var->filters) == 0 &&
+        if (!var->shuffle && !var->fletcher32 && nclistlength((NClist*)var->filters) == 0 &&
             (var->chunksizes == NULL || !var->chunksizes[0]) && !unlimdim)
 	    var->storage = NC_CONTIGUOUS;
 
@@ -1165,8 +1158,8 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
 
                 for (d = 0; d < field->ndims; d++)
                     dims[d] = field->dim_size[d];
-                if ((hdf_typeid = H5Tarray_create(hdf_base_typeid, field->ndims,
-                                                  dims, NULL)) < 0)
+                if ((hdf_typeid = H5Tarray_create1(hdf_base_typeid, field->ndims,
+						   dims, NULL)) < 0)
                 {
                     if (H5Tclose(hdf_base_typeid) < 0)
                         return NC_EHDFERR;
@@ -1234,7 +1227,7 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
     }
 
     /* Commit the type. */
-    if (H5Tcommit(hdf5_grp->hdf_grpid, type->hdr.name, hdf5_type->hdf_typeid) < 0)
+    if (H5Tcommit1(hdf5_grp->hdf_grpid, type->hdr.name, hdf5_type->hdf_typeid) < 0)
         return NC_EHDFERR;
     type->committed = NC_TRUE;
     LOG((4, "just committed type %s, HDF typeid: 0x%x", type->hdr.name,
@@ -1279,7 +1272,7 @@ write_nc3_strict_att(hid_t hdf_grpid)
      * strict netcdf-3 rules. */
     if ((spaceid = H5Screate(H5S_SCALAR)) < 0)
         BAIL(NC_EFILEMETA);
-    if ((attid = H5Acreate(hdf_grpid, NC3_STRICT_ATT_NAME,
+    if ((attid = H5Acreate1(hdf_grpid, NC3_STRICT_ATT_NAME,
                            H5T_NATIVE_INT, spaceid, H5P_DEFAULT)) < 0)
         BAIL(NC_EFILEMETA);
     if (H5Awrite(attid, H5T_NATIVE_INT, &one) < 0)
@@ -2447,9 +2440,10 @@ static int NC4_walk(hid_t, int*);
 
  * @note WARNINGS:
  *   1. False negatives are possible for a small subset of netcdf-4
- *   created files.
+ *      created files; especially if the file looks like a simple
+        netcdf classic file.
  *   2. Deliberate falsification in the file can be used to cause
- *   a false positive.
+ *      a false positive.
  *
  * @param h5 Pointer to HDF5 file info struct.
  *
@@ -2538,7 +2532,7 @@ NC4_walk(hid_t gid, int* countp)
         otype =  H5Gget_objtype_by_idx(gid,(size_t)i);
         switch(otype) {
         case H5G_GROUP:
-            grpid = H5Gopen(gid,name);
+	    grpid = H5Gopen1(gid,name);
             NC4_walk(grpid,countp);
             H5Gclose(grpid);
             break;
@@ -2546,7 +2540,7 @@ NC4_walk(hid_t gid, int* countp)
             /* Check for phony_dim */
             if(strcmp(name,"phony_dim")==0)
                 *countp = *countp + 1;
-            dsid = H5Dopen(gid,name);
+            dsid = H5Dopen1(gid,name);
             na = H5Aget_num_attrs(dsid);
             for(j = 0; j < na; j++) {
                 hid_t aid =  H5Aopen_idx(dsid,(unsigned int)    j);
@@ -2571,24 +2565,3 @@ NC4_walk(hid_t gid, int* countp)
     return ncstat;
 }
 
-int
-NC4_hdf5_remove_filter(NC_VAR_INFO_T* var, const char* filterid)
-{
-    int stat = NC_NOERR;
-    NC_HDF5_VAR_INFO_T *hdf5_var;
-    hid_t propid = -1;
-    herr_t herr = -1;
-    H5Z_filter_t hft;
-    unsigned int id;
-
-    hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
-    if ((propid = H5Dget_create_plist(hdf5_var->hdf_datasetid)) < 0)
-	{stat = NC_EHDFERR; goto done;}
-
-    if((stat = NC_cvtX2I_id(filterid,&id))) goto done;    
-    hft = id;
-    if((herr = H5Premove_filter(propid,hft)) < 0)
-	{stat = NC_EHDFERR; goto done;}
-done:
-    return stat;
-}

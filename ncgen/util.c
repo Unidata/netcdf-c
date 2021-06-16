@@ -109,8 +109,8 @@ clearSpecialdata(Specialdata* data)
     if(data->_Filters) {
 	int i;
 	for(i=0;i<data->nfilters;i++) {
-	    NC_Filterspec* f = (NC_Filterspec*)data->_Filters[i];
-	    ncaux_filterspec_free(f);
+	    NC_H5_Filterspec* f = data->_Filters[i];
+	    ncaux_h5filterspec_free(f);
 	}
 	efree(data->_Filters);
     }

@@ -43,7 +43,7 @@ NC4_TESTS += tst_h_strbug tst_h_refs
 endif
 
 # Build test programs plus programs used in test scripts.
-check_PROGRAMS = $(NC4_TESTS) tst_empty_vlen_unlim
+check_PROGRAMS = $(NC4_TESTS) tst_empty_vlen_unlim tst_charvlenbug
 TESTS = $(NC4_TESTS) run_empty_vlen_test.sh
 
 # Add these if large file tests are turned on.
@@ -78,10 +78,6 @@ extradir =
 check_PROGRAMS += test_filter test_filter_misc test_filter_order test_filter_repeat
 check_PROGRAMS += tst_multifilter
 TESTS += tst_filter.sh
-if ENABLE_CLIENTSIDE_FILTERS
-#check_PROGRAMS += test_filter_reg
-TESTS += test_filter_reg
-endif
 endif
 endif # BUILD_UTILITIES
 
@@ -103,8 +99,8 @@ ref_szip.cdl tst_filter.sh bzip2.cdl ref_filtered.cdl			\
 ref_unfiltered.cdl ref_bzip2.c findplugin.in ref_unfilteredvv.cdl	\
 ref_filteredvv.cdl ref_multi.cdl                                        \
 ref_ncgenF.cdl ref_nccopyF.cdl                                          \
-ref_filter_order.txt ref_filter_repeat.txt                              \
-ref_fillonly.cdl test_fillonly.sh
+ref_filter_repeat.txt ref_fillonly.cdl test_fillonly.sh                 \
+ref_filter_order_create.txt ref_filter_order_read.txt
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
 tst_floats_1D.cdl floats_1D_3.nc floats_1D.cdl tst_*.nc			\
@@ -114,7 +110,8 @@ tst_*.h5 tst_grp_rename.cdl tst_grp_rename.dmp ref_grp_rename.cdl	\
 foo1.nc tst_*.h4 test.nc testszip.nc test.h5 szip_dump.cdl		\
 perftest.txt bigmeta.nc bigvars.nc *.gz MSGCPP_*.nc	                \
 floats*.nc floats*.cdl shorts*.nc shorts*.cdl ints*.nc ints*.cdl        \
-testfilter_reg.nc filterorder.txt filterrepeat.txt tmp_fillonly.nc
+testfilter_reg.nc filterrepeat.txt tmp_fillonly.nc                      \
+testfilter_order.nc crfilterorder.txt rdfilterorder.txt 1
 
 DISTCLEANFILES = findplugin.sh run_par_test.sh
 

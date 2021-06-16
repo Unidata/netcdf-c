@@ -46,7 +46,6 @@ NCZ_def_dim(int ncid, const char *name, size_t len, int *idp)
     NC_DIM_INFO_T *dim;
     char norm_name[NC_MAX_NAME + 1];
     int stat = NC_NOERR;
-    int i;
 
     LOG((2, "%s: ncid 0x%x name %s len %d", __func__, ncid, name,
          (int)len));
@@ -63,8 +62,10 @@ NCZ_def_dim(int ncid, const char *name, size_t len, int *idp)
     /* Check some stuff if strict nc3 rules are in effect. */
     if (h5->cmode & NC_CLASSIC_MODEL)
     {
+#ifdef LOOK
         /* Only one limited dimenson for strict nc3. */
         if (len == NC_UNLIMITED) {
+	    int i;
             for(i=0;i<ncindexsize(grp->dim);i++) {
                 dim = (NC_DIM_INFO_T*)ncindexith(grp->dim,i);
                 if(dim == NULL) continue;
@@ -75,11 +76,16 @@ NCZ_def_dim(int ncid, const char *name, size_t len, int *idp)
         /* Must be in define mode for stict nc3. */
         if (!(h5->flags & NC_INDEF))
             return NC_ENOTINDEFINE;
+#endif
     }
 
     /* Make sure this is a valid netcdf name. */
     if ((stat = nc4_check_name(name, norm_name)))
         return stat;
+
+    /* Since unlimited is not supported, len > 0 */
+    if(len <= 0)
+        return NC_EDIMSIZE;
 
     /* For classic model: dim length has to fit in a 32-bit unsigned
      * int, as permitted for 64-bit offset format. */
@@ -257,8 +263,7 @@ NCZ_rename_dim(int ncid, int dimid, const char *name)
         return NC_ENOMEM;
     LOG((3, "dim is now named %s", dim->hdr.name));
 
-    /* Fix hash key and rebuild index. */
-    dim->hdr.hashkey = NC_hashmapkey(dim->hdr.name,strlen(dim->hdr.name));
+    /* rebuild index. */
     if (!ncindexrebuild(grp->dim))
         return NC_EINTERNAL;
 

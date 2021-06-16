@@ -26,7 +26,7 @@
 #include <unistd.h>
 #endif
 #endif
-#ifdef _MSC_VER
+#ifdef _WIN32
 #include <malloc.h>
 #endif
 
@@ -44,7 +44,6 @@ extern "C" {
 #include "ncauth.h"
 #include "nclog.h"
 #include "ncrc.h"
-#include "ncfilter.h"
 #include "ncindex.h"
 
 #include "zmap.h"

@@ -19,12 +19,11 @@ See \ref copyright file for more info.
 #include "netcdf.h"
 #include "netcdf_mem.h"
 #include "ncbytes.h"
-#include "ncwinpath.h"
+#include "ncpathmgr.h"
 #include "nc_tests.h"
 
 #ifdef USE_HDF5
 #include <hdf5.h>
-extern int H5Eprint1(FILE * stream);
 #endif
 
 static int

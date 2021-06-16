@@ -10,6 +10,7 @@ See LICENSE.txt for license information.
 #include "ncbytes.h"
 #include "ncrc.h"
 #include "ncoffsets.h"
+#include "ncpathmgr.h"
 
 /* Required for getcwd, other functions. */
 #ifdef HAVE_UNISTD_H
@@ -19,7 +20,6 @@ See LICENSE.txt for license information.
 /* Required for getcwd, other functions. */
 #ifdef _WIN32
 #include <direct.h>
-#define getcwd _getcwd
 #endif
 
 #if defined(ENABLE_BYTERANGE) || defined(ENABLE_DAP) || defined(ENABLE_DAP4)
@@ -31,8 +31,6 @@ See LICENSE.txt for license information.
 size_t NC_coord_zero[NC_MAX_VAR_DIMS] = {0};
 size_t NC_coord_one[NC_MAX_VAR_DIMS] = {1};
 ptrdiff_t NC_stride_one[NC_MAX_VAR_DIMS] = {1};
-
-NCRCglobalstate ncrc_globalstate;
 
 /*
 static nc_type longtype = (sizeof(long) == sizeof(int)?NC_INT:NC_INT64);
@@ -57,61 +55,42 @@ NCDISPATCH_initialize(void)
 
     /* Capture temp dir*/
     {
-	char* tempdir;
-	char* p;
-	char* q;
-	char cwd[4096];
-#ifdef _WIN32
+	char* tempdir = NULL;
+#if defined _WIN32 || defined __MSYS__ || defined __CYGWIN__
         tempdir = getenv("TEMP");
 #else
 	tempdir = "/tmp";
 #endif
         if(tempdir == NULL) {
 	    fprintf(stderr,"Cannot find a temp dir; using ./\n");
-	    tempdir = getcwd(cwd,sizeof(cwd));
-	    if(tempdir == NULL || *tempdir == '\0') tempdir = ".";
+	    tempdir = ".";
 	}
-        globalstate->tempdir= (char*)malloc(strlen(tempdir) + 1);
-	for(p=tempdir,q=globalstate->tempdir;*p;p++,q++) {
-	    if((*p == '/' && *(p+1) == '/')
-	       || (*p == '\\' && *(p+1) == '\\')) {p++;}
-	    *q = *p;
-	}
-	*q = '\0';
-#ifdef _WIN32
-#else
-        /* Canonicalize */
-	for(p=globalstate->tempdir;*p;p++) {
-	    if(*p == '\\') {*p = '/'; };
-	}
-	*q = '\0';
-#endif
+	globalstate->tempdir= strdup(tempdir);
     }
 
     /* Capture $HOME */
     {
-	char* p;
-	char* q;
         char* home = getenv("HOME");
 
         if(home == NULL) {
 	    /* use tempdir */
 	    home = globalstate->tempdir;
 	}
-        globalstate->home = (char*)malloc(strlen(home) + 1);
-	for(p=home,q=globalstate->home;*p;p++,q++) {
-	    if((*p == '/' && *(p+1) == '/')
-	       || (*p == '\\' && *(p+1) == '\\')) {p++;}
-	    *q = *p;
+        globalstate->home = strdup(home);
+    }
+
+    /* Capture $CWD */
+    {
+        char cwdbuf[4096];
+
+        cwdbuf[0] = '\0';
+	(void)NCgetcwd(cwdbuf,sizeof(cwdbuf));
+
+        if(strlen(cwdbuf) == 0) {
+	    /* use tempdir */
+	    strcpy(cwdbuf, globalstate->tempdir);
 	}
-	*q = '\0';
-#ifdef _WIN32
-#else
-        /* Canonicalize */
-	for(p=home;*p;p++) {
-	    if(*p == '\\') {*p = '/'; };
-	}
-#endif
+        globalstate->cwd = strdup(cwdbuf);
     }
 
     /* Now load RC File */

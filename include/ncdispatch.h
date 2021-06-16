@@ -80,9 +80,6 @@
 #define ATOMICTYPEMAX3 NC_DOUBLE
 #define ATOMICTYPEMAX5 NC_UINT64
 
-/* Define an alias for int to indicate an error return */
-typedef int NCerror;
-
 #if !defined HDF5_PARALLEL && !defined USE_PNETCDF
 typedef int MPI_Comm;
 typedef int MPI_Info;

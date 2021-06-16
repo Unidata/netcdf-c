@@ -24,9 +24,10 @@
 #include "nclist.h"
 #include "nchttp.h"
 
+#undef VERBOSE
 #undef TRACE
 
-#define CURLERR(e) (e)
+#define CURLERR(e) reporterror(state,(e))
 
 /* Mnemonics */
 #define GETCMD 0
@@ -40,6 +41,8 @@ static int setupconn(NC_HTTP_STATE* state, const char* objecturl, NCbytes* buf);
 static int execute(NC_HTTP_STATE* state, int headcmd);
 static int headerson(NC_HTTP_STATE* state, const char** which);
 static void headersoff(NC_HTTP_STATE* state);
+static void showerrors(NC_HTTP_STATE* state);
+static int reporterror(NC_HTTP_STATE* state, CURLcode cstat);
 
 #ifdef TRACE
 static void
@@ -68,7 +71,7 @@ Trace(const char* fcn)
 */
 
 int
-nc_http_open(const char* objecturl, NC_HTTP_STATE** statep, size64_t* filelenp)
+nc_http_open(const char* objecturl, NC_HTTP_STATE** statep, long long* filelenp)
 {
     int stat = NC_NOERR;
     int i;
@@ -81,6 +84,15 @@ nc_http_open(const char* objecturl, NC_HTTP_STATE** statep, size64_t* filelenp)
     /* initialize curl*/
     state->curl = curl_easy_init();
     if (state->curl == NULL) {stat = NC_ECURL; goto done;}
+    showerrors(state);
+#ifdef VERBOSE
+    {long onoff = 1;
+    CURLcode cstat = CURLE_OK;
+    cstat = CURLERR(curl_easy_setopt(state->curl, CURLOPT_VERBOSE, onoff));
+    if(cstat != CURLE_OK)
+        {stat = NC_ECURL; goto done;}
+    }
+#endif
     if(filelenp) {
 	*filelenp = -1;
         /* Attempt to get the file length using HEAD */
@@ -324,6 +336,9 @@ setupconn(NC_HTTP_STATE* state, const char* objecturl, NCbytes* buf)
 
     if(objecturl != NULL) {
         /* Set the URL */
+#ifdef TRACE
+        fprintf(stderr,"curl.setup: url |%s|\n",objecturl);
+#endif
         cstat = CURLERR(curl_easy_setopt(state->curl, CURLOPT_URL, (void*)objecturl));
         if (cstat != CURLE_OK) goto fail;
     }
@@ -418,4 +433,19 @@ headersoff(NC_HTTP_STATE* state)
     state->headers = NULL;
     (void)CURLERR(curl_easy_setopt(state->curl, CURLOPT_HEADERFUNCTION, NULL));
     (void)CURLERR(curl_easy_setopt(state->curl, CURLOPT_HEADERDATA, NULL));
+}
+
+static void
+showerrors(NC_HTTP_STATE* state)
+{
+    (void)curl_easy_setopt(state->curl, CURLOPT_ERRORBUFFER, state->errbuf);
+}
+    
+static int
+reporterror(NC_HTTP_STATE* state, CURLcode cstat)
+{
+    if(cstat != CURLE_OK) 
+        fprintf(stderr,"curlcode: (%d)%s : %s\n",
+		cstat,curl_easy_strerror(cstat),state->errbuf);
+    return cstat;
 }

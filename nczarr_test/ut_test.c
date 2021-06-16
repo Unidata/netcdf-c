@@ -1,18 +1,21 @@
 /*
- *      Copyright 2018, University Corporation for Atmospheric Research
+x *      Copyright 2018, University Corporation for Atmospheric Research
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 
 #include "ut_includes.h"
-#include "ncwinpath.h"
+#include "ncpathmgr.h"
+#include "nclog.h"
 
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
 
-#ifdef _MSC_VER
+#if defined(_WIN32) && !defined(__MINGW32__)
 #include "XGetopt.h"
 #endif
+
+struct ZUTEST zutester;
 
 struct UTOptions utoptions;
 
@@ -53,8 +56,11 @@ ut_init(int argc, char** argv, struct UTOptions * options)
     if(options != NULL) {
 	options->dimdefs = nclistnew();
 	options->vardefs = nclistnew();
-        while ((c = getopt(argc, argv, "Dx:f:o:k:d:v:s:W:")) != EOF) {
+        while ((c = getopt(argc, argv, "T:Dx:f:o:k:d:v:s:W:")) != EOF) {
             switch(c) {
+            case 'T':  
+	        nctracelevel(atoi(optarg));
+                break;
             case 'D':  
                 options->debug = 1;     
                 break;
@@ -101,22 +107,22 @@ done:
     return THROW(stat);
 }
 
+#if 0
 static void
 getpathcwd(char** cwdp)
 {
     char buf[4096];
-    (void)NCcwd(buf,sizeof(buf));
+    (void)NCgetcwd(buf,sizeof(buf));
     if(cwdp) *cwdp = strdup(buf);
 }
+#endif
 
 static void
 canonicalfile(char** fp)
 {
-    size_t len, len2, offset;
+    size_t len;
     char* f = NULL;
     char* abspath = NULL;
-    char* p = NULL;
-    char* cwd = NULL;
     NCURI* uri = NULL;
 #ifdef _WIN32
     int fwin32=0, cwd32=0;
@@ -126,10 +132,14 @@ canonicalfile(char** fp)
     f = *fp;
     len = strlen(f);
     if(len <= 1) return;
-    if(f[0] == '/' || f[0] == '\\' || hasdriveletter(f))
-        return; /* its already absolute */
     ncuriparse(f,&uri);
     if(uri != NULL) {ncurifree(uri); return;} /* its a url */
+
+#if 1
+    abspath = NCpathabsolute(f);
+#else
+    if(f[0] == '/' || f[0] == '\\' || hasdriveletter(f))
+        return; /* its already absolute */
 #ifdef _WIN32
     for(p=f;*p;p++) {if(*p == '\\') {*p = '/';}}
 #endif
@@ -160,9 +170,11 @@ canonicalfile(char** fp)
     if(fwin32)
      for(p=abspath;*p;p++) {if(*p == '/') {*p = '\\';}}
 #endif
-    nullfree(f);
-    *fp = abspath;
     nullfree(cwd);
+#endif
+    nullfree(f);
+fprintf(stderr,"canonicalfile: %s\n",abspath);
+    *fp = abspath;
 }
 
 void
@@ -182,16 +194,19 @@ makeurl(const char* file, NCZM_IMPL impl)
     NCbytes* buf = ncbytesnew();
     NCURI* uri = NULL;
     const char* kind = impl2kind(impl);
-    char* path = NULL;
+    char* urlpath = NULL;
+    char* p;
 
     if(file && strlen(file) > 0) {
 	switch (impl) {
-	case NCZM_NC4: /* fall thru */
 	case NCZM_FILE:
+	case NCZM_ZIP:
             /* Massage file to make it usable as URL path */
-            if((path = NCurlpath(file))==NULL) return NULL;
+	    urlpath = strdup(file);
+	    for(p=urlpath;*p;p++) {if(*p == '\\') *p = '/';}
             ncbytescat(buf,"file://");
-            ncbytescat(buf,path);
+            ncbytescat(buf,urlpath);
+	    nullfree(urlpath); urlpath = NULL;
             ncbytescat(buf,"#mode=nczarr"); /* => use default file: format */
 	    ncbytescat(buf,",");
 	    ncbytescat(buf,kind);
@@ -211,7 +226,6 @@ makeurl(const char* file, NCZM_IMPL impl)
     }
     ncurifree(uri);
     ncbytesfree(buf);
-    nullfree(path);
     fprintf(stderr,"url=|%s|\n",url);
     fflush(stderr);
     return url;

@@ -26,11 +26,6 @@
  * file must follow strict netCDF classic format rules. */
 #define NCZ_NC3_STRICT_ATT_NAME "_nc3_strict"
 
-/** Define Filter API Operations */
-#define NCZ_FILTER_REG   1
-#define NCZ_FILTER_UNREG 2
-#define NCZ_FILTER_INQ   3
-
 /**************************************************/
 /* Constants */
 
@@ -49,18 +44,37 @@
 
 #define NCZMETAROOT "/.nczarr"
 #define NCZGROUP ".nczgroup"
-#define NCZVAR ".nczvar"
-#define NCZATTR ".nczattr"
+#define NCZARRAY ".nczarray"
+#define NCZATTRS ".nczattrs"
+
+/* Deprecated */
+#define NCZVARDEP ".nczvar"
+#define NCZATTRDEP ".nczattr"
 
 #define ZGROUP ".zgroup"
 #define ZATTRS ".zattrs"
 #define ZARRAY ".zarray"
 
-#define PUREZARR "zarr"
+#define PUREZARRCONTROL "zarr"
+#define XARRAYCONTROL "xarray"
+#define NOXARRAYCONTROL "noxarray"
+
+#define LEGAL_DIM_SEPARATORS "./"
+#define DFALT_DIM_SEPARATOR '.'
+
+#define islegaldimsep(c) ((c) != '\0' && strchr(LEGAL_DIM_SEPARATORS,(c)) != NULL)
+
+
+/* Mnemonics */
+#define ZCLOSE    1 /* this is closeorabort as opposed to enddef */
+
+/* Mnemonics */
+#define ZCLOSE    1 /* this is closeorabort as opposed to enddef */
 
 /**************************************************/
 /* Forward */
 
+struct NClist;
 struct NCjson;
 struct NCauth;
 struct NCZMAP;
@@ -89,15 +103,15 @@ typedef struct NCZ_FILE_INFO {
     } zarr;
     int created; /* 1=> created 0=>open */
     int native_endianness; /* NC_ENDIAN_LITTLE | NC_ENDIAN_BIG */
-    char** controls; /* Envv format */
-    struct Features {
+    char** envv_controls; /* Envv format */
+    struct Controls {
         size64_t flags;
-#		define FLAG_PUREZARR  1
-#		define FLAG_SHOWFETCH 2
-#		define FLAG_LOGGING   4
-#		define FLAG_BYTERANGE 8
+#		define FLAG_PUREZARR    1
+#		define FLAG_SHOWFETCH   2
+#		define FLAG_LOGGING     4
+#		define FLAG_XARRAYDIMS  8
 	NCZM_IMPL mapimpl;
-    } features;
+    } controls;
 } NCZ_FILE_INFO_T;
 
 /* This is a struct to handle the dim metadata. */
@@ -105,7 +119,7 @@ typedef struct NCZ_DIM_INFO {
     NCZcommon common;
 } NCZ_DIM_INFO_T;
 
-/** Strut to hold ZARR-specific info for attributes. */
+/** Struct to hold ZARR-specific info for attributes. */
 typedef struct  NCZ_ATT_INFO {
     NCZcommon common;
 } NCZ_ATT_INFO_T;
@@ -131,10 +145,12 @@ typedef struct NCZ_GRP_INFO {
 typedef struct NCZ_VAR_INFO {
     NCZcommon common;
     size64_t chunkproduct; /* product of chunksizes */
+    size64_t chunksize; /* chunkproduct * typesize */
     int order; /* 1=>column major, 0=>row major (default); not currently enforced */
+    size_t scalar;
     struct NCZChunkCache* cache;
-    /* Following are duplicates of NC_VAR_INFO_T equivalents */
-    size_t chunk_cache_nelems;   /**< Number of slots in var chunk cache. */
+    struct NClist* xarray; /* names from _ARRAY_DIMENSIONS */
+    char dimension_separator; /* '.' | '/' */
 } NCZ_VAR_INFO_T;
 
 /* Struct to hold ZARR-specific info for a field. */
@@ -168,7 +184,7 @@ typedef struct NCZCONTENT{
 extern int ncz_initialized; /**< True if initialization has happened. */
 
 /* Forward */
-struct NC_FILTER_INFO;
+struct NCZ_Filterspec;
 
 /* zinternal.c */
 int NCZ_initialize(void);
@@ -203,10 +219,21 @@ int ncz_gettype(NC_FILE_INFO_T*, NC_GRP_INFO_T*, int xtype, NC_TYPE_INFO_T** typ
 int ncz_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 
 /* zfilter.c */
-int NCZ_filter_actions(int ncid, int varid, int op, void* args);
-#ifdef ENABLE_CLIENTSIDE_FILTERS
-int NCZ_global_filter_action(int op, unsigned int id, NC_FILTER_OBJ_HDF5* infop);
-#endif
+/* Dispatch functions are also in zfilter.c */
+/* Filterlist management */
+
+/* The NC_VAR_INFO_T->filters field is an NClist of this struct */
+struct NCZ_Filter {
+    int flags;             /**< Flags describing state of this filter. */
+#define NCZ_FILTER_MISSING 1 /* Signal filter implementation is not available */
+    unsigned int filterid; /**< ID for arbitrary filter. */
+    size_t nparams;        /**< nparams for arbitrary filter. */
+    unsigned int* params;  /**< Params for arbitrary filter. */
+};
+
+int NCZ_filter_lookup(NC_VAR_INFO_T* var, unsigned int id, struct NCZ_Filter** specp);
+int NCZ_addfilter(NC_VAR_INFO_T* var, unsigned int id, size_t nparams, const unsigned int* params);
+int NCZ_filter_freelist(NC_VAR_INFO_T* var);
 
 /* Undefined */
 /* Find var, doing lazy var metadata read if needed. */

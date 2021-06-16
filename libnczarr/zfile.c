@@ -16,7 +16,7 @@
 
 /* Forward */
 static int NCZ_enddef(int ncid);
-static int ncz_sync_netcdf4_file(NC_FILE_INFO_T* file);
+static int ncz_sync_netcdf4_file(NC_FILE_INFO_T* file, int isclose);
 
 /**
  * @internal Put the file back in redef mode. This is done
@@ -75,7 +75,10 @@ int
 NCZ__enddef(int ncid, size_t h_minfree, size_t v_align,
             size_t v_minfree, size_t r_align)
 {
-    return NCZ_enddef(ncid);
+    int stat = NC_NOERR;
+    ZTRACE(0,"ncid=%d",ncid);
+    stat = NCZ_enddef(ncid);
+    return ZUNTRACE(stat);
 }
 
 /**
@@ -98,11 +101,13 @@ NCZ_enddef(int ncid)
     int i,j;
     int stat = NC_NOERR;
 
+    ZTRACE(1,"ncid=%d",ncid);
+
     LOG((1, "%s: ncid 0x%x", __func__, ncid));
 
     /* Find pointer to group and zinfo. */
     if ((stat = nc4_find_grp_h5(ncid, &grp, &h5)))
-        return stat;
+        goto done;
 
     /* When exiting define mode, mark all variable written. */
     for (i = 0; i < nclistlength(h5->allgroups); i++) {	
@@ -113,7 +118,9 @@ NCZ_enddef(int ncid)
             var->written_to = NC_TRUE;
         }
     }
-    return ncz_enddef_netcdf4_file(h5);
+    stat = ncz_enddef_netcdf4_file(h5);
+done:
+    return ZUNTRACE(stat);
 }
 
 /**
@@ -130,8 +137,10 @@ NCZ_enddef(int ncid)
 int
 NCZ_sync(int ncid)
 {
-    NC_FILE_INFO_T* file = NULL;
     int stat = NC_NOERR;
+    NC_FILE_INFO_T* file = NULL;
+
+    ZTRACE(0,"ncid=%d",ncid);
 
     LOG((2, "%s: ncid 0x%x", __func__, ncid));
 
@@ -148,7 +157,9 @@ NCZ_sync(int ncid)
             return stat;
     }
 
-    return ncz_sync_netcdf4_file(file);
+    /* do not do this if file is writeonce */
+    stat = ncz_sync_netcdf4_file(file,!ZCLOSE);
+    return stat;
 }
 
 /**
@@ -169,12 +180,14 @@ NCZ_abort(int ncid)
 {
     int stat = NC_NOERR;
     NC_FILE_INFO_T* h5 = NULL;
+    ZTRACE(0,"ncid=%d",ncid);
     LOG((2, "%s: ncid 0x%x", __func__, ncid));
     /* Find metadata for this file. */
     if ((stat = nc4_find_grp_h5(ncid, NULL, &h5)))
         return stat;
     assert(h5);
-    return ncz_closeorabort(h5, NULL, 1);
+    stat = ncz_closeorabort(h5, NULL, 1);
+    return ZUNTRACE(stat);
 }
 
 /**
@@ -191,6 +204,8 @@ NCZ_close(int ncid, void* params)
 {
     int stat = NC_NOERR;
     NC_FILE_INFO_T* h5 = NULL;
+
+    ZTRACE(0,"ncid=%d",ncid);
     LOG((1, "%s: ncid 0x%x", __func__, ncid));
     /* Find metadata for this file. */
     if ((stat = nc4_find_grp_h5(ncid, NULL, &h5)))
@@ -219,6 +234,10 @@ ncz_closeorabort(NC_FILE_INFO_T* h5, void* params, int abort)
 
     assert(h5);
 
+    NC_UNUSED(params);
+
+    ZTRACE(1,"file=%s abort=%d",h5->hdr.name,abort);
+
     LOG((2, "%s: file: %p", __func__, h5));
 
     /* If we're in define mode, but not redefing the file, delete it. */
@@ -227,7 +246,7 @@ ncz_closeorabort(NC_FILE_INFO_T* h5, void* params, int abort)
 	if(h5->flags & NC_INDEF) h5->flags ^= NC_INDEF;
 	/* Sync the file unless this is a read-only file. */
 	if(!h5->no_write) {
-	    if((stat = ncz_sync_netcdf4_file(h5)))
+	    if((stat = ncz_sync_netcdf4_file(h5,ZCLOSE)))
 		goto done;
 	}
     }
@@ -246,7 +265,7 @@ ncz_closeorabort(NC_FILE_INFO_T* h5, void* params, int abort)
         return stat;
 
 done:
-    return stat;
+    return ZUNTRACE(stat);
 }
 
 /**************************************************/
@@ -339,12 +358,13 @@ NCZ_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
  */
 
 static int
-ncz_sync_netcdf4_file(NC_FILE_INFO_T* file)
+ncz_sync_netcdf4_file(NC_FILE_INFO_T* file, int isclose)
 {
     int stat = NC_NOERR;
 
     assert(file && file->format_file_info);
     LOG((3, "%s", __func__));
+    ZTRACE(2,"file=%s",file->hdr.name);
 
     /* If we're in define mode, that's an error, for strict nc3 rules,
      * otherwise, end define mode. */
@@ -371,14 +391,14 @@ ncz_sync_netcdf4_file(NC_FILE_INFO_T* file)
     {
         /* Write out provenance; will create _NCProperties */
         if((stat = NCZ_write_provenance(file)))
-            return stat;
+            goto done;
 
         /* Write all the metadata. */
-	if((stat = ncz_sync_file(file)))
-	    return stat;
+	if((stat = ncz_sync_file(file,isclose)))
+	    goto done;
     }
-
-    return NC_NOERR;
+done:
+    return ZUNTRACE(stat);
 }
 
 /**
@@ -406,7 +426,7 @@ ncz_enddef_netcdf4_file(NC_FILE_INFO_T* file)
     /* Redef mode needs to be tracked separately for nc_abort. */
     file->redef = NC_FALSE;
 
-    return ncz_sync_netcdf4_file(file);
+    return ncz_sync_netcdf4_file(file,!ZCLOSE);
 }
 
 /**

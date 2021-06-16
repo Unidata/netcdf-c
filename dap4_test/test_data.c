@@ -12,13 +12,15 @@ Test the netcdf-4 data building process.
 #include <stdio.h>
 #include "netcdf.h"
 
-#undef DEBUG
+#define DEBUG
 
 static void
 fail(int code)
 {
-    if(code != NC_NOERR)
+    if(code != NC_NOERR) {
 	fprintf(stderr,"***Fail: %s\n",nc_strerror(code));
+	fflush(stderr);
+    }
     exit((code==NC_NOERR?EXIT_SUCCESS:EXIT_FAILURE));
 }
 

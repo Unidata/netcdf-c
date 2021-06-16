@@ -21,7 +21,7 @@
 #include "nc_logging.h"
 #include "ncindex.h"
 #include "nc_provenance.h"
-
+#include "nchashmap.h"
 
 #include "netcdf_f.h"
 #include "netcdf_mem.h"
@@ -97,9 +97,8 @@ typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP, NCFIL} NC_SORT;
 #define NC4_DATA_SET(nc,data) ((nc)->dispatchdata = (void *)(data))
 
 /* Reserved attribute flags: must be powers of 2. */
-/** Hidden dimscale-related, per-variable attributes; immutable and
- * unreadable thru API. */
-#define DIMSCALEFLAG 1
+/** Hidden attributes; immutable and unreadable thru API. */
+#define HIDDENATTRFLAG 1
 
 /** Readonly global attributes; readable, but immutable thru the
  * API. */
@@ -117,7 +116,6 @@ typedef enum {NC_FALSE = 0, NC_TRUE = 1} nc_bool_t;
 /* Forward declarations. */
 struct NC_GRP_INFO;
 struct NC_TYPE_INFO;
-struct NC_Filterobject;
 
 /**
  * This struct provides indexed Access to Meta-data objects. See the
@@ -134,7 +132,6 @@ typedef struct NC_OBJ
     NC_SORT sort; /**< Type of object. */
     char* name;   /**< Name, assumed to be null terminated. */
     size_t id;    /**< This objects ID. */
-    unsigned int hashkey; /**< The hash key, crc32(name). */
 } NC_OBJ;
 
 /**
@@ -208,7 +205,7 @@ typedef struct NC_VAR_INFO
     size_t chunk_cache_nelems;   /**< Number of slots in var chunk cache. */
     float chunk_cache_preemption; /**< Chunk cache preemtion policy. */
     void *format_var_info;       /**< Pointer to any binary format info. */
-    NClist* filters;             /**< List<NC_FILTERX_SPEC> of filters to be applied to var data; technically format dependent */
+    void* filters;             /**< Record of the list of filters to be applied to var data; format dependent */
 } NC_VAR_INFO_T;
 
 /** This is a struct to handle the field metadata from a user-defined
@@ -433,6 +430,10 @@ extern int nc4_get_att_ptrs(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *grp, NC_VAR_INFO_
 /* Close the file. */
 extern int nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio);
 
+/* Compute default chunksizes */
+extern int nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
+extern int nc4_check_chunksizes(NC_GRP_INFO_T* grp, NC_VAR_INFO_T* var, const size_t* chunksizes);
+
 /* HDF5 initialization/finalization */
 extern int nc4_hdf5_initialized;
 extern void nc4_hdf5_initialize(void);
@@ -459,5 +460,6 @@ extern const NC_reservedatt* NC_findreserved(const char* name);
 #define NC_ATT_FORMAT "_Format"
 #define NC_ATT_DIMID_NAME "_Netcdf4Dimid"
 #define NC_ATT_NC3_STRICT_NAME "_nc3_strict"
+#define NC_XARRAY_DIMS "_ARRAY_DIMENSIONS"
 
 #endif /* _NC4INTERNAL_ */

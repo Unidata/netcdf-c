@@ -485,6 +485,15 @@ ncurisetprotocol(NCURI* duri,const char* protocol)
     return (NC_NOERR);
 }
 
+/* Replace the path */
+int
+ncurisetpath(NCURI* duri,const char* newpath)
+{
+    nullfree(duri->path);
+    duri->path = strdup(newpath);
+    return (NC_NOERR);
+}
+
 /* Replace the query */
 int
 ncurisetquery(NCURI* duri,const char* query)
@@ -629,7 +638,8 @@ ncuribuild(NCURI* duri, const char* prefix, const char* suffix, int flags)
 {
     char* newuri = NULL;
     NCbytes* buf = ncbytesnew();
-    const int encode = (flags&NCURIENCODE ? 1 : 0);
+    const int encodepath = (flags&NCURIENCODEPATH ? 1 : 0);
+    const int encodequery = (flags&NCURIENCODEQUERY ? 1 : 0);
 
     if(prefix != NULL)
 	ncbytescat(buf,prefix);
@@ -656,7 +666,7 @@ ncuribuild(NCURI* duri, const char* prefix, const char* suffix, int flags)
     if((flags & NCURIPATH)) {
 	if(duri->path == NULL)
 	    ncbytescat(buf,"/");
-	else if(encode) {
+	else if(encodepath) {
 	    char* encoded = ncuriencodeonly(duri->path,pathallow);
 	    ncbytescat(buf,encoded);
 	    nullfree(encoded);
@@ -675,8 +685,13 @@ ncuribuild(NCURI* duri, const char* prefix, const char* suffix, int flags)
  	ensurequerylist(duri);
         if(duri->query != NULL) {
             ncbytescat(buf,"?");
-	    ncbytescat(buf,duri->query);
-        }
+	    if(encodequery) {
+	        char* encoded = ncuriencodeonly(duri->query,queryallow);
+	        ncbytescat(buf,encoded);
+	        nullfree(encoded);
+	    } else
+	        ncbytescat(buf,duri->query);
+	}
     }
     if(flags & NCURIFRAG) {
  	ensurefraglist(duri);

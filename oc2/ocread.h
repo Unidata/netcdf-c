@@ -5,9 +5,9 @@
 #define READ_H
 
 
-extern int readDDS(OCstate*, OCtree*);
-extern int readDAS(OCstate*, OCtree*);
+extern int readDDS(OCstate*, OCtree*, OCflags);
+extern int readDAS(OCstate*, OCtree*, OCflags);
 
-extern int readDATADDS(OCstate*, OCtree*, int inmemory);
+extern int readDATADDS(OCstate*, OCtree*, OCflags);
 
 #endif /*READ_H*/

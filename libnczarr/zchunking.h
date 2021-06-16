@@ -31,12 +31,13 @@ typedef struct NCZSlice {
 
 typedef struct NCProjection {
     int id;
+    int skip; /* Should this projection be skipped? */
     size64_t chunkindex; /* which chunk are we projecting */
+    size64_t offset; /* Absolute offset of this chunk (== chunklen*chunkindex) */
     size64_t first;  /* absolute first position to be touched in this chunk */
     size64_t last;   /* absolute position of last value touched */
-    size64_t len;    /* Not last place touched, but the offset of last place
-                        that could be touched */
-    size64_t limit;  /* Actual limit of chunk = min(limit,dimlen) */
+    size64_t stop;   /* absolute position of last value touched */
+    size64_t limit;  /* Actual limit of chunk WRT start of chunk */
     size64_t iopos;    /* start point in the data memory to access the data */
     size64_t iocount;  /* no. of I/O items */
     NCZSlice chunkslice;  /* slice relative to this chunk */
@@ -60,12 +61,14 @@ struct Common {
     struct NCZChunkCache* cache;
     int reading; /* 1=> read, 0 => write */
     int rank;
+    int scalar; /* 1 => scalar variable */
     size64_t* dimlens;
     size64_t* chunklens;
+    size64_t* memshape;
     void* memory;
     size_t typesize;
     void* fillvalue;
-    size64_t chunksize; /* computed product of chunklens */
+    size64_t chunkcount; /* computed product of chunklens; warning indices, not bytes */
     int swap; /* var->format_info_file->native_endianness == var->endianness */
     size64_t shape[NC_MAX_VAR_DIMS]; /* shape of the output hyperslab */
     NCZSliceProjections* allprojections;
@@ -76,9 +79,9 @@ struct Common {
 /**************************************************/
 /* From zchunking.c */
 EXTERNL int NCZ_compute_chunk_ranges(int rank, const NCZSlice*, const size64_t*, NCZChunkRange* ncr);
-EXTERNL int NCZ_compute_projections(size64_t dimlen, size64_t chunklen, size64_t chunkindex, const NCZSlice* slice, size_t n, NCZProjection* projections);
-EXTERNL int NCZ_compute_per_slice_projections(int rank, const NCZSlice*, const NCZChunkRange*, size64_t dimlen, size64_t chunklen, NCZSliceProjections* slp);
-EXTERNL int NCZ_compute_all_slice_projections(int rank, const NCZSlice* slices, const size64_t* dimlen, const size64_t* chunklen, const NCZChunkRange*, NCZSliceProjections*);
+EXTERNL int NCZ_compute_projections(struct Common*, int r, size64_t chunkindex, const NCZSlice* slice, size_t n, NCZProjection* projections);
+EXTERNL int NCZ_compute_per_slice_projections(struct Common*, int rank, const NCZSlice*, const NCZChunkRange*, NCZSliceProjections* slp);
+EXTERNL int NCZ_compute_all_slice_projections(struct Common*, const NCZSlice* slices, const NCZChunkRange*, NCZSliceProjections*);
 
 /* From zwalk.c */
 EXTERNL int ncz_chunking_init(void);
@@ -86,6 +89,7 @@ EXTERNL int NCZ_transferslice(NC_VAR_INFO_T* var, int reading,
 		  size64_t* start, size64_t* count, size64_t* stride,
 		  void* memory, nc_type typecode);
 EXTERNL int NCZ_transfer(struct Common* common, NCZSlice* slices);
+EXTERNL int NCZ_transferscalar(struct Common* common);
 EXTERNL size64_t NCZ_computelinearoffset(size_t, const size64_t*, const size64_t*);
 
 /* Special entry points for unit testing */
@@ -102,5 +106,7 @@ EXTERNL void NCZ_clearcommon(struct Common* common);
 #define floordiv(x,y) ((x) / (y))
 
 #define ceildiv(x,y) (((x) % (y)) == 0 ? ((x) / (y)) : (((x) / (y)) + 1))
+
+#define minimum(x,y) ((x) > (y) ? (y) : (x))
 
 #endif /*ZCHUNKING_H*/

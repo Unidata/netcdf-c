@@ -368,6 +368,16 @@ nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
       superior to that achieved by the use of a compression filter
       without the shuffle filter.
 
+  @note The shuffle and deflate flags are ambiguous.
+
+	In most cases, if the shuffle or deflate flag is zero, then it is interpreted
+	to mean that shuffle or deflate should not be set. However, if the variable
+	already has shuffle or deflate turned on, then it is unclear if a flag
+	value of zero means leave the state as it is, or if it means
+	that it should be turned off. Since currently no other filters can be
+	disabled, it is assumed here that a zero value means to leave the
+	state as it is.
+
    @param ncid NetCDF or group ID, from a previous call to nc_open(),
    nc_create(), nc_def_grp(), or associated inquiry functions such as
    nc_inq_ncid().

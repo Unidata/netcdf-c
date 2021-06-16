@@ -26,18 +26,18 @@ set(PACKAGE "netCDF" CACHE STRING "")
 
 SET(NC_VERSION_MAJOR 4)
 SET(NC_VERSION_MINOR 8)
-SET(NC_VERSION_PATCH 0)
+SET(NC_VERSION_PATCH 1)
 SET(NC_VERSION_NOTE "-development")
 SET(netCDF_VERSION ${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
 SET(NC_VERSION ${netCDF_VERSION})
-SET(netCDF_LIB_VERSION 18)
-SET(netCDF_SO_VERSION 18)
+SET(netCDF_LIB_VERSION 19)
+SET(netCDF_SO_VERSION 19)
 SET(PACKAGE_VERSION ${VERSION})
 
 # Version of the dispatch table. This must match the value in
 # configure.ac.
-SET(NC_DISPATCH_VERSION 2)
+SET(NC_DISPATCH_VERSION 3)
 
 # Get system configuration, Use it to determine osname, os release, cpu. These
 # will be used when committing to CDash.
@@ -163,8 +163,6 @@ SET(EXTRA_DEPS "")
 # Set CTest Properties
 ################################
 
-
-
 ENABLE_TESTING()
 INCLUDE(CTest)
 
@@ -262,6 +260,7 @@ ENDIF()
 #####
 # System inspection checks
 #####
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}/include)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/include)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/oc2)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/libsrc)
@@ -314,6 +313,7 @@ SET(DEFAULT_CHUNKS_IN_CACHE 10 CACHE STRING "Default number of chunks in cache."
 SET(CHUNK_CACHE_SIZE 16777216 CACHE STRING "Default Chunk Cache Size.")
 SET(CHUNK_CACHE_NELEMS 4133 CACHE STRING "Default maximum number of elements in cache.")
 SET(CHUNK_CACHE_PREEMPTION 0.75 CACHE STRING "Default file chunk cache preemption policy for HDf5 files(a number between 0 and 1, inclusive.")
+SET(CHUNK_CACHE_SIZE_NCZARR 4194304 CACHE STRING "Default NCZarr Chunk Cache Size.")
 SET(MAX_DEFAULT_CACHE_SIZE 67108864 CACHE STRING "Default maximum cache size.")
 SET(NETCDF_LIB_NAME "" CACHE STRING "Default name of the netcdf library.")
 SET(TEMP_LARGE "." CACHE STRING "Where to put large temp files if large file tests are run.")
@@ -566,6 +566,9 @@ IF(ENABLE_NETCDF_4 AND NOT ENABLE_LOGGING AND ENABLE_SET_LOG_LEVEL_FUNC)
   SET(ENABLE_SET_LOG_LEVEL ON)
 ENDIF()
 
+# This has multiversion capability
+SET(ENABLE_MULTIFILTERS yes CACHE BOOL "")
+
 # Option to allow for strict null file padding.
 # See https://github.com/Unidata/netcdf-c/issues/657 for more information
 OPTION(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING "Enable strict null byte header padding." OFF)
@@ -658,7 +661,6 @@ IF(USE_HDF5)
     IF(HDF5_VERSION_STRING AND NOT HDF5_VERSION)
       SET(HDF5_VERSION ${HDF5_VERSION_STRING})
     ENDIF()
-
     IF("${HDF5_VERSION}" STREQUAL "")
       MESSAGE(STATUS "Unable to determine hdf5 version.  NetCDF requires at least version ${HDF5_VERSION_REQUIRED}")
     ELSE()
@@ -720,8 +722,30 @@ IF(USE_HDF5)
   FIND_PACKAGE(Threads)
 
   # There is a missing case in the above code so default it
-  IF(NOT HDF5_C_LIBRARY_HDF5 OR "${HDF5_C_LIBRARY_hdf5}" STREQUAL "" )
+  IF(NOT HDF5_C_LIBRARY_hdf5 OR "${HDF5_C_LIBRARY_hdf5}" STREQUAL "" )
     SET(HDF5_C_LIBRARY_hdf5 "${HDF5_C_LIBRARY}")
+  ENDIF()
+
+  #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip library.
+  set (CMAKE_REQUIRED_INCLUDES ${HDF5_INCLUDE_DIR})
+  CHECK_C_SOURCE_COMPILES("#include <H5public.h>
+   #if !H5_HAVE_FILTER_SZIP
+   #error
+   #endif
+   int main() {
+   int x = 1;}" USE_SZIP)
+  IF(USE_SZIP)
+    # If user has specified the `SZIP_LIBRARY`, use it; otherwise try to find...
+    IF(NOT SZIP_LIBRARY)
+      FIND_LIBRARY(SZIP PATH NAMES szip sz)
+      SET(SZIP_LIBRARY ${SZIP})
+      IF(NOT SZIP)
+        MESSAGE(FATAL_ERROR "HDF5 Requires SZIP, but cannot find libszip or libsz.")
+      ENDIF()
+    ENDIF()
+    SET(HAVE_H5Z_SZIP 1)
+    SET(CMAKE_REQUIRED_LIBRARIES ${SZIP_LIBRARY} ${CMAKE_REQUIRED_LIBRARIES})
+    MESSAGE(STATUS "HDF5 has szip.")
   ENDIF()
 
   # Find out if HDF5 was built with parallel support.
@@ -741,22 +765,6 @@ IF(USE_HDF5)
 
   #Check to see if HDF5 library has collective metadata APIs, (HDF5 >= 1.10.0)
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pset_all_coll_metadata_ops "" HDF5_HAS_COLL_METADATA_OPS)
-
-  #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip.
-  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Z_SZIP "" USE_SZIP)
-  IF(USE_SZIP)
-    FIND_LIBRARY(SZIP NAMES szip sz)
-    IF(SZIP)
-      SET(HAVE_H5Z_SZIP 1)
-      SET(SZIP_LIBRARY ${SZIP})
-      SET(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} ${SZIP})
-      MESSAGE(STATUS "HDF5 has szip.")
-    ELSE()
-      MESSAGE(FATAL_ERROR "HDF5 Requires SZIP, but cannot find libszip or libsz.")
-    ENDIF()
-  ENDIF()
-
-  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pset_libver_bounds "" HAVE_H5PSET_LIBVER_BOUNDS)
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5free_memory "" HAVE_H5FREE_MEMORY)
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5allocate_memory "" HAVE_H5ALLOCATE_MEMORY)
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5resize_memory "" HAVE_H5RESIZE_MEMORY)
@@ -779,7 +787,7 @@ IF(USE_HDF5)
     SET(ENABLE_NCDUMPCHUNKS ON)
   ENDIF()
 
-  # Check to see if this is hdf5-1.10.6 or later.
+  # Record if ROS3 Driver is available
   IF(HAS_HDF5_ROS3)
     SET(ENABLE_HDF5_ROS3 ON)
   ENDIF()
@@ -792,11 +800,23 @@ IF(USE_HDF5)
     SET(HAS_PAR_FILTERS no CACHE STRING "")
   ENDIF()
 
-  SET(H5_USE_16_API 1)
-  OPTION(NC_ENABLE_HDF_16_API "Enable HDF5 1.6.x Compatibility(Required)" ON)
-  IF(NOT NC_ENABLE_HDF_16_API)
-    SET(H5_USE_16_API 0)
-  ENDIF()
+  # Check to see if HDF5 library is 1.10.6 or greater.
+  # Used to control path name conversion
+  # Check HDF5 version
+  SET(HDF5_UTF8_PATHS OFF)
+  CHECK_C_SOURCE_COMPILES("
+  #include <H5public.h>
+  int main() {
+#if (H5_VERS_MAJOR*10000 + H5_VERS_MINOR*100 + H5_VERS_RELEASE < 11006)
+      choke me;
+#endif
+  }" HDF5_VERSION_1106)
+
+  IF(HDF5_VERSION_1106)
+   SET(HDF5_UTF8_PATHS ON)
+  ENDIF(HDF5_VERSION_1106)
+
+  MESSAGE("-- Checking for HDF5 version 1.10.6 or later: ${HDF5_UTF8_PATHS}")
 
   FIND_PATH(HAVE_HDF5_H hdf5.h PATHS ${HDF5_INCLUDE_DIR} NO_DEFAULT_PATH)
   FIND_PATH(HAVE_HDF5_H hdf5.h)
@@ -807,7 +827,9 @@ IF(USE_HDF5)
   ENDIF(NOT HAVE_HDF5_H)
 
   # Check to ensure that HDF5 was built with zlib.
-  set (CMAKE_REQUIRED_INCLUDES ${HAVE_HDF5_H})
+  set (CMAKE_REQUIRED_INCLUDES ${HDF5_INCLUDE_DIR})
+
+
   CHECK_C_SOURCE_COMPILES("#include <H5public.h>
    #if !H5_HAVE_ZLIB_H
    #error
@@ -821,6 +843,7 @@ IF(USE_HDF5)
   #option to include HDF5 High Level header file (hdf5_hl.h) in case we are not doing a make install
   INCLUDE_DIRECTORIES(${HDF5_HL_INCLUDE_DIR})
 
+
 ENDIF(USE_HDF5)
 
 # See if we have libcurl
@@ -828,56 +851,76 @@ FIND_PACKAGE(CURL)
 ADD_DEFINITIONS(-DCURL_STATICLIB=1)
 INCLUDE_DIRECTORIES(${CURL_INCLUDE_DIRS})
 
-# Check to see if CURLOPT_USERNAME is defined.
-# It is present starting version 7.19.1.
-CHECK_C_SOURCE_COMPILES("
-#include <curl/curl.h>
-int main() {int x = CURLOPT_USERNAME;}" HAVE_CURLOPT_USERNAME)
+# Define a test flag for have curl library
+IF(CURL_LIBRARIES OR CURL_LIBRARY)
+  SET(FOUND_CURL TRUE)
+ELSE()
+  SET(FOUND_CURL FALSE)
+ENDIF()
 
-# Check to see if CURLOPT_PASSWORD is defined.
-# It is present starting version 7.19.1.
-CHECK_C_SOURCE_COMPILES("
-#include <curl/curl.h>
-int main() {int x = CURLOPT_PASSWORD;}" HAVE_CURLOPT_PASSWORD)
-
-# Check to see if CURLOPT_KEYPASSWD is defined.
-# It is present starting version 7.16.4.
-CHECK_C_SOURCE_COMPILES("
-#include <curl/curl.h>
-int main() {int x = CURLOPT_KEYPASSWD;}" HAVE_CURLOPT_KEYPASSWD)
-
-# Check to see if CURLINFO_RESPONSE_CODE is defined.
-# It showed up in curl 7.10.7.
-CHECK_C_SOURCE_COMPILES("
-#include <curl/curl.h>
-int main() {int x = CURLINFO_RESPONSE_CODE;}" HAVE_CURLINFO_RESPONSE_CODE)
-
-# Check to see if CURLINFO_HTTP_CONNECTCODE is defined.
-# It showed up in curl 7.10.7.
-CHECK_C_SOURCE_COMPILES("
-#include <curl/curl.h>
-int main() {int x = CURLINFO_HTTP_CONNECTCODE;}" HAVE_CURLINFO_HTTP_CONNECTCODE)
-
-# Check to see if CURLOPT_BUFFERSIZE is defined.
-# It is present starting version 7.59
-CHECK_C_SOURCE_COMPILES("
-#include <curl/curl.h>
-int main() {int x = CURLOPT_BUFFERSIZE;}" HAVE_CURLOPT_BUFFERSIZE)
-
-# Check to see if CURLOPT_TCP_KEEPALIVE is defined.
-# It is present starting version 7.25
-CHECK_C_SOURCE_COMPILES("
-#include <curl/curl.h>
-int main() {int x = CURLOPT_TCP_KEEPALIVE;}" HAVE_CURLOPT_KEEPALIVE)
-
+set (CMAKE_REQUIRED_INCLUDES ${CURL_INCLUDE_DIRS})
 # Check to see if we have libcurl 7.66 or later
 CHECK_C_SOURCE_COMPILES("
 #include <curl/curl.h>
 int main() {
-#if (LIBCURL_VERSION_MAJOR*1000 + LIBCURL_VERSION_MINOR < 7066)
+#if LIBCURL_VERSION_NUM < 0x074200
       choke me;
 #endif
 }" HAVE_LIBCURL_766)
+
+IF (HAVE_LIBCURL_766)
+  # If libcurl version is >= 7.66, then can skip tests 
+  # for these symbols which were added in an earlier version
+  set(HAVE_CURLOPT_USERNAME TRUE)
+  set(HAVE_CURLOPT_PASSWORD TRUE)
+  set(HAVE_CURLOPT_KEYPASSWD TRUE)
+  set(HAVE_CURLINFO_RESPONSE_CODE TRUE)
+  set(HAVE_CURLINFO_HTTP_CONNECTCODE TRUE)
+  set(HAVE_CURLOPT_BUFFERSIZE TRUE)
+  set(HAVE_CURLOPT_KEEPALIVE TRUE)
+ELSE()
+  # Check to see if CURLOPT_USERNAME is defined.
+  # It is present starting version 7.19.1.
+  CHECK_C_SOURCE_COMPILES("
+  #include <curl/curl.h>
+  int main() {int x = CURLOPT_USERNAME;}" HAVE_CURLOPT_USERNAME)
+
+  # Check to see if CURLOPT_PASSWORD is defined.
+  # It is present starting version 7.19.1.
+  CHECK_C_SOURCE_COMPILES("
+  #include <curl/curl.h>
+  int main() {int x = CURLOPT_PASSWORD;}" HAVE_CURLOPT_PASSWORD)
+
+  # Check to see if CURLOPT_KEYPASSWD is defined.
+  # It is present starting version 7.16.4.
+  CHECK_C_SOURCE_COMPILES("
+  #include <curl/curl.h>
+  int main() {int x = CURLOPT_KEYPASSWD;}" HAVE_CURLOPT_KEYPASSWD)
+
+  # Check to see if CURLINFO_RESPONSE_CODE is defined.
+  # It showed up in curl 7.10.7.
+  CHECK_C_SOURCE_COMPILES("
+  #include <curl/curl.h>
+  int main() {int x = CURLINFO_RESPONSE_CODE;}" HAVE_CURLINFO_RESPONSE_CODE)
+
+  # Check to see if CURLINFO_HTTP_CONNECTCODE is defined.
+  # It showed up in curl 7.10.7.
+  CHECK_C_SOURCE_COMPILES("
+  #include <curl/curl.h>
+  int main() {int x = CURLINFO_HTTP_CONNECTCODE;}" HAVE_CURLINFO_HTTP_CONNECTCODE)
+
+  # Check to see if CURLOPT_BUFFERSIZE is defined.
+  # It is present starting version 7.59
+  CHECK_C_SOURCE_COMPILES("
+  #include <curl/curl.h>
+  int main() {int x = CURLOPT_BUFFERSIZE;}" HAVE_CURLOPT_BUFFERSIZE)
+
+  # Check to see if CURLOPT_TCP_KEEPALIVE is defined.
+  # It is present starting version 7.25
+  CHECK_C_SOURCE_COMPILES("
+  #include <curl/curl.h>
+  int main() {int x = CURLOPT_TCP_KEEPALIVE;}" HAVE_CURLOPT_KEEPALIVE)
+ENDIF()
 
 IF(ENABLE_DAP)
   SET(USE_DAP ON CACHE BOOL "")
@@ -895,16 +938,6 @@ ENDIF()
 # Option to support byte-range reading of remote datasets
 OPTION(ENABLE_BYTERANGE "Enable byte-range access to remote datasets.." OFF)
 
-IF(NOT CURL_LIBRARIES AND NOT CURL_LIBRARY)
-  IF(ENABLE_BYTERANGE)
-    MESSAGE(FATAL_ERROR "Byte-range support specified, CURL libraries are not found.")
-  ENDIF()
-
-  IF(ENABLE_DAP2 OR ENABLE_DAP4)
-    MESSAGE(FATAL_ERROR "DAP support specified, CURL libraries are not found.")
-  ENDIF()
-ENDIF()
-
 # Check for the math library so it can be explicitly linked.
 IF(NOT WIN32)
   FIND_LIBRARY(HAVE_LIBM NAMES math m libm)
@@ -918,6 +951,17 @@ ENDIF()
 OPTION(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
 OPTION(ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." ON)
 SET(REMOTETESTSERVERS "remotetest.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
+
+# See if we have libzip
+FIND_PACKAGE(Zip)
+
+# Define a test flag for have curl library
+IF(Zip_FOUND)
+  INCLUDE_DIRECTORIES(${Zip_INCLUDE_DIRS})
+  SET(ENABLE_NCZARR_ZIP TRUE)
+ELSE()
+  SET(ENABLE_NCZARR_ZIP FALSE)
+ENDIF()
 
 # Enable some developer-only tests
 OPTION(ENABLE_EXTRA_TESTS "Enable Extra tests. Some may not work because of known issues. Developers only." OFF)
@@ -941,7 +985,9 @@ IF(MSVC)
     FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
          DESTINATION ${netCDF_BINARY_DIR}/ncdump/)
     FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
+         DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/) 
+    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
+         DESTINATION ${netCDF_BINARY_DIR}/ncdap_test/) 
   ENDIF()
 ENDIF()
 
@@ -962,24 +1008,67 @@ IF(NOT WIN32)
 ENDIF()
 
 # Options to Extend NCZarr support
-OPTION(ENABLE_S3_SDK "Enable Search for AWS libraries." OFF)
-OPTION(ENABLE_S3_TESTS "Enable NCZarr S3 tests." OFF)
+OPTION(ENABLE_NCZARR_S3 "Enable NCZarr S3 support." OFF)
+OPTION(ENABLE_NCZARR_S3_TESTS "Enable NCZarr S3 tests." OFF)
 
-IF(NOT ENABLE_S3_SDK)
-  IF(ENABLE_S3_TESTS)
-     message(WARNING "DISABLE_S3_SDK => DISABLE_S3_TESTS")
-     SET(ENABLE_S3_TESTS OFF CACHE BOOL "S3 tests" FORCE)
-  ENDIF()
+IF(ENABLE_NCZARR_S3_TESTS AND NOT ENABLE_NCZARR_S3)
+  message(FATAL_ERROR "NCZarr S3 support is disabled; please specify option -DENABLE_NCZARR_S3_TESTS=no")
+  SET(ENABLE_NCZARR_S3_TESTS OFF CACHE BOOL "NCARR S3 TESTS" FORCE)
 ENDIF()
 
-IF(ENABLE_S3_SDK)
 # See if aws-s3-sdk is available
+# But only if enabled
+IF(ENABLE_NCZARR_S3)
 find_package(AWSSDK REQUIRED)
 set(SERVICE s3)
 AWSSDK_DETERMINE_LIBS_TO_LINK(SERVICE AWSSDK_LINK_LIBRARIES)
-IF(NOT AWSSDK_FOUND)
+IF(AWSSDK_FOUND)
+  SET(ENABLE_S3_SDK ON CACHE BOOL "S3 SDK" FORCE)
+ELSE()
   SET(ENABLE_S3_SDK OFF CACHE BOOL "S3 SDK" FORCE)
 ENDIF()
+ELSE(ENABLE_NCZARR_S3)
+# Unconditionally disable
+SET(ENABLE_S3_SDK OFF CACHE BOOL "S3 SDK" FORCE)
+ENDIF(ENABLE_NCZARR_S3)
+
+IF(NOT ENABLE_S3_SDK)
+  IF(ENABLE_NCZARR_S3 OR ENABLE_NCZARR_S3_TESTS)
+    message(FATAL_ERROR "AWS S3 libraries not found; please specify option DENABLE_NCZARR_S3=NO")
+    SET(ENABLE_NCZARR_S3 OFF CACHE BOOL "NCZARR S3 support" FORCE)
+    SET(ENABLE_NCZARR_S3_TESTS OFF CACHE BOOL "S3 tests" FORCE)
+  ENDIF()
+ENDIF()
+
+IF(ENABLE_NCZARR_S3_TESTS)
+  message(WARNING "**** DO NOT ENABLE_NCZARR_S3_TESTS UNLESS YOU HAVE ACCESS TO THE UNIDATA S3 BUCKET! ***")
+ENDIF()
+
+# Start disabling if curl not found
+IF(NOT FOUND_CURL)
+  IF(ENABLE_BYTERANGE)
+    MESSAGE(FATAL_ERROR "Byte-range support specified, CURL libraries are not found.")
+  ENDIF()
+
+  IF(ENABLE_DAP2 OR ENABLE_DAP4)
+    MESSAGE(WARNING "CURL libraries are not found; DAP support disabled")
+    SET(ENABLE_DAP2 OFF CACHE BOOL "Use DAP2" FORCE)
+    SET(ENABLE_DAP4 OFF CACHE BOOL "Use DAP4" FORCE)
+  ENDIF()
+
+  IF(ENABLE_HDF5_ROS3)
+    MESSAGE(WARNING "CURL libraries are not found; ROS3 support disabled.")
+    SET(ENABLE_HDF5_ROS3 OFF CACHE BOOL "Use ROS3" FORCE)
+  ENDIF()
+
+  IF(ENABLE_NCZARR_S3)
+    MESSAGE(FATAL_ERROR "NCZarr S3 support specified, CURL libraries are not found.")
+  ENDIF()
+ENDIF(NOT FOUND_CURL)
+
+IF(NOT ENABLE_BYTERANGE AND ENABLE_HDF5_ROS3)
+    MESSAGE(WARNING "ROS3 support requires ENABLE_BYTERANGE=TRUE; disabling ROS3 support")
+    SET(ENABLE_HDF5_ROS3 OFF CACHE BOOL "ROS3 support" FORCE)
 ENDIF()
 
 ##
@@ -1029,15 +1118,10 @@ IF(ENABLE_TESTS)
 
   ###
   # Option to turn on unit testing. See
-  # https://github.com/Unidata/netcdf-c/pull/1472 for more
-  # information.  Currently (August 21, 2019): Will not work with
-  # Visual Studio. The unit tests are for internal netCDF functions,
-  # so we don't want to make them external, which would be required to
-  # run on Windows.
+  # https://github.com/Unidata/netcdf-c/pull/1472 for more information.
   ###
-  IF(NOT MSVC)
-    OPTION(ENABLE_UNIT_TESTS "Run Unit Tests." ON)
-  ENDIF(NOT MSVC)
+  OPTION(ENABLE_UNIT_TESTS "Run Unit Tests." OFF)
+
   ###
   # End known-failures.
   ###
@@ -1384,6 +1468,7 @@ CHECK_INCLUDE_FILE("ftw.h"  HAVE_FTW_H)
 CHECK_INCLUDE_FILE("libgen.h" HAVE_LIBGEN_H)
 CHECK_INCLUDE_FILE("execinfo.h" HAVE_EXECINFO_H)
 CHECK_INCLUDE_FILE("dirent.h" HAVE_DIRENT_H)
+CHECK_INCLUDE_FILE("time.h" HAVE_TIME_H)
 
 # Symbol Exists
 CHECK_SYMBOL_EXISTS(isfinite "math.h" HAVE_DECL_ISFINITE)
@@ -1465,12 +1550,17 @@ ENDIF(SIZEOF_UINTPTR_T)
 # __int64 is used on Windows for large file support.
 CHECK_TYPE_SIZE("__int64"   SIZEOF___INT_64)
 CHECK_TYPE_SIZE("int64_t"   SIZEOF_INT64_T)
-CHECK_TYPE_SIZE("uint64_t"  SIZEOF_UINT64_T)
+CHECK_TYPE_SIZE("uint64"  SIZEOF_UINT64)
 CHECK_TYPE_SIZE("unsigned char"      SIZEOF_UCHAR)
 CHECK_TYPE_SIZE("unsigned short int" SIZEOF_UNSIGNED_SHORT_INT)
 CHECK_TYPE_SIZE("unsigned int"       SIZEOF_UNSIGNED_INT)
 CHECK_TYPE_SIZE("long long"          SIZEOF_LONGLONG)
 CHECK_TYPE_SIZE("unsigned long long" SIZEOF_ULONGLONG)
+
+CHECK_TYPE_SIZE("uint64_t"  SIZEOF_UINT64_T)
+IF(SIZEOF_UINT64_T)
+  SET(HAVE_UINT64_T TRUE)
+ENDIF(SIZEOF_UINT64_T)
 
 # On windows systems, we redefine off_t as __int64
 # to enable LFS. This is true on 32 and 64 bit system.s
@@ -1500,6 +1590,9 @@ CHECK_FUNCTION_EXISTS(_filelengthi64 HAVE_FILE_LENGTH_I64)
 CHECK_FUNCTION_EXISTS(mmap HAVE_MMAP)
 CHECK_FUNCTION_EXISTS(mremap HAVE_MREMAP)
 CHECK_FUNCTION_EXISTS(fileno HAVE_FILENO)
+
+CHECK_FUNCTION_EXISTS(clock_gettime  HAVE_CLOCK_GETTIME)
+CHECK_SYMBOL_EXISTS("struct timespec" "time.h" HAVE_STRUCT_TIMESPEC)
 
 # Check to see if MAP_ANONYMOUS is defined.
 IF(MSVC)
@@ -1547,24 +1640,34 @@ IF(NC_M4)
   SET(HAVE_M4 TRUE)
 ELSE()
   MESSAGE(STATUS "m4 not found.")
+  SET(HAVE_M4 FALSE)
 ENDIF()
 
-MACRO(GEN_m4 filename dest)
-  set(${dest} "${CMAKE_CURRENT_BINARY_DIR}/${filename}.c")
-  IF(HAVE_M4)
-    ADD_CUSTOM_COMMAND(
-      OUTPUT ${${dest}}
-      COMMAND ${NC_M4}
-      ARGS ${M4FLAGS} ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.m4 > ${${dest}}
-      VERBATIM
-    )
-  ELSE(HAVE_M4)
-    IF(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
-      FILE(COPY ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c
-           DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-    ELSE()
-        MESSAGE(FATAL_ERROR "File ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c does not exists, and can not be generated")
+MACRO(GEN_m4 filename)
+
+set(dest "${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c")
+
+  # If m4 isn't present, and the generated file doesn't exist,
+  # it cannot be generated and an error should be thrown.
+  IF(NOT HAVE_M4)
+    IF(NOT EXISTS ${dest})
+      MESSAGE(FATAL_ERROR "m4 is required to generate ${dest}. Please install m4 so that it is on the PATH and try again.")
     ENDIF()
+  ENDIF(NOT HAVE_M4)
+
+  IF(HAVE_M4)
+    # If m4 is available, remove generated file if it exists.
+    IF(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
+      FILE(REMOVE ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
+    ENDIF()
+
+    ADD_CUSTOM_COMMAND(
+      OUTPUT ${dest}
+      COMMAND ${NC_M4}
+      ARGS ${M4FLAGS} ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.m4 > ${dest}
+      VERBATIM
+      )
+
   ENDIF(HAVE_M4)
 ENDMACRO(GEN_m4)
 
@@ -1633,7 +1736,7 @@ ENDMACRO()
 
 # Binary tests which are used by a script looking for a specific name.
 MACRO(add_bin_test_no_prefix F)
-  build_bin_test(${F})
+  build_bin_test(${F} ${ARGN})
   ADD_TEST(${F} ${EXECUTABLE_OUTPUT_PATH}/${F})
   IF(MSVC)
     SET_PROPERTY(TEST ${F} PROPERTY FOLDER "tests/")
@@ -1661,7 +1764,7 @@ MACRO(build_bin_test_no_prefix F)
 ENDMACRO()
 
 MACRO(add_bin_test prefix F)
-  ADD_EXECUTABLE(${prefix}_${F} ${F}.c)
+  ADD_EXECUTABLE(${prefix}_${F} ${F}.c ${ARGN})
   TARGET_LINK_LIBRARIES(${prefix}_${F}
     ${ALL_TLL_LIBS}
     netcdf
@@ -1853,6 +1956,10 @@ ENDIF()
 
 IF(ENABLE_NCZARR)
   ADD_SUBDIRECTORY(libnczarr)
+  FILE(COPY ${netCDF_SOURCE_DIR}/unit_test/timer_utils.h
+       DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
+  FILE(COPY ${netCDF_SOURCE_DIR}/unit_test/timer_utils.c
+       DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
 ENDIF()
 
 add_subdirectory(liblib)
@@ -1884,9 +1991,6 @@ IF(ENABLE_TESTS)
   IF(USE_HDF5)
     INCLUDE_DIRECTORIES(h5_test)
     ADD_SUBDIRECTORY(nc_test4)
-    IF(BUILD_BENCHMARKS)
-      ADD_SUBDIRECTORY(nc_perf)
-    ENDIF()
     ADD_SUBDIRECTORY(h5_test)
   ENDIF()
   IF(ENABLE_DAP2)
@@ -2064,7 +2168,7 @@ is_enabled(STATUS_PNETCDF HAS_PNETCDF)
 is_enabled(STATUS_PARALLEL HAS_PARALLEL)
 is_enabled(ENABLE_PARALLEL4 HAS_PARALLEL4)
 is_enabled(ENABLE_DAP HAS_DAP)
-is_enabled(ENABLE_DAP HAS_DAP2)
+is_enabled(ENABLE_DAP2 HAS_DAP2)
 is_enabled(ENABLE_DAP4 HAS_DAP4)
 is_enabled(ENABLE_BYTERANGE HAS_BYTERANGE)
 is_enabled(ENABLE_DISKLESS HAS_DISKLESS)
@@ -2076,7 +2180,9 @@ is_enabled(ENABLE_ERANGE_FILL HAS_ERANGE_FILL)
 is_enabled(HAVE_H5Z_SZIP HAS_SZLIB)
 is_enabled(HDF5_HAS_PAR_FILTERS HAS_PAR_FILTERS)
 is_enabled(ENABLE_NCZARR HAS_NCZARR)
-is_enabled(ENABLE_S3_TESTS DO_S3_TESTS)
+is_enabled(ENABLE_NCZARR_S3_TESTS DO_NCZARR_S3_TESTS)
+is_enabled(ENABLE_MULTIFILTERS HAS_MULTIFILTERS)
+is_enabled(ENABLE_NCZARR_ZIP DO_NCZARR_ZIP_TESTS)
 
 # Generate file from template.
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
@@ -2108,18 +2214,30 @@ configure_file(
   ${netCDF_BINARY_DIR}/include/netcdf_meta.h @ONLY)
 
 #####
+# Create 'netcdf_dispatch.h' include file.
+#####
+configure_file(
+  ${netCDF_SOURCE_DIR}/include/netcdf_dispatch.h.in
+  ${netCDF_BINARY_DIR}/include/netcdf_dispatch.h @ONLY NEWLINE_STYLE LF)
+
+# Used in the `configure_file` calls below
+SET(ISCMAKE "1")
+IF(MSVC)
+SET(ISMSVC "1")
+ENDIF()
+
+####
 # Build test_common.sh
 #####
 SET(EXTRA_DIST ${EXTRA_DIST} ${CMAKE_CURRENT_SOURCE_DIR}/test_common.in)
 SET(TOPSRCDIR "${CMAKE_CURRENT_SOURCE_DIR}")
 SET(TOPBUILDDIR "${CMAKE_CURRENT_BINARY_DIR}")
+SET(ISMSVC "${MSVC}")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test_common.in ${CMAKE_CURRENT_BINARY_DIR}/test_common.sh @ONLY NEWLINE_STYLE LF)
-
 
 #####
 # Build nc_test4/findplugin.sh
 #####
-SET(ISCMAKE "1")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/nc_test4/findplugin.sh @ONLY NEWLINE_STYLE LF)
 
 IF(ENABLE_EXAMPLES)

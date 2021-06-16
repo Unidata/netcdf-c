@@ -1,7 +1,9 @@
-#!/bin/sh
+#!/bin/bash
 
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
+
+set -e
 
 # Which test cases to exercise
 API=1
@@ -11,8 +13,8 @@ UNK=1
 NGC=1
 MISC=1
 MULTI=1
-ORDER=1
 REP=1
+ORDER=1
 
 # Load the findplugins function
 . ${builddir}/findplugin.sh
@@ -39,10 +41,23 @@ trimleft() {
 sed -e 's/[ 	]*\([^ 	].*\)/\1/' <$1 >$2
 }
 
+# Hide/unhide the bzip2 filter
+hidebzip2() {
+  rm -fr ${HDF5_PLUGIN_PATH}/save
+  mkdir ${HDF5_PLUGIN_PATH}/save
+  mv ${BZIP2PATH} ${HDF5_PLUGIN_PATH}/save
+}
+
+unhidebzip2() {
+  mv ${HDF5_PLUGIN_PATH}/save/${BZIP2LIB} ${HDF5_PLUGIN_PATH}
+  rm -fr ${HDF5_PLUGIN_PATH}/save
+}
+
 # Locate the plugin path and the library names; argument order is critical
 # Find bzip2 and capture
 findplugin h5bzip2
-BZIP2PATH="${HDF5_PLUGIN_PATH}/${HDF5_PLUGIN_LIB}"
+BZIP2LIB="${HDF5_PLUGIN_LIB}"
+BZIP2PATH="${HDF5_PLUGIN_PATH}/${BZIP2LIB}"
 # Find misc and capture
 findplugin misc
 MISCPATH="${HDF5_PLUGIN_PATH}/${HDF5_PLUGIN_LIB}"
@@ -88,7 +103,7 @@ rm -f ./tst_filter.txt
 trimleft ./tst_filter2.txt ./tst_filter.txt
 rm -f ./tst_filter2.txt
 cat >./tst_filter2.txt <<EOF
-var:_Filter = "32768,2,239,23,65511,27,77,93,1145389056,3287505826,1097305129,1,2147483648,4294967295,4294967295" ;
+var:_Filter = "32768,3,239,23,65511,27,77,93,1145389056,3287505826,1097305129,1,2147483648,4294967295,4294967295" ;
 EOF
 diff -b -w ./tst_filter.txt ./tst_filter2.txt
 echo "*** Pass: parameter passing"
@@ -167,23 +182,31 @@ fi
 if test "x$UNK" = x1 ; then
 echo "*** Testing access to filter info when filter dll is not available"
 rm -f bzip2.nc ./tst_filter.txt
-# build bzip2.nc
+# xfail build bzip2.nc 
+hidebzip2
+if ${NCGEN} -lb -4 -o bzip2.nc ${srcdir}/bzip2.cdl ; then
+    echo "*** FAIL: ncgen"
+else
+    echo "*** XFAIL: ncgen"
+fi
+unhidebzip2    
+# build bzip2.nc 
 ${NCGEN} -lb -4 -o bzip2.nc ${srcdir}/bzip2.cdl
-# dump and clean bzip2.nc header only when filter is avail
-${NCDUMP} -hs bzip2.nc > ./tst_filter.txt
-# Remove irrelevant -s output
-sclean ./tst_filter.txt bzip2.dump
 # Now hide the filter code
-mv ${BZIP2PATH} ${BZIP2PATH}.save
-# dump and clean bzip2.nc header only when filter is not avail
+hidebzip2
+rm -f ./tst_filter.txt
+# This will xfail
+if ${NCDUMP} -s bzip2.nc > ./tst_filter.txt ; then
+    echo "*** FAIL: ncdump -hs bzip2.nc"
+else
+    echo "*** XFAIL: ncdump -hs bzip2.nc"
+fi
+# Restore the filter code
+unhidebzip2
+# Verify we can see filter when using -h
 rm -f ./tst_filter.txt
 ${NCDUMP} -hs bzip2.nc > ./tst_filter.txt
-# Remove irrelevant -s output
-sclean ./tst_filter.txt bzip2x.dump
-# Restore the filter code
-mv ${BZIP2PATH}.save ${BZIP2PATH}
-diff -b -w ./bzip2.dump ./bzip2x.dump
-echo "*** Pass: ncgen dynamic filter"
+echo "*** Pass: unknown filter"
 fi
 
 if test "x$NGC" = x1 ; then
@@ -209,32 +232,36 @@ if ! test -f unfiltered.nc ; then
 fi
 ${NCCOPY} "-F/g/var,307,4|40000" unfiltered.nc nccopyF.nc
 ${NCDUMP} -hs nccopyF.nc > ./nccopyF.cdl
-sclean nccopyF.cdl nccopyFs.cdl 
+sclean nccopyF.cdl nccopyFs.cdl
 diff -b -w ${srcdir}/ref_nccopyF.cdl ./nccopyFs.cdl
 echo "*** ncgen with multiple filters"
 ${NCGEN} -4 -lb -o ncgenF.nc ${srcdir}/ref_nccopyF.cdl
 # Need to fix name using -n
 ${NCDUMP} -hs -n nccopyF ncgenF.nc > ./ncgenF.cdl
-sclean ncgenF.cdl ncgenFs.cdl 
+sclean ncgenF.cdl ncgenFs.cdl
 diff -b -w ${srcdir}/ref_nccopyF.cdl ./ncgenFs.cdl
 echo "*** Pass: multiple filters"
-fi
-
-if test "x$ORDER" = x1 ; then
-echo "*** Testing multiple filter order of invocation"
-rm -f filterorder.txt
-${execdir}/test_filter_order >filterorder.txt
-diff -b -w ${srcdir}/ref_filter_order.txt filterorder.txt
 fi
 
 if test "x$REP" = x1 ; then
 echo "*** Testing filter re-definition invocation"
 rm -f filterrepeat.txt
 ${execdir}/test_filter_repeat >filterrepeat.txt
-pwd
-ls -l *.txt
-ls -l ${srcdir}/*.txt
 diff -b -w ${srcdir}/ref_filter_repeat.txt filterrepeat.txt
+fi
+
+if test "x$ORDER" = x1 ; then
+
+echo "*** Testing multiple filter order of invocation on create"
+rm -f crfilterorder.txt
+${execdir}/test_filter_order create >crfilterorder.txt
+diff -b -w ${srcdir}/ref_filter_order_create.txt crfilterorder.txt
+
+echo "*** Testing multiple filter order of invocation on read"
+rm -f rdfilterorder.txt
+${execdir}/test_filter_order read >rdfilterorder.txt
+diff -b -w ${srcdir}/ref_filter_order_read.txt rdfilterorder.txt
+
 fi
 
 echo "*** Pass: all selected tests passed"
@@ -252,5 +279,6 @@ rm -f test_bzip2.c
 rm -f multifilter.nc multi.cdl smulti.cdl
 rm -f nccopyF.nc nccopyF.cdl ncgenF.nc ncgenF.cdl
 rm -f ncgenFs.cdl  nccopyFs.cdl
-exit 0
+rm -f crfilterorder.txt rdfilterorder.txt
 
+exit 0

@@ -230,7 +230,6 @@ NC4_HDF5_rename_att(int ncid, int varid, const char *name, const char *newname)
     if(att->hdr.name) free(att->hdr.name);
     if (!(att->hdr.name = strdup(norm_newname)))
         return NC_ENOMEM;
-    att->hdr.hashkey = NC_hashmapkey(att->hdr.name,strlen(att->hdr.name)); /* Fix hash key */
 
     att->dirty = NC_TRUE;
 
@@ -460,8 +459,8 @@ nc4_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
         if (nc->ext_ncid == ncid && varid == NC_GLOBAL && grp->parent == NULL
             && (ra->flags & READONLYFLAG))
             return NC_ENAMEINUSE;
-        /* case 2: grp=NA, varid!=NC_GLOBAL, flags & DIMSCALEFLAG */
-        if (varid != NC_GLOBAL && (ra->flags & DIMSCALEFLAG))
+        /* case 2: grp=NA, varid!=NC_GLOBAL, flags & HIDDENATTRFLAG */
+        if (varid != NC_GLOBAL && (ra->flags & HIDDENATTRFLAG))
             return NC_ENAMEINUSE;
     }
 

@@ -4,18 +4,41 @@
  */
 
 #include "zincludes.h"
-#include "ncwinpath.h"
+#include <stdarg.h>
+#include "ncpathmgr.h"
 
 /**************************************************/
 /* Import the current implementations */
 
+extern NCZMAP_DS_API zmap_file;
+#ifdef USE_HDF5
 extern NCZMAP_DS_API zmap_nz4;
-extern NCZMAP_DS_API zmap_nzf;
+#endif
+#ifdef ENABLE_NCZARR_ZIP
+extern NCZMAP_DS_API zmap_zip;
+#endif
 #ifdef ENABLE_S3_SDK
 extern NCZMAP_DS_API zmap_s3sdk;
 #endif
 
 /**************************************************/
+
+NCZM_FEATURES
+nczmap_features(NCZM_IMPL impl)
+{
+    switch (impl) {
+    case NCZM_FILE: return zmap_file.features;
+#ifdef ENABLE_NCZARR_ZIP
+    case NCZM_ZIP: return zmap_zip.features;
+#endif
+#ifdef ENABLE_S3_SDK
+    case NCZM_S3: return zmap_s3sdk.features;
+#endif
+    default: break;
+    }
+    return NCZM_UNIMPLEMENTED;
+}
+
 int
 nczmap_create(NCZM_IMPL impl, const char *path, int mode, size64_t flags, void* parameters, NCZMAP** mapp)
 {
@@ -29,14 +52,16 @@ nczmap_create(NCZM_IMPL impl, const char *path, int mode, size64_t flags, void* 
     if(mapp) *mapp = NULL;
 
     switch (impl) {
-    case NCZM_NC4:
-        stat = zmap_nz4.create(path, mode, flags, parameters, &map);
-	if(stat) goto done;
-	break;
     case NCZM_FILE:
-        stat = zmap_nzf.create(path, mode, flags, parameters, &map);
+        stat = zmap_file.create(path, mode, flags, parameters, &map);
 	if(stat) goto done;
 	break;
+#ifdef ENABLE_NCZARR_ZIP
+    case NCZM_ZIP:
+        stat = zmap_zip.create(path, mode, flags, parameters, &map);
+	if(stat) goto done;
+	break;
+#endif
 #ifdef ENABLE_S3_SDK
     case NCZM_S3:
         stat = zmap_s3sdk.create(path, mode, flags, parameters, &map);
@@ -65,14 +90,16 @@ nczmap_open(NCZM_IMPL impl, const char *path, int mode, size64_t flags, void* pa
     if(mapp) *mapp = NULL;
 
     switch (impl) {
-    case NCZM_NC4:
-        stat = zmap_nz4.open(path, mode, flags, parameters, &map);
-	if(stat) goto done;
-	break;
     case NCZM_FILE:
-        stat = zmap_nzf.open(path, mode, flags, parameters, &map);
+        stat = zmap_file.open(path, mode, flags, parameters, &map);
 	if(stat) goto done;
 	break;
+#ifdef ENABLE_NCZARR_ZIP
+    case NCZM_ZIP:
+        stat = zmap_zip.open(path, mode, flags, parameters, &map);
+	if(stat) goto done;
+	break;
+#endif
 #ifdef ENABLE_S3_SDK
     case NCZM_S3:
         stat = zmap_s3sdk.open(path, mode, flags, parameters, &map);
@@ -116,12 +143,6 @@ nczmap_len(NCZMAP* map, const char* key, size64_t* lenp)
 }
 
 int
-nczmap_defineobj(NCZMAP* map, const char* key)
-{
-    return map->api->defineobj(map, key);
-}
-
-int
 nczmap_read(NCZMAP* map, const char* key, size64_t start, size64_t count, void* content)
 {
     return map->api->read(map, key, start, count, content);
@@ -133,10 +154,27 @@ nczmap_write(NCZMAP* map, const char* key, size64_t start, size64_t count, const
     return map->api->write(map, key, start, count, content);
 }
 
+/* Define a static qsort comparator for strings for use with qsort */
+static int
+cmp_strings(const void* a1, const void* a2)
+{
+    const char** s1 = (const char**)a1;
+    const char** s2 = (const char**)a2;
+    return strcmp(*s1,*s2);
+}
+
 int
 nczmap_search(NCZMAP* map, const char* prefix, NClist* matches)
 {
-    return map->api->search(map, prefix, matches);
+    int stat = NC_NOERR;
+    if((stat = map->api->search(map, prefix, matches)) == NC_NOERR) {
+        /* sort the list */
+        if(nclistlength(matches) > 1) {
+	    void* base = nclistcontents(matches);
+            qsort(base, nclistlength(matches), sizeof(char*), cmp_strings);
+	}
+    }
+    return stat;
 }
 
 /**************************************************/
@@ -230,6 +268,26 @@ nczm_concat(const char* prefix, const char* suffix, char** pathp)
     return NC_NOERR;
 }
 
+/* Concat multiple strings, but with no intervening separators */
+int
+nczm_appendn(char** resultp, int n, ...)
+{
+    va_list args;
+    NCbytes* buf = ncbytesnew();
+    int i;
+
+    va_start(args, n);
+    for(i=0;i<n;i++) {
+	char* s = va_arg(args,char*);
+	if(s != NULL) ncbytescat(buf,s);
+    }
+    ncbytesnull(buf);
+    va_end(args);
+    if(resultp) {*resultp = ncbytesextract(buf);}
+    ncbytesfree(buf);
+    return NC_NOERR;
+}
+
 /* A segment is defined as a '/' plus characters following up
    to the end or upto the next '/'
 */
@@ -319,13 +377,16 @@ nczm_localize(const char* path, char** localpathp, int localize)
     char* p;
     int forward = 1;
     int offset = 0;
+    static const char* windrive = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 #ifdef _MSC_VER
     forward = (localize?0:1);
 #endif
     /* If path comes from a url, then it may start with: /x:/...
        where x is a drive letter. If so, then remove leading / */
-    if(path[0] == '/' && NChasdriveletter(path+1))
+    if(strlen(path) >= 4
+       && path[0] == '/' && strchr(windrive,path[1]) != NULL
+       && path[2] == ':' && path[3] == '/')
 	offset = 1;
     if((localpath = strdup(path+offset))==NULL) return NC_ENOMEM;
 
@@ -340,8 +401,7 @@ nczm_localize(const char* path, char** localpathp, int localize)
 
 /* Convert path0 to be:
 1. absolute -- including drive letters
-2. forward slashed -- we will convert back to back slash in
-   nczm_fixpath
+2. forward slashed -- we will convert back to back slash in nczm_fixpath
 */
 
 int
@@ -365,4 +425,131 @@ done:
     nullfree(tmp);
     nullfree(cpath);
     return THROW(ret);    
+}
+
+/* extract the first segment of a path */
+int
+nczm_segment1(const char* path, char** seg1p)
+{
+    int ret = NC_NOERR;
+    char* seg1 = NULL;
+    const char* p = NULL;
+    const char* q = NULL;
+    ptrdiff_t delta;
+
+    if(path == NULL) 
+	{seg1 = NULL; goto done;}
+
+    p = path;
+    if(*p == '/') p++; /* skip any leading '/' */
+    q = strchr(p,'/');
+    if(q == NULL) q = p+strlen(p); /* point to stop character */
+    delta = (q-p);
+    if((seg1 = (char*)malloc(delta+1))==NULL)
+        {ret = NC_ENOMEM; goto done;}
+    memcpy(seg1,p,delta);
+    seg1[delta] = '\0';
+
+    if(seg1p) {*seg1p = seg1; seg1 = NULL;}
+done:
+    nullfree(seg1);
+    return THROW(ret);    
+}
+
+/*
+Extract the last segment from path.
+*/
+
+int
+nczm_lastsegment(const char* path, char** lastp)
+{
+    int ret = NC_NOERR;
+    const char* last = NULL;
+
+    if(path == NULL)
+	{if(lastp) *lastp = NULL; goto done;}
+
+    last = strrchr(path,'/');
+    if(last == NULL) last = path; else last++;
+
+    if(lastp) *lastp = strdup(last);
+
+done:
+    return THROW(ret);    
+}
+
+/*
+Extract the basename from a path.
+Basename is last segment minus one extension.
+*/
+
+int
+nczm_basename(const char* path, char** basep)
+{
+    int stat = NC_NOERR;
+    char* base = NULL;
+    char* last = NULL;
+    const char* p = NULL;
+    ptrdiff_t delta;
+
+    if((stat=nczm_lastsegment(path,&last))) goto done;
+
+    if(last == NULL) goto done;
+    p = strrchr(last,'.');
+    if(p == NULL) p = last+strlen(last);
+    delta = (p - last);
+    if((base = (char*)malloc(delta+1))==NULL)
+        {stat = NC_ENOMEM; goto done;}
+    memcpy(base,last,delta);
+    base[delta] = '\0';
+    if(basep) {*basep = base; base = NULL;}
+done:
+    nullfree(last);
+    nullfree(base);
+    return THROW(stat);    
+}
+
+/* bubble sort a list of strings */
+void
+nczm_sortlist(NClist* l)
+{
+    nczm_sortenvv(nclistlength(l),(char**)nclistcontents(l));
+}
+
+/* bubble sort a list of strings */
+void
+nczm_sortenvv(int n, char** envv)
+{
+    size_t i, switched;
+
+    if(n <= 1) return;
+    do {
+	switched = 0;
+        for(i=0;i<n-1;i++) {
+	    char* ith = envv[i];
+	    char* ith1 = envv[i+1];
+	    if(strcmp(ith,ith1) > 0) {
+	        envv[i] = ith1;
+    	        envv[i+1] = ith;
+	        switched = 1;
+	    }
+	}
+    } while(switched);
+#if 0
+for(i=0;i<n;i++)
+fprintf(stderr,"sorted: [%d] %s\n",i,(const char*)envv[i]);
+#endif
+}
+
+void
+NCZ_freeenvv(int n, char** envv)
+{
+   int i;
+   char** p;
+   if(envv == NULL) return;
+   if(n < 0)
+       {for(n=0, p = envv; *p; n++); /* count number of strings */}
+    for(i=0;i<n;i++)
+        if(envv[i]) free(envv[i]);
+    free(envv);    
 }

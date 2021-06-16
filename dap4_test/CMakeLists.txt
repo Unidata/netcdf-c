@@ -12,6 +12,7 @@ remove_definitions(-DDLL_EXPORT)
 ADD_SUBDIRECTORY(baseline)
 ADD_SUBDIRECTORY(baselineraw)
 ADD_SUBDIRECTORY(baselineremote)
+ADD_SUBDIRECTORY(baselinehyrax)
 ADD_SUBDIRECTORY(cdltestfiles)
 ADD_SUBDIRECTORY(daptestfiles)
 ADD_SUBDIRECTORY(dmrtestfiles)
@@ -51,6 +52,10 @@ IF(ENABLE_TESTS)
       add_sh_test(dap4_test test_data)
     ENDIF()
   ENDIF(BUILD_UTILITIES)
+
+  IF(ENABLE_DAP_REMOTE_TESTS)
+      add_sh_test(dap4_test test_hyrax)
+  ENDIF(ENABLE_DAP_REMOTE_TESTS)
 
 ENDIF(ENABLE_TESTS)
 

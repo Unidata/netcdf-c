@@ -51,8 +51,17 @@ typedef int OCflags;
 /*!\def OCONDISK
 Cause oc_fetch to store the retrieved data on disk.
 */
-
 #define OCONDISK 1
+
+/*!\def OCENCODEPATH
+Cause oc_fetch to encode path part of a URL
+*/
+#define OCENCODEPATH 2
+
+/*!\def OCENCODEQUERY
+Cause oc_fetch to encode query part of a URL
+*/
+#define OCENCODEQUERY 4
 
 /**************************************************/
 /* OCtype */
@@ -409,7 +418,8 @@ EXTERNL OCerror oc_data_ithelement(OClink, OCdatanode data, size_t* indices, OCd
 EXTERNL OCerror oc_data_ithrecord(OClink, OCdatanode data, size_t index, OCdatanode* recordp);
 
 /* Free up an data that is no longer being used */
-EXTERNL OCerror oc_data_free(OClink, OCdatanode data);
+/* Currently does nothing */
+#define oc_data_free(link,datanode)
 
 /* Count the records associated with a sequence */
 EXTERNL OCerror oc_data_recordcount(OClink, OCdatanode, size_t*);
@@ -583,7 +593,7 @@ EXTERNL OCerror oc_set_curlopt(OClink link, const char* option, void* value);
 EXTERNL OCerror oc_get_connection(OCobject ocnode, OCobject* linkp);
 
 /* Resend a url as a head request to check the Last-Modified time */
-EXTERNL OCerror oc_update_lastmodified_data(OClink);
+EXTERNL OCerror oc_update_lastmodified_data(OClink,OCflags);
 
 /* Get last known modification time; -1 => data unknown */
 EXTERNL long oc_get_lastmodified_data(OClink);

@@ -15,17 +15,13 @@
 #include <getopt.h>
 #endif
 
-#ifdef _MSC_VER
+#if defined(_WIN32) && !defined(__MINGW32__)
 #include "XGetopt.h"
 #define snprintf _snprintf
 #endif
 
-#ifdef __hpux
-#include <locale.h>
-#endif
-    
 #include "netcdf.h"
-#include "ncwinpath.h"
+#include "ncpathmgr.h"
 
 #include "generic.h"
 #include "ncgen.h"
@@ -91,10 +87,6 @@ main(
     int c;
     FILE *fp;
 
-#ifdef __hpux
-    setlocale(LC_CTYPE,"");
-#endif
-    
 #ifdef MDEBUG
 	malloc_debug(2) ;	/* helps find malloc/free errors on Sun */
 #endif /* MDEBUG */
@@ -213,6 +205,9 @@ main(
     argv += optind;
 
     if (argc > 1) {
+int i;
+for(i=0;i<argc;i++)
+fprintf(stderr,"xarg(%d): |%s|\n",i,argv[i]);
 	derror ("%s: only one input file argument permitted",progname);
 	return(6);
     }

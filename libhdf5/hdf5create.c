@@ -9,6 +9,9 @@
  */
 
 #include "config.h"
+#include "netcdf.h"
+#include "ncpathmgr.h"
+#include "ncpathmgr.h"
 #include "hdf5internal.h"
 
 /* From hdf5file.c. */
@@ -21,12 +24,6 @@ static const int ILLEGAL_CREATE_FLAGS = (NC_NOWRITE|NC_MMAP|NC_64BIT_OFFSET|NC_C
 
 /* From nc4mem.c */
 extern int NC4_create_image_file(NC_FILE_INFO_T* h5, size_t);
-
-#ifdef _WIN32
-static hid_t nc4_H5Fcreate(const char *filename, unsigned flags, hid_t fcpl_id, hid_t fapl_id);
-#else
-#define nc4_H5Fcreate  H5Fcreate
-#endif
 
 /**
  * @internal Create a netCDF-4/HDF5 file.
@@ -114,7 +111,7 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
     /* If this file already exists, and NC_NOCLOBBER is specified,
        return an error (unless diskless|inmemory) */
     if (!nc4_info->mem.diskless && !nc4_info->mem.inmemory) {
-        if ((cmode & NC_NOCLOBBER) && (fp = fopen(path, "r"))) {
+        if ((cmode & NC_NOCLOBBER) && (fp = NCfopen(path, "r"))) {
             fclose(fp);
             BAIL(NC_EEXIST);
         }
@@ -166,15 +163,19 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
 	     nc4_chunk_cache_preemption));
     }
 
-#ifdef HAVE_H5PSET_LIBVER_BOUNDS
 #if H5_VERSION_GE(1,10,2)
-    if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_EARLIEST, H5F_LIBVER_V112) < 0)
+    /* lib versions 1.10.2 and higher */
+    if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_V18, H5F_LIBVER_LATEST) < 0)
 #else
-        if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_EARLIEST,
-                                 H5F_LIBVER_LATEST) < 0)
+#if H5_VERSION_GE(1,10,0)
+    /* lib versions 1.10.0, 1.10.1 */
+    if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_EARLIEST, H5F_LIBVER_LATEST) < 0)
+#else
+    /* all HDF5 1.8 lib versions */
+    if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0)
 #endif
-            BAIL(NC_EHDFERR);
 #endif
+        BAIL(NC_EHDFERR);
 
     /* Create the property list. */
     if ((fcpl_id = H5Pcreate(H5P_FILE_CREATE)) < 0)
@@ -313,8 +314,6 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
     return res;
 }
 
-#ifdef _WIN32
-
 /**
  * Wrapper function for H5Fcreate.
  * Converts the filename from ANSI to UTF-8 as needed before calling H5Fcreate.
@@ -325,18 +324,24 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
  * @param fapl_id File access property list identifier.
  * @return A file identifier if succeeded. A negative value if failed.
  */
-static hid_t
-nc4_H5Fcreate(const char *filename, unsigned flags, hid_t fcpl_id, hid_t fapl_id)
+hid_t
+nc4_H5Fcreate(const char *filename0, unsigned flags, hid_t fcpl_id, hid_t fapl_id)
 {
-    pathbuf_t pb;
     hid_t hid;
+    char* localname = NULL;
+    char* filename = NULL;
 
-    filename = nc4_ndf5_ansi_to_utf8(&pb, filename);
-    if (!filename)
-        return H5I_INVALID_HID;
-    hid = H5Fcreate(filename, flags, fcpl_id, fapl_id);
-    nc4_hdf5_free_pathbuf(&pb);
+#ifdef HDF5_UTF8_PATHS
+    NCpath2utf8(filename0,&filename);
+#else    
+    filename = strdup(filename0);
+#endif
+    /* Canonicalize it since we are not opening the file ourselves */
+    if((localname = NCpathcvt(filename))==NULL)
+	{hid = H5I_INVALID_HID; goto done;}
+    hid = H5Fcreate(localname, flags, fcpl_id, fapl_id);
+done:
+    nullfree(filename);
+    nullfree(localname);
     return hid;
 }
-
-#endif /* _WIN32 */

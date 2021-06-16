@@ -14,7 +14,7 @@ cleanncprops() {
   rm -f $dst
   cat $src \
   | sed -e '/:_Endianness/d' \
-  | sed -e 's/_SuperblockVersion = 1/_SuperblockVersion = 0/' \
+  | sed -e 's/_SuperblockVersion = [12]/_SuperblockVersion = 0/' \
   | sed -e 's/\(netcdflibversion\|netcdf\)=.*|/\1=NNNN|/' \
   | sed -e 's/\(hdf5libversion\|hdf5\)=.*"/\1=HHHH"/' \
   | grep -v '_NCProperties' \
@@ -72,13 +72,8 @@ ${NCDUMP} -s -h tst_ncf213.nc > tst_ncf213.cdl
 cleanncprops tst_ncf213.cdl tst_ncf213.tmp
 cleanncprops ${srcdir}/ref_tst_ncf213.cdl ref_tst_ncf213.tmp
 # Now compare
-ok=1;
-if diff -b tst_ncf213.tmp ref_tst_ncf213.tmp ; then ok=1; else ok=0; fi
-
-if test $ok = 0 ; then
-  echo "*** FAIL: NCF-213 Bug Fix test"
-  exit 1
-fi
+diff -b tst_ncf213.tmp ref_tst_ncf213.tmp
 
 echo "*** All ncgen and ncdump extra test output for netCDF-4 format passed!"
 exit 0
+

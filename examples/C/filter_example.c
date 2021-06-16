@@ -247,6 +247,7 @@ test_bzip2(void)
     nparams = 0;
     params = NULL;
     CHECK(nc_inq_var_filter(ncid,varid,&filterid,&nparams,NULL));
+    if(filterid == 0) CHECK(NC_ENOFILTER); /* Not defined */
     if(nparams > 0) {
         params = (unsigned int*)malloc(sizeof(unsigned int)*nparams);
 	if(params == NULL)
@@ -301,7 +302,7 @@ init(int argc, char** argv)
 int
 main(int argc, char **argv)
 {
-    H5Eprint(stderr);
+    H5Eprint1(stderr);
     init(argc,argv);
     if(test_bzip2() != NC_NOERR) ERRR;
     exit(nerrs > 0?1:0);

@@ -211,7 +211,7 @@ main(int argc, char **argv)
       /* Open file and create group. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
 			      H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gcreate(fileid, GRP_NAME, 0)) < 0) ERR;
+      if ((grpid = H5Gcreate1(fileid, GRP_NAME, 0)) < 0) ERR;
 
       /* Write an array of bools, with szip compression. */
       if ((propid = H5Pcreate(H5P_DATASET_CREATE)) < 0) ERR;
@@ -219,7 +219,7 @@ main(int argc, char **argv)
       if (H5Pset_chunk(propid, 1, dims)) ERR;
       if (H5Pset_szip(propid, H5_SZIP_EC_OPTION_MASK, 32)) ERR;
       if ((spaceid = H5Screate_simple(1, dims, dims)) < 0) ERR;
-      if ((datasetid = H5Dcreate(grpid, BATTLE_RECORD, H5T_NATIVE_INT,
+      if ((datasetid = H5Dcreate1(grpid, BATTLE_RECORD, H5T_NATIVE_INT,
 				 spaceid, propid)) < 0) ERR;
       if (H5Dwrite(datasetid, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT,
 		   data_out) < 0) ERR;

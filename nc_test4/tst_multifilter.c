@@ -135,12 +135,13 @@ compare(void)
 int
 verifyfilters(int ncid, int varid)
 {
-    size_t nfilters, nparams;
+    size_t nparams;
+    size_t nfilters;
     unsigned int filterids[NFILTERS];
     unsigned int params[2];
     
     /* Read back the compression info and verify it */
-    CHECK(nc_inq_var_filterids(ncid,varid,&nfilters,filterids));
+    CHECK(nc_inq_var_filter_ids(ncid,varid,&nfilters,filterids));
     if(nfilters != NFILTERS) {
 	fprintf(stderr,"Fail: nfilters mismatch: expected=%d actual=%u\n",NFILTERS,(unsigned)nfilters);
         return NC_EINVAL;
@@ -308,7 +309,7 @@ init(int argc, char** argv)
 int
 main(int argc, char **argv)
 {
-    H5Eprint(stderr);
+    H5Eprint1(stderr);
     init(argc,argv);
     if(test_multi() != NC_NOERR) ERRR;
     exit(nerrs > 0?1:0);

@@ -16,7 +16,7 @@
 
 #include "config.h"
 #include "hdf5internal.h"
-#include "ncfilter.h"
+#include "hdf5err.h" /* For BAIL2 */
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -34,7 +34,7 @@
 static herr_t
 h5catch(void* ignored)
 {
-    H5Eprint(NULL);
+    H5Eprint1(NULL);
     return 0;
 }
 #endif
@@ -630,6 +630,11 @@ close_vars(NC_GRP_INFO_T *grp)
 	    free(hdf5_var->dimscale_attached);
 	nullfree(hdf5_var);
 
+	/* Reclaim filters */
+	if(var->filters != NULL) {
+	    (void)NC4_hdf5_filter_freelist(var);
+	}
+	var->filters = NULL;
     }
 
     return NC_NOERR;
@@ -804,34 +809,15 @@ int
 nc4_hdf5_find_grp_h5_var(int ncid, int varid, NC_FILE_INFO_T **h5,
                          NC_GRP_INFO_T **grp, NC_VAR_INFO_T **var)
 {
-    NC_FILE_INFO_T *my_h5;
-    NC_GRP_INFO_T *my_grp;
     NC_VAR_INFO_T *my_var;
     int retval;
-
-    /* Look up file and group metadata. */
-    if ((retval = nc4_find_grp_h5(ncid, &my_grp, &my_h5)))
-        return retval;
-    assert(my_grp && my_h5);
-
-    /* Find the var. */
-    if (!(my_var = (NC_VAR_INFO_T *)ncindexith(my_grp->vars, varid)))
-        return NC_ENOTVAR;
-    assert(my_var && my_var->hdr.id == varid);
-
-    /* Do we need to read var metadata? */
+    /* Delegate to libsrc4 */
+    if((retval = nc4_find_grp_h5_var(ncid,varid,h5,grp,&my_var))) return retval;
+    /* Do we need to read var metadata? (hdf5 specific) */
     if (!my_var->meta_read && my_var->created)
         if ((retval = nc4_get_var_meta(my_var)))
             return retval;
-
-    /* Return pointers that caller wants. */
-    if (h5)
-        *h5 = my_h5;
-    if (grp)
-        *grp = my_grp;
-    if (var)
-        *var = my_var;
-
+    if (var) *var = my_var;
     return NC_NOERR;
 }
 
@@ -1022,16 +1008,25 @@ hdf5_set_log_level()
     }
     else
     {
-        if (set_auto((H5E_auto_t)&H5Eprint, stderr) < 0)
+        if (set_auto((H5E_auto_t)&H5Eprint1, stderr) < 0)
             LOG((0, "H5Eset_auto failed!"));
         LOG((1, "HDF5 error messages turned on."));
     }
 
     return NC_NOERR;
 }
+
+void
+nc_log_hdf5(void)
+{
+#ifdef USE_HDF5
+    H5Eprint1(NULL);
+#endif /* USE_HDF5 */
+}
+
 #endif /* LOGGING */
 
-
+#if 0
 #ifdef _WIN32
 
 /**
@@ -1056,12 +1051,11 @@ nc4_ndf5_ansi_to_utf8(pathbuf_t *pb, const char *path)
     int n;
 
     if (hdf5_encoding == UNDEF) {
-        uint majnum, minnum, relnum;
-        H5get_libversion(&majnum, &minnum, &relnum);
-        hdf5_encoding = (((majnum == UTF8_MAJNUM && minnum == UTF8_MINNUM && relnum >= UTF8_RELNUM)
-                          || (majnum == UTF8_MAJNUM && minnum > UTF8_MINNUM)
-                          || majnum > UTF8_MAJNUM)
-                         ? UTF8 : ANSI);
+#ifdef HDF5_UTF8_PATHS
+	hdf5_encoding = UTF8;
+#else
+	hdf5_encoding = ANSI;
+#endif
     }
     if (hdf5_encoding == ANSI) {
         pb->ptr = NULL;
@@ -1118,3 +1112,4 @@ nc4_hdf5_free_pathbuf(pathbuf_t *pb)
 }
 
 #endif /* _WIN32 */
+#endif /*0*/

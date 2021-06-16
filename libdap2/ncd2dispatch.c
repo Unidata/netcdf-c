@@ -175,7 +175,8 @@ NCD2_def_var_filter,
 NCD2_set_var_chunk_cache,
 NCD2_get_var_chunk_cache,
 
-NC_NOOP_filter_actions,
+NC_NOOP_inq_var_filter_ids,
+NC_NOOP_inq_var_filter_info,
 
 };
 
@@ -188,9 +189,8 @@ NCD2_initialize(void)
     ncd2initialized = 1;
 #ifdef DEBUG
     /* force logging to go to stderr */
-    nclogclose();
-    if(nclogopen(NULL))
-        ncsetlogging(1); /* turn it on */
+    ncsetlogging(1); /* turn it on */
+    nclogopen(NULL))
 #endif
     return NC_NOERR;
 }
@@ -403,9 +403,8 @@ fprintf(stderr,"ce=%s\n",dumpconstraint(dapcomm->oc.dapconstraint));
     ocstat = oc_open(dapcomm->oc.urltext,&dapcomm->oc.conn);
     if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto done;}
 
-#ifdef DEBUG1
-    (void)oc_trace_curl(dapcomm->oc.conn);
-#endif
+    if(getenv("CURLOPT_VERBOSE") != NULL)
+        (void)oc_trace_curl(dapcomm->oc.conn);
 
     nullfree(dapcomm->oc.urltext); /* clean up */
     dapcomm->oc.urltext = NULL;
@@ -415,12 +414,8 @@ fprintf(stderr,"ce=%s\n",dumpconstraint(dapcomm->oc.dapconstraint));
 
     /* Turn on logging; only do this after oc_open*/
     if((value = dapparamvalue(dapcomm,"log")) != NULL) {
-	ncloginit();
-        if(nclogopen(value))
-	    ncsetlogging(1);
-	ncloginit();
-        if(nclogopen(value))
-	    ncsetlogging(1);
+        ncsetlogging(1);
+        nclogopen(NULL);
     }
 
     /* fetch and build the unconstrained DDS for use as
@@ -823,13 +818,13 @@ fprintf(stderr,"\n");
 			if(val) free(val);
 			nclistpush(unsignedatt->values,strdup("false"));
 		    } else if(att->etype != var->etype) {/* other mismatches */
-			/* Log a message */
-	                nclog(NCLOGWARN,"_FillValue/Variable type mismatch: variable=%s",var->ncbasename);
 			/* See if mismatch is allowed */
 			if(FLAGSET(dapcomm->controls,NCF_FILLMISMATCH)) {
 			    /* Forcibly change the attribute type to match */
 			    att->etype = var->etype;
 			} else {
+	  		    /* Log a message */
+	                    nclog(NCLOGWARN,"_FillValue/Variable type mismatch: variable=%s",var->ncbasename);
 			    ncstat = NC_EBADTYPE; /* fail */
 			    goto done;
 			}
@@ -1310,8 +1305,8 @@ applyclientparams(NCDAPCOMMON* nccomm)
 	strlcat(tmpname,pathstr,sizeof(tmpname));
 	value = paramlookup(nccomm,tmpname);
 	if(value == NULL) {
-	    strcpy(tmpname,"maxstrlen_");
-	    strncat(tmpname,pathstr,NC_MAX_NAME);
+	    strncpy(tmpname,"maxstrlen_",sizeof(tmpname));
+	    strlcat(tmpname,pathstr,sizeof(tmpname));
 	    value = paramlookup(nccomm,tmpname);
         }
 	nullfree(pathstr);
@@ -1630,7 +1625,6 @@ getseqdimsize(NCDAPCOMMON* dapcomm, CDFnode* seq, size_t* sizep)
     NCerror ncstat = NC_NOERR;
     OCerror ocstat = OC_NOERR;
     OClink conn = dapcomm->oc.conn;
-    OCdatanode rootcontent = NULL;
     OCddsnode ocroot;
     CDFnode* dxdroot;
     CDFnode* xseq;
@@ -1689,7 +1683,6 @@ fprintf(stderr,"sequencesize: %s = %lu\n",seq->ocname,(unsigned long)seqsize);
 
 fail:
     ncbytesfree(seqcountconstraints);
-    oc_data_free(conn,rootcontent);
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     return ncstat;
 }
@@ -2206,6 +2199,8 @@ fixzerodims(NCDAPCOMMON* dapcomm)
 static void
 applyclientparamcontrols(NCDAPCOMMON* dapcomm)
 {
+    const char* value = NULL;
+
     /* clear the flags */
     CLRFLAG(dapcomm->controls,NCF_CACHE);
     CLRFLAG(dapcomm->controls,NCF_SHOWFETCH);
@@ -2213,6 +2208,8 @@ applyclientparamcontrols(NCDAPCOMMON* dapcomm)
     CLRFLAG(dapcomm->controls,NCF_NCDAP);
     CLRFLAG(dapcomm->controls,NCF_PREFETCH);
     CLRFLAG(dapcomm->controls,NCF_PREFETCH_EAGER);
+    CLRFLAG(dapcomm->controls,NCF_ENCODE_PATH);
+    CLRFLAG(dapcomm->controls,NCF_ENCODE_QUERY);
 
     /* Turn on any default on flags */
     SETFLAG(dapcomm->controls,DFALT_ON_FLAGS);
@@ -2247,8 +2244,31 @@ applyclientparamcontrols(NCDAPCOMMON* dapcomm)
     else if(dapparamcheck(dapcomm,"nofillmismatch",NULL))
 	CLRFLAG(dapcomm->controls,NCF_FILLMISMATCH);
 
+    if((value=dapparamvalue(dapcomm,"encode")) != NULL) {
+	int i;
+	NClist* encode = nclistnew();
+	if(dapparamparselist(value,',',encode)) 
+            nclog(NCLOGERR,"Malformed encode parameter: %s",value);
+	else {
+	    /* First, turn off all the encode flags */
+            CLRFLAG(dapcomm->controls,NCF_ENCODE_PATH|NCF_ENCODE_QUERY);
+	    for(i=0;i<nclistlength(encode);i++) {
+	        const char* s = nclistget(encode,i);
+	        if(strcmp(s,"path")==0)
+	            SETFLAG(dapcomm->controls,NCF_ENCODE_PATH);
+	        else if(strcmp(s,"query")==0)
+	            SETFLAG(dapcomm->controls,NCF_ENCODE_QUERY);
+	        else if(strcmp(s,"all")==0)
+	            SETFLAG(dapcomm->controls,NCF_ENCODE_PATH|NCF_ENCODE_QUERY);
+	        else if(strcmp(s,"none")==0)
+	            CLRFLAG(dapcomm->controls,NCF_ENCODE_PATH|NCF_ENCODE_QUERY);
+	    }
+            nclistfreeall(encode);
+	}
+    } else { /* Set defaults */
+	SETFLAG(dapcomm->controls,NCF_ENCODE_QUERY);
+    }
     nclog(NCLOGNOTE,"Caching=%d",FLAGSET(dapcomm->controls,NCF_CACHE));
-
 }
 
 /*

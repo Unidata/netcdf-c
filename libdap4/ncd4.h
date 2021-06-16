@@ -71,18 +71,6 @@ extern int dsp_close(ND4dsp* dsp);
 /* DSP API */
 extern int dsp_open(const char* path, ND4dsp** dspp);
 
-/*
-extern NCerror dapbuildvaraprojection(CDFnode*,
-		     const size_t* startp, const size_t* countp, const ptrdiff_t* stridep,
-		     struct DCEprojection** projectionlist);
-
-extern NCerror NCD4_getvarx(int ncid, int varid,
-	    const size_t *startp,
-	    const size_t *countp,
-	    const ptrdiff_t *stridep,
-	    void *data,
-	    nc_type dsttype0);
-*/
 #endif
 
 /**************************************************/
@@ -97,7 +85,7 @@ extern int NCD4_fetchlastmodified(CURL* curl, char* url, long* filetime);
 extern int NCD4_ping(const char* url);
 
 /* From d4read.c */
-extern int NCD4_readDMR(NCD4INFO* state);
+extern int NCD4_readDMR(NCD4INFO* state, int flags);
 extern int NCD4_readDAP(NCD4INFO* state, int flags);
 
 /* From d4parser.c */
@@ -110,8 +98,9 @@ extern int NCD4_defineattr(NCD4meta* meta, NCD4node* parent, const char* aname, 
 extern int NCD4_print(NCD4meta*, NCbytes* output);
 
 /* From d4meta.c */
-extern NCD4meta* NCD4_newmeta(size_t size, void* rawdata);
+extern NCD4meta* NCD4_newmeta(NCD4INFO*, size_t size, void* rawdata);
 extern void NCD4_reclaimMeta(NCD4meta*);
+extern void NCD4_resetMeta(NCD4meta*);
 extern void reclaimNode(NCD4node* node);
 extern void NCD4_setdebuglevel(NCD4meta*,int);
 extern int NCD4_metabuild(NCD4meta*, int ncid);
@@ -121,6 +110,8 @@ extern int NCD4_findvar(NC* ncp, int ncid, int varid, NCD4node** varp, NCD4node*
 /* From d4chunk.c */
 extern int NCD4_dechunk(NCD4meta*);
 extern int NCD4_infermode(NCD4meta* meta);
+struct NCD4serial;
+extern void NCD4_resetSerial(struct NCD4serial* serial, size_t rawsize, void* rawdata);
 
 /* From d4swap.c */
 extern int NCD4_swapdata(NCD4meta*, NClist* topvars);
@@ -147,6 +138,7 @@ extern int NCD4_parseFQN(const char* fqn0, NClist* pieces);
 extern char* NCD4_deescape(const char* esc);
 extern char* NCD4_entityescape(const char* s);
 extern size_t NCD4_elidenuls(char* s, size_t slen);
+extern void* NCD4_getheader(void* p, NCD4HDR* hdr, int hostlittleendian);
 
 /* From d4dump.c */
 extern void NCD4_dumpbytes(size_t size, const void* data0, int swap);
@@ -165,11 +157,9 @@ extern int NCD4_rcdefault(NCD4INFO*);
 /* From d4cvt.c */
 extern int NCD4_convert(nc_type srctype, nc_type dsttype, char* memory0, char* value0, size_t count);
 
-/* From d4crc32.c */
-extern unsigned int NCD4_crc32(unsigned int crc, const void *buf, size_t size);
-
 /* d4file.c */
 extern void NCD4_applyclientparamcontrols(NCD4INFO*);
+extern int NCD4_readDMRorDAP(NCD4INFO* d4info, NCD4mode mode);
 
 /* ncd4dispatch.c */
 struct NC_reservedatt; /*forward*/
@@ -197,7 +187,17 @@ extern int nc__dap4(void);
 
 #undef GETCOUNTER
 #undef SKIPCOUNTER
+
+/* Unclear which macros are defined for which compilers.
+   see: https://sourceforge.net/p/predef/wiki/Architectures/
+*/
+#if defined(__arm__) && __ARM_ARCH < 8
+EXTERNL d4size_t NCD4_getcounter(void* p);
+#define GETCOUNTER(p) NCD4_getcounter(p)
+#else
 #define GETCOUNTER(p) ((d4size_t)*((COUNTERTYPE*)(p)))
+#endif /*defined(__arm__) && __ARM_ARCH < 8*/
+
 #define SKIPCOUNTER(p) {p=INCR(p,COUNTERSIZE);}
 
 #undef PUSH

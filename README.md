@@ -47,7 +47,7 @@ software for various languages:
 
 * [C library and utilities](http://github.com/Unidata/netcdf-c)
 * [Fortran](http://github.com/Unidata/netcdf-fortran)
-* [Java](http://www.unidata.ucar.edu/downloads/netcdf/netcdf-java-4/)
+* [Java](https://www.unidata.ucar.edu/downloads/netcdf-java/
 * [Python](http://github.com/Unidata/netcdf4-python)
 * [C++](http://github.com/Unidata/netcdf-cxx4)
 

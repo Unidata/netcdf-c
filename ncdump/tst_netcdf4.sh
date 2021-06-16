@@ -14,7 +14,7 @@ cleanncprops() {
   rm -f $dst
   cat $src \
   | sed -e '/:_Endianness/d' \
-  | sed -e 's/_SuperblockVersion = 1/_SuperblockVersion = 0/' \
+  | sed -e 's/_SuperblockVersion = [12]/_SuperblockVersion = 0/' \
   | sed -e 's/\(netcdflibversion\|netcdf\)=.*|/\1=NNNN|/' \
   | sed -e 's/\(hdf5libversion\|hdf5\)=.*"/\1=HHHH"/' \
   | grep -v '_NCProperties' \
@@ -96,15 +96,6 @@ echo "*** Running tst_nans.c to create test files."
 ${execdir}/tst_nans ; ERR
 ${NCDUMP} tst_nans.nc | sed 's/e+0/e+/g' > tst_nans.cdl ; ERR
 diff -b tst_nans.cdl $srcdir/ref_tst_nans.cdl ; ERR
-
-# Do unicode test only if it exists => BUILD_UTF8 is true
-if test -f ./tst_unicode -o -f ./tst_unicode.exe ; then
-  echo "*** dumping tst_unicode.nc to tst_unicode.cdl..."
-  ${execdir}/tst_unicode ; ERR
-${NCDUMP} tst_unicode.nc | sed 's/e+0/e+/g' > tst_unicode.cdl ; ERR
-  #echo "*** comparing tst_unicode.cdl with ref_tst_unicode.cdl..."
-  #diff -b tst_unicode.cdl $srcdir/ref_tst_unicode.cdl
-fi
 
 echo "*** Running tst_special_atts.c to create test files."
 ${execdir}/tst_special_atts ; ERR

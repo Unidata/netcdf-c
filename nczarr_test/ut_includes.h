@@ -12,9 +12,7 @@
 #include <unistd.h>
 #endif
 
-#ifdef HAVE_STDARG_H
-#include <stdarg.h>
-#endif
+#include "zmap.h"
 
 #include "netcdf.h"
 #include "nclist.h"
@@ -25,6 +23,6 @@
 #include "ut_test.h"
 #include "ut_util.h"
 
-static struct ZUTEST zutester;
+extern struct ZUTEST zutester;
 
 #endif /*UT_INCLUDES_H*/
