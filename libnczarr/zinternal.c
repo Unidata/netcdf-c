@@ -58,8 +58,26 @@ set_auto(void* func, void *client_data)
 int
 NCZ_initialize_internal(void)
 {
+    int stat = NC_NOERR;
+    char* dimsep = NULL;
+    NCRCglobalstate* ngs = NULL;
+
     ncz_initialized = 1;
-    return NC_NOERR;
+    /* Load the .rc file */
+    if((stat=NC_rcload())) goto done;
+    ngs = ncrc_getglobalstate();
+    if(ngs != NULL) {
+        /* Defaults */
+	ngs->zarr.dimension_separator = DFALT_DIM_SEPARATOR;
+        dimsep = NC_rclookup("ZARR.DIMENSION_SEPARATOR",NULL);
+        if(dimsep != NULL) {
+            /* Verify its value */
+	    if(dimsep != NULL && strlen(dimsep) == 1 && islegaldimsep(dimsep[0]))
+		ngs->zarr.dimension_separator = dimsep[0];
+        }    
+    }
+done:
+    return stat;
 }
 
 /**
@@ -721,7 +739,7 @@ NCZ_set_log_level()
     else
     {
 #ifdef LOOK
-        if (set_auto((H5E_auto_t)&H5Eprint, stderr) < 0)
+        if (set_auto((H5E_auto_t)&H5Eprint1, stderr) < 0)
             LOG((0, "H5Eset_auto failed!"));
 #endif
         LOG((1, "NCZ error messages turned on."));

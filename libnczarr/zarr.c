@@ -374,6 +374,7 @@ applycontrols(NCZ_FILE_INFO_T* zinfo)
     int i,stat = NC_NOERR;
     const char* value = NULL;
     NClist* modelist = nclistnew();
+    int noflags = 0; /* track non-default negative flags */
 
     if((value = controllookup((const char**)zinfo->envv_controls,"mode")) != NULL) {
 	if((stat = NCZ_comma_parse(value,modelist))) goto done;
@@ -382,12 +383,20 @@ applycontrols(NCZ_FILE_INFO_T* zinfo)
     zinfo->controls.mapimpl = NCZM_DEFAULT;
     for(i=0;i<nclistlength(modelist);i++) {
         const char* p = nclistget(modelist,i);
-	if(strcasecmp(p,PUREZARRCONTROL)==0) zinfo->controls.flags |= FLAG_PUREZARR;
+	if(strcasecmp(p,PUREZARRCONTROL)==0) zinfo->controls.flags |= (FLAG_PUREZARR|FLAG_XARRAYDIMS);
 	else if(strcasecmp(p,XARRAYCONTROL)==0) zinfo->controls.flags |= (FLAG_XARRAYDIMS|FLAG_PUREZARR); /*xarray=>zarr*/
+	else if(strcasecmp(p,NOXARRAYCONTROL)==0) {
+	    noflags |= FLAG_XARRAYDIMS;
+	    zinfo->controls.flags |= FLAG_PUREZARR; /*noxarray=>zarr*/
+	}
 	else if(strcasecmp(p,"zip")==0) zinfo->controls.mapimpl = NCZM_ZIP;
 	else if(strcasecmp(p,"file")==0) zinfo->controls.mapimpl = NCZM_FILE;
 	else if(strcasecmp(p,"s3")==0) zinfo->controls.mapimpl = NCZM_S3;
     }
+    /* Apply negative controls by turning off negative flags */
+    /* This is necessary to avoid order dependence of mode flags when both positive and negative flags are defined */
+    zinfo->controls.flags &= (~noflags);
+
     /* Process other controls */
     if((value = controllookup((const char**)zinfo->envv_controls,"log")) != NULL) {
 	zinfo->controls.flags |= FLAG_LOGGING;

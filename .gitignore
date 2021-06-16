@@ -40,7 +40,6 @@ CMakeLists.txt.user
 scan-build
 .deps
 .libs
-*.zip
 Makefile
 .DS_Store
 build-par

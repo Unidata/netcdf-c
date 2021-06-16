@@ -635,7 +635,7 @@ nc_insert_array_compound(int ncid, nc_type xtype, const char *name,
 EXTERNL int
 nc_inq_type(int ncid, nc_type xtype, char *name, size_t *size);
 
-/* Get the id of a type from the name. */
+/* Get the id of a type from the name, which might be a fully qualified name */
 EXTERNL int
 nc_inq_typeid(int ncid, const char *name, nc_type *typeidp);
 

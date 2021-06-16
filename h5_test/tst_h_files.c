@@ -55,12 +55,12 @@ main()
                                 access_plist)) < 0) ERR;
         /* Add an opaque type. */
         if ((typeid = H5Tcreate(H5T_OPAQUE, OPAQUE_SIZE)) < 0) ERR;
-        if (H5Tcommit(fileid, OPAQUE_NAME, typeid) < 0) ERR;
+        if (H5Tcommit1(fileid, OPAQUE_NAME, typeid) < 0) ERR;
 
         /* Add attribute of this type. */
         dims[0] = 3;
         if ((spaceid = H5Screate_simple(1, dims, NULL)) < 0) ERR;
-        if ((attid = H5Acreate(fileid, ATT_NAME, typeid, spaceid,
+        if ((attid = H5Acreate1(fileid, ATT_NAME, typeid, spaceid,
                                H5P_DEFAULT)) < 0) ERR;
         if (H5Awrite(attid, typeid, data) < 0) ERR;
 
@@ -70,14 +70,14 @@ main()
         if (H5Fclose(fileid) < 0) ERR;
         if (H5Pclose(access_plist) < 0) ERR;
 
-        if (H5Eset_auto(NULL, NULL) < 0) ERR;
+        if (H5Eset_auto1(NULL, NULL) < 0) ERR;
 
         /* Reopen the file. */
         if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
         /*if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_SEMI)) ERR;*/
         if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_STRONG)) ERR;
         if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, fapl_id)) < 0) ERR;
-        if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+        if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
 
         if (H5Gget_num_objs(grpid, &num_obj) < 0) ERR;
         for (i = 0; i < num_obj; i++)
@@ -86,7 +86,7 @@ main()
             if (H5Gget_objname_by_idx(grpid, i, obj_name,
                                       STR_LEN) < 0) ERR;
             if (obj_class != H5G_TYPE) ERR;
-            if ((typeid = H5Topen(grpid, obj_name)) < 0) ERR;
+            if ((typeid = H5Topen1(grpid, obj_name)) < 0) ERR;
             if ((class = H5Tget_class(typeid)) < 0) ERR;
             if (class != H5T_OPAQUE) ERR;
             if (!(H5Tget_size(typeid))) ERR;
@@ -119,7 +119,7 @@ main()
         /* Create file and create group. */
         if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
                                 access_plist)) < 0) ERR;
-        if ((grpid = H5Gcreate(fileid, GRP_NAME, 0)) < 0) ERR;
+        if ((grpid = H5Gcreate1(fileid, GRP_NAME, 0)) < 0) ERR;
 
         /* How many open objects are there? */
         if ((objs = H5Fget_obj_count(fileid, H5F_OBJ_ALL)) < 0) ERR;
@@ -128,7 +128,7 @@ main()
         if (objs != 1) ERR;
 
         /* Turn off HDF5 error messages. */
-        if (H5Eset_auto(NULL, NULL) < 0) ERR;
+        if (H5Eset_auto1(NULL, NULL) < 0) ERR;
 
         /* This H5Fclose should fail, because I didn't close the group. */
         if (H5Fclose(fileid) >= 0) ERR;
@@ -281,7 +281,7 @@ main()
         if ((spaceid = H5Screate_simple(1, dims, maxdims)) < 0) ERR;
         if (H5Pset_attr_creation_order(plistid, H5P_CRT_ORDER_TRACKED|
                                        H5P_CRT_ORDER_INDEXED) < 0) ERR;
-        if ((dim1_dimscaleid = H5Dcreate(grpid, "dim1", H5T_IEEE_F32BE,
+        if ((dim1_dimscaleid = H5Dcreate1(grpid, "dim1", H5T_IEEE_F32BE,
                                          spaceid, plistid)) < 0) ERR;
         if (H5Sclose(spaceid) < 0) ERR;
         if (H5Pclose(plistid) < 0) ERR;
@@ -295,7 +295,7 @@ main()
         if ((spaceid = H5Screate_simple(1, dims, maxdims)) < 0) ERR;
         if (H5Pset_attr_creation_order(plistid, H5P_CRT_ORDER_TRACKED|
                                        H5P_CRT_ORDER_INDEXED) < 0) ERR;
-        if ((dim2_dimscaleid = H5Dcreate(grpid, "dim2", H5T_IEEE_F32BE,
+        if ((dim2_dimscaleid = H5Dcreate1(grpid, "dim2", H5T_IEEE_F32BE,
                                          spaceid, plistid)) < 0) ERR;
         if (H5Sclose(spaceid) < 0) ERR;
         if (H5Pclose(plistid) < 0) ERR;
@@ -321,7 +321,7 @@ main()
         if ((spaceid = H5Screate_simple(NDIMS2, dimsize, maxdimsize)) < 0) ERR;
         if (H5Pset_attr_creation_order(plistid, H5P_CRT_ORDER_TRACKED|
                                        H5P_CRT_ORDER_INDEXED) < 0) ERR;
-        if ((datasetid = H5Dcreate(grpid, VAR_NAME2, H5T_NATIVE_SCHAR, spaceid, plistid)) < 0) ERR;
+        if ((datasetid = H5Dcreate1(grpid, VAR_NAME2, H5T_NATIVE_SCHAR, spaceid, plistid)) < 0) ERR;
 
         free(fillp);
         free(chunksize);

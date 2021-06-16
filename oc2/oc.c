@@ -1943,6 +1943,7 @@ oc_data_mode(OCobject link, OCobject datanode, OCDT* modep)
     return OC_NOERR;
 }
 
+#if 0
 /* Free up a datanode that is no longer being used;
    Currently does nothing
 */
@@ -1951,6 +1952,7 @@ oc_data_free(OCobject link, OCobject datanode)
 {
     return OCTHROW(OC_NOERR);
 }
+#endif
 
 /* Free up a ddsnode that is no longer being used;
    Currently does nothing

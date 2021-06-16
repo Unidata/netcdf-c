@@ -418,7 +418,8 @@ EXTERNL OCerror oc_data_ithelement(OClink, OCdatanode data, size_t* indices, OCd
 EXTERNL OCerror oc_data_ithrecord(OClink, OCdatanode data, size_t index, OCdatanode* recordp);
 
 /* Free up an data that is no longer being used */
-EXTERNL OCerror oc_data_free(OClink, OCdatanode data);
+/* Currently does nothing */
+#define oc_data_free(link,datanode)
 
 /* Count the records associated with a sequence */
 EXTERNL OCerror oc_data_recordcount(OClink, OCdatanode, size_t*);
