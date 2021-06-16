@@ -403,9 +403,8 @@ fprintf(stderr,"ce=%s\n",dumpconstraint(dapcomm->oc.dapconstraint));
     ocstat = oc_open(dapcomm->oc.urltext,&dapcomm->oc.conn);
     if(ocstat != OC_NOERR) {THROWCHK(ocstat); goto done;}
 
-#ifdef DEBUG1
-    (void)oc_trace_curl(dapcomm->oc.conn);
-#endif
+    if(getenv("CURLOPT_VERBOSE") != NULL)
+        (void)oc_trace_curl(dapcomm->oc.conn);
 
     nullfree(dapcomm->oc.urltext); /* clean up */
     dapcomm->oc.urltext = NULL;
@@ -1306,8 +1305,8 @@ applyclientparams(NCDAPCOMMON* nccomm)
 	strlcat(tmpname,pathstr,sizeof(tmpname));
 	value = paramlookup(nccomm,tmpname);
 	if(value == NULL) {
-	    strcpy(tmpname,"maxstrlen_");
-	    strncat(tmpname,pathstr,NC_MAX_NAME);
+	    strncpy(tmpname,"maxstrlen_",sizeof(tmpname));
+	    strlcat(tmpname,pathstr,sizeof(tmpname));
 	    value = paramlookup(nccomm,tmpname);
         }
 	nullfree(pathstr);
@@ -1626,7 +1625,6 @@ getseqdimsize(NCDAPCOMMON* dapcomm, CDFnode* seq, size_t* sizep)
     NCerror ncstat = NC_NOERR;
     OCerror ocstat = OC_NOERR;
     OClink conn = dapcomm->oc.conn;
-    OCdatanode rootcontent = NULL;
     OCddsnode ocroot;
     CDFnode* dxdroot;
     CDFnode* xseq;
@@ -1685,7 +1683,6 @@ fprintf(stderr,"sequencesize: %s = %lu\n",seq->ocname,(unsigned long)seqsize);
 
 fail:
     ncbytesfree(seqcountconstraints);
-    oc_data_free(conn,rootcontent);
     if(ocstat != OC_NOERR) ncstat = ocerrtoncerr(ocstat);
     return ncstat;
 }

@@ -46,6 +46,13 @@ if USE_HDF5
 bin_PROGRAMS += nc4print
 noinst_PROGRAMS += nc4print
 nc4print_SOURCES = nc4print.c nc4printer.c
+
+# Create a helper program for tst_scope.sh
+# Program prints out the fqn of the type of
+# a specified variable in the .nc file.
+noinst_PROGRAMS += printfqn
+printfqn_SOURCES = printfqn.c
+
 endif
 
 # Conditionally build the ocprint program, but do not install
@@ -61,14 +68,14 @@ man_MANS = ncdump.1 nccopy.1
 if BUILD_TESTSETS
 # C programs needed by shell scripts for classic tests.
 check_PROGRAMS = rewrite-scalar ref_ctest ref_ctest64 ncdump tst_utf8   \
-bom tst_dimsizes nctrunc
+bom tst_dimsizes nctrunc tst_rcmerge
 
 # Tests for classic and 64-bit offset files.
 TESTS = tst_inttags.sh run_tests.sh tst_64bit.sh ref_ctest	\
 ref_ctest64 tst_output.sh tst_lengths.sh tst_calendars.sh	\
-run_utf8_tests.sh test_unicode_directory.sh tst_nccopy3.sh tst_nccopy3_subset.sh		\
+run_utf8_tests.sh tst_nccopy3.sh tst_nccopy3_subset.sh		\
 tst_charfill.sh tst_iter.sh tst_formatx3.sh tst_bom.sh		\
-tst_dimsizes.sh run_ncgen_tests.sh tst_ncgen4_classic.sh test_radix.sh
+tst_dimsizes.sh run_ncgen_tests.sh tst_ncgen4_classic.sh test_radix.sh test_rcmerge.sh
 
 # The tst_nccopy3.sh test uses output from a bunch of other
 # tests. This records the dependency so parallel builds work.
@@ -78,6 +85,10 @@ tst_64bit.log run_tests.log tst_lengths.log
 TESTS += tst_null_byte_padding.sh
 if USE_STRICT_NULL_BYTE_HEADER_PADDING
 XFAIL_TESTS += tst_null_byte_padding.sh
+endif
+
+if ! ISCYGWIN
+TESTS += test_unicode_directory.sh  test_unicode_path.sh
 endif
 
 if LARGE_FILE_TESTS
@@ -99,7 +110,7 @@ TESTS += tst_fileinfo.sh tst_hdf5_offset.sh tst_inttags4.sh		\
 tst_netcdf4.sh tst_fillbug.sh tst_netcdf4_4.sh tst_nccopy4.sh		\
 tst_nccopy5.sh tst_grp_spec.sh tst_mud.sh tst_h_scalar.sh tst_formatx4.sh		\
 run_utf8_nc4_tests.sh run_back_comp_tests.sh run_ncgen_nc4_tests.sh	\
-tst_ncgen4.sh
+tst_ncgen4.sh test_scope.sh
 
 # Record interscript dependencies so parallel builds work.
 tst_nccopy4.log: run_ncgen_tests.log tst_output.log tst_ncgen4.log	\
@@ -160,10 +171,12 @@ tst_ncgen4_cycle.sh tst_null_byte_padding.sh				\
 ref_null_byte_padding_test.nc ref_tst_irish_rover.nc			\
 ref_provenance_v1.nc ref_tst_radix.cdl tst_radix.cdl test_radix.sh	\
 ref_nccopy_w.cdl tst_nccopy_w3.sh tst_nccopy_w4.sh			\
-ref_no_ncproperty.nc test_unicode_directory.sh				\
+ref_no_ncproperty.nc test_unicode_directory.sh test_unicode_path.sh      \
 ref_roman_szip_simple.cdl ref_roman_szip_unlim.cdl ref_tst_perdimspecs.cdl \
-test_keywords.sh ref_keyword1.cdl ref_keyword2.cdl ref_tst_nofilters.cdl \
-test_unicode_path.sh
+test_keywords.sh ref_keyword1.cdl ref_keyword2.cdl ref_keyword3.cdl ref_keyword4.cdl \
+ref_tst_nofilters.cdl test_scope.sh  \
+test_rcmerge.sh ref_rcmerge1.txt ref_rcmerge2.txt ref_rcmerge3.txt \
+scope_ancestor_only.cdl scope_ancestor_subgroup.cdl scope_group_only.cdl scope_preorder.cdl
 
 # The L512.bin file is file containing exactly 512 bytes each of value 0.
 # It is used for creating hdf5 files with varying offsets for testing.
@@ -175,7 +188,7 @@ EXTRA_DIST += tst_ctests.sh ref_ctest_small_3.c ref_ctest_small_4.c \
 # CDL files and Expected results
 SUBDIRS = cdl expected
 
-CLEANFILES = tst_*.nc tmp*.nc test*.nc iter.* tmp*.cdl			\
+CLEANFILES = tst_*.nc tmp*.nc test*.nc iter.* tmp*.cdl tmp*.txt         \
 tst_output_*.cdl tst_output_*.c tst_utf8_*.cdl *.tmp tst_tst8.cdl	\
 tst_netcdf4_*.cdl test1_ncdump.cdl test2_ncdump.cdl test1.cdl		\
 ctest1.cdl test1_cdf5.cdl test2_cdf5.cdl test1_offset.cdl		\
@@ -199,5 +212,12 @@ tst_ncf199.cdl tst_tst_gattenum.cdl tst_tst_usuffix.cdl ctest.c		\
 ctest64.c nccopy3_subset_out.nc camrun.c tst_ncf213.cdl tst_ncf213.nc	\
 tst_radix.nc tmp_radix.cdl ctest_small_3.c ctest_small_4.c		\
 ctest_special_atts_4.c tst_roman_szip_simple.cdl			\
-tst_roman_szip_unlim.cdl tst_perdimpspecs.nc tmppds.* \
-keyword1.nc keyword2.nc tmp_keyword1.cdl tmp_keyword2.cdl
+tst_roman_szip_unlim.cdl tst_perdimpspecs.nc tmppds.*                   \
+keyword1.nc keyword2.nc keyword3.nc keyword4.nc                         \
+tmp_keyword1.cdl tmp_keyword2.cdl tmp_keyword3.cdl tmp_keyword4.cdl     \
+type_*.nc copy_type_*.cdl                                               \
+scope_*.nc copy_scope_*.cdl
+
+# Remove directories
+clean-local:
+	rm -fr rcmergedir

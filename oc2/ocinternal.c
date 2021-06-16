@@ -329,13 +329,16 @@ createtempfile(OCstate* state, OCtree* tree)
     len =
 	  strlen(globalstate->tempdir)
 	  + 1 /* '/' */
-	  + strlen(DATADDSFILE);
-    path = (char*)malloc(len+1);
+	  + strlen(DATADDSFILE)
+	  + 1; /* nul term */
+    path = (char*)malloc(len);
     if(path == NULL) return OC_ENOMEM;
-    occopycat(path,len,3,globalstate->tempdir,"/",DATADDSFILE);
+    strncpy(path,globalstate->tempdir,len);
+    strlcat(path,"/",len);
+    strlcat(path,DATADDSFILE,len);
     tmppath = NC_mktmp(path);
     free(path);
-    if(stat != OC_NOERR) goto fail;
+    if(tmppath == NULL) {stat = OC_EACCESS; goto fail;}
 #ifdef OCDEBUG
     nclog(NCLOGNOTE,"oc_open: creating tmp file: %s",tmppath);
 #endif
@@ -530,11 +533,11 @@ ocset_curlproperties(OCstate* state)
 
     if(state->auth->curlflags.useragent == NULL) {
         size_t len = strlen(DFALTUSERAGENT) + strlen(VERSION) + 1;
-	char* agent = (char*)malloc(len+1);
-	if(occopycat(agent,len,2,DFALTUSERAGENT,VERSION))
-	    state->auth->curlflags.useragent = agent;
-	else
-	    free(agent);
+	char* agent = (char*)malloc(len);
+	strncpy(agent,DFALTUSERAGENT,len);
+	strlcat(agent,VERSION,len);
+        state->auth->curlflags.useragent = agent;
+	agent = NULL;
     }
 
     /* Some servers (e.g. thredds and columbia) appear to require a place
@@ -546,31 +549,38 @@ ocset_curlproperties(OCstate* state)
 	state->auth->curlflags.cookiejar = NULL;
     }
 
-    if(state->auth->curlflags.cookiejar == NULL) {
-	/* If no cookie file was defined, define a default */
-		int stat = NC_NOERR;
+    if (state->auth->curlflags.cookiejar == NULL) {
+        /* If no cookie file was defined, define a default */
+        int stat = NC_NOERR;
         char* path = NULL;
         char* tmppath = NULL;
         int len;
-	errno = 0;
-	/* Create the unique cookie file name */
+        errno = 0;
+        /* Create the unique cookie file name */
         len =
-	  strlen(globalstate->tempdir)
-	  + 1 /* '/' */
-	  + strlen("occookies");
-        path = (char*)calloc(1,len+1);
-        if(path == NULL) return OC_ENOMEM;
-        occopycat(path,len,3,globalstate->tempdir,"/","occookies");
+            strlen(globalstate->tempdir)
+            + 1 /* '/' */
+            + strlen("occookies")
+	    + 1;
+        path = (char*)calloc(1, len);
+        if (path == NULL) return OC_ENOMEM;
+	strncpy(path,globalstate->tempdir,len);
+	strlcat(path,"/",len);
+	strlcat(path,"occookies",len);
         tmppath = NC_mktmp(path);
+if(tmppath == NULL) {
+        tmppath = NC_mktmp(path);
+}
         free(path);
-	state->auth->curlflags.cookiejar = tmppath;
-	state->auth->curlflags.cookiejarcreated = 1;
-	if(stat != OC_NOERR && errno != EEXIST) {
-	    fprintf(stderr,"Cannot create cookie file\n");
-	    goto fail;
-	}
-	errno = 0;
+        state->auth->curlflags.cookiejar = tmppath;
+        state->auth->curlflags.cookiejarcreated = 1;
+        if (stat != OC_NOERR && errno != EEXIST) {
+            fprintf(stderr, "Cannot create cookie file\n");
+            goto fail;
+        }
+        errno = 0;
     }
+    
     OCASSERT(state->auth->curlflags.cookiejar != NULL);
 
     /* Make sure the cookie jar exists and can be read and written */

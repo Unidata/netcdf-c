@@ -23,7 +23,7 @@ struct ZCVT {
 };
 
 int
-NCZ_convert1(NCjson* jsrc, nc_type dsttype, char* memory)
+NCZ_convert1(NCjson* jsrc, nc_type dsttype, unsigned char* memory)
 {
     int stat = NC_NOERR;
     nc_type srctype;
@@ -234,7 +234,7 @@ done:
 }
 
 int
-NCZ_stringconvert1(nc_type srctype, char* src, char** strp)
+NCZ_stringconvert1(nc_type srctype, unsigned char* src, char** strp)
 {
     int stat = NC_NOERR;
     struct ZCVT zcvt;
@@ -324,8 +324,12 @@ NCZ_stringconvert(nc_type typeid, size_t len, void* data0, NCjson** jdatap)
 	/* Create a string valued json object */
 	if((stat = NCJnewstringn(NCJ_STRING,len,src,&jdata)))
 	    goto done;
-    } else { /* for all other values, create an array of values */
-	if((stat = NCJnew(NCJ_ARRAY,&jdata))) goto done;
+    } else { /* all other cases */
+	if(len == 0) {stat = NC_EINVAL; goto done;}
+	if(len > 1) {
+	    if((stat = NCJnew(NCJ_ARRAY,&jdata))) goto done;
+        } else /* return a singletone */
+   	    jdata = NULL;
 	for(i=0;i<len;i++) {
   	    char* special = NULL;
 	    double d;
@@ -371,7 +375,10 @@ NCZ_stringconvert(nc_type typeid, size_t len, void* data0, NCjson** jdatap)
 	    if(special) {nullfree(str); str = strdup(special);}
 	    jvalue->value = str;
 	    str = NULL;
-	    nclistpush(jdata->contents,jvalue);
+	    if(len == 1)
+		jdata = jvalue;
+	    else
+	        nclistpush(jdata->contents,jvalue);
 	    jvalue = NULL;
 	    src += typelen;
 	}

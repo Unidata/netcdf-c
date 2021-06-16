@@ -6,7 +6,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . "$srcdir/test_nczarr.sh"
 
 # This shell script tests support for:
-# 1. pure zarr read/write
+# 1. pure zarr (noxarray) read/write
 # 2. xarray read/write
 
 set -e
@@ -14,19 +14,27 @@ set -e
 testcase() {
 zext=$1
 
-echo "*** Test: pure zarr write; format=$zext"
-fileargs tmp_purezarr "mode=zarr,$zext"
+echo "*** Test: pure zarr write then read; format=$zext"
+fileargs tmp_purezarr "mode=noxarray,$zext"
 deletemap $zext $file
 ${NCGEN} -4 -b -o "$fileurl" $srcdir/ref_purezarr_base.cdl
 ${NCDUMP} $fileurl > tmp_purezarr_${zext}.cdl
 diff -b ${srcdir}/ref_purezarr.cdl tmp_purezarr_${zext}.cdl
 
-echo "*** Test: xarray zarr write; format=$zext"
-fileargs tmp_xarray "mode=xarray,$zext"
+echo "*** Test: xarray zarr write then read; format=$zext"
+fileargs tmp_xarray "mode=zarr,$zext"
 deletemap $zext $file
 ${NCGEN} -4 -b -o "$fileurl" $srcdir/ref_purezarr_base.cdl
 ${NCDUMP} $fileurl > tmp_xarray_${zext}.cdl
 diff -b ${srcdir}/ref_xarray.cdl tmp_xarray_${zext}.cdl
+
+echo "*** Test: pure zarr reading nczarr; format=$zext"
+fileargs tmp_nczarr "mode=nczarr,$zext"
+deletemap $zext $file
+${NCGEN} -4 -b -o "$fileurl" $srcdir/ref_whole.cdl
+fileargs tmp_nczarr "mode=zarr,$zext"
+${NCDUMP} -n nczarr2zarr $fileurl > tmp_nczarr_${zext}.cdl
+diff -b ${srcdir}/ref_nczarr2zarr.cdl tmp_nczarr_${zext}.cdl
 }
 
 testcase file

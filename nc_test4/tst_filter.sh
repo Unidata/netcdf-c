@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
@@ -41,10 +41,23 @@ trimleft() {
 sed -e 's/[ 	]*\([^ 	].*\)/\1/' <$1 >$2
 }
 
+# Hide/unhide the bzip2 filter
+hidebzip2() {
+  rm -fr ${HDF5_PLUGIN_PATH}/save
+  mkdir ${HDF5_PLUGIN_PATH}/save
+  mv ${BZIP2PATH} ${HDF5_PLUGIN_PATH}/save
+}
+
+unhidebzip2() {
+  mv ${HDF5_PLUGIN_PATH}/save/${BZIP2LIB} ${HDF5_PLUGIN_PATH}
+  rm -fr ${HDF5_PLUGIN_PATH}/save
+}
+
 # Locate the plugin path and the library names; argument order is critical
 # Find bzip2 and capture
 findplugin h5bzip2
-BZIP2PATH="${HDF5_PLUGIN_PATH}/${HDF5_PLUGIN_LIB}"
+BZIP2LIB="${HDF5_PLUGIN_LIB}"
+BZIP2PATH="${HDF5_PLUGIN_PATH}/${BZIP2LIB}"
 # Find misc and capture
 findplugin misc
 MISCPATH="${HDF5_PLUGIN_PATH}/${HDF5_PLUGIN_LIB}"
@@ -90,7 +103,7 @@ rm -f ./tst_filter.txt
 trimleft ./tst_filter2.txt ./tst_filter.txt
 rm -f ./tst_filter2.txt
 cat >./tst_filter2.txt <<EOF
-var:_Filter = "32768,2,239,23,65511,27,77,93,1145389056,3287505826,1097305129,1,2147483648,4294967295,4294967295" ;
+var:_Filter = "32768,3,239,23,65511,27,77,93,1145389056,3287505826,1097305129,1,2147483648,4294967295,4294967295" ;
 EOF
 diff -b -w ./tst_filter.txt ./tst_filter2.txt
 echo "*** Pass: parameter passing"
@@ -169,23 +182,31 @@ fi
 if test "x$UNK" = x1 ; then
 echo "*** Testing access to filter info when filter dll is not available"
 rm -f bzip2.nc ./tst_filter.txt
-# build bzip2.nc
+# xfail build bzip2.nc 
+hidebzip2
+if ${NCGEN} -lb -4 -o bzip2.nc ${srcdir}/bzip2.cdl ; then
+    echo "*** FAIL: ncgen"
+else
+    echo "*** XFAIL: ncgen"
+fi
+unhidebzip2    
+# build bzip2.nc 
 ${NCGEN} -lb -4 -o bzip2.nc ${srcdir}/bzip2.cdl
-# dump and clean bzip2.nc header only when filter is avail
-${NCDUMP} -hs bzip2.nc > ./tst_filter.txt
-# Remove irrelevant -s output
-sclean ./tst_filter.txt bzip2.dump
 # Now hide the filter code
-mv ${BZIP2PATH} ${BZIP2PATH}.save
-# dump and clean bzip2.nc header only when filter is not avail
+hidebzip2
+rm -f ./tst_filter.txt
+# This will xfail
+if ${NCDUMP} -s bzip2.nc > ./tst_filter.txt ; then
+    echo "*** FAIL: ncdump -hs bzip2.nc"
+else
+    echo "*** XFAIL: ncdump -hs bzip2.nc"
+fi
+# Restore the filter code
+unhidebzip2
+# Verify we can see filter when using -h
 rm -f ./tst_filter.txt
 ${NCDUMP} -hs bzip2.nc > ./tst_filter.txt
-# Remove irrelevant -s output
-sclean ./tst_filter.txt bzip2x.dump
-# Restore the filter code
-mv ${BZIP2PATH}.save ${BZIP2PATH}
-diff -b -w ./bzip2.dump ./bzip2x.dump
-echo "*** Pass: ncgen dynamic filter"
+echo "*** Pass: unknown filter"
 fi
 
 if test "x$NGC" = x1 ; then

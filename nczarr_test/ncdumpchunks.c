@@ -10,7 +10,7 @@
 #include <getopt.h>
 #endif
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 #include "XGetopt.h"
 #endif
 
@@ -306,7 +306,7 @@ dump(Format* format)
 
 #ifdef H5
     if(format->debug) {
-        H5Eset_auto2(H5E_DEFAULT,(H5E_auto2_t)H5Eprint,stderr);
+        H5Eset_auto2(H5E_DEFAULT,(H5E_auto2_t)H5Eprint1,stderr);
     }
 #endif
 
@@ -485,7 +485,7 @@ main(int argc, char** argv)
     }
 
     {
-        char* s = NC_backslashUnescape(argv[0]);
+        char* s = NC_shellUnescape(argv[0]);
 	strcpy(format.file_name,filenamefor(s));
 	nullfree(s);
     }

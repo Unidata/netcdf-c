@@ -1,0 +1,5 @@
+netcdf keyword3 {
+variables:
+    real f;
+    long l;
+}

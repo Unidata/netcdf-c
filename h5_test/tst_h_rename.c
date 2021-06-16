@@ -64,7 +64,7 @@ main()
       /* Create the variables, one per element. */
       for (i = 0; i < NUM_ELEMENTS; i++)
       {
-	 if ((did[i] = H5Dcreate(grpid, names[i], H5T_NATIVE_INT,
+	 if ((did[i] = H5Dcreate1(grpid, names[i], H5T_NATIVE_INT,
 				 spaceid, H5P_DEFAULT)) < 0) ERR;
 	 if (H5Dclose(did[i]) < 0) ERR;
       }
@@ -80,7 +80,7 @@ main()
       if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
       if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDWR, fapl_id)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, ELEMENTS_NAME)) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, ELEMENTS_NAME)) < 0) ERR;
 
       if (H5Gget_num_objs(grpid, &num_obj) < 0) ERR;
       if (num_obj != NUM_ELEMENTS) ERR;
@@ -116,7 +116,7 @@ main()
       if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
       if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, fapl_id)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, ELEMENTS_NAME)) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, ELEMENTS_NAME)) < 0) ERR;
 
       if (H5Gget_num_objs(grpid, &num_obj) < 0) ERR;
       if (num_obj != NUM_ELEMENTS) ERR;

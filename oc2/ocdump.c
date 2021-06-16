@@ -296,8 +296,7 @@ dumpfield(size_t index, char* n8, int isxdr)
                 snprintf(stmp,sizeof(stmp),"\\%02x",c);
 	    else
                 snprintf(stmp,sizeof(stmp),"%c",c);
-	    if(!occoncat(tmp,sizeof(tmp),1,stmp))
-		return;
+	    strlcat(tmp,stmp,sizeof(tmp));
         }
     }
 
@@ -605,9 +604,7 @@ ocdumpdatatree(OCstate* state, OCdata* data, NCbytes* buffer, int depth)
 
     tabto(tabstops[++tabstop],buffer);
 
-    if(!occopycat(tmp,sizeof(tmp),1,pattern->name))
-	return;
-    ncbytescat(buffer,tmp);
+    ncbytescat(buffer,pattern->name);
 
     if(rank > 0) {
 	snprintf(tmp,sizeof(tmp),"[%lu]",(unsigned long)crossproduct);

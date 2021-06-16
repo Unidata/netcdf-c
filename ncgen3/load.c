@@ -298,10 +298,11 @@ gen_load_c(
 static void
 fstrcat(
     char *s,			/* source string of stement being built */
-    const char *t,			/* string to be appended to source */
-    size_t *slenp			/* pointer to length of source string */
+    const char *t,		/* string to be appended to source */
+    size_t *slenp		/* pointer to length of source string */
     )
 {
+  size_t slen = *slenp;
 
   *slenp += strlen(t);
 
@@ -314,7 +315,11 @@ fstrcat(
     /* Suppress a coverity-related issue without actually
        ignoring it in the coverity dashboard. */
     /* coverity[unsigned_compare] */
+#if 0
     strncat(s, t, MAX(0,MIN(strlen(t),strlen(s)-(strlen(t)))));
+#else
+    strlcat(s, t, slen);
+#endif
   }
 }
 

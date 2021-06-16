@@ -109,8 +109,6 @@ test "x$STORAGE" = 'xtas:_Storage="chunked";'
 CHUNKSIZES=`cat tmppds.cdl | sed -e '/tas:_ChunkSizes/p' -ed | tr -d '\t \r'`
 test "x$CHUNKSIZES" = 'xtas:_ChunkSizes=10,15,20;'
 
-set -x
-
 echo "*** Test that nccopy -F var1,none works as intended "
 ${NCGEN} -4 -b -o tst_nofilters.nc $srcdir/ref_tst_nofilters.cdl
 ${NCCOPY} -M0 -4 -F var1,none -c // tst_nofilters.nc tmp_nofilters.nc
