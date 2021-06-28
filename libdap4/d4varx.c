@@ -155,7 +155,7 @@ getvarx(int ncid, int varid, NCD4INFO** infop, NCD4node** varp,
 	NCD4_resetSerial(&meta->serial, len, content);
         /* Process the data part */
         if((ret=NCD4_dechunk(meta))) goto done;
-            if((ret = NCD4_processdata(info->substrate.metadata))) goto done;
+        if((ret = NCD4_processdata(info->substrate.metadata))) goto done;
     }
 
     if((ret = NCD4_findvar(ncp,ncid,varid,&var,&group))) goto done;
@@ -186,6 +186,8 @@ getvarx(int ncid, int varid, NCD4INFO** infop, NCD4node** varp,
     if(nc4sizep) *nc4sizep = instancesize;
     if(varp) *varp = var;
 done:
+    if(meta->error.message != NULL)
+	NCD4_reporterror(info);    /* Make sure the user sees this */
     return THROW(ret);    
 }
 
