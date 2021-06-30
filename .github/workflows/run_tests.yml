@@ -89,9 +89,13 @@ jobs:
           echo "ENABLE_HDF4=--enable-hdf4" >> $GITHUB_ENV
           echo "ENABLE_NC4=--enable-hdf5" >> $GITHUB_ENV
         if: matrix.use_nc4 == 'nc4'
-      - run: echo "ENABLE_DAP=--disable-dap" >> $GITHUB_ENV
+      - run: |
+          echo "ENABLE_DAP=--disable-dap" >> $GITHUB_ENV
+          echo "ENABLE_BR=--disable-byterange" >> $GITHUB_ENV
         if: matrix.use_dap == 'dap_off'
-      - run: echo "ENABLE_DAP=--enable-dap" >> $GITHUB_ENV
+      - run: | 
+          echo "ENABLE_DAP=--enable-dap" >> $GITHUB_ENV
+          echo "ENABLE_BR=--enable-byterange" >> $GITHUB_ENV
         if: matrix.use_dap == 'dap_on'
       - run: echo "ENABLE_NCZARR=--disable-nczarr" >> $GITHUB_ENV
         if: matrix.use_nczarr == 'nczarr_off'
@@ -123,7 +127,7 @@ jobs:
 
       - name: Configure
         shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure ${ENABLE_HDF4} ${ENABLE_NC4} ${ENABLE_DAP} ${ENABLE_NCZARR}
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure ${ENABLE_HDF4} ${ENABLE_NC4} ${ENABLE_DAP} ${ENABLE_BR} ${ENABLE_NCZARR}
         if: ${{ success() }}
 
       - name: Look at config.log if error
@@ -195,9 +199,13 @@ jobs:
           echo "ENABLE_HDF4=ON" >> $GITHUB_ENV
           echo "ENABLE_NC4=ON" >> $GITHUB_ENV
         if: matrix.use_nc4 == 'nc4'
-      - run: echo "ENABLE_DAP=OFF" >> $GITHUB_ENV
+      - run: |
+          echo "ENABLE_DAP=OFF" >> $GITHUB_ENV
+          echo "ENABLE_BYTERANGE=OFF" >> $GITHUB_ENV
         if: matrix.use_dap == 'dap_off'
-      - run: echo "ENABLE_DAP=ON" >> $GITHUB_ENV
+      - run: |
+          echo "ENABLE_DAP=ON" >> $GITHUB_ENV
+          echo "ENABLE_BYTERANGE=ON" >> $GITHUB_ENV
         if: matrix.use_dap == 'dap_on'
       - run: echo "ENABLE_NCZARR=--disable-nczarr" >> $GITHUB_ENV
         if: matrix.use_nczarr == 'nczarr_off'
@@ -229,7 +237,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DENABLE_HDF4=${ENABLE_HDF4} -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DENABLE_DAP=${ENABLE_DAP} -DENABLE_HDF5=${ENABLE_NC4} -DENABLE_NCZARR=${ENABLE_NCZARR}
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DENABLE_HDF4=${ENABLE_HDF4} -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DENABLE_DAP=${ENABLE_DAP} -DENABLE_BYTERANGE=${ENABLE_BYTERANGE} -DENABLE_HDF5=${ENABLE_NC4} -DENABLE_NCZARR=${ENABLE_NCZARR}
 
       - name: Print Summary
         shell: bash -l {0}
