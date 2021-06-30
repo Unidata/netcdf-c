@@ -97,6 +97,8 @@ jobs:
           echo "ENABLE_DAP=--enable-dap" >> $GITHUB_ENV
           echo "ENABLE_BR=--enable-byterange" >> $GITHUB_ENV
         if: matrix.use_dap == 'dap_on'
+      - run: echo "ENABLE_BR=--disable-byterange" >> $GITHUB_ENV
+        if: matrix.hdf5 == '1.10.1'
       - run: echo "ENABLE_NCZARR=--disable-nczarr" >> $GITHUB_ENV
         if: matrix.use_nczarr == 'nczarr_off'
       - run: echo "ENABLE_NCZARR=--enable-nczarr" >> $GITHUB_ENV
@@ -211,6 +213,8 @@ jobs:
         if: matrix.use_nczarr == 'nczarr_off'
       - run: echo "ENABLE_NCZARR=--enable-nczarr" >> $GITHUB_ENV
         if: matrix.use_nczarr == 'nczarr_on'
+      - run: echo "ENABLE_BYTERANGE=OFF" >> $GITHUB_ENV
+        if: matrix.hdf5 == '1.10.1'
       - run: echo "CTEST_OUTPUT_ON_FAILURE=1" >> $GITHUB_ENV
 
 ###
