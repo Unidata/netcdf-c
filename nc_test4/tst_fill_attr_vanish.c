@@ -26,7 +26,7 @@
 
 #define ATTNAME "TextAttribute"
 #define ATTVAL  "This is a text attribute used for testing."
-
+#define ATTVAL_LEN 43
 
 /*! Main function for tst_fill_attr_vanish.c
  *
@@ -78,10 +78,13 @@ int main()
 
   /* Query existing attribute. */
   {
-    char *attval = malloc(sizeof(char) * strlen(ATTVAL));
+    char *attval = (char*)malloc(1+(sizeof(char) * strlen(ATTVAL)));
+    memset(attval,'\0',(1+(sizeof(char) * strlen(ATTVAL))));
     printf("**** Checking that attribute still exists:\t");
-    if(nc_get_att_text(ncid,test_id,ATTNAME,attval)) {printf("Fail\n"); ERR;}
-    else {printf("%s\n",attval);}
+    if(nc_get_att_text(ncid,test_id,ATTNAME,attval))
+      {printf("Fail\n"); ERR;}
+    else
+      {printf("%42s\n",attval);}
     free(attval);
 
   }
@@ -98,7 +101,8 @@ int main()
 
   /* Query existing attribute. */
   {
-    char *attval = malloc(sizeof(char) * strlen(ATTVAL));
+    char *attval = (char*)malloc(1+(sizeof(char) * strlen(ATTVAL)));
+    memset(attval,'\0',(1+(sizeof(char) * strlen(ATTVAL))));
     printf("**** Checking that attribute still exists, pre-write:\t");
     if(nc_get_att_text(ncid,test_id,ATTNAME,attval)) {printf("Fail\n"); ERR;}
     else {printf("%s\n",attval);}
@@ -118,7 +122,8 @@ int main()
 
   /* Query existing attribute. */
   {
-    char *attval = malloc(sizeof(char) * strlen(ATTVAL));
+    char *attval = (char*)malloc(1+(sizeof(char) * strnlen(ATTVAL,ATTVAL_LEN)));
+    memset(attval,'\0',(1+(sizeof(char) * strlen(ATTVAL))));
     printf("**** Checking that attribute still exists:\t");
     if(nc_get_att_text(ncid,test_id,ATTNAME,attval)) {printf("Fail\n"); ERR;}
     else {printf("%s\n",attval);}
