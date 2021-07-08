@@ -802,19 +802,11 @@ IF(USE_HDF5)
 
   # Check to see if HDF5 library is 1.10.6 or greater.
   # Used to control path name conversion
-  # Check HDF5 version
-  SET(HDF5_UTF8_PATHS OFF)
-  CHECK_C_SOURCE_COMPILES("
-  #include <H5public.h>
-  int main() {
-#if (H5_VERS_MAJOR*10000 + H5_VERS_MINOR*100 + H5_VERS_RELEASE < 11006)
-      choke me;
-#endif
-  }" HDF5_VERSION_1106)
-
-  IF(HDF5_VERSION_1106)
-   SET(HDF5_UTF8_PATHS ON)
-  ENDIF(HDF5_VERSION_1106)
+  IF(${HDF5_VERSION} VERSION_GREATER "1.10.5")
+    SET(HDF5_UTF8_PATHS ON)
+  ELSE()
+    SET(HDF5_UTF8_PATHS OFF)
+  ENDIF()
 
   MESSAGE("-- Checking for HDF5 version 1.10.6 or later: ${HDF5_UTF8_PATHS}")
 
@@ -2256,6 +2248,8 @@ IF(ENABLE_TESTS)
     #####
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ncdap_test/pingurl.c ${CMAKE_CURRENT_BINARY_DIR}/dap4_test/pingurl4.c @ONLY NEWLINE_STYLE LF)
 ENDIF()
+
+add_subdirectory(fuzz)
 
 ####
 # Export files
