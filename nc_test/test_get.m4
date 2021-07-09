@@ -253,6 +253,10 @@ TestFunc(var)_$1(VarArgs)
     double expect[MAX_NELS];
     $1 value[MAX_NELS];
 
+    for(j = 0; j < MAX_NELS; j++) {
+          expect[j] = 0;
+    }
+
     err = FileOpen(testfile, NC_NOWRITE);
     IF (err != NC_NOERR) error("open: %s", APIFunc(strerror)(err));
 
@@ -375,6 +379,10 @@ TestFunc(vara)_$1(VarArgs)
     IntType start[MAX_RANK], edge[MAX_RANK], index[MAX_RANK], mid[MAX_RANK];
     double expect[MAX_NELS];
     $1 value[MAX_NELS];
+
+    for(j = 0; j < MAX_NELS; j++) {
+          expect[j] = 0;
+    }
 
     err = FileOpen(testfile, NC_NOWRITE);
     IF (err != NC_NOERR) error("open: %s", APIFunc(strerror)(err));
@@ -634,6 +642,10 @@ TestFunc(vars)_$1(VarArgs)
     PTRDType stride[MAX_RANK];
     double expect[MAX_NELS];
     $1 value[MAX_NELS];
+
+    for(j = 0; j < MAX_NELS; j++) {
+          expect[j] = 0;
+    }
 
     err = FileOpen(testfile, NC_NOWRITE);
     IF (err != NC_NOERR) error("open: %s", APIFunc(strerror)(err));
@@ -928,6 +940,10 @@ TestFunc(varm)_$1(VarArgs)
     double expect[MAX_NELS];
     $1 value[MAX_NELS];
 
+    for(j = 0; j < MAX_NELS; j++) {
+          expect[j] = 0;
+    }
+
     err = FileOpen(testfile, NC_NOWRITE);
     IF (err != NC_NOERR) error("open: %s", APIFunc(strerror)(err));
 
@@ -1220,6 +1236,10 @@ TestFunc(att)_$1(AttVarArgs)
     int nok = 0;        /* count of valid comparisons */
     double expect[MAX_NELS];
     $1 value[MAX_NELS];
+
+    for(j = 0; j < MAX_NELS; j++) {
+          expect[j] = 0;
+    }
 
     err = FileOpen(testfile, NC_NOWRITE);
     IF (err != NC_NOERR) error("open: %s", APIFunc(strerror)(err));
