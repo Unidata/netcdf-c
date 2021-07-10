@@ -466,8 +466,8 @@ ocreadfile(FILE* file, off_t datastart, char** memp, size_t* lenp)
 void
 ocdd(OCstate* state, OCnode* root, int xdrencoded, int level)
 {
-    char* mem;
-    size_t len;
+    char* mem = NULL; /* GCC */
+    size_t len = 0; /* GCC */
     if(root->tree->data.file != NULL) {
         if(!ocreadfile(root->tree->data.file,
                        root->tree->data.bod,

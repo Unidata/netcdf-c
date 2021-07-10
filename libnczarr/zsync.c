@@ -298,10 +298,10 @@ ncz_sync_var(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var)
     {	/* Add the type name */
 	const char* dtypename;
 	int endianness = var->type_info->endianness;
-	int islittle;
+	int islittle = 0;
 	switch (endianness) {
 	case NC_ENDIAN_LITTLE: islittle = 1; break;
-	case NC_ENDIAN_BIG: islittle = 0; break;
+	case NC_ENDIAN_BIG: break;
 	case NC_ENDIAN_NATIVE: abort(); /* should never happen */
 	}
 	int atomictype = var->type_info->hdr.id;

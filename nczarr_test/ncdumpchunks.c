@@ -293,7 +293,7 @@ dump(Format* format)
     char sindices[64];
 #ifdef H5
     int i;
-    hid_t fileid, grpid, datasetid;
+    hid_t fileid = H5P_DEFAULT, grpid = H5P_DEFAULT, datasetid = H5P_DEFAULT; /* GCC */
     hid_t dxpl_id = H5P_DEFAULT; /*data transfer property list */
     unsigned int filter_mask = 0;
     hsize_t hoffset[NC_MAX_VAR_DIMS];

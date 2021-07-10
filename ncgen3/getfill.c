@@ -51,11 +51,11 @@ nc_fill(
      void *datp,		/* where to start filling */
      union generic fill_val)	/* value to use */
 {
-    char *char_valp;		/* pointers used to accumulate data values */
-    short *short_valp;
-    int *long_valp;
-    float *float_valp;
-    double *double_valp;
+    char *char_valp = NULL;   /* GCC *//* pointers used to accumulate data values */
+    short *short_valp = NULL; /* GCC */
+    int *long_valp = NULL; /* GCC */
+    float *float_valp = NULL; /* GCC */
+    double *double_valp = NULL; /* GCC */
 
     switch (type) {
       case NC_CHAR:

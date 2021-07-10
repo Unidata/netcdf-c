@@ -789,8 +789,8 @@ cdComp2Rel(cdCalenType timetype, cdCompTime comptime, char* relunits, double* re
 	CdTime humantime;
 	CdTimeType old_timetype;
 	cdUnitTime unit;
-	double base_etm, etm, delta;
-	long ndel, hoursInYear;
+	double base_etm, etm, delta = 0.; /* GCC */
+	long ndel = 0, hoursInYear;
 
 					     /* Parse the relunits */
 	if(cdParseRelunits(timetype, relunits, &unit, &base_comptime))
@@ -982,7 +982,7 @@ cdRel2Comp(cdCalenType timetype, char* relunits, double reltime, cdCompTime* com
 	cdCompTime base_comptime;
 	cdUnitTime unit, baseunits;
 	double base_etm, result_etm;
-	double delta;
+	double delta = 0.; /* GCC */
 	long idelta;
 
 					     /* Parse the relunits */

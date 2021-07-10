@@ -504,11 +504,11 @@ load_netcdf(
     int stat = NC_NOERR;
     size_t start[NC_MAX_VAR_DIMS];
     size_t count[NC_MAX_VAR_DIMS];
-    char *charvalp;
-    short *shortvalp;
-    int *intvalp;
-    float *floatvalp;
-    double *doublevalp;
+    char *charvalp = NULL; /* GCC */
+    short *shortvalp = NULL; /* GCC */
+    int *intvalp = NULL; /* GCC */
+    float *floatvalp = NULL; /* GCC */
+    double *doublevalp = NULL; /* GCC */
 
     /* load values into variable */
 

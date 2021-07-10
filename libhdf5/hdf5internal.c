@@ -860,7 +860,7 @@ nc4_hdf5_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
     NC_FILE_INFO_T *my_h5;
     NC_GRP_INFO_T *my_grp;
     NC_VAR_INFO_T *my_var = NULL;
-    NC_ATT_INFO_T *my_att;
+    NC_ATT_INFO_T *my_att = NULL; /* GCC */
     char my_norm_name[NC_MAX_NAME + 1] = "";
     NCindex *attlist = NULL;
     int retval;
