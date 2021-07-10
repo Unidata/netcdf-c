@@ -47,7 +47,7 @@ parseServers(const char* remotetestservers)
     size_t rtslen = strlen(remotetestservers);
 
     /* Keep LGTM quiet */
-    if(rtslen > MAXREMOTETESTSERVERS) goto done;
+    if(rtslen > MAXREMOTETESTSERVERS) return NULL;
     list = (char**)malloc(sizeof(char*) * (int)(rtslen/2));
     if(list == NULL) return NULL;
     rts = strdup(remotetestservers);
@@ -65,8 +65,8 @@ parseServers(const char* remotetestservers)
     *l = NULL;
     servers = list;
     list = NULL;
+    free(rts);
 done:
-    if(rts) free(rts);
     if(list) free(list);
     return servers;
 }
