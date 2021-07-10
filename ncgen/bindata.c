@@ -566,7 +566,7 @@ bin_reclaim_compound(Symbol* tsym, Reclaim* reclaimer)
 {
     int stat = NC_NOERR;
     int nfields;
-    size_t fid, i, arraycount;
+    size_t fid, i;
     ptrdiff_t saveoffset;
 
     reclaimer->offset = read_alignment(reclaimer->offset,tsym->typ.cmpdalign);
@@ -577,6 +577,7 @@ bin_reclaim_compound(Symbol* tsym, Reclaim* reclaimer)
     for(fid=0;fid<nfields;fid++) {
 	Symbol* field = listget(tsym->subnodes,fid);
 	int ndims = field->typ.dimset.ndims;
+	size_t arraycount = ndims > 0 ? 1 : 0;
 	/* compute the total number of elements in the field array */
 	for(i=0;i<ndims;i++) arraycount *= field->typ.dimset.dimsyms[i]->dim.declsize;
 	reclaimer->offset = read_alignment(reclaimer->offset,field->typ.alignment);
