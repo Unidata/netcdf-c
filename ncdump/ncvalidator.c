@@ -2075,7 +2075,7 @@ val_NC_check_voff(NC *ncp)
 
     if (ncp->begin_rec < prev_off) {
         if (verbose) printf("Error:\n");
-        if (verbose) printf("\tRecord variable section begin offset (%lld) is less than fixed-size variable section end offset (%lld)\n", varp->begin, prev_off);
+        if (verbose) printf("\tRecord variable section begin offset (%lld) is less than fixed-size variable section end offset (%lld)\n", ncp->begin_rec, prev_off);
         nerrs++;
         DEBUG_ASSIGN_ERROR(status, NC_ENOTNC)
     }
