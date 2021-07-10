@@ -902,6 +902,7 @@ pr_att(
 		   value = *((uint64_t *)data + i);
 		   break;
 	       default:
+		   value = 0; /* GCC */
 		   error("enum must have an integer base type: %d", base_nc_type);
 	       }
 	       NC_CHECK( nc_inq_enum_ident(ncid, att.type, value,
