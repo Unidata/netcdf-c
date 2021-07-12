@@ -868,7 +868,7 @@ int
 ncz_def_var_chunking_ints(int ncid, int varid, int contiguous, int *chunksizesp)
 {
     NC_VAR_INFO_T *var;
-    size_t *cs;
+    size_t *cs = NULL;
     int i, retval;
 
     /* Get pointer to the var. */
