@@ -826,7 +826,7 @@ ifelse(`$1',`uchar',`ifdef(`PNETCDF',,``#'endif')')
                 IF (err != 0) error("error in toMixedBase");
                 nels = 1;
                 for (j = 0; j < var_rank[i]; j++) {
-                    count[j] = 1 + (edge[j]-index[j]-1) / (IntType)stride[j];
+                    count[j] = 1 + (edge[j]-index[j]-1) / ( (IntType)stride[j] == 0 ? 1 : (IntType)stride[j]);
                     nels *= count[j];
                     index[j] += start[j];
                 }
@@ -1123,7 +1123,7 @@ ifelse(`$1',`uchar',`ifdef(`PNETCDF',,``#'endif')')
                 IF (err != 0) error("error in toMixedBase");
                 nels = 1;
                 for (j = 0; j < var_rank[i]; j++) {
-                    count[j] = 1 + (edge[j]-index[j]-1) / (IntType)stride[j];
+                    count[j] = 1 + (edge[j]-index[j]-1) / ( (IntType)stride[j] == 0 ? 1 : (IntType)stride[j]);
                     nels *= count[j];
                     index[j] += start[j];
                 }
