@@ -135,7 +135,7 @@ getvarx(int ncid, int varid, NCD4INFO** infop, NCD4node** varp,
     size_t instancesize, xsize;
 
     if((ret = NC_check_id(ncid, (NC**)&ncp)) != NC_NOERR)
-	goto done;
+	goto error;
 
     info = getdap(ncp);
     meta = info->substrate.metadata;
@@ -188,6 +188,7 @@ getvarx(int ncid, int varid, NCD4INFO** infop, NCD4node** varp,
 done:
     if(meta->error.message != NULL)
 	NCD4_reporterror(info);    /* Make sure the user sees this */
+error:
     return THROW(ret);    
 }
 
