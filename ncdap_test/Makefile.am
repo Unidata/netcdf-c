@@ -32,7 +32,9 @@ check_PROGRAMS += t_dap3a test_cvt3 test_vara
 TESTS += t_dap3a test_cvt3 test_vara
 if BUILD_UTILITIES
 TESTS += tst_ncdap3.sh
+if ENABLE_DAP_REMOTE_TESTS
 TESTS += testpathcvt.sh
+endif
 endif
 
 # remote tests are optional
