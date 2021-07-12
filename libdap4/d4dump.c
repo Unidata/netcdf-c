@@ -45,6 +45,8 @@ NCD4_dumpbytes(size_t size, const void* data0, int swap)
         v.i32[0] = *((int*)pos);
         v.u64[0] = *((unsigned long long*)pos);
         v.i64[0] = *((long long*)pos);
+	v.f32[0] = *((float*)pos);
+	v.f64[0] = *((double*)pos);
 	if(swap) {
 	    swapinline16(v.u16);
 	    swapinline32(v.u32);
