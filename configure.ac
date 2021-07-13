@@ -825,7 +825,7 @@ AC_ARG_WITH([temp-large],
             [TEMP_LARGE=$with_temp_large])
 TEMP_LARGE=${TEMP_LARGE-.}
 AC_MSG_RESULT($TEMP_LARGE)
-#AC_SUBST(TEMP_LARGE)
+AC_SUBST(TEMP_LARGE)
 AC_DEFINE_UNQUOTED([TEMP_LARGE], ["$TEMP_LARGE"], [Place to put very large netCDF test files.])
 
 # Specify extra values to add to _NCProperties attribute
@@ -1743,11 +1743,7 @@ AC_CONFIG_FILES(examples/C/findplugin.sh:nc_test4/findplugin.in)
 AC_CONFIG_FILES(ncdap_test/findtestserver.c:ncdap_test/findtestserver.c.in)
 AC_CONFIG_FILES(dap4_test/findtestserver4.c:ncdap_test/findtestserver.c.in)
 AC_CONFIG_FILES(dap4_test/pingurl4.c:ncdap_test/pingurl.c)
-AC_CONFIG_FILES([h5_test/run_par_tests.sh], [chmod ugo+x h5_test/run_par_tests.sh])
-AC_CONFIG_FILES([nc_test4/run_par_test.sh], [chmod ugo+x nc_test4/run_par_test.sh])
-AC_CONFIG_FILES([nc_perf/run_par_bm_test.sh], [chmod ugo+x nc_perf/run_par_bm_test.sh])
-AC_CONFIG_FILES([nc_perf/run_gfs_test.sh], [chmod ugo+x nc_perf/run_gfs_test.sh])
-AC_CONFIG_FILES([examples/C/run_par_test.sh], [chmod ugo+x examples/C/run_par_test.sh])
+AC_CONFIG_FILES([h5_test/run_par_tests.sh nc_test/run_t_nc nc_test/run_nc_test nc_test/run_pnetcdf_test.sh nc_test/run_formatx_pnetcdf nc_test/run_default_format_pnetcdf nc_test/run_cdf5format nc_test/run_atts3 nc_test/run_misc nc_test/run_nofill nc_test/run_norm nc_test/run_small nc_test4/run_par_test.sh nc_test4/run_atts3 nc_perf/run_par_bm_test.sh examples/C/run_par_test.sh], [chmod ugo+x "$ac_file"])
 AC_CONFIG_FILES([nc-config], [chmod 755 nc-config])
 AC_CONFIG_FILES([Makefile
                  netcdf.pc

@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# This script runs some PnetCDF I/O tests
+
+set -e
+@MPIEXEC@ -n 1 ./tst_formatx_pnetcdf
