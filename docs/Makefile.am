@@ -16,7 +16,8 @@ obsolete/fan_utils.html indexing.dox	\
 inmemory.md attribute_conventions.md FAQ.md	                \
 file_format_specifications.md known_problems.md COPYRIGHT.md		\
 inmeminternal.dox              \
-testserver.dox byterange.dox
+testserver.dox byterange.dox   \
+nczarr.md filters.md
 
 # Turn off parallel builds in this directory.
 .NOTPARALLEL:

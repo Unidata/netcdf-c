@@ -22,7 +22,6 @@ zfile.c
 zfilter.c
 zgrp.c
 zinternal.c
-zjson.c
 zmap.c
 zmap_file.c
 zodom.c
@@ -40,7 +39,6 @@ zchunking.h
 zdispatch.h
 zincludes.h
 zinternal.h
-zjson.h
 zmap.h
 zodom.h
 zprovenance.h

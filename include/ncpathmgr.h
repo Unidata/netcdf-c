@@ -97,6 +97,22 @@ This means it is ok to call it repeatedly with no harm.
 */
 EXTERNL char* NCpathcvt(const char* path);
 
+/**
+It is often convenient to convert a path to some canonical format
+that has some desirable properties:
+1. All backslashes have been converted to forward slash
+2. It can be suffixed or prefixed by simple concatenation
+   with a '/' separator. The exception being if the base part
+   may be absolute, in which case, suffixing only is allowed;
+   the user is responsible for getting this right.
+To this end we choose the linux/cygwin format as our standard canonical form.
+If the path has a windows drive letter, then it is represented
+in the cygwin "/cygdrive/<drive-letter>" form. If it is on *nix* platform,
+then this sequence will never appear and the canonical path will look
+like a standard *nix* path.
+*/
+EXTERNL int NCpathcanonical(const char* srcpath, char** canonp);
+
 EXTERNL int NChasdriveletter(const char* path);
 
 /* Canonicalize and make absolute by prefixing the current working directory */

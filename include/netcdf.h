@@ -480,9 +480,11 @@ by the desired type. */
 #define NC_ENCZARR       (-137)    /**< Error at NCZarr layer. */
 #define NC_ES3           (-138)    /**< Generic S3 error */
 #define NC_EEMPTY        (-139)    /**< Attempt to read empty NCZarr map key */
-#define NC_EFOUND        (-140)    /**< Some object exists when it should not */
+#define NC_EOBJECT       (-140)    /**< Some object exists when it should not */
+#define NC_ENOOBJECT     (-141)    /**< Some object not found */
+#define NC_EPLUGIN       (-142)    /**< Unclassified failure in accessing a dynamically loaded plugin> */
 
-#define NC4_LAST_ERROR   (-140)    /**< @internal All netCDF errors > this. */
+#define NC4_LAST_ERROR   (-142)    /**< @internal All netCDF errors > this. */
 
 /* Errors for all remote access methods(e.g. DAP and CDMREMOTE)*/
 #define NC_EURL         (NC_EDAPURL)   /**< Malformed URL */
