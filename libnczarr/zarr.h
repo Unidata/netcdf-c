@@ -19,6 +19,7 @@ extern int ncz_create_dataset(NC_FILE_INFO_T*, NC_GRP_INFO_T*, const char** cont
 extern int ncz_open_dataset(NC_FILE_INFO_T*, const char** controls);
 extern int ncz_del_attr(NC_FILE_INFO_T* file, NC_OBJ* container, const char* name);
 
+/* HDF5 Mimics */
 extern int NCZ_isnetcdf4(struct NC_FILE_INFO*);
 extern int NCZ_get_libversion(unsigned long* majorp, unsigned long* minorp,unsigned long* releasep);
 extern int NCZ_get_superblock(NC_FILE_INFO_T* file, int* superblockp);
@@ -42,7 +43,7 @@ extern int ncz_read_atts(NC_FILE_INFO_T* file, NC_OBJ* container);
 extern int ncz_read_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp);
 extern int ncz_read_file(NC_FILE_INFO_T* file);
 extern int ncz_write_var(NC_VAR_INFO_T* var);
-extern int ncz_create_superblock(NCZ_FILE_INFO_T* zinfo);
+extern int ncz_read_superblock(NC_FILE_INFO_T* zinfo, char** nczarrvp, char** zarrfp);
 
 /* zutil.c */
 extern int NCZ_grpkey(const NC_GRP_INFO_T* grp, char** pathp);
@@ -52,6 +53,7 @@ extern int ncz_splitkey(const char* path, NClist* segments);
 extern int NCZ_readdict(NCZMAP* zmap, const char* key, NCjson** jsonp);
 extern int NCZ_readarray(NCZMAP* zmap, const char* key, NCjson** jsonp);
 extern int ncz_zarr_type_name(nc_type nctype, int little, const char** znamep);
+extern int ncz_nctype2typeinfo(const char* snctype, nc_type* nctypep);
 extern int ncz_dtype2typeinfo(const char* dtype, nc_type* nctypep, int* endianness);
 extern int ncz_fill_value_sort(nc_type nctype, int*);
 extern int NCZ_createobject(NCZMAP* zmap, const char* key, size64_t size);

@@ -188,7 +188,7 @@ fprintf(stderr,"arg=%s value=%s\n",argv[optind-1],optarg);
             }
     }
 
-    if(opt->filename == NULL) return NC_ENOTFOUND;
+    if(opt->filename == NULL) return NC_ENOOBJECT;
 
     switch(opt->format) {
     case NC_FORMATX_NCZARR:

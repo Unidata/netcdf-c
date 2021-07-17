@@ -125,7 +125,7 @@ zipcreate(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
         {stat = NC_EURL; goto done;}
 
     /* Canonicalize the root path */
-    if((stat = nczm_canonicalpath(url->path,&truepath))) goto done;
+    if((stat = NCpathcanonical(url->path,&truepath))) goto done;
 
     /* Extract the dataset name */
     if((stat = nczm_basename(truepath,&dataset))) goto done;
@@ -210,7 +210,7 @@ zipopen(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** m
         {stat = NC_EURL; goto done;}
 
     /* Canonicalize the root path */
-    if((stat = nczm_canonicalpath(url->path,&truepath))) goto done;
+    if((stat = NCpathcanonical(url->path,&truepath))) goto done;
 
     /* Build the zz state */
     if((zzmap = calloc(1,sizeof(ZZMAP))) == NULL)
@@ -278,7 +278,7 @@ zipexists(NCZMAP* map, const char* key)
     ZTRACE(6,"map=%s key=%s",map->url,key);
     switch(stat=zzlookupobj(zzmap,key,&zindex)) {
     case NC_NOERR: break;
-    case NC_ENOTFOUND: stat = NC_EEMPTY; break;
+    case NC_ENOOBJECT: stat = NC_EEMPTY; break;
     case NC_EEMPTY: break;
     default: break;
     }
@@ -299,7 +299,7 @@ ziplen(NCZMAP* map, const char* key, size64_t* lenp)
     case NC_NOERR:
 	if((stat = zzlen(zzmap,zindex,&len))) goto done;
         break;
-    case NC_ENOTFOUND: stat = NC_EEMPTY; len = 0; break;
+    case NC_ENOOBJECT: stat = NC_EEMPTY; len = 0; break;
     case NC_EEMPTY: len = 0; break; /* |dir|==0 */
     default: goto done;
     }
@@ -328,7 +328,7 @@ zipread(NCZMAP* map, const char* key, size64_t start, size64_t count, void* cont
 
     switch(stat = zzlookupobj(zzmap,key,&zindex)) {
     case NC_NOERR: break;
-    case NC_ENOTFOUND: stat = NC_EEMPTY; /* fall thru */
+    case NC_ENOOBJECT: stat = NC_EEMPTY; /* fall thru */
     case NC_EEMPTY: /* its a dir; fall thru*/
     default: goto done;
     }
@@ -395,10 +395,10 @@ zipwrite(NCZMAP* map, const char* key, size64_t start, size64_t count, const voi
 
     switch(stat = zzlookupobj(zzmap,key,&zindex)) {
     case NC_NOERR:
-        stat = NC_EFOUND; //goto done; /* Zip files are write once */
+        stat = NC_EOBJECT; //goto done; /* Zip files are write once */
 	zflags |= ZIP_FL_OVERWRITE;
 	break;
-    case NC_ENOTFOUND: stat = NC_NOERR; break;
+    case NC_ENOOBJECT: stat = NC_NOERR; break;
     case NC_EEMPTY: /* its a dir; fall thru */
     default: goto done;
     }
@@ -621,7 +621,7 @@ zzcreategroup(ZZMAP* zzmap, const char* key, int nskip)
 	/* open and/or create the directory */	
 	if((zindex = zip_dir_add(zzmap->archive, ncbytescontents(path), zipflags))<0) {
 	    switch(stat = zipmaperr(zzmap)) {
-	    case NC_EFOUND: stat = NC_NOERR; break; /* ok */
+	    case NC_EOBJECT: stat = NC_NOERR; break; /* ok */
 	    default:
 		goto done;
 	    }
@@ -636,7 +636,7 @@ done:
 
 /* Lookup a key
 @return NC_NOERR if found and is a content-bearing object
-@return NC_ENOTFOUND if not found
+@return NC_ENOOBJECT if not found
 @return NC_EEMPTY if a dir
 */
 static int
@@ -747,7 +747,7 @@ ziperrno(int zerror)
     int stat = NC_NOERR;
     switch (zerror) {
     case ZIP_ER_OK: stat = NC_NOERR; break;
-    case ZIP_ER_EXISTS: stat = NC_EFOUND; break;
+    case ZIP_ER_EXISTS: stat = NC_EOBJECT; break;
     case ZIP_ER_MEMORY: stat = NC_ENOMEM; break;
     case ZIP_ER_SEEK:
     case ZIP_ER_READ:
@@ -755,14 +755,14 @@ ziperrno(int zerror)
     case ZIP_ER_TMPOPEN:
     case ZIP_ER_CRC: stat = NC_EIO; break;
     case ZIP_ER_ZIPCLOSED: stat = NC_EBADID; break;
-    case ZIP_ER_NOENT: stat = NC_ENOTFOUND; break;
+    case ZIP_ER_NOENT: stat = NC_ENOOBJECT; break;
     case ZIP_ER_OPEN: stat = NC_EACCESS; break;
     case ZIP_ER_INVAL: stat = NC_EINVAL; break;
     case ZIP_ER_INTERNAL: stat = NC_EINTERNAL; break;
     case ZIP_ER_REMOVE: stat = NC_ECANTREMOVE; break;
-    case ZIP_ER_DELETED: stat = NC_ENOTFOUND; break;
+    case ZIP_ER_DELETED: stat = NC_ENOOBJECT; break;
     case ZIP_ER_RDONLY: stat = NC_EPERM; break;
-    case ZIP_ER_CHANGED: stat = NC_EFOUND; break;
+    case ZIP_ER_CHANGED: stat = NC_EOBJECT; break;
     default: stat = NC_ENCZARR; break;
     }
     return stat;

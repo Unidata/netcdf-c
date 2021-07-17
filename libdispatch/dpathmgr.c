@@ -148,6 +148,49 @@ done:
 }
 
 EXTERNL
+int
+NCpathcanonical(const char* srcpath, char** canonp)
+{
+    int stat = NC_NOERR;
+    char* canon = NULL;
+    size_t len;
+    struct Path path = empty;
+    
+    if(srcpath == NULL) goto done;
+
+    if(!pathinitialized) pathinit();
+
+    /* parse the src path */
+    if((stat = parsepath(srcpath,&path))) {goto done;}
+    switch (path.kind) {
+    case NCPD_NIX:
+    case NCPD_CYGWIN:
+    case NCPD_REL:
+	/* use as is */
+	canon = path.path; path.path = NULL;
+	break;	
+    case NCPD_MSYS:
+    case NCPD_WIN: /* convert to cywin form */
+	len = strlen(path.path) + strlen("/cygdrive/X") + 1;
+	canon = (char*)malloc(len);
+	if(canon != NULL) {
+	    canon[0] = '\0';
+	    strlcat(canon,"/cygdrive/X",len);
+	    canon[10] = path.drive;
+	    strlcat(canon,path.path,len);
+	}
+	break;		
+    default: goto done; /* return NULL */
+    }
+    if(canonp) {*canonp = canon; canon = NULL;}
+
+done:
+    nullfree(canon);
+    clearPath(&path);
+    return stat;
+}
+
+EXTERNL
 char* /* caller frees */
 NCpathabsolute(const char* relpath)
 {
@@ -161,7 +204,7 @@ NCpathabsolute(const char* relpath)
 
     if(!pathinitialized) pathinit();
 
-    /* Canonicalize relpath */
+    /* Decompose path */
     if((stat = parsepath(relpath,&canon))) {goto done;}
     
     /* See if relative */
@@ -472,7 +515,7 @@ NCmkstemp(char* base)
     cvtpath = NCpathcvt(base);
     len = strlen(cvtpath);
     xp = cvtpath+(len-6);
-    assert(memcmp(xp,"XXXXXX")==0);    
+    assert(memcmp(xp,"XXXXXX",6)==0);    
     for(attempts=10;attempts>0;attempts--) {
         /* The Windows version of mkstemp does not work right;
            it only allows for 26 possible XXXXXX values */

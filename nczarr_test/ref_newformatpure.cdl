@@ -1,0 +1,33 @@
+netcdf ref_oldformat {
+dimensions:
+	.zdim_8 = 8 ;
+	.zdim_10 = 10 ;
+variables:
+	int lat(.zdim_8) ;
+		lat:_FillValue = -1 ;
+		lat:lat_attr = "latitude" ;
+data:
+
+ lat = 1, 2, 3, 4, 5, 6, 7, 8 ;
+
+group: g1 {
+  variables:
+  	int pos(.zdim_8, .zdim_10) ;
+  		pos:_FillValue = -1 ;
+  		pos:pos_attr = "latXlon" ;
+
+  // group attributes:
+  		:g1_attr = 17 ;
+  data:
+
+   pos =
+  _, _, _, _, _, _, _, _, _, _,
+  _, _, _, _, _, _, _, _, _, _,
+  _, _, _, _, _, _, _, _, _, _,
+  _, _, _, _, _, _, _, _, _, _,
+  _, _, _, _, _, _, _, _, _, _,
+  _, _, _, _, _, _, _, _, _, _,
+  _, _, _, _, _, _, _, _, _, _,
+  _, _, _, _, _, _, _, _, _, _ ;
+  } // group g1
+}
