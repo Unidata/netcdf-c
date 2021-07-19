@@ -8,6 +8,7 @@ This file contains a high-level description of this package's evolution. Release
 ## 4.8.1 - TBD
 
 * [Enhancement] Convert to a new representation of the NCZarr meta-data extensions: version 2. Read-only backward compatibility is provided. See [Github #2032](https://github.com/Unidata/netcdf-c/issues/2032).
+* [Bug Fix] Fix dimension_separator bug in libnczarr. See [Github #2035](https://github.com/Unidata/netcdf-c/issues/2035).
 * [Bug Fix] Fix bugs in libdap4. See [Github #2005](https://github.com/Unidata/netcdf-c/issues/2005).
 * [Bug Fix] Store NCZarr fillvalue as a singleton instead of a 1-element array. See [Github #2017](https://github.com/Unidata/netcdf-c/issues/2017).  
 * [Bug Fixes] The netcdf-c library was incorrectly determining the scope of dimension; similar to the type scope problem. See [Github #2012](https://github.com/Unidata/netcdf-c/pull/2012) for more information.
