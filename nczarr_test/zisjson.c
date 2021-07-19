@@ -18,7 +18,7 @@
 
 #include "netcdf.h"
 #include "nclist.h"
-#include "zjson.h"
+#include "ncjson.h"
 
 #define MAXREAD 8192
 

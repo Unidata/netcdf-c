@@ -251,7 +251,7 @@ NCZ_read_cache_chunk(NCZChunkCache* cache, const size64_t* indices, void** datap
         /* Move to front of the lru */
         (void)ncxcachetouch(cache->xcache,hkey);
         break;
-    case NC_ENOTFOUND:
+    case NC_ENOOBJECT:
         entry = NULL; /* not found; */
 	break;
     default: goto done;

@@ -18,7 +18,8 @@
 /* Static zarr type name table */
 
 static const char* znames_little[NUM_ATOMIC_TYPES] = {
-NULL,  /*NC_NAT*/ "<i1", /*NC_BYTE*/ "<U1", /*NC_CHAR*/ "<i2", /*NC_SHORT*/
+NULL,  /*NC_NAT*/
+"<i1", /*NC_BYTE*/ "<U1", /*NC_CHAR*/ "<i2", /*NC_SHORT*/
 "<i4", /*NC_INT*/ "<f4", /*NC_FLOAT*/ "<f8", /*NC_DOUBLE*/ "<u1", /*NC_UBYTE*/
 "<u2", /*NC_USHORT*/ "<u4", /*NC_UINT*/ "<i8", /*NC_INT64*/ "<u8", /*NC_UINT64*/
 NULL,  /*NC_STRING*/
@@ -487,6 +488,15 @@ done:
 }
 
 int
+ncz_nctype2typeinfo(const char* snctype, nc_type* nctypep)
+{
+    unsigned nctype = 0;
+    if(sscanf(snctype,"%u",&nctype)!=1) return NC_EINVAL;
+    if(nctypep) *nctypep = nctype;
+    return NC_NOERR;
+}
+
+int
 ncz_dtype2typeinfo(const char* dtype, nc_type* nctypep, int* endianp)
 {
     int stat = NC_NOERR;
@@ -894,13 +904,11 @@ NCZ_chunkpath(struct ChunkKey key,char dimsep)
 {
     size_t plen = nulllen(key.varkey)+1+nulllen(key.chunkkey);
     char* path = (char*)malloc(plen+1);
-    char sdimsep[2];
     
     if(path == NULL) return NULL;
     path[0] = '\0';
     strlcat(path,key.varkey,plen+1);
-    sdimsep[0] = dimsep; sdimsep[1] = '\0';
-    strlcat(path,sdimsep,plen+1);
+    strlcat(path,"/",plen+1);
     strlcat(path,key.chunkkey,plen+1);
     return path;    
 }
