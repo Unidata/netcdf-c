@@ -894,13 +894,11 @@ NCZ_chunkpath(struct ChunkKey key,char dimsep)
 {
     size_t plen = nulllen(key.varkey)+1+nulllen(key.chunkkey);
     char* path = (char*)malloc(plen+1);
-    char sdimsep[2];
     
     if(path == NULL) return NULL;
     path[0] = '\0';
     strlcat(path,key.varkey,plen+1);
-    sdimsep[0] = dimsep; sdimsep[1] = '\0';
-    strlcat(path,sdimsep,plen+1);
+    strlcat(path,"/",plen+1);
     strlcat(path,key.chunkkey,plen+1);
     return path;    
 }
