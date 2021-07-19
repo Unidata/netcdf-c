@@ -165,7 +165,7 @@ zs3create(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
 	    stat = NC_NOERR;  /* which is what we want */
 	    errclear(z3map);
 	    break;
-	case NC_NOERR: stat = NC_EFOUND; goto done; /* already exists */
+	case NC_NOERR: stat = NC_EOBJECT; goto done; /* already exists */
 	default: reporterr(z3map); goto done;
 	}
 	if(!stat) {
@@ -234,8 +234,8 @@ zs3open(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** m
     if((stat = NCZ_s3sdkgetkeys(z3map->s3client,z3map->s3.bucket,z3map->s3.rootkey,&nkeys,NULL,&z3map->errmsg)))
 	goto done;
     if(nkeys == 0) {
-	/* dataset does not actually exist; we choose to return ENOTFOUND instead of EEMPTY */
-	stat = NC_ENOTFOUND;
+	/* dataset does not actually exist; we choose to return ENOOBJECT instead of EEMPTY */
+	stat = NC_ENOOBJECT;
 	goto done;
     }
     if(mapp) *mapp = (NCZMAP*)z3map;    

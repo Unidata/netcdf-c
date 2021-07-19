@@ -95,6 +95,10 @@ IF(ENABLE_TESTS)
 	add_sh_test(nczarr_test run_s3_cleanup)
     ENDIF()
 
+    if(ENABLE_NCZARR_ZIP)
+        add_sh_test(nczarr_test run_newformat)
+    endif()
+
   ENDIF(BUILD_UTILITIES)
 
 ENDIF(ENABLE_TESTS)

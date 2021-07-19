@@ -28,8 +28,8 @@ EXTERNL int zthrow(int err, const char* fname, const char* fcn, int line);
 #ifdef ZTRACING
 #define ZTRACE(level,fmt,...) nctrace((level),__func__,fmt,##__VA_ARGS__)
 #define ZTRACEMORE(level,fmt,...) nctracemore((level),fmt,##__VA_ARGS__)
-#define ZUNTRACE(e) ncuntrace(__func__,(e),NULL)
-#define ZUNTRACEX(e,fmt,...) ncuntrace(__func__,(e),fmt,##__VA_ARGS__)
+#define ZUNTRACE(e) ncuntrace(__func__,THROW(e),NULL)
+#define ZUNTRACEX(e,fmt,...) ncuntrace(__func__,THROW(e),fmt,##__VA_ARGS__)
 #else
 #define ZTRACE(level,fmt,...)
 #define ZTRACEMORE(level,fmt,...)
