@@ -55,11 +55,15 @@ EXTERNL int NCJnewstringn(int sort, size_t len, const char* value, NCjson** json
 */
 EXTERNL int NCJinsert(NCjson* object, char* key, NCjson* value);
 
+/* Remove a key-value pair from a dict object.
+*/
+EXTERNL int NCJremove(NCjson* object, char* key, NCjson** keyp, NCjson** valuep);
+
 /* Insert a string value into a json Dict|Array */
 EXTERNL int NCJaddstring(NCjson* dictarray, int sort, const char* value);
 
 /* Get ith pair from dict */
-EXTERNL int NCJdictith(NCjson* object, size_t i, const char** keyp, NCjson** valuep);
+EXTERNL int NCJdictith(NCjson* object, size_t i, NCjson** keyp, NCjson** valuep);
 
 /* Get value for key from dict */
 EXTERNL int NCJdictget(NCjson* object, const char* key, NCjson** valuep);
