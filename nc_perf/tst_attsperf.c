@@ -137,7 +137,7 @@ readfile_hdf5(char *file_name, long long *delta, int do_inq, int num_vars)
 
    /* Open and close the root group. */
    if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
-   if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_SEMI)) ERR;
+   if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_WEAK)) ERR;
    if ((hdfid = H5Fopen(file_name, H5F_ACC_RDONLY, fapl_id)) < 0) ERR;
    if ((hdf_grpid = H5Gopen2(hdfid, "/", H5P_DEFAULT)) < 0) ERR;
 

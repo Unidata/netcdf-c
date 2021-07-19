@@ -47,6 +47,10 @@ ENDIF(ENABLE_FILTER_TESTING)
 
 ENDIF(BUILD_UTILITIES)
 
+IF(${HDF5_VERSION} VERSION_GREATER "1.10.0")
+  SET(NC4_TESTS ${NC4_TESTS} tst_virtual_datasets)
+ENDIF(${HDF5_VERSION} VERSION_GREATER "1.10.0")
+
 ##
 # The shell script, run_empty_vlen_test.sh,
 # depends on the 'tst_empty_vlen_unlim' binary.
