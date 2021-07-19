@@ -985,7 +985,7 @@ pr_att_specials(
     } else if(contig == NC_COMPACT) {
 	    pr_att_name(ncid, varp->name, NC_ATT_STORAGE);
 	    printf(" = \"compact\" ;\n");
-    } else {
+    } else if(contig == NC_CHUNKED) {
  	   size_t *chunkp;
 	   int i;
 	    pr_att_name(ncid, varp->name, NC_ATT_STORAGE);
@@ -999,6 +999,12 @@ pr_att_specials(
 		printf("%lu%s", (unsigned long)chunkp[i], i+1 < varp->ndims ? ", " : " ;\n");
 	    }
 	    free(chunkp);
+    } else if(contig == NC_VIRTUAL) {
+	    pr_att_name(ncid, varp->name, NC_ATT_STORAGE);
+	    printf(" = \"virtual\" ;\n");
+    } else {
+	    pr_att_name(ncid, varp->name, NC_ATT_STORAGE);
+	    printf(" = \"unknown\" ;\n");
     }
 
     /* _Filter (including deflate and shuffle) */

@@ -764,12 +764,13 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 #endif /* !USE_PARALLEL4 */
 
     /* Need this access plist to control how HDF5 handles open objects
-     * on file close. (Setting H5F_CLOSE_SEMI will cause H5Fclose to
-     * fail if there are any open objects in the file). */
+     * on file close. (Setting H5F_CLOSE_WEAK will cause H5Fclose not to
+     * fail if there are any open objects in the file. This may happen when virtual
+     * datasets are opened). */
     if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0)
         BAIL(NC_EHDFERR);
 
-    if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_SEMI) < 0)
+    if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_WEAK) < 0)
         BAIL(NC_EHDFERR);
 
 #ifdef USE_PARALLEL4
@@ -1189,6 +1190,16 @@ get_chunking_info(hid_t propid, NC_VAR_INFO_T *var)
     else if (layout == H5D_COMPACT)
     {
 	var->storage = NC_COMPACT;
+    }
+#ifdef H5D_VIRTUAL
+    else if (layout == H5D_VIRTUAL)
+    {
+	var->storage = NC_VIRTUAL;
+    }
+#endif
+    else
+    {
+    var->storage = NC_UNKNOWN_STORAGE;
     }
 
     return NC_NOERR;
