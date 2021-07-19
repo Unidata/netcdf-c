@@ -892,9 +892,9 @@ ifdef(`PNETCDF',`dnl
 ')dnl
 
         /* test NC_EINVALCOORDS */
-        for (j = 0; j < var_rank[i]; j++) index[j] = 0;
+        for (j = 0; j < var_rank[i] && j < MAX_RANK; j++) index[j] = 0;
 
-        for (j = 0; j < var_rank[i]; j++) {
+        for (j = 0; j < var_rank[i] && j < MAX_RANK; j++) {
             if (var_dimid[i][j] == RECDIM) continue; /* skip record dim */
             index[j] = var_shape[i][j]; /* out of boundary check */
             err = PutVar1(ncid, i, index, value, 1, datatype);
@@ -951,8 +951,15 @@ TestFunc(put_vara)(VarArgs)
     IntType mid[MAX_RANK];
     double buf[MAX_NELS];         /* (void *) buffer */
     char *p;                      /* (void *) pointer */
-    double value;
+    double value = 0;
     ifdef(`PNETCDF', `MPI_Datatype datatype;')
+
+    for(j = 0; j < MAX_RANK; j++ ) {
+          start[j] = 0;
+          edge[j] = 0;
+          index[j] = 0;
+          mid[j] = 0;
+    }
 
     err = FileCreate(scratch, NC_NOCLOBBER, &ncid);
     IF (err != NC_NOERR) {
@@ -993,7 +1000,7 @@ TestFunc(put_vara)(VarArgs)
 
         ifdef(`PNETCDF', `datatype = nc_mpi_type(var_type[i]);')
 
-        for (j = 0; j < var_rank[i]; j++) {
+        for (j = 0; j < var_rank[i] && j < MAX_RANK; j++) {
             start[j] = 0;
             edge[j] = 1;
         }
@@ -1021,7 +1028,7 @@ ifdef(`PNETCDF',`dnl
 ')dnl
 
         /* first test when edge[*] > 0 */
-        for (j = 0; j < var_rank[i]; j++) {
+        for (j = 0; j < var_rank[i] && j < MAX_RANK; j++) {
             if (var_dimid[i][j] == RECDIM) continue; /* skip record dim */
             start[j] = var_shape[i][j];
             err = PutVara(ncid, i, start, edge, buf, 1, datatype);
@@ -1037,9 +1044,9 @@ ifdef(`PNETCDF',`dnl
             edge[j] = 1;
         }
         /* Check correct error returned when nothing to put, when edge[*]==0 */
-        for (j = 0; j < var_rank[i]; j++) edge[j] = 0;
+        for (j = 0; j < var_rank[i] && j < MAX_RANK; j++) edge[j] = 0;
 
-        for (j = 0; j < var_rank[i]; j++) {
+        for (j = 0; j < var_rank[i] && j < MAX_RANK; j++) {
             if (var_dimid[i][j] == RECDIM) continue; /* skip record dim */
             start[j] = var_shape[i][j];
             err = PutVara(ncid, i, start, edge, buf, 0, datatype);
@@ -1053,19 +1060,19 @@ ifdef(`PNETCDF',`dnl
             ELSE_NOK
             start[j] = 0;
         }
-        for (j = 0; j < var_rank[i]; j++) edge[j] = 1;
+        for (j = 0; j < var_rank[i] && j < MAX_RANK; j++) edge[j] = 1;
 
         /* Choose a random point dividing each dim into 2 parts */
         /* put 2^rank (nslabs) slabs so defined */
         nslabs = 1;
-        for (j = 0; j < var_rank[i]; j++) {
+        for (j = 0; j < var_rank[i] && j < MAX_RANK; j++) {
             mid[j] = roll( var_shape[i][j] );
             nslabs *= 2;
         }
         /* bits of k determine whether to put lower or upper part of dim */
         for (k = 0; k < nslabs; k++) {
             nels = 1;
-            for (j = 0; j < var_rank[i]; j++) {
+            for (j = 0; j < var_rank[i] && j < MAX_RANK; j++) {
                 if ((k >> j) & 1) {
                     start[j] = 0;
                     edge[j] = mid[j];
@@ -1079,7 +1086,7 @@ ifdef(`PNETCDF',`dnl
             for (j = 0; j < nels; j++) {
                 err = toMixedBase(j, var_rank[i], edge, index);
                 IF (err != 0) error("error in toMixedBase");
-                for (d = 0; d < var_rank[i]; d++)
+                for (d = 0; d < var_rank[i] && d < MAX_RANK; d++)
                     index[d] += start[d];
                 value = hash(var_type[i], var_rank[i], index);
                 if (!inRange(value, var_type[i]))
@@ -1135,6 +1142,17 @@ TestFunc(put_vars)(VarArgs)
     double value;
     ifdef(`PNETCDF', `MPI_Datatype datatype;')
 
+    for(j = 0; j < MAX_RANK; j++ ) {
+          start[j] = 0;
+          edge[j] = 0;
+          index[j] = 0;
+          mid[j] = 0;
+          index2[j] = 0;
+          count[j] = 0;
+          sstride[j] = 1;
+          stride[j] = 1;
+    }
+
     err = FileCreate(scratch, NC_NOCLOBBER, &ncid);
     IF (err != NC_NOERR) {
         error("create: %s", APIFunc(strerror)(err));
@@ -1174,7 +1192,7 @@ TestFunc(put_vars)(VarArgs)
 
         ifdef(`PNETCDF', `datatype = nc_mpi_type(var_type[i]);')
 
-        for (j = 0; j < var_rank[i]; j++) {
+        for (j = 0; j < var_rank[i] && j < MAX_RANK; j++) {
             start[j] = 0;
             edge[j] = 1;
             stride[j] = 1;
@@ -1203,7 +1221,7 @@ ifdef(`PNETCDF',`dnl
 ')dnl
 
         /* first test when edge[*] > 0 */
-        for (j = 0; j < var_rank[i]; j++) {
+        for (j = 0; j < var_rank[i] && j < MAX_RANK; j++) {
             if (var_dimid[i][j] == 0) continue; /* skip record dim */
             start[j] = var_shape[i][j];
             err = PutVars(ncid, i, start, edge, stride, buf, 1, datatype);
@@ -1225,9 +1243,9 @@ ifdef(`PNETCDF',`dnl
             stride[j] = 1;
         }
         /* Check correct error returned even when nothing to put */
-        for (j = 0; j < var_rank[i]; j++) edge[j] = 0;
+        for (j = 0; j < var_rank[i] && j < MAX_RANK; j++) edge[j] = 0;
 
-        for (j = 0; j < var_rank[i]; j++) {
+        for (j = 0; j < var_rank[i] && j < MAX_RANK; j++) {
             if (var_dimid[i][j] == 0) continue; /* skip record dim */
             start[j] = var_shape[i][j];
             err = PutVars(ncid, i, start, edge, stride, buf, 0, datatype);
@@ -1241,12 +1259,12 @@ ifdef(`PNETCDF',`dnl
             ELSE_NOK
             start[j] = 0;
         }
-        for (j = 0; j < var_rank[i]; j++) edge[j] = 1;
+        for (j = 0; j < var_rank[i] && j < MAX_RANK; j++) edge[j] = 1;
 
         /* Choose a random point dividing each dim into 2 parts */
         /* put 2^rank (nslabs) slabs so defined */
         nslabs = 1;
-        for (j = 0; j < var_rank[i]; j++) {
+        for (j = 0; j < var_rank[i] && j < MAX_RANK; j++) {
             mid[j] = roll( var_shape[i][j] );
             nslabs *= 2;
         }
@@ -1254,7 +1272,7 @@ ifdef(`PNETCDF',`dnl
         /* choose random stride from 1 to edge */
         for (k = 0; k < nslabs; k++) {
             nstarts = 1;
-            for (j = 0; j < var_rank[i]; j++) {
+            for (j = 0; j < var_rank[i] && j < MAX_RANK; j++) {
                 if ((k >> j) & 1) {
                     start[j] = 0;
                     edge[j] = mid[j];
@@ -1270,15 +1288,15 @@ ifdef(`PNETCDF',`dnl
                 err = toMixedBase(m, var_rank[i], sstride, index);
                 IF (err != 0) error("error in toMixedBase");
                 nels = 1;
-                for (j = 0; j < var_rank[i]; j++) {
-                    count[j] = 1 + (edge[j] - index[j] - 1) / (IntType)stride[j];
+                for (j = 0; j < var_rank[i] && j < MAX_RANK; j++) {
+                    count[j] = 1 + (edge[j] - index[j] - 1) / ( (IntType)stride[j] == 0 ? 1 : (IntType)stride[j]);
                     nels *= count[j];
                     index[j] += start[j];
                 }
                 /* Random choice of forward or backward */
 /* TODO
                 if ( roll(2) ) {
-                    for (j = 0; j < var_rank[i]; j++) {
+                    for (j = 0; j < var_rank[i] && j < MAX_RANK; j++) {
                         index[j] += (count[j] - 1) * (IntType)stride[j];
                         stride[j] = -stride[j];
                     }
@@ -1288,7 +1306,7 @@ ifdef(`PNETCDF',`dnl
                 for (j = 0; j < nels; j++) {
                     err = toMixedBase(j, var_rank[i], count, index2);
                     IF (err != 0) error("error in toMixedBase");
-                    for (d = 0; d < var_rank[i]; d++)
+                    for (d = 0; d < var_rank[i] && d < MAX_RANK; d++)
                         index2[d] = index[d] + index2[d] * (IntType)stride[d];
                     value = hash(var_type[i], var_rank[i], index2);
                     if (!inRange(value, var_type[i]))
@@ -1352,6 +1370,18 @@ TestFunc(put_varm)(VarArgs)
     double value;
     ifdef(`PNETCDF', `MPI_Datatype datatype;')
 
+    for(j = 0; j < MAX_RANK; j++ ) {
+          start[j] = 0;
+          edge[j] = 0;
+          index[j] = 0;
+          mid[j] = 0;
+          count[j] = 0;
+          sstride[j] = 1;
+          stride[j] = 1;
+          imap[j] = 0;
+          imap2[j] = 0;
+    }
+
     err = FileCreate(scratch, NC_NOCLOBBER, &ncid);
     IF (err != NC_NOERR) {
         error("create: %s", APIFunc(strerror)(err));
@@ -1391,11 +1421,12 @@ TestFunc(put_varm)(VarArgs)
 
         ifdef(`PNETCDF', `datatype = nc_mpi_type(var_type[i]);')
 
-        for (j = 0; j < var_rank[i]; j++) {
+        for (j = 0; j < var_rank[i] && j < MAX_RANK; j++) {
             start[j] = 0;
             edge[j] = 1;
             stride[j] = 1;
             imap[j] = 1;
+            mid[j] = 1;
         }
 
 ifdef(`PNETCDF',`dnl
@@ -1421,7 +1452,7 @@ ifdef(`PNETCDF',`dnl
 ')dnl
 
         /* first test when edge[*] > 0 */
-        for (j = 0; j < var_rank[i]; j++) {
+        for (j = 0; j < var_rank[i] && j < MAX_RANK; j++) {
             if (var_dimid[i][j] == 0) continue; /* skip record dim */
             start[j] = var_shape[i][j];
             err = PutVarm(ncid, i, start, edge, stride, imap, buf, 1, datatype);
@@ -1443,9 +1474,9 @@ ifdef(`PNETCDF',`dnl
             stride[j] = 1;
         }
         /* Check correct error returned even when nothing to put */
-        for (j = 0; j < var_rank[i]; j++) edge[j] = 0;
+        for (j = 0; j < var_rank[i] && j < MAX_RANK; j++) edge[j] = 0;
 
-        for (j = 0; j < var_rank[i]; j++) {
+        for (j = 0; j < var_rank[i] && j < MAX_RANK; j++) {
             if (var_dimid[i][j] == 0) continue; /* skip record dim */
             start[j] = var_shape[i][j];
             err = PutVarm(ncid, i, start, edge, stride, imap, buf, 0, datatype);
@@ -1459,7 +1490,7 @@ ifdef(`PNETCDF',`dnl
             ELSE_NOK
             start[j] = 0;
         }
-        for (j = 0; j < var_rank[i]; j++) edge[j] = 1;
+        for (j = 0; j < var_rank[i] && j < MAX_RANK; j++) edge[j] = 1;
 
         if (var_rank[i] > 0) {
             int jj = var_rank[i] - 1;
@@ -1484,7 +1515,7 @@ ifdef(`PNETCDF',`dnl
         /* Choose a random point dividing each dim into 2 parts */
         /* put 2^rank (nslabs) slabs so defined */
         nslabs = 1;
-        for (j = 0; j < var_rank[i]; j++) {
+        for (j = 0; j < var_rank[i] && j < MAX_RANK; j++) {
             mid[j] = roll( var_shape[i][j] );
             nslabs *= 2;
         }
@@ -1492,7 +1523,7 @@ ifdef(`PNETCDF',`dnl
         /* choose random stride from 1 to edge */
         for (k = 0; k < nslabs; k++) {
             nstarts = 1;
-            for (j = 0; j < var_rank[i]; j++) {
+            for (j = 0; j < var_rank[i] && j < MAX_RANK; j++) {
                 if ((k >> j) & 1) {
                     start[j] = 0;
                     edge[j] = mid[j];
@@ -1511,14 +1542,14 @@ ifdef(`PNETCDF',`dnl
                 } else {
                     err = toMixedBase(m, var_rank[i], sstride, index);
                     IF (err != 0) error("error in toMixedBase");
-                    for (j = 0; j < var_rank[i]; j++) {
-                        count[j] = 1 + (edge[j] - index[j] - 1) / (IntType)stride[j];
+                    for (j = 0; j < var_rank[i] && j < MAX_RANK; j++) {
+                        count[j] = 1 + (edge[j] - index[j] - 1) / ( (IntType)stride[j] == 0 ? 1 : (IntType)stride[j]);
                         index[j] += start[j];
                     }
                     /* Random choice of forward or backward */
 /* TODO
                     if ( roll(2) ) {
-                        for (j = 0; j < var_rank[i]; j++) {
+                        for (j = 0; j < var_rank[i] && j < MAX_RANK; j++) {
                             index[j] += (count[j] - 1) * (IntType)stride[j];
                             stride[j] = -stride[j];
                         }

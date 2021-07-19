@@ -50,10 +50,10 @@ main(int argc, char **argv)
       yscaleDims[0] = ncolCur;
       if ((xdimSpaceId = H5Screate_simple(1, xscaleDims, NULL)) < 0) ERR;
 
-      /* With the SEMI close degree, the HDF5 file close will fail if
+      /* With the WEAK close degree, the HDF5 file close will not fail if
        * anything is left open. */
       if ((fapl = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
-      if (H5Pset_fclose_degree(fapl, H5F_CLOSE_SEMI)) ERR;
+      if (H5Pset_fclose_degree(fapl, H5F_CLOSE_WEAK)) ERR;
 
       /* Create file */
       if((fileId = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC,
