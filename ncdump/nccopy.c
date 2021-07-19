@@ -2200,7 +2200,7 @@ usage(void)
   [-5]      CDF5 output (same as -k 'cdf5)\n\
   [-d n]    set output deflation compression level, default same as input (0=none 9=max)\n\
   [-s]      add shuffle option to deflation compression\n\
-  [-c chunkspec] specify chunking for dimensions, e.g. \"dim1/N1,dim2/N2,...\"\n\
+  [-c chunkspec] specify chunking for variable and dimensions, e.g. \"var:N1,N2,...\" or \"dim1/N1,dim2/N2,...\"\n\
   [-u]      convert unlimited dimensions to fixed-size dimensions in output copy\n\
   [-w]      write whole output file from diskless netCDF on close\n\
   [-v var1,...] include data for only listed variables, but definitions for all variables\n\
