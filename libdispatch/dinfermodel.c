@@ -7,7 +7,6 @@
  * Copyright 2018 University Corporation for Atmospheric
  * Research/Unidata. See COPYRIGHT file for more info.
 */
-
 #include "config.h"
 #include <stdlib.h>
 #ifdef HAVE_UNISTD_H
@@ -27,6 +26,12 @@
 #ifdef ENABLE_BYTERANGE
 #include "nchttp.h"
 #endif
+#ifndef _WIN32
+#ifdef USE_HDF5
+#include <unistd.h>
+#include <hdf5.h>
+#endif /* USE_HDF5 */
+#endif /* _WIN32 */
 
 #undef DEBUG
 
@@ -777,6 +782,43 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
     NClist* modeargs = nclistnew();
     char* sfrag = NULL;
     const char* modeval = NULL;
+
+    /* Check for a DAOS container */
+#ifndef _WIN32
+#ifdef USE_HDF5
+#if H5_VERSION_GE(1,12,0)
+    hid_t fapl_id;
+    if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) goto done;
+    H5Pset_fapl_sec2(fapl_id);
+      
+    htri_t accessible;      
+    accessible = H5Fis_accessible(path, fapl_id);
+    if(accessible > 0) {
+        int rc=0;
+        FILE *fp;
+        char *cmd;
+        cmd = (char*)malloc((strlen(path)+28)*sizeof(char));
+        strcpy(cmd, "getfattr ");
+        strcat(cmd, path);
+	strcat(cmd, " | grep -c '.daos'");
+     
+        if((fp = popen(cmd, "r")) != NULL) {
+            fscanf(fp, "%d", &rc);
+            pclose(fp);
+        }
+        free(cmd);
+        if(rc == 1) {
+          /* Is a DAOS container */
+          model->impl = NC_FORMATX_NC4;
+          model->format = NC_FORMAT_NETCDF4;
+          if (H5Pclose(fapl_id) < 0) goto done;
+          goto done;
+        }
+   }
+   if (H5Pclose(fapl_id) < 0) goto done;
+#endif
+#endif
+#endif
 
     /* Phase 1:
        1. convert special protocols to http|https
