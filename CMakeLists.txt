@@ -118,11 +118,6 @@ MACRO(CHECK_C_LINKER_FLAG M_FLAG M_RESULT)
   SET(CMAKE_REQUIRED_FLAGS "${T_REQ_FLAG}")
 ENDMACRO()
 
-# Enable 'dist and distcheck'.
-# File adapted from http://ensc.de/cmake/FindMakeDist.cmake
-FIND_PACKAGE(MakeDist)
-# End 'enable dist and distcheck'
-
 # Set the build type.
 IF(NOT CMAKE_BUILD_TYPE)
   SET(CMAKE_BUILD_TYPE DEBUG CACHE STRING "Choose the type of build, options are: None, Debug, Release."
@@ -198,6 +193,15 @@ IF(BUILD_SHARED_LIBS)
 ENDIF()
 
 OPTION(NC_FIND_SHARED_LIBS "Find dynamically-built versions of dependent libraries" ${BUILD_SHARED_LIBS})
+
+##
+# Check to see if C compiler supports -fno-strict-aliasing, in support of
+# https://github.com/Unidata/netcdf-c/issues/1983
+##
+CHECK_C_COMPILER_FLAG(-fno-strict-aliasing CC_SUPPORTS_NO_STRICT_ALIASING)
+IF(CC_SUPPORTS_NO_STRICT_ALIASING)
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-strict-aliasing")
+ENDIF(CC_SUPPORTS_NO_STRICT_ALIASING)
 
 ##
 # We've had a request to allow for non-versioned shared libraries.
@@ -861,7 +865,7 @@ int main() {
 }" HAVE_LIBCURL_766)
 
 IF (HAVE_LIBCURL_766)
-  # If libcurl version is >= 7.66, then can skip tests 
+  # If libcurl version is >= 7.66, then can skip tests
   # for these symbols which were added in an earlier version
   set(HAVE_CURLOPT_USERNAME TRUE)
   set(HAVE_CURLOPT_PASSWORD TRUE)
@@ -977,9 +981,9 @@ IF(MSVC)
     FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
          DESTINATION ${netCDF_BINARY_DIR}/ncdump/)
     FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/) 
+         DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
     FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/ncdap_test/) 
+         DESTINATION ${netCDF_BINARY_DIR}/ncdap_test/)
   ENDIF()
 ENDIF()
 
@@ -2122,9 +2126,6 @@ INSTALL(PROGRAMS ${netCDF_BINARY_DIR}/nc-config
 ##
 print_conf_summary()
 
-# Enable Makedist files.
-ADD_MAKEDIST()
-ENABLE_MAKEDIST(README.md COPYRIGHT RELEASE_NOTES.md INSTALL INSTALL.cmake test_prog.c lib_flags.am cmake CMakeLists.txt COMPILE.cmake.txt config.h.cmake.in cmake_uninstall.cmake.in netcdf-config-version.cmake.in netcdf-config.cmake.in FixBundle.cmake.in nc-config.cmake.in configure configure.ac install-sh config.h.in config.sub CTestConfig.cmake.in)
 
 #####
 # Configure and print the libnetcdf.settings file.
