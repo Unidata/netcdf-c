@@ -15,7 +15,7 @@ See LICENSE.txt for license information.
 /*
 Implement extendible hashing as defined in:
 ````
-R. Fagin, J. Nievergelt, N. Pippenger, and H. Strong, "Extendible Hashing -·a fast access method for dynamic files", ACM Transactions on Database Systems, vol. 4, No. 3, pp. 315-344, 1979.
+R. Fagin, J. Nievergelt, N. Pippenger, and H. Strong, "Extendible Hashing â€” a fast access method for dynamic files", ACM Transactions on Database Systems, vol. 4, No. 3, pp. 315-344, 1979.
 ````
 */
 
