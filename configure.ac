@@ -54,6 +54,25 @@ AC_CANONICAL_TARGET
 
 AC_CONFIG_HEADERS([config.h])
 
+
+##
+# Check to see if the compiler supports -fno-strict-aliasing and, if so,
+# add that to the C compiler flags.  This is in support of https://github.com/Unidata/netcdf-c/issues/1983.
+##
+SAVE_CFLAGS="${CFLAGS}"
+AC_LANG_PUSH([C])
+CFLAGS="${CFLAGS} -fno-strict-aliasing"
+
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
+        [int i = 0;]])],
+        [have_no_strict_aliasing=yes],
+        [have_no_strict_aliasing=no])
+AC_MSG_CHECKING([whether compiler supports -fno-strict-aliasing])
+AC_MSG_RESULT([$have_no_strict_aliasing])
+AC_LANG_POP([C])
+if test $have_no_strict_aliasing = no; then
+   CFLAGS=$SAVE_CFLAGS
+fi
 ##
 # Some files need to exist in build directories
 # that do not correspond to their source directory, or
