@@ -68,13 +68,16 @@ endif
 if BUILD_BENCHMARKS
 if BUILD_UTILITIES
 
-UTILSRC = bm_utils.c timer_utils.c tst_utils.c
+UTILSRC = bm_utils.c timer_utils.c tst_utils.c bm_utils.h bm_timer.h
 
 bm_chunks3_SOURCES = bm_chunks3.c ${UTILSRC}
 
 check_PROGRAMS += bm_chunks3
 
+# The perf tests need modernization
+if AX_IGNORE
 TESTS += run_perf_chunks1.sh
+endif
 
 endif # BUILD_BENCHMARKS
 
