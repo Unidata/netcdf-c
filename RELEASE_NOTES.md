@@ -7,6 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.8.1 - TBD
 
+* [Bug Fix] Fix multiple bugs in libnczarr. See [Github #2066](https://github.com/Unidata/netcdf-c/issues/2066).
 * [Enhancement] Convert to a new representation of the NCZarr meta-data extensions: version 2. Read-only backward compatibility is provided. See [Github #2032](https://github.com/Unidata/netcdf-c/issues/2032).
 * [Bug Fix] Fix dimension_separator bug in libnczarr. See [Github #2035](https://github.com/Unidata/netcdf-c/issues/2035).
 * [Bug Fix] Fix bugs in libdap4. See [Github #2005](https://github.com/Unidata/netcdf-c/issues/2005).
