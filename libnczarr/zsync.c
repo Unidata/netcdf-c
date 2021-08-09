@@ -116,6 +116,7 @@ ncz_sync_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp)
     int i,stat = NC_NOERR;
     NCZ_FILE_INFO_T* zinfo = NULL;
     char version[1024];
+    int purezarr = 0;
     NCZMAP* map = NULL;
     char* fullpath = NULL;
     char* key = NULL;
@@ -132,39 +133,42 @@ ncz_sync_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp)
     zinfo = file->format_file_info;
     map = zinfo->map;
 
+    purezarr = (zinfo->controls.flags & FLAG_PUREZARR)?1:0;
+
     /* Construct grp key */
     if((stat = NCZ_grpkey(grp,&fullpath)))
 	goto done;
 
-    /* Create dimensions dict */
-    if((stat = ncz_collect_dims(file,grp,&jdims))) goto done;
+    if(!purezarr) {
+        /* Create dimensions dict */
+        if((stat = ncz_collect_dims(file,grp,&jdims))) goto done;
 
-    /* Create vars list */
-    if((stat = NCJnew(NCJ_ARRAY,&jvars)))
-	goto done;
-    for(i=0; i<ncindexsize(grp->vars); i++) {
-	NC_VAR_INFO_T* var = (NC_VAR_INFO_T*)ncindexith(grp->vars,i);
-	if((stat = NCJaddstring(jvars,NCJ_STRING,var->hdr.name))) goto done;
+        /* Create vars list */
+        if((stat = NCJnew(NCJ_ARRAY,&jvars)))
+	    goto done;
+        for(i=0; i<ncindexsize(grp->vars); i++) {
+	    NC_VAR_INFO_T* var = (NC_VAR_INFO_T*)ncindexith(grp->vars,i);
+	    if((stat = NCJaddstring(jvars,NCJ_STRING,var->hdr.name))) goto done;
+        }
+
+        /* Create subgroups list */
+        if((stat = NCJnew(NCJ_ARRAY,&jsubgrps)))
+    	    goto done;
+        for(i=0; i<ncindexsize(grp->children); i++) {
+	    NC_GRP_INFO_T* g = (NC_GRP_INFO_T*)ncindexith(grp->children,i);
+	    if((stat = NCJaddstring(jsubgrps,NCJ_STRING,g->hdr.name))) goto done;
+        }
+        /* Create the "_NCZARR_GROUP" dict */
+        if((stat = NCJnew(NCJ_DICT,&json)))
+	    goto done;
+        /* Insert the various dicts and arrays */
+        if((stat = NCJinsert(json,"dims",jdims))) goto done;
+        jdims = NULL; /* avoid memory problems */
+        if((stat = NCJinsert(json,"vars",jvars))) goto done;
+        jvars = NULL; /* avoid memory problems */
+        if((stat = NCJinsert(json,"groups",jsubgrps))) goto done;
+        jsubgrps = NULL; /* avoid memory problems */
     }
-
-    /* Create subgroups list */
-    if((stat = NCJnew(NCJ_ARRAY,&jsubgrps)))
-	goto done;
-    for(i=0; i<ncindexsize(grp->children); i++) {
-	NC_GRP_INFO_T* g = (NC_GRP_INFO_T*)ncindexith(grp->children,i);
-	if((stat = NCJaddstring(jsubgrps,NCJ_STRING,g->hdr.name))) goto done;
-    }
-
-    /* Create the "_NCZARR_GROUP" dict */
-    if((stat = NCJnew(NCJ_DICT,&json)))
-	goto done;
-    /* Insert the various dicts and arrays */
-    if((stat = NCJinsert(json,"dims",jdims))) goto done;
-    jdims = NULL; /* avoid memory problems */
-    if((stat = NCJinsert(json,"vars",jvars))) goto done;
-    jvars = NULL; /* avoid memory problems */
-    if((stat = NCJinsert(json,"groups",jsubgrps))) goto done;
-    jsubgrps = NULL; /* avoid memory problems */
 
     /* build ZGROUP contents */
     if((stat = NCJnew(NCJ_DICT,&jgroup)))
@@ -172,7 +176,7 @@ ncz_sync_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp)
     snprintf(version,sizeof(version),"%d",zinfo->zarr.zarr_version);
     if((stat = NCJaddstring(jgroup,NCJ_STRING,"zarr_format"))) goto done;
     if((stat = NCJaddstring(jgroup,NCJ_INT,version))) goto done;
-    if(grp->parent == NULL) { /* Root group */
+    if(!purezarr && grp->parent == NULL) { /* Root group */
         snprintf(version,sizeof(version),"%lu.%lu.%lu",
 		 zinfo->zarr.nczarr_version.major,
 		 zinfo->zarr.nczarr_version.minor,
@@ -185,9 +189,11 @@ ncz_sync_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp)
 	jsuper = NULL;
     }
 
-    /* Insert the "_NCZARR_GROUP" dict */    
-    if((stat = NCJinsert(jgroup,NCZ_V2_GROUP,json))) goto done;
-    json = NULL;
+    if(!purezarr) {
+        /* Insert the "_NCZARR_GROUP" dict */    
+        if((stat = NCJinsert(jgroup,NCZ_V2_GROUP,json))) goto done;
+        json = NULL;
+    }
 
     /* build ZGROUP path */
     if((stat = nczm_concat(fullpath,ZGROUP,&key)))
@@ -329,7 +335,9 @@ ncz_sync_var(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var)
     jtmp = NULL;
     
     /* fill_value key */
-    if(!var->no_fill) {
+    if(var->no_fill) {
+	if((stat=NCJnew(NCJ_NULL,&jfill))) goto done;
+    } else {/*!var->no_fill*/
 	int fillsort;
 	int atomictype = var->type_info->hdr.id;
 	/* A scalar value providing the default value to use for uninitialized
@@ -354,9 +362,9 @@ ncz_sync_var(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var)
 	    jfill = jtmp;
 	    jtmp = NULL;
         }
-        if((stat = NCJinsert(jvar,"fill_value",jfill))) goto done;
-        jfill = NULL;
     }
+    if((stat = NCJinsert(jvar,"fill_value",jfill))) goto done;
+    jfill = NULL;
 
     /* order key */
     if((stat = NCJaddstring(jvar,NCJ_STRING,"order"))) goto done;
@@ -577,6 +585,7 @@ ncz_sync_atts(NC_FILE_INFO_T* file, NC_OBJ* container, NCindex* attlist)
     char* content = NULL;
     char* dimpath = NULL;
     int isxarray = 0;
+    int isrootgroup = 0;
 
     LOG((3, "%s", __func__));
 
@@ -584,6 +593,12 @@ ncz_sync_atts(NC_FILE_INFO_T* file, NC_OBJ* container, NCindex* attlist)
     map = zinfo->map;
 
     if(zinfo->controls.flags & FLAG_XARRAYDIMS) isxarray = 1;
+
+    if(container->sort == NCVAR) {
+	NC_VAR_INFO_T* var = (NC_VAR_INFO_T*)container;
+	if(var->container && var->container->parent == NULL)
+	    isrootgroup = 1;
+    }
 
     if(!isxarray && ncindexsize(attlist) == 0) 
 	goto done; /* do nothing */
@@ -611,7 +626,7 @@ ncz_sync_atts(NC_FILE_INFO_T* file, NC_OBJ* container, NCindex* attlist)
     }
     
     /* Construct container path */
-    if(NCJsort(container) == NCGRP)
+    if(container->sort == NCGRP)
 	stat = NCZ_grpkey((NC_GRP_INFO_T*)container,&fullpath);
     else
 	stat = NCZ_varkey((NC_VAR_INFO_T*)container,&fullpath);
@@ -622,8 +637,8 @@ ncz_sync_atts(NC_FILE_INFO_T* file, NC_OBJ* container, NCindex* attlist)
     if((stat = ncz_jsonize_atts(attlist,&jatts)))
 	goto done;
 
-    if(NCJsort(container) == NCVAR) {
-        if(isxarray) {
+    if(container->sort == NCVAR) {
+        if(isrootgroup && isxarray) {
 	    NC_VAR_INFO_T* var = (NC_VAR_INFO_T*)container;
 	    /* Insert the XARRAY _ARRAY_ATTRIBUTE attribute */
 	    if((stat = NCJnew(NCJ_ARRAY,&jdimrefs)))
@@ -740,7 +755,7 @@ load_jatts(NCZMAP* map, NC_OBJ* container, int nczarrv1, NCjson** jattrsp, NClis
     /* alway return (possibly empty) list of types */
     atypes = nclistnew();
 
-    if(NCJsort(container) == NCGRP) {
+    if(container->sort == NCGRP) {
 	NC_GRP_INFO_T* grp = (NC_GRP_INFO_T*)container;
 	/* Get grp's fullpath name */
 	if((stat = NCZ_grpkey(grp,&fullpath)))
@@ -1184,7 +1199,7 @@ ncz_read_atts(NC_FILE_INFO_T* file, NC_OBJ* container)
     zinfo = file->format_file_info;
     map = zinfo->map;
 
-    if(NCJsort(container) == NCGRP)
+    if(container->sort == NCGRP)
 	attlist = ((NC_GRP_INFO_T*)container)->att;
     else
 	attlist = ((NC_VAR_INFO_T*)container)->att;
@@ -1210,7 +1225,7 @@ ncz_read_atts(NC_FILE_INFO_T* file, NC_OBJ* container)
 	    if(ra != NULL) {
 		/* case 1: name = _NCProperties, grp=root, varid==NC_GLOBAL, flags & READONLYFLAG */
 		if(strcmp(NCJstring(key),NCPROPS)==0
-		   && NCJsort(container) == NCGRP
+		   && container->sort == NCGRP
 		   && file->root_grp == (NC_GRP_INFO_T*)container) {
 		    /* Setup provenance */
 		    if(NCJsort(value) != NCJ_STRING)
@@ -1220,7 +1235,7 @@ ncz_read_atts(NC_FILE_INFO_T* file, NC_OBJ* container)
 		}
 		/* case 2: name = _ARRAY_DIMENSIONS, sort==NCVAR, flags & HIDDENATTRFLAG */
 		if(strcmp(NCJstring(key),NC_XARRAY_DIMS)==0
-		   && NCJsort(container) == NCVAR
+		   && container->sort == NCVAR
 		   && (ra->flags & HIDDENATTRFLAG)) {
 		       /* store for later */
 		    NCZ_VAR_INFO_T* zvar = (NCZ_VAR_INFO_T*)((NC_VAR_INFO_T*)container)->format_var_info;
@@ -1249,13 +1264,13 @@ ncz_read_atts(NC_FILE_INFO_T* file, NC_OBJ* container)
 	}
     }
     /* If we have not read a _FillValue, then go ahead and create it */
-    if(fillvalueatt == NULL && NCJsort(container) == NCVAR) {
+    if(fillvalueatt == NULL && container->sort == NCVAR) {
 	if((stat = ncz_create_fillvalue((NC_VAR_INFO_T*)container)))
 	    goto done;
     }
 
     /* Remember that we have read the atts for this var or group. */
-    if(NCJsort(container) == NCVAR)
+    if(container->sort == NCVAR)
 	((NC_VAR_INFO_T*)container)->atts_read = 1;
     else
 	((NC_GRP_INFO_T*)container)->atts_read = 1;
@@ -1399,6 +1414,8 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 		if((stat = ncz_gettype(file,grp,vtype,&var->type_info)))
 		    goto done;
 	    } else {stat = NC_EBADTYPE; goto done;}
+	    if(endianness == NC_ENDIAN_NATIVE)
+		endianness = zinfo->native_endianness;
 	    if(endianness == NC_ENDIAN_LITTLE || endianness == NC_ENDIAN_BIG) {
 		var->endianness = endianness;
 	    } else {stat = NC_EBADTYPE; goto done;}
@@ -1466,7 +1483,7 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 	/* fill_value */
 	{
 	    if((stat = NCJdictget(jvar,"fill_value",&jvalue))) goto done;
-	    if(jvalue == NULL)
+	    if(jvalue == NULL || NCJsort(jvalue) == NCJ_NULL)
 		var->no_fill = 1;
 	    else {
 		size_t fvlen;
