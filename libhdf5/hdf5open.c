@@ -2556,7 +2556,12 @@ oinfo_list_add(user_data_t *udata, const hdf5_obj_info_t *oinfo)
  * @author Ed Hartnett
  */
 static int
-read_hdf5_obj(hid_t grpid, const char *name, const H5L_info_t *info,
+read_hdf5_obj(hid_t grpid, const char *name,
+#if H5_VERSION_GE(1,12,0)
+	      const H5L_info2_t *info,
+#else
+	      const H5L_info_t *info,
+#endif
               void *_op_data)
 {
     /* Pointer to user data for callback */
