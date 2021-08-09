@@ -6,6 +6,10 @@
    suggest by Jeff Whitaker. See
    https://github.com/Unidata/netcdf-c/issues/1575.
 
+   This was removed from the list of tests run in this
+   directory. Sometimes it fails on very busy systems even though
+   everything is fine. Ed - 8/9/21
+
    Ed Hartnett 2/9/20
 */
 
@@ -19,7 +23,7 @@
 #endif
 
 #define FILE_NAME "tst_mem1.nc"
-#define NUM_FILE_OPENS 10000
+#define NUM_FILE_OPENS 100
 
 int main()
 {
