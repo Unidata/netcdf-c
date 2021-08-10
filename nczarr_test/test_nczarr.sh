@@ -126,6 +126,17 @@ for t in ${TESTS} ; do
 done
 }
 
+# Function to remove selected -s attributes from file;
+# These attributes might be platform dependent
+sclean() {
+    cat $1 \
+ 	| sed -e '/:_IsNetcdf4/d' \
+	| sed -e '/:_Endianness/d' \
+	| sed -e '/_NCProperties/d' \
+	| sed -e '/_SuperblockVersion/d' \
+	| cat > $2
+}
+
 # Make sure execdir and srcdir absolute paths are available
 WD=`pwd`
 cd $srcdir ; abs_srcdir=`pwd` ; cd $WD

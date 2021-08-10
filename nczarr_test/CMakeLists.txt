@@ -90,6 +90,7 @@ IF(ENABLE_TESTS)
     add_sh_test(nczarr_test run_purezarr)
     add_sh_test(nczarr_test run_interop)
     add_sh_test(nczarr_test run_misc)
+    add_sh_test(nczarr_test run_nczarr_fill)
 
     if(ENABLE_NCZARR_S3)
 	add_sh_test(nczarr_test run_s3_cleanup)
