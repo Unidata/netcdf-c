@@ -885,25 +885,22 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
     case NC_FORMATX_UDF0:
     case NC_FORMATX_UDF1:
     case NC_FORMATX_NCZARR:
-	/* Check for illegal flags */
-	if((omode & (NC_64BIT_OFFSET|NC_64BIT_DATA)) != 0) {stat = NC_EINVAL; goto done;}
 	omode |= NC_NETCDF4;
 	if(model->format == NC_FORMAT_NETCDF4_CLASSIC)
 	    omode |= NC_CLASSIC_MODEL;
 	break;
     case NC_FORMATX_NC3:
-	if((omode & (NC_NETCDF4)) != 0) {stat = NC_EINVAL; goto done;}
+	omode &= ~NC_NETCDF4; /* must be netcdf-3 (CDF-1, CDF-2, CDF-5) */
 	if(model->format == NC_FORMAT_64BIT_OFFSET) omode |= NC_64BIT_OFFSET;
 	else if(model->format == NC_FORMAT_64BIT_DATA) omode |= NC_64BIT_DATA;
 	break;
     case NC_FORMATX_PNETCDF:
-	if((omode & (NC_NETCDF4)) != 0) {stat = NC_EINVAL; goto done;}
+	omode &= ~NC_NETCDF4; /* must be netcdf-3 (CDF-1, CDF-2, CDF-5) */
 	if(model->format == NC_FORMAT_64BIT_OFFSET) omode |= NC_64BIT_OFFSET;
 	else if(model->format == NC_FORMAT_64BIT_DATA) omode |= NC_64BIT_DATA;
 	break;
     case NC_FORMATX_DAP2:
-	if((omode & (NC_NETCDF4|NC_64BIT_OFFSET|NC_64BIT_DATA|NC_CLASSIC_MODEL)) != 0)
-	    {stat = NC_EINVAL; goto done;}
+	omode &= ~(NC_NETCDF4|NC_64BIT_OFFSET|NC_64BIT_DATA|NC_CLASSIC_MODEL);
 	break;
     default:
 	{stat = NC_ENOTNC; goto done;}
