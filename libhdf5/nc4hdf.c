@@ -969,7 +969,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
     }
 
     /* Turn on creation order tracking. */
-    if (!grp->nc4_info->no_attr_creation_order_tracking) {
+    if (!grp->nc4_info->no_attr_create_order) {
       if (H5Pset_attr_creation_order(plistid, H5P_CRT_ORDER_TRACKED|
 				     H5P_CRT_ORDER_INDEXED) < 0)
         BAIL(NC_EHDFERR);
@@ -1329,7 +1329,7 @@ create_group(NC_GRP_INFO_T *grp)
         BAIL(NC_EHDFERR);
 
     /* Tell HDF5 to keep track of attributes in creation order. */
-    if (!grp->nc4_info->no_attr_creation_order_tracking) {
+    if (!grp->nc4_info->no_attr_create_order) {
       if (H5Pset_attr_creation_order(gcpl_id, H5P_CRT_ORDER_TRACKED|H5P_CRT_ORDER_INDEXED) < 0)
         BAIL(NC_EHDFERR);
     }
@@ -1756,7 +1756,7 @@ nc4_create_dim_wo_var(NC_DIM_INFO_T *dim)
         BAIL(NC_EHDFERR);
 
     /* Turn on creation-order tracking. */
-    if (!dim->container->nc4_info->no_attr_creation_order_tracking) {
+    if (!dim->container->nc4_info->no_attr_create_order) {
       if (H5Pset_attr_creation_order(create_propid, H5P_CRT_ORDER_TRACKED|
 				     H5P_CRT_ORDER_INDEXED) < 0)
         BAIL(NC_EHDFERR);
