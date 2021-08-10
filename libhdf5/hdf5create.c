@@ -194,7 +194,7 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
         BAIL(NC_EHDFERR);
 
     if (cmode & NC_NOATTCREORD) {
-        nc4_info->no_attr_creation_order_tracking = NC_TRUE;
+        nc4_info->no_attr_create_order = NC_TRUE;
     }
     else {
       if (H5Pset_attr_creation_order(fcpl_id, (H5P_CRT_ORDER_TRACKED |
