@@ -1528,6 +1528,7 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 		 /* Extract the NCZ_V2_ARRAY dict */
 	        if((stat = NCJdictget(jvar,NCZ_V2_ARRAY,&jncvar))) goto done;
 	    }
+	    if(jncvar == NULL) {stat = NC_ENCZARR; goto done;}
    	    assert((NCJsort(jncvar) == NCJ_DICT));
 	    /* Extract storage flag */
 	    if((stat = NCJdictget(jncvar,"storage",&jvalue)))
