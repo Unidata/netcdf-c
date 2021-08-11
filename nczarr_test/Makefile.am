@@ -47,7 +47,7 @@ if BUILD_UTILITIES
 TESTS += run_ncgen4.sh
 
 if USE_HDF5
-TESTS += run_nccopyz.sh
+#TESTS += run_nccopyz.sh
 TESTS += run_fillonlyz.sh
 endif
 
