@@ -528,6 +528,8 @@ find_filters(int *num_compression_filters, char compression_filter_name[][NC_MAX
 int
 main(int argc, char **argv)
 {
+    /* Parallel I/O with compression was not supported in HDF5 prior to 1.10.2. */
+#if H5_VERSION_GE(1,10,2)    
     /* MPI stuff. */
     int mpi_size, my_rank;
     MPI_Comm comm = MPI_COMM_WORLD;
@@ -722,6 +724,6 @@ main(int argc, char **argv)
 
     if (!my_rank)
         FINAL_RESULTS;
-
+#endif /* HDF5 version > 1.10.2 */
     return 0;
 }
