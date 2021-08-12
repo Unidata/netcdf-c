@@ -8,6 +8,12 @@
 #
 # Ed Hartnett 3/18/19
 
+# Running these performance tests at the same time is meaningless,
+# since that will saturate I/O channels. Running all benchmarks in
+# parallel can also be really slow on a less-powerful workstation,
+# causing timeouts.
+.NOTPARALLEL:
+
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
 
