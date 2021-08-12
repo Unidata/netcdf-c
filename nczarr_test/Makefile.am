@@ -47,7 +47,7 @@ if BUILD_UTILITIES
 TESTS += run_ncgen4.sh
 
 if USE_HDF5
-TESTS += run_nccopyz.sh
+#TESTS += run_nccopyz.sh
 TESTS += run_fillonlyz.sh
 endif
 
@@ -58,6 +58,7 @@ TESTS += run_chunkcases.sh
 TESTS += run_purezarr.sh
 TESTS += run_interop.sh
 TESTS += run_misc.sh
+TESTS += run_nczarr_fill.sh
 
 endif
 
@@ -108,7 +109,7 @@ ncdumpchunks_SOURCES = ncdumpchunks.c
 EXTRA_DIST = CMakeLists.txt \
 run_ut_map.sh run_ut_mapapi.sh run_ut_misc.sh run_ut_chunk.sh run_ncgen4.sh \
 run_nccopyz.sh run_fillonlyz.sh run_chunkcases.sh test_nczarr.sh run_perf_chunks1.sh run_s3_cleanup.sh \
-run_purezarr.sh run_interop.sh run_misc.sh run_newformat.sh
+run_purezarr.sh run_interop.sh run_misc.sh run_newformat.sh run_nczarr_fill.sh
 
 EXTRA_DIST += \
 ref_ut_map_create.cdl ref_ut_map_writedata.cdl ref_ut_map_writemeta2.cdl ref_ut_map_writemeta.cdl \
@@ -125,7 +126,9 @@ ref_misc1.cdl ref_misc1.dmp ref_misc2.cdl \
 ref_avail1.cdl ref_avail1.dmp ref_avail1.txt \
 ref_xarray.cdl ref_purezarr.cdl ref_purezarr_base.cdl ref_nczarr2zarr.cdl \
 ref_power_901_constants.zip ref_power_901_constants.cdl ref_quotes.zip ref_quotes.cdl \
-ref_oldformat.cdl ref_oldformat.zip ref_newformatpure.cdl
+ref_oldformat.cdl ref_oldformat.zip ref_newformatpure.cdl \
+ref_groups.h5 ref_byte.zarr.zip ref_byte_fill_value_null.zarr.zip \
+ref_groups_regular.cdl ref_byte.cdl ref_byte_fill_value_null.cdl
 
 CLEANFILES = ut_*.txt ut*.cdl tmp*.nc tmp*.cdl tmp*.txt tmp*.dmp tmp*.zip tmp*.nc
 
