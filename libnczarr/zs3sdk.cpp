@@ -78,7 +78,9 @@ NCZ_s3sdkcreateconfig(const char* host, const char* region, void** configp)
     if(region) config->region = region;
     if(host) config->endpointOverride = host;
     config->enableEndpointDiscovery = true;
-    config->followRedirects = true;
+#if 0
+    config->followRedirects = Aws::Client::FollowRedirectsPolicy::ALWAYS;
+#endif
     if(configp) * configp = config;
     return ZUNTRACE(stat);
 }

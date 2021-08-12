@@ -514,6 +514,7 @@ ncz_dtype2typeinfo(const char* dtype, nc_type* nctypep, int* endianp)
     switch (dtype[0]) {
     case '<': endianness = NC_ENDIAN_LITTLE; break;
     case '>': endianness = NC_ENDIAN_BIG; break;
+    case '|': endianness = NC_ENDIAN_NATIVE; break;
     default: goto zerr;
     }
     /* Decode the type length */
