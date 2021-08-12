@@ -711,6 +711,10 @@ IF(USE_HDF5)
 
     ELSE(MSVC)
 
+      IF(HDF5_hdf5_LIBRARY AND NOT HDF5_C_LIBRARY)
+        SET(HDF5_C_LIBRARY ${HDF5_hdf5_LIBRARY})
+      ENDIF()
+
       # Depending on the install, either HDF5_hdf_library or
       # HDF5_C_LIBRARIES may be defined.  We must check for either.
       IF(HDF5_C_LIBRARIES AND NOT HDF5_hdf5_LIBRARY)
