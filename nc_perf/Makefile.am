@@ -42,9 +42,12 @@ tst_wrf_reads_SOURCES = tst_wrf_reads.c tst_utils.c
 tst_bm_rando_SOURCES = tst_bm_rando.c tst_utils.c
 
 # Removing tst_mem1 because it sometimes fails on very busy system.
-TESTS = tst_ar4_3d tst_create_files tst_files3 tst_mem run_knmi_bm.sh	\
-tst_wrf_reads tst_attsperf perftest.sh run_tst_chunks.sh		\
-run_bm_elena.sh tst_bm_rando
+# Removing run_knmi_bm.sh because it fetches files from a server and
+# not all HPC systems have easy internet access, plus it's very slow
+# in CI.
+TESTS = tst_ar4_3d tst_create_files tst_files3 tst_mem tst_wrf_reads	\
+tst_attsperf perftest.sh run_tst_chunks.sh run_bm_elena.sh		\
+tst_bm_rando
 
 run_bm_elena.log: tst_create_files.log
 
