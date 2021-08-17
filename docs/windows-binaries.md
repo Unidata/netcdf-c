@@ -60,11 +60,13 @@ When installed, the netCDF libraries are placed in the specified locations, alon
 1. When building the netCDF-C libraries with netCDF4 support, using the `Debug` libraries may cause extraneous warnings. These warnings are related to cross-dll memory management, and appear to be harmless. You can safely ignore them by using the `Release` libraries. [NCF-220]
 
 
-[r1]: https://artifacts.unidata.ucar.edu/service/rest/repository/browse/downloads-netcdf-c/4.8.1/windows-installers/netCDF4.8.1-NC3-32.exe
-[r2]: https://artifacts.unidata.ucar.edu/service/rest/repository/browse/downloads-netcdf-c/4.8.1/windows-installers/netCDF4.8.1-NC3-DAP-32.exe
-[r3]: https://artifacts.unidata.ucar.edu/service/rest/repository/browse/downloads-netcdf-c/4.8.1/windows-installers/netCDF4.8.1-NC4-32.exe
-[r4]: https://artifacts.unidata.ucar.edu/service/rest/repository/browse/downloads-netcdf-c/4.8.1/windows-installers/netCDF4.8.1-NC4-DAP-32.exe
-[r5]: https://artifacts.unidata.ucar.edu/service/rest/repository/browse/downloads-netcdf-c/4.8.1/windows-installers/netCDF4.8.1-NC3-64.exe
-[r6]: https://artifacts.unidata.ucar.edu/service/rest/repository/browse/downloads-netcdf-c/4.8.1/windows-installers/netCDF4.8.1-NC3-DAP-64.exe
-[r7]: https://artifacts.unidata.ucar.edu/service/rest/repository/browse/downloads-netcdf-c/4.8.1/windows-installers/netCDF4.8.1-NC4-64.exe
-[r8]: https://artifacts.unidata.ucar.edu/service/rest/repository/browse/downloads-netcdf-c/4.8.1/windows-installers/netCDF4.8.1-NC4-DAP-64.exe
+
+[r1]: https://artifacts.unidata.ucar.edu/service/rest/repository/browse/downloads-netcdf-c/4.8.1/windows_installers/netCDF4.8.1-NC3-32.exe
+[r2]: https://artifacts.unidata.ucar.edu/service/rest/repository/browse/downloads-netcdf-c/4.8.1/windows_installers/netCDF4.8.1-NC3-DAP-32.exe
+[r3]: https://artifacts.unidata.ucar.edu/service/rest/repository/browse/downloads-netcdf-c/4.8.1/windows_installers/netCDF4.8.1-NC4-32.exe
+[r4]: https://artifacts.unidata.ucar.edu/service/rest/repository/browse/downloads-netcdf-c/4.8.1/windows_installers/netCDF4.8.1-NC4-DAP-32.exe
+[r5]: https://artifacts.unidata.ucar.edu/service/rest/repository/browse/downloads-netcdf-c/4.8.1/windows_installers/netCDF4.8.1-NC3-64.exe
+[r6]: https://artifacts.unidata.ucar.edu/service/rest/repository/browse/downloads-netcdf-c/4.8.1/windows_installers/netCDF4.8.1-NC3-DAP-64.exe
+[r7]: https://artifacts.unidata.ucar.edu/service/rest/repository/browse/downloads-netcdf-c/4.8.1/windows_installers/netCDF4.8.1-NC4-64.exe
+[r8]: https://artifacts.unidata.ucar.edu/service/rest/repository/browse/downloads-netcdf-c/4.8.1/windows_installers/netCDF4.8.1-NC4-DAP-64.exe
+
