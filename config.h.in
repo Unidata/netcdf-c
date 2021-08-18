@@ -18,7 +18,12 @@
 /* default nczarr chunk cache size. */
 #undef CHUNK_CACHE_SIZE_NCZARR
 
-/* Define to 1 if using 'alloca.c'. */
+/* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
+   systems. This function is required for `alloca.c' support on those systems.
+   */
+#undef CRAY_STACKSEG_END
+
+/* Define to 1 if using `alloca.c'. */
 #undef C_ALLOCA
 
 /* num chunks in default per-var chunk cache. */
@@ -72,10 +77,11 @@
 /* if true, multi-filter support enabled */
 #undef HAS_MULTIFILTERS
 
-/* Define to 1 if you have 'alloca', as a function or macro. */
+/* Define to 1 if you have `alloca', as a function or macro. */
 #undef HAVE_ALLOCA
 
-/* Define to 1 if <alloca.h> works. */
+/* Define to 1 if you have <alloca.h> and it should be used (not on Ultrix).
+   */
 #undef HAVE_ALLOCA_H
 
 /* Define to 1 if you have the `clock_gettime' function. */
@@ -204,7 +210,7 @@
 /* Define to 1 if the system has the type `longlong'. */
 #undef HAVE_LONGLONG
 
-/* Define to 1 if the system has the type `long long int'. */
+/* Define to 1 if the system has the type 'long long int'. */
 #undef HAVE_LONG_LONG_INT
 
 /* Define to 1 if you have the <malloc.h> header file. */
@@ -212,6 +218,9 @@
 
 /* Define to 1 if you have the `memmove' function. */
 #undef HAVE_MEMMOVE
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
 
 /* Define to 1 if you have the <mfhdf.h> header file. */
 #undef HAVE_MFHDF_H
@@ -340,7 +349,7 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
-/* Define to 1 if the system has the type `unsigned long long int'. */
+/* Define to 1 if the system has the type 'unsigned long long int'. */
 #undef HAVE_UNSIGNED_LONG_LONG_INT
 
 /* Define to 1 if the system has the type `ushort'. */
@@ -475,9 +484,7 @@
 	STACK_DIRECTION = 0 => direction of growth unknown */
 #undef STACK_DIRECTION
 
-/* Define to 1 if all of the C90 standard headers exist (not just the ones
-   required in a freestanding environment). This macro is provided for
-   backward compatibility; new code need not use it. */
+/* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
 /* Place to put very large netCDF test files. */
@@ -565,14 +572,18 @@
 # endif
 #endif
 
+/* Enable large inode numbers on Mac OS X 10.5.  */
+#ifndef _DARWIN_USE_64_BIT_INODE
+# define _DARWIN_USE_64_BIT_INODE 1
+#endif
+
 /* Number of bits in a file offset, on hosts where this is settable. */
 #undef _FILE_OFFSET_BITS
 
 /* Define for large files, on AIX-style hosts. */
 #undef _LARGE_FILES
 
-/* Define to 1 if type `char' is unsigned and your compiler does not
-   predefine this macro.  */
+/* Define to 1 if type `char' is unsigned and you are not using gcc.  */
 #ifndef __CHAR_UNSIGNED__
 # undef __CHAR_UNSIGNED__
 #endif
