@@ -1729,7 +1729,7 @@ AX_SET_META([NC_HAS_MULTIFILTERS],[$has_multifilters],[yes])
 # dispatch table to submit. If this is changed, make sure the value in
 # CMakeLists.txt also changes to match.
 
-AC_SUBST([NC_DISPATCH_VERSION], [3])
+AC_SUBST([NC_DISPATCH_VERSION], [4])
 AC_DEFINE_UNQUOTED([NC_DISPATCH_VERSION], [${NC_DISPATCH_VERSION}], [Dispatch table version.])
 
 #####
