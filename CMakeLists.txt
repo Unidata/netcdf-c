@@ -1404,6 +1404,9 @@ ENDIF()
 # Always enable DISKLESS
 OPTION(ENABLE_DISKLESS "Enable in-memory files" ON)
 
+# Always enable quantization.
+OPTION(ENABLE_QUANTIZE "Enable variable quantization" ON)
+
 # By default, MSVC has a stack size of 1000000.
 # Allow a user to override this.
 IF(MSVC)
@@ -2180,6 +2183,7 @@ is_enabled(ENABLE_NCZARR HAS_NCZARR)
 is_enabled(ENABLE_NCZARR_S3_TESTS DO_NCZARR_S3_TESTS)
 is_enabled(ENABLE_MULTIFILTERS HAS_MULTIFILTERS)
 is_enabled(ENABLE_NCZARR_ZIP DO_NCZARR_ZIP_TESTS)
+is_enabled(ENABLE_QUANTIZE HAS_QUANTIZE)
 
 # Generate file from template.
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"

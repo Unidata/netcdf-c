@@ -1649,6 +1649,7 @@ AC_SUBST(HAS_NCZARR,[$enable_nczarr])
 AC_SUBST(DO_NCZARR_S3_TESTS,[$enable_nczarr_s3_tests])
 AC_SUBST(HAS_MULTIFILTERS,[$has_multifilters])
 AC_SUBST(DO_NCZARR_ZIP_TESTS,[$enable_nczarr_zip])
+AC_SUBST([HAS_QUANTIZE],[yes])
 
 # Include some specifics for netcdf on windows.
 #AH_VERBATIM([_WIN32_STRICMP],
