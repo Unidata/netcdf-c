@@ -105,6 +105,7 @@ static const NC_Dispatch NCZ_dispatcher = {
     NC4_get_var_chunk_cache,
     NCZ_inq_var_filter_ids,
     NCZ_inq_var_filter_info,
+    NC_NOTNC4_def_var_quantize,
 };
 
 const NC_Dispatch* NCZ_dispatch_table = NULL; /* moved here from ddispatch.c */

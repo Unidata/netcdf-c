@@ -975,4 +975,5 @@ NCD4_get_var_chunk_cache,
 
 NC_NOTNC4_inq_var_filter_ids,
 NC_NOTNC4_inq_var_filter_info,
+NC_NOTNC4_def_var_quantize,
 };
