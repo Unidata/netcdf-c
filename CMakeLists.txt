@@ -620,6 +620,14 @@ IF(USE_HDF5)
     INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIR})
     MESSAGE(STATUS "Using HDF5 C Library: ${HDF5_C_LIBRARY}")
     MESSAGE(STATUS "Using HDF5 HL LIbrary: ${HDF5_HL_LIBRARY}")
+    if (EXISTS "${HDF5_INCLUDE_DIR}/H5pubconf.h")
+      file(READ "${HDF5_INCLUDE_DIR}/H5pubconf.h" _hdf5_version_lines
+        REGEX "#define[ \t]+H5_VERSION")
+      string(REGEX REPLACE ".*H5_VERSION .*\"\(.*\)\".*" "\\1" _hdf5_version "${_hdf5_version_lines}")
+      set(HDF5_VERSION "${_hdf5_version}")
+      unset(_hdf5_version)
+      unset(_hdf5_version_lines)
+    endif ()
   ELSE(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR) # We are seeking out HDF5 with Find Package.
     ###
     # For now we assume that if we are building netcdf
