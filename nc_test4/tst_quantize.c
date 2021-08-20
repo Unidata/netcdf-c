@@ -27,9 +27,18 @@ main(int argc, char **argv)
     printf("**** testing simple quantization and error conditions...");
     {
 	int ncid, dimid, varid;
+	int quantize_mode_in, nsd_in;
 	int nvars_in, varids_in;
 
-	/* Create a netcdf-4 file with one scalar var. Attempt
+	/* Create a netcdf-4 file with one var. Attempt
+	 * quantization. It will not work. */
+	if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
+	if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_1, &dimid)) ERR;
+	if (nc_def_var(ncid, VAR_NAME_1, NC_FLOAT, NDIMS1, &dimid, &varid)) ERR;
+	if (nc_def_var_quantize(ncid, varid, NC_QUANTIZE_BITGROOM, NSD_1) != NC_ENOTNC4) ERR;
+	if (nc_close(ncid)) ERR;
+
+	/* Create a netcdf-4 file with one var. Attempt
 	 * quantization. */
 	if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
 	if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_1, &dimid)) ERR;
