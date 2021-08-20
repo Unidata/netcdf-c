@@ -101,7 +101,8 @@ extern "C" {
                     int *shufflep, int *deflatep, int *deflate_levelp,
                     int *fletcher32p, int *contiguousp, size_t *chunksizesp,
                     int *no_fill, void *fill_valuep, int *endiannessp,
-                    unsigned int* idp, size_t* nparamsp, unsigned int* params);
+                    unsigned int* idp, size_t* nparamsp, unsigned int* params,
+		    int *quantize_modep, int *nsdp);
 
     EXTERNL int
     NC4_inq_varid(int ncid, const char *name, int *varidp);
@@ -250,6 +251,13 @@ extern "C" {
     NC4_inq_var_filter_ids(int ncid, int varid, size_t* nfilters, unsigned int* filterids);
     EXTERNL int
     NC4_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparams, unsigned int* params);
+
+    EXTERNL int
+    NC4_def_var_quantize(int ncid, int varid, int quantize_mode, int nsd);
+
+    EXTERNL int
+    NC4_inq_var_quantize(int ncid, int varid, int *quantize_modep, int *nsdp);
+    
 
 #if defined(__cplusplus)
 }

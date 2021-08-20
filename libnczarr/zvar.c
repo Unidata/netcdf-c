@@ -1984,7 +1984,8 @@ NCZ_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 		     int *shufflep, int *unused4, int *unused5,
 		     int *fletcher32p, int *storagep, size_t *chunksizesp,
 		     int *no_fill, void *fill_valuep, int *endiannessp,
-		     unsigned int *unused1, size_t *unused2, unsigned int *unused3)
+		unsigned int *unused1, size_t *unused2, unsigned int *unused3,
+		int *quantize_modep, int *nsdp)
 {
     NC_FILE_INFO_T *h5;
     NC_GRP_INFO_T *grp;
@@ -2007,7 +2008,7 @@ NCZ_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
     retval = NC4_inq_var_all(ncid, varid, name, xtypep, ndimsp, dimidsp, nattsp,
 			   shufflep, unused4, unused5, fletcher32p,
 			   storagep, chunksizesp, no_fill, fill_valuep,
-			   endiannessp, unused1, unused2, unused3);
+			     endiannessp, unused1, unused2, unused3, quantize_modep, nsdp);
 done:
     return ZUNTRACEX(retval,"xtype=%d natts=%d shuffle=%d fletcher32=%d no_fill=%d endianness=%d ndims=%d dimids=%s storage=%d chunksizes=%s",
 	   (xtypep?*xtypep:-1),

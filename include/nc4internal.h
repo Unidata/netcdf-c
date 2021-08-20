@@ -204,6 +204,8 @@ typedef struct NC_VAR_INFO
     size_t chunk_cache_size;     /**< Size in bytes of the var chunk chache. */
     size_t chunk_cache_nelems;   /**< Number of slots in var chunk cache. */
     float chunk_cache_preemption; /**< Chunk cache preemtion policy. */
+    int quantize_mode;           /**< Quantize mode. NC_NOQUANTIZE is 0, and means no quantization. */
+    int nsd;                     /**< Number of significant digits if quantization is used, 0 if not. */
     void *format_var_info;       /**< Pointer to any binary format info. */
     void* filters;             /**< Record of the list of filters to be applied to var data; format dependent */
 } NC_VAR_INFO_T;

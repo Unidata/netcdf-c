@@ -82,7 +82,7 @@ EXTERNL int NCZ_put_att(int ncid, int varid, const char *name, nc_type file_type
 
 EXTERNL int NCZ_def_var(int ncid, const char *name, nc_type xtype, int ndims, const int *dimidsp, int *varidp);
 
-EXTERNL int NCZ_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep, int *ndimsp, int *dimidsp, int *nattsp, int *shufflep, int *deflatep, int *deflate_levelp, int *fletcher32p, int *contiguousp, size_t *chunksizesp, int *no_fill, void *fill_valuep, int *endiannessp, unsigned int* idp, size_t* nparamsp, unsigned int* params
+EXTERNL int NCZ_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep, int *ndimsp, int *dimidsp, int *nattsp, int *shufflep, int *deflatep, int *deflate_levelp, int *fletcher32p, int *contiguousp, size_t *chunksizesp, int *no_fill, void *fill_valuep, int *endiannessp, unsigned int* idp, size_t* nparamsp, unsigned int* params, int *quantize_modep, int *nsdp
 );
 
 EXTERNL int NCZ_inq_varid(int ncid, const char *name, int *varidp);

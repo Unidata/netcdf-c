@@ -456,8 +456,9 @@ NCD4_inq_var_all(int ncid, int varid, char *name, nc_type* xtypep,
                int* shufflep, int* deflatep, int* deflate_levelp,
                int* fletcher32p, int* contiguousp, size_t* chunksizesp,
                int* no_fill, void* fill_valuep, int* endiannessp,
-	       unsigned int* idp, size_t* nparamsp, unsigned int* params
-               )
+		 unsigned int* idp, size_t* nparamsp, unsigned int* params,
+		 int *quantize_modep, int *nsdp
+    )
 {
     NC* ncp;
     int ret;
@@ -469,7 +470,7 @@ NCD4_inq_var_all(int ncid, int varid, char *name, nc_type* xtypep,
                shufflep, deflatep, deflate_levelp,
                fletcher32p, contiguousp, chunksizesp,
                no_fill, fill_valuep, endiannessp,
-               idp, nparamsp, params);
+		 idp, nparamsp, params, quantize_modep, nsdp);
     return (ret);
 }
 

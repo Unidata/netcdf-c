@@ -136,6 +136,9 @@ nc_get_var_chunk_cache_ints(int ncid, int varid, int *sizep,
  * @param nparamsp Pointer to memory to store filter parameter count.
  * @param params Pointer to vector of unsigned integers into which
  * to store filter parameters.
+ * @param quantize_modep Pointer that gets the quantize mode.
+ * @param nsdp Pointer that gets the number of significant digits for
+ * quantization.
  *
  * @returns ::NC_NOERR No error.
  * @returns ::NC_EBADID Bad ncid.
@@ -150,7 +153,8 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
                 int *shufflep, int *deflatep, int *deflate_levelp,
                 int *fletcher32p, int *storagep, size_t *chunksizesp,
                 int *no_fill, void *fill_valuep, int *endiannessp,
-                unsigned int *idp, size_t *nparamsp, unsigned int *params)
+                unsigned int *idp, size_t *nparamsp, unsigned int *params,
+		int *quantize_modep, int *nsdp)
 {
     NC_GRP_INFO_T *grp;
     NC_FILE_INFO_T *h5;
@@ -269,6 +273,12 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
     if (endiannessp)
         *endiannessp = var->endianness;
 
+    /* Does the user want to know about quantization? */
+    if (quantize_modep)
+	*quantize_modep = var->quantize_mode;
+    if (nsdp)
+	*nsdp = var->nsd;
+
     return NC_NOERR;
 }
 
@@ -308,7 +318,7 @@ nc_inq_var_chunking_ints(int ncid, int varid, int *storagep, int *chunksizesp)
     /* Call the netcdf-4 version directly. */
     retval = NC4_inq_var_all(ncid, varid, NULL, NULL, NULL, NULL, NULL,
                              NULL, NULL, NULL, NULL, storagep, cs, NULL,
-                             NULL, NULL, NULL, NULL, NULL);
+                             NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
     /* Copy from size_t array. */
     if (!retval && chunksizesp && var->storage == NC_CHUNKED)

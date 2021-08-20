@@ -2053,6 +2053,8 @@ exit:
  * @param nparamsp Pointer to memory to store filter parameter count.
  * @param params Pointer to vector of unsigned integers into which
  * to store filter parameters.
+ * @param quantize_modep Gets quantization mode.
+ * @param nsdp Gets number of significant digits, if quantization is in use.
  *
  * @returns ::NC_NOERR No error.
  * @returns ::NC_EBADID Bad ncid.
@@ -2067,7 +2069,8 @@ NC4_HDF5_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
                      int *shufflep, int *unused4, int *unused5,
                      int *fletcher32p, int *storagep, size_t *chunksizesp,
                      int *no_fill, void *fill_valuep, int *endiannessp,
-                     unsigned int *unused1, size_t *unused2, unsigned int *unused3)
+                     unsigned int *unused1, size_t *unused2, unsigned int *unused3,
+		     int *quantize_modep, int *nsdp)
 {
     NC_FILE_INFO_T *h5;
     NC_GRP_INFO_T *grp;
@@ -2088,7 +2091,48 @@ NC4_HDF5_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
     return NC4_inq_var_all(ncid, varid, name, xtypep, ndimsp, dimidsp, nattsp,
                            shufflep, unused4, unused5, fletcher32p,
                            storagep, chunksizesp, no_fill, fill_valuep,
-                           endiannessp, unused1, unused2, unused3);
+                           endiannessp, unused1, unused2, unused3,
+			   quantize_modep, nsdp);
+}
+
+/**
+ * @internal Get quantization information about a variable. Pass NULL
+ * for whatever you don't care about.
+ *
+ * @param ncid File ID.
+ * @param varid Variable ID.
+ *
+ * @returns ::NC_NOERR No error.
+ * @returns ::NC_EBADID Bad ncid.
+ * @returns ::NC_ENOTVAR Bad varid.
+ * @returns ::NC_ENOMEM Out of memory.
+ * @returns ::NC_EINVAL Invalid input.
+ * @author Ed Hartnett
+ */
+int
+NC4_HDF5_inq_var_quantize(int ncid, int varid, int *quantize_modep, int *nsdp)
+{
+    NC_FILE_INFO_T *h5;
+    NC_GRP_INFO_T *grp;
+    NC_VAR_INFO_T *var = NULL;
+    int retval;
+
+    LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
+
+    /* Find the file, group, and var info, and do lazy att read if
+     * needed. */
+    if ((retval = nc4_hdf5_find_grp_var_att(ncid, varid, NULL, 0, 0, NULL,
+                                            &h5, &grp, &var, NULL)))
+        return retval;
+    assert(grp && h5);
+
+    /* Now that lazy atts have been read, use the libsrc4 function to
+     * get the answers. */
+    return NC4_inq_var_all(ncid, varid, NULL, NULL, NULL, NULL, NULL,
+                           NULL, NULL, NULL, NULL,
+                           NULL, NULL, NULL, NULL,
+                           NULL, NULL, NULL, NULL,
+			   quantize_modep, nsdp);
 }
 
 /**

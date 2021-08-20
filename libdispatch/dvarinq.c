@@ -131,7 +131,7 @@ nc_inq_var(int ncid, int varid, char *name, nc_type *xtypep,
    return ncp->dispatch->inq_var_all(ncid, varid, name, xtypep, ndimsp,
 				     dimidsp, nattsp, NULL, NULL, NULL,
 				     NULL, NULL, NULL, NULL, NULL, NULL,
-				     NULL,NULL,NULL);
+				     NULL, NULL, NULL, NULL, NULL);
 }
 
 /**
@@ -350,7 +350,11 @@ nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep, int *defla
       NULL, /*nofillp*/
       NULL, /*fillvaluep*/
       NULL, /*endianp*/
-      NULL, NULL, NULL
+      NULL, /* idp */
+      NULL, /* nparamsp */
+      NULL, /* params */
+      NULL, /* quantize_modep */
+      NULL /* nsdp */
       );
 }
 
@@ -397,7 +401,11 @@ nc_inq_var_fletcher32(int ncid, int varid, int *fletcher32p)
       NULL, /*nofillp*/
       NULL, /*fillvaluep*/
       NULL, /*endianp*/
-      NULL, NULL, NULL
+      NULL, /* idp */
+      NULL, /* nparamsp */
+      NULL, /* params */
+      NULL, /* quantize_modep */
+      NULL /* nsdp */
       );
 }
 
@@ -472,7 +480,7 @@ nc_inq_var_chunking(int ncid, int varid, int *storagep, size_t *chunksizesp)
    return ncp->dispatch->inq_var_all(ncid, varid, NULL, NULL, NULL, NULL,
 				     NULL, NULL, NULL, NULL, NULL, storagep,
 				     chunksizesp, NULL, NULL, NULL,
-                                     NULL, NULL, NULL);
+                                     NULL, NULL, NULL, NULL, NULL);
 }
 
 /** \ingroup variables
@@ -523,7 +531,11 @@ nc_inq_var_fill(int ncid, int varid, int *no_fill, void *fill_valuep)
       no_fill, /*nofillp*/
       fill_valuep, /*fillvaluep*/
       NULL, /*endianp*/
-      NULL, NULL, NULL
+      NULL, /* idp */
+      NULL, /* nparamsp */
+      NULL, /* params */
+      NULL, /* quantize_modep */
+      NULL /* nsdp */
       );
 }
 
@@ -553,8 +565,27 @@ nc_inq_var_quantize(int ncid, int varid, int *quantize_modep, int *nsdp)
    /* Using NC_GLOBAL is illegal. */
    if (varid == NC_GLOBAL) return NC_EGLOBAL;
 
-   return ncp->dispatch->inq_var_quantize(ncid, varid, quantize_modep,
-					  nsdp);
+   return ncp->dispatch->inq_var_all(
+      ncid, varid,
+      NULL, /*name*/
+      NULL, /*xtypep*/
+      NULL, /*ndimsp*/
+      NULL, /*dimidsp*/
+      NULL, /*nattsp*/
+      NULL, /*shufflep*/
+      NULL, /*deflatep*/
+      NULL, /*deflatelevelp*/
+      NULL, /*fletcher32p*/
+      NULL, /*contiguousp*/
+      NULL, /*chunksizep*/
+      NULL, /*nofillp*/
+      NULL, /*fillvaluep*/
+      NULL, /*endianp*/
+      NULL, /* idp */
+      NULL, /* nparamsp */
+      NULL, /* params */
+      quantize_modep, 
+      nsdp);
 }
 
 /** \ingroup variables
@@ -601,7 +632,11 @@ nc_inq_var_endian(int ncid, int varid, int *endianp)
       NULL, /*nofillp*/
       NULL, /*fillvaluep*/
       endianp, /*endianp*/
-      NULL, NULL, NULL);
+      NULL, /* idp */
+      NULL, /* nparamsp */
+      NULL, /* params */
+      NULL, /* quantize_modep */
+      NULL); /* nsdp */
 }
 
 /**

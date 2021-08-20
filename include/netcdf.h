@@ -324,7 +324,7 @@ there. */
 #define NC_MIN_DEFLATE_LEVEL 0 /**< Minimum deflate level. */
 #define NC_MAX_DEFLATE_LEVEL 9 /**< Maximum deflate level. */
 
-#define NC_QUANTIZE_NONE 0 /**< No quantization in use. */    
+#define NC_NOQUANTIZE 0 /**< No quantization in use. */    
 #define NC_QUANTIZE_BITGROOM 0 /**< Use bitgroom quantization. */    
 
 /** The netcdf version 3 functions all return integer error status.
@@ -863,7 +863,7 @@ nc_get_varm(int ncid, int varid,  const size_t *startp,
 EXTERNL int
 nc_def_var_quantize(int ncid, int varid, int quantize_mode, int nsd);
 
-/* Find out compression settings of a var. */
+/* Find out quantization settings of a var. */
 EXTERNL int
 nc_inq_var_quantize(int ncid, int varid, int *quantize_modep, int *nsdp);
 
