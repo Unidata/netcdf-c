@@ -36,7 +36,7 @@ main(int argc, char **argv) { /* create a compressible file, for testing */
     if (nc_def_var(ncid, "var1", NC_INT, VAR1_RANK, var1_dims, &varid)) ERR;
     if (nc_enddef (ncid)) ERR;
     for(i=0; i < DIM1_LEN; i++) {
-	var1_data[i] = i;
+	var1_data[i] = i / 3;  /* Want integer division / truncation */
     }
     if (nc_put_var(ncid, varid, var1_data)) ERR;
     if (nc_close(ncid)) ERR;
@@ -47,7 +47,7 @@ main(int argc, char **argv) { /* create a compressible file, for testing */
     if (nc_def_var(ncid, "var1", NC_INT, VAR1_RANK, var1_dims, &varid)) ERR;
     if (nc_enddef (ncid)) ERR;
     for(i=0; i < DIM1_LEN; i++) {
-	var1_data[i] = i;
+	var1_data[i] = i / 3; /* Want integer division / truncation */
     }
     if (nc_put_var(ncid, varid, var1_data)) ERR;
     if (nc_close(ncid)) ERR;
