@@ -5,7 +5,9 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
-## 4.8.1 - TBD
+## 4.8.2 - TBD
+
+## 4.8.1 - August 18, 2021
 
 * [Bug Fix] Fix multiple bugs in libnczarr. See [Github #2066](https://github.com/Unidata/netcdf-c/pull/2066).
 * [Enhancement] Support windows network paths (e.g. \\svc\...). See [Github #2065](https://github.com/Unidata/netcdf-c/pull/2065).
