@@ -24,6 +24,14 @@
 /** Number of bytes in 64 KB. */
 #define SIXTY_FOUR_KB (65536)
 
+/** For quantization, the allowed value of number of significant
+ * digits for float. */
+#define MAX_FLOAT_NSD (14)
+
+/** For quantization, the allowed value of number of significant
+ * digits for double. */
+#define MAX_DOUBLE_NSD (14)
+
 #ifdef LOGGING
 /**
  * Report the chunksizes selected for a variable.
@@ -465,6 +473,8 @@ exit:
  * @param no_fill Pointer to no_fill setting.
  * @param fill_value Pointer to fill value.
  * @param endianness Pointer to endianness setting.
+ * @param quantize_mode Pointer to quantization mode.
+ * @param nsd Pointer to number of significant digits.
  *
  * @returns ::NC_NOERR for success
  * @returns ::NC_EBADID Bad ncid.
@@ -484,7 +494,8 @@ static int
 nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
                  int *unused2, int *fletcher32, int *storage,
                  const size_t *chunksizes, int *no_fill,
-                 const void *fill_value, int *endianness)
+                 const void *fill_value, int *endianness,
+		 int *quantize_mode, int *nsd)
 {
     NC_GRP_INFO_T *grp;
     NC_FILE_INFO_T *h5;
@@ -706,6 +717,60 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	var->endianness = *endianness;
     }
 
+    /* Remember quantization settings. They will be used when data are
+     * written. */
+    if (quantize_mode)
+    {
+	/* Only two valid mode settings. */
+	if (*quantize_mode != NC_NOQUANTIZE &&
+	    *quantize_mode != NC_QUANTIZE_BITGROOM)
+	    return NC_EINVAL;
+
+	if (*quantize_mode == NC_QUANTIZE_BITGROOM)
+	{
+	    /* Only float and double types can have quantization. */
+	    if (var->type_info->hdr.id != NC_FLOAT &&
+		var->type_info->hdr.id != NC_DOUBLE)
+		return NC_EINVAL;
+	    
+	    /* For bitgroom, number of significant digits is required. */
+	    if (!nsd)
+		return NC_EINVAL;
+
+	    /* NSD must be in range. */
+	    if (*nsd < 0)
+		return NC_EINVAL;
+	    if (var->type_info->hdr.id != NC_FLOAT && *nsd > MAX_FLOAT_NSD)
+		return NC_EINVAL;
+	    if (var->type_info->hdr.id != NC_DOUBLE && *nsd > MAX_DOUBLE_NSD)
+		return NC_EINVAL;
+
+	    var->nsd = *nsd;
+	}
+	
+	var->quantize_mode = *quantize_mode;
+
+	/* If nsd was zero, turn quantization off. */
+	if (*nsd == 0)
+	    var->quantize_mode = NC_NOQUANTIZE;
+	
+	/* If quantization is turned off, then set nsd to 0. */
+	if (*quantize_mode == NC_NOQUANTIZE)
+	    var->nsd = 0;
+    }
+
+    /* Setting nsd to 0 turns off quantization. */
+    if (nsd && !quantize_mode)
+    {
+	if (*nsd == 0)
+	{
+	    var->quantize_mode = NC_NOQUANTIZE;	    
+	    var->nsd = *nsd;
+	}
+	else
+	    return NC_EINVAL;
+    }
+
     return NC_NOERR;
 }
 
@@ -737,7 +802,8 @@ NC4_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
     int stat = NC_NOERR;
     unsigned int level = (unsigned int)deflate_level;
     /* Set shuffle first */
-    if((stat = nc_def_var_extra(ncid, varid, &shuffle, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL))) goto done;
+    if((stat = nc_def_var_extra(ncid, varid, &shuffle, NULL, NULL, NULL,
+				NULL, NULL, NULL, NULL, NULL, NULL, NULL))) goto done;
     if(deflate) {
         if((stat = nc_def_var_filter(ncid, varid, H5Z_FILTER_DEFLATE,1,&level))) goto done;
     } /* else ignore */
@@ -768,9 +834,9 @@ done:
 int
 NC4_def_var_quantize(int ncid, int varid, int quantize_mode, int nsd)
 {
-    int stat = NC_NOERR;
-        
-    return stat;
+    return nc_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL,
+			    NULL, NULL, NULL, NULL, NULL,
+			    &quantize_mode, &nsd);
 }
 
 #if 0
@@ -830,7 +896,7 @@ int
 NC4_def_var_fletcher32(int ncid, int varid, int fletcher32)
 {
     return nc_def_var_extra(ncid, varid, NULL, NULL, NULL, &fletcher32,
-                            NULL, NULL, NULL, NULL, NULL);
+                            NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 }
 
 /**
@@ -859,7 +925,7 @@ int
 NC4_def_var_chunking(int ncid, int varid, int storage, const size_t *chunksizesp)
 {
     return nc_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL,
-                            &storage, chunksizesp, NULL, NULL, NULL);
+                            &storage, chunksizesp, NULL, NULL, NULL, NULL, NULL);
 }
 
 /**
@@ -904,7 +970,7 @@ nc_def_var_chunking_ints(int ncid, int varid, int storage, int *chunksizesp)
         cs[i] = chunksizesp[i];
 
     retval = nc_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL,
-                              &storage, cs, NULL, NULL, NULL);
+                              &storage, cs, NULL, NULL, NULL, NULL, NULL);
 
     if (var->ndims)
         free(cs);
@@ -938,7 +1004,7 @@ int
 NC4_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
 {
     return nc_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL, NULL,
-                            NULL, &no_fill, fill_value, NULL);
+                            NULL, &no_fill, fill_value, NULL, NULL, NULL);
 }
 
 /**
@@ -967,7 +1033,7 @@ int
 NC4_def_var_endian(int ncid, int varid, int endianness)
 {
     return nc_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL, NULL,
-                            NULL, NULL, NULL, &endianness);
+                            NULL, NULL, NULL, &endianness, NULL, NULL);
 }
 
 /**

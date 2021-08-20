@@ -1464,7 +1464,7 @@ NC_NOTNC4_get_var_chunk_cache,
 NC_NOOP_inq_var_filter_ids,
 NC_NOOP_inq_var_filter_info,
 
-NC_NOTNC4_def_quantize,
+NC_NOTNC4_def_var_quantize,
 };
 
 const NC_Dispatch *NCP_dispatch_table = NULL; /* moved here from ddispatch.c */

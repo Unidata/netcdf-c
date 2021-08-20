@@ -500,7 +500,16 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
    @param nsd Number of significant digits to retain. Allowed single- and
    double-precision NSDs are 1-7 and 1-15, respectively.
   
-   @return 0 for success, error code otherwise.
+   @return ::NC_NOERR No error.
+   @return ::NC_EGLOBAL Can't use ::NC_GLOBAL with this function.
+   @return ::NC_EBADID Bad ncid.
+   @return ::NC_ENOTVAR Invalid variable ID.
+   @return ::NC_ENOTNC4 Attempting netcdf-4 operation on file that is
+   not netCDF-4/HDF5.
+   @return ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3
+   netcdf-4 file.
+   @return ::NC_ELATEDEF Too late to change settings for this variable.
+   @return ::NC_EINVAL Invalid input
    @author Charlie Zender, Ed Hartnett
  */
 int

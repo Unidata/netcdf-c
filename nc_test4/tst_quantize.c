@@ -30,20 +30,30 @@ main(int argc, char **argv)
 	int quantize_mode_in, nsd_in;
 	int nvars_in, varids_in;
 
-	/* Create a netcdf-4 file with one var. Attempt
+	/* Create a netcdf classic file with one var. Attempt
 	 * quantization. It will not work. */
 	if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
 	if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_1, &dimid)) ERR;
 	if (nc_def_var(ncid, VAR_NAME_1, NC_FLOAT, NDIMS1, &dimid, &varid)) ERR;
 	if (nc_def_var_quantize(ncid, varid, NC_QUANTIZE_BITGROOM, NSD_1) != NC_ENOTNC4) ERR;
+	if (nc_inq_var_quantize(ncid, varid, &quantize_mode_in, &nsd_in) != NC_ENOTNC4) ERR;
 	if (nc_close(ncid)) ERR;
 
 	/* Create a netcdf-4 file with one var. Attempt
-	 * quantization. */
+	 * quantization. It will work, eventually... */
 	if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
 	if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_1, &dimid)) ERR;
 	if (nc_def_var(ncid, VAR_NAME_1, NC_FLOAT, NDIMS1, &dimid, &varid)) ERR;
+
+	/* Bad varid. */
+	if (nc_def_var_quantize(ncid, NC_GLOBAL, NC_QUANTIZE_BITGROOM, NSD_1) != NC_EGLOBAL) ERR;
+	if (nc_def_var_quantize(ncid, 1, NC_QUANTIZE_BITGROOM, NSD_1) != NC_ENOTVAR) ERR;
+
+	/* This will work. */
 	if (nc_def_var_quantize(ncid, varid, NC_QUANTIZE_BITGROOM, NSD_1)) ERR;
+	if (nc_inq_var_quantize(ncid, varid, &quantize_mode_in, &nsd_in)) ERR;
+	if (quantize_mode_in != NC_QUANTIZE_BITGROOM) ERR;
+	if (nsd_in != NSD_1) ERR;
 	if (nc_close(ncid)) ERR;
 
 	/* Open the file and check. */
