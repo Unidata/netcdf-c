@@ -746,6 +746,33 @@ done:
     return stat;
 }
 
+/**
+ * @internal Set quantization settings on a variable. This is
+ * called by nc_def_var_quantize().
+ *
+ * @param ncid File ID.
+ * @param varid Variable ID.
+ * @param quantize_mode Quantization mode.
+ * @param nsd Number of significant digits.
+ *
+ * @returns ::NC_NOERR No error.
+ * @returns ::NC_EBADID Bad ncid.
+ * @returns ::NC_ENOTVAR Invalid variable ID.
+ * @returns ::NC_ENOTNC4 Attempting netcdf-4 operation on file that is
+ * not netCDF-4/HDF5.
+ * @returns ::NC_ELATEDEF Too late to change settings for this variable.
+ * @returns ::NC_ENOTINDEFINE Not in define mode.
+ * @returns ::NC_EINVAL Invalid input
+ * @author Ed Hartnett, Dennis Heimbigner
+ */
+int
+NC4_def_var_quantize(int ncid, int varid, int quantize_mode, int nsd)
+{
+    int stat = NC_NOERR;
+        
+    return stat;
+}
+
 #if 0
 /**
  * @internal Remove a filter from filter list for a variable
@@ -2110,7 +2137,8 @@ NC4_HDF5_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
  * @author Ed Hartnett
  */
 int
-NC4_HDF5_inq_var_quantize(int ncid, int varid, int *quantize_modep, int *nsdp)
+NC4_HDF5_inq_var_quantize(int ncid, int varid, int *quantize_modep,
+			  int *nsdp)
 {
     NC_FILE_INFO_T *h5;
     NC_GRP_INFO_T *grp;

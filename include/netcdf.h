@@ -325,7 +325,7 @@ there. */
 #define NC_MAX_DEFLATE_LEVEL 9 /**< Maximum deflate level. */
 
 #define NC_NOQUANTIZE 0 /**< No quantization in use. */    
-#define NC_QUANTIZE_BITGROOM 0 /**< Use bitgroom quantization. */    
+#define NC_QUANTIZE_BITGROOM 1 /**< Use bitgroom quantization. */    
 
 /** The netcdf version 3 functions all return integer error status.
  * These are the possible values, in addition to certain values from
