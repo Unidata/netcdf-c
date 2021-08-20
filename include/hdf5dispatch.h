@@ -63,6 +63,11 @@ extern "C" {
     EXTERNL int
     HDF5_rename_dim(int ncid, int dimid, const char *name);
 
+    EXTERNL int
+    NC4_HDF5_inq_var_quantize(int ncid, int varid, int *quantize_modep,
+			      int *nsdp)
+    
+
 #if defined(__cplusplus)
 }
 #endif
