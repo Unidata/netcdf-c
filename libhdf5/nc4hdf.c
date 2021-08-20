@@ -1016,9 +1016,17 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
                 BAIL(retval);
     }
 
+    /* If quantization is in use, write an attribute indicating it, a
+     * single integer which is the number of significant digits. */
+    if ((retval = nc4_put_att(var->container, var->hdr.id, NC_QUANTIZE_ATT_NAME, NC_INT, 1,
+			      &var->nsd, NC_INT, 0)))
+	BAIL(retval);
+
     /* Write attributes for this var. */
     if ((retval = write_attlist(var->att, var->hdr.id, grp)))
         BAIL(retval);
+
+    /* The file is now up-to-date with all settings for this var. */
     var->attr_dirty = NC_FALSE;
 
 exit:
