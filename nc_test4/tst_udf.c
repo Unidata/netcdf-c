@@ -156,6 +156,9 @@ static NC_Dispatch tst_dispatcher = {
     NC_NOOP_inq_var_filter_ids,
     NC_NOOP_inq_var_filter_info,
 #endif
+#if NC_DISPATCH_VERSION >= 4
+    NC_NOTNC4_def_var_quantize,
+#endif
 };
 
 /* This is the dispatch object that holds pointers to all the
