@@ -273,6 +273,55 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 }
 
 /**
+ * @internal Get all the information about a variable. Pass NULL for
+ * whatever you don't care about. This is the internal function called
+ * by nc_inq_var(), nc_inq_var_deflate(), nc_inq_var_fletcher32(),
+ * nc_inq_var_chunking(), nc_inq_var_chunking_ints(),
+ * nc_inq_var_fill(), nc_inq_var_endian(), nc_inq_var_filter(), and
+ * nc_inq_var_szip().
+ *
+ * @param ncid File ID.
+ * @param varid Variable ID.
+ * @param quantize_modep Gets quantize mode.
+ * @param nsdp Gets Number of Significant Digits if quantize is in use.
+ *
+ * @returns ::NC_NOERR No error.
+ * @returns ::NC_EBADID Bad ncid.
+ * @returns ::NC_ENOTVAR Bad varid.
+ * @returns ::NC_EINVAL Invalid input.
+ * @author Ed Hartnett
+ */
+int
+NC4_inq_var_quantize(int ncid, int varid, int *quantize_modep,
+		     int *nsdp)
+{
+    NC_GRP_INFO_T *grp;
+    NC_FILE_INFO_T *h5;
+    NC_VAR_INFO_T *var;
+    int retval;
+
+    LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
+
+    /* Find info for this file and group, and set pointer to each. */
+    if ((retval = nc4_find_nc_grp_h5(ncid, NULL, &grp, &h5)))
+        return retval;
+    assert(grp && h5);
+
+    /* Find the var. */
+    if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, varid)))
+        return NC_ENOTVAR;
+    assert(var && var->hdr.id == varid);
+
+    /* Copy the data to the user's data buffers. */
+    if (quantize_modep)
+        *quantize_modep = var->quantize_mode;
+    if (nsdp)
+        *nsdp = var->nsd;
+
+    return 0;
+}
+
+/**
  * @internal Inquire about chunking settings for a var. This is used
  * by the fortran API.
  *

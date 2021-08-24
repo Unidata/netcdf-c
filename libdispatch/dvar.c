@@ -521,8 +521,7 @@ nc_def_var_quantize(int ncid, int varid, int quantize_mode, int nsd)
 
     /* Using NC_GLOBAL is illegal. */
     if (varid == NC_GLOBAL) return NC_EGLOBAL;
-    /* return ncp->dispatch->def_var_quantize(ncid,varid,quantize_mode,nsd); */
-    return 0;
+    return ncp->dispatch->def_var_quantize(ncid,varid,quantize_mode,nsd);
 }
 
 /**
