@@ -332,7 +332,7 @@ jobs:
         run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check -j
         if: ${{ success() }}
 
-nc-cmake-tests-oneoff:
+  nc-cmake-tests-oneoff:
 
     needs: build-deps
     runs-on: ubuntu-latest
