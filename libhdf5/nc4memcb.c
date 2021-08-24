@@ -854,22 +854,25 @@ NC4_image_finalize(void* _udata)
 }
 
 int
-NC4_extract_file_image(NC_FILE_INFO_T* h5)
+NC4_extract_file_image(NC_FILE_INFO_T* h5, int abort)
 {
     int stat = NC_NOERR;
     H5LT_file_image_ud_t *udata;
 
     udata = (H5LT_file_image_ud_t *)h5->mem.udata;
-    assert(udata != NULL);
+    if(abort && udata == NULL) {
+        stat = NC_EHDFERR;
+    } else {
+        assert(udata != NULL);
 
-    /* Fill in h5->mem.memio from udata */
-    h5->mem.memio.memory = udata->vfd_image_ptr;
-    h5->mem.memio.size = udata->vfd_image_size;
+        /* Fill in h5->mem.memio from udata */
+        h5->mem.memio.memory = udata->vfd_image_ptr;
+        h5->mem.memio.size = udata->vfd_image_size;
 
-    /* Move control */
-    udata->vfd_image_ptr = NULL;
-    udata->vfd_image_size = 0;
-    
+        /* Move control */
+        udata->vfd_image_ptr = NULL;
+        udata->vfd_image_size = 0;
+    }
     return stat;
 }
 
