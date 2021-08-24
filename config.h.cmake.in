@@ -57,7 +57,7 @@ are set when opening a binary file on Windows. */
    #define _OFF_T_DEFINED
    #endif
 
-   #ifdef _WIN32
+   #if defined(_WIN32) && !defined(__MINGW32__)
     #ifndef strcasecmp
       #define strcasecmp _stricmp
     #endif
@@ -656,7 +656,7 @@ with zip */
 #cmakedefine uintptr_t unsigned long
 
 /* Define strcasecmp, strncasecmp, snprintf on Win32 systems. */
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
     #ifndef HAVE_STRCASECMP
 	 #define strcasecmp _stricmp
     #endif

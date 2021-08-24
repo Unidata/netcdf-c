@@ -9,7 +9,9 @@
 #ifdef _WIN32
 #include <float.h>
 #include "isnan.h"
+#ifndef __MINGW32__
 #define strcasecmp _stricmp
+#endif
 #endif
 
 #ifdef USE_NETCDF4
