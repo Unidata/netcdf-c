@@ -990,11 +990,11 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
     var->is_new_var = NC_FALSE;
 
     /* Always write the hidden coordinates attribute, which lists the
-     * dimids of this var. When present, this speeds opens. When no
+     * dimids of this var. When present, this speeds opens. When not
      * present, dimscale matching is used. */
     if (var->ndims)
         if ((retval = write_coord_dimids(var)))
-           BAIL(retval);
+            BAIL(retval);
 
     /* If this is a dimscale, mark it as such in the HDF5 file. Also
      * find the dimension info and store the dataset id of the dimscale
