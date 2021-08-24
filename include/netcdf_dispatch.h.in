@@ -148,8 +148,8 @@ struct NC_Dispatch
     int (*inq_var_filter_ids)(int ncid, int varid, size_t* nfilters, unsigned int* filterids);
     int (*inq_var_filter_info)(int ncid, int varid, unsigned int id, size_t* nparams, unsigned int* params);
     /* Version 4 Add quantization. */
-    int (*inq_var_quantize)(int ncid, int varid, int *quantize_modep, int *nsdp);
     int (*def_var_quantize)(int ncid, int varid, int quantize_mode, int nsd);
+    int (*inq_var_quantize)(int ncid, int varid, int *quantize_modep, int *nsdp);
 };
 
 #if defined(__cplusplus)
