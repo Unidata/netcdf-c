@@ -220,12 +220,6 @@ TAB_SIZE               = 4
 
 ALIASES                =
 
-# This tag can be used to specify a number of word-keyword mappings (TCL only).
-# A mapping has the form "name=value". For example adding "class=itcl::class"
-# will allow you to use the command class in the itcl::class meaning.
-
-TCL_SUBST              =
-
 # Set the OPTIMIZE_OUTPUT_FOR_C tag to YES if your project consists of C sources
 # only. Doxygen will then generate output that is more tailored for C. For
 # instance, some of the names that are used will be different. The list of all
@@ -751,7 +745,6 @@ INPUT = \
     @abs_top_srcdir@/docs/byterange.dox \
     @abs_top_srcdir@/docs/inmemory.md \
     @abs_top_srcdir@/docs/auth.md \
-    @abs_top_srcdir@/docs/filters.md \
     @abs_top_srcdir@/docs/nczarr.md \
     @abs_top_srcdir@/docs/notes.md \
     @abs_top_srcdir@/docs/all-error-codes.md \
@@ -1076,13 +1069,6 @@ VERBATIM_HEADERS       = YES
 
 ALPHABETICAL_INDEX     = NO
 
-# The COLS_IN_ALPHA_INDEX tag can be used to specify the number of columns in
-# which the alphabetical index list will be split.
-# Minimum value: 1, maximum value: 20, default value: 5.
-# This tag requires that the tag ALPHABETICAL_INDEX is set to YES.
-
-COLS_IN_ALPHA_INDEX    = 5
-
 # In case all classes in a project start with a common prefix, all classes will
 # be put under the same header in the alphabetical index. The IGNORE_PREFIX tag
 # can be used to specify a prefix (or a list of prefixes) that should be ignored
@@ -1182,7 +1168,7 @@ HTML_EXTRA_STYLESHEET  = @DOXYGEN_CSS_FILE@
 # files will be copied as-is; there are no commands or markers available.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_EXTRA_FILES       =
+HTML_EXTRA_FILES       = images/uniLogo.png
 
 # The HTML_COLORSTYLE_HUE tag controls the color of the HTML output. Doxygen
 # will adjust the colors in the stylesheet and background images according to
@@ -1680,7 +1666,7 @@ COMPACT_LATEX          = NO
 # The default value is: a4.
 # This tag requires that the tag GENERATE_LATEX is set to YES.
 
-PAPER_TYPE             = a4wide
+PAPER_TYPE             = a4
 
 # The EXTRA_PACKAGES tag can be used to specify one or more LaTeX package names
 # that should be included in the LaTeX output. To get the times font for
@@ -1756,16 +1742,6 @@ LATEX_BATCHMODE        = NO
 # This tag requires that the tag GENERATE_LATEX is set to YES.
 
 LATEX_HIDE_INDICES     = NO
-
-# If the LATEX_SOURCE_CODE tag is set to YES then doxygen will include source
-# code with syntax highlighting in the LaTeX output.
-#
-# Note that which sources are shown also depends on other settings such as
-# SOURCE_BROWSER.
-# The default value is: NO.
-# This tag requires that the tag GENERATE_LATEX is set to YES.
-
-LATEX_SOURCE_CODE      = NO
 
 # The LATEX_BIB_STYLE tag can be used to specify the style to use for the
 # bibliography, e.g. plainnat, or ieeetr. See
