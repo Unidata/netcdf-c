@@ -26,7 +26,7 @@ set(PACKAGE "netCDF" CACHE STRING "")
 
 SET(NC_VERSION_MAJOR 4)
 SET(NC_VERSION_MINOR 8)
-SET(NC_VERSION_PATCH 2)
+SET(NC_VERSION_PATCH 1)
 SET(NC_VERSION_NOTE "-development")
 SET(netCDF_VERSION ${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
@@ -37,7 +37,7 @@ SET(PACKAGE_VERSION ${VERSION})
 
 # Version of the dispatch table. This must match the value in
 # configure.ac.
-SET(NC_DISPATCH_VERSION 3)
+SET(NC_DISPATCH_VERSION 4)
 
 # Get system configuration, Use it to determine osname, os release, cpu. These
 # will be used when committing to CDash.
@@ -620,14 +620,6 @@ IF(USE_HDF5)
     INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIR})
     MESSAGE(STATUS "Using HDF5 C Library: ${HDF5_C_LIBRARY}")
     MESSAGE(STATUS "Using HDF5 HL LIbrary: ${HDF5_HL_LIBRARY}")
-    if (EXISTS "${HDF5_INCLUDE_DIR}/H5pubconf.h")
-      file(READ "${HDF5_INCLUDE_DIR}/H5pubconf.h" _hdf5_version_lines
-        REGEX "#define[ \t]+H5_VERSION")
-      string(REGEX REPLACE ".*H5_VERSION .*\"\(.*\)\".*" "\\1" _hdf5_version "${_hdf5_version_lines}")
-      set(HDF5_VERSION "${_hdf5_version}")
-      unset(_hdf5_version)
-      unset(_hdf5_version_lines)
-    endif ()
   ELSE(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR) # We are seeking out HDF5 with Find Package.
     ###
     # For now we assume that if we are building netcdf
@@ -1412,6 +1404,9 @@ ENDIF()
 # Always enable DISKLESS
 OPTION(ENABLE_DISKLESS "Enable in-memory files" ON)
 
+# Always enable quantization.
+OPTION(ENABLE_QUANTIZE "Enable variable quantization" ON)
+
 # By default, MSVC has a stack size of 1000000.
 # Allow a user to override this.
 IF(MSVC)
@@ -1875,7 +1870,7 @@ ENDIF(ENABLE_BASH_SCRIPT_TESTING)
 
 MACRO(add_sh_test prefix F)
   IF(HAVE_BASH)
-    ADD_TEST(${prefix}_${F} bash "-c" "export srcdir=${CMAKE_CURRENT_SOURCE_DIR};export TOPSRCDIR=${CMAKE_SOURCE_DIR};${CMAKE_CURRENT_BINARY_DIR}/${F}.sh ${ARGN}")
+    ADD_TEST(${prefix}_${F} bash "-c" "export srcdir=${CMAKE_CURRENT_SOURCE_DIR};export TOPSRCDIR=${CMAKE_SOURCE_DIR};${CMAKE_CURRENT_BINARY_DIR}/${F}.sh ${F}.sh ${ARGN}")
   ENDIF()
 ENDMACRO()
 
@@ -2188,6 +2183,7 @@ is_enabled(ENABLE_NCZARR HAS_NCZARR)
 is_enabled(ENABLE_NCZARR_S3_TESTS DO_NCZARR_S3_TESTS)
 is_enabled(ENABLE_MULTIFILTERS HAS_MULTIFILTERS)
 is_enabled(ENABLE_NCZARR_ZIP DO_NCZARR_ZIP_TESTS)
+is_enabled(ENABLE_QUANTIZE HAS_QUANTIZE)
 
 # Generate file from template.
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"

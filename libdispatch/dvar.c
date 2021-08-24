@@ -462,6 +462,70 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
 }
 
 /**
+   Turn on quantization for a variable.
+  
+   The data data are quantized by setting unneeded bits alternately to
+   1/0, so that they may compress well. Quantization is lossy (data
+   are irretrievably altered), and it improves the compression ratio
+   provided by a subsequent lossless compression filter. Quantization
+   alone will not reduce the size of the data - lossless compression
+   like zlib must also be used (see nc_def_var_deflate()).
+
+   This data quantization used the bitgroom algorithm. A notable
+   feature of BitGroom is that the data it processes remain in IEEE754
+   format after quantization. Therefore the BitGroom algorithm does
+   nothing when data are read.
+  
+   Quantization is only available for variables of type NC_FLOAT or
+   NC_DOUBLE. Attempts to set quantization for other variable
+   types return an error (NC_EINVAL). 
+
+   Quantization is not applied to values equal to the value of the
+   _FillValue attribute, if any. 
+
+   For more information about quantization and the bitgroom filter, see 
+
+   Zender, C. S. (2016), Bit Grooming: Statistically accurate
+   precision-preserving quantization with compression, evaluated in
+   the netCDF Operators (NCO, v4.4.8+), Geosci. Model Dev., 9,
+   3199-3211, doi:10.5194/gmd-9-3199-2016 Retrieved on Sep 21, 2020
+   from
+   https://www.researchgate.net/publication/301575383_Bit_Grooming_Statistically_accurate_precision-preserving_quantization_with_compression_evaluated_in_the_netCDF_Operators_NCO_v448.
+  
+   @param ncid File ID.
+   @param varid Variable ID. NC_GLOBAL is not a valid varid, and may
+   not be used.
+   @param quantize_mode A integer flag specifying the quantization
+   used. Current NC_QUANTIZE_BITGROOM is the only available setting.
+   @param nsd Number of significant digits to retain. Allowed single- and
+   double-precision NSDs are 1-7 and 1-15, respectively.
+  
+   @return ::NC_NOERR No error.
+   @return ::NC_EGLOBAL Can't use ::NC_GLOBAL with this function.
+   @return ::NC_EBADID Bad ncid.
+   @return ::NC_ENOTVAR Invalid variable ID.
+   @return ::NC_ENOTNC4 Attempting netcdf-4 operation on file that is
+   not netCDF-4/HDF5.
+   @return ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3
+   netcdf-4 file.
+   @return ::NC_ELATEDEF Too late to change settings for this variable.
+   @return ::NC_EINVAL Invalid input
+   @author Charlie Zender, Ed Hartnett
+ */
+int
+nc_def_var_quantize(int ncid, int varid, int quantize_mode, int nsd)
+{
+    NC* ncp;
+    int stat = NC_check_id(ncid,&ncp);
+    if(stat != NC_NOERR) return stat;
+
+    /* Using NC_GLOBAL is illegal. */
+    if (varid == NC_GLOBAL) return NC_EGLOBAL;
+    /* return ncp->dispatch->def_var_quantize(ncid,varid,quantize_mode,nsd); */
+    return 0;
+}
+
+/**
    Set checksum for a var.
 
    This function must be called after nc_def_var and before nc_enddef

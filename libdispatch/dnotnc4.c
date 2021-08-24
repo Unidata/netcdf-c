@@ -24,6 +24,23 @@
  *
  * @param ncid Ignored.
  * @param varid Ignored.
+ * @param quantize_mode Ignored.
+ * @param nsd Ignored.
+ *
+ * @return ::NC_ENOTNC4 Not implemented for a dispatch table
+ * @author Ed Hartnett
+ */
+int
+NC_NOTNC4_def_var_quantize(int ncid, int varid,  int quantize_mode, int nsd)
+{
+    return NC_ENOTNC4;
+}
+
+/**
+ * @internal Not implemented in some dispatch tables
+ *
+ * @param ncid Ignored.
+ * @param varid Ignored.
  * @param id Ignored.
  * @param nparams Ignored.
  * @param parms Ignored.
