@@ -261,6 +261,11 @@ IF(MSVC)
   ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
 ENDIF()
 
+# Support ANSI format specifiers for *printf on MINGW:
+IF(MINGW)
+  ADD_DEFINITIONS(-D__USE_MINGW_ANSI_STDIO=1)
+ENDIF()
+
 #####
 # System inspection checks
 #####
