@@ -553,28 +553,8 @@ nc_inq_var_quantize(int ncid, int varid, int *quantize_modep, int *nsdp)
    /* Using NC_GLOBAL is illegal. */
    if (varid == NC_GLOBAL) return NC_EGLOBAL;
 
-   /* return ncp->dispatch->inq_var_all( */
-   /*    ncid, varid, */
-   /*    NULL, /\*name*\/ */
-   /*    NULL, /\*xtypep*\/ */
-   /*    NULL, /\*ndimsp*\/ */
-   /*    NULL, /\*dimidsp*\/ */
-   /*    NULL, /\*nattsp*\/ */
-   /*    NULL, /\*shufflep*\/ */
-   /*    NULL, /\*deflatep*\/ */
-   /*    NULL, /\*deflatelevelp*\/ */
-   /*    NULL, /\*fletcher32p*\/ */
-   /*    NULL, /\*contiguousp*\/ */
-   /*    NULL, /\*chunksizep*\/ */
-   /*    NULL, /\*nofillp*\/ */
-   /*    NULL, /\*fillvaluep*\/ */
-   /*    NULL, /\*endianp*\/ */
-   /*    NULL, /\* idp *\/ */
-   /*    NULL, /\* nparamsp *\/ */
-   /*    NULL, /\* params *\/ */
-   /*    quantize_modep,  */
-   /*    nsdp); */
-   return 0;
+   return ncp->dispatch->inq_var_quantize(ncid, varid,
+					  quantize_modep, nsdp);
 }
 
 /** \ingroup variables
