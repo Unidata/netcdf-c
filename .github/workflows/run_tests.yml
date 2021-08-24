@@ -257,7 +257,7 @@ jobs:
 ####
   nc-ac-tests-oneoff:
 
-    needs: build-deps
+    needs: nc-autotools
     runs-on: ubuntu-latest
 
     strategy:
@@ -334,7 +334,7 @@ jobs:
 
   nc-cmake-tests-oneoff:
 
-    needs: build-deps
+    needs: nc-cmake
     runs-on: ubuntu-latest
 
     strategy:
