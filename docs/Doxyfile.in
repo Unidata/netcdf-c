@@ -751,7 +751,6 @@ INPUT = \
     @abs_top_srcdir@/docs/byterange.dox \
     @abs_top_srcdir@/docs/inmemory.md \
     @abs_top_srcdir@/docs/auth.md \
-    @abs_top_srcdir@/docs/filters.md \
     @abs_top_srcdir@/docs/nczarr.md \
     @abs_top_srcdir@/docs/notes.md \
     @abs_top_srcdir@/docs/all-error-codes.md \
@@ -1182,7 +1181,7 @@ HTML_EXTRA_STYLESHEET  = @DOXYGEN_CSS_FILE@
 # files will be copied as-is; there are no commands or markers available.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_EXTRA_FILES       =
+HTML_EXTRA_FILES       = images/uniLogo.png
 
 # The HTML_COLORSTYLE_HUE tag controls the color of the HTML output. Doxygen
 # will adjust the colors in the stylesheet and background images according to
@@ -1680,7 +1679,7 @@ COMPACT_LATEX          = NO
 # The default value is: a4.
 # This tag requires that the tag GENERATE_LATEX is set to YES.
 
-PAPER_TYPE             = a4wide
+PAPER_TYPE             = a4
 
 # The EXTRA_PACKAGES tag can be used to specify one or more LaTeX package names
 # that should be included in the LaTeX output. To get the times font for
