@@ -58,9 +58,9 @@ main(int argc, char **argv)
 	/* Open the file and check. */
 	if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
 	if (nc_inq_var_quantize(ncid, 0, &quantize_mode_in, &nsd_in)) ERR;
-	printf("quantize_mode_in %d nsd_in %d\n", quantize_mode_in, nsd_in);
-	/* if (quantize_mode_in != NC_QUANTIZE_BITGROOM) ERR; */
-	/* if (nsd_in != NSD_1) ERR; */
+	/* printf("quantize_mode_in %d nsd_in %d\n", quantize_mode_in, nsd_in); */
+	if (quantize_mode_in != NC_QUANTIZE_BITGROOM) ERR;
+	if (nsd_in != NSD_1) ERR;
 	if (nc_close(ncid)) ERR;
     }
     SUMMARIZE_ERR;
