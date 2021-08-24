@@ -46,4 +46,3 @@ Parallel Filters:       @HAS_PAR_FILTERS@
 NCZarr Support:		@HAS_NCZARR@
 Multi-Filter Support:	@HAS_MULTIFILTERS@
 Logging:     		@HAS_LOGGING@
-
