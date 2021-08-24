@@ -1163,6 +1163,30 @@ static int get_fill_info(hid_t propid, NC_VAR_INFO_T *var)
  */
 static int get_quantize_info(NC_VAR_INFO_T *var)
 {
+    hid_t attid;
+    hid_t datasetid;
+
+    /* Try to open an attribute of the correct name for quantize
+     * info. */
+    datasetid = ((NC_HDF5_VAR_INFO_T *)var->format_var_info)->hdf_datasetid;
+    attid = H5Aopen_by_name(datasetid, ".", NC_QUANTIZE_ATT_NAME,
+			    H5P_DEFAULT, H5P_DEFAULT);
+
+    /* If there is an attribute, read it for the nsd. */
+    if (attid > 0)
+    {
+	var->quantize_mode = NC_QUANTIZE_BITGROOM;
+        if (H5Aread(attid, H5T_NATIVE_INT, &var->nsd) < 0)
+            return NC_EHDFERR;
+	if (H5Aclose(attid) < 0)
+            return NC_EHDFERR;
+    }
+    else
+    {
+	var->quantize_mode = NC_NOQUANTIZE;
+	var->nsd = 0;
+    }
+
     return NC_NOERR;
 }
 

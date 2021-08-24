@@ -273,12 +273,8 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 }
 
 /**
- * @internal Get all the information about a variable. Pass NULL for
- * whatever you don't care about. This is the internal function called
- * by nc_inq_var(), nc_inq_var_deflate(), nc_inq_var_fletcher32(),
- * nc_inq_var_chunking(), nc_inq_var_chunking_ints(),
- * nc_inq_var_fill(), nc_inq_var_endian(), nc_inq_var_filter(), and
- * nc_inq_var_szip().
+ * @internal Get quantize information about a variable. Pass NULL for
+ * whatever you don't care about.
  *
  * @param ncid File ID.
  * @param varid Variable ID.
@@ -295,22 +291,18 @@ int
 NC4_inq_var_quantize(int ncid, int varid, int *quantize_modep,
 		     int *nsdp)
 {
-    NC_GRP_INFO_T *grp;
-    NC_FILE_INFO_T *h5;
     NC_VAR_INFO_T *var;
     int retval;
 
     LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
 
     /* Find info for this file and group, and set pointer to each. */
-    if ((retval = nc4_find_nc_grp_h5(ncid, NULL, &grp, &h5)))
+    /* Get pointer to the var. */
+    if ((retval = nc4_hdf5_find_grp_h5_var(ncid, varid, NULL, NULL, &var)))
         return retval;
-    assert(grp && h5);
-
-    /* Find the var. */
-    if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, varid)))
-        return NC_ENOTVAR;
-    assert(var && var->hdr.id == varid);
+    if (!var)
+        return NC_ENOTVAR;	
+    assert(var->hdr.id == varid);
 
     /* Copy the data to the user's data buffers. */
     if (quantize_modep)
