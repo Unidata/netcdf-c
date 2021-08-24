@@ -324,6 +324,13 @@ there. */
 #define NC_MIN_DEFLATE_LEVEL 0 /**< Minimum deflate level. */
 #define NC_MAX_DEFLATE_LEVEL 9 /**< Maximum deflate level. */
 
+#define NC_NOQUANTIZE 0 /**< No quantization in use. */    
+#define NC_QUANTIZE_BITGROOM 1 /**< Use bitgroom quantization. */
+
+/** When quantization is used for a variable, an attribute of this
+ * name is added. */
+#define NC_QUANTIZE_ATT_NAME "number_of_significant_digits" 
+
 /** The netcdf version 3 functions all return integer error status.
  * These are the possible values, in addition to certain values from
  * the system errno.h.
@@ -853,6 +860,16 @@ nc_get_varm(int ncid, int varid,  const size_t *startp,
             const ptrdiff_t *imapp, void *ip);
 
 /* Extra netcdf-4 stuff. */
+
+/* Set quantization settings for a variable. Quantizing data improves
+ * later compression. Must be called after nc_def_var and before
+ * nc_enddef. */
+EXTERNL int
+nc_def_var_quantize(int ncid, int varid, int quantize_mode, int nsd);
+
+/* Find out quantization settings of a var. */
+EXTERNL int
+nc_inq_var_quantize(int ncid, int varid, int *quantize_modep, int *nsdp);
 
 /* Set compression settings for a variable. Lower is faster, higher is
  * better. Must be called after nc_def_var and before nc_enddef. */

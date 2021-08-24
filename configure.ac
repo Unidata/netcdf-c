@@ -10,7 +10,7 @@
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address.
-AC_INIT([netCDF], [4.8.2-development], [support-netcdf@unidata.ucar.edu], [netcdf-c])
+AC_INIT([netCDF], [4.8.1-development], [support-netcdf@unidata.ucar.edu], [netcdf-c])
 
 ##
 # Prefer an empty CFLAGS variable instead of the default -g -O2.
@@ -21,7 +21,7 @@ AC_INIT([netCDF], [4.8.2-development], [support-netcdf@unidata.ucar.edu], [netcd
 
 AC_SUBST([NC_VERSION_MAJOR]) NC_VERSION_MAJOR=4
 AC_SUBST([NC_VERSION_MINOR]) NC_VERSION_MINOR=8
-AC_SUBST([NC_VERSION_PATCH]) NC_VERSION_PATCH=2
+AC_SUBST([NC_VERSION_PATCH]) NC_VERSION_PATCH=1
 AC_SUBST([NC_VERSION_NOTE]) NC_VERSION_NOTE="-development"
 
 #####
@@ -87,7 +87,7 @@ AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat3.nc:nc_test4/ref_hdf5_compat3.nc])
 
 AC_CONFIG_LINKS([hdf4_test/ref_chunked.hdf4:hdf4_test/ref_chunked.hdf4])
 AC_CONFIG_LINKS([hdf4_test/ref_contiguous.hdf4:hdf4_test/ref_contiguous.hdf4])
-AC_CONFIG_LINKS([dap4_test/baselinethredds/GOES16_CONUS_20170821_020218_0.47_1km_33.3N_91.4W.nc4.thredds:dap4_test/baselinethredds/GOES16_TEST1.nc4.thredds])
+
 AM_INIT_AUTOMAKE([foreign dist-zip subdir-objects])
 
 # Check for the existence of this file before proceeding.
@@ -522,10 +522,10 @@ CFLAGS="$SAVECFLAGS"
 # --enable-dap => enable-dap4
 enable_dap4=$enable_dap
 # Default is to do the short remote tests.
-AC_MSG_CHECKING([whether dap remote testing should be enabled])
+AC_MSG_CHECKING([whether dap remote testing should be enabled (default off)])
 AC_ARG_ENABLE([dap-remote-tests],
-              [AS_HELP_STRING([--disable-dap-remote-tests],
-                                 [disable dap remote tests])])
+              [AS_HELP_STRING([--enable-dap-remote-tests],
+                                 [enable dap remote tests])])
 test "x$enable_dap_remote_tests" = xno || enable_dap_remote_tests=yes
 if test "x$enable_dap" = "xno" ; then
   enable_dap_remote_tests=no
@@ -1649,6 +1649,7 @@ AC_SUBST(HAS_NCZARR,[$enable_nczarr])
 AC_SUBST(DO_NCZARR_S3_TESTS,[$enable_nczarr_s3_tests])
 AC_SUBST(HAS_MULTIFILTERS,[$has_multifilters])
 AC_SUBST(DO_NCZARR_ZIP_TESTS,[$enable_nczarr_zip])
+AC_SUBST([HAS_QUANTIZE],[yes])
 
 # Include some specifics for netcdf on windows.
 #AH_VERBATIM([_WIN32_STRICMP],
@@ -1728,7 +1729,7 @@ AX_SET_META([NC_HAS_MULTIFILTERS],[$has_multifilters],[yes])
 # dispatch table to submit. If this is changed, make sure the value in
 # CMakeLists.txt also changes to match.
 
-AC_SUBST([NC_DISPATCH_VERSION], [3])
+AC_SUBST([NC_DISPATCH_VERSION], [4])
 AC_DEFINE_UNQUOTED([NC_DISPATCH_VERSION], [${NC_DISPATCH_VERSION}], [Dispatch table version.])
 
 #####
