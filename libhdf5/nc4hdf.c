@@ -992,9 +992,9 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
     /* Always write the hidden coordinates attribute, which lists the
      * dimids of this var. When present, this speeds opens. When no
      * present, dimscale matching is used. */
-    if (var->ndims)
+    if (var->ndims > 1)
         if ((retval = write_coord_dimids(var)))
-           BAIL(retval);
+            BAIL(retval);
 
     /* If this is a dimscale, mark it as such in the HDF5 file. Also
      * find the dimension info and store the dataset id of the dimscale
@@ -1016,9 +1016,18 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
                 BAIL(retval);
     }
 
+    /* If quantization is in use, write an attribute indicating it, a
+     * single integer which is the number of significant digits. */
+    if (var->quantize_mode == NC_QUANTIZE_BITGROOM)
+	if ((retval = nc4_put_att(var->container, var->hdr.id, NC_QUANTIZE_ATT_NAME, NC_INT, 1,
+				  &var->nsd, NC_INT, 0)))
+	    BAIL(retval);
+
     /* Write attributes for this var. */
     if ((retval = write_attlist(var->att, var->hdr.id, grp)))
         BAIL(retval);
+
+    /* The file is now up-to-date with all settings for this var. */
     var->attr_dirty = NC_FALSE;
 
 exit:
