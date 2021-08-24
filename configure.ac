@@ -1655,7 +1655,7 @@ AC_SUBST(HAS_LOGGING,[$enable_logging])
 #AH_VERBATIM([_WIN32_STRICMP],
 AH_BOTTOM(
 [/* Define strcasecmp, strncasecmp, snprintf on Win32 systems. */
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 	#define strcasecmp _stricmp
 	#define strncasecmp _strnicmp
 	#define snprintf _snprintf
