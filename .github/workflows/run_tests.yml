@@ -251,6 +251,13 @@ jobs:
           LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest -j 12 .
         if: ${{ success() }}
 
+      - name: Verbose Output if CTest Failure
+        shell: bash -l {0}
+        run: |
+          cd build
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest -j 12 --rerun-failed --output-on-failure -VV
+        if: ${{ failure() }}
+
 
 #####
 # One-Off Autotools-based tests.
@@ -405,3 +412,10 @@ jobs:
           cd build
           LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest -j 12 .
         if: ${{ success() }}
+
+      - name: Verbose Output if CTest Failure
+        shell: bash -l {0}
+        run: |
+          cd build
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest -j 12 --rerun-failed --output-on-failure -VV
+        if: ${{ failure() }}
