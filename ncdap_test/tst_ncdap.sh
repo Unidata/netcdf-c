@@ -51,7 +51,7 @@ VALGRIND="valgrind -q --error-exitcode=2 --leak-check=full"
 fi
 
 rm -fr ${RESULTSDIR}
-mkdir "${RESULTSDIR}"
+mkdir -p "${RESULTSDIR}"
 
 rm -f ./.dodsrc ./.ocrc ./.daprc
 passcount=0
