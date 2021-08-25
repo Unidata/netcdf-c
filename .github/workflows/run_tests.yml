@@ -57,7 +57,7 @@ jobs:
 
   nc-autotools:
 
-    needs: nc-ac-tests-oneoff
+    needs: [ nc-cmake-tests-oneoff. nc-ac-tests-oneoff ]
     runs-on: ubuntu-latest
 
     strategy:
