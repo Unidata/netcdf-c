@@ -343,8 +343,9 @@ extern int NC4_lookup_atomic_type(const char *name, nc_type* idp, size_t *sizep)
 /* These functions convert between netcdf and HDF5 types. */
 extern int nc4_get_typelen_mem(NC_FILE_INFO_T *h5, nc_type xtype, size_t *len);
 extern int nc4_convert_type(const void *src, void *dest, const nc_type src_type,
-                     const nc_type dest_type, const size_t len, int *range_error,
-                     const void *fill_value, int strict_nc3);
+			    const nc_type dest_type, const size_t len, int *range_error,
+			    const void *fill_value, int strict_nc3, int quantize_mode,
+			    int nsd);
 
 /* These functions do HDF5 things. */
 extern int nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);

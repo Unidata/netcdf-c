@@ -448,6 +448,11 @@ NC4_var_par_access(int ncid, int varid, int par_access)
  * value used (or the default fill value if none is supplied) for
  * values that overflow the type.
  *
+ * This function applies quantization to float and double data, if
+ * desired. The code to do this is derived from the bitgroom filter in
+ * the CCR project (see
+ * https://github.com/ccr/ccr/blob/master/hdf5_plugins/BITGROOM/src/H5Zbitgroom.c).
+ *
  * @param src Pointer to source of data.
  * @param dest Pointer that gets data.
  * @param src_type Type ID of source data.
@@ -456,15 +461,20 @@ NC4_var_par_access(int ncid, int varid, int par_access)
  * @param range_error Pointer that gets 1 if there was a range error.
  * @param fill_value The fill value.
  * @param strict_nc3 Non-zero if strict model in effect.
+ * @param quantize_mode May be ::NC_NOQUANTIZE or
+ * ::NC_QUANTIZE_BITGROOM.
+ * @param nsd Number of significant diggits for quantizize. Ignored
+ * otherwise.
  *
- * @returns NC_NOERR No error.
- * @returns NC_EBADTYPE Type not found.
+ * @returns ::NC_NOERR No error.
+ * @returns ::NC_EBADTYPE Type not found.
  * @author Ed Hartnett, Dennis Heimbigner
  */
 int
 nc4_convert_type(const void *src, void *dest, const nc_type src_type,
                  const nc_type dest_type, const size_t len, int *range_error,
-                 const void *fill_value, int strict_nc3)
+                 const void *fill_value, int strict_nc3, int quantize_mode,
+		 int nsd)
 {
     char *cp, *cp1;
     float *fp, *fp1;
@@ -557,8 +567,8 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
             }
             break;
         case NC_FLOAT:
-            for (bp = (signed char *)src, fp = dest; count < len; count++)
-                *fp++ = *bp++;
+	    for (bp = (signed char *)src, fp = dest; count < len; count++)
+		*fp++ = *bp++;
             break;
         case NC_DOUBLE:
             for (bp = (signed char *)src, dp = dest; count < len; count++)
@@ -1133,16 +1143,34 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
             }
             break;
         case NC_FLOAT:
-            for (fp = (float *)src, fp1 = dest; count < len; count++)
-            {
-                /*                if (*fp > X_FLOAT_MAX || *fp < X_FLOAT_MIN)
-                                  (*range_error)++;*/
-                *fp1++ = *fp++;
-            }
+	    if (quantize_mode == NC_QUANTIZE_BITGROOM)
+	    {
+		for (fp = (float *)src, fp1 = dest; count < len; count++)
+		{
+		    *fp1 = *fp;
+
+		    /* Move to next float. */
+		    fp1++;
+		    fp++;
+		}
+	    }
+	    else
+	    {
+		for (fp = (float *)src, fp1 = dest; count < len; count++)
+		    *fp1++ = *fp++;
+	    }
             break;
         case NC_DOUBLE:
-            for (fp = (float *)src, dp = dest; count < len; count++)
-                *dp++ = *fp++;
+	    if (quantize_mode == NC_QUANTIZE_BITGROOM)
+	    {
+		for (fp = (float *)src, dp = dest; count < len; count++)
+		    *dp++ = *fp++;
+	    }
+	    else
+	    {
+		for (fp = (float *)src, dp = dest; count < len; count++)
+		    *dp++ = *fp++;
+	    }
             break;
         default:
             LOG((0, "%s: unexpected dest type. src_type %d, dest_type %d",
@@ -1219,20 +1247,36 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
             }
             break;
         case NC_FLOAT:
-            for (dp = (double *)src, fp = dest; count < len; count++)
-            {
-                if (isgreater(*dp, X_FLOAT_MAX) || isless(*dp, X_FLOAT_MIN))
-                    (*range_error)++;
-                *fp++ = *dp++;
-            }
+	    if (quantize_mode == NC_QUANTIZE_BITGROOM)
+	    {
+		for (dp = (double *)src, fp = dest; count < len; count++)
+		{
+		    if (isgreater(*dp, X_FLOAT_MAX) || isless(*dp, X_FLOAT_MIN))
+			(*range_error)++;
+		    *fp++ = *dp++;
+		}
+	    }
+	    else
+	    {
+		for (dp = (double *)src, fp = dest; count < len; count++)
+		{
+		    if (isgreater(*dp, X_FLOAT_MAX) || isless(*dp, X_FLOAT_MIN))
+			(*range_error)++;
+		    *fp++ = *dp++;
+		}
+	    }
             break;
         case NC_DOUBLE:
-            for (dp = (double *)src, dp1 = dest; count < len; count++)
-            {
-                /* if (*dp > X_DOUBLE_MAX || *dp < X_DOUBLE_MIN) */
-                /*    (*range_error)++; */
-                *dp1++ = *dp++;
-            }
+	    if (quantize_mode == NC_QUANTIZE_BITGROOM)
+	    {
+		for (dp = (double *)src, dp1 = dest; count < len; count++)
+		    *dp1++ = *dp++;
+	    }
+	    else
+	    {
+		for (dp = (double *)src, dp1 = dest; count < len; count++)
+		    *dp1++ = *dp++;
+	    }
             break;
         default:
             LOG((0, "%s: unexpected dest type. src_type %d, dest_type %d",

@@ -1718,7 +1718,8 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     {
         if ((retval = nc4_convert_type(data, bufr, mem_nc_type, var->type_info->hdr.id,
                                        len, &range_error, var->fill_value,
-                                       (h5->cmode & NC_CLASSIC_MODEL))))
+                                       (h5->cmode & NC_CLASSIC_MODEL), var->quantize_mode,
+				       var->nsd)))
             BAIL(retval);
     }
 
@@ -2119,8 +2120,8 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     if (need_to_convert)
     {
         if ((retval = nc4_convert_type(bufr, data, var->type_info->hdr.id, mem_nc_type,
-                                           len, &range_error, var->fill_value,
-                                           (h5->cmode & NC_CLASSIC_MODEL))))
+				       len, &range_error, var->fill_value,
+				       (h5->cmode & NC_CLASSIC_MODEL), var->quantize_mode, var->nsd)))
             BAIL(retval);
 
         /* For strict netcdf-3 rules, ignore erange errors between UBYTE
