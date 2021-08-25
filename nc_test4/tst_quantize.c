@@ -20,6 +20,7 @@
 #define VAR_NAME_1 "Amsterdam_houseboat_location"
 #define VAR_NAME_2 "Amsterdam_street_noise_decibels"
 #define NSD_1 3
+#define NSD_2 9
 
 int
 main(int argc, char **argv)
@@ -53,6 +54,8 @@ main(int argc, char **argv)
 	if (nc_def_var_quantize(ncid, varid, NC_QUANTIZE_BITGROOM + 1, NSD_1) != NC_EINVAL) ERR;
 	if (nc_def_var_quantize(ncid, varid, NC_QUANTIZE_BITGROOM, -1) != NC_EINVAL) ERR;
 	if (nc_def_var_quantize(ncid, varid, NC_QUANTIZE_BITGROOM, NC_QUANTIZE_MAX_FLOAT_NSD + 1) != NC_EINVAL) ERR;
+	if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM + 1, 3) != NC_EINVAL) ERR;
+	if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, -1) != NC_EINVAL) ERR;
 	if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, NC_QUANTIZE_MAX_DOUBLE_NSD + 1) != NC_EINVAL) ERR;
 
 	/* This will work. */
@@ -60,6 +63,14 @@ main(int argc, char **argv)
 	if (nc_inq_var_quantize(ncid, varid, &quantize_mode_in, &nsd_in)) ERR;
 	if (quantize_mode_in != NC_QUANTIZE_BITGROOM) ERR;
 	if (nsd_in != NSD_1) ERR;
+
+	/* This also will work. */
+	if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, NSD_2)) ERR;
+	if (nc_inq_var_quantize(ncid, varid1, &quantize_mode_in, &nsd_in)) ERR;
+	if (quantize_mode_in != NC_QUANTIZE_BITGROOM) ERR;
+	if (nsd_in != NSD_2) ERR;
+
+	/* Close the file. */
 	if (nc_close(ncid)) ERR;
 
 	/* Open the file and check. */
@@ -67,6 +78,9 @@ main(int argc, char **argv)
 	if (nc_inq_var_quantize(ncid, 0, &quantize_mode_in, &nsd_in)) ERR;
 	if (quantize_mode_in != NC_QUANTIZE_BITGROOM) ERR;
 	if (nsd_in != NSD_1) ERR;
+	if (nc_inq_var_quantize(ncid, 1, &quantize_mode_in, &nsd_in)) ERR;
+	if (quantize_mode_in != NC_QUANTIZE_BITGROOM) ERR;
+	if (nsd_in != NSD_2) ERR;
 	if (nc_close(ncid)) ERR;
     }
     SUMMARIZE_ERR;
