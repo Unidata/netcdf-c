@@ -283,7 +283,7 @@ SET(CMAKE_REQUIRED_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/libsrc)
 # Configuration for post-install RPath
 # Adapted from http://www.cmake.org/Wiki/CMake_RPATH_handling
 ##
-IF(NOT MSVC AND BUILD_SHARED_LIBS)
+IF(NOT WIN32 AND BUILD_SHARED_LIBS)
   # use, i.e. don't skip the full RPATH for the build tree
   SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
 
