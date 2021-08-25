@@ -24,14 +24,6 @@
 /** Number of bytes in 64 KB. */
 #define SIXTY_FOUR_KB (65536)
 
-/** For quantization, the allowed value of number of significant
- * digits for float. */
-#define MAX_FLOAT_NSD (7)
-
-/** For quantization, the allowed value of number of significant
- * digits for double. */
-#define MAX_DOUBLE_NSD (15)
-
 #ifdef LOGGING
 /**
  * Report the chunksizes selected for a variable.
@@ -740,9 +732,11 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	    /* NSD must be in range. */
 	    if (*nsd < 0)
 		return NC_EINVAL;
-	    if (var->type_info->hdr.id == NC_FLOAT && *nsd > MAX_FLOAT_NSD)
+	    if (var->type_info->hdr.id == NC_FLOAT &&
+		*nsd > NC_QUANTIZE_MAX_FLOAT_NSD)
 		return NC_EINVAL;
-	    if (var->type_info->hdr.id == NC_DOUBLE && *nsd > MAX_DOUBLE_NSD)
+	    if (var->type_info->hdr.id == NC_DOUBLE &&
+		*nsd > NC_QUANTIZE_MAX_DOUBLE_NSD)
 		return NC_EINVAL;
 
 	    var->nsd = *nsd;

@@ -18,6 +18,7 @@
 #define DIM_NAME_1 "meters_along_canal"
 #define DIM_LEN_1 10
 #define VAR_NAME_1 "Amsterdam_houseboat_location"
+#define VAR_NAME_2 "Amsterdam_street_noise_decibels"
 #define NSD_1 3
 
 int
@@ -26,7 +27,7 @@ main(int argc, char **argv)
     printf("\n*** Testing netcdf-4 variable quantization functions.\n");
     printf("**** testing simple quantization and error conditions...");
     {
-	int ncid, dimid, varid;
+	int ncid, dimid, varid, varid1;
 	int quantize_mode_in, nsd_in;
 
 	/* Create a netcdf classic file with one var. Attempt
@@ -38,19 +39,21 @@ main(int argc, char **argv)
 	if (nc_inq_var_quantize(ncid, varid, &quantize_mode_in, &nsd_in) != NC_ENOTNC4) ERR;
 	if (nc_close(ncid)) ERR;
 
-	/* Create a netcdf-4 file with one var. Attempt
+	/* Create a netcdf-4 file with two vars. Attempt
 	 * quantization. It will work, eventually... */
 	if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
 	if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_1, &dimid)) ERR;
 	if (nc_def_var(ncid, VAR_NAME_1, NC_FLOAT, NDIMS1, &dimid, &varid)) ERR;
+	if (nc_def_var(ncid, VAR_NAME_2, NC_DOUBLE, NDIMS1, &dimid, &varid1)) ERR;
 
 	/* Bad varid. */
 	if (nc_def_var_quantize(ncid, NC_GLOBAL, NC_QUANTIZE_BITGROOM, NSD_1) != NC_EGLOBAL) ERR;
-	if (nc_def_var_quantize(ncid, 1, NC_QUANTIZE_BITGROOM, NSD_1) != NC_ENOTVAR) ERR;
+	if (nc_def_var_quantize(ncid, varid1 + 1, NC_QUANTIZE_BITGROOM, NSD_1) != NC_ENOTVAR) ERR;
 	/* Invalid values. */
 	if (nc_def_var_quantize(ncid, varid, NC_QUANTIZE_BITGROOM + 1, NSD_1) != NC_EINVAL) ERR;
 	if (nc_def_var_quantize(ncid, varid, NC_QUANTIZE_BITGROOM, -1) != NC_EINVAL) ERR;
-	if (nc_def_var_quantize(ncid, varid, NC_QUANTIZE_BITGROOM, 8) != NC_EINVAL) ERR;
+	if (nc_def_var_quantize(ncid, varid, NC_QUANTIZE_BITGROOM, NC_QUANTIZE_MAX_FLOAT_NSD + 1) != NC_EINVAL) ERR;
+	if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, NC_QUANTIZE_MAX_DOUBLE_NSD + 1) != NC_EINVAL) ERR;
 
 	/* This will work. */
 	if (nc_def_var_quantize(ncid, varid, NC_QUANTIZE_BITGROOM, NSD_1)) ERR;
