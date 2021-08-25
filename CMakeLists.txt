@@ -166,7 +166,7 @@ FILE(COPY ${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake DESTINATION ${CMAKE_CURR
 
 # Set Memory test program for non-MSVC based builds.
 # Assume valgrind for now.
-IF(NOT MSVC)
+IF((NOT MSVC) AND (NOT MINGW))
   SET(CTEST_MEMORYCHECK_COMMAND valgrind CACHE STRING "")
 ENDIF()
 
