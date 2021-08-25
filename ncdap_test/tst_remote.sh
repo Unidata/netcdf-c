@@ -195,7 +195,7 @@ fi
 if test "x$timing" = "x1" ; then TIMECMD="time"; else TIMECMD=""; fi
 
 rm -fr ${RESULTSDIR}
-mkdir "${RESULTSDIR}"
+mkdir -p "${RESULTSDIR}"
 
 passcount=0
 xfailcount=0

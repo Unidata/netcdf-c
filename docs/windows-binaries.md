@@ -1,4 +1,4 @@
-noInstalling and Using netCDF-C Libraries in Windows {#winbin}
+Installing and Using netCDF-C Libraries in Windows {#winbin}
 ==================================================
 
 \brief NetCDF-C Libraries in a Windows Environment may be used under multiple sets of circumstances.

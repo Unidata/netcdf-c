@@ -35,7 +35,8 @@ IF(ENABLE_TESTS)
   IF(BUILD_UTILITIES)
     add_sh_test(ncdap tst_ncdap3)
     add_sh_test(ncdap testpathcvt)
-  ENDIF()
+    SET_TESTS_PROPERTIES(ncdap_tst_ncdap3 ncdap_testpathcvt PROPERTIES RUN_SERIAL TRUE)
+ENDIF()
 
   IF(NOT MSVC)
     add_bin_env_test(ncdap t_dap3a)
@@ -55,7 +56,10 @@ IF(ENABLE_TESTS)
       IF(ENABLE_DAP_LONG_TESTS)
         add_sh_test(ncdap tst_longremote3)
         add_bin_test(ncdap test_manyurls)
+        SET_TESTS_PROPERTIES(ncdap_tst_longremote3 ncdap_test_manyurls PROPERTIES RUN_SERIAL TRUE)
       ENDIF(ENABLE_DAP_LONG_TESTS)
+
+      SET_TESTS_PROPERTIES(ncdap_tst_remote3 PROPERTIES RUN_SERIAL TRUE)
 
     ENDIF(BUILD_UTILITIES)
 
