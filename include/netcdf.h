@@ -329,7 +329,15 @@ there. */
 
 /** When quantization is used for a variable, an attribute of this
  * name is added. */
-#define NC_QUANTIZE_ATT_NAME "number_of_significant_digits" 
+#define NC_QUANTIZE_ATT_NAME "number_of_significant_digits"
+
+/** For quantization, the allowed value of number of significant
+ * digits for float. */
+#define NC_QUANTIZE_MAX_FLOAT_NSD (7)
+
+/** For quantization, the allowed value of number of significant
+ * digits for double. */
+#define NC_QUANTIZE_MAX_DOUBLE_NSD (15)
 
 /** The netcdf version 3 functions all return integer error status.
  * These are the possible values, in addition to certain values from
