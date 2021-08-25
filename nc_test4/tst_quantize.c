@@ -16,7 +16,7 @@
 #define FILE_NAME "tst_quantize.nc"
 #define NDIMS1 1
 #define DIM_NAME_1 "meters_along_canal"
-#define DIM_LEN_1 10
+#define DIM_LEN_1 3
 #define VAR_NAME_1 "Amsterdam_houseboat_location"
 #define VAR_NAME_2 "Amsterdam_street_noise_decibels"
 #define NSD_1 3
@@ -26,7 +26,7 @@ int
 main(int argc, char **argv)
 {
     printf("\n*** Testing netcdf-4 variable quantization functions.\n");
-    printf("**** testing simple quantization and error conditions...");
+    printf("**** testing quantization setting and error conditions...");
     {
 	int ncid, dimid, varid1, varid2;
 	int quantize_mode_in, nsd_in;
@@ -105,6 +105,41 @@ main(int argc, char **argv)
 	if (nc_inq_var_quantize(ncid, 1, &quantize_mode_in, &nsd_in)) ERR;
 	if (quantize_mode_in != NC_QUANTIZE_BITGROOM) ERR;
 	if (nsd_in != NSD_2) ERR;
+	if (nc_close(ncid)) ERR;
+    }
+    SUMMARIZE_ERR;
+
+    printf("**** testing quantization values...");
+    {
+	int ncid, dimid, varid1, varid2;
+	int quantize_mode_in, nsd_in;
+	float float_data[DIM_LEN_1] = {1.0, 1.11111, 1.1111111};
+	double double_data[DIM_LEN_1] = {1.0, 1.111111111, 1.111111111111};
+
+	/* Create a netcdf-4 file with two vars. Attempt
+	 * quantization. */
+	if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
+	if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_1, &dimid)) ERR;
+	if (nc_def_var(ncid, VAR_NAME_1, NC_FLOAT, NDIMS1, &dimid, &varid1)) ERR;
+	if (nc_def_var(ncid, VAR_NAME_2, NC_DOUBLE, NDIMS1, &dimid, &varid2)) ERR;
+
+	/* This will work. */
+	if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, NSD_1)) ERR;
+	if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM, NSD_2)) ERR;
+
+	/* Write some data. */
+	if (nc_put_var_float(ncid, varid1, float_data)) ERR;
+	if (nc_put_var_double(ncid, varid2, double_data)) ERR;
+
+	/* Close the file. */
+	if (nc_close(ncid)) ERR;
+
+	/* Open the file and check. */
+	if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+	if (nc_inq_var_quantize(ncid, 0, &quantize_mode_in, &nsd_in)) ERR;
+	if (quantize_mode_in != NC_QUANTIZE_BITGROOM || nsd_in != NSD_1) ERR;
+	if (nc_inq_var_quantize(ncid, 1, &quantize_mode_in, &nsd_in)) ERR;
+	if (quantize_mode_in != NC_QUANTIZE_BITGROOM || nsd_in != NSD_2) ERR;
 	if (nc_close(ncid)) ERR;
     }
     SUMMARIZE_ERR;
