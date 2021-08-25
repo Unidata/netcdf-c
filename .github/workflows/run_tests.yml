@@ -57,7 +57,7 @@ jobs:
 
   nc-autotools:
 
-    needs: build-deps
+    needs: nc-ac-tests-oneoff
     runs-on: ubuntu-latest
 
     strategy:
@@ -164,7 +164,7 @@ jobs:
 
   nc-cmake:
 
-    needs: build-deps
+    needs: nc-cmake-tests-oneoff
     runs-on: ubuntu-latest
 
     strategy:
@@ -252,12 +252,12 @@ jobs:
         if: ${{ success() }}
 
 
-###
-# Autotools-based one-off tests.
-####
+#####
+# One-Off Autotools-based tests.
+#####
   nc-ac-tests-oneoff:
 
-    needs: nc-autotools
+    needs: build-deps
     runs-on: ubuntu-latest
 
     strategy:
@@ -332,9 +332,13 @@ jobs:
         run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check -j
         if: ${{ success() }}
 
+#####
+# One-Off CMake-based tests.
+#####
+
   nc-cmake-tests-oneoff:
 
-    needs: nc-cmake
+    needs: build-deps
     runs-on: ubuntu-latest
 
     strategy:
