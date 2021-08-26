@@ -198,11 +198,13 @@ main(int argc, char **argv)
 	    /* Check the data. */
 	    if (nc_get_var(ncid, varid1, &float_in)) ERR;
 	    if (nc_get_var(ncid, varid2, &double_in)) ERR;
-	    fin.f = float_data[0];
-	    fout.f = float_in;
+	    fout.f = float_data[0];
+	    fin.f = float_in;
 	    printf ("\nfloat_data: %10f   : 0x%x  float_data_in: %10f   : 0x%x\n",
 		    float_data[0], fout.u, float_data[0], fin.u);
-	    
+	    if (fout.u != 0x3f8e38e3) ERR;
+	    /* if (fin.u != 0x3f8e3000) ERR; */
+
 	    /* Close the file again. */
 	    if (nc_close(ncid)) ERR;
 	}
