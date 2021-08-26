@@ -794,6 +794,10 @@ NC4_image_init(NC_FILE_INFO_T* h5)
     if (H5Pset_file_image(fapl, udata->app_image_ptr, udata->app_image_size) < 0)
         goto out;
 
+    /* Maintain a backward link */
+    h5->mem.udata = (void*)udata;
+    udata = NULL;
+
     /* define a unique file name */
     snprintf(file_name, (sizeof(file_name) - 1), "file_image_%ld", file_name_counter++);
 
@@ -813,10 +817,6 @@ NC4_image_init(NC_FILE_INFO_T* h5)
         if ((file_id = nc4_H5Fopen(file_name, file_open_flags, fapl)) < 0)
             goto out;
     }
-
-    /* Maintain a backward link */
-    h5->mem.udata = (void*)udata;
-    udata = NULL;
 
 done:
     /* Reclaim the fapl object */
