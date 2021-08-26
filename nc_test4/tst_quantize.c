@@ -13,6 +13,7 @@
 #include "err_macros.h"
 #include "netcdf.h"
 
+#define TEST "tst_quantize"
 #define FILE_NAME "tst_quantize.nc"
 #define NDIMS1 1
 #define DIM_NAME_1 "meters_along_canal"
@@ -143,5 +144,54 @@ main(int argc, char **argv)
 	if (nc_close(ncid)) ERR;
     }
     SUMMARIZE_ERR;
+
+#define NX_BIG 100
+#define NY_BIG 100
+#define NTYPES 9
+#define VAR_NAME "Amsterdam_coffeeshop_location"
+#define X_NAME "distance_from_center"
+#define Y_NAME "distance_along_canal"
+#define NDIM2 2
+
+    printf("**** testing quantization handling of non-floats...");
+    {
+        int ncid;
+        int dimid[NDIM2];
+        int varid;
+        int nsd_in, quantize_mode;
+	int nsd_out = 3;
+	char file_name[NC_MAX_NAME + 1];
+	int xtype[NTYPES] = {NC_CHAR, NC_SHORT, NC_INT, NC_BYTE, NC_UBYTE,
+                             NC_USHORT, NC_UINT, NC_INT64, NC_UINT64};
+	int t;
+
+	for (t = 0; t < NTYPES; t++)
+	{
+	    sprintf(file_name, "%s_bitgroom_type_%d.nc", TEST, xtype[t]);
+
+	    /* Create file. */
+	    if (nc_create(file_name, NC_NETCDF4, &ncid)) ERR;
+	    if (nc_def_dim(ncid, X_NAME, NX_BIG, &dimid[0])) ERR;
+	    if (nc_def_dim(ncid, Y_NAME, NY_BIG, &dimid[1])) ERR;
+	    if (nc_def_var(ncid, VAR_NAME, xtype[t], NDIM2, dimid, &varid)) ERR;
+
+	    /* Bitgroom filter returns NC_EINVAL because this is not an
+	     * NC_FLOAT or NC_DOULBE. */
+	    if (nc_def_var_quantize(ncid, varid, NC_QUANTIZE_BITGROOM, nsd_out) != NC_EINVAL) ERR;
+	    if (nc_close(ncid)) ERR;
+
+	    /* Check file. */
+	    {
+		if (nc_open(file_name, NC_NETCDF4, &ncid)) ERR;
+		if (nc_inq_var_quantize(ncid, varid, &quantize_mode, &nsd_in)) ERR;
+		if (quantize_mode) ERR;
+		if (nc_close(ncid)) ERR;
+	    } 
+	}
+    }
+    SUMMARIZE_ERR;
+    
     FINAL_RESULTS;
+
+
 }
