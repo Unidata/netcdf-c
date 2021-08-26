@@ -847,12 +847,12 @@ done:
  * the netCDF libraries, and to netCDF-Java.
  *
  * @param ncid File ID.
- * @param varid Variable ID.
+ * @param varid Variable ID. NC_GLOBAL may not be used.
  * @param quantize_mode Quantization mode. May be ::NC_NOQUANTIZE or
  * ::NC_QUANTIZE_BITGROOM.
  * @param nsd Number of significant digits. May be any integer from 1
- * to ::NC_QUANTIZE_MAX_FLOAT_NSD (for floats) or
- * ::NC_QUANTIZE_MAX_DOUBLE_NSD (for doubles).
+ * to ::NC_QUANTIZE_MAX_FLOAT_NSD (for variables of type ::NC_FLOAT) or
+ * ::NC_QUANTIZE_MAX_DOUBLE_NSD (for variables of type ::NC_DOUBLE).
  *
  * @returns ::NC_NOERR No error.
  * @returns ::NC_EBADID Bad ncid.

@@ -471,6 +471,10 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
    alone will not reduce the size of the data - lossless compression
    like zlib must also be used (see nc_def_var_deflate()).
 
+   Producers of large datasets may find that using quantize with
+   compression will result in significant improvent in the final data
+   size.
+
    This data quantization used the bitgroom algorithm. A notable
    feature of BitGroom is that the data it processes remain in IEEE754
    format after quantization. Therefore the BitGroom algorithm does
@@ -480,9 +484,25 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
    NC_DOUBLE. Attempts to set quantization for other variable
    types return an error (NC_EINVAL). 
 
+   Variables which use quantize will have added an attribute with name
+   ::NC_QUANTIZE_ATT_NAME, which will contain the number of
+   significant digits. Users should not delete or change this
+   attribute. This is the only record that quantize has been applied
+   to the data.
+
    Quantization is not applied to values equal to the value of the
    _FillValue attribute, if any. 
 
+   As with the deflate settings, quantize settings may only be
+   modified before the first call to nc_enddef(). Once nc_enddef() is
+   called for the file, quantize settings for any variable in the file
+   may not be changed.
+ 
+   Use of quantization is fully backwards compatible with existing
+   versions and packages that can read compressed netCDF data. A
+   variable which has been quantized is readable to older versions of
+   the netCDF libraries, and to netCDF-Java.
+ 
    For more information about quantization and the bitgroom filter, see 
 
    Zender, C. S. (2016), Bit Grooming: Statistically accurate
@@ -493,13 +513,13 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
    https://www.researchgate.net/publication/301575383_Bit_Grooming_Statistically_accurate_precision-preserving_quantization_with_compression_evaluated_in_the_netCDF_Operators_NCO_v448.
   
    @param ncid File ID.
-   @param varid Variable ID. NC_GLOBAL is not a valid varid, and may
-   not be used.
-   @param quantize_mode A integer flag specifying the quantization
-   used. Current NC_QUANTIZE_BITGROOM is the only available setting.
-   @param nsd Number of significant digits to retain. Allowed single- and
-   double-precision NSDs are 1-7 and 1-15, respectively.
-  
+   @param varid Variable ID.  NC_GLOBAL may not be used.
+   @param quantize_mode Quantization mode. May be ::NC_NOQUANTIZE or
+   ::NC_QUANTIZE_BITGROOM.
+   @param nsd Number of significant digits. May be any integer from 1
+   to ::NC_QUANTIZE_MAX_FLOAT_NSD (for variables of type ::NC_FLOAT) or
+   ::NC_QUANTIZE_MAX_DOUBLE_NSD (for variables of type ::NC_DOUBLE).
+   
    @return ::NC_NOERR No error.
    @return ::NC_EGLOBAL Can't use ::NC_GLOBAL with this function.
    @return ::NC_EBADID Bad ncid.
