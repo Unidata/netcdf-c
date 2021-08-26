@@ -810,10 +810,49 @@ done:
  * @internal Set quantization settings on a variable. This is
  * called by nc_def_var_quantize().
  *
+ * Quantization allows the user to specify a number of significant
+ * digits for variables of type ::NC_FLOAT or ::NC_DOUBLE. (Attempting
+ * to set quantize for other types will result in an ::NC_EINVAL
+ * error.)
+ *
+ * When quantize is turned on, and the number of significant digits
+ * has been specified, then the netCDF library will apply all zeros or
+ * all ones (alternating) to bits which are not needed to specify the
+ * value to the number of significant digits. This will change the
+ * value of the data, but will make it more compressable.
+ *
+ * Quantizing the data does not reduce the size of the data on disk,
+ * but combining quantize with compression will allow for better
+ * compression. Since the data values are changed, the use of quantize
+ * and compression such as deflate constitute lossy compression.
+ *
+ * Producers of large datasets may find that using quantize with
+ * compression will result in significant improvent in the final data
+ * size.
+ *
+ * Variables which use quantize will have added an attribute with name
+ * ::NC_QUANTIZE_ATT_NAME, which will contain the number of
+ * significant digits. Users should not delete or change this
+ * attribute. This is the only record that quantize has been applied
+ * to the data.
+ *
+ * As with the deflate settings, quantize settings may only be
+ * modified before the first call to nc_enddef(). Once nc_enddef() is
+ * called for the file, quantize settings for any variable in the file
+ * may not be changed.
+ *
+ * Use of quantization is fully backwards compatible with existing
+ * versions and packages that can read compressed netCDF data. A
+ * variable which has been quantized is readable to older versions of
+ * the netCDF libraries, and to netCDF-Java.
+ *
  * @param ncid File ID.
  * @param varid Variable ID.
- * @param quantize_mode Quantization mode.
- * @param nsd Number of significant digits.
+ * @param quantize_mode Quantization mode. May be ::NC_NOQUANTIZE or
+ * ::NC_QUANTIZE_BITGROOM.
+ * @param nsd Number of significant digits. May be any integer from 1
+ * to ::NC_QUANTIZE_MAX_FLOAT_NSD (for floats) or
+ * ::NC_QUANTIZE_MAX_DOUBLE_NSD (for doubles).
  *
  * @returns ::NC_NOERR No error.
  * @returns ::NC_EBADID Bad ncid.
