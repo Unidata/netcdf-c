@@ -253,6 +253,14 @@ ENDIF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
 
 # End default linux gcc & apple compiler options.
 
+# Use relative pathnames in __FILE__ macros on MINGW:
+IF(MINGW)
+  CHECK_C_COMPILER_FLAG("-fmacro-prefix-map='${CMAKE_SOURCE_DIR}'=." CC_HAS_MACRO_PREFIX_MAP)
+  IF(CC_HAS_MACRO_PREFIX_MAP)
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fmacro-prefix-map='${CMAKE_SOURCE_DIR}'=.")
+  ENDIF()
+ENDIF()
+
 ADD_DEFINITIONS()
 
 # Suppress CRT Warnings.
