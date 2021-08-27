@@ -1650,6 +1650,7 @@ AC_SUBST(DO_NCZARR_S3_TESTS,[$enable_nczarr_s3_tests])
 AC_SUBST(HAS_MULTIFILTERS,[$has_multifilters])
 AC_SUBST(DO_NCZARR_ZIP_TESTS,[$enable_nczarr_zip])
 AC_SUBST([HAS_QUANTIZE],[yes])
+AC_SUBST(HAS_LOGGING,[$enable_logging])
 
 # Include some specifics for netcdf on windows.
 #AH_VERBATIM([_WIN32_STRICMP],
@@ -1722,6 +1723,7 @@ AX_SET_META([NC_HAS_PAR_FILTERS], [$hdf5_supports_par_filters],[yes])
 AX_SET_META([NC_HAS_BYTERANGE],[$enable_byterange],[yes])
 AX_SET_META([NC_HAS_NCZARR],[$enable_nczarr],[yes])
 AX_SET_META([NC_HAS_MULTIFILTERS],[$has_multifilters],[yes])
+AX_SET_META([NC_HAS_LOGGING],[$enable_logging],[yes])
 
 # This is the version of the dispatch table. If the dispatch table is
 # changed, this should be incremented, so that user-defined format

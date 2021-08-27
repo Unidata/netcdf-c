@@ -60,11 +60,11 @@ When installed, the netCDF libraries are placed in the specified locations, alon
 1. When building the netCDF-C libraries with netCDF4 support, using the `Debug` libraries may cause extraneous warnings. These warnings are related to cross-dll memory management, and appear to be harmless. You can safely ignore them by using the `Release` libraries. [NCF-220]
 
 
-[r1]: https://artifacts.unidata.ucar.edu/service/rest/repository/browse/downloads-netcdf-c/major.minor.point/windows_installers/netCDFmajor.minor.point-NC3-32.exe
-[r2]: https://artifacts.unidata.ucar.edu/service/rest/repository/browse/downloads-netcdf-c/major.minor.point/windows_installers/netCDFmajor.minor.point-NC3-DAP-32.exe
-[r3]: https://artifacts.unidata.ucar.edu/service/rest/repository/browse/downloads-netcdf-c/major.minor.point/windows_installers/netCDFmajor.minor.point-NC4-32.exe
-[r4]: https://artifacts.unidata.ucar.edu/service/rest/repository/browse/downloads-netcdf-c/major.minor.point/windows_installers/netCDFmajor.minor.point-NC4-DAP-32.exe
-[r5]: https://artifacts.unidata.ucar.edu/service/rest/repository/browse/downloads-netcdf-c/major.minor.point/windows_installers/netCDFmajor.minor.point-NC3-64.exe
-[r6]: https://artifacts.unidata.ucar.edu/service/rest/repository/browse/downloads-netcdf-c/major.minor.point/windows_installers/netCDFmajor.minor.point-NC3-DAP-64.exe
-[r7]: https://artifacts.unidata.ucar.edu/service/rest/repository/browse/downloads-netcdf-c/major.minor.point/windows_installers/netCDFmajor.minor.point-NC4-64.exe
-[r8]: https://artifacts.unidata.ucar.edu/service/rest/repository/browse/downloads-netcdf-c/major.minor.point/windows_installers/netCDFmajor.minor.point-NC4-DAP-64.exe
+[r1]: https://downloads.unidata.ucar.edu/netcdf-c//major.minor.point/windows_installers/netCDFmajor.minor.point-NC3-32.exe
+[r2]: https://downloads.unidata.ucar.edu/netcdf-c//major.minor.point/windows_installers/netCDFmajor.minor.point-NC3-DAP-32.exe
+[r3]: https://downloads.unidata.ucar.edu/netcdf-c//major.minor.point/windows_installers/netCDFmajor.minor.point-NC4-32.exe
+[r4]: https://downloads.unidata.ucar.edu/netcdf-c//major.minor.point/windows_installers/netCDFmajor.minor.point-NC4-DAP-32.exe
+[r5]: https://downloads.unidata.ucar.edu/netcdf-c//major.minor.point/windows_installers/netCDFmajor.minor.point-NC3-64.exe
+[r6]: https://downloads.unidata.ucar.edu/netcdf-c//major.minor.point/windows_installers/netCDFmajor.minor.point-NC3-DAP-64.exe
+[r7]: https://downloads.unidata.ucar.edu/netcdf-c//major.minor.point/windows_installers/netCDFmajor.minor.point-NC4-64.exe
+[r8]: https://downloads.unidata.ucar.edu/netcdf-c//major.minor.point/windows_installers/netCDFmajor.minor.point-NC4-DAP-64.exe

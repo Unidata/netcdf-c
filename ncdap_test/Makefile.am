@@ -56,8 +56,10 @@ TESTS += test_partvar
 
 if ENABLE_DAP_LONG_TESTS
  TESTS += tst_longremote3.sh
+ tst_longremote3.log: tst_remote3.log
  check_PROGRAMS += test_manyurls
  TESTS += test_manyurls
+ test_manyurls.log: tst_longremote3.log
 endif
 
 test_partvar_SOURCES = test_partvar.c
@@ -92,7 +94,7 @@ SUBDIRS = testdata3 expected3 expectremote3
 EXTRA_DIST = tst_ncdap3.sh  \
              tst_remote3.sh \
              tst_longremote3.sh \
-  	     tst_zero_len_var.sh \
+	     tst_zero_len_var.sh \
              tst_filelists.sh tst_urls.sh tst_utils.sh \
 	     t_dap.c CMakeLists.txt tst_formatx.sh testauth.sh testurl.sh \
 	     t_ncf330.c tst_ber.sh tst_fillmismatch.sh tst_encode.sh testpathcvt.sh \
