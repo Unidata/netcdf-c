@@ -329,7 +329,7 @@ there. */
 
 /** When quantization is used for a variable, an attribute of this
  * name is added. */
-#define NC_QUANTIZE_ATT_NAME "_quantize_bitgroom_number_of_significant_digits"
+#define NC_QUANTIZE_ATT_NAME "_QuantizeBitgroomNumberOfSignificantDigits"
 
 /** For quantization, the allowed value of number of significant
  * digits for float. */
