@@ -1173,17 +1173,14 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 	    if (quantize_mode == NC_QUANTIZE_BITGROOM)
 	    {
 		const double bit_per_dcm_dgt_prc = M_LN10 / M_LN2; /* 3.32 [frc] Bits per decimal digit of precision */
-		//const double dcm_per_bit_dgt_prc=M_LN2/M_LN10; /* 0.301 [frc] Bits per decimal digit of precision */
-
 		const int bit_xpl_nbr_sgn_flt = 23; /* [nbr] Bits 0-22 of SP significands are explicit. Bit 23 is implicitly 1. */
 		const int bit_xpl_nbr_sgn_dbl = 53; /* [nbr] Bits 0-52 of DP significands are explicit. Bit 53 is implicitly 1. */
-		//const int ieee_xpn_fst_flt=127; /* [nbr] IEEE "exponent bias" = actual exponent minus stored exponent */
 		double prc_bnr_xct; /* [nbr] Binary digits of precision, exact */
 		double mss_val_cmp_dbl; /* Missing value for comparison to double precision values */
 
 		float mss_val_cmp_flt; /* Missing value for comparison to single precision values */
   
-		int bit_xpl_nbr_sgn=-1; /* [nbr] Number of explicit bits in significand */
+		int bit_xpl_nbr_sgn = -1; /* [nbr] Number of explicit bits in significand */
 		int bit_xpl_nbr_zro; /* [nbr] Number of explicit bits to zero */
 
 		size_t idx;
@@ -1191,15 +1188,11 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 		unsigned int *u32_ptr;
 		unsigned int msk_f32_u32_zro;
 		unsigned int msk_f32_u32_one;
-		//unsigned int msk_f32_u32_hshv;
 		unsigned long long int *u64_ptr;
 		unsigned long long int msk_f64_u64_zro;
 		unsigned long long int msk_f64_u64_one;
-		//unsigned long long int msk_f64_u64_hshv;
 		unsigned short prc_bnr_ceil; /* [nbr] Exact binary digits of precision rounded-up */
 		unsigned short prc_bnr_xpl_rqr; /* [nbr] Explicitly represented binary digits required to retain */
-		/* Missing value for comparison is _FillValue (if any)
-		 * otherwise default NC_FILL_FLOAT/DOUBLE. */
 		ptr_unn op1; /* I/O [frc] Values to quantize */
 
 		/* How many bits to preserve? */
@@ -1207,15 +1200,10 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 		/* Be conservative, round upwards */
 		prc_bnr_ceil =(unsigned short)ceil(prc_bnr_xct);
 		/* First bit is implicit not explicit but corner cases prevent our taking advantage of this */
-		//prc_bnr_xpl_rqr=prc_bnr_ceil-1; /* 20201223 CSZ verified this fails for small integers with NSD=1 */
-		//prc_bnr_xpl_rqr=prc_bnr_ceil;
 		prc_bnr_xpl_rqr = prc_bnr_ceil + 1;
 		if (dest_type == NC_DOUBLE)
 		    prc_bnr_xpl_rqr++; /* Seems necessary for double-precision ppc=array(1.234567,1.0e-6,$dmn) */
 		
-		/* if(type == NC_FLOAT  && prc_bnr_xpl_rqr >= bit_xpl_nbr_sgn_flt) return; */
-		/* if(type == NC_DOUBLE && prc_bnr_xpl_rqr >= bit_xpl_nbr_sgn_dbl) return; */
-		    
 		if (fill_value)
 		    mss_val_cmp_flt = *(float *)fill_value;
 		else
@@ -1231,8 +1219,6 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 		msk_f32_u32_zro <<= bit_xpl_nbr_zro;
 		/* Bit Set   mask for OR:  Put ones into bits to be set, zeros in untouched bits */
 		msk_f32_u32_one = ~msk_f32_u32_zro;
-		//msk_f32_u32_hshv=msk_f32_u32_one & (msk_f32_u32_zro >> 1); /* Set one bit: the MSB of LSBs */
-
 
 		/* Copy the data into our buffer. */
 		for (fp = (float *)src, fp1 = dest; count < len; count++)
@@ -1251,7 +1237,7 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 			u32_ptr[idx] &= msk_f32_u32_zro;
 		for(idx = 1L; idx < len; idx += 2L)
 		    if (op1.fp[idx] != mss_val_cmp_flt && u32_ptr[idx] != 0U) /* Never quantize upwards floating point values of zero */
-			u32_ptr[idx]|=msk_f32_u32_one;
+			u32_ptr[idx] |= msk_f32_u32_one;
 		
 	    }
 	    else
