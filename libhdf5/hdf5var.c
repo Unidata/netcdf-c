@@ -1622,9 +1622,11 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     }
 
     /* Are we going to convert any data? (No converting of compound or
-     * opaque types.) */
-    if (mem_nc_type != var->type_info->hdr.id &&
-        mem_nc_type != NC_COMPOUND && mem_nc_type != NC_OPAQUE)
+     * opaque types.) We also need to call this code if we are doing
+     * quantization. */
+    if ((mem_nc_type != var->type_info->hdr.id &&
+	 mem_nc_type != NC_COMPOUND && mem_nc_type != NC_OPAQUE) ||
+	var->quantize_mode)
     {
         size_t file_type_size;
 

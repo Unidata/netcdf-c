@@ -203,7 +203,7 @@ main(int argc, char **argv)
 	    printf ("\nfloat_data: %10f   : 0x%x  float_data_in: %10f   : 0x%x\n",
 		    float_data[0], fout.u, float_data[0], fin.u);
 	    if (fout.u != 0x3f8e38e3) ERR;
-	    /* if (fin.u != 0x3f8e3000) ERR; */
+	    if (fin.u != 0x3f8e3000) ERR;
 
 	    /* Close the file again. */
 	    if (nc_close(ncid)) ERR;
