@@ -25,6 +25,49 @@
 #define NSD_3 3
 #define NSD_9 9
 
+/* This var used to help print a float in hex. */
+char pf_str[20];
+
+/* This struct allows us to treat float as uint32_t
+ * types. */
+union FU {
+    float f;
+    uint32_t u;
+};
+
+/* This struct allows us to treat double points as uint64_t
+ * types. */
+union DU {
+    double d;
+    uint64_t u;
+};
+
+/* This function prints a float as hex. */
+char *
+pf(float myf)
+{
+    union {
+	float f;
+	uint32_t u;
+    } fu;
+    fu.f = myf;
+    sprintf(pf_str, "0x%x", fu.u);
+    return pf_str;
+}
+
+/* This function prints a double as hex. */
+char *
+pd(double myd)
+{
+    union {
+	double d;
+	uint64_t u;
+    } du;
+    du.d = myd;
+    sprintf(pf_str, "0x%lx", du.u);
+    return pf_str;
+}
+
 int
 main(int argc, char **argv)
 {
@@ -184,10 +227,8 @@ main(int argc, char **argv)
         {
             float float_in;
             double double_in;
-            union {
-                float f;
-                uint32_t u;
-            } fin, fout;
+            union FU fin, fout;
+            union DU dfin;
 
             /* Open the file and check metadata. */
             if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
@@ -201,10 +242,11 @@ main(int argc, char **argv)
             if (nc_get_var(ncid, varid2, &double_in)) ERR;
             fout.f = float_data[0];
             fin.f = float_in;
+            dfin.d = double_in;
             printf ("\nfloat_data: %10f   : 0x%x  float_data_in: %10f   : 0x%x\n",
                     float_data[0], fout.u, float_data[0], fin.u);
-            if (fout.u != 0x3f8e38e3) ERR;
             if (fin.u != 0x3f8e3000) ERR;
+	    /* if (dfin.u != 0x3ff1c60000000000) ERR; */
 
             /* Close the file again. */
             if (nc_close(ncid)) ERR;
@@ -246,11 +288,18 @@ main(int argc, char **argv)
 
             union FU fin, fout;
             union FU xpect[DIM_LEN_5];
+            union DU dfin;
+            union DU double_xpect[DIM_LEN_5];
             xpect[0].u = 0x3f8e3000;
             xpect[1].u = 0x3f800fff;
             xpect[2].u = 0x41200000;
             xpect[3].u = 0x4640efff;
             xpect[4].u = 0x3dfcd000;
+	    double_xpect[0].u = 0x3ff1c60000000000;
+	    double_xpect[1].u = 0x3ff001ffffffffff;
+	    double_xpect[2].u = 0x4023fe0000000000;
+	    double_xpect[3].u = 0x41d265ffffffffff;
+	    double_xpect[4].u = 0x42dc120000000000;
 
             /* Open the file and check metadata. */
             if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
@@ -270,6 +319,8 @@ main(int argc, char **argv)
                 printf ("float_data: %10f   : 0x%x  float_data_in: %10f   : 0x%x\n",
                         float_data[x], fout.u, float_data[x], fin.u);
                 if (fin.u != xpect[x].u) ERR;
+		dfin.d = double_in[x];
+                /* if (dfin.u != double_xpect[x].u) ERR; */
             }
 
             /* Close the file again. */
