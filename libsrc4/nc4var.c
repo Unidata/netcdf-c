@@ -21,6 +21,33 @@
 /** @internal Default size for unlimited dim chunksize. */
 #define DEFAULT_1D_UNLIM_SIZE (4096)
 
+/** @internal Minimum number of explicit significand bits to preserve
+ * when zeroing/bit-masking floating point values. Codes will preserve
+ * at least two explicit bits, IEEE significand representation
+ * contains one implicit bit Thus preserve a least three bits which is
+ * approximately one sigificant decimal digit Used in
+ * nco_ppc_bitmask() and nco_ppc_bitmask_scl() */
+#define NCO_PPC_BIT_XPL_NBR_MIN 2
+
+/* Define log_e for 10 and 2. Prefer constants defined in math.h,
+ * however, GCC environments can have hard time defining M_LN10/M_LN2
+ * despite finding math.h */
+#ifndef M_LN10
+# define M_LN10         2.30258509299404568402  /**< log_e 10 */
+#endif /* M_LN10 */
+#ifndef M_LN2
+# define M_LN2          0.69314718055994530942  /**< log_e 2 */
+#endif /* M_LN2 */
+  
+/** Pointer union for floating point and bitmask types. */
+typedef union{ /* ptr_unn */
+  float *fp;
+  double *dp;
+  unsigned int *ui32p;
+  unsigned long long *ui64p;
+  void *vp;
+} ptr_unn;
+
 /**
  * @internal This is called by nc_get_var_chunk_cache(). Get chunk
  * cache size for a variable.
@@ -464,7 +491,7 @@ NC4_var_par_access(int ncid, int varid, int par_access)
  * @param quantize_mode May be ::NC_NOQUANTIZE or
  * ::NC_QUANTIZE_BITGROOM.
  * @param nsd Number of significant diggits for quantizize. Ignored
- * otherwise.
+ * unless quantize_mode is ::NC_QUANTIZE_BITGROOM.
  *
  * @returns ::NC_NOERR No error.
  * @returns ::NC_EBADTYPE Type not found.
@@ -1145,14 +1172,87 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
         case NC_FLOAT:
 	    if (quantize_mode == NC_QUANTIZE_BITGROOM)
 	    {
+		const double bit_per_dcm_dgt_prc = M_LN10 / M_LN2; /* 3.32 [frc] Bits per decimal digit of precision */
+		//const double dcm_per_bit_dgt_prc=M_LN2/M_LN10; /* 0.301 [frc] Bits per decimal digit of precision */
+
+		const int bit_xpl_nbr_sgn_flt = 23; /* [nbr] Bits 0-22 of SP significands are explicit. Bit 23 is implicitly 1. */
+		const int bit_xpl_nbr_sgn_dbl = 53; /* [nbr] Bits 0-52 of DP significands are explicit. Bit 53 is implicitly 1. */
+		//const int ieee_xpn_fst_flt=127; /* [nbr] IEEE "exponent bias" = actual exponent minus stored exponent */
+		double prc_bnr_xct; /* [nbr] Binary digits of precision, exact */
+		double mss_val_cmp_dbl; /* Missing value for comparison to double precision values */
+
+		float mss_val_cmp_flt; /* Missing value for comparison to single precision values */
+  
+		int bit_xpl_nbr_sgn=-1; /* [nbr] Number of explicit bits in significand */
+		int bit_xpl_nbr_zro; /* [nbr] Number of explicit bits to zero */
+
+		size_t idx;
+
+		unsigned int *u32_ptr;
+		unsigned int msk_f32_u32_zro;
+		unsigned int msk_f32_u32_one;
+		//unsigned int msk_f32_u32_hshv;
+		unsigned long long int *u64_ptr;
+		unsigned long long int msk_f64_u64_zro;
+		unsigned long long int msk_f64_u64_one;
+		//unsigned long long int msk_f64_u64_hshv;
+		unsigned short prc_bnr_ceil; /* [nbr] Exact binary digits of precision rounded-up */
+		unsigned short prc_bnr_xpl_rqr; /* [nbr] Explicitly represented binary digits required to retain */
+		/* Missing value for comparison is _FillValue (if any)
+		 * otherwise default NC_FILL_FLOAT/DOUBLE. */
+		ptr_unn op1; /* I/O [frc] Values to quantize */
+
+		/* How many bits to preserve? */
+		prc_bnr_xct = nsd * bit_per_dcm_dgt_prc;
+		/* Be conservative, round upwards */
+		prc_bnr_ceil =(unsigned short)ceil(prc_bnr_xct);
+		/* First bit is implicit not explicit but corner cases prevent our taking advantage of this */
+		//prc_bnr_xpl_rqr=prc_bnr_ceil-1; /* 20201223 CSZ verified this fails for small integers with NSD=1 */
+		//prc_bnr_xpl_rqr=prc_bnr_ceil;
+		prc_bnr_xpl_rqr = prc_bnr_ceil + 1;
+		if (dest_type == NC_DOUBLE)
+		    prc_bnr_xpl_rqr++; /* Seems necessary for double-precision ppc=array(1.234567,1.0e-6,$dmn) */
+		
+		/* if(type == NC_FLOAT  && prc_bnr_xpl_rqr >= bit_xpl_nbr_sgn_flt) return; */
+		/* if(type == NC_DOUBLE && prc_bnr_xpl_rqr >= bit_xpl_nbr_sgn_dbl) return; */
+		    
+		if (fill_value)
+		    mss_val_cmp_flt = *(float *)fill_value;
+		else
+		    mss_val_cmp_flt = NC_FILL_FLOAT;
+
+		bit_xpl_nbr_sgn = bit_xpl_nbr_sgn_flt;
+		bit_xpl_nbr_zro = bit_xpl_nbr_sgn - prc_bnr_xpl_rqr;
+		assert(bit_xpl_nbr_zro <= bit_xpl_nbr_sgn - NCO_PPC_BIT_XPL_NBR_MIN);
+		/* Create mask */
+		msk_f32_u32_zro = 0u; /* Zero all bits */
+		msk_f32_u32_zro = ~msk_f32_u32_zro; /* Turn all bits to ones */
+		/* Bit Shave mask for AND: Left shift zeros into bits to be rounded, leave ones in untouched bits */
+		msk_f32_u32_zro <<= bit_xpl_nbr_zro;
+		/* Bit Set   mask for OR:  Put ones into bits to be set, zeros in untouched bits */
+		msk_f32_u32_one = ~msk_f32_u32_zro;
+		//msk_f32_u32_hshv=msk_f32_u32_one & (msk_f32_u32_zro >> 1); /* Set one bit: the MSB of LSBs */
+
+
+		/* Copy the data into our buffer. */
 		for (fp = (float *)src, fp1 = dest; count < len; count++)
 		{
 		    *fp1 = *fp;
-
 		    /* Move to next float. */
 		    fp1++;
 		    fp++;
 		}
+
+		/* Bit-Groom: alternately shave and set LSBs */
+		op1.fp = (float *)dest;
+		u32_ptr = op1.ui32p;
+		for(idx = 0L; idx < len; idx += 2L)
+		    if (op1.fp[idx] != mss_val_cmp_flt)
+			u32_ptr[idx] &= msk_f32_u32_zro;
+		for(idx = 1L; idx < len; idx += 2L)
+		    if (op1.fp[idx] != mss_val_cmp_flt && u32_ptr[idx] != 0U) /* Never quantize upwards floating point values of zero */
+			u32_ptr[idx]|=msk_f32_u32_one;
+		
 	    }
 	    else
 	    {
