@@ -633,7 +633,7 @@ IF(USE_HDF5)
       file(READ "${HDF5_INCLUDE_DIR}/H5pubconf.h" _hdf5_version_lines
         REGEX "#define[ \t]+H5_VERSION")
       string(REGEX REPLACE ".*H5_VERSION .*\"\(.*\)\".*" "\\1" _hdf5_version "${_hdf5_version_lines}")
-      set(HDF5_VERSION "${_hdf5_version}")
+      set(HDF5_VERSION "${_hdf5_version}" CACHE STRING "")
       unset(_hdf5_version)
       unset(_hdf5_version_lines)
     endif ()
@@ -706,11 +706,13 @@ IF(USE_HDF5)
         file(READ "${HDF5_INCLUDE_DIR}/H5pubconf.h" _hdf5_version_lines
           REGEX "#define[ \t]+H5_VERSION")
         string(REGEX REPLACE ".*H5_VERSION .*\"\(.*\)\".*" "\\1" _hdf5_version "${_hdf5_version_lines}")
-        set(HDF5_VERSION "${_hdf5_version}")
+        set(HDF5_VERSION "${_hdf5_version}" CACHE STRING "")
         unset(_hdf5_version)
         unset(_hdf5_version_lines)
         MESSAGE(STATUS "Found HDF5 libraries version ${HDF5_VERSION}")
       ENDIF()
+    ELSE()
+      SET(HDF5_VERSION ${HDF5_VERSION} CACHE STRING "")
     ENDIF()
 
     ###
@@ -730,18 +732,7 @@ IF(USE_HDF5)
       MESSAGE(FATAL_ERROR "netCDF requires at least HDF5 ${HDF5_VERSION_REQUIRED}. Found ${HDF5_VERSION}.")
     ENDIF()
 
-    ####
-    # Check to see if HDF5 library is 1.10.6 or greater.
-    # Used to control path name conversion
-    ####
-    IF(${HDF5_VERSION} VERSION_GREATER "1.10.5")
-      SET(HDF5_UTF8_PATHS ON)
-    ELSE()
-      SET(HDF5_UTF8_PATHS OFF)
-    ENDIF()
-
-    MESSAGE("-- HDF5_UTF8_PATHS (HDF5 version 1.10.6+): ${HDF5_UTF8_PATHS}")
-
+    
 
     ##
     # Include the HDF5 include directory.
@@ -826,6 +817,18 @@ IF(USE_HDF5)
     SET(CMAKE_REQUIRED_LIBRARIES ${SZIP_LIBRARY} ${CMAKE_REQUIRED_LIBRARIES})
     MESSAGE(STATUS "HDF5 has szip.")
   ENDIF()
+
+  ####
+  # Check to see if HDF5 library is 1.10.6 or greater.
+  # Used to control path name conversion
+  ####
+  IF(${HDF5_VERSION} VERSION_GREATER "1.10.5")
+    SET(HDF5_UTF8_PATHS ON)
+  ELSE()
+    SET(HDF5_UTF8_PATHS OFF)
+  ENDIF()
+
+  MESSAGE("-- HDF5_UTF8_PATHS (HDF5 version 1.10.6+): ${HDF5_UTF8_PATHS}")
 
   # Find out if HDF5 was built with parallel support.
   # Do that by checking for the targets H5Pget_fapl_mpiposx and
