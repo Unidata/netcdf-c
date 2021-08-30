@@ -690,17 +690,7 @@ IF(USE_HDF5)
         unset(_hdf5_version_lines)
         MESSAGE(STATUS "Found HDF5 libraries version ${HDF5_VERSION}")
       ENDIF()
-
-    ELSE() # Original HDF5_VERSION blank check.
-      IF(${HDF5_VERSION} VERSION_LESS ${HDF5_VERSION_REQUIRED})
-        MESSAGE(FATAL_ERROR
-	      "netCDF requires at least HDF5 ${HDF5_VERSION_REQUIRED}. Found ${HDF5_VERSION}.")
-      ELSE()
-        MESSAGE(STATUS "Found HDF5 libraries version ${HDF5_VERSION}")
-      ENDIF()
     ENDIF()
-
-
 
     ###
     # If HDF5_VERSION is still empty, we have a problem.
@@ -708,6 +698,15 @@ IF(USE_HDF5)
     ###
     IF("${HDF5_VERSION}" STREQUAL "")
       MESSAGE(FATAL_ERR "Unable to determine HDF5 version.  NetCDF requires at least version ${HDF5_VERSION_REQUIRED}. Please ensure that libhdf5 is installed and accessible.")
+    ENDIF()
+
+    ###
+    # Now that we know HDF5_VERSION isn't empty, we can check for minimum required version,
+    # and toggle various options.
+    ###
+
+    IF(${HDF5_VERSION} VERSION_LESS ${HDF5_VERSION_REQUIRED})
+      MESSAGE(FATAL_ERROR "netCDF requires at least HDF5 ${HDF5_VERSION_REQUIRED}. Found ${HDF5_VERSION}.")
     ENDIF()
 
     ####
