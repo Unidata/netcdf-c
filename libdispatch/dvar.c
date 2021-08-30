@@ -491,7 +491,17 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
    to the data.
 
    Quantization is not applied to values equal to the value of the
-   _FillValue attribute, if any. 
+   _FillValue attribute, if any. If the _FillValue attribute is not
+   set, then quantization is not applied to values matching the
+   default fill value.
+
+   Quantization may be applied to scalar variables.
+
+   When type conversion takes place during a write, the it occurs
+   before quantization is applied. For example, if nc_put_var_double()
+   is called on a variable of type NC_FLOAT, which has quantizze
+   turned on, then the data are first converted from dounle to float,
+   then quantization is applied to the float values.
 
    As with the deflate settings, quantize settings may only be
    modified before the first call to nc_enddef(). Once nc_enddef() is

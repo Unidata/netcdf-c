@@ -402,6 +402,66 @@ main(int argc, char **argv)
         }
     }
     SUMMARIZE_ERR;
+    printf("**** testing quantization of one value with type conversion...");
+    {
+        int ncid, dimid, varid1, varid2;
+        int quantize_mode_in, nsd_in;
+        float float_data[DIM_LEN_1] = {1.1111111};
+        double double_data[DIM_LEN_1] = {1.111111111111};
+
+        /* Create a netcdf-4 file with two vars. */
+        if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
+        if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_1, &dimid)) ERR;
+        if (nc_def_var(ncid, VAR_NAME_1, NC_FLOAT, NDIMS1, &dimid, &varid1)) ERR;
+        if (nc_def_var(ncid, VAR_NAME_2, NC_DOUBLE, NDIMS1, &dimid, &varid2)) ERR;
+
+        /* Turn on quantize for both vars. */
+        if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, NSD_3)) ERR;
+        if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM, NSD_3)) ERR;
+
+        /* Write some double data to float var. */
+        if (nc_put_var_double(ncid, varid1, double_data)) ERR;
+
+        /* Write some float data to double var. */
+        if (nc_put_var_float(ncid, varid2, float_data)) ERR;
+
+        /* Close the file. */
+        if (nc_close(ncid)) ERR;
+
+        {
+            float float_in;
+            double double_in;
+            union FU fin;
+            /* union FU fout; */
+            union DU dfin;
+    	    /* union DU dfout; */
+
+            /* Open the file and check metadata. */
+            if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+            if (nc_inq_var_quantize(ncid, 0, &quantize_mode_in, &nsd_in)) ERR;
+            if (quantize_mode_in != NC_QUANTIZE_BITGROOM || nsd_in != NSD_3) ERR;
+            if (nc_inq_var_quantize(ncid, 1, &quantize_mode_in, &nsd_in)) ERR;
+            if (quantize_mode_in != NC_QUANTIZE_BITGROOM || nsd_in != NSD_3) ERR;
+
+            /* Check the data. */
+            if (nc_get_var(ncid, varid1, &float_in)) ERR;
+            if (nc_get_var(ncid, varid2, &double_in)) ERR;
+            /* fout.f = float_data[0]; */
+            fin.f = float_in;
+            /* dfout.d = double_data[0]; */
+            dfin.d = double_in;
+            /* printf ("\nfloat_data: %10f   : 0x%x  float_data_in: %10f   : 0x%x\n", */
+            /*         float_data[0], fout.u, float_data[0], fin.u); */
+            /* if (fin.u != 0x3f8e3000) ERR; */
+            /* printf ("\ndouble_data: %15g   : 0x%16lx  double_data_in: %15g   : 0x%lx\n", */
+            /*         double_data[0], dfout.u, double_data[0], dfin.u); */
+	    /* if (dfin.u != 0x3ff1c60000000000) ERR; */
+
+            /* Close the file again. */
+            if (nc_close(ncid)) ERR;
+        }
+    }
+    SUMMARIZE_ERR;
 
     FINAL_RESULTS;
 
