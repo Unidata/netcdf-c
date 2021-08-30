@@ -228,7 +228,7 @@ main(int argc, char **argv)
             float float_in;
             double double_in;
             union FU fin, fout;
-            union DU dfin;
+            union DU dfin, dfout;
 
             /* Open the file and check metadata. */
             if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
@@ -242,11 +242,14 @@ main(int argc, char **argv)
             if (nc_get_var(ncid, varid2, &double_in)) ERR;
             fout.f = float_data[0];
             fin.f = float_in;
+            dfout.d = double_data[0];
             dfin.d = double_in;
             printf ("\nfloat_data: %10f   : 0x%x  float_data_in: %10f   : 0x%x\n",
                     float_data[0], fout.u, float_data[0], fin.u);
             if (fin.u != 0x3f8e3000) ERR;
-	    /* if (dfin.u != 0x3ff1c60000000000) ERR; */
+            printf ("\ndouble_data: %15g   : 0x%16lx  double_data_in: %15g   : 0x%lx\n",
+                    double_data[0], dfout.u, double_data[0], dfin.u);
+	    if (dfin.u != 0x3ff1c60000000000) ERR;
 
             /* Close the file again. */
             if (nc_close(ncid)) ERR;
@@ -289,6 +292,7 @@ main(int argc, char **argv)
             union FU fin, fout;
             union FU xpect[DIM_LEN_5];
             union DU dfin;
+            union DU dfout;
             union DU double_xpect[DIM_LEN_5];
             xpect[0].u = 0x3f8e3000;
             xpect[1].u = 0x3f800fff;
@@ -316,10 +320,13 @@ main(int argc, char **argv)
             {
                 fout.f = float_data[x];
                 fin.f = float_in[x];
-                printf ("float_data: %10f   : 0x%x  float_data_in: %10f   : 0x%x\n",
-                        float_data[x], fout.u, float_data[x], fin.u);
+                /* printf ("float_data: %10f   : 0x%x  float_data_in: %10f   : 0x%x\n", */
+                /*         float_data[x], fout.u, float_data[x], fin.u); */
                 if (fin.u != xpect[x].u) ERR;
+                dfout.d = double_data[x];		
 		dfin.d = double_in[x];
+                printf ("double_data: %15g   : 0x%0.16lx  double_data_in: %15g   : 0x%0.16lx\n",
+                        double_data[x], dfout.u, double_data[x], dfin.u);
                 /* if (dfin.u != double_xpect[x].u) ERR; */
             }
 
