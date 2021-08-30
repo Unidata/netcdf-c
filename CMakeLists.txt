@@ -9,7 +9,7 @@
 #Minimum required CMake Version
 cmake_minimum_required(VERSION 3.6.1)
 
-#Project Name
+#Project Name 
 project(netCDF LANGUAGES C CXX)
 set(PACKAGE "netCDF" CACHE STRING "")
 
@@ -606,11 +606,20 @@ ENDIF(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING)
 ##
 SET(USE_HDF5 ${ENABLE_HDF5})
 IF(USE_HDF5)
+
+  ##
+  # Assert HDF5 version meets minimum required version.
+  ##
+  SET(HDF5_VERSION_REQUIRED 1.8.10)
+
+
   ##
   # Accommodate developers who have hdf5 libraries and
   # headers on their system, but do not have a the hdf
   # .cmake files.  If this is the case, they should
   # specify HDF5_HL_LIBRARY, HDF5_LIBRARY, HDF5_INCLUDE_DIR manually.
+  #
+  # This script will attempt to determine the version of the HDF5 library programatically. 
   ##
   IF(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR)
     SET(HDF5_LIBRARIES ${HDF5_C_LIBRARY} ${HDF5_HL_LIBRARY})
@@ -628,6 +637,23 @@ IF(USE_HDF5)
       unset(_hdf5_version)
       unset(_hdf5_version_lines)
     endif ()
+    MESSAGE(STATUS "Found HDF5 libraries version ${HDF5_VERSION}")
+    ###
+    # If HDF5_VERSION is still empty, we have a problem.
+    # Error out.
+    ###
+    IF("${HDF5_VERSION}" STREQUAL "")
+      MESSAGE(FATAL_ERR "Unable to determine HDF5 version.  NetCDF requires at least version ${HDF5_VERSION_REQUIRED}. Please ensure that libhdf5 is installed and accessible.")
+    ENDIF()
+
+    ###
+    # Now that we know HDF5_VERSION isn't empty, we can check for minimum required version,
+    # and toggle various options.
+    ###
+    IF(${HDF5_VERSION} VERSION_LESS ${HDF5_VERSION_REQUIRED})
+      MESSAGE(FATAL_ERROR "netCDF requires at least HDF5 ${HDF5_VERSION_REQUIRED}. Found ${HDF5_VERSION}.")
+    ENDIF()
+
   ELSE(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR) # We are seeking out HDF5 with Find Package.
     ###
     # For now we assume that if we are building netcdf
@@ -664,11 +690,6 @@ IF(USE_HDF5)
     # Next, check the HDF5 version. This will inform which
     # HDF5 variables we need to munge.
     ##
-
-    ##
-    # Assert HDF5 version meets minimum required version.
-    ##
-    SET(HDF5_VERSION_REQUIRED 1.8.10)
 
     # Some versions of HDF5 set HDF5_VERSION_STRING instead of HDF5_VERSION
     IF(HDF5_VERSION_STRING AND NOT HDF5_VERSION)
