@@ -553,16 +553,23 @@ nc4_quantize_data(const void *src, void *dest, const nc_type src_type,
 	/* Bit Set mask for OR: Put ones into bits to be set, zeros in
 	 * untouched bits. */
 	msk_f32_u32_one = ~msk_f32_u32_zro;
-
+	
 	/* Copy the data into our buffer. */
-	for (fp = (float *)src, fp1 = dest; count < len; count++)
+	if (src_type == NC_FLOAT)
 	{
-	    *fp1 = *fp;
-	    /* Move to next float. */
-	    fp1++;
-	    fp++;
+	    for (fp = (float *)src, fp1 = dest; count < len; count++)
+		*fp1++ = *fp++;
 	}
-
+	else
+	{
+	    for (dp = (double *)src, fp1 = dest; count < len; count++)
+	    {
+		if (isgreater(*dp, X_FLOAT_MAX) || isless(*dp, X_FLOAT_MIN))
+		    (*range_error)++;
+		*fp1++ = *dp++;
+	    }
+	}
+	
 	/* Bit-Groom: alternately shave and set LSBs */
 	op1.fp = (float *)dest;
 	u32_ptr = op1.ui32p;
@@ -573,7 +580,7 @@ nc4_quantize_data(const void *src, void *dest, const nc_type src_type,
 	    if (op1.fp[idx] != mss_val_cmp_flt && u32_ptr[idx] != 0U) /* Never quantize upwards floating point values of zero */
 		u32_ptr[idx] |= msk_f32_u32_one;
     }
-    else
+    else /* dest_type == NC_DOUBLE */
     {
 	bit_xpl_nbr_sgn = bit_xpl_nbr_sgn_dbl;	
 	bit_xpl_nbr_zro = bit_xpl_nbr_sgn - prc_bnr_xpl_rqr;
@@ -595,8 +602,13 @@ nc4_quantize_data(const void *src, void *dest, const nc_type src_type,
 	 * untouched bits. */
 	msk_f64_u64_one =~ msk_f64_u64_zro;
 
-	for (dp = (double *)src, dp1 = dest; count < len; count++)
-	    *dp1++ = *dp++;
+	/* Copy the data into our buffer. */
+	if (src_type == NC_FLOAT)
+	    for (fp = (float *)src, dp1 = dest; count < len; count++)
+		*dp1++ = *dp++;
+	else
+	    for (dp = (double *)src, dp1 = dest; count < len; count++)
+		*dp1++ = *dp++;
 	
 	/* Bit-Groom: alternately shave and set LSBs. */
 	op1.dp = (double *)dest;
@@ -1333,8 +1345,9 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
         case NC_DOUBLE:
 	    if (quantize_mode == NC_QUANTIZE_BITGROOM)
 	    {
-		for (fp = (float *)src, dp = dest; count < len; count++)
-		    *dp++ = *fp++;
+		if ((ret = nc4_quantize_data(src, dest, src_type, dest_type, len, range_error,
+					     fill_value, strict_nc3, quantize_mode, nsd)))
+		    return ret;
 	    }
 	    else
 	    {
