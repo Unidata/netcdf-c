@@ -40,7 +40,7 @@
 #endif /* M_LN2 */
   
 /** Pointer union for floating point and bitmask types. */
-typedef union{ /* ptr_unn */
+typedef union { /* ptr_unn */
   float *fp;
   double *dp;
   unsigned int *ui32p;
@@ -518,7 +518,7 @@ nc4_quantize_data(const void *src, void *dest, const nc_type src_type,
     unsigned short prc_bnr_xpl_rqr; /* [nbr] Explicitly represented binary digits required to retain */
     ptr_unn op1; /* I/O [frc] Values to quantize */
     float *fp, *fp1;
-    /* double *dp, *dp1; */
+    double *dp, *dp1;
     size_t count = 0;
 
     /* How many bits to preserve? */
@@ -529,41 +529,87 @@ nc4_quantize_data(const void *src, void *dest, const nc_type src_type,
     prc_bnr_xpl_rqr = prc_bnr_ceil + 1;
     if (dest_type == NC_DOUBLE)
 	prc_bnr_xpl_rqr++; /* Seems necessary for double-precision ppc=array(1.234567,1.0e-6,$dmn) */
-		
-    if (fill_value)
-	mss_val_cmp_flt = *(float *)fill_value;
-    else
-	mss_val_cmp_flt = NC_FILL_FLOAT;
 
-    bit_xpl_nbr_sgn = bit_xpl_nbr_sgn_flt;
-    bit_xpl_nbr_zro = bit_xpl_nbr_sgn - prc_bnr_xpl_rqr;
-    assert(bit_xpl_nbr_zro <= bit_xpl_nbr_sgn - NCO_PPC_BIT_XPL_NBR_MIN);
-    /* Create mask */
-    msk_f32_u32_zro = 0u; /* Zero all bits */
-    msk_f32_u32_zro = ~msk_f32_u32_zro; /* Turn all bits to ones */
-    /* Bit Shave mask for AND: Left shift zeros into bits to be rounded, leave ones in untouched bits */
-    msk_f32_u32_zro <<= bit_xpl_nbr_zro;
-    /* Bit Set   mask for OR:  Put ones into bits to be set, zeros in untouched bits */
-    msk_f32_u32_one = ~msk_f32_u32_zro;
+    /* if (dest_type == NC_FLOAT  && prc_bnr_xpl_rqr >= bit_xpl_nbr_sgn_flt) return; */
+    /* if (dest_type == NC_DOUBLE && prc_bnr_xpl_rqr >= bit_xpl_nbr_sgn_dbl) return; */
 
-    /* Copy the data into our buffer. */
-    for (fp = (float *)src, fp1 = dest; count < len; count++)
+    /* Determine the fill value. */
+    if (dest_type == NC_FLOAT)
     {
-	*fp1 = *fp;
-	/* Move to next float. */
-	fp1++;
-	fp++;
-    }
+	bit_xpl_nbr_sgn = bit_xpl_nbr_sgn_flt;
+	bit_xpl_nbr_zro = bit_xpl_nbr_sgn - prc_bnr_xpl_rqr;
+	if (fill_value)
+	    mss_val_cmp_flt = *(float *)fill_value;
+	else
+	    mss_val_cmp_flt = NC_FILL_FLOAT;
+	/* Create mask */
+	msk_f32_u32_zro = 0u; /* Zero all bits */
+	msk_f32_u32_zro = ~msk_f32_u32_zro; /* Turn all bits to ones */
 
-    /* Bit-Groom: alternately shave and set LSBs */
-    op1.fp = (float *)dest;
-    u32_ptr = op1.ui32p;
-    for(idx = 0L; idx < len; idx += 2L)
-	if (op1.fp[idx] != mss_val_cmp_flt)
-	    u32_ptr[idx] &= msk_f32_u32_zro;
-    for(idx = 1L; idx < len; idx += 2L)
-	if (op1.fp[idx] != mss_val_cmp_flt && u32_ptr[idx] != 0U) /* Never quantize upwards floating point values of zero */
-	    u32_ptr[idx] |= msk_f32_u32_one;
+	/* Bit Shave mask for AND: Left shift zeros into bits to be
+	 * rounded, leave ones in untouched bits. */
+	msk_f32_u32_zro <<= bit_xpl_nbr_zro;
+
+	/* Bit Set mask for OR: Put ones into bits to be set, zeros in
+	 * untouched bits. */
+	msk_f32_u32_one = ~msk_f32_u32_zro;
+
+	/* Copy the data into our buffer. */
+	for (fp = (float *)src, fp1 = dest; count < len; count++)
+	{
+	    *fp1 = *fp;
+	    /* Move to next float. */
+	    fp1++;
+	    fp++;
+	}
+
+	/* Bit-Groom: alternately shave and set LSBs */
+	op1.fp = (float *)dest;
+	u32_ptr = op1.ui32p;
+	for(idx = 0L; idx < len; idx += 2L)
+	    if (op1.fp[idx] != mss_val_cmp_flt)
+		u32_ptr[idx] &= msk_f32_u32_zro;
+	for(idx = 1L; idx < len; idx += 2L)
+	    if (op1.fp[idx] != mss_val_cmp_flt && u32_ptr[idx] != 0U) /* Never quantize upwards floating point values of zero */
+		u32_ptr[idx] |= msk_f32_u32_one;
+    }
+    else
+    {
+	bit_xpl_nbr_sgn = bit_xpl_nbr_sgn_dbl;	
+	bit_xpl_nbr_zro = bit_xpl_nbr_sgn - prc_bnr_xpl_rqr;
+	printf("bit_xpl_nbr_zro %d\n", bit_xpl_nbr_zro);
+	assert(bit_xpl_nbr_zro <= bit_xpl_nbr_sgn - NCO_PPC_BIT_XPL_NBR_MIN);
+	if (fill_value)
+	    mss_val_cmp_dbl = *(double *)fill_value;
+	else
+	    mss_val_cmp_dbl = NC_FILL_DOUBLE;
+
+	/* Create mask. */
+	msk_f64_u64_zro = 0ul; /* Zero all bits. */
+	msk_f64_u64_zro = ~msk_f64_u64_zro; /* Turn all bits to ones. */
+
+	/* Bit Shave mask for AND: Left shift zeros into bits to be
+	 * rounded, leave ones in untouched bits. */
+	msk_f64_u64_zro <<= bit_xpl_nbr_zro;
+
+	/* Bit Set mask for OR: Put ones into bits to be set, zeros in
+	 * untouched bits. */
+	msk_f64_u64_one =~ msk_f64_u64_zro;
+
+	for (dp = (double *)src, dp1 = dest; count < len; count++)
+	    *dp1++ = *dp++;
+	
+	/* Bit-Groom: alternately shave and set LSBs. */
+	op1.dp = (double *)dest;
+	u64_ptr = op1.ui64p;
+	for (idx = 0L; idx < len; idx += 2L)
+	    if (op1.dp[idx] != mss_val_cmp_dbl)
+		u64_ptr[idx] &= msk_f64_u64_zro;
+	for (idx = 1L; idx < len; idx += 2L)
+	    if (op1.dp[idx] != mss_val_cmp_dbl && u64_ptr[idx] != 0ULL) /* Never quantize upwards floating point values of zero */
+		u64_ptr[idx] |= msk_f64_u64_one;
+    }
+    assert(bit_xpl_nbr_zro <= bit_xpl_nbr_sgn - NCO_PPC_BIT_XPL_NBR_MIN);
 
     return 0;
 }
@@ -1394,8 +1440,9 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
         case NC_DOUBLE:
 	    if (quantize_mode == NC_QUANTIZE_BITGROOM)
 	    {
-		for (dp = (double *)src, dp1 = dest; count < len; count++)
-		    *dp1++ = *dp++;
+		if ((ret = nc4_quantize_data(src, dest, src_type, dest_type, len, range_error,
+					     fill_value, strict_nc3, quantize_mode, nsd)))
+		    return ret;
 	    }
 	    else
 	    {
