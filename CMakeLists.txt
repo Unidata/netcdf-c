@@ -670,12 +670,28 @@ IF(USE_HDF5)
     ##
     SET(HDF5_VERSION_REQUIRED 1.8.10)
 
+    # Some versions of HDF5 set HDF5_VERSION_STRING instead of HDF5_VERSION
     IF(HDF5_VERSION_STRING AND NOT HDF5_VERSION)
       SET(HDF5_VERSION ${HDF5_VERSION_STRING})
     ENDIF()
+
+
+    ###
+    # If HDF5_VERSION is undefined, attempt to determine it programatically.
+    ###
     IF("${HDF5_VERSION}" STREQUAL "")
-      MESSAGE(STATUS "Unable to determine hdf5 version.  NetCDF requires at least version ${HDF5_VERSION_REQUIRED}")
-    ELSE()
+      MESSAGE(STATUS "HDF5_VERSION not detected. Attempting to determine programatically.")
+      IF (EXISTS "${HDF5_INCLUDE_DIR}/H5pubconf.h")
+        file(READ "${HDF5_INCLUDE_DIR}/H5pubconf.h" _hdf5_version_lines
+          REGEX "#define[ \t]+H5_VERSION")
+        string(REGEX REPLACE ".*H5_VERSION .*\"\(.*\)\".*" "\\1" _hdf5_version "${_hdf5_version_lines}")
+        set(HDF5_VERSION "${_hdf5_version}")
+        unset(_hdf5_version)
+        unset(_hdf5_version_lines)
+        MESSAGE(STATUS "Found HDF5 libraries version ${HDF5_VERSION}")
+      ENDIF()
+
+    ELSE() # Original HDF5_VERSION blank check.
       IF(${HDF5_VERSION} VERSION_LESS ${HDF5_VERSION_REQUIRED})
         MESSAGE(FATAL_ERROR
 	      "netCDF requires at least HDF5 ${HDF5_VERSION_REQUIRED}. Found ${HDF5_VERSION}.")
@@ -683,6 +699,29 @@ IF(USE_HDF5)
         MESSAGE(STATUS "Found HDF5 libraries version ${HDF5_VERSION}")
       ENDIF()
     ENDIF()
+
+
+
+    ###
+    # If HDF5_VERSION is still empty, we have a problem.
+    # Error out.
+    ###
+    IF("${HDF5_VERSION}" STREQUAL "")
+      MESSAGE(FATAL_ERR "Unable to determine HDF5 version.  NetCDF requires at least version ${HDF5_VERSION_REQUIRED}. Please ensure that libhdf5 is installed and accessible.")
+    ENDIF()
+
+    ####
+    # Check to see if HDF5 library is 1.10.6 or greater.
+    # Used to control path name conversion
+    ####
+    IF(${HDF5_VERSION} VERSION_GREATER "1.10.5")
+      SET(HDF5_UTF8_PATHS ON)
+    ELSE()
+      SET(HDF5_UTF8_PATHS OFF)
+    ENDIF()
+
+    MESSAGE("-- HDF5_UTF8_PATHS (HDF5 version 1.10.6+): ${HDF5_UTF8_PATHS}")
+
 
     ##
     # Include the HDF5 include directory.
@@ -718,6 +757,10 @@ IF(USE_HDF5)
       ENDIF(${HDF5_VERSION} VERSION_GREATER "1.8.15")
 
     ELSE(MSVC)
+      ####
+      # Environmental variables in Windows when using MSVC
+      # are a hot mess between versions.
+      ####
 
       IF(HDF5_hdf5_LIBRARY AND NOT HDF5_C_LIBRARY)
         SET(HDF5_C_LIBRARY ${HDF5_hdf5_LIBRARY})
@@ -815,16 +858,6 @@ IF(USE_HDF5)
     SET(HDF5_HAS_PAR_FILTERS FALSE CACHE BOOL "")
     SET(HAS_PAR_FILTERS no CACHE STRING "")
   ENDIF()
-
-  # Check to see if HDF5 library is 1.10.6 or greater.
-  # Used to control path name conversion
-  IF(${HDF5_VERSION} VERSION_GREATER "1.10.5")
-    SET(HDF5_UTF8_PATHS ON)
-  ELSE()
-    SET(HDF5_UTF8_PATHS OFF)
-  ENDIF()
-
-  MESSAGE("-- Checking for HDF5 version 1.10.6 or later: ${HDF5_UTF8_PATHS}")
 
   FIND_PATH(HAVE_HDF5_H hdf5.h PATHS ${HDF5_INCLUDE_DIR} NO_DEFAULT_PATH)
   FIND_PATH(HAVE_HDF5_H hdf5.h)
