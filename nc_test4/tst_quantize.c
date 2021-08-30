@@ -215,7 +215,7 @@ main(int argc, char **argv)
 
         /* Turn on quantize for both vars. */
         if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, NSD_3)) ERR;
-        if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM, NSD_9)) ERR;
+        if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM, NSD_3)) ERR;
 
         /* Write some data. */
         if (nc_put_var_float(ncid, varid1, float_data)) ERR;
@@ -227,28 +227,30 @@ main(int argc, char **argv)
         {
             float float_in;
             double double_in;
-            union FU fin, fout;
-            union DU dfin, dfout;
+            union FU fin;
+            /* union FU fout; */
+            union DU dfin;
+	    /* union DU dfout; */
 
             /* Open the file and check metadata. */
             if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
             if (nc_inq_var_quantize(ncid, 0, &quantize_mode_in, &nsd_in)) ERR;
             if (quantize_mode_in != NC_QUANTIZE_BITGROOM || nsd_in != NSD_3) ERR;
             if (nc_inq_var_quantize(ncid, 1, &quantize_mode_in, &nsd_in)) ERR;
-            if (quantize_mode_in != NC_QUANTIZE_BITGROOM || nsd_in != NSD_9) ERR;
+            if (quantize_mode_in != NC_QUANTIZE_BITGROOM || nsd_in != NSD_3) ERR;
 
             /* Check the data. */
             if (nc_get_var(ncid, varid1, &float_in)) ERR;
             if (nc_get_var(ncid, varid2, &double_in)) ERR;
-            fout.f = float_data[0];
+            /* fout.f = float_data[0]; */
             fin.f = float_in;
-            dfout.d = double_data[0];
+            /* dfout.d = double_data[0]; */
             dfin.d = double_in;
-            printf ("\nfloat_data: %10f   : 0x%x  float_data_in: %10f   : 0x%x\n",
-                    float_data[0], fout.u, float_data[0], fin.u);
+            /* printf ("\nfloat_data: %10f   : 0x%x  float_data_in: %10f   : 0x%x\n", */
+            /*         float_data[0], fout.u, float_data[0], fin.u); */
             if (fin.u != 0x3f8e3000) ERR;
-            printf ("\ndouble_data: %15g   : 0x%16lx  double_data_in: %15g   : 0x%lx\n",
-                    double_data[0], dfout.u, double_data[0], dfin.u);
+            /* printf ("\ndouble_data: %15g   : 0x%16lx  double_data_in: %15g   : 0x%lx\n", */
+            /*         double_data[0], dfout.u, double_data[0], dfin.u); */
 	    if (dfin.u != 0x3ff1c60000000000) ERR;
 
             /* Close the file again. */
@@ -272,7 +274,7 @@ main(int argc, char **argv)
 
         /* Turn on quantize for both vars. */
         if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, NSD_3)) ERR;
-        if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM, NSD_9)) ERR;
+        if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM, NSD_3)) ERR;
 
         /* Write some data. */
         if (nc_put_var_float(ncid, varid1, float_data)) ERR;
@@ -289,10 +291,11 @@ main(int argc, char **argv)
                 uint32_t u;
             };
 
-            union FU fin, fout;
+            union FU fin;
+            /* union FU fout; */
             union FU xpect[DIM_LEN_5];
             union DU dfin;
-            union DU dfout;
+            /* union DU dfout; */
             union DU double_xpect[DIM_LEN_5];
             xpect[0].u = 0x3f8e3000;
             xpect[1].u = 0x3f800fff;
@@ -310,24 +313,24 @@ main(int argc, char **argv)
             if (nc_inq_var_quantize(ncid, 0, &quantize_mode_in, &nsd_in)) ERR;
             if (quantize_mode_in != NC_QUANTIZE_BITGROOM || nsd_in != NSD_3) ERR;
             if (nc_inq_var_quantize(ncid, 1, &quantize_mode_in, &nsd_in)) ERR;
-            if (quantize_mode_in != NC_QUANTIZE_BITGROOM || nsd_in != NSD_9) ERR;
+            if (quantize_mode_in != NC_QUANTIZE_BITGROOM || nsd_in != NSD_3) ERR;
 
             /* Check the data. */
             if (nc_get_var(ncid, varid1, float_in)) ERR;
             if (nc_get_var(ncid, varid2, double_in)) ERR;
-            printf("\n");
+            /* printf("\n"); */
             for (x = 0; x < DIM_LEN_5; x++)
             {
-                fout.f = float_data[x];
+                /* fout.f = float_data[x]; */
                 fin.f = float_in[x];
                 /* printf ("float_data: %10f   : 0x%x  float_data_in: %10f   : 0x%x\n", */
                 /*         float_data[x], fout.u, float_data[x], fin.u); */
                 if (fin.u != xpect[x].u) ERR;
-                dfout.d = double_data[x];		
+                /* dfout.d = double_data[x];		 */
 		dfin.d = double_in[x];
-                printf ("double_data: %15g   : 0x%0.16lx  double_data_in: %15g   : 0x%0.16lx\n",
-                        double_data[x], dfout.u, double_data[x], dfin.u);
-                /* if (dfin.u != double_xpect[x].u) ERR; */
+                /* printf("double_data: %15g   : 0x%16lx  double_data_in: %15g   : 0x%16lx\n", */
+		/*        double_data[x], dfout.u, double_data[x], dfin.u); */
+                if (dfin.u != double_xpect[x].u) ERR;
             }
 
             /* Close the file again. */
