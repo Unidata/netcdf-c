@@ -577,7 +577,6 @@ nc4_quantize_data(const void *src, void *dest, const nc_type src_type,
     {
 	bit_xpl_nbr_sgn = bit_xpl_nbr_sgn_dbl;	
 	bit_xpl_nbr_zro = bit_xpl_nbr_sgn - prc_bnr_xpl_rqr;
-	printf("bit_xpl_nbr_zro %d\n", bit_xpl_nbr_zro);
 	assert(bit_xpl_nbr_zro <= bit_xpl_nbr_sgn - NCO_PPC_BIT_XPL_NBR_MIN);
 	if (fill_value)
 	    mss_val_cmp_dbl = *(double *)fill_value;
