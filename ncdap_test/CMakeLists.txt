@@ -37,10 +37,11 @@ IF(ENABLE_TESTS)
     add_sh_test(ncdap testpathcvt)
     IF(HAVE_BASH)
       SET_TESTS_PROPERTIES(ncdap_tst_ncdap3 PROPERTIES RUN_SERIAL TRUE)
+      SET_TESTS_PROPERTIES(ncdap_testpathcvt PROPERTIES RUN_SERIAL TRUE)
     ENDIF(HAVE_BASH)
     
-    SET_TESTS_PROPERTIES(ncdap_testpathcvt PROPERTIES RUN_SERIAL TRUE)
-ENDIF()
+    
+  ENDIF()
 
   IF(NOT MSVC)
     add_bin_env_test(ncdap t_dap3a)
