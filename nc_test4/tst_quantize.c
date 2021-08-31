@@ -551,6 +551,86 @@ main(int argc, char **argv)
     SUMMARIZE_ERR;
     printf("**** testing more quantization values with default fill values...");
     {
+        int ncid, dimid, varid1, varid2;
+        int quantize_mode_in, nsd_in;
+        float float_data[DIM_LEN_5] = {1.11111111, NC_FILL_FLOAT, 9.99999999, 12345.67, NC_FILL_FLOAT};
+        double double_data[DIM_LEN_5] = {1.1111111, NC_FILL_DOUBLE, 9.999999999, 1234567890.12345, NC_FILL_DOUBLE};
+        int x;
+
+        /* Create a netcdf-4 file with two vars. */
+        if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
+        if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_5, &dimid)) ERR;
+        if (nc_def_var(ncid, VAR_NAME_1, NC_FLOAT, NDIMS1, &dimid, &varid1)) ERR;
+        if (nc_def_var(ncid, VAR_NAME_2, NC_DOUBLE, NDIMS1, &dimid, &varid2)) ERR;
+
+        /* Turn on quantize for both vars. */
+        if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, NSD_3)) ERR;
+        if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM, NSD_3)) ERR;
+
+        /* Write some data. */
+        if (nc_put_var_float(ncid, varid1, float_data)) ERR;
+        if (nc_put_var_double(ncid, varid2, double_data)) ERR;
+
+        /* Close the file. */
+        if (nc_close(ncid)) ERR;
+
+        {
+            float float_in[DIM_LEN_5];
+            double double_in[DIM_LEN_5];
+            union FU {
+                float f;
+                uint32_t u;
+            };
+
+            union FU fin;
+            /* union FU fout; */
+            union FU xpect[DIM_LEN_5];
+            union DU dfin;
+            /* union DU dfout; */
+            union DU double_xpect[DIM_LEN_5];
+	    xpect[0].u = 0x3f8e3000;
+	    xpect[1].u = 0x7cf00000;
+	    xpect[2].u = 0x41200000;
+	    xpect[3].u = 0x4640efff;
+	    xpect[4].u = 0x7cf00000;
+	    double_xpect[0].u = 0x3ff1c60000000000;
+	    double_xpect[1].u = 0x479e000000000000;
+	    double_xpect[2].u = 0x4023fe0000000000;
+	    double_xpect[3].u = 0x41d265ffffffffff;
+	    double_xpect[4].u = 0x479e000000000000;
+
+            /* Open the file and check metadata. */
+            if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+            if (nc_inq_var_quantize(ncid, 0, &quantize_mode_in, &nsd_in)) ERR;
+            if (quantize_mode_in != NC_QUANTIZE_BITGROOM || nsd_in != NSD_3) ERR;
+            if (nc_inq_var_quantize(ncid, 1, &quantize_mode_in, &nsd_in)) ERR;
+            if (quantize_mode_in != NC_QUANTIZE_BITGROOM || nsd_in != NSD_3) ERR;
+
+            /* Check the data. */
+            if (nc_get_var(ncid, varid1, float_in)) ERR;
+            if (nc_get_var(ncid, varid2, double_in)) ERR;
+            /* printf("\n"); */
+            for (x = 0; x < DIM_LEN_5; x++)
+            {
+                /* fout.f = float_data[x]; */
+                fin.f = float_in[x];
+                /* printf ("float_data: %10f   : 0x%x  float_data_in: %10f   : 0x%x\n", */
+                /*         float_data[x], fout.u, float_data[x], fin.u); */
+                if (fin.u != xpect[x].u) ERR;
+                /* dfout.d = double_data[x];		 */
+		dfin.d = double_in[x];
+                /* printf("double_data: %15g   : 0x%16lx  double_data_in: %15g   : 0x%16lx\n", */
+		/*        double_data[x], dfout.u, double_data[x], dfin.u); */
+                if (dfin.u != double_xpect[x].u) ERR;
+            }
+
+            /* Close the file again. */
+            if (nc_close(ncid)) ERR;
+        }
+    }
+    SUMMARIZE_ERR;
+    printf("**** testing more quantization values with custom fill values...");
+    {
 	#define CUSTOM_FILL_FLOAT 99.99999
 	#define CUSTOM_FILL_DOUBLE -99999.99999
         int ncid, dimid, varid1, varid2;
