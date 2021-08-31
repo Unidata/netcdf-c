@@ -573,10 +573,10 @@ nc4_quantize_data(const void *src, void *dest, const nc_type src_type,
 	/* Bit-Groom: alternately shave and set LSBs */
 	op1.fp = (float *)dest;
 	u32_ptr = op1.ui32p;
-	for(idx = 0L; idx < len; idx += 2L)
+	for (idx = 0L; idx < len; idx += 2L)
 	    if (op1.fp[idx] != mss_val_cmp_flt)
 		u32_ptr[idx] &= msk_f32_u32_zro;
-	for(idx = 1L; idx < len; idx += 2L)
+	for (idx = 1L; idx < len; idx += 2L)
 	    if (op1.fp[idx] != mss_val_cmp_flt && u32_ptr[idx] != 0U) /* Never quantize upwards floating point values of zero */
 		u32_ptr[idx] |= msk_f32_u32_one;
     }
@@ -605,7 +605,7 @@ nc4_quantize_data(const void *src, void *dest, const nc_type src_type,
 	/* Copy the data into our buffer. */
 	if (src_type == NC_FLOAT)
 	    for (fp = (float *)src, dp1 = dest; count < len; count++)
-		*dp1++ = *dp++;
+		*dp1++ = *fp++;
 	else
 	    for (dp = (double *)src, dp1 = dest; count < len; count++)
 		*dp1++ = *dp++;
@@ -1432,12 +1432,9 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
         case NC_FLOAT:
 	    if (quantize_mode == NC_QUANTIZE_BITGROOM)
 	    {
-		for (dp = (double *)src, fp = dest; count < len; count++)
-		{
-		    if (isgreater(*dp, X_FLOAT_MAX) || isless(*dp, X_FLOAT_MIN))
-			(*range_error)++;
-		    *fp++ = *dp++;
-		}
+		if ((ret = nc4_quantize_data(src, dest, src_type, dest_type, len, range_error,
+					     fill_value, strict_nc3, quantize_mode, nsd)))
+		    return ret;
 	    }
 	    else
 	    {
