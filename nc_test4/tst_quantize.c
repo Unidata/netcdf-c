@@ -551,17 +551,23 @@ main(int argc, char **argv)
     SUMMARIZE_ERR;
     printf("**** testing more quantization values with default fill values...");
     {
+	#define CUSTOM_FILL_FLOAT 99.99999
+	#define CUSTOM_FILL_DOUBLE -99999.99999
         int ncid, dimid, varid1, varid2;
         int quantize_mode_in, nsd_in;
-        float float_data[DIM_LEN_5] = {1.11111111, NC_FILL_FLOAT, 9.99999999, 12345.67, NC_FILL_FLOAT};
-        double double_data[DIM_LEN_5] = {1.1111111, NC_FILL_DOUBLE, 9.999999999, 1234567890.12345, NC_FILL_DOUBLE};
+        float float_data[DIM_LEN_5] = {1.11111111, CUSTOM_FILL_FLOAT, 9.99999999, 12345.67, CUSTOM_FILL_FLOAT};
+        double double_data[DIM_LEN_5] = {1.1111111, CUSTOM_FILL_DOUBLE, 9.999999999, 1234567890.12345, CUSTOM_FILL_DOUBLE};
+	float custom_fill_float = CUSTOM_FILL_FLOAT;
+	double custom_fill_double = CUSTOM_FILL_DOUBLE;
         int x;
 
         /* Create a netcdf-4 file with two vars. */
         if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
         if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_5, &dimid)) ERR;
         if (nc_def_var(ncid, VAR_NAME_1, NC_FLOAT, NDIMS1, &dimid, &varid1)) ERR;
+	if (nc_put_att_float(ncid, varid1, _FillValue, NC_FLOAT, 1, &custom_fill_float)) ERR;
         if (nc_def_var(ncid, VAR_NAME_2, NC_DOUBLE, NDIMS1, &dimid, &varid2)) ERR;
+	if (nc_put_att_double(ncid, varid2, _FillValue, NC_DOUBLE, 1, &custom_fill_double)) ERR;
 
         /* Turn on quantize for both vars. */
         if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, NSD_3)) ERR;
@@ -589,15 +595,15 @@ main(int argc, char **argv)
             /* union DU dfout; */
             union DU double_xpect[DIM_LEN_5];
 	    xpect[0].u = 0x3f8e3000;
-	    xpect[1].u = 0x7cf00000;
+	    xpect[1].u = 0x42c7ffff;
 	    xpect[2].u = 0x41200000;
 	    xpect[3].u = 0x4640efff;
-	    xpect[4].u = 0x7cf00000;
+	    xpect[4].u = 0x42c7ffff;
 	    double_xpect[0].u = 0x3ff1c60000000000;
-	    double_xpect[1].u = 0x479e000000000000;
+	    double_xpect[1].u = 0xc0f869fffff583a5;
 	    double_xpect[2].u = 0x4023fe0000000000;
 	    double_xpect[3].u = 0x41d265ffffffffff;
-	    double_xpect[4].u = 0x479e000000000000;
+	    double_xpect[4].u = 0xc0f869fffff583a5;
 
             /* Open the file and check metadata. */
             if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
