@@ -838,6 +838,7 @@ NC4_def_var_chunking(int ncid, int varid, int storage, const size_t *chunksizesp
 /**
  * @internal Define chunking stuff for a var. This is called by
  * the fortran API.
+ * Note: see libsrc4/nc4cache.c for definition when HDF5 is disabled
  *
  * @param ncid File ID.
  * @param varid Variable ID.
@@ -2147,6 +2148,7 @@ NC4_HDF5_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
 /**
  * @internal A wrapper for NC4_set_var_chunk_cache(), we need this
  * version for fortran. Negative values leave settings as they are.
+ * Note: see libsrc4/nc4cache.c for definition when HDF5 is disabled
  *
  * @param ncid File ID.
  * @param varid Variable ID.
