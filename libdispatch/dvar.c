@@ -1338,27 +1338,27 @@ nc_get_var_chunk_cache(int ncid, int varid, size_t *sizep, size_t *nelemsp,
 int
 nc_set_chunk_cache_ints(int size, int nelems, int preemption)
 {
-    return NC_ENOTNC4;
+    return NC_ENOTBUILT;
 }
 
 int
 nc_get_chunk_cache_ints(int *sizep, int *nelemsp, int *preemptionp)
 {
-    return NC_ENOTNC4;
+    return NC_ENOTBUILT;
 }
 
 int
 nc_set_var_chunk_cache_ints(int ncid, int varid, int size, int nelems,
 			    int preemption)
 {
-    return NC_NOERR;
+    return NC_ENOTBUILT;
 }
 
 int
 nc_get_var_chunk_cache_ints(int ncid, int varid, int *sizep,
 			    int *nelemsp, int *preemptionp)
 {
-    return NC_ENOTNC4;
+    return NC_ENOTBUILT;
 }
 
 #endif /*USE_NETCDF4*/
