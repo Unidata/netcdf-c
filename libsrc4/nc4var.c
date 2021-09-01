@@ -519,6 +519,14 @@ nc4_quantize_data(const void *src, void *dest, const nc_type src_type,
     ptr_unn op1; /* I/O [frc] Values to quantize */
     float *fp, *fp1;
     double *dp, *dp1;
+    int *ip;
+    short *sp;
+    signed char *bp;
+    unsigned char *ubp;
+    unsigned short *usp;
+    unsigned int *uip;
+    long long *lip;
+    unsigned long long *ulip;
     size_t count = 0;
 
     /* How many bits to preserve? */
@@ -533,7 +541,7 @@ nc4_quantize_data(const void *src, void *dest, const nc_type src_type,
     /* if (dest_type == NC_FLOAT  && prc_bnr_xpl_rqr >= bit_xpl_nbr_sgn_flt) return; */
     /* if (dest_type == NC_DOUBLE && prc_bnr_xpl_rqr >= bit_xpl_nbr_sgn_dbl) return; */
 
-    /* Determine the fill value. */
+    /* Determine masks, copy the data, do the quantization. */
     if (dest_type == NC_FLOAT)
     {
 	bit_xpl_nbr_sgn = bit_xpl_nbr_sgn_flt;
@@ -555,21 +563,90 @@ nc4_quantize_data(const void *src, void *dest, const nc_type src_type,
 	msk_f32_u32_one = ~msk_f32_u32_zro;
 	
 	/* Copy the data into our buffer. */
-	if (src_type == NC_FLOAT)
+	switch (src_type)
 	{
+        case NC_UBYTE:
+            for (fp = (float *)src, ubp = dest; count < len; count++)
+            {
+                if (*fp > X_UCHAR_MAX || *fp < 0)
+                    (*range_error)++;
+                *ubp++ = *fp++;
+            }
+            break;
+        case NC_BYTE:
+            for (fp = (float *)src, bp = dest; count < len; count++)
+            {
+                if (*fp > (double)X_SCHAR_MAX || *fp < (double)X_SCHAR_MIN)
+                    (*range_error)++;
+                *bp++ = *fp++;
+            }
+            break;
+        case NC_SHORT:
+            for (fp = (float *)src, sp = dest; count < len; count++)
+            {
+                if (*fp > (double)X_SHORT_MAX || *fp < (double)X_SHORT_MIN)
+                    (*range_error)++;
+                *sp++ = *fp++;
+            }
+            break;
+        case NC_USHORT:
+            for (fp = (float *)src, usp = dest; count < len; count++)
+            {
+                if (*fp > X_USHORT_MAX || *fp < 0)
+                    (*range_error)++;
+                *usp++ = *fp++;
+            }
+            break;
+        case NC_UINT:
+            for (fp = (float *)src, uip = dest; count < len; count++)
+            {
+                if (*fp > X_UINT_MAX || *fp < 0)
+                    (*range_error)++;
+                *uip++ = *fp++;
+            }
+            break;
+        case NC_INT:
+            for (fp = (float *)src, ip = dest; count < len; count++)
+            {
+                if (*fp > (double)X_INT_MAX || *fp < (double)X_INT_MIN)
+                    (*range_error)++;
+                *ip++ = *fp++;
+            }
+            break;
+        case NC_INT64:
+            for (fp = (float *)src, lip = dest; count < len; count++)
+            {
+                if (*fp > X_INT64_MAX || *fp <X_INT64_MIN)
+                    (*range_error)++;
+                *lip++ = *fp++;
+            }
+            break;
+        case NC_UINT64:
+            for (fp = (float *)src, ulip = dest; count < len; count++)
+            {
+                if (*fp > X_UINT64_MAX || *fp < 0)
+                    (*range_error)++;
+                *ulip++ = *fp++;
+            }
+            break;
+	case NC_FLOAT:
 	    for (fp = (float *)src, fp1 = dest; count < len; count++)
 		*fp1++ = *fp++;
-	}
-	else
-	{
+	    break;
+	case NC_DOUBLE:
 	    for (dp = (double *)src, fp1 = dest; count < len; count++)
 	    {
 		if (isgreater(*dp, X_FLOAT_MAX) || isless(*dp, X_FLOAT_MIN))
 		    (*range_error)++;
 		*fp1++ = *dp++;
 	    }
+	    break;
+	default:
+            LOG((0, "%s: unexpected dest type. src_type %d, dest_type %d",
+                 __func__, src_type, dest_type));
+            return NC_EBADTYPE;
 	}
-	
+	    
 	/* Bit-Groom: alternately shave and set LSBs */
 	op1.fp = (float *)dest;
 	u32_ptr = op1.ui32p;

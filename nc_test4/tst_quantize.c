@@ -15,11 +15,12 @@
 
 #define TEST "tst_quantize"
 #define FILE_NAME "tst_quantize.nc"
-#define NDIMS1 1
+#define NDIM1 1
 #define DIM_NAME_1 "meters_along_canal"
 #define DIM_LEN_3 3
 #define DIM_LEN_1 1
 #define DIM_LEN_5 5
+#define DIM_LEN_8 8
 #define VAR_NAME_1 "Amsterdam_houseboat_location"
 #define VAR_NAME_2 "Amsterdam_street_noise_decibels"
 #define NSD_3 3
@@ -81,7 +82,7 @@ main(int argc, char **argv)
          * quantization. It will not work. */
         if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
         if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_3, &dimid)) ERR;
-        if (nc_def_var(ncid, VAR_NAME_1, NC_FLOAT, NDIMS1, &dimid, &varid1)) ERR;
+        if (nc_def_var(ncid, VAR_NAME_1, NC_FLOAT, NDIM1, &dimid, &varid1)) ERR;
         if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, NSD_3) != NC_ENOTNC4) ERR;
         if (nc_inq_var_quantize(ncid, varid1, &quantize_mode_in, &nsd_in) != NC_ENOTNC4) ERR;
         if (nc_close(ncid)) ERR;
@@ -90,8 +91,8 @@ main(int argc, char **argv)
          * quantization. It will work, eventually... */
         if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
         if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_3, &dimid)) ERR;
-        if (nc_def_var(ncid, VAR_NAME_1, NC_FLOAT, NDIMS1, &dimid, &varid1)) ERR;
-        if (nc_def_var(ncid, VAR_NAME_2, NC_DOUBLE, NDIMS1, &dimid, &varid2)) ERR;
+        if (nc_def_var(ncid, VAR_NAME_1, NC_FLOAT, NDIM1, &dimid, &varid1)) ERR;
+        if (nc_def_var(ncid, VAR_NAME_2, NC_DOUBLE, NDIM1, &dimid, &varid2)) ERR;
 
         /* Bad varid. */
         if (nc_def_var_quantize(ncid, NC_GLOBAL, NC_QUANTIZE_BITGROOM, NSD_3) != NC_EGLOBAL) ERR;
@@ -274,8 +275,8 @@ main(int argc, char **argv)
         /* Create a netcdf-4 file with two vars. */
         if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
         if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_1, &dimid)) ERR;
-        if (nc_def_var(ncid, VAR_NAME_1, NC_FLOAT, NDIMS1, &dimid, &varid1)) ERR;
-        if (nc_def_var(ncid, VAR_NAME_2, NC_DOUBLE, NDIMS1, &dimid, &varid2)) ERR;
+        if (nc_def_var(ncid, VAR_NAME_1, NC_FLOAT, NDIM1, &dimid, &varid1)) ERR;
+        if (nc_def_var(ncid, VAR_NAME_2, NC_DOUBLE, NDIM1, &dimid, &varid2)) ERR;
 
         /* Turn on quantize for both vars. */
         if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, NSD_3)) ERR;
@@ -333,8 +334,8 @@ main(int argc, char **argv)
         /* Create a netcdf-4 file with two vars. */
         if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
         if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_5, &dimid)) ERR;
-        if (nc_def_var(ncid, VAR_NAME_1, NC_FLOAT, NDIMS1, &dimid, &varid1)) ERR;
-        if (nc_def_var(ncid, VAR_NAME_2, NC_DOUBLE, NDIMS1, &dimid, &varid2)) ERR;
+        if (nc_def_var(ncid, VAR_NAME_1, NC_FLOAT, NDIM1, &dimid, &varid1)) ERR;
+        if (nc_def_var(ncid, VAR_NAME_2, NC_DOUBLE, NDIM1, &dimid, &varid2)) ERR;
 
         /* Turn on quantize for both vars. */
         if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, NSD_3)) ERR;
@@ -412,8 +413,8 @@ main(int argc, char **argv)
         /* Create a netcdf-4 file with two vars. */
         if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
         if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_1, &dimid)) ERR;
-        if (nc_def_var(ncid, VAR_NAME_1, NC_FLOAT, NDIMS1, &dimid, &varid1)) ERR;
-        if (nc_def_var(ncid, VAR_NAME_2, NC_DOUBLE, NDIMS1, &dimid, &varid2)) ERR;
+        if (nc_def_var(ncid, VAR_NAME_1, NC_FLOAT, NDIM1, &dimid, &varid1)) ERR;
+        if (nc_def_var(ncid, VAR_NAME_2, NC_DOUBLE, NDIM1, &dimid, &varid2)) ERR;
 
         /* Turn on quantize for both vars. */
         if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, NSD_3)) ERR;
@@ -480,8 +481,8 @@ main(int argc, char **argv)
         /* Create a netcdf-4 file with two vars. */
         if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
         if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_5, &dimid)) ERR;
-        if (nc_def_var(ncid, VAR_NAME_1, NC_FLOAT, NDIMS1, &dimid, &varid1)) ERR;
-        if (nc_def_var(ncid, VAR_NAME_2, NC_DOUBLE, NDIMS1, &dimid, &varid2)) ERR;
+        if (nc_def_var(ncid, VAR_NAME_1, NC_FLOAT, NDIM1, &dimid, &varid1)) ERR;
+        if (nc_def_var(ncid, VAR_NAME_2, NC_DOUBLE, NDIM1, &dimid, &varid2)) ERR;
 
         /* Turn on quantize for both vars. */
         if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, NSD_3)) ERR;
@@ -560,8 +561,8 @@ main(int argc, char **argv)
         /* Create a netcdf-4 file with two vars. */
         if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
         if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_5, &dimid)) ERR;
-        if (nc_def_var(ncid, VAR_NAME_1, NC_FLOAT, NDIMS1, &dimid, &varid1)) ERR;
-        if (nc_def_var(ncid, VAR_NAME_2, NC_DOUBLE, NDIMS1, &dimid, &varid2)) ERR;
+        if (nc_def_var(ncid, VAR_NAME_1, NC_FLOAT, NDIM1, &dimid, &varid1)) ERR;
+        if (nc_def_var(ncid, VAR_NAME_2, NC_DOUBLE, NDIM1, &dimid, &varid2)) ERR;
 
         /* Turn on quantize for both vars. */
         if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, NSD_3)) ERR;
@@ -644,9 +645,9 @@ main(int argc, char **argv)
         /* Create a netcdf-4 file with two vars. */
         if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
         if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_5, &dimid)) ERR;
-        if (nc_def_var(ncid, VAR_NAME_1, NC_FLOAT, NDIMS1, &dimid, &varid1)) ERR;
+        if (nc_def_var(ncid, VAR_NAME_1, NC_FLOAT, NDIM1, &dimid, &varid1)) ERR;
 	if (nc_put_att_float(ncid, varid1, _FillValue, NC_FLOAT, 1, &custom_fill_float)) ERR;
-        if (nc_def_var(ncid, VAR_NAME_2, NC_DOUBLE, NDIMS1, &dimid, &varid2)) ERR;
+        if (nc_def_var(ncid, VAR_NAME_2, NC_DOUBLE, NDIM1, &dimid, &varid2)) ERR;
 	if (nc_put_att_double(ncid, varid2, _FillValue, NC_DOUBLE, 1, &custom_fill_double)) ERR;
 
         /* Turn on quantize for both vars. */
@@ -715,8 +716,115 @@ main(int argc, char **argv)
         }
     }
     SUMMARIZE_ERR;
+    printf("*** Checking BitGroom values with type conversion between ints and floats...");
+    {
+        int ncid;
+        int dimid;
+        int varid1, varid2;
+	unsigned char uc = 99;
+	signed char sc = -99;
+	unsigned short us = 9999;
+	signed short ss = -9999;
+	unsigned int ui = 9999999;
+	signed int si = -9999999;
+	unsigned long long int ull = 999999999;
+	signed long long int sll = -999999999;
+	size_t index;
 
+        /* Create file. */
+        if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+
+        /* Create dims. */
+        if (nc_def_dim(ncid, X_NAME, DIM_LEN_8, &dimid)) ERR;
+
+        /* Create the variables. */
+        if (nc_def_var(ncid, VAR_NAME, NC_FLOAT, NDIM1, &dimid, &varid1)) ERR;
+        if (nc_def_var(ncid, VAR_NAME_2, NC_DOUBLE, NDIM1, &dimid, &varid2)) ERR;
+
+        /* Set up quantization. */
+        if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, NSD_3)) ERR;
+        if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM, NSD_3)) ERR;
+
+        /* Write data. */
+	index = 0;
+        if (nc_put_var1_uchar(ncid, varid1, &index, &uc)) ERR;
+        if (nc_put_var1_uchar(ncid, varid2, &index, &uc)) ERR;
+	index = 1;
+        if (nc_put_var1_schar(ncid, varid1, &index, &sc)) ERR;
+        if (nc_put_var1_schar(ncid, varid2, &index, &sc)) ERR;
+	index = 2;
+        if (nc_put_var1_ushort(ncid, varid1, &index, &us)) ERR;
+        if (nc_put_var1_ushort(ncid, varid2, &index, &us)) ERR;
+	index = 3;
+        if (nc_put_var1_short(ncid, varid1, &index, &ss)) ERR;
+        if (nc_put_var1_short(ncid, varid2, &index, &ss)) ERR;
+	index = 4;
+        if (nc_put_var1_uint(ncid, varid1, &index, &ui)) ERR;
+        if (nc_put_var1_uint(ncid, varid2, &index, &ui)) ERR;
+	index = 5;
+        if (nc_put_var1_int(ncid, varid1, &index, &si)) ERR;
+        if (nc_put_var1_int(ncid, varid2, &index, &si)) ERR;
+	index = 6;
+        if (nc_put_var1_ulonglong(ncid, varid1, &index, &ull)) ERR;
+        if (nc_put_var1_ulonglong(ncid, varid2, &index, &ull)) ERR;
+	index = 7;
+        if (nc_put_var1_longlong(ncid, varid1, &index, &sll)) ERR;
+        if (nc_put_var1_longlong(ncid, varid2, &index, &sll)) ERR;
+
+        /* Close the file. */
+        if (nc_close(ncid)) ERR;
+
+        {
+            float float_data_in[DIM_LEN_8];
+            double double_data_in[DIM_LEN_8];
+	    int x;
+
+            /* Now reopen the file and check. */
+            if (nc_open(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+
+            /* Read the data. */
+            if (nc_get_var_float(ncid, varid1, float_data_in)) ERR;
+            if (nc_get_var_double(ncid, varid2, double_data_in)) ERR;
+
+	    union FU xpect[DIM_LEN_8];
+	    union DU double_xpect[DIM_LEN_8];
+	    xpect[0].u = 0x42c60000;
+	    xpect[1].u = 0xc2c60fff;
+	    xpect[2].u = 0x461c3000;
+	    xpect[3].u = 0xc61c3fff;
+	    xpect[4].u = 0x4b189000;
+	    xpect[5].u = 0xcb189fff;
+	    xpect[6].u = 0x4e6e6000;
+	    xpect[7].u = 0xce6e6fff;
+	    double_xpect[0].u = 0x4058c00000000000;
+	    double_xpect[1].u = 0xc058c1ffffffffff;
+	    double_xpect[2].u = 0x40c3860000000000;
+	    double_xpect[3].u = 0xc0c387ffffffffff;
+	    double_xpect[4].u = 0x4163120000000000;
+	    double_xpect[5].u = 0xc16313ffffffffff;
+	    double_xpect[6].u = 0x41cdcc0000000000;
+	    double_xpect[7].u = 0xc1cdcdffffffffff;
+
+	    for (x = 0; x < DIM_LEN_8; x++)
+	    {
+		union FU fin;
+		union DU dfin;
+		fin.f = float_data_in[x];
+		dfin.d = double_data_in[x];
+		printf ("%d float_data_in : %08.8f   : 0x%x expected %08.8f   : 0x%x\n",
+			x, float_data_in[x], fin.u, xpect[x].f, xpect[x].u);
+		/* printf ("%d double_data_in : %15g   : 0x%lx expected %15g   : 0x%lx\n", */
+		/* 	x, double_data_in[x], dfin.u, double_xpect[x].d, double_xpect[x].u); */
+		if (fin.u != xpect[x].u)
+		    ERR;
+		/* if (dfin.u != double_xpect[x].u) */
+		/*     ERR; */
+	    }
+
+            /* Close the file. */
+            if (nc_close(ncid)) ERR;
+        }
+    }
+    SUMMARIZE_ERR;
     FINAL_RESULTS;
-
-
 }
