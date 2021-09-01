@@ -478,234 +478,6 @@ NC4_var_par_access(int ncid, int varid, int par_access)
 
 /**
  * @internal Copy data from one buffer to another, performing
- * quantization.
- *
- * This function applies quantization to float and double data, if
- * desired. The code to do this is derived from the bitgroom filter in
- * the CCR project (see
- * https://github.com/ccr/ccr/blob/master/hdf5_plugins/BITGROOM/src/H5Zbitgroom.c).
- *
- * @param src Pointer to source of data.
- * @param dest Pointer that gets data.
- * @param src_type Type ID of source data.
- * @param dest_type Type ID of destination data.
- * @param len Number of elements of data to copy.
- * @param range_error Pointer that gets 1 if there was a range error.
- * @param fill_value The fill value.
- * @param strict_nc3 Non-zero if strict model in effect.
- * @param quantize_mode May be ::NC_NOQUANTIZE or
- * ::NC_QUANTIZE_BITGROOM.
- * @param nsd Number of significant diggits for quantizize. Ignored
- * unless quantize_mode is ::NC_QUANTIZE_BITGROOM.
- *
- * @returns ::NC_NOERR No error.
- * @returns ::NC_EBADTYPE Type not found.
- * @author Ed Hartnett, Dennis Heimbigner
- */
-int
-nc4_quantize_data(const void *src, void *dest, const nc_type src_type,
-                 const nc_type dest_type, const size_t len, int *range_error,
-                 const void *fill_value, int strict_nc3, int quantize_mode,
-		 int nsd)
-{
-    const double bit_per_dcm_dgt_prc = M_LN10 / M_LN2; /* 3.32 [frc] Bits per decimal digit of precision */
-    double mss_val_cmp_dbl; /* Missing value for comparison to double precision values */
-    float mss_val_cmp_flt; /* Missing value for comparison to single precision values */
-    int bit_xpl_nbr_zro; /* [nbr] Number of explicit bits to zero */
-    size_t idx;
-
-    unsigned int *u32_ptr;
-    unsigned int msk_f32_u32_zro;
-    unsigned int msk_f32_u32_one;
-    unsigned long long int *u64_ptr;
-    unsigned long long int msk_f64_u64_zro;
-    unsigned long long int msk_f64_u64_one;
-    unsigned short prc_bnr_xpl_rqr; /* [nbr] Explicitly represented binary digits required to retain */
-    ptr_unn op1; /* I/O [frc] Values to quantize */
-    float *fp, *fp1;
-    double *dp, *dp1;
-    int *ip;
-    short *sp;
-    signed char *bp;
-    unsigned char *ubp;
-    unsigned short *usp;
-    unsigned int *uip;
-    long long *lip;
-    unsigned long long *ulip;
-    size_t count = 0;
-
-    /* How many bits to preserve? Being conservative, we round up the
-     * exact binary digits of precision. Add one because the first bit
-     * is implicit not explicit but corner cases prevent our taking
-     * advantage of this. */
-    prc_bnr_xpl_rqr = (unsigned short)ceil(nsd * bit_per_dcm_dgt_prc) + 1;
-    if (dest_type == NC_DOUBLE)
-	prc_bnr_xpl_rqr++; /* Seems necessary for double-precision
-                            * ppc=array(1.234567,1.0e-6,$dmn) */
-
-    /* Determine masks, copy the data, do the quantization. */
-    if (dest_type == NC_FLOAT)
-    {
-        /* Determine the fill value. */
-	if (fill_value)
-	    mss_val_cmp_flt = *(float *)fill_value;
-	else
-	    mss_val_cmp_flt = NC_FILL_FLOAT;
-
-	bit_xpl_nbr_zro = BIT_XPL_NBR_SGN_FLT - prc_bnr_xpl_rqr;
-
-	/* Create mask */
-	msk_f32_u32_zro = 0u; /* Zero all bits */
-	msk_f32_u32_zro = ~msk_f32_u32_zro; /* Turn all bits to ones */
-
-	/* Bit Shave mask for AND: Left shift zeros into bits to be
-	 * rounded, leave ones in untouched bits. */
-	msk_f32_u32_zro <<= bit_xpl_nbr_zro;
-
-	/* Bit Set mask for OR: Put ones into bits to be set, zeros in
-	 * untouched bits. */
-	msk_f32_u32_one = ~msk_f32_u32_zro;
-	
-	/* Copy the data into our buffer. */
-	switch (src_type)
-	{
-        case NC_UBYTE:
-            for (fp = (float *)src, ubp = dest; count < len; count++)
-            {
-                if (*fp > X_UCHAR_MAX || *fp < 0)
-                    (*range_error)++;
-                *ubp++ = *fp++;
-            }
-            break;
-        case NC_BYTE:
-            for (fp = (float *)src, bp = dest; count < len; count++)
-            {
-                if (*fp > (double)X_SCHAR_MAX || *fp < (double)X_SCHAR_MIN)
-                    (*range_error)++;
-                *bp++ = *fp++;
-            }
-            break;
-        case NC_SHORT:
-            for (fp = (float *)src, sp = dest; count < len; count++)
-            {
-                if (*fp > (double)X_SHORT_MAX || *fp < (double)X_SHORT_MIN)
-                    (*range_error)++;
-                *sp++ = *fp++;
-            }
-            break;
-        case NC_USHORT:
-            for (fp = (float *)src, usp = dest; count < len; count++)
-            {
-                if (*fp > X_USHORT_MAX || *fp < 0)
-                    (*range_error)++;
-                *usp++ = *fp++;
-            }
-            break;
-        case NC_UINT:
-            for (fp = (float *)src, uip = dest; count < len; count++)
-            {
-                if (*fp > X_UINT_MAX || *fp < 0)
-                    (*range_error)++;
-                *uip++ = *fp++;
-            }
-            break;
-        case NC_INT:
-            for (fp = (float *)src, ip = dest; count < len; count++)
-            {
-                if (*fp > (double)X_INT_MAX || *fp < (double)X_INT_MIN)
-                    (*range_error)++;
-                *ip++ = *fp++;
-            }
-            break;
-        case NC_INT64:
-            for (fp = (float *)src, lip = dest; count < len; count++)
-            {
-                if (*fp > X_INT64_MAX || *fp <X_INT64_MIN)
-                    (*range_error)++;
-                *lip++ = *fp++;
-            }
-            break;
-        case NC_UINT64:
-            for (fp = (float *)src, ulip = dest; count < len; count++)
-            {
-                if (*fp > X_UINT64_MAX || *fp < 0)
-                    (*range_error)++;
-                *ulip++ = *fp++;
-            }
-            break;
-	case NC_FLOAT:
-	    for (fp = (float *)src, fp1 = dest; count < len; count++)
-		*fp1++ = *fp++;
-	    break;
-	case NC_DOUBLE:
-	    for (dp = (double *)src, fp1 = dest; count < len; count++)
-	    {
-		if (isgreater(*dp, X_FLOAT_MAX) || isless(*dp, X_FLOAT_MIN))
-		    (*range_error)++;
-		*fp1++ = *dp++;
-	    }
-	    break;
-	default:
-            LOG((0, "%s: unexpected dest type. src_type %d, dest_type %d",
-                 __func__, src_type, dest_type));
-            return NC_EBADTYPE;
-	}
-	    
-	/* Bit-Groom: alternately shave and set LSBs */
-	op1.fp = (float *)dest;
-	u32_ptr = op1.ui32p;
-	for (idx = 0L; idx < len; idx += 2L)
-	    if (op1.fp[idx] != mss_val_cmp_flt)
-		u32_ptr[idx] &= msk_f32_u32_zro;
-	for (idx = 1L; idx < len; idx += 2L)
-	    if (op1.fp[idx] != mss_val_cmp_flt && u32_ptr[idx] != 0U) /* Never quantize upwards floating point values of zero */
-		u32_ptr[idx] |= msk_f32_u32_one;
-    }
-    else /* dest_type == NC_DOUBLE */
-    {
-	bit_xpl_nbr_zro = BIT_XPL_NBR_SGN_DBL - prc_bnr_xpl_rqr;
-	assert(bit_xpl_nbr_zro <= BIT_XPL_NBR_SGN_DBL - NCO_PPC_BIT_XPL_NBR_MIN);
-	if (fill_value)
-	    mss_val_cmp_dbl = *(double *)fill_value;
-	else
-	    mss_val_cmp_dbl = NC_FILL_DOUBLE;
-
-	/* Create mask. */
-	msk_f64_u64_zro = 0ul; /* Zero all bits. */
-	msk_f64_u64_zro = ~msk_f64_u64_zro; /* Turn all bits to ones. */
-
-	/* Bit Shave mask for AND: Left shift zeros into bits to be
-	 * rounded, leave ones in untouched bits. */
-	msk_f64_u64_zro <<= bit_xpl_nbr_zro;
-
-	/* Bit Set mask for OR: Put ones into bits to be set, zeros in
-	 * untouched bits. */
-	msk_f64_u64_one =~ msk_f64_u64_zro;
-
-	/* Copy the data into our buffer. */
-	if (src_type == NC_FLOAT)
-	    for (fp = (float *)src, dp1 = dest; count < len; count++)
-		*dp1++ = *fp++;
-	else
-	    for (dp = (double *)src, dp1 = dest; count < len; count++)
-		*dp1++ = *dp++;
-	
-	/* Bit-Groom: alternately shave and set LSBs. */
-	op1.dp = (double *)dest;
-	u64_ptr = op1.ui64p;
-	for (idx = 0L; idx < len; idx += 2L)
-	    if (op1.dp[idx] != mss_val_cmp_dbl)
-		u64_ptr[idx] &= msk_f64_u64_zro;
-	for (idx = 1L; idx < len; idx += 2L)
-	    if (op1.dp[idx] != mss_val_cmp_dbl && u64_ptr[idx] != 0ULL) /* Never quantize upwards floating point values of zero */
-		u64_ptr[idx] |= msk_f64_u64_one;
-    }
-
-    return 0;
-}
-
-/**
- * @internal Copy data from one buffer to another, performing
  * appropriate data conversion.
  *
  * This function will copy data from one buffer to another, in
@@ -741,6 +513,21 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
                  const void *fill_value, int strict_nc3, int quantize_mode,
 		 int nsd)
 {
+    /* These vars are used with quantize feature. */
+    const double bit_per_dcm_dgt_prc = M_LN10 / M_LN2; /* 3.32 [frc] Bits per decimal digit of precision */
+    double mss_val_cmp_dbl; /* Missing value for comparison to double precision values */
+    float mss_val_cmp_flt; /* Missing value for comparison to single precision values */
+    int bit_xpl_nbr_zro; /* [nbr] Number of explicit bits to zero */
+    size_t idx;
+    unsigned int *u32_ptr;
+    unsigned int msk_f32_u32_zro;
+    unsigned int msk_f32_u32_one;
+    unsigned long long int *u64_ptr;
+    unsigned long long int msk_f64_u64_zro;
+    unsigned long long int msk_f64_u64_one;
+    unsigned short prc_bnr_xpl_rqr; /* [nbr] Explicitly represented binary digits required to retain */
+    ptr_unn op1; /* I/O [frc] Values to quantize */
+    
     char *cp, *cp1;
     float *fp, *fp1;
     double *dp, *dp1;
@@ -753,11 +540,70 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
     long long *lip, *lip1;
     unsigned long long *ulip, *ulip1;
     size_t count = 0;
-    int ret;
 
     *range_error = 0;
     LOG((3, "%s: len %d src_type %d dest_type %d", __func__, len, src_type,
          dest_type));
+
+    /* If quantize is in use, set up some values. Quantize can only be
+     * used when the destination type is NC_FLOAT or NC_DOUBLE. */
+    if (quantize_mode == NC_QUANTIZE_BITGROOM)
+    {
+        assert(dest_type == NC_FLOAT || dest_type == NC_DOUBLE);
+        /* How many bits to preserve? Being conservative, we round up the
+         * exact binary digits of precision. Add one because the first bit
+         * is implicit not explicit but corner cases prevent our taking
+         * advantage of this. */
+        prc_bnr_xpl_rqr = (unsigned short)ceil(nsd * bit_per_dcm_dgt_prc) + 1;
+        if (dest_type == NC_DOUBLE)
+            prc_bnr_xpl_rqr++; /* Seems necessary for double-precision
+                                * ppc=array(1.234567,1.0e-6,$dmn) */
+
+        /* Determine masks, copy the data, do the quantization. */
+        if (dest_type == NC_FLOAT)
+        {
+            /* Determine the fill value. */
+            if (fill_value)
+                mss_val_cmp_flt = *(float *)fill_value;
+            else
+                mss_val_cmp_flt = NC_FILL_FLOAT;
+
+            bit_xpl_nbr_zro = BIT_XPL_NBR_SGN_FLT - prc_bnr_xpl_rqr;
+
+            /* Create mask */
+            msk_f32_u32_zro = 0u; /* Zero all bits */
+            msk_f32_u32_zro = ~msk_f32_u32_zro; /* Turn all bits to ones */
+
+            /* Bit Shave mask for AND: Left shift zeros into bits to be
+             * rounded, leave ones in untouched bits. */
+            msk_f32_u32_zro <<= bit_xpl_nbr_zro;
+
+            /* Bit Set mask for OR: Put ones into bits to be set, zeros in
+             * untouched bits. */
+            msk_f32_u32_one = ~msk_f32_u32_zro;
+        }
+        else
+        {
+            bit_xpl_nbr_zro = BIT_XPL_NBR_SGN_DBL - prc_bnr_xpl_rqr;
+            assert(bit_xpl_nbr_zro <= BIT_XPL_NBR_SGN_DBL - NCO_PPC_BIT_XPL_NBR_MIN);
+            if (fill_value)
+                mss_val_cmp_dbl = *(double *)fill_value;
+            else
+                mss_val_cmp_dbl = NC_FILL_DOUBLE;
+
+            /* Create mask. */
+            msk_f64_u64_zro = 0ul; /* Zero all bits. */
+            msk_f64_u64_zro = ~msk_f64_u64_zro; /* Turn all bits to ones. */
+
+            /* Bit Shave mask for AND: Left shift zeros into bits to be
+             * rounded, leave ones in untouched bits. */
+            msk_f64_u64_zro <<= bit_xpl_nbr_zro;
+
+            /* Bit Set mask for OR: Put ones into bits to be set, zeros in
+             * untouched bits. */
+            msk_f64_u64_one =~ msk_f64_u64_zro;
+        }
+    } /* endif quantize */
 
     /* OK, this is ugly. If you can think of anything better, I'm open
        to suggestions!
@@ -1409,30 +1255,12 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
             }
             break;
         case NC_FLOAT:
-	    if (quantize_mode == NC_QUANTIZE_BITGROOM)
-	    {
-		if ((ret = nc4_quantize_data(src, dest, src_type, dest_type, len, range_error,
-					     fill_value, strict_nc3, quantize_mode, nsd)))
-		    return ret;
-	    }
-	    else
-	    {
-		for (fp = (float *)src, fp1 = dest; count < len; count++)
-		    *fp1++ = *fp++;
-	    }
+            for (fp = (float *)src, fp1 = dest; count < len; count++)
+                *fp1++ = *fp++;
             break;
         case NC_DOUBLE:
-	    if (quantize_mode == NC_QUANTIZE_BITGROOM)
-	    {
-		if ((ret = nc4_quantize_data(src, dest, src_type, dest_type, len, range_error,
-					     fill_value, strict_nc3, quantize_mode, nsd)))
-		    return ret;
-	    }
-	    else
-	    {
-		for (fp = (float *)src, dp = dest; count < len; count++)
-		    *dp++ = *fp++;
-	    }
+            for (fp = (float *)src, dp = dest; count < len; count++)
+                *dp++ = *fp++;
             break;
         default:
             LOG((0, "%s: unexpected dest type. src_type %d, dest_type %d",
@@ -1509,34 +1337,16 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
             }
             break;
         case NC_FLOAT:
-	    if (quantize_mode == NC_QUANTIZE_BITGROOM)
-	    {
-		if ((ret = nc4_quantize_data(src, dest, src_type, dest_type, len, range_error,
-					     fill_value, strict_nc3, quantize_mode, nsd)))
-		    return ret;
-	    }
-	    else
-	    {
-		for (dp = (double *)src, fp = dest; count < len; count++)
-		{
-		    if (isgreater(*dp, X_FLOAT_MAX) || isless(*dp, X_FLOAT_MIN))
-			(*range_error)++;
-		    *fp++ = *dp++;
-		}
-	    }
+            for (dp = (double *)src, fp = dest; count < len; count++)
+            {
+                if (isgreater(*dp, X_FLOAT_MAX) || isless(*dp, X_FLOAT_MIN))
+                    (*range_error)++;
+                *fp++ = *dp++;
+            }
             break;
         case NC_DOUBLE:
-	    if (quantize_mode == NC_QUANTIZE_BITGROOM)
-	    {
-		if ((ret = nc4_quantize_data(src, dest, src_type, dest_type, len, range_error,
-					     fill_value, strict_nc3, quantize_mode, nsd)))
-		    return ret;
-	    }
-	    else
-	    {
-		for (dp = (double *)src, dp1 = dest; count < len; count++)
-		    *dp1++ = *dp++;
-	    }
+            for (dp = (double *)src, dp1 = dest; count < len; count++)
+                *dp1++ = *dp++;
             break;
         default:
             LOG((0, "%s: unexpected dest type. src_type %d, dest_type %d",
@@ -1550,6 +1360,37 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
              __func__, src_type, dest_type));
         return NC_EBADTYPE;
     }
+
+    /* If quantize is in use, determine masks, copy the data, do the
+     * quantization. */
+    if (quantize_mode == NC_QUANTIZE_BITGROOM)
+    {
+        if (dest_type == NC_FLOAT)
+        {
+            /* Bit-Groom: alternately shave and set LSBs */
+            op1.fp = (float *)dest;
+            u32_ptr = op1.ui32p;
+            for (idx = 0L; idx < len; idx += 2L)
+                if (op1.fp[idx] != mss_val_cmp_flt)
+                    u32_ptr[idx] &= msk_f32_u32_zro;
+            for (idx = 1L; idx < len; idx += 2L)
+                if (op1.fp[idx] != mss_val_cmp_flt && u32_ptr[idx] != 0U) /* Never quantize upwards floating point values of zero */
+                    u32_ptr[idx] |= msk_f32_u32_one;
+        }
+        else
+        {
+            /* Bit-Groom: alternately shave and set LSBs. */
+            op1.dp = (double *)dest;
+            u64_ptr = op1.ui64p;
+            for (idx = 0L; idx < len; idx += 2L)
+                if (op1.dp[idx] != mss_val_cmp_dbl)
+                    u64_ptr[idx] &= msk_f64_u64_zro;
+            for (idx = 1L; idx < len; idx += 2L)
+                if (op1.dp[idx] != mss_val_cmp_dbl && u64_ptr[idx] != 0ULL) /* Never quantize upwards floating point values of zero */
+                    u64_ptr[idx] |= msk_f64_u64_one;
+        }
+    } /* endif quantize */
+
     return NC_NOERR;
 }
 
