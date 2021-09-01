@@ -115,6 +115,8 @@ nc_get_chunk_cache(size_t *sizep, size_t *nelemsp, float *preemptionp)
  * but with integers instead of size_t, and with an integer preemption
  * (which is the float preemtion * 100). This was required for fortran
  * to avoid size_t issues.
+ * Note: if netcdf-4 is completely disabled, then the definitions in
+ * libdispatch/dfile.c take effect.
  *
  * @param size Cache size.
  * @param nelems Number of elements.
@@ -139,6 +141,8 @@ nc_set_chunk_cache_ints(int size, int nelems, int preemption)
  * nc_get_chunk_cache() but with integers instead of size_t, and with
  * an integer preemption (which is the float preemtion * 100). This
  * was required for fortran to avoid size_t issues.
+ * Note: if netcdf-4 is completely disabled, then the definitions in
+ * libdispatch/dfile.c take effect.
  *
  * @param sizep Pointer that gets cache size.
  * @param nelemsp Pointer that gets number of elements.
@@ -159,3 +163,25 @@ nc_get_chunk_cache_ints(int *sizep, int *nelemsp, int *preemptionp)
 
     return NC_NOERR;
 }
+
+#ifndef USE_HDF5
+/* See definitions in libhd5/hdf5var.c */
+/* Make sure they are always defined */
+/* Note: if netcdf-4 is completely disabled, then the definitions in
+ * libdispatch/dfile.c take effect.
+ */
+
+int
+nc_set_var_chunk_cache_ints(int ncid, int varid, int size, int nelems,
+                            int preemption)
+{
+    return NC_NOERR;
+}
+
+int
+nc_def_var_chunking_ints(int ncid, int varid, int storage, int *chunksizesp)
+{
+    return NC_NOERR;
+}
+
+#endif /*USE_HDF5*/
