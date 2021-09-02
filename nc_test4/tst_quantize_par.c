@@ -80,6 +80,14 @@ main(int argc, char **argv)
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
 
+    /* Must be run on exactly 4 processors. */
+    if (mpi_size != 4)
+    {
+        if (mpi_rank == 0)
+            printf("Test must be run on 4 processors.\n");
+        return 2;
+    }
+
     if (mpi_rank == 0)
     {
         printf("\n*** Testing netcdf-4 variable quantization with parallel I/O.\n");
@@ -103,7 +111,8 @@ main(int argc, char **argv)
         if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, NSD_3)) ERR;
         if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM, NSD_3)) ERR;
 
-        /* Write some data. */
+        /* Write some data. Each of the 4 processes writes the same 5
+         * values, writing 20 in all. */
         start[0] = mpi_rank * DIM_LEN_5;
         if (nc_put_vara_float(ncid, varid1, start, count, float_data)) ERR;
         if (nc_put_vara_double(ncid, varid2, start, count, double_data)) ERR;
