@@ -5,7 +5,7 @@
 
 
 #include "config.h"
-#include <hdf5.h>
+#include "netcdf_filter_build.h"
 
 /*
 Common utilities related to filters.

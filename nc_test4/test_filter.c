@@ -51,7 +51,7 @@ data:
 /* The compression level used in this example */
 #define BZIP2_LEVEL 9
 
-#define TESTFILE "bzip2.nc"
+#define DFALT_TESTFILE "tmp_bzip2.nc"
 
 /* Point at which we give up */
 #define MAXERRS 8
@@ -71,6 +71,8 @@ static size_t dims[NDIMS];
 static size_t chunks[NDIMS];
 
 static int nerrs = 0;
+
+static const char* testfile = NULL;
 
 static int ncid, varid;
 static int dimids[NDIMS];
@@ -175,7 +177,7 @@ test_bzip2(void)
     memset(array,0,sizeof(float)*actualproduct);
 
     /* Create a file */
-    CHECK(nc_create(TESTFILE, NC_NETCDF4|NC_CLOBBER, &ncid));
+    CHECK(nc_create(testfile, NC_NETCDF4|NC_CLOBBER, &ncid));
 
     /* Do not use fill for this file */
     CHECK(nc_set_fill(ncid, NC_NOFILL, NULL));
@@ -234,7 +236,7 @@ test_bzip2(void)
     memset(array,0,sizeof(float)*actualproduct);
 
     /* Open the file */
-    CHECK(nc_open(TESTFILE, NC_NOWRITE, &ncid));
+    CHECK(nc_open(testfile, NC_NOWRITE, &ncid));
 
     /* Get the variable id */
     CHECK(nc_inq_varid(ncid, "var", &varid));
@@ -278,6 +280,13 @@ static void
 init(int argc, char** argv)
 {
     int i;
+
+    /* get the testfile path */
+    if(argc > 1)
+        testfile = argv[1];
+    else
+        testfile = DFALT_TESTFILE;
+
     /* Setup various variables */
     actualproduct = 1;
     chunkproduct = 1;
@@ -298,7 +307,6 @@ init(int argc, char** argv)
 int
 main(int argc, char **argv)
 {
-    H5Eprint1(stderr);
     init(argc,argv);
     if(test_bzip2() != NC_NOERR) ERRR;
     exit(nerrs > 0?1:0);

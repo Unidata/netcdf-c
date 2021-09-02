@@ -71,6 +71,9 @@ extern int fileno(FILE*);
 #ifndef HAVE_STRLCAT
 #define strlcat(d,s,n) strcat_s((d),(n),(s))
 #endif
+#ifndef HAVE_STRCASECMP
+#define strcasecmp _stricmp
+#endif
 #endif
 
 /* handle null arguments */
@@ -136,5 +139,13 @@ typedef long long fileoffset_t;
 #define NC_UNUSED(var) (void)var
 #endif
 
+/* Protect old HDF5 code (pre 1.8.12) */
+#ifndef HAVE_H5ALLOCATE_MEMORY
+#ifndef H5allocate_memory
+#define H5allocate_memory(size,clear) ((clear)?calloc(1,(size)):malloc(size))
+#define H5free_memory(buf) free(buf)
+#define H5resize_memory(buf,size) realloc(buf,size)
+#endif
+#endif
 
 #endif /* NCCONFIGURE_H */

@@ -3,7 +3,6 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
-
 . "$srcdir/test_nczarr.sh"
 
 #TR="-T10"
