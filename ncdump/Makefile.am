@@ -41,6 +41,10 @@ utils.h utils.c dimmap.h dimmap.c list.c list.h
 noinst_PROGRAMS += ncvalidator
 ncvalidator_SOURCES = ncvalidator.c
 
+# A non-installed utility program to convert paths; similar to cygpath
+noinst_PROGRAMS += ncpathcvt
+ncpathcvt_SOURCES = ncpathcvt.c
+
 # A simple netcdf-4 metadata -> xml printer. Do not install.
 if USE_HDF5
 bin_PROGRAMS += nc4print
@@ -94,6 +98,8 @@ endif
 if LARGE_FILE_TESTS
 TESTS += tst_iter.sh
 endif
+
+TESTS += testpathcvt.sh
 
 if USE_HDF5
 # HDF5 has some extra C programs to build. These will be run by
@@ -184,6 +190,8 @@ EXTRA_DIST += L512.bin
 
 EXTRA_DIST += tst_ctests.sh ref_ctest_small_3.c ref_ctest_small_4.c \
 	ref_ctest_special_atts_4.c
+
+EXTRA_DIST += testpathcvt.sh ref_pathcvt.txt
 
 # CDL files and Expected results
 SUBDIRS = cdl expected

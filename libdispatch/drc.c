@@ -495,6 +495,7 @@ done:
       nullfree(path);
       path = NULL;
     }
+    errno = 0; /* silently ignore errors */
     return (ret);
 }
 

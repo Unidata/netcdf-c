@@ -5,7 +5,7 @@
   They will be commennted out when building a java parser.
 */
 
-%pure-parser
+%define api.pure
 %lex-param {DCEparsestate* parsestate}
 %parse-param {DCEparsestate* parsestate}
 %{

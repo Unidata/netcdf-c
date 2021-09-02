@@ -340,7 +340,7 @@ NCZ_readdict(NCZMAP* zmap, const char* key, NCjson** jsonp)
 
     if((stat = NCZ_downloadjson(zmap,key,&json)))
 	goto done;
-    if(json->sort != NCJ_DICT) {stat = NC_ENCZARR; goto done;}
+    if(NCJsort(json) != NCJ_DICT) {stat = NC_ENCZARR; goto done;}
     if(jsonp) {*jsonp = json; json = NULL;}
 done:
     NCJreclaim(json);
@@ -364,7 +364,7 @@ NCZ_readarray(NCZMAP* zmap, const char* key, NCjson** jsonp)
 
     if((stat = NCZ_downloadjson(zmap,key,&json)))
 	goto done;
-    if(json->sort != NCJ_ARRAY) {stat = NC_ENCZARR; goto done;}
+    if(NCJsort(json) != NCJ_ARRAY) {stat = NC_ENCZARR; goto done;}
     if(jsonp) {*jsonp = json; json = NULL;}
 done:
     NCJreclaim(json);
@@ -414,9 +414,9 @@ ncz_default_fill_value(nc_type nctype, const char** dfaltp)
 
 /**
 @internal Given an nc_type, produce the corresponding
-fill value sort
+fill value JSON type
 @param nctype - [in] nc_type
-@param sortp - [out] pointer to hold pointer to the sort
+@param sortp - [out] pointer to hold pointer to the JSON type
 @return NC_NOERR
 @author Dennis Heimbigner
 */
@@ -732,12 +732,17 @@ NCZ_freestringvec(size_t len, char** vec)
 
 /* create a fill chunk */
 int
-NCZ_create_fill_chunk(size64_t chunksize, size_t typesize, void* fill, void** fillchunkp)
+NCZ_create_fill_chunk(size64_t chunksize, size_t typesize, const void* fill, void** fillchunkp)
 {
     int i;
     void* fillchunk = NULL;
     if((fillchunk = malloc(chunksize))==NULL)
         return NC_ENOMEM;
+    if(fill == NULL) {
+        /* use zeros */
+	memset(fillchunk,0,chunksize);
+	goto done;
+    }
     switch (typesize) {
     case 1: {
         unsigned char c = *((unsigned char*)fill);
@@ -764,6 +769,7 @@ NCZ_create_fill_chunk(size64_t chunksize, size_t typesize, void* fill, void** fi
             memcpy(p,fill,typesize);
         } break;
     }
+done:
     if(fillchunkp) {*fillchunkp = fillchunk; fillchunk = NULL;}
     nullfree(fillchunk);
     return NC_NOERR;
@@ -901,7 +907,7 @@ NCZ_ischunkname(const char* name,char dimsep)
 }
 
 char*
-NCZ_chunkpath(struct ChunkKey key,char dimsep)
+NCZ_chunkpath(struct ChunkKey key)
 {
     size_t plen = nulllen(key.varkey)+1+nulllen(key.chunkkey);
     char* path = (char*)malloc(plen+1);

@@ -31,13 +31,13 @@ extern int ncz_close_file(NC_FILE_INFO_T* file, int abort);
 
 /* zcvt.c */
 extern int NCZ_convert1(NCjson* jsrc, nc_type, unsigned char* memory0);
-extern int NCZ_stringconvert1(nc_type typid, unsigned char* src, char** strp);
+extern int NCZ_stringconvert1(nc_type typid, size_t len, char* src, NCjson* jvalue);
 extern int NCZ_stringconvert(nc_type typid, size_t len, void* data0, NCjson** jdatap);
 
 /* zsync.c */
 extern int ncz_sync_file(NC_FILE_INFO_T* file, int isclose);
-extern int ncz_sync_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp);
-extern int ncz_sync_atts(NC_FILE_INFO_T*, NC_OBJ* container, NCindex* attlist);
+extern int ncz_sync_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, int isclose);
+extern int ncz_sync_atts(NC_FILE_INFO_T*, NC_OBJ* container, NCindex* attlist, int isclose);
 extern int ncz_read_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp);
 extern int ncz_read_atts(NC_FILE_INFO_T* file, NC_OBJ* container);
 extern int ncz_read_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp);
@@ -67,10 +67,10 @@ extern int NCZ_comma_parse(const char* s, NClist* list);
 extern int NCZ_swapatomicdata(size_t datalen, void* data, int typesize);
 extern char** NCZ_clonestringvec(size_t len, const char** vec);
 extern void NCZ_freestringvec(size_t len, char** vec);
-extern int NCZ_create_fill_chunk(size64_t chunksize, size_t typesize, void* fill, void** fillchunkp);
+extern int NCZ_create_fill_chunk(size64_t chunksize, size_t typesize, const void* fill, void** fillchunkp);
 extern int NCZ_s3clear(ZS3INFO* s3);
 extern int NCZ_ischunkname(const char* name,char dimsep);
-extern char* NCZ_chunkpath(struct ChunkKey key,char dimsep);
+extern char* NCZ_chunkpath(struct ChunkKey key);
 
 /* Export */
 EXTERNL int NCZ_s3urlprocess(NCURI* url, ZS3INFO* s3);

@@ -100,8 +100,7 @@ typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP, NCFIL} NC_SORT;
 /** Hidden attributes; immutable and unreadable thru API. */
 #define HIDDENATTRFLAG 1
 
-/** Readonly global attributes; readable, but immutable thru the
- * API. */
+/** Readonly attributes; readable, but immutable thru the API. */
 #define READONLYFLAG 2
 
 /** Subset of readonly flags; readable by name only thru the API. */
@@ -109,6 +108,9 @@ typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP, NCFIL} NC_SORT;
 
 /** Subset of readonly flags; Value is actually in file. */
 #define MATERIALIZEDFLAG 8
+
+/** Per-variable attribute, as opposed to global */
+#define VARFLAG 16
 
 /** Boolean type, to make the code easier to read. */
 typedef enum {NC_FALSE = 0, NC_TRUE = 1} nc_bool_t;
@@ -201,9 +203,9 @@ typedef struct NC_VAR_INFO
     int parallel_access;         /**< Type of parallel access for I/O on variable (collective or independent). */
     nc_bool_t shuffle;           /**< True if var has shuffle filter applied. */
     nc_bool_t fletcher32;        /**< True if var has fletcher32 filter applied. */
-    size_t chunk_cache_size;     /**< Size in bytes of the var chunk chache. */
+    size_t chunk_cache_size;     /**< Size in bytes of the var chunk cache. */
     size_t chunk_cache_nelems;   /**< Number of slots in var chunk cache. */
-    float chunk_cache_preemption; /**< Chunk cache preemtion policy. */
+    float chunk_cache_preemption; /**< Chunk cache preemption policy. */
     void *format_var_info;       /**< Pointer to any binary format info. */
     void* filters;             /**< Record of the list of filters to be applied to var data; format dependent */
 } NC_VAR_INFO_T;
@@ -461,6 +463,7 @@ extern const NC_reservedatt* NC_findreserved(const char* name);
 #define NC_ATT_DIMID_NAME "_Netcdf4Dimid"
 #define NC_ATT_NC3_STRICT_NAME "_nc3_strict"
 #define NC_XARRAY_DIMS "_ARRAY_DIMENSIONS"
+#define NC_ATT_CODECS "_Codecs"
 #define NC_NCZARR_ATTR "_NCZARR_ATTR"
 
 #endif /* _NC4INTERNAL_ */

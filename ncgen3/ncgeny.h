@@ -1,8 +1,9 @@
-/* A Bison parser, made by GNU Bison 3.0.4.  */
+/* A Bison parser, made by GNU Bison 3.7.6.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2021 Free Software Foundation,
+   Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -30,6 +31,10 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
+/* DO NOT RELY ON FEATURES THAT ARE NOT DOCUMENTED in the manual,
+   especially those whose name start with YY_ or yy_.  They are
+   private implementation details that can be changed or removed.  */
+
 #ifndef YY_NCG_NCGEN_TAB_H_INCLUDED
 # define YY_NCG_NCGEN_TAB_H_INCLUDED
 /* Debug traces.  */
@@ -40,32 +45,37 @@
 extern int ncgdebug;
 #endif
 
-/* Token type.  */
+/* Token kinds.  */
 #ifndef YYTOKENTYPE
 # define YYTOKENTYPE
   enum yytokentype
   {
-    NC_UNLIMITED_K = 258,
-    BYTE_K = 259,
-    CHAR_K = 260,
-    SHORT_K = 261,
-    INT_K = 262,
-    FLOAT_K = 263,
-    DOUBLE_K = 264,
-    IDENT = 265,
-    TERMSTRING = 266,
-    BYTE_CONST = 267,
-    CHAR_CONST = 268,
-    SHORT_CONST = 269,
-    INT_CONST = 270,
-    FLOAT_CONST = 271,
-    DOUBLE_CONST = 272,
-    DIMENSIONS = 273,
-    VARIABLES = 274,
-    NETCDF = 275,
-    DATA = 276,
-    FILLVALUE = 277
+    YYEMPTY = -2,
+    YYEOF = 0,                     /* "end of file"  */
+    YYerror = 256,                 /* error  */
+    YYUNDEF = 257,                 /* "invalid token"  */
+    NC_UNLIMITED_K = 258,          /* NC_UNLIMITED_K  */
+    BYTE_K = 259,                  /* BYTE_K  */
+    CHAR_K = 260,                  /* CHAR_K  */
+    SHORT_K = 261,                 /* SHORT_K  */
+    INT_K = 262,                   /* INT_K  */
+    FLOAT_K = 263,                 /* FLOAT_K  */
+    DOUBLE_K = 264,                /* DOUBLE_K  */
+    IDENT = 265,                   /* IDENT  */
+    TERMSTRING = 266,              /* TERMSTRING  */
+    BYTE_CONST = 267,              /* BYTE_CONST  */
+    CHAR_CONST = 268,              /* CHAR_CONST  */
+    SHORT_CONST = 269,             /* SHORT_CONST  */
+    INT_CONST = 270,               /* INT_CONST  */
+    FLOAT_CONST = 271,             /* FLOAT_CONST  */
+    DOUBLE_CONST = 272,            /* DOUBLE_CONST  */
+    DIMENSIONS = 273,              /* DIMENSIONS  */
+    VARIABLES = 274,               /* VARIABLES  */
+    NETCDF = 275,                  /* NETCDF  */
+    DATA = 276,                    /* DATA  */
+    FILLVALUE = 277                /* FILLVALUE  */
   };
+  typedef enum yytokentype yytoken_kind_t;
 #endif
 
 /* Value type.  */
