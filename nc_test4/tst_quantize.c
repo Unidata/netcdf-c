@@ -788,22 +788,31 @@ main(int argc, char **argv)
 
 	    union FU xpect[DIM_LEN_8];
 	    union DU double_xpect[DIM_LEN_8];
+            /* This test comes up with different answers to this than
+             * the corresponding bitgroom filter test, but that's
+             * OK. In netcdf-c quantization is applied as the data are
+             * written by the user, but in HDF5 filters, the bitgroom
+             * filter is applied to all data values as they are
+             * written to disk. See
+             * https://github.com/ccr/ccr/issues/194 for a full
+             * explanation. */
 	    xpect[0].u = 0x42c60000;
-	    xpect[1].u = 0xc2c60fff;
+	    xpect[1].u = 0xc2c60000;
 	    xpect[2].u = 0x461c3000;
-	    xpect[3].u = 0xc61c3fff;
+	    xpect[3].u = 0xc61c3000;
 	    xpect[4].u = 0x4b189000;
-	    xpect[5].u = 0xcb189fff;
-	    xpect[6].u = 0x4e6e6000;
-	    xpect[7].u = 0xce6e6fff;
+	    xpect[5].u = 0xcb189000;
+            xpect[6].u = 0x4e6e6b28;
+            xpect[6].u = 0x4e6e6000;
+            xpect[7].u = 0xce6e6000;
 	    double_xpect[0].u = 0x4058c00000000000;
-	    double_xpect[1].u = 0xc058c1ffffffffff;
+	    double_xpect[1].u = 0xc058c00000000000;
 	    double_xpect[2].u = 0x40c3860000000000;
-	    double_xpect[3].u = 0xc0c387ffffffffff;
+	    double_xpect[3].u = 0xc0c3860000000000;
 	    double_xpect[4].u = 0x4163120000000000;
-	    double_xpect[5].u = 0xc16313ffffffffff;
+	    double_xpect[5].u = 0xc163120000000000;
 	    double_xpect[6].u = 0x41cdcc0000000000;
-	    double_xpect[7].u = 0xc1cdcdffffffffff;
+	    double_xpect[7].u = 0xc1cdcc0000000000;
 
 	    for (x = 0; x < DIM_LEN_8; x++)
 	    {
@@ -811,14 +820,14 @@ main(int argc, char **argv)
 		union DU dfin;
 		fin.f = float_data_in[x];
 		dfin.d = double_data_in[x];
-		printf ("%d float_data_in : %08.8f   : 0x%x expected %08.8f   : 0x%x\n",
-			x, float_data_in[x], fin.u, xpect[x].f, xpect[x].u);
+		/* printf ("%d float_data_in : %08.8f   : 0x%x expected %08.8f   : 0x%x\n", */
+		/* 	x, float_data_in[x], fin.u, xpect[x].f, xpect[x].u); */
 		/* printf ("%d double_data_in : %15g   : 0x%lx expected %15g   : 0x%lx\n", */
 		/* 	x, double_data_in[x], dfin.u, double_xpect[x].d, double_xpect[x].u); */
-		/* if (fin.u != xpect[x].u) */
-		/*     ERR; */
-		/* if (dfin.u != double_xpect[x].u) */
-		/*     ERR; */
+		if (fin.u != xpect[x].u)
+		    ERR;
+		if (dfin.u != double_xpect[x].u)
+		    ERR;
 	    }
 
             /* Close the file. */
