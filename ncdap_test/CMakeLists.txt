@@ -35,6 +35,12 @@ IF(ENABLE_TESTS)
   IF(BUILD_UTILITIES)
     add_sh_test(ncdap tst_ncdap3)
     add_sh_test(ncdap testpathcvt)
+    IF(HAVE_BASH)
+      SET_TESTS_PROPERTIES(ncdap_tst_ncdap3 PROPERTIES RUN_SERIAL TRUE)
+      SET_TESTS_PROPERTIES(ncdap_testpathcvt PROPERTIES RUN_SERIAL TRUE)
+    ENDIF(HAVE_BASH)
+    
+    
   ENDIF()
 
   IF(NOT MSVC)
@@ -48,6 +54,9 @@ IF(ENABLE_TESTS)
     IF(BUILD_UTILITIES)
       add_sh_test(ncdap tst_ber)
       add_sh_test(ncdap tst_remote3)
+      IF(HAVE_BASH)
+        SET_TESTS_PROPERTIES(ncdap_tst_remote3 PROPERTIES RUN_SERIAL TRUE)
+      ENDIF(HAVE_BASH)
       add_sh_test(ncdap tst_zero_len_var)
       add_sh_test(ncdap tst_encode)
       # not yet      add_sh_test(ncdap tst_hyrax)
@@ -55,7 +64,10 @@ IF(ENABLE_TESTS)
       IF(ENABLE_DAP_LONG_TESTS)
         add_sh_test(ncdap tst_longremote3)
         add_bin_test(ncdap test_manyurls)
+        SET_TESTS_PROPERTIES(ncdap_tst_longremote3 ncdap_test_manyurls PROPERTIES RUN_SERIAL TRUE)
       ENDIF(ENABLE_DAP_LONG_TESTS)
+
+      
 
     ENDIF(BUILD_UTILITIES)
 
