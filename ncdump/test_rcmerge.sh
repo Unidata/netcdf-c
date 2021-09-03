@@ -20,16 +20,16 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 # we need to isolate from any other test.
 
 # Make sure execdir and srcdir absolute paths are available
-WD=`pwd`
-cd $srcdir ; abs_srcdir=`pwd` ; cd $WD
-cd $execdir ; abs_execdir=`pwd` ; cd $WD
+WD=`$PWDCMD`
+cd $srcdir ; abs_srcdir=`$PWDCMD` ; cd $WD
+cd $execdir ; abs_execdir=`$PWDCMD` ; cd $WD
 
 # Now create a special directory
 # And enter it to execute tests
 rm -fr rcmergedir
 mkdir rcmergedir
 cd rcmergedir
-WD=`pwd`
+WD=`$PWDCMD`
 
 if test "x$NCAUTH_HOMETEST" != x ; then
     RCHOME=1
