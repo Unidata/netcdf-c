@@ -5,6 +5,9 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 set -e
 
+# Disable automatic path conversions in MINGW shell:
+export MSYS2_ARG_CONV_EXCL='*'
+
 testcase1() {
 T="$1"
 P="$2"
