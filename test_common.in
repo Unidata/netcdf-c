@@ -97,13 +97,13 @@ top_builddir="$TOPBUILDDIR"
 if test "x$srcdir" = x ; then
   # we need to figure out our directory
   # pick off the last component as the relative name of this directory
-  srcdir=`pwd`
+  srcdir=`$PWDCMD`
   current=`basename $srcdir`
   srcdir="${top_srcdir}/$current"
 fi
 
 # We also assume we are executing in builddir
-builddir=`pwd`
+builddir=`$PWDCMD`
 
 # execdir is an alias for builddir
 execdir="${builddir}"
@@ -111,13 +111,13 @@ execdir="${builddir}"
 # pick off the last component as the relative name of this directory
 thisdir=`basename $srcdir`
 
-WD=`pwd`
+WD=`$PWDCMD`
 # Absolutize paths of interest
-cd $srcdir; srcdir=`pwd` ; cd $WD
-cd $top_srcdir; top_srcdir=`pwd` ; cd $WD
-cd $builddir; builddir=`pwd` ; cd $WD
-cd $top_builddir; top_builddir=`pwd` ; cd $WD
-cd $execdir; execdir=`pwd` ; cd $WD
+cd $srcdir; srcdir=`$PWDCMD` ; cd $WD
+cd $top_srcdir; top_srcdir=`$PWDCMD` ; cd $WD
+cd $builddir; builddir=`$PWDCMD` ; cd $WD
+cd $top_builddir; top_builddir=`$PWDCMD` ; cd $WD
+cd $execdir; execdir=`$PWDCMD` ; cd $WD
 
 # If we have cygpath (which only exists under CYGWIN),
 # then try to normalize selected file paths.
