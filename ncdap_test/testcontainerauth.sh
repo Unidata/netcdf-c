@@ -9,7 +9,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 #GDB=1
 #VG=1
 
-WD=`pwd`
+WD=`$PWDCMD`
 COOKIES="${WD}/test_auth_cookies"
 
 RC=.daprc

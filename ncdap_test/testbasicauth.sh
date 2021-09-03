@@ -21,7 +21,7 @@ RCPREC=1
 
 NFL=1
 
-WD=`pwd`
+WD=`$PWDCMD`
 
 NETRCFILE=$WD/test_auth_netrc
 # This is the control variable; set when needed
