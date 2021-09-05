@@ -3,12 +3,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
+#include "config.h"
 #include "nclist.h"
-
-#if defined(_WIN32) && !defined(__MINGW32__)
-#define strcasecmp _stricmp
-#endif
 
 int nclistnull(void* e) {return e == NULL;}
 
