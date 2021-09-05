@@ -16,15 +16,15 @@ done
 fi
 
 # Define input paths
-WD=`$PWDCMD`
-cd ${srcdir}/daptestfiles; DAPTESTFILES=`$PWDCMD` ; cd ${WD}
-cd ${srcdir}/dmrtestfiles; DMRTESTFILES=`$PWDCMD` ; cd ${WD}
-cd ${srcdir}/cdltestfiles; CDLTESTFILES=`$PWDCMD` ; cd ${WD}
-cd ${srcdir}/baseline; BASELINE=`$PWDCMD` ; cd ${WD}
-cd ${srcdir}/baselineraw; BASELINERAW=`$PWDCMD` ; cd ${WD}
-cd ${srcdir}/baselineremote; BASELINEREM=`$PWDCMD` ; cd ${WD}
-cd ${srcdir}/baselinehyrax; BASELINEH=`$PWDCMD` ; cd ${WD}
-cd ${builddir}/baselinethredds; BASELINETH=`$PWDCMD` ; cd ${WD}
+WD=`pwd`
+cd ${srcdir}/daptestfiles; DAPTESTFILES=`pwd` ; cd ${WD}
+cd ${srcdir}/dmrtestfiles; DMRTESTFILES=`pwd` ; cd ${WD}
+cd ${srcdir}/cdltestfiles; CDLTESTFILES=`pwd` ; cd ${WD}
+cd ${srcdir}/baseline; BASELINE=`pwd` ; cd ${WD}
+cd ${srcdir}/baselineraw; BASELINERAW=`pwd` ; cd ${WD}
+cd ${srcdir}/baselineremote; BASELINEREM=`pwd` ; cd ${WD}
+cd ${srcdir}/baselinehyrax; BASELINEH=`pwd` ; cd ${WD}
+cd ${builddir}/baselinethredds; BASELINETH=`pwd` ; cd ${WD}
 
 setresultdir() {
 rm -fr ${builddir}/$1
