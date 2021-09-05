@@ -75,16 +75,6 @@ set -e
 # Allow global set -x mechanism for debugging.
 if test "x$SETX" = x1 ; then set -x ; fi
 
-# On MINGW, bash and other POSIX utilities use a mounted root directory,
-# but executables compiled for Windows do not recognise the mount point.
-# Here we ensure that Windows paths are used in tests of Windows executables.
-system=`uname`
-if test "x${system##MINGW*}" = x; then
-  PWDCMD='pwd -W'
-else
-  PWDCMD='pwd'
-fi
-
 # We assume that TOPSRCDIR and TOPBUILDDIR are defined
 # At the top of this shell script
 top_srcdir="$TOPSRCDIR"
