@@ -65,13 +65,28 @@ extern int fileno(FILE*);
 #endif
 
 #endif /*STDC*/
-#endif /*!_WIN32*/
 
-#ifdef _WIN32
+#else /*_WIN32*/
+
 #ifndef HAVE_STRLCAT
 #define strlcat(d,s,n) strcat_s((d),(n),(s))
 #endif
+
+#ifndef __MINGW32__
+#ifndef strcasecmp
+#define strcasecmp _stricmp
 #endif
+#ifndef strncasecmp
+#define strncasecmp _strnicmp
+#endif
+#ifndef snprintf
+#if _MSC_VER<1900
+#define snprintf _snprintf
+#endif
+#endif
+#endif /*__MINGW32__*/
+
+#endif /*_WIN32*/
 
 /* handle null arguments */
 #ifndef nulldup
