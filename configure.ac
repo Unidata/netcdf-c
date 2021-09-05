@@ -1651,16 +1651,6 @@ AC_SUBST(HAS_MULTIFILTERS,[$has_multifilters])
 AC_SUBST(DO_NCZARR_ZIP_TESTS,[$enable_nczarr_zip])
 AC_SUBST(HAS_LOGGING,[$enable_logging])
 
-# Include some specifics for netcdf on windows.
-#AH_VERBATIM([_WIN32_STRICMP],
-AH_BOTTOM(
-[/* Define strcasecmp, strncasecmp, snprintf on Win32 systems. */
-#if defined(_WIN32) && !defined(__MINGW32__)
-	#define strcasecmp _stricmp
-	#define strncasecmp _strnicmp
-	#define snprintf _snprintf
-#endif])
-
 # Access netcdf specific version of config.h
 AH_BOTTOM([#include "ncconfigure.h"])
 
