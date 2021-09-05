@@ -11,7 +11,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 rm -fr rcmiscdir
 mkdir rcmiscdir
 cd rcmiscdir
-WD=`$PWDCMD`
+WD=`pwd`
 
 # This shell script provides a miscellaneous set of tests
 
