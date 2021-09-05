@@ -112,12 +112,12 @@ sclean() {
 }
 
 # Make sure execdir and srcdir absolute paths are available
-WD=`$PWDCMD`
-cd $srcdir ; abs_srcdir=`$PWDCMD` ; cd $WD
-cd $execdir ; abs_execdir=`$PWDCMD` ; cd $WD
+WD=`pwd`
+cd $srcdir ; abs_srcdir=`pwd` ; cd $WD
+cd $execdir ; abs_execdir=`pwd` ; cd $WD
 
 # Clear out any existing .rc files
-WD=`$PWDCMD`
+WD=`pwd`
 if test "x$NCAUTH_HOMETEST" != x ; then RCHOME=1; fi
 
 # Set plugin path
