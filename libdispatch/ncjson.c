@@ -12,8 +12,13 @@ TODO: make utf8 safe
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
-#include "config.h"
 #include "ncjson.h"
+
+#if defined(_WIN32) && !defined(__MINGW32__)
+#define strcasecmp _stricmp
+#else
+#include <strings.h>
+#endif
 
 #undef DEBUG
 
