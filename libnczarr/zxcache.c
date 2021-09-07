@@ -13,20 +13,20 @@
 #include "zincludes.h"
 #include "zcache.h"
 #include "ncxcache.h"
+#include "zfilter.h"
 
 #undef DEBUG
-
-#undef FILLONREAD
 
 #undef FLUSH
 
 #define LEAFLEN 32
 
-
 /* Forward */
 static int get_chunk(NCZChunkCache* cache, NCZCacheEntry* entry);
-static int put_chunk(NCZChunkCache* cache, const NCZCacheEntry*);
+static int put_chunk(NCZChunkCache* cache, NCZCacheEntry*);
 static int makeroom(NCZChunkCache* cache);
+static int flushcache(NCZChunkCache* cache);
+static int constraincache(NCZChunkCache* cache);
 
 /**************************************************/
 /* Dispatch table per-var cache functions */
@@ -57,20 +57,20 @@ NCZ_set_var_chunk_cache(int ncid, int varid, size_t cachesize, size_t nelems, fl
     NC_FILE_INFO_T *h5;
     NC_VAR_INFO_T *var;
     NCZ_VAR_INFO_T *zvar;
-    int retval;
+    int retval = NC_NOERR;
 
     /* Check input for validity. */
     if (preemption < 0 || preemption > 1)
-        return NC_EINVAL;
+        {retval = NC_EINVAL; goto done;}
 
     /* Find info for this file and group, and set pointer to each. */
     if ((retval = nc4_find_nc_grp_h5(ncid, NULL, &grp, &h5)))
-        return retval;
+        goto done;
     assert(grp && h5);
 
     /* Find the var. */
     if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, varid)))
-        return NC_ENOTVAR;
+        {retval = NC_ENOTVAR; goto done;}
     assert(var && var->hdr.id == varid);
 
     zvar = (NCZ_VAR_INFO_T*)var->format_var_info;
@@ -81,12 +81,10 @@ NCZ_set_var_chunk_cache(int ncid, int varid, size_t cachesize, size_t nelems, fl
     var->chunk_cache_nelems = nelems;
     var->chunk_cache_preemption = preemption;
 
-#ifdef LOOK
-    /* Reopen the dataset to bring new settings into effect. */
-    if ((retval = nc4_reopen_dataset(grp, var)))
-        return retval;
-#endif
-    return NC_NOERR;
+    /* Fix up cache */
+    if((retval = NCZ_adjust_var_cache(var))) goto done;
+done:
+    return retval;
 }
 
 /**
@@ -103,31 +101,36 @@ NCZ_set_var_chunk_cache(int ncid, int varid, size_t cachesize, size_t nelems, fl
  * @author Ed Hartnett
  */
 int
-NCZ_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
+NCZ_adjust_var_cache(NC_VAR_INFO_T *var)
 {
-    size64_t cachesize,nelems;
-    
+    int stat = NC_NOERR;
     NCZ_VAR_INFO_T* zvar = (NCZ_VAR_INFO_T*)var->format_var_info;
-    /* empty the cache */
-    zvar->cache->maxentries = 0;
-    makeroom(zvar->cache);
+    /* completely empty the cache */
+    flushcache(zvar->cache);
+
+#ifdef DEBUG
+fprintf(stderr,"xxx: adjusting cache for: %s\n",var->hdr.name);
+#endif
 
     /* Reset the parameters */
-    /* The total cache size is considered fixed here, so modify nelems */
-    cachesize = var->chunk_cache_size;
-    nelems = floordiv(cachesize , zvar->chunksize);
-    if(nelems == 0) nelems = 1;
-    zvar->cache->maxentries = nelems;
+    zvar->cache->maxsize = var->chunk_cache_size;
+    zvar->cache->maxentries = var->chunk_cache_nelems;
 #ifdef DEBUG
     fprintf(stderr,"%s.cache.adjust: size=%ld nelems=%ld\n",
-        var->hdr.name,(unsigned long)cachesize,(unsigned long)zvar->cache->maxentries);
+        var->hdr.name,(unsigned long)zvar->cache->maxsize,(unsigned long)zvar->cache->maxentries);
 #endif
     /* One more thing, adjust the chunksize */
     zvar->cache->chunksize = zvar->chunksize;
-    /* and also free the fillchunk */
+    /* and also rebuild the fillchunk */
     nullfree(zvar->cache->fillchunk);
     zvar->cache->fillchunk = NULL;
-    return NC_NOERR;
+    if(var->no_fill)
+        stat = NCZ_create_fill_chunk(zvar->cache->chunksize,var->type_info->size,NULL,&zvar->cache->fillchunk);
+    else {
+	assert(var->fill_value != NULL);
+        stat = NCZ_create_fill_chunk(zvar->cache->chunksize,var->type_info->size,var->fill_value,&zvar->cache->fillchunk);
+    }
+    return stat;
 }
 
 /**************************************************/
@@ -149,7 +152,6 @@ NCZ_create_chunk_cache(NC_VAR_INFO_T* var, size64_t chunksize, char dimsep, NCZC
     int stat = NC_NOERR;
     NCZChunkCache* cache = NULL;
     void* fill = NULL;
-    size_t nelems, cachesize;
     NCZ_VAR_INFO_T* zvar = NULL;
 	
     if(chunksize == 0) return NC_EINVAL;
@@ -164,21 +166,15 @@ NCZ_create_chunk_cache(NC_VAR_INFO_T* var, size64_t chunksize, char dimsep, NCZC
     cache->fillchunk = NULL;
     cache->chunksize = chunksize;
     cache->dimension_separator = dimsep;
+    zvar->cache = cache;
 
-    /* Figure out the actual cache size */
-    cachesize = var->chunk_cache_size;
-    nelems = (cachesize / chunksize);
-    if(nelems == 0) nelems = 1;
-    /* Make consistent */
-    cachesize = nelems * chunksize;
-    cache->maxentries = nelems;
 #ifdef FLUSH
     cache->maxentries = 1;
 #endif
 
 #ifdef DEBUG
     fprintf(stderr,"%s.cache: nelems=%ld size=%ld\n",
-        var->hdr.name,(unsigned long)cache->maxentries,(unsigned long)(cache->maxentries*cache->chunksize));
+        var->hdr.name,(unsigned long)cache->maxentries,(unsigned long)cache->maxsize);
 #endif
     if((stat = ncxcachenew(LEAFLEN,&cache->xcache))) goto done;
     if((cache->mru = nclistnew()) == NULL)
@@ -189,6 +185,17 @@ done:
     nullfree(fill);
     NCZ_free_chunk_cache(cache);
     return THROW(stat);
+}
+
+static void
+free_cache_entry(NCZCacheEntry* entry)
+{
+    if(entry) {
+	nullfree(entry->data);
+	nullfree(entry->key.varkey);
+	nullfree(entry->key.chunkkey);
+	nullfree(entry);
+    }
 }
 
 void
@@ -204,7 +211,7 @@ NCZ_free_chunk_cache(NCZChunkCache* cache)
         NCZCacheEntry* entry = nclistremove(cache->mru,0);
 	(void)ncxcacheremove(cache->xcache,entry->hashkey,&ptr);
 	assert(ptr == entry);
-	nullfree(entry->data); nullfree(entry->key.varkey); nullfree(entry->key.chunkkey); nullfree(entry);
+	free_cache_entry(entry);
     }
 #ifdef DEBUG
 fprintf(stderr,"|cache.free|=%ld\n",nclistlength(cache->mru));
@@ -237,11 +244,10 @@ NCZ_read_cache_chunk(NCZChunkCache* cache, const size64_t* indices, void** datap
 {
     int stat = NC_NOERR;
     int rank = cache->ndims;
-    NC_FILE_INFO_T* file = cache->var->container->nc4_info;
     NCZCacheEntry* entry = NULL;
     ncexhashkey_t hkey = 0;
     int created = 0;
-    
+
     /* the hash key */
     hkey = ncxcachekey(indices,sizeof(size64_t)*cache->ndims);
     /* See if already in cache */
@@ -258,38 +264,22 @@ NCZ_read_cache_chunk(NCZChunkCache* cache, const size64_t* indices, void** datap
     }
 
     if(entry == NULL) { /*!found*/
-	/* Make room in the cache */
-	if((stat=makeroom(cache))) goto done;
 	/* Create a new entry */
 	if((entry = calloc(1,sizeof(NCZCacheEntry)))==NULL)
 	    {stat = NC_ENOMEM; goto done;}
 	memcpy(entry->indices,indices,rank*sizeof(size64_t));
-	/* Create the local copy space */
-	if((entry->data = calloc(1,cache->chunksize)) == NULL)
-	    {stat = NC_ENOMEM; goto done;}
         /* Create the key for this cache */
         if((stat = NCZ_buildchunkpath(cache,indices,&entry->key))) goto done;
         entry->hashkey = hkey;
-	/* Try to read the object in toto */
-	stat=get_chunk(cache,entry);
-	switch (stat) {
-	case NC_NOERR: break;
-	case NC_EEMPTY:
-	    /* If the file is read-only, then fake the chunk */
-	    entry->modified = (file->no_write?0:1);
-#ifdef FILLONREAD
-	    /* apply fill value */
-	    memcpy(entry->data,cache->fillchunk,cache->chunksize);
-#else
-	    memset(entry->data,0,cache->chunksize);
-#endif
-	    created = 1;
-	    break;
-	default: goto done;
-	}
+	/* Try to read the object from "disk" */
+	if((stat=get_chunk(cache,entry))) goto done;
         nclistpush(cache->mru,entry);
+	cache->used += entry->size;
 	if((stat = ncxcacheinsert(cache->xcache,entry->hashkey,entry))) goto done;
+	/* Ensure cache constraints not violated */
+	if((stat=makeroom(cache))) goto done;
     }
+
 #ifdef DEBUG
 fprintf(stderr,"|cache.read.lru|=%ld\n",nclistlength(cache->mru));
 #endif
@@ -298,33 +288,34 @@ fprintf(stderr,"|cache.read.lru|=%ld\n",nclistlength(cache->mru));
     
 done:
     if(created && stat == NC_NOERR)  stat = NC_EEMPTY; /* tell upper layers */
-    if(entry) {nullfree(entry->data); nullfree(entry->key.varkey); nullfree(entry->key.chunkkey);}
-    nullfree(entry);
+    if(entry) free_cache_entry(entry);
     return THROW(stat);
 }
 
+#if 0
 int
-NCZ_write_cache_chunk(NCZChunkCache* cache, const size64_t* indices, void** datap)
+NCZ_write_cache_chunk(NCZChunkCache* cache, const size64_t* indices, void* content)
 {
     int stat = NC_NOERR;
     int rank = cache->ndims;
     NCZCacheEntry* entry = NULL;
     ncexhashkey_t hkey;
     
-    /* and the hash key */
+    /* create the hash key */
     hkey = ncxcachekey(indices,sizeof(size64_t)*cache->ndims);
 
     if(entry == NULL) { /*!found*/
-	if((stat=makeroom(cache))) goto done;
 	/* Create a new entry */
 	if((entry = calloc(1,sizeof(NCZCacheEntry)))==NULL)
 	    {stat = NC_ENOMEM; goto done;}
 	memcpy(entry->indices,indices,rank*sizeof(size64_t));
-	/* Create the local copy space */
-	if((entry->data = calloc(1,cache->chunksize)) == NULL)
-	    {stat = NC_ENOMEM; goto done;}
         if((stat = NCZ_buildchunkpath(cache,indices,&entry->key))) goto done;
         entry->hashkey = hkey;
+	/* Create the local copy space */
+	entry->size = cache->chunksize;
+	if((entry->data = calloc(1,cache->chunksize)) == NULL)
+	    {stat = NC_ENOMEM; goto done;}
+	memcpy(entry->data,content,cache->chunksize);
     }
     entry->modified = 1;
     nclistpush(cache->mru,entry); /* MRU order */
@@ -333,18 +324,51 @@ fprintf(stderr,"|cache.write|=%ld\n",nclistlength(cache->mru));
 #endif
     entry = NULL;
 
+    /* Ensure cache constraints not violated */
+    if((stat=makeroom(cache))) goto done;
+
 done:
-    if(entry) {nullfree(entry->data); nullfree(entry->key.varkey); nullfree(entry->key.chunkkey);}
-    nullfree(entry);
+    if(entry) free_cache_entry(entry);
     return THROW(stat);
 }
+#endif
 
+/* Constrain cache, but allow at least one entry */
 static int
 makeroom(NCZChunkCache* cache)
 {
     int stat = NC_NOERR;
+
+    /* Sanity check; make sure at least one entry is always allowed */
+    if(nclistlength(cache->mru) == 1)
+	goto done;
+    stat = constraincache(cache);
+done:
+    return stat;
+}
+
+/* Completely flush cache */
+
+static int
+flushcache(NCZChunkCache* cache)
+{
+    cache->maxentries = 0;
+    return constraincache(cache);
+}
+
+
+/* Remove entries to ensure cache is not
+   violating any of its constraints.
+   On entry, constraints might be violated.
+*/
+
+static int
+constraincache(NCZChunkCache* cache)
+{
+    int stat = NC_NOERR;
+
     /* Flush from LRU end if we are at capacity */
-    while(nclistlength(cache->mru) > cache->maxentries) {
+    while(nclistlength(cache->mru) > cache->maxentries || cache->used > cache->maxsize) {
 	int i;
 	void* ptr;
 	NCZCacheEntry* e = ncxcachelast(cache->xcache); /* last entry is the least recently used */
@@ -359,6 +383,9 @@ makeroom(NCZChunkCache* cache)
 	nclistremove(cache->mru,i);
 	if(e->modified) /* flush to file */
 	    stat=put_chunk(cache,e);
+	/* Decrement space used */
+	assert(cache->used >= e->size);
+	cache->used -= e->size;
 	/* reclaim */
         nullfree(e->data); nullfree(e->key.varkey); nullfree(e->key.chunkkey); nullfree(e);
     }
@@ -478,23 +505,43 @@ NCZ_buildchunkkey(size_t R, const size64_t* chunkindices, char dimsep, char** ke
  * @author Dennis Heimbigner
  */
 static int
-put_chunk(NCZChunkCache* cache, const NCZCacheEntry* entry)
+put_chunk(NCZChunkCache* cache, NCZCacheEntry* entry)
 {
     int stat = NC_NOERR;
+    NC_FILE_INFO_T* file = NULL;
     NCZ_FILE_INFO_T* zfile = NULL;
     NCZMAP* map = NULL;
+    char* path = NULL;
 
     ZTRACE(5,"cache.var=%s entry.key=%s",cache->var->hdr.name,entry->key);
     LOG((3, "%s: var: %p", __func__, cache->var));
 
-    zfile = ((cache->var->container)->nc4_info)->format_file_info;
+    file = (cache->var->container)->nc4_info;
+    zfile = file->format_file_info;
     map = zfile->map;
 
-    {
-    char* path = NCZ_chunkpath(entry->key,cache->dimension_separator);
-    stat = nczmap_write(map,path,0,cache->chunksize,entry->data);
-    nullfree(path);
+    /* Make sure the entry is in filtered state */
+    if(!entry->isfiltered) {
+        NC_VAR_INFO_T* var = cache->var;
+        void* filtered = NULL; /* pointer to the filtered data */
+	size_t flen; /* length of filtered data */
+	/* Get the filter chain to apply */
+	NClist* filterchain = (NClist*)var->filters;
+	if(nclistlength(filterchain) > 0) {
+	    /* Apply the filter chain to get the filtered data */
+	    if((stat = NCZ_applyfilterchain(file,var,filterchain,entry->size,entry->data,&flen,&filtered,ENCODING))) goto done;
+	    /* Fix up the cache entry */
+	    /* Note that if filtered is different from entry->data, then entry->data will have been freed */
+	    entry->data = filtered;
+ 	    entry->size = flen;
+            entry->isfiltered = 1;
+	}
     }
+
+    path = NCZ_chunkpath(entry->key);
+    stat = nczmap_write(map,path,0,entry->size,entry->data);
+    nullfree(path); path = NULL;
+
     switch(stat) {
     case NC_NOERR:
 	break;
@@ -502,6 +549,7 @@ put_chunk(NCZChunkCache* cache, const NCZCacheEntry* entry)
     default: goto done;
     }
 done:
+    nullfree(path);
     return ZUNTRACE(stat);
 }
 
@@ -522,6 +570,9 @@ get_chunk(NCZChunkCache* cache, NCZCacheEntry* entry)
     NCZMAP* map = NULL;
     NC_FILE_INFO_T* file = NULL;
     NCZ_FILE_INFO_T* zfile = NULL;
+    size64_t size;
+    int empty = 0;
+    char* path = NULL;
 
     ZTRACE(5,"cache.var=%s entry.key=%s sep=%d",cache->var->hdr.name,entry->key,cache->dimension_separator);
     
@@ -530,14 +581,67 @@ get_chunk(NCZChunkCache* cache, NCZCacheEntry* entry)
     file = (cache->var->container)->nc4_info;
     zfile = file->format_file_info;
     map = zfile->map;
-    assert(map && entry->data);
+    assert(map);
 
-    {
-    char* path = NCZ_chunkpath(entry->key,cache->dimension_separator);
-    stat = nczmap_read(map,path,0,cache->chunksize,(char*)entry->data);
-    nullfree(path);
+    /* get size of the "raw" data on "disk" */
+    path = NCZ_chunkpath(entry->key);
+    stat = nczmap_len(map,path,&size);
+    nullfree(path); path = NULL;
+    switch(stat) {
+    case NC_NOERR: break;
+    case NC_EEMPTY: empty = 1; stat = NC_NOERR; break;
+    default: goto done;
     }
 
+    if(!empty) {
+        /* Make sure we have a place to read it */
+        entry->size = size;
+        entry->isfiltered = FILTERED(cache); /* Is the data being read filtered? */
+        if((entry->data = (void*)malloc(entry->size)) == NULL)
+            {stat = NC_ENOMEM; goto done;}
+	/* Read the raw data */
+        path = NCZ_chunkpath(entry->key);
+        stat = nczmap_read(map,path,0,entry->size,(char*)entry->data);
+        nullfree(path); path = NULL;
+        switch (stat) {
+        case NC_NOERR: break;
+        case NC_EEMPTY: empty = 1; stat = NC_NOERR;break;
+	default: goto done;
+	}
+    }
+    if(empty) {
+	/* fake the chunk */
+        entry->modified = (file->no_write?0:1);
+	entry->size = cache->chunksize;
+        if((entry->data = (void*)malloc(entry->size)) == NULL)
+            {stat = NC_ENOMEM; goto done;}
+        /* apply fill value */
+	assert(cache->fillchunk);
+	memcpy(entry->data,cache->fillchunk,entry->size);
+        entry->isfiltered = 0;
+	stat = NC_NOERR;
+    }
+    /* Make sure the entry is in unfiltered state */
+    if(entry->isfiltered) {
+        NC_VAR_INFO_T* var = cache->var;
+        void* unfiltered = NULL; /* pointer to the unfiltered data */
+        void* filtered = NULL; /* pointer to the filtered data */
+	size_t unflen; /* length of unfiltered data */
+	/* Get the filter chain to apply */
+	NClist* filterchain = (NClist*)var->filters;
+	if(nclistlength(filterchain) == 0) {stat = NC_EFILTER; goto done;}
+	/* Apply the filter chain to get the unfiltered data */
+	filtered = entry->data;
+	entry->data = NULL;
+	if((stat = NCZ_applyfilterchain(file,var,filterchain,entry->size,filtered,&unflen,&unfiltered,!ENCODING))) goto done;
+	/* Fix up the cache entry */
+	entry->data = unfiltered;
+	entry->size = unflen;
+	entry->isfiltered = 0;
+    }
+
+done:
+    nullfree(path);
     return ZUNTRACE(stat);
 }
 
@@ -561,4 +665,3 @@ done:
     nullfree(varkey);
     return THROW(stat);
 }
-

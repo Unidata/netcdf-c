@@ -169,7 +169,7 @@ main(
 			 strcmp(kind_name, "64-bit offset") == 0) {
 		    cmode_modifier |= NC_64BIT_OFFSET;
 		}
-#ifdef USE_NETCDF4
+#ifdef USE_HDF5
 		/* NetCDF-4 HDF5 format*/
 		else if (strcmp(kind_name, "3") == 0 || 
 			 strcmp(kind_name, "hdf5") == 0 ||

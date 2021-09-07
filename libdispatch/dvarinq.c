@@ -713,8 +713,10 @@ nc_inq_var_szip(int ncid, int varid, int *options_maskp, int *pixels_per_blockp)
    stat = nc_inq_var_filter_info(ncid,varid,H5Z_FILTER_SZIP,&nparams,params);
    switch (stat) {
    case NC_NOERR:
-        if(nparams != 2)
+        if(nparams < 2)
 	    return NC_EFILTER; /* bad # params */
+	if(nparams > 2)
+	    nparams = 2; /* for compatibility, only return 2 params */
 	break;
    case NC_ENOFILTER:
    case NC_ENOTNC4:

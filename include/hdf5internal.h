@@ -194,6 +194,8 @@ struct NC_HDF5_Filter {
     unsigned int* params;  /**< Params for arbitrary filter. */
 };
 
+int NC4_hdf5_filter_initialize(void);
+int NC4_hdf5_filter_finalize(void);
 int NC4_hdf5_filter_remove(NC_VAR_INFO_T* var, unsigned int id);
 int NC4_hdf5_filter_lookup(NC_VAR_INFO_T* var, unsigned int id, struct NC_HDF5_Filter** fi);
 int NC4_hdf5_addfilter(NC_VAR_INFO_T* var, unsigned int id, size_t nparams, const unsigned int* params, int flags);

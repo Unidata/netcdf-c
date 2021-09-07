@@ -16,6 +16,7 @@
  */
 
 #include "zincludes.h"
+#include "zfilter.h"
 
 /* These are the default chunk cache sizes for ZARR files created or
  * opened with netCDF-4. */
@@ -76,6 +77,7 @@ NCZ_initialize_internal(void)
 		ngs->zarr.dimension_separator = dimsep[0];
         }    
     }
+
 done:
     return stat;
 }
@@ -89,6 +91,7 @@ NCZ_finalize_internal(void)
 {
     /* Reclaim global resources */
     ncz_initialized = 0;
+    NCZ_filter_finalize();
     return NC_NOERR;
 }
 
@@ -631,6 +634,7 @@ ncz_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
 
 /**
  * @internal What fill value should be used for a variable?
+ * Side effects: set as default if necessary and build _FillValue attribute.
  *
  * @param h5 Pointer to file info struct.
  * @param var Pointer to variable info struct.
@@ -644,32 +648,45 @@ int
 ncz_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
 {
     size_t size;
-    int retval;
+    int retval = NC_NOERR;
 
+#if 0 /*LOOK*/
     /* Find out how much space we need for this type's fill value. */
     if (var->type_info->nc_type_class == NC_VLEN)
         size = sizeof(nc_vlen_t);
     else if (var->type_info->nc_type_class == NC_STRING)
         size = sizeof(char *);
     else
+#endif
     {
-        if ((retval = nc4_get_typelen_mem(h5, var->type_info->hdr.id, &size)))
-            return retval;
+        if ((retval = nc4_get_typelen_mem(h5, var->type_info->hdr.id, &size))) goto done;
     }
     assert(size);
 
-    /* Allocate the space. */
-    if (!((*fillp) = calloc(1, size)))
-        return NC_ENOMEM;
+    /* If the user has set a fill_value for this var, use, otherwise find the default fill value. */
 
-    /* If the user has set a fill_value for this var, use, otherwise
-     * find the default fill value. */
-    if (var->fill_value)
-    {
-        LOG((4, "Found a fill value for var %s", var->hdr.name));
+    if (var->fill_value == NULL) {
+	/* initialize the fill_value to the default */
+	/* Allocate the fill_value space. */
+        if((var->fill_value = calloc(1, size))==NULL)
+	    {retval = NC_ENOMEM; goto done;}
+        if((retval = nc4_get_default_fill_value(var->type_info->hdr.id, var->fill_value))) {
+            /* Note: release memory, but don't return error on failure */
+            free(var->fill_value);
+            var->fill_value = NULL;
+	    retval = NC_NOERR;
+	    goto done;
+        }
+    }
+    assert(var->fill_value != NULL);
+
+    LOG((4, "Found a fill value for var %s", var->hdr.name));
+#if 0 /*LOOK*/
+	/* Need to copy both vlen and a single basetype */
         if (var->type_info->nc_type_class == NC_VLEN)
         {
-            nc_vlen_t *in_vlen = (nc_vlen_t *)(var->fill_value), *fv_vlen = (nc_vlen_t *)(*fillp);
+            nc_vlen_t *in_vlen = (nc_vlen_t *)(var->fill_value);
+	    nc_vlen-t *fv_vlen = (nc_vlen_t *)fill;
             size_t basetypesize = 0;
 
             if((retval=nc4_get_typelen_mem(h5, var->type_info->u.v.base_nc_typeid, &basetypesize)))
@@ -694,20 +711,21 @@ ncz_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
                     return NC_ENOMEM;
                 }
         }
-        else
-            memcpy((*fillp), var->fill_value, size);
-    }
-    else
-    {
-        if (nc4_get_default_fill_value(var->type_info->hdr.id, *fillp))
-        {
-            /* Note: release memory, but don't return error on failure */
-            free(*fillp);
-            *fillp = NULL;
-        }
+#endif /*0*/
+    /* Create _FillValue Attribute */
+    if((retval = ncz_create_fillvalue(var))) goto done;
+    if(fillp) {
+        void* fill = NULL;
+        /* Allocate the return space. */
+        if((fill = calloc(1, size))==NULL)
+       	    {retval = NC_ENOMEM; goto done;}
+        memcpy(fill, var->fill_value, size);
+	*fillp = fill;
+	fill = NULL;
     }
 
-    return NC_NOERR;
+done:
+    return retval;
 }
 
 #ifdef LOGGING
