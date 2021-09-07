@@ -174,6 +174,41 @@ print_name(const char* name) {
     free(ename);
 }
 
+/* 
+ * Returns malloced string with selected chars escaped.
+ * Caller should free result when done with it.
+ */
+char*
+escaped_string(const char* cp) {
+    char *ret;			/* string returned */
+    char *sp;
+    assert(cp != NULL);
+
+    /* For some reason, and on some machines (e.g. tweety)
+       utf8 characters such as \343 are considered control character. */
+
+    ret = emalloc(4*strlen(cp) + 1); /* max if every char escaped */
+    sp = ret;
+    *sp = 0;			    /* empty name OK */
+    for (; *cp; cp++) {
+	if (isascii((int)*cp)) {
+	    if(iscntrl((int)*cp)) {	/* render control chars as two hex digits, \%xx */
+		snprintf(sp, 4+1,"\\%%%.2x", *cp);
+		sp += 4;
+	    } else if(*cp == '"') {
+		*sp++ = '\\';
+		*sp++ = '"';
+	    } else 
+  	        *sp++ = *cp;
+	} else { 		/* not ascii, assume just UTF-8 byte */
+	    *sp++ = *cp;
+	}
+    }
+    *sp = 0;
+    return ret;
+}
+
+
 /* Convert a full path name to a group to the specific groupid. */
 int 
 nc_inq_grpid2(int ncid, const char *grpname0, int *grpidp)
@@ -923,3 +958,4 @@ done:
     return stat;
 }
 #endif
+

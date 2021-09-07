@@ -740,9 +740,7 @@ platformopenfile(ZFMAP* zfmap, const char* canonpath, FD* fd)
     /* Try to open file  (will localize) */
     fd->fd = NCopen3(canonpath, ioflags, permissions);
     if(fd->fd < 0)
-        {
-fprintf(stderr,"xxx: canonpath=%s\n",canonpath);
-stat = platformerr(errno); goto done;} /* could not open */
+        {stat = platformerr(errno); goto done;} /* could not open */
 done:
     errno = 0;
     return ZUNTRACEX(stat,"fd=%d",(fd?fd->fd:-1));

@@ -289,6 +289,15 @@ nczprint_idvector(size_t len, const int* ids)
 }
 
 char*
+nczprint_paramvector(size_t len, const unsigned* params)
+{
+    size64_t v[4096];
+    size_t i;
+    for(i=0;i<len;i++) v[i] = params[i];    
+    return nczprint_vector(len,v);
+}
+
+char*
 nczprint_sizevector(size_t len, const size_t* sizes)
 {
     size64_t v[4096];

@@ -19,6 +19,7 @@ FEATURE_HDF5=@HAS_HDF5@
 FEATURE_HDF5=@HAS_HDF5@
 FEATURE_S3TESTS=@DO_NCZARR_S3_TESTS@
 FEATURE_NCZARR_ZIP=@DO_NCZARR_ZIP_TESTS@
+FEATURE_FILTERTESTS=@DO_FILTER_TESTS@
 
 set -e
 
@@ -69,6 +70,7 @@ set -e
 # 7. NCCOPY - absolute path to the nccopy.exe executable
 # 8. NCGEN - absolute path to ncgen.exe
 # 9. NCGEN3 - absolute path to ncgen3.exe
+#10. NCPATHCVT - absolute path to ncpathcvt.exe
 
 # Allow global set -x mechanism for debugging.
 if test "x$SETX" = x1 ; then set -x ; fi
@@ -126,6 +128,7 @@ export NCDUMP="${top_builddir}/ncdump${VS}/ncdump${ext}"
 export NCCOPY="${top_builddir}/ncdump${VS}/nccopy${ext}"
 export NCGEN="${top_builddir}/ncgen${VS}/ncgen${ext}"
 export NCGEN3="${top_builddir}/ncgen3${VS}/ncgen3${ext}"
+export NCPATHCVT="${top_builddir}/ncdump${VS}/ncpathcvt${ext}"
 
 # Temporary hacks (until we have a test_utils directory)
 # to locate certain specific test files

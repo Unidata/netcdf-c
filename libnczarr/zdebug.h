@@ -14,6 +14,12 @@
 #include "ncexternl.h"
 #include "nclog.h"
 
+#ifdef LOGGING
+#define ZLOG(tag,...) nclog(tag,__VA_ARGS__)
+#else
+#define ZLOG(tag,...)
+#endif
+
 #ifdef ZCATCH
 /* Place breakpoint on zbreakpoint to catch errors close to where they occur*/
 #define THROW(e) zthrow((e),__FILE__, __func__, __LINE__)
@@ -53,6 +59,7 @@ EXTERNL char* nczprint_projectionx(const NCZProjection proj, int raw);
 EXTERNL char* nczprint_sliceprojectionsx(const NCZSliceProjections slp, int raw);
 EXTERNL char* nczprint_vector(size_t,const size64_t*);
 EXTERNL char* nczprint_idvector(size_t,const int*);
+EXTERNL char* nczprint_paramvector(size_t,const unsigned*);
 EXTERNL char* nczprint_sizevector(size_t,const size_t*);
 EXTERNL char* nczprint_envv(const char** envv);
 
