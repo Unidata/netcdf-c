@@ -8,6 +8,8 @@
 # This is the cmake build file for the nc_test4 directory.
 # Ward Fisher, Ed Hartnett
 
+SET(srcdir ${CMAKE_CURRENT_SOURCE_DIR})
+
 # Some extra tests
 SET(NC4_TESTS tst_dims tst_dims2 tst_dims3 tst_files tst_files4
   tst_vars tst_varms tst_unlim_vars tst_converts tst_converts2
@@ -40,6 +42,9 @@ IF(ENABLE_FILTER_TESTING)
   build_bin_test(test_filter_order)
   build_bin_test(test_filter_repeat)
   ADD_SH_TEST(nc_test4 tst_filter)
+IF(ENABLE_BLOSC)
+  ADD_SH_TEST(nc_test4 tst_specific_filters)
+ENDIF()
 IF(ENABLE_CLIENTSIDE_FILTERS)
   add_bin_test(nc_test4 test_filter_reg)
 ENDIF(ENABLE_CLIENTSIDE_FILTERS)
@@ -80,6 +85,7 @@ IF(USE_SZIP)
   ENDIF()
 ENDIF()
 
+
 # Copy some test files from current source dir to out-of-tree build dir.
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/ref_bzip2.c ${CMAKE_CURRENT_SOURCE_DIR}/*.sh ${CMAKE_CURRENT_SOURCE_DIR}/*.h5 ${CMAKE_CURRENT_SOURCE_DIR}/*.cdl)
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
@@ -89,6 +95,7 @@ ENDIF()
 
 FOREACH(CTEST ${NC4_TESTS})
   add_bin_test(nc_test4 ${CTEST})
+  SET_TESTS_PROPERTIES(nc_test4_${CTEST} PROPERTIES ENVIRONMENT srcdir=${CMAKE_CURRENT_SOURCE_DIR})
 ENDFOREACH()
 
 IF(TEST_PARALLEL4)

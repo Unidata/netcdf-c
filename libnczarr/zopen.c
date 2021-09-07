@@ -124,7 +124,7 @@ ncz_open_file(const char *path, int mode, const char** controls, int ncid)
 
 exit:
     if (stat && h5)
-	ncz_close_file(h5, 1); /*  treat like abort*/
+	ncz_closeorabort(h5, NULL, 1); /*  treat like abort*/
     return ZUNTRACE(stat);
 }
 

@@ -58,12 +58,11 @@ EXTERNL int nc_inq_var_filter_ids(int ncid, int varid, size_t* nfilters, unsigne
 /* Learn about the filter with specified id wrt a variable */
 EXTERNL int nc_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparams, unsigned int* params);
 
-
 /* End HDF5 Format Declarations */
-/**************************************************/
 
 #if defined(__cplusplus)
 }
 #endif
+/**************************************************/
 
 #endif /* NETCDF_FILTER_H */
