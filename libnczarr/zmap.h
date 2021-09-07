@@ -110,9 +110,10 @@ model, only content-bearing objects actually exist.  Note that
 this different than, say, a direvtory tree where a key will
 always lead to something: a directory or a file.
 
-In any case, the zmap API returns two distinguished error code:
+In any case, the zmap API returns three distinguished error code:
 1. NC_NOERR if a operation succeeded
-2. NC_EEMPTY is returned when accessing a key that has no content.
+2. NC_EEMPTY is returned when accessing a key that has no content or does not exist.
+
 This does not preclude other errors being returned such NC_EACCESS or NC_EPERM or NC_EINVAL
 if there are permission errors or illegal function arguments, for example.
 It also does not preclude the use of other error codes internal to the zmap

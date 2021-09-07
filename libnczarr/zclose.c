@@ -4,6 +4,7 @@
  *********************************************************************/
 
 #include "zincludes.h"
+#include "zfilter.h"
 
 /* Forward */
 static int zclose_group(NC_GRP_INFO_T*);

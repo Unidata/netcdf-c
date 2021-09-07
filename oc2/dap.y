@@ -4,8 +4,8 @@
 /*The lines down to DO NOT DELETE ... comment are specific to the C Parser.
   They will be commennted out when building a java parser.
 */
-%error-verbose
-%pure-parser
+%define parse.error verbose
+%define api.pure
 %lex-param {DAPparsestate* parsestate}
 %parse-param {DAPparsestate* parsestate}
 %{

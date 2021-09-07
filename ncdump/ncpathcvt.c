@@ -14,14 +14,14 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#ifdef HAVE_GETOPT_H
-#include <getopt.h>
-#endif
 
 #if defined(_WIN32) && !defined(__MINGW32__)
 #include "XGetopt.h"
+#else
+#include <getopt.h>
 #endif
 
+#include "netcdf.h"
 #include "ncpathmgr.h"
 
 /*
@@ -42,7 +42,7 @@ Default is to convert to the format used by the platform.
 
 */
 
-#define DEBUG
+#undef DEBUG
 
 struct Options {
     int target;
@@ -54,12 +54,42 @@ struct Options {
 static char* escape(const char* path);
 static void usage(const char* msg);
 
+static void
+usage(const char* msg)
+{
+    if(msg != NULL) fprintf(stderr,"%s\n",msg);
+    fprintf(stderr,"pathcvt [-u|-w|-m|-c] PATH\n");
+    if(msg == NULL) exit(0); else exit(1);
+}
+
+static char*
+escape(const char* path)
+{
+    size_t slen = strlen(path);
+    const char* p;
+    char* q;
+    char* epath = NULL;
+    const char* escapes = " \\";
+
+    epath = (char*)malloc((2*slen) + 1);
+    if(epath == NULL) usage("out of memtory");
+    p = path;
+    q = epath;
+    for(;*p;p++) {
+	if(strchr(escapes,*p) != NULL)
+	    *q++ = '\\';
+        *q++ = *p;
+    }
+    *q = '\0';
+    return epath;
+}
+
 int
 main(int argc, char** argv)
 {
     int c;
     char* cvtpath = NULL;
-    char* inpath;
+    char* inpath, *canon;
 
     memset((void*)&cvtoptions,0,sizeof(cvtoptions));
     cvtoptions.drive = 'c';
@@ -91,47 +121,23 @@ main(int argc, char** argv)
     if (argc > 1)
        usage("more than one path specified");
     inpath = argv[0];
+
+    /* Canonicalize */
+    if(NCpathcanonical(inpath,&canon))
+       usage("Could not convert to canonical form");
+
     if(cvtoptions.target == NCPD_UNKNOWN)
-        cvtpath = NCpathcvt(inpath);
+        cvtpath = NCpathcvt(canon);
     else
-        cvtpath = NCpathcvt_test(inpath,cvtoptions.target,(char)cvtoptions.drive);
+        cvtpath = NCpathcvt_test(canon,cvtoptions.target,(char)cvtoptions.drive);
     if(cvtpath && cvtoptions.escapes) {
 	char* path = cvtpath; cvtpath = NULL;
         cvtpath = escape(path);
 	free(path);
     }
     printf("%s",cvtpath);
+    if(canon) free(canon);
     if(cvtpath) free(cvtpath);
     return 0;
-}
-
-static void
-usage(const char* msg)
-{
-    if(msg != NULL) fprintf(stderr,"%s\n",msg);
-    fprintf(stderr,"pathcvt [-u|-w|-m|-c] PATH\n");
-    if(msg == NULL) exit(0); else exit(1);
-}
-
-static char*
-escape(const char* path)
-{
-    size_t slen = strlen(path);
-    const char* p;
-    char* q;
-    char* epath = NULL;
-    const char* escapes = " \\";
-
-    epath = (char*)malloc((2*slen) + 1);
-    if(epath == NULL) usage("out of memtory");
-    p = path;
-    q = epath;
-    for(;*p;p++) {
-	if(strchr(escapes,*p) != NULL)
-	    *q++ = '\\';
-        *q++ = *p;
-    }
-    *q = '\0';
-    return epath;
 }
 
