@@ -78,6 +78,9 @@ extradir =
 check_PROGRAMS += test_filter test_filter_misc test_filter_order test_filter_repeat
 check_PROGRAMS += tst_multifilter
 TESTS += tst_filter.sh
+if ENABLE_BLOSC
+TESTS += tst_specific_filters.sh
+endif
 endif
 endif # BUILD_UTILITIES
 
@@ -100,10 +103,11 @@ ref_unfiltered.cdl ref_bzip2.c findplugin.in ref_unfilteredvv.cdl	\
 ref_filteredvv.cdl ref_multi.cdl                                        \
 ref_ncgenF.cdl ref_nccopyF.cdl                                          \
 ref_filter_repeat.txt ref_fillonly.cdl test_fillonly.sh                 \
-ref_filter_order_create.txt ref_filter_order_read.txt
+ref_filter_order_create.txt ref_filter_order_read.txt			\
+ref_any.cdl tst_specific_filters.sh
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
-tst_floats_1D.cdl floats_1D_3.nc floats_1D.cdl tst_*.nc			\
+tst_floats_1D.cdl floats_1D_3.nc floats_1D.cdl tst_*.nc tmp_*.txt       \
 tst_floats2_*.cdl tst_ints2_*.cdl tst_shorts2_*.cdl tst_elena_*.cdl	\
 tst_simple*.cdl tst_chunks.cdl pr_A1.* tauu_A1.* usi_01.* thetau_01.*	\
 tst_*.h5 tst_grp_rename.cdl tst_grp_rename.dmp ref_grp_rename.cdl	\
@@ -111,7 +115,8 @@ foo1.nc tst_*.h4 test.nc testszip.nc test.h5 szip_dump.cdl		\
 perftest.txt bigmeta.nc bigvars.nc *.gz MSGCPP_*.nc	                \
 floats*.nc floats*.cdl shorts*.nc shorts*.cdl ints*.nc ints*.cdl        \
 testfilter_reg.nc filterrepeat.txt tmp_fillonly.nc                      \
-testfilter_order.nc crfilterorder.txt rdfilterorder.txt 1
+testfilter_order.nc crfilterorder.txt rdfilterorder.txt 1               \
+tmp_*.txt tmp_*.nc
 
 DISTCLEANFILES = findplugin.sh run_par_test.sh
 

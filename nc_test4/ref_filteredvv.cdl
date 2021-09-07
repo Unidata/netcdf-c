@@ -6,7 +6,7 @@ variables:
 	float var1(dim0, dim1) ;
 		var1:_Storage = "chunked" ;
 		var1:_ChunkSizes = 2, 2 ;
-		var1:_Filter = "307,9,4" ;
+		var1:_Filter = "307,9" ;
 		var1:_NoFill = "true" ;
 
 // global attributes:
@@ -24,7 +24,7 @@ group: g {
   	float var2(dim0, dim1) ;
   		var2:_Storage = "chunked" ;
   		var2:_ChunkSizes = 2, 2 ;
-  		var2:_Filter = "307,9,4" ;
+  		var2:_Filter = "307,9" ;
   		var2:_NoFill = "true" ;
 
   // group attributes:

@@ -735,7 +735,52 @@ ncaux_h5filterspec_parse(const char* txt, unsigned int* idp, size_t* nparamsp, u
     if(paramsp) {*paramsp = params; params = NULL;}
 done:
     nullfree(params);
-    nullfree(sdata);
+    nullfree(sdata0);
+    return stat;
+}
+
+/*
+Parse a filter parameter string into a sequence of unsigned ints.
+
+@param txt - a string containing the parameter string.
+@param nuiparamsp - store the number of unsigned ints here
+@param uiparamsp - store the vector of unsigned ints here; caller frees.
+@return NC_NOERR if parse succeeded
+@return NC_EINVAL otherwise
+*/
+
+EXTERNL int
+ncaux_h5filterspec_parse_parameter(const char* txt, size_t* nuiparamsp, unsigned int* uiparams)
+{
+    int stat = NC_NOERR;
+    char* p;
+    char* sdata0 = NULL; /* what to free */
+    char* sdata = NULL; /* sdata0 with leading prefix skipped */
+    size_t nuiparams = 0;
+    size_t len;
+    
+    if(txt == NULL)
+        {stat = NC_EINVAL; goto done;}
+    len = strlen(txt);
+    if(len == 0)
+        {stat = NC_EINVAL; goto done;}
+
+    if((sdata0 = (char*)calloc(1,len+1+1))==NULL)
+	{stat = NC_ENOMEM; goto done;}	
+    memcpy(sdata0,txt,len);
+    sdata = sdata0;
+
+    p = sdata;
+
+    nuiparams = 0;
+    len = strlen(p);
+    /* skip leading white space */
+    while(strchr(" 	",*p) != NULL) {p++; len--;}
+    if((stat = filterspec_cvt(p,&nuiparams,uiparams))) goto done;
+    /* Now return results */
+    if(nuiparamsp) *nuiparamsp = nuiparams;
+done:
+    nullfree(sdata0);
     return stat;
 }
 
