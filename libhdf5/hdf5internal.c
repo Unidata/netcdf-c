@@ -82,6 +82,7 @@ nc4_hdf5_initialize(void)
     if (set_auto(NULL, NULL) < 0)
         LOG((0, "Couldn't turn off HDF5 error messages!"));
     LOG((1, "HDF5 error messages have been turned off."));
+    NC4_hdf5_filter_initialize();
     nc4_hdf5_initialized = 1;
 }
 
@@ -94,6 +95,7 @@ nc4_hdf5_finalize(void)
 {
     /* Reclaim global resources */
     NC4_provenance_finalize();
+    NC4_hdf5_filter_finalize();
     nc4_hdf5_initialized = 0;
 }
 

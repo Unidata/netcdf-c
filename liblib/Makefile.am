@@ -78,6 +78,11 @@ libnetcdf_la_LIBADD += ${aws_cpp_sdk_core_LIBS} ${aws_cpp_sdk_s3_LIBS}
 endif
 endif #ENABLE_NCZARR
 
+if ENABLE_PLUGINS
+AM_CPPFLAGS += -I${top_srcdir}/libncpoco
+libnetcdf_la_LIBADD += ${top_builddir}/libncpoco/libncpoco.la
+endif #ENABLE_PLUGINS
+
 if ISCYGWIN
 # Force binary mode for file read/write
 AM_LDFLAGS += -lbinmode

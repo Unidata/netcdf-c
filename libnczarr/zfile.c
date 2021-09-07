@@ -13,6 +13,7 @@
  */
 
 #include "zincludes.h"
+#include "zfilter.h"
 
 /* Forward */
 static int NCZ_enddef(int ncid);
@@ -103,19 +104,24 @@ NCZ_enddef(int ncid)
 
     ZTRACE(1,"ncid=%d",ncid);
 
-    LOG((1, "%s: ncid 0x%x", __func__, ncid));
-
     /* Find pointer to group and zinfo. */
     if ((stat = nc4_find_grp_h5(ncid, &grp, &h5)))
         goto done;
 
-    /* When exiting define mode, mark all variable written. */
+    /* When exiting define mode, process all variables */
     for (i = 0; i < nclistlength(h5->allgroups); i++) {	
 	NC_GRP_INFO_T* g = nclistget(h5->allgroups,i);
         for (j = 0; j < ncindexsize(g->vars); j++) {
             var = (NC_VAR_INFO_T *)ncindexith(g->vars, j);
             assert(var);
-            var->written_to = NC_TRUE;
+	    /* set the fill value and _FillValue attribute */
+	    if((stat = ncz_get_fill_value(h5,var,NULL))) goto done; /* ensure var->fill_value is set */
+            assert(var->fill_value != NULL);
+            var->written_to = NC_TRUE; /* mark it written */
+	    /* rebuild the fill chunk */
+	    if((stat = NCZ_adjust_var_cache(var))) goto done;
+	    /* Build the filter working parameters for any filters */
+	    if((stat = NCZ_filter_setup(var))) goto done;
         }
     }
     stat = ncz_enddef_netcdf4_file(h5);
@@ -236,13 +242,13 @@ ncz_closeorabort(NC_FILE_INFO_T* h5, void* params, int abort)
 
     NC_UNUSED(params);
 
-    ZTRACE(1,"file=%s abort=%d",h5->hdr.name,abort);
+    ZTRACE(3,"file=%s abort=%d",h5->hdr.name,abort);
 
     LOG((2, "%s: file: %p", __func__, h5));
 
     /* If we're in define mode, but not redefing the file, delete it. */
     if(!abort) {
-	/* Invoke enddef if needed, which mean sync */
+	/* Invoke enddef if needed, which mean sync first */
 	if(h5->flags & NC_INDEF) h5->flags ^= NC_INDEF;
 	/* Sync the file unless this is a read-only file. */
 	if(!h5->no_write) {
