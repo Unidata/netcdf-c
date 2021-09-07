@@ -1331,5 +1331,37 @@ nc_get_var_chunk_cache(int ncid, int varid, size_t *sizep, size_t *nelemsp,
     return ncp->dispatch->get_var_chunk_cache(ncid, varid, sizep,
                                               nelemsp, preemptionp);
 }
+
+#ifndef USE_NETCDF4
+/* Make sure the fortran API is defined, even if it only returns errors */
+
+int
+nc_set_chunk_cache_ints(int size, int nelems, int preemption)
+{
+    return NC_ENOTBUILT;
+}
+
+int
+nc_get_chunk_cache_ints(int *sizep, int *nelemsp, int *preemptionp)
+{
+    return NC_ENOTBUILT;
+}
+
+int
+nc_set_var_chunk_cache_ints(int ncid, int varid, int size, int nelems,
+			    int preemption)
+{
+    return NC_ENOTBUILT;
+}
+
+int
+nc_get_var_chunk_cache_ints(int ncid, int varid, int *sizep,
+			    int *nelemsp, int *preemptionp)
+{
+    return NC_ENOTBUILT;
+}
+
+#endif /*USE_NETCDF4*/
+
 /** @} */
 /** @} */
