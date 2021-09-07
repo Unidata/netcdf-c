@@ -1,7 +1,0 @@
-#!/bin/sh
-#git remote add unidata https://github.com/Unidata/netcdf-c.git
-git fetch unidata
-git rebase unidata/master
-#git push
-
-
