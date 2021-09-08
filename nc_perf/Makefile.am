@@ -61,6 +61,7 @@ run_bm_test2.log: tst_create_files.log
 # This will run parallel I/O benchmarks for parallel builds.
 if TEST_PARALLEL4
 check_PROGRAMS += tst_gfs_data_1
+tst_gfs_data_1_LDFLAGS = -no-install
 TESTS += run_par_bm_test.sh run_gfs_test.sh
 run_par_bm_test.log: tst_create_files.log run_bm_test1.log
 endif # TEST_PARALLEL4
