@@ -2,9 +2,11 @@
   Copyright 2020, UCAR/Unidata See COPYRIGHT file for copying and
   redistribution conditions.
 
-  This program tests and benchmarks netcdf-4 parallel I/O using the
-  same access pattern as is used by NOAA's GFS when writing and
-  reading model data. See:
+  This program tests and benchmarks netcdf-4 parallel I/O doing
+  compression.
+
+  This program tries to use the same access pattern as is used by
+  NOAA's GFS when writing and reading model data. See:
   https://github.com/Unidata/netcdf-fortran/issues/264.
 
   Also see the file gfs_sample.cdl to see what is being produced by
@@ -28,7 +30,7 @@
 #include <netcdf_par.h>
 #include <netcdf_meta.h>
 
-#define TEST_NAME "tst_gfs_data_1"
+#define TEST_NAME "tst_compress_par"
 #define NUM_META_VARS 7
 #define NUM_META_TRIES 2
 #define NDIM2 2
@@ -608,7 +610,8 @@ main(int argc, char **argv)
         {
     	    for(i = 0; i < data_count[3]; i++)
             {
-                value_data[cnt] = (-1 * i%2) * my_rank * 1000 + cnt / sqrt(my_rank + cnt + 1) - (-1 * i%3 * i);
+                /* value_data[cnt] = (-1 * i%2) * my_rank * 1000 + cnt / sqrt(my_rank + cnt + 1) - (-1 * i%3 * i); */
+                value_data[cnt] = (-1 * i%2) * my_rank * 1000 + cnt / sqrt(my_rank + cnt + 1);
                 /* printf("%d: value_data[%ld] %g\n", my_rank, cnt, value_data[cnt]); */
                 cnt++;
             }
