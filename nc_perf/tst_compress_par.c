@@ -611,7 +611,7 @@ main(int argc, char **argv)
     	    for(i = 0; i < data_count[3]; i++)
             {
                 /* value_data[cnt] = (-1 * i%2) * my_rank * 1000 + cnt / sqrt(my_rank + cnt + 1) - (-1 * i%3 * i); */
-                value_data[cnt] = (-1 * i%2) * my_rank * 1000 + cnt / sqrt(my_rank + cnt + 1);
+                value_data[cnt] = (-1 * i%2) * my_rank * 1000 + cnt / sqrt(my_rank + cnt + 1) - (-1 * i%2 * i);
                 /* printf("%d: value_data[%ld] %g\n", my_rank, cnt, value_data[cnt]); */
                 cnt++;
             }
