@@ -730,7 +730,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 		return NC_EINVAL;
 
 	    /* NSD must be in range. */
-	    if (*nsd < 0)
+	    if (*nsd <= 0)
 		return NC_EINVAL;
 	    if (var->type_info->hdr.id == NC_FLOAT &&
 		*nsd > NC_QUANTIZE_MAX_FLOAT_NSD)
@@ -744,25 +744,9 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	
 	var->quantize_mode = *quantize_mode;
 
-	/* If nsd was zero, turn quantization off. */
-	if (*nsd == 0)
-	    var->quantize_mode = NC_NOQUANTIZE;
-	
 	/* If quantization is turned off, then set nsd to 0. */
 	if (*quantize_mode == NC_NOQUANTIZE)
 	    var->nsd = 0;
-    }
-
-    /* Setting nsd to 0 turns off quantization. */
-    if (nsd && !quantize_mode)
-    {
-	if (*nsd == 0)
-	{
-	    var->quantize_mode = NC_NOQUANTIZE;	    
-	    var->nsd = *nsd;
-	}
-	else
-	    return NC_EINVAL;
     }
 
     return NC_NOERR;
