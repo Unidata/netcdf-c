@@ -523,12 +523,13 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
    https://www.researchgate.net/publication/301575383_Bit_Grooming_Statistically_accurate_precision-preserving_quantization_with_compression_evaluated_in_the_netCDF_Operators_NCO_v448.
   
    @param ncid File ID.
-   @param varid Variable ID.  NC_GLOBAL may not be used.
+   @param varid Variable ID. ::NC_GLOBAL may not be used.
    @param quantize_mode Quantization mode. May be ::NC_NOQUANTIZE or
    ::NC_QUANTIZE_BITGROOM.
    @param nsd Number of significant digits. May be any integer from 1
-   to ::NC_QUANTIZE_MAX_FLOAT_NSD (for variables of type ::NC_FLOAT) or
-   ::NC_QUANTIZE_MAX_DOUBLE_NSD (for variables of type ::NC_DOUBLE).
+   to ::NC_QUANTIZE_MAX_FLOAT_NSD (for variables of type ::NC_FLOAT)
+   or ::NC_QUANTIZE_MAX_DOUBLE_NSD (for variables of type
+   ::NC_DOUBLE). Ignored if quantize_mode = NC_NOQUANTIZE.
    
    @return ::NC_NOERR No error.
    @return ::NC_EGLOBAL Can't use ::NC_GLOBAL with this function.
@@ -539,7 +540,7 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
    @return ::NC_ESTRICTNC3 Attempting netcdf-4 operation on strict nc3
    netcdf-4 file.
    @return ::NC_ELATEDEF Too late to change settings for this variable.
-   @return ::NC_EINVAL Invalid input
+   @return ::NC_EINVAL Invalid input.
    @author Charlie Zender, Ed Hartnett
  */
 int

@@ -104,6 +104,7 @@ main(int argc, char **argv)
         if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM + 1, 3) != NC_EINVAL) ERR;
         if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM, -1) != NC_EINVAL) ERR;
         if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM, NC_QUANTIZE_MAX_DOUBLE_NSD + 1) != NC_EINVAL) ERR;
+        if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM, 0) != NC_EINVAL) ERR;
 
         /* This will work. */
         if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, NSD_3)) ERR;
@@ -121,7 +122,7 @@ main(int argc, char **argv)
         if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, NSD_3)) ERR;
 
         /* I changed my mind again! Turn it off! */
-        if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, 0)) ERR;
+        if (nc_def_var_quantize(ncid, varid1, NC_NOQUANTIZE, 0)) ERR;
         if (nc_inq_var_quantize(ncid, varid1, &quantize_mode_in, &nsd_in)) ERR;
         if (quantize_mode_in != NC_NOQUANTIZE) ERR;
         if (nsd_in != 0) ERR;
