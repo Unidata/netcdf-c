@@ -168,7 +168,7 @@ readfile(const char* path, NC_memio* memio)
     char* p = NULL;
 
     /* Open the file for reading */
-#ifdef _MSC_VER
+#ifdef _WIN32
     f = fopen(path,"rb");
 #else
     f = fopen(path,"r");
@@ -216,7 +216,7 @@ writefile(const char* path, NC_memio* memio)
     char* p = NULL;
 
     /* Open the file for writing */
-#ifdef _MSC_VER
+#ifdef _WIN32
     f = fopen(path,"wb");
 #else
     f = fopen(path,"w");
