@@ -710,7 +710,7 @@ readfile(const char* path, NC_memio* memio)
     char* p = NULL;
 
     /* Open the file for reading */
-#ifdef _MSC_VER
+#ifdef _WIN32
     f = NCfopen(path,"rb");
 #else
     f = NCfopen(path,"r");
@@ -760,7 +760,7 @@ writefile(const char* path, NCMEMIO* memio)
     char* p = NULL;
 
     /* Open/create the file for writing*/
-#ifdef _MSC_VER
+#ifdef _WIN32
     f = NCfopen(path,"wb");
 #else
     f = NCfopen(path,"w");
