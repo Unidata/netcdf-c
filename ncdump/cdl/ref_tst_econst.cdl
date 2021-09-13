@@ -9,5 +9,5 @@ variables:
 data:
   test1=pass;
   test2=e2.undefined;
-  test3=/e1.fail;
+  test3=e1.fail;
 } 
