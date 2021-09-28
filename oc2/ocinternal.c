@@ -85,9 +85,6 @@ ocinternalinitialize(void)
     /* Compute some xdr related flags */
     xxdr_init();
 
-    /* Make sure that the rc file has been loaded */
-    (void)NC_rcload();
-
     return OCTHROW(stat);
 }
 
@@ -489,7 +486,7 @@ ocget_rcproperties(OCstate* state)
     OCerror ocerr = OC_NOERR;
     char* option = NULL;
 #ifdef HAVE_CURLOPT_BUFFERSIZE
-    option = NC_rclookup(OCBUFFERSIZE,state->uri->uri);
+    option = NC_rclookup(OCBUFFERSIZE,state->uri->uri,NULL);
     if(option != NULL && strlen(option) != 0) {
 	long bufsize;
 	if(strcasecmp(option,"max")==0) 
@@ -500,7 +497,7 @@ ocget_rcproperties(OCstate* state)
     }
 #endif
 #ifdef HAVE_CURLOPT_KEEPALIVE
-    option = NC_rclookup(OCKEEPALIVE,state->uri->uri);
+    option = NC_rclookup(OCKEEPALIVE,state->uri->uri,NULL);
     if(option != NULL && strlen(option) != 0) {
 	/* The keepalive value is of the form 0 or n/m,
            where n is the idle time and m is the interval time;

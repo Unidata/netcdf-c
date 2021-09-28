@@ -240,7 +240,7 @@ oc_curl_debug(OCstate* state)
 int
 ocrc_netrc_required(OCstate* state)
 {
-    char* netrcfile = NC_rclookup(NETRCFILETAG,state->uri->uri);
+    char* netrcfile = NC_rclookup(NETRCFILETAG,state->uri->uri,NULL);
     return (netrcfile != NULL || state->auth->curlflags.netrc != NULL ? 0 : 1);
 }
 

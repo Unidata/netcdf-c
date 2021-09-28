@@ -167,6 +167,7 @@ EXTERNL int NCclosedir(DIR* ent);
 #define NCmkstemp(buf) mkstemp(buf);
 #define NCcwd(buf, len) getcwd(buf,len)
 #define NCrmdir(path) rmdir(path)
+#define NCunlink(path) unlink(path)
 #ifdef HAVE_SYS_STAT_H
 #define NCstat(path,buf) stat(path,buf)
 #endif
