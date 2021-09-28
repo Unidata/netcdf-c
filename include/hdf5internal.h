@@ -64,7 +64,7 @@ typedef struct NC_HDF5_FILE_INFO {
    struct HTTP {
 	NCURI* uri; /* Parse of the incoming path, if url */
 	int iosp; /* We are using the S3 rawvirtual file driver */
-	struct NCauth* auth;
+        struct NCauth* auth;
    } http;
 #endif
 } NC_HDF5_FILE_INFO_T;

@@ -51,6 +51,7 @@ NCDISPATCH_initialize(void)
         NC_stride_one[i] = 1;
     }
 
+    status = ncrc_createglobalstate(); /* will allocate and clear */
     globalstate = ncrc_getglobalstate(); /* will allocate and clear */
 
     /* Capture temp dir*/
@@ -93,9 +94,10 @@ NCDISPATCH_initialize(void)
         globalstate->cwd = strdup(cwdbuf);
     }
 
-    /* Now load RC File */
-    status = NC_rcload();
     ncloginit();
+
+    /* Now load RC Files */
+    ncrc_initialize();
 
     /* Compute type alignments */
     NC_compute_alignments();

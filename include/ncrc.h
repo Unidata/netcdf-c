@@ -20,18 +20,23 @@ and accessing rc files (e.g. .daprc).
 #define NCRCENVIGNORE "NCRCENV_IGNORE"
 #define NCRCENVRC "NCRCENV_RC"
 
+/* Known .aws profile keys */
+#define AWS_ACCESS_KEY_ID "aws_access_key_id"
+#define AWS_SECRET_ACCESS_KEY "aws_secret_access_key"
+#define AWS_REGION "aws_region"
 
-typedef struct NCTriple {
+typedef struct NCRCentry {
 	char* host; /* combined host:port */
+	char* path; /* prefix to match or NULL */
         char* key;
         char* value;
-} NCTriple;
+} NCRCentry;
 
 /* collect all the relevant info around the rc file */
 typedef struct NCRCinfo {
 	int ignore; /* if 1, then do not use any rc file */
 	int loaded; /* 1 => already loaded */
-        NClist* triples; /* the rc file triple store fields*/
+        NClist* entries; /* the rc file entry store fields*/
         char* rcfile; /* specified rcfile; overrides anything else */
 } NCRCinfo;
 
@@ -45,21 +50,38 @@ typedef struct NCRCglobalstate {
     struct GlobalZarr { /* Zarr specific parameters */
 	char dimension_separator;
     } zarr;
+    struct S3credentials {
+	NClist* profiles; /* NClist<struct AWSprofile*> */
+    } s3creds;
 } NCRCglobalstate;
 
+struct AWSprofile {
+    char* name;
+    NClist* entries; /* NClist<struct AWSentry*> */
+};
+
+struct AWSentry {
+    char* key;
+    char* value;
+};
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 /* From drc.c */
+EXTERNL int ncrc_createglobalstate(void);
 EXTERNL void ncrc_initialize(void);
 EXTERNL void ncrc_freeglobalstate(void);
-/* read and compile the rc file, if any */
-EXTERNL int NC_rcload(void);
-EXTERNL char* NC_rclookup(const char* key, const char* hostport);
-EXTERNL int NC_rcfile_insert(const char* key, const char* value, const char* hostport);
+EXTERNL int NC_rcfile_insert(const char* key, const char* value, const char* hostport, const char* path);
+EXTERNL char* NC_rclookup(const char* key, const char* hostport, const char* path);
+EXTERNL char* NC_rclookupx(NCURI* uri, const char* key);
 
 /* Following are primarily for debugging */
-/* Obtain the count of number of triples */
+/* Obtain the count of number of entries */
 EXTERNL size_t NC_rcfile_length(NCRCinfo*);
-/* Obtain the ith triple; return NULL if out of range */
-EXTERNL NCTriple* NC_rcfile_ith(NCRCinfo*,size_t);
+/* Obtain the ith entry; return NULL if out of range */
+EXTERNL NCRCentry* NC_rcfile_ith(NCRCinfo*,size_t);
 
 /* For internal use */
 EXTERNL NCRCglobalstate* ncrc_getglobalstate(void);
@@ -75,4 +97,16 @@ EXTERNL int NC_writefile(const char* filename, size_t size, void* content);
 EXTERNL char* NC_mktmp(const char* base);
 EXTERNL int NC_getmodelist(const char* url, NClist** modelistp);
 EXTERNL int NC_testmode(const char* path, const char* tag);
+EXTERNL int NC_split_delim(const char* path, char delim, NClist* segments);
+EXTERNL int NC_s3urlrebuild(NCURI* url, NCURI** newurlp, char** bucketp, char** regionp);
+EXTERNL int NC_getactives3profile(NCURI* uri, const char** profilep);
+EXTERNL int NC_getdefaults3region(NCURI* uri, const char** regionp);
+/* S3 profiles */
+EXTERNL int NC_authgets3profile(const char* profile, struct AWSprofile** profilep);
+EXTERNL int NC_s3profilelookup(const char* profile, const char* key, const char** valuep);
+
+#if defined(__cplusplus)
+}
+#endif
+
 #endif /*NCRC_H*/

@@ -68,7 +68,7 @@ main(int argc, char** argv)
     utoptions.output = tmp;
 
     impl = kind2impl(utoptions.kind);
-    url = makeurl(utoptions.file,impl);
+    url = makeurl(utoptions.file,impl,&utoptions);
 
     if((stat = runtests((const char**)utoptions.cmds,tests))) goto done;
     

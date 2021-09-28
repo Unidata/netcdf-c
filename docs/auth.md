@@ -23,7 +23,7 @@ The libcurl authorization mechanisms can be accessed in two ways
 
 1. Inserting the username and password into the url, or
 2. Accessing information from a so-called _rc_ file named either
-   `.daprc` or `.dodsrc`
+   `.ncrc` or `.dodsrc`. The latter is deprecated, but will be supported indefinitely.
 
 ## URL-Based Authentication {#auth_url}
 
@@ -142,6 +142,8 @@ The second column is the affected curl_easy_setopt option(s), if any
 <tr><td>HTTP.CREDENTIALS.USERNAME</td><td>CURLOPT_USERNAME</td>
 <tr><td>HTTP.CREDENTIALS.PASSWORD</td><td>CURLOPT_PASSWORD</td>
 <tr><td>HTTP.NETRC</td><td>N.A.</td><td>Specify path of the .netrc file</td>
+<tr><td>AWS.PROFILE</td><td>N.A.</td><td>Specify name of a profile in from the .aws/credentials file</td>
+<tr><td>AWS.REGION</td><td>N.A.</td><td>Specify name of a default region</td>
 </table>
 
 ### Password Authentication

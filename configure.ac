@@ -642,25 +642,27 @@ AC_MSG_RESULT($enable_nczarr_s3)
 # Note we check for the library after checking for enable_nczarr_s3
 # because for some reason this screws up if we unconditionally test for sdk
 # and it is not available. Fix someday
-have_aws=no
+enable_s3_sdk=no
 if test "x$enable_nczarr_s3" = xyes ; then
 # See if we have the s3 aws library
 # Check for the AWS S3 SDK library
 AC_LANG_PUSH([C++])
-AC_SEARCH_LIBS([aws_allocator_is_valid],[aws-c-common aws-cpp-sdk-s3 aws-cpp-sdk-core], [have_aws=yes],[have_aws=no])
+AC_SEARCH_LIBS([aws_allocator_is_valid],[aws-c-common aws-cpp-sdk-s3 aws-cpp-sdk-core], [enable_s3_sdk=yes],[enable_s3_sdk=no])
 AC_LANG_POP
 fi
 
 AC_MSG_CHECKING([whether AWS S3 SDK library is available])
-AC_MSG_RESULT([$have_aws])
+AC_MSG_RESULT([$enable_s3_sdk])
 
-if test "x$have_aws" = xno ; then
-AC_MSG_WARN([AWS SDK not found; disabling S3 support])
+if test "x$enable_s3_sdk" = xno ; then
+AC_MSG_WARN([No S3 library available; disabling S3 support])
 enable_nczarr_s3=no
-else
+fi
+
+if test "x$enable_s3_sdk" = xyes ; then
 AC_DEFINE([ENABLE_S3_SDK], [1], [If true, then S3 sdk was found])
 fi
-AM_CONDITIONAL(ENABLE_S3_SDK, [test "x$have_aws" = xyes])
+AM_CONDITIONAL(ENABLE_S3_SDK, [test "x$enable_s3_sdk" = xyes])
 
 # Check for enabling S3 testing
 AC_MSG_CHECKING([whether netcdf zarr S3 testing should be enabled])
@@ -1265,10 +1267,10 @@ if test "x$enable_hdf5" = xyes; then
 
    # Check for the main hdf5 and hdf5_hl library.
 
-   AC_SEARCH_LIBS([H5Fflush], [hdf5dll hdf5], [],
+   AC_SEARCH_LIBS([H5Fflush], [hdf5 hdf5.dll], [],
    [AC_MSG_ERROR([Can't find or link to the hdf5 library. Use --disable-hdf5, or see config.log for errors.])])
-   AC_SEARCH_LIBS([H5DSis_scale], [hdf5_hldll hdf5_hl], [],
-   [AC_MSG_ERROR([Can't find or link to the hdf5 high-level. Use --disable-hdf5, or see config.log for errors.])])
+   AC_SEARCH_LIBS([H5DSis_scale], [hdf5_hl hdf5_hl.dll], [],
+   [AC_MSG_ERROR([Can't find or link to the hdf5 library. Use --disable-hdf5, or see config.log for errors.])])
 
    AC_CHECK_HEADERS([hdf5.h], [], [AC_MSG_ERROR([Compiling a test with HDF5 failed.  Either hdf5.h cannot be found, or config.log should be checked for other reason.])])
 
@@ -1600,7 +1602,7 @@ AM_CONDITIONAL(ENABLE_BYTERANGE, [test "x$enable_byterange" = xyes])
 AM_CONDITIONAL(RELAX_COORD_BOUND, [test "xyes" = xyes])
 AM_CONDITIONAL(HAS_PAR_FILTERS, [test x$hdf5_supports_par_filters = xyes ])
 AM_CONDITIONAL(ENABLE_NCZARR, [test "x$enable_nczarr" = xyes])
-AM_CONDITIONAL(HAVE_AWS, [test "x$have_aws" = xyes])
+AM_CONDITIONAL(ENABLE_S3_SDK, [test "x$enable_s3_sdk" = xyes])
 AM_CONDITIONAL(HAS_MULTIFILTERS, [test "x$has_multifilters" = xyes])
 AM_CONDITIONAL(ENABLE_BLOSC, [test "x$enable_blosc" = xyes])
 AM_CONDITIONAL(ENABLE_SZIP, [test "x$enable_szip" = xyes])

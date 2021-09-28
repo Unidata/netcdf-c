@@ -109,7 +109,7 @@ nclistsetlength(NClist* l, size_t newlen)
 }
 
 void*
-nclistget(NClist* l, size_t index)
+nclistget(const NClist* l, size_t index)
 {
   if(l == NULL || l->length == 0) return NULL;
   if(index >= l->length) return NULL;
@@ -260,7 +260,7 @@ nclistunique(NClist* l)
 /* Duplicate a list and if deep is true, assume the contents
    are char** and duplicate those also */
 NClist*
-nclistclone(NClist* l, int deep)
+nclistclone(const NClist* l, int deep)
 {
     NClist* clone = NULL;
     if(l == NULL) goto done;

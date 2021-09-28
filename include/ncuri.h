@@ -67,6 +67,9 @@ EXTERNL void ncurifree(NCURI* ncuri);
 /* Replace the protocol */
 EXTERNL int ncurisetprotocol(NCURI*,const char* newprotocol);
 
+/* Replace the host */
+EXTERNL int ncurisethost(NCURI*,const char* newhost);
+
 /* Replace the path */
 EXTERNL int ncurisetpath(NCURI*,const char* newpath);
 
@@ -111,6 +114,9 @@ EXTERNL char* ncuridecodepartial(const char* s, const char* decodeset);
 EXTERNL char* ncuriencodeonly(const char* s, const char* allowable);
 /* Encode user or pwd */
 EXTERNL char* ncuriencodeuserpwd(const char* s);
+
+/* Deep clone a uri */
+EXTERNL NCURI* ncuriclone(NCURI*);
 
 #if defined(_CPLUSPLUS_) || defined(__CPLUSPLUS__) || defined(__CPLUSPLUS)
 }

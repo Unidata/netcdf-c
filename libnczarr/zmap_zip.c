@@ -77,7 +77,7 @@ static void freesearchcache(char** cache);
 static int zzinitialized = 0;
 
 static void
-zzinitialize(void)
+zipinitialize(void)
 {
     if(!zzinitialized) {
         ZTRACE(7,NULL);
@@ -110,7 +110,7 @@ zipcreate(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
     NC_UNUSED(parameters);
     ZTRACE(6,"path=%s mode=%d flag=%llu",path,mode,flags);
 
-    if(!zzinitialized) zzinitialize();
+    if(!zzinitialized) zipinitialize();
 
     /* Fixup mode flags */
     mode = (NC_NETCDF4 | NC_WRITE | mode);
@@ -186,7 +186,7 @@ zipopen(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** m
     NC_UNUSED(parameters);
     ZTRACE(6,"path=%s mode=%d flags=%llu",path,mode,flags);
 
-    if(!zzinitialized) zzinitialize();
+    if(!zzinitialized) zipinitialize();
 
     /* Fixup mode flags */
     mode = (NC_NETCDF4 | mode);

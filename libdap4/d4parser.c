@@ -171,7 +171,7 @@ NCD4_parse(NCD4meta* metadata)
     if(parser == NULL) {ret=NC_ENOMEM; goto done;}
     parser->metadata = metadata;
     ilen = strlen(parser->metadata->serial.dmr);
-    dom = ezxml_parse_str(parser->metadata->serial.dmr,ilen);
+    dom = nc_ezxml_parse_str(parser->metadata->serial.dmr,ilen);
     if(dom == NULL) {ret=NC_ENOMEM; goto done;}
     parser->types = nclistnew();
     parser->dims = nclistnew();
@@ -185,7 +185,7 @@ NCD4_parse(NCD4meta* metadata)
 
 done:
     if(dom != NULL)
-	ezxml_free(dom);
+	nc_ezxml_free(dom);
     reclaimParser(parser);
     return THROW(ret);
 }
@@ -227,11 +227,11 @@ traverse(NCD4parser* parser, ezxml_t dom)
         parser->metadata->root->meta.id = parser->metadata->ncid;
         parser->metadata->groupbyid = nclistnew();
         SETNAME(parser->metadata->root,"/");
-	xattr = ezxml_attr(dom,"name");
+	xattr = nc_ezxml_attr(dom,"name");
 	if(xattr != NULL) parser->metadata->root->group.datasetname = strdup(xattr);
-	xattr = ezxml_attr(dom,"dapVersion");
+	xattr = nc_ezxml_attr(dom,"dapVersion");
 	if(xattr != NULL) parser->metadata->root->group.dapversion = strdup(xattr);
-	xattr = ezxml_attr(dom,"dmrVersion");
+	xattr = nc_ezxml_attr(dom,"dmrVersion");
 	if(xattr != NULL) parser->metadata->root->group.dmrversion = strdup(xattr);
         /* Recursively walk the tree */
         if((ret = fillgroup(parser,parser->metadata->root,dom))) goto done;
@@ -271,15 +271,15 @@ parseDimensions(NCD4parser* parser, NCD4node* group, ezxml_t xml)
 {
     int ret = NC_NOERR;
     ezxml_t x;
-    for(x=ezxml_child(xml, "Dimension");x != NULL;x = ezxml_next(x)) {
+    for(x=nc_ezxml_child(xml, "Dimension");x != NULL;x = nc_ezxml_next(x)) {
 	NCD4node* dimnode = NULL;
 	unsigned long long size;
 	const char* sizestr;
 	const char* unlimstr;
-	sizestr = ezxml_attr(x,"size");
+	sizestr = nc_ezxml_attr(x,"size");
 	if(sizestr == NULL)
 	    FAIL(NC_EDIMSIZE,"Dimension has no size");
-	unlimstr = ezxml_attr(x,UCARTAGUNLIM);
+	unlimstr = nc_ezxml_attr(x,UCARTAGUNLIM);
 	if((ret = parseULL(sizestr,&size))) goto done;
 	if((ret=makeNode(parser,group,x,NCD4_DIM,NC_NULL,&dimnode))) goto done;
 	dimnode->dim.size = (long long)size;
@@ -298,10 +298,10 @@ parseEnumerations(NCD4parser* parser, NCD4node* group, ezxml_t xml)
     int ret = NC_NOERR;
     ezxml_t x;
 
-    for(x=ezxml_child(xml, "Enumeration");x != NULL;x = ezxml_next(x)) {
+    for(x=nc_ezxml_child(xml, "Enumeration");x != NULL;x = nc_ezxml_next(x)) {
 	NCD4node* node = NULL;
 	NCD4node* basetype = NULL;
-	const char* fqn = ezxml_attr(x,"basetype");
+	const char* fqn = nc_ezxml_attr(x,"basetype");
 	basetype = lookupFQN(parser,fqn,NCD4_TYPE);
 	if(basetype == NULL) {
 	    FAIL(NC_EBADTYPE,"Enumeration has unknown type: ",fqn);
@@ -314,7 +314,7 @@ parseEnumerations(NCD4parser* parser, NCD4node* group, ezxml_t xml)
 	classify(group,node);
 	/* Finally, see if this type has UCARTAGORIGTYPE xml attribute */
 	if(parser->metadata->controller->controls.translation == NCD4_TRANSNC4) {
-	    const char* typetag = ezxml_attr(x,UCARTAGORIGTYPE);
+	    const char* typetag = nc_ezxml_attr(x,UCARTAGORIGTYPE);
 	    if(typetag != NULL) {
 	    }
 	}
@@ -330,14 +330,14 @@ parseEconsts(NCD4parser* parser, NCD4node* en, ezxml_t xml)
     ezxml_t x;
     NClist* econsts = nclistnew();
 
-    for(x=ezxml_child(xml, "EnumConst");x != NULL;x = ezxml_next(x)) {
+    for(x=nc_ezxml_child(xml, "EnumConst");x != NULL;x = nc_ezxml_next(x)) {
         NCD4node* ec = NULL;
 	const char* name;
 	const char* svalue;
-	name = ezxml_attr(x,"name");
+	name = nc_ezxml_attr(x,"name");
 	if(name == NULL) FAIL(NC_EBADNAME,"Enum const with no name");
 	if((ret=makeNode(parser,en,x,NCD4_ECONST,NC_NULL,&ec))) goto done	;
-	svalue = ezxml_attr(x,"value");
+	svalue = nc_ezxml_attr(x,"value");
 	if(svalue == NULL)
 	    FAIL(NC_EINVAL,"Enumeration Constant has no value");
 	if((ret=convertString(&ec->en.ecvalue,en->basetype,svalue)))
@@ -440,7 +440,7 @@ parseStructure(NCD4parser* parser, NCD4node* container, ezxml_t xml, NCD4node** 
 
     /* See if this var has UCARTAGORIGTYPE attribute */
     if(parser->metadata->controller->controls.translation == NCD4_TRANSNC4) {
-	const char* typetag = ezxml_attr(xml,UCARTAGORIGTYPE);
+	const char* typetag = nc_ezxml_attr(xml,UCARTAGORIGTYPE);
 	if(typetag != NULL) {
 	    /* yes, place it on the type */
 	    if((ret=addOrigType(parser,var,type,typetag))) goto done;
@@ -524,7 +524,7 @@ parseSequence(NCD4parser* parser, NCD4node* container, ezxml_t xml, NCD4node** n
        Test:  UCARTAGVLEN xml attribute is set
     */
     if(parser->metadata->controller->controls.translation == NCD4_TRANSNC4) {
-	const char* vlentag = ezxml_attr(xml,UCARTAGVLEN);
+	const char* vlentag = nc_ezxml_attr(xml,UCARTAGVLEN);
 	if(vlentag != NULL)
 	    usevlen = 1;
     } else
@@ -581,7 +581,7 @@ parseSequence(NCD4parser* parser, NCD4node* container, ezxml_t xml, NCD4node** n
 
     /* See if this var has UCARTAGORIGTYPE attribute */
     if(parser->metadata->controller->controls.translation == NCD4_TRANSNC4) {
-	const char* typetag = ezxml_attr(xml,UCARTAGORIGTYPE);
+	const char* typetag = nc_ezxml_attr(xml,UCARTAGORIGTYPE);
 	if(typetag != NULL) {
 	    /* yes, place it on the type */
 	    if((ret=addOrigType(parser,var,vlentype,typetag))) goto done;
@@ -599,9 +599,9 @@ parseGroups(NCD4parser* parser, NCD4node* parent, ezxml_t xml)
 {
     int ret = NC_NOERR;
     ezxml_t x;
-    for(x=ezxml_child(xml, "Group");x != NULL;x = ezxml_next(x)) {
+    for(x=nc_ezxml_child(xml, "Group");x != NULL;x = nc_ezxml_next(x)) {
 	NCD4node* group = NULL;
-	const char* name = ezxml_attr(x,"name");
+	const char* name = nc_ezxml_attr(x,"name");
 	if(name == NULL) FAIL(NC_EBADNAME,"Group has no name");
 	if((ret=makeNode(parser,parent,x,NCD4_GROUP,NC_NULL,&group))) goto done;
 	group->group.varbyid = nclistnew();
@@ -633,7 +633,7 @@ parseAtomicVar(NCD4parser* parser, NCD4node* container, ezxml_t xml, NCD4node** 
     group = NCD4_groupFor(container);
     /* Locate its basetype; handle opaque and enum separately */
     if(info->subsort == NC_ENUM) {
-        const char* enumfqn = ezxml_attr(xml,"enum");
+        const char* enumfqn = nc_ezxml_attr(xml,"enum");
 	if(enumfqn == NULL)
 	    base = NULL;
 	else
@@ -654,7 +654,7 @@ parseAtomicVar(NCD4parser* parser, NCD4node* container, ezxml_t xml, NCD4node** 
     if((ret = parseMetaData(parser,node,xml))) goto done;
     /* See if this var has UCARTAGORIGTYPE attribute */
     if(parser->metadata->controller->controls.translation == NCD4_TRANSNC4) {
-	const char* typetag = ezxml_attr(xml,UCARTAGORIGTYPE);
+	const char* typetag = nc_ezxml_attr(xml,UCARTAGORIGTYPE);
 	if(typetag != NULL) {
 	    /* yes, place it on the type */
 	    if((ret=addOrigType(parser,node,node,typetag))) goto done;
@@ -670,18 +670,18 @@ parseDimRefs(NCD4parser* parser, NCD4node* var, ezxml_t xml)
 {
     int ret = NC_NOERR;
     ezxml_t x;
-    for(x=ezxml_child(xml, "Dim");x!= NULL;x=ezxml_next(x)) {
+    for(x=nc_ezxml_child(xml, "Dim");x!= NULL;x=nc_ezxml_next(x)) {
 	NCD4node* dim = NULL;
 	const char* fqn;
 
-	fqn = ezxml_attr(x,"name");
+	fqn = nc_ezxml_attr(x,"name");
 	if(fqn != NULL) {
    	    dim = lookupFQN(parser,fqn,NCD4_DIM);
 	    if(dim == NULL) {
 	        FAIL(NC_EBADDIM,"Cannot locate dim with name: %s",fqn);
 	    }
 	} else {
-	    const char* sizestr = ezxml_attr(x,"size");
+	    const char* sizestr = nc_ezxml_attr(x,"size");
 	    if(sizestr == NULL) {
 	        FAIL(NC_EBADDIM,"Dimension reference has no name and no size");
 	    }
@@ -702,9 +702,9 @@ parseMaps(NCD4parser* parser, NCD4node* var, ezxml_t xml)
     int ret = NC_NOERR;
     ezxml_t x;
 
-    for(x=ezxml_child(xml, "Map");x!= NULL;x=ezxml_next(x)) {
+    for(x=nc_ezxml_child(xml, "Map");x!= NULL;x=nc_ezxml_next(x)) {
 	const char* fqn;
-	fqn = ezxml_attr(x,"name");
+	fqn = nc_ezxml_attr(x,"name");
 	if(fqn == NULL)
 	    FAIL(NC_ENOTVAR,"<Map> has no name attribute");
 	PUSH(var->mapnames,strdup(fqn));
@@ -724,7 +724,7 @@ parseAttributes(NCD4parser* parser, NCD4node* container, ezxml_t xml)
     {
 	int count = 0;
 	const char** all = NULL;
-	all = ezxml_all_attr(xml,&count);
+	all = nc_ezxml_all_attr(xml,&count);
 	if(all != NULL && count > 0) {
 	    const char** p;
 	    container->xmlattributes = nclistnew();
@@ -737,9 +737,9 @@ parseAttributes(NCD4parser* parser, NCD4node* container, ezxml_t xml)
 	}
     }
 
-    for(x=ezxml_child(xml, "Attribute");x!= NULL;x=ezxml_next(x)) {
-	const char* name = ezxml_attr(x,"name");
-	const char* type = ezxml_attr(x,"type");
+    for(x=nc_ezxml_child(xml, "Attribute");x!= NULL;x=nc_ezxml_next(x)) {
+	const char* name = nc_ezxml_attr(x,"name");
+	const char* type = nc_ezxml_attr(x,"type");
 	NCD4node* attr = NULL;
 	NCD4node* basetype;
 
@@ -779,24 +779,24 @@ done:
 static int
 parseError(NCD4parser* parser, ezxml_t errxml)
 {
-    const char* shttpcode = ezxml_attr(errxml,"httpcode");
+    const char* shttpcode = nc_ezxml_attr(errxml,"httpcode");
     ezxml_t x;
     if(shttpcode == NULL) shttpcode = "400";
     if(sscanf(shttpcode,"%d",&parser->metadata->error.httpcode) != 1)
         nclog(NCLOGERR,"Malformed <ERROR> response");
-    x=ezxml_child(errxml, "Message");
+    x=nc_ezxml_child(errxml, "Message");
     if(x != NULL) {
-	const char* txt = ezxml_txt(x);
+	const char* txt = nc_ezxml_txt(x);
 	parser->metadata->error.message = (txt == NULL ? NULL : strdup(txt));
     }
-    x=ezxml_child(errxml, "Context");
+    x = nc_ezxml_child(errxml, "Context");
     if(x != NULL) {
-	const char* txt = ezxml_txt(x);
+	const char* txt = nc_ezxml_txt(x);
 	parser->metadata->error.context = (txt == NULL ? NULL : strdup(txt));
     }
-    x=ezxml_child(errxml, "OtherInformation");
+    x=nc_ezxml_child(errxml, "OtherInformation");
     if(x != NULL) {
-	const char* txt = ezxml_txt(x);
+	const char* txt = nc_ezxml_txt(x);
 	parser->metadata->error.otherinfo = (txt == NULL ? NULL : strdup(txt));
     }
     return THROW(NC_NOERR);
@@ -820,7 +820,7 @@ getOpaque(NCD4parser* parser, ezxml_t varxml, NCD4node* group)
 #endif
     if(parser->metadata->controller->controls.translation == NCD4_TRANSNC4) {
         /* See if this var has UCARTAGOPAQUE attribute */
-        xattr = ezxml_attr(varxml,UCARTAGOPAQUE);
+        xattr = nc_ezxml_attr(varxml,UCARTAGOPAQUE);
         if(xattr != NULL) {
 	    long long tmp = 0;
             if((ret = parseLL(xattr,&tmp)) || (tmp < 0))
@@ -865,18 +865,18 @@ getValueStrings(NCD4parser* parser, NCD4node* type, ezxml_t xattr, NClist* svalu
 {
     const char* s;
     /* See first if we have a "value" xml attribute */
-    s = ezxml_attr(xattr,"value");
+    s = nc_ezxml_attr(xattr,"value");
     if(s != NULL)
 	PUSH(svalues,strdup(s));
     else {/* look for <Value> subnodes */
 	ezxml_t x;
-        for(x=ezxml_child(xattr, "Value");x != NULL;x = ezxml_next(x)) {
+        for(x=nc_ezxml_child(xattr, "Value");x != NULL;x = nc_ezxml_next(x)) {
 	    char* es;
 	    char* ds;
 	    /* We assume that either their is a single xml attribute called "value",
                or there is a single chunk of text containing possibly multiple values.
 	    */
-	    s = ezxml_attr(x,"value");
+	    s = nc_ezxml_attr(x,"value");
 	    if(s == NULL) {/* See if there is a text part. */
 		s = x->txt;
 		if(s == NULL) s = "";
@@ -1242,7 +1242,7 @@ makeNode(NCD4parser* parser, NCD4node* parent, ezxml_t xml, NCD4sort sort, nc_ty
 
     /* Set node name, if it exists */
     if(xml != NULL) {
-        const char* name = ezxml_attr(xml,"name");
+        const char* name = nc_ezxml_attr(xml,"name");
         if(name != NULL) {
 	    if(strlen(name) > NC_MAX_NAME) {
 	        nclog(NCLOGERR,"Name too long: %s",name);

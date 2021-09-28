@@ -1078,7 +1078,8 @@ openmagic(struct MagicFile* file)
 	/* Construct a URL minus any fragment */
         file->curlurl = ncuribuild(file->uri,NULL,NULL,NCURISVC);
 	/* Open the curl handle */
-	if((status=nc_http_open(file->curlurl,&file->state,&file->filelen))) goto done;
+	if((status=nc_http_init(&file->state))) goto done;
+	if((status=nc_http_size(file->state,file->curlurl,&file->filelen))) goto done;
 #endif
     } else {
 #ifdef USE_PARALLEL

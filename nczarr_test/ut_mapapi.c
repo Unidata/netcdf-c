@@ -64,8 +64,7 @@ main(int argc, char** argv)
     utoptions.output = tmp;
 
     impl = kind2impl(utoptions.kind);
-//    if(impl == NCZM_S3) setkeyprefix(utoptions.file);
-    url = makeurl(utoptions.file,impl);
+    url = makeurl(utoptions.file,impl,&utoptions);
 
     if((stat = runtests((const char**)utoptions.cmds,tests))) goto done;
     

@@ -44,7 +44,6 @@ Notes:
 typedef struct ZS3MAP {
     NCZMAP map;
     ZS3INFO s3;
-    void* s3config;
     void* s3client;
     char* errmsg;
 } ZS3MAP;
@@ -100,15 +99,13 @@ zs3initialize(void)
     }
 }
 
-#if 0
-static void
-zs3finalize(void)
+void
+NCZ_s3finalize(void)
 {
     if(zs3initialized)
         NCZ_s3sdkfinalize();
     zs3initialized = 0;
 }
-#endif
 
 static int
 zs3create(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** mapp)
@@ -126,7 +123,7 @@ zs3create(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
 
     if(!zs3initialized) zs3initialize();
 
-    /* Build the z4 state */
+    /* Build the z3 state */
     if((z3map = (ZS3MAP*)calloc(1,sizeof(ZS3MAP))) == NULL)
 	{stat = NC_ENOMEM; goto done;}
 
@@ -147,8 +144,7 @@ zs3create(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
     if(z3map->s3.rootkey == NULL)
         {stat = NC_EURL; goto done;}
 
-    if((stat=NCZ_s3sdkcreateconfig(z3map->s3.host, z3map->s3.region, &z3map->s3config))) goto done;
-    if((stat = NCZ_s3sdkcreateclient(z3map->s3config,&z3map->s3client))) goto done;
+    z3map->s3client = NCZ_s3sdkcreateclient(&z3map->s3);
 
     {
 	int exists = 0;
@@ -205,7 +201,7 @@ zs3open(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** m
 
     if(!zs3initialized) zs3initialize();
 
-    /* Build the z4 state */
+    /* Build the z3 state */
     if((z3map = (ZS3MAP*)calloc(1,sizeof(ZS3MAP))) == NULL)
 	{stat = NC_ENOMEM; goto done;}
 
@@ -226,8 +222,7 @@ zs3open(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** m
     if(z3map->s3.rootkey == NULL)
         {stat = NC_EURL; goto done;}
 
-    if((stat=NCZ_s3sdkcreateconfig(z3map->s3.host,z3map->s3.region,&z3map->s3config))) goto done;
-    if((stat=NCZ_s3sdkcreateclient(z3map->s3config,&z3map->s3client))) goto done;
+    z3map->s3client = NCZ_s3sdkcreateclient(&z3map->s3);
 
     /* Search the root for content */
     content = nclistnew();
@@ -405,17 +400,13 @@ zs3close(NCZMAP* map, int deleteit)
 
     if(deleteit) 
         s3clear(z3map,z3map->s3.rootkey);
-    if(z3map->s3client && z3map->s3config && z3map->s3.bucket && z3map->s3.rootkey) {
-        NCZ_s3sdkclose(z3map->s3client, z3map->s3config, z3map->s3.bucket, z3map->s3.rootkey, deleteit, &z3map->errmsg);
+    if(z3map->s3client && z3map->s3.bucket && z3map->s3.rootkey) {
+        NCZ_s3sdkclose(z3map->s3client, &z3map->s3, deleteit, &z3map->errmsg);
     }
     reporterr(z3map);
     z3map->s3client = NULL;
-    z3map->s3config = NULL;
-    nullfree(z3map->s3.bucket);
-    nullfree(z3map->s3.region);
-    nullfree(z3map->s3.host);
+    NCZ_s3clear(&z3map->s3);
     nullfree(z3map->errmsg);
-    nullfree(z3map->s3.rootkey)
     nczm_clear(map);
     nullfree(map);
     return ZUNTRACE(stat);
@@ -507,7 +498,6 @@ s3clear(ZS3MAP* z3map, const char* rootkey)
     char** list = NULL;
     char** p;
     size_t nkeys = 0;
-
     if(z3map->s3client && z3map->s3.bucket && rootkey) {
         if((stat = NCZ_s3sdksearch(z3map->s3client, z3map->s3.bucket, rootkey, &nkeys, &list, &z3map->errmsg)))
             goto done;
