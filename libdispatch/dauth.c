@@ -27,8 +27,7 @@ See COPYRIGHT for license information.
 
 #include "ncrc.h"
 
-
-#define DEBUG
+#undef DEBUG
 
 #undef MEMCHECK
 #define MEMCHECK(x) if((x)==NULL) {goto nomem;} else {}
@@ -228,25 +227,25 @@ setauthfield(NCauth* auth, const char* flag, const char* value)
     if(strcmp(flag,"HTTP.DEFLATE")==0) {
         if(atoi(value)) auth->curlflags.compress = 1;
 #ifdef DEBUG
-        nclog(NCLOGNOTE,"HTTP.DEFLATE: %ld", auth->curlflags.compress);
+        nclog(NCLOGNOTE,"HTTP.DEFLATE: %ld", (long)auth->curlflags.compress);
 #endif
     }
     if(strcmp(flag,"HTTP.VERBOSE")==0) {
         if(atoi(value)) auth->curlflags.verbose = 1;
 #ifdef DEBUG
-            nclog(NCLOGNOTE,"HTTP.VERBOSE: %ld", auth->curlflags.verbose);
+            nclog(NCLOGNOTE,"HTTP.VERBOSE: %ld", (long)auth->curlflags.verbose);
 #endif
     }
     if(strcmp(flag,"HTTP.TIMEOUT")==0) {
         if(atoi(value)) auth->curlflags.timeout = atoi(value);
 #ifdef DEBUG
-            nclog(NCLOGNOTE,"HTTP.TIMEOUT: %ld", auth->curlflags.timeout);
+            nclog(NCLOGNOTE,"HTTP.TIMEOUT: %ld", (long)auth->curlflags.timeout);
 #endif
     }
     if(strcmp(flag,"HTTP.CONNECTTIMEOUT")==0) {
         if(atoi(value)) auth->curlflags.connecttimeout = atoi(value);
 #ifdef DEBUG
-            nclog(NCLOGNOTE,"HTTP.CONNECTTIMEOUT: %ld", auth->curlflags.connecttimeout);
+            nclog(NCLOGNOTE,"HTTP.CONNECTTIMEOUT: %ld", (long)auth->curlflags.connecttimeout);
 #endif
     }
     if(strcmp(flag,"HTTP.USERAGENT")==0) {
