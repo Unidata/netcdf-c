@@ -980,7 +980,7 @@ aws_load_credentials(NCRCglobalstate* gstate)
 	    cfg);
 	ncbytesclear(buf);
         if((stat=NC_readfile(path,buf))) {
-            nclog(NCLOGWARN, "Could not open %s file: %s",path);
+            nclog(NCLOGWARN, "Could not open file: %s",path);
         } else {
             /* Parse the credentials file */
 	    const char* text = ncbytescontents(buf);
