@@ -61,4 +61,9 @@ testallcases file
 if test "x$FEATURE_NCZARR_ZIP" = xyes ; then testallcases zip; fi
 #No examples yet: if test "x$FEATURE_S3TESTS" = xyes ; then testallcases s3; fi
 
+# Cleanup
+rm -fr ${execdir}/ref_power_901_constants.file
+rm -f ${execdir}/ref_power_901_constants.zip
+rm -f ${execdir}/ref_quotes.zip
+
 exit 0

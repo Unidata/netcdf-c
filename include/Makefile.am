@@ -32,8 +32,10 @@ endif
 
 EXTRA_DIST = CMakeLists.txt XGetopt.h netcdf_meta.h.in netcdf_dispatch.h.in
 
+DISTCLEANFILES = netcdf_json.h
+
 BUILT_SOURCES = netcdf_json.h 
-netcdf_json.h: Makefile ncjson.h ${srcdir}/../libdispatch/ncjson.c
-	sed -e 's/NCJSON_H/NETCDF_JSON_H/' -e '/ncjson.h/d' <ncjson.h > $@
+netcdf_json.h: Makefile ${srcdir}/ncjson.h ${srcdir}/../libdispatch/ncjson.c
+	sed -e 's/NCJSON_H/NETCDF_JSON_H/' -e '/ncjson.h/d' <${srcdir}/ncjson.h > $@
 	sed -e '/ncjson.h/d' < ${srcdir}/../libdispatch/ncjson.c >> $@
 
