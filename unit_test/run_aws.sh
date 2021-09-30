@@ -18,10 +18,14 @@ cat >.aws/config <<EOF
     aws_secret_access_key=NCAR/ef0ghijklmnopqr/ncarxxxxxxxxxxxxxxx
 [unidata]
     aws_access_key_id=ACCESSKEYUNIDATAXXXX
+
     aws_secret_access_key=UNIDATA/ef0ghijklmnopqr/unidataxxxxxxxxx
+; comment1
     aws_region=us-west-1
+;comment2
 EOF
 
 ${execdir}/test_aws
 
+rm -fr .aws
 

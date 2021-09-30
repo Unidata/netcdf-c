@@ -27,6 +27,14 @@ See COPYRIGHT for license information.
 #undef LEXDEBUG
 #undef PARSEDEBUG
 #undef AWSDEBUG
+#undef CATCH
+
+#if defined(CATCH)
+#define THROW(e) ((e) == NC_NOERR ? (e) : ncbreakpoint(e))
+#else
+#define THROW(e) (e)
+#endif
+
 
 #define RTAG ']'
 #define LTAG '['
@@ -726,24 +734,37 @@ clearS3credentials(struct S3credentials* creds)
 }
 
 /**
-Parser for aws credentials.
+The .aws/config and .aws/credentials files
+are in INI format (https://en.wikipedia.org/wiki/INI_file).
+This format is not well defined, so the grammar used
+here is restrictive. Here, the term "profile" is the same
+as the INI term "section".
+
+The grammar used is as follows:
 
 Grammar:
 
-credsfile: profilelist ;
+inifile: profilelist ;
 profilelist: profile | profilelist profile ;
-profile: '[' profilename ']'
-	entries ;
+profile: '[' profilename ']' EOL entries ;
 entries: empty | entries entry ;
-entry:  WORD = WORD ;
+entry:  WORD = WORD EOL ;
 profilename: WORD ;
 Lexical:
 WORD    sequence of printable characters - [ \[\]=]+
+EOL	'\n' | ';'
+
+Note:
+1. The semicolon at beginning of a line signals a comment.
+2. # comments are not allowed
+3. Duplicate profiles or keys are ignored.
+4. Escape characters are not supported.
 */
 
 #define AWS_EOF (-1)
 #define AWS_ERR (0)
-#define AWS_WORD (1)
+#define AWS_WORD (0x10001)
+#define AWS_EOL (0x10002)
 
 #ifdef LEXDEBUG
 static const char*
@@ -766,6 +787,7 @@ typedef struct AWSparser {
     size_t yylen; /* |yytext| */
     NCbytes* yytext;
     int token; /* last token found */
+    int pushback; /* allow 1-token pushback */
 } AWSparser;
 
 static int
@@ -776,19 +798,41 @@ awslex(AWSparser* parser)
     char* start;
     size_t count;
 
-    ncbytesclear(parser->yytext);
     parser->token = AWS_ERR;
+    ncbytesclear(parser->yytext);
+    ncbytesnull(parser->yytext);
+
+    if(parser->pushback != AWS_ERR) {
+	token = parser->pushback;
+	parser->pushback = AWS_ERR;
+	goto done;
+    }
 
     while(token == 0) { /* avoid need to goto when retrying */
 	c = *parser->pos;
 	if(c == '\0') {
 	    token = AWS_EOF;
+	} else if(c == '\n') {
+	    parser->pos++;
+	    token = AWS_EOL;
 	} else if(c <= ' ' || c == '\177') {
 	    parser->pos++;
 	    continue; /* ignore whitespace */
+	} else if(c == ';') {
+	    char* p = parser->pos - 1;
+	    if(*p == '\n') {
+	        /* Skip comment */ 
+	        do {p++;} while(*p != '\n' && *p != '\0');
+	        parser->pos = p;
+	        token = (*p == '\n'?AWS_EOL:AWS_EOF);
+	    } else {
+	        token = ';';
+	        ncbytesappend(parser->yytext,';');
+		parser->pos++;
+	    }
 	} else if(c == '[' || c == ']' || c == '=') {
-	    ncbytesclear(parser->yytext);
 	    ncbytesappend(parser->yytext,c);
+    	    ncbytesnull(parser->yytext);
 	    token = c;
 	    parser->pos++;
 	} else { /*Assume a word*/
@@ -809,6 +853,7 @@ fprintf(stderr,"%s(%d): |%s|\n",tokenname(token),token,ncbytescontents(parser->y
 #endif
     } /*for(;;)*/
 
+done:
     parser->token = token;
     return token;
 }
@@ -838,54 +883,69 @@ awsparse(const char* text, NClist* profiles)
     if(parser == NULL)
 	{stat = (NC_ENOMEM); goto done;}
     len = strlen(text);
-    parser->text = (char*)malloc(len+1+1);
+    parser->text = (char*)malloc(len+1+1+1); /* double nul term plus leading EOL */
     if(parser->text == NULL)
-	{stat = (NC_EINVAL); goto done;}
-    strcpy(parser->text,text);
+	{stat = (THROW(NC_EINVAL)); goto done;}
+    parser->pos = parser->text;
+    parser->pos[0] = '\n'; /* So we can test for comment unconditionally */
+    parser->pos++;
+    strcpy(parser->text+1,text);
+    parser->pos += len;
     /* Double nul terminate */
-    parser->text[len] = '\0';
-    parser->text[len+1] = '\0';
-    parser->pos = &parser->text[0];
+    parser->pos[0] = '\0';
+    parser->pos[1] = '\0';
+    parser->pos = &parser->text[0]; /* reset */
     parser->yytext = ncbytesnew();
+    parser->pushback = AWS_ERR;
 
     /* Do not need recursion, use simple loops */
-    token = awslex(parser); /* make token always be defined */
     for(;;) {
+        token = awslex(parser); /* make token always be defined */
 	if(token ==  AWS_EOF) break; /* finished */
-	if(token != LBR) {stat = NC_EINVAL; goto done;}
+	if(token ==  AWS_EOL) {continue;} /* blank line */
+	if(token != LBR) {stat = THROW(NC_EINVAL); goto done;}
+	/* parse [profile name] */
         token = awslex(parser);
-	if(token != AWS_WORD) {stat = NC_EINVAL; goto done;}
+	if(token != AWS_WORD) {stat = THROW(NC_EINVAL); goto done;}
 	assert(profile == NULL);
 	if((profile = (struct AWSprofile*)calloc(1,sizeof(struct AWSprofile)))==NULL)
 	    {stat = NC_ENOMEM; goto done;}
 	profile->name = ncbytesextract(parser->yytext);
 	profile->entries = nclistnew();
         token = awslex(parser);
-	if(token != RBR) {stat = NC_EINVAL; goto done;}
+	if(token != RBR) {stat = THROW(NC_EINVAL); goto done;}
 #ifdef PARSEDEBUG
 fprintf(stderr,">>> parse: profile=%s\n",profile->name);
 #endif
 	/* The fields can be in any order */
 	for(;;) {
 	    struct AWSentry* entry = NULL;
-            token = awslex(parser); /* prime parser */
-	    if(token == AWS_EOF || token == LBR)
-	        break;
-	    if(token != AWS_WORD) {stat = NC_EINVAL; goto done;}
-    	    key = ncbytesextract(parser->yytext);
             token = awslex(parser);
-	    if(token != '=') {stat = NC_EINVAL; goto done;}
-	    token = awslex(parser);
-	    if(token != AWS_WORD) {stat = NC_EINVAL; goto done;}
-	    value = ncbytesextract(parser->yytext);
-	    if((entry = (struct AWSentry*)calloc(1,sizeof(struct AWSentry)))==NULL)
-	        {stat = NC_ENOMEM; goto done;}
-	    entry->key = key; key = NULL;
-    	    entry->value = value; value = NULL;	   
+	    if(token == AWS_EOL) {
+	        continue; /* ignore empty lines */
+	    } else if(token == AWS_EOF) {
+	        break;
+	    } else if(token == LBR) {/* start of next profile */
+	        parser->pushback = token;
+		break;
+	    } else if(token ==  AWS_WORD) {
+	    	key = ncbytesextract(parser->yytext);
+		token = awslex(parser);
+	        if(token != '=') {stat = THROW(NC_EINVAL); goto done;}
+	        token = awslex(parser);
+		if(token != AWS_EOL && token != AWS_WORD) {stat = THROW(NC_EINVAL); goto done;}
+	        value = ncbytesextract(parser->yytext);
+	        if((entry = (struct AWSentry*)calloc(1,sizeof(struct AWSentry)))==NULL)
+	            {stat = NC_ENOMEM; goto done;}
+	        entry->key = key; key = NULL;
+    	        entry->value = value; value = NULL;	   
 #ifdef PARSEDEBUG
 fprintf(stderr,">>> parse: entry=(%s,%s)\n",entry->key,entry->value);
 #endif
-	    nclistpush(profile->entries,entry); entry = NULL;
+		nclistpush(profile->entries,entry); entry = NULL;
+		if(token == AWS_WORD) token = awslex(parser); /* finish the line */		
+	    } else
+	        {stat = THROW(NC_EINVAL); goto done;}
 	}
 
 	/* If this profile already exists, then ignore new one */

@@ -151,12 +151,11 @@ ref_groups_regular.cdl ref_byte.cdl ref_byte_fill_value_null.cdl
 # Interoperability files
 EXTRA_DIST += ref_power_901_constants.zip ref_power_901_constants.cdl ref_quotes.zip ref_quotes.cdl
 
-CLEANFILES = ut_*.txt ut*.cdl tmp*.nc tmp*.cdl tmp*.txt tmp*.dmp tmp*.zip tmp*.nc
+CLEANFILES = ut_*.txt ut*.cdl tmp*.nc tmp*.cdl tmp*.txt tmp*.dmp tmp*.zip tmp*.nc tmp*.dump tmp*.tmp tmp_ngc.c
 
 # Remove directories
 clean-local:
 	rm -fr tmp*.file results.file results.s3 results.zip
-	rm -fr power_901_constants.file
 	rm -fr rcmiscdir
 
 DISTCLEANFILES = findplugin.sh
