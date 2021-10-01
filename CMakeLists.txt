@@ -745,6 +745,11 @@ IF(USE_HDF5)
     # HDF5_C_LIBRARY, HDF5_HL_LIBRARY and HDF5_LIBRARIES.
     ###
     IF(MSVC)
+      ####
+      # Environmental variables in Windows when using MSVC
+      # are a hot mess between versions.
+      ####
+
       ##
       # HDF5 1.8.15 defined HDF5_LIBRARIES.
       ##
@@ -764,15 +769,22 @@ IF(USE_HDF5)
       ENDIF(${HDF5_VERSION} VERSION_GREATER "1.8.15")
 
     ELSE(MSVC)
-      ####
-      # Environmental variables in Windows when using MSVC
-      # are a hot mess between versions.
-      ####
-
+ 
       # Depending on the install, either HDF5_hdf_library or
       # HDF5_C_LIBRARIES may be defined.  We must check for either.
       IF(HDF5_C_LIBRARIES AND NOT HDF5_hdf5_LIBRARY)
         SET(HDF5_hdf5_LIBRARY ${HDF5_C_LIBRARIES})
+      ENDIF()
+      
+      # Some versions of FIND_PACKAGE set HDF5_C_LIBRARIES, but not HDF5_C_LIBRARY
+      # We use HDF5_C_LIBRARY below, so need to make sure it is set.
+      IF(HDF5_C_LIBRARIES AND NOT HDF5_C_LIBRARY)
+        SET(HDF5_C_LIBRARY ${HDF5_C_LIBRARIES})
+      ENDIF()
+
+      # Same issue as above...
+      IF(HDF5_HL_LIBRARIES AND NOT HDF5_HL_LIBRARY)
+        SET(HDF5_HL_LIBRARY ${HDF5_HL_LIBRARIES})
       ENDIF()
 
     ENDIF(MSVC)
