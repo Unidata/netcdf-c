@@ -736,7 +736,8 @@ ncz_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
                 /* Data types are like religions, in that one can convert.  */
                 if ((retval = nc4_convert_type(data, att->data, mem_type, file_type,
                                                len, &range_error, NULL,
-                                               (h5->cmode & NC_CLASSIC_MODEL))))
+                                               (h5->cmode & NC_CLASSIC_MODEL),
+					       NC_NOQUANTIZE, 0)))
                     BAIL(retval);
             }
         }

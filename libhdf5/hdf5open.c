@@ -1151,6 +1151,46 @@ static int get_fill_info(hid_t propid, NC_VAR_INFO_T *var)
 }
 
 /**
+ * @internal Learn if quantize has been applied to this var. If so,
+ * find the mode and the number of significant digit settings.
+ *
+ * @param var Pointer to NC_VAR_INFO_T for this variable.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_ENOMEM Out of memory.
+ * @return ::NC_EHDFERR HDF5 returned error.
+ * @author Dennis Heimbigner, Ed Hartnett
+ */
+static int get_quantize_info(NC_VAR_INFO_T *var)
+{
+    hid_t attid;
+    hid_t datasetid;
+
+    /* Try to open an attribute of the correct name for quantize
+     * info. */
+    datasetid = ((NC_HDF5_VAR_INFO_T *)var->format_var_info)->hdf_datasetid;
+    attid = H5Aopen_by_name(datasetid, ".", NC_QUANTIZE_ATT_NAME,
+			    H5P_DEFAULT, H5P_DEFAULT);
+
+    /* If there is an attribute, read it for the nsd. */
+    if (attid > 0)
+    {
+	var->quantize_mode = NC_QUANTIZE_BITGROOM;
+        if (H5Aread(attid, H5T_NATIVE_INT, &var->nsd) < 0)
+            return NC_EHDFERR;
+	if (H5Aclose(attid) < 0)
+            return NC_EHDFERR;
+    }
+    else
+    {
+	var->quantize_mode = NC_NOQUANTIZE;
+	var->nsd = 0;
+    }
+
+    return NC_NOERR;
+}
+
+/**
  * @internal Learn the storage and (if chunked) chunksizes of a var.
  *
  * @param propid ID of HDF5 var creation properties list.
@@ -1386,6 +1426,10 @@ nc4_get_var_meta(NC_VAR_INFO_T *var)
      * current cache size? */
     if ((retval = nc4_adjust_var_cache(var->container, var)))
         BAIL(retval);
+
+    /* Is there an attribute which means quantization was used? */
+    if ((retval = get_quantize_info(var)))
+	BAIL(retval);
 
     if (var->coords_read && !hdf5_var->dimscale)
         if ((retval = get_attached_info(var, hdf5_var, var->ndims, hdf5_var->hdf_datasetid)))
