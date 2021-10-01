@@ -45,4 +45,5 @@ SZIP Write Support:     @HAS_SZLIB_WRITE@
 Parallel Filters:       @HAS_PAR_FILTERS@
 NCZarr Support:		@HAS_NCZARR@
 Multi-Filter Support:	@HAS_MULTIFILTERS@
+Quantization:		@HAS_QUANTIZE@
 Logging:     		@HAS_LOGGING@
