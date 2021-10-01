@@ -2273,7 +2273,8 @@ usage(char *argv0)
     fprintf(stderr, help, argv0);
 }
 
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
     char filename[512], *path;
     int i, omode, fd, status=NC_NOERR;

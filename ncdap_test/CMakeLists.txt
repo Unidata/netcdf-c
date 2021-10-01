@@ -10,8 +10,7 @@ add_definitions(-D"TOPBINDIR=${CMAKE_CURRENT_BINARY_DIR}/../")
 remove_definitions(-DDLL_EXPORT)
 # add_definitions(-D"TOPSRCDIR=${CMAKE_CURRENT_SOURCE_DIR}")
 
-FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.sh ${CMAKE_CURRENT_SOURCE_DIR}/ref_pathcvt.txt)
-
+FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
 
 IF(ENABLE_TESTS)
@@ -21,11 +20,6 @@ IF(ENABLE_TESTS)
     BUILD_BIN_TEST(pingurl)
   ENDIF()
 
-  IF(USE_X_GETOPT)
-    SET(XGSRC XGetopt.c)
-  ENDIF()
-  BUILD_BIN_TEST(pathcvt ${XGSRC})
-
   # Base tests
   # The tests are set up as a combination of shell scripts and executables that
   # must be run in a particular order. It is painful but will use macros to help
@@ -34,13 +28,9 @@ IF(ENABLE_TESTS)
 
   IF(BUILD_UTILITIES)
     add_sh_test(ncdap tst_ncdap3)
-    add_sh_test(ncdap testpathcvt)
     IF(HAVE_BASH)
       SET_TESTS_PROPERTIES(ncdap_tst_ncdap3 PROPERTIES RUN_SERIAL TRUE)
-      SET_TESTS_PROPERTIES(ncdap_testpathcvt PROPERTIES RUN_SERIAL TRUE)
     ENDIF(HAVE_BASH)
-    
-    
   ENDIF()
 
   IF(NOT MSVC)

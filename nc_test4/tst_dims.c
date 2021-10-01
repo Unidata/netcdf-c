@@ -1332,7 +1332,8 @@ main(int argc, char **argv)
       strcat(file_in, REF_FILE_NAME);
 
       /* Reopen and check it out again. */
-      if (nc_open(file_in, NC_NOWRITE, &ncid)) ERR;
+      if ((ret = nc_open(file_in, NC_NOWRITE, &ncid)))
+          ERR;
 
       /* Check it out. */
       ret = nc_inq_dim(ncid, dimid, name_in, &len_in);

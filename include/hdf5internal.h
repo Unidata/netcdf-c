@@ -194,11 +194,17 @@ struct NC_HDF5_Filter {
     unsigned int* params;  /**< Params for arbitrary filter. */
 };
 
+int NC4_hdf5_filter_initialize(void);
+int NC4_hdf5_filter_finalize(void);
 int NC4_hdf5_filter_remove(NC_VAR_INFO_T* var, unsigned int id);
 int NC4_hdf5_filter_lookup(NC_VAR_INFO_T* var, unsigned int id, struct NC_HDF5_Filter** fi);
 int NC4_hdf5_addfilter(NC_VAR_INFO_T* var, unsigned int id, size_t nparams, const unsigned int* params, int flags);
 int NC4_hdf5_filter_freelist(NC_VAR_INFO_T* var);
 int NC4_hdf5_find_missing_filter(NC_VAR_INFO_T* var, unsigned int* idp);
+
+/* Add an attribute to the attribute list. */
+int nc4_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
+		size_t len, const void *data, nc_type mem_type, int force);
 
 /* Support functions for provenance info (defined in nc4hdf.c) */
 extern int NC4_hdf5get_libversion(unsigned*,unsigned*,unsigned*);/*libsrc4/nc4hdf.c*/

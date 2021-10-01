@@ -471,9 +471,8 @@ static int NCZTR_def_var_fletcher32(int ncid, int varid, int fletcher32)
 static int NCZTR_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams, const unsigned int *params)
 {
     int stat = NC_NOERR;
-    ZTRACE(0,"NCZ_def_var_filter(ncid,varid,id,nparams,params)");
     stat = NCZ_def_var_filter(ncid,varid,id,nparams,params);
-    return ZUNTRACE(stat);
+    return (stat);
 }
 
 #endif
@@ -562,7 +561,7 @@ static const NC_Dispatch NCZ_dispatcher_trace = {
     NC_NOTNC4_def_var_fletcher32,
     NCZTR_def_var_chunking,
     NCZTR_def_var_endian,
-    NC_NOTNC4_def_var_filter,
+    NCZ_def_var_filter,
     NCZTR_set_var_chunk_cache,
     NCZTR_get_var_chunk_cache,
     NCZTR_inq_var_filter_ids,

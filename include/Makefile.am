@@ -7,7 +7,7 @@
 # Ed Hartnett, Dennis Heimbigner, Ward Fisher
 
 include_HEADERS = netcdf.h netcdf_meta.h netcdf_mem.h netcdf_aux.h	\
-netcdf_filter.h netcdf_filter_build.h netcdf_dispatch.h
+netcdf_filter.h netcdf_filter_build.h netcdf_filter_hdf5_build.h netcdf_dispatch.h netcdf_json.h
 
 if BUILD_PARALLEL
 include_HEADERS += netcdf_par.h
@@ -31,3 +31,9 @@ noinst_HEADERS += nchttp.h
 endif
 
 EXTRA_DIST = CMakeLists.txt XGetopt.h netcdf_meta.h.in netcdf_dispatch.h.in
+
+BUILT_SOURCES = netcdf_json.h 
+netcdf_json.h: Makefile ncjson.h ${srcdir}/../libdispatch/ncjson.c
+	sed -e 's/NCJSON_H/NETCDF_JSON_H/' -e '/ncjson.h/d' <ncjson.h > $@
+	sed -e '/ncjson.h/d' < ${srcdir}/../libdispatch/ncjson.c >> $@
+

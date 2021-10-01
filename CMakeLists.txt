@@ -26,7 +26,7 @@ set(PACKAGE "netCDF" CACHE STRING "")
 
 SET(NC_VERSION_MAJOR 4)
 SET(NC_VERSION_MINOR 8)
-SET(NC_VERSION_PATCH 2)
+SET(NC_VERSION_PATCH 1)
 SET(NC_VERSION_NOTE "-development")
 SET(netCDF_VERSION ${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
@@ -37,7 +37,7 @@ SET(PACKAGE_VERSION ${VERSION})
 
 # Version of the dispatch table. This must match the value in
 # configure.ac.
-SET(NC_DISPATCH_VERSION 3)
+SET(NC_DISPATCH_VERSION 4)
 
 # Get system configuration, Use it to determine osname, os release, cpu. These
 # will be used when committing to CDash.
@@ -118,6 +118,11 @@ MACRO(CHECK_C_LINKER_FLAG M_FLAG M_RESULT)
   SET(CMAKE_REQUIRED_FLAGS "${T_REQ_FLAG}")
 ENDMACRO()
 
+# Enable 'dist and distcheck'.
+# File adapted from http://ensc.de/cmake/FindMakeDist.cmake
+FIND_PACKAGE(MakeDist)
+# End 'enable dist and distcheck'
+
 # Set the build type.
 IF(NOT CMAKE_BUILD_TYPE)
   SET(CMAKE_BUILD_TYPE DEBUG CACHE STRING "Choose the type of build, options are: None, Debug, Release."
@@ -193,15 +198,6 @@ IF(BUILD_SHARED_LIBS)
 ENDIF()
 
 OPTION(NC_FIND_SHARED_LIBS "Find dynamically-built versions of dependent libraries" ${BUILD_SHARED_LIBS})
-
-##
-# Check to see if C compiler supports -fno-strict-aliasing, in support of
-# https://github.com/Unidata/netcdf-c/issues/1983
-##
-CHECK_C_COMPILER_FLAG(-fno-strict-aliasing CC_SUPPORTS_NO_STRICT_ALIASING)
-IF(CC_SUPPORTS_NO_STRICT_ALIASING)
-  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-strict-aliasing")
-ENDIF(CC_SUPPORTS_NO_STRICT_ALIASING)
 
 ##
 # We've had a request to allow for non-versioned shared libraries.
@@ -749,6 +745,11 @@ IF(USE_HDF5)
     # HDF5_C_LIBRARY, HDF5_HL_LIBRARY and HDF5_LIBRARIES.
     ###
     IF(MSVC)
+      ####
+      # Environmental variables in Windows when using MSVC
+      # are a hot mess between versions.
+      ####
+
       ##
       # HDF5 1.8.15 defined HDF5_LIBRARIES.
       ##
@@ -768,19 +769,22 @@ IF(USE_HDF5)
       ENDIF(${HDF5_VERSION} VERSION_GREATER "1.8.15")
 
     ELSE(MSVC)
-      ####
-      # Environmental variables in Windows when using MSVC
-      # are a hot mess between versions.
-      ####
-
-      IF(HDF5_hdf5_LIBRARY AND NOT HDF5_C_LIBRARY)
-        SET(HDF5_C_LIBRARY ${HDF5_hdf5_LIBRARY})
-      ENDIF()
-
+ 
       # Depending on the install, either HDF5_hdf_library or
       # HDF5_C_LIBRARIES may be defined.  We must check for either.
       IF(HDF5_C_LIBRARIES AND NOT HDF5_hdf5_LIBRARY)
         SET(HDF5_hdf5_LIBRARY ${HDF5_C_LIBRARIES})
+      ENDIF()
+      
+      # Some versions of FIND_PACKAGE set HDF5_C_LIBRARIES, but not HDF5_C_LIBRARY
+      # We use HDF5_C_LIBRARY below, so need to make sure it is set.
+      IF(HDF5_C_LIBRARIES AND NOT HDF5_C_LIBRARY)
+        SET(HDF5_C_LIBRARY ${HDF5_C_LIBRARIES})
+      ENDIF()
+
+      # Same issue as above...
+      IF(HDF5_HL_LIBRARIES AND NOT HDF5_HL_LIBRARY)
+        SET(HDF5_HL_LIBRARY ${HDF5_HL_LIBRARIES})
       ENDIF()
 
     ENDIF(MSVC)
@@ -933,7 +937,7 @@ int main() {
 }" HAVE_LIBCURL_766)
 
 IF (HAVE_LIBCURL_766)
-  # If libcurl version is >= 7.66, then can skip tests
+  # If libcurl version is >= 7.66, then can skip tests 
   # for these symbols which were added in an earlier version
   set(HAVE_CURLOPT_USERNAME TRUE)
   set(HAVE_CURLOPT_PASSWORD TRUE)
@@ -1016,15 +1020,61 @@ OPTION(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
 OPTION(ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." ON)
 SET(REMOTETESTSERVERS "remotetest.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
 
+# See if we have zlib
+FIND_PACKAGE(ZLIB)
+
+# Define a test flag for have zlib library
+IF(ZLIB_FOUND)
+  INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIRS})
+  SET(ENABLE_ZLIB TRUE)
+ELSE()
+  SET(ENABLE_ZLIB FALSE)
+ENDIF()
+
+# See if we have libblosc
+IF(!MSVC)
+FIND_PACKAGE(Blosc)
+ENDIF()
+# Define a test flag for have blosc library
+IF(Blosc_FOUND)
+  INCLUDE_DIRECTORIES(${Blosc_INCLUDE_DIRS})
+  SET(ENABLE_BLOSC TRUE)
+ELSE()
+  SET(ENABLE_BLOSC FALSE)
+ENDIF()
+
+# See if we have libszip
+IF(!MSVC)
+#FIND_PACKAGE(SZIP)
+#FIND_LIBRARY(SZIP PATH NAMES szip sz)
+SET(SZIP_LIBRARY ${SZIP})
+ENDIF()
+message("xxx: ${SZIP_FOUND} ; ${SZIP}")
+# Define a test flag for have szip library
+IF(SZIP_FOUND)
+  INCLUDE_DIRECTORIES(${SZIP_INCLUDE_DIRS})
+  SET(ENABLE_SZIP TRUE)
+ELSE()
+  SET(ENABLE_SZIP FALSE)
+ENDIF()
+
 # See if we have libzip
 FIND_PACKAGE(Zip)
 
-# Define a test flag for have curl library
+# Define a test flag for have zip library
 IF(Zip_FOUND)
   INCLUDE_DIRECTORIES(${Zip_INCLUDE_DIRS})
   SET(ENABLE_NCZARR_ZIP TRUE)
 ELSE()
   SET(ENABLE_NCZARR_ZIP FALSE)
+ENDIF()
+
+# libdl is always available; built-in in Windows and OSX
+SET(ENABLE_PLUGINS TRUE)
+IF(NOT WIN32)
+  IF(HAVE_DLFCN_H)
+    INCLUDE_DIRECTORIES("dlfcn.h")
+  ENDIF()
 ENDIF()
 
 # Enable some developer-only tests
@@ -1049,9 +1099,9 @@ IF(MSVC)
     FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
          DESTINATION ${netCDF_BINARY_DIR}/ncdump/)
     FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
+         DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/) 
     FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/ncdap_test/)
+         DESTINATION ${netCDF_BINARY_DIR}/ncdap_test/) 
   ENDIF()
 ENDIF()
 
@@ -1386,20 +1436,21 @@ IF (ENABLE_PARALLEL_TESTS AND NOT USE_PARALLEL)
 ENDIF()
 
 # Enable special filter test; experimental when using cmake.
-OPTION(ENABLE_FILTER_TESTING "Enable filter testing. Ignored if shared libraries or netCDF4 are not enabled" ${ENABLE_HDF5})
-IF(ENABLE_FILTER_TESTING AND NOT ENABLE_HDF5)
-  MESSAGE(WARNING "ENABLE_FILTER_TESTING requires HDF5. Disabling.")
-  SET(ENABLE_FILTER_TESTING OFF)
+OPTION(ENABLE_FILTER_TESTING "Enable filter testing. Ignored if shared libraries or netCDF4 are not enabled" yes)
+
+IF(ENABLE_FILTER_TESTING)
+  if(NOT ENABLE_HDF5 AND NOT ENABLE_NCZARR)
+    MESSAGE(WARNING "ENABLE_FILTER_TESTING requires HDF5 and/or NCZarr. Disabling.")
+    SET(ENABLE_FILTER_TESTING OFF CACHE BOOL "Enable Filter Testing" FORCE)
+  ENDIF()
 ENDIF()
+
 IF(NOT BUILD_SHARED_LIBS)
   MESSAGE(WARNING "ENABLE_FILTER_TESTING requires shared libraries. Disabling.")
   SET(ENABLE_FILTER_TESTING OFF)
 ENDIF()
-OPTION(ENABLE_CLIENTSIDE_FILTERS "Enable client-side filter registration." OFF)
-IF(NOT ENABLE_FILTER_TESTING)
-SET(ENABLE_CLIENTSIDE_FILTERS OFF)
-ENDIF()
 
+SET(ENABLE_CLIENTSIDE_FILTERS OFF)
 
 # Determine whether or not to generate documentation.
 OPTION(ENABLE_DOXYGEN "Enable generation of doxygen-based documentation." OFF)
@@ -1468,6 +1519,9 @@ ENDIF()
 # Always enable DISKLESS
 OPTION(ENABLE_DISKLESS "Enable in-memory files" ON)
 
+# Always enable quantization.
+OPTION(ENABLE_QUANTIZE "Enable variable quantization" ON)
+
 # By default, MSVC has a stack size of 1000000.
 # Allow a user to override this.
 IF(MSVC)
@@ -1533,6 +1587,7 @@ CHECK_INCLUDE_FILE("libgen.h" HAVE_LIBGEN_H)
 CHECK_INCLUDE_FILE("execinfo.h" HAVE_EXECINFO_H)
 CHECK_INCLUDE_FILE("dirent.h" HAVE_DIRENT_H)
 CHECK_INCLUDE_FILE("time.h" HAVE_TIME_H)
+CHECK_INCLUDE_FILE("dlfcn.h" HAVE_DLFCN_H)
 
 # Symbol Exists
 CHECK_SYMBOL_EXISTS(isfinite "math.h" HAVE_DECL_ISFINITE)
@@ -1931,7 +1986,7 @@ ENDIF(ENABLE_BASH_SCRIPT_TESTING)
 
 MACRO(add_sh_test prefix F)
   IF(HAVE_BASH)
-    ADD_TEST(${prefix}_${F} bash "-c" "export srcdir=${CMAKE_CURRENT_SOURCE_DIR};export TOPSRCDIR=${CMAKE_SOURCE_DIR};${CMAKE_CURRENT_BINARY_DIR}/${F}.sh ${ARGN}")
+    ADD_TEST(${prefix}_${F} bash "-c" "export srcdir=${CMAKE_CURRENT_SOURCE_DIR};export TOPSRCDIR=${CMAKE_SOURCE_DIR};${CMAKE_CURRENT_BINARY_DIR}/${F}.sh ${F}.sh ${ARGN}")
   ENDIF()
 ENDMACRO()
 
@@ -2018,17 +2073,31 @@ IF(ENABLE_DAP4)
   ADD_SUBDIRECTORY(libdap4)
 ENDIF()
 
+IF(ENABLE_PLUGINS)
+  ADD_SUBDIRECTORY(libncpoco)
+ENDIF()
+
 IF(ENABLE_NCZARR)
   ADD_SUBDIRECTORY(libnczarr)
   FILE(COPY ${netCDF_SOURCE_DIR}/unit_test/timer_utils.h
        DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
   FILE(COPY ${netCDF_SOURCE_DIR}/unit_test/timer_utils.c
        DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
+  FILE(COPY ${netCDF_SOURCE_DIR}/nc_test4/test_filter.c
+       DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
+  FILE(COPY ${netCDF_SOURCE_DIR}/nc_test4/test_filter_misc.c
+       DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
+  FILE(COPY ${netCDF_SOURCE_DIR}/nc_test4/test_filter_repeat.c
+       DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
+  FILE(COPY ${netCDF_SOURCE_DIR}/nc_test4/test_filter_order.c
+       DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
+  FILE(COPY ${netCDF_SOURCE_DIR}/nc_test4/tst_multifilter.c
+       DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
 ENDIF()
 
 add_subdirectory(liblib)
 
-IF(ENABLE_FILTER_TESTING)
+IF(ENABLE_PLUGINS)
   add_subdirectory(plugins)
 ENDIF()
 
@@ -2194,6 +2263,9 @@ INSTALL(PROGRAMS ${netCDF_BINARY_DIR}/nc-config
 ##
 print_conf_summary()
 
+# Enable Makedist files.
+ADD_MAKEDIST()
+ENABLE_MAKEDIST(README.md COPYRIGHT RELEASE_NOTES.md INSTALL INSTALL.cmake test_prog.c lib_flags.am cmake CMakeLists.txt COMPILE.cmake.txt config.h.cmake.in cmake_uninstall.cmake.in netcdf-config-version.cmake.in netcdf-config.cmake.in FixBundle.cmake.in nc-config.cmake.in configure configure.ac install-sh config.h.in config.sub CTestConfig.cmake.in)
 
 #####
 # Configure and print the libnetcdf.settings file.
@@ -2244,7 +2316,10 @@ is_enabled(ENABLE_NCZARR HAS_NCZARR)
 is_enabled(ENABLE_NCZARR_S3_TESTS DO_NCZARR_S3_TESTS)
 is_enabled(ENABLE_MULTIFILTERS HAS_MULTIFILTERS)
 is_enabled(ENABLE_NCZARR_ZIP DO_NCZARR_ZIP_TESTS)
+is_enabled(ENABLE_QUANTIZE HAS_QUANTIZE)
 is_enabled(ENABLE_LOGGING HAS_LOGGING)
+is_enabled(ENABLE_FILTER_TESTING DO_FILTER_TESTS)
+is_enabled(ENABLE_BLOSC HAS_BLOSC)
 
 # Generate file from template.
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
@@ -2301,6 +2376,10 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test_common.in ${CMAKE_CURRENT_BINARY
 # Build nc_test4/findplugin.sh
 #####
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/nc_test4/findplugin.sh @ONLY NEWLINE_STYLE LF)
+
+IF(ENABLE_NCZARR)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/nczarr_test/findplugin.sh @ONLY NEWLINE_STYLE LF)
+ENDIF()
 
 IF(ENABLE_EXAMPLES)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/examples/C/findplugin.sh @ONLY NEWLINE_STYLE LF)
