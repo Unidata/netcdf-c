@@ -41,6 +41,10 @@ utils.h utils.c dimmap.h dimmap.c list.c list.h
 noinst_PROGRAMS += ncvalidator
 ncvalidator_SOURCES = ncvalidator.c
 
+# A non-installed utility program to convert paths; similar to cygpath
+noinst_PROGRAMS += ncpathcvt
+ncpathcvt_SOURCES = ncpathcvt.c
+
 # A simple netcdf-4 metadata -> xml printer. Do not install.
 if USE_HDF5
 bin_PROGRAMS += nc4print
@@ -75,7 +79,7 @@ TESTS = tst_inttags.sh run_tests.sh tst_64bit.sh ref_ctest	\
 ref_ctest64 tst_output.sh tst_lengths.sh tst_calendars.sh	\
 run_utf8_tests.sh tst_nccopy3.sh tst_nccopy3_subset.sh		\
 tst_charfill.sh tst_iter.sh tst_formatx3.sh tst_bom.sh		\
-tst_dimsizes.sh run_ncgen_tests.sh tst_ncgen4_classic.sh test_radix.sh test_rcmerge.sh
+tst_dimsizes.sh run_ncgen_tests.sh tst_ncgen4_classic.sh test_radix.sh #test_rcmerge.sh
 
 # The tst_nccopy3.sh test uses output from a bunch of other
 # tests. This records the dependency so parallel builds work.
@@ -94,6 +98,8 @@ endif
 if LARGE_FILE_TESTS
 TESTS += tst_iter.sh
 endif
+
+TESTS += testpathcvt.sh
 
 if USE_HDF5
 # HDF5 has some extra C programs to build. These will be run by
@@ -184,6 +190,8 @@ EXTRA_DIST += L512.bin
 
 EXTRA_DIST += tst_ctests.sh ref_ctest_small_3.c ref_ctest_small_4.c \
 	ref_ctest_special_atts_4.c
+
+EXTRA_DIST += testpathcvt.sh ref_pathcvt.txt
 
 # CDL files and Expected results
 SUBDIRS = cdl expected

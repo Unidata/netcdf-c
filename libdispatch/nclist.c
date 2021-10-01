@@ -57,17 +57,25 @@ Free a list and its contents
 int
 nclistfreeall(NClist* l)
 {
+    nclistclearall(l);
+    return nclistfree(l);
+}
+
+/*
+Free the contents of a list
+*/
+int
+nclistclearall(NClist* l)
+{
   size_t i,len;
-  void** content = NULL;
   if(l == NULL) return TRUE;
   len = l->length;
-  content = nclistextract(l);
   for(i=0;i<len;i++) {
-      void* value = content[i];
+      void* value = l->content[i];
       if(value != NULL) free(value);
   }
-  if(content != NULL) free(content);
-  return nclistfree(l);
+  nclistsetlength(l,0);
+  return TRUE;
 }
 
 int

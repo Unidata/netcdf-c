@@ -1,0 +1,7 @@
+[0] /.nczarr : (44) |{"zarr_format": 2,"nczarr_version": "1.0.0"}|
+[1] /.nczattrs : (33) |{"types": {"_NCProperties": "2"}}|
+[2] /.nczgroup : (80) |{"dims": {"dim0": 4,"dim1": 4,"dim2": 4,"dim3": 4},"vars": ["var"],"groups": []}|
+[3] /.zattrs : (68) |{"_NCProperties": "version=2,netcdf=4.8.1-development,nczarr=1.0.0"}|
+[4] /.zgroup : (18) |{"zarr_format": 2}|
+[6] /var/.nczarray : (67) |{"dimrefs": ["/dim0","/dim1","/dim2","/dim3"],"storage": "chunked"}|
+[7] /var/.zarray : (172) |{"zarr_format": 2,"shape": [4,4,4,4],"dtype": "<f4","chunks": [4,4,4,4],"order": "C","compressor": 

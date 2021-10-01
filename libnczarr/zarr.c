@@ -307,8 +307,8 @@ ncz_unload_jatts(NCZ_FILE_INFO_T* zinfo, NC_OBJ* container, NCjson* jattrs, NCjs
     char* tkey = NULL;
     NCZMAP* map = zinfo->map;
 
-    assert((jattrs->sort = NCJ_DICT));
-    assert((jtypes->sort = NCJ_DICT));
+    assert((NCJsort(jattrs) == NCJ_DICT));
+    assert((NCJsort(jtypes) == NCJ_DICT));
 
     if(container->sort == NCGRP) {
         NC_GRP_INFO_T* grp = (NC_GRP_INFO_T*)container;
@@ -332,7 +332,7 @@ ncz_unload_jatts(NCZ_FILE_INFO_T* zinfo, NC_OBJ* container, NCjson* jattrs, NCjs
         NCjson* k = NULL;
         NCjson* v = NULL;
 	/* remove any previous version */
-        if(NCJremove(jattrs,NCZ_V2_ATTRS,&k,&v) == NC_NOERR) {
+        if(!NCJremove(jattrs,NCZ_V2_ATTRS,&k,&v)) {
 	    NCJreclaim(k); NCJreclaim(v);
 	}
     }

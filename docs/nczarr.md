@@ -17,6 +17,10 @@ A note on terminology in this document.
 1. The term "dataset" is used to refer to all of the Zarr objects constituting
    the meta-data and data. 
 
+There are some important "caveats" of which to be aware when using this software.
+
+1. NCZarr currently is not thread-safe. So any attempt to use it with parallelism, including MPIO, is likely to fail.
+
 # The NCZarr Data Model {#nczarr_data_model}
 
 NCZarr uses a data model <a href="#ref_nczarr">[4]</a> that, by design, extends the Zarr Version 2 Specification <a href="#ref_zarrv2">[6]</a> to add support for the NetCDF-4 data model.
@@ -456,6 +460,8 @@ collections — High-performance dataset datatypes](https://docs.python.org/2/li
 <a name="ref_xarray">[8]</a> [Dynamic Filter Loading](https://support.hdfgroup.org/HDF5/doc/Advanced/DynamicallyLoadedFilters/HDF5DynamicallyLoadedFilters.pdf)<br>
 <a name="ref_xarray">[9]</a> [Officially Registered Custom HDF5 Filters](https://portal.hdfgroup.org/display/support/Registered+Filter+Plugins)<br>
 <a name="ref_xarray">[10]</a> [C-Blosc Compressor Implementation](https://github.com/Blosc/c-blosc)
+<a name="ref_awssdk_conda">[11]</a> [Conda-forge / packages / aws-sdk-cpp]
+(https://anaconda.org/conda-forge/aws-sdk-cpp)<br>
 
 # Appendix A. Building NCZarr Support {#nczarr_build}
 
@@ -548,17 +554,18 @@ it any difficulties were reported to Unidata as a Github issue.
 
 In order to use the S3 storage driver, it is necessary to install the Amazon [aws-sdk-cpp library](https://github.com/aws/aws-sdk-cpp.git).
 
-As a starting point, here are the CMake options used by Unidata to build that library.
-It assumes that it is being executed in a build directory, `build` say, and that `build/../CMakeLists.txt exists`.
-```
-cmake -DBUILD_ONLY=s3
-```
-The expected set of installed libraries are as follows:
-* aws-cpp-sdk-s3
-* aws-cpp-sdk-core
+Building this package from scratch has proven to be a formidable task.
+This appears to be due to dependencies on very specific versions of,
+for example, openssl.
 
-This library depends on libcurl, so you may need to install that
-before building the sdk library.
+It is recommended that you use conda to install this package on linux.
+See [11] for the relevant conda package information.
+
+For Windows we do not yet have solution. If you successfully install
+on Windows, please let us know how you did it.
+
+This library depends on libcurl and openssl, so you may need to install those
+before installing the sdk library.
 
 # Appendix C. Amazon S3 Imposed Limits {#nczarr_s3limits}
 

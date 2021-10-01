@@ -1,8 +1,8 @@
 netcdf nczarr2zarr {
 dimensions:
-	.zdim_8 = 8 ;
+	_zdim_8 = 8 ;
 variables:
-	int v(.zdim_8, .zdim_8) ;
+	int v(_zdim_8, _zdim_8) ;
 		v:_FillValue = -1 ;
 data:
 

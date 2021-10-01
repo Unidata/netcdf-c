@@ -66,6 +66,7 @@ typedef struct NC_H5_Filterspec {
 
 EXTERNL int ncaux_h5filterspec_parse(const char* txt, unsigned int* idp, size_t* nparamsp, unsigned int** paramsp);
 EXTERNL int ncaux_h5filterspec_parselist(const char* txt0, int* formatp, size_t* nspecsp, struct NC_H5_Filterspec*** vectorp);
+EXTERNL int ncaux_h5filterspec_parse_parameter(const char* txt, size_t* nuiparamsp, unsigned int* uiparams);
 EXTERNL void ncaux_h5filterspec_free(struct NC_H5_Filterspec* f);
 EXTERNL void ncaux_h5filterspec_fix8(unsigned char* mem, int decode);
 	    
