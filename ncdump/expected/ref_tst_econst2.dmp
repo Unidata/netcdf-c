@@ -1,0 +1,56 @@
+netcdf ref_tst_econst2 {
+types:
+  ubyte enum enum_t {Clear = 0, Cumulonimbus = 1, Stratus = 2} ;
+  opaque(11) opaque_t ;
+  int(*) vlen_t ;
+dimensions:
+	lat = 10 ;
+	lon = 5 ;
+	time = UNLIMITED ; // (0 currently)
+variables:
+	int lat(lat) ;
+		lat:long_name = "latitude" ;
+		lat:units = "degrees_north" ;
+	int lon(lon) ;
+		lon:long_name = "longitude" ;
+		lon:units = "degrees_east" ;
+	int time(time) ;
+		time:units = "seconds since 1992-1-1 00:00:00" ;
+	float Z(time, lat, lon) ;
+		string Z:units = "geopotential meters" ;
+		Z:valid_range = 0.f, 5000.f ;
+	float t(time, lat, lon) ;
+	double p(time, lat, lon) ;
+		p:_FillValue = -9999. ;
+	int rh(time, lat, lon) ;
+		rh:_FillValue = -1 ;
+	string country(time, lat, lon) ;
+	ubyte tag ;
+
+// global attributes:
+		vlen_t :globalatt = {17, 18, 19} ;
+data:
+
+ lat = 0, 10, 20, 30, 40, 50, 60, 70, 80, 90 ;
+
+ lon = -140, -118, -96, -84, -52 ;
+
+ tag = 255 ;
+
+group: g {
+  types:
+    compound cmpd_t {
+      vlen_t f1 ;
+      enum_t f2 ;
+      enum_t f3 ;
+    }; // cmpd_t
+  } // group g
+
+group: h {
+  variables:
+  	/g/cmpd_t compoundvar ;
+  data:
+
+   compoundvar = {{3, 4, 5}, Stratus, Clear} ;
+  } // group h
+}
