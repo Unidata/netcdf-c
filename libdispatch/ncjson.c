@@ -15,8 +15,10 @@ TODO: make utf8 safe
 
 #include "ncjson.h"
 
-#if defined(_WIN32) && !defined(__MINGW32__)
-#define strcasecmp _stricmp
+#undef NCJDEBUG
+#ifdef NCJDEBUG
+static int ncjbreakpoint(int err) {return err;}
+#define NCJTHROW(err) ((err)==NCJ_ERR?ncjbreakpoint(err):(err))
 #else
 #define NCJTHROW(err) (err)
 #endif
@@ -60,7 +62,7 @@ typedef struct NCJbuf {
 
 /**************************************************/
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 #define strdup _strdup
 #define strcasecmp _stricmp
 #else
