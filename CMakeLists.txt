@@ -13,6 +13,9 @@ cmake_minimum_required(VERSION 3.6.1)
 project(netCDF LANGUAGES C CXX)
 set(PACKAGE "netCDF" CACHE STRING "")
 
+# Use libraries specified in CMAKE_REQUIRED_LIBRARIES for check include macros
+cmake_policy(SET CMP0075 NEW)
+
 #####
 # Version Info:
 #
@@ -793,15 +796,38 @@ IF(USE_HDF5)
     ENDIF()
   ENDIF(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR)
 
-  FIND_PACKAGE(Threads)
-
   # There is a missing case in the above code so default it
   IF(NOT HDF5_C_LIBRARY_hdf5 OR "${HDF5_C_LIBRARY_hdf5}" STREQUAL "" )
     SET(HDF5_C_LIBRARY_hdf5 "${HDF5_C_LIBRARY}")
   ENDIF()
 
-  #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip library.
+  FIND_PATH(HAVE_HDF5_H hdf5.h PATHS ${HDF5_INCLUDE_DIR} NO_DEFAULT_PATH)
+  FIND_PATH(HAVE_HDF5_H hdf5.h)
+  IF(NOT HAVE_HDF5_H)
+    MESSAGE(FATAL_ERROR "Compiling a test with hdf5 failed. Either hdf5.h cannot be found, or the log messages should be checked for another reason.")
+  ELSE(NOT HAVE_HDF5_H)
+    INCLUDE_DIRECTORIES(${HAVE_HDF5_H})
+  ENDIF(NOT HAVE_HDF5_H)
+
   set (CMAKE_REQUIRED_INCLUDES ${HDF5_INCLUDE_DIR})
+
+  # Check to ensure that HDF5 was built with zlib.
+  # This needs to be near the beginning since we 
+  # need to know whether to add "-lz" to the symbol 
+  # tests below.
+  CHECK_C_SOURCE_COMPILES("#include <H5public.h>
+   #if !H5_HAVE_ZLIB_H
+   #error
+   #endif
+   int main() {
+   int x = 1;}" HAVE_HDF5_ZLIB)
+  IF(NOT HAVE_HDF5_ZLIB)
+    MESSAGE(FATAL_ERROR "HDF5 was built without zlib. Rebuild HDF5 with zlib.")
+  ELSE()
+    set (CMAKE_REQUIRED_LIBRARIES "z" ${CMAKE_REQUIRED_LIBRARIES})
+  ENDIF()
+
+  #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip library.
   CHECK_C_SOURCE_COMPILES("#include <H5public.h>
    #if !H5_HAVE_FILTER_SZIP
    #error
@@ -894,25 +920,12 @@ IF(USE_HDF5)
     INCLUDE_DIRECTORIES(${HAVE_HDF5_H})
   ENDIF(NOT HAVE_HDF5_H)
 
-  # Check to ensure that HDF5 was built with zlib.
-  set (CMAKE_REQUIRED_INCLUDES ${HDF5_INCLUDE_DIR})
-
-
-  CHECK_C_SOURCE_COMPILES("#include <H5public.h>
-   #if !H5_HAVE_ZLIB_H
-   #error
-   #endif
-   int main() {
-   int x = 1;}" HAVE_HDF5_ZLIB)
-  IF(NOT HAVE_HDF5_ZLIB)
-    MESSAGE(FATAL_ERROR "HDF5 was built without zlib. Rebuild HDF5 with zlib.")
-  ENDIF()
-
   #option to include HDF5 High Level header file (hdf5_hl.h) in case we are not doing a make install
   INCLUDE_DIRECTORIES(${HDF5_HL_INCLUDE_DIR})
 
-
 ENDIF(USE_HDF5)
+
+FIND_PACKAGE(Threads)
 
 # See if we have libcurl
 FIND_PACKAGE(CURL)
