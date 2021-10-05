@@ -794,10 +794,11 @@ IF(USE_HDF5)
     IF(NOT HDF5_C_LIBRARY)
       SET(HDF5_C_LIBRARY hdf5)
     ENDIF()
-    
-    FIND_PACKAGE(Threads)
+  
   ENDIF(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR)
-
+    
+  FIND_PACKAGE(Threads)
+  
   # There is a missing case in the above code so default it
   IF(NOT HDF5_C_LIBRARY_hdf5 OR "${HDF5_C_LIBRARY_hdf5}" STREQUAL "" )
     SET(HDF5_C_LIBRARY_hdf5 "${HDF5_C_LIBRARY}")
