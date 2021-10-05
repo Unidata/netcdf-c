@@ -794,6 +794,8 @@ IF(USE_HDF5)
     IF(NOT HDF5_C_LIBRARY)
       SET(HDF5_C_LIBRARY hdf5)
     ENDIF()
+    
+    FIND_PACKAGE(Threads)
   ENDIF(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR)
 
   # There is a missing case in the above code so default it
@@ -924,8 +926,6 @@ IF(USE_HDF5)
   INCLUDE_DIRECTORIES(${HDF5_HL_INCLUDE_DIR})
 
 ENDIF(USE_HDF5)
-
-FIND_PACKAGE(Threads)
 
 # See if we have libcurl
 FIND_PACKAGE(CURL)
