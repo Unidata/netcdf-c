@@ -37,7 +37,7 @@ SET(PACKAGE_VERSION ${VERSION})
 
 # Version of the dispatch table. This must match the value in
 # configure.ac.
-SET(NC_DISPATCH_VERSION 3)
+SET(NC_DISPATCH_VERSION 4)
 
 # Get system configuration, Use it to determine osname, os release, cpu. These
 # will be used when committing to CDash.
@@ -745,6 +745,11 @@ IF(USE_HDF5)
     # HDF5_C_LIBRARY, HDF5_HL_LIBRARY and HDF5_LIBRARIES.
     ###
     IF(MSVC)
+      ####
+      # Environmental variables in Windows when using MSVC
+      # are a hot mess between versions.
+      ####
+
       ##
       # HDF5 1.8.15 defined HDF5_LIBRARIES.
       ##
@@ -764,15 +769,22 @@ IF(USE_HDF5)
       ENDIF(${HDF5_VERSION} VERSION_GREATER "1.8.15")
 
     ELSE(MSVC)
-      ####
-      # Environmental variables in Windows when using MSVC
-      # are a hot mess between versions.
-      ####
-
+ 
       # Depending on the install, either HDF5_hdf_library or
       # HDF5_C_LIBRARIES may be defined.  We must check for either.
       IF(HDF5_C_LIBRARIES AND NOT HDF5_hdf5_LIBRARY)
         SET(HDF5_hdf5_LIBRARY ${HDF5_C_LIBRARIES})
+      ENDIF()
+      
+      # Some versions of FIND_PACKAGE set HDF5_C_LIBRARIES, but not HDF5_C_LIBRARY
+      # We use HDF5_C_LIBRARY below, so need to make sure it is set.
+      IF(HDF5_C_LIBRARIES AND NOT HDF5_C_LIBRARY)
+        SET(HDF5_C_LIBRARY ${HDF5_C_LIBRARIES})
+      ENDIF()
+
+      # Same issue as above...
+      IF(HDF5_HL_LIBRARIES AND NOT HDF5_HL_LIBRARY)
+        SET(HDF5_HL_LIBRARY ${HDF5_HL_LIBRARIES})
       ENDIF()
 
     ENDIF(MSVC)
@@ -1506,6 +1518,9 @@ ENDIF()
 
 # Always enable DISKLESS
 OPTION(ENABLE_DISKLESS "Enable in-memory files" ON)
+
+# Always enable quantization.
+OPTION(ENABLE_QUANTIZE "Enable variable quantization" ON)
 
 # By default, MSVC has a stack size of 1000000.
 # Allow a user to override this.
@@ -2301,6 +2316,7 @@ is_enabled(ENABLE_NCZARR HAS_NCZARR)
 is_enabled(ENABLE_NCZARR_S3_TESTS DO_NCZARR_S3_TESTS)
 is_enabled(ENABLE_MULTIFILTERS HAS_MULTIFILTERS)
 is_enabled(ENABLE_NCZARR_ZIP DO_NCZARR_ZIP_TESTS)
+is_enabled(ENABLE_QUANTIZE HAS_QUANTIZE)
 is_enabled(ENABLE_LOGGING HAS_LOGGING)
 is_enabled(ENABLE_FILTER_TESTING DO_FILTER_TESTS)
 is_enabled(ENABLE_BLOSC HAS_BLOSC)

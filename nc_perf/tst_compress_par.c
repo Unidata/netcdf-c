@@ -2,9 +2,11 @@
   Copyright 2020, UCAR/Unidata See COPYRIGHT file for copying and
   redistribution conditions.
 
-  This program tests and benchmarks netcdf-4 parallel I/O using the
-  same access pattern as is used by NOAA's GFS when writing and
-  reading model data. See:
+  This program tests and benchmarks netcdf-4 parallel I/O doing
+  compression.
+
+  This program tries to use the same access pattern as is used by
+  NOAA's GFS when writing and reading model data. See:
   https://github.com/Unidata/netcdf-fortran/issues/264.
 
   Also see the file gfs_sample.cdl to see what is being produced by
@@ -28,7 +30,7 @@
 #include <netcdf_par.h>
 #include <netcdf_meta.h>
 
-#define TEST_NAME "tst_gfs_data_1"
+#define TEST_NAME "tst_compress_par"
 #define NUM_META_VARS 7
 #define NUM_META_TRIES 2
 #define NDIM2 2
@@ -39,6 +41,7 @@
 /* #define NUM_DEFLATE_LEVELS 3 */
 #define NUM_DEFLATE_LEVELS 3
 #define NUM_UNLIM_TRIES 1
+#define NUM_NSD_SETTINGS 2
 #define THOUSAND 1000
 #define NUM_DATA_VARS 3
 #define ERR_AWFUL 1
@@ -61,6 +64,7 @@
 #define MAX_COMPRESSION_FILTERS 4
 char compression_filter_name[MAX_COMPRESSION_FILTERS][NC_MAX_NAME + 1];
 int deflate_level[MAX_COMPRESSION_FILTERS][NUM_DEFLATE_LEVELS];
+int nsd[NUM_NSD_SETTINGS] = {0, 4};
 
 char dim_name[NDIM5][NC_MAX_NAME + 1] = {"grid_xt", "grid_yt", "pfull",
 					 "phalf", "time"};
@@ -176,7 +180,7 @@ check_meta(int ncid, int *data_varid, int s, int f, int deflate, int u,
 
 /* Write all the metadata, including coordinate variable data. */
 int
-write_meta(int ncid, int *data_varid, int s, int f, int deflate, int u,
+write_meta(int ncid, int *data_varid, int s, int f, int nsd, int deflate, int u,
 	   size_t phalf_size, size_t phalf_start, float *phalf, size_t *data_start,
 	   size_t *data_count, size_t pfull_start, size_t pfull_size, float *pfull,
 	   size_t grid_xt_start, size_t grid_xt_size, double *grid_xt, size_t grid_yt_start,
@@ -289,6 +293,9 @@ write_meta(int ncid, int *data_varid, int s, int f, int deflate, int u,
         sprintf(data_var_name, "var_%d", dv);
         if (nc_redef(ncid)) ERR;
         if (nc_def_var(ncid, data_var_name, NC_FLOAT, NDIM4, dimid_data, &data_varid[dv])) ERR;
+
+        if (nsd)
+            if (nc_def_var_quantize(ncid, data_varid[dv], NC_QUANTIZE_BITGROOM, nsd)) ERR;
 
         /* Setting any filter only will work for HDF5-1.10.3 and later */
         /* versions. Do nothing for "none". */
@@ -537,7 +544,6 @@ main(int argc, char **argv)
     MPI_Info info = MPI_INFO_NULL;
 
     /* For timing. */
-    double meta_start_time, meta_stop_time;
     double data_start_time, data_stop_time;
 
     int ncid;
@@ -561,7 +567,7 @@ main(int argc, char **argv)
     /* Compression filter info. */
     int num_compression_filters;
 
-    int f, s, u;
+    int f, s, n;
     int i, j, k, dv, dl;
     int ret;
 
@@ -604,7 +610,8 @@ main(int argc, char **argv)
         {
     	    for(i = 0; i < data_count[3]; i++)
             {
-                value_data[cnt] = my_rank * 1000 + cnt / sqrt(my_rank + cnt + 1);
+                /* value_data[cnt] = (-1 * i%2) * my_rank * 1000 + cnt / sqrt(my_rank + cnt + 1) - (-1 * i%3 * i); */
+                value_data[cnt] = (-1 * i%2) * my_rank * 1000 + cnt / sqrt(my_rank + cnt + 1) - (-1 * i%2 * i);
                 /* printf("%d: value_data[%ld] %g\n", my_rank, cnt, value_data[cnt]); */
                 cnt++;
             }
@@ -614,15 +621,15 @@ main(int argc, char **argv)
     if (my_rank == 0)
     {
         printf("Benchmarking creation of file similar to one produced by the UFS.\n");
-        printf("unlim, comp, level, shuffle, meta wr time (s), data wr rate (MB/s), "
+        printf("comp, level, nsd, shuffle, data wr rate (MB/s), "
 	       "file size (MB)\n");
     }
-    for (u = 0; u < NUM_UNLIM_TRIES; u++)
+    for (f = 0; f < num_compression_filters; f++)
     {
-	for (f = 0; f < num_compression_filters; f++)
-	{
-	    for (s = 0; s < NUM_SHUFFLE_SETTINGS; s++)
-	    {
+        for (s = 0; s < NUM_SHUFFLE_SETTINGS; s++)
+        {
+            for (n = 0; n < NUM_NSD_SETTINGS; n++)
+            {
 		for (dl = 0; dl < NUM_DEFLATE_LEVELS; dl++)
 		{
 		    size_t file_size;
@@ -638,10 +645,9 @@ main(int argc, char **argv)
 
 		    /* nc_set_log_level(3); */
 		    /* Create a parallel netcdf-4 file. */
-		    meta_start_time = MPI_Wtime();
 		    if (nc_create_par(file_name, NC_NETCDF4, comm, info,
 				      &ncid)) ERR;
-		    if (write_meta(ncid, data_varid, s, f, deflate_level[f][dl], u,
+		    if (write_meta(ncid, data_varid, s, f, nsd[n], deflate_level[f][dl], 0,
 				   phalf_size, phalf_start, phalf,
 				   data_start, data_count, pfull_start, pfull_size, pfull, grid_xt_start,
 				   grid_xt_size, grid_xt, grid_yt_start,
@@ -650,7 +656,6 @@ main(int argc, char **argv)
 
 		    /* Stop the timer for metadata writes. */
 		    MPI_Barrier(MPI_COMM_WORLD);
-		    meta_stop_time = MPI_Wtime();
 		    data_start_time = MPI_Wtime();
 
 		    /* Write one record each of the data variables. */
@@ -676,7 +681,7 @@ main(int argc, char **argv)
 
 		    /* Check the file metadata for correctness. */
 		    if (nc_open_par(file_name, NC_NOWRITE, comm, info, &ncid)) ERR;
-		    if (check_meta(ncid, data_varid, s, f, deflate_level[f][dl], u,
+		    if (check_meta(ncid, data_varid, s, f, deflate_level[f][dl], 0,
 		        	   phalf_size, phalf_start, phalf,
 		        	   data_start, data_count, pfull_start, pfull_size,
 		        	   pfull, grid_xt_start, grid_xt_size, grid_xt,
@@ -692,15 +697,15 @@ main(int argc, char **argv)
                                      dim_len[4] * sizeof(float))/MILLION;
                         /* printf("data_size %f (data_stop_time - data_start_time) %g\n", data_size, (data_stop_time - data_start_time)); */
 			data_rate = data_size / (data_stop_time - data_start_time);
-			printf("%d, %s, %d, %d, %g, %g, %g\n", u, compression_filter_name[f],
-			       deflate_level[f][dl], s, meta_stop_time - meta_start_time,
+			printf("%s, %d, %d, %d, %g, %g\n", compression_filter_name[f],
+			       deflate_level[f][dl], nsd[n], s,
 			       data_rate, (float)file_size/MILLION);
 		    }
 		    MPI_Barrier(MPI_COMM_WORLD);
 		} /* next deflate level */
-	    } /* next shuffle filter test */
-	} /* next compression filter (zlib and szip) */
-    } /* next unlim_try */
+            } /* next nsd */
+        } /* next shuffle filter test */
+    } /* next compression filter (zlib and szip) */
 
     /* Free resources. */
     if (grid_xt)

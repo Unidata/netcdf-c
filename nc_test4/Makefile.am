@@ -35,7 +35,7 @@ tst_h_scalar tst_rename tst_rename2 tst_rename3 tst_h5_endians		\
 tst_atts_string_rewrite tst_hdf5_file_compat tst_fill_attr_vanish	\
 tst_rehash tst_filterparser tst_bug324 tst_types tst_atts3		\
 tst_put_vars tst_elatefill tst_udf tst_put_vars_two_unlim_dim		\
-tst_bug1442
+tst_bug1442 tst_quantize
 
 # Temporary I hoped, but hoped in vain.
 if !ISCYGWIN
@@ -89,7 +89,7 @@ endif # BUILD_UTILITIES
 if TEST_PARALLEL4
 check_PROGRAMS += tst_mpi_parallel tst_parallel tst_parallel3		\
 tst_parallel4 tst_parallel5 tst_nc4perf tst_mode tst_simplerw_coll_r	\
-tst_mode tst_parallel_zlib tst_parallel_compress
+tst_mode tst_parallel_zlib tst_parallel_compress tst_quantize_par
 TESTS += run_par_test.sh
 endif # TEST_PARALLEL4
 

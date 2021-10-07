@@ -59,5 +59,9 @@ if test "@HAS_PAR_FILTERS@" = "yes"; then
     echo "Parallel I/O more tests with zlib and szip (if present in HDF5)."
     @MPIEXEC@ -n 1 ./tst_parallel_compress
     @MPIEXEC@ -n 4 ./tst_parallel_compress
-
 fi
+
+echo
+echo "Parallel I/O test for quantize feature."
+@MPIEXEC@ -n 4 ./tst_quantize_par
+
