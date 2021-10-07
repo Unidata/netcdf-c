@@ -97,11 +97,16 @@ unlimtest2 \
 ref_niltest \
 ref_tst_h_scalar \
 ref_tst_nul4 \
+ref_tst_econst \
+ref_tst_econst2 \
 "
 
 if test "x$NC_VLEN_NOTEST" = x ; then
 TESTS4="$TESTS4 ref_tst_vlen_data ref_tst_vlen_data2"
 fi
+
+# These tests should not be cycle tested because ncdump loses information
+NOCYCLE="ref_tst_econst"
 
 SPECIALTESTS3="ref_tst_special_atts3"
 

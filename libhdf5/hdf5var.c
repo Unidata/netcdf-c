@@ -465,6 +465,8 @@ exit:
  * @param no_fill Pointer to no_fill setting.
  * @param fill_value Pointer to fill value.
  * @param endianness Pointer to endianness setting.
+ * @param quantize_mode Pointer to quantization mode.
+ * @param nsd Pointer to number of significant digits.
  *
  * @returns ::NC_NOERR for success
  * @returns ::NC_EBADID Bad ncid.
@@ -484,7 +486,8 @@ static int
 nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
                  int *unused2, int *fletcher32, int *storage,
                  const size_t *chunksizes, int *no_fill,
-                 const void *fill_value, int *endianness)
+                 const void *fill_value, int *endianness,
+		 int *quantize_mode, int *nsd)
 {
     NC_GRP_INFO_T *grp;
     NC_FILE_INFO_T *h5;
@@ -706,6 +709,46 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	var->endianness = *endianness;
     }
 
+    /* Remember quantization settings. They will be used when data are
+     * written. */
+    if (quantize_mode)
+    {
+	/* Only two valid mode settings. */
+	if (*quantize_mode != NC_NOQUANTIZE &&
+	    *quantize_mode != NC_QUANTIZE_BITGROOM)
+	    return NC_EINVAL;
+
+	if (*quantize_mode == NC_QUANTIZE_BITGROOM)
+	{
+	    /* Only float and double types can have quantization. */
+	    if (var->type_info->hdr.id != NC_FLOAT &&
+		var->type_info->hdr.id != NC_DOUBLE)
+		return NC_EINVAL;
+	    
+	    /* For bitgroom, number of significant digits is required. */
+	    if (!nsd)
+		return NC_EINVAL;
+
+	    /* NSD must be in range. */
+	    if (*nsd <= 0)
+		return NC_EINVAL;
+	    if (var->type_info->hdr.id == NC_FLOAT &&
+		*nsd > NC_QUANTIZE_MAX_FLOAT_NSD)
+		return NC_EINVAL;
+	    if (var->type_info->hdr.id == NC_DOUBLE &&
+		*nsd > NC_QUANTIZE_MAX_DOUBLE_NSD)
+		return NC_EINVAL;
+
+	    var->nsd = *nsd;
+	}
+	
+	var->quantize_mode = *quantize_mode;
+
+	/* If quantization is turned off, then set nsd to 0. */
+	if (*quantize_mode == NC_NOQUANTIZE)
+	    var->nsd = 0;
+    }
+
     return NC_NOERR;
 }
 
@@ -737,13 +780,121 @@ NC4_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
     int stat = NC_NOERR;
     unsigned int level = (unsigned int)deflate_level;
     /* Set shuffle first */
-    if((stat = nc_def_var_extra(ncid, varid, &shuffle, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL))) goto done;
+    if((stat = nc_def_var_extra(ncid, varid, &shuffle, NULL, NULL, NULL,
+				NULL, NULL, NULL, NULL, NULL, NULL, NULL))) goto done;
     if(deflate) {
         if((stat = nc_def_var_filter(ncid, varid, H5Z_FILTER_DEFLATE,1,&level))) goto done;
     } /* else ignore */
 
 done:
     return stat;
+}
+
+/**
+ * @internal Set quantization settings on a variable. This is
+ * called by nc_def_var_quantize().
+ *
+ * Quantization allows the user to specify a number of significant
+ * digits for variables of type ::NC_FLOAT or ::NC_DOUBLE. (Attempting
+ * to set quantize for other types will result in an ::NC_EINVAL
+ * error.)
+ *
+ * When quantize is turned on, and the number of significant digits
+ * has been specified, then the netCDF library will apply all zeros or
+ * all ones (alternating) to bits which are not needed to specify the
+ * value to the number of significant digits. This will change the
+ * value of the data, but will make it more compressable.
+ *
+ * Quantizing the data does not reduce the size of the data on disk,
+ * but combining quantize with compression will allow for better
+ * compression. Since the data values are changed, the use of quantize
+ * and compression such as deflate constitute lossy compression.
+ *
+ * Producers of large datasets may find that using quantize with
+ * compression will result in significant improvent in the final data
+ * size.
+ *
+ * Variables which use quantize will have added an attribute with name
+ * ::NC_QUANTIZE_ATT_NAME, which will contain the number of
+ * significant digits. Users should not delete or change this
+ * attribute. This is the only record that quantize has been applied
+ * to the data.
+ *
+ * As with the deflate settings, quantize settings may only be
+ * modified before the first call to nc_enddef(). Once nc_enddef() is
+ * called for the file, quantize settings for any variable in the file
+ * may not be changed.
+ *
+ * Use of quantization is fully backwards compatible with existing
+ * versions and packages that can read compressed netCDF data. A
+ * variable which has been quantized is readable to older versions of
+ * the netCDF libraries, and to netCDF-Java.
+ *
+ * @param ncid File ID.
+ * @param varid Variable ID. NC_GLOBAL may not be used.
+ * @param quantize_mode Quantization mode. May be ::NC_NOQUANTIZE or
+ * ::NC_QUANTIZE_BITGROOM.
+ * @param nsd Number of significant digits. May be any integer from 1
+ * to ::NC_QUANTIZE_MAX_FLOAT_NSD (for variables of type ::NC_FLOAT) or
+ * ::NC_QUANTIZE_MAX_DOUBLE_NSD (for variables of type ::NC_DOUBLE).
+ *
+ * @returns ::NC_NOERR No error.
+ * @returns ::NC_EBADID Bad ncid.
+ * @returns ::NC_ENOTVAR Invalid variable ID.
+ * @returns ::NC_ENOTNC4 Attempting netcdf-4 operation on file that is
+ * not netCDF-4/HDF5.
+ * @returns ::NC_ELATEDEF Too late to change settings for this variable.
+ * @returns ::NC_ENOTINDEFINE Not in define mode.
+ * @returns ::NC_EINVAL Invalid input
+ * @author Ed Hartnett, Dennis Heimbigner
+ */
+int
+NC4_def_var_quantize(int ncid, int varid, int quantize_mode, int nsd)
+{
+    return nc_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL,
+			    NULL, NULL, NULL, NULL, NULL,
+			    &quantize_mode, &nsd);
+}
+
+/**
+ * @internal Get quantize information about a variable. Pass NULL for
+ * whatever you don't care about.
+ *
+ * @param ncid File ID.
+ * @param varid Variable ID.
+ * @param quantize_modep Gets quantize mode.
+ * @param nsdp Gets Number of Significant Digits if quantize is in use.
+ *
+ * @returns ::NC_NOERR No error.
+ * @returns ::NC_EBADID Bad ncid.
+ * @returns ::NC_ENOTVAR Bad varid.
+ * @returns ::NC_EINVAL Invalid input.
+ * @author Ed Hartnett
+ */
+int
+NC4_inq_var_quantize(int ncid, int varid, int *quantize_modep,
+		     int *nsdp)
+{
+    NC_VAR_INFO_T *var;
+    int retval;
+
+    LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
+
+    /* Find info for this file and group, and set pointer to each. */
+    /* Get pointer to the var. */
+    if ((retval = nc4_hdf5_find_grp_h5_var(ncid, varid, NULL, NULL, &var)))
+        return retval;
+    if (!var)
+        return NC_ENOTVAR;	
+    assert(var->hdr.id == varid);
+
+    /* Copy the data to the user's data buffers. */
+    if (quantize_modep)
+        *quantize_modep = var->quantize_mode;
+    if (nsdp)
+        *nsdp = var->nsd;
+
+    return 0;
 }
 
 #if 0
@@ -803,7 +954,7 @@ int
 NC4_def_var_fletcher32(int ncid, int varid, int fletcher32)
 {
     return nc_def_var_extra(ncid, varid, NULL, NULL, NULL, &fletcher32,
-                            NULL, NULL, NULL, NULL, NULL);
+                            NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 }
 
 /**
@@ -832,7 +983,7 @@ int
 NC4_def_var_chunking(int ncid, int varid, int storage, const size_t *chunksizesp)
 {
     return nc_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL,
-                            &storage, chunksizesp, NULL, NULL, NULL);
+                            &storage, chunksizesp, NULL, NULL, NULL, NULL, NULL);
 }
 
 /**
@@ -878,7 +1029,7 @@ nc_def_var_chunking_ints(int ncid, int varid, int storage, int *chunksizesp)
         cs[i] = chunksizesp[i];
 
     retval = nc_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL,
-                              &storage, cs, NULL, NULL, NULL);
+                              &storage, cs, NULL, NULL, NULL, NULL, NULL);
 
     if (var->ndims)
         free(cs);
@@ -912,7 +1063,7 @@ int
 NC4_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
 {
     return nc_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL, NULL,
-                            NULL, &no_fill, fill_value, NULL);
+                            NULL, &no_fill, fill_value, NULL, NULL, NULL);
 }
 
 /**
@@ -941,7 +1092,7 @@ int
 NC4_def_var_endian(int ncid, int varid, int endianness)
 {
     return nc_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL, NULL,
-                            NULL, NULL, NULL, &endianness);
+                            NULL, NULL, NULL, &endianness, NULL, NULL);
 }
 
 /**
@@ -1456,9 +1607,11 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     }
 
     /* Are we going to convert any data? (No converting of compound or
-     * opaque types.) */
-    if (mem_nc_type != var->type_info->hdr.id &&
-        mem_nc_type != NC_COMPOUND && mem_nc_type != NC_OPAQUE)
+     * opaque types.) We also need to call this code if we are doing
+     * quantization. */
+    if ((mem_nc_type != var->type_info->hdr.id &&
+	 mem_nc_type != NC_COMPOUND && mem_nc_type != NC_OPAQUE) ||
+	var->quantize_mode)
     {
         size_t file_type_size;
 
@@ -1585,7 +1738,8 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     {
         if ((retval = nc4_convert_type(data, bufr, mem_nc_type, var->type_info->hdr.id,
                                        len, &range_error, var->fill_value,
-                                       (h5->cmode & NC_CLASSIC_MODEL))))
+                                       (h5->cmode & NC_CLASSIC_MODEL), var->quantize_mode,
+				       var->nsd)))
             BAIL(retval);
     }
 
@@ -1986,8 +2140,8 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     if (need_to_convert)
     {
         if ((retval = nc4_convert_type(bufr, data, var->type_info->hdr.id, mem_nc_type,
-                                           len, &range_error, var->fill_value,
-                                           (h5->cmode & NC_CLASSIC_MODEL))))
+				       len, &range_error, var->fill_value,
+				       (h5->cmode & NC_CLASSIC_MODEL), var->quantize_mode, var->nsd)))
             BAIL(retval);
 
         /* For strict netcdf-3 rules, ignore erange errors between UBYTE
@@ -2054,6 +2208,8 @@ exit:
  * @param nparamsp Pointer to memory to store filter parameter count.
  * @param params Pointer to vector of unsigned integers into which
  * to store filter parameters.
+ * @param quantize_modep Gets quantization mode.
+ * @param nsdp Gets number of significant digits, if quantization is in use.
  *
  * @returns ::NC_NOERR No error.
  * @returns ::NC_EBADID Bad ncid.
