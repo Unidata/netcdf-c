@@ -828,7 +828,7 @@ IF(USE_HDF5)
   ELSE()
     # If user has specified the `ZLIB_LIBRARY`, use it; otherwise try to find...
     IF(NOT ZLIB_LIBRARY)
-      find_package("ZLIB")
+      find_package(ZLIB)
       IF(ZLIB_FOUND)
         SET(ZLIB_LIBRARY ${ZLIB_LIBRARIES})
       ELSE()
