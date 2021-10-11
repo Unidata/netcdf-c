@@ -826,7 +826,17 @@ IF(USE_HDF5)
   IF(NOT HAVE_HDF5_ZLIB)
     MESSAGE(FATAL_ERROR "HDF5 was built without zlib. Rebuild HDF5 with zlib.")
   ELSE()
-    set (CMAKE_REQUIRED_LIBRARIES "z" ${CMAKE_REQUIRED_LIBRARIES})
+    # If user has specified the `ZLIB_LIBRARY`, use it; otherwise try to find...
+    IF(NOT ZLIB_LIBRARY)
+      find_package("ZLIB")
+      IF(ZLIB_FOUND)
+        SET(ZLIB_LIBRARY ${ZLIB_LIBRARIES})
+      ELSE()
+        MESSAGE(FATAL_ERROR "HDF5 Requires ZLIB, but cannot find libz.")
+      ENDIF()
+    ENDIF()
+    SET(CMAKE_REQUIRED_LIBRARIES ${ZLIB_LIBRARY} ${CMAKE_REQUIRED_LIBRARIES})
+    MESSAGE(STATUS "HDF5 has zlib.")
   ENDIF()
 
   #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip library.
