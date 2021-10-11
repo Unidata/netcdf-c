@@ -915,7 +915,6 @@ IF(USE_HDF5)
   ENDIF()
 
   FIND_PATH(HAVE_HDF5_H hdf5.h PATHS ${HDF5_INCLUDE_DIR} NO_DEFAULT_PATH)
-  FIND_PATH(HAVE_HDF5_H hdf5.h)
   IF(NOT HAVE_HDF5_H)
     MESSAGE(FATAL_ERROR "Compiling a test with hdf5 failed. Either hdf5.h cannot be found, or the log messages should be checked for another reason.")
   ELSE(NOT HAVE_HDF5_H)
