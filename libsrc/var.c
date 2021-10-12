@@ -415,6 +415,7 @@ ncx_szof(nc_type type)
 	case NC_UINT64 :
 		return X_SIZEOF_UINT64;
 	default:
+		/* 37824 Ignore */
 	        assert("ncx_szof invalid type" == 0);
 	        return 0;
 	}

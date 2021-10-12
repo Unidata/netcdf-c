@@ -727,6 +727,7 @@ NC_check_vlens(NC3_INFO *ncp)
     rec_vars_count = 0;
     vpp = ncp->vars.value;
     for (ii = 0; ii < ncp->vars.nelems; ii++, vpp++) {
+	assert(vpp != NULL && *vpp != NULL);
 	if( !IS_RECVAR(*vpp) ) {
 	    last = 0;
 	    if( NC_check_vlen(*vpp, vlen_max) == 0 ) {
