@@ -5,7 +5,7 @@
 
 # See netcdf-c/COPYRIGHT file for more info.
 SET(libdispatch_SOURCES dparallel.c dcopy.c dfile.c ddim.c datt.c dattinq.c dattput.c dattget.c derror.c dvar.c dvarget.c dvarput.c dvarinq.c ddispatch.c nclog.c dstring.c dutf8.c dinternal.c doffsets.c ncuri.c nclist.c ncbytes.c nchashmap.c nctime.c nc.c nclistmgr.c utf8proc.h utf8proc.c dpathmgr.c dutil.c drc.c dauth.c dreadonly.c dnotnc4.c dnotnc3.c daux.c dinfermodel.c
-dcrc32.c dcrc32.h dcrc64.c ncexhash.c ncxcache.c ncjson.c)
+dcrc32.c dcrc32.h dcrc64.c ncexhash.c ncxcache.c ncjson.c ezxml.c)
 
 # Netcdf-4 only functions. Must be defined even if not used
 SET(libdispatch_SOURCES ${libdispatch_SOURCES} dgroup.c dvlen.c dcompound.c dtype.c denum.c dopaque.c dfilter.c)
