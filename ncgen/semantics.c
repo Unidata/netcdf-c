@@ -571,6 +571,7 @@ findeconstenum(Symbol* avsym, NCConstant* con)
     enumt = candidate;
 done:
     if(enumt) econst = locateeconst(enumt,name);
+    listfree(typdefs);
     nullfree(path);
     if(econst == NULL)
 	semerror(con->lineno,"Undefined enum constant: %s",refsym->name);

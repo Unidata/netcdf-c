@@ -76,7 +76,7 @@ static unsigned int findPrimeGreaterThan(size_t val);
 extern void printhashmapstats(NC_hashmap* hm);
 extern void printhashmap(NC_hashmap* hm);
 
-static void
+static int
 rehash(NC_hashmap* hm)
 {
     size_t alloc = hm->alloc;
@@ -88,6 +88,7 @@ rehash(NC_hashmap* hm)
     Trace("rehash");
 
     hm->alloc = findPrimeGreaterThan(alloc<<1);
+    if(hm->alloc == 0) return 0;
     hm->table = (NC_hentry*)calloc(sizeof(NC_hentry), hm->alloc);
     hm->active = 0;
 
@@ -100,6 +101,7 @@ rehash(NC_hashmap* hm)
     }
     free(oldtable);
     ASSERT(active == hm->active);
+    return 1;
 }
 
 /* Locate where given object is or should be placed in indexp.
@@ -118,6 +120,7 @@ locate(NC_hashmap* hash, nchashkey_t hashkey, const char* key, size_t keysize, s
     NC_hentry* entry;
     Trace("locate");
     /* Compute starting point */
+    assert(hash->alloc > 0);
     index = (size_t)(hashkey % hash->alloc);
 
     /* Search table using linear probing */
@@ -142,6 +145,7 @@ locate(NC_hashmap* hash, nchashkey_t hashkey, const char* key, size_t keysize, s
 	    return 1;
 	}
         /* linear probe */
+	assert(hash->alloc > 0);
 	index = (index + step) % hash->alloc;
     }
     if(deletedok && deletefound) {
@@ -174,6 +178,7 @@ NC_hashmapnew(size_t startsize)
 	startsize *= 4;
 	startsize /= 3;
 	startsize = findPrimeGreaterThan(startsize);
+	if(startsize == 0) {nullfree(hm); return 0;}
     }
     hm->table = (NC_hentry*)calloc(sizeof(NC_hentry), (size_t)startsize);
     hm->alloc = startsize;
@@ -193,15 +198,15 @@ NC_hashmapadd(NC_hashmap* hash, uintptr_t data, const char* key, size_t keysize)
       return 0;
     hashkey = NC_hashmapkey(key,keysize);
 
-    if(hash->alloc*3/4 <= hash->active)
-	rehash(hash);
+    if((hash->alloc*3)/4 <= hash->active)
+	{if(!rehash(hash)) return 0;}
     for(;;) {
 	size_t index;
 	if(!locate(hash,hashkey,key,keysize,&index,1)) {
-	    rehash(hash);
+	    if(!rehash(hash)) return 0;
 	    continue; /* try on larger table */
 	}
-    entry = &hash->table[index];
+        entry = &hash->table[index];
 	if(entry->flags & ACTIVE) {
 	    /* key already exists in table => overwrite data */
 	    entry->data = data;
