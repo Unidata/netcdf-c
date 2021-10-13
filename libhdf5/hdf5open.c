@@ -756,6 +756,10 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
     if ((mode & NC_WRITE) == 0)
         nc4_info->no_write = NC_TRUE;
 
+    if ((mode & NC_WRITE) && (mode & NC_NOATTCREORD)) {
+        nc4_info->no_attr_create_order = NC_TRUE;
+    }
+
     if(nc4_info->mem.inmemory && nc4_info->mem.diskless)
         BAIL(NC_EINTERNAL);
 
@@ -899,6 +903,19 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
                 if ((h5->hdfid = nc4_H5Fopen(path, flags, fapl_id)) < 0)
                     BAIL(NC_EHDFERR);
             }
+
+    /* Get the file creation property list to check for attribute ordering */
+    {
+      hid_t pid;
+      unsigned int crt_order_flags;
+      if ((pid = H5Fget_create_plist(h5->hdfid)) < 0)
+          BAIL(NC_EHDFERR);
+      if (H5Pget_attr_creation_order(pid, &crt_order_flags) < 0)
+          BAIL(NC_EHDFERR);
+      if (!(crt_order_flags & H5P_CRT_ORDER_TRACKED)) {
+	  nc4_info->no_attr_create_order = NC_TRUE;
+      }
+    }
 
     /* Now read in all the metadata. Some types and dimscale
      * information may be difficult to resolve here, if, for example, a
