@@ -377,6 +377,46 @@ NC_hashmapdeactivate(NC_hashmap* map, uintptr_t data)
 /**************************************************/
 /* Prime table */
 
+/* Function that returns true if n is prime else returns false */
+/* This will currently fail if `n > 180503 * 180503` */
+static int isPrime(size_t n)
+{
+    if (n <= 1)  return 0;
+    if (n <= 3)  return 1;
+    
+    for (size_t i=1; i < NC_nprimes - 1; i++) {
+      size_t prime = NC_primes[i];
+      if (n % prime == 0) {
+	return 0;
+      }
+      if (prime * prime > n) {
+	break;
+      }
+    }
+    return 1;
+}
+
+/* Function to return the smallest prime number greater than N */
+static int nextPrime(size_t val)
+{
+    if (val <= 1)
+        return 2;
+
+    size_t prime = val;
+    if (prime % 2 == 0) { /* Make sure `prime` is odd */
+      prime--;
+    }
+
+    /* Loop continuously until isPrime returns */
+    /* true for a number greater than n */
+    for (;;) {
+        prime += 2;
+        if (isPrime(prime))
+	  break;
+    }
+    return prime;
+}
+
 /*
 Binary search prime table for first prime just greater than or
 equal to val
@@ -394,6 +434,15 @@ findPrimeGreaterThan(size_t val)
       if(val >= 0xFFFFFFFF)
         return 0; /* Too big */
       v = (unsigned int)val;
+
+      if (v > NC_primes[n - 2]) {
+        /*
+         If we have a value greater than the largest value in the 
+         NC_primes table, then search for a prime instead of just
+         doing a simple lookup.
+        */
+	return nextPrime(val);
+      }
 
       for(;;) {
         if(L >= R) break;
