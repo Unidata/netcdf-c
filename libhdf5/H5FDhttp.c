@@ -349,7 +349,7 @@ H5FD_http_open( const char *name, unsigned flags, hid_t /*UNUSED*/ fapl_id,
     file->write_access = write_access;    /* Note the write_access for later */
     file->eof = (haddr_t)len;
     file->state = state; state = NULL;
-    file->url = H5allocate_memory(strlen(name+1),0);
+    file->url = H5allocate_memory(strlen(name)+1,0);
     if(file->url == NULL) {
 	nc_http_close(state);
         H5Epush_ret(func, H5E_ERR_CLS, H5E_RESOURCE, H5E_NOSPACE, "memory allocation failed", NULL);
