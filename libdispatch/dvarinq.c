@@ -528,15 +528,15 @@ nc_inq_var_fill(int ncid, int varid, int *no_fill, void *fill_valuep)
 }
 
 /** @ingroup variables
- * Learn whether BitGroom quantization is on for a variable, and, if so,
+ * Learn whether quantization is on for a variable, and, if so,
  * the NSD setting.
  *
  * @param ncid File ID.
  * @param varid Variable ID. Must not be NC_GLOBAL.
- * @param quantize_modep Pointer that gets a 0 if BitGroom is not in
+ * @param quantize_modep Pointer that gets a 0 if quantization is not in
  * use for this var, and a 1 if it is. Ignored if NULL.
  * @param nsdp Pointer that gets the NSD setting (from 1 to 15), if
- * BitGroom is in use. Ignored if NULL.
+ * quantization is in use. Ignored if NULL.
  *
  * @return 0 for success, error code otherwise.
  * @author Charlie Zender, Ed Hartnett
