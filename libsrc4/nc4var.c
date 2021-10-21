@@ -579,7 +579,7 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 
         }
 
-	/* Parameters used only by BitGroom */
+	/* Parameters BitGroom needs to be set once */
 	if (quantize_mode == NC_QUANTIZE_BITGROOM)
 	  {
 
@@ -628,26 +628,7 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 	      }
 
 	  }
-	/* Set-up parameters used only by GranularBG */
-	else if (quantize_mode == NC_QUANTIZE_GRANULARBG)
-	  {
-
-	    if (dest_type == NC_FLOAT)
-	      {
-
-		bit_xpl_nbr_sgn=BIT_XPL_NBR_SGN_FLT;
-
-	      }
-	    else
-	      {
-
-		bit_xpl_nbr_sgn=BIT_XPL_NBR_SGN_DBL;
-
-	      }
-	    
-	  }
 	  
-        }
     } /* endif quantize */
 
     /* OK, this is ugly. If you can think of anything better, I'm open
@@ -1449,25 +1430,25 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 	      
 		if((val=op1.fp[idx]) != mss_val_cmp_flt && u32_ptr[idx] != 0U)
 		  {
-		    mnt=frexp(val,&xpn_bs2); /* DGG19 p. 4102 (8) */
-		    mnt_fabs=fabs(mnt);
-		    mnt_log10_fabs=log10(mnt_fabs);
+		    mnt = frexp(val, &xpn_bs2); /* DGG19 p. 4102 (8) */
+		    mnt_fabs = fabs(mnt);
+		    mnt_log10_fabs = log10(mnt_fabs);
 		    /* 20211003 Continuous determination of dgt_nbr improves CR by ~10% */
-		    dgt_nbr=(int)floor(xpn_bs2*dgt_per_bit+mnt_log10_fabs)+1; /* DGG19 p. 4102 (8.67) */
-		    qnt_pwr=(int)floor(bit_per_dgt*(dgt_nbr-nsd)); /* DGG19 p. 4101 (7) */
-		    prc_bnr_xpl_rqr= mnt_fabs == 0.0 ? 0 : abs((int)floor(xpn_bs2-bit_per_dgt*mnt_log10_fabs)-qnt_pwr); /* Protect against mnt = -0.0 */
+		    dgt_nbr = (int)floor(xpn_bs2 * dgt_per_bit + mnt_log10_fabs) + 1; /* DGG19 p. 4102 (8.67) */
+		    qnt_pwr = (int)floor(bit_per_dgt * (dgt_nbr - nsd)); /* DGG19 p. 4101 (7) */
+		    prc_bnr_xpl_rqr = mnt_fabs == 0.0 ? 0 : abs((int)floor(xpn_bs2 - bit_per_dgt*mnt_log10_fabs) - qnt_pwr); /* Protect against mnt = -0.0 */
 		    prc_bnr_xpl_rqr--; /* 20211003 Reduce formula result by 1 bit: Passes all tests, improves CR by ~10% */
 
-		    bit_xpl_nbr_zro=bit_xpl_nbr_sgn-prc_bnr_xpl_rqr;
-		    msk_f32_u32_zro=0u; /* Zero all bits */
-		    msk_f32_u32_zro=~msk_f32_u32_zro; /* Turn all bits to ones */
+		    bit_xpl_nbr_zro = BIT_XPL_NBR_SGN_FLT - prc_bnr_xpl_rqr;
+		    msk_f32_u32_zro = 0u; /* Zero all bits */
+		    msk_f32_u32_zro = ~msk_f32_u32_zro; /* Turn all bits to ones */
 		    /* Bit Shave mask for AND: Left shift zeros into bits to be rounded, leave ones in untouched bits */
 		    msk_f32_u32_zro <<= bit_xpl_nbr_zro;
 		    /* Bit Set   mask for OR:  Put ones into bits to be set, zeros in untouched bits */
-		    msk_f32_u32_one=~msk_f32_u32_zro;
-		    msk_f32_u32_hshv=msk_f32_u32_one & (msk_f32_u32_zro >> 1); /* Set one bit: the MSB of LSBs */
-		    u32_ptr[idx]+=msk_f32_u32_hshv; /* Add 1 to the MSB of LSBs, carry 1 to mantissa or even exponent */
-		    u32_ptr[idx]&=msk_f32_u32_zro; /* Shave it */
+		    msk_f32_u32_one = ~msk_f32_u32_zro;
+		    msk_f32_u32_hshv = msk_f32_u32_one & (msk_f32_u32_zro >> 1); /* Set one bit: the MSB of LSBs */
+		    u32_ptr[idx] += msk_f32_u32_hshv; /* Add 1 to the MSB of LSBs, carry 1 to mantissa or even exponent */
+		    u32_ptr[idx] &= msk_f32_u32_zro; /* Shave it */
 
 		  } /* !mss_val_cmp_flt */
 
@@ -1481,27 +1462,27 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
             for (idx = 0L; idx < len; idx++)
 	      {
 
-		if((val=op1.dp[idx]) != mss_val_cmp_dbl && u64_ptr[idx] != 0ULL)
+		if((val = op1.dp[idx]) != mss_val_cmp_dbl && u64_ptr[idx] != 0ULL)
 		  {
-		    mnt=frexp(val,&xpn_bs2); /* DGG19 p. 4102 (8) */
-		    mnt_fabs=fabs(mnt);
-		    mnt_log10_fabs=log10(mnt_fabs);
+		    mnt = frexp(val, &xpn_bs2); /* DGG19 p. 4102 (8) */
+		    mnt_fabs = fabs(mnt);
+		    mnt_log10_fabs = log10(mnt_fabs);
 		    /* 20211003 Continuous determination of dgt_nbr improves CR by ~10% */
-		    dgt_nbr=(int)floor(xpn_bs2*dgt_per_bit+mnt_log10_fabs)+1; /* DGG19 p. 4102 (8.67) */
-		    qnt_pwr=(int)floor(bit_per_dgt*(dgt_nbr-nsd)); /* DGG19 p. 4101 (7) */
-		    prc_bnr_xpl_rqr= mnt_fabs == 0.0 ? 0 : abs((int)floor(xpn_bs2-bit_per_dgt*mnt_log10_fabs)-qnt_pwr); /* Protect against mnt = -0.0 */
+		    dgt_nbr = (int)floor(xpn_bs2 * dgt_per_bit + mnt_log10_fabs) + 1; /* DGG19 p. 4102 (8.67) */
+		    qnt_pwr = (int)floor(bit_per_dgt * (dgt_nbr - nsd)); /* DGG19 p. 4101 (7) */
+		    prc_bnr_xpl_rqr = mnt_fabs == 0.0 ? 0 : abs((int)floor(xpn_bs2 - bit_per_dgt*mnt_log10_fabs) - qnt_pwr); /* Protect against mnt = -0.0 */
 		    prc_bnr_xpl_rqr--; /* 20211003 Reduce formula result by 1 bit: Passes all tests, improves CR by ~10% */
 
-		    bit_xpl_nbr_zro=bit_xpl_nbr_sgn-prc_bnr_xpl_rqr;
-		    msk_f64_u64_zro=0u; /* Zero all bits */
-		    msk_f64_u64_zro=~msk_f64_u64_zro; /* Turn all bits to ones */
+		    bit_xpl_nbr_zro = BIT_XPL_NBR_SGN_DBL - prc_bnr_xpl_rqr;
+		    msk_f64_u64_zro = 0ull; /* Zero all bits */
+		    msk_f64_u64_zro = ~msk_f64_u64_zro; /* Turn all bits to ones */
 		    /* Bit Shave mask for AND: Left shift zeros into bits to be rounded, leave ones in untouched bits */
 		    msk_f64_u64_zro <<= bit_xpl_nbr_zro;
 		    /* Bit Set   mask for OR:  Put ones into bits to be set, zeros in untouched bits */
-		    msk_f64_u64_one=~msk_f64_u64_zro;
-		    msk_f64_u64_hshv=msk_f64_u64_one & (msk_f64_u64_zro >> 1); /* Set one bit: the MSB of LSBs */
-		    u64_ptr[idx]+=msk_f64_u64_hshv; /* Add 1 to the MSB of LSBs, carry 1 to mantissa or even exponent */
-		    u64_ptr[idx]&=msk_f64_u64_zro; /* Shave it */
+		    msk_f64_u64_one = ~msk_f64_u64_zro;
+		    msk_f64_u64_hshv = msk_f64_u64_one & (msk_f64_u64_zro >> 1); /* Set one bit: the MSB of LSBs */
+		    u64_ptr[idx] += msk_f64_u64_hshv; /* Add 1 to the MSB of LSBs, carry 1 to mantissa or even exponent */
+		    u64_ptr[idx] &= msk_f64_u64_zro; /* Shave it */
 
 		  } /* !mss_val_cmp_dbl */
 
