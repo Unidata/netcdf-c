@@ -242,9 +242,9 @@ main(int argc, char **argv)
             if (quantize_mode_in != NC_QUANTIZE_BITGROOM || nsd_in != NSD_3) ERR;
 
 	    /* Each var now has an attribute describing the quantize settings. */
-	    if (nc_get_att_int(ncid, 0, NC_QUANTIZE_ATT_NAME, &nsd_att_in)) ERR;
+	    if (nc_get_att_int(ncid, 0, NC_QUANTIZE_BITGROOM_ATT_NAME, &nsd_att_in)) ERR;
 	    if (nsd_att_in != NSD_3) ERR;
-	    if (nc_get_att_int(ncid, 1, NC_QUANTIZE_ATT_NAME, &nsd_att_in)) ERR;
+	    if (nc_get_att_int(ncid, 1, NC_QUANTIZE_BITGROOM_ATT_NAME, &nsd_att_in)) ERR;
 	    if (nsd_att_in != NSD_3) ERR;
 
             /* Check the data. */
@@ -447,9 +447,9 @@ main(int argc, char **argv)
             if (quantize_mode_in != NC_QUANTIZE_BITGROOM || nsd_in != NSD_3) ERR;
 
 	    /* Each var now has an attribute describing the quantize settings. */
-	    if (nc_get_att_int(ncid, 0, NC_QUANTIZE_ATT_NAME, &nsd_att_in)) ERR;
+	    if (nc_get_att_int(ncid, 0, NC_QUANTIZE_BITGROOM_ATT_NAME, &nsd_att_in)) ERR;
 	    if (nsd_att_in != NSD_3) ERR;
-	    if (nc_get_att_int(ncid, 1, NC_QUANTIZE_ATT_NAME, &nsd_att_in)) ERR;
+	    if (nc_get_att_int(ncid, 1, NC_QUANTIZE_BITGROOM_ATT_NAME, &nsd_att_in)) ERR;
 	    if (nsd_att_in != NSD_3) ERR;
 
             /* Check the data. */
