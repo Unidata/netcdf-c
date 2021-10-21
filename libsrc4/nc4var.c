@@ -517,6 +517,10 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
     /* These vars are used with quantize feature. */
     const double bit_per_dgt = M_LN10 / M_LN2; /* 3.32 [frc] Bits per decimal digit of precision  = log2(10) */
     const double dgt_per_bit= M_LN2 / M_LN10; /* 0.301 [frc] Decimal digits per bit of precision = log10(2) */
+    double mnt; /* [frc] Mantissa, 0.5 <= mnt < 1.0 */
+    double mnt_fabs; /* [frc] fabs(mantissa) */
+    double mnt_log10_fabs; /* [frc] log10(fabs(mantissa))) */
+    double val; /* [frc] Copy of input value to avoid indirection */
     double mss_val_cmp_dbl; /* Missing value for comparison to double precision values */
     float mss_val_cmp_flt; /* Missing value for comparison to single precision values */
     int bit_xpl_nbr_zro; /* [nbr] Number of explicit bits to zero */
@@ -1417,7 +1421,6 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
         }
     } /* endif BitGroom */
 
-
     if (quantize_mode == NC_QUANTIZE_GRANULARBG)
     {
         if (dest_type == NC_FLOAT)
@@ -1428,7 +1431,7 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
             for (idx = 0L; idx < len; idx++)
 	      {
 	      
-		if((val=op1.fp[idx]) != mss_val_cmp_flt && u32_ptr[idx] != 0U)
+		if((val = op1.fp[idx]) != mss_val_cmp_flt && u32_ptr[idx] != 0U)
 		  {
 		    mnt = frexp(val, &xpn_bs2); /* DGG19 p. 4102 (8) */
 		    mnt_fabs = fabs(mnt);
