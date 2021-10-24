@@ -202,6 +202,8 @@ ezxml_decode(char* s, char* *ent, char t)
             if (c < 0x80) *(s++) = c; /* US-ASCII subset*/
             else { /* multi-byte UTF-8 sequence*/
                 for (b = 0, d = c; d; d /= 2) b++; /* number of bits in c*/
+                // UTF-8 can ecode max 36 bits (standard says 21) - noop on 32 bit.
+                if (b > 36) { s++; continue; } // bug#15 CVE-2019-20006 / bug#17 CVE-2019-20202
                 b = (b - 2) / 5; /* number of bytes in payload*/
                 *(s++) = (0xFF << (7 - b)) | (c >> (6 * b)); /* head*/
                 while (b) *(s++) = 0x80 | ((c >> (6 * --b)) & 0x3F); /* payload*/
