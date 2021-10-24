@@ -525,6 +525,7 @@ nc_ezxml_parse_str(char* s, size_t len)
     char q, e, *d, **attr, **a = NULL; /* initialize a to avoid compile warning*/
     int l, i, j;
 
+    if (!root) return NULL; // bug#21 / CVE-2021-26221
     root->m = s;
     if (! len) return ezxml_err(root, NULL, "root tag missing");
     root->u = ezxml_str2utf8(&s, &len); /* convert utf-16 to utf-8*/
@@ -829,8 +830,9 @@ ezxml_new(const char* name)
 {
     static const char* entities[] = { "lt;", "&#60;", "gt;", "&#62;", "quot;", "&#34;",
                            "apos;", "&#39;", "amp;", "&#38;", NULL };
-    ezxml_root_t root = (ezxml_root_t)memset(malloc(sizeof(struct ezxml_root)),
-                                             '\0', sizeof(struct ezxml_root));
+    ezxml_root_t root;
+    if (!(root  = malloc(sizeof(struct ezxml_root)))) return NULL;  // bug#21
+    root = (ezxml_root_t)memset(root, '\0', sizeof(struct ezxml_root));
     root->xml.name = (char* )name;
     root->cur = &root->xml;
     strcpy(root->err, root->xml.txt = "");
