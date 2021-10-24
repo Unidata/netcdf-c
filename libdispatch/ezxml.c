@@ -187,6 +187,7 @@ ezxml_decode(char* s, char* *ent, char t)
             *(s++) = '\n';
             if (*s == '\n') memmove(s, (s + 1), strlen(s));
         }
+        if (!*s) break; // bug#19 / CVE-2019-20200
     }
 
     for (s = r; ; ) {
