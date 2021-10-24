@@ -218,9 +218,11 @@ ezxml_decode(char* s, char* *ent, char t)
 
             if (ent[b++]) { /* found a match*/
                 if ((c = strlen(ent[b])) - 1 > (e = strchr(s, ';')) - s) {
+                    if (!e) { s++; continue; } // bug#18 / CVE-2019-20199
                     l = (d = (s - r)) + c + strlen(e); /* new length*/
                     r = (r == m) ? strcpy(malloc(l), r) : realloc(r, l);
                     e = strchr((s = r + d), ';'); /* fix up pointers*/
+		    if (!e) { s++; continue; } // bug#18
                 }
 
                 if(c > strlen(s) || strlen(e) > strlen(s + c)) { /* Patch 28 */
