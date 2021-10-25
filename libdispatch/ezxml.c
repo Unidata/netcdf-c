@@ -225,10 +225,6 @@ ezxml_decode(char* s, char* *ent, char t)
 		    if (!e) { s++; continue; } // bug#18
                 }
 
-                if(c > strlen(s) || strlen(e) > strlen(s + c)) { /* Patch 28 */
-                    fprintf(stderr, "Error: ezxml_decode(): memmove() past end of buffer!");
-                    exit(-1);
-                }
                 memmove(s + c, e + 1, strlen(e)); /* shift rest of string*/
                 strncpy(s, ent[b], c); /* copy in replacement text*/
             }
