@@ -100,7 +100,6 @@ rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
 
         var = (NC_VAR_INFO_T*)ncindexith(grp->vars,i);
         assert(var && var->format_var_info);
-        hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
 
 	hdf5_var = (NC_HDF5_VAR_INFO_T*)var->format_var_info;	
 	assert(hdf5_var != NULL);
