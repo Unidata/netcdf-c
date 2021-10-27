@@ -192,10 +192,15 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
     if (H5Pset_link_creation_order(fcpl_id, (H5P_CRT_ORDER_TRACKED |
                                              H5P_CRT_ORDER_INDEXED)) < 0)
         BAIL(NC_EHDFERR);
-    if (H5Pset_attr_creation_order(fcpl_id, (H5P_CRT_ORDER_TRACKED |
-                                             H5P_CRT_ORDER_INDEXED)) < 0)
-        BAIL(NC_EHDFERR);
 
+    if (cmode & NC_NOATTCREORD) {
+        nc4_info->no_attr_create_order = NC_TRUE;
+    }
+    else {
+      if (H5Pset_attr_creation_order(fcpl_id, (H5P_CRT_ORDER_TRACKED |
+					       H5P_CRT_ORDER_INDEXED)) < 0)
+        BAIL(NC_EHDFERR);
+    }
 #ifdef HDF5_HAS_COLL_METADATA_OPS
     /* If HDF5 supports collective metadata operations, turn them
      * on. This is only relevant for parallel I/O builds of HDF5. */
