@@ -220,6 +220,10 @@ ezxml_decode(char* s, char* *ent, char t)
                     e = strchr((s = r + d), ';'); /* fix up pointers*/
                 }
 
+                if(c > strlen(s) || strlen(e) > strlen(s + c)) { /* Patch 28 */
+                    fprintf(stderr, "Error: ezxml_decode(): memmove() past end of buffer!");
+                    exit(-1);
+                }
                 memmove(s + c, e + 1, strlen(e)); /* shift rest of string*/
                 strncpy(s, ent[b], c); /* copy in replacement text*/
             }
@@ -348,6 +352,7 @@ ezxml_internal_dtd(ezxml_root_t root, char* s, size_t len)
 {
     char q, *c, *t, *n = NULL, *v, **ent, **pe;
     int i, j;
+    size_t n_len, n_off;
 
     pe = memcpy(malloc(sizeof(EZXML_NIL)), EZXML_NIL, sizeof(EZXML_NIL));
 
@@ -358,7 +363,15 @@ ezxml_internal_dtd(ezxml_root_t root, char* s, size_t len)
         else if (! strncmp(s, "<!ENTITY", 8)) { /* parse entity definitions*/
             c = s += strspn(s + 8, EZXML_WS) + 8; /* skip white space separator*/
             n = s + strspn(s, EZXML_WS "%"); /* find name*/
-            *(s = n + strcspn(n, EZXML_WS)) = ';'; /* append ; to name*/
+
+	    /* Patch 26 */
+            n_len = strlen(n);
+            n_off = strcspn(n, EZXML_WS);
+            if(n_off >= n_len) {
+                ezxml_err(root, NULL, "write past buffer (<!ENTITY)");
+		break;
+            }
+            *(s = n + n_off) = ';'; /* append ; to name */
 
             v = s + strspn(s + 1, EZXML_WS) + 1; /* find value*/
             if ((q = *(v++)) != '"' && q != '\'') { /* skip externals*/
@@ -387,7 +400,7 @@ ezxml_internal_dtd(ezxml_root_t root, char* s, size_t len)
             if (! *t) { ezxml_err(root, t, "unclosed <!ATTLIST"); break; }
             if (*(s = t + strcspn(t, EZXML_WS ">")) == '>') continue;
             else *s = '\0'; /* null terminate tag name*/
-            for (i = 0; root->attr[i] && strcmp(n, root->attr[i][0]); i++);
+            for (i = 0; n && root->attr[i] && strcmp(n, root->attr[i][0]); i++); /* patch 25 */
 
 	    for(;;) {
 		s++;
@@ -604,7 +617,7 @@ nc_ezxml_parse_str(char* s, size_t len)
             for (l = 0; *s && ((! l && *s != '>') || (l && (*s != ']' ||
                  *(s + strspn(s + 1, EZXML_WS) + 1) != '>')));
                  l = (*s == '[') ? 1 : l) s += strcspn(s + 1, "[]>") + 1;
-            if (! *s && e != '>')
+            if (! *s) /* patch 27 */
                 return ezxml_err(root, d, "unclosed <!DOCTYPE");
             d = (l) ? strchr(d, '[') + 1 : d;
             if (l && ! ezxml_internal_dtd(root, d, s++ - d)) return &root->xml;

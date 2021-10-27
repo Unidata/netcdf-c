@@ -65,7 +65,7 @@ ezxml_t nc_ezxml_child(ezxml_t xml, const char *name);
 
 /* returns the next tag of the same name in the same section and depth or NULL*/
 /* if not found*/
-#define nc_ezxml_next(xml) ((xml) ? xml->next : NULL)
+#define nc_ezxml_next(xml) ((xml) ? (xml)->next : NULL)
 
 /* Returns the Nth tag with the same name in the same section at the same depth*/
 /* or NULL if not found. An index of 0 returns the tag given.*/

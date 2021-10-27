@@ -196,6 +196,8 @@ memio_new(const char* path, int ioflags, off_t initialsize, ncio** nciopp, NCMEM
     if(nciopp && nciop) *nciopp = nciop;
     else {
         if(nciop->path != NULL) free((char*)nciop->path);
+	/* Fix 38699 */
+	nciop->path = NULL;
         free(nciop);
     }
     memio->alloc = (size_t)initialsize;
@@ -217,6 +219,8 @@ fail:
     if(memio != NULL) free(memio);
     if(nciop != NULL) {
         if(nciop->path != NULL) free((char*)nciop->path);
+	/* Fix 38699 */
+	nciop->path = NULL;
         free(nciop);
     }
     goto done;
@@ -526,6 +530,8 @@ memio_close(ncio* nciop, int doUnlink)
     /* do cleanup  */
     if(memio != NULL) free(memio);
     if(nciop->path != NULL) free((char*)nciop->path);
+    /* Fix 38699 */
+    nciop->path = NULL;
     free(nciop);
     return status;
 }
