@@ -837,18 +837,27 @@ getwdpath(struct Path* wd)
 {
     int stat = NC_NOERR;
     char* path = NULL;
+
     if(wd->path != NULL) return stat;
     memset(wd,0,sizeof(struct Path));
+#ifdef _WIN32
     {
-#ifdef _WIN32   
+        wchar_t* wcwd = NULL;
         wchar_t* wpath = NULL;
-        wpath = _wgetcwd(NULL,8192);
-        if((stat = wide2utf8(wpath,&path)))
-            {nullfree(wpath); wpath = NULL; return stat;}
-#else
-        path = getcwd(NULL,8192);
-#endif
+        wcwd = (wchar_t*)calloc(8192, sizeof(wchar_t));
+        wpath = _wgetcwd(wcwd, 8192);
+        path = NULL;
+        stat = wide2utf8(wpath, &path);
+        free(wcwd);
+        if (stat) return stat;
     }
+#else
+    {
+        char cwd[8192];
+        path = getcwd(cwd, sizeof(cwd));
+        path = strdup(path);
+    }
+#endif
     stat = parsepath(path,wd);
     /* Force the kind */
     wd->kind = getlocalpathkind();

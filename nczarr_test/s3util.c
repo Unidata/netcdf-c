@@ -61,11 +61,11 @@ struct Dumpptions {
     char* rootkey; /* from url | key */
     nc_type nctype; /* for printing content */
     char* filename;
+    char* profile;
 } dumpoptions;
 
 struct S3SDK {
     ZS3INFO s3;
-    void* s3config;
     void* s3client;
     char* errmsg;
 } s3sdk;
@@ -108,6 +108,7 @@ s3initialize(void)
 static void
 s3finalize(void)
 {
+    NCZ_s3clear(&s3sdk.s3);
     NCZ_s3sdkfinalize();
 }
 
@@ -115,9 +116,7 @@ static int
 s3setup(void)
 {
     int stat = NC_NOERR;
-    if((stat=NCZ_s3sdkcreateconfig(s3sdk.s3.host, s3sdk.s3.region, &s3sdk.s3config))) goto done;
-    if((stat = NCZ_s3sdkcreateclient(s3sdk.s3config,&s3sdk.s3client))) goto done;
-done:
+    s3sdk.s3client = NCZ_s3sdkcreateclient(&s3sdk.s3);
     return stat;
 }
 
@@ -125,7 +124,7 @@ static int
 s3shutdown(int deleteit)
 {
     int stat = NC_NOERR;
-    stat = NCZ_s3sdkclose(s3sdk.s3client, s3sdk.s3config, s3sdk.s3.bucket, s3sdk.s3.rootkey, deleteit, &s3sdk.errmsg);
+    stat = NCZ_s3sdkclose(s3sdk.s3client, &s3sdk.s3, deleteit, &s3sdk.errmsg);
     return stat;
 }
 
@@ -140,7 +139,7 @@ main(int argc, char** argv)
 
     dumpoptions.nctype = NC_UBYTE; /* default */
 
-    while ((c = getopt(argc, argv, "df:k:u:vt:T:")) != EOF) {
+    while ((c = getopt(argc, argv, "df:k:p:t:T:u:v")) != EOF) {
 	switch(c) {
 	case 'd': 
 	    dumpoptions.debug = 1;	    
@@ -160,6 +159,9 @@ main(int argc, char** argv)
 		memcpy(dumpoptions.key,optarg,strlen(optarg));
 	    dumpoptions.key[len] = '\0';
 	    } break;
+	case 'p': 
+	    dumpoptions.profile = strdup(optarg);
+	    break;
 	case 't': 
 	    dumpoptions.nctype = typefor(optarg);
 	    break;
@@ -203,19 +205,14 @@ main(int argc, char** argv)
 
     dumpoptions.s3op = decodeop(argv[0]);
 
+    s3initialize();
+
     memset(&s3sdk,0,sizeof(s3sdk));
 
     if((stat = NCZ_s3urlprocess(dumpoptions.url, &s3sdk.s3))) goto done;
     if(s3sdk.s3.rootkey != NULL && dumpoptions.key != NULL) {
-	size_t len = 0;
 	/* Make the root key be the concatenation of rootkey+dumpoptions.key */
-	len = strlen(s3sdk.s3.rootkey) + strlen(dumpoptions.key) + 1;
-	if((tmp = (char*)malloc(len+1))==NULL) {stat = NC_ENOMEM; goto done;}
-	tmp[0] = '\0';
-	strcat(tmp,s3sdk.s3.rootkey);
-	if(s3sdk.s3.rootkey[strlen(s3sdk.s3.rootkey)-1] != '/' && dumpoptions.key[0] != '/')
-	    strcat(tmp,"/");
-	strcat(tmp,dumpoptions.key);
+        if((stat = nczm_concat(s3sdk.s3.rootkey,dumpoptions.key,&tmp))) goto done;
 	nullfree(s3sdk.s3.rootkey);
 	s3sdk.s3.rootkey = tmp; tmp = NULL;
     } else if(dumpoptions.key != NULL) {
@@ -224,8 +221,6 @@ main(int argc, char** argv)
     }
     if(s3sdk.s3.rootkey == NULL || strlen(s3sdk.s3.rootkey)==0)
         s3sdk.s3.rootkey = strdup("/");
-
-    s3initialize();
 
     switch (dumpoptions.s3op) {
     default:

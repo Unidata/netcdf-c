@@ -69,12 +69,6 @@ extern int NC4_open_image_file(NC_FILE_INFO_T* h5);
 /* Defined later in this file. */
 static int rec_read_metadata(NC_GRP_INFO_T *grp);
 
-#ifdef ENABLE_BYTERANGE
-#ifdef ENABLE_HDF5_ROS3
-static int ros3info(NCauth** auth, NCURI* uri, char** hostportp, char** regionp);
-#endif
-#endif
-
 /**
  * @internal Struct to track HDF5 object info, for
  * rec_read_metadata(). We get this info for every object in the
@@ -862,28 +856,39 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 		NCURI* uri = NULL;
 		H5FD_ros3_fapl_t fa;
 		char* hostport = NULL;
-		char* region = NULL;
+		const char* profile0 = NULL;
+	        const char* awsaccessid0 = NULL;
+	        const char* awssecretkey0 = NULL;
+                const char* awsregion0 = NULL;
+
 		ncuriparse(path,&uri);
 		if(uri == NULL)
 		    BAIL(NC_EINVAL);		
-		if((ros3info(&h5->http.auth,uri,&hostport,&region)))
-		    BAIL(NC_EINVAL);
-		ncurifree(uri); uri = NULL;
+	        hostport = NC_combinehostport(uri);
+		if((retval = NC_getactives3profile(uri,&profile0)))
+		    BAIL(retval);
                 fa.version = 1;
 		fa.aws_region[0] = '\0';
 	        fa.secret_id[0] = '\0';
 		fa.secret_key[0] = '\0';
-		if(h5->http.auth->s3creds.accessid == NULL || h5->http.auth->s3creds.secretkey == NULL) {
+		if((retval = NC_s3profilelookup(profile0,AWS_ACCESS_KEY_ID,&awsaccessid0)))
+		    BAIL(retval);		
+		if((retval = NC_s3profilelookup(profile0,AWS_SECRET_ACCESS_KEY,&awssecretkey0)))
+		    BAIL(retval);		
+		if((retval = NC_s3profilelookup(profile0,AWS_REGION,&awsregion0)))
+		    BAIL(retval);		
+		if(awsaccessid0 == NULL || awssecretkey0 == NULL) {
 	  	    /* default, non-authenticating, "anonymous" fapl configuration */
 		    fa.authenticate = (hbool_t)0;
 		} else {
 		    fa.authenticate = (hbool_t)1;
-		    strlcat(fa.aws_region,region,H5FD_ROS3_MAX_REGION_LEN);
-		    strlcat(fa.secret_id, h5->http.auth->s3creds.accessid, H5FD_ROS3_MAX_SECRET_ID_LEN);
-                    strlcat(fa.secret_key, h5->http.auth->s3creds.secretkey, H5FD_ROS3_MAX_SECRET_KEY_LEN);
+		    if(awsregion0)
+		        strlcat(fa.aws_region,awsregion0,H5FD_ROS3_MAX_REGION_LEN);
+		    strlcat(fa.secret_id, awsaccessid0, H5FD_ROS3_MAX_SECRET_ID_LEN);
+                    strlcat(fa.secret_key, awssecretkey0, H5FD_ROS3_MAX_SECRET_KEY_LEN);
 		}
-	        nullfree(region);
 		nullfree(hostport);
+		ncurifree(uri); uri = NULL;
                 /* create and set fapl entry */
                 if(H5Pset_fapl_ros3(fapl_id, &fa) < 0)
                     BAIL(NC_EHDFERR);
@@ -2846,56 +2851,6 @@ exit:
 
     return retval;
 }
-
-#ifdef ENABLE_BYTERANGE
-#ifdef ENABLE_HDF5_ROS3
-static int
-ros3info(NCauth** authp, NCURI* uri, char** hostportp, char** regionp)
-{
-    int stat = NC_NOERR;
-    size_t len;
-    char* hostport = NULL;
-    char* region = NULL;    
-    char* p;
-
-    if(uri == NULL || uri->host == NULL)
-	{stat = NC_EINVAL; goto done;}
-    len = strlen(uri->host);
-    if(uri->port != NULL)
-        len += 1+strlen(uri->port);
-    len++; /* nul term */
-    if((hostport = malloc(len)) == NULL)
-	{stat = NC_ENOMEM; goto done;}    
-    hostport[0] = '\0';
-    strlcat(hostport,uri->host,len);
-    if(uri->port != NULL) {
-        strlcat(hostport,":",len);
-	strlcat(hostport,uri->port,len);
-    }
-    /* We only support path urls, not virtual urls, so the
-       host past the first dot must be "s3.amazonaws.com" */
-    p = strchr(uri->host,'.');
-    if(p != NULL && strcmp(p+1,"s3.amazonaws.com")==0) {
-	len = (size_t)((p - uri->host)-1);
-	region = calloc(1,len+1);
-	memcpy(region,uri->host,len);
-	region[len] = '\0';
-    } else /* cannot find region: use "" */
-	region = strdup("");
-    if(hostportp) {*hostportp = hostport; hostport = NULL;}
-    if(regionp) {*regionp = region; region = NULL;}
-
-    /* Extract auth related info */
-    if((stat=NC_authsetup(authp, uri)))
-	goto done;
-
-done:
-    nullfree(hostport);
-    nullfree(region);
-    return stat;
-}
-#endif /*ENABLE_HDF5_ROS3*/
-#endif /*ENABLE_BYTERANGE*/
 
 /**
  * Wrapper function for H5Fopen.

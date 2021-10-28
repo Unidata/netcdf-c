@@ -145,7 +145,7 @@ static int verify(const char* path, int isdir);
 #endif
 
 static int zfinitialized = 0;
-static void zfinitialize(void)
+static void zfileinitialize(void)
 {
     if(!zfinitialized) {
         ZTRACE(5,NULL);
@@ -186,7 +186,7 @@ zfilecreate(const char *path, int mode, size64_t flags, void* parameters, NCZMAP
     NC_UNUSED(parameters);
     ZTRACE(5,"path=%s mode=%d flag=%llu",path,mode,flags);
 
-    if(!zfinitialized) zfinitialize();
+    if(!zfinitialized) zfileinitialize();
 
     /* Fixup mode flags */
     mode |= (NC_NETCDF4 | NC_WRITE);
@@ -256,7 +256,7 @@ zfileopen(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
     NC_UNUSED(parameters);
     ZTRACE(5,"path=%s mode=%d flags=%llu",path,mode,flags);
 
-    if(!zfinitialized) zfinitialize();
+    if(!zfinitialized) zfileinitialize();
 
     /* Fixup mode flags */
     mode = (NC_NETCDF4 | mode);

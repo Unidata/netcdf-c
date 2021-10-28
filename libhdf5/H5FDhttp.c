@@ -332,8 +332,11 @@ H5FD_http_open( const char *name, unsigned flags, hid_t /*UNUSED*/ fapl_id,
     /* Always read-only */
     write_access = 0;
 
-    /* Open file in read-only mode, to check for existence  and get length */
-    if((ncstat = nc_http_open(name,&state,&len))) {
+   /* Open file in read-only mode, to check for existence  and get length */
+    if((ncstat = nc_http_init(&state))) {
+        H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_CANTOPENFILE, "cannot access object", NULL);
+    }
+    if((ncstat = nc_http_size(state,name,&len))) {
         H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_CANTOPENFILE, "cannot access object", NULL);
     }
 

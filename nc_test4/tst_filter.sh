@@ -181,7 +181,7 @@ fi
 
 if test "x$UNK" = x1 ; then
 echo "*** Testing access to filter info when filter dll is not available"
-rm -f bzip2.nc ./tst_filter.txt
+rm -f bzip2.nc ./tmp_filter.txt
 # xfail build bzip2.nc 
 hidebzip2
 if ${NCGEN} -lb -4 -o bzip2.nc ${srcdir}/bzip2.cdl ; then
@@ -194,9 +194,9 @@ unhidebzip2
 ${NCGEN} -lb -4 -o bzip2.nc ${srcdir}/bzip2.cdl
 # Now hide the filter code
 hidebzip2
-rm -f ./tst_filter.txt
+rm -f ./tmp_filter.txt
 # This will xfail
-if ${NCDUMP} -s bzip2.nc > ./tst_filter.txt ; then
+if ${NCDUMP} -s bzip2.nc > ./tmp_filter.txt ; then
     echo "*** FAIL: ncdump -hs bzip2.nc"
 else
     echo "*** XFAIL: ncdump -hs bzip2.nc"
@@ -204,8 +204,8 @@ fi
 # Restore the filter code
 unhidebzip2
 # Verify we can see filter when using -h
-rm -f ./tst_filter.txt
-${NCDUMP} -hs bzip2.nc > ./tst_filter.txt
+rm -f ./tmp_filter.txt
+${NCDUMP} -hs bzip2.nc > ./tmp_filter.txt
 echo "*** Pass: unknown filter"
 fi
 
@@ -263,6 +263,8 @@ ${execdir}/test_filter_order read >tmp_rdfilterorder.txt
 diff -b -w ${srcdir}/ref_filter_order_read.txt tmp_rdfilterorder.txt
 
 fi
+
+# Cleanup
 
 echo "*** Pass: all selected tests passed"
 
