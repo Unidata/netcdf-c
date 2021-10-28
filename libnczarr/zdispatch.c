@@ -126,10 +126,9 @@ int
 NCZ_initialize(void)
 {
     int stat;
+    NCZ_dispatch_table = &NCZ_dispatcher;
 #ifdef ZTRACING
     NCZ_dispatch_table = &NCZ_dispatcher_trace;
-#else
-    NCZ_dispatch_table = &NCZ_dispatcher;
 #endif
     if (!ncz_initialized)
         NCZ_initialize_internal();

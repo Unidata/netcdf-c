@@ -12,7 +12,16 @@
 #ifndef ZARR_H
 #define ZARR_H
 
+typedef struct ZS3INFO {
+    char* host; /* non-null if other*/
+    char* region; /* region */
+    char* bucket; /* bucket name */
+    char* rootkey;
+    char* profile;
+} ZS3INFO;
+
 struct ChunkKey;
+struct S3credentials;
 
 /* zarr.c */
 extern int ncz_create_dataset(NC_FILE_INFO_T*, NC_GRP_INFO_T*, const char** controls);
@@ -68,7 +77,7 @@ extern int NCZ_swapatomicdata(size_t datalen, void* data, int typesize);
 extern char** NCZ_clonestringvec(size_t len, const char** vec);
 extern void NCZ_freestringvec(size_t len, char** vec);
 extern int NCZ_create_fill_chunk(size64_t chunksize, size_t typesize, const void* fill, void** fillchunkp);
-extern int NCZ_s3clear(ZS3INFO* s3);
+extern int NCZ_s3clear(ZS3INFO* s3map);
 extern int NCZ_ischunkname(const char* name,char dimsep);
 extern char* NCZ_chunkpath(struct ChunkKey key);
 

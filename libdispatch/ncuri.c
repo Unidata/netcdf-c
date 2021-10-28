@@ -485,6 +485,15 @@ ncurisetprotocol(NCURI* duri,const char* protocol)
     return (NC_NOERR);
 }
 
+/* Replace the host */
+int
+ncurisethost(NCURI* duri,const char* host)
+{
+    nullfree(duri->host);
+    duri->host = strdup(host);
+    return (NC_NOERR);
+}
+
 /* Replace the path */
 int
 ncurisetpath(NCURI* duri,const char* newpath)
@@ -987,6 +996,38 @@ ncuridecodepartial(const char* s, const char* decodeset)
     }
     *outptr = EOFCHAR;
     return decoded;
+}
+
+/* Deep clone a uri */
+NCURI*
+ncuriclone(NCURI* uri)
+{
+    int stat = NC_NOERR;
+    NCURI* newuri = NULL;
+
+    /* make sure fragments and query are up to date */
+    if((stat=ensurefraglist(uri))) goto done;
+    if((stat=ensurequerylist(uri))) goto done;
+    
+    if((newuri = (NCURI*)calloc(1,sizeof(NCURI)))==NULL)
+        {stat = NC_ENOMEM; goto done;}
+    *newuri = *uri; /* copy */
+    /* deep clone fields */
+    
+    newuri->uri = nulldup(uri->uri);
+    newuri->protocol = nulldup(uri->protocol);
+    newuri->user = nulldup(uri->user);
+    newuri->password = nulldup(uri->password);
+    newuri->host = nulldup(uri->host);
+    newuri->port = nulldup(uri->port);
+    newuri->path = nulldup(uri->path);
+    newuri->query = nulldup(uri->query);
+    newuri->fragment = nulldup(uri->fragment);
+    /* make these be rebuilt */
+    newuri->fraglist = NULL;
+    newuri->querylist = NULL;
+done:
+    return newuri;
 }
 
 static int

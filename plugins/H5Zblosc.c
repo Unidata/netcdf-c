@@ -231,8 +231,8 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
   int doshuffle = 1;             /* Shuffle default */
   int compcode;                  /* Blosc compressor */
   int code;
-  char* compname = "blosclz";    /* The compressor by default */
-  char* complist = NULL;
+  const char* compname = "blosclz";    /* The compressor by default */
+  const char* complist = NULL;
 
   /* Filter params that are always set */
   typesize = cd_values[2];      /* The datatype size */
@@ -592,7 +592,7 @@ NCZ_blosc_hdf5_to_codec(size_t nparams, const unsigned* params, char** codecp)
 {
     int stat = NC_NOERR;
     char json[1024];
-    char* compname = NULL;
+    const char* compname = NULL;
 
     if(nparams == 0 || params == NULL)
         {stat = NC_EINVAL; goto done;}

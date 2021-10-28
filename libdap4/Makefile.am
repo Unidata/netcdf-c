@@ -63,4 +63,3 @@ libdap4_la_CPPFLAGS = $(AM_CPPFLAGS)
 libdap4_la_LIBADD =
 
 endif # ENABLE_DAP4
-

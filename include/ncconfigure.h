@@ -74,6 +74,9 @@ extern int fileno(FILE*);
 #ifndef HAVE_STRCASECMP
 #define strcasecmp _stricmp
 #endif
+#ifndef fileno
+#define fileno(f) _fileno(f)
+#endif
 #endif
 
 /* handle null arguments */

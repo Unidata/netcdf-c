@@ -187,18 +187,6 @@ typedef struct NCZMAP {
 
 /* zmap_s3sdk related-types and constants */
 
-#define AWSHOST ".amazonaws.com"
-
-enum URLFORMAT {UF_NONE=0, UF_VIRTUAL=1, UF_PATH=2, UF_OTHER=3};
-
-typedef struct ZS3INFO {
-    enum URLFORMAT urlformat;
-    char* host; /* non-null if other*/
-    char* region; /* region */
-    char* bucket; /* bucket name */
-    char* rootkey;
-} ZS3INFO;
-
 /* Forward */
 struct NClist;
 
@@ -223,6 +211,17 @@ typedef struct NCZMAP_DS_API {
     int (*create)(const char *path, int mode, size64_t constraints, void* parameters, NCZMAP** mapp);
     int (*open)(const char *path, int mode, size64_t constraints, void* parameters, NCZMAP** mapp);
 } NCZMAP_DS_API;
+
+extern NCZMAP_DS_API zmap_file;
+#ifdef USE_HDF5
+extern NCZMAP_DS_API zmap_nz4;
+#endif
+#ifdef ENABLE_NCZARR_ZIP
+extern NCZMAP_DS_API zmap_zip;
+#endif
+#ifdef ENABLE_S3_SDK
+extern NCZMAP_DS_API zmap_s3sdk;
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -311,6 +310,10 @@ EXTERNL int nczmap_close(NCZMAP* map, int deleteit);
 /* Create/open and control a dataset using a specific implementation */
 EXTERNL int nczmap_create(NCZM_IMPL impl, const char *path, int mode, size64_t constraints, void* parameters, NCZMAP** mapp);
 EXTERNL int nczmap_open(NCZM_IMPL impl, const char *path, int mode, size64_t constraints, void* parameters, NCZMAP** mapp);
+
+#ifdef ENABLE_S3_SDK
+EXTERNL void NCZ_s3finalize(void);
+#endif
 
 /* Utility functions */
 
