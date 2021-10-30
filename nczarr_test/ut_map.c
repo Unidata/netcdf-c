@@ -74,6 +74,7 @@ main(int argc, char** argv)
     
 done:
     nullfree(tmp);
+    ut_final();
     if(stat) usage(stat);
     return 0;
 }

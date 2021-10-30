@@ -39,6 +39,10 @@ extern int ffio_open(const char*,int,off_t,size_t,size_t*,void*,ncio**,void** co
     extern int httpio_open(const char*,int,off_t,size_t,size_t*,void*,ncio**,void** const);
 #endif
 
+#ifdef ENABLE_S3_SDK
+    extern int s3io_open(const char*,int,off_t,size_t,size_t*,void*,ncio**,void** const);
+#endif
+
      extern int memio_create(const char*,int,size_t,off_t,size_t,size_t*,void*,ncio**,void** const);
      extern int memio_open(const char*,int,off_t,size_t,size_t*,void*,ncio**,void** const);
 
@@ -93,6 +97,11 @@ ncio_open(const char *path, int ioflags,
    if(fIsSet(ioflags,NC_HTTP)) {
         return httpio_open(path,ioflags,igeto,igetsz,sizehintp,parameters,iopp,mempp);
    }
+#  ifdef ENABLE_S3_SDK
+   if(fIsSet(ioflags,NC_S3SDK)) {
+       return s3io_open(path,ioflags,igeto,igetsz,sizehintp,parameters,iopp,mempp);
+   }
+#  endif
 #  endif /*ENABLE_BYTERANGE*/
 
 #ifdef USE_STDIO

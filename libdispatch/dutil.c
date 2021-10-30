@@ -30,16 +30,6 @@
 
 #define NC_MAX_PATH 4096
 
-#define LBRACKET '['
-#define RBRACKET ']'
-
-#define AWSHOST ".amazonaws.com"
-
-enum URLFORMAT {UF_NONE=0, UF_VIRTUAL=1, UF_PATH=2, UF_S3=3, UF_OTHER=4};
-
-/* Forward */
-static int endswith(const char* s, const char* suffix);
-
 /**************************************************/
 /**
  * Provide a hidden interface to allow utilities
@@ -292,44 +282,22 @@ If a URL, but modelist is empty or does not exist,
 then return empty list.
 */
 int
-NC_getmodelist(const char* path, NClist** modelistp)
+NC_getmodelist(const char* modestr, NClist** modelistp)
 {
     int stat=NC_NOERR;
     NClist* modelist = NULL;
-    NCURI* uri = NULL;
-    const char* modestr = NULL;
-    const char* p = NULL;
-    const char* endp = NULL;
 
-    ncuriparse(path,&uri);
-    if(uri == NULL) goto done; /* not a uri */
-
-    /* Get the mode= arg from the fragment */
     modelist = nclistnew();    
-    modestr = ncurifragmentlookup(uri,"mode");
     if(modestr == NULL || strlen(modestr) == 0) goto done;
+
     /* Parse the mode string at the commas or EOL */
-    p = modestr;
-    for(;;) {
-	char* s;
-	ptrdiff_t slen;
-	endp = strchr(p,',');
-	if(endp == NULL) endp = p + strlen(p);
-	slen = (endp - p);
-	if((s = malloc(slen+1)) == NULL) {stat = NC_ENOMEM; goto done;}
-	memcpy(s,p,slen);
-	s[slen] = '\0';
-	nclistpush(modelist,s);
-	if(*endp == '\0') break;
-	p = endp+1;
-    }
+    if((stat = NC_split_delim(modestr,',',modelist))) goto done;
 
 done:
     if(stat == NC_NOERR) {
 	if(modelistp) {*modelistp = modelist; modelist = NULL;}
-    }
-    ncurifree(uri);
-    nclistfree(modelist);
+    } else
+        nclistfree(modelist);
     return stat;
 }
 
@@ -337,19 +305,39 @@ done:
 Check "mode=" list for a path and return 1 if present, 0 otherwise.
 */
 int
-NC_testmode(const char* path, const char* tag)
+NC_testpathmode(const char* path, const char* tag)
+{
+    int found = 0;
+    NCURI* uri = NULL;
+    ncuriparse(path,&uri);
+    if(uri != NULL) {
+        found = NC_testmode(uri,tag);
+        ncurifree(uri);
+    }
+    return found;
+}
+
+/*
+Check "mode=" list for a url and return 1 if present, 0 otherwise.
+*/
+int
+NC_testmode(NCURI* uri, const char* tag)
 {
     int stat = NC_NOERR;
     int found = 0;
     int i;
+    const char* modestr = NULL;
     NClist* modelist = NULL;
 
-    if((stat = NC_getmodelist(path, &modelist))) goto done;
+    modestr = ncurifragmentlookup(uri,"mode");    
+    if(modestr == NULL) goto done;
+    /* Parse mode str */
+    if((stat = NC_getmodelist(modestr,&modelist))) goto done;
+    /* Search for tag */
     for(i=0;i<nclistlength(modelist);i++) {
-	const char* value = nclistget(modelist,i);
-	if(strcasecmp(tag,value)==0) {found = 1; break;}
-    }        
-    
+        const char* mode = (const char*)nclistget(modelist,i);
+	if(strcasecmp(mode,tag)==0) {found = 1; break;}
+    }    
 done:
     nclistfreeall(modelist);
     return found;
@@ -374,144 +362,8 @@ int isnan(double x)
 
 #endif /*APPLE*/
 
-
-/**************************************************/
-/* Generic S3 Utilities */
-
-/*
-Rebuild an S3 url into a canonical path-style url.
-If region is not in the host, then use specified region
-if provided, otherwise us-east-1.
-@param url (in) the current url
-@param region	(in) region to use if needed; NULL => us-east-1
-		(out) region from url or the input region
-@param pathurlp (out) the resulting pathified url string
-@param bucketp (out) the bucket from the url
-*/
-
 int
-NC_s3urlrebuild(NCURI* url, NCURI** newurlp, char** bucketp, char** outregionp)
-{
-    int i,stat = NC_NOERR;
-    NClist* hostsegments = NULL;
-    NClist* pathsegments = NULL;
-    NCbytes* buf = ncbytesnew();
-    NCURI* newurl = NULL;
-    char* bucket = NULL;
-    char* host = NULL;
-    char* path = NULL;
-    char* region = NULL;
-    
-    if(url == NULL)
-        {stat = NC_EURL; goto done;}
-
-    /* Parse the hostname */
-    hostsegments = nclistnew();
-    /* split the hostname by "." */
-    if((stat = NC_split_delim(url->host,'.',hostsegments))) goto done;
-
-    /* Parse the path*/
-    pathsegments = nclistnew();
-    /* split the path by "/" */
-    if((stat = NC_split_delim(url->path,'/',pathsegments))) goto done;
-
-    /* Distinguish path-style from virtual-host style from s3: and from other.
-       Virtual: https://bucket-name.s3.Region.amazonaws.com/<path>
-       Path: https://s3.Region.amazonaws.com/bucket-name/<path>
-       S3: s3://bucket-name/<path>
-       Other: https://<host>/bucketname/<path>
-    */
-    if(url->host == NULL || strlen(url->host) == 0)
-        {stat = NC_EURL; goto done;}
-    if(strcmp(url->protocol,"s3")==0 && nclistlength(hostsegments)==1) {
-	bucket = strdup(url->host);
-	region = NULL; /* unknown at this point */
-    } else if(endswith(url->host,AWSHOST)) { /* Virtual or path */
-	switch (nclistlength(hostsegments)) {
-	default: stat = NC_EURL; goto done;
-	case 4:
-            if(strcasecmp(nclistget(hostsegments,0),"s3")!=0)
-	        {stat = NC_EURL; goto done;}
-	    region = strdup(nclistget(hostsegments,1));
-	    if(nclistlength(pathsegments) > 0)
-	        bucket = nclistremove(pathsegments,0);
-	    break;
-	case 5:
-            if(strcasecmp(nclistget(hostsegments,1),"s3")!=0)
-	        {stat = NC_EURL; goto done;}
-	    region = strdup(nclistget(hostsegments,2));
-    	    bucket = strdup(nclistget(hostsegments,0));
-	    break;
-	}
-    } else {
-        if((host = strdup(url->host))==NULL)
-	    {stat = NC_ENOMEM; goto done;}
-        /* region is unknown */
-	region = NULL;
-	/* bucket is assumed to be start of the path */
-	if(nclistlength(pathsegments) > 0)
-	    bucket = nclistremove(pathsegments,0);
-    }
-    /* If region is null, use default */
-    if(region == NULL) {
-        const char* region0 = NULL;
-	/* Get default region */
-	if((stat = NC_getdefaults3region(url,&region0))) goto done;
-	region = strdup(region0);
-    }
-    /* Construct the revised host */
-    ncbytescat(buf,"s3.");
-    ncbytescat(buf,region);
-    ncbytescat(buf,AWSHOST);
-    host = ncbytesextract(buf);
-
-    /* Construct the revised path */
-    ncbytesclear(buf);
-    ncbytescat(buf,"/");
-    if(bucket == NULL)
-        {stat = NC_EURL; goto done;}
-    ncbytescat(buf,bucket);
-    for(i=0;i<nclistlength(pathsegments);i++) {
-	ncbytescat(buf,"/");
-	ncbytescat(buf,nclistget(pathsegments,i));
-    }
-    path = ncbytesextract(buf);
-    /* complete the new url */
-    if((newurl=ncuriclone(url))==NULL) {stat = NC_ENOMEM; goto done;}
-    ncurisethost(newurl,host);
-    ncurisetpath(newurl,path);
-    /* return various items */
-    if(newurlp) {*newurlp = newurl; newurl = NULL;}
-    if(bucketp) {*bucketp = bucket; bucket = NULL;}
-    if(outregionp) {*outregionp = region; region = NULL;}
-
-done:
-    nullfree(region);
-    nullfree(bucket)
-    nullfree(host)
-    nullfree(path)
-    ncurifree(newurl);
-    ncbytesfree(buf);
-    nclistfreeall(hostsegments);
-    nclistfreeall(pathsegments);
-    return stat;
-}
-
-static int
-endswith(const char* s, const char* suffix)
-{
-    ssize_t ls, lsf, delta;
-    if(s == NULL || suffix == NULL) return 0;
-    ls = strlen(s);
-    lsf = strlen(suffix);
-    delta = (ls - lsf);
-    if(delta < 0) return 0;
-    if(memcmp(s+delta,suffix,lsf)!=0) return 0;
-    return 1;
-}
-
-int
-NC_split_delim(const char* path, char delim, NClist* segments)
+NC_split_delim(const char* arg, char delim, NClist* segments)
 {
     int stat = NC_NOERR;
     const char* p = NULL;
@@ -519,9 +371,9 @@ NC_split_delim(const char* path, char delim, NClist* segments)
     ptrdiff_t len = 0;
     char* seg = NULL;
 
-    if(path == NULL || strlen(path)==0 || segments == NULL)
+    if(arg == NULL || strlen(arg)==0 || segments == NULL)
         goto done;
-    p = path;
+    p = arg;
     if(p[0] == delim) p++;
     for(;*p;) {
 	q = strchr(p,delim);
@@ -541,6 +393,35 @@ NC_split_delim(const char* path, char delim, NClist* segments)
 
 done:
     nullfree(seg);
+    return stat;
+}
+
+/* concat the the segments with each segment preceded by '/' */
+int
+NC_join(NClist* segments, char** pathp)
+{
+    int stat = NC_NOERR;
+    int i;
+    NCbytes* buf = NULL;
+
+    if(segments == NULL)
+	{stat = NC_EINVAL; goto done;}
+    if((buf = ncbytesnew())==NULL)
+	{stat = NC_ENOMEM; goto done;}
+    if(nclistlength(segments) == 0)
+        ncbytescat(buf,"/");
+    else for(i=0;i<nclistlength(segments);i++) {
+	const char* seg = nclistget(segments,i);
+	if(seg[0] != '/')
+	    ncbytescat(buf,"/");
+	ncbytescat(buf,seg);		
+    }
+
+done:
+    if(!stat) {
+	if(pathp) *pathp = ncbytesextract(buf);
+    }
+    ncbytesfree(buf);
     return stat;
 }
 

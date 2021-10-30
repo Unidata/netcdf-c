@@ -26,6 +26,10 @@ See LICENSE.txt for license information.
 #include <curl/curl.h>
 #endif
 
+#ifdef ENABLE_S3_SDK
+#include "ncs3sdk.h"
+#endif
+
 /* Define vectors of zeros and ones for use with various nc_get_varX functions */
 /* Note, this form of initialization fails under Cygwin */
 size_t NC_coord_zero[NC_MAX_VAR_DIMS] = {0};
@@ -102,14 +106,15 @@ NCDISPATCH_initialize(void)
     /* Compute type alignments */
     NC_compute_alignments();
 
-    /* Initialize curl if it is being used */
 #if defined(ENABLE_BYTERANGE) || defined(ENABLE_DAP) || defined(ENABLE_DAP4)
+    /* Initialize curl if it is being used */
     {
         CURLcode cstat = curl_global_init(CURL_GLOBAL_ALL);
 	if(cstat != CURLE_OK)
 	    status = NC_ECURL;
     }
 #endif
+
     return status;
 }
 

@@ -774,55 +774,6 @@ done:
     return NC_NOERR;
 }
     
-/**************************************************/
-/* S3 utilities */
-
-EXTERNL int
-NCZ_s3urlprocess(NCURI* url, ZS3INFO* s3)
-{
-    int stat = NC_NOERR;
-    NCURI* url2 = NULL;
-    NClist* pathsegments = NULL;
-    const char* profile0 = NULL;
-
-    if(url == NULL || s3 == NULL)
-        {stat = NC_EURL; goto done;}
-    /* Get current profile */
-    if((stat = NC_getactives3profile(url,&profile0))) goto done;
-    if(profile0 == NULL) profile0 = "none";
-    s3->profile = strdup(profile0);
-
-    /* Rebuild the URL to path format and get a usable region*/
-    if((stat = NC_s3urlrebuild(url,&url2,&s3->bucket,&s3->region))) goto done;
-    s3->host = strdup(url2->host);
-    /* construct the rootkey minus the leading bucket */
-    pathsegments = nclistnew();
-    if((stat = NC_split_delim(url2->path,'/',pathsegments))) goto done;
-    if(nclistlength(pathsegments) > 0) {
-	char* seg = nclistremove(pathsegments,0);
-        nullfree(seg);
-    }
-    if((stat = nczm_join(pathsegments,&s3->rootkey))) goto done;
-
-done:
-    ncurifree(url2);
-    nclistfreeall(pathsegments);
-    return stat;
-}
-
-int
-NCZ_s3clear(ZS3INFO* s3)
-{
-    if(s3) {
-	nullfree(s3->host); s3->host = NULL;
-	nullfree(s3->region); s3->region = NULL;
-	nullfree(s3->bucket); s3->bucket = NULL;
-	nullfree(s3->rootkey); s3->rootkey = NULL;
-	nullfree(s3->profile); s3->profile = NULL;
-    }
-    return NC_NOERR;
-}
-
 int
 NCZ_ischunkname(const char* name,char dimsep)
 {

@@ -17,8 +17,8 @@
 #define NCURIENCODEQUERY    32 /* If output url query should be encoded */
 #define NCURIENCODE	    (NCURIENCODEPATH|NCURIENCODEQUERY)
 #define NCURIBASE	    (NCURIPWD|NCURIPATH)
-#define NCURISVC	    (NCURIQUERY|NCURIBASE) /* for sending to server  */
-#define NCURIALL	    (NCURIPATH|NCURIPWD|NCURIQUERY|NCURIFRAG) /* for rebuilding after changes */
+#define NCURISVC	    (NCURIBASE|NCURIQUERY) /* for sending to server  */
+#define NCURIALL	    (NCURIBASE|NCURIQUERY|NCURIFRAG) /* for rebuilding after changes */
 
 /*! This is an open structure meaning
 	it is ok to directly access its fields
