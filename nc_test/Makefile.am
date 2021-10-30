@@ -116,7 +116,7 @@ quick_large_files.nc tst_diskless3_file.cdl                             \
 tst_diskless4.cdl ref_tst_diskless4.cdl benchmark.nc                    \
 tst_http_nc3.cdl tst_http_nc4?.cdl tmp*.cdl tmp*.nc
 
-EXTRA_DIST += bad_cdf5_begin.nc run_cdf5.sh
+EXTRA_DIST += bad_cdf5_begin.nc run_cdf5.sh nc_enddef.cdl
 if ENABLE_CDF5
    # bad_cdf5_begin.nc is a corrupted CDF-5 file with bad variable starting
    # file offsets. It is to be used by tst_open_cdf5.c to check if it can

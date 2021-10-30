@@ -110,6 +110,12 @@ done:
     return THROW(stat);
 }
 
+void
+ut_final(void)
+{
+    nc_finalize();
+}
+
 #if 0
 static void
 getpathcwd(char** cwdp)

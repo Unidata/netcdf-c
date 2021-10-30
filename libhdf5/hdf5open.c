@@ -732,14 +732,17 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
     h5 = (NC_HDF5_FILE_INFO_T*)nc4_info->format_file_info;
 
 #ifdef ENABLE_BYTERANGE
-    /* See if we want the byte range protocol */
-    if(NC_testmode(path,"bytes")) {
-        h5->http.iosp = 1;
-        /* Kill off any conflicting modes flags */
-        mode &= ~(NC_WRITE|NC_DISKLESS|NC_PERSIST|NC_INMEMORY);
-        parameters = NULL; /* kill off parallel */
-    } else
-        h5->http.iosp = 0;
+    /* Do path as URL processing */
+    ncuriparse(path,&h5->uri);
+    if(h5->uri != NULL) {
+        /* See if we want the byte range protocol */
+        if(NC_testmode(h5->uri,"bytes")) h5->byterange = 1; else h5->byterange = 0;
+	if(h5->byterange) {
+  	    /* Kill off any conflicting modes flags */
+	    mode &= ~(NC_WRITE|NC_DISKLESS|NC_PERSIST|NC_INMEMORY);
+            parameters = NULL; /* kill off parallel */
+	}
+    }
 #endif /*ENABLE_BYTERANGE*/
 
     nc4_info->mem.inmemory = ((mode & NC_INMEMORY) == NC_INMEMORY);
@@ -850,64 +853,68 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
                 BAIL(NC_EHDFERR);
         }
 #ifdef ENABLE_BYTERANGE
-        else
-            if(h5->http.iosp) {   /* Arrange to use the byte-range driver */
+	else if(h5->byterange) {   /* Arrange to use the byte-range drivers */
+	    char* newpath = NULL;
+            char* awsregion0 = NULL;
 #ifdef ENABLE_HDF5_ROS3
-		NCURI* uri = NULL;
-		H5FD_ros3_fapl_t fa;
-		char* hostport = NULL;
-		const char* profile0 = NULL;
-	        const char* awsaccessid0 = NULL;
-	        const char* awssecretkey0 = NULL;
-                const char* awsregion0 = NULL;
-
-		ncuriparse(path,&uri);
-		if(uri == NULL)
-		    BAIL(NC_EINVAL);		
-	        hostport = NC_combinehostport(uri);
-		if((retval = NC_getactives3profile(uri,&profile0)))
-		    BAIL(retval);
-                fa.version = 1;
-		fa.aws_region[0] = '\0';
-	        fa.secret_id[0] = '\0';
-		fa.secret_key[0] = '\0';
-		if((retval = NC_s3profilelookup(profile0,AWS_ACCESS_KEY_ID,&awsaccessid0)))
-		    BAIL(retval);		
-		if((retval = NC_s3profilelookup(profile0,AWS_SECRET_ACCESS_KEY,&awssecretkey0)))
-		    BAIL(retval);		
-		if((retval = NC_s3profilelookup(profile0,AWS_REGION,&awsregion0)))
-		    BAIL(retval);		
-		if(awsaccessid0 == NULL || awssecretkey0 == NULL) {
-	  	    /* default, non-authenticating, "anonymous" fapl configuration */
-		    fa.authenticate = (hbool_t)0;
-		} else {
-		    fa.authenticate = (hbool_t)1;
-		    if(awsregion0)
-		        strlcat(fa.aws_region,awsregion0,H5FD_ROS3_MAX_REGION_LEN);
-		    strlcat(fa.secret_id, awsaccessid0, H5FD_ROS3_MAX_SECRET_ID_LEN);
-                    strlcat(fa.secret_key, awssecretkey0, H5FD_ROS3_MAX_SECRET_KEY_LEN);
-		}
-		nullfree(hostport);
-		ncurifree(uri); uri = NULL;
-                /* create and set fapl entry */
-                if(H5Pset_fapl_ros3(fapl_id, &fa) < 0)
-                    BAIL(NC_EHDFERR);
+	    H5FD_ros3_fapl_t fa;
+	    char* hostport = NULL;
+	    const char* profile0 = NULL;
+	    const char* awsaccessid0 = NULL;
+	    const char* awssecretkey0 = NULL;
+	    
+	    if(NC_iss3(h5->uri)) {
+	        /* Rebuild the URL */
+		NCURI* newuri = NULL;
+		if((retval = NC_s3urlrebuild(h5->uri,&newuri,NULL,&awsregion0))) goto exit;
+		if((newpath = ncuribuild(newuri,NULL,NULL,NCURISVC))==NULL)
+		    {retval = NC_EURL; goto exit;}
+		ncurifree(h5->uri);
+		h5->uri = newuri;
+	    }
+	    hostport = NC_combinehostport(h5->uri);
+	    if((retval = NC_getactives3profile(h5->uri,&profile0)))
+		BAIL(retval);
+		
+            fa.version = 1;
+	    fa.aws_region[0] = '\0';
+	    fa.secret_id[0] = '\0';
+	    fa.secret_key[0] = '\0';
+	    if((retval = NC_s3profilelookup(profile0,AWS_ACCESS_KEY_ID,&awsaccessid0)))
+		BAIL(retval);		
+	    if((retval = NC_s3profilelookup(profile0,AWS_SECRET_ACCESS_KEY,&awssecretkey0)))
+		BAIL(retval);		
+	    if(awsaccessid0 == NULL || awssecretkey0 == NULL) {
+		/* default, non-authenticating, "anonymous" fapl configuration */
+		fa.authenticate = (hbool_t)0;
+	    } else {
+		fa.authenticate = (hbool_t)1;
+		if(awsregion0)
+		    strlcat(fa.aws_region,awsregion0,H5FD_ROS3_MAX_REGION_LEN);
+		strlcat(fa.secret_id, awsaccessid0, H5FD_ROS3_MAX_SECRET_ID_LEN);
+                strlcat(fa.secret_key, awssecretkey0, H5FD_ROS3_MAX_SECRET_KEY_LEN);
+	    }
+	    nullfree(hostport);
+            /* create and set fapl entry */
+            if(H5Pset_fapl_ros3(fapl_id, &fa) < 0)
+                BAIL(NC_EHDFERR);
 #else
-                /* Configure FAPL to use our byte-range file driver */
-                if (H5Pset_fapl_http(fapl_id) < 0)
-                    BAIL(NC_EHDFERR);
+            /* Configure FAPL to use our byte-range file driver */
+            if (H5Pset_fapl_http(fapl_id) < 0)
+                BAIL(NC_EHDFERR);
+#endif /*ENABLE_ROS3*/
+            /* Open the HDF5 file. */
+            if ((h5->hdfid = nc4_H5Fopen((newpath?newpath:path), flags, fapl_id)) < 0)
+                BAIL(NC_EHDFERR);
+	    nullfree(newpath);
+	    nullfree(awsregion0);
+        }
 #endif
-                /* Open the HDF5 file. */
-                if ((h5->hdfid = nc4_H5Fopen(path, flags, fapl_id)) < 0)
-                    BAIL(NC_EHDFERR);
-            }
-#endif
-            else
-            {
-                /* Open the HDF5 file. */
-                if ((h5->hdfid = nc4_H5Fopen(path, flags, fapl_id)) < 0)
-                    BAIL(NC_EHDFERR);
-            }
+        else {
+            /* Open the HDF5 file. */
+            if ((h5->hdfid = nc4_H5Fopen(path, flags, fapl_id)) < 0)
+                BAIL(NC_EHDFERR);
+        }
 
     /* Get the file creation property list to check for attribute ordering */
     {

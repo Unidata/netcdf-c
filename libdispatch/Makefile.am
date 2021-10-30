@@ -21,7 +21,7 @@ dvarinq.c dinternal.c ddispatch.c dutf8.c nclog.c dstring.c ncuri.c	\
 nclist.c ncbytes.c nchashmap.c nctime.c nc.c nclistmgr.c dauth.c	\
 doffsets.c dpathmgr.c dutil.c dreadonly.c dnotnc4.c dnotnc3.c           \
 daux.c dinfermodel.c \
-dcrc32.c dcrc32.h dcrc64.c ncexhash.c ncxcache.c ncjson.c ezxml.c
+dcrc32.c dcrc32.h dcrc64.c ncexhash.c ncxcache.c ncjson.c ezxml.c ds3util.c
 
 # Add the utf8 codebase
 libdispatch_la_SOURCES += utf8proc.c utf8proc.h
@@ -46,6 +46,11 @@ endif # BUILD_V2
 if ENABLE_BYTERANGE
 libdispatch_la_SOURCES += dhttp.c
 endif # ENABLE_BYTERANGE
+
+if ENABLE_S3_SDK
+libdispatch_la_SOURCES += ncs3sdk.cpp awsincludes.h
+AM_CXXFLAGS = -std=c++11
+endif
 
 EXTRA_DIST=CMakeLists.txt ncsettings.hdr utf8proc_data.c
 
