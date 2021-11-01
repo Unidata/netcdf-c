@@ -67,6 +67,7 @@ extern struct UTOptions utoptions;
 
 extern void usage(int err);
 extern int ut_init(int argc, char** argv, struct UTOptions* test);
+extern void ut_final(void);
 
 extern void nccheck(int stat, int line);
 extern char* makeurl(const char* file, NCZM_IMPL, struct UTOptions*);

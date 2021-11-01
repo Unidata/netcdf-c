@@ -11,10 +11,11 @@
 #include <sys/types.h>	/* off_t */
 #include "netcdf.h"
 
-/* Define an internal use only mode flag to signal use of byte ranges.
+/* Define internal use only flags to signal use of byte ranges and S3.
    This is temporary until we can re-organize the ncio open/create API.
 */
-#define NC_HTTP 0x80000000
+#define NC_HTTP  0x80000000
+#define NC_S3SDK 0x40000000
 
 typedef struct ncio ncio;	/* forward reference */
 

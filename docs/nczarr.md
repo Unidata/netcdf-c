@@ -554,24 +554,6 @@ The relevant tests for S3 support are in the _nczarr_test_ directory.
 Currently, by default, testing of S3 with NCZarr is supported only for Unidata members of the NetCDF Development Group.
 This is because it uses a Unidata-specific bucket is inaccessible to the general user.
 
-However, an untested mechanism exists by which others may be able to run the S3 specific tests.
- If someone else wants to attempt these tests, then they need to define the following environment variables:
-* NCZARR_S3_TEST_HOST=\<host\>
-* NCZARR_S3_TEST_BUCKET=\<bucket-name\>
-
-This assumes a Path Style address (see above) where
-* host -- the complete host part of the url
-* bucket -- a bucket in which testing can occur without fear of damaging anything.
-
-_Example:_
-
-````
-NCZARR_S3_TEST_HOST=s3.us-west-1.amazonaws.com
-NCZARR_S3_TEST_BUCKET=testbucket
-````
-If anyone tries to use this mechanism, it would be appreciated
-it any difficulties were reported to Unidata as a Github issue.
-
 # Appendix B. Building aws-sdk-cpp {#nczarr_s3sdk}
 
 In order to use the S3 storage driver, it is necessary to install the Amazon [aws-sdk-cpp library](https://github.com/aws/aws-sdk-cpp.git).
@@ -580,19 +562,22 @@ Building this package from scratch has proven to be a formidable task.
 This appears to be due to dependencies on very specific versions of,
 for example, openssl.
 
-However, the following context does work. Of course your mileage may vary.
+## **nix** Build
+
+For linux, the following context works. Of course your mileage may vary.
 * OS: ubuntu 21
-* aws-sdk-cpp version 1.9.96 or later?
+* aws-sdk-cpp version 1.9.96 (or later?)
 * Required installed libraries: openssl, libcurl, cmake, ninja (ninja-build in apt)
 
-The recipe used:
+### AWS-SDK-CPP Build Recipe
+
 ````
 git clone --recurse-submodules https://www.github.com/aws/aws-sdk-cpp
 pushd aws-sdk-cpp
 mkdir build
 cd build
 PREFIX=/usr/local
-FLAGS="-DCMAKE_INSTALL_PREFIX=${PREFIX}
+FLAGS="-DCMAKE_INSTALL_PREFIX=${PREFIX} \
        -DCMAKE_INSTALL_LIBDIR=lib \
        -DCMAKE_MODULE_PATH=${PREFIX}/lib/cmake \
        -DCMAKE_POLICY_DEFAULT_CMP0075=NEW \
@@ -608,8 +593,84 @@ cd ..
 popd
 ````
 
-For Windows we do not yet have solution. If you successfully install
-on Windows, please let us know how you did it.
+### NetCDF Build
+
+In order to build netcdf-c with S3 sdk support,
+the following options must be specified for ./configure.
+````
+--enable-nczarr-s3
+````
+If you have access to the Unidata bucket on Amazon, then you can
+also test S3 support with this option.
+````
+--enable-nczarr-s3-tests
+````
+
+## Windows build
+It is possible to build and install aws-sdk-cpp. It is also possible
+to build netcdf-c using cmake. Unfortunately, testing currently fails.
+
+For Windows, the following context work. Of course your mileage may vary.
+* OS: Windows 10 64-bit with Visual Studio community edition 2019.
+* aws-sdk-cpp version 1.9.96 (or later?)
+* Required installed libraries: openssl, libcurl, cmake
+
+### AWS-SDK-CPP Build Recipe
+
+This command-line build assumes one is using Cygwin or Mingw to provide
+tools such as bash.
+
+````
+git clone --recurse-submodules https://www.github.com/aws/aws-sdk-cpp
+pushd aws-sdk-cpp
+mkdir build
+cd build
+CFG="Release"
+PREFIX="c:/tools/aws-sdk-cpp"
+
+FLAGS="-DCMAKE_INSTALL_PREFIX=${PREFIX} \
+       -DCMAKE_INSTALL_LIBDIR=lib" \
+       -DCMAKE_MODULE_PATH=${PREFIX}/cmake \
+       -DCMAKE_POLICY_DEFAULT_CMP0075=NEW \
+       -DBUILD_ONLY=s3 \
+       -DENABLE_UNITY_BUILD=ON \
+       -DCMAKE_BUILD_TYPE=$CFG \
+       -DSIMPLE_INSTALL=ON"
+
+rm -fr build
+mkdir -p build
+cd build
+cmake -DCMAKE_BUILD_TYPE=${CFG} $FLAGS ..
+cmake --build . --config ${CFG}
+cmake --install . --config ${CFG}
+cd ..
+popd
+````
+Notice that the sdk is being installed in the directory "c:\tools\aws-sdk-cpp"
+rather than the default location "c:\Program Files (x86)/aws-sdk-cpp-all"
+This is because when using a command line, an install path that contains
+blanks may not work.
+
+### NetCDF CMake Build
+
+Enabling S3 support is controlled by these two cmake options:
+````
+-DENABLE_NCZARR_S3=ON
+-DENABLE_NCZARR_S3_TESTS=OFF
+````
+
+However, to find the aws sdk libraries,
+the following environment variables must be set:
+````
+AWSSDK_ROOT_DIR="c:/tools/aws-sdk-cpp"
+AWSSDKBIN="/cygdrive/c/tools/aws-sdk-cpp/bin"
+PATH="$PATH:${AWSSDKBIN}"
+````
+Then the following options must be specified for cmake.
+````
+-DAWSSDK_ROOT_DIR=${AWSSDK_ROOT_DIR}
+-DAWSSDK_DIR=${AWSSDK_ROOT_DIR}/lib/cmake/AWSSDK"
+````
 
 # Appendix C. Amazon S3 Imposed Limits {#nczarr_s3limits}
 

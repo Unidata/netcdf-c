@@ -1113,6 +1113,29 @@ if test "x$enable_byterange" = xyes; then
     AC_DEFINE([ENABLE_BYTERANGE], [1], [if true, support byte-range read of remote datasets.])
 fi
 
+# Does the user want to disable atexit?
+AC_MSG_CHECKING([whether nc_finalize should be invoked at exit])
+AC_ARG_ENABLE([atexit-finalize],
+               [AS_HELP_STRING([--disable-atexit-finalize],
+                               [disable invoking nc_finalize at exit])])
+test "x$enable_atexit_finalize" = xno || enable_atexit_finalize=yes
+AC_MSG_RESULT($enable_atexit_finalize)
+ 
+# Check for atexit
+AC_CHECK_FUNCS([atexit])
+
+# If no atexit, then disable atexit finalize
+if test "x$enable_atexit_finalize" = xyes ; then
+  if test "x$ac_cv_func_function" = xno ; then
+    enable_atexit_finalize=no
+    AC_MSG_ERROR([atexit() required for enable-atexit-finalize.])
+  fi
+fi
+
+if test "x$enable_atexit_finalize" = xyes ; then
+  AC_DEFINE([ENABLE_ATEXIT_FINALIZE], [1], [If true, enable nc_finalize via atexit()])
+fi
+
 # Need libdl(d) for plugins
 AC_CHECK_LIB([dl],[dlopen],[have_libdld=yes],[have_libdld=no])
 if test "x$have_libdld" = "xyes" ; then

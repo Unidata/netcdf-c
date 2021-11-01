@@ -1105,6 +1105,8 @@ ncaux_readfile(const char* filename, size_t* sizep, void** contentp)
     int stat = NC_NOERR;
     NCbytes* content = ncbytesnew();
     stat = NC_readfile(filename,content);
+    if(stat == NC_NOERR && sizep)
+        *sizep = ncbyteslength(content);
     if(stat == NC_NOERR && contentp)
         *contentp = ncbytesextract(content);
     ncbytesfree(content);

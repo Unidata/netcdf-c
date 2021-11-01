@@ -1,71 +1,76 @@
 /*********************************************************************
-*    Copyright 2018, UCAR/Unidata
-*    See netcdf/COPYRIGHT file for copying and redistribution conditions.
+*    COPYRIGHT 2018, UCAR/UNIDATA
+*    SEE NETCDF/COPYRIGHT FILE FOR COPYING AND REDISTRIBUTION CONDITIONS.
 * ********************************************************************/
 
 #if HAVE_CONFIG_H
-#include <config.h>
+#include "config.h"
 #endif
+
+#undef DEBUG
 
 #include <assert.h>
 #include <stdlib.h>
+#ifdef DEBUG
+#include <stdio.h>
+#endif
 #include <errno.h>
 #include <string.h>
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
-#ifdef _MSC_VER /* Microsoft Compilers */
+#ifdef _MSC_VER /* MICROSOFT COMPILERS */
 #include <io.h>
 #endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+
+#include "netcdf.h"
 #include "nc3internal.h"
 #include "nclist.h"
 #include "ncbytes.h"
-
-#undef DEBUG
-
-#ifdef DEBUG
-#include <stdio.h>
-#endif
-
-#include <curl/curl.h>
-
+#include "ncrc.h"
+#include "nclog.h"
 #include "ncio.h"
 #include "fbits.h"
 #include "rnd.h"
-#include "ncbytes.h"
-#include "nchttp.h"
+#include "ncs3sdk.h"
 
 #define DEFAULTPAGESIZE 16384
 
-/* Private data */
+/* PRIVATE DATA */
 
-typedef struct NCHTTP {
-    NC_HTTP_STATE* state;
+enum IO {NOIO=0, CURLIO=1, S3IO=2};
+
+typedef struct NCS3IO {
     long long size; /* of the object */
-    NCbytes* region;
-} NCHTTP;
+    NCS3INFO s3;
+    void* s3client;
+    char* errmsg;
+    void* buffer;
+} NCS3IO;
 
 /* Forward */
-static int httpio_rel(ncio *const nciop, off_t offset, int rflags);
-static int httpio_get(ncio *const nciop, off_t offset, size_t extent, int rflags, void **const vpp);
-static int httpio_move(ncio *const nciop, off_t to, off_t from, size_t nbytes, int rflags);
-static int httpio_sync(ncio *const nciop);
-static int httpio_filesize(ncio* nciop, off_t* filesizep);
-static int httpio_pad_length(ncio* nciop, off_t length);
-static int httpio_close(ncio* nciop, int);
+static int s3io_rel(ncio *const nciop, off_t offset, int rflags);
+static int s3io_get(ncio *const nciop, off_t offset, size_t extent, int rflags, void **const vpp);
+static int s3io_move(ncio *const nciop, off_t to, off_t from, size_t nbytes, int rflags);
+static int s3io_sync(ncio *const nciop);
+static int s3io_filesize(ncio* nciop, off_t* filesizep);
+static int s3io_pad_length(ncio* nciop, off_t length);
+static int s3io_close(ncio* nciop, int);
+
+#define reporterr(s3io) {if((s3io) && (s3io)->errmsg) {nclog(NCLOGERR,(s3io)->errmsg);} nullfree((s3io)->errmsg); (s3io)->errmsg = NULL;}
 
 static long pagesize = 0;
 
 /* Create a new ncio struct to hold info about the file. */
 static int
-httpio_new(const char* path, int ioflags, ncio** nciopp, NCHTTP** hpp)
+s3io_new(const char* path, int ioflags, ncio** nciopp, NCS3IO** hpp)
 {
     int status = NC_NOERR;
     ncio* nciop = NULL;
-    NCHTTP* http = NULL;
+    NCS3IO* s3io = NULL;
 
     if(pagesize == 0)
         pagesize = DEFAULTPAGESIZE;
@@ -79,30 +84,26 @@ httpio_new(const char* path, int ioflags, ncio** nciopp, NCHTTP** hpp)
     *((char**)&nciop->path) = strdup(path);
     if(nciop->path == NULL) {status = NC_ENOMEM; goto fail;}
 
-    *((ncio_relfunc**)&nciop->rel) = httpio_rel;
-    *((ncio_getfunc**)&nciop->get) = httpio_get;
-    *((ncio_movefunc**)&nciop->move) = httpio_move;
-    *((ncio_syncfunc**)&nciop->sync) = httpio_sync;
-    *((ncio_filesizefunc**)&nciop->filesize) = httpio_filesize;
-    *((ncio_pad_lengthfunc**)&nciop->pad_length) = httpio_pad_length;
-    *((ncio_closefunc**)&nciop->close) = httpio_close;
+    *((ncio_relfunc**)&nciop->rel) = s3io_rel;
+    *((ncio_getfunc**)&nciop->get) = s3io_get;
+    *((ncio_movefunc**)&nciop->move) = s3io_move;
+    *((ncio_syncfunc**)&nciop->sync) = s3io_sync;
+    *((ncio_filesizefunc**)&nciop->filesize) = s3io_filesize;
+    *((ncio_pad_lengthfunc**)&nciop->pad_length) = s3io_pad_length;
+    *((ncio_closefunc**)&nciop->close) = s3io_close;
 
-    http = (NCHTTP*)calloc(1,sizeof(NCHTTP));
-    if(http == NULL) {status = NC_ENOMEM; goto fail;}
-    *((void* *)&nciop->pvt) = http;
+    s3io = (NCS3IO*)calloc(1,sizeof(NCS3IO));
+    if(s3io == NULL) {status = NC_ENOMEM; goto fail;}
+    *((void* *)&nciop->pvt) = s3io;
 
     if(nciopp) *nciopp = nciop;
-    if(hpp) *hpp = http;
+    if(hpp) *hpp = s3io;
 
 done:
     return status;
 
 fail:
-    if(http != NULL) {
-	if(http->region)
-	    ncbytesfree(http->region);
-	free(http);
-    }
+    nullfree(s3io);
     if(nciop != NULL) {
         if(nciop->path != NULL) free((char*)nciop->path);
     }
@@ -124,7 +125,7 @@ fail:
    mempp - pointer to pointer to the initial memory read.
 */
 int
-httpio_create(const char* path, int ioflags,
+s3io_create(const char* path, int ioflags,
     size_t initialsz,
     off_t igeto, size_t igetsz, size_t* sizehintp,
     void* parameters,
@@ -149,7 +150,7 @@ httpio_create(const char* path, int ioflags,
    mempp - pointer to pointer to the initial memory read.
 */
 int
-httpio_open(const char* path,
+s3io_open(const char* path,
     int ioflags,
     /* ignored */ off_t igeto, size_t igetsz, size_t* sizehintp,
     /* ignored */ void* parameters,
@@ -158,17 +159,36 @@ httpio_open(const char* path,
 {
     ncio* nciop;
     int status;
-    NCHTTP* http = NULL;
+    NCS3IO* s3io = NULL;
     size_t sizehint;
+    NCURI* url = NULL;
 
     if(path == NULL ||* path == 0)
         return EINVAL;
 
     /* Create private data */
-    if((status = httpio_new(path, ioflags, &nciop, &http))) goto done;
-    /* Open the path and get curl handle and object size */
-    if((status = nc_http_init(&http->state))) goto done;
-    if((status = nc_http_size(http->state,path,&http->size))) goto done;
+    if((status = s3io_new(path, ioflags, &nciop, &s3io))) goto done;
+
+    /* parse path */
+    ncuriparse(path,&url);
+    if(url == NULL)
+        {status = NC_EURL; goto done;}
+
+    /* Convert to canonical path-style */
+    if((status = NC_s3urlprocess(url,&s3io->s3))) goto done;
+    /* Verify root path */
+    if(s3io->s3.rootkey == NULL)
+        {status = NC_EURL; goto done;}
+    s3io->s3client = NC_s3sdkcreateclient(&s3io->s3);
+    /* Get the size */
+    switch (status = NC_s3sdkinfo(s3io->s3client,s3io->s3.bucket,s3io->s3.rootkey,&s3io->size,&s3io->errmsg)) {
+    case NC_NOERR: break;
+    case NC_EEMPTY:
+        s3io->size = 0;
+	goto done;
+    default:
+        goto done;
+    }
 
     sizehint = pagesize;
 
@@ -179,8 +199,11 @@ httpio_open(const char* path,
     *sizehintp = sizehint;
     *nciopp = nciop;
 done:
-    if(status)
-        httpio_close(nciop,0);
+    ncurifree(url);
+    if(status) {
+	reporterr(s3io);
+        s3io_close(nciop,0);
+    }
     return status;
 }
 
@@ -188,12 +211,12 @@ done:
  *  Get file size in bytes.
  */
 static int
-httpio_filesize(ncio* nciop, off_t* filesizep)
+s3io_filesize(ncio* nciop, off_t* filesizep)
 {
-    NCHTTP* http;
+    NCS3IO* s3io;
     if(nciop == NULL || nciop->pvt == NULL) return NC_EINVAL;
-    http = (NCHTTP*)nciop->pvt;
-    if(filesizep != NULL) *filesizep = http->size;
+    s3io = (NCS3IO*)nciop->pvt;
+    if(filesizep != NULL) *filesizep = s3io->size;
     return NC_NOERR;
 }
 
@@ -205,7 +228,7 @@ httpio_filesize(ncio* nciop, off_t* filesizep)
  *  written in NOFILL mode.
  */
 static int
-httpio_pad_length(ncio* nciop, off_t length)
+s3io_pad_length(ncio* nciop, off_t length)
 {
     return NC_NOERR; /* do nothing */
 }
@@ -219,22 +242,24 @@ httpio_pad_length(ncio* nciop, off_t length)
 */
 
 static int 
-httpio_close(ncio* nciop, int doUnlink)
+s3io_close(ncio* nciop, int deleteit)
 {
     int status = NC_NOERR;
-    NCHTTP* http;
+    NCS3IO* s3io;
     if(nciop == NULL || nciop->pvt == NULL) return NC_NOERR;
 
-    http = (NCHTTP*)nciop->pvt;
-    assert(http != NULL);
+    s3io = (NCS3IO*)nciop->pvt;
+    assert(s3io != NULL);
 
-    status = nc_http_close(http->state);
-
-    /* do cleanup  */
-    if(http != NULL) {
-	ncbytesfree(http->region);
-	free(http);
+    if(s3io->s3client && s3io->s3.bucket && s3io->s3.rootkey) {
+        NC_s3sdkclose(s3io->s3client, &s3io->s3, deleteit, &s3io->errmsg);
     }
+    s3io->s3client = NULL;
+    NC_s3clear(&s3io->s3);
+    nullfree(s3io->errmsg);
+    nullfree(s3io->buffer);
+    nullfree(s3io);
+
     if(nciop->path != NULL) free((char*)nciop->path);
     free(nciop);
     return status;
@@ -245,21 +270,21 @@ httpio_close(ncio* nciop, int doUnlink)
  * be made available through *vpp.
  */
 static int
-httpio_get(ncio* const nciop, off_t offset, size_t extent, int rflags, void** const vpp)
+s3io_get(ncio* const nciop, off_t offset, size_t extent, int rflags, void** const vpp)
 {
     int status = NC_NOERR;
-    NCHTTP* http;
+    NCS3IO* s3io;
 
     if(nciop == NULL || nciop->pvt == NULL) {status = NC_EINVAL; goto done;}
-    http = (NCHTTP*)nciop->pvt;
+    s3io = (NCS3IO*)nciop->pvt;
 
-    assert(http->region == NULL);
-    http->region = ncbytesnew();
-    ncbytessetalloc(http->region,(unsigned long)extent);
-    if((status = nc_http_read(http->state,nciop->path,offset,extent,http->region)))
-	goto done;
-    assert(ncbyteslength(http->region) == extent);
-    if(vpp) *vpp = ncbytescontents(http->region);
+    assert(s3io->buffer == NULL);
+    if((s3io->buffer = (unsigned char*)malloc(extent))==NULL)
+        {status = NC_ENOMEM; goto done;}
+    status = NC_s3sdkread(s3io->s3client, s3io->s3.bucket, s3io->s3.rootkey, offset, extent, s3io->buffer, &s3io->errmsg);
+    if(status) {reporterr(s3io); goto done;}
+
+    if(vpp) *vpp = s3io->buffer;
 done:
     return status;
 }
@@ -268,21 +293,21 @@ done:
  * Like memmove(), safely move possibly overlapping data.
  */
 static int
-httpio_move(ncio* const nciop, off_t to, off_t from, size_t nbytes, int ignored)
+s3io_move(ncio* const nciop, off_t to, off_t from, size_t nbytes, int ignored)
 {
     return NC_EPERM;
 }
 
 static int
-httpio_rel(ncio* const nciop, off_t offset, int rflags)
+s3io_rel(ncio* const nciop, off_t offset, int rflags)
 {
     int status = NC_NOERR;
-    NCHTTP* http;
+    NCS3IO* s3io;
 
     if(nciop == NULL || nciop->pvt == NULL) {status = NC_EINVAL; goto done;}
-    http = (NCHTTP*)nciop->pvt;
-    ncbytesfree(http->region);
-    http->region = NULL;
+    s3io = (NCS3IO*)nciop->pvt;
+    nullfree(s3io->buffer);
+    s3io->buffer = NULL;
 done:
     return status;
 }
@@ -292,7 +317,8 @@ done:
  * ensure that next read will get data from disk.
  */
 static int
-httpio_sync(ncio* const nciop)
+s3io_sync(ncio* const nciop)
 {
     return NC_NOERR; /* do nothing */
 }
+

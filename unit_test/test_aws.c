@@ -41,13 +41,15 @@ static ProfileTest PROFILETESTS[] = {
 
 static URLTest URLTESTS[] = {
 {"s3://simplebucket#mode=nczarr,s3&aws.region=us-west-1",
-    "s3://s3.us-west-1.amazonaws.com/simplebucket#mode=nczarr,s3&aws.region=us-west-1","default","us-west-1","simplebucket"},
+    "https://s3.us-west-1.amazonaws.com/simplebucket#mode=nczarr,s3&aws.region=us-west-1","default","us-west-1","simplebucket"},
+#if 0
 {"s3://simplebucket#mode=nczarr,s3&aws.profile=unidata",
-    "s3://s3.us-west-1.amazonaws.com/simplebucket#mode=nczarr,s3&aws.profile=unidata","unidata","us-west-1","simplebucket"},
+    "https://s3.us-west-1.amazonaws.com/simplebucket#mode=nczarr,s3&aws.profile=unidata","unidata","us-west-1","simplebucket"},
 {"https://s3.eu-east-1.amazonaws.com/simplebucket#mode=nczarr,s3&aws.profile=none",
     "https://s3.eu-east-1.amazonaws.com/simplebucket#mode=nczarr,s3&aws.profile=none","none","eu-east-1","simplebucket"},
 {"https://s3.eu-west-1.amazonaws.com/bucket2#mode=nczarr,s3",
     "https://s3.eu-west-1.amazonaws.com/bucket2#mode=nczarr,s3","default","eu-west-1","bucket2"},
+#endif
 {NULL, NULL,NULL,NULL,NULL}
 };
 

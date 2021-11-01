@@ -223,10 +223,12 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio)
      * hidden attribute. */
     NC4_clear_provenance(&h5->provenance);
 
-#if defined(ENABLE_BYTERANGE) || defined(ENABLE_HDF5_ROS3) || defined(ENABLE_S3_SDK)
+#if defined(ENABLE_BYTERANGE)
+    ncurifree(hdf5_info->uri);
+#if defined(ENABLE_HDF5_ROS3) || defined(ENABLE_S3_SDK)
     /* Free the http info */
-    ncurifree(hdf5_info->http.uri);
-    NC_authfree(hdf5_info->http.auth);
+    NC_authfree(hdf5_info->auth);
+#endif
 #endif
 
     /* Close hdf file. It may not be open, since this function is also
