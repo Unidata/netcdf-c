@@ -65,6 +65,14 @@ struct AWSentry {
     char* value;
 };
 
+typedef struct NCS3INFO {
+    char* host; /* non-null if other*/
+    char* region; /* region */
+    char* bucket; /* bucket name */
+    char* rootkey;
+    char* profile;
+} NCS3INFO;
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
@@ -95,15 +103,22 @@ EXTERNL char* NC_entityescape(const char* s);
 EXTERNL int NC_readfile(const char* filename, NCbytes* content);
 EXTERNL int NC_writefile(const char* filename, size_t size, void* content);
 EXTERNL char* NC_mktmp(const char* base);
-EXTERNL int NC_getmodelist(const char* url, NClist** modelistp);
-EXTERNL int NC_testmode(const char* path, const char* tag);
+EXTERNL int NC_getmodelist(const char* modestr, NClist** modelistp);
+EXTERNL int NC_testmode(NCURI* uri, const char* tag);
+EXTERNL int NC_testpathmode(const char* path, const char* tag);
 EXTERNL int NC_split_delim(const char* path, char delim, NClist* segments);
+EXTERNL int NC_join(struct NClist* segments, char** pathp);
+
+/* From ds3util.c */
+/* S3 profiles */
 EXTERNL int NC_s3urlrebuild(NCURI* url, NCURI** newurlp, char** bucketp, char** regionp);
 EXTERNL int NC_getactives3profile(NCURI* uri, const char** profilep);
 EXTERNL int NC_getdefaults3region(NCURI* uri, const char** regionp);
-/* S3 profiles */
 EXTERNL int NC_authgets3profile(const char* profile, struct AWSprofile** profilep);
 EXTERNL int NC_s3profilelookup(const char* profile, const char* key, const char** valuep);
+EXTERNL int NC_s3urlprocess(NCURI* url, NCS3INFO* s3);
+EXTERNL int NC_s3clear(NCS3INFO* s3);
+EXTERNL int NC_iss3(NCURI* uri);
 
 #if defined(__cplusplus)
 }

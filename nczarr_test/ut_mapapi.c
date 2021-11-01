@@ -72,6 +72,7 @@ done:
     nullfree(tmp);
     nullfree(url); url = NULL;
     nullfree(keyprefix);
+    ut_final();
     if(stat) usage(THROW(stat));
     return 0;
 }
