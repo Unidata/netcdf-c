@@ -6,6 +6,8 @@
 
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
+AM_CPPFLAGS += -I$(top_srcdir)/libncxml
+libdap4_la_CPPFLAGS = ${AM_CPPFLAGS}
 
 # We may have to add to these later.
 DISTCLEANFILES =
@@ -59,7 +61,7 @@ endif
 # Build convenience library
 noinst_LTLIBRARIES = libdap4.la
 libdap4_la_SOURCES = $(SRC) $(HDRS)
-libdap4_la_CPPFLAGS = $(AM_CPPFLAGS)
+libdap4_la_CPPFLAGS += $(AM_CPPFLAGS)
 libdap4_la_LIBADD =
 
 endif # ENABLE_DAP4

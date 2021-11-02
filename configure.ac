@@ -1054,6 +1054,19 @@ if test "x$enable_dap4" = xyes; then
    AC_DEFINE([ENABLE_DAP4], [1], [if true, build DAP4 Client])
 fi
 
+# We can optionally use libxml2 for DAP4, if available
+AC_CHECK_LIB([xml2],[xmlReadMemory],[have_libxml2=yes],[have_libxml2=no])
+if test "x$have_libxml2" = "xyes" ; then
+   AC_SEARCH_LIBS([xmlReadMemory],[xml2 xml2.dll cygxml2.dll], [],[])
+fi
+if test "x$have_libxml2" = xyes; then
+   XML2FLAGS=`xml2-config --cflags`
+   AC_SUBST([XML2FLAGS],${XML2FLAGS})
+   AC_DEFINE([HAVE_LIBXML2], [1], [if true, use libxml2])
+fi
+# Need a condition for this
+AM_CONDITIONAL(HAVE_LIBXML2, [test "x$have_libxml2" = xyes])
+
 # check for useful, but not essential, memio support
 AC_CHECK_FUNCS([memmove getpagesize sysconf])
 
@@ -1875,6 +1888,7 @@ AC_CONFIG_FILES([Makefile
                  libhdf4/Makefile
                  libnczarr/Makefile
                  libncpoco/Makefile
+                 libncxml/Makefile
                  libdispatch/Makefile
                  liblib/Makefile
                  ncdump/cdl/Makefile

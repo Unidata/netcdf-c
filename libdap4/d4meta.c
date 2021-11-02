@@ -7,7 +7,6 @@
 #include <stdarg.h>
 #include "nc4internal.h"
 #include "ncoffsets.h"
-#include "ezxml.h"
 
 /**
  * Build the netcdf-4 metadata from the NCD4node nodes.
