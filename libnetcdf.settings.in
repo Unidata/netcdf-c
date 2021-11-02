@@ -22,6 +22,7 @@ AM_LDFLAGS:		@AM_LDFLAGS@
 Shared Library:		@enable_shared@
 Static Library:		@enable_static@
 Extra libraries:	@LIBS@
+XML Parser:             @XMLPARSER@
 
 # Features
 --------
