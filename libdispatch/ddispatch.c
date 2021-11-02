@@ -11,6 +11,7 @@ See LICENSE.txt for license information.
 #include "ncrc.h"
 #include "ncoffsets.h"
 #include "ncpathmgr.h"
+#include "ncxml.h"
 
 /* Required for getcwd, other functions. */
 #ifdef HAVE_UNISTD_H
@@ -125,6 +126,9 @@ NCDISPATCH_finalize(void)
     ncrc_freeglobalstate();
 #if defined(ENABLE_BYTERANGE) || defined(ENABLE_DAP) || defined(ENABLE_DAP4)
     curl_global_cleanup();
+#endif
+#if defined(ENABLE_DAP4)
+   ncxml_finalize();
 #endif
     return status;
 }

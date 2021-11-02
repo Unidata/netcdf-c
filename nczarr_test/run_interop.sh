@@ -87,9 +87,5 @@ exit
 # Cleanup
 rm -fr ${execdir}/ref_power_901_constants.file
 rm -f ${execdir}/ref_zarr_test_data.cdl
-if test "x$srcdir" != "x$execdir" ; then
-    rm -fr ${execdir}/ref_power_901_constants.zip
-    rm -fr ${execdir}/ref_quotes.zip
-fi
 
 exit 0

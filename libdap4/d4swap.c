@@ -6,7 +6,6 @@
 #include "d4includes.h"
 #include <stdarg.h>
 #include "d4includes.h"
-#include "ezxml.h"
 
 /*
 The primary purpose of this code is to recursively traverse
