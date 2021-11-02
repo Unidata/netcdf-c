@@ -7,7 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.8.2 - TBD
 
-* [Enhancement] Support optional use of libxml2, otherwise default to ezxml. See [Github #2???](https://github.com/Unidata/netcdf-c/pull/2???)
+* [Enhancement] Support optional use of libxml2, otherwise default to ezxml. See [Github #2135](https://github.com/Unidata/netcdf-c/pull/2135) -- H/T to [Egbert Eich](https://github.com/e4t).
 * [Enhancement] Support byte-range reading of netcdf-3 files stored in private buckets in S3. See [Github #2134](https://github.com/Unidata/netcdf-c/pull/2134)
 * [Enhancement] Support Amazon S3 access for NCZarr. Also support use of the existing Amazon SDK credentials system. See [Github #2114](https://github.com/Unidata/netcdf-c/pull/2114)
 * [Bug Fix] Fix string allocation error in H5FDhttp.c. See [Github #2127](https://github.com/Unidata/netcdf-c/pull/2127).
