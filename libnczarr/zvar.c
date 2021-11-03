@@ -536,6 +536,7 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
    	   (fletcher32?*fletcher32:-1),
 	   (no_fill?*no_fill:-1),
 	   fill_value,
+	   (endianness?*endianness:-1),
 	   (quantize_mode?*quantize_mode:-1),
    	   (nsd?*nsd:-1)
 	   );
