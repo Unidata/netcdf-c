@@ -127,6 +127,18 @@ ncrc_initialize(void)
     }
 }
 
+static void
+ncrc_setrchome(void)
+{
+    const char* tmp = NULL;
+    if(ncrc_globalstate->rcinfo.rchome) return;
+    assert(ncrc_globalstate && ncrc_globalstate->home);
+    tmp = getenv(NCRCENVHOME);
+    if(tmp == NULL || strlen(tmp) == 0)
+	tmp = ncrc_globalstate->home;
+    ncrc_globalstate->rcinfo.rchome = strdup(tmp);
+}
+
 /* Get global state */
 NCRCglobalstate*
 ncrc_getglobalstate(void)
@@ -155,6 +167,7 @@ NC_rcclear(NCRCinfo* info)
 {
     if(info == NULL) return;
     nullfree(info->rcfile);
+    nullfree(info->rchome);
     rcfreeentries(info->entries);
 }
 
@@ -193,9 +206,9 @@ NC_rcload(void)
     /* locate the configuration files in order of use:
        1. Specified by NCRCENV_RC environment variable.
        2. If NCRCENV_RC is not set then merge the set of rc files in this order:
-	  1. $HOME/.ncrc
-  	  2. $HOME/.daprc
-	  3. $HOME/.docsrc
+	  1. $RCHOME/.ncrc
+  	  2. $RCHOME/.daprc
+	  3. $RCHOME/.docsrc
 	  4. $CWD/.ncrc
   	  5. $CWD/.daprc
 	  6. $CWD/.docsrc
@@ -208,7 +221,11 @@ NC_rcload(void)
 	const char* dirnames[3];
 	const char** dir;
 	
-	dirnames[0] = globalstate->home;
+        
+	/* Make sure rcinfo.rchome is defined */
+	ncrc_setrchome();
+	
+	dirnames[0] = globalstate->rcinfo.rchome;
 	dirnames[1] = globalstate->cwd;
 	dirnames[2] = NULL;
 

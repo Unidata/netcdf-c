@@ -93,7 +93,7 @@ generatestrings(int n, unsigned seed)
 	len = rnd % MAXSTRLEN;
 	/* generate the characters */
 	for(k=0;k<len;k++) {
-	    do {rnd = random() % 127;} while(rnd < ' ');
+	    do {rnd = random() % 127;} while(rnd <= ' ');
 	    assert(rnd > ' ' && rnd < 127);
 	    s[k] = (char)rnd;
 	}
