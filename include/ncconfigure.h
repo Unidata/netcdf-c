@@ -60,9 +60,6 @@ extern long long int strtoll(const char*, char**, int);
 #ifndef strtoull
 extern unsigned long long int strtoull(const char*, char**, int);
 #endif
-#ifndef fileno
-extern int fileno(FILE*);
-#endif
 
 #endif /*STDC*/
 #endif /*!_WIN32*/

@@ -871,10 +871,12 @@ getlocalpathkind(void)
     int kind = NCPD_UNKNOWN;
 #ifdef __CYGWIN__
 	kind = NCPD_CYGWIN;
-#elif __MSYS__
-	kind = NCPD_MSYS;
-#elif _MSC_VER /* not _WIN32 */
+#elif defined __MINGW32__
 	kind = NCPD_WIN;
+#elif defined _MSC_VER /* not _WIN32 */
+	kind = NCPD_WIN;
+#elif defined __MSYS__
+	kind = NCPD_MSYS;
 #else
 	kind = NCPD_NIX;
 #endif

@@ -1170,14 +1170,17 @@ case "`uname`" in
   CYGWIN*) ISCYGWIN=yes;;
   Darwin*) ISOSX=yes;;
   WIN*) ISMSVC=yes;;
+  MINGW*) ISMINGW=yes;;
 esac
 AM_CONDITIONAL(ISCYGWIN, [test "x$ISCYGWIN" = xyes])
 AM_CONDITIONAL(ISMSVC, [test "x$ISMSVC" = xyes])
 AM_CONDITIONAL(ISOSX, [test "x$ISOSX" = xyes])
+AM_CONDITIONAL(ISMINGW, [test "x$ISMINGW" = xyes])
 
 AC_SUBST([ISMSVC], [${ISMSVC}])
 AC_SUBST([ISCYGWIN], [${ISCYGWIN}])
 AC_SUBST([ISOSX], [${ISOSX}])
+AC_SUBST([ISMINGW], [${ISMINGW}])
 
 ###
 # Crude hack to work around an issue
