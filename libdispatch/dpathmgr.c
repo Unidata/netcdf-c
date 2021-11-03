@@ -678,7 +678,7 @@ parsepath(const char* inpath, struct Path* path)
 	&& (tmp1[0] == '/')
 	&& strchr(windrive,tmp1[1]) != NULL
 	&& (tmp1[2] == '/' || tmp1[2] == '\0')) {
-	/* Assume this is a mingw path */
+	/* Assume this is a msys path */
 	path->drive = tmp1[1];
 	/* Remainder */
 	if(tmp1[2] == '\0')
@@ -869,11 +869,13 @@ static int
 getlocalpathkind(void)
 {
     int kind = NCPD_UNKNOWN;
-#ifdef __CYGWIN__
+#if defined __CYGWIN__
 	kind = NCPD_CYGWIN;
-#elif __MSYS__
+#elif defined __MINGW32__
+	kind = NCPD_WIN; /* Do not understand the relationship of MSYS to MINGW */
+#elif defined __MSYS__
 	kind = NCPD_MSYS;
-#elif _MSC_VER /* not _WIN32 */
+#elif defined _MSC_VER /* not _WIN32 */
 	kind = NCPD_WIN;
 #else
 	kind = NCPD_NIX;

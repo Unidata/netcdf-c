@@ -997,9 +997,10 @@ done:
 }
 #endif
 
-/* If we do not have a _FillValue, then go ahead and create it */
+#if 0
+/* If we do not have a _FillValue attribute, then go ahead and create it */
 int
-ncz_create_fillvalue(NC_VAR_INFO_T* var)
+ncz_create_fillvalue_att(NC_VAR_INFO_T* var)
 {
     int stat = NC_NOERR;
     int i;
@@ -1025,6 +1026,7 @@ ncz_create_fillvalue(NC_VAR_INFO_T* var)
 done:
     return THROW(stat);
 }
+#endif
 
 /* Create an attribute; This is an abbreviated form
    of ncz_put_att above */

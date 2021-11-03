@@ -225,7 +225,7 @@ int NCZ_initialize(void);
 int NCZ_finalize(void);
 int NCZ_initialize_internal(void);
 int NCZ_finalize_internal(void);
-int ncz_get_fill_value(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, void **fillp);
+int ncz_ensure_fill_value(NC_VAR_INFO_T* var);
 int ncz_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
                               int use_name, char *norm_name, NC_FILE_INFO_T** file,
                               NC_GRP_INFO_T** grp, NC_VAR_INFO_T** var,
@@ -245,12 +245,13 @@ int ncz_close_ncz_file(NC_FILE_INFO_T* file, int abort);
 
 /* zattr.c */
 int ncz_getattlist(NC_GRP_INFO_T *grp, int varid, NC_VAR_INFO_T **varp, NCindex **attlist);
-int ncz_create_fillvalue(NC_VAR_INFO_T* var);
+int ncz_create_fillvalue_att(NC_VAR_INFO_T* var);
 int ncz_makeattr(NC_OBJ*, NCindex* attlist, const char* name, nc_type typid, size_t len, void* values, NC_ATT_INFO_T**);
 
 /* zvar.c */
 int ncz_gettype(NC_FILE_INFO_T*, NC_GRP_INFO_T*, int xtype, NC_TYPE_INFO_T** typep);
 int ncz_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
+int NCZ_ensure_quantizer(int ncid, NC_VAR_INFO_T* var);
 
 /* Undefined */
 /* Find var, doing lazy var metadata read if needed. */

@@ -115,11 +115,13 @@ NCZ_enddef(int ncid)
             var = (NC_VAR_INFO_T *)ncindexith(g->vars, j);
             assert(var);
 	    /* set the fill value and _FillValue attribute */
-	    if((stat = ncz_get_fill_value(h5,var,NULL))) goto done; /* ensure var->fill_value is set */
+	    if((stat = ncz_ensure_fill_value(var))) goto done; /* ensure var->fill_value is set */
             assert(var->fill_value != NULL);
             var->written_to = NC_TRUE; /* mark it written */
-	    /* rebuild the fill chunk */
+    	    /* ensure cache is correct */
 	    if((stat = NCZ_adjust_var_cache(var))) goto done;
+	    /* rebuild the fill chunk */
+	    if((stat = ncz_rebuild_fill_chunk(var))) goto done;
 	    /* Build the filter working parameters for any filters */
 	    if((stat = NCZ_filter_setup(var))) goto done;
         }

@@ -566,5 +566,7 @@ static const NC_Dispatch NCZ_dispatcher_trace = {
     NCZTR_get_var_chunk_cache,
     NCZTR_inq_var_filter_ids,
     NCZTR_inq_var_filter_info,
+    NCZ_def_var_quantize,
+    NCZ_inq_var_quantize,
 };
 

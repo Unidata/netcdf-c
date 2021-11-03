@@ -121,15 +121,6 @@ fprintf(stderr,"xxx: adjusting cache for: %s\n",var->hdr.name);
 #endif
     /* One more thing, adjust the chunksize */
     zvar->cache->chunksize = zvar->chunksize;
-    /* and also rebuild the fillchunk */
-    nullfree(zvar->cache->fillchunk);
-    zvar->cache->fillchunk = NULL;
-    if(var->no_fill)
-        stat = NCZ_create_fill_chunk(zvar->cache->chunksize,var->type_info->size,NULL,&zvar->cache->fillchunk);
-    else {
-	assert(var->fill_value != NULL);
-        stat = NCZ_create_fill_chunk(zvar->cache->chunksize,var->type_info->size,var->fill_value,&zvar->cache->fillchunk);
-    }
     return stat;
 }
 
@@ -172,6 +163,20 @@ NCZ_create_chunk_cache(NC_VAR_INFO_T* var, size64_t chunksize, char dimsep, NCZC
     cache->maxentries = 1;
 #endif
 
+    /* build the fillchunk */
+    nullfree(cache->fillchunk);
+    cache->fillchunk = NULL;
+    /* Make sure the fill_value is defined */
+    if((stat = ncz_ensure_fill_value(var))) goto done; /* ensure var->fill_value is set */
+    assert(var->fill_value != NULL);
+    if(var->no_fill)
+        stat = NCZ_create_fill_chunk(cache->chunksize,var->type_info->size,NULL,&cache->fillchunk);
+    else {
+	assert(var->fill_value != NULL);
+        stat = NCZ_create_fill_chunk(cache->chunksize,var->type_info->size,var->fill_value,&cache->fillchunk);
+    }
+    if(stat) goto done;
+
 #ifdef DEBUG
     fprintf(stderr,"%s.cache: nelems=%ld size=%ld\n",
         var->hdr.name,(unsigned long)cache->maxentries,(unsigned long)cache->maxsize);
@@ -180,6 +185,7 @@ NCZ_create_chunk_cache(NC_VAR_INFO_T* var, size64_t chunksize, char dimsep, NCZC
     if((cache->mru = nclistnew()) == NULL)
 	{stat = NC_ENOMEM; goto done;}
     nclistsetalloc(cache->mru,cache->maxentries);
+
     if(cachep) {*cachep = cache; cache = NULL;}
 done:
     nullfree(fill);

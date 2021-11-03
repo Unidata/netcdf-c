@@ -72,6 +72,7 @@ EXTERNL int NCZ_create_fill_chunk(size64_t chunksize, size_t typesize, const voi
 EXTERNL int NCZ_s3clear(NCS3INFO* s3map);
 EXTERNL int NCZ_ischunkname(const char* name,char dimsep);
 EXTERNL char* NCZ_chunkpath(struct ChunkKey key);
+EXTERNL int ncz_rebuild_fill_chunk(NC_VAR_INFO_T* var);
 
 /* zwalk.c */
 EXTERNL int NCZ_read_chunk(int ncid, int varid, size64_t* zindices, void* chunkdata);

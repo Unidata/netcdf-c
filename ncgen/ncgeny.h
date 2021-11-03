@@ -107,7 +107,8 @@ extern int ncgdebug;
     _SUPERBLOCK = 308,             /* _SUPERBLOCK  */
     _FILTER = 309,                 /* _FILTER  */
     _CODECS = 310,                 /* _CODECS  */
-    DATASETID = 311                /* DATASETID  */
+    _QUANTIZE = 311,               /* _QUANTIZE  */
+    DATASETID = 312                /* DATASETID  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -125,7 +126,7 @@ int            nctype; /* for tracking attribute list type*/
 Datalist*      datalist;
 NCConstant*    constant;
 
-#line 129 "ncgeny.h"
+#line 130 "ncgeny.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

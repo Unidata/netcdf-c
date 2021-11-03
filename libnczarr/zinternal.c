@@ -636,19 +636,19 @@ ncz_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
  * @internal What fill value should be used for a variable?
  * Side effects: set as default if necessary and build _FillValue attribute.
  *
- * @param h5 Pointer to file info struct.
  * @param var Pointer to variable info struct.
- * @param fillp Pointer that gets pointer to fill value.
+ * @param fillp Pointer that gets pointer to fill value; do not free
  *
  * @returns NC_NOERR No error.
  * @returns NC_ENOMEM Out of memory.
  * @author Ed Hartnett, Dennis Heimbigner
  */
 int
-ncz_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
+ncz_ensure_fill_value(NC_VAR_INFO_T *var)
 {
     size_t size;
     int retval = NC_NOERR;
+    NC_FILE_INFO_T* h5 = NULL;
 
 #if 0 /*LOOK*/
     /* Find out how much space we need for this type's fill value. */
@@ -659,7 +659,8 @@ ncz_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
     else
 #endif
     {
-        if ((retval = nc4_get_typelen_mem(h5, var->type_info->hdr.id, &size))) goto done;
+       h5 = var->container->nc4_info;
+       if ((retval = nc4_get_typelen_mem(h5, var->type_info->hdr.id, &size))) goto done;
     }
     assert(size);
 
@@ -695,7 +696,6 @@ ncz_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
             fv_vlen->len = in_vlen->len;
             if (!(fv_vlen->p = malloc(basetypesize * in_vlen->len)))
             {
-                free(*fillp);
                 *fillp = NULL;
                 return NC_ENOMEM;
             }
@@ -712,17 +712,6 @@ ncz_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
                 }
         }
 #endif /*0*/
-    /* Create _FillValue Attribute */
-    if((retval = ncz_create_fillvalue(var))) goto done;
-    if(fillp) {
-        void* fill = NULL;
-        /* Allocate the return space. */
-        if((fill = calloc(1, size))==NULL)
-       	    {retval = NC_ENOMEM; goto done;}
-        memcpy(fill, var->fill_value, size);
-	*fillp = fill;
-	fill = NULL;
-    }
 
 done:
     return retval;

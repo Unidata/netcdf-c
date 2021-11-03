@@ -46,6 +46,7 @@ zodom.c \
 zopen.c \
 zprov.c \
 zsync.c \
+zload.c \
 ztype.c \
 zutil.c \
 zvar.c \

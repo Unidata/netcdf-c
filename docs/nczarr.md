@@ -293,6 +293,28 @@ Examples of currently unsupported types are as follows:
 
 Again, this list should diminish over time.
 
+# NCZarr versus netCDF-4. {#nczarr_netcdf4}
+
+If ncgen is used to create both a netCDF-4 file and an NCZarr store using
+the same .cdl file, then some differences may be observed.
+
+## _FillValue
+The Zarr format stores the fill value as part of the .zarray metadata,
+while netcdf-4 stores this in the _FillValue attribute. The .zattr for that
+array may also contain the _FillValue attribute as well, so in NCZarr, the
+fill value may occur in two places.
+
+The rule is that if nc_def_var_fill was called or the .cdl file defines the _FillValue attribute,
+then that attribute will appear in the .zattr metadata, otherwise not.
+However, if the fill_value key is defined, then it is used in place of the _FillValue attribute.
+
+If a Zarr store is read that was created by some other Zarr implementation, then
+the the fill_value key may be set but there will probably not be any _FillValue attribute.
+As above, then this value will be used.
+
+The net result is that NCZarr stores will carry the fill value and use it in subsequent
+reads and writes.
+
 # Notes on Debugging NCZarr Access {#nczarr_debug}
 
 The NCZarr support has a trace facility.
@@ -319,7 +341,6 @@ aws_access_key_id=XXXX...
 aws_secret_access_key=YYYY...
 ```
 See Appendix E for additional information.
-
 
 ## Addressing Style
 

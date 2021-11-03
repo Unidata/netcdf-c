@@ -84,12 +84,8 @@ esac
 #if test "x$FEATURE_NCZARR_ZIP" = xyes ; then testallcases zip; fi
 if test "x$FEATURE_S3TESTS" = xyes ; then testallcases s3; fi
 exit
+
 # Cleanup
 rm -fr ${execdir}/ref_power_901_constants.file
-rm -f ${execdir}/ref_zarr_test_data.cdl
-if test "x$srcdir" != "x$execdir" ; then
-    rm -fr ${execdir}/ref_power_901_constants.zip
-    rm -fr ${execdir}/ref_quotes.zip
-fi
 
 exit 0
