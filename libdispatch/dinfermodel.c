@@ -1117,7 +1117,7 @@ openmagic(struct MagicFile* file)
             assert(file->parameters != NULL);
 	    if((retval = MPI_File_open(((NC_MPI_INFO*)file->parameters)->comm,
                                    (char*)file->path,MPI_MODE_RDONLY,
-                                   ((NC_MPI_INFO*)file->parameters)->s3,
+                                   ((NC_MPI_INFO*)file->parameters)->info,
                                    &file->fh)) != MPI_SUCCESS) {
 #ifdef MPI_ERR_NO_SUCH_FILE
 		int errorclass;
