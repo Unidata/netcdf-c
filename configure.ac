@@ -1054,18 +1054,39 @@ if test "x$enable_dap4" = xyes; then
    AC_DEFINE([ENABLE_DAP4], [1], [if true, build DAP4 Client])
 fi
 
+###
+# Libxml2 control block.
+###
+
+AC_MSG_CHECKING([whether to search for and use external libxml2])
+AC_ARG_ENABLE([libxml2],
+              [AS_HELP_STRING([--disable-libxml2],
+                              [disable detection and use of libxml2 in favor of the bundled ezxml interpreter])])
+test "x$disable_libxml2" = xyes && enable_libxml2=no
+AC_MSG_RESULT($enable_libxml2)
+
+AC_SUBST([XMLPARSER],"ezxml")
+if test "x$enable_libxml2" = xyes; then
 # We can optionally use libxml2 for DAP4, if available
-AC_CHECK_LIB([xml2],[xmlReadMemory],[have_libxml2=yes],[have_libxml2=no])
-if test "x$have_libxml2" = "xyes" ; then
-   AC_SEARCH_LIBS([xmlReadMemory],[xml2 xml2.dll cygxml2.dll], [],[])
+  AC_CHECK_LIB([xml2],[xmlReadMemory],[have_libxml2=yes],[have_libxml2=no])
+  if test "x$have_libxml2" = "xyes" ; then
+      AC_SEARCH_LIBS([xmlReadMemory],[xml2 xml2.dll cygxml2.dll], [],[])
+      AC_SUBST([XMLPARSER],"libxml2")
+  fi
+  if test "x$have_libxml2" = xyes; then
+     XML2FLAGS=`xml2-config --cflags`
+     AC_SUBST([XML2FLAGS],${XML2FLAGS})
+     AC_DEFINE([HAVE_LIBXML2], [1], [if true, use libxml2])
+  fi
+
 fi
-if test "x$have_libxml2" = xyes; then
-   XML2FLAGS=`xml2-config --cflags`
-   AC_SUBST([XML2FLAGS],${XML2FLAGS})
-   AC_DEFINE([HAVE_LIBXML2], [1], [if true, use libxml2])
-fi
-# Need a condition for this
-AM_CONDITIONAL(HAVE_LIBXML2, [test "x$have_libxml2" = xyes])
+
+  # Need a condition for this
+  AM_CONDITIONAL(HAVE_LIBXML2, [test "x$have_libxml2" = xyes])
+
+###
+# End Libxml2 block
+###
 
 # check for useful, but not essential, memio support
 AC_CHECK_FUNCS([memmove getpagesize sysconf])
@@ -1133,7 +1154,7 @@ AC_ARG_ENABLE([atexit-finalize],
                                [disable invoking nc_finalize at exit])])
 test "x$enable_atexit_finalize" = xno || enable_atexit_finalize=yes
 AC_MSG_RESULT($enable_atexit_finalize)
- 
+
 # Check for atexit
 AC_CHECK_FUNCS([atexit])
 
