@@ -9,9 +9,12 @@
 #Minimum required CMake Version
 cmake_minimum_required(VERSION 3.6.1)
 
-#Project Name 
+#Project Name
 project(netCDF LANGUAGES C CXX)
 set(PACKAGE "netCDF" CACHE STRING "")
+
+# Use libraries specified in CMAKE_REQUIRED_LIBRARIES for check include macros
+cmake_policy(SET CMP0075 NEW)
 
 #####
 # Version Info:
@@ -26,7 +29,7 @@ set(PACKAGE "netCDF" CACHE STRING "")
 
 SET(NC_VERSION_MAJOR 4)
 SET(NC_VERSION_MINOR 8)
-SET(NC_VERSION_PATCH 1)
+SET(NC_VERSION_PATCH 2)
 SET(NC_VERSION_NOTE "-development")
 SET(netCDF_VERSION ${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
@@ -615,7 +618,7 @@ IF(USE_HDF5)
   # .cmake files.  If this is the case, they should
   # specify HDF5_HL_LIBRARY, HDF5_LIBRARY, HDF5_INCLUDE_DIR manually.
   #
-  # This script will attempt to determine the version of the HDF5 library programatically. 
+  # This script will attempt to determine the version of the HDF5 library programatically.
   ##
   IF(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR)
     SET(HDF5_LIBRARIES ${HDF5_C_LIBRARY} ${HDF5_HL_LIBRARY})
@@ -728,7 +731,7 @@ IF(USE_HDF5)
       MESSAGE(FATAL_ERROR "netCDF requires at least HDF5 ${HDF5_VERSION_REQUIRED}. Found ${HDF5_VERSION}.")
     ENDIF()
 
-    
+
 
     ##
     # Include the HDF5 include directory.
@@ -769,13 +772,13 @@ IF(USE_HDF5)
       ENDIF(${HDF5_VERSION} VERSION_GREATER "1.8.15")
 
     ELSE(MSVC)
- 
+
       # Depending on the install, either HDF5_hdf_library or
       # HDF5_C_LIBRARIES may be defined.  We must check for either.
       IF(HDF5_C_LIBRARIES AND NOT HDF5_hdf5_LIBRARY)
         SET(HDF5_hdf5_LIBRARY ${HDF5_C_LIBRARIES})
       ENDIF()
-      
+
       # Some versions of FIND_PACKAGE set HDF5_C_LIBRARIES, but not HDF5_C_LIBRARY
       # We use HDF5_C_LIBRARY below, so need to make sure it is set.
       IF(HDF5_C_LIBRARIES AND NOT HDF5_C_LIBRARY)
@@ -791,6 +794,7 @@ IF(USE_HDF5)
     IF(NOT HDF5_C_LIBRARY)
       SET(HDF5_C_LIBRARY hdf5)
     ENDIF()
+  
   ENDIF(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR)
 
   FIND_PACKAGE(Threads)
@@ -800,8 +804,42 @@ IF(USE_HDF5)
     SET(HDF5_C_LIBRARY_hdf5 "${HDF5_C_LIBRARY}")
   ENDIF()
 
-  #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip library.
+  FIND_PATH(HAVE_HDF5_H hdf5.h PATHS ${HDF5_INCLUDE_DIR} NO_DEFAULT_PATH)
+  IF(NOT HAVE_HDF5_H)
+    MESSAGE(FATAL_ERROR "Compiling a test with hdf5 failed. Either hdf5.h cannot be found, or the log messages should be checked for another reason.")
+  ELSE(NOT HAVE_HDF5_H)
+    INCLUDE_DIRECTORIES(${HAVE_HDF5_H})
+  ENDIF(NOT HAVE_HDF5_H)
+
   set (CMAKE_REQUIRED_INCLUDES ${HDF5_INCLUDE_DIR})
+
+  # Check to ensure that HDF5 was built with zlib.
+  # This needs to be near the beginning since we 
+  # need to know whether to add "-lz" to the symbol 
+  # tests below.
+  CHECK_C_SOURCE_COMPILES("#include <H5public.h>
+   #if !H5_HAVE_ZLIB_H
+   #error
+   #endif
+   int main() {
+   int x = 1;}" HAVE_HDF5_ZLIB)
+  IF(NOT HAVE_HDF5_ZLIB)
+    MESSAGE(FATAL_ERROR "HDF5 was built without zlib. Rebuild HDF5 with zlib.")
+  ELSE()
+    # If user has specified the `ZLIB_LIBRARY`, use it; otherwise try to find...
+    IF(NOT ZLIB_LIBRARY)
+      find_package(ZLIB)
+      IF(ZLIB_FOUND)
+        SET(ZLIB_LIBRARY ${ZLIB_LIBRARIES})
+      ELSE()
+        MESSAGE(FATAL_ERROR "HDF5 Requires ZLIB, but cannot find libz.")
+      ENDIF()
+    ENDIF()
+    SET(CMAKE_REQUIRED_LIBRARIES ${ZLIB_LIBRARY} ${CMAKE_REQUIRED_LIBRARIES})
+    MESSAGE(STATUS "HDF5 has zlib.")
+  ENDIF()
+
+  #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip library.
   CHECK_C_SOURCE_COMPILES("#include <H5public.h>
    #if !H5_HAVE_FILTER_SZIP
    #error
@@ -887,30 +925,14 @@ IF(USE_HDF5)
   ENDIF()
 
   FIND_PATH(HAVE_HDF5_H hdf5.h PATHS ${HDF5_INCLUDE_DIR} NO_DEFAULT_PATH)
-  FIND_PATH(HAVE_HDF5_H hdf5.h)
   IF(NOT HAVE_HDF5_H)
     MESSAGE(FATAL_ERROR "Compiling a test with hdf5 failed. Either hdf5.h cannot be found, or the log messages should be checked for another reason.")
   ELSE(NOT HAVE_HDF5_H)
     INCLUDE_DIRECTORIES(${HAVE_HDF5_H})
   ENDIF(NOT HAVE_HDF5_H)
 
-  # Check to ensure that HDF5 was built with zlib.
-  set (CMAKE_REQUIRED_INCLUDES ${HDF5_INCLUDE_DIR})
-
-
-  CHECK_C_SOURCE_COMPILES("#include <H5public.h>
-   #if !H5_HAVE_ZLIB_H
-   #error
-   #endif
-   int main() {
-   int x = 1;}" HAVE_HDF5_ZLIB)
-  IF(NOT HAVE_HDF5_ZLIB)
-    MESSAGE(FATAL_ERROR "HDF5 was built without zlib. Rebuild HDF5 with zlib.")
-  ENDIF()
-
   #option to include HDF5 High Level header file (hdf5_hl.h) in case we are not doing a make install
   INCLUDE_DIRECTORIES(${HDF5_HL_INCLUDE_DIR})
-
 
 ENDIF(USE_HDF5)
 
@@ -937,7 +959,7 @@ int main() {
 }" HAVE_LIBCURL_766)
 
 IF (HAVE_LIBCURL_766)
-  # If libcurl version is >= 7.66, then can skip tests 
+  # If libcurl version is >= 7.66, then can skip tests
   # for these symbols which were added in an earlier version
   set(HAVE_CURLOPT_USERNAME TRUE)
   set(HAVE_CURLOPT_PASSWORD TRUE)
@@ -1098,9 +1120,9 @@ IF(MSVC)
     FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
          DESTINATION ${netCDF_BINARY_DIR}/ncdump/)
     FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/) 
+         DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
     FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/ncdap_test/) 
+         DESTINATION ${netCDF_BINARY_DIR}/ncdap_test/)
   ENDIF()
 ENDIF()
 
@@ -1178,6 +1200,22 @@ IF(NOT FOUND_CURL)
     MESSAGE(FATAL_ERROR "NCZarr S3 support specified, CURL libraries are not found.")
   ENDIF()
 ENDIF(NOT FOUND_CURL)
+
+
+OPTION(ENABLE_LIBXML2 "Link against libxml2 if it is available, use the packaged ezxml parser otherwise." ON)
+SET(XMLPARSER "ezxml (bundled)")
+# see if we have libxml2
+
+IF(ENABLE_LIBXML2)
+  find_package(LibXml2)
+  IF(LibXml2_FOUND)
+    SET(HAVE_LIBXML2 TRUE)
+    INCLUDE_DIRECTORIES(${LIBXML2_INCLUDE_DIRS})
+    SET(XMLPARSER "libxml2")
+  ELSE()
+    SET(HAVE_LIBXML2 FALSE)
+  ENDIF()
+ENDIF(ENABLE_LIBXML2)
 
 IF(NOT ENABLE_BYTERANGE AND ENABLE_HDF5_ROS3)
     MESSAGE(WARNING "ROS3 support requires ENABLE_BYTERANGE=TRUE; disabling ROS3 support")
@@ -1726,7 +1764,7 @@ ELSE()
   ENDIF()
 ENDIF()
 ENDIF()
- 
+
 # Check to see if MAP_ANONYMOUS is defined.
 IF(MSVC)
 MESSAGE(WARNING "mmap not supported under visual studio: disabling MMAP support.")
@@ -2085,6 +2123,7 @@ ENDIF()
 
 IF(ENABLE_DAP4)
   ADD_SUBDIRECTORY(libdap4)
+  ADD_SUBDIRECTORY(libncxml)
 ENDIF()
 
 IF(ENABLE_PLUGINS)

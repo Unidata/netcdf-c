@@ -256,6 +256,8 @@ NC_writefile(const char* filename, size_t size, void* content)
     void* p;
     size_t remain;
 
+    if(content == NULL) {content = ""; size = 0;}
+
 #ifdef _WIN32
     stream = NCfopen(filename,"wb");
 #else
@@ -343,7 +345,8 @@ done:
     return found;
 }
 
-#ifdef __APPLE__
+#if ! defined __INTEL_COMPILER 
+#if defined __APPLE__ 
 int isinf(double x)
 {
     union { unsigned long long u; double f; } ieee754;
@@ -361,6 +364,8 @@ int isnan(double x)
 }
 
 #endif /*APPLE*/
+#endif /*!_INTEL_COMPILER*/
+
 
 int
 NC_split_delim(const char* arg, char delim, NClist* segments)
