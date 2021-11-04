@@ -177,7 +177,7 @@ ncbytesextract(NCbytes* bb)
 }
 
 int
-ncbytessetcontents(NCbytes* bb, void* contents, size_t alloc)
+ncbytessetcontents(NCbytes* bb, void* contents, unsigned long alloc)
 {
     if(bb == NULL) return ncbytesfail();
     ncbytesclear(bb);
