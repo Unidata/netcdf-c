@@ -11,6 +11,7 @@ TOPBUILDDIR='@abs_top_builddir@'
 FP_ISCMAKE=@ISCMAKE@
 FP_ISMSVC=@ISMSVC@
 FP_ISCYGWIN=@ISCYGWIN@
+FP_ISMINGW=@ISMINGW@
 
 # Feature flags
 FEATURE_HDF5=@HAS_HDF5@
@@ -74,6 +75,13 @@ set -e
 
 # Allow global set -x mechanism for debugging.
 if test "x$SETX" = x1 ; then set -x ; fi
+
+# On MINGW, bash and other POSIX utilities use a mounted root directory,
+# but executables compiled for Windows do not recognise the mount point.
+# Here we ensure that Windows paths are used in tests of Windows executables.
+if test "x@ISMINGW@" = xyes; then
+  alias pwd='pwd -W'
+fi
 
 # We assume that TOPSRCDIR and TOPBUILDDIR are defined
 # At the top of this shell script
