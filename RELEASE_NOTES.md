@@ -7,6 +7,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.8.2 - TBD
 
+* [Enhancement] Added options to suppress the new behavior from [Github #2135](https://github.com/Unidata/netcdf-c/pull/2135).  The options for `cmake` and `configure` are, respectively `-DENABLE_LIBXML2` and `--(enable/disable)-libxml2`. Both of these options defaul to 'on/enabled'.  When disabled, the bundled `ezxml` XML interpreter is used regardless of whether `libxml2` is present on the system. 
+* [Enhancement] Support optional use of libxml2, otherwise default to ezxml. See [Github #2135](https://github.com/Unidata/netcdf-c/pull/2135) -- H/T to [Egbert Eich](https://github.com/e4t).
 * [Bug Fix] Fix several os related errors. See [Github #2138](https://github.com/Unidata/netcdf-c/pull/2138).
 * [Enhancement] Support byte-range reading of netcdf-3 files stored in private buckets in S3. See [Github #2134](https://github.com/Unidata/netcdf-c/pull/2134)
 * [Enhancement] Support Amazon S3 access for NCZarr. Also support use of the existing Amazon SDK credentials system. See [Github #2114](https://github.com/Unidata/netcdf-c/pull/2114)
