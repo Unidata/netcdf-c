@@ -19,6 +19,7 @@ and accessing rc files (e.g. .daprc).
 /* getenv() keys */
 #define NCRCENVIGNORE "NCRCENV_IGNORE"
 #define NCRCENVRC "NCRCENV_RC"
+#define NCRCENVHOME "NCRCENV_HOME"
 
 /* Known .aws profile keys */
 #define AWS_ACCESS_KEY_ID "aws_access_key_id"
@@ -38,6 +39,7 @@ typedef struct NCRCinfo {
 	int loaded; /* 1 => already loaded */
         NClist* entries; /* the rc file entry store fields*/
         char* rcfile; /* specified rcfile; overrides anything else */
+        char* rchome; /* Overrides $HOME when looking for .rc files */
 } NCRCinfo;
 
 /* Collect global state info in one place */
