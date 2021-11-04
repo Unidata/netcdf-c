@@ -41,7 +41,7 @@ makelib::
 	sed -e 's|//\(.*\)|/*\1*/|' \
 	cat >./ezxml.c
 	sed -e 's|//\(.*\)|/*\1*/|' <ezxml/ezxml.h >./ezxml.h
-	sed -i .bak 's/<fcntl.h>/<fcntl.h>\n#include <unistd.h>/g' ezxml.h
+	sed -i .bak 's/<fcntl.h>/<fcntl.h>\n#ifdef HAVE_UNISTD_H\n#include <unistd.h>\n#endif/g' ezxml.h
 	rm ezxml.h.bak
 	cp ezxml/license.txt .
 	rm -fr ezxml
