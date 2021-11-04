@@ -160,13 +160,13 @@ endif()
     SET_TARGET_PROPERTIES(nctrunc PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
       ${CMAKE_CURRENT_BINARY_DIR})
 
-IF(RCMERGE)
-    SET_TARGET_PROPERTIES(tst_rcmerge PROPERTIES RUNTIME_OUTPUT_DIRECTORY
-      ${CMAKE_CURRENT_BINARY_DIR})
-    SET_TARGET_PROPERTIES(tst_rcmerge PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG
-      ${CMAKE_CURRENT_BINARY_DIR})
-    SET_TARGET_PROPERTIES(tst_rcmerge PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR})
-endif()
+    IF(RCMERGE)
+        SET_TARGET_PROPERTIES(tst_rcmerge PROPERTIES RUNTIME_OUTPUT_DIRECTORY
+          ${CMAKE_CURRENT_BINARY_DIR})
+        SET_TARGET_PROPERTIES(tst_rcmerge PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG
+          ${CMAKE_CURRENT_BINARY_DIR})
+        SET_TARGET_PROPERTIES(tst_rcmerge PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR})
+    endif()
 
     IF(USE_HDF5)
       SET_TARGET_PROPERTIES(tst_fileinfo PROPERTIES RUNTIME_OUTPUT_DIRECTORY
@@ -189,7 +189,6 @@ endif()
   add_sh_test(ncdump tst_64bit)
   add_bin_test_no_prefix(ref_ctest)
   add_bin_test_no_prefix(ref_ctest64)
-  add_sh_test(ncdump tst_output)
   add_sh_test(ncdump tst_lengths)
   add_sh_test(ncdump tst_calendars)
   build_bin_test_no_prefix(tst_utf8)
@@ -200,15 +199,21 @@ endif()
     add_sh_test(ncdump tst_hdf5_offset)
   ENDIF(USE_HDF5)
 
+  IF(NOT MSVC AND NOT MINGW)
+      add_sh_test(ncdump tst_output)
+  ENDIF()
+
   add_sh_test(ncdump tst_null_byte_padding)
   IF(USE_STRICT_NULL_BYTE_HEADER_PADDING)
     SET_TESTS_PROPERTIES(ncdump_tst_null_byte_padding PROPERTIES WILL_FAIL TRUE)
   ENDIF(USE_STRICT_NULL_BYTE_HEADER_PADDING)
 
-  add_sh_test(ncdump tst_nccopy3)
-  IF(HAVE_BASH)
-    SET_TESTS_PROPERTIES(ncdump_tst_nccopy3 PROPERTIES RUN_SERIAL TRUE)
-  ENDIF(HAVE_BASH)
+  IF(NOT MSVC AND NOT MINGW)
+      add_sh_test(ncdump tst_nccopy3)
+      IF(HAVE_BASH)
+        SET_TESTS_PROPERTIES(ncdump_tst_nccopy3 PROPERTIES RUN_SERIAL TRUE)
+      ENDIF(HAVE_BASH)
+  ENDIF()
 
   add_sh_test(ncdump tst_nccopy3_subset)
   add_sh_test(ncdump tst_charfill)
@@ -256,10 +261,11 @@ endif()
     # formatting omits a 0.
     ###
     IF(EXTRA_TESTS)
-      add_sh_test(ncdump run_back_comp_tests)
-      IF(MSVC)
-        SET_TESTS_PROPERTIES(ncdump_run_back_comp_tests PROPERTIES WILL_FAIL TRUE)
-      ENDIF(MSVC)
+      IF(USE_HDF5)
+        IF(NOT MSVC AND NOT MINGW)
+          add_sh_test(ncdump run_back_comp_tests)
+        ENDIF()
+      ENDIF()
     ENDIF(EXTRA_TESTS)
 
     # Known failure on MSVC; the number of 0's padding
@@ -272,10 +278,11 @@ endif()
     build_bin_test_no_prefix(tst_fillbug)
     add_sh_test(ncdump_sh tst_fillbug)
 
-    add_sh_test(ncdump tst_netcdf4_4)
-    IF(MSVC AND HAVE_BASH)
-      SET_TESTS_PROPERTIES(ncdump_tst_netcdf4_4 PROPERTIES WILL_FAIL TRUE)
-    ENDIF(MSVC AND HAVE_BASH)
+    IF(HAVE_BASH)
+      IF(NOT MSVC AND NOT MINGW)
+        add_sh_test(ncdump tst_netcdf4_4)
+      ENDIF()
+    ENDIF(HAVE_BASH)
 
     ###
     # Some test reordering was required to ensure these tests
@@ -324,11 +331,11 @@ endif()
   IF(USE_HDF5)
     IF(HAVE_BASH)
       build_bin_test_no_prefix(tst_unicode)
-      IF(NOT MSVC)
+      IF(NOT MSVC AND NOT MINGW)
         # These tests do not work under windows
         add_sh_test(ncdump test_unicode_directory)
         add_sh_test(ncdump test_unicode_path)
-      ENDIF(NOT MSVC)
+      ENDIF()
     ENDIF(HAVE_BASH)
   ENDIF(USE_HDF5)
 

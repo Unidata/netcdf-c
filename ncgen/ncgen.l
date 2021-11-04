@@ -671,7 +671,6 @@ Return the value.
 static unsigned long long
 parseULL(int radix, char* text, int* failp)
 {
-    extern int errno;
     char* endptr;
     unsigned long long uint64 = 0;
 
