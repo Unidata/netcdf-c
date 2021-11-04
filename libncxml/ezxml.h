@@ -29,7 +29,9 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <fcntl.h>
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
