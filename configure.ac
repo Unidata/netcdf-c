@@ -1062,7 +1062,7 @@ AC_MSG_CHECKING([whether to search for and use external libxml2])
 AC_ARG_ENABLE([libxml2],
               [AS_HELP_STRING([--disable-libxml2],
                               [disable detection and use of libxml2 in favor of the bundled ezxml interpreter])])
-test "x$disable_libxml2" = xyes && enable_libxml2=no
+test "x$enable_libxml2" = xno || enable_libxml2=yes
 AC_MSG_RESULT($enable_libxml2)
 
 AC_SUBST([XMLPARSER],"ezxml")
