@@ -32,19 +32,24 @@ EXTRA_DIST = CMakeLists.txt license.txt
 REPO=https://downloads.sourceforge.net/project/ezxml/
 EZXML=ezxml-0.8.6.tar.gz
 makelib::
-	rm -fr ./ezxml.[ch] ./license.txt ./ezxml
-	tar -zxf ./${EZXML}
-	echo '#define EZXML_NOMMAP 1' > ezxml.c
-	cat <ezxml/ezxml.c | \
-	sed -e '/<unistd.h>/d' | \
-	sed -e 's|//\(.*\)|/*\1*/|' \
-	sed -e 's|//\(.*\)|/*\1*/|' \
-	cat >./ezxml.c
-	sed -e 's|//\(.*\)|/*\1*/|' <ezxml/ezxml.h >./ezxml.h
-	sed -i .bak 's/<fcntl.h>/<fcntl.h>\n#ifdef HAVE_UNISTD_H\n#include <unistd.h>\n#endif/g' ezxml.h
-	rm ezxml.h.bak
+	echo "WARNING DO NOT RUN THIS since the patches are not in the tar file"
+	exit 1
+	rm -fr ./ezxml.[ch] ./license.txt ./ezxml ./ezxml.c.? ./ezxml.h.?
+	tar -zxf ${EZXML}
+	cat ezxml/ezxml.h > ./ezxml.h
+	sed -i.1 -e '/ezxml_parse_fd/d' ezxml.h
+	sed -i.2 -e '/ezxml_parse_file/d' ezxml.h
+	sed -i.3 -e '/ezxml_parse_fp/d' ezxml.h
+	sed -i.4 -e 's|//\(.*\)|/*\1*/|' ezxml.h
+	echo "#define EZXML_NOMMAP 1" > ./ezxml.c
+	cat ezxml/ezxml.c >> ./ezxml.c
+	sed -i.1 -e '/<unistd.h>/d' ezxml.c
+	sed -i.2 -e '/ezxml_parse_fp(FILE/i#if 0' ./ezxml.c
+	sed -i.3 -e '/ezxml_ampencode(const/i#endif //0' ./ezxml.c
+	sed -i.4 -e 's|//\(.*\)|/*\1*/|' ezxml.c
 	cp ezxml/license.txt .
 	rm -fr ezxml
+	rm -f ezxml.c.? ezxml.h.?
 
 # Define path to the xml github dir; this value assumes it is in a parallel directory to netcdf-c (YMMV)
 GITSRC=${top_srcdir}/../tinyxml2
