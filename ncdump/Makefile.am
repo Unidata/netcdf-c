@@ -136,8 +136,8 @@ if ENABLE_CDF5
 TESTS += test_keywords.sh
 endif
 
-if ! ISMINGW
-if ! ISCYGWIN
+if !ISMINGW
+if !ISCYGWIN
 TESTS += tst_output.sh tst_nccopy3.sh
 TESTS += test_unicode_directory.sh  test_unicode_path.sh
 if USE_HDF5
