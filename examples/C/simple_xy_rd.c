@@ -9,7 +9,7 @@
  * of the netCDF C API.
  *
  * Full documentation for netCDF can be found at:
- * https://www.unidata.ucar.edu/netcdf/docs.
+ * https://docs.unidata.ucar.edu/netcdf-c.
  *
  * @author Ed Hartnett
 */

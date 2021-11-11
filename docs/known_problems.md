@@ -254,7 +254,7 @@ conditions are met:
     fixed-size variable in a file with no record variables or the last
     record variable, because otherwise it would violate the format
     constraints for netCDF classic or 64-bit offset formats described
-    [here](https://www.unidata.ucar.edu/netcdf/docs/netcdf/NetCDF-Classic-Format-Limitations.html).
+    [here](https://docs.unidata.ucar.edu/netcdf-current/NetCDF-Classic-Format-Limitations.html).
     Note that the bug involves number of values, not bytes, so if the
     variable is of type integer or float, for example, it would require
     more than 17 Gbytes.
