@@ -173,11 +173,11 @@ C, C++, Fortran 77, Fortran 90, and Java APIs:
 
 Man pages for the C, F77, and F90 interfaces, and ncgen and ncdump,
 are available on the documentation page of the netCDF web site
-(https://www.unidata.ucar.edu/netcdf/docs), and are installed with the
+(https://docs.unidata.ucar.edu/netcdf-c), and are installed with the
 libraries.
 
 The latest version of all netCDF documentation can always be found at
-the <a href="https://www.unidata.ucar.edu/netcdf/docs">netCDF
+the <a href="https://docs.unidata.ucar.edu/netcdf-c">netCDF
 documentation page</a>.
 
 \page netcdf_data_model The NetCDF Data Model
