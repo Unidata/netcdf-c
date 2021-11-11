@@ -46,7 +46,7 @@ How do I get the netCDF software package? {#HowdoIgetthenetCDFsoftwarepackage}
 
 The latest source distribution, which includes the C libraries and
 utility programs, is available from [the NetCDF Downloads
-page](/downloads/netcdf/index.jsp). Separate source distributions for
+page](https://downloads.unidata.ucar.edu/netcdf-c). Separate source distributions for
 the Java library, Fortran libraries, and C++ libraries are also
 available there. Installation instructions are available with the
 distribution or [online](https://docs.unidata.ucar.edu/netcdf-c/current/building.html).
@@ -139,8 +139,8 @@ attributes; what order to use for the dimensions of multidimensional
 variables; what variables to include in the same netCDF file; and how to
 use variable attributes to capture the structure and meaning of data. We
 provide some guidelines in the NetCDF User's Guide (e.g., the section on
-[Differences between Attributes and Variables](https://www.unidata.ucar.edu/software/netcdf/documentation/NUG/netcdf_data_set_components.html#differences_atts_vars))
-and in a new web document [Writing NetCDF Files: BestPractices](https://www.unidata.ucar.edu/software/netcdf/documentation/NUG/_best_practices.html), but we've found that
+[Differences between Attributes and Variables](https://docs.unidata.ucar.edu/nug/current/netcdf_data_set_components.html#differences_atts_vars))
+and in a new web document [Writing NetCDF Files: BestPractices](https://docs.unidata.ucar.edu/nug/current/_best_practices.html), but we've found that
 a little experience helps. Occasionally we have decided it was useful to
 change the structure of netCDF files after experience with how the data
 is used.
@@ -401,7 +401,7 @@ support. The announcement of the availability of that port is
 [here](https://www.unidata.ucar.edu/mailing_lists/archives/netcdfgroup/2011/msg00363.html).
 
 User Veit Eitner has contributed a port of 4.1.1 to Visual Studio,
-including an F90 port to Intel Fortran. Download [source (ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/win32/netcdf-4.1.1-win32-src.zip)](ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/win32/netcdf-4.1.1-win32-src.zip) or [binary](ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/win32/netcdf-4.1.1-win32-bin.zip) versions. This port was done before the code was refactored in 4.1.2.
+including an F90 port to Intel Fortran. Download [source (ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/win32/netcdf-4.1.1-win32-src.zip)](ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/win32/netcdf-4.1.1-win32-src.zip) or [binary](https://downloads.unidata.ucar.edu/netcdf-c) versions. This port was done before the code was refactored in 4.1.2.
 
 How can I use netCDF-4 with Windows? {#How-can-I-use-netCDF-4-with-Windows}
 -----------------
