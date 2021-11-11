@@ -6,7 +6,7 @@ ccompiler=@CC@
 
 Name: @PACKAGE@
 Description: NetCDF Client Library for C
-URL: http://www.unidata.ucar.edu/netcdf
+URL: https://www.unidata.ucar.edu/netcdf
 Version: @PACKAGE_VERSION@
 Libs: -L${libdir} @NC_LIBS@
 Libs.private: @LIBS@

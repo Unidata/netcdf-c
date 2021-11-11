@@ -63,7 +63,7 @@ gencml_netcdf(void)
 
     /* Dump XML header */
     xline("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-    xline("<netcdf xmlns=\"http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2\">"); 
+    xline("<netcdf xmlns=\"https://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2\">");
 
     xline("");
     xline("<explicit/>");
