@@ -47,7 +47,7 @@ software for various languages:
 
 * [C library and utilities](http://github.com/Unidata/netcdf-c)
 * [Fortran](http://github.com/Unidata/netcdf-fortran)
-* [Java](https://www.unidata.ucar.edu/downloads/netcdf-java/
+* [Java](https://downloads.unidata.ucar.edu/netcdf-java/)
 * [Python](http://github.com/Unidata/netcdf4-python)
 * [C++](http://github.com/Unidata/netcdf-cxx4)
 
@@ -64,11 +64,11 @@ netCDF-C distribution, or the (usually more up-to-date) document:
 A language-independent User's Guide for netCDF, and some other
 language-specific user-level documents are available from:
 
-* [Language-independent User's Guide](https://www.unidata.ucar.edu/software/netcdf/documentation/NUG/index.html#user_guide)
+* [Language-independent User's Guide](https://docs.unidata.ucar.edu/nug/current/index.html#user_guide)
 * [NetCDF-C Tutorial](https://docs.unidata.ucar.edu/netcdf-c/current/tutorial_8dox.html)
-* [Fortran-90 User's Guide](https://www.unidata.ucar.edu/software/netcdf/documentation/historic/netcdf-f90/index.html#Top)
-* [Fortran-77 User's Guide](https://www.unidata.ucar.edu/software/netcdf/documentation/historic/netcdf-f77/index.html#Top)
-* [netCDF-Java/Common Data Model library](https://docs.unidata.ucar.edu/netcdf-java/current/userguide/index.html)
+* [Fortran-90 User's Guide](https://docs.unidata.ucar.edu/netcdf-fortran/current/f90_The-NetCDF-Fortran-90-Interface-Guide.html)
+* [Fortran-77 User's Guide](https://docs.unidata.ucar.edu/netcdf-fortran/current/nc_f77_interface_guide.html)
+* [netCDF-Java/Common Data Model library](https://docs.unidata.ucar.edu/netcdf-java/current/userguide/)
 * [netCDF4-python](http://unidata.github.io/netcdf4-python/)
 
 A mailing list, netcdfgroup@unidata.ucar.edu, exists for discussion of

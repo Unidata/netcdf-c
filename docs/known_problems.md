@@ -138,8 +138,7 @@ in the error message
     NetCDF: Malformed or inaccessible DAP DDS
 
 This bug is fixed in 4.2 releases after 2011-09-11, as well as by fixing
-the 4.1.3 release using the 3 replacement source files in [this tar
-file](https://www.unidata.ucar.edu/downloads/netcdf/ftp/4.1.3-fix.tar).
+the 4.1.3 release using the 3 replacement source files in the 4.1.3-fix.tar file. 
 
 ### Configuring with "--enable-benchmarks" option
 
