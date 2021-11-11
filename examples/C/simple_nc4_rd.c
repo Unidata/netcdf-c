@@ -11,7 +11,7 @@
  * intended to illustrate the use of the netCDF-4 C API.
  *
  * This is part of the netCDF package. Full documentation of netCDF
- * can be found at http://www.unidata.ucar.edu/software/netcdf/docs.
+ * can be found at https://docs.unidata.ucar.edu/netcdf-c.
  *
  * @author Ed Hartnett
 */

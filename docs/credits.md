@@ -1,7 +1,7 @@
 NetCDF Credits {#credits}
 ==============
 
-[Unidata](http://www.unidata.ucar.edu/) is sponsored by the [National
+[Unidata](https://www.unidata.ucar.edu/) is sponsored by the [National
 Science Foundation](http://www.nsf.gov/) and managed by the [University
 Corporation for Atmospheric Research](http://www2.ucar.edu/).
 

@@ -7,7 +7,7 @@ version of the poco multi-platform dynamic loading library. The
 poco libraries are written in C++.
 
 The secondary goal of cpoco is to support dynamic loading of
-HDF5 filters by the [netCDF C library](http://www.unidata.ucar.edu/netcdf/).
+HDF5 filters by the [netCDF C library](https://www.unidata.ucar.edu/netcdf/).
 
 # Mutual Exclusion Support
 

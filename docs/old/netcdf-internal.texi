@@ -8,7 +8,7 @@
 @setchapternewpage off
 
 @html
-<link rel=stylesheet type=text/css href=http://www.unidata.ucar.edu/themes/Unidata/style/style.css>
+<link rel=stylesheet type=text/css href=https://www.unidata.ucar.edu/themes/Unidata/style/style.css>
 @end html
 
 @dircategory netCDF scientific data format

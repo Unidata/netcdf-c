@@ -5062,7 +5062,7 @@ unit algebra on the binary form. Though the units library is
 self-contained and there is no dependency between it and the netCDF
 library, it is nevertheless useful in writing generic netCDF programs
 and we suggest you obtain it. The library and associated documentation
-is available from @uref{http://www.unidata.ucar.edu/software/udunits/}.
+is available from @uref{https://www.unidata.ucar.edu/software/udunits/}.
 
 The following are examples of units strings that can be interpreted by
 the utScan() function of the Unidata units library:

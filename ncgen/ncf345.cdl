@@ -45,7 +45,7 @@
 // ncgen 4.0.0--4.3.2 crashes on 'l' or 'L' syntax when generating netCDF4-classic (but not netCDF3 or netCDF4) files until 20141010 (NCF-318)
 
 // CDL Data constants:
-// http://www.unidata.ucar.edu/software/netcdf/docs/netcdf/CDL-Syntax.html
+// https://docs.unidata.ucar.edu/netcdf-c/current/netcdf/CDL-Syntax.html
 // byte: 'a'
 // char: "a"
 // short: 1s
