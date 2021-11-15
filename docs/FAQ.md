@@ -1203,7 +1203,7 @@ Was it possible to create netCDF files larger than 2 GiBytes before version 3.6?
 
 Yes, but there are significant restrictions on the structure of large
 netCDF files that result from the 32-bit relative offsets that are part
-of the classic netCDF format. For details, see [NetCDF Classic Format Limitations](https://www.unidata.ucar.edu/software/netcdf/documentation/historic/netcdf/NetCDF-Classic-Format-Limitations.html#NetCDF-Classic-Format-Limitations)
+of the classic netCDF format. For details, see [NetCDF Classic Format Limitations](https://docs.unidata.ucar.edu/nug/current/netcdf_introduction.html#classic_format)
 in the User's Guide.
 
 ----------
@@ -1478,7 +1478,7 @@ purposes.
 
 It is also possible to overcome the 4 GiB variable restriction for a
 single fixed size variable, when there are no record variables, by
-making it the last variable, as explained in the example in [NetCDF Classic Format Limitations](https://www.unidata.ucar.edu/software/netcdf/documentation/historic/netcdf/NetCDF-Classic-Format-Limitations.html#NetCDF-Classic-Format-Limitations).
+making it the last variable, as explained in the example in [NetCDF Classic Format Limitations](https://docs.unidata.ucar.edu/nug/current/netcdf_introduction.html#classic_format).
 
 ----------
 
@@ -1597,7 +1597,7 @@ Data Center at Goddard, and is freely available. It was originally a VMS
 FORTRAN interface for scientific data access. Unidata reimplemented the
 library from scratch to use [XDR](http://www.faqs.org/rfcs/rfc1832.html)
 for a machine-independent representation, designed the
-[CDL](https://www.unidata.ucar.edu/software/netcdf/documentation/historic/netcdf/CDL-Syntax.htm) (network Common Data form Language) text
+[CDL](https://docs.unidata.ucar.edu/netcdf/NUG/_c_d_l.html) (network Common Data form Language) text
 representation for netCDF data, and added aggregate data access, a
 single-file implementation, named dimensions, and variable-specific
 attributes.
