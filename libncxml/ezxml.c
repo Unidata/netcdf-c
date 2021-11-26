@@ -623,6 +623,7 @@ ezxml_t ezxml_parse_str(char *s, size_t len)
 /* Wrapper for ezxml_parse_str() that accepts a file stream. Reads the entire*/
 /* stream into memory and then parses it. For xml files, use ezxml_parse_file()*/
 /* or ezxml_parse_fd()*/
+#if 0
 ezxml_t ezxml_parse_fp(FILE *fp)
 {
     ezxml_root_t root;
@@ -688,6 +689,7 @@ ezxml_t ezxml_parse_file(const char *file)
 
 /* Encodes ampersand sequences appending the results to *dst, reallocating *dst*/
 /* if length excedes max. a is non-zero for attribute encoding. Returns *dst*/
+#endif /*0*/
 char *ezxml_ampencode(const char *s, size_t len, char **dst, size_t *dlen,
                       size_t *max, short a)
 {
