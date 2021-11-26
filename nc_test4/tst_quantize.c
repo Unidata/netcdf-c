@@ -838,7 +838,7 @@ main(int argc, char **argv)
     SUMMARIZE_ERR;
     printf("*** Nice, simple example of using BitGroom plus zlib...");
     {
-#define DIM_LEN_SIMPLE 8
+#define DIM_LEN_SIMPLE 100
 #define EPSILON .1
         int ncid;
         int dimid;
@@ -858,27 +858,31 @@ main(int argc, char **argv)
             double_data[i] = 1.5 * i;
         }
 
-        /* Create file. */
+        /* Create the file. */
         if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
 
-        /* Create dims. */
+        /* Add one dimension. */
         if (nc_def_dim(ncid, "dim1", DIM_LEN_SIMPLE, &dimid)) ERR;
 
-        /* Create the variables. */
+        /* Create two variables, one float, one double. Quantization
+         * may only be applied to floating point data. */
         if (nc_def_var(ncid, "var1", NC_FLOAT, NDIM1, &dimid, &varid1)) ERR;
         if (nc_def_var(ncid, "var2", NC_DOUBLE, NDIM1, &dimid, &varid2)) ERR;
 
         /* Set up quantization. This will not make the data any
-         * smaller, unless compression is also turned on. */
+         * smaller, unless compression is also turned on. In this
+         * case, we will set 3 significant digits. */
         if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, NSD_3)) ERR;
         if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM, NSD_3)) ERR;
 
         /* Set up zlib compression. This will work better because the
-         * data are quantized, yielding a smaller output file. */
+         * data are quantized, yielding a smaller output file. We will
+         * set compression level to 1, which is usually the best
+         * choice. */
         if (nc_def_var_deflate(ncid, varid1, 0, 1, 1)) ERR;
         if (nc_def_var_deflate(ncid, varid2, 0, 1, 1)) ERR;
 
-        /* Write data. */
+        /* Write the data. */
         if (nc_put_var_float(ncid, varid1, float_data)) ERR;
         if (nc_put_var_double(ncid, varid2, double_data)) ERR;
 
