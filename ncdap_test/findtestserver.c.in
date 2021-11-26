@@ -87,7 +87,7 @@ main(int argc, char** argv)
     }
     url = nc_findtestserver(servlet,serverlist);
     if(url == NULL) {
-       url = "";
+       url = strdup("");
        fprintf(stderr,"not found: %s\n",servlet);
     }
     printf("%s",url);

@@ -119,11 +119,12 @@ NC_s3urlrebuild(NCURI* url, NCURI** newurlp, char** bucketp, char** outregionp)
 	if((stat = NC_getdefaults3region(url,&region0))) goto done;
 	region = strdup(region0);
     }
-    /* Construct the revised host */
-    ncbytescat(buf,"s3.");
-    ncbytescat(buf,region);
-    ncbytescat(buf,AWSHOST);
-    host = ncbytesextract(buf);
+    if(host == NULL) { /* Construct the revised host */
+        ncbytescat(buf,"s3.");
+        ncbytescat(buf,region);
+        ncbytescat(buf,AWSHOST);
+        host = ncbytesextract(buf);
+    }
 
     /* Construct the revised path */
     ncbytesclear(buf);
