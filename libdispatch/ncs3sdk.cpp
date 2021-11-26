@@ -65,7 +65,7 @@ dumps3info(NCS3INFO* info)
     return text;
 }
 
-EXTERNL void
+EXTERNL int
 NC_s3sdkinitialize(void)
 {
     if(!ncs3_initialized) {
@@ -75,9 +75,10 @@ NC_s3sdkinitialize(void)
 	Aws::InitAPI(ncs3options);
 	NCUNTRACE(NC_NOERR);
     }
+    return 1;
 }
 
-EXTERNL void
+EXTERNL int
 NC_s3sdkfinalize(void)
 {
     if(!ncs3_finalized) {
@@ -87,6 +88,7 @@ NC_s3sdkfinalize(void)
         Aws::ShutdownAPI(ncs3options);
         NCUNTRACE(NC_NOERR);
     }
+    return 1;
 }
 
 static char*
