@@ -451,7 +451,6 @@ static int NCZTR_put_vars(int ncid, int varid, const size_t *startp, const size_
     return ZUNTRACE(stat);
 }
 
-#if 0
 static int NCZTR_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int level)
 {
     int stat = NC_NOERR;
@@ -474,8 +473,6 @@ static int NCZTR_def_var_filter(int ncid, int varid, unsigned int id, size_t npa
     stat = NCZ_def_var_filter(ncid,varid,id,nparams,params);
     return (stat);
 }
-
-#endif
 
 static const NC_Dispatch NCZ_dispatcher_trace = {
 
@@ -557,11 +554,11 @@ static const NC_Dispatch NCZ_dispatcher_trace = {
     NC_NOTNC4_inq_enum_member,
     NC_NOTNC4_inq_enum_ident,
     NC_NOTNC4_def_opaque,
-    NC_NOTNC4_def_var_deflate,
-    NC_NOTNC4_def_var_fletcher32,
+    NCZTR_def_var_deflate,
+    NCZTR_def_var_fletcher32,
     NCZTR_def_var_chunking,
     NCZTR_def_var_endian,
-    NCZ_def_var_filter,
+    NCZTR_def_var_filter,
     NCZTR_set_var_chunk_cache,
     NCZTR_get_var_chunk_cache,
     NCZTR_inq_var_filter_ids,

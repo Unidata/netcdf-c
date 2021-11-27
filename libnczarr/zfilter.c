@@ -833,9 +833,11 @@ NCZ_filter_jsonize(const NC_FILE_INFO_T* file, const NC_VAR_INFO_T* var, NCZ_Fil
     
     ZTRACE(6,"var=%s filter=%s",var->hdr.name,(filter != NULL && filter->codec.id != NULL?filter->codec.id:"null"));
 
-    /* assumptions */
-    assert(filter->flags & FLAG_WORKING);
-
+    /* Ensure working parameters */
+    if((filter->flags & FLAG_WORKING)==0) {
+        if((stat = ensure_working(var,filter))) goto done;
+    }
+    
     /* Convert the HDF5 id + parameters to the codec form */
 
     /* We need to ensure the the current visible parameters are defined and had the opportunity to come
