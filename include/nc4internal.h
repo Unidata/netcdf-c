@@ -302,6 +302,7 @@ typedef struct  NC_FILE_INFO
     nc_bool_t parallel;   /**< True if file is open for parallel access */
     nc_bool_t redef;      /**< True if redefining an existing file */
     nc_bool_t no_attr_create_order; /**< True if the creation order tracking of attributes is disabled (netcdf-4 only) */
+    nc_bool_t no_dimscale_attach; /**< True if attaching dimscales to variables is disabled (netcdf-4 only) */
     int fill_mode;        /**< Fill mode for vars - Unused internally currently */
     nc_bool_t no_write;   /**< true if nc_open has mode NC_NOWRITE. */
     NC_GRP_INFO_T *root_grp; /**< Pointer to root group. */
