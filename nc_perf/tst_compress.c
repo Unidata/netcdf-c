@@ -26,7 +26,7 @@
 #include <netcdf_par.h>
 #include <netcdf_meta.h>
 
-#define TEST_NAME "tst_compress_par"
+#define TEST_NAME "tst_compress"
 #define NUM_META_VARS 7
 #define NUM_META_TRIES 2
 #define NDIM2 2
@@ -41,6 +41,7 @@
 #define THOUSAND 1000
 #define NUM_DATA_VARS 3
 #define ERR_AWFUL 1
+#define NUM_TRIES 2
 
 /* #define USE_SMALL 1 */
 
@@ -452,7 +453,7 @@ find_filters(int *num_compression_filters, char compression_filter_name[][NC_MAX
     /* zlib is always present. */
     strcpy(compression_filter_name[nfilters], "zlib");
     for (i = 0; i < NUM_DEFLATE_LEVELS; i++)
-        deflate_level[nfilters][i] = i;
+        deflate_level[nfilters][i] = i + 1;
              
     /* deflate_level[nfilters][0] = 1; */
     /* deflate_level[nfilters][1] = 4; */
@@ -497,7 +498,7 @@ main(int argc, char **argv)
     /* Compression filter info. */
     int num_compression_filters;
 
-    int f, s, n;
+    int f, s, n, try;
     int i, j, k, dv, dl;
     int ret;
 
@@ -545,86 +546,93 @@ main(int argc, char **argv)
     printf("Benchmarking creation of file similar to one produced by the UFS.\n");
     printf("comp, level, nsd, shuffle, data wr rate (MB/s), file size (MB)\n");
     /* for (f = 0; f < num_compression_filters; f++) */
-    for (f = 0; f < 2; f++)
+    for (try = 0; try < NUM_TRIES; try++)
     {
-        /* for (s = 0; s < NUM_SHUFFLE_SETTINGS; s++) */
-        for (s = 0; s < 1; s++)
+        printf("try %d:\n", try);
+        for (f = 0; f < 2; f++)
         {
-            /* for (n = 0; n < NUM_NSD_SETTINGS; n++) */
-            for (n = 0; n < 1; n++)
+            /* for (s = 0; s < NUM_SHUFFLE_SETTINGS; s++) */
+            for (s = 0; s < 1; s++)
             {
-                for (dl = 0; dl < NUM_DEFLATE_LEVELS; dl++)
+                /* for (n = 0; n < NUM_NSD_SETTINGS; n++) */
+                for (n = 0; n < 1; n++)
                 {
-                    size_t file_size;
-                    char file_name[NC_MAX_NAME * 3 + 1];
-
-                    /* No deflate levels for szip or none. */
-                    if (!strcmp(compression_filter_name[f], "szip") && dl) continue;
-                    if (!strcmp(compression_filter_name[f], "none") && dl) continue;
-
-                    /* Use the same filename every time, so we don't
-                     * create many large files, just one. ;-) */
-                    sprintf(file_name, "%s.nc", TEST_NAME);
-
-                    /* nc_set_log_level(3); */
-                    /* Create a netcdf-4 file. */
-                    if (nc_create(file_name, NC_NETCDF4, &ncid)) ERR;
-                    if (write_meta(ncid, data_varid, s, f, nsd[n], deflate_level[f][dl], 0,
-                                   phalf_size, phalf_start, phalf,
-                                   data_start, data_count, pfull_start, pfull_size, pfull, grid_xt_start,
-                                   grid_xt_size, grid_xt, grid_yt_start,
-                                   grid_yt_size, grid_yt, latlon_start,
-                                   latlon_count, lat, lon)) ERR;
-
-                    if (gettimeofday(&start_time, NULL)) ERR;
-
-                    /* Write one record each of the data variables. */
-                    for (dv = 0; dv < NUM_DATA_VARS; dv++)
+                    for (dl = 0; dl < NUM_DEFLATE_LEVELS; dl++)
                     {
-                        /* printf("%d: data_start %ld %ld %ld %ld data_count %ld %ld %ld %ld\n", my_rank, data_start[0], data_start[1], */
-                        /*        data_start[2], data_start[3], data_count[0], data_count[1], data_count[2], data_count[3]); */
-                        if (nc_put_vara_float(ncid, data_varid[dv], data_start, data_count,
-                                              value_data)) ERR;
-                        if (nc_redef(ncid)) ERR;
-                    }
+                        size_t file_size;
+                        char file_name[NC_MAX_NAME * 3 + 1];
 
-                    /* Close the file. */
-                    if (nc_close(ncid)) ERR;
+                        /* No deflate levels for szip or none. */
+                        if (!strcmp(compression_filter_name[f], "szip") && dl) continue;
+                        if (!strcmp(compression_filter_name[f], "none") && dl) continue;
 
-                    /* Stop the data timer. */
-                    if (gettimeofday(&end_time, NULL)) ERR;
-                    if (nc4_timeval_subtract(&diff_time, &end_time, &start_time)) ERR;
-                    write_1_us = (int)diff_time.tv_sec * MILLION + (int)diff_time.tv_usec;
-                    /* printf("write_1_us %d\n", write_1_us); */
+                        /* Use the same filename every time, so we don't
+                         * create many large files, just one. ;-) */
+                        sprintf(file_name, "%s.nc", TEST_NAME);
 
-                    /* Get the file size. */
-                    if (get_file_size(file_name, &file_size)) ERR;
+                        /* Remove the last file. Ignore errors. */
+                        remove(file_name);
 
-                    /* Check the file metadata for correctness. */
-                    if (nc_open(file_name, NC_NOWRITE, &ncid)) ERR;
-                    if (check_meta(ncid, data_varid, s, f, deflate_level[f][dl], 0,
-                                   phalf_size, phalf_start, phalf,
-                                   data_start, data_count, pfull_start, pfull_size,
-                                   pfull, grid_xt_start, grid_xt_size, grid_xt,
-                                   grid_yt_start, grid_yt_size, grid_yt, latlon_start,
-                                   latlon_count, lat, lon)) ERR;
-                    if (nc_close(ncid)) ERR;
+                        /* nc_set_log_level(3); */
+                        /* Create a netcdf-4 file. */
+                        if (nc_create(file_name, NC_NETCDF4, &ncid)) ERR;
+                        if (write_meta(ncid, data_varid, s, f, nsd[n], deflate_level[f][dl], 0,
+                                       phalf_size, phalf_start, phalf,
+                                       data_start, data_count, pfull_start, pfull_size, pfull, grid_xt_start,
+                                       grid_xt_size, grid_xt, grid_yt_start,
+                                       grid_yt_size, grid_yt, latlon_start,
+                                       latlon_count, lat, lon)) ERR;
 
-                    /* Print out results. */
-                    {
-                        float data_size, data_rate;
-                        data_size = (NUM_DATA_VARS * dim_len[0] * dim_len[1] * dim_len[2] *
-                                     dim_len[4] * sizeof(float))/MILLION;
-                        /* printf("data_size %f write_1_us / MILLION %g\n", data_size, (float)write_1_us/MILLION); */
-                        data_rate = (float)data_size / ((float)write_1_us / MILLION);
-                        printf("%s, %d, %d, %d, %g, %g\n", compression_filter_name[f],
-                               deflate_level[f][dl], nsd[n], s,
-                               data_rate, (float)file_size/MILLION);
-                    }
-                } /* next deflate level */
-            } /* next nsd */
-        } /* next shuffle filter test */
-    } /* next compression filter (zlib and szip) */
+                        if (gettimeofday(&start_time, NULL)) ERR;
+
+                        /* Write one record each of the data variables. */
+                        for (dv = 0; dv < NUM_DATA_VARS; dv++)
+                        {
+                            /* printf("%d: data_start %ld %ld %ld %ld data_count %ld %ld %ld %ld\n", my_rank, data_start[0], data_start[1], */
+                            /*        data_start[2], data_start[3], data_count[0], data_count[1], data_count[2], data_count[3]); */
+                            if (nc_put_vara_float(ncid, data_varid[dv], data_start, data_count,
+                                                  value_data)) ERR;
+                            if (nc_redef(ncid)) ERR;
+                        }
+
+                        /* Close the file. */
+                        if (nc_close(ncid)) ERR;
+
+                        /* Stop the data timer. */
+                        if (gettimeofday(&end_time, NULL)) ERR;
+                        if (nc4_timeval_subtract(&diff_time, &end_time, &start_time)) ERR;
+                        write_1_us = (int)diff_time.tv_sec * MILLION + (int)diff_time.tv_usec;
+                        /* printf("write_1_us %d\n", write_1_us); */
+
+                        /* Get the file size. */
+                        if (get_file_size(file_name, &file_size)) ERR;
+
+                        /* Check the file metadata for correctness. */
+                        if (nc_open(file_name, NC_NOWRITE, &ncid)) ERR;
+                        if (check_meta(ncid, data_varid, s, f, deflate_level[f][dl], 0,
+                                       phalf_size, phalf_start, phalf,
+                                       data_start, data_count, pfull_start, pfull_size,
+                                       pfull, grid_xt_start, grid_xt_size, grid_xt,
+                                       grid_yt_start, grid_yt_size, grid_yt, latlon_start,
+                                       latlon_count, lat, lon)) ERR;
+                        if (nc_close(ncid)) ERR;
+
+                        /* Print out results. */
+                        {
+                            float data_size, data_rate;
+                            data_size = (NUM_DATA_VARS * dim_len[0] * dim_len[1] * dim_len[2] *
+                                         dim_len[4] * sizeof(float))/MILLION;
+                            /* printf("data_size %f write_1_us / MILLION %g\n", data_size, (float)write_1_us/MILLION); */
+                            data_rate = (float)data_size / ((float)write_1_us / MILLION);
+                            printf("%s, %d, %d, %d, %g, %g\n", compression_filter_name[f],
+                                   deflate_level[f][dl], nsd[n], s,
+                                   data_rate, (float)file_size/MILLION);
+                        }
+                    } /* next deflate level */
+                } /* next nsd */
+            } /* next shuffle filter test */
+        } /* next compression filter (zlib and szip) */
+    } /* next try */
 
     /* Free resources. */
     if (grid_xt)
