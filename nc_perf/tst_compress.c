@@ -43,7 +43,7 @@
 #define ERR_AWFUL 1
 #define NUM_TRIES 2
 
-/* #define USE_SMALL 1 */
+#define USE_SMALL 1
 
 #ifdef USE_SMALL
 #define GRID_XT_LEN 8
