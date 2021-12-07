@@ -101,8 +101,8 @@ rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
         var = (NC_VAR_INFO_T*)ncindexith(grp->vars,i);
         assert(var && var->format_var_info);
 
-        hdf5_var = (NC_HDF5_VAR_INFO_T*)var->format_var_info;
-        assert(hdf5_var != NULL);
+	hdf5_var = (NC_HDF5_VAR_INFO_T*)var->format_var_info;
+	assert(hdf5_var != NULL);
         for (d = 0; d < var->ndims; d++)
         {
             if (var->dimids[d] == dimid && !hdf5_var->dimscale)
@@ -550,7 +550,7 @@ put_att_grpa(NC_GRP_INFO_T *grp, int varid, NC_ATT_INFO_T *att)
             /* Re-create the attribute with the type and length
                reflecting the new value (or values). */
             if ((attid = H5Acreate1(locid, att->hdr.name, file_typeid, spaceid,
-                                    H5P_DEFAULT)) < 0)
+				    H5P_DEFAULT)) < 0)
                 BAIL(NC_EATTMETA);
 
             /* Write the values, (even if length is zero). */
@@ -841,11 +841,11 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
      * nc_def_var_filter(). If the user
      * has specified a filter, it will be applied here. */
     if(var->filters != NULL) {
-        int j;
-        NClist* filters = (NClist*)var->filters;
-        for(j=0;j<nclistlength(filters);j++) {
-            struct NC_HDF5_Filter* fi = (struct NC_HDF5_Filter*)nclistget(filters,j);
-            {
+	int j;
+	NClist* filters = (NClist*)var->filters;
+	for(j=0;j<nclistlength(filters);j++) {
+	    struct NC_HDF5_Filter* fi = (struct NC_HDF5_Filter*)nclistget(filters,j);
+	    {
                 if(fi->filterid == H5Z_FILTER_DEFLATE) {/* Handle zip case here */
                     unsigned level;
                     if(fi->nparams != 1)
@@ -853,7 +853,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
                     level = (int)fi->params[0];
                     if(H5Pset_deflate(plistid, level) < 0)
                         BAIL(NC_EFILTER);
-                } else if(fi->filterid == H5Z_FILTER_SZIP) {/* Handle szip case here */
+  	        } else if(fi->filterid == H5Z_FILTER_SZIP) {/* Handle szip case here */
                     int options_mask;
                     int bits_per_pixel;
                     if(fi->nparams != 2)
@@ -865,14 +865,14 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
                 } else {
                     herr_t code = H5Pset_filter(plistid, fi->filterid,
 #if 0
-                                                H5Z_FLAG_MANDATORY,
+		    				H5Z_FLAG_MANDATORY,
 #else
-                                                H5Z_FLAG_OPTIONAL,
+		    				H5Z_FLAG_OPTIONAL,
 #endif
-                                                fi->nparams, fi->params);
+						fi->nparams, fi->params);
                     if(code < 0)
                         BAIL(NC_EFILTER);
-                }
+		}
             }
         }
     }
@@ -898,7 +898,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
          * better performance. */
         if (!var->shuffle && !var->fletcher32 && nclistlength((NClist*)var->filters) == 0 &&
             (var->chunksizes == NULL || !var->chunksizes[0]) && !unlimdim)
-            var->storage = NC_CONTIGUOUS;
+	    var->storage = NC_CONTIGUOUS;
 
         /* Gather current & maximum dimension sizes, along with chunk
          * sizes. */
@@ -970,7 +970,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
     /* Turn on creation order tracking. */
     if (!grp->nc4_info->no_attr_create_order) {
       if (H5Pset_attr_creation_order(plistid, H5P_CRT_ORDER_TRACKED|
-                                     H5P_CRT_ORDER_INDEXED) < 0)
+				     H5P_CRT_ORDER_INDEXED) < 0)
         BAIL(NC_EHDFERR);
     }
 
@@ -1020,9 +1020,9 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
     /* If quantization is in use, write an attribute indicating it, a
      * single integer which is the number of significant digits. */
     if (var->quantize_mode == NC_QUANTIZE_BITGROOM)
-        if ((retval = nc4_put_att(var->container, var->hdr.id, NC_QUANTIZE_ATT_NAME, NC_INT, 1,
-                                  &var->nsd, NC_INT, 0)))
-            BAIL(retval);
+	if ((retval = nc4_put_att(var->container, var->hdr.id, NC_QUANTIZE_ATT_NAME, NC_INT, 1,
+				  &var->nsd, NC_INT, 0)))
+	    BAIL(retval);
 
     /* Write attributes for this var. */
     if ((retval = write_attlist(var->att, var->hdr.id, grp)))
@@ -1169,7 +1169,7 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
                 for (d = 0; d < field->ndims; d++)
                     dims[d] = field->dim_size[d];
                 if ((hdf_typeid = H5Tarray_create1(hdf_base_typeid, field->ndims,
-                                                   dims, NULL)) < 0)
+						   dims, NULL)) < 0)
                 {
                     if (H5Tclose(hdf_base_typeid) < 0)
                         return NC_EHDFERR;
@@ -1388,33 +1388,35 @@ attach_dimscales(NC_GRP_INFO_T *grp)
             continue;
 
         /* Find the scale for each dimension, if any, and attach it. */
-        for (d = 0; d < var->ndims; d++)
-        {
-          /* Is there a dimscale for this dimension? */
-          if (hdf5_var->dimscale_attached)
-          {
-              if (!hdf5_var->dimscale_attached[d])
-              {
-                  hid_t dsid;  /* Dataset ID for dimension */
-                  assert(var->dim[d] && var->dim[d]->hdr.id == var->dimids[d] &&
-                         var->dim[d]->format_dim_info);
+        if (!grp->nc4_info->no_dimscale_attach) {
+            for (d = 0; d < var->ndims; d++)
+            {
+                /* Is there a dimscale for this dimension? */
+                if (hdf5_var->dimscale_attached)
+                {
+                    if (!hdf5_var->dimscale_attached[d])
+                    {
+                        hid_t dsid;  /* Dataset ID for dimension */
+                        assert(var->dim[d] && var->dim[d]->hdr.id == var->dimids[d] &&
+                               var->dim[d]->format_dim_info);
 
-                  LOG((2, "%s: attaching scale for dimid %d to var %s",
-                       __func__, var->dimids[d], var->hdr.name));
+                        LOG((2, "%s: attaching scale for dimid %d to var %s",
+                             __func__, var->dimids[d], var->hdr.name));
 
-                  /* Find dataset ID for dimension */
-                  if (var->dim[d]->coord_var)
-                      dsid = ((NC_HDF5_VAR_INFO_T *)(var->dim[d]->coord_var->format_var_info))->hdf_datasetid;
-                  else
-                      dsid = ((NC_HDF5_DIM_INFO_T *)var->dim[d]->format_dim_info)->hdf_dimscaleid;
-                  assert(dsid > 0);
+                        /* Find dataset ID for dimension */
+                        if (var->dim[d]->coord_var)
+                            dsid = ((NC_HDF5_VAR_INFO_T *)(var->dim[d]->coord_var->format_var_info))->hdf_datasetid;
+                        else
+                            dsid = ((NC_HDF5_DIM_INFO_T *)var->dim[d]->format_dim_info)->hdf_dimscaleid;
+                        assert(dsid > 0);
 
-                  /* Attach the scale. */
-                  if (H5DSattach_scale(hdf5_var->hdf_datasetid, dsid, d) < 0)
-                      return NC_EHDFERR;
-                  hdf5_var->dimscale_attached[d] = NC_TRUE;
-              }
-          }
+                          /* Attach the scale. */
+                          if (H5DSattach_scale(hdf5_var->hdf_datasetid, dsid, d) < 0)
+                              return NC_EHDFERR;
+                          hdf5_var->dimscale_attached[d] = NC_TRUE;
+                    }
+                }
+            }
         }
     }
 
@@ -1766,7 +1768,7 @@ nc4_create_dim_wo_var(NC_DIM_INFO_T *dim)
     /* Turn on creation-order tracking. */
     if (!dim->container->nc4_info->no_attr_create_order) {
       if (H5Pset_attr_creation_order(create_propid, H5P_CRT_ORDER_TRACKED|
-                                     H5P_CRT_ORDER_INDEXED) < 0)
+				     H5P_CRT_ORDER_INDEXED) < 0)
         BAIL(NC_EHDFERR);
     }
     /* Create the dataset that will be the dimension scale. */
@@ -2547,7 +2549,7 @@ NC4_walk(hid_t gid, int* countp)
         otype =  H5Gget_objtype_by_idx(gid,(size_t)i);
         switch(otype) {
         case H5G_GROUP:
-            grpid = H5Gopen1(gid,name);
+	    grpid = H5Gopen1(gid,name);
             NC4_walk(grpid,countp);
             H5Gclose(grpid);
             break;
