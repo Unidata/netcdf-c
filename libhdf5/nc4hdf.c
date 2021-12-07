@@ -1388,35 +1388,33 @@ attach_dimscales(NC_GRP_INFO_T *grp)
             continue;
 
         /* Find the scale for each dimension, if any, and attach it. */
-        if (!grp->nc4_info->no_dimscale_attach) {
-            for (d = 0; d < var->ndims; d++)
-            {
-                /* Is there a dimscale for this dimension? */
-                if (hdf5_var->dimscale_attached)
-                {
-                    if (!hdf5_var->dimscale_attached[d])
-                    {
-                        hid_t dsid;  /* Dataset ID for dimension */
-                        assert(var->dim[d] && var->dim[d]->hdr.id == var->dimids[d] &&
-                               var->dim[d]->format_dim_info);
+	for (d = 0; d < var->ndims; d++)
+	{
+	  /* Is there a dimscale for this dimension? */
+	  if (hdf5_var->dimscale_attached)
+	  {
+	      if (!hdf5_var->dimscale_attached[d])
+	      {
+		  hid_t dsid;  /* Dataset ID for dimension */
+		  assert(var->dim[d] && var->dim[d]->hdr.id == var->dimids[d] &&
+			 var->dim[d]->format_dim_info);
 
-                        LOG((2, "%s: attaching scale for dimid %d to var %s",
-                             __func__, var->dimids[d], var->hdr.name));
+		  LOG((2, "%s: attaching scale for dimid %d to var %s",
+		       __func__, var->dimids[d], var->hdr.name));
 
-                        /* Find dataset ID for dimension */
-                        if (var->dim[d]->coord_var)
-                            dsid = ((NC_HDF5_VAR_INFO_T *)(var->dim[d]->coord_var->format_var_info))->hdf_datasetid;
-                        else
-                            dsid = ((NC_HDF5_DIM_INFO_T *)var->dim[d]->format_dim_info)->hdf_dimscaleid;
-                        assert(dsid > 0);
+		  /* Find dataset ID for dimension */
+		  if (var->dim[d]->coord_var)
+		      dsid = ((NC_HDF5_VAR_INFO_T *)(var->dim[d]->coord_var->format_var_info))->hdf_datasetid;
+		  else
+		      dsid = ((NC_HDF5_DIM_INFO_T *)var->dim[d]->format_dim_info)->hdf_dimscaleid;
+		  assert(dsid > 0);
 
-                          /* Attach the scale. */
-                          if (H5DSattach_scale(hdf5_var->hdf_datasetid, dsid, d) < 0)
-                              return NC_EHDFERR;
-                          hdf5_var->dimscale_attached[d] = NC_TRUE;
-                    }
-                }
-            }
+		  /* Attach the scale. */
+		  if (H5DSattach_scale(hdf5_var->hdf_datasetid, dsid, d) < 0)
+		      return NC_EHDFERR;
+		  hdf5_var->dimscale_attached[d] = NC_TRUE;
+	      }
+	  }
         }
     }
 
@@ -1952,9 +1950,11 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order)
         }
     } /* end while */
 
-    /* Attach dimscales to vars in this group. */
-    if ((retval = attach_dimscales(grp)))
-        return retval;
+    /* Attach dimscales to vars in this group. Unless directed not to. */
+    if (!grp->nc4_info->no_dimscale_attach) {
+        if ((retval = attach_dimscales(grp)))
+	    return retval;
+    }
 
     /* If there are any child groups, write their metadata. */
     for (i = 0; i < ncindexsize(grp->children); i++)
