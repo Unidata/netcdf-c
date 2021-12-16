@@ -83,13 +83,17 @@ COLUMBIA="http://iridl.ldeo.columbia.edu/SOURCES/.Models/.NMME/.NASA-GMAO/.MONTH
 # Known to fail
 
 XFAILTESTS=
+
 # Suppress some tests if not windows platform.
-if test "x$platform" == xmingw ; then
+if test "x$FP_ISMSVC" != xyes ; then
     XFAILTESTS="$XFAILTESTS test.67"
 fi
 
 # Following tests must be run as not cached
 NOCACHETESTS="test.07"
+
+# Following tests must be run as not prefetch
+NOPREFETCHTESTS="test.07"
 
 # Following tests must be run as not prefetch
 NOPREFETCHTESTS="test.07"
@@ -158,7 +162,7 @@ for x in ${REMOTETESTS} ; do
     if IGNORE=`echo -n " ${XFAILTESTS} " | fgrep " ${name} "`; then isxfail=1; fi
   fi
   ok=1
-  if ${NCDUMP} ${FLAGS} "${url}" | sed 's/\\r//g' > ${name}.dmp ; then ok=$ok; else ok=0; fi
+  if ${NCDUMP} ${DUMPFLAGS} "${url}" | sed 's/\\r//g' > ${name}.dmp ; then ok=$ok; else ok=0; fi
   # compare with expected
   if diff -w ${EXPECTED}/${name}.dmp ${name}.dmp  ; then ok=$ok; else ok=0; fi
    processstatus
