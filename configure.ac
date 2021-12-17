@@ -526,7 +526,7 @@ AC_MSG_CHECKING([whether dap remote testing should be enabled])
 AC_ARG_ENABLE([dap-remote-tests],
               [AS_HELP_STRING([--enable-dap-remote-tests],
                                  [enable dap remote tests])])
-test "x$enable_dap_remote_tests" = xyes || enable_dap_remote_tests=no
+test "x$enable_dap_remote_tests" = xno || enable_dap_remote_tests=yes
 if test "x$enable_dap" = "xno" ; then
   enable_dap_remote_tests=no
 fi

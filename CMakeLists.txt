@@ -1038,8 +1038,7 @@ IF(NOT WIN32)
 ENDIF()
 
 # Option to Enable DAP long tests, remote tests.
-# Temporarily disable
-OPTION(ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." OFF)
+OPTION(ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." ON)
 
 OPTION(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
 SET(REMOTETESTSERVERS "remotetest.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
