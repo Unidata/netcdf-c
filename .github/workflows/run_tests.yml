@@ -83,11 +83,11 @@ jobs:
       - run: echo "LD_LIBRARY_PATH=${HOME}/environments/${{ matrix.hdf5 }}/lib" >> $GITHUB_ENV
       - run: |
           echo "ENABLE_HDF4=--disable-hdf4" >> $GITHUB_ENV
-          echo "ENABLE_NC4=--disable-hdf5" >> $GITHUB_ENV
+          echo "ENABLE_HDF5=--disable-hdf5" >> $GITHUB_ENV
         if: matrix.use_nc4 == 'nc3'
       - run: |
           echo "ENABLE_HDF4=--enable-hdf4" >> $GITHUB_ENV
-          echo "ENABLE_NC4=--enable-hdf5" >> $GITHUB_ENV
+          echo "ENABLE_HDF5=--enable-hdf5" >> $GITHUB_ENV
         if: matrix.use_nc4 == 'nc4'
       - run: echo "ENABLE_DAP=--disable-dap" >> $GITHUB_ENV
         if: matrix.use_dap == 'dap_off'
@@ -123,7 +123,7 @@ jobs:
 
       - name: Configure
         shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure ${ENABLE_HDF4} ${ENABLE_NC4} ${ENABLE_DAP} ${ENABLE_NCZARR}
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure ${ENABLE_HDF4} ${ENABLE_HDF5} ${ENABLE_DAP} ${ENABLE_NCZARR}
         if: ${{ success() }}
 
       - name: Look at config.log if error
@@ -152,7 +152,7 @@ jobs:
 
      # - name: Make Distcheck
      #   shell: bash -l {0}
-     #   run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} DISTCHECK_CONFIGURE_FLAGS="${ENABLE_HDF4} ${ENABLE_NC4} ${ENABLE_DAP} ${ENABLE_NCZARR}" make distcheck
+     #   run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} DISTCHECK_CONFIGURE_FLAGS="${ENABLE_HDF4} ${ENABLE_HDF5} ${ENABLE_DAP} ${ENABLE_NCZARR}" make distcheck
      #   if: ${{ success() }}
 
       #- name: Start SSH Debug
@@ -189,11 +189,11 @@ jobs:
       - run: echo "LD_LIBRARY_PATH=${HOME}/environments/${{ matrix.hdf5 }}/lib" >> $GITHUB_ENV
       - run: |
           echo "ENABLE_HDF4=OFF" >> $GITHUB_ENV
-          echo "ENABLE_NC4=OFF" >> $GITHUB_ENV
+          echo "ENABLE_HDF5=OFF" >> $GITHUB_ENV
         if: matrix.use_nc4 == 'nc3'
       - run: |
           echo "ENABLE_HDF4=ON" >> $GITHUB_ENV
-          echo "ENABLE_NC4=ON" >> $GITHUB_ENV
+          echo "ENABLE_HDF5=ON" >> $GITHUB_ENV
         if: matrix.use_nc4 == 'nc4'
       - run: echo "ENABLE_DAP=OFF" >> $GITHUB_ENV
         if: matrix.use_dap == 'dap_off'
@@ -229,7 +229,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DENABLE_HDF4=${ENABLE_HDF4} -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DENABLE_DAP=${ENABLE_DAP} -DENABLE_HDF5=${ENABLE_NC4} -DENABLE_NCZARR=${ENABLE_NCZARR}
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DENABLE_HDF4=${ENABLE_HDF4} -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DENABLE_DAP=${ENABLE_DAP} -DENABLE_HDF5=${ENABLE_HDF5} -DENABLE_NCZARR=${ENABLE_NCZARR}
 
       - name: Print Summary
         shell: bash -l {0}
