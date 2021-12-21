@@ -47,7 +47,7 @@ if BUILD_UTILITIES
 TESTS += run_ncgen4.sh
 
 if USE_HDF5
-TESTS += run_nccopyz.sh
+#TESTS += run_nccopyz.sh
 TESTS += run_fillonlyz.sh
 endif
 
@@ -58,21 +58,44 @@ TESTS += run_chunkcases.sh
 TESTS += run_purezarr.sh
 TESTS += run_interop.sh
 TESTS += run_misc.sh
+TESTS += run_nczarr_fill.sh
 
 endif
 
-if BUILD_BENCHMARKS
-if BUILD_UTILITIES
+if BUILD_UTILITIES 
 
-UTILSRC = bm_utils.c timer_utils.c tst_utils.c
+if ENABLE_NCZARR_ZIP
+TESTS += run_newformat.sh
+endif
+
+if BUILD_BENCHMARKS
+
+UTILSRC = bm_utils.c timer_utils.c tst_utils.c bm_utils.h bm_timer.h
 
 bm_chunks3_SOURCES = bm_chunks3.c ${UTILSRC}
 
 check_PROGRAMS += bm_chunks3
 
+# The perf tests need modernization
+if AX_IGNORE
 TESTS += run_perf_chunks1.sh
+endif
 
 endif # BUILD_BENCHMARKS
+
+if ENABLE_FILTER_TESTING
+# Do simple filter functionality tests for nczarr
+check_PROGRAMS += tst_nczfilter
+TESTS += tst_nczfilter
+
+# Echo filter tests from nc_test4
+check_PROGRAMS += testfilter testfilter_misc testfilter_order testfilter_repeat testfilter_multi
+TESTS += run_filter.sh
+if ENABLE_BLOSC
+TESTS += run_specific_filters.sh
+endif
+
+endif #ENABLE_FILTER_TESTING
 
 endif #BUILD_UTILITIES
 
@@ -101,7 +124,11 @@ ncdumpchunks_SOURCES = ncdumpchunks.c
 EXTRA_DIST = CMakeLists.txt \
 run_ut_map.sh run_ut_mapapi.sh run_ut_misc.sh run_ut_chunk.sh run_ncgen4.sh \
 run_nccopyz.sh run_fillonlyz.sh run_chunkcases.sh test_nczarr.sh run_perf_chunks1.sh run_s3_cleanup.sh \
-run_purezarr.sh run_interop.sh run_misc.sh  \
+run_purezarr.sh run_interop.sh run_misc.sh \
+run_filter.sh run_specific_filters.sh \
+run_newformat.sh run_nczarr_fill.sh
+
+EXTRA_DIST += \
 ref_ut_map_create.cdl ref_ut_map_writedata.cdl ref_ut_map_writemeta2.cdl ref_ut_map_writemeta.cdl \
 ref_ut_map_readmeta.txt ref_ut_map_readmeta2.txt ref_ut_map_search.txt \
 ref_ut_mapapi_create.cdl ref_ut_mapapi_data.cdl ref_ut_mapapi_meta.cdl ref_ut_mapapi_search.txt \
@@ -115,13 +142,23 @@ ref_rem.cdl ref_rem.dmp ref_ndims.cdl  ref_ndims.dmp \
 ref_misc1.cdl ref_misc1.dmp ref_misc2.cdl \
 ref_avail1.cdl ref_avail1.dmp ref_avail1.txt \
 ref_xarray.cdl ref_purezarr.cdl ref_purezarr_base.cdl ref_nczarr2zarr.cdl \
-ref_power_901_constants.zip ref_power_901_constants.cdl ref_quotes.zip ref_quotes.cdl
+ref_bzip2.cdl ref_filtered.cdl ref_multi.cdl \
+ref_any.cdl ref_oldformat.cdl ref_oldformat.zip ref_newformatpure.cdl \
+ref_quotes.zip ref_quotes.cdl \
+ref_groups.h5 ref_byte.zarr.zip ref_byte_fill_value_null.zarr.zip \
+ref_groups_regular.cdl ref_byte.cdl ref_byte_fill_value_null.cdl
 
-CLEANFILES = ut_*.txt ut*.cdl tmp*.nc tmp*.cdl tmp*.txt tmp*.dmp tmp*.zip tmp*.nc
+# Interoperability files
+EXTRA_DIST += ref_power_901_constants.zip ref_power_901_constants.cdl ref_quotes.zip ref_quotes.cdl ref_zarr_test_data.cdl.gz
+
+CLEANFILES = ut_*.txt ut*.cdl tmp*.nc tmp*.cdl tmp*.txt tmp*.dmp tmp*.zip tmp*.nc tmp*.dump tmp*.tmp tmp_ngc.c ref_zarr_test_data.cdl
 
 # Remove directories
 clean-local:
 	rm -fr tmp*.file results.file results.s3 results.zip
-	rm -fr power_901_constants.file
 	rm -fr rcmiscdir
-	rm -rf ref_power_901_constants.file
+
+DISTCLEANFILES = findplugin.sh
+
+# If valgrind is present, add valgrind targets.
+@VALGRIND_CHECK_RULES@

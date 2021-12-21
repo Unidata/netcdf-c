@@ -78,7 +78,7 @@ extern int dsp_open(const char* path, ND4dsp** dspp);
 /* From d4http.c */
 extern long NCD4_fetchhttpcode(CURL* curl);
 extern int NCD4_fetchurl_file(CURL* curl, const char* url, FILE* stream, d4size_t* sizep, long* filetime);
-extern int NCD4_fetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime);
+extern int NCD4_fetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime, int* httpcode);
 extern int NCD4_curlopen(CURL** curlp);
 extern void NCD4_curlclose(CURL* curl);
 extern int NCD4_fetchlastmodified(CURL* curl, char* url, long* filetime);
@@ -87,6 +87,7 @@ extern int NCD4_ping(const char* url);
 /* From d4read.c */
 extern int NCD4_readDMR(NCD4INFO* state, int flags);
 extern int NCD4_readDAP(NCD4INFO* state, int flags);
+extern int NCD4_seterrormessage(NCD4meta* metadata, size_t len, char* msg);
 
 /* From d4parser.c */
 extern int NCD4_parse(NCD4meta*);
@@ -98,7 +99,8 @@ extern int NCD4_defineattr(NCD4meta* meta, NCD4node* parent, const char* aname, 
 extern int NCD4_print(NCD4meta*, NCbytes* output);
 
 /* From d4meta.c */
-extern NCD4meta* NCD4_newmeta(NCD4INFO*, size_t size, void* rawdata);
+extern NCD4meta* NCD4_newmeta(NCD4INFO*);
+extern void NCD4_attachraw(NCD4meta*, size_t size, void* rawdata);
 extern void NCD4_reclaimMeta(NCD4meta*);
 extern void NCD4_resetMeta(NCD4meta*);
 extern void reclaimNode(NCD4node* node);
@@ -139,6 +141,7 @@ extern char* NCD4_deescape(const char* esc);
 extern char* NCD4_entityescape(const char* s);
 extern size_t NCD4_elidenuls(char* s, size_t slen);
 extern void* NCD4_getheader(void* p, NCD4HDR* hdr, int hostlittleendian);
+extern void NCD4_reporterror(NCD4INFO* state);
 
 /* From d4dump.c */
 extern void NCD4_dumpbytes(size_t size, const void* data0, int swap);

@@ -49,19 +49,30 @@ int
 main(int argc, char** argv)
 {
     int stat = NC_NOERR;
+    char* tmp = NULL;
 
     if((stat = ut_init(argc, argv, &utoptions))) goto done;
     if(utoptions.file == NULL && utoptions.output != NULL) utoptions.file = strdup(utoptions.output);
     if(utoptions.output == NULL && utoptions.file != NULL)utoptions.output = strdup(utoptions.file);
+
+    /* Canonicalize */
+    if((stat = NCpathcanonical(utoptions.file,&tmp))) goto done;
+    free(utoptions.file);
+    utoptions.file = tmp;
+    if((stat = NCpathcanonical(utoptions.output,&tmp))) goto done;
+    free(utoptions.output);
+    utoptions.output = tmp;
+
     impl = kind2impl(utoptions.kind);
-//    if(impl == NCZM_S3) setkeyprefix(utoptions.file);
-    url = makeurl(utoptions.file,impl);
+    url = makeurl(utoptions.file,impl,&utoptions);
 
     if((stat = runtests((const char**)utoptions.cmds,tests))) goto done;
     
 done:
+    nullfree(tmp);
     nullfree(url); url = NULL;
     nullfree(keyprefix);
+    ut_final();
     if(stat) usage(THROW(stat));
     return 0;
 }
@@ -140,7 +151,7 @@ simpledelete(void)
     case NC_NOERR:
         report(FAIL,"open",map);
 	break;
-    case NC_ENOTFOUND:
+    case NC_ENOOBJECT:
         report(XFAIL,"open",map);
 	stat = NC_NOERR;
 	break;

@@ -42,7 +42,7 @@ pingurl4_SOURCES = pingurl4.c
 if ENABLE_DAP_REMOTE_TESTS
 if BUILD_UTILITIES
   # relies on ncdump
-  TESTS += test_hyrax.sh
+  TESTS += test_hyrax.sh test_thredds.sh
 if AX_IGNORE
   TESTS += test_remote.sh
 endif
@@ -50,10 +50,10 @@ endif
 endif
 
 EXTRA_DIST = test_parse.sh test_meta.sh test_data.sh \
-             test_raw.sh test_remote.sh test_hyrax.sh test_fillmismatch.sh \
+             test_raw.sh test_remote.sh test_hyrax.sh test_thredds.sh test_fillmismatch.sh \
              tst_curlopt.sh d4test_common.sh \
 	     daptestfiles dmrtestfiles cdltestfiles nctestfiles misctestfiles \
-	     baseline baselineraw baselineremote baselinehyrax CMakeLists.txt test_common.h
+	     baseline baselineraw baselineremote baselinehyrax baselinethredds CMakeLists.txt test_common.h
 
 CLEANFILES = *.exe
 # This should only be left behind if using parallel io
@@ -72,8 +72,7 @@ clean-local: clean-local-check
 .PHONY: clean-local-check
 
 clean-local-check:
-	-rm -rf results results_test_parse results_test_data \
-                results_test_hyrax results_test_meta results_test_raw
+	-rm -rf results results_test_*
 	-rm -f .dodsrc .daprc
 
 # The shell file maketests.sh is used to build the testdata

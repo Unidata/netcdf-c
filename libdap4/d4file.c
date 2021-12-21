@@ -150,14 +150,16 @@ NCD4_open(const char * path, int mode,
     /* Always start by reading the DMR only */
     /* reclaim substrate.metadata */
     resetInfoforRead(d4info);
+    /* Rebuild metadata */
+    if((d4info->substrate.metadata=NCD4_newmeta(d4info))==NULL)
+	{ret = NC_ENOMEM; goto done;}
 
     if((ret=NCD4_readDMR(d4info, d4info->controls.flags.flags))) goto done;
 
-    /* (Re)Build the meta data; sets serial.rawdata */
+    /* set serial.rawdata */
     len = ncbyteslength(d4info->curl->packet);
     contents = ncbytesextract(d4info->curl->packet);
-    if((d4info->substrate.metadata=NCD4_newmeta(d4info, len, contents))==NULL)
-	{ret = NC_ENOMEM; goto done;}
+    NCD4_attachraw(d4info->substrate.metadata, len, contents);
 
     meta = d4info->substrate.metadata;
 

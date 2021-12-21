@@ -21,6 +21,7 @@ ncdap_test/findtestserver.c
 #####
 
 ### 'Normal' gitignore files.
+.vscode
 nug.tag
 netcdf-c.tag
 autom4te.cache

@@ -682,7 +682,7 @@ get_mem_used2(int *mem_used)
    snprintf(buf, 30, "/proc/%u/statm", (unsigned)getpid());
    if ((pf = fopen(buf, "r")))
    {
-      fscanf(pf, "%u %u %u %u %u %u", &size, &resident, &share,
+      (void)fscanf(pf, "%u %u %u %u %u %u", &size, &resident, &share,
 	     &text, &lib, &data);
       *mem_used = (data * page_size) / MEGABYTE;
    }

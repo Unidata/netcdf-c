@@ -24,7 +24,7 @@ cd ${srcdir}/baseline; BASELINE=`pwd` ; cd ${WD}
 cd ${srcdir}/baselineraw; BASELINERAW=`pwd` ; cd ${WD}
 cd ${srcdir}/baselineremote; BASELINEREM=`pwd` ; cd ${WD}
 cd ${srcdir}/baselinehyrax; BASELINEH=`pwd` ; cd ${WD}
-#cd ${srcdir}/baselinethredds; BASELINETH=`pwd` ; cd ${WD}
+cd ${builddir}/baselinethredds; BASELINETH=`pwd` ; cd ${WD}
 
 setresultdir() {
 rm -fr ${builddir}/$1
@@ -54,6 +54,23 @@ filesexist() {
 	fi
     done
 }
+
+urlbasename() {
+    constraint=`echo "$1" | cut -d '?' -f2`
+    unconstrained=`echo "$1" | cut -d '?' -f1`
+    base=`basename $unconstrained`
+    prefix=`dirname $unconstrained`
+}
+
+makeurl() {
+    urlbasename "$2"
+    if test "x$constraint" = "x$unconstrained" ; then
+        URL="$1/${prefix}/${base}${FRAG}"
+    else
+	URL="$1/${prefix}/${base}?$constraint${FRAG}"
+    fi
+}
+
 
 finish() {
 if test "x$FAILURES" = x1 ; then

@@ -10,8 +10,6 @@
 #include <sys/stat.h>
 #endif
 
-extern int fileno(FILE*);
-
 #include "ocinternal.h"
 #include "ocdebug.h"
 

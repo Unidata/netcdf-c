@@ -118,11 +118,12 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
     }
 
     /* Need this access plist to control how HDF5 handles open objects
-     * on file close. Setting H5F_CLOSE_SEMI will cause H5Fclose to
-     * fail if there are any open objects in the file. */
+     * on file close. (Setting H5F_CLOSE_WEAK will cause H5Fclose not to
+     * fail if there are any open objects in the file. This may happen when virtual
+     * datasets are opened). */
     if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0)
         BAIL(NC_EHDFERR);
-    if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_SEMI))
+    if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_WEAK))
         BAIL(NC_EHDFERR);
 
 #ifdef USE_PARALLEL4
@@ -191,10 +192,15 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
     if (H5Pset_link_creation_order(fcpl_id, (H5P_CRT_ORDER_TRACKED |
                                              H5P_CRT_ORDER_INDEXED)) < 0)
         BAIL(NC_EHDFERR);
-    if (H5Pset_attr_creation_order(fcpl_id, (H5P_CRT_ORDER_TRACKED |
-                                             H5P_CRT_ORDER_INDEXED)) < 0)
-        BAIL(NC_EHDFERR);
 
+    if (cmode & NC_NOATTCREORD) {
+        nc4_info->no_attr_create_order = NC_TRUE;
+    }
+    else {
+      if (H5Pset_attr_creation_order(fcpl_id, (H5P_CRT_ORDER_TRACKED |
+					       H5P_CRT_ORDER_INDEXED)) < 0)
+        BAIL(NC_EHDFERR);
+    }
 #ifdef HDF5_HAS_COLL_METADATA_OPS
     /* If HDF5 supports collective metadata operations, turn them
      * on. This is only relevant for parallel I/O builds of HDF5. */

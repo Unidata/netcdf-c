@@ -4,14 +4,8 @@
 #include <assert.h>
 #include <stdio.h>
 #include <sys/types.h>
-#include <hdf5.h>
-/* Older versions of the hdf library may define H5PL_type_t here */
-#include <H5PLextern.h>
+#include "netcdf_filter_build.h"
 #include "h5misc.h"
-
-#ifndef DLL_EXPORT
-#define DLL_EXPORT
-#endif
 
 /* WARNING:
 Starting with HDF5 version 1.10.x, the plugin code MUST be
@@ -36,6 +30,11 @@ will generate an error.
 */
 #define DBLVAL 12345678.12345678
 
+static htri_t H5Z_test_can_apply(hid_t dcpl_id, hid_t type_id, hid_t space_id);
+static size_t H5Z_filter_test(unsigned int flags, size_t cd_nelmts,
+                     const unsigned int cd_values[], size_t nbytes,
+                     size_t *buf_size, void **buf);
+
 static int paramcheck(size_t nparams, const unsigned int* params);
 static void mismatch(size_t i, const char* which);
 
@@ -51,12 +50,14 @@ const H5Z_class2_t H5Z_TEST[1] = {{
 }};
 
 /* External Discovery Functions */
+DLLEXPORT
 H5PL_type_t
 H5PLget_plugin_type(void)
 {
     return H5PL_TYPE_FILTER;
 }
 
+DLLEXPORT
 const void*
 H5PLget_plugin_info(void)
 {
@@ -68,7 +69,7 @@ H5PLget_plugin_info(void)
  * The "can_apply" callback returns positive a valid combination, zero for an
  * invalid combination and negative for an error.
  */
-htri_t
+static htri_t
 H5Z_test_can_apply(hid_t dcpl_id, hid_t type_id, hid_t space_id)
 {
     return 1; /* Assume it can always apply */
@@ -88,7 +89,7 @@ Test cases format:
 
 */
 
-size_t
+static size_t
 H5Z_filter_test(unsigned int flags, size_t cd_nelmts,
                      const unsigned int cd_values[], size_t nbytes,
                      size_t *buf_size, void **buf)
@@ -126,31 +127,19 @@ fprintf(stderr,"TC_EXPANDED: decompress: nbytes=%u buf_size=%u xdata[0..8]=|",(u
 	    }
 	    fprintf(stderr,"|\n");
             /* Replace buffer */
-#ifdef HAVE_H5ALLOCATE_MEMORY
             newbuf = H5allocate_memory(*buf_size,0);
-#else
-            newbuf = malloc(*buf_size);
-#endif
             if(newbuf == NULL) abort();
             memcpy(newbuf,*buf,*buf_size);
 	
 	} else {
             /* Replace buffer */
-#ifdef HAVE_H5ALLOCATE_MEMORY
             newbuf = H5allocate_memory(*buf_size,0);
-#else
-            newbuf = malloc(*buf_size);
-#endif
             if(newbuf == NULL) abort();
             memcpy(newbuf,*buf,*buf_size);
 	}
 	
         /* reclaim old buffer */
-#ifdef HAVE_H5FREE_MEMORY
         H5free_memory(*buf);
-#else
-        free(*buf);
-#endif
         *buf = newbuf;
 
     } else { /* Compress */
@@ -161,11 +150,7 @@ fprintf(stderr,"TC_EXPANDED: decompress: nbytes=%u buf_size=%u xdata[0..8]=|",(u
 fprintf(stderr,"TC_EXPANDED: compress: nbytes=%u buf_size=%u size=%u\n",(unsigned)nbytes,(unsigned)*buf_size,(unsigned)size);
 #endif
 	    /* Replace buffer with one that is bigger than the chunk size */
-#ifdef HAVE_H5ALLOCATE_MEMORY
             newbuf = H5allocate_memory(size,0);
-#else
-            newbuf = malloc(size);
-#endif
             if(newbuf == NULL) abort();
 	    b = (float*)newbuf;
 	    for(i=0;i<1024*2;i++) {
@@ -175,21 +160,13 @@ fprintf(stderr,"TC_EXPANDED: compress: nbytes=%u buf_size=%u size=%u\n",(unsigne
 	    *buf_size = size;
         } else  {
             /* Replace buffer */
-#ifdef HAVE_H5ALLOCATE_MEMORY
             newbuf = H5allocate_memory(*buf_size,0);
-#else
-            newbuf = malloc(*buf_size);
-#endif
             if(newbuf == NULL) abort();
             memcpy(newbuf,*buf,*buf_size);
 	}
 
 	/* reclaim old buffer */
-#ifdef HAVE_H5FREE_MEMORY
         H5free_memory(*buf);
-#else
-        free(*buf);
-#endif
         *buf = newbuf;
     }
 

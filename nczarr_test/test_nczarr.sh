@@ -4,18 +4,21 @@ if test "x$SETX" != x; then set -x; fi
 
 # Figure out which cloud repo to use
 if test "x$NCZARR_S3_TEST_HOST" = x ; then
-export NCZARR_S3_TEST_HOST=stratus.ucar.edu
+#    export NCZARR_S3_TEST_HOST=stratus.ucar.edu
+    export NCZARR_S3_TEST_HOST=s3.us-east-1.amazonaws.com
 fi
 if test "x$NCZARR_S3_TEST_BUCKET" = x ; then
-export NCZARR_S3_TEST_BUCKET=unidata-netcdf-zarr-testing
+#    export NCZARR_S3_TEST_BUCKET=unidata-netcdf-zarr-testing
+    export NCZARR_S3_TEST_BUCKET=unidata-zarr-test-data
 fi
 export NCZARR_S3_TEST_URL="https://${NCZARR_S3_TEST_HOST}/${NCZARR_S3_TEST_BUCKET}"
 
 ZMD="${execdir}/zmapio"
 
 awsdelete() {
-${execdir}/s3util -u "${NCZARR_S3_TEST_URL}/" -k "$1" clear
-#aws s3api delete-object --endpoint-url=https://${NCZARR_S3_TEST_HOST} --bucket=${NCZARR_S3_TEST_BUCKET} --key="netcdf-c/$1"
+${execdir}/s3util ${PROFILE} -u "${NCZARR_S3_TEST_URL}" -k "$1" clear
+# aws s3api delete-object --endpoint-url=https://${NCZARR_S3_TEST_HOST} --bucket=${NCZARR_S3_TEST_BUCKET} --key="netcdf-c/$1"
+X=
 }
 
 # Check settings
@@ -100,30 +103,15 @@ dumpmap() {
     ${execdir}/zmapio -t int -x objdump $fileurl > $3
 }
 
-difftest() {
-echo ""; echo "*** Test zext=$zext"
-for t in ${TESTS} ; do
-   echo "*** Testing: ${t}"
-   # determine if we need the specflag set
-   # determine properties
-   checkprops ${t}
-   ref="ref_${t}"
-   rm -fr ${t}.$zext
-   rm -f tmp_${t}.dmp
-   fileargs $t
-   ${NCGEN} -4 -lb -o ${fileurl} ${cdl}/${ref}.cdl
-   ${NCDUMP} ${headflag} ${specflag} -n ${ref} ${fileurl} > tmp_${t}.dmp
-   # compare the expected (silently if XFAIL)
-   if diff -b -w ${expected}/${ref}.dmp tmp_${t}.dmp > ${t}.diff ; then ok=1; else ok=0; fi
-   if test "x$ok" = "x1" ; then
-     echo "*** SUCCEED: ${t}"
-   elif test "x${isxfail}" = "x1" ; then
-     echo "*** XFAIL : ${t}"
-   else
-     echo "*** FAIL: ${t}"
-     exit 1
-   fi
-done
+# Function to remove selected -s attributes from file;
+# These attributes might be platform dependent
+sclean() {
+    cat $1 \
+ 	| sed -e '/:_IsNetcdf4/d' \
+	| sed -e '/:_Endianness/d' \
+	| sed -e '/_NCProperties/d' \
+	| sed -e '/_SuperblockVersion/d' \
+	| cat > $2
 }
 
 # Make sure execdir and srcdir absolute paths are available
@@ -134,6 +122,22 @@ cd $execdir ; abs_execdir=`pwd` ; cd $WD
 # Clear out any existing .rc files
 WD=`pwd`
 if test "x$NCAUTH_HOMETEST" != x ; then RCHOME=1; fi
+
+# Set plugin path
+
+#cd ../plugins; make clean all >/dev/null; cd ../nczarr_test
+
+# Load the findplugins function
+. ${builddir}/findplugin.sh
+echo "findplugin.sh loaded"
+
+# Locate the plugin path and the library names; argument order is critical
+# Find bzip2 and capture
+# Assume all test filters are in same plugin dir
+findplugin h5misc
+
+echo "final HDF5_PLUGIN_PATH=${HDF5_PLUGIN_PATH}"
+export HDF5_PLUGIN_PATH
 
 resetrc() {
   if test "x$RCHOME" = x1 ; then

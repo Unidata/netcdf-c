@@ -69,12 +69,6 @@ extern int NC4_open_image_file(NC_FILE_INFO_T* h5);
 /* Defined later in this file. */
 static int rec_read_metadata(NC_GRP_INFO_T *grp);
 
-#ifdef ENABLE_BYTERANGE
-#ifdef ENABLE_HDF5_ROS3
-static int ros3info(NCauth** auth, NCURI* uri, char** hostportp, char** regionp);
-#endif
-#endif
-
 /**
  * @internal Struct to track HDF5 object info, for
  * rec_read_metadata(). We get this info for every object in the
@@ -738,14 +732,17 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
     h5 = (NC_HDF5_FILE_INFO_T*)nc4_info->format_file_info;
 
 #ifdef ENABLE_BYTERANGE
-    /* See if we want the byte range protocol */
-    if(NC_testmode(path,"bytes")) {
-        h5->http.iosp = 1;
-        /* Kill off any conflicting modes flags */
-        mode &= ~(NC_WRITE|NC_DISKLESS|NC_PERSIST|NC_INMEMORY);
-        parameters = NULL; /* kill off parallel */
-    } else
-        h5->http.iosp = 0;
+    /* Do path as URL processing */
+    ncuriparse(path,&h5->uri);
+    if(h5->uri != NULL) {
+        /* See if we want the byte range protocol */
+        if(NC_testmode(h5->uri,"bytes")) h5->byterange = 1; else h5->byterange = 0;
+	if(h5->byterange) {
+  	    /* Kill off any conflicting modes flags */
+	    mode &= ~(NC_WRITE|NC_DISKLESS|NC_PERSIST|NC_INMEMORY);
+            parameters = NULL; /* kill off parallel */
+	}
+    }
 #endif /*ENABLE_BYTERANGE*/
 
     nc4_info->mem.inmemory = ((mode & NC_INMEMORY) == NC_INMEMORY);
@@ -756,6 +753,10 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
     if ((mode & NC_WRITE) == 0)
         nc4_info->no_write = NC_TRUE;
 
+    if ((mode & NC_WRITE) && (mode & NC_NOATTCREORD)) {
+        nc4_info->no_attr_create_order = NC_TRUE;
+    }
+
     if(nc4_info->mem.inmemory && nc4_info->mem.diskless)
         BAIL(NC_EINTERNAL);
 
@@ -764,12 +765,13 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 #endif /* !USE_PARALLEL4 */
 
     /* Need this access plist to control how HDF5 handles open objects
-     * on file close. (Setting H5F_CLOSE_SEMI will cause H5Fclose to
-     * fail if there are any open objects in the file). */
+     * on file close. (Setting H5F_CLOSE_WEAK will cause H5Fclose not to
+     * fail if there are any open objects in the file. This may happen when virtual
+     * datasets are opened). */
     if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0)
         BAIL(NC_EHDFERR);
 
-    if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_SEMI) < 0)
+    if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_WEAK) < 0)
         BAIL(NC_EHDFERR);
 
 #ifdef USE_PARALLEL4
@@ -851,53 +853,81 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
                 BAIL(NC_EHDFERR);
         }
 #ifdef ENABLE_BYTERANGE
-        else
-            if(h5->http.iosp) {   /* Arrange to use the byte-range driver */
+	else if(h5->byterange) {   /* Arrange to use the byte-range drivers */
+	    char* newpath = NULL;
+            char* awsregion0 = NULL;
 #ifdef ENABLE_HDF5_ROS3
-		NCURI* uri = NULL;
-		H5FD_ros3_fapl_t fa;
-		char* hostport = NULL;
-		char* region = NULL;
-		ncuriparse(path,&uri);
-		if(uri == NULL)
-		    BAIL(NC_EINVAL);		
-		if((ros3info(&h5->http.auth,uri,&hostport,&region)))
-		    BAIL(NC_EINVAL);
-		ncurifree(uri); uri = NULL;
-                fa.version = 1;
-		fa.aws_region[0] = '\0';
-	        fa.secret_id[0] = '\0';
-		fa.secret_key[0] = '\0';
-		if(h5->http.auth->s3creds.accessid == NULL || h5->http.auth->s3creds.secretkey == NULL) {
-	  	    /* default, non-authenticating, "anonymous" fapl configuration */
-		    fa.authenticate = (hbool_t)0;
-		} else {
-		    fa.authenticate = (hbool_t)1;
-		    strlcat(fa.aws_region,region,H5FD_ROS3_MAX_REGION_LEN);
-		    strlcat(fa.secret_id, h5->http.auth->s3creds.accessid, H5FD_ROS3_MAX_SECRET_ID_LEN);
-                    strlcat(fa.secret_key, h5->http.auth->s3creds.secretkey, H5FD_ROS3_MAX_SECRET_KEY_LEN);
-		}
-	        nullfree(region);
-		nullfree(hostport);
-                /* create and set fapl entry */
-                if(H5Pset_fapl_ros3(fapl_id, &fa) < 0)
-                    BAIL(NC_EHDFERR);
+	    H5FD_ros3_fapl_t fa;
+	    char* hostport = NULL;
+	    const char* profile0 = NULL;
+	    const char* awsaccessid0 = NULL;
+	    const char* awssecretkey0 = NULL;
+	    
+	    if(NC_iss3(h5->uri)) {
+	        /* Rebuild the URL */
+		NCURI* newuri = NULL;
+		if((retval = NC_s3urlrebuild(h5->uri,&newuri,NULL,&awsregion0))) goto exit;
+		if((newpath = ncuribuild(newuri,NULL,NULL,NCURISVC))==NULL)
+		    {retval = NC_EURL; goto exit;}
+		ncurifree(h5->uri);
+		h5->uri = newuri;
+	    }
+	    hostport = NC_combinehostport(h5->uri);
+	    if((retval = NC_getactives3profile(h5->uri,&profile0)))
+		BAIL(retval);
+		
+            fa.version = 1;
+	    fa.aws_region[0] = '\0';
+	    fa.secret_id[0] = '\0';
+	    fa.secret_key[0] = '\0';
+	    if((retval = NC_s3profilelookup(profile0,AWS_ACCESS_KEY_ID,&awsaccessid0)))
+		BAIL(retval);		
+	    if((retval = NC_s3profilelookup(profile0,AWS_SECRET_ACCESS_KEY,&awssecretkey0)))
+		BAIL(retval);		
+	    if(awsaccessid0 == NULL || awssecretkey0 == NULL) {
+		/* default, non-authenticating, "anonymous" fapl configuration */
+		fa.authenticate = (hbool_t)0;
+	    } else {
+		fa.authenticate = (hbool_t)1;
+		if(awsregion0)
+		    strlcat(fa.aws_region,awsregion0,H5FD_ROS3_MAX_REGION_LEN);
+		strlcat(fa.secret_id, awsaccessid0, H5FD_ROS3_MAX_SECRET_ID_LEN);
+                strlcat(fa.secret_key, awssecretkey0, H5FD_ROS3_MAX_SECRET_KEY_LEN);
+	    }
+	    nullfree(hostport);
+            /* create and set fapl entry */
+            if(H5Pset_fapl_ros3(fapl_id, &fa) < 0)
+                BAIL(NC_EHDFERR);
 #else
-                /* Configure FAPL to use our byte-range file driver */
-                if (H5Pset_fapl_http(fapl_id) < 0)
-                    BAIL(NC_EHDFERR);
+            /* Configure FAPL to use our byte-range file driver */
+            if (H5Pset_fapl_http(fapl_id) < 0)
+                BAIL(NC_EHDFERR);
+#endif /*ENABLE_ROS3*/
+            /* Open the HDF5 file. */
+            if ((h5->hdfid = nc4_H5Fopen((newpath?newpath:path), flags, fapl_id)) < 0)
+                BAIL(NC_EHDFERR);
+	    nullfree(newpath);
+	    nullfree(awsregion0);
+        }
 #endif
-                /* Open the HDF5 file. */
-                if ((h5->hdfid = nc4_H5Fopen(path, flags, fapl_id)) < 0)
-                    BAIL(NC_EHDFERR);
-            }
-#endif
-            else
-            {
-                /* Open the HDF5 file. */
-                if ((h5->hdfid = nc4_H5Fopen(path, flags, fapl_id)) < 0)
-                    BAIL(NC_EHDFERR);
-            }
+        else {
+            /* Open the HDF5 file. */
+            if ((h5->hdfid = nc4_H5Fopen(path, flags, fapl_id)) < 0)
+                BAIL(NC_EHDFERR);
+        }
+
+    /* Get the file creation property list to check for attribute ordering */
+    {
+      hid_t pid;
+      unsigned int crt_order_flags;
+      if ((pid = H5Fget_create_plist(h5->hdfid)) < 0)
+          BAIL(NC_EHDFERR);
+      if (H5Pget_attr_creation_order(pid, &crt_order_flags) < 0)
+          BAIL(NC_EHDFERR);
+      if (!(crt_order_flags & H5P_CRT_ORDER_TRACKED)) {
+	  nc4_info->no_attr_create_order = NC_TRUE;
+      }
+    }
 
     /* Now read in all the metadata. Some types and dimscale
      * information may be difficult to resolve here, if, for example, a
@@ -1150,6 +1180,46 @@ static int get_fill_info(hid_t propid, NC_VAR_INFO_T *var)
 }
 
 /**
+ * @internal Learn if quantize has been applied to this var. If so,
+ * find the mode and the number of significant digit settings.
+ *
+ * @param var Pointer to NC_VAR_INFO_T for this variable.
+ *
+ * @return ::NC_NOERR No error.
+ * @return ::NC_ENOMEM Out of memory.
+ * @return ::NC_EHDFERR HDF5 returned error.
+ * @author Dennis Heimbigner, Ed Hartnett
+ */
+static int get_quantize_info(NC_VAR_INFO_T *var)
+{
+    hid_t attid;
+    hid_t datasetid;
+
+    /* Try to open an attribute of the correct name for quantize
+     * info. */
+    datasetid = ((NC_HDF5_VAR_INFO_T *)var->format_var_info)->hdf_datasetid;
+    attid = H5Aopen_by_name(datasetid, ".", NC_QUANTIZE_ATT_NAME,
+			    H5P_DEFAULT, H5P_DEFAULT);
+
+    /* If there is an attribute, read it for the nsd. */
+    if (attid > 0)
+    {
+	var->quantize_mode = NC_QUANTIZE_BITGROOM;
+        if (H5Aread(attid, H5T_NATIVE_INT, &var->nsd) < 0)
+            return NC_EHDFERR;
+	if (H5Aclose(attid) < 0)
+            return NC_EHDFERR;
+    }
+    else
+    {
+	var->quantize_mode = NC_NOQUANTIZE;
+	var->nsd = 0;
+    }
+
+    return NC_NOERR;
+}
+
+/**
  * @internal Learn the storage and (if chunked) chunksizes of a var.
  *
  * @param propid ID of HDF5 var creation properties list.
@@ -1189,6 +1259,16 @@ get_chunking_info(hid_t propid, NC_VAR_INFO_T *var)
     else if (layout == H5D_COMPACT)
     {
 	var->storage = NC_COMPACT;
+    }
+#ifdef H5D_VIRTUAL
+    else if (layout == H5D_VIRTUAL)
+    {
+	var->storage = NC_VIRTUAL;
+    }
+#endif
+    else
+    {
+    var->storage = NC_UNKNOWN_STORAGE;
     }
 
     return NC_NOERR;
@@ -1375,6 +1455,10 @@ nc4_get_var_meta(NC_VAR_INFO_T *var)
      * current cache size? */
     if ((retval = nc4_adjust_var_cache(var->container, var)))
         BAIL(retval);
+
+    /* Is there an attribute which means quantization was used? */
+    if ((retval = get_quantize_info(var)))
+	BAIL(retval);
 
     if (var->coords_read && !hdf5_var->dimscale)
         if ((retval = get_attached_info(var, hdf5_var, var->ndims, hdf5_var->hdf_datasetid)))
@@ -2545,7 +2629,12 @@ oinfo_list_add(user_data_t *udata, const hdf5_obj_info_t *oinfo)
  * @author Ed Hartnett
  */
 static int
-read_hdf5_obj(hid_t grpid, const char *name, const H5L_info_t *info,
+read_hdf5_obj(hid_t grpid, const char *name,
+#if H5_VERSION_GE(1,12,0)
+	      const H5L_info2_t *info,
+#else
+	      const H5L_info_t *info,
+#endif
               void *_op_data)
 {
     /* Pointer to user data for callback */
@@ -2769,56 +2858,6 @@ exit:
 
     return retval;
 }
-
-#ifdef ENABLE_BYTERANGE
-#ifdef ENABLE_HDF5_ROS3
-static int
-ros3info(NCauth** authp, NCURI* uri, char** hostportp, char** regionp)
-{
-    int stat = NC_NOERR;
-    size_t len;
-    char* hostport = NULL;
-    char* region = NULL;    
-    char* p;
-
-    if(uri == NULL || uri->host == NULL)
-	{stat = NC_EINVAL; goto done;}
-    len = strlen(uri->host);
-    if(uri->port != NULL)
-        len += 1+strlen(uri->port);
-    len++; /* nul term */
-    if((hostport = malloc(len)) == NULL)
-	{stat = NC_ENOMEM; goto done;}    
-    hostport[0] = '\0';
-    strlcat(hostport,uri->host,len);
-    if(uri->port != NULL) {
-        strlcat(hostport,":",len);
-	strlcat(hostport,uri->port,len);
-    }
-    /* We only support path urls, not virtual urls, so the
-       host past the first dot must be "s3.amazonaws.com" */
-    p = strchr(uri->host,'.');
-    if(p != NULL && strcmp(p+1,"s3.amazonaws.com")==0) {
-	len = (size_t)((p - uri->host)-1);
-	region = calloc(1,len+1);
-	memcpy(region,uri->host,len);
-	region[len] = '\0';
-    } else /* cannot find region: use "" */
-	region = strdup("");
-    if(hostportp) {*hostportp = hostport; hostport = NULL;}
-    if(regionp) {*regionp = region; region = NULL;}
-
-    /* Extract auth related info */
-    if((stat=NC_authsetup(authp, uri)))
-	goto done;
-
-done:
-    nullfree(hostport);
-    nullfree(region);
-    return stat;
-}
-#endif /*ENABLE_HDF5_ROS3*/
-#endif /*ENABLE_BYTERANGE*/
 
 /**
  * Wrapper function for H5Fopen.

@@ -41,7 +41,7 @@ static struct option options[] = {
 {NULL, 0, NULL, 0}
 };
 
-struct Options bmoptions;
+struct BMOptions bmoptions;
 
 static char* dumpintlist(struct IntList* list);
 static int parseintlist(const char* s0, struct IntList* list);
@@ -76,7 +76,7 @@ nc4_timeval_subtract (struct timeval *result, struct timeval *x, struct timeval*
 #endif
 
 int
-nc4_buildpath(struct Options* o, char** pathp)
+nc4_buildpath(struct BMOptions* o, char** pathp)
 {
     char* path = NULL;
     size_t len;
@@ -99,15 +99,15 @@ fprintf(stderr,"buildpath: file=%s\n",path);
 }
 
 EXTERNL int
-getoptions(int* argcp, char*** argvp, struct Options* opt)
+bm_getoptions(int* argcp, char*** argvp, struct BMOptions* opt)
 {
     int stat = NC_NOERR;
     int tag;
     int argc = *argcp;
     char** argv = *argvp;
-    const char* nczarr_s3_test_url = ncz_gets3testurl();
+    const char* nczarr_s3_test_url = "https://stratus.ucar.edu/unidata-netcdf-zarr-testing";
 
-    memset((void*)opt,0,sizeof(struct Options));
+    memset((void*)opt,0,sizeof(struct BMOptions));
     if(argc <= 1) return NC_NOERR;
     while ((tag = getopt_long_only(argc, argv, "", options, NULL)) >= 0) {
 #ifdef DEBUG
@@ -145,13 +145,13 @@ fprintf(stderr,"arg=%s value=%s\n",argv[optind-1],optarg);
 	        opt->pathtemplate = strdup(optarg);
 	        break;
 	    case OPT_FORMAT:
-		if(strcasecmp(optarg,"file")==0)
+		if(strcasecmp(optarg,"file")==0) {
 		    opt->format = NC_FORMATX_NCZARR;
 		    opt->impl = NCZM_FILE;
-		else if(strcasecmp(optarg,"zip")==0)
+		}  else if(strcasecmp(optarg,"zip")==0) {
 		    opt->format = NC_FORMATX_NCZARR;
 		    opt->impl = NCZM_ZIP;
-		else if(strcasecmp(optarg,"s3")==0) {
+		} else if(strcasecmp(optarg,"s3")==0) {
 		    opt->format = NC_FORMATX_NCZARR;
 		    opt->impl = NCZM_S3;
 		} else 
@@ -188,7 +188,7 @@ fprintf(stderr,"arg=%s value=%s\n",argv[optind-1],optarg);
             }
     }
 
-    if(opt->filename == NULL) return NC_ENOTFOUND;
+    if(opt->filename == NULL) return NC_ENOOBJECT;
 
     switch(opt->format) {
     case NC_FORMATX_NCZARR:
@@ -198,7 +198,7 @@ fprintf(stderr,"arg=%s value=%s\n",argv[optind-1],optarg);
 	    case NCZM_S3:
 		ptlen = strlen(nczarr_s3_test_url) + strlen("/netcdf-c/%s.%s#mode=nczarr,s3");
 	        opt->pathtemplate = (char*)calloc(1,ptlen+1);
-		if(opt->template == NULL) return NC_ENOMEM;
+		if(opt->pathtemplate == NULL) return NC_ENOMEM;
 		strlcat(opt->pathtemplate,nczarr_s3_test_url,ptlen+1);
 		strlcat(opt->pathtemplate,"/netcdf-c/%s.%s#mode=nczarr,s3",ptlen+1);
 		break;
@@ -234,7 +234,7 @@ fprintf(stderr,"arg=%s value=%s\n",argv[optind-1],optarg);
 }
 
 EXTERNL void
-clearoptions(struct Options* o)
+clearoptions(struct BMOptions* o)
 {
     nullfree(o->pathtemplate);
     nullfree(o->filename);
@@ -243,15 +243,16 @@ clearoptions(struct Options* o)
 }
 
 EXTERNL const char*
-formatname(const struct Options* o)
+formatname(const struct BMOptions* o)
 {
     switch (o->format) {
     case NC_FORMATX_NCZARR:
 	switch (o->impl) {
 	case NCZM_S3: return "s3";
-	case NCZM_NC4: return "nz4";
 	case NCZM_FILE: return "file";
 	case NCZM_ZIP: return "zip";
+	default: abort();
+	}
 	break;
     case NC_FORMATX_NC4: /* fall thru */
 	return "nz4";
@@ -263,18 +264,17 @@ formatname(const struct Options* o)
 
 
 EXTERNL void
-reportoptions(struct Options* o)
+reportoptions(struct BMOptions* o)
 {
     fprintf(stderr,"--format=%d\n",o->format);
     fprintf(stderr,"--pathtemplate=%s\n",o->pathtemplate);
     fprintf(stderr,"--filename=%s\n",o->filename);
-    if(o->iss3) fprintf(stderr,"--s3\n");
     fprintf(stderr,"--X=%d\n",o->xvalue);
     fflush(stderr);
 }
 
 EXTERNL void
-reportmetaoptions(struct Meta* o)
+reportmetaoptions(struct BMMeta* o)
 {
     fprintf(stderr,"--treedepth=%d\n",o->treedepth);
     fprintf(stderr,"--ngroups=%d\n",o->ngroups);

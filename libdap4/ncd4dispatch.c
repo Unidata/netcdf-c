@@ -42,6 +42,8 @@ const NC_Dispatch* NCD4_dispatch_table = NULL; /* moved here from ddispatch.c */
 static const NC_reservedatt NCD4_reserved[] = {
     {D4CHECKSUMATTR, READONLYFLAG|NAMEONLYFLAG},      /*_DAP4_Checksum_CRC32*/
     {D4LEATTR, READONLYFLAG|NAMEONLYFLAG},            /*_DAP4_Little_Endian*/
+    /* Also need to include the provenance attributes */
+    {NCPROPS, READONLYFLAG|NAMEONLYFLAG|MATERIALIZEDFLAG},		/*_NCProperties*/
     {NULL, 0}
 };
 
@@ -66,8 +68,6 @@ NCD4_initialize(void)
 #endif
     /* Init global state */
     globalinit();
-    /* Load rc file */
-    NC_rcload();    
 
     return THROW(NC_NOERR);
 }
@@ -972,4 +972,7 @@ NCD4_get_var_chunk_cache,
 
 NC_NOTNC4_inq_var_filter_ids,
 NC_NOTNC4_inq_var_filter_info,
+
+NC_NOTNC4_def_var_quantize,
+NC_NOTNC4_inq_var_quantize,
 };

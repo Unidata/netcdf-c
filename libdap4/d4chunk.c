@@ -47,37 +47,45 @@ NCD4_dechunk(NCD4meta* metadata)
     unsigned char *praw, *phdr, *pdap;
     NCD4HDR hdr;
 
-    if(metadata->mode == NCD4_DSR) 
-        return THROW(NC_EDMR);
-
-    /* Assume proper mode has been inferred already. */
-
-    /* Verify the mode; assume that the <?xml...?> is optional */
-    praw = metadata->serial.rawdata;
-    if(memcmp(praw,"<?xml",strlen("<?xml"))==0
-       || memcmp(praw,"<Dataset",strlen("<Dataset"))==0) {
-	size_t len = 0;
-        if(metadata->mode != NCD4_DMR) 
-            return THROW(NC_EDMR);
-        /* setup as dmr only */
-        /* Avoid strdup since rawdata might contain nul chars */
-	len = metadata->serial.rawsize;
-        if((metadata->serial.dmr = malloc(len+1)) == NULL)
-            return THROW(NC_ENOMEM);    
-        memcpy(metadata->serial.dmr,praw,len);
-        metadata->serial.dmr[len] = '\0';
-        /* Suppress nuls */
-        (void)NCD4_elidenuls(metadata->serial.dmr,len);
-        return THROW(NC_NOERR); 
-    }
-
 #ifdef D4DUMPRAW
     NCD4_tagdump(metadata->serial.rawsize,metadata->serial.rawdata,0,"RAW");
 #endif
 
+    /* Access the returned raw data */
+    praw = metadata->serial.rawdata;
+
+    if(metadata->mode == NCD4_DSR) {
+	return THROW(NC_EDMR);
+    } else if(metadata->mode == NCD4_DMR) {
+        /* Verify the mode; assume that the <?xml...?> is optional */
+        if(memcmp(praw,"<?xml",strlen("<?xml"))==0
+           || memcmp(praw,"<Dataset",strlen("<Dataset"))==0) {
+	    size_t len = 0;
+	    /* setup as dmr only */
+            /* Avoid strdup since rawdata might contain nul chars */
+	    len = metadata->serial.rawsize;
+            if((metadata->serial.dmr = malloc(len+1)) == NULL)
+                return THROW(NC_ENOMEM);    
+            memcpy(metadata->serial.dmr,praw,len);
+            metadata->serial.dmr[len] = '\0';
+            /* Suppress nuls */
+            (void)NCD4_elidenuls(metadata->serial.dmr,len);
+            return THROW(NC_NOERR); 
+	}
+    } else if(metadata->mode != NCD4_DAP)
+    	return THROW(NC_EDAP);
+
     /* We must be processing a DAP mode packet */
     praw = (metadata->serial.dap = metadata->serial.rawdata);
     metadata->serial.rawdata = NULL;
+
+    /* If the raw data looks like xml, then we almost certainly have an error */
+    if(memcmp(praw,"<?xml",strlen("<?xml"))==0
+           || memcmp(praw,"<!doctype",strlen("<!doctype"))==0) {
+	/* Set up to report the error */
+	int stat = NCD4_seterrormessage(metadata, metadata->serial.rawsize, metadata->serial.rawdata);
+        return THROW(stat); /* slight lie */
+    }
 
     /* Get the DMR chunk header*/
     phdr = NCD4_getheader(praw,&hdr,metadata->serial.hostlittleendian);

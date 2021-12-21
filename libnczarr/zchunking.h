@@ -67,7 +67,6 @@ struct Common {
     size64_t* memshape;
     void* memory;
     size_t typesize;
-    void* fillvalue;
     size64_t chunkcount; /* computed product of chunklens; warning indices, not bytes */
     int swap; /* var->format_info_file->native_endianness == var->endianness */
     size64_t shape[NC_MAX_VAR_DIMS]; /* shape of the output hyperslab */
