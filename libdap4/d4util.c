@@ -483,3 +483,13 @@ NCD4_getheader(void* p, NCD4HDR* hdr, int hostlittleendian)
     hdr->count = *(unsigned int*)bytes; /* get count */
     return p;
 }
+
+void
+NCD4_reporterror(NCD4INFO* state)
+{
+    NCD4meta* meta = state->substrate.metadata;
+    char* u = NULL;
+    if(meta == NULL) return;
+    u = ncuribuild(state->uri,NULL,NULL,NCURIALL);     
+    fprintf(stderr,"***FAIL: url=%s httpcode=%d errmsg->\n%s\n",u,meta->error.httpcode,meta->error.message);
+}

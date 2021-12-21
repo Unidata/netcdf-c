@@ -4,6 +4,7 @@ dimensions:
 	y = 5 ;
 variables:
 	int i(x, y) ;
+ 		i:_FillValue = -2147483647 ;
 data:
 
  i =

@@ -11,6 +11,7 @@ TOPBUILDDIR='@abs_top_builddir@'
 FP_ISCMAKE=@ISCMAKE@
 FP_ISMSVC=@ISMSVC@
 FP_ISCYGWIN=@ISCYGWIN@
+FP_ISMINGW=@ISMINGW@
 
 # Feature flags
 FEATURE_HDF5=@HAS_HDF5@
@@ -19,6 +20,7 @@ FEATURE_HDF5=@HAS_HDF5@
 FEATURE_HDF5=@HAS_HDF5@
 FEATURE_S3TESTS=@DO_NCZARR_S3_TESTS@
 FEATURE_NCZARR_ZIP=@DO_NCZARR_ZIP_TESTS@
+FEATURE_FILTERTESTS=@DO_FILTER_TESTS@
 
 set -e
 
@@ -69,9 +71,17 @@ set -e
 # 7. NCCOPY - absolute path to the nccopy.exe executable
 # 8. NCGEN - absolute path to ncgen.exe
 # 9. NCGEN3 - absolute path to ncgen3.exe
+#10. NCPATHCVT - absolute path to ncpathcvt.exe
 
 # Allow global set -x mechanism for debugging.
 if test "x$SETX" = x1 ; then set -x ; fi
+
+# On MINGW, bash and other POSIX utilities use a mounted root directory,
+# but executables compiled for Windows do not recognise the mount point.
+# Here we ensure that Windows paths are used in tests of Windows executables.
+if test "x@ISMINGW@" = xyes; then
+  alias pwd='pwd -W'
+fi
 
 # We assume that TOPSRCDIR and TOPBUILDDIR are defined
 # At the top of this shell script
@@ -126,6 +136,7 @@ export NCDUMP="${top_builddir}/ncdump${VS}/ncdump${ext}"
 export NCCOPY="${top_builddir}/ncdump${VS}/nccopy${ext}"
 export NCGEN="${top_builddir}/ncgen${VS}/ncgen${ext}"
 export NCGEN3="${top_builddir}/ncgen3${VS}/ncgen3${ext}"
+export NCPATHCVT="${top_builddir}/ncdump${VS}/ncpathcvt${ext}"
 
 # Temporary hacks (until we have a test_utils directory)
 # to locate certain specific test files

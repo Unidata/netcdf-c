@@ -26,7 +26,7 @@ EXPECTED="$expected3"
 RESULTSDIR="remote_results"
 
 rm -fr ${RESULTSDIR}
-mkdir "${RESULTSDIR}"
+mkdir -p "${RESULTSDIR}"
 
 echo "*** Testing $TITLE "
 echo "        Base URL: ${DTS}"

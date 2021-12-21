@@ -72,6 +72,7 @@ static struct Type {
 /* Command line options */
 struct Dumpptions {
     int debug;
+    int meta_only;
     Mapop mop;
     char infile[4096];
     NCZM_IMPL impl;    
@@ -135,12 +136,17 @@ main(int argc, char** argv)
     int c;
     char* p;
 
+    nc_initialize();
+
     memset((void*)&dumpoptions,0,sizeof(dumpoptions));
 
-    while ((c = getopt(argc, argv, "dvx:t:T:X:")) != EOF) {
+    while ((c = getopt(argc, argv, "dhvx:t:T:X:")) != EOF) {
 	switch(c) {
 	case 'd': 
 	    dumpoptions.debug = 1;	    
+	    break;
+	case 'h': 
+	    dumpoptions.meta_only = 1;	    
 	    break;
 	case 'v': 
 	    zmapusage();
@@ -213,6 +219,7 @@ main(int argc, char** argv)
 done:
     /* Reclaim dumpoptions */
     nullfree(dumpoptions.rootpath);
+    nc_finalize();
     if(stat)
 	fprintf(stderr,"fail: %s\n",nc_strerror(stat));
     return (stat ? 1 : 0);    
@@ -323,7 +330,8 @@ objdump(void)
 	}
 	if(!hascontent) goto next; /* ignore it */
 	if(len > 0) {
-	    content = malloc(len+1);
+	    size_t padlen = (len+dumpoptions.nctype->typesize);
+	    content = calloc(1,padlen+1);
   	    if((stat=nczmap_read(map,obj,0,len,content))) goto done;
 	    content[len] = '\0';
         } else {
@@ -331,13 +339,26 @@ objdump(void)
 	}
 	if(hascontent) {
 	    if(len > 0) {
-	        assert(content != NULL);
-		if(kind == OK_CHUNK) len /= dumpoptions.nctype->typesize;
+                assert(content != NULL);
+		if(kind == OK_CHUNK) {
+		    len = ceildiv(len,dumpoptions.nctype->typesize);
+		}
                 printf("[%d] %s : (%llu)",depth,obj,len);
-                if(kind == OK_CHUNK) printf(" (%s)",dumpoptions.nctype->typename);
+		if(kind == OK_CHUNK)
+                    printf(" (%s)",dumpoptions.nctype->typename);
                 printf(" |");
-                if(kind != OK_IGNORE) {
+                switch(kind) {
+		case OK_GROUP:
+		case OK_META:
 	            printcontent(len,content,kind);
+		    break;
+		case OK_CHUNK:
+	    	    if(dumpoptions.meta_only)
+			printf("...");
+		    else
+	                printcontent(len,content,kind);
+		    break;
+		default: break;
 		}
 	        printf("|\n");
 	    } else {

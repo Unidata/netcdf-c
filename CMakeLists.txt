@@ -13,6 +13,9 @@ cmake_minimum_required(VERSION 3.6.1)
 project(netCDF LANGUAGES C CXX)
 set(PACKAGE "netCDF" CACHE STRING "")
 
+# Use libraries specified in CMAKE_REQUIRED_LIBRARIES for check include macros
+cmake_policy(SET CMP0075 NEW)
+
 #####
 # Version Info:
 #
@@ -26,7 +29,7 @@ set(PACKAGE "netCDF" CACHE STRING "")
 
 SET(NC_VERSION_MAJOR 4)
 SET(NC_VERSION_MINOR 8)
-SET(NC_VERSION_PATCH 1)
+SET(NC_VERSION_PATCH 2)
 SET(NC_VERSION_NOTE "-development")
 SET(netCDF_VERSION ${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
@@ -37,7 +40,7 @@ SET(PACKAGE_VERSION ${VERSION})
 
 # Version of the dispatch table. This must match the value in
 # configure.ac.
-SET(NC_DISPATCH_VERSION 3)
+SET(NC_DISPATCH_VERSION 4)
 
 # Get system configuration, Use it to determine osname, os release, cpu. These
 # will be used when committing to CDash.
@@ -602,11 +605,20 @@ ENDIF(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING)
 ##
 SET(USE_HDF5 ${ENABLE_HDF5})
 IF(USE_HDF5)
+
+  ##
+  # Assert HDF5 version meets minimum required version.
+  ##
+  SET(HDF5_VERSION_REQUIRED 1.8.10)
+
+
   ##
   # Accommodate developers who have hdf5 libraries and
   # headers on their system, but do not have a the hdf
   # .cmake files.  If this is the case, they should
   # specify HDF5_HL_LIBRARY, HDF5_LIBRARY, HDF5_INCLUDE_DIR manually.
+  #
+  # This script will attempt to determine the version of the HDF5 library programatically.
   ##
   IF(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR)
     SET(HDF5_LIBRARIES ${HDF5_C_LIBRARY} ${HDF5_HL_LIBRARY})
@@ -616,6 +628,31 @@ IF(USE_HDF5)
     INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIR})
     MESSAGE(STATUS "Using HDF5 C Library: ${HDF5_C_LIBRARY}")
     MESSAGE(STATUS "Using HDF5 HL LIbrary: ${HDF5_HL_LIBRARY}")
+    if (EXISTS "${HDF5_INCLUDE_DIR}/H5pubconf.h")
+      file(READ "${HDF5_INCLUDE_DIR}/H5pubconf.h" _hdf5_version_lines
+        REGEX "#define[ \t]+H5_VERSION")
+      string(REGEX REPLACE ".*H5_VERSION .*\"\(.*\)\".*" "\\1" _hdf5_version "${_hdf5_version_lines}")
+      set(HDF5_VERSION "${_hdf5_version}" CACHE STRING "")
+      unset(_hdf5_version)
+      unset(_hdf5_version_lines)
+    endif ()
+    MESSAGE(STATUS "Found HDF5 libraries version ${HDF5_VERSION}")
+    ###
+    # If HDF5_VERSION is still empty, we have a problem.
+    # Error out.
+    ###
+    IF("${HDF5_VERSION}" STREQUAL "")
+      MESSAGE(FATAL_ERR "Unable to determine HDF5 version.  NetCDF requires at least version ${HDF5_VERSION_REQUIRED}. Please ensure that libhdf5 is installed and accessible.")
+    ENDIF()
+
+    ###
+    # Now that we know HDF5_VERSION isn't empty, we can check for minimum required version,
+    # and toggle various options.
+    ###
+    IF(${HDF5_VERSION} VERSION_LESS ${HDF5_VERSION_REQUIRED})
+      MESSAGE(FATAL_ERROR "netCDF requires at least HDF5 ${HDF5_VERSION_REQUIRED}. Found ${HDF5_VERSION}.")
+    ENDIF()
+
   ELSE(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR) # We are seeking out HDF5 with Find Package.
     ###
     # For now we assume that if we are building netcdf
@@ -653,24 +690,48 @@ IF(USE_HDF5)
     # HDF5 variables we need to munge.
     ##
 
-    ##
-    # Assert HDF5 version meets minimum required version.
-    ##
-    SET(HDF5_VERSION_REQUIRED 1.8.10)
-
+    # Some versions of HDF5 set HDF5_VERSION_STRING instead of HDF5_VERSION
     IF(HDF5_VERSION_STRING AND NOT HDF5_VERSION)
       SET(HDF5_VERSION ${HDF5_VERSION_STRING})
     ENDIF()
+
+
+    ###
+    # If HDF5_VERSION is undefined, attempt to determine it programatically.
+    ###
     IF("${HDF5_VERSION}" STREQUAL "")
-      MESSAGE(STATUS "Unable to determine hdf5 version.  NetCDF requires at least version ${HDF5_VERSION_REQUIRED}")
-    ELSE()
-      IF(${HDF5_VERSION} VERSION_LESS ${HDF5_VERSION_REQUIRED})
-        MESSAGE(FATAL_ERROR
-	      "netCDF requires at least HDF5 ${HDF5_VERSION_REQUIRED}. Found ${HDF5_VERSION}.")
-      ELSE()
+      MESSAGE(STATUS "HDF5_VERSION not detected. Attempting to determine programatically.")
+      IF (EXISTS "${HDF5_INCLUDE_DIR}/H5pubconf.h")
+        file(READ "${HDF5_INCLUDE_DIR}/H5pubconf.h" _hdf5_version_lines
+          REGEX "#define[ \t]+H5_VERSION")
+        string(REGEX REPLACE ".*H5_VERSION .*\"\(.*\)\".*" "\\1" _hdf5_version "${_hdf5_version_lines}")
+        set(HDF5_VERSION "${_hdf5_version}" CACHE STRING "")
+        unset(_hdf5_version)
+        unset(_hdf5_version_lines)
         MESSAGE(STATUS "Found HDF5 libraries version ${HDF5_VERSION}")
       ENDIF()
+    ELSE()
+      SET(HDF5_VERSION ${HDF5_VERSION} CACHE STRING "")
     ENDIF()
+
+    ###
+    # If HDF5_VERSION is still empty, we have a problem.
+    # Error out.
+    ###
+    IF("${HDF5_VERSION}" STREQUAL "")
+      MESSAGE(FATAL_ERR "Unable to determine HDF5 version.  NetCDF requires at least version ${HDF5_VERSION_REQUIRED}. Please ensure that libhdf5 is installed and accessible.")
+    ENDIF()
+
+    ###
+    # Now that we know HDF5_VERSION isn't empty, we can check for minimum required version,
+    # and toggle various options.
+    ###
+
+    IF(${HDF5_VERSION} VERSION_LESS ${HDF5_VERSION_REQUIRED})
+      MESSAGE(FATAL_ERROR "netCDF requires at least HDF5 ${HDF5_VERSION_REQUIRED}. Found ${HDF5_VERSION}.")
+    ENDIF()
+
+
 
     ##
     # Include the HDF5 include directory.
@@ -687,6 +748,11 @@ IF(USE_HDF5)
     # HDF5_C_LIBRARY, HDF5_HL_LIBRARY and HDF5_LIBRARIES.
     ###
     IF(MSVC)
+      ####
+      # Environmental variables in Windows when using MSVC
+      # are a hot mess between versions.
+      ####
+
       ##
       # HDF5 1.8.15 defined HDF5_LIBRARIES.
       ##
@@ -713,10 +779,22 @@ IF(USE_HDF5)
         SET(HDF5_hdf5_LIBRARY ${HDF5_C_LIBRARIES})
       ENDIF()
 
+      # Some versions of FIND_PACKAGE set HDF5_C_LIBRARIES, but not HDF5_C_LIBRARY
+      # We use HDF5_C_LIBRARY below, so need to make sure it is set.
+      IF(HDF5_C_LIBRARIES AND NOT HDF5_C_LIBRARY)
+        SET(HDF5_C_LIBRARY ${HDF5_C_LIBRARIES})
+      ENDIF()
+
+      # Same issue as above...
+      IF(HDF5_HL_LIBRARIES AND NOT HDF5_HL_LIBRARY)
+        SET(HDF5_HL_LIBRARY ${HDF5_HL_LIBRARIES})
+      ENDIF()
+
     ENDIF(MSVC)
     IF(NOT HDF5_C_LIBRARY)
       SET(HDF5_C_LIBRARY hdf5)
     ENDIF()
+  
   ENDIF(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR)
 
   FIND_PACKAGE(Threads)
@@ -726,8 +804,42 @@ IF(USE_HDF5)
     SET(HDF5_C_LIBRARY_hdf5 "${HDF5_C_LIBRARY}")
   ENDIF()
 
-  #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip library.
+  FIND_PATH(HAVE_HDF5_H hdf5.h PATHS ${HDF5_INCLUDE_DIR} NO_DEFAULT_PATH)
+  IF(NOT HAVE_HDF5_H)
+    MESSAGE(FATAL_ERROR "Compiling a test with hdf5 failed. Either hdf5.h cannot be found, or the log messages should be checked for another reason.")
+  ELSE(NOT HAVE_HDF5_H)
+    INCLUDE_DIRECTORIES(${HAVE_HDF5_H})
+  ENDIF(NOT HAVE_HDF5_H)
+
   set (CMAKE_REQUIRED_INCLUDES ${HDF5_INCLUDE_DIR})
+
+  # Check to ensure that HDF5 was built with zlib.
+  # This needs to be near the beginning since we 
+  # need to know whether to add "-lz" to the symbol 
+  # tests below.
+  CHECK_C_SOURCE_COMPILES("#include <H5public.h>
+   #if !H5_HAVE_ZLIB_H
+   #error
+   #endif
+   int main() {
+   int x = 1;}" HAVE_HDF5_ZLIB)
+  IF(NOT HAVE_HDF5_ZLIB)
+    MESSAGE(FATAL_ERROR "HDF5 was built without zlib. Rebuild HDF5 with zlib.")
+  ELSE()
+    # If user has specified the `ZLIB_LIBRARY`, use it; otherwise try to find...
+    IF(NOT ZLIB_LIBRARY)
+      find_package(ZLIB)
+      IF(ZLIB_FOUND)
+        SET(ZLIB_LIBRARY ${ZLIB_LIBRARIES})
+      ELSE()
+        MESSAGE(FATAL_ERROR "HDF5 Requires ZLIB, but cannot find libz.")
+      ENDIF()
+    ENDIF()
+    SET(CMAKE_REQUIRED_LIBRARIES ${ZLIB_LIBRARY} ${CMAKE_REQUIRED_LIBRARIES})
+    MESSAGE(STATUS "HDF5 has zlib.")
+  ENDIF()
+
+  #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip library.
   CHECK_C_SOURCE_COMPILES("#include <H5public.h>
    #if !H5_HAVE_FILTER_SZIP
    #error
@@ -747,6 +859,18 @@ IF(USE_HDF5)
     SET(CMAKE_REQUIRED_LIBRARIES ${SZIP_LIBRARY} ${CMAKE_REQUIRED_LIBRARIES})
     MESSAGE(STATUS "HDF5 has szip.")
   ENDIF()
+
+  ####
+  # Check to see if HDF5 library is 1.10.6 or greater.
+  # Used to control path name conversion
+  ####
+  IF(${HDF5_VERSION} VERSION_GREATER "1.10.5")
+    SET(HDF5_UTF8_PATHS ON)
+  ELSE()
+    SET(HDF5_UTF8_PATHS OFF)
+  ENDIF()
+
+  MESSAGE("-- HDF5_UTF8_PATHS (HDF5 version 1.10.6+): ${HDF5_UTF8_PATHS}")
 
   # Find out if HDF5 was built with parallel support.
   # Do that by checking for the targets H5Pget_fapl_mpiposx and
@@ -800,49 +924,15 @@ IF(USE_HDF5)
     SET(HAS_PAR_FILTERS no CACHE STRING "")
   ENDIF()
 
-  # Check to see if HDF5 library is 1.10.6 or greater.
-  # Used to control path name conversion
-  # Check HDF5 version
-  SET(HDF5_UTF8_PATHS OFF)
-  CHECK_C_SOURCE_COMPILES("
-  #include <H5public.h>
-  int main() {
-#if (H5_VERS_MAJOR*10000 + H5_VERS_MINOR*100 + H5_VERS_RELEASE < 11006)
-      choke me;
-#endif
-  }" HDF5_VERSION_1106)
-
-  IF(HDF5_VERSION_1106)
-   SET(HDF5_UTF8_PATHS ON)
-  ENDIF(HDF5_VERSION_1106)
-
-  MESSAGE("-- Checking for HDF5 version 1.10.6 or later: ${HDF5_UTF8_PATHS}")
-
   FIND_PATH(HAVE_HDF5_H hdf5.h PATHS ${HDF5_INCLUDE_DIR} NO_DEFAULT_PATH)
-  FIND_PATH(HAVE_HDF5_H hdf5.h)
   IF(NOT HAVE_HDF5_H)
     MESSAGE(FATAL_ERROR "Compiling a test with hdf5 failed. Either hdf5.h cannot be found, or the log messages should be checked for another reason.")
   ELSE(NOT HAVE_HDF5_H)
     INCLUDE_DIRECTORIES(${HAVE_HDF5_H})
   ENDIF(NOT HAVE_HDF5_H)
 
-  # Check to ensure that HDF5 was built with zlib.
-  set (CMAKE_REQUIRED_INCLUDES ${HDF5_INCLUDE_DIR})
-
-
-  CHECK_C_SOURCE_COMPILES("#include <H5public.h>
-   #if !H5_HAVE_ZLIB_H
-   #error
-   #endif
-   int main() {
-   int x = 1;}" HAVE_HDF5_ZLIB)
-  IF(NOT HAVE_HDF5_ZLIB)
-    MESSAGE(FATAL_ERROR "HDF5 was built without zlib. Rebuild HDF5 with zlib.")
-  ENDIF()
-
   #option to include HDF5 High Level header file (hdf5_hl.h) in case we are not doing a make install
   INCLUDE_DIRECTORIES(${HDF5_HL_INCLUDE_DIR})
-
 
 ENDIF(USE_HDF5)
 
@@ -869,7 +959,7 @@ int main() {
 }" HAVE_LIBCURL_766)
 
 IF (HAVE_LIBCURL_766)
-  # If libcurl version is >= 7.66, then can skip tests 
+  # If libcurl version is >= 7.66, then can skip tests
   # for these symbols which were added in an earlier version
   set(HAVE_CURLOPT_USERNAME TRUE)
   set(HAVE_CURLOPT_PASSWORD TRUE)
@@ -948,19 +1038,65 @@ IF(NOT WIN32)
 ENDIF()
 
 # Option to Enable DAP long tests, remote tests.
-OPTION(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
 OPTION(ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." ON)
+
+OPTION(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
 SET(REMOTETESTSERVERS "remotetest.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
+
+# See if we have zlib
+FIND_PACKAGE(ZLIB)
+
+# Define a test flag for have zlib library
+IF(ZLIB_FOUND)
+  INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIRS})
+  SET(ENABLE_ZLIB TRUE)
+ELSE()
+  SET(ENABLE_ZLIB FALSE)
+ENDIF()
+
+# See if we have libblosc
+IF(!MSVC)
+FIND_PACKAGE(Blosc)
+ENDIF()
+# Define a test flag for have blosc library
+IF(Blosc_FOUND)
+  INCLUDE_DIRECTORIES(${Blosc_INCLUDE_DIRS})
+  SET(ENABLE_BLOSC TRUE)
+ELSE()
+  SET(ENABLE_BLOSC FALSE)
+ENDIF()
+
+# See if we have libszip
+IF(!MSVC)
+#FIND_PACKAGE(SZIP)
+#FIND_LIBRARY(SZIP PATH NAMES szip sz)
+SET(SZIP_LIBRARY ${SZIP})
+ENDIF()
+# Define a test flag for have szip library
+IF(SZIP_FOUND)
+  INCLUDE_DIRECTORIES(${SZIP_INCLUDE_DIRS})
+  SET(ENABLE_SZIP TRUE)
+ELSE()
+  SET(ENABLE_SZIP FALSE)
+ENDIF()
 
 # See if we have libzip
 FIND_PACKAGE(Zip)
 
-# Define a test flag for have curl library
+# Define a test flag for have zip library
 IF(Zip_FOUND)
   INCLUDE_DIRECTORIES(${Zip_INCLUDE_DIRS})
   SET(ENABLE_NCZARR_ZIP TRUE)
 ELSE()
   SET(ENABLE_NCZARR_ZIP FALSE)
+ENDIF()
+
+# libdl is always available; built-in in Windows and OSX
+SET(ENABLE_PLUGINS TRUE)
+IF(NOT WIN32)
+  IF(HAVE_DLFCN_H)
+    INCLUDE_DIRECTORIES("dlfcn.h")
+  ENDIF()
 ENDIF()
 
 # Enable some developer-only tests
@@ -985,9 +1121,9 @@ IF(MSVC)
     FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
          DESTINATION ${netCDF_BINARY_DIR}/ncdump/)
     FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/) 
+         DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
     FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/ncdap_test/) 
+         DESTINATION ${netCDF_BINARY_DIR}/ncdap_test/)
   ENDIF()
 ENDIF()
 
@@ -1019,10 +1155,10 @@ ENDIF()
 # See if aws-s3-sdk is available
 # But only if enabled
 IF(ENABLE_NCZARR_S3)
-find_package(AWSSDK REQUIRED)
-set(SERVICE s3)
-AWSSDK_DETERMINE_LIBS_TO_LINK(SERVICE AWSSDK_LINK_LIBRARIES)
+find_package(AWSSDK REQUIRED COMPONENTS s3;core)
 IF(AWSSDK_FOUND)
+  SET(service s3;core)
+  AWSSDK_DETERMINE_LIBS_TO_LINK(service AWS_LINK_LIBRARIES)
   SET(ENABLE_S3_SDK ON CACHE BOOL "S3 SDK" FORCE)
 ELSE()
   SET(ENABLE_S3_SDK OFF CACHE BOOL "S3 SDK" FORCE)
@@ -1034,7 +1170,7 @@ ENDIF(ENABLE_NCZARR_S3)
 
 IF(NOT ENABLE_S3_SDK)
   IF(ENABLE_NCZARR_S3 OR ENABLE_NCZARR_S3_TESTS)
-    message(FATAL_ERROR "AWS S3 libraries not found; please specify option DENABLE_NCZARR_S3=NO")
+    message(FATAL_ERROR "S3 support library not found; please specify option DENABLE_NCZARR_S3=NO")
     SET(ENABLE_NCZARR_S3 OFF CACHE BOOL "NCZARR S3 support" FORCE)
     SET(ENABLE_NCZARR_S3_TESTS OFF CACHE BOOL "S3 tests" FORCE)
   ENDIF()
@@ -1065,6 +1201,22 @@ IF(NOT FOUND_CURL)
     MESSAGE(FATAL_ERROR "NCZarr S3 support specified, CURL libraries are not found.")
   ENDIF()
 ENDIF(NOT FOUND_CURL)
+
+
+OPTION(ENABLE_LIBXML2 "Link against libxml2 if it is available, use the packaged ezxml parser otherwise." ON)
+SET(XMLPARSER "ezxml (bundled)")
+# see if we have libxml2
+
+IF(ENABLE_LIBXML2)
+  find_package(LibXml2)
+  IF(LibXml2_FOUND)
+    SET(HAVE_LIBXML2 TRUE)
+    INCLUDE_DIRECTORIES(${LIBXML2_INCLUDE_DIRS})
+    SET(XMLPARSER "libxml2")
+  ELSE()
+    SET(HAVE_LIBXML2 FALSE)
+  ENDIF()
+ENDIF(ENABLE_LIBXML2)
 
 IF(NOT ENABLE_BYTERANGE AND ENABLE_HDF5_ROS3)
     MESSAGE(WARNING "ROS3 support requires ENABLE_BYTERANGE=TRUE; disabling ROS3 support")
@@ -1322,20 +1474,21 @@ IF (ENABLE_PARALLEL_TESTS AND NOT USE_PARALLEL)
 ENDIF()
 
 # Enable special filter test; experimental when using cmake.
-OPTION(ENABLE_FILTER_TESTING "Enable filter testing. Ignored if shared libraries or netCDF4 are not enabled" ${ENABLE_HDF5})
-IF(ENABLE_FILTER_TESTING AND NOT ENABLE_HDF5)
-  MESSAGE(WARNING "ENABLE_FILTER_TESTING requires HDF5. Disabling.")
-  SET(ENABLE_FILTER_TESTING OFF)
+OPTION(ENABLE_FILTER_TESTING "Enable filter testing. Ignored if shared libraries or netCDF4 are not enabled" yes)
+
+IF(ENABLE_FILTER_TESTING)
+  if(NOT ENABLE_HDF5 AND NOT ENABLE_NCZARR)
+    MESSAGE(WARNING "ENABLE_FILTER_TESTING requires HDF5 and/or NCZarr. Disabling.")
+    SET(ENABLE_FILTER_TESTING OFF CACHE BOOL "Enable Filter Testing" FORCE)
+  ENDIF()
 ENDIF()
+
 IF(NOT BUILD_SHARED_LIBS)
   MESSAGE(WARNING "ENABLE_FILTER_TESTING requires shared libraries. Disabling.")
   SET(ENABLE_FILTER_TESTING OFF)
 ENDIF()
-OPTION(ENABLE_CLIENTSIDE_FILTERS "Enable client-side filter registration." OFF)
-IF(NOT ENABLE_FILTER_TESTING)
-SET(ENABLE_CLIENTSIDE_FILTERS OFF)
-ENDIF()
 
+SET(ENABLE_CLIENTSIDE_FILTERS OFF)
 
 # Determine whether or not to generate documentation.
 OPTION(ENABLE_DOXYGEN "Enable generation of doxygen-based documentation." OFF)
@@ -1404,6 +1557,9 @@ ENDIF()
 # Always enable DISKLESS
 OPTION(ENABLE_DISKLESS "Enable in-memory files" ON)
 
+# Always enable quantization.
+OPTION(ENABLE_QUANTIZE "Enable variable quantization" ON)
+
 # By default, MSVC has a stack size of 1000000.
 # Allow a user to override this.
 IF(MSVC)
@@ -1469,6 +1625,7 @@ CHECK_INCLUDE_FILE("libgen.h" HAVE_LIBGEN_H)
 CHECK_INCLUDE_FILE("execinfo.h" HAVE_EXECINFO_H)
 CHECK_INCLUDE_FILE("dirent.h" HAVE_DIRENT_H)
 CHECK_INCLUDE_FILE("time.h" HAVE_TIME_H)
+CHECK_INCLUDE_FILE("dlfcn.h" HAVE_DLFCN_H)
 
 # Symbol Exists
 CHECK_SYMBOL_EXISTS(isfinite "math.h" HAVE_DECL_ISFINITE)
@@ -1593,6 +1750,16 @@ CHECK_FUNCTION_EXISTS(fileno HAVE_FILENO)
 
 CHECK_FUNCTION_EXISTS(clock_gettime  HAVE_CLOCK_GETTIME)
 CHECK_SYMBOL_EXISTS("struct timespec" "time.h" HAVE_STRUCT_TIMESPEC)
+CHECK_FUNCTION_EXISTS(atexit HAVE_ATEXIT)
+
+# Control invoking nc_finalize at exit
+OPTION(ENABLE_ATEXIT_FINALIZE "Invoke nc_finalize at exit." ON)
+IF(NOT HAVE_ATEXIT)
+IF(ENABLE_ATEXIT_FINALIZE AND NOT HAVE_ATEXIT)
+  SET(ENABLE_ATEXIT_FINALIZE OFF CACHE BOOL "Enable ATEXIT" FORCE)
+  MESSAGE(WARNING "ENABLE_ATEXIT_FINALIZE set but atexit() function not defined")
+ENDIF()
+ENDIF()
 
 # Check to see if MAP_ANONYMOUS is defined.
 IF(MSVC)
@@ -1952,6 +2119,11 @@ ENDIF()
 
 IF(ENABLE_DAP4)
   ADD_SUBDIRECTORY(libdap4)
+  ADD_SUBDIRECTORY(libncxml)
+ENDIF()
+
+IF(ENABLE_PLUGINS)
+  ADD_SUBDIRECTORY(libncpoco)
 ENDIF()
 
 IF(ENABLE_NCZARR)
@@ -1960,11 +2132,21 @@ IF(ENABLE_NCZARR)
        DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
   FILE(COPY ${netCDF_SOURCE_DIR}/unit_test/timer_utils.c
        DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
+  FILE(COPY ${netCDF_SOURCE_DIR}/nc_test4/test_filter.c
+       DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
+  FILE(COPY ${netCDF_SOURCE_DIR}/nc_test4/test_filter_misc.c
+       DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
+  FILE(COPY ${netCDF_SOURCE_DIR}/nc_test4/test_filter_repeat.c
+       DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
+  FILE(COPY ${netCDF_SOURCE_DIR}/nc_test4/test_filter_order.c
+       DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
+  FILE(COPY ${netCDF_SOURCE_DIR}/nc_test4/tst_multifilter.c
+       DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
 ENDIF()
 
 add_subdirectory(liblib)
 
-IF(ENABLE_FILTER_TESTING)
+IF(ENABLE_PLUGINS)
   add_subdirectory(plugins)
 ENDIF()
 
@@ -2183,6 +2365,10 @@ is_enabled(ENABLE_NCZARR HAS_NCZARR)
 is_enabled(ENABLE_NCZARR_S3_TESTS DO_NCZARR_S3_TESTS)
 is_enabled(ENABLE_MULTIFILTERS HAS_MULTIFILTERS)
 is_enabled(ENABLE_NCZARR_ZIP DO_NCZARR_ZIP_TESTS)
+is_enabled(ENABLE_QUANTIZE HAS_QUANTIZE)
+is_enabled(ENABLE_LOGGING HAS_LOGGING)
+is_enabled(ENABLE_FILTER_TESTING DO_FILTER_TESTS)
+is_enabled(ENABLE_BLOSC HAS_BLOSC)
 
 # Generate file from template.
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
@@ -2240,6 +2426,10 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test_common.in ${CMAKE_CURRENT_BINARY
 #####
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/nc_test4/findplugin.sh @ONLY NEWLINE_STYLE LF)
 
+IF(ENABLE_NCZARR)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/nczarr_test/findplugin.sh @ONLY NEWLINE_STYLE LF)
+ENDIF()
+
 IF(ENABLE_EXAMPLES)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/examples/C/findplugin.sh @ONLY NEWLINE_STYLE LF)
 ENDIF()
@@ -2256,6 +2446,8 @@ IF(ENABLE_TESTS)
     #####
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ncdap_test/pingurl.c ${CMAKE_CURRENT_BINARY_DIR}/dap4_test/pingurl4.c @ONLY NEWLINE_STYLE LF)
 ENDIF()
+
+add_subdirectory(fuzz)
 
 ####
 # Export files

@@ -84,7 +84,10 @@ NCD4_readDAP(NCD4INFO* state, int flags)
     if((flags & NCF_ONDISK) == 0) {
 	ncbytesclear(state->curl->packet);
         stat = readpacket(state,state->uri,state->curl->packet,NCD4_DAP,NCD4_FORMAT_NONE,&lastmod);
-        if(stat == NC_NOERR)
+	if(stat) {
+	    NCD4_seterrormessage(state->substrate.metadata, nclistlength(state->curl->packet), nclistcontents(state->curl->packet));
+	    goto done;
+	} else
             state->data.daplastmodified = lastmod;
     } else { /*((flags & NCF_ONDISK) != 0) */
         NCURI* url = state->uri;
@@ -110,6 +113,7 @@ NCD4_readDAP(NCD4INFO* state, int flags)
                 state->data.daplastmodified = lastmod;
         }
     }
+done:
     return THROW(stat);
 }
 
@@ -170,6 +174,7 @@ readpacket(NCD4INFO* state, NCURI* url, NCbytes* packet, NCD4mode dxx, NCD4forma
     } else {
         char* fetchurl = NULL;
 	int flags = NCURIBASE;
+
 	if(!fileprotocol) flags |= NCURIQUERY;
 	flags |= NCURIENCODE;
         fetchurl = ncuribuild(url,NULL,suffix,flags);
@@ -180,7 +185,7 @@ readpacket(NCD4INFO* state, NCURI* url, NCbytes* packet, NCD4mode dxx, NCD4forma
    	    gettimeofday(&time0,NULL);
 #endif
 	}
-        stat = NCD4_fetchurl(curl,fetchurl,packet,lastmodified);
+        stat = NCD4_fetchurl(curl,fetchurl,packet,lastmodified,&state->substrate.metadata->error.httpcode);
         nullfree(fetchurl);
 	if(stat) goto fail;
 	if(FLAGSET(state->controls.flags,NCF_SHOWFETCH)) {
@@ -356,4 +361,16 @@ readfileDAPDMR(NCD4INFO* state, const NCURI* uri, NCbytes* packet)
 
 done:
     return THROW(stat);
+}
+
+/* Extract packet as error message; assume httpcode set */
+int
+NCD4_seterrormessage(NCD4meta* metadata, size_t len, char* msg)
+{
+    metadata->error.message = (char*)d4alloc(len+1);
+    if(metadata->error.message == NULL)
+        return THROW(NC_ENOMEM);
+    memcpy(metadata->error.message,msg,len);
+    metadata->error.message[len] = '\0';
+    return THROW(NC_ENODATA); /* slight lie */
 }

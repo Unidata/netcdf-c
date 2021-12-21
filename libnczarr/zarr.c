@@ -56,7 +56,7 @@ ncz_create_dataset(NC_FILE_INFO_T* file, NC_GRP_INFO_T* root, const char** contr
 	{stat = NC_ENOMEM; goto done;}
 
     /* fill in some of the zinfo and zroot fields */
-    zinfo->zarr.zarr_version = ZARRVERSION;
+    zinfo->zarr.zarr_version = atoi(ZARRVERSION);
     sscanf(NCZARRVERSION,"%lu.%lu.%lu",
 	   &zinfo->zarr.nczarr_version.major,
 	   &zinfo->zarr.nczarr_version.minor,
@@ -94,7 +94,7 @@ done:
 int
 ncz_open_dataset(NC_FILE_INFO_T* file, const char** controls)
 {
-    int i,stat = NC_NOERR;
+    int stat = NC_NOERR;
     NC* nc = NULL;
     NC_GRP_INFO_T* root = NULL;
     NCURI* uri = NULL;
@@ -103,6 +103,8 @@ ncz_open_dataset(NC_FILE_INFO_T* file, const char** controls)
     NCZ_FILE_INFO_T* zinfo = NULL;
     int mode;
     NClist* modeargs = NULL;
+    char* nczarr_version = NULL;
+    char* zarr_format = NULL;
 
     ZTRACE(3,"file=%s controls=%s",file->hdr.name,(controls?nczprint_envv(controls):"null"));
 
@@ -137,29 +139,20 @@ ncz_open_dataset(NC_FILE_INFO_T* file, const char** controls)
     if((stat = nczmap_open(zinfo->controls.mapimpl,nc->path,mode,zinfo->controls.flags,NULL,&zinfo->map)))
 	goto done;
 
-    if(!(zinfo->controls.flags & FLAG_PUREZARR)
-        && (stat = NCZ_downloadjson(zinfo->map, NCZMETAROOT, &json)) == NC_NOERR) {
-        /* Extract the information from it */
-        for(i=0;i<nclistlength(json->contents);i+=2) {
-    	    const NCjson* key = nclistget(json->contents,i);
-	    const NCjson* value = nclistget(json->contents,i+1);
-	    if(strcmp(key->value,"zarr_format")==0) {
-	        if(sscanf(value->value,"%d",&zinfo->zarr.zarr_version)!=1)
-		    {stat = NC_ENOTNC; goto done;}		
-	    } else if(strcmp(key->value,"nczarr_version")==0) {
-	        sscanf(value->value,"%lu.%lu.%lu",
+    if((stat = ncz_read_superblock(file,&nczarr_version,&zarr_format))) goto done;
+
+    if(nczarr_version == NULL) /* default */
+        nczarr_version = strdup(NCZARRVERSION);
+    if(zarr_format == NULL) /* default */
+       zarr_format = strdup(ZARRVERSION);
+    /* Extract the information from it */
+    if(sscanf(zarr_format,"%d",&zinfo->zarr.zarr_version)!=1)
+	{stat = NC_ENCZARR; goto done;}		
+    if(sscanf(nczarr_version,"%lu.%lu.%lu",
 		    &zinfo->zarr.nczarr_version.major,
 		    &zinfo->zarr.nczarr_version.minor,
-		    &zinfo->zarr.nczarr_version.release);
-	    }
-	}
-    } else { /* zinfo->controls.purezarr || no object */
-	zinfo->zarr.zarr_version = ZARRVERSION;
-	sscanf(NCZARRVERSION,"%lu.%lu.%lu",
-		    &zinfo->zarr.nczarr_version.major,
-		    &zinfo->zarr.nczarr_version.minor,
-		    &zinfo->zarr.nczarr_version.release);
-    }
+		    &zinfo->zarr.nczarr_version.release) == 0)
+	{stat = NC_ENCZARR; goto done;}
 
     /* Load auth info from rc file */
     if((stat = ncuriparse(nc->path,&uri))) goto done;
@@ -169,13 +162,14 @@ ncz_open_dataset(NC_FILE_INFO_T* file, const char** controls)
     }
 
 done:
+    nullfree(zarr_format);
+    nullfree(nczarr_version);
     ncurifree(uri);
     nclistfreeall(modeargs);
     if(json) NCJreclaim(json);
     nullfree(content);
     return ZUNTRACE(stat);
 }
-
 
 /**
  * @internal Determine whether file is netCDF-4.
@@ -276,9 +270,9 @@ ncz_open_rootgroup(NC_FILE_INFO_T* dataset)
     for(i=0;i<nclistlength(json->contents);i+=2) {
 	const NCjson* key = nclistget(json->contents,i);
 	const NCjson* value = nclistget(json->contents,i+1);
-	if(strcmp(key->value,"zarr_format")==0) {
+	if(strcmp(NCJstring(key),"zarr_format")==0) {
 	    int zversion;
-	    if(sscanf(value->value,"%d",&zversion)!=1)
+	    if(sscanf(NCJstring(value),"%d",&zversion)!=1)
 		{stat = NC_ENOTNC; goto done;}		
 	    /* Verify against the dataset */
 	    if(zversion != zfile->zarr.zarr_version)
@@ -294,6 +288,7 @@ done:
 }
 #endif
 
+#if 0
 /**
 @internal Rewrite attributes into a group or var
 @param map - [in] the map object for storage
@@ -312,8 +307,8 @@ ncz_unload_jatts(NCZ_FILE_INFO_T* zinfo, NC_OBJ* container, NCjson* jattrs, NCjs
     char* tkey = NULL;
     NCZMAP* map = zinfo->map;
 
-    assert((jattrs->sort = NCJ_DICT));
-    assert((jtypes->sort = NCJ_DICT));
+    assert((NCJsort(jattrs) == NCJ_DICT));
+    assert((NCJsort(jtypes) == NCJ_DICT));
 
     if(container->sort == NCGRP) {
         NC_GRP_INFO_T* grp = (NC_GRP_INFO_T*)container;
@@ -331,19 +326,26 @@ ncz_unload_jatts(NCZ_FILE_INFO_T* zinfo, NC_OBJ* container, NCjson* jattrs, NCjs
     if((stat = nczm_concat(fullpath,ZATTRS,&akey)))
 	goto done;
 
+    /* Always write as V2 */
+
+    {
+        NCjson* k = NULL;
+        NCjson* v = NULL;
+	/* remove any previous version */
+        if(!NCJremove(jattrs,NCZ_V2_ATTRS,&k,&v)) {
+	    NCJreclaim(k); NCJreclaim(v);
+	}
+    }
+
+    if(!(zinfo->controls.flags & FLAG_PUREZARR)) {
+        /* Insert the jtypes into the set of attributes */
+         if((stat = NCJinsert(jattrs,NCZ_V2_ATTRS,jtypes))) goto done;
+    }
+
     /* Upload the .zattrs object */
     if((stat=NCZ_uploadjson(map,tkey,jattrs)))
 	goto done;
 
-    if(!(zinfo->controls.flags & FLAG_PUREZARR)) {
-        /* Construct the path to the .nczattr object */
-        if((stat = nczm_concat(fullpath,NCZATTRS,&tkey)))
-   	    goto done;
-        /* Upload the .nczattr object */
-        if((stat=NCZ_uploadjson(map,tkey,jtypes)))
-	    goto done;
-    }
-    
 done:
     if(stat) {
 	NCJreclaim(jattrs);
@@ -354,6 +356,7 @@ done:
     nullfree(tkey);
     return stat;
 }
+#endif
 
 static const char*
 controllookup(const char** envv_controls, const char* key)

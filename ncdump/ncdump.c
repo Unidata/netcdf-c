@@ -985,7 +985,7 @@ pr_att_specials(
     } else if(contig == NC_COMPACT) {
 	    pr_att_name(ncid, varp->name, NC_ATT_STORAGE);
 	    printf(" = \"compact\" ;\n");
-    } else {
+    } else if(contig == NC_CHUNKED) {
  	   size_t *chunkp;
 	   int i;
 	    pr_att_name(ncid, varp->name, NC_ATT_STORAGE);
@@ -999,6 +999,12 @@ pr_att_specials(
 		printf("%lu%s", (unsigned long)chunkp[i], i+1 < varp->ndims ? ", " : " ;\n");
 	    }
 	    free(chunkp);
+    } else if(contig == NC_VIRTUAL) {
+	    pr_att_name(ncid, varp->name, NC_ATT_STORAGE);
+	    printf(" = \"virtual\" ;\n");
+    } else {
+	    pr_att_name(ncid, varp->name, NC_ATT_STORAGE);
+	    printf(" = \"unknown\" ;\n");
     }
 
     /* _Filter (including deflate and shuffle) */
@@ -1060,6 +1066,28 @@ pr_att_specials(
 	if(shuffle != NC_NOSHUFFLE) {
 	    pr_att_name(ncid, varp->name, NC_ATT_SHUFFLE);
 	    printf(" = \"true\" ;\n");
+	}
+    }
+    /* _Codecs*/
+    {
+	int stat;
+	size_t len;
+	nc_type typeid;
+        stat = nc_inq_att(ncid,varid,NC_ATT_CODECS,&typeid,&len);
+        if(stat == NC_NOERR && typeid == NC_CHAR && len > 0) {
+	    char* json = (char*)malloc(len+1);
+	    if(json != NULL) {	    
+                stat = nc_get_att_text(ncid,varid,NC_ATT_CODECS,json);
+                if(stat == NC_NOERR) {
+		    char* escapedjson = NULL;
+		    pr_att_name(ncid, varp->name, NC_ATT_CODECS);
+		    /* Escape the json */
+		    escapedjson = escaped_string(json);	
+                    printf(" = \"%s\" ;\n",escapedjson);
+		    free(escapedjson);
+		}
+		free(json);
+	    }
 	}
     }
     /* _Checksum */
@@ -2453,6 +2481,7 @@ main(int argc, char *argv[])
 	    NC_CHECK( nc_close(ncid) );
     }
     nullfree(path) path = NULL;
+    nc_finalize();
     exit(EXIT_SUCCESS);
 
 fail: /* ncstat failures */
@@ -2462,6 +2491,7 @@ fail: /* ncstat failures */
     nullfree(path); path = NULL;
     if(strlen(errmsg) > 0)
 	error("%s", errmsg);
+    nc_finalize();
     exit(EXIT_FAILURE);
 }
 

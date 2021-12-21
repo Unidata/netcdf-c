@@ -4,6 +4,7 @@ dimensions:
 	d1 = 2;
 variables:
 	int v(d0, d1) ;
+ 		v:_FillValue = -2147483647 ;
 data:
 
   v =

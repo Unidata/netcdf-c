@@ -15,14 +15,17 @@
 
 #define STSIZE 1000
 
-#if !defined _WIN32 && !defined __CYGWIN__
+#ifdef H5BACKTRACE
+#  if !defined _WIN32 && !defined __CYGWIN__
 static void* stacktrace[STSIZE];
+#  endif
 #endif
 
 int
 nch5breakpoint(int err)
 {
-#if !defined _WIN32 && !defined __CYGWIN__
+#ifdef H5BACKTRACE
+#  if !defined _WIN32 && !defined __CYGWIN__
     int count = 0;
     char** trace = NULL;
     int i;
@@ -32,9 +35,10 @@ nch5breakpoint(int err)
     fprintf(stderr,"backtrace:\n");
     for(i=0;i<count;i++)
         fprintf(stderr,"[%03d] %s\n",i,trace[i]);
-#if 0
+#    if 0
     if(trace != NULL) free(trace);
-#endif
+#    endif
+#  endif
 #endif
     return err;
 }

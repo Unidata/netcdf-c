@@ -69,7 +69,7 @@ VALGRIND="valgrind -q --error-exitcode=2 --leak-check=full"
 fi
 
 rm -fr ${RESULTSDIR}
-mkdir "${RESULTSDIR}"
+mkdir -p "${RESULTSDIR}"
 
 passcount=0
 xfailcount=0

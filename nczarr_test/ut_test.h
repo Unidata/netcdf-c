@@ -46,6 +46,7 @@ struct UTOptions {
     char* file;
     char* output;
     char* kind;
+    char* profile;
     NCZChunkRange ranges[NC_MAX_VAR_DIMS];
     int nslices;
     NCZSlice slices[NC_MAX_VAR_DIMS];
@@ -66,9 +67,10 @@ extern struct UTOptions utoptions;
 
 extern void usage(int err);
 extern int ut_init(int argc, char** argv, struct UTOptions* test);
+extern void ut_final(void);
 
 extern void nccheck(int stat, int line);
-extern char* makeurl(const char* file,NCZM_IMPL);
+extern char* makeurl(const char* file, NCZM_IMPL, struct UTOptions*);
 //extern int setup(int argc, char** argv);
 extern struct Test* findtest(const char* cmd, struct Test* tests);
 extern int runtests(const char** cmds, struct Test* tests);

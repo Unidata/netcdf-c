@@ -12,13 +12,13 @@
 #ifndef ZINTERNAL_H
 #define ZINTERNAL_H
 
-#define ZARRVERSION 2
+#define ZARRVERSION "2"
 
-/* NCZARRVERSION is ndependent of Zarr version,
+/* NCZARRVERSION is independent of Zarr version,
    but NCZARRVERSION => ZARRVERSION */
-#define NCZARRVERSION "1.0.0"
+#define NCZARRVERSION "2.0.0"
 
-/* These have to do with creating chuncked datasets in ZARR. */
+/* These have to do with creating chunked datasets in ZARR. */
 #define NCZ_CHUNKSIZE_FACTOR (10)
 #define NCZ_MIN_CHUNK_SIZE (2)
 
@@ -42,18 +42,48 @@
 #  endif
 #endif
 
+/* V1 reserved objects */
 #define NCZMETAROOT "/.nczarr"
 #define NCZGROUP ".nczgroup"
 #define NCZARRAY ".nczarray"
 #define NCZATTRS ".nczattrs"
-
 /* Deprecated */
 #define NCZVARDEP ".nczvar"
 #define NCZATTRDEP ".nczattr"
 
+#define ZMETAROOT "/.zgroup"
 #define ZGROUP ".zgroup"
 #define ZATTRS ".zattrs"
 #define ZARRAY ".zarray"
+
+/* Pure Zarr pseudo names */
+#define ZDIMANON "_zdim"
+
+/* V2 Reserved Attributes */
+/*
+Inserted into /.zgroup
+_NCZARR_SUPERBLOCK: {"version": "2.0.0"}
+Inserted into any .zgroup
+"_NCZARR_GROUP": "{
+\"dimensions\": {\"d1\": \"1\", \"d2\": \"1\",...}
+\"variables\": [\"v1\", \"v2\", ...]
+\"groups\": [\"g1\", \"g2\", ...]
+}"
+Inserted into any .zarray
+"_NCZARR_ARRAY": "{
+\"dimensions\": [\"/g1/g2/d1\", \"/d2\",...]
+\"storage\": \"scalar\"|\"contiguous\"|\"compact\"|\"chunked\"
+}"
+Inserted into any .zattrs ? or should it go into the container?
+"_NCZARR_ATTRS": "{
+\"types\": {\"attr1\": \"<i4\", \"attr2\": \"<i1\",...}
+}
+*/
+
+#define NCZ_V2_SUPERBLOCK "_NCZARR_SUPERBLOCK"
+#define NCZ_V2_GROUP   "_NCZARR_GROUP"
+#define NCZ_V2_ARRAY   "_NCZARR_ARRAY"
+#define NCZ_V2_ATTR    NC_NCZARR_ATTR
 
 #define PUREZARRCONTROL "zarr"
 #define XARRAYCONTROL "xarray"
@@ -64,12 +94,15 @@
 
 #define islegaldimsep(c) ((c) != '\0' && strchr(LEGAL_DIM_SEPARATORS,(c)) != NULL)
 
-
 /* Mnemonics */
 #define ZCLOSE    1 /* this is closeorabort as opposed to enddef */
 
 /* Mnemonics */
 #define ZCLOSE    1 /* this is closeorabort as opposed to enddef */
+
+/* Useful macro */
+#define ncidforx(file,grpid) ((file)->controller->ext_ncid | (grpid))
+#define ncidfor(var) ncidforx((var)->container->nc4_info,(var)->container->hdr.id)
 
 /**************************************************/
 /* Forward */
@@ -110,6 +143,7 @@ typedef struct NCZ_FILE_INFO {
 #		define FLAG_SHOWFETCH   2
 #		define FLAG_LOGGING     4
 #		define FLAG_XARRAYDIMS  8
+#		define FLAG_NCZARR_V1   16
 	NCZM_IMPL mapimpl;
     } controls;
 } NCZ_FILE_INFO_T;
@@ -217,23 +251,6 @@ int ncz_makeattr(NC_OBJ*, NCindex* attlist, const char* name, nc_type typid, siz
 /* zvar.c */
 int ncz_gettype(NC_FILE_INFO_T*, NC_GRP_INFO_T*, int xtype, NC_TYPE_INFO_T** typep);
 int ncz_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
-
-/* zfilter.c */
-/* Dispatch functions are also in zfilter.c */
-/* Filterlist management */
-
-/* The NC_VAR_INFO_T->filters field is an NClist of this struct */
-struct NCZ_Filter {
-    int flags;             /**< Flags describing state of this filter. */
-#define NCZ_FILTER_MISSING 1 /* Signal filter implementation is not available */
-    unsigned int filterid; /**< ID for arbitrary filter. */
-    size_t nparams;        /**< nparams for arbitrary filter. */
-    unsigned int* params;  /**< Params for arbitrary filter. */
-};
-
-int NCZ_filter_lookup(NC_VAR_INFO_T* var, unsigned int id, struct NCZ_Filter** specp);
-int NCZ_addfilter(NC_VAR_INFO_T* var, unsigned int id, size_t nparams, const unsigned int* params);
-int NCZ_filter_freelist(NC_VAR_INFO_T* var);
 
 /* Undefined */
 /* Find var, doing lazy var metadata read if needed. */

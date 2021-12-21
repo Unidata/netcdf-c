@@ -26,9 +26,6 @@ Unified filter related code
 
 /**************************************************/
 /* Per-variable filters */
-/* The original HDF5-based functions are left
-   but are now wrappers around the filterx functions.
-*/
 
 /**
 Find the set of filters (if any) associated with a variable.

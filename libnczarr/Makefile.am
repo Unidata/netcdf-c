@@ -8,7 +8,7 @@
 # Get AM_CPPFLAGS and AM_LDFLAGS
 include $(top_srcdir)/lib_flags.am
 AM_CPPFLAGS += -D_LARGEFILE_SOURCE
-AM_CPPFLAGS += -I$(top_srcdir)/libsrc4 -I$(top_srcdir)/libdap4
+AM_CPPFLAGS += -I$(top_srcdir)/libsrc4 -I$(top_srcdir)/libncpoco
 libnczarr_la_CPPFLAGS = ${AM_CPPFLAGS}
 AM_CXXFLAGS = 
 libnczarr_la_LIBADD =
@@ -38,10 +38,8 @@ zcvt.c \
 zdim.c \
 zdispatch.c \
 zfile.c \
-zfilter.c \
 zgrp.c \
 zinternal.c \
-zjson.c \
 zmap.c \
 zmap_file.c \
 zodom.c \
@@ -52,6 +50,7 @@ ztype.c \
 zutil.c \
 zvar.c \
 zwalk.c \
+zfilter.c \
 zdebug.c \
 zarr.h \
 zcache.h \
@@ -60,10 +59,10 @@ zdispatch.h \
 ztracedispatch.h \
 zincludes.h \
 zinternal.h \
-zjson.h \
 zmap.h \
 zodom.h \
 zprovenance.h \
+zfilter.h \
 zdebug.h
 
 if ENABLE_NCZARR_ZIP
@@ -72,7 +71,7 @@ endif
 
 if ENABLE_S3_SDK
 libnczarr_la_SOURCES += zmap_s3sdk.c
-libnczarr_la_SOURCES += zs3sdk.cpp awsincludes.h zs3sdk.h
+libnczarr_la_SOURCES += 
 AM_CXXFLAGS += -std=c++11
 endif
 

@@ -74,8 +74,12 @@ Assumptions about Input path:
 1. It is a relative or absolute path
 2. It is not a URL
 3. It conforms to the format expected by one of the following:
-       Linux (/x/y/...), Cygwin (/cygdrive/D/...),
-       Windows (D:/...), or MSYS (/D/...), or relative (x/y...)
+       Linux (/x/y/...),
+       Cygwin (/cygdrive/D/...),
+       Windows (D:\...),
+       Windows network path (\\mathworks\...)
+       MSYS (/D/...),
+       or relative (x/y...)
 4. It is encoded in the local platform character set.
    Note that for most systems, this is utf-8. But for Windows,
    the encoding is most likely some form of ANSI code page, probably
@@ -97,7 +101,26 @@ This means it is ok to call it repeatedly with no harm.
 */
 EXTERNL char* NCpathcvt(const char* path);
 
+/**
+It is often convenient to convert a path to some canonical format
+that has some desirable properties:
+1. All backslashes have been converted to forward slash
+2. It can be suffixed or prefixed by simple concatenation
+   with a '/' separator. The exception being if the base part
+   may be absolute, in which case, suffixing only is allowed;
+   the user is responsible for getting this right.
+To this end we choose the linux/cygwin format as our standard canonical form.
+If the path has a windows drive letter, then it is represented
+in the cygwin "/cygdrive/<drive-letter>" form.
+If it is a windows network path, then it starts with "//".
+If it is on *nix* platform, then this sequence will never appear
+and the canonical path will look like a standard *nix* path.
+*/
+EXTERNL int NCpathcanonical(const char* srcpath, char** canonp);
+
 EXTERNL int NChasdriveletter(const char* path);
+
+EXTERNL int NCisnetworkpath(const char* path);
 
 /* Canonicalize and make absolute by prefixing the current working directory */
 EXTERNL char* NCpathabsolute(const char* name);
@@ -144,6 +167,7 @@ EXTERNL int NCclosedir(DIR* ent);
 #define NCmkstemp(buf) mkstemp(buf);
 #define NCcwd(buf, len) getcwd(buf,len)
 #define NCrmdir(path) rmdir(path)
+#define NCunlink(path) unlink(path)
 #ifdef HAVE_SYS_STAT_H
 #define NCstat(path,buf) stat(path,buf)
 #endif

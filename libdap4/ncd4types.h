@@ -250,6 +250,7 @@ typedef struct NCD4serial {
     void* dap; /* pointer into rawdata where dap data starts */ 
     char* dmr;/* copy of dmr */ 
     char* errdata; /* null || error chunk (null terminated) */
+    int httpcode; /* returned from last request */
     int hostlittleendian; /* 1 if the host is little endian */
     int remotelittleendian; /* 1 if the packet says data is little endian */
 #ifdef CHECKSUMHACK

@@ -161,6 +161,8 @@ Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_PERSIST       0x4000  /**< Save diskless contents to disk. Mode flag for nc_open() or nc_create() */
 #define NC_INMEMORY      0x8000  /**< Read from memory. Mode flag for nc_open() or nc_create() */
 
+#define NC_NOATTCREORD   0x20000 /**< Disable the netcdf-4 (hdf5) attribute creation order tracking */
+
 #define NC_MAX_MAGIC_NUMBER_LEN 8 /**< Max len of user-defined format magic number. */
 
 /** Format specifier for nc_set_default_format() and returned
@@ -293,11 +295,14 @@ NOTE: The NC_MAX_DIMS, NC_MAX_ATTRS, and NC_MAX_VARS limits
 
 /** In HDF5 files you can set storage for each variable to be either
  * contiguous or chunked, with nc_def_var_chunking().  This define is
- * used there. */
+ * used there. Unknown storage is used for further extensions of HDF5
+ * storage models, which should be handled transparently by netcdf */
 /**@{*/
-#define NC_CHUNKED    0
-#define NC_CONTIGUOUS 1
-#define NC_COMPACT    2
+#define NC_CHUNKED         0
+#define NC_CONTIGUOUS      1
+#define NC_COMPACT         2
+#define NC_UNKNOWN_STORAGE 3
+#define NC_VIRTUAL         4
 /**@}*/
 
 /** In HDF5 files you can set check-summing for each variable.
@@ -320,6 +325,21 @@ there. */
 
 #define NC_MIN_DEFLATE_LEVEL 0 /**< Minimum deflate level. */
 #define NC_MAX_DEFLATE_LEVEL 9 /**< Maximum deflate level. */
+
+#define NC_NOQUANTIZE 0 /**< No quantization in use. */    
+#define NC_QUANTIZE_BITGROOM 1 /**< Use bitgroom quantization. */
+
+/** When quantization is used for a variable, an attribute of this
+ * name is added. */
+#define NC_QUANTIZE_ATT_NAME "_QuantizeBitgroomNumberOfSignificantDigits"
+
+/** For quantization, the allowed value of number of significant
+ * digits for float. */
+#define NC_QUANTIZE_MAX_FLOAT_NSD (7)
+
+/** For quantization, the allowed value of number of significant
+ * digits for double. */
+#define NC_QUANTIZE_MAX_DOUBLE_NSD (15)
 
 /** The netcdf version 3 functions all return integer error status.
  * These are the possible values, in addition to certain values from
@@ -480,9 +500,11 @@ by the desired type. */
 #define NC_ENCZARR       (-137)    /**< Error at NCZarr layer. */
 #define NC_ES3           (-138)    /**< Generic S3 error */
 #define NC_EEMPTY        (-139)    /**< Attempt to read empty NCZarr map key */
-#define NC_EFOUND        (-140)    /**< Some object exists when it should not */
+#define NC_EOBJECT       (-140)    /**< Some object exists when it should not */
+#define NC_ENOOBJECT     (-141)    /**< Some object not found */
+#define NC_EPLUGIN       (-142)    /**< Unclassified failure in accessing a dynamically loaded plugin> */
 
-#define NC4_LAST_ERROR   (-140)    /**< @internal All netCDF errors > this. */
+#define NC4_LAST_ERROR   (-142)    /**< @internal All netCDF errors > this. */
 
 /* Errors for all remote access methods(e.g. DAP and CDMREMOTE)*/
 #define NC_EURL         (NC_EDAPURL)   /**< Malformed URL */
@@ -848,6 +870,16 @@ nc_get_varm(int ncid, int varid,  const size_t *startp,
             const ptrdiff_t *imapp, void *ip);
 
 /* Extra netcdf-4 stuff. */
+
+/* Set quantization settings for a variable. Quantizing data improves
+ * later compression. Must be called after nc_def_var and before
+ * nc_enddef. */
+EXTERNL int
+nc_def_var_quantize(int ncid, int varid, int quantize_mode, int nsd);
+
+/* Find out quantization settings of a var. */
+EXTERNL int
+nc_inq_var_quantize(int ncid, int varid, int *quantize_modep, int *nsdp);
 
 /* Set compression settings for a variable. Lower is faster, higher is
  * better. Must be called after nc_def_var and before nc_enddef. */

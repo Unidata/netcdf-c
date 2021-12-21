@@ -173,6 +173,10 @@ EXTERNL int NCZ_def_var_filter(int ncid, int varid, unsigned int filterid, size_
 EXTERNL int NCZ_inq_var_filter_ids(int ncid, int varid, size_t* nfiltersp, unsigned int *filterids);
 EXTERNL int NCZ_inq_var_filter_info(int ncid, int varid, unsigned int filterid, size_t* nparamsp, unsigned int *params);
 
+EXTERNL int NCZ_def_var_filterx(int ncid, int varid, const char* text);
+EXTERNL int NCZ_inq_var_filterx_ids(int ncid, int varid, char** textp);
+EXTERNL int NCZ_inq_var_filterx_info(int ncid, int varid, const char* id, char** textp);
+
 #if defined(__cplusplus)
 }
 #endif

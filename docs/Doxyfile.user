@@ -751,6 +751,7 @@ INPUT = \
     ./docs/byterange.dox \
     ./docs/inmemory.md \
     ./docs/auth.md \
+    ./docs/filters.md \
     ./docs/notes.md \
     ./docs/all-error-codes.md \
     ./docs/building-with-cmake.md \

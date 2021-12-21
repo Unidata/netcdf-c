@@ -390,6 +390,7 @@ NCZ_def_var(int ncid, const char *name, nc_type xtype, int ndims,
     var->atts_read = NC_TRUE;
 
     /* Set the filter list */
+    assert(var->filters == NULL);
     var->filters = (void*)nclistnew();
 
     /* Point to the type, and increment its ref. count */
@@ -459,10 +460,6 @@ var->type_info->rc++;
 
     /* Create the cache */
     if((retval=NCZ_create_chunk_cache(var,zvar->chunkproduct*var->type_info->size,zvar->dimension_separator,&zvar->cache)))
-	BAIL(retval);
-
-    /* Is this a variable with a chunksize greater than the current cache size? */
-    if ((retval = NCZ_adjust_var_cache(grp, var)))
 	BAIL(retval);
 
     /* Return the varid. */
@@ -599,6 +596,9 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
     {
 	if(*shuffle) var->shuffle = *shuffle;
 	var->storage = NC_CHUNKED;
+	if(var->shuffle) {
+	    if((retval = NCZ_def_var_filter(ncid,varid,2,0,NULL))) goto done;
+	}
     }
 
     /* Fletcher32 checksum error protection? */
@@ -606,6 +606,9 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
     {
 	if(*fletcher32) var->fletcher32 = *fletcher32;
 	var->storage = NC_CHUNKED;
+	if(var->fletcher32) {
+	    if((retval = NCZ_def_var_filter(ncid,varid,3,0,NULL))) goto done;
+	}
     }
 
     /* Handle storage settings. */
@@ -675,9 +678,6 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	    for (d = 0; d < var->ndims; d++)
 		zvar->chunkproduct *= var->chunksizes[d];
             zvar->chunksize = zvar->chunkproduct * var->type_info->size;
-	    /* Adjust the cache. */
-	    if ((retval = NCZ_adjust_var_cache(grp, var)))
-		goto done;
 	}
     
 #ifdef LOGGING
@@ -1527,7 +1527,8 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     {
 	if ((retval = nc4_convert_type(data, bufr, mem_nc_type, var->type_info->hdr.id,
 				       len, &range_error, var->fill_value,
-				       (h5->cmode & NC_CLASSIC_MODEL))))
+				       (h5->cmode & NC_CLASSIC_MODEL),
+				       var->quantize_mode, var->nsd)))
 	    BAIL(retval);
     }
 
@@ -1902,7 +1903,8 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     {
 	if ((retval = nc4_convert_type(bufr, data, var->type_info->hdr.id, mem_nc_type,
 					   len, &range_error, var->fill_value,
-					   (h5->cmode & NC_CLASSIC_MODEL))))
+				           (h5->cmode & NC_CLASSIC_MODEL), var->quantize_mode,
+				           var->nsd)))
 	   BAIL(retval);
         /* For strict netcdf-3 rules, ignore erange errors between UBYTE
 	 * and BYTE types. */
@@ -2002,10 +2004,22 @@ NCZ_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 	goto done;
     assert(grp && h5);
 
+    /* Short-circuit the filter-related inquiries */
+    if(shufflep) {
+	*shufflep = 0;
+	if((retval = NCZ_inq_var_filter_info(ncid,varid,2,NULL,NULL))==NC_NOERR)
+	    *shufflep = 1;
+    }
+    if(fletcher32p) {
+	*fletcher32p = 0;
+	if((retval = NCZ_inq_var_filter_info(ncid,varid,3,NULL,NULL))==NC_NOERR)
+	    *fletcher32p = 1;
+    }
+
     /* Now that lazy atts have been read, use the libsrc4 function to
      * get the answers. */
     retval = NC4_inq_var_all(ncid, varid, name, xtypep, ndimsp, dimidsp, nattsp,
-			   shufflep, unused4, unused5, fletcher32p,
+			   NULL, unused4, unused5, NULL,
 			   storagep, chunksizesp, no_fill, fill_valuep,
 			   endiannessp, unused1, unused2, unused3);
 done:

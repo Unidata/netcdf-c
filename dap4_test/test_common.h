@@ -105,9 +105,10 @@ setup(int tdmr, int argc, char** argv)
     if(translatenc4)
 	controller->controls.translation = NCD4_TRANSNC4;
     NCD4_applyclientparamcontrols(controller);
-    if((metadata=NCD4_newmeta(controller, ncbyteslength(input),ncbytescontents(input)))==NULL)
+    if((metadata=NCD4_newmeta(controller))==NULL)
 	fail(NC_ENOMEM);
     metadata->mode = mode;
+    NCD4_attachraw(metadata, ncbyteslength(input),ncbytescontents(input));
 
     if((ret=NCD4_dechunk(metadata))) /* ok for mode == DMR or mode == DAP */
 	fail(ret);

@@ -18,6 +18,7 @@
 #include "nclist.h"
 #include "ncbytes.h"
 #include "ncuri.h"
+#include "ncpathmgr.h"
 
 #include "zincludes.h"
 #include "ut_test.h"

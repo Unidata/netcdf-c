@@ -116,7 +116,8 @@ nc4_get_att_ptrs(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var,
         need_to_convert++;
         if ((retval = nc4_convert_type(att->data, bufr, att->nc_typeid,
                                        mem_type, (size_t)att->len, &range_error,
-                                       NULL, (h5->cmode & NC_CLASSIC_MODEL))))
+                                       NULL, (h5->cmode & NC_CLASSIC_MODEL),
+				       NC_NOQUANTIZE, 0)))
             BAIL(retval);
 
         /* For strict netcdf-3 rules, ignore erange errors between UBYTE

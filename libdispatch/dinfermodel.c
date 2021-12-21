@@ -23,8 +23,12 @@
 #include "ncbytes.h"
 #include "nclist.h"
 #include "nclog.h"
+#include "ncrc.h"
 #ifdef ENABLE_BYTERANGE
 #include "nchttp.h"
+#ifdef ENABLE_S3_SDK
+#include "ncs3sdk.h"
+#endif
 #endif
 #ifndef _WIN32
 #ifdef USE_HDF5
@@ -49,8 +53,9 @@ struct MagicFile {
     struct NCURI* uri;
     int omode;
     NCmodel* model;
-    size64_t filelen;
+    long long unsigned filelen;
     int use_parallel;
+    int iss3;
     void* parameters; /* !NULL if inmemory && !diskless */
     FILE* fp;
 #ifdef USE_PARALLEL
@@ -59,6 +64,11 @@ struct MagicFile {
 #ifdef ENABLE_BYTERANGE
     char* curlurl; /* url to use with CURLOPT_SET_URL */
     NC_HTTP_STATE* state;
+#ifdef ENABLE_S3_SDK
+    NCS3INFO s3;
+    void* s3client;
+    char* errmsg;
+#endif
 #endif
 };
 
@@ -113,6 +123,7 @@ static struct FORMATMODES {
 {"udf1",NC_FORMATX_UDF1,NC_FORMAT_NETCDF4},
 {"nczarr",NC_FORMATX_NCZARR,NC_FORMAT_NETCDF4},
 {"zarr",NC_FORMATX_NCZARR,NC_FORMAT_NETCDF4},
+{"bytes",NC_FORMATX_NC4,NC_FORMAT_NETCDF4}, /* temporary until 3 vs 4 is determined */
 {NULL,0},
 };
 
@@ -171,7 +182,7 @@ static struct NCPROTOCOLLIST {
     {"file",NULL,NULL},
     {"dods","http","dap2"},
     {"dap4","http","dap4"},
-    {"s3","http","s3"},
+    {"s3","s3","s3"},
     {NULL,NULL,NULL} /* Terminate search */
 };
 
@@ -192,7 +203,7 @@ static int NC_interpret_magic_number(char* magic, NCmodel* model);
 static void printmagic(const char* tag, char* magic,struct MagicFile*);
 static void printlist(NClist* list, const char* tag);
 #endif
-static int isreadable(NCmodel*);
+static int isreadable(NCURI*,NCmodel*);
 static char* list2string(NClist*);
 static int parsepair(const char* pair, char** keyp, char** valuep);
 
@@ -217,7 +228,8 @@ processuri(const char* path, NCURI** urip, NClist* fraglenv)
     /* Defaults */
     if(urip) *urip = NULL;
 
-    if(ncuriparse(path,&uri)) goto done; /* not url */
+    ncuriparse(path,&uri);
+    if(uri == NULL) goto done; /* not url */
 
     /* Look up the protocol */
     for(found=0,protolist=ncprotolist;protolist->protocol;protolist++) {
@@ -887,30 +899,31 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
 	    }
 	}
 
-        /* Phase 6: Special case: if this is a URL, and there are no mode args
-           and model.impl is still not defined, default to DAP2 */
-        if(nclistlength(modeargs) == 0 && !modelcomplete(model)) {
+        /* Phase 7: Special cases: if this is a URL and model.impl is still not defined */
+        /* Phase7a: Default is DAP2 */
+        if(!modelcomplete(model)) {
 	    model->impl = NC_FORMATX_DAP2;
 	    model->format = NC_FORMAT_NC3;
         }
+
     } else {/* Not URL */
 	if(*newpathp) *newpathp = NULL;
     }        
 
-    /* Phase 7: mode inference from mode flags */
+    /* Phase 8: mode inference from mode flags */
     /* The modeargs did not give us a model (probably not a URL).
        So look at the combination of mode flags and the useparallel flag */
     if(!modelcomplete(model)) {
         if((stat = NC_omodeinfer(useparallel,omode,model))) goto done;
     }
 
-    /* Phase 6: Infer from file content, if possible;
+    /* Phase 9: Infer from file content, if possible;
        this has highest precedence, so it may override
        previous decisions. Note that we do this last
        because we need previously determined model info
        to guess if this file is readable.
     */
-    if(!iscreate && isreadable(model)) {
+    if(!iscreate && isreadable(uri,model)) {
 	/* Ok, we need to try to read the file */
 	if((stat = check_file_type(path, omode, useparallel, params, model, uri))) goto done;
     }
@@ -927,25 +940,22 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
     case NC_FORMATX_UDF0:
     case NC_FORMATX_UDF1:
     case NC_FORMATX_NCZARR:
-	/* Check for illegal flags */
-	if((omode & (NC_64BIT_OFFSET|NC_64BIT_DATA)) != 0) {stat = NC_EINVAL; goto done;}
 	omode |= NC_NETCDF4;
 	if(model->format == NC_FORMAT_NETCDF4_CLASSIC)
 	    omode |= NC_CLASSIC_MODEL;
 	break;
     case NC_FORMATX_NC3:
-	if((omode & (NC_NETCDF4)) != 0) {stat = NC_EINVAL; goto done;}
+	omode &= ~NC_NETCDF4; /* must be netcdf-3 (CDF-1, CDF-2, CDF-5) */
 	if(model->format == NC_FORMAT_64BIT_OFFSET) omode |= NC_64BIT_OFFSET;
 	else if(model->format == NC_FORMAT_64BIT_DATA) omode |= NC_64BIT_DATA;
 	break;
     case NC_FORMATX_PNETCDF:
-	if((omode & (NC_NETCDF4)) != 0) {stat = NC_EINVAL; goto done;}
+	omode &= ~NC_NETCDF4; /* must be netcdf-3 (CDF-1, CDF-2, CDF-5) */
 	if(model->format == NC_FORMAT_64BIT_OFFSET) omode |= NC_64BIT_OFFSET;
 	else if(model->format == NC_FORMAT_64BIT_DATA) omode |= NC_64BIT_DATA;
 	break;
     case NC_FORMATX_DAP2:
-	if((omode & (NC_NETCDF4|NC_64BIT_OFFSET|NC_64BIT_DATA|NC_CLASSIC_MODEL)) != 0)
-	    {stat = NC_EINVAL; goto done;}
+	omode &= ~(NC_NETCDF4|NC_64BIT_OFFSET|NC_64BIT_DATA|NC_CLASSIC_MODEL);
 	break;
     default:
 	{stat = NC_ENOTNC; goto done;}
@@ -961,13 +971,16 @@ done:
 }
 
 static int
-isreadable(NCmodel* model)
+isreadable(NCURI* uri, NCmodel* model)
 {
     struct Readable* r;
-    /* Look up the protocol */
+    /* Step 1: Look up the implementation */
     for(r=readable;r->impl;r++) {
 	if(model->impl == r->impl) return r->readable;
     }
+    /* Step 2: check for bytes mode */
+    if(NC_testmode(uri,"bytes")) return 1;
+    
     return 0;
 }
 
@@ -1120,11 +1133,24 @@ openmagic(struct MagicFile* file)
 	file->filelen = (long long)meminfo->size;
 #ifdef ENABLE_BYTERANGE
     } else if(file->uri != NULL) {
-	/* Construct a URL minus any fragment */
-        file->curlurl = ncuribuild(file->uri,NULL,NULL,NCURISVC);
-	/* Open the curl handle */
-	if((status=nc_http_open(file->curlurl,&file->state,&file->filelen))) goto done;
+#ifdef ENABLE_S3_SDK
+	/* If this is an S3 URL, then handle specially */
+	if(NC_iss3(file->uri)) {
+	    if((status = NC_s3urlprocess(file->uri,&file->s3))) goto done;
+	    if((file->s3client = NC_s3sdkcreateclient(&file->s3))==NULL) {status = NC_EURL; goto done;}
+	    if((status = NC_s3sdkinfo(file->s3client,file->s3.bucket,file->s3.rootkey,&file->filelen,&file->errmsg)))
+	        goto done;
+	    file->iss3 = 1;
+	} else
 #endif
+	{
+	    /* Construct a URL minus any fragment */
+            file->curlurl = ncuribuild(file->uri,NULL,NULL,NCURISVC);
+	    /* Open the curl handle */
+	    if((status=nc_http_init(&file->state))) goto done;
+	    if((status=nc_http_size(file->state,file->curlurl,&file->filelen))) goto done;
+	}
+#endif /*BYTERANGE*/
     } else {
 #ifdef USE_PARALLEL
         if (file->use_parallel) {
@@ -1206,17 +1232,25 @@ readmagic(struct MagicFile* file, long pos, char* magic)
 #endif
 #ifdef ENABLE_BYTERANGE
     } else if(file->uri != NULL) {
-	NCbytes* buf = ncbytesnew();
 	fileoffset_t start = (size_t)pos;
 	fileoffset_t count = MAGIC_NUMBER_LEN;
-	status = nc_http_read(file->state,file->curlurl,start,count,buf);
-	if(status == NC_NOERR) {
-	    if(ncbyteslength(buf) != count)
-	        status = NC_EINVAL;
-	    else
-	        memcpy(magic,ncbytescontents(buf),count);
+#ifdef ENABLE_S3_SDK
+	if(file->iss3) {
+	    if((status = NC_s3sdkread(file->s3client,file->s3.bucket,file->s3.rootkey,start,count,(void*)magic,&file->errmsg)))
+	        {goto done;}
+	} else
+#endif
+	{
+  	    NCbytes* buf = ncbytesnew();
+	    status = nc_http_read(file->state,file->curlurl,start,count,buf);
+	    if(status == NC_NOERR) {
+	        if(ncbyteslength(buf) != count)
+	            status = NC_EINVAL;
+	        else
+	            memcpy(magic,ncbytescontents(buf),count);
+	    }
+  	    ncbytesfree(buf);
 	}
-	ncbytesfree(buf);
 #endif
     } else {
 #ifdef USE_PARALLEL
@@ -1264,8 +1298,17 @@ closemagic(struct MagicFile* file)
 	/* noop */
 #ifdef ENABLE_BYTERANGE
     } else if(file->uri != NULL) {
-	status = nc_http_close(file->state);
-	nullfree(file->curlurl);
+#ifdef ENABLE_S3_SDK
+	if(file->iss3) {
+	    NC_s3sdkclose(file->s3client, &file->s3, 0, &file->errmsg);
+	    NC_s3clear(&file->s3);
+	    nullfree(file->errmsg);
+	} else
+#endif
+	{
+	    status = nc_http_close(file->state);
+	    nullfree(file->curlurl);
+	}
 #endif
     } else {
 #ifdef USE_PARALLEL

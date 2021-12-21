@@ -43,6 +43,12 @@ static Test PATHTESTS[] = {
 #ifndef _WIN32
 /* Test utf8 path */
 {"/海/海",{ "/海/海", "/c/海/海", "/cygdrive/c/海/海",  "c:\\海\\海"}},
+/* Test network path */
+{"//git/netcdf-c/dap4_test",{
+    "/@/git/netcdf-c/dap4_test",
+    "/@/git/netcdf-c/dap4_test",
+    "/cygdrive/@/git/netcdf-c/dap4_test",
+    "\\\\git\\netcdf-c\\dap4_test"}},
 #endif
 {NULL, {NULL, NULL, NULL, NULL}}
 };
@@ -62,11 +68,11 @@ main(int argc, char** argv)
 
     nc_initialize();
 
-    /* Test localkind X path kind */
-    for(k=0;k<NKINDS;k++) {
-	int kind = kinds[k];
-	/* Iterate over the test paths */
-        for(test=PATHTESTS;test->test;test++) {
+    /* Test localkind X path-kind */
+    for(test=PATHTESTS;test->test;test++) {
+        /* Iterate over the test paths */
+        for(k=0;k<NKINDS;k++) {
+	    int kind = kinds[k];
 	    /* Compare output for the localkind */
             if(test->expected[k] == NULL) {
 #ifdef DEBUG

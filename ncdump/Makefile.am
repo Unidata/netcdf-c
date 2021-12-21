@@ -41,6 +41,10 @@ utils.h utils.c dimmap.h dimmap.c list.c list.h
 noinst_PROGRAMS += ncvalidator
 ncvalidator_SOURCES = ncvalidator.c
 
+# A non-installed utility program to convert paths; similar to cygpath
+noinst_PROGRAMS += ncpathcvt
+ncpathcvt_SOURCES = ncpathcvt.c
+
 # A simple netcdf-4 metadata -> xml printer. Do not install.
 if USE_HDF5
 bin_PROGRAMS += nc4print
@@ -72,10 +76,11 @@ bom tst_dimsizes nctrunc tst_rcmerge
 
 # Tests for classic and 64-bit offset files.
 TESTS = tst_inttags.sh run_tests.sh tst_64bit.sh ref_ctest	\
-ref_ctest64 tst_output.sh tst_lengths.sh tst_calendars.sh	\
-run_utf8_tests.sh tst_nccopy3.sh tst_nccopy3_subset.sh		\
+ref_ctest64 tst_lengths.sh tst_calendars.sh	\
+run_utf8_tests.sh tst_nccopy3_subset.sh		\
 tst_charfill.sh tst_iter.sh tst_formatx3.sh tst_bom.sh		\
-tst_dimsizes.sh run_ncgen_tests.sh tst_ncgen4_classic.sh test_radix.sh test_rcmerge.sh
+tst_dimsizes.sh run_ncgen_tests.sh tst_ncgen4_classic.sh        \
+test_radix.sh test_rcmerge.sh
 
 # The tst_nccopy3.sh test uses output from a bunch of other
 # tests. This records the dependency so parallel builds work.
@@ -87,13 +92,11 @@ if USE_STRICT_NULL_BYTE_HEADER_PADDING
 XFAIL_TESTS += tst_null_byte_padding.sh
 endif
 
-if ! ISCYGWIN
-TESTS += test_unicode_directory.sh  test_unicode_path.sh
-endif
-
 if LARGE_FILE_TESTS
 TESTS += tst_iter.sh
 endif
+
+TESTS += testpathcvt.sh
 
 if USE_HDF5
 # HDF5 has some extra C programs to build. These will be run by
@@ -107,9 +110,9 @@ check_PROGRAMS += tst_vlen_demo
 
 # Tests for netCDF-4 behavior.
 TESTS += tst_fileinfo.sh tst_hdf5_offset.sh tst_inttags4.sh		\
-tst_netcdf4.sh tst_fillbug.sh tst_netcdf4_4.sh tst_nccopy4.sh		\
+tst_netcdf4.sh tst_fillbug.sh tst_nccopy4.sh		\
 tst_nccopy5.sh tst_grp_spec.sh tst_mud.sh tst_h_scalar.sh tst_formatx4.sh		\
-run_utf8_nc4_tests.sh run_back_comp_tests.sh run_ncgen_nc4_tests.sh	\
+run_utf8_nc4_tests.sh run_ncgen_nc4_tests.sh	\
 tst_ncgen4.sh test_scope.sh
 
 # Record interscript dependencies so parallel builds work.
@@ -131,6 +134,16 @@ endif
 if ENABLE_CDF5
 # Test for keywords as identifiers
 TESTS += test_keywords.sh
+endif
+
+if ! ISMINGW
+if ! ISCYGWIN
+TESTS += tst_output.sh tst_nccopy3.sh
+TESTS += test_unicode_directory.sh  test_unicode_path.sh
+if USE_HDF5
+TESTS += run_back_comp_tests.sh tst_netcdf4_4.sh
+endif
+endif
 endif
 
 endif BUILD_TESTSETS
@@ -185,6 +198,8 @@ EXTRA_DIST += L512.bin
 EXTRA_DIST += tst_ctests.sh ref_ctest_small_3.c ref_ctest_small_4.c \
 	ref_ctest_special_atts_4.c
 
+EXTRA_DIST += testpathcvt.sh ref_pathcvt.txt
+
 # CDL files and Expected results
 SUBDIRS = cdl expected
 
@@ -220,4 +235,5 @@ scope_*.nc copy_scope_*.cdl
 
 # Remove directories
 clean-local:
-	rm -fr rcmergedir
+	rm -fr rcmergedir rchome
+

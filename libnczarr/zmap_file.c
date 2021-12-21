@@ -125,6 +125,7 @@ static int zflookupobj(ZFMAP*, const char* key, FD* fd);
 static int zfparseurl(const char* path0, NCURI** urip);
 static int zffullpath(ZFMAP* zfmap, const char* key, char**);
 static void zfrelease(ZFMAP* zfmap, FD* fd);
+static void zfunlink(const char* canonpath);
 
 static int platformerr(int err);
 static int platformcreatefile(ZFMAP* map, const char* truepath,FD*);
@@ -144,7 +145,7 @@ static int verify(const char* path, int isdir);
 #endif
 
 static int zfinitialized = 0;
-static void zfinitialize(void)
+static void zfileinitialize(void)
 {
     if(!zfinitialized) {
         ZTRACE(5,NULL);
@@ -178,14 +179,14 @@ static int
 zfilecreate(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** mapp)
 {
     int stat = NC_NOERR;
-    char* truepath = NULL;
+    char* canonpath = NULL;
     ZFMAP* zfmap = NULL;
     NCURI* url = NULL;
 	
     NC_UNUSED(parameters);
     ZTRACE(5,"path=%s mode=%d flag=%llu",path,mode,flags);
 
-    if(!zfinitialized) zfinitialize();
+    if(!zfinitialized) zfileinitialize();
 
     /* Fixup mode flags */
     mode |= (NC_NETCDF4 | NC_WRITE);
@@ -200,14 +201,9 @@ zfilecreate(const char *path, int mode, size64_t flags, void* parameters, NCZMAP
         {stat = NC_EURL; goto done;}
 
     /* Canonicalize the root path */
-    if((stat = nczm_canonicalpath(url->path,&truepath))) goto done;
+    if((stat = NCpathcanonical(url->path,&canonpath))) goto done;
 
-#ifdef CHECKNESTEDDATASETS
-    if(isnesteddataset(truepath))
-        {stat = NC_ENCZARR; goto done;}
-#endif
-
-    /* Build the z4 state */
+    /* Build the zmap state */
     if((zfmap = calloc(1,sizeof(ZFMAP))) == NULL)
 	{stat = NC_ENOMEM; goto done;}
 
@@ -217,8 +213,8 @@ zfilecreate(const char *path, int mode, size64_t flags, void* parameters, NCZMAP
     /* create => NC_WRITE */
     zfmap->map.mode = mode;
     zfmap->map.api = &zapi;
-    zfmap->root = truepath;
-        truepath = NULL;
+    zfmap->root = canonpath;
+        canonpath = NULL;
 
     /* If NC_CLOBBER, then delete below file tree */
     if(!fIsSet(mode,NC_NOCLOBBER))
@@ -234,7 +230,7 @@ zfilecreate(const char *path, int mode, size64_t flags, void* parameters, NCZMAP
 
 done:
     ncurifree(url);
-    nullfree(truepath);
+    nullfree(canonpath);
     if(stat)
     	zfileclose((NCZMAP*)zfmap,1);
     return ZUNTRACE(stat);
@@ -253,14 +249,14 @@ static int
 zfileopen(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** mapp)
 {
     int stat = NC_NOERR;
-    char* truepath = NULL;
+    char* canonpath = NULL;
     ZFMAP* zfmap = NULL;
     NCURI*url = NULL;
     
     NC_UNUSED(parameters);
     ZTRACE(5,"path=%s mode=%d flags=%llu",path,mode,flags);
 
-    if(!zfinitialized) zfinitialize();
+    if(!zfinitialized) zfileinitialize();
 
     /* Fixup mode flags */
     mode = (NC_NETCDF4 | mode);
@@ -272,9 +268,9 @@ zfileopen(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
         {stat = NC_EURL; goto done;}
 
     /* Canonicalize the root path */
-    if((stat = nczm_canonicalpath(url->path,&truepath))) goto done;
+    if((stat = NCpathcanonical(url->path,&canonpath))) goto done;
 
-    /* Build the z4 state */
+    /* Build the zmap state */
     if((zfmap = calloc(1,sizeof(ZFMAP))) == NULL)
 	{stat = NC_ENOMEM; goto done;}
 
@@ -283,8 +279,8 @@ zfileopen(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
     zfmap->map.flags = flags;
     zfmap->map.mode = mode;
     zfmap->map.api = (NCZMAP_API*)&zapi;
-    zfmap->root = truepath;
-	truepath = NULL;
+    zfmap->root = canonpath;
+	canonpath = NULL;
     
     /* Verify root dir exists */
     if((stat = platformopendir(zfmap,zfmap->root)))
@@ -296,7 +292,7 @@ zfileopen(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
 
 done:
     ncurifree(url);
-    nullfree(truepath);
+    nullfree(canonpath);
     if(stat) zfileclose((NCZMAP*)zfmap,0);
     return ZUNTRACE(stat);
 }
@@ -314,7 +310,7 @@ zfileexists(NCZMAP* map, const char* key)
     ZTRACE(5,"map=%s key=%s",zfmap->map.url,key);
     switch(stat=zflookupobj(zfmap,key,&fd)) {
     case NC_NOERR: break;
-    case NC_ENOTFOUND: stat = NC_EEMPTY;
+    case NC_ENOOBJECT: stat = NC_EEMPTY;
     case NC_EEMPTY: break;
     default: break;
     }
@@ -337,7 +333,7 @@ zfilelen(NCZMAP* map, const char* key, size64_t* lenp)
         /* Get file size */
         if((stat=platformseek(zfmap, &fd, SEEK_END, &len))) goto done;
 	break;
-    case NC_ENOTFOUND: stat = NC_EEMPTY;
+    case NC_ENOOBJECT: stat = NC_EEMPTY;
     case NC_EEMPTY: break;
     default: break;
     }
@@ -367,7 +363,7 @@ zfileread(NCZMAP* map, const char* key, size64_t start, size64_t count, void* co
         if((stat = platformseek(zfmap, &fd, SEEK_SET, &start))) goto done;
         if((stat = platformread(zfmap, &fd, count, content))) goto done;
 	break;
-    case NC_ENOTFOUND: stat = NC_EEMPTY;
+    case NC_ENOOBJECT: stat = NC_EEMPTY;
     case NC_EEMPTY: break;
     default: break;
     }
@@ -393,8 +389,9 @@ zfilewrite(NCZMAP* map, const char* key, size64_t start, size64_t count, const v
 #endif
 
     switch (stat = zflookupobj(zfmap,key,&fd)) {
-    case NC_ENOTFOUND:
+    case NC_ENOOBJECT:
     case NC_EEMPTY:
+	stat = NC_NOERR;
 	/* Create the directories leading to this */
 	if((stat = zfcreategroup(zfmap,key,SKIPLAST))) goto done;
         /* Create truepath */
@@ -427,7 +424,7 @@ zfileclose(NCZMAP* map, int delete)
     /* Delete the subtree below the root and the root */
     if(delete) {
 	stat = platformdelete(zfmap,zfmap->root,1);
-	unlink(zfmap->root);
+	zfunlink(zfmap->root);
     }
     nczm_clear(map);
     nullfree(zfmap->root);
@@ -447,7 +444,7 @@ zfilesearch(NCZMAP* map, const char* prefixkey, NClist* matches)
 {
     int stat = NC_NOERR;
     ZFMAP* zfmap = (ZFMAP*)map;
-    char* truepath = NULL;
+    char* fullpath = NULL;
     NClist* nextlevel = nclistnew();
     NCbytes* buf = ncbytesnew();
 
@@ -455,17 +452,17 @@ zfilesearch(NCZMAP* map, const char* prefixkey, NClist* matches)
 
     /* Make the root path be true */
     if(prefixkey == NULL || strlen(prefixkey)==0 || strcmp(prefixkey,"/")==0)
-	truepath = strdup(zfmap->root);
-    else if((stat = nczm_concat(zfmap->root,prefixkey,&truepath))) goto done;
+	fullpath = strdup(zfmap->root);
+    else if((stat = nczm_concat(zfmap->root,prefixkey,&fullpath))) goto done;
 
     /* get names of the next level path entries */
-    switch (stat = platformdircontent(zfmap, truepath, nextlevel)) {
+    switch (stat = platformdircontent(zfmap, fullpath, nextlevel)) {
     case NC_NOERR: /* ok */
 	break;
     case NC_EEMPTY: /* not a dir */
 	stat = NC_NOERR;
 	goto done;
-    case NC_ENOTFOUND: /* does not exist */
+    case NC_ENOOBJECT:
     default:
 	goto done;
     }
@@ -477,12 +474,22 @@ zfilesearch(NCZMAP* map, const char* prefixkey, NClist* matches)
 done:
     nclistfreeall(nextlevel);
     ncbytesfree(buf);
-    nullfree(truepath);
+    nullfree(fullpath);
     return ZUNTRACEX(stat,"|matches|=%d",(int)nclistlength(matches));
 }
 
 /**************************************************/
 /* Utilities */
+
+static void
+zfunlink(const char* canonpath)
+{
+    char* local = NULL;
+    if((local = NCpathcvt(canonpath))==NULL) goto done;
+    unlink(local);
+done:
+    nullfree(local);
+}
 
 /* Lookup a group by parsed path (segments)*/
 /* Return NC_EEMPTY if not found, NC_EINVAL if not a directory; create if create flag is set */
@@ -519,7 +526,7 @@ done:
 /* Lookup an object
 @return NC_NOERR if found and is a content-bearing object
 @return NC_EEMPTY if exists but is not-content-bearing
-@return NC_ENOTFOUND if not found
+@return NC_ENOOBJECT if not found
 */
 static int
 zflookupobj(ZFMAP* zfmap, const char* key, FD* fd)
@@ -582,6 +589,8 @@ zffullpath(ZFMAP* zfmap, const char* key, char** pathp)
     size_t klen, pxlen, flen;
     char* path = NULL;
 
+    ZTRACE(6,"map=%s key=%s",zfmap->map.url,key);
+
     klen = nulllen(key);
     pxlen = strlen(zfmap->root);
     flen = klen+pxlen+1+1;
@@ -597,7 +606,7 @@ zffullpath(ZFMAP* zfmap, const char* key, char** pathp)
     if(pathp) {*pathp = path; path = NULL;}
 done:
     nullfree(path)
-    return stat;
+    return ZUNTRACEX(stat,"path=%s",(pathp?*pathp:"null"));
 }
 
 static int
@@ -621,51 +630,46 @@ done:
 static int
 platformerr(int err)
 {
-     switch (err) {
-     case ENOENT: err = NC_ENOTFOUND; break; /* File does not exist */
+    ZTRACE(6,"err=%d",err);
+    switch (err) {
+     case ENOENT: err = NC_ENOOBJECT; break; /* File does not exist */
      case ENOTDIR: err = NC_EEMPTY; break; /* no content */
      case EACCES: err = NC_EAUTH; break; /* file permissions */
      case EPERM:  err = NC_EAUTH; break; /* ditto */
      default: break;
      }
-     return err;
+     return ZUNTRACE(err);
 }
 
 /* Test type of the specified file.
 @return NC_NOERR if found and is a content-bearing object (file)
 @return NC_EEMPTY if exists but is not-content-bearing (a directory)
-@return NC_ENOTFOUND if not found
+@return NC_ENOOBJECT if not found
 */
 static int
-platformtestcontentbearing(ZFMAP* zfmap, const char* truepath)
+platformtestcontentbearing(ZFMAP* zfmap, const char* canonpath)
 {
     int ret = 0;
     struct stat buf;
-    char* local = NULL;
     
-    ZTRACE(6,"map=%s truepath=%s",zfmap->map.url,truepath);
+    ZTRACE(6,"map=%s canonpath=%s",zfmap->map.url,canonpath);
 
-    /* Localize */
-    if((ret = nczm_localize(truepath,&local,LOCALIZE))) goto done;
-    
     errno = 0;
-    ret = NCstat(local, &buf);
-    ZTRACEMORE(6,"stat: local=%s ret=%d, errno=%d st_mode=%d",local,ret,errno,buf.st_mode);
+    ret = NCstat(canonpath, &buf);
+    ZTRACEMORE(6,"\tstat: ret=%d, errno=%d st_mode=%d",ret,errno,buf.st_mode);
     if(ret < 0) {
 	ret = platformerr(errno);
     } else if(S_ISDIR(buf.st_mode)) {
         ret = NC_EEMPTY;
     } else
         ret = NC_NOERR;
-done:
-    nullfree(local);
     errno = 0;
     return ZUNTRACE(ret);
 }
 
 /* Create a file */
 static int
-platformcreatefile(ZFMAP* zfmap, const char* truepath, FD* fd)
+platformcreatefile(ZFMAP* zfmap, const char* canonpath, FD* fd)
 {
     int stat = NC_NOERR;
     int ioflags = 0;
@@ -673,7 +677,7 @@ platformcreatefile(ZFMAP* zfmap, const char* truepath, FD* fd)
     int mode = zfmap->map.mode;
     int permissions = NC_DEFAULT_ROPEN_PERMS;
 
-    ZTRACE(6,"map=%s truepath=%s",zfmap->map.url,truepath);
+    ZTRACE(6,"map=%s canonpath=%s",zfmap->map.url,canonpath);
     
     errno = 0;
     if(!fIsSet(mode, NC_WRITE))
@@ -694,10 +698,10 @@ platformcreatefile(ZFMAP* zfmap, const char* truepath, FD* fd)
     if(fIsSet(mode,NC_WRITE))
         createflags = (ioflags|O_CREAT);
 
-    /* Try to create file (will also localize) */
-    fd->fd = NCopen3(truepath, createflags, permissions);
+    /* Try to create file (will also NCpathcvt) */
+    fd->fd = NCopen3(canonpath, createflags, permissions);
     if(fd->fd < 0) { /* could not create */
-        stat = platformerr(errno);
+	stat = platformerr(errno);
         goto done; /* could not open */
     }
 done:
@@ -707,14 +711,14 @@ done:
 
 /* Open a file; fail if it does not exist */
 static int
-platformopenfile(ZFMAP* zfmap, const char* truepath, FD* fd)
+platformopenfile(ZFMAP* zfmap, const char* canonpath, FD* fd)
 {
     int stat = NC_NOERR;
     int ioflags = 0;
     int mode = zfmap->map.mode;
     int permissions = 0;
 
-    ZTRACE(6,"map=%s truepath=%s",zfmap->map.url,truepath);
+    ZTRACE(6,"map=%s canonpath=%s",zfmap->map.url,canonpath);
 
     errno = 0;
     if(!fIsSet(mode, NC_WRITE)) {
@@ -729,12 +733,12 @@ platformopenfile(ZFMAP* zfmap, const char* truepath, FD* fd)
 #endif
 
 #ifdef VERIFY
-    if(!verify(truepath,!FLAG_ISDIR))
+    if(!verify(canonpath,!FLAG_ISDIR))
         assert(!"expected file, have dir");
 #endif
 
     /* Try to open file  (will localize) */
-    fd->fd = NCopen3(truepath, ioflags, permissions);
+    fd->fd = NCopen3(canonpath, ioflags, permissions);
     if(fd->fd < 0)
         {stat = platformerr(errno); goto done;} /* could not open */
 done:
@@ -744,24 +748,24 @@ done:
 
 /* Create a dir */
 static int
-platformcreatedir(ZFMAP* zfmap, const char* truepath)
+platformcreatedir(ZFMAP* zfmap, const char* canonpath)
 {
     int ret = NC_NOERR;
     int mode = zfmap->map.mode;
 
-    ZTRACE(6,"map=%s truepath=%s",zfmap->map.url,truepath);
+    ZTRACE(6,"map=%s canonpath=%s",zfmap->map.url,canonpath);
 
     errno = 0;
     /* Try to access file as if it exists */
-    ret = NCaccess(truepath,ACCESS_MODE_EXISTS);
+    ret = NCaccess(canonpath,ACCESS_MODE_EXISTS);
     if(ret < 0) { /* it does not exist, then it can be anything */
 	if(fIsSet(mode,NC_WRITE)) {
 	    /* Try to create it */
             /* Create the directory using mkdir */
-   	    if(NCmkdir(truepath,NC_DEFAULT_DIR_PERMS) < 0)
+   	    if(NCmkdir(canonpath,NC_DEFAULT_DIR_PERMS) < 0)
 	        {ret = platformerr(errno); goto done;}
 	    /* try to access again */
-	    ret = NCaccess(truepath,ACCESS_MODE_EXISTS);
+	    ret = NCaccess(canonpath,ACCESS_MODE_EXISTS);
     	    if(ret < 0)
 	        {ret = platformerr(errno); goto done;}
 	} else
@@ -775,15 +779,15 @@ done:
 
 /* Open a dir; fail if it does not exist */
 static int
-platformopendir(ZFMAP* zfmap, const char* truepath)
+platformopendir(ZFMAP* zfmap, const char* canonpath)
 {
     int ret = NC_NOERR;
 
-    ZTRACE(6,"map=%s truepath=%s",zfmap->map.url,truepath);
+    ZTRACE(6,"map=%s canonpath=%s",zfmap->map.url,canonpath);
 
     errno = 0;
     /* Try to access file as if it exists */
-    ret = NCaccess(truepath,ACCESS_MODE_EXISTS);
+    ret = NCaccess(canonpath,ACCESS_MODE_EXISTS);
     if(ret < 0)
 	{ret = platformerr(errno); goto done;}	
 done:
@@ -806,7 +810,7 @@ There are several possibilities:
 
 #ifdef _WIN32
 static int
-platformdircontent(ZFMAP* zfmap, const char* truepath, NClist* contents)
+platformdircontent(ZFMAP* zfmap, const char* canonpath, NClist* contents)
 {
     int ret = NC_NOERR;
     errno = 0;
@@ -817,20 +821,20 @@ platformdircontent(ZFMAP* zfmap, const char* truepath, NClist* contents)
     size_t len;
     char* d = NULL;
 
-    ZTRACE(6,"map=%s truepath=%s",zfmap->map.url,truepath);
+    ZTRACE(6,"map=%s canonpath=%s",zfmap->map.url,canonpath);
 
-    switch (ret = platformtestcontentbearing(zfmap, truepath)) {
+    switch (ret = platformtestcontentbearing(zfmap, canonpath)) {
     case NC_EEMPTY: ret = NC_NOERR; break; /* directory */    
     case NC_NOERR: ret = NC_EEMPTY; goto done;
     default: goto done;
     }
 
     /* We need to process the path to make it work with FindFirstFile */
-    len = strlen(truepath);
+    len = strlen(canonpath);
     /* Need to terminate path with '/''*' */
     ffpath = (char*)malloc(len+2+1);
-    memcpy(ffpath,truepath,len);
-    if(truepath[len-1] != '/') {
+    memcpy(ffpath,canonpath,len);
+    if(canonpath[len-1] != '/') {
 	ffpath[len] = '/';	
 	len++;
     }
@@ -838,7 +842,8 @@ platformdircontent(ZFMAP* zfmap, const char* truepath, NClist* contents)
     ffpath[len] = '\0';
 
     /* localize it */
-    if((ret = nczm_localize(ffpath,&lpath,LOCALIZE))) goto done;
+    if((lpath = NCpathcvt(ffpath))==NULL)
+	{ret = NC_ENOMEM; goto done;}
     dir = FindFirstFile(lpath, &FindFileData);
     if(dir == INVALID_HANDLE_VALUE) {
 	/* Distinquish not-a-directory from no-matching-file */
@@ -873,21 +878,21 @@ done:
 #else /*!_WIN32*/
 
 static int
-platformdircontent(ZFMAP* zfmap, const char* truepath, NClist* contents)
+platformdircontent(ZFMAP* zfmap, const char* canonpath, NClist* contents)
 {
     int ret = NC_NOERR;
     errno = 0;
     DIR* dir = NULL;
 
-    ZTRACE(6,"map=%s truepath=%s",zfmap->map.url,truepath);
+    ZTRACE(6,"map=%s canonpath=%s",zfmap->map.url,canonpath);
 
-    switch (ret = platformtestcontentbearing(zfmap, truepath)) {
+    switch (ret = platformtestcontentbearing(zfmap, canonpath)) {
     case NC_EEMPTY: ret = NC_NOERR; break; /* directory */    
     case NC_NOERR: ret = NC_EEMPTY; goto done; 
     default: goto done;
     }
 
-    dir = NCopendir(truepath);
+    dir = NCopendir(canonpath);
     if(dir == NULL)
         {ret = platformerr(errno); goto done;}
     for(;;) {
@@ -972,17 +977,18 @@ done:
 #endif /*0*/
 
 static int
-platformdeleter(ZFMAP* zfmap, NCbytes* truepath, int delroot, int depth)
+platformdeleter(ZFMAP* zfmap, NCbytes* canonpath, int delroot, int depth)
 {
     int ret = NC_NOERR;
     int i;
-    NClist* contents = nclistnew();
-    size_t tpathlen = ncbyteslength(truepath);
+    NClist* subfiles = nclistnew();
+    size_t tpathlen = ncbyteslength(canonpath);
     char* local = NULL;
 
-    ZTRACE(6,"map=%s truepath=%s delroot=%d depth=%d",zfmap->map.url,truepath,delroot,depth);
+    local = ncbytescontents(canonpath);
+    ZTRACE(6,"map=%s canonpath=%s delroot=%d depth=%d",zfmap->map.url,local,delroot,depth);
 
-    ret = platformdircontent(zfmap, ncbytescontents(truepath), contents);
+    ret = platformdircontent(zfmap, local, subfiles);
 #ifdef DEBUG
     {int i;
 	fprintf(stderr,"xxx: contents:\n");
@@ -993,21 +999,20 @@ platformdeleter(ZFMAP* zfmap, NCbytes* truepath, int delroot, int depth)
 #endif
     switch (ret) {
     case NC_NOERR: /* recurse to remove levels below */
-        for(i=0;i<nclistlength(contents);i++) {
-	    const char* name = nclistget(contents,i);
+        for(i=0;i<nclistlength(subfiles);i++) {
+	    const char* name = nclistget(subfiles,i);
             /* append name to current path */
-            ncbytescat(truepath, "/");
-            ncbytescat(truepath, name);
+            ncbytescat(canonpath, "/");
+            ncbytescat(canonpath, name);
             /* recurse */
-            if ((ret = platformdeleter(zfmap, truepath,delroot,depth+1))) goto done;
-            ncbytessetlength(truepath,tpathlen); /* reset */
-	    ncbytesnull(truepath);
+            if ((ret = platformdeleter(zfmap, canonpath,delroot,depth+1))) goto done;
+            ncbytessetlength(canonpath,tpathlen); /* reset */
+	    ncbytesnull(canonpath);
+	    local = ncbytescontents(canonpath);
 	}
 	if(depth > 0 || delroot) {
-	    /* localize and delete */
-	    if((ret = nczm_localize(ncbytescontents(truepath),&local,LOCALIZE))) goto done;
 #ifdef DEBUG
-fprintf(stderr,"xxx: remove:  %s\n",local);
+fprintf(stderr,"xxx: remove:  %s\n",canonpath);
 #endif
             if(NCrmdir(local) < 0) { /* kill this dir */
 #ifdef DEBUG
@@ -1020,11 +1025,8 @@ fprintf(stderr,"xxx: remove: errno=%d|%s\n",errno,nc_strerror(errno));
 	break;    
     case NC_EEMPTY: /* Not a directory */
 	ret = NC_NOERR;
-        /* localize and delete */
-	if(local) {nullfree(local); local = NULL;}
-	if((ret = nczm_localize(ncbytescontents(truepath),&local,LOCALIZE))) goto done;
 #ifdef DEBUG
-fprintf(stderr,"xxx: remove:  %s\n",local);
+fprintf(stderr,"xxx: remove:  %s\n",canonpath);
 #endif
         if(NCremove(local) < 0) {/* kill this file */
 #ifdef DEBUG
@@ -1040,10 +1042,10 @@ fprintf(stderr,"xxx: remove: errno=%d|%s\n",errno,nc_strerror(errno));
     }
 
 done:
-    nclistfreeall(contents);
-    nullfree(local);
-    ncbytessetlength(truepath,tpathlen);
-    ncbytesnull(truepath);
+    errno = 0;
+    nclistfreeall(subfiles);
+    ncbytessetlength(canonpath,tpathlen);
+    ncbytesnull(canonpath);
     return ZUNTRACE(ret);
 }
 
@@ -1052,17 +1054,17 @@ static int
 platformdelete(ZFMAP* zfmap, const char* rootpath, int delroot)
 {
     int stat = NC_NOERR;
-    NCbytes* truepath = ncbytesnew();
+    NCbytes* canonpath = ncbytesnew();
 
     ZTRACE(6,"map=%s rootpath=%s delroot=%d",zfmap->map.url,rootpath,delroot);
     
     if(rootpath == NULL || strlen(rootpath) == 0) goto done;
-    ncbytescat(truepath,rootpath);
+    ncbytescat(canonpath,rootpath);
     if(rootpath[strlen(rootpath)-1] == '/') /* elide trailing '/' */
-	ncbytessetlength(truepath,ncbyteslength(truepath)-1);
-    if((stat = platformdeleter(zfmap,truepath,delroot,0))) goto done;
+	ncbytessetlength(canonpath,ncbyteslength(canonpath)-1);
+    if((stat = platformdeleter(zfmap,canonpath,delroot,0))) goto done;
 done:
-    ncbytesfree(truepath);
+    ncbytesfree(canonpath);
     errno = 0;
     return ZUNTRACE(stat);
 }
@@ -1079,7 +1081,7 @@ platformseek(ZFMAP* zfmap, FD* fd, int pos, size64_t* sizep)
     ZTRACE(6,"map=%s fd=%d pos=%d",zfmap->map.url,(fd?fd->fd:-1),pos);
 
     errno = 0;
-    ret = fstat(fd->fd, &statbuf);    
+    ret = NCfstat(fd->fd, &statbuf);    
     if(ret < 0)
 	{ret = platformerr(errno); goto done;}
     if(sizep) size = *sizep; else size = 0;
@@ -1109,6 +1111,7 @@ platformread(ZFMAP* zfmap, FD* fd, size64_t count, void* content)
 	readpoint += red;
     }
 done:
+    errno = 0;
     return ZUNTRACE(stat);
 }
 
@@ -1195,21 +1198,21 @@ verify(const char* path, int isdir)
 #endif
 
 #if 0
-/* Return NC_EINVAL if path does not exist; els 1/0 in isdirp and local path in truepathp */
+/* Return NC_EINVAL if path does not exist; els 1/0 in isdirp and local path in canonpathp */
 static int
-testifdir(const char* path, int* isdirp, char** truepathp)
+testifdir(const char* path, int* isdirp, char** canonpathp)
 {
     int ret = NC_NOERR;
     char* tmp = NULL;
-    char* truepath = NULL;
+    char* canonpath = NULL;
     struct stat statbuf;
 
     /* Make path be windows compatible */
     if((ret = nczm_fixpath(path,&tmp))) goto done;
-    if((truepath = NCpathcvt(tmp))==NULL) {ret = NC_ENOMEM; goto done;}
+    if((canonpath = NCpathcvt(tmp))==NULL) {ret = NC_ENOMEM; goto done;}
 
     errno = 0;
-    ret = NCstat(truepath, &statbuf);
+    ret = NCstat(canonpath, &statbuf);
     if(ret < 0) {
         if(errno == ENOENT)
 	    ret = NC_ENOTFOUND;  /* path does not exist */
@@ -1221,11 +1224,11 @@ testifdir(const char* path, int* isdirp, char** truepathp)
     if(isdirp) {
         if(S_ISDIR(statbuf.st_mode)) {*isdirp = 1;} else {*isdirp = 0;}
     }
-    if(truepathp) {*truepathp = truepath; truepath = NULL;}
+    if(canonpathp) {*canonpathp = canonpath; canonpath = NULL;}
 done:
     errno = 0;
     nullfree(tmp);
-    nullfree(truepath);
+    nullfree(canonpath);
     return ZUNTRACE(ret);    
 }
 #endif /* 0 */

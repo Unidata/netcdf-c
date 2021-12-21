@@ -67,6 +67,7 @@ endif
 
 if ENABLE_DAP4
 DAP4 = libdap4
+XML = libncxml
 NCDAP4TESTDIR = dap4_test
 endif #DAP4
 
@@ -81,13 +82,18 @@ HDF4_TEST_DIR = hdf4_test
 LIBHDF4 = libhdf4
 endif
 
+# Build Plugin support
+if ENABLE_PLUGINS
+NCPOCO = libncpoco
+endif
+
 # Build Cloud Storage if desired.
 if ENABLE_NCZARR
 ZARR_TEST_DIR = nczarr_test
-ZARR = libnczarr
+ZARR = libnczarr 
 endif
 
-# Optionally build plugins
+# Optionally build test plugins
 if ENABLE_FILTER_TESTING
 PLUGIN_DIR = plugins
 endif
@@ -107,8 +113,9 @@ endif
 # This is the list of subdirs for which Makefiles will be constructed
 # and run. ncgen must come before ncdump, because their tests
 # depend on it.
-SUBDIRS = include $(H5_TEST_DIR) libdispatch libsrc $(LIBSRC4_DIR)	\
-$(LIBSRCP) $(LIBHDF4) $(LIBHDF5) $(OCLIB) $(DAP2) ${DAP4} ${ZARR} liblib \
+SUBDIRS = include $(H5_TEST_DIR) ${XML} libdispatch libsrc $(LIBSRC4_DIR)	\
+$(LIBSRCP) $(LIBHDF4) $(LIBHDF5) $(OCLIB) $(DAP2) ${DAP4} \
+${NCPOCO} ${ZARR} liblib \
 $(NCGEN3) $(NCGEN) $(NCDUMP) ${PLUGIN_DIR} $(TESTDIRS) docs		\
 $(EXAMPLES)
 

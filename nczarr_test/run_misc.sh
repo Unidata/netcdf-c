@@ -54,11 +54,15 @@ diff -wb ${abs_srcdir}/ref_misc2.cdl tmp_misc2_$zext.cdl
 }
 
 testcase1 file
-if test "x$FEATURE_NCZARR_ZIP" = xyes ; then testcase1 zip; fi
-if test "x$FEATURE_S3TESTS" = xyes ; then testcase1 s3; fi
- 
 testcase2 file
-if test "x$FEATURE_NCZARR_ZIP" = xyes ; then testcase2 zip; fi
-if test "x$FEATURE_S3TESTS" = xyes ; then testcase2 s3; fi
+exit 0
+if test "x$FEATURE_NCZARR_ZIP" = xyes ; then
+    testcase1 zip
+    testcase2 zip
+fi
+if test "x$FEATURE_S3TESTS" = xyes ; then
+    testcase1 s3
+    testcase2 s3
+fi
 
 exit 0

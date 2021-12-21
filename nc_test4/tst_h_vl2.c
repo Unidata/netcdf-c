@@ -36,7 +36,7 @@ main()
 
       /* Open the file and read the vlen data. */
       if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
-      if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_SEMI)) ERR;
+      if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_WEAK)) ERR;
       if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
 
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, fapl_id)) < 0) ERR;

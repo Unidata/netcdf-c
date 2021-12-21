@@ -42,6 +42,8 @@ liboc_la_CPPFLAGS = $(AM_CPPFLAGS)
 .PHONEY: bison
 
 bison:: dap.y
-	rm -f dap.tab.c dap.tab.h
+	rm -f dap.tab.c dap.tab.h dapy.c dapy.h
 	bison --debug -d -p dap dap.y
-	mv dap.tab.c dapy.c; mv dap.tab.h dapy.h
+	sed -e 's/dap[.]tab[.]c/dapy.c/g' -e 's/dap[.]tab[.]h/dapy.h/g' <dap.tab.c >dapy.c
+	mv dap.tab.h dapy.h
+	rm -f dap.tab.c

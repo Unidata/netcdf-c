@@ -32,9 +32,11 @@
 
 static unsigned int baseline[NPARAMS];
 
+static const char* testfile = NULL;
+
 #define MAXDIMS 8
 
-#define TESTFILE "testmisc.nc"
+#define DFALT_TESTFILE "tmp_misc.nc"
 
 #define spec "32768, -17b, 23ub, -25S, 27US, 77, 93U, 789f, 12345678.12345678d, -9223372036854775807L, 18446744073709551615UL"
 
@@ -132,7 +134,7 @@ create(void)
     int i;
 
     /* Create a file with one big variable, but whose dimensions arte not a multiple of chunksize (to see what happens) */
-    CHECK(nc_create(TESTFILE, NC_NETCDF4|NC_CLOBBER, &ncid));
+    CHECK(nc_create(testfile, NC_NETCDF4|NC_CLOBBER, &ncid));
     CHECK(nc_set_fill(ncid, NC_NOFILL, NULL));
     for(i=0;i<ndims;i++) {
         char dimname[1024];
@@ -169,7 +171,7 @@ openfile(void)
     unsigned int* params = NULL;
 
     /* Open the file and check it. */
-    CHECK(nc_open(TESTFILE, NC_NOWRITE, &ncid));
+    CHECK(nc_open(testfile, NC_NOWRITE, &ncid));
     CHECK(nc_inq_varid(ncid, "var", &varid));
 
     /* Check the compression algorithm */
@@ -517,6 +519,13 @@ static void
 init(int argc, char** argv)
 {
     int i;
+
+    /* get the testfile path */
+    if(argc > 1)
+        testfile = argv[1];
+    else
+        testfile = DFALT_TESTFILE;
+
     /* Setup various variables */
     totalproduct = 1;
     actualproduct = 1;

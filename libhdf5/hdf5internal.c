@@ -82,6 +82,7 @@ nc4_hdf5_initialize(void)
     if (set_auto(NULL, NULL) < 0)
         LOG((0, "Couldn't turn off HDF5 error messages!"));
     LOG((1, "HDF5 error messages have been turned off."));
+    NC4_hdf5_filter_initialize();
     nc4_hdf5_initialized = 1;
 }
 
@@ -94,6 +95,7 @@ nc4_hdf5_finalize(void)
 {
     /* Reclaim global resources */
     NC4_provenance_finalize();
+    NC4_hdf5_filter_finalize();
     nc4_hdf5_initialized = 0;
 }
 
@@ -926,7 +928,10 @@ nc4_hdf5_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
 
     /* Give the people what they want. */
     if (norm_name)
+    {
         strncpy(norm_name, my_norm_name, NC_MAX_NAME);
+        norm_name[NC_MAX_NAME] = 0;
+    }
     if (h5)
         *h5 = my_h5;
     if (grp)

@@ -52,16 +52,29 @@ int
 main(int argc, char** argv)
 {
     int stat = NC_NOERR;
+    char* tmp = NULL;
 
     if((stat = ut_init(argc, argv, &utoptions))) goto done;
+    if(utoptions.file == NULL && utoptions.output == NULL) { stat = NC_EINVAL; goto done; }
     if(utoptions.file == NULL && utoptions.output != NULL) utoptions.file = strdup(utoptions.output);
     if(utoptions.output == NULL && utoptions.file != NULL)utoptions.output = strdup(utoptions.file);
+
+    /* Canonicalize */
+    if((stat = NCpathcanonical(utoptions.file,&tmp))) goto done;
+    free(utoptions.file);
+    utoptions.file = tmp;
+    if((stat = NCpathcanonical(utoptions.output,&tmp))) goto done;
+    free(utoptions.output);
+    utoptions.output = tmp;
+
     impl = kind2impl(utoptions.kind);
-    url = makeurl(utoptions.file,impl);
+    url = makeurl(utoptions.file,impl,&utoptions);
 
     if((stat = runtests((const char**)utoptions.cmds,tests))) goto done;
     
 done:
+    nullfree(tmp);
+    ut_final();
     if(stat) usage(stat);
     return 0;
 }
@@ -339,7 +352,7 @@ searchR(NCZMAP* map, int depth, const char* prefix0, NClist* objects)
     /* get next level object keys **below** the prefix: should have form: <name> */
     switch (stat = nczmap_search(map, prefix, matches)) {
     case NC_NOERR: break;
-    case NC_ENOTFOUND: stat = NC_NOERR; break;/* prefix is not a dir */
+    case NC_ENOOBJECT: stat = NC_NOERR; break;/* prefix is not an object */
     default: goto done;
     }
     /* recurse */

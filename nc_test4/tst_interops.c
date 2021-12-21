@@ -36,7 +36,9 @@ printRes(const char *msg, int ires)
    if (ires < 0)
    {
       printf("bad ires: %d\n", ires);
-      /*H5Eprint2(ires, stdout);*/
+#ifdef DEBUG
+      H5Eprint2(ires, stdout);
+#endif
       exit(1);
    }
 }
@@ -390,7 +392,7 @@ main(int argc, char **argv)
       /* Open the file with HDF5 while netcdf still has it open. */
       if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
       /* Turn this off for*/
-      if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_SEMI)) ERR;
+      if (H5Pset_fclose_degree(fapl_id, H5F_CLOSE_WEAK)) ERR;
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, fapl_id)) < 0) ERR;
       if (H5Pclose(fapl_id) < 0) ERR;
       if (H5Fclose(fileid) < 0) ERR;
