@@ -11,7 +11,7 @@
 
 include $(top_srcdir)/lib_flags.am
 
-if HAVE_LIBXML2
+if ENABLE_LIBXML2
 AM_CPPFLAGS += ${XML2FLAGS}
 endif
 
@@ -20,37 +20,21 @@ noinst_LTLIBRARIES = libncxml.la
 libncxml_la_LIBADD =
 libncxml_la_LDFLAGS =
 
-if HAVE_LIBXML2
+if ENABLE_LIBXML2
 libncxml_la_SOURCES = ncxml_xml2.c
 else
-libncxml_la_SOURCES = ncxml_ezxml.c ezxml.c ezxml.h
+AM_CXXFLAGS = -std=c++11
+libncxml_la_SOURCES = ncxml_tinyxml2.cpp tinyxml2.cpp tinyxml2.h
 endif
 
 EXTRA_DIST = CMakeLists.txt license.txt
 
-# Construct ezxml from latest sources
-REPO=https://downloads.sourceforge.net/project/ezxml/
-EZXML=ezxml-0.8.6.tar.gz
-makelib::
-	rm -fr ./ezxml.[ch] ./license.txt ./ezxml
-	tar -zxf ./${EZXML}
-	echo '#define EZXML_NOMMAP 1' > ezxml.c
-	cat <ezxml/ezxml.c | \
-	sed -e '/<unistd.h>/d' | \
-	sed -e 's|//\(.*\)|/*\1*/|' \
-	sed -e 's|//\(.*\)|/*\1*/|' \
-	cat >./ezxml.c
-	sed -e 's|//\(.*\)|/*\1*/|' <ezxml/ezxml.h >./ezxml.h
-	sed -i .bak 's/<fcntl.h>/<fcntl.h>\n#ifdef HAVE_UNISTD_H\n#include <unistd.h>\n#endif/g' ezxml.h
-	rm ezxml.h.bak
-	cp ezxml/license.txt .
-	rm -fr ezxml
-
-# Define path to the xml github dir; this value assumes it is in a parallel directory to netcdf-c (YMMV)
-GITSRC=${top_srcdir}/../tinyxml2
-xmakelib::
-	rm -f readme.md LICENSE.txt
-	rm -fr ./tinyxml2.cpp ./tinyxml2.h
-	cp ${GITSRC}/readme.md .
-	cp ${GITSRC}/LICENSE.txt .
-	cp ${GITSRC}/tinyxml2.h ${GITSRC}/tinyxml2.cpp .
+# Download the tinyxml2 source
+REPO = https://github.com/leethomason/tinyxml2.git
+tinyxml2::
+	rm -fr ./tinyxml2 ./license.txt
+	git clone --depth=1 ${REPO}
+	cat tinyxml2/tinyxml2.h > ./tinyxml2.h
+	cat tinyxml2/tinyxml2.cpp > ./tinyxml2.cpp
+	cat tinyxml2/LICENSE.txt > ./license.txt
+	

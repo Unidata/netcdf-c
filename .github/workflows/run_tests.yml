@@ -4,7 +4,7 @@
 
 name: Run netCDF Tests
 
-on: [pull_request]
+on: [pull_request,push]
 
 jobs:
 
@@ -410,7 +410,7 @@ jobs:
         shell: bash -l {0}
         run: |
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest -j 12 .
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest --output-on-failure -j 12 .
         if: ${{ success() }}
 
       - name: Verbose Output if CTest Failure
