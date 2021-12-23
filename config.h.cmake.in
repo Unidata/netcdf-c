@@ -301,7 +301,7 @@ are set when opening a binary file on Windows. */
 #cmakedefine HAVE_LIBPNETCDF 1
 
 /* Define to 1 if you have the libxml2 library. */
-#cmakedefine HAVE_LIBXML2 1
+#cmakedefine ENABLE_LIBXML2 1
 
 /* Define to 1 if you have the <locale.h> header file. */
 #cmakedefine HAVE_LOCALE_H 1

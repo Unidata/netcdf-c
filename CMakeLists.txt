@@ -1203,8 +1203,9 @@ IF(NOT FOUND_CURL)
 ENDIF(NOT FOUND_CURL)
 
 
-OPTION(ENABLE_LIBXML2 "Link against libxml2 if it is available, use the packaged ezxml parser otherwise." ON)
-SET(XMLPARSER "ezxml (bundled)")
+OPTION(ENABLE_LIBXML2 "Link against libxml2 if it is available, use the packaged tinyxml2 parser otherwise." ON)
+SET(XMLPARSER "tinyxml2 (bundled)")
+
 # see if we have libxml2
 
 IF(ENABLE_LIBXML2)
