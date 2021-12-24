@@ -181,7 +181,7 @@ main(int argc, char** argv)
 	case 'u': cvtoptions.target = NCPD_NIX; break;
 	case 'w': cvtoptions.target = NCPD_WIN; break;
 	case 'B':
-	    cvtoptions.blank = optarg[0]; break;
+	    cvtoptions.blank = optarg[0];
 	    if(cvtoptions.blank < ' ' || cvtoptions.blank == '\177')
 		usage("Bad -B argument");
 	    break;
