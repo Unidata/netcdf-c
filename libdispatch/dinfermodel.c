@@ -1021,8 +1021,27 @@ check_file_type(const char *path, int omode, int use_parallel,
     char magic[NC_MAX_MAGIC_NUMBER_LEN];
     int status = NC_NOERR;
     struct MagicFile magicinfo;
+#ifdef _WIN32
+    NC* nc = NULL;
+#endif
 
     memset((void*)&magicinfo,0,sizeof(magicinfo));
+
+#ifdef _WIN32 /* including MINGW */
+    /* Windows does not handle well multiple handles to the same file.
+       So if file is already open/created, then find it and just get the
+       model from that. */
+    if((nc = find_in_NCList_by_name(path)) != NULL) {
+	int format = 0;
+	/* Get the model from this NC */
+	if((status = nc_inq_format_extended(nc->ext_ncid,&format,NULL))) goto done;
+	model->impl = format;
+	if((status = nc_inq_format(nc->ext_ncid,&format))) goto done;
+	model->format = format;
+	goto done;
+    }
+#endif    
+
     magicinfo.path = path; /* do not free */
     magicinfo.uri = uri; /* do not free */
     magicinfo.omode = omode;
@@ -1143,11 +1162,7 @@ openmagic(struct MagicFile* file)
 	    if(file->path == NULL || strlen(file->path)==0)
 	        {status = NC_EINVAL; goto done;}
 
-#ifdef _WIN32
-            file->fp = NCfopen(file->path, "rb");
-#else
             file->fp = NCfopen(file->path, "r");
-#endif
    	    if(file->fp == NULL)
 	        {status = errno; goto done;}
   	    /* Get its length */
@@ -1252,6 +1267,7 @@ static int
 closemagic(struct MagicFile* file)
 {
     int status = NC_NOERR;
+
     if(fIsSet(file->omode,NC_INMEMORY)) {
 	/* noop */
 #ifdef ENABLE_BYTERANGE

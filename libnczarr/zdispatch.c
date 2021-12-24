@@ -163,3 +163,36 @@ NCZ_show_metadata(int ncid)
     return NC_NOERR;
 }
 
+#ifndef ENABLE_NCZARR_FILTERS
+ int 
+NCZ_def_var_filter(int ncid, int varid, unsigned int id , size_t n , const unsigned int *params)
+{
+    NC_UNUSED(ncid);
+    NC_UNUSED(varid);
+    NC_UNUSED(id);
+    NC_UNUSED(n);
+    NC_UNUSED(params);
+    return REPORT(NC_NOERR,"def_var_filter");
+}
+
+int 
+NCZ_inq_var_filter_ids(int ncid, int varid, size_t* nfilters, unsigned int* filterids)
+{
+    NC_UNUSED(ncid);
+    NC_UNUSED(varid);
+    NC_UNUSED(filterids);
+    if(nfilters) *nfilters = 0;
+    return REPORT(NC_NOERR,"inq_var_filter_ids");
+}
+
+int
+NCZ_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparams, unsigned int* params)
+{
+    NC_UNUSED(ncid);
+    NC_UNUSED(varid);
+    NC_UNUSED(id);
+    NC_UNUSED(nparams);
+    NC_UNUSED(params);
+    return REPORT(NC_ENOFILTER,"inq_var_filter_info");
+}
+#endif /*ENABLE_NCZARR_FILTERS*/

@@ -21,7 +21,7 @@ lib_LTLIBRARIES = libnetcdf.la
 libnetcdf_la_LDFLAGS = -version-info 19:1:0
 
 libnetcdf_la_CPPFLAGS = ${AM_CPPFLAGS}
-libnetcdf_la_LIBADD =
+libnetcdf_la_LIBADD = 
 CLEANFILES =
 
 # The v2 API...

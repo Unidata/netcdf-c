@@ -262,8 +262,10 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
     NCjson* jfill = NULL;
     size64_t shape[NC_MAX_VAR_DIMS];
     NCZ_VAR_INFO_T* zvar = var->format_var_info;
+#ifdef ENABLE_NCZARR_FILTERS
     NClist* filterchain = NULL;
     NCjson* jfilter = NULL;
+#endif
 	    
     zinfo = file->format_file_info;
     map = zinfo->map;
@@ -358,17 +360,19 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
     if((stat = NCJaddstring(jvar,NCJ_STRING,"C"))) goto done;
 
     /* Compressor and Filters */
-    filterchain = (NClist*)var->filters;    
-
     /* compressor key */
     /* From V2 Spec: A JSON object identifying the primary compression codec and providing
        configuration parameters, or ``null`` if no compressor is to be used. */
     if((stat = NCJaddstring(jvar,NCJ_STRING,"compressor"))) goto done;
+#ifdef ENABLE_NCZARR_FILTERS
+    filterchain = (NClist*)var->filters;    
     if(nclistlength(filterchain) > 0) {
 	struct NCZ_Filter* filter = (struct NCZ_Filter*)nclistget(filterchain,nclistlength(filterchain)-1);
         /* encode up the compressor */
         if((stat = NCZ_filter_jsonize(file,var,filter,&jtmp))) goto done;
-    } else { /* no filters at all */
+    } else
+#endif
+    { /* no filters at all */
         /* Default to null */ 
         if((stat = NCJnew(NCJ_NULL,&jtmp))) goto done;
     }
@@ -382,6 +386,7 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
     /* A list of JSON objects providing codec configurations, or ``null``
        if no filters are to be applied. */
     if((stat = NCJaddstring(jvar,NCJ_STRING,"filters"))) goto done;
+#ifdef ENABLE_NCZARR_FILTERS
     if(nclistlength(filterchain) > 1) {
 	int k;
 	/* jtmp holds the array of filters */
@@ -392,7 +397,9 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
 	    if((stat = NCZ_filter_jsonize(file,var,filter,&jfilter))) goto done;
 	    if((stat = NCJappend(jtmp,jfilter))) goto done;
 	}
-    } else { /* no filters at all */
+    } else
+#endif
+    { /* no filters at all */
         if((stat = NCJnew(NCJ_NULL,&jtmp))) goto done;
     }
     if((stat = NCJappend(jvar,jtmp))) goto done;
@@ -1379,7 +1386,6 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
     NCjson* jncvar = NULL;
     NCjson* jdimrefs = NULL;
     NCjson* jvalue = NULL;
-    NCjson* jfilter = NULL;
     int purezarr = 0;
     int xarray = 0;
     int formatv1 = 0;
@@ -1387,6 +1393,9 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
     size64_t* shapes = NULL;
     int rank = 0;
     NClist* dimnames = nclistnew();
+#ifdef ENABLE_NCZARR_FILTERS
+    NCjson* jfilter = NULL;
+#endif
 
     zinfo = file->format_file_info;
     map = zinfo->map;
@@ -1547,8 +1556,9 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
            object MUST contain a "id" key identifying the codec to be used. */
 	/* Do filters key before compressor key so final filter chain is in correct order */
 	{
-	    int k;
 	    if(var->filters == NULL) var->filters = (void*)nclistnew();
+#ifdef ENABLE_NCZARR_FILTERS
+	    { int k;
 	    if((stat = NCZ_filter_initialize())) goto done;
 	    if((stat = NCJdictget(jvar,"filters",&jvalue))) goto done;
 	    if(jvalue != NULL && NCJsort(jvalue) != NCJ_NULL) {
@@ -1561,6 +1571,8 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 		    if((stat = NCZ_filter_build(file,var,jfilter))) goto done;
 		}
 	    }
+	    }
+#endif
 	}
 
         /* compressor key */
@@ -1568,12 +1580,14 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
            configuration parameters, or ``null`` if no compressor is to be used. */
 	{
 	    if(var->filters == NULL) var->filters = (void*)nclistnew();
+#ifdef ENABLE_NCZARR_FILTERS
 	    if((stat = NCZ_filter_initialize())) goto done;
 	    if((stat = NCJdictget(jvar,"compressor",&jfilter))) goto done;
 	    if(jfilter != NULL && NCJsort(jfilter) != NCJ_NULL) {
 	        if(NCJsort(jfilter) != NCJ_DICT) {stat = NC_EFILTER; goto done;} 
 		if((stat = NCZ_filter_build(file,var,jfilter))) goto done;
 	    }
+#endif
 	}
 
 	if(!purezarr) {
@@ -1633,9 +1647,10 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 	for(j=0;j<rank;j++)
 	    var->dimids[j] = var->dim[j]->hdr.id;
 
+#ifdef ENABLE_NCZARR_FILTERS
 	/* At this point, we can finalize the filters */
         if((stat = NCZ_filter_setup(var))) goto done;
-
+#endif
 	/* Clean up from last cycle */
 	nclistfreeall(dimnames); dimnames = nclistnew();
         nullfree(varpath); varpath = NULL;

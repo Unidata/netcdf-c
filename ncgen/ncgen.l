@@ -882,6 +882,14 @@ collecttag(char* text, char** stagp)
     return tag;
 }
 
+static Symbol*
+identkeyword(const Symbol* kw)
+{
+    Symbol* sym = NULL;
+    sym = install(kw->name);
+    return sym;
+}
+
 static int
 identcheck(int token)
 {
