@@ -11,7 +11,7 @@ set -e
 echo ""
 echo "*** Testing that this version can read data produced by old versions of netCDF."
 echo "*** checking ref_nc_test_netcdf4_4_0.nc..."
-${NCDUMP} $srcdir/ref_nc_test_netcdf4_4_0.nc > tst_nc_test_netcdf4_4_0.cdl
+${NCDUMP} -n ref_nc_test_netcdf4_4_0 $srcdir/ref_nc_test_netcdf4_4_0.nc > tst_nc_test_netcdf4_4_0.cdl
 # Why drop the first two lines?
 #tail -n +2 < $srcdir/ref_nc_test_netcdf4.cdl > tmp.cdl
 #tail -n +2 < tst_nc_test_netcdf4_4_0.cdl > tmp_4_0.cdl

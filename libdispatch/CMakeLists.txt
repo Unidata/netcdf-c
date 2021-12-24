@@ -22,6 +22,10 @@ IF(ENABLE_S3_SDK)
   SET(libdispatch_SOURCES ${libdispatch_SOURCES} ncs3sdk.cpp awsincludes.h)
 ENDIF(ENABLE_S3_SDK)
 
+IF(REGEDIT)
+  SET(libdispatch_SOURCES ${libdispatch_SOURCES} dreg.c)
+ENDIF(REGEDIT)
+
 add_library(dispatch OBJECT ${libdispatch_SOURCES})
 IF(MPI_C_INCLUDE_PATH)
     target_include_directories(dispatch PUBLIC ${MPI_C_INCLUDE_PATH})

@@ -65,7 +65,7 @@ pd(double myd)
 	uint64_t u;
     } du;
     du.d = myd;
-    sprintf(pf_str, "0x%lx", du.u);
+    sprintf(pf_str, "0x%lx", (unsigned long)du.u);
     return pf_str;
 }
 

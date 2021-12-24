@@ -23,18 +23,12 @@ See COPYRIGHT for license information.
 #include "ncauth.h"
 #include "ncpathmgr.h"
 
+#undef NOREAD
+
 #undef DRCDEBUG
 #undef LEXDEBUG
 #undef PARSEDEBUG
 #undef AWSDEBUG
-#undef CATCH
-
-#if defined(CATCH)
-#define THROW(e) ((e) == NC_NOERR ? (e) : ncbreakpoint(e))
-#else
-#define THROW(e) (e)
-#endif
-
 
 #define RTAG ']'
 #define LTAG '['
@@ -117,6 +111,7 @@ ncrc_initialize(void)
     if(NCRCinitialized) return;
     NCRCinitialized = 1; /* prevent recursion */
     
+#ifndef NOREAD
     /* Load entrys */
     if((stat = NC_rcload())) {
         nclog(NCLOGWARN,".rc loading failed");
@@ -125,6 +120,7 @@ ncrc_initialize(void)
     if((stat = aws_load_credentials(ncrc_globalstate))) {
         nclog(NCLOGWARN,"AWS config file not loaded");
     }
+#endif
 }
 
 static void
@@ -197,6 +193,7 @@ NC_rcload(void)
     if(!NCRCinitialized) ncrc_initialize();
     globalstate = ncrc_getglobalstate();
     
+
     if(globalstate->rcinfo.ignore) {
         nclog(NCLOGDBG,".rc file loading suppressed");
 	goto done;
@@ -902,7 +899,7 @@ awsparse(const char* text, NClist* profiles)
     len = strlen(text);
     parser->text = (char*)malloc(len+1+1+1); /* double nul term plus leading EOL */
     if(parser->text == NULL)
-	{stat = (THROW(NC_EINVAL)); goto done;}
+	{stat = (NCTHROW(NC_EINVAL)); goto done;}
     parser->pos = parser->text;
     parser->pos[0] = '\n'; /* So we can test for comment unconditionally */
     parser->pos++;
@@ -920,17 +917,17 @@ awsparse(const char* text, NClist* profiles)
         token = awslex(parser); /* make token always be defined */
 	if(token ==  AWS_EOF) break; /* finished */
 	if(token ==  AWS_EOL) {continue;} /* blank line */
-	if(token != LBR) {stat = THROW(NC_EINVAL); goto done;}
+	if(token != LBR) {stat = NCTHROW(NC_EINVAL); goto done;}
 	/* parse [profile name] */
         token = awslex(parser);
-	if(token != AWS_WORD) {stat = THROW(NC_EINVAL); goto done;}
+	if(token != AWS_WORD) {stat = NCTHROW(NC_EINVAL); goto done;}
 	assert(profile == NULL);
 	if((profile = (struct AWSprofile*)calloc(1,sizeof(struct AWSprofile)))==NULL)
 	    {stat = NC_ENOMEM; goto done;}
 	profile->name = ncbytesextract(parser->yytext);
 	profile->entries = nclistnew();
         token = awslex(parser);
-	if(token != RBR) {stat = THROW(NC_EINVAL); goto done;}
+	if(token != RBR) {stat = NCTHROW(NC_EINVAL); goto done;}
 #ifdef PARSEDEBUG
 fprintf(stderr,">>> parse: profile=%s\n",profile->name);
 #endif
@@ -948,9 +945,9 @@ fprintf(stderr,">>> parse: profile=%s\n",profile->name);
 	    } else if(token ==  AWS_WORD) {
 	    	key = ncbytesextract(parser->yytext);
 		token = awslex(parser);
-	        if(token != '=') {stat = THROW(NC_EINVAL); goto done;}
+	        if(token != '=') {stat = NCTHROW(NC_EINVAL); goto done;}
 	        token = awslex(parser);
-		if(token != AWS_EOL && token != AWS_WORD) {stat = THROW(NC_EINVAL); goto done;}
+		if(token != AWS_EOL && token != AWS_WORD) {stat = NCTHROW(NC_EINVAL); goto done;}
 	        value = ncbytesextract(parser->yytext);
 	        if((entry = (struct AWSentry*)calloc(1,sizeof(struct AWSentry)))==NULL)
 	            {stat = NC_ENOMEM; goto done;}
@@ -962,7 +959,7 @@ fprintf(stderr,">>> parse: entry=(%s,%s)\n",entry->key,entry->value);
 		nclistpush(profile->entries,entry); entry = NULL;
 		if(token == AWS_WORD) token = awslex(parser); /* finish the line */		
 	    } else
-	        {stat = THROW(NC_EINVAL); goto done;}
+	        {stat = NCTHROW(NC_EINVAL); goto done;}
 	}
 
 	/* If this profile already exists, then ignore new one */

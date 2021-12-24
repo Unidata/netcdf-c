@@ -1039,7 +1039,6 @@ ENDIF()
 
 # Option to Enable DAP long tests, remote tests.
 OPTION(ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." ON)
-
 OPTION(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
 SET(REMOTETESTSERVERS "remotetest.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
 
@@ -1092,11 +1091,18 @@ ELSE()
 ENDIF()
 
 # libdl is always available; built-in in Windows and OSX
-SET(ENABLE_PLUGINS TRUE)
-IF(NOT WIN32)
-  IF(HAVE_DLFCN_H)
-    INCLUDE_DIRECTORIES("dlfcn.h")
+OPTION(ENABLE_PLUGINS "Enable dynamically loaded plugins (default on)." ON)
+IF(MINGW)
+    SET(ENABLE_PLUGINS OFF CACHE BOOL "Disable plugins" FORCE)
+ELSE()
+  IF(NOT WIN32)
+    IF(HAVE_DLFCN_H)
+      INCLUDE_DIRECTORIES("dlfcn.h")
+    ENDIF()
   ENDIF()
+ENDIF()
+IF(ENABLE_PLUGINS)
+  SET(USEPLUGINS yes)
 ENDIF()
 
 # Enable some developer-only tests
@@ -1488,6 +1494,16 @@ IF(NOT BUILD_SHARED_LIBS)
   SET(ENABLE_FILTER_TESTING OFF)
 ENDIF()
 
+OPTION(ENABLE_NCZARR_FILTERS "Enable NCZarr filters" yes)
+IF (NOT ENABLE_PLUGINS) 
+    SET(ENABLE_NCZARR_FILTERS OFF CACHE BOOL "Enable NCZarr Filters." FORCE)
+ENDIF()
+
+OPTION(ENABLE_NCZARR_FILTERS_TESTING "Enable NCZarr filter testing." yes)
+IF (NOT ENABLE_NCZARR_FILTERS) 
+    SET(ENABLE_NCZARR_FILTER_TESTING OFF CACHE BOOL "Enable NCZarr Filter Testing" FORCE)
+ENDIF()
+
 SET(ENABLE_CLIENTSIDE_FILTERS OFF)
 
 # Determine whether or not to generate documentation.
@@ -1497,9 +1513,9 @@ IF(ENABLE_DOXYGEN)
   # Offer the option to build internal documentation.
   OPTION(ENABLE_INTERNAL_DOCS "Build internal documentation. This is of interest to developers only." OFF)
   IF(ENABLE_INTERNAL_DOCS)
-    SET(BUILD_INTERNAL_DOCS YES CACHE STRING "")
+    SET(BUILD_INTERNAL_DOCS yes CACHE STRING "")
   ELSE()
-    SET(BUILD_INTERNAL_DOCS NO CACHE STRING "")
+    SET(BUILD_INTERNAL_DOCS no CACHE STRING "")
   ENDIF()
 
   ###
@@ -2410,6 +2426,7 @@ configure_file(
 SET(ISCMAKE "1")
 IF(MSVC)
 SET(ISMSVC "1")
+SET(REGEDIT 1)
 ENDIF()
 
 ####

@@ -83,7 +83,7 @@ COLUMBIA="http://iridl.ldeo.columbia.edu/SOURCES/.Models/.NMME/.NASA-GMAO/.MONTH
 # Known to fail
 
 XFAILTESTS=
-# Suppress some tests
+# Suppress some tests because of floating point precision issues
 XFAILTESTS="$XFAILTESTS test.67"
 
 # Following tests must be run as not cached

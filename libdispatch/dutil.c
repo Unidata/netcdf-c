@@ -229,11 +229,7 @@ NC_readfile(const char* filename, NCbytes* content)
     FILE* stream = NULL;
     char part[1024];
 
-#ifdef _WIN32
-    stream = NCfopen(filename,"rb");
-#else
     stream = NCfopen(filename,"r");
-#endif
     if(stream == NULL) {ret=errno; goto done;}
     for(;;) {
 	size_t count = fread(part, 1, sizeof(part), stream);
@@ -258,11 +254,7 @@ NC_writefile(const char* filename, size_t size, void* content)
 
     if(content == NULL) {content = ""; size = 0;}
 
-#ifdef _WIN32
-    stream = NCfopen(filename,"wb");
-#else
     stream = NCfopen(filename,"w");
-#endif
     if(stream == NULL) {ret=errno; goto done;}
     p = content;
     remain = size;

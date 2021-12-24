@@ -1,5 +1,5 @@
 
-#line 3 "ncgenl.c"
+#line 2 "ncgenl.c"
 
 #define  YY_INT_ALIGNED short int
 
@@ -1541,7 +1541,7 @@ struct Specialtoken specials[] = {
 {NULL,0} /* null terminate */
 };
 
-#line 1545 "ncgenl.c"
+#line 1544 "ncgenl.c"
 
 /* The most correct (validating) version of UTF8 character set
    (Taken from: http://www.w3.org/2005/03/23-lex-U)
@@ -1584,7 +1584,7 @@ ID ([A-Za-z_]|{UTF8})([A-Z.@#\[\]a-z_0-9+-]|{UTF8})*
 /* Note: this definition of string will work for utf8 as well,
    although it is a very relaxed definition
 */
-#line 1588 "ncgenl.c"
+#line 1587 "ncgenl.c"
 
 #define INITIAL 0
 #define ST_C_COMMENT 1
@@ -1805,7 +1805,7 @@ YY_DECL
 	{
 #line 223 "ncgen.l"
 
-#line 1809 "ncgenl.c"
+#line 1808 "ncgenl.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -2432,7 +2432,7 @@ YY_RULE_SETUP
 #line 595 "ncgen.l"
 ECHO;
 	YY_BREAK
-#line 2436 "ncgenl.c"
+#line 2435 "ncgenl.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(TEXT):
 	yyterminate();
@@ -3518,7 +3518,6 @@ Return the value.
 static unsigned long long
 parseULL(int radix, char* text, int* failp)
 {
-    extern int errno;
     char* endptr;
     unsigned long long uint64 = 0;
 
@@ -3728,6 +3727,14 @@ collecttag(char* text, char** stagp)
 	tag = NC_NAT;
     }
     return tag;
+}
+
+static Symbol*
+identkeyword(const Symbol* kw)
+{
+    Symbol* sym = NULL;
+    sym = install(kw->name);
+    return sym;
 }
 
 static int

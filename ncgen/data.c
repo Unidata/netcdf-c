@@ -11,6 +11,9 @@
 #include        "dump.h"
 
 #undef VERIFY
+#ifndef __MINGW32__
+#define HHPRINT
+#endif
 
 #define XVSNPRINTF vsnprintf
 /*
@@ -413,10 +416,15 @@ retry:	    switch ((c=*p++)) {
 		goto retry;	        
 	    case 'u':
 		if(hcount == 2) {
-   	            snprintf(tmp,sizeof(tmp),"%hhu",
-			(unsigned char)va_arg(argv,unsigned int));
+   	            snprintf(tmp,sizeof(tmp),
+#ifdef HHPRINT
+			"%hhu"
+#else
+			"%2u"
+#endif
+			,(unsigned char)va_arg(argv,unsigned int));
 		} else if(hcount == 1) {
-   	            snprintf(tmp,sizeof(tmp),"%hu",
+   	            snprintf(tmp,sizeof(tmp), "%hu",
 			(unsigned short)va_arg(argv,unsigned int));
 		} else if(lcount == 2) {
    	            snprintf(tmp,sizeof(tmp),"%llu",
@@ -432,8 +440,13 @@ retry:	    switch ((c=*p++)) {
 		break;
 	    case 'd':
 		if(hcount == 2) {
-   	            snprintf(tmp,sizeof(tmp),"%hhd",
-			(signed char)va_arg(argv,signed int));
+   	            snprintf(tmp,sizeof(tmp),
+#ifdef HHPRINT
+			"%hhd"
+#else
+			"%2d"
+#endif
+			,(signed char)va_arg(argv,signed int));
 		} else if(hcount == 1) {
    	            snprintf(tmp,sizeof(tmp),"%hd",
 			(signed short)va_arg(argv,signed int));
