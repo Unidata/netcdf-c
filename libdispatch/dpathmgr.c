@@ -1232,6 +1232,5 @@ report(int stat, const char* msg, int line)
     if(stat) {
 	nclog(NCLOGERR,"NCpathcvt(%d): %s: stat=%d (%s)",
 		line,msg,stat,nc_strerror(stat));
-	ncbreakpoint(stat);
     }
 }
