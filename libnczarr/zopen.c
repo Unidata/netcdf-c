@@ -177,7 +177,8 @@ NCZ_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 #endif /* LOGGING */
 
     /* Get the controls */
-    if(ncuriparse(path,&uri)) goto done;
+    ncuriparse(path,&uri);
+    if(uri == NULL) goto done;
 
     /* Open the file. */
     if((stat = ncz_open_file(path, mode, ncurifragmentparams(uri), ncid)))

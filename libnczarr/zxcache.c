@@ -520,6 +520,7 @@ put_chunk(NCZChunkCache* cache, NCZCacheEntry* entry)
     zfile = file->format_file_info;
     map = zfile->map;
 
+#ifdef ENABLE_NCZARR_FILTERS
     /* Make sure the entry is in filtered state */
     if(!entry->isfiltered) {
         NC_VAR_INFO_T* var = cache->var;
@@ -537,6 +538,7 @@ put_chunk(NCZChunkCache* cache, NCZCacheEntry* entry)
             entry->isfiltered = 1;
 	}
     }
+#endif
 
     path = NCZ_chunkpath(entry->key);
     stat = nczmap_write(map,path,0,entry->size,entry->data);
@@ -621,6 +623,7 @@ get_chunk(NCZChunkCache* cache, NCZCacheEntry* entry)
         entry->isfiltered = 0;
 	stat = NC_NOERR;
     }
+#ifdef ENABLE_NCZARR_FILTERS
     /* Make sure the entry is in unfiltered state */
     if(entry->isfiltered) {
         NC_VAR_INFO_T* var = cache->var;
@@ -639,6 +642,7 @@ get_chunk(NCZChunkCache* cache, NCZCacheEntry* entry)
 	entry->size = unflen;
 	entry->isfiltered = 0;
     }
+#endif
 
 done:
     nullfree(path);

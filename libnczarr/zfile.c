@@ -120,8 +120,10 @@ NCZ_enddef(int ncid)
             var->written_to = NC_TRUE; /* mark it written */
 	    /* rebuild the fill chunk */
 	    if((stat = NCZ_adjust_var_cache(var))) goto done;
+#ifdef ENABLE_NCZARR_FILTERS
 	    /* Build the filter working parameters for any filters */
 	    if((stat = NCZ_filter_setup(var))) goto done;
+#endif
         }
     }
     stat = ncz_enddef_netcdf4_file(h5);
