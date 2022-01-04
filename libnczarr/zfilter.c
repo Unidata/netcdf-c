@@ -53,8 +53,8 @@
 #include "netcdf_aux.h"
 
 #undef DEBUG
-#undef DEBUGF
-#undef DEBUGL
+#define DEBUGF
+#define DEBUGL
 
 #define NULLIFY(x) ((x)?(x):"NULL")
 
@@ -692,7 +692,9 @@ NCZ_filter_initialize(void)
     {
         NCZ_filter_initialized = 1;
         memset(loaded_plugins,0,sizeof(loaded_plugins));
+#ifdef ENABLE_NCZARR_FILTERS
         if((stat = NCZ_load_all_plugins())) goto done;
+#endif
     }
 done:
     return ZUNTRACE(stat);
@@ -704,6 +706,8 @@ NCZ_filter_finalize(void)
     int stat = NC_NOERR;
     int i;
     ZTRACE(6,"");
+    if(!NCZ_filter_initialized) goto done;
+#ifdef ENABLE_NCZARR_FILTERS
     /* Reclaim all loaded filters */
     for(i=0;i<=loaded_plugins_max;i++) {
         NCZ_unload_plugin(loaded_plugins[i]);
@@ -711,6 +715,11 @@ NCZ_filter_finalize(void)
     }
     /* Reclaim the defaults library; Must occur as last act */
     if(default_lib != NULL) {(void)ncpsharedlibfree(default_lib); default_lib = NULL; codec_defaults = NULL;}
+#else
+    memset(loaded_plugins,0,sizeof(loaded_plugins));
+#endif
+done:
+    NCZ_filter_initialized = 0;
     return ZUNTRACE(stat);
 }
 
