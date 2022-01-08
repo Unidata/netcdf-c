@@ -168,7 +168,8 @@ struct NC;
 
 int NC_create(const char *path, int cmode,
 	      size_t initialsz, int basepe, size_t *chunksizehintp,
-	      int useparallel, void *parameters, int *ncidp);
+	      int useparallel, void *parameters, int *ncidp,
+          size_t alignment_threshold, size_t alignment_interval);
 int NC_open(const char *path, int cmode,
 	    int basepe, size_t *chunksizehintp,
 	    int useparallel, void *parameters, int *ncidp);

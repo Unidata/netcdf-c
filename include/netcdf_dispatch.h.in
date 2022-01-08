@@ -38,7 +38,8 @@ struct NC_Dispatch
 
     int (*create)(const char *path, int cmode, size_t initialsz,
                   int basepe, size_t *chunksizehintp, void *parameters,
-                  const struct NC_Dispatch *table, int ncid);
+                  const struct NC_Dispatch *table, int ncid,
+                  size_t alignment_threshold, size_t alignment_interval);
     int (*open)(const char *path, int mode, int basepe, size_t *chunksizehintp,
                 void *parameters, const struct NC_Dispatch *table, int ncid);
 

@@ -462,7 +462,7 @@ nc__create(const char *path, int cmode, size_t initialsz,
            size_t *chunksizehintp, int *ncidp)
 {
     return NC_create(path, cmode, initialsz, 0,
-                     chunksizehintp, 0, NULL, ncidp);
+                     chunksizehintp, 0, NULL, ncidp, 1, 1);
 }
 
 /** \ingroup datasets
@@ -508,7 +508,7 @@ nc_create_mem(const char* path, int mode, size_t initialsize, int* ncidp)
 {
     if(mode & NC_MMAP) return NC_EINVAL;
     mode |= NC_INMEMORY; /* Specifically, do not set NC_DISKLESS */
-    return NC_create(path, mode, initialsize, 0, NULL, 0, NULL, ncidp);
+    return NC_create(path, mode, initialsize, 0, NULL, 0, NULL, ncidp, 1, 1);
 }
 
 /**
@@ -535,7 +535,7 @@ nc__create_mp(const char *path, int cmode, size_t initialsz,
               int basepe, size_t *chunksizehintp, int *ncidp)
 {
     return NC_create(path, cmode, initialsz, basepe,
-                     chunksizehintp, 0, NULL, ncidp);
+                     chunksizehintp, 0, NULL, ncidp, 1, 1);
 }
 
 /**
@@ -1815,6 +1815,12 @@ check_create_mode(int mode)
  * @param parameters Pointer to MPI comm and info.
  * @param ncidp Pointer to location where returned netCDF ID is to be
  * stored.
+ * @param alignment_threshold Desired data alignment threshold within
+ * the created file. For HDF5 based files, this is passed to 
+ * H5Pset_alignment. Default value: 1 (no alignment threshold).
+ * @param alignment_interval Desired data alignment interval within
+ * the created file. For HDF5 based files, this is passed to 
+ * H5Pset_alignment. Default value: 1 (no alignment).
  *
  * @returns ::NC_NOERR No error.
  * @ingroup dispatch
@@ -1823,7 +1829,8 @@ check_create_mode(int mode)
 int
 NC_create(const char *path0, int cmode, size_t initialsz,
           int basepe, size_t *chunksizehintp, int useparallel,
-          void* parameters, int *ncidp)
+          void* parameters, int *ncidp,
+          size_t alignment_threshold, size_t alignment_interval)
 {
     int stat = NC_NOERR;
     NC* ncp = NULL;
@@ -1924,7 +1931,8 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 
     /* Assume create will fill in remaining ncp fields */
     if ((stat = dispatcher->create(ncp->path, cmode, initialsz, basepe, chunksizehintp,
-                                   parameters, dispatcher, ncp->ext_ncid))) {
+                                   parameters, dispatcher, ncp->ext_ncid,
+                                   alignment_threshold, alignment_interval))) {
         del_from_NCList(ncp); /* oh well */
         free_NC(ncp);
     } else {

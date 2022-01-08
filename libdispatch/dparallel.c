@@ -128,7 +128,7 @@ int nc_create_par(const char *path, int cmode, MPI_Comm comm,
 
     data.comm = comm;
     data.info = info;
-    return NC_create(path, cmode, 0, 0, NULL, 1, &data, ncidp);
+    return NC_create(path, cmode, 0, 0, NULL, 1, &data, ncidp, 1, 1);
 #endif /* USE_PARALLEL */
 }
 
