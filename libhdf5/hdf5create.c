@@ -34,17 +34,20 @@ extern int NC4_create_image_file(NC_FILE_INFO_T* h5, size_t);
  * in-memory netCDF-4/HDF5 files only).
  * @param parameters extra parameter info (like MPI communicator).
  * @param ncid The already-assigned ncid for this file (aka ext_ncid).
+ * @param alignment_threshold The HDF5 alignment threshold. Passed to H5Pset_alignment. Default value: 1.
+ * @param alignment_interval The HDF5 alignment interval. Passed to H5Pset_alignment. Default value: 1.
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EINVAL Invalid input (check cmode).
  * @return ::NC_EEXIST File exists and NC_NOCLOBBER used.
  * @return ::NC_EHDFERR HDF5 returned error.
  * @ingroup netcdf4
- * @author Ed Hartnett, Dennis Heimbigner
+ * @author Ed Hartnett, Dennis Heimbigner, Mark Harfouche
  */
 static int
 nc4_create_file(const char *path, int cmode, size_t initialsz,
-                void* parameters, int ncid)
+                void* parameters, int ncid,
+                size_t alignment_threshold, size_t alignment_interval)
 {
     hid_t fcpl_id, fapl_id = -1;
     unsigned flags;
@@ -162,6 +165,9 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
 	LOG((4, "%s: set HDF raw chunk cache to size %d nelems %d preemption %f",
 	     __func__, nc4_chunk_cache_size, nc4_chunk_cache_nelems,
 	     nc4_chunk_cache_preemption));
+    }
+    if (H5Pset_alignment(fapl_id, alignment_threshold, alignment_interval) < 0) {
+        BAIL(NC_EHDFERR);
     }
 
 #if H5_VERSION_GE(1,10,2)
@@ -281,6 +287,8 @@ exit: /*failure exit*/
  * @param dispatch Pointer to the dispatch table for this file.
  * @param ncid The ncid that has been assigned by the dispatch layer
  * (aka ext_ncid).
+ * @param alignment_threshold The HDF5 alignment threshold. Passed to H5Pset_alignment. Default value: 1.
+ * @param alignment_interval The HDF5 alignment interval. Passed to H5Pset_alignment. Default value: 1.
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EINVAL Invalid input (check cmode).
@@ -290,7 +298,8 @@ exit: /*failure exit*/
 int
 NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
            size_t *chunksizehintp, void *parameters,
-           const NC_Dispatch *dispatch, int ncid)
+           const NC_Dispatch *dispatch, int ncid,
+           size_t alignment_threshold, size_t alignment_interval)
 {
     int res;
 
@@ -315,7 +324,8 @@ NC4_create(const char* path, int cmode, size_t initialsz, int basepe,
         return NC_EINVAL;
 
     /* Create the netCDF-4/HDF5 file. */
-    res = nc4_create_file(path, cmode, initialsz, parameters, ncid);
+    res = nc4_create_file(path, cmode, initialsz, parameters, ncid,
+                          alignment_threshold, alignment_interval);
 
     return res;
 }

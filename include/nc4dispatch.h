@@ -23,7 +23,8 @@ extern "C" {
     EXTERNL int
     NC4_create(const char *path, int cmode,
                size_t initialsz, int basepe, size_t *chunksizehintp,
-               void* parameters, const NC_Dispatch*, int);
+               void* parameters, const NC_Dispatch*, int,
+               size_t, size_t);
 
     EXTERNL int
     NC4_open(const char *path, int mode,
