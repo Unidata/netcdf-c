@@ -1,4 +1,4 @@
-/* Copyright 2003-2018, University Corporation for Atmospheric
+/* Copyright 2003-2022, University Corporation for Atmospheric
  * Research. See COPYRIGHT file for copying and redistribution
  * conditions. */
 /**
@@ -765,9 +765,10 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
     mpiinfo = (NC_MPI_INFO *)parameters; /* assume, may be changed if inmemory is true */
 #endif /* !USE_PARALLEL4 */
 
-    /* Need this access plist to control how HDF5 handles open objects
-     * on file close. (Setting H5F_CLOSE_WEAK will cause H5Fclose not to
-     * fail if there are any open objects in the file. This may happen when virtual
+    /* Need this FILE ACCESS plist to control how HDF5 handles open
+     * objects on file close; as well as for other controls below.
+     * (Setting H5F_CLOSE_WEAK will cause H5Fclose not to fail if there
+     * are any open objects in the file. This may happen when virtual
      * datasets are opened). */
     if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0)
         BAIL(NC_EHDFERR);
@@ -819,6 +820,13 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 	     __func__, nc4_chunk_cache_size, nc4_chunk_cache_nelems,
 	     nc4_chunk_cache_preemption));
     }
+
+    /* Set HDF5 format compatibility in the FILE ACCESS property list.
+     * Compatibility is transient and must be reselected every time
+     * a file is opened for writing. */
+    retval = hdf5set_format_compatibility(fapl_id);
+    if (retval != NC_NOERR)
+        BAIL(retval);
 
     /* Process  NC_INMEMORY */
     if(nc4_info->mem.inmemory) {
