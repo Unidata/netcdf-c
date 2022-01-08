@@ -117,9 +117,10 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
         }
     }
 
-    /* Need this access plist to control how HDF5 handles open objects
-     * on file close. (Setting H5F_CLOSE_WEAK will cause H5Fclose not to
-     * fail if there are any open objects in the file. This may happen when virtual
+    /* Need this FILE ACCESS plist to control how HDF5 handles open
+     * objects on file close; as well as for other controls below.
+     * (Setting H5F_CLOSE_WEAK will cause H5Fclose not to fail if there
+     * are any open objects in the file. This may happen when virtual
      * datasets are opened). */
     if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0)
         BAIL(NC_EHDFERR);
@@ -127,8 +128,8 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
         BAIL(NC_EHDFERR);
 
 #ifdef USE_PARALLEL4
-    /* If this is a parallel file create, set up the file creation
-       property list. */
+    /* If this is a parallel file create, set up the file access
+       property list for MPI/IO. */
     if (mpiinfo != NULL) {
         nc4_info->parallel = NC_TRUE;
         LOG((4, "creating parallel file with MPI/IO"));
@@ -164,21 +165,14 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
 	     nc4_chunk_cache_preemption));
     }
 
-#if H5_VERSION_GE(1,10,2)
-    /* lib versions 1.10.2 and higher */
-    if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_V18, H5F_LIBVER_LATEST) < 0)
-#else
-#if H5_VERSION_GE(1,10,0)
-    /* lib versions 1.10.0, 1.10.1 */
-    if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_EARLIEST, H5F_LIBVER_LATEST) < 0)
-#else
-    /* all HDF5 1.8 lib versions */
-    if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0)
-#endif
-#endif
-        BAIL(NC_EHDFERR);
+    /* Set HDF5 format compatibility in the FILE ACCESS property list.
+     * Compatibility is transient and must be reselected every time
+     * a file is opened for writing. */
+    retval = hdf5set_format_compatibility(fapl_id);
+    if (retval != NC_NOERR)
+        BAIL(retval);
 
-    /* Create the property list. */
+    /* Begin setup for the FILE CREATION property list. */
     if ((fcpl_id = H5Pcreate(H5P_FILE_CREATE)) < 0)
         BAIL(NC_EHDFERR);
 
@@ -186,9 +180,8 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
     if (H5Pset_obj_track_times(fcpl_id,0)<0)
         BAIL(NC_EHDFERR);
 
-    /* Set latest_format in access propertly list and
-     * H5P_CRT_ORDER_TRACKED in the creation property list. This turns
-     * on HDF5 creation ordering. */
+    /* Set H5P_CRT_ORDER_TRACKED in the creation property list.
+     * This turns on HDF5 creation ordering. */
     if (H5Pset_link_creation_order(fcpl_id, (H5P_CRT_ORDER_TRACKED |
                                              H5P_CRT_ORDER_INDEXED)) < 0)
         BAIL(NC_EHDFERR);
