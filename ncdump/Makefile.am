@@ -17,10 +17,6 @@ noinst_PROGRAMS=
 TEST_EXTENSIONS = .sh
 XFAIL_TESTS=""
 
-if ! ENABLE_UNFIXED_MEMORY_LEAKS
-AM_TESTS_ENVIRONMENT += export NC_VLEN_NOTEST=1;
-endif
-
 # This is the program we're building, and it's sources.
 bin_PROGRAMS = ncdump
 ncdump_SOURCES = ncdump.c vardata.c dumplib.c indent.c nctime0.c        \
@@ -56,6 +52,13 @@ nc4print_SOURCES = nc4print.c nc4printer.c
 # a specified variable in the .nc file.
 noinst_PROGRAMS += printfqn
 printfqn_SOURCES = printfqn.c
+
+# A non-installed utility program to return
+# the HDF5 Version as an integer of the form XXXYYYZZZ with no newline.
+# Where XXX is the major version number, YYY is the minor version number
+# and ZZZ is the patch level.
+noinst_PROGRAMS += nchdf5version
+nchdf5version_SOURCES = nchdf5version.c
 
 endif
 
@@ -117,7 +120,7 @@ tst_ncgen4.sh test_scope.sh
 
 # Record interscript dependencies so parallel builds work.
 tst_nccopy4.log: run_ncgen_tests.log tst_output.log tst_ncgen4.log	\
-		 tst_fillbug.log tst_netcdf4_4.log tst_h_scalar.log
+                 tst_fillbug.log tst_netcdf4_4.log tst_h_scalar.log tst_netcdf4.log
 tst_nccopy5.log: tst_nccopy4.log
 
 endif #USE_HDF5

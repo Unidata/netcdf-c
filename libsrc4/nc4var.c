@@ -264,6 +264,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
     {
         /* Do we have a fill value for this var? */
         if (var->fill_value)
+#ifdef SEPDATA
         {
             if (var->type_info->nc_type_class == NC_STRING)
             {
@@ -281,9 +282,15 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
                 memcpy(fill_valuep, var->fill_value, var->type_info->size);
             }
         }
+#else
+        {
+	    int xtype = var->type_info->hdr.id;
+	    if((retval = nc_copy_data(ncid,xtype,var->fill_value,1,fill_valuep))) return retval;
+	}
+#endif
         else
         {
-            if (var->type_info->nc_type_class == NC_STRING)
+	    if (var->type_info->nc_type_class == NC_STRING)
             {
                 if (!(*(char **)fill_valuep = calloc(1, sizeof(char *))))
                     return NC_ENOMEM;

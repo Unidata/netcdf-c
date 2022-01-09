@@ -306,22 +306,25 @@ static const char zeros[] =
 void
 alignbuffer(NCConstant* prim, Bytebuffer* buf)
 {
-    int alignment,pad,offset;
+    int stat = NC_NOERR;
+    size_t alignment;
+    int pad,offset;
 
     ASSERT(prim->nctype != NC_COMPOUND);
 
     if(prim->nctype == NC_ECONST)
-        alignment = ncaux_class_alignment(prim->value.enumv->typ.typecode);
+        stat = ncaux_class_alignment(prim->value.enumv->typ.typecode,&alignment);
     else if(usingclassic && prim->nctype == NC_STRING)
-        alignment = ncaux_class_alignment(NC_CHAR);
+        stat = ncaux_class_alignment(NC_CHAR,&alignment);
     else if(prim->nctype == NC_CHAR)
-        alignment = ncaux_class_alignment(NC_CHAR);
+        stat = ncaux_class_alignment(NC_CHAR,&alignment);
     else
-        alignment = ncaux_class_alignment(prim->nctype);
-    offset = bbLength(buf);
-    pad = getpadding(offset,alignment);
-    if(pad > 0) {
-	bbAppendn(buf,(void*)zeros,pad);
+        stat = ncaux_class_alignment(prim->nctype,&alignment);
+    if(!stat) {
+        offset = bbLength(buf);
+        pad = getpadding(offset,alignment);
+        if(pad > 0)
+   	    bbAppendn(buf,(void*)zeros,pad);
     }
 }
 

@@ -43,7 +43,7 @@ NC4_TESTS += tst_h_strbug tst_h_refs
 endif
 
 # Build test programs plus programs used in test scripts.
-check_PROGRAMS = $(NC4_TESTS) tst_empty_vlen_unlim tst_charvlenbug
+check_PROGRAMS = $(NC4_TESTS) tst_empty_vlen_unlim tst_charvlenbug tst_vlenstr
 TESTS = $(NC4_TESTS) run_empty_vlen_test.sh
 
 # Add these if large file tests are turned on.

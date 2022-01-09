@@ -108,6 +108,8 @@ NCZ_enddef(int ncid)
     if ((stat = nc4_find_grp_h5(ncid, &grp, &h5)))
         goto done;
 
+    /* Why is this here? Especially since it is not recursive so it
+       only applies to the this grp */
     /* When exiting define mode, process all variables */
     for (i = 0; i < nclistlength(h5->allgroups); i++) {	
 	NC_GRP_INFO_T* g = nclistget(h5->allgroups,i);

@@ -299,15 +299,6 @@ if test "x$enable_jna" = xyes ; then
 AC_DEFINE([JNA], [1], [if true, include jna bug workaround code])
 fi
 
-# Should tests with unfixed memory leaks be run?
-AC_MSG_CHECKING([if unfixed tests with memory leaks should be enabled])
-AC_ARG_ENABLE([unfixed-memory-leaks],
-  [AS_HELP_STRING([--enable-unfixed-memory-leaks],
-    [Enable tests in the ncdump directory that have unfixed memory leaks])])
-test "x$enable_unfixed_memory_leaks" = xyes || enable_unfixed_memory_leaks=no
-AC_MSG_RESULT($enable_unfixed_memory_leaks)
-AM_CONDITIONAL([ENABLE_UNFIXED_MEMORY_LEAKS], [test "x$enable_unfixed_memory_leaks" = xyes])
-
 # Does the user want to turn off unit tests (useful for test coverage
 # analysis).
 AC_MSG_CHECKING([if unit tests should be disabled])
