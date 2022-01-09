@@ -187,22 +187,21 @@ openfile(void)
     }
     if(filterid != TEST_ID) {
         fprintf(stderr,"open: test id mismatch: %d\n",filterid);
+        free(params);
         return NC_EFILTER;
     }
     if(nparams != NPARAMS) {
-	size_t i;
-	unsigned int inqparams[MAXPARAMS];
+        size_t i;
         fprintf(stderr,"nparams  mismatch\n");
         for(nerrs=0,i=0;i<nparams;i++) {
-            if(inqparams[i] != baseline[i]) {
+            if(params[i] != baseline[i]) {
                 fprintf(stderr,"open: testparam mismatch: %ld\n",(unsigned long)i);
-		nerrs++;
-	    }
-	}
+                nerrs++;
+            }
+        }
     }
-    if(nerrs > 0) return NC_EFILTER; 
-
-    if(params) free(params);
+    free(params);
+    if(nerrs > 0) return NC_EFILTER;
 
     /* Verify chunking */
     if(!verifychunks())
