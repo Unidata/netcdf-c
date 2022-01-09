@@ -370,9 +370,7 @@ genbin_defineattr(Symbol* asym)
     Bytebuffer* databuf = bbNew();
     generator_reset(bin_generator,NULL);
     generate_attrdata(asym,bin_generator,(Writer)genbin_write,databuf);
-    if((stat = ncaux_reclaim_data(asym->container->nc_id,asym->typ.basetype->nc_id,bbContents(databuf),datalistlen(asym->data))))
-        goto done;
-done:
+    stat = nc_reclaim_data(asym->container->nc_id,asym->typ.basetype->nc_id,bbContents(databuf),datalistlen(asym->data));
     bbFree(databuf);
     return stat;
 }
@@ -388,7 +386,7 @@ genbin_definevardata(Symbol* vsym)
     databuf = bbNew();
     generator_reset(bin_generator,NULL);
     generate_vardata(vsym,bin_generator,(Writer)genbin_write,databuf);
-    ncaux_reclaim_data(vsym->container->nc_id,vsym->typ.basetype->nc_id,bbContents(databuf),datalistlen(vsym->data));
+    stat = nc_reclaim_data_all(vsym->container->nc_id,vsym->typ.basetype->nc_id,bbExtract(databuf),datalistlen(vsym->data));
 done:
     bbFree(databuf);
     return stat;
@@ -443,7 +441,7 @@ genbin_writevar(Generator* generator, Symbol* vsym, Bytebuffer* memory,
     CHECK_ERR(stat);
 #if 0
     /* Reclaim the data */
-    stat = ncaux_reclaim_data(vsym->container->nc_id, vsym->typ.basetype->nc_id, data, nelems);
+    stat = nc_reclaim_data(vsym->container->nc_id, vsym->typ.basetype->nc_id, data, nelems);
     CHECK_ERR(stat);
     bbClear(memory); /* reclaim top-level memory */
 #endif
@@ -468,7 +466,7 @@ genbin_writeattr(Generator* generator, Symbol* asym, Bytebuffer* databuf,
     len = list->length;
 
     /* Use the specialized put_att_XX routines if possible*/
-    if(isprim(basetype->typ.typecode)) {
+    if(isprim(typid)) {
       switch (basetype->typ.typecode) {
       case NC_BYTE: {
         signed char* data = (signed char*)bbContents(databuf);

@@ -170,8 +170,10 @@ typedef struct NC_ATT_INFO
     nc_type nc_typeid;      /**< NetCDF type of attribute's data. */
     void *format_att_info;  /**< Pointer to format-specific att info. */
     void *data;             /**< The attribute data. */
+#ifdef SEPDATA
     nc_vlen_t *vldata;      /**< VLEN data (only used for vlen types). */
     char **stdata;          /**< String data (only for string type). */
+#endif
 } NC_ATT_INFO_T;
 
 /** This is a struct to handle the var metadata. */
@@ -252,6 +254,7 @@ typedef struct NC_TYPE_INFO
         } e;                        /**< Enum */
         struct Fields {
             NClist* field;        /**< <! NClist<NC_FIELD_INFO_T*> */
+	    int varsized;         /**< <! 1 if this compound is variable sized; 0 if fixed size */
         } c;                      /**< Compound */
         struct {
             nc_type base_nc_typeid; /**< Typeid of the base type. */
@@ -287,7 +290,7 @@ typedef struct NC_GRP_INFO
 #define NC_HDIRTY 0x10080  /**< header info has changed */
 
 /** This is the metadata we need to keep track of for each
-  * netcdf-4/HDF5 file. */
+  * netcdf-4/ file; used by libhdf5, libnczarr, and libdap4 */
 
 typedef struct  NC_FILE_INFO
 {
@@ -302,7 +305,7 @@ typedef struct  NC_FILE_INFO
     nc_bool_t parallel;   /**< True if file is open for parallel access */
     nc_bool_t redef;      /**< True if redefining an existing file */
     nc_bool_t no_attr_create_order; /**< True if the creation order tracking of attributes is disabled (netcdf-4 only) */
-    int fill_mode;        /**< Fill mode for vars - Unused internally currently */
+    int fill_mode;        /**< Fill mode for vars */
     nc_bool_t no_write;   /**< true if nc_open has mode NC_NOWRITE. */
     NC_GRP_INFO_T *root_grp; /**< Pointer to root group. */
     short next_nc_grpid;  /**< Next available group ID. */
@@ -432,6 +435,9 @@ extern int nc4_get_default_fill_value(nc_type typecode, void *fill_value);
 extern int nc4_get_att_ptrs(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var,
                      const char *name, nc_type *xtype, nc_type mem_type,
                      size_t *lenp, int *attnum, void *data);
+
+/* Get variable/fixed size flag for type */
+extern int NC4_inq_type_fixed_size(int ncid, nc_type xtype, int* isfixedsizep);
 
 /* Close the file. */
 extern int nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio);

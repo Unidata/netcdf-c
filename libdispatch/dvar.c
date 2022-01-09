@@ -260,6 +260,9 @@ nc_def_var(int ncid, const char *name, nc_type xtype,
    to set fill value after data are written.
    @return ::NC_EGLOBAL Attempt to set fill value on NC_GLOBAL.
 
+   Warning: Using a vlen type as the fill value may lead to a memory
+   leak.
+
    @section nc_def_var_fill_example Example
 
    In this example from libsrc4/tst_vars.c, a variable is defined, and

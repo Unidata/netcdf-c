@@ -917,8 +917,7 @@ pr_att(
        default:
 	   error("unrecognized class of user defined type: %d", class);
        }
-       ncaux_reclaim_data(ncid,att.type,data,att.len);
-       free(data);
+       NC_CHECK(nc_reclaim_data_all(ncid,att.type,data,att.len));
        printf (" ;");		/* terminator for user defined types */
     }
 #endif /* USE_NETCDF4 */
@@ -1957,7 +1956,7 @@ do_ncdump_rec(int ncid, const char *path)
 	    goto done;
 	 }
 	 if(var.fillvalp != NULL)
-	     {ncaux_reclaim_data(ncid,var.tinfo->tid,var.fillvalp,1); free(var.fillvalp); var.fillvalp = NULL;}
+	     {NC_CHECK(nc_reclaim_data_all(ncid,var.tinfo->tid,var.fillvalp,1)); var.fillvalp = NULL;}
       }
       if (vdims) {
 	  free(vdims);
@@ -2010,8 +2009,7 @@ done:
    if(var.dims != NULL) free(var.dims);
    if(var.fillvalp != NULL) {
 	/* Release any data hanging off of fillvalp */
-	ncaux_reclaim_data(ncid,var.tinfo->tid,var.fillvalp,1);
-	free(var.fillvalp);
+	nc_reclaim_data_all(ncid,var.tinfo->tid,var.fillvalp,1);
 	var.fillvalp = NULL;
    }
    if(var.timeinfo != NULL) {

@@ -1270,10 +1270,6 @@ IF(ENABLE_TESTS)
 
   OPTION(ENABLE_FAILING_TESTS "Run tests which are known to fail, check to see if any have been fixed." OFF)
 
-  # There is a special class of tests that currently fail because of memory leaks.
-  # As with failing tests, they can be enabled to work on them
-  OPTION(ENABLE_UNFIXED_MEMORY_LEAKS "Run tests with unfixed memory leaks" OFF)
-
   ###
   # Option to turn on unit testing. See
   # https://github.com/Unidata/netcdf-c/pull/1472 for more information.

@@ -20,7 +20,7 @@ dattinq.c dattput.c dattget.c derror.c dvar.c dvarget.c dvarput.c	\
 dvarinq.c dinternal.c ddispatch.c dutf8.c nclog.c dstring.c ncuri.c	\
 nclist.c ncbytes.c nchashmap.c nctime.c nc.c nclistmgr.c dauth.c	\
 doffsets.c dpathmgr.c dutil.c dreadonly.c dnotnc4.c dnotnc3.c           \
-daux.c dinfermodel.c \
+dinfermodel.c daux.c dinstance.c \
 dcrc32.c dcrc32.h dcrc64.c ncexhash.c ncxcache.c ncjson.c ds3util.c
 
 # Add the utf8 codebase

@@ -17,6 +17,7 @@ SET(ocprint_FILES ocprint.c)
 SET(ncvalidator_FILES ncvalidator.c)
 SET(printfqn_FILES printfqn.c)
 SET(ncpathcvt_FILES ncpathcvt.c)
+SET(nchdf5version_FILES nchdf5version.c)
 
 IF(USE_X_GETOPT)
   SET(ncdump_FILES ${ncdump_FILES} XGetopt.c)
@@ -35,6 +36,7 @@ ADD_EXECUTABLE(ncpathcvt ${ncpathcvt_FILES})
 IF(USE_HDF5)
   ADD_EXECUTABLE(nc4print nc4print.c nc4printer.c)
   ADD_EXECUTABLE(printfqn  ${printfqn_FILES})
+  ADD_EXECUTABLE(nchdf5version ${nchdf5version_FILES})
 ENDIF(USE_HDF5)
 
 IF(ENABLE_DAP)
@@ -49,6 +51,7 @@ TARGET_LINK_LIBRARIES(ncpathcvt netcdf ${ALL_TLL_LIBS})
 IF(USE_HDF5)
   TARGET_LINK_LIBRARIES(nc4print netcdf ${ALL_TLL_LIBS})
   TARGET_LINK_LIBRARIES(printfqn netcdf ${ALL_TLL_LIBS})
+  TARGET_LINK_LIBRARIES(nchdf5version netcdf ${ALL_TLL_LIBS})
 ENDIF(USE_HDF5)
 
 IF(ENABLE_DAP)
@@ -96,6 +99,12 @@ IF(MSVC)
     SET_TARGET_PROPERTIES(printfqn PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG
       ${CMAKE_CURRENT_BINARY_DIR})
     SET_TARGET_PROPERTIES(printfqn PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
+      ${CMAKE_CURRENT_BINARY_DIR})
+    SET_TARGET_PROPERTIES(nchdf5version PROPERTIES RUNTIME_OUTPUT_DIRECTORY
+      ${CMAKE_CURRENT_BINARY_DIR})
+    SET_TARGET_PROPERTIES(nchdf5version PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG
+      ${CMAKE_CURRENT_BINARY_DIR})
+    SET_TARGET_PROPERTIES(nchdf5version PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
       ${CMAKE_CURRENT_BINARY_DIR})
   ENDIF(USE_HDF5)
 
@@ -294,11 +303,6 @@ endif()
         ENDIF()
       ENDIF()
   ENDIF(EXTRA_TESTS)
-
-  IF(ENABLE_UNFIXED_MEMORY_LEAKS)
-  SET_TESTS_PROPERTIES(ncdump_run_ncgen_nc4_tests.sh ncdump_tst_nccopy4.sh ncdump_tst_ncgen_shared.sh ncdump_tst_netcdf4.sh
-                       PROPERTIES ENVIRONMENT NC_VLEN_NOTEST=1)
-  ENDIF()
 
   # The unicode tests are complicated
   IF(USE_HDF5)

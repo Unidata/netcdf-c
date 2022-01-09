@@ -666,7 +666,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
     }
 
     /* Are we setting a fill value? */
-    if (fill_value && !var->no_fill)
+    if (fill_value && no_fill && !(*no_fill))
     {
         /* Copy the fill_value. */
         LOG((4, "Copying fill value into metadata for variable %s",
@@ -677,10 +677,16 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
         if (retval && retval != NC_ENOTATT)
             return retval;
 
-        /* Create a _FillValue attribute. */
+        /* Create a _FillValue attribute; will also fill in var->fill_value */
         if ((retval = nc_put_att(ncid, varid, _FillValue, var->type_info->hdr.id,
                                  1, fill_value)))
             return retval;
+    } else if (var->fill_value && no_fill && (*no_fill)) { /* Turning off fill value? */
+        /* If there's a _FillValue attribute, delete it. */
+        retval = NC4_HDF5_del_att(ncid, varid, _FillValue);
+        if (retval && retval != NC_ENOTATT) return retval;
+	if((retval = nc_reclaim_data_all(ncid,var->type_info->hdr.id,var->fill_value,1))) return retval;
+	var->fill_value = NULL;
     }
 
     /* Is the user setting the endianness? */
@@ -2111,6 +2117,7 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
         for (i = 0; i < fill_len; i++)
         {
 
+#ifdef SEPDATA
             if (var->type_info->nc_type_class == NC_STRING)
             {
                 if (*(char **)fillvalue)
@@ -2132,6 +2139,13 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
             }
             else
                 memcpy(filldata, fillvalue, file_type_size);
+#else
+	    {
+		/* Copy one instance of the fill_value */
+		if((retval = nc_copy_data(ncid,var->type_info->hdr.id,fillvalue,1,filldata)))
+		    BAIL(retval);
+	    }
+#endif
             filldata = (char *)filldata + file_type_size;
 	}        
     }

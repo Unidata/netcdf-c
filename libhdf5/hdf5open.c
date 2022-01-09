@@ -1151,6 +1151,8 @@ static int get_fill_info(hid_t propid, NC_VAR_INFO_T *var)
         /* Allocate space to hold the fill value. */
         if (!var->fill_value)
         {
+#ifdef SEPDATA
+
             if (var->type_info->nc_type_class == NC_VLEN)
             {
                 if (!(var->fill_value = malloc(sizeof(nc_vlen_t))))
@@ -1162,6 +1164,7 @@ static int get_fill_info(hid_t propid, NC_VAR_INFO_T *var)
                     return NC_ENOMEM;
             }
             else
+#endif
             {
                 assert(var->type_info->size);
                 if (!(var->fill_value = malloc(var->type_info->size)))
@@ -1746,7 +1749,7 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
     LOG((5, "%s: att->hdr.id %d att->hdr.name %s att->nc_typeid %d att->len %d",
          __func__, att->hdr.id, att->hdr.name, (int)att->nc_typeid, att->len));
 
-    /* Get HDF5-sepecific info struct for this attribute. */
+    /* Get HDF5-specific info struct for this attribute. */
     hdf5_att = (NC_HDF5_ATT_INFO_T *)att->format_att_info;
 
     /* Get type of attribute in file. */
@@ -1767,7 +1770,6 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
     if ((retval = get_netcdf_type(grp->nc4_info, hdf5_att->native_hdf_typeid,
                                   &(att->nc_typeid))))
         BAIL(retval);
-
 
     /* Get len. */
     if ((spaceid = H5Aget_space(attid)) < 0)
@@ -1837,6 +1839,7 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
         if ((retval = nc4_get_typelen_mem(grp->nc4_info, att->nc_typeid,
                                           &type_size)))
             return retval;
+#ifdef SEPDATA
         if (att_class == H5T_VLEN)
         {
             if (!(att->vldata = malloc((unsigned int)(att->len * sizeof(hvl_t)))))
@@ -1853,11 +1856,11 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
              * nc_free_string be called on string arrays, which would not
              * work if one contiguous memory block were used. So here I
              * convert the contiguous block of strings into an array of
-             * malloced strings (each string with its own malloc). Then I
+             * malloced strings -- each string with its own malloc. Then I
              * copy the data and free the contiguous memory. This
              * involves copying the data, which is bad, but this only
              * occurs for fixed length string attributes, and presumably
-             * these are small. (And netCDF-4 does not create them - it
+             * these are small. Note also that netCDF-4 does not create them - it
              * always uses variable length strings. */
             if (fixed_len_string)
             {
@@ -1899,12 +1902,64 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
             }
         }
         else
+#else
         {
             if (!(att->data = malloc((unsigned int)(att->len * type_size))))
                 BAIL(NC_ENOMEM);
-            if (H5Aread(attid, hdf5_att->native_hdf_typeid, att->data) < 0)
-                BAIL(NC_EATTMETA);
+
+            /* For a fixed length HDF5 string, the read requires
+             * contiguous memory. Meanwhile, the netCDF API requires that
+             * nc_free_string be called on string arrays, which would not
+             * work if one contiguous memory block were used. So here I
+             * convert the contiguous block of strings into an array of
+             * malloced strings -- each string with its own malloc. Then I
+             * copy the data and free the contiguous memory. This
+             * involves copying the data, which is bad, but this only
+             * occurs for fixed length string attributes, and presumably
+             * these are small. Note also that netCDF-4 does not create them - it
+             * always uses variable length strings. */
+            if (att->nc_typeid == NC_STRING && fixed_len_string)
+            {
+                int i;
+                char *contig_buf, *cur;
+		char** dst = NULL;
+
+                /* Alloc space for the contiguous memory read. */
+                if (!(contig_buf = malloc(att->len * fixed_size * sizeof(char))))
+                    BAIL(NC_ENOMEM);
+
+                /* Read the fixed-len strings as one big block. */
+                if (H5Aread(attid, hdf5_att->native_hdf_typeid, contig_buf) < 0) {
+                    free(contig_buf);
+                    BAIL(NC_EATTMETA);
+                }
+
+                /* Copy strings, one at a time, into their new home. Alloc
+                   space for each string. The user will later free this
+                   space with nc_free_string. */
+                cur = contig_buf;
+	        dst = (char**)att->data;
+                for (i = 0; i < att->len; i++)
+                {
+		    char* s = NULL;
+                    if (!(s = malloc(fixed_size+1))) {
+                        free(contig_buf);
+                        BAIL(NC_ENOMEM);
+                    }
+		    memcpy(s,cur,fixed_size);
+		    s[fixed_size] = '\0';
+		    dst[i] = s;
+                    cur += fixed_size;
+                }
+                /* Free contiguous memory buffer. */
+                free(contig_buf);
+            } else { /* not fixed string */
+		/* Just read the data */
+                if (H5Aread(attid, hdf5_att->native_hdf_typeid, att->data) < 0)
+                    BAIL(NC_EATTMETA);
+	    }
         }
+#endif
     }
 
     if (H5Tclose(file_typeid) < 0)
@@ -2106,6 +2161,12 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
                     return retval;
             }
 
+	    {   /* See if this changes from fixed size to variable size */
+		int fixedsize;
+                if((retval = NC4_inq_type_fixed_size(grp->nc4_info->controller->ext_ncid,member_xtype,&fixedsize))) return retval;
+		if(!fixedsize) type->u.c.varsized = 1;
+	    }
+
             hdf5free(member_name);
         }
     }
@@ -2280,6 +2341,10 @@ att_read_callbk(hid_t loc_id, const char *att_name, const H5A_info_t *ainfo,
     /* Add to the end of the list of atts for this var. */
     if ((retval = nc4_att_list_add(list, att_name, &att)))
         BAIL(-1);
+
+    /* Remember container */
+    att->container = (att_info->var ? (NC_OBJ*)att_info->var: (NC_OBJ*)att_info->grp);
+
 
     /* Allocate storage for the HDF5 specific att info. */
     if (!(att->format_att_info = calloc(1, sizeof(NC_HDF5_ATT_INFO_T))))
