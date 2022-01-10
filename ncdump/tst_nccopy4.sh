@@ -3,11 +3,18 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
+set -e
+
+export SETX=1
+
 # For a netCDF-4 build, test nccopy on netCDF files in this directory
 
+echo "@@@@@@"
+if test -f tst_group_data${ext} ; then ${execdir}/tst_group_data ; fi
+if test -f tst_enum_data${ext} ; then ${execdir}/tst_enum_data ; fi
+if test -f tst_comp${ext} ; then ${execdir}/tst_comp ; fi
 if test -f tst_comp2${ext} ; then ${execdir}/tst_comp2 ; fi
 
-set -e
 echo ""
 
 # These files are actually in $srcdir in distcheck builds, so they
@@ -24,10 +31,10 @@ fi
 echo "*** Testing netCDF-4 features of nccopy on ncdump/*.nc files"
 for i in $TESTFILES ; do
     echo "*** Test nccopy $i.nc copy_of_$i.nc ..."
-    if test "x$i" = xtst_vlen_data ; then
-	ls -l tst_vlen_data*
-	ls -l *.nc
-    fi
+#    if test "x$i" = xtst_vlen_data ; then
+#	ls -l tst_vlen_data*
+#	ls -l *.nc
+#    fi
     ${NCCOPY} $i.nc copy_of_$i.nc
     ${NCDUMP} -n copy_of_$i $i.nc > tmp_$i.cdl
     ${NCDUMP} copy_of_$i.nc > copy_of_$i.cdl
@@ -119,4 +126,5 @@ FILTERS=`cat tmp_nofilters.cdl | sed -e '/var1:_Filters/p' -ed | tr -d '\t \r'`
 test "x$FILTERS" = 'x'
 
 echo "*** All nccopy tests passed!"
+
 exit 0

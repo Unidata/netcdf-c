@@ -5,7 +5,7 @@
 
 # See netcdf-c/COPYRIGHT file for more info.
 SET(libdispatch_SOURCES dparallel.c dcopy.c dfile.c ddim.c datt.c dattinq.c dattput.c dattget.c derror.c dvar.c dvarget.c dvarput.c dvarinq.c ddispatch.c nclog.c dstring.c dutf8.c dinternal.c doffsets.c ncuri.c nclist.c ncbytes.c nchashmap.c nctime.c nc.c nclistmgr.c utf8proc.h utf8proc.c dpathmgr.c dutil.c drc.c dauth.c dreadonly.c dnotnc4.c dnotnc3.c daux.c dinfermodel.c
-dcrc32.c dcrc32.h dcrc64.c ncexhash.c ncxcache.c ncjson.c)
+dcrc32.c dcrc32.h dcrc64.c ncexhash.c ncxcache.c ncjson.c ds3util.c)
 
 # Netcdf-4 only functions. Must be defined even if not used
 SET(libdispatch_SOURCES ${libdispatch_SOURCES} dgroup.c dvlen.c dcompound.c dtype.c denum.c dopaque.c dfilter.c)
@@ -18,6 +18,14 @@ IF(ENABLE_BYTERANGE)
   SET(libdispatch_SOURCES ${libdispatch_SOURCES} dhttp.c)
 ENDIF(ENABLE_BYTERANGE)
 
+IF(ENABLE_S3_SDK)
+  SET(libdispatch_SOURCES ${libdispatch_SOURCES} ncs3sdk.cpp awsincludes.h)
+ENDIF(ENABLE_S3_SDK)
+
+IF(REGEDIT)
+  SET(libdispatch_SOURCES ${libdispatch_SOURCES} dreg.c)
+ENDIF(REGEDIT)
+
 add_library(dispatch OBJECT ${libdispatch_SOURCES})
 IF(MPI_C_INCLUDE_PATH)
     target_include_directories(dispatch PUBLIC ${MPI_C_INCLUDE_PATH})
@@ -26,6 +34,13 @@ ENDIF(MPI_C_INCLUDE_PATH)
 IF(MPI_C_LIBRARIES)
     target_link_libraries(dispatch PUBLIC ${MPI_C_LIBRARIES})
 ENDIF(MPI_C_LIBRARIES)
+
+IF(ENABLE_S3_SDK)
+target_include_directories(dispatch PUBLIC ${AWSSDK_INCLUDE_DIRS})
+IF(NOT MSVC)
+target_compile_features(dispatch PUBLIC cxx_std_11)
+ENDIF()
+ENDIF()
 
 FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am)

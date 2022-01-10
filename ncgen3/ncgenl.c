@@ -1081,8 +1081,6 @@ char *yytext;
    We include lexical definitions for all three, but use the second version.
 */
 
-extern int fileno(FILE*);
-
 /* lex specification for tokens for ncgen */
 
 /* Fill value used by ncdump from version 2.4 and later.  Should match
@@ -1104,7 +1102,7 @@ char errstr[100];		/* for short error messages */
                                    but make sure every action ends with
                                    "return" or "break"! */
 
-#line 1107 "ncgenl.c"
+#line 1105 "ncgenl.c"
 /* The most correct (validating) version of UTF8 character set
    (Taken from: http://www.w3.org/2005/03/23-lex-U)
 
@@ -1144,7 +1142,7 @@ ID ([A-Za-z_]|{UTF8})([A-Z.@#\[\]a-z_0-9+-]|{UTF8})*
 /* Note: this definition of string will work for utf8 as well,
    although it is a very relaxed definition
 */
-#line 1147 "ncgenl.c"
+#line 1145 "ncgenl.c"
 
 #define INITIAL 0
 
@@ -1361,9 +1359,9 @@ YY_DECL
 		}
 
 	{
-#line 109 "ncgen.l"
+#line 107 "ncgen.l"
 
-#line 1366 "ncgenl.c"
+#line 1364 "ncgenl.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1422,7 +1420,7 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 110 "ncgen.l"
+#line 108 "ncgen.l"
 { /* comment */
                           break;
                         }
@@ -1430,7 +1428,7 @@ YY_RULE_SETUP
 case 2:
 /* rule 2 can match eol */
 YY_RULE_SETUP
-#line 114 "ncgen.l"
+#line 112 "ncgen.l"
 {
 			 if(yyleng > MAXTRST) {
 				yyerror("string too long, truncated\n");
@@ -1442,59 +1440,59 @@ YY_RULE_SETUP
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 123 "ncgen.l"
+#line 121 "ncgen.l"
 {return (FLOAT_K);}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 124 "ncgen.l"
+#line 122 "ncgen.l"
 {return (CHAR_K);}
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 125 "ncgen.l"
+#line 123 "ncgen.l"
 {return (BYTE_K);}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 126 "ncgen.l"
+#line 124 "ncgen.l"
 {return (SHORT_K);}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 127 "ncgen.l"
+#line 125 "ncgen.l"
 {return (INT_K);}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 128 "ncgen.l"
+#line 126 "ncgen.l"
 {return (DOUBLE_K);}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 129 "ncgen.l"
+#line 127 "ncgen.l"
 {int_val = -1;
 			 return (NC_UNLIMITED_K);}
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 132 "ncgen.l"
+#line 130 "ncgen.l"
 {return (DIMENSIONS);}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 133 "ncgen.l"
+#line 131 "ncgen.l"
 {return (VARIABLES);}
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 134 "ncgen.l"
+#line 132 "ncgen.l"
 {return (DATA);}
 	YY_BREAK
 case 13:
 /* rule 13 can match eol */
 YY_RULE_SETUP
-#line 135 "ncgen.l"
+#line 133 "ncgen.l"
 {
 		char *s = (char*)yytext+strlen("netcdf");
 		char *t = (char*)yytext+yyleng-1;
@@ -1516,7 +1514,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 153 "ncgen.l"
+#line 151 "ncgen.l"
 { /* missing value (pre-2.4 backward compatibility) */
                 if (yytext[0] == '-') {
 		    double_val = -NC_FILL_DOUBLE;
@@ -1528,7 +1526,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 161 "ncgen.l"
+#line 159 "ncgen.l"
 { /* missing value (pre-2.4 backward compatibility) */
                 if (yytext[0] == '-') {
 		    float_val = -NC_FILL_FLOAT;
@@ -1540,7 +1538,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 169 "ncgen.l"
+#line 167 "ncgen.l"
 {
                 if (STREQ((char *)yytext, FILL_STRING))
 		        return (FILLVALUE);
@@ -1553,7 +1551,7 @@ YY_RULE_SETUP
 case 17:
 /* rule 17 can match eol */
 YY_RULE_SETUP
-#line 178 "ncgen.l"
+#line 176 "ncgen.l"
 {
 		lineno++ ;
                 break;
@@ -1561,7 +1559,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 183 "ncgen.l"
+#line 181 "ncgen.l"
 {
                 int ii;
 		if (sscanf((char*)yytext, "%d", &ii) != 1) {
@@ -1578,7 +1576,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 197 "ncgen.l"
+#line 195 "ncgen.l"
 {
 		if (sscanf((char*)yytext, "%le", &double_val) != 1) {
 		    sprintf(errstr,"bad long or double constant: %s",(char*)yytext);
@@ -1589,7 +1587,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 204 "ncgen.l"
+#line 202 "ncgen.l"
 {
 		if (sscanf((char*)yytext, "%e", &float_val) != 1) {
 		    sprintf(errstr,"bad float constant: %s",(char*)yytext);
@@ -1600,12 +1598,14 @@ YY_RULE_SETUP
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 211 "ncgen.l"
+#line 209 "ncgen.l"
 {
-		if (sscanf((char*)yytext, "%hd", &short_val) != 1) {
+		int tmp = 0;
+		if (sscanf((char*)yytext, "%d", &tmp) != 1) {
 		    sprintf(errstr,"bad short constant: %s",(char*)yytext);
 		    yyerror(errstr);
 		}
+		short_val = (short)tmp;
 		return (SHORT_CONST);
 	        }
 	YY_BREAK

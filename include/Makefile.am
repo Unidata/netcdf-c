@@ -20,7 +20,7 @@ nc4internal.h nctime.h nc3internal.h onstack.h ncrc.h ncauth.h		\
 ncoffsets.h nctestserver.h nc4dispatch.h nc3dispatch.h ncexternl.h	\
 ncpathmgr.h ncindex.h hdf4dispatch.h hdf5internal.h nc_provenance.h	\
 hdf5dispatch.h ncmodel.h isnan.h nccrc.h ncexhash.h ncxcache.h          \
-ncfilter.h ncjson.h
+ncfilter.h ncjson.h ncxml.h ncs3sdk.h
 
 if USE_DAP
 noinst_HEADERS += ncdap.h
@@ -32,8 +32,7 @@ endif
 
 EXTRA_DIST = CMakeLists.txt XGetopt.h netcdf_meta.h.in netcdf_dispatch.h.in
 
-BUILT_SOURCES = netcdf_json.h 
-netcdf_json.h: Makefile ncjson.h ${srcdir}/../libdispatch/ncjson.c
-	sed -e 's/NCJSON_H/NETCDF_JSON_H/' -e '/ncjson.h/d' <ncjson.h > $@
-	sed -e '/ncjson.h/d' < ${srcdir}/../libdispatch/ncjson.c >> $@
-
+# Give the recipe for rebuilding netcdf_json.h
+makencjson::
+	sed -e 's/NCJSON_H/NETCDF_JSON_H/' -e '/ncjson.h/d' <${srcdir}/ncjson.h > netcdf_json.h
+	sed -e '/ncjson.h/d' < ${srcdir}/../libdispatch/ncjson.c >> netcdf_json.h

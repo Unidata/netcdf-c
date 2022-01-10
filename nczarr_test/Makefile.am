@@ -149,14 +149,13 @@ ref_groups.h5 ref_byte.zarr.zip ref_byte_fill_value_null.zarr.zip \
 ref_groups_regular.cdl ref_byte.cdl ref_byte_fill_value_null.cdl
 
 # Interoperability files
-EXTRA_DIST += ref_power_901_constants.zip ref_power_901_constants.cdl ref_quotes.zip ref_quotes.cdl
+EXTRA_DIST += ref_power_901_constants.zip ref_power_901_constants.cdl ref_quotes.zip ref_quotes.cdl ref_zarr_test_data.cdl.gz
 
-CLEANFILES = ut_*.txt ut*.cdl tmp*.nc tmp*.cdl tmp*.txt tmp*.dmp tmp*.zip tmp*.nc
+CLEANFILES = ut_*.txt ut*.cdl tmp*.nc tmp*.cdl tmp*.txt tmp*.dmp tmp*.zip tmp*.nc tmp*.dump tmp*.tmp tmp_ngc.c ref_zarr_test_data.cdl
 
 # Remove directories
 clean-local:
 	rm -fr tmp*.file results.file results.s3 results.zip
-	rm -fr power_901_constants.file
 	rm -fr rcmiscdir
 
 DISTCLEANFILES = findplugin.sh

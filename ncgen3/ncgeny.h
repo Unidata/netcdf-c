@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 3.7.6.  */
+/* A Bison parser, made by GNU Bison 3.8.2.  */
 
 /* Bison interface for Yacc-like parsers in C
 
@@ -88,6 +88,8 @@ typedef int YYSTYPE;
 
 extern YYSTYPE ncglval;
 
+
 int ncgparse (void);
+
 
 #endif /* !YY_NCG_NCGEN_TAB_H_INCLUDED  */

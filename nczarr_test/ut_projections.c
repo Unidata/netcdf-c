@@ -94,6 +94,7 @@ main(int argc, char** argv)
 done:
     fflush(stdout);
     nczprint_reclaim();
+    ut_final();
     if(stat) usage(stat);
     return  0;
 }

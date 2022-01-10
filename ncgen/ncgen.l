@@ -39,8 +39,6 @@
 #include "ncgeny.h"
 #include "isnan.h"
 
-EXTERNL int fileno(FILE*);
-
 #define FILL_STRING "_"
 #define XDR_INT32_MIN (-2147483647-1)
 #define XDR_INT32_MAX 2147483647
@@ -673,7 +671,6 @@ Return the value.
 static unsigned long long
 parseULL(int radix, char* text, int* failp)
 {
-    extern int errno;
     char* endptr;
     unsigned long long uint64 = 0;
 
@@ -883,6 +880,14 @@ collecttag(char* text, char** stagp)
 	tag = NC_NAT;
     }
     return tag;
+}
+
+static Symbol*
+identkeyword(const Symbol* kw)
+{
+    Symbol* sym = NULL;
+    sym = install(kw->name);
+    return sym;
 }
 
 static int

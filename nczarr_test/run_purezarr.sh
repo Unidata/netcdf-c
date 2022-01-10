@@ -23,13 +23,13 @@ diff -b ${srcdir}/ref_purezarr.cdl tmp_purezarr_${zext}.cdl
 
 echo "*** Test: xarray zarr write then read; format=$zext"
 fileargs tmp_xarray "mode=zarr,$zext"
-deletemap $zext $file
+#deletemap $zext $file
 ${NCGEN} -4 -b -o "$fileurl" $srcdir/ref_purezarr_base.cdl
 ${NCDUMP} $fileurl > tmp_xarray_${zext}.cdl
 diff -b ${srcdir}/ref_xarray.cdl tmp_xarray_${zext}.cdl
-
 echo "*** Test: pure zarr reading nczarr; format=$zext"
 fileargs tmp_nczarr "mode=nczarr,$zext"
+
 deletemap $zext $file
 ${NCGEN} -4 -b -o "$fileurl" $srcdir/ref_whole.cdl
 fileargs tmp_nczarr "mode=zarr,$zext"

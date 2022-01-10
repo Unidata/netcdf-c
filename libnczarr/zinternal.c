@@ -64,13 +64,11 @@ NCZ_initialize_internal(void)
     NCRCglobalstate* ngs = NULL;
 
     ncz_initialized = 1;
-    /* Load the .rc file */
-    if((stat=NC_rcload())) goto done;
     ngs = ncrc_getglobalstate();
     if(ngs != NULL) {
         /* Defaults */
 	ngs->zarr.dimension_separator = DFALT_DIM_SEPARATOR;
-        dimsep = NC_rclookup("ZARR.DIMENSION_SEPARATOR",NULL);
+        dimsep = NC_rclookup("ZARR.DIMENSION_SEPARATOR",NULL,NULL);
         if(dimsep != NULL) {
             /* Verify its value */
 	    if(dimsep != NULL && strlen(dimsep) == 1 && islegaldimsep(dimsep[0]))
@@ -78,7 +76,6 @@ NCZ_initialize_internal(void)
         }    
     }
 
-done:
     return stat;
 }
 
@@ -91,7 +88,12 @@ NCZ_finalize_internal(void)
 {
     /* Reclaim global resources */
     ncz_initialized = 0;
+#ifdef ENABLE_NCZARR_FILTERS
     NCZ_filter_finalize();
+#endif
+#ifdef ENABLE_S3_SDK
+    NCZ_s3finalize();
+#endif
     return NC_NOERR;
 }
 

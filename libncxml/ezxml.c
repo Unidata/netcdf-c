@@ -1,3 +1,4 @@
+#define EZXML_NOMMAP 1
 /* ezxml.c
  *
  * Copyright 2004-2006 Aaron Voisine <aaron@voisine.org>
@@ -22,20 +23,17 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "config.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
 #include <ctype.h>
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
+#include <sys/types.h>
+#ifndef EZXML_NOMMAP
+#include <sys/mman.h>
+#endif /* EZXML_NOMMAP*/
+#include <sys/stat.h>
 #include "ezxml.h"
-
-#ifndef vsnprintf
-extern int vsnprintf(char*, size_t, const char*, va_list ap);
-#endif
 
 #define EZXML_WS   "\t\r\n "  /* whitespace*/
 #define EZXML_ERRL 128        /* maximum error string length*/
@@ -56,7 +54,7 @@ struct ezxml_root {       /* additional data for the root tag*/
     char err[EZXML_ERRL]; /* error string*/
 };
 
-static const char *EZXML_NIL[] = { NULL }; /* empty, null terminated array of strings*/
+char *EZXML_NIL[] = { NULL }; /* empty, null terminated array of strings*/
 
 /* returns the first child tag with the given name or NULL if not found*/
 ezxml_t ezxml_child(ezxml_t xml, const char *name)
@@ -98,7 +96,7 @@ ezxml_t ezxml_vget(ezxml_t xml, va_list ap)
     int idx = -1;
 
     if (name && *name) {
-        idx = va_arg(ap, int);
+        idx = va_arg(ap, int);    
         xml = ezxml_child(xml, name);
     }
     return (idx < 0) ? xml : ezxml_vget(ezxml_idx(xml, idx), ap);
@@ -131,7 +129,7 @@ const char **ezxml_pi(ezxml_t xml, const char *target)
     if (! root) return (const char **)EZXML_NIL;
     while (root->xml.parent) root = (ezxml_root_t)root->xml.parent; /* root tag*/
     while (root->pi[i] && strcmp(target, root->pi[i][0])) i++; /* find target*/
-    return ((root->pi[i]) ? (const char**)(root->pi[i] + 1) : EZXML_NIL);
+    return (const char **)((root->pi[i]) ? root->pi[i] + 1 : EZXML_NIL);
 }
 
 /* set an error string and return root*/
@@ -140,7 +138,7 @@ ezxml_t ezxml_err(ezxml_root_t root, char *s, const char *err, ...)
     va_list ap;
     int line = 1;
     char *t, fmt[EZXML_ERRL];
-
+    
     for (t = root->s; t < s; t++) if (*t == '\n') line++;
     snprintf(fmt, EZXML_ERRL, "[error near line %d]: %s", line, err);
 
@@ -167,8 +165,9 @@ char *ezxml_decode(char *s, char **ent, char t)
             *(s++) = '\n';
             if (*s == '\n') memmove(s, (s + 1), strlen(s));
         }
+	if (!*s) break; // bug#19 / CVE-2019-20200
     }
-
+    
     for (s = r; ; ) {
         while (*s && *s != '&' && (*s != '%' || t != '%') && !isspace(*s)) s++;
 
@@ -179,9 +178,11 @@ char *ezxml_decode(char *s, char **ent, char t)
             if (! c || *e != ';') { s++; continue; } /* not a character ref*/
 
             if (c < 0x80) *(s++) = c; /* US-ASCII subset*/
-            else { /* multi-byte UTF-8 sequence*/
+	    else { /* multi-byte UTF-8 sequence*/
                 for (b = 0, d = c; d; d /= 2) b++; /* number of bits in c*/
-                b = (b - 2) / 5; /* number of bytes in payload*/
+                // UTF-8 can ecode max 36 bits (standard says 21) - noop on 32 bit.
+                if (b > 36) { s++; continue; } // bug#15 / CVE-2019-20006 / bug#17 / CVE-2019-20202
+		b = (b - 2) / 5; /* number of bytes in payload*/
                 *(s++) = (0xFF << (7 - b)) | (c >> (6 * b)); /* head*/
                 while (b) *(s++) = 0x80 | ((c >> (6 * --b)) & 0x3F); /* payload*/
             }
@@ -194,10 +195,13 @@ char *ezxml_decode(char *s, char **ent, char t)
                  b += 2); /* find entity in entity list*/
 
             if (ent[b++]) { /* found a match*/
-                if ((c = strlen(ent[b])) - 1 > (e = strchr(s, ';')) - s) {
+
+ 		    if ((c = strlen(ent[b])) - 1 > (e = strchr(s, ';')) - s) {
+                    if (!e) { s++; continue; } // bug#18 / CVE-2019-20199
                     l = (d = (s - r)) + c + strlen(e); /* new length*/
                     r = (r == m) ? strcpy(malloc(l), r) : realloc(r, l);
                     e = strchr((s = r + d), ';'); /* fix up pointers*/
+                    if (!e) { s++; continue; } // bug#18 / CVE-2019-20199
                 }
 
                 memmove(s + c, e + 1, strlen(e)); /* shift rest of string*/
@@ -223,7 +227,7 @@ char *ezxml_decode(char *s, char **ent, char t)
 void ezxml_open_tag(ezxml_root_t root, char *name, char **attr)
 {
     ezxml_t xml = root->cur;
-
+    
     if (xml->name) xml = ezxml_add_child(xml, name, strlen(xml->txt));
     else xml->name = name; /* first open tag*/
 
@@ -322,7 +326,9 @@ short ezxml_internal_dtd(ezxml_root_t root, char *s, size_t len)
 {
     char q, *c, *t, *n = NULL, *v, **ent, **pe;
     int i, j;
-
+    /* Bug CVE-2021-31229 */
+    size_t n_len, n_off;
+    
     pe = memcpy(malloc(sizeof(EZXML_NIL)), EZXML_NIL, sizeof(EZXML_NIL));
 
     for (s[len] = '\0'; s; ) {
@@ -332,7 +338,14 @@ short ezxml_internal_dtd(ezxml_root_t root, char *s, size_t len)
         else if (! strncmp(s, "<!ENTITY", 8)) { /* parse entity definitions*/
             c = s += strspn(s + 8, EZXML_WS) + 8; /* skip white space separator*/
             n = s + strspn(s, EZXML_WS "%"); /* find name*/
-            *(s = n + strcspn(n, EZXML_WS)) = ';'; /* append ; to name*/
+	    /* Bug CVE-2021-31229 */
+            n_len = strlen(n);
+            n_off = strcspn(n, EZXML_WS);
+            if(n_off >= n_len) {
+                ezxml_err(root, NULL, "write past buffer (<!ENTITY)");
+                break;
+            }
+            *(s = n + n_off) = ';'; /* append ; to name */
 
             v = s + strspn(s + 1, EZXML_WS) + 1; /* find value*/
             if ((q = *(v++)) != '"' && q != '\'') { /* skip externals*/
@@ -361,11 +374,12 @@ short ezxml_internal_dtd(ezxml_root_t root, char *s, size_t len)
             if (! *t) { ezxml_err(root, t, "unclosed <!ATTLIST"); break; }
             if (*(s = t + strcspn(t, EZXML_WS ">")) == '>') continue;
             else *s = '\0'; /* null terminate tag name*/
-            for (i = 0; root->attr[i] && strcmp(n, root->attr[i][0]); i++);
+	    /* Bug CVE-2021-30485 */
+            for (i = 0; n && root->attr[i] && strcmp(n, root->attr[i][0]); i++);
 
-	    for(;;) {
-		s++;
-		if(!(*(n = s + strspn(s, EZXML_WS)) && *n != '>')) break;
+ 	    for(;;) {
+ 		s++;
+ 		if(!(*(n = s + strspn(s, EZXML_WS)) && *n != '>')) break;
                 if (*(s = n + strcspn(n, EZXML_WS))) *s = '\0'; /* attr name*/
                 else { ezxml_err(root, t, "malformed <!ATTLIST"); break; }
 
@@ -458,8 +472,8 @@ char *ezxml_str2utf8(char **s, size_t *len)
 void ezxml_free_attr(char **attr) {
     int i = 0;
     char *m;
-
-    if (! attr || ((const char**)attr) == EZXML_NIL) return; /* nothing to free*/
+    
+    if (! attr || attr == EZXML_NIL) return; /* nothing to free*/
     while (attr[i]) i += 2; /* find end of attribute list*/
     m = attr[i + 1]; /* list of which names and values are malloced*/
     for (i = 0; m[i]; i++) {
@@ -477,11 +491,13 @@ ezxml_t ezxml_parse_str(char *s, size_t len)
     char q, e, *d, **attr, **a = NULL; /* initialize a to avoid compile warning*/
     int l, i, j;
 
+    if (!root) return NULL; // bug#21 / CVE-2021-26221
     root->m = s;
     if (! len) return ezxml_err(root, NULL, "root tag missing");
     root->u = ezxml_str2utf8(&s, &len); /* convert utf-16 to utf-8*/
+    if (! s) return ezxml_err(root, NULL, "invalid root tag"); // bug#13 / CVE-2019-20007
     root->e = (root->s = s) + len; /* record start and end of work area*/
-
+    
     e = s[len - 1]; /* save end char*/
     s[len - 1] = '\0'; /* turn end char into null terminator*/
 
@@ -491,14 +507,14 @@ ezxml_t ezxml_parse_str(char *s, size_t len)
     for (; ; ) {
         attr = (char **)EZXML_NIL;
         d = ++s;
-
+        
         if (isalpha(*s) || *s == '_' || *s == ':' || *s < '\0') { /* new tag*/
             if (! root->cur)
                 return ezxml_err(root, d, "markup outside of root element");
 
             s += strcspn(s, EZXML_WS "/>");
             while (isspace(*s)) *(s++) = '\0'; /* null terminate tag name*/
-
+  
             if (*s && *s != '/' && *s != '>') /* find tag in default attr list*/
                 for (i = 0; (a = root->attr[i]) && strcmp(a[0], d); i++);
 
@@ -513,7 +529,7 @@ ezxml_t ezxml_parse_str(char *s, size_t len)
                 attr[l] = s; /* set attribute name*/
 
                 s += strcspn(s, EZXML_WS "=/>");
-                if (*s == '=' || isspace(*s)) {
+                if (*s == '=' || isspace(*s)) { 
                     *(s++) = '\0'; /* null terminate tag attribute name*/
                     q = *(s += strspn(s, EZXML_WS "="));
                     if (q == '"' || q == '\'') { /* attribute value*/
@@ -551,7 +567,7 @@ ezxml_t ezxml_parse_str(char *s, size_t len)
             }
             else {
                 if (l) ezxml_free_attr(attr);
-                return ezxml_err(root, d, "missing >");
+                return ezxml_err(root, d, "missing >"); 
             }
         }
         else if (*s == '/') { /* close tag*/
@@ -571,22 +587,23 @@ ezxml_t ezxml_parse_str(char *s, size_t len)
             else return ezxml_err(root, d, "unclosed <![CDATA[");
         }
         else if (! strncmp(s, "!DOCTYPE", 8)) { /* dtd*/
-            for (l = 0; *s && ((! l && *s != '>') || (l && (*s != ']' ||
+            for (l = 0; *s && ((! l && *s != '>') || (l && (*s != ']' || 
                  *(s + strspn(s + 1, EZXML_WS) + 1) != '>')));
                  l = (*s == '[') ? 1 : l) s += strcspn(s + 1, "[]>") + 1;
-            if (! *s && e != '>')
+	    /* Bug CVE-2021-31348 / CVE-2021-31347 */
+            if (! *s )
                 return ezxml_err(root, d, "unclosed <!DOCTYPE");
             d = (l) ? strchr(d, '[') + 1 : d;
             if (l && ! ezxml_internal_dtd(root, d, s++ - d)) return &root->xml;
         }
         else if (*s == '?') { /* <?...?> processing instructions*/
             do { s = strchr(s, '?'); } while (s && *(++s) && *s != '>');
-            if (! s || (! *s && e != '>'))
+            if (! s || (! *s && e != '>')) 
                 return ezxml_err(root, d, "unclosed <?");
             else ezxml_proc_inst(root, d + 1, s - d - 2);
         }
         else return ezxml_err(root, d, "unexpected <");
-
+        
         if (! s || ! *s) break;
         *s = '\0';
         d = ++s;
@@ -603,6 +620,7 @@ ezxml_t ezxml_parse_str(char *s, size_t len)
     else return ezxml_err(root, d, "unclosed tag <%s>", root->cur->name);
 }
 
+#if 0
 /* Wrapper for ezxml_parse_str() that accepts a file stream. Reads the entire*/
 /* stream into memory and then parses it. For xml files, use ezxml_parse_file()*/
 /* or ezxml_parse_fd()*/
@@ -619,10 +637,56 @@ ezxml_t ezxml_parse_fp(FILE *fp)
     } while (s && l == EZXML_BUFSIZE);
 
     if (! s) return NULL;
+    if (!(root = (ezxml_root_t)ezxml_parse_str(s, len))) { free(s); return NULL; }; // bug#21 / CVE-2021-26221
     root = (ezxml_root_t)ezxml_parse_str(s, len);
     root->len = -1; /* so we know to free s in ezxml_free()*/
     return &root->xml;
 }
+
+/* A wrapper for ezxml_parse_str() that accepts a file descriptor. First*/
+/* attempts to mem map the file. Failing that, reads the file into memory.*/
+/* Returns NULL on failure.*/
+ezxml_t ezxml_parse_fd(int fd)
+{
+    ezxml_root_t root;
+    struct stat st;
+    size_t l;
+    void *m;
+
+    if (fd < 0) return NULL;
+    fstat(fd, &st);
+
+#ifndef EZXML_NOMMAP
+    l = (st.st_size + sysconf(_SC_PAGESIZE) - 1) & ~(sysconf(_SC_PAGESIZE) -1);
+    if ((m = mmap(NULL, l, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0)) !=
+        MAP_FAILED) {
+        madvise(m, l, MADV_SEQUENTIAL); /* optimize for sequential access*/
+        root = (ezxml_root_t)ezxml_parse_str(m, st.st_size);
+        if (!root) { munmap(m,l); return NULL; }; // bug#21 / CVE-2021-26221
+        madvise(m, root->len = l, MADV_NORMAL); /* put it back to normal*/
+    }
+    else { /* mmap failed, read file into memory*/
+#endif /* EZXML_NOMMAP*/
+        l = read(fd, m = malloc(st.st_size), st.st_size);
+        root = (ezxml_root_t)ezxml_parse_str(m, l);
+        if (!root) { free(m); return NULL; };  // bug#21 / CVE-2021-26221
+        root->len = -1; /* so we know to free s in ezxml_free()*/
+#ifndef EZXML_NOMMAP
+    }
+#endif /* EZXML_NOMMAP*/
+    return &root->xml;
+}
+
+/* a wrapper for ezxml_parse_fd that accepts a file name*/
+ezxml_t ezxml_parse_file(const char *file)
+{
+    int fd = open(file, O_RDONLY, 0);
+    ezxml_t xml = ezxml_parse_fd(fd);
+    
+    if (fd >= 0) close(fd);
+    return xml;
+}
+#endif /*0*/
 
 /* Encodes ampersand sequences appending the results to *dst, reallocating *dst*/
 /* if length excedes max. a is non-zero for attribute encoding. Returns *dst*/
@@ -630,7 +694,7 @@ char *ezxml_ampencode(const char *s, size_t len, char **dst, size_t *dlen,
                       size_t *max, short a)
 {
     const char *e;
-
+    
     for (e = s + len; s != e; s++) {
         while (*dlen + 10 > *max) *dst = realloc(*dst, *max += EZXML_BUFSIZE);
 
@@ -691,7 +755,7 @@ char *ezxml_toxml_r(ezxml_t xml, char **s, size_t *len, size_t *max,
 
     *s = (xml->child) ? ezxml_toxml_r(xml->child, s, len, max, 0, attr) /*child*/
                       : ezxml_ampencode(xml->txt, -1, s, len, max, 0);  /*data*/
-
+    
     while (*len + strlen(xml->name) + 4 > *max) /* reallocate s*/
         *s = realloc(*s, *max += EZXML_BUFSIZE);
 
@@ -709,9 +773,12 @@ char *ezxml_toxml(ezxml_t xml)
     ezxml_t p = (xml) ? xml->parent : NULL, o = (xml) ? xml->ordered : NULL;
     ezxml_root_t root = (ezxml_root_t)xml;
     size_t len = 0, max = EZXML_BUFSIZE;
-    char *s = strcpy(malloc(max), ""), *t, *n;
+    char *s = malloc(max), *t, *n; // bug#23 / CVE-2021-26220
+
     int i, j, k;
 
+    if (!s) return (NULL);// bug#23 / CVE-2021-26220
+    s = strcpy(s, "");// bug#23 / CVE-2021-26220
     if (! xml || ! xml->name) return realloc(s, len + 1);
     while (root->xml.parent) root = (ezxml_root_t)root->xml.parent; /* root tag*/
 
@@ -754,7 +821,7 @@ void ezxml_free(ezxml_t xml)
     ezxml_free(xml->ordered);
 
     if (! xml->parent) { /* free root tag allocations*/
-        for (i = 10; root->ent[i]; i += 2) /* 0 - 9 are default entities (<>&"')*/
+        for (i = 10; root->ent[i]; i += 2) /* 0 - 9 are default entites (<>&"')*/
             if ((s = root->ent[i + 1]) < root->s || s > root->e) free(s);
         free(root->ent); /* free list of general entities*/
 
@@ -769,13 +836,13 @@ void ezxml_free(ezxml_t xml)
             for (j = 1; root->pi[i][j]; j++);
             free(root->pi[i][j + 1]);
             free(root->pi[i]);
-        }
+        }            
         if (root->pi[0]) free(root->pi); /* free processing instructions*/
 
         if (root->len == -1) free(root->m); /* malloced xml data*/
-#ifdef EZXML_MMAP
+#ifndef EZXML_NOMMAP
         else if (root->len) munmap(root->m, root->len); /* mem mapped xml data*/
-#endif /* EZXML_MMAP*/
+#endif /* EZXML_NOMMAP*/
         if (root->u) free(root->u); /* utf8 conversion*/
     }
 
@@ -795,14 +862,21 @@ const char *ezxml_error(ezxml_t xml)
 /* returns a new empty ezxml structure with the given root tag name*/
 ezxml_t ezxml_new(const char *name)
 {
-    static const char *entities[] = { "lt;", "&#60;", "gt;", "&#62;", "quot;", "&#34;",
+    static char *ent[] = { "lt;", "&#60;", "gt;", "&#62;", "quot;", "&#34;",
                            "apos;", "&#39;", "amp;", "&#38;", NULL };
-    ezxml_root_t root = (ezxml_root_t)memset(malloc(sizeof(struct ezxml_root)),
-                                             '\0', sizeof(struct ezxml_root));
+    ezxml_root_t root = NULL;
+    /* Bug CVE-2021-26222 */
+    char **p_ent;
+
+    if (!(root  = calloc(1,sizeof(struct ezxml_root)))) return NULL;   // bug#21 / CVE-2021-26221
+    memset(root, '\0', sizeof(struct ezxml_root));
+    /* Bug CVE-2021-26222 */
+    if (!(p_ent = calloc(1,sizeof(ent)))) { free(root); return NULL; };
     root->xml.name = (char *)name;
     root->cur = &root->xml;
     strcpy(root->err, root->xml.txt = "");
-    root->ent = memcpy(malloc(sizeof(entities)), entities, sizeof(entities));
+    /* Bug CVE-2021-26222 */
+    root->ent = memcpy(p_ent, ent, sizeof(ent));
     root->attr = root->pi = (char ***)(root->xml.attr = (char**)EZXML_NIL);
     return &root->xml;
 }
@@ -885,7 +959,7 @@ ezxml_t ezxml_set_attr(ezxml_t xml, const char *name, const char *value)
     while (xml->attr[l] && strcmp(xml->attr[l], name)) l += 2;
     if (! xml->attr[l]) { /* not found, add as new attribute*/
         if (! value) return xml; /* nothing to do*/
-        if (xml->attr == (char**)EZXML_NIL) { /* first attribute*/
+        if (xml->attr == EZXML_NIL) { /* first attribute*/
             xml->attr = malloc(4 * sizeof(char *));
             xml->attr[1] = strdup(""); /* empty list of malloced names/vals*/
         }
@@ -952,7 +1026,7 @@ ezxml_t ezxml_cut(ezxml_t xml)
 
             while (cur->next && cur->next != xml) cur = cur->next;
             if (cur->next) cur->next = cur->next->next; /* patch next list*/
-        }
+        }        
     }
     xml->ordered = xml->sibling = xml->next = NULL;
     return xml;
@@ -968,8 +1042,13 @@ int main(int argc, char **argv)
     if (argc != 2) return fprintf(stderr, "usage: %s xmlfile\n", argv[0]);
 
     xml = ezxml_parse_file(argv[1]);
-    printf("%s\n", (s = ezxml_toxml(xml)));
-    free(s);
+
+    s = ezxml_toxml(xml);
+    if (s) {
+      printf("%s\n", s);
+      free(s);
+    } // bug#23 / CVE-2021-26220
+
     i = fprintf(stderr, "%s", ezxml_error(xml));
     ezxml_free(xml);
     return (i) ? 1 : 0;

@@ -6,6 +6,8 @@
 
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
+AM_CPPFLAGS += -I$(top_srcdir)/libncxml
+libdap4_la_CPPFLAGS = ${AM_CPPFLAGS}
 
 # We may have to add to these later.
 DISTCLEANFILES =
@@ -35,9 +37,7 @@ d4util.c \
 d4odom.c \
 d4cvt.c \
 d4debug.c \
-ncd4dispatch.c \
-ezxml_extra.c \
-ezxml.c
+ncd4dispatch.c
 
 HDRS= \
 ncd4dispatch.h \
@@ -51,8 +51,7 @@ d4util.h \
 d4debug.h \
 d4odom.h \
 d4bytes.h \
-d4includes.h \
-ezxml.h
+d4includes.h
 
 if ENABLE_DAP4
 if USE_NETCDF4
@@ -62,18 +61,7 @@ endif
 # Build convenience library
 noinst_LTLIBRARIES = libdap4.la
 libdap4_la_SOURCES = $(SRC) $(HDRS)
-libdap4_la_CPPFLAGS = $(AM_CPPFLAGS)
+libdap4_la_CPPFLAGS += $(AM_CPPFLAGS)
 libdap4_la_LIBADD =
 
 endif # ENABLE_DAP4
-
-# Show what is needed to insert a new version of ezxml
-# primary fix: The original ezxml.[ch] uses '//' comments;
-# unpack and replace with '/*..*/'
-EZXML=ezxml-0.8.6.tar.gz
-ezxml::
-	rm -fr ./ezxml ./ezxml.[ch] ./license.txt
-	tar -zxf ./${EZXML}
-	sed -e 's|//\(.*\)|/*\1*/|' <ezxml/ezxml.c >./ezxml.c
-	sed -e 's|//\(.*\)|/*\1*/|' <ezxml/ezxml.h >./ezxml.h
-	cp ezxml/license.txt .

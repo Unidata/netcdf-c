@@ -10,8 +10,6 @@
 #include <sys/stat.h>
 #endif
 
-extern int fileno(FILE*);
-
 #include "ocinternal.h"
 #include "ocdebug.h"
 
@@ -73,7 +71,7 @@ dumpocnode1(OCnode* node, int depth)
 	if(node->name == NULL) OCPANIC("prim without name");
 	fprintf(stdout,"%s %s",octypetostring(node->etype),node->name);
 	dumpdimensions(node);
-	fprintf(stdout," &%lx",(unsigned long)node);
+	fprintf(stdout," &%p",node);
 	fprintf(stdout,"\n");
     } break;
 
@@ -91,7 +89,7 @@ dumpocnode1(OCnode* node, int depth)
 	fprintf(stdout,"struct %s",
 		(node->name?node->name:""));
 	dumpdimensions(node);
-	fprintf(stdout," &%lx",(unsigned long)node);
+	fprintf(stdout," &%p",node);
 	fprintf(stdout,"\n");
 	for(n=0;n<nclistlength(node->subnodes);n++) {
 	    dumpocnode1((OCnode*)nclistget(node->subnodes,n),depth+1);
@@ -103,7 +101,7 @@ dumpocnode1(OCnode* node, int depth)
 	fprintf(stdout,"sequence %s",
 		(node->name?node->name:""));
 	dumpdimensions(node);
-	fprintf(stdout," &%lx",(unsigned long)node);
+	fprintf(stdout," &%p",node);
 	fprintf(stdout,"\n");
 	for(n=0;n<nclistlength(node->subnodes);n++) {
 	    dumpocnode1((OCnode*)nclistget(node->subnodes,n),depth+1);
@@ -116,7 +114,7 @@ dumpocnode1(OCnode* node, int depth)
 	fprintf(stdout,"grid %s",
 		(node->name?node->name:""));
 	dumpdimensions(node);
-	fprintf(stdout," &%lx",(unsigned long)node);
+	fprintf(stdout," &%p",node);
 	fprintf(stdout,"\n");
 	fprintf(stdout,"%sarray:\n",dent2(depth+1));
 	dumpocnode1((OCnode*)nclistget(node->subnodes,0),depth+2);
@@ -135,7 +133,7 @@ dumpocnode1(OCnode* node, int depth)
 	    if(n > 0) fprintf(stdout,",");
 	    fprintf(stdout," %s",value);
 	}
-	fprintf(stdout," &%lx",(unsigned long)node);
+	fprintf(stdout," &%p",node);
 	fprintf(stdout,"\n");
     } break;
 
@@ -496,7 +494,7 @@ ocdumpdata(OCstate* state, OCdata* data, NCbytes* buffer, int frominstance)
     OCnode* pattern = data->pattern;
     char* smode = NULL;
 
-    snprintf(tmp,sizeof(tmp),"%lx:",(unsigned long)data);
+    snprintf(tmp,sizeof(tmp),"%p:",data);
     ncbytescat(buffer,tmp);
     if(!frominstance) {
         ncbytescat(buffer," node=");
@@ -516,7 +514,7 @@ ocdumpdata(OCstate* state, OCdata* data, NCbytes* buffer, int frominstance)
         ncbytescat(buffer,tmp);
     }
     ncbytescat(buffer," container=");
-    snprintf(tmp,sizeof(tmp),"%lx",(unsigned long)data->container);
+    snprintf(tmp,sizeof(tmp),"%p",data->container);
     ncbytescat(buffer,tmp);
     ncbytescat(buffer," mode=");
     ncbytescat(buffer,(smode=ocdtmodestring(data->datamode,0)));
@@ -677,6 +675,6 @@ ocdumpdatapath(OCstate* state, OCdata* data, NCbytes* buffer)
 	ncbytescat(buffer,":");
 	ncbytescat(buffer,octypetoddsstring(pattern->etype));
     }
-    snprintf(tmp,sizeof(tmp),"->0x%0lx",(unsigned long)pathdata);
+    snprintf(tmp,sizeof(tmp),"->0x%p",pathdata);
     ncbytescat(buffer,tmp);
 }

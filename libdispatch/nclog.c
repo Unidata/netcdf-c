@@ -282,6 +282,13 @@ done:
 }
 
 int
+ncthrow(int err,const char* file,int line)
+{
+    if(err == 0) return err;
+    return ncbreakpoint(err);
+}
+
+int
 ncbreakpoint(int err)
 {
     return err;

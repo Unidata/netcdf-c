@@ -16,6 +16,7 @@ fileargs tmp_groups_regular "mode=zarr,$zext"
 deletemap $zext $file
 ${NCCOPY} ${srcdir}/ref_groups.h5 "$fileurl"
 rm -f tmp.cdl
+${ZMD} -h "$fileurl"
 ${NCDUMP} -s -n tmp_groups_regular "$fileurl" > tmp.cdl
 sclean tmp.cdl tmp_groups_regular_$zext.cdl
 diff -wb ${srcdir}/ref_groups_regular.cdl tmp_groups_regular_$zext.cdl
@@ -27,6 +28,7 @@ echo "*** Test: Github issue #2062"
 rm -fr ref_byte.zarr
 unzip ${srcdir}/ref_byte.zarr.zip
 rm -fr tmp.cdl
+${ZMD} -h "file://ref_byte.zarr#mode=zarr,$zext"
 ${NCDUMP} -s "file://ref_byte.zarr#mode=zarr,$zext" > tmp.cdl
 sclean tmp.cdl tmp_byte_$zext.cdl
 diff -wb ${srcdir}/ref_byte.cdl tmp_byte_$zext.cdl
@@ -39,6 +41,7 @@ echo "*** Test: Github issue #2063"
 rm -fr ref_byte_fill_value_null.zarr
 unzip ${srcdir}/ref_byte_fill_value_null.zarr.zip
 rm -fr tmp.cdl
+${ZMD} -h "file://ref_byte_fill_value_null.zarr#mode=zarr,$zext"
 ${NCDUMP} -s "file://ref_byte_fill_value_null.zarr#mode=zarr,$zext" > tmp.cdl
 sclean tmp.cdl tmp_byte_fill_value_null_$zext.cdl
 diff -wb ${srcdir}/ref_byte_fill_value_null.cdl tmp_byte_fill_value_null_$zext.cdl

@@ -100,6 +100,7 @@ ncz_get_att_special(NC_FILE_INFO_T* h5, NC_VAR_INFO_T* var, const char* name,
 
     /* Handle the per-var case(s) first */
     if(var != NULL) {
+#ifdef ENABLE_NCZARR_FILTERS
         if(strcmp(name,NC_ATT_CODECS)==0) {	
             NClist* filters = (NClist*)var->filters;
 
@@ -111,6 +112,7 @@ ncz_get_att_special(NC_FILE_INFO_T* h5, NC_VAR_INFO_T* var, const char* name,
 	    if(filters == NULL) goto done;	  
  	    if((stat = NCZ_codec_attr(var,lenp,data))) goto done;
 	}
+#endif
 	goto done;
     }
 
