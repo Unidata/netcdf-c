@@ -8,21 +8,30 @@
 #undef ZDEBUG /* general debug */
 #undef ZDEBUG1 /* detailed debug */
 
-#undef ZCATCH /* Warning: significant performance impact */
+#define ZCATCH /* Warning: significant performance impact */
 #undef ZTRACING /* Warning: significant performance impact */
 
 #include "ncexternl.h"
 #include "nclog.h"
 
+#ifdef LOGGING
+#define ZLOG(tag,...) nclog(tag,__VA_ARGS__)
+#else
+#define ZLOG(tag,...)
+#endif
+
 #ifdef ZCATCH
 /* Place breakpoint on zbreakpoint to catch errors close to where they occur*/
 #define THROW(e) zthrow((e),__FILE__, __func__, __LINE__)
+#define REPORT(e,msg) zreport((e),(msg),__FILE__, __func__, __LINE__)
 #define ZCHECK(e) if((e)) {THROW(stat); goto done;} else {}
 EXTERNL int zbreakpoint(int err);
 EXTERNL int zthrow(int err, const char* fname, const char* fcn, int line);
+EXTERNL int zreport(int err, const char* msg, const char* fname, const char* fcn, int line);
 #else
 #define ZCHECK(e) {if((e)) {goto done;}}
 #define THROW(e) (e)
+#define REPORT(e,msg) (e)
 #endif
 
 #ifdef ZTRACING
@@ -53,6 +62,7 @@ EXTERNL char* nczprint_projectionx(const NCZProjection proj, int raw);
 EXTERNL char* nczprint_sliceprojectionsx(const NCZSliceProjections slp, int raw);
 EXTERNL char* nczprint_vector(size_t,const size64_t*);
 EXTERNL char* nczprint_idvector(size_t,const int*);
+EXTERNL char* nczprint_paramvector(size_t,const unsigned*);
 EXTERNL char* nczprint_sizevector(size_t,const size_t*);
 EXTERNL char* nczprint_envv(const char** envv);
 

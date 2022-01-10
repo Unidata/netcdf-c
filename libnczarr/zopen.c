@@ -124,7 +124,7 @@ ncz_open_file(const char *path, int mode, const char** controls, int ncid)
 
 exit:
     if (stat && h5)
-	ncz_close_file(h5, 1); /*  treat like abort*/
+	ncz_closeorabort(h5, NULL, 1); /*  treat like abort*/
     return ZUNTRACE(stat);
 }
 
@@ -177,7 +177,8 @@ NCZ_open(const char *path, int mode, int basepe, size_t *chunksizehintp,
 #endif /* LOGGING */
 
     /* Get the controls */
-    if(ncuriparse(path,&uri)) goto done;
+    ncuriparse(path,&uri);
+    if(uri == NULL) goto done;
 
     /* Open the file. */
     if((stat = ncz_open_file(path, mode, ncurifragmentparams(uri), ncid)))

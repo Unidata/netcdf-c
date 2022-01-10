@@ -100,7 +100,6 @@ rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
 
         var = (NC_VAR_INFO_T*)ncindexith(grp->vars,i);
         assert(var && var->format_var_info);
-        hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
 
 	hdf5_var = (NC_HDF5_VAR_INFO_T*)var->format_var_info;	
 	assert(hdf5_var != NULL);
@@ -969,9 +968,11 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
     }
 
     /* Turn on creation order tracking. */
-    if (H5Pset_attr_creation_order(plistid, H5P_CRT_ORDER_TRACKED|
-                                   H5P_CRT_ORDER_INDEXED) < 0)
+    if (!grp->nc4_info->no_attr_create_order) {
+      if (H5Pset_attr_creation_order(plistid, H5P_CRT_ORDER_TRACKED|
+				     H5P_CRT_ORDER_INDEXED) < 0)
         BAIL(NC_EHDFERR);
+    }
 
     /* Set per-var chunk cache, for chunked datasets. */
     if (var->storage == NC_CHUNKED && var->chunk_cache_size)
@@ -990,11 +991,11 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
     var->is_new_var = NC_FALSE;
 
     /* Always write the hidden coordinates attribute, which lists the
-     * dimids of this var. When present, this speeds opens. When no
+     * dimids of this var. When present, this speeds opens. When not
      * present, dimscale matching is used. */
     if (var->ndims)
         if ((retval = write_coord_dimids(var)))
-           BAIL(retval);
+            BAIL(retval);
 
     /* If this is a dimscale, mark it as such in the HDF5 file. Also
      * find the dimension info and store the dataset id of the dimscale
@@ -1016,9 +1017,18 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
                 BAIL(retval);
     }
 
+    /* If quantization is in use, write an attribute indicating it, a
+     * single integer which is the number of significant digits. */
+    if (var->quantize_mode == NC_QUANTIZE_BITGROOM)
+	if ((retval = nc4_put_att(var->container, var->hdr.id, NC_QUANTIZE_ATT_NAME, NC_INT, 1,
+				  &var->nsd, NC_INT, 0)))
+	    BAIL(retval);
+
     /* Write attributes for this var. */
     if ((retval = write_attlist(var->att, var->hdr.id, grp)))
         BAIL(retval);
+
+    /* The file is now up-to-date with all settings for this var. */
     var->attr_dirty = NC_FALSE;
 
 exit:
@@ -1327,8 +1337,10 @@ create_group(NC_GRP_INFO_T *grp)
         BAIL(NC_EHDFERR);
 
     /* Tell HDF5 to keep track of attributes in creation order. */
-    if (H5Pset_attr_creation_order(gcpl_id, H5P_CRT_ORDER_TRACKED|H5P_CRT_ORDER_INDEXED) < 0)
+    if (!grp->nc4_info->no_attr_create_order) {
+      if (H5Pset_attr_creation_order(gcpl_id, H5P_CRT_ORDER_TRACKED|H5P_CRT_ORDER_INDEXED) < 0)
         BAIL(NC_EHDFERR);
+    }
 
     /* Create the group. */
     if ((hdf5_grp->hdf_grpid = H5Gcreate2(parent_hdf5_grp->hdf_grpid, grp->hdr.name,
@@ -1752,10 +1764,11 @@ nc4_create_dim_wo_var(NC_DIM_INFO_T *dim)
         BAIL(NC_EHDFERR);
 
     /* Turn on creation-order tracking. */
-    if (H5Pset_attr_creation_order(create_propid, H5P_CRT_ORDER_TRACKED|
-                                   H5P_CRT_ORDER_INDEXED) < 0)
+    if (!dim->container->nc4_info->no_attr_create_order) {
+      if (H5Pset_attr_creation_order(create_propid, H5P_CRT_ORDER_TRACKED|
+				     H5P_CRT_ORDER_INDEXED) < 0)
         BAIL(NC_EHDFERR);
-
+    }
     /* Create the dataset that will be the dimension scale. */
     LOG((4, "%s: about to H5Dcreate1 a dimscale dataset %s", __func__,
          dim->hdr.name));

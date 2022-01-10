@@ -30,7 +30,6 @@
 #include "ncbytes.h"
 #include "zincludes.h"
 
-
 static char* progname = NULL;
 
 struct ITOptions {

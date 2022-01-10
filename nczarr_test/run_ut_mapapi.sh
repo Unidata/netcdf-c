@@ -3,7 +3,6 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
-
 . "$srcdir/test_nczarr.sh"
 
 #TR="-T10"
@@ -93,6 +92,7 @@ if test "x$FEATURE_NCZARR_ZIP" = xyes ; then
 fi
 if test "x$FEATURE_S3TESTS" = xyes ; then
   echo ""; echo "*** Test zmap_s3sdk"
+  export PROFILE="-p default"
   testmapcreate s3; testmapmeta s3; testmapdata s3; testmapsearch s3
 fi
 }

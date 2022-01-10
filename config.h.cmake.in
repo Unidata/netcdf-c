@@ -126,6 +126,9 @@ are set when opening a binary file on Windows. */
 /* set this only when building a DLL under MinGW */
 #cmakedefine DLL_NETCDF 1
 
+/* if true, use atexist */
+#cmakedefine ENABLE_ATEXIT_FINALIZE 1
+
 /* if true, build byte-range Client */
 #cmakedefine ENABLE_BYTERANGE 1
 
@@ -153,6 +156,9 @@ are set when opening a binary file on Windows. */
 /* if true, enable NCZARR */
 #cmakedefine ENABLE_NCZARR 1
 
+/* if true, enable nczarr filter support */
+#cmakedefine ENABLE_NCZARR_FILTERS 1
+
 /* if true, enable S3 support */
 #cmakedefine ENABLE_NCZARR_S3 1
 
@@ -164,6 +170,12 @@ are set when opening a binary file on Windows. */
 
 /* if true, S3 SDK is available */
 #cmakedefine ENABLE_S3_SDK 1
+
+/* if true, Allow dynamically loaded plugins */
+#cmakedefine ENABLE_PLUGINS 1
+
+/* Do we have access to the Windows Registry */
+#cmakedefine REGEDIT 1
 
 /* define the possible sources for remote test servers */
 #cmakedefine REMOTETESTSERVERS	"${REMOTETESTSERVERS}"
@@ -177,9 +189,11 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have `alloca', as a function or macro. */
 #cmakedefine HAVE_ALLOCA 1
 
-/* Define to 1 if you have <alloca.h> and it should be used (not on Ultrix).
-   */
+/* Define to 1 if you have <alloca.h> and it should be used (not on Ultrix). */
 #cmakedefine HAVE_ALLOCA_H 1
+
+/* Define to 1 if you have the `atexit function. */
+#cmakedefine HAVE_ATEXIT 1
 
 /* Define to 1 if you have hdf5_coll_metadata_ops */
 #cmakedefine HDF5_HAS_COLL_METADATA_OPS 1
@@ -222,6 +236,9 @@ are set when opening a binary file on Windows. */
 
 /* Define to 1 if you have the <dirent.h> header file. */
 #cmakedefine HAVE_DIRENT_H 1
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#cmakedefine HAVE_DLFCN_H 1
 
 /* Define to 1 if you have the <fcntl.h> header file. */
 #cmakedefine HAVE_FCNTL_H 1
@@ -285,6 +302,9 @@ are set when opening a binary file on Windows. */
 
 /* Define to 1 if you have the `pnetcdf' library (-lpnetcdf). */
 #cmakedefine HAVE_LIBPNETCDF 1
+
+/* Define to 1 if you have the libxml2 library. */
+#cmakedefine HAVE_LIBXML2 1
 
 /* Define to 1 if you have the <locale.h> header file. */
 #cmakedefine HAVE_LOCALE_H 1
@@ -611,11 +631,14 @@ with zip */
 /* if true, use stdio instead of posixio */
 #cmakedefine USE_STDIO 1
 
-/* if true, compile in szip compression in netCDF-4 variables */
-#cmakedefine USE_SZIP 1
-
 /* if true, multi-filters enabled*/
-#cmakedefine HAVE_MULTIFILTERS 1
+#cmakedefine ENABLE_MULTIFILTERS 1
+
+/* if true, enable nczarr blosc support */
+#cmakedefine ENABLE_BLOSC 1
+
+/* if true, enable nczarr szip support */
+#cmakedefine USE_SZIP 1
 
 /* Version number of package */
 #cmakedefine VERSION "${netCDF_VERSION}"

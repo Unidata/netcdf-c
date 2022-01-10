@@ -25,7 +25,6 @@ static unsigned int wdebug = 0;
 static int NCZ_walk(NCZProjection** projv, NCZOdometer* chunkodom, NCZOdometer* slpodom, NCZOdometer* memodom, const struct Common* common, void* chunkdata);
 static int rangecount(NCZChunkRange range);
 static int readfromcache(void* source, size64_t* chunkindices, void** chunkdata);
-static int NCZ_fillchunk(void* chunkdata, struct Common* common);
 static int iswholechunk(struct Common* common,NCZSlice*);
 static int wholechunk_indices(struct Common* common, NCZSlice* slices, size64_t* chunkindices);
 
@@ -123,8 +122,6 @@ NCZ_transferslice(NC_VAR_INFO_T* var, int reading,
     common.typesize = typesize;
     common.cache = zvar->cache;
 
-    if((stat = ncz_get_fill_value(common.file, common.var, &common.fillvalue))) goto done;
-
     /* We need to talk scalar into account */
     common.rank = var->ndims + zvar->scalar;
     common.scalar = zvar->scalar;
@@ -159,6 +156,9 @@ NCZ_transferslice(NC_VAR_INFO_T* var, int reading,
     common.memshape = memshape; /* ditto */
     common.reader.source = ((NCZ_VAR_INFO_T*)(var->format_var_info))->cache;
     common.reader.read = readfromcache;
+
+    /* verify */
+    assert(var->no_fill || var->fill_value != NULL);
 
     if(common.scalar) {
         if((stat = NCZ_transferscalar(&common))) goto done;
@@ -227,7 +227,6 @@ NCZ_transfer(struct Common* common, NCZSlice* slices)
 	/* Read the chunk */
         switch ((stat = common->reader.read(common->reader.source, chunkindices, &chunkdata))) {
         case NC_EEMPTY: /* cache created the chunk */
-            if((stat = NCZ_fillchunk(chunkdata,common))) goto done;
 	    break;
         case NC_NOERR: break;
         default: goto done;
@@ -299,7 +298,6 @@ NCZ_transfer(struct Common* common, NCZSlice* slices)
         stat = common->reader.read(common->reader.source, chunkindices, &chunkdata);
 	switch (stat) {
         case NC_EEMPTY: /* cache created the chunk */
-	    if((stat = NCZ_fillchunk(chunkdata,common))) goto done;
 	    break;
         case NC_NOERR: break;
         default: goto done;
@@ -503,6 +501,7 @@ unsigned srcidx = srcoff / sizeof(unsigned); (void)srcidx;
 }
 #endif
 
+#if 0
 /* This function may not be necessary if code in zvar does it instead */
 static int
 NCZ_fillchunk(void* chunkdata, struct Common* common)
@@ -523,6 +522,7 @@ NCZ_fillchunk(void* chunkdata, struct Common* common)
 done:
     return stat;
 }
+#endif
 
 /* Break out this piece so we can use it for unit testing */
 int
@@ -681,7 +681,6 @@ NCZ_clearcommon(struct Common* common)
 {
     NCZ_clearsliceprojections(common->rank,common->allprojections);
     nullfree(common->allprojections);
-    nullfree(common->fillvalue);
 }
 
 /* Does the User want all of one and only chunk? */
@@ -730,7 +729,6 @@ NCZ_transferscalar(struct Common* common)
     chunkindices[0] = 0;
     switch ((stat = common->reader.read(common->reader.source, chunkindices, &chunkdata))) {
     case NC_EEMPTY: /* cache created the chunk */
-        if((stat = NCZ_fillchunk(chunkdata,common))) goto done;
 	break;
     case NC_NOERR: break;
     default: goto done;

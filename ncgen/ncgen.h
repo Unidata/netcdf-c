@@ -79,6 +79,7 @@ various C global variables
 #define _SUPERBLOCK_FLAG    0x400
 #define _FORMAT_FLAG        0x800
 #define _FILTER_FLAG        0x1000
+#define _CODECS_FLAG        0x2000
 
 extern struct Specialtoken {
     char* name;
@@ -123,6 +124,7 @@ typedef struct Specialdata {
     int           _Fill ;        /* 0 => false, 1 => true WATCHOUT: this is inverse of NOFILL*/
     NC_H5_Filterspec** _Filters;
     size_t 	   nfilters; /* |filters| */
+    char*          _Codecs; /* in JSON form */
 } Specialdata;
 
 typedef struct GlobalSpecialdata {

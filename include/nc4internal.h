@@ -100,8 +100,7 @@ typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP, NCFIL} NC_SORT;
 /** Hidden attributes; immutable and unreadable thru API. */
 #define HIDDENATTRFLAG 1
 
-/** Readonly global attributes; readable, but immutable thru the
- * API. */
+/** Readonly attributes; readable, but immutable thru the API. */
 #define READONLYFLAG 2
 
 /** Subset of readonly flags; readable by name only thru the API. */
@@ -109,6 +108,9 @@ typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP, NCFIL} NC_SORT;
 
 /** Subset of readonly flags; Value is actually in file. */
 #define MATERIALIZEDFLAG 8
+
+/** Per-variable attribute, as opposed to global */
+#define VARFLAG 16
 
 /** Boolean type, to make the code easier to read. */
 typedef enum {NC_FALSE = 0, NC_TRUE = 1} nc_bool_t;
@@ -201,9 +203,11 @@ typedef struct NC_VAR_INFO
     int parallel_access;         /**< Type of parallel access for I/O on variable (collective or independent). */
     nc_bool_t shuffle;           /**< True if var has shuffle filter applied. */
     nc_bool_t fletcher32;        /**< True if var has fletcher32 filter applied. */
-    size_t chunk_cache_size;     /**< Size in bytes of the var chunk chache. */
+    size_t chunk_cache_size;     /**< Size in bytes of the var chunk cache. */
     size_t chunk_cache_nelems;   /**< Number of slots in var chunk cache. */
     float chunk_cache_preemption; /**< Chunk cache preemtion policy. */
+    int quantize_mode;           /**< Quantize mode. NC_NOQUANTIZE is 0, and means no quantization. */
+    int nsd;                     /**< Number of significant digits if quantization is used, 0 if not. */
     void *format_var_info;       /**< Pointer to any binary format info. */
     void* filters;             /**< Record of the list of filters to be applied to var data; format dependent */
 } NC_VAR_INFO_T;
@@ -297,6 +301,7 @@ typedef struct  NC_FILE_INFO
     int cmode;      /**< Create mode used to create the file. */
     nc_bool_t parallel;   /**< True if file is open for parallel access */
     nc_bool_t redef;      /**< True if redefining an existing file */
+    nc_bool_t no_attr_create_order; /**< True if the creation order tracking of attributes is disabled (netcdf-4 only) */
     int fill_mode;        /**< Fill mode for vars - Unused internally currently */
     nc_bool_t no_write;   /**< true if nc_open has mode NC_NOWRITE. */
     NC_GRP_INFO_T *root_grp; /**< Pointer to root group. */
@@ -341,8 +346,9 @@ extern int NC4_lookup_atomic_type(const char *name, nc_type* idp, size_t *sizep)
 /* These functions convert between netcdf and HDF5 types. */
 extern int nc4_get_typelen_mem(NC_FILE_INFO_T *h5, nc_type xtype, size_t *len);
 extern int nc4_convert_type(const void *src, void *dest, const nc_type src_type,
-                     const nc_type dest_type, const size_t len, int *range_error,
-                     const void *fill_value, int strict_nc3);
+			    const nc_type dest_type, const size_t len, int *range_error,
+			    const void *fill_value, int strict_nc3, int quantize_mode,
+			    int nsd);
 
 /* These functions do HDF5 things. */
 extern int nc4_reopen_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
@@ -461,6 +467,7 @@ extern const NC_reservedatt* NC_findreserved(const char* name);
 #define NC_ATT_DIMID_NAME "_Netcdf4Dimid"
 #define NC_ATT_NC3_STRICT_NAME "_nc3_strict"
 #define NC_XARRAY_DIMS "_ARRAY_DIMENSIONS"
+#define NC_ATT_CODECS "_Codecs"
 #define NC_NCZARR_ATTR "_NCZARR_ATTR"
 
 #endif /* _NC4INTERNAL_ */

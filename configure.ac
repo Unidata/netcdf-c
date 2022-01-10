@@ -10,7 +10,7 @@
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address.
-AC_INIT([netCDF], [4.8.2-development], [support-netcdf@unidata.ucar.edu], [netcdf-c])
+AC_INIT([netCDF],[4.8.2-development],[support-netcdf@unidata.ucar.edu],[netcdf-c])
 
 ##
 # Prefer an empty CFLAGS variable instead of the default -g -O2.
@@ -92,6 +92,19 @@ AM_INIT_AUTOMAKE([foreign dist-zip subdir-objects])
 
 # Check for the existence of this file before proceeding.
 AC_CONFIG_SRCDIR([include/netcdf.h])
+
+# Figure out platforms of special interest
+case "`uname`" in
+  CYGWIN*) ISCYGWIN=yes;;
+  Darwin*) ISOSX=yes;;
+  WIN*) ISMSVC=yes;;
+  MINGW*) ISMINGW=yes;;
+esac
+
+if test "x$MSYSTEM" != x ; then
+ISMINGW=yes
+ISMSYS=yes
+fi
 
 AC_MSG_NOTICE([checking supported formats])
 
@@ -521,11 +534,10 @@ CFLAGS="$SAVECFLAGS"
 
 # --enable-dap => enable-dap4
 enable_dap4=$enable_dap
-# Default is to do the short remote tests.
 AC_MSG_CHECKING([whether dap remote testing should be enabled])
 AC_ARG_ENABLE([dap-remote-tests],
-              [AS_HELP_STRING([--disable-dap-remote-tests],
-                                 [disable dap remote tests])])
+              [AS_HELP_STRING([--enable-dap-remote-tests],
+                                 [enable dap remote tests])])
 test "x$enable_dap_remote_tests" = xno || enable_dap_remote_tests=yes
 if test "x$enable_dap" = "xno" ; then
   enable_dap_remote_tests=no
@@ -596,6 +608,15 @@ if test "x$enable_nczarr" = xyes; then
 fi
 AM_CONDITIONAL(ENABLE_NCZARR, [test x$enable_nczarr = xyes])
 
+# See if we have libblosc
+AC_CHECK_LIB([blosc],[blosc_init],[enable_blosc=yes],[enable_blosc=no])
+if test "x$enable_blosc" = "xyes" ; then
+   AC_SEARCH_LIBS([blosc_init],[blosc blosc.dll cygblosc.dll], [], [])
+   AC_DEFINE([ENABLE_BLOSC], [1], [if true, blosc library is available])
+fi
+AC_MSG_CHECKING([whether libblosc library is available])
+AC_MSG_RESULT([${enable_blosc}])
+
 # See if we have libzip
 AC_CHECK_LIB([zip],[zip_open],[have_zip=yes],[have_zip=no])
 if test "x$have_zip" = "xyes" ; then
@@ -609,6 +630,7 @@ enable_nczarr_zip=${have_zip} # alias
 if test "x$enable_nczarr" = xno ; then
 enable_nczarr_zip=no
 fi
+
 
 AC_MSG_CHECKING([whether nczarr zip support is enabled])
 AC_MSG_RESULT([${enable_nczarr_zip}])
@@ -632,25 +654,27 @@ AC_MSG_RESULT($enable_nczarr_s3)
 # Note we check for the library after checking for enable_nczarr_s3
 # because for some reason this screws up if we unconditionally test for sdk
 # and it is not available. Fix someday
-have_aws=no
+enable_s3_sdk=no
 if test "x$enable_nczarr_s3" = xyes ; then
 # See if we have the s3 aws library
 # Check for the AWS S3 SDK library
 AC_LANG_PUSH([C++])
-AC_SEARCH_LIBS([aws_allocator_is_valid],[aws-c-common aws-cpp-sdk-s3 aws-cpp-sdk-core], [have_aws=yes],[have_aws=no])
+AC_SEARCH_LIBS([aws_allocator_is_valid],[aws-c-common aws-cpp-sdk-s3 aws-cpp-sdk-core], [enable_s3_sdk=yes],[enable_s3_sdk=no])
 AC_LANG_POP
 fi
 
 AC_MSG_CHECKING([whether AWS S3 SDK library is available])
-AC_MSG_RESULT([$have_aws])
+AC_MSG_RESULT([$enable_s3_sdk])
 
-if test "x$have_aws" = xno ; then
-AC_MSG_WARN([AWS SDK not found; disabling S3 support])
+if test "x$enable_s3_sdk" = xno ; then
+AC_MSG_WARN([No S3 library available; disabling S3 support])
 enable_nczarr_s3=no
-else
+fi
+
+if test "x$enable_s3_sdk" = xyes ; then
 AC_DEFINE([ENABLE_S3_SDK], [1], [If true, then S3 sdk was found])
 fi
-AM_CONDITIONAL(ENABLE_S3_SDK, [test "x$have_aws" = xyes])
+AM_CONDITIONAL(ENABLE_S3_SDK, [test "x$enable_s3_sdk" = xyes])
 
 # Check for enabling S3 testing
 AC_MSG_CHECKING([whether netcdf zarr S3 testing should be enabled])
@@ -1042,6 +1066,40 @@ if test "x$enable_dap4" = xyes; then
    AC_DEFINE([ENABLE_DAP4], [1], [if true, build DAP4 Client])
 fi
 
+###
+# Libxml2 control block.
+###
+
+AC_MSG_CHECKING([whether to search for and use external libxml2])
+AC_ARG_ENABLE([libxml2],
+              [AS_HELP_STRING([--disable-libxml2],
+                              [disable detection and use of libxml2 in favor of the bundled ezxml interpreter])])
+test "x$disable_libxml2" = xyes && enable_libxml2=no
+AC_MSG_RESULT($enable_libxml2)
+
+AC_SUBST([XMLPARSER],"ezxml")
+if test "x$enable_libxml2" = xyes; then
+# We can optionally use libxml2 for DAP4, if available
+  AC_CHECK_LIB([xml2],[xmlReadMemory],[have_libxml2=yes],[have_libxml2=no])
+  if test "x$have_libxml2" = "xyes" ; then
+      AC_SEARCH_LIBS([xmlReadMemory],[xml2 xml2.dll cygxml2.dll], [],[])
+      AC_SUBST([XMLPARSER],"libxml2")
+  fi
+  if test "x$have_libxml2" = xyes; then
+     XML2FLAGS=`xml2-config --cflags`
+     AC_SUBST([XML2FLAGS],${XML2FLAGS})
+     AC_DEFINE([HAVE_LIBXML2], [1], [if true, use libxml2])
+  fi
+
+fi
+
+  # Need a condition for this
+  AM_CONDITIONAL(HAVE_LIBXML2, [test "x$have_libxml2" = xyes])
+
+###
+# End Libxml2 block
+###
+
 # check for useful, but not essential, memio support
 AC_CHECK_FUNCS([memmove getpagesize sysconf])
 
@@ -1101,6 +1159,57 @@ if test "x$enable_byterange" = xyes; then
     AC_DEFINE([ENABLE_BYTERANGE], [1], [if true, support byte-range read of remote datasets.])
 fi
 
+# Does the user want to disable atexit?
+AC_MSG_CHECKING([whether nc_finalize should be invoked at exit])
+AC_ARG_ENABLE([atexit-finalize],
+               [AS_HELP_STRING([--disable-atexit-finalize],
+                               [disable invoking nc_finalize at exit])])
+test "x$enable_atexit_finalize" = xno || enable_atexit_finalize=yes
+AC_MSG_RESULT($enable_atexit_finalize)
+
+# Check for atexit
+AC_CHECK_FUNCS([atexit])
+
+# If no atexit, then disable atexit finalize
+if test "x$enable_atexit_finalize" = xyes ; then
+  if test "x$ac_cv_func_function" = xno ; then
+    enable_atexit_finalize=no
+    AC_MSG_ERROR([atexit() required for enable-atexit-finalize.])
+  fi
+fi
+
+if test "x$enable_atexit_finalize" = xyes ; then
+  AC_DEFINE([ENABLE_ATEXIT_FINALIZE], [1], [If true, enable nc_finalize via atexit()])
+fi
+
+# Need libdl(d) for plugins
+AC_CHECK_LIB([dl],[dlopen],[have_libdld=yes],[have_libdld=no])
+if test "x$have_libdld" = "xyes" ; then
+   AC_SEARCH_LIBS([dlopen],[dl dld], [],[])
+fi
+
+# Does the user want plugins?
+AC_MSG_CHECKING([whether dynamically loaded plugins is enabled])
+AC_ARG_ENABLE([plugins],
+              [AS_HELP_STRING([--disable-plugins],
+                              [disallow dynamically loaded plugins])])
+test "x$enable_plugins" = xno || enable_plugins=yes
+AC_MSG_RESULT([$enable_plugins])
+if test "x$have_libdld" = xno && test "x$ISMSVC" = xno; then
+  enable_plugins=no
+  AC_MSG_WARN([libdld required for enable-plugins.])  
+fi
+if test "x$enable_plugins" = xyes && test "x$enable_shared" = xno; then
+    AC_MSG_WARN([--disable-shared => --disable-plugins])
+    enable_plugins=no
+fi
+
+if test "x$enable_plugins" = xyes; then
+    AC_DEFINE([ENABLE_PLUGINS], [1], [if true, support dynamically loaded plugins])
+fi
+AM_CONDITIONAL(ENABLE_PLUGINS, [test "x$enable_plugins" = xyes])
+AC_SUBST(USEPLUGINS, [${enable_plugins}])
+
 AC_FUNC_ALLOCA
 AC_CHECK_DECLS([isnan, isinf, isfinite],,,[#include <math.h>])
 AC_STRUCT_ST_BLKSIZE
@@ -1111,19 +1220,26 @@ AC_TYPE_UINTPTR_T
 AC_C_CHAR_UNSIGNED
 AC_C_BIGENDIAN
 
-# Figure out platforms of special interest
-case "`uname`" in
-  CYGWIN*) ISCYGWIN=yes;;
-  Darwin*) ISOSX=yes;;
-  WIN*) ISMSVC=yes;;
-esac
 AM_CONDITIONAL(ISCYGWIN, [test "x$ISCYGWIN" = xyes])
 AM_CONDITIONAL(ISMSVC, [test "x$ISMSVC" = xyes])
 AM_CONDITIONAL(ISOSX, [test "x$ISOSX" = xyes])
+AM_CONDITIONAL(ISMINGW, [test "x$ISMINGW" = xyes])
+AM_CONDITIONAL(ISMSYS, [test "x$ISMSYS" = xyes])
 
 AC_SUBST([ISMSVC], [${ISMSVC}])
 AC_SUBST([ISCYGWIN], [${ISCYGWIN}])
 AC_SUBST([ISOSX], [${ISOSX}])
+AC_SUBST([ISMINGW], [${ISMINGW}])
+AC_SUBST([ISMSYS], [${ISMSYS}])
+
+if test "x$ISMSVC" != x ; then REGEDIT=yes; fi
+if test "x$ISMSYS" != x ; then REGEDIT=yes; fi
+if test "x$ISCYGWIN" != x ; then REGEDIT=yes; fi
+if test "x$REGEDIT" = xyes; then
+  AC_DEFINE([REGEDIT], 1, [dreg.c usable])
+fi
+AM_CONDITIONAL(REGEDIT, [test "x$REGEDIT" = xyes])
+AC_SUBST([ISREGEDIT], [yes])
 
 ###
 # Crude hack to work around an issue
@@ -1209,11 +1325,10 @@ AC_CHECK_SIZEOF(ssize_t)
 $SLEEPCMD
 AC_CHECK_SIZEOF([void*])
 
-if test "x$enable_hdf5" = xyes || test "x$enable_dap" = xyes; then
+if test "x$enable_hdf5" = xyes || test "x$enable_dap" = xyes ; then
    AC_SEARCH_LIBS([deflate], [zlibwapi zlibstat zlib zlib1 z], [], [
      AC_MSG_ERROR([Can't find or link to the z library. Turn off netCDF-4 and \
      DAP clients with --disable-hdf5 --disable-dap, or see config.log for errors.])])
-   AC_SEARCH_LIBS([dlopen], [dl dld], [], [])
 fi
 
 # We need the math library
@@ -1237,10 +1352,10 @@ if test "x$enable_hdf5" = xyes; then
 
    # Check for the main hdf5 and hdf5_hl library.
 
-   AC_SEARCH_LIBS([H5Fflush], [hdf5dll hdf5], [],
+   AC_SEARCH_LIBS([H5Fflush], [hdf5 hdf5.dll], [],
    [AC_MSG_ERROR([Can't find or link to the hdf5 library. Use --disable-hdf5, or see config.log for errors.])])
-   AC_SEARCH_LIBS([H5DSis_scale], [hdf5_hldll hdf5_hl], [],
-   [AC_MSG_ERROR([Can't find or link to the hdf5 high-level. Use --disable-hdf5, or see config.log for errors.])])
+   AC_SEARCH_LIBS([H5DSis_scale], [hdf5_hl hdf5_hl.dll], [],
+   [AC_MSG_ERROR([Can't find or link to the hdf5 library. Use --disable-hdf5, or see config.log for errors.])])
 
    AC_CHECK_HEADERS([hdf5.h], [], [AC_MSG_ERROR([Compiling a test with HDF5 failed.  Either hdf5.h cannot be found, or config.log should be checked for other reason.])])
 
@@ -1315,6 +1430,16 @@ if test "x$enable_hdf5" = xyes; then
   if test "x$hdf5_version_1106" = xyes; then
       AC_DEFINE([HDF5_UTF8_PATHS], [1], [if true, HDF5 paths can be utf-8])
    fi
+
+else # !enable_hdf5
+  # See if we have libsz
+  AC_CHECK_LIB([sz],[SZ_BufftoBuffCompress],[enable_szlib=yes],[enable_szlib=no])
+  if test "x$enable_szlib" = "xyes" ; then
+    AC_SEARCH_LIBS([SZ_BufftoBuffCompress],[sz sz.dll cygsz.dll], [], [])
+    AC_DEFINE([USE_SZIP], [1], [if true, szip library is available])
+  fi
+  AC_MSG_CHECKING([whether szip library is available])
+  AC_MSG_RESULT([${enable_szlib}])
 fi
 
 AM_CONDITIONAL(ENABLE_NCDUMPCHUNKS, [test "x$has_readchunks" = xyes ])
@@ -1487,6 +1612,49 @@ if test "x$enable_logging" = xyes; then
    AC_DEFINE([LOGGING], 1, [If true, turn on logging.])
 fi
 
+# Control NCZarr filters
+# Does the user want to use NCZarr filters?
+AC_MSG_CHECKING([whether we should enable NCZarr filters])
+AC_ARG_ENABLE([nczarr-filters], [AS_HELP_STRING([--disable-nczarr-filters],
+              [disable NCZarr filters])])
+test "x$enable_nczarr_filters" = xno || enable_nczarr_filters=yes
+AC_MSG_RESULT([$enable_nczarr_filters])
+
+# Control filter test/example
+AC_MSG_CHECKING([whether filter testing should be run])
+AC_ARG_ENABLE([filter-testing],
+              [AS_HELP_STRING([--disable-filter-testing],
+                              [Do not run filter test and example; requires shared libraries and HDF5|NCZarr])])
+test "x$enable_filter_testing" = xno || enable_filter_testing=yes
+AC_MSG_RESULT($enable_filter_testing)
+
+# Apply constraints
+if test "x$enable_plugins" = xno ; then
+AC_MSG_WARN([--disable-plugins => --disable-nczarr-filters])
+enable_nczarr_filters=no
+fi
+
+if test "x$enable_plugins" = xno ; then
+AC_MSG_WARN([--disable-plugins => --disable-filter-testing])
+enable_filter_testing=no
+fi
+
+if test "x$enable_filter_testing" = xno; then
+AC_MSG_WARN([--disable-filter-testing => --disable-nczarr-filter-testing])
+enable_nczarr_filter_testing=no
+fi
+
+if test "x$enable_nczarr_filters" = xyes; then
+   AC_DEFINE([ENABLE_NCZARR_FILTERS], [1], [if true, enable NCZarr filters])
+fi
+
+# Client side filter registration is permanently disabled
+enable_clientside_filters=no
+
+AM_CONDITIONAL(ENABLE_CLIENTSIDE_FILTERS, [test x$enable_clientside_filters = xyes])
+AM_CONDITIONAL(ENABLE_FILTER_TESTING, [test x$enable_filter_testing = xyes])
+AM_CONDITIONAL(ENABLE_NCZARR_FILTERS, [test x$enable_nczarr_filters = xyes])
+
 # Automake conditionals need to be called, whether the answer is yes
 # or no.
 AM_CONDITIONAL(BUILD_PARALLEL, [test x$enable_parallel = xyes])
@@ -1521,8 +1689,10 @@ AM_CONDITIONAL(ENABLE_BYTERANGE, [test "x$enable_byterange" = xyes])
 AM_CONDITIONAL(RELAX_COORD_BOUND, [test "xyes" = xyes])
 AM_CONDITIONAL(HAS_PAR_FILTERS, [test x$hdf5_supports_par_filters = xyes ])
 AM_CONDITIONAL(ENABLE_NCZARR, [test "x$enable_nczarr" = xyes])
-AM_CONDITIONAL(HAVE_AWS, [test "x$have_aws" = xyes])
+AM_CONDITIONAL(ENABLE_S3_SDK, [test "x$enable_s3_sdk" = xyes])
 AM_CONDITIONAL(HAS_MULTIFILTERS, [test "x$has_multifilters" = xyes])
+AM_CONDITIONAL(ENABLE_BLOSC, [test "x$enable_blosc" = xyes])
+AM_CONDITIONAL(ENABLE_SZIP, [test "x$enable_szip" = xyes])
 
 # If the machine doesn't have a long long, and we want netCDF-4, then
 # we've got problems!
@@ -1598,30 +1768,6 @@ esac
 
 NC_FLIBS="-lnetcdff $NC_LIBS"
 
-# Control filter test/example
-AC_MSG_CHECKING([whether filter testing should be run])
-AC_ARG_ENABLE([filter-testing],
-              [AS_HELP_STRING([--disable-filter-testing],
-                              [Do not run filter test and example; requires shared libraries and netCDF-4])])
-test "x$enable_filter_testing" = xno || enable_filter_testing=yes
-AC_MSG_RESULT($enable_filter_testing)
-
-# Client side filter registration is permanently disabled
-enable_clientside_filters=no
-
-if test "x$enable_hdf5" = xno ; then
-AC_MSG_WARN([HDF5 disabled => --disable-filter-testing && --disable-client-filters])
-enable_filter_testing=no
-fi
-
-if test "x$enable_shared" = xno ; then
-AC_MSG_WARN([Shared libraries are disabled => --disable-filter-testing])
-enable_filter_testing=no
-fi
-
-AM_CONDITIONAL(ENABLE_CLIENTSIDE_FILTERS, [test x$enable_clientside_filters = xyes])
-AM_CONDITIONAL(ENABLE_FILTER_TESTING, [test x$enable_filter_testing = xyes])
-
 
 AC_SUBST(NC_LIBS,[$NC_LIBS])
 AC_SUBST(HAS_DAP,[$enable_dap])
@@ -1649,7 +1795,11 @@ AC_SUBST(HAS_NCZARR,[$enable_nczarr])
 AC_SUBST(DO_NCZARR_S3_TESTS,[$enable_nczarr_s3_tests])
 AC_SUBST(HAS_MULTIFILTERS,[$has_multifilters])
 AC_SUBST(DO_NCZARR_ZIP_TESTS,[$enable_nczarr_zip])
+AC_SUBST([HAS_QUANTIZE],[yes])
 AC_SUBST(HAS_LOGGING,[$enable_logging])
+AC_SUBST(DO_FILTER_TESTS,[$enable_filter_testing])
+AC_SUBST(HAVE_BLOSC,[$enable_blosc])
+AC_SUBST(HAVE_SZIP,[$enable_szip])
 
 # Include some specifics for netcdf on windows.
 #AH_VERBATIM([_WIN32_STRICMP],
@@ -1730,7 +1880,7 @@ AX_SET_META([NC_HAS_LOGGING],[$enable_logging],[yes])
 # dispatch table to submit. If this is changed, make sure the value in
 # CMakeLists.txt also changes to match.
 
-AC_SUBST([NC_DISPATCH_VERSION], [3])
+AC_SUBST([NC_DISPATCH_VERSION], [4])
 AC_DEFINE_UNQUOTED([NC_DISPATCH_VERSION], [${NC_DISPATCH_VERSION}], [Dispatch table version.])
 
 #####
@@ -1745,9 +1895,8 @@ AM_CONDITIONAL([AX_IGNORE], [test xno = xyes])
 
 AC_MSG_NOTICE([generating header files and makefiles])
 AC_CONFIG_FILES(test_common.sh:test_common.in)
-AC_CONFIG_FILES(nczarr_test/timer_utils.h:unit_test/timer_utils.h)
-AC_CONFIG_FILES(nczarr_test/timer_utils.c:unit_test/timer_utils.c)
 AC_CONFIG_FILES(nc_test4/findplugin.sh:nc_test4/findplugin.in)
+AC_CONFIG_FILES(nczarr_test/findplugin.sh:nc_test4/findplugin.in)
 AC_CONFIG_FILES(examples/C/findplugin.sh:nc_test4/findplugin.in)
 AC_CONFIG_FILES(ncdap_test/findtestserver.c:ncdap_test/findtestserver.c.in)
 AC_CONFIG_FILES(dap4_test/findtestserver4.c:ncdap_test/findtestserver.c.in)
@@ -1756,6 +1905,13 @@ AC_CONFIG_FILES([h5_test/run_par_tests.sh], [chmod ugo+x h5_test/run_par_tests.s
 AC_CONFIG_FILES([nc_test4/run_par_test.sh], [chmod ugo+x nc_test4/run_par_test.sh])
 AC_CONFIG_FILES([nc_perf/run_par_bm_test.sh], [chmod ugo+x nc_perf/run_par_bm_test.sh])
 AC_CONFIG_FILES([nc_perf/run_gfs_test.sh], [chmod ugo+x nc_perf/run_gfs_test.sh])
+AC_CONFIG_FILES(nczarr_test/timer_utils.h:unit_test/timer_utils.h)
+AC_CONFIG_FILES(nczarr_test/timer_utils.c:unit_test/timer_utils.c)
+AC_CONFIG_FILES(nczarr_test/test_filter.c:nc_test4/test_filter.c)
+AC_CONFIG_FILES(nczarr_test/test_filter_misc.c:nc_test4/test_filter_misc.c)
+AC_CONFIG_FILES(nczarr_test/tst_multifilter.c:nc_test4/tst_multifilter.c)
+AC_CONFIG_FILES(nczarr_test/test_filter_repeat.c:nc_test4/test_filter_repeat.c)
+AC_CONFIG_FILES(nczarr_test/test_filter_order.c:nc_test4/test_filter_order.c)
 AC_CONFIG_FILES([examples/C/run_par_test.sh], [chmod ugo+x examples/C/run_par_test.sh])
 AC_CONFIG_FILES([nc-config], [chmod 755 nc-config])
 AC_CONFIG_FILES([Makefile
@@ -1782,6 +1938,8 @@ AC_CONFIG_FILES([Makefile
                  libdap4/Makefile
                  libhdf4/Makefile
                  libnczarr/Makefile
+                 libncpoco/Makefile
+                 libncxml/Makefile
                  libdispatch/Makefile
                  liblib/Makefile
                  ncdump/cdl/Makefile

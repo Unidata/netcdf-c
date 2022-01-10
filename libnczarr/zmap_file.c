@@ -142,10 +142,12 @@ static int platformtestcontentbearing(ZFMAP* zfmap, const char* truepath);
 
 #ifdef VERIFY
 static int verify(const char* path, int isdir);
+static int verifykey(const char* key, int isdir);
 #endif
 
 static int zfinitialized = 0;
-static void zfinitialize(void)
+static void
+zfileinitialize(void)
 {
     if(!zfinitialized) {
         ZTRACE(5,NULL);
@@ -180,13 +182,14 @@ zfilecreate(const char *path, int mode, size64_t flags, void* parameters, NCZMAP
 {
     int stat = NC_NOERR;
     char* canonpath = NULL;
+    char* abspath = NULL;
     ZFMAP* zfmap = NULL;
     NCURI* url = NULL;
 	
     NC_UNUSED(parameters);
     ZTRACE(5,"path=%s mode=%d flag=%llu",path,mode,flags);
 
-    if(!zfinitialized) zfinitialize();
+    if(!zfinitialized) zfileinitialize();
 
     /* Fixup mode flags */
     mode |= (NC_NETCDF4 | NC_WRITE);
@@ -200,8 +203,13 @@ zfilecreate(const char *path, int mode, size64_t flags, void* parameters, NCZMAP
     if(strcasecmp(url->protocol,"file") != 0)
         {stat = NC_EURL; goto done;}
 
-    /* Canonicalize the root path */
-    if((stat = NCpathcanonical(url->path,&canonpath))) goto done;
+    /* Convert the root path */
+    if((canonpath = NCpathcvt(url->path))==NULL)
+	{stat = NC_ENOMEM; goto done;}
+
+    /* Make the root path be absolute */
+    if((abspath = NCpathabsolute(canonpath)) == NULL)
+	{stat = NC_EURL; goto done;}
 
     /* Build the zmap state */
     if((zfmap = calloc(1,sizeof(ZFMAP))) == NULL)
@@ -213,8 +221,8 @@ zfilecreate(const char *path, int mode, size64_t flags, void* parameters, NCZMAP
     /* create => NC_WRITE */
     zfmap->map.mode = mode;
     zfmap->map.api = &zapi;
-    zfmap->root = canonpath;
-        canonpath = NULL;
+    zfmap->root = abspath;
+        abspath = NULL;
 
     /* If NC_CLOBBER, then delete below file tree */
     if(!fIsSet(mode,NC_NOCLOBBER))
@@ -231,6 +239,7 @@ zfilecreate(const char *path, int mode, size64_t flags, void* parameters, NCZMAP
 done:
     ncurifree(url);
     nullfree(canonpath);
+    nullfree(abspath);
     if(stat)
     	zfileclose((NCZMAP*)zfmap,1);
     return ZUNTRACE(stat);
@@ -250,13 +259,14 @@ zfileopen(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
 {
     int stat = NC_NOERR;
     char* canonpath = NULL;
+    char* abspath = NULL;
     ZFMAP* zfmap = NULL;
     NCURI*url = NULL;
     
     NC_UNUSED(parameters);
     ZTRACE(5,"path=%s mode=%d flags=%llu",path,mode,flags);
 
-    if(!zfinitialized) zfinitialize();
+    if(!zfinitialized) zfileinitialize();
 
     /* Fixup mode flags */
     mode = (NC_NETCDF4 | mode);
@@ -267,8 +277,13 @@ zfileopen(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
     if(strcasecmp(url->protocol,"file") != 0)
         {stat = NC_EURL; goto done;}
 
-    /* Canonicalize the root path */
-    if((stat = NCpathcanonical(url->path,&canonpath))) goto done;
+    /* Convert the root path */
+    if((canonpath = NCpathcvt(url->path))==NULL)
+	{stat = NC_ENOMEM; goto done;}
+
+    /* Make the root path be absolute */
+    if((abspath = NCpathabsolute(canonpath)) == NULL)
+	{stat = NC_EURL; goto done;}
 
     /* Build the zmap state */
     if((zfmap = calloc(1,sizeof(ZFMAP))) == NULL)
@@ -279,8 +294,8 @@ zfileopen(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
     zfmap->map.flags = flags;
     zfmap->map.mode = mode;
     zfmap->map.api = (NCZMAP_API*)&zapi;
-    zfmap->root = canonpath;
-	canonpath = NULL;
+    zfmap->root = abspath;
+	abspath = NULL;
     
     /* Verify root dir exists */
     if((stat = platformopendir(zfmap,zfmap->root)))
@@ -293,6 +308,7 @@ zfileopen(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
 done:
     ncurifree(url);
     nullfree(canonpath);
+    nullfree(abspath);
     if(stat) zfileclose((NCZMAP*)zfmap,0);
     return ZUNTRACE(stat);
 }
@@ -354,7 +370,7 @@ zfileread(NCZMAP* map, const char* key, size64_t start, size64_t count, void* co
     ZTRACE(5,"map=%s key=%s start=%llu count=%llu",map->url,key,start,count);
 
 #ifdef VERIFY
-    if(!verify(key,!FLAG_ISDIR))
+    if(!verifykey(key,!FLAG_ISDIR))
         assert(!"expected file, have dir");
 #endif
 
@@ -384,7 +400,7 @@ zfilewrite(NCZMAP* map, const char* key, size64_t start, size64_t count, const v
     ZTRACE(5,"map=%s key=%s start=%llu count=%llu",map->url,key,start,count);
 
 #ifdef VERIFY
-    if(!verify(key,!FLAG_ISDIR))
+    if(!verifykey(key,!FLAG_ISDIR))
         assert(!"expected file, have dir");
 #endif
 
@@ -740,9 +756,7 @@ platformopenfile(ZFMAP* zfmap, const char* canonpath, FD* fd)
     /* Try to open file  (will localize) */
     fd->fd = NCopen3(canonpath, ioflags, permissions);
     if(fd->fd < 0)
-        {
-fprintf(stderr,"xxx: canonpath=%s\n",canonpath);
-stat = platformerr(errno); goto done;} /* could not open */
+        {stat = platformerr(errno); goto done;} /* could not open */
 done:
     errno = 0;
     return ZUNTRACEX(stat,"fd=%d",(fd?fd->fd:-1));
@@ -860,7 +874,6 @@ platformdircontent(ZFMAP* zfmap, const char* canonpath, NClist* contents)
 	}
     }
     do {
-	char* p = NULL;
 	const char* name = NULL;
         name = FindFileData.cFileName;
 	if(strcmp(name,".")==0 || strcmp(name,"..")==0)
@@ -1192,6 +1205,24 @@ verify(const char* path, int isdir)
     if(ret < 0)
         return 1; /* If it does not exist, then it can be anything */
     ret = NCstat(path,&buf);
+    if(ret < 0) abort();
+    if(isdir && S_ISDIR(buf.st_mode)) return 1;
+    if(!isdir && S_ISREG(buf.st_mode)) return 1;           
+    return 0;
+}
+
+static int
+verifykey(const char* key, int isdir)
+{
+    int ret = 0;
+    struct stat buf;
+
+    if(key[0] == '/') key++; /* Want relative name */
+
+    ret = NCaccess(key,ACCESS_MODE_EXISTS);
+    if(ret < 0)
+        return 1; /* If it does not exist, then it can be anything */
+    ret = NCstat(key,&buf);
     if(ret < 0) abort();
     if(isdir && S_ISDIR(buf.st_mode)) return 1;
     if(!isdir && S_ISREG(buf.st_mode)) return 1;           

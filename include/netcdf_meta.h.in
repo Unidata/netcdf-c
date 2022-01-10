@@ -63,5 +63,6 @@
 #define NC_HAS_NCZARR        @NC_HAS_NCZARR@ /*!< Parallel I/O with filter support. */
 #define NC_HAS_MULTIFILTERS  @NC_HAS_MULTIFILTERS@ /*!< Nczarr support. */
 #define NC_HAS_LOGGING       @NC_HAS_LOGGING@ /*!< Logging support. */
+#define NC_HAS_QUANTIZE      @NC_HAS_QUANTIZE@
 
 #endif

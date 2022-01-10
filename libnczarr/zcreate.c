@@ -66,10 +66,8 @@ ncz_create_file(const char *path, int cmode, size_t initialsz, const char** cont
     return NC_NOERR;
 
 exit: /*failure exit*/
-    if(!h5) return retval;
-#ifdef LOOK
-    ncz_close_ncz_file(h5, 1, NULL); /* treat like abort */
-#endif
+    if(retval && h5)
+        ncz_closeorabort(h5, NULL, 1); /* treat like abort */
     return retval;
 }
 
@@ -125,7 +123,8 @@ NCZ_create(const char* path, int cmode, size_t initialsz, int basepe,
     cmode |= NC_WRITE;
     
     /* Get the controls */
-    if(ncuriparse(path,&uri)) goto done;
+    ncuriparse(path,&uri);
+    if(uri == NULL) goto done;
 
     /* Create the file */
    stat = ncz_create_file(path, cmode, initialsz, ncurifragmentparams(uri), ncid);

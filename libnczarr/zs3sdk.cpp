@@ -32,11 +32,23 @@ static int makes3key(const char* pathkey, const char** keyp);
 static int makes3keydir(const char* prefix, char** prefixdirp);
 static char** mergekeysets(size_t nkeys1, char** keys1, size_t nkeys2, char** keys2);
     
+static const char*
+dumps3info(ZS3INFO* info)
+{
+    static char text[8192];
+    snprintf(text,sizeof(text),"host=%s region=%s bucket=%s rootkey=%s profile=%s",
+		(info->host?info->host:"null"),
+		(info->region?info->region:"null"),
+		(info->bucket?info->bucket:"null"),
+		(info->rootkey?info->rootkey:"null"),
+		(info->profile?info->profile:"null"));
+    return text;
+}
+
 void
 NCZ_s3sdkinitialize(void)
 {
     ZTRACE(11,NULL);
-//    zs3options.loggingOptions.logLevel = Aws::Utils::Logging::LogLevel::Error;
     Aws::InitAPI(zs3options);
     ZUNTRACE(NC_NOERR);
 }
@@ -65,39 +77,51 @@ makeerrmsg(const Aws::Client::AWSError<Aws::S3::S3Errors> err, const char* key="
 }
 
 
-int
-NCZ_s3sdkcreateconfig(const char* host, const char* region, void** configp)
+static Aws::Client::ClientConfiguration*
+s3sdkcreateconfig(ZS3INFO* info)
 {
     int stat = NC_NOERR;
-    ZTRACE(11,"host=%s region=%s");
+    ZTRACE(11,"info=%s", dumps3info(info));
 
-    Aws::Client::ClientConfiguration *config = new Aws::Client::ClientConfiguration();
+    Aws::Client::ClientConfiguration *config;
+    if(info->profile)
+        config = new Aws::Client::ClientConfiguration(info->profile);
+    else
+        config = new Aws::Client::ClientConfiguration();
     config->scheme = Aws::Http::Scheme::HTTPS;
     config->connectTimeoutMs = 300000;
     config->requestTimeoutMs = 600000;
-    if(region) config->region = region;
-    if(host) config->endpointOverride = host;
+    if(info->region) config->region = info->region;
+    if(info->host) config->endpointOverride = info->host;
     config->enableEndpointDiscovery = true;
-#if 0
     config->followRedirects = Aws::Client::FollowRedirectsPolicy::ALWAYS;
-#endif
-    if(configp) * configp = config;
-    return ZUNTRACE(stat);
+    ZUNTRACE(NC_NOERR);
+    return config;
 }
 
-int
-NCZ_s3sdkcreateclient(void* config0, void** clientp)
+void*
+NCZ_s3sdkcreateclient(ZS3INFO* info)
 {
     ZTRACE(11,NULL);
-    Aws::Client::ClientConfiguration* config = (Aws::Client::ClientConfiguration*) config0;
-    Aws::S3::S3Client *s3client
-        = new Aws::S3::S3Client(*config,
+
+    Aws::Client::ClientConfiguration* config = s3sdkcreateconfig(info);
+    Aws::S3::S3Client *s3client;
+
+    if(info->profile == NULL || strcmp(info->profile,"none")==0) {
+        Aws::Auth::AWSCredentials creds;
+        creds.SetAWSAccessKeyId(Aws::String(""));
+        creds.SetAWSSecretKey(Aws::String(""));
+        s3client = new Aws::S3::S3Client(creds,*config,
                                Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::RequestDependent,
-			       false,
-			       Aws::S3::US_EAST_1_REGIONAL_ENDPOINT_OPTION::NOT_SET
-			       );
-    if(clientp) *clientp = (void*)s3client;
-    return ZUNTRACE(NC_NOERR);
+			       false);
+    } else {
+        s3client = new Aws::S3::S3Client(*config,
+                               Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::RequestDependent,
+			       false);
+    }
+    delete config;
+    ZUNTRACE(NC_NOERR);
+    return (void*)s3client;
 }
 
 int
@@ -106,6 +130,7 @@ NCZ_s3sdkbucketexists(void* s3client0, const char* bucket, int* existsp, char** 
     int stat = NC_NOERR;
     int exists = 0;
     Aws::S3::S3Client* s3client = (Aws::S3::S3Client*)s3client0;
+
     ZTRACE(11,"bucket=%s",bucket);
     if(errmsgp) *errmsgp = NULL;
     auto result = s3client->ListBuckets();
@@ -158,25 +183,22 @@ NCZ_s3sdkbucketcreate(void* s3client0, const char* region, const char* bucket, c
 }
 
 int
-NCZ_s3sdkbucketdelete(void* s3client0, void* config0, const char* region, const char* bucket, char** errmsgp)
+NCZ_s3sdkbucketdelete(void* s3client0, ZS3INFO* info, char** errmsgp)
 {
     int stat = NC_NOERR;
 
-    ZTRACE(11,"region=%s bucket=%s",region,bucket);
+    ZTRACE(11,"info=%s%s",dumps3info(info));
 
     Aws::S3::S3Client* s3client = (Aws::S3::S3Client*)s3client0;
-    Aws::Client::ClientConfiguration *config = (Aws::Client::ClientConfiguration*)config0;
-
+    
     if(errmsgp) *errmsgp = NULL;
-    const Aws::S3::Model::BucketLocationConstraint &awsregion = s3findregion(region);
+    const Aws::S3::Model::BucketLocationConstraint &awsregion = s3findregion(info->region);
     if(awsregion == Aws::S3::Model::BucketLocationConstraint::NOT_SET)
         return NC_EURL;
         /* Set up the request */
     Aws::S3::Model::DeleteBucketRequest request;
-    request.SetBucket(bucket);
-    if(region) {
-	config->region = region; // Will this work?
-    }
+    request.SetBucket(info->bucket);
+
 #ifdef NOOP
     /* Delete the bucket */
     auto result = s3client->DeleteBucket(request);
@@ -319,25 +341,22 @@ NCZ_s3sdkwriteobject(void* s3client0, const char* bucket, const char* pathkey,  
 }
 
 int
-NCZ_s3sdkclose(void* s3client0, void* config0, const char* bucket, const char* rootkey, int deleteit, char** errmsgp)
+NCZ_s3sdkclose(void* s3client0, ZS3INFO* info, int deleteit, char** errmsgp)
 {
     int stat = NC_NOERR;
 
-    ZTRACE(11,"bucket=%s rootkey=%s deleteit=%d content=%p",bucket,rootkey,deleteit);
+    ZTRACE(11,"info=%s rootkey=%s deleteit=%d",dumps3info(info),deleteit);
     
     Aws::S3::S3Client* s3client = (Aws::S3::S3Client*)s3client0;
-    Aws::Client::ClientConfiguration *config = (Aws::Client::ClientConfiguration*)config0;
     if(deleteit) {
         /* Delete the root key; ok it if does not exist */
-        switch (stat = NCZ_s3sdkdeletekey(s3client0,bucket,rootkey,errmsgp)) {
+        switch (stat = NCZ_s3sdkdeletekey(s3client0,info->bucket,info->rootkey,errmsgp)) {
         case NC_NOERR: break;
         case NC_EEMPTY: case NC_ENOTFOUND: stat = NC_NOERR; break;
         default: break;
         }
     }
     delete s3client;
-    delete config;
-
     return ZUNTRACE(stat);
 }
 

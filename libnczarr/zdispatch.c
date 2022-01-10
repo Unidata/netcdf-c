@@ -15,7 +15,6 @@
 static int NCZ_var_par_access(int ncid, int varid, int par_access);
 static int NCZ_show_metadata(int ncid);
 
-
 static const NC_Dispatch NCZ_dispatcher = {
 
     NC_FORMATX_NCZARR,
@@ -96,15 +95,17 @@ static const NC_Dispatch NCZ_dispatcher = {
     NC_NOTNC4_inq_enum_member,
     NC_NOTNC4_inq_enum_ident,
     NC_NOTNC4_def_opaque,
-    NC_NOTNC4_def_var_deflate,
-    NC_NOTNC4_def_var_fletcher32,
+    NCZ_def_var_deflate,
+    NCZ_def_var_fletcher32,
     NCZ_def_var_chunking,
     NCZ_def_var_endian,
-    NC_NOTNC4_def_var_filter,
+    NCZ_def_var_filter,
     NCZ_set_var_chunk_cache,
     NC4_get_var_chunk_cache,
     NCZ_inq_var_filter_ids,
     NCZ_inq_var_filter_info,
+    NC_NOTNC4_def_var_quantize,
+    NC_NOTNC4_inq_var_quantize,
 };
 
 const NC_Dispatch* NCZ_dispatch_table = NULL; /* moved here from ddispatch.c */
@@ -125,10 +126,9 @@ int
 NCZ_initialize(void)
 {
     int stat;
+    NCZ_dispatch_table = &NCZ_dispatcher;
 #ifdef ZTRACING
     NCZ_dispatch_table = &NCZ_dispatcher_trace;
-#else
-    NCZ_dispatch_table = &NCZ_dispatcher;
 #endif
     if (!ncz_initialized)
         NCZ_initialize_internal();
@@ -163,3 +163,36 @@ NCZ_show_metadata(int ncid)
     return NC_NOERR;
 }
 
+#ifndef ENABLE_NCZARR_FILTERS
+ int 
+NCZ_def_var_filter(int ncid, int varid, unsigned int id , size_t n , const unsigned int *params)
+{
+    NC_UNUSED(ncid);
+    NC_UNUSED(varid);
+    NC_UNUSED(id);
+    NC_UNUSED(n);
+    NC_UNUSED(params);
+    return REPORT(NC_NOERR,"def_var_filter");
+}
+
+int 
+NCZ_inq_var_filter_ids(int ncid, int varid, size_t* nfilters, unsigned int* filterids)
+{
+    NC_UNUSED(ncid);
+    NC_UNUSED(varid);
+    NC_UNUSED(filterids);
+    if(nfilters) *nfilters = 0;
+    return REPORT(NC_NOERR,"inq_var_filter_ids");
+}
+
+int
+NCZ_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparams, unsigned int* params)
+{
+    NC_UNUSED(ncid);
+    NC_UNUSED(varid);
+    NC_UNUSED(id);
+    NC_UNUSED(nparams);
+    NC_UNUSED(params);
+    return REPORT(NC_ENOFILTER,"inq_var_filter_info");
+}
+#endif /*ENABLE_NCZARR_FILTERS*/

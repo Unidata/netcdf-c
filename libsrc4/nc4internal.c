@@ -40,6 +40,7 @@ static const NC_reservedatt NC_reserved[] = {
     {NC_ATT_NAME, READONLYFLAG|HIDDENATTRFLAG},				/*NAME*/
     {NC_ATT_REFERENCE_LIST, READONLYFLAG|HIDDENATTRFLAG},		/*REFERENCE_LIST*/
     {NC_XARRAY_DIMS, READONLYFLAG|HIDDENATTRFLAG},			/*_ARRAY_DIMENSIONS*/
+    {NC_ATT_CODECS, VARFLAG|READONLYFLAG|NAMEONLYFLAG|HIDDENATTRFLAG},	/*_Codecs*/
     {NC_ATT_FORMAT, READONLYFLAG},					/*_Format*/
     {ISNETCDF4ATT, READONLYFLAG|NAMEONLYFLAG},				/*_IsNetcdf4*/
     {NCPROPS, READONLYFLAG|NAMEONLYFLAG|MATERIALIZEDFLAG},		/*_NCProperties*/
@@ -352,6 +353,7 @@ nc4_find_nc_grp_h5(int ncid, NC **nc, NC_GRP_INFO_T **grp, NC_FILE_INFO_T **h5)
     NC_FILE_INFO_T *my_h5 = NULL;
     NC *my_nc;
     int retval;
+    size_t index;
 
     /* Look up file metadata. */
     if ((retval = NC_check_id(ncid, &my_nc)))
@@ -360,7 +362,8 @@ nc4_find_nc_grp_h5(int ncid, NC **nc, NC_GRP_INFO_T **grp, NC_FILE_INFO_T **h5)
     assert(my_h5 && my_h5->root_grp);
 
     /* If we can't find it, the grp id part of ncid is bad. */
-    if (!(my_grp = nclistget(my_h5->allgroups, (ncid & GRP_ID_MASK))))
+    index =  (ncid & GRP_ID_MASK);
+    if (!(my_grp = nclistget(my_h5->allgroups,index)))
         return NC_EBADID;
 
     /* Return pointers to caller, if desired. */
@@ -1336,7 +1339,7 @@ var_free(NC_VAR_INFO_T *var)
 
     /* Delete any fill value allocation. */
     if (var->fill_value)
-        free(var->fill_value);
+        {free(var->fill_value); var->fill_value = NULL;}
 
     /* Release type information */
     if (var->type_info)
@@ -1837,12 +1840,13 @@ NC_findreserved(const char* name)
     int n = NRESERVED;
     int L = 0;
     int R = (n - 1);
+
     for(;;) {
         if(L > R) break;
         int m = (L + R) / 2;
         const NC_reservedatt* p = &NC_reserved[m];
         int cmp = strcmp(p->name,name);
-        if(cmp == 0) return p;
+	if(cmp == 0) return p;
         if(cmp < 0)
             L = (m + 1);
         else /*cmp > 0*/
