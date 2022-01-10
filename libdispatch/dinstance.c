@@ -24,6 +24,7 @@ Currently two operations are defined:
 #undef REPORT
 #undef DEBUG
 
+
 /* It is helpful to have a structure that contains memory and an offset */
 typedef struct Position{char* memory; ptrdiff_t offset;} Position;
 
@@ -52,7 +53,7 @@ static int dump_opaque(int ncid, nc_type xtype, size_t size, Position* offset, N
 static ptrdiff_t read_align(ptrdiff_t offset, size_t alignment);
 #endif
 
-static int NC4_inq_any_type(int ncid, nc_type typeid, char *name, size_t *size, nc_type *basetypep, size_t *nfieldsp, int *classp);
+static int NC_inq_any_type(int ncid, nc_type typeid, char *name, size_t *size, nc_type *basetypep, size_t *nfieldsp, int *classp);
 
 /**
 
@@ -158,7 +159,7 @@ reclaim_datar(int ncid, nc_type xtype, Position* offset)
     }
 
     /* Get relevant type info */
-    if((stat = NC4_inq_any_type(ncid,xtype,NULL,&xsize,&basetype,&nfields,&klass))) goto done;
+    if((stat = NC_inq_any_type(ncid,xtype,NULL,&xsize,&basetype,&nfields,&klass))) goto done;
 
     switch  (xtype) {
     case NC_STRING: {
@@ -325,7 +326,7 @@ nc_copy_data(int ncid, nc_type xtype, const void* memory, size_t count, void* co
 #endif
 
     /* Get type size */
-    if((stat = NC4_inq_any_type(ncid,xtype,NULL,&xsize,NULL,NULL,NULL))) goto done;
+    if((stat = NC_inq_any_type(ncid,xtype,NULL,&xsize,NULL,NULL,NULL))) goto done;
 
     /* Optimizations */
     /* 1. Vector of fixed sized objects */
@@ -360,7 +361,7 @@ nc_copy_data_all(int ncid, nc_type xtype, const void* memory, size_t count, void
     void* copy = NULL;
 
     /* Get type size */
-    if((stat = NC4_inq_any_type(ncid,xtype,NULL,&xsize,NULL,NULL,NULL))) goto done;
+    if((stat = NC_inq_any_type(ncid,xtype,NULL,&xsize,NULL,NULL,NULL))) goto done;
 
     /* allocate the top-level */
     if(count > 0) {
@@ -388,7 +389,7 @@ copy_datar(int ncid, nc_type xtype, Position* src, Position* dst)
     size_t nfields;
     int xclass,isf;
 
-    if((stat = NC4_inq_any_type(ncid,xtype,NULL,&xsize,&basetype,&nfields,&xclass))) goto done;
+    if((stat = NC_inq_any_type(ncid,xtype,NULL,&xsize,&basetype,&nfields,&xclass))) goto done;
 
     /* Optimizations */
     /* 1. Vector of fixed size types */
@@ -439,7 +440,7 @@ copy_vlen(int ncid, nc_type xtype, nc_type basetype, Position* src, Position* ds
         {stat = NC_EINVAL; goto done;}
 
     /* Get basetype info */
-    if((stat = NC4_inq_any_type(ncid,basetype,NULL,&basetypesize,NULL,NULL,NULL))) goto done;
+    if((stat = NC_inq_any_type(ncid,basetype,NULL,&basetypesize,NULL,NULL,NULL))) goto done;
 
     /* Make space in the copy vlen */
     if(vl->len > 0) {
@@ -582,7 +583,7 @@ NC_type_alignment(int ncid, nc_type xtype, size_t* alignp)
     if(xtype <= NC_MAX_ATOMIC_TYPE)
         {stat = NC_class_alignment(xtype,&align); goto done;}
     else {/* Presumably a user type */
-        if((stat = NC4_inq_any_type(ncid,xtype,NULL,NULL,NULL,NULL,&klass))) goto done;
+        if((stat = NC_inq_any_type(ncid,xtype,NULL,NULL,NULL,NULL,&klass))) goto done;
 	switch(klass) {
         case NC_VLEN: stat = NC_class_alignment(klass,&align); break;
         case NC_OPAQUE: stat = NC_class_alignment(klass,&align); break;
@@ -671,7 +672,7 @@ dump_datar(int ncid, nc_type xtype, Position* offset, NCbytes* buf)
     char s[128];
 
     /* Get relevant type info */
-    if((stat = NC4_inq_any_type(ncid,xtype,NULL,&xsize,&basetype,&nfields,&klass))) goto done;
+    if((stat = NC_inq_any_type(ncid,xtype,NULL,&xsize,&basetype,&nfields,&klass))) goto done;
 
     switch  (xtype) {
     case NC_CHAR:
@@ -861,17 +862,18 @@ done:
 }
 #endif
 
-/* Utilities */
-
 /* Extended version that can handle atomic typeids */
-static int
-NC4_inq_any_type(int ncid, nc_type typeid, char *name, size_t *size,
+int
+NC_inq_any_type(int ncid, nc_type typeid, char *name, size_t *size,
                   nc_type *basetypep, size_t *nfieldsp, int *classp)
 {
     int stat = NC_NOERR;
+#ifdef USE_NETCDF4
     if(typeid >= NC_FIRSTUSERTYPEID) {
         stat = nc_inq_user_type(ncid,typeid,name,size,basetypep,nfieldsp,classp);
-    } else if(typeid > NC_NAT && typeid <= NC_MAX_ATOMIC_TYPE) {
+    } else
+#endif
+    if(typeid > NC_NAT && typeid <= NC_MAX_ATOMIC_TYPE) {
 	if(basetypep) *basetypep = NC_NAT;
 	if(nfieldsp) *nfieldsp = 0;
 	if(classp) *classp = typeid;
@@ -880,4 +882,3 @@ NC4_inq_any_type(int ncid, nc_type typeid, char *name, size_t *size,
         stat = NC_EBADTYPE;
     return stat;
 }
-

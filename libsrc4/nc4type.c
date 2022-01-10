@@ -722,14 +722,12 @@ int
 NC4_inq_type_fixed_size(int ncid, nc_type xtype, int* fixedsizep)
 {
     int stat = NC_NOERR;   
-    NC* nc = NULL;
     int f = 0;
     int xclass;
 
-    if ((stat = NC_check_id(ncid, &nc))) goto done;
-
     if(xtype < NC_STRING) {f = 1; goto done;}
     if(xtype == NC_STRING) {f = 0; goto done;}
+
 #ifdef USE_NETCDF4
     /* Must be user type */
     if((stat = nc_inq_user_type(ncid,xtype,NULL,NULL,NULL,NULL,&xclass))) goto done;
@@ -740,7 +738,10 @@ NC4_inq_type_fixed_size(int ncid, nc_type xtype, int* fixedsizep)
 	NC_FILE_INFO_T* h5 = NULL;
 	NC_TYPE_INFO_T* typ = NULL;
 #ifdef ENABLE_DAP4
-        int xformat = xformat = nc->dispatch->model;
+        NC* nc = NULL;
+	int xformat;
+        if ((stat = NC_check_id(ncid, &nc))) goto done;
+        xformat = nc->dispatch->model;
 	if(xformat == NC_FORMATX_DAP4) {
 	    ncid = NCD4_get_substrate(ncid);
 	} /* Fall thru */

@@ -19,8 +19,8 @@ main(int argc, char** argv)
 
     strcpy(v5,H5_VERSION);
     major = v5; minor = NULL; patch = NULL;
-    if((p == strchr(major,'.'))) {*p++ = '\0'; minor = p;}
-    if((p == strchr(minor,'.'))) {*p++ = '\0'; patch = p;}
+    if((p = strchr(major,'.'))) {*p++ = '\0'; minor = p;}
+    if((p = strchr(minor,'.'))) {*p++ = '\0'; patch = p;}
     vn[0]='\0';
 
     i = LEN - strlen(major);
