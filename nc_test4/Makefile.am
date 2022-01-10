@@ -116,7 +116,7 @@ perftest.txt bigmeta.nc bigvars.nc *.gz MSGCPP_*.nc	                \
 floats*.nc floats*.cdl shorts*.nc shorts*.cdl ints*.nc ints*.cdl        \
 testfilter_reg.nc filterrepeat.txt tmp_fillonly.nc                      \
 testfilter_order.nc crfilterorder.txt rdfilterorder.txt 1               \
-tmp_*.txt tmp_*.nc
+tmp_*.txt tmp_*.nc tmp*.dump tmp*.cdl tmp*.txt tmp*.tmp tmp_bzip2.c bzip2.nc
 
 DISTCLEANFILES = findplugin.sh run_par_test.sh
 

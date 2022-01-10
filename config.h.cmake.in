@@ -109,6 +109,9 @@ are set when opening a binary file on Windows. */
 /* set this only when building a DLL under MinGW */
 #cmakedefine DLL_NETCDF 1
 
+/* if true, use atexist */
+#cmakedefine ENABLE_ATEXIT_FINALIZE 1
+
 /* if true, build byte-range Client */
 #cmakedefine ENABLE_BYTERANGE 1
 
@@ -154,6 +157,9 @@ are set when opening a binary file on Windows. */
 /* if true, Allow dynamically loaded plugins */
 #cmakedefine ENABLE_PLUGINS 1
 
+/* Do we have access to the Windows Registry */
+#cmakedefine REGEDIT 1
+
 /* define the possible sources for remote test servers */
 #cmakedefine REMOTETESTSERVERS	"${REMOTETESTSERVERS}"
 
@@ -166,9 +172,11 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have `alloca', as a function or macro. */
 #cmakedefine HAVE_ALLOCA 1
 
-/* Define to 1 if you have <alloca.h> and it should be used (not on Ultrix).
-   */
+/* Define to 1 if you have <alloca.h> and it should be used (not on Ultrix). */
 #cmakedefine HAVE_ALLOCA_H 1
+
+/* Define to 1 if you have the `atexit function. */
+#cmakedefine HAVE_ATEXIT 1
 
 /* Define to 1 if you have hdf5_coll_metadata_ops */
 #cmakedefine HDF5_HAS_COLL_METADATA_OPS 1
@@ -277,6 +285,9 @@ are set when opening a binary file on Windows. */
 
 /* Define to 1 if you have the `pnetcdf' library (-lpnetcdf). */
 #cmakedefine HAVE_LIBPNETCDF 1
+
+/* Define to 1 if you have the libxml2 library. */
+#cmakedefine HAVE_LIBXML2 1
 
 /* Define to 1 if you have the <locale.h> header file. */
 #cmakedefine HAVE_LOCALE_H 1

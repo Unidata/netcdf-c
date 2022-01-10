@@ -56,7 +56,7 @@ ut_init(int argc, char** argv, struct UTOptions * options)
     if(options != NULL) {
 	options->dimdefs = nclistnew();
 	options->vardefs = nclistnew();
-        while ((c = getopt(argc, argv, "T:Dx:f:o:k:d:v:s:W:")) != EOF) {
+        while ((c = getopt(argc, argv, "T:Dx:f:o:p:k:d:v:s:W:")) != EOF) {
             switch(c) {
             case 'T':  
 	        nctracelevel(atoi(optarg));
@@ -72,6 +72,9 @@ ut_init(int argc, char** argv, struct UTOptions * options)
                 break;
             case 'o':
 		options->output = strdup(optarg);
+                break;
+            case 'p':
+		options->profile = strdup(optarg);
                 break;
             case 'k': /*implementation*/
 		options->kind = strdup(optarg);
@@ -105,6 +108,12 @@ ut_init(int argc, char** argv, struct UTOptions * options)
     
 done:
     return THROW(stat);
+}
+
+void
+ut_final(void)
+{
+    nc_finalize();
 }
 
 #if 0
@@ -188,7 +197,7 @@ nccheck(int stat, int line)
 }
 
 char*
-makeurl(const char* file, NCZM_IMPL impl)
+makeurl(const char* file, NCZM_IMPL impl, struct UTOptions* options)
 {
     char* url = NULL;
     NCbytes* buf = ncbytesnew();
@@ -214,10 +223,14 @@ makeurl(const char* file, NCZM_IMPL impl)
 	case NCZM_S3:
 	    /* Assume that we have a complete url */
 	    if(ncuriparse(file,&uri)) return NULL;
-	    if(strcasecmp(uri->protocol,"s3")==0)
-		ncurisetprotocol(uri,"https");
-	    if(strcasecmp(uri->protocol,"http")!=0 && strcasecmp(uri->protocol,"https")!=0)
-	        return NULL;
+	    if(options->profile) {
+		const char* profile = ncurifragmentlookup(uri,"aws.profile");
+		if(profile == NULL) {
+		    ncurisetfragmentkey(uri,"aws.profile",options->profile);
+		    /* rebuild the url */
+		    file = (const char*)ncuribuild(uri,NULL,NULL,NCURIALL); /* BAD but simple */
+		}
+	    }
 	    ncbytescat(buf,file);
 	    break;
 	default: abort();

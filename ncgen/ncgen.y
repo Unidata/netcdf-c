@@ -131,6 +131,8 @@ static long long extractint(NCConstant* con);
 #ifdef USE_NETCDF4
 static int parsefilterflag(const char* sdata0, Specialdata* special);
 static int parsecodecsflag(const char* sdata0, Specialdata* special);
+static Symbol* identkeyword(const Symbol*);
+
 #ifdef GENDEBUG1
 static void printfilters(int nfilters, NC_ParsedFilterSpec** filters);
 #endif
@@ -218,6 +220,7 @@ NCConstant*    constant;
 
 %type <sym> ident typename primtype dimd varspec
 	    attrdecl enumid path dimref fielddim fieldspec
+	    varident
 %type <sym> typeref
 %type <sym> varref
 %type <sym> ambiguous_ref
@@ -539,7 +542,7 @@ varlist:      varspec
 	        {$$=$1; listpush(stack,(void*)$3);}
             ;
 
-varspec:        ident dimspec
+varspec:        varident dimspec
                     {
 		    int i;
 		    Dimset dimset;
@@ -889,7 +892,14 @@ constbool:
 
 /* End OF RULES */
 
-/* Push all idents thru here*/
+
+/* Push all idents thru these*/
+
+varident:
+	  IDENT {$$=$1;}
+	| DATA {$$=identkeyword($1);}
+	;
+
 ident:
 	IDENT {$$=$1;}
 	;
@@ -1294,9 +1304,11 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
                 derror("_FillValue attribute not associated with variable: %s",vsym->name);
             }
             if(tsym  == NULL) tsym = vsym->typ.basetype;
+#if 0 /* No longer require matching types */
             else if(vsym->typ.basetype != tsym) {
                 derror("_FillValue attribute type does not match variable type: %s",vsym->name);
             }
+#endif
             special->_Fillvalue = clonedatalist(list);
 	    /* Create the corresponding attribute */
             attr = makeattribute(install("_FillValue"),vsym,tsym,list,ATTRVAR);

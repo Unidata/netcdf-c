@@ -16,7 +16,7 @@ echo "*** Fail: phony dimension creation"
 ECODE=1
 fi
 
-if "x$NC_VLEN_NOTEST" = x1 ; then
+if test "x$NC_VLEN_NOTEST" = x1 ; then
 echo "*** Testing char(*) type printout error in ncdump"
 rm -f ./tst_charvlenbug.nc ./tmp
 ${execdir}/tst_charvlenbug

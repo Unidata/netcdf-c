@@ -136,6 +136,8 @@ main(int argc, char** argv)
     int c;
     char* p;
 
+    nc_initialize();
+
     memset((void*)&dumpoptions,0,sizeof(dumpoptions));
 
     while ((c = getopt(argc, argv, "dhvx:t:T:X:")) != EOF) {
@@ -217,6 +219,7 @@ main(int argc, char** argv)
 done:
     /* Reclaim dumpoptions */
     nullfree(dumpoptions.rootpath);
+    nc_finalize();
     if(stat)
 	fprintf(stderr,"fail: %s\n",nc_strerror(stat));
     return (stat ? 1 : 0);    

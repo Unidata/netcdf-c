@@ -17,6 +17,7 @@ redistribution conditions.
 #include "netcdf.h"
 #include "netcdf_mem.h"
 #include "ncbytes.h"
+#include "ncpathmgr.h"
 #include "nc_tests.h"
 #include "err_macros.h"
 
@@ -168,11 +169,7 @@ readfile(const char* path, NC_memio* memio)
     char* p = NULL;
 
     /* Open the file for reading */
-#ifdef _MSC_VER
-    f = fopen(path,"rb");
-#else
-    f = fopen(path,"r");
-#endif
+    f = NCfopen(path,"r");
     if(f == NULL)
 	{status = errno; goto done;}
     /* get current filesize */
@@ -216,11 +213,7 @@ writefile(const char* path, NC_memio* memio)
     char* p = NULL;
 
     /* Open the file for writing */
-#ifdef _MSC_VER
-    f = fopen(path,"wb");
-#else
-    f = fopen(path,"w");
-#endif
+    f = NCfopen(path,"w");
     if(f == NULL)
 	{status = errno; goto done;}
     count = memio->size;

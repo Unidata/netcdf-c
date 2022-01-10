@@ -11,6 +11,10 @@ TOPBUILDDIR='@abs_top_builddir@'
 FP_ISCMAKE=@ISCMAKE@
 FP_ISMSVC=@ISMSVC@
 FP_ISCYGWIN=@ISCYGWIN@
+FP_ISMINGW=@ISMINGW@
+FP_ISMSYS=@ISMSYS@
+FP_ISREGEDIT=@ISREGEDIT@
+FP_USEPLUGINS=@USEPLUGINS@
 
 # Feature flags
 FEATURE_HDF5=@HAS_HDF5@
@@ -75,6 +79,19 @@ set -e
 # Allow global set -x mechanism for debugging.
 if test "x$SETX" = x1 ; then set -x ; fi
 
+# On MINGW, bash and other POSIX utilities use a mounted root directory,
+# but executables compiled for Windows do not recognise the mount point.
+# Here we ensure that Windows paths are used in tests of Windows executables.
+if test "x${FP_ISMSYS}" = xyes || test "x${FP_ISCYGWIN}" = xyes ; then
+  if test "x${MSYS2_PREFIX}" = x ; then
+    MSYS2_PREFIX=`cygpath -w '/'`
+    export MSYS2_PREFIX
+  fi
+fi
+if test "x${FP_ISMINGW}" = xyes ; then
+    alias pwd='pwd -W'
+fi
+
 # We assume that TOPSRCDIR and TOPBUILDDIR are defined
 # At the top of this shell script
 top_srcdir="$TOPSRCDIR"
@@ -108,9 +125,6 @@ cd $top_srcdir; top_srcdir=`pwd` ; cd $WD
 cd $builddir; builddir=`pwd` ; cd $WD
 cd $top_builddir; top_builddir=`pwd` ; cd $WD
 cd $execdir; execdir=`pwd` ; cd $WD
-
-# If we have cygpath (which only exists under CYGWIN),
-# then try to normalize selected file paths.
 
 # For sun os
 export srcdir top_srcdir builddir top_builddir execdir

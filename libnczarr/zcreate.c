@@ -123,7 +123,8 @@ NCZ_create(const char* path, int cmode, size_t initialsz, int basepe,
     cmode |= NC_WRITE;
     
     /* Get the controls */
-    if(ncuriparse(path,&uri)) goto done;
+    ncuriparse(path,&uri);
+    if(uri == NULL) goto done;
 
     /* Create the file */
    stat = ncz_create_file(path, cmode, initialsz, ncurifragmentparams(uri), ncid);

@@ -67,7 +67,6 @@ NCJ_INT, /*NC_UINT64*/
 };
 
 /* Forward */
-static int endswith(const char* s, const char* suffix);
 
 /**************************************************/
 
@@ -775,123 +774,6 @@ done:
     return NC_NOERR;
 }
     
-/**************************************************/
-/* S3 utilities */
-
-EXTERNL int
-NCZ_s3urlprocess(NCURI* url, ZS3INFO* s3)
-{
-    int stat = NC_NOERR;
-    NClist* segments = NULL;
-    NCbytes* buf = ncbytesnew();
-
-    if(url == NULL)
-        {stat = NC_EURL; goto done;}
-    /* do some verification */
-    if(strcmp(url->protocol,"https") != 0)
-        {stat = NC_EURL; goto done;}
-
-    /* Path better look absolute */
-    if(!nczm_isabsolutepath(url->path))
-    	{stat = NC_EURL; goto done;}
-
-    /* Distinguish path-style from virtual-host style from other:
-       Virtual: https://bucket-name.s3.Region.amazonaws.com/<root>
-       Path: https://s3.Region.amazonaws.com/bucket-name/<root>
-       Other: https://<host>/bucketname/<root>
-    */
-    if(url->host == NULL || strlen(url->host) == 0)
-        {stat = NC_EURL; goto done;}
-    if(endswith(url->host,AWSHOST)) { /* Virtual or path */
-        segments = nclistnew();
-        /* split the hostname by "." */
-        if((stat = nczm_split_delim(url->host,'.',segments))) goto done;
-	switch (nclistlength(segments)) {
-	default: stat = NC_EURL; goto done;
-	case 4:
-            if(strcasecmp(nclistget(segments,0),"s3")!=0)
-	        {stat = NC_EURL; goto done;}
-	    s3->urlformat = UF_PATH; 
-	    s3->region = strdup(nclistget(segments,1));
-	    break;
-	case 5:
-            if(strcasecmp(nclistget(segments,1),"s3")!=0)
-	        {stat = NC_EURL; goto done;}
-	    s3->urlformat = UF_VIRTUAL;
-	    s3->region = strdup(nclistget(segments,2));
-    	    s3->bucket = strdup(nclistget(segments,0));
-	    break;
-	}
-	/* Rebuild host to look like path-style */
-	ncbytescat(buf,"s3.");
-	ncbytescat(buf,s3->region);
-	ncbytescat(buf,AWSHOST);
-        s3->host = ncbytesextract(buf);
-    } else {
-        s3->urlformat = UF_OTHER;
-        if((s3->host = strdup(url->host))==NULL)
-	    {stat = NC_ENOMEM; goto done;}
-    }
-    /* Do fixups to make everything look like it was path style */
-    switch (s3->urlformat) {
-    case UF_PATH:
-    case UF_OTHER:
-	/* We have to process the path to get the bucket, and remove it in the path */
-	if(url->path != NULL && strlen(url->path) > 0) {
-            /* split the path by "/"  */
-   	    nclistfreeall(segments);
-	    segments = nclistnew();
-            if((stat = nczm_split_delim(url->path,'/',segments))) goto done;
-	    if(nclistlength(segments) == 0)
-	    	{stat = NC_EURL; goto done;}
-	    s3->bucket = ((char*)nclistremove(segments,0));
-	    if(nclistlength(segments) > 0) {
-	        if((stat = nczm_join(segments,&s3->rootkey))) goto done;
-	    } else
-	    	s3->rootkey = NULL;
-	    nclistfreeall(segments); segments = NULL;
-	}
-	break;
-    case UF_VIRTUAL:
-	if(url->path == NULL || strlen(url->path) == 0)
-	    s3->rootkey = NULL;
-        else
-	    s3->rootkey = strdup(url->path);
-	break;
-    default: stat = NC_EURL; goto done;
-    }
-    
-done:
-    ncbytesfree(buf);
-    nclistfreeall(segments);
-    return stat;
-}
-
-int
-NCZ_s3clear(ZS3INFO* s3)
-{
-    if(s3) {
-	nullfree(s3->host);
-	nullfree(s3->region);
-	nullfree(s3->bucket);
-	nullfree(s3->rootkey);
-    }
-    return NC_NOERR;
-}
-
-static int
-endswith(const char* s, const char* suffix)
-{
-    ssize_t ls, lsf, delta;
-    if(s == NULL || suffix == NULL) return 0;
-    ls = strlen(s);
-    lsf = strlen(suffix);
-    delta = (ls - lsf);
-    if(delta < 0) return 0;
-    if(memcmp(s+delta,suffix,lsf)!=0) return 0;
-    return 1;
-}
-
 int
 NCZ_ischunkname(const char* name,char dimsep)
 {

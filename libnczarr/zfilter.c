@@ -54,7 +54,7 @@
 
 #undef DEBUG
 #define DEBUGF
-#undef DEBUGL
+#define DEBUGL
 
 #define NULLIFY(x) ((x)?(x):"NULL")
 
@@ -172,8 +172,8 @@ const char*
 printplugin(const NCZ_Plugin* plugin)
 {
     static char plbuf[4096];
-    char plbuf2[4096];
-    char plbuf1[4096];
+    char plbuf2[2000];
+    char plbuf1[2000];
 
     if(plugin == NULL) return "plugin=NULL";
     plbuf2[0] = '\0'; plbuf1[0] = '\0';
@@ -338,7 +338,7 @@ NCZ_addfilter(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, unsigned int id, size_t 
     /* Before anything else, find the matching plugin */
     if((stat = NCZ_plugin_loaded(id,&plugin))) goto done;
     if(plugin == NULL || plugin->codec.codec == NULL) { /* fail */
-	ZLOG(NCLOGERR,"no such plugin: %u",(unsigned)id);
+	ZLOG(NCLOGWARN,"no such plugin: %u",(unsigned)id);
 	stat = NC_ENOFILTER;
 	goto done;
     }
@@ -672,7 +672,7 @@ NCZ_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparamsp, 
         if(params && spec->hdf5.visible.nparams > 0)
 	    memcpy(params,spec->hdf5.visible.params,sizeof(unsigned int)*spec->hdf5.visible.nparams);
     } else {
-        ZLOG(NCLOGERR,"no such filter: %u",(unsigned)id);
+        ZLOG(NCLOGWARN,"no such filter: %u",(unsigned)id);
         stat = NC_ENOFILTER;
     } 
 done:
@@ -692,7 +692,9 @@ NCZ_filter_initialize(void)
     {
         NCZ_filter_initialized = 1;
         memset(loaded_plugins,0,sizeof(loaded_plugins));
+#ifdef ENABLE_NCZARR_FILTERS
         if((stat = NCZ_load_all_plugins())) goto done;
+#endif
     }
 done:
     return ZUNTRACE(stat);
@@ -704,6 +706,8 @@ NCZ_filter_finalize(void)
     int stat = NC_NOERR;
     int i;
     ZTRACE(6,"");
+    if(!NCZ_filter_initialized) goto done;
+#ifdef ENABLE_NCZARR_FILTERS
     /* Reclaim all loaded filters */
     for(i=0;i<=loaded_plugins_max;i++) {
         NCZ_unload_plugin(loaded_plugins[i]);
@@ -711,6 +715,11 @@ NCZ_filter_finalize(void)
     }
     /* Reclaim the defaults library; Must occur as last act */
     if(default_lib != NULL) {(void)ncpsharedlibfree(default_lib); default_lib = NULL; codec_defaults = NULL;}
+#else
+    memset(loaded_plugins,0,sizeof(loaded_plugins));
+#endif
+done:
+    NCZ_filter_initialized = 0;
     return ZUNTRACE(stat);
 }
 

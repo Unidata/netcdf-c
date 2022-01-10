@@ -2158,8 +2158,8 @@ int
 nc__pseudofd(void)
 {
     if(pseudofd == 0)  {
-        int maxfd = 32767; /* default */
 #ifdef HAVE_GETRLIMIT
+        int maxfd = 32767; /* default */
         struct rlimit rl;
         if(getrlimit(RLIMIT_NOFILE,&rl) == 0) {
             if(rl.rlim_max != RLIM_INFINITY)

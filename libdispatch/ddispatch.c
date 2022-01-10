@@ -11,6 +11,7 @@ See LICENSE.txt for license information.
 #include "ncrc.h"
 #include "ncoffsets.h"
 #include "ncpathmgr.h"
+#include "ncxml.h"
 
 /* Required for getcwd, other functions. */
 #ifdef HAVE_UNISTD_H
@@ -24,6 +25,10 @@ See LICENSE.txt for license information.
 
 #if defined(ENABLE_BYTERANGE) || defined(ENABLE_DAP) || defined(ENABLE_DAP4)
 #include <curl/curl.h>
+#endif
+
+#ifdef ENABLE_S3_SDK
+#include "ncs3sdk.h"
 #endif
 
 /* Define vectors of zeros and ones for use with various nc_get_varX functions */
@@ -51,6 +56,7 @@ NCDISPATCH_initialize(void)
         NC_stride_one[i] = 1;
     }
 
+    status = ncrc_createglobalstate(); /* will allocate and clear */
     globalstate = ncrc_getglobalstate(); /* will allocate and clear */
 
     /* Capture temp dir*/
@@ -93,21 +99,23 @@ NCDISPATCH_initialize(void)
         globalstate->cwd = strdup(cwdbuf);
     }
 
-    /* Now load RC File */
-    status = NC_rcload();
     ncloginit();
+
+    /* Now load RC Files */
+    ncrc_initialize();
 
     /* Compute type alignments */
     NC_compute_alignments();
 
-    /* Initialize curl if it is being used */
 #if defined(ENABLE_BYTERANGE) || defined(ENABLE_DAP) || defined(ENABLE_DAP4)
+    /* Initialize curl if it is being used */
     {
         CURLcode cstat = curl_global_init(CURL_GLOBAL_ALL);
 	if(cstat != CURLE_OK)
 	    status = NC_ECURL;
     }
 #endif
+
     return status;
 }
 
@@ -118,6 +126,9 @@ NCDISPATCH_finalize(void)
     ncrc_freeglobalstate();
 #if defined(ENABLE_BYTERANGE) || defined(ENABLE_DAP) || defined(ENABLE_DAP4)
     curl_global_cleanup();
+#endif
+#if defined(ENABLE_DAP4)
+   ncxml_finalize();
 #endif
     return status;
 }

@@ -17,6 +17,7 @@
 #include <aws/s3/model/HeadObjectRequest.h>
 #include <aws/s3/model/CreateBucketRequest.h>
 #include <aws/s3/model/DeleteBucketRequest.h>
+#include <aws/core/auth/AWSCredentialsProvider.h>
 #include <aws/core/utils/memory/stl/AWSString.h>
 #include <aws/core/utils/logging/DefaultLogSystem.h>
 #include <aws/core/utils/logging/AWSLogging.h>

@@ -727,6 +727,7 @@ NC_check_vlens(NC3_INFO *ncp)
     rec_vars_count = 0;
     vpp = ncp->vars.value;
     for (ii = 0; ii < ncp->vars.nelems; ii++, vpp++) {
+	assert(vpp != NULL && *vpp != NULL);
 	if( !IS_RECVAR(*vpp) ) {
 	    last = 0;
 	    if( NC_check_vlen(*vpp, vlen_max) == 0 ) {
@@ -1173,13 +1174,22 @@ NC3_open(const char *path, int ioflags, int basepe, size_t *chunksizehintp,
         }
 
 #ifdef ENABLE_BYTERANGE
-    /* If the model specified the use of byte-ranges, then signal by
-       a temporary hack using one of the flags in the ioflags.
-    */
-    if(NC_testmode(path,"bytes"))
-        ioflags |= NC_HTTP;
+	{
+	    NCURI* uri = NULL;
+	    ncuriparse(path,&uri);
+	    if(uri) {
+		/* If the model specified the use of byte-ranges, then signal by
+		a temporary hack using one of the flags in the ioflags. */
+		if(NC_testmode(uri,"bytes")) {
+#  ifdef ENABLE_S3_SDK
+		    if(NC_iss3(uri)) ioflags |= NC_S3SDK; else
+#  endif
+			ioflags |= NC_HTTP;
+		}
+		ncurifree(uri);
+	    }
+	}
 #endif /*ENABLE_BYTERANGE*/
-
         status = ncio_open(path, ioflags, 0, 0, &nc3->chunk, parameters,
 			       &nc3->nciop, NULL);
 	if(status)

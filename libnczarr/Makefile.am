@@ -50,7 +50,6 @@ ztype.c \
 zutil.c \
 zvar.c \
 zwalk.c \
-zfilter.c \
 zdebug.c \
 zarr.h \
 zcache.h \
@@ -69,9 +68,13 @@ if ENABLE_NCZARR_ZIP
 libnczarr_la_SOURCES += zmap_zip.c 
 endif
 
+if ENABLE_NCZARR_FILTERS
+libnczarr_la_SOURCES += zfilter.c
+endif
+
 if ENABLE_S3_SDK
 libnczarr_la_SOURCES += zmap_s3sdk.c
-libnczarr_la_SOURCES += zs3sdk.cpp awsincludes.h zs3sdk.h
+libnczarr_la_SOURCES += 
 AM_CXXFLAGS += -std=c++11
 endif
 

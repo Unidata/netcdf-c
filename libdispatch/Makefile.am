@@ -21,7 +21,7 @@ dvarinq.c dinternal.c ddispatch.c dutf8.c nclog.c dstring.c ncuri.c	\
 nclist.c ncbytes.c nchashmap.c nctime.c nc.c nclistmgr.c dauth.c	\
 doffsets.c dpathmgr.c dutil.c dreadonly.c dnotnc4.c dnotnc3.c           \
 daux.c dinfermodel.c \
-dcrc32.c dcrc32.h dcrc64.c ncexhash.c ncxcache.c ncjson.c
+dcrc32.c dcrc32.h dcrc64.c ncexhash.c ncxcache.c ncjson.c ds3util.c
 
 # Add the utf8 codebase
 libdispatch_la_SOURCES += utf8proc.c utf8proc.h
@@ -47,6 +47,15 @@ if ENABLE_BYTERANGE
 libdispatch_la_SOURCES += dhttp.c
 endif # ENABLE_BYTERANGE
 
+if ENABLE_S3_SDK
+libdispatch_la_SOURCES += ncs3sdk.cpp awsincludes.h
+AM_CXXFLAGS = -std=c++11
+endif
+
+if REGEDIT
+libdispatch_la_SOURCES += dreg.c
+endif
+
 EXTRA_DIST=CMakeLists.txt ncsettings.hdr utf8proc_data.c
 
 # Build ncsettings.c as follows:
@@ -68,3 +77,16 @@ ncsettings.c: $(top_srcdir)/libnetcdf.settings ncsettings.hdr
 	sed -e 's/\(.*\)/\"\1\\n\"/' | \
 	cat >> ncsettings.c
 	echo ';' >> ncsettings.c
+
+# Show what is needed to insert a new version of ezxml
+# primary fix: The original ezxml.[ch] uses '//' comments;
+# unpack and replace with '/*..*/'
+
+REPO=https://downloads.sourceforge.net/project/ezxml/
+EZXML=ezxml-0.8.6.tar.gz
+ezxml::
+	rm -fr ./ezxml ./ezxml.[ch] ./license.txt
+	tar -zxf ./${EZXML}
+	sed -e 's|//\(.*\)|/*\1*/|' <ezxml/ezxml.c >./ezxml.c
+	sed -e 's|//\(.*\)|/*\1*/|' <ezxml/ezxml.h >./ezxml.h
+	cp ezxml/license.txt .

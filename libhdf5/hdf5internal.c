@@ -928,7 +928,10 @@ nc4_hdf5_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
 
     /* Give the people what they want. */
     if (norm_name)
+    {
         strncpy(norm_name, my_norm_name, NC_MAX_NAME);
+        norm_name[NC_MAX_NAME] = 0;
+    }
     if (h5)
         *h5 = my_h5;
     if (grp)

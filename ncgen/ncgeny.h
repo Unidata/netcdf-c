@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 3.7.6.  */
+/* A Bison parser, made by GNU Bison 3.8.2.  */
 
 /* Bison interface for Yacc-like parsers in C
 
@@ -116,7 +116,7 @@ extern int ncgdebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 154 "ncgen.y"
+#line 156 "ncgen.y"
 
 Symbol* sym;
 unsigned long  size; /* allow for zero size to indicate e.g. UNLIMITED*/
@@ -136,6 +136,8 @@ typedef union YYSTYPE YYSTYPE;
 
 extern YYSTYPE ncglval;
 
+
 int ncgparse (void);
+
 
 #endif /* !YY_NCG_NCGEN_TAB_H_INCLUDED  */

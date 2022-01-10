@@ -20,6 +20,15 @@
 
 #define MAX_NUM_FORMATS 5
 
+#undef DEBUG
+
+#ifdef DEBUG
+#define CATCH(x) {(x); if(nerrs > 0) breakpoint();}
+static void breakpoint(void) {return;}
+#else
+#define CATCH(x) (x)
+#endif
+
 int current_format = 0;
 
 /* Determine how many formats are available, and what they are. */
@@ -84,40 +93,40 @@ main(int argc, char **argv)
       nc_set_default_format(format[i], NULL);
 
       /* Run all the tests for this format. */
-      nerrs += test_nccreate(testfile);
-      nerrs += test_ncopen(testfile);
-      nerrs += test_ncredef(testfile);
-      nerrs += test_ncendef(testfile);
-      nerrs += test_ncclose(testfile);
-      nerrs += test_ncinquire(testfile);
-      nerrs += test_ncsync(testfile);
-      nerrs += test_ncabort(testfile);
-      nerrs += test_ncdimdef(testfile);
-      nerrs += test_ncdimid(testfile);
-      nerrs += test_ncdiminq(testfile);
-      nerrs += test_ncdimrename(testfile);
-      nerrs += test_ncvardef(testfile);
-      nerrs += test_ncvarid(testfile);
-      nerrs += test_ncvarinq(testfile);
-      nerrs += test_ncvarputg(testfile);
-      nerrs += test_ncvarput1(testfile);
-      nerrs += test_ncvarget1(testfile);
-      nerrs += test_ncvarput(testfile);
-      nerrs += test_ncvarget(testfile);
-      nerrs += test_ncvarputg(testfile);
-      nerrs += test_ncvargetg(testfile);
-      nerrs += test_ncrecinq(testfile);
-      nerrs += test_ncrecput(testfile);
-      nerrs += test_ncrecget(testfile);
-      nerrs += test_ncvarrename(testfile);
-      nerrs += test_ncattput(testfile);
-      nerrs += test_ncattinq(testfile);
-      nerrs += test_ncattget(testfile);
-      nerrs += test_ncattcopy(testfile, "test2.nc");
-      nerrs += test_ncattname(testfile);
-      nerrs += test_ncattrename(testfile);
-      nerrs += test_ncattdel(testfile);
-      nerrs += test_nctypelen();
+      CATCH(nerrs += test_nccreate(testfile));
+      CATCH(nerrs += test_ncopen(testfile));
+      CATCH(nerrs += test_ncredef(testfile));
+      CATCH(nerrs += test_ncendef(testfile));
+      CATCH(nerrs += test_ncclose(testfile));
+      CATCH(nerrs += test_ncinquire(testfile));
+      CATCH(nerrs += test_ncsync(testfile));
+      CATCH(nerrs += test_ncabort(testfile));
+      CATCH(nerrs += test_ncdimdef(testfile));
+      CATCH(nerrs += test_ncdimid(testfile));
+      CATCH(nerrs += test_ncdiminq(testfile));
+      CATCH(nerrs += test_ncdimrename(testfile));
+      CATCH(nerrs += test_ncvardef(testfile));
+      CATCH(nerrs += test_ncvarid(testfile));
+      CATCH(nerrs += test_ncvarinq(testfile));
+      CATCH(nerrs += test_ncvarputg(testfile));
+      CATCH(nerrs += test_ncvarput1(testfile));
+      CATCH(nerrs += test_ncvarget1(testfile));
+      CATCH(nerrs += test_ncvarput(testfile));
+      CATCH(nerrs += test_ncvarget(testfile));
+      CATCH(nerrs += test_ncvarputg(testfile));
+      CATCH(nerrs += test_ncvargetg(testfile));
+      CATCH(nerrs += test_ncrecinq(testfile));
+      CATCH(nerrs += test_ncrecput(testfile));
+      CATCH(nerrs += test_ncrecget(testfile));
+      CATCH(nerrs += test_ncvarrename(testfile));
+      CATCH(nerrs += test_ncattput(testfile));
+      CATCH(nerrs += test_ncattinq(testfile));
+      CATCH(nerrs += test_ncattget(testfile));
+      CATCH(nerrs += test_ncattcopy(testfile, "test2.nc"));
+      CATCH(nerrs += test_ncattname(testfile));
+      CATCH(nerrs += test_ncattrename(testfile));
+      CATCH(nerrs += test_ncattdel(testfile));
+      CATCH(nerrs += test_nctypelen());
 
       /* Clean up in-memory struct. */
       {

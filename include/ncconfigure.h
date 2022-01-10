@@ -60,9 +60,6 @@ extern long long int strtoll(const char*, char**, int);
 #ifndef strtoull
 extern unsigned long long int strtoull(const char*, char**, int);
 #endif
-#ifndef fileno
-extern int fileno(FILE*);
-#endif
 
 #endif /*STDC*/
 
@@ -79,12 +76,14 @@ extern int fileno(FILE*);
 #endif
 #ifndef strncasecmp
 #define strncasecmp _strnicmp
-
 #endif
 #ifndef snprintf
 #if _MSC_VER<1900
 #define snprintf _snprintf
 #endif
+#endif
+#ifndef fileno
+#define fileno(f) _fileno(f)
 #endif
 #endif /*__MINGW32__*/
 
