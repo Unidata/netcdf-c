@@ -24,8 +24,18 @@
  * v1.6 compatibily is selected in a few strange cases when it is
  * not possible to select v1.8.
  *
- * Files created with v1.6 compatibility have superblock version 0.
- * Files created with v1.8 compatibility have superblock version 2.
+ * Files created or updated with v1.10 and higher compatibility are
+ * not legal netCDF-4 format, as of 2022 January.  They are not
+ * readable by any netCDF library version linked with any HDF5 v1.8
+ * or older library version.  However, it is possible for advanced
+ * or experimental software to deliberately override these default
+ * format settings, to create advanced format files for special
+ * purposes.
+ *
+ * Files created with v1.6  compatibility have superblock version 0.
+ * Files created with v1.8  compatibility have superblock version 2.
+ * Files created with v1.10 compatibility have superblock version 3,
+ * and are avoided by default.  Et cetera.
  *
  * The superblock version is locked in when a file is first created.
  * It is then possible to get a mix of v1.6 and v1.8 internal
@@ -36,6 +46,11 @@
  *
  * See netcdf-c github issues #250 and #951 for more details about
  * the rationale and evolution of netCDF-4 format compatibility.
+ *
+ * See HDF5 documentation for H5Pset_libver_bounds and related RFC's,
+ * for more details about HDF5 file object versioning.
+ *
+ * @author Dave Allured, NOAA/PSL/CIRES @date 2022 January 11
  */
 
 #include "config.h"
@@ -50,6 +65,8 @@
  *                be used in the next call to H5Fcreate or H5Fopen.
  *
  * @return ::NC_EHDFERR General failure in HDF5.
+ *
+ * @author Dave Allured, NOAA/PSL/CIRES @date 2022 January 11
  */
 int
 hdf5set_format_compatibility(hid_t fapl_id)
