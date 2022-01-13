@@ -76,7 +76,6 @@ THIS SOFTWARE.
 #if defined(_WIN32) && !defined(__MINGW32__)
 #include <io.h>
 #include "XGetopt.h"
-#define snprintf _snprintf
 #endif
 
 #define X_ALIGN         4
