@@ -264,6 +264,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
     {
         /* Do we have a fill value for this var? */
         if (var->fill_value)
+#ifdef SEPDATA
         {
             if (var->type_info->nc_type_class == NC_STRING)
             {
@@ -281,14 +282,21 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
                 memcpy(fill_valuep, var->fill_value, var->type_info->size);
             }
         }
+#else
+        {
+	    int xtype = var->type_info->hdr.id;
+	    if((retval = nc_copy_data(ncid,xtype,var->fill_value,1,fill_valuep))) return retval;
+	}
+#endif
         else
         {
-            if (var->type_info->nc_type_class == NC_STRING)
+#ifdef SEPDATA
+	    if (var->type_info->nc_type_class == NC_STRING)
             {
                 if (!(*(char **)fill_valuep = calloc(1, sizeof(char *))))
                     return NC_ENOMEM;
 
-                if ((retval = nc4_get_default_fill_value(var->type_info->hdr.id, (char **)fill_valuep)))
+                if ((retval = nc4_get_default_fill_value(var->type_info->hdr.ud, (char **)fill_valuep)))
                 {
                     free(*(char **)fill_valuep);
                     return retval;
@@ -299,6 +307,10 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
                 if ((retval = nc4_get_default_fill_value(var->type_info->hdr.id, fill_valuep)))
                     return retval;
             }
+#else
+            if ((retval = nc4_get_default_fill_value(var->type_info, fill_valuep)))
+                    return retval;
+#endif
         }
     }
 
@@ -1464,83 +1476,12 @@ nc4_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
     }
     else
     {
-        if (nc4_get_default_fill_value(var->type_info->hdr.id, *fillp))
+        if (nc4_get_default_fill_value(var->type_info, *fillp))
         {
             /* Note: release memory, but don't return error on failure */
             free(*fillp);
             *fillp = NULL;
         }
-    }
-
-    return NC_NOERR;
-}
-
-/**
- * @internal Get the default fill value for an atomic type. Memory for
- * fill_value must already be allocated, or you are DOOMED!
- *
- * @param type_info Pointer to type info struct.
- * @param fill_value Pointer that gets the default fill value.
- *
- * @returns NC_NOERR No error.
- * @returns NC_EINVAL Can't find atomic type.
- * @author Ed Hartnett
- */
-int
-nc4_get_default_fill_value(nc_type typecode, void *fill_value)
-{
-    switch (typecode)
-    {
-    case NC_CHAR:
-        *(char *)fill_value = NC_FILL_CHAR;
-        break;
-
-    case NC_STRING:
-        *(char **)fill_value = strdup(NC_FILL_STRING);
-        break;
-
-    case NC_BYTE:
-        *(signed char *)fill_value = NC_FILL_BYTE;
-        break;
-
-    case NC_SHORT:
-        *(short *)fill_value = NC_FILL_SHORT;
-        break;
-
-    case NC_INT:
-        *(int *)fill_value = NC_FILL_INT;
-        break;
-
-    case NC_UBYTE:
-        *(unsigned char *)fill_value = NC_FILL_UBYTE;
-        break;
-
-    case NC_USHORT:
-        *(unsigned short *)fill_value = NC_FILL_USHORT;
-        break;
-
-    case NC_UINT:
-        *(unsigned int *)fill_value = NC_FILL_UINT;
-        break;
-
-    case NC_INT64:
-        *(long long *)fill_value = NC_FILL_INT64;
-        break;
-
-    case NC_UINT64:
-        *(unsigned long long *)fill_value = NC_FILL_UINT64;
-        break;
-
-    case NC_FLOAT:
-        *(float *)fill_value = NC_FILL_FLOAT;
-        break;
-
-    case NC_DOUBLE:
-        *(double *)fill_value = NC_FILL_DOUBLE;
-        break;
-
-    default:
-        return NC_EINVAL;
     }
 
     return NC_NOERR;
@@ -1777,3 +1718,106 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
 
     return NC_NOERR;
 }
+
+/**
+ * @internal Get the default fill value for an atomic type. Memory for
+ * fill_value must already be allocated, or you are DOOMED!
+ *
+ * @param xtype type id
+ * @param fill_value Pointer that gets the default fill value.
+ *
+ * @returns NC_NOERR No error.
+ * @returns NC_EINVAL Can't find atomic type.
+ * @author Ed Hartnett
+ */
+int
+nc4_get_default_fill_value(NC_TYPE_INFO_T* tinfo, void *fill_value)
+{
+    if(tinfo->hdr.id > NC_NAT && tinfo->hdr.id <= NC_MAX_ATOMIC_TYPE)
+        return nc4_get_default_atomic_fill_value(tinfo->hdr.id,fill_value);
+#ifdef USE_NETCDF4
+    switch(tinfo->nc_type_class) {
+    case NC_ENUM:
+	return nc4_get_default_atomic_fill_value(tinfo->u.e.base_nc_typeid,fill_value);
+    case NC_OPAQUE:
+    case NC_VLEN:
+    case NC_COMPOUND:
+	if(fill_value)
+	    memset(fill_value,0,tinfo->size);
+	break;	
+    default: return NC_EBADTYPE;
+    }
+#endif
+    return NC_NOERR;
+}
+
+/**
+ * @internal Get the default fill value for an atomic type. Memory for
+ * fill_value must already be allocated, or you are DOOMED!
+ *
+ * @param xtype type id
+ * @param fill_value Pointer that gets the default fill value.
+ *
+ * @returns NC_NOERR No error.
+ * @returns NC_EINVAL Can't find atomic type.
+ * @author Ed Hartnett
+ */
+int
+nc4_get_default_atomic_fill_value(nc_type xtype, void *fill_value)
+{
+    switch (xtype)
+    {
+    case NC_CHAR:
+        *(char *)fill_value = NC_FILL_CHAR;
+        break;
+
+    case NC_STRING:
+        *(char **)fill_value = strdup(NC_FILL_STRING);
+        break;
+
+    case NC_BYTE:
+        *(signed char *)fill_value = NC_FILL_BYTE;
+        break;
+
+    case NC_SHORT:
+        *(short *)fill_value = NC_FILL_SHORT;
+        break;
+
+    case NC_INT:
+        *(int *)fill_value = NC_FILL_INT;
+        break;
+
+    case NC_UBYTE:
+        *(unsigned char *)fill_value = NC_FILL_UBYTE;
+        break;
+
+    case NC_USHORT:
+        *(unsigned short *)fill_value = NC_FILL_USHORT;
+        break;
+
+    case NC_UINT:
+        *(unsigned int *)fill_value = NC_FILL_UINT;
+        break;
+
+    case NC_INT64:
+        *(long long *)fill_value = NC_FILL_INT64;
+        break;
+
+    case NC_UINT64:
+        *(unsigned long long *)fill_value = NC_FILL_UINT64;
+        break;
+
+    case NC_FLOAT:
+        *(float *)fill_value = NC_FILL_FLOAT;
+        break;
+
+    case NC_DOUBLE:
+        *(double *)fill_value = NC_FILL_DOUBLE;
+        break;
+
+    default:
+        return NC_EINVAL;
+    }
+    return NC_NOERR;
+}
+

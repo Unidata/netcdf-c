@@ -243,7 +243,7 @@ computeFQN(VarID vid, char** fqnp)
     *q++ = '\0'; /* guarantee */
     strcat(fqn,escname);
 done:
-    if(stat == NC_NOERR && fqnp != NULL) *fqnp = fqn;
+    if(stat == NC_NOERR && fqnp != NULL) {*fqnp = fqn; fqn = NULL;}
     return stat;
 }
 

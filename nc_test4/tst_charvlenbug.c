@@ -5,6 +5,10 @@
 #include <string.h>
 #include "netcdf.h"
 
+#define AFIRST
+
+#undef DEBUG
+
 #define FILE "tst_charvlenbug.nc"
 
 void checkErrorCode(int status, const char* message){
@@ -29,6 +33,7 @@ main(int argc, const char * argv[])
     ptrdiff_t stride[2] = {1, 1};
     nc_vlen_t vlenPointers[4];
     nc_vlen_t* readVlenPointers;
+    int i;
     
 #ifdef AFIRST
     size_t start[2] = {1, 0};
@@ -92,8 +97,8 @@ main(int argc, const char * argv[])
     // calculate num elements to read
     dimlen = 0;
     num_items = 1;
-    for ( int j = 0; j < ndims; ++j ) {
-        retval = nc_inq_dimlen(ncid, dimids_read[j], &dimlen);
+    for (i = 0; i < ndims; i++) {
+        retval = nc_inq_dimlen(ncid, dimids_read[i], &dimlen);
         checkErrorCode(retval, "nc_inq_dimlen");
         num_items *= dimlen;
     }
@@ -103,9 +108,26 @@ main(int argc, const char * argv[])
     retval = nc_get_var(ncid, varid, readVlenPointers);
     checkErrorCode(retval, "nc_get_var");
 
+#ifdef DEBUG
+    for(i=0;i<num_items;i++) {
+	int j;
+	char* s;
+	nc_vlen_t* v = &readVlenPointers[i];
+	fprintf(stderr,"readVlenPointers[%d] = ",i);
+	fprintf(stderr,"(%d,%p)",(int)v->len,v->p);
+	fprintf(stderr," \"");
+	s = (char*)v->p;
+	for(j=0;j<v->len;j++) fprintf(stderr,"%c",s[j]);
+	fprintf(stderr,"\"\n");
+    }
+#endif
+
+    if((retval = nc_reclaim_data(ncid,typeid,readVlenPointers,num_items))) goto done;
+    free(readVlenPointers);
+
     retval = nc_close(ncid);
     checkErrorCode(retval, "nc_close(2)");
-    
-    free(readVlenPointers);
+
+done:
     return retval;
 }

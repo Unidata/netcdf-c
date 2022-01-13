@@ -335,10 +335,10 @@ close_vars(NC_GRP_INFO_T *grp)
             {
                 if (var->type_info)
                 {
-                    if (var->type_info->nc_type_class == NC_VLEN)
-                        nc_free_vlen((nc_vlen_t *)var->fill_value);
-                    else if (var->type_info->nc_type_class == NC_STRING && *(char **)var->fill_value)
-                        free(*(char **)var->fill_value);
+		    int stat = NC_NOERR;
+		    if((stat = nc_reclaim_data(grp->nc4_info->controller->ext_ncid,var->type_info->hdr.id,var->fill_value,1)))
+		        return stat;
+		    nullfree(var->fill_value);
                 }
             }
         }
@@ -672,7 +672,7 @@ ncz_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
 	/* Allocate the fill_value space. */
         if((var->fill_value = calloc(1, size))==NULL)
 	    {retval = NC_ENOMEM; goto done;}
-        if((retval = nc4_get_default_fill_value(var->type_info->hdr.id, var->fill_value))) {
+        if((retval = nc4_get_default_fill_value(var->type_info, var->fill_value))) {
             /* Note: release memory, but don't return error on failure */
             free(var->fill_value);
             var->fill_value = NULL;
