@@ -115,12 +115,13 @@ extern "C" {
 #define NC_NOFILL       0x100   /**< Argument to nc_set_fill() to turn off filling of data. */
 
 /* Define the ioflags bits for nc_create and nc_open.
-   currently unused:
+   Currently unused in lower 16 bits:
         0x0002
-   and the whole upper 16 bits
-   Note: nc4internal also defines flags in this space even tho it should not.
-   so check there around #define NC_CREAT.
+   All upper 16 bits are unused except
+        0x20000
 */
+
+/* Lower 16 bits */
 
 #define NC_NOWRITE       0x0000 /**< Set read-only access for nc_open(). */
 #define NC_WRITE         0x0001 /**< Set read-write access for nc_open(). */
@@ -161,7 +162,8 @@ Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_PERSIST       0x4000  /**< Save diskless contents to disk. Mode flag for nc_open() or nc_create() */
 #define NC_INMEMORY      0x8000  /**< Read from memory. Mode flag for nc_open() or nc_create() */
 
-#define NC_NOATTCREORD   0x20000 /**< Disable the netcdf-4 (hdf5) attribute creation order tracking */
+/* Upper 16 bits */
+#define NC_NOATTCREORD  0x20000 /**< Disable the netcdf-4 (hdf5) attribute creation order tracking */
 
 #define NC_MAX_MAGIC_NUMBER_LEN 8 /**< Max len of user-defined format magic number. */
 

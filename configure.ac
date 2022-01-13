@@ -1792,16 +1792,6 @@ AC_SUBST(DO_FILTER_TESTS,[$enable_filter_testing])
 AC_SUBST(HAVE_BLOSC,[$enable_blosc])
 AC_SUBST(HAVE_SZIP,[$enable_szip])
 
-# Include some specifics for netcdf on windows.
-#AH_VERBATIM([_WIN32_STRICMP],
-AH_BOTTOM(
-[/* Define strcasecmp, strncasecmp, snprintf on Win32 systems. */
-#ifdef _WIN32
-	#define strcasecmp _stricmp
-	#define strncasecmp _strnicmp
-	#define snprintf _snprintf
-#endif])
-
 # Access netcdf specific version of config.h
 AH_BOTTOM([#include "ncconfigure.h"])
 

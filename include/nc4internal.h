@@ -279,20 +279,14 @@ typedef struct NC_GRP_INFO
     NCindex* vars;               /**< NCindex<NC_VAR_INFO_T> * */
 } NC_GRP_INFO_T;
 
-/* These constants apply to the cmode parameter in the
+/* These constants apply to the flags field in the
  * HDF5_FILE_INFO_T defined below. */
-/* Make sure they do not conflict with defined flags in netcdf.h */
-#define NC_CREAT 0x10002      /**< in create phase, cleared by ncendef */
-#define NC_INDEF 0x10008      /**< in define mode, cleared by ncendef */
-#define NC_NSYNC 0x10010   /**< synchronise numrecs on change */
-#define NC_HSYNC 0x10020   /**< synchronise whole header on change */
-#define NC_NDIRTY 0x10040  /**< numrecs has changed */
-#define NC_HDIRTY 0x10080  /**< header info has changed */
+#define NC_INDEF  0x01  /**< in define mode, cleared by ncendef */
 
 /** This is the metadata we need to keep track of for each
   * netcdf-4/ file; used by libhdf5, libnczarr, and libdap4 */
 
-typedef struct  NC_FILE_INFO
+typedef struct NC_FILE_INFO
 {
     NC_OBJ hdr;
     NC *controller; /**< Pointer to containing NC. */
@@ -300,8 +294,8 @@ typedef struct  NC_FILE_INFO
     MPI_Comm comm;  /**< Copy of MPI Communicator used to open the file. */
     MPI_Info info;  /**< Copy of MPI Information Object used to open the file. */
 #endif
-    int flags;      /**< Flags used to open the file. */
-    int cmode;      /**< Create mode used to create the file. */
+    int cmode;      /**< Create/Open mode for the file. */
+    int flags;      /**< State transition flags . */
     nc_bool_t parallel;   /**< True if file is open for parallel access */
     nc_bool_t redef;      /**< True if redefining an existing file */
     nc_bool_t no_attr_create_order; /**< True if the creation order tracking of attributes is disabled (netcdf-4 only) */
