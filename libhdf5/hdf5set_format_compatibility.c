@@ -64,7 +64,8 @@
  * @param fapl_id Identifier for valid file access property list to
  *                be used in the next call to H5Fcreate or H5Fopen.
  *
- * @return ::NC_EHDFERR General failure in HDF5.
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EHDFERR HDF5 returned error.
  *
  * @author Dave Allured, NOAA/PSL/CIRES @date 2022 January 11
  */
