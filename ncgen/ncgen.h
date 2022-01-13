@@ -6,11 +6,7 @@
  *   $Header: /upc/share/CVS/netcdf-3/ncgen/ncgen.h,v 1.18 2010/06/01 15:34:53 ed Exp $
 *********************************************************************/
 
-#ifdef _WIN32
-#include <float.h>
-#include "isnan.h"
-#define strcasecmp _stricmp
-#endif
+#include "config.h"
 
 #ifdef USE_NETCDF4
 #define CLASSICONLY 0

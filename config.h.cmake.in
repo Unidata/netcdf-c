@@ -57,23 +57,6 @@ are set when opening a binary file on Windows. */
    #define _OFF_T_DEFINED
    #endif
 
-   #ifdef _WIN32
-    #ifndef strcasecmp
-      #define strcasecmp _stricmp
-    #endif
-
-    #ifndef strincasecmp
-      #define strncasecmp _strnicmp
-    #endif
-
-    #ifndef snprintf
-     #if _MSC_VER<1900
-       #define snprintf _snprintf
-     #endif
-    #endif
-   #endif
-
-
    #define strdup _strdup
    #define fdopen _fdopen
    #define write _write
@@ -677,21 +660,6 @@ with zip */
 
 /* Define to `unsigned long if <sys/types.h> does not define. */
 #cmakedefine uintptr_t unsigned long
-
-/* Define strcasecmp, strncasecmp, snprintf on Win32 systems. */
-#ifdef _WIN32
-    #ifndef HAVE_STRCASECMP
-	 #define strcasecmp _stricmp
-    #endif
-
-    #ifndef HAVE_STRNCASECMP
-	 #define strncasecmp _strnicmp
-    #endif
-
-    #ifndef HAVE_SNPRINTF
-	 #define snprintf _snprintf
-    #endif
-#endif
 
 #cmakedefine WORDS_BIGENDIAN
 

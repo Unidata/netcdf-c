@@ -11,7 +11,6 @@ Research/Unidata. See \ref copyright file for more info.  */
 
 #if defined(_WIN32) && !defined(__MINGW32__)
 #include "XGetopt.h"
-#define snprintf _snprintf
 #endif
 
 #ifdef HAVE_UNISTD_H
