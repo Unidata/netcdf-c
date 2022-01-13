@@ -372,7 +372,7 @@ opaquedecl: OPAQUE_ '(' INT_CONST ')' typename
                     $5->subclass=NC_OPAQUE;
                     $5->typ.typecode=NC_OPAQUE;
                     $5->typ.size=int32_val;
-                    $5->typ.alignment=ncaux_class_alignment(NC_OPAQUE);
+                    (void)ncaux_class_alignment(NC_OPAQUE,&$5->typ.alignment);
                 }
             ;
 
@@ -386,7 +386,7 @@ vlendecl: typeref '(' '*' ')' typename
                     $5->typ.basetype=basetype;
                     $5->typ.typecode=NC_VLEN;
                     $5->typ.size=VLENSIZE;
-                    $5->typ.alignment=ncaux_class_alignment(NC_VLEN);
+                    (void)ncaux_class_alignment(NC_VLEN,&$5->typ.alignment);
                 }
           ;
 
@@ -971,7 +971,7 @@ makeprimitivetype(nc_type nctype)
     sym->typ.typecode = nctype;
     sym->typ.size = ncsize(nctype);
     sym->typ.nelems = 1;
-    sym->typ.alignment = ncaux_class_alignment(nctype);
+    (void)ncaux_class_alignment(nctype,&sym->typ.alignment);
     /* Make the basetype circular so we can always ask for it */
     sym->typ.basetype = sym;
     sym->prefix = listnew();

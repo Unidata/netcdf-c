@@ -742,7 +742,10 @@ nc_inq_vlen(int ncid, nc_type xtype, char *name, size_t *datum_sizep,
 /* When you read VLEN type the library will actually allocate the
  * storage space for the data. This storage space must be freed, so
  * pass the pointer back to this function, when you're done with the
- * data, and it will free the vlen memory. */
+ * data, and it will free the vlen memory.
+ * These two functions are deprecated in favor of the nc_reclaim_data function.
+ */
+
 EXTERNL int
 nc_free_vlen(nc_vlen_t *vl);
 
@@ -761,7 +764,9 @@ nc_get_vlen_element(int ncid, int typeid1, const void *vlen_element,
 /* When you read the string type the library will allocate the storage
  * space for the data. This storage space must be freed, so pass the
  * pointer back to this function, when you're done with the data, and
- * it will free the string memory. */
+ * it will free the string memory.
+ * This function is deprecated in favor of the nc_reclaim_data function.
+ */
 EXTERNL int
 nc_free_string(size_t len, char **data);
 
@@ -1753,6 +1758,53 @@ nc_put_var_string(int ncid, int varid, const char **op);
 EXTERNL int
 nc_get_var_string(int ncid, int varid, char **ip);
 
+/* Begin recursive instance walking functions */
+
+/**
+Reclaim a vector of instances of arbitrary type.  Intended for
+use with e.g. nc_get_vara or the input to e.g. nc_put_vara.
+This recursively walks the top-level instances to reclaim any
+nested data such as vlen or strings or such.
+
+Assumes it is passed a pointer to count instances of xtype.
+Reclaims any nested data.
+
+WARNING: nc_reclaim_data does not reclaim the top-level
+memory because we do not know how it was allocated.  However
+nc_reclaim_data_all does reclaim top-level memory.
+
+WARNING: all data blocks below the top-level (e.g. string
+instances) will be reclaimed, so do not call if there is any
+static data in the instance.
+
+Should work for any netcdf format.
+*/
+
+EXTERNL int nc_reclaim_data(int ncid, nc_type xtypeid, void* memory, size_t count);
+EXTERNL int nc_reclaim_data_all(int ncid, nc_type xtypeid, void* memory, size_t count);
+
+/**
+
+Copy vector of arbitrary type instances.  This recursively walks
+the top-level instances to copy any nested data such as vlen or
+strings or such.
+
+Assumes it is passed a pointer to count instances of xtype.
+WARNING: nc_copy_data does not copy the top-level memory, but
+assumes a block of proper size was passed in.  However
+nc_copy_data_all does allocate top-level memory copy.
+
+Should work for any netcdf format.
+*/
+
+EXTERNL int nc_copy_data(int ncid, nc_type xtypeid, const void* memory, size_t count, void* copy);
+EXTERNL int nc_copy_data_all(int ncid, nc_type xtypeid, const void* memory, size_t count, void** copyp);
+
+/* Instance dumper for debugging */
+EXTERNL int nc_dump_data(int ncid, nc_type xtypeid, void* memory, size_t count, char** buf);
+
+/* end recursive instance walking functions */
+
 /* Begin Deprecated, same as functions with "_ubyte" replaced by "_uchar" */
 EXTERNL int
 nc_put_att_ubyte(int ncid, int varid, const char *name, nc_type xtype,
@@ -1790,8 +1842,10 @@ nc_get_varm_ubyte(int ncid, int varid, const size_t *startp,
                   const ptrdiff_t * imapp, unsigned char *ip);
 EXTERNL int
 nc_put_var_ubyte(int ncid, int varid, const unsigned char *op);
+
 EXTERNL int
 nc_get_var_ubyte(int ncid, int varid, unsigned char *ip);
+
 /* End Deprecated */
 
 /* Set the log level. 0 shows only errors, 1 only major messages,

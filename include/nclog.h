@@ -10,7 +10,9 @@
 #include <stdarg.h>
 #include "ncexternl.h"
 
+#ifndef NCCATCH
 #undef NCCATCH
+#endif
 
 #define NCENVLOGGING "NCLOGGING"
 #define NCENVTRACING "NCTRACING"

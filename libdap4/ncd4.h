@@ -234,5 +234,7 @@ EXTERNL d4size_t NCD4_getcounter(void* p);
 */
 #define HYRAXHACK
 
+EXTERNL int NCD4_get_substrate(int ncid);
+
 #endif /*NCD4_H*/
 
