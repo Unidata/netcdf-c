@@ -36,6 +36,7 @@
 #include "fbits.h"
 #include "rnd.h"
 #include "ncs3sdk.h"
+#include "ncuri.h"
 
 #define DEFAULTPAGESIZE 16384
 
