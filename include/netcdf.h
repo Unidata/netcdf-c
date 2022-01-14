@@ -329,11 +329,13 @@ there. */
 #define NC_MAX_DEFLATE_LEVEL 9 /**< Maximum deflate level. */
 
 #define NC_NOQUANTIZE 0 /**< No quantization in use. */    
-#define NC_QUANTIZE_BITGROOM 1 /**< Use bitgroom quantization. */
+#define NC_QUANTIZE_BITGROOM 1 /**< Use BitGroom quantization. */
+#define NC_QUANTIZE_GRANULARBG 2 /**< Use Granular BitGroom quantization. */
 
-/** When quantization is used for a variable, an attribute of this
- * name is added. */
-#define NC_QUANTIZE_ATT_NAME "_QuantizeBitgroomNumberOfSignificantDigits"
+/** When quantization is used for a variable, an attribute of the
+ * appropriate name is added. */
+#define NC_QUANTIZE_BITGROOM_ATT_NAME "_QuantizeBitgroomNumberOfSignificantDigits"
+#define NC_QUANTIZE_GRANULARBG_ATT_NAME "_QuantizeGranularBitGroomNumberOfSignificantDigits"
 
 /** For quantization, the allowed value of number of significant
  * digits for float. */

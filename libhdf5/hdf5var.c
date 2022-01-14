@@ -721,10 +721,11 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
     {
 	/* Only two valid mode settings. */
 	if (*quantize_mode != NC_NOQUANTIZE &&
-	    *quantize_mode != NC_QUANTIZE_BITGROOM)
+	    *quantize_mode != NC_QUANTIZE_BITGROOM &&
+	    *quantize_mode != NC_QUANTIZE_GRANULARBG)
 	    return NC_EINVAL;
 
-	if (*quantize_mode == NC_QUANTIZE_BITGROOM)
+	if (*quantize_mode == NC_QUANTIZE_BITGROOM || *quantize_mode == NC_QUANTIZE_GRANULARBG)
 	{
 	    /* Only float and double types can have quantization. */
 	    if (var->type_info->hdr.id != NC_FLOAT &&
@@ -806,22 +807,24 @@ done:
  * error.)
  *
  * When quantize is turned on, and the number of significant digits
- * has been specified, then the netCDF library will apply all zeros or
+ * has been specified, then the netCDF library will quantize according
+ * to the selected algorithm. BitGroom will apply all zeros or
  * all ones (alternating) to bits which are not needed to specify the
- * value to the number of significant digits. This will change the
- * value of the data, but will make it more compressable.
+ * value to the number of significant digits. GranularBG will zero
+ * more bits than BG, and thus be more compressible and less accurate.
+ * Both will change the value of the data, and will make it more compressible.
  *
  * Quantizing the data does not reduce the size of the data on disk,
  * but combining quantize with compression will allow for better
  * compression. Since the data values are changed, the use of quantize
- * and compression such as deflate constitute lossy compression.
+ * and compression such as DEFLATE constitute lossy compression.
  *
  * Producers of large datasets may find that using quantize with
  * compression will result in significant improvent in the final data
  * size.
  *
  * Variables which use quantize will have added an attribute with name
- * ::NC_QUANTIZE_ATT_NAME, which will contain the number of
+ * ::NC_QUANTIZE_[ALG_NAME]_ATT_NAME, which will contain the number of
  * significant digits. Users should not delete or change this
  * attribute. This is the only record that quantize has been applied
  * to the data.
@@ -839,7 +842,7 @@ done:
  * @param ncid File ID.
  * @param varid Variable ID. NC_GLOBAL may not be used.
  * @param quantize_mode Quantization mode. May be ::NC_NOQUANTIZE or
- * ::NC_QUANTIZE_BITGROOM.
+ * ::NC_QUANTIZE_BITGROOM or ::NC_QUANTIZE_GRANULARBG.
  * @param nsd Number of significant digits. May be any integer from 1
  * to ::NC_QUANTIZE_MAX_FLOAT_NSD (for variables of type ::NC_FLOAT) or
  * ::NC_QUANTIZE_MAX_DOUBLE_NSD (for variables of type ::NC_DOUBLE).
