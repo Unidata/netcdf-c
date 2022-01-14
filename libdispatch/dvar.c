@@ -467,18 +467,19 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
 /**
    Turn on quantization for a variable.
   
-   The data data are quantized by setting unneeded bits alternately to
-   1/0, so that they may compress well. Quantization is lossy (data
-   are irretrievably altered), and it improves the compression ratio
-   provided by a subsequent lossless compression filter. Quantization
-   alone will not reduce the size of the data - lossless compression
-   like zlib must also be used (see nc_def_var_deflate()).
+   The data are quantized by setting unneeded bits to zeros or ones
+   so that they may compress well. BitGroom sets bits alternately to 1/0, 
+   while Granular BitGroom (GBG) sets (more) bits to zeros.
+   Quantization is lossy (data are irretrievably altered), and it 
+   improves the compression ratio provided by a subsequent lossless 
+   compression filter. Quantization alone will not reduce the data size.
+   Lossless compression like zlib must also be used (see nc_def_var_deflate()).
 
    Producers of large datasets may find that using quantize with
    compression will result in significant improvent in the final data
    size.
 
-   This data quantization used the bitgroom algorithm. A notable
+   This data quantization used the BitGroom algorithm. A notable
    feature of BitGroom is that the data it processes remain in IEEE754
    format after quantization. Therefore the BitGroom algorithm does
    nothing when data are read.
@@ -487,7 +488,7 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
    NC_DOUBLE. Attempts to set quantization for other variable
    types return an error (NC_EINVAL). 
 
-   Variables which use quantize will have added an attribute with name
+   Variables that use quantize will have added an attribute with name
    ::NC_QUANTIZE_ATT_NAME, which will contain the number of
    significant digits. Users should not delete or change this
    attribute. This is the only record that quantize has been applied
@@ -500,10 +501,10 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
 
    Quantization may be applied to scalar variables.
 
-   When type conversion takes place during a write, the it occurs
+   When type conversion takes place during a write, then it occurs
    before quantization is applied. For example, if nc_put_var_double()
-   is called on a variable of type NC_FLOAT, which has quantizze
-   turned on, then the data are first converted from dounle to float,
+   is called on a variable of type NC_FLOAT, which has quantize
+   turned on, then the data are first converted from double to float,
    then quantization is applied to the float values.
 
    As with the deflate settings, quantize settings may only be
@@ -516,7 +517,7 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
    variable which has been quantized is readable to older versions of
    the netCDF libraries, and to netCDF-Java.
  
-   For more information about quantization and the bitgroom filter, see 
+   For more information about quantization and the BitGroom filter, see 
 
    Zender, C. S. (2016), Bit Grooming: Statistically accurate
    precision-preserving quantization with compression, evaluated in
@@ -528,7 +529,7 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
    @param ncid File ID.
    @param varid Variable ID. ::NC_GLOBAL may not be used.
    @param quantize_mode Quantization mode. May be ::NC_NOQUANTIZE or
-   ::NC_QUANTIZE_BITGROOM.
+   ::NC_QUANTIZE_BITGROOM or ::NC_QUANTIZE_GRANULARBG.
    @param nsd Number of significant digits. May be any integer from 1
    to ::NC_QUANTIZE_MAX_FLOAT_NSD (for variables of type ::NC_FLOAT)
    or ::NC_QUANTIZE_MAX_DOUBLE_NSD (for variables of type

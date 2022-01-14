@@ -511,10 +511,11 @@ NC4_var_par_access(int ncid, int varid, int par_access)
  * @param fill_value The fill value.
  * @param strict_nc3 Non-zero if strict model in effect.
  * @param quantize_mode May be ::NC_NOQUANTIZE or
- * ::NC_QUANTIZE_BITGROOM.
+ * ::NC_QUANTIZE_BITGROOM or ::NC_QUANTIZE_GRANULARBG.
  * @param nsd Number of significant diggits for quantizize. Ignored
- * unless quantize_mode is ::NC_QUANTIZE_BITGROOM.
- *
+ * unless quantize_mode is ::NC_QUANTIZE_BITGROOM or 
+ * ::NC_QUANTIZE_GRANULARBG.
+ * 
  * @returns ::NC_NOERR No error.
  * @returns ::NC_EBADTYPE Type not found.
  * @author Ed Hartnett, Dennis Heimbigner
@@ -526,17 +527,27 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 		 int nsd)
 {
     /* These vars are used with quantize feature. */
-    const double bit_per_dcm_dgt_prc = M_LN10 / M_LN2; /* 3.32 [frc] Bits per decimal digit of precision */
+    const double bit_per_dgt = M_LN10 / M_LN2; /* 3.32 [frc] Bits per decimal digit of precision  = log2(10) */
+    const double dgt_per_bit= M_LN2 / M_LN10; /* 0.301 [frc] Decimal digits per bit of precision = log10(2) */
+    double mnt; /* [frc] Mantissa, 0.5 <= mnt < 1.0 */
+    double mnt_fabs; /* [frc] fabs(mantissa) */
+    double mnt_log10_fabs; /* [frc] log10(fabs(mantissa))) */
+    double val; /* [frc] Copy of input value to avoid indirection */
     double mss_val_cmp_dbl; /* Missing value for comparison to double precision values */
     float mss_val_cmp_flt; /* Missing value for comparison to single precision values */
     int bit_xpl_nbr_zro; /* [nbr] Number of explicit bits to zero */
+    int dgt_nbr; /* [nbr] Number of digits before decimal point */
+    int qnt_pwr; /* [nbr] Power of two in quantization mask: qnt_msk = 2^qnt_pwr */
+    int xpn_bs2; /* [nbr] Binary exponent xpn_bs2 in val = sign(val) * 2^xpn_bs2 * mnt, 0.5 < mnt <= 1.0 */
     size_t idx;
     unsigned int *u32_ptr;
     unsigned int msk_f32_u32_zro;
     unsigned int msk_f32_u32_one;
+    unsigned int msk_f32_u32_hshv;
     unsigned long long int *u64_ptr;
     unsigned long long int msk_f64_u64_zro;
     unsigned long long int msk_f64_u64_one;
+    unsigned long long int msk_f64_u64_hshv;
     unsigned short prc_bnr_xpl_rqr; /* [nbr] Explicitly represented binary digits required to retain */
     ptr_unn op1; /* I/O [frc] Values to quantize */
     
@@ -559,19 +570,11 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 
     /* If quantize is in use, set up some values. Quantize can only be
      * used when the destination type is NC_FLOAT or NC_DOUBLE. */
-    if (quantize_mode == NC_QUANTIZE_BITGROOM)
+    if (quantize_mode != NC_NOQUANTIZE)
     {
         assert(dest_type == NC_FLOAT || dest_type == NC_DOUBLE);
-        /* How many bits to preserve? Being conservative, we round up the
-         * exact binary digits of precision. Add one because the first bit
-         * is implicit not explicit but corner cases prevent our taking
-         * advantage of this. */
-        prc_bnr_xpl_rqr = (unsigned short)ceil(nsd * bit_per_dcm_dgt_prc) + 1;
-        if (dest_type == NC_DOUBLE)
-            prc_bnr_xpl_rqr++; /* Seems necessary for double-precision
-                                * ppc=array(1.234567,1.0e-6,$dmn) */
 
-        /* Determine masks, copy the data, do the quantization. */
+	/* Parameters shared by both BitGroom and GranularBG */
         if (dest_type == NC_FLOAT)
         {
             /* Determine the fill value. */
@@ -580,41 +583,68 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
             else
                 mss_val_cmp_flt = NC_FILL_FLOAT;
 
-            bit_xpl_nbr_zro = BIT_XPL_NBR_SGN_FLT - prc_bnr_xpl_rqr;
-
-            /* Create mask */
-            msk_f32_u32_zro = 0u; /* Zero all bits */
-            msk_f32_u32_zro = ~msk_f32_u32_zro; /* Turn all bits to ones */
-
-            /* Bit Shave mask for AND: Left shift zeros into bits to be
-             * rounded, leave ones in untouched bits. */
-            msk_f32_u32_zro <<= bit_xpl_nbr_zro;
-
-            /* Bit Set mask for OR: Put ones into bits to be set, zeros in
-             * untouched bits. */
-            msk_f32_u32_one = ~msk_f32_u32_zro;
         }
         else
         {
-            bit_xpl_nbr_zro = BIT_XPL_NBR_SGN_DBL - prc_bnr_xpl_rqr;
-            assert(bit_xpl_nbr_zro <= BIT_XPL_NBR_SGN_DBL - NCO_PPC_BIT_XPL_NBR_MIN);
+	
+            /* Determine the fill value. */
             if (fill_value)
                 mss_val_cmp_dbl = *(double *)fill_value;
             else
                 mss_val_cmp_dbl = NC_FILL_DOUBLE;
 
-            /* Create mask. */
-            msk_f64_u64_zro = 0ul; /* Zero all bits. */
-            msk_f64_u64_zro = ~msk_f64_u64_zro; /* Turn all bits to ones. */
-
-            /* Bit Shave mask for AND: Left shift zeros into bits to be
-             * rounded, leave ones in untouched bits. */
-            msk_f64_u64_zro <<= bit_xpl_nbr_zro;
-
-            /* Bit Set mask for OR: Put ones into bits to be set, zeros in
-             * untouched bits. */
-            msk_f64_u64_one =~ msk_f64_u64_zro;
         }
+
+	/* Parameters BitGroom needs to be set once */
+	if (quantize_mode == NC_QUANTIZE_BITGROOM)
+	  {
+
+	    /* How many bits to preserve? Being conservative, we round up the
+	     * exact binary digits of precision. Add one because the first bit
+	     * is implicit not explicit but corner cases prevent our taking
+	     * advantage of this. */
+	    prc_bnr_xpl_rqr = (unsigned short)ceil(nsd * bit_per_dgt) + 1;
+	    if (dest_type == NC_DOUBLE)
+	      prc_bnr_xpl_rqr++; /* Seems necessary for double-precision
+				  * ppc=array(1.234567,1.0e-6,$dmn) */
+	    
+	    if (dest_type == NC_FLOAT)
+	      {
+
+		bit_xpl_nbr_zro = BIT_XPL_NBR_SGN_FLT - prc_bnr_xpl_rqr;
+
+		/* Create mask */
+		msk_f32_u32_zro = 0u; /* Zero all bits */
+		msk_f32_u32_zro = ~msk_f32_u32_zro; /* Turn all bits to ones */
+		
+		/* Bit Shave mask for AND: Left shift zeros into bits to be
+		 * rounded, leave ones in untouched bits. */
+		msk_f32_u32_zro <<= bit_xpl_nbr_zro;
+		
+		/* Bit Set mask for OR: Put ones into bits to be set, zeros in
+		 * untouched bits. */
+		msk_f32_u32_one = ~msk_f32_u32_zro;
+	      }
+	    else
+	      {
+
+		bit_xpl_nbr_zro = BIT_XPL_NBR_SGN_DBL - prc_bnr_xpl_rqr;
+		/* Create mask. */
+		msk_f64_u64_zro = 0ul; /* Zero all bits. */
+		msk_f64_u64_zro = ~msk_f64_u64_zro; /* Turn all bits to ones. */
+		
+		/* Bit Shave mask for AND: Left shift zeros into bits to be
+		 * rounded, leave ones in untouched bits. */
+		msk_f64_u64_zro <<= bit_xpl_nbr_zro;
+		
+		/* Bit Set mask for OR: Put ones into bits to be set, zeros in
+		 * untouched bits. */
+		msk_f64_u64_one =~ msk_f64_u64_zro;
+
+	      }
+
+	  }
+	  
     } /* endif quantize */
 
     /* OK, this is ugly. If you can think of anything better, I'm open
@@ -1401,7 +1431,79 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
                 if (op1.dp[idx] != mss_val_cmp_dbl && u64_ptr[idx] != 0ULL) /* Never quantize upwards floating point values of zero */
                     u64_ptr[idx] |= msk_f64_u64_one;
         }
-    } /* endif quantize */
+    } /* endif BitGroom */
+
+    if (quantize_mode == NC_QUANTIZE_GRANULARBG)
+    {
+        if (dest_type == NC_FLOAT)
+        {
+            /* Granular BitGroom */
+            op1.fp = (float *)dest;
+            u32_ptr = op1.ui32p;
+            for (idx = 0L; idx < len; idx++)
+	      {
+	      
+		if((val = op1.fp[idx]) != mss_val_cmp_flt && u32_ptr[idx] != 0U)
+		  {
+		    mnt = frexp(val, &xpn_bs2); /* DGG19 p. 4102 (8) */
+		    mnt_fabs = fabs(mnt);
+		    mnt_log10_fabs = log10(mnt_fabs);
+		    /* 20211003 Continuous determination of dgt_nbr improves CR by ~10% */
+		    dgt_nbr = (int)floor(xpn_bs2 * dgt_per_bit + mnt_log10_fabs) + 1; /* DGG19 p. 4102 (8.67) */
+		    qnt_pwr = (int)floor(bit_per_dgt * (dgt_nbr - nsd)); /* DGG19 p. 4101 (7) */
+		    prc_bnr_xpl_rqr = mnt_fabs == 0.0 ? 0 : abs((int)floor(xpn_bs2 - bit_per_dgt*mnt_log10_fabs) - qnt_pwr); /* Protect against mnt = -0.0 */
+		    prc_bnr_xpl_rqr--; /* 20211003 Reduce formula result by 1 bit: Passes all tests, improves CR by ~10% */
+
+		    bit_xpl_nbr_zro = BIT_XPL_NBR_SGN_FLT - prc_bnr_xpl_rqr;
+		    msk_f32_u32_zro = 0u; /* Zero all bits */
+		    msk_f32_u32_zro = ~msk_f32_u32_zro; /* Turn all bits to ones */
+		    /* Bit Shave mask for AND: Left shift zeros into bits to be rounded, leave ones in untouched bits */
+		    msk_f32_u32_zro <<= bit_xpl_nbr_zro;
+		    /* Bit Set   mask for OR:  Put ones into bits to be set, zeros in untouched bits */
+		    msk_f32_u32_one = ~msk_f32_u32_zro;
+		    msk_f32_u32_hshv = msk_f32_u32_one & (msk_f32_u32_zro >> 1); /* Set one bit: the MSB of LSBs */
+		    u32_ptr[idx] += msk_f32_u32_hshv; /* Add 1 to the MSB of LSBs, carry 1 to mantissa or even exponent */
+		    u32_ptr[idx] &= msk_f32_u32_zro; /* Shave it */
+
+		  } /* !mss_val_cmp_flt */
+
+	      } 
+        }
+        else
+        {
+            /* Granular BitGroom */
+            op1.dp = (double *)dest;
+            u64_ptr = op1.ui64p;
+            for (idx = 0L; idx < len; idx++)
+	      {
+
+		if((val = op1.dp[idx]) != mss_val_cmp_dbl && u64_ptr[idx] != 0ULL)
+		  {
+		    mnt = frexp(val, &xpn_bs2); /* DGG19 p. 4102 (8) */
+		    mnt_fabs = fabs(mnt);
+		    mnt_log10_fabs = log10(mnt_fabs);
+		    /* 20211003 Continuous determination of dgt_nbr improves CR by ~10% */
+		    dgt_nbr = (int)floor(xpn_bs2 * dgt_per_bit + mnt_log10_fabs) + 1; /* DGG19 p. 4102 (8.67) */
+		    qnt_pwr = (int)floor(bit_per_dgt * (dgt_nbr - nsd)); /* DGG19 p. 4101 (7) */
+		    prc_bnr_xpl_rqr = mnt_fabs == 0.0 ? 0 : abs((int)floor(xpn_bs2 - bit_per_dgt*mnt_log10_fabs) - qnt_pwr); /* Protect against mnt = -0.0 */
+		    prc_bnr_xpl_rqr--; /* 20211003 Reduce formula result by 1 bit: Passes all tests, improves CR by ~10% */
+
+		    bit_xpl_nbr_zro = BIT_XPL_NBR_SGN_DBL - prc_bnr_xpl_rqr;
+		    msk_f64_u64_zro = 0ull; /* Zero all bits */
+		    msk_f64_u64_zro = ~msk_f64_u64_zro; /* Turn all bits to ones */
+		    /* Bit Shave mask for AND: Left shift zeros into bits to be rounded, leave ones in untouched bits */
+		    msk_f64_u64_zro <<= bit_xpl_nbr_zro;
+		    /* Bit Set   mask for OR:  Put ones into bits to be set, zeros in untouched bits */
+		    msk_f64_u64_one = ~msk_f64_u64_zro;
+		    msk_f64_u64_hshv = msk_f64_u64_one & (msk_f64_u64_zro >> 1); /* Set one bit: the MSB of LSBs */
+		    u64_ptr[idx] += msk_f64_u64_hshv; /* Add 1 to the MSB of LSBs, carry 1 to mantissa or even exponent */
+		    u64_ptr[idx] &= msk_f64_u64_zro; /* Shave it */
+
+		  } /* !mss_val_cmp_dbl */
+
+	      }
+        }
+    } /* endif GranularBG */
 
     return NC_NOERR;
 }

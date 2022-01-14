@@ -98,10 +98,10 @@ main(int argc, char **argv)
         if (nc_def_var_quantize(ncid, NC_GLOBAL, NC_QUANTIZE_BITGROOM, NSD_3) != NC_EGLOBAL) ERR;
         if (nc_def_var_quantize(ncid, varid2 + 1, NC_QUANTIZE_BITGROOM, NSD_3) != NC_ENOTVAR) ERR;
         /* Invalid values. */
-        if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM + 1, NSD_3) != NC_EINVAL) ERR;
+        if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_GRANULARBG + 1, NSD_3) != NC_EINVAL) ERR;
         if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, -1) != NC_EINVAL) ERR;
         if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, NC_QUANTIZE_MAX_FLOAT_NSD + 1) != NC_EINVAL) ERR;
-        if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM + 1, 3) != NC_EINVAL) ERR;
+        if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_GRANULARBG + 1, 3) != NC_EINVAL) ERR;
         if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM, -1) != NC_EINVAL) ERR;
         if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM, NC_QUANTIZE_MAX_DOUBLE_NSD + 1) != NC_EINVAL) ERR;
         if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM, 0) != NC_EINVAL) ERR;
@@ -242,9 +242,9 @@ main(int argc, char **argv)
             if (quantize_mode_in != NC_QUANTIZE_BITGROOM || nsd_in != NSD_3) ERR;
 
 	    /* Each var now has an attribute describing the quantize settings. */
-	    if (nc_get_att_int(ncid, 0, NC_QUANTIZE_ATT_NAME, &nsd_att_in)) ERR;
+	    if (nc_get_att_int(ncid, 0, NC_QUANTIZE_BITGROOM_ATT_NAME, &nsd_att_in)) ERR;
 	    if (nsd_att_in != NSD_3) ERR;
-	    if (nc_get_att_int(ncid, 1, NC_QUANTIZE_ATT_NAME, &nsd_att_in)) ERR;
+	    if (nc_get_att_int(ncid, 1, NC_QUANTIZE_BITGROOM_ATT_NAME, &nsd_att_in)) ERR;
 	    if (nsd_att_in != NSD_3) ERR;
 
             /* Check the data. */
@@ -447,9 +447,9 @@ main(int argc, char **argv)
             if (quantize_mode_in != NC_QUANTIZE_BITGROOM || nsd_in != NSD_3) ERR;
 
 	    /* Each var now has an attribute describing the quantize settings. */
-	    if (nc_get_att_int(ncid, 0, NC_QUANTIZE_ATT_NAME, &nsd_att_in)) ERR;
+	    if (nc_get_att_int(ncid, 0, NC_QUANTIZE_BITGROOM_ATT_NAME, &nsd_att_in)) ERR;
 	    if (nsd_att_in != NSD_3) ERR;
-	    if (nc_get_att_int(ncid, 1, NC_QUANTIZE_ATT_NAME, &nsd_att_in)) ERR;
+	    if (nc_get_att_int(ncid, 1, NC_QUANTIZE_BITGROOM_ATT_NAME, &nsd_att_in)) ERR;
 	    if (nsd_att_in != NSD_3) ERR;
 
             /* Check the data. */
