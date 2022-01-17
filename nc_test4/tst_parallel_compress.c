@@ -36,8 +36,8 @@ main(int argc, char **argv)
 {
     /* MPI stuff. */
     int mpi_size, mpi_rank;
-    MPI_Comm comm = MPI_COMM_WORLD;
-    MPI_Info info = MPI_INFO_NULL;
+    nc_MPI_Comm comm = NC_MPI_COMM_WORLD;
+    nc_MPI_Info info = NC_MPI_INFO_NULL;
 
     /* Netcdf-4 stuff. */
     int ncid, v1id, dimids[NDIMS];
@@ -48,8 +48,8 @@ main(int argc, char **argv)
 
     /* Initialize MPI. */
     MPI_Init(&argc, &argv);
-    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+    MPI_Comm_size(NC_MPI_COMM_WORLD, &mpi_size);
+    MPI_Comm_rank(NC_MPI_COMM_WORLD, &mpi_rank);
 
     /* Allocate data. */
     if (!(slab_data = malloc(sizeof(int) * DIMSIZE * DIMSIZE / mpi_size))) ERR;

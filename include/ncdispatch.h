@@ -81,18 +81,23 @@
 #define ATOMICTYPEMAX5 NC_UINT64
 
 #if !defined HDF5_PARALLEL && !defined USE_PNETCDF
-typedef int MPI_Comm;
-typedef int MPI_Info;
-#define MPI_COMM_WORLD 0
-#define MPI_INFO_NULL 0
+typedef int nc_MPI_Comm;
+typedef int nc_MPI_Info;
+#define NC_MPI_COMM_WORLD 0
+#define NC_MPI_INFO_NULL 0
+#else
+typedef MPI_Comm nc_MPI_Comm;
+typedef MPI_Info nc_MPI_Info;
+#define NC_MPI_COMM_WORLD MPI_COMM_WORLD
+#define NC_MPI_INFO_NULL MPI_INFO_NULL
 #endif
 
 /* Define a struct to hold the MPI info so it can be passed down the
  * call stack. This is used internally by the netCDF library. It
  * should not be used by netcdf users. */
 typedef struct NC_MPI_INFO {
-    MPI_Comm comm;
-    MPI_Info info;
+    nc_MPI_Comm comm;
+    nc_MPI_Info info;
 } NC_MPI_INFO;
 
 /* Define known dispatch tables and initializers */

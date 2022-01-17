@@ -64,7 +64,7 @@ extern int lnc4_close(int ncid);
 
 extern int lnc4_open_file(const char *path, int mode, int basepe,
                           size_t *chunksizehintp, int use_parallel,
-                          MPI_Comm comm, MPI_Info info, int *ncidp);
+                          nc_MPI_Comm comm, nc_MPI_Info info, int *ncidp);
 
 extern int l4nc4_get_vara(NC_FILE_INFO_T *nc, int ncid, int varid, const size_t *startp, const size_t *countp, nc_type mem_nc_type, int is_long, void *data);
 

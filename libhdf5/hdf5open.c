@@ -788,7 +788,7 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
         if (MPI_Comm_dup(mpiinfo->comm, &nc4_info->comm) != MPI_SUCCESS)
             BAIL(NC_EMPI);
         comm_duped++;
-        if (mpiinfo->info != MPI_INFO_NULL)
+        if (mpiinfo->info != NC_MPI_INFO_NULL)
         {
             if (MPI_Info_dup(mpiinfo->info, &nc4_info->info) != MPI_SUCCESS)
                 BAIL(NC_EMPI);

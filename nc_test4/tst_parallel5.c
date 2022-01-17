@@ -31,8 +31,8 @@ int
 main(int argc, char **argv)
 {
     int mpi_size, mpi_rank;
-    MPI_Comm comm = MPI_COMM_WORLD;
-    MPI_Info info = MPI_INFO_NULL;
+    nc_MPI_Comm comm = NC_MPI_COMM_WORLD;
+    nc_MPI_Info info = NC_MPI_INFO_NULL;
     int ncid, v1id, dimid;
     size_t start[NDIMS1] = {0}, count[NDIMS1] = {0};
     int data = MASTS;
@@ -41,8 +41,8 @@ main(int argc, char **argv)
 
     /* Initialize MPI. */
     MPI_Init(&argc, &argv);
-    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+    MPI_Comm_size(NC_MPI_COMM_WORLD, &mpi_size);
+    MPI_Comm_rank(NC_MPI_COMM_WORLD, &mpi_rank);
 
     /* Require exactly 4 tasks. */
     if (mpi_size != NUM_PROC) ERR;
@@ -302,7 +302,7 @@ main(int argc, char **argv)
         signed char test_data_in, test_data = 42;
 
         /* Crate a file with a scalar NC_BYTE value. */
-        if (nc_create_par(FILE, NC_NETCDF4, MPI_COMM_WORLD, MPI_INFO_NULL,
+        if (nc_create_par(FILE, NC_NETCDF4, NC_MPI_COMM_WORLD, NC_MPI_INFO_NULL,
                           &ncid)) ERR;
         if (nc_def_var(ncid, VAR_NAME, NC_BYTE, 0, NULL, &varid)) ERR;
         if (nc_enddef(ncid)) ERR;
@@ -327,7 +327,7 @@ main(int argc, char **argv)
         float preemption;
 
         /* Create a file with parallel I/O and check cache settings. */
-        if (nc_create_par(FILE, NC_NETCDF4|NC_CLOBBER, MPI_COMM_WORLD, MPI_INFO_NULL,
+        if (nc_create_par(FILE, NC_NETCDF4|NC_CLOBBER, NC_MPI_COMM_WORLD, NC_MPI_INFO_NULL,
                           &ncid)) ERR;
         if (nc4_hdf5_get_chunk_cache(ncid, &size, &nelems, &preemption)) ERR;
         if (size != HDF5_DEFAULT_CACHE_SIZE || nelems != HDF5_DEFAULT_NELEMS ||
@@ -394,7 +394,7 @@ main(int argc, char **argv)
             data[i] = mpi_rank + i * 0.1;
 
         /* Crate a file with a scalar NC_BYTE value. */
-        if (nc_create_par(FILE, NC_NETCDF4, MPI_COMM_WORLD, MPI_INFO_NULL,
+        if (nc_create_par(FILE, NC_NETCDF4, NC_MPI_COMM_WORLD, NC_MPI_INFO_NULL,
                           &ncid)) ERR;
         if (nc_def_dim(ncid, SZIP_DIM_NAME, SZIP_DIM_LEN, &dimid)) ERR;
         if (nc_def_var(ncid, SZIP_VAR_NAME, NC_FLOAT, NDIMS1, &dimid, &varid)) ERR;
@@ -445,7 +445,7 @@ main(int argc, char **argv)
             data[i] = mpi_rank + i * 0.1;
 
         /* Crate a file with a scalar NC_BYTE value. */
-        if (nc_create_par(FILE, NC_NETCDF4, MPI_COMM_WORLD, MPI_INFO_NULL,
+        if (nc_create_par(FILE, NC_NETCDF4, NC_MPI_COMM_WORLD, NC_MPI_INFO_NULL,
                           &ncid)) ERR;
         if (nc_def_dim(ncid, SZIP_DIM_NAME, SZIP_DIM_LEN, &dimid)) ERR;
         if (nc_def_var(ncid, SZIP_VAR_NAME, NC_FLOAT, NDIMS1, &dimid, &varid)) ERR;

@@ -6502,12 +6502,12 @@ following signatures respectively.
 @example
 int (*create)(const char *path, int cmode,
            size_t initialsz, int basepe, size_t *chunksizehintp,
-           int useparallel, MPI_Comm comm, MPI_Info info,
+           int useparallel, nc_MPI_Comm comm, nc_MPI_Info info,
            struct NC_Dispatch*, struct NC** ncp);
 
 int (*open)(const char *path, int mode,
          int basepe, size_t *chunksizehintp,
-         int use_parallel, MPI_Comm comm, MPI_Info info,
+         int use_parallel, nc_MPI_Comm comm, nc_MPI_Info info,
          NC_Dispatch*, NC** ncp);
 @end example
 

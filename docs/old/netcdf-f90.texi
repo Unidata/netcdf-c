@@ -907,13 +907,13 @@ the HDF5 chunk cache.
 @item comm
 If the comm and info parameters are provided the file is created and
 opened for parallel I/O. Set the comm parameter to the MPI
-communicator (of type MPI_Comm). If this parameter is provided the
+communicator (of type nc_MPI_Comm). If this parameter is provided the
 info parameter must also be provided.
 
 @item info
 If the comm and info parameters are provided the file is created and
 opened for parallel I/O. Set the comm parameter to the MPI information
-value (of type MPI_Info). If this parameter is provided the comm
+value (of type nc_MPI_Info). If this parameter is provided the comm
 parameter must also be provided.
 
 @end table
@@ -1042,13 +1042,13 @@ for the HDF5 chunk cache.
 @item comm
 If the comm and info parameters are provided the file is opened for
 parallel I/O. Set the comm parameter to the MPI communicator (of type
-MPI_Comm). If this parameter is provided the info parameter must also
+nc_MPI_Comm). If this parameter is provided the info parameter must also
 be provided.
 
 @item info
 If the comm and info parameters are provided the file is opened for
 parallel I/O. Set the comm parameter to the MPI information value (of
-type MPI_Info). If this parameter is provided the comm parameter must
+type nc_MPI_Info). If this parameter is provided the comm parameter must
 also be provided.
 
 @end table
@@ -1091,8 +1091,8 @@ nf_test/f90tst_parallel.f90.
  integer :: ncid, status
  ...
   ! Reopen the file.
-  call handle_err(nf90_open(FILE_NAME, nf90_nowrite, ncid, comm = MPI_COMM_WORLD, &
-       info = MPI_INFO_NULL))
+  call handle_err(nf90_open(FILE_NAME, nf90_nowrite, ncid, comm = NC_MPI_COMM_WORLD, &
+       info = NC_MPI_INFO_NULL))
 @end example
 
 @node NF90_REDEF, NF90_ENDDEF, NF90_OPEN, Datasets
@@ -6153,8 +6153,8 @@ when configuring netcdf.
 
 @example
   ! Reopen the file.
-  call handle_err(nf90_open(FILE_NAME, nf90_nowrite, ncid, comm = MPI_COMM_WORLD, &
-       info = MPI_INFO_NULL))
+  call handle_err(nf90_open(FILE_NAME, nf90_nowrite, ncid, comm = NC_MPI_COMM_WORLD, &
+       info = NC_MPI_INFO_NULL))
 
   ! Set collective access on this variable. This will cause all
   ! reads/writes to happen together on every processor.

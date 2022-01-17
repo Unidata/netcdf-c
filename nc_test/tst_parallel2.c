@@ -44,8 +44,8 @@ main(int argc, char **argv)
     int mpi_namelen;
     char mpi_name[MPI_MAX_PROCESSOR_NAME];
     int mpi_size, mpi_rank;
-    MPI_Comm comm = MPI_COMM_WORLD;
-    MPI_Info info = MPI_INFO_NULL;
+    nc_MPI_Comm comm = NC_MPI_COMM_WORLD;
+    nc_MPI_Info info = NC_MPI_INFO_NULL;
     double start_time = 0, total_time;
 
     /* Netcdf-4 stuff. */
@@ -64,8 +64,8 @@ main(int argc, char **argv)
 
     /* Initialize MPI. */
     MPI_Init(&argc,&argv);
-    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+    MPI_Comm_size(NC_MPI_COMM_WORLD, &mpi_size);
+    MPI_Comm_rank(NC_MPI_COMM_WORLD, &mpi_rank);
     MPI_Get_processor_name(mpi_name, &mpi_namelen);
 #ifdef DEBUG
     printf("mpi_name: %s size: %d rank: %d\n", mpi_name, mpi_size, mpi_rank);
@@ -237,7 +237,7 @@ main(int argc, char **argv)
     MPE_Log_event(e_close, 0, "end close file");
 #endif /* USE_MPE */
 
-    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(NC_MPI_COMM_WORLD);
     if (mpi_rank == 0)
 	remove(file_name);
 

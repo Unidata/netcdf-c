@@ -361,7 +361,7 @@ main(int argc, char *argv[])
 #ifdef ENABLE_CDF5
 	cmode |= (NC_64BIT_DATA);
 #endif
-	ret = nc_create_par(fname,cmode, MPI_COMM_WORLD, MPI_INFO_NULL, &id);
+	ret = nc_create_par(fname,cmode, NC_MPI_COMM_WORLD, NC_MPI_INFO_NULL, &id);
 #else
 	const size_t initialsz = 8192;
 	size_t chunksz = 8192;
@@ -475,7 +475,7 @@ main(int argc, char *argv[])
  */
         omode = NC_NOWRITE;
 #ifdef USE_PNETCDF
-	ret = nc_open_par(fname,omode, MPI_COMM_WORLD, MPI_INFO_NULL, &id);
+	ret = nc_open_par(fname,omode, NC_MPI_COMM_WORLD, NC_MPI_INFO_NULL, &id);
 #else
 	ret = nc__open(fname,omode, &chunksz, &id);
 #endif

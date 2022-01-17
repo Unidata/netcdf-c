@@ -60,7 +60,7 @@ create_check_pnetcdf(char *fname, int cmode, int exp_format)
 
     /* create a file */
     cmode |= NC_CLOBBER;
-    err = nc_create_par(fname, cmode, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid); ERR
+    err = nc_create_par(fname, cmode, NC_MPI_COMM_WORLD, NC_MPI_INFO_NULL, &ncid); ERR
     if (exp_err == NC_ENOTBUILT) return 0;
 
     err = nc_close(ncid); ERR
@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
 
     /* check illegal cmode */
     cmode = NC_64BIT_OFFSET | NC_64BIT_DATA;
-    err = nc_create_par(fname, cmode, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
+    err = nc_create_par(fname, cmode, NC_MPI_COMM_WORLD, NC_MPI_INFO_NULL, &ncid);
     if (err != NC_EINVAL) {
         printf("Error at %s line %d: expect NC_EINVAL but got %d\n",
                __FILE__, __LINE__, err);
@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
 #ifdef USE_HDF5
     /* check illegal cmode */
     cmode = NC_NETCDF4 | NC_64BIT_OFFSET;
-    err = nc_create_par(fname, cmode, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid);
+    err = nc_create_par(fname, cmode, NC_MPI_COMM_WORLD, NC_MPI_INFO_NULL, &ncid);
     if (err != NC_EINVAL) {
         printf("Error at %s line %d: expect NC_EINVAL but got %d\n",
                __FILE__, __LINE__, err);

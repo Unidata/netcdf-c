@@ -42,14 +42,14 @@ int main(int argc, char* argv[])
     int st, nerrs=0;
     char str[32];
     size_t start[2], count[2];
-    MPI_Comm comm=MPI_COMM_SELF;
-    MPI_Info info=MPI_INFO_NULL;
+    nc_MPI_Comm comm=MPI_COMM_SELF;
+    nc_MPI_Info info=NC_MPI_INFO_NULL;
 
     printf("\n*** Testing bug fix with changing PnetCDF variable offsets...");
 
     MPI_Init(&argc,&argv);
-    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(NC_MPI_COMM_WORLD, &nprocs);
+    MPI_Comm_rank(NC_MPI_COMM_WORLD, &rank);
 
     if (nprocs > 1 && rank == 0)
         printf("This test program is intended to run on ONE process\n");
@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
         }
     }
     st = nc_close(ncid); CHK_ERR(st)
-    if (info != MPI_INFO_NULL) MPI_Info_free(&info);
+    if (info != NC_MPI_INFO_NULL) MPI_Info_free(&info);
 
     /* re-open the file with netCDF (parallel) and enter define mode */
     st = nc_open_par(FILENAME, NC_WRITE, comm, info, &ncid); CHK_ERR(st)

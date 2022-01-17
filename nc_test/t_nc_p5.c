@@ -361,7 +361,7 @@ main(int argc, char *argv[])
 
         /* cmode |= NC_64BIT_OFFSET; */
         cmode != NC_64BIT_DATA;
-	ret = nc_create_par(fname,cmode, MPI_COMM_WORLD, MPI_INFO_NULL, &id);
+	ret = nc_create_par(fname,cmode, NC_MPI_COMM_WORLD, NC_MPI_INFO_NULL, &id);
 	if(ret != NC_NOERR)  {
 		fprintf(stderr,"Error %s in file %s at line %d\n",nc_strerror(ret),__FILE__,__LINE__);
 		exit(ret);

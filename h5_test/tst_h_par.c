@@ -41,8 +41,8 @@ main(int argc, char **argv)
 #endif /* USE_MPE */
 
     MPI_Init(&argc, &argv);
-    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &p);
+    MPI_Comm_rank(NC_MPI_COMM_WORLD, &my_rank);
+    MPI_Comm_size(NC_MPI_COMM_WORLD, &p);
 
 #ifdef USE_MPE
     MPE_Init_log();
@@ -88,7 +88,7 @@ main(int argc, char **argv)
 
         /* Create file. */
         if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
-        if (H5Pset_fapl_mpio(fapl_id, MPI_COMM_WORLD, MPI_INFO_NULL) < 0) ERR;
+        if (H5Pset_fapl_mpio(fapl_id, NC_MPI_COMM_WORLD, NC_MPI_INFO_NULL) < 0) ERR;
         if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
                                 fapl_id)) < 0) ERR;
 
@@ -137,7 +137,7 @@ main(int argc, char **argv)
 #endif /* USE_MPE */
         }
         write_us = (MPI_Wtime() - ftime) * MILLION;
-        MPI_Reduce(&write_us, &max_write_us, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&write_us, &max_write_us, 1, MPI_INT, MPI_MAX, 0, NC_MPI_COMM_WORLD);
         if (!my_rank)
         {
             write_rate = (float)(DIM2_LEN * sizeof(int))/(float)max_write_us;
@@ -163,7 +163,7 @@ main(int argc, char **argv)
 
         /* Open the file. */
         if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
-        if (H5Pset_fapl_mpio(fapl_id, MPI_COMM_WORLD, MPI_INFO_NULL) < 0) ERR;
+        if (H5Pset_fapl_mpio(fapl_id, NC_MPI_COMM_WORLD, NC_MPI_INFO_NULL) < 0) ERR;
 
 
         if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
@@ -208,7 +208,7 @@ main(int argc, char **argv)
                 }
         }
         read_us = (MPI_Wtime() - ftime) * MILLION;
-        MPI_Reduce(&read_us, &max_read_us, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&read_us, &max_read_us, 1, MPI_INT, MPI_MAX, 0, NC_MPI_COMM_WORLD);
         if (!my_rank)
         {
             read_rate = (float)(DIM2_LEN * sizeof(int))/(float)max_read_us;

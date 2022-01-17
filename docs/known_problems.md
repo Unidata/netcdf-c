@@ -291,21 +291,6 @@ Known Problems with netCDF 4.0.1
     compilers](#intel_11-ncgen)
 -   ["ncdump -v group/var" reports "group not found"](#ncdump-v)
 
-### Including mpi.h before netcdf.h breaks MPI
-
-Luis Kornblueh reports a subtle bug in netcdf 4.0.1. In the netcdf.h
-header file, the following mpi entities are defined:
-
-     /* These defs added by netCDF configure because parallel HDF5 is not 
-     present. */
-     #define MPI_Comm int
-     #define MPI_Info int
-     #define MPI_COMM_WORLD 0
-     #define MPI_INFO_NULL 0
-
-If mpi.h is included before netcdf.h, these defines (may) break the MPI
-implementation.
-
 ### With Sun C compiler, 64-bit ncdump fails
 
 As identified by Udo Grabowski, using the "-m64" option to build netCDF

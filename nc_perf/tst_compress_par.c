@@ -540,8 +540,8 @@ main(int argc, char **argv)
 #if H5_VERSION_GE(1,10,2)    
     /* MPI stuff. */
     int mpi_size, my_rank;
-    MPI_Comm comm = MPI_COMM_WORLD;
-    MPI_Info info = MPI_INFO_NULL;
+    nc_MPI_Comm comm = NC_MPI_COMM_WORLD;
+    nc_MPI_Info info = NC_MPI_INFO_NULL;
 
     /* For timing. */
     double data_start_time, data_stop_time;
@@ -573,8 +573,8 @@ main(int argc, char **argv)
 
     /* Initialize MPI. */
     MPI_Init(&argc, &argv);
-    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+    MPI_Comm_size(NC_MPI_COMM_WORLD, &mpi_size);
+    MPI_Comm_rank(NC_MPI_COMM_WORLD, &my_rank);
 
     /* Determine what compression filters are present. */
     if ((ret = find_filters(&num_compression_filters, compression_filter_name, deflate_level)))
@@ -655,7 +655,7 @@ main(int argc, char **argv)
 				   latlon_count, lat, lon, my_rank)) ERR;
 
 		    /* Stop the timer for metadata writes. */
-		    MPI_Barrier(MPI_COMM_WORLD);
+		    MPI_Barrier(NC_MPI_COMM_WORLD);
 		    data_start_time = MPI_Wtime();
 
 		    /* Write one record each of the data variables. */
@@ -663,7 +663,7 @@ main(int argc, char **argv)
 		    {
                         /* printf("%d: data_start %ld %ld %ld %ld data_count %ld %ld %ld %ld\n", my_rank, data_start[0], data_start[1], */
                         /*        data_start[2], data_start[3], data_count[0], data_count[1], data_count[2], data_count[3]); */
-                        /* MPI_Barrier(MPI_COMM_WORLD); */
+                        /* MPI_Barrier(NC_MPI_COMM_WORLD); */
                         if (nc_put_vara_float(ncid, data_varid[dv], data_start, data_count,
                                               value_data)) ERR;
 			if (nc_redef(ncid)) ERR;
@@ -673,7 +673,7 @@ main(int argc, char **argv)
 		    if (nc_close(ncid)) ERR;
 
 		    /* Stop the data timer. */
-		    MPI_Barrier(MPI_COMM_WORLD);
+		    MPI_Barrier(NC_MPI_COMM_WORLD);
 		    data_stop_time = MPI_Wtime();
 
 		    /* Get the file size. */
@@ -701,7 +701,7 @@ main(int argc, char **argv)
 			       deflate_level[f][dl], nsd[n], s,
 			       data_rate, (float)file_size/MILLION);
 		    }
-		    MPI_Barrier(MPI_COMM_WORLD);
+		    MPI_Barrier(NC_MPI_COMM_WORLD);
 		} /* next deflate level */
             } /* next nsd */
         } /* next shuffle filter test */

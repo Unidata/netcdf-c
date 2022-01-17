@@ -87,8 +87,8 @@ int main(int argc, char** argv)
     size_t global_ny, global_nx, start[2], count[2];
 
     MPI_Init(&argc, &argv);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+    MPI_Comm_rank(NC_MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(NC_MPI_COMM_WORLD, &nprocs);
 
     /* get command-line arguments */
     while ((i = getopt(argc, argv, "hq")) != EOF)
@@ -104,11 +104,11 @@ int main(int argc, char** argv)
     if (argc == 1) strcpy(filename, argv[0]); /* optional argument */
     else strcpy(filename, "testfile.nc");
 
-    MPI_Bcast(filename, 128, MPI_CHAR, 0, MPI_COMM_WORLD);
+    MPI_Bcast(filename, 128, MPI_CHAR, 0, NC_MPI_COMM_WORLD);
 
     /* create a new file for writing ----------------------------------------*/
     cmode = NC_CLOBBER;
-    err = nc_create_par(filename, cmode, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid); FATAL_ERR
+    err = nc_create_par(filename, cmode, NC_MPI_COMM_WORLD, NC_MPI_INFO_NULL, &ncid); FATAL_ERR
 
     /* the global array is NY * (NX * nprocs) */
     global_ny = NY;
@@ -123,7 +123,7 @@ int main(int argc, char** argv)
     asctime_r(localtime(&ltime), str_att);
 
     /* make sure the time string are consistent among all processes */
-    MPI_Bcast(str_att, strlen(str_att), MPI_CHAR, 0, MPI_COMM_WORLD);
+    MPI_Bcast(str_att, strlen(str_att), MPI_CHAR, 0, NC_MPI_COMM_WORLD);
 
     err = nc_put_att_text(ncid, NC_GLOBAL, "history", strlen(str_att),
                           &str_att[0]); ERR
@@ -161,7 +161,7 @@ int main(int argc, char** argv)
     err = nc_close(ncid); ERR
 
     omode = NC_NOWRITE;
-    err = nc_open_par(filename, omode, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid); FATAL_ERR
+    err = nc_open_par(filename, omode, NC_MPI_COMM_WORLD, NC_MPI_INFO_NULL, &ncid); FATAL_ERR
 
     /* inquire dimension IDs and lengths */
     err = nc_inq_dimid(ncid, "Y", &dimid[0]); ERR

@@ -847,8 +847,8 @@ main(int argc, char **argv)
     int mpi_namelen;            
     char mpi_name[MPI_MAX_PROCESSOR_NAME];
     int mpi_size, mpi_rank;
-    MPI_Comm comm = MPI_COMM_WORLD;
-    MPI_Info info = MPI_INFO_NULL;
+    nc_MPI_Comm comm = NC_MPI_COMM_WORLD;
+    nc_MPI_Info info = NC_MPI_INFO_NULL;
 
     /* Netcdf-4 stuff. */
     int ncid, v1id, dimids[NDIMS];
@@ -858,8 +858,8 @@ main(int argc, char **argv)
 
     /* Initialize MPI. */
     MPI_Init(&argc,&argv);
-    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+    MPI_Comm_size(NC_MPI_COMM_WORLD, &mpi_size);
+    MPI_Comm_rank(NC_MPI_COMM_WORLD, &mpi_rank);
     MPI_Get_processor_name(mpi_name, &mpi_namelen);
     printf("mpi_name: %s size: %d rank: %d\n", mpi_name, 
            mpi_size, mpi_rank);
@@ -1394,8 +1394,8 @@ the default. To use independent access on a variable,
 @heading Usage 
 
 @example
-int nc_create_par(const char *path, int cmode, MPI_Comm comm,
-                  MPI_Info info, int ncidp);
+int nc_create_par(const char *path, int cmode, nc_MPI_Comm comm,
+                  nc_MPI_Info info, int ncidp);
 @end example
 
 @table @code
@@ -1409,10 +1409,10 @@ NC_NETCDF4 flag is used.
 The NC_SHARE flag is ignored.
 
 @item comm
-The MPI_Comm object returned by the MPI layer.
+The nc_MPI_Comm object returned by the MPI layer.
 
 @item info
-The MPI_Info object returned by the MPI layer, if MPI/IO
+The nc_MPI_Info object returned by the MPI layer, if MPI/IO
 is being used, or 0 if MPI/Posix is being used.
 
 @item ncidp
@@ -1684,8 +1684,8 @@ are the default. To use independent access on a variable,
 @heading Usage 
 
 @example
-int nc_open_par(const char *path, int mode, MPI_Comm comm, 
-                MPI_Info info, int *ncidp);
+int nc_open_par(const char *path, int mode, nc_MPI_Comm comm, 
+                nc_MPI_Info info, int *ncidp);
 @end example
 
 @table @code
@@ -1706,10 +1706,10 @@ All other flags are ignored or not allowed. The NC_NETCDF4 flag is not
 required, as the file type is detected when the file is opened.
  
 @item comm
-MPI_Comm object returned by the MPI layer.
+nc_MPI_Comm object returned by the MPI layer.
 
 @item info
-MPI_Info object returned by the MPI layer, or NULL if MPI-POSIX access
+nc_MPI_Info object returned by the MPI layer, or NULL if MPI-POSIX access
 is desired.
 
 @item ncidp

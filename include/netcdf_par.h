@@ -33,12 +33,12 @@ extern "C" {
 
 /* Create a file and enable parallel I/O. */
     EXTERNL int
-    nc_create_par(const char *path, int cmode, MPI_Comm comm, MPI_Info info,
+    nc_create_par(const char *path, int cmode, nc_MPI_Comm comm, nc_MPI_Info info,
                   int *ncidp);
 
 /* Open a file and enable parallel I/O. */
     EXTERNL int
-    nc_open_par(const char *path, int mode, MPI_Comm comm, MPI_Info info,
+    nc_open_par(const char *path, int mode, nc_MPI_Comm comm, nc_MPI_Info info,
                 int *ncidp);
 
 /* Change a variable from independent (the default) to collective

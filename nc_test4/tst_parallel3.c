@@ -42,7 +42,7 @@ int test_pio_big(int);
 int test_pio_hyper(int);
 int test_pio_extend(int);
 
-char* getenv_all(MPI_Comm comm, int root, const char* name);
+char* getenv_all(nc_MPI_Comm comm, int root, const char* name);
 int facc_type;
 int facc_type_open;
 char file_name[NC_MAX_NAME + 1];
@@ -59,8 +59,8 @@ int main(int argc, char **argv)
    setbuf(stdout, NULL);
 
    MPI_Init(&argc, &argv);
-   MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-   MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+   MPI_Comm_size(NC_MPI_COMM_WORLD, &mpi_size);
+   MPI_Comm_rank(NC_MPI_COMM_WORLD, &mpi_rank);
 
    if (mpi_rank == 0)
       printf("\n*** Testing more advanced parallel access.\n");
@@ -143,7 +143,7 @@ int main(int argc, char **argv)
    if (mpi_rank == 0)
       SUMMARIZE_ERR;
 
-/*     if(!getenv_all(MPI_COMM_WORLD,0,"NETCDF4_NOCLEANUP")) */
+/*     if(!getenv_all(NC_MPI_COMM_WORLD,0,"NETCDF4_NOCLEANUP")) */
    remove(file_name);
    MPI_Finalize();
 
@@ -157,8 +157,8 @@ int test_pio(int flag)
 {
    /* MPI stuff. */
    int mpi_size, mpi_rank;
-   MPI_Comm comm = MPI_COMM_WORLD;
-   MPI_Info info = MPI_INFO_NULL;
+   nc_MPI_Comm comm = NC_MPI_COMM_WORLD;
+   nc_MPI_Info info = NC_MPI_INFO_NULL;
 
    /* Netcdf-4 stuff. */
    int ncid;
@@ -188,8 +188,8 @@ int test_pio(int flag)
    int *temprudata;
 
    /* Initialize MPI. */
-   MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-   MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+   MPI_Comm_size(NC_MPI_COMM_WORLD, &mpi_size);
+   MPI_Comm_rank(NC_MPI_COMM_WORLD, &mpi_rank);
 
    /* Create a parallel netcdf-4 file. */
    if (nc_create_par(file_name, facc_type, comm, info, &ncid)) ERR;
@@ -362,8 +362,8 @@ int test_pio_attr(int flag)
 {
    /* MPI stuff. */
    int mpi_size, mpi_rank;
-   MPI_Comm comm = MPI_COMM_WORLD;
-   MPI_Info info = MPI_INFO_NULL;
+   nc_MPI_Comm comm = NC_MPI_COMM_WORLD;
+   nc_MPI_Info info = NC_MPI_INFO_NULL;
 
    /* Netcdf-4 stuff. */
    int ncid;
@@ -386,8 +386,8 @@ int test_pio_attr(int flag)
    int *tempdata;
 
    /* Initialize MPI. */
-   MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-   MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+   MPI_Comm_size(NC_MPI_COMM_WORLD, &mpi_size);
+   MPI_Comm_rank(NC_MPI_COMM_WORLD, &mpi_rank);
 
    /* Create a parallel netcdf-4 file. */
 /*    nc_set_log_level(NC_TURN_OFF_LOGGING); */
@@ -547,8 +547,8 @@ int test_pio_hyper(int flag){
    /* MPI stuff. */
    int mpi_size, mpi_rank;
    int res = NC_NOERR;
-   MPI_Comm comm = MPI_COMM_WORLD;
-   MPI_Info info = MPI_INFO_NULL;
+   nc_MPI_Comm comm = NC_MPI_COMM_WORLD;
+   nc_MPI_Info info = NC_MPI_INFO_NULL;
 
    /* Netcdf-4 stuff. */
    int ncid;
@@ -567,8 +567,8 @@ int test_pio_hyper(int flag){
 
 
    /* Initialize MPI. */
-   MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-   MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+   MPI_Comm_size(NC_MPI_COMM_WORLD, &mpi_size);
+   MPI_Comm_rank(NC_MPI_COMM_WORLD, &mpi_rank);
 
    if(mpi_size == 1) return 0;
 
@@ -695,11 +695,11 @@ int test_pio_extend(int flag){
     size_t count[2];
     int vertices[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &procs);
+    MPI_Comm_rank(NC_MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(NC_MPI_COMM_WORLD, &procs);
 
     /* Create netcdf file */
-    if (nc_create_par("test.nc", NC_NETCDF4, MPI_COMM_WORLD, MPI_INFO_NULL, &ncFile)) ERR;
+    if (nc_create_par("test.nc", NC_NETCDF4, NC_MPI_COMM_WORLD, NC_MPI_INFO_NULL, &ncFile)) ERR;
 
     /* Create netcdf dimensions */
     if (nc_def_dim(ncFile, "partitions", procs, &ncDimPart)) ERR;
@@ -753,7 +753,7 @@ int test_pio_extend(int flag){
  *-------------------------------------------------------------------------
  */
 
-char* getenv_all(MPI_Comm comm, int root, const char* name)
+char* getenv_all(nc_MPI_Comm comm, int root, const char* name)
 {
    int nID;
    int len = -1;

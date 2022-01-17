@@ -1395,13 +1395,13 @@ ifelse(PARALLEL_IO,TRUE,
 <<.SH "PARALLEL I/O"
 .LP
 .HP
-FDECL(create_par, (IPATH(), ICMODE(), MPI_Comm comm, MPI_Info info, ONCID()))
+FDECL(create_par, (IPATH(), ICMODE(), nc_MPI_Comm comm, nc_MPI_Info info, ONCID()))
 .sp
 Like FREF(create) but creates for parallel I/O access. The mode must specify a
 netCDF-4/HDF5 dataset.
 .sp
 .HP
-FDECL(open_par, (IPATH(), IMODE(), MPI_Comm comm, MPI_Info info, ONCID()))
+FDECL(open_par, (IPATH(), IMODE(), nc_MPI_Comm comm, nc_MPI_Info info, ONCID()))
 .sp
 Opens for parallel I/O access. Must be a netCDF-4/HDF5 dataset.
 .HP

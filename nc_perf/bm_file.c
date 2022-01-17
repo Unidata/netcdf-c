@@ -278,11 +278,11 @@ cmp_file(char *file1, char *file2, int *meta_read_us, size_t *data_read_us,
     if (use_par)
     {
 #ifdef USE_PARALLEL
-        if ((ret = nc_open_par(file1, 0, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid1)))
+        if ((ret = nc_open_par(file1, 0, NC_MPI_COMM_WORLD, NC_MPI_INFO_NULL, &ncid1)))
             ERR1(ret);
-        MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Barrier(NC_MPI_COMM_WORLD);
         ftime = MPI_Wtime();
-        if ((ret = nc_open_par(file2, 0, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid2)))
+        if ((ret = nc_open_par(file2, 0, NC_MPI_COMM_WORLD, NC_MPI_INFO_NULL, &ncid2)))
             ERR1(ret);
         *meta_read_us += (MPI_Wtime() - ftime) * MILLION;
 #else
@@ -480,7 +480,7 @@ int copy_file(char *file_name_in, char *file_name_out, int cmode_out,
     {
 #ifdef USE_PARALLEL
         ftime = MPI_Wtime();
-        if ((ret = nc_open_par(file_name_in, 0, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid_in)))
+        if ((ret = nc_open_par(file_name_in, 0, NC_MPI_COMM_WORLD, NC_MPI_INFO_NULL, &ncid_in)))
             ERR1(ret);
         *meta_read_us += (MPI_Wtime() - ftime) * MILLION;
 #else
@@ -510,8 +510,8 @@ int copy_file(char *file_name_in, char *file_name_out, int cmode_out,
         if (use_par)
         {
 #ifdef USE_PARALLEL
-            if ((ret = nc_create_par(file_name_out, cmode_out, MPI_COMM_WORLD,
-                                     MPI_INFO_NULL, &ncid_out)))
+            if ((ret = nc_create_par(file_name_out, cmode_out, NC_MPI_COMM_WORLD,
+                                     NC_MPI_INFO_NULL, &ncid_out)))
                 ERR1(ret);
 #else
             return NC_EPARINIT;
@@ -847,10 +847,10 @@ main(int argc, char **argv)
 
 #ifdef USE_PARALLEL
     MPI_Init(&argc, &argv);
-    MPI_Errhandler_set(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
+    MPI_Errhandler_set(NC_MPI_COMM_WORLD, MPI_ERRORS_RETURN);
 
-    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &p);
+    MPI_Comm_rank(NC_MPI_COMM_WORLD, &my_rank);
+    MPI_Comm_size(NC_MPI_COMM_WORLD, &p);
 #endif
 
     for (o1 = 0; o1 < MAX_VO; o1++)
@@ -1071,7 +1071,7 @@ main(int argc, char **argv)
         char cmd[NC_MAX_NAME * 3 + 5];
 
 #ifdef USE_PARALLEL
-        MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Barrier(NC_MPI_COMM_WORLD);
 #endif
         /* Create a copy of file_out. This will defeat any buffering
          * that may exist from the fact that we just wrote file_out. */
@@ -1088,11 +1088,11 @@ main(int argc, char **argv)
     if (use_par)
     {
 #ifdef USE_PARALLEL
-        MPI_Reduce(&meta_read_us, &tmeta_read_us, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&meta_write_us, &tmeta_write_us, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&data_read_us, &tdata_read_us, 1, MPI_OFFSET, MPI_MAX, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&data_write_us, &tdata_write_us, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&data_read2_us, &tdata_read2_us, 1, MPI_OFFSET, MPI_MAX, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&meta_read_us, &tmeta_read_us, 1, MPI_INT, MPI_MAX, 0, NC_MPI_COMM_WORLD);
+        MPI_Reduce(&meta_write_us, &tmeta_write_us, 1, MPI_INT, MPI_MAX, 0, NC_MPI_COMM_WORLD);
+        MPI_Reduce(&data_read_us, &tdata_read_us, 1, MPI_OFFSET, MPI_MAX, 0, NC_MPI_COMM_WORLD);
+        MPI_Reduce(&data_write_us, &tdata_write_us, 1, MPI_INT, MPI_MAX, 0, NC_MPI_COMM_WORLD);
+        MPI_Reduce(&data_read2_us, &tdata_read2_us, 1, MPI_OFFSET, MPI_MAX, 0, NC_MPI_COMM_WORLD);
 #else
         return NC_EPARINIT;
 #endif

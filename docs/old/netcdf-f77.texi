@@ -1072,8 +1072,8 @@ This example is from test program nf_test/ftst_parallel.F.
 @example
 !     Create the netCDF file. 
       mode_flag = IOR(nf_netcdf4, nf_classic_model) 
-      retval = nf_create_par(FILE_NAME, mode_flag, MPI_COMM_WORLD, 
-     $     MPI_INFO_NULL, ncid)
+      retval = nf_create_par(FILE_NAME, mode_flag, NC_MPI_COMM_WORLD, 
+     $     NC_MPI_INFO_NULL, ncid)
       if (retval .ne. nf_noerr) stop 2
 @end example
 
@@ -1317,8 +1317,8 @@ This example is from the test program nf_test/ftst_parallel.F.
 
 @example
 !     Reopen the file.
-      retval = nf_open_par(FILE_NAME, nf_nowrite, MPI_COMM_WORLD, 
-     $     MPI_INFO_NULL, ncid)
+      retval = nf_open_par(FILE_NAME, nf_nowrite, NC_MPI_COMM_WORLD, 
+     $     NC_MPI_INFO_NULL, ncid)
       if (retval .ne. nf_noerr) stop 2
 @end example
 

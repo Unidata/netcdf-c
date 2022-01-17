@@ -28,8 +28,8 @@ $Id: tst_nc4perf.c,v 1.4 2009/08/19 15:58:57 ed Exp $
 
 /* This function creates a file with 10 2D variables, no unlimited
  * dimension. */
-int test_pio_2d(size_t cache_size, int access_flag, MPI_Comm comm,
-		MPI_Info info, int mpi_size, int mpi_rank,
+int test_pio_2d(size_t cache_size, int access_flag, nc_MPI_Comm comm,
+		nc_MPI_Info info, int mpi_size, int mpi_rank,
 		size_t *chunk_size)
 {
    double starttime, endtime, write_time = 0, bandwidth = 0;
@@ -135,8 +135,8 @@ int test_pio_2d(size_t cache_size, int access_flag, MPI_Comm comm,
 /* Both read and write will be tested */
 /* Case 2: create four dimensional integer data,
    one dimension is unlimited. */
-int test_pio_4d(size_t cache_size, int access_flag, MPI_Comm comm,
-		MPI_Info info, int mpi_size, int mpi_rank, size_t *chunk_size)
+int test_pio_4d(size_t cache_size, int access_flag, nc_MPI_Comm comm,
+		nc_MPI_Info info, int mpi_size, int mpi_rank, size_t *chunk_size)
 {
    int ncid, dimuids[NDIMS2], varid2[NUMVARS];
    size_t ustart[NDIMS2], ucount[NDIMS2];
@@ -253,8 +253,8 @@ int test_pio_4d(size_t cache_size, int access_flag, MPI_Comm comm,
 
 int main(int argc, char **argv)
 {
-   MPI_Comm comm = MPI_COMM_WORLD;
-   MPI_Info info = MPI_INFO_NULL;
+   nc_MPI_Comm comm = NC_MPI_COMM_WORLD;
+   nc_MPI_Info info = NC_MPI_INFO_NULL;
    int mpi_size, mpi_rank;
    int facc_type[NUM_FACC] = {NC_INDEPENDENT, NC_COLLECTIVE};
    size_t chunk_size_2d[NUM_CHUNK_COMBOS_2D][NDIMS1] = {{0, 0},
@@ -269,8 +269,8 @@ int main(int argc, char **argv)
 
    /* Initialize MPI. */
    MPI_Init(&argc, &argv);
-   MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-   MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+   MPI_Comm_size(NC_MPI_COMM_WORLD, &mpi_size);
+   MPI_Comm_rank(NC_MPI_COMM_WORLD, &mpi_rank);
 
    /* Check for invalid number of processors. */
    if ((float)DIMSIZE1 / mpi_size != (int)(DIMSIZE1 / mpi_size))

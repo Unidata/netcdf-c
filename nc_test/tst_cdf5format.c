@@ -131,12 +131,12 @@ read2(int ncid)
 int main(int argc, char* argv[])
 {
    int rank, nprocs, ncid, cmode;
-   MPI_Comm comm = MPI_COMM_SELF;
-   MPI_Info info = MPI_INFO_NULL;
+   nc_MPI_Comm comm = MPI_COMM_SELF;
+   nc_MPI_Info info = NC_MPI_INFO_NULL;
 
    MPI_Init(&argc, &argv);
-   MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
-   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+   MPI_Comm_size(NC_MPI_COMM_WORLD, &nprocs);
+   MPI_Comm_rank(NC_MPI_COMM_WORLD, &rank);
    if (rank > 0)
       return 2;
 

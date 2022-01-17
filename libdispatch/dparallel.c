@@ -44,7 +44,7 @@ errors, it simply stops their display to the user through stderr.
 \param comm the MPI communicator specifying the processes participating the
 parallel I/O to this file.
 
-\param info MPI info object containing I/O hints or MPI_INFO_NULL.
+\param info MPI info object containing I/O hints or NC_MPI_INFO_NULL.
 
 \param ncidp Pointer to location where returned netCDF ID is to be
 stored.
@@ -67,14 +67,14 @@ parallel I/O.
 
 \code
     int mpi_size, mpi_rank;
-    MPI_Comm comm = MPI_COMM_WORLD;
-    MPI_Info info = MPI_INFO_NULL;
+    nc_MPI_Comm comm = NC_MPI_COMM_WORLD;
+    nc_MPI_Info info = NC_MPI_INFO_NULL;
     int ncid, v1id, dimids[NDIMS];
     char file_name[NC_MAX_NAME + 1];
 
     MPI_Init(&argc,&argv);
-    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+    MPI_Comm_size(NC_MPI_COMM_WORLD, &mpi_size);
+    MPI_Comm_rank(NC_MPI_COMM_WORLD, &mpi_rank);
 
     sprintf(file_name, "%s/%s", TEMP_LARGE, FILE);
     if ((res = nc_create_par(file_name, NC_NETCDF4, comm, info, &ncid))) ERR;
@@ -97,8 +97,8 @@ parallel I/O.
 \author Ed Hartnett, Dennis Heimbigner
 \ingroup datasets
 */
-int nc_create_par(const char *path, int cmode, MPI_Comm comm,
-                  MPI_Info info, int *ncidp)
+int nc_create_par(const char *path, int cmode, nc_MPI_Comm comm,
+                  nc_MPI_Info info, int *ncidp)
 {
 #ifndef USE_PARALLEL
     NC_UNUSED(path);
@@ -167,7 +167,7 @@ access) or NC_NOWRITE (for read-only access).
 \param comm the MPI communicator specifying the processes participating the
 parallel I/O to this file.
 
-\param info MPI info object containing I/O hints or MPI_INFO_NULL.
+\param info MPI info object containing I/O hints or NC_MPI_INFO_NULL.
 
 \param ncidp Pointer to location where returned netCDF ID is to be
 stored.
@@ -199,14 +199,14 @@ Here is an example using nc_open_par() from examples/C/parallel_vara.c.
     char filename[128];
    ...
     omode = NC_NOWRITE;
-    err = nc_open_par(filename, omode, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid); FATAL_ERR
+    err = nc_open_par(filename, omode, NC_MPI_COMM_WORLD, NC_MPI_INFO_NULL, &ncid); FATAL_ERR
 \endcode
 \author Ed Hartnett, Dennis Heimbigner
 \ingroup datasets
 */
 int
-nc_open_par(const char *path, int omode, MPI_Comm comm,
-            MPI_Info info, int *ncidp)
+nc_open_par(const char *path, int omode, nc_MPI_Comm comm,
+            nc_MPI_Info info, int *ncidp)
 {
 #ifndef USE_PARALLEL
     NC_UNUSED(path);
@@ -237,7 +237,7 @@ access) or NC_NOWRITE (for read-only access).
 \param comm the MPI communicator specifying the processes participating the
 parallel I/O to this file.
 
-\param info MPI info object containing I/O hints or MPI_INFO_NULL.
+\param info MPI info object containing I/O hints or NC_MPI_INFO_NULL.
 
 \param ncidp Pointer to location where returned netCDF ID is to be
 stored.
@@ -269,20 +269,20 @@ nc_open_par_fortran(const char *path, int omode, int comm,
     NC_UNUSED(ncidp);
     return NC_ENOPAR;
 #else
-    MPI_Comm comm_c;
-    MPI_Info info_c;
+    nc_MPI_Comm comm_c;
+    nc_MPI_Info info_c;
 
     /* Convert fortran comm and info to C comm and info, if there is a
      * function to do so. Otherwise just pass them. */
 #ifdef HAVE_MPI_COMM_F2C
     comm_c = MPI_Comm_f2c(comm);
 #else
-    comm_c = (MPI_Comm)comm;
+    comm_c = (nc_MPI_Comm)comm;
 #endif
 #ifdef HAVE_MPI_INFO_F2C
     info_c = MPI_Info_f2c(info);
 #else
-    info_c = (MPI_Info)info;
+    info_c = (nc_MPI_Info)info;
 #endif
 
     return nc_open_par(path, omode, comm_c, info_c, ncidp);
@@ -356,7 +356,7 @@ nc_open_par_fortran(const char *path, int omode, int comm,
     global_nx = NX * nprocs;
         ...
     cmode = NC_CLOBBER;
-    err = nc_create_par(filename, cmode, MPI_COMM_WORLD, MPI_INFO_NULL, &ncid); FATAL_ERR
+    err = nc_create_par(filename, cmode, NC_MPI_COMM_WORLD, NC_MPI_INFO_NULL, &ncid); FATAL_ERR
         ...
     err = nc_def_dim(ncid, "Y", global_ny, &dimid[0]); ERR
     err = nc_def_dim(ncid, "X", global_nx, &dimid[1]); ERR
@@ -415,7 +415,7 @@ info from Fortran to C, if necessary.
 \param comm the MPI communicator specifying the processes participating the
 parallel I/O to this file.
 
-\param info MPI info object containing I/O hints or MPI_INFO_NULL.
+\param info MPI info object containing I/O hints or NC_MPI_INFO_NULL.
 
 \param ncidp Pointer to location where returned netCDF ID is to be
 stored.
@@ -446,20 +446,20 @@ nc_create_par_fortran(const char *path, int cmode, int comm,
     NC_UNUSED(ncidp);
     return NC_ENOPAR;
 #else
-    MPI_Comm comm_c;
-    MPI_Info info_c;
+    nc_MPI_Comm comm_c;
+    nc_MPI_Info info_c;
 
     /* Convert fortran comm and info to C comm and info, if there is a
      * function to do so. Otherwise just pass them. */
 #ifdef HAVE_MPI_COMM_F2C
     comm_c = MPI_Comm_f2c(comm);
 #else
-    comm_c = (MPI_Comm)comm;
+    comm_c = (nc_MPI_Comm)comm;
 #endif
 #ifdef HAVE_MPI_INFO_F2C
     info_c = MPI_Info_f2c(info);
 #else
-    info_c = (MPI_Info)info;
+    info_c = (nc_MPI_Info)info;
 #endif
 
     return nc_create_par(path, cmode, comm_c, info_c, ncidp);

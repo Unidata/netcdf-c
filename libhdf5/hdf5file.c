@@ -214,7 +214,7 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio)
     {
         if (h5->comm != MPI_COMM_NULL)
             MPI_Comm_free(&h5->comm);
-        if (h5->info != MPI_INFO_NULL)
+        if (h5->info != NC_MPI_INFO_NULL)
             MPI_Info_free(&h5->info);
     }
 #endif

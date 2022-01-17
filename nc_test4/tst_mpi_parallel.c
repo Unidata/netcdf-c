@@ -35,8 +35,8 @@ main(int argc, char **argv)
 
    /* Initialize MPI. */
    MPI_Init(&argc,&argv);
-   MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+   MPI_Comm_size(NC_MPI_COMM_WORLD, &mpi_size);
+   MPI_Comm_rank(NC_MPI_COMM_WORLD, &my_rank);
    /*MPI_Get_processor_name(mpi_name, &mpi_namelen);*/
    /*printf("mpi_name: %s size: %d rank: %d\n", mpi_name,
      mpi_size, my_rank);*/
@@ -47,15 +47,15 @@ main(int argc, char **argv)
       printf("*** testing file create with parallel I/O with MPI...");
    }
 
-   if (MPI_File_open(MPI_COMM_WORLD, FILE, MPI_MODE_RDWR | MPI_MODE_CREATE,
-                     MPI_INFO_NULL, &fh) != MPI_SUCCESS) ERR;
+   if (MPI_File_open(NC_MPI_COMM_WORLD, FILE, MPI_MODE_RDWR | MPI_MODE_CREATE,
+                     NC_MPI_INFO_NULL, &fh) != MPI_SUCCESS) ERR;
    if (MPI_File_seek(fh, my_rank * sizeof(int), MPI_SEEK_SET) != MPI_SUCCESS) ERR;
    if (MPI_File_write(fh, &my_rank, 1, MPI_INT, &status) != MPI_SUCCESS) ERR;
    if (MPI_File_close(&fh) != MPI_SUCCESS) ERR;
 
    /* Reopen and check the file. */
-   if (MPI_File_open(MPI_COMM_WORLD, FILE, MPI_MODE_RDONLY,
-                     MPI_INFO_NULL, &fh) != MPI_SUCCESS) ERR;
+   if (MPI_File_open(NC_MPI_COMM_WORLD, FILE, MPI_MODE_RDONLY,
+                     NC_MPI_INFO_NULL, &fh) != MPI_SUCCESS) ERR;
    if (MPI_File_seek(fh, my_rank * sizeof(int), MPI_SEEK_SET) != MPI_SUCCESS) ERR;
    if (MPI_File_read(fh, &data_in, 1, MPI_INT, &status) != MPI_SUCCESS) ERR;
    if (data_in != my_rank) ERR;
