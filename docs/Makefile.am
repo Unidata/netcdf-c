@@ -66,6 +66,7 @@ CLEANFILES = doxyfile.stamp
 # everything needed for the website. Run this and copy the resulting
 # tarball to the /contents/netcdf/docs directory to update the on-line
 # docs.
+# UPDATE Nov 12, 2021: docs now published to Unidata artifacts server.
 web-tarball: doxyfile.stamp
 	cd html; tar cf ../netcdf_docs.tar *
 	gzip -f netcdf_docs.tar

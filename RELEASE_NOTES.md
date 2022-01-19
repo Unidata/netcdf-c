@@ -375,7 +375,7 @@ NC\_FORMAT\_UNDEFINED | NC\_FORMATX\_UNDEFINED
 
 * Reduced minimum cmake version to `2.8.11` from `2.8.12`. This will allow for cmake use on a broader set of popular linux platforms without having to do a custom cmake install.  See https://github.com/Unidata/netcdf-c/issues/135 for more information.
 
-* The documentation section `The Default Chunking Scheme` has been updated with more information.  This lives in the `guide.dox` file in the `docs/` directory, or can be found online in the appropriate location (typically http://www.unidata.ucar.edu/netcdf/docs/), once this release has been published.
+* The documentation section `The Default Chunking Scheme` has been updated with more information.  This lives in the `guide.dox` file in the `docs/` directory, or can be found online in the appropriate location (typically https://docs.unidata.ucar.edu/netcdf-c/), once this release has been published.
 
 ### 4.4.0-RC3 2015-10-08
 
@@ -506,7 +506,7 @@ More details may be found at the Unidata JIRA Dashboard.  [NCF-316](https://bugt
 
 * Fixed ncdump bug for char variables with multiple unlimited dimensions and added an associated test.  Now the output CDL properly disambiguates dimension groupings, so that ncgen can generate the original file from the CDL. [NCF-310](https://bugtracking.unidata.ucar.edu/browse/NCF-310)
 
-* Converted the [Manually-maintained FAQ page](http://www.unidata.ucar.edu/software/netcdf/docs/faq.html) into markdown and added it to the `docs/` directory.  This way the html version will be generated when the rest of the documentation is built, the FAQ will be under version control, and it will be in a more visible location, hopefully making it easier to maintain.
+* Converted the [Manually-maintained FAQ page](https://docs.unidata.ucar.edu/netcdf-c/current/faq.html) into markdown and added it to the `docs/` directory.  This way the html version will be generated when the rest of the documentation is built, the FAQ will be under version control, and it will be in a more visible location, hopefully making it easier to maintain.
 
 * Bumped minimum required version of `cmake` to `2.8.12`.  This was necessitated by the adoption of the new `CMAKE_MACOSX_RPATH` property, for use on OSX.
 
@@ -659,7 +659,7 @@ This is a bug-fix-only release for version 4.3.1.
 
 
 * Added better documentation about accessing ESG datasets.
-  See http://www.unidata.ucar.edu/software/netcdf/docs/esg.html.
+  See https://docs.unidata.ucar.edu/netcdf-c/current/esg.html.
 
 * Corrected an issue with CMake-based builds enabling HDF4 support where the HDF4 libraries were in a non-standard location.
 
@@ -1516,10 +1516,10 @@ output.
 Turkal).
 
 * Fixed bug in C++ API creating 64-bit offset files. (See
-http://www.unidata.ucar.edu/software/netcdf/docs/known_problems.html#cxx_64-bit).
+https://docs.unidata.ucar.edu/netcdf-c/current/known_problems.html#cxx_64-bit).
 
 * Fixed bug for variables larger than 4 GB. (See
-http://www.unidata.ucar.edu/software/netcdf/docs/known_problems.html#large_vars_362).
+https://docs.unidata.ucar.edu/netcdf-c/current/known_problems.html#large_vars_362).
 
 * Changed the configure.ac to build either 3.6.x or 4.x build from the
 same configure.ac.
@@ -1670,7 +1670,7 @@ configure.
 * Switched to new build system, with automake and libtool. Now shared
 libraries are built (as well as static ones) on platforms which support
 it. For more information about shared libraries, see
-http://www.unidata.ucar.edu/software/netcdf/docs/faq.html#shared_intro
+https://docs.unidata.ucar.edu/netcdf-c/current/faq.html#shared_intro
 
 * Fixed ncdump crash that happened when no arguments were used.
 
