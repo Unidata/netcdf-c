@@ -394,7 +394,7 @@ done:
 static void
 pr_initx(int ncid, const char *path)
 {
-    printf("<?xml version=\"%s\" encoding=\"UTF-8\"?>\n<netcdf xmlns=\"http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2\" location=\"%s\">\n",
+    printf("<?xml version=\"%s\" encoding=\"UTF-8\"?>\n<netcdf xmlns=\"https://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2\" location=\"%s\">\n",
 	   XML_VERSION, path);
 }
 

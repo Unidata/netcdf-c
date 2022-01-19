@@ -14,7 +14,7 @@
  * dimensions, "x" and "y".
  *
  * Full documentation for netCDF can be found at:
- * http://www.unidata.ucar.edu/netcdf/docs.
+ * https://docs.unidata.ucar.edu/netcdf-c.
  *
  * @author Ed Hartnett
 */
