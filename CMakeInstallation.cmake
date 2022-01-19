@@ -58,7 +58,7 @@ IF(WIN32)
   SET(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
   SET(CPACK_NSIS_MENU_LINKS
 	"https://www.unidata.ucar.edu/software/netcdf" "Unidata Website"
-	"https://docs.unidata.ucar.edu/netcdf-c" "NetCDF Stable Documentation"
+	"https://docs.unidata.ucar.edu/netcdf-c" "NetCDF Stable Documentation")
 
 ENDIF()
 
