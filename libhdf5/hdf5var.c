@@ -784,17 +784,23 @@ int
 NC4_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
                     int deflate_level)
 {
-    int stat = NC_NOERR;
+    int stat;
     unsigned int level = (unsigned int)deflate_level;
-    /* Set shuffle first */
-    if((stat = nc_def_var_extra(ncid, varid, &shuffle, NULL, NULL, NULL,
-				NULL, NULL, NULL, NULL, NULL, NULL, NULL))) goto done;
-    if(deflate) {
-        if((stat = nc_def_var_filter(ncid, varid, H5Z_FILTER_DEFLATE,1,&level))) goto done;
-    } /* else ignore */
 
-done:
-    return stat;
+    /* Set shuffle first */
+    if ((stat = nc_def_var_extra(ncid, varid, &shuffle, NULL, NULL, NULL,
+                                 NULL, NULL, NULL, NULL, NULL, NULL, NULL)))
+        return stat;
+
+    /* Don't turn on deflate if deflate_level = 0. It's a valid zlib
+     * setting, but results in a write slowdown, and a file that is
+     * larger than the uncompressed file would be. So when
+     * deflate_level is 0, don't use compression. */
+    if (deflate && deflate_level)
+        if ((stat = nc_def_var_filter(ncid, varid, H5Z_FILTER_DEFLATE, 1, &level)))
+            return stat;
+
+    return NC_NOERR;
 }
 
 /**
