@@ -39,7 +39,6 @@ jobs:
         run: |
           set -x
           set -e
-          brew install autoconf libtool automake
           wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$(echo ${{ matrix.hdf5 }} | cut -d. -f 1,2)/hdf5-${{ matrix.hdf5 }}/src/hdf5-${{ matrix.hdf5 }}.tar.bz2
           tar -jxf hdf5-${{ matrix.hdf5 }}.tar.bz2
           pushd hdf5-${{ matrix.hdf5 }}
@@ -288,6 +287,10 @@ jobs:
 ###
 # Configure and build
 ###
+
+      - name: Install autoconf
+        shell: bash -l {0}
+        run: brew install autoconf automake libtool
 
       - name: Run autoconf
         shell: bash -l {0}
