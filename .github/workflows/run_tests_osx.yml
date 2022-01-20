@@ -55,7 +55,7 @@ jobs:
   nc-autotools-osx:
 
     needs: [ nc-cmake-tests-oneoff-osx, nc-ac-tests-oneoff-osx ]
-    runs-on: ubuntu-latest
+    runs-on: macos-11
 
     strategy:
       matrix:
@@ -162,7 +162,7 @@ jobs:
   nc-cmake-osx:
 
     needs: [ nc-cmake-tests-oneoff-osx, nc-ac-tests-oneoff-osx ]
-    runs-on: ubuntu-latest
+    runs-on: macos-11
 
     strategy:
       matrix:
@@ -262,8 +262,8 @@ jobs:
 #####
   nc-ac-tests-oneoff-osx:
 
-    needs: build-deps
-    runs-on: ubuntu-latest
+    needs: build-deps-osx
+    runs-on: macos-11
 
     strategy:
       matrix:
@@ -343,8 +343,8 @@ jobs:
 
   nc-cmake-tests-oneoff-osx:
 
-    needs: build-deps
-    runs-on: ubuntu-latest
+    needs: build-deps-osx
+    runs-on: macos-11
 
     strategy:
       matrix:
