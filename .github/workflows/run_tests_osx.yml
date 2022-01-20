@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@v2
 
         ###
-        # Installing libhdf4 and libhdf5
+        # libhdf5
         ###
       - name: Cache libhdf5-${{ matrix.hdf5 }}
         id: cache-hdf5
@@ -38,6 +38,7 @@ jobs:
         if: steps.cache-hdf5.outputs.cache-hit != 'true'
         run: |
           set -x
+          brew install autoconf libtool automake
           wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$(echo ${{ matrix.hdf5 }} | cut -d. -f 1,2)/hdf5-${{ matrix.hdf5 }}/src/hdf5-${{ matrix.hdf5 }}.tar.bz2
           tar -jxf hdf5-${{ matrix.hdf5 }}.tar.bz2
           pushd hdf5-${{ matrix.hdf5 }}
