@@ -8,11 +8,9 @@ name: Run netCDF Tests on OSX
 
 on: [pull_request]
 
-
-
 jobs:
 
-  build-deps:
+  build-deps-osx:
 
     runs-on: macos-11
 
@@ -54,9 +52,9 @@ jobs:
           popd
 
 
-  nc-autotools:
+  nc-autotools-osx:
 
-    needs: [ nc-cmake-tests-oneoff, nc-ac-tests-oneoff ]
+    needs: [ nc-cmake-tests-oneoff-osx, nc-ac-tests-oneoff-osx ]
     runs-on: ubuntu-latest
 
     strategy:
@@ -161,14 +159,15 @@ jobs:
       #    SSH_PASS: ${{ secrets.SSH_PASS }}
       #  if: ${{ failure() }}
 
-  nc-cmake:
+  nc-cmake-osx:
 
-    needs: [ nc-cmake-tests-oneoff, nc-ac-tests-oneoff ]
+    needs: [ nc-cmake-tests-oneoff-osx, nc-ac-tests-oneoff-osx ]
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        hdf5: [ 1.8.21, 1.10.1, 1.10.7, 1.12.1 ]
+        hdf5: [ 1.12.1 ]
+        #hdf5: [ 1.8.21, 1.10.1, 1.10.7, 1.12.1 ]
         use_nc4: [ nc3, nc4 ]
         use_dap: [ dap_off, dap_on ]
         use_nczarr: [ nczarr_off, nczarr_on ]
@@ -261,7 +260,7 @@ jobs:
 #####
 # One-Off Autotools-based tests.
 #####
-  nc-ac-tests-oneoff:
+  nc-ac-tests-oneoff-osx:
 
     needs: build-deps
     runs-on: ubuntu-latest
@@ -342,7 +341,7 @@ jobs:
 # One-Off CMake-based tests.
 #####
 
-  nc-cmake-tests-oneoff:
+  nc-cmake-tests-oneoff-osx:
 
     needs: build-deps
     runs-on: ubuntu-latest
