@@ -65,7 +65,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ ${{env.HDF5_VERSIONS}} ]
+        hdf5: [ "${{env.HDF5_VERSIONS}}" ]
         use_nc4: [ nc3, nc4 ]
         use_dap: [ dap_off, dap_on ]
         use_nczarr: [ nczarr_off, nczarr_on ]
@@ -172,7 +172,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ ${{env.HDF5_VERSIONS}} ]
+        hdf5: [ "${{env.HDF5_VERSIONS}}" ]
         use_nc4: [ nc3, nc4 ]
         use_dap: [ dap_off, dap_on ]
         use_nczarr: [ nczarr_off, nczarr_on ]
