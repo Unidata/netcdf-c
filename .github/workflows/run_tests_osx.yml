@@ -33,6 +33,9 @@ jobs:
           path: ~/environments/${{ matrix.hdf5 }}
           key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
 
+      - name: Install autoconf
+        if: steps.cache-hdf5.outputs.cache-hit != 'true'
+        run: brew install automake
 
       - name: Build libhdf5-${{ matrix.hdf5 }}
         if: steps.cache-hdf5.outputs.cache-hit != 'true'
@@ -290,7 +293,7 @@ jobs:
 
       - name: Install autoconf
         shell: bash -l {0}
-        run: brew install autoconf automake libtool
+        run: brew install automake
 
       - name: Run autoconf
         shell: bash -l {0}
