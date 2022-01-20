@@ -33,10 +33,6 @@ jobs:
           path: ~/environments/${{ matrix.hdf5 }}
           key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
 
-      - name: Install autoconf
-        if: steps.cache-hdf5.outputs.cache-hit != 'true'
-        run: brew install automake
-
       - name: Build libhdf5-${{ runner.os}}-${{ matrix.hdf5 }}
         if: steps.cache-hdf5-osx.outputs.cache-hit != 'true'
         run: |
@@ -96,7 +92,7 @@ jobs:
 ###
 
       - name: Fetch HDF Cache
-        id: cache-hdf
+        id: cache-hdf-osx
         uses: actions/cache@v2
         with:
           path: ~/environments/${{ matrix.hdf5 }}
@@ -109,6 +105,9 @@ jobs:
 ###
 # Configure and build
 ###
+      - name: Install autoconf
+        shell: bash -l {0}
+        run: brew install automake
 
       - name: Run autoconf
         shell: bash -l {0}
@@ -199,7 +198,7 @@ jobs:
 ###
 
       - name: Fetch HDF Cache
-        id: cache-hdf5
+        id: cache-hdf5-osx
         uses: actions/cache@v2
         with:
           path: ~/environments/${{ matrix.hdf5 }}
@@ -277,7 +276,7 @@ jobs:
 ###
 
       - name: Fetch HDF Cache
-        id: cache-hdf
+        id: cache-hdf-osx
         uses: actions/cache@v2
         with:
           path: ~/environments/${{ matrix.hdf5 }}
@@ -357,7 +356,7 @@ jobs:
 ###
 
       - name: Fetch HDF Cache
-        id: cache-hdf5
+        id: cache-hdf5-osx
         uses: actions/cache@v2
         with:
           path: ~/environments/${{ matrix.hdf5 }}
