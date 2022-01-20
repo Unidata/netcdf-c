@@ -3,10 +3,9 @@
 # See https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners
 # for information related to github runners.
 ###
-
 name: Run netCDF Tests on OSX
 
-on: [pull_request]
+on: [push, pull_request]
 
 jobs:
 
