@@ -17,7 +17,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ ${{env.HDF5_VERSIONS}} ]
+        hdf5: [ "${{env.HDF5_VERSIONS}}" ]
 
     steps:
 
