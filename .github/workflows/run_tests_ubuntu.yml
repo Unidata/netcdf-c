@@ -6,9 +6,6 @@ name: Run netCDF Tests
 
 on: [pull_request]
 
-env:
-  HDF5_VERSIONS: [ 1.8.21, 1.10.1, 1.10.7, 1.12.1 ]
-  
 jobs:
 
   build-deps:
@@ -17,7 +14,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ "${{env.HDF5_VERSIONS}}" ]
+        hdf5: [ 1.8.21, 1.10.1, 1.10.7, 1.12.1 ]
 
     steps:
 
@@ -65,7 +62,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ "${{env.HDF5_VERSIONS}}" ]
+        hdf5: [ 1.8.21, 1.10.1, 1.10.7, 1.12.1 ]
         use_nc4: [ nc3, nc4 ]
         use_dap: [ dap_off, dap_on ]
         use_nczarr: [ nczarr_off, nczarr_on ]
@@ -172,7 +169,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ "${{env.HDF5_VERSIONS}}" ]
+        hdf5: [ 1.8.21, 1.10.1, 1.10.7, 1.12.1 ]
         use_nc4: [ nc3, nc4 ]
         use_dap: [ dap_off, dap_on ]
         use_nczarr: [ nczarr_off, nczarr_on ]
