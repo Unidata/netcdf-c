@@ -4,7 +4,7 @@
 
 name: Run netCDF Tests
 
-on: [fork]
+on: [ pull_request ]
 
 
 jobs:
@@ -54,8 +54,7 @@ jobs:
           make -j
           make install -j
           popd
-
-
+          
   nc-autotools:
 
     needs: [ nc-cmake-tests-oneoff, nc-ac-tests-oneoff ]
