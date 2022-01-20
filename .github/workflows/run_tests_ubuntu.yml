@@ -4,7 +4,8 @@
 
 name: Run netCDF Tests
 
-#on: [pull_request]
+on: [fork]
+
 
 jobs:
 
