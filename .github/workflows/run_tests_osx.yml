@@ -26,8 +26,8 @@ jobs:
         ###
         # libhdf5
         ###
-      - name: Cache libhdf5-${{ matrix.hdf5 }}
-        id: cache-hdf5
+      - name: Cache libhdf5-${{ runner.os }}-${{ matrix.hdf5 }}
+        id: cache-hdf5-osx
         uses: actions/cache@v2
         with:
           path: ~/environments/${{ matrix.hdf5 }}
@@ -37,8 +37,8 @@ jobs:
         if: steps.cache-hdf5.outputs.cache-hit != 'true'
         run: brew install automake
 
-      - name: Build libhdf5-${{ matrix.hdf5 }}
-        if: steps.cache-hdf5.outputs.cache-hit != 'true'
+      - name: Build libhdf5-${{ runner.os}}-${{ matrix.hdf5 }}
+        if: steps.cache-hdf5-osx.outputs.cache-hit != 'true'
         run: |
           set -x
           set -e
