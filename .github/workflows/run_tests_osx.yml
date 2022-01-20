@@ -115,7 +115,7 @@ jobs:
 
       - name: Configure
         shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure ${ENABLE_HDF4} ${ENABLE_HDF5} ${ENABLE_DAP} ${ENABLE_NCZARR}
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure ${ENABLE_HDF5} ${ENABLE_DAP} ${ENABLE_NCZARR}
         if: ${{ success() }}
 
       - name: Look at config.log if error
