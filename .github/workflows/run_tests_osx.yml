@@ -1,10 +1,10 @@
-name: Run netCDF Tests on OSX
-
 ###
 # Build hdf4, hdf5 dependencies and cache them in a combined directory.
 # See https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners
 # for information related to github runners.
 ###
+
+name: Run macOS-based netCDF Tests
 
 
 on: [ pull_request ]
