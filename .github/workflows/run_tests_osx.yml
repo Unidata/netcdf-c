@@ -7,7 +7,7 @@ name: Run netCDF Tests on OSX
 ###
 
 
-on: [pull_request,push]
+on: [ pull_request ]
 
 jobs:
 
