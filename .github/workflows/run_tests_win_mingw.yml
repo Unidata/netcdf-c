@@ -34,7 +34,7 @@ jobs:
         run: autoreconf -if
 
       - name: Configure
-        run: ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests --disable-static 
+        run: LDFLAGS="-no-undefined -Wl,--export-all-symbols" ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests --disable-static --disable-plugins --disable-byterange --disable-dap-remote-tests --disable-logging
         if: ${{ success() }}
 
       - name: Look at config.log if error
