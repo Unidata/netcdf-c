@@ -48,6 +48,10 @@ jobs:
           ls
           pwd
           which h5dump
+          h5dump --version
+          mkdir -p $HOME/environments/${{ matrix.hdf5 }}/lib
+          mkdir -p $HOME/environments/${{ matrix.hdf5 }}/include
+
 
  
 
