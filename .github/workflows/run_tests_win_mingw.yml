@@ -1,0 +1,216 @@
+###
+# Build hdf4, hdf5 dependencies and cache them in a combined directory.
+# See https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners
+# for information related to github runners.
+###
+
+name: Run MSYS2, MinGW64-based Tests
+
+
+on: [ push ]
+
+jobs:
+
+  build-deps-mingw64:
+
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+
+
+    strategy:
+      matrix:
+        hdf5: [ 1.12.1 ]
+
+    steps:
+
+      - uses: actions/checkout@v2
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: git mingw-w64-x86_64-toolchain automake libtool autoconf make
+
+        ###
+        # libhdf5
+        ###
+      - name: Cache libhdf5-${{ runner.os }}-${{ matrix.hdf5 }}
+        id: cache-hdf5-mingw64
+        uses: actions/cache@v2
+        with:
+          path: ~/environments/${{ matrix.hdf5 }}
+          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
+
+      - name: Build libhdf5-${{ runner.os}}-${{ matrix.hdf5 }}
+        if: steps.cache-hdf5-mingw64.outputs.cache-hit != 'true'
+        run: |
+          set -x
+          set -e
+          wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$(echo ${{ matrix.hdf5 }} | cut -d. -f 1,2)/hdf5-${{ matrix.hdf5 }}/src/hdf5-${{ matrix.hdf5 }}.tar.bz2
+          tar -jxf hdf5-${{ matrix.hdf5 }}.tar.bz2
+          pushd hdf5-${{ matrix.hdf5 }}
+          ./configure --disable-static --enable-shared --prefix=${HOME}/environments/${{ matrix.hdf5 }} --enable-hl --with-szlib
+          make -j
+          make install -j
+          popd
+
+
+ 
+
+#####
+# One-Off Autotools-based tests.
+#####
+  nc-ac-tests-oneoff-mingw64:
+
+    needs: build-deps-mingw64
+    runs-on: windows-latest
+
+    strategy:
+      matrix:
+        hdf5: [ 1.12.1 ]
+    steps:
+
+      - uses: actions/checkout@v2
+
+###
+# Set Environmental Variables
+###
+
+      - run: echo "CFLAGS=-I${HOME}/environments/${{ matrix.hdf5 }}/include" >> $GITHUB_ENV
+      - run: echo "LDFLAGS=-L${HOME}/environments/${{ matrix.hdf5 }}/lib" >> $GITHUB_ENV
+      - run: echo "LD_LIBRARY_PATH=${HOME}/environments/${{ matrix.hdf5 }}/lib" >> $GITHUB_ENV
+
+
+###
+# Fetch Cache
+###
+
+      - name: Fetch HDF Cache
+        id: cache-hdf-mingw64
+        uses: actions/cache@v2
+        with:
+          path: ~/environments/${{ matrix.hdf5 }}
+          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
+
+      - name: Check Cache
+        shell: bash -l {0}
+        run: ls ${HOME}/environments && ls ${HOME}/environments/${{ matrix.hdf5 }} && ls ${HOME}/environments/${{ matrix.hdf5}}/lib
+
+###
+# Configure and build
+###
+
+      - name: Install autoconf
+        shell: bash -l {0}
+        run: brew install automake
+
+      - name: Run autoconf
+        shell: bash -l {0}
+        run: autoreconf -if
+
+      - name: Configure
+        shell: bash -l {0}
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests
+        if: ${{ success() }}
+
+      - name: Look at config.log if error
+        shell: bash -l {0}
+        run: cat config.log
+        if: ${{ failure() }}
+
+      - name: Print Summary
+        shell: bash -l {0}
+        run: cat libnetcdf.settings
+
+      - name: Build Library and Utilities
+        shell: bash -l {0}
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make -j
+        if: ${{ success() }}
+
+      - name: Build Tests
+        shell: bash -l {0}
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check TESTS="" -j
+        if: ${{ success() }}
+
+      - name: Run Tests
+        shell: bash -l {0}
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check -j
+        if: ${{ success() }}
+
+#####
+# One-Off CMake-based tests.
+#####
+
+  nc-cmake-tests-oneoff-mingw64:
+
+    needs: build-deps-mingw64
+    runs-on: windows-latest
+
+    strategy:
+      matrix:
+        hdf5: [ 1.12.1 ]
+
+    steps:
+
+      - uses: actions/checkout@v2
+
+###
+# Set Environmental Variables
+###
+
+      - run: echo "CMAKE_PREFIX_PATH=${HOME}/environments/${{ matrix.hdf5 }}/" >> $GITHUB_ENV
+      - run: echo "LD_LIBRARY_PATH=${HOME}/environments/${{ matrix.hdf5 }}/lib" >> $GITHUB_ENV
+
+###
+# Fetch Cache
+###
+
+      - name: Fetch HDF Cache
+        id: cache-hdf5-mingw64
+        uses: actions/cache@v2
+        with:
+          path: ~/environments/${{ matrix.hdf5 }}
+          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
+
+      - name: Check Cache
+        shell: bash -l {0}
+        run: ls ${HOME}/environments && ls ${HOME}/environments/${{ matrix.hdf5 }} && ls ${HOME}/environments/${{ matrix.hdf5}}/lib
+
+###
+# Configure and build
+###
+
+      - name: Perform out-of-directory build
+        shell: bash -l {0}
+        run: |
+          mkdir build
+          cd build
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DENABLE_DAP=TRUE -DENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -D ENABLE_DAP_LONG_TESTS=TRUE
+
+      - name: Print Summary
+        shell: bash -l {0}
+        run: |
+          cd build
+          cat libnetcdf.settings
+
+      - name: Build All
+        shell: bash -l {0}
+        run: |
+          cd build
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make -j 12
+        if: ${{ success() }}
+
+      - name: Run Tests
+        shell: bash -l {0}
+        run: |
+          cd build
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest --output-on-failure -j 12 .
+        if: ${{ success() }}
+
+      - name: Verbose Output if CTest Failure
+        shell: bash -l {0}
+        run: |
+          cd build
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest -j 12 --rerun-failed --output-on-failure -VV
+        if: ${{ failure() }}
