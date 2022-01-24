@@ -185,11 +185,10 @@ urlmodetest(const char* path)
     
     ncuriparse(path,&uri);
     if(uri == NULL) return 0; /* Not URL */
-    if(NC_testmode(uri, "bytes"))
-        kind = NC_HTTP;
-    else if(NC_testmode(uri, "s3"))
-        kind = NC_S3SDK;
-    else
+    if(NC_testmode(uri, "bytes")) {
+        /* NC_S3SDK takes priority over NC_HTTP */
+        if(NC_testmode(uri, "s3")) kind = NC_S3SDK; else kind = NC_HTTP;
+    } else
         kind = 0;
     ncurifree(uri);
     return kind;

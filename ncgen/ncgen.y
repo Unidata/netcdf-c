@@ -216,6 +216,7 @@ NCConstant*    constant;
 	_SUPERBLOCK
 	_FILTER
 	_CODECS
+        _QUANTIZE
 	DATASETID
 
 %type <sym> ident typename primtype dimd varspec
@@ -772,6 +773,8 @@ attrdecl:
 	    {$$ = makespecial(_FILTER_FLAG,$1,NULL,(void*)$5,ISCONST);}
 	| ambiguous_ref ':' _CODECS '=' conststring
 	    {$$ = makespecial(_CODECS_FLAG,$1,NULL,(void*)$5,ISCONST);}
+	| ambiguous_ref ':' _QUANTIZE '=' constint
+	    {$$ = makespecial(_QUANTIZE_FLAG,$1,NULL,(void*)$5,ISCONST);}
 	| ambiguous_ref ':' _NOFILL '=' constbool
 	    {$$ = makespecial(_NOFILL_FLAG,$1,NULL,(void*)$5,ISCONST);}
 	| ':' _FORMAT '=' conststring
@@ -1240,6 +1243,7 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
 	break;
     case _SUPERBLOCK_FLAG:
     case _DEFLATE_FLAG:
+    case _QUANTIZE_FLAG:
 	tmp = nullconst();
         tmp->nctype = NC_INT;
 	convert1(con,tmp);
@@ -1335,6 +1339,11 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
             case _DEFLATE_FLAG:
                 special->_DeflateLevel = idata;
                 special->flags |= _DEFLATE_FLAG;
+                break;
+            case _QUANTIZE_FLAG:
+		special->_Quantizer = NC_QUANTIZE_BITGROOM;
+                special->_NSD = idata;
+                special->flags |= _QUANTIZE_FLAG;
                 break;
             case _SHUFFLE_FLAG:
                 special->_Shuffle = tf;

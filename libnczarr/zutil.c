@@ -729,51 +729,6 @@ NCZ_freestringvec(size_t len, char** vec)
     nullfree(vec);
 }
 
-/* create a fill chunk */
-int
-NCZ_create_fill_chunk(size64_t chunksize, size_t typesize, const void* fill, void** fillchunkp)
-{
-    int i;
-    void* fillchunk = NULL;
-    if((fillchunk = malloc(chunksize))==NULL)
-        return NC_ENOMEM;
-    if(fill == NULL) {
-        /* use zeros */
-	memset(fillchunk,0,chunksize);
-	goto done;
-    }
-    switch (typesize) {
-    case 1: {
-        unsigned char c = *((unsigned char*)fill);
-        memset(fillchunk,c,chunksize);
-        } break;
-    case 2: {
-        unsigned short fv = *((unsigned short*)fill);
-        unsigned short* p2 = (unsigned short*)fillchunk;
-        for(i=0;i<chunksize;i+=typesize) *p2++ = fv;
-        } break;
-    case 4: {
-        unsigned int fv = *((unsigned int*)fill);
-        unsigned int* p4 = (unsigned int*)fillchunk;
-        for(i=0;i<chunksize;i+=typesize) *p4++ = fv;
-        } break;
-    case 8: {
-        unsigned long long fv = *((unsigned long long*)fill);
-        unsigned long long* p8 = (unsigned long long*)fillchunk;
-        for(i=0;i<chunksize;i+=typesize) *p8++ = fv;
-        } break;
-    default: {
-        unsigned char* p;
-        for(p=fillchunk,i=0;i<chunksize;i+=typesize,p+=typesize)
-            memcpy(p,fill,typesize);
-        } break;
-    }
-done:
-    if(fillchunkp) {*fillchunkp = fillchunk; fillchunk = NULL;}
-    nullfree(fillchunk);
-    return NC_NOERR;
-}
-    
 int
 NCZ_ischunkname(const char* name,char dimsep)
 {
@@ -800,4 +755,36 @@ NCZ_chunkpath(struct ChunkKey key)
     strlcat(path,"/",plen+1);
     strlcat(path,key.chunkkey,plen+1);
     return path;    
+}
+
+int
+NCZ_reclaim_fill_value(NC_VAR_INFO_T* var)
+{
+    int stat = NC_NOERR;
+    if(var->fill_value) {
+	int ncid = var->container->nc4_info->controller->ext_ncid;
+	int tid = var->type_info->hdr.id;
+	stat = nc_reclaim_data_all(ncid,tid,var->fill_value,1);
+	var->fill_value = NULL;
+    }
+    /* Reclaim any existing fill_chunk */
+    if(!stat) stat = NCZ_reclaim_fill_chunk(((NCZ_VAR_INFO_T*)var->format_var_info)->cache);
+    return stat;
+}
+
+int
+NCZ_copy_fill_value(NC_VAR_INFO_T* var, void**  dstp)
+{
+    int stat = NC_NOERR;
+    int ncid = var->container->nc4_info->controller->ext_ncid;
+    int tid = var->type_info->hdr.id;
+    void* dst = NULL;
+
+    if(var->fill_value) {
+	if((stat = nc_copy_data_all(ncid,tid,var->fill_value,1,&dst))) goto done;
+    }
+    if(dstp) {*dstp = dst; dst = NULL;}
+done:
+    if(dst) (void)nc_reclaim_data_all(ncid,tid,dst,1);
+    return stat;
 }

@@ -79,6 +79,9 @@ EXTERNL int ncurisetquery(NCURI*,const char* query);
 /* Replace the fragment list */
 EXTERNL int ncurisetfragments(NCURI*, const char* fragments);
 
+/* Rebuild the uri */
+EXTERNL int ncurirebuild(NCURI*);
+
 /* Replace a specific &key=...& in uri fragment */
 EXTERNL int ncurisetfragmentkey(NCURI* duri,const char* key, const char* value);
 

@@ -270,6 +270,21 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
     zinfo = file->format_file_info;
     map = zinfo->map;
 
+#if 1
+    /* Make sure that everything is established */
+    /* ensure the fill value */
+    if((stat = NCZ_ensure_fill_value(var))) goto done; /* ensure var->fill_value is set */
+    assert(var->no_fill || var->fill_value != NULL);
+    /* ensure the chunk cache */
+    if((stat = NCZ_adjust_var_cache(var))) goto done;
+    /* rebuild the fill chunk */
+    if((stat = NCZ_ensure_fill_chunk(zvar->cache))) goto done;
+#ifdef ENABLE_NCZARR_FILTERS
+    /* Build the filter working parameters for any filters */
+    if((stat = NCZ_filter_setup(var))) goto done;
+#endif
+#endif /*0|1*/
+
     /* Construct var path */
     if((stat = NCZ_varkey(var,&fullpath)))
 	goto done;
@@ -344,7 +359,9 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
 	if((stat=NCJnew(NCJ_NULL,&jfill))) goto done;
     } else {/*!var->no_fill*/
 	int atomictype = var->type_info->hdr.id;
-        assert(var->fill_value != NULL);
+        if(var->fill_value == NULL) {
+	     if((stat = NCZ_ensure_fill_value(var))) goto done;
+	}
         /* Convert var->fill_value to a string */
 	if((stat = NCZ_stringconvert(atomictype,1,var->fill_value,&jfill))) goto done;
 	assert(jfill->sort != NCJ_ARRAY);
@@ -473,6 +490,8 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
 	goto done;
     nullfree(key); key = NULL;
 
+    var->created = 1;
+
     /* Build .zattrs object */
     assert(var->att);
     if((stat = ncz_sync_atts(file,(NC_OBJ*)var, var->att, isclose)))
@@ -506,7 +525,7 @@ ncz_sync_var(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
     int stat = NC_NOERR;
     NCZ_VAR_INFO_T* zvar = var->format_var_info;
     
-    if(!isclose) {
+    if(isclose) {
 	if((stat = ncz_sync_var_meta(file,var,isclose))) goto done;
     }
 
@@ -609,6 +628,7 @@ ncz_sync_atts(NC_FILE_INFO_T* file, NC_OBJ* container, NCindex* attlist, int isc
     NCjson* jtype = NULL;
     NCjson* jdimrefs = NULL;
     NCjson* jdict = NULL;
+    NCjson* jint = NULL;
     NCZMAP* map = NULL;
     char* fullpath = NULL;
     char* key = NULL;
@@ -616,8 +636,15 @@ ncz_sync_atts(NC_FILE_INFO_T* file, NC_OBJ* container, NCindex* attlist, int isc
     char* dimpath = NULL;
     int isxarray = 0;
     int isrootgroup = 0;
-
+    NC_VAR_INFO_T* var = NULL;
+    NC_GRP_INFO_T* grp = NULL;
+	
     LOG((3, "%s", __func__));
+ 
+    if(container->sort == NCVAR)
+        var = (NC_VAR_INFO_T*)container;
+    else if(container->sort == NCGRP)
+        grp = (NC_GRP_INFO_T*)container;
 
     zinfo = file->format_file_info;
     map = zinfo->map;
@@ -625,13 +652,9 @@ ncz_sync_atts(NC_FILE_INFO_T* file, NC_OBJ* container, NCindex* attlist, int isc
     if(zinfo->controls.flags & FLAG_XARRAYDIMS) isxarray = 1;
 
     if(container->sort == NCVAR) {
-	NC_VAR_INFO_T* var = (NC_VAR_INFO_T*)container;
 	if(var->container && var->container->parent == NULL)
 	    isrootgroup = 1;
     }
-
-    if(!isxarray && ncindexsize(attlist) == 0) 
-	goto done; /* do nothing */
 
     if(ncindexsize(attlist) > 0) {
         /* Create the jncattr.types object */
@@ -657,9 +680,9 @@ ncz_sync_atts(NC_FILE_INFO_T* file, NC_OBJ* container, NCindex* attlist, int isc
     
     /* Construct container path */
     if(container->sort == NCGRP)
-	stat = NCZ_grpkey((NC_GRP_INFO_T*)container,&fullpath);
+	stat = NCZ_grpkey(grp,&fullpath);
     else
-	stat = NCZ_varkey((NC_VAR_INFO_T*)container,&fullpath);
+	stat = NCZ_varkey(var,&fullpath);
     if(stat)
 	goto done;
 
@@ -667,9 +690,8 @@ ncz_sync_atts(NC_FILE_INFO_T* file, NC_OBJ* container, NCindex* attlist, int isc
     if((stat = ncz_jsonize_atts(attlist,&jatts)))
 	goto done;
 
-    if(container->sort == NCVAR) {
+    if(container->sort == NCVAR) { 
         if(isrootgroup && isxarray) {
-	    NC_VAR_INFO_T* var = (NC_VAR_INFO_T*)container;
 	    /* Insert the XARRAY _ARRAY_ATTRIBUTE attribute */
 	    if((stat = NCJnew(NCJ_ARRAY,&jdimrefs)))
 	        goto done;
@@ -686,23 +708,44 @@ ncz_sync_atts(NC_FILE_INFO_T* file, NC_OBJ* container, NCindex* attlist, int isc
 	    jdimrefs = NULL;
         }
     }
-    if(!(zinfo->controls.flags & FLAG_PUREZARR)) {
-	/* Insert the _NCZARR_ATTR attribute */
-        if((stat = NCJnew(NCJ_DICT,&jdict)))
+    /* Add Quantize Attribute */
+    if(container->sort == NCVAR && var && var->quantize_mode > 0) {    
+	char mode[64];
+	snprintf(mode,sizeof(mode),"%d",var->nsd);
+        if((stat = NCJnewstring(NCJ_INT,mode,&jint)))
 	        goto done;
-	if((stat = NCJinsert(jdict,"types",jtypes))) goto done;
-	jtypes = NULL;
-	if((stat = NCJinsert(jatts,NCZ_V2_ATTR,jdict))) goto done;	
-	jdict = NULL;
+	/* Insert the quantize attribute */
+	switch (var->quantize_mode) {
+	case NC_QUANTIZE_BITGROOM:
+	    if((stat = NCJinsert(jatts,NC_QUANTIZE_BITGROOM_ATT_NAME,jint))) goto done;	
+	    jint = NULL;
+	    break;
+	case NC_QUANTIZE_GRANULARBG:
+	    if((stat = NCJinsert(jatts,NC_QUANTIZE_GRANULARBG_ATT_NAME,jint))) goto done;	
+	    jint = NULL;
+	    break;
+	default: break;
+	}
     }
 
-    /* write .zattrs path */
-    if((stat = nczm_concat(fullpath,ZATTRS,&key)))
-	goto done;
-    /* Write to map */
-    if((stat=NCZ_uploadjson(map,key,jatts)))
-	goto done;
-    nullfree(key); key = NULL;
+    if(NCJlength(jatts) > 0) {
+        if(!(zinfo->controls.flags & FLAG_PUREZARR)) {
+	    /* Insert the _NCZARR_ATTR attribute */
+            if((stat = NCJnew(NCJ_DICT,&jdict)))
+                goto done;
+            if((stat = NCJinsert(jdict,"types",jtypes))) goto done;
+            jtypes = NULL;
+            if((stat = NCJinsert(jatts,NCZ_V2_ATTR,jdict))) goto done;      
+            jdict = NULL;
+	}
+        /* write .zattrs path */
+        if((stat = nczm_concat(fullpath,ZATTRS,&key)))
+            goto done;
+        /* Write to map */
+        if((stat=NCZ_uploadjson(map,key,jatts)))
+            goto done;
+        nullfree(key); key = NULL;
+    }
 
 done:
     nullfree(fullpath);
@@ -714,6 +757,7 @@ done:
     NCJreclaim(jtype);
     NCJreclaim(jdimrefs);
     NCJreclaim(jdict);
+    NCJreclaim(jint);
     return THROW(stat);
 }
 
@@ -1419,6 +1463,12 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 	var->format_var_info = zvar;
 	zvar->common.file = file;
 
+        /* pretend it was created */
+	var->created = 1;
+
+	/* Indicate we do not have quantizer yet */
+	var->quantize_mode = -1;
+
 	/* Set filter list */
 	assert(var->filters == NULL);
 	var->filters = (void*)nclistnew();
@@ -2121,6 +2171,10 @@ ncz_get_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var)
     /* Is this a deflated variable with a chunksize greater than the
      * current cache size? */
     if ((retval = nc4_adjust_var_cache(var)))
+	BAIL(retval);
+
+    /* Is there an attribute which means quantization was used? */
+    if ((retval = get_quantize_info(var)))
 	BAIL(retval);
 
     if (var->coords_read && !var->dimscale)

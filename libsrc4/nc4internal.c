@@ -1358,8 +1358,12 @@ var_free(NC_VAR_INFO_T *var)
         free(var->dim);
 
     /* Delete any fill value allocation. */
-    if (var->fill_value)
-        {free(var->fill_value); var->fill_value = NULL;}
+    if (var->fill_value) {
+	int ncid = var->container->nc4_info->controller->ext_ncid;
+	int tid = var->type_info->hdr.id;
+        if((retval = nc_reclaim_data_all(ncid, tid, var->fill_value, 1))) return retval;
+	var->fill_value = NULL;
+    }
 
     /* Release type information */
     if (var->type_info)
