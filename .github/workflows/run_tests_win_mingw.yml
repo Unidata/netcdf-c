@@ -45,11 +45,11 @@ jobs:
         run: cat libnetcdf.settings
 
       - name: (Autotools) Build Library and Utilities
-        run: make -j LDFLAGS="-no-undefined -Wl,--export-all-symbols"
+        run: make -j 8 LDFLAGS="-no-undefined -Wl,--export-all-symbols"
         if: ${{ success() }}
 
       - name: (Autotools) Build and Run Tests
-        run: make check -j
+        run: make check -j 8
         if: ${{ success() }}
 
 #####
