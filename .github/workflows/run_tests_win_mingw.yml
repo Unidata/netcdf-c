@@ -48,11 +48,7 @@ jobs:
         run: make -j LDFLAGS="-no-undefined -Wl,--export-all-symbols"
         if: ${{ success() }}
 
-      - name: (Autotools) Build Tests
-        run: make check TESTS="" -j
-        if: ${{ success() }}
-
-      - name: (Autotools) Run Tests
+      - name: (Autotools) Build and Run Tests
         run: make check -j
         if: ${{ success() }}
 
