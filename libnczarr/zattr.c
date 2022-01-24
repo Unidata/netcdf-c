@@ -854,7 +854,7 @@ NCZ_inq_attname(int ncid, int varid, int attnum, char *name)
     NC_ATT_INFO_T *att;
     int retval = NC_NOERR;
 
-    ZTRACE(1,"ncid=%d varid=%d attnum=%d name=%s",ncid,varid,attnum);
+    ZTRACE(1,"ncid=%d varid=%d attnum=%d",ncid,varid,attnum);
     LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
 
     /* Find the file, group, and var info, and do lazy att read if
