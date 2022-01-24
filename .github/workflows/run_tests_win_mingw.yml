@@ -11,17 +11,12 @@ on: [ push ]
 
 jobs:
 
-  build-deps-mingw64:
+  install-deps-mingw64:
 
     runs-on: windows-latest
     defaults:
       run:
         shell: msys2 {0}
-
-
-    strategy:
-      matrix:
-        hdf5: [ 1.12.1 ]
 
     steps:
 
@@ -31,56 +26,6 @@ jobs:
           msystem: MINGW64
           update: true
           install: git mingw-w64-x86_64-toolchain automake libtool autoconf make cmake mingw-w64-x86_64-hdf5 unzip
-
-        ###
-        # libhdf5
-        ###
-      - name: Cache libhdf5-${{ runner.os }}-${{ matrix.hdf5 }}
-        id: cache-hdf5-mingw64
-        uses: actions/cache@v2
-        with:
-          path: ~/environments/${{ matrix.hdf5 }}
-          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
-
-#####
-# One-Off Autotools-based tests.
-#####
-  nc-ac-tests-oneoff-mingw64:
-
-    needs: build-deps-mingw64
-    runs-on: windows-latest
-
-    strategy:
-      matrix:
-        hdf5: [ 1.12.1 ]
-    steps:
-
-      - uses: actions/checkout@v2
-
-###
-# Set Environmental Variables
-###
-
-#      - run: echo "CFLAGS=-I${HOME}/environments/${{ matrix.hdf5 }}/include" >> $GITHUB_ENV
-#      - run: echo "LDFLAGS=-L${HOME}/environments/${{ matrix.hdf5 }}/lib" >> $GITHUB_ENV
-#      - run: echo "LD_LIBRARY_PATH=${HOME}/environments/${{ matrix.hdf5 }}/lib" >> $GITHUB_ENV
-
-
-###
-# Fetch Cache
-###
-
-      - name: Fetch HDF Cache
-        id: cache-hdf-mingw64
-        uses: actions/cache@v2
-        with:
-          path: ~/environments/${{ matrix.hdf5 }}
-          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
-
-#      - name: Check Cache
-#        shell: bash -l {0}
-#        run: ls ${HOME}/environments && ls ${HOME}/environments/${{ matrix.hdf5 }} && ls ${HOME}/environments/${{ matrix.hdf5}}/lib
-
 ###
 # Configure and build
 ###
@@ -114,33 +59,6 @@ jobs:
 #####
 # One-Off CMake-based tests.
 #####
-
-  nc-cmake-tests-oneoff-mingw64:
-
-    needs: build-deps-mingw64
-    runs-on: windows-latest
-
-    strategy:
-      matrix:
-        hdf5: [ 1.12.1 ]
-
-    steps:
-
-      - uses: actions/checkout@v2
-
-
-
-###
-# Fetch Cache
-###
-
-      - name: Fetch HDF Cache
-        id: cache-hdf5-mingw64
-        uses: actions/cache@v2
-        with:
-          path: ~/environments/${{ matrix.hdf5 }}
-          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
-
 ###
 # Configure and build
 ###
