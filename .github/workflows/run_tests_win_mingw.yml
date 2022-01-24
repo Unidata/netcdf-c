@@ -38,7 +38,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. -DENABLE_DAP=TRUE -DENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -D ENABLE_DAP_LONG_TESTS=TRUE -DCMAKE_PREFIX_PATH=/usr
+          cmake .. -DENABLE_DAP=TRUE -DENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -D ENABLE_DAP_LONG_TESTS=TRUE -DCMAKE_PREFIX_PATH=/mingw64 -DHDF5_DIR=/mingw64/lib/cmake/hdf5
 
       - name: (CMake) Print Summary
         run: |
