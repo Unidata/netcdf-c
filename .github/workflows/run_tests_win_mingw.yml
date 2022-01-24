@@ -30,7 +30,7 @@ jobs:
         with:
           msystem: MINGW64
           update: true
-          install: git mingw-w64-x86_64-toolchain automake libtool autoconf make
+          install: git mingw-w64-x86_64-toolchain automake libtool autoconf make cmake
 
         ###
         # libhdf5
