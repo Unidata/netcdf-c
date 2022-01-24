@@ -28,13 +28,19 @@ jobs:
           install: git mingw-w64-x86_64-toolchain automake libtool autoconf make cmake mingw-w64-x86_64-hdf5 unzip
 
 
+      - name: Find HDF5 Libraries
+      - run: |
+        ls /
+        cd /mingw64
+        find . -name "*hdf5*cmake"
+
+
 #####
 # One-Off CMake-based tests.
 #####
 
 
       - name: (CMake) Perform out-of-directory build
-        shell: bash -l {0}
         run: |
           mkdir build
           cd build
