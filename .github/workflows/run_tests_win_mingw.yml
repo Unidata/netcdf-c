@@ -30,9 +30,9 @@ jobs:
 
       - name: Find HDF5 Libraries
       - run: |
-        ls /
-        cd /mingw64
-        find . -name "*hdf5*cmake"
+          ls /
+          cd /mingw64
+          find . -name "*hdf5*cmake"
 
 
 #####
