@@ -34,7 +34,7 @@ jobs:
         run: autoreconf -if
 
       - name: Configure
-        run: ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests
+        run: ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests --disable-static 
         if: ${{ success() }}
 
       - name: Look at config.log if error
@@ -45,7 +45,7 @@ jobs:
         run: cat libnetcdf.settings
 
       - name: Build Library and Utilities
-        run: make -j
+        run: make -j LDFLAGS="-no-undefined -Wl,--export-all-symbols"
         if: ${{ success() }}
 
       - name: Build Tests
