@@ -27,48 +27,6 @@ jobs:
           update: true
           install: git mingw-w64-x86_64-toolchain automake libtool autoconf make cmake mingw-w64-x86_64-hdf5 unzip
 
-
-      - name: Find HDF5 Libraries
-        run: |
-          ls /
-          cd /mingw64
-          find . -name "*hdf5*cmake"
-
-
-#####
-# One-Off CMake-based tests.
-#####
-
-
-      - name: (CMake) Perform out-of-directory build
-        run: |
-          mkdir build
-          cd build
-          cmake .. -DENABLE_DAP=TRUE -DENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -D ENABLE_DAP_LONG_TESTS=TRUE -DCMAKE_PREFIX_PATH=/mingw64 -DHDF5_DIR=/mingw64/lib/cmake/hdf5 -DCMAKE_C_COMPILER=gcc -G "Unix Makefiles"
-
-      - name: (CMake) Print Summary
-        run: |
-          cd build
-          cat libnetcdf.settings
-
-      - name: (CMake) Build All
-        run: |
-          cd build
-          make -j 12
-        if: ${{ success() }}
-
-      - name: (CMake) Run Tests
-        run: |
-          cd build
-          ctest --output-on-failure -j 12 .
-        if: ${{ success() }}
-
-      - name: (CMake) Verbose Output if CTest Failure
-        run: |
-          cd build
-          ctest -j 12 --rerun-failed --output-on-failure -VV
-        if: ${{ failure() }}
-
 ###
 # Configure and build
 ###
