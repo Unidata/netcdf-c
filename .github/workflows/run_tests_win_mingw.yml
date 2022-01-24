@@ -30,7 +30,7 @@ jobs:
         with:
           msystem: MINGW64
           update: true
-          install: git mingw-w64-x86_64-toolchain automake libtool autoconf make cmake
+          install: git mingw-w64-x86_64-toolchain automake libtool autoconf make cmake mingw-w64-x86_64-hdf5 unzip
 
         ###
         # libhdf5
@@ -45,15 +45,18 @@ jobs:
       - name: Build libhdf5-${{ runner.os}}-${{ matrix.hdf5 }}
         if: steps.cache-hdf5-mingw64.outputs.cache-hit != 'true'
         run: |
-          set -x
-          set -e
-          wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$(echo ${{ matrix.hdf5 }} | cut -d. -f 1,2)/hdf5-${{ matrix.hdf5 }}/src/hdf5-${{ matrix.hdf5 }}.tar.bz2
-          tar -jxf hdf5-${{ matrix.hdf5 }}.tar.bz2
-          pushd hdf5-${{ matrix.hdf5 }}
-          ./configure --disable-static --enable-shared --prefix=${HOME}/environments/${{ matrix.hdf5 }} --enable-hl --with-szlib
-          make -j
-          make install -j
-          popd
+          ls
+          pwd
+          which h5dump
+          #set -x
+          #set -e
+          #wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$(echo ${{ matrix.#hdf5 }} | cut -d. -f 1,2)/hdf5-${{ matrix.hdf5 }}/src/hdf5-${{ matrix.hdf5 }}.tar.bz2
+          #tar -jxf hdf5-${{ matrix.hdf5 }}.tar.bz2
+          #pushd hdf5-${{ matrix.hdf5 }}
+          #./configure --disable-static --enable-shared --prefix=${HOME}/environments/${{ matrix.hdf5 }} --enable-hl --with-szlib
+          #make -j
+          #make install -j
+          #popd
 
 
  
