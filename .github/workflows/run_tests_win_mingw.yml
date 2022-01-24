@@ -7,7 +7,7 @@
 name: Run MSYS2, MinGW64-based Tests
 
 
-on: [ push ]
+on: [ pull_request ]
 
 jobs:
 
@@ -34,7 +34,7 @@ jobs:
       - name: (Autotools) Run autoconf
         run: autoreconf -if
 
-      - name: (Autotools) Configure Build 
+      - name: (Autotools) Configure Build
         run: ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests --disable-static --disable-plugins --disable-byterange --disable-dap-remote-tests --disable-logging
         if: ${{ success() }}
 
@@ -52,4 +52,3 @@ jobs:
       - name: (Autotools) Build and Run Tests
         run: make check -j 8
         if: ${{ success() }}
-
