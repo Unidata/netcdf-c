@@ -26,6 +26,43 @@ jobs:
           msystem: MINGW64
           update: true
           install: git mingw-w64-x86_64-toolchain automake libtool autoconf make cmake mingw-w64-x86_64-hdf5 unzip
+
+
+#####
+# One-Off CMake-based tests.
+#####
+
+
+      - name: (CMake) Perform out-of-directory build
+        shell: bash -l {0}
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DENABLE_DAP=TRUE -DENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -D ENABLE_DAP_LONG_TESTS=TRUE -DCMAKE_PREFIX_PATH=/usr
+
+      - name: (CMake) Print Summary
+        run: |
+          cd build
+          cat libnetcdf.settings
+
+      - name: (CMake) Build All
+        run: |
+          cd build
+          make -j 12
+        if: ${{ success() }}
+
+      - name: (CMake) Run Tests
+        run: |
+          cd build
+          ctest --output-on-failure -j 12 .
+        if: ${{ success() }}
+
+      - name: (CMake) Verbose Output if CTest Failure
+        run: |
+          cd build
+          ctest -j 12 --rerun-failed --output-on-failure -VV
+        if: ${{ failure() }}
+
 ###
 # Configure and build
 ###
@@ -52,39 +89,3 @@ jobs:
         run: make check -j 8
         if: ${{ success() }}
 
-#####
-# One-Off CMake-based tests.
-#####
-###
-# Configure and build
-###
-
-      - name: Perform out-of-directory build
-        shell: bash -l {0}
-        run: |
-          mkdir build
-          cd build
-          cmake .. -DENABLE_DAP=TRUE -DENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -D ENABLE_DAP_LONG_TESTS=TRUE
-
-      - name: Print Summary
-        run: |
-          cd build
-          cat libnetcdf.settings
-
-      - name: Build All
-        run: |
-          cd build
-          make -j 12
-        if: ${{ success() }}
-
-      - name: Run Tests
-        run: |
-          cd build
-          ctest --output-on-failure -j 12 .
-        if: ${{ success() }}
-
-      - name: Verbose Output if CTest Failure
-        run: |
-          cd build
-          ctest -j 12 --rerun-failed --output-on-failure -VV
-        if: ${{ failure() }}
