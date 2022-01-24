@@ -577,7 +577,7 @@ ncz_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
     /* If this is the _FillValue attribute, then we will also have to
      * copy the value to the fill_vlue pointer of the NC_VAR_INFO_T
      * struct for this var. (But ignore a global _FillValue
-     * attribute). */
+     * attribute). Also kill the cache fillchunk as no longer valid */
     if (!strcmp(att->hdr.name, _FillValue) && varid != NC_GLOBAL)
     {
         /* Fill value must have exactly one value */
@@ -636,6 +636,8 @@ ncz_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
          * been created in the file, so the dataset gets deleted and re-created. */
         if (var->created)
             var->fill_val_changed = NC_TRUE;
+        /* Reclaim any existing fill_chunk */
+        if((retval = NCZ_reclaim_fill_chunk(((NCZ_VAR_INFO_T*)var->format_var_info)->cache))) BAIL(retval);
     }
 
     /* Copy the attribute data, if there is any. */
@@ -701,7 +703,7 @@ exit:
         if(fillsave.data != NULL) {
             assert(fillsave.len > 0);
 	    if(att->data)
-                (void)nc_reclaim_data_all(h5->controller->ext_ncid,fillsave.type,var->fill_value,1);
+	    (void)nc_reclaim_data_all(h5->controller->ext_ncid,fillsave.type,var->fill_value,1);
 	    var->fill_value = fillsave.data;
         }
     }    
@@ -850,22 +852,23 @@ int
 NCZ_inq_attname(int ncid, int varid, int attnum, char *name)
 {
     NC_ATT_INFO_T *att;
-    int retval;
+    int retval = NC_NOERR;
 
+    ZTRACE(1,"ncid=%d varid=%d attnum=%d name=%s",ncid,varid,attnum);
     LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
 
     /* Find the file, group, and var info, and do lazy att read if
      * needed. */
     if ((retval = ncz_find_grp_var_att(ncid, varid, NULL, attnum, 0, NULL,
                                             NULL, NULL, NULL, &att)))
-        return retval;
+	goto done;
     assert(att);
 
     /* Get the name. */
     if (name)
         strcpy(name, att->hdr.name);
-
-    return NC_NOERR;
+done:
+    return ZUNTRACEX(retval,"name=%s",(retval?"":name));
 }
 
 /**

@@ -257,10 +257,14 @@ genbin_definespecialattributes(Symbol* var)
         }
         CHECK_ERR(stat);
     }
+    if(special->flags & _QUANTIZE_FLAG) {
+        stat = nc_def_var_quantize(var->container->nc_id,
+                                 var->nc_id, special->_Quantizer, special->_NSD);
+        CHECK_ERR(stat);
+    }
     return stat;
 }
 #endif /*USE_NETCDF4*/
-
 
 void
 genbin_close(void)
