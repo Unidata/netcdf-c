@@ -43,7 +43,7 @@ jobs:
           key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
 
       - name: Build libhdf5-${{ runner.os}}-${{ matrix.hdf5 }}
-        if: steps.cache-hdf5-mingw64.outputs.cache-hit != 'true'
+#        if: steps.cache-hdf5-mingw64.outputs.cache-hit != 'true'
         run: |
           ls
           pwd
