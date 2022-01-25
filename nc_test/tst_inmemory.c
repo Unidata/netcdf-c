@@ -213,7 +213,11 @@ writefile(const char* path, NC_memio* memio)
     char* p = NULL;
 
     /* Open the file for writing */
-    f = NCfopen(path,"w");
+#ifdef _WIN32
+    f = fopen(path,"wb");
+#else
+    f = fopen(path,"w");
+#endif
     if(f == NULL)
 	{status = errno; goto done;}
     count = memio->size;
