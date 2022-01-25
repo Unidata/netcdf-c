@@ -139,7 +139,7 @@ main(int argc, char **argv)
       if (nc_inq(ncid, &ndims, &nvars, &ngatts, &unlimdimid)) ERR;
       if (nvars != NUM_TYPE || ndims != NUM_DIM || ngatts != 0 || unlimdimid == 0) ERR;
 
-     
+
       for (t = 0; t < NUM_TYPE; t++)
       {
 	 sprintf(var_name, "var_%d", type_id[t]);
@@ -381,7 +381,7 @@ main(int argc, char **argv)
 
       /* Reopen the file. */
       if (nc_open(itoptions.path, NC_NOWRITE, &ncid)) ERR;
-      
+
       /* Close the file. */
       if (nc_close(ncid)) ERR;
    }
