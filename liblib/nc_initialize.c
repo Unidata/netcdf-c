@@ -47,8 +47,8 @@ extern int NC_HDF4_finalize(void);
 #endif
 
 #ifdef ENABLE_S3_SDK
-extern int NC_s3sdkinitialize(void);
-extern int NC_s3sdkfinalize(void);
+EXTERNL int NC_s3sdkinitialize(void);
+EXTERNL int NC_s3sdkfinalize(void);
 #endif
 
 #ifdef _MSC_VER
