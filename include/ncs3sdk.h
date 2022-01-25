@@ -10,8 +10,8 @@
 extern "C" {
 #endif
 
-EXTERNL void NC_s3sdkinitialize(void);
-EXTERNL void NC_s3sdkfinalize(void);
+EXTERNL int NC_s3sdkinitialize(void);
+EXTERNL int NC_s3sdkfinalize(void);
 EXTERNL void* NC_s3sdkcreateclient(NCS3INFO* context);
 EXTERNL int NC_s3sdkbucketexists(void* s3client, const char* bucket, int* existsp, char** errmsgp);
 EXTERNL int NC_s3sdkbucketcreate(void* s3client, const char* region, const char* bucket, char** errmsgp);
