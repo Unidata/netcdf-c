@@ -539,11 +539,11 @@ genc_definespecialattributes(Symbol* vsym)
             codelined(1,"CHECK_ERR(stat);");
 	}
     }
-    if(special->flags & _QUANTIZE_FLAG) {
-	const char* alg = NULL;
+    if(special->flags & (_QUANTIZEBG_FLAG | _QUANTIZEBR_FLAG)) {
+    	const char* alg = NULL;
 	switch(special->_Quantizer) {
 	case NC_QUANTIZE_BITGROOM: alg = "NC_QUANTIZE_BITGROOM";
-	case NC_QUANTIZE_GRANULARBG: alg = "NC_QUANTIZE_GRANULARBG";
+	case NC_QUANTIZE_GRANULARBR: alg = "NC_QUANTIZE_GRANULARBR";
 	default: alg = "NC_NOQUANTIZE";
 	}
         bbprintf0(stmt,

@@ -1035,7 +1035,7 @@ NCZ_def_var_endian(int ncid, int varid, int endianness)
  * size.
  *
  * Variables which use quantize will have added an attribute with either the name
- * ::NC_QUANTIZE_BITGROOM_ATT_NAME or ::NC_QUANTIZE_GRANULARBG, but in either case
+ * ::NC_QUANTIZE_BITGROOM_ATT_NAME or ::NC_QUANTIZE_GRANULARBR, but in either case
  * will contain the number of significant digits.
  * Users should not delete or change this
  * attribute. This is the only record that quantize has been applied
@@ -1054,7 +1054,7 @@ NCZ_def_var_endian(int ncid, int varid, int endianness)
  * @param ncid File ID.
  * @param varid Variable ID. NC_GLOBAL may not be used.
  * @param quantize_mode Quantization mode. May be ::NC_NOQUANTIZE or
- * ::NC_QUANTIZE_BITGROOM or ::NC_QUANTIZE_GRANULARBG.
+ * ::NC_QUANTIZE_BITGROOM or ::NC_QUANTIZE_GRANULARBR.
  * @param nsd Number of significant digits. May be any integer from 1
  * to ::NC_QUANTIZE_MAX_FLOAT_NSD (for variables of type ::NC_FLOAT) or
  * ::NC_QUANTIZE_MAX_DOUBLE_NSD (for variables of type ::NC_DOUBLE).
@@ -1091,8 +1091,8 @@ NCZ_ensure_quantizer(int ncid, NC_VAR_INFO_T* var)
     if(NCZ_get_att(ncid,var->hdr.id,NC_QUANTIZE_BITGROOM_ATT_NAME,&nsd,NC_INT)==NC_NOERR) {
 	var->quantize_mode = NC_QUANTIZE_BITGROOM;
         var->nsd = nsd;
-    } else if(NCZ_get_att(ncid,var->hdr.id,NC_QUANTIZE_GRANULARBG_ATT_NAME,&nsd,NC_INT)==NC_NOERR) {
-	var->quantize_mode = NC_QUANTIZE_GRANULARBG;
+    } else if(NCZ_get_att(ncid,var->hdr.id,NC_QUANTIZE_GRANULARBR_ATT_NAME,&nsd,NC_INT)==NC_NOERR) {
+	var->quantize_mode = NC_QUANTIZE_GRANULARBR;
         var->nsd = nsd;
     } else {
 	var->quantize_mode = NC_NOQUANTIZE;

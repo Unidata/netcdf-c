@@ -511,10 +511,10 @@ NC4_var_par_access(int ncid, int varid, int par_access)
  * @param fill_value The fill value.
  * @param strict_nc3 Non-zero if strict model in effect.
  * @param quantize_mode May be ::NC_NOQUANTIZE or
- * ::NC_QUANTIZE_BITGROOM or ::NC_QUANTIZE_GRANULARBG.
+ * ::NC_QUANTIZE_BITGROOM or ::NC_QUANTIZE_GRANULARBR.
  * @param nsd Number of significant diggits for quantizize. Ignored
  * unless quantize_mode is ::NC_QUANTIZE_BITGROOM or 
- * ::NC_QUANTIZE_GRANULARBG.
+ * ::NC_QUANTIZE_GRANULARBR.
  * 
  * @returns ::NC_NOERR No error.
  * @returns ::NC_EBADTYPE Type not found.
@@ -574,7 +574,7 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
     {
         assert(dest_type == NC_FLOAT || dest_type == NC_DOUBLE);
 
-	/* Parameters shared by both BitGroom and GranularBG */
+	/* Parameters shared by both BitGroom and GranularBR */
         if (dest_type == NC_FLOAT)
         {
             /* Determine the fill value. */
@@ -1433,11 +1433,11 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
         }
     } /* endif BitGroom */
 
-    if (quantize_mode == NC_QUANTIZE_GRANULARBG)
+    if (quantize_mode == NC_QUANTIZE_GRANULARBR)
     {
         if (dest_type == NC_FLOAT)
         {
-            /* Granular BitGroom */
+            /* Granular BitRound */
             op1.fp = (float *)dest;
             u32_ptr = op1.ui32p;
             for (idx = 0L; idx < len; idx++)
@@ -1471,7 +1471,7 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
         }
         else
         {
-            /* Granular BitGroom */
+            /* Granular BitRound */
             op1.dp = (double *)dest;
             u64_ptr = op1.ui64p;
             for (idx = 0L; idx < len; idx++)
@@ -1503,7 +1503,7 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 
 	      }
         }
-    } /* endif GranularBG */
+    } /* endif GranularBR */
 
     return NC_NOERR;
 }

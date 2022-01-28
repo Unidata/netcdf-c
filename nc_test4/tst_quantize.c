@@ -116,10 +116,10 @@ main(int argc, char **argv)
         if (nc_def_var_quantize(ncid, NC_GLOBAL, NC_QUANTIZE_BITGROOM, NSD_3) != NC_EGLOBAL) ERR;
         if (nc_def_var_quantize(ncid, varid2 + 1, NC_QUANTIZE_BITGROOM, NSD_3) != NC_ENOTVAR) ERR;
         /* Invalid values. */
-        if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_GRANULARBG + 1, NSD_3) != NC_EINVAL) ERR;
+        if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_GRANULARBR + 1, NSD_3) != NC_EINVAL) ERR;
         if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, -1) != NC_EINVAL) ERR;
         if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, NC_QUANTIZE_MAX_FLOAT_NSD + 1) != NC_EINVAL) ERR;
-        if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_GRANULARBG + 1, 3) != NC_EINVAL) ERR;
+        if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_GRANULARBR + 1, 3) != NC_EINVAL) ERR;
         if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM, -1) != NC_EINVAL) ERR;
         if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM, NC_QUANTIZE_MAX_DOUBLE_NSD + 1) != NC_EINVAL) ERR;
         if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM, 0) != NC_EINVAL) ERR;
