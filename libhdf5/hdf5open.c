@@ -1219,10 +1219,10 @@ static int get_quantize_info(NC_VAR_INFO_T *var)
       }
     else
       {
-	attid = H5Aopen_by_name(datasetid, ".", NC_QUANTIZE_GRANULARBG_ATT_NAME,
+	attid = H5Aopen_by_name(datasetid, ".", NC_QUANTIZE_GRANULARBR_ATT_NAME,
 			    H5P_DEFAULT, H5P_DEFAULT);
 	if (attid > 0)
-	    var->quantize_mode = NC_QUANTIZE_GRANULARBG;
+	    var->quantize_mode = NC_QUANTIZE_GRANULARBR;
       }
     
     /* If there is an attribute, read it for the nsd. */

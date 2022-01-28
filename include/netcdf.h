@@ -330,12 +330,12 @@ there. */
 
 #define NC_NOQUANTIZE 0 /**< No quantization in use. */    
 #define NC_QUANTIZE_BITGROOM 1 /**< Use BitGroom quantization. */
-#define NC_QUANTIZE_GRANULARBG 2 /**< Use Granular BitGroom quantization. */
+#define NC_QUANTIZE_GRANULARBR 2 /**< Use Granular BitRound quantization. */
 
 /** When quantization is used for a variable, an attribute of the
  * appropriate name is added. */
 #define NC_QUANTIZE_BITGROOM_ATT_NAME "_QuantizeBitgroomNumberOfSignificantDigits"
-#define NC_QUANTIZE_GRANULARBG_ATT_NAME "_QuantizeGranularBitGroomNumberOfSignificantDigits"
+#define NC_QUANTIZE_GRANULARBR_ATT_NAME "_QuantizeGranularBitRoundNumberOfSignificantDigits"
 
 /** For quantization, the allowed value of number of significant
  * digits for float. */

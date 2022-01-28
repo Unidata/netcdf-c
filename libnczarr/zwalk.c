@@ -19,7 +19,7 @@ static unsigned int optimize = 0;
 extern int NCZ_buildchunkkey(size_t R, const size64_t* chunkindices, char** keyp);
 
 /* 0 => no debug */
-static unsigned int wdebug = 0;
+static unsigned int wdebug = 1;
 
 /* Forward */
 static int NCZ_walk(NCZProjection** projv, NCZOdometer* chunkodom, NCZOdometer* slpodom, NCZOdometer* memodom, const struct Common* common, void* chunkdata);
@@ -123,7 +123,7 @@ NCZ_transferslice(NC_VAR_INFO_T* var, int reading,
     common.cache = zvar->cache;
 
     /* We need to talk scalar into account */
-    common.rank = var->ndims + zvar->scalar;
+    common.rank = var->ndims;
     common.scalar = zvar->scalar;
     common.swap = (zfile->native_endianness == var->endianness ? 0 : 1);
 
@@ -156,9 +156,6 @@ NCZ_transferslice(NC_VAR_INFO_T* var, int reading,
     common.memshape = memshape; /* ditto */
     common.reader.source = ((NCZ_VAR_INFO_T*)(var->format_var_info))->cache;
     common.reader.read = readfromcache;
-
-    /* verify */
-    assert(var->no_fill || var->fill_value != NULL);
 
     if(common.scalar) {
         if((stat = NCZ_transferscalar(&common))) goto done;

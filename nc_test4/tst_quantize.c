@@ -7,6 +7,7 @@
    precision.
 
    Ed Hartnett, 8/19/21
+   Dennis Heimbigner, 1/16/22
 */
 
 #include <nc_tests.h>
@@ -72,12 +73,28 @@ pd(double myd)
 int
 main(int argc, char **argv)
 {
+#ifdef TESTNCZARR
+    const char* template = NULL;
+    char file_url[4096];
+    
+    if(argc == 1)
+        {fprintf(stderr,"usage: test_quantize <zarr-url-template>\n"); exit(1);}
+
+    template = argv[1];
+
+    snprintf(file_url,sizeof(file_url),template,FILE_NAME);
+
+#undef FILE_NAME
+#define FILE_NAME file_url
+#endif
+
     printf("\n*** Testing netcdf-4 variable quantization functions.\n");
     printf("**** testing quantization setting and error conditions...");
     {
         int ncid, dimid, varid1, varid2;
         int quantize_mode_in, nsd_in;
 
+#ifndef TESTNCZARR
         /* Create a netcdf classic file with one var. Attempt
          * quantization. It will not work. */
         if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
@@ -86,6 +103,7 @@ main(int argc, char **argv)
         if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, NSD_3) != NC_ENOTNC4) ERR;
         if (nc_inq_var_quantize(ncid, varid1, &quantize_mode_in, &nsd_in) != NC_ENOTNC4) ERR;
         if (nc_close(ncid)) ERR;
+#endif
 
         /* Create a netcdf-4 file with two vars. Attempt
          * quantization. It will work, eventually... */
@@ -98,10 +116,10 @@ main(int argc, char **argv)
         if (nc_def_var_quantize(ncid, NC_GLOBAL, NC_QUANTIZE_BITGROOM, NSD_3) != NC_EGLOBAL) ERR;
         if (nc_def_var_quantize(ncid, varid2 + 1, NC_QUANTIZE_BITGROOM, NSD_3) != NC_ENOTVAR) ERR;
         /* Invalid values. */
-        if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_GRANULARBG + 1, NSD_3) != NC_EINVAL) ERR;
+        if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_GRANULARBR + 1, NSD_3) != NC_EINVAL) ERR;
         if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, -1) != NC_EINVAL) ERR;
         if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, NC_QUANTIZE_MAX_FLOAT_NSD + 1) != NC_EINVAL) ERR;
-        if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_GRANULARBG + 1, 3) != NC_EINVAL) ERR;
+        if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_GRANULARBR + 1, 3) != NC_EINVAL) ERR;
         if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM, -1) != NC_EINVAL) ERR;
         if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM, NC_QUANTIZE_MAX_DOUBLE_NSD + 1) != NC_EINVAL) ERR;
         if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM, 0) != NC_EINVAL) ERR;
@@ -147,10 +165,13 @@ main(int argc, char **argv)
 
         /* Open the file and check. */
         if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
-        if (nc_inq_var_quantize(ncid, 0, &quantize_mode_in, &nsd_in)) ERR;
+	/* Don't assume the varid !!! */
+        if (nc_inq_varid(ncid, VAR_NAME_1, &varid1)) ERR;
+        if (nc_inq_varid(ncid, VAR_NAME_2, &varid2)) ERR;
+        if (nc_inq_var_quantize(ncid, varid1, &quantize_mode_in, &nsd_in)) ERR;
         if (quantize_mode_in != NC_QUANTIZE_BITGROOM) ERR;
         if (nsd_in != NSD_3) ERR;
-        if (nc_inq_var_quantize(ncid, 1, &quantize_mode_in, &nsd_in)) ERR;
+        if (nc_inq_var_quantize(ncid, varid2, &quantize_mode_in, &nsd_in)) ERR;
         if (quantize_mode_in != NC_QUANTIZE_BITGROOM) ERR;
         if (nsd_in != NSD_9) ERR;
         if (nc_close(ncid)) ERR;
@@ -172,7 +193,11 @@ main(int argc, char **argv)
         int varid;
         int nsd_in, quantize_mode;
         int nsd_out = 3;
+#ifdef TESTNCZARR
+	char file_name[4096];
+#else
         char file_name[NC_MAX_NAME + 1];
+#endif
         int xtype[NTYPES] = {NC_CHAR, NC_SHORT, NC_INT, NC_BYTE, NC_UBYTE,
                              NC_USHORT, NC_UINT, NC_INT64, NC_UINT64};
         int t;
@@ -180,7 +205,14 @@ main(int argc, char **argv)
         for (t = 0; t < NTYPES; t++)
         {
             sprintf(file_name, "%s_bitgroom_type_%d.nc", TEST, xtype[t]);
-
+#ifdef TESTNCZARR
+	    {
+	    char url[4096];
+	    snprintf(url,sizeof(url),template,file_name);
+	    strcpy(file_name,url);
+fprintf(stderr,"\n>>> type url = |%s|\n",file_name);
+	    }
+#endif
             /* Create file. */
             if (nc_create(file_name, NC_NETCDF4, &ncid)) ERR;
             if (nc_def_dim(ncid, X_NAME, NX_BIG, &dimid[0])) ERR;
@@ -195,6 +227,7 @@ main(int argc, char **argv)
             /* Check file. */
             {
                 if (nc_open(file_name, NC_NETCDF4, &ncid)) ERR;
+		if (nc_inq_varid(ncid,VAR_NAME,&varid)) ERR;
                 if (nc_inq_var_quantize(ncid, varid, &quantize_mode, &nsd_in)) ERR;
                 if (quantize_mode) ERR;
                 if (nc_close(ncid)) ERR;
@@ -236,9 +269,11 @@ main(int argc, char **argv)
 
             /* Open the file and check metadata. */
             if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
-            if (nc_inq_var_quantize(ncid, 0, &quantize_mode_in, &nsd_in)) ERR;
+            if (nc_inq_varid(ncid, VAR_NAME_1, &varid1)) ERR;
+            if (nc_inq_varid(ncid, VAR_NAME_2, &varid2)) ERR;
+            if (nc_inq_var_quantize(ncid, varid1, &quantize_mode_in, &nsd_in)) ERR;
             if (quantize_mode_in != NC_QUANTIZE_BITGROOM || nsd_in != NSD_3) ERR;
-            if (nc_inq_var_quantize(ncid, 1, &quantize_mode_in, &nsd_in)) ERR;
+            if (nc_inq_var_quantize(ncid, varid2, &quantize_mode_in, &nsd_in)) ERR;
             if (quantize_mode_in != NC_QUANTIZE_BITGROOM || nsd_in != NSD_3) ERR;
 
 	    /* Each var now has an attribute describing the quantize settings. */
@@ -300,9 +335,11 @@ main(int argc, char **argv)
 
             /* Open the file and check metadata. */
             if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
-            if (nc_inq_var_quantize(ncid, 0, &quantize_mode_in, &nsd_in)) ERR;
+	    if (nc_inq_varid(ncid,VAR_NAME_1,&varid1)) ERR;
+	    if (nc_inq_varid(ncid,VAR_NAME_2,&varid2)) ERR;
+            if (nc_inq_var_quantize(ncid, varid1, &quantize_mode_in, &nsd_in)) ERR;
             if (quantize_mode_in != NC_QUANTIZE_BITGROOM || nsd_in != NSD_3) ERR;
-            if (nc_inq_var_quantize(ncid, 1, &quantize_mode_in, &nsd_in)) ERR;
+            if (nc_inq_var_quantize(ncid, varid2, &quantize_mode_in, &nsd_in)) ERR;
             if (quantize_mode_in != NC_QUANTIZE_BITGROOM || nsd_in != NSD_3) ERR;
 
             /* Check the data. */
@@ -376,9 +413,11 @@ main(int argc, char **argv)
 
             /* Open the file and check metadata. */
             if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
-            if (nc_inq_var_quantize(ncid, 0, &quantize_mode_in, &nsd_in)) ERR;
+	    if (nc_inq_varid(ncid,VAR_NAME_1,&varid1)) ERR;
+	    if (nc_inq_varid(ncid,VAR_NAME_2,&varid2)) ERR;
+            if (nc_inq_var_quantize(ncid, varid1, &quantize_mode_in, &nsd_in)) ERR;
             if (quantize_mode_in != NC_QUANTIZE_BITGROOM || nsd_in != NSD_3) ERR;
-            if (nc_inq_var_quantize(ncid, 1, &quantize_mode_in, &nsd_in)) ERR;
+            if (nc_inq_var_quantize(ncid, varid2, &quantize_mode_in, &nsd_in)) ERR;
             if (quantize_mode_in != NC_QUANTIZE_BITGROOM || nsd_in != NSD_3) ERR;
 
             /* Check the data. */
@@ -441,9 +480,11 @@ main(int argc, char **argv)
 
             /* Open the file and check metadata. */
             if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
-            if (nc_inq_var_quantize(ncid, 0, &quantize_mode_in, &nsd_in)) ERR;
+	    if (nc_inq_varid(ncid,VAR_NAME_1,&varid1)) ERR;
+	    if (nc_inq_varid(ncid,VAR_NAME_2,&varid2)) ERR;
+            if (nc_inq_var_quantize(ncid, varid1, &quantize_mode_in, &nsd_in)) ERR;
             if (quantize_mode_in != NC_QUANTIZE_BITGROOM || nsd_in != NSD_3) ERR;
-            if (nc_inq_var_quantize(ncid, 1, &quantize_mode_in, &nsd_in)) ERR;
+            if (nc_inq_var_quantize(ncid, varid2, &quantize_mode_in, &nsd_in)) ERR;
             if (quantize_mode_in != NC_QUANTIZE_BITGROOM || nsd_in != NSD_3) ERR;
 
 	    /* Each var now has an attribute describing the quantize settings. */
@@ -523,9 +564,11 @@ main(int argc, char **argv)
 
             /* Open the file and check metadata. */
             if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
-            if (nc_inq_var_quantize(ncid, 0, &quantize_mode_in, &nsd_in)) ERR;
+	    if (nc_inq_varid(ncid,VAR_NAME_1,&varid1)) ERR;
+	    if (nc_inq_varid(ncid,VAR_NAME_2,&varid2)) ERR;
+            if (nc_inq_var_quantize(ncid, varid1, &quantize_mode_in, &nsd_in)) ERR;
             if (quantize_mode_in != NC_QUANTIZE_BITGROOM || nsd_in != NSD_3) ERR;
-            if (nc_inq_var_quantize(ncid, 1, &quantize_mode_in, &nsd_in)) ERR;
+            if (nc_inq_var_quantize(ncid, varid2, &quantize_mode_in, &nsd_in)) ERR;
             if (quantize_mode_in != NC_QUANTIZE_BITGROOM || nsd_in != NSD_3) ERR;
 
             /* Check the data. */
@@ -603,9 +646,11 @@ main(int argc, char **argv)
 
             /* Open the file and check metadata. */
             if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
-            if (nc_inq_var_quantize(ncid, 0, &quantize_mode_in, &nsd_in)) ERR;
+	    if (nc_inq_varid(ncid,VAR_NAME_1,&varid1)) ERR;
+	    if (nc_inq_varid(ncid,VAR_NAME_2,&varid2)) ERR;
+            if (nc_inq_var_quantize(ncid, varid1, &quantize_mode_in, &nsd_in)) ERR;
             if (quantize_mode_in != NC_QUANTIZE_BITGROOM || nsd_in != NSD_3) ERR;
-            if (nc_inq_var_quantize(ncid, 1, &quantize_mode_in, &nsd_in)) ERR;
+            if (nc_inq_var_quantize(ncid, varid2, &quantize_mode_in, &nsd_in)) ERR;
             if (quantize_mode_in != NC_QUANTIZE_BITGROOM || nsd_in != NSD_3) ERR;
 
             /* Check the data. */
@@ -689,9 +734,11 @@ main(int argc, char **argv)
 
             /* Open the file and check metadata. */
             if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
-            if (nc_inq_var_quantize(ncid, 0, &quantize_mode_in, &nsd_in)) ERR;
+	    if (nc_inq_varid(ncid,VAR_NAME_1,&varid1)) ERR;
+	    if (nc_inq_varid(ncid,VAR_NAME_2,&varid2)) ERR;
+            if (nc_inq_var_quantize(ncid, varid1, &quantize_mode_in, &nsd_in)) ERR;
             if (quantize_mode_in != NC_QUANTIZE_BITGROOM || nsd_in != NSD_3) ERR;
-            if (nc_inq_var_quantize(ncid, 1, &quantize_mode_in, &nsd_in)) ERR;
+            if (nc_inq_var_quantize(ncid, varid2, &quantize_mode_in, &nsd_in)) ERR;
             if (quantize_mode_in != NC_QUANTIZE_BITGROOM || nsd_in != NSD_3) ERR;
 
             /* Check the data. */
@@ -782,6 +829,8 @@ main(int argc, char **argv)
 
             /* Now reopen the file and check. */
             if (nc_open(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+	    if (nc_inq_varid(ncid,VAR_NAME,&varid1)) ERR;
+	    if (nc_inq_varid(ncid,VAR_NAME_2,&varid2)) ERR;
 
             /* Read the data. */
             if (nc_get_var_float(ncid, varid1, float_data_in)) ERR;
@@ -875,13 +924,16 @@ main(int argc, char **argv)
         if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, NSD_3)) ERR;
         if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM, NSD_3)) ERR;
 
+#ifdef TESTNCZARR
+#ifdef ENABLE_NCZARR_FILTERS
         /* Set up zlib compression. This will work better because the
          * data are quantized, yielding a smaller output file. We will
          * set compression level to 1, which is usually the best
          * choice. */
         if (nc_def_var_deflate(ncid, varid1, 0, 1, 1)) ERR;
         if (nc_def_var_deflate(ncid, varid2, 0, 1, 1)) ERR;
-
+#endif
+#endif
         /* Write the data. */
         if (nc_put_var_float(ncid, varid1, float_data)) ERR;
         if (nc_put_var_double(ncid, varid2, double_data)) ERR;
@@ -896,6 +948,8 @@ main(int argc, char **argv)
 
             /* Now reopen the file and check. */
             if (nc_open(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+	    if (nc_inq_varid(ncid,"var1",&varid1)) ERR;
+	    if (nc_inq_varid(ncid,"var2",&varid2)) ERR;
 
             /* Read the data. */
             if (nc_get_var_float(ncid, varid1, float_data_in)) ERR;

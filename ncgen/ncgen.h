@@ -80,6 +80,8 @@ various C global variables
 #define _FORMAT_FLAG        0x800
 #define _FILTER_FLAG        0x1000
 #define _CODECS_FLAG        0x2000
+#define _QUANTIZEBG_FLAG    0x4000
+#define _QUANTIZEBR_FLAG    0x8000
 
 extern struct Specialtoken {
     char* name;
@@ -122,6 +124,8 @@ typedef struct Specialdata {
     int           _Shuffle;      /* 0 => false, 1 => true*/
     int           _Endianness;   /* 1 =>little, 2 => big*/
     int           _Fill ;        /* 0 => false, 1 => true WATCHOUT: this is inverse of NOFILL*/
+    int           _Quantizer;    /* algorithm */
+    int           _NSD;          /* No. of significant digits */
     NC_H5_Filterspec** _Filters;
     size_t 	   nfilters; /* |filters| */
     char*          _Codecs; /* in JSON form */

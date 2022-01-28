@@ -436,16 +436,18 @@ var->type_info->rc++;
      * variables which may be contiguous.) */
     LOG((4, "allocating array of %d size_t to hold chunksizes for var %s",
 	 var->ndims, var->hdr.name));
-    if (var->ndims) {
-	if (!(var->chunksizes = calloc(var->ndims, sizeof(size_t))))
-	    BAIL(NC_ENOMEM);
-	if ((retval = ncz_find_default_chunksizes2(grp, var)))
-	    BAIL(retval);
-    } else {
-	/* Pretend that scalars are like var[1] */
-	if (!(var->chunksizes = calloc(1, sizeof(size_t))))
-	    BAIL(NC_ENOMEM);
-	var->chunksizes[0] = 1;
+    if(!var->chunksizes) {
+	if(var->ndims) {
+            if (!(var->chunksizes = calloc(var->ndims+zvar->scalar, sizeof(size_t))))
+	        BAIL(NC_ENOMEM);
+	    if ((retval = ncz_find_default_chunksizes2(grp, var)))
+	        BAIL(retval);
+        } else {
+	    /* Pretend that scalars are like var[1] */
+	    if (!(var->chunksizes = calloc(1, sizeof(size_t))))
+	        BAIL(NC_ENOMEM);
+	    var->chunksizes[0] = 1;
+	}
     }
     
     /* Compute the chunksize cross product */
@@ -510,7 +512,8 @@ static int
 ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 		 int *unused2, int *fletcher32, int *storagep,
 		 const size_t *chunksizes, int *no_fill,
-		 const void *fill_value, int *endianness)
+		 const void *fill_value, int *endianness,
+		 int *quantize_mode, int *nsd)
 {
     NC_GRP_INFO_T *grp;
     NC_FILE_INFO_T *h5;
@@ -522,13 +525,16 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 
     LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
 
-    ZTRACE(2,"ncid=%d varid=%d shuffle=%d fletcher32=%d no_fill=%d, fill_value=%p endianness=%d",
+    ZTRACE(2,"ncid=%d varid=%d shuffle=%d fletcher32=%d no_fill=%d, fill_value=%p endianness=%d quantize_mode=%d nsd=%d",
            ncid,varid,
 	   (shuffle?*shuffle:-1),
    	   (fletcher32?*fletcher32:-1),
 	   (no_fill?*no_fill:-1),
 	   fill_value,
-	   (endianness?*endianness:-1));
+	   (endianness?*endianness:-1),
+	   (quantize_mode?*quantize_mode:-1),
+   	   (nsd?*nsd:-1)
+	   );
 
     /* Find info for this file and group, and set pointer to each. */
     if ((retval = nc4_find_nc_grp_h5(ncid, NULL, &grp, &h5)))
@@ -543,6 +549,8 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
     if (!(var = (NC_VAR_INFO_T *)ncindexith(grp->vars, varid)))
 	{retval = NC_ENOTVAR; goto done;}
     assert(var && var->hdr.id == varid);
+
+    zvar = var->format_var_info;
 
     ZTRACEMORE(1,"\tstoragep=%d chunksizes=%s",(storagep?*storagep:-1),(chunksizes?nczprint_sizevector(var->ndims,chunksizes):"null"));
     
@@ -633,7 +641,7 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	    {retval = NC_EINVAL; goto done;}
 	} else if (storage == NC_CHUNKED && var->ndims > 0) {
 	    var->storage = NC_CHUNKED;
-
+	    
 	    /* If the user provided chunksizes, check that they are valid
 	     * and that their total size of chunk is less than 4 GB. */
 	    if (chunksizes)
@@ -661,6 +669,7 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	    int anyzero = 0; /* check for any zero length chunksizes */
 	    zvar = var->format_var_info;
 	    assert(zvar->cache != NULL);
+	    zvar->cache->valid = 0;
 	    if(chunksizes) {
 		for (d = 0; d < var->ndims; d++) {
 		    var->chunksizes[d] = chunksizes[d];
@@ -679,6 +688,8 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 		zvar->chunkproduct *= var->chunksizes[d];
             zvar->chunksize = zvar->chunkproduct * var->type_info->size;
 	}
+	/* Adjust cache */
+        if((retval = NCZ_adjust_var_cache(var))) goto done;
     
 #ifdef LOGGING
 	{
@@ -722,12 +733,13 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	if ((retval = nc_put_att(ncid, varid, _FillValue, var->type_info->hdr.id,
 				 1, fill_value)))
 	    goto done;
+        /* Reclaim any existing fill_chunk */
+        if((retval = NCZ_reclaim_fill_chunk(zvar->cache))) goto done;
     } else if (var->fill_value && no_fill && (*no_fill)) { /* Turning off fill value? */
         /* If there's a _FillValue attribute, delete it. */
         retval = NCZ_del_att(ncid, varid, _FillValue);
         if (retval && retval != NC_ENOTATT) return retval;
-	if((retval = nc_reclaim_data_all(ncid,var->type_info->hdr.id,var->fill_value,1))) return retval;
-	var->fill_value = NULL;
+	if((retval = NCZ_reclaim_fill_value(var))) return retval;
     }
 
     /* Is the user setting the endianness? */
@@ -754,6 +766,46 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	var->type_info->endianness = *endianness;
 	/* Propagate */
 	var->endianness = *endianness;
+    }
+
+    /* Remember quantization settings. They will be used when data are
+     * written. */
+    if (quantize_mode)
+    {
+	/* Only two valid mode settings. */
+	if (*quantize_mode != NC_NOQUANTIZE &&
+	    *quantize_mode != NC_QUANTIZE_BITGROOM)
+	    return NC_EINVAL;
+
+	if (*quantize_mode == NC_QUANTIZE_BITGROOM)
+	{
+	    /* Only float and double types can have quantization. */
+	    if (var->type_info->hdr.id != NC_FLOAT &&
+		var->type_info->hdr.id != NC_DOUBLE)
+		return NC_EINVAL;
+	    
+	    /* For bitgroom, number of significant digits is required. */
+	    if (!nsd)
+		return NC_EINVAL;
+
+	    /* NSD must be in range. */
+	    if (*nsd <= 0)
+		return NC_EINVAL;
+	    if (var->type_info->hdr.id == NC_FLOAT &&
+		*nsd > NC_QUANTIZE_MAX_FLOAT_NSD)
+		return NC_EINVAL;
+	    if (var->type_info->hdr.id == NC_DOUBLE &&
+		*nsd > NC_QUANTIZE_MAX_DOUBLE_NSD)
+		return NC_EINVAL;
+
+	    var->nsd = *nsd;
+	}
+	
+	var->quantize_mode = *quantize_mode;
+
+	/* If quantization is turned off, then set nsd to 0. */
+	if (*quantize_mode == NC_NOQUANTIZE)
+	    var->nsd = 0;
     }
 
 done:
@@ -788,7 +840,7 @@ NCZ_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
     int stat = NC_NOERR;
     unsigned int level = (unsigned int)deflate_level;
     /* Set shuffle first */
-    if((stat = ncz_def_var_extra(ncid, varid, &shuffle, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL))) goto done;
+    if((stat = ncz_def_var_extra(ncid, varid, &shuffle, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL))) goto done;
     if(deflate)
 	stat = nc_def_var_filter(ncid, varid, H5Z_FILTER_DEFLATE,1,&level);
     if(stat) goto done;
@@ -818,7 +870,7 @@ int
 NCZ_def_var_fletcher32(int ncid, int varid, int fletcher32)
 {
     return ncz_def_var_extra(ncid, varid, NULL, NULL, NULL, &fletcher32,
-			    NULL, NULL, NULL, NULL, NULL);
+			    NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 }
 
 /**
@@ -847,7 +899,7 @@ int
 NCZ_def_var_chunking(int ncid, int varid, int contiguous, const size_t *chunksizesp)
 {
     return ncz_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL,
-			    &contiguous, chunksizesp, NULL, NULL, NULL);
+			    &contiguous, chunksizesp, NULL, NULL, NULL, NULL, NULL);
 }
 
 /**
@@ -892,7 +944,7 @@ ncz_def_var_chunking_ints(int ncid, int varid, int contiguous, int *chunksizesp)
 	cs[i] = chunksizesp[i];
 
     retval = ncz_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL,
-			      &contiguous, cs, NULL, NULL, NULL);
+			      &contiguous, cs, NULL, NULL, NULL, NULL, NULL);
 
     if (var->ndims)
 	free(cs);
@@ -926,7 +978,7 @@ int
 NCZ_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
 {
     return ncz_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL, NULL,
-			    NULL, &no_fill, fill_value, NULL);
+			    NULL, &no_fill, fill_value, NULL, NULL, NULL);
 }
 
 /**
@@ -955,8 +1007,142 @@ int
 NCZ_def_var_endian(int ncid, int varid, int endianness)
 {
     return ncz_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL, NULL,
-			    NULL, NULL, NULL, &endianness);
+			    NULL, NULL, NULL, &endianness, NULL, NULL);
 }
+
+/**
+ * @internal Set quantization settings on a variable. This is
+ * called by nc_def_var_quantize().
+ *
+ * Quantization allows the user to specify a number of significant
+ * digits for variables of type ::NC_FLOAT or ::NC_DOUBLE. (Attempting
+ * to set quantize for other types will result in an ::NC_EINVAL
+ * error.)
+ *
+ * When quantize is turned on, and the number of significant digits
+ * has been specified, then the netCDF library will apply all zeros or
+ * all ones (alternating) to bits which are not needed to specify the
+ * value to the number of significant digits. This will change the
+ * value of the data, but will make it more compressable.
+ *
+ * Quantizing the data does not reduce the size of the data on disk,
+ * but combining quantize with compression will allow for better
+ * compression. Since the data values are changed, the use of quantize
+ * and compression such as deflate constitute lossy compression.
+ *
+ * Producers of large datasets may find that using quantize with
+ * compression will result in significant improvent in the final data
+ * size.
+ *
+ * Variables which use quantize will have added an attribute with either the name
+ * ::NC_QUANTIZE_BITGROOM_ATT_NAME or ::NC_QUANTIZE_GRANULARBR, but in either case
+ * will contain the number of significant digits.
+ * Users should not delete or change this
+ * attribute. This is the only record that quantize has been applied
+ * to the data.
+ *
+ * As with the deflate settings, quantize settings may only be
+ * modified before the first call to nc_enddef(). Once nc_enddef() is
+ * called for the file, quantize settings for any variable in the file
+ * may not be changed.
+ *
+ * Use of quantization is fully backwards compatible with existing
+ * versions and packages that can read compressed netCDF data. A
+ * variable which has been quantized is readable to older versions of
+ * the netCDF libraries, and to netCDF-Java.
+ *
+ * @param ncid File ID.
+ * @param varid Variable ID. NC_GLOBAL may not be used.
+ * @param quantize_mode Quantization mode. May be ::NC_NOQUANTIZE or
+ * ::NC_QUANTIZE_BITGROOM or ::NC_QUANTIZE_GRANULARBR.
+ * @param nsd Number of significant digits. May be any integer from 1
+ * to ::NC_QUANTIZE_MAX_FLOAT_NSD (for variables of type ::NC_FLOAT) or
+ * ::NC_QUANTIZE_MAX_DOUBLE_NSD (for variables of type ::NC_DOUBLE).
+ *
+ * @returns ::NC_NOERR No error.
+ * @returns ::NC_EBADID Bad ncid.
+ * @returns ::NC_ENOTVAR Invalid variable ID.
+ * @returns ::NC_ENOTNC4 Attempting netcdf-4 operation on file that is
+ * not netCDF-4/HDF5.
+ * @returns ::NC_ELATEDEF Too late to change settings for this variable.
+ * @returns ::NC_ENOTINDEFINE Not in define mode.
+ * @returns ::NC_EINVAL Invalid input
+ * @author Ed Hartnett, Dennis Heimbigner
+ */
+int
+NCZ_def_var_quantize(int ncid, int varid, int quantize_mode, int nsd)
+{
+    return ncz_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL,
+			    NULL, NULL, NULL, NULL, NULL,
+			    &quantize_mode, &nsd);
+}
+
+/**
+Ensure that the quantize information for a variable is defined.
+Keep a flag in the NCZ_VAR_INFO_T struct to indicate if quantize
+info is defined, and if not, read the attribute.
+*/
+int
+NCZ_ensure_quantizer(int ncid, NC_VAR_INFO_T* var)
+{
+    int nsd = 0;
+
+    /* Read the attribute */
+    if(NCZ_get_att(ncid,var->hdr.id,NC_QUANTIZE_BITGROOM_ATT_NAME,&nsd,NC_INT)==NC_NOERR) {
+	var->quantize_mode = NC_QUANTIZE_BITGROOM;
+        var->nsd = nsd;
+    } else if(NCZ_get_att(ncid,var->hdr.id,NC_QUANTIZE_GRANULARBR_ATT_NAME,&nsd,NC_INT)==NC_NOERR) {
+	var->quantize_mode = NC_QUANTIZE_GRANULARBR;
+        var->nsd = nsd;
+    } else {
+	var->quantize_mode = NC_NOQUANTIZE;
+        var->nsd = 0;
+    }
+    if(var->quantize_mode < 0) var->quantize_mode = 0;
+    return NC_NOERR;
+}
+
+/**
+ * @internal Get quantize information about a variable. Pass NULL for
+ * whatever you don't care about. Note that this can require reading
+ * all the attributes for the variable.
+ *
+ * @param ncid File ID.
+ * @param varid Variable ID.
+ * @param quantize_modep Gets quantize mode.
+ * @param nsdp Gets Number of Significant Digits if quantize is in use.
+ *
+ * @returns ::NC_NOERR No error.
+ * @returns ::NC_EBADID Bad ncid.
+ * @returns ::NC_ENOTVAR Bad varid.
+ * @returns ::NC_EINVAL Invalid input.
+ * @author Ed Hartnett
+ */
+int
+NCZ_inq_var_quantize(int ncid, int varid, int *quantize_modep,
+		     int *nsdp)
+{
+    NC_VAR_INFO_T *var;
+    int retval;
+
+    LOG((2, "%s: ncid 0x%x varid %d", __func__, ncid, varid));
+
+    /* Find info for this file and group, and set pointer to each. */
+    /* Get pointer to the var. */
+    if ((retval = nc4_find_grp_h5_var(ncid, varid, NULL, NULL, &var)))
+        return retval;
+    if (!var)
+        return NC_ENOTVAR;	
+    assert(var->hdr.id == varid);
+    if(var->quantize_mode == -1)
+        {if((retval = NCZ_ensure_quantizer(ncid, var))) return retval;}
+    /* Copy the data to the user's data buffers. */
+    if (quantize_modep)
+        *quantize_modep = var->quantize_mode;
+    if (nsdp)
+        *nsdp = var->nsd;
+    return NC_NOERR;
+ }
 
 /**
  * @internal Rename a var to "bubba," for example. This is called by
@@ -1319,6 +1505,7 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     size64_t stride[NC_MAX_VAR_DIMS];
     int retval, range_error = 0, i, d2;
     void *bufr = NULL;
+    int bufrd = 0; /* 1 => we allocated bufr */
     int need_to_convert = 0;
     int zero_count = 0; /* true if a count is zero */
     size_t len = 1;
@@ -1432,18 +1619,23 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     }
 #endif
 
-    /* Are we going to convert any data? (No converting of user-defined types
-       except enum). */
-    if (mem_nc_type != var->type_info->hdr.id &&
+    /* Are we going to convert any data? (No converting of compound or
+     * opaque or vlen types.) We also need to call this code if we are doing
+     * quantization. */
+    if ((mem_nc_type != var->type_info->hdr.id &&
 	mem_nc_type != NC_COMPOUND && mem_nc_type != NC_OPAQUE
 	&& mem_nc_type != NC_VLEN)
+	|| var->quantize_mode > 0)
     {
 	size_t file_type_size;
 
 	/* We must convert - allocate a buffer. */
 	need_to_convert++;
-        for (d2=0; d2<(var->ndims+zvar->scalar); d2++)
+	if(zvar->scalar)
+	    len = 1;
+        else for (d2=0; d2<var->ndims; d2++)
 	    len *= countp[d2];
+
 	LOG((4, "converting data for var %s type=%d len=%d", var->hdr.name,
 	     var->type_info->hdr.id, len));
 
@@ -1455,9 +1647,12 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 	/* If we're reading, we need bufr to have enough memory to store
 	 * the data in the file. If we're writing, we need bufr to be
 	 * big enough to hold all the data in the file's type. */
-	if (len > 0)
+	if (len > 0) {
+	    assert(bufr == NULL);
 	    if (!(bufr = malloc(len * file_type_size)))
 		BAIL(NC_ENOMEM);
+	    bufrd = 1;
+	}
     }
     else
 	bufr = (void *)data;
@@ -1531,6 +1726,8 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     /* Do we need to convert the data? */
     if (need_to_convert)
     {
+	if(var->quantize_mode < 0) {if((retval = NCZ_ensure_quantizer(ncid,var))) BAIL(retval);}
+	assert(bufr != NULL);
 	if ((retval = nc4_convert_type(data, bufr, mem_nc_type, var->type_info->hdr.id,
 				       len, &range_error, var->fill_value,
 				       (h5->cmode & NC_CLASSIC_MODEL),
@@ -1573,7 +1770,7 @@ exit:
     if (xfer_plistid && (H5Pclose(xfer_plistid) < 0))
 	BAIL2(NC_EPARINIT);
 #endif
-    if (need_to_convert && bufr) free(bufr);
+    if (bufrd && bufr) free(bufr);
 
     /* If there was an error return it, otherwise return any potential
        range error value. If none, return NC_NOERR as usual.*/
@@ -1627,7 +1824,6 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     size64_t fmaxdims[NC_MAX_VAR_DIMS];
     size64_t start[NC_MAX_VAR_DIMS];
     size64_t stride[NC_MAX_VAR_DIMS];
-    void *fillvalue = NULL;
     int no_read = 0, provide_fill = 0;
     int fill_value_size[NC_MAX_VAR_DIMS];
     int retval, range_error = 0, i, d2;
@@ -1867,8 +2063,8 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 
 	/* Get the fill value from the ZARR variable. Memory will be
 	 * allocated. */
-	if (ncz_get_fill_value(h5, var, &fillvalue) < 0)
-	    BAIL(NC_EHDFERR);
+	if (NCZ_ensure_fill_value(var))
+	    BAIL(NC_EINVAL);
 
 	/* How many fill values do we need? */
 	for (fill_len = 1, d2 = 0; d2 < var->ndims; d2++)
@@ -1878,9 +2074,9 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 	filldata = (char *)data + real_data_size;
 	for (i = 0; i < fill_len; i++)
 	{
-		/* Copy one instance of the fill_value */
-		if((retval = nc_copy_data(ncid,var->type_info->hdr.id,fillvalue,1,filldata)))
-		    BAIL(retval);
+	    /* Copy one instance of the fill_value */
+	    if((retval = nc_copy_data(ncid,var->type_info->hdr.id,var->fill_value,1,filldata)))
+	        BAIL(retval);
 	    filldata = (char *)filldata + file_type_size;
 	}
     }
@@ -1888,6 +2084,7 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     /* Convert data type if needed. */
     if (need_to_convert)
     {
+	if(var->quantize_mode < 0) {if((retval = NCZ_ensure_quantizer(ncid,var))) BAIL(retval);}
 	if ((retval = nc4_convert_type(bufr, data, var->type_info->hdr.id, mem_nc_type,
 					   len, &range_error, var->fill_value,
 				           (h5->cmode & NC_CLASSIC_MODEL), var->quantize_mode,
@@ -1917,15 +2114,6 @@ exit:
 #endif
     if (need_to_convert && bufr)
 	free(bufr);
-    if (fillvalue)
-    {
-	if (var->type_info->nc_type_class == NC_VLEN)
-	    nc_free_vlen((nc_vlen_t *)fillvalue);
-	else if (var->type_info->nc_type_class == NC_STRING && *(char **)fillvalue)
-	    free(*(char **)fillvalue);
-	free(fillvalue);
-    }
-
     /* If there was an error return it, otherwise return any potential
        range error value. If none, return NC_NOERR as usual.*/
     if (retval)

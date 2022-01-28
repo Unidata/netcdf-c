@@ -1026,8 +1026,8 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
 				  &var->nsd, NC_INT, 0)))
 	    BAIL(retval);
 
-    if (var->quantize_mode == NC_QUANTIZE_GRANULARBG)
-	if ((retval = nc4_put_att(var->container, var->hdr.id, NC_QUANTIZE_GRANULARBG_ATT_NAME, NC_INT, 1,
+    if (var->quantize_mode == NC_QUANTIZE_GRANULARBR)
+	if ((retval = nc4_put_att(var->container, var->hdr.id, NC_QUANTIZE_GRANULARBR_ATT_NAME, NC_INT, 1,
 				  &var->nsd, NC_INT, 0)))
 	    BAIL(retval);
 
