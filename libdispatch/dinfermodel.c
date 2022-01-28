@@ -32,6 +32,10 @@
 #endif
 #endif
 
+#ifndef nulldup
+ #define nulldup(x) ((x)?strdup(x):(x))
+#endif
+
 #undef DEBUG
 
 /* If Defined, then use only stdio for all magic number io;
@@ -251,7 +255,7 @@ processuri(const char* path, NCURI** urip, NClist* fraglenv)
     if(!found)
 	{stat = NC_EINVAL; goto done;} /* unrecognized URL form */
 
-    /* process the corresponding fragments for that protocol */ 
+    /* process the corresponding fragments for that protocol */
     if(protolist->fragments != NULL) {
 	int i;
 	tmp = nclistnew();
@@ -266,7 +270,7 @@ processuri(const char* path, NCURI** urip, NClist* fraglenv)
 	}
 	nclistfreeall(tmp); tmp = NULL;
     }
-    
+
     /* Substitute the protocol in any case */
     if(protolist->substitute) ncurisetprotocol(uri,protolist->substitute);
 
@@ -461,7 +465,7 @@ processmacros(NClist** fraglenvp)
 
     if(fraglenvp == NULL || nclistlength(*fraglenvp) == 0) goto done;
     fraglenv = *fraglenvp;
-    expanded = nclistnew();    
+    expanded = nclistnew();
     while(nclistlength(fraglenv) > 0) {
 	int found = 0;
 	char* key = NULL;
@@ -606,7 +610,7 @@ mergekey(NClist** valuesp)
 	        if(strcasecmp(candidate,value)==0)
 	            {nullfree(value); value = NULL; break;}
 	     }
-	} 
+	}
 	if(value != NULL) {nclistpush(newvalues,value); value = NULL;}
     }
     /* Make sure to have at least 1 value */
@@ -679,11 +683,11 @@ cleanfragments(NClist** fraglenvp)
     newlist = nclistnew();
     buf = ncbytesnew();
     allkeys = nclistnew();
-    tmp = nclistnew();    
+    tmp = nclistnew();
 
     /* collect all unique keys */
     collectallkeys(fraglenv,allkeys);
-    /* Collect all values for same key across all fragments */ 
+    /* Collect all values for same key across all fragments */
     for(i=0;i<nclistlength(allkeys);i++) {
 	key = nclistget(allkeys,i);
 	collectvaluesbykey(fraglenv,key,tmp);
@@ -710,7 +714,7 @@ done:
 static int
 processfragmentkeys(const char* key, const char* value, NCmodel* model)
 {
-    return NC_NOERR;    
+    return NC_NOERR;
 }
 
 /*
@@ -794,7 +798,7 @@ set_default_mode(int* modep)
     case NC_FORMAT_NETCDF4_CLASSIC: mode |= (NC_NETCDF4|NC_CLASSIC_MODEL); break;
     case NC_FORMAT_CLASSIC: /* fall thru */
     default: break; /* default to classic */
-    }    
+    }
     *modep = mode; /* final result */
 }
 
@@ -858,7 +862,7 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
 #endif
 
         /* Phase 4: Rebuild the url fragment and rebuilt the url */
-        sfrag = envvlist2string(fraglenv,"&");        
+        sfrag = envvlist2string(fraglenv,"&");
         nclistfreeall(fraglenv); fraglenv = NULL;
 #ifdef DEBUG
 	fprintf(stderr,"frag final: %s\n",sfrag);
@@ -889,8 +893,9 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
 	    fprintf(stderr,"newpath=|%s|\n",*newpathp); fflush(stderr);
 #endif    
 	}
+
         /* Phase 5: Process the mode key to see if we can tell the formatx */
-        modeval = ncurifragmentlookup(uri,"mode");        
+        modeval = ncurifragmentlookup(uri,"mode");
         if(modeval != NULL) {
 	    if((stat = parseonchar(modeval,',',modeargs))) goto done;
             for(i=0;i<nclistlength(modeargs);i++) {
@@ -920,7 +925,7 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
 
     } else {/* Not URL */
 	if(*newpathp) *newpathp = NULL;
-    }        
+    }
 
     /* Phase 8: mode inference from mode flags */
     /* The modeargs did not give us a model (probably not a URL).
@@ -1031,7 +1036,7 @@ nc__testurl(const char* path0, char** basenamep)
     NCURI* uri = NULL;
     int ok = 0;
     char* path = NULL;
-    
+
     if(!ncuriparse(path0,&uri)) {
 	char* p;
 	char* q;
@@ -1139,7 +1144,7 @@ check_file_type(const char *path, int omode, int use_parallel,
 	model->format = format;
 	goto done;
     }
-#endif    
+#endif
 
     magicinfo.path = path; /* do not free */
     magicinfo.uri = uri; /* do not free */
