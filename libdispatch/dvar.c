@@ -469,7 +469,7 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
   
    The data are quantized by setting unneeded bits to zeros or ones
    so that they may compress well. BitGroom sets bits alternately to 1/0, 
-   while Granular BitGroom (GBG) sets (more) bits to zeros.
+   while Granular BitRound (GBR) sets (more) bits to zeros.
    Quantization is lossy (data are irretrievably altered), and it 
    improves the compression ratio provided by a subsequent lossless 
    compression filter. Quantization alone will not reduce the data size.
@@ -529,7 +529,7 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
    @param ncid File ID.
    @param varid Variable ID. ::NC_GLOBAL may not be used.
    @param quantize_mode Quantization mode. May be ::NC_NOQUANTIZE or
-   ::NC_QUANTIZE_BITGROOM or ::NC_QUANTIZE_GRANULARBG.
+   ::NC_QUANTIZE_BITGROOM or ::NC_QUANTIZE_GRANULARBR.
    @param nsd Number of significant digits. May be any integer from 1
    to ::NC_QUANTIZE_MAX_FLOAT_NSD (for variables of type ::NC_FLOAT)
    or ::NC_QUANTIZE_MAX_DOUBLE_NSD (for variables of type

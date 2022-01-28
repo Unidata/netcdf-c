@@ -138,7 +138,8 @@ struct Specialtoken specials[] = {
 {"_SuperblockVersion",_SUPERBLOCK,_SUPERBLOCK_FLAG},
 {"_Filter",_FILTER,_FILTER_FLAG},
 {"_Codecs",_CODECS,_CODECS_FLAG},
-{"_QuantizeBitgroomNumberOfSignificantDigits",_QUANTIZE,_QUANTIZE_FLAG},
+{"_QuantizeBitGroomNumberOfSignificantDigits",_QUANTIZEBG,_QUANTIZEBG_FLAG},
+{"_QuantizeBitRoundNumberOfSignificantDigits",_QUANTIZEBR,_QUANTIZEBR_FLAG},
 {NULL,0} /* null terminate */
 };
 
@@ -217,7 +218,7 @@ NUMBER       [+-]?[0-9][0-9]*[Uu]?([BbSs]|[Ll]|[Ll][Ll])?
 DBLNUMBER    [+-]?[0-9]*\.[0-9]*{exp}?[LlDd]?|[+-]?[0-9]*{exp}[LlDd]?
 FLTNUMBER    [+-]?[0-9]*\.[0-9]*{exp}?[Ff]|[+-]?[0-9]*{exp}[Ff]
 
-SPECIAL "_FillValue"|"_Format"|"_Storage"|"_ChunkSizes"|"_Fletcher32"|"_DeflateLevel"|"_Shuffle"|"_Endianness"|"_NoFill"|"_NCProperties"|"_IsNetcdf4"|"_SuperblockVersion"|"_Filter"|"_Codecs"|"_QuantizeBitgroomNumberOfSignificantDIgits"|"_QuantizeGranularBitGroomNumberOfSignificantDigits"
+SPECIAL "_FillValue"|"_Format"|"_Storage"|"_ChunkSizes"|"_Fletcher32"|"_DeflateLevel"|"_Shuffle"|"_Endianness"|"_NoFill"|"_NCProperties"|"_IsNetcdf4"|"_SuperblockVersion"|"_Filter"|"_Codecs"|"_QuantizeBitgroomNumberOfSignificantDIgits"|"_QuantizeGranularBitRoundNumberOfSignificantDigits"
 
 USASCII   [\x01-\x7F]
 
