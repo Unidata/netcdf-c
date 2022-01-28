@@ -30,6 +30,10 @@
 #include "ncbytes.h"
 #include "zincludes.h"
 
+#ifndef nulldup
+ #define nulldup(x) ((x)?strdup(x):(x))
+#endif
+
 static char* progname = NULL;
 
 struct ITOptions {
@@ -120,8 +124,8 @@ void
 processoptions(int argc, char** argv, const char* base_file_name)
 {
     int c;
-    
-    if(argc == 1) test_usage();    
+
+    if(argc == 1) test_usage();
     progname = nulldup(ubasename(argv[0]));
 
     while ((c = getopt(argc, argv, "e:c:F:")) != EOF)

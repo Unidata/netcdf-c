@@ -82,8 +82,8 @@ case "$zext" in
 esac
 }
 
-#testallcases file
-#if test "x$FEATURE_NCZARR_ZIP" = xyes ; then testallcases zip; fi
+testallcases file
+if test "x$FEATURE_NCZARR_ZIP" = xyes ; then testallcases zip; fi
 if test "x$FEATURE_S3TESTS" = xyes ; then testallcases s3; fi
 exit
 # Cleanup

@@ -29,7 +29,9 @@
 #include "ncpathmgr.h"
 
 #define NC_MAX_PATH 4096
-
+#ifndef nulldup
+ #define nulldup(x) ((x)?strdup(x):(x))
+#endif
 /**************************************************/
 /**
  * Provide a hidden interface to allow utilities
@@ -281,7 +283,7 @@ NC_getmodelist(const char* modestr, NClist** modelistp)
     int stat=NC_NOERR;
     NClist* modelist = NULL;
 
-    modelist = nclistnew();    
+    modelist = nclistnew();
     if(modestr == NULL || strlen(modestr) == 0) goto done;
 
     /* Parse the mode string at the commas or EOL */
@@ -323,7 +325,7 @@ NC_testmode(NCURI* uri, const char* tag)
     const char* modestr = NULL;
     NClist* modelist = NULL;
 
-    modestr = ncurifragmentlookup(uri,"mode");    
+    modestr = ncurifragmentlookup(uri,"mode");
     if(modestr == NULL) goto done;
     /* Parse mode str */
     if((stat = NC_getmodelist(modestr,&modelist))) goto done;
@@ -331,14 +333,14 @@ NC_testmode(NCURI* uri, const char* tag)
     for(i=0;i<nclistlength(modelist);i++) {
         const char* mode = (const char*)nclistget(modelist,i);
 	if(strcasecmp(mode,tag)==0) {found = 1; break;}
-    }    
+    }
 done:
     nclistfreeall(modelist);
     return found;
 }
 
-#if ! defined __INTEL_COMPILER 
-#if defined __APPLE__ 
+#if ! defined __INTEL_COMPILER
+#if defined __APPLE__
 int isinf(double x)
 {
     union { unsigned long long u; double f; } ieee754;
@@ -411,7 +413,7 @@ NC_join(NClist* segments, char** pathp)
 	const char* seg = nclistget(segments,i);
 	if(seg[0] != '/')
 	    ncbytescat(buf,"/");
-	ncbytescat(buf,seg);		
+	ncbytescat(buf,seg);
     }
 
 done:
@@ -421,4 +423,3 @@ done:
     ncbytesfree(buf);
     return stat;
 }
-
