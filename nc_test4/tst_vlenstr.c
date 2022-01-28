@@ -3,7 +3,7 @@
 #include <string.h>
 #include "netcdf.h"
 
-#define DEBUG
+#undef DEBUG
 
 #ifdef DEBUG
 static char* buf = NULL;
@@ -123,7 +123,7 @@ writeAttribute(int len, int ncid, nc_type vlen_typeID)
     stringIndex += sixth_size;
         
 #ifdef DEBUG
-    if(buf) free(buf); buf = NULL;
+    if(buf) {free(buf); buf = NULL;}
     nc_dump_data(ncid,vlen_typeID,data,len,&buf);
     fprintf(stderr,">>> attribute = %s\n",buf);
 #endif

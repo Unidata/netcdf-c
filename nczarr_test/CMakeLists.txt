@@ -9,6 +9,10 @@ SET(abs_top_srcdir ${CMAKE_CURRENT_SOURCE_DIR})
 
 remove_definitions(-DDLL_EXPORT)
 
+FILE(READ ${CMAKE_CURRENT_SOURCE_DIR}/../nc_test4/tst_quantize.c QSOURCE)
+FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/test_quantize.c "#define TESTNCZARR\n")
+FILE(APPEND ${CMAKE_CURRENT_BINARY_DIR}/test_quantize.c "${QSOURCE}")
+
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.sh
 ${CMAKE_CURRENT_SOURCE_DIR}/ref*.cdl
 ${CMAKE_CURRENT_SOURCE_DIR}/ref*.txt)
@@ -91,6 +95,9 @@ IF(ENABLE_TESTS)
     add_sh_test(nczarr_test run_interop)
     add_sh_test(nczarr_test run_misc)
     add_sh_test(nczarr_test run_nczarr_fill)
+
+    BUILD_BIN_TEST(test_quantize ${TSTCOMMONSRC})
+    add_sh_test(nczarr_test run_quantize)
 
     if(ENABLE_NCZARR_S3)
 	add_sh_test(nczarr_test run_s3_cleanup)

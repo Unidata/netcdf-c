@@ -635,22 +635,25 @@ ncz_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
 }
 
 /**
- * @internal What fill value should be used for a variable?
+ * @internal Ensure that either var->no_fill || var->fill_value != NULL.
  * Side effects: set as default if necessary and build _FillValue attribute.
  *
  * @param h5 Pointer to file info struct.
  * @param var Pointer to variable info struct.
- * @param fillp Pointer that gets pointer to fill value.
  *
  * @returns NC_NOERR No error.
  * @returns NC_ENOMEM Out of memory.
  * @author Ed Hartnett, Dennis Heimbigner
  */
 int
-ncz_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
+NCZ_ensure_fill_value(NC_VAR_INFO_T *var)
 {
     size_t size;
     int retval = NC_NOERR;
+    NC_FILE_INFO_T *h5 = var->container->nc4_info;
+
+    if(var->no_fill)
+        return NC_NOERR;
 
 #if 0 /*LOOK*/
     /* Find out how much space we need for this type's fill value. */
@@ -660,9 +663,8 @@ ncz_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
         size = sizeof(char *);
     else
 #endif
-    {
-        if ((retval = nc4_get_typelen_mem(h5, var->type_info->hdr.id, &size))) goto done;
-    }
+
+    if ((retval = nc4_get_typelen_mem(h5, var->type_info->hdr.id, &size))) goto done;
     assert(size);
 
     /* If the user has set a fill_value for this var, use, otherwise find the default fill value. */
@@ -674,8 +676,7 @@ ncz_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
 	    {retval = NC_ENOMEM; goto done;}
         if((retval = nc4_get_default_fill_value(var->type_info, var->fill_value))) {
             /* Note: release memory, but don't return error on failure */
-            free(var->fill_value);
-            var->fill_value = NULL;
+	    (void)NCZ_reclaim_fill_value(var);
 	    retval = NC_NOERR;
 	    goto done;
         }
@@ -714,18 +715,6 @@ ncz_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
                 }
         }
 #endif /*0*/
-    /* Create _FillValue Attribute */
-    if((retval = ncz_create_fillvalue(var))) goto done;
-    if(fillp) {
-        void* fill = NULL;
-        /* Allocate the return space. */
-        if((fill = calloc(1, size))==NULL)
-       	    {retval = NC_ENOMEM; goto done;}
-        memcpy(fill, var->fill_value, size);
-	*fillp = fill;
-	fill = NULL;
-    }
-
 done:
     return retval;
 }
@@ -768,6 +757,27 @@ NCZ_set_log_level()
     return NC_NOERR;
 }
 #endif /* LOGGING */
+
+/**
+ * @internal Get the format (i.e. NC_FORMAT_NETCDF4 pr
+ * NC_FORMAT_NETCDF4_CLASSIC) of an open netCDF-4 file.
+ *
+ * @param ncid File ID (ignored).
+ * @param formatp Pointer that gets the constant indicating format.
+
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @author Ed Hartnett
+ */
+int
+NCZ_inq_format(int ncid, int *formatp)
+{
+    int stat = NC_NOERR;
+
+    ZTRACE(0,"ncid=%d formatp=%p",ncid,formatp);
+    stat = NC4_inq_format(ncid,formatp);
+    return ZUNTRACEX(stat,"formatp=%d",(formatp?-1:*formatp));
+}
 
 /**
  * @internal Return the extended format (i.e. the dispatch model),

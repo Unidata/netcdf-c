@@ -133,8 +133,9 @@ NCZ_inq_typeid(int ncid, const char *name, nc_type *typeidp)
 int
 NCZ_inq_typeids(int ncid, int *ntypes, int *typeids)
 {
+    ZTRACE(0,"ncid=%d",ncid);
     if(ntypes) *ntypes = 0;
-    return NC_NOERR;
+    return ZUNTRACEX(NC_NOERR,"ntypes=%d typeids=%p",(ntypes?-1:*ntypes),typeids);
 }
 
 #ifdef LOOK

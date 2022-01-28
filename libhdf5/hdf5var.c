@@ -722,10 +722,10 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	/* Only two valid mode settings. */
 	if (*quantize_mode != NC_NOQUANTIZE &&
 	    *quantize_mode != NC_QUANTIZE_BITGROOM &&
-	    *quantize_mode != NC_QUANTIZE_GRANULARBG)
+	    *quantize_mode != NC_QUANTIZE_GRANULARBR)
 	    return NC_EINVAL;
 
-	if (*quantize_mode == NC_QUANTIZE_BITGROOM || *quantize_mode == NC_QUANTIZE_GRANULARBG)
+	if (*quantize_mode == NC_QUANTIZE_BITGROOM || *quantize_mode == NC_QUANTIZE_GRANULARBR)
 	{
 	    /* Only float and double types can have quantization. */
 	    if (var->type_info->hdr.id != NC_FLOAT &&
@@ -816,7 +816,7 @@ NC4_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
  * has been specified, then the netCDF library will quantize according
  * to the selected algorithm. BitGroom will apply all zeros or
  * all ones (alternating) to bits which are not needed to specify the
- * value to the number of significant digits. GranularBG will zero
+ * value to the number of significant digits. GranularBR will zero
  * more bits than BG, and thus be more compressible and less accurate.
  * Both will change the value of the data, and will make it more compressible.
  *
@@ -848,7 +848,7 @@ NC4_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
  * @param ncid File ID.
  * @param varid Variable ID. NC_GLOBAL may not be used.
  * @param quantize_mode Quantization mode. May be ::NC_NOQUANTIZE or
- * ::NC_QUANTIZE_BITGROOM or ::NC_QUANTIZE_GRANULARBG.
+ * ::NC_QUANTIZE_BITGROOM or ::NC_QUANTIZE_GRANULARBR.
  * @param nsd Number of significant digits. May be any integer from 1
  * to ::NC_QUANTIZE_MAX_FLOAT_NSD (for variables of type ::NC_FLOAT) or
  * ::NC_QUANTIZE_MAX_DOUBLE_NSD (for variables of type ::NC_DOUBLE).

@@ -68,10 +68,11 @@ EXTERNL int NCZ_comma_parse(const char* s, NClist* list);
 EXTERNL int NCZ_swapatomicdata(size_t datalen, void* data, int typesize);
 EXTERNL char** NCZ_clonestringvec(size_t len, const char** vec);
 EXTERNL void NCZ_freestringvec(size_t len, char** vec);
-EXTERNL int NCZ_create_fill_chunk(size64_t chunksize, size_t typesize, const void* fill, void** fillchunkp);
 EXTERNL int NCZ_s3clear(NCS3INFO* s3map);
 EXTERNL int NCZ_ischunkname(const char* name,char dimsep);
 EXTERNL char* NCZ_chunkpath(struct ChunkKey key);
+EXTERNL int NCZ_reclaim_fill_value(NC_VAR_INFO_T* var);
+EXTERNL int NCZ_copy_fill_value(NC_VAR_INFO_T* var, void** dstp);
 
 /* zwalk.c */
 EXTERNL int NCZ_read_chunk(int ncid, int varid, size64_t* zindices, void* chunkdata);
