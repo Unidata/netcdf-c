@@ -31,7 +31,7 @@
 #ifdef __hpux
 #include <locale.h>
 #endif
-    
+
 #include "netcdf.h"
 #include "ncpathmgr.h"
 #include "nclog.h"
@@ -51,7 +51,7 @@ static int pathdebug = -1;
 #endif
 
 #ifdef _WIN32
-#define access _access 
+#define access _access
 #define mkdir _mkdir
 #define rmdir _rmdir
 #define getcwd _getcwd
@@ -73,7 +73,7 @@ static const size_t cdlen = 10; /* strlen("/cygdrive/") */
 
 static int pathinitialized = 0;
 
-static const char* cygwinspecial[] = 
+static const char* cygwinspecial[] =
     {"/bin/","/dev/","/etc/","/home/",
      "/lib/","/proc/","/sbin/","/tmp/",
      "/usr/","/var/",NULL};
@@ -166,7 +166,7 @@ NCpathcanonical(const char* srcpath, char** canonp)
     int stat = NC_NOERR;
     char* canon = NULL;
     struct Path path = empty;
-    
+
     if(srcpath == NULL) goto done;
 
     if(!pathinitialized) pathinit();
@@ -203,7 +203,7 @@ NCpathabsolute(const char* relpath)
     /* Decompose path */
     if((stat = parsepath(relpath,&canon)))
 	{REPORT(stat,"pathabs: parsepath"); goto done;}
-    
+
     /* See if relative */
     if(canon.kind == NCPD_REL) {
 	/* prepend the wd path to the inpath, including drive letter, if any */
@@ -297,7 +297,7 @@ next:
     }
     if(mountpoint.defined) {
 	char* p;
-	size_t size = strlen(mountpoint.prefix);	
+	size_t size = strlen(mountpoint.prefix);
         for(p=mountpoint.prefix;*p;p++) {if(*p == '\\') *p = '/';} /* forward slash*/
 	if(mountpoint.prefix[size-1] == '/') {
 	    size--;
@@ -322,7 +322,7 @@ static void
 clearPath(struct Path* path)
 {
     nullfree(path->path);
-    path->path = NULL;    
+    path->path = NULL;
 }
 
 /* Unfortunately, not all cygwin paths start with /cygdrive.
@@ -377,7 +377,7 @@ NCfopen(const char* path, const char* flags)
     bflags[0] = '\0';
     strlcat(bflags,flags,flaglen);
 #ifdef _WIN32
-    strlcat(bflags,"b",flaglen);    
+    strlcat(bflags,"b",flaglen);
 #endif
     cvtpath = NCpathcvt(path);
     if(cvtpath == NULL) return NULL;
@@ -388,9 +388,9 @@ NCfopen(const char* path, const char* flags)
 	{REPORT(stat,"ansi2wide"); goto done;}
     f = _wfopen(wpath,wflags);
 done:
-    nullfree(cvtpath);    
-    nullfree(wpath);    
-    nullfree(wflags);    
+    nullfree(cvtpath);
+    nullfree(wpath);
+    nullfree(wflags);
     nullfree(bflags);
     return f;
 }
@@ -406,14 +406,14 @@ NCopen3(const char* path, int flags, int mode)
     cvtpath = NCpathcvt(path);
     if(cvtpath == NULL) goto done;
     /* Convert from utf8 to wide */
-    if((stat = utf82wide(cvtpath,&wpath))) goto done;    
+    if((stat = utf82wide(cvtpath,&wpath))) goto done;
 #ifdef _WIN32
     flags |= O_BINARY;
 #endif
     fd = _wopen(wpath,flags,mode);
 done:
-    nullfree(cvtpath);    
-    nullfree(wpath);    
+    nullfree(cvtpath);
+    nullfree(wpath);
     return fd;
 }
 
@@ -433,7 +433,7 @@ NCopendir(const char* path)
     char* cvtname = NCpathcvt(path);
     if(cvtname == NULL) return NULL;
     ent = opendir(cvtname);
-    free(cvtname);    
+    free(cvtname);
     return ent;
 }
 
@@ -459,13 +459,13 @@ NCaccess(const char* path, int mode)
     int status = 0;
     char* cvtpath = NULL;
     wchar_t* wpath = NULL;
-    if((cvtpath = NCpathcvt(path)) == NULL) 
+    if((cvtpath = NCpathcvt(path)) == NULL)
         {status = EINVAL; goto done;}
     if((status = utf82wide(cvtpath,&wpath))) {status = ENOENT; goto done;}
     if(_waccess(wpath,mode) < 0) {status = errno; goto done;}
 done:
-    free(cvtpath);    
-    free(wpath);    
+    free(cvtpath);
+    free(wpath);
     errno = status;
     return (errno?-1:0);
 }
@@ -481,8 +481,8 @@ NCremove(const char* path)
     if((status = utf82wide(cvtpath,&wpath))) {status = ENOENT; goto done;}
     if(_wremove(wpath) < 0) {status = errno; goto done;}
 done:
-    free(cvtpath);    
-    free(wpath);    
+    free(cvtpath);
+    free(wpath);
     errno = status;
     return (errno?-1:0);
 }
@@ -498,8 +498,8 @@ NCmkdir(const char* path, int mode)
     if((status = utf82wide(cvtpath,&wpath))) {status = ENOENT; goto done;}
     if(_wmkdir(wpath) < 0) {status = errno; goto done;}
 done:
-    free(cvtpath);    
-    free(wpath);    
+    free(cvtpath);
+    free(wpath);
     errno = status;
     return (errno?-1:0);
 }
@@ -512,7 +512,7 @@ NCrmdir(const char* path)
     char* cvtname = NCpathcvt(path);
     if(cvtname == NULL) {errno = ENOENT; return -1;}
     status = rmdir(cvtname);
-    free(cvtname);    
+    free(cvtname);
     return status;
 }
 
@@ -560,7 +560,7 @@ NCmkstemp(char* base)
     cvtpath = NCpathcvt(base);
     len = strlen(cvtpath);
     xp = cvtpath+(len-6);
-    assert(memcmp(xp,"XXXXXX",6)==0);    
+    assert(memcmp(xp,"XXXXXX",6)==0);
     for(attempts=10;attempts>0;attempts--) {
         /* The Windows version of mkstemp does not work right;
            it only allows for 26 possible XXXXXX values */
@@ -578,7 +578,7 @@ NCmkstemp(char* base)
     }
 done:
     nullfree(cvtpath);
-    if(stat && fd >= 0) {close(fd);}    
+    if(stat && fd >= 0) {close(fd);}
     return (stat?-1:fd);
 }
 
@@ -594,8 +594,8 @@ NCstat(const char* path, struct stat* buf)
     if((status = utf82wide(cvtpath,&wpath))) {status = ENOENT; goto done;}
     if(_wstat64(wpath,buf) < 0) {status = errno; goto done;}
 done:
-    free(cvtpath);    
-    free(wpath);    
+    free(cvtpath);
+    free(wpath);
     errno = status;
     return (errno?-1:0);
 }
@@ -628,10 +628,10 @@ EXTERNL int
 NChasdriveletter(const char* path)
 {
     int stat = NC_NOERR;
-    int hasdl = 0;    
+    int hasdl = 0;
     struct Path canon = empty;
 
-    if(!pathinitialized) pathinit();     
+    if(!pathinitialized) pathinit();
 
     if((stat = parsepath(path,&canon))) goto done;
     hasdl = (canon.drive != 0);
@@ -644,10 +644,10 @@ EXTERNL int
 NCisnetworkpath(const char* path)
 {
     int stat = NC_NOERR;
-    int isnp = 0;    
+    int isnp = 0;
     struct Path canon = empty;
 
-    if(!pathinitialized) pathinit();     
+    if(!pathinitialized) pathinit();
 
     if((stat = parsepath(path,&canon))) goto done;
     isnp = (canon.drive == netdrive);
@@ -667,7 +667,7 @@ parsepath(const char* inpath, struct Path* path)
     char* tmp1 = NULL;
     size_t len;
     char* p;
-    
+
     assert(path);
     memset(path,0,sizeof(struct Path));
 
@@ -760,7 +760,7 @@ parsepath(const char* inpath, struct Path* path)
 	path->drive = 0; /* no drive letter */
  	/* Remainder */
 	path->path = tmp1; tmp1 = NULL;
-	path->kind = NCPD_NIX;	
+	path->kind = NCPD_NIX;
     } else {/* 6. Relative path of unknown type */
 	path->kind = NCPD_REL;
 	path->path = tmp1; tmp1 = NULL;
@@ -782,7 +782,7 @@ unparsepath(struct Path* xp, char** pathp, int target)
     char* p = NULL;
     int cygspecial = 0;
     int drive = 0;
-    
+
     /* Short circuit a relative path */
     if(xp->kind == NCPD_REL) {
 	/* Pass thru relative paths, but with proper slashes */
@@ -856,7 +856,7 @@ unparsepath(struct Path* xp, char** pathp, int target)
 	break;
 
     CASE(NCPD_CYGWIN,NCPD_NIX):
-        len = nulllen(xp->path); 
+        len = nulllen(xp->path);
         if(xp->drive != 0)
 	    len += (cdlen + 2); /* /cygdrive/D */
 	len++;
@@ -870,7 +870,7 @@ unparsepath(struct Path* xp, char** pathp, int target)
 	}
   	if(xp->path)
 	    strlcat(path,xp->path,len);
-	break;	
+	break;
 
     CASE(NCPD_CYGWIN,NCPD_WIN):
     CASE(NCPD_CYGWIN,NCPD_MSYS):
@@ -894,7 +894,7 @@ unparsepath(struct Path* xp, char** pathp, int target)
 	if(xp->path != NULL)
             strlcat(path,xp->path,len);
         for(p=path;*p;p++) {if(*p == '/') *p = '\\';} /* restore back slash */
-	break;	
+	break;
 
     CASE(NCPD_CYGWIN,NCPD_CYGWIN):
 	len = nulllen(xp->path)+1;
@@ -920,7 +920,7 @@ unparsepath(struct Path* xp, char** pathp, int target)
 	if(xp->drive == 0 && !mountpoint.defined)
 	    {stat = NC_EINVAL; goto done;} /* drive required */
         len = nulllen(xp->path) + 1 + sizeof(sdrive);
-	if(xp->drive == 0) 
+	if(xp->drive == 0)
 	    len += strlen(mountpoint.prefix);
 	len++;
 	if((path = (char*)malloc(len))==NULL)
@@ -937,7 +937,7 @@ unparsepath(struct Path* xp, char** pathp, int target)
 	if(xp->path != NULL)
             strlcat(path,xp->path,len);
         for(p=path;*p;p++) {if(*p == '/') *p = '\\';} /* restore back slash */
-	break;	
+	break;
 
     CASE(NCPD_WIN,NCPD_NIX):
     CASE(NCPD_MSYS,NCPD_NIX):
@@ -954,7 +954,7 @@ unparsepath(struct Path* xp, char** pathp, int target)
             strlcat(path,sdrive,len);
 	}
 	if(xp->path != NULL) strlcat(path,xp->path,len);
-	break;	
+	break;
 
     CASE(NCPD_MSYS,NCPD_CYGWIN):
     CASE(NCPD_WIN,NCPD_CYGWIN):
@@ -969,7 +969,7 @@ unparsepath(struct Path* xp, char** pathp, int target)
 	strlcat(path,"/cygdrive/",len);
         strlcat(path,sdrive,len);
 	if(xp->path != NULL) strlcat(path,xp->path,len);
-	break;	
+	break;
 
     default: stat = NC_EINTERNAL; goto done;
     }
@@ -1001,7 +1001,7 @@ getwdpath(void)
         stat = wide2utf8(wpath, &path);
         free(wcwd);
         if (stat) return stat;
-	strlcat(wdprefix,path,sizeof(wdprefix));	
+	strlcat(wdprefix,path,sizeof(wdprefix));
     }
 #else
     {
@@ -1075,7 +1075,7 @@ NCgetkindname(int kind)
  * @return NC_NOERR return converted filename
  * @return NC_EINVAL if conversion fails
  * @return NC_ENOMEM if no memory available
- * 
+ *
  */
 static int
 ansi2utf8(const char* local, char** u8p)
@@ -1105,6 +1105,7 @@ ansi2utf8(const char* local, char** u8p)
     if(u8p) {*u8p = u8; u8 = NULL;}
 done:
     nullfree(u8);
+    nullfree(u16);
     return stat;
 }
 
@@ -1212,9 +1213,9 @@ printutf8hex(const char* s, char* sx)
 {
     const char* p;
     char* q;
-    for(q=sx,p=s;*p;p++) {    
+    for(q=sx,p=s;*p;p++) {
 	unsigned int c = (unsigned char)*p;
-	if(c >= ' ' && c <= 127)	
+	if(c >= ' ' && c <= 127)
 	    *q++ = (char)c;
 	else {
 	    *q++ = '\\';
