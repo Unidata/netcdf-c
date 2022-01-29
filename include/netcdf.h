@@ -560,6 +560,14 @@ nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_numbe
 EXTERNL int
 nc_inq_user_format(int mode_flag, NC_Dispatch **dispatch_table, char *magic_number);
 
+/* Set the global alignment property */
+EXTERNL int
+nc_set_alignment(int threshold, int alignment);
+
+/* Get the global alignment property */
+EXTERNL int
+nc_get_alignment(int* thresholdp, int* alignmentp);
+
 EXTERNL int
 nc__create(const char *path, int cmode, size_t initialsz,
          size_t *chunksizehintp, int *ncidp);

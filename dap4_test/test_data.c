@@ -12,7 +12,7 @@ Test the netcdf-4 data building process.
 #include <stdio.h>
 #include "netcdf.h"
 
-#define DEBUG
+#undef DEBUG
 
 static void
 fail(int code)

@@ -42,7 +42,7 @@
 
 #undef DEBUGPATH
 static int pathdebug = -1;
-#define DEBUG
+#undef DEBUG
 
 #ifdef DEBUG
 #define REPORT(e,msg) report((e),(msg),__LINE__)

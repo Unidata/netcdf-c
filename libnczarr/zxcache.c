@@ -77,9 +77,9 @@ NCZ_set_var_chunk_cache(int ncid, int varid, size_t cachesize, size_t nelems, fl
     assert(zvar != NULL && zvar->cache != NULL);
 
     /* Set the values. */
-    var->chunk_cache_size = cachesize;
-    var->chunk_cache_nelems = nelems;
-    var->chunk_cache_preemption = preemption;
+    var->chunkcache.size = cachesize;
+    var->chunkcache.nelems = nelems;
+    var->chunkcache.preemption = preemption;
 
     /* Fix up cache */
     if((retval = NCZ_adjust_var_cache(var))) goto done;
@@ -120,8 +120,8 @@ fprintf(stderr,"xxx: adjusting cache for: %s\n",var->hdr.name);
     /* Reclaim any existing fill_chunk */
     if((stat = NCZ_reclaim_fill_chunk(zcache))) goto done;
     /* Reset the parameters */
-    zvar->cache->maxsize = var->chunk_cache_size;
-    zvar->cache->maxentries = var->chunk_cache_nelems;
+    zvar->cache->maxsize = var->chunkcache.size;
+    zvar->cache->maxentries = var->chunkcache.nelems;
 #ifdef DEBUG
     fprintf(stderr,"%s.cache.adjust: size=%ld nelems=%ld\n",
         var->hdr.name,(unsigned long)zvar->cache->maxsize,(unsigned long)zvar->cache->maxentries);

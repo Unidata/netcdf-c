@@ -15,7 +15,7 @@ Test the handling of aws profiles and regions.
 #include "ncrc.h"
 #include "ncpathmgr.h"
 
-#define DEBUG
+#undef DEBUG
 
 typedef struct ProfileTest {
     const char* profile;

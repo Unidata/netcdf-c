@@ -27,7 +27,7 @@
 
 #undef NODELETE
 
-#define DEBUG
+#undef DEBUG
 
 #define DATANAME "data"
 
