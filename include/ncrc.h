@@ -33,39 +33,25 @@ typedef struct NCRCentry {
         char* value;
 } NCRCentry;
 
-/* collect all the relevant info around the rc file */
-typedef struct NCRCinfo {
-	int ignore; /* if 1, then do not use any rc file */
-	int loaded; /* 1 => already loaded */
-        NClist* entries; /* the rc file entry store fields*/
-        char* rcfile; /* specified rcfile; overrides anything else */
-        char* rchome; /* Overrides $HOME when looking for .rc files */
-} NCRCinfo;
-
-/* Collect global state info in one place */
-typedef struct NCRCglobalstate {
-    int initialized;
-    char* tempdir; /* track a usable temp dir */
-    char* home; /* track $HOME */
-    char* cwd; /* track getcwd */
-    NCRCinfo rcinfo; /* Currently only one rc file per session */
-    struct GlobalZarr { /* Zarr specific parameters */
-	char dimension_separator;
-    } zarr;
-    struct S3credentials {
-	NClist* profiles; /* NClist<struct AWSprofile*> */
-    } s3creds;
-} NCRCglobalstate;
+struct AWSentry {
+    char* key;
+    char* value;
+};
 
 struct AWSprofile {
     char* name;
     NClist* entries; /* NClist<struct AWSentry*> */
 };
 
-struct AWSentry {
-    char* key;
-    char* value;
-};
+/* collect all the relevant info around the rc file and AWS */
+typedef struct NCRCinfo {
+	int ignore; /* if 1, then do not use any rc file */
+	int loaded; /* 1 => already loaded */
+        NClist* entries; /* the rc file entry store fields*/
+        char* rcfile; /* specified rcfile; overrides anything else */
+        char* rchome; /* Overrides $HOME when looking for .rc files */
+	NClist* s3profiles; /* NClist<struct AWSprofile*> */
+} NCRCinfo;
 
 typedef struct NCS3INFO {
     char* host; /* non-null if other*/
@@ -80,9 +66,7 @@ extern "C" {
 #endif
 
 /* From drc.c */
-EXTERNL int ncrc_createglobalstate(void);
 EXTERNL void ncrc_initialize(void);
-EXTERNL void ncrc_freeglobalstate(void);
 EXTERNL int NC_rcfile_insert(const char* key, const char* value, const char* hostport, const char* path);
 EXTERNL char* NC_rclookup(const char* key, const char* hostport, const char* path);
 EXTERNL char* NC_rclookupx(NCURI* uri, const char* key);
@@ -94,7 +78,6 @@ EXTERNL size_t NC_rcfile_length(NCRCinfo*);
 EXTERNL NCRCentry* NC_rcfile_ith(NCRCinfo*,size_t);
 
 /* For internal use */
-EXTERNL NCRCglobalstate* ncrc_getglobalstate(void);
 EXTERNL void NC_rcclear(NCRCinfo* info);
 EXTERNL void NC_rcclear(NCRCinfo* info);
 

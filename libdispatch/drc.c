@@ -22,6 +22,7 @@ See COPYRIGHT for license information.
 #include "nclog.h"
 #include "ncauth.h"
 #include "ncpathmgr.h"
+#include "nc4internal.h"
 
 #ifndef nulldup
  #define nulldup(x) ((x)?strdup(x):(x))
@@ -54,11 +55,10 @@ static int rccompile(const char* path);
 static struct NCRCentry* rclocate(const char* key, const char* hostport, const char* path);
 static int rcsearch(const char* prefix, const char* rcname, char** pathp);
 static void rcfreeentries(NClist* rc);
-static void clearS3credentials(struct S3credentials* creds);
 #ifdef DRCDEBUG
 static void storedump(char* msg, NClist* entrys);
 #endif
-static int aws_load_credentials(NCRCglobalstate*);
+static int aws_load_credentials(NCglobalstate*);
 static void freeprofile(struct AWSprofile* profile);
 static void freeprofilelist(NClist* profiles);
 
@@ -71,27 +71,7 @@ static const char* awsconfigfiles[] = {".aws/credentials",".aws/config",NULL};
 /**************************************************/
 /* External Entry Points */
 
-static NCRCglobalstate* ncrc_globalstate = NULL;
-
 static int NCRCinitialized = 0;
-
-int
-ncrc_createglobalstate(void)
-{
-    int stat = NC_NOERR;
-    const char* tmp = NULL;
-
-    if(ncrc_globalstate == NULL) {
-        ncrc_globalstate = calloc(1,sizeof(NCRCglobalstate));
-    }
-    /* Get environment variables */
-    if(getenv(NCRCENVIGNORE) != NULL)
-        ncrc_globalstate->rcinfo.ignore = 1;
-    tmp = getenv(NCRCENVRC);
-    if(tmp != NULL && strlen(tmp) > 0)
-        ncrc_globalstate->rcinfo.rcfile = strdup(tmp);
-    return stat;
-}
 
 /*
 Initialize defaults and load:
@@ -111,6 +91,7 @@ void
 ncrc_initialize(void)
 {
     int stat = NC_NOERR;
+    NCglobalstate* ncg = NULL;
 
     if(NCRCinitialized) return;
     NCRCinitialized = 1; /* prevent recursion */
@@ -121,7 +102,8 @@ ncrc_initialize(void)
         nclog(NCLOGWARN,".rc loading failed");
     }
     /* Load .aws/config */
-    if((stat = aws_load_credentials(ncrc_globalstate))) {
+    ncg = NC_getglobalstate();
+    if((stat = aws_load_credentials(ncg))) {
         nclog(NCLOGWARN,"AWS config file not loaded");
     }
 #endif
@@ -131,35 +113,13 @@ static void
 ncrc_setrchome(void)
 {
     const char* tmp = NULL;
-    if(ncrc_globalstate->rcinfo.rchome) return;
-    assert(ncrc_globalstate && ncrc_globalstate->home);
+    NCglobalstate* ncg = NC_getglobalstate();
+    assert(ncg && ncg->home);
+    if(ncg->rcinfo->rchome) return;
     tmp = getenv(NCRCENVHOME);
     if(tmp == NULL || strlen(tmp) == 0)
-	tmp = ncrc_globalstate->home;
-    ncrc_globalstate->rcinfo.rchome = strdup(tmp);
-}
-
-/* Get global state */
-NCRCglobalstate*
-ncrc_getglobalstate(void)
-{
-    if(ncrc_globalstate == NULL)
-        ncrc_createglobalstate();
-    return ncrc_globalstate;
-}
-
-void
-ncrc_freeglobalstate(void)
-{
-    if(ncrc_globalstate != NULL) {
-        nullfree(ncrc_globalstate->tempdir);
-        nullfree(ncrc_globalstate->home);
-        nullfree(ncrc_globalstate->cwd);
-        NC_rcclear(&ncrc_globalstate->rcinfo);
-	clearS3credentials(&ncrc_globalstate->s3creds);
-	free(ncrc_globalstate);
-	ncrc_globalstate = NULL;
-    }
+	tmp = ncg->home;
+    ncg->rcinfo->rchome = strdup(tmp);
 }
 
 void
@@ -169,9 +129,10 @@ NC_rcclear(NCRCinfo* info)
     nullfree(info->rcfile);
     nullfree(info->rchome);
     rcfreeentries(info->entries);
+    freeprofilelist(info->s3profiles);
 }
 
-void
+static void
 rcfreeentries(NClist* rc)
 {
     int i;
@@ -191,18 +152,17 @@ NC_rcload(void)
 {
     int i,ret = NC_NOERR;
     char* path = NULL;
-    NCRCglobalstate* globalstate = NULL;
+    NCglobalstate* globalstate = NULL;
     NClist* rcfileorder = nclistnew();
 
     if(!NCRCinitialized) ncrc_initialize();
-    globalstate = ncrc_getglobalstate();
+    globalstate = NC_getglobalstate();
 
-
-    if(globalstate->rcinfo.ignore) {
+    if(globalstate->rcinfo->ignore) {
         nclog(NCLOGDBG,".rc file loading suppressed");
 	goto done;
     }
-    if(globalstate->rcinfo.loaded) goto done;
+    if(globalstate->rcinfo->loaded) goto done;
 
     /* locate the configuration files in order of use:
        1. Specified by NCRCENV_RC environment variable.
@@ -215,8 +175,8 @@ NC_rcload(void)
 	  6. $CWD/.docsrc
 	  Entry in later files override any of the earlier files
     */
-    if(globalstate->rcinfo.rcfile != NULL) { /* always use this */
-	nclistpush(rcfileorder,strdup(globalstate->rcinfo.rcfile));
+    if(globalstate->rcinfo->rcfile != NULL) { /* always use this */
+	nclistpush(rcfileorder,strdup(globalstate->rcinfo->rcfile));
     } else {
 	const char** rcname;
 	const char* dirnames[3];
@@ -225,8 +185,7 @@ NC_rcload(void)
 
 	/* Make sure rcinfo.rchome is defined */
 	ncrc_setrchome();
-
-	dirnames[0] = globalstate->rcinfo.rchome;
+	dirnames[0] = globalstate->rcinfo->rchome;
 	dirnames[1] = globalstate->cwd;
 	dirnames[2] = NULL;
 
@@ -249,7 +208,7 @@ NC_rcload(void)
     }
 
 done:
-    globalstate->rcinfo.loaded = 1; /* even if not exists */
+    globalstate->rcinfo->loaded = 1; /* even if not exists */
     nclistfreeall(rcfileorder);
     return (ret);
 }
@@ -301,7 +260,7 @@ NC_set_rcfile(const char* rcfile)
 {
     int stat = NC_NOERR;
     FILE* f = NULL;
-    NCRCglobalstate* globalstate = ncrc_getglobalstate();
+    NCglobalstate* globalstate = NC_getglobalstate();
 
     if(rcfile != NULL && strlen(rcfile) == 0)
 	rcfile = NULL;
@@ -311,8 +270,8 @@ NC_set_rcfile(const char* rcfile)
         goto done;
     }
     fclose(f);
-    nullfree(globalstate->rcinfo.rcfile);
-    globalstate->rcinfo.rcfile = strdup(rcfile);
+    nullfree(globalstate->rcinfo->rcfile);
+    globalstate->rcinfo->rcfile = strdup(rcfile);
     /* Clear globalstate->rcinfo */
     NC_rcclear(&globalstate->rcinfo);
     /* (re) load the rcfile and esp the entriestore*/
@@ -414,7 +373,7 @@ rccompile(const char* path)
     NCbytes* tmp = ncbytesnew();
     NCURI* uri = NULL;
     char* nextline = NULL;
-    NCRCglobalstate* globalstate = ncrc_getglobalstate();
+    NCglobalstate* globalstate = NC_getglobalstate();
     char* bucket = NULL;
 
     if((ret=NC_readfile(path,tmp))) {
@@ -424,10 +383,10 @@ rccompile(const char* path)
     contents = ncbytesextract(tmp);
     if(contents == NULL) contents = strdup("");
     /* Either reuse or create new  */
-    rc = globalstate->rcinfo.entries;
+    rc = globalstate->rcinfo->entries;
     if(rc == NULL) {
         rc = nclistnew();
-        globalstate->rcinfo.entries = rc;
+        globalstate->rcinfo->entries = rc;
     }
     nextline = contents;
     for(;;) {
@@ -529,11 +488,11 @@ static struct NCRCentry*
 rclocate(const char* key, const char* hostport, const char* path)
 {
     int i,found;
-    NCRCglobalstate* globalstate = ncrc_getglobalstate();
-    NClist* rc = globalstate->rcinfo.entries;
+    NCglobalstate* globalstate = NC_getglobalstate();
+    NClist* rc = globalstate->rcinfo->entries;
     NCRCentry* entry = NULL;
 
-    if(globalstate->rcinfo.ignore)
+    if(globalstate->rcinfo->ignore)
 	return NULL;
 
     if(key == NULL || rc == NULL) return NULL;
@@ -610,12 +569,12 @@ NC_rcfile_insert(const char* key, const char* value, const char* hostport, const
     int ret = NC_NOERR;
     /* See if this key already defined */
     struct NCRCentry* entry = NULL;
-    NCRCglobalstate* globalstate = NULL;
+    NCglobalstate* globalstate = NULL;
     NClist* rc = NULL;
 
     if(!NCRCinitialized) ncrc_initialize();
-    globalstate = ncrc_getglobalstate();
-    rc = globalstate->rcinfo.entries;
+    globalstate = NC_getglobalstate();
+    rc = globalstate->rcinfo->entries;
 
     if(rc == NULL) {
 	rc = nclistnew();
@@ -742,13 +701,6 @@ NC_getdefaults3region(NCURI* uri, const char** regionp)
 #endif
     if(regionp) *regionp = region;
     return stat;
-}
-
-static void
-clearS3credentials(struct S3credentials* creds)
-{
-    if(creds)
-        freeprofilelist(creds->profiles);
 }
 
 /**
@@ -1038,10 +990,9 @@ freeprofilelist(NClist* profiles)
 
 /* Find, load, and parse the aws credentials file */
 static int
-aws_load_credentials(NCRCglobalstate* gstate)
+aws_load_credentials(NCglobalstate* gstate)
 {
     int stat = NC_NOERR;
-    struct S3credentials* creds = &gstate->s3creds;
     NClist* profiles = nclistnew();
     const char** awscfg = awsconfigfiles;
     const char* aws_root = getenv(NC_TEST_AWS_DIR);
@@ -1074,7 +1025,7 @@ aws_load_credentials(NCRCglobalstate* gstate)
 	nclistpush(profiles,noprof); noprof = NULL;
     }
 
-    creds->profiles = profiles; profiles = NULL;
+    gstate->rcinfo->s3profiles = profiles; profiles = NULL;
 
 #ifdef AWSDEBUG
     {int i,j;
@@ -1102,10 +1053,10 @@ NC_authgets3profile(const char* profilename, struct AWSprofile** profilep)
 {
     int stat = NC_NOERR;
     int i = -1;
-    NCRCglobalstate* gstate = ncrc_getglobalstate();
-
-    for(i=0;i<nclistlength(gstate->s3creds.profiles);i++) {
-	struct AWSprofile* profile = (struct AWSprofile*)nclistget(gstate->s3creds.profiles,i);
+    NCglobalstate* gstate = NC_getglobalstate();
+    
+    for(i=0;i<nclistlength(gstate->rcinfo->s3profiles);i++) {
+	struct AWSprofile* profile = (struct AWSprofile*)nclistget(gstate->rcinfo->s3profiles,i);
 	if(strcmp(profilename,profile->name)==0)
 	    {if(profilep) {*profilep = profile; goto done;}}
     }

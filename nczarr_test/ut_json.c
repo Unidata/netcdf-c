@@ -5,7 +5,7 @@
 
 #include "ut_includes.h"
 
-#define DEBUG
+#undef DEBUG
 
 typedef enum Cmds {
     cmd_none = 0,

@@ -23,7 +23,7 @@
 #include "nclog.h"
 #include "ncuri.h"
 
-#define DEBUG
+#undef DEBUG
 
 #define DATANAME "data"
 

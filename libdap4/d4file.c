@@ -367,7 +367,7 @@ set_curl_properties(NCD4INFO* d4info)
         char* newpath = NULL;
         int len;
 	errno = 0;
-	NCRCglobalstate* globalstate = ncrc_getglobalstate();
+	NCglobalstate* globalstate = NC_getglobalstate();
 
 	/* Create the unique cookie file name */
         len =

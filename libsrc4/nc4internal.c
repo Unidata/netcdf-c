@@ -22,6 +22,7 @@
 #include "nc.h" /* from libsrc */
 #include "ncdispatch.h" /* from libdispatch */
 #include "ncutf8.h"
+#include "ncrc.h"
 
 /** @internal Number of reserved attributes. These attributes are
  * hidden from the netcdf user, but exist in the implementation
@@ -50,11 +51,6 @@ static const NC_reservedatt NC_reserved[] = {
     {NC_ATT_NC3_STRICT_NAME, READONLYFLAG|MATERIALIZEDFLAG},		/*_nc3_strict*/
 };
 #define NRESERVED (sizeof(NC_reserved) / sizeof(NC_reservedatt))  /*|NC_reservedatt|*/
-
-/* These hold the file caching settings for the library. */
-size_t nc4_chunk_cache_size = CHUNK_CACHE_SIZE;            /**< Default chunk cache size. */
-size_t nc4_chunk_cache_nelems = CHUNK_CACHE_NELEMS;        /**< Default chunk cache number of elements. */
-float nc4_chunk_cache_preemption = CHUNK_CACHE_PREEMPTION; /**< Default chunk cache preemption. */
 
 static int NC4_move_in_NCList(NC* nc, int new_id);
 
@@ -670,6 +666,7 @@ int
 nc4_var_list_add2(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var)
 {
     NC_VAR_INFO_T *new_var = NULL;
+    NCglobalstate* gs = NC_getglobalstate();
 
     /* Allocate storage for new variable. */
     if (!(new_var = calloc(1, sizeof(NC_VAR_INFO_T))))
@@ -678,9 +675,9 @@ nc4_var_list_add2(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var)
     new_var->container = grp;
 
     /* These are the HDF5-1.8.4 defaults. */
-    new_var->chunk_cache_size = nc4_chunk_cache_size;
-    new_var->chunk_cache_nelems = nc4_chunk_cache_nelems;
-    new_var->chunk_cache_preemption = nc4_chunk_cache_preemption;
+    new_var->chunkcache.size = gs->chunkcache.size;
+    new_var->chunkcache.nelems = gs->chunkcache.nelems;
+    new_var->chunkcache.preemption = gs->chunkcache.preemption;
 
     /* Now fill in the values in the var info structure. */
     new_var->hdr.id = ncindexsize(grp->vars);
@@ -1951,3 +1948,79 @@ NC4_move_in_NCList(NC* nc, int new_id)
     return stat;
 }
 
+/**************************************************/
+/* NCglobal state management */
+
+static NCglobalstate* nc_globalstate = NULL;
+
+static int
+NC_createglobalstate(void)
+{
+    int stat = NC_NOERR;
+    const char* tmp = NULL;
+    
+    if(nc_globalstate == NULL) {
+        nc_globalstate = calloc(1,sizeof(NCglobalstate));
+    }
+    /* Initialize struct pointers */
+    nc_globalstate->rcinfo = (struct NCRCinfo*)calloc(1,sizeof(struct NCRCinfo));
+    if(nc_globalstate == NULL) return NC_ENOMEM;
+
+    /* Get environment variables */
+    if(getenv(NCRCENVIGNORE) != NULL)
+        nc_globalstate->rcinfo->ignore = 1;
+    tmp = getenv(NCRCENVRC);
+    if(tmp != NULL && strlen(tmp) > 0)
+        nc_globalstate->rcinfo->rcfile = strdup(tmp);
+    /* Initialize chunk cache defaults */
+    nc_globalstate->chunkcache.size = CHUNK_CACHE_SIZE;            /**< Default chunk cache size. */
+    nc_globalstate->chunkcache.nelems = CHUNK_CACHE_NELEMS;        /**< Default chunk cache number of elements. */
+    nc_globalstate->chunkcache.preemption = CHUNK_CACHE_PREEMPTION; /**< Default chunk cache preemption. */
+    
+    return stat;
+}
+
+/* Get global state */
+NCglobalstate*
+NC_getglobalstate(void)
+{
+    if(nc_globalstate == NULL)
+        NC_createglobalstate();
+    return nc_globalstate;
+}
+
+void
+NC_freeglobalstate(void)
+{
+    if(nc_globalstate != NULL) {
+        nullfree(nc_globalstate->tempdir);
+        nullfree(nc_globalstate->home);
+        nullfree(nc_globalstate->cwd);
+        NC_rcclear(nc_globalstate->rcinfo);
+	free(nc_globalstate->rcinfo);
+	free(nc_globalstate);
+	nc_globalstate = NULL;
+    }
+}
+/**************************************************/
+/* Specific property functions */
+
+/** \internal Set global parameters for H5Pset_alignment */
+int
+nc_set_alignment(int threshold, int alignment)
+{
+    NCglobalstate* gs = NC_getglobalstate();
+    gs->alignment.threshold = threshold;
+    gs->alignment.alignment = alignment;
+    gs->alignment.defined = 1;
+    return NC_NOERR;
+}
+
+int
+nc_get_alignment(int* thresholdp, int* alignmentp)
+{
+    NCglobalstate* gs = NC_getglobalstate();
+    if(thresholdp) *thresholdp = gs->alignment.threshold;
+    if(alignmentp) *alignmentp = gs->alignment.alignment;
+    return NC_NOERR;
+}

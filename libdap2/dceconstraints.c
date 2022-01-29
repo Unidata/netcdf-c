@@ -13,7 +13,7 @@
 #include "dapincludes.h"
 #include "dceparselex.h"
 
-#define DEBUG
+#undef DEBUG
 
 #define LBRACE "{"
 #define RBRACE "}"
