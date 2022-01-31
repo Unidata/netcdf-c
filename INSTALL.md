@@ -158,7 +158,7 @@ is being built.
 
 Note that for shared libraries, you may need to add the install
 directory to the LD_LIBRARY_PATH environment variable. See
-the <a href="http://www.unidata.ucar.edu/netcdf/docs/faq.html#Shared%20Libraries">netCDF
+the <a href="https://docs.unidata.ucar.edu/netcdf-c/current/faq.html#Shared%20Libraries">netCDF
 FAQ</a> for more details on using shared libraries.
 
 If you are building HDF5 with szip, then include the <CODE>--with-szlib=</CODE>

@@ -48,7 +48,7 @@ inRange_uchar(const int     cdf_format,
     if (cdf_format < NC_FORMAT_CDF5 && xtype == NC_BYTE) {
         /* netCDF specification make a special case for type conversion between
          * uchar and scahr: do not check for range error. See
-         * http://www.unidata.ucar.edu/software/netcdf/docs/data_type.html#type_conversion
+         * https://docs.unidata.ucar.edu/netcdf-c/current/data_type.html#type_conversion
          */
         return(value >= 0 && value <= 255);
         /* this is to ensure value is within the range of uchar */
@@ -126,7 +126,7 @@ inRange3(const int    cdf_format,
 {
     /* netCDF specification make a special case for type conversion between
      * uchar and NC_BYTE: do not check for range error. See
-     * http://www.unidata.ucar.edu/software/netcdf/docs/data_type.html#type_conversion
+     * https://docs.unidata.ucar.edu/netcdf-c/current/data_type.html#type_conversion
      * The _uchar and _schar functions were introduced in netCDF-3 to eliminate
      * an ambiguity, and support both signed and unsigned byte data. In
      * netCDF-2, whether the external NC_BYTE type represented signed or
@@ -628,7 +628,7 @@ hash4(const int        cdf_format,
 
     /* netCDF specification make a special case for type conversion between
      * uchar and NC_BYTE: do not check for range error. See
-     * http://www.unidata.ucar.edu/software/netcdf/docs/data_type.html#type_conversion
+     * https://docs.unidata.ucar.edu/netcdf-c/current/data_type.html#type_conversion
      * The _uchar and _schar functions were introduced in netCDF-3 to eliminate
      * an ambiguity, and support both signed and unsigned byte data. In
      * netCDF-2, whether the external NC_BYTE type represented signed or

@@ -22,7 +22,6 @@
 #include "nc.h" /* from libsrc */
 #include "ncdispatch.h" /* from libdispatch */
 #include "ncutf8.h"
-#include "netcdf_aux.h"
 
 /** @internal Number of reserved attributes. These attributes are
  * hidden from the netcdf user, but exist in the implementation
@@ -1260,20 +1259,22 @@ nc4_type_free(NC_TYPE_INFO_T *type)
 int
 nc4_att_free(NC_ATT_INFO_T *att)
 {
-    int i;
+    int stat = NC_NOERR;
 
     assert(att);
     LOG((3, "%s: name %s ", __func__, att->hdr.name));
-
-    /* Free memory that was malloced to hold data for this
-     * attribute. */
-    if (att->data)
-        free(att->data);
 
     /* Free the name. */
     if (att->hdr.name)
         free(att->hdr.name);
 
+#ifdef SEPDATA
+    /* Free memory that was malloced to hold data for this
+     * attribute. */
+    if (att->data) {
+        free(att->data);
+    }
+    
     /* If this is a string array attribute, delete all members of the
      * string array, then delete the array of pointers to strings. (The
      * array was filled with pointers by HDF5 when the att was read,
@@ -1282,6 +1283,7 @@ nc4_att_free(NC_ATT_INFO_T *att)
      * allocate the memory that is being freed.) */
     if (att->stdata)
     {
+	int i;
         for (i = 0; i < att->len; i++)
             if(att->stdata[i])
                 free(att->stdata[i]);
@@ -1291,13 +1293,31 @@ nc4_att_free(NC_ATT_INFO_T *att)
     /* If this att has vlen data, release it. */
     if (att->vldata)
     {
+	int i;
         for (i = 0; i < att->len; i++)
             nc_free_vlen(&att->vldata[i]);
         free(att->vldata);
     }
+#else
+    if (att->data) {
+	NC_OBJ* parent;
+	NC_FILE_INFO_T* h5 = NULL;
 
+	/* Locate relevant objects */
+	parent = att->container;
+	if(parent->sort == NCVAR) parent = (NC_OBJ*)(((NC_VAR_INFO_T*)parent)->container);
+	assert(parent->sort == NCGRP);
+	h5 = ((NC_GRP_INFO_T*)parent)->nc4_info;
+	/* Reclaim the attribute data */
+	if((stat = nc_reclaim_data(h5->controller->ext_ncid,att->nc_typeid,att->data,att->len))) goto done;
+	free(att->data); /* reclaim top level */
+	att->data = NULL;
+    }
+#endif
+
+done:
     free(att);
-    return NC_NOERR;
+    return stat;
 }
 
 /**
@@ -1338,8 +1358,12 @@ var_free(NC_VAR_INFO_T *var)
         free(var->dim);
 
     /* Delete any fill value allocation. */
-    if (var->fill_value)
-        {free(var->fill_value); var->fill_value = NULL;}
+    if (var->fill_value) {
+	int ncid = var->container->nc4_info->controller->ext_ncid;
+	int tid = var->type_info->hdr.id;
+        if((retval = nc_reclaim_data_all(ncid, tid, var->fill_value, 1))) return retval;
+	var->fill_value = NULL;
+    }
 
     /* Release type information */
     if (var->type_info)
@@ -1486,6 +1510,57 @@ nc4_rec_grp_del(NC_GRP_INFO_T *grp)
 }
 
 /**
+ * @internal Recursively delete the data for a group (and everything
+ * it contains) in our internal metadata store.
+ *
+ * @param grp Pointer to group info struct.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett, Dennis Heimbigner
+ */
+int
+nc4_rec_grp_del_att_data(NC_GRP_INFO_T *grp)
+{
+    int i;
+    int retval;
+
+    assert(grp);
+    LOG((3, "%s: grp->name %s", __func__, grp->hdr.name));
+
+    /* Recursively call this function for each child, if any, stopping
+    * if there is an error. */
+    for (i = 0; i < ncindexsize(grp->children); i++)
+        if ((retval = nc4_rec_grp_del_att_data((NC_GRP_INFO_T *)ncindexith(grp->children, i))))
+            return retval;
+
+    /* Free attribute data in this group */
+    for (i = 0; i < ncindexsize(grp->att); i++) {
+	NC_ATT_INFO_T * att = (NC_ATT_INFO_T*)ncindexith(grp->att, i);
+	if((retval = nc_reclaim_data_all(grp->nc4_info->controller->ext_ncid,att->nc_typeid,att->data,att->len)))
+	    return retval;
+	att->data = NULL;
+	att->len = 0;
+	att->dirty = 0;
+    }
+
+    /* Delete att data from all contained vars in this group */
+    for (i = 0; i < ncindexsize(grp->vars); i++) {
+	int j;
+	NC_VAR_INFO_T* v = (NC_VAR_INFO_T *)ncindexith(grp->vars, i);
+	for(j=0;j<ncindexsize(v->att);j++) {
+	    NC_ATT_INFO_T* att = (NC_ATT_INFO_T*)ncindexith(v->att, j);
+   	    if((retval = nc_reclaim_data_all(grp->nc4_info->controller->ext_ncid,att->nc_typeid,att->data,att->len)))
+	        return retval;
+	    att->data = NULL;
+	    att->len = 0;
+	    att->dirty = 0;
+	}
+    }
+
+    return NC_NOERR;
+}
+
+/**
  * @internal Remove a NC_ATT_INFO_T from an index.
  * This will nc_free the memory too.
  *
@@ -1549,6 +1624,15 @@ nc4_nc4f_list_del(NC_FILE_INFO_T *h5)
     int retval;
 
     assert(h5);
+
+    /* Order is important here. We must delete the attribute contents
+       before deleteing any metadata because nc_reclaim_data depends
+       on the existence of the type info.
+    */
+
+    /* Delete all the attribute data contents in each group and variable. */
+    if ((retval = nc4_rec_grp_del_att_data(h5->root_grp)))
+        return retval;
 
     /* Delete all the list contents for vars, dims, and atts, in each
      * group. */
@@ -1866,3 +1950,4 @@ NC4_move_in_NCList(NC* nc, int new_id)
     }
     return stat;
 }
+

@@ -119,11 +119,12 @@ NC_s3urlrebuild(NCURI* url, NCURI** newurlp, char** bucketp, char** outregionp)
 	if((stat = NC_getdefaults3region(url,&region0))) goto done;
 	region = strdup(region0);
     }
-    /* Construct the revised host */
-    ncbytescat(buf,"s3.");
-    ncbytescat(buf,region);
-    ncbytescat(buf,AWSHOST);
-    host = ncbytesextract(buf);
+    if(host == NULL) { /* Construct the revised host */
+        ncbytescat(buf,"s3.");
+        ncbytescat(buf,region);
+        ncbytescat(buf,AWSHOST);
+        host = ncbytesextract(buf);
+    }
 
     /* Construct the revised path */
     ncbytesclear(buf);
@@ -141,13 +142,11 @@ NC_s3urlrebuild(NCURI* url, NCURI** newurlp, char** bucketp, char** outregionp)
     ncurisetprotocol(newurl,"https");
     ncurisethost(newurl,host);
     ncurisetpath(newurl,path);
+    /* Rebuild the url->url */
+    ncurirebuild(newurl);
     /* return various items */
 #ifdef AWSDEBUG
-    {
-    char* s = ncuribuild(newurl,NULL,NULL,NCURIALL);
-    fprintf(stderr,">>> NC_s3urlrebuild: final=%s bucket=%s region=%s\n",s,bucket,region);
-    nullfree(s);
-    }
+    fprintf(stderr,">>> NC_s3urlrebuild: final=%s bucket=%s region=%s\n",uri->uri,bucket,region);
 #endif
     if(newurlp) {*newurlp = newurl; newurl = NULL;}
     if(bucketp) {*bucketp = bucket; bucket = NULL;}

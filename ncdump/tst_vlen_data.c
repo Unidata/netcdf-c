@@ -7,10 +7,15 @@
    $Id: tst_vlen_data.c,v 1.12 2009/11/15 00:17:59 dmh Exp $
 */
 
+/* WARNING: this test leaks memory.
+The leak may be in HDF5.
+*/
+
 #include <nc_tests.h>
-#include "err_macros.h"
-#include <netcdf.h>
 #include <stdlib.h>
+#include <netcdf.h>
+#include <netcdf_aux.h>
+#include "err_macros.h"
 
 #define FILE5_NAME "tst_vlen_data.nc"
 #define TYPE5_NAME "row_of_floats"
@@ -59,10 +64,20 @@ main(int argc, char **argv)
    if (nc_def_var(ncid, VAR5_NAME, typeid, VAR5_RANK, var_dims, &varid)) ERR;
 
    /* Create and write a variable attribute of the vlen type */
+#if 0
+   /* In order to use ncaux_reclaim_data, all the interior nodes must have been alloc'd */
+   missing_val.p = (float*)malloc(sizeof(missing_value));
+   memcpy((void*)missing_val.p,&missing_value,sizeof(missing_value));
+#else
    missing_val.p = &missing_value;
+#endif
    missing_val.len = 1;
    if (nc_put_att(ncid, varid, ATT5_NAME, typeid, ATT5_LEN, (void *) &missing_val)) ERR;
    if (nc_enddef(ncid)) ERR;
+#if 0
+   /* reclaim */
+   if(ncaux_reclaim_data(ncid,typeid,&missing_val,1)) ERR;
+#endif
 
    /* fill in pointers to data rows in preparation for writing */
    array = (float **) malloc(NROWS * sizeof(float *));

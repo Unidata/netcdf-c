@@ -42,7 +42,6 @@ variables:
 		var5:_DeflateLevel = 2 ;
 		var5:_Shuffle = "true" ;
 		var5:_Fletcher32 = "true" ;
-		var5:_NoFill = "true" ;
 	int var6(dim1) ;
 		var6:_Storage = "compact" ;
 		var6:_Endianness = "little" ;

@@ -421,7 +421,7 @@ dumpnode(CDFnode* node)
     snprintf(tmp,sizeof(tmp),"%s %s {\n",
 		(nctype?nctype:primtype),node->ocname);
     ncbytescat(buf,tmp);
-    snprintf(tmp,sizeof(tmp),"ocnode=%lx\n",(unsigned long)node->ocnode);
+    snprintf(tmp,sizeof(tmp),"ocnode=%p\n",node->ocnode);
     ncbytescat(buf,tmp);
     snprintf(tmp,sizeof(tmp),"container=%s\n",
 		(node->container?node->container->ocname:"null"));
@@ -503,9 +503,9 @@ dumpcachenode(NCcachenode* node)
     if(node == NULL) return strdup("cachenode{null}");
     buf = ncbytesnew();
     result = dcebuildconstraintstring(node->constraint);
-    snprintf(tmp,sizeof(tmp),"cachenode%s(%lx){size=%lu; constraint=%s; vars=",
+    snprintf(tmp,sizeof(tmp),"cachenode%s(%p){size=%lu; constraint=%s; vars=",
 		node->isprefetch?"*":"",
-		(unsigned long)node,
+		node,
 		(unsigned long)node->xdrsize,
 	        result);
     ncbytescat(buf,tmp);

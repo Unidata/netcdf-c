@@ -23,18 +23,16 @@ See COPYRIGHT for license information.
 #include "ncauth.h"
 #include "ncpathmgr.h"
 
+#ifndef nulldup
+ #define nulldup(x) ((x)?strdup(x):(x))
+#endif
+
+#undef NOREAD
+
 #undef DRCDEBUG
 #undef LEXDEBUG
 #undef PARSEDEBUG
 #undef AWSDEBUG
-#undef CATCH
-
-#if defined(CATCH)
-#define THROW(e) ((e) == NC_NOERR ? (e) : ncbreakpoint(e))
-#else
-#define THROW(e) (e)
-#endif
-
 
 #define RTAG ']'
 #define LTAG '['
@@ -82,7 +80,7 @@ ncrc_createglobalstate(void)
 {
     int stat = NC_NOERR;
     const char* tmp = NULL;
-    
+
     if(ncrc_globalstate == NULL) {
         ncrc_globalstate = calloc(1,sizeof(NCRCglobalstate));
     }
@@ -105,7 +103,7 @@ Initialize defaults and load:
 
 For debugging support, it is possible
 to change where the code looks for the .aws directory.
-This is set by the environment variable NC_TEST_AWS_DIR. 
+This is set by the environment variable NC_TEST_AWS_DIR.
 
 */
 
@@ -113,10 +111,11 @@ void
 ncrc_initialize(void)
 {
     int stat = NC_NOERR;
-    
+
     if(NCRCinitialized) return;
     NCRCinitialized = 1; /* prevent recursion */
-    
+
+#ifndef NOREAD
     /* Load entrys */
     if((stat = NC_rcload())) {
         nclog(NCLOGWARN,".rc loading failed");
@@ -125,6 +124,7 @@ ncrc_initialize(void)
     if((stat = aws_load_credentials(ncrc_globalstate))) {
         nclog(NCLOGWARN,"AWS config file not loaded");
     }
+#endif
 }
 
 static void
@@ -196,7 +196,8 @@ NC_rcload(void)
 
     if(!NCRCinitialized) ncrc_initialize();
     globalstate = ncrc_getglobalstate();
-    
+
+
     if(globalstate->rcinfo.ignore) {
         nclog(NCLOGDBG,".rc file loading suppressed");
 	goto done;
@@ -220,21 +221,21 @@ NC_rcload(void)
 	const char** rcname;
 	const char* dirnames[3];
 	const char** dir;
-	
-        
+
+
 	/* Make sure rcinfo.rchome is defined */
 	ncrc_setrchome();
-	
+
 	dirnames[0] = globalstate->rcinfo.rchome;
 	dirnames[1] = globalstate->cwd;
 	dirnames[2] = NULL;
 
-        for(dir=dirnames;*dir;dir++) {       
+        for(dir=dirnames;*dir;dir++) {
 	    for(rcname=rcfilenames;*rcname;rcname++) {
 	        ret = rcsearch(*dir,*rcname,&path);
 		if(ret == NC_NOERR && path != NULL)
 		    nclistpush(rcfileorder,path);
-		path = NULL;		
+		path = NULL;
 	    }
 	}
     }
@@ -615,7 +616,7 @@ NC_rcfile_insert(const char* key, const char* value, const char* hostport, const
     if(!NCRCinitialized) ncrc_initialize();
     globalstate = ncrc_getglobalstate();
     rc = globalstate->rcinfo.entries;
-    
+
     if(rc == NULL) {
 	rc = nclistnew();
 	if(rc == NULL) {ret = NC_ENOMEM; goto done;}
@@ -730,7 +731,7 @@ NC_getdefaults3region(NCURI* uri, const char** regionp)
         region = NC_rclookupx(uri,"AWS.REGION");
     if(region == NULL) {/* See if we can find a profile */
         if((stat = NC_getactives3profile(uri,&profile))==NC_NOERR) {
-	    if(profile) 
+	    if(profile)
 	        (void)NC_s3profilelookup(profile,"aws_region",&region);
 	}
     }
@@ -838,7 +839,7 @@ awslex(AWSparser* parser)
 	} else if(c == ';') {
 	    char* p = parser->pos - 1;
 	    if(*p == '\n') {
-	        /* Skip comment */ 
+	        /* Skip comment */
 	        do {p++;} while(*p != '\n' && *p != '\0');
 	        parser->pos = p;
 	        token = (*p == '\n'?AWS_EOL:AWS_EOF);
@@ -902,7 +903,7 @@ awsparse(const char* text, NClist* profiles)
     len = strlen(text);
     parser->text = (char*)malloc(len+1+1+1); /* double nul term plus leading EOL */
     if(parser->text == NULL)
-	{stat = (THROW(NC_EINVAL)); goto done;}
+	{stat = (NCTHROW(NC_EINVAL)); goto done;}
     parser->pos = parser->text;
     parser->pos[0] = '\n'; /* So we can test for comment unconditionally */
     parser->pos++;
@@ -920,17 +921,17 @@ awsparse(const char* text, NClist* profiles)
         token = awslex(parser); /* make token always be defined */
 	if(token ==  AWS_EOF) break; /* finished */
 	if(token ==  AWS_EOL) {continue;} /* blank line */
-	if(token != LBR) {stat = THROW(NC_EINVAL); goto done;}
+	if(token != LBR) {stat = NCTHROW(NC_EINVAL); goto done;}
 	/* parse [profile name] */
         token = awslex(parser);
-	if(token != AWS_WORD) {stat = THROW(NC_EINVAL); goto done;}
+	if(token != AWS_WORD) {stat = NCTHROW(NC_EINVAL); goto done;}
 	assert(profile == NULL);
 	if((profile = (struct AWSprofile*)calloc(1,sizeof(struct AWSprofile)))==NULL)
 	    {stat = NC_ENOMEM; goto done;}
 	profile->name = ncbytesextract(parser->yytext);
 	profile->entries = nclistnew();
         token = awslex(parser);
-	if(token != RBR) {stat = THROW(NC_EINVAL); goto done;}
+	if(token != RBR) {stat = NCTHROW(NC_EINVAL); goto done;}
 #ifdef PARSEDEBUG
 fprintf(stderr,">>> parse: profile=%s\n",profile->name);
 #endif
@@ -948,21 +949,21 @@ fprintf(stderr,">>> parse: profile=%s\n",profile->name);
 	    } else if(token ==  AWS_WORD) {
 	    	key = ncbytesextract(parser->yytext);
 		token = awslex(parser);
-	        if(token != '=') {stat = THROW(NC_EINVAL); goto done;}
+	        if(token != '=') {stat = NCTHROW(NC_EINVAL); goto done;}
 	        token = awslex(parser);
-		if(token != AWS_EOL && token != AWS_WORD) {stat = THROW(NC_EINVAL); goto done;}
+		if(token != AWS_EOL && token != AWS_WORD) {stat = NCTHROW(NC_EINVAL); goto done;}
 	        value = ncbytesextract(parser->yytext);
 	        if((entry = (struct AWSentry*)calloc(1,sizeof(struct AWSentry)))==NULL)
 	            {stat = NC_ENOMEM; goto done;}
 	        entry->key = key; key = NULL;
-    	        entry->value = value; value = NULL;	   
+    	        entry->value = value; value = NULL;
 #ifdef PARSEDEBUG
 fprintf(stderr,">>> parse: entry=(%s,%s)\n",entry->key,entry->value);
 #endif
 		nclistpush(profile->entries,entry); entry = NULL;
-		if(token == AWS_WORD) token = awslex(parser); /* finish the line */		
+		if(token == AWS_WORD) token = awslex(parser); /* finish the line */
 	    } else
-	        {stat = THROW(NC_EINVAL); goto done;}
+	        {stat = NCTHROW(NC_EINVAL); goto done;}
 	}
 
 	/* If this profile already exists, then ignore new one */
@@ -1102,7 +1103,7 @@ NC_authgets3profile(const char* profilename, struct AWSprofile** profilep)
     int stat = NC_NOERR;
     int i = -1;
     NCRCglobalstate* gstate = ncrc_getglobalstate();
-    
+
     for(i=0;i<nclistlength(gstate->s3creds.profiles);i++) {
 	struct AWSprofile* profile = (struct AWSprofile*)nclistget(gstate->s3creds.profiles,i);
 	if(strcmp(profilename,profile->name)==0)

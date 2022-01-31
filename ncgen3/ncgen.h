@@ -12,6 +12,10 @@
 #include "config.h"
 #include "generic.h"
 
+#ifndef nulldup
+ #define nulldup(x) ((x)?strdup(x):(x))
+#endif
+
 extern int ncid;		/* handle for netCDF */
 extern int ndims;		/* number of dimensions declared for netcdf */
 extern int nvars;		/* number of variables declared for netcdf */

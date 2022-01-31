@@ -541,6 +541,16 @@ ncurisetfragments(NCURI* duri,const char* fragments)
     return ret;
 }
 
+/* Replace the path */
+int
+ncurirebuild(NCURI* duri)
+{
+    char* surl = ncuribuild(duri,NULL,NULL,NCURIALL);
+    nullfree(duri->uri);
+    duri->uri = surl;
+    return (NC_NOERR);
+}
+
 /* Replace a specific fragment key*/
 int
 ncurisetfragmentkey(NCURI* duri,const char* key, const char* value)

@@ -13,7 +13,7 @@
 # so we don't want to make them external, which would be required to
 # run on Windows.
 
-SET(UNIT_TESTS test_ncuri test_pathcvt)
+SET(UNIT_TESTS test_ncuri)
 
 IF(NOT MSVC)
   IF(ENABLE_NETCDF_4)
@@ -24,6 +24,9 @@ ENDIF(NOT MSVC)
 FOREACH(CTEST ${UNIT_TESTS})
   add_bin_test(unit_test ${CTEST})
 ENDFOREACH()
+
+# Path convert test(s)
+add_bin_test(unit_test test_pathcvt)
 
 # Aws Tests
 build_bin_test(test_aws)

@@ -495,7 +495,7 @@ print_rows(
 	    print_any_val(sb, vp, (void *)valp);
 	}
         /* In case vals has memory hanging off e.g. vlen or string, make sure to reclaim it */
-        (void)ncaux_reclaim_data(ncid,vp->type,vals,ncols);
+        NC_CHECK(nc_reclaim_data(ncid,vp->type,vals,ncols));
 
 	/* determine if this is the last row */
 	lastrow = true;
