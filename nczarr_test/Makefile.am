@@ -35,7 +35,7 @@ ut_projections_SOURCES = ut_projections.c ${commonsrc}
 ut_chunking_SOURCES = ut_chunking.c ${commonsrc}
 tst_fillonlyz_SOURCES = tst_fillonlyz.c ${tstcommonsrc}
 
-check_PROGRAMS += tst_zchunks tst_zchunks2 tst_zchunks3 tst_fillonlyz
+check_PROGRAMS += tst_zchunks tst_zchunks2 tst_zchunks3 tst_fillonlyz test_quantize
 
 TESTS += run_ut_map.sh
 TESTS += run_ut_mapapi.sh
@@ -54,6 +54,8 @@ endif
 check_PROGRAMS += tst_chunkcases
 tst_chunkcases_SOURCES = tst_chunkcases.c ${tstcommonsrc}
 TESTS += run_chunkcases.sh
+
+TESTS += run_quantize.sh
 
 TESTS += run_purezarr.sh
 TESTS += run_interop.sh
@@ -126,7 +128,7 @@ run_ut_map.sh run_ut_mapapi.sh run_ut_misc.sh run_ut_chunk.sh run_ncgen4.sh \
 run_nccopyz.sh run_fillonlyz.sh run_chunkcases.sh test_nczarr.sh run_perf_chunks1.sh run_s3_cleanup.sh \
 run_purezarr.sh run_interop.sh run_misc.sh \
 run_filter.sh run_specific_filters.sh \
-run_newformat.sh run_nczarr_fill.sh
+run_newformat.sh run_nczarr_fill.sh run_quantize.sh
 
 EXTRA_DIST += \
 ref_ut_map_create.cdl ref_ut_map_writedata.cdl ref_ut_map_writemeta2.cdl ref_ut_map_writemeta.cdl \
@@ -153,12 +155,19 @@ EXTRA_DIST += ref_power_901_constants.zip ref_power_901_constants.cdl ref_quotes
 
 CLEANFILES = ut_*.txt ut*.cdl tmp*.nc tmp*.cdl tmp*.txt tmp*.dmp tmp*.zip tmp*.nc tmp*.dump tmp*.tmp tmp_ngc.c ref_zarr_test_data.cdl
 
+BUILT_SOURCES = test_quantize.c
+test_quantize.c: ../nc_test4/tst_quantize.c
+	rm -f test_quantize.c
+	echo "#define TESTNCZARR" > test_quantize.c
+	cat ../nc_test4/tst_quantize.c >> test_quantize.c
+
 # Remove directories
 clean-local:
 	rm -fr tmp*.file results.file results.s3 results.zip
 	rm -fr rcmiscdir
 
-DISTCLEANFILES = findplugin.sh
+DISTCLEANFILES = findplugin.sh test_quantize.c
 
 # If valgrind is present, add valgrind targets.
 @VALGRIND_CHECK_RULES@
+

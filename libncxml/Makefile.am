@@ -30,11 +30,14 @@ endif
 EXTRA_DIST = CMakeLists.txt license.txt
 
 # Download the tinyxml2 source
+# Requires some editing to fix some compile problems under Cygwin
 REPO = https://github.com/leethomason/tinyxml2.git
 tinyxml2::
 	rm -fr ./tinyxml2 ./license.txt
 	git clone --depth=1 ${REPO}
-	cat tinyxml2/tinyxml2.h > ./tinyxml2.h
-	cat tinyxml2/tinyxml2.cpp > ./tinyxml2.cpp
 	cat tinyxml2/LICENSE.txt > ./license.txt
-	
+	cat tinyxml2/tinyxml2.h > ./tinyxml2.h
+	cat tinyxml2/tinyxml2.cpp \
+	    | sed -e 's|defined(__unix__)|defined(__unix__) \&\& \!defined(__CYGWIN__)|' \
+	    > ./tinyxml2.cpp
+	rm -fr tinyxml2

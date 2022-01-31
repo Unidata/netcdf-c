@@ -489,9 +489,9 @@ NC4_enddef(int ncid)
 {
     NC_FILE_INFO_T *nc4_info;
     NC_GRP_INFO_T *grp;
-    NC_VAR_INFO_T *var;
-    int i;
     int retval;
+    int i;
+    NC_VAR_INFO_T* var = NULL;
 
     LOG((1, "%s: ncid 0x%x", __func__, ncid));
 
@@ -499,6 +499,8 @@ NC4_enddef(int ncid)
     if ((retval = nc4_find_grp_h5(ncid, &grp, &nc4_info)))
         return retval;
 
+    /* Why is this here? Especially since it is not recursive so it
+       only applies to the this grp */
     /* When exiting define mode, mark all variable written. */
     for (i = 0; i < ncindexsize(grp->vars); i++)
     {

@@ -72,7 +72,9 @@ case "$zext" in
 	# Read a test case created by netcdf-java zarr.
 	# Move into position
         rm -f ${execdir}/ref_zarr_test_data.cdl
-        if gunzip -c < ${srcdir}/ref_zarr_test_data.cdl.gz > ${execdir}/ref_zarr_test_data.cdl ; then
+	# Use gunzip because it always appears to be available
+        if gunzip ${srcdir}/ref_zarr_test_data.cdl.gz ; then ignore=1; fi
+	if test -f ${srcdir}/ref_zarr_test_data.cdl ; then
             testcases3 zarr_test_data.zarr ref_zarr_test_data xarray
         fi
 	;;
@@ -80,8 +82,8 @@ case "$zext" in
 esac
 }
 
-#testallcases file
-#if test "x$FEATURE_NCZARR_ZIP" = xyes ; then testallcases zip; fi
+testallcases file
+if test "x$FEATURE_NCZARR_ZIP" = xyes ; then testallcases zip; fi
 if test "x$FEATURE_S3TESTS" = xyes ; then testallcases s3; fi
 exit
 # Cleanup

@@ -23,7 +23,8 @@
 
 @c Home pages for internal stuff like netcdf, netcdf-4, netcdf java,
 @c Unidata, etc.
-@set unidata-url http://www.unidata.ucar.edu
+@set unidata-url https://www.unidata.ucar.edu
+@set download-url https://downloads.unidata.ucar.edu
 @set netcdf-url @value{unidata-url}/netcdf
 @set netcdf-4-url @value{netcdf-url}/netcdf-4
 @set netcdf-java-url @value{unidata-url}/software/netcdf-java
@@ -73,12 +74,12 @@
 @c places to get downloads
 @set ftp-site ftp://ftp.unidata.ucar.edu/pub/netcdf
 @set netcdf4-ftp-site @value{ftp-site}/netcdf-4
-@set netcdf-binaries-url @value{unidata-url}/downloads/netcdf/index.jsp 
+@set netcdf-binaries-url @value{download-url}/netcdf
 @set windows-ftp-site @value{ftp-site}/contrib/win32
 
 @c Tools mentioned in the netCDF tutorial.
-@set idv-url http://www.unidata.ucar.edu/software/idv
-@set udunits-url http://www.unidata.ucar.edu/software/udunits
+@set idv-url https://www.unidata.ucar.edu/software/idv
+@set udunits-url https://www.unidata.ucar.edu/software/udunits
 @set ncl-url http://www.ncl.ucar.edu
 @set nco-url http://nco.sourceforge.net
 @set grads-url http://grads.iges.org/grads/grads.html

@@ -2,7 +2,7 @@
 # Build hdf4, hdf5 dependencies and cache them in a combined directory.
 ###
 
-name: Run netCDF Tests
+name: Run Ubuntu/Linux netCDF Tests
 
 on: [pull_request]
 
@@ -14,7 +14,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.8.21, 1.10.1, 1.10.7, 1.12.1 ]
+        hdf5: [ 1.8.21, 1.10.8, 1.12.1 ]
 
     steps:
 
@@ -53,8 +53,7 @@ jobs:
           make -j
           make install -j
           popd
-
-
+          
   nc-autotools:
 
     needs: [ nc-cmake-tests-oneoff, nc-ac-tests-oneoff ]
@@ -62,7 +61,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.8.21, 1.10.1, 1.10.7, 1.12.1 ]
+        hdf5: [ 1.8.21, 1.10.8, 1.12.1 ]
         use_nc4: [ nc3, nc4 ]
         use_dap: [ dap_off, dap_on ]
         use_nczarr: [ nczarr_off, nczarr_on ]
@@ -169,7 +168,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.8.21, 1.10.1, 1.10.7, 1.12.1 ]
+        hdf5: [ 1.8.21, 1.10.8, 1.12.1 ]
         use_nc4: [ nc3, nc4 ]
         use_dap: [ dap_off, dap_on ]
         use_nczarr: [ nczarr_off, nczarr_on ]
@@ -248,7 +247,7 @@ jobs:
         shell: bash -l {0}
         run: |
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest -j 12 .
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest --verbose -j 12 .
         if: ${{ success() }}
 
       - name: Verbose Output if CTest Failure
@@ -269,7 +268,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.10.7 ]
+        hdf5: [ 1.12.1 ]
     steps:
 
       - uses: actions/checkout@v2
@@ -312,7 +311,7 @@ jobs:
 
       - name: Configure
         shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure --enable-hdf4 --enable-hdf5 --enable-dap --enable-dap-long-tests
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure --enable-hdf4 --enable-hdf5 --enable-dap --disable-dap-remote-tests
         if: ${{ success() }}
 
       - name: Look at config.log if error
@@ -350,7 +349,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.10.7]
+        hdf5: [ 1.12.1 ]
 
     steps:
 

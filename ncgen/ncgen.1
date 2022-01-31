@@ -984,6 +984,19 @@ variable-length strings to a netCDF variable, but the strings may simply be
 concatenated into a single array of characters.
 Specific use of the \fIstring\fP type specifier may solve the problem
 
+.SH "Identifiers and Keywords"
+.LP
+Under certain conditions, some keywords can be used as identifiers.
+.IP "\fB1.\fP
+If a type keyword is not a type supported by the format of the .cdl file,
+then it can be used as an identifier. So, for example, when translating a .cdl
+file as a netCDF-3 file, then "string" or "uint64" can be
+used as identifiers.
+.IP "\fB2.\fP
+The keyword "data" can be used as an identifier because it can be tested
+in a context sensitive fashion to see if "data" is a keyword versus an
+identifier.
+
 .SH "CDL Grammar"
 .LP
 The file ncgen.y is the definitive grammar for CDL, but a stripped

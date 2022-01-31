@@ -107,7 +107,9 @@ extern int ncgdebug;
     _SUPERBLOCK = 308,             /* _SUPERBLOCK  */
     _FILTER = 309,                 /* _FILTER  */
     _CODECS = 310,                 /* _CODECS  */
-    DATASETID = 311                /* DATASETID  */
+    _QUANTIZEBG = 311,             /* _QUANTIZEBG  */
+    _QUANTIZEBR = 312,             /* _QUANTIZEBR  */
+    DATASETID = 313                /* DATASETID  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -116,7 +118,7 @@ extern int ncgdebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 154 "ncgen.y"
+#line 156 "ncgen.y"
 
 Symbol* sym;
 unsigned long  size; /* allow for zero size to indicate e.g. UNLIMITED*/
@@ -125,7 +127,7 @@ int            nctype; /* for tracking attribute list type*/
 Datalist*      datalist;
 NCConstant*    constant;
 
-#line 129 "ncgeny.h"
+#line 131 "ncgeny.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

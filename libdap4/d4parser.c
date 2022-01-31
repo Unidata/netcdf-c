@@ -994,7 +994,6 @@ Return the value.
 static int
 parseULL(const char* text, unsigned long long* ullp)
 {
-    extern int errno;
     char* endptr;
     unsigned long long uint64 = 0;
 
@@ -1019,7 +1018,6 @@ Return the value.
 static int
 parseLL(const char* text, long long* llp)
 {
-    extern int errno;
     char* endptr;
     long long int64 = 0;
 

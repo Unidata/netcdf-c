@@ -1,4 +1,4 @@
-/* Copyright 2018-2018 University Corporation for Atmospheric
+/* Copyright 2018-2022 University Corporation for Atmospheric
    Research/Unidata. */
 /**
  * @file This header file contains macros, types, and prototypes for
@@ -215,5 +215,7 @@ extern int nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 
 EXTERNL hid_t nc4_H5Fopen(const char *filename, unsigned flags, hid_t fapl_id);
 EXTERNL hid_t nc4_H5Fcreate(const char *filename, unsigned flags, hid_t fcpl_id, hid_t fapl_id);
+
+int hdf5set_format_compatibility(hid_t fapl_id);
 
 #endif /* _HDF5INTERNAL_ */

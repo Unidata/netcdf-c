@@ -11,6 +11,11 @@
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
 
+#SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#TESTS_ENVIRONMENT = export SETX=1;
+
 # Find and link to the netcdf-c library.
 LDADD = ${top_builddir}/liblib/libnetcdf.la
 
@@ -31,10 +36,13 @@ check_PROGRAMS += tst_nc4internal
 TESTS += tst_nc4internal
 endif # USE_NETCDF4
 
+if ENABLE_NCZARR_S3_TESTS
 check_PROGRAMS += test_aws
 TESTS += run_aws.sh
+endif
 
 EXTRA_DIST = CMakeLists.txt run_aws.sh
+EXTRA_DIST += nctest_netcdf4_classic.nc
 
 # If valgrind is present, add valgrind targets.
 @VALGRIND_CHECK_RULES@

@@ -7,7 +7,7 @@
 #SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#TESTS_ENVIRONMENT += export SETX=1;
+#TESTS_ENVIRONMENT = export SETX=1;
 
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
@@ -16,10 +16,6 @@ noinst_PROGRAMS=
 # Note which tests depend on other tests. Necessary for make -j check.
 TEST_EXTENSIONS = .sh
 XFAIL_TESTS=""
-
-if ! ENABLE_UNFIXED_MEMORY_LEAKS
-AM_TESTS_ENVIRONMENT += export NC_VLEN_NOTEST=1;
-endif
 
 # This is the program we're building, and it's sources.
 bin_PROGRAMS = ncdump
@@ -57,6 +53,13 @@ nc4print_SOURCES = nc4print.c nc4printer.c
 noinst_PROGRAMS += printfqn
 printfqn_SOURCES = printfqn.c
 
+# A non-installed utility program to return
+# the HDF5 Version as an integer of the form XXXYYYZZZ with no newline.
+# Where XXX is the major version number, YYY is the minor version number
+# and ZZZ is the patch level.
+noinst_PROGRAMS += nchdf5version
+nchdf5version_SOURCES = nchdf5version.c
+
 endif
 
 # Conditionally build the ocprint program, but do not install
@@ -85,7 +88,7 @@ test_radix.sh test_rcmerge.sh
 # The tst_nccopy3.sh test uses output from a bunch of other
 # tests. This records the dependency so parallel builds work.
 tst_nccopy3.log: tst_calendars.log run_utf8_tests.log tst_output.log	\
-tst_64bit.log run_tests.log tst_lengths.log
+                 tst_64bit.log run_tests.log tst_lengths.log
 
 TESTS += tst_null_byte_padding.sh
 if USE_STRICT_NULL_BYTE_HEADER_PADDING
@@ -110,16 +113,17 @@ check_PROGRAMS += tst_vlen_demo
 
 # Tests for netCDF-4 behavior.
 TESTS += tst_fileinfo.sh tst_hdf5_offset.sh tst_inttags4.sh		\
-tst_netcdf4.sh tst_fillbug.sh tst_nccopy4.sh		\
-tst_nccopy5.sh tst_grp_spec.sh tst_mud.sh tst_h_scalar.sh tst_formatx4.sh		\
+tst_netcdf4.sh tst_fillbug.sh \
+tst_grp_spec.sh tst_mud.sh tst_h_scalar.sh tst_formatx4.sh		\
 run_utf8_nc4_tests.sh run_ncgen_nc4_tests.sh	\
 tst_ncgen4.sh test_scope.sh
 
 # Record interscript dependencies so parallel builds work.
 tst_nccopy4.log: run_ncgen_tests.log tst_output.log tst_ncgen4.log	\
-tst_fillbug.log tst_netcdf4_4.log tst_h_scalar.log
+                 tst_fillbug.log tst_netcdf4_4.log tst_h_scalar.log tst_netcdf4.log
 tst_nccopy5.log: tst_nccopy4.log
-endif #!USE_HDF5
+
+endif #USE_HDF5
 
 TESTS += tst_inmemory_nc3.sh tst_nccopy_w3.sh
 if USE_HDF5
@@ -136,12 +140,14 @@ if ENABLE_CDF5
 TESTS += test_keywords.sh
 endif
 
-if ! ISMINGW
-if ! ISCYGWIN
-TESTS += tst_output.sh tst_nccopy3.sh
+if !ISMINGW
+if !ISCYGWIN
+TESTS += tst_output.sh
+TESTS += tst_nccopy3.sh
 TESTS += test_unicode_directory.sh  test_unicode_path.sh
 if USE_HDF5
 TESTS += run_back_comp_tests.sh tst_netcdf4_4.sh
+TESTS += tst_nccopy4.sh tst_nccopy5.sh
 endif
 endif
 endif

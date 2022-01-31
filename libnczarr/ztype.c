@@ -133,8 +133,9 @@ NCZ_inq_typeid(int ncid, const char *name, nc_type *typeidp)
 int
 NCZ_inq_typeids(int ncid, int *ntypes, int *typeids)
 {
+    ZTRACE(0,"ncid=%d",ncid);
     if(ntypes) *ntypes = 0;
-    return NC_NOERR;
+    return ZUNTRACEX(NC_NOERR,"ntypes=%d typeids=%p",(ntypes?-1:*ntypes),typeids);
 }
 
 #ifdef LOOK
@@ -190,8 +191,12 @@ add_user_type(int ncid, size_t size, const char *name, nc_type base_typeid,
         if ((retval = NCZ_redef(ncid)))
             return retval;
 
-    /* No size is provided for vlens or enums, get it from the base type. */
-    if (type_class == NC_VLEN || type_class == NC_ENUM)
+    /* No size is provided for vlens; use the size of nc_vlen_t */
+    if (type_class == NC_VLEN)
+	size = sizeof(nc_vlen_t);
+
+    /* No size is provided for enums, get it from the base type. */
+    else if(type_class == NC_ENUM)
     {
         if ((retval = ncz_get_typelen_mem(grp->ncz_info, base_typeid, &size)))
             return retval;
