@@ -2460,7 +2460,9 @@ IF(ENABLE_TESTS)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ncdap_test/pingurl.c ${CMAKE_CURRENT_BINARY_DIR}/dap4_test/pingurl4.c @ONLY NEWLINE_STYLE LF)
 ENDIF()
 
-add_subdirectory(fuzz)
+if(DEFINED ENV{LIB_FUZZING_ENGINE})
+  add_subdirectory(fuzz)
+endif(DEFINED ENV{LIB_FUZZING_ENGINE})
 
 ####
 # Export files
