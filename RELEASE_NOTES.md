@@ -7,6 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.8.2 - TBD
 
+* [File Change] Apply HDF5 v1.8 format compatibility when writing to previous files, as well as when creating new files.  The superblock version remains at 2 for newly created files.  Full backward read/write compatibility for netCDF-4 is maintained in all cases.  See [Github #2176](https://github.com/Unidata/netcdf-c/issues/2176).
 * [Enhancement] Add complete bitgroom support to NCZarr. See [Github #2197](https://github.com/Unidata/netcdf-c/pull/2197).
 * [Bug Fix] Clean up the handling of deeply nested VLEN types. Marks nc_free_vlen() and nc_free_string as deprecated in favor of ncaux_reclaim_data(). See [Github #2179](https://github.com/Unidata/netcdf-c/pull/2179).
 * [Bug Fix] Make sure that netcdf.h accurately defines the flags in the open/create mode flags. See [Github #2183](https://github.com/Unidata/netcdf-c/pull/2183).
@@ -101,6 +102,7 @@ nc_inq_var_filter [https://github.com/Unidata/netcdf-c/issues/1693].
 * [Bug Fix][cmake] Correct an issue with parallel filter test logic in CMake-based builds.
 * [Bug Fix] Now allow nc_inq_var_deflate()/nc_inq_var_szip() to be called for all formats, not just HDF5. Non-HDF5 files return NC_NOERR and report no compression in use. This reverts behavior that was changed in the 4.7.4 release. See [https://github.com/Unidata/netcdf-c/issues/1691].
 * [Bug Fix] Compiling on a big-endian machine exposes some missing forward delcarations in dfilter.c.
+* [File Change] Change from HDF5 v1.6 format compatibility, back to v1.8 compatibility, for newly created files.  The superblock changes from version 0 back to version 2.  An exception is when using libhdf5 deprecated versions 1.10.0 and 1.10.1, which can only create v1.6 compatible format.  Full backward read/write compatibility for netCDF-4 is maintained in all cases.  See [Github #951](https://github.com/Unidata/netcdf-c/issues/951).
 
 ## 4.7.4 - March 27, 2020
 
@@ -275,7 +277,7 @@ disabled until the testserver situation is resolved.
 
 ## 4.4.1 - June 28, 2016
 
-* [File Change] Starting with release 4.4.1, netCDF-4 files created will have superblock version 0 instead of superblock version 2, as was observed in previous netCDF versions.  This is due to a workaround required to avoid backwards binary incompatibility when using libhdf5 1.10.x or greater.  Superblock versions 0 and 2 appear to be forward and backward compatible.  Other than a different superblock number the data should remain consistent.
+* [File Change] Starting with release 4.4.1, netCDF-4 files are created with HDF5 v1.6 format compatibility, rather than v1.8.  The superblock changes from version 2, as was observed in previous netCDF versions, to version 0.  This is due to a workaround required to avoid backwards binary incompatibility when using libhdf5 1.10.x or greater.  Superblock versions 0 and 2 appear to be forward and backward compatible for netCDF purposes.  Other than a different superblock number, the data should remain consistent.  See [GitHub #250](https://github.com/Unidata/netcdf-c/issues/250).
 * [Enhancement] Added better error reporting when ncdump/nccopy are given a bad constraint in a DAP url. See [GitHub #279](https://github.com/Unidata/netcdf-c/pull/279) for more information.
 
 ### 4.4.1-RC3 - June 17, 2016
