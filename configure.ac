@@ -1065,7 +1065,7 @@ AC_MSG_CHECKING([whether to search for and use external libxml2])
 AC_ARG_ENABLE([libxml2],
               [AS_HELP_STRING([--disable-libxml2],
                               [disable detection and use of libxml2 in favor of the bundled ezxml interpreter])])
-test "x$enable_libxml2" = xnos && enable_libxml2=yes
+test "x$enable_libxml2" = xno && enable_libxml2=yes
 AC_MSG_RESULT($enable_libxml2)
 
 if test "x$enable_libxml2" = xyes; then
@@ -1209,7 +1209,7 @@ AC_FUNC_ALLOCA
 AC_CHECK_DECLS([isnan, isinf, isfinite],,,[#include <math.h>])
 AC_STRUCT_ST_BLKSIZE
 UD_CHECK_IEEE
-AC_CHECK_TYPES([size_t, ssize_t, schar, uchar, longlong, ushort, uint, int64, uint64, size64_t, ssize64_t, _off64_t, uint64_t])
+AC_CHECK_TYPES([size_t, ssize_t, schar, uchar, longlong, ushort, uint, int64, uint64, size64_t, ssize64_t, _off64_t, uint64_t, ptrdiff_t])
 AC_TYPE_OFF_T
 AC_TYPE_UINTPTR_T
 AC_C_CHAR_UNSIGNED
