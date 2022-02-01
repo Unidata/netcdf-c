@@ -44,13 +44,21 @@
  * created the file.  Mixed-object files of this nature are common
  * and do not suffer any serious problems.
  *
- * See netcdf-c github issues #250 and #951 for more details about
- * the rationale and evolution of netCDF-4 format compatibility.
+ * Also note that the THIRD function argument to H5Pset_libver_bounds
+ * below, is set to "high = H5F_LIBVER_LATEST" in all cases.  This
+ * setting does not affect object versions used by default in
+ * netCDF-4.  Its purpose is for new or experimental code, to enable
+ * the possible application of new HDF5 features such as SWMR,
+ * without additional complication of this format control function.
+ *
+ * See netcdf-c github issues #250, #951, and PR #2176 for more
+ * details about the rationale and evolution of netCDF-4 format
+ * compatibility.
  *
  * See HDF5 documentation for H5Pset_libver_bounds and related RFC's,
  * for more details about HDF5 file object versioning.
  *
- * @author Dave Allured, NOAA/PSL/CIRES @date 2022 January 11
+ * @author Dave Allured, NOAA/PSL/CIRES @date 2022 January 21
  */
 
 #include "config.h"
