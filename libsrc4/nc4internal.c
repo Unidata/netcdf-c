@@ -63,6 +63,53 @@ static int NC4_move_in_NCList(NC* nc, int new_id);
    severity 0 for errors, 1 for important log messages, 2 for less
    important, etc. */
 int nc_log_level = NC_TURN_OFF_LOGGING;
+#if HAS_PARALLEL4
+/* Reference count for the parallel I/O log file. */
+int pio_log_ref_cnt = 0;
+/* File pointer for the parallel I/O log file. */
+FILE *LOG_FILE = NULL;
+/* Rank of this process. */
+int my_rank;
+#endif /* HAS_PARALLEL4 */
+
+/* This function prints out a message, if the severity of
+ * the message is lower than the global nc_log_level. To use it, do
+ * something like this:
+ *
+ * nc_log(0, "this computer will explode in %d seconds", i);
+ *
+ * After the first arg (the severity), use the rest like a normal
+ * printf statement. Output will appear on stderr.
+ *
+ * Ed Hartnett
+ */
+void
+nc_log(int severity, const char *fmt, ...)
+{
+    va_list argp;
+    int t;
+
+    /* If the severity is greater than the log level, we don' care to
+       print this message. */
+    if (severity > nc_log_level)
+        return;
+
+    /* If the severity is zero, this is an error. Otherwise insert that
+       many tabs before the message. */
+    if (!severity)
+        fprintf(stderr, "ERROR: ");
+    for (t = 0; t < severity; t++)
+        fprintf(stderr, "\t");
+
+    /* Print out the variable list of args with vprintf. */
+    va_start(argp, fmt);
+    vfprintf(stderr, fmt, argp);
+    va_end(argp);
+
+    /* Put on a final linefeed. */
+    fprintf(stderr, "\n");
+    fflush(stderr);
+}
 #endif /* LOGGING */
 
 /**
@@ -1684,6 +1731,72 @@ nc4_normalize_name(const char *name, char *norm_name)
 #ifdef ENABLE_SET_LOG_LEVEL
 
 /**
+ * Initialize parallel I/O logging. For parallel I/O builds, open log
+ * file, if not opened yet, or increment ref count if already open.
+ *
+ * @author Ed Hartnett
+ */
+int
+nc4_init_logging(void)
+{
+    int ret = NC_NOERR;
+
+#if LOGGING
+#if HAS_PARALLEL4
+    if (!LOG_FILE && nc_log_level >= 0)
+    {
+        char log_filename[NC4_MAX_NAME];
+        int mpierr;
+
+        /* Create a filename with the rank in it. */
+        if ((mpierr = MPI_Comm_rank(MPI_COMM_WORLD, &my_rank)))
+            return NC_EMPI;
+        sprintf(log_filename, "nc4_log_%d.log", my_rank);
+
+        /* Open a file for this rank to log messages. */
+        if (!(LOG_FILE = fopen(log_filename, "w")))
+            return NC_EINTERNAL;
+
+        nc4_log_ref_cnt = 1;
+    }
+    else if(LOG_FILE)
+    {
+        nc4_log_ref_cnt++;
+    }
+#endif /* HAS_PARALLEL4 */
+#endif /* LOGGING */
+
+    return ret;
+}
+
+/**
+ * Finalize logging - close parallel I/O log files, if open. This only
+ * does anything on parallel I/O builds.
+ *
+ * @author Ed Hartnett
+ */
+void
+nc4_finalize_logging(void)
+{
+#if LOGGING
+#if HAS_PARALLEL4    
+    nc4_log_ref_cnt -= 1;
+    if (LOG_FILE)
+    {
+        if (nc4_log_ref_cnt == 0)
+        {
+            fclose(LOG_FILE);
+            LOG_FILE = NULL;
+        }
+        else
+            LOG((2, "nc4_finalize_logging, postpone close, ref_cnt = %d",
+                 nc4_log_ref_cnt));
+    }
+#endif /* HAS_PARALLEL4 */
+#endif /* LOGGING */
+}
+
+/**
  * @internal Use this to set the global log level. Set it to
  * NC_TURN_OFF_LOGGING (-1) to turn off all logging. Set it to 0 to
  * show only errors, and to higher numbers to show more and more
@@ -1703,9 +1816,19 @@ nc_set_log_level(int new_level)
 #ifdef LOGGING
     /* Remember the new level. */
     nc_log_level = new_level;
+#if HAS_PARALLEL4    
+    if (new_level >= 0)
+    {
+        if (!LOG_FILE)
+            nc4_init_logging();
+    }
+    else
+        nc4_finalize_logging();
+#endif /* HAS_PARALLEL4 */
     LOG((4, "log_level changed to %d", nc_log_level));
 #endif /*LOGGING */
-    return 0;
+    
+    return NC_NOERR;
 }
 #endif /* ENABLE_SET_LOG_LEVEL */
 
