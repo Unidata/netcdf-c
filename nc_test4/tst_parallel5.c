@@ -56,7 +56,7 @@ main(int argc, char **argv)
         for (acc = 0; acc < NUM_ACCESS_TESTS; acc++)
         {
             /* Create a parallel netcdf-4 file. */
-            nc_set_log_level(3);
+            /* nc_set_log_level(3); */
             if (nc_create_par(FILE, NC_NETCDF4, comm, info, &ncid)) ERR;
 
             /* Create a dimension. */
@@ -88,7 +88,7 @@ main(int argc, char **argv)
 
             /* Close the netcdf file. */
             if (nc_close(ncid)) ERR;
-            nc_set_log_level(-1);
+            /* nc_set_log_level(-1); */
         }
     }
     if (!mpi_rank)
@@ -113,7 +113,6 @@ main(int argc, char **argv)
             unsigned long long data = 1000000, data_in = TEST_VAL_42;
 
             /* Create a parallel netcdf-4 file. */
-            /*nc_set_log_level(3);*/
             if (nc_create_par(FILE, NC_NETCDF4, comm, info, &ncid)) ERR;
 
             /* Create a dimension. */
@@ -177,7 +176,6 @@ main(int argc, char **argv)
             int dim_size = NC_MAX_NAME + 1;
 
             /* Create a parallel netcdf-4 file. */
-            /*nc_set_log_level(3);*/
             if (nc_create_par(FILE, NC_NETCDF4, comm, info, &ncid)) ERR;
 
             /* Create a dimension. */
@@ -369,7 +367,6 @@ main(int argc, char **argv)
                 preemption != CHUNK_CACHE_PREEMPTION) ERR;
             if (nc_close(ncid)) ERR;
         }
-        /* nc_set_log_level(0); */
     }
     if (!mpi_rank)
         SUMMARIZE_ERR;
