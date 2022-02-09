@@ -7,7 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.8.2 - TBD
 
-* [Bug Fix] Improve UTF8 support on windows to use utf8 natively. See [Github #2222](https://github.com/Unidata/netcdf-c/pull/2222).
+* [Bug Fix] Improve UTF8 support on windows so that it can use utf8 natively. See [Github #2222](https://github.com/Unidata/netcdf-c/pull/2222).
 * [Enhancement] Add complete bitgroom support to NCZarr. See [Github #2197](https://github.com/Unidata/netcdf-c/pull/2197).
 * [Bug Fix] Clean up the handling of deeply nested VLEN types. Marks nc_free_vlen() and nc_free_string as deprecated in favor of ncaux_reclaim_data(). See [Github #2179](https://github.com/Unidata/netcdf-c/pull/2179).
 * [Bug Fix] Make sure that netcdf.h accurately defines the flags in the open/create mode flags. See [Github #2183](https://github.com/Unidata/netcdf-c/pull/2183).
