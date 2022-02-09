@@ -117,6 +117,7 @@ IF(MSVC)
       ${CMAKE_CURRENT_BINARY_DIR})
   ENDIF(ENABLE_DAP)
 
+
 ENDIF()
 
 IF(ENABLE_TESTS)
@@ -304,14 +305,11 @@ endif()
       ENDIF()
   ENDIF(EXTRA_TESTS)
 
-  # The unicode tests are complicated
-  IF(USE_HDF5)
-      IF(NOT MSVC AND NOT MINGW)
-        # These tests do not work under windows
-        add_sh_test(ncdump test_unicode_directory)
-        add_sh_test(ncdump test_unicode_path)
-      ENDIF()
-  ENDIF(USE_HDF5)
+  # The unicode tests
+  if(NOT ISMINGW)
+    add_sh_test(ncdump test_unicode_directory)
+    add_sh_test(ncdump test_unicode_path)
+  ENDIF()
 
   IF(USE_CDF5)
     add_sh_test(ncdump test_keywords)

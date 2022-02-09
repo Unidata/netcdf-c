@@ -311,7 +311,7 @@ main(int argc, char **argv)
         int i;
 
         /* Create a file with magic number at start. */
-        if (!(FP = fopen(FILE_NAME, "w"))) ERR;
+        if (!(FP = NCfopen(FILE_NAME, "w"))) ERR;
         if (fwrite(magic_number, sizeof(char), strlen(magic_number), FP)
             != strlen(magic_number)) ERR;
         if (fwrite(dummy_data, sizeof(char), strlen(dummy_data), FP)

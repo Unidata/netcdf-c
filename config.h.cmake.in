@@ -157,12 +157,6 @@ are set when opening a binary file on Windows. */
 /* if true, Allow dynamically loaded plugins */
 #cmakedefine ENABLE_PLUGINS 1
 
-/* Do we have access to the Windows Registry */
-#cmakedefine REGEDIT 1
-
-/* define the possible sources for remote test servers */
-#cmakedefine REMOTETESTSERVERS	"${REMOTETESTSERVERS}"
-
 /* if true, run extra tests which may not work yet */
 #cmakedefine EXTRA_TESTS 1
 
@@ -505,6 +499,12 @@ with zip */
 /* Define to the version of this package. */
 #cmakedefine PACKAGE_VERSION "${netCDF_VERSION}"
 
+/* Do we have access to the Windows Registry */
+#cmakedefine REGEDIT 1
+
+/* define the possible sources for remote test servers */
+#cmakedefine REMOTETESTSERVERS	"${REMOTETESTSERVERS}"
+
 /* The size of `ulonglong` as computed by sizeof. */
 #cmakedefine SIZEOF_ULONGLONG @SIZEOF_ULONGLONG@
 
@@ -625,6 +625,10 @@ with zip */
 
 /* Version number of package */
 #cmakedefine VERSION "${netCDF_VERSION}"
+
+/* Capture  Windows version and build */
+#cmakedefine WINVERMAJOR ${WINVERMAJOR}
+#cmakedefine WINVERBUILD ${WINVERBUILD}
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */

@@ -680,7 +680,7 @@ get_mem_used2(int *mem_used)
    assert(mem_used);
 
    snprintf(buf, 30, "/proc/%u/statm", (unsigned)getpid());
-   if ((pf = fopen(buf, "r")))
+   if ((pf = NCfopen(buf, "r")))
    {
       (void)fscanf(pf, "%u %u %u %u %u %u", &size, &resident, &share,
 	     &text, &lib, &data);

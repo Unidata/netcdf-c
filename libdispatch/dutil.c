@@ -195,7 +195,7 @@ NC_shellUnescape(const char* esc)
 }
 
 /**
-Wrap mktmp and return the generated path,
+Wrap mkstemp and return the generated path,
 or null if failed.
 Base is the base file path. XXXXX is appended
 to allow mktmp add its unique id.
@@ -208,16 +208,41 @@ NC_mktmp(const char* base)
     int fd = -1;
     char* tmp = NULL;
     size_t len;
+    int tries;
+#define MAXTRIES 4
+#ifdef HAVE_MKSTEMP
+    mode_t mask;
+#endif
 
     len = strlen(base)+6+1;
-    if((tmp = (char*)malloc(len))==NULL)
+    if((tmp = (char*)calloc(1,len))==NULL)
         goto done;
-    strncpy(tmp,base,len);
+#ifdef HAVE_MKSTEMP
+    strlcat(tmp,base,len);
     strlcat(tmp, "XXXXXX", len);
+    mask=umask(0077);
     fd = NCmkstemp(tmp);
+    (void)umask(mask);
+#else /* !HAVE_MKSTEMP */
+    /* Need to simulate by using some kind of pseudo-random number */
+    for(tries=0;tries<MAXTRIES;tries++) {
+	int rno = rand();
+	char spid[7];
+	if(rno < 0) rno = -rno;
+	tmp[0] = '\0';
+        strlcat(tmp,base,len);
+        snprintf(spid,sizeof(spid),"%06d",rno);
+        strlcat(tmp,spid,len);
+        fd=NCopen3(tmp,O_RDWR|O_CREAT, _S_IREAD|_S_IWRITE);
+	if(fd >= 0) break; /* sucess */
+	fd = -1; /* try again */
+    }
+#endif /* !HAVE_MKSTEMP */
     if(fd < 0) {
-       nclog(NCLOGERR, "Could not create temp file: %s",tmp);
-       goto done;
+        nclog(NCLOGERR, "Could not create temp file: %s",tmp);
+        nullfree(tmp);
+	tmp = NULL;
+        goto done;
     }
 done:
     if(fd >= 0) close(fd);
@@ -227,22 +252,46 @@ done:
 int
 NC_readfile(const char* filename, NCbytes* content)
 {
+    int stat;
+    stat = NC_readfilen(filename, content, -1);
+    return stat;
+}
+
+int
+NC_readfilen(const char* filename, NCbytes* content, long long amount)
+{
     int ret = NC_NOERR;
     FILE* stream = NULL;
-    char part[1024];
 
     stream = NCfopen(filename,"r");
     if(stream == NULL) {ret=errno; goto done;}
-    for(;;) {
+    ret = NC_readfileF(stream,content,amount);
+    if (stream) fclose(stream);
+done:
+    return ret;
+}
+
+int
+NC_readfileF(FILE* stream, NCbytes* content, long long amount)
+{
+    int ret = NC_NOERR;
+    long long red = 0;
+    char part[1024];
+
+    while(amount < 0 || red < amount) {
 	size_t count = fread(part, 1, sizeof(part), stream);
-	if(count <= 0) break;
-	ncbytesappendn(content,part,count);
 	if(ferror(stream)) {ret = NC_EIO; goto done;}
-	if(feof(stream)) break;
+	if(count > 0) ncbytesappendn(content,part,(unsigned long)count);
+	red += count;
+    if (feof(stream)) break;
+    }
+    /* Keep only amount */
+    if(amount >= 0) {
+	if(red > amount) ncbytessetlength(content,amount); /* read too much */
+	if(red < amount) ret = NC_ETRUNC; /* |file| < amount */
     }
     ncbytesnull(content);
 done:
-    if(stream) fclose(stream);
     return ret;
 }
 
@@ -263,8 +312,8 @@ NC_writefile(const char* filename, size_t size, void* content)
     while(remain > 0) {
 	size_t written = fwrite(p, 1, remain, stream);
 	if(ferror(stream)) {ret = NC_EIO; goto done;}
-	if(feof(stream)) break;
 	remain -= written;
+    if (feof(stream)) break;
     }
 done:
     if(stream) fclose(stream);
