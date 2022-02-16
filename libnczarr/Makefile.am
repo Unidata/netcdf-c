@@ -50,13 +50,11 @@ ztype.c \
 zutil.c \
 zvar.c \
 zwalk.c \
-zfilter.c \
 zdebug.c \
 zarr.h \
 zcache.h \
 zchunking.h \
 zdispatch.h \
-ztracedispatch.h \
 zincludes.h \
 zinternal.h \
 zmap.h \
@@ -67,6 +65,10 @@ zdebug.h
 
 if ENABLE_NCZARR_ZIP
 libnczarr_la_SOURCES += zmap_zip.c 
+endif
+
+if ENABLE_NCZARR_FILTERS
+libnczarr_la_SOURCES += zfilter.c
 endif
 
 if ENABLE_S3_SDK

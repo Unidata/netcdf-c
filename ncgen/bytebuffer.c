@@ -36,7 +36,7 @@ Bytebuffer*
 bbNew(void)
 {
   Bytebuffer* bb = (Bytebuffer*)emalloc(sizeof(Bytebuffer));
-  if(bb == NULL) return (Bytebuffer*)bbFail();
+  if(bb == NULL) {bbFail(); return NULL;}
   bb->alloc=0;
   bb->length=0;
   bb->content=NULL;

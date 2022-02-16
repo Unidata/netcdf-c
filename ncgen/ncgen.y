@@ -131,6 +131,8 @@ static long long extractint(NCConstant* con);
 #ifdef USE_NETCDF4
 static int parsefilterflag(const char* sdata0, Specialdata* special);
 static int parsecodecsflag(const char* sdata0, Specialdata* special);
+static Symbol* identkeyword(const Symbol*);
+
 #ifdef GENDEBUG1
 static void printfilters(int nfilters, NC_ParsedFilterSpec** filters);
 #endif
@@ -214,10 +216,13 @@ NCConstant*    constant;
 	_SUPERBLOCK
 	_FILTER
 	_CODECS
+        _QUANTIZEBG
+        _QUANTIZEBR
 	DATASETID
 
 %type <sym> ident typename primtype dimd varspec
 	    attrdecl enumid path dimref fielddim fieldspec
+	    varident
 %type <sym> typeref
 %type <sym> varref
 %type <sym> ambiguous_ref
@@ -369,7 +374,7 @@ opaquedecl: OPAQUE_ '(' INT_CONST ')' typename
                     $5->subclass=NC_OPAQUE;
                     $5->typ.typecode=NC_OPAQUE;
                     $5->typ.size=int32_val;
-                    $5->typ.alignment=ncaux_class_alignment(NC_OPAQUE);
+                    (void)ncaux_class_alignment(NC_OPAQUE,&$5->typ.alignment);
                 }
             ;
 
@@ -383,7 +388,7 @@ vlendecl: typeref '(' '*' ')' typename
                     $5->typ.basetype=basetype;
                     $5->typ.typecode=NC_VLEN;
                     $5->typ.size=VLENSIZE;
-                    $5->typ.alignment=ncaux_class_alignment(NC_VLEN);
+                    (void)ncaux_class_alignment(NC_VLEN,&$5->typ.alignment);
                 }
           ;
 
@@ -539,7 +544,7 @@ varlist:      varspec
 	        {$$=$1; listpush(stack,(void*)$3);}
             ;
 
-varspec:        ident dimspec
+varspec:        varident dimspec
                     {
 		    int i;
 		    Dimset dimset;
@@ -769,6 +774,10 @@ attrdecl:
 	    {$$ = makespecial(_FILTER_FLAG,$1,NULL,(void*)$5,ISCONST);}
 	| ambiguous_ref ':' _CODECS '=' conststring
 	    {$$ = makespecial(_CODECS_FLAG,$1,NULL,(void*)$5,ISCONST);}
+	| ambiguous_ref ':' _QUANTIZEBG '=' constint
+	    {$$ = makespecial(_QUANTIZEBG_FLAG,$1,NULL,(void*)$5,ISCONST);}
+	| ambiguous_ref ':' _QUANTIZEBR '=' constint
+	    {$$ = makespecial(_QUANTIZEBR_FLAG,$1,NULL,(void*)$5,ISCONST);}
 	| ambiguous_ref ':' _NOFILL '=' constbool
 	    {$$ = makespecial(_NOFILL_FLAG,$1,NULL,(void*)$5,ISCONST);}
 	| ':' _FORMAT '=' conststring
@@ -889,7 +898,14 @@ constbool:
 
 /* End OF RULES */
 
-/* Push all idents thru here*/
+
+/* Push all idents thru these*/
+
+varident:
+	  IDENT {$$=$1;}
+	| DATA {$$=identkeyword($1);}
+	;
+
 ident:
 	IDENT {$$=$1;}
 	;
@@ -961,7 +977,7 @@ makeprimitivetype(nc_type nctype)
     sym->typ.typecode = nctype;
     sym->typ.size = ncsize(nctype);
     sym->typ.nelems = 1;
-    sym->typ.alignment = ncaux_class_alignment(nctype);
+    (void)ncaux_class_alignment(nctype,&sym->typ.alignment);
     /* Make the basetype circular so we can always ask for it */
     sym->typ.basetype = sym;
     sym->prefix = listnew();
@@ -1230,6 +1246,8 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
 	break;
     case _SUPERBLOCK_FLAG:
     case _DEFLATE_FLAG:
+    case _QUANTIZEBG_FLAG:
+    case _QUANTIZEBR_FLAG:
 	tmp = nullconst();
         tmp->nctype = NC_INT;
 	convert1(con,tmp);
@@ -1294,9 +1312,11 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
                 derror("_FillValue attribute not associated with variable: %s",vsym->name);
             }
             if(tsym  == NULL) tsym = vsym->typ.basetype;
+#if 0 /* No longer require matching types */
             else if(vsym->typ.basetype != tsym) {
                 derror("_FillValue attribute type does not match variable type: %s",vsym->name);
             }
+#endif
             special->_Fillvalue = clonedatalist(list);
 	    /* Create the corresponding attribute */
             attr = makeattribute(install("_FillValue"),vsym,tsym,list,ATTRVAR);
@@ -1323,6 +1343,16 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
             case _DEFLATE_FLAG:
                 special->_DeflateLevel = idata;
                 special->flags |= _DEFLATE_FLAG;
+                break;
+            case _QUANTIZEBG_FLAG:
+		special->_Quantizer = NC_QUANTIZE_BITGROOM;
+                special->_NSD = idata;
+                special->flags |= _QUANTIZEBG_FLAG;
+                break;
+            case _QUANTIZEBR_FLAG:
+		special->_Quantizer = NC_QUANTIZE_GRANULARBR;
+                special->_NSD = idata;
+                special->flags |= _QUANTIZEBR_FLAG;
                 break;
             case _SHUFFLE_FLAG:
                 special->_Shuffle = tf;

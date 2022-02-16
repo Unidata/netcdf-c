@@ -29,28 +29,28 @@ static const NC_Dispatch NCZ_dispatcher = {
     NCZ_abort,
     NCZ_close,
     NCZ_set_fill,
-    NC4_inq_format,
+    NCZ_inq_format,
     NCZ_inq_format_extended,
 
     NCZ_inq,
-    NC4_inq_type,
+    NCZ_inq_type,
 
     NCZ_def_dim,
-    NC4_inq_dimid,
+    NCZ_inq_dimid,
     NCZ_inq_dim,
-    NC4_inq_unlimdim,
+    NCZ_inq_unlimdim,
     NCZ_rename_dim,
 
     NCZ_inq_att,
     NCZ_inq_attid,
-    NC4_inq_attname,
+    NCZ_inq_attname,
     NCZ_rename_att,
     NCZ_del_att,
     NCZ_get_att,
     NCZ_put_att,
 
     NCZ_def_var,
-    NC4_inq_varid,
+    NCZ_inq_varid,
     NCZ_rename_var,
     NCZ_get_vara,
     NCZ_put_vara,
@@ -67,20 +67,20 @@ static const NC_Dispatch NCZ_dispatcher = {
     NCZ_show_metadata,
     NCZ_inq_unlimdims,
 
-    NC4_inq_ncid,
-    NC4_inq_grps,
-    NC4_inq_grpname,
-    NC4_inq_grpname_full,
-    NC4_inq_grp_parent,
-    NC4_inq_grp_full_ncid,
-    NC4_inq_varids,
-    NC4_inq_dimids,
-    NC4_inq_typeids,
+    NCZ_inq_ncid,
+    NCZ_inq_grps,
+    NCZ_inq_grpname,
+    NCZ_inq_grpname_full,
+    NCZ_inq_grp_parent,
+    NCZ_inq_grp_full_ncid,
+    NCZ_inq_varids,
+    NCZ_inq_dimids,
+    NCZ_inq_typeids,
     NCZ_inq_type_equal,
     NCZ_def_grp,
     NCZ_rename_grp,
-    NC4_inq_user_type,
-    NC4_inq_typeid,
+    NCZ_inq_user_type,
+    NCZ_inq_typeid,
 
     NC_NOTNC4_def_compound,
     NC_NOTNC4_insert_compound,
@@ -104,15 +104,11 @@ static const NC_Dispatch NCZ_dispatcher = {
     NC4_get_var_chunk_cache,
     NCZ_inq_var_filter_ids,
     NCZ_inq_var_filter_info,
-    NC_NOTNC4_def_var_quantize,
-    NC_NOTNC4_inq_var_quantize,
+    NCZ_def_var_quantize,
+    NCZ_inq_var_quantize,
 };
 
 const NC_Dispatch* NCZ_dispatch_table = NULL; /* moved here from ddispatch.c */
-
-#ifdef ZTRACING
-#include "ztracedispatch.h"
-#endif
 
 /**
  * @internal Initialize the ZARR dispatch layer.
@@ -127,9 +123,6 @@ NCZ_initialize(void)
 {
     int stat;
     NCZ_dispatch_table = &NCZ_dispatcher;
-#ifdef ZTRACING
-    NCZ_dispatch_table = &NCZ_dispatcher_trace;
-#endif
     if (!ncz_initialized)
         NCZ_initialize_internal();
     stat = NCZ_provenance_init();
@@ -163,3 +156,156 @@ NCZ_show_metadata(int ncid)
     return NC_NOERR;
 }
 
+#ifndef ENABLE_NCZARR_FILTERS
+ int 
+NCZ_def_var_filter(int ncid, int varid, unsigned int id , size_t n , const unsigned int *params)
+{
+    NC_UNUSED(ncid);
+    NC_UNUSED(varid);
+    NC_UNUSED(id);
+    NC_UNUSED(n);
+    NC_UNUSED(params);
+    return REPORT(NC_NOERR,"def_var_filter");
+}
+
+int 
+NCZ_inq_var_filter_ids(int ncid, int varid, size_t* nfilters, unsigned int* filterids)
+{
+    NC_UNUSED(ncid);
+    NC_UNUSED(varid);
+    NC_UNUSED(filterids);
+    if(nfilters) *nfilters = 0;
+    return REPORT(NC_NOERR,"inq_var_filter_ids");
+}
+
+int
+NCZ_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparams, unsigned int* params)
+{
+    NC_UNUSED(ncid);
+    NC_UNUSED(varid);
+    NC_UNUSED(id);
+    NC_UNUSED(nparams);
+    NC_UNUSED(params);
+    return REPORT(NC_ENOFILTER,"inq_var_filter_info");
+}
+#endif /*ENABLE_NCZARR_FILTERS*/
+
+/**************************************************/
+/* Following functions call into libsrc4 */
+
+int
+NCZ_inq_type(int ncid, nc_type xtype, char *name, size_t *size)
+{
+    int stat = NC_NOERR;
+    ZTRACE(0,"NC4_inq_type(ncid,xtype,name,size)");
+    stat = NC4_inq_type(ncid,xtype,name,size);
+    return ZUNTRACE(stat);
+}
+
+int
+NCZ_inq_dimid(int ncid, const char *name, int *idp)
+{
+    int stat = NC_NOERR;
+    ZTRACE(0,"NC4_inq_dimid(ncid,name,idp)");
+    stat = NC4_inq_dimid(ncid,name,idp);
+    return ZUNTRACE(stat);
+}
+
+int
+NCZ_inq_unlimdim(int ncid,  int *unlimdimidp)
+{
+    int stat = NC_NOERR;
+    ZTRACE(0,"NC4_inq_unlimdim(ncid,unlimdimidp)");
+    stat = NC4_inq_unlimdim(ncid,unlimdimidp);
+    return ZUNTRACE(stat);
+}
+
+int
+NCZ_inq_varid(int ncid, const char* name, int *varidp)
+{
+    int stat = NC_NOERR;
+    ZTRACE(0,"NC4_inq_varid(ncid,name,varidp)");
+    stat = NC4_inq_varid(ncid,name,varidp);
+    return ZUNTRACE(stat);
+}
+
+int
+NCZ_inq_ncid(int ncid, const char* name, int* grpidp)
+{
+    int stat = NC_NOERR;
+    ZTRACE(0,"NC4_inq_ncid(ncid,name,grpidp)");
+    stat = NC4_inq_ncid(ncid,name,grpidp);
+    return ZUNTRACE(stat);
+}
+
+int
+NCZ_inq_grps(int ncid, int* n, int* ncids)
+{
+    int stat = NC_NOERR;
+    ZTRACE(0,"NC4_inq_grps(ncid,n,ncids)");
+    stat = NC4_inq_grps(ncid,n,ncids);
+    return ZUNTRACE(stat);
+}
+
+int
+NCZ_inq_grpname(int ncid, char* name)
+{
+    int stat = NC_NOERR;
+    ZTRACE(0,"NC4_inq_grpname(ncid,name)");
+    stat = NC4_inq_grpname(ncid,name);
+    return ZUNTRACE(stat);
+}
+
+int
+NCZ_inq_grpname_full(int ncid, size_t* lenp, char* fullname)
+{
+    int stat = NC_NOERR;
+    ZTRACE(0,"NC4_inq_grpname_full(ncid,lenp,fullname)");
+    stat = NC4_inq_grpname_full(ncid,lenp,fullname);
+    return ZUNTRACE(stat);
+}
+
+int
+NCZ_inq_grp_parent(int ncid, int* parentidp)
+{
+    int stat = NC_NOERR;
+    ZTRACE(0,"NC4_inq_grp_parent(ncid,parentidp)");
+    stat = NC4_inq_grp_parent(ncid,parentidp);
+    return ZUNTRACE(stat);
+}
+
+int
+NCZ_inq_grp_full_ncid(int ncid, const char* fullname, int* grpidp)
+{
+    int stat = NC_NOERR;
+    ZTRACE(0,"NC4_inq_grp_full_ncid(ncid,fullname,grpidp)");
+    stat = NC4_inq_grp_full_ncid(ncid,fullname,grpidp);
+    return ZUNTRACE(stat);
+}
+
+int
+NCZ_inq_varids(int ncid, int* nvars, int* varids)
+{
+    int stat = NC_NOERR;
+    ZTRACE(0,"NC4_inq_varids(ncid,nvars,varids)");
+    stat = NC4_inq_varids(ncid,nvars,varids);
+    return ZUNTRACE(stat);
+}
+
+int
+NCZ_inq_dimids(int ncid, int* ndims, int* dimids, int inclparents)
+{
+    int stat = NC_NOERR;
+    ZTRACE(0,"NC4_inq_dimids(ncid,ndims,dimids,inclparents)");
+    stat = NC4_inq_dimids(ncid,ndims,dimids,inclparents);
+    return ZUNTRACE(stat);
+}
+
+int
+NCZ_inq_user_type(int ncid, nc_type xtype, char* name, size_t* size, nc_type* basetid, size_t* nfields, int* classp)
+{
+    int stat = NC_NOERR;
+    ZTRACE(0,"NC4_inq_user_type(ncid,xtype,name,size,basetid,nfields,classp)");
+    stat = NC4_inq_user_type(ncid,xtype,name,size,basetid,nfields,classp);
+    return ZUNTRACE(stat);
+}

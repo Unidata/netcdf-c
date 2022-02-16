@@ -15,7 +15,7 @@ More recently, building netcdf-fortran as an automated step in the
 netcdf-c build is now possible (for non-MSVC builds) by using new
 options at configure time, so if you haven't built and installed the
 netCDF-C library yet, you may want to try the new netCDF-C <a
-href="http://www.unidata.ucar.edu/software/netcdf/docs/getting_and_building_netcdf.html#getting"
+href="https://docs.unidata.ucar.edu/netcdf-c/current/getting_and_building_netcdf.html#getting"
 >Fortran-bootstrap procedure</a>.
 
 In the example commands below, we assume use of a

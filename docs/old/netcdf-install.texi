@@ -676,7 +676,7 @@ of physical quantities (e.g., meters, seconds). Specifically, it
 supports conversion between string and binary representations of
 units, arithmetic manipulation of units, and conversion of numeric
 values between compatible units. For more information about UDUNITS,
-see: http://www.unidata.ucar.edu/software/udunits/
+see: https://www.unidata.ucar.edu/software/udunits/
 
 @item --disable-largefile
 This omits OS support for large files (i.e. files larger than 2 GB). 

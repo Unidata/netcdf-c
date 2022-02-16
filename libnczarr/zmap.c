@@ -59,7 +59,7 @@ nczmap_create(NCZM_IMPL impl, const char *path, int mode, size64_t flags, void* 
 	break;
 #endif
     default:
-	{stat = NC_ENOTBUILT; goto done;}
+	{stat = REPORT(NC_ENOTBUILT,"nczmap_create"); goto done;}
     }
     if(mapp) *mapp = map;
 done:
@@ -97,7 +97,7 @@ nczmap_open(NCZM_IMPL impl, const char *path, int mode, size64_t flags, void* pa
 	break;
 #endif
     default:
-	{stat = NC_ENOTBUILT; goto done;}
+	{stat = REPORT(NC_ENOTBUILT,"nczmap_open"); goto done;}
     }
 
 done:

@@ -905,7 +905,7 @@ main(int argc, char **argv)
 
       /* Set up options for this var. */
       for (i = 0; i < NVARS5; i++)
-	 deflate_level[i] = i;
+	 deflate_level[i] = i + 1;
 
       /* Create a netcdf-4 file with one dim and two vars. */
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
@@ -999,7 +999,7 @@ main(int argc, char **argv)
       {
 	 if (nc_def_var(ncid, var_name[i], NC_DOUBLE, NDIMS, dimids,
 			&varid[i])) ERR;
-	 if (nc_def_var_deflate(ncid, varid[i], NC_NOSHUFFLE, 1, 0)) ERR;
+	 if (nc_def_var_deflate(ncid, varid[i], NC_NOSHUFFLE, 1, 1)) ERR;
 	 if (nc_def_var_fletcher32(ncid, varid[i], NC_FLETCHER32)) ERR;
       }
 
@@ -1019,7 +1019,7 @@ main(int argc, char **argv)
 	     ndims != 1 || natts != 0 || dimids_in[0] != 0) ERR;
 	 if (nc_inq_var_deflate(ncid, varid[i], &shuffle_in, &deflate_in,
 				&deflate_level_in)) ERR;
-	 if (shuffle_in != NC_NOSHUFFLE || !deflate_in || deflate_level_in != 0) ERR;
+	 if (shuffle_in != NC_NOSHUFFLE || !deflate_in || deflate_level_in != 1) ERR;
 	 if (nc_inq_var_fletcher32(ncid, varid[i], &checksum_in)) ERR;
 	 if (checksum_in != NC_FLETCHER32) ERR;
       }
@@ -1044,7 +1044,7 @@ main(int argc, char **argv)
 	 if (nc_inq_var_deflate(ncid, varid[i], &shuffle_in, &deflate_in,
 				&deflate_level_in)) ERR;
 	 if (shuffle_in != NC_NOSHUFFLE || !deflate_in ||
-	     deflate_level_in != 0) ERR;
+	     deflate_level_in != 1) ERR;
 	 if (nc_inq_var_fletcher32(ncid, varid[i], &checksum_in)) ERR;
 	 if (checksum_in != NC_FLETCHER32) ERR;
       }

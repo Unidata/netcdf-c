@@ -619,5 +619,9 @@ main(int argc, char *argv[]) {
     if((stat = nc_close(ncid)))
 	ERR1(stat);
 
+    free(varyz);
+    free(varxz);
+    free(varxy);
+
     return 0;
 }

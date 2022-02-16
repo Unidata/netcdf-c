@@ -470,12 +470,14 @@ put_att_grpa(NC_GRP_INFO_T *grp, int varid, NC_ATT_INFO_T *att)
      * some phoney data (which won't be written anyway.)*/
     if (!dims[0])
         data = &phoney_data;
-    else if (att->data)
-        data = att->data;
+#ifdef SEPDATA
+    else if (att->vldata)
+        data = att->vldata;
     else if (att->stdata)
         data = att->stdata;
+#endif
     else
-        data = att->vldata;
+        data = att->data;
 
     /* NC_CHAR types require some extra work. The space ID is set to
      * scalar, and the type is told how long the string is. If it's
@@ -1020,7 +1022,12 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
     /* If quantization is in use, write an attribute indicating it, a
      * single integer which is the number of significant digits. */
     if (var->quantize_mode == NC_QUANTIZE_BITGROOM)
-	if ((retval = nc4_put_att(var->container, var->hdr.id, NC_QUANTIZE_ATT_NAME, NC_INT, 1,
+	if ((retval = nc4_put_att(var->container, var->hdr.id, NC_QUANTIZE_BITGROOM_ATT_NAME, NC_INT, 1,
+				  &var->nsd, NC_INT, 0)))
+	    BAIL(retval);
+
+    if (var->quantize_mode == NC_QUANTIZE_GRANULARBR)
+	if ((retval = nc4_put_att(var->container, var->hdr.id, NC_QUANTIZE_GRANULARBR_ATT_NAME, NC_INT, 1,
 				  &var->nsd, NC_INT, 0)))
 	    BAIL(retval);
 

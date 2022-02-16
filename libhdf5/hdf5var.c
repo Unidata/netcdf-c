@@ -666,7 +666,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
     }
 
     /* Are we setting a fill value? */
-    if (fill_value && !var->no_fill)
+    if (fill_value && no_fill && !(*no_fill))
     {
         /* Copy the fill_value. */
         LOG((4, "Copying fill value into metadata for variable %s",
@@ -677,10 +677,16 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
         if (retval && retval != NC_ENOTATT)
             return retval;
 
-        /* Create a _FillValue attribute. */
+        /* Create a _FillValue attribute; will also fill in var->fill_value */
         if ((retval = nc_put_att(ncid, varid, _FillValue, var->type_info->hdr.id,
                                  1, fill_value)))
             return retval;
+    } else if (var->fill_value && no_fill && (*no_fill)) { /* Turning off fill value? */
+        /* If there's a _FillValue attribute, delete it. */
+        retval = NC4_HDF5_del_att(ncid, varid, _FillValue);
+        if (retval && retval != NC_ENOTATT) return retval;
+	if((retval = nc_reclaim_data_all(ncid,var->type_info->hdr.id,var->fill_value,1))) return retval;
+	var->fill_value = NULL;
     }
 
     /* Is the user setting the endianness? */
@@ -715,10 +721,11 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
     {
 	/* Only two valid mode settings. */
 	if (*quantize_mode != NC_NOQUANTIZE &&
-	    *quantize_mode != NC_QUANTIZE_BITGROOM)
+	    *quantize_mode != NC_QUANTIZE_BITGROOM &&
+	    *quantize_mode != NC_QUANTIZE_GRANULARBR)
 	    return NC_EINVAL;
 
-	if (*quantize_mode == NC_QUANTIZE_BITGROOM)
+	if (*quantize_mode == NC_QUANTIZE_BITGROOM || *quantize_mode == NC_QUANTIZE_GRANULARBR)
 	{
 	    /* Only float and double types can have quantization. */
 	    if (var->type_info->hdr.id != NC_FLOAT &&
@@ -777,17 +784,23 @@ int
 NC4_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
                     int deflate_level)
 {
-    int stat = NC_NOERR;
+    int stat;
     unsigned int level = (unsigned int)deflate_level;
-    /* Set shuffle first */
-    if((stat = nc_def_var_extra(ncid, varid, &shuffle, NULL, NULL, NULL,
-				NULL, NULL, NULL, NULL, NULL, NULL, NULL))) goto done;
-    if(deflate) {
-        if((stat = nc_def_var_filter(ncid, varid, H5Z_FILTER_DEFLATE,1,&level))) goto done;
-    } /* else ignore */
 
-done:
-    return stat;
+    /* Set shuffle first */
+    if ((stat = nc_def_var_extra(ncid, varid, &shuffle, NULL, NULL, NULL,
+                                 NULL, NULL, NULL, NULL, NULL, NULL, NULL)))
+        return stat;
+
+    /* Don't turn on deflate if deflate_level = 0. It's a valid zlib
+     * setting, but results in a write slowdown, and a file that is
+     * larger than the uncompressed file would be. So when
+     * deflate_level is 0, don't use compression. */
+    if (deflate && deflate_level)
+        if ((stat = nc_def_var_filter(ncid, varid, H5Z_FILTER_DEFLATE, 1, &level)))
+            return stat;
+
+    return NC_NOERR;
 }
 
 /**
@@ -800,22 +813,24 @@ done:
  * error.)
  *
  * When quantize is turned on, and the number of significant digits
- * has been specified, then the netCDF library will apply all zeros or
+ * has been specified, then the netCDF library will quantize according
+ * to the selected algorithm. BitGroom will apply all zeros or
  * all ones (alternating) to bits which are not needed to specify the
- * value to the number of significant digits. This will change the
- * value of the data, but will make it more compressable.
+ * value to the number of significant digits. GranularBR will zero
+ * more bits than BG, and thus be more compressible and less accurate.
+ * Both will change the value of the data, and will make it more compressible.
  *
  * Quantizing the data does not reduce the size of the data on disk,
  * but combining quantize with compression will allow for better
  * compression. Since the data values are changed, the use of quantize
- * and compression such as deflate constitute lossy compression.
+ * and compression such as DEFLATE constitute lossy compression.
  *
  * Producers of large datasets may find that using quantize with
  * compression will result in significant improvent in the final data
  * size.
  *
  * Variables which use quantize will have added an attribute with name
- * ::NC_QUANTIZE_ATT_NAME, which will contain the number of
+ * ::NC_QUANTIZE_[ALG_NAME]_ATT_NAME, which will contain the number of
  * significant digits. Users should not delete or change this
  * attribute. This is the only record that quantize has been applied
  * to the data.
@@ -833,7 +848,7 @@ done:
  * @param ncid File ID.
  * @param varid Variable ID. NC_GLOBAL may not be used.
  * @param quantize_mode Quantization mode. May be ::NC_NOQUANTIZE or
- * ::NC_QUANTIZE_BITGROOM.
+ * ::NC_QUANTIZE_BITGROOM or ::NC_QUANTIZE_GRANULARBR.
  * @param nsd Number of significant digits. May be any integer from 1
  * to ::NC_QUANTIZE_MAX_FLOAT_NSD (for variables of type ::NC_FLOAT) or
  * ::NC_QUANTIZE_MAX_DOUBLE_NSD (for variables of type ::NC_DOUBLE).
@@ -2111,6 +2126,7 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
         for (i = 0; i < fill_len; i++)
         {
 
+#ifdef SEPDATA
             if (var->type_info->nc_type_class == NC_STRING)
             {
                 if (*(char **)fillvalue)
@@ -2132,6 +2148,13 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
             }
             else
                 memcpy(filldata, fillvalue, file_type_size);
+#else
+	    {
+		/* Copy one instance of the fill_value */
+		if((retval = nc_copy_data(ncid,var->type_info->hdr.id,fillvalue,1,filldata)))
+		    BAIL(retval);
+	    }
+#endif
             filldata = (char *)filldata + file_type_size;
 	}        
     }

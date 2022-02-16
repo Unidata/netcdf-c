@@ -763,6 +763,42 @@ NCD4_get_var_chunk_cache(int ncid, int p2, size_t* p3, size_t* p4, float* p5)
     return (ret);
 }
 
+static int
+NCD4_inq_var_quantize(int ncid, int varid, int *quantize_modep, int *nsdp)
+{
+    NC* ncp;
+    int ret;
+    int substrateid;
+    if((ret = NC_check_id(ncid, (NC**)&ncp)) != NC_NOERR) return (ret);
+    substrateid = makenc4id(ncp,ncid);
+    ret = nc_inq_var_quantize(substrateid, varid, quantize_modep, nsdp);
+    return (ret);
+}
+
+static int
+NCD4_inq_var_filter_ids(int ncid, int varid, size_t* nfilters, unsigned int* filterids)
+{
+    NC* ncp;
+    int ret;
+    int substrateid;
+    if((ret = NC_check_id(ncid, (NC**)&ncp)) != NC_NOERR) return (ret);
+    substrateid = makenc4id(ncp,ncid);
+    ret = nc_inq_var_filter_ids(substrateid, varid, nfilters, filterids);
+    return (ret);
+}
+
+static int
+NCD4_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparams, unsigned int* params)
+{
+    NC* ncp;
+    int ret;
+    int substrateid;
+    if((ret = NC_check_id(ncid, (NC**)&ncp)) != NC_NOERR) return (ret);
+    substrateid = makenc4id(ncp,ncid);
+    ret = nc_inq_var_filter_info(substrateid, varid, id, nparams, params);
+    return (ret);
+}
+
 /**************************************************/
 /*
 Following functions are overridden to handle 
@@ -970,9 +1006,9 @@ NCD4_def_var_filter,
 NCD4_set_var_chunk_cache,
 NCD4_get_var_chunk_cache,
 
-NC_NOTNC4_inq_var_filter_ids,
-NC_NOTNC4_inq_var_filter_info,
+NCD4_inq_var_filter_ids,
+NCD4_inq_var_filter_info,
 
 NC_NOTNC4_def_var_quantize,
-NC_NOTNC4_inq_var_quantize,
+NCD4_inq_var_quantize,
 };

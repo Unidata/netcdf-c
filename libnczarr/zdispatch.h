@@ -173,9 +173,28 @@ EXTERNL int NCZ_def_var_filter(int ncid, int varid, unsigned int filterid, size_
 EXTERNL int NCZ_inq_var_filter_ids(int ncid, int varid, size_t* nfiltersp, unsigned int *filterids);
 EXTERNL int NCZ_inq_var_filter_info(int ncid, int varid, unsigned int filterid, size_t* nparamsp, unsigned int *params);
 
-EXTERNL int NCZ_def_var_filterx(int ncid, int varid, const char* text);
-EXTERNL int NCZ_inq_var_filterx_ids(int ncid, int varid, char** textp);
-EXTERNL int NCZ_inq_var_filterx_info(int ncid, int varid, const char* id, char** textp);
+EXTERNL int NCZ_def_var_quantize(int ncid, int varid, int quantize_mode, int nsd);
+EXTERNL int NCZ_inq_var_quantize(int ncid, int varid, int *quantize_modep, int *nsdp);
+
+/**************************************************/
+/* Following functions wrap libsrc4 */
+EXTERNL int NCZ_inq_type(int ncid, nc_type xtype, char *name, size_t *size);
+EXTERNL int NCZ_inq_dimid(int ncid, const char *name, int *idp);
+EXTERNL int NCZ_inq_unlimdim(int ncid,  int *unlimdimidp);
+EXTERNL int NCZ_inq_attname(int ncid, int varid, int attnum, char *name);
+EXTERNL int NCZ_inq_varid(int ncid, const char* name, int *varidp);
+EXTERNL int NCZ_inq_ncid(int ncid, const char* name, int* grpidp);
+EXTERNL int NCZ_inq_grps(int ncid, int* n, int* ncids);
+EXTERNL int NCZ_inq_grpname(int ncid, char* name);
+EXTERNL int NCZ_inq_grpname_full(int ncid, size_t* lenp, char* fullname);
+EXTERNL int NCZ_inq_grp_parent(int ncid, int* parentidp);
+EXTERNL int NCZ_inq_grp_full_ncid(int ncid, const char* fullname, int* grpidp);
+EXTERNL int NCZ_inq_varids(int ncid, int* nvars, int* varids);
+EXTERNL int NCZ_inq_dimids(int ncid, int* ndims, int* dimids, int inclparents);
+EXTERNL int NCZ_inq_typeids(int ncid, int* ntypes, int* typeids);
+EXTERNL int NCZ_inq_user_type(int ncid, nc_type xtype, char* name, size_t* size, nc_type* basetid, size_t* nfields, int* classp);
+
+/**************************************************/
 
 #if defined(__cplusplus)
 }
