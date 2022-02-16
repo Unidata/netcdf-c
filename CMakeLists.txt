@@ -7,14 +7,16 @@
 ##################################
 
 #Minimum required CMake Version
-cmake_minimum_required(VERSION 3.6.1)
+cmake_minimum_required(VERSION 3.12.0)
+# CMake 3.12: Use libraries specified in CMAKE_REQUIRED_LIBRARIES for check include macros
 
 #Project Name
-project(netCDF LANGUAGES C CXX)
+project(netCDF
+LANGUAGES C CXX
+HOMEPAGE_URL "https://www.unidata.ucar.edu/software/netcdf/"
+DESCRIPTION "NetCDF is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data."
+)
 set(PACKAGE "netCDF" CACHE STRING "")
-
-# Use libraries specified in CMAKE_REQUIRED_LIBRARIES for check include macros
-cmake_policy(SET CMP0075 NEW)
 
 #####
 # Version Info:
@@ -794,7 +796,7 @@ IF(USE_HDF5)
     IF(NOT HDF5_C_LIBRARY)
       SET(HDF5_C_LIBRARY hdf5)
     ENDIF()
-  
+
   ENDIF(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR)
 
   FIND_PACKAGE(Threads)
@@ -814,8 +816,8 @@ IF(USE_HDF5)
   set (CMAKE_REQUIRED_INCLUDES ${HDF5_INCLUDE_DIR})
 
   # Check to ensure that HDF5 was built with zlib.
-  # This needs to be near the beginning since we 
-  # need to know whether to add "-lz" to the symbol 
+  # This needs to be near the beginning since we
+  # need to know whether to add "-lz" to the symbol
   # tests below.
   CHECK_C_SOURCE_COMPILES("#include <H5public.h>
    #if !H5_HAVE_ZLIB_H
@@ -1038,8 +1040,8 @@ IF(NOT WIN32)
 ENDIF()
 
 # Option to Enable DAP long tests, remote tests.
-OPTION(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
 OPTION(ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." ON)
+OPTION(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
 SET(REMOTETESTSERVERS "remotetest.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
 
 # See if we have zlib
@@ -1091,11 +1093,18 @@ ELSE()
 ENDIF()
 
 # libdl is always available; built-in in Windows and OSX
-SET(ENABLE_PLUGINS TRUE)
-IF(NOT WIN32)
-  IF(HAVE_DLFCN_H)
-    INCLUDE_DIRECTORIES("dlfcn.h")
+OPTION(ENABLE_PLUGINS "Enable dynamically loaded plugins (default on)." ON)
+IF(MINGW)
+    SET(ENABLE_PLUGINS OFF CACHE BOOL "Disable plugins" FORCE)
+ELSE()
+  IF(NOT WIN32)
+    IF(HAVE_DLFCN_H)
+      INCLUDE_DIRECTORIES("dlfcn.h")
+    ENDIF()
   ENDIF()
+ENDIF()
+IF(ENABLE_PLUGINS)
+  SET(USEPLUGINS yes)
 ENDIF()
 
 # Enable some developer-only tests
@@ -1262,10 +1271,6 @@ IF(ENABLE_TESTS)
   ###
 
   OPTION(ENABLE_FAILING_TESTS "Run tests which are known to fail, check to see if any have been fixed." OFF)
-
-  # There is a special class of tests that currently fail because of memory leaks.
-  # As with failing tests, they can be enabled to work on them
-  OPTION(ENABLE_UNFIXED_MEMORY_LEAKS "Run tests with unfixed memory leaks" OFF)
 
   ###
   # Option to turn on unit testing. See
@@ -1487,6 +1492,16 @@ IF(NOT BUILD_SHARED_LIBS)
   SET(ENABLE_FILTER_TESTING OFF)
 ENDIF()
 
+OPTION(ENABLE_NCZARR_FILTERS "Enable NCZarr filters" yes)
+IF (NOT ENABLE_PLUGINS)
+    SET(ENABLE_NCZARR_FILTERS OFF CACHE BOOL "Enable NCZarr Filters." FORCE)
+ENDIF()
+
+OPTION(ENABLE_NCZARR_FILTERS_TESTING "Enable NCZarr filter testing." yes)
+IF (NOT ENABLE_NCZARR_FILTERS)
+    SET(ENABLE_NCZARR_FILTER_TESTING OFF CACHE BOOL "Enable NCZarr Filter Testing" FORCE)
+ENDIF()
+
 SET(ENABLE_CLIENTSIDE_FILTERS OFF)
 
 # Determine whether or not to generate documentation.
@@ -1496,9 +1511,9 @@ IF(ENABLE_DOXYGEN)
   # Offer the option to build internal documentation.
   OPTION(ENABLE_INTERNAL_DOCS "Build internal documentation. This is of interest to developers only." OFF)
   IF(ENABLE_INTERNAL_DOCS)
-    SET(BUILD_INTERNAL_DOCS YES CACHE STRING "")
+    SET(BUILD_INTERNAL_DOCS yes CACHE STRING "")
   ELSE()
-    SET(BUILD_INTERNAL_DOCS NO CACHE STRING "")
+    SET(BUILD_INTERNAL_DOCS no CACHE STRING "")
   ENDIF()
 
   ###
@@ -2409,6 +2424,7 @@ configure_file(
 SET(ISCMAKE "1")
 IF(MSVC)
 SET(ISMSVC "1")
+SET(REGEDIT 1)
 ENDIF()
 
 ####
@@ -2446,7 +2462,9 @@ IF(ENABLE_TESTS)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ncdap_test/pingurl.c ${CMAKE_CURRENT_BINARY_DIR}/dap4_test/pingurl4.c @ONLY NEWLINE_STYLE LF)
 ENDIF()
 
-add_subdirectory(fuzz)
+if(DEFINED ENV{LIB_FUZZING_ENGINE})
+  add_subdirectory(fuzz)
+endif(DEFINED ENV{LIB_FUZZING_ENGINE})
 
 ####
 # Export files

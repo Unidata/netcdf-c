@@ -10,7 +10,7 @@
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address.
-AC_INIT([netCDF], [4.8.2-development], [support-netcdf@unidata.ucar.edu], [netcdf-c])
+AC_INIT([netCDF],[4.8.2-development],[support-netcdf@unidata.ucar.edu],[netcdf-c])
 
 ##
 # Prefer an empty CFLAGS variable instead of the default -g -O2.
@@ -92,6 +92,19 @@ AM_INIT_AUTOMAKE([foreign dist-zip subdir-objects])
 
 # Check for the existence of this file before proceeding.
 AC_CONFIG_SRCDIR([include/netcdf.h])
+
+# Figure out platforms of special interest
+case "`uname`" in
+  CYGWIN*) ISCYGWIN=yes;;
+  Darwin*) ISOSX=yes;;
+  WIN*) ISMSVC=yes;;
+  MINGW*) ISMINGW=yes;;
+esac
+
+if test "x$MSYSTEM" != x ; then
+ISMINGW=yes
+ISMSYS=yes
+fi
 
 AC_MSG_NOTICE([checking supported formats])
 
@@ -285,15 +298,6 @@ AC_MSG_RESULT($enable_jna)
 if test "x$enable_jna" = xyes ; then
 AC_DEFINE([JNA], [1], [if true, include jna bug workaround code])
 fi
-
-# Should tests with unfixed memory leaks be run?
-AC_MSG_CHECKING([if unfixed tests with memory leaks should be enabled])
-AC_ARG_ENABLE([unfixed-memory-leaks],
-  [AS_HELP_STRING([--enable-unfixed-memory-leaks],
-    [Enable tests in the ncdump directory that have unfixed memory leaks])])
-test "x$enable_unfixed_memory_leaks" = xyes || enable_unfixed_memory_leaks=no
-AC_MSG_RESULT($enable_unfixed_memory_leaks)
-AM_CONDITIONAL([ENABLE_UNFIXED_MEMORY_LEAKS], [test "x$enable_unfixed_memory_leaks" = xyes])
 
 # Does the user want to turn off unit tests (useful for test coverage
 # analysis).
@@ -521,11 +525,10 @@ CFLAGS="$SAVECFLAGS"
 
 # --enable-dap => enable-dap4
 enable_dap4=$enable_dap
-# Default is to do the short remote tests.
 AC_MSG_CHECKING([whether dap remote testing should be enabled])
 AC_ARG_ENABLE([dap-remote-tests],
-              [AS_HELP_STRING([--disable-dap-remote-tests],
-                                 [disable dap remote tests])])
+              [AS_HELP_STRING([--enable-dap-remote-tests],
+                                 [enable dap remote tests])])
 test "x$enable_dap_remote_tests" = xno || enable_dap_remote_tests=yes
 if test "x$enable_dap" = "xno" ; then
   enable_dap_remote_tests=no
@@ -1180,14 +1183,23 @@ fi
 AC_MSG_CHECKING([whether dynamically loaded plugins is enabled])
 AC_ARG_ENABLE([plugins],
               [AS_HELP_STRING([--disable-plugins],
-                              [allow dynamically loaded plugins])])
-if test "x$have_libdld" = xno ; then enable_plugins=no; fi
+                              [disallow dynamically loaded plugins])])
 test "x$enable_plugins" = xno || enable_plugins=yes
-AC_MSG_RESULT($enable_plugins)
+AC_MSG_RESULT([$enable_plugins])
+if test "x$have_libdld" = xno && test "x$ISMSVC" = xno; then
+  enable_plugins=no
+  AC_MSG_WARN([libdld required for enable-plugins.])  
+fi
+if test "x$enable_plugins" = xyes && test "x$enable_shared" = xno; then
+    AC_MSG_WARN([--disable-shared => --disable-plugins])
+    enable_plugins=no
+fi
+
 if test "x$enable_plugins" = xyes; then
     AC_DEFINE([ENABLE_PLUGINS], [1], [if true, support dynamically loaded plugins])
 fi
 AM_CONDITIONAL(ENABLE_PLUGINS, [test "x$enable_plugins" = xyes])
+AC_SUBST(USEPLUGINS, [${enable_plugins}])
 
 AC_FUNC_ALLOCA
 AC_CHECK_DECLS([isnan, isinf, isfinite],,,[#include <math.h>])
@@ -1199,22 +1211,26 @@ AC_TYPE_UINTPTR_T
 AC_C_CHAR_UNSIGNED
 AC_C_BIGENDIAN
 
-# Figure out platforms of special interest
-case "`uname`" in
-  CYGWIN*) ISCYGWIN=yes;;
-  Darwin*) ISOSX=yes;;
-  WIN*) ISMSVC=yes;;
-  MINGW*) ISMINGW=yes;;
-esac
 AM_CONDITIONAL(ISCYGWIN, [test "x$ISCYGWIN" = xyes])
 AM_CONDITIONAL(ISMSVC, [test "x$ISMSVC" = xyes])
 AM_CONDITIONAL(ISOSX, [test "x$ISOSX" = xyes])
 AM_CONDITIONAL(ISMINGW, [test "x$ISMINGW" = xyes])
+AM_CONDITIONAL(ISMSYS, [test "x$ISMSYS" = xyes])
 
 AC_SUBST([ISMSVC], [${ISMSVC}])
 AC_SUBST([ISCYGWIN], [${ISCYGWIN}])
 AC_SUBST([ISOSX], [${ISOSX}])
 AC_SUBST([ISMINGW], [${ISMINGW}])
+AC_SUBST([ISMSYS], [${ISMSYS}])
+
+if test "x$ISMSVC" != x ; then REGEDIT=yes; fi
+if test "x$ISMSYS" != x ; then REGEDIT=yes; fi
+if test "x$ISCYGWIN" != x ; then REGEDIT=yes; fi
+if test "x$REGEDIT" = xyes; then
+  AC_DEFINE([REGEDIT], 1, [dreg.c usable])
+fi
+AM_CONDITIONAL(REGEDIT, [test "x$REGEDIT" = xyes])
+AC_SUBST([ISREGEDIT], [yes])
 
 ###
 # Crude hack to work around an issue
@@ -1594,9 +1610,6 @@ AC_ARG_ENABLE([nczarr-filters], [AS_HELP_STRING([--disable-nczarr-filters],
               [disable NCZarr filters])])
 test "x$enable_nczarr_filters" = xno || enable_nczarr_filters=yes
 AC_MSG_RESULT([$enable_nczarr_filters])
-if test "x$enable_nczarr_filters" = xyes; then
-   AC_DEFINE([ENABLE_NCZARR_FILTERS], [1], [if true, enable NCZarr filters])
-fi
 
 # Control filter test/example
 AC_MSG_CHECKING([whether filter testing should be run])
@@ -1606,19 +1619,24 @@ AC_ARG_ENABLE([filter-testing],
 test "x$enable_filter_testing" = xno || enable_filter_testing=yes
 AC_MSG_RESULT($enable_filter_testing)
 
-if test "x$enable_nczarr" = xno ; then
+# Apply constraints
+if test "x$enable_plugins" = xno ; then
+AC_MSG_WARN([--disable-plugins => --disable-nczarr-filters])
 enable_nczarr_filters=no
 fi
 
-if test "x$enable_hdf5" = xno && test "x$enable_nczarr" = xno ; then
-AC_MSG_WARN([HDF5 and NCZarr are disabled => --disable-filter-testing])
+if test "x$enable_plugins" = xno ; then
+AC_MSG_WARN([--disable-plugins => --disable-filter-testing])
 enable_filter_testing=no
 fi
 
-if test "x$enable_shared" = xno ; then
-AC_MSG_WARN([Shared libraries are disabled => --disable-filter-testing])
-enable_filter_testing=no
-enable_nczarr_filters=no
+if test "x$enable_filter_testing" = xno; then
+AC_MSG_WARN([--disable-filter-testing => --disable-nczarr-filter-testing])
+enable_nczarr_filter_testing=no
+fi
+
+if test "x$enable_nczarr_filters" = xyes; then
+   AC_DEFINE([ENABLE_NCZARR_FILTERS], [1], [if true, enable NCZarr filters])
 fi
 
 # Client side filter registration is permanently disabled
@@ -1773,16 +1791,6 @@ AC_SUBST(HAS_LOGGING,[$enable_logging])
 AC_SUBST(DO_FILTER_TESTS,[$enable_filter_testing])
 AC_SUBST(HAVE_BLOSC,[$enable_blosc])
 AC_SUBST(HAVE_SZIP,[$enable_szip])
-
-# Include some specifics for netcdf on windows.
-#AH_VERBATIM([_WIN32_STRICMP],
-AH_BOTTOM(
-[/* Define strcasecmp, strncasecmp, snprintf on Win32 systems. */
-#ifdef _WIN32
-	#define strcasecmp _stricmp
-	#define strncasecmp _strnicmp
-	#define snprintf _snprintf
-#endif])
 
 # Access netcdf specific version of config.h
 AH_BOTTOM([#include "ncconfigure.h"])

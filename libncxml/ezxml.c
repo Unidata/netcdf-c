@@ -620,6 +620,7 @@ ezxml_t ezxml_parse_str(char *s, size_t len)
     else return ezxml_err(root, d, "unclosed tag <%s>", root->cur->name);
 }
 
+#if 0
 /* Wrapper for ezxml_parse_str() that accepts a file stream. Reads the entire*/
 /* stream into memory and then parses it. For xml files, use ezxml_parse_file()*/
 /* or ezxml_parse_fd()*/
@@ -685,6 +686,7 @@ ezxml_t ezxml_parse_file(const char *file)
     if (fd >= 0) close(fd);
     return xml;
 }
+#endif /*0*/
 
 /* Encodes ampersand sequences appending the results to *dst, reallocating *dst*/
 /* if length excedes max. a is non-zero for attribute encoding. Returns *dst*/

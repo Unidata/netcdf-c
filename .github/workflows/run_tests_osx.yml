@@ -1,51 +1,43 @@
 ###
 # Build hdf4, hdf5 dependencies and cache them in a combined directory.
+# See https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners
+# for information related to github runners.
 ###
 
-name: Run netCDF Tests
+name: Run macOS-based netCDF Tests
+
 
 on: [pull_request]
 
 jobs:
 
-  build-deps:
+  build-deps-osx:
 
-    runs-on: ubuntu-latest
+    runs-on: macos-11
 
     strategy:
       matrix:
-        hdf5: [ 1.8.21, 1.10.1, 1.10.7, 1.12.1 ]
+        hdf5: [ 1.12.1 ]
 
     steps:
 
       - uses: actions/checkout@v2
 
-      - name: Install System dependencies
-        shell: bash -l {0}
-        run: sudo apt update && sudo apt install -y libaec-dev zlib1g-dev automake autoconf libcurl4-openssl-dev libjpeg-dev wget curl bzip2 m4 flex bison cmake libzip-dev
-
         ###
-        # Installing libhdf4 and libhdf5
+        # libhdf5
         ###
-      - name: Cache libhdf5-${{ matrix.hdf5 }}
-        id: cache-hdf5
+      - name: Cache libhdf5-${{ runner.os }}-${{ matrix.hdf5 }}
+        id: cache-hdf5-osx
         uses: actions/cache@v2
         with:
           path: ~/environments/${{ matrix.hdf5 }}
           key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
 
-
-      - name: Build libhdf5-${{ matrix.hdf5 }}
-        if: steps.cache-hdf5.outputs.cache-hit != 'true'
+      - name: Build libhdf5-${{ runner.os}}-${{ matrix.hdf5 }}
+        if: steps.cache-hdf5-osx.outputs.cache-hit != 'true'
         run: |
           set -x
-          wget https://support.hdfgroup.org/ftp/HDF/releases/HDF4.2.15/src/hdf-4.2.15.tar.bz2
-          tar -jxf hdf-4.2.15.tar.bz2
-          pushd hdf-4.2.15
-          ./configure --prefix=${HOME}/environments/${{ matrix.hdf5 }} --disable-static --enable-shared --disable-fortran --disable-netcdf --with-szlib
-          make -j
-          make install -j
-          popd
+          set -e
           wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$(echo ${{ matrix.hdf5 }} | cut -d. -f 1,2)/hdf5-${{ matrix.hdf5 }}/src/hdf5-${{ matrix.hdf5 }}.tar.bz2
           tar -jxf hdf5-${{ matrix.hdf5 }}.tar.bz2
           pushd hdf5-${{ matrix.hdf5 }}
@@ -55,24 +47,21 @@ jobs:
           popd
 
 
-  nc-autotools:
+  nc-autotools-osx:
 
-    needs: [ nc-cmake-tests-oneoff, nc-ac-tests-oneoff ]
-    runs-on: ubuntu-latest
+    needs: [ nc-cmake-tests-oneoff-osx, nc-ac-tests-oneoff-osx ]
+    runs-on: macos-11
 
     strategy:
       matrix:
-        hdf5: [ 1.8.21, 1.10.1, 1.10.7, 1.12.1 ]
+        hdf5: [ 1.12.1 ]
+        #hdf5: [ 1.8.21, 1.10.1, 1.10.7, 1.12.1 ]
         use_nc4: [ nc3, nc4 ]
         use_dap: [ dap_off, dap_on ]
         use_nczarr: [ nczarr_off, nczarr_on ]
     steps:
 
       - uses: actions/checkout@v2
-
-      - name: Install System dependencies
-        shell: bash -l {0}
-        run: sudo apt update && sudo apt install -y libaec-dev zlib1g-dev automake autoconf libcurl4-openssl-dev libjpeg-dev wget curl bzip2 m4 flex bison cmake libzip-dev
 
 ###
 # Set Environmental Variables
@@ -83,11 +72,11 @@ jobs:
       - run: echo "LD_LIBRARY_PATH=${HOME}/environments/${{ matrix.hdf5 }}/lib" >> $GITHUB_ENV
       - run: |
           echo "ENABLE_HDF4=--disable-hdf4" >> $GITHUB_ENV
-          echo "ENABLE_NC4=--disable-hdf5" >> $GITHUB_ENV
+          echo "ENABLE_HDF5=--disable-hdf5" >> $GITHUB_ENV
         if: matrix.use_nc4 == 'nc3'
       - run: |
           echo "ENABLE_HDF4=--enable-hdf4" >> $GITHUB_ENV
-          echo "ENABLE_NC4=--enable-hdf5" >> $GITHUB_ENV
+          echo "ENABLE_HDF5=--enable-hdf5" >> $GITHUB_ENV
         if: matrix.use_nc4 == 'nc4'
       - run: echo "ENABLE_DAP=--disable-dap" >> $GITHUB_ENV
         if: matrix.use_dap == 'dap_off'
@@ -103,7 +92,7 @@ jobs:
 ###
 
       - name: Fetch HDF Cache
-        id: cache-hdf
+        id: cache-hdf-osx
         uses: actions/cache@v2
         with:
           path: ~/environments/${{ matrix.hdf5 }}
@@ -116,6 +105,9 @@ jobs:
 ###
 # Configure and build
 ###
+      - name: Install autoconf
+        shell: bash -l {0}
+        run: brew install automake
 
       - name: Run autoconf
         shell: bash -l {0}
@@ -123,7 +115,7 @@ jobs:
 
       - name: Configure
         shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure ${ENABLE_HDF4} ${ENABLE_NC4} ${ENABLE_DAP} ${ENABLE_NCZARR}
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure ${ENABLE_HDF5} ${ENABLE_DAP} ${ENABLE_NCZARR}
         if: ${{ success() }}
 
       - name: Look at config.log if error
@@ -152,7 +144,7 @@ jobs:
 
      # - name: Make Distcheck
      #   shell: bash -l {0}
-     #   run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} DISTCHECK_CONFIGURE_FLAGS="${ENABLE_HDF4} ${ENABLE_NC4} ${ENABLE_DAP} ${ENABLE_NCZARR}" make distcheck
+     #   run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} DISTCHECK_CONFIGURE_FLAGS="${ENABLE_HDF4} ${ENABLE_HDF5} ${ENABLE_DAP} ${ENABLE_NCZARR}" make distcheck
      #   if: ${{ success() }}
 
       #- name: Start SSH Debug
@@ -162,24 +154,20 @@ jobs:
       #    SSH_PASS: ${{ secrets.SSH_PASS }}
       #  if: ${{ failure() }}
 
-  nc-cmake:
+  nc-cmake-osx:
 
-    needs: [ nc-cmake-tests-oneoff, nc-ac-tests-oneoff ]
-    runs-on: ubuntu-latest
+    needs: [ nc-cmake-tests-oneoff-osx, nc-ac-tests-oneoff-osx ]
+    runs-on: macos-11
 
     strategy:
       matrix:
-        hdf5: [ 1.8.21, 1.10.1, 1.10.7, 1.12.1 ]
+        hdf5: [ 1.12.1 ]
         use_nc4: [ nc3, nc4 ]
         use_dap: [ dap_off, dap_on ]
         use_nczarr: [ nczarr_off, nczarr_on ]
     steps:
 
       - uses: actions/checkout@v2
-
-      - name: Install System dependencies
-        shell: bash -l {0}
-        run: sudo apt update && sudo apt install -y libaec-dev zlib1g-dev automake autoconf libcurl4-openssl-dev libjpeg-dev wget curl bzip2 m4 flex bison cmake libzip-dev
 
 ###
 # Set Environmental Variables
@@ -189,11 +177,11 @@ jobs:
       - run: echo "LD_LIBRARY_PATH=${HOME}/environments/${{ matrix.hdf5 }}/lib" >> $GITHUB_ENV
       - run: |
           echo "ENABLE_HDF4=OFF" >> $GITHUB_ENV
-          echo "ENABLE_NC4=OFF" >> $GITHUB_ENV
+          echo "ENABLE_HDF5=OFF" >> $GITHUB_ENV
         if: matrix.use_nc4 == 'nc3'
       - run: |
           echo "ENABLE_HDF4=ON" >> $GITHUB_ENV
-          echo "ENABLE_NC4=ON" >> $GITHUB_ENV
+          echo "ENABLE_HDF5=ON" >> $GITHUB_ENV
         if: matrix.use_nc4 == 'nc4'
       - run: echo "ENABLE_DAP=OFF" >> $GITHUB_ENV
         if: matrix.use_dap == 'dap_off'
@@ -210,7 +198,7 @@ jobs:
 ###
 
       - name: Fetch HDF Cache
-        id: cache-hdf5
+        id: cache-hdf5-osx
         uses: actions/cache@v2
         with:
           path: ~/environments/${{ matrix.hdf5 }}
@@ -229,7 +217,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DENABLE_HDF4=${ENABLE_HDF4} -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DENABLE_DAP=${ENABLE_DAP} -DENABLE_HDF5=${ENABLE_NC4} -DENABLE_NCZARR=${ENABLE_NCZARR}
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DENABLE_DAP=${ENABLE_DAP} -DENABLE_HDF5=${ENABLE_HDF5} -DENABLE_NCZARR=${ENABLE_NCZARR}
 
       - name: Print Summary
         shell: bash -l {0}
@@ -248,7 +236,7 @@ jobs:
         shell: bash -l {0}
         run: |
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest -j 12 .
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest --verbose -j 12 .
         if: ${{ success() }}
 
       - name: Verbose Output if CTest Failure
@@ -262,21 +250,17 @@ jobs:
 #####
 # One-Off Autotools-based tests.
 #####
-  nc-ac-tests-oneoff:
+  nc-ac-tests-oneoff-osx:
 
-    needs: build-deps
-    runs-on: ubuntu-latest
+    needs: build-deps-osx
+    runs-on: macos-11
 
     strategy:
       matrix:
-        hdf5: [ 1.10.7 ]
+        hdf5: [ 1.12.1 ]
     steps:
 
       - uses: actions/checkout@v2
-
-      - name: Install System dependencies
-        shell: bash -l {0}
-        run: sudo apt update && sudo apt install -y libaec-dev zlib1g-dev automake autoconf libcurl4-openssl-dev libjpeg-dev wget curl bzip2 m4 flex bison cmake libzip-dev
 
 ###
 # Set Environmental Variables
@@ -292,7 +276,7 @@ jobs:
 ###
 
       - name: Fetch HDF Cache
-        id: cache-hdf
+        id: cache-hdf-osx
         uses: actions/cache@v2
         with:
           path: ~/environments/${{ matrix.hdf5 }}
@@ -306,13 +290,17 @@ jobs:
 # Configure and build
 ###
 
+      - name: Install autoconf
+        shell: bash -l {0}
+        run: brew install automake
+
       - name: Run autoconf
         shell: bash -l {0}
         run: autoreconf -if
 
       - name: Configure
         shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure --enable-hdf4 --enable-hdf5 --enable-dap --enable-dap-long-tests
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests
         if: ${{ success() }}
 
       - name: Look at config.log if error
@@ -343,22 +331,18 @@ jobs:
 # One-Off CMake-based tests.
 #####
 
-  nc-cmake-tests-oneoff:
+  nc-cmake-tests-oneoff-osx:
 
-    needs: build-deps
-    runs-on: ubuntu-latest
+    needs: build-deps-osx
+    runs-on: macos-11
 
     strategy:
       matrix:
-        hdf5: [ 1.10.7]
+        hdf5: [ 1.12.1 ]
 
     steps:
 
       - uses: actions/checkout@v2
-
-      - name: Install System dependencies
-        shell: bash -l {0}
-        run: sudo apt update && sudo apt install -y libaec-dev zlib1g-dev automake autoconf libcurl4-openssl-dev libjpeg-dev wget curl bzip2 m4 flex bison cmake libzip-dev
 
 ###
 # Set Environmental Variables
@@ -372,7 +356,7 @@ jobs:
 ###
 
       - name: Fetch HDF Cache
-        id: cache-hdf5
+        id: cache-hdf5-osx
         uses: actions/cache@v2
         with:
           path: ~/environments/${{ matrix.hdf5 }}
@@ -391,7 +375,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DENABLE_HDF4=TRUE -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DENABLE_DAP=TRUE -DENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -D ENABLE_DAP_LONG_TESTS=TRUE
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DENABLE_DAP=TRUE -DENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -D ENABLE_DAP_LONG_TESTS=TRUE
 
       - name: Print Summary
         shell: bash -l {0}
@@ -410,7 +394,7 @@ jobs:
         shell: bash -l {0}
         run: |
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest -j 12 .
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest --output-on-failure -j 12 .
         if: ${{ success() }}
 
       - name: Verbose Output if CTest Failure

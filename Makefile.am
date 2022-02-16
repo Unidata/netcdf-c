@@ -16,7 +16,7 @@ cmake CMakeLists.txt COMPILE.cmake.txt config.h.cmake.in		\
 cmake_uninstall.cmake.in FixBundle.cmake.in nc-config.cmake.in		\
 RELEASE_NOTES.md CTestCustom.cmake CTestConfig.cmake.in			\
 libnetcdf.settings.in netCDFConfig.cmake.in CMakeInstallation.cmake	\
-test-driver-verbose test_common.in
+test-driver-verbose test_common.in fuzz
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = netcdf.pc
@@ -94,8 +94,10 @@ ZARR = libnczarr
 endif
 
 # Optionally build test plugins
+if ENABLE_PLUGINS
 if ENABLE_FILTER_TESTING
 PLUGIN_DIR = plugins
+endif
 endif
 
 # If benchmarks were turned on, build and run a bunch more tests.
@@ -105,7 +107,8 @@ endif # BUILD_BENCHMARKS
 
 # Define Test directories
 if BUILD_TESTSETS
-TESTDIRS = $(UNIT_TEST) $(V2_TEST) nc_test $(NC_TEST4)
+TESTDIRS = $(H5_TEST_DIR) 
+TESTDIRS += $(UNIT_TEST) $(V2_TEST) nc_test $(NC_TEST4)
 TESTDIRS += $(BENCHMARKS_DIR) $(HDF4_TEST_DIR) $(NCDAP2TESTDIR) $(NCDAP4TESTDIR)
 TESTDIRS += ${ZARR_TEST_DIR}
 endif
@@ -113,10 +116,10 @@ endif
 # This is the list of subdirs for which Makefiles will be constructed
 # and run. ncgen must come before ncdump, because their tests
 # depend on it.
-SUBDIRS = include $(H5_TEST_DIR) ${XML} libdispatch libsrc $(LIBSRC4_DIR)	\
+SUBDIRS = include ${XML} libdispatch libsrc $(LIBSRC4_DIR)	\
 $(LIBSRCP) $(LIBHDF4) $(LIBHDF5) $(OCLIB) $(DAP2) ${DAP4} \
 ${NCPOCO} ${ZARR} liblib \
-$(NCGEN3) $(NCGEN) $(NCDUMP) ${PLUGIN_DIR} $(TESTDIRS) docs		\
+$(NCGEN3) $(NCGEN) $(NCDUMP) ${PLUGIN_DIR} $(TESTDIRS) docs	\
 $(EXAMPLES)
 
 # Remove these generated files, for a distclean.
@@ -199,11 +202,11 @@ install-data-hook:
 	@echo '| but your platform is probably different in some ways.       |'
 	@echo '|                                                             |'
 	@echo '| If any tests fail, please see the netCDF web site:          |'
-	@echo '| http://www.unidata.ucar.edu/software/netcdf/                |'
+	@echo '| https://www.unidata.ucar.edu/software/netcdf/                |'
 	@echo '|                                                             |'
 	@echo '| NetCDF is developed and maintained at the Unidata Program   |'
 	@echo '| Center. Unidata provides a broad array of data and software |'
 	@echo '| tools for use in geoscience education and research.         |'
-	@echo '| http://www.unidata.ucar.edu                                 |'
+	@echo '| https://www.unidata.ucar.edu                                 |'
 	@echo '+-------------------------------------------------------------+'
 	@echo ''

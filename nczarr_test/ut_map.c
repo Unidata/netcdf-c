@@ -66,6 +66,7 @@ main(int argc, char** argv)
     if((stat = NCpathcanonical(utoptions.output,&tmp))) goto done;
     free(utoptions.output);
     utoptions.output = tmp;
+fprintf(stderr,"file=%s output=%s\n",utoptions.file,utoptions.output);
 
     impl = kind2impl(utoptions.kind);
     url = makeurl(utoptions.file,impl,&utoptions);

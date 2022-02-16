@@ -44,9 +44,10 @@ nch5breakpoint(int err)
 }
 
 int
-nch5throw(int err)
+nch5throw(int err, int line)
 {
     if(err == 0) return err;
+    fprintf(stderr,">>> hdf5throw: line=%d err=%d\n",line,err); fflush(stderr);
     return nch5breakpoint(err);
 }
 #endif

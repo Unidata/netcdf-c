@@ -486,6 +486,7 @@ nc_var_filter_remove(int ncid, int varid, unsigned int filterid)
 }
 #endif
 
+#ifdef ENABLE_NCZARR_FILTERS
 int
 NCZ_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
                    const unsigned int* params)
@@ -678,7 +679,7 @@ NCZ_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparamsp, 
 done:
     return ZUNTRACEX(stat,"nparams=%u",(unsigned)(nparamsp?*nparamsp:0));
 }
-
+#endif /*ENABLE_NCZARR_FILTERS*/
 
 /**************************************************/
 /* Filter application functions */
@@ -692,7 +693,9 @@ NCZ_filter_initialize(void)
     {
         NCZ_filter_initialized = 1;
         memset(loaded_plugins,0,sizeof(loaded_plugins));
+#ifdef ENABLE_NCZARR_FILTERS
         if((stat = NCZ_load_all_plugins())) goto done;
+#endif
     }
 done:
     return ZUNTRACE(stat);
@@ -704,6 +707,8 @@ NCZ_filter_finalize(void)
     int stat = NC_NOERR;
     int i;
     ZTRACE(6,"");
+    if(!NCZ_filter_initialized) goto done;
+#ifdef ENABLE_NCZARR_FILTERS
     /* Reclaim all loaded filters */
     for(i=0;i<=loaded_plugins_max;i++) {
         NCZ_unload_plugin(loaded_plugins[i]);
@@ -711,6 +716,11 @@ NCZ_filter_finalize(void)
     }
     /* Reclaim the defaults library; Must occur as last act */
     if(default_lib != NULL) {(void)ncpsharedlibfree(default_lib); default_lib = NULL; codec_defaults = NULL;}
+#else
+    memset(loaded_plugins,0,sizeof(loaded_plugins));
+#endif
+done:
+    NCZ_filter_initialized = 0;
     return ZUNTRACE(stat);
 }
 
@@ -769,7 +779,6 @@ NCZ_applyfilterchain(const NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, NClist* cha
 	void* next_buf = NULL;
 	size_t next_used = 0;
 
-
 #ifdef DEBUG
 fprintf(stderr,"current: alloc=%u used=%u buf=%p\n",(unsigned)current_alloc,(unsigned)current_used,current_buf);
 #endif
@@ -787,6 +796,7 @@ fprintf(stderr,"current: alloc=%u used=%u buf=%p\n",(unsigned)current_alloc,(uns
 fprintf(stderr,"next: alloc=%u used=%u buf=%p\n",(unsigned)next_alloc,(unsigned)next_used,next_buf);
 #endif
 		if(next_used == 0) {stat = NC_EFILTER; lastbuffer = next_buf; goto done; }
+		/* If the filter did not need to create a new buffer, then next == current else current was reclaimed */
 	        current_buf = next_buf;
 	        current_alloc = next_alloc;
 	        current_used = next_used;
@@ -805,6 +815,7 @@ fprintf(stderr,"next: alloc=%u used=%u buf=%p\n",(unsigned)next_alloc,(unsigned)
 fprintf(stderr,"next: alloc=%u used=%u buf=%p\n",(unsigned)next_alloc,(unsigned)next_used,next_buf);
 #endif
 		if(next_used == 0) {stat = NC_EFILTER; lastbuffer = next_buf; goto done;}
+		/* If the filter did not need to create a new buffer, then next == current else current was reclaimed */
 	        current_buf = next_buf;
 	        current_alloc = next_alloc;
 	        current_used = next_used;
@@ -1442,28 +1453,34 @@ ensure_working(const NC_VAR_INFO_T* var, NCZ_Filter* filter)
 {
     int stat = NC_NOERR;
     if(!(filter->flags & FLAG_WORKING)) {
-	size_t vnparams = filter->hdf5.visible.nparams;
-	unsigned* vparams = filter->hdf5.visible.params;
+	const size_t oldnparams = filter->hdf5.visible.nparams;
+	const unsigned* oldparams = filter->hdf5.visible.params;
 
 	assert(filter->flags & FLAG_VISIBLE);
-        /* Convert the visible parameters to working parameters (and back) */
-        if(filter->plugin->codec.codec->NCZ_modify_parameters) {
-	        stat = filter->plugin->codec.codec->NCZ_modify_parameters(ncidfor(var),var->hdr.id,
+        /* Convert the visible parameters to working parameters; may also modify the visible params */
+        if(filter->plugin && filter->plugin->codec.codec->NCZ_modify_parameters) {
+	    stat = filter->plugin->codec.codec->NCZ_modify_parameters(ncidfor(var),var->hdr.id,
 				&filter->hdf5.visible.nparams, &filter->hdf5.visible.params,
 				&filter->hdf5.working.nparams, &filter->hdf5.working.params);
-	        if(stat) goto done;
+#ifdef DEBUGF
+	    fprintf(stderr,"DEBUGF: NCZ_modify_parameters: ncid=%d varid=%d filter=%s\n", (int)ncidfor(var),(int)var->hdr.id,
+			printfilter(filter));
+#endif
+	    if(stat) goto done;
+  	    /* See if the visible parameters were changed */
+	    if(oldnparams != filter->hdf5.visible.nparams || oldparams != filter->hdf5.visible.params)
+	        filter->flags |= FLAG_NEWVISIBLE;
 	} else {
-	    /* Just use the visible parameters */
+	    /* assume visible are unchanged */
+	    assert(oldnparams == filter->hdf5.visible.nparams && oldparams == filter->hdf5.visible.params); /* unchanged */
+	    /* Just copy the visible parameters */
 	    nullfree(filter->hdf5.working.params);
 	    if((stat = paramnczclone(&filter->hdf5.working,&filter->hdf5.visible))) goto done;
 	}
 	filter->flags |= FLAG_WORKING;
-	/* See if the visible parameters were changed */
-	if(vnparams != filter->hdf5.visible.nparams || vparams != filter->hdf5.visible.params)
-	    filter->flags |= FLAG_NEWVISIBLE;
     }
 #ifdef DEBUGF
-	fprintf(stderr,"DEBUGF: ensure_working_parameters: ncid=%lu varid=%u filter=%s\n", ncidfor(var), (unsigned)var->hdr.id,printfilter(filter));
+    fprintf(stderr,"DEBUGF: ensure_working_parameters: ncid=%lu varid=%u filter=%s\n", ncidfor(var), (unsigned)var->hdr.id,printfilter(filter));
 #endif
 done:
     return THROW(stat);
@@ -1531,40 +1548,16 @@ NCZ_filter_setup(NC_VAR_INFO_T* var)
     filters = (NClist*)var->filters;
     for(i=0;i<nclistlength(filters);i++) {    
 	NCZ_Filter* filter = (NCZ_Filter*)nclistget(filters,i);
-	size_t vnparams;
-	unsigned* vparams = NULL;
-	assert(filter != NULL && filter->plugin != NULL);
+        assert(filter != NULL && filter->plugin != NULL);
         assert((filter->flags & FLAG_VISIBLE)); /* Assume visible params are defined */
  	/* verify */
 	assert(filter->hdf5.id > 0 && (filter->hdf5.visible.nparams == 0 || filter->hdf5.visible.params != NULL));
-        assert((filter->flags & FLAG_WORKING)==0); /* Assume working params are not defined */
-	assert(filter->hdf5.working.nparams == 0 && filter->hdf5.working.params == NULL);
-	vnparams = filter->hdf5.visible.nparams;
-	vparams = filter->hdf5.visible.params;
 	/* Initialize the working parameters */
-	if(filter->plugin && filter->plugin->codec.codec->NCZ_modify_parameters) {
-	    stat = filter->plugin->codec.codec->NCZ_modify_parameters(ncidfor(var),var->hdr.id,
-							&filter->hdf5.visible.nparams,&filter->hdf5.visible.params,
-							&filter->hdf5.working.nparams,&filter->hdf5.working.params);
-#ifdef DEBUGF
-	    fprintf(stderr,"DEBUGF: NCZ_modify_parameters: ncid=%d varid=%d filter=%s\n", (int)ncidfor(var),(int)var->hdr.id,
-			printfilter(filter));
-#endif
-	    if(stat) goto done;
-	} else {/* Just copy over the visible params */
-	    filter->hdf5.working.nparams = vnparams;
-	    if(vnparams > 0) {
-		if((stat=paramclone(vnparams,&filter->hdf5.working.params,vparams))) goto done;
-	    }
-	}
+	if((stat = ensure_working(var,filter))) goto done;
 #ifdef DEBUGF
 	fprintf(stderr,"DEBUGF: NCZ_filter_setup: ncid=%d varid=%d filter=%s\n", (int)ncidfor(var),(int)var->hdr.id,
 			printfilter(filter));
 #endif
-        filter->flags |= FLAG_WORKING;
-	/* See if the visible parameters were changed */
-	if(vnparams != filter->hdf5.visible.nparams || vparams != filter->hdf5.visible.params)
-	    filter->flags |= FLAG_NEWVISIBLE;
     }
 
 done:

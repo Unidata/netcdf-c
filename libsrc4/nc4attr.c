@@ -54,7 +54,6 @@ nc4_get_att_ptrs(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var,
     void *bufr = NULL;
     size_t type_size;
     int varid;
-    int i;
     int retval;
 
     LOG((3, "%s: mem_type %d", __func__, mem_type));
@@ -139,11 +138,13 @@ nc4_get_att_ptrs(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var,
        bugs! */
     if (data)
     {
+#ifdef SEPDATA
         if (att->vldata)
         {
             size_t base_typelen;
             nc_hvl_t *vldest = data;
             NC_TYPE_INFO_T *type;
+	    int i;
 
             /* Get the type object for the attribute's type */
             if ((retval = nc4_find_type(h5, att->nc_typeid, &type)))
@@ -163,6 +164,7 @@ nc4_get_att_ptrs(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var,
         }
         else if (att->stdata)
         {
+	    int i;
             for (i = 0; i < att->len; i++)
             {
                 /* Check for NULL pointer for string (valid in HDF5) */
@@ -179,6 +181,12 @@ nc4_get_att_ptrs(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var,
         {
             memcpy(data, bufr, (size_t)(att->len * type_size));
         }
+#else
+	{
+	    if((retval = nc_copy_data(h5->controller->ext_ncid,mem_type,bufr,att->len,data)))
+	        BAIL(retval);
+	}
+#endif
     }
 
 exit:

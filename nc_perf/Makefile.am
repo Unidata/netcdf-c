@@ -26,7 +26,8 @@ LDADD = ${top_builddir}/liblib/libnetcdf.la
 check_PROGRAMS = tst_create_files bm_file tst_chunks3 tst_ar4	\
 tst_ar4_3d tst_ar4_4d bm_many_objs tst_h_many_atts bm_many_atts	\
 tst_files2 tst_files3 tst_mem tst_mem1 tst_knmi bm_netcdf4_recs	\
-tst_wrf_reads tst_attsperf bigmeta openbigmeta tst_bm_rando	
+tst_wrf_reads tst_attsperf bigmeta openbigmeta tst_bm_rando	\
+tst_compress
 
 bm_file_SOURCES = bm_file.c tst_utils.c
 bm_file_LDFLAGS = -no-install
@@ -41,6 +42,7 @@ tst_h_many_atts_SOURCES = tst_h_many_atts.c tst_utils.c
 tst_knmi_SOURCES = tst_knmi.c tst_utils.c
 tst_wrf_reads_SOURCES = tst_wrf_reads.c tst_utils.c
 tst_bm_rando_SOURCES = tst_bm_rando.c tst_utils.c
+tst_compress_SOURCES = tst_compress.c tst_utils.c
 
 # Removing tst_mem1 because it sometimes fails on very busy system.
 # Removing run_knmi_bm.sh because it fetches files from a server and
@@ -48,7 +50,7 @@ tst_bm_rando_SOURCES = tst_bm_rando.c tst_utils.c
 # in CI.
 TESTS = tst_ar4_3d tst_create_files tst_files3 tst_mem tst_wrf_reads	\
 tst_attsperf perftest.sh run_tst_chunks.sh run_bm_elena.sh		\
-tst_bm_rando
+tst_bm_rando tst_compress
 
 run_bm_elena.log: tst_create_files.log
 
