@@ -18,10 +18,12 @@
 #include "config.h"
 #include "netcdf.h"
 #include "netcdf_filter.h"
+#include "netcdf_meta.h"
 #include "nc4internal.h"
 #include "nc.h" /* from libsrc */
 #include "ncdispatch.h" /* from libdispatch */
 #include "ncutf8.h"
+#include <stdarg.h>
 
 /** @internal Number of reserved attributes. These attributes are
  * hidden from the netcdf user, but exist in the implementation
@@ -58,12 +60,77 @@ float nc4_chunk_cache_preemption = CHUNK_CACHE_PREEMPTION; /**< Default chunk ca
 
 static int NC4_move_in_NCList(NC* nc, int new_id);
 
-#ifdef LOGGING
+#if NC_HAS_LOGGING
 /* This is the severity level of messages which will be logged. Use
    severity 0 for errors, 1 for important log messages, 2 for less
    important, etc. */
 int nc_log_level = NC_TURN_OFF_LOGGING;
-#endif /* LOGGING */
+#if NC_HAS_PARALLEL4
+/* File pointer for the parallel I/O log file. */
+FILE *LOG_FILE = NULL;
+#endif /* NC_HAS_PARALLEL4 */
+
+/* This function prints out a message, if the severity of
+ * the message is lower than the global nc_log_level. To use it, do
+ * something like this:
+ *
+ * nc_log(0, "this computer will explode in %d seconds", i);
+ *
+ * After the first arg (the severity), use the rest like a normal
+ * printf statement. Output will appear on stderr for sequential
+ * builds, and in a file nc4_log_R.log for each process for a parallel
+ * build, where R is the rank of the process.
+ *
+ * Ed Hartnett
+ */
+void
+nc_log(int severity, const char *fmt, ...)
+{
+    va_list argp;
+    int t;
+    FILE *f = stderr;
+
+    /* If the severity is greater than the log level, we don't print
+     * this message. */
+    if (severity > nc_log_level)
+        return;
+
+#if NC_HAS_PARALLEL4
+    /* For parallel I/O build, if MPI has been initialized, instead of
+     * printing logging output to stderr, it goes to a file for each
+     * process. */
+    {
+        int mpi_initialized;
+        int mpierr;
+
+        /* Check to see if MPI has been initialized. */
+        if ((mpierr = MPI_Initialized(&mpi_initialized)))
+            return;
+
+        /* If MPI has been initialized use a log file. */
+        assert(LOG_FILE);
+        if (mpi_initialized)
+            f = LOG_FILE;
+    }
+#endif /* NC_HAS_PARALLEL4 */
+
+    /* If the severity is zero, this is an error. Otherwise insert that
+       many tabs before the message. */
+    if (!severity)
+        fprintf(f, "ERROR: ");
+    for (t = 0; t < severity; t++)
+        fprintf(f, "\t");
+
+    /* Print out the variable list of args with vprintf. */
+    va_start(argp, fmt);
+    vfprintf(f, fmt, argp);
+    va_end(argp);
+
+    /* Put on a final linefeed. */
+    fprintf(f, "\n");
+    fflush(f);
+}
+#endif /* NC_HAS_LOGGING */
 
 /**
  * @internal Check and normalize and name.
@@ -1684,13 +1751,74 @@ nc4_normalize_name(const char *name, char *norm_name)
 #ifdef ENABLE_SET_LOG_LEVEL
 
 /**
- * @internal Use this to set the global log level. Set it to
- * NC_TURN_OFF_LOGGING (-1) to turn off all logging. Set it to 0 to
- * show only errors, and to higher numbers to show more and more
- * logging details. If logging is not enabled with --enable-logging at
- * configure when building netCDF, this function will do nothing.
- * Note that it is possible to set the log level using the environment
- * variable named _NETCDF_LOG_LEVEL_ (e.g. _export NETCDF_LOG_LEVEL=4_).
+ * Initialize parallel I/O logging. For parallel I/O builds, open log
+ * file, if not opened yet, or increment ref count if already open.
+ *
+ * @author Ed Hartnett
+ */
+int
+nc4_init_logging(void)
+{
+    int ret = NC_NOERR;
+
+#if NC_HAS_LOGGING
+#if NC_HAS_PARALLEL4
+    if (!LOG_FILE && nc_log_level >= 0)
+    {
+        char log_filename[NC_MAX_NAME];
+        int my_rank = 0;
+        int mpierr;
+        int mpi_initialized;
+
+        /* If MPI has been initialized find the rank. */
+        if ((mpierr = MPI_Initialized(&mpi_initialized)))
+            return NC_EMPI;
+        if (mpi_initialized)
+        {
+            if ((mpierr = MPI_Comm_rank(MPI_COMM_WORLD, &my_rank)))
+                return NC_EMPI;
+        }
+
+        /* Create a filename with the rank in it. */
+        sprintf(log_filename, "nc4_log_%d.log", my_rank);
+
+        /* Open a file for this rank to log messages. */
+        if (!(LOG_FILE = fopen(log_filename, "w")))
+            return NC_EINTERNAL;
+    }
+#endif /* NC_HAS_PARALLEL4 */
+#endif /* NC_HAS_LOGGING */
+
+    return ret;
+}
+
+/**
+ * Finalize logging - close parallel I/O log files, if open. This does
+ * nothing if logging is not enabled.
+ *
+ * @author Ed Hartnett
+ */
+void
+nc4_finalize_logging(void)
+{
+#if NC_HAS_LOGGING
+#if NC_HAS_PARALLEL4
+    if (LOG_FILE)
+    {
+        fclose(LOG_FILE);
+        LOG_FILE = NULL;
+    }
+#endif /* NC_HAS_PARALLEL4 */
+#endif /* NC_HAS_LOGGING */
+}
+
+/**
+ * Use this to set the global log level. 
+ * 
+ * Set it to NC_TURN_OFF_LOGGING (-1) to turn off all logging. Set it
+ * to 0 to show only errors, and to higher numbers to show more and
+ * more logging details. If logging is not enabled when building
+ * netCDF, this function will do nothing.
  *
  * @param new_level The new logging level.
  *
@@ -1700,16 +1828,30 @@ nc4_normalize_name(const char *name, char *norm_name)
 int
 nc_set_log_level(int new_level)
 {
-#ifdef LOGGING
+#if NC_HAS_LOGGING
     /* Remember the new level. */
     nc_log_level = new_level;
-    LOG((4, "log_level changed to %d", nc_log_level));
-#endif /*LOGGING */
-    return 0;
+
+#if NC_HAS_PARALLEL4
+    /* For parallel I/O builds, call the log init/finalize functions
+     * as needed, to open and close the log files. */
+    if (new_level >= 0)
+    {
+        if (!LOG_FILE)
+            nc4_init_logging();
+    }
+    else
+        nc4_finalize_logging();
+#endif /* NC_HAS_PARALLEL4 */
+    
+    LOG((1, "log_level changed to %d", nc_log_level));
+#endif /*NC_HAS_LOGGING */
+    
+    return NC_NOERR;
 }
 #endif /* ENABLE_SET_LOG_LEVEL */
 
-#ifdef LOGGING
+#if NC_HAS_LOGGING
 #define MAX_NESTS 10
 /**
  * @internal Recursively print the metadata of a group.
@@ -1878,7 +2020,7 @@ log_metadata_nc(NC_FILE_INFO_T *h5)
     return NC_NOERR;
 }
 
-#endif /*LOGGING */
+#endif /*NC_HAS_LOGGING */
 
 /**
  * @internal Show the in-memory metadata for a netcdf file. This
@@ -1895,7 +2037,7 @@ int
 NC4_show_metadata(int ncid)
 {
     int retval = NC_NOERR;
-#ifdef LOGGING
+#if NC_HAS_LOGGING
     NC_FILE_INFO_T *h5;
     int old_log_level = nc_log_level;
 
@@ -1907,7 +2049,7 @@ NC4_show_metadata(int ncid)
     nc_log_level = 2;
     retval = log_metadata_nc(h5);
     nc_log_level = old_log_level;
-#endif /*LOGGING*/
+#endif /*NC_HAS_LOGGING*/
     return retval;
 }
 
