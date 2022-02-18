@@ -33,7 +33,7 @@
 
 /** Used in quantize code. Number of explicit bits in significand for
  * floats. Bits 0-22 of SP significands are explicit. Bit 23 is
- * implicitly 1. Currently redundant with NC_QUANTIZE_MAX_FLOAT_NSB */
+ * implicitly 1. Currently redundant with NC_QUANTIZE_MAX_FLOAT_NSB
  * and with limits.h/climit (FLT_MANT_DIG-1) */
 #define BIT_XPL_NBR_SGN_FLT (23)
 
@@ -565,29 +565,29 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
     /* If quantize is in use, set up some values. Quantize can only be
      * used when the destination type is NC_FLOAT or NC_DOUBLE. */
     if (quantize_mode != NC_NOQUANTIZE)
-    {
+      {
         assert(dest_type == NC_FLOAT || dest_type == NC_DOUBLE);
 
 	/* Parameters shared by all quantization codecs */
         if (dest_type == NC_FLOAT)
-        {
+	  {
             /* Determine the fill value. */
             if (fill_value)
-                mss_val_cmp_flt = *(float *)fill_value;
+	      mss_val_cmp_flt = *(float *)fill_value;
             else
-                mss_val_cmp_flt = NC_FILL_FLOAT;
+	      mss_val_cmp_flt = NC_FILL_FLOAT;
 
-        }
+	  }
         else
-        {
+	  {
 	
             /* Determine the fill value. */
             if (fill_value)
-                mss_val_cmp_dbl = *(double *)fill_value;
+	      mss_val_cmp_dbl = *(double *)fill_value;
             else
-                mss_val_cmp_dbl = NC_FILL_DOUBLE;
+	      mss_val_cmp_dbl = NC_FILL_DOUBLE;
 
-        }
+	  }
 
 	/* Set parameters used by BitGroom and BitRound here, outside value loop.
 	   Equivalent parameters used by GranularBR are set inside value loop,
@@ -595,7 +595,6 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 	if (quantize_mode == NC_QUANTIZE_BITGROOM ||
 	    quantize_mode == NC_QUANTIZE_BITROUND )
 	  {
-
 
 	    if (quantize_mode == NC_QUANTIZE_BITGROOM){
 
@@ -659,9 +658,11 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 
 	      }
 
-	  }
+	    }
 	  
-    } /* endif quantize */
+	  }
+	    
+      } /* endif quantize */
 
     /* OK, this is ugly. If you can think of anything better, I'm open
        to suggestions!
@@ -1450,9 +1451,9 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
     } /* endif BitGroom */
 
     if (quantize_mode == NC_QUANTIZE_BITROUND)
-    {
+      {
         if (dest_type == NC_FLOAT)
-        {
+	  {
             /* BitRound: Quantize to user-specified NSB with IEEE-rounding */
             op1.fp = (float *)dest;
             u32_ptr = op1.ui32p;
@@ -1462,9 +1463,9 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 		u32_ptr[idx] &= msk_f32_u32_zro; /* Shave it */
 	      }
 	    }
-        }
+	  }
         else
-        {
+	  {
             /* BitRound: Quantize to user-specified NSB with IEEE-rounding */
             op1.dp = (double *)dest;
             u64_ptr = op1.ui64p;
@@ -1474,8 +1475,8 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 		u64_ptr[idx] &= msk_f64_u64_zro; /* Shave it */
 	      }
 	    }
-        }
-    } /* endif BitRound */
+	  }
+      } /* endif BitRound */
     
     if (quantize_mode == NC_QUANTIZE_GRANULARBR)
     {
