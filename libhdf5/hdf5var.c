@@ -716,36 +716,54 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
     }
 
     /* Remember quantization settings. They will be used when data are
-     * written. */
+     * written.
+     * Code block is identical to one in zvar.c---consider functionalizing */
     if (quantize_mode)
     {
-	/* Only two valid mode settings. */
+	/* Only four valid mode settings. */
 	if (*quantize_mode != NC_NOQUANTIZE &&
 	    *quantize_mode != NC_QUANTIZE_BITGROOM &&
-	    *quantize_mode != NC_QUANTIZE_GRANULARBR)
+	    *quantize_mode != NC_QUANTIZE_GRANULARBR &&
+	    *quantize_mode != NC_QUANTIZE_BITROUND)
 	    return NC_EINVAL;
 
-	if (*quantize_mode == NC_QUANTIZE_BITGROOM || *quantize_mode == NC_QUANTIZE_GRANULARBR)
+	if (*quantize_mode == NC_QUANTIZE_BITGROOM ||
+	    *quantize_mode == NC_QUANTIZE_GRANULARBR ||
+	    *quantize_mode == NC_QUANTIZE_BITROUND)
 	{
 	    /* Only float and double types can have quantization. */
 	    if (var->type_info->hdr.id != NC_FLOAT &&
 		var->type_info->hdr.id != NC_DOUBLE)
 		return NC_EINVAL;
 	    
-	    /* For bitgroom, number of significant digits is required. */
+	    
+	    /* All quantization codecs require number of significant digits */
 	    if (!nsd)
 		return NC_EINVAL;
 
 	    /* NSD must be in range. */
 	    if (*nsd <= 0)
 		return NC_EINVAL;
-	    if (var->type_info->hdr.id == NC_FLOAT &&
-		*nsd > NC_QUANTIZE_MAX_FLOAT_NSD)
-		return NC_EINVAL;
-	    if (var->type_info->hdr.id == NC_DOUBLE &&
-		*nsd > NC_QUANTIZE_MAX_DOUBLE_NSD)
-		return NC_EINVAL;
 
+	    if (*quantize_mode == NC_QUANTIZE_BITGROOM ||
+		*quantize_mode == NC_QUANTIZE_GRANULARBR)
+	      { 
+		if (var->type_info->hdr.id == NC_FLOAT &&
+		    *nsd > NC_QUANTIZE_MAX_FLOAT_NSD)
+		  return NC_EINVAL;
+		if (var->type_info->hdr.id == NC_DOUBLE &&
+		    *nsd > NC_QUANTIZE_MAX_DOUBLE_NSD)
+		  return NC_EINVAL;
+	      }
+	    else if (*quantize_mode == NC_QUANTIZE_BITROUND)
+	      {
+		if (var->type_info->hdr.id == NC_FLOAT &&
+		    *nsd > NC_QUANTIZE_MAX_FLOAT_NSB)
+		  return NC_EINVAL;
+		if (var->type_info->hdr.id == NC_DOUBLE &&
+		    *nsd > NC_QUANTIZE_MAX_DOUBLE_NSB)
+		  return NC_EINVAL;
+	      }
 	    var->nsd = *nsd;
 	}
 	
@@ -813,12 +831,25 @@ NC4_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
  * error.)
  *
  * When quantize is turned on, and the number of significant digits
- * has been specified, then the netCDF library will quantize according
- * to the selected algorithm. BitGroom will apply all zeros or
- * all ones (alternating) to bits which are not needed to specify the
- * value to the number of significant digits. GranularBR will zero
- * more bits than BG, and thus be more compressible and less accurate.
- * Both will change the value of the data, and will make it more compressible.
+ * (NSD) has been specified, then the netCDF library will quantize according
+ * to the selected algorithm. BitGroom interprets NSD as decimal digits
+ * will apply all zeros or all ones (alternating) to bits which are not 
+ * needed to specify the value to the number of significant decimal digits. 
+ * BitGroom retain the same number of bits for all values of a variable. 
+ * BitRound (BR) interprets NSD as binary digits (i.e., bits) and keeps the
+ * the user-specified number of significant bits then rounds the result
+ * to the nearest representable number according to IEEE rounding rules.
+ * BG and BR both retain a uniform number of significant bits for all 
+ * values of a variable. Granular BitRound interprest NSD as decimal
+ * digits. GranularBR determines the number of bits to necessary to 
+ * retain the user-specified number of significant digits individually
+ * for every value of the variable. GranularBR then applies the BR
+ * quantization algorithm on a granular, value-by-value, rather than
+ * uniformly for the entire variable. GranularBR quantizes more bits
+ * than BG, and is thus more compressive and less accurate than BG.
+ * BR knows bits and makes no guarantees about decimal precision.
+ * All quantization algorithms change the values of the data, and make 
+ * it more compressible.
  *
  * Quantizing the data does not reduce the size of the data on disk,
  * but combining quantize with compression will allow for better
@@ -830,10 +861,10 @@ NC4_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
  * size.
  *
  * Variables which use quantize will have added an attribute with name
- * ::NC_QUANTIZE_[ALG_NAME]_ATT_NAME, which will contain the number of
- * significant digits. Users should not delete or change this
- * attribute. This is the only record that quantize has been applied
- * to the data.
+ * ::NC_QUANTIZE_BITGROOM_ATT_NAME, ::NC_QUANTIZE_GRANULARBR_ATT_NAME, 
+ * or ::NC_QUANTIZE_BITROUND_ATT_NAME that contains the number of 
+ * significant digits. Users should not delete or change this attribute. 
+ * This is the only record that quantize has been applied to the data.
  *
  * As with the deflate settings, quantize settings may only be
  * modified before the first call to nc_enddef(). Once nc_enddef() is
@@ -848,10 +879,15 @@ NC4_def_var_deflate(int ncid, int varid, int shuffle, int deflate,
  * @param ncid File ID.
  * @param varid Variable ID. NC_GLOBAL may not be used.
  * @param quantize_mode Quantization mode. May be ::NC_NOQUANTIZE or
- * ::NC_QUANTIZE_BITGROOM or ::NC_QUANTIZE_GRANULARBR.
- * @param nsd Number of significant digits. May be any integer from 1
- * to ::NC_QUANTIZE_MAX_FLOAT_NSD (for variables of type ::NC_FLOAT) or
- * ::NC_QUANTIZE_MAX_DOUBLE_NSD (for variables of type ::NC_DOUBLE).
+ * ::NC_QUANTIZE_BITGROOM, ::NC_QUANTIZE_BITROUND or ::NC_QUANTIZE_GRANULARBR.
+ * @param nsd Number of significant digits (either decimal or binary). 
+ * May be any integer from 1 to ::NC_QUANTIZE_MAX_FLOAT_NSD (for variables 
+ * of type ::NC_FLOAT) or ::NC_QUANTIZE_MAX_DOUBLE_NSD (for variables 
+ * of type ::NC_DOUBLE) for mode ::NC_QUANTIZE_BITGROOM and mode
+ * ::NC_QUANTIZE_GRANULARBR. May be any integer from 1 to 
+ * ::NC_QUANTIZE_MAX_FLOAT_NSB (for variables of type ::NC_FLOAT) or 
+ * ::NC_QUANTIZE_MAX_DOUBLE_NSB (for variables of type ::NC_DOUBLE) 
+ * for mode ::NC_QUANTIZE_BITROUND.
  *
  * @returns ::NC_NOERR No error.
  * @returns ::NC_EBADID Bad ncid.
