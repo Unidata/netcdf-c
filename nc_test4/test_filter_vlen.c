@@ -17,6 +17,10 @@
 
 #undef DEBUG
 
+#ifndef H5Z_FILTER_FLETCHER32
+#define H5Z_FILTER_FLETCHER32      3
+#endif
+
 /* The C standard apparently defines all floating point constants as double;
    we rely on that in this code.
 */
@@ -370,99 +374,21 @@ static int
 test_test1(void)
 {
     int ok = 1;
-
-    reset();
-
-    buildbaseline(1);
-
-    fprintf(stderr,"test1: compression.\n");
-    create();
-    defvar(NC_FLOAT);
-    setchunking();
-    setvarfilter();
-    showparameters();
-    CHECK(nc_enddef(ncid));
-
-    /* Fill in the array */
-    fill();
-    /* write array */
-    CHECK(nc_put_var(ncid,varid,expected));
-    CHECK(nc_close(ncid));
-
-    fprintf(stderr,"test1: decompression.\n");
-    reset();
-    openfile();
-    CHECK(nc_get_var_float(ncid, varid, array));
-    ok = compare();
-    CHECK(nc_close(ncid));
-    return ok;
-}
-
-static int
-test_test2(void)
-{
-    int ok = 1;
-
-    reset();
-
-    buildbaseline(2);
-
-    fprintf(stderr,"test2: dimsize %% chunksize != 0: compress.\n");
-    create();
-    defvar(NC_FLOAT);
-    setchunking();
-    setvarfilter();
-    showparameters();
-    CHECK(nc_enddef(ncid));
-
-    /* Fill in the array */
-    fill();
-    /* write array */
-    CHECK(nc_put_var(ncid,varid,expected));
-    CHECK(nc_close(ncid));
-
-    fprintf(stderr,"test2: dimsize %% chunksize != 0: decompress.\n");
-    reset();
-    openfile();
-    CHECK(nc_get_var_float(ncid, varid, array));
-    ok = compare();
-    CHECK(nc_close(ncid));
-    return ok;
-}
-
-static int
-test_test3(void)
-{
-    int ok = 1;
     int stat = NC_NOERR;
 
     reset();
-
-    buildbaseline(3);
-
-    fprintf(stderr,"test3: dimsize %% chunksize != 0: compress.\n");
+    buildbaseline(1);
+    fprintf(stderr,"test4: filter on a variable length type.\n");
     create();
-    defvar(NC_FLOAT);
+    defvar(NC_STRING);
     setchunking();
-    setvarfilter();
-    showparameters();
-    CHECK(nc_enddef(ncid));
-
-    /* Fill in the array */
-    fill();
-    /* write array */
-    stat = nc_put_var(ncid,varid,expected);
-
-    fprintf(stderr,"test3: error code = %d\n",stat);
-
-    CHECK(nc_close(ncid));
-
-    fprintf(stderr,"test3: dimsize %% chunksize != 0: decompress.\n");
-    reset();
-    openfile();
-    CHECK(nc_get_var_float(ncid, varid, array));
-    ok = compare();
-    CHECK(nc_close(ncid));
+    /* Do explicit filter; should fail */
+    switch (stat = nc_def_var_filter(ncid,varid,H5Z_FILTER_FLETCHER32,0,NULL)) {
+    case NC_EFILTER: break; /* XFAIL */
+    case NC_NOERR: CHECK(NC_EINVAL); break;
+    default:  CHECK(stat); break;
+    }
+    CHECK(nc_abort(ncid));
     return ok;
 }
 
@@ -564,7 +490,5 @@ main(int argc, char **argv)
 #endif
     init(argc,argv);
     if(!test_test1()) ERRR;
-    if(!test_test2()) ERRR;
-    if(!test_test3()) ERRR;
     exit(nerrs > 0?1:0);
 }

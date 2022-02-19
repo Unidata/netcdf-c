@@ -73,9 +73,8 @@ NC_s3sdkinitialize(void)
 	ncs3_finalized = 0;
         NCTRACE(11,NULL);
 	Aws::InitAPI(ncs3options);
-	NCUNTRACE(NC_NOERR);
     }
-    return 1;
+    return NCUNTRACE(NC_NOERR);
 }
 
 EXTERNL int
@@ -86,9 +85,8 @@ NC_s3sdkfinalize(void)
 	ncs3_finalized = 1;
         NCTRACE(11,NULL);
         Aws::ShutdownAPI(ncs3options);
-        NCUNTRACE(NC_NOERR);
     }
-    return 1;
+    return NCUNTRACE(NC_NOERR);
 }
 
 static char*

@@ -251,7 +251,6 @@ diff -b -w ${srcdir}/ref_filter_repeat.txt tmp_filterrepeat.txt
 fi
 
 if test "x$ORDER" = x1 ; then
-
 echo "*** Testing multiple filter order of invocation on create"
 rm -f tmp_crfilterorder.txt
 ${execdir}/test_filter_order create >tmp_crfilterorder.txt
