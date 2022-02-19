@@ -604,12 +604,9 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 	       * exact binary digits of precision. Add one because the first bit
 	       * is implicit not explicit but corner cases prevent our taking
 	       * advantage of this. */
-	    prc_bnr_xpl_rqr = (unsigned short)ceil(nsd * bit_per_dgt) + 1;
-	    if (dest_type == NC_DOUBLE)
-	      prc_bnr_xpl_rqr++; /* Seems necessary for double-precision
-				  * ppc=array(1.234567,1.0e-6,$dmn) */
+	      prc_bnr_xpl_rqr = (unsigned short)ceil(nsd * bit_per_dgt) + 1;
 
-	    else if (quantize_mode == NC_QUANTIZE_BITROUND){
+	    }else if (quantize_mode == NC_QUANTIZE_BITROUND){
 
 	      /* BitRound interprets nsd as number of significant binary digits (bits) */
 	      prc_bnr_xpl_rqr = nsd;
@@ -658,12 +655,10 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 
 	      }
 
-	    }
-	  
 	  }
-	    
+	  
       } /* endif quantize */
-
+	    
     /* OK, this is ugly. If you can think of anything better, I'm open
        to suggestions!
 
