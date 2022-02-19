@@ -139,7 +139,7 @@ struct Specialtoken specials[] = {
 {"_Filter",_FILTER,_FILTER_FLAG},
 {"_Codecs",_CODECS,_CODECS_FLAG},
 {"_QuantizeBitGroomNumberOfSignificantDigits",_QUANTIZEBG,_QUANTIZEBG_FLAG},
-{"_QuantizeBitRoundNumberOfSignificantDigits",_QUANTIZEBR,_QUANTIZEBR_FLAG},
+{"_QuantizeGranularBitRoundNumberOfSignificantDigits",_QUANTIZEGBR,_QUANTIZEGBR_FLAG},
 {NULL,0} /* null terminate */
 };
 

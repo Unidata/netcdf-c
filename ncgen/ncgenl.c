@@ -1,5 +1,5 @@
 
-#line 3 "ncgenl.c"
+#line 2 "ncgenl.c"
 
 #define  YY_INT_ALIGNED short int
 
@@ -1675,11 +1675,11 @@ struct Specialtoken specials[] = {
 {"_Filter",_FILTER,_FILTER_FLAG},
 {"_Codecs",_CODECS,_CODECS_FLAG},
 {"_QuantizeBitGroomNumberOfSignificantDigits",_QUANTIZEBG,_QUANTIZEBG_FLAG},
-{"_QuantizeBitRoundNumberOfSignificantDigits",_QUANTIZEBR,_QUANTIZEBR_FLAG},
+{"_QuantizeGranularBitRoundNumberOfSignificantDigits",_QUANTIZEGBR,_QUANTIZEGBR_FLAG},
 {NULL,0} /* null terminate */
 };
 
-#line 1683 "ncgenl.c"
+#line 1682 "ncgenl.c"
 
 /* The most correct (validating) version of UTF8 character set
    (Taken from: http://www.w3.org/2005/03/23-lex-U)
@@ -1722,7 +1722,7 @@ ID ([A-Za-z_]|{UTF8})([A-Z.@#\[\]a-z_0-9+-]|{UTF8})*
 /* Note: this definition of string will work for utf8 as well,
    although it is a very relaxed definition
 */
-#line 1726 "ncgenl.c"
+#line 1725 "ncgenl.c"
 
 #define INITIAL 0
 #define ST_C_COMMENT 1
@@ -1943,7 +1943,7 @@ YY_DECL
 	{
 #line 225 "ncgen.l"
 
-#line 1947 "ncgenl.c"
+#line 1946 "ncgenl.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -2570,7 +2570,7 @@ YY_RULE_SETUP
 #line 597 "ncgen.l"
 ECHO;
 	YY_BREAK
-#line 2574 "ncgenl.c"
+#line 2573 "ncgenl.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(TEXT):
 	yyterminate();
