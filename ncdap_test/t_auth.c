@@ -16,7 +16,7 @@ See \ref copyright file for more info.
 #include <unistd.h>
 #endif
 
-#define DEBUG
+#undef DEBUG
 
 #include "netcdf.h"
 #include "nctestserver.h"

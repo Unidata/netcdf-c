@@ -23,7 +23,7 @@
 #include <locale.h>
 #endif
 
-#define DEBUG
+#undef DEBUG
 
 /* The data file we will create. */
 static const unsigned char prefix[] = {
