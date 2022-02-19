@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 3.7.5.  */
+/* A Bison parser, made by GNU Bison 3.8.2.  */
 
 /* Bison implementation for Yacc-like parsers in C
 
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -46,10 +46,10 @@
    USER NAME SPACE" below.  */
 
 /* Identify Bison output, and Bison version.  */
-#define YYBISON 30705
+#define YYBISON 30802
 
 /* Bison version string.  */
-#define YYBISON_VERSION "3.7.5"
+#define YYBISON_VERSION "3.8.2"
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME "yacc.c"
@@ -302,7 +302,7 @@ enum yysymbol_kind_t
   YYSYMBOL__FILTER = 54,                   /* _FILTER  */
   YYSYMBOL__CODECS = 55,                   /* _CODECS  */
   YYSYMBOL__QUANTIZEBG = 56,               /* _QUANTIZEBG  */
-  YYSYMBOL__QUANTIZEBR = 57,               /* _QUANTIZEBR  */
+  YYSYMBOL__QUANTIZEGBR = 57,              /* _QUANTIZEGBR  */
   YYSYMBOL_DATASETID = 58,                 /* DATASETID  */
   YYSYMBOL_59_ = 59,                       /* '{'  */
   YYSYMBOL_60_ = 60,                       /* '}'  */
@@ -538,12 +538,18 @@ typedef int yy_state_fast_t;
 # define YY_USE(E) /* empty */
 #endif
 
-#if defined __GNUC__ && ! defined __ICC && 407 <= __GNUC__ * 100 + __GNUC_MINOR__
 /* Suppress an incorrect diagnostic about yylval being uninitialized.  */
-# define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN                            \
+#if defined __GNUC__ && ! defined __ICC && 406 <= __GNUC__ * 100 + __GNUC_MINOR__
+# if __GNUC__ * 100 + __GNUC_MINOR__ < 407
+#  define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN                           \
+    _Pragma ("GCC diagnostic push")                                     \
+    _Pragma ("GCC diagnostic ignored \"-Wuninitialized\"")
+# else
+#  define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN                           \
     _Pragma ("GCC diagnostic push")                                     \
     _Pragma ("GCC diagnostic ignored \"-Wuninitialized\"")              \
     _Pragma ("GCC diagnostic ignored \"-Wmaybe-uninitialized\"")
+# endif
 # define YY_IGNORE_MAYBE_UNINITIALIZED_END      \
     _Pragma ("GCC diagnostic pop")
 #else
@@ -763,7 +769,7 @@ static const yytype_int8 yytranslate[] =
 };
 
 #if YYDEBUG
-  /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
+/* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
        0,   242,   242,   248,   250,   257,   264,   264,   267,   276,
@@ -807,7 +813,7 @@ static const char *const yytname[] =
   "GROUP", "PATH", "FILLMARKER", "NIL", "_FILLVALUE", "_FORMAT",
   "_STORAGE", "_CHUNKSIZES", "_DEFLATELEVEL", "_SHUFFLE", "_ENDIANNESS",
   "_NOFILL", "_FLETCHER32", "_NCPROPS", "_ISNETCDF4", "_SUPERBLOCK",
-  "_FILTER", "_CODECS", "_QUANTIZEBG", "_QUANTIZEBR", "DATASETID", "'{'",
+  "_FILTER", "_CODECS", "_QUANTIZEBG", "_QUANTIZEGBR", "DATASETID", "'{'",
   "'}'", "';'", "','", "'='", "'('", "')'", "'*'", "':'", "$accept",
   "ncdesc", "datasetid", "rootgroup", "groupbody", "subgrouplist",
   "namedgroup", "$@1", "$@2", "typesection", "typedecls", "typename",
@@ -831,21 +837,6 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }
 #endif
 
-#ifdef YYPRINT
-/* YYTOKNUM[NUM] -- (External) token number corresponding to the
-   (internal) symbol number NUM (which must be that of a token).  */
-static const yytype_int16 yytoknum[] =
-{
-       0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
-     265,   266,   267,   268,   269,   270,   271,   272,   273,   274,
-     275,   276,   277,   278,   279,   280,   281,   282,   283,   284,
-     285,   286,   287,   288,   289,   290,   291,   292,   293,   294,
-     295,   296,   297,   298,   299,   300,   301,   302,   303,   304,
-     305,   306,   307,   308,   309,   310,   311,   312,   313,   123,
-     125,    59,    44,    61,    40,    41,    42,    58
-};
-#endif
-
 #define YYPACT_NINF (-149)
 
 #define yypact_value_is_default(Yyn) \
@@ -856,8 +847,8 @@ static const yytype_int16 yytoknum[] =
 #define yytable_value_is_error(Yyn) \
   0
 
-  /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
-     STATE-NUM.  */
+/* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
+   STATE-NUM.  */
 static const yytype_int16 yypact[] =
 {
      -10,   -13,    46,  -149,    -3,  -149,   237,  -149,  -149,  -149,
@@ -890,9 +881,9 @@ static const yytype_int16 yypact[] =
     -149,  -149,  -149
 };
 
-  /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
-     Performed when YYTABLE does not specify something else to do.  Zero
-     means the default is an error.  */
+/* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
+   Performed when YYTABLE does not specify something else to do.  Zero
+   means the default is an error.  */
 static const yytype_uint8 yydefact[] =
 {
        0,     0,     0,     3,     0,     1,    88,     2,    35,    36,
@@ -925,7 +916,7 @@ static const yytype_uint8 yydefact[] =
       73,    10,    81
 };
 
-  /* YYPGOTO[NTERM-NUM].  */
+/* YYPGOTO[NTERM-NUM].  */
 static const yytype_int16 yypgoto[] =
 {
     -149,  -149,  -149,  -149,    -8,   -35,  -149,  -149,  -149,  -149,
@@ -937,7 +928,7 @@ static const yytype_int16 yypgoto[] =
     -149,  -148,  -149,   -41,   -34,   -73,  -149,   -22
 };
 
-  /* YYDEFGOTO[NTERM-NUM].  */
+/* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int16 yydefgoto[] =
 {
        0,     2,     4,     7,    23,    36,    49,   192,   257,    40,
@@ -949,9 +940,9 @@ static const yytype_int16 yydefgoto[] =
      190,   114,   161,    86,    87,    88,   214,    30
 };
 
-  /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
-     positive, shift that token.  If negative, reduce the rule whose
-     number is the opposite.  If YYTABLE_NINF, syntax error.  */
+/* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
+   positive, shift that token.  If negative, reduce the rule whose
+   number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int16 yytable[] =
 {
       35,    78,   106,    74,    89,   153,    75,   191,    80,    81,
@@ -1050,8 +1041,8 @@ static const yytype_int16 yycheck[] =
       -1,    -1,    -1,    -1,    -1,    -1,    39
 };
 
-  /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
-     symbol of state STATE-NUM.  */
+/* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
+   state STATE-NUM.  */
 static const yytype_uint8 yystos[] =
 {
        0,    31,    69,    58,    70,     0,    59,    71,     4,     5,
@@ -1084,7 +1075,7 @@ static const yytype_uint8 yystos[] =
      106,   115,   111
 };
 
-  /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
+/* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_uint8 yyr1[] =
 {
        0,    68,    69,    70,    71,    72,    73,    73,    75,    76,
@@ -1105,7 +1096,7 @@ static const yytype_uint8 yyr1[] =
      131,   131,   131,   132,   133,   133,   134,   134,   135
 };
 
-  /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
+/* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
        0,     2,     3,     1,     4,     5,     0,     2,     0,     0,
@@ -1135,6 +1126,7 @@ enum { YYENOMEM = -2 };
 #define YYACCEPT        goto yyacceptlab
 #define YYABORT         goto yyabortlab
 #define YYERROR         goto yyerrorlab
+#define YYNOMEM         goto yyexhaustedlab
 
 
 #define YYRECOVERING()  (!!yyerrstatus)
@@ -1175,10 +1167,7 @@ do {                                            \
     YYFPRINTF Args;                             \
 } while (0)
 
-/* This macro is provided for backward compatibility. */
-# ifndef YY_LOCATION_PRINT
-#  define YY_LOCATION_PRINT(File, Loc) ((void) 0)
-# endif
+
 
 
 # define YY_SYMBOL_PRINT(Title, Kind, Value, Location)                    \
@@ -1205,10 +1194,6 @@ yy_symbol_value_print (FILE *yyo,
   YY_USE (yyoutput);
   if (!yyvaluep)
     return;
-# ifdef YYPRINT
-  if (yykind < YYNTOKENS)
-    YYPRINT (yyo, yytoknum[yykind], *yyvaluep);
-# endif
   YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
   YY_USE (yykind);
   YY_IGNORE_MAYBE_UNINITIALIZED_END
@@ -1663,6 +1648,7 @@ yyparse (void)
   YYDPRINTF ((stderr, "Starting parse\n"));
 
   yychar = YYEMPTY; /* Cause a token to be read.  */
+
   goto yysetstate;
 
 
@@ -1688,7 +1674,7 @@ yysetstate:
 
   if (yyss + yystacksize - 1 <= yyssp)
 #if !defined yyoverflow && !defined YYSTACK_RELOCATE
-    goto yyexhaustedlab;
+    YYNOMEM;
 #else
     {
       /* Get the current used size of the three stacks, in elements.  */
@@ -1716,7 +1702,7 @@ yysetstate:
 # else /* defined YYSTACK_RELOCATE */
       /* Extend the stack our own way.  */
       if (YYMAXDEPTH <= yystacksize)
-        goto yyexhaustedlab;
+        YYNOMEM;
       yystacksize *= 2;
       if (YYMAXDEPTH < yystacksize)
         yystacksize = YYMAXDEPTH;
@@ -1727,7 +1713,7 @@ yysetstate:
           YY_CAST (union yyalloc *,
                    YYSTACK_ALLOC (YY_CAST (YYSIZE_T, YYSTACK_BYTES (yystacksize))));
         if (! yyptr)
-          goto yyexhaustedlab;
+          YYNOMEM;
         YYSTACK_RELOCATE (yyss_alloc, yyss);
         YYSTACK_RELOCATE (yyvs_alloc, yyvs);
 #  undef YYSTACK_RELOCATE
@@ -1748,6 +1734,7 @@ yysetstate:
         YYABORT;
     }
 #endif /* !defined yyoverflow && !defined YYSTACK_RELOCATE */
+
 
   if (yystate == YYFINAL)
     YYACCEPT;
@@ -1863,13 +1850,13 @@ yyreduce:
   case 2: /* ncdesc: NETCDF datasetid rootgroup  */
 #line 245 "ncgen.y"
         {if (error_count > 0) YYABORT;}
-#line 1867 "ncgeny.c"
+#line 1854 "ncgeny.c"
     break;
 
   case 3: /* datasetid: DATASETID  */
 #line 248 "ncgen.y"
                      {createrootgroup(datasetname);}
-#line 1873 "ncgeny.c"
+#line 1860 "ncgeny.c"
     break;
 
   case 8: /* $@1: %empty  */
@@ -1881,25 +1868,25 @@ yyreduce:
                     yyerror("duplicate group declaration within parent group for %s",
                                 id->name);
             }
-#line 1885 "ncgeny.c"
+#line 1872 "ncgeny.c"
     break;
 
   case 9: /* $@2: %empty  */
 #line 276 "ncgen.y"
             {listpop(groupstack);}
-#line 1891 "ncgeny.c"
+#line 1878 "ncgeny.c"
     break;
 
   case 12: /* typesection: TYPES  */
 #line 282 "ncgen.y"
                         {}
-#line 1897 "ncgeny.c"
+#line 1884 "ncgeny.c"
     break;
 
   case 13: /* typesection: TYPES typedecls  */
 #line 284 "ncgen.y"
                         {markcdf4("Type specification");}
-#line 1903 "ncgeny.c"
+#line 1890 "ncgeny.c"
     break;
 
   case 16: /* typename: ident  */
@@ -1911,19 +1898,19 @@ yyreduce:
                             (yyvsp[0].sym)->name);
               listpush(typdefs,(void*)(yyvsp[0].sym));
 	    }
-#line 1915 "ncgeny.c"
+#line 1902 "ncgeny.c"
     break;
 
   case 17: /* type_or_attr_decl: typedecl  */
 #line 299 "ncgen.y"
                             {}
-#line 1921 "ncgeny.c"
+#line 1908 "ncgeny.c"
     break;
 
   case 18: /* type_or_attr_decl: attrdecl ';'  */
 #line 299 "ncgen.y"
                                               {}
-#line 1927 "ncgeny.c"
+#line 1914 "ncgeny.c"
     break;
 
   case 25: /* enumdecl: primtype ENUM typename '{' enumidlist '}'  */
@@ -1954,13 +1941,13 @@ yyreduce:
                 }
                 listsetlength(stack,stackbase);/* remove stack nodes*/
               }
-#line 1958 "ncgeny.c"
+#line 1945 "ncgeny.c"
     break;
 
   case 26: /* enumidlist: enumid  */
 #line 342 "ncgen.y"
                 {(yyval.mark)=listlength(stack); listpush(stack,(void*)(yyvsp[0].sym));}
-#line 1964 "ncgeny.c"
+#line 1951 "ncgeny.c"
     break;
 
   case 27: /* enumidlist: enumidlist ',' enumid  */
@@ -1979,7 +1966,7 @@ yyreduce:
 		    }
 		    listpush(stack,(void*)(yyvsp[0].sym));
 		}
-#line 1983 "ncgeny.c"
+#line 1970 "ncgeny.c"
     break;
 
   case 28: /* enumid: ident '=' constint  */
@@ -1990,7 +1977,7 @@ yyreduce:
             (yyvsp[-2].sym)->typ.econst=(yyvsp[0].constant);
 	    (yyval.sym)=(yyvsp[-2].sym);
         }
-#line 1994 "ncgeny.c"
+#line 1981 "ncgeny.c"
     break;
 
   case 29: /* opaquedecl: OPAQUE_ '(' INT_CONST ')' typename  */
@@ -2004,7 +1991,7 @@ yyreduce:
                     (yyvsp[0].sym)->typ.size=int32_val;
                     (void)ncaux_class_alignment(NC_OPAQUE,&(yyvsp[0].sym)->typ.alignment);
                 }
-#line 2008 "ncgeny.c"
+#line 1995 "ncgeny.c"
     break;
 
   case 30: /* vlendecl: typeref '(' '*' ')' typename  */
@@ -2020,7 +2007,7 @@ yyreduce:
                     (yyvsp[0].sym)->typ.size=VLENSIZE;
                     (void)ncaux_class_alignment(NC_VLEN,&(yyvsp[0].sym)->typ.alignment);
                 }
-#line 2024 "ncgeny.c"
+#line 2011 "ncgeny.c"
     break;
 
   case 31: /* compounddecl: COMPOUND typename '{' fields '}'  */
@@ -2054,19 +2041,19 @@ yyreduce:
 	    }
 	    listsetlength(stack,stackbase);/* remove stack nodes*/
           }
-#line 2058 "ncgeny.c"
+#line 2045 "ncgeny.c"
     break;
 
   case 32: /* fields: field ';'  */
 #line 428 "ncgen.y"
                     {(yyval.mark)=(yyvsp[-1].mark);}
-#line 2064 "ncgeny.c"
+#line 2051 "ncgeny.c"
     break;
 
   case 33: /* fields: fields field ';'  */
 #line 429 "ncgen.y"
                               {(yyval.mark)=(yyvsp[-2].mark);}
-#line 2070 "ncgeny.c"
+#line 2057 "ncgeny.c"
     break;
 
   case 34: /* field: typeref fieldlist  */
@@ -2082,103 +2069,103 @@ yyreduce:
 		f->typ.basetype = (yyvsp[-1].sym);
             }
         }
-#line 2086 "ncgeny.c"
+#line 2073 "ncgeny.c"
     break;
 
   case 35: /* primtype: CHAR_K  */
 #line 446 "ncgen.y"
                           { (yyval.sym) = primsymbols[NC_CHAR]; }
-#line 2092 "ncgeny.c"
+#line 2079 "ncgeny.c"
     break;
 
   case 36: /* primtype: BYTE_K  */
 #line 447 "ncgen.y"
                           { (yyval.sym) = primsymbols[NC_BYTE]; }
-#line 2098 "ncgeny.c"
+#line 2085 "ncgeny.c"
     break;
 
   case 37: /* primtype: SHORT_K  */
 #line 448 "ncgen.y"
                           { (yyval.sym) = primsymbols[NC_SHORT]; }
-#line 2104 "ncgeny.c"
+#line 2091 "ncgeny.c"
     break;
 
   case 38: /* primtype: INT_K  */
 #line 449 "ncgen.y"
                           { (yyval.sym) = primsymbols[NC_INT]; }
-#line 2110 "ncgeny.c"
+#line 2097 "ncgeny.c"
     break;
 
   case 39: /* primtype: FLOAT_K  */
 #line 450 "ncgen.y"
                           { (yyval.sym) = primsymbols[NC_FLOAT]; }
-#line 2116 "ncgeny.c"
+#line 2103 "ncgeny.c"
     break;
 
   case 40: /* primtype: DOUBLE_K  */
 #line 451 "ncgen.y"
                           { (yyval.sym) = primsymbols[NC_DOUBLE]; }
-#line 2122 "ncgeny.c"
+#line 2109 "ncgeny.c"
     break;
 
   case 41: /* primtype: UBYTE_K  */
 #line 452 "ncgen.y"
                            { vercheck(NC_UBYTE); (yyval.sym) = primsymbols[NC_UBYTE]; }
-#line 2128 "ncgeny.c"
+#line 2115 "ncgeny.c"
     break;
 
   case 42: /* primtype: USHORT_K  */
 #line 453 "ncgen.y"
                            { vercheck(NC_USHORT); (yyval.sym) = primsymbols[NC_USHORT]; }
-#line 2134 "ncgeny.c"
+#line 2121 "ncgeny.c"
     break;
 
   case 43: /* primtype: UINT_K  */
 #line 454 "ncgen.y"
                            { vercheck(NC_UINT); (yyval.sym) = primsymbols[NC_UINT]; }
-#line 2140 "ncgeny.c"
+#line 2127 "ncgeny.c"
     break;
 
   case 44: /* primtype: INT64_K  */
 #line 455 "ncgen.y"
                             { vercheck(NC_INT64); (yyval.sym) = primsymbols[NC_INT64]; }
-#line 2146 "ncgeny.c"
+#line 2133 "ncgeny.c"
     break;
 
   case 45: /* primtype: UINT64_K  */
 #line 456 "ncgen.y"
                              { vercheck(NC_UINT64); (yyval.sym) = primsymbols[NC_UINT64]; }
-#line 2152 "ncgeny.c"
+#line 2139 "ncgeny.c"
     break;
 
   case 46: /* primtype: STRING_K  */
 #line 457 "ncgen.y"
                              { vercheck(NC_STRING); (yyval.sym) = primsymbols[NC_STRING]; }
-#line 2158 "ncgeny.c"
+#line 2145 "ncgeny.c"
     break;
 
   case 48: /* dimsection: DIMENSIONS  */
 #line 461 "ncgen.y"
                              {}
-#line 2164 "ncgeny.c"
+#line 2151 "ncgeny.c"
     break;
 
   case 49: /* dimsection: DIMENSIONS dimdecls  */
 #line 462 "ncgen.y"
                                       {}
-#line 2170 "ncgeny.c"
+#line 2157 "ncgeny.c"
     break;
 
   case 52: /* dim_or_attr_decl: dimdeclist  */
 #line 469 "ncgen.y"
                              {}
-#line 2176 "ncgeny.c"
+#line 2163 "ncgeny.c"
     break;
 
   case 53: /* dim_or_attr_decl: attrdecl  */
 #line 469 "ncgen.y"
                                            {}
-#line 2182 "ncgeny.c"
+#line 2169 "ncgeny.c"
     break;
 
   case 56: /* dimdecl: dimd '=' constint  */
@@ -2190,7 +2177,7 @@ fprintf(stderr,"dimension: %s = %llu\n",(yyvsp[-2].sym)->name,(unsigned long lon
 #endif
 		reclaimconstant((yyvsp[0].constant));
 	      }
-#line 2194 "ncgeny.c"
+#line 2181 "ncgeny.c"
     break;
 
   case 57: /* dimdecl: dimd '=' NC_UNLIMITED_K  */
@@ -2202,7 +2189,7 @@ fprintf(stderr,"dimension: %s = %llu\n",(yyvsp[-2].sym)->name,(unsigned long lon
 fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 #endif
 		   }
-#line 2206 "ncgeny.c"
+#line 2193 "ncgeny.c"
     break;
 
   case 58: /* dimd: ident  */
@@ -2216,31 +2203,31 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		     (yyval.sym)=(yyvsp[0].sym);
 		     listpush(dimdefs,(void*)(yyvsp[0].sym));
                    }
-#line 2220 "ncgeny.c"
+#line 2207 "ncgeny.c"
     break;
 
   case 60: /* vasection: VARIABLES  */
 #line 507 "ncgen.y"
                             {}
-#line 2226 "ncgeny.c"
+#line 2213 "ncgeny.c"
     break;
 
   case 61: /* vasection: VARIABLES vadecls  */
 #line 508 "ncgen.y"
                                     {}
-#line 2232 "ncgeny.c"
+#line 2219 "ncgeny.c"
     break;
 
   case 64: /* vadecl_or_attr: vardecl  */
 #line 515 "ncgen.y"
                         {}
-#line 2238 "ncgeny.c"
+#line 2225 "ncgeny.c"
     break;
 
   case 65: /* vadecl_or_attr: attrdecl  */
 #line 515 "ncgen.y"
                                       {}
-#line 2244 "ncgeny.c"
+#line 2231 "ncgeny.c"
     break;
 
   case 66: /* vardecl: typeref varlist  */
@@ -2264,7 +2251,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		    }
 		    listsetlength(stack,stackbase);/* remove stack nodes*/
 		}
-#line 2268 "ncgeny.c"
+#line 2255 "ncgeny.c"
     break;
 
   case 67: /* varlist: varspec  */
@@ -2272,13 +2259,13 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
                 {(yyval.mark)=listlength(stack);
                  listpush(stack,(void*)(yyvsp[0].sym));
 		}
-#line 2276 "ncgeny.c"
+#line 2263 "ncgeny.c"
     break;
 
   case 68: /* varlist: varlist ',' varspec  */
 #line 544 "ncgen.y"
                 {(yyval.mark)=(yyvsp[-2].mark); listpush(stack,(void*)(yyvsp[0].sym));}
-#line 2282 "ncgeny.c"
+#line 2269 "ncgeny.c"
     break;
 
   case 69: /* varspec: varident dimspec  */
@@ -2309,31 +2296,31 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		    listsetlength(stack,stackbase);/* remove stack nodes*/
 		    (yyval.sym) = var;
 		    }
-#line 2313 "ncgeny.c"
+#line 2300 "ncgeny.c"
     break;
 
   case 70: /* dimspec: %empty  */
 #line 576 "ncgen.y"
                             {(yyval.mark)=listlength(stack);}
-#line 2319 "ncgeny.c"
+#line 2306 "ncgeny.c"
     break;
 
   case 71: /* dimspec: '(' dimlist ')'  */
 #line 577 "ncgen.y"
                                   {(yyval.mark)=(yyvsp[-1].mark);}
-#line 2325 "ncgeny.c"
+#line 2312 "ncgeny.c"
     break;
 
   case 72: /* dimlist: dimref  */
 #line 580 "ncgen.y"
                        {(yyval.mark)=listlength(stack); listpush(stack,(void*)(yyvsp[0].sym));}
-#line 2331 "ncgeny.c"
+#line 2318 "ncgeny.c"
     break;
 
   case 73: /* dimlist: dimlist ',' dimref  */
 #line 582 "ncgen.y"
                     {(yyval.mark)=(yyvsp[-2].mark); listpush(stack,(void*)(yyvsp[0].sym));}
-#line 2337 "ncgeny.c"
+#line 2324 "ncgeny.c"
     break;
 
   case 74: /* dimref: path  */
@@ -2348,7 +2335,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		}
 		(yyval.sym)=dimsym;
 	    }
-#line 2352 "ncgeny.c"
+#line 2339 "ncgeny.c"
     break;
 
   case 75: /* fieldlist: fieldspec  */
@@ -2356,13 +2343,13 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
             {(yyval.mark)=listlength(stack);
              listpush(stack,(void*)(yyvsp[0].sym));
 	    }
-#line 2360 "ncgeny.c"
+#line 2347 "ncgeny.c"
     break;
 
   case 76: /* fieldlist: fieldlist ',' fieldspec  */
 #line 604 "ncgen.y"
             {(yyval.mark)=(yyvsp[-2].mark); listpush(stack,(void*)(yyvsp[0].sym));}
-#line 2366 "ncgeny.c"
+#line 2353 "ncgeny.c"
     break;
 
   case 77: /* fieldspec: ident fielddimspec  */
@@ -2393,31 +2380,31 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		listsetlength(stack,stackbase);/* remove stack nodes*/
 		(yyval.sym) = (yyvsp[-1].sym);
 	    }
-#line 2397 "ncgeny.c"
+#line 2384 "ncgeny.c"
     break;
 
   case 78: /* fielddimspec: %empty  */
 #line 637 "ncgen.y"
                                  {(yyval.mark)=listlength(stack);}
-#line 2403 "ncgeny.c"
+#line 2390 "ncgeny.c"
     break;
 
   case 79: /* fielddimspec: '(' fielddimlist ')'  */
 #line 638 "ncgen.y"
                                        {(yyval.mark)=(yyvsp[-1].mark);}
-#line 2409 "ncgeny.c"
+#line 2396 "ncgeny.c"
     break;
 
   case 80: /* fielddimlist: fielddim  */
 #line 642 "ncgen.y"
                    {(yyval.mark)=listlength(stack); listpush(stack,(void*)(yyvsp[0].sym));}
-#line 2415 "ncgeny.c"
+#line 2402 "ncgeny.c"
     break;
 
   case 81: /* fielddimlist: fielddimlist ',' fielddim  */
 #line 644 "ncgen.y"
             {(yyval.mark)=(yyvsp[-2].mark); listpush(stack,(void*)(yyvsp[0].sym));}
-#line 2421 "ncgeny.c"
+#line 2408 "ncgeny.c"
     break;
 
   case 82: /* fielddim: UINT_CONST  */
@@ -2431,7 +2418,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 	     (yyval.sym)->dim.isconstant = 1;
 	     (yyval.sym)->dim.declsize = uint32_val;
 	    }
-#line 2435 "ncgeny.c"
+#line 2422 "ncgeny.c"
     break;
 
   case 83: /* fielddim: INT_CONST  */
@@ -2449,7 +2436,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 	     (yyval.sym)->dim.isconstant = 1;
 	     (yyval.sym)->dim.declsize = int32_val;
 	    }
-#line 2453 "ncgeny.c"
+#line 2440 "ncgeny.c"
     break;
 
   case 84: /* varref: ambiguous_ref  */
@@ -2461,7 +2448,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		}
 		(yyval.sym)=vsym;
 	    }
-#line 2465 "ncgeny.c"
+#line 2452 "ncgeny.c"
     break;
 
   case 85: /* typeref: ambiguous_ref  */
@@ -2473,7 +2460,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		}
 		(yyval.sym)=tsym;
 	    }
-#line 2477 "ncgeny.c"
+#line 2464 "ncgeny.c"
     break;
 
   case 86: /* ambiguous_ref: path  */
@@ -2496,49 +2483,49 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		}
 		(yyval.sym)=tvsym;
 	    }
-#line 2500 "ncgeny.c"
+#line 2487 "ncgeny.c"
     break;
 
   case 87: /* ambiguous_ref: primtype  */
 #line 719 "ncgen.y"
                    {(yyval.sym)=(yyvsp[0].sym);}
-#line 2506 "ncgeny.c"
+#line 2493 "ncgeny.c"
     break;
 
   case 88: /* attrdecllist: %empty  */
 #line 726 "ncgen.y"
                         {}
-#line 2512 "ncgeny.c"
+#line 2499 "ncgeny.c"
     break;
 
   case 89: /* attrdecllist: attrdecl ';' attrdecllist  */
 #line 726 "ncgen.y"
                                                        {}
-#line 2518 "ncgeny.c"
+#line 2505 "ncgeny.c"
     break;
 
   case 90: /* attrdecl: ':' _NCPROPS '=' conststring  */
 #line 730 "ncgen.y"
             {(yyval.sym) = makespecial(_NCPROPS_FLAG,NULL,NULL,(void*)(yyvsp[0].constant),ISCONST);}
-#line 2524 "ncgeny.c"
+#line 2511 "ncgeny.c"
     break;
 
   case 91: /* attrdecl: ':' _ISNETCDF4 '=' constbool  */
 #line 732 "ncgen.y"
             {(yyval.sym) = makespecial(_ISNETCDF4_FLAG,NULL,NULL,(void*)(yyvsp[0].constant),ISCONST);}
-#line 2530 "ncgeny.c"
+#line 2517 "ncgeny.c"
     break;
 
   case 92: /* attrdecl: ':' _SUPERBLOCK '=' constint  */
 #line 734 "ncgen.y"
             {(yyval.sym) = makespecial(_SUPERBLOCK_FLAG,NULL,NULL,(void*)(yyvsp[0].constant),ISCONST);}
-#line 2536 "ncgeny.c"
+#line 2523 "ncgeny.c"
     break;
 
   case 93: /* attrdecl: ':' ident '=' datalist  */
 #line 736 "ncgen.y"
             { (yyval.sym)=makeattribute((yyvsp[-2].sym),NULL,NULL,(yyvsp[0].datalist),ATTRGLOBAL);}
-#line 2542 "ncgeny.c"
+#line 2529 "ncgeny.c"
     break;
 
   case 94: /* attrdecl: typeref ambiguous_ref ':' ident '=' datalist  */
@@ -2551,7 +2538,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		    YYABORT;
 		}
 	    }
-#line 2555 "ncgeny.c"
+#line 2542 "ncgeny.c"
     break;
 
   case 95: /* attrdecl: ambiguous_ref ':' ident '=' datalist  */
@@ -2566,91 +2553,91 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		    YYABORT;
 		}
 	    }
-#line 2570 "ncgeny.c"
+#line 2557 "ncgeny.c"
     break;
 
   case 96: /* attrdecl: ambiguous_ref ':' _FILLVALUE '=' datalist  */
 #line 758 "ncgen.y"
             {(yyval.sym) = makespecial(_FILLVALUE_FLAG,(yyvsp[-4].sym),NULL,(void*)(yyvsp[0].datalist),ISLIST);}
-#line 2576 "ncgeny.c"
+#line 2563 "ncgeny.c"
     break;
 
   case 97: /* attrdecl: typeref ambiguous_ref ':' _FILLVALUE '=' datalist  */
 #line 760 "ncgen.y"
             {(yyval.sym) = makespecial(_FILLVALUE_FLAG,(yyvsp[-4].sym),(yyvsp[-5].sym),(void*)(yyvsp[0].datalist),ISLIST);}
-#line 2582 "ncgeny.c"
+#line 2569 "ncgeny.c"
     break;
 
   case 98: /* attrdecl: ambiguous_ref ':' _STORAGE '=' conststring  */
 #line 762 "ncgen.y"
             {(yyval.sym) = makespecial(_STORAGE_FLAG,(yyvsp[-4].sym),NULL,(void*)(yyvsp[0].constant),ISCONST);}
-#line 2588 "ncgeny.c"
+#line 2575 "ncgeny.c"
     break;
 
   case 99: /* attrdecl: ambiguous_ref ':' _CHUNKSIZES '=' intlist  */
 #line 764 "ncgen.y"
             {(yyval.sym) = makespecial(_CHUNKSIZES_FLAG,(yyvsp[-4].sym),NULL,(void*)(yyvsp[0].datalist),ISLIST);}
-#line 2594 "ncgeny.c"
+#line 2581 "ncgeny.c"
     break;
 
   case 100: /* attrdecl: ambiguous_ref ':' _FLETCHER32 '=' constbool  */
 #line 766 "ncgen.y"
             {(yyval.sym) = makespecial(_FLETCHER32_FLAG,(yyvsp[-4].sym),NULL,(void*)(yyvsp[0].constant),ISCONST);}
-#line 2600 "ncgeny.c"
+#line 2587 "ncgeny.c"
     break;
 
   case 101: /* attrdecl: ambiguous_ref ':' _DEFLATELEVEL '=' constint  */
 #line 768 "ncgen.y"
             {(yyval.sym) = makespecial(_DEFLATE_FLAG,(yyvsp[-4].sym),NULL,(void*)(yyvsp[0].constant),ISCONST);}
-#line 2606 "ncgeny.c"
+#line 2593 "ncgeny.c"
     break;
 
   case 102: /* attrdecl: ambiguous_ref ':' _SHUFFLE '=' constbool  */
 #line 770 "ncgen.y"
             {(yyval.sym) = makespecial(_SHUFFLE_FLAG,(yyvsp[-4].sym),NULL,(void*)(yyvsp[0].constant),ISCONST);}
-#line 2612 "ncgeny.c"
+#line 2599 "ncgeny.c"
     break;
 
   case 103: /* attrdecl: ambiguous_ref ':' _ENDIANNESS '=' conststring  */
 #line 772 "ncgen.y"
             {(yyval.sym) = makespecial(_ENDIAN_FLAG,(yyvsp[-4].sym),NULL,(void*)(yyvsp[0].constant),ISCONST);}
-#line 2618 "ncgeny.c"
+#line 2605 "ncgeny.c"
     break;
 
   case 104: /* attrdecl: ambiguous_ref ':' _FILTER '=' conststring  */
 #line 774 "ncgen.y"
             {(yyval.sym) = makespecial(_FILTER_FLAG,(yyvsp[-4].sym),NULL,(void*)(yyvsp[0].constant),ISCONST);}
-#line 2624 "ncgeny.c"
+#line 2611 "ncgeny.c"
     break;
 
   case 105: /* attrdecl: ambiguous_ref ':' _CODECS '=' conststring  */
 #line 776 "ncgen.y"
             {(yyval.sym) = makespecial(_CODECS_FLAG,(yyvsp[-4].sym),NULL,(void*)(yyvsp[0].constant),ISCONST);}
-#line 2630 "ncgeny.c"
+#line 2617 "ncgeny.c"
     break;
 
   case 106: /* attrdecl: ambiguous_ref ':' _QUANTIZEBG '=' constint  */
 #line 778 "ncgen.y"
             {(yyval.sym) = makespecial(_QUANTIZEBG_FLAG,(yyvsp[-4].sym),NULL,(void*)(yyvsp[0].constant),ISCONST);}
-#line 2636 "ncgeny.c"
+#line 2623 "ncgeny.c"
     break;
 
-  case 107: /* attrdecl: ambiguous_ref ':' _QUANTIZEBR '=' constint  */
+  case 107: /* attrdecl: ambiguous_ref ':' _QUANTIZEGBR '=' constint  */
 #line 780 "ncgen.y"
-            {(yyval.sym) = makespecial(_QUANTIZEBR_FLAG,(yyvsp[-4].sym),NULL,(void*)(yyvsp[0].constant),ISCONST);}
-#line 2642 "ncgeny.c"
+            {(yyval.sym) = makespecial(_QUANTIZEGBR_FLAG,(yyvsp[-4].sym),NULL,(void*)(yyvsp[0].constant),ISCONST);}
+#line 2629 "ncgeny.c"
     break;
 
   case 108: /* attrdecl: ambiguous_ref ':' _NOFILL '=' constbool  */
 #line 782 "ncgen.y"
             {(yyval.sym) = makespecial(_NOFILL_FLAG,(yyvsp[-4].sym),NULL,(void*)(yyvsp[0].constant),ISCONST);}
-#line 2648 "ncgeny.c"
+#line 2635 "ncgeny.c"
     break;
 
   case 109: /* attrdecl: ':' _FORMAT '=' conststring  */
 #line 784 "ncgen.y"
             {(yyval.sym) = makespecial(_FORMAT_FLAG,NULL,NULL,(void*)(yyvsp[0].constant),ISCONST);}
-#line 2654 "ncgeny.c"
+#line 2641 "ncgeny.c"
     break;
 
   case 110: /* path: ident  */
@@ -2661,7 +2648,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
                 (yyvsp[0].sym)->is_prefixed=0;
                 setpathcurrent((yyvsp[0].sym));
 	    }
-#line 2665 "ncgeny.c"
+#line 2652 "ncgeny.c"
     break;
 
   case 111: /* path: PATH  */
@@ -2672,269 +2659,269 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
                 (yyvsp[0].sym)->is_prefixed=1;
 	        /* path is set in ncgen.l*/
 	    }
-#line 2676 "ncgeny.c"
+#line 2663 "ncgeny.c"
     break;
 
   case 113: /* datasection: DATA  */
 #line 805 "ncgen.y"
                        {}
-#line 2682 "ncgeny.c"
+#line 2669 "ncgeny.c"
     break;
 
   case 114: /* datasection: DATA datadecls  */
 #line 806 "ncgen.y"
                                  {}
-#line 2688 "ncgeny.c"
+#line 2675 "ncgeny.c"
     break;
 
   case 117: /* datadecl: varref '=' datalist  */
 #line 814 "ncgen.y"
                    {(yyvsp[-2].sym)->data = (yyvsp[0].datalist);}
-#line 2694 "ncgeny.c"
+#line 2681 "ncgeny.c"
     break;
 
   case 118: /* datalist: datalist0  */
 #line 817 "ncgen.y"
                     {(yyval.datalist) = (yyvsp[0].datalist);}
-#line 2700 "ncgeny.c"
+#line 2687 "ncgeny.c"
     break;
 
   case 119: /* datalist: datalist1  */
 #line 818 "ncgen.y"
                     {(yyval.datalist) = (yyvsp[0].datalist);}
-#line 2706 "ncgeny.c"
+#line 2693 "ncgeny.c"
     break;
 
   case 120: /* datalist0: %empty  */
 #line 822 "ncgen.y"
                   {(yyval.datalist) = builddatalist(0);}
-#line 2712 "ncgeny.c"
+#line 2699 "ncgeny.c"
     break;
 
   case 121: /* datalist1: dataitem  */
 #line 826 "ncgen.y"
                    {(yyval.datalist) = const2list((yyvsp[0].constant));}
-#line 2718 "ncgeny.c"
+#line 2705 "ncgeny.c"
     break;
 
   case 122: /* datalist1: datalist ',' dataitem  */
 #line 828 "ncgen.y"
             {dlappend((yyvsp[-2].datalist),((yyvsp[0].constant))); (yyval.datalist)=(yyvsp[-2].datalist); }
-#line 2724 "ncgeny.c"
+#line 2711 "ncgeny.c"
     break;
 
   case 123: /* dataitem: constdata  */
 #line 832 "ncgen.y"
                     {(yyval.constant)=(yyvsp[0].constant);}
-#line 2730 "ncgeny.c"
+#line 2717 "ncgeny.c"
     break;
 
   case 124: /* dataitem: '{' datalist '}'  */
 #line 833 "ncgen.y"
                            {(yyval.constant)=builddatasublist((yyvsp[-1].datalist));}
-#line 2736 "ncgeny.c"
+#line 2723 "ncgeny.c"
     break;
 
   case 125: /* constdata: simpleconstant  */
 #line 837 "ncgen.y"
                               {(yyval.constant)=(yyvsp[0].constant);}
-#line 2742 "ncgeny.c"
+#line 2729 "ncgeny.c"
     break;
 
   case 126: /* constdata: OPAQUESTRING  */
 #line 838 "ncgen.y"
                         {(yyval.constant)=makeconstdata(NC_OPAQUE);}
-#line 2748 "ncgeny.c"
+#line 2735 "ncgeny.c"
     break;
 
   case 127: /* constdata: FILLMARKER  */
 #line 839 "ncgen.y"
                         {(yyval.constant)=makeconstdata(NC_FILLVALUE);}
-#line 2754 "ncgeny.c"
+#line 2741 "ncgeny.c"
     break;
 
   case 128: /* constdata: NIL  */
 #line 840 "ncgen.y"
                         {(yyval.constant)=makeconstdata(NC_NIL);}
-#line 2760 "ncgeny.c"
+#line 2747 "ncgeny.c"
     break;
 
   case 129: /* constdata: econstref  */
 #line 841 "ncgen.y"
                         {(yyval.constant)=(yyvsp[0].constant);}
-#line 2766 "ncgeny.c"
+#line 2753 "ncgeny.c"
     break;
 
   case 131: /* econstref: path  */
 #line 846 "ncgen.y"
              {(yyval.constant) = makeenumconstref((yyvsp[0].sym));}
-#line 2772 "ncgeny.c"
+#line 2759 "ncgeny.c"
     break;
 
   case 132: /* function: ident '(' arglist ')'  */
 #line 850 "ncgen.y"
                               {(yyval.constant)=evaluate((yyvsp[-3].sym),(yyvsp[-1].datalist));}
-#line 2778 "ncgeny.c"
+#line 2765 "ncgeny.c"
     break;
 
   case 133: /* arglist: simpleconstant  */
 #line 855 "ncgen.y"
             {(yyval.datalist) = const2list((yyvsp[0].constant));}
-#line 2784 "ncgeny.c"
+#line 2771 "ncgeny.c"
     break;
 
   case 134: /* arglist: arglist ',' simpleconstant  */
 #line 857 "ncgen.y"
             {dlappend((yyvsp[-2].datalist),((yyvsp[0].constant))); (yyval.datalist)=(yyvsp[-2].datalist);}
-#line 2790 "ncgeny.c"
+#line 2777 "ncgeny.c"
     break;
 
   case 135: /* simpleconstant: CHAR_CONST  */
 #line 861 "ncgen.y"
                         {(yyval.constant)=makeconstdata(NC_CHAR);}
-#line 2796 "ncgeny.c"
+#line 2783 "ncgeny.c"
     break;
 
   case 136: /* simpleconstant: BYTE_CONST  */
 #line 862 "ncgen.y"
                         {(yyval.constant)=makeconstdata(NC_BYTE);}
-#line 2802 "ncgeny.c"
+#line 2789 "ncgeny.c"
     break;
 
   case 137: /* simpleconstant: SHORT_CONST  */
 #line 863 "ncgen.y"
                         {(yyval.constant)=makeconstdata(NC_SHORT);}
-#line 2808 "ncgeny.c"
+#line 2795 "ncgeny.c"
     break;
 
   case 138: /* simpleconstant: INT_CONST  */
 #line 864 "ncgen.y"
                         {(yyval.constant)=makeconstdata(NC_INT);}
-#line 2814 "ncgeny.c"
+#line 2801 "ncgeny.c"
     break;
 
   case 139: /* simpleconstant: INT64_CONST  */
 #line 865 "ncgen.y"
                         {(yyval.constant)=makeconstdata(NC_INT64);}
-#line 2820 "ncgeny.c"
+#line 2807 "ncgeny.c"
     break;
 
   case 140: /* simpleconstant: UBYTE_CONST  */
 #line 866 "ncgen.y"
                         {(yyval.constant)=makeconstdata(NC_UBYTE);}
-#line 2826 "ncgeny.c"
+#line 2813 "ncgeny.c"
     break;
 
   case 141: /* simpleconstant: USHORT_CONST  */
 #line 867 "ncgen.y"
                         {(yyval.constant)=makeconstdata(NC_USHORT);}
-#line 2832 "ncgeny.c"
+#line 2819 "ncgeny.c"
     break;
 
   case 142: /* simpleconstant: UINT_CONST  */
 #line 868 "ncgen.y"
                         {(yyval.constant)=makeconstdata(NC_UINT);}
-#line 2838 "ncgeny.c"
+#line 2825 "ncgeny.c"
     break;
 
   case 143: /* simpleconstant: UINT64_CONST  */
 #line 869 "ncgen.y"
                         {(yyval.constant)=makeconstdata(NC_UINT64);}
-#line 2844 "ncgeny.c"
+#line 2831 "ncgeny.c"
     break;
 
   case 144: /* simpleconstant: FLOAT_CONST  */
 #line 870 "ncgen.y"
                         {(yyval.constant)=makeconstdata(NC_FLOAT);}
-#line 2850 "ncgeny.c"
+#line 2837 "ncgeny.c"
     break;
 
   case 145: /* simpleconstant: DOUBLE_CONST  */
 #line 871 "ncgen.y"
                         {(yyval.constant)=makeconstdata(NC_DOUBLE);}
-#line 2856 "ncgeny.c"
+#line 2843 "ncgeny.c"
     break;
 
   case 146: /* simpleconstant: TERMSTRING  */
 #line 872 "ncgen.y"
                         {(yyval.constant)=makeconstdata(NC_STRING);}
-#line 2862 "ncgeny.c"
+#line 2849 "ncgeny.c"
     break;
 
   case 147: /* intlist: constint  */
 #line 876 "ncgen.y"
                    {(yyval.datalist) = const2list((yyvsp[0].constant));}
-#line 2868 "ncgeny.c"
+#line 2855 "ncgeny.c"
     break;
 
   case 148: /* intlist: intlist ',' constint  */
 #line 877 "ncgen.y"
                                {(yyval.datalist)=(yyvsp[-2].datalist); dlappend((yyvsp[-2].datalist),((yyvsp[0].constant)));}
-#line 2874 "ncgeny.c"
+#line 2861 "ncgeny.c"
     break;
 
   case 149: /* constint: INT_CONST  */
 #line 882 "ncgen.y"
                 {(yyval.constant)=makeconstdata(NC_INT);}
-#line 2880 "ncgeny.c"
+#line 2867 "ncgeny.c"
     break;
 
   case 150: /* constint: UINT_CONST  */
 #line 884 "ncgen.y"
                 {(yyval.constant)=makeconstdata(NC_UINT);}
-#line 2886 "ncgeny.c"
+#line 2873 "ncgeny.c"
     break;
 
   case 151: /* constint: INT64_CONST  */
 #line 886 "ncgen.y"
                 {(yyval.constant)=makeconstdata(NC_INT64);}
-#line 2892 "ncgeny.c"
+#line 2879 "ncgeny.c"
     break;
 
   case 152: /* constint: UINT64_CONST  */
 #line 888 "ncgen.y"
                 {(yyval.constant)=makeconstdata(NC_UINT64);}
-#line 2898 "ncgeny.c"
+#line 2885 "ncgeny.c"
     break;
 
   case 153: /* conststring: TERMSTRING  */
 #line 892 "ncgen.y"
                         {(yyval.constant)=makeconstdata(NC_STRING);}
-#line 2904 "ncgeny.c"
+#line 2891 "ncgeny.c"
     break;
 
   case 154: /* constbool: conststring  */
 #line 896 "ncgen.y"
                       {(yyval.constant)=(yyvsp[0].constant);}
-#line 2910 "ncgeny.c"
+#line 2897 "ncgeny.c"
     break;
 
   case 155: /* constbool: constint  */
 #line 897 "ncgen.y"
                    {(yyval.constant)=(yyvsp[0].constant);}
-#line 2916 "ncgeny.c"
+#line 2903 "ncgeny.c"
     break;
 
   case 156: /* varident: IDENT  */
 #line 905 "ncgen.y"
                 {(yyval.sym)=(yyvsp[0].sym);}
-#line 2922 "ncgeny.c"
+#line 2909 "ncgeny.c"
     break;
 
   case 157: /* varident: DATA  */
 #line 906 "ncgen.y"
                {(yyval.sym)=identkeyword((yyvsp[0].sym));}
-#line 2928 "ncgeny.c"
+#line 2915 "ncgeny.c"
     break;
 
   case 158: /* ident: IDENT  */
 #line 910 "ncgen.y"
               {(yyval.sym)=(yyvsp[0].sym);}
-#line 2934 "ncgeny.c"
+#line 2921 "ncgeny.c"
     break;
 
 
-#line 2938 "ncgeny.c"
+#line 2925 "ncgeny.c"
 
       default: break;
     }
@@ -3010,7 +2997,7 @@ yyerrlab:
           }
         yyerror (yymsgp);
         if (yysyntax_error_status == YYENOMEM)
-          goto yyexhaustedlab;
+          YYNOMEM;
       }
     }
 
@@ -3046,6 +3033,7 @@ yyerrorlab:
      label yyerrorlab therefore never appears in user code.  */
   if (0)
     YYERROR;
+  ++yynerrs;
 
   /* Do not reclaim the symbols of the rule whose action triggered
      this YYERROR.  */
@@ -3106,7 +3094,7 @@ yyerrlab1:
 `-------------------------------------*/
 yyacceptlab:
   yyresult = 0;
-  goto yyreturn;
+  goto yyreturnlab;
 
 
 /*-----------------------------------.
@@ -3114,24 +3102,22 @@ yyacceptlab:
 `-----------------------------------*/
 yyabortlab:
   yyresult = 1;
-  goto yyreturn;
+  goto yyreturnlab;
 
 
-#if 1
-/*-------------------------------------------------.
-| yyexhaustedlab -- memory exhaustion comes here.  |
-`-------------------------------------------------*/
+/*-----------------------------------------------------------.
+| yyexhaustedlab -- YYNOMEM (memory exhaustion) comes here.  |
+`-----------------------------------------------------------*/
 yyexhaustedlab:
   yyerror (YY_("memory exhausted"));
   yyresult = 2;
-  goto yyreturn;
-#endif
+  goto yyreturnlab;
 
 
-/*-------------------------------------------------------.
-| yyreturn -- parsing is finished, clean up and return.  |
-`-------------------------------------------------------*/
-yyreturn:
+/*----------------------------------------------------------.
+| yyreturnlab -- parsing is finished, clean up and return.  |
+`----------------------------------------------------------*/
+yyreturnlab:
   if (yychar != YYEMPTY)
     {
       /* Make sure we have latest lookahead translation.  See comments at
@@ -3497,7 +3483,7 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
     case _SUPERBLOCK_FLAG:
     case _DEFLATE_FLAG:
     case _QUANTIZEBG_FLAG:
-    case _QUANTIZEBR_FLAG:
+    case _QUANTIZEGBR_FLAG:
 	tmp = nullconst();
         tmp->nctype = NC_INT;
 	convert1(con,tmp);
@@ -3599,10 +3585,10 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
                 special->_NSD = idata;
                 special->flags |= _QUANTIZEBG_FLAG;
                 break;
-            case _QUANTIZEBR_FLAG:
+            case _QUANTIZEGBR_FLAG:
 		special->_Quantizer = NC_QUANTIZE_GRANULARBR;
                 special->_NSD = idata;
-                special->flags |= _QUANTIZEBR_FLAG;
+                special->flags |= _QUANTIZEGBR_FLAG;
                 break;
             case _SHUFFLE_FLAG:
                 special->_Shuffle = tf;

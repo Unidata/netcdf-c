@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 3.7.5.  */
+/* A Bison parser, made by GNU Bison 3.8.2.  */
 
 /* Bison interface for Yacc-like parsers in C
 
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -108,7 +108,7 @@ extern int ncgdebug;
     _FILTER = 309,                 /* _FILTER  */
     _CODECS = 310,                 /* _CODECS  */
     _QUANTIZEBG = 311,             /* _QUANTIZEBG  */
-    _QUANTIZEBR = 312,             /* _QUANTIZEBR  */
+    _QUANTIZEGBR = 312,            /* _QUANTIZEGBR  */
     DATASETID = 313                /* DATASETID  */
   };
   typedef enum yytokentype yytoken_kind_t;
@@ -138,6 +138,8 @@ typedef union YYSTYPE YYSTYPE;
 
 extern YYSTYPE ncglval;
 
+
 int ncgparse (void);
+
 
 #endif /* !YY_NCG_NCGEN_TAB_H_INCLUDED  */
