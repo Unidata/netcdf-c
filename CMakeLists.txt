@@ -7,14 +7,16 @@
 ##################################
 
 #Minimum required CMake Version
-cmake_minimum_required(VERSION 3.6.1)
+cmake_minimum_required(VERSION 3.12.0)
+# CMake 3.12: Use libraries specified in CMAKE_REQUIRED_LIBRARIES for check include macros
 
 #Project Name
-project(netCDF LANGUAGES C CXX)
+project(netCDF
+LANGUAGES C CXX
+HOMEPAGE_URL "https://www.unidata.ucar.edu/software/netcdf/"
+DESCRIPTION "NetCDF is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data."
+)
 set(PACKAGE "netCDF" CACHE STRING "")
-
-# Use libraries specified in CMAKE_REQUIRED_LIBRARIES for check include macros
-cmake_policy(SET CMP0075 NEW)
 
 #####
 # Version Info:
@@ -794,7 +796,7 @@ IF(USE_HDF5)
     IF(NOT HDF5_C_LIBRARY)
       SET(HDF5_C_LIBRARY hdf5)
     ENDIF()
-  
+
   ENDIF(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR)
 
   FIND_PACKAGE(Threads)
@@ -814,8 +816,8 @@ IF(USE_HDF5)
   set (CMAKE_REQUIRED_INCLUDES ${HDF5_INCLUDE_DIR})
 
   # Check to ensure that HDF5 was built with zlib.
-  # This needs to be near the beginning since we 
-  # need to know whether to add "-lz" to the symbol 
+  # This needs to be near the beginning since we
+  # need to know whether to add "-lz" to the symbol
   # tests below.
   CHECK_C_SOURCE_COMPILES("#include <H5public.h>
    #if !H5_HAVE_ZLIB_H
@@ -1491,12 +1493,12 @@ IF(NOT BUILD_SHARED_LIBS)
 ENDIF()
 
 OPTION(ENABLE_NCZARR_FILTERS "Enable NCZarr filters" yes)
-IF (NOT ENABLE_PLUGINS) 
+IF (NOT ENABLE_PLUGINS)
     SET(ENABLE_NCZARR_FILTERS OFF CACHE BOOL "Enable NCZarr Filters." FORCE)
 ENDIF()
 
 OPTION(ENABLE_NCZARR_FILTERS_TESTING "Enable NCZarr filter testing." yes)
-IF (NOT ENABLE_NCZARR_FILTERS) 
+IF (NOT ENABLE_NCZARR_FILTERS)
     SET(ENABLE_NCZARR_FILTER_TESTING OFF CACHE BOOL "Enable NCZarr Filter Testing" FORCE)
 ENDIF()
 
