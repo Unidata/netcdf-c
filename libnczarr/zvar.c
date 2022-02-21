@@ -782,7 +782,7 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 
 	if (*quantize_mode == NC_QUANTIZE_BITGROOM ||
 	    *quantize_mode == NC_QUANTIZE_GRANULARBR ||
-	    *quantize_mode != NC_QUANTIZE_BITROUND)
+	    *quantize_mode == NC_QUANTIZE_BITROUND)
 	  {
 
 	    /* Only float and double types can have quantization. */
