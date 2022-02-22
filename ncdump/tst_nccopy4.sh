@@ -5,8 +5,6 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 set -e
 
-export SETX=1
-
 # For a netCDF-4 build, test nccopy on netCDF files in this directory
 
 echo "@@@@@@"
@@ -20,9 +18,11 @@ echo ""
 # These files are actually in $srcdir in distcheck builds, so they
 # need to be handled differently.
 # ref_tst_compounds2 ref_tst_compounds3 ref_tst_compounds4
-TESTFILES='tst_comp tst_comp2 tst_enum_data tst_fillbug
+TESTFILES0='tst_comp tst_comp2 tst_enum_data tst_fillbug
  tst_group_data tst_nans tst_opaque_data tst_solar_1 tst_solar_2
- tst_solar_cmp tst_special_atts tst_string_data'
+ tst_solar_cmp tst_special_atts'
+
+TESTFILES="$TESTFILES0 tst_string_data"
 
 # Causes memory leak; source unknown
 MEMLEAK="tst_vlen_data"
@@ -76,12 +76,12 @@ fi
 rm tst_deflated.nc tst_inflated.nc tst_inflated4.nc tmp.nc tmp.cdl
 
 echo "*** Testing nccopy -d1 -s on ncdump/*.nc files"
-for i in $TESTFILES ; do
+for i in $TESTFILES0 ; do
     echo "*** Test nccopy -d1 -s $i.nc copy_of_$i.nc ..."
     ${NCCOPY} -d1 -s $i.nc copy_of_$i.nc
-${NCDUMP} -n copy_of_$i $i.nc > tmp.cdl
-${NCDUMP} copy_of_$i.nc > copy_of_$i.cdl
-#    echo "*** compare " with copy_of_$i.cdl
+    ${NCDUMP} -n copy_of_$i $i.nc > tmp.cdl
+    ${NCDUMP} copy_of_$i.nc > copy_of_$i.cdl
+    #    echo "*** compare " with copy_of_$i.cdl
     diff copy_of_$i.cdl tmp.cdl
     rm copy_of_$i.nc copy_of_$i.cdl tmp.cdl
 done

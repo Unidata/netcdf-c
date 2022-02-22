@@ -42,7 +42,7 @@
 
 #undef DEBUGPATH
 static int pathdebug = -1;
-#define DEBUG
+#undef DEBUG
 
 #ifdef DEBUG
 #define REPORT(e,msg) report((e),(msg),__LINE__)
@@ -113,7 +113,9 @@ static int wide2utf8(const wchar_t* u16, char** u8p);
 #endif
 
 /*Forward*/
+#ifdef DEBUG
 static void report(int stat, const char* msg, int line);
+#endif
 static char* printPATH(struct Path* p);
 
 EXTERNL
@@ -1227,6 +1229,7 @@ printutf8hex(const char* s, char* sx)
     *q = '\0';
 }
 
+#ifdef DEBUG
 static void
 report(int stat, const char* msg, int line)
 {
@@ -1235,3 +1238,4 @@ report(int stat, const char* msg, int line)
 		line,msg,stat,nc_strerror(stat));
     }
 }
+#endif

@@ -48,15 +48,17 @@ diff -wb ${srcdir}/ref_byte_fill_value_null.cdl tmp_byte_fill_value_null_$zext.c
 rm -fr ref_byte_fill_value_null.zarr
 }
 
-#testcase2059 file
-#testcase2062 file
+
+testcase2062 file
 testcase2063 file
-exit 0
-if test "x$FEATURE_NCZARR_ZIP" = xyes ; then
+if test "x$FEATURE_HDF5" = xyes ; then
+  testcase2059 file
+  if test "x$FEATURE_NCZARR_ZIP" = xyes ; then
     testcase2059 zip
-fi
-if test "x$FEATURE_S3TESTS" = xyes ; then
+  fi
+  if test "x$FEATURE_S3TESTS" = xyes ; then
     testcase2059 s3
+  fi
 fi
 
 exit 0
