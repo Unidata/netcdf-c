@@ -8,7 +8,7 @@
 #include "includes.h"
 #include "dump.h"
 
-#define DEBUGSRC
+#undef DEBUGSRC
 
 #define MAXELEM 8
 #define MAXDEPTH 4
