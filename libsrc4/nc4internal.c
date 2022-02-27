@@ -2005,7 +2005,23 @@ NC_freeglobalstate(void)
 /**************************************************/
 /* Specific property functions */
 
-/** \internal Set global parameters for H5Pset_alignment */
+/**
+Provide set function to store global data alignment
+information and apply it when a file is created.
+If defined, then for every file created or opened after the call to
+nc_set_alignment, for every new variable added to the file, the
+most recently set threshold and alignment values will be applied
+to that variable.
+Repeated calls to nc_set_alignment will overwrite any existing values.
+
+@param threshold The minimum size to which alignment is applied.
+@param alignment The alignment value.
+
+@return ::NC_NOERR No error.
+@return ::NC_EINVAL Invalid input.
+@author Dennis Heimbigner
+@ingroup datasets
+*/
 int
 nc_set_alignment(int threshold, int alignment)
 {
@@ -2015,6 +2031,23 @@ nc_set_alignment(int threshold, int alignment)
     gs->alignment.defined = 1;
     return NC_NOERR;
 }
+
+/**
+Provide get function to retrieve global data alignment
+information.
+
+The nc_get_alignment function return the last values set by
+nc_set_alignment.  If nc_set_alignment has not been called, then
+it returns the value 0 for both threshold and alignment.
+
+@param thresholdp Return the current minimum size to which alignment is applied or zero.
+@param alignmentp Return the current alignment value or zero.
+
+@return ::NC_NOERR No error.
+@return ::NC_EINVAL Invalid input.
+@author Dennis Heimbigner
+@ingroup datasets
+*/
 
 int
 nc_get_alignment(int* thresholdp, int* alignmentp)
