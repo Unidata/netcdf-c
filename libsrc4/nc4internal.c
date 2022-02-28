@@ -2006,13 +2006,42 @@ NC_freeglobalstate(void)
 /* Specific property functions */
 
 /**
-Provide set function to store global data alignment
-information and apply it when a file is created.
+Provide a function to store global data alignment
+information.
+Repeated calls to nc_set_alignment will overwrite any existing values.
+
 If defined, then for every file created or opened after the call to
-nc_set_alignment, for every new variable added to the file, the
+nc_set_alignment, and for every new variable added to the file, the
 most recently set threshold and alignment values will be applied
 to that variable.
-Repeated calls to nc_set_alignment will overwrite any existing values.
+
+The nc_set_alignment function causes new data written to a
+netCDF-4 file to be aligned on disk to a specified block
+size. To be effective, alignment should be the system disk block
+size, or a multiple of it. This setting is effective with MPI
+I/O and other parallel systems.
+
+This is a trade-off of write speed versus file size. Alignment
+leaves holes between file objects. The default of no alignment
+writes file objects contiguously, without holes. Alignment has
+no impact on file readability.
+
+Alignment settings apply only indirectly, through the file open
+functions. Call nc_set_alignment first, then nc_create or
+nc_open for one or more files. Current alignment settings are
+locked in when each file is opened, then forgotten when the same
+file is closed. For illustration, it is possible to write
+different files at the same time with different alignments, by
+interleaving nc_set_alignment and nc_open calls.
+
+Alignment applies to all newly written low-level file objects at
+or above the threshold size, including chunks of variables,
+attributes, and internal infrastructure. Alignment is not locked
+in to a data variable. It can change between data chunks of the
+same variable, based on a file's history.
+
+Refer to H5Pset_alignment in HDF5 documentation for more
+specific details, interactions, and additional rules.
 
 @param threshold The minimum size to which alignment is applied.
 @param alignment The alignment value.
