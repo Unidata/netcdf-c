@@ -381,7 +381,7 @@ NCZ_def_var(int ncid, const char *name, nc_type xtype, int ndims,
     zvar->common.file = h5;
     zvar->scalar = (ndims == 0 ? 1 : 0);
 
-    zvar->dimension_separator = ncrc_getglobalstate()->zarr.dimension_separator;
+    zvar->dimension_separator = NC_getglobalstate()->zarr.dimension_separator;
     assert(zvar->dimension_separator != 0);
 
     /* Set these state flags for the var. */
@@ -456,9 +456,9 @@ var->type_info->rc++;
     zvar->chunksize = zvar->chunkproduct * var->type_info->size;
 
     /* Override the cache setting to use NCZarr defaults */
-    var->chunk_cache_size = CHUNK_CACHE_SIZE_NCZARR;
-    var->chunk_cache_nelems = ceildiv(var->chunk_cache_size,zvar->chunksize);
-    var->chunk_cache_preemption = 1; /* not used */
+    var->chunkcache.size = CHUNK_CACHE_SIZE_NCZARR;
+    var->chunkcache.nelems = ceildiv(var->chunkcache.size,zvar->chunksize);
+    var->chunkcache.preemption = 1; /* not used */
 
     /* Create the cache */
     if((retval=NCZ_create_chunk_cache(var,zvar->chunkproduct*var->type_info->size,zvar->dimension_separator,&zvar->cache)))

@@ -25,7 +25,7 @@
 
 #include <errno.h>
 
-#include "ncrc.h"
+#include "nc4internal.h"
 #include "ocinternal.h"
 #include "ocdebug.h"
 #include "occurlfunctions.h"
@@ -321,7 +321,7 @@ createtempfile(OCstate* state, OCtree* tree)
     char* path = NULL;
     char* tmppath = NULL;
     int len;
-    NCRCglobalstate* globalstate = ncrc_getglobalstate();
+    NCglobalstate* globalstate = NC_getglobalstate();
 
     len =
 	  strlen(globalstate->tempdir)
@@ -526,7 +526,7 @@ static OCerror
 ocset_curlproperties(OCstate* state)
 {
     OCerror stat = OC_NOERR;
-    NCRCglobalstate* globalstate = ncrc_getglobalstate();
+    NCglobalstate* globalstate = NC_getglobalstate();
 
     if(state->auth->curlflags.useragent == NULL) {
         size_t len = strlen(DFALTUSERAGENT) + strlen(VERSION) + 1;

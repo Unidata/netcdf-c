@@ -9,6 +9,7 @@ This file contains a high-level description of this package's evolution. Release
 
 * [Bug Fix] Require that the type of the variable in nc_def_var_filter is not variable length. See [Github #/2231](https://github.com/Unidata/netcdf-c/pull/2231).
 * [File Change] Apply HDF5 v1.8 format compatibility when writing to previous files, as well as when creating new files.  The superblock version remains at 2 for newly created files.  Full backward read/write compatibility for netCDF-4 is maintained in all cases.  See [Github #2176](https://github.com/Unidata/netcdf-c/issues/2176).
+* [Enhancement] Add ability to set dataset alignment for netcdf-4/HDF5 files. See [Github #2206](https://github.com/Unidata/netcdf-c/pull/2206).
 * [Enhancement] Add complete bitgroom support to NCZarr. See [Github #2197](https://github.com/Unidata/netcdf-c/pull/2197).
 * [Bug Fix] Clean up the handling of deeply nested VLEN types. Marks nc_free_vlen() and nc_free_string as deprecated in favor of ncaux_reclaim_data(). See [Github #2179](https://github.com/Unidata/netcdf-c/pull/2179).
 * [Bug Fix] Make sure that netcdf.h accurately defines the flags in the open/create mode flags. See [Github #2183](https://github.com/Unidata/netcdf-c/pull/2183).

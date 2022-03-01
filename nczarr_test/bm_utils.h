@@ -89,6 +89,10 @@ EXTERNL void bm_reportmetaoptions(struct BMMeta* o);
 EXTERNL const char* bm_printvector(int rank, const size_t* vec);
 EXTERNL const char* bm_printvectorp(int rank, const ptrdiff_t* vec);
 EXTERNL const char* bm_varasprint(int rank, const size_t* start, const size_t* edges, const ptrdiff_t* stride);
+EXTERNL int nc4_buildpath(struct BMOptions* o, char** pathp);
+EXTERNL void reportoptions(struct BMOptions* o);
+EXTERNL void reportmetaoptions(struct BMMeta* o);
+EXTERNL void clearoptions(struct BMOptions*);
 
 #include "ut_test.h"
 
