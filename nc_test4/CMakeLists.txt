@@ -24,6 +24,10 @@ SET(NC4_TESTS tst_dims tst_dims2 tst_dims3 tst_files tst_files4
   tst_hdf5_file_compat tst_fill_attr_vanish tst_rehash tst_types tst_bug324
   tst_atts3 tst_put_vars tst_elatefill tst_udf tst_bug1442 tst_quantize)
 
+IF(HAS_PAR_FILTERS)
+SET(NC4_tests $NC4_TESTS tst_alignment)
+ENDIF()
+
 # Note, renamegroup needs to be compiled before run_grp_rename
 
 IF(BUILD_UTILITIES)

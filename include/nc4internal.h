@@ -118,6 +118,7 @@ typedef enum {NC_FALSE = 0, NC_TRUE = 1} nc_bool_t;
 /* Forward declarations. */
 struct NC_GRP_INFO;
 struct NC_TYPE_INFO;
+struct NCRCinfo;
 
 /**
  * This struct provides indexed Access to Meta-data objects. See the
@@ -205,9 +206,11 @@ typedef struct NC_VAR_INFO
     int parallel_access;         /**< Type of parallel access for I/O on variable (collective or independent). */
     nc_bool_t shuffle;           /**< True if var has shuffle filter applied. */
     nc_bool_t fletcher32;        /**< True if var has fletcher32 filter applied. */
-    size_t chunk_cache_size;     /**< Size in bytes of the var chunk cache. */
-    size_t chunk_cache_nelems;   /**< Number of slots in var chunk cache. */
-    float chunk_cache_preemption; /**< Chunk cache preemtion policy. */
+    struct ChunkCache {
+        size_t size;     /**< Size in bytes of the var chunk cache. */
+        size_t nelems;   /**< Number of slots in var chunk cache. */
+        float preemption; /**< Chunk cache preemtion policy. */
+    } chunkcache;
     int quantize_mode;           /**< Quantize mode. NC_NOQUANTIZE is 0, and means no quantization. */
     int nsd;                     /**< Number of significant digits if quantization is used, 0 if not. */
     void *format_var_info;       /**< Pointer to any binary format info. */
@@ -326,6 +329,24 @@ typedef struct NC_FILE_INFO
         void *udata;    /**< Extra memory allocated in NC4_image_init. */
     } mem;
 } NC_FILE_INFO_T;
+
+/* Collect global state info in one place */
+typedef struct NCglobalstate {
+    int initialized;
+    char* tempdir; /* track a usable temp dir */
+    char* home; /* track $HOME */
+    char* cwd; /* track getcwd */
+    struct NCRCinfo* rcinfo; /* Currently only one rc file per session */
+    struct GlobalZarr { /* Zarr specific parameters */
+	char dimension_separator;
+    } zarr;
+    struct Alignment { /* H5Pset_alignment parameters */
+        int defined; /* 1 => threshold and alignment explicitly set */
+	int threshold;
+	int alignment;
+    } alignment;
+    struct ChunkCache chunkcache;
+} NCglobalstate;
 
 /** Variable Length Datatype struct in memory. Must be identical to
  * HDF5 hvl_t. (This is only used for VL sequences, not VL strings,
@@ -459,6 +480,10 @@ extern const char* nc4_atomic_name[NUM_ATOMIC_TYPES];
 
 /* Binary searcher for reserved attributes */
 extern const NC_reservedatt* NC_findreserved(const char* name);
+
+/* Global State Management */
+extern NCglobalstate* NC_getglobalstate(void);
+extern void NC_freeglobalstate(void);
 
 /* Generic reserved Attributes */
 #define NC_ATT_REFERENCE_LIST "REFERENCE_LIST"
