@@ -59,11 +59,6 @@ static const int nc_type_size_g[NUM_TYPES] = {sizeof(char), sizeof(char), sizeof
 /** @internal These flags may not be set for open mode. */
 static const int ILLEGAL_OPEN_FLAGS = (NC_MMAP);
 
-/* From libsrc4, these are the netcdf-4 cache sizes. */
-extern size_t nc4_chunk_cache_size;
-extern size_t nc4_chunk_cache_nelems;
-extern float nc4_chunk_cache_preemption;
-
 /* From nc4mem.c */
 extern int NC4_open_image_file(NC_FILE_INFO_T* h5);
 
@@ -813,12 +808,22 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
     /* Only set cache for non-parallel opens. */
     if (!nc4_info->parallel)
     {
-	if (H5Pset_cache(fapl_id, 0, nc4_chunk_cache_nelems, nc4_chunk_cache_size,
-			 nc4_chunk_cache_preemption) < 0)
+	NCglobalstate* gs = NC_getglobalstate();
+	if (H5Pset_cache(fapl_id, 0, gs->chunkcache.nelems, gs->chunkcache.size,
+			 gs->chunkcache.preemption) < 0)
 	    BAIL(NC_EHDFERR);
 	LOG((4, "%s: set HDF raw chunk cache to size %d nelems %d preemption %f",
-	     __func__, nc4_chunk_cache_size, nc4_chunk_cache_nelems,
-	     nc4_chunk_cache_preemption));
+	     __func__, gs->chunkcache.size, gs->chunkcache.nelems,
+	     gs->chunkcache.preemption));
+    }
+
+    {
+	NCglobalstate* gs = NC_getglobalstate();
+        if(gs->alignment.defined) {
+	    if (H5Pset_alignment(fapl_id, gs->alignment.threshold, gs->alignment.alignment) < 0) {
+	        BAIL(NC_EHDFERR);
+	    }
+	}
     }
 
     /* Set HDF5 format compatibility in the FILE ACCESS property list.
@@ -1453,10 +1458,10 @@ nc4_get_var_meta(NC_VAR_INFO_T *var)
         BAIL(NC_EVARMETA);
 
     /* Learn about current chunk cache settings. */
-    if ((H5Pget_chunk_cache(access_pid, &(var->chunk_cache_nelems),
-                            &(var->chunk_cache_size), &rdcc_w0)) < 0)
+    if ((H5Pget_chunk_cache(access_pid, &(var->chunkcache.nelems),
+                            &(var->chunkcache.size), &rdcc_w0)) < 0)
         BAIL(NC_EHDFERR);
-    var->chunk_cache_preemption = rdcc_w0;
+    var->chunkcache.preemption = rdcc_w0;
 
     /* Get the dataset creation properties. */
     if ((propid = H5Dget_create_plist(hdf5_var->hdf_datasetid)) < 0)
