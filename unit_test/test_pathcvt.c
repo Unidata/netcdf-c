@@ -13,7 +13,7 @@ Test the NCpathcvt
 #include "netcdf.h"
 #include "ncpathmgr.h"
 
-#define DEBUG
+#undef DEBUG
 
 #define NKINDS 4
 static const int kinds[NKINDS] = {NCPD_NIX,NCPD_MSYS,NCPD_CYGWIN,NCPD_WIN};

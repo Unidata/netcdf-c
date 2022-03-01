@@ -18,12 +18,6 @@
 #include "zincludes.h"
 #include "zfilter.h"
 
-/* These are the default chunk cache sizes for ZARR files created or
- * opened with netCDF-4. */
-extern size_t ncz_chunk_cache_size;
-extern size_t ncz_chunk_cache_nelems;
-extern float ncz_chunk_cache_preemption;
-
 /* Forward */
 
 #ifdef LOGGING
@@ -61,10 +55,10 @@ NCZ_initialize_internal(void)
 {
     int stat = NC_NOERR;
     char* dimsep = NULL;
-    NCRCglobalstate* ngs = NULL;
+    NCglobalstate* ngs = NULL;
 
     ncz_initialized = 1;
-    ngs = ncrc_getglobalstate();
+    ngs = NC_getglobalstate();
     if(ngs != NULL) {
         /* Defaults */
 	ngs->zarr.dimension_separator = DFALT_DIM_SEPARATOR;

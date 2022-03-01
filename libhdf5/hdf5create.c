@@ -5,7 +5,7 @@
  * @file
  * @internal The netCDF-4 file functions relating to file creation.
  *
- * @author Ed Hartnett
+ * @author Ed Hartnett, Mark Harfouche, Dennis Heimbigner
  */
 
 #include "config.h"
@@ -13,11 +13,6 @@
 #include "ncpathmgr.h"
 #include "ncpathmgr.h"
 #include "hdf5internal.h"
-
-/* From hdf5file.c. */
-extern size_t nc4_chunk_cache_size;
-extern size_t nc4_chunk_cache_nelems;
-extern float nc4_chunk_cache_preemption;
 
 /** @internal These flags may not be set for create. */
 static const int ILLEGAL_CREATE_FLAGS = (NC_NOWRITE|NC_MMAP|NC_64BIT_OFFSET|NC_CDF5);
@@ -157,12 +152,22 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
     /* Only set cache for non-parallel creates. */
     if (!nc4_info->parallel)
     {
-	if (H5Pset_cache(fapl_id, 0, nc4_chunk_cache_nelems, nc4_chunk_cache_size,
-			 nc4_chunk_cache_preemption) < 0)
+	NCglobalstate* gs = NC_getglobalstate();
+	if (H5Pset_cache(fapl_id, 0, gs->chunkcache.nelems, gs->chunkcache.size,
+			 gs->chunkcache.preemption) < 0)
 	    BAIL(NC_EHDFERR);
 	LOG((4, "%s: set HDF raw chunk cache to size %d nelems %d preemption %f",
-	     __func__, nc4_chunk_cache_size, nc4_chunk_cache_nelems,
-	     nc4_chunk_cache_preemption));
+	     __func__, gs->chunkcache.size, gs->chunkcache.nelems,
+	     gs->chunkcache.preemption));
+    }
+
+    {
+	NCglobalstate* gs = NC_getglobalstate();
+        if(gs->alignment.defined) {
+	    if (H5Pset_alignment(fapl_id, gs->alignment.threshold, gs->alignment.alignment) < 0) {
+	        BAIL(NC_EHDFERR);
+	    }
+	}
     }
 
     /* Set HDF5 format compatibility in the FILE ACCESS property list.
