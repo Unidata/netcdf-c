@@ -235,7 +235,7 @@ extern OCerror ocset_useragent(OCstate* state, const char* agent);
 extern OCerror ocset_netrc(OCstate* state, const char* path);
 
 /* From ocrc.c */
-extern OCerror ocrc_load(); /* find, read, and compile */
+extern OCerror ocrc_load(void); /* find, read, and compile */
 extern OCerror ocrc_process(OCstate* state); /* extract relevant triples */
 extern char* ocrc_lookup(char* key, char* url);
 extern struct OCTriple* ocrc_triple_iterate(char* key, char* url, struct OCTriple* prevp);

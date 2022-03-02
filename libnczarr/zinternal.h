@@ -230,7 +230,7 @@ int ncz_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
                               int use_name, char *norm_name, NC_FILE_INFO_T** file,
                               NC_GRP_INFO_T** grp, NC_VAR_INFO_T** var,
                               NC_ATT_INFO_T** att);
-int NCZ_set_log_level();
+int NCZ_set_log_level(void);
 
 /* zcache.c */
 int ncz_adjust_var_cache(NC_GRP_INFO_T* grp, NC_VAR_INFO_T* var);
