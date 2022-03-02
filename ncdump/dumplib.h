@@ -87,7 +87,7 @@ extern int  is_user_defined_type ( nc_type type );
 extern void init_epsilons ( void );
 
 /* Initialize string buffer */
-safebuf_t *sbuf_new();
+safebuf_t *sbuf_new( void );
 
 /* Copy string s2 to buffer in sbuf, growing if necessary */
 void sbuf_cpy(safebuf_t *sbuf, const char *s2);

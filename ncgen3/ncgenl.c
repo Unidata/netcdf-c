@@ -2505,7 +2505,7 @@ void ncgfree (void * ptr )
 
 /* Hack to keep compile quiet */
 void
-ignore()
+ignore(void)
 {
 #ifndef YY_NO_UNPUT
     yyunput(0,NULL);
