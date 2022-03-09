@@ -37,7 +37,7 @@ static pthread_mutex_t mutex;
 #endif
 
 int
-ncp_unix_initialize()
+ncp_unix_initialize(void)
 {
     int ret = 1;
 #ifdef USE_MUTEX
@@ -54,7 +54,7 @@ ncp_unix_initialize()
 }
 
 int
-ncp_unix_finalize()
+ncp_unix_finalize(void)
 {
 #ifdef USE_MUTEX
     pthread_mutex_destroy(&mutex);
