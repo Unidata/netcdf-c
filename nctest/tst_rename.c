@@ -20,7 +20,7 @@ check_err(const int stat, const int line, const char *file) {
 }
 
 int
-create_file()
+create_file(void)
 {
    int  stat;  /* return status */
    int  ncid;  /* netCDF id */
