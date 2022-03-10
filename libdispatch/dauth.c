@@ -83,11 +83,7 @@ NC_combinehostport(NCURI* uri)
     if(port != NULL) len += (1+strlen(port));
     hp = (char*)malloc(len+1);
     if(hp == NULL) return NULL;
-    strncpy(hp,host,len);
-    if(port != NULL) {
-	strlcat(hp,":",len+1);
-	strlcat(hp,port,len+1);
-    }
+    snprintf(hp, len+1, "%s%s%s", host, port ? ":" : "", port ? port : "");
     return hp;
 }
 
