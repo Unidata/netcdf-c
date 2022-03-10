@@ -512,7 +512,7 @@ out :
  */
 int
 NC_check_vlen(NC_var *varp, long long vlen_max) {
-    int ii;
+    size_t ii;
     long long prod=varp->xsz;	/* product of xsz and dimensions so far */
 
     assert(varp != NULL);
