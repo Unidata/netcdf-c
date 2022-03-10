@@ -531,6 +531,8 @@ IF(ENABLE_HDF4)
   ENDIF()
 ENDIF()
 
+OPTION(ENABLE_HDF5_SWMR "Support SWMR in HDF5. This requires HDF version 1.10 or later" OFF)
+
 # Option to Build DLL
 IF(WIN32)
   OPTION(ENABLE_DLL "Build a Windows DLL." ${BUILD_SHARED_LIBS})
@@ -693,6 +695,15 @@ IF(USE_HDF5)
     ##
 
     # Some versions of HDF5 set HDF5_VERSION_STRING instead of HDF5_VERSION
+    ##
+    # Assert HDF5 version meets minimum required version.
+    ##
+    SET(HDF5_VERSION_REQUIRED 1.8.10)
+    IF(ENABLE_HDF5_SWMR_SUPPORT)
+        SET(HDF5_VERSION_REQUIRED 1.10)
+        MESSAGE(STATUS "HDF5 SWMR is enabled. This implies that HDF5 version at least ${HDF5_VERSION_REQUIRED} is required.")
+    ENDIF()
+
     IF(HDF5_VERSION_STRING AND NOT HDF5_VERSION)
       SET(HDF5_VERSION ${HDF5_VERSION_STRING})
     ENDIF()
@@ -711,6 +722,9 @@ IF(USE_HDF5)
         unset(_hdf5_version)
         unset(_hdf5_version_lines)
         MESSAGE(STATUS "Found HDF5 libraries version ${HDF5_VERSION}")
+        IF(ENABLE_HDF5_SWMR_SUPPORT)
+            ADD_DEFINITIONS(-DHDF5_HAS_SWMR)
+        ENDIF()
       ENDIF()
     ELSE()
       SET(HDF5_VERSION ${HDF5_VERSION} CACHE STRING "")
