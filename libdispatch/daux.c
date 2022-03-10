@@ -704,7 +704,8 @@ filterspec_cvt(const char* txt, size_t* nparamsp, unsigned int* params)
         sstat = sscanf(p,"%lf",&vald);
         if(sstat != 1) {stat = NC_EINVAL; goto done;}
         valf = (float)vald;
-        params[nparams++] = *(unsigned int*)&valf;
+	/* avoid type punning */
+	memcpy(&params[nparams++], &valf, sizeof(unsigned int));
         break;
     /* The following are 8-byte values, so we must swap pieces if this
     is a little endian machine */        
