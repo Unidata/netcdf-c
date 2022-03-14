@@ -16,7 +16,6 @@
 #include "ncrc.h"
 #include "ncauth.h"
 #include "ncmodel.h"
-#include "ncfilter.h"
 #include "ncpathmgr.h"
 
 #ifdef ENABLE_BYTERANGE
@@ -1087,14 +1086,6 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
  	    {stat = NC_EHDFERR; goto done;} /* Something in HDF5 went wrong */
 	switch (filter)
         {
-        case H5Z_FILTER_SHUFFLE:
-            var->shuffle = NC_TRUE;
-            break;
-
-        case H5Z_FILTER_FLETCHER32:
-            var->fletcher32 = NC_TRUE;
-            break;
-
         case H5Z_FILTER_DEFLATE:
             if (cd_nelems != CD_NELEMS_ZLIB ||
                 cd_values[0] > NC_MAX_DEFLATE_LEVEL)
@@ -2015,13 +2006,7 @@ hdf5free(void* memory)
 #ifndef JNA
     /* On Windows using the microsoft runtime, it is an error
        for one library to free memory allocated by a different library.*/
-#ifdef HAVE_H5FREE_MEMORY
     if(memory != NULL) H5free_memory(memory);
-#else
-#ifndef _MSC_VER
-    if(memory != NULL) free(memory);
-#endif
-#endif
 #endif
 }
 

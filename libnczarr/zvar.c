@@ -600,23 +600,21 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 #endif
 
     /* Shuffle filter? */
-    if (shuffle)
-    {
-	if(*shuffle) var->shuffle = *shuffle;
-	var->storage = NC_CHUNKED;
-	if(var->shuffle) {
-	    if((retval = NCZ_def_var_filter(ncid,varid,2,0,NULL))) goto done;
-	}
+    if (shuffle && *shuffle) {
+	    retval = nc_inq_var_filter_info(ncid,varid,H5Z_FILTER_SHUFFLE,NULL,NULL);
+	    if(!retval || retval == NC_ENOFILTER) {
+	        if((retval = NCZ_def_var_filter(ncid,varid,H5Z_FILTER_SHUFFLE,0,NULL))) return retval;
+                var->storage = NC_CHUNKED;
+	    }
     }
 
     /* Fletcher32 checksum error protection? */
-    if (fletcher32)
-    {
-	if(*fletcher32) var->fletcher32 = *fletcher32;
-	var->storage = NC_CHUNKED;
-	if(var->fletcher32) {
-	    if((retval = NCZ_def_var_filter(ncid,varid,3,0,NULL))) goto done;
-	}
+    if (fletcher32 && fletcher32) {
+	retval = nc_inq_var_filter_info(ncid,varid,H5Z_FILTER_FLETCHER32,NULL,NULL);
+	if(!retval || retval == NC_ENOFILTER) {
+	    if((retval = NCZ_def_var_filter(ncid,varid,H5Z_FILTER_FLETCHER32,0,NULL))) return retval;
+            var->storage = NC_CHUNKED;
+	    }
     }
 
     /* Handle storage settings. */
@@ -628,7 +626,7 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	 * no filters in use for this data. */
 	if (storage != NC_CHUNKED)
 	{
-	    if (nclistlength(((NClist*)var->filters)) > 0 || var->fletcher32 || var->shuffle)
+	    if (nclistlength(((NClist*)var->filters)) > 0)
 		{retval = NC_EINVAL; goto done;}
 	    for (d = 0; d < var->ndims; d++)
 		if (var->dim[d]->unlimited)

@@ -178,6 +178,15 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the `atexit function. */
 #cmakedefine HAVE_ATEXIT 1
 
+/* Define to 1 if bzip2 library available. */
+#cmakedefine HAVE_BZIP2 1
+
+/* Define to 1 if zstd library available. */
+#cmakedefine HAVE_ZSTD 1
+
+/* Define to 1 if blosc library available. */
+#cmakedefine HAVE_BLOSC 1
+
 /* Define to 1 if you have hdf5_coll_metadata_ops */
 #cmakedefine HDF5_HAS_COLL_METADATA_OPS 1
 
@@ -258,6 +267,9 @@ are set when opening a binary file on Windows. */
 
 /* Define to 1 if you have the `H5Z_SZIP' function. */
 #cmakedefine HAVE_H5Z_SZIP 1
+
+/* Define to 1 if you have libsz */
+#cmakedefine HAVE_SZ 1
 
 /* Define to 1 if you have the <hdf5.h> header file. */
 #cmakedefine HAVE_HDF5_H 1
@@ -421,16 +433,6 @@ are set when opening a binary file on Windows. */
 
 /* Define to 1 if the system has the type `ushort'. */
 #cmakedefine HAVE_USHORT 1
-
-/* if true, H5free_memory() will be used to free hdf5-allocated memory in
-   nc4file. */
-#cmakedefine HAVE_H5FREE_MEMORY 1
-
-/* if true, H5allocate_memory() will be used. */
-#cmakedefine HAVE_H5ALLOCATE_MEMORY 1
-
-/* if true, H5resize_memory() will be used. */
-#cmakedefine HAVE_H5RESIZE_MEMORY 1
 
 /* if true, hdf5 has parallelism enabled */
 #cmakedefine HDF5_PARALLEL 1
@@ -619,9 +621,6 @@ with zip */
 
 /* if true, enable nczarr blosc support */
 #cmakedefine ENABLE_BLOSC 1
-
-/* if true, enable nczarr szip support */
-#cmakedefine USE_SZIP 1
 
 /* Version number of package */
 #cmakedefine VERSION "${netCDF_VERSION}"

@@ -204,8 +204,6 @@ typedef struct NC_VAR_INFO
     int storage;                 /**< Storage of this var, compact, contiguous, or chunked. */
     int endianness;              /**< What endianness for the var? */
     int parallel_access;         /**< Type of parallel access for I/O on variable (collective or independent). */
-    nc_bool_t shuffle;           /**< True if var has shuffle filter applied. */
-    nc_bool_t fletcher32;        /**< True if var has fletcher32 filter applied. */
     struct ChunkCache {
         size_t size;     /**< Size in bytes of the var chunk cache. */
         size_t nelems;   /**< Number of slots in var chunk cache. */

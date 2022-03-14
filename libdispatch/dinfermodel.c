@@ -52,7 +52,7 @@ struct MagicFile {
     struct NCURI* uri;
     int omode;
     NCmodel* model;
-    long long unsigned filelen;
+    long long filelen;
     int use_parallel;
     int iss3;
     void* parameters; /* !NULL if inmemory && !diskless */

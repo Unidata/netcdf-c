@@ -7,7 +7,7 @@ ncdump \- Convert netCDF file to text form (CDL)
 .HP
 ncdump
 .nh
-\%[\-chistxw]
+\%[\-chistxwF]
 \%[\-v \fIvar1,...\fP]
 \%[\-b \fIlang\fP]
 \%[\-f \fIlang\fP]
@@ -230,6 +230,8 @@ with client-side caching of entire variables.
 .IP "\fB-x\fP"
 Output XML (NcML) instead of CDL.  The NcML does not include data values.
 The NcML output option currently only works for netCDF classic model data.
+.IP "\fB-F\fP"
+Use _Filter and _Codecs attributes in place of _Fletcher32, _Shuffle, and _Deflate.
 .SH EXAMPLES
 .LP
 Look at the structure of the data in the netCDF file `\fBfoo.nc\fP':
