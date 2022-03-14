@@ -22,7 +22,8 @@ SET(NC4_TESTS tst_dims tst_dims2 tst_dims3 tst_files tst_files4
   tst_files6 tst_sync tst_h_strbug tst_h_refs tst_h_scalar tst_rename
   tst_rename2 tst_rename3 tst_h5_endians tst_atts_string_rewrite tst_put_vars_two_unlim_dim
   tst_hdf5_file_compat tst_fill_attr_vanish tst_rehash tst_types tst_bug324
-  tst_atts3 tst_put_vars tst_elatefill tst_udf tst_bug1442 tst_quantize)
+  tst_atts3 tst_put_vars tst_elatefill tst_udf tst_bug1442 tst_broken_files
+  tst_quantize)
 
 IF(HAS_PAR_FILTERS)
 SET(NC4_tests $NC4_TESTS tst_alignment)
