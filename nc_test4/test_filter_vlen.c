@@ -66,24 +66,13 @@ static int nerrs = 0;
 
 static int ncid, varid;
 static int dimids[MAXDIMS];
-static size_t odom[MAXDIMS];
 static float* array = NULL;
 static float* expected = NULL;
-
-static unsigned int filterid = 0;
-static size_t nparams = 0;
-static unsigned int params[MAXPARAMS];
 
 /* Forward */
 static int test_test1(void);
 static void init(int argc, char** argv);
 static void reset(void);
-static void odom_reset(void);
-static int odom_more(void);
-static int odom_next(void);
-static int odom_offset(void);
-static float expectedvalue(void);
-static void verifyparams(void);
 
 #define ERRR do { \
 fflush(stdout); /* Make sure our stdout is synced with stderr. */ \
@@ -100,16 +89,7 @@ check(int err,int line)
     }
     return NC_NOERR;
 }
-
-static void
-report(const char* msg, int lineno)
-{
-    fprintf(stderr,"fail: line=%d %s\n",lineno,msg);
-    exit(1);
-}
-
 #define CHECK(x) check(x,__LINE__)
-#define REPORT(x) report(x,__LINE__)
 
 static int
 verifychunks(void)
@@ -156,69 +136,6 @@ defvar(nc_type xtype)
     return NC_NOERR;
 }
 
-static void
-setvarfilter(void)
-{
-    CHECK(nc_def_var_filter(ncid,varid,TEST_ID,NPARAMS,baseline));
-    verifyparams();
-}
-
-static void
-verifyparams(void)
-{
-    int i;
-    CHECK(nc_inq_var_filter(ncid,varid,&filterid,&nparams,params));
-    if(filterid != TEST_ID) REPORT("id mismatch");
-    if(nparams != NPARAMS) REPORT("nparams mismatch");
-    for(i=0;i<nparams;i++) {
-        if(params[i] != baseline[i])
-            REPORT("param mismatch");
-    }
-}
-
-static int
-openfile(void)
-{
-    unsigned int* params = NULL;
-
-    /* Open the file and check it. */
-    CHECK(nc_open(testfile, NC_NOWRITE, &ncid));
-    CHECK(nc_inq_varid(ncid, "var", &varid));
-
-    /* Check the compression algorithm */
-    CHECK(nc_inq_var_filter(ncid,varid,&filterid,&nparams,NULL));
-    if(nparams > 0) {
-        params = (unsigned int*)malloc(sizeof(unsigned int)*nparams);
-        if(params == NULL)
-            return NC_ENOMEM;
-        CHECK(nc_inq_var_filter(ncid,varid,&filterid,&nparams,params));
-    }
-    if(filterid != TEST_ID) {
-        fprintf(stderr,"open: test id mismatch: %d\n",filterid);
-        free(params);
-        return NC_EFILTER;
-    }
-    if(nparams != NPARAMS) {
-        size_t i;
-        fprintf(stderr,"nparams  mismatch\n");
-        for(nerrs=0,i=0;i<nparams;i++) {
-            if(params[i] != baseline[i]) {
-                fprintf(stderr,"open: testparam mismatch: %ld\n",(unsigned long)i);
-                nerrs++;
-            }
-        }
-    }
-    free(params);
-
-    if(nerrs > 0) return NC_EFILTER;
-
-    /* Verify chunking */
-    if(!verifychunks())
-        return 0;
-    fflush(stderr);
-    return 1;
-}
-
 static int
 setchunking(void)
 {
@@ -229,91 +146,6 @@ setchunking(void)
     if(!verifychunks())
         return NC_EINVAL;
     return NC_NOERR;
-}
-
-static void
-fill(void)
-{
-   odom_reset();
-   if(1) {
-        int i;
-        if(actualproduct <= 1) abort();
-        for(i=0;i<actualproduct;i++)
-            expected[i] = (float)i;
-   } else {
-       while(odom_more()) {
-            int offset = odom_offset();
-            float expect = expectedvalue();
-            expected[offset] = expect;
-            odom_next();
-        }
-   }
-}
-
-
-static int
-compare(void)
-{
-    int errs = 0;
-    fprintf(stderr,"data comparison: |array|=%ld\n",(unsigned long)actualproduct);
-    if(1)
-    {
-        int i;
-        for(i=0;i<actualproduct;i++) {
-            if(expected[i] != array[i]) {
-                fprintf(stderr,"data mismatch: array[%d]=%f expected[%d]=%f\n",
-                            i,array[i],i,expected[i]);
-                errs++;
-                if(errs >= MAXERRS)
-                    break;
-            }
-        }
-   } else
-   {
-       odom_reset();
-       while(odom_more()) {
-            int offset = odom_offset();
-            float expect = expectedvalue();
-            if(array[offset] != expect) {
-                fprintf(stderr,"data mismatch: array[%d]=%f expected=%f\n",
-                            offset,array[offset],expect);
-                errs++;
-                if(errs >= MAXERRS)
-                    break;
-            }
-            odom_next();
-       }
-   }
-
-   if(errs == 0)
-        fprintf(stderr,"no data errors\n");
-   return (errs == 0);
-}
-
-static void
-showparameters(void)
-{
-    int i;
-    fprintf(stderr,"test: nparams=%ld: params=",(unsigned long)nparams);
-    for(i=0;i<nparams;i++) {
-        fprintf(stderr," %u",params[i]);
-    }
-    fprintf(stderr,"\n");
-    for(i=0;i<ndims;i++) {
-	if(i==0)
-            fprintf(stderr,"dimsizes=%ld",(unsigned long)dimsize[i]);
-	else
-            fprintf(stderr,",%ld",(unsigned long)dimsize[i]);
-    }
-    fprintf(stderr,"\n");
-    for(i=0;i<ndims;i++) {
-	if(i==0)
-            fprintf(stderr,"chunksizes=%ld",(unsigned long)chunksize[i]);
-	else
-            fprintf(stderr,",%ld",(unsigned long)chunksize[i]);
-    }
-    fprintf(stderr,"\n");
-    fflush(stderr);
 }
 
 static void
@@ -399,56 +231,6 @@ static void
 reset()
 {
     memset(array,0,sizeof(float)*actualproduct);
-}
-
-static void
-odom_reset(void)
-{
-    memset(odom,0,sizeof(odom));
-}
-
-static int
-odom_more(void)
-{
-    return (odom[0] < dimsize[0]);
-}
-
-static int
-odom_next(void)
-{
-    int i; /* do not make unsigned */
-    for(i=ndims-1;i>=0;i--) {
-        odom[i] += 1;
-        if(odom[i] < dimsize[i]) break;
-        if(i == 0) return 0; /* leave the 0th entry if it overflows*/
-        odom[i] = 0; /* reset this position*/
-    }
-    return 1;
-}
-
-static int
-odom_offset(void)
-{
-    int i;
-    int offset = 0;
-    for(i=0;i<ndims;i++) {
-        offset *= dimsize[i];
-        offset += odom[i];
-    }
-    return offset;
-}
-
-static float
-expectedvalue(void)
-{
-    int i;
-    float offset = 0;
-
-    for(i=0;i<ndims;i++) {
-        offset *= dimsize[i];
-        offset += odom[i];
-    }
-    return offset;
 }
 
 static void

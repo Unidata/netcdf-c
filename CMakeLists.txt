@@ -42,7 +42,7 @@ SET(PACKAGE_VERSION ${VERSION})
 
 # Version of the dispatch table. This must match the value in
 # configure.ac.
-SET(NC_DISPATCH_VERSION 4)
+SET(NC_DISPATCH_VERSION 5)
 
 # Get system configuration, Use it to determine osname, os release, cpu. These
 # will be used when committing to CDash.
@@ -588,6 +588,33 @@ ENDIF(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING)
 #  SET(BUILD_RPC ON CACHE BOOL "")
 #ENDIF()
 
+# Note that szip management is tricky.
+# This is because we have three things to consider:
+# 1. is libsz available?
+# 2. is szip enabled in HDF5?
+# 3. is nczarr enabled?
+# We need separate flags for cases 1 and 2
+
+# We need to determine if libsz is available both for HDF5 and NCZarr
+# If user has specified the `SZIP_LIBRARY`, use it; otherwise try to find...
+IF(NOT SZIP_LIBRARY)
+  FIND_LIBRARY(SZIP PATH NAMES szip sz sz2)
+  IF(SZIP)
+    SET(SZIP_LIBRARY ${SZIP})
+  ELSE()
+    UNSET(SZIP_LIBRARY)
+    UNSET(SZIP)
+  ENDIF()
+ENDIF()
+
+IF(SZIP_LIBRARY)
+  SET(SZIP_FOUND yes)
+  SET(HAVE_SZ yes)
+ELSE()
+  SET(SZIP_FOUND no)
+  SET(HAVE_SZ no)
+ENDIF()
+
 ##
 # Option to Enable HDF5
 #
@@ -847,19 +874,18 @@ IF(USE_HDF5)
    #error
    #endif
    int main() {
-   int x = 1;}" USE_SZIP)
-  IF(USE_SZIP)
+   int x = 1;}" USE_HDF5_SZIP)
+  IF(USE_HDF5_SZIP)
+    SET(HAVE_H5Z_SZIP yes)
     # If user has specified the `SZIP_LIBRARY`, use it; otherwise try to find...
-    IF(NOT SZIP_LIBRARY)
-      FIND_LIBRARY(SZIP PATH NAMES szip sz)
-      SET(SZIP_LIBRARY ${SZIP})
-      IF(NOT SZIP)
+    IF(SZIP_FOUND)
+      SET(CMAKE_REQUIRED_LIBRARIES ${SZIP_LIBRARY} ${CMAKE_REQUIRED_LIBRARIES})
+      MESSAGE(STATUS "HDF5 has szip.")
+    ELSE()
         MESSAGE(FATAL_ERROR "HDF5 Requires SZIP, but cannot find libszip or libsz.")
-      ENDIF()
     ENDIF()
-    SET(HAVE_H5Z_SZIP 1)
-    SET(CMAKE_REQUIRED_LIBRARIES ${SZIP_LIBRARY} ${CMAKE_REQUIRED_LIBRARIES})
-    MESSAGE(STATUS "HDF5 has szip.")
+  ELSE()
+    SET(HAVE_H5Z_SZIP no)  
   ENDIF()
 
   ####
@@ -891,9 +917,6 @@ IF(USE_HDF5)
 
   #Check to see if HDF5 library has collective metadata APIs, (HDF5 >= 1.10.0)
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pset_all_coll_metadata_ops "" HDF5_HAS_COLL_METADATA_OPS)
-  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5free_memory "" HAVE_H5FREE_MEMORY)
-  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5allocate_memory "" HAVE_H5ALLOCATE_MEMORY)
-  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5resize_memory "" HAVE_H5RESIZE_MEMORY)
 
   IF(HDF5_PARALLEL)
 	SET(HDF5_CC h5pcc)
@@ -1055,30 +1078,33 @@ ELSE()
   SET(ENABLE_ZLIB FALSE)
 ENDIF()
 
-# See if we have libblosc
-IF(!MSVC)
-FIND_PACKAGE(Blosc)
-ENDIF()
-# Define a test flag for have blosc library
-IF(Blosc_FOUND)
-  INCLUDE_DIRECTORIES(${Blosc_INCLUDE_DIRS})
-  SET(ENABLE_BLOSC TRUE)
+macro(set_std_filter filter)
+# Upper case the filter name
+string(TOUPPER "${filter}" upfilter)
+string(TOLOWER "${filter}" downfilter)
+# Define a test flag for filter
+IF(${filter}_FOUND)
+  INCLUDE_DIRECTORIES(${filter}_INCLUDE_DIRS})
+  SET(ENABLE_${upfilter} TRUE)
+  SET(STD_FILTERS "${STD_FILTERS},${downfilter}")
 ELSE()
-  SET(ENABLE_BLOSC FALSE)
+  SET(ENABLE_${upfilter} FALSE)
 ENDIF()
+endmacro(set_std_filter)
 
-# See if we have libszip
-IF(!MSVC)
-#FIND_PACKAGE(SZIP)
-#FIND_LIBRARY(SZIP PATH NAMES szip sz)
-SET(SZIP_LIBRARY ${SZIP})
-ENDIF()
-# Define a test flag for have szip library
-IF(SZIP_FOUND)
-  INCLUDE_DIRECTORIES(${SZIP_INCLUDE_DIRS})
-  SET(ENABLE_SZIP TRUE)
-ELSE()
-  SET(ENABLE_SZIP FALSE)
+# Locate some compressors
+FIND_PACKAGE(Bz2)
+FIND_PACKAGE(Blosc)
+FIND_PACKAGE(Zstd)
+
+# Accumulate standard filters
+set(STD_FILTERS "deflate") # Always have deflate */
+set_std_filter(SZIP)
+set_std_filter(Blosc)
+set_std_filter(Zstd)
+set_std_filter(Bz2)
+IF(NOT Bz2_FOUND)
+set(STD_FILTERS "${STD_FILTERS},bzip2") # Always have bzip2 */
 ENDIF()
 
 # See if we have libzip
@@ -1160,21 +1186,22 @@ IF(ENABLE_NCZARR_S3_TESTS AND NOT ENABLE_NCZARR_S3)
   SET(ENABLE_NCZARR_S3_TESTS OFF CACHE BOOL "NCARR S3 TESTS" FORCE)
 ENDIF()
 
-# See if aws-s3-sdk is available
-# But only if enabled
+# Note we check for the library after checking for enable_nczarr_s3
+# because for some reason this screws up if we unconditionally test for sdk
+# and it is not available. Fix someday
 IF(ENABLE_NCZARR_S3)
-find_package(AWSSDK REQUIRED COMPONENTS s3;core)
-IF(AWSSDK_FOUND)
-  SET(service s3;core)
-  AWSSDK_DETERMINE_LIBS_TO_LINK(service AWS_LINK_LIBRARIES)
-  SET(ENABLE_S3_SDK ON CACHE BOOL "S3 SDK" FORCE)
+  # See if aws-s3-sdk is available
+  find_package(AWSSDK REQUIRED COMPONENTS s3;core)
+  IF(AWSSDK_FOUND)
+    SET(service s3;core)
+    AWSSDK_DETERMINE_LIBS_TO_LINK(service AWS_LINK_LIBRARIES)
+    SET(ENABLE_S3_SDK ON CACHE BOOL "S3 SDK" FORCE)
+  ELSE()
+    SET(ENABLE_S3_SDK OFF CACHE BOOL "S3 SDK" FORCE)
+  ENDIF()
 ELSE()
   SET(ENABLE_S3_SDK OFF CACHE BOOL "S3 SDK" FORCE)
 ENDIF()
-ELSE(ENABLE_NCZARR_S3)
-# Unconditionally disable
-SET(ENABLE_S3_SDK OFF CACHE BOOL "S3 SDK" FORCE)
-ENDIF(ENABLE_NCZARR_S3)
 
 IF(NOT ENABLE_S3_SDK)
   IF(ENABLE_NCZARR_S3 OR ENABLE_NCZARR_S3_TESTS)
@@ -1493,11 +1520,19 @@ IF(NOT BUILD_SHARED_LIBS)
 ENDIF()
 
 OPTION(ENABLE_NCZARR_FILTERS "Enable NCZarr filters" yes)
+OPTION(ENABLE_NCZARR_FILTERS_TESTING "Enable NCZarr filter testing." yes)
+
+# Constraints
 IF (NOT ENABLE_PLUGINS)
-    SET(ENABLE_NCZARR_FILTERS OFF CACHE BOOL "Enable NCZarr Filters." FORCE)
+  MESSAGE(WARNING "ENABLE_FILTER_TESTING requires shared libraries. Disabling.")
+  SET(ENABLE_NCZARR_FILTERS OFF CACHE BOOL "Enable NCZarr Filters." FORCE)
 ENDIF()
 
-OPTION(ENABLE_NCZARR_FILTERS_TESTING "Enable NCZarr filter testing." yes)
+IF (NOT ENABLE_NCZARR)
+  MESSAGE(WARNING "ENABLE_NCZARR==NO => ENABLE_NCZARR_FILTERS==NO AND ENABLE_NCZARR_FILTER_TESTING==NO")
+  SET(ENABLE_NCZARR_FILTERS OFF CACHE BOOL "Disable NCZARR_FILTERS" FORCE)
+ENDIF()
+
 IF (NOT ENABLE_NCZARR_FILTERS)
     SET(ENABLE_NCZARR_FILTER_TESTING OFF CACHE BOOL "Enable NCZarr Filter Testing" FORCE)
 ENDIF()
@@ -2357,9 +2392,6 @@ is_enabled(ENABLE_V2_API HAS_NC2)
 is_enabled(ENABLE_NETCDF_4 HAS_NC4)
 is_enabled(ENABLE_HDF4 HAS_HDF4)
 is_enabled(USE_HDF5 HAS_HDF5)
-is_enabled(USE_SZIP HAS_SZIP)
-is_enabled(USE_SZIP HAS_SZIP_WRITE)
-is_enabled(USE_SZIP HAS_SZLIB_WRITE)
 is_enabled(STATUS_PNETCDF HAS_PNETCDF)
 is_enabled(STATUS_PARALLEL HAS_PARALLEL)
 is_enabled(ENABLE_PARALLEL4 HAS_PARALLEL4)
@@ -2373,7 +2405,6 @@ is_enabled(JNA HAS_JNA)
 is_enabled(ENABLE_ZERO_LENGTH_COORD_BOUND RELAX_COORD_BOUND)
 is_enabled(USE_CDF5 HAS_CDF5)
 is_enabled(ENABLE_ERANGE_FILL HAS_ERANGE_FILL)
-is_enabled(HAVE_H5Z_SZIP HAS_SZLIB)
 is_enabled(HDF5_HAS_PAR_FILTERS HAS_PAR_FILTERS)
 is_enabled(ENABLE_NCZARR HAS_NCZARR)
 is_enabled(ENABLE_NCZARR_S3_TESTS DO_NCZARR_S3_TESTS)
@@ -2382,7 +2413,8 @@ is_enabled(ENABLE_NCZARR_ZIP DO_NCZARR_ZIP_TESTS)
 is_enabled(ENABLE_QUANTIZE HAS_QUANTIZE)
 is_enabled(ENABLE_LOGGING HAS_LOGGING)
 is_enabled(ENABLE_FILTER_TESTING DO_FILTER_TESTS)
-is_enabled(ENABLE_BLOSC HAS_BLOSC)
+is_enabled(HAVE_SZ HAS_SZIP)
+is_enabled(HAVE_SZ HAS_SZLIB_WRITE)
 
 # Generate file from template.
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"

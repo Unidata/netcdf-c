@@ -10,7 +10,11 @@ FILE(READ H5Znoop.c NOOP_SOURCE)
 FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/H5Znoop1.c "#define NOOP_INSTANCE 1\n")
 FILE(APPEND ${CMAKE_CURRENT_BINARY_DIR}/H5Znoop1.c "${NOOP_SOURCE}")
 
-SET(h5bzip2_SOURCES blocksort.c huffman.c crctable.c randtable.c compress.c decompress.c bzlib.c H5Zbzip2.c ${NCJ})
+SET(h5bzip2_SOURCES H5Zbzip2.c)
+
+IF(NOT HAVE_BZIP2)
+SET(h5bzip2_SOURCES ${h5bzip2_SOURCES} blocksort.c huffman.c crctable.c randtable.c compress.c decompress.c bzlib.c)
+ENDIF()
 
 SET(h5misc_SOURCES H5Zmisc.c H5Zutil.c h5misc.h)
 
@@ -51,11 +55,6 @@ MACRO(buildplugin TARGET TARGETLIB)
   ENDIF()
 ENDMACRO()
 
-# Note we use name h5bzip2 instead of bzip2 to avoid logical
-# target name clash with examples/C/hdf5plugins
-buildplugin(h5bzip2 "h5bzip2")
-SET_TARGET_PROPERTIES(h5bzip2 PROPERTIES OUTPUT_NAME "bzip2")
-
 buildplugin(h5misc "h5misc")
 buildplugin(h5noop "h5noop")
 buildplugin(h5noop1 "h5noop1")
@@ -72,10 +71,23 @@ SET(h5blosc_SOURCES H5Zblosc.c)
 buildplugin(h5blosc "h5blosc" netcdf;${Blosc_LIBRARIES})
 ENDIF()
 
-IF(ENABLE_SZIP)
-SET(h5szip_SOURCES H5Zszip.c H5Zszip.h)
-buildplugin(h5szip "h5szip" ${Szip_LIBRARIES})
+IF(ENABLE_ZSTD)
+SET(h5zstd_SOURCES H5Zzstd.c H5Zzstd.h)
+buildplugin(h5zstd "h5zstd" netcdf;${Zstd_LIBRARIES})
 ENDIF()
+
+# Need our version of szip if libsz available and we are not using HDF5
+IF(HAVE_SZ)
+  SET(h5szip_SOURCES H5Zszip.c H5Zszip.h)
+  buildplugin(h5szip "h5szip" ${Szip_LIBRARIES})
+  SET(nczszip_SOURCES NCZszip.c)
+  buildplugin(nczszip "nczszip" netcdf)
+ENDIF()
+
+buildplugin(h5bzip2 "h5bzip2" ${Bzip2_LIBRARIES})
+# Note we use name h5bzip2 instead of bzip2 to avoid logical
+# target name clash with examples/C/hdf5plugins
+SET_TARGET_PROPERTIES(h5bzip2 PROPERTIES OUTPUT_NAME "bzip2")
 
 ENDIF(BUILD_UTILITIES)
 ENDIF(ENABLE_FILTER_TESTING)

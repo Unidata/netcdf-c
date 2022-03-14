@@ -48,5 +48,5 @@ int NCZ_applyfilterchain(const NC_FILE_INFO_T*, NC_VAR_INFO_T*, NClist* chain, s
 int NCZ_filter_jsonize(const NC_FILE_INFO_T*, const NC_VAR_INFO_T*, struct NCZ_Filter* filter, struct NCjson**);
 int NCZ_filter_build(const NC_FILE_INFO_T*, NC_VAR_INFO_T* var, const NCjson* jfilter);
 int NCZ_codec_attr(const NC_VAR_INFO_T* var, size_t* lenp, void* data);
-	    
+
 #endif /*ZFILTER_H*/

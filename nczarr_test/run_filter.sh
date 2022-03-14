@@ -48,20 +48,24 @@ sed -e 's/[ 	]*\([^ 	].*\)/\1/' <$1 >$2
 }
 
 # Locate the plugin path and the library names; argument order is critical
-# Find bzip2 and capture
-findplugin h5bzip2
-BZIP2LIB="${HDF5_PLUGIN_LIB}"
-BZIP2PATH="${HDF5_PLUGIN_PATH}/${BZIP2LIB}"
+
 # Find misc and capture
 findplugin h5misc
 MISCPATH="${HDF5_PLUGIN_PATH}/${HDF5_PLUGIN_LIB}"
 
+# Find noop and capture
+findplugin h5noop
+NOOPLIB="${HDF5_PLUGIN_LIB}"
+NOOPPATH="${HDF5_PLUGIN_PATH}/${NOOPLIB}"
+
+# Find bzip2 and capture
+findplugin h5bzip2
+BZIP2LIB="${HDF5_PLUGIN_LIB}"
+BZIP2PATH="${HDF5_PLUGIN_PATH}/${BZIP2LIB}"
+
 # Verify
 if ! test -f ${BZIP2PATH} ; then echo "Unable to locate ${BZIP2PATH}"; exit 1; fi
 if ! test -f ${MISCPATH} ; then echo "Unable to locate ${MISCPATH}"; exit 1; fi
-
-echo "@@@@@@@@@@@"
-find ${HDF5_PLUGIN_PATH}
 
 # Execute the specified tests
 
@@ -133,18 +137,18 @@ zext=$1
 echo "*** Testing access to filter info when filter implementation is not available for map $zext"
 fileargs tmp_known
 deletemap $zext $file
-# build bzip2.nc
-${NCGEN} -lb -4 -o $fileurl ${srcdir}/../nc_test4/bzip2.cdl
-# dump and clean bzip2.nc header when filter is avail
+# build noop.nc
+${NCGEN} -lb -4 -o $fileurl ${srcdir}/../nc_test4/noop.cdl
+# dump and clean noop.nc header when filter is avail
 ${NCDUMP} -hs $fileurl > ./tmp_known_$zext.txt
 # Remove irrelevant -s output
 sclean ./tmp_known_$zext.txt tmp_known_$zext.dump
 # Now hide the filter code
-mv ${BZIP2PATH} ./${BZIP2LIB}.save
-# dump and clean bzip2.nc header when filter is not avail
+mv ${NOOPPATH} ./${NOOPLIB}.save
+# dump and clean noop.nc header when filter is not avail
 ${NCDUMP} -hs $fileurl > ./tmp_unk_$zext.txt
 # Restore the filter code
-mv ./${BZIP2LIB}.save ${BZIP2PATH}
+mv ./${NOOPLIB}.save ${NOOPPATH}
 # Verify that the filter is no longer defined
 UNK=`sed -e '/var:_Filter/p' -e d ./tmp_unk_$zext.txt`
 test "x$UNK" = x
@@ -167,7 +171,7 @@ echo "*** Testing multiple filters for map $zext"
 fileargs tmp_multi
 deletemap $zext $file
 ${execdir}/testfilter_multi $fileurl
-${NCDUMP} -hs -n multifilter $fileurl >./tmp_multi_$zext.cdl
+${NCDUMP} -hsF -n multifilter $fileurl >./tmp_multi_$zext.cdl
 # Remove irrelevant -s output
 sclean ./tmp_multi_$zext.cdl ./tmp_smulti_$zext.cdl
 diff -b -w ${srcdir}/ref_multi.cdl ./tmp_smulti_$zext.cdl
