@@ -176,7 +176,7 @@ FILE(COPY ${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake DESTINATION ${CMAKE_CURR
 
 # Set Memory test program for non-MSVC based builds.
 # Assume valgrind for now.
-IF(NOT MSVC)
+IF((NOT MSVC) AND (NOT MINGW))
   SET(CTEST_MEMORYCHECK_COMMAND valgrind CACHE STRING "")
 ENDIF()
 
@@ -254,12 +254,25 @@ ENDIF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
 
 # End default linux gcc & apple compiler options.
 
+# Use relative pathnames in __FILE__ macros on MINGW:
+IF(MINGW)
+  CHECK_C_COMPILER_FLAG("-fmacro-prefix-map='${CMAKE_SOURCE_DIR}'=." CC_HAS_MACRO_PREFIX_MAP)
+  IF(CC_HAS_MACRO_PREFIX_MAP)
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fmacro-prefix-map='${CMAKE_SOURCE_DIR}'=.")
+  ENDIF()
+ENDIF()
+
 ADD_DEFINITIONS()
 
 # Suppress CRT Warnings.
 # Only necessary for Windows
 IF(MSVC)
   ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
+ENDIF()
+
+# Support ANSI format specifiers for *printf on MINGW:
+IF(MINGW)
+  ADD_DEFINITIONS(-D__USE_MINGW_ANSI_STDIO=1)
 ENDIF()
 
 #####
@@ -279,7 +292,7 @@ SET(CMAKE_REQUIRED_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/libsrc)
 # Configuration for post-install RPath
 # Adapted from http://www.cmake.org/Wiki/CMake_RPATH_handling
 ##
-IF(NOT MSVC AND BUILD_SHARED_LIBS)
+IF(NOT WIN32 AND BUILD_SHARED_LIBS)
   # use, i.e. don't skip the full RPATH for the build tree
   SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
 
@@ -1243,7 +1256,7 @@ IF(ENABLE_TESTS)
   SET(NC_CTEST_DROP_LOC_PREFIX "" CACHE STRING "Prefix for Dashboard location on remote server when using CTest-based testing.")
   SET(SUBMIT_URL "https://cdash.unidata.ucar.edu:443")
   FIND_PROGRAM(HOSTNAME_CMD NAMES hostname)
-  IF(NOT MSVC)
+  IF(NOT WIN32)
     SET(HOSTNAME_ARG "-s")
   ENDIF()
   IF(HOSTNAME_CMD)
