@@ -22,6 +22,10 @@ struct ZCVT {
     double float64v;
 };
 
+/* Forward */
+static int typeid2jtype(nc_type typeid);
+
+/* Convert an NCJ_STRING to a memory equivalent value of specified dsttype */
 int
 NCZ_convert1(NCjson* jsrc, nc_type dsttype, unsigned char* memory)
 {
@@ -31,7 +35,7 @@ NCZ_convert1(NCjson* jsrc, nc_type dsttype, unsigned char* memory)
     int outofrange = 0;
 
     /* Convert the incoming jsrc string to a restricted set of values */
-    switch (jsrc->sort) {
+    switch (NCJsort(jsrc)) {
     case NCJ_INT: /* convert to (u)int64 */
 	if(NCJstring(jsrc)[0] == '-') {
 	    if(sscanf(NCJstring(jsrc),"%lld",&zcvt.int64v) != 1)
@@ -70,10 +74,10 @@ NCZ_convert1(NCjson* jsrc, nc_type dsttype, unsigned char* memory)
     default: stat = NC_EINTERNAL; goto done;
     }
 
-    /* Now, do the down conversion into memory */
+    /* Now, do the down conversion */
     switch (dsttype) {
     case NC_BYTE: {
-	signed char* p = (signed char*)memory;
+        signed char* p = (signed char*)memory;
 	switch (srctype) {
 	case NC_DOUBLE:
 	    zcvt.int64v = (long long)zcvt.float64v; /* Convert to int64 */
@@ -234,8 +238,9 @@ done:
     return stat;
 }
 
+/* Convert a memory value to a JSON string value */
 int
-NCZ_stringconvert1(nc_type srctype, unsigned char* src, char** strp)
+NCZ_stringconvert1(nc_type srctype, size_t len, char* src, NCjson* jvalue)
 {
     int stat = NC_NOERR;
     struct ZCVT zcvt;
@@ -282,8 +287,8 @@ NCZ_stringconvert1(nc_type srctype, unsigned char* src, char** strp)
 	dsttype = NC_DOUBLE;
 	} break;
     case NC_DOUBLE: {
-	zcvt.float64v= (double)(*((double*)src));
 	dsttype = NC_DOUBLE;
+	zcvt.float64v= (double)(*((double*)src));
 	} break;
     default: stat = NC_EINTERNAL; goto done;
     }
@@ -297,11 +302,33 @@ NCZ_stringconvert1(nc_type srctype, unsigned char* src, char** strp)
 	snprintf(s,sizeof(s),"%llu",zcvt.uint64v);
 	} break;
     case NC_DOUBLE: {
-	snprintf(s,sizeof(s),"%lg",zcvt.float64v); /* handles NAN? */
+#ifdef _WIN32
+	switch (_fpclass(zcvt.float64v)) {
+	case _FPCLASS_SNAN: case _FPCLASS_QNAN:
+	     strcpy(s,"Nan"); break;
+	case _FPCLASS_NINF:
+	     strcpy(s,"-Infinity"); break;
+	case _FPCLASS_PINF:
+	     strcpy(s,"Infinity"); break;
+	default:
+	      snprintf(s,sizeof(s),"%lg",zcvt.float64v); /* handles NAN? */
+	      break;
+	}
+#else
+	if(isnan(zcvt.float64v))
+	     strcpy(s,"NaN");
+	else if(isinf(zcvt.float64v) && zcvt.float64v < 0)
+	     strcpy(s,"-Infinity");
+	else if(isinf(zcvt.float64v) && zcvt.float64v > 0)
+	     strcpy(s,"Infinity");
+	else {
+             snprintf(s,sizeof(s),"%lg",zcvt.float64v); /* handles NAN? */
+	}
+#endif
 	} break;
     default: stat = NC_EINTERNAL; goto done;
     }
-    if(strp) *strp = strdup(s);
+    NCJsetstring(jvalue,strdup(s));
 done:
     return stat;
 }
@@ -316,6 +343,9 @@ NCZ_stringconvert(nc_type typeid, size_t len, void* data0, NCjson** jdatap)
     char* str = NULL;
     NCjson* jvalue = NULL;
     NCjson* jdata = NULL;
+    int jtype = NCJ_UNDEF;
+
+    jtype = typeid2jtype(typeid);
 
     if((stat = NC4_inq_atomic_type(typeid, NULL, &typelen)))
 	goto done;
@@ -325,61 +355,15 @@ NCZ_stringconvert(nc_type typeid, size_t len, void* data0, NCjson** jdatap)
 	/* Create a string valued json object */
 	if((stat = NCJnewstringn(NCJ_STRING,len,src,&jdata)))
 	    goto done;
-    } else { /* all other cases */
-	if(len == 0) {stat = NC_EINVAL; goto done;}
-	if(len > 1) {
-	    if((stat = NCJnew(NCJ_ARRAY,&jdata))) goto done;
-        } else /* return a singletone */
-   	    jdata = NULL;
+    } else if(len == 1) { /* create singleton */
+	if((stat = NCJnew(jtype,&jdata))) goto done;
+        if((stat = NCZ_stringconvert1(typeid, len, src, jdata))) goto done;
+    } else { /* len > 1 create array of values */
+	if((stat = NCJnew(NCJ_ARRAY,&jdata))) goto done;
 	for(i=0;i<len;i++) {
-  	    char* special = NULL;
-	    double d;
-	    if((stat = NCZ_stringconvert1(typeid, src, &str)))
-		goto done;
-	    switch (typeid) {
-	    case NC_BYTE: case NC_SHORT: case NC_INT: case NC_INT64:
-	    case NC_UBYTE: case NC_USHORT: case NC_UINT: case NC_UINT64:
-		if((stat=NCJnew(NCJ_INT,&jvalue))) goto done;
-		break;
-	    case NC_FLOAT:
-	    case NC_DOUBLE: {
-		if(typeid == NC_FLOAT)
-	  	    d = (double)(*((float*)src));
-		else
-	  	    d = *((double*)src);
-#ifdef _WIN32
-		switch (_fpclass(d)) {
-		case _FPCLASS_SNAN: case _FPCLASS_QNAN:
-		     special = "Nan"; break;
-		case _FPCLASS_NINF:
-		      special = "-Infinity"; break;
-		case _FPCLASS_PINF:
-		      special = "Infinity"; break;
-		default: break;
-		}
-#else
-		if(isnan(d))
-		     special = "NaN";
-		else if(isinf(d) && d < 0)
-		      special = "-Infinity";
-		else if(isinf(d) && d > 0)
-		      special = "Infinity";
-		else {}
-#endif
-		if((stat=NCJnew(NCJ_DOUBLE,&jvalue))) goto done;
-		} break;
-	    case NC_CHAR:
-		if((stat=NCJnew(NCJ_STRING,&jvalue))) goto done;
-		break;
-	    default: stat = NC_EINTERNAL; goto done;
-	    }
-	    if(special) {nullfree(str); str = strdup(special);}
-	    NCJstring(jvalue) = str;
-	    str = NULL;
-	    if(len == 1)
-		jdata = jvalue;
-	    else
-	        NCJappend(jdata,jvalue);
+	    if((stat = NCJnew(jtype,&jvalue))) goto done;
+	    if((stat = NCZ_stringconvert1(typeid, len, src, jvalue))) goto done;
+	    NCJappend(jdata,jvalue);
 	    jvalue = NULL;
 	    src += typelen;
 	}
@@ -391,4 +375,21 @@ done:
     NCJreclaim(jvalue);
     NCJreclaim(jdata);
     return stat;
+}
+
+static int
+typeid2jtype(nc_type typeid)
+{
+    switch (typeid) {
+    case NC_BYTE: case NC_SHORT: case NC_INT: case NC_INT64:
+    case NC_UBYTE: case NC_USHORT: case NC_UINT: case NC_UINT64:
+	return NCJ_INT;
+    case NC_FLOAT:
+    case NC_DOUBLE:
+	return NCJ_DOUBLE;
+    case NC_CHAR:
+	return NCJ_STRING;
+    default: break;
+    }
+    return NCJ_UNDEF;
 }

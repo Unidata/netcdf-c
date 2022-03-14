@@ -42,6 +42,7 @@ zinternal.h
 zmap.h
 zodom.h
 zprovenance.h
+zfilter.h
 zdebug.h
 )
 
@@ -50,7 +51,7 @@ SET(libnczarr_SOURCES ${libnczarr_SOURCES} zmap_zip.c)
 ENDIF()
 
 IF(ENABLE_S3_SDK) 
-SET(libnczarr_SOURCES ${libnczarr_SOURCES} zs3sdk.cpp zmap_s3sdk.c awsincludes.h zs3sdk.h)
+SET(libnczarr_SOURCES ${libnczarr_SOURCES} zmap_s3sdk.c)
 ENDIF()
 
 # Build the Zarr dispatch layer as a library that will be included in
@@ -58,16 +59,11 @@ ENDIF()
 
 add_library(nczarr OBJECT ${libnczarr_SOURCES})
 
+TARGET_INCLUDE_DIRECTORIES(nczarr PUBLIC ../libncpoco)
+
 IF(MPI_C_INCLUDE_PATH)
     target_include_directories(nczarr PUBLIC ${MPI_C_INCLUDE_PATH})
 ENDIF(MPI_C_INCLUDE_PATH)
-
-IF(ENABLE_S3_SDK) 
-IF(NOT MSVC)
-target_compile_features(nczarr PUBLIC cxx_std_11)
-ENDIF()
-target_include_directories(nczarr PRIVATE ${AWSSDK_INCLUDE_DIR})
-ENDIF()
 
 # Remember to package this file for CMake builds.
 ADD_EXTRA_DIST(${libnczarr_SOURCES} CMakeLists.txt)

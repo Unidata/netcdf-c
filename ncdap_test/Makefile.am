@@ -10,6 +10,7 @@ include $(top_srcdir)/lib_flags.am
 #SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #TEST_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#TESTS_ENVIRONMENT += export SETX=1;
 
 # Note which tests depend on other tests. Necessary for make -j check.
 TEST_EXTENSIONS = .sh
@@ -32,22 +33,16 @@ check_PROGRAMS += t_dap3a test_cvt3 test_vara
 TESTS += t_dap3a test_cvt3 test_vara
 if BUILD_UTILITIES
 TESTS += tst_ncdap3.sh
-if ENABLE_DAP_REMOTE_TESTS
-TESTS += testpathcvt.sh
-endif
 endif
 
 # remote tests are optional
 # because the server may be down or inaccessible
 
 if ENABLE_DAP_REMOTE_TESTS
-noinst_PROGRAMS = findtestserver pingurl pathcvt
+noinst_PROGRAMS = findtestserver pingurl
 findtestserver_SOURCES = findtestserver.c
 pingurl_SOURCES = pingurl.c
-pathcvt_SOURCES = pathcvt.c
-endif
 
-if ENABLE_DAP_REMOTE_TESTS
 if BUILD_UTILITIES
 TESTS += tst_ber.sh tst_remote3.sh tst_formatx.sh testurl.sh tst_fillmismatch.sh tst_zero_len_var.sh tst_encode.sh
 endif
@@ -97,8 +92,8 @@ EXTRA_DIST = tst_ncdap3.sh  \
 	     tst_zero_len_var.sh \
              tst_filelists.sh tst_urls.sh tst_utils.sh \
 	     t_dap.c CMakeLists.txt tst_formatx.sh testauth.sh testurl.sh \
-	     t_ncf330.c tst_ber.sh tst_fillmismatch.sh tst_encode.sh testpathcvt.sh \
-	     findtestserver.c.in ref_pathcvt.txt
+	     t_ncf330.c tst_ber.sh tst_fillmismatch.sh tst_encode.sh \
+	     findtestserver.c.in
 
 CLEANFILES = test_varm3 test_cvt3 file_results/* remote_results/* datadds* t_dap3a test_nstride_cached *.exe tmp*.txt
 # This should only be left behind if using parallel io

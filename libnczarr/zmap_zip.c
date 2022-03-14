@@ -77,7 +77,7 @@ static void freesearchcache(char** cache);
 static int zzinitialized = 0;
 
 static void
-zzinitialize(void)
+zipinitialize(void)
 {
     if(!zzinitialized) {
         ZTRACE(7,NULL);
@@ -101,18 +101,17 @@ static int
 zipcreate(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** mapp)
 {
     int stat = NC_NOERR;
-    char* truepath = NULL;
-    char* dataset = NULL;
     ZZMAP* zzmap = NULL;
     NCURI* url = NULL;
     zip_flags_t zipflags = 0;
     int zerrno = ZIP_ER_OK;
     ZINDEX zindex = -1;
+    char* abspath = NULL;
     
     NC_UNUSED(parameters);
     ZTRACE(6,"path=%s mode=%d flag=%llu",path,mode,flags);
 
-    if(!zzinitialized) zzinitialize();
+    if(!zzinitialized) zipinitialize();
 
     /* Fixup mode flags */
     mode = (NC_NETCDF4 | NC_WRITE | mode);
@@ -124,12 +123,6 @@ zipcreate(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
     if(strcasecmp(url->protocol,"file") != 0)
         {stat = NC_EURL; goto done;}
 
-    /* Canonicalize the root path */
-    if((stat = NCpathcanonical(url->path,&truepath))) goto done;
-
-    /* Extract the dataset name */
-    if((stat = nczm_basename(truepath,&dataset))) goto done;
-
     /* Build the zz state */
     if((zzmap = calloc(1,sizeof(ZZMAP))) == NULL)
 	{stat = NC_ENOMEM; goto done;}
@@ -140,10 +133,20 @@ zipcreate(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
     /* create => NC_WRITE */
     zzmap->map.mode = mode;
     zzmap->map.api = &zapi;
-    zzmap->root = truepath;
-        truepath = NULL;
-    zzmap->dataset = dataset;
-        dataset = NULL;
+
+    /* Since root is in canonical form, we need to convert to local form */
+    if((zzmap->root = NCpathcvt(url->path))==NULL)
+        {stat = NC_ENOMEM; goto done;}
+
+    /* Make the root path be absolute */
+    if((abspath = NCpathabsolute(zzmap->root)) == NULL)
+	{stat = NC_EURL; goto done;}
+    nullfree(zzmap->root);
+    zzmap->root = abspath;    
+    abspath = NULL;
+
+    /* Extract the dataset name */
+    if((stat = nczm_basename(url->path,&zzmap->dataset))) goto done;
 
     /* Set zip openflags */
     zipflags |= ZIP_CREATE;
@@ -167,9 +170,8 @@ zipcreate(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
     if(mapp) {*mapp = (NCZMAP*)zzmap; zzmap = NULL;}
 
 done:
+    nullfree(abspath);
     ncurifree(url);
-    nullfree(truepath);
-    nullfree(dataset);
     if(zzmap) zipclose((NCZMAP*)zzmap,1);
     return ZUNTRACE(stat);
 }
@@ -187,17 +189,16 @@ static int
 zipopen(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** mapp)
 {
     int stat = NC_NOERR;
-    char* truepath = NULL;
-    char* dataset = NULL;
     ZZMAP* zzmap = NULL;
     NCURI*url = NULL;
     zip_flags_t zipflags = 0;
     int zerrno = ZIP_ER_OK;
+    char* abspath = NULL;
     
     NC_UNUSED(parameters);
     ZTRACE(6,"path=%s mode=%d flags=%llu",path,mode,flags);
 
-    if(!zzinitialized) zzinitialize();
+    if(!zzinitialized) zipinitialize();
 
     /* Fixup mode flags */
     mode = (NC_NETCDF4 | mode);
@@ -209,9 +210,6 @@ zipopen(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** m
     if(strcasecmp(url->protocol,"file") != 0)
         {stat = NC_EURL; goto done;}
 
-    /* Canonicalize the root path */
-    if((stat = NCpathcanonical(url->path,&truepath))) goto done;
-
     /* Build the zz state */
     if((zzmap = calloc(1,sizeof(ZZMAP))) == NULL)
 	{stat = NC_ENOMEM; goto done;}
@@ -221,8 +219,15 @@ zipopen(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** m
     zzmap->map.flags = flags;
     zzmap->map.mode = mode;
     zzmap->map.api = (NCZMAP_API*)&zapi;
-    zzmap->root = truepath;
-	truepath = NULL;
+    /* Since root is in canonical form, we need to convert to local form */
+    if((zzmap->root = NCpathcvt(url->path))==NULL)
+        {stat = NC_ENOMEM; goto done;}
+    /* Make the root path be absolute */
+    if((abspath = NCpathabsolute(zzmap->root)) == NULL)
+	{stat = NC_EURL; goto done;}
+    nullfree(zzmap->root);
+    zzmap->root = abspath;    
+    abspath = NULL;
 
     /* Set zip open flags */
     zipflags |= ZIP_CHECKCONS;
@@ -257,9 +262,8 @@ zipopen(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** m
     if(mapp) {*mapp = (NCZMAP*)zzmap; zzmap = NULL;}
 
 done:
+    nullfree(abspath);
     ncurifree(url);
-    nullfree(truepath);
-    nullfree(dataset);
     if(zzmap) zipclose((NCZMAP*)zzmap,0);
 
     return ZUNTRACE(stat);

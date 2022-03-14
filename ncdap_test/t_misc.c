@@ -56,7 +56,7 @@ main()
     svcurl = nc_findtestserver(servlet,serverlist);
     if(svcurl == NULL) {
 	fprintf(stderr,"WARNING: Server not found: %s\n",servlet);
-	exit(1);
+	exit(0);
     }
 
     snprintf(url,sizeof(url),FURL,svcurl);

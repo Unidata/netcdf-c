@@ -138,8 +138,7 @@ in the error message
     NetCDF: Malformed or inaccessible DAP DDS
 
 This bug is fixed in 4.2 releases after 2011-09-11, as well as by fixing
-the 4.1.3 release using the 3 replacement source files in [this tar
-file](http://www.unidata.ucar.edu/downloads/netcdf/ftp/4.1.3-fix.tar).
+the 4.1.3 release using the 3 replacement source files in the 4.1.3-fix.tar file. 
 
 ### Configuring with "--enable-benchmarks" option
 
@@ -254,7 +253,7 @@ conditions are met:
     fixed-size variable in a file with no record variables or the last
     record variable, because otherwise it would violate the format
     constraints for netCDF classic or 64-bit offset formats described
-    [here](http://www.unidata.ucar.edu/netcdf/docs/netcdf/NetCDF-Classic-Format-Limitations.html).
+    [here](https://docs.unidata.ucar.edu/netcdf-current/NetCDF-Classic-Format-Limitations.html).
     Note that the bug involves number of values, not bytes, so if the
     variable is of type integer or float, for example, it would require
     more than 17 Gbytes.
@@ -388,7 +387,7 @@ here as [Technical Problem Report
 3809](http://www.pgroup.com/support/tprs_62.htm#t3809).
 
 This bug was also previously [reported by a
-user](http://www.unidata.ucar.edu/support/help/MailArchives/netcdf/msg03783.html).
+user](https://www.unidata.ucar.edu/support/help/MailArchives/netcdf/msg03783.html).
 
 ### Intel 10.1 64-bit C++ compiler problem
 
@@ -934,7 +933,7 @@ netCDF-3 snapshot and build it with the --enable-absoft10-hack option
 set.
 
 Get the snapshot, and see the working output, on the [netCDF-3
-snapshot](http://www.unidata.ucar.edu/software/netcdf/builds/snapshot/)
+snapshot](https://www.unidata.ucar.edu/software/netcdf/builds/snapshot/)
 page.
 
 ### Shared libraries do not work with the NAG fortran compiler.
@@ -950,7 +949,7 @@ incorporated into the netCDF distribution.
 
 Interested users may also wish to subscribe to the [netcdf-porting
 mailing
-list](http://www.unidata.ucar.edu/mailing_lists/archives/netcdf-porting/).
+list](https://www.unidata.ucar.edu/mailing_lists/archives/netcdf-porting/).
 
 ### The documented --enable-64bit option doesn't work.
 
@@ -961,9 +960,9 @@ Unfortunately, the documentation was not updated, so that the 3.6.2
 documentation still mentions the enable-64bit option. Sorry about that.
 
 The documentation has been corrected for the [netCDF-3
-snapshot](http://www.unidata.ucar.edu/software/netcdf/builds/snapshot/)
+snapshot](https://www.unidata.ucar.edu/software/netcdf/builds/snapshot/)
 and the [netCDF-4
-snapshot](http://www.unidata.ucar.edu/software/netcdf/builds/snapshot/index_4.html)
+snapshot](https://www.unidata.ucar.edu/software/netcdf/builds/snapshot/index_4.html)
 documentation.
 
 ### Building netCDF-3.6.2 with gfortran version 4.2.x or 4.3.x fails.
@@ -1091,7 +1090,7 @@ build with the netCDF .NET build files in win32/NET.
 
 Interested users may also wish to subscribe to the [netcdf-porting
 mailing
-list](http://www.unidata.ucar.edu/mailing_lists/archives/netcdf-porting/).
+list](https://www.unidata.ucar.edu/mailing_lists/archives/netcdf-porting/).
 
 ### The -disable-v2 option causes the fortran build to fail with some fortran compilers.
 

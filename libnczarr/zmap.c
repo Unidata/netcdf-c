@@ -10,16 +10,6 @@
 /**************************************************/
 /* Import the current implementations */
 
-extern NCZMAP_DS_API zmap_file;
-#ifdef USE_HDF5
-extern NCZMAP_DS_API zmap_nz4;
-#endif
-#ifdef ENABLE_NCZARR_ZIP
-extern NCZMAP_DS_API zmap_zip;
-#endif
-#ifdef ENABLE_S3_SDK
-extern NCZMAP_DS_API zmap_s3sdk;
-#endif
 
 /**************************************************/
 
@@ -69,7 +59,7 @@ nczmap_create(NCZM_IMPL impl, const char *path, int mode, size64_t flags, void* 
 	break;
 #endif
     default:
-	{stat = NC_ENOTBUILT; goto done;}
+	{stat = REPORT(NC_ENOTBUILT,"nczmap_create"); goto done;}
     }
     if(mapp) *mapp = map;
 done:
@@ -107,7 +97,7 @@ nczmap_open(NCZM_IMPL impl, const char *path, int mode, size64_t flags, void* pa
 	break;
 #endif
     default:
-	{stat = NC_ENOTBUILT; goto done;}
+	{stat = REPORT(NC_ENOTBUILT,"nczmap_open"); goto done;}
     }
 
 done:
@@ -189,36 +179,7 @@ nczm_split(const char* path, NClist* segments)
 int
 nczm_split_delim(const char* path, char delim, NClist* segments)
 {
-    int stat = NC_NOERR;
-    const char* p = NULL;
-    const char* q = NULL;
-    ptrdiff_t len = 0;
-    char* seg = NULL;
-
-    if(path == NULL || strlen(path)==0 || segments == NULL)
-	{stat = NC_EINVAL; goto done;}
-
-    p = path;
-    if(p[0] == delim) p++;
-    for(;*p;) {
-	q = strchr(p,delim);
-	if(q==NULL)
-	    q = p + strlen(p); /* point to trailing nul */
-        len = (q - p);
-	if(len == 0)
-	    {stat = NC_EURL; goto done;}
-	if((seg = malloc(len+1)) == NULL)
-	    {stat = NC_ENOMEM; goto done;}
-	memcpy(seg,p,len);
-	seg[len] = '\0';
-	nclistpush(segments,seg);
-	seg = NULL; /* avoid mem errors */
-	if(*q) p = q+1; else p = q;
-    }
-
-done:
-    nullfree(seg);
-    return THROW(stat);
+    return NC_split_delim(path,delim,segments);
 }
 
 /* concat the the segments with each segment preceded by '/' */
@@ -409,20 +370,20 @@ nczm_canonicalpath(const char* path, char** cpathp)
 {
     int ret = NC_NOERR;
     char* cpath = NULL;
-    char* tmp = NULL;
+    char* tmp1 = NULL;
 
     if(path == NULL) 
 	{cpath = NULL; goto done;}
 
-    /* Process path to make it be windows compatible */
-    if((tmp = NCpathcvt(path))==NULL) {ret = NC_ENOMEM; goto done;}
+    /* Process path to make it be absolute*/
+    if((tmp1 = NCpathabsolute(path))==NULL) {ret = NC_ENOMEM; goto done;}
 
     /* Fix slashes to be forward for now */
-    if((ret = nczm_localize(tmp,&cpath,!LOCALIZE))) goto done;
+    if((ret = nczm_localize(tmp1,&cpath,!LOCALIZE))) goto done;
 
     if(cpathp) {*cpathp = cpath; cpath = NULL;}
 done:
-    nullfree(tmp);
+    nullfree(tmp1);
     nullfree(cpath);
     return THROW(ret);    
 }

@@ -25,8 +25,6 @@
    We include lexical definitions for all three, but use the second version.
 */
 
-extern int fileno(FILE*);
-
 /* lex specification for tokens for ncgen */
 
 /* Fill value used by ncdump from version 2.4 and later.  Should match
@@ -209,10 +207,12 @@ FloatInf|-?Inff	{ /* missing value (pre-2.4 backward compatibility) */
                 return (FLOAT_CONST);
                 }
 [+-]?[0-9]+[sS]|0[xX][0-9a-fA-F]+[sS] {
-		if (sscanf((char*)yytext, "%hd", &short_val) != 1) {
+		int tmp = 0;
+		if (sscanf((char*)yytext, "%d", &tmp) != 1) {
 		    sprintf(errstr,"bad short constant: %s",(char*)yytext);
 		    yyerror(errstr);
 		}
+		short_val = (short)tmp;
 		return (SHORT_CONST);
 	        }
 [+-]?([1-9][0-9]*|0)[lL]? {
@@ -288,7 +288,7 @@ FloatInf|-?Inff	{ /* missing value (pre-2.4 backward compatibility) */
 
 /* Hack to keep compile quiet */
 void
-ignore()
+ignore(void)
 {
 #ifndef YY_NO_UNPUT
     yyunput(0,NULL);

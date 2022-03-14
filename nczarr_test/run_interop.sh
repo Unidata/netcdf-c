@@ -11,11 +11,16 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 set -e
 
+UH="${NCZARR_S3_TEST_HOST}"
+UB="${NCZARR_S3_TEST_BUCKET}"
+
+
 testcasefile() {
   zext=file
   ref=$1
   mode=$2
-  if test "x$3" = xmetaonly ; then flags="-h"; fi
+  metaonly=$3
+  if test "x$metaonly" = xmetaonly ; then flags="-h"; fi
   fileargs ${execdir}/$ref "mode=$mode,$zext"
   rm -f tmp_${ref}_${zext}.cdl
   ${NCDUMP} $flags $fileurl > tmp_${ref}_${zext}.cdl
@@ -26,11 +31,21 @@ testcasezip() {
   zext=zip
   ref=$1
   mode=$2
-  if test "x$3" = xmetaonly ; then flags="-h"; fi
-  fileargs ${execdir}/$ref "mode=$mode,$zext"
+  fileargs $ref "mode=$mode,$zext"
   rm -f tmp_${ref}_${zext}.cdl
-  ${NCDUMP} $flags $fileurl > tmp_${ref}_${zext}.cdl
+  ${NCDUMP} -h $flags $fileurl > tmp_${ref}_${zext}.cdl
   diff -b ${srcdir}/${ref}.cdl tmp_${ref}_${zext}.cdl
+}
+
+testcases3() {
+  zext=s3
+  zarr=$1
+  ref=$2
+  mode=$3
+  rm -f tmp_${zarr}_${zext}.cdl
+  url="https://${UH}/${UB}/${zarr}#mode=${mode},s3"
+  ${NCDUMP} $url > tmp_${zarr}_${zext}.cdl
+  diff -b ${srcdir}/${ref}.cdl tmp_${zarr}_${zext}.cdl
 }
 
 testallcases() {
@@ -46,12 +61,22 @@ case "$zext" in
     zip)
 	# Move into position
 	if test "x$srcdir" != "x$execdir" ; then
-	    cp ${srcdir}/ref_power_901_constants.zip ${execdir}
-	    cp ${srcdir}/ref_quotes.zip ${execdir}
+              cp ${srcdir}/ref_power_901_constants.zip ${execdir}
+              cp ${srcdir}/ref_quotes.zip ${execdir}
 	fi
 	testcasezip ref_power_901_constants xarray metaonly
 	# Test large constant interoperability 
 	testcasezip ref_quotes zarr metaonly
+	;;
+    s3)
+	# Read a test case created by netcdf-java zarr.
+	# Move into position
+        rm -f ${execdir}/ref_zarr_test_data.cdl
+	# Use gunzip because it always appears to be available
+        if gunzip ${srcdir}/ref_zarr_test_data.cdl.gz ; then ignore=1; fi
+	if test -f ${srcdir}/ref_zarr_test_data.cdl ; then
+            testcases3 zarr_test_data.zarr ref_zarr_test_data xarray
+        fi
 	;;
     *) echo "unimplemented kind: $1" ; exit 1;;
 esac
@@ -59,6 +84,10 @@ esac
 
 testallcases file
 if test "x$FEATURE_NCZARR_ZIP" = xyes ; then testallcases zip; fi
-#No examples yet: if test "x$FEATURE_S3TESTS" = xyes ; then testallcases s3; fi
+if test "x$FEATURE_S3TESTS" = xyes ; then testallcases s3; fi
+exit
+# Cleanup
+rm -fr ${execdir}/ref_power_901_constants.file
+rm -f ${execdir}/ref_zarr_test_data.cdl
 
 exit 0

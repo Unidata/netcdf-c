@@ -17,7 +17,6 @@
 
 #if defined(_WIN32) && !defined(__MINGW32__)
 #include "XGetopt.h"
-#define snprintf _snprintf
 #endif
 
 #include "netcdf.h"
@@ -169,7 +168,7 @@ main(
 			 strcmp(kind_name, "64-bit offset") == 0) {
 		    cmode_modifier |= NC_64BIT_OFFSET;
 		}
-#ifdef USE_NETCDF4
+#ifdef USE_HDF5
 		/* NetCDF-4 HDF5 format*/
 		else if (strcmp(kind_name, "3") == 0 || 
 			 strcmp(kind_name, "hdf5") == 0 ||
@@ -223,6 +222,7 @@ fprintf(stderr,"xarg(%d): |%s|\n",i,argv[i]);
     }
     ncgin = fp;
     any_error = ncgparse();
+    nc_finalize();
     if (any_error || derror_count > 0)
 	return 1;
     return 0;

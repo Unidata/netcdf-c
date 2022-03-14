@@ -5,7 +5,7 @@
 
 #include "ut_includes.h"
 
-#define DEBUG
+#undef DEBUG
 
 typedef enum Cmds {
     cmd_none = 0,
@@ -20,6 +20,10 @@ static int testparse(void);
 static void dump(NCjson* json);
 static void dumpR(NCjson* json, int depth);
 static char* sortname(int sort);
+
+static int jclone(NCjson* json, NCjson** clonep);
+static int cloneArray(NCjson* array, NCjson** clonep);
+static int cloneDict(NCjson* dict, NCjson** clonep);
 
 struct Test tests[] = {
 {"build", testbuild},
@@ -48,6 +52,7 @@ main(int argc, char** argv)
     if((stat = runtests((const char**)utoptions.cmds,tests))) goto done;
 
 done:
+    ut_final();
     if(stat) usage(stat);
     return 0;
 }
@@ -57,19 +62,19 @@ static int
 build(NCJ* ncj)
 {
     int stat = NC_NOERR;
-    NCjson* clone;
+    NCjson* clone = NULL;
 
     memset(ncj,0,sizeof(NCJ));
 
     /* Build instances of primitives */
     if((stat = NCJnew(NCJ_STRING,&ncj->ncj_string))) goto done;
-    ncj->ncj_string->string = strdup("string");
+    NCJsetstring(ncj->ncj_string, strdup("string"));
     if((stat = NCJnew(NCJ_INT,&ncj->ncj_int))) goto done;
-    ncj->ncj_int->string = strdup("117");
+    NCJsetstring(ncj->ncj_int, strdup("117"));
     if((stat = NCJnew(NCJ_DOUBLE,&ncj->ncj_double))) goto done;
-    ncj->ncj_double->string = strdup("3.1415926");
+    NCJsetstring(ncj->ncj_double, strdup("3.1415926"));
     if((stat = NCJnew(NCJ_BOOLEAN,&ncj->ncj_boolean))) goto done;
-    ncj->ncj_boolean->string = strdup("true");
+    NCJsetstring(ncj->ncj_boolean, strdup("true"));
     if((stat = NCJnew(NCJ_NULL,&ncj->ncj_null))) goto done;
 
     /* Create an empty array */
@@ -77,17 +82,17 @@ build(NCJ* ncj)
 
     /* Create a filled array */
     if((stat = NCJnew(NCJ_ARRAY,&ncj->ncj_array2))) goto done;
-    if((stat = NCJclone(ncj->ncj_string,&clone))) goto done;
+    if((stat = jclone(ncj->ncj_string,&clone))) goto done;
     if((stat = NCJappend(ncj->ncj_array2,clone))) goto done;
-    if((stat = NCJclone(ncj->ncj_int,&clone))) goto done;
+    if((stat = jclone(ncj->ncj_int,&clone))) goto done;
     if((stat = NCJappend(ncj->ncj_array2,clone))) goto done;
-    if((stat = NCJclone(ncj->ncj_double,&clone))) goto done;
+    if((stat = jclone(ncj->ncj_double,&clone))) goto done;
     if((stat = NCJappend(ncj->ncj_array2,clone))) goto done;
-    if((stat = NCJclone(ncj->ncj_boolean,&clone))) goto done;
+    if((stat = jclone(ncj->ncj_boolean,&clone))) goto done;
     if((stat = NCJappend(ncj->ncj_array2,clone))) goto done;
-    if((stat = NCJclone(ncj->ncj_null,&clone))) goto done;
+    if((stat = jclone(ncj->ncj_null,&clone))) goto done;
     if((stat = NCJappend(ncj->ncj_array2,clone))) goto done;
-    if((stat = NCJclone(ncj->ncj_array1,&clone))) goto done;
+    if((stat = jclone(ncj->ncj_array1,&clone))) goto done;
     if((stat = NCJappend(ncj->ncj_array2,clone))) goto done;
 
     /* Create an empty dict */
@@ -95,25 +100,92 @@ build(NCJ* ncj)
 
     /* Create a filled dict */
     if((stat = NCJnew(NCJ_DICT,&ncj->ncj_dict2))) goto done;
-    if((stat = NCJclone(ncj->ncj_string,&clone))) goto done;
+    if((stat = jclone(ncj->ncj_string,&clone))) goto done;
     if((stat = NCJinsert(ncj->ncj_dict2,"string",clone))) goto done;
-    if((stat = NCJclone(ncj->ncj_int,&clone))) goto done;
+    if((stat = jclone(ncj->ncj_int,&clone))) goto done;
     if((stat = NCJinsert(ncj->ncj_dict2,"int",clone))) goto done;
-    if((stat = NCJclone(ncj->ncj_double,&clone))) goto done;
+    if((stat = jclone(ncj->ncj_double,&clone))) goto done;
     if((stat = NCJinsert(ncj->ncj_dict2,"double",clone))) goto done;
-    if((stat = NCJclone(ncj->ncj_boolean,&clone))) goto done;
+    if((stat = jclone(ncj->ncj_boolean,&clone))) goto done;
     if((stat = NCJinsert(ncj->ncj_dict2,"boolean",clone))) goto done;
-    if((stat = NCJclone(ncj->ncj_null,&clone))) goto done;
+    if((stat = jclone(ncj->ncj_null,&clone))) goto done;
     if((stat = NCJinsert(ncj->ncj_dict2,"null",clone))) goto done;
-    if((stat = NCJclone(ncj->ncj_array1,&clone))) goto done;
+    if((stat = jclone(ncj->ncj_array1,&clone))) goto done;
     if((stat = NCJinsert(ncj->ncj_dict2,"array1",clone))) goto done;
-    if((stat = NCJclone(ncj->ncj_array2,&clone))) goto done;
+    if((stat = jclone(ncj->ncj_array2,&clone))) goto done;
     if((stat = NCJinsert(ncj->ncj_dict2,"array2",clone))) goto done;
-    if((stat = NCJclone(ncj->ncj_dict1,&clone))) goto done;
+    if((stat = jclone(ncj->ncj_dict1,&clone))) goto done;
     if((stat = NCJinsert(ncj->ncj_dict2,"dict1",clone))) goto done;
 
 done:
     return THROW(stat);
+}
+
+static int
+jclone(NCjson* json, NCjson** clonep)
+{
+    int stat = NC_NOERR;
+    NCjson* clone = NULL;
+
+    if(json == NULL) goto done;
+
+    switch(json->sort) {
+    case NCJ_INT:
+    case NCJ_DOUBLE:
+    case NCJ_BOOLEAN:
+    case NCJ_STRING:
+	if((stat=NCJnew(json->sort,&clone))) goto done;
+	NCJsetstring(clone,strdup(NCJstring(json)));
+        if(NCJstring(clone) == NULL)
+	    {stat = NC_ENOMEM; goto done;}
+	break;
+    case NCJ_NULL:
+	if((stat=NCJnew(json->sort,&clone))) goto done;
+	break;
+    case NCJ_DICT:
+	if((stat=cloneDict(json,&clone))) goto done;
+	break;
+    case NCJ_ARRAY:
+	if((stat=cloneArray(json,&clone))) goto done;
+	break;
+    default: break; /* nothing to clone */
+    }
+done:
+    if(stat == NC_NOERR && clonep) {*clonep = clone; clone = NULL;}
+    NCJreclaim(clone);    
+    return stat;
+}
+
+static int
+cloneArray(NCjson* array, NCjson** clonep)
+{
+    int i, stat=NC_NOERR;
+    NCjson* clone = NULL;
+    if((stat=NCJnew(NCJ_ARRAY,&clone))) goto done;
+    for(i=0;i<NCJlength(array);i++) {
+	NCjson* elem = NCJith(array,i);
+	NCjson* elemclone = NULL;
+	if((stat=jclone(elem,&elemclone))) goto done;
+	if((stat=NCJappend(clone,elemclone))) goto done;
+    }
+done:
+    if(stat == NC_NOERR && clonep) {*clonep = clone; clone = NULL;}
+    NCJreclaim(clone);    
+    return stat;
+}
+
+static int
+cloneDict(NCjson* dict, NCjson** clonep)
+{
+    int stat = NC_NOERR;
+    NCjson* clone = NULL;
+    if((stat=cloneArray(dict,&clone))) goto done;
+    /* Convert from array to dict */
+    NCJsetsort(clone,NCJ_DICT);
+done:
+    if(stat == NC_NOERR && clonep) {*clonep = clone; clone = NULL;}
+    NCJreclaim(clone);    
+    return stat;
 }
 
 static void
@@ -208,23 +280,23 @@ dumpR(NCjson* json, int depth)
     long long int64v;
     double float64v;
 
-    printf("/%s/ ",sortname(json->sort));
-    switch(json->sort) {
-    case NCJ_STRING: printf("\"%s\"",json->string); break;
+    printf("/%s/ ",sortname(NCJsort(json)));
+    switch(NCJsort(json)) {
+    case NCJ_STRING: printf("\"%s\"",NCJstring(json)); break;
     case NCJ_INT:
-	ok = sscanf(json->string,"%lld%n",&int64v,&count);
-	if(ok != 1 || count != strlen(json->string)) goto fail;
+	ok = sscanf(NCJstring(json),"%lld%n",&int64v,&count);
+	if(ok != 1 || count != strlen(NCJstring(json))) goto fail;
 	printf("%lld",int64v);
 	break;
     case NCJ_DOUBLE: 
-	ok = sscanf(json->string,"%lg%n",&float64v,&count);
-	if(ok != 1 || count != strlen(json->string)) goto fail;
+	ok = sscanf(NCJstring(json),"%lg%n",&float64v,&count);
+	if(ok != 1 || count != strlen(NCJstring(json))) goto fail;
 	printf("%lg",float64v);
 	break;
     case NCJ_BOOLEAN: 
-	if(strcasecmp(json->string,"true") != 0
-	   && strcasecmp(json->string,"false") != 0) goto fail;
-	printf("%s",json->string);
+	if(strcasecmp(NCJstring(json),"true") != 0
+	   && strcasecmp(NCJstring(json),"false") != 0) goto fail;
+	printf("%s",NCJstring(json));
 	break;
     case NCJ_NULL: 
 	printf("null");
@@ -237,9 +309,9 @@ dumpR(NCjson* json, int depth)
 	    for(i=0;i<NCJlength(json);i+=2) {
 		NCjson* j = NULL;
 		j = (NCjson*)NCJith(json,i);
-		assert(j->sort == NCJ_STRING);
+		assert(NCJsort(j) == NCJ_STRING);
 	        printf("{%d} ",depth+1);
-	        printf("\"%s\" => ",j->string);
+	        printf("\"%s\" => ",NCJstring(j));
 		if(i+1 >= NCJlength(json)) {/* malformed */
 		    printf("<malformed>");
 		} else
@@ -263,7 +335,7 @@ dumpR(NCjson* json, int depth)
     printf("\n");
     return;
 fail:
-    printf("????\n");
+    printf("clone?\n");
 }
 
 static char*

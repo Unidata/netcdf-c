@@ -26,9 +26,6 @@ Unified filter related code
 
 /**************************************************/
 /* Per-variable filters */
-/* The original HDF5-based functions are left
-   but are now wrappers around the filterx functions.
-*/
 
 /**
 Find the set of filters (if any) associated with a variable.
@@ -119,10 +116,18 @@ done:
 EXTERNL int
 nc_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams, const unsigned int* params)
 {
+    int stat = NC_NOERR;
     NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    TRACE(nc_inq_var_filter_info);
+    int fixedsize;
+    nc_type xtype;
+
+    TRACE(nc_inq_var_filter);
+    if((stat = NC_check_id(ncid,&ncp))) return stat;
+    /* Get variable' type */
+    if((stat = nc_inq_vartype(ncid,varid,&xtype))) return stat;
+    /* If the variable's type is not fixed-size, then signal error */
+    if((stat = NC4_inq_type_fixed_size(ncid, xtype, &fixedsize))) return stat;
+    if(!fixedsize) return NC_EFILTER;
     if((stat = ncp->dispatch->def_var_filter(ncid,varid,id,nparams,params))) goto done;
 done:
     return stat;

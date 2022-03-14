@@ -27,7 +27,7 @@ Test support for multiple filters per variable
 
 #define NFILTERS 3
 
-#define TESTFILE "multifilter.nc"
+#define DFALT_TESTFILE "tmp_multifilter.nc"
 
 /* Point at which we give up */
 #define MAXERRS 8
@@ -35,6 +35,8 @@ Test support for multiple filters per variable
 #define NDIMS 4
 #define DIMSIZE 4
 #define CHUNKSIZE 4 /* Note: not the total size of the chunk, but size wrt a dim*/
+
+static const char* testfile = NULL;
 
 static size_t dimsize = DIMSIZE;
 static size_t chunksize = CHUNKSIZE;
@@ -199,7 +201,7 @@ test_multi(void)
     memset(array,0,sizeof(float)*actualproduct);
 
     /* Create a file */
-    CHECK(nc_create(TESTFILE, NC_NETCDF4|NC_CLOBBER, &ncid));
+    CHECK(nc_create(testfile, NC_NETCDF4|NC_CLOBBER, &ncid));
 
     /* Do not use fill for this file */
     CHECK(nc_set_fill(ncid, NC_NOFILL, NULL));
@@ -262,7 +264,7 @@ test_multi(void)
     memset(array,0,sizeof(float)*actualproduct);
 
     /* Open the file */
-    CHECK(nc_open(TESTFILE, NC_NOWRITE, &ncid));
+    CHECK(nc_open(testfile, NC_NOWRITE, &ncid));
 
     /* Get the variable id */
     CHECK(nc_inq_varid(ncid, "var", &varid));
@@ -289,6 +291,13 @@ static void
 init(int argc, char** argv)
 {
     int i;
+
+    /* get the testfile path */
+    if(argc > 1)
+        testfile = argv[1];
+    else
+        testfile = DFALT_TESTFILE;
+
     /* Setup various variables */
     actualproduct = 1;
     chunkproduct = 1;
@@ -309,7 +318,9 @@ init(int argc, char** argv)
 int
 main(int argc, char **argv)
 {
-    H5Eprint1(stderr);
+#ifdef DEBUG
+    H5Eprint(stderr);
+#endif
     init(argc,argv);
     if(test_multi() != NC_NOERR) ERRR;
     exit(nerrs > 0?1:0);

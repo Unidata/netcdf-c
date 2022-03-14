@@ -41,4 +41,10 @@ else
 echo "***xfail: ncgen -4 X ref_keyword4"
 fi
 
+echo "*** Test use of selected keywords as variable names..."
+${NCGEN} -3 -lb -o keyword5.nc $srcdir/cdl/ref_keyword.cdl
+${NCDUMP} -n file keyword5.nc >tmp_keyword5.cdl
+echo "*** comparing tmp_keyword5.cdl to ref_keyword.cdl..."
+diff -b -w tmp_keyword5.cdl $srcdir/cdl/ref_keyword.cdl
+
 exit 0

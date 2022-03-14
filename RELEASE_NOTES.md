@@ -7,6 +7,24 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.8.2 - TBD
 
+* [Bug Fix] Require that the type of the variable in nc_def_var_filter is not variable length. See [Github #/2231](https://github.com/Unidata/netcdf-c/pull/2231).
+* [File Change] Apply HDF5 v1.8 format compatibility when writing to previous files, as well as when creating new files.  The superblock version remains at 2 for newly created files.  Full backward read/write compatibility for netCDF-4 is maintained in all cases.  See [Github #2176](https://github.com/Unidata/netcdf-c/issues/2176).
+* [Enhancement] Add ability to set dataset alignment for netcdf-4/HDF5 files. See [Github #2206](https://github.com/Unidata/netcdf-c/pull/2206).
+* [Enhancement] Add complete bitgroom support to NCZarr. See [Github #2197](https://github.com/Unidata/netcdf-c/pull/2197).
+* [Bug Fix] Clean up the handling of deeply nested VLEN types. Marks nc_free_vlen() and nc_free_string as deprecated in favor of ncaux_reclaim_data(). See [Github #2179](https://github.com/Unidata/netcdf-c/pull/2179).
+* [Bug Fix] Make sure that netcdf.h accurately defines the flags in the open/create mode flags. See [Github #2183](https://github.com/Unidata/netcdf-c/pull/2183).
+* [Enhancement] Improve support for msys2+mingw platform. See [Github #2171](https://github.com/Unidata/netcdf-c/pull/2171).
+* [Bug Fix] Clean up the various inter-test dependencies in ncdump for CMake. See [Github #2168](https://github.com/Unidata/netcdf-c/pull/2168).
+* [Bug Fix] Fix use of non-aws appliances. See [Github #2152](https://github.com/Unidata/netcdf-c/pull/2152).
+* [Enhancement] Added options to suppress the new behavior from [Github #2135](https://github.com/Unidata/netcdf-c/pull/2135).  The options for `cmake` and `configure` are, respectively `-DENABLE_LIBXML2` and `--(enable/disable)-libxml2`. Both of these options defaul to 'on/enabled'.  When disabled, the bundled `ezxml` XML interpreter is used regardless of whether `libxml2` is present on the system.
+* [Enhancement] Support optional use of libxml2, otherwise default to ezxml. See [Github #2135](https://github.com/Unidata/netcdf-c/pull/2135) -- H/T to [Egbert Eich](https://github.com/e4t).
+* [Bug Fix] Fix several os related errors. See [Github #2138](https://github.com/Unidata/netcdf-c/pull/2138).
+* [Enhancement] Support byte-range reading of netcdf-3 files stored in private buckets in S3. See [Github #2134](https://github.com/Unidata/netcdf-c/pull/2134)
+* [Enhancement] Support Amazon S3 access for NCZarr. Also support use of the existing Amazon SDK credentials system. See [Github #2114](https://github.com/Unidata/netcdf-c/pull/2114)
+* [Bug Fix] Fix string allocation error in H5FDhttp.c. See [Github #2127](https://github.com/Unidata/netcdf-c/pull/2127).
+* [Bug Fix] Apply patches for ezxml and for selected  oss-fuzz detected errors. See [Github #2125](https://github.com/Unidata/netcdf-c/pull/2125).
+* [Bug Fix] Ensure that internal Fortran APIs are always defined. See [Github #2098](https://github.com/Unidata/netcdf-c/pull/2098).
+* [Enhancement] Support filters for NCZarr. See [Github #2101](https://github.com/Unidata/netcdf-c/pull/2101)
 * [Bug Fix] Make PR 2075 long file name be idempotent. See [Github #2094](https://github.com/Unidata/netcdf-c/pull/2094).
 
 ## 4.8.1 - August 18, 2021
@@ -16,24 +34,24 @@ This file contains a high-level description of this package's evolution. Release
 * [Enhancement] Convert to a new representation of the NCZarr meta-data extensions: version 2. Read-only backward compatibility is provided. See [Github #2032](https://github.com/Unidata/netcdf-c/pull/2032).
 * [Bug Fix] Fix dimension_separator bug in libnczarr. See [Github #2035](https://github.com/Unidata/netcdf-c/pull/2035).
 * [Bug Fix] Fix bugs in libdap4. See [Github #2005](https://github.com/Unidata/netcdf-c/pull/2005).
-* [Bug Fix] Store NCZarr fillvalue as a singleton instead of a 1-element array. See [Github #2017](https://github.com/Unidata/netcdf-c/pull/2017).  
+* [Bug Fix] Store NCZarr fillvalue as a singleton instead of a 1-element array. See [Github #2017](https://github.com/Unidata/netcdf-c/pull/2017).
 * [Bug Fixes] The netcdf-c library was incorrectly determining the scope of dimension; similar to the type scope problem. See [Github #2012](https://github.com/Unidata/netcdf-c/pull/2012) for more information.
-* [Bug Fix] Re-enable DAP2 authorization testing. See [Github #2011](https://github.com/Unidata/netcdf-c/issues/2011).  
-* [Bug Fix] Fix bug with windows version of mkstemp that causes failure to create more than 26 temp files. See [Github #1998](https://github.com/Unidata/netcdf-c/pull/1998).  
-* [Bug Fix] Fix ncdump bug when printing VLENs with basetype char. See [Github #1986](https://github.com/Unidata/netcdf-c/issues/1986).  
+* [Bug Fix] Re-enable DAP2 authorization testing. See [Github #2011](https://github.com/Unidata/netcdf-c/issues/2011).
+* [Bug Fix] Fix bug with windows version of mkstemp that causes failure to create more than 26 temp files. See [Github #1998](https://github.com/Unidata/netcdf-c/pull/1998).
+* [Bug Fix] Fix ncdump bug when printing VLENs with basetype char. See [Github #1986](https://github.com/Unidata/netcdf-c/issues/1986).
 * [Bug Fixes] The netcdf-c library was incorrectly determining the scope of types referred to by nc_inq_type_equal. See [Github #1959](https://github.com/Unidata/netcdf-c/pull/1959) for more information.
 * [Bug Fix] Fix bug in use of XGetopt when building under Mingw. See [Github #2009](https://github.com/Unidata/netcdf-c/issues/2009).
 * [Enhancement] Improve the error reporting when attempting to use a filter for which no implementation can be found in HDF5_PLUGIN_PATH. See [Github #2000](https://github.com/Unidata/netcdf-c/pull/2000) for more information.
 * [Bug Fix] Fix `make distcheck` issue in `nczarr_test/` directory. See [Github #2007](https://github.com/Unidata/netcdf-c/issues/2007).
 * [Bug Fix] Fix bug in NCclosedir in dpathmgr.c. See [Github #2003](https://github.com/Unidata/netcdf-c/issues/2003).
-* [Bug Fix] Fix bug in ncdump that assumes that there is a relationship between the total number of dimensions and the max dimension id. See [Github #2004](https://github.com/Unidata/netcdf-c/issues/2004).  
-* [Bug Fix] Fix bug in JSON processing of strings with embedded quotes. See [Github #1993](https://github.com/Unidata/netcdf-c/issues/1993).  
+* [Bug Fix] Fix bug in ncdump that assumes that there is a relationship between the total number of dimensions and the max dimension id. See [Github #2004](https://github.com/Unidata/netcdf-c/issues/2004).
+* [Bug Fix] Fix bug in JSON processing of strings with embedded quotes. See [Github #1993](https://github.com/Unidata/netcdf-c/issues/1993).
 * [Enhancement] Add support for the new "dimension_separator" enhancement to Zarr v2. See [Github #1990](https://github.com/Unidata/netcdf-c/pull/1990) for more information.
-* [Bug Fix] Fix hack for handling failure of shell programs to properly handle escape characters. See [Github #1989](https://github.com/Unidata/netcdf-c/issues/1989).  
-* [Bug Fix] Allow some primitive type names to be used as identifiers depending on the file format. See [Github #1984](https://github.com/Unidata/netcdf-c/issues/1984).  
+* [Bug Fix] Fix hack for handling failure of shell programs to properly handle escape characters. See [Github #1989](https://github.com/Unidata/netcdf-c/issues/1989).
+* [Bug Fix] Allow some primitive type names to be used as identifiers depending on the file format. See [Github #1984](https://github.com/Unidata/netcdf-c/issues/1984).
 * [Enhancement] Add support for reading/writing pure Zarr storage format that supports the XArray _ARRAY_DIMENSIONS attribute. See [Github #1952](https://github.com/Unidata/netcdf-c/pull/1952) for more information.
 * [Update] Updated version of bzip2 used in filter testing/functionality, in support of [Github #1969](https://github.com/Unidata/netcdf-c/issues/1969).
-* [Bug Fix] Corrected HDF5 version detection logic as described in [Github #1962](https://github.com/Unidata/netcdf-c/issues/1962).  
+* [Bug Fix] Corrected HDF5 version detection logic as described in [Github #1962](https://github.com/Unidata/netcdf-c/issues/1962).
 
 ## 4.8.0 - March 30, 2021
 
@@ -86,6 +104,7 @@ nc_inq_var_filter [https://github.com/Unidata/netcdf-c/issues/1693].
 * [Bug Fix][cmake] Correct an issue with parallel filter test logic in CMake-based builds.
 * [Bug Fix] Now allow nc_inq_var_deflate()/nc_inq_var_szip() to be called for all formats, not just HDF5. Non-HDF5 files return NC_NOERR and report no compression in use. This reverts behavior that was changed in the 4.7.4 release. See [https://github.com/Unidata/netcdf-c/issues/1691].
 * [Bug Fix] Compiling on a big-endian machine exposes some missing forward delcarations in dfilter.c.
+* [File Change] Change from HDF5 v1.6 format compatibility, back to v1.8 compatibility, for newly created files.  The superblock changes from version 0 back to version 2.  An exception is when using libhdf5 deprecated versions 1.10.0 and 1.10.1, which can only create v1.6 compatible format.  Full backward read/write compatibility for netCDF-4 is maintained in all cases.  See [Github #951](https://github.com/Unidata/netcdf-c/issues/951).
 
 ## 4.7.4 - March 27, 2020
 
@@ -152,7 +171,7 @@ See [GitHub #1251](https://github.com/Unidata/netcdf-c/issues/1251).
 * Fix of NULL parameter causing segfaults in put_vars functions. See [Github #1265](https://github.com/Unidata/netcdf-c/issues/1265) for more information.
 * Fix of --enable-benchmark benchmark tests [Github #1211](https://github.com/Unidata/netcdf-c/issues/1211)
 * Update the license from the home-brewed NetCDF license to the standard 3-Clause BSD License.  This change does not result in any new restrictions; it is merely the adoption of a standard, well-known and well-understood license in place of the historic NetCDF license written at Unidata.  This is part of a broader push by Unidata to adopt modern, standardized licensing.
-* [BugFix] Corrected DAP-releated issues on big-endian machines. See [Github #1321](https://github.com/Unidata/netcdf-c/issues/1321), [Github #1302](https://github.com/Unidata/netcdf-c/issues/1302) for more information.
+* [BugFix] Corrected DAP-related issues on big-endian machines. See [Github #1321](https://github.com/Unidata/netcdf-c/issues/1321), [Github #1302](https://github.com/Unidata/netcdf-c/issues/1302) for more information.
 * [BugFix][Enhancement]  Various and sundry bugfixes and performance enhancements, thanks to \@edhartnett, \@gsjaardema, \@t-b, \@wkliao, and all of our other contributors.
 * [Enhancement] Extended `nccopy -F` syntax to support multiple variables with a single invocation. See [Github #1311](https://github.com/Unidata/netcdf-c/issues/1311) for more information.
 * [BugFix] Corrected an issue where DAP2 was incorrectly converting signed bytes, resulting in an erroneous error message under some circumstances. See [GitHub #1317](https://github.com/Unidata/netcdf-c/issues/1317) for more information.  See [Github #1319](https://github.com/Unidata/netcdf-c/issues/1319) for related information.
@@ -178,7 +197,7 @@ See [GitHub #1251](https://github.com/Unidata/netcdf-c/issues/1251).
 * [Enhancement] Create a new version of _NCProperties provenance attribute. This version (version 2) supports arbitrary key-value pairs. It is the default when new files are created. Version 1 continues to be accepted.
 * [Enhancement] Allow user to set http read buffersize for DAP2 and  DAP4 using the tag HTTP.READ.BUFFERSIZE in the .daprc file.
 * [Enhancement] Allow user to set http keepalive for DAP2 and  DAP4 using the tag HTTP.KEEPALIVE in the .daprc file (see the OPeNDAP documentation for details).
-* [Enhancement] Support DAP4 remote tests using a new remote test server locatedon the Unidata JetStream project.
+* [Enhancement] Support DAP4 remote tests using a new remote test server located on the Unidata JetStream project.
 * [Enhancement] Improved the performance of the nc_get/put_vars operations by using the equivalent slab capabilities of hdf5. Result is a significant speedup of these operations.  See [GitHub #1001](https://github.com/Unidata/netcdf-c/pull/1001) for more information.
 * [Enhancement] Expanded the capabilities of `NC_INMEMORY` to support writing and accessing the final modified memory.  See [GitHub #879](https://github.com/Unidata/netcdf-c/pull/879) for more information.
 * [Enhancement] Made CDF5 support enabled by default.  See [Github #931](https://github.com/Unidata/netcdf-c/issues/931) for more information.
@@ -260,7 +279,7 @@ disabled until the testserver situation is resolved.
 
 ## 4.4.1 - June 28, 2016
 
-* [File Change] Starting with release 4.4.1, netCDF-4 files created will have superblock version 0 instead of superblock version 2, as was observed in previous netCDF versions.  This is due to a workaround required to avoid backwards binary incompatibility when using libhdf5 1.10.x or greater.  Superblock versions 0 and 2 appear to be forward and backward compatible.  Other than a different superblock number the data should remain consistent.
+* [File Change] Starting with release 4.4.1, netCDF-4 files are created with HDF5 v1.6 format compatibility, rather than v1.8.  The superblock changes from version 2, as was observed in previous netCDF versions, to version 0.  This is due to a workaround required to avoid backwards binary incompatibility when using libhdf5 1.10.x or greater.  Superblock versions 0 and 2 appear to be forward and backward compatible for netCDF purposes.  Other than a different superblock number, the data should remain consistent.  See [GitHub #250](https://github.com/Unidata/netcdf-c/issues/250).
 * [Enhancement] Added better error reporting when ncdump/nccopy are given a bad constraint in a DAP url. See [GitHub #279](https://github.com/Unidata/netcdf-c/pull/279) for more information.
 
 ### 4.4.1-RC3 - June 17, 2016
@@ -362,7 +381,7 @@ NC\_FORMAT\_UNDEFINED | NC\_FORMATX\_UNDEFINED
 
 * Reduced minimum cmake version to `2.8.11` from `2.8.12`. This will allow for cmake use on a broader set of popular linux platforms without having to do a custom cmake install.  See https://github.com/Unidata/netcdf-c/issues/135 for more information.
 
-* The documentation section `The Default Chunking Scheme` has been updated with more information.  This lives in the `guide.dox` file in the `docs/` directory, or can be found online in the appropriate location (typically http://www.unidata.ucar.edu/netcdf/docs/), once this release has been published.
+* The documentation section `The Default Chunking Scheme` has been updated with more information.  This lives in the `guide.dox` file in the `docs/` directory, or can be found online in the appropriate location (typically https://docs.unidata.ucar.edu/netcdf-c/), once this release has been published.
 
 ### 4.4.0-RC3 2015-10-08
 
@@ -493,7 +512,7 @@ More details may be found at the Unidata JIRA Dashboard.  [NCF-316](https://bugt
 
 * Fixed ncdump bug for char variables with multiple unlimited dimensions and added an associated test.  Now the output CDL properly disambiguates dimension groupings, so that ncgen can generate the original file from the CDL. [NCF-310](https://bugtracking.unidata.ucar.edu/browse/NCF-310)
 
-* Converted the [Manually-maintained FAQ page](http://www.unidata.ucar.edu/software/netcdf/docs/faq.html) into markdown and added it to the `docs/` directory.  This way the html version will be generated when the rest of the documentation is built, the FAQ will be under version control, and it will be in a more visible location, hopefully making it easier to maintain.
+* Converted the [Manually-maintained FAQ page](https://docs.unidata.ucar.edu/netcdf-c/current/faq.html) into markdown and added it to the `docs/` directory.  This way the html version will be generated when the rest of the documentation is built, the FAQ will be under version control, and it will be in a more visible location, hopefully making it easier to maintain.
 
 * Bumped minimum required version of `cmake` to `2.8.12`.  This was necessitated by the adoption of the new `CMAKE_MACOSX_RPATH` property, for use on OSX.
 
@@ -646,7 +665,7 @@ This is a bug-fix-only release for version 4.3.1.
 
 
 * Added better documentation about accessing ESG datasets.
-  See http://www.unidata.ucar.edu/software/netcdf/docs/esg.html.
+  See https://docs.unidata.ucar.edu/netcdf-c/current/esg.html.
 
 * Corrected an issue with CMake-based builds enabling HDF4 support where the HDF4 libraries were in a non-standard location.
 
@@ -1379,7 +1398,7 @@ closely mimic the output from the original ncgen.
 allow most existing HDF5 datasets to be read by netCDF-4.
 
 * Fixed bug with endianness of default fill values for integer types when
-variables are created with a non-native endiannesss and use the default
+variables are created with a non-native endianness and use the default
 fill value.
 
 * Significant refactoring of HDF5 type handling to improve performance and
@@ -1503,10 +1522,10 @@ output.
 Turkal).
 
 * Fixed bug in C++ API creating 64-bit offset files. (See
-http://www.unidata.ucar.edu/software/netcdf/docs/known_problems.html#cxx_64-bit).
+https://docs.unidata.ucar.edu/netcdf-c/current/known_problems.html#cxx_64-bit).
 
 * Fixed bug for variables larger than 4 GB. (See
-http://www.unidata.ucar.edu/software/netcdf/docs/known_problems.html#large_vars_362).
+https://docs.unidata.ucar.edu/netcdf-c/current/known_problems.html#large_vars_362).
 
 * Changed the configure.ac to build either 3.6.x or 4.x build from the
 same configure.ac.
@@ -1657,7 +1676,7 @@ configure.
 * Switched to new build system, with automake and libtool. Now shared
 libraries are built (as well as static ones) on platforms which support
 it. For more information about shared libraries, see
-http://www.unidata.ucar.edu/software/netcdf/docs/faq.html#shared_intro
+https://docs.unidata.ucar.edu/netcdf-c/current/faq.html#shared_intro
 
 * Fixed ncdump crash that happened when no arguments were used.
 

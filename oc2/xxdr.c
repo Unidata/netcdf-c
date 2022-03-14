@@ -502,7 +502,8 @@ xxdrntohdouble(char* c8, double* dp)
 	ii[0] = ii[1];
 	ii[1] = tmp;
     }
-    if(dp) *dp = *(double*)ii;
+    /* use memcpy avoid type punning */
+    if(dp) memcpy(dp, ii, sizeof(double));
 }
 
 void

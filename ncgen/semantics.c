@@ -34,7 +34,6 @@ static void inferattributetype(Symbol* asym);
 static void validateNIL(Symbol* sym);
 static void checkconsistency(void);
 static int tagvlentypes(Symbol* tsym);
-static void computefqns(void);
 static Symbol* uniquetreelocate(Symbol* refsym, Symbol* root);
 static char* createfilename(void);
 
@@ -468,61 +467,125 @@ processeconstrefsR(Symbol* avsym, Datalist* data)
 	if(con->nctype == NC_COMPOUND) {
 	    /* Iterate over the sublists */
 	    processeconstrefsR(avsym,con->value.compoundv);
-	} else if(con->nctype == NC_ECONST || con->nctype == NC_FILLVALUE) {
+	} else if(con->nctype == NC_ECONST) {
 	    fixeconstref(avsym,con);
 	}
     }
 }
 
+/*
+Collect all types in all groups using preorder depth-first traversal.
+*/
+static void
+typewalk(Symbol* root, nc_type typ, List* list)
+{
+    unsigned long i;
+    for(i=0;i<listlength(root->subnodes);i++) {
+	Symbol* sym = (Symbol*)listget(root->subnodes,i);
+	if(sym->objectclass == NC_GRP) {
+	    typewalk(sym,typ,list);
+	} else if(sym->objectclass == NC_TYPE && (typ == NC_NAT || typ == sym->subclass)) {
+	    if(!listcontains(list,sym))
+	        listpush(list,sym);
+	}
+    }
+}
+
+/* Find all user-define types of type typ in access order */
+static void
+orderedtypes(Symbol* avsym, nc_type typ, List* types)
+{
+    Symbol* container = NULL;
+    listclear(types);
+    /* find innermost containing group */
+    if(avsym->objectclass == NC_VAR) {
+	container = avsym->container;
+    } else {
+        ASSERT(avsym->objectclass == NC_ATT);
+	container = avsym->container;
+	if(container->objectclass == NC_VAR)
+	    container = container->container;	    
+    }	    
+    /* walk up the containing groups and collect type */
+    for(;container!= NULL;container = container->container) {
+	int i;
+	/* Walk types in the container */
+	for(i=0;i<listlength(container->subnodes);i++) {
+	    Symbol* sym = (Symbol*)listget(container->subnodes,i);
+	    if(sym->objectclass == NC_TYPE && (typ == NC_NAT || sym->subclass == typ))
+	        listpush(types,sym);
+	}
+    }
+    /* Now do all-tree search */
+    typewalk(rootgroup,typ,types);
+}
+
+static Symbol*
+locateeconst(Symbol* enumt, const char* ecname)
+{
+    int i;
+    for(i=0;i<listlength(enumt->subnodes);i++) {
+        Symbol* esym = (Symbol*)listget(enumt->subnodes,i);
+        ASSERT(esym->subclass == NC_ECONST);
+        if(strcmp(esym->name,ecname)==0)
+	    return esym;	
+    }
+    return NULL;
+}
+
+static Symbol*
+findeconstenum(Symbol* avsym, NCConstant* con)
+{
+    int i;
+    Symbol* refsym = con->value.enumv;
+    List* typdefs = listnew();
+    Symbol* enumt = NULL;
+    Symbol* candidate = NULL; /* possible enum type */
+    Symbol* econst = NULL;
+    char* path = NULL;
+    char* name = NULL;
+
+    /* get all enum types */
+    orderedtypes(avsym,NC_ENUM,typdefs);
+
+    /* It is possible that the enum const is prefixed with the type name */
+
+    path = strchr(refsym->name,'.');
+    if(path != NULL) {
+	path = strdup(refsym->name);
+    	name = strchr(path,'.');
+        *name++ = '\0';
+    } else
+        name = refsym->name;
+    /* See if we can find the enum type */
+    for(i=0;i<listlength(typdefs);i++) {
+	Symbol* sym = (Symbol*)listget(typdefs,i);
+	ASSERT(sym->objectclass == NC_TYPE && sym->subclass == NC_ENUM);	
+	if(path != NULL && strcmp(sym->name,path)==0) {enumt = sym; break;}
+	/* See if enum has a matching econst */
+        econst = locateeconst(sym,name);
+	if(candidate == NULL && econst != NULL) candidate = sym; /* remember this */
+    }
+    if(enumt != NULL) goto done;
+    /* otherwise use the candidate */
+    enumt = candidate;
+done:
+    if(enumt) econst = locateeconst(enumt,name);
+    listfree(typdefs);
+    nullfree(path);
+    if(econst == NULL)
+	semerror(con->lineno,"Undefined enum constant: %s",refsym->name);
+    return econst;
+}
+
 static void
 fixeconstref(Symbol* avsym, NCConstant* con)
 {
-    Symbol* basetype = NULL;
-    Symbol* refsym = con->value.enumv;
-    Symbol* varsym = NULL;
-    int i;
+    Symbol* econst = NULL;
 
-    /* Figure out the proper type associated with avsym */
-    ASSERT(avsym->objectclass == NC_VAR || avsym->objectclass == NC_ATT);
-
-    if(avsym->objectclass == NC_VAR) {
-        basetype = avsym->typ.basetype;
-	varsym = avsym;
-    } else { /*(avsym->objectclass == NC_ATT)*/ 
-        basetype = avsym->typ.basetype;
-	varsym = avsym->container;
-	if(varsym->objectclass == NC_GRP)
-	    varsym = NULL;
-    }
-    
-    /* If this is a non-econst fillvalue, then ignore it */
-    if(con->nctype == NC_FILLVALUE && basetype->subclass != NC_ENUM)
-	return;
-
-    /* If this is an econst then validate against type */
-    if(con->nctype == NC_ECONST && basetype->subclass != NC_ENUM)
-        semerror(con->lineno,"Enumconstant associated with a non-econst type");
-
-    if(con->nctype == NC_FILLVALUE) {
-	Datalist* filllist = NULL;
-	NCConstant* filler = NULL;
-	filllist = getfiller(varsym == NULL?basetype:varsym);
-	if(filllist == NULL)
-	    semerror(con->lineno, "Cannot determine enum constant fillvalue");
-	filler = datalistith(filllist,0);
-	con->value.enumv = filler->value.enumv;
-	return;
-    }
-
-    for(i=0;i<listlength(basetype->subnodes);i++) {
-	Symbol* econst = listget(basetype->subnodes,i);
-	ASSERT(econst->subclass == NC_ECONST);
-	if(strcmp(econst->name,refsym->name)==0) {
-	    con->value.enumv = econst;
-	    return;
-	}
-    }
-    semerror(con->lineno,"Undefined enum or enum constant reference: %s",refsym->name);
+    econst = findeconstenum(avsym,con);
+    assert(econst != NULL && econst->subclass == NC_ECONST);
+    con->value.enumv = econst;
 }
 
 /* Compute type sizes and compound offsets*/
@@ -539,12 +602,12 @@ computesize(Symbol* tsym)
         case NC_VLEN: /* actually two sizes for vlen*/
 	    computesize(tsym->typ.basetype); /* first size*/
 	    tsym->typ.size = ncsize(tsym->typ.typecode);
-	    tsym->typ.alignment = ncaux_class_alignment(tsym->typ.typecode);
+	    (void)ncaux_class_alignment(tsym->typ.typecode,&tsym->typ.alignment);
 	    tsym->typ.nelems = 1; /* always a single compound datalist */
 	    break;
 	case NC_PRIM:
 	    tsym->typ.size = ncsize(tsym->typ.typecode);
-	    tsym->typ.alignment = ncaux_class_alignment(tsym->typ.typecode);
+	    (void)ncaux_class_alignment(tsym->typ.typecode,&tsym->typ.alignment);
 	    tsym->typ.nelems = 1;
 	    break;
 	case NC_OPAQUE:
@@ -1130,7 +1193,6 @@ processunlimiteddims(void)
     }
 #endif
 }
-
 
 /* Rules for specifying the dataset name:
 	1. use -o name

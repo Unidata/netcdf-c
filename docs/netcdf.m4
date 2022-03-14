@@ -435,7 +435,7 @@ f90 \-dp \-i64 ... \-lnetcdf
 )
 .ad
 .hy
-Complete documentation for the netCDF libraries can be found at the netCDF website: http://www.unidata.ucar.edu/software/netcdf/.
+Complete documentation for the netCDF libraries can be found at the netCDF website: https://www.unidata.ucar.edu/software/netcdf/.
 .sp
 .SH "LIBRARY VERSION"
 .LP

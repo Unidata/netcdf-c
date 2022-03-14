@@ -48,12 +48,12 @@ NCD4_dumpbytes(size_t size, const void* data0, int swap)
 	if(swap) {
 	    swapinline16(v.u16);
 	    swapinline32(v.u32);
-	    swapinline32(v.u64);
+	    swapinline64(v.u64);
 	    swapinline16(v.i16);
 	    swapinline32(v.i32);
-	    swapinline32(v.i64);
+	    swapinline64(v.i64);
 	    swapinline32(v.f32);
-	    swapinline32(v.f64);
+	    swapinline64(v.f64);
         }
         if(v.s[0] == '\r') strcpy(v.s,"\\r");
         else if(v.s[0] == '\n') strcpy(v.s,"\\n");
