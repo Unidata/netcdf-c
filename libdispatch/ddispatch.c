@@ -12,6 +12,7 @@ See LICENSE.txt for license information.
 #include "ncoffsets.h"
 #include "ncpathmgr.h"
 #include "ncxml.h"
+#include "nc4internal.h"
 
 /* Required for getcwd, other functions. */
 #ifdef HAVE_UNISTD_H
@@ -48,7 +49,7 @@ NCDISPATCH_initialize(void)
 {
     int status = NC_NOERR;
     int i;
-    NCRCglobalstate* globalstate = NULL;
+    NCglobalstate* globalstate = NULL;
 
     for(i=0;i<NC_MAX_VAR_DIMS;i++) {
         NC_coord_zero[i] = 0;
@@ -56,8 +57,7 @@ NCDISPATCH_initialize(void)
         NC_stride_one[i] = 1;
     }
 
-    status = ncrc_createglobalstate(); /* will allocate and clear */
-    globalstate = ncrc_getglobalstate(); /* will allocate and clear */
+    globalstate = NC_getglobalstate(); /* will allocate and clear */
 
     /* Capture temp dir*/
     {
@@ -123,7 +123,7 @@ int
 NCDISPATCH_finalize(void)
 {
     int status = NC_NOERR;
-    ncrc_freeglobalstate();
+    NC_freeglobalstate();
 #if defined(ENABLE_BYTERANGE) || defined(ENABLE_DAP) || defined(ENABLE_DAP4)
     curl_global_cleanup();
 #endif

@@ -33,7 +33,7 @@
  #define nulldup(x) ((x)?strdup(x):(x))
 #endif
 /**************************************************/
-/**
+/** \internal
  * Provide a hidden interface to allow utilities
  * to check if a given path name is really an ncdap4 url.
  * If no, return null, else return basename of the url
@@ -66,7 +66,7 @@ NC__testurl(const char* path, char** basenamep)
     return ok;
 }
 
-/* Return 1 if this machine is little endian */
+/** \internal Return 1 if this machine is little endian */
 int
 NC_isLittleEndian(void)
 {
@@ -78,6 +78,7 @@ NC_isLittleEndian(void)
     return (u.bytes[0] == 1 ? 1 : 0);
 }
 
+/** \internal */
 char*
 NC_backslashEscape(const char* s)
 {
@@ -105,6 +106,7 @@ NC_backslashEscape(const char* s)
     return escaped;
 }
 
+/** \internal */
 char*
 NC_backslashUnescape(const char* esc)
 {
@@ -129,6 +131,7 @@ NC_backslashUnescape(const char* esc)
     return s;
 }
 
+/** \internal */
 char*
 NC_entityescape(const char* s)
 {
@@ -163,13 +166,13 @@ NC_entityescape(const char* s)
     return escaped;
 }
 
-char*
-/*
+/** \internal
 Depending on the platform, the shell will sometimes
 pass an escaped octotherpe character without removing
 the backslash. So this function is appropriate to be called
 on possible url paths to unescape such cases. See e.g. ncgen.
 */
+char*
 NC_shellUnescape(const char* esc)
 {
     size_t len;
@@ -194,7 +197,7 @@ NC_shellUnescape(const char* esc)
     return s;
 }
 
-/**
+/** \internal
 Wrap mktmp and return the generated path,
 or null if failed.
 Base is the base file path. XXXXX is appended
@@ -224,6 +227,7 @@ done:
     return tmp;
 }
 
+/** \internal */
 int
 NC_readfile(const char* filename, NCbytes* content)
 {
@@ -246,6 +250,7 @@ done:
     return ret;
 }
 
+/** \internal */
 int
 NC_writefile(const char* filename, size_t size, void* content)
 {
@@ -271,7 +276,7 @@ done:
     return ret;
 }
 
-/*
+/** \internal
 Parse a path as a url and extract the modelist.
 If the path is not a URL, then return a NULL list.
 If a URL, but modelist is empty or does not exist,
@@ -297,7 +302,7 @@ done:
     return stat;
 }
 
-/*
+/** \internal
 Check "mode=" list for a path and return 1 if present, 0 otherwise.
 */
 int
@@ -313,7 +318,7 @@ NC_testpathmode(const char* path, const char* tag)
     return found;
 }
 
-/*
+/** \internal
 Check "mode=" list for a url and return 1 if present, 0 otherwise.
 */
 int
@@ -339,8 +344,10 @@ done:
     return found;
 }
 
-#if ! defined __INTEL_COMPILER
-#if defined __APPLE__
+#if ! defined __INTEL_COMPILER 
+#if defined __APPLE__ 
+/** \internal */
+
 int isinf(double x)
 {
     union { unsigned long long u; double f; } ieee754;
@@ -349,6 +356,7 @@ int isinf(double x)
            ( (unsigned)ieee754.u == 0 );
 }
 
+/** \internal */
 int isnan(double x)
 {
     union { unsigned long long u; double f; } ieee754;
@@ -360,7 +368,7 @@ int isnan(double x)
 #endif /*APPLE*/
 #endif /*!_INTEL_COMPILER*/
 
-
+/** \internal */
 int
 NC_split_delim(const char* arg, char delim, NClist* segments)
 {
@@ -395,7 +403,7 @@ done:
     return stat;
 }
 
-/* concat the the segments with each segment preceded by '/' */
+/** \internal concat the the segments with each segment preceded by '/' */
 int
 NC_join(NClist* segments, char** pathp)
 {

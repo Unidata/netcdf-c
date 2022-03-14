@@ -3,20 +3,21 @@
 #include <string.h>
 #include "netcdf.h"
 #include "ncrc.h"
+#include "nc4internal.h"
 
 int
 main(int argc, char** argv)
 {
     size_t i,nentries = 0;
-    NCRCglobalstate* ngs = ncrc_getglobalstate();
+    NCglobalstate* ngs = NC_getglobalstate();
     NCRCinfo* info = NULL;
     NCRCentry* entry = NULL;
 
     /* Cause the .rc files to be read and merged */
     nc_initialize();
 
-    if((ngs = ncrc_getglobalstate())==NULL) abort();
-    info = &ngs->rcinfo;
+    if((ngs = NC_getglobalstate())==NULL) abort();
+    info = ngs->rcinfo;
 
     if(info->ignore) {
 	fprintf(stderr,".rc ignored\n");

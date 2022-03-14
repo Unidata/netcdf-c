@@ -25,6 +25,7 @@ ref_solar.cdl unlimtest1.cdl unlimtest2.cdl \
 ref_tst_opaque_data.cdl  \
 ref_tst_vlen_data.cdl ref_tst_vlen_data2.cdl \
 ref_niltest.cdl ref_tst_h_scalar.cdl ref_tst_econst.cdl \
+ref_tst_econst2.cdl \
 ref_tst_nul3.cdl ref_tst_nul4.cdl ref_tst_names.cdl \
 ref_tst_long_charconst.cdl tst_chararray.cdl ref_keyword.cdl \
 CMakeLists.txt

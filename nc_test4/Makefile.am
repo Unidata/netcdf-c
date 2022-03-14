@@ -37,6 +37,10 @@ tst_rehash tst_filterparser tst_bug324 tst_types tst_atts3		\
 tst_put_vars tst_elatefill tst_udf tst_put_vars_two_unlim_dim		\
 tst_bug1442 tst_quantize
 
+if HAS_PAR_FILTERS
+NC4_TESTS += tst_alignment
+endif
+
 # Temporary I hoped, but hoped in vain.
 if !ISCYGWIN
 NC4_TESTS += tst_h_strbug tst_h_refs
@@ -75,7 +79,7 @@ endif
 # Filter Tests (requires ncdump and ncgen)
 if ENABLE_FILTER_TESTING
 extradir =
-check_PROGRAMS += test_filter test_filter_misc test_filter_order test_filter_repeat
+check_PROGRAMS += test_filter test_filter_misc test_filter_order test_filter_repeat test_filter_vlen
 check_PROGRAMS += tst_multifilter
 TESTS += tst_filter.sh
 if ENABLE_BLOSC
@@ -104,7 +108,8 @@ ref_filteredvv.cdl ref_multi.cdl                                        \
 ref_ncgenF.cdl ref_nccopyF.cdl                                          \
 ref_filter_repeat.txt ref_fillonly.cdl test_fillonly.sh                 \
 ref_filter_order_create.txt ref_filter_order_read.txt			\
-ref_any.cdl tst_specific_filters.sh
+ref_any.cdl tst_specific_filters.sh \
+tst_virtual_datasets.c
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
 tst_floats_1D.cdl floats_1D_3.nc floats_1D.cdl tst_*.nc tmp_*.txt       \
