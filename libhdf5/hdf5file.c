@@ -16,7 +16,7 @@
 #include "ncrc.h"
 #include "ncauth.h"
 
-extern int NC4_extract_file_image(NC_FILE_INFO_T* h5); /* In nc4memcb.c */
+extern int NC4_extract_file_image(NC_FILE_INFO_T* h5, int abort); /* In nc4memcb.c */
 
 static void dumpopenobjects(NC_FILE_INFO_T* h5);
 
@@ -244,7 +244,7 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio)
     if (h5->mem.inmemory)
     {
         /* Pull out the final memory */
-        (void)NC4_extract_file_image(h5);
+        (void)NC4_extract_file_image(h5, abort);
         if (!abort && memio != NULL)
         {
             *memio = h5->mem.memio; /* capture it */
