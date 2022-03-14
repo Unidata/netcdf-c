@@ -1534,7 +1534,7 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 	}
 	/* Capture dimension_separator (must precede chunk cache creation) */
 	{
-	    NCRCglobalstate* ngs = ncrc_getglobalstate();
+	    NCglobalstate* ngs = NC_getglobalstate();
 	    assert(ngs != NULL);
 	    zvar->dimension_separator = 0;
 	    if((stat = NCJdictget(jvar,"dimension_separator",&jvalue))) goto done;

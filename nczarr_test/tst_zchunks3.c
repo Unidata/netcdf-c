@@ -8,7 +8,7 @@
 #include "ut_includes.h"
 #include "test_nczarr_utils.h"
 
-#define DEBUG
+#undef DEBUG
 
 static int ret = NC_NOERR;
 #define FILE_NAME "tmp_chunks3.nc"

@@ -1,7 +1,6 @@
 # Unidata NetCDF
 
-[![Build Status](https://travis-ci.org/Unidata/netcdf-c.svg?branch=master)](https://travis-ci.org/Unidata/netcdf-c)
-[![Coverity Scan Build Status](https://scan.coverity.com/projects/157/badge.svg)](https://scan.coverity.com/projects/157)
+[![latest packaged version(s)](https://repology.org/badge/latest-versions/netcdf.svg)](https://repology.org/project/netcdf/badges)
 
 ### About
 The Unidata network Common Data Form (**netCDF**) is an interface for

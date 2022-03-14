@@ -288,7 +288,7 @@ FloatInf|-?Inff	{ /* missing value (pre-2.4 backward compatibility) */
 
 /* Hack to keep compile quiet */
 void
-ignore()
+ignore(void)
 {
 #ifndef YY_NO_UNPUT
     yyunput(0,NULL);
