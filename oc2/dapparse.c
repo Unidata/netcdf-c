@@ -425,7 +425,7 @@ retry:
 static OCtype
 octypefor(Object etype)
 {
-    switch ((long)etype) {
+    switch ((uintptr_t)etype) {
     case SCAN_BYTE: return OC_Byte;
     case SCAN_INT16: return OC_Int16;
     case SCAN_UINT16: return OC_UInt16;

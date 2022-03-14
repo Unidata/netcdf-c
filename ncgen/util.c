@@ -114,6 +114,8 @@ clearSpecialdata(Specialdata* data)
 	}
 	efree(data->_Filters);
     }
+    if(data->_Codecs)
+        efree(data->_Codecs);
 }
 
 void

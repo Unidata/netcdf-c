@@ -76,7 +76,6 @@ THIS SOFTWARE.
 #if defined(_WIN32) && !defined(__MINGW32__)
 #include <io.h>
 #include "XGetopt.h"
-#define snprintf _snprintf
 #endif
 
 #define X_ALIGN         4
@@ -2020,7 +2019,7 @@ val_NC_check_vlens(NC *ncp)
     /* For CDF-2, no record variable can require more than 2^32 - 4 bytes of
      * storage for each record's worth of data, unless it is the last record
      * variable. See
-     * http://www.unidata.ucar.edu/software/netcdf/docs/file_structure_and_performance.html#offset_format_limitations
+     * https://docs.unidata.ucar.edu/netcdf-c/current/file_structure_and_performance.html#offset_format_limitations
      */
     if (large_rec_vars_count > 1) { /* only one "too-large" variable allowed */
         if (verbose) printf("Error:\n");
@@ -2274,7 +2273,8 @@ usage(char *argv0)
     fprintf(stderr, help, argv0);
 }
 
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
     char filename[512], *path;
     int i, omode, fd, status=NC_NOERR;

@@ -1,8 +1,8 @@
 netcdf ref_byte {
 dimensions:
-	.zdim_20 = 20 ;
+	_zdim_20 = 20 ;
 variables:
-	ubyte byte(.zdim_20, .zdim_20) ;
+	ubyte byte(_zdim_20, _zdim_20) ;
 		byte:_Storage = "chunked" ;
 		byte:_ChunkSizes = 20, 20 ;
 

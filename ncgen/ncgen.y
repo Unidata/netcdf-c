@@ -6,7 +6,7 @@
 
 /* yacc source for "ncgen", a netCDL parser and netCDF generator */
 
-%error-verbose
+%define parse.error verbose
 
 %{
 /*
@@ -130,6 +130,9 @@ static void vercheck(int ncid);
 static long long extractint(NCConstant* con);
 #ifdef USE_NETCDF4
 static int parsefilterflag(const char* sdata0, Specialdata* special);
+static int parsecodecsflag(const char* sdata0, Specialdata* special);
+static Symbol* identkeyword(const Symbol*);
+
 #ifdef GENDEBUG1
 static void printfilters(int nfilters, NC_ParsedFilterSpec** filters);
 #endif
@@ -212,10 +215,14 @@ NCConstant*    constant;
 	_ISNETCDF4
 	_SUPERBLOCK
 	_FILTER
+	_CODECS
+        _QUANTIZEBG
+        _QUANTIZEBR
 	DATASETID
 
 %type <sym> ident typename primtype dimd varspec
 	    attrdecl enumid path dimref fielddim fieldspec
+	    varident
 %type <sym> typeref
 %type <sym> varref
 %type <sym> ambiguous_ref
@@ -367,7 +374,7 @@ opaquedecl: OPAQUE_ '(' INT_CONST ')' typename
                     $5->subclass=NC_OPAQUE;
                     $5->typ.typecode=NC_OPAQUE;
                     $5->typ.size=int32_val;
-                    $5->typ.alignment=ncaux_class_alignment(NC_OPAQUE);
+                    (void)ncaux_class_alignment(NC_OPAQUE,&$5->typ.alignment);
                 }
             ;
 
@@ -381,7 +388,7 @@ vlendecl: typeref '(' '*' ')' typename
                     $5->typ.basetype=basetype;
                     $5->typ.typecode=NC_VLEN;
                     $5->typ.size=VLENSIZE;
-                    $5->typ.alignment=ncaux_class_alignment(NC_VLEN);
+                    (void)ncaux_class_alignment(NC_VLEN,&$5->typ.alignment);
                 }
           ;
 
@@ -537,7 +544,7 @@ varlist:      varspec
 	        {$$=$1; listpush(stack,(void*)$3);}
             ;
 
-varspec:        ident dimspec
+varspec:        varident dimspec
                     {
 		    int i;
 		    Dimset dimset;
@@ -765,6 +772,12 @@ attrdecl:
 	    {$$ = makespecial(_ENDIAN_FLAG,$1,NULL,(void*)$5,ISCONST);}
 	| ambiguous_ref ':' _FILTER '=' conststring
 	    {$$ = makespecial(_FILTER_FLAG,$1,NULL,(void*)$5,ISCONST);}
+	| ambiguous_ref ':' _CODECS '=' conststring
+	    {$$ = makespecial(_CODECS_FLAG,$1,NULL,(void*)$5,ISCONST);}
+	| ambiguous_ref ':' _QUANTIZEBG '=' constint
+	    {$$ = makespecial(_QUANTIZEBG_FLAG,$1,NULL,(void*)$5,ISCONST);}
+	| ambiguous_ref ':' _QUANTIZEBR '=' constint
+	    {$$ = makespecial(_QUANTIZEBR_FLAG,$1,NULL,(void*)$5,ISCONST);}
 	| ambiguous_ref ':' _NOFILL '=' constbool
 	    {$$ = makespecial(_NOFILL_FLAG,$1,NULL,(void*)$5,ISCONST);}
 	| ':' _FORMAT '=' conststring
@@ -885,7 +898,14 @@ constbool:
 
 /* End OF RULES */
 
-/* Push all idents thru here*/
+
+/* Push all idents thru these*/
+
+varident:
+	  IDENT {$$=$1;}
+	| DATA {$$=identkeyword($1);}
+	;
+
 ident:
 	IDENT {$$=$1;}
 	;
@@ -957,7 +977,7 @@ makeprimitivetype(nc_type nctype)
     sym->typ.typecode = nctype;
     sym->typ.size = ncsize(nctype);
     sym->typ.nelems = 1;
-    sym->typ.alignment = ncaux_class_alignment(nctype);
+    (void)ncaux_class_alignment(nctype,&sym->typ.alignment);
     /* Make the basetype circular so we can always ask for it */
     sym->typ.basetype = sym;
     sym->prefix = listnew();
@@ -1212,6 +1232,7 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
     case _NCPROPS_FLAG:
     case _ENDIAN_FLAG:
     case _FILTER_FLAG:
+    case _CODECS_FLAG:
 	tmp = nullconst();
         tmp->nctype = NC_STRING;
 	convert1(con,tmp);
@@ -1225,6 +1246,8 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
 	break;
     case _SUPERBLOCK_FLAG:
     case _DEFLATE_FLAG:
+    case _QUANTIZEBG_FLAG:
+    case _QUANTIZEBR_FLAG:
 	tmp = nullconst();
         tmp->nctype = NC_INT;
 	convert1(con,tmp);
@@ -1289,9 +1312,11 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
                 derror("_FillValue attribute not associated with variable: %s",vsym->name);
             }
             if(tsym  == NULL) tsym = vsym->typ.basetype;
+#if 0 /* No longer require matching types */
             else if(vsym->typ.basetype != tsym) {
                 derror("_FillValue attribute type does not match variable type: %s",vsym->name);
             }
+#endif
             special->_Fillvalue = clonedatalist(list);
 	    /* Create the corresponding attribute */
             attr = makeattribute(install("_FillValue"),vsym,tsym,list,ATTRVAR);
@@ -1318,6 +1343,16 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
             case _DEFLATE_FLAG:
                 special->_DeflateLevel = idata;
                 special->flags |= _DEFLATE_FLAG;
+                break;
+            case _QUANTIZEBG_FLAG:
+		special->_Quantizer = NC_QUANTIZE_BITGROOM;
+                special->_NSD = idata;
+                special->flags |= _QUANTIZEBG_FLAG;
+                break;
+            case _QUANTIZEBR_FLAG:
+		special->_Quantizer = NC_QUANTIZE_GRANULARBR;
+                special->_NSD = idata;
+                special->flags |= _QUANTIZEBR_FLAG;
                 break;
             case _SHUFFLE_FLAG:
                 special->_Shuffle = tf;
@@ -1370,6 +1405,18 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
 		}
 #else
 	        derror("%s: the filter attribute requires netcdf-4 to be enabled",specialname(tag));
+#endif
+                break;
+          case _CODECS_FLAG:
+#ifdef USE_NETCDF4
+		/* Parse the codec spec */
+		if(parsecodecsflag(sdata,special) == NC_NOERR)
+                    special->flags |= _CODECS_FLAG;
+		else {
+		    derror("_Codecs: unparsable codec spec: %s",sdata);
+		}
+#else
+	        derror("%s: the _Codecs attribute requires netcdf-4 to be enabled",specialname(tag));
 #endif
                 break;
             default: PANIC1("makespecial: illegal token: %d",tag);
@@ -1496,6 +1543,21 @@ parsefilterflag(const char* sdata, Specialdata* special)
 #ifdef GENDEBUG1
 printfilters(special->nfilters,special->_Filters);
 #endif
+    return stat;
+}
+
+/*
+Store a Codecs spec string in special
+*/
+static int
+parsecodecsflag(const char* sdata, Specialdata* special)
+{
+    int stat = NC_NOERR;
+
+    if(sdata == NULL || strlen(sdata) == 0) return NC_EINVAL;
+
+    if((special->_Codecs = strdup(sdata))==NULL)
+        return NC_ENOMEM;
     return stat;
 }
 #endif

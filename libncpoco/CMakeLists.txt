@@ -1,0 +1,8 @@
+SET(libncpoco_SOURCES ncpoco.c ncpoco.h)
+IF(MSVC)
+  SET(libncpoco_SOURCES ${libncpoco_SOURCES} cp_win32.c)
+ELSE()
+  SET(libncpoco_SOURCES ${libncpoco_SOURCES} cp_unix.c)
+ENDIF()
+add_library(ncpoco OBJECT ${libncpoco_SOURCES})
+ADD_EXTRA_DIST(${libncpoco_SOURCES} CMakeLists.txt)

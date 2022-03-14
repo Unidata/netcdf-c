@@ -1,0 +1,29 @@
+name: NetCDF-Build MinGW
+on: [workflow_dispatch,push]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: git mingw-w64-x86_64-toolchain automake libtool autoconf make mingw-w64-x86_64-hdf5 unzip
+      - name: CI-Build
+        shell: msys2 {0}
+        run: |
+          echo 'Running in MSYS2!'
+          set -e
+          pwd
+          git clone --single-branch --branch moreosfixes.tmp https://github.com/DennisHeimbigner/netcdf-c.git
+          cd netcdf-c
+          autoreconf -i --force
+          ./configure --prefix=/builddir -enable-shared  --disable-static --disable-plugins --disable-logging --disable-dap-remote-tests --disable-byterange
+          make -j LDFLAGS="-no-undefined  -Wl,--export-all-symbols"
+          make check
+ 

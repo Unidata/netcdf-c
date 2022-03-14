@@ -16,12 +16,7 @@
  */
 
 #include "zincludes.h"
-
-/* These are the default chunk cache sizes for ZARR files created or
- * opened with netCDF-4. */
-extern size_t ncz_chunk_cache_size;
-extern size_t ncz_chunk_cache_nelems;
-extern float ncz_chunk_cache_preemption;
+#include "zfilter.h"
 
 /* Forward */
 
@@ -60,23 +55,21 @@ NCZ_initialize_internal(void)
 {
     int stat = NC_NOERR;
     char* dimsep = NULL;
-    NCRCglobalstate* ngs = NULL;
+    NCglobalstate* ngs = NULL;
 
     ncz_initialized = 1;
-    /* Load the .rc file */
-    if((stat=NC_rcload())) goto done;
-    ngs = ncrc_getglobalstate();
+    ngs = NC_getglobalstate();
     if(ngs != NULL) {
         /* Defaults */
 	ngs->zarr.dimension_separator = DFALT_DIM_SEPARATOR;
-        dimsep = NC_rclookup("ZARR.DIMENSION_SEPARATOR",NULL);
+        dimsep = NC_rclookup("ZARR.DIMENSION_SEPARATOR",NULL,NULL);
         if(dimsep != NULL) {
             /* Verify its value */
 	    if(dimsep != NULL && strlen(dimsep) == 1 && islegaldimsep(dimsep[0]))
 		ngs->zarr.dimension_separator = dimsep[0];
         }    
     }
-done:
+
     return stat;
 }
 
@@ -89,6 +82,12 @@ NCZ_finalize_internal(void)
 {
     /* Reclaim global resources */
     ncz_initialized = 0;
+#ifdef ENABLE_NCZARR_FILTERS
+    NCZ_filter_finalize();
+#endif
+#ifdef ENABLE_S3_SDK
+    NCZ_s3finalize();
+#endif
     return NC_NOERR;
 }
 
@@ -330,10 +329,10 @@ close_vars(NC_GRP_INFO_T *grp)
             {
                 if (var->type_info)
                 {
-                    if (var->type_info->nc_type_class == NC_VLEN)
-                        nc_free_vlen((nc_vlen_t *)var->fill_value);
-                    else if (var->type_info->nc_type_class == NC_STRING && *(char **)var->fill_value)
-                        free(*(char **)var->fill_value);
+		    int stat = NC_NOERR;
+		    if((stat = nc_reclaim_data(grp->nc4_info->controller->ext_ncid,var->type_info->hdr.id,var->fill_value,1)))
+		        return stat;
+		    nullfree(var->fill_value);
                 }
             }
         }
@@ -630,46 +629,61 @@ ncz_find_grp_var_att(int ncid, int varid, const char *name, int attnum,
 }
 
 /**
- * @internal What fill value should be used for a variable?
+ * @internal Ensure that either var->no_fill || var->fill_value != NULL.
+ * Side effects: set as default if necessary and build _FillValue attribute.
  *
  * @param h5 Pointer to file info struct.
  * @param var Pointer to variable info struct.
- * @param fillp Pointer that gets pointer to fill value.
  *
  * @returns NC_NOERR No error.
  * @returns NC_ENOMEM Out of memory.
  * @author Ed Hartnett, Dennis Heimbigner
  */
 int
-ncz_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
+NCZ_ensure_fill_value(NC_VAR_INFO_T *var)
 {
     size_t size;
-    int retval;
+    int retval = NC_NOERR;
+    NC_FILE_INFO_T *h5 = var->container->nc4_info;
 
+    if(var->no_fill)
+        return NC_NOERR;
+
+#if 0 /*LOOK*/
     /* Find out how much space we need for this type's fill value. */
     if (var->type_info->nc_type_class == NC_VLEN)
         size = sizeof(nc_vlen_t);
     else if (var->type_info->nc_type_class == NC_STRING)
         size = sizeof(char *);
     else
-    {
-        if ((retval = nc4_get_typelen_mem(h5, var->type_info->hdr.id, &size)))
-            return retval;
-    }
+#endif
+
+    if ((retval = nc4_get_typelen_mem(h5, var->type_info->hdr.id, &size))) goto done;
     assert(size);
 
-    /* Allocate the space. */
-    if (!((*fillp) = calloc(1, size)))
-        return NC_ENOMEM;
+    /* If the user has set a fill_value for this var, use, otherwise find the default fill value. */
 
-    /* If the user has set a fill_value for this var, use, otherwise
-     * find the default fill value. */
-    if (var->fill_value)
-    {
-        LOG((4, "Found a fill value for var %s", var->hdr.name));
+    if (var->fill_value == NULL) {
+	/* initialize the fill_value to the default */
+	/* Allocate the fill_value space. */
+        if((var->fill_value = calloc(1, size))==NULL)
+	    {retval = NC_ENOMEM; goto done;}
+        if((retval = nc4_get_default_fill_value(var->type_info, var->fill_value))) {
+            /* Note: release memory, but don't return error on failure */
+	    (void)NCZ_reclaim_fill_value(var);
+	    retval = NC_NOERR;
+	    goto done;
+        }
+    }
+    assert(var->fill_value != NULL);
+
+    LOG((4, "Found a fill value for var %s", var->hdr.name));
+#if 0 /*LOOK*/
+	/* Need to copy both vlen and a single basetype */
         if (var->type_info->nc_type_class == NC_VLEN)
         {
-            nc_vlen_t *in_vlen = (nc_vlen_t *)(var->fill_value), *fv_vlen = (nc_vlen_t *)(*fillp);
+            nc_vlen_t *in_vlen = (nc_vlen_t *)(var->fill_value);
+	    nc_vlen-t *fv_vlen = (nc_vlen_t *)fill;
             size_t basetypesize = 0;
 
             if((retval=nc4_get_typelen_mem(h5, var->type_info->u.v.base_nc_typeid, &basetypesize)))
@@ -694,20 +708,9 @@ ncz_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp)
                     return NC_ENOMEM;
                 }
         }
-        else
-            memcpy((*fillp), var->fill_value, size);
-    }
-    else
-    {
-        if (nc4_get_default_fill_value(var->type_info->hdr.id, *fillp))
-        {
-            /* Note: release memory, but don't return error on failure */
-            free(*fillp);
-            *fillp = NULL;
-        }
-    }
-
-    return NC_NOERR;
+#endif /*0*/
+done:
+    return retval;
 }
 
 #ifdef LOGGING
@@ -748,6 +751,27 @@ NCZ_set_log_level()
     return NC_NOERR;
 }
 #endif /* LOGGING */
+
+/**
+ * @internal Get the format (i.e. NC_FORMAT_NETCDF4 pr
+ * NC_FORMAT_NETCDF4_CLASSIC) of an open netCDF-4 file.
+ *
+ * @param ncid File ID (ignored).
+ * @param formatp Pointer that gets the constant indicating format.
+
+ * @return ::NC_NOERR No error.
+ * @return ::NC_EBADID Bad ncid.
+ * @author Ed Hartnett
+ */
+int
+NCZ_inq_format(int ncid, int *formatp)
+{
+    int stat = NC_NOERR;
+
+    ZTRACE(0,"ncid=%d formatp=%p",ncid,formatp);
+    stat = NC4_inq_format(ncid,formatp);
+    return ZUNTRACEX(stat,"formatp=%d",(formatp?-1:*formatp));
+}
 
 /**
  * @internal Return the extended format (i.e. the dispatch model),

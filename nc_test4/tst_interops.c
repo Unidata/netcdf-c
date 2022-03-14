@@ -36,7 +36,9 @@ printRes(const char *msg, int ires)
    if (ires < 0)
    {
       printf("bad ires: %d\n", ires);
-      /*H5Eprint2(ires, stdout);*/
+#ifdef DEBUG
+      H5Eprint2(ires, stdout);
+#endif
       exit(1);
    }
 }

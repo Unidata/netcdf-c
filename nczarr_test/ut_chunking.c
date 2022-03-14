@@ -49,6 +49,7 @@ main(int argc, char** argv)
 #endif
 
 done:
+    ut_final();
     if(stat)
 	nc_strerror(stat);
     return (stat ? 1 : 0);    

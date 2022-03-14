@@ -110,9 +110,10 @@ model, only content-bearing objects actually exist.  Note that
 this different than, say, a direvtory tree where a key will
 always lead to something: a directory or a file.
 
-In any case, the zmap API returns two distinguished error code:
+In any case, the zmap API returns three distinguished error code:
 1. NC_NOERR if a operation succeeded
-2. NC_EEMPTY is returned when accessing a key that has no content.
+2. NC_EEMPTY is returned when accessing a key that has no content or does not exist.
+
 This does not preclude other errors being returned such NC_EACCESS or NC_EPERM or NC_EINVAL
 if there are permission errors or illegal function arguments, for example.
 It also does not preclude the use of other error codes internal to the zmap
@@ -186,18 +187,6 @@ typedef struct NCZMAP {
 
 /* zmap_s3sdk related-types and constants */
 
-#define AWSHOST ".amazonaws.com"
-
-enum URLFORMAT {UF_NONE=0, UF_VIRTUAL=1, UF_PATH=2, UF_OTHER=3};
-
-typedef struct ZS3INFO {
-    enum URLFORMAT urlformat;
-    char* host; /* non-null if other*/
-    char* region; /* region */
-    char* bucket; /* bucket name */
-    char* rootkey;
-} ZS3INFO;
-
 /* Forward */
 struct NClist;
 
@@ -222,6 +211,17 @@ typedef struct NCZMAP_DS_API {
     int (*create)(const char *path, int mode, size64_t constraints, void* parameters, NCZMAP** mapp);
     int (*open)(const char *path, int mode, size64_t constraints, void* parameters, NCZMAP** mapp);
 } NCZMAP_DS_API;
+
+extern NCZMAP_DS_API zmap_file;
+#ifdef USE_HDF5
+extern NCZMAP_DS_API zmap_nz4;
+#endif
+#ifdef ENABLE_NCZARR_ZIP
+extern NCZMAP_DS_API zmap_zip;
+#endif
+#ifdef ENABLE_S3_SDK
+extern NCZMAP_DS_API zmap_s3sdk;
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -310,6 +310,10 @@ EXTERNL int nczmap_close(NCZMAP* map, int deleteit);
 /* Create/open and control a dataset using a specific implementation */
 EXTERNL int nczmap_create(NCZM_IMPL impl, const char *path, int mode, size64_t constraints, void* parameters, NCZMAP** mapp);
 EXTERNL int nczmap_open(NCZM_IMPL impl, const char *path, int mode, size64_t constraints, void* parameters, NCZMAP** mapp);
+
+#ifdef ENABLE_S3_SDK
+EXTERNL void NCZ_s3finalize(void);
+#endif
 
 /* Utility functions */
 

@@ -7,7 +7,6 @@
 #include <assert.h>
 
 #include "d4includes.h"
-#include "ezxml.h"
 
 /*
 The primary purpose of this code is to provide node and data walkers

@@ -31,9 +31,15 @@ for x in ${TESTSET} ; do
   for t in ${XFAILTESTS} ; do
     if test "x${t}" = "x${x}" ; then isxfail=1; fi
   done
+  isnocycle=0
+  for t in ${NOCYCLE} ; do
+    if test "x${t}" = "x${x}" ; then isnocycle=1; fi
+  done
   if test "${isxfail}" = "1"; then
 	echo "xfail test: ${x}: ignored"
         xfailcount=`expr $xfailcount + 1`	
+  elif test "${isnocycle}" = "1"; then
+	echo "test: ${x}: ignored for cycle test"
   else
     rm -f ${x}_$$.nc ${x}_$$.dmp
     # step 1: use original cdl to build the .nc

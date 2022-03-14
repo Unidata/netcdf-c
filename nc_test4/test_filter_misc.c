@@ -32,9 +32,11 @@
 
 static unsigned int baseline[NPARAMS];
 
+static const char* testfile = NULL;
+
 #define MAXDIMS 8
 
-#define TESTFILE "testmisc.nc"
+#define DFALT_TESTFILE "tmp_misc.nc"
 
 #define spec "32768, -17b, 23ub, -25S, 27US, 77, 93U, 789f, 12345678.12345678d, -9223372036854775807L, 18446744073709551615UL"
 
@@ -129,17 +131,24 @@ verifychunks(void)
 static int
 create(void)
 {
+    /* Create a file with one big variable, but whose dimensions arte not a multiple of chunksize (to see what happens) */
+    CHECK(nc_create(testfile, NC_NETCDF4|NC_CLOBBER, &ncid));
+    CHECK(nc_set_fill(ncid, NC_NOFILL, NULL));
+    return NC_NOERR;
+}
+
+static int
+defvar(nc_type xtype)
+{
     int i;
 
     /* Create a file with one big variable, but whose dimensions arte not a multiple of chunksize (to see what happens) */
-    CHECK(nc_create(TESTFILE, NC_NETCDF4|NC_CLOBBER, &ncid));
-    CHECK(nc_set_fill(ncid, NC_NOFILL, NULL));
     for(i=0;i<ndims;i++) {
         char dimname[1024];
         snprintf(dimname,sizeof(dimname),"dim%d",i);
         CHECK(nc_def_dim(ncid, dimname, dimsize[i], &dimids[i]));
     }
-    CHECK(nc_def_var(ncid, "var", NC_FLOAT, ndims, dimids, &varid));
+    CHECK(nc_def_var(ncid, "var", xtype, ndims, dimids, &varid));
     return NC_NOERR;
 }
 
@@ -169,7 +178,7 @@ openfile(void)
     unsigned int* params = NULL;
 
     /* Open the file and check it. */
-    CHECK(nc_open(TESTFILE, NC_NOWRITE, &ncid));
+    CHECK(nc_open(testfile, NC_NOWRITE, &ncid));
     CHECK(nc_inq_varid(ncid, "var", &varid));
 
     /* Check the compression algorithm */
@@ -182,22 +191,22 @@ openfile(void)
     }
     if(filterid != TEST_ID) {
         fprintf(stderr,"open: test id mismatch: %d\n",filterid);
+        free(params);
         return NC_EFILTER;
     }
     if(nparams != NPARAMS) {
-	size_t i;
-	unsigned int inqparams[MAXPARAMS];
+        size_t i;
         fprintf(stderr,"nparams  mismatch\n");
         for(nerrs=0,i=0;i<nparams;i++) {
-            if(inqparams[i] != baseline[i]) {
+            if(params[i] != baseline[i]) {
                 fprintf(stderr,"open: testparam mismatch: %ld\n",(unsigned long)i);
-		nerrs++;
-	    }
-	}
+                nerrs++;
+            }
+        }
     }
-    if(nerrs > 0) return NC_EFILTER; 
+    free(params);
 
-    if(params) free(params);
+    if(nerrs > 0) return NC_EFILTER;
 
     /* Verify chunking */
     if(!verifychunks())
@@ -368,6 +377,7 @@ test_test1(void)
 
     fprintf(stderr,"test1: compression.\n");
     create();
+    defvar(NC_FLOAT);
     setchunking();
     setvarfilter();
     showparameters();
@@ -399,6 +409,7 @@ test_test2(void)
 
     fprintf(stderr,"test2: dimsize %% chunksize != 0: compress.\n");
     create();
+    defvar(NC_FLOAT);
     setchunking();
     setvarfilter();
     showparameters();
@@ -431,6 +442,7 @@ test_test3(void)
 
     fprintf(stderr,"test3: dimsize %% chunksize != 0: compress.\n");
     create();
+    defvar(NC_FLOAT);
     setchunking();
     setvarfilter();
     showparameters();
@@ -517,6 +529,13 @@ static void
 init(int argc, char** argv)
 {
     int i;
+
+    /* get the testfile path */
+    if(argc > 1)
+        testfile = argv[1];
+    else
+        testfile = DFALT_TESTFILE;
+
     /* Setup various variables */
     totalproduct = 1;
     actualproduct = 1;

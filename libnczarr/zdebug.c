@@ -29,6 +29,16 @@ zthrow(int err, const char* file, const char* fcn, int line)
     ncbacktrace();
     return zbreakpoint(err);
 }
+
+int
+zreport(int err, const char* msg, const char* file, const char* fcn, int line)
+{
+    if(err == 0) return err;
+    ZLOG(NCLOGWARN,"!!! zreport: err=%d msg=%s",err,msg);
+    ncbacktrace();
+    return zbreakpoint(err);
+}
+
 #endif /*ZCATCH*/
 
 /**************************************************/
@@ -285,6 +295,15 @@ nczprint_idvector(size_t len, const int* ids)
     size64_t v[4096];
     size_t i;
     for(i=0;i<len;i++) v[i] = ids[i];    
+    return nczprint_vector(len,v);
+}
+
+char*
+nczprint_paramvector(size_t len, const unsigned* params)
+{
+    size64_t v[4096];
+    size_t i;
+    for(i=0;i<len;i++) v[i] = params[i];    
     return nczprint_vector(len,v);
 }
 

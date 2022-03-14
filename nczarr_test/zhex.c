@@ -12,7 +12,7 @@
 #include <unistd.h>
 #endif
 
-#define DEBUG
+#undef DEBUG
 
 static char hex[16] = "0123456789abcdef";
 

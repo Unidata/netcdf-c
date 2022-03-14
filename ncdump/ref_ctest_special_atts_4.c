@@ -162,8 +162,6 @@ main() {/* create ref_tst_special_atts.nc */
     CHECK_ERR(stat);
     stat = nc_def_var_deflate(tst_special_atts_grp, var5_id, NC_SHUFFLE, 1, 2);
     CHECK_ERR(stat);
-    stat = nc_def_var_fill(tst_special_atts_grp, var5_id, NC_NOFILL, NULL);
-    CHECK_ERR(stat);
 
     var6_dims[0] = dim1_dim;
     stat = nc_def_var(tst_special_atts_grp, "var6", NC_INT, RANK_var6, var6_dims, &var6_id);

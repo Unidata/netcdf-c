@@ -67,7 +67,6 @@ NCJ_INT, /*NC_UINT64*/
 };
 
 /* Forward */
-static int endswith(const char* s, const char* suffix);
 
 /**************************************************/
 
@@ -340,7 +339,7 @@ NCZ_readdict(NCZMAP* zmap, const char* key, NCjson** jsonp)
 
     if((stat = NCZ_downloadjson(zmap,key,&json)))
 	goto done;
-    if(json->sort != NCJ_DICT) {stat = NC_ENCZARR; goto done;}
+    if(NCJsort(json) != NCJ_DICT) {stat = NC_ENCZARR; goto done;}
     if(jsonp) {*jsonp = json; json = NULL;}
 done:
     NCJreclaim(json);
@@ -364,7 +363,7 @@ NCZ_readarray(NCZMAP* zmap, const char* key, NCjson** jsonp)
 
     if((stat = NCZ_downloadjson(zmap,key,&json)))
 	goto done;
-    if(json->sort != NCJ_ARRAY) {stat = NC_ENCZARR; goto done;}
+    if(NCJsort(json) != NCJ_ARRAY) {stat = NC_ENCZARR; goto done;}
     if(jsonp) {*jsonp = json; json = NULL;}
 done:
     NCJreclaim(json);
@@ -414,9 +413,9 @@ ncz_default_fill_value(nc_type nctype, const char** dfaltp)
 
 /**
 @internal Given an nc_type, produce the corresponding
-fill value sort
+fill value JSON type
 @param nctype - [in] nc_type
-@param sortp - [out] pointer to hold pointer to the sort
+@param sortp - [out] pointer to hold pointer to the JSON type
 @return NC_NOERR
 @author Dennis Heimbigner
 */
@@ -730,162 +729,6 @@ NCZ_freestringvec(size_t len, char** vec)
     nullfree(vec);
 }
 
-/* create a fill chunk */
-int
-NCZ_create_fill_chunk(size64_t chunksize, size_t typesize, void* fill, void** fillchunkp)
-{
-    int i;
-    void* fillchunk = NULL;
-    if((fillchunk = malloc(chunksize))==NULL)
-        return NC_ENOMEM;
-    switch (typesize) {
-    case 1: {
-        unsigned char c = *((unsigned char*)fill);
-        memset(fillchunk,c,chunksize);
-        } break;
-    case 2: {
-        unsigned short fv = *((unsigned short*)fill);
-        unsigned short* p2 = (unsigned short*)fillchunk;
-        for(i=0;i<chunksize;i+=typesize) *p2++ = fv;
-        } break;
-    case 4: {
-        unsigned int fv = *((unsigned int*)fill);
-        unsigned int* p4 = (unsigned int*)fillchunk;
-        for(i=0;i<chunksize;i+=typesize) *p4++ = fv;
-        } break;
-    case 8: {
-        unsigned long long fv = *((unsigned long long*)fill);
-        unsigned long long* p8 = (unsigned long long*)fillchunk;
-        for(i=0;i<chunksize;i+=typesize) *p8++ = fv;
-        } break;
-    default: {
-        unsigned char* p;
-        for(p=fillchunk,i=0;i<chunksize;i+=typesize,p+=typesize)
-            memcpy(p,fill,typesize);
-        } break;
-    }
-    if(fillchunkp) {*fillchunkp = fillchunk; fillchunk = NULL;}
-    nullfree(fillchunk);
-    return NC_NOERR;
-}
-    
-/**************************************************/
-/* S3 utilities */
-
-EXTERNL int
-NCZ_s3urlprocess(NCURI* url, ZS3INFO* s3)
-{
-    int stat = NC_NOERR;
-    NClist* segments = NULL;
-    NCbytes* buf = ncbytesnew();
-
-    if(url == NULL)
-        {stat = NC_EURL; goto done;}
-    /* do some verification */
-    if(strcmp(url->protocol,"https") != 0)
-        {stat = NC_EURL; goto done;}
-
-    /* Path better look absolute */
-    if(!nczm_isabsolutepath(url->path))
-    	{stat = NC_EURL; goto done;}
-
-    /* Distinguish path-style from virtual-host style from other:
-       Virtual: https://bucket-name.s3.Region.amazonaws.com/<root>
-       Path: https://s3.Region.amazonaws.com/bucket-name/<root>
-       Other: https://<host>/bucketname/<root>
-    */
-    if(url->host == NULL || strlen(url->host) == 0)
-        {stat = NC_EURL; goto done;}
-    if(endswith(url->host,AWSHOST)) { /* Virtual or path */
-        segments = nclistnew();
-        /* split the hostname by "." */
-        if((stat = nczm_split_delim(url->host,'.',segments))) goto done;
-	switch (nclistlength(segments)) {
-	default: stat = NC_EURL; goto done;
-	case 4:
-            if(strcasecmp(nclistget(segments,0),"s3")!=0)
-	        {stat = NC_EURL; goto done;}
-	    s3->urlformat = UF_PATH; 
-	    s3->region = strdup(nclistget(segments,1));
-	    break;
-	case 5:
-            if(strcasecmp(nclistget(segments,1),"s3")!=0)
-	        {stat = NC_EURL; goto done;}
-	    s3->urlformat = UF_VIRTUAL;
-	    s3->region = strdup(nclistget(segments,2));
-    	    s3->bucket = strdup(nclistget(segments,0));
-	    break;
-	}
-	/* Rebuild host to look like path-style */
-	ncbytescat(buf,"s3.");
-	ncbytescat(buf,s3->region);
-	ncbytescat(buf,AWSHOST);
-        s3->host = ncbytesextract(buf);
-    } else {
-        s3->urlformat = UF_OTHER;
-        if((s3->host = strdup(url->host))==NULL)
-	    {stat = NC_ENOMEM; goto done;}
-    }
-    /* Do fixups to make everything look like it was path style */
-    switch (s3->urlformat) {
-    case UF_PATH:
-    case UF_OTHER:
-	/* We have to process the path to get the bucket, and remove it in the path */
-	if(url->path != NULL && strlen(url->path) > 0) {
-            /* split the path by "/"  */
-   	    nclistfreeall(segments);
-	    segments = nclistnew();
-            if((stat = nczm_split_delim(url->path,'/',segments))) goto done;
-	    if(nclistlength(segments) == 0)
-	    	{stat = NC_EURL; goto done;}
-	    s3->bucket = ((char*)nclistremove(segments,0));
-	    if(nclistlength(segments) > 0) {
-	        if((stat = nczm_join(segments,&s3->rootkey))) goto done;
-	    } else
-	    	s3->rootkey = NULL;
-	    nclistfreeall(segments); segments = NULL;
-	}
-	break;
-    case UF_VIRTUAL:
-	if(url->path == NULL || strlen(url->path) == 0)
-	    s3->rootkey = NULL;
-        else
-	    s3->rootkey = strdup(url->path);
-	break;
-    default: stat = NC_EURL; goto done;
-    }
-    
-done:
-    ncbytesfree(buf);
-    nclistfreeall(segments);
-    return stat;
-}
-
-int
-NCZ_s3clear(ZS3INFO* s3)
-{
-    if(s3) {
-	nullfree(s3->host);
-	nullfree(s3->region);
-	nullfree(s3->bucket);
-	nullfree(s3->rootkey);
-    }
-    return NC_NOERR;
-}
-
-static int
-endswith(const char* s, const char* suffix)
-{
-    ssize_t ls, lsf, delta;
-    if(s == NULL || suffix == NULL) return 0;
-    ls = strlen(s);
-    lsf = strlen(suffix);
-    delta = (ls - lsf);
-    if(delta < 0) return 0;
-    if(memcmp(s+delta,suffix,lsf)!=0) return 0;
-    return 1;
-}
-
 int
 NCZ_ischunkname(const char* name,char dimsep)
 {
@@ -901,7 +744,7 @@ NCZ_ischunkname(const char* name,char dimsep)
 }
 
 char*
-NCZ_chunkpath(struct ChunkKey key,char dimsep)
+NCZ_chunkpath(struct ChunkKey key)
 {
     size_t plen = nulllen(key.varkey)+1+nulllen(key.chunkkey);
     char* path = (char*)malloc(plen+1);
@@ -912,4 +755,36 @@ NCZ_chunkpath(struct ChunkKey key,char dimsep)
     strlcat(path,"/",plen+1);
     strlcat(path,key.chunkkey,plen+1);
     return path;    
+}
+
+int
+NCZ_reclaim_fill_value(NC_VAR_INFO_T* var)
+{
+    int stat = NC_NOERR;
+    if(var->fill_value) {
+	int ncid = var->container->nc4_info->controller->ext_ncid;
+	int tid = var->type_info->hdr.id;
+	stat = nc_reclaim_data_all(ncid,tid,var->fill_value,1);
+	var->fill_value = NULL;
+    }
+    /* Reclaim any existing fill_chunk */
+    if(!stat) stat = NCZ_reclaim_fill_chunk(((NCZ_VAR_INFO_T*)var->format_var_info)->cache);
+    return stat;
+}
+
+int
+NCZ_copy_fill_value(NC_VAR_INFO_T* var, void**  dstp)
+{
+    int stat = NC_NOERR;
+    int ncid = var->container->nc4_info->controller->ext_ncid;
+    int tid = var->type_info->hdr.id;
+    void* dst = NULL;
+
+    if(var->fill_value) {
+	if((stat = nc_copy_data_all(ncid,tid,var->fill_value,1,&dst))) goto done;
+    }
+    if(dstp) {*dstp = dst; dst = NULL;}
+done:
+    if(dst) (void)nc_reclaim_data_all(ncid,tid,dst,1);
+    return stat;
 }

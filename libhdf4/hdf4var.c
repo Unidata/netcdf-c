@@ -88,7 +88,7 @@ NC_HDF4_get_vara(int ncid, int varid, const size_t *startp,
     if (var->type_info->hdr.id != memtype)
     {
         if ((retval = nc4_convert_type(data, ip, var->type_info->hdr.id, memtype, nelem,
-                                       &range_error, NULL, 0)))
+                                       &range_error, NULL, 0, NC_NOQUANTIZE, 0)))
             return retval;
         free(data);
         if (range_error)

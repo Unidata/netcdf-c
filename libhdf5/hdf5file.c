@@ -223,10 +223,12 @@ nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio)
      * hidden attribute. */
     NC4_clear_provenance(&h5->provenance);
 
-#if defined(ENABLE_BYTERANGE) || defined(ENABLE_HDF5_ROS3) || defined(ENABLE_S3_SDK)
+#if defined(ENABLE_BYTERANGE)
+    ncurifree(hdf5_info->uri);
+#if defined(ENABLE_HDF5_ROS3) || defined(ENABLE_S3_SDK)
     /* Free the http info */
-    ncurifree(hdf5_info->http.uri);
-    NC_authfree(hdf5_info->http.auth);
+    NC_authfree(hdf5_info->auth);
+#endif
 #endif
 
     /* Close hdf file. It may not be open, since this function is also
@@ -487,9 +489,9 @@ NC4_enddef(int ncid)
 {
     NC_FILE_INFO_T *nc4_info;
     NC_GRP_INFO_T *grp;
-    NC_VAR_INFO_T *var;
-    int i;
     int retval;
+    int i;
+    NC_VAR_INFO_T* var = NULL;
 
     LOG((1, "%s: ncid 0x%x", __func__, ncid));
 
@@ -497,6 +499,8 @@ NC4_enddef(int ncid)
     if ((retval = nc4_find_grp_h5(ncid, &grp, &nc4_info)))
         return retval;
 
+    /* Why is this here? Especially since it is not recursive so it
+       only applies to the this grp */
     /* When exiting define mode, mark all variable written. */
     for (i = 0; i < ncindexsize(grp->vars); i++)
     {

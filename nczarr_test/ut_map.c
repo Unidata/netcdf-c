@@ -66,14 +66,16 @@ main(int argc, char** argv)
     if((stat = NCpathcanonical(utoptions.output,&tmp))) goto done;
     free(utoptions.output);
     utoptions.output = tmp;
+fprintf(stderr,"file=%s output=%s\n",utoptions.file,utoptions.output);
 
     impl = kind2impl(utoptions.kind);
-    url = makeurl(utoptions.file,impl);
+    url = makeurl(utoptions.file,impl,&utoptions);
 
     if((stat = runtests((const char**)utoptions.cmds,tests))) goto done;
     
 done:
     nullfree(tmp);
+    ut_final();
     if(stat) usage(stat);
     return 0;
 }

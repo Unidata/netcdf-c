@@ -11,7 +11,6 @@ Research/Unidata. See \ref copyright file for more info.  */
 
 #if defined(_WIN32) && !defined(__MINGW32__)
 #include "XGetopt.h"
-#define snprintf _snprintf
 #endif
 
 #ifdef HAVE_UNISTD_H
@@ -395,7 +394,7 @@ done:
 static void
 pr_initx(int ncid, const char *path)
 {
-    printf("<?xml version=\"%s\" encoding=\"UTF-8\"?>\n<netcdf xmlns=\"http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2\" location=\"%s\">\n",
+    printf("<?xml version=\"%s\" encoding=\"UTF-8\"?>\n<netcdf xmlns=\"https://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2\" location=\"%s\">\n",
 	   XML_VERSION, path);
 }
 
@@ -917,8 +916,7 @@ pr_att(
        default:
 	   error("unrecognized class of user defined type: %d", class);
        }
-       ncaux_reclaim_data(ncid,att.type,data,att.len);
-       free(data);
+       NC_CHECK(nc_reclaim_data_all(ncid,att.type,data,att.len));
        printf (" ;");		/* terminator for user defined types */
     }
 #endif /* USE_NETCDF4 */
@@ -1066,6 +1064,28 @@ pr_att_specials(
 	if(shuffle != NC_NOSHUFFLE) {
 	    pr_att_name(ncid, varp->name, NC_ATT_SHUFFLE);
 	    printf(" = \"true\" ;\n");
+	}
+    }
+    /* _Codecs*/
+    {
+	int stat;
+	size_t len;
+	nc_type typeid;
+        stat = nc_inq_att(ncid,varid,NC_ATT_CODECS,&typeid,&len);
+        if(stat == NC_NOERR && typeid == NC_CHAR && len > 0) {
+	    char* json = (char*)malloc(len+1);
+	    if(json != NULL) {	    
+                stat = nc_get_att_text(ncid,varid,NC_ATT_CODECS,json);
+                if(stat == NC_NOERR) {
+		    char* escapedjson = NULL;
+		    pr_att_name(ncid, varp->name, NC_ATT_CODECS);
+		    /* Escape the json */
+		    escapedjson = escaped_string(json);	
+                    printf(" = \"%s\" ;\n",escapedjson);
+		    free(escapedjson);
+		}
+		free(json);
+	    }
 	}
     }
     /* _Checksum */
@@ -1935,7 +1955,7 @@ do_ncdump_rec(int ncid, const char *path)
 	    goto done;
 	 }
 	 if(var.fillvalp != NULL)
-	     {ncaux_reclaim_data(ncid,var.tinfo->tid,var.fillvalp,1); free(var.fillvalp); var.fillvalp = NULL;}
+	     {NC_CHECK(nc_reclaim_data_all(ncid,var.tinfo->tid,var.fillvalp,1)); var.fillvalp = NULL;}
       }
       if (vdims) {
 	  free(vdims);
@@ -1988,8 +2008,7 @@ done:
    if(var.dims != NULL) free(var.dims);
    if(var.fillvalp != NULL) {
 	/* Release any data hanging off of fillvalp */
-	ncaux_reclaim_data(ncid,var.tinfo->tid,var.fillvalp,1);
-	free(var.fillvalp);
+	nc_reclaim_data_all(ncid,var.tinfo->tid,var.fillvalp,1);
 	var.fillvalp = NULL;
    }
    if(var.timeinfo != NULL) {
@@ -2459,6 +2478,7 @@ main(int argc, char *argv[])
 	    NC_CHECK( nc_close(ncid) );
     }
     nullfree(path) path = NULL;
+    nc_finalize();
     exit(EXIT_SUCCESS);
 
 fail: /* ncstat failures */
@@ -2468,6 +2488,7 @@ fail: /* ncstat failures */
     nullfree(path); path = NULL;
     if(strlen(errmsg) > 0)
 	error("%s", errmsg);
+    nc_finalize();
     exit(EXIT_FAILURE);
 }
 
