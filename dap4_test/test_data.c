@@ -51,7 +51,6 @@ main(int argc, char** argv)
 	""
 #endif
 	);
-    }
 
 #ifdef DEBUG
     fprintf(stderr,"test_data url=%s\n",url);
