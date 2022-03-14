@@ -89,7 +89,7 @@ getformat(const char* sformat)
 
 
 static int
-makeurl(struct Options* faoptions)
+makeurl(struct Options* faopt)
 {
     int stat = NC_NOERR;
     int format;
@@ -101,7 +101,7 @@ makeurl(struct Options* faoptions)
 #else
     pid = (int)getpid();
 #endif
-    switch (format = getformat(faoptions->format)) {
+    switch (format = getformat(faopt->format)) {
     case NC_FORMATX_NC4:
 	snprintf(url,sizeof(url),"tmp_%d.nc",pid);
 	break;
@@ -110,23 +110,23 @@ makeurl(struct Options* faoptions)
 	break;
     default: stat = NC_EINVAL; break;
     }
-    if(stat == NC_NOERR) faoptions->url = strdup(url);
+    if(stat == NC_NOERR) faopt->url = strdup(url);
     return stat;
 }
 
 static int
-makefilterid(struct Options* faoptions)
+makefilterid(struct Options* faopt)
 {
     int stat = NC_NOERR;
     const struct Filter* f = NULL;
     for(f=known_filters;f->name;f++) {
-        if(strcmp(f->name,faoptions->filtername)==0) {
-	    faoptions->filterid = f->id;
+        if(strcmp(f->name,faopt->filtername)==0) {
+	    faopt->filterid = f->id;
 	    goto done;
 	}
     }
     /* See if it is a number */
-    if(1!=sscanf(faoptions->filtername,"%u",&faoptions->filterid))
+    if(1!=sscanf(faopt->filtername,"%u",&faopt->filterid))
 	{stat = NC_EINVAL; goto done;}
 done:
     return stat;

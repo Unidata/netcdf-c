@@ -1508,7 +1508,8 @@ memset(plugin,0,sizeof(NCZ_Plugin));
 static int
 pluginnamecheck(const char* name)
 {
-   size_t i,count,len;
+   size_t count,len;
+   long i;
    const char* p;
    if(name == NULL) return 0;
    /* get basename */
@@ -1516,7 +1517,7 @@ pluginnamecheck(const char* name)
    if(p != NULL) name = (p+1);
    len = strlen(name);
    if(len == 0) return 0;
-   i = len-1;
+   i = (long)(len-1);
    count = 1;
    p = name+i;
    for(;i>=0;i--,count++,p--) {
