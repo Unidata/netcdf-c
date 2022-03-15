@@ -154,7 +154,7 @@ name_path(const char *path)
     size_t cplen = 0;
     char* base = NULL;
 
-    if((cvtpath = NCpathcvt(path))==NULL)
+    if (NCpathcanonical(path, &cvtpath) || cvtpath==NULL)
         return NULL;
 
     /* See if this is a url */
