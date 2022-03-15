@@ -60,9 +60,6 @@ MISCPATH="${HDF5_PLUGIN_PATH}/${HDF5_PLUGIN_LIB}"
 if ! test -f ${BZIP2PATH} ; then echo "Unable to locate ${BZIP2PATH}"; exit 1; fi
 if ! test -f ${MISCPATH} ; then echo "Unable to locate ${MISCPATH}"; exit 1; fi
 
-echo "@@@@@@@@@@@"
-find ${HDF5_PLUGIN_PATH}
-
 # Execute the specified tests
 
 testapi() {

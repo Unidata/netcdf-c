@@ -523,6 +523,45 @@ fi
 
 CFLAGS="$SAVECFLAGS"
 
+###
+# Libxml2 control block.
+###
+
+AC_MSG_CHECKING([whether to search for and use external libxml2])
+AC_ARG_ENABLE([libxml2],
+              [AS_HELP_STRING([--disable-libxml2],
+                              [disable detection and use of libxml2 in favor of the bundled ezxml interpreter])])
+test "x$enable_libxml2" = xno || enable_libxml2=yes
+AC_MSG_RESULT([$enable_libxml2])
+
+have_libxml2=no
+if test "x$enable_libxml2" = xyes; then
+  # We can optionally use libxml2 for DAP4, if available
+  AC_CHECK_LIB([xml2],[xmlReadMemory],[have_libxml2=yes],[have_libxml2=no])
+  if test "x$have_libxml2" = "xyes" ; then
+      AC_SEARCH_LIBS([xmlReadMemory],[xml2 xml2.dll cygxml2.dll], [],[])
+  fi
+  if test "x$have_libxml2" = xyes; then
+     XML2FLAGS=`xml2-config --cflags`
+     AC_SUBST([XML2FLAGS],${XML2FLAGS})
+     AC_DEFINE([HAVE_LIBXML2], [1], [if true, use libxml2])
+  fi
+fi
+
+if test "x$enable_libxml2" = xyes; then
+XMLPARSER="libxml2"
+else
+XMLPARSER="tinyxml2 (bundled)"
+fi
+
+# Need a condition and subst for this
+AM_CONDITIONAL(ENABLE_LIBXML2, [test "x$enable_libxml2" = xyes])
+AC_SUBST([XMLPARSER],[${XMLPARSER}])
+
+###
+# End Libxml2 block
+###
+
 # --enable-dap => enable-dap4
 enable_dap4=$enable_dap
 AC_MSG_CHECKING([whether dap remote testing should be enabled])
@@ -1046,54 +1085,20 @@ AC_CHECK_FUNCS([strlcat snprintf strcasecmp fileno \
 AC_CHECK_FUNCS([clock_gettime])
 AC_CHECK_TYPES([struct timespec])
 
-# disable dap4 if netcdf-4 is disabled
-#if test "x$enable_netcdf_4" = "xno" ; then
+# disable dap4 if hdf5 is disabled
 if test "x$enable_hdf5" = "xno" ; then
     AC_MSG_WARN([netcdf-4 not enabled; disabling DAP4])
     enable_dap4=no
 fi
 
+if test "x$ISOSX" = xyes && "x$have_libxml2" = xno ; then
+  AC_MSG_ERROR([Error: OSX requires libxml2 => --disable-dap4.])
+  enable_dap4=no
+fi
+
 if test "x$enable_dap4" = xyes; then
    AC_DEFINE([ENABLE_DAP4], [1], [if true, build DAP4 Client])
 fi
-
-###
-# Libxml2 control block.
-###
-
-AC_MSG_CHECKING([whether to search for and use external libxml2])
-AC_ARG_ENABLE([libxml2],
-              [AS_HELP_STRING([--disable-libxml2],
-                              [disable detection and use of libxml2 in favor of the bundled ezxml interpreter])])
-test "x$enable_libxml2" = xno && enable_libxml2=yes
-AC_MSG_RESULT($enable_libxml2)
-
-if test "x$enable_libxml2" = xyes; then
-  # We can optionally use libxml2 for DAP4, if available
-  AC_CHECK_LIB([xml2],[xmlReadMemory],[have_libxml2=yes],[have_libxml2=no])
-  if test "x$have_libxml2" = "xyes" ; then
-      AC_SEARCH_LIBS([xmlReadMemory],[xml2 xml2.dll cygxml2.dll], [],[])
-  fi
-  if test "x$have_libxml2" = xyes; then
-     XML2FLAGS=`xml2-config --cflags`
-     AC_SUBST([XML2FLAGS],${XML2FLAGS})
-     AC_DEFINE([HAVE_LIBXML2], [1], [if true, use libxml2])
-  fi
-fi
-
-if test "x$enable_libxml2" = xyes; then
-XMLPARSER="libxml2"
-else
-XMLPARSER="tinyxml2 (bundled)"
-fi
-
-# Need a condition and subst for this
-AM_CONDITIONAL(ENABLE_LIBXML2, [test "x$enable_libxml2" = xyes])
-AC_SUBST([XMLPARSER],[${XMLPARSER}])
-
-###
-# End Libxml2 block
-###
 
 # check for useful, but not essential, memio support
 AC_CHECK_FUNCS([memmove getpagesize sysconf])

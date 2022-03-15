@@ -44,7 +44,7 @@ main(int argc, char** argv)
     snprintf(url,sizeof(url),"file://%s#dap4&debug=copy%s%s%s",
 	argv[0],
         (argc >= 3 ? "&substratename=" : ""),
-        (argc >= 3 ? "argv[1]" : ""),
+        (argc >= 3 ? argv[1] : ""),
 #ifdef DEBUG
 	"&log"
 #else
