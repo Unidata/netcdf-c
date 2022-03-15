@@ -24,7 +24,7 @@ distribution.
 #include "tinyxml2.h"
 
 #include <new>		// yes, this one new style header, is in the Android SDK.
-#if defined(ANDROID_NDK) || defined(__BORLANDC__) || defined(__QNXNTO__)
+#if defined(ANDROID_NDK) || defined(__APPLE__) || defined(__QNXNTO__)
 #   include <stddef.h>
 #   include <stdarg.h>
 #else
@@ -476,7 +476,7 @@ const char* XMLUtil::GetCharacterRef( const char* p, char* value, int* length )
     if ( *(p+1) == '#' && *(p+2) ) {
         unsigned long ucs = 0;
         TIXMLASSERT( sizeof( ucs ) >= 4 );
-        ptrdiff_t delta = 0;
+        long delta = 0;
         unsigned mult = 1;
         static const char SEMICOLON = ';';
 

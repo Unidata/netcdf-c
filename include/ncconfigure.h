@@ -70,7 +70,7 @@ int snprintf(char*, size_t, const char*, ...);
 
 #ifndef HAVE_STRCASECMP
 #ifndef strcasecmp
-int strcasecmp(const char*, const char*);
+extern int strcasecmp(const char*, const char*);
 #endif
 #endif
 
