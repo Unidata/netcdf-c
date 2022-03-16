@@ -9,7 +9,7 @@
 # These files will be included with the dist.
 EXTRA_DIST = netcdf.m4 DoxygenLayout.xml Doxyfile.in footer.html	\
 mainpage.dox tutorial.dox			\
-architecture.dox internal.dox windows-binaries.md			\
+architecture.dox internal.md windows-binaries.md dispatch.md \
 building-with-cmake.md CMakeLists.txt groups.dox notes.md	\
 install-fortran.md all-error-codes.md credits.md auth.md filters.md \
 obsolete/fan_utils.html indexing.dox	\
