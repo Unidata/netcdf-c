@@ -23,6 +23,15 @@ IF(ENABLE_DOXYGEN)
   CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
     ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
 
+    # Create auth.html with some sed commands.
+  ADD_CUSTOM_TARGET(oc2_auth ALL
+
+    COMMAND cat ${CMAKE_SOURCE_DIR}/oc2/auth.html.in | sed -e "/<OC>/d" | sed -e "s|^<NC>||" | sed -e "s|zz|netcdf|g" -e "s|ZZ|netCDF|g" | sed -e "/stylesheet/r${CMAKE_SOURCE_DIR}/oc2/oc.css" -e "/stylesheet/d" > ${CMAKE_CURRENT_SOURCE_DIR}/auth.html
+    COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/auth.html ${CMAKE_CURRENT_BINARY_DIR}/html
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    VERBATIM
+  )
+
   # Generate User Documentation
   ADD_CUSTOM_TARGET(doc_all ALL
     ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
@@ -32,15 +41,8 @@ IF(ENABLE_DOXYGEN)
     COMMENT "Generating API Documentation" VERBATIM
   )
 
-    # Create auth.html with some sed commands.
-  ADD_CUSTOM_TARGET(oc2_auth ALL
 
-    COMMAND cat ${CMAKE_SOURCE_DIR}/oc2/auth.html.in | sed -e "/<OC>/d" | sed -e "s|^<NC>||" | sed -e "s|zz|netcdf|g" -e "s|ZZ|netCDF|g" | sed -e "/stylesheet/r${CMAKE_SOURCE_DIR}/oc2/oc.css" -e "/stylesheet/d" > ${CMAKE_CURRENT_SOURCE_DIR}/auth.html
-    COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/auth.html ${CMAKE_CURRENT_BINARY_DIR}/html
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    VERBATIM
-  )
-  
+
   # If ENABLE_DOXYGEN_LATEX_OUTPUT is true, automatically build
   # the PDF files.
   IF(ENABLE_DOXYGEN_PDF_OUTPUT)
