@@ -19,7 +19,7 @@ srcdir=`pwd`
 # compute the build directory
 builddir=`pwd`/..
 # Hack for CYGWIN
-if [ `uname | cut -d "_" -f 1` = "MINGW32" ]; then
+if test "x$FP_ISMINGW" = xyes ; then
     srcdir=`pwd | sed 's/\/c\//c:\//g'`
     builddir="$srcdir"/..
 fi
