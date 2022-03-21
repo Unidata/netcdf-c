@@ -210,7 +210,6 @@ main(int argc, char **argv)
 	    char url[4096];
 	    snprintf(url,sizeof(url),template,file_name);
 	    strcpy(file_name,url);
-fprintf(stderr,"\n>>> type url = |%s|\n",file_name);
 	    }
 #endif
             /* Create file. */
@@ -228,7 +227,8 @@ fprintf(stderr,"\n>>> type url = |%s|\n",file_name);
             {
                 if (nc_open(file_name, NC_NETCDF4, &ncid)) ERR;
 		if (nc_inq_varid(ncid,VAR_NAME,&varid)) ERR;
-                if (nc_inq_var_quantize(ncid, varid, &quantize_mode, &nsd_in)) ERR;
+                if (nc_inq_var_quantize(ncid, varid, &quantize_mode, &nsd_in))
+		    ERR;
                 if (quantize_mode) ERR;
                 if (nc_close(ncid)) ERR;
             }
@@ -931,7 +931,6 @@ fprintf(stderr,"\n>>> type url = |%s|\n",file_name);
          * set compression level to 1, which is usually the best
          * choice. */
         if (nc_def_var_deflate(ncid, varid1, 0, 1, 1)) ERR;
-        if (nc_def_var_deflate(ncid, varid2, 0, 1, 1)) ERR;
 #endif
 #endif
         /* Write the data. */

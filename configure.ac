@@ -599,16 +599,64 @@ if test "x$enable_nczarr" = xyes; then
 fi
 AM_CONDITIONAL(ENABLE_NCZARR, [test x$enable_nczarr = xyes])
 
-# See if we have libblosc
-AC_CHECK_LIB([blosc],[blosc_init],[enable_blosc=yes],[enable_blosc=no])
-if test "x$enable_blosc" = "xyes" ; then
-   AC_SEARCH_LIBS([blosc_init],[blosc blosc.dll cygblosc.dll], [], [])
-   AC_DEFINE([ENABLE_BLOSC], [1], [if true, blosc library is available])
-fi
-AC_MSG_CHECKING([whether libblosc library is available])
-AC_MSG_RESULT([${enable_blosc}])
+##########
+# Look for Standardized libraries
+##########
 
-# See if we have libzip
+# See if we have libblosc
+AC_CHECK_LIB([blosc],[blosc_init],[have_blosc=yes],[have_blosc=no])
+if test "x$have_blosc" = "xyes" ; then
+   AC_SEARCH_LIBS([blosc_init],[blosc blosc.dll cygblosc.dll], [], [])
+   AC_DEFINE([HAVE_BLOSC], [1], [if true, blosc library is available])
+fi
+
+# See if we have libzstd
+AC_CHECK_LIB([zstd],[ZSTD_compress],[have_zstd=yes],[have_zstd=no])
+if test "x$have_zstd" = "xyes" ; then
+   AC_SEARCH_LIBS([ZSTD_compress],[zstd zstd.dll cygzstd.dll], [], [])
+   AC_DEFINE([HAVE_ZSTD], [1], [if true, zstd library is available])
+fi
+AC_MSG_CHECKING([whether libzstd library is available])
+AC_MSG_RESULT([${have_zstd}])
+
+# See if we have libbzip2 or libbz2
+AC_CHECK_LIB([bz2],[BZ2_bzCompress],[have_bzip2=yes],[have_bzip2=no])
+if test "x$have_bzip2" = "xyes" ; then
+     AC_SEARCH_LIBS([BZ2_bzCompress],[bz2 bz2.dll cygbz2.dll], [], [])
+     AC_DEFINE([HAVE_BZIP2], [1], [if true, bz2 library is installed])
+fi
+AC_MSG_CHECKING([whether libbz2 library is available])
+AC_MSG_RESULT([${have_bzip2}])
+
+if test "x$have_bzip2" = "xno" ; then
+AC_CHECK_LIB([bzip2],[BZ2_bzCompress],[have_bzip2=yes],[have_bzip2=no])
+if test "x$have_bzip2" = "xyes" ; then
+   AC_SEARCH_LIBS([BZ2_bzCompress],[bzip2 bzip2.dll cygbzip2.dll], [], [])
+   AC_DEFINE([HAVE_BZIP2], [1], [if true, bzip2 library is installed])
+fi
+AC_MSG_CHECKING([whether libbzip2 library is available])
+AC_MSG_RESULT([${have_bzip2}])
+fi
+
+# Note that szip management is tricky.
+# This is because we have three things to consider:
+# 1. is libsz available?
+# 2. is szip enabled in HDF5?
+# 3. is nczarr enabled?
+# We need separate flags for cases 1 and 2
+
+# See if we have libsz (usually via libaec)
+AC_CHECK_LIB([sz],[SZ_BufftoBuffCompress],[have_sz=yes],[have_sz=no])
+if test "x$have_sz" = "xyes" ; then
+   AC_SEARCH_LIBS([SZ_BufftoBuffCompress],[sz sz.dll cygsz.dll], [], [])
+   AC_DEFINE([HAVE_SZ], [1], [if true, libsz (==szip) is available])
+fi
+AC_MSG_CHECKING([whether libsz library is available])
+AC_MSG_RESULT([${have_sz}])
+
+##########
+
+# See if we have libzip for NCZarr
 AC_CHECK_LIB([zip],[zip_open],[have_zip=yes],[have_zip=no])
 if test "x$have_zip" = "xyes" ; then
    AC_SEARCH_LIBS([zip_open],[zip zip.dll cygzip.dll], [], [])
@@ -1333,7 +1381,7 @@ fi
 # Set defaults
 hdf5_parallel=no
 hdf5_supports_par_filters=no
-enable_szlib=no
+enable_hdf5_szip=no
 has_ross3=no
 
 if test "x$enable_hdf5" = xyes; then
@@ -1360,7 +1408,7 @@ if test "x$enable_hdf5" = xyes; then
    # H5Pset_fapl_mpiposix and H5Pget_fapl_mpiposix have been removed since HDF5 1.8.12.
    # Use H5Pset_fapl_mpio and H5Pget_fapl_mpio, instead.
 
-   AC_CHECK_FUNCS([H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5free_memory H5resize_memory H5allocate_memory H5Pset_all_coll_metadata_ops H5Literate])
+   AC_CHECK_FUNCS([H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5Pset_all_coll_metadata_ops H5Literate])
 
    # Check to see if HDF5 library has collective metadata APIs, (HDF5 >= 1.10.0)
    if test "x$ac_cv_func_H5Pset_all_coll_metadata_ops" = xyes; then
@@ -1404,10 +1452,10 @@ if test "x$enable_hdf5" = xyes; then
    # must be able to link to szip library.
    AC_MSG_CHECKING([whether szlib was used when building HDF5])
    if test "x$ac_cv_func_H5Z_SZIP" = xyes; then
-      enable_szlib=yes
-      AC_DEFINE([USE_SZIP], [1], [if true, compile in szip compression in netCDF-4 variables])
+      enable_hdf5_szip=yes
+      AC_DEFINE([HAVE_H5Z_SZIP], [1], [if true, compile in szip compression in netCDF-4 variables])
    fi
-   AC_MSG_RESULT([$enable_szlib])
+   AC_MSG_RESULT([$enable_hdf5_szip])
 
    # Check to see if HDF5 library is 1.10.6 or greater.
    # Used to control path name conversion
@@ -1422,15 +1470,6 @@ if test "x$enable_hdf5" = xyes; then
       AC_DEFINE([HDF5_UTF8_PATHS], [1], [if true, HDF5 paths can be utf-8])
    fi
 
-else # !enable_hdf5
-  # See if we have libsz
-  AC_CHECK_LIB([sz],[SZ_BufftoBuffCompress],[enable_szlib=yes],[enable_szlib=no])
-  if test "x$enable_szlib" = "xyes" ; then
-    AC_SEARCH_LIBS([SZ_BufftoBuffCompress],[sz sz.dll cygsz.dll], [], [])
-    AC_DEFINE([USE_SZIP], [1], [if true, szip library is available])
-  fi
-  AC_MSG_CHECKING([whether szip library is available])
-  AC_MSG_RESULT([${enable_szlib}])
 fi
 
 AM_CONDITIONAL(ENABLE_NCDUMPCHUNKS, [test "x$has_readchunks" = xyes ])
@@ -1635,6 +1674,12 @@ AC_MSG_WARN([--disable-filter-testing => --disable-nczarr-filter-testing])
 enable_nczarr_filter_testing=no
 fi
 
+if test "x$enable_nczarr" = xno; then
+AC_MSG_WARN([--disable-nczarr => --disable-nczarr-filters])
+enable_nczarr_filters=no
+enable_nczarr_filter_testing=no
+fi
+
 if test "x$enable_nczarr_filters" = xyes; then
    AC_DEFINE([ENABLE_NCZARR_FILTERS], [1], [if true, enable NCZarr filters])
 fi
@@ -1660,7 +1705,6 @@ AM_CONDITIONAL(ENABLE_CDF5, [test "x$enable_cdf5" = xyes])
 AM_CONDITIONAL(ENABLE_DAP_REMOTE_TESTS, [test "x$enable_dap_remote_tests" = xyes])
 AM_CONDITIONAL(ENABLE_DAP_AUTH_TESTS, [test "x$enable_dap_auth_tests" = xyes])
 AM_CONDITIONAL(ENABLE_DAP_LONG_TESTS, [test "x$enable_dap_long_tests" = xyes])
-AM_CONDITIONAL(USE_SZIP, [test "x$ac_cv_func_H5Z_SZIP" = xyes])
 AM_CONDITIONAL(USE_PNETCDF_DIR, [test ! "x$PNETCDFDIR" = x])
 AM_CONDITIONAL(USE_LOGGING, [test "x$enable_logging" = xyes])
 AM_CONDITIONAL(CROSS_COMPILING, [test "x$cross_compiling" = xyes])
@@ -1682,8 +1726,11 @@ AM_CONDITIONAL(HAS_PAR_FILTERS, [test x$hdf5_supports_par_filters = xyes ])
 AM_CONDITIONAL(ENABLE_NCZARR, [test "x$enable_nczarr" = xyes])
 AM_CONDITIONAL(ENABLE_S3_SDK, [test "x$enable_s3_sdk" = xyes])
 AM_CONDITIONAL(HAS_MULTIFILTERS, [test "x$has_multifilters" = xyes])
-AM_CONDITIONAL(ENABLE_BLOSC, [test "x$enable_blosc" = xyes])
-AM_CONDITIONAL(ENABLE_SZIP, [test "x$enable_szip" = xyes])
+AM_CONDITIONAL(HAVE_SZ, [test "x$have_sz" = xyes])
+AM_CONDITIONAL(HAVE_H5Z_SZIP, [test "x$enable_hdf5_szip" = xyes])
+AM_CONDITIONAL(HAVE_BLOSC, [test "x$have_blosc" = xyes])
+AM_CONDITIONAL(HAVE_BZIP2, [test "x$have_bzip2" = xyes])
+AM_CONDITIONAL(HAVE_ZSTD, [test "x$have_zstd" = xyes])
 
 # If the machine doesn't have a long long, and we want netCDF-4, then
 # we've got problems!
@@ -1771,8 +1818,6 @@ AC_SUBST(HAS_HDF4,[$enable_hdf4])
 AC_SUBST(HAS_HDF5,[$enable_hdf5])
 AC_SUBST(HAS_PNETCDF,[$enable_pnetcdf])
 AC_SUBST(HAS_LOGGING, [$enable_logging])
-AC_SUBST(HAS_SZLIB,[$enable_szlib])
-AC_SUBST(HAS_SZLIB_WRITE, [$enable_szlib])
 AC_SUBST(HAS_PARALLEL,[$enable_parallel])
 AC_SUBST(HAS_PARALLEL4,[$enable_parallel4])
 AC_SUBST(HAS_DISKLESS,[yes])
@@ -1789,8 +1834,29 @@ AC_SUBST(DO_NCZARR_ZIP_TESTS,[$enable_nczarr_zip])
 AC_SUBST([HAS_QUANTIZE],[yes])
 AC_SUBST(HAS_LOGGING,[$enable_logging])
 AC_SUBST(DO_FILTER_TESTS,[$enable_filter_testing])
-AC_SUBST(HAVE_BLOSC,[$enable_blosc])
-AC_SUBST(HAVE_SZIP,[$enable_szip])
+AC_SUBST(HAS_SZLIB,[$have_sz])
+AC_SUBST(HAS_SZLIB_WRITE, [$have_sz])
+
+# Always available
+std_filters="deflate,bzip2"
+if test "x$enable_szlib" = xyes ; then
+std_filters="${std_filters},szip"
+fi
+# We need to include szip iff HDF5 && HDF5_HAS_SZIP || !HDF5 && NCZARR && libsz
+if test "x$enable_hdf5" = xyes && test "x$enable_hdf5_szip" = xyes ; then
+  std_filters="${std_filters},szip"
+fi
+if test "x$enable_hdf5" = xno && test "x$have_sz" = xyes ; then
+std_filters="${std_filters},szip"
+fi
+if test "x$have_blosc" = xyes ; then
+std_filters="${std_filters},blosc"
+fi
+if test "x$have_zstd" = xyes ; then
+std_filters="${std_filters},zst"
+fi
+
+AC_SUBST(STD_FILTERS,[$std_filters])
 
 # Access netcdf specific version of config.h
 AH_BOTTOM([#include "ncconfigure.h"])
@@ -1838,7 +1904,6 @@ AX_SET_META([NC_HAS_NC2],[$nc_build_v2],[yes])
 AX_SET_META([NC_HAS_NC4],[$enable_netcdf_4],[yes])
 AX_SET_META([NC_HAS_HDF4],[$enable_hdf4],[yes])
 AX_SET_META([NC_HAS_HDF5],[$enable_hdf5],[yes])
-AX_SET_META([NC_HAS_SZIP],[$ac_cv_func_H5Z_SZIP],[yes])
 AX_SET_META([NC_HAS_DAP2],[$enable_dap],[yes])
 AX_SET_META([NC_HAS_DAP4],[$enable_dap4],[yes])
 AX_SET_META([NC_HAS_DISKLESS],[yes],[yes])
@@ -1854,6 +1919,7 @@ AX_SET_META([NC_HAS_BYTERANGE],[$enable_byterange],[yes])
 AX_SET_META([NC_HAS_NCZARR],[$enable_nczarr],[yes])
 AX_SET_META([NC_HAS_MULTIFILTERS],[$has_multifilters],[yes])
 AX_SET_META([NC_HAS_LOGGING],[$enable_logging],[yes])
+AX_SET_META([NC_HAS_SZIP],[$enable_hdf5_szip],[yes])
 
 # This is the version of the dispatch table. If the dispatch table is
 # changed, this should be incremented, so that user-defined format
@@ -1861,7 +1927,7 @@ AX_SET_META([NC_HAS_LOGGING],[$enable_logging],[yes])
 # dispatch table to submit. If this is changed, make sure the value in
 # CMakeLists.txt also changes to match.
 
-AC_SUBST([NC_DISPATCH_VERSION], [4])
+AC_SUBST([NC_DISPATCH_VERSION], [5])
 AC_DEFINE_UNQUOTED([NC_DISPATCH_VERSION], [${NC_DISPATCH_VERSION}], [Dispatch table version.])
 
 #####

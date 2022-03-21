@@ -533,31 +533,30 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
     }
 
     /* Shuffle filter? */
-    if (shuffle)
-    {
-        if(*shuffle) var->shuffle = *shuffle; /* Once set, cannot be unset */
-	if(var->shuffle)
-            var->storage = NC_CHUNKED;
+    if (shuffle && *shuffle) {
+	    retval = nc_inq_var_filter_info(ncid,varid,H5Z_FILTER_SHUFFLE,NULL,NULL);
+	    if(!retval || retval == NC_ENOFILTER) {
+	        if((retval = nc_def_var_filter(ncid,varid,H5Z_FILTER_SHUFFLE,0,NULL))) return retval;
+                var->storage = NC_CHUNKED;
+	    }
     }
 
     /* Fletcher32 checksum error protection? */
-    if (fletcher32)
-    {
-        if(*fletcher32) var->fletcher32 = *fletcher32; /* cannot be unset */
-	if(var->fletcher32)
+    if (fletcher32 && fletcher32) {
+	retval = nc_inq_var_filter_info(ncid,varid,H5Z_FILTER_FLETCHER32,NULL,NULL);
+	if(!retval || retval == NC_ENOFILTER) {
+	    if((retval = nc_def_var_filter(ncid,varid,H5Z_FILTER_FLETCHER32,0,NULL))) return retval;
             var->storage = NC_CHUNKED;
+	    }
     }
 
 #ifdef USE_PARALLEL
-    /* If deflate, shuffle, or fletcher32 was turned on with
+    /* If filter is being applied with
      * parallel I/O writes, then switch to collective access. HDF5
      * requires collevtive access for filter use with parallel
      * I/O. */
-    if (shuffle || fletcher32)
-    {
-        if (h5->parallel && (nclistlength((NClist*)var->filters) > 0 || var->shuffle || var->fletcher32))
+    if (h5->parallel && (nclistlength((NClist*)var->filters) > 0))
             var->parallel_access = NC_COLLECTIVE;
-    }
 #endif /* USE_PARALLEL */
 
     /* Handle storage settings. */
@@ -568,7 +567,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
          * no filters in use for this data. */
         if (*storage != NC_CHUNKED)
         {
-            if (nclistlength(((NClist*)var->filters)) > 0 || var->fletcher32 || var->shuffle)
+            if (nclistlength(((NClist*)var->filters)) > 0)
                 return NC_EINVAL;
 	    for (d = 0; d < var->ndims; d++)
                 if (var->dim[d]->unlimited)

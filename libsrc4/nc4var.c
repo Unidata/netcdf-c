@@ -242,11 +242,16 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 	*storagep = var->storage;
 
     /* Filter stuff. */
-    if (shufflep)
-        *shufflep = (int)var->shuffle;
-    if (fletcher32p)
-        *fletcher32p = (int)var->fletcher32;
-
+    if (shufflep) {
+	retval = nc_inq_var_filter_info(ncid,varid,H5Z_FILTER_SHUFFLE,0,NULL);
+	if(retval && retval != NC_ENOFILTER) return retval;
+	*shufflep = (retval == NC_NOERR?1:0);
+    }
+    if (fletcher32p) {
+	retval = nc_inq_var_filter_info(ncid,varid,H5Z_FILTER_FLETCHER32,0,NULL);
+	if(retval && retval != NC_ENOFILTER) return retval;
+        *fletcher32p = (retval == NC_NOERR?1:0);
+    }
     if (deflatep)
 	return NC_EFILTER;
 
@@ -476,7 +481,7 @@ NC4_var_par_access(int ncid, int varid, int par_access)
     /* If zlib, shuffle, or fletcher32 filters are in use, then access
      * must be collective. Fail an attempt to set such a variable to
      * independent access. */
-    if ((nclistlength((NClist*)var->filters) > 0 || var->shuffle || var->fletcher32) &&
+    if (nclistlength((NClist*)var->filters) > 0)
         par_access == NC_INDEPENDENT)
         return NC_EINVAL;
 

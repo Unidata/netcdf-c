@@ -106,6 +106,7 @@ static const NC_Dispatch NCZ_dispatcher = {
     NCZ_inq_var_filter_info,
     NCZ_def_var_quantize,
     NCZ_inq_var_quantize,
+    NCZ_inq_filter_avail,
 };
 
 const NC_Dispatch* NCZ_dispatch_table = NULL; /* moved here from ddispatch.c */
@@ -157,7 +158,7 @@ NCZ_show_metadata(int ncid)
 }
 
 #ifndef ENABLE_NCZARR_FILTERS
- int 
+int 
 NCZ_def_var_filter(int ncid, int varid, unsigned int id , size_t n , const unsigned int *params)
 {
     NC_UNUSED(ncid);
@@ -188,6 +189,16 @@ NCZ_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparams, u
     NC_UNUSED(params);
     return REPORT(NC_ENOFILTER,"inq_var_filter_info");
 }
+
+int
+NCZ_inq_filter_avail(int ncid, unsigned id)
+{
+    NC_UNUSED(ncid);
+    NC_UNUSED(id);
+    return REPORT(NC_ENOFILTER,"inq_filter_avail");
+}
+
+
 #endif /*ENABLE_NCZARR_FILTERS*/
 
 /**************************************************/

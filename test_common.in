@@ -150,5 +150,10 @@ ncgen3c0="${top_srcdir}/ncgen3/c0.cdl"
 ncgenc0="${top_srcdir}/ncgen/c0.cdl"
 ncgenc04="${top_srcdir}/ncgen/c0_4.cdl"
 
+# Test for filter availability
+avail() {
+if test yes = `${execdir}/../ncdump/ncfilteravail $1` ; then return 0 ; else echo "filter $1 not available" ; return 1; fi
+}
+
 # Make sure we are in builddir (not execdir)
 cd $builddir

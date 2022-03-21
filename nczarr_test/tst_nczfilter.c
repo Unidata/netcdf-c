@@ -15,6 +15,8 @@
 
 #define ERR(r) {fprintf(stderr,"fail: line %d: (%d) %s\n",__LINE__,(r),nc_strerror((r)));}
 
+#define FILENAME "file://tmp_nczfilter.nc#mode=nczarr,file"
+
 #define FILTERID 1
 
 int
@@ -33,7 +35,10 @@ main(int argc, char **argv)
     size_t nparams;
     unsigned inqparams[8];
     
-    furl = argv[1];
+    if(argc == 1)
+	furl = FILENAME;
+    else
+	furl = argv[1];
 
     if ((ret=nc_create(furl, NC_NETCDF4, &ncid))) ERR(ret);
     if ((ret=nc_def_dim(ncid, "d", 4, &dimid))) ERR(ret);
