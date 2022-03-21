@@ -1069,7 +1069,7 @@ ELSE()
 ENDIF()
 
 # See if we have libblosc
-IF(!MSVC)
+IF(NOT MSVC)
 FIND_PACKAGE(Blosc)
 ENDIF()
 # Define a test flag for have blosc library
@@ -1081,7 +1081,7 @@ ELSE()
 ENDIF()
 
 # See if we have libszip
-IF(!MSVC)
+IF(NOT MSVC)
 #FIND_PACKAGE(SZIP)
 #FIND_LIBRARY(SZIP PATH NAMES szip sz)
 SET(SZIP_LIBRARY ${SZIP})
