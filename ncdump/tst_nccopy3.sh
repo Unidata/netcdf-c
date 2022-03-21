@@ -8,9 +8,6 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
-export SETX=1
-
-
 set -e
 echo ""
 

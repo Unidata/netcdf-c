@@ -276,7 +276,7 @@ Assume URL etc has already been set.
 */
 
 int
-nc_http_size(NC_HTTP_STATE* state, const char* objecturl, long long unsigned* sizep)
+nc_http_size(NC_HTTP_STATE* state, const char* objecturl, long long* sizep)
 {
     int stat = NC_NOERR;
     const char* hdr = NULL;

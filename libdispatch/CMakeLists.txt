@@ -21,7 +21,7 @@ ENDIF(ENABLE_BYTERANGE)
 
 IF(ENABLE_S3_SDK)
   SET(libdispatch_SOURCES ${libdispatch_SOURCES} ncs3sdk.cpp awsincludes.h)
-ENDIF(ENABLE_S3_SDK)
+ENDIF()
 
 IF(REGEDIT)
   SET(libdispatch_SOURCES ${libdispatch_SOURCES} dreg.c)
@@ -35,6 +35,10 @@ ENDIF(MPI_C_INCLUDE_PATH)
 IF(MPI_C_LIBRARIES)
     target_link_libraries(dispatch PUBLIC ${MPI_C_LIBRARIES})
 ENDIF(MPI_C_LIBRARIES)
+
+IF(ENABLE_NCZARR)
+    target_include_directories(dispatch PUBLIC ../libnczarr)
+ENDIF(ENABLE_NCZARR)
 
 IF(ENABLE_S3_SDK)
 target_include_directories(dispatch PUBLIC ${AWSSDK_INCLUDE_DIRS})

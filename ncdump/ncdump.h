@@ -45,6 +45,9 @@ typedef struct {			/* specification for how to format dump */
 				 * _Endianness, _Format, _Checksum,
 				 * _NoFill, _NetCDF4 */
 
+    bool_t filter_atts;		/* if true, output filters using _Filter in place of
+				 * _Fletcher32, _Shuffle, and _Deflate. */
+
     Nclang data_lang;		/* Specifies index conventions used in data
 				 * comments, either LANG_C (C, 0-based,
 				 * column major) or LANG_F (Fortran,

@@ -41,6 +41,10 @@ ncvalidator_SOURCES = ncvalidator.c
 noinst_PROGRAMS += ncpathcvt
 ncpathcvt_SOURCES = ncpathcvt.c
 
+# A non-installed utility program to test if a filter is available
+noinst_PROGRAMS += ncfilteravail
+ncfilteravail_SOURCES = ncfilteravail.c
+
 # A simple netcdf-4 metadata -> xml printer. Do not install.
 if USE_HDF5
 bin_PROGRAMS += nc4print

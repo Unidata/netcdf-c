@@ -799,6 +799,18 @@ NCD4_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparams, 
     return (ret);
 }
 
+static int
+NCD4_inq_filter_avail(int ncid, unsigned id)
+{
+    NC* ncp;
+    int ret;
+    int substrateid;
+    if((ret = NC_check_id(ncid, (NC**)&ncp)) != NC_NOERR) return (ret);
+    substrateid = makenc4id(ncp,ncid);
+    ret = nc_inq_filter_avail(substrateid, id);
+    return (ret);
+}
+
 /**************************************************/
 /*
 Following functions are overridden to handle 
@@ -1011,4 +1023,6 @@ NCD4_inq_var_filter_info,
 
 NC_NOTNC4_def_var_quantize,
 NCD4_inq_var_quantize,
+
+NCD4_inq_filter_avail,
 };

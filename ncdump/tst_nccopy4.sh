@@ -7,7 +7,6 @@ set -e
 
 # For a netCDF-4 build, test nccopy on netCDF files in this directory
 
-echo "@@@@@@"
 if test -f tst_group_data${ext} ; then ${execdir}/tst_group_data ; fi
 if test -f tst_enum_data${ext} ; then ${execdir}/tst_enum_data ; fi
 if test -f tst_comp${ext} ; then ${execdir}/tst_comp ; fi
