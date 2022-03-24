@@ -695,20 +695,33 @@ ncz_sync_atts(NC_FILE_INFO_T* file, NC_OBJ* container, NCindex* attlist, int isc
 
     if(container->sort == NCVAR) { 
         if(isrootgroup && isxarray) {
+	    int dimsinroot = 1;
 	    /* Insert the XARRAY _ARRAY_ATTRIBUTE attribute */
 	    if((stat = NCJnew(NCJ_ARRAY,&jdimrefs)))
 	        goto done;
-	    /* Walk the dimensions and capture the names */
+	    /* Walk the dimensions to check in root group */
 	    for(i=0;i<var->ndims;i++) {
 	        NC_DIM_INFO_T* dim = var->dim[i];
-		char* dimname = strdup(dim->hdr.name);
-		if(dimname == NULL) {stat = NC_ENOMEM; goto done;}
-	        NCJaddstring(jdimrefs,NCJ_STRING,dimname);
-   	        nullfree(dimname); dimname = NULL;
+		/* Verify that the dimension is in the root group */
+		if(dim->container && dim->container->parent != NULL) {
+		    dimsinroot = 0; /* dimension is not in root */
+		    break;
+		}
 	    }
-	    /* Add the _ARRAY_DIMENSIONS attribute */
-	    if((stat = NCJinsert(jatts,NC_XARRAY_DIMS,jdimrefs))) goto done;
-	    jdimrefs = NULL;
+	    if(dimsinroot) {
+		/* Walk the dimensions and capture the names */
+		for(i=0;i<var->ndims;i++) {
+		    char* dimname;
+	            NC_DIM_INFO_T* dim = var->dim[i];
+		    dimname = strdup(dim->hdr.name);
+		    if(dimname == NULL) {stat = NC_ENOMEM; goto done;}
+	            NCJaddstring(jdimrefs,NCJ_STRING,dimname);
+   	            nullfree(dimname); dimname = NULL;
+		}
+	        /* Add the _ARRAY_DIMENSIONS attribute */
+	        if((stat = NCJinsert(jatts,NC_XARRAY_DIMS,jdimrefs))) goto done;
+	        jdimrefs = NULL;
+	    }
         }
     }
     /* Add Quantize Attribute */
@@ -736,9 +749,11 @@ ncz_sync_atts(NC_FILE_INFO_T* file, NC_OBJ* container, NCindex* attlist, int isc
 	    /* Insert the _NCZARR_ATTR attribute */
             if((stat = NCJnew(NCJ_DICT,&jdict)))
                 goto done;
-            if((stat = NCJinsert(jdict,"types",jtypes))) goto done;
+	    if(jtypes != NULL)
+                {if((stat = NCJinsert(jdict,"types",jtypes))) goto done;}
             jtypes = NULL;
-            if((stat = NCJinsert(jatts,NCZ_V2_ATTR,jdict))) goto done;      
+	    if(jdict != NULL)
+                {if((stat = NCJinsert(jatts,NCZ_V2_ATTR,jdict))) goto done;}
             jdict = NULL;
 	}
         /* write .zattrs path */
@@ -1449,7 +1464,7 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 
     if(zinfo->controls.flags & FLAG_PUREZARR) purezarr = 1;
     if(zinfo->controls.flags & FLAG_NCZARR_V1) formatv1 = 1;
-    if(zinfo->controls.flags & FLAG_XARRAYDIMS) {purezarr = 1; xarray = 1;}
+    if(zinfo->controls.flags & FLAG_XARRAYDIMS) {xarray = 1;}
 
     /* Load each var in turn */
     for(i = 0; i < nclistlength(varnames); i++) {
@@ -2246,10 +2261,8 @@ computedimrefs(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int purezarr, int xarra
 
     assert(zfile && zvar);
 
-    /* xarray => purezarr */
-    assert(!xarray || purezarr);
-
-    if(xarray) {/* Read in the attributes to get xarray dimdef attribute; Note that it might not exist */
+    if(purezarr && xarray) {/* Read in the attributes to get xarray dimdef attribute; Note that it might not exist */
+	/* Note that if xarray && !purezarr, then xarray will be superceded by the nczarr dimensions key */
         char zdimname[4096];
 	if(zvar->xarray == NULL) {
 	    assert(nclistlength(dimnames) == 0);
