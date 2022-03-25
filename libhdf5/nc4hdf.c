@@ -70,7 +70,7 @@ flag_atts_dirty(NCindex *attlist) {
  * @param dimscaleid HDF5 dimension scale ID.
  *
  * @returns NC_NOERR No error.
- * @returns NC_EHDFERR HDF5 returned an error.
+ * @returns NC_EDIMSCALE HDF5 returned an error when trying to reattach a dimension scale.
  * @author Ed Hartnett
  */
 int
@@ -113,7 +113,7 @@ rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
                 {
                     if (H5DSattach_scale(hdf5_var->hdf_datasetid,
                                          dimscaleid, d) < 0)
-                        return NC_EHDFERR;
+                        return NC_EDIMSCALE;
                     hdf5_var->dimscale_attached[d] = NC_TRUE;
                 }
             }
@@ -135,7 +135,7 @@ rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
  * @param dimscaleid HDF5 dimension scale ID.
  *
  * @returns NC_NOERR No error.
- * @returns NC_EHDFERR HDF5 returned an error.
+ * @returns NC_EDIMSCALE HDF5 returned an error when trying to detach a dimension scale.
  * @author Ed Hartnett
  */
 int
@@ -177,7 +177,7 @@ rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
                     {
                         if (H5DSdetach_scale(hdf5_var->hdf_datasetid,
                                              dimscaleid, d) < 0)
-                            return NC_EHDFERR;
+                            return NC_EDIMSCALE;
                         hdf5_var->dimscale_attached[d] = NC_FALSE;
                     }
                 }
@@ -1364,6 +1364,7 @@ exit:
  * @param grp Pointer to group info struct.
  *
  * @return ::NC_NOERR No error.
+ * @returns NC_EDIMSCALE HDF5 returned an error when trying to attach a dimension scale.
  * @author Ed Hartnett
  */
 static int
@@ -1410,7 +1411,7 @@ attach_dimscales(NC_GRP_INFO_T *grp)
 
                     /* Attach the scale. */
                     if (H5DSattach_scale(hdf5_var->hdf_datasetid, dsid, d) < 0)
-                        return NC_EHDFERR;
+                        return NC_EDIMSCALE;
                     hdf5_var->dimscale_attached[d] = NC_TRUE;
                 }
             }
