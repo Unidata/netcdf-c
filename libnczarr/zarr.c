@@ -387,10 +387,12 @@ applycontrols(NCZ_FILE_INFO_T* zinfo)
     zinfo->controls.flags |= FLAG_XARRAYDIMS; /* Always support XArray convention where possible */
     for(i=0;i<nclistlength(modelist);i++) {
         const char* p = nclistget(modelist,i);
-	if(strcasecmp(p,PUREZARRCONTROL)==0) zinfo->controls.flags |= (FLAG_PUREZARR);
-	else if(strcasecmp(p,NOXARRAYCONTROL)==0) {
+	if(strcasecmp(p,PUREZARRCONTROL)==0)
+	    zinfo->controls.flags |= (FLAG_PUREZARR);
+	else if(strcasecmp(p,XARRAYCONTROL)==0)
+	    zinfo->controls.flags |= FLAG_PUREZARR;
+	else if(strcasecmp(p,NOXARRAYCONTROL)==0)
 	    noflags |= FLAG_XARRAYDIMS;
-	}
 	else if(strcasecmp(p,"zip")==0) zinfo->controls.mapimpl = NCZM_ZIP;
 	else if(strcasecmp(p,"file")==0) zinfo->controls.mapimpl = NCZM_FILE;
 	else if(strcasecmp(p,"s3")==0) zinfo->controls.mapimpl = NCZM_S3;

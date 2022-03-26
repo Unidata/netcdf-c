@@ -137,7 +137,7 @@ static const struct MACRODEF {
 {"dap4","mode",{"dap4",NULL}},
 {"s3","mode",{"s3","nczarr",NULL}},
 {"bytes","mode",{"bytes",NULL}},
-{"xarray","mode",{"nczarr", NULL}},
+{"xarray","mode",{"zarr", NULL}},
 {"noxarray","mode",{"nczarr", "noxarray", NULL}},
 {"zarr","mode",{"nczarr","zarr", NULL}},
 {NULL,NULL,{NULL}}
@@ -149,7 +149,7 @@ static const struct MODEINFER {
     char* inference;
 } modeinferences[] = {
 {"zarr","nczarr"},
-{"xarray","nczarr"},
+{"xarray","zarr"},
 {"noxarray","nczarr"},
 {NULL,NULL}
 };
