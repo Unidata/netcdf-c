@@ -1173,7 +1173,11 @@ if test "x$havemapanon" != xyes ; then
 fi
 
 if test "x$have_mmap" != xyes ; then
-  echo "mmap functionality is not available: disabling mmap"
+  if test "x$enable_mmap" = xyes ; then
+     AC_MSG_WARN([mmap functionality is not available: disabling mmap])
+  else
+     AC_MSG_NOTICE([mmap functionality is not available: disabling mmap])
+  fi
   enable_mmap=no
 fi
 
