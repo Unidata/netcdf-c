@@ -55,9 +55,58 @@ jobs:
           popd
           
 
+  build-deps-parallel:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        hdf5: [ 1.12.1 ]
+
+    steps:
+
+      - uses: actions/checkout@v2
+
+      - name: Install System dependencies
+        shell: bash -l {0}
+        run: sudo apt update && sudo apt install -y libaec-dev zlib1g-dev automake autoconf libcurl4-openssl-dev libjpeg-dev wget curl bzip2 m4 flex bison cmake libzip-dev mpich libmpich-dev
+
+        ###
+        # Installing libhdf4 and libhdf5
+        ###
+      - name: Cache libhdf5-parallel-${{ matrix.hdf5 }}
+        id: cache-hdf5
+        uses: actions/cache@v2
+        with:
+          path: ~/environments/${{ matrix.hdf5 }}
+          key: hdf5-parallel-${{ runner.os }}-${{ matrix.hdf5 }}
+
+
+      - name: Build libhdf5-${{ matrix.hdf5 }}
+        if: steps.cache-hdf5.outputs.cache-hit != 'true'
+        run: |
+          set -x
+          wget https://support.hdfgroup.org/ftp/HDF/releases/HDF4.2.15/src/hdf-4.2.15.tar.bz2
+          tar -jxf hdf-4.2.15.tar.bz2
+          pushd hdf-4.2.15
+          CC=mpicc ./configure --prefix=${HOME}/environments/${{ matrix.hdf5 }} --disable-static --enable-shared --disable-fortran --disable-netcdf --with-szlib --enable-parallel
+          make -j
+          make install -j
+          popd
+          wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$(echo ${{ matrix.hdf5 }} | cut -d. -f 1,2)/hdf5-${{ matrix.hdf5 }}/src/hdf5-${{ matrix.hdf5 }}.tar.bz2
+          tar -jxf hdf5-${{ matrix.hdf5 }}.tar.bz2
+          pushd hdf5-${{ matrix.hdf5 }}
+          CC=mpicc ./configure --disable-static --enable-shared --prefix=${HOME}/environments/${{ matrix.hdf5 }} --enable-hl --with-szlib --enable-parallel
+          make -j
+          make install -j
+          popd
+          
   #####
   # One-Off Autotools-based tests.
   #####
+  ##
+  # Serial
+  ##
   nc-ac-tests-oneoff-serial:
 
     needs: build-deps-serial
@@ -135,10 +184,89 @@ jobs:
         run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check -j
         if: ${{ success() }}
 
+  ##
+  # Parallel
+  ##
+  nc-ac-tests-oneoff-parallel:
+
+    needs: build-deps-serial
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        hdf5: [ 1.12.1 ]
+    steps:
+
+      - uses: actions/checkout@v2
+
+      - name: Install System dependencies
+        shell: bash -l {0}
+        run: sudo apt update && sudo apt install -y libaec-dev zlib1g-dev automake autoconf libcurl4-openssl-dev libjpeg-dev wget curl bzip2 m4 flex bison cmake libzip-dev mpich libmpich-dev
+
+        ###
+        # Set Environmental Variables
+        ###
+
+      - run: echo "CFLAGS=-I${HOME}/environments/${{ matrix.hdf5 }}/include" >> $GITHUB_ENV
+      - run: echo "LDFLAGS=-L${HOME}/environments/${{ matrix.hdf5 }}/lib" >> $GITHUB_ENV
+      - run: echo "LD_LIBRARY_PATH=${HOME}/environments/${{ matrix.hdf5 }}/lib" >> $GITHUB_ENV
+
+      - name: Fetch HDF Cache
+        id: cache-hdf
+        uses: actions/cache@v2
+        with:
+          path: ~/environments/${{ matrix.hdf5 }}
+          key: hdf5-parallel-${{ runner.os }}-${{ matrix.hdf5 }}
+
+      - name: Check Cache
+        shell: bash -l {0}
+        run: ls ${HOME}/environments && ls ${HOME}/environments/${{ matrix.hdf5 }} && ls ${HOME}/environments/${{ matrix.hdf5}}/lib
+
+
+        ###
+        # Configure and build
+        ###
+
+      - name: Run autoconf
+        shell: bash -l {0}
+        run: autoreconf -if
+
+      - name: Configure
+        shell: bash -l {0}
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure --enable-hdf4 --enable-hdf5 --enable-dap --disable-dap-remote-tests
+        if: ${{ success() }}
+
+      - name: Look at config.log if error
+        shell: bash -l {0}
+        run: cat config.log
+        if: ${{ failure() }}
+
+      - name: Print Summary
+        shell: bash -l {0}
+        run: cat libnetcdf.settings
+
+      - name: Build Library and Utilities
+        shell: bash -l {0}
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make -j
+        if: ${{ success() }}
+
+      - name: Build Tests
+        shell: bash -l {0}
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check TESTS="" -j
+        if: ${{ success() }}
+
+      - name: Run Tests
+        shell: bash -l {0}
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check -j
+        if: ${{ success() }}
+
+
   #####
   # One-Off CMake-based tests.
   #####
-
+  ##
+  # Serial
+  ##
   nc-cmake-tests-oneoff-serial:
 
     needs: build-deps-serial
