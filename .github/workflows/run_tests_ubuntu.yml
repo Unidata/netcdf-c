@@ -189,7 +189,7 @@ jobs:
   ##
   nc-ac-tests-oneoff-parallel:
 
-    needs: build-deps-serial
+    needs: build-deps-parallel
     runs-on: ubuntu-latest
 
     strategy:
