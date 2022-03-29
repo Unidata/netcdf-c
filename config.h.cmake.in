@@ -299,7 +299,7 @@ are set when opening a binary file on Windows. */
 #cmakedefine HAVE_LIBPNETCDF 1
 
 /* Define to 1 if you have the libxml2 library. */
-#cmakedefine HAVE_LIBXML2 1
+#cmakedefine ENABLE_LIBXML2 1
 
 /* Define to 1 if you have the <locale.h> header file. */
 #cmakedefine HAVE_LOCALE_H 1
@@ -358,12 +358,6 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the <stdlib.h> header file. */
 #cmakedefine HAVE_STDLIB_H 1
 
-/* Define to 1 if you have the `strdup' function. */
-#cmakedefine HAVE_STRDUP 1
-
-/* Define to 1 if you have the `strndup` function. */
-#cmakedefine HAVE_STRNDUP
-
 /* Define to 1 if you have the <strings.h> header file. */
 #cmakedefine HAVE_STRINGS_H 1
 
@@ -378,6 +372,15 @@ are set when opening a binary file on Windows. */
 
 /* Define to 1 if you have the <libgen.h> header file. */
 #cmakedefine HAVE_LIBGEN_H 1
+
+/* Define to 1 if you have the `strdup' function. */
+#cmakedefine HAVE_STRDUP 1
+
+/* Define to 1 if you have the `strndup` function. */
+#cmakedefine HAVE_STRNDUP
+
+/* Define to 1 if you have the `strcasecmp` function. */
+#cmakedefine HAVE_STRCASECMP
 
 /* Define to 1 if you have the `strlcat' function. */
 #cmakedefine HAVE_STRLCAT 1

@@ -1,7 +1,7 @@
 IF(HAVE_LIBXML2)
 SET(libncxml_SOURCES ncxml_xml2.c)
 ELSE()
-SET(libncxml_SOURCES ncxml_ezxml.c ezxml.c ezxml.h)
+SET(libncxml_SOURCES ncxml_tinyxml2.cpp tinyxml2.cpp tinyxml2.h)
 ENDIF()
 
 add_library(ncxml OBJECT ${libncxml_SOURCES})
