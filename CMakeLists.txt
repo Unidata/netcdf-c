@@ -1251,8 +1251,9 @@ IF(NOT FOUND_CURL)
 ENDIF(NOT FOUND_CURL)
 
 
-OPTION(ENABLE_LIBXML2 "Link against libxml2 if it is available, use the packaged ezxml parser otherwise." ON)
-SET(XMLPARSER "ezxml (bundled)")
+OPTION(ENABLE_LIBXML2 "Link against libxml2 if it is available, use the packaged tinyxml2 parser otherwise." ON)
+SET(XMLPARSER "tinyxml2 (bundled)")
+
 # see if we have libxml2
 
 IF(ENABLE_LIBXML2)
@@ -1794,6 +1795,7 @@ CHECK_FUNCTION_EXISTS(strlcat   HAVE_STRLCAT)
 CHECK_FUNCTION_EXISTS(strdup  HAVE_STRDUP)
 CHECK_FUNCTION_EXISTS(strndup HAVE_STRNDUP)
 CHECK_FUNCTION_EXISTS(strtoll HAVE_STRTOLL)
+CHECK_FUNCTION_EXISTS(strcasecmp  HAVE_STRCASECMP)
 CHECK_FUNCTION_EXISTS(strtoull  HAVE_STRTOULL)
 CHECK_FUNCTION_EXISTS(mkstemp HAVE_MKSTEMP)
 CHECK_FUNCTION_EXISTS(mktemp HAVE_MKTEMP)
