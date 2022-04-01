@@ -1218,7 +1218,16 @@ static int get_quantize_info(NC_VAR_INFO_T *var)
 	attid = H5Aopen_by_name(datasetid, ".", NC_QUANTIZE_GRANULARBR_ATT_NAME,
 			    H5P_DEFAULT, H5P_DEFAULT);
 	if (attid > 0)
+	  {
 	    var->quantize_mode = NC_QUANTIZE_GRANULARBR;
+	  }
+	else
+	  {
+	    attid = H5Aopen_by_name(datasetid, ".", NC_QUANTIZE_BITROUND_ATT_NAME,
+				    H5P_DEFAULT, H5P_DEFAULT);
+	    if (attid > 0)
+	      var->quantize_mode = NC_QUANTIZE_BITROUND;
+	  }
       }
     
     /* If there is an attribute, read it for the nsd. */
@@ -2307,7 +2316,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
  * for both global and variable attributes.
  *
  * @param loc_id HDF5 attribute ID.
- * @param att_name Name of the attrigute.
+ * @param att_name Name of the attribute.
  * @param ainfo HDF5 info struct for attribute.
  * @param att_data Pointer to an att_iter_info struct, which contains
  * pointers to the NC_GRP_INFO_T and (for variable attributes) the

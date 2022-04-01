@@ -331,19 +331,23 @@ there. */
 #define NC_NOQUANTIZE 0 /**< No quantization in use. */    
 #define NC_QUANTIZE_BITGROOM 1 /**< Use BitGroom quantization. */
 #define NC_QUANTIZE_GRANULARBR 2 /**< Use Granular BitRound quantization. */
+#define NC_QUANTIZE_BITROUND 3 /**< Use BitRound quantization. */
 
 /** When quantization is used for a variable, an attribute of the
  * appropriate name is added. */
-#define NC_QUANTIZE_BITGROOM_ATT_NAME "_QuantizeBitgroomNumberOfSignificantDigits"
+#define NC_QUANTIZE_BITGROOM_ATT_NAME "_QuantizeBitGroomNumberOfSignificantDigits"
 #define NC_QUANTIZE_GRANULARBR_ATT_NAME "_QuantizeGranularBitRoundNumberOfSignificantDigits"
+#define NC_QUANTIZE_BITROUND_ATT_NAME "_QuantizeBitRoundNumberOfSignificantBits"
 
 /** For quantization, the allowed value of number of significant
- * digits for float. */
+ * decimal and binary digits, respectively, for float. */
 #define NC_QUANTIZE_MAX_FLOAT_NSD (7)
+#define NC_QUANTIZE_MAX_FLOAT_NSB (23)
 
 /** For quantization, the allowed value of number of significant
- * digits for double. */
+ * decimal and binary digits, respectively, for double. */
 #define NC_QUANTIZE_MAX_DOUBLE_NSD (15)
+#define NC_QUANTIZE_MAX_DOUBLE_NSB (52)
 
 /** The netcdf version 3 functions all return integer error status.
  * These are the possible values, in addition to certain values from
