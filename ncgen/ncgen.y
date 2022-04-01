@@ -217,6 +217,7 @@ NCConstant*    constant;
 	_FILTER
 	_CODECS
         _QUANTIZEBG
+        _QUANTIZEGBR
         _QUANTIZEBR
 	DATASETID
 
@@ -776,6 +777,8 @@ attrdecl:
 	    {$$ = makespecial(_CODECS_FLAG,$1,NULL,(void*)$5,ISCONST);}
 	| ambiguous_ref ':' _QUANTIZEBG '=' constint
 	    {$$ = makespecial(_QUANTIZEBG_FLAG,$1,NULL,(void*)$5,ISCONST);}
+	| ambiguous_ref ':' _QUANTIZEGBR '=' constint
+	    {$$ = makespecial(_QUANTIZEGBR_FLAG,$1,NULL,(void*)$5,ISCONST);}
 	| ambiguous_ref ':' _QUANTIZEBR '=' constint
 	    {$$ = makespecial(_QUANTIZEBR_FLAG,$1,NULL,(void*)$5,ISCONST);}
 	| ambiguous_ref ':' _NOFILL '=' constbool
@@ -1247,6 +1250,7 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
     case _SUPERBLOCK_FLAG:
     case _DEFLATE_FLAG:
     case _QUANTIZEBG_FLAG:
+    case _QUANTIZEGBR_FLAG:
     case _QUANTIZEBR_FLAG:
 	tmp = nullconst();
         tmp->nctype = NC_INT;
@@ -1349,8 +1353,13 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
                 special->_NSD = idata;
                 special->flags |= _QUANTIZEBG_FLAG;
                 break;
-            case _QUANTIZEBR_FLAG:
+            case _QUANTIZEGBR_FLAG:
 		special->_Quantizer = NC_QUANTIZE_GRANULARBR;
+                special->_NSD = idata;
+                special->flags |= _QUANTIZEGBR_FLAG;
+                break;
+            case _QUANTIZEBR_FLAG:
+		special->_Quantizer = NC_QUANTIZE_BITROUND;
                 special->_NSD = idata;
                 special->flags |= _QUANTIZEBR_FLAG;
                 break;
