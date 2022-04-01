@@ -81,7 +81,8 @@ various C global variables
 #define _FILTER_FLAG        0x1000
 #define _CODECS_FLAG        0x2000
 #define _QUANTIZEBG_FLAG    0x4000
-#define _QUANTIZEBR_FLAG    0x8000
+#define _QUANTIZEGBR_FLAG   0x8000
+#define _QUANTIZEBR_FLAG    0x10000
 
 extern struct Specialtoken {
     char* name;
