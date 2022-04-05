@@ -12,10 +12,6 @@
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
 
-#AM_CPPFLAGS += -I$(top_srcdir)/include
-#AM_CPPFLAGS += -I$(top_builddir)/liblib
-#AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la -lm
-
 # Link to our assembled library.
 LDADD = ${top_builddir}/liblib/libnetcdf.la
 
