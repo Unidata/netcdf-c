@@ -243,7 +243,7 @@ main(int argc, char **argv)
             if(ocopt.output != NULL) fclose(ocopt.output);
 	    if(optarg == NULL)
 		usage("-o does not specify a file name");
-	    ocopt.output = fopen(optarg,"w");
+	    ocopt.output = NCfopen(optarg,"w");
             if(ocopt.output == NULL)
 		usage("-o file not writeable");
 	    break;

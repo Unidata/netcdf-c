@@ -42,6 +42,7 @@
 #include "ncuri.h"
 #include "nclog.h"
 #include "ncdap.h"
+#include "ncpathmgr.h"
 
 #include "d4util.h"
 

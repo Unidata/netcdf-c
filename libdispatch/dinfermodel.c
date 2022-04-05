@@ -1263,9 +1263,8 @@ openmagic(struct MagicFile* file)
 	} else
 #endif /* USE_PARALLEL */
 	{
-	    if(file->path == NULL || strlen(file->path)==0)
-	        {status = NC_EINVAL; goto done;}
-
+            if (file->path == NULL || strlen(file->path) == 0)
+                {status = NC_EINVAL; goto done;}
             file->fp = NCfopen(file->path, "r");
    	    if(file->fp == NULL)
 	        {status = errno; goto done;}
@@ -1296,6 +1295,8 @@ static int
 readmagic(struct MagicFile* file, long pos, char* magic)
 {
     int status = NC_NOERR;
+    NCbytes* buf = ncbytesnew();
+
     memset(magic,0,MAGIC_NUMBER_LEN);
     if(fIsSet(file->omode,NC_INMEMORY)) {
 	char* mempos;
@@ -1315,19 +1316,18 @@ readmagic(struct MagicFile* file, long pos, char* magic)
 	if(file->iss3) {
 	    if((status = NC_s3sdkread(file->s3client,file->s3.bucket,file->s3.rootkey,start,count,(void*)magic,&file->errmsg)))
 	        {goto done;}
-	} else
+    }
+    else
 #endif
-	{
-  	    NCbytes* buf = ncbytesnew();
-	    status = nc_http_read(file->state,file->curlurl,start,count,buf);
-	    if(status == NC_NOERR) {
-	        if(ncbyteslength(buf) != count)
-	            status = NC_EINVAL;
-	        else
-	            memcpy(magic,ncbytescontents(buf),count);
-	    }
-  	    ncbytesfree(buf);
-	}
+    {
+        status = nc_http_read(file->state, file->curlurl, start, count, buf);
+        if (status == NC_NOERR) {
+            if (ncbyteslength(buf) != count)
+                status = NC_EINVAL;
+            else
+                memcpy(magic, ncbytescontents(buf), count);
+        }
+    }
 #endif
     } else {
 #ifdef USE_PARALLEL
@@ -1337,23 +1337,21 @@ readmagic(struct MagicFile* file, long pos, char* magic)
 	    if((retval = MPI_File_read_at_all(file->fh, pos, magic,
 			    MAGIC_NUMBER_LEN, MPI_CHAR, &mstatus)) != MPI_SUCCESS)
 	        {status = NC_EPARINIT; goto done;}
-	} else
+        }
+        else
 #endif /* USE_PARALLEL */
-	{
-	    int count;
-	    int i = fseek(file->fp,pos,SEEK_SET);
-	    if(i < 0)
-	        {status = errno; goto done;}
-  	    for(i=0;i<MAGIC_NUMBER_LEN;) {/* make sure to read proper # of bytes */
-	        count=fread(&magic[i],1,(size_t)(MAGIC_NUMBER_LEN-i),file->fp);
-	        if(count == 0 || ferror(file->fp))
-		    {status = errno; goto done;}
-	        i += count;
-	    }
-	}
+        { /* Ordinary read */
+            long i;
+            i = fseek(file->fp, pos, SEEK_SET);
+            if (i < 0) { status = errno; goto done; }
+            ncbytessetlength(buf, 0);
+            if ((status = NC_readfileF(file->fp, buf, MAGIC_NUMBER_LEN))) goto done;
+            memcpy(magic, ncbytescontents(buf), MAGIC_NUMBER_LEN);
+        }
     }
 
 done:
+    ncbytesfree(buf);
     if(file && file->fp) clearerr(file->fp);
     return check(status);
 }

@@ -162,79 +162,26 @@ static int
 readfile(const char* path, NC_memio* memio)
 {
     int status = NC_NOERR;
-    FILE* f = NULL;
-    size_t filesize = 0;
-    size_t count = 0;
-    char* memory = NULL;
-    char* p = NULL;
-
-    /* Open the file for reading */
-    f = NCfopen(path,"r");
-    if(f == NULL)
-	{status = errno; goto done;}
-    /* get current filesize */
-    if(fseek(f,0,SEEK_END) < 0)
-	{status = errno; goto done;}
-    filesize = (size_t)ftell(f);
-    /* allocate memory */
-    memory = malloc((size_t)filesize);
-    if(memory == NULL)
-	{status = NC_ENOMEM; goto done;}
-    /* move pointer back to beginning of file */
-    rewind(f);
-    count = filesize;
-    p = memory;
-    while(count > 0) {
-        size_t actual;
-        actual = fread(p,1,count,f);
-	if(actual == 0 || ferror(f))
-	    {status = NC_EIO; goto done;}
-	count -= actual;
-	p += actual;
-    }
+    NCbytes* buf = ncbytesnew();
+    if((status = NC_readfile(path,buf))) goto done;
     if(memio) {
-	memio->size = (size_t)filesize;
-	memio->memory = memory;
+	memio->size = (size_t)ncbyteslength(buf);
+	memio->memory = ncbytesextract(buf);
     }
 done:
-    if(status != NC_NOERR && memory != NULL)
-	free(memory);
-    if(f != NULL) fclose(f);
+    ncbytesfree(buf);
     return status;
 }
-
 
 static int
 writefile(const char* path, NC_memio* memio)
 {
     int status = NC_NOERR;
-    FILE* f = NULL;
-    size_t count = 0;
-    char* p = NULL;
 
-    /* Open the file for writing */
-#ifdef _WIN32
-    f = fopen(path,"wb");
-#else
-    f = fopen(path,"w");
-#endif
-    if(f == NULL)
-	{status = errno; goto done;}
-    count = memio->size;
-    p = memio->memory;
-    while(count > 0) {
-        size_t actual;
-        actual = fwrite(p,1,count,f);
-	if(actual == 0 || ferror(f))
-	    {status = NC_EIO; goto done;}
-	count -= actual;
-	p += actual;
-    }
+    if((status = NC_writefile(path,memio->size,memio->memory))) goto done;
 done:
-    if(f != NULL) fclose(f);
     return status;
 }
-
 
 /* Duplicate an NC_memio instance; needed to avoid
    attempting to use memory that might have been realloc'd
