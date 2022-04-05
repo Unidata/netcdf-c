@@ -57,6 +57,21 @@ IF(UNAME)
   set(TMP_BUILDNAME "${osname}-${osrel}-${cpu}")
 ENDIF()
 
+# Define some Platforms
+if(osname MATCHES "CYGWIN.*")
+SET(ISCYGWIN yes)
+endif()
+if(osname MATCHES "Darwin.*")
+SET(ISOSX yes)
+endif()
+if(MSVC)
+SET(ISMSVC yes)
+endif()
+if(osname MATCHES "MINGW.*")
+SET(ISMINGW yes)
+SET(MINGW yes)
+endif()
+
 ###
 # Allow for some customization of the buildname.
 # This will make it easier to identify different builds,
@@ -88,6 +103,7 @@ INCLUDE(GNUInstallDirs)
 
 IF(MSVC)
   SET(GLOBAL PROPERTY USE_FOLDERS ON)
+  ADD_COMPILE_OPTIONS("/utf-8")
 ENDIF()
 
 #Add custom CMake Module
@@ -426,7 +442,6 @@ IF(NOT MSVC)
 
   ENDIF(BUILD_FORTRAN)
 ENDIF()
-
 
 ###
 # Allow the user to specify libraries
@@ -1846,6 +1861,26 @@ IF(ENABLE_MMAP)
 ENDIF(ENABLE_MMAP)
 
 #CHECK_FUNCTION_EXISTS(alloca HAVE_ALLOCA)
+
+# Used in the `configure_file` calls below
+SET(ISCMAKE "1")
+IF(MSVC)
+SET(ISMSVC ON CACHE BOOL "" FORCE)
+SET(REGEDIT ON CACHE BOOL "" FORCE)
+# Get windows major version and build number
+EXECUTE_PROCESS(COMMAND "systeminfo" OUTPUT_VARIABLE WININFO)
+IF(WININFO STREQUAL "")
+  SET(WVM 0)
+  SET(WVB 0)
+ELSE()
+  STRING(REGEX MATCH "\nOS Version:[ \t]+[0-9.]+" WINVERLINE "${WININFO}")
+  STRING(REGEX REPLACE "[^0-9]*([0-9]+)[.]([0-9])+[.]([0-9]+)" "\\1" WVM "${WINVERLINE}")
+  STRING(REGEX REPLACE "[^0-9]*([0-9]+)[.]([0-9])+[.]([0-9]+)" "\\3" WVB "${WINVERLINE}")
+ENDIF()
+SET(WINVERMAJOR ${WVM} CACHE STRING "" FORCE)
+SET(WINVERBUILD ${WVB} CACHE STRING "" FORCE)
+ENDIF()
+
 #####
 # End system inspection checks.
 #####
@@ -2466,13 +2501,6 @@ configure_file(
 configure_file(
   ${netCDF_SOURCE_DIR}/include/netcdf_dispatch.h.in
   ${netCDF_BINARY_DIR}/include/netcdf_dispatch.h @ONLY NEWLINE_STYLE LF)
-
-# Used in the `configure_file` calls below
-SET(ISCMAKE "1")
-IF(MSVC)
-SET(ISMSVC "1")
-SET(REGEDIT 1)
-ENDIF()
 
 ####
 # Build test_common.sh

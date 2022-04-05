@@ -395,17 +395,17 @@ set_curl_properties(NCD4INFO* d4info)
 	FILE* f = NULL;
 	char* fname = d4info->auth->curlflags.cookiejar;
 	/* See if the file exists already */
-        f = fopen(fname,"r");
+        f = NCfopen(fname,"r");
 	if(f == NULL) {
 	    /* Ok, create it */
-	    f = fopen(fname,"w+");
+	    f = NCfopen(fname,"w+");
 	    if(f == NULL) {
 	        fprintf(stderr,"Cookie file cannot be read and written: %s\n",fname);
 	        {ret= NC_EPERM; goto fail;}
 	    }
 	} else { /* test if file can be written */
 	    fclose(f);
-	    f = fopen(fname,"r+");
+	    f = NCfopen(fname,"r+");
 	    if(f == NULL) {
 	        fprintf(stderr,"Cookie file is cannot be written: %s\n",fname);
 	        {ret = NC_EPERM; goto fail;}

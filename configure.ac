@@ -106,6 +106,15 @@ ISMINGW=yes
 ISMSYS=yes
 fi
 
+# Get windows version info
+WINVER=`systeminfo | sed -e '/^OS Version:/p' -ed | sed -e 's|[^0-9]*\([0-9.]*\).*|\1|'`
+WINVERMAJOR=`echo $WVER | sed -e 's|\([^.]*\)[.]\([^.]*\)[.]\(.*\)|\1|'`
+WINVERBUILD=`echo $WVER | sed -e 's|\([^.]*\)[.]\([^.]*\)[.]\(.*\)|\3|'`
+if test "x$WINVERMAJOR" = x ; then WINVERMAJOR=0; fi
+if test "x$WINVERBUILD" = x ; then WINVERBUILD=0; fi
+AC_DEFINE_UNQUOTED([WINVERMAJOR], [$WINVERMAJOR], [windows version major])
+AC_DEFINE_UNQUOTED([WINVERBUILD], [$WINVERBUILD], [windows version build])
+
 AC_MSG_NOTICE([checking supported formats])
 
 # An explicit disable of netcdf-4 | netcdf4 is treated as if it was disable-hdf5
@@ -1279,6 +1288,8 @@ AM_CONDITIONAL(ISMINGW, [test "x$ISMINGW" = xyes])
 AM_CONDITIONAL(ISMSYS, [test "x$ISMSYS" = xyes])
 
 AC_SUBST([ISMSVC], [${ISMSVC}])
+  AC_SUBST([WINVERMAJOR], [${WINVERMAJOR}])
+  AC_SUBST([WINVERBUILD], [${WINVERBUILD}])
 AC_SUBST([ISCYGWIN], [${ISCYGWIN}])
 AC_SUBST([ISOSX], [${ISOSX}])
 AC_SUBST([ISMINGW], [${ISMINGW}])
