@@ -20,6 +20,8 @@
 #include "netcdf.h"
 #include "netcdf_filter.h"
 #include "nc_logging.h"
+#include "ncpathmgr.h"
+#include "ncrc.h"
 #ifdef USE_PARALLEL
 #include "netcdf_par.h"
 #endif

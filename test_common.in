@@ -10,11 +10,13 @@ TOPSRCDIR='@abs_top_srcdir@'
 TOPBUILDDIR='@abs_top_builddir@'
 FP_ISCMAKE=@ISCMAKE@
 FP_ISMSVC=@ISMSVC@
+  FP_WINVERMAJOR=@WINVERMAJOR@
+  FP_WINVERBUILD=@WINVERBUILD@
 FP_ISCYGWIN=@ISCYGWIN@
 FP_ISMINGW=@ISMINGW@
 FP_ISMSYS=@ISMSYS@
-FP_ISREGEDIT=@ISREGEDIT@
 FP_USEPLUGINS=@USEPLUGINS@
+FP_ISREGEDIT=@ISREGEDIT@
 
 # Feature flags
 FEATURE_HDF5=@HAS_HDF5@
@@ -154,6 +156,7 @@ ncgenc04="${top_srcdir}/ncgen/c0_4.cdl"
 avail() {
 if test yes = `${execdir}/../ncdump/ncfilteravail $1` ; then return 0 ; else echo "filter $1 not available" ; return 1; fi
 }
+if test "x$FP_ISMSVC" = xyes || test "x$FP_ISCYGWIN" = xyes; then export LC_ALL="en_US.utf8"; fi
 
 # Make sure we are in builddir (not execdir)
 cd $builddir

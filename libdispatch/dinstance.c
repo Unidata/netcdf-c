@@ -153,13 +153,14 @@ reclaim_datar(int ncid, nc_type xtype, Position* offset)
     int klass, isf;
 
     if((stat = NC4_inq_type_fixed_size(ncid,xtype,&isf))) goto done;
+
+    /* Get relevant type info */
+    if((stat = NC_inq_any_type(ncid,xtype,NULL,&xsize,&basetype,&nfields,&klass))) goto done;
+
     if(isf) { /* no need to reclaim anything */
 	offset->offset += xsize;
 	goto done;
     }
-
-    /* Get relevant type info */
-    if((stat = NC_inq_any_type(ncid,xtype,NULL,&xsize,&basetype,&nfields,&klass))) goto done;
 
     switch  (xtype) {
     case NC_STRING: {

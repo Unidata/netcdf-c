@@ -73,11 +73,11 @@ case "$zext" in
 	# Move into position
         rm -f ${execdir}/ref_zarr_test_data.cdl
 	# Use gunzip because it always appears to be available
-        if gunzip ${srcdir}/ref_zarr_test_data.cdl.gz ; then ignore=1; fi
-	if test -f ${srcdir}/ref_zarr_test_data.cdl ; then
-            testcases3 zarr_test_data.zarr ref_zarr_test_data xarray
-        fi
-	;;
+	if ! test -f ${srcdir}/ref_zarr_test_data.cdl ; then
+            gunzip -c ${srcdir}/ref_zarr_test_data.cdl.gz > ${srcdir}/ref_zarr_test_data.cdl
+	fi
+        testcases3 zarr_test_data.zarr ref_zarr_test_data xarray
+ 	;;
     *) echo "unimplemented kind: $1" ; exit 1;;
 esac
 }
