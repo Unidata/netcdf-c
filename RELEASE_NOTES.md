@@ -8,9 +8,12 @@ This file contains a high-level description of this package's evolution. Release
 ## 4.8.2 - TBD
 
 * [Enhancement] Update the documentation to match the current filter capabilities  See [Github #2249](https://github.com/Unidata/netcdf-c/pull/2249).
+* [Enhancement] Improve filter support. More specifically (1) add nc_inq_filter_avail to check if a filter is available, (2) add the notion of standard filters, (3) cleanup szip support to fix interaction with NCZarr. See [Github #2245](https://github.com/Unidata/netcdf-c/pull/2245).
+* [Enhancement] Switch to tinyxml2 as the default xml parser implementation. See [Github #2170](https://github.com/Unidata/netcdf-c/pull/2170).
 * [Bug Fix] Require that the type of the variable in nc_def_var_filter is not variable length. See [Github #/2231](https://github.com/Unidata/netcdf-c/pull/2231).
 * [File Change] Apply HDF5 v1.8 format compatibility when writing to previous files, as well as when creating new files.  The superblock version remains at 2 for newly created files.  Full backward read/write compatibility for netCDF-4 is maintained in all cases.  See [Github #2176](https://github.com/Unidata/netcdf-c/issues/2176).
 * [Enhancement] Add ability to set dataset alignment for netcdf-4/HDF5 files. See [Github #2206](https://github.com/Unidata/netcdf-c/pull/2206).
+* [Bug Fix] Improve UTF8 support on windows so that it can use utf8 natively. See [Github #2222](https://github.com/Unidata/netcdf-c/pull/2222).
 * [Enhancement] Add complete bitgroom support to NCZarr. See [Github #2197](https://github.com/Unidata/netcdf-c/pull/2197).
 * [Bug Fix] Clean up the handling of deeply nested VLEN types. Marks nc_free_vlen() and nc_free_string as deprecated in favor of ncaux_reclaim_data(). See [Github #2179](https://github.com/Unidata/netcdf-c/pull/2179).
 * [Bug Fix] Make sure that netcdf.h accurately defines the flags in the open/create mode flags. See [Github #2183](https://github.com/Unidata/netcdf-c/pull/2183).

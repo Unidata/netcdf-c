@@ -727,6 +727,10 @@ ncz_sync_atts(NC_FILE_INFO_T* file, NC_OBJ* container, NCindex* attlist, int isc
 	    if((stat = NCJinsert(jatts,NC_QUANTIZE_GRANULARBR_ATT_NAME,jint))) goto done;	
 	    jint = NULL;
 	    break;
+	case NC_QUANTIZE_BITROUND:
+	    if((stat = NCJinsert(jatts,NC_QUANTIZE_BITROUND_ATT_NAME,jint))) goto done;	
+	    jint = NULL;
+	    break;
 	default: break;
 	}
     }

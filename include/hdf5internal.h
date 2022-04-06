@@ -182,6 +182,7 @@ int nc4_hdf5_get_chunk_cache(int ncid, size_t *sizep, size_t *nelemsp,
 int NC4_hdf5_def_var_filter(int ncid, int varid, unsigned int filterid, size_t nparams, const unsigned int *params);
 int NC4_hdf5_inq_var_filter_ids(int ncid, int varid, size_t* nfiltersp, unsigned int *filterids);
 int NC4_hdf5_inq_var_filter_info(int ncid, int varid, unsigned int filterid, size_t* nparamsp, unsigned int *params);
+int NC4_hdf5_inq_filter_avail(int ncid, unsigned id);
 
 /* Filterlist management */
 

@@ -370,7 +370,7 @@ main(int argc, char **argv)
     }
     if (!mpi_rank)
         SUMMARIZE_ERR;
-#ifdef USE_SZIP
+#ifdef HAVE_H5Z_SZIP
 #ifdef HDF5_SUPPORTS_PAR_FILTERS
 #define SZIP_DIM_LEN 256
 #define SZIP_DIM_NAME "Barrels"
@@ -419,9 +419,9 @@ main(int argc, char **argv)
     if (!mpi_rank)
         SUMMARIZE_ERR;
 #endif /* HDF5_SUPPORTS_PAR_FILTERS */
-#endif /* USE_SZIP */
+#endif /* HAVE_H5Z_SZIP */
 
-#ifdef USE_SZIP
+#ifdef HAVE_H5Z_SZIP
 #ifdef HDF5_SUPPORTS_PAR_FILTERS
 #define SZIP_DIM_LEN 256
 #define SZIP_DIM_NAME "Barrels"
@@ -469,7 +469,7 @@ main(int argc, char **argv)
     if (!mpi_rank)
         SUMMARIZE_ERR;
 #endif /* HDF5_SUPPORTS_PAR_FILTERS */
-#endif /* USE_SZIP */
+#endif /* HAVE_H5Z_SZIP */
 
     /* Shut down MPI. */
     MPI_Finalize();

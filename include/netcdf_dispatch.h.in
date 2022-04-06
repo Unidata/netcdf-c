@@ -150,6 +150,8 @@ struct NC_Dispatch
     /* Version 4 Add quantization. */
     int (*def_var_quantize)(int ncid, int varid, int quantize_mode, int nsd);
     int (*inq_var_quantize)(int ncid, int varid, int *quantize_modep, int *nsdp);
+    /* Version 5 adds filter availability */
+    int (*inq_filter_avail)(int ncid, unsigned id);
 };
 
 #if defined(__cplusplus)
@@ -189,6 +191,7 @@ extern "C" {
     EXTERNL int NC_NOTNC4_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparams, unsigned int* params);
     EXTERNL int NC_NOOP_inq_var_filter_ids(int ncid, int varid, size_t* nfilters, unsigned int* filterids);
     EXTERNL int NC_NOOP_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparams, unsigned int* params);
+    EXTERNL int NC_NOOP_inq_filter_avail(int ncid, unsigned id);
 
     EXTERNL int NC_NOTNC4_def_grp(int, const char *, int *);
     EXTERNL int NC_NOTNC4_rename_grp(int, const char *);

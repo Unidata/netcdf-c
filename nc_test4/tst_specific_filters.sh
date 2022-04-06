@@ -1,9 +1,23 @@
 #!/bin/bash 
 
 # Test the implementations of specific filters
+# Also test nc_inq_filter_avail
+
+# WARNING: This file is also used to build nczarr_test/run_specific_filters.sh
 
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
+
+set -e
+
+if test "x$TESTNCZARR" = x1 ; then
+. "$srcdir/test_nczarr.sh"
+BLOSCARGS="32001,0,0,0,256,5,1,1"
+BLOSCCODEC='[{\"id\": \"blosc\",\"clevel\": 5,\"blocksize\": 256,\"cname\": \"lz4\",\"shuffle\": 1}]'
+else
+BLOSCARGS="32001,2,2,4,256,5,1,1"
+BLOSCCODEC='[{\"id\": \"blosc\",\"clevel\": 5,\"blocksize\": 256,\"cname\": \"lz4\",\"shuffle\": 1}]'
+fi
 
 # Load the findplugins function
 . ${builddir}/findplugin.sh
@@ -16,8 +30,6 @@ findplugin h5bzip2
 
 echo "final HDF5_PLUGIN_PATH=${HDF5_PLUGIN_PATH}"
 export HDF5_PLUGIN_PATH
-
-set -e
 
 # Function to remove selected -s attributes from file;
 # These attributes might be platform dependent
@@ -50,6 +62,7 @@ trimleft() {
 sed -e 's/[ 	]*\([^ 	].*\)/\1/' <$1 >$2
 }
 
+
 setfilter() {
     FF="$1"
     FSRC="$2"
@@ -76,56 +89,98 @@ zext=$1
 zfilt="$2"
 zparams="$3"
 zcodec="$4"
-echo "*** Testing processing of filter $zfilt"
-file="tmp_${zfilt}.nc"
-rm -f "tmp_${zfilt},nc"
-setfilter $zfilt ref_any.cdl "tmp_${zfilt}.cdl" "$zparams" "$zcodec"
-if ${NCGEN} -4 -lb -o $file "tmp_${zfilt}.cdl" ; then
-  ${NCDUMP} -n $zfilt -s $file > "tmp_${zfilt}.tmp"
-  sclean "tmp_${zfilt}.tmp" "tmp_${zfilt}.dump"
+echo "*** Testing processing of filter $zfilt for map $zext"
+if test "x$TESTNCZARR" = x1 ; then
+fileargs "tmp_filt_${zfilt}"
+deletemap $zext $file
+else
+file="tmp_filt_${zfilt}.nc"
+rm -f $file
 fi
-unset NCTRACING
+setfilter $zfilt ref_any.cdl "tmp_filt_${zfilt}.cdl" "$zparams" "$zcodec"
+if test "x$TESTNCZARR" = x1 ; then
+${NCGEN} -4 -lb -o $fileurl "tmp_filt_${zfilt}.cdl"
+${NCDUMP} -n $zfilt -sF $fileurl > "tmp_filt_${zfilt}.tmp"
+else
+${NCGEN} -4 -lb -o $file "tmp_filt_${zfilt}.cdl"
+${NCDUMP} -n $zfilt -sF $file > "tmp_filt_${zfilt}.tmp"
+fi
+sclean "tmp_filt_${zfilt}.tmp" "tmp_filt_${zfilt}.dump"
+}
+
+testfletcher32() {
+  zext=$1
+  runfilter $zext fletcher32 '3' '[{\"id\": \"fletcher32\"}]'
+  # need to do fixup
+  sed -e '/_Fletcher32 = "true"/d' -e '/_Filter = 3'/d -e '/_Codecs = \"[{\"id\": \"fletcher32\"}]\"/d' \
+	< tmp_filt_fletcher32.cdl > tmp_filt_fletcher32x.dump
+  diff -b -w "tmp_filt_fletcher32.cdl" "tmp_filt_fletcher32x.dump"
+}
+
+testshuffle() {
+  zext=$1
+  runfilter $zext shuffle '2' '[{\"id\": \"shuffle\",\"elementsize\": \"0\"}]'
+  # need to replace _Filter
+  sed -e '/_Shuffle = "true"/d' -e '/_Filter = 2'/d -e '/_Codecs = \"[{\"id\": \"shuffle\"}]\"/d' \
+	< tmp_filt_shuffle.cdl > tmp_filt_shufflex.dump
+  diff -b -w "tmp_filt_shuffle.cdl" "tmp_filt_shufflex.dump"
 }
 
 testdeflate() {
   zext=$1
+  if ! avail deflate; then return 0; fi
   runfilter $zext deflate '1,9' '[{\"id\": \"zlib\",\"level\": \"9\"}]'
-  if test -f "tmp_deflate.dump" ; then
-      # need to replace _DeflateLevel
-      sed -e 's/_DeflateLevel = 9/_Filter = "1,9"/' < tmp_deflate.dump > tmp_deflatex.dump
-      diff -b -w "tmp_deflate.cdl" "tmp_deflatex.dump"
-  else
-      echo "XFAIL: filter=deflate"
-  fi
+  # need to replace _DeflateLevel
+#  sed -e 's/_DeflateLevel = 9/_Filter = "1,9"/' < tmp_filt_deflate.dump > tmp_filt_deflatex.dump
+  diff -b -w "tmp_filt_deflate.cdl" "tmp_filt_deflate.dump"
 }
 
 testbzip2() {
   zext=$1
+  if ! avail bzip2; then return 0; fi
   runfilter $zext bzip2 '307,9' '[{\"id\": \"bz2\",\"level\": \"9\"}]'
-  if test -f "tmp_bzip2.dump" ; then
-      diff -b -w "tmp_bzip2.cdl" "tmp_bzip2.dump"
-  else
-      echo "XFAIL: filter=bzip2"
-  fi
+  diff -b -w "tmp_filt_bzip2.cdl" "tmp_filt_bzip2.dump"
+}
+
+testszip() {
+  zext=$1
+  if ! avail szip; then return 0; fi
+#  H5_SZIP_NN_OPTION_MASK=32;  H5_SZIP_MAX_PIXELS_PER_BLOCK_IN=32
+  runfilter $zext szip '4,32,32' '[{\"id\": \"szip\",\"mask\": 32,\"pixels-per-block\": 32}]'
+  diff -b -w "tmp_filt_szip.cdl" "tmp_filt_szip.dump"
 }
 
 testblosc() {
   zext=$1
-  runfilter $zext blosc '32001,2,2,4,256,5,1,1' '[{\"id\": \"blosc\",\"clevel\": 5,\"blocksize\": 0,\"cname\": \"lz4\",\"shuffle\": 1}]'
-  if test -f "tmp_blosc.dump" ; then
-      diff -b -w "tmp_blosc.cdl" "tmp_blosc.dump"
-  else
-      echo "XFAIL: filter=blosc"
-  fi
+  if ! avail blosc; then return 0; fi
+  runfilter $zext blosc $BLOSCARGS "$BLOSCCODEC"
+  diff -b -w "tmp_filt_blosc.cdl" "tmp_filt_blosc.dump"
+}
+
+testzstd() {
+  zext=$1
+  if ! avail zstd; then return 0; fi
+  runfilter $zext zstd '32015,1' '[{\"id\": \"zstd\",\"level\": \"1\"}]'
+  diff -b -w "tmp_filt_zstd.cdl" "tmp_filt_zstd.dump"
 }
 
 testset() {
 # Which test cases to exercise
+if test "x$TESTNCZARR" = x1 ; then
+#    testfletcher32 $1
+    testshuffle $1    
+fi
 #    testdeflate $1
-    testbzip2 $1
+#    testszip $1
+#    testbzip2 $1
 #    testblosc $1
+#    testzstd $1
 }
 
-testset nc
-
-exit 0
+if test "x$TESTNCZARR" = x1 ; then
+    testset file
+    if test "x$FEATURE_NCZARR_ZIP" = xyes ; then testset zip ; fi
+    if test "x$FEATURE_S3TESTS" = xyes ; then testset s3 ; fi
+else
+    testset nc
+fi

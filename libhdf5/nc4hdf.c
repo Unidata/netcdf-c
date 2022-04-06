@@ -70,7 +70,7 @@ flag_atts_dirty(NCindex *attlist) {
  * @param dimscaleid HDF5 dimension scale ID.
  *
  * @returns NC_NOERR No error.
- * @returns NC_EHDFERR HDF5 returned an error.
+ * @returns NC_EDIMSCALE HDF5 returned an error when trying to reattach a dimension scale.
  * @author Ed Hartnett
  */
 int
@@ -113,7 +113,7 @@ rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
                 {
                     if (H5DSattach_scale(hdf5_var->hdf_datasetid,
                                          dimscaleid, d) < 0)
-                        return NC_EHDFERR;
+                        return NC_EDIMSCALE;
                     hdf5_var->dimscale_attached[d] = NC_TRUE;
                 }
             }
@@ -135,7 +135,7 @@ rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
  * @param dimscaleid HDF5 dimension scale ID.
  *
  * @returns NC_NOERR No error.
- * @returns NC_EHDFERR HDF5 returned an error.
+ * @returns NC_EDIMSCALE HDF5 returned an error when trying to detach a dimension scale.
  * @author Ed Hartnett
  */
 int
@@ -177,7 +177,7 @@ rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
                     {
                         if (H5DSdetach_scale(hdf5_var->hdf_datasetid,
                                              dimscaleid, d) < 0)
-                            return NC_EHDFERR;
+                            return NC_EDIMSCALE;
                         hdf5_var->dimscale_attached[d] = NC_FALSE;
                     }
                 }
@@ -824,18 +824,6 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
         }
     }
 
-    /* If the user wants to fletcher error correction, set that up now. */
-    /* Since it is a checksum of sorts, flatcher is always applied first */
-    if (var->fletcher32)
-        if (H5Pset_fletcher32(plistid) < 0)
-            BAIL(NC_EHDFERR);
-
-    /* If the user wants to shuffle the data, set that up now. */
-    if (var->shuffle) {
-        if (H5Pset_shuffle(plistid) < 0)
-            BAIL(NC_EHDFERR);
-    }
-
     /* If the user wants to compress the data, using either zlib
      * (a.k.a deflate) or szip, or another filter, set that up now.
      * Szip and zip can be turned on
@@ -847,35 +835,39 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
 	NClist* filters = (NClist*)var->filters;
 	for(j=0;j<nclistlength(filters);j++) {
 	    struct NC_HDF5_Filter* fi = (struct NC_HDF5_Filter*)nclistget(filters,j);
-	    {
-                if(fi->filterid == H5Z_FILTER_DEFLATE) {/* Handle zip case here */
-                    unsigned level;
-                    if(fi->nparams != 1)
-                        BAIL(NC_EFILTER);
-                    level = (int)fi->params[0];
-                    if(H5Pset_deflate(plistid, level) < 0)
-                        BAIL(NC_EFILTER);
-  	        } else if(fi->filterid == H5Z_FILTER_SZIP) {/* Handle szip case here */
-                    int options_mask;
-                    int bits_per_pixel;
-                    if(fi->nparams != 2)
-                        BAIL(NC_EFILTER);
-                    options_mask = (int)fi->params[0];
-                    bits_per_pixel = (int)fi->params[1];
-                    if(H5Pset_szip(plistid, options_mask, bits_per_pixel) < 0)
-                        BAIL(NC_EFILTER);
-                } else {
-                    herr_t code = H5Pset_filter(plistid, fi->filterid,
-#if 0
-		    				H5Z_FLAG_MANDATORY,
+	    if(fi->filterid == H5Z_FILTER_FLETCHER32) {
+	        if(H5Pset_fletcher32(plistid) < 0)
+                    BAIL(NC_EHDFERR);
+	    } else if(fi->filterid == H5Z_FILTER_SHUFFLE) {
+	        if(H5Pset_shuffle(plistid) < 0)
+                    BAIL(NC_EHDFERR);
+            } else if(fi->filterid == H5Z_FILTER_DEFLATE) {/* Handle zip case here */
+                unsigned level;
+                if(fi->nparams != 1)
+                    BAIL(NC_EFILTER);
+                level = (int)fi->params[0];
+                if(H5Pset_deflate(plistid, level) < 0)
+                    BAIL(NC_EFILTER);
+            } else if(fi->filterid == H5Z_FILTER_SZIP) {/* Handle szip case here */
+                int options_mask;
+                int bits_per_pixel;
+                if(fi->nparams != 2)
+                    BAIL(NC_EFILTER);
+                options_mask = (int)fi->params[0];
+                bits_per_pixel = (int)fi->params[1];
+                if(H5Pset_szip(plistid, options_mask, bits_per_pixel) < 0)
+                    BAIL(NC_EFILTER);
+            } else {
+                herr_t code = H5Pset_filter(plistid, fi->filterid,
+#if 1
+                                            H5Z_FLAG_MANDATORY,
 #else
-		    				H5Z_FLAG_OPTIONAL,
+                                            H5Z_FLAG_OPTIONAL,
 #endif
-						fi->nparams, fi->params);
-                    if(code < 0)
-                        BAIL(NC_EFILTER);
-		}
-            }
+                                           fi->nparams, fi->params);
+		if(code < 0)
+                    BAIL(NC_EFILTER);
+	    }
         }
     }
 
@@ -898,7 +890,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
         /* If there are no unlimited dims, and no filters, and the user
          * has not specified chunksizes, use contiguous variable for
          * better performance. */
-        if (!var->shuffle && !var->fletcher32 && nclistlength((NClist*)var->filters) == 0 &&
+        if (nclistlength((NClist*)var->filters) == 0 &&
             (var->chunksizes == NULL || !var->chunksizes[0]) && !unlimdim)
 	    var->storage = NC_CONTIGUOUS;
 
@@ -1020,7 +1012,9 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
     }
 
     /* If quantization is in use, write an attribute indicating it, a
-     * single integer which is the number of significant digits. */
+     * single integer which is the number of significant digits 
+     * (NSD, for BitGroom and Granular BitRound) or number of significant bits
+     * (NSB, for BitRound). */
     if (var->quantize_mode == NC_QUANTIZE_BITGROOM)
 	if ((retval = nc4_put_att(var->container, var->hdr.id, NC_QUANTIZE_BITGROOM_ATT_NAME, NC_INT, 1,
 				  &var->nsd, NC_INT, 0)))
@@ -1028,6 +1022,11 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
 
     if (var->quantize_mode == NC_QUANTIZE_GRANULARBR)
 	if ((retval = nc4_put_att(var->container, var->hdr.id, NC_QUANTIZE_GRANULARBR_ATT_NAME, NC_INT, 1,
+				  &var->nsd, NC_INT, 0)))
+	    BAIL(retval);
+
+    if (var->quantize_mode == NC_QUANTIZE_BITROUND)
+	if ((retval = nc4_put_att(var->container, var->hdr.id, NC_QUANTIZE_BITROUND_ATT_NAME, NC_INT, 1,
 				  &var->nsd, NC_INT, 0)))
 	    BAIL(retval);
 
@@ -1372,6 +1371,7 @@ exit:
  * @param grp Pointer to group info struct.
  *
  * @return ::NC_NOERR No error.
+ * @returns NC_EDIMSCALE HDF5 returned an error when trying to attach a dimension scale.
  * @author Ed Hartnett
  */
 static int
@@ -1418,7 +1418,7 @@ attach_dimscales(NC_GRP_INFO_T *grp)
 
                     /* Attach the scale. */
                     if (H5DSattach_scale(hdf5_var->hdf_datasetid, dsid, d) < 0)
-                        return NC_EHDFERR;
+                        return NC_EDIMSCALE;
                     hdf5_var->dimscale_attached[d] = NC_TRUE;
                 }
             }

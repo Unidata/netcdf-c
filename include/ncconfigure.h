@@ -10,6 +10,10 @@
 #ifndef NCCONFIGURE_H
 #define NCCONFIGURE_H 1
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
@@ -41,24 +45,49 @@ typedef SSIZE_T ssize_t;
 #ifndef _WIN32
 #if __STDC__ == 1 /*supposed to be same as -ansi flag */
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 /* WARNING: in some systems, these functions may be defined as macros, so check */
+#ifndef HAVE_STRDUP
 #ifndef strdup
-extern char* strdup(const char*);
+char* strdup(const char*);
 #endif
+#endif
+
+#ifndef HAVE_STRLCAT
 #ifndef strlcat
-extern size_t strlcat(char*,const char*,size_t);
+size_t strlcat(char*,const char*,size_t);
 #endif
+#endif
+
+#ifndef HAVE_SNPRINTF
 #ifndef snprintf
-extern int snprintf(char*, size_t, const char*, ...);
+int snprintf(char*, size_t, const char*, ...);
 #endif
+#endif
+
+#ifndef HAVE_STRCASECMP
 #ifndef strcasecmp
 extern int strcasecmp(const char*, const char*);
 #endif
-#ifndef strtoll
-extern long long int strtoll(const char*, char**, int);
 #endif
+
+#ifndef HAVE_STRTOLL
+#ifndef strtoll
+long long int strtoll(const char*, char**, int);
+#endif
+#endif
+
+#ifndef HAVE_STRTOULL
 #ifndef strtoull
-extern unsigned long long int strtoull(const char*, char**, int);
+unsigned long long int strtoull(const char*, char**, int);
+#endif
+#endif
+
+#if defined(__cplusplus)
+}
 #endif
 
 #endif /*STDC*/
@@ -145,20 +174,15 @@ typedef unsigned long long uint64_t;
 typedef unsigned long long size64_t;
 #endif
 
+#ifndef HAVE_PTRDIFF_T
+typedef long ptrdiff_t;
+#endif
+
 /* Provide a fixed size alternative to off_t or off64_t */
 typedef long long fileoffset_t;
 
 #ifndef NC_UNUSED
 #define NC_UNUSED(var) (void)var
-#endif
-
-/* Protect old HDF5 code (pre 1.8.12) */
-#ifndef HAVE_H5ALLOCATE_MEMORY
-#ifndef H5allocate_memory
-#define H5allocate_memory(size,clear) ((clear)?calloc(1,(size)):malloc(size))
-#define H5free_memory(buf) free(buf)
-#define H5resize_memory(buf,size) realloc(buf,size)
-#endif
 #endif
 
 #endif /* NCCONFIGURE_H */
