@@ -68,7 +68,7 @@ diff -b tst_compounds4.cdl ${top_srcdir}/ncdump/ref_tst_compounds4.cdl
 #    rm -f tst_ncf213.cdl tst_ncf213.nc
 # Remove specific _NCProperties values
 ${NCGEN} -b -o tst_ncf213.nc $srcdir/ref_tst_ncf213.cdl
-${NCDUMP} -s -h tst_ncf213.nc > tst_ncf213.cdl
+${NCDUMP} -shF tst_ncf213.nc > tst_ncf213.cdl
 cleanncprops tst_ncf213.cdl tst_ncf213.tmp
 cleanncprops ${srcdir}/ref_tst_ncf213.cdl ref_tst_ncf213.tmp
 # Now compare

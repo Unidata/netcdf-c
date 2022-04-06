@@ -21,14 +21,6 @@
 /** @internal Default size for unlimited dim chunksize. */
 #define DEFAULT_1D_UNLIM_SIZE (4096)
 
-/** @internal Minimum number of explicit significand bits to preserve
- * when zeroing/bit-masking floating point values. Codes will preserve
- * at least two explicit bits, IEEE significand representation
- * contains one implicit bit Thus preserve a least three bits which is
- * approximately one sigificant decimal digit Used in
- * nco_ppc_bitmask() and nco_ppc_bitmask_scl() */
-#define NCO_PPC_BIT_XPL_NBR_MIN 2
-
 /* Define log_e for 10 and 2. Prefer constants defined in math.h,
  * however, GCC environments can have hard time defining M_LN10/M_LN2
  * despite finding math.h */
@@ -41,13 +33,15 @@
 
 /** Used in quantize code. Number of explicit bits in significand for
  * floats. Bits 0-22 of SP significands are explicit. Bit 23 is
- * implicitly 1. */
+ * implicitly 1. Currently redundant with NC_QUANTIZE_MAX_FLOAT_NSB
+ * and with limits.h/climit (FLT_MANT_DIG-1) */
 #define BIT_XPL_NBR_SGN_FLT (23)
 
 /** Used in quantize code. Number of explicit bits in significand for
- * doubles. Bits 0-52 of DP significands are explicit. Bit 53 is
- * implicitly 1. */
-#define BIT_XPL_NBR_SGN_DBL (53) 
+ * doubles. Bits 0-51 of DP significands are explicit. Bit 52 is
+ * implicitly 1. Currently redundant with NC_QUANTIZE_MAX_DOUBLE_NSB 
+ * and with limits.h/climit (DBL_MANT_DIG-1) */
+#define BIT_XPL_NBR_SGN_DBL (52) 
   
 /** Pointer union for floating point and bitmask types. */
 typedef union { /* ptr_unn */
@@ -242,11 +236,16 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 	*storagep = var->storage;
 
     /* Filter stuff. */
-    if (shufflep)
-        *shufflep = (int)var->shuffle;
-    if (fletcher32p)
-        *fletcher32p = (int)var->fletcher32;
-
+    if (shufflep) {
+	retval = nc_inq_var_filter_info(ncid,varid,H5Z_FILTER_SHUFFLE,0,NULL);
+	if(retval && retval != NC_ENOFILTER) return retval;
+	*shufflep = (retval == NC_NOERR?1:0);
+    }
+    if (fletcher32p) {
+	retval = nc_inq_var_filter_info(ncid,varid,H5Z_FILTER_FLETCHER32,0,NULL);
+	if(retval && retval != NC_ENOFILTER) return retval;
+        *fletcher32p = (retval == NC_NOERR?1:0);
+    }
     if (deflatep)
 	return NC_EFILTER;
 
@@ -476,7 +475,7 @@ NC4_var_par_access(int ncid, int varid, int par_access)
     /* If zlib, shuffle, or fletcher32 filters are in use, then access
      * must be collective. Fail an attempt to set such a variable to
      * independent access. */
-    if ((nclistlength((NClist*)var->filters) > 0 || var->shuffle || var->fletcher32) &&
+    if (nclistlength((NClist*)var->filters) > 0 &&
         par_access == NC_INDEPENDENT)
         return NC_EINVAL;
 
@@ -498,8 +497,8 @@ NC4_var_par_access(int ncid, int varid, int par_access)
  * values that overflow the type.
  *
  * This function applies quantization to float and double data, if
- * desired. The code to do this is derived from the bitgroom filter in
- * the CCR project (see
+ * desired. The code to do this is derived from the corresponding 
+ * filter in the CCR project (e.g., 
  * https://github.com/ccr/ccr/blob/master/hdf5_plugins/BITGROOM/src/H5Zbitgroom.c).
  *
  * @param src Pointer to source of data.
@@ -510,11 +509,11 @@ NC4_var_par_access(int ncid, int varid, int par_access)
  * @param range_error Pointer that gets 1 if there was a range error.
  * @param fill_value The fill value.
  * @param strict_nc3 Non-zero if strict model in effect.
- * @param quantize_mode May be ::NC_NOQUANTIZE or
- * ::NC_QUANTIZE_BITGROOM or ::NC_QUANTIZE_GRANULARBR.
- * @param nsd Number of significant diggits for quantizize. Ignored
- * unless quantize_mode is ::NC_QUANTIZE_BITGROOM or 
- * ::NC_QUANTIZE_GRANULARBR.
+ * @param quantize_mode May be ::NC_NOQUANTIZE, ::NC_QUANTIZE_BITGROOM, 
+ * ::NC_QUANTIZE_GRANULARBR, or ::NC_QUANTIZE_BITROUND.
+ * @param nsd Number of significant digits for quantize. Ignored
+ * unless quantize_mode is ::NC_QUANTIZE_BITGROOM, 
+ * ::NC_QUANTIZE_GRANULARBR, or ::NC_QUANTIZE_BITROUND
  * 
  * @returns ::NC_NOERR No error.
  * @returns ::NC_EBADTYPE Type not found.
@@ -571,42 +570,53 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
     /* If quantize is in use, set up some values. Quantize can only be
      * used when the destination type is NC_FLOAT or NC_DOUBLE. */
     if (quantize_mode != NC_NOQUANTIZE)
-    {
+      {
         assert(dest_type == NC_FLOAT || dest_type == NC_DOUBLE);
 
-	/* Parameters shared by both BitGroom and GranularBR */
+	/* Parameters shared by all quantization codecs */
         if (dest_type == NC_FLOAT)
-        {
+	  {
             /* Determine the fill value. */
             if (fill_value)
-                mss_val_cmp_flt = *(float *)fill_value;
+	      mss_val_cmp_flt = *(float *)fill_value;
             else
-                mss_val_cmp_flt = NC_FILL_FLOAT;
+	      mss_val_cmp_flt = NC_FILL_FLOAT;
 
-        }
+	  }
         else
-        {
+	  {
 	
             /* Determine the fill value. */
             if (fill_value)
-                mss_val_cmp_dbl = *(double *)fill_value;
+	      mss_val_cmp_dbl = *(double *)fill_value;
             else
-                mss_val_cmp_dbl = NC_FILL_DOUBLE;
+	      mss_val_cmp_dbl = NC_FILL_DOUBLE;
 
-        }
+	  }
 
-	/* Parameters BitGroom needs to be set once */
-	if (quantize_mode == NC_QUANTIZE_BITGROOM)
+	/* Set parameters used by BitGroom and BitRound here, outside value loop.
+	   Equivalent parameters used by GranularBR are set inside value loop,
+	   since keep bits and thus masks can change for every value. */
+	if (quantize_mode == NC_QUANTIZE_BITGROOM ||
+	    quantize_mode == NC_QUANTIZE_BITROUND )
 	  {
 
-	    /* How many bits to preserve? Being conservative, we round up the
-	     * exact binary digits of precision. Add one because the first bit
-	     * is implicit not explicit but corner cases prevent our taking
-	     * advantage of this. */
-	    prc_bnr_xpl_rqr = (unsigned short)ceil(nsd * bit_per_dgt) + 1;
-	    if (dest_type == NC_DOUBLE)
-	      prc_bnr_xpl_rqr++; /* Seems necessary for double-precision
-				  * ppc=array(1.234567,1.0e-6,$dmn) */
+	    if (quantize_mode == NC_QUANTIZE_BITGROOM){
+
+	      /* BitGroom interprets nsd as number of significant decimal digits
+	       * Must convert that to number of significant bits to preserve
+	       * How many bits to preserve? Being conservative, we round up the
+	       * exact binary digits of precision. Add one because the first bit
+	       * is implicit not explicit but corner cases prevent our taking
+	       * advantage of this. */
+	      prc_bnr_xpl_rqr = (unsigned short)ceil(nsd * bit_per_dgt) + 1;
+
+	    }else if (quantize_mode == NC_QUANTIZE_BITROUND){
+
+	      /* BitRound interprets nsd as number of significant binary digits (bits) */
+	      prc_bnr_xpl_rqr = nsd;
+	      
+	    }
 	    
 	    if (dest_type == NC_FLOAT)
 	      {
@@ -617,13 +627,17 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 		msk_f32_u32_zro = 0u; /* Zero all bits */
 		msk_f32_u32_zro = ~msk_f32_u32_zro; /* Turn all bits to ones */
 		
-		/* Bit Shave mask for AND: Left shift zeros into bits to be
+		/* BitShave mask for AND: Left shift zeros into bits to be
 		 * rounded, leave ones in untouched bits. */
 		msk_f32_u32_zro <<= bit_xpl_nbr_zro;
 		
-		/* Bit Set mask for OR: Put ones into bits to be set, zeros in
+		/* BitSet mask for OR: Put ones into bits to be set, zeros in
 		 * untouched bits. */
 		msk_f32_u32_one = ~msk_f32_u32_zro;
+
+		/* BitRound mask for ADD: Set one bit: the MSB of LSBs */
+		msk_f32_u32_hshv=msk_f32_u32_one & (msk_f32_u32_zro >> 1);
+
 	      }
 	    else
 	      {
@@ -633,20 +647,23 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
 		msk_f64_u64_zro = 0ul; /* Zero all bits. */
 		msk_f64_u64_zro = ~msk_f64_u64_zro; /* Turn all bits to ones. */
 		
-		/* Bit Shave mask for AND: Left shift zeros into bits to be
+		/* BitShave mask for AND: Left shift zeros into bits to be
 		 * rounded, leave ones in untouched bits. */
 		msk_f64_u64_zro <<= bit_xpl_nbr_zro;
 		
-		/* Bit Set mask for OR: Put ones into bits to be set, zeros in
+		/* BitSet mask for OR: Put ones into bits to be set, zeros in
 		 * untouched bits. */
 		msk_f64_u64_one =~ msk_f64_u64_zro;
+
+		/* BitRound mask for ADD: Set one bit: the MSB of LSBs */
+		msk_f64_u64_hshv = msk_f64_u64_one & (msk_f64_u64_zro >> 1);
 
 	      }
 
 	  }
 	  
-    } /* endif quantize */
-
+      } /* endif quantize */
+	    
     /* OK, this is ugly. If you can think of anything better, I'm open
        to suggestions!
 
@@ -1409,7 +1426,7 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
     {
         if (dest_type == NC_FLOAT)
         {
-            /* Bit-Groom: alternately shave and set LSBs */
+            /* BitGroom: alternately shave and set LSBs */
             op1.fp = (float *)dest;
             u32_ptr = op1.ui32p;
             for (idx = 0L; idx < len; idx += 2L)
@@ -1421,7 +1438,7 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
         }
         else
         {
-            /* Bit-Groom: alternately shave and set LSBs. */
+            /* BitGroom: alternately shave and set LSBs. */
             op1.dp = (double *)dest;
             u64_ptr = op1.ui64p;
             for (idx = 0L; idx < len; idx += 2L)
@@ -1433,6 +1450,34 @@ nc4_convert_type(const void *src, void *dest, const nc_type src_type,
         }
     } /* endif BitGroom */
 
+    if (quantize_mode == NC_QUANTIZE_BITROUND)
+      {
+        if (dest_type == NC_FLOAT)
+	  {
+            /* BitRound: Quantize to user-specified NSB with IEEE-rounding */
+            op1.fp = (float *)dest;
+            u32_ptr = op1.ui32p;
+            for (idx = 0L; idx < len; idx++){
+	      if (op1.fp[idx] != mss_val_cmp_flt){
+		u32_ptr[idx] += msk_f32_u32_hshv; /* Add 1 to the MSB of LSBs, carry 1 to mantissa or even exponent */
+		u32_ptr[idx] &= msk_f32_u32_zro; /* Shave it */
+	      }
+	    }
+	  }
+        else
+	  {
+            /* BitRound: Quantize to user-specified NSB with IEEE-rounding */
+            op1.dp = (double *)dest;
+            u64_ptr = op1.ui64p;
+            for (idx = 0L; idx < len; idx++){
+	      if (op1.dp[idx] != mss_val_cmp_dbl){
+		u64_ptr[idx] += msk_f64_u64_hshv; /* Add 1 to the MSB of LSBs, carry 1 to mantissa or even exponent */
+		u64_ptr[idx] &= msk_f64_u64_zro; /* Shave it */
+	      }
+	    }
+	  }
+      } /* endif BitRound */
+    
     if (quantize_mode == NC_QUANTIZE_GRANULARBR)
     {
         if (dest_type == NC_FLOAT)

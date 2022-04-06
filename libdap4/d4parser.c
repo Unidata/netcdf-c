@@ -184,6 +184,7 @@ NCD4_parse(NCD4meta* metadata)
 done:
     if(doc != NULL)
 	ncxml_free(doc);
+    doc = NULL;
     reclaimParser(parser);
     return THROW(ret);
 }

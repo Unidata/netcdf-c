@@ -49,6 +49,7 @@
 /*
 Define a simple #ifdef test for the version of H5FD_class_t we are using 
 */
+
 #if H5_VERS_MAJOR == 1
 #if H5_VERS_MINOR < 10
 #define H5FDCLASS1 1

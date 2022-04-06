@@ -16,7 +16,6 @@
 #include "ncrc.h"
 #include "ncauth.h"
 #include "ncmodel.h"
-#include "ncfilter.h"
 #include "ncpathmgr.h"
 
 #ifdef ENABLE_BYTERANGE
@@ -1087,14 +1086,6 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
  	    {stat = NC_EHDFERR; goto done;} /* Something in HDF5 went wrong */
 	switch (filter)
         {
-        case H5Z_FILTER_SHUFFLE:
-            var->shuffle = NC_TRUE;
-            break;
-
-        case H5Z_FILTER_FLETCHER32:
-            var->fletcher32 = NC_TRUE;
-            break;
-
         case H5Z_FILTER_DEFLATE:
             if (cd_nelems != CD_NELEMS_ZLIB ||
                 cd_values[0] > NC_MAX_DEFLATE_LEVEL)
@@ -1227,7 +1218,16 @@ static int get_quantize_info(NC_VAR_INFO_T *var)
 	attid = H5Aopen_by_name(datasetid, ".", NC_QUANTIZE_GRANULARBR_ATT_NAME,
 			    H5P_DEFAULT, H5P_DEFAULT);
 	if (attid > 0)
+	  {
 	    var->quantize_mode = NC_QUANTIZE_GRANULARBR;
+	  }
+	else
+	  {
+	    attid = H5Aopen_by_name(datasetid, ".", NC_QUANTIZE_BITROUND_ATT_NAME,
+				    H5P_DEFAULT, H5P_DEFAULT);
+	    if (attid > 0)
+	      var->quantize_mode = NC_QUANTIZE_BITROUND;
+	  }
       }
     
     /* If there is an attribute, read it for the nsd. */
@@ -2015,13 +2015,7 @@ hdf5free(void* memory)
 #ifndef JNA
     /* On Windows using the microsoft runtime, it is an error
        for one library to free memory allocated by a different library.*/
-#ifdef HAVE_H5FREE_MEMORY
     if(memory != NULL) H5free_memory(memory);
-#else
-#ifndef _MSC_VER
-    if(memory != NULL) free(memory);
-#endif
-#endif
 #endif
 }
 
@@ -2322,7 +2316,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
  * for both global and variable attributes.
  *
  * @param loc_id HDF5 attribute ID.
- * @param att_name Name of the attrigute.
+ * @param att_name Name of the attribute.
  * @param ainfo HDF5 info struct for attribute.
  * @param att_data Pointer to an att_iter_info struct, which contains
  * pointers to the NC_GRP_INFO_T and (for variable attributes) the

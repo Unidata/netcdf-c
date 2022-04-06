@@ -180,7 +180,7 @@ main(int argc, char **argv)
       }
    }
    SUMMARIZE_ERR;
-#ifdef USE_SZIP
+#ifdef HAVE_H5Z_SZIP
    printf("*** testing HDF5 compatibility with szip...");
    {
 
@@ -254,7 +254,7 @@ main(int argc, char **argv)
 
    }
    SUMMARIZE_ERR;
-#endif /* USE_SZIP */
+#endif /* HAVE_H5Z_SZIP */
    /* This test suggested by user brentd42 to find a memory problem in
     * function rec_read_metadata(). This test demonstrates the bug on
     * address sanitizer runs. See

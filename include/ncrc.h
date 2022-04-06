@@ -86,6 +86,8 @@ EXTERNL int NC__testurl(const char* path, char** basenamep);
 EXTERNL int NC_isLittleEndian(void);
 EXTERNL char* NC_entityescape(const char* s);
 EXTERNL int NC_readfile(const char* filename, NCbytes* content);
+EXTERNL int NC_readfilen(const char* filename, NCbytes* content, long long len);
+EXTERNL int NC_readfileF(FILE* fp, NCbytes* content, long long len);
 EXTERNL int NC_writefile(const char* filename, size_t size, void* content);
 EXTERNL char* NC_mktmp(const char* base);
 EXTERNL int NC_getmodelist(const char* modestr, NClist** modelistp);

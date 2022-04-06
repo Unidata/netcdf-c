@@ -71,21 +71,21 @@ check_PROGRAMS += tst_fillonly
 TESTS += test_fillonly.sh
 
 # Szip Tests (requires ncdump)
-if USE_SZIP
+if HAVE_H5Z_SZIP
 check_PROGRAMS += test_szip h5testszip
 TESTS += tst_szip.sh
 endif
 
-# Filter Tests (requires ncdump and ncgen)
+# Filter Tests (requires ncdump and ncgen and HDF5)
+if USE_HDF5
 if ENABLE_FILTER_TESTING
 extradir =
 check_PROGRAMS += test_filter test_filter_misc test_filter_order test_filter_repeat test_filter_vlen
-check_PROGRAMS += tst_multifilter
+check_PROGRAMS += tst_multifilter tst_filter_avail
 TESTS += tst_filter.sh
-if ENABLE_BLOSC
 TESTS += tst_specific_filters.sh
 endif
-endif
+endif # USE_HDF5
 endif # BUILD_UTILITIES
 
 # This are extra tests that will only be run if netcdf-4 is configured
@@ -102,7 +102,7 @@ ref_tst_xplatform2_1.nc ref_tst_xplatform2_2.nc ref_tst_dims.nc		\
 ref_tst_interops4.nc CMakeLists.txt run_grp_rename.sh			\
 run_empty_vlen_test.sh ref_hdf5_compat1.nc ref_hdf5_compat2.nc		\
 ref_hdf5_compat3.nc tst_misc.sh tdset.h5 tst_szip.sh ref_szip.h5	\
-ref_szip.cdl tst_filter.sh bzip2.cdl ref_filtered.cdl			\
+ref_szip.cdl tst_filter.sh bzip2.cdl noop.cdl ref_filtered.cdl		\
 ref_unfiltered.cdl ref_bzip2.c findplugin.in ref_unfilteredvv.cdl	\
 ref_filteredvv.cdl ref_multi.cdl                                        \
 ref_ncgenF.cdl ref_nccopyF.cdl                                          \
