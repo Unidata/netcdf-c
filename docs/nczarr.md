@@ -780,11 +780,10 @@ The content of these objects is the same as the contents of the corresponding ke
 
 # Appendix G. JSON Attribute Convention. {#nczarr_version1}
 
-An attribute may be encountered on read whose value is not
-parseable as a netcdf attribute because it is not an atomic
-value or array of atomic values. In this case, the value is
-treated as arbitrary JSON and is converted to a string form as
-the value of a character typed attribute.
+An attribute may be encountered on read whose value when parsed
+by JSON is a dictionary. As a special conventions, the value
+converted to a string and stored as the value of the attribute
+and the type of the attribute is treated as char.
 
 When writing a character valued attribute, it's value is examined
 to see if it looks like a JSON dictionary (i.e. "{...}")
