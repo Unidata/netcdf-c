@@ -20,8 +20,8 @@ ${NCGEN} -4 -b -o "$fileurl" $srcdir/ref_jsonconvention.cdl
 ${NCDUMP} $fileurl > tmp_jsonconvention_${zext}.cdl
 # remove '\n' from ref file before comparing
 rm -f tmp_jsonconvention.cdl
-sed -e 's|\\n||g' < ref_jsonconvention.cdl > tmp_jsonconvention.cdl
-diff -b ${srcdir}/tmp_jsonconvention.cdl tmp_jsonconvention_${zext}.cdl
+sed -e 's|\\n||g' < ${srcdir}/ref_jsonconvention.cdl > tmp_jsonconvention.cdl
+diff -b tmp_jsonconvention.cdl tmp_jsonconvention_${zext}.cdl
 }
 
 testcase file
