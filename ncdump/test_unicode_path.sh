@@ -10,9 +10,6 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 set -e
 
-LC_ALL="C.UTF-8"
-export LC_ALL
-
 # Passing a utf8 name using either \x or actual characters
 # to Visual Studio does not work well.
 if test "x$FP_ISMSVC" = x ; then

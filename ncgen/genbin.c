@@ -7,6 +7,7 @@
 #include "includes.h"
 #include <ctype.h>      /* for isprint() */
 #include "netcdf_aux.h"
+#include "netcdf_filter.h"
 
 #ifdef ENABLE_BINARY
 
@@ -248,6 +249,15 @@ genbin_definespecialattributes(Symbol* var)
 	int k;
 	for(k=0;k<special->nfilters;k++) {
 	    NC_H5_Filterspec* nfs = special->_Filters[k];
+	    /* See if the filter is available */
+	    stat = nc_inq_filter_avail(var->container->nc_id, nfs->filterid);
+	    switch (stat) {
+	    case NC_NOERR: break;
+	    case NC_ENOFILTER:
+		derror("Filter id=%u; filter not available",nfs->filterid);
+		/* fall thru */
+	    default: CHECK_ERR(stat); break;
+	    }
             stat = nc_def_var_filter(var->container->nc_id,
                         var->nc_id,
 			nfs->filterid,
@@ -257,7 +267,7 @@ genbin_definespecialattributes(Symbol* var)
         }
         CHECK_ERR(stat);
     }
-    if(special->flags & (_QUANTIZEBG_FLAG | _QUANTIZEBR_FLAG)) {
+    if(special->flags & (_QUANTIZEBG_FLAG | _QUANTIZEGBR_FLAG | _QUANTIZEBR_FLAG)) {
         stat = nc_def_var_quantize(var->container->nc_id,
                                  var->nc_id, special->_Quantizer, special->_NSD);
         CHECK_ERR(stat);

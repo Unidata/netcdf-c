@@ -469,7 +469,7 @@ NCZ_blosc_modify_parameters(int ncid, int varid, size_t* vnparamsp, unsigned** v
         {stat = NC_EFILTER; goto done;}
     nparams = 7;
 
-    if(vnparams > 0 && vparams == NULL)
+    if(vparams == NULL)
         {stat = NC_EFILTER; goto done;}
 
     if(wnparamsp == NULL || wparamsp == NULL)

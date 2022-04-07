@@ -469,7 +469,7 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
   
    The data are quantized by setting unneeded bits to zeros or ones
    so that they may compress well. BitGroom sets bits alternately to 1/0, 
-   while Granular BitRound (GBR) sets (more) bits to zeros.
+   while BitRound and Granular BitRound (GBR) round (more) bits to zeros
    Quantization is lossy (data are irretrievably altered), and it 
    improves the compression ratio provided by a subsequent lossless 
    compression filter. Quantization alone will not reduce the data size.
@@ -479,9 +479,8 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
    compression will result in significant improvent in the final data
    size.
 
-   This data quantization used the BitGroom algorithm. A notable
-   feature of BitGroom is that the data it processes remain in IEEE754
-   format after quantization. Therefore the BitGroom algorithm does
+   A notable feature of all the quantization algorithms is data remain 
+   in IEEE754 format afterwards. Therefore quantization algorithms do
    nothing when data are read.
   
    Quantization is only available for variables of type NC_FLOAT or
@@ -489,8 +488,8 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
    types return an error (NC_EINVAL). 
 
    Variables that use quantize will have added an attribute with name
-   ::NC_QUANTIZE_ATT_NAME, which will contain the number of
-   significant digits. Users should not delete or change this
+   ::NC_QUANTIZE_[ALGORITHM_NAME]_ATT_NAME, which will contain the 
+   number of significant digits. Users should not delete or change this
    attribute. This is the only record that quantize has been applied
    to the data.
 
@@ -529,11 +528,16 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
    @param ncid File ID.
    @param varid Variable ID. ::NC_GLOBAL may not be used.
    @param quantize_mode Quantization mode. May be ::NC_NOQUANTIZE or
-   ::NC_QUANTIZE_BITGROOM or ::NC_QUANTIZE_GRANULARBR.
-   @param nsd Number of significant digits. May be any integer from 1
-   to ::NC_QUANTIZE_MAX_FLOAT_NSD (for variables of type ::NC_FLOAT)
-   or ::NC_QUANTIZE_MAX_DOUBLE_NSD (for variables of type
-   ::NC_DOUBLE). Ignored if quantize_mode = NC_NOQUANTIZE.
+   ::NC_QUANTIZE_BITGROOM or ::NC_QUANTIZE_GRANULARBR or
+   ::NC_QUANTIZE_BITROUND.
+   @param nsd Number of significant digits (either decimal or binary). 
+   May be any integer from 1 to ::NC_QUANTIZE_MAX_FLOAT_NSD (for variables 
+   of type ::NC_FLOAT) or ::NC_QUANTIZE_MAX_DOUBLE_NSD (for variables 
+   of type ::NC_DOUBLE) for mode ::NC_QUANTIZE_BITGROOM and mode
+   ::NC_QUANTIZE_GRANULARBR. May be any integer from 1 to 
+   ::NC_QUANTIZE_MAX_FLOAT_NSB (for variables of type ::NC_FLOAT) or 
+   ::NC_QUANTIZE_MAX_DOUBLE_NSB (for variables of type ::NC_DOUBLE) 
+   for mode ::NC_QUANTIZE_BITROUND. Ignored if quantize_mode = NC_NOQUANTIZE.
    
    @return ::NC_NOERR No error.
    @return ::NC_EGLOBAL Can't use ::NC_GLOBAL with this function.

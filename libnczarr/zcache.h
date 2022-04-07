@@ -53,7 +53,7 @@ typedef struct NCZChunkCache {
 
 /**************************************************/
 
-#define FILTERED(cache) (nclistlength((NClist*)(cache)->var->filters) || (cache)->var->shuffle || (cache)->var->fletcher32);
+#define FILTERED(cache) (nclistlength((NClist*)(cache)->var->filters))
 
 extern int NCZ_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems, float preemption);
 extern int NCZ_adjust_var_cache(NC_VAR_INFO_T *var);

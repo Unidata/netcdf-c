@@ -41,6 +41,10 @@ ncvalidator_SOURCES = ncvalidator.c
 noinst_PROGRAMS += ncpathcvt
 ncpathcvt_SOURCES = ncpathcvt.c
 
+# A non-installed utility program to test if a filter is available
+noinst_PROGRAMS += ncfilteravail
+ncfilteravail_SOURCES = ncfilteravail.c
+
 # A simple netcdf-4 metadata -> xml printer. Do not install.
 if USE_HDF5
 bin_PROGRAMS += nc4print
@@ -144,12 +148,16 @@ if !ISMINGW
 if !ISCYGWIN
 TESTS += tst_output.sh
 TESTS += tst_nccopy3.sh
-TESTS += test_unicode_directory.sh  test_unicode_path.sh
 if USE_HDF5
 TESTS += run_back_comp_tests.sh tst_netcdf4_4.sh
 TESTS += tst_nccopy4.sh tst_nccopy5.sh
 endif
 endif
+endif
+
+# The unicode tests
+if !ISMINGW
+TESTS += test_unicode_directory.sh  test_unicode_path.sh
 endif
 
 endif BUILD_TESTSETS
