@@ -1,7 +1,5 @@
 #!/bin/bash
 
-if test "x$SETX" = x1 ; then set -x ; fi
-
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
