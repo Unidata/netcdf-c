@@ -40,10 +40,7 @@ kwcase.nc"
 # only to detect which are considered XFAIL tests.
 XFAILTESTS=
 
-# For now, remove some tests from windows platform.
-#if test "x$platform" != xmingw ; then
-    XFAILTESTS="$XFAILTESTS EOSDB OverideExample SimpleDrdsExample test.67 test.gr5 123bears.nc 123.nc bears.nc ber-2002-10-01 data.nc in1.nc in_2.nc in_no_three_double_dmn.nc test.nc text.nc test.22 test.23 test.gr1 in.nc ber-2002-10-01.nc kwcase.nc"
-#fi
+XFAILTESTS="$XFAILTESTS EOSDB OverideExample SimpleDrdsExample test.67 test.gr5 123bears.nc 123.nc bears.nc ber-2002-10-01 data.nc in1.nc in_2.nc in_no_three_double_dmn.nc test.nc text.nc test.22 test.23 test.gr1 in.nc ber-2002-10-01.nc kwcase.nc"
 
 FILETESTS="${SYNTHETICDATA} ${SOURCEFILES}"
 #DDSTESTS intersect FILETESTS should be empty
