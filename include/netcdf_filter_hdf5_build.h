@@ -204,4 +204,17 @@ typedef const void* (*H5PL_get_plugin_info_proto)(void);
 }
 #endif
 
+/* Protect old HDF5 code (pre 1.8.12) */
+#ifdef USE_HDF5
+# if H5_VERSION_LE(1,8,11)
+# define H5allocate_memory(size,clear) ((clear)?calloc(1,(size)):malloc(size))
+# define H5free_memory(buf) free(buf)
+# define H5resize_memory(buf,size) realloc(buf,size)
+# endif
+#else
+# define H5allocate_memory(size,clear) ((clear)?calloc(1,(size)):malloc(size))
+# define H5free_memory(buf) free(buf)
+# define H5resize_memory(buf,size) realloc(buf,size)
+#endif
+
 #endif /*NETCDF_FILTER_HDF5_BUILD_H*/

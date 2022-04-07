@@ -121,11 +121,7 @@ main()
 	 if (the_value != val[i]) ERR;
 	 member_name = H5Tget_member_name(typeid, i);
 	 if (strcmp(member_name, love_how[i])) ERR;
-#ifdef HAVE_H5FREE_MEMORY
 	 H5free_memory(member_name);
-#else
-     free(member_name);
-#endif
       }
 
       /* Now read the data in the attribute and make sure it's what we
@@ -239,11 +235,7 @@ main()
 	 if (the_value != val[i]) ERR;
 	 member_name = H5Tget_member_name(typeid, i);
 	 if (strcmp(member_name, lang[i])) ERR;
-#ifdef HAVE_H5FREE_MEMORY
 	 H5free_memory(member_name);
-#else
-     free(member_name);
-#endif
       }
 
       /* Now read the data in the dataset and make sure it's what we

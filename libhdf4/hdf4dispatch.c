@@ -13,6 +13,7 @@
 #include "hdf4dispatch.h"
 #include "nc4dispatch.h"
 #include "hdf5dispatch.h"
+#include "netcdf_filter.h"
 
 /* This is the dispatch object that holds pointers to all the
  * functions that make up the HDF4 dispatch interface. */
@@ -106,6 +107,11 @@ static const NC_Dispatch HDF4_dispatcher = {
 
     NC_NOOP_inq_var_filter_ids,
     NC_NOOP_inq_var_filter_info,
+
+    NC_NOTNC4_def_var_quantize,
+    NC_NOTNC4_inq_var_quantize,
+
+    NC_NOOP_inq_filter_avail,
 };
 
 const NC_Dispatch *HDF4_dispatch_table = NULL;

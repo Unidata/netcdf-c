@@ -95,6 +95,7 @@ fspec_t formatting_specs =	/* defaults, overridden by command-line options */
     false,		/* human-readable output for date-time values? */
     false,		/* use 'T' separator between date and time values as strings? */
     false,		/* output special attributes, eg chunking? */
+    false,              /* if -F specified */
     LANG_C,		/* language conventions for indices */
     false,	        /* for DAP URLs, client-side cache used */
     0,			/* if -v specified, number of variables in list */
@@ -124,12 +125,13 @@ usage(void)
   [-g grp1[,...]]  Data and metadata for group(s) <grp1>,... only\n\
   [-w]             With client-side caching of variables for DAP URLs\n\
   [-x]             Output XML (NcML) instead of CDL\n\
+  [-F]             Output _Filter and _Codecs instead of _Fletcher32, _Shuffle, and _Deflate\n\
   [-Xp]            Unconditionally suppress output of the properties attribute\n\
   [-Ln]            Set log level to n (>= 0); ignore if logging not enabled.\n\
   file             Name of netCDF file (or URL if DAP access enabled)\n"
 
     (void) fprintf(stderr,
-		   "%s [-c|-h] [-v ...] [[-b|-f] [c|f]] [-l len] [-n name] [-p n[,n]] [-k] [-x] [-s] [-t|-i] [-g ...] [-w] [-Ln] file\n%s",
+		   "%s [-c|-h] [-v ...] [[-b|-f] [c|f]] [-l len] [-n name] [-p n[,n]] [-k] [-x] [-s] [-t|-i] [-g ...] [-w] [-F] [-Ln] file\n%s",
 		   progname,
 		   USAGE);
 
@@ -1005,48 +1007,73 @@ pr_att_specials(
 	    printf(" = \"unknown\" ;\n");
     }
 
-    /* _Filter (including deflate and shuffle) */
+    /* _Checksum (fletcher32) */
+    if(!formatting_specs.filter_atts) {
+	int fletcher32 = 0;
+	NC_CHECK( nc_inq_var_fletcher32(ncid, varid, &fletcher32) );
+	if(fletcher32 != 0) {
+	    pr_att_name(ncid, varp->name, NC_ATT_CHECKSUM);
+	    printf(" = \"true\" ;\n");
+	}
+    }
+    /* _Shuffle */
+    if(!formatting_specs.filter_atts) {
+	int haveshuffle = 0;
+	NC_CHECK( nc_inq_var_deflate(ncid, varid, &haveshuffle, NULL, NULL));
+	if(haveshuffle) {
+	    pr_att_name(ncid, varp->name, NC_ATT_SHUFFLE);
+	    printf(" = \"true\" ;\n");
+	}
+    }
+
+    /* _Deflate*/
+    if(!formatting_specs.filter_atts) {
+	int havedeflate = 0;
+	int level = -1;
+	NC_CHECK( nc_inq_var_deflate(ncid, varid, NULL, &havedeflate, &level));
+	if(havedeflate) {
+	    pr_att_name(ncid, varp->name, NC_ATT_DEFLATE);
+	    printf(" = %d ;\n",level);
+	}
+    }
+
+    /* _Filter */
     {
 	size_t nparams, nfilters, nbytes;
-	int shuffle=NC_NOSHUFFLE;
 	unsigned int* filterids = NULL;
 	unsigned int* params = NULL;
-	int usedeflateatt = 0;
 
 	/* Get applicable filter ids */
 	NC_CHECK(nc_inq_var_filter_ids(ncid, varid, &nfilters, NULL));
 	/* Get set of filters for this variable */
+        filterids = NULL;
 	if(nfilters > 0) {
 	    filterids = (unsigned int*)malloc(sizeof(unsigned int)*nfilters);
 	    if(filterids == NULL) NC_CHECK(NC_ENOMEM);
-	} else
-	    filterids = NULL;
-	NC_CHECK(nc_inq_var_filter_ids(ncid, varid, &nfilters, filterids));
+	    NC_CHECK(nc_inq_var_filter_ids(ncid, varid, &nfilters, filterids));
+	}
         if(nfilters > 0) {
 	    int k;
-	    int pratt = 0;
+	    int first = 1;
+	    int _filter = 0;
 	    for(k=0;k<nfilters;k++) {
 		NC_CHECK(nc_inq_var_filter_info(ncid, varid, filterids[k], &nparams, NULL));
+		if(!formatting_specs.filter_atts && (
+	  	      filterids[k] == H5Z_FILTER_FLETCHER32
+		   || filterids[k] == H5Z_FILTER_SHUFFLE
+   		   || filterids[k] == H5Z_FILTER_DEFLATE))
+		    continue; /* Ignore fletcher32 and shuffle and deflate*/
+		_filter = 1;
 	        if(nparams > 0) {
   	            params = (unsigned int*)calloc(1,sizeof(unsigned int)*nparams);
 	            NC_CHECK(nc_inq_var_filter_info(ncid, varid, filterids[k], &nbytes, params));
 		} else
 		    params = NULL;
-	        /* Use _Deflate if the first filter is zip */
-		if(k == 0 && filterids[k] == H5Z_FILTER_DEFLATE) {
-	            pr_att_name(ncid, varp->name, NC_ATT_DEFLATE);
-	            printf(" = %d", (int)params[0]);
-		    pratt = 1;
-		    usedeflateatt = 1;
-       	            nullfree(params); params = NULL;
-		    continue;
-		}
-		if(pratt || k == 0) {
+		if(first) {
 		    pr_att_name(ncid,varp->name,NC_ATT_FILTER);
 		    printf(" = \"");
-		    pratt = 0;
-		}
-	        if(k > 0) printf("|");
+		} else 
+	            printf("|");
 		printf("%u",filterids[k]);
 		if(nparams > 0) {
 	            int i;
@@ -1054,17 +1081,11 @@ pr_att_specials(
 		        printf(",%u",params[i]);
 	        }
        	        nullfree(params); params = NULL;
+		first = 0;
 	    }
-            if(!usedeflateatt) printf("\"");
-            printf(" ;\n");
+            if(_filter) printf("\" ;\n");
 	}
 	if(filterids) free(filterids);
-        /* Finally, do Shuffle */
-	NC_CHECK( nc_inq_var_deflate(ncid, varid, &shuffle, NULL, NULL));
-	if(shuffle != NC_NOSHUFFLE) {
-	    pr_att_name(ncid, varp->name, NC_ATT_SHUFFLE);
-	    printf(" = \"true\" ;\n");
-	}
     }
     /* _Codecs*/
     {
@@ -1086,15 +1107,6 @@ pr_att_specials(
 		}
 		free(json);
 	    }
-	}
-    }
-    /* _Checksum */
-    {
-	int fletcher32 = 0;
-	NC_CHECK( nc_inq_var_fletcher32(ncid, varid, &fletcher32) );
-	if(fletcher32 != 0) {
-	    pr_att_name(ncid, varp->name, NC_ATT_CHECKSUM);
-	    printf(" = \"true\" ;\n");
 	}
     }
     /* _Endianness */
@@ -2261,7 +2273,7 @@ main(int argc, char *argv[])
     }
 
     opterr = 1;
-    while ((c = getopt(argc, argv, "b:cd:f:g:hikl:n:p:stv:xwKL:X:")) != EOF)
+    while ((c = getopt(argc, argv, "b:cd:f:g:hikl:n:p:stv:xwFKL:X:")) != EOF)
       switch(c) {
 	case 'h':		/* dump header only, no data */
 	  formatting_specs.header_only = true;
@@ -2374,6 +2386,9 @@ main(int argc, char *argv[])
 	  }
 #endif
 	  ncsetlogging(1);
+	  break;
+	case 'F':
+	  formatting_specs.filter_atts = true;
 	  break;
         case '?':
 	  usage();

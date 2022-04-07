@@ -34,7 +34,7 @@ typedef struct NC_HTTP_STATE {
 
 extern int nc_http_init(NC_HTTP_STATE** state);
 extern int nc_http_init_verbose(NC_HTTP_STATE** state, int verbose);
-extern int nc_http_size(NC_HTTP_STATE* state, const char* url, long long unsigned* sizep);
+extern int nc_http_size(NC_HTTP_STATE* state, const char* url, long long* sizep);
 extern int nc_http_read(NC_HTTP_STATE* state, const char* url, size64_t start, size64_t count, NCbytes* buf);
 extern int nc_http_write(NC_HTTP_STATE* state, const char* url, NCbytes* payload);
 extern int nc_http_close(NC_HTTP_STATE* state);

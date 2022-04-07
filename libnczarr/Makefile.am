@@ -7,6 +7,7 @@
 
 # Get AM_CPPFLAGS and AM_LDFLAGS
 include $(top_srcdir)/lib_flags.am
+
 AM_CPPFLAGS += -D_LARGEFILE_SOURCE
 AM_CPPFLAGS += -I$(top_srcdir)/libsrc4 -I$(top_srcdir)/libncpoco
 libnczarr_la_CPPFLAGS = ${AM_CPPFLAGS}
@@ -73,7 +74,6 @@ endif
 
 if ENABLE_S3_SDK
 libnczarr_la_SOURCES += zmap_s3sdk.c
-libnczarr_la_SOURCES += 
 AM_CXXFLAGS += -std=c++11
 endif
 

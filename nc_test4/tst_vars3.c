@@ -420,7 +420,7 @@ main(int argc, char **argv)
         if (nc_close(ncid)) ERR;
     }
     SUMMARIZE_ERR;
-#ifdef USE_SZIP
+#ifdef HAVE_H5Z_SZIP
     printf("**** testing simple szip filter setup...");
     {
         int ncid;
@@ -731,7 +731,7 @@ main(int argc, char **argv)
     SUMMARIZE_ERR;
 #else
     /* This code is run if szip is not present in HDF5. It checks that
-     * nc_def_var_szip() returns NC_EFILTER in that case. */
+     * nc_def_var_szip() returns NC_ENOFILTER in that case. */
     printf("**** testing szip handling when szip not built...");
     {
         int ncid;
@@ -749,15 +749,16 @@ main(int argc, char **argv)
         params[0] = NC_SZIP_NN; /* options_mask */
         params[1] = NC_SZIP_EC_BPP_IN; /* pixels_per_block */
         if (nc_def_var_chunking(ncid, varid, NC_CHUNKED, NULL)) ERR;
-        { int stat;  if ((stat = nc_def_var_filter(ncid, varid, H5_FILTER_SZIP, NUM_PARAMS_IN,
-            params)) != NC_EFILTER)
+        { int stat;
+	  if ((stat = nc_def_var_filter(ncid, varid, H5_FILTER_SZIP, NUM_PARAMS_IN,
+            params)) != NC_ENOFILTER)
             ERR;
         }
         if (nc_def_var_szip(ncid, varid, NC_SZIP_NN,
-                            NC_SZIP_EC_BPP_IN) != NC_EFILTER) ERR;
+                            NC_SZIP_EC_BPP_IN) != NC_ENOFILTER) ERR;
         if (nc_close(ncid)) ERR;
     }
     SUMMARIZE_ERR;
-#endif /* USE_SZIP */
+#endif /* HAVE_H5Z_SZIP */
     FINAL_RESULTS;
 }

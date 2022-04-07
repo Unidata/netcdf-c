@@ -41,15 +41,15 @@ trimleft() {
 sed -e 's/[ 	]*\([^ 	].*\)/\1/' <$1 >$2
 }
 
-# Hide/unhide the bzip2 filter
-hidebzip2() {
+# Hide/unhide the noop filter
+hidenoop() {
   rm -fr ${HDF5_PLUGIN_PATH}/save
   mkdir ${HDF5_PLUGIN_PATH}/save
-  mv ${BZIP2PATH} ${HDF5_PLUGIN_PATH}/save
+  mv ${NOOPPATH} ${HDF5_PLUGIN_PATH}/save
 }
 
-unhidebzip2() {
-  mv ${HDF5_PLUGIN_PATH}/save/${BZIP2LIB} ${HDF5_PLUGIN_PATH}
+unhidenoop() {
+  mv ${HDF5_PLUGIN_PATH}/save/${NOOPLIB} ${HDF5_PLUGIN_PATH}
   rm -fr ${HDF5_PLUGIN_PATH}/save
 }
 
@@ -61,6 +61,10 @@ BZIP2PATH="${HDF5_PLUGIN_PATH}/${BZIP2LIB}"
 # Find misc and capture
 findplugin h5misc
 MISCPATH="${HDF5_PLUGIN_PATH}/${HDF5_PLUGIN_LIB}"
+# Find noop and capture
+findplugin h5noop
+NOOPLIB="${HDF5_PLUGIN_LIB}"
+NOOPPATH="${HDF5_PLUGIN_PATH}/${HDF5_PLUGIN_LIB}"
 
 echo "final HDF5_PLUGIN_PATH=${HDF5_PLUGIN_PATH}"
 export HDF5_PLUGIN_PATH
@@ -68,14 +72,10 @@ export HDF5_PLUGIN_PATH
 # Verify
 if ! test -f ${BZIP2PATH} ; then echo "Unable to locate ${BZIP2PATH}"; exit 1; fi
 if ! test -f ${MISCPATH} ; then echo "Unable to locate ${MISCPATH}"; exit 1; fi
+if ! test -f ${NOOPPATH} ; then echo "Unable to locate ${NOOPPATH}"; exit 1; fi
 
 # See if we have szip
-HAVE_SZIP=0
-if test -f ${TOPBUILDDIR}/libnetcdf.settings ; then
-    if grep "SZIP Support:[ 	]*yes" <${TOPBUILDDIR}/libnetcdf.settings ; then
-       HAVE_SZIP=1
-    fi
-fi
+if avail szip; then HAVE_SZIP=1; else HAVE_SZIP=0; fi
 
 # Execute the specified tests
 
@@ -181,31 +181,31 @@ fi
 
 if test "x$UNK" = x1 ; then
 echo "*** Testing access to filter info when filter dll is not available"
-rm -f bzip2.nc ./tmp_filter.txt
-# xfail build bzip2.nc 
-hidebzip2
-if ${NCGEN} -lb -4 -o bzip2.nc ${srcdir}/bzip2.cdl ; then
+rm -f noop.nc ./tmp_filter.txt
+# xfail build noop.nc 
+hidenoop
+if ${NCGEN} -lb -4 -o noop.nc ${srcdir}/noop.cdl ; then
     echo "*** FAIL: ncgen"
 else
     echo "*** XFAIL: ncgen"
 fi
-unhidebzip2    
-# build bzip2.nc 
-${NCGEN} -lb -4 -o bzip2.nc ${srcdir}/bzip2.cdl
+unhidenoop    
+# build noop.nc 
+${NCGEN} -lb -4 -o noop.nc ${srcdir}/noop.cdl
 # Now hide the filter code
-hidebzip2
+hidenoop
 rm -f ./tmp_filter.txt
 # This will xfail
-if ${NCDUMP} -s bzip2.nc > ./tmp_filter.txt ; then
-    echo "*** FAIL: ncdump -hs bzip2.nc"
+if ${NCDUMP} -s noop.nc > ./tmp_filter.txt ; then
+    echo "*** FAIL: ncdump -hs noop.nc"
 else
-    echo "*** XFAIL: ncdump -hs bzip2.nc"
+    echo "*** XFAIL: ncdump -hs noop.nc"
 fi
 # Restore the filter code
-unhidebzip2
+unhidenoop
 # Verify we can see filter when using -h
 rm -f ./tmp_filter.txt
-${NCDUMP} -hs bzip2.nc > ./tmp_filter.txt
+${NCDUMP} -hs noop.nc > ./tmp_filter.txt
 echo "*** Pass: unknown filter"
 fi
 
@@ -222,7 +222,7 @@ echo "*** Testing multiple filters"
 rm -f ./tmp_multifilter.nc ./tmp_multi.txt ./tmp_smulti.cdl
 rm -f tmp_nccopyF.cdl tmp_nccopyF.nc tmp_ncgenF.cdl tmp_ncgenF.nc
 ${execdir}/tst_multifilter
-${NCDUMP} -hs -n multifilter tmp_multifilter.nc >./tmp_multi.cdl
+${NCDUMP} -hsF -n multifilter tmp_multifilter.nc >./tmp_multi.cdl
 # Remove irrelevant -s output
 sclean ./tmp_multi.cdl ./tmp_smulti.cdl
 diff -b -w ${srcdir}/ref_multi.cdl ./tmp_smulti.cdl
@@ -237,7 +237,7 @@ diff -b -w ${srcdir}/ref_nccopyF.cdl ./tmp_nccopyFs.cdl
 echo "*** ncgen with multiple filters"
 ${NCGEN} -4 -lb -o tmp_ncgenF.nc ${srcdir}/ref_nccopyF.cdl
 # Need to fix name using -n
-${NCDUMP} -hs -n nccopyF tmp_ncgenF.nc > ./tmp_ncgenF.cdl
+${NCDUMP} -hsF -n nccopyF tmp_ncgenF.nc > ./tmp_ncgenF.cdl
 sclean tmp_ncgenF.cdl tmp_ncgenFs.cdl
 diff -b -w ${srcdir}/ref_nccopyF.cdl ./tmp_ncgenFs.cdl
 echo "*** Pass: multiple filters"
