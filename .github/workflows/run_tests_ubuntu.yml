@@ -100,6 +100,13 @@ jobs:
           make -j
           make install -j
           popd
+	  wget https://parallel-netcdf.github.io/Release/pnetcdf-1.12.3.tar.gz
+          tar -zxf pnetcdf-1.12.3.tar.gz
+          pushd pnetcdf-1.12.3
+          CC=mpicc ./configure --disable-static --enable-shared --prefix=${HOME}/environments/${{ matrix.hdf5 }} 
+          make -j
+          make install -j
+          popd
           
   #####
   # One-Off Autotools-based tests.
@@ -233,7 +240,7 @@ jobs:
 
       - name: Configure
         shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} CC=mpicc ./configure --enable-hdf4 --enable-hdf5 --enable-dap --disable-dap-remote-tests --enable-parallel-tests
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} CC=mpicc ./configure --enable-hdf4 --enable-hdf5 --enable-dap --disable-dap-remote-tests --enable-parallel-tests --enable-pnetcdf
         if: ${{ success() }}
 
       - name: Look at config.log if error
