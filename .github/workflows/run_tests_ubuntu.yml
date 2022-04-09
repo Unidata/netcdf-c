@@ -100,7 +100,7 @@ jobs:
           make -j
           make install -j
           popd
-	  wget https://parallel-netcdf.github.io/Release/pnetcdf-1.12.3.tar.gz
+          wget https://parallel-netcdf.github.io/Release/pnetcdf-1.12.3.tar.gz
           tar -zxf pnetcdf-1.12.3.tar.gz
           pushd pnetcdf-1.12.3
           CC=mpicc ./configure --disable-static --enable-shared --prefix=${HOME}/environments/${{ matrix.hdf5 }} 
