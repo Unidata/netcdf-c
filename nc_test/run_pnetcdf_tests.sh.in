@@ -12,3 +12,7 @@ echo "Testing file created with PnetCDF works when adding variables..."
 
 # We assume a min of at least 2 processors is available
 mpiexec -n 2 ./tst_parallel2
+
+# These tests work in either serial or parallel builds.
+mpiexec -n 1 ./t_nc
+mpiexec -n 1 ./tst_atts3
