@@ -16,3 +16,11 @@ echo "Testing file created with PnetCDF works when adding variables..."
 # These tests work in either serial or parallel builds.
 @MPIEXEC@ -n 1 ./t_nc
 @MPIEXEC@ -n 1 ./tst_atts3
+@MPIEXEC@ -n 1 ./tst_nofill
+@MPIEXEC@ -n 1 ./nc_test
+@MPIEXEC@ -n 1 ./tst_default_format_pnetcdf
+@MPIEXEC@ -n 1 ./tst_small
+@MPIEXEC@ -n 1 ./tst_formatx_pnetcdf
+@MPIEXEC@ -n 1 ./tst_cdf5format
+
+

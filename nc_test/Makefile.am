@@ -23,26 +23,27 @@ AM_CPPFLAGS += -I$(top_builddir)/liblib -I$(top_builddir)/include -I$(top_srcdir
 TEST_EXTENSIONS = .sh
 
 # These are the tests which are always run.
-TESTPROGRAMS = tst_small nc_test tst_misc tst_norm tst_names	\
-tst_nofill tst_nofill2 tst_nofill3 tst_meta tst_inq_type	\
-tst_utf8_validate tst_utf8_phrases tst_global_fillval			\
+TESTPROGRAMS = tst_names tst_nofill2 tst_nofill3 tst_meta		\
+tst_inq_type tst_utf8_validate tst_utf8_phrases tst_global_fillval	\
 tst_max_var_dims tst_formats tst_def_var_fill tst_err_enddef		\
 tst_default_format
 
 # These are always built, but for parallel builds are run from a test
-# script.
-check_PROGRAMS = t_nc tst_atts3
+# script, because they are parallel-enabled tests.
+check_PROGRAMS = t_nc tst_atts3 tst_nofill nc_test		\
+tst_default_format_pnetcdf tst_small tst_formatx_pnetcdf	\
+tst_cdf5format
 
 # These tests are only run if pnetcdf is enabled.
 if USE_PNETCDF
-check_PROGRAMS += tst_parallel2 tst_pnetcdf tst_addvar
-TESTPROGRAMS += tst_formatx_pnetcdf tst_default_format_pnetcdf
+check_PROGRAMS += tst_parallel2 tst_pnetcdf tst_addvar	\
+tst_formatx_pnetcdf tst_default_format_pnetcdf
 endif
 
 if TEST_PARALLEL4
 if USE_PNETCDF
 if ENABLE_CDF5
-TESTPROGRAMS += tst_cdf5format
+check_PROGRAMS += tst_cdf5format
 endif
 endif
 endif
