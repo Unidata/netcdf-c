@@ -30,8 +30,7 @@ tst_default_format
 
 # These are always built, but for parallel builds are run from a test
 # script, because they are parallel-enabled tests.
-check_PROGRAMS = t_nc tst_atts3 tst_nofill nc_test tst_small	\
-tst_cdf5format
+check_PROGRAMS = t_nc tst_atts3 tst_nofill nc_test tst_small
 
 # These tests are only run if pnetcdf is enabled.
 if USE_PNETCDF
