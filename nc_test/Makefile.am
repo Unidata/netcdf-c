@@ -101,8 +101,7 @@ endif
 if USE_PNETCDF
 TESTS += run_pnetcdf_tests.sh
 else
-TESTS += t_nc tst_atts3 tst_nofill nc_test tst_default_format_pnetcdf	\
-tst_small tst_formatx_pnetcdf tst_cdf5format
+TESTS += t_nc tst_atts3 tst_nofill nc_test tst_small
 endif
 
 # The .c files that are generated with m4 are already distributed, but
