@@ -37,13 +37,17 @@ tst_rehash tst_filterparser tst_bug324 tst_types tst_atts3		\
 tst_put_vars tst_elatefill tst_udf tst_put_vars_two_unlim_dim		\
 tst_bug1442 tst_quantize
 
+if HAS_PAR_FILTERS
+NC4_TESTS += tst_alignment
+endif
+
 # Temporary I hoped, but hoped in vain.
 if !ISCYGWIN
 NC4_TESTS += tst_h_strbug tst_h_refs
 endif
 
 # Build test programs plus programs used in test scripts.
-check_PROGRAMS = $(NC4_TESTS) tst_empty_vlen_unlim tst_charvlenbug
+check_PROGRAMS = $(NC4_TESTS) tst_empty_vlen_unlim tst_charvlenbug tst_vlenstr
 TESTS = $(NC4_TESTS) run_empty_vlen_test.sh
 
 # Add these if large file tests are turned on.
@@ -67,21 +71,21 @@ check_PROGRAMS += tst_fillonly
 TESTS += test_fillonly.sh
 
 # Szip Tests (requires ncdump)
-if USE_SZIP
+if HAVE_H5Z_SZIP
 check_PROGRAMS += test_szip h5testszip
 TESTS += tst_szip.sh
 endif
 
-# Filter Tests (requires ncdump and ncgen)
+# Filter Tests (requires ncdump and ncgen and HDF5)
+if USE_HDF5
 if ENABLE_FILTER_TESTING
 extradir =
-check_PROGRAMS += test_filter test_filter_misc test_filter_order test_filter_repeat
-check_PROGRAMS += tst_multifilter
+check_PROGRAMS += test_filter test_filter_misc test_filter_order test_filter_repeat test_filter_vlen
+check_PROGRAMS += tst_multifilter tst_filter_avail
 TESTS += tst_filter.sh
-if ENABLE_BLOSC
 TESTS += tst_specific_filters.sh
 endif
-endif
+endif # USE_HDF5
 endif # BUILD_UTILITIES
 
 # This are extra tests that will only be run if netcdf-4 is configured
@@ -98,13 +102,14 @@ ref_tst_xplatform2_1.nc ref_tst_xplatform2_2.nc ref_tst_dims.nc		\
 ref_tst_interops4.nc CMakeLists.txt run_grp_rename.sh			\
 run_empty_vlen_test.sh ref_hdf5_compat1.nc ref_hdf5_compat2.nc		\
 ref_hdf5_compat3.nc tst_misc.sh tdset.h5 tst_szip.sh ref_szip.h5	\
-ref_szip.cdl tst_filter.sh bzip2.cdl ref_filtered.cdl			\
+ref_szip.cdl tst_filter.sh bzip2.cdl noop.cdl ref_filtered.cdl		\
 ref_unfiltered.cdl ref_bzip2.c findplugin.in ref_unfilteredvv.cdl	\
 ref_filteredvv.cdl ref_multi.cdl                                        \
 ref_ncgenF.cdl ref_nccopyF.cdl                                          \
 ref_filter_repeat.txt ref_fillonly.cdl test_fillonly.sh                 \
 ref_filter_order_create.txt ref_filter_order_read.txt			\
-ref_any.cdl tst_specific_filters.sh
+ref_any.cdl tst_specific_filters.sh \
+tst_virtual_datasets.c
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
 tst_floats_1D.cdl floats_1D_3.nc floats_1D.cdl tst_*.nc tmp_*.txt       \
@@ -116,7 +121,7 @@ perftest.txt bigmeta.nc bigvars.nc *.gz MSGCPP_*.nc	                \
 floats*.nc floats*.cdl shorts*.nc shorts*.cdl ints*.nc ints*.cdl        \
 testfilter_reg.nc filterrepeat.txt tmp_fillonly.nc                      \
 testfilter_order.nc crfilterorder.txt rdfilterorder.txt 1               \
-tmp_*.txt tmp_*.nc
+tmp_*.txt tmp_*.nc tmp*.dump tmp*.cdl tmp*.txt tmp*.tmp tmp_bzip2.c bzip2.nc
 
 DISTCLEANFILES = findplugin.sh run_par_test.sh
 

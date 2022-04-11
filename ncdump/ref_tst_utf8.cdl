@@ -4,6 +4,7 @@ dimensions:
 	㼿y = 2 ;
 variables:
 	int 􍐪(xā, 㼿y) ;
+ 		􍐪:_FillValue = -2147483647 ;
 
 // global attributes:
 		:Gā = "ā㼿y􍐪" ;

@@ -742,9 +742,9 @@ INPUT = \
     @abs_top_srcdir@/docs/windows-binaries.md \
     @abs_top_srcdir@/docs/attribute_conventions.md \
     @abs_top_srcdir@/docs/file_format_specifications.md \
-    @abs_top_srcdir@/docs/byterange.dox \
     @abs_top_srcdir@/docs/inmemory.md \
-    @abs_top_srcdir@/docs/auth.md \
+    @abs_top_srcdir@/docs/filters.md \
+    @abs_top_srcdir@/docs/byterange.dox \
     @abs_top_srcdir@/docs/nczarr.md \
     @abs_top_srcdir@/docs/notes.md \
     @abs_top_srcdir@/docs/all-error-codes.md \
@@ -2036,7 +2036,7 @@ SKIP_FUNCTION_MACROS   = YES
 
 # TAGFILES               = html/guide.tag=./html_guide "html/tutorial.tag = ./html_tutorial"
 #TAGFILES = ../../NUG/html/nug.tag=../../../NUG/html
-TAGFILES = ../../NUG/html/nug.tag=https://www.unidata.ucar.edu/software/netcdf/documentation/NUG
+TAGFILES = ../../NUG/html/nug.tag=https://docs.unidata.ucar.edu/nug
 
 # When a file name is specified after GENERATE_TAGFILE, doxygen will create a
 # tag file that is based on the input files it reads. See section "Linking to

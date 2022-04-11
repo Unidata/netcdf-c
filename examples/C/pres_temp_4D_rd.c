@@ -11,7 +11,7 @@ Research/Unidata. See COPYRIGHT file for conditions of use. */
  * the use of the netCDF C API.
  *
  * This is part of the netCDF package. Full documentation of the netCDF can be found at
- * http://www.unidata.ucar.edu/software/netcdf/docs.
+ * https://docs.unidata.ucar.edu/netcdf-c.
  *
  * @author Ed Hartnett
  */

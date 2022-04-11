@@ -17,12 +17,14 @@
 
 #define FILE_NAME "tst_udf.nc"
 
-#if defined(_WIN32) || defined(_WIN64)
-int
-NC4_show_metadata(int ncid)
+#ifdef _MSC_VER
+static int
+NC4_no_show_metadata(int ncid)
 {
-    return 0;
+    return NC_NOERR;
 }
+
+#define NC4_show_metadata NC4_no_show_metadata
 #endif
 
 int
@@ -156,6 +158,13 @@ static NC_Dispatch tst_dispatcher = {
     NC_NOOP_inq_var_filter_ids,
     NC_NOOP_inq_var_filter_info,
 #endif
+#if NC_DISPATCH_VERSION >= 4
+    NC_NOTNC4_def_var_quantize,
+    NC_NOTNC4_inq_var_quantize,
+#endif
+#if NC_DISPATCH_VERSION >= 5
+    NC_NOOP_inq_filter_avail,
+#endif
 };
 
 /* This is the dispatch object that holds pointers to all the
@@ -248,9 +257,16 @@ static NC_Dispatch tst_dispatcher_bad_version = {
     NC_NOTNC4_def_var_filter,
     NC_NOTNC4_set_var_chunk_cache,
     NC_NOTNC4_get_var_chunk_cache,
-#if NC_DISPATCH_VERSION >= 2
+#if NC_DISPATCH_VERSION >= 3
     NC_NOOP_inq_var_filter_ids,
     NC_NOOP_inq_var_filter_info,
+#endif
+#if NC_DISPATCH_VERSION >= 4
+    NC_NOTNC4_def_var_quantize,
+    NC_NOTNC4_inq_var_quantize,
+#endif
+#if NC_DISPATCH_VERSION >= 5
+    NC_NOOP_inq_filter_avail,
 #endif
 };
 
@@ -309,7 +325,7 @@ main(int argc, char **argv)
         int i;
 
         /* Create a file with magic number at start. */
-        if (!(FP = fopen(FILE_NAME, "w"))) ERR;
+        if (!(FP = NCfopen(FILE_NAME, "w"))) ERR;
         if (fwrite(magic_number, sizeof(char), strlen(magic_number), FP)
             != strlen(magic_number)) ERR;
         if (fwrite(dummy_data, sizeof(char), strlen(dummy_data), FP)

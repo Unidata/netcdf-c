@@ -39,12 +39,6 @@ h5catch(void* ignored)
 }
 #endif
 
-/* These are the default chunk cache sizes for HDF5 files created or
- * opened with netCDF-4. */
-extern size_t nc4_chunk_cache_size;
-extern size_t nc4_chunk_cache_nelems;
-extern float nc4_chunk_cache_preemption;
-
 #ifdef LOGGING
 /* This is the severity level of messages which will be logged. Use
    severity 0 for errors, 1 for important log messages, 2 for less
@@ -564,7 +558,7 @@ nc4_HDF5_close_att(NC_ATT_INFO_T *att)
 
 	nullfree(hdf5_att);
 	att->format_att_info = NULL;	
-    return NC_NOERR;
+	return NC_NOERR;
 }
 
 /**
@@ -601,11 +595,19 @@ close_vars(NC_GRP_INFO_T *grp)
             {
                 if (var->type_info)
                 {
-                    if (var->type_info->nc_type_class == NC_VLEN)
+#ifdef SEPDATA
+		    if (var->type_info->nc_type_class == NC_VLEN)
                         nc_free_vlen((nc_vlen_t *)var->fill_value);
                     else if (var->type_info->nc_type_class == NC_STRING && *(char **)var->fill_value)
                         free(*(char **)var->fill_value);
+#else
+		    int stat = NC_NOERR;
+		    if((stat = nc_reclaim_data(grp->nc4_info->controller->ext_ncid,var->type_info->hdr.id,var->fill_value,1)))
+		        return stat;
+		    nullfree(var->fill_value);
                 }
+#endif
+		var->fill_value = NULL;
             }
         }
 

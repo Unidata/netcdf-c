@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 3.7.6.  */
+/* A Bison parser, made by GNU Bison 3.7.5.  */
 
 /* Bison interface for Yacc-like parsers in C
 
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -107,7 +107,10 @@ extern int ncgdebug;
     _SUPERBLOCK = 308,             /* _SUPERBLOCK  */
     _FILTER = 309,                 /* _FILTER  */
     _CODECS = 310,                 /* _CODECS  */
-    DATASETID = 311                /* DATASETID  */
+    _QUANTIZEBG = 311,             /* _QUANTIZEBG  */
+    _QUANTIZEGBR = 312,            /* _QUANTIZEGBR  */
+    _QUANTIZEBR = 313,             /* _QUANTIZEBR  */
+    DATASETID = 314                /* DATASETID  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -116,7 +119,7 @@ extern int ncgdebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 154 "ncgen.y"
+#line 156 "ncgen.y"
 
 Symbol* sym;
 unsigned long  size; /* allow for zero size to indicate e.g. UNLIMITED*/
@@ -125,7 +128,7 @@ int            nctype; /* for tracking attribute list type*/
 Datalist*      datalist;
 NCConstant*    constant;
 
-#line 129 "ncgeny.h"
+#line 132 "ncgeny.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

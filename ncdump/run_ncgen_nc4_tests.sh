@@ -46,11 +46,9 @@ ${NCGEN} -lc $top_srcdir/ncgen/ref_camrun.cdl > camrun.c
 echo "*** test for jira NCF-199 bug"
 validateNC "ncf199" "ncf199" -k nc4
 
-if test "x$NC_VLEN_NOTEST" = x ; then
 echo "*** creating binary files for github issue 323..."
 echo "*** github issue 323 test 1"
 validateNC "compound_datasize_test" "compound_datasize_test" -k nc4
-fi
 
 echo "*** github issue 323 test 2"
 validateNC "compound_datasize_test2" "compound_datasize_test2"  -k nc4

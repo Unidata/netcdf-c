@@ -18,7 +18,7 @@ lib_LTLIBRARIES = libnetcdf.la
 # for information regarding incrementing `-version-info`.
 ##
 
-libnetcdf_la_LDFLAGS = -version-info 19:1:0
+libnetcdf_la_LDFLAGS = -version-info 19:1:0 ${NOUNDEFINED}
 
 libnetcdf_la_CPPFLAGS = ${AM_CPPFLAGS}
 libnetcdf_la_LIBADD =
@@ -62,6 +62,8 @@ endif # ENABLE_DAP
 if ENABLE_DAP4
 AM_CPPFLAGS += -I${top_srcdir}/libdap4
 libnetcdf_la_LIBADD += ${top_builddir}/libdap4/libdap4.la
+AM_CPPFLAGS += -I${top_srcdir}/libncxml
+libnetcdf_la_LIBADD += ${top_builddir}/libncxml/libncxml.la
 endif # ENABLE_DAP4
 
 # NetCDF-4 ...

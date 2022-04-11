@@ -7,6 +7,7 @@
 #include "includes.h"
 #include <ctype.h>      /* for isprint() */
 #include "netcdf_aux.h"
+#include "netcdf_filter.h"
 
 #ifdef ENABLE_BINARY
 
@@ -248,6 +249,15 @@ genbin_definespecialattributes(Symbol* var)
 	int k;
 	for(k=0;k<special->nfilters;k++) {
 	    NC_H5_Filterspec* nfs = special->_Filters[k];
+	    /* See if the filter is available */
+	    stat = nc_inq_filter_avail(var->container->nc_id, nfs->filterid);
+	    switch (stat) {
+	    case NC_NOERR: break;
+	    case NC_ENOFILTER:
+		derror("Filter id=%u; filter not available",nfs->filterid);
+		/* fall thru */
+	    default: CHECK_ERR(stat); break;
+	    }
             stat = nc_def_var_filter(var->container->nc_id,
                         var->nc_id,
 			nfs->filterid,
@@ -257,10 +267,14 @@ genbin_definespecialattributes(Symbol* var)
         }
         CHECK_ERR(stat);
     }
+    if(special->flags & (_QUANTIZEBG_FLAG | _QUANTIZEGBR_FLAG | _QUANTIZEBR_FLAG)) {
+        stat = nc_def_var_quantize(var->container->nc_id,
+                                 var->nc_id, special->_Quantizer, special->_NSD);
+        CHECK_ERR(stat);
+    }
     return stat;
 }
 #endif /*USE_NETCDF4*/
-
 
 void
 genbin_close(void)
@@ -370,9 +384,7 @@ genbin_defineattr(Symbol* asym)
     Bytebuffer* databuf = bbNew();
     generator_reset(bin_generator,NULL);
     generate_attrdata(asym,bin_generator,(Writer)genbin_write,databuf);
-    if((stat = ncaux_reclaim_data(asym->container->nc_id,asym->typ.basetype->nc_id,bbContents(databuf),datalistlen(asym->data))))
-        goto done;
-done:
+    stat = nc_reclaim_data(asym->container->nc_id,asym->typ.basetype->nc_id,bbContents(databuf),datalistlen(asym->data));
     bbFree(databuf);
     return stat;
 }
@@ -388,7 +400,7 @@ genbin_definevardata(Symbol* vsym)
     databuf = bbNew();
     generator_reset(bin_generator,NULL);
     generate_vardata(vsym,bin_generator,(Writer)genbin_write,databuf);
-    ncaux_reclaim_data(vsym->container->nc_id,vsym->typ.basetype->nc_id,bbContents(databuf),datalistlen(vsym->data));
+    stat = nc_reclaim_data_all(vsym->container->nc_id,vsym->typ.basetype->nc_id,bbExtract(databuf),datalistlen(vsym->data));
 done:
     bbFree(databuf);
     return stat;
@@ -443,7 +455,7 @@ genbin_writevar(Generator* generator, Symbol* vsym, Bytebuffer* memory,
     CHECK_ERR(stat);
 #if 0
     /* Reclaim the data */
-    stat = ncaux_reclaim_data(vsym->container->nc_id, vsym->typ.basetype->nc_id, data, nelems);
+    stat = nc_reclaim_data(vsym->container->nc_id, vsym->typ.basetype->nc_id, data, nelems);
     CHECK_ERR(stat);
     bbClear(memory); /* reclaim top-level memory */
 #endif
@@ -468,7 +480,7 @@ genbin_writeattr(Generator* generator, Symbol* asym, Bytebuffer* databuf,
     len = list->length;
 
     /* Use the specialized put_att_XX routines if possible*/
-    if(isprim(basetype->typ.typecode)) {
+    if(isprim(typid)) {
       switch (basetype->typ.typecode) {
       case NC_BYTE: {
         signed char* data = (signed char*)bbContents(databuf);

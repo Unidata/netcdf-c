@@ -1,4 +1,4 @@
-/* Copyright 2003-2018, University Corporation for Atmospheric
+/* Copyright 2003-2022, University Corporation for Atmospheric
  * Research. See COPYRIGHT file for copying and redistribution
  * conditions. */
 /**
@@ -12,10 +12,10 @@
 #include "config.h"
 #include "hdf5internal.h"
 #include "hdf5err.h"
+#include "hdf5debug.h"
 #include "ncrc.h"
 #include "ncauth.h"
 #include "ncmodel.h"
-#include "ncfilter.h"
 #include "ncpathmgr.h"
 
 #ifdef ENABLE_BYTERANGE
@@ -58,22 +58,11 @@ static const int nc_type_size_g[NUM_TYPES] = {sizeof(char), sizeof(char), sizeof
 /** @internal These flags may not be set for open mode. */
 static const int ILLEGAL_OPEN_FLAGS = (NC_MMAP);
 
-/* From libsrc4, these are the netcdf-4 cache sizes. */
-extern size_t nc4_chunk_cache_size;
-extern size_t nc4_chunk_cache_nelems;
-extern float nc4_chunk_cache_preemption;
-
 /* From nc4mem.c */
 extern int NC4_open_image_file(NC_FILE_INFO_T* h5);
 
 /* Defined later in this file. */
 static int rec_read_metadata(NC_GRP_INFO_T *grp);
-
-#ifdef ENABLE_BYTERANGE
-#ifdef ENABLE_HDF5_ROS3
-static int ros3info(NCauth** auth, NCURI* uri, char** hostportp, char** regionp);
-#endif
-#endif
 
 /**
  * @internal Struct to track HDF5 object info, for
@@ -738,14 +727,17 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
     h5 = (NC_HDF5_FILE_INFO_T*)nc4_info->format_file_info;
 
 #ifdef ENABLE_BYTERANGE
-    /* See if we want the byte range protocol */
-    if(NC_testmode(path,"bytes")) {
-        h5->http.iosp = 1;
-        /* Kill off any conflicting modes flags */
-        mode &= ~(NC_WRITE|NC_DISKLESS|NC_PERSIST|NC_INMEMORY);
-        parameters = NULL; /* kill off parallel */
-    } else
-        h5->http.iosp = 0;
+    /* Do path as URL processing */
+    ncuriparse(path,&h5->uri);
+    if(h5->uri != NULL) {
+        /* See if we want the byte range protocol */
+        if(NC_testmode(h5->uri,"bytes")) h5->byterange = 1; else h5->byterange = 0;
+	if(h5->byterange) {
+  	    /* Kill off any conflicting modes flags */
+	    mode &= ~(NC_WRITE|NC_DISKLESS|NC_PERSIST|NC_INMEMORY);
+            parameters = NULL; /* kill off parallel */
+	}
+    }
 #endif /*ENABLE_BYTERANGE*/
 
     nc4_info->mem.inmemory = ((mode & NC_INMEMORY) == NC_INMEMORY);
@@ -756,6 +748,10 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
     if ((mode & NC_WRITE) == 0)
         nc4_info->no_write = NC_TRUE;
 
+    if ((mode & NC_WRITE) && (mode & NC_NOATTCREORD)) {
+        nc4_info->no_attr_create_order = NC_TRUE;
+    }
+
     if(nc4_info->mem.inmemory && nc4_info->mem.diskless)
         BAIL(NC_EINTERNAL);
 
@@ -763,9 +759,10 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
     mpiinfo = (NC_MPI_INFO *)parameters; /* assume, may be changed if inmemory is true */
 #endif /* !USE_PARALLEL4 */
 
-    /* Need this access plist to control how HDF5 handles open objects
-     * on file close. (Setting H5F_CLOSE_WEAK will cause H5Fclose not to
-     * fail if there are any open objects in the file. This may happen when virtual
+    /* Need this FILE ACCESS plist to control how HDF5 handles open
+     * objects on file close; as well as for other controls below.
+     * (Setting H5F_CLOSE_WEAK will cause H5Fclose not to fail if there
+     * are any open objects in the file. This may happen when virtual
      * datasets are opened). */
     if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0)
         BAIL(NC_EHDFERR);
@@ -810,13 +807,30 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
     /* Only set cache for non-parallel opens. */
     if (!nc4_info->parallel)
     {
-	if (H5Pset_cache(fapl_id, 0, nc4_chunk_cache_nelems, nc4_chunk_cache_size,
-			 nc4_chunk_cache_preemption) < 0)
+	NCglobalstate* gs = NC_getglobalstate();
+	if (H5Pset_cache(fapl_id, 0, gs->chunkcache.nelems, gs->chunkcache.size,
+			 gs->chunkcache.preemption) < 0)
 	    BAIL(NC_EHDFERR);
 	LOG((4, "%s: set HDF raw chunk cache to size %d nelems %d preemption %f",
-	     __func__, nc4_chunk_cache_size, nc4_chunk_cache_nelems,
-	     nc4_chunk_cache_preemption));
+	     __func__, gs->chunkcache.size, gs->chunkcache.nelems,
+	     gs->chunkcache.preemption));
     }
+
+    {
+	NCglobalstate* gs = NC_getglobalstate();
+        if(gs->alignment.defined) {
+	    if (H5Pset_alignment(fapl_id, gs->alignment.threshold, gs->alignment.alignment) < 0) {
+	        BAIL(NC_EHDFERR);
+	    }
+	}
+    }
+
+    /* Set HDF5 format compatibility in the FILE ACCESS property list.
+     * Compatibility is transient and must be reselected every time
+     * a file is opened for writing. */
+    retval = hdf5set_format_compatibility(fapl_id);
+    if (retval != NC_NOERR)
+        BAIL(retval);
 
     /* Process  NC_INMEMORY */
     if(nc4_info->mem.inmemory) {
@@ -852,53 +866,81 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
                 BAIL(NC_EHDFERR);
         }
 #ifdef ENABLE_BYTERANGE
-        else
-            if(h5->http.iosp) {   /* Arrange to use the byte-range driver */
+	else if(h5->byterange) {   /* Arrange to use the byte-range drivers */
+	    char* newpath = NULL;
+            char* awsregion0 = NULL;
 #ifdef ENABLE_HDF5_ROS3
-		NCURI* uri = NULL;
-		H5FD_ros3_fapl_t fa;
-		char* hostport = NULL;
-		char* region = NULL;
-		ncuriparse(path,&uri);
-		if(uri == NULL)
-		    BAIL(NC_EINVAL);		
-		if((ros3info(&h5->http.auth,uri,&hostport,&region)))
-		    BAIL(NC_EINVAL);
-		ncurifree(uri); uri = NULL;
-                fa.version = 1;
-		fa.aws_region[0] = '\0';
-	        fa.secret_id[0] = '\0';
-		fa.secret_key[0] = '\0';
-		if(h5->http.auth->s3creds.accessid == NULL || h5->http.auth->s3creds.secretkey == NULL) {
-	  	    /* default, non-authenticating, "anonymous" fapl configuration */
-		    fa.authenticate = (hbool_t)0;
-		} else {
-		    fa.authenticate = (hbool_t)1;
-		    strlcat(fa.aws_region,region,H5FD_ROS3_MAX_REGION_LEN);
-		    strlcat(fa.secret_id, h5->http.auth->s3creds.accessid, H5FD_ROS3_MAX_SECRET_ID_LEN);
-                    strlcat(fa.secret_key, h5->http.auth->s3creds.secretkey, H5FD_ROS3_MAX_SECRET_KEY_LEN);
-		}
-	        nullfree(region);
-		nullfree(hostport);
-                /* create and set fapl entry */
-                if(H5Pset_fapl_ros3(fapl_id, &fa) < 0)
-                    BAIL(NC_EHDFERR);
+	    H5FD_ros3_fapl_t fa;
+	    char* hostport = NULL;
+	    const char* profile0 = NULL;
+	    const char* awsaccessid0 = NULL;
+	    const char* awssecretkey0 = NULL;
+	    
+	    if(NC_iss3(h5->uri)) {
+	        /* Rebuild the URL */
+		NCURI* newuri = NULL;
+		if((retval = NC_s3urlrebuild(h5->uri,&newuri,NULL,&awsregion0))) goto exit;
+		if((newpath = ncuribuild(newuri,NULL,NULL,NCURISVC))==NULL)
+		    {retval = NC_EURL; goto exit;}
+		ncurifree(h5->uri);
+		h5->uri = newuri;
+	    }
+	    hostport = NC_combinehostport(h5->uri);
+	    if((retval = NC_getactives3profile(h5->uri,&profile0)))
+		BAIL(retval);
+		
+            fa.version = 1;
+	    fa.aws_region[0] = '\0';
+	    fa.secret_id[0] = '\0';
+	    fa.secret_key[0] = '\0';
+	    if((retval = NC_s3profilelookup(profile0,AWS_ACCESS_KEY_ID,&awsaccessid0)))
+		BAIL(retval);		
+	    if((retval = NC_s3profilelookup(profile0,AWS_SECRET_ACCESS_KEY,&awssecretkey0)))
+		BAIL(retval);		
+	    if(awsaccessid0 == NULL || awssecretkey0 == NULL) {
+		/* default, non-authenticating, "anonymous" fapl configuration */
+		fa.authenticate = (hbool_t)0;
+	    } else {
+		fa.authenticate = (hbool_t)1;
+		if(awsregion0)
+		    strlcat(fa.aws_region,awsregion0,H5FD_ROS3_MAX_REGION_LEN);
+		strlcat(fa.secret_id, awsaccessid0, H5FD_ROS3_MAX_SECRET_ID_LEN);
+                strlcat(fa.secret_key, awssecretkey0, H5FD_ROS3_MAX_SECRET_KEY_LEN);
+	    }
+	    nullfree(hostport);
+            /* create and set fapl entry */
+            if(H5Pset_fapl_ros3(fapl_id, &fa) < 0)
+                BAIL(NC_EHDFERR);
 #else
-                /* Configure FAPL to use our byte-range file driver */
-                if (H5Pset_fapl_http(fapl_id) < 0)
-                    BAIL(NC_EHDFERR);
+            /* Configure FAPL to use our byte-range file driver */
+            if (H5Pset_fapl_http(fapl_id) < 0)
+                BAIL(NC_EHDFERR);
+#endif /*ENABLE_ROS3*/
+            /* Open the HDF5 file. */
+            if ((h5->hdfid = nc4_H5Fopen((newpath?newpath:path), flags, fapl_id)) < 0)
+                BAIL(NC_EHDFERR);
+	    nullfree(newpath);
+	    nullfree(awsregion0);
+        }
 #endif
-                /* Open the HDF5 file. */
-                if ((h5->hdfid = nc4_H5Fopen(path, flags, fapl_id)) < 0)
-                    BAIL(NC_EHDFERR);
-            }
-#endif
-            else
-            {
-                /* Open the HDF5 file. */
-                if ((h5->hdfid = nc4_H5Fopen(path, flags, fapl_id)) < 0)
-                    BAIL(NC_EHDFERR);
-            }
+        else {
+            /* Open the HDF5 file. */
+            if ((h5->hdfid = nc4_H5Fopen(path, flags, fapl_id)) < 0)
+                BAIL(NC_EHDFERR);
+        }
+
+    /* Get the file creation property list to check for attribute ordering */
+    {
+      hid_t pid;
+      unsigned int crt_order_flags;
+      if ((pid = H5Fget_create_plist(h5->hdfid)) < 0)
+          BAIL(NC_EHDFERR);
+      if (H5Pget_attr_creation_order(pid, &crt_order_flags) < 0)
+          BAIL(NC_EHDFERR);
+      if (!(crt_order_flags & H5P_CRT_ORDER_TRACKED)) {
+	  nc4_info->no_attr_create_order = NC_TRUE;
+      }
+    }
 
     /* Now read in all the metadata. Some types and dimscale
      * information may be difficult to resolve here, if, for example, a
@@ -944,7 +986,7 @@ exit:
         H5Pclose(fapl_id);
     if (nc4_info)
         nc4_close_hdf5_file(nc4_info, 1, 0); /*  treat like abort*/
-    return retval;
+    return THROW(retval);
 }
 
 /**
@@ -1044,14 +1086,6 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
  	    {stat = NC_EHDFERR; goto done;} /* Something in HDF5 went wrong */
 	switch (filter)
         {
-        case H5Z_FILTER_SHUFFLE:
-            var->shuffle = NC_TRUE;
-            break;
-
-        case H5Z_FILTER_FLETCHER32:
-            var->fletcher32 = NC_TRUE;
-            break;
-
         case H5Z_FILTER_DEFLATE:
             if (cd_nelems != CD_NELEMS_ZLIB ||
                 cd_values[0] > NC_MAX_DEFLATE_LEVEL)
@@ -1121,6 +1155,8 @@ static int get_fill_info(hid_t propid, NC_VAR_INFO_T *var)
         /* Allocate space to hold the fill value. */
         if (!var->fill_value)
         {
+#ifdef SEPDATA
+
             if (var->type_info->nc_type_class == NC_VLEN)
             {
                 if (!(var->fill_value = malloc(sizeof(nc_vlen_t))))
@@ -1132,6 +1168,7 @@ static int get_fill_info(hid_t propid, NC_VAR_INFO_T *var)
                     return NC_ENOMEM;
             }
             else
+#endif
             {
                 assert(var->type_info->size);
                 if (!(var->fill_value = malloc(var->type_info->size)))
@@ -1169,13 +1206,33 @@ static int get_quantize_info(NC_VAR_INFO_T *var)
     /* Try to open an attribute of the correct name for quantize
      * info. */
     datasetid = ((NC_HDF5_VAR_INFO_T *)var->format_var_info)->hdf_datasetid;
-    attid = H5Aopen_by_name(datasetid, ".", NC_QUANTIZE_ATT_NAME,
+    attid = H5Aopen_by_name(datasetid, ".", NC_QUANTIZE_BITGROOM_ATT_NAME,
 			    H5P_DEFAULT, H5P_DEFAULT);
 
+    if (attid > 0)
+      {
+	var->quantize_mode = NC_QUANTIZE_BITGROOM;
+      }
+    else
+      {
+	attid = H5Aopen_by_name(datasetid, ".", NC_QUANTIZE_GRANULARBR_ATT_NAME,
+			    H5P_DEFAULT, H5P_DEFAULT);
+	if (attid > 0)
+	  {
+	    var->quantize_mode = NC_QUANTIZE_GRANULARBR;
+	  }
+	else
+	  {
+	    attid = H5Aopen_by_name(datasetid, ".", NC_QUANTIZE_BITROUND_ATT_NAME,
+				    H5P_DEFAULT, H5P_DEFAULT);
+	    if (attid > 0)
+	      var->quantize_mode = NC_QUANTIZE_BITROUND;
+	  }
+      }
+    
     /* If there is an attribute, read it for the nsd. */
     if (attid > 0)
     {
-	var->quantize_mode = NC_QUANTIZE_BITGROOM;
         if (H5Aread(attid, H5T_NATIVE_INT, &var->nsd) < 0)
             return NC_EHDFERR;
 	if (H5Aclose(attid) < 0)
@@ -1401,10 +1458,10 @@ nc4_get_var_meta(NC_VAR_INFO_T *var)
         BAIL(NC_EVARMETA);
 
     /* Learn about current chunk cache settings. */
-    if ((H5Pget_chunk_cache(access_pid, &(var->chunk_cache_nelems),
-                            &(var->chunk_cache_size), &rdcc_w0)) < 0)
+    if ((H5Pget_chunk_cache(access_pid, &(var->chunkcache.nelems),
+                            &(var->chunkcache.size), &rdcc_w0)) < 0)
         BAIL(NC_EHDFERR);
-    var->chunk_cache_preemption = rdcc_w0;
+    var->chunkcache.preemption = rdcc_w0;
 
     /* Get the dataset creation properties. */
     if ((propid = H5Dget_create_plist(hdf5_var->hdf_datasetid)) < 0)
@@ -1716,7 +1773,7 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
     LOG((5, "%s: att->hdr.id %d att->hdr.name %s att->nc_typeid %d att->len %d",
          __func__, att->hdr.id, att->hdr.name, (int)att->nc_typeid, att->len));
 
-    /* Get HDF5-sepecific info struct for this attribute. */
+    /* Get HDF5-specific info struct for this attribute. */
     hdf5_att = (NC_HDF5_ATT_INFO_T *)att->format_att_info;
 
     /* Get type of attribute in file. */
@@ -1737,7 +1794,6 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
     if ((retval = get_netcdf_type(grp->nc4_info, hdf5_att->native_hdf_typeid,
                                   &(att->nc_typeid))))
         BAIL(retval);
-
 
     /* Get len. */
     if ((spaceid = H5Aget_space(attid)) < 0)
@@ -1807,6 +1863,7 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
         if ((retval = nc4_get_typelen_mem(grp->nc4_info, att->nc_typeid,
                                           &type_size)))
             return retval;
+#ifdef SEPDATA
         if (att_class == H5T_VLEN)
         {
             if (!(att->vldata = malloc((unsigned int)(att->len * sizeof(hvl_t)))))
@@ -1823,11 +1880,11 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
              * nc_free_string be called on string arrays, which would not
              * work if one contiguous memory block were used. So here I
              * convert the contiguous block of strings into an array of
-             * malloced strings (each string with its own malloc). Then I
+             * malloced strings -- each string with its own malloc. Then I
              * copy the data and free the contiguous memory. This
              * involves copying the data, which is bad, but this only
              * occurs for fixed length string attributes, and presumably
-             * these are small. (And netCDF-4 does not create them - it
+             * these are small. Note also that netCDF-4 does not create them - it
              * always uses variable length strings. */
             if (fixed_len_string)
             {
@@ -1869,12 +1926,64 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
             }
         }
         else
+#else
         {
             if (!(att->data = malloc((unsigned int)(att->len * type_size))))
                 BAIL(NC_ENOMEM);
-            if (H5Aread(attid, hdf5_att->native_hdf_typeid, att->data) < 0)
-                BAIL(NC_EATTMETA);
+
+            /* For a fixed length HDF5 string, the read requires
+             * contiguous memory. Meanwhile, the netCDF API requires that
+             * nc_free_string be called on string arrays, which would not
+             * work if one contiguous memory block were used. So here I
+             * convert the contiguous block of strings into an array of
+             * malloced strings -- each string with its own malloc. Then I
+             * copy the data and free the contiguous memory. This
+             * involves copying the data, which is bad, but this only
+             * occurs for fixed length string attributes, and presumably
+             * these are small. Note also that netCDF-4 does not create them - it
+             * always uses variable length strings. */
+            if (att->nc_typeid == NC_STRING && fixed_len_string)
+            {
+                int i;
+                char *contig_buf, *cur;
+		char** dst = NULL;
+
+                /* Alloc space for the contiguous memory read. */
+                if (!(contig_buf = malloc(att->len * fixed_size * sizeof(char))))
+                    BAIL(NC_ENOMEM);
+
+                /* Read the fixed-len strings as one big block. */
+                if (H5Aread(attid, hdf5_att->native_hdf_typeid, contig_buf) < 0) {
+                    free(contig_buf);
+                    BAIL(NC_EATTMETA);
+                }
+
+                /* Copy strings, one at a time, into their new home. Alloc
+                   space for each string. The user will later free this
+                   space with nc_free_string. */
+                cur = contig_buf;
+	        dst = (char**)att->data;
+                for (i = 0; i < att->len; i++)
+                {
+		    char* s = NULL;
+                    if (!(s = malloc(fixed_size+1))) {
+                        free(contig_buf);
+                        BAIL(NC_ENOMEM);
+                    }
+		    memcpy(s,cur,fixed_size);
+		    s[fixed_size] = '\0';
+		    dst[i] = s;
+                    cur += fixed_size;
+                }
+                /* Free contiguous memory buffer. */
+                free(contig_buf);
+            } else { /* not fixed string */
+		/* Just read the data */
+                if (H5Aread(attid, hdf5_att->native_hdf_typeid, att->data) < 0)
+                    BAIL(NC_EATTMETA);
+	    }
         }
+#endif
     }
 
     if (H5Tclose(file_typeid) < 0)
@@ -1906,13 +2015,7 @@ hdf5free(void* memory)
 #ifndef JNA
     /* On Windows using the microsoft runtime, it is an error
        for one library to free memory allocated by a different library.*/
-#ifdef HAVE_H5FREE_MEMORY
     if(memory != NULL) H5free_memory(memory);
-#else
-#ifndef _MSC_VER
-    if(memory != NULL) free(memory);
-#endif
-#endif
 #endif
 }
 
@@ -2076,6 +2179,12 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
                     return retval;
             }
 
+	    {   /* See if this changes from fixed size to variable size */
+		int fixedsize;
+                if((retval = NC4_inq_type_fixed_size(grp->nc4_info->controller->ext_ncid,member_xtype,&fixedsize))) return retval;
+		if(!fixedsize) type->u.c.varsized = 1;
+	    }
+
             hdf5free(member_name);
         }
     }
@@ -2207,7 +2316,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
  * for both global and variable attributes.
  *
  * @param loc_id HDF5 attribute ID.
- * @param att_name Name of the attrigute.
+ * @param att_name Name of the attribute.
  * @param ainfo HDF5 info struct for attribute.
  * @param att_data Pointer to an att_iter_info struct, which contains
  * pointers to the NC_GRP_INFO_T and (for variable attributes) the
@@ -2250,6 +2359,10 @@ att_read_callbk(hid_t loc_id, const char *att_name, const H5A_info_t *ainfo,
     /* Add to the end of the list of atts for this var. */
     if ((retval = nc4_att_list_add(list, att_name, &att)))
         BAIL(-1);
+
+    /* Remember container */
+    att->container = (att_info->var ? (NC_OBJ*)att_info->var: (NC_OBJ*)att_info->grp);
+
 
     /* Allocate storage for the HDF5 specific att info. */
     if (!(att->format_att_info = calloc(1, sizeof(NC_HDF5_ATT_INFO_T))))
@@ -2830,56 +2943,6 @@ exit:
     return retval;
 }
 
-#ifdef ENABLE_BYTERANGE
-#ifdef ENABLE_HDF5_ROS3
-static int
-ros3info(NCauth** authp, NCURI* uri, char** hostportp, char** regionp)
-{
-    int stat = NC_NOERR;
-    size_t len;
-    char* hostport = NULL;
-    char* region = NULL;    
-    char* p;
-
-    if(uri == NULL || uri->host == NULL)
-	{stat = NC_EINVAL; goto done;}
-    len = strlen(uri->host);
-    if(uri->port != NULL)
-        len += 1+strlen(uri->port);
-    len++; /* nul term */
-    if((hostport = malloc(len)) == NULL)
-	{stat = NC_ENOMEM; goto done;}    
-    hostport[0] = '\0';
-    strlcat(hostport,uri->host,len);
-    if(uri->port != NULL) {
-        strlcat(hostport,":",len);
-	strlcat(hostport,uri->port,len);
-    }
-    /* We only support path urls, not virtual urls, so the
-       host past the first dot must be "s3.amazonaws.com" */
-    p = strchr(uri->host,'.');
-    if(p != NULL && strcmp(p+1,"s3.amazonaws.com")==0) {
-	len = (size_t)((p - uri->host)-1);
-	region = calloc(1,len+1);
-	memcpy(region,uri->host,len);
-	region[len] = '\0';
-    } else /* cannot find region: use "" */
-	region = strdup("");
-    if(hostportp) {*hostportp = hostport; hostport = NULL;}
-    if(regionp) {*regionp = region; region = NULL;}
-
-    /* Extract auth related info */
-    if((stat=NC_authsetup(authp, uri)))
-	goto done;
-
-done:
-    nullfree(hostport);
-    nullfree(region);
-    return stat;
-}
-#endif /*ENABLE_HDF5_ROS3*/
-#endif /*ENABLE_BYTERANGE*/
-
 /**
  * Wrapper function for H5Fopen.
  * Converts the filename from ANSI to UTF-8 as needed before calling H5Fopen.
@@ -2904,6 +2967,7 @@ nc4_H5Fopen(const char *filename0, unsigned flags, hid_t fapl_id)
     if((localname = NCpathcvt(filename))==NULL)
 	{hid = H5I_INVALID_HID; goto done;}
     hid = H5Fopen(localname, flags, fapl_id);
+
 done:
     nullfree(filename);
     nullfree(localname);

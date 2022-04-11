@@ -26,7 +26,6 @@ failure() {
 }
 
 setresultdir results_test_hyrax
-
 TESTSERVER=`${execdir}/findtestserver4 dap4 opendap test.opendap.org`
 if test "x$TESTSERVER" = x ; then
 echo "***XFAIL: Cannot find test.opendap.org testserver; test skipped"

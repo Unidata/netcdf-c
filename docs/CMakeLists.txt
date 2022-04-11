@@ -23,22 +23,25 @@ IF(ENABLE_DOXYGEN)
   CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
     ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
 
+    # Create auth.html with some sed commands.
+  ADD_CUSTOM_TARGET(oc2_auth ALL
+
+    COMMAND cat ${CMAKE_SOURCE_DIR}/oc2/auth.html.in | sed -e "/<OC>/d" | sed -e "s|^<NC>||" | sed -e "s|zz|netcdf|g" -e "s|ZZ|netCDF|g" | sed -e "/stylesheet/r${CMAKE_SOURCE_DIR}/oc2/oc.css" -e "/stylesheet/d" > ${CMAKE_CURRENT_SOURCE_DIR}/auth.html
+    COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/auth.html ${CMAKE_CURRENT_BINARY_DIR}/html
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    VERBATIM
+  )
+
   # Generate User Documentation
   ADD_CUSTOM_TARGET(doc_all ALL
     ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
     COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/auth.html ${CMAKE_CURRENT_BINARY_DIR}/html
     COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/obsolete/fan_utils.html ${CMAKE_CURRENT_BINARY_DIR}/html
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    COMMENT "Generating API Documentation" VERBATIM)
+    COMMENT "Generating API Documentation" VERBATIM
+  )
 
-    # Create auth.html with some sed commands.
-  ADD_CUSTOM_TARGET(oc2-auth
 
-    cat ${CMAKE_SOURCE_DIR}/oc2/auth.html.in | sed -e "/<OC>/d" | sed -e "s|^<NC>||" | sed -e "s|zz|netcdf|g" -e "s|ZZ|netCDF|g" | sed -e "/stylesheet/r${CMAKE_SOURCE_DIR}/oc2/oc.css" -e "/stylesheet/d" > ${CMAKE_CURRENT_SOURCE_DIR}/auth.html
-    COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/auth.html ${CMAKE_CURRENT_BINARY_DIR}/html
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    VERBATIM
-    )
 
   # If ENABLE_DOXYGEN_LATEX_OUTPUT is true, automatically build
   # the PDF files.
@@ -84,14 +87,14 @@ ENDIF(ENABLE_DOXYGEN)
 # Should match list in Makefile.am
 SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST}
 netcdf.m4 DoxygenLayout.xml Doxyfile.in footer.html
-mainpage.dox tutorial.dox guide.dox types.dox cdl.dox
+mainpage.dox tutorial.dox guide.dox types.dox
 architecture.dox internal.dox windows-binaries.md
 building-with-cmake.md CMakeLists.txt groups.dox install.md notes.md
 install-fortran.md all-error-codes.md credits.md auth.md
 obsolete/fan_utils.html bestpractices.md filters.md indexing.md
-inmemory.md DAP2.dox attribute_conventions.md FAQ.md
-file_format_specifications.md known_problems.md
+inmemory.md DAP2.dox FAQ.md
+known_problems.md
 COPYRIGHT.dox user_defined_formats.md DAP4.md DAP4.dox
-testserver.dox byterange.dox filters.md nczarr.md)
+testserver.dox byterange.dox filters.md nczarr.md auth.md)
 
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")

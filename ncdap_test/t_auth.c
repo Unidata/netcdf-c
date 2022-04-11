@@ -16,7 +16,7 @@ See \ref copyright file for more info.
 #include <unistd.h>
 #endif
 
-#define DEBUG
+#undef DEBUG
 
 #include "netcdf.h"
 #include "nctestserver.h"
@@ -150,7 +150,7 @@ testrc(const char* prefix, const char* url)
     FILE* rc;
 
     snprintf(rcpath,sizeof(rcpath),"%s/%s",prefix,RC);
-    rc = fopen(rcpath,"w");
+    rc = NCfopen(rcpath,"w");
     if(rc == NULL) {
         fprintf(stderr,"Cannot create ./%s\n",RC);
         exit(1);
@@ -178,7 +178,7 @@ fillrc(const char* path)
     FILE* rc;
     killrc();
 
-    rc = fopen(path,"w");
+    rc = NCfopen(path,"w");
     if(rc == NULL) {
 	fprintf(stderr,"cannot create rc file: %s\n",path);
 	exit(1);

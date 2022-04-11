@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 3.7.6.  */
+/* A Bison parser, made by GNU Bison 3.7.5.  */
 
 /* Bison implementation for Yacc-like parsers in C
 
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -46,10 +46,10 @@
    USER NAME SPACE" below.  */
 
 /* Identify Bison output, and Bison version.  */
-#define YYBISON 30706
+#define YYBISON 30705
 
 /* Bison version string.  */
-#define YYBISON_VERSION "3.7.6"
+#define YYBISON_VERSION "3.7.5"
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME "yacc.c"
@@ -198,6 +198,8 @@ static long long extractint(NCConstant* con);
 #ifdef USE_NETCDF4
 static int parsefilterflag(const char* sdata0, Specialdata* special);
 static int parsecodecsflag(const char* sdata0, Specialdata* special);
+static Symbol* identkeyword(const Symbol*);
+
 #ifdef GENDEBUG1
 static void printfilters(int nfilters, NC_ParsedFilterSpec** filters);
 #endif
@@ -215,7 +217,7 @@ static void yyerror(fmt,va_alist) const char* fmt; va_dcl;
 extern int lex_init(void);
 
 
-#line 219 "ncgeny.c"
+#line 221 "ncgeny.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -299,83 +301,87 @@ enum yysymbol_kind_t
   YYSYMBOL__SUPERBLOCK = 53,               /* _SUPERBLOCK  */
   YYSYMBOL__FILTER = 54,                   /* _FILTER  */
   YYSYMBOL__CODECS = 55,                   /* _CODECS  */
-  YYSYMBOL_DATASETID = 56,                 /* DATASETID  */
-  YYSYMBOL_57_ = 57,                       /* '{'  */
-  YYSYMBOL_58_ = 58,                       /* '}'  */
-  YYSYMBOL_59_ = 59,                       /* ';'  */
-  YYSYMBOL_60_ = 60,                       /* ','  */
-  YYSYMBOL_61_ = 61,                       /* '='  */
-  YYSYMBOL_62_ = 62,                       /* '('  */
-  YYSYMBOL_63_ = 63,                       /* ')'  */
-  YYSYMBOL_64_ = 64,                       /* '*'  */
-  YYSYMBOL_65_ = 65,                       /* ':'  */
-  YYSYMBOL_YYACCEPT = 66,                  /* $accept  */
-  YYSYMBOL_ncdesc = 67,                    /* ncdesc  */
-  YYSYMBOL_datasetid = 68,                 /* datasetid  */
-  YYSYMBOL_rootgroup = 69,                 /* rootgroup  */
-  YYSYMBOL_groupbody = 70,                 /* groupbody  */
-  YYSYMBOL_subgrouplist = 71,              /* subgrouplist  */
-  YYSYMBOL_namedgroup = 72,                /* namedgroup  */
-  YYSYMBOL_73_1 = 73,                      /* $@1  */
-  YYSYMBOL_74_2 = 74,                      /* $@2  */
-  YYSYMBOL_typesection = 75,               /* typesection  */
-  YYSYMBOL_typedecls = 76,                 /* typedecls  */
-  YYSYMBOL_typename = 77,                  /* typename  */
-  YYSYMBOL_type_or_attr_decl = 78,         /* type_or_attr_decl  */
-  YYSYMBOL_typedecl = 79,                  /* typedecl  */
-  YYSYMBOL_optsemicolon = 80,              /* optsemicolon  */
-  YYSYMBOL_enumdecl = 81,                  /* enumdecl  */
-  YYSYMBOL_enumidlist = 82,                /* enumidlist  */
-  YYSYMBOL_enumid = 83,                    /* enumid  */
-  YYSYMBOL_opaquedecl = 84,                /* opaquedecl  */
-  YYSYMBOL_vlendecl = 85,                  /* vlendecl  */
-  YYSYMBOL_compounddecl = 86,              /* compounddecl  */
-  YYSYMBOL_fields = 87,                    /* fields  */
-  YYSYMBOL_field = 88,                     /* field  */
-  YYSYMBOL_primtype = 89,                  /* primtype  */
-  YYSYMBOL_dimsection = 90,                /* dimsection  */
-  YYSYMBOL_dimdecls = 91,                  /* dimdecls  */
-  YYSYMBOL_dim_or_attr_decl = 92,          /* dim_or_attr_decl  */
-  YYSYMBOL_dimdeclist = 93,                /* dimdeclist  */
-  YYSYMBOL_dimdecl = 94,                   /* dimdecl  */
-  YYSYMBOL_dimd = 95,                      /* dimd  */
-  YYSYMBOL_vasection = 96,                 /* vasection  */
-  YYSYMBOL_vadecls = 97,                   /* vadecls  */
-  YYSYMBOL_vadecl_or_attr = 98,            /* vadecl_or_attr  */
-  YYSYMBOL_vardecl = 99,                   /* vardecl  */
-  YYSYMBOL_varlist = 100,                  /* varlist  */
-  YYSYMBOL_varspec = 101,                  /* varspec  */
-  YYSYMBOL_dimspec = 102,                  /* dimspec  */
-  YYSYMBOL_dimlist = 103,                  /* dimlist  */
-  YYSYMBOL_dimref = 104,                   /* dimref  */
-  YYSYMBOL_fieldlist = 105,                /* fieldlist  */
-  YYSYMBOL_fieldspec = 106,                /* fieldspec  */
-  YYSYMBOL_fielddimspec = 107,             /* fielddimspec  */
-  YYSYMBOL_fielddimlist = 108,             /* fielddimlist  */
-  YYSYMBOL_fielddim = 109,                 /* fielddim  */
-  YYSYMBOL_varref = 110,                   /* varref  */
-  YYSYMBOL_typeref = 111,                  /* typeref  */
-  YYSYMBOL_ambiguous_ref = 112,            /* ambiguous_ref  */
-  YYSYMBOL_attrdecllist = 113,             /* attrdecllist  */
-  YYSYMBOL_attrdecl = 114,                 /* attrdecl  */
-  YYSYMBOL_path = 115,                     /* path  */
-  YYSYMBOL_datasection = 116,              /* datasection  */
-  YYSYMBOL_datadecls = 117,                /* datadecls  */
-  YYSYMBOL_datadecl = 118,                 /* datadecl  */
-  YYSYMBOL_datalist = 119,                 /* datalist  */
-  YYSYMBOL_datalist0 = 120,                /* datalist0  */
-  YYSYMBOL_datalist1 = 121,                /* datalist1  */
-  YYSYMBOL_dataitem = 122,                 /* dataitem  */
-  YYSYMBOL_constdata = 123,                /* constdata  */
-  YYSYMBOL_econstref = 124,                /* econstref  */
-  YYSYMBOL_function = 125,                 /* function  */
-  YYSYMBOL_arglist = 126,                  /* arglist  */
-  YYSYMBOL_simpleconstant = 127,           /* simpleconstant  */
-  YYSYMBOL_intlist = 128,                  /* intlist  */
-  YYSYMBOL_constint = 129,                 /* constint  */
-  YYSYMBOL_conststring = 130,              /* conststring  */
-  YYSYMBOL_constbool = 131,                /* constbool  */
-  YYSYMBOL_ident = 132                     /* ident  */
+  YYSYMBOL__QUANTIZEBG = 56,               /* _QUANTIZEBG  */
+  YYSYMBOL__QUANTIZEGBR = 57,              /* _QUANTIZEGBR  */
+  YYSYMBOL__QUANTIZEBR = 58,               /* _QUANTIZEBR  */
+  YYSYMBOL_DATASETID = 59,                 /* DATASETID  */
+  YYSYMBOL_60_ = 60,                       /* '{'  */
+  YYSYMBOL_61_ = 61,                       /* '}'  */
+  YYSYMBOL_62_ = 62,                       /* ';'  */
+  YYSYMBOL_63_ = 63,                       /* ','  */
+  YYSYMBOL_64_ = 64,                       /* '='  */
+  YYSYMBOL_65_ = 65,                       /* '('  */
+  YYSYMBOL_66_ = 66,                       /* ')'  */
+  YYSYMBOL_67_ = 67,                       /* '*'  */
+  YYSYMBOL_68_ = 68,                       /* ':'  */
+  YYSYMBOL_YYACCEPT = 69,                  /* $accept  */
+  YYSYMBOL_ncdesc = 70,                    /* ncdesc  */
+  YYSYMBOL_datasetid = 71,                 /* datasetid  */
+  YYSYMBOL_rootgroup = 72,                 /* rootgroup  */
+  YYSYMBOL_groupbody = 73,                 /* groupbody  */
+  YYSYMBOL_subgrouplist = 74,              /* subgrouplist  */
+  YYSYMBOL_namedgroup = 75,                /* namedgroup  */
+  YYSYMBOL_76_1 = 76,                      /* $@1  */
+  YYSYMBOL_77_2 = 77,                      /* $@2  */
+  YYSYMBOL_typesection = 78,               /* typesection  */
+  YYSYMBOL_typedecls = 79,                 /* typedecls  */
+  YYSYMBOL_typename = 80,                  /* typename  */
+  YYSYMBOL_type_or_attr_decl = 81,         /* type_or_attr_decl  */
+  YYSYMBOL_typedecl = 82,                  /* typedecl  */
+  YYSYMBOL_optsemicolon = 83,              /* optsemicolon  */
+  YYSYMBOL_enumdecl = 84,                  /* enumdecl  */
+  YYSYMBOL_enumidlist = 85,                /* enumidlist  */
+  YYSYMBOL_enumid = 86,                    /* enumid  */
+  YYSYMBOL_opaquedecl = 87,                /* opaquedecl  */
+  YYSYMBOL_vlendecl = 88,                  /* vlendecl  */
+  YYSYMBOL_compounddecl = 89,              /* compounddecl  */
+  YYSYMBOL_fields = 90,                    /* fields  */
+  YYSYMBOL_field = 91,                     /* field  */
+  YYSYMBOL_primtype = 92,                  /* primtype  */
+  YYSYMBOL_dimsection = 93,                /* dimsection  */
+  YYSYMBOL_dimdecls = 94,                  /* dimdecls  */
+  YYSYMBOL_dim_or_attr_decl = 95,          /* dim_or_attr_decl  */
+  YYSYMBOL_dimdeclist = 96,                /* dimdeclist  */
+  YYSYMBOL_dimdecl = 97,                   /* dimdecl  */
+  YYSYMBOL_dimd = 98,                      /* dimd  */
+  YYSYMBOL_vasection = 99,                 /* vasection  */
+  YYSYMBOL_vadecls = 100,                  /* vadecls  */
+  YYSYMBOL_vadecl_or_attr = 101,           /* vadecl_or_attr  */
+  YYSYMBOL_vardecl = 102,                  /* vardecl  */
+  YYSYMBOL_varlist = 103,                  /* varlist  */
+  YYSYMBOL_varspec = 104,                  /* varspec  */
+  YYSYMBOL_dimspec = 105,                  /* dimspec  */
+  YYSYMBOL_dimlist = 106,                  /* dimlist  */
+  YYSYMBOL_dimref = 107,                   /* dimref  */
+  YYSYMBOL_fieldlist = 108,                /* fieldlist  */
+  YYSYMBOL_fieldspec = 109,                /* fieldspec  */
+  YYSYMBOL_fielddimspec = 110,             /* fielddimspec  */
+  YYSYMBOL_fielddimlist = 111,             /* fielddimlist  */
+  YYSYMBOL_fielddim = 112,                 /* fielddim  */
+  YYSYMBOL_varref = 113,                   /* varref  */
+  YYSYMBOL_typeref = 114,                  /* typeref  */
+  YYSYMBOL_ambiguous_ref = 115,            /* ambiguous_ref  */
+  YYSYMBOL_attrdecllist = 116,             /* attrdecllist  */
+  YYSYMBOL_attrdecl = 117,                 /* attrdecl  */
+  YYSYMBOL_path = 118,                     /* path  */
+  YYSYMBOL_datasection = 119,              /* datasection  */
+  YYSYMBOL_datadecls = 120,                /* datadecls  */
+  YYSYMBOL_datadecl = 121,                 /* datadecl  */
+  YYSYMBOL_datalist = 122,                 /* datalist  */
+  YYSYMBOL_datalist0 = 123,                /* datalist0  */
+  YYSYMBOL_datalist1 = 124,                /* datalist1  */
+  YYSYMBOL_dataitem = 125,                 /* dataitem  */
+  YYSYMBOL_constdata = 126,                /* constdata  */
+  YYSYMBOL_econstref = 127,                /* econstref  */
+  YYSYMBOL_function = 128,                 /* function  */
+  YYSYMBOL_arglist = 129,                  /* arglist  */
+  YYSYMBOL_simpleconstant = 130,           /* simpleconstant  */
+  YYSYMBOL_intlist = 131,                  /* intlist  */
+  YYSYMBOL_constint = 132,                 /* constint  */
+  YYSYMBOL_conststring = 133,              /* conststring  */
+  YYSYMBOL_constbool = 134,                /* constbool  */
+  YYSYMBOL_varident = 135,                 /* varident  */
+  YYSYMBOL_ident = 136                     /* ident  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -697,19 +703,19 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  5
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   424
+#define YYLAST   420
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  66
+#define YYNTOKENS  69
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  67
+#define YYNNTS  68
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  154
+#define YYNRULES  159
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  265
+#define YYNSTATES  276
 
 /* YYMAXUTOK -- Last valid token kind.  */
-#define YYMAXUTOK   311
+#define YYMAXUTOK   314
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -727,15 +733,15 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-      62,    63,    64,     2,    60,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,    65,    59,
-       2,    61,     2,     2,     2,     2,     2,     2,     2,     2,
+      65,    66,    67,     2,    63,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,    68,    62,
+       2,    64,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,    57,     2,    58,     2,     2,     2,     2,
+       2,     2,     2,    60,     2,    61,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -754,29 +760,29 @@ static const yytype_int8 yytranslate[] =
       25,    26,    27,    28,    29,    30,    31,    32,    33,    34,
       35,    36,    37,    38,    39,    40,    41,    42,    43,    44,
       45,    46,    47,    48,    49,    50,    51,    52,    53,    54,
-      55,    56
+      55,    56,    57,    58,    59
 };
 
 #if YYDEBUG
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,   237,   237,   243,   245,   252,   259,   259,   262,   271,
-     261,   276,   277,   278,   282,   282,   284,   294,   294,   297,
-     298,   299,   300,   303,   303,   306,   336,   338,   355,   364,
-     376,   390,   423,   424,   427,   441,   442,   443,   444,   445,
-     446,   447,   448,   449,   450,   451,   452,   455,   456,   457,
-     460,   461,   464,   464,   466,   467,   471,   479,   489,   501,
-     502,   503,   506,   507,   510,   510,   512,   534,   538,   542,
-     571,   572,   575,   576,   580,   594,   598,   603,   632,   633,
-     637,   638,   643,   653,   673,   684,   695,   714,   721,   721,
-     724,   726,   728,   730,   732,   741,   752,   754,   756,   758,
-     760,   762,   764,   766,   768,   770,   772,   774,   779,   786,
-     795,   796,   797,   800,   801,   804,   808,   809,   813,   817,
-     818,   823,   824,   828,   829,   830,   831,   832,   833,   837,
-     841,   845,   847,   852,   853,   854,   855,   856,   857,   858,
-     859,   860,   861,   862,   863,   867,   868,   872,   874,   876,
-     878,   883,   887,   888,   894
+       0,   243,   243,   249,   251,   258,   265,   265,   268,   277,
+     267,   282,   283,   284,   288,   288,   290,   300,   300,   303,
+     304,   305,   306,   309,   309,   312,   342,   344,   361,   370,
+     382,   396,   429,   430,   433,   447,   448,   449,   450,   451,
+     452,   453,   454,   455,   456,   457,   458,   461,   462,   463,
+     466,   467,   470,   470,   472,   473,   477,   485,   495,   507,
+     508,   509,   512,   513,   516,   516,   518,   540,   544,   548,
+     577,   578,   581,   582,   586,   600,   604,   609,   638,   639,
+     643,   644,   649,   659,   679,   690,   701,   720,   727,   727,
+     730,   732,   734,   736,   738,   747,   758,   760,   762,   764,
+     766,   768,   770,   772,   774,   776,   778,   780,   782,   784,
+     786,   791,   798,   807,   808,   809,   812,   813,   816,   820,
+     821,   825,   829,   830,   835,   836,   840,   841,   842,   843,
+     844,   845,   849,   853,   857,   859,   864,   865,   866,   867,
+     868,   869,   870,   871,   872,   873,   874,   875,   879,   880,
+     884,   886,   888,   890,   895,   899,   900,   908,   909,   913
 };
 #endif
 
@@ -802,21 +808,21 @@ static const char *const yytname[] =
   "GROUP", "PATH", "FILLMARKER", "NIL", "_FILLVALUE", "_FORMAT",
   "_STORAGE", "_CHUNKSIZES", "_DEFLATELEVEL", "_SHUFFLE", "_ENDIANNESS",
   "_NOFILL", "_FLETCHER32", "_NCPROPS", "_ISNETCDF4", "_SUPERBLOCK",
-  "_FILTER", "_CODECS", "DATASETID", "'{'", "'}'", "';'", "','", "'='",
-  "'('", "')'", "'*'", "':'", "$accept", "ncdesc", "datasetid",
-  "rootgroup", "groupbody", "subgrouplist", "namedgroup", "$@1", "$@2",
-  "typesection", "typedecls", "typename", "type_or_attr_decl", "typedecl",
-  "optsemicolon", "enumdecl", "enumidlist", "enumid", "opaquedecl",
-  "vlendecl", "compounddecl", "fields", "field", "primtype", "dimsection",
-  "dimdecls", "dim_or_attr_decl", "dimdeclist", "dimdecl", "dimd",
-  "vasection", "vadecls", "vadecl_or_attr", "vardecl", "varlist",
-  "varspec", "dimspec", "dimlist", "dimref", "fieldlist", "fieldspec",
-  "fielddimspec", "fielddimlist", "fielddim", "varref", "typeref",
-  "ambiguous_ref", "attrdecllist", "attrdecl", "path", "datasection",
-  "datadecls", "datadecl", "datalist", "datalist0", "datalist1",
-  "dataitem", "constdata", "econstref", "function", "arglist",
-  "simpleconstant", "intlist", "constint", "conststring", "constbool",
-  "ident", YY_NULLPTR
+  "_FILTER", "_CODECS", "_QUANTIZEBG", "_QUANTIZEGBR", "_QUANTIZEBR",
+  "DATASETID", "'{'", "'}'", "';'", "','", "'='", "'('", "')'", "'*'",
+  "':'", "$accept", "ncdesc", "datasetid", "rootgroup", "groupbody",
+  "subgrouplist", "namedgroup", "$@1", "$@2", "typesection", "typedecls",
+  "typename", "type_or_attr_decl", "typedecl", "optsemicolon", "enumdecl",
+  "enumidlist", "enumid", "opaquedecl", "vlendecl", "compounddecl",
+  "fields", "field", "primtype", "dimsection", "dimdecls",
+  "dim_or_attr_decl", "dimdeclist", "dimdecl", "dimd", "vasection",
+  "vadecls", "vadecl_or_attr", "vardecl", "varlist", "varspec", "dimspec",
+  "dimlist", "dimref", "fieldlist", "fieldspec", "fielddimspec",
+  "fielddimlist", "fielddim", "varref", "typeref", "ambiguous_ref",
+  "attrdecllist", "attrdecl", "path", "datasection", "datadecls",
+  "datadecl", "datalist", "datalist0", "datalist1", "dataitem",
+  "constdata", "econstref", "function", "arglist", "simpleconstant",
+  "intlist", "constint", "conststring", "constbool", "varident", "ident", YY_NULLPTR
 };
 
 static const char *
@@ -836,17 +842,17 @@ static const yytype_int16 yytoknum[] =
      275,   276,   277,   278,   279,   280,   281,   282,   283,   284,
      285,   286,   287,   288,   289,   290,   291,   292,   293,   294,
      295,   296,   297,   298,   299,   300,   301,   302,   303,   304,
-     305,   306,   307,   308,   309,   310,   311,   123,   125,    59,
-      44,    61,    40,    41,    42,    58
+     305,   306,   307,   308,   309,   310,   311,   312,   313,   314,
+     123,   125,    59,    44,    61,    40,    41,    42,    58
 };
 #endif
 
-#define YYPACT_NINF (-147)
+#define YYPACT_NINF (-153)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
 
-#define YYTABLE_NINF (-109)
+#define YYTABLE_NINF (-160)
 
 #define yytable_value_is_error(Yyn) \
   0
@@ -855,33 +861,34 @@ static const yytype_int16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int16 yypact[] =
 {
-     -12,    -6,    56,  -147,     1,  -147,   229,  -147,  -147,  -147,
-    -147,  -147,  -147,  -147,  -147,  -147,  -147,  -147,  -147,  -147,
-    -147,  -147,    -4,  -147,  -147,   385,    -3,    28,    12,  -147,
-    -147,    14,    19,    21,    26,    33,   -16,    31,   143,   216,
-      48,   229,    82,    82,    76,     8,   347,    84,  -147,  -147,
-      -1,    42,    43,    46,    47,    50,    52,    55,    59,    60,
-      61,    62,    84,    63,   216,  -147,  -147,    58,    58,    58,
-      58,    89,   291,    67,   229,    97,  -147,  -147,  -147,  -147,
-    -147,  -147,  -147,  -147,  -147,  -147,  -147,  -147,  -147,  -147,
-    -147,  -147,  -147,  -147,  -147,  -147,  -147,  -147,  -147,  -147,
-    -147,  -147,  -147,   347,  -147,    69,  -147,  -147,  -147,  -147,
-    -147,  -147,  -147,    73,    79,    77,    78,   347,    82,     8,
-       8,    76,    82,    76,    76,    82,    82,   347,    80,  -147,
-     119,  -147,  -147,  -147,  -147,  -147,  -147,    84,    81,  -147,
-     229,    85,    83,  -147,    88,  -147,    92,   229,   109,    10,
-     347,   239,  -147,   347,   347,    69,  -147,    86,  -147,  -147,
-    -147,  -147,  -147,  -147,  -147,  -147,    69,   385,    87,    98,
-      91,    99,  -147,    84,    64,   229,   101,  -147,   385,  -147,
-     385,  -147,  -147,  -147,   -37,  -147,   229,    69,    69,     8,
-     304,   102,    84,  -147,    84,    84,    84,  -147,  -147,  -147,
-    -147,  -147,   103,  -147,   104,  -147,   -30,   105,  -147,   385,
-     108,   239,  -147,  -147,  -147,  -147,   110,  -147,   111,  -147,
-     106,  -147,    16,  -147,   115,  -147,  -147,    84,    -2,  -147,
-     347,   118,  -147,  -147,   140,  -147,    84,    30,  -147,  -147,
-      84,     8,  -147,   117,     0,  -147,  -147,    69,  -147,   122,
-    -147,  -147,  -147,     9,  -147,  -147,  -147,    -2,  -147,   229,
-      30,  -147,  -147,  -147,  -147
+     -10,   -24,    30,  -153,   -18,  -153,   233,  -153,  -153,  -153,
+    -153,  -153,  -153,  -153,  -153,  -153,  -153,  -153,  -153,  -153,
+    -153,  -153,    20,  -153,  -153,   381,    -4,     5,   -16,  -153,
+    -153,     4,    23,    45,    46,    50,   -28,    51,     3,   197,
+      89,   233,    74,    74,    80,    82,   307,   106,  -153,  -153,
+      -1,    63,    66,    67,    68,    69,    71,    72,    75,    77,
+      78,    79,    81,    85,    86,   106,    87,   197,  -153,  -153,
+      91,    91,    91,    91,   109,   246,    92,   233,   126,  -153,
+    -153,  -153,  -153,  -153,  -153,  -153,  -153,  -153,  -153,  -153,
+    -153,  -153,  -153,  -153,  -153,  -153,  -153,  -153,  -153,  -153,
+    -153,  -153,  -153,  -153,  -153,  -153,   307,  -153,    94,  -153,
+    -153,  -153,  -153,  -153,  -153,  -153,    93,    99,    98,   100,
+     307,    74,    82,    82,    80,    74,    80,    80,    74,    74,
+      82,    82,    82,   307,   105,  -153,   146,  -153,  -153,  -153,
+    -153,  -153,  -153,   106,   102,  -153,   233,   108,   110,  -153,
+     107,  -153,   111,   233,   140,    27,   307,   256,  -153,   307,
+     307,    94,  -153,   113,  -153,  -153,  -153,  -153,  -153,  -153,
+    -153,  -153,  -153,  -153,  -153,    94,   381,   114,   117,   118,
+     112,  -153,   106,    53,   233,   123,  -153,   345,  -153,   381,
+    -153,  -153,  -153,   -43,  -153,   233,    94,    94,    82,   282,
+     124,   106,  -153,   106,   106,   106,  -153,  -153,  -153,  -153,
+    -153,   125,  -153,   120,  -153,   127,  -153,   128,   130,  -153,
+     381,   129,   256,  -153,  -153,  -153,  -153,   134,  -153,   135,
+    -153,   149,  -153,    62,  -153,   136,  -153,  -153,    -5,     1,
+    -153,   307,   154,  -153,  -153,   151,  -153,   106,    -3,  -153,
+    -153,   106,    82,  -153,  -153,   -34,  -153,  -153,    94,  -153,
+     131,  -153,  -153,  -153,    14,  -153,  -153,  -153,     1,  -153,
+     233,    -3,  -153,  -153,  -153,  -153
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -891,55 +898,56 @@ static const yytype_uint8 yydefact[] =
 {
        0,     0,     0,     3,     0,     1,    88,     2,    35,    36,
       37,    38,    39,    40,    41,    42,    43,    44,    45,    46,
-     154,   109,     0,     6,    87,     0,    85,    11,     0,    86,
-     108,     0,     0,     0,     0,     0,     0,     0,     0,    12,
-      47,    88,     0,     0,     0,     0,   118,     0,     4,     7,
+     159,   112,     0,     6,    87,     0,    85,    11,     0,    86,
+     111,     0,     0,     0,     0,     0,     0,     0,     0,    12,
+      47,    88,     0,     0,     0,     0,   121,     0,     4,     7,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,    13,    14,    17,    23,    23,    23,
-      23,    87,     0,     0,    48,    59,    89,   151,   107,    90,
-     147,   149,   148,   150,   153,   152,    91,    92,   144,   133,
-     134,   135,   136,   137,   138,   139,   140,   141,   142,   143,
-     124,   125,   126,   118,   129,    93,   116,   117,   119,   121,
-     127,   128,   123,   108,     0,     0,     0,   118,     0,     0,
-       0,     0,     0,     0,     0,     0,     0,   118,     0,    16,
-       0,    15,    24,    19,    22,    21,    20,     0,     0,    18,
-      49,     0,    52,    54,     0,    53,   108,    60,   110,     0,
-       0,     0,     8,   118,   118,    96,    98,    99,   145,   101,
-     102,   103,   106,   100,   104,   105,    95,     0,     0,     0,
-       0,     0,    50,     0,     0,    61,     0,    64,     0,    65,
-     111,     5,   122,   120,     0,   131,    88,    97,    94,     0,
-       0,     0,     0,    85,     0,     0,     0,    51,    55,    58,
-      57,    56,     0,    62,    66,    67,    70,     0,    84,   112,
-       0,     0,   130,     6,   146,    31,     0,    32,    34,    75,
-      78,    29,     0,    26,     0,    30,    63,     0,     0,    69,
-     118,     0,   113,   132,     9,    33,     0,     0,    77,    25,
-       0,     0,    68,    70,     0,    72,    74,   115,   114,     0,
-      76,    83,    82,     0,    80,    27,    28,     0,    71,    88,
-       0,    79,    73,    10,    81
+       0,     0,     0,     0,     0,     0,     0,    13,    14,    17,
+      23,    23,    23,    23,    87,     0,     0,    48,    59,    89,
+     154,   110,    90,   150,   152,   151,   153,   156,   155,    91,
+      92,   147,   136,   137,   138,   139,   140,   141,   142,   143,
+     144,   145,   146,   127,   128,   129,   121,   132,    93,   119,
+     120,   122,   124,   130,   131,   126,   111,     0,     0,     0,
+     121,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,   121,     0,    16,     0,    15,    24,    19,
+      22,    21,    20,     0,     0,    18,    49,     0,    52,    54,
+       0,    53,   111,    60,   113,     0,     0,     0,     8,   121,
+     121,    96,    98,    99,   148,   101,   102,   103,   109,   100,
+     104,   105,   106,   107,   108,    95,     0,     0,     0,     0,
+       0,    50,     0,     0,    61,     0,    64,     0,    65,   114,
+       5,   125,   123,     0,   134,    88,    97,    94,     0,     0,
+       0,     0,    85,     0,     0,     0,    51,    55,    58,    57,
+      56,     0,    62,   157,   158,    66,    67,    70,     0,    84,
+     115,     0,     0,   133,     6,   149,    31,     0,    32,    34,
+      75,    78,    29,     0,    26,     0,    30,    63,     0,     0,
+      69,   121,     0,   116,   135,     9,    33,     0,     0,    77,
+      25,     0,     0,   157,    68,     0,    72,    74,   118,   117,
+       0,    76,    83,    82,     0,    80,    27,    28,     0,    71,
+      88,     0,    79,    73,    10,    81
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int16 yypgoto[] =
 {
-    -147,  -147,  -147,  -147,    -5,   -31,  -147,  -147,  -147,  -147,
-    -147,  -130,   131,  -147,   -25,  -147,  -147,   -57,  -147,  -147,
-    -147,  -147,     6,   -26,  -147,  -147,    66,  -147,    29,  -147,
-    -147,  -147,    24,  -147,  -147,   -24,  -147,  -147,   -56,  -147,
-     -32,  -147,  -147,   -53,  -147,   -33,   -15,   -40,   -28,   -44,
-    -147,  -147,     2,  -100,  -147,  -147,    65,  -147,  -147,  -147,
-    -147,  -146,  -147,   -41,   -34,  -103,   -22
+    -153,  -153,  -153,  -153,    22,    -6,  -153,  -153,  -153,  -153,
+    -153,  -136,   153,  -153,    10,  -153,  -153,   -25,  -153,  -153,
+    -153,  -153,    24,   -30,  -153,  -153,    76,  -153,    39,  -153,
+    -153,  -153,    43,  -153,  -153,    25,  -153,  -153,    -2,  -153,
+     -19,  -153,  -153,   -39,  -153,   -36,   -21,   -40,   -33,   -44,
+    -153,  -153,    15,   -94,  -153,  -153,   115,  -153,  -153,  -153,
+    -153,  -152,  -153,   -37,   -29,     2,  -153,   -22
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
-static const yytype_uint8 yydefgoto[] =
+static const yytype_int16 yydefgoto[] =
 {
-       0,     2,     4,     7,    23,    36,    49,   186,   249,    40,
-      64,   128,    65,    66,   133,    67,   222,   223,    68,    69,
-      70,   190,   191,    24,    75,   140,   141,   142,   143,   144,
-     148,   175,   176,   177,   204,   205,   229,   244,   245,   218,
-     219,   238,   253,   254,   207,    25,    26,    27,    28,    29,
-     181,   209,   210,   105,   106,   107,   108,   109,   110,   111,
-     184,   112,   157,    84,    85,    86,    30
+       0,     2,     4,     7,    23,    36,    49,   195,   260,    40,
+      67,   134,    68,    69,   139,    70,   233,   234,    71,    72,
+      73,   199,   200,    24,    78,   146,   147,   148,   149,   150,
+     154,   184,   185,   186,   215,   216,   240,   255,   256,   229,
+     230,   249,   264,   265,   218,    25,    26,    27,    28,    29,
+     190,   220,   221,   108,   109,   110,   111,   112,   113,   114,
+     193,   115,   163,    87,    88,    89,   217,    30
 };
 
   /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -947,150 +955,151 @@ static const yytype_uint8 yydefgoto[] =
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int16 yytable[] =
 {
-      35,    76,   104,   149,    87,   185,    72,   169,    78,    79,
-      37,    73,    20,    71,    20,    20,    61,   155,   160,     1,
-     162,   163,    47,   211,   113,   114,   212,   166,   116,    80,
-      81,    72,   228,    82,    83,  -108,    73,    21,    71,    31,
-     129,   115,    48,   134,   135,   136,   145,    32,    33,    34,
-       3,   251,   146,   187,   188,   252,     5,    37,     6,   104,
-     257,    39,    38,   258,   221,   233,   225,   200,   182,   260,
-     150,    41,   261,   104,   239,    42,   240,    74,   158,   159,
-      43,   113,    44,   104,   156,    80,    81,    45,   161,    82,
-      83,   164,   165,    77,    46,   113,    50,    80,    81,    77,
-      20,    82,    83,   117,   118,   113,   104,   119,   120,   104,
-     104,   121,   145,   122,   178,   129,   123,   132,   146,   179,
-     124,   125,   126,   127,   137,   130,   139,   147,   113,   150,
-     247,   113,   113,   201,   192,   151,   152,   167,   153,   154,
-     168,   180,   178,   173,   172,   170,   189,   179,   214,   174,
-     194,   199,   193,   -58,   196,   195,   206,   192,   197,    20,
-     203,   217,   226,    37,   227,   208,   230,   232,   237,   235,
-     220,   236,   129,   224,   129,   193,   241,   248,    47,   228,
-     259,   213,   234,   255,   246,    51,   104,    52,    53,    54,
-      55,    56,    57,    58,   208,   131,   216,    59,    60,   202,
-     256,   262,   198,   242,   250,   243,   171,   264,   113,     0,
-       0,   231,     0,   246,   220,   183,     0,     0,   224,   263,
+      35,    79,   107,    75,    37,   194,    76,   178,    90,    74,
+      47,   253,   155,    81,    82,    20,    64,    20,   262,    20,
+     222,     1,   263,   223,   116,   117,   161,   214,   119,   268,
+       5,    75,   269,    48,    76,     3,    20,    74,    39,   175,
+      21,   118,     6,   135,   151,    51,    41,    52,    53,    54,
+      55,    56,    57,    58,    37,   152,   209,    59,    60,    61,
+      62,    63,   107,    31,    38,   196,   197,   232,    42,   236,
+     244,    32,    33,    34,    83,    84,   107,   271,    85,    86,
+     272,   140,   141,   142,   116,   164,   165,    43,   191,   107,
+     156,    80,   162,   172,   173,   174,   167,    80,   116,   170,
+     171,    83,    84,    83,    84,    85,    86,    85,    86,    44,
+      45,   116,   107,   151,    46,   107,   107,   187,    77,    50,
+     188,   135,    20,   250,   152,   251,   166,   120,   168,   169,
+     121,   122,   123,   124,   116,   125,   126,   116,   116,   127,
+     201,   128,   129,   130,   143,   131,   210,   258,   187,   132,
+     133,   188,   136,   138,   145,   202,   153,   156,   157,   158,
+     208,   225,   159,   201,   160,   176,    37,   177,   219,   179,
+     181,   183,   189,   182,   206,   -58,   198,   204,   202,   231,
+     203,   135,   235,   135,   205,   212,   228,   237,  -159,    47,
+     238,   243,   270,   239,   241,   257,   246,   107,   247,   219,
+     252,     8,     9,    10,    11,    12,    13,    14,    15,    16,
+      17,    18,    19,    20,   248,   267,   259,   224,   245,   116,
+     137,   207,   180,   227,   257,   231,   266,   211,   261,   235,
+     274,    65,   275,    66,     0,   242,    21,     8,     9,    10,
+      11,    12,    13,    14,    15,    16,    17,    18,    19,    20,
        8,     9,    10,    11,    12,    13,    14,    15,    16,    17,
-      18,    19,    20,     8,     9,    10,    11,    12,    13,    14,
-      15,    16,    17,    18,    19,    20,     0,     0,     0,     0,
-      62,     0,    63,     0,     0,    21,    88,    89,    90,    91,
-      92,    93,    94,    95,    96,    97,    98,    99,    21,     0,
-       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+      18,    19,    20,   254,     0,    22,   273,     0,     0,     0,
+       0,   192,    21,    91,    92,    93,    94,    95,    96,    97,
+      98,    99,   100,   101,   102,    21,     8,     9,    10,    11,
+      12,    13,    14,    15,    16,    17,    18,    19,    20,     0,
        0,    22,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,    22,     8,     9,    10,    11,    12,
-      13,    14,    15,    16,    17,    18,    19,    20,     8,     9,
-      10,    11,    12,    13,    14,    15,    16,    17,    18,    19,
-      20,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-      21,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,    21,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,   138,     0,     0,     0,     0,     0,     0,
-       0,     0,   215,    20,    88,    89,    90,    91,    92,    93,
-      94,    95,    96,    97,    98,    99,     0,     0,     0,     0,
-       0,     0,     0,     0,   100,     0,    21,   101,   102,     8,
+       0,   144,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,    21,     0,    20,    91,    92,    93,    94,    95,    96,
+      97,    98,    99,   100,   101,   102,     0,     0,     0,     0,
+       0,     0,     0,   226,   103,     0,    21,   104,   105,     8,
        9,    10,    11,    12,    13,    14,    15,    16,    17,    18,
-      19,    20,     0,     0,   103,     0,     0,     0,     0,     0,
+      19,   213,     0,     0,     0,     0,     0,   106,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,   214,     0,     0,
+       0,     0,     0,     0,    21,     8,     9,    10,    11,    12,
+      13,    14,    15,    16,    17,    18,    19,    20,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,    21
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+      21
 };
 
 static const yytype_int16 yycheck[] =
 {
-      22,    41,    46,   103,    45,   151,    39,   137,    42,    43,
-      25,    39,    16,    39,    16,    16,    38,   117,   121,    31,
-     123,   124,    38,    60,    46,    47,    63,   127,    50,    21,
-      22,    64,    62,    25,    26,    65,    64,    39,    64,    43,
-      62,    42,    58,    68,    69,    70,    74,    51,    52,    53,
-      56,    21,    74,   153,   154,    25,     0,    72,    57,   103,
-      60,    33,    65,    63,   194,   211,   196,     3,    58,    60,
-      60,    59,    63,   117,    58,    61,    60,    29,   119,   120,
-      61,   103,    61,   127,   118,    21,    22,    61,   122,    25,
-      26,   125,   126,    17,    61,   117,    65,    21,    22,    17,
-      16,    25,    26,    61,    61,   127,   150,    61,    61,   153,
-     154,    61,   140,    61,   147,   137,    61,    59,   140,   147,
-      61,    61,    61,    61,    35,    62,    59,    30,   150,    60,
-     230,   153,   154,   174,   167,    62,    57,    57,    61,    61,
-      21,    32,   175,    60,    59,    64,    60,   175,   189,    61,
-      63,   173,   167,    61,    63,    57,   178,   190,    59,    16,
-      59,    59,    59,   178,    60,   180,    61,    59,    62,    59,
-     192,    60,   194,   195,   196,   190,    61,    59,    38,    62,
-      58,   186,   213,   240,   228,    42,   230,    44,    45,    46,
-      47,    48,    49,    50,   209,    64,   190,    54,    55,   175,
-     241,   257,   173,   227,   236,   227,   140,   260,   230,    -1,
-      -1,   209,    -1,   257,   236,   150,    -1,    -1,   240,   259,
+      22,    41,    46,    39,    25,   157,    39,   143,    45,    39,
+      38,    16,   106,    42,    43,    16,    38,    16,    21,    16,
+      63,    31,    25,    66,    46,    47,   120,    32,    50,    63,
+       0,    67,    66,    61,    67,    59,    16,    67,    33,   133,
+      39,    42,    60,    65,    77,    42,    62,    44,    45,    46,
+      47,    48,    49,    50,    75,    77,     3,    54,    55,    56,
+      57,    58,   106,    43,    68,   159,   160,   203,    64,   205,
+     222,    51,    52,    53,    21,    22,   120,    63,    25,    26,
+      66,    71,    72,    73,   106,   122,   123,    64,    61,   133,
+      63,    17,   121,   130,   131,   132,   125,    17,   120,   128,
+     129,    21,    22,    21,    22,    25,    26,    25,    26,    64,
+      64,   133,   156,   146,    64,   159,   160,   153,    29,    68,
+     153,   143,    16,    61,   146,    63,   124,    64,   126,   127,
+      64,    64,    64,    64,   156,    64,    64,   159,   160,    64,
+     176,    64,    64,    64,    35,    64,   183,   241,   184,    64,
+      64,   184,    65,    62,    62,   176,    30,    63,    65,    60,
+     182,   198,    64,   199,    64,    60,   187,    21,   189,    67,
+      62,    64,    32,    63,    62,    64,    63,    60,   199,   201,
+      66,   203,   204,   205,    66,    62,    62,    62,    68,    38,
+      63,    62,    61,    65,    64,   239,    62,   241,    63,   220,
+      64,     4,     5,     6,     7,     8,     9,    10,    11,    12,
+      13,    14,    15,    16,    65,   252,    62,   195,   224,   241,
+      67,   182,   146,   199,   268,   247,   251,   184,   247,   251,
+     270,    34,   271,    36,    -1,   220,    39,     4,     5,     6,
+       7,     8,     9,    10,    11,    12,    13,    14,    15,    16,
        4,     5,     6,     7,     8,     9,    10,    11,    12,    13,
-      14,    15,    16,     4,     5,     6,     7,     8,     9,    10,
-      11,    12,    13,    14,    15,    16,    -1,    -1,    -1,    -1,
-      34,    -1,    36,    -1,    -1,    39,    17,    18,    19,    20,
-      21,    22,    23,    24,    25,    26,    27,    28,    39,    -1,
-      -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
+      14,    15,    16,   238,    -1,    68,   268,    -1,    -1,    -1,
+      -1,   156,    39,    17,    18,    19,    20,    21,    22,    23,
+      24,    25,    26,    27,    28,    39,     4,     5,     6,     7,
+       8,     9,    10,    11,    12,    13,    14,    15,    16,    -1,
+      -1,    68,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
       -1,    65,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
-      -1,    -1,    -1,    -1,    65,     4,     5,     6,     7,     8,
-       9,    10,    11,    12,    13,    14,    15,    16,     4,     5,
-       6,     7,     8,     9,    10,    11,    12,    13,    14,    15,
-      16,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
-      39,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
-      -1,    -1,    -1,    39,    -1,    -1,    -1,    -1,    -1,    -1,
-      -1,    -1,    -1,    62,    -1,    -1,    -1,    -1,    -1,    -1,
-      -1,    -1,    58,    16,    17,    18,    19,    20,    21,    22,
+      -1,    39,    -1,    16,    17,    18,    19,    20,    21,    22,
       23,    24,    25,    26,    27,    28,    -1,    -1,    -1,    -1,
-      -1,    -1,    -1,    -1,    37,    -1,    39,    40,    41,     4,
+      -1,    -1,    -1,    61,    37,    -1,    39,    40,    41,     4,
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
-      15,    16,    -1,    -1,    57,    -1,    -1,    -1,    -1,    -1,
+      15,    16,    -1,    -1,    -1,    -1,    -1,    60,    -1,    -1,
+      -1,    -1,    -1,    -1,    -1,    -1,    -1,    32,    -1,    -1,
+      -1,    -1,    -1,    -1,    39,     4,     5,     6,     7,     8,
+       9,    10,    11,    12,    13,    14,    15,    16,    -1,    -1,
       -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
-      -1,    -1,    -1,    -1,    39
+      -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
+      39
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
      symbol of state STATE-NUM.  */
 static const yytype_uint8 yystos[] =
 {
-       0,    31,    67,    56,    68,     0,    57,    69,     4,     5,
+       0,    31,    70,    59,    71,     0,    60,    72,     4,     5,
        6,     7,     8,     9,    10,    11,    12,    13,    14,    15,
-      16,    39,    65,    70,    89,   111,   112,   113,   114,   115,
-     132,    43,    51,    52,    53,   132,    71,   112,    65,    33,
-      75,    59,    61,    61,    61,    61,    61,    38,    58,    72,
-      65,    42,    44,    45,    46,    47,    48,    49,    50,    54,
-      55,   132,    34,    36,    76,    78,    79,    81,    84,    85,
-      86,    89,   111,   114,    29,    90,   113,    17,   130,   130,
-      21,    22,    25,    26,   129,   130,   131,   129,    17,    18,
-      19,    20,    21,    22,    23,    24,    25,    26,    27,    28,
-      37,    40,    41,    57,   115,   119,   120,   121,   122,   123,
-     124,   125,   127,   132,   132,    42,   132,    61,    61,    61,
-      61,    61,    61,    61,    61,    61,    61,    61,    77,   132,
-      62,    78,    59,    80,    80,    80,    80,    35,    62,    59,
-      91,    92,    93,    94,    95,   114,   132,    30,    96,   119,
-      60,    62,    57,    61,    61,   119,   130,   128,   129,   129,
-     131,   130,   131,   131,   130,   130,   119,    57,    21,    77,
-      64,    92,    59,    60,    61,    97,    98,    99,   111,   114,
-      32,   116,    58,   122,   126,   127,    73,   119,   119,    60,
-      87,    88,   111,   112,    63,    57,    63,    59,    94,   132,
-       3,   129,    98,    59,   100,   101,   132,   110,   112,   117,
-     118,    60,    63,    70,   129,    58,    88,    59,   105,   106,
-     132,    77,    82,    83,   132,    77,    59,    60,    62,   102,
-      61,   118,    59,   127,    71,    59,    60,    62,   107,    58,
-      60,    61,   101,   132,   103,   104,   115,   119,    59,    74,
-     106,    21,    25,   108,   109,    83,   129,    60,    63,    58,
-      60,    63,   104,   113,   109
+      16,    39,    68,    73,    92,   114,   115,   116,   117,   118,
+     136,    43,    51,    52,    53,   136,    74,   115,    68,    33,
+      78,    62,    64,    64,    64,    64,    64,    38,    61,    75,
+      68,    42,    44,    45,    46,    47,    48,    49,    50,    54,
+      55,    56,    57,    58,   136,    34,    36,    79,    81,    82,
+      84,    87,    88,    89,    92,   114,   117,    29,    93,   116,
+      17,   133,   133,    21,    22,    25,    26,   132,   133,   134,
+     132,    17,    18,    19,    20,    21,    22,    23,    24,    25,
+      26,    27,    28,    37,    40,    41,    60,   118,   122,   123,
+     124,   125,   126,   127,   128,   130,   136,   136,    42,   136,
+      64,    64,    64,    64,    64,    64,    64,    64,    64,    64,
+      64,    64,    64,    64,    80,   136,    65,    81,    62,    83,
+      83,    83,    83,    35,    65,    62,    94,    95,    96,    97,
+      98,   117,   136,    30,    99,   122,    63,    65,    60,    64,
+      64,   122,   133,   131,   132,   132,   134,   133,   134,   134,
+     133,   133,   132,   132,   132,   122,    60,    21,    80,    67,
+      95,    62,    63,    64,   100,   101,   102,   114,   117,    32,
+     119,    61,   125,   129,   130,    76,   122,   122,    63,    90,
+      91,   114,   115,    66,    60,    66,    62,    97,   136,     3,
+     132,   101,    62,    16,    32,   103,   104,   135,   113,   115,
+     120,   121,    63,    66,    73,   132,    61,    91,    62,   108,
+     109,   136,    80,    85,    86,   136,    80,    62,    63,    65,
+     105,    64,   121,    62,   130,    74,    62,    63,    65,   110,
+      61,    63,    64,    16,   104,   106,   107,   118,   122,    62,
+      77,   109,    21,    25,   111,   112,    86,   132,    63,    66,
+      61,    63,    66,   107,   116,   112
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_uint8 yyr1[] =
 {
-       0,    66,    67,    68,    69,    70,    71,    71,    73,    74,
-      72,    75,    75,    75,    76,    76,    77,    78,    78,    79,
-      79,    79,    79,    80,    80,    81,    82,    82,    83,    84,
-      85,    86,    87,    87,    88,    89,    89,    89,    89,    89,
-      89,    89,    89,    89,    89,    89,    89,    90,    90,    90,
-      91,    91,    92,    92,    93,    93,    94,    94,    95,    96,
-      96,    96,    97,    97,    98,    98,    99,   100,   100,   101,
-     102,   102,   103,   103,   104,   105,   105,   106,   107,   107,
-     108,   108,   109,   109,   110,   111,   112,   112,   113,   113,
-     114,   114,   114,   114,   114,   114,   114,   114,   114,   114,
-     114,   114,   114,   114,   114,   114,   114,   114,   115,   115,
-     116,   116,   116,   117,   117,   118,   119,   119,   120,   121,
-     121,   122,   122,   123,   123,   123,   123,   123,   123,   124,
-     125,   126,   126,   127,   127,   127,   127,   127,   127,   127,
-     127,   127,   127,   127,   127,   128,   128,   129,   129,   129,
-     129,   130,   131,   131,   132
+       0,    69,    70,    71,    72,    73,    74,    74,    76,    77,
+      75,    78,    78,    78,    79,    79,    80,    81,    81,    82,
+      82,    82,    82,    83,    83,    84,    85,    85,    86,    87,
+      88,    89,    90,    90,    91,    92,    92,    92,    92,    92,
+      92,    92,    92,    92,    92,    92,    92,    93,    93,    93,
+      94,    94,    95,    95,    96,    96,    97,    97,    98,    99,
+      99,    99,   100,   100,   101,   101,   102,   103,   103,   104,
+     105,   105,   106,   106,   107,   108,   108,   109,   110,   110,
+     111,   111,   112,   112,   113,   114,   115,   115,   116,   116,
+     117,   117,   117,   117,   117,   117,   117,   117,   117,   117,
+     117,   117,   117,   117,   117,   117,   117,   117,   117,   117,
+     117,   118,   118,   119,   119,   119,   120,   120,   121,   122,
+     122,   123,   124,   124,   125,   125,   126,   126,   126,   126,
+     126,   126,   127,   128,   129,   129,   130,   130,   130,   130,
+     130,   130,   130,   130,   130,   130,   130,   130,   131,   131,
+     132,   132,   132,   132,   133,   134,   134,   135,   135,   136
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
@@ -1106,12 +1115,12 @@ static const yytype_int8 yyr2[] =
        0,     3,     1,     3,     1,     1,     3,     2,     0,     3,
        1,     3,     1,     1,     1,     1,     1,     1,     0,     3,
        4,     4,     4,     4,     6,     5,     5,     6,     5,     5,
-       5,     5,     5,     5,     5,     5,     5,     4,     1,     1,
-       0,     1,     2,     2,     3,     3,     1,     1,     0,     1,
-       3,     1,     3,     1,     1,     1,     1,     1,     1,     1,
-       4,     1,     3,     1,     1,     1,     1,     1,     1,     1,
-       1,     1,     1,     1,     1,     1,     3,     1,     1,     1,
-       1,     1,     1,     1,     1
+       5,     5,     5,     5,     5,     5,     5,     5,     5,     5,
+       4,     1,     1,     0,     1,     2,     2,     3,     3,     1,
+       1,     0,     1,     3,     1,     3,     1,     1,     1,     1,
+       1,     1,     1,     4,     1,     3,     1,     1,     1,     1,
+       1,     1,     1,     1,     1,     1,     1,     1,     1,     3,
+       1,     1,     1,     1,     1,     1,     1,     1,     1,     1
 };
 
 
@@ -1849,19 +1858,19 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* ncdesc: NETCDF datasetid rootgroup  */
-#line 240 "ncgen.y"
+#line 246 "ncgen.y"
         {if (error_count > 0) YYABORT;}
-#line 1855 "ncgeny.c"
+#line 1864 "ncgeny.c"
     break;
 
   case 3: /* datasetid: DATASETID  */
-#line 243 "ncgen.y"
+#line 249 "ncgen.y"
                      {createrootgroup(datasetname);}
-#line 1861 "ncgeny.c"
+#line 1870 "ncgeny.c"
     break;
 
   case 8: /* $@1: %empty  */
-#line 262 "ncgen.y"
+#line 268 "ncgen.y"
             {
 		Symbol* id = (yyvsp[-1].sym);
                 markcdf4("Group specification");
@@ -1869,29 +1878,29 @@ yyreduce:
                     yyerror("duplicate group declaration within parent group for %s",
                                 id->name);
             }
-#line 1873 "ncgeny.c"
+#line 1882 "ncgeny.c"
     break;
 
   case 9: /* $@2: %empty  */
-#line 271 "ncgen.y"
+#line 277 "ncgen.y"
             {listpop(groupstack);}
-#line 1879 "ncgeny.c"
+#line 1888 "ncgeny.c"
     break;
 
   case 12: /* typesection: TYPES  */
-#line 277 "ncgen.y"
+#line 283 "ncgen.y"
                         {}
-#line 1885 "ncgeny.c"
+#line 1894 "ncgeny.c"
     break;
 
   case 13: /* typesection: TYPES typedecls  */
-#line 279 "ncgen.y"
+#line 285 "ncgen.y"
                         {markcdf4("Type specification");}
-#line 1891 "ncgeny.c"
+#line 1900 "ncgeny.c"
     break;
 
   case 16: /* typename: ident  */
-#line 285 "ncgen.y"
+#line 291 "ncgen.y"
             { /* Use when defining a type */
               (yyvsp[0].sym)->objectclass = NC_TYPE;
               if(dupobjectcheck(NC_TYPE,(yyvsp[0].sym)))
@@ -1899,23 +1908,23 @@ yyreduce:
                             (yyvsp[0].sym)->name);
               listpush(typdefs,(void*)(yyvsp[0].sym));
 	    }
-#line 1903 "ncgeny.c"
+#line 1912 "ncgeny.c"
     break;
 
   case 17: /* type_or_attr_decl: typedecl  */
-#line 294 "ncgen.y"
+#line 300 "ncgen.y"
                             {}
-#line 1909 "ncgeny.c"
+#line 1918 "ncgeny.c"
     break;
 
   case 18: /* type_or_attr_decl: attrdecl ';'  */
-#line 294 "ncgen.y"
+#line 300 "ncgen.y"
                                               {}
-#line 1915 "ncgeny.c"
+#line 1924 "ncgeny.c"
     break;
 
   case 25: /* enumdecl: primtype ENUM typename '{' enumidlist '}'  */
-#line 308 "ncgen.y"
+#line 314 "ncgen.y"
               {
 		int i;
                 addtogroup((yyvsp[-3].sym)); /* sets prefix*/
@@ -1942,17 +1951,17 @@ yyreduce:
                 }
                 listsetlength(stack,stackbase);/* remove stack nodes*/
               }
-#line 1946 "ncgeny.c"
+#line 1955 "ncgeny.c"
     break;
 
   case 26: /* enumidlist: enumid  */
-#line 337 "ncgen.y"
+#line 343 "ncgen.y"
                 {(yyval.mark)=listlength(stack); listpush(stack,(void*)(yyvsp[0].sym));}
-#line 1952 "ncgeny.c"
+#line 1961 "ncgeny.c"
     break;
 
   case 27: /* enumidlist: enumidlist ',' enumid  */
-#line 339 "ncgen.y"
+#line 345 "ncgen.y"
                 {
 		    int i;
 		    (yyval.mark)=(yyvsp[-2].mark);
@@ -1967,22 +1976,22 @@ yyreduce:
 		    }
 		    listpush(stack,(void*)(yyvsp[0].sym));
 		}
-#line 1971 "ncgeny.c"
+#line 1980 "ncgeny.c"
     break;
 
   case 28: /* enumid: ident '=' constint  */
-#line 356 "ncgen.y"
+#line 362 "ncgen.y"
         {
             (yyvsp[-2].sym)->objectclass=NC_TYPE;
             (yyvsp[-2].sym)->subclass=NC_ECONST;
             (yyvsp[-2].sym)->typ.econst=(yyvsp[0].constant);
 	    (yyval.sym)=(yyvsp[-2].sym);
         }
-#line 1982 "ncgeny.c"
+#line 1991 "ncgeny.c"
     break;
 
   case 29: /* opaquedecl: OPAQUE_ '(' INT_CONST ')' typename  */
-#line 365 "ncgen.y"
+#line 371 "ncgen.y"
                 {
 		    vercheck(NC_OPAQUE);
                     addtogroup((yyvsp[0].sym)); /*sets prefix*/
@@ -1990,13 +1999,13 @@ yyreduce:
                     (yyvsp[0].sym)->subclass=NC_OPAQUE;
                     (yyvsp[0].sym)->typ.typecode=NC_OPAQUE;
                     (yyvsp[0].sym)->typ.size=int32_val;
-                    (yyvsp[0].sym)->typ.alignment=ncaux_class_alignment(NC_OPAQUE);
+                    (void)ncaux_class_alignment(NC_OPAQUE,&(yyvsp[0].sym)->typ.alignment);
                 }
-#line 1996 "ncgeny.c"
+#line 2005 "ncgeny.c"
     break;
 
   case 30: /* vlendecl: typeref '(' '*' ')' typename  */
-#line 377 "ncgen.y"
+#line 383 "ncgen.y"
                 {
                     Symbol* basetype = (yyvsp[-4].sym);
 		    vercheck(NC_VLEN);
@@ -2006,13 +2015,13 @@ yyreduce:
                     (yyvsp[0].sym)->typ.basetype=basetype;
                     (yyvsp[0].sym)->typ.typecode=NC_VLEN;
                     (yyvsp[0].sym)->typ.size=VLENSIZE;
-                    (yyvsp[0].sym)->typ.alignment=ncaux_class_alignment(NC_VLEN);
+                    (void)ncaux_class_alignment(NC_VLEN,&(yyvsp[0].sym)->typ.alignment);
                 }
-#line 2012 "ncgeny.c"
+#line 2021 "ncgeny.c"
     break;
 
   case 31: /* compounddecl: COMPOUND typename '{' fields '}'  */
-#line 391 "ncgen.y"
+#line 397 "ncgen.y"
           {
 	    int i,j;
 	    vercheck(NC_COMPOUND);
@@ -2042,23 +2051,23 @@ yyreduce:
 	    }
 	    listsetlength(stack,stackbase);/* remove stack nodes*/
           }
-#line 2046 "ncgeny.c"
+#line 2055 "ncgeny.c"
     break;
 
   case 32: /* fields: field ';'  */
-#line 423 "ncgen.y"
+#line 429 "ncgen.y"
                     {(yyval.mark)=(yyvsp[-1].mark);}
-#line 2052 "ncgeny.c"
+#line 2061 "ncgeny.c"
     break;
 
   case 33: /* fields: fields field ';'  */
-#line 424 "ncgen.y"
+#line 430 "ncgen.y"
                               {(yyval.mark)=(yyvsp[-2].mark);}
-#line 2058 "ncgeny.c"
+#line 2067 "ncgeny.c"
     break;
 
   case 34: /* field: typeref fieldlist  */
-#line 428 "ncgen.y"
+#line 434 "ncgen.y"
         {
 	    int i;
 	    (yyval.mark)=(yyvsp[0].mark);
@@ -2070,107 +2079,107 @@ yyreduce:
 		f->typ.basetype = (yyvsp[-1].sym);
             }
         }
-#line 2074 "ncgeny.c"
+#line 2083 "ncgeny.c"
     break;
 
   case 35: /* primtype: CHAR_K  */
-#line 441 "ncgen.y"
+#line 447 "ncgen.y"
                           { (yyval.sym) = primsymbols[NC_CHAR]; }
-#line 2080 "ncgeny.c"
+#line 2089 "ncgeny.c"
     break;
 
   case 36: /* primtype: BYTE_K  */
-#line 442 "ncgen.y"
+#line 448 "ncgen.y"
                           { (yyval.sym) = primsymbols[NC_BYTE]; }
-#line 2086 "ncgeny.c"
+#line 2095 "ncgeny.c"
     break;
 
   case 37: /* primtype: SHORT_K  */
-#line 443 "ncgen.y"
+#line 449 "ncgen.y"
                           { (yyval.sym) = primsymbols[NC_SHORT]; }
-#line 2092 "ncgeny.c"
+#line 2101 "ncgeny.c"
     break;
 
   case 38: /* primtype: INT_K  */
-#line 444 "ncgen.y"
+#line 450 "ncgen.y"
                           { (yyval.sym) = primsymbols[NC_INT]; }
-#line 2098 "ncgeny.c"
+#line 2107 "ncgeny.c"
     break;
 
   case 39: /* primtype: FLOAT_K  */
-#line 445 "ncgen.y"
+#line 451 "ncgen.y"
                           { (yyval.sym) = primsymbols[NC_FLOAT]; }
-#line 2104 "ncgeny.c"
+#line 2113 "ncgeny.c"
     break;
 
   case 40: /* primtype: DOUBLE_K  */
-#line 446 "ncgen.y"
+#line 452 "ncgen.y"
                           { (yyval.sym) = primsymbols[NC_DOUBLE]; }
-#line 2110 "ncgeny.c"
+#line 2119 "ncgeny.c"
     break;
 
   case 41: /* primtype: UBYTE_K  */
-#line 447 "ncgen.y"
+#line 453 "ncgen.y"
                            { vercheck(NC_UBYTE); (yyval.sym) = primsymbols[NC_UBYTE]; }
-#line 2116 "ncgeny.c"
+#line 2125 "ncgeny.c"
     break;
 
   case 42: /* primtype: USHORT_K  */
-#line 448 "ncgen.y"
+#line 454 "ncgen.y"
                            { vercheck(NC_USHORT); (yyval.sym) = primsymbols[NC_USHORT]; }
-#line 2122 "ncgeny.c"
+#line 2131 "ncgeny.c"
     break;
 
   case 43: /* primtype: UINT_K  */
-#line 449 "ncgen.y"
+#line 455 "ncgen.y"
                            { vercheck(NC_UINT); (yyval.sym) = primsymbols[NC_UINT]; }
-#line 2128 "ncgeny.c"
+#line 2137 "ncgeny.c"
     break;
 
   case 44: /* primtype: INT64_K  */
-#line 450 "ncgen.y"
+#line 456 "ncgen.y"
                             { vercheck(NC_INT64); (yyval.sym) = primsymbols[NC_INT64]; }
-#line 2134 "ncgeny.c"
+#line 2143 "ncgeny.c"
     break;
 
   case 45: /* primtype: UINT64_K  */
-#line 451 "ncgen.y"
+#line 457 "ncgen.y"
                              { vercheck(NC_UINT64); (yyval.sym) = primsymbols[NC_UINT64]; }
-#line 2140 "ncgeny.c"
+#line 2149 "ncgeny.c"
     break;
 
   case 46: /* primtype: STRING_K  */
-#line 452 "ncgen.y"
+#line 458 "ncgen.y"
                              { vercheck(NC_STRING); (yyval.sym) = primsymbols[NC_STRING]; }
-#line 2146 "ncgeny.c"
+#line 2155 "ncgeny.c"
     break;
 
   case 48: /* dimsection: DIMENSIONS  */
-#line 456 "ncgen.y"
+#line 462 "ncgen.y"
                              {}
-#line 2152 "ncgeny.c"
+#line 2161 "ncgeny.c"
     break;
 
   case 49: /* dimsection: DIMENSIONS dimdecls  */
-#line 457 "ncgen.y"
+#line 463 "ncgen.y"
                                       {}
-#line 2158 "ncgeny.c"
+#line 2167 "ncgeny.c"
     break;
 
   case 52: /* dim_or_attr_decl: dimdeclist  */
-#line 464 "ncgen.y"
+#line 470 "ncgen.y"
                              {}
-#line 2164 "ncgeny.c"
+#line 2173 "ncgeny.c"
     break;
 
   case 53: /* dim_or_attr_decl: attrdecl  */
-#line 464 "ncgen.y"
+#line 470 "ncgen.y"
                                            {}
-#line 2170 "ncgeny.c"
+#line 2179 "ncgeny.c"
     break;
 
   case 56: /* dimdecl: dimd '=' constint  */
-#line 472 "ncgen.y"
+#line 478 "ncgen.y"
               {
 		(yyvsp[-2].sym)->dim.declsize = (size_t)extractint((yyvsp[0].constant));
 #ifdef GENDEBUG1
@@ -2178,11 +2187,11 @@ fprintf(stderr,"dimension: %s = %llu\n",(yyvsp[-2].sym)->name,(unsigned long lon
 #endif
 		reclaimconstant((yyvsp[0].constant));
 	      }
-#line 2182 "ncgeny.c"
+#line 2191 "ncgeny.c"
     break;
 
   case 57: /* dimdecl: dimd '=' NC_UNLIMITED_K  */
-#line 480 "ncgen.y"
+#line 486 "ncgen.y"
                    {
 		        (yyvsp[-2].sym)->dim.declsize = NC_UNLIMITED;
 		        (yyvsp[-2].sym)->dim.isunlimited = 1;
@@ -2190,11 +2199,11 @@ fprintf(stderr,"dimension: %s = %llu\n",(yyvsp[-2].sym)->name,(unsigned long lon
 fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 #endif
 		   }
-#line 2194 "ncgeny.c"
+#line 2203 "ncgeny.c"
     break;
 
   case 58: /* dimd: ident  */
-#line 490 "ncgen.y"
+#line 496 "ncgen.y"
                    {
                      (yyvsp[0].sym)->objectclass=NC_DIM;
                      if(dupobjectcheck(NC_DIM,(yyvsp[0].sym)))
@@ -2204,35 +2213,35 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		     (yyval.sym)=(yyvsp[0].sym);
 		     listpush(dimdefs,(void*)(yyvsp[0].sym));
                    }
-#line 2208 "ncgeny.c"
+#line 2217 "ncgeny.c"
     break;
 
   case 60: /* vasection: VARIABLES  */
-#line 502 "ncgen.y"
+#line 508 "ncgen.y"
                             {}
-#line 2214 "ncgeny.c"
+#line 2223 "ncgeny.c"
     break;
 
   case 61: /* vasection: VARIABLES vadecls  */
-#line 503 "ncgen.y"
+#line 509 "ncgen.y"
                                     {}
-#line 2220 "ncgeny.c"
+#line 2229 "ncgeny.c"
     break;
 
   case 64: /* vadecl_or_attr: vardecl  */
-#line 510 "ncgen.y"
+#line 516 "ncgen.y"
                         {}
-#line 2226 "ncgeny.c"
+#line 2235 "ncgeny.c"
     break;
 
   case 65: /* vadecl_or_attr: attrdecl  */
-#line 510 "ncgen.y"
+#line 516 "ncgen.y"
                                       {}
-#line 2232 "ncgeny.c"
+#line 2241 "ncgeny.c"
     break;
 
   case 66: /* vardecl: typeref varlist  */
-#line 513 "ncgen.y"
+#line 519 "ncgen.y"
                 {
 		    int i;
 		    stackbase=(yyvsp[0].mark);
@@ -2252,25 +2261,25 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		    }
 		    listsetlength(stack,stackbase);/* remove stack nodes*/
 		}
-#line 2256 "ncgeny.c"
+#line 2265 "ncgeny.c"
     break;
 
   case 67: /* varlist: varspec  */
-#line 535 "ncgen.y"
+#line 541 "ncgen.y"
                 {(yyval.mark)=listlength(stack);
                  listpush(stack,(void*)(yyvsp[0].sym));
 		}
-#line 2264 "ncgeny.c"
+#line 2273 "ncgeny.c"
     break;
 
   case 68: /* varlist: varlist ',' varspec  */
-#line 539 "ncgen.y"
+#line 545 "ncgen.y"
                 {(yyval.mark)=(yyvsp[-2].mark); listpush(stack,(void*)(yyvsp[0].sym));}
-#line 2270 "ncgeny.c"
+#line 2279 "ncgeny.c"
     break;
 
-  case 69: /* varspec: ident dimspec  */
-#line 543 "ncgen.y"
+  case 69: /* varspec: varident dimspec  */
+#line 549 "ncgen.y"
                     {
 		    int i;
 		    Dimset dimset;
@@ -2297,35 +2306,35 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		    listsetlength(stack,stackbase);/* remove stack nodes*/
 		    (yyval.sym) = var;
 		    }
-#line 2301 "ncgeny.c"
+#line 2310 "ncgeny.c"
     break;
 
   case 70: /* dimspec: %empty  */
-#line 571 "ncgen.y"
+#line 577 "ncgen.y"
                             {(yyval.mark)=listlength(stack);}
-#line 2307 "ncgeny.c"
+#line 2316 "ncgeny.c"
     break;
 
   case 71: /* dimspec: '(' dimlist ')'  */
-#line 572 "ncgen.y"
+#line 578 "ncgen.y"
                                   {(yyval.mark)=(yyvsp[-1].mark);}
-#line 2313 "ncgeny.c"
+#line 2322 "ncgeny.c"
     break;
 
   case 72: /* dimlist: dimref  */
-#line 575 "ncgen.y"
+#line 581 "ncgen.y"
                        {(yyval.mark)=listlength(stack); listpush(stack,(void*)(yyvsp[0].sym));}
-#line 2319 "ncgeny.c"
+#line 2328 "ncgeny.c"
     break;
 
   case 73: /* dimlist: dimlist ',' dimref  */
-#line 577 "ncgen.y"
+#line 583 "ncgen.y"
                     {(yyval.mark)=(yyvsp[-2].mark); listpush(stack,(void*)(yyvsp[0].sym));}
-#line 2325 "ncgeny.c"
+#line 2334 "ncgeny.c"
     break;
 
   case 74: /* dimref: path  */
-#line 581 "ncgen.y"
+#line 587 "ncgen.y"
             {Symbol* dimsym = (yyvsp[0].sym);
 		dimsym->objectclass = NC_DIM;
 		/* Find the actual dimension*/
@@ -2336,25 +2345,25 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		}
 		(yyval.sym)=dimsym;
 	    }
-#line 2340 "ncgeny.c"
+#line 2349 "ncgeny.c"
     break;
 
   case 75: /* fieldlist: fieldspec  */
-#line 595 "ncgen.y"
+#line 601 "ncgen.y"
             {(yyval.mark)=listlength(stack);
              listpush(stack,(void*)(yyvsp[0].sym));
 	    }
-#line 2348 "ncgeny.c"
+#line 2357 "ncgeny.c"
     break;
 
   case 76: /* fieldlist: fieldlist ',' fieldspec  */
-#line 599 "ncgen.y"
+#line 605 "ncgen.y"
             {(yyval.mark)=(yyvsp[-2].mark); listpush(stack,(void*)(yyvsp[0].sym));}
-#line 2354 "ncgeny.c"
+#line 2363 "ncgeny.c"
     break;
 
   case 77: /* fieldspec: ident fielddimspec  */
-#line 604 "ncgen.y"
+#line 610 "ncgen.y"
             {
 		int i;
 		Dimset dimset;
@@ -2381,35 +2390,35 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		listsetlength(stack,stackbase);/* remove stack nodes*/
 		(yyval.sym) = (yyvsp[-1].sym);
 	    }
-#line 2385 "ncgeny.c"
+#line 2394 "ncgeny.c"
     break;
 
   case 78: /* fielddimspec: %empty  */
-#line 632 "ncgen.y"
+#line 638 "ncgen.y"
                                  {(yyval.mark)=listlength(stack);}
-#line 2391 "ncgeny.c"
+#line 2400 "ncgeny.c"
     break;
 
   case 79: /* fielddimspec: '(' fielddimlist ')'  */
-#line 633 "ncgen.y"
+#line 639 "ncgen.y"
                                        {(yyval.mark)=(yyvsp[-1].mark);}
-#line 2397 "ncgeny.c"
+#line 2406 "ncgeny.c"
     break;
 
   case 80: /* fielddimlist: fielddim  */
-#line 637 "ncgen.y"
+#line 643 "ncgen.y"
                    {(yyval.mark)=listlength(stack); listpush(stack,(void*)(yyvsp[0].sym));}
-#line 2403 "ncgeny.c"
+#line 2412 "ncgeny.c"
     break;
 
   case 81: /* fielddimlist: fielddimlist ',' fielddim  */
-#line 639 "ncgen.y"
+#line 645 "ncgen.y"
             {(yyval.mark)=(yyvsp[-2].mark); listpush(stack,(void*)(yyvsp[0].sym));}
-#line 2409 "ncgeny.c"
+#line 2418 "ncgeny.c"
     break;
 
   case 82: /* fielddim: UINT_CONST  */
-#line 644 "ncgen.y"
+#line 650 "ncgen.y"
             {  /* Anonymous integer dimension.
 	         Can only occur in type definitions*/
 	     char anon[32];
@@ -2419,11 +2428,11 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 	     (yyval.sym)->dim.isconstant = 1;
 	     (yyval.sym)->dim.declsize = uint32_val;
 	    }
-#line 2423 "ncgeny.c"
+#line 2432 "ncgeny.c"
     break;
 
   case 83: /* fielddim: INT_CONST  */
-#line 654 "ncgen.y"
+#line 660 "ncgen.y"
             {  /* Anonymous integer dimension.
 	         Can only occur in type definitions*/
 	     char anon[32];
@@ -2437,11 +2446,11 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 	     (yyval.sym)->dim.isconstant = 1;
 	     (yyval.sym)->dim.declsize = int32_val;
 	    }
-#line 2441 "ncgeny.c"
+#line 2450 "ncgeny.c"
     break;
 
   case 84: /* varref: ambiguous_ref  */
-#line 674 "ncgen.y"
+#line 680 "ncgen.y"
             {Symbol* vsym = (yyvsp[0].sym);
 		if(vsym->objectclass != NC_VAR) {
 		    derror("Undefined or forward referenced variable: %s",vsym->name);
@@ -2449,11 +2458,11 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		}
 		(yyval.sym)=vsym;
 	    }
-#line 2453 "ncgeny.c"
+#line 2462 "ncgeny.c"
     break;
 
   case 85: /* typeref: ambiguous_ref  */
-#line 685 "ncgen.y"
+#line 691 "ncgen.y"
             {Symbol* tsym = (yyvsp[0].sym);
 		if(tsym->objectclass != NC_TYPE) {
 		    derror("Undefined or forward referenced type: %s",tsym->name);
@@ -2461,11 +2470,11 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		}
 		(yyval.sym)=tsym;
 	    }
-#line 2465 "ncgeny.c"
+#line 2474 "ncgeny.c"
     break;
 
   case 86: /* ambiguous_ref: path  */
-#line 696 "ncgen.y"
+#line 702 "ncgen.y"
             {Symbol* tvsym = (yyvsp[0].sym); Symbol* sym;
 		/* disambiguate*/
 		tvsym->objectclass = NC_VAR;
@@ -2484,53 +2493,53 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		}
 		(yyval.sym)=tvsym;
 	    }
-#line 2488 "ncgeny.c"
+#line 2497 "ncgeny.c"
     break;
 
   case 87: /* ambiguous_ref: primtype  */
-#line 714 "ncgen.y"
+#line 720 "ncgen.y"
                    {(yyval.sym)=(yyvsp[0].sym);}
-#line 2494 "ncgeny.c"
+#line 2503 "ncgeny.c"
     break;
 
   case 88: /* attrdecllist: %empty  */
-#line 721 "ncgen.y"
+#line 727 "ncgen.y"
                         {}
-#line 2500 "ncgeny.c"
+#line 2509 "ncgeny.c"
     break;
 
   case 89: /* attrdecllist: attrdecl ';' attrdecllist  */
-#line 721 "ncgen.y"
+#line 727 "ncgen.y"
                                                        {}
-#line 2506 "ncgeny.c"
+#line 2515 "ncgeny.c"
     break;
 
   case 90: /* attrdecl: ':' _NCPROPS '=' conststring  */
-#line 725 "ncgen.y"
+#line 731 "ncgen.y"
             {(yyval.sym) = makespecial(_NCPROPS_FLAG,NULL,NULL,(void*)(yyvsp[0].constant),ISCONST);}
-#line 2512 "ncgeny.c"
+#line 2521 "ncgeny.c"
     break;
 
   case 91: /* attrdecl: ':' _ISNETCDF4 '=' constbool  */
-#line 727 "ncgen.y"
+#line 733 "ncgen.y"
             {(yyval.sym) = makespecial(_ISNETCDF4_FLAG,NULL,NULL,(void*)(yyvsp[0].constant),ISCONST);}
-#line 2518 "ncgeny.c"
+#line 2527 "ncgeny.c"
     break;
 
   case 92: /* attrdecl: ':' _SUPERBLOCK '=' constint  */
-#line 729 "ncgen.y"
+#line 735 "ncgen.y"
             {(yyval.sym) = makespecial(_SUPERBLOCK_FLAG,NULL,NULL,(void*)(yyvsp[0].constant),ISCONST);}
-#line 2524 "ncgeny.c"
+#line 2533 "ncgeny.c"
     break;
 
   case 93: /* attrdecl: ':' ident '=' datalist  */
-#line 731 "ncgen.y"
+#line 737 "ncgen.y"
             { (yyval.sym)=makeattribute((yyvsp[-2].sym),NULL,NULL,(yyvsp[0].datalist),ATTRGLOBAL);}
-#line 2530 "ncgeny.c"
+#line 2539 "ncgeny.c"
     break;
 
   case 94: /* attrdecl: typeref ambiguous_ref ':' ident '=' datalist  */
-#line 733 "ncgen.y"
+#line 739 "ncgen.y"
             {Symbol* tsym = (yyvsp[-5].sym); Symbol* vsym = (yyvsp[-4].sym); Symbol* asym = (yyvsp[-2].sym);
 		if(vsym->objectclass == NC_VAR) {
 		    (yyval.sym)=makeattribute(asym,vsym,tsym,(yyvsp[0].datalist),ATTRVAR);
@@ -2539,11 +2548,11 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		    YYABORT;
 		}
 	    }
-#line 2543 "ncgeny.c"
+#line 2552 "ncgeny.c"
     break;
 
   case 95: /* attrdecl: ambiguous_ref ':' ident '=' datalist  */
-#line 742 "ncgen.y"
+#line 748 "ncgen.y"
             {Symbol* sym = (yyvsp[-4].sym); Symbol* asym = (yyvsp[-2].sym);
 		if(sym->objectclass == NC_VAR) {
 		    (yyval.sym)=makeattribute(asym,sym,NULL,(yyvsp[0].datalist),ATTRVAR);
@@ -2554,351 +2563,381 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		    YYABORT;
 		}
 	    }
-#line 2558 "ncgeny.c"
+#line 2567 "ncgeny.c"
     break;
 
   case 96: /* attrdecl: ambiguous_ref ':' _FILLVALUE '=' datalist  */
-#line 753 "ncgen.y"
+#line 759 "ncgen.y"
             {(yyval.sym) = makespecial(_FILLVALUE_FLAG,(yyvsp[-4].sym),NULL,(void*)(yyvsp[0].datalist),ISLIST);}
-#line 2564 "ncgeny.c"
+#line 2573 "ncgeny.c"
     break;
 
   case 97: /* attrdecl: typeref ambiguous_ref ':' _FILLVALUE '=' datalist  */
-#line 755 "ncgen.y"
+#line 761 "ncgen.y"
             {(yyval.sym) = makespecial(_FILLVALUE_FLAG,(yyvsp[-4].sym),(yyvsp[-5].sym),(void*)(yyvsp[0].datalist),ISLIST);}
-#line 2570 "ncgeny.c"
+#line 2579 "ncgeny.c"
     break;
 
   case 98: /* attrdecl: ambiguous_ref ':' _STORAGE '=' conststring  */
-#line 757 "ncgen.y"
+#line 763 "ncgen.y"
             {(yyval.sym) = makespecial(_STORAGE_FLAG,(yyvsp[-4].sym),NULL,(void*)(yyvsp[0].constant),ISCONST);}
-#line 2576 "ncgeny.c"
+#line 2585 "ncgeny.c"
     break;
 
   case 99: /* attrdecl: ambiguous_ref ':' _CHUNKSIZES '=' intlist  */
-#line 759 "ncgen.y"
+#line 765 "ncgen.y"
             {(yyval.sym) = makespecial(_CHUNKSIZES_FLAG,(yyvsp[-4].sym),NULL,(void*)(yyvsp[0].datalist),ISLIST);}
-#line 2582 "ncgeny.c"
+#line 2591 "ncgeny.c"
     break;
 
   case 100: /* attrdecl: ambiguous_ref ':' _FLETCHER32 '=' constbool  */
-#line 761 "ncgen.y"
+#line 767 "ncgen.y"
             {(yyval.sym) = makespecial(_FLETCHER32_FLAG,(yyvsp[-4].sym),NULL,(void*)(yyvsp[0].constant),ISCONST);}
-#line 2588 "ncgeny.c"
+#line 2597 "ncgeny.c"
     break;
 
   case 101: /* attrdecl: ambiguous_ref ':' _DEFLATELEVEL '=' constint  */
-#line 763 "ncgen.y"
+#line 769 "ncgen.y"
             {(yyval.sym) = makespecial(_DEFLATE_FLAG,(yyvsp[-4].sym),NULL,(void*)(yyvsp[0].constant),ISCONST);}
-#line 2594 "ncgeny.c"
+#line 2603 "ncgeny.c"
     break;
 
   case 102: /* attrdecl: ambiguous_ref ':' _SHUFFLE '=' constbool  */
-#line 765 "ncgen.y"
+#line 771 "ncgen.y"
             {(yyval.sym) = makespecial(_SHUFFLE_FLAG,(yyvsp[-4].sym),NULL,(void*)(yyvsp[0].constant),ISCONST);}
-#line 2600 "ncgeny.c"
+#line 2609 "ncgeny.c"
     break;
 
   case 103: /* attrdecl: ambiguous_ref ':' _ENDIANNESS '=' conststring  */
-#line 767 "ncgen.y"
+#line 773 "ncgen.y"
             {(yyval.sym) = makespecial(_ENDIAN_FLAG,(yyvsp[-4].sym),NULL,(void*)(yyvsp[0].constant),ISCONST);}
-#line 2606 "ncgeny.c"
+#line 2615 "ncgeny.c"
     break;
 
   case 104: /* attrdecl: ambiguous_ref ':' _FILTER '=' conststring  */
-#line 769 "ncgen.y"
+#line 775 "ncgen.y"
             {(yyval.sym) = makespecial(_FILTER_FLAG,(yyvsp[-4].sym),NULL,(void*)(yyvsp[0].constant),ISCONST);}
-#line 2612 "ncgeny.c"
+#line 2621 "ncgeny.c"
     break;
 
   case 105: /* attrdecl: ambiguous_ref ':' _CODECS '=' conststring  */
-#line 771 "ncgen.y"
+#line 777 "ncgen.y"
             {(yyval.sym) = makespecial(_CODECS_FLAG,(yyvsp[-4].sym),NULL,(void*)(yyvsp[0].constant),ISCONST);}
-#line 2618 "ncgeny.c"
+#line 2627 "ncgeny.c"
     break;
 
-  case 106: /* attrdecl: ambiguous_ref ':' _NOFILL '=' constbool  */
-#line 773 "ncgen.y"
+  case 106: /* attrdecl: ambiguous_ref ':' _QUANTIZEBG '=' constint  */
+#line 779 "ncgen.y"
+            {(yyval.sym) = makespecial(_QUANTIZEBG_FLAG,(yyvsp[-4].sym),NULL,(void*)(yyvsp[0].constant),ISCONST);}
+#line 2633 "ncgeny.c"
+    break;
+
+  case 107: /* attrdecl: ambiguous_ref ':' _QUANTIZEGBR '=' constint  */
+#line 781 "ncgen.y"
+            {(yyval.sym) = makespecial(_QUANTIZEGBR_FLAG,(yyvsp[-4].sym),NULL,(void*)(yyvsp[0].constant),ISCONST);}
+#line 2639 "ncgeny.c"
+    break;
+
+  case 108: /* attrdecl: ambiguous_ref ':' _QUANTIZEBR '=' constint  */
+#line 783 "ncgen.y"
+            {(yyval.sym) = makespecial(_QUANTIZEBR_FLAG,(yyvsp[-4].sym),NULL,(void*)(yyvsp[0].constant),ISCONST);}
+#line 2645 "ncgeny.c"
+    break;
+
+  case 109: /* attrdecl: ambiguous_ref ':' _NOFILL '=' constbool  */
+#line 785 "ncgen.y"
             {(yyval.sym) = makespecial(_NOFILL_FLAG,(yyvsp[-4].sym),NULL,(void*)(yyvsp[0].constant),ISCONST);}
-#line 2624 "ncgeny.c"
+#line 2651 "ncgeny.c"
     break;
 
-  case 107: /* attrdecl: ':' _FORMAT '=' conststring  */
-#line 775 "ncgen.y"
+  case 110: /* attrdecl: ':' _FORMAT '=' conststring  */
+#line 787 "ncgen.y"
             {(yyval.sym) = makespecial(_FORMAT_FLAG,NULL,NULL,(void*)(yyvsp[0].constant),ISCONST);}
-#line 2630 "ncgeny.c"
+#line 2657 "ncgeny.c"
     break;
 
-  case 108: /* path: ident  */
-#line 780 "ncgen.y"
+  case 111: /* path: ident  */
+#line 792 "ncgen.y"
             {
 	        (yyval.sym)=(yyvsp[0].sym);
                 (yyvsp[0].sym)->ref.is_ref=1;
                 (yyvsp[0].sym)->is_prefixed=0;
                 setpathcurrent((yyvsp[0].sym));
 	    }
-#line 2641 "ncgeny.c"
+#line 2668 "ncgeny.c"
     break;
 
-  case 109: /* path: PATH  */
-#line 787 "ncgen.y"
+  case 112: /* path: PATH  */
+#line 799 "ncgen.y"
             {
 	        (yyval.sym)=(yyvsp[0].sym);
                 (yyvsp[0].sym)->ref.is_ref=1;
                 (yyvsp[0].sym)->is_prefixed=1;
 	        /* path is set in ncgen.l*/
 	    }
-#line 2652 "ncgeny.c"
+#line 2679 "ncgeny.c"
     break;
 
-  case 111: /* datasection: DATA  */
-#line 796 "ncgen.y"
-                       {}
-#line 2658 "ncgeny.c"
-    break;
-
-  case 112: /* datasection: DATA datadecls  */
-#line 797 "ncgen.y"
-                                 {}
-#line 2664 "ncgeny.c"
-    break;
-
-  case 115: /* datadecl: varref '=' datalist  */
-#line 805 "ncgen.y"
-                   {(yyvsp[-2].sym)->data = (yyvsp[0].datalist);}
-#line 2670 "ncgeny.c"
-    break;
-
-  case 116: /* datalist: datalist0  */
+  case 114: /* datasection: DATA  */
 #line 808 "ncgen.y"
-                    {(yyval.datalist) = (yyvsp[0].datalist);}
-#line 2676 "ncgeny.c"
+                       {}
+#line 2685 "ncgeny.c"
     break;
 
-  case 117: /* datalist: datalist1  */
+  case 115: /* datasection: DATA datadecls  */
 #line 809 "ncgen.y"
-                    {(yyval.datalist) = (yyvsp[0].datalist);}
-#line 2682 "ncgeny.c"
+                                 {}
+#line 2691 "ncgeny.c"
     break;
 
-  case 118: /* datalist0: %empty  */
-#line 813 "ncgen.y"
-                  {(yyval.datalist) = builddatalist(0);}
-#line 2688 "ncgeny.c"
-    break;
-
-  case 119: /* datalist1: dataitem  */
+  case 118: /* datadecl: varref '=' datalist  */
 #line 817 "ncgen.y"
-                   {(yyval.datalist) = const2list((yyvsp[0].constant));}
-#line 2694 "ncgeny.c"
+                   {(yyvsp[-2].sym)->data = (yyvsp[0].datalist);}
+#line 2697 "ncgeny.c"
     break;
 
-  case 120: /* datalist1: datalist ',' dataitem  */
-#line 819 "ncgen.y"
-            {dlappend((yyvsp[-2].datalist),((yyvsp[0].constant))); (yyval.datalist)=(yyvsp[-2].datalist); }
-#line 2700 "ncgeny.c"
+  case 119: /* datalist: datalist0  */
+#line 820 "ncgen.y"
+                    {(yyval.datalist) = (yyvsp[0].datalist);}
+#line 2703 "ncgeny.c"
     break;
 
-  case 121: /* dataitem: constdata  */
-#line 823 "ncgen.y"
-                    {(yyval.constant)=(yyvsp[0].constant);}
-#line 2706 "ncgeny.c"
+  case 120: /* datalist: datalist1  */
+#line 821 "ncgen.y"
+                    {(yyval.datalist) = (yyvsp[0].datalist);}
+#line 2709 "ncgeny.c"
     break;
 
-  case 122: /* dataitem: '{' datalist '}'  */
-#line 824 "ncgen.y"
-                           {(yyval.constant)=builddatasublist((yyvsp[-1].datalist));}
-#line 2712 "ncgeny.c"
+  case 121: /* datalist0: %empty  */
+#line 825 "ncgen.y"
+                  {(yyval.datalist) = builddatalist(0);}
+#line 2715 "ncgeny.c"
     break;
 
-  case 123: /* constdata: simpleconstant  */
-#line 828 "ncgen.y"
-                              {(yyval.constant)=(yyvsp[0].constant);}
-#line 2718 "ncgeny.c"
-    break;
-
-  case 124: /* constdata: OPAQUESTRING  */
+  case 122: /* datalist1: dataitem  */
 #line 829 "ncgen.y"
-                        {(yyval.constant)=makeconstdata(NC_OPAQUE);}
-#line 2724 "ncgeny.c"
-    break;
-
-  case 125: /* constdata: FILLMARKER  */
-#line 830 "ncgen.y"
-                        {(yyval.constant)=makeconstdata(NC_FILLVALUE);}
-#line 2730 "ncgeny.c"
-    break;
-
-  case 126: /* constdata: NIL  */
-#line 831 "ncgen.y"
-                        {(yyval.constant)=makeconstdata(NC_NIL);}
-#line 2736 "ncgeny.c"
-    break;
-
-  case 127: /* constdata: econstref  */
-#line 832 "ncgen.y"
-                        {(yyval.constant)=(yyvsp[0].constant);}
-#line 2742 "ncgeny.c"
-    break;
-
-  case 129: /* econstref: path  */
-#line 837 "ncgen.y"
-             {(yyval.constant) = makeenumconstref((yyvsp[0].sym));}
-#line 2748 "ncgeny.c"
-    break;
-
-  case 130: /* function: ident '(' arglist ')'  */
-#line 841 "ncgen.y"
-                              {(yyval.constant)=evaluate((yyvsp[-3].sym),(yyvsp[-1].datalist));}
-#line 2754 "ncgeny.c"
-    break;
-
-  case 131: /* arglist: simpleconstant  */
-#line 846 "ncgen.y"
-            {(yyval.datalist) = const2list((yyvsp[0].constant));}
-#line 2760 "ncgeny.c"
-    break;
-
-  case 132: /* arglist: arglist ',' simpleconstant  */
-#line 848 "ncgen.y"
-            {dlappend((yyvsp[-2].datalist),((yyvsp[0].constant))); (yyval.datalist)=(yyvsp[-2].datalist);}
-#line 2766 "ncgeny.c"
-    break;
-
-  case 133: /* simpleconstant: CHAR_CONST  */
-#line 852 "ncgen.y"
-                        {(yyval.constant)=makeconstdata(NC_CHAR);}
-#line 2772 "ncgeny.c"
-    break;
-
-  case 134: /* simpleconstant: BYTE_CONST  */
-#line 853 "ncgen.y"
-                        {(yyval.constant)=makeconstdata(NC_BYTE);}
-#line 2778 "ncgeny.c"
-    break;
-
-  case 135: /* simpleconstant: SHORT_CONST  */
-#line 854 "ncgen.y"
-                        {(yyval.constant)=makeconstdata(NC_SHORT);}
-#line 2784 "ncgeny.c"
-    break;
-
-  case 136: /* simpleconstant: INT_CONST  */
-#line 855 "ncgen.y"
-                        {(yyval.constant)=makeconstdata(NC_INT);}
-#line 2790 "ncgeny.c"
-    break;
-
-  case 137: /* simpleconstant: INT64_CONST  */
-#line 856 "ncgen.y"
-                        {(yyval.constant)=makeconstdata(NC_INT64);}
-#line 2796 "ncgeny.c"
-    break;
-
-  case 138: /* simpleconstant: UBYTE_CONST  */
-#line 857 "ncgen.y"
-                        {(yyval.constant)=makeconstdata(NC_UBYTE);}
-#line 2802 "ncgeny.c"
-    break;
-
-  case 139: /* simpleconstant: USHORT_CONST  */
-#line 858 "ncgen.y"
-                        {(yyval.constant)=makeconstdata(NC_USHORT);}
-#line 2808 "ncgeny.c"
-    break;
-
-  case 140: /* simpleconstant: UINT_CONST  */
-#line 859 "ncgen.y"
-                        {(yyval.constant)=makeconstdata(NC_UINT);}
-#line 2814 "ncgeny.c"
-    break;
-
-  case 141: /* simpleconstant: UINT64_CONST  */
-#line 860 "ncgen.y"
-                        {(yyval.constant)=makeconstdata(NC_UINT64);}
-#line 2820 "ncgeny.c"
-    break;
-
-  case 142: /* simpleconstant: FLOAT_CONST  */
-#line 861 "ncgen.y"
-                        {(yyval.constant)=makeconstdata(NC_FLOAT);}
-#line 2826 "ncgeny.c"
-    break;
-
-  case 143: /* simpleconstant: DOUBLE_CONST  */
-#line 862 "ncgen.y"
-                        {(yyval.constant)=makeconstdata(NC_DOUBLE);}
-#line 2832 "ncgeny.c"
-    break;
-
-  case 144: /* simpleconstant: TERMSTRING  */
-#line 863 "ncgen.y"
-                        {(yyval.constant)=makeconstdata(NC_STRING);}
-#line 2838 "ncgeny.c"
-    break;
-
-  case 145: /* intlist: constint  */
-#line 867 "ncgen.y"
                    {(yyval.datalist) = const2list((yyvsp[0].constant));}
-#line 2844 "ncgeny.c"
+#line 2721 "ncgeny.c"
     break;
 
-  case 146: /* intlist: intlist ',' constint  */
+  case 123: /* datalist1: datalist ',' dataitem  */
+#line 831 "ncgen.y"
+            {dlappend((yyvsp[-2].datalist),((yyvsp[0].constant))); (yyval.datalist)=(yyvsp[-2].datalist); }
+#line 2727 "ncgeny.c"
+    break;
+
+  case 124: /* dataitem: constdata  */
+#line 835 "ncgen.y"
+                    {(yyval.constant)=(yyvsp[0].constant);}
+#line 2733 "ncgeny.c"
+    break;
+
+  case 125: /* dataitem: '{' datalist '}'  */
+#line 836 "ncgen.y"
+                           {(yyval.constant)=builddatasublist((yyvsp[-1].datalist));}
+#line 2739 "ncgeny.c"
+    break;
+
+  case 126: /* constdata: simpleconstant  */
+#line 840 "ncgen.y"
+                              {(yyval.constant)=(yyvsp[0].constant);}
+#line 2745 "ncgeny.c"
+    break;
+
+  case 127: /* constdata: OPAQUESTRING  */
+#line 841 "ncgen.y"
+                        {(yyval.constant)=makeconstdata(NC_OPAQUE);}
+#line 2751 "ncgeny.c"
+    break;
+
+  case 128: /* constdata: FILLMARKER  */
+#line 842 "ncgen.y"
+                        {(yyval.constant)=makeconstdata(NC_FILLVALUE);}
+#line 2757 "ncgeny.c"
+    break;
+
+  case 129: /* constdata: NIL  */
+#line 843 "ncgen.y"
+                        {(yyval.constant)=makeconstdata(NC_NIL);}
+#line 2763 "ncgeny.c"
+    break;
+
+  case 130: /* constdata: econstref  */
+#line 844 "ncgen.y"
+                        {(yyval.constant)=(yyvsp[0].constant);}
+#line 2769 "ncgeny.c"
+    break;
+
+  case 132: /* econstref: path  */
+#line 849 "ncgen.y"
+             {(yyval.constant) = makeenumconstref((yyvsp[0].sym));}
+#line 2775 "ncgeny.c"
+    break;
+
+  case 133: /* function: ident '(' arglist ')'  */
+#line 853 "ncgen.y"
+                              {(yyval.constant)=evaluate((yyvsp[-3].sym),(yyvsp[-1].datalist));}
+#line 2781 "ncgeny.c"
+    break;
+
+  case 134: /* arglist: simpleconstant  */
+#line 858 "ncgen.y"
+            {(yyval.datalist) = const2list((yyvsp[0].constant));}
+#line 2787 "ncgeny.c"
+    break;
+
+  case 135: /* arglist: arglist ',' simpleconstant  */
+#line 860 "ncgen.y"
+            {dlappend((yyvsp[-2].datalist),((yyvsp[0].constant))); (yyval.datalist)=(yyvsp[-2].datalist);}
+#line 2793 "ncgeny.c"
+    break;
+
+  case 136: /* simpleconstant: CHAR_CONST  */
+#line 864 "ncgen.y"
+                        {(yyval.constant)=makeconstdata(NC_CHAR);}
+#line 2799 "ncgeny.c"
+    break;
+
+  case 137: /* simpleconstant: BYTE_CONST  */
+#line 865 "ncgen.y"
+                        {(yyval.constant)=makeconstdata(NC_BYTE);}
+#line 2805 "ncgeny.c"
+    break;
+
+  case 138: /* simpleconstant: SHORT_CONST  */
+#line 866 "ncgen.y"
+                        {(yyval.constant)=makeconstdata(NC_SHORT);}
+#line 2811 "ncgeny.c"
+    break;
+
+  case 139: /* simpleconstant: INT_CONST  */
+#line 867 "ncgen.y"
+                        {(yyval.constant)=makeconstdata(NC_INT);}
+#line 2817 "ncgeny.c"
+    break;
+
+  case 140: /* simpleconstant: INT64_CONST  */
 #line 868 "ncgen.y"
-                               {(yyval.datalist)=(yyvsp[-2].datalist); dlappend((yyvsp[-2].datalist),((yyvsp[0].constant)));}
-#line 2850 "ncgeny.c"
+                        {(yyval.constant)=makeconstdata(NC_INT64);}
+#line 2823 "ncgeny.c"
     break;
 
-  case 147: /* constint: INT_CONST  */
+  case 141: /* simpleconstant: UBYTE_CONST  */
+#line 869 "ncgen.y"
+                        {(yyval.constant)=makeconstdata(NC_UBYTE);}
+#line 2829 "ncgeny.c"
+    break;
+
+  case 142: /* simpleconstant: USHORT_CONST  */
+#line 870 "ncgen.y"
+                        {(yyval.constant)=makeconstdata(NC_USHORT);}
+#line 2835 "ncgeny.c"
+    break;
+
+  case 143: /* simpleconstant: UINT_CONST  */
+#line 871 "ncgen.y"
+                        {(yyval.constant)=makeconstdata(NC_UINT);}
+#line 2841 "ncgeny.c"
+    break;
+
+  case 144: /* simpleconstant: UINT64_CONST  */
+#line 872 "ncgen.y"
+                        {(yyval.constant)=makeconstdata(NC_UINT64);}
+#line 2847 "ncgeny.c"
+    break;
+
+  case 145: /* simpleconstant: FLOAT_CONST  */
 #line 873 "ncgen.y"
-                {(yyval.constant)=makeconstdata(NC_INT);}
-#line 2856 "ncgeny.c"
+                        {(yyval.constant)=makeconstdata(NC_FLOAT);}
+#line 2853 "ncgeny.c"
     break;
 
-  case 148: /* constint: UINT_CONST  */
+  case 146: /* simpleconstant: DOUBLE_CONST  */
+#line 874 "ncgen.y"
+                        {(yyval.constant)=makeconstdata(NC_DOUBLE);}
+#line 2859 "ncgeny.c"
+    break;
+
+  case 147: /* simpleconstant: TERMSTRING  */
 #line 875 "ncgen.y"
-                {(yyval.constant)=makeconstdata(NC_UINT);}
-#line 2862 "ncgeny.c"
-    break;
-
-  case 149: /* constint: INT64_CONST  */
-#line 877 "ncgen.y"
-                {(yyval.constant)=makeconstdata(NC_INT64);}
-#line 2868 "ncgeny.c"
-    break;
-
-  case 150: /* constint: UINT64_CONST  */
-#line 879 "ncgen.y"
-                {(yyval.constant)=makeconstdata(NC_UINT64);}
-#line 2874 "ncgeny.c"
-    break;
-
-  case 151: /* conststring: TERMSTRING  */
-#line 883 "ncgen.y"
                         {(yyval.constant)=makeconstdata(NC_STRING);}
-#line 2880 "ncgeny.c"
+#line 2865 "ncgeny.c"
     break;
 
-  case 152: /* constbool: conststring  */
+  case 148: /* intlist: constint  */
+#line 879 "ncgen.y"
+                   {(yyval.datalist) = const2list((yyvsp[0].constant));}
+#line 2871 "ncgeny.c"
+    break;
+
+  case 149: /* intlist: intlist ',' constint  */
+#line 880 "ncgen.y"
+                               {(yyval.datalist)=(yyvsp[-2].datalist); dlappend((yyvsp[-2].datalist),((yyvsp[0].constant)));}
+#line 2877 "ncgeny.c"
+    break;
+
+  case 150: /* constint: INT_CONST  */
+#line 885 "ncgen.y"
+                {(yyval.constant)=makeconstdata(NC_INT);}
+#line 2883 "ncgeny.c"
+    break;
+
+  case 151: /* constint: UINT_CONST  */
 #line 887 "ncgen.y"
+                {(yyval.constant)=makeconstdata(NC_UINT);}
+#line 2889 "ncgeny.c"
+    break;
+
+  case 152: /* constint: INT64_CONST  */
+#line 889 "ncgen.y"
+                {(yyval.constant)=makeconstdata(NC_INT64);}
+#line 2895 "ncgeny.c"
+    break;
+
+  case 153: /* constint: UINT64_CONST  */
+#line 891 "ncgen.y"
+                {(yyval.constant)=makeconstdata(NC_UINT64);}
+#line 2901 "ncgeny.c"
+    break;
+
+  case 154: /* conststring: TERMSTRING  */
+#line 895 "ncgen.y"
+                        {(yyval.constant)=makeconstdata(NC_STRING);}
+#line 2907 "ncgeny.c"
+    break;
+
+  case 155: /* constbool: conststring  */
+#line 899 "ncgen.y"
                       {(yyval.constant)=(yyvsp[0].constant);}
-#line 2886 "ncgeny.c"
+#line 2913 "ncgeny.c"
     break;
 
-  case 153: /* constbool: constint  */
-#line 888 "ncgen.y"
+  case 156: /* constbool: constint  */
+#line 900 "ncgen.y"
                    {(yyval.constant)=(yyvsp[0].constant);}
-#line 2892 "ncgeny.c"
+#line 2919 "ncgeny.c"
     break;
 
-  case 154: /* ident: IDENT  */
-#line 894 "ncgen.y"
+  case 157: /* varident: IDENT  */
+#line 908 "ncgen.y"
+                {(yyval.sym)=(yyvsp[0].sym);}
+#line 2925 "ncgeny.c"
+    break;
+
+  case 158: /* varident: DATA  */
+#line 909 "ncgen.y"
+               {(yyval.sym)=identkeyword((yyvsp[0].sym));}
+#line 2931 "ncgeny.c"
+    break;
+
+  case 159: /* ident: IDENT  */
+#line 913 "ncgen.y"
               {(yyval.sym)=(yyvsp[0].sym);}
-#line 2898 "ncgeny.c"
+#line 2937 "ncgeny.c"
     break;
 
 
-#line 2902 "ncgeny.c"
+#line 2941 "ncgeny.c"
 
       default: break;
     }
@@ -3123,7 +3162,7 @@ yyreturn:
   return yyresult;
 }
 
-#line 897 "ncgen.y"
+#line 916 "ncgen.y"
 
 
 #ifndef NO_STDARG
@@ -3191,7 +3230,7 @@ makeprimitivetype(nc_type nctype)
     sym->typ.typecode = nctype;
     sym->typ.size = ncsize(nctype);
     sym->typ.nelems = 1;
-    sym->typ.alignment = ncaux_class_alignment(nctype);
+    (void)ncaux_class_alignment(nctype,&sym->typ.alignment);
     /* Make the basetype circular so we can always ask for it */
     sym->typ.basetype = sym;
     sym->prefix = listnew();
@@ -3460,6 +3499,9 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
 	break;
     case _SUPERBLOCK_FLAG:
     case _DEFLATE_FLAG:
+    case _QUANTIZEBG_FLAG:
+    case _QUANTIZEGBR_FLAG:
+    case _QUANTIZEBR_FLAG:
 	tmp = nullconst();
         tmp->nctype = NC_INT;
 	convert1(con,tmp);
@@ -3524,9 +3566,11 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
                 derror("_FillValue attribute not associated with variable: %s",vsym->name);
             }
             if(tsym  == NULL) tsym = vsym->typ.basetype;
+#if 0 /* No longer require matching types */
             else if(vsym->typ.basetype != tsym) {
                 derror("_FillValue attribute type does not match variable type: %s",vsym->name);
             }
+#endif
             special->_Fillvalue = clonedatalist(list);
 	    /* Create the corresponding attribute */
             attr = makeattribute(install("_FillValue"),vsym,tsym,list,ATTRVAR);
@@ -3553,6 +3597,21 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
             case _DEFLATE_FLAG:
                 special->_DeflateLevel = idata;
                 special->flags |= _DEFLATE_FLAG;
+                break;
+            case _QUANTIZEBG_FLAG:
+		special->_Quantizer = NC_QUANTIZE_BITGROOM;
+                special->_NSD = idata;
+                special->flags |= _QUANTIZEBG_FLAG;
+                break;
+            case _QUANTIZEGBR_FLAG:
+		special->_Quantizer = NC_QUANTIZE_GRANULARBR;
+                special->_NSD = idata;
+                special->flags |= _QUANTIZEGBR_FLAG;
+                break;
+            case _QUANTIZEBR_FLAG:
+		special->_Quantizer = NC_QUANTIZE_BITROUND;
+                special->_NSD = idata;
+                special->flags |= _QUANTIZEBR_FLAG;
                 break;
             case _SHUFFLE_FLAG:
                 special->_Shuffle = tf;

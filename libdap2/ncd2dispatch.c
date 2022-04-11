@@ -7,6 +7,7 @@
 #include "ncd2dispatch.h"
 #include "ncrc.h"
 #include "ncoffsets.h"
+#include "netcdf_dispatch.h"
 #ifdef DEBUG2
 #include "dapdump.h"
 #endif
@@ -181,6 +182,7 @@ NC_NOOP_inq_var_filter_info,
 NC_NOTNC4_def_var_quantize,
 NC_NOTNC4_inq_var_quantize,
 
+NC_NOOP_inq_filter_avail,
 };
 
 const NC_Dispatch* NCD2_dispatch_table = NULL; /* moved here from ddispatch.c */

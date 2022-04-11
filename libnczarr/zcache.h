@@ -37,9 +37,11 @@ typedef struct NCZCacheEntry {
 } NCZCacheEntry;
 
 typedef struct NCZChunkCache {
+    int valid; /* 0 => following fields need to be re-calculated */
     NC_VAR_INFO_T* var; /* backlink */
     size64_t ndims; /* true ndims == var->ndims + scalar */
     size64_t chunksize; /* for real data */
+    size64_t chunkcount; /* cross product of chunksizes */
     void* fillchunk; /* enough fillvalues to fill a real chunk */
     size_t maxentries; /* Max number of entries allowed; maxsize can override */
     size_t maxsize; /* Maximum space used by cache; 0 => nolimit */
@@ -51,7 +53,7 @@ typedef struct NCZChunkCache {
 
 /**************************************************/
 
-#define FILTERED(cache) (nclistlength((NClist*)(cache)->var->filters) || (cache)->var->shuffle || (cache)->var->fletcher32);
+#define FILTERED(cache) (nclistlength((NClist*)(cache)->var->filters))
 
 extern int NCZ_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems, float preemption);
 extern int NCZ_adjust_var_cache(NC_VAR_INFO_T *var);
@@ -63,5 +65,7 @@ extern size64_t NCZ_cache_entrysize(NCZChunkCache* cache);
 extern NCZCacheEntry* NCZ_cache_entry(NCZChunkCache* cache, const size64_t* indices);
 extern size64_t NCZ_cache_size(NCZChunkCache* cache);
 extern int NCZ_buildchunkpath(NCZChunkCache* cache, const size64_t* chunkindices, struct ChunkKey* key);
+extern int NCZ_ensure_fill_chunk(NCZChunkCache* cache);
+extern int NCZ_reclaim_fill_chunk(NCZChunkCache* cache);
 
 #endif /*ZCACHE_H*/

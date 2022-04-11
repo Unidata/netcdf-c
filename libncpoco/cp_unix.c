@@ -19,6 +19,8 @@
 #include "ncpoco.h"
 #include "ncpathmgr.h"
 
+#undef DEBUG
+
 /* Note: cygwin is missing RTLD_LOCAL, set it to 0 */
 #if !defined(RTLD_LOCAL)
 #define RTLD_LOCAL 0
@@ -29,15 +31,34 @@
 #endif
 
 #if !defined(RTLD_LAZY)
-#define RTLD_LAZY 0
+#define RTLD_LAZY 1
+#endif
+
+#if !defined(RTLD_NOW)
+#define RTLD_NOW 2
 #endif
 
 #ifdef USE_MUTEX
 static pthread_mutex_t mutex;
 #endif
 
+static void
+ncperr(const char* fcn, NCPSharedLib* lib)
+{
+    const char* msg = dlerror();
+    lib->err.msg[0] = '\0';
+    if(msg != NULL) {
+	strlcat(lib->err.msg,fcn,sizeof(lib->err.msg));
+	strlcat(lib->err.msg,": ",sizeof(lib->err.msg));
+	strlcat(lib->err.msg,msg,sizeof(lib->err.msg));
+#ifdef DEBUG
+	fprintf(stderr,">>> %s\n",lib->err.msg);
+#endif
+    }
+}
+
 int
-ncp_unix_initialize()
+ncp_unix_initialize(void)
 {
     int ret = 1;
 #ifdef USE_MUTEX
@@ -54,7 +75,7 @@ ncp_unix_initialize()
 }
 
 int
-ncp_unix_finalize()
+ncp_unix_finalize(void)
 {
 #ifdef USE_MUTEX
     pthread_mutex_destroy(&mutex);
@@ -96,7 +117,7 @@ static int
 load(NCPSharedLib* lib , const char* path0, int flags)
 {
     int ret = NC_NOERR;
-    int realflags = RTLD_LAZY;
+    int realflags = RTLD_LAZY; /* versus RTLD_NOW which does not appear to work */
     char* path = NULL;
 
     if((path = NCpathcvt(path0))==NULL) {ret = NC_ENOMEM; goto done;}
@@ -113,9 +134,7 @@ load(NCPSharedLib* lib , const char* path0, int flags)
     lib->state.flags = realflags;
     lib->state.handle = dlopen(lib->path, lib->state.flags);
     if(lib->state.handle == NULL) {
-	const char* msg = dlerror();
-	if(msg == NULL) msg = "";
-	strncpy(lib->err.msg,msg,sizeof(lib->err.msg));
+	ncperr("dlopen",lib);
 	ret = NC_ENOTFOUND;
 	goto ldone;
     }
@@ -150,8 +169,12 @@ getsymbol(NCPSharedLib* lib, const char* name)
 {
     void* result = NULL;
     lock();
-    if(lib->state.handle != NULL)
+    if(lib->state.handle != NULL) {
 	result = dlsym(lib->state.handle, name);
+	if(result == NULL) {
+	    ncperr("dlsym",lib);
+	}
+    }
     unlock();
     return result;
 }

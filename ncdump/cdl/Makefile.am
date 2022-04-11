@@ -5,6 +5,8 @@
 
 # $Id: Makefile.am,v 1.5 2010/04/27 18:50:44 dmh Exp $
 
+# Where are these being used?
+
 EXTRA_DIST = \
 c0.cdl example_good.cdl fills.cdl nc_enddef.cdl nc_sync.cdl pres_temp_4D.cdl \
 ref_const_test.cdl ref_ctest1_nc4.cdl ref_ctest1_nc4c.cdl ref_dimscope.cdl \
@@ -23,6 +25,7 @@ ref_solar.cdl unlimtest1.cdl unlimtest2.cdl \
 ref_tst_opaque_data.cdl  \
 ref_tst_vlen_data.cdl ref_tst_vlen_data2.cdl \
 ref_niltest.cdl ref_tst_h_scalar.cdl ref_tst_econst.cdl \
+ref_tst_econst2.cdl \
 ref_tst_nul3.cdl ref_tst_nul4.cdl ref_tst_names.cdl \
 ref_tst_long_charconst.cdl tst_chararray.cdl ref_keyword.cdl \
 CMakeLists.txt

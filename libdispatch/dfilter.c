@@ -20,6 +20,10 @@
 #include "hdf5internal.h"
 #endif
 
+#ifdef ENABLE_NCZARR
+#include "zdispatch.h"
+#endif
+
 /*
 Unified filter related code
 */
@@ -116,10 +120,18 @@ done:
 EXTERNL int
 nc_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams, const unsigned int* params)
 {
+    int stat = NC_NOERR;
     NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    TRACE(nc_inq_var_filter_info);
+    int fixedsize;
+    nc_type xtype;
+
+    TRACE(nc_inq_var_filter);
+    if((stat = NC_check_id(ncid,&ncp))) return stat;
+    /* Get variable' type */
+    if((stat = nc_inq_vartype(ncid,varid,&xtype))) return stat;
+    /* If the variable's type is not fixed-size, then signal error */
+    if((stat = NC4_inq_type_fixed_size(ncid, xtype, &fixedsize))) return stat;
+    if(!fixedsize) return NC_EFILTER;
     if((stat = ncp->dispatch->def_var_filter(ncid,varid,id,nparams,params))) goto done;
 done:
     return stat;
@@ -178,6 +190,30 @@ nc_inq_var_filter(int ncid, int varid, unsigned int* idp, size_t* nparamsp, unsi
     if(idp) *idp = ids[0];
  done:
     nullfree(ids);        
+    return stat;
+}
+
+/**************************************************/
+/* Test if filter is available. Would prefer
+   returning a list of all available filters, but HDF5
+   does not support that capability.
+   @param file for which filter list is desired
+   @param id filter id of interest
+   @return NC_NOERR if the filter is available
+   @return NC_EBADID if ncid is invalid
+   @return NC_ENOFILTER if filter is not available.
+*/
+
+EXTERNL int
+nc_inq_filter_avail(int ncid, unsigned id)
+{
+    int stat = NC_NOERR;
+    NC* ncp;
+
+    stat = NC_check_id(ncid,&ncp);
+    if(stat != NC_NOERR) return stat;
+    if((stat = ncp->dispatch->inq_filter_avail(ncid,id))) goto done;
+done:
     return stat;
 }
 
@@ -247,3 +283,155 @@ int stat = NC_NOERR;
 }
 #endif /*ENABLE_CLIENTSIDE_FILTERS*/
 
+/**************************************************/
+/* Functions for accessing standardized filters */
+
+int
+nc_def_var_bzip2(int ncid, int varid, int level)
+{
+    int stat = NC_NOERR;
+    unsigned ulevel;
+    
+    if((stat = nc_inq_filter_avail(ncid,H5Z_FILTER_BZIP2))) goto done;
+    /* Filter is available */
+    /* 1 <= Level <= 9 */
+    if (level < 1 || level > 9)
+        return NC_EINVAL;
+    ulevel = (unsigned) level; /* Keep bit pattern */
+    if((stat = nc_def_var_filter(ncid,varid,H5Z_FILTER_BZIP2,1,&ulevel))) goto done;
+done:
+    return stat;
+}
+
+int
+nc_inq_var_bzip2(int ncid, int varid, int* hasfilterp, int *levelp)
+{
+    int stat = NC_NOERR;
+    size_t nparams;
+    unsigned params = 0;
+    int hasfilter = 0;
+    
+    if((stat = nc_inq_filter_avail(ncid,H5Z_FILTER_BZIP2))) goto done;
+    /* Filter is available */
+    /* Get filter info */
+    stat = nc_inq_var_filter_info(ncid,varid,H5Z_FILTER_BZIP2,&nparams,NULL);
+    if(stat == NC_ENOFILTER) {stat = NC_NOERR; hasfilter = 0; goto done;}
+    if(stat != NC_NOERR) goto done;
+    hasfilter = 1;
+    if(nparams != 1) {stat = NC_EFILTER; goto done;}
+    if((stat = nc_inq_var_filter_info(ncid,varid,H5Z_FILTER_BZIP2,&nparams,&params))) goto done;
+done:
+    if(levelp) *levelp = (int)params;
+    if(hasfilterp) *hasfilterp = hasfilter;
+    return stat;
+}
+
+int
+nc_def_var_zstandard(int ncid, int varid, int level)
+{
+#ifdef HAVE_ZSTD
+    int stat = NC_NOERR;
+    unsigned ulevel;
+    
+    if((stat = nc_inq_filter_avail(ncid,H5Z_FILTER_ZSTD))) goto done;
+    /* Filter is available */
+    /* Level must be between -131072 and 22 on Zstandard v. 1.4.5 (~202009)
+       Earlier versions have fewer levels (especially fewer negative levels) */
+    if (level < -131072 || level > 22)
+        return NC_EINVAL;
+    ulevel = (unsigned) level; /* Keep bit pattern */
+    if((stat = nc_def_var_filter(ncid,varid,H5Z_FILTER_ZSTD,1,&ulevel))) goto done;
+done:
+    return stat;
+#else
+    return NC_NOERR;
+#endif /*HAVE_ZSTD*/
+}
+
+int
+nc_inq_var_zstandard(int ncid, int varid, int* hasfilterp, int *levelp)
+{
+#ifdef HAVE_ZSTD
+    int stat = NC_NOERR;
+    size_t nparams;
+    unsigned params = 0;
+    int hasfilter = 0;
+    
+    if((stat = nc_inq_filter_avail(ncid,H5Z_FILTER_ZSTD))) goto done;
+    /* Filter is available */
+    /* Get filter info */
+    stat = nc_inq_var_filter_info(ncid,varid,H5Z_FILTER_ZSTD,&nparams,NULL);
+    if(stat == NC_ENOFILTER) {stat = NC_NOERR; hasfilter = 0; goto done;}
+    if(stat != NC_NOERR) goto done;
+    hasfilter = 1;
+    if(nparams != 1) {stat = NC_EFILTER; goto done;}
+    if((stat = nc_inq_var_filter_info(ncid,varid,H5Z_FILTER_ZSTD,&nparams,&params))) goto done;
+done:
+    if(levelp) *levelp = (int)params;
+    if(hasfilterp) *hasfilterp = hasfilter;
+    return stat;
+#else
+    return NC_NOERR;
+#endif /*HAVE_ZSTD*/
+}
+
+int
+nc_def_var_blosc(int ncid, int varid, unsigned subcompressor, unsigned level, unsigned blocksize, unsigned addshuffle)
+{
+#ifdef HAVE_BLOSC
+    int stat = NC_NOERR;
+    unsigned params[7];;
+    
+    if((stat = nc_inq_filter_avail(ncid,H5Z_FILTER_BLOSC))) goto done;
+    /* Filter is available */
+
+    /* Verify parameters */
+    if(addshuffle > (unsigned)BLOSC_BITSHUFFLE) {stat = NC_EINVAL; goto done;}
+    if(subcompressor > (unsigned)BLOSC_ZSTD) {stat = NC_EINVAL; goto done;}
+
+    /* Set the parameters */
+    params[0] = 0;
+    params[1] = 0;
+    params[2] = 0;
+    params[3] = blocksize;
+    params[4] = level;
+    params[5] = addshuffle;
+    params[6] = subcompressor;
+    if((stat = nc_def_var_filter(ncid,varid,H5Z_FILTER_BLOSC,7,params))) goto done;
+done:
+    return stat;
+#else
+    return NC_NOERR;
+#endif
+}
+
+int
+nc_inq_var_blosc(int ncid, int varid, int* hasfilterp, unsigned* subcompressorp, unsigned* levelp, unsigned* blocksizep, unsigned* addshufflep)
+{
+#ifdef HAVE_BLOSC
+    int stat = NC_NOERR;
+    size_t nparams;
+    unsigned params[7];
+    int hasfilter = 0;
+    
+    if((stat = nc_inq_filter_avail(ncid,H5Z_FILTER_BLOSC))) goto done;
+    /* Filter is available */
+
+    /* Get filter info */
+    stat = nc_inq_var_filter_info(ncid,varid,H5Z_FILTER_BLOSC,&nparams,NULL);
+    if(stat == NC_ENOFILTER) {stat = NC_NOERR; hasfilter = 0; goto done;}
+    if(stat != NC_NOERR) goto done;
+    hasfilter = 1;
+    if(nparams != 7) {stat = NC_EFILTER; goto done;}
+    if((stat = nc_inq_var_filter_info(ncid,varid,H5Z_FILTER_BLOSC,&nparams,params))) goto done;
+    if(blocksizep) *blocksizep = params[3];
+    if(levelp) *levelp = params[4];
+    if(addshufflep) *addshufflep = params[5];
+    if(subcompressorp) *subcompressorp = params[6];
+done:
+    if(hasfilterp) *hasfilterp = hasfilter;
+    return stat;
+#else
+    return NC_NOERR;
+#endif
+}

@@ -25,39 +25,39 @@ typedef struct D4blob {d4size_t size; void* memory;} D4blob;
 /* signature: void swapinline16(void* ip) */
 #define swapinline16(ip) \
 { \
-    union {char b[2]; unsigned short i;} u; \
+    char b[2]; \
     char* src = (char*)(ip); \
-    u.b[0] = src[1]; \
-    u.b[1] = src[0]; \
-    *((unsigned short*)ip) = u.i; \
+    b[0] = src[1]; \
+    b[1] = src[0]; \
+    memcpy(ip, b, 2); \
 }
 
 /* signature: void swapinline32(void* ip) */
 #define swapinline32(ip) \
 { \
-    union {char b[4]; unsigned int i;} u; \
+    char b[4]; \
     char* src = (char*)(ip); \
-    u.b[0] = src[3]; \
-    u.b[1] = src[2]; \
-    u.b[2] = src[1]; \
-    u.b[3] = src[0]; \
-    *((unsigned int*)ip) = u.i; \
+    b[0] = src[3]; \
+    b[1] = src[2]; \
+    b[2] = src[1]; \
+    b[3] = src[0]; \
+    memcpy(ip, b, 4); \
 }
 
 /* signature: void swapinline64(void* ip) */
 #define swapinline64(ip) \
 { \
-    union {char b[8]; unsigned long long i;} u; \
+    char b[8]; \
     char* src = (char*)(ip); \
-    u.b[0] = src[7]; \
-    u.b[1] = src[6]; \
-    u.b[2] = src[5]; \
-    u.b[3] = src[4]; \
-    u.b[4] = src[3]; \
-    u.b[5] = src[2]; \
-    u.b[6] = src[1]; \
-    u.b[7] = src[0]; \
-    *((unsigned long long*)ip) = u.i; \
+    b[0] = src[7]; \
+    b[1] = src[6]; \
+    b[2] = src[5]; \
+    b[3] = src[4]; \
+    b[4] = src[3]; \
+    b[5] = src[2]; \
+    b[6] = src[1]; \
+    b[7] = src[0]; \
+    memcpy(ip, b, 8); \
 }
 
 /***************************************************/

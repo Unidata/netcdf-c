@@ -7,6 +7,7 @@
 
 # Get AM_CPPFLAGS and AM_LDFLAGS
 include $(top_srcdir)/lib_flags.am
+
 AM_CPPFLAGS += -D_LARGEFILE_SOURCE
 AM_CPPFLAGS += -I$(top_srcdir)/libsrc4 -I$(top_srcdir)/libncpoco
 libnczarr_la_CPPFLAGS = ${AM_CPPFLAGS}
@@ -50,13 +51,11 @@ ztype.c \
 zutil.c \
 zvar.c \
 zwalk.c \
-zfilter.c \
 zdebug.c \
 zarr.h \
 zcache.h \
 zchunking.h \
 zdispatch.h \
-ztracedispatch.h \
 zincludes.h \
 zinternal.h \
 zmap.h \
@@ -69,9 +68,12 @@ if ENABLE_NCZARR_ZIP
 libnczarr_la_SOURCES += zmap_zip.c 
 endif
 
+if ENABLE_NCZARR_FILTERS
+libnczarr_la_SOURCES += zfilter.c
+endif
+
 if ENABLE_S3_SDK
 libnczarr_la_SOURCES += zmap_s3sdk.c
-libnczarr_la_SOURCES += zs3sdk.cpp awsincludes.h zs3sdk.h
 AM_CXXFLAGS += -std=c++11
 endif
 

@@ -367,7 +367,7 @@ set_curl_properties(NCD4INFO* d4info)
         char* newpath = NULL;
         int len;
 	errno = 0;
-	NCRCglobalstate* globalstate = ncrc_getglobalstate();
+	NCglobalstate* globalstate = NC_getglobalstate();
 
 	/* Create the unique cookie file name */
         len =
@@ -395,17 +395,17 @@ set_curl_properties(NCD4INFO* d4info)
 	FILE* f = NULL;
 	char* fname = d4info->auth->curlflags.cookiejar;
 	/* See if the file exists already */
-        f = fopen(fname,"r");
+        f = NCfopen(fname,"r");
 	if(f == NULL) {
 	    /* Ok, create it */
-	    f = fopen(fname,"w+");
+	    f = NCfopen(fname,"w+");
 	    if(f == NULL) {
 	        fprintf(stderr,"Cookie file cannot be read and written: %s\n",fname);
 	        {ret= NC_EPERM; goto fail;}
 	    }
 	} else { /* test if file can be written */
 	    fclose(f);
-	    f = fopen(fname,"r+");
+	    f = NCfopen(fname,"r+");
 	    if(f == NULL) {
 	        fprintf(stderr,"Cookie file is cannot be written: %s\n",fname);
 	        {ret = NC_EPERM; goto fail;}
@@ -525,7 +525,7 @@ makesubstrate(NCD4INFO* d4info)
     int ncid = 0;
     int ncflags = NC_NETCDF4|NC_CLOBBER;
 
-    if(d4info->substrate.filename != NULL) {
+    if(d4info->substrate.nc4id != 0) {
         /* reset the substrate */
         nc_abort(d4info->substrate.nc4id);
         d4info->substrate.nc4id = 0;
@@ -550,3 +550,15 @@ makesubstrate(NCD4INFO* d4info)
     return THROW(ret);
 }
 
+int
+NCD4_get_substrate(int ncid)
+{
+    NC* nc = NULL;
+    NCD4INFO* d4 = NULL;
+    int subncid = 0;
+    /* Find pointer to NC struct for this file. */
+    (void)NC_check_id(ncid,&nc);
+    d4 = (NCD4INFO*)nc->dispatchdata;
+    subncid = d4->substrate.nc4id;
+    return subncid;
+}

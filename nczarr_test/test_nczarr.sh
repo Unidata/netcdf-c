@@ -4,18 +4,21 @@ if test "x$SETX" != x; then set -x; fi
 
 # Figure out which cloud repo to use
 if test "x$NCZARR_S3_TEST_HOST" = x ; then
-export NCZARR_S3_TEST_HOST=stratus.ucar.edu
+#    export NCZARR_S3_TEST_HOST=stratus.ucar.edu
+    export NCZARR_S3_TEST_HOST=s3.us-east-1.amazonaws.com
 fi
 if test "x$NCZARR_S3_TEST_BUCKET" = x ; then
-export NCZARR_S3_TEST_BUCKET=unidata-netcdf-zarr-testing
+#    export NCZARR_S3_TEST_BUCKET=unidata-netcdf-zarr-testing
+    export NCZARR_S3_TEST_BUCKET=unidata-zarr-test-data
 fi
 export NCZARR_S3_TEST_URL="https://${NCZARR_S3_TEST_HOST}/${NCZARR_S3_TEST_BUCKET}"
 
 ZMD="${execdir}/zmapio"
 
 awsdelete() {
-${execdir}/s3util -u "${NCZARR_S3_TEST_URL}/" -k "$1" clear
-#aws s3api delete-object --endpoint-url=https://${NCZARR_S3_TEST_HOST} --bucket=${NCZARR_S3_TEST_BUCKET} --key="netcdf-c/$1"
+${execdir}/s3util ${PROFILE} -u "${NCZARR_S3_TEST_URL}" -k "$1" clear
+# aws s3api delete-object --endpoint-url=https://${NCZARR_S3_TEST_HOST} --bucket=${NCZARR_S3_TEST_BUCKET} --key="netcdf-c/$1"
+X=
 }
 
 # Check settings
@@ -124,6 +127,7 @@ if test "x$NCAUTH_HOMETEST" != x ; then RCHOME=1; fi
 
 #cd ../plugins; make clean all >/dev/null; cd ../nczarr_test
 
+if test "x$FP_USEPLUGINS" = xyes; then
 # Load the findplugins function
 . ${builddir}/findplugin.sh
 echo "findplugin.sh loaded"
@@ -135,6 +139,7 @@ findplugin h5misc
 
 echo "final HDF5_PLUGIN_PATH=${HDF5_PLUGIN_PATH}"
 export HDF5_PLUGIN_PATH
+fi # USEPLUGINS
 
 resetrc() {
   if test "x$RCHOME" = x1 ; then

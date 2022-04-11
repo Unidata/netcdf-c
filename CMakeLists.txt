@@ -7,10 +7,15 @@
 ##################################
 
 #Minimum required CMake Version
-cmake_minimum_required(VERSION 3.6.1)
+cmake_minimum_required(VERSION 3.12.0)
+# CMake 3.12: Use libraries specified in CMAKE_REQUIRED_LIBRARIES for check include macros
 
-#Project Name 
-project(netCDF LANGUAGES C CXX)
+#Project Name
+project(netCDF
+LANGUAGES C CXX
+HOMEPAGE_URL "https://www.unidata.ucar.edu/software/netcdf/"
+DESCRIPTION "NetCDF is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data."
+)
 set(PACKAGE "netCDF" CACHE STRING "")
 
 #####
@@ -26,7 +31,7 @@ set(PACKAGE "netCDF" CACHE STRING "")
 
 SET(NC_VERSION_MAJOR 4)
 SET(NC_VERSION_MINOR 8)
-SET(NC_VERSION_PATCH 1)
+SET(NC_VERSION_PATCH 2)
 SET(NC_VERSION_NOTE "-development")
 SET(netCDF_VERSION ${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
@@ -37,7 +42,7 @@ SET(PACKAGE_VERSION ${VERSION})
 
 # Version of the dispatch table. This must match the value in
 # configure.ac.
-SET(NC_DISPATCH_VERSION 4)
+SET(NC_DISPATCH_VERSION 5)
 
 # Get system configuration, Use it to determine osname, os release, cpu. These
 # will be used when committing to CDash.
@@ -51,6 +56,21 @@ IF(UNAME)
   getuname(cpu    -m)
   set(TMP_BUILDNAME "${osname}-${osrel}-${cpu}")
 ENDIF()
+
+# Define some Platforms
+if(osname MATCHES "CYGWIN.*")
+SET(ISCYGWIN yes)
+endif()
+if(osname MATCHES "Darwin.*")
+SET(ISOSX yes)
+endif()
+if(MSVC)
+SET(ISMSVC yes)
+endif()
+if(osname MATCHES "MINGW.*")
+SET(ISMINGW yes)
+SET(MINGW yes)
+endif()
 
 ###
 # Allow for some customization of the buildname.
@@ -83,6 +103,7 @@ INCLUDE(GNUInstallDirs)
 
 IF(MSVC)
   SET(GLOBAL PROPERTY USE_FOLDERS ON)
+  ADD_COMPILE_OPTIONS("/utf-8")
 ENDIF()
 
 #Add custom CMake Module
@@ -171,7 +192,7 @@ FILE(COPY ${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake DESTINATION ${CMAKE_CURR
 
 # Set Memory test program for non-MSVC based builds.
 # Assume valgrind for now.
-IF(NOT MSVC)
+IF((NOT MSVC) AND (NOT MINGW))
   SET(CTEST_MEMORYCHECK_COMMAND valgrind CACHE STRING "")
 ENDIF()
 
@@ -249,12 +270,25 @@ ENDIF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
 
 # End default linux gcc & apple compiler options.
 
+# Use relative pathnames in __FILE__ macros on MINGW:
+IF(MINGW)
+  CHECK_C_COMPILER_FLAG("-fmacro-prefix-map='${CMAKE_SOURCE_DIR}'=." CC_HAS_MACRO_PREFIX_MAP)
+  IF(CC_HAS_MACRO_PREFIX_MAP)
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fmacro-prefix-map='${CMAKE_SOURCE_DIR}'=.")
+  ENDIF()
+ENDIF()
+
 ADD_DEFINITIONS()
 
 # Suppress CRT Warnings.
 # Only necessary for Windows
 IF(MSVC)
   ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
+ENDIF()
+
+# Support ANSI format specifiers for *printf on MINGW:
+IF(MINGW)
+  ADD_DEFINITIONS(-D__USE_MINGW_ANSI_STDIO=1)
 ENDIF()
 
 #####
@@ -274,7 +308,7 @@ SET(CMAKE_REQUIRED_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/libsrc)
 # Configuration for post-install RPath
 # Adapted from http://www.cmake.org/Wiki/CMake_RPATH_handling
 ##
-IF(NOT MSVC AND BUILD_SHARED_LIBS)
+IF(NOT WIN32 AND BUILD_SHARED_LIBS)
   # use, i.e. don't skip the full RPATH for the build tree
   SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
 
@@ -408,7 +442,6 @@ IF(NOT MSVC)
 
   ENDIF(BUILD_FORTRAN)
 ENDIF()
-
 
 ###
 # Allow the user to specify libraries
@@ -583,6 +616,33 @@ ENDIF(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING)
 #  SET(BUILD_RPC ON CACHE BOOL "")
 #ENDIF()
 
+# Note that szip management is tricky.
+# This is because we have three things to consider:
+# 1. is libsz available?
+# 2. is szip enabled in HDF5?
+# 3. is nczarr enabled?
+# We need separate flags for cases 1 and 2
+
+# We need to determine if libsz is available both for HDF5 and NCZarr
+# If user has specified the `SZIP_LIBRARY`, use it; otherwise try to find...
+IF(NOT SZIP_LIBRARY)
+  FIND_LIBRARY(SZIP PATH NAMES szip sz sz2)
+  IF(SZIP)
+    SET(SZIP_LIBRARY ${SZIP})
+  ELSE()
+    UNSET(SZIP_LIBRARY)
+    UNSET(SZIP)
+  ENDIF()
+ENDIF()
+
+IF(SZIP_LIBRARY)
+  SET(SZIP_FOUND yes)
+  SET(HAVE_SZ yes)
+ELSE()
+  SET(SZIP_FOUND no)
+  SET(HAVE_SZ no)
+ENDIF()
+
 ##
 # Option to Enable HDF5
 #
@@ -615,7 +675,7 @@ IF(USE_HDF5)
   # .cmake files.  If this is the case, they should
   # specify HDF5_HL_LIBRARY, HDF5_LIBRARY, HDF5_INCLUDE_DIR manually.
   #
-  # This script will attempt to determine the version of the HDF5 library programatically. 
+  # This script will attempt to determine the version of the HDF5 library programatically.
   ##
   IF(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR)
     SET(HDF5_LIBRARIES ${HDF5_C_LIBRARY} ${HDF5_HL_LIBRARY})
@@ -728,7 +788,7 @@ IF(USE_HDF5)
       MESSAGE(FATAL_ERROR "netCDF requires at least HDF5 ${HDF5_VERSION_REQUIRED}. Found ${HDF5_VERSION}.")
     ENDIF()
 
-    
+
 
     ##
     # Include the HDF5 include directory.
@@ -769,13 +829,13 @@ IF(USE_HDF5)
       ENDIF(${HDF5_VERSION} VERSION_GREATER "1.8.15")
 
     ELSE(MSVC)
- 
+
       # Depending on the install, either HDF5_hdf_library or
       # HDF5_C_LIBRARIES may be defined.  We must check for either.
       IF(HDF5_C_LIBRARIES AND NOT HDF5_hdf5_LIBRARY)
         SET(HDF5_hdf5_LIBRARY ${HDF5_C_LIBRARIES})
       ENDIF()
-      
+
       # Some versions of FIND_PACKAGE set HDF5_C_LIBRARIES, but not HDF5_C_LIBRARY
       # We use HDF5_C_LIBRARY below, so need to make sure it is set.
       IF(HDF5_C_LIBRARIES AND NOT HDF5_C_LIBRARY)
@@ -791,6 +851,7 @@ IF(USE_HDF5)
     IF(NOT HDF5_C_LIBRARY)
       SET(HDF5_C_LIBRARY hdf5)
     ENDIF()
+
   ENDIF(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR)
 
   FIND_PACKAGE(Threads)
@@ -800,26 +861,59 @@ IF(USE_HDF5)
     SET(HDF5_C_LIBRARY_hdf5 "${HDF5_C_LIBRARY}")
   ENDIF()
 
-  #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip library.
+  FIND_PATH(HAVE_HDF5_H hdf5.h PATHS ${HDF5_INCLUDE_DIR} NO_DEFAULT_PATH)
+  IF(NOT HAVE_HDF5_H)
+    MESSAGE(FATAL_ERROR "Compiling a test with hdf5 failed. Either hdf5.h cannot be found, or the log messages should be checked for another reason.")
+  ELSE(NOT HAVE_HDF5_H)
+    INCLUDE_DIRECTORIES(${HAVE_HDF5_H})
+  ENDIF(NOT HAVE_HDF5_H)
+
   set (CMAKE_REQUIRED_INCLUDES ${HDF5_INCLUDE_DIR})
+
+  # Check to ensure that HDF5 was built with zlib.
+  # This needs to be near the beginning since we
+  # need to know whether to add "-lz" to the symbol
+  # tests below.
+  CHECK_C_SOURCE_COMPILES("#include <H5public.h>
+   #if !H5_HAVE_ZLIB_H
+   #error
+   #endif
+   int main() {
+   int x = 1;}" HAVE_HDF5_ZLIB)
+  IF(NOT HAVE_HDF5_ZLIB)
+    MESSAGE(FATAL_ERROR "HDF5 was built without zlib. Rebuild HDF5 with zlib.")
+  ELSE()
+    # If user has specified the `ZLIB_LIBRARY`, use it; otherwise try to find...
+    IF(NOT ZLIB_LIBRARY)
+      find_package(ZLIB)
+      IF(ZLIB_FOUND)
+        SET(ZLIB_LIBRARY ${ZLIB_LIBRARIES})
+      ELSE()
+        MESSAGE(FATAL_ERROR "HDF5 Requires ZLIB, but cannot find libz.")
+      ENDIF()
+    ENDIF()
+    SET(CMAKE_REQUIRED_LIBRARIES ${ZLIB_LIBRARY} ${CMAKE_REQUIRED_LIBRARIES})
+    MESSAGE(STATUS "HDF5 has zlib.")
+  ENDIF()
+
+  #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip library.
   CHECK_C_SOURCE_COMPILES("#include <H5public.h>
    #if !H5_HAVE_FILTER_SZIP
    #error
    #endif
    int main() {
-   int x = 1;}" USE_SZIP)
-  IF(USE_SZIP)
+   int x = 1;}" USE_HDF5_SZIP)
+  IF(USE_HDF5_SZIP)
+    SET(HAVE_H5Z_SZIP yes)
     # If user has specified the `SZIP_LIBRARY`, use it; otherwise try to find...
-    IF(NOT SZIP_LIBRARY)
-      FIND_LIBRARY(SZIP PATH NAMES szip sz)
-      SET(SZIP_LIBRARY ${SZIP})
-      IF(NOT SZIP)
+    IF(SZIP_FOUND)
+      SET(CMAKE_REQUIRED_LIBRARIES ${SZIP_LIBRARY} ${CMAKE_REQUIRED_LIBRARIES})
+      MESSAGE(STATUS "HDF5 has szip.")
+    ELSE()
         MESSAGE(FATAL_ERROR "HDF5 Requires SZIP, but cannot find libszip or libsz.")
-      ENDIF()
     ENDIF()
-    SET(HAVE_H5Z_SZIP 1)
-    SET(CMAKE_REQUIRED_LIBRARIES ${SZIP_LIBRARY} ${CMAKE_REQUIRED_LIBRARIES})
-    MESSAGE(STATUS "HDF5 has szip.")
+  ELSE()
+    SET(HAVE_H5Z_SZIP no)  
   ENDIF()
 
   ####
@@ -851,9 +945,6 @@ IF(USE_HDF5)
 
   #Check to see if HDF5 library has collective metadata APIs, (HDF5 >= 1.10.0)
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pset_all_coll_metadata_ops "" HDF5_HAS_COLL_METADATA_OPS)
-  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5free_memory "" HAVE_H5FREE_MEMORY)
-  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5allocate_memory "" HAVE_H5ALLOCATE_MEMORY)
-  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5resize_memory "" HAVE_H5RESIZE_MEMORY)
 
   IF(HDF5_PARALLEL)
 	SET(HDF5_CC h5pcc)
@@ -887,30 +978,14 @@ IF(USE_HDF5)
   ENDIF()
 
   FIND_PATH(HAVE_HDF5_H hdf5.h PATHS ${HDF5_INCLUDE_DIR} NO_DEFAULT_PATH)
-  FIND_PATH(HAVE_HDF5_H hdf5.h)
   IF(NOT HAVE_HDF5_H)
     MESSAGE(FATAL_ERROR "Compiling a test with hdf5 failed. Either hdf5.h cannot be found, or the log messages should be checked for another reason.")
   ELSE(NOT HAVE_HDF5_H)
     INCLUDE_DIRECTORIES(${HAVE_HDF5_H})
   ENDIF(NOT HAVE_HDF5_H)
 
-  # Check to ensure that HDF5 was built with zlib.
-  set (CMAKE_REQUIRED_INCLUDES ${HDF5_INCLUDE_DIR})
-
-
-  CHECK_C_SOURCE_COMPILES("#include <H5public.h>
-   #if !H5_HAVE_ZLIB_H
-   #error
-   #endif
-   int main() {
-   int x = 1;}" HAVE_HDF5_ZLIB)
-  IF(NOT HAVE_HDF5_ZLIB)
-    MESSAGE(FATAL_ERROR "HDF5 was built without zlib. Rebuild HDF5 with zlib.")
-  ENDIF()
-
   #option to include HDF5 High Level header file (hdf5_hl.h) in case we are not doing a make install
   INCLUDE_DIRECTORIES(${HDF5_HL_INCLUDE_DIR})
-
 
 ENDIF(USE_HDF5)
 
@@ -937,7 +1012,7 @@ int main() {
 }" HAVE_LIBCURL_766)
 
 IF (HAVE_LIBCURL_766)
-  # If libcurl version is >= 7.66, then can skip tests 
+  # If libcurl version is >= 7.66, then can skip tests
   # for these symbols which were added in an earlier version
   set(HAVE_CURLOPT_USERNAME TRUE)
   set(HAVE_CURLOPT_PASSWORD TRUE)
@@ -1016,8 +1091,8 @@ IF(NOT WIN32)
 ENDIF()
 
 # Option to Enable DAP long tests, remote tests.
-OPTION(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
 OPTION(ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." ON)
+OPTION(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
 SET(REMOTETESTSERVERS "remotetest.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
 
 # See if we have zlib
@@ -1031,31 +1106,33 @@ ELSE()
   SET(ENABLE_ZLIB FALSE)
 ENDIF()
 
-# See if we have libblosc
-IF(!MSVC)
-FIND_PACKAGE(Blosc)
-ENDIF()
-# Define a test flag for have blosc library
-IF(Blosc_FOUND)
-  INCLUDE_DIRECTORIES(${Blosc_INCLUDE_DIRS})
-  SET(ENABLE_BLOSC TRUE)
+macro(set_std_filter filter)
+# Upper case the filter name
+string(TOUPPER "${filter}" upfilter)
+string(TOLOWER "${filter}" downfilter)
+# Define a test flag for filter
+IF(${filter}_FOUND)
+  INCLUDE_DIRECTORIES(${filter}_INCLUDE_DIRS})
+  SET(ENABLE_${upfilter} TRUE)
+  SET(STD_FILTERS "${STD_FILTERS},${downfilter}")
 ELSE()
-  SET(ENABLE_BLOSC FALSE)
+  SET(ENABLE_${upfilter} FALSE)
 ENDIF()
+endmacro(set_std_filter)
 
-# See if we have libszip
-IF(!MSVC)
-#FIND_PACKAGE(SZIP)
-#FIND_LIBRARY(SZIP PATH NAMES szip sz)
-SET(SZIP_LIBRARY ${SZIP})
-ENDIF()
-message("xxx: ${SZIP_FOUND} ; ${SZIP}")
-# Define a test flag for have szip library
-IF(SZIP_FOUND)
-  INCLUDE_DIRECTORIES(${SZIP_INCLUDE_DIRS})
-  SET(ENABLE_SZIP TRUE)
-ELSE()
-  SET(ENABLE_SZIP FALSE)
+# Locate some compressors
+FIND_PACKAGE(Bz2)
+FIND_PACKAGE(Blosc)
+FIND_PACKAGE(Zstd)
+
+# Accumulate standard filters
+set(STD_FILTERS "deflate") # Always have deflate */
+set_std_filter(SZIP)
+set_std_filter(Blosc)
+set_std_filter(Zstd)
+set_std_filter(Bz2)
+IF(NOT Bz2_FOUND)
+set(STD_FILTERS "${STD_FILTERS},bzip2") # Always have bzip2 */
 ENDIF()
 
 # See if we have libzip
@@ -1070,11 +1147,18 @@ ELSE()
 ENDIF()
 
 # libdl is always available; built-in in Windows and OSX
-SET(ENABLE_PLUGINS TRUE)
-IF(NOT WIN32)
-  IF(HAVE_DLFCN_H)
-    INCLUDE_DIRECTORIES("dlfcn.h")
+OPTION(ENABLE_PLUGINS "Enable dynamically loaded plugins (default on)." ON)
+IF(MINGW)
+    SET(ENABLE_PLUGINS OFF CACHE BOOL "Disable plugins" FORCE)
+ELSE()
+  IF(NOT WIN32)
+    IF(HAVE_DLFCN_H)
+      INCLUDE_DIRECTORIES("dlfcn.h")
+    ENDIF()
   ENDIF()
+ENDIF()
+IF(ENABLE_PLUGINS)
+  SET(USEPLUGINS yes)
 ENDIF()
 
 # Enable some developer-only tests
@@ -1099,9 +1183,9 @@ IF(MSVC)
     FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
          DESTINATION ${netCDF_BINARY_DIR}/ncdump/)
     FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/) 
+         DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
     FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/ncdap_test/) 
+         DESTINATION ${netCDF_BINARY_DIR}/ncdap_test/)
   ENDIF()
 ENDIF()
 
@@ -1130,25 +1214,26 @@ IF(ENABLE_NCZARR_S3_TESTS AND NOT ENABLE_NCZARR_S3)
   SET(ENABLE_NCZARR_S3_TESTS OFF CACHE BOOL "NCARR S3 TESTS" FORCE)
 ENDIF()
 
-# See if aws-s3-sdk is available
-# But only if enabled
+# Note we check for the library after checking for enable_nczarr_s3
+# because for some reason this screws up if we unconditionally test for sdk
+# and it is not available. Fix someday
 IF(ENABLE_NCZARR_S3)
-find_package(AWSSDK REQUIRED)
-set(SERVICE s3)
-AWSSDK_DETERMINE_LIBS_TO_LINK(SERVICE AWSSDK_LINK_LIBRARIES)
-IF(AWSSDK_FOUND)
-  SET(ENABLE_S3_SDK ON CACHE BOOL "S3 SDK" FORCE)
+  # See if aws-s3-sdk is available
+  find_package(AWSSDK REQUIRED COMPONENTS s3;core)
+  IF(AWSSDK_FOUND)
+    SET(service s3;core)
+    AWSSDK_DETERMINE_LIBS_TO_LINK(service AWS_LINK_LIBRARIES)
+    SET(ENABLE_S3_SDK ON CACHE BOOL "S3 SDK" FORCE)
+  ELSE()
+    SET(ENABLE_S3_SDK OFF CACHE BOOL "S3 SDK" FORCE)
+  ENDIF()
 ELSE()
   SET(ENABLE_S3_SDK OFF CACHE BOOL "S3 SDK" FORCE)
 ENDIF()
-ELSE(ENABLE_NCZARR_S3)
-# Unconditionally disable
-SET(ENABLE_S3_SDK OFF CACHE BOOL "S3 SDK" FORCE)
-ENDIF(ENABLE_NCZARR_S3)
 
 IF(NOT ENABLE_S3_SDK)
   IF(ENABLE_NCZARR_S3 OR ENABLE_NCZARR_S3_TESTS)
-    message(FATAL_ERROR "AWS S3 libraries not found; please specify option DENABLE_NCZARR_S3=NO")
+    message(FATAL_ERROR "S3 support library not found; please specify option DENABLE_NCZARR_S3=NO")
     SET(ENABLE_NCZARR_S3 OFF CACHE BOOL "NCZARR S3 support" FORCE)
     SET(ENABLE_NCZARR_S3_TESTS OFF CACHE BOOL "S3 tests" FORCE)
   ENDIF()
@@ -1180,6 +1265,23 @@ IF(NOT FOUND_CURL)
   ENDIF()
 ENDIF(NOT FOUND_CURL)
 
+
+OPTION(ENABLE_LIBXML2 "Link against libxml2 if it is available, use the packaged tinyxml2 parser otherwise." ON)
+SET(XMLPARSER "tinyxml2 (bundled)")
+
+# see if we have libxml2
+
+IF(ENABLE_LIBXML2)
+  find_package(LibXml2)
+  IF(LibXml2_FOUND)
+    SET(HAVE_LIBXML2 TRUE)
+    INCLUDE_DIRECTORIES(${LIBXML2_INCLUDE_DIRS})
+    SET(XMLPARSER "libxml2")
+  ELSE()
+    SET(HAVE_LIBXML2 FALSE)
+  ENDIF()
+ENDIF(ENABLE_LIBXML2)
+
 IF(NOT ENABLE_BYTERANGE AND ENABLE_HDF5_ROS3)
     MESSAGE(WARNING "ROS3 support requires ENABLE_BYTERANGE=TRUE; disabling ROS3 support")
     SET(ENABLE_HDF5_ROS3 OFF CACHE BOOL "ROS3 support" FORCE)
@@ -1197,7 +1299,7 @@ IF(ENABLE_TESTS)
   SET(NC_CTEST_DROP_LOC_PREFIX "" CACHE STRING "Prefix for Dashboard location on remote server when using CTest-based testing.")
   SET(SUBMIT_URL "https://cdash.unidata.ucar.edu:443")
   FIND_PROGRAM(HOSTNAME_CMD NAMES hostname)
-  IF(NOT MSVC)
+  IF(NOT WIN32)
     SET(HOSTNAME_ARG "-s")
   ENDIF()
   IF(HOSTNAME_CMD)
@@ -1225,10 +1327,6 @@ IF(ENABLE_TESTS)
   ###
 
   OPTION(ENABLE_FAILING_TESTS "Run tests which are known to fail, check to see if any have been fixed." OFF)
-
-  # There is a special class of tests that currently fail because of memory leaks.
-  # As with failing tests, they can be enabled to work on them
-  OPTION(ENABLE_UNFIXED_MEMORY_LEAKS "Run tests with unfixed memory leaks" OFF)
 
   ###
   # Option to turn on unit testing. See
@@ -1450,6 +1548,24 @@ IF(NOT BUILD_SHARED_LIBS)
   SET(ENABLE_FILTER_TESTING OFF)
 ENDIF()
 
+OPTION(ENABLE_NCZARR_FILTERS "Enable NCZarr filters" yes)
+OPTION(ENABLE_NCZARR_FILTERS_TESTING "Enable NCZarr filter testing." yes)
+
+# Constraints
+IF (NOT ENABLE_PLUGINS)
+  MESSAGE(WARNING "ENABLE_FILTER_TESTING requires shared libraries. Disabling.")
+  SET(ENABLE_NCZARR_FILTERS OFF CACHE BOOL "Enable NCZarr Filters." FORCE)
+ENDIF()
+
+IF (NOT ENABLE_NCZARR)
+  MESSAGE(WARNING "ENABLE_NCZARR==NO => ENABLE_NCZARR_FILTERS==NO AND ENABLE_NCZARR_FILTER_TESTING==NO")
+  SET(ENABLE_NCZARR_FILTERS OFF CACHE BOOL "Disable NCZARR_FILTERS" FORCE)
+ENDIF()
+
+IF (NOT ENABLE_NCZARR_FILTERS)
+    SET(ENABLE_NCZARR_FILTER_TESTING OFF CACHE BOOL "Enable NCZarr Filter Testing" FORCE)
+ENDIF()
+
 SET(ENABLE_CLIENTSIDE_FILTERS OFF)
 
 # Determine whether or not to generate documentation.
@@ -1459,9 +1575,9 @@ IF(ENABLE_DOXYGEN)
   # Offer the option to build internal documentation.
   OPTION(ENABLE_INTERNAL_DOCS "Build internal documentation. This is of interest to developers only." OFF)
   IF(ENABLE_INTERNAL_DOCS)
-    SET(BUILD_INTERNAL_DOCS YES CACHE STRING "")
+    SET(BUILD_INTERNAL_DOCS yes CACHE STRING "")
   ELSE()
-    SET(BUILD_INTERNAL_DOCS NO CACHE STRING "")
+    SET(BUILD_INTERNAL_DOCS no CACHE STRING "")
   ENDIF()
 
   ###
@@ -1694,6 +1810,7 @@ CHECK_FUNCTION_EXISTS(strlcat   HAVE_STRLCAT)
 CHECK_FUNCTION_EXISTS(strdup  HAVE_STRDUP)
 CHECK_FUNCTION_EXISTS(strndup HAVE_STRNDUP)
 CHECK_FUNCTION_EXISTS(strtoll HAVE_STRTOLL)
+CHECK_FUNCTION_EXISTS(strcasecmp  HAVE_STRCASECMP)
 CHECK_FUNCTION_EXISTS(strtoull  HAVE_STRTOULL)
 CHECK_FUNCTION_EXISTS(mkstemp HAVE_MKSTEMP)
 CHECK_FUNCTION_EXISTS(mktemp HAVE_MKTEMP)
@@ -1712,6 +1829,16 @@ CHECK_FUNCTION_EXISTS(fileno HAVE_FILENO)
 
 CHECK_FUNCTION_EXISTS(clock_gettime  HAVE_CLOCK_GETTIME)
 CHECK_SYMBOL_EXISTS("struct timespec" "time.h" HAVE_STRUCT_TIMESPEC)
+CHECK_FUNCTION_EXISTS(atexit HAVE_ATEXIT)
+
+# Control invoking nc_finalize at exit
+OPTION(ENABLE_ATEXIT_FINALIZE "Invoke nc_finalize at exit." ON)
+IF(NOT HAVE_ATEXIT)
+IF(ENABLE_ATEXIT_FINALIZE AND NOT HAVE_ATEXIT)
+  SET(ENABLE_ATEXIT_FINALIZE OFF CACHE BOOL "Enable ATEXIT" FORCE)
+  MESSAGE(WARNING "ENABLE_ATEXIT_FINALIZE set but atexit() function not defined")
+ENDIF()
+ENDIF()
 
 # Check to see if MAP_ANONYMOUS is defined.
 IF(MSVC)
@@ -1734,6 +1861,26 @@ IF(ENABLE_MMAP)
 ENDIF(ENABLE_MMAP)
 
 #CHECK_FUNCTION_EXISTS(alloca HAVE_ALLOCA)
+
+# Used in the `configure_file` calls below
+SET(ISCMAKE "1")
+IF(MSVC)
+SET(ISMSVC ON CACHE BOOL "" FORCE)
+SET(REGEDIT ON CACHE BOOL "" FORCE)
+# Get windows major version and build number
+EXECUTE_PROCESS(COMMAND "systeminfo" OUTPUT_VARIABLE WININFO)
+IF(WININFO STREQUAL "")
+  SET(WVM 0)
+  SET(WVB 0)
+ELSE()
+  STRING(REGEX MATCH "\nOS Version:[ \t]+[0-9.]+" WINVERLINE "${WININFO}")
+  STRING(REGEX REPLACE "[^0-9]*([0-9]+)[.]([0-9])+[.]([0-9]+)" "\\1" WVM "${WINVERLINE}")
+  STRING(REGEX REPLACE "[^0-9]*([0-9]+)[.]([0-9])+[.]([0-9]+)" "\\3" WVB "${WINVERLINE}")
+ENDIF()
+SET(WINVERMAJOR ${WVM} CACHE STRING "" FORCE)
+SET(WINVERBUILD ${WVB} CACHE STRING "" FORCE)
+ENDIF()
+
 #####
 # End system inspection checks.
 #####
@@ -2071,6 +2218,7 @@ ENDIF()
 
 IF(ENABLE_DAP4)
   ADD_SUBDIRECTORY(libdap4)
+  ADD_SUBDIRECTORY(libncxml)
 ENDIF()
 
 IF(ENABLE_PLUGINS)
@@ -2294,9 +2442,6 @@ is_enabled(ENABLE_V2_API HAS_NC2)
 is_enabled(ENABLE_NETCDF_4 HAS_NC4)
 is_enabled(ENABLE_HDF4 HAS_HDF4)
 is_enabled(USE_HDF5 HAS_HDF5)
-is_enabled(USE_SZIP HAS_SZIP)
-is_enabled(USE_SZIP HAS_SZIP_WRITE)
-is_enabled(USE_SZIP HAS_SZLIB_WRITE)
 is_enabled(STATUS_PNETCDF HAS_PNETCDF)
 is_enabled(STATUS_PARALLEL HAS_PARALLEL)
 is_enabled(ENABLE_PARALLEL4 HAS_PARALLEL4)
@@ -2310,7 +2455,6 @@ is_enabled(JNA HAS_JNA)
 is_enabled(ENABLE_ZERO_LENGTH_COORD_BOUND RELAX_COORD_BOUND)
 is_enabled(USE_CDF5 HAS_CDF5)
 is_enabled(ENABLE_ERANGE_FILL HAS_ERANGE_FILL)
-is_enabled(HAVE_H5Z_SZIP HAS_SZLIB)
 is_enabled(HDF5_HAS_PAR_FILTERS HAS_PAR_FILTERS)
 is_enabled(ENABLE_NCZARR HAS_NCZARR)
 is_enabled(ENABLE_NCZARR_S3_TESTS DO_NCZARR_S3_TESTS)
@@ -2319,7 +2463,8 @@ is_enabled(ENABLE_NCZARR_ZIP DO_NCZARR_ZIP_TESTS)
 is_enabled(ENABLE_QUANTIZE HAS_QUANTIZE)
 is_enabled(ENABLE_LOGGING HAS_LOGGING)
 is_enabled(ENABLE_FILTER_TESTING DO_FILTER_TESTS)
-is_enabled(ENABLE_BLOSC HAS_BLOSC)
+is_enabled(HAVE_SZ HAS_SZIP)
+is_enabled(HAVE_SZ HAS_SZLIB_WRITE)
 
 # Generate file from template.
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
@@ -2357,12 +2502,6 @@ configure_file(
   ${netCDF_SOURCE_DIR}/include/netcdf_dispatch.h.in
   ${netCDF_BINARY_DIR}/include/netcdf_dispatch.h @ONLY NEWLINE_STYLE LF)
 
-# Used in the `configure_file` calls below
-SET(ISCMAKE "1")
-IF(MSVC)
-SET(ISMSVC "1")
-ENDIF()
-
 ####
 # Build test_common.sh
 #####
@@ -2398,7 +2537,9 @@ IF(ENABLE_TESTS)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ncdap_test/pingurl.c ${CMAKE_CURRENT_BINARY_DIR}/dap4_test/pingurl4.c @ONLY NEWLINE_STYLE LF)
 ENDIF()
 
-add_subdirectory(fuzz)
+if(DEFINED ENV{LIB_FUZZING_ENGINE})
+  add_subdirectory(fuzz)
+endif(DEFINED ENV{LIB_FUZZING_ENGINE})
 
 ####
 # Export files
