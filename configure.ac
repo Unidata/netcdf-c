@@ -1860,6 +1860,7 @@ AC_SUBST(HAS_LOGGING,[$enable_logging])
 AC_SUBST(DO_FILTER_TESTS,[$enable_filter_testing])
 AC_SUBST(HAS_SZLIB,[$have_sz])
 AC_SUBST(HAS_SZLIB_WRITE, [$have_sz])
+AC_SUBST(HAS_ZSTD,[$have_zstd])
 
 # Always available
 std_filters="deflate,bzip2"
@@ -1943,7 +1944,9 @@ AX_SET_META([NC_HAS_BYTERANGE],[$enable_byterange],[yes])
 AX_SET_META([NC_HAS_NCZARR],[$enable_nczarr],[yes])
 AX_SET_META([NC_HAS_MULTIFILTERS],[$has_multifilters],[yes])
 AX_SET_META([NC_HAS_LOGGING],[$enable_logging],[yes])
+AX_SET_META([NC_HAS_QUANTIZE],[yes],[yes])
 AX_SET_META([NC_HAS_SZIP],[$enable_hdf5_szip],[yes])
+AX_SET_META([NC_HAS_ZSTD],[$have_zstd],[yes])
 
 # This is the version of the dispatch table. If the dispatch table is
 # changed, this should be incremented, so that user-defined format
