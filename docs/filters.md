@@ -1,11 +1,14 @@
 NetCDF-4 Filter Support
 ============================
+
 <!-- double header is needed to workaround doxygen bug -->
 
-# NetCDF-4 Filter Support {#filters}
+NetCDF-4 Filter Support {#filters}
+==================================
 
 \tableofcontents
-[TOC]
+
+# Introduction to Filters {#filters_introduction}
 
 The netCDF library supports a general filter mechanism to apply various
 kinds of filters to datasets before reading or writing.
@@ -359,13 +362,14 @@ So it has three parameters:
 2. "clevel" -- the compression level, 5 in this case.
 3. "shuffle" -- is the input shuffled before compression, yes (1) in this case.
 
-NCZarr has three constraints that must be met.
+NCZarr has four constraints that must be met.
 
 1. It must store its filter information in its metadata in the above JSON dictionary format.
 2. It is required to re-use the HDF5 filter implementations.
 This is to avoid having to rewrite the filter implementations
 This means that some mechanism is needed to translate between the HDF5 id+parameter model and the Zarr JSON dictionary model.
 3. It must be possible to modify the set of visible parameters in response to environment information such as the type of the associated variable; this is required to mimic the corresponding HDF5 capability.
+4. It must be possible to use filters even if HDF5 support is disabled.
 
 Note that the term "visible parameters" is used here to refer to the parameters provided by "nc_def_var_filter" or those stored in the dataset's metadata as provided by the JSON codec. The term "working parameters" refers to the parameters given to the compressor itself and derived from the visible parameters.
 
@@ -401,7 +405,7 @@ If this is important, then the filter implementation is responsible for marking 
 
 ### Step 2: Convert visible parameters to working parameters
 
-Given environmental information such as the associated variables base type, the visible parameters
+Given environmental information such as the associated variable's base type, the visible parameters
 are converted to a potentially larger set of working parameters; additionally provide the opportunity
 to modify the visible parameters.
 
@@ -422,6 +426,7 @@ the netcdf-c API. Rather, one must know the HDF5 id and parameters of
 the filter of interest and use the functions ''nc_def_var_filter'' and ''nc_inq_var_filter''.
 Internally, the NCZarr code will use information about known Codecs to convert the HDF5 filter reference to the corresponding Codec.
 This restriction also holds for the specification of filters in ''ncgen'' and ''nccopy''.
+This limitation may be lifted in the future.
 
 ## Special Codecs Attribute
 
@@ -469,6 +474,16 @@ This results in this table for associated codec and hdf5 libraries.
 <tr><td>Defined<td>Not defined<td>Ignore
 <tr><td>Defined<td>Defined<td>NCZarr usable
 </table>
+
+## Filter Defaults Library
+
+As a special case, a shared library may be created to hold
+defaults for a common set of filters.
+Basically, there is a specially defined function that returns
+a vector of codec APIs. These defaults are used only if
+not other library provided codec information for a filter.
+Currently, the defaults library provides codec defaults
+for Shuffle, Fletcher32, Deflate (zlib), and SZIP.
 
 ## Using the Codec API
 
@@ -711,30 +726,27 @@ Several functions are exported from the netcdf-c library for use by client progr
 They are defined in the header file __netcdf_aux.h__.
 The h5 tag indicates that they assume that the result of the parse is a set of unsigned integers &mdash; the format used by HDF5.
 
-1. ````int ncaux_h5filterspec_parse(const char* txt, unsigned int* idp. size_t* nparamsp, unsigned int** paramsp);````
-* txt contains the text of a sequence of comma separated constants
-* idp will contain the first constant &mdash; the filter id
-* nparamsp will contain the number of params 
-* paramsp will contain a vector of params &mdash; the caller must free
+1. ''int ncaux_h5filterspec_parse(const char* txt, unsigned int* idp. size_t* nparamsp, unsigned int** paramsp);''
+  * txt contains the text of a sequence of comma separated constants
+  * idp will contain the first constant &mdash; the filter id
+  * nparamsp will contain the number of params 
+  * paramsp will contain a vector of params &mdash; the caller must free
 This function can parse single filter spec strings as defined in the section on <a href="#filters_syntax">Filter Specification Syntax</a>.
-
-2. ````int ncaux_h5filterspec_parselist(const char* txt, int* formatp, size_t* nspecsp, struct NC_H5_Filterspec*** vectorp);````
-* txt contains the text of a sequence '|' separated filter specs.
-* formatp currently always returns 0.
-* nspecsp will return the number of filter specifications.
-* vectorp will return a pointer to a vector of pointers to filter specification instances &mdash; the caller must free.
+2. ''int ncaux_h5filterspec_parselist(const char* txt, int* formatp, size_t* nspecsp, struct NC_H5_Filterspec*** vectorp);''
+  * txt contains the text of a sequence '|' separated filter specs.
+  * formatp currently always returns 0.
+  * nspecsp will return the number of filter specifications.
+  * vectorp will return a pointer to a vector of pointers to filter specification instances &mdash; the caller must free.
 This function parses a sequence of filter specifications each separated by a '|' character.
 The text between '|' separators must be parsable by __ncaux_h5filterspec_parse__.
-
-3. ````void ncaux_h5filterspec_free(struct NC_H5_Filterspec* f);````
-* f is a pointer to an instance of ````struct NC_H5_Filterspec````
+3. ''void ncaux_h5filterspec_free(struct NC_H5_Filterspec* f);''
+  * f is a pointer to an instance of ````struct NC_H5_Filterspec````
   Typically this was returned as an element of the vector returned
   by __ncaux_h5filterspec_parselist__.   
 This reclaims the parameters of the filter spec object as well as the object itself.
-
-4. ````int ncaux_h5filterspec_fix8(unsigned char* mem8, int decode);````
-* mem8 is a pointer to the 8-byte value either to fix.
-* decode is 1 if the function should apply the 8-byte decoding algorithm
+4. ''int ncaux_h5filterspec_fix8(unsigned char* mem8, int decode);''
+  * mem8 is a pointer to the 8-byte value either to fix.
+  * decode is 1 if the function should apply the 8-byte decoding algorithm
   else apply the encoding algorithm.
 This function implements the 8-byte conversion algorithms for HDF5.
 Before calling *nc_def_var_filter* (unless *NC_parsefilterspec* was used), the client must call this function with the decode argument set to 0.
@@ -950,3 +962,4 @@ __Author__: Dennis Heimbigner<br>
 __Email__: dmh at ucar dot edu<br>
 __Initial Version__: 1/10/2018<br>
 __Last Revised__: 7/17/2021
+

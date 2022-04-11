@@ -26,26 +26,6 @@ static char* outfile = NULL;
 static int ncid = 0;
 static int translatenc4 = 0;
 
-static int
-readfile(const char* filename, NCbytes* content)
-{
-    FILE* stream;
-    char part[1024];
-
-    stream = fopen(filename,"r");
-    if(stream == NULL) return errno;
-    for(;;) {
-	size_t count = fread(part, 1, sizeof(part), stream);
-	if(count <= 0) break;
-	ncbytesappendn(content,part,count);
-	if(ferror(stream)) {fclose(stream); return NC_EIO;}
-	if(feof(stream)) break;
-    }
-    ncbytesnull(content);
-    fclose(stream);
-    return NC_NOERR;
-}
-
 static void
 fail(int code)
 {
@@ -86,7 +66,7 @@ setup(int tdmr, int argc, char** argv)
     outfile = NULL;
     input = ncbytesnew();
     output = ncbytesnew();
-    if((ret = readfile(infile,input))) fail(ret);
+    if((ret = NC_readfile(infile,input))) fail(ret);
     {
 	const char* trans = getenv("translatenc4");
 	if(trans != NULL)

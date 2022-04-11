@@ -5,7 +5,7 @@
 
 #include "ut_includes.h"
 
-#define DEBUG
+#undef DEBUG
 
 typedef enum Cmds {
     cmd_none = 0,
@@ -52,6 +52,7 @@ main(int argc, char** argv)
     if((stat = runtests((const char**)utoptions.cmds,tests))) goto done;
 
 done:
+    ut_final();
     if(stat) usage(stat);
     return 0;
 }

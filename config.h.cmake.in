@@ -57,23 +57,6 @@ are set when opening a binary file on Windows. */
    #define _OFF_T_DEFINED
    #endif
 
-   #ifdef _WIN32
-    #ifndef strcasecmp
-      #define strcasecmp _stricmp
-    #endif
-
-    #ifndef strincasecmp
-      #define strncasecmp _strnicmp
-    #endif
-
-    #ifndef snprintf
-     #if _MSC_VER<1900
-       #define snprintf _snprintf
-     #endif
-    #endif
-   #endif
-
-
    #define strdup _strdup
    #define fdopen _fdopen
    #define write _write
@@ -126,6 +109,9 @@ are set when opening a binary file on Windows. */
 /* set this only when building a DLL under MinGW */
 #cmakedefine DLL_NETCDF 1
 
+/* if true, use atexist */
+#cmakedefine ENABLE_ATEXIT_FINALIZE 1
+
 /* if true, build byte-range Client */
 #cmakedefine ENABLE_BYTERANGE 1
 
@@ -171,9 +157,6 @@ are set when opening a binary file on Windows. */
 /* if true, Allow dynamically loaded plugins */
 #cmakedefine ENABLE_PLUGINS 1
 
-/* define the possible sources for remote test servers */
-#cmakedefine REMOTETESTSERVERS	"${REMOTETESTSERVERS}"
-
 /* if true, run extra tests which may not work yet */
 #cmakedefine EXTRA_TESTS 1
 
@@ -183,9 +166,20 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have `alloca', as a function or macro. */
 #cmakedefine HAVE_ALLOCA 1
 
-/* Define to 1 if you have <alloca.h> and it should be used (not on Ultrix).
-   */
+/* Define to 1 if you have <alloca.h> and it should be used (not on Ultrix). */
 #cmakedefine HAVE_ALLOCA_H 1
+
+/* Define to 1 if you have the `atexit function. */
+#cmakedefine HAVE_ATEXIT 1
+
+/* Define to 1 if bzip2 library available. */
+#cmakedefine HAVE_BZIP2 1
+
+/* Define to 1 if zstd library available. */
+#cmakedefine HAVE_ZSTD 1
+
+/* Define to 1 if blosc library available. */
+#cmakedefine HAVE_BLOSC 1
 
 /* Define to 1 if you have hdf5_coll_metadata_ops */
 #cmakedefine HDF5_HAS_COLL_METADATA_OPS 1
@@ -268,6 +262,9 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the `H5Z_SZIP' function. */
 #cmakedefine HAVE_H5Z_SZIP 1
 
+/* Define to 1 if you have libsz */
+#cmakedefine HAVE_SZ 1
+
 /* Define to 1 if you have the <hdf5.h> header file. */
 #cmakedefine HAVE_HDF5_H 1
 
@@ -294,6 +291,9 @@ are set when opening a binary file on Windows. */
 
 /* Define to 1 if you have the `pnetcdf' library (-lpnetcdf). */
 #cmakedefine HAVE_LIBPNETCDF 1
+
+/* Define to 1 if you have the libxml2 library. */
+#cmakedefine ENABLE_LIBXML2 1
 
 /* Define to 1 if you have the <locale.h> header file. */
 #cmakedefine HAVE_LOCALE_H 1
@@ -352,12 +352,6 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the <stdlib.h> header file. */
 #cmakedefine HAVE_STDLIB_H 1
 
-/* Define to 1 if you have the `strdup' function. */
-#cmakedefine HAVE_STRDUP 1
-
-/* Define to 1 if you have the `strndup` function. */
-#cmakedefine HAVE_STRNDUP
-
 /* Define to 1 if you have the <strings.h> header file. */
 #cmakedefine HAVE_STRINGS_H 1
 
@@ -372,6 +366,15 @@ are set when opening a binary file on Windows. */
 
 /* Define to 1 if you have the <libgen.h> header file. */
 #cmakedefine HAVE_LIBGEN_H 1
+
+/* Define to 1 if you have the `strdup' function. */
+#cmakedefine HAVE_STRDUP 1
+
+/* Define to 1 if you have the `strndup` function. */
+#cmakedefine HAVE_STRNDUP
+
+/* Define to 1 if you have the `strcasecmp` function. */
+#cmakedefine HAVE_STRCASECMP
 
 /* Define to 1 if you have the `strlcat' function. */
 #cmakedefine HAVE_STRLCAT 1
@@ -427,16 +430,6 @@ are set when opening a binary file on Windows. */
 
 /* Define to 1 if the system has the type `ushort'. */
 #cmakedefine HAVE_USHORT 1
-
-/* if true, H5free_memory() will be used to free hdf5-allocated memory in
-   nc4file. */
-#cmakedefine HAVE_H5FREE_MEMORY 1
-
-/* if true, H5allocate_memory() will be used. */
-#cmakedefine HAVE_H5ALLOCATE_MEMORY 1
-
-/* if true, H5resize_memory() will be used. */
-#cmakedefine HAVE_H5RESIZE_MEMORY 1
 
 /* if true, hdf5 has parallelism enabled */
 #cmakedefine HDF5_PARALLEL 1
@@ -510,6 +503,12 @@ with zip */
 
 /* Define to the version of this package. */
 #cmakedefine PACKAGE_VERSION "${netCDF_VERSION}"
+
+/* Do we have access to the Windows Registry */
+#cmakedefine REGEDIT 1
+
+/* define the possible sources for remote test servers */
+#cmakedefine REMOTETESTSERVERS	"${REMOTETESTSERVERS}"
 
 /* The size of `ulonglong` as computed by sizeof. */
 #cmakedefine SIZEOF_ULONGLONG @SIZEOF_ULONGLONG@
@@ -626,11 +625,12 @@ with zip */
 /* if true, enable nczarr blosc support */
 #cmakedefine ENABLE_BLOSC 1
 
-/* if true, enable nczarr szip support */
-#cmakedefine USE_SZIP 1
-
 /* Version number of package */
 #cmakedefine VERSION "${netCDF_VERSION}"
+
+/* Capture  Windows version and build */
+#cmakedefine WINVERMAJOR ${WINVERMAJOR}
+#cmakedefine WINVERBUILD ${WINVERBUILD}
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */
@@ -666,21 +666,6 @@ with zip */
 
 /* Define to `unsigned long if <sys/types.h> does not define. */
 #cmakedefine uintptr_t unsigned long
-
-/* Define strcasecmp, strncasecmp, snprintf on Win32 systems. */
-#ifdef _WIN32
-    #ifndef HAVE_STRCASECMP
-	 #define strcasecmp _stricmp
-    #endif
-
-    #ifndef HAVE_STRNCASECMP
-	 #define strncasecmp _strnicmp
-    #endif
-
-    #ifndef HAVE_SNPRINTF
-	 #define snprintf _snprintf
-    #endif
-#endif
 
 #cmakedefine WORDS_BIGENDIAN
 

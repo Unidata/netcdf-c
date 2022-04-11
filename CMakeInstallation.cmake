@@ -52,14 +52,13 @@ IF(WIN32)
   SET(CPACK_NSIS_MODIFY_PATH ON)
   SET(CPACK_NSIS_DISPLAY_NAME "NetCDF ${netCDF_VERSION}")
   SET(CPACK_NSIS_PACKAGE_NAME "NetCDF ${netCDF_VERSION}")
-  SET(CPACK_NSIS_HELP_LINK "http://www.unidata.ucar.edu/netcdf")
-  SET(CPACK_NSIS_URL_INFO_ABOUT "http://www.unidata.ucar.edu/netcdf")
+  SET(CPACK_NSIS_HELP_LINK "https://www.unidata.ucar.edu/netcdf")
+  SET(CPACK_NSIS_URL_INFO_ABOUT "https://www.unidata.ucar.edu/netcdf")
   SET(CPACK_NSIS_CONTACT "support-netcdf@unidata.ucar.edu")
   SET(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
   SET(CPACK_NSIS_MENU_LINKS
-	"http://www.unidata.ucar.edu/software/netcdf" "Unidata Website"
-	"http://www.unidata.ucar.edu/software/netcdf/docs" "NetCDF Stable Documentation"
-	"http://www.unidata.ucar.edu/software/netcdf/docs_rc" "NetCDF Unstable Documentation")
+	"https://www.unidata.ucar.edu/software/netcdf" "Unidata Website"
+	"https://docs.unidata.ucar.edu/netcdf-c" "NetCDF Stable Documentation")
 
 ENDIF()
 

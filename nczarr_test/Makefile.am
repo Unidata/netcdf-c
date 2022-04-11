@@ -35,7 +35,7 @@ ut_projections_SOURCES = ut_projections.c ${commonsrc}
 ut_chunking_SOURCES = ut_chunking.c ${commonsrc}
 tst_fillonlyz_SOURCES = tst_fillonlyz.c ${tstcommonsrc}
 
-check_PROGRAMS += tst_zchunks tst_zchunks2 tst_zchunks3 tst_fillonlyz
+check_PROGRAMS += tst_zchunks tst_zchunks2 tst_zchunks3 tst_fillonlyz test_quantize 
 
 TESTS += run_ut_map.sh
 TESTS += run_ut_mapapi.sh
@@ -54,6 +54,8 @@ endif
 check_PROGRAMS += tst_chunkcases
 tst_chunkcases_SOURCES = tst_chunkcases.c ${tstcommonsrc}
 TESTS += run_chunkcases.sh
+
+TESTS += run_quantize.sh
 
 TESTS += run_purezarr.sh
 TESTS += run_interop.sh
@@ -84,16 +86,15 @@ endif
 endif # BUILD_BENCHMARKS
 
 if ENABLE_FILTER_TESTING
+
 # Do simple filter functionality tests for nczarr
 check_PROGRAMS += tst_nczfilter
-TESTS += tst_nczfilter
+TESTS += run_nczfilter.sh
 
 # Echo filter tests from nc_test4
-check_PROGRAMS += testfilter testfilter_misc testfilter_order testfilter_repeat testfilter_multi
+check_PROGRAMS += testfilter testfilter_misc testfilter_order testfilter_repeat testfilter_multi test_filter_avail
 TESTS += run_filter.sh
-if ENABLE_BLOSC
 TESTS += run_specific_filters.sh
-endif
 
 endif #ENABLE_FILTER_TESTING
 
@@ -126,7 +127,7 @@ run_ut_map.sh run_ut_mapapi.sh run_ut_misc.sh run_ut_chunk.sh run_ncgen4.sh \
 run_nccopyz.sh run_fillonlyz.sh run_chunkcases.sh test_nczarr.sh run_perf_chunks1.sh run_s3_cleanup.sh \
 run_purezarr.sh run_interop.sh run_misc.sh \
 run_filter.sh run_specific_filters.sh \
-run_newformat.sh run_nczarr_fill.sh
+run_newformat.sh run_nczarr_fill.sh run_quantize.sh
 
 EXTRA_DIST += \
 ref_ut_map_create.cdl ref_ut_map_writedata.cdl ref_ut_map_writemeta2.cdl ref_ut_map_writemeta.cdl \
@@ -149,17 +150,36 @@ ref_groups.h5 ref_byte.zarr.zip ref_byte_fill_value_null.zarr.zip \
 ref_groups_regular.cdl ref_byte.cdl ref_byte_fill_value_null.cdl
 
 # Interoperability files
-EXTRA_DIST += ref_power_901_constants.zip ref_power_901_constants.cdl ref_quotes.zip ref_quotes.cdl
+EXTRA_DIST += ref_power_901_constants.zip ref_power_901_constants.cdl ref_quotes.zip ref_quotes.cdl 
 
-CLEANFILES = ut_*.txt ut*.cdl tmp*.nc tmp*.cdl tmp*.txt tmp*.dmp tmp*.zip tmp*.nc
+CLEANFILES = ut_*.txt ut*.cdl tmp*.nc tmp*.cdl tmp*.txt tmp*.dmp tmp*.zip tmp*.nc tmp*.dump tmp*.tmp tmp_ngc.c ref_zarr_test_data.cdl
+
+BUILT_SOURCES = test_quantize.c test_filter_avail.c run_specific_filters.sh
+test_quantize.c: $(top_srcdir)/nc_test4/tst_quantize.c
+	rm -f $@
+	echo "#define TESTNCZARR" > $@
+	cat $(top_srcdir)/nc_test4/tst_quantize.c >> $@
+
+test_filter_avail.c: $(top_srcdir)/nc_test4/tst_filter_avail.c
+	rm -f $@
+	echo "#define TESTNCZARR" > $@
+	cat $(top_srcdir)/nc_test4/tst_filter_avail.c >> $@
+
+run_specific_filters.sh: $(top_srcdir)/nc_test4/tst_specific_filters.sh
+	rm -f $@ run_specific_filters.tmp
+	echo "#!/bin/bash" > run_specific_filters.tmp
+	echo "TESTNCZARR=1" >> run_specific_filters.tmp
+	cat $(top_srcdir)/nc_test4/tst_specific_filters.sh >> run_specific_filters.tmp
+	tr -d '\r' < run_specific_filters.tmp > $@
+	chmod a+x $@
+	rm -f run_specific_filters.tmp
 
 # Remove directories
 clean-local:
 	rm -fr tmp*.file results.file results.s3 results.zip
-	rm -fr power_901_constants.file
 	rm -fr rcmiscdir
 
-DISTCLEANFILES = findplugin.sh
+DISTCLEANFILES = findplugin.sh test_quantize.c run_specific_filters.sh
 
 # If valgrind is present, add valgrind targets.
 @VALGRIND_CHECK_RULES@

@@ -29,6 +29,16 @@ zthrow(int err, const char* file, const char* fcn, int line)
     ncbacktrace();
     return zbreakpoint(err);
 }
+
+int
+zreport(int err, const char* msg, const char* file, const char* fcn, int line)
+{
+    if(err == 0) return err;
+    ZLOG(NCLOGWARN,"!!! zreport: err=%d msg=%s",err,msg);
+    ncbacktrace();
+    return zbreakpoint(err);
+}
+
 #endif /*ZCATCH*/
 
 /**************************************************/

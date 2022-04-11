@@ -15,7 +15,6 @@
 
 #if defined(_WIN32) && !defined(__MINGW32__)
 #include "XGetopt.h"
-#define snprintf _snprintf
 #endif
 
 #ifdef HAVE_UNISTD_H
@@ -32,7 +31,6 @@
 #include "nccomps.h"
 #include "list.h"
 #include "ncpathmgr.h"
-#include "ncfilter.h"
 
 #undef DEBUGFILTER
 #undef DEBUGCHUNK
@@ -244,7 +242,7 @@ computeFQN(VarID vid, char** fqnp)
     *q++ = '\0'; /* guarantee */
     strcat(fqn,escname);
 done:
-    if(stat == NC_NOERR && fqnp != NULL) *fqnp = fqn;
+    if(stat == NC_NOERR && fqnp != NULL) {*fqnp = fqn; fqn = NULL;}
     return stat;
 }
 

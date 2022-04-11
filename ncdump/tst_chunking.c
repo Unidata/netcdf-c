@@ -9,7 +9,7 @@
 #include <nc_tests.h>
 #include "err_macros.h"
 
-#define DEBUG
+#undef DEBUG
 
 static int ret = NC_NOERR;
 

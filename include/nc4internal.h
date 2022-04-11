@@ -118,6 +118,7 @@ typedef enum {NC_FALSE = 0, NC_TRUE = 1} nc_bool_t;
 /* Forward declarations. */
 struct NC_GRP_INFO;
 struct NC_TYPE_INFO;
+struct NCRCinfo;
 
 /**
  * This struct provides indexed Access to Meta-data objects. See the
@@ -170,8 +171,10 @@ typedef struct NC_ATT_INFO
     nc_type nc_typeid;      /**< NetCDF type of attribute's data. */
     void *format_att_info;  /**< Pointer to format-specific att info. */
     void *data;             /**< The attribute data. */
+#ifdef SEPDATA
     nc_vlen_t *vldata;      /**< VLEN data (only used for vlen types). */
     char **stdata;          /**< String data (only for string type). */
+#endif
 } NC_ATT_INFO_T;
 
 /** This is a struct to handle the var metadata. */
@@ -201,11 +204,11 @@ typedef struct NC_VAR_INFO
     int storage;                 /**< Storage of this var, compact, contiguous, or chunked. */
     int endianness;              /**< What endianness for the var? */
     int parallel_access;         /**< Type of parallel access for I/O on variable (collective or independent). */
-    nc_bool_t shuffle;           /**< True if var has shuffle filter applied. */
-    nc_bool_t fletcher32;        /**< True if var has fletcher32 filter applied. */
-    size_t chunk_cache_size;     /**< Size in bytes of the var chunk cache. */
-    size_t chunk_cache_nelems;   /**< Number of slots in var chunk cache. */
-    float chunk_cache_preemption; /**< Chunk cache preemtion policy. */
+    struct ChunkCache {
+        size_t size;     /**< Size in bytes of the var chunk cache. */
+        size_t nelems;   /**< Number of slots in var chunk cache. */
+        float preemption; /**< Chunk cache preemtion policy. */
+    } chunkcache;
     int quantize_mode;           /**< Quantize mode. NC_NOQUANTIZE is 0, and means no quantization. */
     int nsd;                     /**< Number of significant digits if quantization is used, 0 if not. */
     void *format_var_info;       /**< Pointer to any binary format info. */
@@ -252,6 +255,7 @@ typedef struct NC_TYPE_INFO
         } e;                        /**< Enum */
         struct Fields {
             NClist* field;        /**< <! NClist<NC_FIELD_INFO_T*> */
+	    int varsized;         /**< <! 1 if this compound is variable sized; 0 if fixed size */
         } c;                      /**< Compound */
         struct {
             nc_type base_nc_typeid; /**< Typeid of the base type. */
@@ -276,20 +280,14 @@ typedef struct NC_GRP_INFO
     NCindex* vars;               /**< NCindex<NC_VAR_INFO_T> * */
 } NC_GRP_INFO_T;
 
-/* These constants apply to the cmode parameter in the
+/* These constants apply to the flags field in the
  * HDF5_FILE_INFO_T defined below. */
-/* Make sure they do not conflict with defined flags in netcdf.h */
-#define NC_CREAT 0x10002      /**< in create phase, cleared by ncendef */
-#define NC_INDEF 0x10008      /**< in define mode, cleared by ncendef */
-#define NC_NSYNC 0x10010   /**< synchronise numrecs on change */
-#define NC_HSYNC 0x10020   /**< synchronise whole header on change */
-#define NC_NDIRTY 0x10040  /**< numrecs has changed */
-#define NC_HDIRTY 0x10080  /**< header info has changed */
+#define NC_INDEF  0x01  /**< in define mode, cleared by ncendef */
 
 /** This is the metadata we need to keep track of for each
-  * netcdf-4/HDF5 file. */
+  * netcdf-4/ file; used by libhdf5, libnczarr, and libdap4 */
 
-typedef struct  NC_FILE_INFO
+typedef struct NC_FILE_INFO
 {
     NC_OBJ hdr;
     NC *controller; /**< Pointer to containing NC. */
@@ -297,11 +295,12 @@ typedef struct  NC_FILE_INFO
     MPI_Comm comm;  /**< Copy of MPI Communicator used to open the file. */
     MPI_Info info;  /**< Copy of MPI Information Object used to open the file. */
 #endif
-    int flags;      /**< Flags used to open the file. */
-    int cmode;      /**< Create mode used to create the file. */
+    int cmode;      /**< Create/Open mode for the file. */
+    int flags;      /**< State transition flags . */
     nc_bool_t parallel;   /**< True if file is open for parallel access */
     nc_bool_t redef;      /**< True if redefining an existing file */
-    int fill_mode;        /**< Fill mode for vars - Unused internally currently */
+    nc_bool_t no_attr_create_order; /**< True if the creation order tracking of attributes is disabled (netcdf-4 only) */
+    int fill_mode;        /**< Fill mode for vars */
     nc_bool_t no_write;   /**< true if nc_open has mode NC_NOWRITE. */
     NC_GRP_INFO_T *root_grp; /**< Pointer to root group. */
     short next_nc_grpid;  /**< Next available group ID. */
@@ -328,6 +327,24 @@ typedef struct  NC_FILE_INFO
         void *udata;    /**< Extra memory allocated in NC4_image_init. */
     } mem;
 } NC_FILE_INFO_T;
+
+/* Collect global state info in one place */
+typedef struct NCglobalstate {
+    int initialized;
+    char* tempdir; /* track a usable temp dir */
+    char* home; /* track $HOME */
+    char* cwd; /* track getcwd */
+    struct NCRCinfo* rcinfo; /* Currently only one rc file per session */
+    struct GlobalZarr { /* Zarr specific parameters */
+	char dimension_separator;
+    } zarr;
+    struct Alignment { /* H5Pset_alignment parameters */
+        int defined; /* 1 => threshold and alignment explicitly set */
+	int threshold;
+	int alignment;
+    } alignment;
+    struct ChunkCache chunkcache;
+} NCglobalstate;
 
 /** Variable Length Datatype struct in memory. Must be identical to
  * HDF5 hvl_t. (This is only used for VL sequences, not VL strings,
@@ -424,13 +441,19 @@ extern int nc4_check_dup_name(NC_GRP_INFO_T *grp, char *norm_name);
 /* Get the fill value for a var. */
 extern int nc4_get_fill_value(NC_FILE_INFO_T *h5, NC_VAR_INFO_T *var, void **fillp);
 
-/* Find default fill value. */
-extern int nc4_get_default_fill_value(nc_type typecode, void *fill_value);
+/* Find default fill value for atomic type. */
+extern int nc4_get_default_atomic_fill_value(nc_type, void *fill_value);
+
+/* Find default fill value for any type */
+extern int nc4_get_default_fill_value(NC_TYPE_INFO_T*, void *fill_value);
 
 /* Get an att given pointers to file, group, and perhaps ver info. */
 extern int nc4_get_att_ptrs(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var,
                      const char *name, nc_type *xtype, nc_type mem_type,
                      size_t *lenp, int *attnum, void *data);
+
+/* Get variable/fixed size flag for type */
+extern int NC4_inq_type_fixed_size(int ncid, nc_type xtype, int* isfixedsizep);
 
 /* Close the file. */
 extern int nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio);
@@ -455,6 +478,10 @@ extern const char* nc4_atomic_name[NUM_ATOMIC_TYPES];
 
 /* Binary searcher for reserved attributes */
 extern const NC_reservedatt* NC_findreserved(const char* name);
+
+/* Global State Management */
+extern NCglobalstate* NC_getglobalstate(void);
+extern void NC_freeglobalstate(void);
 
 /* Generic reserved Attributes */
 #define NC_ATT_REFERENCE_LIST "REFERENCE_LIST"

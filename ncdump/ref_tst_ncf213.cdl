@@ -22,25 +22,23 @@ variables:
 	int var2(dim1, dim2) ;
 		var2:_Storage = "chunked" ;
 		var2:_ChunkSizes = 6, 7 ;
-		var2:_Fletcher32 = "true" ;
+ 		var2:_Filter = "3" ;
 		var2:_Endianness = "big" ;
 	int var3(dim1, dim2, dim3) ;
 		var3:_Storage = "chunked" ;
 		var3:_ChunkSizes = 6, 7, 8 ;
-		var3:_DeflateLevel = 2 ;
+ 		var3:_Filter = "1,2" ;
 		var3:_Endianness = "little" ;
 	int var4(dim1, dim2, dim3) ;
 		var4:_Storage = "chunked" ;
 		var4:_ChunkSizes = 6, 7, 8 ;
-		var4:_DeflateLevel = 2 ;
+ 		var4:_Filter = "1,2" ;
 		var4:_Endianness = "little" ;
 		var4:_NoFill = "true" ;
 	obs_t var5(dim1) ;
 		var5:_Storage = "chunked" ;
 		var5:_ChunkSizes = 6 ;
-		var5:_DeflateLevel = 2 ;
-		var5:_Shuffle = "true" ;
-		var5:_Fletcher32 = "true" ;
+ 		var5:_Filter = "3|2,40|1,2" ;
 		var5:_NoFill = "true" ;
 
 // global attributes:

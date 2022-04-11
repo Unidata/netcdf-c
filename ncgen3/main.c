@@ -17,7 +17,6 @@
 
 #if defined(_WIN32) && !defined(__MINGW32__)
 #include "XGetopt.h"
-#define snprintf _snprintf
 #endif
 
 #include "netcdf.h"
@@ -223,6 +222,7 @@ fprintf(stderr,"xarg(%d): |%s|\n",i,argv[i]);
     }
     ncgin = fp;
     any_error = ncgparse();
+    nc_finalize();
     if (any_error || derror_count > 0)
 	return 1;
     return 0;

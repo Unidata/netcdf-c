@@ -17,10 +17,14 @@ libncpoco_la_LIBADD =
 libncpoco_la_LDFLAGS =
 
 libncpoco_la_SOURCES = ncpoco.c ncpoco.h
-if ISMSVC 
-libncpoco_la_SOURCES += cp_win32.c
-else
+if ! ISMSVC 
+if ! ISMINGW 
 libncpoco_la_SOURCES += cp_unix.c
+else
+libncpoco_la_SOURCES += cp_win32.c
+endif
+else
+libncpoco_la_SOURCES += cp_win32.c
 endif
 
 EXTRA_DIST = CMakeLists.txt README.md COPYRIGHT

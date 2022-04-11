@@ -409,7 +409,7 @@ main()
     }
 
     SUMMARIZE_ERR;
-#ifdef USE_SZIP
+#ifdef HAVE_H5Z_SZIP
     printf("*** Checking szip functionality...");
 #define SZIP_VAR_NAME "szip_var"
 #define SZIP_DIM1_LEN 32
@@ -596,6 +596,6 @@ main()
         } /* next file */
     }
     SUMMARIZE_ERR;
-#endif /* USE_SZIP */
+#endif /* HAVE_H5Z_SZIP */
     FINAL_RESULTS;
 }

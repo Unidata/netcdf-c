@@ -229,12 +229,14 @@ static void
 printchunk(Format* format, int* chunkdata, size_t indent)
 {
     int k[3];
+    int rank = format->rank;
     unsigned cols[3], pos;
     size_t* chl = format->chunklens;
 
     memset(cols,0,sizeof(cols));
 
-    switch (format->rank) {
+    if(format->xtype == NC_UBYTE) rank = 0;
+    switch (rank) {
     case 1:
         cols[0] = 1;
         cols[1] = 1;
@@ -265,7 +267,15 @@ printchunk(Format* format, int* chunkdata, size_t indent)
 	    k[2] = 0;
 	    if(k[1] > 0) printf(" |");
 	    for(k[2]=0;k[2]<cols[2];k[2]++) {
-                printf(" %02d", chunkdata[pos]);
+		if(format->xtype == NC_UBYTE) {
+		    int l;
+		    unsigned char* bchunkdata = (unsigned char*)(&chunkdata[pos]);
+		    for(l=0;l<sizeof(int);l++) {
+                        printf(" %02u", bchunkdata[l]);
+		    }
+		} else {
+                    printf(" %02d", chunkdata[pos]);
+		}
 		pos++;
 	    }
 	}
@@ -285,7 +295,7 @@ printchunk(Format* format, int* chunkdata, size_t indent)
 int
 dump(Format* format)
 {
-    int* chunkdata = NULL; /*[CHUNKPROD];*/
+    void* chunkdata = NULL; /*[CHUNKPROD];*/
     Odometer* odom = NULL;
     int r;
     size_t offset[NC_MAX_VAR_DIMS];
@@ -458,8 +468,14 @@ main(int argc, char** argv)
 
     memset(&format,0,sizeof(format));
 
-    while ((c = getopt(argc, argv, "v:DT:")) != EOF) {
+    /* Init some format fields */
+    format.xtype = NC_INT;
+
+    while ((c = getopt(argc, argv, "bv:DT:")) != EOF) {
     switch(c) {
+	case 'b':
+	    format.xtype = NC_UBYTE;
+	    break;
 	case 'v':
 	    strcpy(format.var_name,optarg);
 	    break;
@@ -512,7 +528,6 @@ main(int argc, char** argv)
     if((stat=nc_inq_var_chunking(ncid,varid,&storage,format.chunklens))) usage(stat);
     if(storage != NC_CHUNKED) usage(NC_EBADCHUNK);
     if((stat=nc_get_att(ncid,varid,"_FillValue",&format.fillvalue))) usage(stat);
-    format.xtype = NC_INT;
 
     for(i=0;i<format.rank;i++) {
 	 if((stat=nc_inq_dimlen(ncid,dimids[i],&format.dimlens[i]))) usage(stat);

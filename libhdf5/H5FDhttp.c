@@ -49,6 +49,7 @@
 /*
 Define a simple #ifdef test for the version of H5FD_class_t we are using 
 */
+
 #if H5_VERS_MAJOR == 1
 #if H5_VERS_MINOR < 10
 #define H5FDCLASS1 1
@@ -332,8 +333,11 @@ H5FD_http_open( const char *name, unsigned flags, hid_t /*UNUSED*/ fapl_id,
     /* Always read-only */
     write_access = 0;
 
-    /* Open file in read-only mode, to check for existence  and get length */
-    if((ncstat = nc_http_open(name,&state,&len))) {
+   /* Open file in read-only mode, to check for existence  and get length */
+    if((ncstat = nc_http_init(&state))) {
+        H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_CANTOPENFILE, "cannot access object", NULL);
+    }
+    if((ncstat = nc_http_size(state,name,&len))) {
         H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_CANTOPENFILE, "cannot access object", NULL);
     }
 
@@ -349,7 +353,7 @@ H5FD_http_open( const char *name, unsigned flags, hid_t /*UNUSED*/ fapl_id,
     file->write_access = write_access;    /* Note the write_access for later */
     file->eof = (haddr_t)len;
     file->state = state; state = NULL;
-    file->url = H5allocate_memory(strlen(name+1),0);
+    file->url = H5allocate_memory(strlen(name)+1,0);
     if(file->url == NULL) {
 	nc_http_close(state);
         H5Epush_ret(func, H5E_ERR_CLS, H5E_RESOURCE, H5E_NOSPACE, "memory allocation failed", NULL);

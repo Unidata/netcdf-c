@@ -167,7 +167,7 @@ main(int argc, char *argv[])
     /* variable shapes */
     int var_dims[RANK];
 
-    NCCHECK(getoptions(&argc,&argv,&bmoptions));
+    NCCHECK(bm_getoptions(&argc,&argv,&bmoptions));
     NCCHECK(nc4_buildpath(&bmoptions,&path));
 
     if(bmoptions.debug) {

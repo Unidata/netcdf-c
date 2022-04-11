@@ -10,7 +10,17 @@ TOPSRCDIR='@abs_top_srcdir@'
 TOPBUILDDIR='@abs_top_builddir@'
 FP_ISCMAKE=@ISCMAKE@
 FP_ISMSVC=@ISMSVC@
+  FP_WINVERMAJOR=@WINVERMAJOR@
+  FP_WINVERBUILD=@WINVERBUILD@
 FP_ISCYGWIN=@ISCYGWIN@
+FP_ISMINGW=@ISMINGW@
+FP_ISMSYS=@ISMSYS@
+
+FP_ISOSX=@ISOSX@
+FP_ISREGEDIT=@ISREGEDIT@
+
+FP_USEPLUGINS=@USEPLUGINS@
+FP_ISREGEDIT=@ISREGEDIT@
 
 # Feature flags
 FEATURE_HDF5=@HAS_HDF5@
@@ -78,9 +88,11 @@ if test "x$SETX" = x1 ; then set -x ; fi
 # On MINGW, bash and other POSIX utilities use a mounted root directory,
 # but executables compiled for Windows do not recognise the mount point.
 # Here we ensure that Windows paths are used in tests of Windows executables.
+
 system=`uname`
 if test "x${system##MINGW*}" = x; then
   alias pwd='pwd -W'
+
 fi
 
 # We assume that TOPSRCDIR and TOPBUILDDIR are defined
@@ -117,9 +129,6 @@ cd $builddir; builddir=`pwd` ; cd $WD
 cd $top_builddir; top_builddir=`pwd` ; cd $WD
 cd $execdir; execdir=`pwd` ; cd $WD
 
-# If we have cygpath (which only exists under CYGWIN),
-# then try to normalize selected file paths.
-
 # For sun os
 export srcdir top_srcdir builddir top_builddir execdir
 
@@ -143,6 +152,12 @@ export NCPATHCVT="${top_builddir}/ncdump${VS}/ncpathcvt${ext}"
 ncgen3c0="${top_srcdir}/ncgen3/c0.cdl"
 ncgenc0="${top_srcdir}/ncgen/c0.cdl"
 ncgenc04="${top_srcdir}/ncgen/c0_4.cdl"
+
+# Test for filter availability
+avail() {
+if test yes = `${execdir}/../ncdump/ncfilteravail $1` ; then return 0 ; else echo "filter $1 not available" ; return 1; fi
+}
+if test "x$FP_ISMSVC" = xyes || test "x$FP_ISCYGWIN" = xyes; then export LC_ALL="en_US.utf8"; fi
 
 # Make sure we are in builddir (not execdir)
 cd $builddir

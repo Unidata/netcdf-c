@@ -571,6 +571,7 @@ findeconstenum(Symbol* avsym, NCConstant* con)
     enumt = candidate;
 done:
     if(enumt) econst = locateeconst(enumt,name);
+    listfree(typdefs);
     nullfree(path);
     if(econst == NULL)
 	semerror(con->lineno,"Undefined enum constant: %s",refsym->name);
@@ -601,12 +602,12 @@ computesize(Symbol* tsym)
         case NC_VLEN: /* actually two sizes for vlen*/
 	    computesize(tsym->typ.basetype); /* first size*/
 	    tsym->typ.size = ncsize(tsym->typ.typecode);
-	    tsym->typ.alignment = ncaux_class_alignment(tsym->typ.typecode);
+	    (void)ncaux_class_alignment(tsym->typ.typecode,&tsym->typ.alignment);
 	    tsym->typ.nelems = 1; /* always a single compound datalist */
 	    break;
 	case NC_PRIM:
 	    tsym->typ.size = ncsize(tsym->typ.typecode);
-	    tsym->typ.alignment = ncaux_class_alignment(tsym->typ.typecode);
+	    (void)ncaux_class_alignment(tsym->typ.typecode,&tsym->typ.alignment);
 	    tsym->typ.nelems = 1;
 	    break;
 	case NC_OPAQUE:

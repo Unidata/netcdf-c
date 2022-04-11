@@ -1,4 +1,4 @@
-/* Copyright 2018-2018 University Corporation for Atmospheric
+/* Copyright 2018-2022 University Corporation for Atmospheric
    Research/Unidata. */
 /**
  * @file This header file contains macros, types, and prototypes for
@@ -60,12 +60,12 @@ struct NCauth;
 /** Struct to hold HDF5-specific info for the file. */
 typedef struct NC_HDF5_FILE_INFO {
    hid_t hdfid;
-#if defined(ENABLE_BYTERANGE) || defined(ENABLE_HDF5_ROS3) || defined(ENABLE_S3_SDK)
-   struct HTTP {
-	NCURI* uri; /* Parse of the incoming path, if url */
-	int iosp; /* We are using the S3 rawvirtual file driver */
-	struct NCauth* auth;
-   } http;
+#if defined(ENABLE_BYTERANGE)
+   int byterange;
+   NCURI* uri; /* Parse of the incoming path, if url */
+#if defined(ENABLE_HDF5_ROS3) || defined(ENABLE_S3_SDK)
+   struct NCauth* auth;
+#endif
 #endif
 } NC_HDF5_FILE_INFO_T;
 
@@ -182,6 +182,7 @@ int nc4_hdf5_get_chunk_cache(int ncid, size_t *sizep, size_t *nelemsp,
 int NC4_hdf5_def_var_filter(int ncid, int varid, unsigned int filterid, size_t nparams, const unsigned int *params);
 int NC4_hdf5_inq_var_filter_ids(int ncid, int varid, size_t* nfiltersp, unsigned int *filterids);
 int NC4_hdf5_inq_var_filter_info(int ncid, int varid, unsigned int filterid, size_t* nparamsp, unsigned int *params);
+int NC4_hdf5_inq_filter_avail(int ncid, unsigned id);
 
 /* Filterlist management */
 
@@ -215,5 +216,7 @@ extern int nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var);
 
 EXTERNL hid_t nc4_H5Fopen(const char *filename, unsigned flags, hid_t fapl_id);
 EXTERNL hid_t nc4_H5Fcreate(const char *filename, unsigned flags, hid_t fcpl_id, hid_t fapl_id);
+
+int hdf5set_format_compatibility(hid_t fapl_id);
 
 #endif /* _HDF5INTERNAL_ */

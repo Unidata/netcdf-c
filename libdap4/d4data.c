@@ -6,7 +6,6 @@
 #include "d4includes.h"
 #include <stdarg.h>
 #include <assert.h>
-#include "ezxml.h"
 #include "d4includes.h"
 #include "d4odom.h"
 #include "nccrc.h"

@@ -22,7 +22,12 @@ SET(NC4_TESTS tst_dims tst_dims2 tst_dims3 tst_files tst_files4
   tst_files6 tst_sync tst_h_strbug tst_h_refs tst_h_scalar tst_rename
   tst_rename2 tst_rename3 tst_h5_endians tst_atts_string_rewrite tst_put_vars_two_unlim_dim
   tst_hdf5_file_compat tst_fill_attr_vanish tst_rehash tst_types tst_bug324
-  tst_atts3 tst_put_vars tst_elatefill tst_udf tst_bug1442 tst_quantize)
+  tst_atts3 tst_put_vars tst_elatefill tst_udf tst_bug1442 tst_broken_files
+  tst_quantize)
+
+IF(HAS_PAR_FILTERS)
+SET(NC4_tests $NC4_TESTS tst_alignment)
+ENDIF()
 
 # Note, renamegroup needs to be compiled before run_grp_rename
 
@@ -31,24 +36,25 @@ IF(BUILD_UTILITIES)
   build_bin_test(renamegroup)
   add_sh_test(nc_test4 run_grp_rename)
   build_bin_test(tst_charvlenbug)
+  build_bin_test(tst_vlenstr)
   ADD_SH_TEST(nc_test4 tst_misc)
   build_bin_test(tst_fillonly)
   ADD_SH_TEST(nc_test4 test_fillonly)
-IF(ENABLE_FILTER_TESTING)
+IF(USE_HDF5 AND ENABLE_FILTER_TESTING)
   build_bin_test(tst_filterparser)
   build_bin_test(test_filter)
   build_bin_test(test_filter_misc)
   build_bin_test(tst_multifilter)
   build_bin_test(test_filter_order)
   build_bin_test(test_filter_repeat)
+  build_bin_test(tst_filter_avail)
+  build_bin_test(test_filter_vlen)
   ADD_SH_TEST(nc_test4 tst_filter)
-IF(ENABLE_BLOSC)
   ADD_SH_TEST(nc_test4 tst_specific_filters)
-ENDIF()
 IF(ENABLE_CLIENTSIDE_FILTERS)
   add_bin_test(nc_test4 test_filter_reg)
 ENDIF(ENABLE_CLIENTSIDE_FILTERS)
-ENDIF(ENABLE_FILTER_TESTING)
+ENDIF(USE_HDF5 AND ENABLE_FILTER_TESTING)
 
 ENDIF(BUILD_UTILITIES)
 
@@ -77,7 +83,7 @@ IF(LARGE_FILE_TESTS)
 ENDIF()
 
 
-IF(USE_SZIP)
+IF(HAVE_H5Z_SZIP)
   BUILD_BIN_TEST(test_szip)
   BUILD_BIN_TEST(h5testszip)
   IF(BUILD_UTILITIES)

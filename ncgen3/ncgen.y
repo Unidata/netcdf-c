@@ -19,8 +19,6 @@ static char SccsId[] = "$Id: ncgen.y,v 1.34 2010/03/31 18:18:41 dmh Exp $";
 #include        "ncgen.h"
 #include	"genlib.h"	/* for grow_darray() et al */
 
-extern int fileno(FILE*);
-
 typedef struct Symbol {		/* symbol table entry */
 	char    	*name;
 	struct Symbol   *next;
@@ -68,13 +66,13 @@ static void *rec_cur;		/* pointer to where next data value goes */
 static void *rec_start;		/* start of space for data */
 
 /* Forward declarations */
-void defatt();
-void equalatt();
+void defatt(void);
+void equalatt(void);
 
 #ifdef YYLEX_PARAM
 int yylex(YYLEX_PARAM);
 #else
-int yylex();
+int yylex(void);
 #endif
 
 #ifdef vms
@@ -772,7 +770,7 @@ const:         CHAR_CONST
 %%
 
 /* HELPER PROGRAMS */
-void defatt()
+void defatt(void)
 {
     valnum = 0;
     valtype = NC_UNSPECIFIED;
@@ -787,7 +785,7 @@ void defatt()
     double_valp = (double *) att_space;
 }
 
-void equalatt()
+void equalatt(void)
 {
     /* check if duplicate attribute for this var */
     int i;

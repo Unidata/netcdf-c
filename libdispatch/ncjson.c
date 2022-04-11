@@ -62,7 +62,7 @@ typedef struct NCJbuf {
 
 /**************************************************/
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 #define strdup _strdup
 #define strcasecmp _stricmp
 #else
