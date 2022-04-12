@@ -70,7 +70,7 @@ EXTERNL const char* filenamefor(const char* f0);
 EXTERNL const char* printvector(int rank, const size_t* vec);
 EXTERNL const char* printvector64(int rank, const size64_t* vec);
 
-EXTERNL int getoptions(int* argcp, char*** argvp);
+int getoptions(int* argcp, char*** argvp);
 EXTERNL int getmetadata(int create);
 EXTERNL void cleanup(void);
 
