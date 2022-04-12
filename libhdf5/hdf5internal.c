@@ -157,11 +157,31 @@ find_var_dim_max_length(NC_GRP_INFO_T *grp, int varid, int dimid,
                 BAIL(NC_EHDFERR);
             LOG((5, "find_var_dim_max_length: varid %d len %d max: %d",
                  varid, (int)h5dimlen[0], (int)h5dimlenmax[0]));
-            for (d=0; d<dataset_ndims; d++) {
-                if (var->dimids[d] == dimid) {
+            for (d=0; d<dataset_ndims; d++)
+                if (var->dimids[d] == dimid)
                     *maxlen = *maxlen > h5dimlen[d] ? *maxlen : h5dimlen[d];
-                }
-            }
+
+#ifdef USE_PARALLEL
+	    /* If we are doing parallel I/O in collective mode, then
+	     * communicate with all other tasks in the collective and
+	     * find out which has the max value for the dimension
+	     * size. */
+	    {
+		assert(grp->nc4_info);
+		size_t real_maxlen;
+
+		/* If parallel is in use, and var is collective,
+		 * reduce to largest value of maxlen, putting result
+		 * into real_maxlen. */
+		if (grp->nc4_info->parallel && var->parallel_access == NC_COLLECTIVE)
+		{
+		    if (MPI_Allreduce(maxlen, &real_maxlen, 1, NC_MPI_SIZE_T, MPI_MAX,
+				      grp->nc4_info->comm))
+			BAIL(NC_EMPI);
+		}
+		*maxlen = real_maxlen;
+	    }
+#endif /* USE_PARALLEL */
         }
     }
 
