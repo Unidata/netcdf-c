@@ -55,28 +55,28 @@ typedef struct Odometer {
   size_t index[NC_MAX_VAR_DIMS]; /* current value of the odometer*/
 } Odometer;
 
-EXTERNL Odometer* odom_new(size_t rank, const size_t* start, const size_t* stop, const size_t* stride, const size_t* max);
-EXTERNL void odom_free(Odometer* odom);
-EXTERNL int odom_more(Odometer* odom);
-EXTERNL int odom_next(Odometer* odom);
-EXTERNL size_t* odom_indices(Odometer* odom);
-EXTERNL size_t odom_offset(Odometer* odom);
-EXTERNL const char* odom_print1(Odometer* odom, int isshort);
-EXTERNL const char* odom_print(Odometer* odom);
-EXTERNL const char* odom_printshort(Odometer* odom);
+extern Odometer* odom_new(size_t rank, const size_t* start, const size_t* stop, const size_t* stride, const size_t* max);
+extern void odom_free(Odometer* odom);
+extern int odom_more(Odometer* odom);
+extern int odom_next(Odometer* odom);
+extern size_t* odom_indices(Odometer* odom);
+extern size_t odom_offset(Odometer* odom);
+extern const char* odom_print1(Odometer* odom, int isshort);
+extern const char* odom_print(Odometer* odom);
+extern const char* odom_printshort(Odometer* odom);
 
-EXTERNL int parsevector(const char* s0, size_t* vec);
-EXTERNL const char* filenamefor(const char* f0);
-EXTERNL const char* printvector(int rank, const size_t* vec);
-EXTERNL const char* printvector64(int rank, const size64_t* vec);
+extern int parsevector(const char* s0, size_t* vec);
+extern const char* filenamefor(const char* f0);
+extern const char* printvector(int rank, const size_t* vec);
+extern const char* printvector64(int rank, const size64_t* vec);
 
-int getoptions(int* argcp, char*** argvp);
-EXTERNL int getmetadata(int create);
-EXTERNL void cleanup(void);
+extern int getoptions(int* argcp, char*** argvp);
+extern int getmetadata(int create);
+extern void cleanup(void);
 
 EXTERNL int nc__testurl(const char*,char**);
 
-EXTERNL const char* ncz_gets3testurl(void);
+extern const char* ncz_gets3testurl(void);
 
 static void
 report(int err, int lineno)
@@ -85,8 +85,8 @@ report(int err, int lineno)
     exit(1);
 }
 
-EXTERNL Options* options;
-EXTERNL Metadata* meta;
-EXTERNL NClist* capture;
+extern Options* options;
+extern Metadata* meta;
+extern NClist* capture;
 
 #endif /*TST_UTILS_H*/
