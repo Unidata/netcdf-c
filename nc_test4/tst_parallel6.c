@@ -31,6 +31,12 @@ int main(int argc, char** argv)
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
+    if (!rank)
+        printf("\n*** Testing parallel I/O.\n");
+
+    if (!rank)
+        printf("*** testing record lenth with multiple processes writing records...");
+
     if (nc_create_par(FILENAME, NC_CLOBBER | NC_NETCDF4, MPI_COMM_WORLD,
 		      MPI_INFO_NULL, &ncid)) ERR;
 
@@ -42,9 +48,6 @@ int main(int argc, char** argv)
     start[0] = rank;
     count[0] = 1;
     if (nc_put_vara_int(ncid, varid, start, count, &rank)) ERR;
-    MPI_Barrier(MPI_COMM_WORLD);
-    nc_redef(ncid);
-    nc_enddef(ncid);
     if (nc_inq_dimlen(ncid, dimid, &nrecs)) ERR;
 
     if (nrecs != nprocs)
@@ -57,6 +60,13 @@ int main(int argc, char** argv)
     }
     if (nc_close(ncid)) ERR;
 
+    if (!rank)
+        SUMMARIZE_ERR;
+
     MPI_Finalize();
+
+    if (!rank)
+        FINAL_RESULTS;
+
     return 0;
 }

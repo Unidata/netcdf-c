@@ -178,8 +178,8 @@ find_var_dim_max_length(NC_GRP_INFO_T *grp, int varid, int dimid,
 		    if (MPI_Allreduce(maxlen, &real_maxlen, 1, NC_MPI_SIZE_T, MPI_MAX,
 				      grp->nc4_info->comm))
 			BAIL(NC_EMPI);
+		    *maxlen = real_maxlen;
 		}
-		*maxlen = real_maxlen;
 	    }
 #endif /* USE_PARALLEL */
         }

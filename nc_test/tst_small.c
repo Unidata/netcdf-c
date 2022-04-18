@@ -509,7 +509,8 @@ main(int argc, char **argv)
 
    /* Go thru formats and run all tests for each of two (for netCDF-3
     * only builds), or 4 (for netCDF-4 builds) different formats. */
-   for (i = NUM_FORMATS; i >= 1; i--)
+   /* for (i = NUM_FORMATS; i >= 1; i--) */
+   i = NC_FORMAT_NETCDF4;
    {
       switch (i)
       {
