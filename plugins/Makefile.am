@@ -20,7 +20,7 @@ BZIP2SRC = blocksort.c huffman.c crctable.c randtable.c compress.c decompress.c 
 EXTRA_DIST = CMakeLists.txt
 
 # The HDF5 filter wrappers
-EXTRA_DIST += \
+EXTRA_DIST += stdinstall.in \
 	H5Ztemplate.c H5Zmisc.c H5Zutil.c H5Znoop.c h5noop.h NCZmisc.c \
 	H5Zshuffle.c H5Zdeflate.c H5Zszip.c H5Zszip.h \
         H5Zbzip2.c h5bzip2.h H5Zblosc.c H5Zblosc.h H5Zzstd.c H5Zzstd.h

@@ -1,0 +1,56 @@
+#!/bin/bash 
+
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
+. ../test_common.sh
+
+set -x
+
+INSTALLDIR=@PLUGIN_INSTALL_DIR@
+
+# Load the findplugins function
+. ${builddir}/findplugin.sh
+echo "findplugin.sh loaded"
+
+installhdf5plugin() {
+PLUG="$1"
+# Locate the plugin path and the library name; argument order is critical
+findplugin h5${PLUG}
+if ! test -f "$HDF5_PLUGIN_DIR/$HDF5_PLUGIN_LIB" ; then
+    echo "Not exists: ${HDF5_PLUGIN_DIR}/$HDF5_PLUGIN_LIB ; ignored"   
+    return
+fi
+if ! test -d "${INSTALLDIR}" ; then
+    echo "Not exists: ${INSTALLDIR} ; creating"
+    mkdir ${INSTALLDIR}
+fi
+echo "Installing: $HDF5_PLUGIN_DIR/$HDF5_PLUGIN_LIB into $INSTALLDIR"
+cp -f "$HDF5_PLUGIN_DIR/$HDF5_PLUGIN_LIB" $INSTALLDIR
+}
+
+installnczplugin() {
+PLUG="$1"
+# Locate the plugin path and the library name; argument order is critical
+findplugin ncz${PLUG}
+if ! test -f "$HDF5_PLUGIN_DIR/$HDF5_PLUGIN_LIB" ; then
+    echo "Not exists: ${HDF5_PLUGIN_DIR}/$HDF5_PLUGIN_LIB ; ignored"   
+    return
+fi
+echo "Installing: $HDF5_PLUGIN_DIR/$HDF5_PLUGIN_LIB into $INSTALLDIR"
+cp "$HDF5_PLUGIN_DIR/$HDF5_PLUGIN_LIB" $INSTALLDIR
+}
+
+if test "x$USEPLUGINS" != x ; then
+  if test "x$INSTALLDIR" != x ; then
+    installhdf5plugin bzip2
+    installhdf5plugin zstd
+    installhdf5plugin blosc
+    if test "x$FEATURE_NCZARR" ; then
+      installhdf5plugin fletcher32
+      installhdf5plugin shuffle
+      installhdf5plugin deflate
+      installhdf5plugin szip
+      installnczplugin defaults
+      installnczplugin szip
+    fi
+  fi
+fi
