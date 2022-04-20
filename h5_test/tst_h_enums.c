@@ -154,7 +154,7 @@ main()
       char lang[NUM_LANG][STR_LEN + 1] = {"C", "Fortran", "C++", "MISSING"};
       enum langs {CLANG=0, Fortran=1, CPP=2, MISSING=255};
       short the_value, fill_value = MISSING, data_point = CLANG;
-      hsize_t start[1] = {1}, count[1] = {1};
+      hsize_t start[1] = {1}, count[1] = {1}, one[1] = {1};
       int num_members;
       size_t size;
       hid_t base_hdf_typeid;
@@ -197,7 +197,7 @@ main()
       if ((mem_spaceid = H5Screate(H5S_SCALAR)) < 0) ERR;
       if ((file_spaceid = H5Screate_simple(1, dims, NULL)) < 0) ERR;
       if (H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET,
-			      start, NULL, count, NULL) < 0) ERR;
+			      start, NULL, one, count) < 0) ERR;
       if (H5Dwrite(datasetid, typeid, mem_spaceid, file_spaceid,
 		   H5P_DEFAULT, &data_point) < 0) ERR;
 
