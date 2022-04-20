@@ -1863,25 +1863,39 @@ AC_SUBST(HAS_SZLIB_WRITE, [$have_sz])
 AC_SUBST(HAS_ZSTD,[$have_zstd])
 
 # Always available
-std_filters="deflate,bzip2"
+std_filters="deflate bzip2"
 if test "x$enable_szlib" = xyes ; then
-std_filters="${std_filters},szip"
+std_filters="${std_filters} szip"
 fi
 # We need to include szip iff HDF5 && HDF5_HAS_SZIP || !HDF5 && NCZARR && libsz
 if test "x$enable_hdf5" = xyes && test "x$enable_hdf5_szip" = xyes ; then
-  std_filters="${std_filters},szip"
+  std_filters="${std_filters} szip"
 fi
 if test "x$enable_hdf5" = xno && test "x$have_sz" = xyes ; then
-std_filters="${std_filters},szip"
+std_filters="${std_filters} szip"
 fi
 if test "x$have_blosc" = xyes ; then
-std_filters="${std_filters},blosc"
+std_filters="${std_filters} blosc"
 fi
 if test "x$have_zstd" = xyes ; then
-std_filters="${std_filters},zst"
+std_filters="${std_filters} zstd"
 fi
 
 AC_SUBST(STD_FILTERS,[$std_filters])
+
+# If user wants, then install selected standard filters
+AC_MSG_CHECKING([whether and where we should install plugins])
+AC_ARG_WITH([plugin-dir], [AS_HELP_STRING([--with-plugin-dir=<absolute directory>],
+              [Install selected standard filters in specified directory])])
+AC_MSG_RESULT([$with_plugin_dir])
+if test "x$with_plugin_dir" = x ; then
+    AC_MSG_WARN([No plugin directory value specified; option ignored.])  
+    with_plugin_dir=
+    with_plugin_dir_setting="N.A."
+fi
+AC_SUBST([PLUGIN_INSTALL_DIR], [$with_plugin_dir])
+# Better value for libnetcdf.settings
+AC_SUBST([PLUGIN_INSTALL_DIR_SETTING], [$with_plugin_dir_setting])
 
 # Access netcdf specific version of config.h
 AH_BOTTOM([#include "ncconfigure.h"])
@@ -1971,6 +1985,8 @@ AC_MSG_NOTICE([generating header files and makefiles])
 AC_CONFIG_FILES(test_common.sh:test_common.in)
 AC_CONFIG_FILES(nc_test4/findplugin.sh:nc_test4/findplugin.in)
 AC_CONFIG_FILES(nczarr_test/findplugin.sh:nc_test4/findplugin.in)
+AC_CONFIG_FILES(plugins/findplugin.sh:nc_test4/findplugin.in)
+AC_CONFIG_FILES(plugins/stdinstall.sh:plugins/stdinstall.in)
 AC_CONFIG_FILES(examples/C/findplugin.sh:nc_test4/findplugin.in)
 AC_CONFIG_FILES(ncdap_test/findtestserver.c:ncdap_test/findtestserver.c.in)
 AC_CONFIG_FILES(dap4_test/findtestserver4.c:ncdap_test/findtestserver.c.in)

@@ -137,8 +137,8 @@ echo "findplugin.sh loaded"
 # Assume all test filters are in same plugin dir
 findplugin h5misc
 
-echo "final HDF5_PLUGIN_PATH=${HDF5_PLUGIN_PATH}"
-export HDF5_PLUGIN_PATH
+echo "final HDF5_PLUGIN_DIR=${HDF5_PLUGIN_DIR}"
+#export HDF5_PLUGIN_PATH="${HDF5_PLUGIN_DIR}"
 fi # USEPLUGINS
 
 resetrc() {

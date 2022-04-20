@@ -550,7 +550,7 @@ main(int argc, char **argv)
             /* union FU fout; */
             union FU xpect[DIM_LEN_5];
             union DU dfin;
-            union DU dfout;
+            /*union DU dfout;*/
             union DU double_xpect[DIM_LEN_5];
 	    xpect[0].u = 0x3f8e3000;
 	    xpect[1].u = 0x3f800fff;
