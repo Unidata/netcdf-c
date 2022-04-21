@@ -1254,6 +1254,7 @@ openmagic(struct MagicFile* file)
 		else
 #endif
 		    status = NC_EPARINIT;
+		file->fh = MPI_FILE_NULL;
 		goto done;
 	    }
 	    /* Get its length */
@@ -1390,7 +1391,8 @@ closemagic(struct MagicFile* file)
 #ifdef USE_PARALLEL
         if (file->use_parallel) {
 	    int retval;
-	    if((retval = MPI_File_close(&file->fh)) != MPI_SUCCESS)
+	    if(file->fh != MPI_FILE_NULL
+	       && (retval = MPI_File_close(&file->fh)) != MPI_SUCCESS)
 		    {status = NC_EPARINIT; return status;}
         } else
 #endif
