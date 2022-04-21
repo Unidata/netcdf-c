@@ -31,9 +31,7 @@ SET(h5deflate_SOURCES H5Zdeflate.c)
 SET(nczmisc_SOURCES NCZmisc.c)
 SET(nczdefaults_SOURCES NCZdefaults.c)
 
-IF(ENABLE_FILTER_TESTING)
-IF(BUILD_UTILITIES)
-
+IF(ENABLE_PLUGINS)
 # LDFLAGS = -module -avoid-version -shared -export-dynamic -no-undefined
 
 SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
@@ -89,8 +87,36 @@ buildplugin(h5bzip2 "h5bzip2" ${Bzip2_LIBRARIES})
 # target name clash with examples/C/hdf5plugins
 SET_TARGET_PROPERTIES(h5bzip2 PROPERTIES OUTPUT_NAME "bzip2")
 
-ENDIF(BUILD_UTILITIES)
-ENDIF(ENABLE_FILTER_TESTING)
+# Installation
+IF(ENABLE_PLUGIN_INSTALL)
+
+
+MACRO(installplugin PLUG)
+IF(MSVC)
+  SET(BUILD_PLUGIN_LIB "${PLUG}.dll")
+ELSE()
+   SET(BUILD_PLUGIN_LIB "lib${PLUG}.so")
+ENDIF()
+MESSAGE(STATUS "Installing: ${BUILD_PLUGIN_LIB} into ${PLUGIN_INSTALL_DIR}")
+install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/${BUILD_PLUGIN_LIB} DESTINATION ${PLUGIN_INSTALL_DIR})
+ENDMACRO()
+
+install(DIRECTORY DESTINATION ${PLUGIN_INSTALL_DIR})
+installplugin(h5bzip2)
+installplugin(h5zstd)
+installplugin(h5blosc)
+IF(ENABLE_NCZARR)
+  installplugin(h5fletcher32)
+  installplugin(h5shuffle)
+  installplugin(h5deflate)
+  installplugin(h5szip)
+  installplugin(nczdefaults)
+  installplugin(nczszip)
+ENDIF()
+
+ENDIF(ENABLE_PLUGIN_INSTALL)
+
+ENDIF(ENABLE_PLUGINS)
 
 # Copy some test files from current source dir to out-of-tree build dir.
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
