@@ -9,8 +9,6 @@
 #   $2 is 1 if we are running under cmake
 #   $3 is 1 if we are running using Visual Studio, blank otherwise
 #   $4 is the build type; only used if $3 is 1
-# Optional Input:
-#   HDF5_PLUGIN_PATH environment variable
 # Outputs:
 #   return code is 0 is success, 1 if failed
 #   Variable HDF5_PLUGIN_LIB is set to the library file name
