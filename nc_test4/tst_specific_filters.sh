@@ -150,6 +150,7 @@ testszip() {
 testblosc() {
   zext=$1
   if ! avail blosc; then return 0; fi
+echo ">>> $HDF5_PLUGIN_PATH"
   runfilter $zext blosc $BLOSCARGS "$BLOSCCODEC"
   diff -b -w "tmp_filt_blosc.cdl" "tmp_filt_blosc.dump"
 }
