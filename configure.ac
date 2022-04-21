@@ -1892,7 +1892,12 @@ if test "x$with_plugin_dir" = x ; then
     AC_MSG_WARN([No plugin directory value specified; option ignored.])  
     with_plugin_dir=
     with_plugin_dir_setting="N.A."
+    enable_plugin_dir=no
+else
+    with_plugin_dir_setting="$with_plugin_dir"
+    enable_plugin_dir=yes
 fi
+AM_CONDITIONAL([ENABLE_PLUGIN_DIR], [test "x$enable_plugin_dir" = xyes])
 AC_SUBST([PLUGIN_INSTALL_DIR], [$with_plugin_dir])
 # Better value for libnetcdf.settings
 AC_SUBST([PLUGIN_INSTALL_DIR_SETTING], [$with_plugin_dir_setting])
@@ -1986,7 +1991,6 @@ AC_CONFIG_FILES(test_common.sh:test_common.in)
 AC_CONFIG_FILES(nc_test4/findplugin.sh:nc_test4/findplugin.in)
 AC_CONFIG_FILES(nczarr_test/findplugin.sh:nc_test4/findplugin.in)
 AC_CONFIG_FILES(plugins/findplugin.sh:nc_test4/findplugin.in)
-AC_CONFIG_FILES(plugins/stdinstall.sh:plugins/stdinstall.in)
 AC_CONFIG_FILES(examples/C/findplugin.sh:nc_test4/findplugin.in)
 AC_CONFIG_FILES(ncdap_test/findtestserver.c:ncdap_test/findtestserver.c.in)
 AC_CONFIG_FILES(dap4_test/findtestserver4.c:ncdap_test/findtestserver.c.in)

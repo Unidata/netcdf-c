@@ -20,12 +20,12 @@ BZIP2SRC = blocksort.c huffman.c crctable.c randtable.c compress.c decompress.c 
 EXTRA_DIST = CMakeLists.txt
 
 # The HDF5 filter wrappers
-EXTRA_DIST += stdinstall.in \
+EXTRA_DIST += stdinstall.sh \
 	H5Ztemplate.c H5Zmisc.c H5Zutil.c H5Znoop.c h5noop.h NCZmisc.c \
 	H5Zshuffle.c H5Zdeflate.c H5Zszip.c H5Zszip.h \
         H5Zbzip2.c h5bzip2.h H5Zblosc.c H5Zblosc.h H5Zzstd.c H5Zzstd.h
 # The Codec filter wrappers
-EXTRA_DIST += NCZdefaults.c NCZszip.c
+EXTRA_DIST += NCZhdf5filters.c NCZstdfilters.c
 # The Filter implementations
 EXTRA_DIST += H5checksum.c
 
@@ -43,22 +43,22 @@ libh5deflate_la_SOURCES = H5Zdeflate.c
 
 # Need our version of szip if libsz available and we are not using HDF5
 if HAVE_SZ
-noinst_LTLIBRARIES += libh5szip.la libnczszip.la
+noinst_LTLIBRARIES += libh5szip.la
 libh5szip_la_SOURCES = H5Zszip.c H5Zszip.h
-libnczszip_la_SOURCES = NCZszip.c
 endif
 
 endif # ENABLE_NCZARR_FILTERS
 
 if ENABLE_PLUGINS
 
+libnczstdfilters_la_SOURCES = NCZstdfilters.c
 
 libh5bzip2_la_SOURCES = H5Zbzip2.c h5bzip2.h
 if ! HAVE_BZIP2
 libh5bzip2_la_SOURCES += ${BZIP2SRC}
 endif
 
-libnczdefaults_la_SOURCES = NCZdefaults.c
+libnczhdf5filters_la_SOURCES = NCZhdf5filters.c
 
 if HAVE_BLOSC
 libh5blosc_la_SOURCES = H5Zblosc.c H5Zblosc.h
@@ -68,8 +68,11 @@ if HAVE_ZSTD
 libh5zstd_la_SOURCES = H5Zzstd.c H5Zzstd.h
 endif
 
+noinst_LTLIBRARIES += libnczhdf5filters.la
+noinst_LTLIBRARIES += libnczstdfilters.la
+
 noinst_LTLIBRARIES += libh5bzip2.la
-noinst_LTLIBRARIES += libnczdefaults.la
+
 if HAVE_BLOSC
 noinst_LTLIBRARIES += libh5blosc.la
 endif

@@ -2546,7 +2546,6 @@ ENDIF()
 
 IF(ENABLE_PLUGINS)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/plugins/findplugin.sh @ONLY NEWLINE_STYLE LF)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/plugins/stdinstall.in ${CMAKE_CURRENT_BINARY_DIR}/plugins/stdinstall.sh @ONLY NEWLINE_STYLE LF)
 ENDIF()
 
 IF(ENABLE_EXAMPLES)
