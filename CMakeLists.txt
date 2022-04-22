@@ -1114,9 +1114,12 @@ string(TOLOWER "${filter}" downfilter)
 IF(${filter}_FOUND)
   INCLUDE_DIRECTORIES(${filter}_INCLUDE_DIRS})
   SET(ENABLE_${upfilter} TRUE)
+  SET(HAVE_${upfilter} ON)
   SET(STD_FILTERS "${STD_FILTERS} ${downfilter}")
+  MESSAGE(">>> Standard Filter: ${downfilter}")
 ELSE()
   SET(ENABLE_${upfilter} FALSE)
+  SET(HAVE_${upfilter} OFF)
 ENDIF()
 endmacro(set_std_filter)
 
@@ -1125,12 +1128,6 @@ FIND_PACKAGE(Bz2)
 FIND_PACKAGE(Blosc)
 FIND_PACKAGE(Zstd)
 
-IF(Zstd_FOUND)
-  SET(HAVE_ZSTD yes)
-ELSE()
-  SET(HAVE_ZSTD no)
-ENDIF()
-
 # Accumulate standard filters
 set(STD_FILTERS "deflate") # Always have deflate */
 set_std_filter(SZIP)
@@ -1138,7 +1135,8 @@ set_std_filter(Blosc)
 set_std_filter(Zstd)
 set_std_filter(Bz2)
 IF(NOT Bz2_FOUND)
-set(STD_FILTERS "${STD_FILTERS},bzip2") # Always have bzip2 */
+set_std_filter(Bzip2)
+#set(STD_FILTERS "${STD_FILTERS} bzip2") # Always have bzip2 */
 ENDIF()
 
 # If user wants, then install selected plugins
