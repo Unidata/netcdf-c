@@ -1391,8 +1391,15 @@ NCZ_load_plugin(const char* path, struct NCZ_Plugin** plugp)
 	    /* Deal with defaults first */
 	    NCZ_codec_t** cp = NULL;
 	    nclistpush(default_libs,lib);
+	    cp = cpd();
+#ifdef DEBUGL
+	    fprintf(stderr,"@@@ %s: default codec library found: %p\n",path,cp);
+#endif
 	    for(cp=cpd();*cp;cp++) {
 		    struct CodecAPI* c0;
+#ifdef DEBUGL
+		    fprintf(stderr,"@@@ %s: %s = %u\n",path,(*cp)->codecid,(*cp)->hdf5id);
+#endif
 		    c0 = (struct CodecAPI*)calloc(1,sizeof(struct CodecAPI));
 		    if(c0 == NULL) {stat = NC_ENOMEM; goto done1;}
 		    c0->codec = *cp;
