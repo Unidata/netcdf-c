@@ -52,7 +52,7 @@
 #include "netcdf_filter_build.h"
 #include "netcdf_aux.h"
 
-#if 0
+#if 1
 #define DEBUG
 #define DEBUGF
 #define DEBUGL
@@ -179,7 +179,7 @@ NCJtrace(const NCjson* j)
 const char*
 printplugin(const NCZ_Plugin* plugin)
 {
-    char* plbuf = malloc(4096);
+    static char plbuf[4096];
     char plbuf2[2000];
     char plbuf1[2000];
 
@@ -196,8 +196,7 @@ printplugin(const NCZ_Plugin* plugin)
 static char*
 printparams(size_t nparams, const unsigned* params)
 {
-    char* ppbuf = malloc(4096);
-
+    static char ppbuf[4096];
     if(nparams == 0)
         snprintf(ppbuf,4096,"{0,%p}",params);
     else 
