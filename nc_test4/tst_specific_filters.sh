@@ -150,7 +150,6 @@ testszip() {
 testblosc() {
   zext=$1
   if ! avail blosc; then return 0; fi
-echo ">>> $HDF5_PLUGIN_PATH"
   runfilter $zext blosc $BLOSCARGS "$BLOSCCODEC"
   diff -b -w "tmp_filt_blosc.cdl" "tmp_filt_blosc.dump"
 }
@@ -164,15 +163,15 @@ testzstd() {
 
 testset() {
 # Which test cases to exercise
-if test "x$TESTNCZARR" = x1 ; then
-    testfletcher32 $1
-    testshuffle $1    
-fi
-    testdeflate $1
-    testszip $1
+#if test "x$TESTNCZARR" = x1 ; then
+#    testfletcher32 $1
+#    testshuffle $1    
+#fi
+#    testdeflate $1
+#    testszip $1
     testbzip2 $1
-    testblosc $1
-    testzstd $1
+#    testblosc $1
+#    testzstd $1
 }
 
 if test "x$TESTNCZARR" = x1 ; then

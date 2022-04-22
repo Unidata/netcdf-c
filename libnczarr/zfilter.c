@@ -52,9 +52,11 @@
 #include "netcdf_filter_build.h"
 #include "netcdf_aux.h"
 
-#undef DEBUG
-#undef DEBUGF
-#undef DEBUGL
+#if 0
+#define DEBUG
+#define DEBUGF
+#define DEBUGL
+#endif
 
 /* If set, then triage potential shared libraries based on extension */
 #define NAMEOPT
