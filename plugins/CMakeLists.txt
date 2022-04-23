@@ -10,9 +10,6 @@ FILE(READ H5Znoop.c NOOP_SOURCE)
 FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/H5Znoop1.c "#define NOOP_INSTANCE 1\n")
 FILE(APPEND ${CMAKE_CURRENT_BINARY_DIR}/H5Znoop1.c "${NOOP_SOURCE}")
 
-SET(h5bzip2_SOURCES H5Zbzip2.c)
-SET(h5bzip2_SOURCES ${h5bzip2_SOURCES})
-
 SET(h5misc_SOURCES H5Zmisc.c H5Zutil.c h5misc.h)
 
 SET(h5noop_SOURCES H5Znoop.c H5Zutil.c h5noop.h)
@@ -79,11 +76,17 @@ IF(HAVE_SZ)
   buildplugin(h5szip "h5szip" ${Szip_LIBRARIES})
 ENDIF()
 
+IF(HAVE_LOCAL_BZ2)
+SET(h5bzip2_SOURCES H5Zbzip2.c blocksort.c huffman.c crctable.c randtable.c compress.c decompress.c bzlib.c bzlib.h bzlib_private.h
+buildplugin(h5bzip2 "h5bzip2")
+ELSE
+SET(h5bzip2_SOURCES H5Zbzip2.c)
 buildplugin(h5bzip2 "h5bzip2" ${Bzip2_LIBRARIES})
+ENDIF()
+
 
 # Installation
 IF(ENABLE_PLUGIN_INSTALL)
-
 
 MACRO(installplugin PLUG)
 IF(MSVC)

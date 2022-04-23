@@ -667,24 +667,21 @@ fi
 AC_MSG_CHECKING([whether libzstd library is available])
 AC_MSG_RESULT([${have_zstd}])
 
-# See if we have libbzip2 or libbz2
-AC_CHECK_LIB([bz2],[BZ2_bzCompress],[have_bzip2=yes],[have_bzip2=no])
-if test "x$have_bzip2" = "xyes" ; then
+# See if we have libbz2
+AC_CHECK_LIB([bz2],[BZ2_bzCompress],[have_bz2=yes],[have_bz2=no])
+if test "x$have_bz2" = "xyes" ; then
      AC_SEARCH_LIBS([BZ2_bzCompress],[bz2 bz2.dll cygbz2.dll], [], [])
      AC_DEFINE([HAVE_BZIP2], [1], [if true, bz2 library is installed])
 fi
 AC_MSG_CHECKING([whether libbz2 library is available])
-AC_MSG_RESULT([${have_bzip2}])
+AC_MSG_RESULT([${have_bz2}])
 
 if test "x$have_bzip2" = "xno" ; then
-AC_CHECK_LIB([bzip2],[BZ2_bzCompress],[have_bzip2=yes],[have_bzip2=no])
-if test "x$have_bzip2" = "xyes" ; then
-   AC_SEARCH_LIBS([BZ2_bzCompress],[bzip2 bzip2.dll cygbzip2.dll], [], [])
-   AC_DEFINE([HAVE_BZIP2], [1], [if true, bzip2 library is installed])
-fi
-AC_MSG_CHECKING([whether libbzip2 library is available])
-AC_MSG_RESULT([${have_bzip2}])
-fi
+  have_local_bz2=yes
+else
+  have_local_bz2=no
+endif
+AM_CONDITIONAL(HAVE_LOCAL_BZ2, [test "x$have_local_bz2" = xyes])
 
 # Note that szip management is tricky.
 # This is because we have three things to consider:
