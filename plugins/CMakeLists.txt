@@ -77,9 +77,9 @@ IF(HAVE_SZ)
 ENDIF()
 
 IF(HAVE_LOCAL_BZ2)
-SET(h5bzip2_SOURCES H5Zbzip2.c blocksort.c huffman.c crctable.c randtable.c compress.c decompress.c bzlib.c bzlib.h bzlib_private.h
+SET(h5bzip2_SOURCES H5Zbzip2.c blocksort.c huffman.c crctable.c randtable.c compress.c decompress.c bzlib.c bzlib.h bzlib_private.h)
 buildplugin(h5bzip2 "h5bzip2")
-ELSE
+ELSE()
 SET(h5bzip2_SOURCES H5Zbzip2.c)
 buildplugin(h5bzip2 "h5bzip2" ${Bzip2_LIBRARIES})
 ENDIF()

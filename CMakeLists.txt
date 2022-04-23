@@ -1129,7 +1129,7 @@ FIND_PACKAGE(Blosc)
 FIND_PACKAGE(Zstd)
 
 # Accumulate standard filters
-set(STD_FILTERS "deflate") # Always have deflate */
+set(STD_FILTERS "deflate") # Always have deflate*/
 set_std_filter(SZIP)
 set_std_filter(Blosc)
 set_std_filter(Zstd)
@@ -1137,10 +1137,11 @@ IF(Bz2_FOUND)
   set_std_filter(Bz2)
 ELSE()
   # The reason we use a local version is to support a more comples test case
-  MESSAGE(WARNING "libbz2 not found using built-in version"
+  MESSAGE(WARNING "libbz2 not found using built-in version")
   SET(HAVE_LOCAL_BZ2 ON)
+  SET(HAVE_BZ2 ON)
+  set(STD_FILTERS "${STD_FILTERS} bz2")
 ENDIF()
-
 
 # If user wants, then install selected plugins
 SET(PLUGIN_INSTALL_DIR "" CACHE STRING "Whether and where we should install plugins")
