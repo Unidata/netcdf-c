@@ -1124,7 +1124,7 @@ ENDIF()
 endmacro(set_std_filter)
 
 # Locate some compressors
-FIND_PACKAGE(Bz2)
+FIND_PACKAGE(Bzip2)
 FIND_PACKAGE(Blosc)
 FIND_PACKAGE(Zstd)
 
@@ -1133,11 +1133,7 @@ set(STD_FILTERS "deflate") # Always have deflate */
 set_std_filter(SZIP)
 set_std_filter(Blosc)
 set_std_filter(Zstd)
-set_std_filter(Bz2)
-IF(NOT Bz2_FOUND)
 set_std_filter(Bzip2)
-#set(STD_FILTERS "${STD_FILTERS} bzip2") # Always have bzip2 */
-ENDIF()
 
 # If user wants, then install selected plugins
 SET(PLUGIN_INSTALL_DIR "" CACHE STRING "Whether and where we should install plugins")

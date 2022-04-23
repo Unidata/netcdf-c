@@ -11,10 +11,7 @@ FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/H5Znoop1.c "#define NOOP_INSTANCE 1\n")
 FILE(APPEND ${CMAKE_CURRENT_BINARY_DIR}/H5Znoop1.c "${NOOP_SOURCE}")
 
 SET(h5bzip2_SOURCES H5Zbzip2.c)
-
-IF(NOT HAVE_BZIP2)
-SET(h5bzip2_SOURCES ${h5bzip2_SOURCES} blocksort.c huffman.c crctable.c randtable.c compress.c decompress.c bzlib.c)
-ENDIF()
+SET(h5bzip2_SOURCES ${h5bzip2_SOURCES})
 
 SET(h5misc_SOURCES H5Zmisc.c H5Zutil.c h5misc.h)
 
@@ -83,9 +80,6 @@ IF(HAVE_SZ)
 ENDIF()
 
 buildplugin(h5bzip2 "h5bzip2" ${Bzip2_LIBRARIES})
-# Note we use name h5bzip2 instead of bzip2 to avoid logical
-# target name clash with examples/C/hdf5plugins
-SET_TARGET_PROPERTIES(h5bzip2 PROPERTIES OUTPUT_NAME "bzip2")
 
 # Installation
 IF(ENABLE_PLUGIN_INSTALL)

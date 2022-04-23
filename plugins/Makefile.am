@@ -14,9 +14,6 @@ if ISMINGW
 LDADD =  ${top_builddir}/liblib/libnetcdf.la
 endif
 
-# BZIP2 version 1.0.8 (https://sourceware.org/bzip2/)
-BZIP2SRC = blocksort.c huffman.c crctable.c randtable.c compress.c decompress.c bzlib.c bzlib.h bzlib_private.h
-
 EXTRA_DIST = CMakeLists.txt
 
 # The HDF5 filter wrappers
@@ -28,8 +25,6 @@ EXTRA_DIST += stdinstall.sh \
 EXTRA_DIST += NCZhdf5filters.c NCZstdfilters.c
 # The Filter implementations
 EXTRA_DIST += H5checksum.c
-
-EXTRA_DIST += ${BZIP2SRC} BZIP2_LICENSE
 
 if ENABLE_FILTER_TESTING
 
@@ -53,11 +48,6 @@ if ENABLE_PLUGINS
 
 libnczstdfilters_la_SOURCES = NCZstdfilters.c
 
-libh5bzip2_la_SOURCES = H5Zbzip2.c h5bzip2.h
-if ! HAVE_BZIP2
-libh5bzip2_la_SOURCES += ${BZIP2SRC}
-endif
-
 libnczhdf5filters_la_SOURCES = NCZhdf5filters.c
 
 if HAVE_BLOSC
@@ -70,8 +60,6 @@ endif
 
 noinst_LTLIBRARIES += libnczhdf5filters.la
 noinst_LTLIBRARIES += libnczstdfilters.la
-
-noinst_LTLIBRARIES += libh5bzip2.la
 
 if HAVE_BLOSC
 noinst_LTLIBRARIES += libh5blosc.la
@@ -98,6 +86,17 @@ H5Znoop1.c: Makefile H5Znoop.c
 	echo '#define NOOP_INSTANCE 1' > $@
 	cat ${srcdir}/H5Znoop.c >> $@
 
+if AX_IGNORE 
+# Deprecate install of local libbzip2
+ BZIP2 version 1.0.8 (https://sourceware.org/bzip2/)
+ BZIP2SRC = blocksort.c huffman.c crctable.c randtable.c compress.c decompress.c bzlib.c bzlib.h bzlib_private.h
+libh5bzip2_la_SOURCES = H5Zbzip2.c h5bzip2.h
+if ! HAVE_BZIP2
+libh5bzip2_la_SOURCES += ${BZIP2SRC}
+endif
+EXTRA_DIST += ${BZIP2SRC} BZIP2_LICENSE
+noinst_LTLIBRARIES += libh5bzip2.la
+
 BZIP2VER = 1.0.8
 BZIP2DIR = bzip2-${BZIP2VER}
 BZIP2URL = https://sourceware.org/pub/bzip2/${BZIP2DIR}.tar.gz
@@ -107,6 +106,7 @@ bzip2::
 	tar -zxf ${BZIP2DIR}.tar.gz
 	cd ${BZIP2DIR}; cp ${BZIP2SRC} ..; cp LICENSE ../BZIP2_LICENSE ; cd ..
 	rm -fr ./${BZIP2DIR}
+endif
 
 # Custom install
 install-exec-hook:
