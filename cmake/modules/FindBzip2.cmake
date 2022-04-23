@@ -31,11 +31,10 @@ IF(Bzip2_INCLUDE_DIRS)
   ENDIF(EXISTS "${Bzip2_LIBRARY_DIRS}/lib")
 
   # Find Bzip2 libraries
-  FIND_LIBRARY(Bzip2_DEBUG_LIBRARY NAMES bz2d bz2_d libbz2d libbz2_d libbz2
-                                         bzip2d bzip2_d libbzip2d libbzip2_d libbzip2
+  FIND_LIBRARY(Bzip2_DEBUG_LIBRARY NAMES bzip2d bzip2_d libbzip2d libbzip2_d libbzip2
                PATH_SUFFIXES Debug ${CMAKE_LIBRARY_ARCHITECTURE} ${CMAKE_LIBRARY_ARCHITECTURE}/Debug
                PATHS ${Bzip2_LIBRARY_DIRS} NO_DEFAULT_PATH)
-  FIND_LIBRARY(Bzip2_RELEASE_LIBRARY NAMES bz2 libbz2 bzip2 libbzip2
+  FIND_LIBRARY(Bzip2_RELEASE_LIBRARY NAMES bzip2 libbzip2
                PATH_SUFFIXES Release ${CMAKE_LIBRARY_ARCHITECTURE} ${CMAKE_LIBRARY_ARCHITECTURE}/Release
                PATHS ${Bzip2_LIBRARY_DIRS} NO_DEFAULT_PATH)
 
