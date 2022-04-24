@@ -671,7 +671,7 @@ AC_MSG_RESULT([${have_zstd}])
 AC_CHECK_LIB([bz2],[BZ2_bzCompress],[have_bz2=yes],[have_bz2=no])
 if test "x$have_bz2" = "xyes" ; then
      AC_SEARCH_LIBS([BZ2_bzCompress],[bz2 bz2.dll cygbz2.dll], [], [])
-     AC_DEFINE([HAVE_BZIP2], [1], [if true, bz2 library is installed])
+     AC_DEFINE([HAVE_BZ2], [1], [if true, bz2 library is installed])
 fi
 AC_MSG_CHECKING([whether libbz2 library is available])
 AC_MSG_RESULT([${have_bz2}])
@@ -1750,7 +1750,7 @@ AM_CONDITIONAL(HAS_MULTIFILTERS, [test "x$has_multifilters" = xyes])
 AM_CONDITIONAL(HAVE_SZ, [test "x$have_sz" = xyes])
 AM_CONDITIONAL(HAVE_H5Z_SZIP, [test "x$enable_hdf5_szip" = xyes])
 AM_CONDITIONAL(HAVE_BLOSC, [test "x$have_blosc" = xyes])
-AM_CONDITIONAL(HAVE_BZIP2, [test "x$have_bzip2" = xyes])
+AM_CONDITIONAL(HAVE_BZ2, [test "x$have_bz2" = xyes])
 AM_CONDITIONAL(HAVE_ZSTD, [test "x$have_zstd" = xyes])
 
 # If the machine doesn't have a long long, and we want netCDF-4, then
