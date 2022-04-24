@@ -680,7 +680,7 @@ if test "x$have_bzip2" = "xno" ; then
   have_local_bz2=yes
 else
   have_local_bz2=no
-endif
+fi
 AM_CONDITIONAL(HAVE_LOCAL_BZ2, [test "x$have_local_bz2" = xyes])
 
 # Note that szip management is tricky.
