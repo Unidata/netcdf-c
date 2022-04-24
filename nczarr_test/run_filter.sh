@@ -7,13 +7,11 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 set -e
 set -x
-echo "|||||"
-for c in ${execdir} ${srcdir} ; do
-if test -f $c/config.h ; then
-  cat ${c}/config.h
-fi
-done
-echo "|||||"
+
+echo '||||'
+CWD=`pwd`
+cd ${TOPSRCDIR}
+find . -name config.h
 
 testset() {
 # Which test cases to exercise
