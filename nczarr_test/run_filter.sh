@@ -9,9 +9,8 @@ set -e
 set -x
 
 echo '||||'
-CWD=`pwd`
-cd ${TOPSRCDIR}
-find . -name config.h
+cat ${TOPSRCDIR}/config.h
+echo '||||'
 
 testset() {
 # Which test cases to exercise
