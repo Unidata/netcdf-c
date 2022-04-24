@@ -6,6 +6,10 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . "$srcdir/test_nczarr.sh"
 
 set -e
+set -x
+echo "|||||"
+cat ${execdir}/config.h
+echo "|||||"
 
 testset() {
 # Which test cases to exercise
