@@ -9,7 +9,7 @@ set -e
 set -x
 echo "|||||"
 for c in ${execdir} ${srcdir} ; do
-if test -f $c/config.h
+if test -f $c/config.h ; then
   cat ${c}/config.h
 fi
 done
