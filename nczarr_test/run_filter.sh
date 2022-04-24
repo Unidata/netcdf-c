@@ -8,10 +8,6 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 set -e
 set -x
 
-echo '||||'
-cat ${TOPSRCDIR}/config.h
-echo '||||'
-
 testset() {
 # Which test cases to exercise
 testapi $1
