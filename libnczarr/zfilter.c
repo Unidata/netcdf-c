@@ -1379,23 +1379,23 @@ NCZ_load_plugin(const char* path, struct NCZ_Plugin** plugp)
 
     /* See what we have */
     {
-	H5PL_get_plugin_type_proto gpt =  (H5PL_get_plugin_type_proto)ncpgetsymbol(lib,"H5PLget_plugin_type");
-	H5PL_get_plugin_info_proto gpi =  (H5PL_get_plugin_info_proto)ncpgetsymbol(lib,"H5PLget_plugin_info");
-	NCZ_get_codec_info_proto  npi =  (NCZ_get_codec_info_proto)ncpgetsymbol(lib,"NCZ_get_codec_info");
-	NCZ_codec_info_defaults_proto  cpd =  (NCZ_codec_info_defaults_proto)ncpgetsymbol(lib,"NCZ_codec_info_defaults");
+	const H5PL_get_plugin_type_proto gpt =  (H5PL_get_plugin_type_proto)ncpgetsymbol(lib,"H5PLget_plugin_type");
+	const H5PL_get_plugin_info_proto gpi =  (H5PL_get_plugin_info_proto)ncpgetsymbol(lib,"H5PLget_plugin_info");
+	const NCZ_get_codec_info_proto  npi =  (NCZ_get_codec_info_proto)ncpgetsymbol(lib,"NCZ_get_codec_info");
+	const NCZ_codec_info_defaults_proto  cpd =  (NCZ_codec_info_defaults_proto)ncpgetsymbol(lib,"NCZ_codec_info_defaults");
 
 	if(gpt == NULL && gpi == NULL && npi == NULL && cpd == NULL)
 	    {stat = NC_ENOFILTER; goto done;}
 
 	if(cpd != NULL) {
 	    /* Deal with defaults first */
-	    NCZ_codec_t** cp = NULL;
+	    const NCZ_codec_t** cp = NULL;
 	    nclistpush(default_libs,lib);
-	    cp = cpd();
+	    cp = (const NCZ_codec_t**)cpd();
 #ifdef DEBUGL
 	    fprintf(stderr,"@@@ %s: default codec library found: %p\n",path,cp);
 #endif
-	    for(cp=cpd();*cp;cp++) {
+	    for(;*cp;cp++) {
 		    struct CodecAPI* c0;
 #ifdef DEBUGL
 		    fprintf(stderr,"@@@ %s: %s = %u\n",path,(*cp)->codecid,(*cp)->hdf5id);
