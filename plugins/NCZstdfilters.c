@@ -38,7 +38,7 @@ Author: Dennis Heimbigner
 
 /* Forward */
 
-#ifdef HAVE_BZIP2
+#ifdef HAVE_BZ2
 static int NCZ_bzip2_codec_to_hdf5(const char* codec, size_t* nparamsp, unsigned** paramsp);
 static int NCZ_bzip2_hdf5_to_codec(size_t nparams, const unsigned* params, char** codecp);
 #endif
@@ -58,7 +58,7 @@ static void NCZ_blosc_codec_finalize(void);
 /**************************************************/
 /* Provide the codec support for bzip2 filter */
 
-#ifdef HAVE_BZIP2
+#ifdef HAVE_BZ2
 static NCZ_codec_t NCZ_bzip2_codec = {/* NCZ_codec_t  codec fields */ 
   NCZ_CODEC_CLASS_VER,	/* Struct version number */
   NCZ_CODEC_HDF5,	/* Struct sort */
