@@ -438,7 +438,7 @@ done:
 /**************************************************/
 
 NCZ_codec_t* NCZ_stdfilters_codecs[] = {
-#ifdef HAVE_BZIP2
+#ifdef HAVE_BZ2
 &NCZ_bzip2_codec,
 #endif
 #ifdef HAVE_ZSTD
