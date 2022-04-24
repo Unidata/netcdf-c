@@ -313,6 +313,8 @@ done:
 
 /**************************************************/
 
+#ifdef HAVE_SZ
+
 static NCZ_codec_t NCZ_szip_codec = {
   NCZ_CODEC_CLASS_VER,	/* Struct version number */
   NCZ_CODEC_HDF5,	/* Struct sort */
@@ -517,6 +519,8 @@ done:
     return stat;
 }
 #endif
+
+#endif /*HAVE_SZ*/
 
 /**************************************************/
 
