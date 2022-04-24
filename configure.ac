@@ -676,11 +676,11 @@ fi
 AC_MSG_CHECKING([whether libbz2 library is available])
 AC_MSG_RESULT([${have_bz2}])
 
-if test "x$have_bzip2" = "xno" ; then
+if test "x$have_bz2" = "xno" ; then
   have_local_bz2=yes
 else
   have_local_bz2=no
-endif
+fi
 AM_CONDITIONAL(HAVE_LOCAL_BZ2, [test "x$have_local_bz2" = xyes])
 
 # Note that szip management is tricky.
@@ -1860,7 +1860,7 @@ AC_SUBST(HAS_SZLIB_WRITE, [$have_sz])
 AC_SUBST(HAS_ZSTD,[$have_zstd])
 
 # Always available
-std_filters="deflate bzip2"
+std_filters="deflate bz2"
 if test "x$enable_szlib" = xyes ; then
 std_filters="${std_filters} szip"
 fi
