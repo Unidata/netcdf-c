@@ -8,7 +8,11 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 set -e
 set -x
 echo "|||||"
-cat ${execdir}/config.h
+for c in ${execdir} ${srcdir} ; do
+if test -f $c/config.h
+  cat ${c}/config.h
+fi
+done
 echo "|||||"
 
 testset() {
