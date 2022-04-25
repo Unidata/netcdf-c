@@ -10,7 +10,9 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../../test_common.sh
 
 echo "*** Running filter example for netCDF-4."
+
 set -e
+set -x
 
 if test -f ${builddir}/findplugin.sh ; then
 echo "*** running test_filter example..."
