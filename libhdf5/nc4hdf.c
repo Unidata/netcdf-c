@@ -1957,9 +1957,11 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order)
         }
     } /* end while */
 
-    /* Attach dimscales to vars in this group. */
-    if ((retval = attach_dimscales(grp)))
-        return retval;
+    /* Attach dimscales to vars in this group. Unless directed not to. */
+    if (!grp->nc4_info->no_dimscale_attach) {
+        if ((retval = attach_dimscales(grp)))
+            return retval;
+    }
 
     /* If there are any child groups, write their metadata. */
     for (i = 0; i < ncindexsize(grp->children); i++)
