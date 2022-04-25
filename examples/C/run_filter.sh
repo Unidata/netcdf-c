@@ -14,7 +14,6 @@ echo "*** Running filter example for netCDF-4."
 set -e
 set -x
 
-if test -f ${builddir}/findplugin.sh ; then
 echo "*** running test_filter example..."
 . ${builddir}/findplugin.sh
 
@@ -29,12 +28,11 @@ if ! test -f ${BZIP2PATH} ; then echo "Unable to locate ${BZIP2PATH}"; exit 1; f
 echo "*** running filter_example..."
 rm -f ./bzip2.nc
 printenv HDF5_PLUGIN_PATH
-unset HDF5_PLUGIN_PATH
-export HDF5_PLUGIN_PATH=${HDF5_PLUGIN_LIB}
+export HDF5_PLUGIN_PATH="${HDF5_PLUGIN_LIB}"
+sleep 10
 ${execdir}/filter_example
-rm -f ./bzip2.nc
-
-fi # Filter enabled
+${TOPBUILDIR}/ncdump/ncdump -sh ./bzip2.nc
+#rm -f ./bzip2.nc
 
 echo "*** Filter example successful!"
 exit 0
