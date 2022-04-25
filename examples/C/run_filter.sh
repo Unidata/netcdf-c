@@ -25,11 +25,10 @@ BZIP2PATH="${HDF5_PLUGIN_DIR}/${HDF5_PLUGIN_LIB}"
 # Verify
 if ! test -f ${BZIP2PATH} ; then echo "Unable to locate ${BZIP2PATH}"; exit 1; fi
 
-echo "*** running filter_example..."
 rm -f ./bzip2.nc
 printenv HDF5_PLUGIN_PATH
 export HDF5_PLUGIN_PATH="${HDF5_PLUGIN_LIB}"
-sleep 10
+echo "*** running filter_example..."
 ${execdir}/filter_example
 ${TOPBUILDIR}/ncdump/ncdump -sh ./bzip2.nc
 #rm -f ./bzip2.nc
