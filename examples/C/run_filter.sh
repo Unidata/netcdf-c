@@ -26,12 +26,13 @@ BZIP2PATH="${HDF5_PLUGIN_DIR}/${HDF5_PLUGIN_LIB}"
 # Verify
 if ! test -f ${BZIP2PATH} ; then echo "Unable to locate ${BZIP2PATH}"; exit 1; fi
 
-export HDF5_PLUGIN_PATH=${HDF5_PLUGIN_LIB}
-
 echo "*** running filter_example..."
 rm -f ./bzip2.nc
+printenv HDF5_PLUGIN_PATH
+unset HDF5_PLUGIN_PATH
+export HDF5_PLUGIN_PATH=${HDF5_PLUGIN_LIB}
 ${execdir}/filter_example
-#rm -f ./bzip2.nc
+rm -f ./bzip2.nc
 
 fi # Filter enabled
 
