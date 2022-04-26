@@ -65,3 +65,7 @@ echo
 echo "Parallel I/O test for quantize feature."
 @MPIEXEC@ -n 4 ./tst_quantize_par
 
+echo
+echo "Parallel I/O test contributed by wkliao from pnetcdf."
+@MPIEXEC@ -n 4 ./tst_parallel6
+
