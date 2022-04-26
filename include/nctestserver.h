@@ -19,7 +19,7 @@ See \ref copyright file for more info.
 #include <curl/curl.h>
 #include "netcdf.h"
 
-#undef FINDTESTSERVER_DEBUG
+#define FINDTESTSERVER_DEBUG
 
 enum KIND {NOKIND, DAP2KIND, DAP4KIND, THREDDSKIND};
 
@@ -208,15 +208,17 @@ timedping(const char* url, long timeout)
     /* Don't trust curl to return an error when request gets 404 */
     CERR((curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE, &http_code)));
     if(http_code >= 400) {
-	cstat = CURLE_HTTP_RETURNED_ERROR;
+	stat = CURLE_HTTP_RETURNED_ERROR;
 	goto done;
     }
-
+    
 done:
     if(cstat != CURLE_OK) {
 #ifdef FINDTESTSERVER_DEBUG
-        fprintf(stderr, "curl error: %s; url=%s\n",
-		curl_easy_strerror(cstat),url);
+	/* Get more detail */
+        curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE, &http_code);
+        fprintf(stderr, "curl error: %s; url=%s http_code=%ld\n",
+		curl_easy_strerror(cstat),url,http_code);
 #endif
 	stat = NC_ECURL;
     }

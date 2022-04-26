@@ -70,8 +70,8 @@ for f in $F ; do
     if test "x$BIG" = x1; then
 	URL="[ucar.littleendian=0]${URL}"
     fi
-    if test "x$NOCSUM" = x1; then
-	URL="[ucar.checksummode=none]${URL}"
+    if test "x$NOCSUM" != x1; then
+	URL="[dap4.checksum=crc32]${URL}"
     fi
     if ! ${NCDUMP} ${DUMPFLAGS} "${URL}" > ${builddir}/results_test_remote/${f}.dmp; then
         failure "${URL}"
