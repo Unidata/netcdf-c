@@ -134,7 +134,7 @@ jobs:
         # Set Environmental Variables
         ###
 
-      - run: echo "CFLAGS=-I${HOME}/environments/${{ matrix.hdf5 }}/include" >> $GITHUB_ENV
+      - run: echo "CFLAGS=-fsanitize=address -fno-omit-frame-pointer -I${HOME}/environments/${{ matrix.hdf5 }}/include" >> $GITHUB_ENV
       - run: echo "LDFLAGS=-L${HOME}/environments/${{ matrix.hdf5 }}/lib" >> $GITHUB_ENV
       - run: echo "LD_LIBRARY_PATH=${HOME}/environments/${{ matrix.hdf5 }}/lib" >> $GITHUB_ENV
 
