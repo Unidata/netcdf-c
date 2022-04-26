@@ -65,5 +65,6 @@
 #define NC_HAS_LOGGING       @NC_HAS_LOGGING@ /*!< Logging support. */
 #define NC_HAS_QUANTIZE      @NC_HAS_QUANTIZE@ /*!< Quantization support. */
 #define NC_HAS_ZSTD          @NC_HAS_ZSTD@ /*!< Zstd support. */
+#define NC_HAS_BENCHMARKS    @NC_HAS_BENCHMARKS@ /*!< Benchmarks. */
 
 #endif
