@@ -117,6 +117,8 @@ find_var_dim_max_length(NC_GRP_INFO_T *grp, int varid, int dimid,
 
     *maxlen = 0;
 
+    LOG((3, "find_var_dim_max_length varid %d dimid %d", varid, dimid));    
+
     /* Find this var. */
     var = (NC_VAR_INFO_T*)ncindexith(grp->vars,varid);
     if (!var) return NC_ENOTVAR;
@@ -162,24 +164,20 @@ find_var_dim_max_length(NC_GRP_INFO_T *grp, int varid, int dimid,
                     *maxlen = *maxlen > h5dimlen[d] ? *maxlen : h5dimlen[d];
 
 #ifdef USE_PARALLEL
-	    /* If we are doing parallel I/O in collective mode, then
-	     * communicate with all other tasks in the collective and
-	     * find out which has the max value for the dimension
-	     * size. */
+	    /* If we are doing parallel I/O in collective mode (with
+	     * either pnetcdf or HDF5), then communicate with all
+	     * other tasks in the collective and find out which has
+	     * the max value for the dimension size. */
+	    assert(grp->nc4_info);
+	    LOG((3, "before Allreduce *maxlen %ld grp->nc4_info->parallel %d var->parallel_access %d",
+		 *maxlen, grp->nc4_info->parallel, var->parallel_access));
+	    if (grp->nc4_info->parallel && var->parallel_access == NC_COLLECTIVE)
 	    {
-		assert(grp->nc4_info);
-		size_t real_maxlen;
-
-		/* If parallel is in use, and var is collective,
-		 * reduce to largest value of maxlen, putting result
-		 * into real_maxlen. */
-		if (grp->nc4_info->parallel && var->parallel_access == NC_COLLECTIVE)
-		{
-		    if (MPI_Allreduce(maxlen, &real_maxlen, 1, NC_MPI_SIZE_T, MPI_MAX,
-				      grp->nc4_info->comm))
-			BAIL(NC_EMPI);
-		    *maxlen = real_maxlen;
-		}
+		if ((MPI_SUCCESS != MPI_Allreduce(MPI_IN_PLACE, maxlen, 1,
+						  MPI_UNSIGNED_LONG_LONG, MPI_MAX,
+						  grp->nc4_info->comm)))
+		    BAIL(NC_EMPI);
+		LOG((3, "after Allreduce *maxlen %ld", *maxlen));
 	    }
 #endif /* USE_PARALLEL */
         }

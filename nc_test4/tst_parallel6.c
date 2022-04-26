@@ -24,7 +24,7 @@
 int main(int argc, char** argv)
 {
     int err = NC_NOERR, rank, nprocs;
-    int ncid, cmode, varid, dimid;
+    int ncid, varid, dimid;
     size_t start[1], count[1], nrecs;
 
     MPI_Init(&argc, &argv);
@@ -37,6 +37,7 @@ int main(int argc, char** argv)
     if (!rank)
         printf("*** testing record lenth with multiple processes writing records...");
 
+    nc_set_log_level(4);
     if (nc_create_par(FILENAME, NC_CLOBBER | NC_NETCDF4, MPI_COMM_WORLD,
 		      MPI_INFO_NULL, &ncid)) ERR;
 
@@ -49,6 +50,8 @@ int main(int argc, char** argv)
     count[0] = 1;
     if (nc_put_vara_int(ncid, varid, start, count, &rank)) ERR;
     if (nc_inq_dimlen(ncid, dimid, &nrecs)) ERR;
+    if (nc_close(ncid)) ERR;
+    nc_set_log_level(-1);
 
     if (nrecs != nprocs)
     {
@@ -58,7 +61,6 @@ int main(int argc, char** argv)
 	       nprocs, nrecs);
 	ERR;
     }
-    if (nc_close(ncid)) ERR;
 
     if (!rank)
         SUMMARIZE_ERR;
