@@ -21,28 +21,11 @@
 #define NETCDF_PAR_H 1
 
 #include <mpi.h>
-#include <stdint.h>
-#include <limits.h>
 
 /** Use with nc_var_par_access() to set parallel access to independent. */
 #define NC_INDEPENDENT 0
 /** Use with nc_var_par_access() to set parallel access to collective. */
 #define NC_COLLECTIVE 1
-
-/** Find the MPI type that cooresponds to the C size_t type. */
-#if SIZE_MAX == UCHAR_MAX
-#define NC_MPI_SIZE_T MPI_UNSIGNED_CHAR
-#elif SIZE_MAX == USHRT_MAX
-#define NC_MPI_SIZE_T MPI_UNSIGNED_SHORT
-#elif SIZE_MAX == UINT_MAX
-#define NC_MPI_SIZE_T MPI_UNSIGNED
-#elif SIZE_MAX == ULONG_MAX
-#define NC_MPI_SIZE_T MPI_UNSIGNED_LONG
-#elif SIZE_MAX == ULLONG_MAX
-#define NC_MPI_SIZE_T MPI_UNSIGNED_LONG_LONG
-#else
-#error "cannot determine MPI type for size_t"
-#endif
 
 #if defined(__cplusplus)
 extern "C" {
