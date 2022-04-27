@@ -382,6 +382,7 @@ NC_hashmapdeactivate(NC_hashmap* map, uintptr_t data)
 static int isPrime(size_t n)
 {
     size_t i;
+    
     if (n <= 1)  return 0;
     if (n <= 3)  return 1;
     
