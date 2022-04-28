@@ -41,6 +41,30 @@ main(int argc, char **argv)
 {
 
     printf("\n*** Testing netcdf-4 variable functions, some more.\n");
+    printf("**** testing reported enddef issue...");
+    {
+	/* See https://github.com/Unidata/netcdf-c/issues/2165 for
+	 * more info. */
+	int ncid, varid, dimid, i;
+	char varname[NC_MAX_NAME + 1];
+	
+	if (nc_create(FILE_NAME, NC_CLOBBER | NC_NETCDF4, &ncid)) ERR;
+	if (nc_def_dim(ncid, "time", NC_UNLIMITED, &dimid)) ERR;
+	if (nc_def_var(ncid, "time", NC_INT, 1, &dimid, &varid)) ERR;
+	if (nc_put_att_text(ncid, varid, "Att1", 4, "att1")) ERR;
+	if (nc_put_att_text(ncid, varid, "Att2", 4, "att2")) ERR;
+	if (nc_put_att_text(ncid, varid, "Att3", 4, "att3")) ERR;
+	if (nc_put_att_text(ncid, varid, "Att4", 4, "att4")) ERR;
+	for (i = 0; i < 300; i++)
+	{
+	    snprintf(varname, 32, "dummy_var_%d", i);
+	    if (nc_def_var(ncid, varname, NC_INT, 1, &dimid, &varid)) ERR;
+	}
+	
+	if (nc_enddef(ncid)) ERR;
+	if (nc_close(ncid)) ERR;
+    }
+    SUMMARIZE_ERR;
     printf("**** testing definition of coordinate variable after endef/redef...");
     {
 #define NX 6
