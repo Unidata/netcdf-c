@@ -86,7 +86,7 @@ endif
 if BUILD_UTILITIES
 TESTS += run_diskless.sh run_diskless5.sh run_inmemory.sh
 if LARGE_FILE_TESTS
-if NOT ENABLE_PARALLEL
+if ! ENABLE_PARALLEL
 TESTS += run_diskless2.sh
 endif
 endif
