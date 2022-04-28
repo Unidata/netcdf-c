@@ -15,6 +15,10 @@
 #include <unistd.h>
 #endif
 
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#endif
+
 #if defined(_WIN32) && !defined(__MINGW32__)
 #include "XGetopt.h"
 #else
