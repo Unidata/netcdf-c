@@ -24,6 +24,7 @@ FP_ISREGEDIT=@ISREGEDIT@
 
 # Feature flags
 FEATURE_HDF5=@HAS_HDF5@
+FEATURE_PARALLEL=@HAS_PARALLEL@
 
 # Define selected features of the build
 FEATURE_HDF5=@HAS_HDF5@
