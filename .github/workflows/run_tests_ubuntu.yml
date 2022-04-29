@@ -82,7 +82,7 @@ jobs:
           key: hdf5-parallel-${{ runner.os }}-${{ matrix.hdf5 }}
 
 
-      - name: Build libhdf5-${{ matrix.hdf5 }}
+      - name: Build libhdf5-${{ matrix.hdf5 }}-pnetcdf-1.12.3
         if: steps.cache-hdf5.outputs.cache-hit != 'true'
         run: |
           set -x
