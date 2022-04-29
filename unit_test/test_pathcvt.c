@@ -212,6 +212,7 @@ kind2string(int kind)
     return "Unknown";
 }
 #endif
+
 static char*
 expand(const char* s)
 {

@@ -381,10 +381,12 @@ NC_hashmapdeactivate(NC_hashmap* map, uintptr_t data)
 /* This will currently fail if `n > 180503 * 180503` */
 static int isPrime(size_t n)
 {
+    size_t i;
+    
     if (n <= 1)  return 0;
     if (n <= 3)  return 1;
     
-    for (size_t i=1; i < NC_nprimes - 1; i++) {
+    for (i=1; i < NC_nprimes - 1; i++) {
       size_t prime = NC_primes[i];
       if (n % prime == 0) {
 	return 0;
