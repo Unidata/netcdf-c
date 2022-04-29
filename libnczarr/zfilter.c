@@ -52,7 +52,7 @@
 #include "netcdf_filter_build.h"
 #include "netcdf_aux.h"
 
-#if 1
+#if 0
 #define DEBUG
 #define DEBUGF
 #define DEBUGL

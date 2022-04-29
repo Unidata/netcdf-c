@@ -163,15 +163,15 @@ testzstd() {
 
 testset() {
 # Which test cases to exercise
-#if test "x$TESTNCZARR" = x1 ; then
-#    testfletcher32 $1
-#    testshuffle $1    
-#fi
-#    testdeflate $1
-#    testszip $1
+if test "x$TESTNCZARR" = x1 ; then
+    testfletcher32 $1
+    testshuffle $1    
+fi
+    testdeflate $1
+    testszip $1
     testbzip2 $1
-#    testblosc $1
-#    testzstd $1
+    testblosc $1
+    testzstd $1
 }
 
 if test "x$TESTNCZARR" = x1 ; then
