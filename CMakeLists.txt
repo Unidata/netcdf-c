@@ -1114,9 +1114,12 @@ string(TOLOWER "${filter}" downfilter)
 IF(${filter}_FOUND)
   INCLUDE_DIRECTORIES(${filter}_INCLUDE_DIRS})
   SET(ENABLE_${upfilter} TRUE)
-  SET(STD_FILTERS "${STD_FILTERS},${downfilter}")
+  SET(HAVE_${upfilter} ON)
+  SET(STD_FILTERS "${STD_FILTERS} ${downfilter}")
+  MESSAGE(">>> Standard Filter: ${downfilter}")
 ELSE()
   SET(ENABLE_${upfilter} FALSE)
+  SET(HAVE_${upfilter} OFF)
 ENDIF()
 endmacro(set_std_filter)
 
@@ -1125,20 +1128,36 @@ FIND_PACKAGE(Bz2)
 FIND_PACKAGE(Blosc)
 FIND_PACKAGE(Zstd)
 
-IF(Zstd_FOUND)
-  SET(HAVE_ZSTD yes)
-ELSE()
-  SET(HAVE_ZSTD no)
-ENDIF()
-
 # Accumulate standard filters
-set(STD_FILTERS "deflate") # Always have deflate */
+set(STD_FILTERS "deflate") # Always have deflate*/
 set_std_filter(SZIP)
 set_std_filter(Blosc)
 set_std_filter(Zstd)
-set_std_filter(Bz2)
-IF(NOT Bz2_FOUND)
-set(STD_FILTERS "${STD_FILTERS},bzip2") # Always have bzip2 */
+IF(Bz2_FOUND)
+  set_std_filter(Bz2)
+ELSE()
+  # The reason we use a local version is to support a more comples test case
+  MESSAGE(WARNING "libbz2 not found using built-in version")
+  SET(HAVE_LOCAL_BZ2 ON)
+  SET(HAVE_BZ2 ON)
+  set(STD_FILTERS "${STD_FILTERS} bz2")
+ENDIF()
+
+# If user wants, then install selected plugins
+SET(PLUGIN_INSTALL_DIR "" CACHE STRING "Whether and where we should install plugins")
+SET(ENABLE_PLUGIN_INSTALL OFF)
+if(DEFINED PLUGIN_INSTALL_DIR OR DEFINED CACHE{PLUGIN_INSTALL_DIR})
+  IF(PLUGIN_INSTALL_DIR STREQUAL "")
+    MESSAGE(WARNING "No plugin directory value specified; option ignored.")  
+    UNSET(PLUGIN_INSTALL_DIR)
+    UNSET(PLUGIN_INSTALL_DIR CACHE)
+    SET(PLUGIN_INSTALL_DIR_SETTING "N.A.")
+  ELSE()
+      SET(PLUGIN_INSTALL_DIR_SETTING "${PLUGIN_INSTALL_DIR}")
+      SET(ENABLE_PLUGIN_INSTALL ON)
+  ENDIF()
+ELSE()
+    SET(PLUGIN_INSTALL_DIR_SETTING "N.A.")
 ENDIF()
 
 # See if we have libzip
@@ -2526,6 +2545,10 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURREN
 
 IF(ENABLE_NCZARR)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/nczarr_test/findplugin.sh @ONLY NEWLINE_STYLE LF)
+ENDIF()
+
+IF(ENABLE_PLUGINS)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/plugins/findplugin.sh @ONLY NEWLINE_STYLE LF)
 ENDIF()
 
 IF(ENABLE_EXAMPLES)

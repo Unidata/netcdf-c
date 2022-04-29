@@ -1,0 +1,44 @@
+#!/bin/bash 
+
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
+. ../test_common.sh
+
+set -x
+
+INSTALLDIR=@PLUGIN_INSTALL_DIR@
+
+# Load the findplugins function
+. ${builddir}/findplugin.sh
+echo "findplugin.sh loaded"
+
+installplugin() {
+PLUG="$1"
+# Locate the plugin path and the library name; argument order is critical
+findplugin ${PLUG}
+if ! test -f "$HDF5_PLUGIN_DIR/$HDF5_PLUGIN_LIB" ; then
+    echo "Not exists: ${HDF5_PLUGIN_DIR}/$HDF5_PLUGIN_LIB ; ignored"   
+    return
+fi
+if ! test -d "${INSTALLDIR}" ; then
+    echo "Not exists: ${INSTALLDIR} ; creating"
+    mkdir ${INSTALLDIR}
+fi
+echo "Installing: $HDF5_PLUGIN_DIR/$HDF5_PLUGIN_LIB into $INSTALLDIR"
+cp -f "$HDF5_PLUGIN_DIR/$HDF5_PLUGIN_LIB" $INSTALLDIR
+}
+
+if test "x$USEPLUGINS" != x ; then
+  if test "x$INSTALLDIR" != x ; then
+    installplugin h5bzip2
+    installplugin h5zstd
+    installplugin h5blosc
+    if test "x$FEATURE_NCZARR" ; then
+      installplugin h5fletcher32
+      installplugin h5shuffle
+      installplugin h5deflate
+      installplugin h5szip
+      installplugin nczdefaults
+      installplugin nczszip
+    fi
+  fi
+fi
