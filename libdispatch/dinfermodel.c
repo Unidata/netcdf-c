@@ -220,6 +220,7 @@ static const char* getmodekey(const NClist* envv);
 static int replacemode(NClist* envv, const char* newval);
 static int inferone(const char* mode, NClist* newmodes);
 static int negateone(const char* mode, NClist* modes);
+static int lcontains(NClist* l, const char* key0);
 
 /*
 If the path looks like a URL, then parse it, reformat it.
@@ -381,7 +382,7 @@ parseonchar(const char* s, int ch, NClist* segments)
 	if((q = malloc(slen+1)) == NULL) {stat = NC_ENOMEM; goto done;}
 	memcpy(q,p,slen);
 	q[slen] = '\0';
-	nclistpush(segments,q);
+	nclistpush(segments,q); q = NULL;
 	if(*endp == '\0') break;
 	p = endp+1;
     }
@@ -458,7 +459,7 @@ processmodearg(const char* arg, NCmodel* model)
 static int
 processmacros(NClist** fraglenvp)
 {
-    int stat = NC_NOERR;
+    int i,stat = NC_NOERR;
     const struct MACRODEF* macros = NULL;
     NClist*  fraglenv = NULL;
     NClist* expanded = NULL;
@@ -466,12 +467,12 @@ processmacros(NClist** fraglenvp)
     if(fraglenvp == NULL || nclistlength(*fraglenvp) == 0) goto done;
     fraglenv = *fraglenvp;
     expanded = nclistnew();
-    while(nclistlength(fraglenv) > 0) {
+    for(i=0;i<nclistlength(fraglenv);i+=2) {
 	int found = 0;
 	char* key = NULL;
 	char* value = NULL;
-	key = nclistremove(fraglenv,0); /* remove from changing front */
-	value = nclistremove(fraglenv,0); /* remove from changing front */
+	key = nclistget(fraglenv,i);
+	value = nclistget(fraglenv,i+1);
 	if(strlen(value) == 0) { /* must be a singleton  */
             for(macros=macrodefs;macros->name;macros++) {
                 if(strcmp(macros->name,key)==0) {
@@ -488,8 +489,6 @@ processmacros(NClist** fraglenvp)
 	    nclistpush(expanded,strdup(key));
     	    nclistpush(expanded,strdup(value));
 	}
-	nullfree(key);
-	nullfree(value);
     }
     *fraglenvp = expanded; expanded = NULL;
 
@@ -587,7 +586,7 @@ inferone(const char* mode, NClist* newmodes)
 static int
 mergekey(NClist** valuesp)
 {
-    int i,j;
+    int i;
     int stat = NC_NOERR;
     NClist* values = *valuesp;
     NClist* allvalues = nclistnew();
@@ -600,27 +599,21 @@ mergekey(NClist** valuesp)
 	if((stat=parseonchar(val1,',',allvalues))) goto done;
     }
     /* Remove duplicates and "" */
-    while(nclistlength(allvalues) > 0) {
-	value = nclistremove(allvalues,0);
-	if(strlen(value) == 0) {
-	    nullfree(value); value = NULL;
-	} else {
-	    for(j=0;j<nclistlength(newvalues);j++) {
-	        char* candidate = nclistget(newvalues,j);
-	        if(strcasecmp(candidate,value)==0)
-	            {nullfree(value); value = NULL; break;}
-	     }
-	}
-	if(value != NULL) {nclistpush(newvalues,value); value = NULL;}
+    for(i=0;i<nclistlength(allvalues);i++) {
+	int found;
+	value = nclistget(allvalues,i);
+	if(strlen(value) == 0) continue;
+	found = lcontains(newvalues,value);
+	if(!found && value != NULL) {nclistpush(newvalues,strdup(value));}
     }
     /* Make sure to have at least 1 value */
     if(nclistlength(newvalues)==0) nclistpush(newvalues,strdup(""));
-    *valuesp = values; values = NULL;
+    *valuesp = newvalues; newvalues = NULL;
 
 done:
-    nclistfree(allvalues);
-    nclistfreeall(values);
+    nclistfreeall(allvalues);
     nclistfreeall(newvalues);
+    nclistfreeall(values);
     return check(stat);
 }
 
@@ -645,7 +638,7 @@ collectvaluesbykey(NClist* fraglenv, const char* key, NClist* values)
         const char* key2 = nclistget(fraglenv,i);
         if(strcasecmp(key,key2)==0) {
 	    const char* value2 = nclistget(fraglenv,i+1);
-	    nclistpush(values,value2); value2 = NULL;
+	    nclistpush(values,strdup(value2));
 	}
     }
 }
@@ -659,7 +652,7 @@ collectallkeys(NClist* fraglenv, NClist* allkeys)
     for(i=0;i<nclistlength(fraglenv);i+=2) {
 	char* key = nclistget(fraglenv,i);
 	if(!lcontains(allkeys,key)) {
-	    nclistpush(allkeys,key);
+	    nclistpush(allkeys,strdup(key));
 	}
     }
 }
@@ -683,12 +676,12 @@ cleanfragments(NClist** fraglenvp)
     newlist = nclistnew();
     buf = ncbytesnew();
     allkeys = nclistnew();
-    tmp = nclistnew();
 
-    /* collect all unique keys */
+    /* collect copy of all unique keys */
     collectallkeys(fraglenv,allkeys);
     /* Collect all values for same key across all fragments */
     for(i=0;i<nclistlength(allkeys);i++) {
+        tmp = nclistnew();
 	key = nclistget(allkeys,i);
 	collectvaluesbykey(fraglenv,key,tmp);
 	/* merge the key values, remove duplicate */
@@ -698,12 +691,12 @@ cleanfragments(NClist** fraglenvp)
 	nclistpush(newlist,key);
 	value = list2string(tmp);
 	nclistpush(newlist,value);
-	nclistclear(tmp);
+	nclistfreeall(tmp); tmp = NULL;
     }
     *fraglenvp = newlist; newlist = NULL;
 done:
-    nclistfree(allkeys);
-    nclistfree(tmp);
+    nclistfreeall(allkeys);
+    nclistfreeall(tmp);
     ncbytesfree(buf);
     nclistfreeall(fraglenv);
     nclistfreeall(newlist);
