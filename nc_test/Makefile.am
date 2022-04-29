@@ -38,11 +38,9 @@ check_PROGRAMS += tst_parallel2 tst_pnetcdf tst_addvar	\
 tst_formatx_pnetcdf tst_default_format_pnetcdf
 endif
 
-if TEST_PARALLEL4
 if USE_PNETCDF
 if ENABLE_CDF5
 check_PROGRAMS += tst_cdf5format
-endif
 endif
 endif
 
