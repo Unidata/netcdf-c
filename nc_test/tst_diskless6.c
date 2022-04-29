@@ -132,7 +132,6 @@ fail(int ret)
 void
 exists(const char* file)
 {
-    int stat = 0;
     FILE* f = NCfopen(file, "r");
     if(f == NULL) fail(NC_EPERM);
     fclose(f);
