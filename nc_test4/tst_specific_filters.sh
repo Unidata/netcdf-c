@@ -8,6 +8,7 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
+set -x
 set -e
 
 if test "x$TESTNCZARR" = x1 ; then
