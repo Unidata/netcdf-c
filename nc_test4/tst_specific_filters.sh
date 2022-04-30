@@ -98,7 +98,7 @@ fi
 setfilter $zfilt ref_any.cdl "tmp_filt_${zfilt}.cdl" "$zparams" "$zcodec"
 if test "x$TESTNCZARR" = x1 ; then
 if test "x$zfilt" = xszip ; then
-ldd $HDF5_PLUGIN_DIR/libh5szip.so
+find /usr -name 'libsz*'
 fi
 ${NCGEN} -4 -lb -o $fileurl "tmp_filt_${zfilt}.cdl"
 ${NCDUMP} -n $zfilt -sF $fileurl > "tmp_filt_${zfilt}.tmp"
