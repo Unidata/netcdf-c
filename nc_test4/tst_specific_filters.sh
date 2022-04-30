@@ -8,7 +8,6 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
-set -x
 set -e
 
 if test "x$TESTNCZARR" = x1 ; then
@@ -97,9 +96,6 @@ rm -f $file
 fi
 setfilter $zfilt ref_any.cdl "tmp_filt_${zfilt}.cdl" "$zparams" "$zcodec"
 if test "x$TESTNCZARR" = x1 ; then
-if test "x$zfilt" = xszip ; then
-find /usr -name 'libsz*'
-fi
 ${NCGEN} -4 -lb -o $fileurl "tmp_filt_${zfilt}.cdl"
 ${NCDUMP} -n $zfilt -sF $fileurl > "tmp_filt_${zfilt}.tmp"
 else
