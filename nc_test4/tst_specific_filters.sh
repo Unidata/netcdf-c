@@ -101,7 +101,7 @@ if test "x$zfilt" = xszip ; then
 echo "@@@"
 find /usr -name 'libsz*'
 find ${HDF5_PLUGIN_DIR} -name '*sz*.so'
-ldd ${HDF5_PLUGIN_DIR}/libh5zszip.so
+ldd ${HDF5_PLUGIN_DIR}/libh5szip.so
 fi
 ${NCGEN} -4 -lb -o $fileurl "tmp_filt_${zfilt}.cdl"
 ${NCDUMP} -n $zfilt -sF $fileurl > "tmp_filt_${zfilt}.tmp"
