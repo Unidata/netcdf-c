@@ -96,7 +96,7 @@ rm -f $file
 fi
 setfilter $zfilt ref_any.cdl "tmp_filt_${zfilt}.cdl" "$zparams" "$zcodec"
 if test "x$TESTNCZARR" = x1 ; then
-if test "x$zfilt" = xszip" ; then
+if test "x$zfilt" = xszip ; then
 echo "@@@"
 ldd ${HDF5_PLUGIN_DIR}/libh5zszip.so
 find /usr -name 'libsz*'
