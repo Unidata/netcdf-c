@@ -935,10 +935,16 @@ This is for internal use only.
 As part of the overall build process, a number of filters are built as shared libraries in the "plugins" directory
 &mdash; in that directory or the "plugins/.libs" subdirectory.
 
-An option exists to allow some of those filters to be installed into a user-specified directory.
-Presumably this directory is part of the value of the HDF5_PLUGIN_PATH environment variable.
-The ./configure option is ````--with-plugin-dir=&lt;absolute-directory-path&gt;````.
-The corresponding CMake option is ````-DPLUGIN_INSTALL_DIR=&lt;absolute-directory-path&gt;````.
+An option exists to allow some of those filters to be installed into a user-specified directory. The relevant options are as follows:
+````
+./configure: --with-plugin-dir=<absolute-directory-path>
+cmake:       -DPLUGIN_INSTALL_DIR=<absolute-directory-path>
+````
+If the value of the environment variable "HDF5_PLUGIN_PATH" is a single directory, then
+a good value for the install directory is "$HDF5_PLUGIN_PATH", so for example:
+````
+./configure ... --with-plugin-dir="$HDF5_PLUGIN_DIR"
+````
 
 If this option is specified, then as part of the "install" build action,
 a specified set of filter shared libraries will be copied into the specified directory.
