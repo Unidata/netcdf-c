@@ -49,7 +49,9 @@ extern int ffio_open(const char*,int,off_t,size_t,size_t*,void*,ncio**,void** co
      extern int memio_open(const char*,int,off_t,size_t,size_t*,void*,ncio**,void** const);
 
 /* Forward */
+#ifdef ENABLE_BYTERANGE
 static int urlmodetest(const char* path);
+#endif
 
 int
 ncio_create(const char *path, int ioflags, size_t initialsz,
@@ -179,6 +181,7 @@ NC_HTTP => byterange
 NC_S3SDK => s3
 0 => Not URL
 */
+#ifdef ENABLE_BYTERANGE
 static int
 urlmodetest(const char* path)
 {
@@ -195,3 +198,4 @@ urlmodetest(const char* path)
     ncurifree(uri);
     return kind;
 }
+#endif

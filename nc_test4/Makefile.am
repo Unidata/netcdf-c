@@ -93,7 +93,8 @@ endif # BUILD_UTILITIES
 if TEST_PARALLEL4
 check_PROGRAMS += tst_mpi_parallel tst_parallel tst_parallel3		\
 tst_parallel4 tst_parallel5 tst_nc4perf tst_mode tst_simplerw_coll_r	\
-tst_mode tst_parallel_zlib tst_parallel_compress tst_quantize_par
+tst_mode tst_parallel_zlib tst_parallel_compress tst_quantize_par	\
+tst_parallel6
 TESTS += run_par_test.sh
 endif # TEST_PARALLEL4
 

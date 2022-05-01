@@ -37,13 +37,13 @@ tst_fillonlyz_SOURCES = tst_fillonlyz.c ${tstcommonsrc}
 
 check_PROGRAMS += tst_zchunks tst_zchunks2 tst_zchunks3 tst_fillonlyz test_quantize 
 
-TESTS += run_ut_map.sh
-TESTS += run_ut_mapapi.sh
-TESTS += run_ut_misc.sh
 TESTS += run_ut_chunk.sh
 
 if BUILD_UTILITIES
 
+TESTS += run_ut_map.sh
+TESTS += run_ut_mapapi.sh
+TESTS += run_ut_misc.sh
 TESTS += run_ncgen4.sh
 
 if USE_HDF5
@@ -156,23 +156,23 @@ EXTRA_DIST += ref_power_901_constants.zip ref_power_901_constants.cdl ref_quotes
 CLEANFILES = ut_*.txt ut*.cdl tmp*.nc tmp*.cdl tmp*.txt tmp*.dmp tmp*.zip tmp*.nc tmp*.dump tmp*.tmp tmp_ngc.c ref_zarr_test_data.cdl
 
 BUILT_SOURCES = test_quantize.c test_filter_avail.c run_specific_filters.sh
-test_quantize.c: ../nc_test4/tst_quantize.c
-	rm -f test_quantize.c
-	echo "#define TESTNCZARR" > test_quantize.c
-	cat ../nc_test4/tst_quantize.c >> test_quantize.c
+test_quantize.c: $(top_srcdir)/nc_test4/tst_quantize.c
+	rm -f $@
+	echo "#define TESTNCZARR" > $@
+	cat $(top_srcdir)/nc_test4/tst_quantize.c >> $@
 
-test_filter_avail.c: ../nc_test4/tst_filter_avail.c
-	rm -f test_filter_avail.c
-	echo "#define TESTNCZARR" > test_filter_avail.c
-	cat ../nc_test4/tst_filter_avail.c >> test_filter_avail.c
+test_filter_avail.c: $(top_srcdir)/nc_test4/tst_filter_avail.c
+	rm -f $@
+	echo "#define TESTNCZARR" > $@
+	cat $(top_srcdir)/nc_test4/tst_filter_avail.c >> $@
 
-run_specific_filters.sh: ../nc_test4/tst_specific_filters.sh
-	rm -f run_specific_filters.sh run_specific_filters.tmp
+run_specific_filters.sh: $(top_srcdir)/nc_test4/tst_specific_filters.sh
+	rm -f $@ run_specific_filters.tmp
 	echo "#!/bin/bash" > run_specific_filters.tmp
 	echo "TESTNCZARR=1" >> run_specific_filters.tmp
-	cat ../nc_test4/tst_specific_filters.sh >> run_specific_filters.tmp
-	tr -d '\r' < run_specific_filters.tmp > run_specific_filters.sh
-	chmod a+x run_specific_filters.sh
+	cat $(top_srcdir)/nc_test4/tst_specific_filters.sh >> run_specific_filters.tmp
+	tr -d '\r' < run_specific_filters.tmp > $@
+	chmod a+x $@
 	rm -f run_specific_filters.tmp
 
 # Remove directories
