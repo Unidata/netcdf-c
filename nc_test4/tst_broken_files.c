@@ -22,7 +22,11 @@ main() {
     printf("\n*** Testing NetCDF-4 with truncated (broken) sample file.\n");
     {
         printf("*** testing via file on file-system ...\n");
-        FILE *fp = fopen(FILE_NAME, "w");
+#if defined _WIN32 || defined __MINGW32__
+        FILE *fp = fopen(FILE_NAME, "wb");
+#else
+	        FILE *fp = fopen(FILE_NAME, "w");
+#endif
         if(!fp) ERR;
         if(fwrite(TRUNCATED_FILE_CONTENT, sizeof(char), sizeof(TRUNCATED_FILE_CONTENT), fp) != sizeof(TRUNCATED_FILE_CONTENT)) ERR;
         fclose(fp);

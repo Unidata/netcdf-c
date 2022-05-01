@@ -1125,6 +1125,12 @@ FIND_PACKAGE(Bz2)
 FIND_PACKAGE(Blosc)
 FIND_PACKAGE(Zstd)
 
+IF(Zstd_FOUND)
+  SET(HAVE_ZSTD yes)
+ELSE()
+  SET(HAVE_ZSTD no)
+ENDIF()
+
 # Accumulate standard filters
 set(STD_FILTERS "deflate") # Always have deflate */
 set_std_filter(SZIP)
@@ -2442,6 +2448,7 @@ is_enabled(ENABLE_V2_API HAS_NC2)
 is_enabled(ENABLE_NETCDF_4 HAS_NC4)
 is_enabled(ENABLE_HDF4 HAS_HDF4)
 is_enabled(USE_HDF5 HAS_HDF5)
+is_enabled(OFF HAS_BENCHMARKS)
 is_enabled(STATUS_PNETCDF HAS_PNETCDF)
 is_enabled(STATUS_PARALLEL HAS_PARALLEL)
 is_enabled(ENABLE_PARALLEL4 HAS_PARALLEL4)
@@ -2465,6 +2472,7 @@ is_enabled(ENABLE_LOGGING HAS_LOGGING)
 is_enabled(ENABLE_FILTER_TESTING DO_FILTER_TESTS)
 is_enabled(HAVE_SZ HAS_SZIP)
 is_enabled(HAVE_SZ HAS_SZLIB_WRITE)
+is_enabled(HAVE_ZSTD HAS_ZSTD)
 
 # Generate file from template.
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"

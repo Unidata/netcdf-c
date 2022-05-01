@@ -48,3 +48,5 @@ Quantization:		@HAS_QUANTIZE@
 Logging:     		@HAS_LOGGING@
 SZIP Write Support:     @HAS_SZLIB_WRITE@
 Standard Filters:       @STD_FILTERS@
+ZSTD Support:           @HAS_ZSTD@
+Benchmarks:		@HAS_BENCHMARKS@

@@ -37,13 +37,13 @@ tst_fillonlyz_SOURCES = tst_fillonlyz.c ${tstcommonsrc}
 
 check_PROGRAMS += tst_zchunks tst_zchunks2 tst_zchunks3 tst_fillonlyz test_quantize 
 
-TESTS += run_ut_map.sh
-TESTS += run_ut_mapapi.sh
-TESTS += run_ut_misc.sh
 TESTS += run_ut_chunk.sh
 
 if BUILD_UTILITIES
 
+TESTS += run_ut_map.sh
+TESTS += run_ut_mapapi.sh
+TESTS += run_ut_misc.sh
 TESTS += run_ncgen4.sh
 
 if USE_HDF5

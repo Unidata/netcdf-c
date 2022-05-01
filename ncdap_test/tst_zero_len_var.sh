@@ -1,10 +1,9 @@
 #!/bin/sh
 
-if test "x$SETX" != x ; then set -x; fi
-set -e
-
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
+
+set -e
 
 ##
 # If the bug referenced in https://github.com/Unidata/netcdf-c/issues/1300

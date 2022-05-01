@@ -33,10 +33,12 @@ check_PROGRAMS += simple_nc4_wr simple_nc4_rd simple_xy_nc4_wr	\
 simple_xy_nc4_rd
 TESTS += run_examples4.sh
 
+if BUILD_UTILITIES
 if ENABLE_FILTER_TESTING
 # filter_example.c should be same as nc_test4/test_filter.c
 check_PROGRAMS += filter_example
 TESTS += run_filter.sh
+endif
 endif
 
 endif #USE_HDF5
