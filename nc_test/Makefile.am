@@ -22,25 +22,25 @@ AM_CPPFLAGS += -I$(top_builddir)/liblib -I$(top_builddir)/include -I$(top_srcdir
 
 TEST_EXTENSIONS = .sh
 
-check_PROGRAMS =
-
 # These are the tests which are always run.
-TESTPROGRAMS = t_nc tst_small nc_test tst_misc tst_norm tst_names	\
-tst_nofill tst_nofill2 tst_nofill3 tst_atts3 tst_meta tst_inq_type	\
-tst_utf8_validate tst_utf8_phrases tst_global_fillval			\
+TESTPROGRAMS = tst_names tst_nofill2 tst_nofill3 tst_meta		\
+tst_inq_type tst_utf8_validate tst_utf8_phrases tst_global_fillval	\
 tst_max_var_dims tst_formats tst_def_var_fill tst_err_enddef		\
 tst_default_format
 
+# These are always built, but for parallel builds are run from a test
+# script, because they are parallel-enabled tests.
+check_PROGRAMS = t_nc tst_atts3 tst_nofill nc_test tst_small
+
+# These tests are only run if pnetcdf is enabled.
 if USE_PNETCDF
-check_PROGRAMS += tst_parallel2 tst_pnetcdf tst_addvar
-TESTPROGRAMS += tst_formatx_pnetcdf tst_default_format_pnetcdf
+check_PROGRAMS += tst_parallel2 tst_pnetcdf tst_addvar	\
+tst_formatx_pnetcdf tst_default_format_pnetcdf
 endif
 
-if TEST_PARALLEL4
 if USE_PNETCDF
 if ENABLE_CDF5
-TESTPROGRAMS += tst_cdf5format
-endif
+check_PROGRAMS += tst_cdf5format
 endif
 endif
 
@@ -86,7 +86,9 @@ endif
 if BUILD_UTILITIES
 TESTS += run_diskless.sh run_diskless5.sh run_inmemory.sh
 if LARGE_FILE_TESTS
+if ! ENABLE_PARALLEL
 TESTS += run_diskless2.sh
+endif
 endif
 if BUILD_MMAP
 TESTS += run_mmap.sh
@@ -94,21 +96,23 @@ run_mmap.log: run_diskless.log
 endif
 endif
 
+# If pnetcdf is enabled, these tests are run by a test
+# script. Otherwise, the are run by automake in the usual way.
 if USE_PNETCDF
-TESTS += run_pnetcdf_test.sh
+TESTS += run_pnetcdf_tests.sh
+else
+TESTS += t_nc tst_atts3 tst_nofill nc_test tst_small
 endif
 
 # The .c files that are generated with m4 are already distributed, but
 # we also include the original m4 files, plus test scripts data.
-EXTRA_DIST = test_get.m4 test_put.m4 run_diskless.sh run_diskless2.sh   \
-run_diskless5.sh run_mmap.sh run_pnetcdf_test.sh test_read.m4           \
-test_write.m4 ref_tst_diskless2.cdl tst_diskless5.cdl                   \
-ref_tst_diskless3_create.cdl ref_tst_diskless3_open.cdl                 \
-run_inmemory.sh run_mmap.sh                                             \
-f03tst_open_mem.nc                                                      \
-test_byterange.sh ref_tst_http_nc3.cdl                                  \
-ref_tst_http_nc4a.cdl ref_tst_http_nc4b.cdl ref_tst_http_nc4c.cdl       \
-CMakeLists.txt
+EXTRA_DIST = test_get.m4 test_put.m4 run_diskless.sh run_diskless2.sh	\
+run_diskless5.sh run_mmap.sh run_pnetcdf_test.sh test_read.m4		\
+test_write.m4 ref_tst_diskless2.cdl tst_diskless5.cdl			\
+ref_tst_diskless3_create.cdl ref_tst_diskless3_open.cdl			\
+run_inmemory.sh run_mmap.sh f03tst_open_mem.nc test_byterange.sh	\
+ref_tst_http_nc3.cdl ref_tst_http_nc4a.cdl ref_tst_http_nc4b.cdl	\
+ref_tst_http_nc4c.cdl CMakeLists.txt run_pnetcdf_tests.sh.in
 
 # These files are created by the tests.
 CLEANFILES = nc_test_*.nc tst_*.nc t_nc.nc large_files.nc		\

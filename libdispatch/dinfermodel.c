@@ -1160,7 +1160,7 @@ check_file_type(const char *path, int omode, int use_parallel,
     if((status = openmagic(&magicinfo))) goto done;
 
     /* Verify we have a large enough file */
-    if(magicinfo.filelen < (long long)MAGIC_NUMBER_LEN)
+    if(magicinfo.filelen < (unsigned long long)MAGIC_NUMBER_LEN)
 	{status = NC_ENOTNC; goto done;}
     if((status = readmagic(&magicinfo,0L,magic)) != NC_NOERR) {
 	status = NC_ENOTNC;
@@ -1254,6 +1254,7 @@ openmagic(struct MagicFile* file)
 		else
 #endif
 		    status = NC_EPARINIT;
+		file->fh = MPI_FILE_NULL;
 		goto done;
 	    }
 	    /* Get its length */
@@ -1390,7 +1391,8 @@ closemagic(struct MagicFile* file)
 #ifdef USE_PARALLEL
         if (file->use_parallel) {
 	    int retval;
-	    if((retval = MPI_File_close(&file->fh)) != MPI_SUCCESS)
+	    if(file->fh != MPI_FILE_NULL
+	       && (retval = MPI_File_close(&file->fh)) != MPI_SUCCESS)
 		    {status = NC_EPARINIT; return status;}
         } else
 #endif
