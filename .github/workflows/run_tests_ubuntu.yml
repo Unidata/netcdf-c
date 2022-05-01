@@ -82,7 +82,7 @@ jobs:
           key: hdf5-parallel-${{ runner.os }}-${{ matrix.hdf5 }}
 
 
-      - name: Build libhdf5-${{ matrix.hdf5 }}
+      - name: Build libhdf5-${{ matrix.hdf5 }}-pnetcdf-1.12.3
         if: steps.cache-hdf5.outputs.cache-hit != 'true'
         run: |
           set -x
@@ -97,6 +97,13 @@ jobs:
           tar -jxf hdf5-${{ matrix.hdf5 }}.tar.bz2
           pushd hdf5-${{ matrix.hdf5 }}
           CC=mpicc ./configure --disable-static --enable-shared --prefix=${HOME}/environments/${{ matrix.hdf5 }} --enable-hl --with-szlib --enable-parallel
+          make -j
+          make install -j
+          popd
+          wget https://parallel-netcdf.github.io/Release/pnetcdf-1.12.3.tar.gz
+          tar -zxf pnetcdf-1.12.3.tar.gz
+          pushd pnetcdf-1.12.3
+          CC=mpicc ./configure --disable-static --enable-shared --prefix=${HOME}/environments/${{ matrix.hdf5 }} 
           make -j
           make install -j
           popd
@@ -233,7 +240,7 @@ jobs:
 
       - name: Configure
         shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} CC=mpicc ./configure --enable-hdf4 --enable-hdf5 --enable-dap --disable-dap-remote-tests
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} CC=mpicc ./configure --enable-hdf4 --enable-hdf5 --enable-dap --disable-dap-remote-tests --enable-parallel-tests --enable-pnetcdf
         if: ${{ success() }}
 
       - name: Look at config.log if error

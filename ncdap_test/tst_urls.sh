@@ -155,9 +155,9 @@ for x in ${REMOTETESTS} ; do
   if test "x$quiet" = "x0" ; then echo "*** Testing: ${name} ; url=$url" ; fi
   # determine if this is an xfailtest
   isxfail=0
-  if test "x${XFAILTESTS}" != x ; then
-    if IGNORE=`echo -n " ${XFAILTESTS} " | fgrep " ${name} "`; then isxfail=1; fi
-  fi
+  for xf in $XFAILTESTS ; do
+    if test "x$xf" = "x${name}" ; then isxfail=1; fi
+  done
   ok=1
   if ${NCDUMP} ${DUMPFLAGS} "${url}" | sed 's/\\r//g' > ${name}.dmp ; then ok=$ok; else ok=0; fi
   # compare with expected

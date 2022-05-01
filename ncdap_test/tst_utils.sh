@@ -23,17 +23,6 @@ passcount=0
 xfailcount=0
 failcount=0
 
-# Try to figure out our platform
-myplatform=`uname -a | cut -d" " -f 1`
-case "$myplatform" in
-Darwin*) platform=osx ;;
-MINGW*) platform=mingw ;;
-CYGWIN*) platform=cygwin ;;
-linux*) platform=linux ;;
-Linux*) platform=linux ;;
-*) platform=unknown ;;
-esac
-
 # How to access local files
 FILEURL="file://${testdata3}"
 

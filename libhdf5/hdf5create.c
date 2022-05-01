@@ -208,6 +208,11 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
         BAIL(NC_EHDFERR);
 #endif
 
+    if (cmode & NC_NODIMSCALE_ATTACH) {
+      /* See https://github.com/Unidata/netcdf-c/issues/2128 */
+      nc4_info->no_dimscale_attach = NC_TRUE;
+    }
+
     if(nc4_info->mem.inmemory) {
         retval = NC4_create_image_file(nc4_info,initialsz);
         if(retval)
@@ -337,7 +342,7 @@ nc4_H5Fcreate(const char *filename0, unsigned flags, hid_t fcpl_id, hid_t fapl_i
 
 #ifdef HDF5_UTF8_PATHS
     NCpath2utf8(filename0,&filename);
-#else    
+#else
     filename = strdup(filename0);
 #endif
     /* Canonicalize it since we are not opening the file ourselves */
