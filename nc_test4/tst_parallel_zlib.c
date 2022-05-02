@@ -61,8 +61,11 @@ main(int argc, char **argv)
       mpi_size, mpi_rank);*/
 
     /* This program must have exactly 4 processors. */
-    if (mpi_size != 4)
-	ERR;
+    if (mpi_size != 4) {
+      printf("Error: mpi_size must be 4 with this test.  mpi_size: %d used.\n",
+             mpi_size);
+      ERR;
+    }
 
 #ifdef USE_MPE
     MPE_Init_log();
