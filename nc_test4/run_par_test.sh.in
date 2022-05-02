@@ -69,3 +69,7 @@ echo
 echo "Parallel I/O test contributed by wkliao from pnetcdf."
 @MPIEXEC@ -n 4 ./tst_parallel6
 
+echo
+echo "Parallel I/O test contributed by dqwu for netCDF hang."
+@MPIEXEC@ -n 16 ./tst_parallel7
+
