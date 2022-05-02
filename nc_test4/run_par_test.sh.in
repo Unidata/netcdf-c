@@ -52,7 +52,6 @@ echo "Parallel I/O test for Collective I/O, contributed by HDF Group."
 if test "@HAS_PAR_FILTERS@" = "yes"; then
     echo
     echo "Parallel I/O test with zlib."
-    @MPIEXEC@ -n 1 ./tst_parallel_zlib
     @MPIEXEC@ -n 4 ./tst_parallel_zlib
 
     echo
