@@ -60,6 +60,10 @@ main(int argc, char **argv)
     /*printf("mpi_name: %s size: %d rank: %d\n", mpi_name,
       mpi_size, mpi_rank);*/
 
+    /* This program must have exactly 4 processors. */
+    if (mpi_size != 4)
+	ERR;
+
 #ifdef USE_MPE
     MPE_Init_log();
     s_init = MPE_Log_get_event_number();
