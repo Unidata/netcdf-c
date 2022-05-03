@@ -93,7 +93,7 @@ IF(BUILD_UTILITIES)
     IF(LARGE_FILE_TESTS)
       IF(NOT USE_PARALLEL)
         add_sh_test(nc_test run_diskless2)
-        SET_TESTS_PROPERTIES(nc_test_run_diskless2 TIMEOUT 3000)
+        SET_TESTS_PROPERTIES(nc_test_run_diskless2 PROPERTIES TIMEOUT 3000)
         ENDIF()
     ENDIF()
 
