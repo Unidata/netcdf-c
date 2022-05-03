@@ -789,6 +789,7 @@ INPUT = \
     @abs_top_srcdir@/libsrc4/ncfunc.c \
     @abs_top_srcdir@/libsrc4/nc4dim.c \
     @abs_top_srcdir@/libsrc4/nc4attr.c \
+    @abs_top_srcdir@/libsrc4/nc4cache.c \
     @abs_top_srcdir@/libhdf5/nc4info.c \
     @abs_top_srcdir@/libsrc4/nc4dispatch.c \
     @abs_top_srcdir@/libnczarr/zarr.c \
