@@ -2037,7 +2037,7 @@ SKIP_FUNCTION_MACROS   = YES
 
 # TAGFILES               = html/guide.tag=./html_guide "html/tutorial.tag = ./html_tutorial"
 #TAGFILES = ../../NUG/html/nug.tag=../../../NUG/html
-TAGFILES = ../../NUG/html/nug.tag=https://docs.unidata.ucar.edu/nug
+#TAGFILES = ../../NUG/html/nug.tag=https://docs.unidata.ucar.edu/nug
 
 # When a file name is specified after GENERATE_TAGFILE, doxygen will create a
 # tag file that is based on the input files it reads. See section "Linking to

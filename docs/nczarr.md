@@ -190,7 +190,7 @@ be a prefix of any other key.
 There several other concepts of note.
 1. __Dataset__ - a dataset is the complete tree contained by the key defining
 the root of the dataset.
-Technically, the root of the tree is the key <dataset>/.zgroup, where .zgroup can be considered the _superblock_ of the dataset.
+Technically, the root of the tree is the key \<dataset\>/.zgroup, where .zgroup can be considered the _superblock_ of the dataset.
 2. __Object__ - equivalent of the S3 object; Each object has a unique key
 and "contains" data in the form of an arbitrary sequence of 8-bit bytes.
 
