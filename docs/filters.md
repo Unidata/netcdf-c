@@ -932,28 +932,40 @@ This is for internal use only.
 
 # Appendix F. Pre-built Filters
 
-As part of the overall build process, a number of filters are built as shared libraries in the "plugins" directory.
-They may be in that directory or the "plugins/.libs" subdirectory.
-It may be possible for users to utilize some of those libraries to provide filter support for general use.
-One simple way to reuse these libraries is to make the environment variable "HDF5_PLUGIN_PATH" refer to the plugin directory or the subdirectory, whichever contains the shared libraries.
-This may not be possible if the user already has other filter shared libraries in use.
+As part of the overall build process, a number of filters are built as shared libraries in the "plugins" directory
+&mdash; in that directory or the "plugins/.libs" subdirectory.
 
-The second way is to copy the necessary shared libraries from the plugins directory to the user's HDF5_PLUGIN_PATH directory.
-If the user is using HDF5, then the following filters are probably usable:
+An option exists to allow some of those filters to be installed into a user-specified directory. The relevant options are as follows:
+````
+./configure: --with-plugin-dir=<absolute-directory-path>
+cmake:       -DPLUGIN_INSTALL_DIR=<absolute-directory-path>
+````
+If the value of the environment variable "HDF5_PLUGIN_PATH" is a single directory, then
+a good value for the install directory is "$HDF5_PLUGIN_PATH", so for example:
+````
+./configure ... --with-plugin-dir="$HDF5_PLUGIN_DIR"
+````
 
-* ''libh5bzip2.so'' -- an HDF5 filter for bzip2 compression
-* ''libh5blosc.so'' -- an HDF5 filter for blosc compression
+If this option is specified, then as part of the "install" build action,
+a specified set of filter shared libraries will be copied into the specified directory.
+Any existing library of the same name will be overwritten. If the specified directory
+itself does not exist, then it will be created.
 
-If the user is using NCZarr filters, then you can install the following additional shared libraries:
+Currently, if the following filters are available, they will be installed;
+* ''libh5bzip2.so'' -- an HDF5 filter wrapper for bzip2 compression
+* ''libh5blosc.so'' -- an HDF5 filter wrapper for blosc compression
+* ''libh5zstd.so'' -- an HDF5 filter wrapper for zstandardcompression
 
+If the user is using NCZarr filters, then the following additional filters will be installed.
 * libh5shuffle.so -- shuffle filter
 * libh5fletcher32.so -- fletcher32 checksum
 * libh5deflate.so -- deflate compression
+* libh5szip.so -- szip compression
 * libnczdefaults.so -- provide NCZarr support for shuffle, fletcher32, and deflate.
+* libnczszip.so -- provide NCZarr support for szip.
 
-The shuffle, fletcher32, and deflate filters in this case will be ignored by HDF5 and only used by the NCZarr code.
-But in order to use them, it needs additional Codec capabilities provided by the libnczdefauts.so shared library.
-Note also that if you disable HDF5 support, but leave NCZarr support enabled, then all of the above filters
+The shuffle, fletcher32, deflate, and szip filters in this case will be ignored by HDF5 and only used by the NCZarr code.
+Note that if you disable HDF5 support, but leave NCZarr support enabled, then all of the above filters
 should continue to work.
 
 # Point of Contact {#filters_poc}
