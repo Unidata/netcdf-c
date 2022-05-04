@@ -623,26 +623,6 @@ ENDIF(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING)
 # 3. is nczarr enabled?
 # We need separate flags for cases 1 and 2
 
-# We need to determine if libsz is available both for HDF5 and NCZarr
-# If user has specified the `SZIP_LIBRARY`, use it; otherwise try to find...
-IF(NOT SZIP_LIBRARY)
-  FIND_LIBRARY(SZIP PATH NAMES szip sz sz2)
-  IF(SZIP)
-    SET(SZIP_LIBRARY ${SZIP})
-  ELSE()
-    UNSET(SZIP_LIBRARY)
-    UNSET(SZIP)
-  ENDIF()
-ENDIF()
-
-IF(SZIP_LIBRARY)
-  SET(SZIP_FOUND yes)
-  SET(HAVE_SZ yes)
-ELSE()
-  SET(SZIP_FOUND no)
-  SET(HAVE_SZ no)
-ENDIF()
-
 ##
 # Option to Enable HDF5
 #
@@ -905,15 +885,6 @@ IF(USE_HDF5)
    int x = 1;}" USE_HDF5_SZIP)
   IF(USE_HDF5_SZIP)
     SET(HAVE_H5Z_SZIP yes)
-    # If user has specified the `SZIP_LIBRARY`, use it; otherwise try to find...
-    IF(SZIP_FOUND)
-      SET(CMAKE_REQUIRED_LIBRARIES ${SZIP_LIBRARY} ${CMAKE_REQUIRED_LIBRARIES})
-      MESSAGE(STATUS "HDF5 has szip.")
-    ELSE()
-        MESSAGE(FATAL_ERROR "HDF5 Requires SZIP, but cannot find libszip or libsz.")
-    ENDIF()
-  ELSE()
-    SET(HAVE_H5Z_SZIP no)  
   ENDIF()
 
   ####
@@ -1114,25 +1085,53 @@ string(TOLOWER "${filter}" downfilter)
 IF(${filter}_FOUND)
   INCLUDE_DIRECTORIES(${filter}_INCLUDE_DIRS})
   SET(ENABLE_${upfilter} TRUE)
-  SET(STD_FILTERS "${STD_FILTERS},${downfilter}")
+  SET(HAVE_${upfilter} ON)
+  SET(STD_FILTERS "${STD_FILTERS} ${downfilter}")
+  MESSAGE(">>> Standard Filter: ${downfilter}")
 ELSE()
   SET(ENABLE_${upfilter} FALSE)
+  SET(HAVE_${upfilter} OFF)
 ENDIF()
 endmacro(set_std_filter)
 
 # Locate some compressors
+FIND_PACKAGE(Szip)
 FIND_PACKAGE(Bz2)
 FIND_PACKAGE(Blosc)
 FIND_PACKAGE(Zstd)
 
 # Accumulate standard filters
-set(STD_FILTERS "deflate") # Always have deflate */
-set_std_filter(SZIP)
+set(STD_FILTERS "deflate") # Always have deflate*/
+set_std_filter(Szip)
+  SET(HAVE_SZ ${Szip_FOUND})
 set_std_filter(Blosc)
 set_std_filter(Zstd)
-set_std_filter(Bz2)
-IF(NOT Bz2_FOUND)
-set(STD_FILTERS "${STD_FILTERS},bzip2") # Always have bzip2 */
+IF(Bz2_FOUND)
+  set_std_filter(Bz2)
+ELSE()
+  # The reason we use a local version is to support a more comples test case
+  MESSAGE(WARNING "libbz2 not found using built-in version")
+  SET(HAVE_LOCAL_BZ2 ON)
+  SET(HAVE_BZ2 ON)
+  set(STD_FILTERS "${STD_FILTERS} bz2")
+ENDIF()
+
+
+# If user wants, then install selected plugins
+SET(PLUGIN_INSTALL_DIR "" CACHE STRING "Whether and where we should install plugins")
+SET(ENABLE_PLUGIN_INSTALL OFF)
+if(DEFINED PLUGIN_INSTALL_DIR OR DEFINED CACHE{PLUGIN_INSTALL_DIR})
+  IF(PLUGIN_INSTALL_DIR STREQUAL "")
+    MESSAGE(WARNING "No plugin directory value specified; option ignored.")  
+    UNSET(PLUGIN_INSTALL_DIR)
+    UNSET(PLUGIN_INSTALL_DIR CACHE)
+    SET(PLUGIN_INSTALL_DIR_SETTING "N.A.")
+  ELSE()
+      SET(PLUGIN_INSTALL_DIR_SETTING "${PLUGIN_INSTALL_DIR}")
+      SET(ENABLE_PLUGIN_INSTALL ON)
+  ENDIF()
+ELSE()
+    SET(PLUGIN_INSTALL_DIR_SETTING "N.A.")
 ENDIF()
 
 # See if we have libzip
@@ -2442,6 +2441,7 @@ is_enabled(ENABLE_V2_API HAS_NC2)
 is_enabled(ENABLE_NETCDF_4 HAS_NC4)
 is_enabled(ENABLE_HDF4 HAS_HDF4)
 is_enabled(USE_HDF5 HAS_HDF5)
+is_enabled(OFF HAS_BENCHMARKS)
 is_enabled(STATUS_PNETCDF HAS_PNETCDF)
 is_enabled(STATUS_PARALLEL HAS_PARALLEL)
 is_enabled(ENABLE_PARALLEL4 HAS_PARALLEL4)
@@ -2465,6 +2465,7 @@ is_enabled(ENABLE_LOGGING HAS_LOGGING)
 is_enabled(ENABLE_FILTER_TESTING DO_FILTER_TESTS)
 is_enabled(HAVE_SZ HAS_SZIP)
 is_enabled(HAVE_SZ HAS_SZLIB_WRITE)
+is_enabled(HAVE_ZSTD HAS_ZSTD)
 
 # Generate file from template.
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
@@ -2518,6 +2519,10 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURREN
 
 IF(ENABLE_NCZARR)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/nczarr_test/findplugin.sh @ONLY NEWLINE_STYLE LF)
+ENDIF()
+
+IF(ENABLE_PLUGINS)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/plugins/findplugin.sh @ONLY NEWLINE_STYLE LF)
 ENDIF()
 
 IF(ENABLE_EXAMPLES)

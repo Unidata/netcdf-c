@@ -52,9 +52,11 @@
 #include "netcdf_filter_build.h"
 #include "netcdf_aux.h"
 
-#undef DEBUG
-#undef DEBUGF
-#undef DEBUGL
+#if 0
+#define DEBUG
+#define DEBUGF
+#define DEBUGL
+#endif
 
 /* If set, then triage potential shared libraries based on extension */
 #define NAMEOPT
@@ -177,7 +179,7 @@ NCJtrace(const NCjson* j)
 const char*
 printplugin(const NCZ_Plugin* plugin)
 {
-    char* plbuf = malloc(4096);
+    static char plbuf[4096];
     char plbuf2[2000];
     char plbuf1[2000];
 
@@ -194,8 +196,7 @@ printplugin(const NCZ_Plugin* plugin)
 static char*
 printparams(size_t nparams, const unsigned* params)
 {
-    char* ppbuf = malloc(4096);
-
+    static char ppbuf[4096];
     if(nparams == 0)
         snprintf(ppbuf,4096,"{0,%p}",params);
     else 
@@ -1378,20 +1379,27 @@ NCZ_load_plugin(const char* path, struct NCZ_Plugin** plugp)
 
     /* See what we have */
     {
-	H5PL_get_plugin_type_proto gpt =  (H5PL_get_plugin_type_proto)ncpgetsymbol(lib,"H5PLget_plugin_type");
-	H5PL_get_plugin_info_proto gpi =  (H5PL_get_plugin_info_proto)ncpgetsymbol(lib,"H5PLget_plugin_info");
-	NCZ_get_codec_info_proto  npi =  (NCZ_get_codec_info_proto)ncpgetsymbol(lib,"NCZ_get_codec_info");
-	NCZ_codec_info_defaults_proto  cpd =  (NCZ_codec_info_defaults_proto)ncpgetsymbol(lib,"NCZ_codec_info_defaults");
+	const H5PL_get_plugin_type_proto gpt =  (H5PL_get_plugin_type_proto)ncpgetsymbol(lib,"H5PLget_plugin_type");
+	const H5PL_get_plugin_info_proto gpi =  (H5PL_get_plugin_info_proto)ncpgetsymbol(lib,"H5PLget_plugin_info");
+	const NCZ_get_codec_info_proto  npi =  (NCZ_get_codec_info_proto)ncpgetsymbol(lib,"NCZ_get_codec_info");
+	const NCZ_codec_info_defaults_proto  cpd =  (NCZ_codec_info_defaults_proto)ncpgetsymbol(lib,"NCZ_codec_info_defaults");
 
 	if(gpt == NULL && gpi == NULL && npi == NULL && cpd == NULL)
 	    {stat = NC_ENOFILTER; goto done;}
 
 	if(cpd != NULL) {
 	    /* Deal with defaults first */
-	    NCZ_codec_t** cp = NULL;
+	    const NCZ_codec_t** cp = NULL;
 	    nclistpush(default_libs,lib);
-	    for(cp=cpd();*cp;cp++) {
+	    cp = (const NCZ_codec_t**)cpd();
+#ifdef DEBUGL
+	    fprintf(stderr,"@@@ %s: default codec library found: %p\n",path,cp);
+#endif
+	    for(;*cp;cp++) {
 		    struct CodecAPI* c0;
+#ifdef DEBUGL
+		    fprintf(stderr,"@@@ %s: %s = %u\n",path,(*cp)->codecid,(*cp)->hdf5id);
+#endif
 		    c0 = (struct CodecAPI*)calloc(1,sizeof(struct CodecAPI));
 		    if(c0 == NULL) {stat = NC_ENOMEM; goto done1;}
 		    c0->codec = *cp;

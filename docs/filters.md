@@ -1064,6 +1064,7 @@ As part of the overall build process, a number of filters are built as shared li
 They may be in that directory or the "plugins/.libs" subdirectory.
 It may be possible for users to utilize some of those libraries to provide filter support for general use.
 
+
     If the user is using NCZarr filters, then the plugins directory has at least the following shared libraries
     * libh5shuffle.so &mdash; shuffle filter
     * libh5fletcher32.so &mdash; fletcher32 checksum
