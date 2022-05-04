@@ -17,10 +17,6 @@ fi
 PARAMS="[log]"
 #PARAMS="${PARAMS}[show=fetch]"
 
-# Determine If we're on OSX or Linux
-
-myplatform=`uname -a | cut -d" " -f 1`
-
 #OCLOGFILE=/dev/null
 OCLOGFILE="" ; export OCLOGFILE
 
@@ -147,8 +143,8 @@ REMOTETESTSCB="dods"
 # Known to fail
 
 XFAILTESTS3=""
-# For now, remove some tests from windows platform.
-if [ `uname | cut -d "_" -f 1` = "MINGW32" ]; then
+# For now, remove some tests from mingw platform.
+if test "x$FP_ISMINGW" = xyes ; then
     XFAILTESTS3="$XFAILTESTS3 test.67"
 fi
 
@@ -239,7 +235,7 @@ for t in ${TESTSET} ; do
   #index=`expr index "${t}" ";"`
   
   #echo index: $index
-  if [ "$myplatform" = "Darwin" ]; then
+  if test "x$FP_ISOSX" = xyes ; then
       index=`echo "${t}" | sed -n "s/;.*//p" | wc -c` 
       if (( $index == 0 )) ; then
 	  constrained=0

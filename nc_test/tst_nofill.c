@@ -486,8 +486,9 @@ main(int argc, char **argv)
        if (nc_close(ncid2)) ERR;
        SUMMARIZE_ERR;
    }
-   FINAL_RESULTS;
+
 #ifdef USE_PNETCDF
    MPI_Finalize();
 #endif
+   FINAL_RESULTS;
 }

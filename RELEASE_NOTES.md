@@ -8,6 +8,7 @@ This file contains a high-level description of this package's evolution. Release
 ## 4.8.2 - TBD
 
 * [Enhancement] Update the documentation to match the current filter capabilities  See [Github #2249](https://github.com/Unidata/netcdf-c/pull/2249).
+* [Enhancement] Support installation of pre-built standard filters into user-specified location. See [Github #2318](https://github.com/Unidata/netcdf-c/pull/2318).
 * [Enhancement] Improve filter support. More specifically (1) add nc_inq_filter_avail to check if a filter is available, (2) add the notion of standard filters, (3) cleanup szip support to fix interaction with NCZarr. See [Github #2245](https://github.com/Unidata/netcdf-c/pull/2245).
 * [Enhancement] Switch to tinyxml2 as the default xml parser implementation. See [Github #2170](https://github.com/Unidata/netcdf-c/pull/2170).
 * [Bug Fix] Require that the type of the variable in nc_def_var_filter is not variable length. See [Github #/2231](https://github.com/Unidata/netcdf-c/pull/2231).
@@ -68,7 +69,7 @@ This file contains a high-level description of this package's evolution. Release
 * [Enhancement] Add some optimizations to NCZarr, dosome cleanup of code cruft, add some NCZarr test cases, add a performance test to NCZarr. See [Github #1908](https://github.com/Unidata/netcdf-c/pull/1908) for more information.
 * [Bug Fix] Implement a better chunk cache system for NCZarr. The cache now uses extendible hashing plus a linked list for provide a combination of expandibility, fast access, and LRU behavior. See [Github #1887](https://github.com/Unidata/netcdf-c/pull/1887) for more information.
 * [Enhancement] Provide .rc fields for S3 authentication: HTTP.S3.ACCESSID and HTTP.S3.SECRETKEY.
-* [Enhancement] Give the client control over what parts of a DAP2 URL are URL encoded (i.e. %xx). This is to support the different decoding rules that servers apply to incoming URLS. See [Github #1884](https://github.com/Unidata/netcdf-c/pull/1844) for more information.
+* [Enhancement] Give the client control over what parts of a DAP2 URL are URL encoded (i.e. %xx). This is to support the different decoding rules that servers apply to incoming URLS. See [Github #1884](https://github.com/Unidata/netcdf-c/pull/1884) for more information.
 * [Bug Fix] Fix incorrect time offsets from `ncdump -t`, in some cases when the time `units` attribute contains both a **non-zero** time-of-day, and a time zone suffix containing the letter "T", such as "UTC".  See [Github #1866](https://github.com/Unidata/netcdf-c/pull/1866) for more information.
 * [Bug Fix] Cleanup the NCZarr S3 build options. See [Github #1869](https://github.com/Unidata/netcdf-c/pull/1869) for more information.
 * [Bug Fix] Support aligned access for selected ARM processors.  See [Github #1871](https://github.com/Unidata/netcdf-c/pull/1871) for more information.
