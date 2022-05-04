@@ -747,7 +747,6 @@ INPUT = \
     @abs_top_srcdir@/docs/byterange.dox \
     @abs_top_srcdir@/docs/nczarr.md \
     @abs_top_srcdir@/docs/notes.md \
-    @abs_top_srcdir@/docs/all-error-codes.md \
     @abs_top_srcdir@/docs/building-with-cmake.md \
     @abs_top_srcdir@/docs/FAQ.md \
     @abs_top_srcdir@/docs/known_problems.md \
