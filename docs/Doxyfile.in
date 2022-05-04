@@ -760,6 +760,7 @@ INPUT = \
     @abs_top_srcdir@/include/netcdf.h \
     @abs_top_srcdir@/include/netcdf_mem.h \
     @abs_top_srcdir@/include/netcdf_par.h \
+    @abs_top_srcdir@/include/netcdf_filter.h \
     @abs_top_srcdir@/libdispatch/dfile.c \
     @abs_top_srcdir@/libdispatch/ddim.c \
     @abs_top_srcdir@/libdispatch/dvar.c \
