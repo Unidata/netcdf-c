@@ -781,6 +781,7 @@ INPUT = \
     @abs_top_srcdir@/libdispatch/derror.c \
     @abs_top_srcdir@/libdispatch/dv2i.c \
     @abs_top_srcdir@/libdispatch/dcopy.c \
+    @abs_top_srcdir@/libdispatch/dfilter.c \
     @abs_top_srcdir@/libsrc4/nc4var.c \
     @abs_top_srcdir@/libhdf5/nc4hdf.c \
     @abs_top_srcdir@/libsrc4/nc4internal.c \
