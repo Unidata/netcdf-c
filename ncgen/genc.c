@@ -99,7 +99,10 @@ genc_netcdf(void)
             if(special->flags & _CHUNKSIZES_FLAG) {
                 int i;
                 size_t* chunks = special->_ChunkSizes;
-                if(special->nchunks == 0 || chunks == NULL) continue;
+                if(special->nchunks == 0 || chunks == NULL) {
+                    bbFree(tmp);
+                    continue;
+                }
                 bbClear(tmp);
                 for(i=0;i<special->nchunks;i++) {
                     bbprintf(tmp,"%s%ld",
