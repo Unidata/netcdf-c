@@ -747,7 +747,6 @@ INPUT = \
     @abs_top_srcdir@/docs/byterange.dox \
     @abs_top_srcdir@/docs/nczarr.md \
     @abs_top_srcdir@/docs/notes.md \
-    @abs_top_srcdir@/docs/all-error-codes.md \
     @abs_top_srcdir@/docs/building-with-cmake.md \
     @abs_top_srcdir@/docs/FAQ.md \
     @abs_top_srcdir@/docs/known_problems.md \
@@ -762,6 +761,7 @@ INPUT = \
     @abs_top_srcdir@/include/netcdf.h \
     @abs_top_srcdir@/include/netcdf_mem.h \
     @abs_top_srcdir@/include/netcdf_par.h \
+    @abs_top_srcdir@/include/netcdf_filter.h \
     @abs_top_srcdir@/libdispatch/dfile.c \
     @abs_top_srcdir@/libdispatch/ddim.c \
     @abs_top_srcdir@/libdispatch/dvar.c \
@@ -782,6 +782,7 @@ INPUT = \
     @abs_top_srcdir@/libdispatch/derror.c \
     @abs_top_srcdir@/libdispatch/dv2i.c \
     @abs_top_srcdir@/libdispatch/dcopy.c \
+    @abs_top_srcdir@/libdispatch/dfilter.c \
     @abs_top_srcdir@/libsrc4/nc4var.c \
     @abs_top_srcdir@/libhdf5/nc4hdf.c \
     @abs_top_srcdir@/libsrc4/nc4internal.c \
@@ -790,6 +791,7 @@ INPUT = \
     @abs_top_srcdir@/libsrc4/ncfunc.c \
     @abs_top_srcdir@/libsrc4/nc4dim.c \
     @abs_top_srcdir@/libsrc4/nc4attr.c \
+    @abs_top_srcdir@/libsrc4/nc4cache.c \
     @abs_top_srcdir@/libhdf5/nc4info.c \
     @abs_top_srcdir@/libsrc4/nc4dispatch.c \
     @abs_top_srcdir@/libnczarr/zarr.c \
@@ -2037,7 +2039,7 @@ SKIP_FUNCTION_MACROS   = YES
 
 # TAGFILES               = html/guide.tag=./html_guide "html/tutorial.tag = ./html_tutorial"
 #TAGFILES = ../../NUG/html/nug.tag=../../../NUG/html
-TAGFILES = ../../NUG/html/nug.tag=https://docs.unidata.ucar.edu/nug
+#TAGFILES = ../../NUG/html/nug.tag=https://docs.unidata.ucar.edu/nug
 
 # When a file name is specified after GENERATE_TAGFILE, doxygen will create a
 # tag file that is based on the input files it reads. See section "Linking to
