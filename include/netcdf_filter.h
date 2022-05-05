@@ -1,5 +1,6 @@
 /* Copyright 2018, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
+/*! @file */
 
 /*
  * In order to use any of the netcdf_XXX.h files, it is necessary
