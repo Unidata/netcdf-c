@@ -127,7 +127,7 @@ run_ut_map.sh run_ut_mapapi.sh run_ut_misc.sh run_ut_chunk.sh run_ncgen4.sh \
 run_nccopyz.sh run_fillonlyz.sh run_chunkcases.sh test_nczarr.sh run_perf_chunks1.sh run_s3_cleanup.sh \
 run_purezarr.sh run_interop.sh run_misc.sh \
 run_filter.sh run_specific_filters.sh \
-run_newformat.sh run_nczarr_fill.sh run_quantize.sh
+run_newformat.sh run_nczarr_fill.sh run_quantize.sh run_nczfilter.sh
 
 EXTRA_DIST += \
 ref_ut_map_create.cdl ref_ut_map_writedata.cdl ref_ut_map_writemeta2.cdl ref_ut_map_writemeta.cdl \
@@ -150,9 +150,65 @@ ref_groups.h5 ref_byte.zarr.zip ref_byte_fill_value_null.zarr.zip \
 ref_groups_regular.cdl ref_byte.cdl ref_byte_fill_value_null.cdl
 
 # Interoperability files
-EXTRA_DIST += ref_power_901_constants.zip ref_power_901_constants.cdl ref_quotes.zip ref_quotes.cdl 
+EXTRA_DIST += ref_power_901_constants.zip ref_power_901_constants.cdl ref_quotes.zip ref_quotes.cdl run_nczfilter.sh
 
-CLEANFILES = ut_*.txt ut*.cdl tmp*.nc tmp*.cdl tmp*.txt tmp*.dmp tmp*.zip tmp*.nc tmp*.dump tmp*.tmp tmp_ngc.c ref_zarr_test_data.cdl
+CLEANFILES = ut_*.txt ut*.cdl tmp*.nc tmp*.cdl tmp*.txt tmp*.dmp		\
+tmp*.zip tmp*.nc tmp*.dump tmp*.tmp tmp_ngc.c ref_zarr_test_data.cdl		\
+tst_*.nc *.zarry *.zattrs							\
+tst_quantize_bitgroom_type_10.nc.zarr/Amsterdam_coffeeshop_location/.zarra	\
+tst_quantize_bitgroom_type_10.nc.zarr/Amsterdam_coffeeshop_location/.zattr	\
+tst_quantize_bitgroom_type_10.nc.zarr/.zattrs					\
+tst_quantize_bitgroom_type_10.nc.zarr/.zgroup					\
+tmp_nczfilter.nc/.zattrs tmp_nczfilter.nc/v/0					\
+tmp_nczfilter.nc/v/.zarray tmp_nczfilter.nc/.zgroup				\
+tst_quantize_bitgroom_type_8.nc.zarr/Amsterdam_coffeeshop_location/.zarray	\
+tst_quantize_bitgroom_type_8.nc.zarr/Amsterdam_coffeeshop_location/.zattrs	\
+tst_quantize_bitgroom_type_8.nc.zarr/.zattrs					\
+tst_quantize_bitgroom_type_8.nc.zarr/.zgroup					\
+tst_quantize.nc.zarr/var1/0 tst_quantize.nc.zarr/var1/.zarray			\
+tst_quantize.nc.zarr/var1/.zattrs tst_quantize.nc.zarr/var2/0			\
+tst_quantize.nc.zarr/var2/.zarray tst_quantize.nc.zarr/var2/.zattrs		\
+tst_quantize.nc.zarr/.zattrs tst_quantize.nc.zarr/.zgroup			\
+tst_quantize_bitgroom_type_4.nc.zarr/Amsterdam_coffeeshop_location/.zarray	\
+tst_quantize_bitgroom_type_4.nc.zarr/Amsterdam_coffeeshop_location/.zattrs	\
+tst_quantize_bitgroom_type_4.nc.zarr/.zattrs					\
+tst_quantize_bitgroom_type_4.nc.zarr/.zgroup					\
+tst_quantize_bitgroom_type_11.nc.zarr/Amsterdam_coffeeshop_location/.zarra	\
+tst_quantize_bitgroom_type_11.nc.zarr/Amsterdam_coffeeshop_location/.zattr	\
+tst_quantize_bitgroom_type_11.nc.zarr/.zattrs					\
+tst_quantize_bitgroom_type_11.nc.zarr/.zgroup					\
+tst_quantize_bitgroom_type_1.nc.zarr/Amsterdam_coffeeshop_location/.zarray	\
+tst_quantize_bitgroom_type_1.nc.zarr/Amsterdam_coffeeshop_location/.zattrs	\
+tst_quantize_bitgroom_type_1.nc.zarr/.zattrs					\
+tst_quantize_bitgroom_type_1.nc.zarr/.zgroup					\
+tst_quantize_bitgroom_type_3.nc.zarr/Amsterdam_coffeeshop_location/.zarray	\
+tst_quantize_bitgroom_type_3.nc.zarr/Amsterdam_coffeeshop_location/.zattrs	\
+tst_quantize_bitgroom_type_3.nc.zarr/.zattrs					\
+tst_quantize_bitgroom_type_3.nc.zarr/.zgroup					\
+tst_quantize_bitgroom_type_2.nc.zarr/Amsterdam_coffeeshop_location/.zarray	\
+tst_quantize_bitgroom_type_2.nc.zarr/Amsterdam_coffeeshop_location/.zattrs	\
+tst_quantize_bitgroom_type_2.nc.zarr/.zattrs					\
+tst_quantize_bitgroom_type_2.nc.zarr/.zgroup					\
+tst_quantize_bitgroom_type_7.nc.zarr/Amsterdam_coffeeshop_location/.zarray	\
+tst_quantize_bitgroom_type_7.nc.zarr/Amsterdam_coffeeshop_location/.zattrs	\
+tst_quantize_bitgroom_type_7.nc.zarr/.zattrs					\
+tst_quantize_bitgroom_type_7.nc.zarr/.zgroup					\
+tst_quantize_bitgroom_type_9.nc.zarr/Amsterdam_coffeeshop_location/.zarray	\
+tst_quantize_bitgroom_type_9.nc.zarr/Amsterdam_coffeeshop_location/.zattrs	\
+tst_quantize_bitgroom_type_9.nc.zarr/.zattrs					\
+tst_quantize_bitgroom_type_9.nc.zarr/.zgroup					\
+tst_quantize_bitgroom_type_10.nc.zarr/Amsterdam_coffeeshop_location/.zarray	\
+tst_quantize_bitgroom_type_10.nc.zarr/Amsterdam_coffeeshop_location/.zattrs	\
+tst_quantize_bitgroom_type_11.nc.zarr/Amsterdam_coffeeshop_location/.zarray	\
+tst_quantize_bitgroom_type_11.nc.zarr/Amsterdam_coffeeshop_location/.zattrs	\
+ref_power_901_constants.file/FRLAND/.zarray					\
+ref_power_901_constants.file/FRLAND/.zattrs					\
+ref_power_901_constants.file/FROCEAN/.zarray					\
+ref_power_901_constants.file/FROCEAN/.zattrs					\
+ref_power_901_constants.file/FRLAKE/.zarray					\
+ref_power_901_constants.file/FRLAKE/.zattrs					\
+ref_power_901_constants.file/FRLANDICE/.zarray					\
+ref_power_901_constants.file/FRLANDICE/.zattrs
 
 BUILT_SOURCES = test_quantize.c test_filter_avail.c run_specific_filters.sh
 test_quantize.c: $(top_srcdir)/nc_test4/tst_quantize.c

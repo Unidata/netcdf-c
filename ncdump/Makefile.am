@@ -217,7 +217,7 @@ EXTRA_DIST += testpathcvt.sh ref_pathcvt.txt
 # CDL files and Expected results
 SUBDIRS = cdl expected
 
-CLEANFILES = tst_*.nc tmp*.nc test*.nc iter.* tmp*.cdl tmp*.txt         \
+CLEANFILES = tst_*.nc tmp*.nc test*.nc iter.* tmp*.cdl tmp*.txt		\
 tst_output_*.cdl tst_output_*.c tst_utf8_*.cdl *.tmp tst_tst8.cdl	\
 tst_netcdf4_*.cdl test1_ncdump.cdl test2_ncdump.cdl test1.cdl		\
 ctest1.cdl test1_cdf5.cdl test2_cdf5.cdl test1_offset.cdl		\
@@ -241,11 +241,10 @@ tst_ncf199.cdl tst_tst_gattenum.cdl tst_tst_usuffix.cdl ctest.c		\
 ctest64.c nccopy3_subset_out.nc camrun.c tst_ncf213.cdl tst_ncf213.nc	\
 tst_radix.nc tmp_radix.cdl ctest_small_3.c ctest_small_4.c		\
 ctest_special_atts_4.c tst_roman_szip_simple.cdl			\
-tst_roman_szip_unlim.cdl tst_perdimpspecs.nc tmppds.*                   \
-keyword1.nc keyword2.nc keyword3.nc keyword4.nc                         \
-tmp_keyword1.cdl tmp_keyword2.cdl tmp_keyword3.cdl tmp_keyword4.cdl     \
-type_*.nc copy_type_*.cdl                                               \
-scope_*.nc copy_scope_*.cdl
+tst_roman_szip_unlim.cdl tst_perdimpspecs.nc tmppds.* keyword1.nc	\
+keyword2.nc keyword3.nc keyword4.nc tmp_keyword1.cdl tmp_keyword2.cdl	\
+tmp_keyword3.cdl tmp_keyword4.cdl keyword5.nc type_*.nc			\
+copy_type_*.cdl scope_*.nc copy_scope_*.cdl
 
 # Remove directories
 clean-local:

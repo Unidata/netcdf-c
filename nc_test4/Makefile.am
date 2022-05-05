@@ -113,16 +113,17 @@ ref_any.cdl tst_specific_filters.sh \
 tst_virtual_datasets.c
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
-tst_floats_1D.cdl floats_1D_3.nc floats_1D.cdl tst_*.nc tmp_*.txt       \
+tst_floats_1D.cdl floats_1D_3.nc floats_1D.cdl tst_*.nc tmp_*.txt	\
 tst_floats2_*.cdl tst_ints2_*.cdl tst_shorts2_*.cdl tst_elena_*.cdl	\
 tst_simple*.cdl tst_chunks.cdl pr_A1.* tauu_A1.* usi_01.* thetau_01.*	\
 tst_*.h5 tst_grp_rename.cdl tst_grp_rename.dmp ref_grp_rename.cdl	\
 foo1.nc tst_*.h4 test.nc testszip.nc test.h5 szip_dump.cdl		\
-perftest.txt bigmeta.nc bigvars.nc *.gz MSGCPP_*.nc	                \
-floats*.nc floats*.cdl shorts*.nc shorts*.cdl ints*.nc ints*.cdl        \
-testfilter_reg.nc filterrepeat.txt tmp_fillonly.nc                      \
-testfilter_order.nc crfilterorder.txt rdfilterorder.txt 1               \
-tmp_*.txt tmp_*.nc tmp*.dump tmp*.cdl tmp*.txt tmp*.tmp tmp_bzip2.c bzip2.nc
+perftest.txt bigmeta.nc bigvars.nc *.gz MSGCPP_*.nc floats*.nc		\
+floats*.cdl shorts*.nc shorts*.cdl ints*.nc ints*.cdl			\
+testfilter_reg.nc filterrepeat.txt tmp_fillonly.nc			\
+testfilter_order.nc crfilterorder.txt rdfilterorder.txt 1 tmp_*.txt	\
+tmp_*.nc tmp*.dump tmp*.cdl tmp*.txt tmp*.tmp tmp_bzip2.c bzip2.nc	\
+noop.nc
 
 DISTCLEANFILES = findplugin.sh run_par_test.sh
 
