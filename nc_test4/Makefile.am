@@ -109,8 +109,14 @@ ref_filteredvv.cdl ref_multi.cdl                                        \
 ref_ncgenF.cdl ref_nccopyF.cdl                                          \
 ref_filter_repeat.txt ref_fillonly.cdl test_fillonly.sh                 \
 ref_filter_order_create.txt ref_filter_order_read.txt			\
-ref_any.cdl tst_specific_filters.sh \
+ref_any.cdl tst_specific_filters.sh                                     \
 tst_virtual_datasets.c
+
+# The tst_filterinstall test can only be run after an install
+# occurred with --with-plugin-dir enabled. So there is no point
+#in running it via make check. It is kept here so it can be
+# manually invoked if desired
+EXTRA_DIST += tst_filterinstall.sh
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
 tst_floats_1D.cdl floats_1D_3.nc floats_1D.cdl tst_*.nc tmp_*.txt	\

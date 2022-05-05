@@ -210,7 +210,7 @@ ref_power_901_constants.file/FRLAKE/.zattrs					\
 ref_power_901_constants.file/FRLANDICE/.zarray					\
 ref_power_901_constants.file/FRLANDICE/.zattrs
 
-BUILT_SOURCES = test_quantize.c test_filter_avail.c run_specific_filters.sh
+BUILT_SOURCES = test_quantize.c test_filter_avail.c run_specific_filters.sh run_filterinstall.sh
 test_quantize.c: $(top_srcdir)/nc_test4/tst_quantize.c
 	rm -f $@
 	echo "#define TESTNCZARR" > $@
@@ -229,6 +229,15 @@ run_specific_filters.sh: $(top_srcdir)/nc_test4/tst_specific_filters.sh
 	tr -d '\r' < run_specific_filters.tmp > $@
 	chmod a+x $@
 	rm -f run_specific_filters.tmp
+
+run_filterinstall.sh: $(top_srcdir)/nc_test4/tst_filterinstall.sh
+	rm -f $@ run_filterinstall.tmp
+	echo "#!/bin/bash" > run_filterinstall.tmp
+	echo "TESTNCZARR=1" >> run_filterinstall.tmp
+	cat $(top_srcdir)/nc_test4/tst_filterinstall.sh >> run_filterinstall.tmp
+	tr -d '\r' < run_filterinstall.tmp > $@
+	chmod a+x $@
+	rm -f run_filterinstall.tmp
 
 # Remove directories
 clean-local:

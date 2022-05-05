@@ -753,7 +753,8 @@ INPUT = \
     @abs_top_srcdir@/docs/COPYRIGHT.md \
     @abs_top_srcdir@/docs/credits.md \
     @abs_top_srcdir@/docs/tutorial.dox \
-    @abs_top_srcdir@/docs/internal.dox \
+    @abs_top_srcdir@/docs/internal.md \
+    @abs_top_srcdir@/docs/dispatch.md \
     @abs_top_srcdir@/docs/inmeminternal.dox \
     @abs_top_srcdir@/docs/indexing.dox \
     @abs_top_srcdir@/docs/testserver.dox \

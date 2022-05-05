@@ -1,12 +1,17 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
 
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#endif
+
 #if defined(_WIN32) && ! defined(__MINGW32__)
 #include "XGetopt.h"
-#else
-#include <getopt.h>
 #endif
 
 #include <netcdf.h>
