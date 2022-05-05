@@ -1079,9 +1079,22 @@ and writable by programs that used older versions of the libraries.
 However, programs linked to older library versions will not be able to
 create new data objects with the new less-restrictive names.
 
-How difficult is it to convert my application to handle arbitrary netCDF-4 files? {#How-difficult-is-it-to-convert-my-application-to-handle-arbitrary-netCDF-4-files}
+Can I use UTF-8 File Names with Windows? {#Can-I-use-UTF-8-File-Names-with-Windows}
 -----------------
 
+Starting with Windows 10 build 17134, Windows can support use of
+the UTF-8 character set. We strongly encourage Windows users to
+enable this feature. This requires the following steps.
+
+1. In the "run" toolbar, execute the command "intl.cpl".
+2. Move to the Administrative tab.
+3. Move to "Change system locale"
+4. Check the box at the bottom labeled something like
+"Beta: Use Unicode UTF-8 for worldwide language support"
+
+
+How difficult is it to convert my application to handle arbitrary netCDF-4 files? {#How-difficult-is-it-to-convert-my-application-to-handle-arbitrary-netCDF-4-files}
+-----------------
 
 Modifying an application to fully support the new enhanced data model
 may be relatively easy or arbitrarily difficult :-), depending on what
