@@ -125,8 +125,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define PUSH_ERR(f,m,s,...) fprintf(stderr,"%s\n",s)
 #endif /*USE_HDF5*/
 
-static int h5z_blosc_initialized = 0;
-
 static size_t blosc_filter(unsigned flags, size_t cd_nelmts,
                     const unsigned cd_values[], size_t nbytes,
                     size_t* buf_size, void** buf);
@@ -162,7 +160,7 @@ herr_t blosc_set_local(hid_t dcpl, hid_t type, hid_t space)
   hid_t super_type;
   H5T_class_t classt;
 
-  r = GET_FILTER(dcpl, FILTER_BLOSC, &flags, &nelements, values, 0, NULL);
+  r = GET_FILTER(dcpl, H5Z_FILTER_BLOSC, &flags, &nelements, values, 0, NULL);
   if (r < 0) return -1;
 
   if (nelements < 4) nelements = 4;  /* First 4 slots reserved. */
@@ -209,7 +207,7 @@ herr_t blosc_set_local(hid_t dcpl, hid_t type, hid_t space)
   fprintf(stderr, "Blosc: Computed buffer size %d\n", bufsize);
 #endif
 
-  r = H5Pmodify_filter(dcpl, FILTER_BLOSC, flags, nelements, values);
+  r = H5Pmodify_filter(dcpl, H5Z_FILTER_BLOSC, flags, nelements, values);
   if (r < 0) return -1;
 
   return 1;
@@ -365,7 +363,7 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
 const H5Z_class2_t blosc_H5Filter[1] = {
     {
         H5Z_CLASS_T_VERS,
-        (H5Z_filter_t)(FILTER_BLOSC),
+        (H5Z_filter_t)(H5Z_FILTER_BLOSC),
         1,                   /* encoder_present flag (set to true) */
         1,                   /* decoder_present flag (set to true) */
         "blosc",
@@ -379,235 +377,3 @@ const H5Z_class2_t blosc_H5Filter[1] = {
 
 H5PL_type_t H5PLget_plugin_type(void) { return H5PL_TYPE_FILTER; }
 const void* H5PLget_plugin_info(void) { return blosc_H5Filter; }
-
-
-/* Provide the codec support for the HDF5 blosc library */
-
-/* NCZarr Filter Objects */
-
-#define DEFAULT_LEVEL		9
-#define DEFAULT_BLOCKSIZE	1
-#define DEFAULT_TYPESIZE	1
-#define DEFAULT_COMPCODE	BLOSC_LZ4
-
-/* Forward */
-static void NCZ_blosc_codec_finalize(void);
-static int NCZ_blosc_codec_to_hdf5(const char* codec, size_t* nparamsp, unsigned** paramsp);
-static int NCZ_blosc_hdf5_to_codec(size_t nparams, const unsigned* params, char** codecp);
-static int NCZ_blosc_modify_parameters(int ncid, int varid, size_t* vnparamsp, unsigned** vparamsp, size_t* wnparamsp, unsigned** wparamsp);
-
-/* Structure for NCZ_PLUGIN_CODEC */
-static NCZ_codec_t NCZ_blosc_codec = {/* NCZ_codec_t  codec fields */ 
-  NCZ_CODEC_CLASS_VER,	/* Struct version number */
-  NCZ_CODEC_HDF5,	/* Struct sort */
-  "blosc",	        /* Standard name/id of the codec */
-  FILTER_BLOSC,	        /* HDF5 alias for blosc */
-  NULL, /*NCZ_blosc_codec_initialize*/
-  NCZ_blosc_codec_finalize,
-  NCZ_blosc_codec_to_hdf5,
-  NCZ_blosc_hdf5_to_codec,
-  NCZ_blosc_modify_parameters,
-};
-
-/* External Export API */
-const void*
-NCZ_get_codec_info(void)
-{
-    if(!h5z_blosc_initialized) {
-	h5z_blosc_initialized = 1;
-	blosc_init();
-    }
-    return (void*)&NCZ_blosc_codec;
-}
-
-/* NCZarr Interface Functions */
-
-/* Create the true parameter set:
-Visible parameters:
-param[0] -- reserved
-param[1] -- reserved
-param[2] -- reserved
-param[3] -- variable chunksize in bytes | 0 (=>default)
-param[4] -- compression level
-param[5] -- BLOSC_SHUFFLE|BLOSC_BITSHUFFLE
-param[6] -- compressor index
-
-Working parameters:
-param[0] -- filter revision
-param[1] -- blosc version
-param[2] -- variable type size in bytes
-param[3] -- variable chunksize in bytes
-param[4] -- compression level
-param[5] -- BLOSC_SHUFFLE|BLOSC_BITSHUFFLE
-param[6] -- compressor index
-*/
-
-static void
-NCZ_blosc_codec_finalize(void)
-{
-    if(h5z_blosc_initialized) {
-        blosc_destroy();
-	h5z_blosc_initialized = 0;
-    }
-}
-
-static int
-NCZ_blosc_modify_parameters(int ncid, int varid, size_t* vnparamsp, unsigned** vparamsp, size_t* wnparamsp, unsigned** wparamsp)
-{
-    int i,stat = NC_NOERR;
-    nc_type vtype;
-    int storage, ndims;
-    size_t* chunklens = NULL;
-    size_t typesize, chunksize;
-    char vname[NC_MAX_NAME+1];
-    unsigned* params = NULL;
-    size_t nparams;
-    size_t vnparams = *vnparamsp;
-    unsigned* vparams = *vparamsp;
-    
-    if(vnparams < 7)
-        {stat = NC_EFILTER; goto done;}
-    nparams = 7;
-
-    if(vparams == NULL)
-        {stat = NC_EFILTER; goto done;}
-
-    if(wnparamsp == NULL || wparamsp == NULL)
-        {stat = NC_EFILTER; goto done;}
-
-    vnparams = *vnparamsp;
-    vparams = *vparamsp;
-
-    /* Get variable info */
-    if((stat = nc_inq_var(ncid,varid,vname,&vtype,&ndims,NULL,NULL))) goto done;
-
-    if(ndims == 0) {stat = NC_EFILTER; goto done;}
-
-    /* Get the typesize */
-    if((stat = nc_inq_type(ncid,vtype,NULL,&typesize))) goto done;
-
-    /* Compute chunksize */
-    if((chunklens = (size_t*)calloc(ndims,sizeof(size_t)))==NULL) goto done;
-    if((stat = nc_inq_var_chunking(ncid,varid,&storage,chunklens))) goto done;
-    if(storage != NC_CHUNKED) {stat = NC_EFILTER; goto done;}
-    chunksize = typesize;
-    for(i=0;i<ndims;i++) chunksize *= chunklens[i];
-
-    if((params = (unsigned*)malloc(vnparams*sizeof(unsigned)))==NULL)
-        {stat = NC_ENOMEM; goto done;}
-    memcpy(params,vparams,vnparams*sizeof(unsigned));
-
-    params[0] = FILTER_BLOSC_VERSION;
-    params[1] = BLOSC_VERSION_FORMAT;
-    params[2] = (unsigned)typesize;
-
-    params[3] = chunksize;
-    params[4] = params[4];
-    params[5] = params[5];
-    params[6] = params[6];
-
-    *wnparamsp = nparams;
-    nullfree(*wparamsp);
-    *wparamsp = params; params = NULL;
-    
-done:
-    nullfree(chunklens);
-    nullfree(params);
-    FUNC_LEAVE_NOAPI(stat)
-}
-
-static int
-NCZ_blosc_codec_to_hdf5(const char* codec_json, size_t* nparamsp, unsigned** paramsp)
-{
-    int stat = NC_NOERR;
-    NCjson* jcodec = NULL;
-    NCjson* jtmp = NULL;
-    unsigned* params = NULL;
-    struct NCJconst jc = {0,0,0,NULL};
-    int compcode;
-
-    /* parse the JSON */
-    if(NCJparse(codec_json,0,&jcodec)) {stat = NC_EFILTER; goto done;}
-    if(NCJsort(jcodec) != NCJ_DICT) {stat = NC_EPLUGIN; goto done;}
-    /* Verify the codec ID */
-    if(NCJdictget(jcodec,"id",&jtmp))
-        {stat = NC_EFILTER; goto done;}
-    if(jtmp == NULL || !NCJisatomic(jtmp)) {stat = NC_EINVAL; goto done;}
-    if(strcmp(NCJstring(jtmp),NCZ_blosc_codec.codecid)!=0) {stat = NC_EINVAL; goto done;}
-
-    if((params = (unsigned*)calloc(7,sizeof(unsigned)))==NULL) {stat = NC_ENOMEM; goto done;}
-
-    /* Get compression level*/
-    if(NCJdictget(jcodec,"clevel",&jtmp)) {stat = NC_EFILTER; goto done;}
-    if(jtmp) {
-        if(NCJcvt(jtmp,NCJ_INT,&jc)) {stat = NC_EFILTER;  goto done;}
-    } else
-        jc.ival = DEFAULT_LEVEL;
-    if(jc.ival < 0 || jc.ival > NC_MAX_UINT) {stat = NC_EFILTER; goto done;}
-    params[4] = (unsigned)jc.ival;
-
-    /* Get blocksize */
-    if(NCJdictget(jcodec,"blocksize",&jtmp)) {stat = NC_EFILTER;  goto done;}
-    if(jtmp) {
-        if(NCJcvt(jtmp,NCJ_INT,&jc)) {stat = NC_EFILTER; goto done;}
-    } else
-        jc.ival = DEFAULT_BLOCKSIZE;
-    if(jc.ival < 0 || jc.ival > NC_MAX_UINT) {stat = NC_EFILTER; goto done;}
-    params[3] = (unsigned)jc.ival;
-
-    /* Get shuffle */
-    if(NCJdictget(jcodec,"shuffle",&jtmp)) {stat = NC_EFILTER; goto done;}
-    if(jtmp) {
-        if(NCJcvt(jtmp,NCJ_INT,&jc)) {stat = NC_EFILTER; goto done;}
-    } else
-        jc.ival = BLOSC_NOSHUFFLE;
-    params[5] = (unsigned)jc.ival;
-
-    /* Get compname */
-    if(NCJdictget(jcodec,"cname",&jtmp)) {stat = NC_EFILTER;  goto done;}
-    if(jtmp) {
-        if(NCJcvt(jtmp,NCJ_STRING,&jc)) {stat = NC_EFILTER; goto done;}
-        if(jc.sval == NULL || strlen(jc.sval) == 0) {stat = NC_EFILTER; goto done;}
-        if((compcode = blosc_compname_to_compcode(jc.sval)) < 0) {stat = NC_EFILTER; goto done;}
-    } else
-        compcode = DEFAULT_COMPCODE;
-    params[6] = (unsigned)compcode;
-
-    if(nparamsp) *nparamsp = 7;
-    if(paramsp) {*paramsp = params; params = NULL;}
-    
-done:
-    if(jc.sval) {
-	free(jc.sval);
-    }
-    if(params) {
-        free(params);
-    }
-    NCJreclaim(jcodec);
-    return stat;
-}
-
-static int
-NCZ_blosc_hdf5_to_codec(size_t nparams, const unsigned* params, char** codecp)
-{
-    int stat = NC_NOERR;
-    char json[1024];
-    const char* compname = NULL;
-
-    if(nparams == 0 || params == NULL)
-        {stat = NC_EINVAL; goto done;}
-
-    /* Get the sub-compressor name */
-    if(blosc_compcode_to_compname((int)params[6],&compname) < 0) {stat = NC_EFILTER; goto done;}
-
-    snprintf(json,sizeof(json),
-	"{\"id\": \"blosc\",\"clevel\": %u,\"blocksize\": %u,\"cname\": \"%s\",\"shuffle\": %d}",
-	params[4],params[3],compname,params[5]);
-
-    if(codecp) {
-        if((*codecp = strdup(json))==NULL) {stat = NC_ENOMEM; goto done;}
-    }
-    
-done:
-    return stat;
-}

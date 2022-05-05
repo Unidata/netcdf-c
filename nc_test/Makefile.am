@@ -86,7 +86,9 @@ endif
 if BUILD_UTILITIES
 TESTS += run_diskless.sh run_diskless5.sh run_inmemory.sh
 if LARGE_FILE_TESTS
+if ! ENABLE_PARALLEL
 TESTS += run_diskless2.sh
+endif
 endif
 if BUILD_MMAP
 TESTS += run_mmap.sh
