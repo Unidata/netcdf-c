@@ -173,7 +173,7 @@ are set when opening a binary file on Windows. */
 #cmakedefine HAVE_ATEXIT 1
 
 /* Define to 1 if bzip2 library available. */
-#cmakedefine HAVE_BZIP2 1
+#cmakedefine HAVE_BZ2 1
 
 /* Define to 1 if zstd library available. */
 #cmakedefine HAVE_ZSTD 1
