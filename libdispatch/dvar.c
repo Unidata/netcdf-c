@@ -148,7 +148,9 @@
    nc_create(), nc_def_grp(), or associated inquiry functions such as
    nc_inq_ncid().
    @param name Variable @ref object_name.
-   @param xtype @ref data_type of the variable.
+   @param xtype (Data
+   type)[https://docs.unidata.ucar.edu/nug/current/md_types.html#data_type]
+   of the variable.
    @param ndims Number of dimensions for the variable. For example, 2
    specifies a matrix, 1 specifies a vector, and 0 means the variable is
    a scalar with no dimensions. Must not be negative or greater than the
@@ -488,7 +490,7 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
    types return an error (NC_EINVAL). 
 
    Variables that use quantize will have added an attribute with name
-   ::NC_QUANTIZE_[ALGORITHM_NAME]_ATT_NAME, which will contain the 
+   NC_QUANTIZE_[ALGORITHM_NAME]_ATT_NAME, which will contain the 
    number of significant digits. Users should not delete or change this
    attribute. This is the only record that quantize has been applied
    to the data.
@@ -640,7 +642,7 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
 
    @note Scalar variables may have a storage of NC_CONTIGUOUS or
    NC_COMPACT. Attempts to set chunking on a scalare variable will
-   cause ::NC_EINVEL to be returned. Only non-scalar variables can
+   cause ::NC_EINVAL to be returned. Only non-scalar variables can
    have chunking.
 
    @param ncid NetCDF ID, from a previous call to nc_open() or
