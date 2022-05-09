@@ -54,16 +54,14 @@ case "$zext" in
     file)
 	# need to unpack
 	rm -fr ref_power_901_constants ref_power_901_constants.file
-	unzip ${srcdir}/ref_power_901_constants.zip > /dev/null
+	unzip ${srcdir}/ref_power_901_constants_orig.zip > /dev/null
 	mv ref_power_901_constants ref_power_901_constants.file
 	testcasefile ref_power_901_constants zarr metaonly; # test xarray as default
 	;;
     zip)
 	# Move into position
-	if test "x$srcdir" != "x$execdir" ; then
-              cp ${srcdir}/ref_power_901_constants.zip ${execdir}
-              cp ${srcdir}/ref_quotes.zip ${execdir}
-	fi
+        cp ${srcdir}/ref_power_901_constants_orig.zip ${execdir}/ref_power_901_constants.zip
+        cp ${srcdir}/ref_quotes_orig.zip ${execdir}/ref_quotes.zip
 	testcasezip ref_power_901_constants xarray metaonly
 	# Test large constant interoperability 
 	testcasezip ref_quotes zarr metaonly
