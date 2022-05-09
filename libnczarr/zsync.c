@@ -22,7 +22,7 @@ static int ncz_sync_var(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose);
 
 static int ncz_jsonize_atts(NCindex* attlist, NCjson** jattrsp);
 static int load_jatts(NCZMAP* map, NC_OBJ* container, int nczarrv1, NCjson** jattrsp, NClist** atypes);
-static int zconvert(nc_type typeid, size_t typelen, void* dst, NCjson* src);
+static int zconvert(nc_type typeid, size_t typelen, NCjson* src, void* dst);
 static int computeattrinfo(const char* name, NClist* atypes, NCjson* values,
 		nc_type* typeidp, size_t* typelenp, size_t* lenp, void** datap);
 static int parse_group_content(NCjson* jcontent, NClist* dimdefs, NClist* varnames, NClist* subgrps);
@@ -41,7 +41,7 @@ static int computeattrdata(nc_type* typeidp, NCjson* values, size_t* typelenp, s
 static int inferattrtype(NCjson* values, nc_type* typeidp);
 static int mininttype(unsigned long long u64, int negative);
 static int computedimrefs(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int purezarr, int xarray, int ndims, NClist* dimnames, size64_t* shapes, NC_DIM_INFO_T** dims);
-static int read_dict(NCjson** valuep);
+static int read_dict(NCjson* jdict, NCjson** jtextp);
 static int write_dict(size_t len, const void* data, NCjson** jsonp);
 
 /**************************************************/
@@ -934,7 +934,7 @@ done:
 
 /* Convert a json value to actual data values of an attribute. */
 static int
-zconvert(nc_type typeid, size_t typelen, void* dst0, NCjson* src)
+zconvert(nc_type typeid, size_t typelen, NCjson* src, void* dst0)
 {
     int stat = NC_NOERR;
     int i;
@@ -1020,6 +1020,7 @@ computeattrdata(nc_type* typeidp, NCjson* values, size_t* typelenp, size_t* lenp
     void* data = NULL;
     size_t typelen;
     nc_type typeid = NC_NAT;
+    NCjson* jtext = NULL;
     int reclaimvalues = 0;
 
     /* Get assumed type */
@@ -1037,7 +1038,9 @@ computeattrdata(nc_type* typeidp, NCjson* values, size_t* typelenp, size_t* lenp
 	break;
     case NCJ_DICT:
 	/* Apply the JSON dictionary convention and convert to string */
-	if((stat = read_dict(&values))) goto done;
+	if((stat = read_dict(values,&jtext))) goto done;
+	values = jtext; jtext = NULL;
+	reclaimvalues = 1;
 	/* fall thru */
     case NCJ_STRING: /* requires special handling as an array of characters; also look out for empty string */
 	if(typeid == NC_CHAR) {
@@ -1060,7 +1063,7 @@ computeattrdata(nc_type* typeidp, NCjson* values, size_t* typelenp, size_t* lenp
         if(data == NULL)
 	    {stat = NC_ENOMEM; goto done;}
         /* convert to target type */
-        if((stat = zconvert(typeid, typelen, data, values)))
+        if((stat = zconvert(typeid, typelen, values, data)))
    	    goto done;
     }
     if(lenp) *lenp = count;
@@ -2322,20 +2325,19 @@ Writing: if the attribute is of type char and looks like a JSON dictionary,
 */
 
 static int
-read_dict(NCjson** jvaluep)
+read_dict(NCjson* jdict, NCjson** jtextp)
 {
     int stat = NC_NOERR;
-    NCjson* jdict = NULL;
     NCjson* jtext = NULL;
     char* text = NULL;
 
-    assert(jvaluep != NULL && *jvaluep != NULL);
-    jdict = *jvaluep;
+    if(jdict == NULL) {stat = NC_EINVAL; goto done;}
     if(NCJsort(jdict) != NCJ_DICT)  {stat = NC_EINVAL; goto done;}
     if(NCJunparse(jdict,0,&text)) {stat = NC_EINVAL; goto done;}
     if(NCJnewstring(NCJ_STRING,text,&jtext)) {stat = NC_EINVAL; goto done;}
-    *jvaluep = jtext;
+    *jtextp = jtext; jtext = NULL;
 done:
+    NCJreclaim(jtext);
     nullfree(text);
     return stat;
 }
@@ -2351,8 +2353,9 @@ write_dict(size_t len, const void* data, NCjson** jsonp)
         {stat = NC_EINVAL; goto done;}
     if(NCJsort(jdict) != NCJ_DICT)
         {stat = NC_EINVAL; goto done;}
-    *jsonp = jdict;
+    *jsonp = jdict; jdict = NULL;
 done:
+    NCJreclaim(jdict);
     return stat;
 }
 
