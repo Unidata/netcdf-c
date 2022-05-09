@@ -4,7 +4,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
 # This shell script tests the output from several previous tests.
-set -x
+
 set -e
 
 echo ""
