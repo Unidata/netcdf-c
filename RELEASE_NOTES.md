@@ -7,8 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.8.2 - TBD
 
-* [Bug Fix] Get "make distcheck" to work See [Github #/????](https://github.com/Unidata/netcdf-c/pull/????).
-
+* [Bug Fix] Get "make distcheck" to work See [Github #/2343](https://github.com/Unidata/netcdf-c/pull/2343).
 * [Enhancement] Update the documentation to match the current filter capabilities  See [Github #2249](https://github.com/Unidata/netcdf-c/pull/2249).
 * [Enhancement] Support installation of pre-built standard filters into user-specified location. See [Github #2318](https://github.com/Unidata/netcdf-c/pull/2318).
 * [Enhancement] Improve filter support. More specifically (1) add nc_inq_filter_avail to check if a filter is available, (2) add the notion of standard filters, (3) cleanup szip support to fix interaction with NCZarr. See [Github #2245](https://github.com/Unidata/netcdf-c/pull/2245).
