@@ -108,12 +108,12 @@ static Test PATHTESTS[] = {
 char* macros[128];
 
 /*Forward */
-#ifdef DEBUG
-static const char* kind2string(int kind);
-#endif
 static char* expand(const char* s);
 static void setmacros(void);
 static void reclaimmacros(void);
+#ifdef DEBUG
+static const char* kind2string(int kind);
+#endif
 
 int
 main(int argc, char** argv)

@@ -68,7 +68,7 @@ The utility ncdump can be used to show the contents of netCDF
 files. By default, ncdump shows the CDL description of the file. This
 CDL description can be fed into ncgen to create the data file.
 
-See also: \ref ncdump_guide
+See also: [The ncdump User's Guide](https://docs.unidata.ucar.edu/nug/current/netcdf_utilities_guide.html#ncdump_guide)
 
 \subsection netcdf_utilities_ncgen ncgen
 
@@ -76,15 +76,15 @@ The ncgen utility can take an ASCII input file, in CDL format, and
 generate a binary netCDF file. It is the opposite of ncdump.
 
 See also:
-- \ref guide_ncgen
-- \ref guide_ncgen3
+- [ncgen](https://docs.unidata.ucar.edu/nug/current/netcdf_utilities_guide.html#guide_ncgen)
+- [ncgen3](https://docs.unidata.ucar.edu/nug/current/netcdf_utilities_guide.html#guide_ncgen3)
 
 \subsection netcdf_utilities_nccopy nccopy
 
 The nccopy utility can copy a netCDF file, changing binary format,
 chunk sizes, compression, and other storage settings.
 
-See also: \ref guide_nccopy
+See also: [nccopy](https://docs.unidata.ucar.edu/nug/current/netcdf_utilities_guide.html#guide_nccopy)
 
 \section external_netcdf_tools Tools for Manipulating NetCDF Files
 
@@ -262,8 +262,9 @@ opaque types.
 </ul>
 
 These features may only be used when working with a netCDF-4/HDF5
-file. Files created in classic formats cannot support
-groups or user-defined types (see \ref netcdf_format).
+file. Files created in classic formats cannot support groups or
+user-defined types (see [NetCDF File
+Formats](https://docs.unidata.ucar.edu/nug/current/netcdf_introduction.html#netcdf_format)).
 
 <p>\image html nc4-model.png
 
@@ -455,7 +456,8 @@ of netCDF-4.
 - \ref example_simple_xy_nc4
 
 The examples are built and run with the “make check” command. (See
-\ref building).
+[Building
+netCDF-C](https://docs.unidata.ucar.edu/nug/current/getting_and_building_netcdf.html#building)).
 
 The corresponding examples in each language create identical netCDF
 data files. For example, the C program sfc_pres_temp_wr.c produces the
@@ -812,11 +814,13 @@ with nc_get_vara()/nc_put_vara().
 
 \page parallel_io Parallel I/O with NetCDF-4
 
-NetCDF-4 provides parallel file access to both classic and netCDF-4/HDF5 files.
-The parallel I/O to netCDF-4 files is achieved through the HDF5 library while
-the parallel I/O to classic files is through PnetCDF. A few functions have been
-added to the netCDF C API to handle parallel I/O. You must build netCDF-4
-properly to take advantage of parallel features (see \ref build_parallel).
+NetCDF-4 provides parallel file access to both classic and
+netCDF-4/HDF5 files.  The parallel I/O to netCDF-4 files is achieved
+through the HDF5 library while the parallel I/O to classic files is
+through PnetCDF. A few functions have been added to the netCDF C API
+to handle parallel I/O. You must build netCDF-4 properly to take
+advantage of parallel features (see [Building with Parallel I/O
+Support](https://docs.unidata.ucar.edu/nug/current/getting_and_building_netcdf.html#build_parallel)).
 
 The nc_open_par() and nc_create_par() functions are used to
 create/open a netCDF file with parallel access.
