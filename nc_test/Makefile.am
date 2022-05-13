@@ -38,11 +38,9 @@ check_PROGRAMS += tst_parallel2 tst_pnetcdf tst_addvar	\
 tst_formatx_pnetcdf tst_default_format_pnetcdf
 endif
 
-if TEST_PARALLEL4
 if USE_PNETCDF
 if ENABLE_CDF5
 check_PROGRAMS += tst_cdf5format
-endif
 endif
 endif
 
@@ -88,7 +86,9 @@ endif
 if BUILD_UTILITIES
 TESTS += run_diskless.sh run_diskless5.sh run_inmemory.sh
 if LARGE_FILE_TESTS
+if ! ENABLE_PARALLEL
 TESTS += run_diskless2.sh
+endif
 endif
 if BUILD_MMAP
 TESTS += run_mmap.sh

@@ -34,7 +34,7 @@
 /* Defined flags for filter invocation (not stored); powers of two */
 #define NCZ_FILTER_DECODE 0x00000001
 
-/* External Discovery Function */
+/* External Discovery Functions */
 
 /*
 Obtain a pointer to an instance of NCZ_codec_class_t.
@@ -42,8 +42,37 @@ Obtain a pointer to an instance of NCZ_codec_class_t.
 NCZ_get_codec_info(void) --  returns pointer to instance of NCZ_codec_class_t.
 			      Instance an be recast based on version+sort to the plugin type specific info.
 So the void* return value is typically actually of type NCZ_codec_class_t*.
+
+Signature: typedef const void* (*NCZ_get_codec_info_proto)(void);
+
+The current object returned by NCZ_get_codec_info is a
+ pointer to an instance of NCZ_codec_t.
+
+The key to this struct are the several function pointers that do
+initialize/finalize and conversion between codec JSON and HDF5
+parameters.  The function pointers defined in NCZ_codec_t
+manipulate HDF5 parameters and NumCodec JSON.
+
+Obtain a pointer to an instance of NCZ_codec_class_t.
+
+NCZ_get_codec_info(void) --  returns pointer to instance of NCZ_codec_class_t.
+			      Instance an be recast based on version+sort to the plugin type specific info.
+So the void* return value is typically actually of type NCZ_codec_class_t*.
 */
 typedef const void* (*NCZ_get_codec_info_proto)(void);
+
+/*
+Obtain a pointer to a NULL terminated vector of NCZ_codec_class_t*.
+
+NCZ_codec_info_defaults(void) --  returns pointer to a vector of pointers to instances of NCZ_codec_class_t. The vector is NULL terminated.
+So the void* return value is typically actually of type NCZ_codec_class_t**.
+
+Signature: typedef const void* (*NCZ_codec_info_defaults_proto)(void);
+
+This entry point is used to return the codec information for
+multiple filters that otherwise do not have codec information defined.
+*/
+typedef const void* (*NCZ_codec_info_defaults_proto)(void);
 
 /* The current object returned by NCZ_get_plugin_info is a
    pointer to an instance of NCZ_codec_t.
@@ -86,7 +115,7 @@ int (*NCZ_hdf5_to_codec)(size_t nparams, const unsigned* params, char** codecp);
 * Convert a set of visible parameters to a set of working parameters using extra environmental information.
 Also allows for changes to the visible parameters. Invoked before filter is actually used.
 
-int (*NCZ_build_parameters)(int ncid, int varid, size_t* vnparamsp, unsigned** vparamsp, size_t* wnparamsp, unsigned** wparamsp);
+int (*NCZ_modify_parameters)(int ncid, int varid, size_t* vnparamsp, unsigned** vparamsp, size_t* wnparamsp, unsigned** wparamsp);
 
 @param ncid -- (in) ncid of the variable's group
 @param varid -- (in) varid of the variable
@@ -96,8 +125,15 @@ int (*NCZ_build_parameters)(int ncid, int varid, size_t* vnparamsp, unsigned** v
 @params wparamsp -- (out) vector of working parameters
 @return -- a netcdf-c error code.
 
-* Convert a set of working parameters to a set of visible parameters using extra environmental information, if needed.
-Invoked before filter metadata is written.
+* Convert an HDF5 vector of visible parameters to a JSON representation.
+
+int (*NCZ_hdf5_to_codec)(size_t nparams, const unsigned* params, char** codecp);
+
+@param nparams -- (in) the length of the HDF5 unsigned vector
+@param params -- (in) pointer to the HDF5 unsigned vector.
+@param codecp -- (out) store the string representation of the codec; caller must free.
+@return -- a netcdf-c error code.
+
 */
 
 /*

@@ -61,6 +61,7 @@ AC_CONFIG_HEADERS([config.h])
 ##
 SAVE_CFLAGS="${CFLAGS}"
 AC_LANG_PUSH([C])
+AC_LANG_COMPILER_REQUIRE
 CFLAGS="${CFLAGS} -fno-strict-aliasing"
 
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
@@ -667,24 +668,21 @@ fi
 AC_MSG_CHECKING([whether libzstd library is available])
 AC_MSG_RESULT([${have_zstd}])
 
-# See if we have libbzip2 or libbz2
-AC_CHECK_LIB([bz2],[BZ2_bzCompress],[have_bzip2=yes],[have_bzip2=no])
-if test "x$have_bzip2" = "xyes" ; then
+# See if we have libbz2
+AC_CHECK_LIB([bz2],[BZ2_bzCompress],[have_bz2=yes],[have_bz2=no])
+if test "x$have_bz2" = "xyes" ; then
      AC_SEARCH_LIBS([BZ2_bzCompress],[bz2 bz2.dll cygbz2.dll], [], [])
-     AC_DEFINE([HAVE_BZIP2], [1], [if true, bz2 library is installed])
+     AC_DEFINE([HAVE_BZ2], [1], [if true, bz2 library is installed])
 fi
 AC_MSG_CHECKING([whether libbz2 library is available])
-AC_MSG_RESULT([${have_bzip2}])
+AC_MSG_RESULT([${have_bz2}])
 
-if test "x$have_bzip2" = "xno" ; then
-AC_CHECK_LIB([bzip2],[BZ2_bzCompress],[have_bzip2=yes],[have_bzip2=no])
-if test "x$have_bzip2" = "xyes" ; then
-   AC_SEARCH_LIBS([BZ2_bzCompress],[bzip2 bzip2.dll cygbzip2.dll], [], [])
-   AC_DEFINE([HAVE_BZIP2], [1], [if true, bzip2 library is installed])
+if test "x$have_bz2" = "xno" ; then
+  have_local_bz2=yes
+else
+  have_local_bz2=no
 fi
-AC_MSG_CHECKING([whether libbzip2 library is available])
-AC_MSG_RESULT([${have_bzip2}])
-fi
+AM_CONDITIONAL(HAVE_LOCAL_BZ2, [test "x$have_local_bz2" = xyes])
 
 # Note that szip management is tricky.
 # This is because we have three things to consider:
@@ -1753,7 +1751,7 @@ AM_CONDITIONAL(HAS_MULTIFILTERS, [test "x$has_multifilters" = xyes])
 AM_CONDITIONAL(HAVE_SZ, [test "x$have_sz" = xyes])
 AM_CONDITIONAL(HAVE_H5Z_SZIP, [test "x$enable_hdf5_szip" = xyes])
 AM_CONDITIONAL(HAVE_BLOSC, [test "x$have_blosc" = xyes])
-AM_CONDITIONAL(HAVE_BZIP2, [test "x$have_bzip2" = xyes])
+AM_CONDITIONAL(HAVE_BZ2, [test "x$have_bz2" = xyes])
 AM_CONDITIONAL(HAVE_ZSTD, [test "x$have_zstd" = xyes])
 
 # If the machine doesn't have a long long, and we want netCDF-4, then
@@ -1839,6 +1837,7 @@ AC_SUBST(HAS_NC2,[$nc_build_v2])
 AC_SUBST(HAS_NC4,[$enable_netcdf_4])
 AC_SUBST(HAS_CDF5,[$enable_cdf5])
 AC_SUBST(HAS_HDF4,[$enable_hdf4])
+AC_SUBST(HAS_BENCHMARKS,[$enable_benchmarks])
 AC_SUBST(HAS_HDF5,[$enable_hdf5])
 AC_SUBST(HAS_PNETCDF,[$enable_pnetcdf])
 AC_SUBST(HAS_LOGGING, [$enable_logging])
@@ -1863,25 +1862,44 @@ AC_SUBST(HAS_SZLIB_WRITE, [$have_sz])
 AC_SUBST(HAS_ZSTD,[$have_zstd])
 
 # Always available
-std_filters="deflate,bzip2"
+std_filters="deflate bz2"
 if test "x$enable_szlib" = xyes ; then
-std_filters="${std_filters},szip"
+std_filters="${std_filters} szip"
 fi
 # We need to include szip iff HDF5 && HDF5_HAS_SZIP || !HDF5 && NCZARR && libsz
 if test "x$enable_hdf5" = xyes && test "x$enable_hdf5_szip" = xyes ; then
-  std_filters="${std_filters},szip"
+  std_filters="${std_filters} szip"
 fi
 if test "x$enable_hdf5" = xno && test "x$have_sz" = xyes ; then
-std_filters="${std_filters},szip"
+std_filters="${std_filters} szip"
 fi
 if test "x$have_blosc" = xyes ; then
-std_filters="${std_filters},blosc"
+std_filters="${std_filters} blosc"
 fi
 if test "x$have_zstd" = xyes ; then
-std_filters="${std_filters},zst"
+std_filters="${std_filters} zstd"
 fi
 
 AC_SUBST(STD_FILTERS,[$std_filters])
+
+# If user wants, then install selected standard filters
+AC_MSG_CHECKING([whether and where we should install plugins])
+AC_ARG_WITH([plugin-dir], [AS_HELP_STRING([--with-plugin-dir=<absolute directory>],
+              [Install selected standard filters in specified directory])])
+AC_MSG_RESULT([$with_plugin_dir])
+if test "x$with_plugin_dir" = x ; then
+    AC_MSG_WARN([No plugin directory value specified; option ignored.])  
+    with_plugin_dir=
+    with_plugin_dir_setting="N.A."
+    enable_plugin_dir=no
+else
+    with_plugin_dir_setting="$with_plugin_dir"
+    enable_plugin_dir=yes
+fi
+AM_CONDITIONAL([ENABLE_PLUGIN_DIR], [test "x$enable_plugin_dir" = xyes])
+AC_SUBST([PLUGIN_INSTALL_DIR], [$with_plugin_dir])
+# Better value for libnetcdf.settings
+AC_SUBST([PLUGIN_INSTALL_DIR_SETTING], [$with_plugin_dir_setting])
 
 # Access netcdf specific version of config.h
 AH_BOTTOM([#include "ncconfigure.h"])
@@ -1928,6 +1946,7 @@ AC_SUBST([NC_VERSION]) NC_VERSION=$VERSION
 AX_SET_META([NC_HAS_NC2],[$nc_build_v2],[yes])
 AX_SET_META([NC_HAS_NC4],[$enable_netcdf_4],[yes])
 AX_SET_META([NC_HAS_HDF4],[$enable_hdf4],[yes])
+AX_SET_META([NC_HAS_BENCHMARKS],[$enable_benchmarks],[yes])
 AX_SET_META([NC_HAS_HDF5],[$enable_hdf5],[yes])
 AX_SET_META([NC_HAS_DAP2],[$enable_dap],[yes])
 AX_SET_META([NC_HAS_DAP4],[$enable_dap4],[yes])
@@ -1971,6 +1990,7 @@ AC_MSG_NOTICE([generating header files and makefiles])
 AC_CONFIG_FILES(test_common.sh:test_common.in)
 AC_CONFIG_FILES(nc_test4/findplugin.sh:nc_test4/findplugin.in)
 AC_CONFIG_FILES(nczarr_test/findplugin.sh:nc_test4/findplugin.in)
+AC_CONFIG_FILES(plugins/findplugin.sh:nc_test4/findplugin.in)
 AC_CONFIG_FILES(examples/C/findplugin.sh:nc_test4/findplugin.in)
 AC_CONFIG_FILES(ncdap_test/findtestserver.c:ncdap_test/findtestserver.c.in)
 AC_CONFIG_FILES(dap4_test/findtestserver4.c:ncdap_test/findtestserver.c.in)
