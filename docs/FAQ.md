@@ -67,7 +67,7 @@ that is part of the netCDF software distribution. It is a command line
 tool that provides a text representation of a netCDF file's data, just its
 metadata, or just the data for specified
 variables, depending on what arguments you use. For more information,
-see the \ref ncdump_guide documentation.
+see the [ncdump User's Guide](https://docs.unidata.ucar.edu/nug/current/netcdf_utilities_guide.html#ncdump_guide) documentation.
 
 Another good tool for conversion of netCDF data to text is the ["ncks" program](http://nco.sourceforge.net/nco.html#ncks-netCDF-Kitchen-Sink) that's one of the utility programs in the [NCO (NetCDF Operators)](software.html#NCO) package. Similar capabilities are available using programs from the [CDO (Climate Data Operators)](software.html#CDO) software, commands from [NCL (NCAR Command Language)](software.html#NCL), or various other packages such as [ANAX](http://science.arm.gov/~cflynn/ARM_Tested_Tools/), cdf2asc, and NOESYS, all "third party" netCDF utilities developed and supported by other organizations. You can find more information about these third-party packages on the [Software for Manipulating or Displaying NetCDF Data](software.html) page.
 
@@ -322,7 +322,7 @@ We test releases on the following operating systems with various compilers:
 -   Solaris
 -   Windows (some versions, see below)
 
-The [NetCDF Installation and Porting Guide](@ref getting_and_building_netcdf) explains how to build netCDF from source on various platforms. Often, it's as easy as running
+The [NetCDF Installation and Porting Guide](https://docs.unidata.ucar.edu/nug/current/getting_and_building_netcdf.html) explains how to build netCDF from source on various platforms. Often, it's as easy as running
 
 ~~~~ {.boldcode}
   ./configure
@@ -483,7 +483,7 @@ How do I build and install netCDF for a specific development environment? {#How-
 You have to build and install the netCDF C library first, before you build and install other language libraries that depend on it, such as Fortran, C++, or Python netCDF libraries. The netCDF Java library is mostly independent of the netCDF C library, unless you need to write netCDF-4 files from Java, in which case you will also need an installed netCDF C library.
 
 For more details, see
-[NetCDF Installation and Porting Guide](@ref getting_and_building_netcdf).
+[NetCDF Installation and Porting Guide](https://docs.unidata.ucar.edu/nug/current/getting_and_building_netcdf.html).
 
 
 ----------
@@ -1079,9 +1079,22 @@ and writable by programs that used older versions of the libraries.
 However, programs linked to older library versions will not be able to
 create new data objects with the new less-restrictive names.
 
-How difficult is it to convert my application to handle arbitrary netCDF-4 files? {#How-difficult-is-it-to-convert-my-application-to-handle-arbitrary-netCDF-4-files}
+Can I use UTF-8 File Names with Windows? {#Can-I-use-UTF-8-File-Names-with-Windows}
 -----------------
 
+Starting with Windows 10 build 17134, Windows can support use of
+the UTF-8 character set. We strongly encourage Windows users to
+enable this feature. This requires the following steps.
+
+1. In the "run" toolbar, execute the command "intl.cpl".
+2. Move to the Administrative tab.
+3. Move to "Change system locale"
+4. Check the box at the bottom labeled something like
+"Beta: Use Unicode UTF-8 for worldwide language support"
+
+
+How difficult is it to convert my application to handle arbitrary netCDF-4 files? {#How-difficult-is-it-to-convert-my-application-to-handle-arbitrary-netCDF-4-files}
+-----------------
 
 Modifying an application to fully support the new enhanced data model
 may be relatively easy or arbitrarily difficult :-), depending on what

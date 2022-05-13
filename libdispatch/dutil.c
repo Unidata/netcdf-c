@@ -211,9 +211,10 @@ NC_mktmp(const char* base)
     int fd = -1;
     char* tmp = NULL;
     size_t len;
+#ifndef HAVE_MKSTEMP
     int tries;
 #define MAXTRIES 4
-#ifdef HAVE_MKSTEMP
+#else
     mode_t mask;
 #endif
 

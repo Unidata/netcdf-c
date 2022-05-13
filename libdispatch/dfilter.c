@@ -2,6 +2,10 @@
  * Copyright 2018, University Corporation for Atmospheric Research
  * See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
+/**
+ * @file
+ * Functions for working with filters. 
+ */
 
 #include "config.h"
 #include <stdlib.h>
@@ -35,21 +39,20 @@ Unified filter related code
 Find the set of filters (if any) associated with a variable.
 Assumes HDF5 format using unsigned ints.
 
-\param ncid NetCDF or group ID, from a previous call to nc_open(),
+@param ncid NetCDF or group ID, from a previous call to nc_open(),
 nc_create(), nc_def_grp(), or associated inquiry functions such as
 nc_inq_ncid().
+@param varid Variable ID
+@param nfiltersp Pointer that gets the number of filters; may be zero.
+@param ids return the filter ids (caller allocates)
 
-\param varid Variable ID
-\param nfilters return no. of filters; may be zero
-\param ids return the filter ids (caller allocates)
-
-\returns ::NC_NOERR No error.
-\returns ::NC_ENOTNC4 Not a netCDF-4 file.
-\returns ::NC_EBADID Bad ncid
-\returns ::NC_ENOTVAR Invalid variable ID.
-\returns ::NC_EINVAL Invalid arguments
-\ingroup variables
-\author Dennis Heimbigner
+@returns ::NC_NOERR No error.
+@returns ::NC_ENOTNC4 Not a netCDF-4 file.
+@returns ::NC_EBADID Bad ncid
+@returns ::NC_ENOTVAR Invalid variable ID.
+@returns ::NC_EINVAL Invalid arguments
+@ingroup variables
+@author Dennis Heimbigner
 */
 EXTERNL int
 nc_inq_var_filter_ids(int ncid, int varid, size_t* nfiltersp, unsigned int* ids)
@@ -69,23 +72,23 @@ Find the the param info about filter (if any)
 associated with a variable and with specified id.
 Assumes HDF5 format using unsigned ints.
 
-\param ncid NetCDF or group ID, from a previous call to nc_open(),
+@param ncid NetCDF or group ID, from a previous call to nc_open(),
 nc_create(), nc_def_grp(), or associated inquiry functions such as
 nc_inq_ncid().
 
-\param varid Variable ID
-\param id The filter id of interest
-\param nparamsp (Out) Storage which will get the number of parameters to the filter
-\param params (Out) Storage which will get associated parameters.
+@param varid Variable ID
+@param id The filter id of interest
+@param nparamsp (Out) Storage which will get the number of parameters to the filter
+@param params (Out) Storage which will get associated parameters.
 Note: the caller must allocate and free.
 
-\returns ::NC_NOERR No error.
-\returns ::NC_ENOTNC4 Not a netCDF-4 file.
-\returns ::NC_EBADID Bad ncid.
-\returns ::NC_ENOTVAR Invalid variable ID.
-\returns ::NC_ENOFILTER Specified filter not defined for this variable.
-\ingroup variables
-\author Dennis Heimbigner
+@returns ::NC_NOERR No error.
+@returns ::NC_ENOTNC4 Not a netCDF-4 file.
+@returns ::NC_EBADID Bad ncid.
+@returns ::NC_ENOTVAR Invalid variable ID.
+@returns ::NC_ENOFILTER Specified filter not defined for this variable.
+@ingroup variables
+@author Dennis Heimbigner
 */
 EXTERNL int
 nc_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparamsp, unsigned int* params)
@@ -109,7 +112,7 @@ done:
    @param varid Variable ID.
    @param id Filter ID.
    @param nparams Number of filter parameters.
-   @param parms Filter parameters.
+   @param params Filter parameters.
 
    @return ::NC_NOERR No error.
    @return ::NC_EINVAL Variable must be chunked.
@@ -141,28 +144,28 @@ done:
 Find the first filter (if any) associated with a variable.
 Assumes HDF5 format using unsigned int.
    
-\param ncid NetCDF or group ID, from a previous call to nc_open(),
+@param ncid NetCDF or group ID, from a previous call to nc_open(),
 nc_create(), nc_def_grp(), or associated inquiry functions such as
 nc_inq_ncid().
 
-\param varid Variable ID
+@param varid Variable ID
 
-\param idp Storage which will get the filter id; a return value of zero means variable has no filters.
+@param idp Storage which will get the filter id; a return value of zero means variable has no filters.
 
-\param nparamsp Storage which will get the number of parameters to the filter
+@param nparamsp Storage which will get the number of parameters to the filter
 
-\param params Storage which will get associated parameters (call allocates and frees).
+@param params Storage which will get associated parameters (call allocates and frees).
 
 This is redundant over the multi-filter API, so
 it can be implemented in terms of those functions.
 
-\returns ::NC_NOERR No error.
-\returns ::NC_ENOTNC4 Not a netCDF-4 file.
-\returns ::NC_EBADID Bad ncid.
-\returns ::NC_ENOTVAR Invalid variable ID.
+@returns ::NC_NOERR No error.
+@returns ::NC_ENOTNC4 Not a netCDF-4 file.
+@returns ::NC_EBADID Bad ncid.
+@returns ::NC_ENOTVAR Invalid variable ID.
 
-\ingroup variables
-\author Dennis Heimbigner
+@ingroup variables
+@author Dennis Heimbigner
 */
 EXTERNL int
 nc_inq_var_filter(int ncid, int varid, unsigned int* idp, size_t* nparamsp, unsigned int* params)
@@ -193,15 +196,17 @@ nc_inq_var_filter(int ncid, int varid, unsigned int* idp, size_t* nparamsp, unsi
     return stat;
 }
 
-/**************************************************/
-/* Test if filter is available. Would prefer
-   returning a list of all available filters, but HDF5
-   does not support that capability.
-   @param file for which filter list is desired
-   @param id filter id of interest
-   @return NC_NOERR if the filter is available
-   @return NC_EBADID if ncid is invalid
-   @return NC_ENOFILTER if filter is not available.
+/** Test if filter is available. Would prefer
+ * returning a list of all available filters, but HDF5
+ * does not support that capability.
+ *
+ * @param ncid ID of file for which filter list is desired
+ * @param id filter id of interest
+ *
+ * @return NC_NOERR if the filter is available
+ * @return NC_EBADID if ncid is invalid
+ * @return NC_ENOFILTER if filter is not available.
+ * @author Dennis Heimbigner
 */
 
 EXTERNL int
@@ -222,7 +227,17 @@ done:
 
 #ifdef ENABLE_CLIENTSIDE_FILTERS
 
-/* Use void* to avoid having to include hdf.h*/
+/** Register filer client.
+ * @note  Use void* to avoid having to include hdf.h
+ *
+ * @param id Filter ID
+ * @param info Pointer that gets info.
+ *
+ * @return NC_NOERR if the filter is available
+ * @return NC_EBADID if ncid is invalid
+ * @return NC_ENOFILTER if filter is not available.
+ * @author Dennis Heimbigner
+*/
 EXTERNL int
 nc_filter_client_register(unsigned int id, void* info)
 {
@@ -244,6 +259,14 @@ nc_filter_client_register(unsigned int id, void* info)
     return stat;
 }
 
+/** Unregister filer client.
+ * @note  Use void* to avoid having to include hdf.h
+ *
+ * @param id Filter ID
+ *
+ * @return NC_NOERR if the filter is available
+ * @author Dennis Heimbigner
+*/
 EXTERNL int
 nc_filter_client_unregister(unsigned int id)
 {
@@ -256,7 +279,15 @@ int stat = NC_NOERR;
     return stat;
 }
 
-/* Use void* to avoid having to include hdf.h*/
+/** Inquire about filer client.
+ * @note  Use void* to avoid having to include hdf.h
+ *
+ * @param id Filter ID
+ * @param infop Pointer that gets info.
+ *
+ * @return NC_NOERR if the filter is available
+ * @author Dennis Heimbigner
+*/
 EXTERNL int
 nc_filter_client_inq(unsigned int id, void* infop)
 {
@@ -286,6 +317,17 @@ int stat = NC_NOERR;
 /**************************************************/
 /* Functions for accessing standardized filters */
 
+/**
+ * Turn on bzip2 compression for a variable.
+ *
+ * @param ncid File ID.
+ * @param varid Variable ID.
+ * @param level From 1 to 9. Set the block size to 100k, 200k ... 900k
+ * when compressing. (bzip2 default level is 9).
+ *
+ * @return 0 for success, error code otherwise.
+ * @author Dennis Heimbigner, Ed Hartnett
+ */
 int
 nc_def_var_bzip2(int ncid, int varid, int level)
 {
@@ -303,6 +345,20 @@ done:
     return stat;
 }
 
+/**
+ * Learn whether bzip2 compression is on for a variable, and, if so,
+ * the level setting.
+ *
+ * @param ncid File ID.
+ * @param varid Variable ID.
+ * @param hasfilterp Pointer that gets a 0 if bzip2 is not in use for this
+ * var, and a 1 if it is. Ignored if NULL.
+ * @param levelp Pointer that gets the level setting (from 1 to 9), if
+ * bzip2 is in use. Ignored if NULL.
+ *
+ * @return 0 for success, error code otherwise.
+ * @author Dennis Heimbigner, Ed Hartnett
+ */
 int
 nc_inq_var_bzip2(int ncid, int varid, int* hasfilterp, int *levelp)
 {
@@ -326,6 +382,20 @@ done:
     return stat;
 }
 
+/**
+ * Turn on Zstandard compression for a variable.
+ *
+ * @param ncid File ID.
+ * @param varid Variable ID.
+ * @param level From -131072 to 22 (depends on Zstandard version). 
+ * when compressing. Regular compression levels are from 1 up to 19.
+ * Use levels >= 20, labeled `--ultra`, cautiously: they require more memory. 
+ * Negative compression levels that extend the range of speed vs. ratio preferences.
+ * The lower the level, the faster the speed (at the cost of compression).
+ *
+ * @return 0 for success, error code otherwise.
+ * @author Charlie Zender, Dennis Heimbigner, Ed Hartnett
+ */
 int
 nc_def_var_zstandard(int ncid, int varid, int level)
 {
@@ -348,6 +418,20 @@ done:
 #endif /*HAVE_ZSTD*/
 }
 
+/**
+ * Learn whether Zstandard compression is on for a variable, and, if so,
+ * the level setting.
+ *
+ * @param ncid File ID.
+ * @param varid Variable ID.
+ * @param hasfilterp Pointer that gets a 0 if Zstandard is not in use for this
+ * var, and a 1 if it is. Ignored if NULL.
+ * @param levelp Pointer that gets the level setting (from -131072 to 22), if
+ * Zstandard is in use. Ignored if NULL.
+ *
+ * @return 0 for success, error code otherwise.
+ * @author Charlie Zender, Dennis Heimbigner, Ed Hartnett
+ */
 int
 nc_inq_var_zstandard(int ncid, int varid, int* hasfilterp, int *levelp)
 {
@@ -375,6 +459,20 @@ done:
 #endif /*HAVE_ZSTD*/
 }
 
+/**
+ * Turn on blosc for a variable.
+ *
+ * @param ncid File ID.
+ * @param varid Variable ID.
+ * @param subcompressor The subcompressor.
+ * @param level The level setting.
+ * @param blocksize The block size.
+ * @param addshuffle If non-zero, turn on shuffle.
+ *
+ * @return 0 for success, error code otherwise.
+ * @author Dennis Heimbigner
+ * @ingroup variables
+ */
 int
 nc_def_var_blosc(int ncid, int varid, unsigned subcompressor, unsigned level, unsigned blocksize, unsigned addshuffle)
 {
@@ -405,8 +503,29 @@ done:
 #endif
 }
 
+/**
+ * Learn whether Blosc compression is on for a variable, and, if so,
+ * the settings.
+ *
+ * @param ncid File ID.
+ * @param varid Variable ID.
+ * @param hasfilterp Pointer that gets a 0 if blosc is not in use for this
+ * var, and a 1 if it is. Ignored if NULL.
+ * @param subcompressorp Pointer that gets the subcompressor, if
+ * blosc is in use. Ignored if NULL.
+ * @param levelp Pointer that gets the level setting, if
+ * blosc is in use. Ignored if NULL.
+ * @param blocksizep Pointer that gets the block size, if
+ * blosc is in use. Ignored if NULL.
+ * @param addshufflep Pointer that gets non-zero value if shuffle is
+ * in use, if blosc is in use. Ignored if NULL.
+ *
+ * @return 0 for success, error code otherwise.
+ * @author Dennis Heimbigner
+ */
 int
-nc_inq_var_blosc(int ncid, int varid, int* hasfilterp, unsigned* subcompressorp, unsigned* levelp, unsigned* blocksizep, unsigned* addshufflep)
+nc_inq_var_blosc(int ncid, int varid, int* hasfilterp, unsigned* subcompressorp,
+		 unsigned* levelp, unsigned* blocksizep, unsigned* addshufflep)
 {
 #ifdef HAVE_BLOSC
     int stat = NC_NOERR;

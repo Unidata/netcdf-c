@@ -4,7 +4,7 @@
 #ifndef NCXML_H
 #define NCXML_H
 
-#ifdef _WIN32
+#ifdef DLL_NETCDF
   #ifdef DLL_EXPORT /* define when building the library */
     #define DECLSPEC __declspec(dllexport)
   #else
