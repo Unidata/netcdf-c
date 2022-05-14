@@ -16,7 +16,7 @@
 include $(top_srcdir)/lib_flags.am
 AM_CPPFLAGS += -I$(top_srcdir)/libsrc
 AM_CPPFLAGS += -DTOPSRCDIR=${abs_top_srcdir}
-AM_CPPFLAGS += -DTOPBINDIR=${abs_top_bindir}
+AM_CPPFLAGS += -DTOPBINDIR=${abs_top_builddir}
 LDADD = ${top_builddir}/liblib/libnetcdf.la
 AM_CPPFLAGS += -I$(top_builddir)/liblib -I$(top_builddir)/include -I$(top_srcdir)/libsrc
 
@@ -107,7 +107,7 @@ endif
 # The .c files that are generated with m4 are already distributed, but
 # we also include the original m4 files, plus test scripts data.
 EXTRA_DIST = test_get.m4 test_put.m4 run_diskless.sh run_diskless2.sh	\
-run_diskless5.sh run_mmap.sh run_pnetcdf_test.sh test_read.m4		\
+run_diskless5.sh run_mmap.sh test_read.m4		\
 test_write.m4 ref_tst_diskless2.cdl tst_diskless5.cdl			\
 ref_tst_diskless3_create.cdl ref_tst_diskless3_open.cdl			\
 run_inmemory.sh run_mmap.sh f03tst_open_mem.nc test_byterange.sh	\

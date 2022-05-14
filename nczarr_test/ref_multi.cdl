@@ -9,7 +9,7 @@ variables:
 		var:_Storage = "chunked" ;
 		var:_ChunkSizes = 4, 4, 4, 4 ;
 		var:_Filter = "307,9|1,2|40000" ;
-		var:_Codecs = "[{\"id\": \"bz2\",\"level\": \"9\"},{\"id\": \"zlib\",\"level\": \"2\"},{\"id\": \"noop0\"}]" ;
+		var:_Codecs = "[{\"id\": \"bz2\",\"level\": \"9\"},{\"id\": \"zlib\",\"level\": \"2\"},{\"id\": \"noop\"}]" ;
 		var:_NoFill = "true" ;
 
 // global attributes:

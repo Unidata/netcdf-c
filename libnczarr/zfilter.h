@@ -32,11 +32,11 @@ int NCZ_filter_initialize(void);
 int NCZ_filter_finalize(void);
 int NCZ_addfilter(NC_FILE_INFO_T*, NC_VAR_INFO_T* var, unsigned int id, size_t nparams, const unsigned int* params);
 int NCZ_filter_setup(NC_VAR_INFO_T* var);
-int NCZ_filter_freelist(NC_VAR_INFO_T* var);
+int NCZ_filter_freelists(NC_VAR_INFO_T* var);
 int NCZ_codec_freelist(NCZ_VAR_INFO_T* zvar);
 int NCZ_applyfilterchain(const NC_FILE_INFO_T*, NC_VAR_INFO_T*, NClist* chain, size_t insize, void* indata, size_t* outlen, void** outdata, int encode);
 int NCZ_filter_jsonize(const NC_FILE_INFO_T*, const NC_VAR_INFO_T*, struct NCZ_Filter* filter, struct NCjson**);
-int NCZ_filter_build(const NC_FILE_INFO_T*, NC_VAR_INFO_T* var, const NCjson* jfilter);
+int NCZ_filter_build(const NC_FILE_INFO_T*, NC_VAR_INFO_T* var, const NCjson* jfilter, int chainindex);
 int NCZ_codec_attr(const NC_VAR_INFO_T* var, size_t* lenp, void* data);
 
 #endif /*ZFILTER_H*/
