@@ -12,7 +12,6 @@ testset() {
 testapi $1
 testng $1
 testncp $1
-testunk $1
 testngc $1
 testmisc $1
 testmulti $1
@@ -51,21 +50,19 @@ sed -e 's/[ 	]*\([^ 	].*\)/\1/' <$1 >$2
 
 # Find misc and capture
 findplugin h5misc
-MISCDIR="${HDF5_PLUGIN_DIR}/${HDF5_PLUGIN_LIB}"
-
-# Find noop and capture
-findplugin h5noop
-NOOPLIB="${HDF5_PLUGIN_LIB}"
-NOOPDIR="${HDF5_PLUGIN_DIR}/${NOOPLIB}"
+MISCLIB="${HDF5_PLUGIN_LIB}"
+MISCDIR="${HDF5_PLUGIN_DIR}"
+MISCPATH="${MISCDIR}/${MISCLIB}"
 
 # Find bzip2 and capture
 findplugin h5bzip2
 BZIP2LIB="${HDF5_PLUGIN_LIB}"
-BZIP2DIR="${HDF5_PLUGIN_DIR}/${BZIP2LIB}"
+BZIP2DIR="${HDF5_PLUGIN_DIR}"
+BZIP2PATH="${BZIP2DIR}/${BZIP2LIB}"
 
 # Verify
-if ! test -f ${BZIP2DIR} ; then echo "Unable to locate ${BZIP2DIR}"; exit 1; fi
-if ! test -f ${MISCDIR} ; then echo "Unable to locate ${MISCDIR}"; exit 1; fi
+if ! test -f ${BZIP2path} ; then echo "Unable to locate ${BZIP2PATH}"; exit 1; fi
+if ! test -f ${MISCPATH} ; then echo "Unable to locate ${MISCPATH}"; exit 1; fi
 
 # Execute the specified tests
 
@@ -130,29 +127,6 @@ ${NCDUMP} -s -n filtered $fileurl > ./tmp_ncp_$zext.txt
 sclean ./tmp_ncp_$zext.txt ./tmp_ncp_$zext.dump
 diff -b -w ${srcdir}/ref_filtered.cdl ./tmp_ncp_$zext.dump
 echo "	*** Pass: nccopy simple filter for map $zext"
-}
-
-testunk() {
-zext=$1	
-echo "*** Testing access to filter info when filter implementation is not available for map $zext"
-fileargs tmp_known
-deletemap $zext $file
-# build noop.nc
-${NCGEN} -lb -4 -o $fileurl ${srcdir}/../nc_test4/noop.cdl
-# dump and clean noop.nc header when filter is avail
-${NCDUMP} -hs $fileurl > ./tmp_known_$zext.txt
-# Remove irrelevant -s output
-sclean ./tmp_known_$zext.txt tmp_known_$zext.dump
-# Now hide the filter code
-mv ${NOOPDIR} ./${NOOPLIB}.save
-# dump and clean noop.nc header when filter is not avail
-${NCDUMP} -hs $fileurl > ./tmp_unk_$zext.txt
-# Restore the filter code
-mv ./${NOOPLIB}.save ${NOOPDIR}
-# Verify that the filter is no longer defined
-UNK=`sed -e '/var:_Filter/p' -e d ./tmp_unk_$zext.txt`
-test "x$UNK" = x
-echo "*** Pass: ncgen dynamic filter for map $zext"
 }
 
 testngc() {

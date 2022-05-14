@@ -1862,10 +1862,10 @@ ENDIF(ENABLE_MMAP)
 #CHECK_FUNCTION_EXISTS(alloca HAVE_ALLOCA)
 
 # Used in the `configure_file` calls below
-SET(ISCMAKE "1")
+SET(ISCMAKE "yes")
 IF(MSVC)
-SET(ISMSVC ON CACHE BOOL "" FORCE)
-SET(REGEDIT ON CACHE BOOL "" FORCE)
+SET(ISMSVC yes CACHE BOOL "" FORCE)
+SET(REGEDIT yes CACHE BOOL "" FORCE)
 # Get windows major version and build number
 EXECUTE_PROCESS(COMMAND "systeminfo" OUTPUT_VARIABLE WININFO)
 IF(WININFO STREQUAL "")
@@ -2509,25 +2509,15 @@ configure_file(
 SET(EXTRA_DIST ${EXTRA_DIST} ${CMAKE_CURRENT_SOURCE_DIR}/test_common.in)
 SET(TOPSRCDIR "${CMAKE_CURRENT_SOURCE_DIR}")
 SET(TOPBUILDDIR "${CMAKE_CURRENT_BINARY_DIR}")
-SET(ISMSVC "${MSVC}")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test_common.in ${CMAKE_CURRENT_BINARY_DIR}/test_common.sh @ONLY NEWLINE_STYLE LF)
 
 #####
-# Build nc_test4/findplugin.sh
+# Build and copy nc_test4/findplugin.sh to various places
 #####
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/nc_test4/findplugin.sh @ONLY NEWLINE_STYLE LF)
-
-IF(ENABLE_NCZARR)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/nczarr_test/findplugin.sh @ONLY NEWLINE_STYLE LF)
-ENDIF()
-
-IF(ENABLE_PLUGINS)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/plugins/findplugin.sh @ONLY NEWLINE_STYLE LF)
-ENDIF()
-
-IF(ENABLE_EXAMPLES)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/examples/C/findplugin.sh @ONLY NEWLINE_STYLE LF)
-ENDIF()
 
 IF(ENABLE_TESTS)
     #####

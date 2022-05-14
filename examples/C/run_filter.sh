@@ -15,11 +15,14 @@ set -e
 
 echo "*** running test_filter example..."
 . ${builddir}/findplugin.sh
+echo "findplugin.sh loaded"
 
 # Locate the plugin path and the library names; argument order is critical
 # Find bzip2 and capture
 findplugin h5bzip2
-BZIP2PATH="${HDF5_PLUGIN_DIR}/${HDF5_PLUGIN_LIB}"
+BZIP2LIB="${HDF5_PLUGIN_LIB}"
+BZIP2DIR="${HDF5_PLUGIN_DIR}"
+BZIP2PATH="${BZIP2DIR}/${BZIP2LIB}"
 
 # Verify
 if ! test -f ${BZIP2PATH} ; then echo "Unable to locate ${BZIP2PATH}"; exit 1; fi

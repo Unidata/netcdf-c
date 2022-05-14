@@ -18,6 +18,8 @@ SET_SOURCE_FILES_PROPERTIES(H5Znoop.c PROPERTIES COMPILE_OPTIONS -DNOOP_INSTANCE
 SET(h5noop1_SOURCES ${CMAKE_CURRENT_BINARY_DIR}/H5Znoop1.c H5Zutil.c h5noop.h)
 SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_BINARY_DIR}/H5Znoop1.c PROPERTIES COMPILE_OPTIONS -DNOOP_INSTANCE=1)
 
+SET(h5unknown_SOURCES H5Zunknown.c)
+
 SET(h5shuffle_SOURCES H5Zshuffle.c)
 SET(h5fletcher32_SOURCES H5Zfletcher32.c H5checksum.c)
 SET(h5deflate_SOURCES H5Zdeflate.c)
@@ -51,6 +53,7 @@ ENDMACRO()
 buildplugin(h5misc "h5misc")
 buildplugin(h5noop "h5noop")
 buildplugin(h5noop1 "h5noop1")
+buildplugin(h5unknown "h5unknown")
 
 buildplugin(h5shuffle "h5shuffle")
 buildplugin(h5fletcher32 "h5fletcher32")
