@@ -576,7 +576,7 @@ NC_rcfile_insert(const char* key, const char* value, const char* hostport, const
 
     if(rc == NULL) {
 	rc = nclistnew();
-	globalstate->rcinfo.triples = rc;
+	globalstate->rcinfo->entries = rc;
 	if(rc == NULL) {ret = NC_ENOMEM; goto done;}
     }
     entry = rclocate(key,hostport,path);
