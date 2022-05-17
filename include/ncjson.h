@@ -56,8 +56,11 @@ struct NCJconst {int bval; long long ival; double dval; char* sval;};
 extern "C" {
 #endif
 
-/* Parse a JSON string */
+/* Parse a string to NCjson*/
 DLLEXPORT int NCJparse(const char* text, unsigned flags, NCjson** jsonp);
+
+/* Parse a counted string to NCjson*/
+DLLEXPORT int NCJparsen(size_t len, const char* text, unsigned flags, NCjson** jsonp);
 
 /* Reclaim a JSON tree */
 DLLEXPORT extern void NCJreclaim(NCjson* json);

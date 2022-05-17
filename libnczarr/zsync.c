@@ -12,13 +12,17 @@
 
 #undef FILLONCLOSE
 
+/*mnemonics*/
+#define DICTOPEN '{'
+#define DICTCLOSE '}'
+
 /* Forward */
 static int ncz_collect_dims(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NCjson** jdimsp);
 static int ncz_sync_var(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose);
 
 static int ncz_jsonize_atts(NCindex* attlist, NCjson** jattrsp);
 static int load_jatts(NCZMAP* map, NC_OBJ* container, int nczarrv1, NCjson** jattrsp, NClist** atypes);
-static int zconvert(nc_type typeid, size_t typelen, void* dst, NCjson* src);
+static int zconvert(nc_type typeid, size_t typelen, NCjson* src, void* dst);
 static int computeattrinfo(const char* name, NClist* atypes, NCjson* values,
 		nc_type* typeidp, size_t* typelenp, size_t* lenp, void** datap);
 static int parse_group_content(NCjson* jcontent, NClist* dimdefs, NClist* varnames, NClist* subgrps);
@@ -37,6 +41,8 @@ static int computeattrdata(nc_type* typeidp, NCjson* values, size_t* typelenp, s
 static int inferattrtype(NCjson* values, nc_type* typeidp);
 static int mininttype(unsigned long long u64, int negative);
 static int computedimrefs(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int purezarr, int xarray, int ndims, NClist* dimnames, size64_t* shapes, NC_DIM_INFO_T** dims);
+static int read_dict(NCjson* jdict, NCjson** jtextp);
+static int write_dict(size_t len, const void* data, NCjson** jsonp);
 
 /**************************************************/
 /**************************************************/
@@ -791,6 +797,7 @@ done:
 Note that this does not push to the file.
 Also note that attributes of length 1 are stored as singletons, not arrays.
 This is to be more consistent with pure zarr.
+Also implements the JSON dictionary convention.
 @param attlist - [in] the attributes to dictify
 @param jattrsp - [out] the json'ized att list
 @return NC_NOERR
@@ -800,7 +807,7 @@ static int
 ncz_jsonize_atts(NCindex* attlist, NCjson** jattrsp)
 {
     int stat = NC_NOERR;
-    int i;
+    int i, isdict;
     NCjson* jattrs = NULL;
     NCjson* akey = NULL;
     NCjson* jdata = NULL;
@@ -810,9 +817,18 @@ ncz_jsonize_atts(NCindex* attlist, NCjson** jattrsp)
     /* Iterate over the attribute list */
     for(i=0;i<ncindexsize(attlist);i++) {
 	NC_ATT_INFO_T* att = (NC_ATT_INFO_T*)ncindexith(attlist,i);
+	isdict = 0;
 	/* Create the attribute dict value*/
-	if((stat = NCZ_stringconvert(att->nc_typeid,att->len,att->data,&jdata)))
-	    goto done;
+	if(att->nc_typeid == NC_CHAR
+	   && ((char*)att->data)[0] == DICTOPEN
+   	   && ((char*)att->data)[att->len-1] == DICTCLOSE) {
+	    /* this is subject to the JSON dictionary convention? */
+	    if(write_dict(att->len,att->data,&jdata)==NC_NOERR) isdict=1;
+	}
+	if(!isdict) {
+	    if((stat = NCZ_stringconvert(att->nc_typeid,att->len,att->data,&jdata)))
+	        goto done;
+	}
 	if((stat = NCJinsert(jattrs,att->hdr.name,jdata))) goto done;
 	jdata = NULL;
     }
@@ -933,7 +949,7 @@ done:
 
 /* Convert a json value to actual data values of an attribute. */
 static int
-zconvert(nc_type typeid, size_t typelen, void* dst0, NCjson* src)
+zconvert(nc_type typeid, size_t typelen, NCjson* src, void* dst0)
 {
     int stat = NC_NOERR;
     int i;
@@ -1019,6 +1035,7 @@ computeattrdata(nc_type* typeidp, NCjson* values, size_t* typelenp, size_t* lenp
     void* data = NULL;
     size_t typelen;
     nc_type typeid = NC_NAT;
+    NCjson* jtext = NULL;
     int reclaimvalues = 0;
 
     /* Get assumed type */
@@ -1026,12 +1043,20 @@ computeattrdata(nc_type* typeidp, NCjson* values, size_t* typelenp, size_t* lenp
     if(typeid == NC_NAT) if((stat = inferattrtype(values,&typeid))) goto done;
     if(typeid == NC_NAT) {stat = NC_EBADTYPE; goto done;}
 
+    if((stat = NC4_inq_atomic_type(typeid, NULL, &typelen)))
+        goto done;
+
     /* Collect the length of the attribute; might be a singleton  */
     switch (NCJsort(values)) {
-    case NCJ_DICT: stat = NC_ENCZARR; goto done;
     case NCJ_ARRAY:
 	count = NCJlength(values);
 	break;
+    case NCJ_DICT:
+	/* Apply the JSON dictionary convention and convert to string */
+	if((stat = read_dict(values,&jtext))) goto done;
+	values = jtext; jtext = NULL;
+	reclaimvalues = 1;
+	/* fall thru */
     case NCJ_STRING: /* requires special handling as an array of characters; also look out for empty string */
 	if(typeid == NC_CHAR) {
 	    count = strlen(NCJstring(values));
@@ -1044,10 +1069,8 @@ computeattrdata(nc_type* typeidp, NCjson* values, size_t* typelenp, size_t* lenp
 	break;
     }
 
-    if(count > 0) {
+    if(count > 0 && data == NULL) {
         /* Allocate data space */
-        if((stat = NC4_inq_atomic_type(typeid, NULL, &typelen)))
-	    goto done;
         if(typeid == NC_CHAR)
             data = malloc(typelen*(count+1));
         else
@@ -1055,7 +1078,7 @@ computeattrdata(nc_type* typeidp, NCjson* values, size_t* typelenp, size_t* lenp
         if(data == NULL)
 	    {stat = NC_ENOMEM; goto done;}
         /* convert to target type */
-        if((stat = zconvert(typeid, typelen, data, values)))
+        if((stat = zconvert(typeid, typelen, values, data)))
    	    goto done;
     }
     if(lenp) *lenp = count;
@@ -1094,7 +1117,9 @@ inferattrtype(NCjson* value, nc_type* typeidp)
     case NCJ_NULL:
         typeid = NC_CHAR;
 	return NC_NOERR;
-    case NCJ_DICT: /* fall thru */
+    case NCJ_DICT:
+    	typeid = NC_CHAR;
+	goto done;
     case NCJ_UNDEF:
 	return NC_EINVAL;
     default: /* atomic */
@@ -2302,42 +2327,48 @@ done:
     return THROW(stat);
 }
 
-#if 0
-Not currently used
-Special compatibility case:
-       if the value of the attribute is a dictionary,
-       or an array with non-atomic values, then
-       then stringify it and pretend it is of char type.
-/* Return 1 if this json is not an
-atomic value or an array of atomic values.
-That is, it does not look like valid
-attribute data.
+/**
+Implement the JSON convention for dictionaries.
+
+Reading: If the value of the attribute is a dictionary, then stringify
+         it as the value and make the attribute be of type "char".
+
+Writing: if the attribute is of type char and looks like a JSON dictionary,
+	 then parse it as JSON and use that as its value in .zattrs.
 */
+
 static int
-iscomplexjson(NCjson* j)
+read_dict(NCjson* jdict, NCjson** jtextp)
 {
-    int i;
-    switch(NCJsort(j)) {
-    case NCJ_ARRAY:
-	/* verify that the elements of the array are not complex */
-	for(i=0;i<NCJlength(j);i++) {
-	    switch (NCJith(j,NCJsort(i)))) {
-	    case NCJ_DICT:
-    	    case NCJ_ARRAY:
-	    case NCJ_UNDEF:
-	    case NCJ_NULL:
-		return 1;
-	    default: break;
-	    }
-	}
-	return 0;
-    case NCJ_DICT:
-    case NCJ_UNDEF:
-    case NCJ_NULL:
-	break;
-    default:
-        return 0;
-    }
-    return 1;
+    int stat = NC_NOERR;
+    NCjson* jtext = NULL;
+    char* text = NULL;
+
+    if(jdict == NULL) {stat = NC_EINVAL; goto done;}
+    if(NCJsort(jdict) != NCJ_DICT)  {stat = NC_EINVAL; goto done;}
+    if(NCJunparse(jdict,0,&text)) {stat = NC_EINVAL; goto done;}
+    if(NCJnewstring(NCJ_STRING,text,&jtext)) {stat = NC_EINVAL; goto done;}
+    *jtextp = jtext; jtext = NULL;
+done:
+    NCJreclaim(jtext);
+    nullfree(text);
+    return stat;
 }
-#endif
+
+static int
+write_dict(size_t len, const void* data, NCjson** jsonp)
+{
+    int stat = NC_NOERR;
+    NCjson* jdict = NULL;
+
+    assert(jsonp != NULL);
+    if(NCJparsen(len,(char*)data,0,&jdict))
+        {stat = NC_EINVAL; goto done;}
+    if(NCJsort(jdict) != NCJ_DICT)
+        {stat = NC_EINVAL; goto done;}
+    *jsonp = jdict; jdict = NULL;
+done:
+    NCJreclaim(jdict);
+    return stat;
+}
+
