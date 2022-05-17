@@ -1,9 +1,10 @@
 netcdf ref_oldformat {
 dimensions:
+	lat = 8 ;
 	_zdim_8 = 8 ;
 	_zdim_10 = 10 ;
 variables:
-	int lat(_zdim_8) ;
+	int lat(lat) ;
 		lat:_FillValue = -1 ;
 		lat:lat_attr = "latitude" ;
 data:
