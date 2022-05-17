@@ -8,6 +8,8 @@ This file contains a high-level description of this package's evolution. Release
 ## 4.8.2 - TBD
 
 
+* [Enhancement] Allow the read/write of JSON-valued Zarr attributes to allow
+for domain specific info such as used by GDAL/Zarr. See [Github #????](https://github.com/Unidata/netcdf-c/pull/????).
 * [Enhancement] Turn on the XArray convention for NCZarr files by default. WARNING, this means that the mode should explicitly specify nczarr" or "zarr" even if "xarray" or "noxarray" is specified. See [Github #2257](https://github.com/Unidata/netcdf-c/pull/2257).
 * [Enhancement] Update the documentation to match the current filter capabilities  See [Github #2249](https://github.com/Unidata/netcdf-c/pull/2249).
 * [Enhancement] Support installation of pre-built standard filters into user-specified location. See [Github #2318](https://github.com/Unidata/netcdf-c/pull/2318).
