@@ -31,9 +31,11 @@ main() {
         if(fwrite(TRUNCATED_FILE_CONTENT, sizeof(char), sizeof(TRUNCATED_FILE_CONTENT), fp) != sizeof(TRUNCATED_FILE_CONTENT)) ERR;
         fclose(fp);
 
-        int  ncid;
-        int stat=nc_open(FILE_NAME, 0, &ncid);
-        if (stat != NC_EHDFERR && stat != NC_ENOTNC) ERR;
+
+        int  ncid, stat;
+        stat = nc_open(FILE_NAME, 0, &ncid);
+        if (stat != NC_EHDFERR && stat != NC_ENOFILTER && stat != NC_ENOTNC) ERR;
+
     }
 
     {
