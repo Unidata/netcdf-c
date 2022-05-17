@@ -5,6 +5,9 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 set -e
 
+# Disable automatic path conversions in MINGW shell:
+export MSYS2_ARG_CONV_EXCL='*'
+
 # We need to find the drive letter, if any
 DL=`${NCPATHCVT} -c -e / | sed -e 's|/cygdrive/\([a-zA-Z]\)/.*|\1|'`
 if test "x$DL" != x ; then
@@ -12,6 +15,7 @@ if test "x$DL" != x ; then
   DLL=`echo "$DL" | tr '[:upper:]' '[:lower:]'`
   DL="-d $DLL"
 fi
+
 
 testcase1() {
 T="$1"

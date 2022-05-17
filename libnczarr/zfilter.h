@@ -25,16 +25,6 @@
 #define plugin_dir_win "%s/hdf5/lib/plugin"
 #define win32_root_env "ALLUSERSPROFILE"
 
-/*
-Return a NULL terminated vector of pointers to instances of ''NCZ_codec_t''.
-The value returned is actually of type ''NCZ_codec_t**'',
-but is of type ''void*'' to allow for extensions.
-The list of returned items are used to try to provide defaults
-for any HDF5 filters that have no corresponding Codec.
-This is for internal use only.
-*/
-typedef void* (*NCZ_codec_info_defaults_proto)(void);
-
 /* Opaque */
 struct NCZ_Filter;
 

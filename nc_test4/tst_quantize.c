@@ -10,6 +10,7 @@
    Dennis Heimbigner, 1/16/22
 */
 
+#include <math.h> /* Define fabs(), powf(), round() */
 #include <nc_tests.h>
 #include "err_macros.h"
 #include "netcdf.h"
@@ -66,7 +67,7 @@ pd(double myd)
 	uint64_t u;
     } du;
     du.d = myd;
-    sprintf(pf_str, "0x%lx", (unsigned long)du.u);
+    sprintf(pf_str, "0x%llx", (unsigned long long)du.u);
     return pf_str;
 }
 
@@ -116,10 +117,10 @@ main(int argc, char **argv)
         if (nc_def_var_quantize(ncid, NC_GLOBAL, NC_QUANTIZE_BITGROOM, NSD_3) != NC_EGLOBAL) ERR;
         if (nc_def_var_quantize(ncid, varid2 + 1, NC_QUANTIZE_BITGROOM, NSD_3) != NC_ENOTVAR) ERR;
         /* Invalid values. */
-        if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_GRANULARBR + 1, NSD_3) != NC_EINVAL) ERR;
+        if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITROUND + 1, NSD_3) != NC_EINVAL) ERR;
         if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, -1) != NC_EINVAL) ERR;
         if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, NC_QUANTIZE_MAX_FLOAT_NSD + 1) != NC_EINVAL) ERR;
-        if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_GRANULARBR + 1, 3) != NC_EINVAL) ERR;
+        if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITROUND + 1, 3) != NC_EINVAL) ERR;
         if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM, -1) != NC_EINVAL) ERR;
         if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM, NC_QUANTIZE_MAX_DOUBLE_NSD + 1) != NC_EINVAL) ERR;
         if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM, 0) != NC_EINVAL) ERR;
@@ -292,8 +293,8 @@ main(int argc, char **argv)
             /* printf ("\nfloat_data: %10f   : 0x%x  float_data_in: %10f   : 0x%x\n", */
             /*         float_data[0], fout.u, float_data[0], fin.u); */
             if (fin.u != 0x3f8e3000) ERR;
-            /* printf ("\ndouble_data: %15g   : 0x%16lx  double_data_in: %15g   : 0x%lx\n", */
-            /*         double_data[0], dfout.u, double_data[0], dfin.u); */
+            /* printf ("\ndouble_data: %15g   : 0x%16llx  double_data_in: %15g   : 0x%llx\n", */
+	    /*          double_data[0], dfout.u, double_data[0], dfin.u);*/
 	    if (dfin.u != 0x3ff1c60000000000) ERR;
 
             /* Close the file again. */
@@ -352,7 +353,7 @@ main(int argc, char **argv)
             /* printf ("\nfloat_data: %10f   : 0x%x  float_data_in: %10f   : 0x%x\n", */
             /*         float_data[0], fout.u, float_data[0], fin.u); */
             if (fin.u != 0x3f8e3000) ERR;
-            /* printf ("\ndouble_data: %15g   : 0x%16lx  double_data_in: %15g   : 0x%lx\n", */
+            /* printf ("\ndouble_data: %15g   : 0x%16llx  double_data_in: %15g   : 0x%llx\n", */
             /*         double_data[0], dfout.u, double_data[0], dfin.u); */
 	    if (dfin.u != 0x3ff1c60000000000) ERR;
 
@@ -433,8 +434,8 @@ main(int argc, char **argv)
                 if (fin.u != xpect[x].u) ERR;
                 /* dfout.d = double_data[x];		 */
 		dfin.d = double_in[x];
-                /* printf("double_data: %15g   : 0x%16lx  double_data_in: %15g   : 0x%16lx\n", */
-		/*        double_data[x], dfout.u, double_data[x], dfin.u); */
+                /*printf("double_data: %15g   : 0x%16llx  double_data_in: %15g   : 0x%16llx\n",*/
+		/*		       double_data[x], dfout.u, double_data[x], dfin.u);*/
                 if (dfin.u != double_xpect[x].u) ERR;
             }
 
@@ -584,8 +585,8 @@ main(int argc, char **argv)
                 if (fin.u != xpect[x].u) ERR;
                 /* dfout.d = double_data[x];		 */
 		dfin.d = double_in[x];
-                /* printf("double_data: %15g   : 0x%16lx  double_data_in: %15g   : 0x%16lx\n", */
-		/*        double_data[x], dfout.u, double_data[x], dfin.u); */
+		/*                printf("double_data: %15g   : 0x%16llx  double_data_in: %15g   : 0x%16llx\n",*/
+		/*		        double_data[x], dfout.u, double_data[x], dfin.u);*/
                 if (dfin.u != double_xpect[x].u) ERR;
             }
 
@@ -872,8 +873,8 @@ main(int argc, char **argv)
 		dfin.d = double_data_in[x];
 		/* printf ("%d float_data_in : %08.8f   : 0x%x expected %08.8f   : 0x%x\n", */
 		/* 	x, float_data_in[x], fin.u, xpect[x].f, xpect[x].u); */
-		/* printf ("%d double_data_in : %15g   : 0x%lx expected %15g   : 0x%lx\n", */
-		/* 	x, double_data_in[x], dfin.u, double_xpect[x].d, double_xpect[x].u); */
+		/*		printf ("%d double_data_in : %15g   : 0x%llx expected %15g   : 0x%llx\n",*/
+		/*		 	x, double_data_in[x], dfin.u, double_xpect[x].d, double_xpect[x].u);*/
 		if (fin.u != xpect[x].u)
 		    ERR;
 		if (dfin.u != double_xpect[x].u)
@@ -956,9 +957,9 @@ main(int argc, char **argv)
 
 	    for (i = 0; i < DIM_LEN_SIMPLE; i++)
 	    {
-		if (abs(float_data_in[i] - float_data[i]) > EPSILON)
+		if (fabs(float_data_in[i] - float_data[i]) > EPSILON)
 		    ERR;
-		if (abs(double_data_in[i] - double_data[i]) > EPSILON)
+		if (fabs(double_data_in[i] - double_data[i]) > EPSILON)
 		    ERR;
 	    }
 

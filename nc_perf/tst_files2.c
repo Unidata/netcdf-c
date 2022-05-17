@@ -45,7 +45,7 @@ get_mem_used1(int *mem_used)
    system(cmd);
 
    /* Read the results and delete temp file. */
-   if (!(fp = fopen(TMP_FILE_NAME, "r"))) ERR;
+   if (!(fp = NCfopen(TMP_FILE_NAME, "r"))) ERR;
    fread(blob, MAX_LEN, 1, fp);
    sscanf(blob, "%d", mem_used);
    fclose(fp);
@@ -60,7 +60,7 @@ get_mem_used2(int *mem_used)
    FILE *pf;
 
    snprintf(buf, 30, "/proc/%u/statm", (unsigned)getpid());
-   pf = fopen(buf, "r");
+   pf = NCfopen(buf, "r");
    if (pf) {
       unsigned size; /*       total program size */
       unsigned resident;/*   resident set size */

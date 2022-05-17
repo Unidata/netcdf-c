@@ -157,12 +157,6 @@ are set when opening a binary file on Windows. */
 /* if true, Allow dynamically loaded plugins */
 #cmakedefine ENABLE_PLUGINS 1
 
-/* Do we have access to the Windows Registry */
-#cmakedefine REGEDIT 1
-
-/* define the possible sources for remote test servers */
-#cmakedefine REMOTETESTSERVERS	"${REMOTETESTSERVERS}"
-
 /* if true, run extra tests which may not work yet */
 #cmakedefine EXTRA_TESTS 1
 
@@ -179,7 +173,7 @@ are set when opening a binary file on Windows. */
 #cmakedefine HAVE_ATEXIT 1
 
 /* Define to 1 if bzip2 library available. */
-#cmakedefine HAVE_BZIP2 1
+#cmakedefine HAVE_BZ2 1
 
 /* Define to 1 if zstd library available. */
 #cmakedefine HAVE_ZSTD 1
@@ -299,7 +293,7 @@ are set when opening a binary file on Windows. */
 #cmakedefine HAVE_LIBPNETCDF 1
 
 /* Define to 1 if you have the libxml2 library. */
-#cmakedefine HAVE_LIBXML2 1
+#cmakedefine ENABLE_LIBXML2 1
 
 /* Define to 1 if you have the <locale.h> header file. */
 #cmakedefine HAVE_LOCALE_H 1
@@ -358,12 +352,6 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the <stdlib.h> header file. */
 #cmakedefine HAVE_STDLIB_H 1
 
-/* Define to 1 if you have the `strdup' function. */
-#cmakedefine HAVE_STRDUP 1
-
-/* Define to 1 if you have the `strndup` function. */
-#cmakedefine HAVE_STRNDUP
-
 /* Define to 1 if you have the <strings.h> header file. */
 #cmakedefine HAVE_STRINGS_H 1
 
@@ -378,6 +366,15 @@ are set when opening a binary file on Windows. */
 
 /* Define to 1 if you have the <libgen.h> header file. */
 #cmakedefine HAVE_LIBGEN_H 1
+
+/* Define to 1 if you have the `strdup' function. */
+#cmakedefine HAVE_STRDUP 1
+
+/* Define to 1 if you have the `strndup` function. */
+#cmakedefine HAVE_STRNDUP
+
+/* Define to 1 if you have the `strcasecmp` function. */
+#cmakedefine HAVE_STRCASECMP
 
 /* Define to 1 if you have the `strlcat' function. */
 #cmakedefine HAVE_STRLCAT 1
@@ -507,6 +504,12 @@ with zip */
 /* Define to the version of this package. */
 #cmakedefine PACKAGE_VERSION "${netCDF_VERSION}"
 
+/* Do we have access to the Windows Registry */
+#cmakedefine REGEDIT 1
+
+/* define the possible sources for remote test servers */
+#cmakedefine REMOTETESTSERVERS	"${REMOTETESTSERVERS}"
+
 /* The size of `ulonglong` as computed by sizeof. */
 #cmakedefine SIZEOF_ULONGLONG @SIZEOF_ULONGLONG@
 
@@ -624,6 +627,10 @@ with zip */
 
 /* Version number of package */
 #cmakedefine VERSION "${netCDF_VERSION}"
+
+/* Capture  Windows version and build */
+#cmakedefine WINVERMAJOR ${WINVERMAJOR}
+#cmakedefine WINVERBUILD ${WINVERBUILD}
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */

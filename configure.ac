@@ -61,6 +61,7 @@ AC_CONFIG_HEADERS([config.h])
 ##
 SAVE_CFLAGS="${CFLAGS}"
 AC_LANG_PUSH([C])
+AC_LANG_COMPILER_REQUIRE
 CFLAGS="${CFLAGS} -fno-strict-aliasing"
 
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
@@ -105,6 +106,15 @@ if test "x$MSYSTEM" != x ; then
 ISMINGW=yes
 ISMSYS=yes
 fi
+
+# Get windows version info
+WINVER=`systeminfo | sed -e '/^OS Version:/p' -ed | sed -e 's|[^0-9]*\([0-9.]*\).*|\1|'`
+WINVERMAJOR=`echo $WVER | sed -e 's|\([^.]*\)[.]\([^.]*\)[.]\(.*\)|\1|'`
+WINVERBUILD=`echo $WVER | sed -e 's|\([^.]*\)[.]\([^.]*\)[.]\(.*\)|\3|'`
+if test "x$WINVERMAJOR" = x ; then WINVERMAJOR=0; fi
+if test "x$WINVERBUILD" = x ; then WINVERBUILD=0; fi
+AC_DEFINE_UNQUOTED([WINVERMAJOR], [$WINVERMAJOR], [windows version major])
+AC_DEFINE_UNQUOTED([WINVERBUILD], [$WINVERBUILD], [windows version build])
 
 AC_MSG_NOTICE([checking supported formats])
 
@@ -523,6 +533,45 @@ fi
 
 CFLAGS="$SAVECFLAGS"
 
+###
+# Libxml2 control block.
+###
+
+AC_MSG_CHECKING([whether to search for and use external libxml2])
+AC_ARG_ENABLE([libxml2],
+              [AS_HELP_STRING([--disable-libxml2],
+                              [disable detection and use of libxml2 in favor of the bundled ezxml interpreter])])
+test "x$enable_libxml2" = xno || enable_libxml2=yes
+AC_MSG_RESULT([$enable_libxml2])
+
+have_libxml2=no
+if test "x$enable_libxml2" = xyes; then
+  # We can optionally use libxml2 for DAP4, if available
+  AC_CHECK_LIB([xml2],[xmlReadMemory],[have_libxml2=yes],[have_libxml2=no])
+  if test "x$have_libxml2" = "xyes" ; then
+      AC_SEARCH_LIBS([xmlReadMemory],[xml2 xml2.dll cygxml2.dll], [],[])
+  fi
+  if test "x$have_libxml2" = xyes; then
+     XML2FLAGS=`xml2-config --cflags`
+     AC_SUBST([XML2FLAGS],${XML2FLAGS})
+     AC_DEFINE([HAVE_LIBXML2], [1], [if true, use libxml2])
+  fi
+fi
+
+if test "x$enable_libxml2" = xyes; then
+XMLPARSER="libxml2"
+else
+XMLPARSER="tinyxml2 (bundled)"
+fi
+
+# Need a condition and subst for this
+AM_CONDITIONAL(ENABLE_LIBXML2, [test "x$enable_libxml2" = xyes])
+AC_SUBST([XMLPARSER],[${XMLPARSER}])
+
+###
+# End Libxml2 block
+###
+
 # --enable-dap => enable-dap4
 enable_dap4=$enable_dap
 AC_MSG_CHECKING([whether dap remote testing should be enabled])
@@ -619,24 +668,21 @@ fi
 AC_MSG_CHECKING([whether libzstd library is available])
 AC_MSG_RESULT([${have_zstd}])
 
-# See if we have libbzip2 or libbz2
-AC_CHECK_LIB([bz2],[BZ2_bzCompress],[have_bzip2=yes],[have_bzip2=no])
-if test "x$have_bzip2" = "xyes" ; then
+# See if we have libbz2
+AC_CHECK_LIB([bz2],[BZ2_bzCompress],[have_bz2=yes],[have_bz2=no])
+if test "x$have_bz2" = "xyes" ; then
      AC_SEARCH_LIBS([BZ2_bzCompress],[bz2 bz2.dll cygbz2.dll], [], [])
-     AC_DEFINE([HAVE_BZIP2], [1], [if true, bz2 library is installed])
+     AC_DEFINE([HAVE_BZ2], [1], [if true, bz2 library is installed])
 fi
 AC_MSG_CHECKING([whether libbz2 library is available])
-AC_MSG_RESULT([${have_bzip2}])
+AC_MSG_RESULT([${have_bz2}])
 
-if test "x$have_bzip2" = "xno" ; then
-AC_CHECK_LIB([bzip2],[BZ2_bzCompress],[have_bzip2=yes],[have_bzip2=no])
-if test "x$have_bzip2" = "xyes" ; then
-   AC_SEARCH_LIBS([BZ2_bzCompress],[bzip2 bzip2.dll cygbzip2.dll], [], [])
-   AC_DEFINE([HAVE_BZIP2], [1], [if true, bzip2 library is installed])
+if test "x$have_bz2" = "xno" ; then
+  have_local_bz2=yes
+else
+  have_local_bz2=no
 fi
-AC_MSG_CHECKING([whether libbzip2 library is available])
-AC_MSG_RESULT([${have_bzip2}])
-fi
+AM_CONDITIONAL(HAVE_LOCAL_BZ2, [test "x$have_local_bz2" = xyes])
 
 # Note that szip management is tricky.
 # This is because we have three things to consider:
@@ -1094,50 +1140,20 @@ AC_CHECK_FUNCS([strlcat snprintf strcasecmp fileno \
 AC_CHECK_FUNCS([clock_gettime])
 AC_CHECK_TYPES([struct timespec])
 
-# disable dap4 if netcdf-4 is disabled
-#if test "x$enable_netcdf_4" = "xno" ; then
+# disable dap4 if hdf5 is disabled
 if test "x$enable_hdf5" = "xno" ; then
     AC_MSG_WARN([netcdf-4 not enabled; disabling DAP4])
     enable_dap4=no
 fi
 
+if test "x$ISOSX" = xyes && "x$have_libxml2" = xno ; then
+  AC_MSG_ERROR([Error: OSX requires libxml2 => --disable-dap4.])
+  enable_dap4=no
+fi
+
 if test "x$enable_dap4" = xyes; then
    AC_DEFINE([ENABLE_DAP4], [1], [if true, build DAP4 Client])
 fi
-
-###
-# Libxml2 control block.
-###
-
-AC_MSG_CHECKING([whether to search for and use external libxml2])
-AC_ARG_ENABLE([libxml2],
-              [AS_HELP_STRING([--disable-libxml2],
-                              [disable detection and use of libxml2 in favor of the bundled ezxml interpreter])])
-test "x$disable_libxml2" = xyes && enable_libxml2=no
-AC_MSG_RESULT($enable_libxml2)
-
-AC_SUBST([XMLPARSER],"ezxml")
-if test "x$enable_libxml2" = xyes; then
-# We can optionally use libxml2 for DAP4, if available
-  AC_CHECK_LIB([xml2],[xmlReadMemory],[have_libxml2=yes],[have_libxml2=no])
-  if test "x$have_libxml2" = "xyes" ; then
-      AC_SEARCH_LIBS([xmlReadMemory],[xml2 xml2.dll cygxml2.dll], [],[])
-      AC_SUBST([XMLPARSER],"libxml2")
-  fi
-  if test "x$have_libxml2" = xyes; then
-     XML2FLAGS=`xml2-config --cflags`
-     AC_SUBST([XML2FLAGS],${XML2FLAGS})
-     AC_DEFINE([HAVE_LIBXML2], [1], [if true, use libxml2])
-  fi
-
-fi
-
-  # Need a condition for this
-  AM_CONDITIONAL(HAVE_LIBXML2, [test "x$have_libxml2" = xyes])
-
-###
-# End Libxml2 block
-###
 
 # check for useful, but not essential, memio support
 AC_CHECK_FUNCS([memmove getpagesize sysconf])
@@ -1173,7 +1189,11 @@ if test "x$havemapanon" != xyes ; then
 fi
 
 if test "x$have_mmap" != xyes ; then
-  echo "mmap functionality is not available: disabling mmap"
+  if test "x$enable_mmap" = xyes ; then
+     AC_MSG_WARN([mmap functionality is not available: disabling mmap])
+  else
+     AC_MSG_NOTICE([mmap functionality is not available: disabling mmap])
+  fi
   enable_mmap=no
 fi
 
@@ -1253,7 +1273,7 @@ AC_FUNC_ALLOCA
 AC_CHECK_DECLS([isnan, isinf, isfinite],,,[#include <math.h>])
 AC_STRUCT_ST_BLKSIZE
 UD_CHECK_IEEE
-AC_CHECK_TYPES([size_t, ssize_t, schar, uchar, longlong, ushort, uint, int64, uint64, size64_t, ssize64_t, _off64_t, uint64_t])
+AC_CHECK_TYPES([size_t, ssize_t, schar, uchar, longlong, ushort, uint, int64, uint64, size64_t, ssize64_t, _off64_t, uint64_t, ptrdiff_t])
 AC_TYPE_OFF_T
 AC_TYPE_UINTPTR_T
 AC_C_CHAR_UNSIGNED
@@ -1266,6 +1286,8 @@ AM_CONDITIONAL(ISMINGW, [test "x$ISMINGW" = xyes])
 AM_CONDITIONAL(ISMSYS, [test "x$ISMSYS" = xyes])
 
 AC_SUBST([ISMSVC], [${ISMSVC}])
+  AC_SUBST([WINVERMAJOR], [${WINVERMAJOR}])
+  AC_SUBST([WINVERBUILD], [${WINVERBUILD}])
 AC_SUBST([ISCYGWIN], [${ISCYGWIN}])
 AC_SUBST([ISOSX], [${ISOSX}])
 AC_SUBST([ISMINGW], [${ISMINGW}])
@@ -1729,7 +1751,7 @@ AM_CONDITIONAL(HAS_MULTIFILTERS, [test "x$has_multifilters" = xyes])
 AM_CONDITIONAL(HAVE_SZ, [test "x$have_sz" = xyes])
 AM_CONDITIONAL(HAVE_H5Z_SZIP, [test "x$enable_hdf5_szip" = xyes])
 AM_CONDITIONAL(HAVE_BLOSC, [test "x$have_blosc" = xyes])
-AM_CONDITIONAL(HAVE_BZIP2, [test "x$have_bzip2" = xyes])
+AM_CONDITIONAL(HAVE_BZ2, [test "x$have_bz2" = xyes])
 AM_CONDITIONAL(HAVE_ZSTD, [test "x$have_zstd" = xyes])
 
 # If the machine doesn't have a long long, and we want netCDF-4, then
@@ -1815,6 +1837,7 @@ AC_SUBST(HAS_NC2,[$nc_build_v2])
 AC_SUBST(HAS_NC4,[$enable_netcdf_4])
 AC_SUBST(HAS_CDF5,[$enable_cdf5])
 AC_SUBST(HAS_HDF4,[$enable_hdf4])
+AC_SUBST(HAS_BENCHMARKS,[$enable_benchmarks])
 AC_SUBST(HAS_HDF5,[$enable_hdf5])
 AC_SUBST(HAS_PNETCDF,[$enable_pnetcdf])
 AC_SUBST(HAS_LOGGING, [$enable_logging])
@@ -1836,27 +1859,47 @@ AC_SUBST(HAS_LOGGING,[$enable_logging])
 AC_SUBST(DO_FILTER_TESTS,[$enable_filter_testing])
 AC_SUBST(HAS_SZLIB,[$have_sz])
 AC_SUBST(HAS_SZLIB_WRITE, [$have_sz])
+AC_SUBST(HAS_ZSTD,[$have_zstd])
 
 # Always available
-std_filters="deflate,bzip2"
+std_filters="deflate bz2"
 if test "x$enable_szlib" = xyes ; then
-std_filters="${std_filters},szip"
+std_filters="${std_filters} szip"
 fi
 # We need to include szip iff HDF5 && HDF5_HAS_SZIP || !HDF5 && NCZARR && libsz
 if test "x$enable_hdf5" = xyes && test "x$enable_hdf5_szip" = xyes ; then
-  std_filters="${std_filters},szip"
+  std_filters="${std_filters} szip"
 fi
 if test "x$enable_hdf5" = xno && test "x$have_sz" = xyes ; then
-std_filters="${std_filters},szip"
+std_filters="${std_filters} szip"
 fi
 if test "x$have_blosc" = xyes ; then
-std_filters="${std_filters},blosc"
+std_filters="${std_filters} blosc"
 fi
 if test "x$have_zstd" = xyes ; then
-std_filters="${std_filters},zst"
+std_filters="${std_filters} zstd"
 fi
 
 AC_SUBST(STD_FILTERS,[$std_filters])
+
+# If user wants, then install selected standard filters
+AC_MSG_CHECKING([whether and where we should install plugins])
+AC_ARG_WITH([plugin-dir], [AS_HELP_STRING([--with-plugin-dir=<absolute directory>],
+              [Install selected standard filters in specified directory])])
+AC_MSG_RESULT([$with_plugin_dir])
+if test "x$with_plugin_dir" = x ; then
+    AC_MSG_WARN([No plugin directory value specified; option ignored.])  
+    with_plugin_dir=
+    with_plugin_dir_setting="N.A."
+    enable_plugin_dir=no
+else
+    with_plugin_dir_setting="$with_plugin_dir"
+    enable_plugin_dir=yes
+fi
+AM_CONDITIONAL([ENABLE_PLUGIN_DIR], [test "x$enable_plugin_dir" = xyes])
+AC_SUBST([PLUGIN_INSTALL_DIR], [$with_plugin_dir])
+# Better value for libnetcdf.settings
+AC_SUBST([PLUGIN_INSTALL_DIR_SETTING], [$with_plugin_dir_setting])
 
 # Access netcdf specific version of config.h
 AH_BOTTOM([#include "ncconfigure.h"])
@@ -1903,6 +1946,7 @@ AC_SUBST([NC_VERSION]) NC_VERSION=$VERSION
 AX_SET_META([NC_HAS_NC2],[$nc_build_v2],[yes])
 AX_SET_META([NC_HAS_NC4],[$enable_netcdf_4],[yes])
 AX_SET_META([NC_HAS_HDF4],[$enable_hdf4],[yes])
+AX_SET_META([NC_HAS_BENCHMARKS],[$enable_benchmarks],[yes])
 AX_SET_META([NC_HAS_HDF5],[$enable_hdf5],[yes])
 AX_SET_META([NC_HAS_DAP2],[$enable_dap],[yes])
 AX_SET_META([NC_HAS_DAP4],[$enable_dap4],[yes])
@@ -1919,7 +1963,9 @@ AX_SET_META([NC_HAS_BYTERANGE],[$enable_byterange],[yes])
 AX_SET_META([NC_HAS_NCZARR],[$enable_nczarr],[yes])
 AX_SET_META([NC_HAS_MULTIFILTERS],[$has_multifilters],[yes])
 AX_SET_META([NC_HAS_LOGGING],[$enable_logging],[yes])
+AX_SET_META([NC_HAS_QUANTIZE],[yes],[yes])
 AX_SET_META([NC_HAS_SZIP],[$enable_hdf5_szip],[yes])
+AX_SET_META([NC_HAS_ZSTD],[$have_zstd],[yes])
 
 # This is the version of the dispatch table. If the dispatch table is
 # changed, this should be incremented, so that user-defined format
@@ -1944,11 +1990,13 @@ AC_MSG_NOTICE([generating header files and makefiles])
 AC_CONFIG_FILES(test_common.sh:test_common.in)
 AC_CONFIG_FILES(nc_test4/findplugin.sh:nc_test4/findplugin.in)
 AC_CONFIG_FILES(nczarr_test/findplugin.sh:nc_test4/findplugin.in)
+AC_CONFIG_FILES(plugins/findplugin.sh:nc_test4/findplugin.in)
 AC_CONFIG_FILES(examples/C/findplugin.sh:nc_test4/findplugin.in)
 AC_CONFIG_FILES(ncdap_test/findtestserver.c:ncdap_test/findtestserver.c.in)
 AC_CONFIG_FILES(dap4_test/findtestserver4.c:ncdap_test/findtestserver.c.in)
 AC_CONFIG_FILES(dap4_test/pingurl4.c:ncdap_test/pingurl.c)
 AC_CONFIG_FILES([h5_test/run_par_tests.sh], [chmod ugo+x h5_test/run_par_tests.sh])
+AC_CONFIG_FILES([nc_test/run_pnetcdf_tests.sh], [chmod ugo+x nc_test/run_pnetcdf_tests.sh])
 AC_CONFIG_FILES([nc_test4/run_par_test.sh], [chmod ugo+x nc_test4/run_par_test.sh])
 AC_CONFIG_FILES([nc_perf/run_par_bm_test.sh], [chmod ugo+x nc_perf/run_par_bm_test.sh])
 AC_CONFIG_FILES([nc_perf/run_gfs_test.sh], [chmod ugo+x nc_perf/run_gfs_test.sh])

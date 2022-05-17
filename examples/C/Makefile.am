@@ -7,14 +7,15 @@
 
 # Un comment to use a more verbose test driver
 #SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#TESTS_ENVIRONMENT = export SETX=1;
 
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
 
-AM_CPPFLAGS += -I$(top_srcdir)/include
-AM_CPPFLAGS += -I$(top_builddir)/liblib
-AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la -lm
+# Link to our assembled library.
+LDADD = ${top_builddir}/liblib/libnetcdf.la
 
 # These are the netCDF-3 examples.
 check_PROGRAMS = simple_xy_wr simple_xy_rd sfc_pres_temp_wr	\
@@ -34,10 +35,12 @@ check_PROGRAMS += simple_nc4_wr simple_nc4_rd simple_xy_nc4_wr	\
 simple_xy_nc4_rd
 TESTS += run_examples4.sh
 
+if BUILD_UTILITIES
 if ENABLE_FILTER_TESTING
 # filter_example.c should be same as nc_test4/test_filter.c
 check_PROGRAMS += filter_example
 TESTS += run_filter.sh
+endif
 endif
 
 endif #USE_HDF5
