@@ -823,8 +823,8 @@ nc_def_var_endian(int ncid, int varid, int endian)
  *
  * To learn the szip settings for a variable, use nc_inq_var_szip().
  *
- * @note The options_mask parameter may be either NC_SZIP_EC (entropy
- * coding) or NC_SZIP_NN (nearest neighbor):
+ * @note The options_mask parameter may be either ::NC_SZIP_EC (entropy
+ * coding) or ::NC_SZIP_NN (nearest neighbor):
  * * The entropy coding method is best suited for data that has been
  * processed. The EC method works best for small numbers.
  * * The nearest neighbor coding method preprocesses the data then the
@@ -837,8 +837,8 @@ nc_def_var_endian(int ncid, int varid, int endian)
  *
  * @param ncid File ID.
  * @param varid Variable ID.
- * @param options_mask The options mask. Can be NC_SZIP_EC or
- * NC_SZIP_NN.
+ * @param options_mask The options mask. Can be ::NC_SZIP_EC or
+ * ::NC_SZIP_NN.
  * @param pixels_per_block Pixels per block. Must be even and not
  * greater than 32, with typical values being 8, 10, 16, or 32. This
  * parameter affects compression ratio; the more pixel values vary,

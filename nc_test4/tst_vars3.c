@@ -13,8 +13,6 @@
 
 #define NC_SZIP_EC_BPP_IN 32  /**< @internal bits per pixel input. */
 #define NC_SZIP_EC_BPP_OUT 64  /**< @internal bits per pixel output. */
-#define NC_SZIP_NN 32 /**< @internal SZIP NN option mask. */
-#define NC_SZIP_EC 4  /**< @internal SZIP EC option mask. */
 
 #define FILE_NAME "tst_vars3.nc"
 #define NDIMS1 1
