@@ -136,16 +136,18 @@ Note that It should be the case that zipping a _file_
 format directory tree will produce a file readable by the
 _zip_ storage format, and vice-versa.
 
-By default, _mode=zarr_ also supports the XArray _\_ARRAY\_DIMENSIONS_ convention. The _noxarray_ mode tells the library to disable the XArray support.
+By default, the XArray convention is supported and used for
+both NCZarr files and pure Zarr files. This
+means that every variable in the root group whose named dimensions
+are also in the root group will have an attribute called
+*\_ARRAY\_DIMENSIONS* that stores those dimension names.
+The _noxarray_ mode tells the library to disable the XArray support.
 
 The netcdf-c library is capable of inferring additional mode flags based on the flags it finds. Currently we have the following inferences.
-
-- _xarray_ => _zarr_
-- _noxarray_ => _zarr_
 - _zarr_ => _nczarr_
 
-So for example: ````...#mode=noxarray,zip```` is equivalent to this.
-````...#mode=nczarr,zarr,noxarray,zip
+So for example: ````...#mode=zarr,zip```` is equivalent to this.
+````...#mode=nczarr,zarr,zip
 ````
 <!--
 - log=&lt;output-stream&gt;: this control turns on logging output,
@@ -434,10 +436,13 @@ The value of this attribute is a list of dimension names (strings).
 An example might be ````["time", "lon", "lat"]````.
 It is essentially equivalent to the ````_NCZARR_ARRAY "dimrefs" list````, except that the latter uses fully qualified names so the referenced dimensions can be anywhere in the dataset.
 
-As of _netcdf-c_ version 4.8.1, The Xarray ''_ARRAY_DIMENSIONS'' attribute is supported.
-This attribute will be read/written by default, but can be suppressed if the mode value "noxarray" is specified.
+As of _netcdf-c_ version 4.8.2, The Xarray ''_ARRAY_DIMENSIONS'' attribute is supported for both NCZarr and pure Zarr.
+If possible, this attribute will be read/written by default,
+but can be suppressed if the mode value "noxarray" is specified.
 If detected, then these dimension names are used to define shared dimensions.
-Note that "noxarray" or "xarray" implies pure zarr format.
+The following conditions will cause ''_ARRAY_DIMENSIONS'' to not be written.
+* The variable is not in the root group,
+* Any dimension referenced by the variable is not in the root group.
 
 # Examples {#nczarr_examples}
 

@@ -1,0 +1,13 @@
+netcdf tmp_jsonconvention {
+dimensions:
+	d1 = 1 ;
+variables:
+	int v(d1) ;
+		v:varconvention = "{\n\"key1\": [1,2,3], \"key2\": {\"key3\": \"abc\"}}" ;
+
+// global attributes:
+		:grpconvention = "{\"key1\": [1,2,3], \n\"key2\": {\"key3\": \"abc\"}}" ;
+data:
+
+ v = _ ;
+}
