@@ -108,10 +108,12 @@ static Test PATHTESTS[] = {
 char* macros[128];
 
 /*Forward */
-static const char* kind2string(int kind);
 static char* expand(const char* s);
 static void setmacros(void);
 static void reclaimmacros(void);
+#ifdef DEBUG
+static const char* kind2string(int kind);
+#endif
 
 int
 main(int argc, char** argv)
@@ -130,7 +132,9 @@ main(int argc, char** argv)
 
     /* Test localkind X path-kind */
     for(test=PATHTESTS;test->test;test++) {
+#ifdef DEBUG
 	int inputkind = NCgetinputpathkind(test->test);
+#endif
         /* Iterate over the test paths */
         for(k=0;k<NKINDS;k++) {
 	    int kind = kinds[k];
@@ -188,6 +192,7 @@ main(int argc, char** argv)
     return (failcount > 0 ? 1 : 0);
 }
 
+#ifdef DEBUG
 static const char*
 kind2string(int kind)
 {
@@ -206,6 +211,7 @@ kind2string(int kind)
     }
     return "Unknown";
 }
+#endif
 
 static char*
 expand(const char* s)

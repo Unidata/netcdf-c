@@ -25,13 +25,9 @@
 #include <windows.h>
 #include <io.h>
 #include <wchar.h>
-#include <locale.h>
 #include <direct.h>
 #endif
-#ifdef __hpux
 #include <locale.h>
-#endif
-
 #include "netcdf.h"
 #include "ncpathmgr.h"
 #include "nclog.h"
@@ -55,6 +51,14 @@ static int pathdebug = -1;
 #define mkdir _mkdir
 #define rmdir _rmdir
 #define getcwd _getcwd
+
+#if WINVERMAJOR > 10 || (WINVERMAJOR == 10 && WINVERBUILD >= 17134)
+/* Should be possible to use UTF8 directly */
+#define WINUTF8
+#else
+#undef WINUTF8
+#endif
+
 #endif
 
 /*
@@ -86,6 +90,11 @@ static const struct Path {
 
 /* Keep the working directory kind and drive */
 static char wdprefix[8192];
+
+/* The current codepage */
+#ifdef _WIN32
+static int acp = -1;
+#endif
 
 /* Keep CYGWIN/MSYS2 mount point */
 static struct MountPoint {
@@ -267,6 +276,7 @@ static void
 pathinit(void)
 {
     if(pathinitialized) return;
+    pathinitialized = 1; /* avoid recursion */
 
     /* Check for path debug env vars */
     if(pathdebug < 0) {
@@ -274,6 +284,12 @@ pathinit(void)
         pathdebug = (s == NULL ? 0 : 1);
     }
     (void)getwdpath();
+
+#ifdef _WIN32
+    /* Get the current code page */
+    acp = GetACP();
+#endif
+
     memset(&mountpoint,0,sizeof(mountpoint));
 #ifdef REGEDIT
     { /* See if we can get the MSYS2 prefix from the registry */
@@ -369,31 +385,44 @@ NCfopen(const char* path, const char* flags)
 {
     int stat = NC_NOERR;
     FILE* f = NULL;
-    char* bflags = NULL;
+    char bflags[64];
+    char* path8 = NULL; /* ACP -> UTF=8 */
+    char* bflags8 = NULL;
     char* cvtpath = NULL;
     wchar_t* wpath = NULL;
     wchar_t* wflags = NULL;
     size_t flaglen = strlen(flags)+1+1;
 
-    bflags = (char*)malloc(flaglen);
     bflags[0] = '\0';
-    strlcat(bflags,flags,flaglen);
+    strlcat(bflags, flags, sizeof(bflags));
 #ifdef _WIN32
-    strlcat(bflags,"b",flaglen);
+    strlcat(bflags,"b",sizeof(bflags));
 #endif
-    cvtpath = NCpathcvt(path);
-    if(cvtpath == NULL) return NULL;
-    /* Convert from local to wide */
-    if((stat = utf82wide(cvtpath,&wpath)))
-	{REPORT(stat,"utf282wide"); goto done;}
-    if((stat = ansi2wide(bflags,&wflags)))
-	{REPORT(stat,"ansi2wide"); goto done;}
-    f = _wfopen(wpath,wflags);
+
+    /* First, convert from current Code Page to utf8 */
+    if((stat = ansi2utf8(path,&path8))) goto done;
+    if((stat = ansi2utf8(bflags,&bflags8))) goto done;
+
+    /* Localize */
+    if((cvtpath = NCpathcvt(path8))==NULL) goto done;
+
+#ifdef WINUTF8
+    if(acp == CP_UTF8) {
+        /* This should take utf8 directly */ 
+        f = fopen(cvtpath,bflags8);
+    } else
+#endif
+    {
+        /* Convert from utf8 to wide */
+        if((stat = utf82wide(cvtpath,&wpath))) goto done;
+        if((stat = utf82wide(bflags8,&wflags))) goto done;
+        f = _wfopen(wpath,wflags);
+    }
 done:
     nullfree(cvtpath);
+    nullfree(path8);
     nullfree(wpath);
     nullfree(wflags);
-    nullfree(bflags);
     return f;
 }
 
@@ -404,17 +433,32 @@ NCopen3(const char* path, int flags, int mode)
     int stat = NC_NOERR;
     int fd = -1;
     char* cvtpath = NULL;
+    char* path8 = NULL;
     wchar_t* wpath = NULL;
-    cvtpath = NCpathcvt(path);
-    if(cvtpath == NULL) goto done;
-    /* Convert from utf8 to wide */
-    if((stat = utf82wide(cvtpath,&wpath))) goto done;
+
+    /* First, convert from current Code Page to utf8 */
+    if((stat = ansi2utf8(path,&path8))) goto done;
+
+    if((cvtpath = NCpathcvt(path8))==NULL) goto done;
+
 #ifdef _WIN32
     flags |= O_BINARY;
 #endif
-    fd = _wopen(wpath,flags,mode);
+#ifdef WINUTF8
+    if(acp == CP_UTF8) {
+        /* This should take utf8 directly */ 
+        fd = _open(cvtpath,flags,mode);
+    } else
+#endif
+    {
+        /* Convert from utf8 to wide */
+        if((stat = utf82wide(cvtpath,&wpath))) goto done;
+        fd = _wopen(wpath,flags,mode);
+    }
+
 done:
     nullfree(cvtpath);
+    nullfree(path8);
     nullfree(wpath);
     return fd;
 }
@@ -435,7 +479,7 @@ NCopendir(const char* path)
     char* cvtname = NCpathcvt(path);
     if(cvtname == NULL) return NULL;
     ent = opendir(cvtname);
-    free(cvtname);
+    nullfree(cvtname);
     return ent;
 }
 
@@ -458,17 +502,32 @@ EXTERNL
 int
 NCaccess(const char* path, int mode)
 {
-    int status = 0;
+    int stat = 0;
     char* cvtpath = NULL;
+    char* path8 = NULL;
     wchar_t* wpath = NULL;
-    if((cvtpath = NCpathcvt(path)) == NULL)
-        {status = EINVAL; goto done;}
-    if((status = utf82wide(cvtpath,&wpath))) {status = ENOENT; goto done;}
-    if(_waccess(wpath,mode) < 0) {status = errno; goto done;}
+
+    /* First, convert from current Code Page to utf8 */
+    if((stat = ansi2utf8(path,&path8))) goto done;
+
+    if((cvtpath = NCpathcvt(path8)) == NULL) {stat = EINVAL; goto done;}
+#ifdef WINUTF8
+    if(acp == CP_UTF8) {
+        /* This should take utf8 directly */ 
+        if(_access(cvtpath,mode) < 0) {stat = errno; goto done;}
+    } else
+#endif
+    {
+        /* Convert from utf8 to wide */
+        if((stat = utf82wide(cvtpath,&wpath))) goto done;
+        if(_waccess(wpath,mode) < 0) {stat = errno; goto done;}
+    }
+
 done:
-    free(cvtpath);
-    free(wpath);
-    errno = status;
+    nullfree(cvtpath);
+    nullfree(path8);
+    nullfree(wpath);
+    errno = stat;
     return (errno?-1:0);
 }
 
@@ -477,14 +536,29 @@ int
 NCremove(const char* path)
 {
     int status = 0;
+    char* path8 = NULL;
     char* cvtpath = NULL;
     wchar_t* wpath = NULL;
-    if((cvtpath = NCpathcvt(path)) == NULL) {status=ENOMEM; goto done;}
-    if((status = utf82wide(cvtpath,&wpath))) {status = ENOENT; goto done;}
-    if(_wremove(wpath) < 0) {status = errno; goto done;}
+
+    /* First, convert from current Code Page to utf8 */
+    if((status = ansi2utf8(path,&path8))) goto done;
+
+    if((cvtpath = NCpathcvt(path8)) == NULL) {status=ENOMEM; goto done;}
+#ifdef WINUTF8
+    if(acp == CP_UTF8) {
+        /* This should take utf8 directly */ 
+        if(remove(cvtpath) < 0) {status = errno; goto done;}
+    } else
+#endif
+    {
+        if((status = utf82wide(cvtpath,&wpath))) {status = ENOENT; goto done;}
+        if(_wremove(wpath) < 0) {status = errno; goto done;}
+    }
+
 done:
-    free(cvtpath);
-    free(wpath);
+    nullfree(cvtpath);
+    nullfree(path8);
+    nullfree(wpath);
     errno = status;
     return (errno?-1:0);
 }
@@ -495,13 +569,28 @@ NCmkdir(const char* path, int mode)
 {
     int status = 0;
     char* cvtpath = NULL;
+    char* path8 = NULL;
     wchar_t* wpath = NULL;
-    if((cvtpath = NCpathcvt(path)) == NULL) {status=ENOMEM; goto done;}
-    if((status = utf82wide(cvtpath,&wpath))) {status = ENOENT; goto done;}
-    if(_wmkdir(wpath) < 0) {status = errno; goto done;}
+
+    /* First, convert from current Code Page to utf8 */
+    if((status = ansi2utf8(path,&path8))) goto done;
+
+    if((cvtpath = NCpathcvt(path8)) == NULL) {status=ENOMEM; goto done;}
+#ifdef WINUTF8
+    if(acp == CP_UTF8) {
+        /* This should take utf8 directly */ 
+        if(_mkdir(cvtpath) < 0) {status = errno; goto done;}
+    } else
+#endif
+    {
+        if((status = utf82wide(cvtpath,&wpath))) {status = ENOENT; goto done;}
+        if(_wmkdir(wpath) < 0) {status = errno; goto done;}
+    }
+
 done:
-    free(cvtpath);
-    free(wpath);
+    nullfree(cvtpath);
+    nullfree(path8);
+    nullfree(wpath);
     errno = status;
     return (errno?-1:0);
 }
@@ -511,10 +600,18 @@ int
 NCrmdir(const char* path)
 {
     int status = 0;
-    char* cvtname = NCpathcvt(path);
-    if(cvtname == NULL) {errno = ENOENT; return -1;}
+    char* cvtname = NULL;
+    char* path8 = NULL;
+
+    /* First, convert from current Code Page to utf8 */
+    if((status = ansi2utf8(path,&path8))) goto done;
+	
+    cvtname = NCpathcvt(path8);
+    if(cvtname == NULL) {errno = ENOENT; status = -1;}
     status = rmdir(cvtname);
-    free(cvtname);
+done:
+    nullfree(cvtname);
+    nullfree(path8);
     return status;
 }
 
@@ -591,13 +688,26 @@ NCstat(const char* path, struct stat* buf)
 {
     int status = 0;
     char* cvtpath = NULL;
+    char* path8 = NULL;
     wchar_t* wpath = NULL;
-    if((cvtpath = NCpathcvt(path)) == NULL) {status=ENOMEM; goto done;}
-    if((status = utf82wide(cvtpath,&wpath))) {status = ENOENT; goto done;}
-    if(_wstat64(wpath,buf) < 0) {status = errno; goto done;}
+
+    if((status = ansi2utf8(path,&path8))) goto done;
+
+    if((cvtpath = NCpathcvt(path8)) == NULL) {status=ENOMEM; goto done;}
+#ifdef WINUTF8
+    if(acp == CP_UTF8) {
+        if(_stat64(cvtpath,buf) < 0) {status = errno; goto done;}
+    } else
+#endif
+    {
+        if((status = utf82wide(cvtpath,&wpath))) {status = ENOENT; goto done;}
+        if(_wstat64(wpath,buf) < 0) {status = errno; goto done;}
+    }
+
 done:
-    free(cvtpath);
-    free(wpath);
+    nullfree(cvtpath);
+    nullfree(path8);
+    nullfree(wpath);
     errno = status;
     return (errno?-1:0);
 }
@@ -674,6 +784,7 @@ parsepath(const char* inpath, struct Path* path)
     memset(path,0,sizeof(struct Path));
 
     if(inpath == NULL) goto done; /* defensive driving */
+    if(!pathinitialized) pathinit();
 
 #if 0
     /* Convert to UTF8 */
@@ -1001,7 +1112,7 @@ getwdpath(void)
         wpath = _wgetcwd(wcwd, 8192);
         path = NULL;
         stat = wide2utf8(wpath, &path);
-        free(wcwd);
+        nullfree(wcwd);
         if (stat) return stat;
 	strlcat(wdprefix,path,sizeof(wdprefix));
     }
@@ -1069,9 +1180,9 @@ NCgetkindname(int kind)
 
 #ifdef WINPATH
 /**
- * Converts the filename from Locale character set (presumably some
+ * Converts the file path from current character set (presumably some
  * ANSI character set like ISO-Latin-1 or UTF-8 to UTF-8
- * @param local Pointer to a nul-terminated string in locale char set.
+ * @param local Pointer to a nul-terminated string in current char set.
  * @param u8p Pointer for returning the output utf8 string
  *
  * @return NC_NOERR return converted filename
@@ -1080,21 +1191,32 @@ NCgetkindname(int kind)
  *
  */
 static int
-ansi2utf8(const char* local, char** u8p)
+ansi2utf8(const char* path, char** u8p)
 {
     int stat=NC_NOERR;
     char* u8 = NULL;
     int n;
     wchar_t* u16 = NULL;
 
+    if(path == NULL) goto done;
+
+    if(!pathinitialized) pathinit();
+
+#ifdef WINUTF8
+    if(acp == CP_UTF8) { /* Current code page is UTF8 and Windows supports */
+        u8 = strdup(path);
+	if(u8 == NULL) stat = NC_ENOMEM;
+    } else
+#endif
+    /* Use wide character conversion plus current code page*/
     {
         /* Get length of the converted string */
-        n = MultiByteToWideChar(CP_ACP, 0,  local, -1, NULL, 0);
+        n = MultiByteToWideChar(acp, 0, path, -1, NULL, 0);
         if (!n) {stat = NC_EINVAL; goto done;}
-        if((u16 = malloc(sizeof(wchar_t) * n))==NULL)
+        if((u16 = malloc(sizeof(wchar_t) * (n)))==NULL)
 	    {stat = NCTHROW(NC_ENOMEM); goto done;}
         /* do the conversion */
-        if (!MultiByteToWideChar(CP_ACP, 0, local, -1, u16, n))
+        if (!MultiByteToWideChar(CP_ACP, 0, path, -1, u16, n))
             {stat = NC_EINVAL; goto done;}
         /* Now reverse the process to produce utf8 */
         n = WideCharToMultiByte(CP_UTF8, 0, u16, -1, NULL, 0, NULL, NULL);
@@ -1104,8 +1226,8 @@ ansi2utf8(const char* local, char** u8p)
         if (!WideCharToMultiByte(CP_UTF8, 0, u16, -1, u8, n, NULL, NULL))
             {stat = NC_EINVAL; goto done;}
     }
-    if(u8p) {*u8p = u8; u8 = NULL;}
 done:
+    if(u8p) {*u8p = u8; u8 = NULL;}
     nullfree(u8);
     nullfree(u16);
     return stat;
@@ -1117,6 +1239,8 @@ ansi2wide(const char* local, wchar_t** u16p)
     int stat=NC_NOERR;
     wchar_t* u16 = NULL;
     int n;
+
+    if(!pathinitialized) pathinit();
 
     /* Get length of the converted string */
     n = MultiByteToWideChar(CP_ACP, 0,  local, -1, NULL, 0);
@@ -1139,6 +1263,8 @@ utf82wide(const char* utf8, wchar_t** u16p)
     wchar_t* u16 = NULL;
     int n;
 
+    if(!pathinitialized) pathinit();
+
     /* Get length of the converted string */
     n = MultiByteToWideChar(CP_UTF8, 0,  utf8, -1, NULL, 0);
     if (!n) {stat = NC_EINVAL; goto done;}
@@ -1160,6 +1286,8 @@ wide2utf8(const wchar_t* u16, char** u8p)
     char* u8 = NULL;
     int n;
 
+    if(!pathinitialized) pathinit();
+
     /* Get length of the converted string */
     n = WideCharToMultiByte(CP_UTF8, 0,  u16, -1, NULL, 0, NULL, NULL);
     if (!n) {stat = NC_EINVAL; goto done;}
@@ -1172,17 +1300,6 @@ wide2utf8(const wchar_t* u16, char** u8p)
 done:
     nullfree(u8);
     return stat;
-}
-
-/* Set locale */
-void
-nc_setlocale_utf8(void)
-{
-#ifdef __hpux
-    setlocale(LC_CTYPE,"");
-#else
-    setlocale(LC_ALL,"C.UTF8");
-#endif
 }
 
 #endif /*WINPATH*/

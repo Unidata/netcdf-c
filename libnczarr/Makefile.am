@@ -74,7 +74,6 @@ endif
 
 if ENABLE_S3_SDK
 libnczarr_la_SOURCES += zmap_s3sdk.c
-libnczarr_la_SOURCES += 
 AM_CXXFLAGS += -std=c++11
 endif
 

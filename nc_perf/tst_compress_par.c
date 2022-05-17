@@ -82,7 +82,7 @@ get_file_size(char *filename, size_t *file_size)
     FILE *fp;
     assert(filename && file_size);
 
-    fp = fopen(filename, "r");
+    fp = NCfopen(filename, "r");
     if (fp)
     {
         fseek(fp, 0 , SEEK_END);

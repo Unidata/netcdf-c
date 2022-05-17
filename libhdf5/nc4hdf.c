@@ -70,7 +70,7 @@ flag_atts_dirty(NCindex *attlist) {
  * @param dimscaleid HDF5 dimension scale ID.
  *
  * @returns NC_NOERR No error.
- * @returns NC_EHDFERR HDF5 returned an error.
+ * @returns NC_EDIMSCALE HDF5 returned an error when trying to reattach a dimension scale.
  * @author Ed Hartnett
  */
 int
@@ -113,7 +113,7 @@ rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
                 {
                     if (H5DSattach_scale(hdf5_var->hdf_datasetid,
                                          dimscaleid, d) < 0)
-                        return NC_EHDFERR;
+                        return NC_EDIMSCALE;
                     hdf5_var->dimscale_attached[d] = NC_TRUE;
                 }
             }
@@ -135,7 +135,7 @@ rec_reattach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
  * @param dimscaleid HDF5 dimension scale ID.
  *
  * @returns NC_NOERR No error.
- * @returns NC_EHDFERR HDF5 returned an error.
+ * @returns NC_EDIMSCALE HDF5 returned an error when trying to detach a dimension scale.
  * @author Ed Hartnett
  */
 int
@@ -177,7 +177,7 @@ rec_detach_scales(NC_GRP_INFO_T *grp, int dimid, hid_t dimscaleid)
                     {
                         if (H5DSdetach_scale(hdf5_var->hdf_datasetid,
                                              dimscaleid, d) < 0)
-                            return NC_EHDFERR;
+                            return NC_EDIMSCALE;
                         hdf5_var->dimscale_attached[d] = NC_FALSE;
                     }
                 }
@@ -1012,7 +1012,9 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
     }
 
     /* If quantization is in use, write an attribute indicating it, a
-     * single integer which is the number of significant digits. */
+     * single integer which is the number of significant digits 
+     * (NSD, for BitGroom and Granular BitRound) or number of significant bits
+     * (NSB, for BitRound). */
     if (var->quantize_mode == NC_QUANTIZE_BITGROOM)
 	if ((retval = nc4_put_att(var->container, var->hdr.id, NC_QUANTIZE_BITGROOM_ATT_NAME, NC_INT, 1,
 				  &var->nsd, NC_INT, 0)))
@@ -1020,6 +1022,11 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
 
     if (var->quantize_mode == NC_QUANTIZE_GRANULARBR)
 	if ((retval = nc4_put_att(var->container, var->hdr.id, NC_QUANTIZE_GRANULARBR_ATT_NAME, NC_INT, 1,
+				  &var->nsd, NC_INT, 0)))
+	    BAIL(retval);
+
+    if (var->quantize_mode == NC_QUANTIZE_BITROUND)
+	if ((retval = nc4_put_att(var->container, var->hdr.id, NC_QUANTIZE_BITROUND_ATT_NAME, NC_INT, 1,
 				  &var->nsd, NC_INT, 0)))
 	    BAIL(retval);
 
@@ -1364,6 +1371,7 @@ exit:
  * @param grp Pointer to group info struct.
  *
  * @return ::NC_NOERR No error.
+ * @returns NC_EDIMSCALE HDF5 returned an error when trying to attach a dimension scale.
  * @author Ed Hartnett
  */
 static int
@@ -1410,7 +1418,7 @@ attach_dimscales(NC_GRP_INFO_T *grp)
 
                     /* Attach the scale. */
                     if (H5DSattach_scale(hdf5_var->hdf_datasetid, dsid, d) < 0)
-                        return NC_EHDFERR;
+                        return NC_EDIMSCALE;
                     hdf5_var->dimscale_attached[d] = NC_TRUE;
                 }
             }
@@ -1949,9 +1957,11 @@ nc4_rec_write_metadata(NC_GRP_INFO_T *grp, nc_bool_t bad_coord_order)
         }
     } /* end while */
 
-    /* Attach dimscales to vars in this group. */
-    if ((retval = attach_dimscales(grp)))
-        return retval;
+    /* Attach dimscales to vars in this group. Unless directed not to. */
+    if (!grp->nc4_info->no_dimscale_attach) {
+        if ((retval = attach_dimscales(grp)))
+            return retval;
+    }
 
     /* If there are any child groups, write their metadata. */
     for (i = 0; i < ncindexsize(grp->children); i++)

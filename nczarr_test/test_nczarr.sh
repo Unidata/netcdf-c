@@ -133,12 +133,12 @@ if test "x$FP_USEPLUGINS" = xyes; then
 echo "findplugin.sh loaded"
 
 # Locate the plugin path and the library names; argument order is critical
-# Find bzip2 and capture
+# Find misc in order to determine HDF5_PLUGIN+PATH.
 # Assume all test filters are in same plugin dir
 findplugin h5misc
 
-echo "final HDF5_PLUGIN_PATH=${HDF5_PLUGIN_PATH}"
-export HDF5_PLUGIN_PATH
+echo "final HDF5_PLUGIN_DIR=${HDF5_PLUGIN_DIR}"
+export HDF5_PLUGIN_PATH="${HDF5_PLUGIN_DIR}"
 fi # USEPLUGINS
 
 resetrc() {

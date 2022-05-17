@@ -305,7 +305,7 @@ NCZ_stringconvert1(nc_type srctype, size_t len, char* src, NCjson* jvalue)
 #ifdef _WIN32
 	switch (_fpclass(zcvt.float64v)) {
 	case _FPCLASS_SNAN: case _FPCLASS_QNAN:
-	     strcpy(s,"Nan"); break;
+	     strcpy(s,"NaN"); break;
 	case _FPCLASS_NINF:
 	     strcpy(s,"-Infinity"); break;
 	case _FPCLASS_PINF:

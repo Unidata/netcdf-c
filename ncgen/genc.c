@@ -539,7 +539,7 @@ genc_definespecialattributes(Symbol* vsym)
             codelined(1,"CHECK_ERR(stat);");
 	}
     }
-    if(special->flags & (_QUANTIZEBG_FLAG | _QUANTIZEBR_FLAG)) {
+    if(special->flags & (_QUANTIZEBG_FLAG | _QUANTIZEGBR_FLAG)) {
     	const char* alg = NULL;
 	switch(special->_Quantizer) {
 	case NC_QUANTIZE_BITGROOM: alg = "NC_QUANTIZE_BITGROOM";

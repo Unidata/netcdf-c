@@ -31,6 +31,7 @@ See \ref copyright file for more info.
 #endif
 
 #include "netcdf.h"
+#include "ncpathmgr.h"
 
 #define CLEANUP
 
@@ -131,7 +132,7 @@ fail(int ret)
 void
 exists(const char* file)
 {
-    FILE* f = fopen(file,"r");
+    FILE* f = NCfopen(file, "r");
     if(f == NULL) fail(NC_EPERM);
     fclose(f);
 }
@@ -139,7 +140,7 @@ exists(const char* file)
 void
 notexists(const char* file)
 {
-    FILE* f = fopen(file,"r");
+    FILE* f = NCfopen(file,"r");
     if(f != NULL) {fclose(f); fail(NC_EEXIST);}
 }
 

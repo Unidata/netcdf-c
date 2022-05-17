@@ -28,9 +28,6 @@ echo "findplugin.sh loaded"
 # Assume all test filters are in same plugin dir
 findplugin h5bzip2
 
-echo "final HDF5_PLUGIN_PATH=${HDF5_PLUGIN_PATH}"
-export HDF5_PLUGIN_PATH
-
 # Function to remove selected -s attributes from file;
 # These attributes might be platform dependent
 sclean() {
@@ -167,14 +164,14 @@ testzstd() {
 testset() {
 # Which test cases to exercise
 if test "x$TESTNCZARR" = x1 ; then
-#    testfletcher32 $1
+    testfletcher32 $1
     testshuffle $1    
 fi
-#    testdeflate $1
-#    testszip $1
-#    testbzip2 $1
-#    testblosc $1
-#    testzstd $1
+    testdeflate $1
+    testszip $1
+    testbzip2 $1
+    testblosc $1
+    testzstd $1
 }
 
 if test "x$TESTNCZARR" = x1 ; then
