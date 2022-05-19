@@ -11,10 +11,7 @@ PARAMS="[log]"
 
 OCLOGFILE=/dev/null
 
-# Reduce the precision
-if test "x$FP_ISOSX" != x ; then
-DUMPFLAGS="-p7,14"
-fi
+DUMPFLAGS=
 
 # Locate directories
 testdata3="${srcdir}/testdata3"
