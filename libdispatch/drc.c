@@ -576,6 +576,7 @@ NC_rcfile_insert(const char* key, const char* value, const char* hostport, const
 
     if(rc == NULL) {
 	rc = nclistnew();
+        globalstate->rcinfo->entries = rc;
 	if(rc == NULL) {ret = NC_ENOMEM; goto done;}
     }
     entry = rclocate(key,hostport,path);
@@ -1052,7 +1053,7 @@ NC_authgets3profile(const char* profilename, struct AWSprofile** profilep)
     int stat = NC_NOERR;
     int i = -1;
     NCglobalstate* gstate = NC_getglobalstate();
-    
+
     for(i=0;i<nclistlength(gstate->rcinfo->s3profiles);i++) {
 	struct AWSprofile* profile = (struct AWSprofile*)nclistget(gstate->rcinfo->s3profiles,i);
 	if(strcmp(profilename,profile->name)==0)
