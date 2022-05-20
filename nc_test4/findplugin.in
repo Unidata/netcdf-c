@@ -34,21 +34,21 @@ findpluginext() {
   # Also assumes that misc filter is always built
   # Approach is to use find to see what is in plugins directory.
   TSO=`find ${TOPBUILDDIR}/plugins -name '*misc.so'`
-  TDY=`find ${TOPBUILDDIR}/plugins -name '*misc.0.dylib'`
+  TDY=`find ${TOPBUILDDIR}/plugins -name '*misc.dylib'`
   TCYG=`find ${TOPBUILDDIR}/plugins -name 'cyg*misc.dll'`
   TDLL=`find ${TOPBUILDDIR}/plugins -name '*misc.dll'`
   if test "x$TSO" != x ; then
     FP_PLUGIN_EXT="so"
-    FP_PLUGIN_PRE="lib"  
+    FP_PLUGIN_PRE="lib__nc"  
   elif test "x$TDY" != x ; then
-    FP_PLUGIN_EXT="0.dylib"
-    FP_PLUGIN_PRE="lib"  
+    FP_PLUGIN_EXT="dylib"
+    FP_PLUGIN_PRE="lib__nc"  
   elif test "x$TCYG" != x ; then
     FP_PLUGIN_EXT="dll"
-    FP_PLUGIN_PRE="cyg"  
+    FP_PLUGIN_PRE="cyg__nc"  
   elif test "x$TDLL" != x ; then
     FP_PLUGIN_EXT="dll"
-    FP_PLUGIN_PRE=""  
+    FP_PLUGIN_PRE="__nc"  
   else # unknown
     unset FP_PLUGIN_EXT
     unset FP_PLUGIN_PRE
