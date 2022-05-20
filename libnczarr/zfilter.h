@@ -20,10 +20,10 @@
 #define ENCODING 1
 
 /* list of environment variables to check for plugin roots */
-#define plugin_env "HDF5_PLUGIN_PATH"
-#define plugin_dir_unix "/usr/local/hdf5/plugin"
-#define plugin_dir_win "%s/hdf5/lib/plugin"
-#define win32_root_env "ALLUSERSPROFILE"
+#define PLUGIN_ENV "HDF5_PLUGIN_PATH"
+#define PLUGIN_DIR_UNIX "/usr/local/hdf5/plugin"
+#define PLUGIN_DIR_WIN "%s/hdf5/lib/plugin"
+#define WIN32_ROOT_ENV "ALLUSERSPROFILE"
 
 /* Opaque */
 struct NCZ_Filter;

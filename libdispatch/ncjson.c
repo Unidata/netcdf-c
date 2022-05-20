@@ -94,6 +94,7 @@ static int NCJyytext(NCJparser*, char* start, size_t pdlen);
 static void NCJreclaimArray(struct NCjlist*);
 static void NCJreclaimDict(struct NCjlist*);
 static int NCJunescape(NCJparser* parser);
+static int unescape1(int c);
 static int listappend(struct NCjlist* list, NCjson* element);
 
 #ifndef NETCDF_JSON_H
@@ -110,23 +111,27 @@ static int bytesappendc(NCJbuf* bufp, const char c);
 int
 NCJparse(const char* text, unsigned flags, NCjson** jsonp)
 {
+    return NCJparsen(strlen(text),text,flags,jsonp);
+}
+
+int
+NCJparsen(size_t len, const char* text, unsigned flags, NCjson** jsonp)
+{
     int stat = NCJ_OK;
-    size_t len;
     NCJparser* parser = NULL;
     NCjson* json = NULL;
 
     /* Need at least 1 character of input */
-    if(text == NULL || text[0] == '\0')
+    if(len == 0 || text == NULL)
 	{stat = NCJTHROW(NCJ_ERR); goto done;}
     if(jsonp == NULL) goto done;
     parser = calloc(1,sizeof(NCJparser));
     if(parser == NULL)
 	{stat = NCJTHROW(NCJ_ERR); goto done;}
-    len = strlen(text);
     parser->text = (char*)malloc(len+1+1);
     if(parser->text == NULL)
 	{stat = NCJTHROW(NCJ_ERR); goto done;}
-    strcpy(parser->text,text);
+    memcpy(parser->text,text,len);
     parser->text[len] = '\0';
     parser->text[len+1] = '\0';
     parser->pos = &parser->text[0];
@@ -334,16 +339,21 @@ NCJlex(NCJparser* parser)
 	c = *parser->pos;
 	if(c == '\0') {
 	    token = NCJ_EOF;
-	} else if(c <= ' ' || c == '\177') {
+	} else if(c <= ' ' || c == '\177') {/* ignore whitespace */
 	    parser->pos++;
-	    continue; /* ignore whitespace */
+	    continue;
+	} else if(c == NCJ_ESCAPE) {
+	    parser->pos++;
+	    c = *parser->pos;
+	    *parser->pos = unescape1(c);
+	    continue;
 	} else if(strchr(JSON_WORD, c) != NULL) {
 	    start = parser->pos;
 	    for(;;) {
 		c = *parser->pos++;
 		if(c == '\0' || strchr(JSON_WORD,c) == NULL) break; /* end of word */
 	    }
-	    /* Pushback c if not whitespace */
+	    /* Pushback c */
 	    parser->pos--;
 	    count = ((parser->pos) - start);
 	    if(NCJyytext(parser,start,count)) goto done;
@@ -602,6 +612,21 @@ NCJunescape(NCJparser* parser)
     }
     *q = '\0';
     return NCJTHROW(NCJ_OK);    
+}
+
+/* Unescape a single character */
+static int
+unescape1(int c)
+{
+    switch (c) {
+    case 'b': c = '\b'; break;
+    case 'f': c = '\f'; break;
+    case 'n': c = '\n'; break;
+    case 'r': c = '\r'; break;
+    case 't': c = '\t'; break;
+    default: c = c; break;/* technically not Json conformant */
+    }
+    return c;
 }
 
 #ifdef NCJDEBUG
@@ -896,7 +921,7 @@ NCJunparseR(const NCjson* json, NCJbuf* buf, unsigned flags)
 	if(json->list.len > 0 && json->list.contents != NULL) {
 	    int shortlist = 0;
 	    for(i=0;!shortlist && i < json->list.len;i+=2) {
-		if(i > 0) bytesappendc(buf,NCJ_COMMA);
+		if(i > 0) {bytesappendc(buf,NCJ_COMMA);bytesappendc(buf,' ');};
 		NCJunparseR(json->list.contents[i],buf,flags); /* key */
 		bytesappendc(buf,NCJ_COLON);
 		bytesappendc(buf,' ');
@@ -945,7 +970,7 @@ escape(const char* text, NCJbuf* buf)
 	case '\n': replace = 'n'; break;
 	case '\r': replace = 'r'; break;
 	case '\t': replace = 't'; break;
-	case NCJ_QUOTE: replace = '\''; break;
+	case NCJ_QUOTE: replace = '\"'; break;
 	case NCJ_ESCAPE: replace = '\\'; break;
 	default: break;
 	}

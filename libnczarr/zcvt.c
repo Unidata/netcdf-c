@@ -302,7 +302,7 @@ NCZ_stringconvert1(nc_type srctype, size_t len, char* src, NCjson* jvalue)
 	snprintf(s,sizeof(s),"%llu",zcvt.uint64v);
 	} break;
     case NC_DOUBLE: {
-#ifdef _WIN32
+#ifdef _MSC_VER
 	switch (_fpclass(zcvt.float64v)) {
 	case _FPCLASS_SNAN: case _FPCLASS_QNAN:
 	     strcpy(s,"NaN"); break;

@@ -1145,12 +1145,10 @@ static int
 NCZ_load_all_plugins(void)
 {
     int i,j,ret = NC_NOERR;
-    const char* pluginroot = NULL;
+    const char* pluginroots = NULL;
     struct stat buf;
     NClist* dirs = nclistnew();
-#ifdef _WIN32
-    char pluginpath32[4096];
-#endif
+    char* defaultpluginpath = NULL;
 
    ZTRACE(6,"");
 
@@ -1158,29 +1156,37 @@ NCZ_load_all_plugins(void)
    fprintf(stderr,">>> DEBUGL: NCZ_load_all_plugins\n");
 #endif
 
-   /* Find the plugin directory root(s) */
-    pluginroot = getenv(plugin_env);
-    if(pluginroot == NULL || strlen(pluginroot) == 0) {
+   /* Setup the plugin path default */
+   {
 #ifdef _WIN32
 	const char* win32_root;
-	win32_root = getenv(win32_root_env);
+	char dfalt[4096];
+	win32_root = getenv(WIN32_ROOT_ENV);
 	if(win32_root != NULL && strlen(win32_root) > 0) {
-	    snprintf(pluginpath32,sizeof(pluginpath32),plugin_dir_win,win32_root);
-	    pluginroot = pluginpath32;
-	} else
-	    pluginroot = NULL;
+	    snprintf(dfalt,sizeof(dfalt),PLUGIN_DIR_WIN,win32_root);
+	    defaultpluginpath = strdup(dfalt);
+	}
 #else /*!_WIN32*/
-	pluginroot = plugin_dir_unix;
+	defaultpluginpath = strdup(PLUGIN_DIR_UNIX);
 #endif
     }
 
-    ZTRACEMORE(6,"pluginroot=%s",(pluginroot?pluginroot:"null"));
-    if(pluginroot == NULL) {
-        ZLOG(NCLOGERR,"no pluginroot: %s",plugin_env);
-	ret = NC_ENOFILTER; goto done;
+    /* Find the plugin directory root(s) */
+    pluginroots = getenv(PLUGIN_ENV); /* Usually HDF5_PLUGIN_PATH */
+    if(pluginroots  != NULL && strlen(pluginroots) == 0) pluginroots = NULL;
+    if(pluginroots == NULL) {
+	pluginroots = strdup(defaultpluginpath);
     }
+    assert(pluginroots != NULL);
+    ZTRACEMORE(6,"pluginroots=%s",(pluginroots?pluginroots:"null"));
 
-    if((ret = NCZ_split_plugin_path(pluginroot,dirs))) goto done;
+    if((ret = NCZ_split_plugin_path(pluginroots,dirs))) goto done;
+
+    /* Add the default to end of the dirs list if not already there */
+    if(!nclistmatch(dirs,defaultpluginpath,0)) {
+        nclistpush(dirs,defaultpluginpath);
+	defaultpluginpath = NULL;
+    }
 
     for(i=0;i<nclistlength(dirs);i++) {
 	const char* dir = (const char*)nclistget(dirs,i);
@@ -1190,9 +1196,8 @@ NCZ_load_all_plugins(void)
 #if 1
         ZTRACEMORE(6,"stat: ret=%d, errno=%d st_mode=%d",ret,errno,buf.st_mode);
 #endif
-        if(ret < 0) {
-	    ret = (errno);
-        } else if(! S_ISDIR(buf.st_mode))
+        if(ret < 0) {errno = 0; ret = NC_NOERR; continue;} /* ignore unreadable directories */
+	if(! S_ISDIR(buf.st_mode))
             ret = NC_EINVAL;
         if(ret) goto done;
 
@@ -1272,6 +1277,7 @@ NCZ_load_all_plugins(void)
     }
     
 done:
+    nullfree(defaultpluginpath);
     nclistfreeall(dirs);
     errno = 0;
     return ZUNTRACE(ret);
@@ -1503,11 +1509,12 @@ fprintf(stderr,">>> \n");
 	h5id = codec->hdf5id;
 	if((stat = NCZ_plugin_loaded(codec->hdf5id,&plugin))) goto done;
     }
+
     if(plugin == NULL) {
 	/* create new entry */
 	if((plugin = (NCZ_Plugin*)calloc(1,sizeof(NCZ_Plugin)))==NULL) {stat = NC_ENOMEM; goto done;}
-    } 
-
+    }
+    
     /* Fill in the plugin */
     if(h5class != NULL && plugin->hdf5.filter == NULL) {
 	plugin->hdf5.filter = h5class;
