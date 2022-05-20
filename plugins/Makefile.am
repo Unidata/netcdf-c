@@ -50,10 +50,14 @@ EXTRA_DIST += H5checksum.c
 if ENABLE_FILTER_TESTING
 
 if ENABLE_NCZARR_FILTERS
-plugin_LTLIBRARIES += libh5fletcher32.la libh5shuffle.la libh5deflate.la
-libh5shuffle_la_SOURCES = H5Zshuffle.c
-libh5fletcher32_la_SOURCES = H5Zfletcher32.c H5checksum.c
-libh5deflate_la_SOURCES = H5Zdeflate.c
+plugin_LTLIBRARIES += lib__nch5fletcher32.la lib__nch5shuffle.la lib__nch5deflate.la
+lib__nch5shuffle_la_SOURCES = H5Zshuffle.c
+lib__nch5fletcher32_la_SOURCES = H5Zfletcher32.c H5checksum.c
+lib__nch5deflate_la_SOURCES = H5Zdeflate.c
+
+lib__nch5shuffle_la_LDFLAGS = ${plugin_version_info}
+lib__nch5deflate_la_LDFLAGS = ${plugin_version_info}
+lib__nch5fletcher32_la_LDFLAGS = ${plugin_version_info}
 
 libh5shuffle_la_LDFLAGS = ${plugin_version_info}
 libh5deflate_la_LDFLAGS = ${plugin_version_info}
@@ -61,9 +65,9 @@ libh5fletcher32_la_LDFLAGS = ${plugin_version_info}
 
 # Need our version of szip if libsz available and we are not using HDF5
 if HAVE_SZ
-plugin_LTLIBRARIES += libh5szip.la
-libh5szip_la_SOURCES = H5Zszip.c H5Zszip.h
-libh5szip_la_LDFLAGS = ${plugin_version_info}
+plugin_LTLIBRARIES += lib__nch5szip.la
+lib__nch5szip_la_SOURCES = H5Zszip.c H5Zszip.h
+lib__nch5szip_la_LDFLAGS = ${plugin_version_info}
 endif
 
 endif # ENABLE_NCZARR_FILTERS
@@ -71,54 +75,57 @@ endif # ENABLE_NCZARR_FILTERS
 if ENABLE_PLUGINS
 
 # The NCZarr codec libraries
-libnczstdfilters_la_SOURCES = NCZstdfilters.c
-libnczhdf5filters_la_SOURCES = NCZhdf5filters.c
+lib__nczstdfilters_la_SOURCES = NCZstdfilters.c
+lib__nczhdf5filters_la_SOURCES = NCZhdf5filters.c
+
+plugin_LTLIBRARIES += lib__nczhdf5filters.la
+plugin_LTLIBRARIES += lib__nczstdfilters.la
 
 plugin_LTLIBRARIES += libnczhdf5filters.la
 plugin_LTLIBRARIES += libnczstdfilters.la
 
 if HAVE_BLOSC
-libh5blosc_la_SOURCES = H5Zblosc.c H5Zblosc.h
-libh5blosc_la_LDFLAGS = ${plugin_version_info}
-plugin_LTLIBRARIES += libh5blosc.la
+lib__nch5blosc_la_SOURCES = H5Zblosc.c H5Zblosc.h
+lib__nch5blosc_la_LDFLAGS = ${plugin_version_info}
+plugin_LTLIBRARIES += lib__nch5blosc.la
 endif
 
 if HAVE_ZSTD
-libh5zstd_la_SOURCES = H5Zzstd.c H5Zzstd.h
-libh5zstd_la_LDFLAGS = ${plugin_version_info}
-plugin_LTLIBRARIES += libh5zstd.la
+lib__nch5zstd_la_SOURCES = H5Zzstd.c H5Zzstd.h
+lib__nch5zstd_la_LDFLAGS = ${plugin_version_info}
+plugin_LTLIBRARIES += lib__nch5zstd.la
 endif
 
 endif #ENABLE_PLUGINS
 
 # The noop filter is to allow testing of multifilters and filter order
 # Need two distinct instances
-libh5noop_la_SOURCES = H5Znoop.c H5Zutil.c h5noop.h
-libh5noop1_la_SOURCES = H5Znoop1.c H5Zutil.c h5noop.h
-libh5noop_la_LDFLAGS = ${plugin_version_info}
-libh5noop1_la_LDFLAGS = ${plugin_version_info}
+lib__nch5noop_la_SOURCES = H5Znoop.c H5Zutil.c h5noop.h
+lib__nch5noop1_la_SOURCES = H5Znoop1.c H5Zutil.c h5noop.h
+lib__nch5noop_la_LDFLAGS = ${plugin_version_info}
+lib__nch5noop1_la_LDFLAGS = ${plugin_version_info}
 
 # The misc filter is to allow testing of filter arguments
-libh5misc_la_SOURCES = H5Zmisc.c H5Zutil.c h5misc.h
-libh5misc_la_LDFLAGS = ${plugin_version_info}
-libnczmisc_la_SOURCES = NCZmisc.c
-libnczmisc_la_LDFLAGS = ${plugin_version_info}
+lib__nch5misc_la_SOURCES = H5Zmisc.c H5Zutil.c h5misc.h
+lib__nch5misc_la_LDFLAGS = ${plugin_version_info}
+lib__nczmisc_la_SOURCES = NCZmisc.c
+lib__nczmisc_la_LDFLAGS = ${plugin_version_info}
 
 # Provide a filter to test missing filter
-libh5unknown_la_SOURCES = H5Zunknown.c
-libh5unknown_la_LDFLAGS = ${plugin_version_info}
+lib__nch5unknown_la_SOURCES = H5Zunknown.c
+lib__nch5unknown_la_LDFLAGS = ${plugin_version_info}
 
-tmp_LTLIBRARIES += libh5noop.la libh5noop1.la libh5misc.la libnczmisc.la libh5unknown.la
+tmp_LTLIBRARIES += lib__nch5noop.la lib__nch5noop1.la lib__nch5misc.la lib__nczmisc.la lib__nch5unknown.la
 
 # Bzip2 is used to test more complex filters
-libh5bzip2_la_SOURCES = H5Zbzip2.c h5bzip2.h
+lib__nch5bzip2_la_SOURCES = H5Zbzip2.c h5bzip2.h
 BZIP2SRC = blocksort.c huffman.c crctable.c randtable.c compress.c decompress.c bzlib.c bzlib.h bzlib_private.h
 EXTRA_DIST += ${BZIP2SRC} BZIP2_LICENSE
 if HAVE_LOCAL_BZ2
-libh5bzip2_la_SOURCES += ${BZIP2SRC}
+lib__nch5bzip2_la_SOURCES += ${BZIP2SRC}
 endif
-libh5bzip2_la_LDFLAGS = ${plugin_version_info}
-plugin_LTLIBRARIES += libh5bzip2.la
+lib__nch5bzip2_la_LDFLAGS = ${plugin_version_info}
+plugin_LTLIBRARIES += lib__nch5bzip2.la
 
 endif #ENABLE_FILTER_TESTING
 
