@@ -8,6 +8,17 @@ NetCDF-4 Filter Support {#filters}
 
 \tableofcontents
 
+# Feature Overview {#filters_overview}
+
+NetCDF-C filters have some features of which the user
+should be aware.
+
+## Auto Install of filters
+An option is now provided to automatically install
+HDF5 filters into a default location, or optionally
+into a user-specified location. This is described in
+Appendix H (with supporting information in Appendix G). 
+
 # Introduction to Filters {#filters_introduction}
 
 The netCDF library supports a general filter mechanism to apply
