@@ -59,10 +59,6 @@ lib__nch5shuffle_la_LDFLAGS = ${plugin_version_info}
 lib__nch5deflate_la_LDFLAGS = ${plugin_version_info}
 lib__nch5fletcher32_la_LDFLAGS = ${plugin_version_info}
 
-libh5shuffle_la_LDFLAGS = ${plugin_version_info}
-libh5deflate_la_LDFLAGS = ${plugin_version_info}
-libh5fletcher32_la_LDFLAGS = ${plugin_version_info}
-
 # Need our version of szip if libsz available and we are not using HDF5
 if HAVE_SZ
 plugin_LTLIBRARIES += lib__nch5szip.la
@@ -80,9 +76,6 @@ lib__nczhdf5filters_la_SOURCES = NCZhdf5filters.c
 
 plugin_LTLIBRARIES += lib__nczhdf5filters.la
 plugin_LTLIBRARIES += lib__nczstdfilters.la
-
-plugin_LTLIBRARIES += libnczhdf5filters.la
-plugin_LTLIBRARIES += libnczstdfilters.la
 
 if HAVE_BLOSC
 lib__nch5blosc_la_SOURCES = H5Zblosc.c H5Zblosc.h
