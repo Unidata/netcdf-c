@@ -53,6 +53,8 @@ UNKNOWNDIR="${HDF5_PLUGIN_DIR}"
 UNKNOWNLIB="${HDF5_PLUGIN_LIB}"
 UNKNOWNFILTER="${HDF5_PLUGIN_DIR}/${UNKNOWNLIB}"
 
+# Getting the name  is especially tricky for dylib, which puts the version before the .dylib
+
 # Verify
 if ! test -f ${UNKNOWNFILTER} ; then echo "Unable to locate ${UNKNOWNFILTER}"; exit 1; fi
 
@@ -67,7 +69,6 @@ file="tmp_known_${zfilt}.nc"
 rm -f $file
 fileurl="$file"
 fi
-printenv HDF5_PLUGIN_PATH
 # build .nc file using unknown
 ${NCGEN} -lb -4 -o $fileurl ${srcdir}/../nc_test4/unknown.cdl
 # dump and clean file when filter is avail
@@ -78,9 +79,9 @@ sclean ./tmp_known_$zext.txt tmp_known_$zext.dump
 rm -fr  ${UNKNOWNDIR}/save
 mkdir -p  ${UNKNOWNDIR}/save
 # Figure out all matching libs; make sure to remove .so, so.0, etc
-LSRC=`${execdir}/../ncdump/ncpathcvt -F ${UNKNOWNFILTER}`
+LSRC=`${execdir}/../ncdump/ncpathcvt -F "${UNKNOWNDIR}"`
 LDST=`${execdir}/../ncdump/ncpathcvt -F ${UNKNOWNDIR}/save`
-mv ${LSRC}* ${LDST}
+mv ${LSRC}/*unknown* ${LDST}
 # Verify that the filter is no longer defined
 # Try to read the data; should xfail
 if ${NCDUMP} -s $fileurl > ./tmp_unk_$zext.dmp ; then
@@ -91,9 +92,7 @@ echo "*** XFAIL: filter not found"
 found=0
 fi
 # Restore the filter
-LSRC="${LDST}"
-LDST=`${execdir}/../ncdump/ncpathcvt -F ${UNKNOWNDIR}`
-mv ${LSRC}/* ${LDST}
+mv ${LDST}/*unknown* ${LSRC}
 rm -fr  ${UNKNOWNDIR}/save
 if test "x$found" = x1 ; then exit 1; fi
 }
