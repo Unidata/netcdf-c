@@ -1,7 +1,7 @@
 NetCDF-4 Filter Support
 ============================
 
-<!-- double header is needed to workaround doxygen bug -->
+<!--  double header is needed to workaround doxygen bug  -->
 
 NetCDF-4 Filter Support {#filters}
 ==================================
