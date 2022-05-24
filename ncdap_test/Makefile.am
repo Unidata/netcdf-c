@@ -18,7 +18,7 @@ TEST_EXTENSIONS = .sh
 LDADD = ${top_builddir}/liblib/libnetcdf.la
 AM_CPPFLAGS += -I$(top_srcdir)/liblib
 AM_CPPFLAGS += -DTOPSRCDIR=${abs_top_srcdir}
-AM_CPPFLAGS += -DTOPBINDIR=${abs_top_bindir}
+AM_CPPFLAGS += -DTOPBINDIR=${abs_top_builddir}
 
 # Set up the tests; do the .sh first, then .c
 check_PROGRAMS =
@@ -52,6 +52,7 @@ TESTS += test_partvar
 if ENABLE_DAP_LONG_TESTS
  TESTS += tst_longremote3.sh
  tst_longremote3.log: tst_remote3.log
+ test_manyurls_SOURCES = test_manyurls.c manyurls.h
  check_PROGRAMS += test_manyurls
  TESTS += test_manyurls
  test_manyurls.log: tst_longremote3.log
