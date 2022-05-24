@@ -10,10 +10,10 @@ TESTS_ENVIRONMENT =
 
 #TEST_EXTENSIONS = .sh
 
-#SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#TESTS_ENVIRONMENT += export SETX=1;
+SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+TESTS_ENVIRONMENT += export SETX=1;
 
 AM_CPPFLAGS += -I${top_srcdir} -I${top_srcdir}/libnczarr
 AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
@@ -94,7 +94,7 @@ TESTS += run_nczfilter.sh
 
 # Echo filter tests from nc_test4
 check_PROGRAMS += testfilter testfilter_misc testfilter_order testfilter_repeat testfilter_multi test_filter_avail
-TESTS += run_filter.sh
+TESTS += run_filter.sh 
 TESTS += run_specific_filters.sh
 
 endif #ENABLE_FILTER_TESTING
@@ -130,6 +130,7 @@ run_purezarr.sh run_interop.sh run_misc.sh \
 run_filter.sh run_specific_filters.sh \
 run_newformat.sh run_nczarr_fill.sh run_quantize.sh run_jsonconvention.sh
 
+
 EXTRA_DIST += \
 ref_ut_map_create.cdl ref_ut_map_writedata.cdl ref_ut_map_writemeta2.cdl ref_ut_map_writemeta.cdl \
 ref_ut_map_readmeta.txt ref_ut_map_readmeta2.txt ref_ut_map_search.txt \
@@ -146,14 +147,13 @@ ref_avail1.cdl ref_avail1.dmp ref_avail1.txt \
 ref_xarray.cdl ref_purezarr.cdl ref_purezarr_base.cdl ref_nczarr2zarr.cdl \
 ref_bzip2.cdl ref_filtered.cdl ref_multi.cdl \
 ref_any.cdl ref_oldformat.cdl ref_oldformat.zip ref_newformatpure.cdl \
-ref_quotes.zip ref_quotes.cdl \
 ref_groups.h5 ref_byte.zarr.zip ref_byte_fill_value_null.zarr.zip \
 ref_groups_regular.cdl ref_byte.cdl ref_byte_fill_value_null.cdl ref_jsonconvention.cdl
 
 # Interoperability files
-EXTRA_DIST += ref_power_901_constants.zip ref_power_901_constants.cdl ref_quotes.zip ref_quotes.cdl 
+EXTRA_DIST += ref_power_901_constants_orig.zip ref_power_901_constants.cdl ref_quotes_orig.zip ref_quotes.cdl 
 
-CLEANFILES = ut_*.txt ut*.cdl tmp*.nc tmp*.cdl tmp*.txt tmp*.dmp tmp*.zip tmp*.nc tmp*.dump tmp*.tmp tmp_ngc.c ref_zarr_test_data.cdl
+CLEANFILES = ut_*.txt ut*.cdl tmp*.nc tmp*.cdl tmp*.txt tmp*.dmp tmp*.zip tmp*.nc tmp*.dump tmp*.tmp tmp_ngc.c ref_zarr_test_data.cdl tst_*.nc.zip ref_quotes.zip ref_power_901_constants.zip
 
 BUILT_SOURCES = test_quantize.c test_filter_avail.c run_specific_filters.sh run_filterinstall.sh
 test_quantize.c: $(top_srcdir)/nc_test4/tst_quantize.c
@@ -186,10 +186,11 @@ run_filterinstall.sh: $(top_srcdir)/nc_test4/tst_filterinstall.sh
 
 # Remove directories
 clean-local:
-	rm -fr tmp*.file results.file results.s3 results.zip
-	rm -fr rcmiscdir
+	rm -fr tmp_*.nc tmp_*.zarr tst_quantize*.zarr tmp*.file results.file results.s3 results.zip
+	rm -fr rcmiscdir ref_power_901_constants.file 
 
-DISTCLEANFILES = findplugin.sh test_quantize.c run_specific_filters.sh
+
+DISTCLEANFILES = findplugin.sh test_quantize.c run_specific_filters.sh run_filterinstall.sh
 
 # If valgrind is present, add valgrind targets.
 @VALGRIND_CHECK_RULES@
