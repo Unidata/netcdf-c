@@ -113,6 +113,7 @@ ref_filter_order_create.txt ref_filter_order_read.txt			\
 ref_any.cdl tst_specific_filters.sh tst_unknown.sh                      \
 tst_virtual_datasets.c noop1.cdl unknown.cdl
 
+
 # The tst_filterinstall test can only be run after an install
 # occurred with --with-plugin-dir enabled. So there is no point
 #in running it via make check. It is kept here so it can be
@@ -131,6 +132,7 @@ testfilter_reg.nc filterrepeat.txt tmp_fillonly.nc                      \
 testfilter_order.nc crfilterorder.txt rdfilterorder.txt 1               \
 tmp_*.txt tmp_*.nc tmp*.dump tmp*.cdl tmp*.txt tmp*.tmp                 \
 tmp_bzip2.c bzip2.nc noop.nc tmp_*.dmp
+
 
 DISTCLEANFILES = findplugin.sh run_par_test.sh
 

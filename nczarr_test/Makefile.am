@@ -10,10 +10,10 @@ TESTS_ENVIRONMENT =
 
 #TEST_EXTENSIONS = .sh
 
-#SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#TESTS_ENVIRONMENT += export SETX=1;
+SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+TESTS_ENVIRONMENT += export SETX=1;
 
 AM_CPPFLAGS += -I${top_srcdir} -I${top_srcdir}/libnczarr
 AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
@@ -96,6 +96,7 @@ TESTS += run_nczfilter.sh
 check_PROGRAMS += testfilter testfilter_misc testfilter_order testfilter_repeat testfilter_multi test_filter_avail
 TESTS += run_filter.sh 
 TESTS += run_unknown.sh 
+
 TESTS += run_specific_filters.sh
 
 endif #ENABLE_FILTER_TESTING
@@ -131,6 +132,7 @@ run_purezarr.sh run_interop.sh run_misc.sh \
 run_filter.sh run_specific_filters.sh \
 run_newformat.sh run_nczarr_fill.sh run_quantize.sh \
 run_jsonconvention.sh run_nczfilter.sh run_unknown.sh
+
 
 EXTRA_DIST += \
 ref_ut_map_create.cdl ref_ut_map_writedata.cdl ref_ut_map_writemeta2.cdl ref_ut_map_writemeta.cdl \
