@@ -19,7 +19,7 @@ LDADD = ${top_builddir}/liblib/libnetcdf.la
 AM_CPPFLAGS += -I$(top_srcdir)/liblib
 AM_CPPFLAGS += -I$(top_srcdir)/libdap4
 AM_CPPFLAGS += -DTOPSRCDIR=${abs_top_srcdir}
-AM_CPPFLAGS += -DTOPBINDIR=${abs_top_bindir}
+AM_CPPFLAGS += -DTOPBINDIR=${abs_top_builddir}
 
 # Set up the tests; do the .sh first, then .c
 check_PROGRAMS =
