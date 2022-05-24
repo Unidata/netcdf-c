@@ -110,7 +110,7 @@ ref_ncgenF.cdl ref_nccopyF.cdl                                          \
 ref_filter_repeat.txt ref_fillonly.cdl test_fillonly.sh                 \
 ref_filter_order_create.txt ref_filter_order_read.txt			\
 ref_any.cdl tst_specific_filters.sh                                     \
-tst_virtual_datasets.c
+tst_virtual_datasets.c noop1.cdl
 
 # The tst_filterinstall test can only be run after an install
 # occurred with --with-plugin-dir enabled. So there is no point
@@ -128,7 +128,8 @@ perftest.txt bigmeta.nc bigvars.nc *.gz MSGCPP_*.nc	                \
 floats*.nc floats*.cdl shorts*.nc shorts*.cdl ints*.nc ints*.cdl        \
 testfilter_reg.nc filterrepeat.txt tmp_fillonly.nc                      \
 testfilter_order.nc crfilterorder.txt rdfilterorder.txt 1               \
-tmp_*.txt tmp_*.nc tmp*.dump tmp*.cdl tmp*.txt tmp*.tmp tmp_bzip2.c bzip2.nc
+tmp_*.txt tmp_*.nc tmp*.dump tmp*.cdl tmp*.txt tmp*.tmp                 \
+tmp_bzip2.c bzip2.nc noop.nc
 
 DISTCLEANFILES = findplugin.sh run_par_test.sh
 
