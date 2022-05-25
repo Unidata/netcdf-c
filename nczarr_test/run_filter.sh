@@ -50,7 +50,9 @@ sed -e 's/[ 	]*\([^ 	].*\)/\1/' <$1 >$2
 
 # Find misc and capture
 findplugin h5misc
-MISCDIR="${HDF5_PLUGIN_DIR}/${HDF5_PLUGIN_LIB}"
+MISCLIB="${HDF5_PLUGIN_LIB}"
+MISCDIR="${HDF5_PLUGIN_DIR}"
+MISCPATH="${MISCDIR}/${MISCLIB}"
 
 # Find bzip2 and capture
 findplugin h5bzip2
