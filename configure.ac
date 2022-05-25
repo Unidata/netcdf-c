@@ -1891,9 +1891,9 @@ AC_SUBST(STD_FILTERS,[$std_filters])
 
 # If user wants, then install selected standard filters
 AC_MSG_CHECKING([whether and where we should install plugins])
-AC_ARG_WITH([plugin-dir], [AS_HELP_STRING([--with-plugin-dir=<absolute directory>],
-              [Install selected standard filters in specified directory])],
-	      [],[with_plugin_dir=no])
+AC_ARG_WITH([plugin-dir], [AS_HELP_STRING([--with-plugin-dir=<absolute directory>|no|--without-plugin-dir],
+              [Install selected standard filters in specified or default directory])],
+	      [],[with_plugin_dir=yes])
 AC_MSG_RESULT([$with_plugin_dir])
 if test "x$with_plugin_dir" = xno ; then # option missing|disabled
     with_plugin_dir=no   
@@ -1911,15 +1911,17 @@ elif test "x$with_plugin_dir" = xyes ; then # --with-plugin-dir, no argument
     fi
     # Use the lowest priority dir in the path
     if test "x$ISMSVC" = xyes || test "x$ISMINGW" = xyes; then
-      PLUGIN_DIR=`echo "$PLUGIN_PATH" | sed -e 's|\([^;]*[;]\)*\(.*\)|\2|'`
+      PLUGIN_DIR=`echo "$PLUGIN_PATH" | tr ';' ' '`
     else
-      PLUGIN_DIR=`echo "$PLUGIN_PATH" | sed -e 's|\([^:]*[:]\)*\(.*\)|\2|'`
+      PLUGIN_DIR=`echo "$PLUGIN_PATH" | tr ':' ' '`
     fi
+    for pp in ${PLUGIN_DIR} ; do last="$pp"; done
+    PLUGIN_DIR="$last"
     with_plugin_dir_setting="$PLUGIN_DIR"
     # canonical form is all forward slashes
     with_plugin_dir=`echo "$PLUGIN_DIR" | tr '\\\\' '/'`
     enable_plugin_dir=yes
-    AC_MSG_NOTICE([Defaulting to --with-plugin-path=$with_plugin_dir])
+    AC_MSG_NOTICE([Defaulting to --with-plugin-dir=$with_plugin_dir])
 else # --with-plugin-dir=<dir|path>
     with_plugin_dir_setting="$with_plugin_dir"
     enable_plugin_dir=yes
@@ -2019,7 +2021,6 @@ AC_CONFIG_FILES(test_common.sh:test_common.in)
 AC_CONFIG_FILES(nc_test4/findplugin.sh:nc_test4/findplugin.in)
 AC_CONFIG_FILES(nczarr_test/findplugin.sh:nc_test4/findplugin.in)
 AC_CONFIG_FILES(plugins/findplugin.sh:nc_test4/findplugin.in)
-AC_CONFIG_FILES(plugins/stdinstall.sh:plugins/stdinstall.in)
 AC_CONFIG_FILES(examples/C/findplugin.sh:nc_test4/findplugin.in)
 AC_CONFIG_FILES(ncdap_test/findtestserver.c:ncdap_test/findtestserver.c.in)
 AC_CONFIG_FILES([nc_test/run_pnetcdf_tests.sh:nc_test/run_pnetcdf_tests.sh.in],[chmod ugo+x nc_test/run_pnetcdf_tests.sh])
