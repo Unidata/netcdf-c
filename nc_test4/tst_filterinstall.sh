@@ -1,6 +1,8 @@
 #!/bin/bash 
 
 # Test the filter install
+# This cannot be run as a regular test
+# because installation will not have occurred
 
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh

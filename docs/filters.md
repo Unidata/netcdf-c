@@ -1087,7 +1087,7 @@ It is important to note that in order to use each standard filter, several addit
 Consider the zstandard compressor, which is one of the supported standard filters.
 When installing the netcdf library, the following other libraries must be installed.
 
-1. *libzstd.so* | *zstd.dll* | *libzstd.0.dylib* -- The actual zstandard compressor library; typically installed by using your platform specific package manager.
+1. *libzstd.so* | *zstd.dll* | *libzstd.dylib* -- The actual zstandard compressor library; typically installed by using your platform specific package manager.
 2. The HDF5 wrapper for *libzstd.so* -- There are several options for obtaining this (see [Appendix G](#filters_appendixg).)
 3. (Optional) The Zarr wrapper for *libzstd.so* -- you need this if you intend to read/write Zarr datasets that were compressed using zstandard; again see [Appendix G](#filters_appendixg).
 
@@ -1131,6 +1131,16 @@ or its corresponding *cmake* option.
 or
 -DPLUGIN_INSTALL_DIR=YES
 ````
+This option defaults to the value "yes", which means that filters are
+installed by default. This can be disabled by one of the following options.
+````
+--without-plugin-dir (automake)
+or
+--with-plugin-dir=no (automake)
+or
+-DPLUGIN_INSTALL_DIR=NO (CMake)
+````
+
 If the option is specified with no argument (automake) or with the value "YES" (CMake),
 then it defaults (in order) to the following directories:
 1. If the HDF5_PLUGIN_PATH environment variable is defined, then last directory in the list of directories in the path is used.
