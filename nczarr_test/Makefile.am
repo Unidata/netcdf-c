@@ -10,10 +10,10 @@ TESTS_ENVIRONMENT =
 
 #TEST_EXTENSIONS = .sh
 
-SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-TESTS_ENVIRONMENT += export SETX=1;
+#SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#TESTS_ENVIRONMENT += export SETX=1;
 
 AM_CPPFLAGS += -I${top_srcdir} -I${top_srcdir}/libnczarr
 AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
@@ -95,6 +95,7 @@ TESTS += run_nczfilter.sh
 # Echo filter tests from nc_test4
 check_PROGRAMS += testfilter testfilter_misc testfilter_order testfilter_repeat testfilter_multi test_filter_avail
 TESTS += run_filter.sh 
+TESTS += run_unknown.sh 
 TESTS += run_specific_filters.sh
 
 endif #ENABLE_FILTER_TESTING
@@ -128,9 +129,8 @@ run_ut_map.sh run_ut_mapapi.sh run_ut_misc.sh run_ut_chunk.sh run_ncgen4.sh \
 run_nccopyz.sh run_fillonlyz.sh run_chunkcases.sh test_nczarr.sh run_perf_chunks1.sh run_s3_cleanup.sh \
 run_purezarr.sh run_interop.sh run_misc.sh \
 run_filter.sh run_specific_filters.sh \
-run_newformat.sh run_nczarr_fill.sh run_quantize.sh run_jsonconvention.sh \
-run_nczfilter.sh
-
+run_newformat.sh run_nczarr_fill.sh run_quantize.sh \
+run_jsonconvention.sh run_nczfilter.sh run_unknown.sh
 
 EXTRA_DIST += \
 ref_ut_map_create.cdl ref_ut_map_writedata.cdl ref_ut_map_writemeta2.cdl ref_ut_map_writemeta.cdl \
@@ -166,6 +166,15 @@ test_filter_avail.c: $(top_srcdir)/nc_test4/tst_filter_avail.c
 	rm -f $@
 	echo "#define TESTNCZARR" > $@
 	cat $(top_srcdir)/nc_test4/tst_filter_avail.c >> $@
+
+run_unknown.sh: $(top_srcdir)/nc_test4/tst_unknown.sh
+	rm -f $@ run_unknown.tmp
+	echo "#!/bin/bash" > run_unknown.tmp
+	echo "TESTNCZARR=1" >> run_unknown.tmp
+	cat $(top_srcdir)/nc_test4/tst_unknown.sh >> run_unknown.tmp
+	tr -d '\r' < run_unknown.tmp > $@
+	chmod a+x $@
+	rm -f run_unknown.tmp
 
 run_specific_filters.sh: $(top_srcdir)/nc_test4/tst_specific_filters.sh
 	rm -f $@ run_specific_filters.tmp
