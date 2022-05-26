@@ -167,7 +167,7 @@ zclose_vars(NC_GRP_INFO_T* grp)
 #ifdef ENABLE_NCZARR_FILTERS
 	/* Reclaim filters */
 	if(var->filters != NULL) {
-	    (void)NCZ_filter_freelist(var);
+	    (void)NCZ_filter_freelists(var);
 	}
 	var->filters = NULL;
 #endif

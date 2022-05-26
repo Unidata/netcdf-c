@@ -83,6 +83,7 @@ extradir =
 check_PROGRAMS += test_filter test_filter_misc test_filter_order test_filter_repeat test_filter_vlen
 check_PROGRAMS += tst_multifilter tst_filter_avail
 TESTS += tst_filter.sh
+TESTS += tst_unknown.sh
 TESTS += tst_specific_filters.sh
 endif
 endif # USE_HDF5
@@ -109,8 +110,8 @@ ref_filteredvv.cdl ref_multi.cdl                                        \
 ref_ncgenF.cdl ref_nccopyF.cdl                                          \
 ref_filter_repeat.txt ref_fillonly.cdl test_fillonly.sh                 \
 ref_filter_order_create.txt ref_filter_order_read.txt			\
-ref_any.cdl tst_specific_filters.sh                                     \
-tst_virtual_datasets.c noop1.cdl
+ref_any.cdl tst_specific_filters.sh tst_unknown.sh                      \
+tst_virtual_datasets.c noop1.cdl unknown.cdl
 
 # The tst_filterinstall test can only be run after an install
 # occurred with --with-plugin-dir enabled. So there is no point
@@ -129,7 +130,7 @@ floats*.nc floats*.cdl shorts*.nc shorts*.cdl ints*.nc ints*.cdl        \
 testfilter_reg.nc filterrepeat.txt tmp_fillonly.nc                      \
 testfilter_order.nc crfilterorder.txt rdfilterorder.txt 1               \
 tmp_*.txt tmp_*.nc tmp*.dump tmp*.cdl tmp*.txt tmp*.tmp                 \
-tmp_bzip2.c bzip2.nc noop.nc
+tmp_bzip2.c bzip2.nc noop.nc tmp_*.dmp
 
 DISTCLEANFILES = findplugin.sh run_par_test.sh
 

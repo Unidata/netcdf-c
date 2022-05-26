@@ -1,12 +1,32 @@
 NetCDF-4 Filter Support
 ============================
 
-<!-- double header is needed to workaround doxygen bug -->
+<!--  double header is needed to workaround doxygen bug  -->
 
 NetCDF-4 Filter Support {#filters}
 ==================================
 
 \tableofcontents
+
+# Feature Overview {#filters_overview}
+
+NetCDF-C filters have some features of which the user
+should be aware.
+
+* ***Auto Install of filters***<br>
+An option is now provided to automatically install
+HDF5 filters into a default location, or optionally
+into a user-specified location. This is described in
+[Appendix H](#filters_appendixh)
+(with supporting information in [Appendix G](#filters_appendixg)). 
+
+* ***NCZarr Filter Support***<br>
+[NCZarr filters](#filters_nczarr) are now supported.
+This essentially means that it is possible to specify
+Zarr Codecs (Zarr equivalent of filters) in Zarr files
+and have them processed using HDF5-style wrapper shared libraries.
+Zarr filters can be used even if HDF5 support is disabled
+in the netCDF-C library.
 
 # Introduction to Filters {#filters_introduction}
 
@@ -48,10 +68,10 @@ A user may encounter an incompatibility if any of the following appears in user 
 * The function *\_nc\_inq\_var\_filter* was returning the error value NC\_ENOFILTER  if a variable had no associated filters.
   It has been reverted to the previous case where it returns NC\_NOERR and the returned filter id was set to zero if the variable had no filters.
 * The function *nc\_inq\_var\_filterids* was renamed to *nc\_inq\_var\_filter\_ids*.
-* Some auxilliary functions for parsing textual filter specifications have been moved to the file *netcdf\_aux.h*. See <a href="#filters_appendixa">Appendix A</a>.
+* Some auxilliary functions for parsing textual filter specifications have been moved to the file *netcdf\_aux.h*. See [Appendix A](#filters_appendixa).
 * All of the "filterx" functions have been removed. This is unlikely to cause problems because they had limited visibility.
 
-For additional information, see <a href="#filters_appendixb">Appendix B</a>.
+For additional information, see [Appendix B](#filters_appendixb).
 
 # Enabling A HDF5 Compression Filter {#filters_enable}
 
@@ -292,7 +312,7 @@ The rules for all possible cases of the "-F none" flag are defined by this table
 # Filter Specification Syntax {#filters_syntax}
 
 The utilities <a href="#NCGEN">ncgen</a> and <a href="#NCCOPY">nccopy</a>, and also the output of *ncdump*, support the specification of filter ids, formats, and parameters in text format.
-The BNF specification is defined in <a href="filters\_appendixc">Appendix C</a>.
+The BNF specification is defined in [Appendix C](#filters_appendixc).
 Basically, These specifications consist of a filter id, a comma, and then a sequence of
 comma separated constants representing the parameters.
 The constants are converted within the utility to a proper set of unsigned int constants (see the <a href="#ParamEncode">parameter encoding section</a>).
@@ -330,14 +350,33 @@ Each filter is assumed to be compiled into a separate dynamically loaded library
 For HDF5 conformant filters, these filter libraries are assumed to be in some specific location.
 The details for writing such a filter are defined in the HDF5 documentation[1,2].
 
-## Plugin directory {#filters_Plugindir}
+## Plugin directory {#filters_plugindir}
 
-The HDF5 loader expects plugins to be in a specified plugin directory.
-The default directory is:
-* "/usr/local/hdf5/lib/plugin” for linux/unix operating systems (including Cygwin)
-* “%ALLUSERSPROFILE%\\hdf5\\lib\\plugin” for Windows systems, although the code does not appear to explicitly use this path.
+The HDF5 loader searches for plugins in a number of directories.
+This search is contingent on the presence or absence of the environment
+variable named ***HDF5_PLUGIN_PATH***.
 
-The default may be overridden using the environment variable *HDF5\_PLUGIN\_PATH*.
+As with all other "...PATH" variables, it is a sequence of absolute
+directories separated by a separator character. For *nix* operating systems,
+this separator is the colon (':') character. For Windows and Mingw, the
+separator is the semi-colon (';') character. So for example:
+* Linux:   export HDF5_PLUGIN_PATH=/usr/lib:/usr/local/lib
+* Windows: export HDF5_PLUGIN_PATH=c:\ProgramData\hdf5\plugin;c:\tools\lib
+
+If HDF5_PLUGIN_PATH is defined, then the loader will search each directory
+in the path from left to right looking for shared libraries with specific
+exported symbols representing the entry points into the library.
+
+If HDF5_PLUGIN_PATH is not defined, the loader defaults to using
+these default directories:
+* Linux:   "/usr/local/hdf5/lib/plugin”
+* Windows: “%ALLUSERSPROFILE%\\hdf5\\lib\\plugin”
+
+It should be noted that there is a difference between the search order
+for HDF5 versus NCZarr. The HDF5 loader will search only the directories
+specificed in HDF5_PLUGIN_PATH. In NCZarr, the loader
+searches HDF5_PLUGIN_PATH and as a last resort,
+it also searches the default directory.
 
 ## Plugin Library Naming {#filters_Pluginlib}
 
@@ -345,15 +384,17 @@ Given a plugin directory, HDF5 examines every file in that directory that confor
 <table>
 <tr halign="center"><th>Platform<th>Basename<th>Extension
 <tr halign="left"><td>Linux<td>lib*<td>.so*
-<tr halign="left"><td>OSX<td>lib*<td>.so*
+<tr halign="left"><td>OSX<td>lib*<td>.dylib*
 <tr halign="left"><td>Cygwin<td>cyg*<td>.dll*
 <tr halign="left"><td>Windows<td>*<td>.dll
 </table>
 
 ## Plugin Verification {#filters_Pluginverify}
 
-For each dynamic library located using the previous patterns, HDF5 attempts to load the library and attempts to obtain information from it.
-Specifically, It looks for two functions with the following signatures.
+For each dynamic library located using the previous patterns,
+HDF5 attempts to load the library and attempts to obtain
+information from it.  Specifically, It looks for two functions
+with the following signatures.
 
 1. *H5PL\_type\_t H5PLget\_plugin\_type(void)* &mdash; This function is expected to return the constant value *H5PL\_TYPE\_FILTER* to indicate that this is a filter library.
 2. *const void* H5PLget\_plugin\_info(void)* &mdash; This function returns a pointer to a table of type *H5Z\_class2\_t*.
@@ -491,7 +532,7 @@ The netcdf-c library processes all of the shared libraries by interrogating each
 Any libraries that do not export one or both of the well-known APIs is ignored.
 
 Internally, the netcdf-c library pairs up each HDF5 library API with a corresponding Codec API by invoking the relevant well-known functions
-(See <a href="#appendixe">Appendix E/a>).
+(See [Appendix E](#filters_appendixe).
 This results in this table for associated codec and hdf5 libraries.
 <table>
 <tr><th>HDF5 API<th>Codec API<th>Action
@@ -524,7 +565,7 @@ The netcdf-c library examines its list of known filters to find one matching the
 The set of parameters provided is stored internally.
 Then during writing of data, the corresponding HDF5 filter is invoked to encode the data.
 
-When it comes time to write out the meta-data, the stored HDF5-style parameters are passed to a specific Codec function to obtain the corresponding JSON representation. Again see <a href="#appendixe">Appendix E</a>.
+When it comes time to write out the meta-data, the stored HDF5-style parameters are passed to a specific Codec function to obtain the corresponding JSON representation. Again see [Appendix E](#filters_appendixe).
 This resulting JSON is then written in the NCZarr metadata. 
 
 ### Reading an NCZarr Container
@@ -799,7 +840,7 @@ This leads to the following set of rules.
     Because of the encoding rules, this 8-byte value will be in LE format.
    4. The filter must finally do an 8-byte byte-swap on that 8-byte value to convert it to desired BE format.
 
-To support these rules, some utility programs exist and are discussed in <a href="#filters_appendixb">Appendix B</a>.
+To support these rules, some utility programs exist and are discussed in [Appendix B](#filters_appendixb).
 
 # Appendix B. Support Utilities {#filters_appendixb}
 
@@ -1017,7 +1058,7 @@ The list of returned items are used to try to provide defaults
 for any HDF5 filters that have no corresponding Codec.
 This is for internal use only.
 
-# Appendix F. Standard Filters
+# Appendix F. Standard Filters  {#filters_appendixf}
 
 Support for a select set of standard filters is built into the NetCDF API.
 Generally, they are accessed using the following generic API, where XXXX is
@@ -1042,44 +1083,87 @@ So aside from those four, the current set of standard filters is as follows.
 <tr><td>bzip2<td>307<td>https://sourceware.org/bzip2/
 </table>
 
-# Appendix G. Finding Filters
+It is important to note that in order to use each standard filter, several additonal libraries must be installed.
+Consider the zstandard compressor, which is one of the supported standard filters.
+When installing the netcdf library, the following other libraries must be installed.
 
-A major problem for filter users is finding an implementation for a filter.
-There are several ways to do this.
+1. *libzstd.so* | *zstd.dll* | *libzstd.dylib* -- The actual zstandard compressor library; typically installed by using your platform specific package manager.
+2. The HDF5 wrapper for *libzstd.so* -- There are several options for obtaining this (see [Appendix G](#filters_appendixg).)
+3. (Optional) The Zarr wrapper for *libzstd.so* -- you need this if you intend to read/write Zarr datasets that were compressed using zstandard; again see [Appendix G](#filters_appendixg).
+
+# Appendix G. Finding Filters  {#filters_appendixg}
+
+A major problem for filter users is finding an implementation of an HDF5 filter wrapper and (optionally)
+its corresponding NCZarr wrapper. There are several ways to do this.
+
+* **--with-plugin-dir** &mdash; An option to *./configure* that will install the necessary wrappers.
+  See [Appendix H](#filters_appendixh).
 
 * **HDF5 Assigned Filter Identifiers Repository [3]** &mdash;
 HDF5 maintains a page of standard filter identifiers along with
 additional contact information. This often includes a pointer
-to source code.
+to source code. This will provide only HDF5 wrappers and not NCZarr wrappers.
 
 * **Community Codec Repository** &mdash;
 The Community Codec Repository (CCR) project [8] provides
 filters, including HDF5 wrappers, for a number of filters.
+It does not as yet provide Zarr wrappers.
 You can install this library to get access to these supported filters.
 It does not currently include the required NCZarr Codec API,
 so they are only usable with netcdf-4. This will change in the future.
 
-* **NetCDF-C Test Plugins Directory** &mdash;
-As part of the overall build process, a number of filters are built as shared libraries in the "plugins" directory.
-They may be in that directory or the "plugins/.libs" subdirectory.
-It may be possible for users to utilize some of those libraries to provide filter support for general use.
+# Appendix H. Auto-Install of Filter Wrappers {#filters_appendixh}
 
+As part of the overall build process, a number of filter wrappers are built as shared libraries in the "plugins" directory.
+These wrappers can be installed as part of the overall netcdf-c installation process.
+WARNING: the installer still needs to make sure that the actual filter/compression libraries are installed: e.g. libzstd and/or libblosc.
 
-    If the user is using NCZarr filters, then the plugins directory has at least the following shared libraries
-    * libh5shuffle.so &mdash; shuffle filter
-    * libh5fletcher32.so &mdash; fletcher32 checksum
-    * libh5deflate.so &mdash; deflate compression
-    * libnczdefaults.so &mdash; provide NCZarr support for shuffle, fletcher32, and deflate.
-    * *libh5bzip2.so* &mdash; an HDF5 filter for bzip2 compression
-    * *libh5blosc.so* &mdash; an HDF5 filter for blosc compression
-    * *libh5zstd.so* &mdash; an HDF5 filter for zstandard compression
+The target location into which libraries in the "plugins" directory are installed is specified
+using a special *./configure* option
+````
+--with-plugin-dir=<directorypath>
+or
+--with-plugin-dir
+````
+or its corresponding *cmake* option.
+````
+-DPLUGIN_INSTALL_DIR=<directorypath>
+or
+-DPLUGIN_INSTALL_DIR=YES
+````
+This option defaults to the value "yes", which means that filters are
+installed by default. This can be disabled by one of the following options.
+````
+--without-plugin-dir (automake)
+or
+--with-plugin-dir=no (automake)
+or
+-DPLUGIN_INSTALL_DIR=NO (CMake)
+````
 
-    The shuffle, fletcher32, and deflate filters in this case will
-    be ignored by HDF5 and only used by the NCZarr code.  But in
-    order to use them, it needs additional Codec capabilities
-    provided by the libnczdefauts.so shared library.  Note also that
-    if you disable HDF5 support, but leave NCZarr support enabled,
-    then all of the above filters should continue to work.
+If the option is specified with no argument (automake) or with the value "YES" (CMake),
+then it defaults (in order) to the following directories:
+1. If the HDF5_PLUGIN_PATH environment variable is defined, then last directory in the list of directories in the path is used.
+2.  (a) "/usr/local/hdf5/lib/plugin” for linux/unix operating systems (including Cygwin)<br>
+    (b) “%ALLUSERSPROFILE%\\hdf5\\lib\\plugin” for Windows and MinGW
+
+If NCZarr is enabled, then in addition to wrappers for the standard filters,
+additional libraries will be installed to support NCZarr access to filters.
+Currently, this list includes the following:
+* shuffle &mdash; shuffle filter
+* fletcher32 &mdash; fletcher32 checksum
+* deflate &mdash; deflate compression
+* (optional) szip &mdash; szip compression, if libsz is available
+* bzip2 &mdash; an HDF5 filter for bzip2 compression
+* lib__nczh5filters.so &mdash; provide NCZarr support for shuffle, fletcher32, deflate, and (optionally) szip.
+* lib__nczstdfilters.so &mdash; provide NCZarr support for bzip2, (optionally)zstandard, and (optionally) blosc.
+
+The shuffle, fletcher32, and deflate filters in this case will
+be ignored by HDF5 and only used by the NCZarr code.  But in
+order to use them, it needs additional Codec capabilities
+provided by the *lib__nczh5filters.so* shared library.  Note also that
+if you disable HDF5 support, but leave NCZarr support enabled,
+then all of the above filters should continue to work.
 
 ## HDF5_PLUGIN_PATH
 
@@ -1092,16 +1176,23 @@ wrappers but also the NCZarr codec wrappers.
 path-list.  That is it is a sequence of absolute directory paths
 separated by a specific separator character. For Windows, the
 separator character is a semicolon (';') and for Unix, it is a a
-colon (':'). For convenience, NCZarr will also accept the
-semicolon separator for Unix.
+colon (':').
 
-So, the user can add the CCR and/or the plugins directory to
-the *HDF5\_PLUGIN\_PATH* environment variable to allow the netcdf-c
-library to locate wrappers.
+So, if HDF5_PLUGIN_PATH is defined at build time, and
+*--with-plugin-dir* is specified with no argument then the last
+directory in the path will be the one into which filter wrappers are
+installed. Otherwise the default directories are used.
+
+The important thing to note is that at run-time, there are several cases to consider:
+
+1. HDF5_PLUGIN_PATH is defined and is the same value as it was at build time -- no action needed
+2. HDF5_PLUGIN_PATH is defined and is has a different value from build time -- the user is responsible for ensuring that the run-time path includes the same directory used at build time, otherwise this case will fail.
+3. HDF5_PLUGIN_DIR is not defined at either run-time or build-time -- no action needed
+4. HDF5_PLUGIN_DIR is not defined at run-time but was defined at build-time -- this will probably fail
 
 # Point of Contact {#filters_poc}
 
 *Author*: Dennis Heimbigner<br>
 *Email*: dmh at ucar dot edu<br>
 *Initial Version*: 1/10/2018<br>
-*Last Revised*: 3/14/2022
+*Last Revised*: 5/18/2022

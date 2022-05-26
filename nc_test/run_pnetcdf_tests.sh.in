@@ -2,7 +2,6 @@
 
 # This script runs some PnetCDF I/O tests
 
-set -x
 set -e
 
 echo
