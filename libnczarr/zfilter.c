@@ -995,6 +995,7 @@ NCZ_filter_build(const NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, const NCjson* j
     /* Find the plugin for this filter */
     for(i=0;i<=loaded_plugins_max;i++) {
         if (!loaded_plugins[i]) continue;
+        if(!loaded_plugins[i] || !loaded_plugins[i]->codec.codec) continue; /* no plugin or no codec */
         if(strcmp(NCJstring(jvalue), loaded_plugins[i]->codec.codec->codecid) == 0)
 	    {plugin = loaded_plugins[i]; break;}
     }
