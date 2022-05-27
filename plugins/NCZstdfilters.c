@@ -38,10 +38,8 @@ Author: Dennis Heimbigner
 
 /* Forward */
 
-#ifdef HAVE_BZ2
 static int NCZ_bzip2_codec_to_hdf5(const char* codec, size_t* nparamsp, unsigned** paramsp);
 static int NCZ_bzip2_hdf5_to_codec(size_t nparams, const unsigned* params, char** codecp);
-#endif
 
 #ifdef HAVE_ZSTD
 static int NCZ_zstd_codec_to_hdf5(const char* codec, size_t* nparamsp, unsigned** paramsp);
@@ -58,7 +56,6 @@ static void NCZ_blosc_codec_finalize(void);
 /**************************************************/
 /* Provide the codec support for bzip2 filter */
 
-#ifdef HAVE_BZ2
 static NCZ_codec_t NCZ_bzip2_codec = {/* NCZ_codec_t  codec fields */ 
   NCZ_CODEC_CLASS_VER,	/* Struct version number */
   NCZ_CODEC_HDF5,	/* Struct sort */
@@ -139,7 +136,6 @@ NCZ_bzip2_hdf5_to_codec(size_t nparams, const unsigned* params, char** codecp)
 done:
     return stat;
 }
-#endif
 
 /**************************************************/
 /* Provide the codec support for zstandard filter */
@@ -438,9 +434,7 @@ done:
 /**************************************************/
 
 NCZ_codec_t* NCZ_stdfilters_codecs[] = {
-#ifdef HAVE_BZ2
 &NCZ_bzip2_codec,
-#endif
 #ifdef HAVE_ZSTD
 &NCZ_zstd_codec,
 #endif
