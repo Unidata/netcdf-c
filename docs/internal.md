@@ -493,7 +493,7 @@ int nc_inq_var_zstandard(int ncid, int varid, int* has_filterp, int* levelp);
 ````
 So generally the API has the ncid and the varid as fixed, and then
 a list of parameters specific to the filter -- level in this case.
-For the inquire function, there is an additional argument -- has_filterp --
+For the inquire function, there is an additional argument -- has\_filterp --
 that is set to 1 if the filter is defined for the given variable
 and is 0 if not.
 The remainder of the inquiry parameters are pointers to memory
@@ -506,10 +506,10 @@ requires three supporting objects:
    libzstd must be installed in order to use the zstandard
    API.
 2. A HDF5 wrapper for the filter must be installed in the
-   directory pointed to by the HDF5_PLUGIN_PATH environment
+   directory pointed to by the HDF5\_PLUGIN\_PATH environment
    variable.
 3. (Optional) An NCZarr Codec implementation must be installed
-   in the the HDF5_PLUGIN_PATH directory.
+   in the the HDF5\_PLUGIN\_PATH directory.
 
 ## Adding a New Standard Filter
 
@@ -521,7 +521,7 @@ of several locations.
 3. or it can be loaded as part of an external library such as libccr.
 
 However, the three objects listed above need to be 
-stored in the HDF5_PLUGIN_DIR directory, so adding a standard
+stored in the HDF5\_PLUGIN\_PATH directory, so adding a standard
 filter still requires modification to the netcdf build system.
 This limitation may be lifted in the future.
 
@@ -543,7 +543,7 @@ fi
 AC_MSG_CHECKING([whether libzstd library is available])
 AC_MSG_RESULT([${have_zstd}])
 ````
-Note the the entry point (*ZSTD_compress*) is library dependent
+Note the the entry point (*ZSTD\_compress*) is library dependent
 and is used to see if the library is available.
 
 #### Makefile.am
@@ -558,12 +558,13 @@ libh5szip_la_SOURCES = H5Zzstd.c H5Zzstd.h
 endif
 ````
 
+````
 # Need our version of szip if libsz available and we are not using HDF5
 if HAVE_SZ
 noinst_LTLIBRARIES += libh5szip.la
 libh5szip_la_SOURCES = H5Zszip.c H5Zszip.h
 endif
-
+````
 #### CMakeLists.txt
 In an analog to *configure.ac*, a block like
 this needs to be in *netcdf-c/CMakeLists.txt*.
@@ -571,9 +572,9 @@ this needs to be in *netcdf-c/CMakeLists.txt*.
 FIND_PACKAGE(Zstd)
 set_std_filter(Zstd)
 ````
-The FIND_PACKAGE requires a CMake module for the filter
+The FIND\_PACKAGE requires a CMake module for the filter
 in the cmake/modules directory.
-The *set_std_filter* function is a macro.
+The *set\_std\_filter* function is a macro.
 
 An entry in the file config.h.cmake.in will also be needed.
 ````
