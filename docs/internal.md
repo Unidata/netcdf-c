@@ -59,8 +59,8 @@ term "deep" is also used to mean recursive.
 
 Two deep walking operations are provided by the netcdf-c library
 to aid in managing instances of complex structures.
-* free'ing an instance of the complex type
-* copying an instance of the complex type.
+- free'ing an instance of the complex type
+- copying an instance of the complex type.
 
 Previously The netcdf-c library only did shallow free and shallow copy of
 complex types. This meant that only the top level was properly
@@ -72,7 +72,7 @@ internally and the user's data.
 Note that the term "vector" is used to mean a contiguous (in
 memory) sequence of instances of some type. Given an array with,
 say, dimensions 2 X 3 X 4, this will be stored in memory as a
-vector of length 2*3*4=24 instances.
+vector of length 2\*3\*4=24 instances.
 
 The use cases are primarily these.
 
@@ -328,7 +328,7 @@ The model output is actually a struct containing two fields:
 ## The Inference Algorithm
 
 The construction of the model is primarily carried out by the function
-*NC\_infermodel()* (in *libdispatch/dinfermodel.c).
+*NC\_infermodel()* (in *libdispatch/dinfermodel.c*).
 It is given the following parameters:
 1. path -- (IN) absolute file path or URL
 2. modep -- (IN/OUT) the set of mode flags given to *NC\_open* or *NC\_create*.
