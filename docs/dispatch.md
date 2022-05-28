@@ -499,7 +499,7 @@ The code in *hdf4var.c* does an *nc_get_vara()* on the HDF4 SD
 dataset. This is all that is needed for all the nc_get_* functions to
 work.
 
-# Point of Contact {#filters_poc}
+# Point of Contact {#dispatch_poc}
 
 *Author*: Dennis Heimbigner<br>
 *Email*: dmh at ucar dot edu<br>
