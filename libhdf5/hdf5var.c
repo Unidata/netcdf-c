@@ -1698,9 +1698,9 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
         BAIL(retval);
 #endif
 
-    /* Read this hyperslab from memory. Does the dataset have to be
-       extended? If it's already extended to the required size, it will
-       do no harm to reextend it to that size. */
+    /* Does the dataset have to be extended? If it's already extended
+       to the required size, it will do no harm to reextend it to that
+       size. */
     if (var->ndims)
     {
         for (d2 = 0; d2 < var->ndims; d2++)
@@ -1719,15 +1719,10 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
                 {
                     xtend_size[d2] = (long long unsigned)(endindex + 1);
                     need_to_extend++;
+                    dim->extended = NC_TRUE;
                 }
                 else
                     xtend_size[d2] = (long long unsigned)fdims[d2];
-
-                if (!zero_count && endindex >= dim->len)
-                {
-                    dim->len = endindex + 1;
-                    dim->extended = NC_TRUE;
-                }
             }
             else
             {
