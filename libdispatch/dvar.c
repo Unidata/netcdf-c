@@ -518,15 +518,18 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
    variable which has been quantized is readable to older versions of
    the netCDF libraries, and to netCDF-Java.
  
-   For more information about quantization and the BitGroom filter, see 
+   For more information about quantization and the BitGroom filter,
+   see @ref quantize.
 
-   Zender, C. S. (2016), Bit Grooming: Statistically accurate
-   precision-preserving quantization with compression, evaluated in
-   the netCDF Operators (NCO, v4.4.8+), Geosci. Model Dev., 9,
-   3199-3211, doi:10.5194/gmd-9-3199-2016 Retrieved on Sep 21, 2020
-   from
-   https://www.researchgate.net/publication/301575383_Bit_Grooming_Statistically_accurate_precision-preserving_quantization_with_compression_evaluated_in_the_netCDF_Operators_NCO_v448.
-  
+   @note Users new to quantization should start with Granular Bit
+   Round, which results in the best compression. The Bit Groom
+   algorithm is not as effective when compressing, but is faster than
+   Granular Bit Round. The Bit Round algorithm accepts a number of
+   bits to maintain, rather than a number of decimal digits, and is
+   provided for users who are already performing some bit-based
+   quantization, and wish to turn this task over to the netCDF
+   library.
+
    @param ncid File ID.
    @param varid Variable ID. ::NC_GLOBAL may not be used.
    @param quantize_mode Quantization mode. May be ::NC_NOQUANTIZE or
