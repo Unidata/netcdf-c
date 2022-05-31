@@ -9,7 +9,6 @@ set -e
 API=1
 NG=1
 NCP=1
-UNK=1
 NGC=1
 MISC=1
 MULTI=1
@@ -39,18 +38,6 @@ sed -e '/var.*:_Filter/p' -ed <$1 >$2
 
 trimleft() {
 sed -e 's/[ 	]*\([^ 	].*\)/\1/' <$1 >$2
-}
-
-# Hide/unhide the noop filter
-hidenoop() {
-  rm -fr ${HDF5_PLUGIN_DIR}/save
-  mkdir ${HDF5_PLUGIN_DIR}/save
-  mv ${NOOPDIR} ${HDF5_PLUGIN_DIR}/save
-}
-
-unhidenoop() {
-  mv ${HDF5_PLUGIN_DIR}/save/${NOOPLIB} ${HDF5_PLUGIN_DIR}
-  rm -fr ${HDF5_PLUGIN_DIR}/save
 }
 
 # Locate the plugin dir and the library names; argument order is critical
@@ -178,36 +165,6 @@ test ! -s tmp_vnone2.txt
 echo "	*** Pass: -F var,none"
 
 echo "*** Pass: all nccopy filter tests"
-fi
-
-if test "x$UNK" = x1 ; then
-echo "*** Testing access to filter info when filter dll is not available"
-rm -f noop.nc ./tmp_filter.txt
-# xfail build noop.nc 
-hidenoop
-if ${NCGEN} -lb -4 -o noop.nc ${srcdir}/noop.cdl ; then
-    echo "*** FAIL: ncgen"
-else
-    echo "*** XFAIL: ncgen"
-fi
-unhidenoop    
-# build noop.nc 
-${NCGEN} -lb -4 -o noop.nc ${srcdir}/noop.cdl
-# Now hide the filter code
-hidenoop
-rm -f ./tmp_filter.txt
-# This will xfail
-if ${NCDUMP} -s noop.nc > ./tmp_filter.txt ; then
-    echo "*** FAIL: ncdump -hs noop.nc"
-else
-    echo "*** XFAIL: ncdump -hs noop.nc"
-fi
-# Restore the filter code
-unhidenoop
-# Verify we can see filter when using -h
-rm -f ./tmp_filter.txt
-${NCDUMP} -hs noop.nc > ./tmp_filter.txt
-echo "*** Pass: unknown filter"
 fi
 
 if test "x$NGC" = x1 ; then
