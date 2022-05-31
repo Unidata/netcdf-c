@@ -36,9 +36,11 @@ SET(NC_VERSION_NOTE "-development")
 SET(netCDF_VERSION ${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
 SET(NC_VERSION ${netCDF_VERSION})
-SET(netCDF_LIB_VERSION 19)
-SET(netCDF_SO_VERSION 19)
 SET(PACKAGE_VERSION ${VERSION})
+
+# These values should match those in configure.ac
+SET(netCDF_LIB_VERSION 19})
+SET(netCDF_SO_VERSION 19)
 
 # Version of the dispatch table. This must match the value in
 # configure.ac.
@@ -1116,21 +1118,46 @@ ELSE()
   set(STD_FILTERS "${STD_FILTERS} bz2")
 ENDIF()
 
+# If user wants, then install selected plugins (default on)
+SET(PLUGIN_INSTALL_DIR "YES" CACHE STRING "Whether and where we should install plugins; defaults to yes")
+SET(ENABLE_PLUGIN_INSTALL YES)
+IF(DEFINED PLUGIN_INSTALL_DIR) #OR DEFINED CACHE{PLUGIN_INSTALL_DIR}
+  STRING(TOLOWER "${PLUGIN_INSTALL_DIR}" LCPID)
+  IF(LCPID STREQUAL "no")
+    SET(ENABLE_PLUGIN_INSTALL NO)
+  ELSE()
+    SET(ENABLE_PLUGIN_INSTALL YES)
+  ENDIF()
+ENDIF()
 
-# If user wants, then install selected plugins
-SET(PLUGIN_INSTALL_DIR "" CACHE STRING "Whether and where we should install plugins")
-SET(ENABLE_PLUGIN_INSTALL OFF)
-if(DEFINED PLUGIN_INSTALL_DIR OR DEFINED CACHE{PLUGIN_INSTALL_DIR})
-  IF(PLUGIN_INSTALL_DIR STREQUAL "")
-    MESSAGE(WARNING "No plugin directory value specified; option ignored.")  
+IF(ENABLE_PLUGIN_INSTALL AND PLUGIN_INSTALL_DIR STREQUAL "YES")
+    # Default to last dir (lowest search priority) in HDF5_PLUGIN_PATH
+    IF(DEFINED ENV{HDF5_PLUGIN_PATH})
+      SET(PLUGIN_PATH "$ENV{HDF5_PLUGIN_PATH}")
+    ELSE()
+        IF(ISMSVC OR ISMINGW)
+	  SET(PLUGIN_PATH "$ENV{ALLUSERSPROFILE}\\hdf5\\lib\\plugin")
+	ELSE()
+	  SET(PLUGIN_PATH "/usr/local/hdf5/lib/plugin")
+	ENDIF()
+    ENDIF()
+ENDIF()
+
+IF(ENABLE_PLUGIN_INSTALL)
+  # Use the lowest priority dir in the path
+  IF(NOT ISMSVC AND NOT ISMINGW)
+    STRING(REPLACE ":" ";" PATH_LIST ${PLUGIN_PATH})
+  ELSE()
+    SET(PATH_LIST ${PLUGIN_PATH})
+  ENDIF()
+
+  # Get last element
+  LIST(GET PATH_LIST -1 PLUGIN_INSTALL_DIR)
+  MESSAGE("Defaulting to -DPLUGIN_INSTALL_DIR=${PLUGIN_INSTALL_DIR}")
+  SET(PLUGIN_INSTALL_DIR_SETTING "${PLUGIN_INSTALL_DIR}")
+ELSE() # No option specified
     UNSET(PLUGIN_INSTALL_DIR)
     UNSET(PLUGIN_INSTALL_DIR CACHE)
-    SET(PLUGIN_INSTALL_DIR_SETTING "N.A.")
-  ELSE()
-      SET(PLUGIN_INSTALL_DIR_SETTING "${PLUGIN_INSTALL_DIR}")
-      SET(ENABLE_PLUGIN_INSTALL ON)
-  ENDIF()
-ELSE()
     SET(PLUGIN_INSTALL_DIR_SETTING "N.A.")
 ENDIF()
 
@@ -1862,10 +1889,10 @@ ENDIF(ENABLE_MMAP)
 #CHECK_FUNCTION_EXISTS(alloca HAVE_ALLOCA)
 
 # Used in the `configure_file` calls below
-SET(ISCMAKE "1")
+SET(ISCMAKE "yes")
 IF(MSVC)
-SET(ISMSVC ON CACHE BOOL "" FORCE)
-SET(REGEDIT ON CACHE BOOL "" FORCE)
+SET(ISMSVC yes CACHE BOOL "" FORCE)
+SET(REGEDIT yes CACHE BOOL "" FORCE)
 # Get windows major version and build number
 EXECUTE_PROCESS(COMMAND "systeminfo" OUTPUT_VARIABLE WININFO)
 IF(WININFO STREQUAL "")
@@ -2509,25 +2536,15 @@ configure_file(
 SET(EXTRA_DIST ${EXTRA_DIST} ${CMAKE_CURRENT_SOURCE_DIR}/test_common.in)
 SET(TOPSRCDIR "${CMAKE_CURRENT_SOURCE_DIR}")
 SET(TOPBUILDDIR "${CMAKE_CURRENT_BINARY_DIR}")
-SET(ISMSVC "${MSVC}")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test_common.in ${CMAKE_CURRENT_BINARY_DIR}/test_common.sh @ONLY NEWLINE_STYLE LF)
 
 #####
-# Build nc_test4/findplugin.sh
+# Build and copy nc_test4/findplugin.sh to various places
 #####
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/nc_test4/findplugin.sh @ONLY NEWLINE_STYLE LF)
-
-IF(ENABLE_NCZARR)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/nczarr_test/findplugin.sh @ONLY NEWLINE_STYLE LF)
-ENDIF()
-
-IF(ENABLE_PLUGINS)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/plugins/findplugin.sh @ONLY NEWLINE_STYLE LF)
-ENDIF()
-
-IF(ENABLE_EXAMPLES)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/examples/C/findplugin.sh @ONLY NEWLINE_STYLE LF)
-ENDIF()
 
 IF(ENABLE_TESTS)
     #####
