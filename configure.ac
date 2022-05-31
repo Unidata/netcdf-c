@@ -686,6 +686,7 @@ AC_MSG_RESULT([${have_bz2}])
 
 if test "x$have_bz2" = "xno" ; then
   have_local_bz2=yes
+  AC_MSG_NOTICE([Defaulting to internal libbz2])
 else
   have_local_bz2=no
 fi
