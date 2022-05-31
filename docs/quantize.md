@@ -1,6 +1,6 @@
 # Lossy Compression with Quantize
 
-## Introduction
+## Introduction {#quantize}
 
 The quantize feature was initially developed as part of the Community
 Codec Repository (CCR) [2]. The CCR project allows netCDF users to
