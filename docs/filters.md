@@ -380,7 +380,10 @@ it also searches the default directory.
 
 ## Plugin Library Naming {#filters_Pluginlib}
 
-Given a plugin directory, HDF5 examines every file in that directory that conforms to a specified name pattern as determined by the platform on which the library is being executed.
+Given a plugin directory, HDF5 examines every file in that directory
+that conforms to a specified name pattern as determined by the
+platform on which the library is being executed.
+
 <table>
 <tr halign="center"><th>Platform<th>Basename<th>Extension
 <tr halign="left"><td>Linux<td>lib*<td>.so*
