@@ -361,7 +361,7 @@ directories separated by a separator character. For *nix* operating systems,
 this separator is the colon (':') character. For Windows and Mingw, the
 separator is the semi-colon (';') character. So for example:
 * Linux:   export HDF5_PLUGIN_PATH=/usr/lib:/usr/local/lib
-* Windows: export HDF5_PLUGIN_PATH=c:\ProgramData\hdf5\plugin;c:\tools\lib
+* Windows: export HDF5_PLUGIN_PATH=c:\\ProgramData\\hdf5\\plugin;c:\\tools\\lib
 
 If HDF5_PLUGIN_PATH is defined, then the loader will search each directory
 in the path from left to right looking for shared libraries with specific
