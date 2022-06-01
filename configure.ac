@@ -7,7 +7,7 @@
 
 # Running autoconf on this file will trigger a warning if
 # autoconf is not at least the specified version.
-AC_PREREQ([2.59])
+AC_PREREQ([2.71])
 
 # Initialize with name, version, and support email address.
 AC_INIT([netCDF],[4.8.2-development],[support-netcdf@unidata.ucar.edu],[netcdf-c])
@@ -1121,8 +1121,6 @@ AC_MSG_NOTICE([checking types, headers, and functions])
 
 AC_CHECK_HEADERS([sys/param.h])
 AC_CHECK_HEADERS([libgen.h])
-#AC_CHECK_HEADERS([locale.h])
-AC_HEADER_STDC
 AC_CHECK_HEADERS([locale.h stdio.h stdarg.h fcntl.h malloc.h stdlib.h string.h strings.h unistd.h sys/stat.h getopt.h sys/time.h sys/types.h time.h dirent.h])
 
 # Do sys/resource.h separately
@@ -1279,7 +1277,6 @@ AC_SUBST(USEPLUGINS, [${enable_plugins}])
 
 AC_FUNC_ALLOCA
 AC_CHECK_DECLS([isnan, isinf, isfinite],,,[#include <math.h>])
-AC_STRUCT_ST_BLKSIZE
 UD_CHECK_IEEE
 AC_CHECK_TYPES([size_t, ssize_t, schar, uchar, longlong, ushort, uint, int64, uint64, size64_t, ssize64_t, _off64_t, uint64_t, ptrdiff_t])
 AC_TYPE_OFF_T
@@ -2085,6 +2082,6 @@ AC_CONFIG_FILES([Makefile
                  plugins/Makefile
 		 nczarr_test/Makefile
                  ])
-AC_OUTPUT()
+AC_OUTPUT
 
 cat libnetcdf.settings

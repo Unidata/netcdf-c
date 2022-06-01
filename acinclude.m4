@@ -9,7 +9,7 @@ dnl
 AC_DEFUN([UD_CHECK_IEEE],
 [
 AC_MSG_CHECKING(for IEEE floating point format)
-AC_TRY_RUN([#ifndef NO_FLOAT_H
+AC_RUN_IFELSE([AC_LANG_SOURCE[#ifndef NO_FLOAT_H
 #include <float.h>
 #endif
 
@@ -38,7 +38,7 @@ main()
 
 	return EXIT_MAYBEIEEE;
 #endif
-}],ac_cv_c_ieeefloat=yes, ac_cv_c_ieeefloat=no, :)
+}]],ac_cv_c_ieeefloat=yes, ac_cv_c_ieeefloat=no, :)
 AC_MSG_RESULT($ac_cv_c_ieeefloat)
 if test "$ac_cv_c_ieeefloat" = no; then
   AC_DEFINE([NO_IEEE_FLOAT], [], [no IEEE float on this platform])
