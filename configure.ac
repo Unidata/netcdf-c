@@ -7,7 +7,7 @@
 
 # Running autoconf on this file will trigger a warning if
 # autoconf is not at least the specified version.
-AC_PREREQ([2.71])
+AC_PREREQ([2.63])
 
 # Initialize with name, version, and support email address.
 AC_INIT([netCDF],[4.8.2-development],[support-netcdf@unidata.ucar.edu],[netcdf-c])
