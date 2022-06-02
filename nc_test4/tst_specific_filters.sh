@@ -5,6 +5,8 @@
 
 # WARNING: This file is also used to build nczarr_test/run_specific_filters.sh
 
+set -x
+
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
