@@ -5,7 +5,7 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
-## 4.8.2 - TBD
+## 4.9.0 - June 6, 2022
 
 * [Enhancement] Improve filter installation process to avoid use of an extra shell script. See [Github #2348](https://github.com/Unidata/netcdf-c/pull/2348).
 * [Bug Fix] Get "make distcheck" to work See [Github #/2343](https://github.com/Unidata/netcdf-c/pull/2343).
