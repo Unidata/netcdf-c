@@ -361,7 +361,7 @@ directories separated by a separator character. For *nix* operating systems,
 this separator is the colon (':') character. For Windows and Mingw, the
 separator is the semi-colon (';') character. So for example:
 * Linux:   export HDF5_PLUGIN_PATH=/usr/lib:/usr/local/lib
-* Windows: export HDF5_PLUGIN_PATH=c:\ProgramData\hdf5\plugin;c:\tools\lib
+* Windows: export HDF5_PLUGIN_PATH=c:\\ProgramData\\hdf5\\plugin;c:\\tools\\lib
 
 If HDF5_PLUGIN_PATH is defined, then the loader will search each directory
 in the path from left to right looking for shared libraries with specific
@@ -380,7 +380,10 @@ it also searches the default directory.
 
 ## Plugin Library Naming {#filters_Pluginlib}
 
-Given a plugin directory, HDF5 examines every file in that directory that conforms to a specified name pattern as determined by the platform on which the library is being executed.
+Given a plugin directory, HDF5 examines every file in that directory
+that conforms to a specified name pattern as determined by the
+platform on which the library is being executed.
+
 <table>
 <tr halign="center"><th>Platform<th>Basename<th>Extension
 <tr halign="left"><td>Linux<td>lib*<td>.so*
