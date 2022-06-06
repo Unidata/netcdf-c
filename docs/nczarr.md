@@ -331,12 +331,12 @@ Amazon S3 accepts two forms for specifying the endpoint for accessing the data.
 1. Virtual -- the virtual addressing style places the bucket in the host part of a URL.
 For example:
 ```
-https://<bucketname>.s2.<region>.amazonaws.com/
+https://<bucketname>.s2.&lt;region&gt.amazonaws.com/
 ```
 2. Path -- the path addressing style places the bucket in at the front of the path part of a URL.
 For example:
 ```
-https://s2.<region>.amazonaws.com/<bucketname>/
+https://s2.&lt;region&gt.amazonaws.com/<bucketname>/
 ```
 
 The NCZarr code will accept either form, although internally, it is standardized on path style.
@@ -470,7 +470,7 @@ Here are a couple of examples using the _ncgen_ and _ncdump_ utilities.
     ```
     Note that the URLis internally translated to this
     ````
-    https://s2.<region>.amazonaws.com/datasetbucket/rootkey#mode=nczarr,awsprofile=unidata" dataset.cdl
+    https://s2.&lt;region&gt.amazonaws.com/datasetbucket/rootkey#mode=nczarr,awsprofile=unidata" dataset.cdl
     ````
     The region is from the algorithm described in Appendix E1.
 
@@ -752,7 +752,7 @@ s3://<bucket>/key
 ````
 Then this is rebuilt to this form:
 ````
-s3://s2.<region>.amazonaws.com>/key
+s3://s2.&lt;region&gt.amazonaws.com>/key
 ````
 However this requires figuring out the region to use.
 The algorithm for picking an region is as follows.
@@ -783,7 +783,7 @@ The content of these objects is the same as the contents of the corresponding ke
 * ''.nczarray <=> ''_NCZARR_ARRAY_''
 * ''.nczattr <=> ''_NCZARR_ATTR_''
 
-# Appendix G. JSON Attribute Convention. {#nczarr_version1}
+# Appendix G. JSON Attribute Convention. {#nczarr_json}
 
 An attribute may be encountered on read whose value when parsed
 by JSON is a dictionary. As a special conventions, the value
