@@ -758,6 +758,7 @@ INPUT = \
     @abs_top_srcdir@/docs/inmeminternal.dox \
     @abs_top_srcdir@/docs/indexing.dox \
     @abs_top_srcdir@/docs/testserver.dox \
+    @abs_top_srcdir@/docs/quantize.md \
     @abs_top_srcdir@/include/netcdf.h \
     @abs_top_srcdir@/include/netcdf_mem.h \
     @abs_top_srcdir@/include/netcdf_par.h \
@@ -906,7 +907,9 @@ IMAGE_PATH = @abs_top_srcdir@/docs/images/chunking2.png \
     @abs_top_srcdir@/docs/images/netcdf_architecture.png \
     @abs_top_srcdir@/docs/images/pnetcdf.png \
     @abs_top_srcdir@/docs/images/deptree.jpg \
-    @abs_top_srcdir@/docs/images/InstallTreeWindows.png
+    @abs_top_srcdir@/docs/images/InstallTreeWindows.png \
+    @abs_top_srcdir@/docs/images/quantize_pi.png \
+    @abs_top_srcdir@/docs/images/quantize_performance.png
 
 # The INPUT_FILTER tag can be used to specify a program that doxygen should
 # invoke to filter for each input file. Doxygen will invoke the filter program
