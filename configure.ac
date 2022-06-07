@@ -1075,7 +1075,7 @@ fi
 # Is doxygen installed? If so, have configure construct the Doxyfile.
 AC_CHECK_PROGS([DOXYGEN], [doxygen])
 if test -z "$DOXYGEN"; then
-   AC_MSG_WARN([Doxygen not found - documentation will not be built])
+   AC_MSG_ERROR([Doxygen not found - install doxygen or build without --enable-doxygen])
 fi
 
 # Is graphviz/dot installed? If so, we'll use dot to create
