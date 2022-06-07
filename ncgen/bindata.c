@@ -410,7 +410,7 @@ bin_generate_data_r(NCConstant* instance, Symbol* tsym, Datalist* fillvalue, Byt
 	    for(i=0;i<ndims;i++) arraycount *= field->typ.dimset.dimsyms[i]->dim.declsize;
 	    write_alignment(field->typ.alignment,databuf);
 	    /* Write the instances */
-	    for(i=0;i<count;i++) {
+	    for(i=0;i<arraycount;i++) {
 	        if((stat = bin_generate_data_r(fieldinstance, field->typ.basetype, NULL, databuf))) goto done;
 	    }
 	}		
