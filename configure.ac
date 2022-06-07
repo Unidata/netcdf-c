@@ -1072,10 +1072,12 @@ if test -z "$NC_M4"; then
    AC_MSG_ERROR([Cannot find m4 utility. Install m4 and try again.])
 fi
 
-# Is doxygen installed? If so, have configure construct the Doxyfile.
-AC_CHECK_PROGS([DOXYGEN], [doxygen])
-if test -z "$DOXYGEN"; then
-   AC_MSG_ERROR([Doxygen not found - install doxygen or build without --enable-doxygen])
+if test "x$enable_doxygen" != xno; then
+   # Is doxygen installed? If so, have configure construct the Doxyfile.
+   AC_CHECK_PROGS([DOXYGEN], [doxygen])
+   if test -z "$DOXYGEN"; then
+      AC_MSG_ERROR([Doxygen not found - install doxygen or build without --enable-doxygen])
+   fi
 fi
 
 # Is graphviz/dot installed? If so, we'll use dot to create
