@@ -819,76 +819,78 @@ WARN_LOGFILE           =
 # spaces. See also FILE_PATTERNS and EXTENSION_MAPPING
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = @abs_top_srcdir@/docs/mainpage.dox \
-                         @abs_top_srcdir@/RELEASE_NOTES.md \
-                         @abs_top_srcdir@/docs/install-fortran.md \
-                         @abs_top_srcdir@/docs/windows-binaries.md \
-                         @abs_top_srcdir@/docs/attribute_conventions.md \
-                         @abs_top_srcdir@/docs/file_format_specifications.md \
-                         @abs_top_srcdir@/docs/inmemory.md \
-                         @abs_top_srcdir@/docs/filters.md \
-                         @abs_top_srcdir@/docs/byterange.dox \
-                         @abs_top_srcdir@/docs/nczarr.md \
-                         @abs_top_srcdir@/docs/notes.md \
-                         @abs_top_srcdir@/docs/building-with-cmake.md \
-                         @abs_top_srcdir@/docs/FAQ.md \
-                         @abs_top_srcdir@/docs/known_problems.md \
-                         @abs_top_srcdir@/docs/COPYRIGHT.md \
-                         @abs_top_srcdir@/docs/credits.md \
-                         @abs_top_srcdir@/docs/tutorial.dox \
-                         @abs_top_srcdir@/docs/internal.md \
-                         @abs_top_srcdir@/docs/dispatch.md \
-                         @abs_top_srcdir@/docs/inmeminternal.dox \
-                         @abs_top_srcdir@/docs/indexing.dox \
-                         @abs_top_srcdir@/docs/testserver.dox \
-                         @abs_top_srcdir@/include/netcdf.h \
-                         @abs_top_srcdir@/include/netcdf_mem.h \
-                         @abs_top_srcdir@/include/netcdf_par.h \
-                         @abs_top_srcdir@/include/netcdf_filter.h \
-                         @abs_top_srcdir@/libdispatch/dfile.c \
-                         @abs_top_srcdir@/libdispatch/ddim.c \
-                         @abs_top_srcdir@/libdispatch/dvar.c \
-                         @abs_top_srcdir@/libdispatch/dvarget.c \
-                         @abs_top_srcdir@/libdispatch/dvarinq.c \
-                         @abs_top_srcdir@/libdispatch/dattinq.c \
-                         @abs_top_srcdir@/libdispatch/dattget.c \
-                         @abs_top_srcdir@/libdispatch/dvarput.c \
-                         @abs_top_srcdir@/libdispatch/dattput.c \
-                         @abs_top_srcdir@/libdispatch/datt.c \
-                         @abs_top_srcdir@/libdispatch/dgroup.c \
-                         @abs_top_srcdir@/libdispatch/dtype.c \
-                         @abs_top_srcdir@/libdispatch/dcompound.c \
-                         @abs_top_srcdir@/libdispatch/denum.c \
-                         @abs_top_srcdir@/libdispatch/dvlen.c \
-                         @abs_top_srcdir@/libdispatch/dopaque.c \
-                         @abs_top_srcdir@/libdispatch/dparallel.c \
-                         @abs_top_srcdir@/libdispatch/derror.c \
-                         @abs_top_srcdir@/libdispatch/dv2i.c \
-                         @abs_top_srcdir@/libdispatch/dcopy.c \
-                         @abs_top_srcdir@/libdispatch/dfilter.c \
-                         @abs_top_srcdir@/libsrc4/nc4var.c \
-                         @abs_top_srcdir@/libhdf5/nc4hdf.c \
-                         @abs_top_srcdir@/libsrc4/nc4internal.c \
-                         @abs_top_srcdir@/libsrc4/nc4type.c \
-                         @abs_top_srcdir@/libsrc4/nc4grp.c \
-                         @abs_top_srcdir@/libsrc4/ncfunc.c \
-                         @abs_top_srcdir@/libsrc4/nc4dim.c \
-                         @abs_top_srcdir@/libsrc4/nc4attr.c \
-                         @abs_top_srcdir@/libsrc4/nc4cache.c \
-                         @abs_top_srcdir@/libhdf5/nc4info.c \
-                         @abs_top_srcdir@/libsrc4/nc4dispatch.c \
-                         @abs_top_srcdir@/libnczarr/zarr.c \
-                         @abs_top_srcdir@/examples/C/simple_xy_wr.c \
-                         @abs_top_srcdir@/examples/C/simple_xy_rd.c \
-                         @abs_top_srcdir@/examples/C/sfc_pres_temp_wr.c \
-                         @abs_top_srcdir@/examples/C/sfc_pres_temp_rd.c \
-                         @abs_top_srcdir@/examples/C/pres_temp_4D_wr.c \
-                         @abs_top_srcdir@/examples/C/pres_temp_4D_rd.c \
-                         @abs_top_srcdir@/examples/C/simple_nc4_wr.c \
-                         @abs_top_srcdir@/examples/C/simple_nc4_rd.c \
-                         @abs_top_srcdir@/examples/C/simple_xy_nc4_wr.c \
-                         @abs_top_srcdir@/examples/C/simple_xy_nc4_rd.c \
-                         @abs_top_srcdir@/examples/C/filter_example.c
+INPUT = \
+    @abs_top_srcdir@/docs/mainpage.dox \
+    @abs_top_srcdir@/RELEASE_NOTES.md \
+    @abs_top_srcdir@/docs/install-fortran.md \
+    @abs_top_srcdir@/docs/windows-binaries.md \
+    @abs_top_srcdir@/docs/attribute_conventions.md \
+    @abs_top_srcdir@/docs/file_format_specifications.md \
+    @abs_top_srcdir@/docs/inmemory.md \
+    @abs_top_srcdir@/docs/filters.md \
+    @abs_top_srcdir@/docs/byterange.dox \
+    @abs_top_srcdir@/docs/nczarr.md \
+    @abs_top_srcdir@/docs/notes.md \
+    @abs_top_srcdir@/docs/building-with-cmake.md \
+    @abs_top_srcdir@/docs/FAQ.md \
+    @abs_top_srcdir@/docs/known_problems.md \
+    @abs_top_srcdir@/docs/COPYRIGHT.md \
+    @abs_top_srcdir@/docs/credits.md \
+    @abs_top_srcdir@/docs/tutorial.dox \
+    @abs_top_srcdir@/docs/internal.md \
+    @abs_top_srcdir@/docs/dispatch.md \
+    @abs_top_srcdir@/docs/inmeminternal.dox \
+    @abs_top_srcdir@/docs/indexing.dox \
+    @abs_top_srcdir@/docs/testserver.dox \
+    @abs_top_srcdir@/docs/quantize.md \
+    @abs_top_srcdir@/include/netcdf.h \
+    @abs_top_srcdir@/include/netcdf_mem.h \
+    @abs_top_srcdir@/include/netcdf_par.h \
+    @abs_top_srcdir@/include/netcdf_filter.h \
+    @abs_top_srcdir@/libdispatch/dfile.c \
+    @abs_top_srcdir@/libdispatch/ddim.c \
+    @abs_top_srcdir@/libdispatch/dvar.c \
+    @abs_top_srcdir@/libdispatch/dvarget.c \
+    @abs_top_srcdir@/libdispatch/dvarinq.c \
+    @abs_top_srcdir@/libdispatch/dattinq.c \
+    @abs_top_srcdir@/libdispatch/dattget.c \
+    @abs_top_srcdir@/libdispatch/dvarput.c \
+    @abs_top_srcdir@/libdispatch/dattput.c \
+    @abs_top_srcdir@/libdispatch/datt.c \
+    @abs_top_srcdir@/libdispatch/dgroup.c \
+    @abs_top_srcdir@/libdispatch/dtype.c \
+    @abs_top_srcdir@/libdispatch/dcompound.c \
+    @abs_top_srcdir@/libdispatch/denum.c \
+    @abs_top_srcdir@/libdispatch/dvlen.c \
+    @abs_top_srcdir@/libdispatch/dopaque.c \
+    @abs_top_srcdir@/libdispatch/dparallel.c \
+    @abs_top_srcdir@/libdispatch/derror.c \
+    @abs_top_srcdir@/libdispatch/dv2i.c \
+    @abs_top_srcdir@/libdispatch/dcopy.c \
+    @abs_top_srcdir@/libdispatch/dfilter.c \
+    @abs_top_srcdir@/libsrc4/nc4var.c \
+    @abs_top_srcdir@/libhdf5/nc4hdf.c \
+    @abs_top_srcdir@/libsrc4/nc4internal.c \
+    @abs_top_srcdir@/libsrc4/nc4type.c \
+    @abs_top_srcdir@/libsrc4/nc4grp.c \
+    @abs_top_srcdir@/libsrc4/ncfunc.c \
+    @abs_top_srcdir@/libsrc4/nc4dim.c \
+    @abs_top_srcdir@/libsrc4/nc4attr.c \
+    @abs_top_srcdir@/libsrc4/nc4cache.c \
+    @abs_top_srcdir@/libhdf5/nc4info.c \
+    @abs_top_srcdir@/libsrc4/nc4dispatch.c \
+    @abs_top_srcdir@/libnczarr/zarr.c \
+    @abs_top_srcdir@/examples/C/simple_xy_wr.c \
+    @abs_top_srcdir@/examples/C/simple_xy_rd.c \
+    @abs_top_srcdir@/examples/C/sfc_pres_temp_wr.c \
+    @abs_top_srcdir@/examples/C/sfc_pres_temp_rd.c \
+    @abs_top_srcdir@/examples/C/pres_temp_4D_wr.c \
+    @abs_top_srcdir@/examples/C/pres_temp_4D_rd.c \
+    @abs_top_srcdir@/examples/C/simple_nc4_wr.c \
+    @abs_top_srcdir@/examples/C/simple_nc4_rd.c \
+    @abs_top_srcdir@/examples/C/simple_xy_nc4_wr.c \
+    @abs_top_srcdir@/examples/C/simple_xy_nc4_rd.c \
+    @abs_top_srcdir@/examples/C/filter_example.c
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
@@ -983,19 +985,21 @@ EXAMPLE_RECURSIVE      = NO
 # that contain images that are to be included in the documentation (see the
 # \image command).
 
-IMAGE_PATH             = @abs_top_srcdir@/docs/images/chunking2.png \
-                         @abs_top_srcdir@/docs/images/compatibility3.png \
-                         @abs_top_srcdir@/docs/images/compression.png \
-                         @abs_top_srcdir@/docs/images/groups.png \
-                         @abs_top_srcdir@/docs/images/nc4-model.png \
-                         @abs_top_srcdir@/docs/images/ncatts.png \
-                         @abs_top_srcdir@/docs/images/nc-classic-uml.png \
-                         @abs_top_srcdir@/docs/images/nccoords.png \
-                         @abs_top_srcdir@/docs/images/ncfile.png \
-                         @abs_top_srcdir@/docs/images/netcdf_architecture.png \
-                         @abs_top_srcdir@/docs/images/pnetcdf.png \
-                         @abs_top_srcdir@/docs/images/deptree.jpg \
-                         @abs_top_srcdir@/docs/images/InstallTreeWindows.png
+IMAGE_PATH = @abs_top_srcdir@/docs/images/chunking2.png \
+    @abs_top_srcdir@/docs/images/compatibility3.png \
+    @abs_top_srcdir@/docs/images/compression.png \
+    @abs_top_srcdir@/docs/images/groups.png \
+    @abs_top_srcdir@/docs/images/nc4-model.png \
+    @abs_top_srcdir@/docs/images/ncatts.png \
+    @abs_top_srcdir@/docs/images/nc-classic-uml.png \
+    @abs_top_srcdir@/docs/images/nccoords.png \
+    @abs_top_srcdir@/docs/images/ncfile.png \
+    @abs_top_srcdir@/docs/images/netcdf_architecture.png \
+    @abs_top_srcdir@/docs/images/pnetcdf.png \
+    @abs_top_srcdir@/docs/images/deptree.jpg \
+    @abs_top_srcdir@/docs/images/InstallTreeWindows.png \
+    @abs_top_srcdir@/docs/images/quantize_pi.png \
+    @abs_top_srcdir@/docs/images/quantize_performance.png
 
 # The INPUT_FILTER tag can be used to specify a program that doxygen should
 # invoke to filter for each input file. Doxygen will invoke the filter program

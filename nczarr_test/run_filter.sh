@@ -50,16 +50,19 @@ sed -e 's/[ 	]*\([^ 	].*\)/\1/' <$1 >$2
 
 # Find misc and capture
 findplugin h5misc
-MISCDIR="${HDF5_PLUGIN_DIR}/${HDF5_PLUGIN_LIB}"
+MISCLIB="${HDF5_PLUGIN_LIB}"
+MISCDIR="${HDF5_PLUGIN_DIR}"
+MISCPATH="${MISCDIR}/${MISCLIB}"
 
 # Find bzip2 and capture
 findplugin h5bzip2
 BZIP2LIB="${HDF5_PLUGIN_LIB}"
-BZIP2DIR="${HDF5_PLUGIN_DIR}/${BZIP2LIB}"
+BZIP2DIR="${HDF5_PLUGIN_DIR}"
+BZIP2PATH="${BZIP2DIR}/${BZIP2LIB}"
 
 # Verify
-if ! test -f ${BZIP2DIR} ; then echo "Unable to locate ${BZIP2DIR}"; exit 1; fi
-if ! test -f ${MISCDIR} ; then echo "Unable to locate ${MISCDIR}"; exit 1; fi
+if ! test -f ${BZIP2path} ; then echo "Unable to locate ${BZIP2PATH}"; exit 1; fi
+if ! test -f ${MISCPATH} ; then echo "Unable to locate ${MISCPATH}"; exit 1; fi
 
 # Execute the specified tests
 

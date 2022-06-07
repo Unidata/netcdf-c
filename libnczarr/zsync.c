@@ -1486,6 +1486,7 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
     NClist* dimnames = nclistnew();
 #ifdef ENABLE_NCZARR_FILTERS
     NCjson* jfilter = NULL;
+    int chainindex;
 #endif
 
     zinfo = file->format_file_info;
@@ -1654,8 +1655,10 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 	/* Do filters key before compressor key so final filter chain is in correct order */
 	{
 	    if(var->filters == NULL) var->filters = (void*)nclistnew();
+   	    if(zvar->incompletefilters == NULL) zvar->incompletefilters = (void*)nclistnew();
 #ifdef ENABLE_NCZARR_FILTERS
 	    { int k;
+	    chainindex = 0; /* track location of filter in the chain */
 	    if((stat = NCZ_filter_initialize())) goto done;
 	    if((stat = NCJdictget(jvar,"filters",&jvalue))) goto done;
 	    if(jvalue != NULL && NCJsort(jvalue) != NCJ_NULL) {
@@ -1665,7 +1668,7 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 		    jfilter = NCJith(jvalue,k);
 		    if(jfilter == NULL) break; /* done */
 		    if(NCJsort(jfilter) != NCJ_DICT) {stat = NC_EFILTER; goto done;}
-		    if((stat = NCZ_filter_build(file,var,jfilter))) goto done;
+		    if((stat = NCZ_filter_build(file,var,jfilter,chainindex++))) goto done;
 		}
 	    }
 	    }
@@ -1682,7 +1685,7 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 	    if((stat = NCJdictget(jvar,"compressor",&jfilter))) goto done;
 	    if(jfilter != NULL && NCJsort(jfilter) != NCJ_NULL) {
 	        if(NCJsort(jfilter) != NCJ_DICT) {stat = NC_EFILTER; goto done;}
-		if((stat = NCZ_filter_build(file,var,jfilter))) goto done;
+		if((stat = NCZ_filter_build(file,var,jfilter,chainindex++))) goto done;
 	    }
 #endif
 	}

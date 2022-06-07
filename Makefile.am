@@ -10,6 +10,13 @@
 # This directory stores libtool macros, put there by aclocal.
 ACLOCAL_AMFLAGS = -I m4
 
+##
+# Turn off plugin directory during distcheck, see
+# comment thread at https://github.com/Unidata/netcdf-c/pull/2348
+# for more information.
+##
+AM_DISTCHECK_CONFIGURE_FLAGS = --without-plugin-dir
+
 # These files get added to the distribution.
 EXTRA_DIST = README.md COPYRIGHT INSTALL.md test_prog.c lib_flags.am	\
 cmake CMakeLists.txt COMPILE.cmake.txt config.h.cmake.in		\
@@ -90,7 +97,7 @@ endif
 # Build Cloud Storage if desired.
 if ENABLE_NCZARR
 ZARR_TEST_DIR = nczarr_test
-ZARR = libnczarr 
+ZARR = libnczarr
 endif
 
 # Optionally build test plugins
@@ -107,7 +114,7 @@ endif # BUILD_BENCHMARKS
 
 # Define Test directories
 if BUILD_TESTSETS
-TESTDIRS = $(H5_TEST_DIR) 
+TESTDIRS = $(H5_TEST_DIR)
 TESTDIRS += $(UNIT_TEST) $(V2_TEST) nc_test $(NC_TEST4)
 TESTDIRS += $(BENCHMARKS_DIR) $(HDF4_TEST_DIR) $(NCDAP2TESTDIR) $(NCDAP4TESTDIR)
 TESTDIRS += ${ZARR_TEST_DIR}
