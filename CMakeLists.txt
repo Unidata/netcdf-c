@@ -1085,7 +1085,7 @@ string(TOUPPER "${filter}" upfilter)
 string(TOLOWER "${filter}" downfilter)
 # Define a test flag for filter
 IF(${filter}_FOUND)
-  INCLUDE_DIRECTORIES(${filter}_INCLUDE_DIRS})
+  INCLUDE_DIRECTORIES(${${filter}_INCLUDE_DIRS})
   SET(ENABLE_${upfilter} TRUE)
   SET(HAVE_${upfilter} ON)
   SET(STD_FILTERS "${STD_FILTERS} ${downfilter}")
