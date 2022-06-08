@@ -673,7 +673,7 @@ The value NSB is the number of significant bits  to keep.
  
 
  Two other methods use different definitions of _decimal precision_, though both
- are guaranteed to reproduce NSD decimls when printed.
+ are guaranteed to reproduce NSD decimals when printed.
  The margin for a relative error introduced by the methods are summarised in the table
 
  ```
