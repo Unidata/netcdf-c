@@ -191,7 +191,7 @@ main(int argc, char** argv)
 {
     int c;
     char* cvtpath = NULL;
-    char* inpath, *canon;
+    char* inpath, *canon = NULL;
 
     memset((void*)&cvtoptions,0,sizeof(cvtoptions));
     cvtoptions.drive = 'c';
