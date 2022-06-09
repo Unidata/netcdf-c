@@ -96,7 +96,9 @@ AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat3.nc:nc_test4/ref_hdf5_compat3.nc])
 AC_CONFIG_LINKS([hdf4_test/ref_chunked.hdf4:hdf4_test/ref_chunked.hdf4])
 AC_CONFIG_LINKS([hdf4_test/ref_contiguous.hdf4:hdf4_test/ref_contiguous.hdf4])
 AC_CONFIG_LINKS([dap4_test/baselinethredds/GOES16_CONUS_20170821_020218_0.47_1km_33.3N_91.4W.nc4.thredds:dap4_test/baselinethredds/GOES16_TEST1.nc4.thredds])
+
 AM_INIT_AUTOMAKE([foreign dist-zip subdir-objects])
+AM_MAINTAINER_MODE()
 
 # Check for the existence of this file before proceeding.
 AC_CONFIG_SRCDIR([include/netcdf.h])
