@@ -633,7 +633,7 @@ its precision throughout the whole floating point range
 [https://doi.org/10.5194/gmd-9-3199-2016].
 ````
 The generic term "quantize" is used to refer collectively to the various
-bitgroom algorithms. The key thing to note about quantization is that
+precision-trimming algorithms. The key thing to note about quantization is that
 it occurs at the point of writing of data only. Since its output is
 legal data, it does not need to be "de-quantized" when the data is read.
 Because of this, quantization is not part of the standard filter
@@ -660,7 +660,13 @@ or
 _QuantizeBitRoundNumberOfSignificantBits = <NSB>
 ````
 The value NSD is the number of significant (decimal) digits  to keep.
-The value NSB is the number of significant bits  to keep.
+The value NSB is the number of bits to keep in the fraction part of an
+IEEE754 floating-point number. Note that NSB of QuantizeBitRound is the same as
+"number of explicit mantissa bits" (https://doi.org/10.5194/gmd-9-3199-2016) and same as 
+the number of "keep-bits" (https://doi.org/10.5194/gmd-14-377-2021), but is not 
+one less than the number of significant bunary figures:
+`_QuantizeBitRoundNumberOfSignificantBits = 0` means one significant binary figure,
+`_QuantizeBitRoundNumberOfSignificantBits = 1` means two significant binary figures etc.
 
 ## Distortions introduced by lossy filters
 
