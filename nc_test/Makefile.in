@@ -974,8 +974,8 @@ EXTRA_DIST = test_get.m4 test_put.m4 run_diskless.sh run_diskless2.sh \
 	run_inmemory.sh run_mmap.sh f03tst_open_mem.nc \
 	test_byterange.sh ref_tst_http_nc3.cdl ref_tst_http_nc4a.cdl \
 	ref_tst_http_nc4b.cdl ref_tst_http_nc4c.cdl CMakeLists.txt \
-	run_pnetcdf_tests.sh.in bad_cdf5_begin.nc run_cdf5.sh \
-	nc_enddef.cdl
+	run_pnetcdf_tests.sh.in tst_misc.c tst_norm.c \
+	bad_cdf5_begin.nc run_cdf5.sh nc_enddef.cdl
 
 # These files are created by the tests.
 CLEANFILES = nc_test_*.nc tst_*.nc t_nc.nc large_files.nc		\

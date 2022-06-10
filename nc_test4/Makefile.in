@@ -1312,7 +1312,7 @@ EXTRA_DIST = run_par_test.sh.in ref_tst_compounds.nc \
 	ref_filter_order_create.txt ref_filter_order_read.txt \
 	ref_any.cdl tst_specific_filters.sh tst_unknown.sh \
 	tst_virtual_datasets.c noop1.cdl unknown.cdl \
-	tst_filterinstall.sh
+	tst_broken_files.c tst_filterinstall.sh
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
 tst_floats_1D.cdl floats_1D_3.nc floats_1D.cdl tst_*.nc tmp_*.txt       \
 tst_floats2_*.cdl tst_ints2_*.cdl tst_shorts2_*.cdl tst_elena_*.cdl	\
