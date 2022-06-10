@@ -1119,8 +1119,8 @@ ELSE()
 ENDIF()
 
 # If user wants, then install selected plugins (default on)
-SET(PLUGIN_INSTALL_DIR "YES" CACHE STRING "Whether and where we should install plugins; defaults to yes")
-SET(ENABLE_PLUGIN_INSTALL YES)
+SET(PLUGIN_INSTALL_DIR "NO" CACHE STRING "Whether and where we should install plugins; defaults to yes")
+SET(ENABLE_PLUGIN_INSTALL NO)
 IF(DEFINED PLUGIN_INSTALL_DIR) #OR DEFINED CACHE{PLUGIN_INSTALL_DIR}
   STRING(TOLOWER "${PLUGIN_INSTALL_DIR}" LCPID)
   IF(LCPID STREQUAL "no")
