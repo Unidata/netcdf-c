@@ -26919,7 +26919,7 @@ if test ${with_plugin_dir+y}
 then :
   withval=$with_plugin_dir;
 else $as_nop
-  with_plugin_dir=yes
+  with_plugin_dir=no
 fi
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $with_plugin_dir" >&5
