@@ -5,8 +5,11 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
-## 4.8.2 - TBD
+## 4.9.0 - June 10, 2022
 
+* [Enhancement] Add quantize functions nc_def_var_quantize()/nc_inq_var_quantize() to enable lossy compression. See [Github #1548](https://github.com/Unidata/netcdf-c/pull/1548).
+* [Enhancement] Add zstandard compression functions nc_def_var_zstandard()/nc_inq_var_zstandard(). See [Github #2173](https://github.com/Unidata/netcdf-c/issues/2173).
+* [Enhancement] Have netCDF-4 logging output one file per processor when used with parallel I/O. See [Github #1762](https://github.com/Unidata/netcdf-c/issues/1762).
 * [Enhancement] Improve filter installation process to avoid use of an extra shell script. See [Github #2348](https://github.com/Unidata/netcdf-c/pull/2348).
 * [Bug Fix] Get "make distcheck" to work See [Github #/2343](https://github.com/Unidata/netcdf-c/pull/2343).
 * [Enhancement] Allow the read/write of JSON-valued Zarr attributes to allow
