@@ -15,6 +15,10 @@
 #include <unistd.h>
 #endif
 
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#endif
+
 #if defined(_WIN32) && !defined(__MINGW32__)
 #include "XGetopt.h"
 #else
@@ -25,12 +29,13 @@
 #include "ncpathmgr.h"
 
 static const char* USAGE =
-"ncpathcvt [-c|-C|-m|-u|-w] [-h] [-e] [-d <driveletter>] [-B<char>] [-k] [-p] PATH\n"
+"ncpathcvt [-c|-C|-m|-u|-w] [-h] [-e] [-F] [-d <driveletter>] [-B<char>] [-k] [-p] PATH\n"
 "Options\n"
 "  -h help"
 "  -e add backslash escapes to '\' and ' '\n"
 "  -d <driveletter> use driveletter when needed; defaults to 'c'\n"
-"  -B <char> convert occurrences of <char> to ' '\n"
+"  -B <char> convert occurrences of <char> to blank\n"
+"  -F convert occurrences of '\\' to '/'"
 "Output type options:\n"
 "  -c convert to Cygwin form of path\n"
 "  -C return canonical form of path\n"
@@ -53,6 +58,7 @@ struct Options {
     int debug;
     int canon;
     int blank;
+    int slash;
     int pathkind;
 } cvtoptions;
 
@@ -84,6 +90,27 @@ escape(const char* path)
 	if(strchr(escapes,*p) != NULL)
 	    *q++ = '\\';
         *q++ = *p;
+    }
+    *q = '\0';
+    return epath;
+}
+
+static char*
+slash(const char* path)
+{
+    size_t slen = strlen(path);
+    const char* p;
+    char* q;
+    char* epath = NULL;
+
+    epath = (char*)malloc(slen + 1);
+    if(epath == NULL) usage("out of memtory");
+    p = path;
+    q = epath;
+    for(;*p;p++) {
+	if(*p == '\\')
+	    *q++ = '/';
+        else *q++ = *p;
     }
     *q = '\0';
     return epath;
@@ -164,12 +191,12 @@ main(int argc, char** argv)
 {
     int c;
     char* cvtpath = NULL;
-    char* inpath, *canon;
+    char* inpath, *canon = NULL;
 
     memset((void*)&cvtoptions,0,sizeof(cvtoptions));
     cvtoptions.drive = 'c';
 
-    while ((c = getopt(argc, argv, "B:CcD:d:ehkmpuwX")) != EOF) {
+    while ((c = getopt(argc, argv, "B:CFcD:d:ehkmpuwX")) != EOF) {
 	switch(c) {
 	case 'c': cvtoptions.target = NCPD_CYGWIN; break;
 	case 'd': cvtoptions.drive = optarg[0]; break;
@@ -186,6 +213,7 @@ main(int argc, char** argv)
 		usage("Bad -B argument");
 	    break;
 	case 'C': cvtoptions.canon = 1; break;
+	case 'F': cvtoptions.slash = 1; break;
 	case 'D':
 	    sscanf(optarg,"%d",&cvtoptions.debug);
 	    break;
@@ -239,6 +267,11 @@ main(int argc, char** argv)
     if(cvtpath && cvtoptions.escapes) {
 	char* path = cvtpath; cvtpath = NULL;
         cvtpath = escape(path);
+	free(path);
+    }
+    if(cvtpath && cvtoptions.slash) {
+	char* path = cvtpath; cvtpath = NULL;
+        cvtpath = slash(path);
 	free(path);
     }
     printf("%s",cvtpath);

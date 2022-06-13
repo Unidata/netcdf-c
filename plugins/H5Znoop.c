@@ -154,7 +154,7 @@ static NCZ_codec_t NCZ_noop_codec = {/* NCZ_codec_t  codec fields */
   NCZ_CODEC_CLASS_VER,	/* Struct version number */
   NCZ_CODEC_HDF5,	/* Struct sort */
 #if NOOP_INSTANCE == 0
-  "noop0",	        /* Standard name/id of the codec */
+  "noop",	        /* Standard name/id of the codec */
   H5Z_FILTER_NOOP,     /* HDF5 alias for noop */
 #else
   "noop1",	        /* Standard name/id of the codec */

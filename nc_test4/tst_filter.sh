@@ -9,7 +9,6 @@ set -e
 API=1
 NG=1
 NCP=1
-UNK=1
 NGC=1
 MISC=1
 MULTI=1
@@ -41,38 +40,27 @@ trimleft() {
 sed -e 's/[ 	]*\([^ 	].*\)/\1/' <$1 >$2
 }
 
-# Hide/unhide the noop filter
-hidenoop() {
-  rm -fr ${HDF5_PLUGIN_PATH}/save
-  mkdir ${HDF5_PLUGIN_PATH}/save
-  mv ${NOOPPATH} ${HDF5_PLUGIN_PATH}/save
-}
-
-unhidenoop() {
-  mv ${HDF5_PLUGIN_PATH}/save/${NOOPLIB} ${HDF5_PLUGIN_PATH}
-  rm -fr ${HDF5_PLUGIN_PATH}/save
-}
-
-# Locate the plugin path and the library names; argument order is critical
+# Locate the plugin dir and the library names; argument order is critical
 # Find bzip2 and capture
 findplugin h5bzip2
 BZIP2LIB="${HDF5_PLUGIN_LIB}"
-BZIP2PATH="${HDF5_PLUGIN_PATH}/${BZIP2LIB}"
+BZIP2DIR="${HDF5_PLUGIN_DIR}/${BZIP2LIB}"
 # Find misc and capture
 findplugin h5misc
-MISCPATH="${HDF5_PLUGIN_PATH}/${HDF5_PLUGIN_LIB}"
+MISCDIR="${HDF5_PLUGIN_DIR}/${HDF5_PLUGIN_LIB}"
 # Find noop and capture
 findplugin h5noop
 NOOPLIB="${HDF5_PLUGIN_LIB}"
-NOOPPATH="${HDF5_PLUGIN_PATH}/${HDF5_PLUGIN_LIB}"
+NOOPDIR="${HDF5_PLUGIN_DIR}/${HDF5_PLUGIN_LIB}"
 
-echo "final HDF5_PLUGIN_PATH=${HDF5_PLUGIN_PATH}"
-export HDF5_PLUGIN_PATH
+echo "final HDF5_PLUGIN_DIR=${HDF5_PLUGIN_DIR}"
+export HDF5_PLUGIN_DIR
+export HDF5_PLUGIN_PATH="$HDF5_PLUGIN_DIR"
 
 # Verify
-if ! test -f ${BZIP2PATH} ; then echo "Unable to locate ${BZIP2PATH}"; exit 1; fi
-if ! test -f ${MISCPATH} ; then echo "Unable to locate ${MISCPATH}"; exit 1; fi
-if ! test -f ${NOOPPATH} ; then echo "Unable to locate ${NOOPPATH}"; exit 1; fi
+if ! test -f ${BZIP2DIR} ; then echo "Unable to locate ${BZIP2DIR}"; exit 1; fi
+if ! test -f ${MISCDIR} ; then echo "Unable to locate ${MISCDIR}"; exit 1; fi
+if ! test -f ${NOOPDIR} ; then echo "Unable to locate ${NOOPDIR}"; exit 1; fi
 
 # See if we have szip
 if avail szip; then HAVE_SZIP=1; else HAVE_SZIP=0; fi
@@ -177,36 +165,6 @@ test ! -s tmp_vnone2.txt
 echo "	*** Pass: -F var,none"
 
 echo "*** Pass: all nccopy filter tests"
-fi
-
-if test "x$UNK" = x1 ; then
-echo "*** Testing access to filter info when filter dll is not available"
-rm -f noop.nc ./tmp_filter.txt
-# xfail build noop.nc 
-hidenoop
-if ${NCGEN} -lb -4 -o noop.nc ${srcdir}/noop.cdl ; then
-    echo "*** FAIL: ncgen"
-else
-    echo "*** XFAIL: ncgen"
-fi
-unhidenoop    
-# build noop.nc 
-${NCGEN} -lb -4 -o noop.nc ${srcdir}/noop.cdl
-# Now hide the filter code
-hidenoop
-rm -f ./tmp_filter.txt
-# This will xfail
-if ${NCDUMP} -s noop.nc > ./tmp_filter.txt ; then
-    echo "*** FAIL: ncdump -hs noop.nc"
-else
-    echo "*** XFAIL: ncdump -hs noop.nc"
-fi
-# Restore the filter code
-unhidenoop
-# Verify we can see filter when using -h
-rm -f ./tmp_filter.txt
-${NCDUMP} -hs noop.nc > ./tmp_filter.txt
-echo "*** Pass: unknown filter"
 fi
 
 if test "x$NGC" = x1 ; then

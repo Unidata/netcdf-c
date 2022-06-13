@@ -15,21 +15,22 @@ FP_ISMSVC=@ISMSVC@
 FP_ISCYGWIN=@ISCYGWIN@
 FP_ISMINGW=@ISMINGW@
 FP_ISMSYS=@ISMSYS@
-
 FP_ISOSX=@ISOSX@
-FP_ISREGEDIT=@ISREGEDIT@
 
-FP_USEPLUGINS=@USEPLUGINS@
 FP_ISREGEDIT=@ISREGEDIT@
+FP_USEPLUGINS=@USEPLUGINS@
 
 # Feature flags
 FEATURE_HDF5=@HAS_HDF5@
+FEATURE_PARALLEL=@HAS_PARALLEL@
 
 # Define selected features of the build
 FEATURE_HDF5=@HAS_HDF5@
+FEATURE_NCZARR=@HAS_NCZARR@
 FEATURE_S3TESTS=@DO_NCZARR_S3_TESTS@
 FEATURE_NCZARR_ZIP=@DO_NCZARR_ZIP_TESTS@
 FEATURE_FILTERTESTS=@DO_FILTER_TESTS@
+FEATURE_PLUGIN_INSTALL_DIR=@PLUGIN_INSTALL_DIR@
 
 set -e
 
@@ -153,11 +154,13 @@ ncgen3c0="${top_srcdir}/ncgen3/c0.cdl"
 ncgenc0="${top_srcdir}/ncgen/c0.cdl"
 ncgenc04="${top_srcdir}/ncgen/c0_4.cdl"
 
+# Set LC_ALL
+if test "x$FP_ISMSVC" = xyes || test "x$FP_ISCYGWIN" = xyes; then export LC_ALL="en_US.utf8"; fi
+
 # Test for filter availability
 avail() {
 if test yes = `${execdir}/../ncdump/ncfilteravail $1` ; then return 0 ; else echo "filter $1 not available" ; return 1; fi
 }
-if test "x$FP_ISMSVC" = xyes || test "x$FP_ISCYGWIN" = xyes; then export LC_ALL="en_US.utf8"; fi
 
 # Make sure we are in builddir (not execdir)
 cd $builddir

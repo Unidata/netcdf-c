@@ -148,7 +148,9 @@
    nc_create(), nc_def_grp(), or associated inquiry functions such as
    nc_inq_ncid().
    @param name Variable @ref object_name.
-   @param xtype @ref data_type of the variable.
+   @param xtype (Data
+   type)[https://docs.unidata.ucar.edu/nug/current/md_types.html#data_type]
+   of the variable.
    @param ndims Number of dimensions for the variable. For example, 2
    specifies a matrix, 1 specifies a vector, and 0 means the variable is
    a scalar with no dimensions. Must not be negative or greater than the
@@ -488,7 +490,7 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
    types return an error (NC_EINVAL). 
 
    Variables that use quantize will have added an attribute with name
-   ::NC_QUANTIZE_[ALGORITHM_NAME]_ATT_NAME, which will contain the 
+   NC_QUANTIZE_[ALGORITHM_NAME]_ATT_NAME, which will contain the 
    number of significant digits. Users should not delete or change this
    attribute. This is the only record that quantize has been applied
    to the data.
@@ -516,15 +518,18 @@ nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_le
    variable which has been quantized is readable to older versions of
    the netCDF libraries, and to netCDF-Java.
  
-   For more information about quantization and the BitGroom filter, see 
+   For more information about quantization and the BitGroom filter,
+   see @ref quantize.
 
-   Zender, C. S. (2016), Bit Grooming: Statistically accurate
-   precision-preserving quantization with compression, evaluated in
-   the netCDF Operators (NCO, v4.4.8+), Geosci. Model Dev., 9,
-   3199-3211, doi:10.5194/gmd-9-3199-2016 Retrieved on Sep 21, 2020
-   from
-   https://www.researchgate.net/publication/301575383_Bit_Grooming_Statistically_accurate_precision-preserving_quantization_with_compression_evaluated_in_the_netCDF_Operators_NCO_v448.
-  
+   @note Users new to quantization should start with Granular Bit
+   Round, which results in the best compression. The Bit Groom
+   algorithm is not as effective when compressing, but is faster than
+   Granular Bit Round. The Bit Round algorithm accepts a number of
+   bits to maintain, rather than a number of decimal digits, and is
+   provided for users who are already performing some bit-based
+   quantization, and wish to turn this task over to the netCDF
+   library.
+
    @param ncid File ID.
    @param varid Variable ID. ::NC_GLOBAL may not be used.
    @param quantize_mode Quantization mode. May be ::NC_NOQUANTIZE or
@@ -640,7 +645,7 @@ nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
 
    @note Scalar variables may have a storage of NC_CONTIGUOUS or
    NC_COMPACT. Attempts to set chunking on a scalare variable will
-   cause ::NC_EINVEL to be returned. Only non-scalar variables can
+   cause ::NC_EINVAL to be returned. Only non-scalar variables can
    have chunking.
 
    @param ncid NetCDF ID, from a previous call to nc_open() or
@@ -821,8 +826,8 @@ nc_def_var_endian(int ncid, int varid, int endian)
  *
  * To learn the szip settings for a variable, use nc_inq_var_szip().
  *
- * @note The options_mask parameter may be either NC_SZIP_EC (entropy
- * coding) or NC_SZIP_NN (nearest neighbor):
+ * @note The options_mask parameter may be either ::NC_SZIP_EC (entropy
+ * coding) or ::NC_SZIP_NN (nearest neighbor):
  * * The entropy coding method is best suited for data that has been
  * processed. The EC method works best for small numbers.
  * * The nearest neighbor coding method preprocesses the data then the
@@ -835,8 +840,8 @@ nc_def_var_endian(int ncid, int varid, int endian)
  *
  * @param ncid File ID.
  * @param varid Variable ID.
- * @param options_mask The options mask. Can be NC_SZIP_EC or
- * NC_SZIP_NN.
+ * @param options_mask The options mask. Can be ::NC_SZIP_EC or
+ * ::NC_SZIP_NN.
  * @param pixels_per_block Pixels per block. Must be even and not
  * greater than 32, with typical values being 8, 10, 16, or 32. This
  * parameter affects compression ratio; the more pixel values vary,

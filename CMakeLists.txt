@@ -36,9 +36,11 @@ SET(NC_VERSION_NOTE "-development")
 SET(netCDF_VERSION ${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
 SET(NC_VERSION ${netCDF_VERSION})
-SET(netCDF_LIB_VERSION 19)
-SET(netCDF_SO_VERSION 19)
 SET(PACKAGE_VERSION ${VERSION})
+
+# These values should match those in configure.ac
+SET(netCDF_LIB_VERSION 19})
+SET(netCDF_SO_VERSION 19)
 
 # Version of the dispatch table. This must match the value in
 # configure.ac.
@@ -623,26 +625,6 @@ ENDIF(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING)
 # 3. is nczarr enabled?
 # We need separate flags for cases 1 and 2
 
-# We need to determine if libsz is available both for HDF5 and NCZarr
-# If user has specified the `SZIP_LIBRARY`, use it; otherwise try to find...
-IF(NOT SZIP_LIBRARY)
-  FIND_LIBRARY(SZIP PATH NAMES szip sz sz2)
-  IF(SZIP)
-    SET(SZIP_LIBRARY ${SZIP})
-  ELSE()
-    UNSET(SZIP_LIBRARY)
-    UNSET(SZIP)
-  ENDIF()
-ENDIF()
-
-IF(SZIP_LIBRARY)
-  SET(SZIP_FOUND yes)
-  SET(HAVE_SZ yes)
-ELSE()
-  SET(SZIP_FOUND no)
-  SET(HAVE_SZ no)
-ENDIF()
-
 ##
 # Option to Enable HDF5
 #
@@ -905,15 +887,6 @@ IF(USE_HDF5)
    int x = 1;}" USE_HDF5_SZIP)
   IF(USE_HDF5_SZIP)
     SET(HAVE_H5Z_SZIP yes)
-    # If user has specified the `SZIP_LIBRARY`, use it; otherwise try to find...
-    IF(SZIP_FOUND)
-      SET(CMAKE_REQUIRED_LIBRARIES ${SZIP_LIBRARY} ${CMAKE_REQUIRED_LIBRARIES})
-      MESSAGE(STATUS "HDF5 has szip.")
-    ELSE()
-        MESSAGE(FATAL_ERROR "HDF5 Requires SZIP, but cannot find libszip or libsz.")
-    ENDIF()
-  ELSE()
-    SET(HAVE_H5Z_SZIP no)  
   ENDIF()
 
   ####
@@ -1112,33 +1085,80 @@ string(TOUPPER "${filter}" upfilter)
 string(TOLOWER "${filter}" downfilter)
 # Define a test flag for filter
 IF(${filter}_FOUND)
-  INCLUDE_DIRECTORIES(${filter}_INCLUDE_DIRS})
+  INCLUDE_DIRECTORIES(${${filter}_INCLUDE_DIRS})
   SET(ENABLE_${upfilter} TRUE)
-  SET(STD_FILTERS "${STD_FILTERS},${downfilter}")
+  SET(HAVE_${upfilter} ON)
+  SET(STD_FILTERS "${STD_FILTERS} ${downfilter}")
+  MESSAGE(">>> Standard Filter: ${downfilter}")
 ELSE()
   SET(ENABLE_${upfilter} FALSE)
+  SET(HAVE_${upfilter} OFF)
 ENDIF()
 endmacro(set_std_filter)
 
 # Locate some compressors
+FIND_PACKAGE(Szip)
 FIND_PACKAGE(Bz2)
 FIND_PACKAGE(Blosc)
 FIND_PACKAGE(Zstd)
 
-IF(Zstd_FOUND)
-  SET(HAVE_ZSTD yes)
-ELSE()
-  SET(HAVE_ZSTD no)
-ENDIF()
-
 # Accumulate standard filters
-set(STD_FILTERS "deflate") # Always have deflate */
-set_std_filter(SZIP)
+set(STD_FILTERS "deflate") # Always have deflate*/
+set_std_filter(Szip)
+  SET(HAVE_SZ ${Szip_FOUND})
 set_std_filter(Blosc)
 set_std_filter(Zstd)
-set_std_filter(Bz2)
-IF(NOT Bz2_FOUND)
-set(STD_FILTERS "${STD_FILTERS},bzip2") # Always have bzip2 */
+IF(Bz2_FOUND)
+  set_std_filter(Bz2)
+ELSE()
+  # The reason we use a local version is to support a more comples test case
+  MESSAGE(WARNING "libbz2 not found using built-in version")
+  SET(HAVE_LOCAL_BZ2 ON)
+  SET(HAVE_BZ2 ON)
+  set(STD_FILTERS "${STD_FILTERS} bz2")
+ENDIF()
+
+# If user wants, then install selected plugins (default on)
+SET(PLUGIN_INSTALL_DIR "YES" CACHE STRING "Whether and where we should install plugins; defaults to yes")
+SET(ENABLE_PLUGIN_INSTALL YES)
+IF(DEFINED PLUGIN_INSTALL_DIR) #OR DEFINED CACHE{PLUGIN_INSTALL_DIR}
+  STRING(TOLOWER "${PLUGIN_INSTALL_DIR}" LCPID)
+  IF(LCPID STREQUAL "no")
+    SET(ENABLE_PLUGIN_INSTALL NO)
+  ELSE()
+    SET(ENABLE_PLUGIN_INSTALL YES)
+  ENDIF()
+ENDIF()
+
+IF(ENABLE_PLUGIN_INSTALL AND PLUGIN_INSTALL_DIR STREQUAL "YES")
+    # Default to last dir (lowest search priority) in HDF5_PLUGIN_PATH
+    IF(DEFINED ENV{HDF5_PLUGIN_PATH})
+      SET(PLUGIN_PATH "$ENV{HDF5_PLUGIN_PATH}")
+    ELSE()
+        IF(ISMSVC OR ISMINGW)
+	  SET(PLUGIN_PATH "$ENV{ALLUSERSPROFILE}\\hdf5\\lib\\plugin")
+	ELSE()
+	  SET(PLUGIN_PATH "/usr/local/hdf5/lib/plugin")
+	ENDIF()
+    ENDIF()
+ENDIF()
+
+IF(ENABLE_PLUGIN_INSTALL)
+  # Use the lowest priority dir in the path
+  IF(NOT ISMSVC AND NOT ISMINGW)
+    STRING(REPLACE ":" ";" PATH_LIST ${PLUGIN_PATH})
+  ELSE()
+    SET(PATH_LIST ${PLUGIN_PATH})
+  ENDIF()
+
+  # Get last element
+  LIST(GET PATH_LIST -1 PLUGIN_INSTALL_DIR)
+  MESSAGE("Defaulting to -DPLUGIN_INSTALL_DIR=${PLUGIN_INSTALL_DIR}")
+  SET(PLUGIN_INSTALL_DIR_SETTING "${PLUGIN_INSTALL_DIR}")
+ELSE() # No option specified
+    UNSET(PLUGIN_INSTALL_DIR)
+    UNSET(PLUGIN_INSTALL_DIR CACHE)
+    SET(PLUGIN_INSTALL_DIR_SETTING "N.A.")
 ENDIF()
 
 # See if we have libzip
@@ -1869,10 +1889,10 @@ ENDIF(ENABLE_MMAP)
 #CHECK_FUNCTION_EXISTS(alloca HAVE_ALLOCA)
 
 # Used in the `configure_file` calls below
-SET(ISCMAKE "1")
+SET(ISCMAKE "yes")
 IF(MSVC)
-SET(ISMSVC ON CACHE BOOL "" FORCE)
-SET(REGEDIT ON CACHE BOOL "" FORCE)
+SET(ISMSVC yes CACHE BOOL "" FORCE)
+SET(REGEDIT yes CACHE BOOL "" FORCE)
 # Get windows major version and build number
 EXECUTE_PROCESS(COMMAND "systeminfo" OUTPUT_VARIABLE WININFO)
 IF(WININFO STREQUAL "")
@@ -2516,21 +2536,15 @@ configure_file(
 SET(EXTRA_DIST ${EXTRA_DIST} ${CMAKE_CURRENT_SOURCE_DIR}/test_common.in)
 SET(TOPSRCDIR "${CMAKE_CURRENT_SOURCE_DIR}")
 SET(TOPBUILDDIR "${CMAKE_CURRENT_BINARY_DIR}")
-SET(ISMSVC "${MSVC}")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test_common.in ${CMAKE_CURRENT_BINARY_DIR}/test_common.sh @ONLY NEWLINE_STYLE LF)
 
 #####
-# Build nc_test4/findplugin.sh
+# Build and copy nc_test4/findplugin.sh to various places
 #####
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/nc_test4/findplugin.sh @ONLY NEWLINE_STYLE LF)
-
-IF(ENABLE_NCZARR)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/nczarr_test/findplugin.sh @ONLY NEWLINE_STYLE LF)
-ENDIF()
-
-IF(ENABLE_EXAMPLES)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/plugins/findplugin.sh @ONLY NEWLINE_STYLE LF)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/examples/C/findplugin.sh @ONLY NEWLINE_STYLE LF)
-ENDIF()
 
 IF(ENABLE_TESTS)
     #####

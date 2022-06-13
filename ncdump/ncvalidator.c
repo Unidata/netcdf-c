@@ -60,6 +60,9 @@ THIS SOFTWARE.
 */
 
 #include "config.h"
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>  /* open() */
@@ -71,6 +74,10 @@ THIS SOFTWARE.
 #include <errno.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>     /* read() getopt() */
+#endif
+
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
 #endif
 
 #if defined(_WIN32) && !defined(__MINGW32__)

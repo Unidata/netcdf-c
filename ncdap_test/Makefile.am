@@ -10,7 +10,7 @@ include $(top_srcdir)/lib_flags.am
 #SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #TEST_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#TESTS_ENVIRONMENT += export SETX=1;
+#TESTS_ENVIRONMENT = export SETX=1;
 
 # Note which tests depend on other tests. Necessary for make -j check.
 TEST_EXTENSIONS = .sh
@@ -18,7 +18,7 @@ TEST_EXTENSIONS = .sh
 LDADD = ${top_builddir}/liblib/libnetcdf.la
 AM_CPPFLAGS += -I$(top_srcdir)/liblib
 AM_CPPFLAGS += -DTOPSRCDIR=${abs_top_srcdir}
-AM_CPPFLAGS += -DTOPBINDIR=${abs_top_bindir}
+AM_CPPFLAGS += -DTOPBINDIR=${abs_top_builddir}
 
 # Set up the tests; do the .sh first, then .c
 check_PROGRAMS =
@@ -52,6 +52,7 @@ TESTS += test_partvar
 if ENABLE_DAP_LONG_TESTS
  TESTS += tst_longremote3.sh
  tst_longremote3.log: tst_remote3.log
+ test_manyurls_SOURCES = test_manyurls.c manyurls.h
  check_PROGRAMS += test_manyurls
  TESTS += test_manyurls
  test_manyurls.log: tst_longremote3.log

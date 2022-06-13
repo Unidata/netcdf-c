@@ -3,6 +3,7 @@
 # This script runs some PnetCDF I/O tests
 
 set -e
+
 echo
 echo "Testing file created with PnetCDF is modifiable with netCDF..."
 ./tst_pnetcdf

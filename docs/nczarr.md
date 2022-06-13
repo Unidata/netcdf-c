@@ -136,16 +136,18 @@ Note that It should be the case that zipping a _file_
 format directory tree will produce a file readable by the
 _zip_ storage format, and vice-versa.
 
-By default, _mode=zarr_ also supports the XArray _\_ARRAY\_DIMENSIONS_ convention. The _noxarray_ mode tells the library to disable the XArray support.
+By default, the XArray convention is supported and used for
+both NCZarr files and pure Zarr files. This
+means that every variable in the root group whose named dimensions
+are also in the root group will have an attribute called
+*\_ARRAY\_DIMENSIONS* that stores those dimension names.
+The _noxarray_ mode tells the library to disable the XArray support.
 
 The netcdf-c library is capable of inferring additional mode flags based on the flags it finds. Currently we have the following inferences.
-
-- _xarray_ => _zarr_
-- _noxarray_ => _zarr_
 - _zarr_ => _nczarr_
 
-So for example: ````...#mode=noxarray,zip```` is equivalent to this.
-````...#mode=nczarr,zarr,noxarray,zip
+So for example: ````...#mode=zarr,zip```` is equivalent to this.
+````...#mode=nczarr,zarr,zip
 ````
 <!--
 - log=&lt;output-stream&gt;: this control turns on logging output,
@@ -190,7 +192,7 @@ be a prefix of any other key.
 There several other concepts of note.
 1. __Dataset__ - a dataset is the complete tree contained by the key defining
 the root of the dataset.
-Technically, the root of the tree is the key <dataset>/.zgroup, where .zgroup can be considered the _superblock_ of the dataset.
+Technically, the root of the tree is the key \<dataset\>/.zgroup, where .zgroup can be considered the _superblock_ of the dataset.
 2. __Object__ - equivalent of the S3 object; Each object has a unique key
 and "contains" data in the form of an arbitrary sequence of 8-bit bytes.
 
@@ -329,12 +331,12 @@ Amazon S3 accepts two forms for specifying the endpoint for accessing the data.
 1. Virtual -- the virtual addressing style places the bucket in the host part of a URL.
 For example:
 ```
-https://<bucketname>.s2.<region>.amazonaws.com/
+https://<bucketname>.s2.&lt;region&gt.amazonaws.com/
 ```
 2. Path -- the path addressing style places the bucket in at the front of the path part of a URL.
 For example:
 ```
-https://s2.<region>.amazonaws.com/<bucketname>/
+https://s2.&lt;region&gt.amazonaws.com/<bucketname>/
 ```
 
 The NCZarr code will accept either form, although internally, it is standardized on path style.
@@ -434,10 +436,13 @@ The value of this attribute is a list of dimension names (strings).
 An example might be ````["time", "lon", "lat"]````.
 It is essentially equivalent to the ````_NCZARR_ARRAY "dimrefs" list````, except that the latter uses fully qualified names so the referenced dimensions can be anywhere in the dataset.
 
-As of _netcdf-c_ version 4.8.1, The Xarray ''_ARRAY_DIMENSIONS'' attribute is supported.
-This attribute will be read/written by default, but can be suppressed if the mode value "noxarray" is specified.
+As of _netcdf-c_ version 4.8.2, The Xarray ''_ARRAY_DIMENSIONS'' attribute is supported for both NCZarr and pure Zarr.
+If possible, this attribute will be read/written by default,
+but can be suppressed if the mode value "noxarray" is specified.
 If detected, then these dimension names are used to define shared dimensions.
-Note that "noxarray" or "xarray" implies pure zarr format.
+The following conditions will cause ''_ARRAY_DIMENSIONS'' to not be written.
+* The variable is not in the root group,
+* Any dimension referenced by the variable is not in the root group.
 
 # Examples {#nczarr_examples}
 
@@ -465,7 +470,7 @@ Here are a couple of examples using the _ncgen_ and _ncdump_ utilities.
     ```
     Note that the URLis internally translated to this
     ````
-    https://s2.<region>.amazonaws.com/datasetbucket/rootkey#mode=nczarr,awsprofile=unidata" dataset.cdl
+    https://s2.&lt;region&gt.amazonaws.com/datasetbucket/rootkey#mode=nczarr,awsprofile=unidata" dataset.cdl
     ````
     The region is from the algorithm described in Appendix E1.
 
@@ -481,9 +486,9 @@ collections — High-performance dataset datatypes](https://docs.python.org/2/li
 <a name="ref_xarray">[7]</a> [XArray Zarr Encoding Specification](http://xarray.pydata.org/en/latest/internals.html#zarr-encoding-specification)<br>
 <a name="ref_xarray">[8]</a> [Dynamic Filter Loading](https://support.hdfgroup.org/HDF5/doc/Advanced/DynamicallyLoadedFilters/HDF5DynamicallyLoadedFilters.pdf)<br>
 <a name="ref_xarray">[9]</a> [Officially Registered Custom HDF5 Filters](https://portal.hdfgroup.org/display/support/Registered+Filter+Plugins)<br>
-<a name="ref_xarray">[10]</a> [C-Blosc Compressor Implementation](https://github.com/Blosc/c-blosc)
-<a name="ref_awssdk_conda">[11]</a> [Conda-forge / packages / aws-sdk-cpp]
-(https://anaconda.org/conda-forge/aws-sdk-cpp)<br>
+<a name="ref_xarray">[10]</a> [C-Blosc Compressor Implementation](https://github.com/Blosc/c-blosc)<br>
+<a name="ref_awssdk_conda">[11]</a> [Conda-forge / packages / aws-sdk-cpp](https://anaconda.org/conda-forge/aws-sdk-cpp)<br>
+<a name="ref_gdal">[12]</a> [GDAL Zarr](https://gdal.org/drivers/raster/zarr.html)<br>
 
 # Appendix A. Building NCZarr Support {#nczarr_build}
 
@@ -524,8 +529,7 @@ Note also that if S3 support is enabled, then you need to have a C++ compiler in
 
 The necessary CMake flags are as follows (with defaults)
 
-1.
--DENABLE_NCZARR=off -- equivalent to the Automake _--disable-nczarr_ option.
+1. -DENABLE_NCZARR=off -- equivalent to the Automake _--disable-nczarr_ option.
 2. -DENABLE_NCZARR_S3=off -- equivalent to the Automake _--enable-nczarr-s3_ option.
 3. -DENABLE_NCZARR_S3_TESTS=off -- equivalent to the Automake _--enable-nczarr-s3-tests_ option.
 
@@ -562,7 +566,7 @@ Building this package from scratch has proven to be a formidable task.
 This appears to be due to dependencies on very specific versions of,
 for example, openssl.
 
-## **nix** Build
+## *\*nix\** Build
 
 For linux, the following context works. Of course your mileage may vary.
 * OS: ubuntu 21
@@ -682,7 +686,7 @@ Some of the relevant limits are as follows:
 Note that the limit is defined in terms of bytes and not (Unicode) characters.
 This affects the depth to which groups can be nested because the key encodes the full path name of a group.
 
-# Appendix D. Alternative Mechanisms for Accessing Remote Datasets
+# Appendix D. Alternative Mechanisms for Accessing Remote Datasets {#nczarr_altremote}
 
 The NetCDF-C library contains an alternate mechanism for accessing traditional netcdf-4 files stored in Amazon S3: The byte-range mechanism.
 The idea is to treat the remote data as if it was a big file.
@@ -706,7 +710,7 @@ Specifically, Thredds servers support such access using the HttpServer access me
 https://thredds-test.unidata.ucar.edu/thredds/fileServer/irma/metar/files/METAR_20170910_0000.nc#bytes
 ````
 
-# Appendix E. AWS Selection Algorithms.
+# Appendix E. AWS Selection Algorithms. {#nczarr_awsselect}
 
 If byterange support is enabled, the netcdf-c library will parse the files
 ````
@@ -748,7 +752,7 @@ s3://<bucket>/key
 ````
 Then this is rebuilt to this form:
 ````
-s3://s2.<region>.amazonaws.com>/key
+s3://s2.&lt;region&gt.amazonaws.com>/key
 ````
 However this requires figuring out the region to use.
 The algorithm for picking an region is as follows.
@@ -764,7 +768,7 @@ Picking an access-key/secret-key pair is always determined
 by the current active profile. To choose to not use keys
 requires that the active profile must be "none".
 
-# Appendix F. NCZarr Version 1 Meta-Data Representation
+# Appendix F. NCZarr Version 1 Meta-Data Representation. {#nczarr_version1}
 
 In NCZarr Version 1, the NCZarr specific metadata was represented using new objects rather than as keys in existing Zarr objects.
 Due to conflicts with the Zarr specification, that format is deprecated in favor of the one described above.
@@ -778,6 +782,26 @@ The content of these objects is the same as the contents of the corresponding ke
 * ''.nczgroup <=> ''_NCZARR_GROUP_''
 * ''.nczarray <=> ''_NCZARR_ARRAY_''
 * ''.nczattr <=> ''_NCZARR_ATTR_''
+
+# Appendix G. JSON Attribute Convention. {#nczarr_json}
+
+An attribute may be encountered on read whose value when parsed
+by JSON is a dictionary. As a special conventions, the value
+converted to a string and stored as the value of the attribute
+and the type of the attribute is treated as char.
+
+When writing a character valued attribute, it's value is examined
+to see if it looks like a JSON dictionary (i.e. "{...}")
+and is parseable as JSON.
+If so, then the attribute value is treated as one long string,
+parsed as JSON, and stored in the .zattr file in JSON form.
+
+These conventions are intended to help support various
+attributes created by other packages where the attribute is a
+complex JSON dictionary.  An example is the GDAL Driver
+convention <a href="#ref_gdal">[12]</a>.  The value is a complex
+JSON dictionary and it is desirable to both read and write that kind of
+information through the netcdf API.
 
 # Point of Contact {#nczarr_poc}
 
