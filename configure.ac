@@ -10,7 +10,7 @@
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address.
-AC_INIT([netCDF],[4.8.2-development],[support-netcdf@unidata.ucar.edu],[netcdf-c])
+AC_INIT([netCDF],[4.9.1-development],[support-netcdf@unidata.ucar.edu],[netcdf-c])
 
 ##
 # Prefer an empty CFLAGS variable instead of the default -g -O2.
@@ -20,8 +20,8 @@ AC_INIT([netCDF],[4.8.2-development],[support-netcdf@unidata.ucar.edu],[netcdf-c
 : ${CFLAGS=""}
 
 AC_SUBST([NC_VERSION_MAJOR]) NC_VERSION_MAJOR=4
-AC_SUBST([NC_VERSION_MINOR]) NC_VERSION_MINOR=8
-AC_SUBST([NC_VERSION_PATCH]) NC_VERSION_PATCH=2
+AC_SUBST([NC_VERSION_MINOR]) NC_VERSION_MINOR=9
+AC_SUBST([NC_VERSION_PATCH]) NC_VERSION_PATCH=1
 AC_SUBST([NC_VERSION_NOTE]) NC_VERSION_NOTE="-development"
 
 ##
@@ -29,7 +29,7 @@ AC_SUBST([NC_VERSION_NOTE]) NC_VERSION_NOTE="-development"
 # See http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning
 # for information regarding incrementing `-version-info`.
 # These values should match those in CMakeLists.txt
-AC_SUBST([netCDF_SO_VERSION]) netCDF_SO_VERSION=19:1:0
+AC_SUBST([netCDF_SO_VERSION]) netCDF_SO_VERSION=20:0:1
 
 #####
 # Set some variables used to generate a libnetcdf.settings file,
@@ -1264,7 +1264,7 @@ test "x$enable_plugins" = xno || enable_plugins=yes
 AC_MSG_RESULT([$enable_plugins])
 if test "x$have_libdld" = xno && test "x$ISMSVC" = xno; then
   enable_plugins=no
-  AC_MSG_WARN([libdld required for enable-plugins.])  
+  AC_MSG_WARN([libdld required for enable-plugins.])
 fi
 if test "x$enable_plugins" = xyes && test "x$enable_shared" = xno; then
     AC_MSG_WARN([--disable-shared => --disable-plugins])
@@ -1894,10 +1894,10 @@ AC_SUBST(STD_FILTERS,[$std_filters])
 AC_MSG_CHECKING([whether and where we should install plugins])
 AC_ARG_WITH([plugin-dir], [AS_HELP_STRING([--with-plugin-dir=<absolute directory>|no|--without-plugin-dir],
               [Install selected standard filters in specified or default directory])],
-	      [],[with_plugin_dir=yes])
+	      [],[with_plugin_dir=no])
 AC_MSG_RESULT([$with_plugin_dir])
 if test "x$with_plugin_dir" = xno ; then # option missing|disabled
-    with_plugin_dir=no   
+    with_plugin_dir=no
     with_plugin_dir_setting="N.A."
     enable_plugin_dir=no
 elif test "x$with_plugin_dir" = xyes ; then # --with-plugin-dir, no argument
