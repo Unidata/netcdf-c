@@ -94,6 +94,14 @@ test_radix.sh test_rcmerge.sh
 tst_nccopy3.log: tst_calendars.log run_utf8_tests.log tst_output.log	\
                  tst_64bit.log run_tests.log tst_lengths.log
 
+# The tst_nccopy4.sh test uses output from a bunch of other
+# tests. This records the dependency so parallel builds work.
+tst_nccopy4.log: tst_group_data.log tst_enum_data.log tst_comp.log	\
+tst_comp2.log
+
+# The tst_copy5.sh tests uses output from tst_nccopy4.sh.
+tst_nccopy5.log: tst_nccopy4.log
+
 TESTS += tst_null_byte_padding.sh
 if USE_STRICT_NULL_BYTE_HEADER_PADDING
 XFAIL_TESTS += tst_null_byte_padding.sh
