@@ -102,7 +102,8 @@ tst_comp2.log
 # The tst_copy5.sh tests uses output from tst_nccopy4.sh.
 tst_nccopy5.log: tst_nccopy4.log
 
-TESTS += tst_null_byte_padding.sh
+TESTS += tst_null_byte_padding.sh tst_group_data tst_enum_data	\
+tst_comp tst_comp2
 if USE_STRICT_NULL_BYTE_HEADER_PADDING
 XFAIL_TESTS += tst_null_byte_padding.sh
 endif
