@@ -542,7 +542,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
     }
 
     /* Fletcher32 checksum error protection? */
-    if (fletcher32 && fletcher32) {
+    if (fletcher32 && *fletcher32) {
 	retval = nc_inq_var_filter_info(ncid,varid,H5Z_FILTER_FLETCHER32,NULL,NULL);
 	if(!retval || retval == NC_ENOFILTER) {
 	    if((retval = nc_def_var_filter(ncid,varid,H5Z_FILTER_FLETCHER32,0,NULL))) return retval;

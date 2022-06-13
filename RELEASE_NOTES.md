@@ -7,6 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.8.2 - TBD
 
+* [Bug Fix] Fix the nc_def_var_fletcher32 code in hdf5 to properly test value of the fletcher32 argument. See [Github #2403](https://github.com/Unidata/netcdf-c/pull/2403).
 * [Enhancement] Improve filter installation process to avoid use of an extra shell script. See [Github #2348](https://github.com/Unidata/netcdf-c/pull/2348).
 * [Bug Fix] Get "make distcheck" to work See [Github #/2343](https://github.com/Unidata/netcdf-c/pull/2343).
 * [Enhancement] Allow the read/write of JSON-valued Zarr attributes to allow
