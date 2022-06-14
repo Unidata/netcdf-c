@@ -112,7 +112,11 @@ fflush(stderr);
 #ifndef NOHOME
     {
         /* Test 1: RC in HOME  */
-	home = getenv("HOME");
+#if defined(_WIN32) && !defined(__MINGW32__)
+        home = getenv("HOME");
+#else
+        home = getenv("USERPROFILE");
+#endif
         fprintf(stderr,"user:pwd in %s/%s\n",home,RC);
 	if(!testrc(home,url2)) {
 	    fprintf(stderr,"user:pwd in %s/%s failed\n",home,RC);
