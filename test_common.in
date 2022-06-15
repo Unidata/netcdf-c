@@ -157,6 +157,14 @@ ncgenc04="${top_srcdir}/ncgen/c0_4.cdl"
 # Set LC_ALL
 if test "x$FP_ISMSVC" = xyes || test "x$FP_ISCYGWIN" = xyes; then export LC_ALL="en_US.utf8"; fi
 
+# Set HOME
+if test "x$FP_ISMSVC" = xyes || test "x$FP_MINGW" = xyes; then
+if test "x$HOME" = x ; then
+HOME=`echo $USERPROFILE |tr '\\\' '/'`
+export HOME
+fi
+fi
+
 # Test for filter availability
 avail() {
 if test yes = `${execdir}/../ncdump/ncfilteravail $1` ; then return 0 ; else echo "filter $1 not available" ; return 1; fi

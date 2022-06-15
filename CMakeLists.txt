@@ -1112,7 +1112,7 @@ IF(Bz2_FOUND)
   set_std_filter(Bz2)
 ELSE()
   # The reason we use a local version is to support a more comples test case
-  MESSAGE(WARNING "libbz2 not found using built-in version")
+  MESSAGE("libbz2 not found using built-in version")
   SET(HAVE_LOCAL_BZ2 ON)
   SET(HAVE_BZ2 ON)
   set(STD_FILTERS "${STD_FILTERS} bz2")

@@ -5,11 +5,16 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
+## 4.9.1 - T.B.D.
+
+
+* [Bug Fix] Use env variable USERPROFILE instead of HOME for windows and mingw. See [Github #2405](https://github.com/Unidata/netcdf-c/pull/2405).
+* [Bug Fix] Fix the nc_def_var_fletcher32 code in hdf5 to properly test value of the fletcher32 argument. See [Github #2403](https://github.com/Unidata/netcdf-c/pull/2403).
+
 ## 4.9.0 - June 10, 2022
 
-* [Bug Fix] Fix the nc_def_var_fletcher32 code in hdf5 to properly test value of the fletcher32 argument. See [Github #2403](https://github.com/Unidata/netcdf-c/pull/2403).
 * [Enhancement] Improve filter installation process to avoid use of an extra shell script. See [Github #2348](https://github.com/Unidata/netcdf-c/pull/2348).
-* [Bug Fix] Get "make distcheck" to work See [Github #/2343](https://github.com/Unidata/netcdf-c/pull/2343).
+* [Bug Fix] Get "make distcheck" to work See [Github #2343](https://github.com/Unidata/netcdf-c/pull/2343).
 * [Enhancement] Allow the read/write of JSON-valued Zarr attributes to allow
 for domain specific info such as used by GDAL/Zarr. See [Github #2278](https://github.com/Unidata/netcdf-c/pull/2278).
 * [Enhancement] Turn on the XArray convention for NCZarr files by default. WARNING, this means that the mode should explicitly specify nczarr" or "zarr" even if "xarray" or "noxarray" is specified. See [Github #2257](https://github.com/Unidata/netcdf-c/pull/2257).
