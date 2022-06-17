@@ -7,7 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.9.1 - T.B.D.
 
-
+* [Enhancement] Provide a simple API to allow user access to the internal .rc file table: supports get/set/overwrite of entries of the form "key=value". See [Github #????](https://github.com/Unidata/netcdf-c/pull/????).
 * [Bug Fix] Use env variable USERPROFILE instead of HOME for windows and mingw. See [Github #2405](https://github.com/Unidata/netcdf-c/pull/2405).
 * [Bug Fix] Fix the nc_def_var_fletcher32 code in hdf5 to properly test value of the fletcher32 argument. See [Github #2403](https://github.com/Unidata/netcdf-c/pull/2403).
 

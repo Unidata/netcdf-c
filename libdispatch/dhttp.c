@@ -22,7 +22,9 @@
 #include "nclog.h"
 #include "ncbytes.h"
 #include "nclist.h"
+#include "ncuri.h"
 #include "nchttp.h"
+#include "ncauth.h"
 
 #undef TRACE
 
@@ -481,6 +483,23 @@ setupconn(NC_HTTP_STATE* state, const char* objecturl)
     if (cstat != CURLE_OK) goto fail;
     cstat = curl_easy_setopt(state->curl, CURLOPT_FOLLOWLOCATION, 1); 
     if (cstat != CURLE_OK) goto fail;
+
+    /* Pull some values from .rc tables */
+    {
+	NCURI* uri = NULL;
+	char* hostport = NULL;
+	char* value = NULL;
+	ncuriparse(objecturl,&uri);
+	if(uri == NULL) goto fail;
+	hostport = NC_combinehostport(uri);
+	value = NC_rclookup("HTTP.CAINFO",hostport,NULL);
+	if(value == NULL)
+	    value = NC_rclookup("HTTP.CAINFO",NULL,NULL);
+	if(value != NULL) {
+	    cstat = CURLERR(curl_easy_setopt(state->curl, CURLOPT_CAINFO, value));
+	    if (cstat != CURLE_OK) goto fail;
+	}
+    }
 
     /* Set the method */
     if((stat = nc_http_set_method(state,state->request.method))) goto done;

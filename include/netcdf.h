@@ -2095,6 +2095,14 @@ EXTERNL int nc_initialize(void);
 */
 EXTERNL int nc_finalize(void);
 
+/* Programmatic access to the internal .rc table */
+
+/* Get the value corresponding to key | return NULL; caller frees  result */
+EXTERNL char* nc_rc_get(const char* key);
+
+/* Set/overwrite the value corresponding to key */
+EXTERNL int nc_rc_set(const char* key, const char* value);
+
 #if defined(__cplusplus)
 }
 #endif

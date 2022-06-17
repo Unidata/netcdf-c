@@ -95,7 +95,6 @@ NCDISPATCH_initialize(void)
         NCpathcanonical(home,&globalstate->home);
 	nullfree(home);
     }
-fprintf(stderr,">>> HOME=|%s|\n",globalstate->home); fflush(stderr);
  
     /* Capture $CWD */
     {

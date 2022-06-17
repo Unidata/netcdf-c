@@ -418,7 +418,7 @@ main(int argc, char **argv)
         if (nc_close(ncid)) ERR;
     }
     SUMMARIZE_ERR;
-#ifdef HAVE_H5Z_SZIP
+#ifdef HAVE_SZ
     printf("**** testing simple szip filter setup...");
     {
         int ncid;
@@ -757,6 +757,6 @@ main(int argc, char **argv)
         if (nc_close(ncid)) ERR;
     }
     SUMMARIZE_ERR;
-#endif /* HAVE_H5Z_SZIP */
+#endif /* HAVE_SZ */
     FINAL_RESULTS;
 }
