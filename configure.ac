@@ -107,6 +107,7 @@ case "`uname`" in
   Darwin*) ISOSX=yes;;
   WIN*) ISMSVC=yes;;
   MINGW*) ISMINGW=yes;;
+  MSYS*) ISMINGW=yes;;
 esac
 
 if test "x$MSYSTEM" != x ; then

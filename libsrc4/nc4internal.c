@@ -2105,8 +2105,12 @@ NC_createglobalstate(void)
         nc_globalstate = calloc(1,sizeof(NCglobalstate));
     }
     /* Initialize struct pointers */
-    nc_globalstate->rcinfo = (struct NCRCinfo*)calloc(1,sizeof(struct NCRCinfo));
-    if(nc_globalstate == NULL) return NC_ENOMEM;
+    if((nc_globalstate->rcinfo = calloc(1,sizeof(struct NCRCinfo)))==NULL)
+        {stat = NC_ENOMEM; goto done;}
+    if((nc_globalstate->rcinfo->entries = nclistnew())==NULL)
+        {stat = NC_ENOMEM; goto done;}
+    if((nc_globalstate->rcinfo->s3profiles = nclistnew())==NULL)
+        {stat = NC_ENOMEM; goto done;}
 
     /* Get environment variables */
     if(getenv(NCRCENVIGNORE) != NULL)
@@ -2119,6 +2123,7 @@ NC_createglobalstate(void)
     nc_globalstate->chunkcache.nelems = CHUNK_CACHE_NELEMS;        /**< Default chunk cache number of elements. */
     nc_globalstate->chunkcache.preemption = CHUNK_CACHE_PREEMPTION; /**< Default chunk cache preemption. */
     
+done:
     return stat;
 }
 
