@@ -23,6 +23,7 @@ See COPYRIGHT for license information.
 #include "ncauth.h"
 #include "ncpathmgr.h"
 #include "nc4internal.h"
+#include "ncdispatch.h"
 
 #ifndef nulldup
  #define nulldup(x) ((x)?strdup(x):(x))
@@ -91,7 +92,8 @@ nc_rc_get(const char* key)
     NCglobalstate* ncg = NULL;
     char* value = NULL;
 
-    if(!NCRCinitialized) ncrc_initialize();
+    if(!NC_initialized) nc_initialize();
+
     ncg = NC_getglobalstate();
     assert(ncg != NULL && ncg->rcinfo != NULL && ncg->rcinfo->entries != NULL);
     if(ncg->rcinfo->ignore) return NC_NOERR;
@@ -113,9 +115,9 @@ nc_rc_set(const char* key, const char* value)
 {
     int stat = NC_NOERR;
     NCglobalstate* ncg = NULL;
-    NCRCentry* entry = NULL;
 
-    if(!NCRCinitialized) ncrc_initialize();
+    if(!NC_initialized) nc_initialize();
+
     ncg = NC_getglobalstate();
     assert(ncg != NULL && ncg->rcinfo != NULL && ncg->rcinfo->entries != NULL);
     if(ncg->rcinfo->ignore) return NC_NOERR;

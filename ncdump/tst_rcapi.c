@@ -2,7 +2,7 @@
    Copyright 2018 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
-   Test HDF5 alignment
+   Test RC interface
    Dennis Heimbigner
 */
 
@@ -63,7 +63,6 @@ main(int argc, char **argv)
     char* newvalue;
 
     printf("load:\n");
-    if ((stat=nc_initialize())) {fprintf(stderr,"***fail\n"); exit(1);}
 
     key = "key1";
     value = "value1";
@@ -72,6 +71,7 @@ main(int argc, char **argv)
     printf("insert: before: %s = %s\n",key,newvalue);
     nullfree(newvalue);
     stat = nc_rc_set(key, value);
+    if(stat) {fprintf(stderr,"***Fail: nc_rc_set: %s\n",nc_strerror(stat)); goto done;}
     newvalue = nc_rc_get(key);
     printf("insert: after: %s = %s\n",key,newvalue);
     nullfree(newvalue);
@@ -83,10 +83,12 @@ main(int argc, char **argv)
     printf("replace: before: %s = %s\n",key,newvalue);
     nullfree(newvalue);
     stat = nc_rc_set(key, value);
+    if(stat) {fprintf(stderr,"***Fail: nc_rc_set: %s\n",nc_strerror(stat)); goto done;}
     newvalue = nc_rc_get(key);
     printf("replace: after: %s = %s\n",key,newvalue);
     nullfree(newvalue);
 
+done:
     nc_finalize();
     return 0;
 }
