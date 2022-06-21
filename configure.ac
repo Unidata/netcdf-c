@@ -563,7 +563,8 @@ if test "x$enable_libxml2" = xyes; then
   if test "x$have_libxml2" = xyes; then
    AC_MSG_CHECKING([whether we can compile a libxml2 test program])
    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-      [#include <libxml2/libxml/parser.h>],
+      [#include <libxml2/libxml/parser.h>
+       #include <libxml/tree.h>],
       [[int x = 0;]])],
          [have_libxml2_header=yes],
          [have_libxml2_header=no])
