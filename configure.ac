@@ -574,7 +574,7 @@ if test "x$enable_libxml2" = xyes; then
      AC_DEFINE([HAVE_LIBXML2], [1], [if true, use libxml2])
   fi
   if test "x$have_libxml2_header" = xno; then
-   enable_libxml2 = no
+   enable_libxml2=no
   fi
 fi
 
