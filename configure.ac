@@ -561,8 +561,11 @@ if test "x$enable_libxml2" = xyes; then
   fi
   
   if test "x$have_libxml2" = xyes; then
+   saveCPPFLAGS="$CPPFLAGS"
+   CPPFLAGS="$CPPFLAGS -I/usr/include/libxml2"
    AC_CHECK_HEADERS([libxml2/libxml/parser.h],[have_libxml2_header=yes],[have_libxml2_header=no])   
-
+   CPPFLAGS="$saveCPPFLAGS"
+   
  #  AC_MSG_CHECKING([whether we can compile a libxml2 test program])
  #  AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
  #     [#include <libxml2/libxml/parser.h>],
