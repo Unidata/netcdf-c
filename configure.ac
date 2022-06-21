@@ -552,22 +552,24 @@ AC_ARG_ENABLE([libxml2],
 test "x$enable_libxml2" = xno || enable_libxml2=yes
 
 have_libxml2=no
+have_libxml2_header=no
 if test "x$enable_libxml2" = xyes; then
   # We can optionally use libxml2 for DAP4, if available
   AC_CHECK_LIB([xml2],[xmlReadMemory],[have_libxml2=yes],[have_libxml2=no])
   if test "x$have_libxml2" = "xyes" ; then
       AC_SEARCH_LIBS([xmlReadMemory],[xml2 xml2.dll cygxml2.dll], [],[])
   fi
-  AC_MSG_CHECKING([whether we can compile a libxml2 test program])
+  
   if test "x$have_libxml2" = xyes; then
+   AC_MSG_CHECKING([whether we can compile a libxml2 test program])
    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
       [#include <libxml2/libxml/parser.h>],
       [[int x = 0;]])],
          [have_libxml2_header=yes],
          [have_libxml2_header=no])
-
+   AC_MSG_RESULT([$have_libxml2_header])
   fi
-  AC_MSG_RESULT([$have_libxml2_header])
+  
   if test "x$have_libxml2_header" = xyes; then
      XML2FLAGS=`xml2-config --cflags`
      AC_SUBST([XML2FLAGS],${XML2FLAGS})
