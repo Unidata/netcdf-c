@@ -545,12 +545,11 @@ CFLAGS="$SAVECFLAGS"
 # Libxml2 control block.
 ###
 
-AC_MSG_CHECKING([whether to search for and use external libxml2])
+
 AC_ARG_ENABLE([libxml2],
               [AS_HELP_STRING([--disable-libxml2],
                               [disable detection and use of libxml2 in favor of the bundled ezxml interpreter])])
 test "x$enable_libxml2" = xno || enable_libxml2=yes
-AC_MSG_RESULT([$enable_libxml2])
 
 have_libxml2=no
 if test "x$enable_libxml2" = xyes; then
@@ -559,10 +558,23 @@ if test "x$enable_libxml2" = xyes; then
   if test "x$have_libxml2" = "xyes" ; then
       AC_SEARCH_LIBS([xmlReadMemory],[xml2 xml2.dll cygxml2.dll], [],[])
   fi
+  AC_MSG_CHECKING([whether we can compile a libxml2 test program])
   if test "x$have_libxml2" = xyes; then
+   AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+      [#include <libxml2/libxml/parser.h>],
+      [[int x = 0;]])],
+         [have_libxml2_header=yes],
+         [have_libxml2_header=no])
+
+  fi
+  AC_MSG_RESULT([$have_libxml2_header])
+  if test "x$have_libxml2_header" = xyes; then
      XML2FLAGS=`xml2-config --cflags`
      AC_SUBST([XML2FLAGS],${XML2FLAGS})
      AC_DEFINE([HAVE_LIBXML2], [1], [if true, use libxml2])
+  fi
+  if test "x$have_libxml2_header" = xno; then
+   enable_libxml2 = no
   fi
 fi
 
@@ -571,6 +583,8 @@ XMLPARSER="libxml2"
 else
 XMLPARSER="tinyxml2 (bundled)"
 fi
+AC_MSG_CHECKING([whether we are using external libxml2])
+AC_MSG_RESULT([$enable_libxml2])
 
 # Need a condition and subst for this
 AM_CONDITIONAL(ENABLE_LIBXML2, [test "x$enable_libxml2" = xyes])
