@@ -54,7 +54,8 @@ resetrc() {
   rm -fr $HOMERCFILES
   rm -f $LOCALRCFILES
   unset NCRCENV_RC
-  rm -f tmpoutput.txt
+  rm -f tmp_rcmerge.txt
+  rm -f tmp_rcapi.txt
   rm -f allfiles1 allfiles2 allfiles3
 }
 
@@ -70,36 +71,40 @@ fi
 mergecase1() {
     # create everything with different keys to test merge 
     resetrc
-    rm -f tmp_rcmerge.txt tmpoutput.txt
+    rm -f tmp_rcmerge.txt tmp_rcmerge.txt
     echo  "for r=ncrc daprc dodsrc"
     for r in "ncrc" "daprc" "dodsrc"; do
         echo "${r}_home=${r}" >> $RCHOME/".${r}";
         echo "${r}_local=${r}" >> $WD/".${r}"
     done;
     union 1
-    ${abs_execdir}/tst_rcmerge |sort > tmpoutput.txt
+    ${abs_execdir}/tst_rcmerge |sort > tmp_rcmerge.txt
 #    echo ">>merge1"; cat ${abs_srcdir}/ref_rcmerge1.txt;
-#    echo "====="; cat tmpoutput.txt
-    diff -b ${abs_srcdir}/ref_rcmerge1.txt tmpoutput.txt
+#    echo "====="; cat tmp_rcmerge.txt
+    diff -b ${abs_srcdir}/ref_rcmerge1.txt tmp_rcmerge.txt
 }
 
 mergecase2() {
     # create with some same keys to test override
     resetrc
-    rm -f tmp_rcmerge.txt tmpoutput.txt
+    rm -f tmp_rcmerge.txt tmp_rcmerge.txt
+    echo "Create in $RCHOME"
     for r in "ncrc" "daprc" "dodsrc" ; do
         echo "${r}=${r}" >> $RCHOME/".${r}";
+    done;
+    echo "Create in $WD"
+    for r in "ncrc" "daprc" "dodsrc" ; do
         echo "${r}=${r}" >> $WD/".${r}"
     done;
     union 2
-    ${abs_execdir}/tst_rcmerge |sort > tmpoutput.txt
-    diff -b ${abs_srcdir}/ref_rcmerge2.txt tmpoutput.txt
+    ${abs_execdir}/tst_rcmerge |sort > tmp_rcmerge.txt
+    diff -b ${abs_srcdir}/ref_rcmerge2.txt tmp_rcmerge.txt
 }
 
 mergecase3() {
     # Test cross file overrides
     resetrc
-    rm -f tmp_rcmerge.txt tmpoutput.txt
+    rm -f tmp_rcmerge.txt tmp_rcmerge.txt
     echo "ncrc=ncrc1" >> $HOME/.ncrc
     echo "ncrcx=ncrcx" >> $RCHOME/.ncrc
     echo "ncrc=ncrc2" >> $RCHOME/.dodsrc
@@ -111,8 +116,18 @@ mergecase3() {
     echo "daprc=daprc" >> $WD/.dodsrc
     echo "ncrcx=ncrcy" >> $WD/.dodsrc
     union 3
-    ${abs_execdir}/tst_rcmerge |sort -d > tmpoutput.txt
-    diff -b ${abs_srcdir}/ref_rcmerge3.txt tmpoutput.txt
+    ${abs_execdir}/tst_rcmerge |sort -d > tmp_rcmerge.txt
+    diff -b ${abs_srcdir}/ref_rcmerge3.txt tmp_rcmerge.txt
+}
+
+rcapi1() {
+    resetrc
+    echo "[http://github.com/a/b/c]ncrc=ncrc1" >> $WD/.ncrc
+    echo "ncrc=ncrc2" >> $WD/.ncrc
+    echo "[http://github.com:8080/a/b/c]key0=v0" >> $WD/.ncrc
+    echo "[http://github.com]key0=v1" >> $WD/.ncrc
+    ${abs_execdir}/tst_rcapi > tmp_rcapi.txt
+    diff -b ${abs_srcdir}/ref_rcapi.txt ./tmp_rcapi.txt
 }
 
 resetrc
@@ -120,5 +135,10 @@ resetrc
 mergecase1
 mergecase2
 mergecase3
+# Test the .rc api
+rcapi1
+
+# Test the .rc api
+rcapi1
 
 resetrc
