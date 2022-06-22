@@ -552,8 +552,13 @@ AC_ARG_ENABLE([libxml2],
 test "x$enable_libxml2" = xno || enable_libxml2=yes
 AC_MSG_RESULT([$enable_libxml2])
 
+
 have_libxml2=no
 if test "x$enable_libxml2" = xyes; then
+   AC_CHECK_PROGS([NC_XML2_CONFIG], [xml2-config])
+   if test -z "$NC_XML2_CONFIG"; then
+      AC_MSG_ERROR([Cannot find xml2-config utility. Either install the libxml2 development package, or re-run configure with --disable-libxml2 to use the bundled xml2 parser])
+   fi
   # We can optionally use libxml2 for DAP4, if available
   AC_CHECK_LIB([xml2],[xmlReadMemory],[have_libxml2=yes],[have_libxml2=no])
   if test "x$have_libxml2" = "xyes" ; then
