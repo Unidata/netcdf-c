@@ -32,6 +32,10 @@ See LICENSE.txt for license information.
 #include "ncs3sdk.h"
 #endif
 
+#define MAXPATH 1024
+
+
+
 /* Define vectors of zeros and ones for use with various nc_get_varX functions */
 /* Note, this form of initialization fails under Cygwin */
 size_t NC_coord_zero[NC_MAX_VAR_DIMS] = {0};
@@ -76,15 +80,22 @@ NCDISPATCH_initialize(void)
 
     /* Capture $HOME */
     {
+#if defined(_WIN32) && !defined(__MINGW32__)
+        char* home = getenv("USERPROFILE");
+#else
         char* home = getenv("HOME");
-
+#endif
         if(home == NULL) {
-	    /* use tempdir */
-	    home = globalstate->tempdir;
-	}
-        globalstate->home = strdup(home);
+	    /* use cwd */
+	    home = malloc(MAXPATH+1);
+	    NCgetcwd(home,MAXPATH);
+        } else
+	    home = strdup(home); /* make it always free'able */
+	assert(home != NULL);
+        NCpathcanonical(home,&globalstate->home);
+	nullfree(home);
     }
-
+ 
     /* Capture $CWD */
     {
         char cwdbuf[4096];

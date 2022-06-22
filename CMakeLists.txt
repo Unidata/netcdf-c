@@ -30,8 +30,8 @@ set(PACKAGE "netCDF" CACHE STRING "")
 #####
 
 SET(NC_VERSION_MAJOR 4)
-SET(NC_VERSION_MINOR 8)
-SET(NC_VERSION_PATCH 2)
+SET(NC_VERSION_MINOR 9)
+SET(NC_VERSION_PATCH 1)
 SET(NC_VERSION_NOTE "-development")
 SET(netCDF_VERSION ${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
@@ -39,7 +39,7 @@ SET(NC_VERSION ${netCDF_VERSION})
 SET(PACKAGE_VERSION ${VERSION})
 
 # These values should match those in configure.ac
-SET(netCDF_LIB_VERSION 19})
+SET(netCDF_LIB_VERSION 19)
 SET(netCDF_SO_VERSION 19)
 
 # Version of the dispatch table. This must match the value in
@@ -69,7 +69,7 @@ endif()
 if(MSVC)
 SET(ISMSVC yes)
 endif()
-if(osname MATCHES "MINGW.*")
+if(osname MATCHES "MINGW.*" OR osname MATCHES "MSYS.*")
 SET(ISMINGW yes)
 SET(MINGW yes)
 endif()
@@ -1112,15 +1112,15 @@ IF(Bz2_FOUND)
   set_std_filter(Bz2)
 ELSE()
   # The reason we use a local version is to support a more comples test case
-  MESSAGE(WARNING "libbz2 not found using built-in version")
+  MESSAGE("libbz2 not found using built-in version")
   SET(HAVE_LOCAL_BZ2 ON)
   SET(HAVE_BZ2 ON)
   set(STD_FILTERS "${STD_FILTERS} bz2")
 ENDIF()
 
 # If user wants, then install selected plugins (default on)
-SET(PLUGIN_INSTALL_DIR "YES" CACHE STRING "Whether and where we should install plugins; defaults to yes")
-SET(ENABLE_PLUGIN_INSTALL YES)
+SET(PLUGIN_INSTALL_DIR "NO" CACHE STRING "Whether and where we should install plugins; defaults to yes")
+SET(ENABLE_PLUGIN_INSTALL NO)
 IF(DEFINED PLUGIN_INSTALL_DIR) #OR DEFINED CACHE{PLUGIN_INSTALL_DIR}
   STRING(TOLOWER "${PLUGIN_INSTALL_DIR}" LCPID)
   IF(LCPID STREQUAL "no")

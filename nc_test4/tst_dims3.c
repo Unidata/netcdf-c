@@ -397,7 +397,7 @@ main(int argc, char **argv)
        /* This test code based on test code from Jeff Whitaker. See
         * https://github.com/Unidata/netcdf-c/issues/2357. This is a
         * simplified version. */
-       int i, varid, ncid;
+       int varid, ncid;
        int dimids[NDIM2];
        size_t start[NDIM2] = {0, 0}, count[NDIM2] = {DATALEN2, 1}, dimlen;
        int data[DATALEN2] = {42, 42};
@@ -422,7 +422,7 @@ main(int argc, char **argv)
    SUMMARIZE_ERR;
    printf("*** testing dimlen with NC_UNLIMITED reopen and rewrite...");
    {
-       int i, varid, ncid;
+       int varid, ncid;
        int dimid;
        size_t start[NDIM1] = {0}, count[NDIM1] = {DATALEN2}, dimlen;
        int data[DATALEN2] = {42, 42};

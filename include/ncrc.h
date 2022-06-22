@@ -28,7 +28,7 @@ and accessing rc files (e.g. .daprc).
 
 typedef struct NCRCentry {
 	char* host; /* combined host:port */
-	char* path; /* prefix to match or NULL */
+	char* urlpath; /* prefix to match or NULL */
         char* key;
         char* value;
 } NCRCentry;
@@ -67,7 +67,7 @@ extern "C" {
 
 /* From drc.c */
 EXTERNL void ncrc_initialize(void);
-EXTERNL int NC_rcfile_insert(const char* key, const char* value, const char* hostport, const char* path);
+EXTERNL int NC_rcfile_insert(const char* key, const char* hostport, const char* path, const char* value);
 EXTERNL char* NC_rclookup(const char* key, const char* hostport, const char* path);
 EXTERNL char* NC_rclookupx(NCURI* uri, const char* key);
 
