@@ -1879,14 +1879,8 @@ AC_SUBST(HAS_ZSTD,[$have_zstd])
 
 # Always available
 std_filters="deflate bz2"
+
 if test "x$enable_szlib" = xyes ; then
-std_filters="${std_filters} szip"
-fi
-# We need to include szip iff HDF5 && HDF5_HAS_SZIP || !HDF5 && NCZARR && libsz
-if test "x$enable_hdf5" = xyes && test "x$enable_hdf5_szip" = xyes ; then
-  std_filters="${std_filters} szip"
-fi
-if test "x$enable_hdf5" = xno && test "x$have_sz" = xyes ; then
 std_filters="${std_filters} szip"
 fi
 if test "x$have_blosc" = xyes ; then
@@ -2003,7 +1997,7 @@ AX_SET_META([NC_HAS_NCZARR],[$enable_nczarr],[yes])
 AX_SET_META([NC_HAS_MULTIFILTERS],[$has_multifilters],[yes])
 AX_SET_META([NC_HAS_LOGGING],[$enable_logging],[yes])
 AX_SET_META([NC_HAS_QUANTIZE],[yes],[yes])
-AX_SET_META([NC_HAS_SZIP],[$enable_hdf5_szip],[yes])
+AX_SET_META([NC_HAS_SZIP],[have_sz],[yes])
 AX_SET_META([NC_HAS_ZSTD],[$have_zstd],[yes])
 
 # This is the version of the dispatch table. If the dispatch table is
