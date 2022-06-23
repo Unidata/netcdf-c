@@ -12,7 +12,6 @@ This file contains a high-level description of this package's evolution. Release
 * [Bug Fix] Use env variable USERPROFILE instead of HOME for windows and mingw. See [Github #2405](https://github.com/Unidata/netcdf-c/pull/2405).
 * [Bug Fix] Fix the nc_def_var_fletcher32 code in hdf5 to properly test value of the fletcher32 argument. See [Github #2403](https://github.com/Unidata/netcdf-c/pull/2403).
 
-
 ## 4.9.0 - June 10, 2022
 
 * [Enhancement] Add quantize functions nc_def_var_quantize() and nc_inq_var_quantize() to enable lossy compression. See [Github #1548](https://github.com/Unidata/netcdf-c/pull/1548). 
