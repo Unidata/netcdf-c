@@ -49,7 +49,6 @@ for domain specific info such as used by GDAL/Zarr. See [Github #2278](https://g
 
 ## 4.8.1 - August 18, 2021
 
-
 * [Bug Fix] Fix multiple bugs in libnczarr. See [Github #2066](https://github.com/Unidata/netcdf-c/pull/2066).
 * [Enhancement] Support windows network paths (e.g. \\svc\...). See [Github #2065](https://github.com/Unidata/netcdf-c/pull/2065).
 * [Enhancement] Convert to a new representation of the NCZarr meta-data extensions: version 2. Read-only backward compatibility is provided. See [Github #2032](https://github.com/Unidata/netcdf-c/pull/2032).
