@@ -387,7 +387,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/environments/${{ matrix.hdf5 }}
-          key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
+          key: hdf5-parallel-${{ runner.os }}-${{ matrix.hdf5 }}
 
       - name: Check Cache
         shell: bash -l {0}
