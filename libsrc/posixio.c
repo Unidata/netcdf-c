@@ -1634,7 +1634,7 @@ posixio_create(const char *path, int ioflags,
 #endif
 	if(fd < 0)
 	{
-		status = errno;
+		status = errno ? errno : ENOENT;
 		goto unwind_new;
 	}
 	*((int *)&nciop->fd) = fd; /* cast away const */
