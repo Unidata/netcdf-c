@@ -433,7 +433,7 @@ jobs:
 
   nc-autotools:
 
-    needs: [ nc-cmake-tests-oneoff-serial, nc-ac-tests-oneoff-serial, nc-cmake-tests-oneoff-parallel, nc-ac-tests-oneoff-serial ]
+    needs: [ nc-cmake-tests-oneoff-serial, nc-ac-tests-oneoff-serial, nc-cmake-tests-oneoff-parallel, nc-ac-tests-oneoff-parallel ]
     runs-on: ubuntu-latest
 
     strategy:
@@ -540,7 +540,7 @@ jobs:
 
   nc-cmake:
 
-    needs: [ nc-cmake-tests-oneoff-serial, nc-ac-tests-oneoff-serial, nc-cmake-tests-oneoff-parallel, nc-ac-tests-oneoff-serial ]
+    needs: [ nc-cmake-tests-oneoff-serial, nc-ac-tests-oneoff-serial, nc-cmake-tests-oneoff-parallel, nc-ac-tests-oneoff-parallel ]
     runs-on: ubuntu-latest
 
     strategy:
