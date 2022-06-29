@@ -1479,6 +1479,12 @@ IF(ENABLE_PNETCDF)
     ELSE()
       MESSAGE(WARNING "ENABLE_PNETCDF requires version 1.6.1 or later; found version ${pnetcdf_version}. PnetCDF is disabled")
     ENDIF()
+
+  ### 
+  # Generate pnetcdf test.  
+  ###
+  CONFIGURE_FILE("${netCDF_SOURCE_DIR}/nc_test/run_pnetcdf_tests.sh.in"
+    "${netCDF_BINARY_DIR}/nc_test/run_pnetcdf_tests.sh")
   ENDIF(NOT PNETCDF)
 ENDIF()
 
