@@ -5,7 +5,6 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
-
 ## 4.9.1 - T.B.D.
 
 * [Bug Fix] Improve the handling of the testing libraries in the plugins directory. See [Github #2440](https://github.com/Unidata/netcdf-c/pull/2440).
