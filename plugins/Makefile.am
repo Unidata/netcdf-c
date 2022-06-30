@@ -34,6 +34,7 @@ plugin_version_info = -version-info 0:0:0
 
 if ISMINGW
 LDADD =  ${top_builddir}/liblib/libnetcdf.la
+LIBADD = $(LDADD)
 endif
 if ISCYGWIN
 LDADD = $(top_builddir)/liblib/libnetcdf.la

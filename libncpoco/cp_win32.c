@@ -28,6 +28,18 @@ static const char* driveletters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRS
 /* Forward */
 static int isAbsolutePath(const char* path);
 
+#if !defined(nulldup) && !defined(HAVE_STRDUP)
+extern char *nulldup(const char* s) {
+    if (s) {
+        char *result = malloc(strlen(s) + 1);
+        strcpy(result, s);
+        return result;
+    } else {
+        return s;
+    }
+}
+#endif
+
 /**************************************************/
 
 int
