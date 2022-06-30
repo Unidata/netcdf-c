@@ -37,10 +37,8 @@ findpluginext() {
   TDY=`find ${TOPBUILDDIR}/plugins -name '*misc.dylib'`
   TCYG=`find ${TOPBUILDDIR}/plugins -name 'cyg*misc.dll'`
   TDLL=`find ${TOPBUILDDIR}/plugins -name '*misc.dll'`
-  if test "x$TSO" != x ; then
-    FP_PLUGIN_EXT="so"
-    FP_PLUGIN_PRE="lib__nc"  
-  elif test "x$TDY" != x ; then
+  # Test order may be important esp for dylib vs so
+  if test "x$TDY" != x ; then
     FP_PLUGIN_EXT="dylib"
     FP_PLUGIN_PRE="lib__nc"  
   elif test "x$TCYG" != x ; then
@@ -49,6 +47,9 @@ findpluginext() {
   elif test "x$TDLL" != x ; then
     FP_PLUGIN_EXT="dll"
     FP_PLUGIN_PRE="__nc"  
+  elif test "x$TSO" != x ; then
+    FP_PLUGIN_EXT="so"
+    FP_PLUGIN_PRE="lib__nc"  
   else # unknown
     unset FP_PLUGIN_EXT
     unset FP_PLUGIN_PRE

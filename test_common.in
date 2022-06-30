@@ -5,6 +5,10 @@
 
 # See netcdf-c/COPYRIGHT file for more info.
 
+# Call only once per shell script
+if test "x$TEST_COMMON_INITIALIZE" != xyes ; then
+TEST_COMMON_INITIALIZE=yes
+
 # Define location of execution
 TOPSRCDIR='@abs_top_srcdir@'
 TOPBUILDDIR='@abs_top_builddir@'
@@ -172,3 +176,6 @@ if test yes = `${execdir}/../ncdump/ncfilteravail $1` ; then return 0 ; else ech
 
 # Make sure we are in builddir (not execdir)
 cd $builddir
+
+fi # TTEST_COMMON_INITIALIZE
+

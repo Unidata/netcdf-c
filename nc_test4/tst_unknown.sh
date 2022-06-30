@@ -53,8 +53,6 @@ UNKNOWNDIR="${HDF5_PLUGIN_DIR}"
 UNKNOWNLIB="${HDF5_PLUGIN_LIB}"
 UNKNOWNFILTER="${HDF5_PLUGIN_DIR}/${UNKNOWNLIB}"
 
-# Getting the name  is especially tricky for dylib, which puts the version before the .dylib
-
 # Verify
 if ! test -f ${UNKNOWNFILTER} ; then echo "Unable to locate ${UNKNOWNFILTER}"; exit 1; fi
 
