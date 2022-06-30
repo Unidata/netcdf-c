@@ -13,7 +13,6 @@ jobs:
     defaults:
       run:
         shell: bash -eo pipefail -o igncr "{0}"
-        timeout-minutes: 30
 
     name: Cygwin-based tests
 
@@ -56,5 +55,15 @@ jobs:
       - name: (Autotools) Build library and utilities
         run: make -j8 SHELL=/bin/dash
 
+      - name: (Autotools) Test DESTDIR install
+        run: |
+          make install DESTDIR=/tmp/pretend-root SHELL=/bin/dash
+          if [ -d "/tmp/pretend-root/$(pwd)" ];
+          then
+              find /tmp/pretend-root/$(pwd)
+              if [ $(find /tmp/pretend-root/$(pwd) -type f | wc -l) -gt 0 ]; then exit 1; fi
+          fi
+
       - name: (Autotools) Build and run tests
+        timeout-minutes: 30
         run: make check -j8 SHELL=/bin/dash
