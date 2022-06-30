@@ -19,7 +19,6 @@
 #ifdef _WIN32
 __declspec(dllexport)
 #endif
-
 int
 getmountpoint(char* keyvalue, size_t size)
 {
