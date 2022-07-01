@@ -48,9 +48,24 @@ jobs:
         run: cat libnetcdf.settings
 
       - name: (Autotools) Build Library and Utilities
-        run: make -j 8 LDFLAGS='-Wl,--export-all-symbols'
+        run: make -j 8 LDFLAGS="-Wl,--export-all-symbols"
         if: ${{ success() }}
 
+      - name: Check for plugins
+        run: |
+          dir ./plugins
+          dir ./plugins/.libs
+
       - name: (Autotools) Build and Run Tests
-        run: make check -j 8
+        run: make check -j 8 LDFLAGS="-Wl,--export-all-symbols"
         if: ${{ success() }}
+        id: tests
+
+      - name: Upload test failures
+        if: ${{ failure() && steps.tests.conclusion == 'failure' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-logs
+          path: |
+            */*.log
+            */*.trs
