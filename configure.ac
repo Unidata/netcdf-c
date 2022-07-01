@@ -1904,6 +1904,10 @@ AC_ARG_WITH([plugin-dir], [AS_HELP_STRING([--with-plugin-dir=<absolute directory
               [Install selected standard filters in specified or default directory])],
 	      [],[with_plugin_dir=no])
 AC_MSG_RESULT([$with_plugin_dir])
+if test "x$enable_plugins" = xno ; then
+    AC_MSG_WARN([--disable-plugins => --without-plugin-dir])
+    with_plugin_dir=no
+fi
 if test "x$with_plugin_dir" = xno ; then # option missing|disabled
     with_plugin_dir=no
     with_plugin_dir_setting="N.A."

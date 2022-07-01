@@ -4,11 +4,15 @@
 # Put Together AM_CPPFLAGS and AM_LDFLAGS
 include $(top_srcdir)/lib_flags.am
 
-#if ENABLE_PLUGIN_DIR
+if ENABLE_PLUGIN_DIR
 plugindir = @PLUGIN_INSTALL_DIR@
-#else
-plugindir = ${prefix}
-#endif
+else
+# Choose a random install directory (see clean-local below)
+plugindir = ${abs_top_builddir}/plugins/installed
+endif
+
+# -rpath needs to be defined to force creation of the shared libraries
+RPATH = -rpath ${plugindir}
 
 AM_LDFLAGS += -module -avoid-version -shared -export-dynamic ${NOUNDEFINED} 
 
@@ -17,15 +21,17 @@ AM_LDFLAGS += -module -avoid-version -shared -export-dynamic ${NOUNDEFINED}
 
 # Use this only with installable libraries
 # Not currently needed for the platforms we support.
-#INSTALLFLAGS = -rpath ${plugindir} ${plugin_version_info}
+INSTALLFLAGS = ${AM_LDFLAGS}
+INSTALLFLAGS += ${RPATH}
 
 # Use this only with test libraries
 # Note: it appears necessary to set rpath for the check libraries
 # so that they get generated
-TESTFLAGS = -rpath ${plugindir}
+TESTFLAGS = ${AM_LDFLAGS}
+TESTFLAGS += ${RPATH}
 
-plugin_LTLIBRARIES =
-check_LTLIBRARIES =
+PLUGINLIBS =
+CHECKLIBS =
 
 if ISMINGW
 LDADD =  ${top_builddir}/liblib/libnetcdf.la
@@ -47,7 +53,7 @@ EXTRA_DIST += H5checksum.c
 if ENABLE_FILTER_TESTING
 
 if ENABLE_NCZARR_FILTERS
-plugin_LTLIBRARIES += lib__nch5fletcher32.la lib__nch5shuffle.la lib__nch5deflate.la
+PLUGINLIBS += lib__nch5fletcher32.la lib__nch5shuffle.la lib__nch5deflate.la
 lib__nch5shuffle_la_SOURCES = H5Zshuffle.c
 lib__nch5shuffle_la_LDFLAGS = ${INSTALLFLAGS}
 lib__nch5fletcher32_la_SOURCES = H5Zfletcher32.c H5checksum.c
@@ -58,7 +64,7 @@ lib__nch5deflate_la_LDFLAGS = ${INSTALLFLAGS}
 # Need our version of szip if libsz available and we are using nczarr
 if HAVE_SZ
 if ENABLE_NCZARR_FILTERS
-plugin_LTLIBRARIES += lib__nch5szip.la
+PLUGINLIBS += lib__nch5szip.la
 lib__nch5szip_la_SOURCES = H5Zszip.c H5Zszip.h
 lib__nch5szip_la_LDFLAGS = ${INSTALLFLAGS}
 endif
@@ -73,19 +79,19 @@ lib__nczstdfilters_la_SOURCES = NCZstdfilters.c
 lib__nczstdfilters_la_LDFLAGS = ${INSTALLFLAGS}
 lib__nczhdf5filters_la_SOURCES = NCZhdf5filters.c
 lib__nczhdf5filters_la_LDFLAGS = ${INSTALLFLAGS}
-plugin_LTLIBRARIES += lib__nczhdf5filters.la
-plugin_LTLIBRARIES += lib__nczstdfilters.la
+PLUGINLIBS += lib__nczhdf5filters.la
+PLUGINLIBS += lib__nczstdfilters.la
 
 if HAVE_BLOSC
 lib__nch5blosc_la_SOURCES = H5Zblosc.c H5Zblosc.h
 lib__nch5blosc_la_LDFLAGS = ${INSTALLFLAGS}
-plugin_LTLIBRARIES += lib__nch5blosc.la
+PLUGINLIBS += lib__nch5blosc.la
 endif
 
 if HAVE_ZSTD
 lib__nch5zstd_la_SOURCES = H5Zzstd.c H5Zzstd.h
 lib__nch5zstd_la_LDFLAGS = ${INSTALLFLAGS}
-plugin_LTLIBRARIES += lib__nch5zstd.la
+PLUGINLIBS += lib__nch5zstd.la
 endif
 
 endif #ENABLE_PLUGINS
@@ -107,7 +113,7 @@ lib__nczmisc_la_LDFLAGS = ${TESTFLAGS}
 lib__nch5unknown_la_SOURCES = H5Zunknown.c
 lib__nch5unknown_la_LDFLAGS = ${TESTFLAGS}
 
-check_LTLIBRARIES += lib__nch5noop.la lib__nch5noop1.la lib__nch5misc.la lib__nczmisc.la lib__nch5unknown.la
+CHECKLIBS += lib__nch5noop.la lib__nch5noop1.la lib__nch5misc.la lib__nczmisc.la lib__nch5unknown.la
 
 # Bzip2 is used to test more complex filters
 lib__nch5bzip2_la_SOURCES = H5Zbzip2.c h5bzip2.h
@@ -117,12 +123,19 @@ if HAVE_LOCAL_BZ2
 lib__nch5bzip2_la_SOURCES += ${BZIP2SRC}
 endif
 lib__nch5bzip2_la_LDFLAGS = ${INSTALLFLAGS}
-plugin_LTLIBRARIES += lib__nch5bzip2.la
+PLUGINLIBS += lib__nch5bzip2.la
+
+if ENABLE_PLUGIN_DIR
+plugin_LTLIBRARIES = ${PLUGINLIBS}
+check_LTLIBRARIES = ${CHECKLIBS}
+else
+check_LTLIBRARIES = ${PLUGINLIBS} ${CHECKLIBS}
+endif
 
 endif #ENABLE_FILTER_TESTING
 
 BUILT_SOURCES = H5Znoop1.c
-DISTCLEANFILES = H5Znoop1.c H5Znoop2.c ncjson.h
+DISTCLEANFILES = H5Znoop1.c H5Znoop2.c
 H5Znoop1.c: Makefile H5Znoop.c
 	echo '#define NOOP_INSTANCE 1' > $@
 	cat ${srcdir}/H5Znoop.c >> $@
@@ -137,3 +150,7 @@ bzip2::
 	tar -zxf ${BZIP2DIR}.tar.gz
 	cd ${BZIP2DIR}; cp ${BZIP2SRC} ..; cp LICENSE ../BZIP2_LICENSE ; cd ..
 	rm -fr ./${BZIP2DIR}
+
+# See plugindir
+clean-local:
+	rm -fr ${abs_top_builddir}/plugins/installed

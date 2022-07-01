@@ -492,7 +492,9 @@ setupconn(NC_HTTP_STATE* state, const char* objecturl)
 	ncuriparse(objecturl,&uri);
 	if(uri == NULL) goto fail;
 	hostport = NC_combinehostport(uri);
+	ncurifree(uri); uri = NULL;
 	value = NC_rclookup("HTTP.SSL.CAINFO",hostport,NULL);
+	nullfree(hostport); hostport = NULL;	
 	if(value == NULL)
 	    value = NC_rclookup("HTTP.SSL.CAINFO",NULL,NULL);
 	if(value != NULL) {

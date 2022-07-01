@@ -1143,6 +1143,8 @@ aws_load_credentials(NCglobalstate* gstate)
 	nclistpush(profiles,noprof); noprof = NULL;
     }
 
+    if(gstate->rcinfo->s3profiles)
+        freeprofilelist(gstate->rcinfo->s3profiles);
     gstate->rcinfo->s3profiles = profiles; profiles = NULL;
 
 #ifdef AWSDEBUG
