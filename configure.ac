@@ -585,6 +585,23 @@ AC_SUBST([XMLPARSER],[${XMLPARSER}])
 # End Libxml2 block
 ###
 
+##
+# Should quantize be enabled?
+# On by default, but for testing purposes we may want to 
+# disable it.
+##
+AC_MSG_CHECKING([whether to enable quantize functionality])
+AC_ARG_ENABLE([quantize],
+               [AS_HELP_STRING([--disable-quantize],
+                               [disable quantize support. It is safe to leave this on unless you specifically need to disable it.])])
+test "x$enable_quantize" = xno || enable_quantize=yes
+
+AC_MSG_RESULT($enable_quantize)                               
+if test "x${enable_quantize}" = xyes; then
+   AC_DEFINE([ENABLE_QUANTIZE], [1], [if true, enable quantize support])
+fi
+AM_CONDITIONAL(ENABLE_QUANTIZE, [test x$enable_quantize = xyes])
+
 # --enable-dap => enable-dap4
 enable_dap4=$enable_dap
 AC_MSG_CHECKING([whether dap remote testing should be enabled])
@@ -1870,7 +1887,7 @@ AC_SUBST(HAS_NCZARR,[$enable_nczarr])
 AC_SUBST(DO_NCZARR_S3_TESTS,[$enable_nczarr_s3_tests])
 AC_SUBST(HAS_MULTIFILTERS,[$has_multifilters])
 AC_SUBST(DO_NCZARR_ZIP_TESTS,[$enable_nczarr_zip])
-AC_SUBST([HAS_QUANTIZE],[yes])
+AC_SUBST(HAS_QUANTIZE,[$enable_quantize])
 AC_SUBST(HAS_LOGGING,[$enable_logging])
 AC_SUBST(DO_FILTER_TESTS,[$enable_filter_testing])
 AC_SUBST(HAS_SZLIB,[$have_sz])
@@ -2006,7 +2023,7 @@ AX_SET_META([NC_HAS_BYTERANGE],[$enable_byterange],[yes])
 AX_SET_META([NC_HAS_NCZARR],[$enable_nczarr],[yes])
 AX_SET_META([NC_HAS_MULTIFILTERS],[$has_multifilters],[yes])
 AX_SET_META([NC_HAS_LOGGING],[$enable_logging],[yes])
-AX_SET_META([NC_HAS_QUANTIZE],[yes],[yes])
+AX_SET_META([NC_HAS_QUANTIZE],[$enable_quantize],[yes])
 AX_SET_META([NC_HAS_SZIP],[$enable_hdf5_szip],[yes])
 AX_SET_META([NC_HAS_ZSTD],[$have_zstd],[yes])
 
