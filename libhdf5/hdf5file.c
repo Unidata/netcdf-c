@@ -737,6 +737,6 @@ nc4_enddef_netcdf4_file(NC_FILE_INFO_T *h5)
     /* Redef mode needs to be tracked separately for nc_abort. */
     h5->redef = NC_FALSE;
 
-    /* Sync all metadata to storage. */
+    /* Sync all metadata and data to storage. */
     return sync_netcdf4_file(h5);
 }
