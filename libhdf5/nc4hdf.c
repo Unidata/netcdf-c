@@ -707,7 +707,7 @@ write_quantize_att(NC_VAR_INFO_T *var)
     hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
 
     /* Different quantize algorithms get different attribute names. */
-    switch var->quantize_mode
+    switch (var->quantize_mode)
     {
 	case NC_QUANTIZE_BITGROOM:
 	    sprintf(att_name, "%s", NC_QUANTIZE_BITGROOM_ATT_NAME);
