@@ -132,8 +132,8 @@ sync_netcdf4_file(NC_FILE_INFO_T *h5)
      * otherwise, end define mode. */
     if (h5->flags & NC_INDEF)
     {
-        if (h5->cmode & NC_CLASSIC_MODEL)
-            return NC_EINDEFINE;
+        /* if (h5->cmode & NC_CLASSIC_MODEL) */
+        /*     return NC_EINDEFINE; */
 
         /* Turn define mode off. */
         h5->flags ^= NC_INDEF;
@@ -740,5 +740,6 @@ nc4_enddef_netcdf4_file(NC_FILE_INFO_T *h5)
     /* Redef mode needs to be tracked separately for nc_abort. */
     h5->redef = NC_FALSE;
 
+    /* Sync all metadata to storage. */
     return sync_netcdf4_file(h5);
 }
