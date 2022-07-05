@@ -99,6 +99,10 @@ TESTS += run_filter.sh
 TESTS += run_unknown.sh
 TESTS += run_specific_filters.sh
 
+if ISMINGW
+XFAIL_TESTS = run_filter.sh run_unknown.sh run_specific_filters.sh
+endif  # ISMINGW
+
 endif #ENABLE_FILTER_TESTING
 
 endif #BUILD_UTILITIES
