@@ -41,20 +41,12 @@ if HAS_PAR_FILTERS
 NC4_TESTS += tst_alignment
 endif
 
-# Temporary I hoped, but hoped in vain.
-if !ISCYGWIN
 NC4_TESTS += tst_h_strbug tst_h_refs
-endif
 
 # Build test programs plus programs used in test scripts.
 check_PROGRAMS = $(NC4_TESTS) tst_empty_vlen_unlim tst_charvlenbug tst_vlenstr
 TESTS = $(NC4_TESTS) run_empty_vlen_test.sh
 XFAIL_TESTS =
-
-if ISCYGWIN
-TESTS += tst_h_strbug tst_h_refs
-XFAIL_TESTS += tst_h_strbug tst_h_refs
-endif
 
 # Add these if large file tests are turned on.
 if LARGE_FILE_TESTS
