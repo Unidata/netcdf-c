@@ -331,7 +331,7 @@ nc_open_par_fortran(const char *path, int omode, int comm,
    @return ::NC_NOERR No error.
    @return ::NC_EBADID Invalid ncid passed.
    @return ::NC_ENOTVAR Invalid varid passed.
-   @return ::NC_ENOPAR File was not opened with nc_open_par/nc_create_var.
+   @return ::NC_ENOPAR File was not opened with nc_open_par/nc_create_par.
    @return ::NC_EINVAL Invalid par_access specified, or attempt to set
    filtered variable to independent access.
 
