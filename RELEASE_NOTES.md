@@ -7,7 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.9.1 - T.B.D.
 
-* [Bug Fi] Fix the json submodule symbol conflicts between libnetcdf and the plugin specific netcdf_json.h. See [Github #????](https://github.com/Unidata/netcdf-c/pull/????).
+* [Bug Fi] Fix the json submodule symbol conflicts between libnetcdf and the plugin specific netcdf_json.h. See [Github #2448](https://github.com/Unidata/netcdf-c/pull/2448).
 * [Enhancement] Add `--disable-quantize` option to `configure`.
 * [Enhancement] Provide a simple API to allow user access to the internal .rc file table: supports get/set/overwrite of entries of the form "key=value". See [Github #2408](https://github.com/Unidata/netcdf-c/pull/2408).
 * [Bug Fix] Use env variable USERPROFILE instead of HOME for windows and mingw. See [Github #2405](https://github.com/Unidata/netcdf-c/pull/2405).
