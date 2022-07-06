@@ -28,6 +28,10 @@ The leak may be in HDF5.
 #define ATT5_LEN  1
 #define NROWS 5
 
+/* Use reclaim_data */
+#undef RECLAIM
+
+
 int
 main(int argc, char **argv)
 {
@@ -64,7 +68,7 @@ main(int argc, char **argv)
    if (nc_def_var(ncid, VAR5_NAME, typeid, VAR5_RANK, var_dims, &varid)) ERR;
 
    /* Create and write a variable attribute of the vlen type */
-#if 0
+#ifdef RECLAIM
    /* In order to use ncaux_reclaim_data, all the interior nodes must have been alloc'd */
    missing_val.p = (float*)malloc(sizeof(missing_value));
    memcpy((void*)missing_val.p,&missing_value,sizeof(missing_value));
@@ -74,7 +78,7 @@ main(int argc, char **argv)
    missing_val.len = 1;
    if (nc_put_att(ncid, varid, ATT5_NAME, typeid, ATT5_LEN, (void *) &missing_val)) ERR;
    if (nc_enddef(ncid)) ERR;
-#if 0
+#ifdef RECLAIM
    /* reclaim */
    if(ncaux_reclaim_data(ncid,typeid,&missing_val,1)) ERR;
 #endif
