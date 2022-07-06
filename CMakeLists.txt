@@ -133,6 +133,27 @@ IF(${BIGENDIAN})
   SET(WORDS_BIGENDIAN "1")
 ENDIF(${BIGENDIAN})
 
+# Define a function to convert various true or false values
+# to either TRUE|FALSE (uppercase).
+# If value is not a recognized boolean, then return NOTFOUND
+#1, ON, YES, TRUE, Y, 
+#0, OFF, NO, FALSE, N, IGNORE, NOTFOUND -NOTFOUND ""
+
+SET(TRUELIST "on;yes;y;true")
+SET(FALSELIST "off;no;n;false;0;ignore;notfound")
+function(booleanize VALUE RETVAR)
+  # force case
+  STRING(TOLOWER "${VALUE}" LCVALUE)
+  # Now do all the comparisons
+  if(LCVALUE IN_LIST TRUELIST OR LCVALUE GREATER 0)
+    SET(${RETVAR} TRUE PARENT_SCOPE)
+  elseif(LCVALUE IN_LIST FALSELIST OR LCVALUE MATCHES ".*-notfound" OR LCVALUE STREQUAL "")
+    SET(${RETVAR} FALSE PARENT_SCOPE)
+   else()
+     SET(${RETVAR} NOTFOUND PARENT_SCOPE)
+  endif()
+endfunction()
+
 # A macro to check if a C linker supports a particular flag.
 MACRO(CHECK_C_LINKER_FLAG M_FLAG M_RESULT)
   SET(T_REQ_FLAG "${CMAKE_REQUIRED_FLAGS}")
@@ -1120,41 +1141,60 @@ ENDIF()
 
 # If user wants, then install selected plugins (default on)
 SET(PLUGIN_INSTALL_DIR "NO" CACHE STRING "Whether and where we should install plugins; defaults to yes")
-SET(ENABLE_PLUGIN_INSTALL NO)
-IF(DEFINED PLUGIN_INSTALL_DIR) #OR DEFINED CACHE{PLUGIN_INSTALL_DIR}
-  STRING(TOLOWER "${PLUGIN_INSTALL_DIR}" LCPID)
-  IF(LCPID STREQUAL "no")
-    SET(ENABLE_PLUGIN_INSTALL NO)
-  ELSE()
+
+# This is ugly, but seems necessary because of CMake's boolean structure
+SET(boolval FALSE)
+IF(DEFINED PLUGIN_INSTALL_DIR)
+  booleanize(${PLUGIN_INSTALL_DIR} boolval)
+  IF(boolval)
     SET(ENABLE_PLUGIN_INSTALL YES)
+    # No actual value was specified
+    UNSET(PLUGIN_INSTALL_DIR CACHE)
+  ELSE()
+    IF(boolval STREQUAL "NOTFOUND")
+      # Must be an actual value
+      SET(ENABLE_PLUGIN_INSTALL YES)
+    ELSE()
+      SET(ENABLE_PLUGIN_INSTALL NO)
+    ENDIF()
   ENDIF()
+ELSE()
+  SET(ENABLE_PLUGIN_INSTALL NO)
 ENDIF()
 
-IF(ENABLE_PLUGIN_INSTALL AND PLUGIN_INSTALL_DIR STREQUAL "YES")
-    # Default to last dir (lowest search priority) in HDF5_PLUGIN_PATH
-    IF(DEFINED ENV{HDF5_PLUGIN_PATH})
-      SET(PLUGIN_PATH "$ENV{HDF5_PLUGIN_PATH}")
-    ELSE()
+# Ensure no defined plugin dir if not enabled
+IF(NOT ENABLE_PLUGIN_INSTALL)
+    UNSET(PLUGIN_INSTALL_DIR CACHE)
+ENDIF()
+
+IF(ENABLE_PLUGIN_INSTALL)
+    IF(NOT DEFINED PLUGIN_INSTALL_DIR)
+      # Default to HDF5_PLUGIN_PATH or its default directories
+      IF(DEFINED ENV{HDF5_PLUGIN_PATH})
+        SET(PLUGIN_INSTALL_DIR "$ENV{HDF5_PLUGIN_PATH}")
+      ELSE()
         IF(ISMSVC OR ISMINGW)
-	  SET(PLUGIN_PATH "$ENV{ALLUSERSPROFILE}\\hdf5\\lib\\plugin")
+	  SET(PLUGIN_INSTALL_DIR "$ENV{ALLUSERSPROFILE}\\hdf5\\lib\\plugin")
 	ELSE()
-	  SET(PLUGIN_PATH "/usr/local/hdf5/lib/plugin")
+	  SET(PLUGIN_PLUGIN_DIR "/usr/local/hdf5/lib/plugin")
 	ENDIF()
+      ENDIF()
+        MESSAGE("Defaulting to -DPLUGIN_INSTALL_DIR=${PLUGIN_INSTALL_DIR}")
     ENDIF()
 ENDIF()
 
 IF(ENABLE_PLUGIN_INSTALL)
   # Use the lowest priority dir in the path
   IF(NOT ISMSVC AND NOT ISMINGW)
-    STRING(REPLACE ":" ";" PATH_LIST ${PLUGIN_PATH})
+    STRING(REPLACE ":" ";" PATH_LIST ${PLUGIN_INSTALL_DIR})
   ELSE()
-    SET(PATH_LIST ${PLUGIN_PATH})
+    SET(PATH_LIST ${PLUGIN_INSTALL_DIR})
   ENDIF()
 
   # Get last element
   LIST(GET PATH_LIST -1 PLUGIN_INSTALL_DIR)
-  MESSAGE("Defaulting to -DPLUGIN_INSTALL_DIR=${PLUGIN_INSTALL_DIR}")
   SET(PLUGIN_INSTALL_DIR_SETTING "${PLUGIN_INSTALL_DIR}")
+  MESSAGE("Final value of-DPLUGIN_INSTALL_DIR=${PLUGIN_INSTALL_DIR}")
 ELSE() # No option specified
     UNSET(PLUGIN_INSTALL_DIR)
     UNSET(PLUGIN_INSTALL_DIR CACHE)
