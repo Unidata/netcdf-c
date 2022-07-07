@@ -5,11 +5,11 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
-
 ## 4.9.1 - T.B.D.
 
 * [Bug Fix] Fix quantize with CLASSIC_MODEL files. See [Github #2405](https://github.com/Unidata/netcdf-c/pull/2445).
 * [Enhancement] Add `--disable-quantize` option to `configure`.
+* [Bug Fix] Fix CMakeLists.txt to handle all acceptable boolean values for -DPLUGIN_INSTALL_DIR. See [Github #2430](https://github.com/Unidata/netcdf-c/pull/2430).
 * [Enhancement] Provide a simple API to allow user access to the internal .rc file table: supports get/set/overwrite of entries of the form "key=value". See [Github #2408](https://github.com/Unidata/netcdf-c/pull/2408).
 * [Bug Fix] Use env variable USERPROFILE instead of HOME for windows and mingw. See [Github #2405](https://github.com/Unidata/netcdf-c/pull/2405).
 * [Bug Fix] Fix the nc_def_var_fletcher32 code in hdf5 to properly test value of the fletcher32 argument. See [Github #2403](https://github.com/Unidata/netcdf-c/pull/2403).
@@ -24,6 +24,7 @@ This file contains a high-level description of this package's evolution. Release
 * [Enhancement] Allow the read/write of JSON-valued Zarr attributes to allow
 for domain specific info such as used by GDAL/Zarr. See [Github #2278](https://github.com/Unidata/netcdf-c/pull/2278).
 * [Enhancement] Turn on the XArray convention for NCZarr files by default. WARNING, this means that the mode should explicitly specify "nczarr" or "zarr" even if "xarray" or "noxarray" is specified. See [Github #2257](https://github.com/Unidata/netcdf-c/pull/2257).
+
 * [Enhancement] Update the documentation to match the current filter capabilities. See [Github #2249](https://github.com/Unidata/netcdf-c/pull/2249).
 * [Enhancement] Support installation of pre-built standard filters into user-specified location. See [Github #2318](https://github.com/Unidata/netcdf-c/pull/2318).
 * [Enhancement] Improve filter support. More specifically (1) add nc_inq_filter_avail to check if a filter is available, (2) add the notion of standard filters, (3) cleanup szip support to fix interaction with NCZarr. See [Github #2245](https://github.com/Unidata/netcdf-c/pull/2245).
@@ -194,7 +195,7 @@ See [GitHub #1251](https://github.com/Unidata/netcdf-c/issues/1251).
 * Fix of --enable-benchmark benchmark tests [Github #1211](https://github.com/Unidata/netcdf-c/issues/1211)
 * Update the license from the home-brewed NetCDF license to the standard 3-Clause BSD License.  This change does not result in any new restrictions; it is merely the adoption of a standard, well-known and well-understood license in place of the historic NetCDF license written at Unidata.  This is part of a broader push by Unidata to adopt modern, standardized licensing.
 * [BugFix] Corrected DAP-related issues on big-endian machines. See [Github #1321](https://github.com/Unidata/netcdf-c/issues/1321), [Github #1302](https://github.com/Unidata/netcdf-c/issues/1302) for more information.
-* [BugFix][Enhancement]  Various and sundry bugfixes and performance enhancements, thanks to \@edhartnett, \@gsjaardema, \@t-b, \@wkliao, and all of our other contributors.
+* [BugFix][Enhancement]  Various and sundry bugfixes and performance enhancements, thanks to \@edhartnett, \@gsjarrdema, \@t-b, \@wkliao, and all of our other contributors.
 * [Enhancement] Extended `nccopy -F` syntax to support multiple variables with a single invocation. See [Github #1311](https://github.com/Unidata/netcdf-c/issues/1311) for more information.
 * [BugFix] Corrected an issue where DAP2 was incorrectly converting signed bytes, resulting in an erroneous error message under some circumstances. See [GitHub #1317](https://github.com/Unidata/netcdf-c/issues/1317) for more information.  See [Github #1319](https://github.com/Unidata/netcdf-c/issues/1319) for related information.
 * [BugFix][Enhancement] Modified `nccopy` so that `_NCProperties` is not copied over verbatim but is instead generated based on the version of `libnetcdf` used when copying the file.  Additionally, `_NCProperties` are displayed if/when associated with a netcdf3 file, now. See [GitHub #803](https://github.com/Unidata/netcdf-c/issues/803) for more information.
