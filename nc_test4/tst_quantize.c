@@ -224,49 +224,49 @@ main(int argc, char **argv)
 
 	printf("\t**** testing quantization handling of non-floats...");
 	{
-	    int ncid;
-	    int dimid[NDIM2];
-	    int varid;
-	    int nsd_in, quantize_mode;
-	    int nsd_out = 3;
-#ifdef TESTNCZARR
-	    char file_name[4096];
-#else
-	    char file_name[NC_MAX_NAME + 1];
-#endif
-	    int xtype[NTYPES] = {NC_CHAR, NC_SHORT, NC_INT, NC_BYTE, NC_UBYTE,
-				 NC_USHORT, NC_UINT, NC_INT64, NC_UINT64};
-	    int t;
-
-	    for (t = 0; t < NTYPES; t++)
+	    for (q = 0; q < NUM_QUANTIZE_MODES; q++)
 	    {
-		sprintf(file_name, "%s_bitgroom_type_%d.nc", TEST, xtype[t]);
+		int ncid;
+		int dimid[NDIM2];
+		int varid;
+		int nsd_in, quantize_mode_in;
+		int nsd_out = 3;
+		char file_name[NC_MAX_FILENAME + 1];
+		int xtype[NTYPES] = {NC_CHAR, NC_SHORT, NC_INT, NC_BYTE, NC_UBYTE,
+				     NC_USHORT, NC_UINT, NC_INT64, NC_UINT64};
+		int t;
+
+		printf("\t\t**** testing quantize algorithm %d...\n", quantize_mode[q]);
+		for (t = 0; t < NTYPES; t++)
+		{
+		    sprintf(file_name, "%s_quantize_%d_type_%d.nc", TEST, quantize_mode[q], xtype[t]);
 #ifdef TESTNCZARR
-		{
-		    char url[4096];
-		    snprintf(url,sizeof(url),template,file_name);
-		    strcpy(file_name,url);
-		}
+		    {
+			char url[NC_MAX_FILENAME + 1];
+			snprintf(url,sizeof(url),template,file_name);
+			strcpy(file_name,url);
+		    }
 #endif
-		/* Create file. */
-		if (nc_create(file_name, NC_NETCDF4, &ncid)) ERR;
-		if (nc_def_dim(ncid, X_NAME, NX_BIG, &dimid[0])) ERR;
-		if (nc_def_dim(ncid, Y_NAME, NY_BIG, &dimid[1])) ERR;
-		if (nc_def_var(ncid, VAR_NAME, xtype[t], NDIM2, dimid, &varid)) ERR;
+		    /* Create file. */
+		    if (nc_create(file_name, NC_NETCDF4, &ncid)) ERR;
+		    if (nc_def_dim(ncid, X_NAME, NX_BIG, &dimid[0])) ERR;
+		    if (nc_def_dim(ncid, Y_NAME, NY_BIG, &dimid[1])) ERR;
+		    if (nc_def_var(ncid, VAR_NAME, xtype[t], NDIM2, dimid, &varid)) ERR;
 
-		/* Bitgroom filter returns NC_EINVAL because this is not an
-		 * NC_FLOAT or NC_DOULBE. */
-		if (nc_def_var_quantize(ncid, varid, NC_QUANTIZE_BITGROOM, nsd_out) != NC_EINVAL) ERR;
-		if (nc_close(ncid)) ERR;
-
-		/* Check file. */
-		{
-		    if (nc_open(file_name, NC_NETCDF4, &ncid)) ERR;
-		    if (nc_inq_varid(ncid,VAR_NAME,&varid)) ERR;
-		    if (nc_inq_var_quantize(ncid, varid, &quantize_mode, &nsd_in))
-			ERR;
-		    if (quantize_mode) ERR;
+		    /* Quantzie returns NC_EINVAL because this is not
+		     * an NC_FLOAT or NC_DOULBE. */
+		    if (nc_def_var_quantize(ncid, varid, quantize_mode[q], nsd_out) != NC_EINVAL) ERR;
 		    if (nc_close(ncid)) ERR;
+
+		    /* Check file. */
+		    {
+			if (nc_open(file_name, NC_NETCDF4, &ncid)) ERR;
+			if (nc_inq_varid(ncid,VAR_NAME,&varid)) ERR;
+			if (nc_inq_var_quantize(ncid, varid, &quantize_mode_in, &nsd_in))
+			    ERR;
+			if (quantize_mode_in) ERR;
+			if (nc_close(ncid)) ERR;
+		    }
 		}
 	    }
 	}
