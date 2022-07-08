@@ -890,28 +890,28 @@ main(int argc, char **argv)
 			double_xpect[0][4].u = 0x479e000000000000;
 			break;
 		    case NC_QUANTIZE_GRANULARBR:
-			xpect[1][0].u = ;
-			xpect[1][1].u = ;
-			xpect[1][2].u = ;
-			xpect[1][3].u = ;
-			xpect[1][4].u = ;
-			double_xpect[1][0].u = ;
-			double_xpect[1][1].u = ;
-			double_xpect[1][2].u = ;
-			double_xpect[1][3].u = ;
-			double_xpect[1][4].u = ;
+			xpect[1][0].u = 0x3f8e0000;
+			xpect[1][1].u = 0x7cf00000;
+			xpect[1][2].u = 0x41200000;
+			xpect[1][3].u = 0x46410000;
+			xpect[1][4].u = 0x7cf00000;
+			double_xpect[1][0].u = 0x3ff1c00000000000;
+			double_xpect[1][1].u = 0x479e000000000000;
+			double_xpect[1][2].u = 0x4024000000000000;
+			double_xpect[1][3].u = 0x41d2600000000000;
+			double_xpect[1][4].u = 0x479e000000000000;
 			break;
 		    case NC_QUANTIZE_BITROUND:
-			xpect[2][0].u = ;
-			xpect[2][1].u = ;
-			xpect[2][2].u = ;
-			xpect[2][3].u = ;
-			xpect[2][4].u = ;
-			double_xpect[2][0].u = ;
-			double_xpect[2][1].u = ;
-			double_xpect[2][2].u = ;
-			double_xpect[2][3].u = ;
-			double_xpect[2][4].u = ;
+			xpect[2][0].u = 0x3f900000;
+			xpect[2][1].u = 0x7cf00000;
+			xpect[2][2].u = 0x41200000;
+			xpect[2][3].u = 0x46400000;
+			xpect[2][4].u = 0x7cf00000;
+			double_xpect[2][0].u = 0x3ff2000000000000;
+			double_xpect[2][1].u = 0x479e000000000000;
+			double_xpect[2][2].u = 0x4024000000000000;
+			double_xpect[2][3].u = 0x41d2000000000000;
+			double_xpect[2][4].u = 0x479e000000000000;
 			break;
 		    default:
 			ERR;
@@ -929,19 +929,19 @@ main(int argc, char **argv)
 		    /* Check the data. */
 		    if (nc_get_var(ncid, varid1, float_in)) ERR;
 		    if (nc_get_var(ncid, varid2, double_in)) ERR;
-		    printf("\n");
+		    /* printf("\n"); */
 		    for (x = 0; x < DIM_LEN_5; x++)
 		    {
 			fout.f = float_data[x];
 			fin.f = float_in[x];
-			printf ("float_data: %10f   : 0x%x  float_data_in: %10f   : 0x%x\n",
-			        float_data[x], fout.u, float_data[x], fin.u);
 			dfout.d = double_data[x];
 			dfin.d = double_in[x];
-			printf("double_data: %15g   : 0x%16lx  double_data_in: %15g   : 0x%16lx\n",
-			       double_data[x], dfout.u, double_data[x], dfin.u);
-			/* if (fin.u != xpect[x].u) ERR; */
-			/* if (dfin.u != double_xpect[x].u) ERR; */
+			/* printf ("float_data: %10f   : 0x%x  float_data_in: %10f   : 0x%x\n", */
+			/*         float_data[x], fout.u, float_data[x], fin.u); */
+			/* printf("double_data: %15g   : 0x%16lx  double_data_in: %15g   : 0x%16lx\n", */
+			/*        double_data[x], dfout.u, double_data[x], dfin.u); */
+			if (fin.u != xpect[q][x].u) ERR;
+			if (dfin.u != double_xpect[q][x].u) ERR;
 		    }
 
 		    /* Close the file again. */
