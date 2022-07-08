@@ -950,7 +950,7 @@ main(int argc, char **argv)
 	    }
 	}
 	SUMMARIZE_ERR;
-	printf("\t**** testing more quantization values with custom fill values...");
+	printf("\t**** testing more quantization values with custom fill values...\n");
 	{
 #define CUSTOM_FILL_FLOAT 99.99999
 #define CUSTOM_FILL_DOUBLE -99999.99999
@@ -1057,17 +1057,17 @@ main(int argc, char **argv)
 		    /* Check the data. */
 		    if (nc_get_var(ncid, varid1, float_in)) ERR;
 		    if (nc_get_var(ncid, varid2, double_in)) ERR;
-		    printf("\n");
+		    /* printf("\n"); */
 		    for (x = 0; x < DIM_LEN_5; x++)
 		    {
 			fout.f = float_data[x];
 			fin.f = float_in[x];
-			printf ("float_data: %10f   : 0x%x  float_data_in: %10f   : 0x%x\n",
-			        float_data[x], fout.u, float_data[x], fin.u);
 			dfout.d = double_data[x];
 			dfin.d = double_in[x];
-			printf("double_data: %15g   : 0x%16lx  double_data_in: %15g   : 0x%16lx\n",
-			       double_data[x], dfout.u, double_data[x], dfin.u);
+			/* printf ("float_data: %10f   : 0x%x  float_data_in: %10f   : 0x%x\n", */
+			/*         float_data[x], fout.u, float_data[x], fin.u); */
+			/* printf("double_data: %15g   : 0x%16lx  double_data_in: %15g   : 0x%16lx\n", */
+			/*        double_data[x], dfout.u, double_data[x], dfin.u); */
 			if (fin.u != xpect[q][x].u) ERR;
 			if (dfin.u != double_xpect[q][x].u) ERR;
 		    }
@@ -1078,136 +1078,177 @@ main(int argc, char **argv)
 	    }
 	}
 	SUMMARIZE_ERR;
-/* /\* 	printf("\t*** Checking BitGroom values with type conversion between ints and floats..."); *\/ */
-/* /\* 	{ *\/ */
-/* /\* 	    for (q = 0; q < NUM_QUANTIZE_MODES; q++) *\/ */
-/* /\* 	    { *\/ */
-/* /\* 		int ncid; *\/ */
-/* /\* 		int dimid; *\/ */
-/* /\* 		int varid1, varid2; *\/ */
-/* /\* 		unsigned char uc = 99; *\/ */
-/* /\* 		signed char sc = -99; *\/ */
-/* /\* 		unsigned short us = 9999; *\/ */
-/* /\* 		signed short ss = -9999; *\/ */
-/* /\* 		unsigned int ui = 9999999; *\/ */
-/* /\* 		signed int si = -9999999; *\/ */
-/* /\* 		unsigned long long int ull = 999999999; *\/ */
-/* /\* 		signed long long int sll = -999999999; *\/ */
-/* /\* 		size_t index; *\/ */
+	printf("\t*** Checking BitGroom values with type conversion between ints and floats...\n");
+	{
+	    for (q = 0; q < NUM_QUANTIZE_MODES; q++)
+	    {
+		int ncid;
+		int dimid;
+		int varid1, varid2;
+		unsigned char uc = 99;
+		signed char sc = -99;
+		unsigned short us = 9999;
+		signed short ss = -9999;
+		unsigned int ui = 9999999;
+		signed int si = -9999999;
+		unsigned long long int ull = 999999999;
+		signed long long int sll = -999999999;
+		size_t index;
 
-/* /\* 		printf("\t\t**** testing quantize algorithm %d...\n", quantize_mode[q]); *\/ */
+		printf("\t\t**** testing quantize algorithm %d...\n", quantize_mode[q]);
 		
-/* /\* 		/\\* Create file. *\\/ *\/ */
-/* /\* 		if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR; *\/ */
+		/* Create file. */
+		if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
 
-/* /\* 		/\\* Create dims. *\\/ *\/ */
-/* /\* 		if (nc_def_dim(ncid, X_NAME, DIM_LEN_8, &dimid)) ERR; *\/ */
+		/* Create dims. */
+		if (nc_def_dim(ncid, X_NAME, DIM_LEN_8, &dimid)) ERR;
 
-/* /\* 		/\\* Create the variables. *\\/ *\/ */
-/* /\* 		if (nc_def_var(ncid, VAR_NAME, NC_FLOAT, NDIM1, &dimid, &varid1)) ERR; *\/ */
-/* /\* 		if (nc_def_var(ncid, VAR_NAME_2, NC_DOUBLE, NDIM1, &dimid, &varid2)) ERR; *\/ */
+		/* Create the variables. */
+		if (nc_def_var(ncid, VAR_NAME, NC_FLOAT, NDIM1, &dimid, &varid1)) ERR;
+		if (nc_def_var(ncid, VAR_NAME_2, NC_DOUBLE, NDIM1, &dimid, &varid2)) ERR;
 
-/* /\* 		/\\* Set up quantization. *\\/ *\/ */
-/* /\* 		if (nc_def_var_quantize(ncid, varid1, quantize_mode[q], NSD_3)) ERR; *\/ */
-/* /\* 		if (nc_def_var_quantize(ncid, varid2, quantize_mode[q], NSD_3)) ERR; *\/ */
+		/* Set up quantization. */
+		if (nc_def_var_quantize(ncid, varid1, quantize_mode[q], NSD_3)) ERR;
+		if (nc_def_var_quantize(ncid, varid2, quantize_mode[q], NSD_3)) ERR;
 
-/* /\* 		/\\* For classic mode, we must call enddef. *\\/ *\/ */
-/* /\* 		if (m) *\/ */
-/* /\* 		    if (nc_enddef(ncid)) ERR; *\/ */
+		/* For classic mode, we must call enddef. */
+		if (m)
+		    if (nc_enddef(ncid)) ERR;
 
-/* /\* 		/\\* Write data. *\\/ *\/ */
-/* /\* 		index = 0; *\/ */
-/* /\* 		if (nc_put_var1_uchar(ncid, varid1, &index, &uc)) ERR; *\/ */
-/* /\* 		if (nc_put_var1_uchar(ncid, varid2, &index, &uc)) ERR; *\/ */
-/* /\* 		index = 1; *\/ */
-/* /\* 		if (nc_put_var1_schar(ncid, varid1, &index, &sc)) ERR; *\/ */
-/* /\* 		if (nc_put_var1_schar(ncid, varid2, &index, &sc)) ERR; *\/ */
-/* /\* 		index = 2; *\/ */
-/* /\* 		if (nc_put_var1_ushort(ncid, varid1, &index, &us)) ERR; *\/ */
-/* /\* 		if (nc_put_var1_ushort(ncid, varid2, &index, &us)) ERR; *\/ */
-/* /\* 		index = 3; *\/ */
-/* /\* 		if (nc_put_var1_short(ncid, varid1, &index, &ss)) ERR; *\/ */
-/* /\* 		if (nc_put_var1_short(ncid, varid2, &index, &ss)) ERR; *\/ */
-/* /\* 		index = 4; *\/ */
-/* 		if (nc_put_var1_uint(ncid, varid1, &index, &ui)) ERR; */
-/* 		if (nc_put_var1_uint(ncid, varid2, &index, &ui)) ERR; */
-/* 		index = 5; */
-/* 		if (nc_put_var1_int(ncid, varid1, &index, &si)) ERR; */
-/* 		if (nc_put_var1_int(ncid, varid2, &index, &si)) ERR; */
-/* 		index = 6; */
-/* 		if (nc_put_var1_ulonglong(ncid, varid1, &index, &ull)) ERR; */
-/* 		if (nc_put_var1_ulonglong(ncid, varid2, &index, &ull)) ERR; */
-/* 		index = 7; */
-/* 		if (nc_put_var1_longlong(ncid, varid1, &index, &sll)) ERR; */
-/* 		if (nc_put_var1_longlong(ncid, varid2, &index, &sll)) ERR; */
+		/* Write data. */
+		index = 0;
+		if (nc_put_var1_uchar(ncid, varid1, &index, &uc)) ERR;
+		if (nc_put_var1_uchar(ncid, varid2, &index, &uc)) ERR;
+		index = 1;
+		if (nc_put_var1_schar(ncid, varid1, &index, &sc)) ERR;
+		if (nc_put_var1_schar(ncid, varid2, &index, &sc)) ERR;
+		index = 2;
+		if (nc_put_var1_ushort(ncid, varid1, &index, &us)) ERR;
+		if (nc_put_var1_ushort(ncid, varid2, &index, &us)) ERR;
+		index = 3;
+		if (nc_put_var1_short(ncid, varid1, &index, &ss)) ERR;
+		if (nc_put_var1_short(ncid, varid2, &index, &ss)) ERR;
+		index = 4;
+		if (nc_put_var1_uint(ncid, varid1, &index, &ui)) ERR;
+		if (nc_put_var1_uint(ncid, varid2, &index, &ui)) ERR;
+		index = 5;
+		if (nc_put_var1_int(ncid, varid1, &index, &si)) ERR;
+		if (nc_put_var1_int(ncid, varid2, &index, &si)) ERR;
+		index = 6;
+		if (nc_put_var1_ulonglong(ncid, varid1, &index, &ull)) ERR;
+		if (nc_put_var1_ulonglong(ncid, varid2, &index, &ull)) ERR;
+		index = 7;
+		if (nc_put_var1_longlong(ncid, varid1, &index, &sll)) ERR;
+		if (nc_put_var1_longlong(ncid, varid2, &index, &sll)) ERR;
 
-/* 		/\\* Close the file. *\\/ */
-/* 		if (nc_close(ncid)) ERR; */
+		/* Close the file. */
+		if (nc_close(ncid)) ERR;
 
-/* 		{ */
-/* 		    float float_data_in[DIM_LEN_8]; */
-/* 		    double double_data_in[DIM_LEN_8]; */
-/* 		    int x; */
+		{
+		    float float_data_in[DIM_LEN_8];
+		    double double_data_in[DIM_LEN_8];
+		    int x;
 
-/* 		    /\\* Now reopen the file and check. *\\/ */
-/* 		    if (nc_open(FILE_NAME, NC_NETCDF4, &ncid)) ERR; */
-/* 		    if (nc_inq_varid(ncid,VAR_NAME,&varid1)) ERR; */
-/* 		    if (nc_inq_varid(ncid,VAR_NAME_2,&varid2)) ERR; */
+		    /* Now reopen the file and check. */
+		    if (nc_open(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+		    if (nc_inq_varid(ncid,VAR_NAME,&varid1)) ERR;
+		    if (nc_inq_varid(ncid,VAR_NAME_2,&varid2)) ERR;
 
-/* 		    /\\* Read the data. *\\/ */
-/* 		    if (nc_get_var_float(ncid, varid1, float_data_in)) ERR; */
-/* 		    if (nc_get_var_double(ncid, varid2, double_data_in)) ERR; */
+		    /* Read the data. */
+		    if (nc_get_var_float(ncid, varid1, float_data_in)) ERR;
+		    if (nc_get_var_double(ncid, varid2, double_data_in)) ERR;
 
-/* 		    union FU xpect[DIM_LEN_8]; */
-/* 		    union DU double_xpect[DIM_LEN_8]; */
-/* 		    /\\* This test comes up with different answers to this than */
-/* 		     * the corresponding bitgroom filter test, but that's */
-/* 		     * OK. In netcdf-c quantization is applied as the data are */
-/* 		     * written by the user, but in HDF5 filters, the bitgroom */
-/* 		     * filter is applied to all data values as they are */
-/* 		     * written to disk. See */
-/* 		     * https://github.com/ccr/ccr/issues/194 for a full */
-/* 		     * explanation. *\\/ */
-/* 		    xpect[0].u = 0x42c60000; */
-/* 		    xpect[1].u = 0xc2c60000; */
-/* 		    xpect[2].u = 0x461c3000; */
-/* 		    xpect[3].u = 0xc61c3000; */
-/* 		    xpect[4].u = 0x4b189000; */
-/* 		    xpect[5].u = 0xcb189000; */
-/* 		    xpect[6].u = 0x4e6e6b28; */
-/* 		    xpect[6].u = 0x4e6e6000; */
-/* 		    xpect[7].u = 0xce6e6000; */
-/* 		    double_xpect[0].u = 0x4058c00000000000; */
-/* 		    double_xpect[1].u = 0xc058c00000000000; */
-/* 		    double_xpect[2].u = 0x40c3860000000000; */
-/* 		    double_xpect[3].u = 0xc0c3860000000000; */
-/* 		    double_xpect[4].u = 0x4163120000000000; */
-/* 		    double_xpect[5].u = 0xc163120000000000; */
-/* 		    double_xpect[6].u = 0x41cdcc0000000000; */
-/* 		    double_xpect[7].u = 0xc1cdcc0000000000; */
+		    union FU xpect[NUM_QUANTIZE_MODES][DIM_LEN_8];
+		    union DU double_xpect[NUM_QUANTIZE_MODES][DIM_LEN_8];
+		    
+		    /* This test comes up with different answers to this than
+		     * the corresponding bitgroom filter test, but that's
+		     * OK. In netcdf-c quantization is applied as the data are
+		     * written by the user, but in HDF5 filters, the bitgroom
+		     * filter is applied to all data values as they are
+		     * written to disk. See
+		     * https://github.com/ccr/ccr/issues/194 for a full
+		     * explanation. */
+		    switch (quantize_mode[q])
+		    {
+		    case NC_QUANTIZE_BITGROOM:
+			xpect[0][0].u = 0x42c60000;
+			xpect[0][1].u = 0xc2c60000;
+			xpect[0][2].u = 0x461c3000;
+			xpect[0][3].u = 0xc61c3000;
+			xpect[0][4].u = 0x4b189000;
+			xpect[0][5].u = 0xcb189000;
+			xpect[0][6].u = 0x4e6e6000;
+			xpect[0][7].u = 0xce6e6000;
+			double_xpect[0][0].u = 0x4058c00000000000;
+			double_xpect[0][1].u = 0xc058c00000000000;
+			double_xpect[0][2].u = 0x40c3860000000000;
+			double_xpect[0][3].u = 0xc0c3860000000000;
+			double_xpect[0][4].u = 0x4163120000000000;
+			double_xpect[0][5].u = 0xc163120000000000;
+			double_xpect[0][6].u = 0x41cdcc0000000000;
+			double_xpect[0][7].u = 0xc1cdcc0000000000;
+			break;
+		    case NC_QUANTIZE_GRANULARBR:
+			xpect[1][0].u = 0x42c60000;
+			xpect[1][1].u = 0xc2c60000;
+			xpect[1][2].u = 0x461c4000;
+			xpect[1][3].u = 0xc61c4000;
+			xpect[1][4].u = 0x4b18a000;
+			xpect[1][5].u = 0xcb18a000;
+			xpect[1][6].u = 0x4e6e6000;
+			xpect[1][7].u = 0xce6e6000;
+			double_xpect[1][0].u = 0x4058c00000000000;
+			double_xpect[1][1].u = 0xc058c00000000000;
+			double_xpect[1][2].u = 0x40c3880000000000;
+			double_xpect[1][3].u = 0xc0c3880000000000;
+			double_xpect[1][4].u = 0x4163140000000000;
+			double_xpect[1][5].u = 0xc163140000000000;
+			double_xpect[1][6].u = 0x41cdcc0000000000;
+			double_xpect[1][7].u = 0xc1cdcc0000000000;
+			break;
+		    case NC_QUANTIZE_BITROUND:
+			xpect[2][0].u = 0x42c00000;
+			xpect[2][1].u = 0xc2c00000;
+			xpect[2][2].u = 0x46200000;
+			xpect[2][3].u = 0xc6200000;
+			xpect[2][4].u = 0x4b200000;
+			xpect[2][5].u = 0xcb200000;
+			xpect[2][6].u = 0x4e700000;
+			xpect[2][7].u = 0xce700000;
+			double_xpect[2][0].u = 0x4058000000000000;
+			double_xpect[2][1].u = 0xc058000000000000;
+			double_xpect[2][2].u = 0x40c4000000000000;
+			double_xpect[2][3].u = 0xc0c4000000000000;
+			double_xpect[2][4].u = 0x4164000000000000;
+			double_xpect[2][5].u = 0xc164000000000000;
+			double_xpect[2][6].u = 0x41ce000000000000;
+			double_xpect[2][7].u = 0xc1ce000000000000;
+			break;
+		    default:
+			ERR;
+		    }
 
-/* 		    for (x = 0; x < DIM_LEN_8; x++) */
-/* 		    { */
-/* 			union FU fin; */
-/* 			union DU dfin; */
-/* 			fin.f = float_data_in[x]; */
-/* 			dfin.d = double_data_in[x]; */
-/* 			/\\* printf ("%d float_data_in : %08.8f   : 0x%x expected %08.8f   : 0x%x\n", *\\/ */
-/* 			/\\* 	x, float_data_in[x], fin.u, xpect[x].f, xpect[x].u); *\\/ */
-/* 			/\\*		printf ("%d double_data_in : %15g   : 0x%llx expected %15g   : 0x%llx\n",*\\/ */
-/* 			/\\*		 	x, double_data_in[x], dfin.u, double_xpect[x].d, double_xpect[x].u);*\\/ */
-/* 			if (fin.u != xpect[x].u) */
-/* 			    ERR; */
-/* 			if (dfin.u != double_xpect[x].u) */
-/* 			    ERR; */
-/* 		    } */
+		    for (x = 0; x < DIM_LEN_8; x++)
+		    {
+			union FU fin;
+			union DU dfin;
+			fin.f = float_data_in[x];
+			dfin.d = double_data_in[x];
+			/* printf ("%d float_data_in : %08.8f   : 0x%x expected %08.8f   : 0x%x\n",  */
+			/*  	x, float_data_in[x], fin.u, xpect[q][x].f, xpect[q][x].u);  */
+			/* printf ("%d double_data_in : %15g   : 0x%lx expected %15g   : 0x%lx\n", */
+			/* 	x, double_data_in[x], dfin.u, double_xpect[q][x].d, double_xpect[q][x].u); */
+			if (fin.u != xpect[q][x].u) ERR;
+			if (dfin.u != double_xpect[q][x].u) ERR;
+		    }
 
-/* 		    /\\* Close the file. *\\/ */
-/* 		    if (nc_close(ncid)) ERR; */
-/* 		} */
-/* 	    } */
-/* 	} */
-/* 	SUMMARIZE_ERR; */
+		    /* Close the file. */
+		    if (nc_close(ncid)) ERR;
+		}
+	    }
+	}
+	SUMMARIZE_ERR;
 	printf("\t**** Nice, simple example of using BitGroom plus zlib...");
 	{
 #define DIM_LEN_SIMPLE 100
