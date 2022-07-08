@@ -90,8 +90,11 @@ main(int argc, char **argv)
 #endif
 
 #define NUM_MODE_TESTS 2
+#define NUM_QUANTIZE_MODES 3	    
     int mode = NC_NETCDF4|NC_CLOBBER;
     int m;
+    int q, quantize_mode[NUM_QUANTIZE_MODES] = {NC_QUANTIZE_BITGROOM, NC_QUANTIZE_GRANULARBR,
+						NC_QUANTIZE_BITROUND};
     
     printf("\n*** Testing netcdf-4 variable quantization functions.\n");
     for (m = 0; m < NUM_MODE_TESTS; m++)
@@ -109,87 +112,105 @@ main(int argc, char **argv)
 	    int ncid, dimid, varid1, varid2;
 	    int quantize_mode_in, nsd_in;
 
+	    for (q = 0; q < NUM_QUANTIZE_MODES; q++)
+	    {
+		printf("\t\t**** testing quantize algorithm %d...\n", quantize_mode[q]);
 #ifndef TESTNCZARR
-	    /* Create a netcdf classic file with one var. Attempt
-	     * quantization. It will not work. */
-	    if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
-	    if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_3, &dimid)) ERR;
-	    if (nc_def_var(ncid, VAR_NAME_1, NC_FLOAT, NDIM1, &dimid, &varid1)) ERR;
-	    if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, NSD_3) != NC_ENOTNC4) ERR;
-	    if (nc_inq_var_quantize(ncid, varid1, &quantize_mode_in, &nsd_in) != NC_ENOTNC4) ERR;
-	    if (nc_close(ncid)) ERR;
+		/* Create a netcdf classic file with one var. Attempt
+		 * quantization. It will not work. */
+		if (nc_create(FILE_NAME, NC_CLOBBER, &ncid)) ERR;
+		if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_3, &dimid)) ERR;
+		if (nc_def_var(ncid, VAR_NAME_1, NC_FLOAT, NDIM1, &dimid, &varid1)) ERR;
+		if (nc_def_var_quantize(ncid, varid1, quantize_mode[q], NSD_3) != NC_ENOTNC4) ERR;
+		if (nc_inq_var_quantize(ncid, varid1, &quantize_mode_in, &nsd_in) != NC_ENOTNC4) ERR;
+		if (nc_close(ncid)) ERR;
 #endif
 
-	    /* Create a netcdf-4 file with two vars. Attempt
-	     * quantization. It will work, eventually... */
-	    if (nc_create(FILE_NAME, mode, &ncid)) ERR;
-	    if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_3, &dimid)) ERR;
-	    if (nc_def_var(ncid, VAR_NAME_1, NC_FLOAT, NDIM1, &dimid, &varid1)) ERR;
-	    if (nc_def_var(ncid, VAR_NAME_2, NC_DOUBLE, NDIM1, &dimid, &varid2)) ERR;
+		/* Create a netcdf-4 file with two vars. Attempt
+		 * quantization. It will work, eventually... */
+		if (nc_create(FILE_NAME, mode, &ncid)) ERR;
+		if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_3, &dimid)) ERR;
+		if (nc_def_var(ncid, VAR_NAME_1, NC_FLOAT, NDIM1, &dimid, &varid1)) ERR;
+		if (nc_def_var(ncid, VAR_NAME_2, NC_DOUBLE, NDIM1, &dimid, &varid2)) ERR;
 
-	    /* Bad varid. */
-	    if (nc_def_var_quantize(ncid, NC_GLOBAL, NC_QUANTIZE_BITGROOM, NSD_3) != NC_EGLOBAL) ERR;
-	    if (nc_def_var_quantize(ncid, varid2 + 1, NC_QUANTIZE_BITGROOM, NSD_3) != NC_ENOTVAR) ERR;
-	    /* Invalid values. */
-	    if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITROUND + 1, NSD_3) != NC_EINVAL) ERR;
-	    if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, -1) != NC_EINVAL) ERR;
-	    if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, NC_QUANTIZE_MAX_FLOAT_NSD + 1) != NC_EINVAL) ERR;
-	    if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITROUND + 1, 3) != NC_EINVAL) ERR;
-	    if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM, -1) != NC_EINVAL) ERR;
-	    if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM, NC_QUANTIZE_MAX_DOUBLE_NSD + 1) != NC_EINVAL) ERR;
-	    if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM, 0) != NC_EINVAL) ERR;
+		/* Bad varid. */
+		if (nc_def_var_quantize(ncid, NC_GLOBAL, quantize_mode[q], NSD_3) != NC_EGLOBAL) ERR;
+		if (nc_def_var_quantize(ncid, varid2 + 1, quantize_mode[q], NSD_3) != NC_ENOTVAR) ERR;
+		/* Invalid values. */
+		if (nc_def_var_quantize(ncid, varid1, NUM_QUANTIZE_MODES + 1, NSD_3) != NC_EINVAL) ERR;
+		if (nc_def_var_quantize(ncid, varid1, quantize_mode[q], -1) != NC_EINVAL) ERR;
+		if (quantize_mode[q] == NC_QUANTIZE_BITROUND)
+		{
+		    if (nc_def_var_quantize(ncid, varid1, quantize_mode[q], NC_QUANTIZE_MAX_FLOAT_NSB + 1) != NC_EINVAL) ERR;
+		}
+		else
+		{
+		    if (nc_def_var_quantize(ncid, varid1, quantize_mode[q], NC_QUANTIZE_MAX_FLOAT_NSD + 1) != NC_EINVAL) ERR;
+		}
+		if (nc_def_var_quantize(ncid, varid2, NUM_QUANTIZE_MODES + 1, 3) != NC_EINVAL) ERR;
+		if (nc_def_var_quantize(ncid, varid2, quantize_mode[q], -1) != NC_EINVAL) ERR;
+		if (quantize_mode[q] == NC_QUANTIZE_BITROUND)
+		{
+		    if (nc_def_var_quantize(ncid, varid2, quantize_mode[q], NC_QUANTIZE_MAX_DOUBLE_NSB + 1) != NC_EINVAL) ERR;
+		}
+		else
+		{
+		    if (nc_def_var_quantize(ncid, varid2, quantize_mode[q], NC_QUANTIZE_MAX_DOUBLE_NSD + 1) != NC_EINVAL) ERR;
+		}
+		if (nc_def_var_quantize(ncid, varid2, quantize_mode[q], 0) != NC_EINVAL) ERR;
 
-	    /* This will work. */
-	    if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, NSD_3)) ERR;
-	    if (nc_inq_var_quantize(ncid, varid1, &quantize_mode_in, &nsd_in)) ERR;
-	    if (quantize_mode_in != NC_QUANTIZE_BITGROOM) ERR;
-	    if (nsd_in != NSD_3) ERR;
+		/* This will work. */
+		if (nc_def_var_quantize(ncid, varid1, quantize_mode[q], NSD_3)) ERR;
+		if (nc_inq_var_quantize(ncid, varid1, &quantize_mode_in, &nsd_in)) ERR;
+		if (quantize_mode_in != quantize_mode[q]) ERR;
+		if (nsd_in != NSD_3) ERR;
 
-	    /* Wait, I changed my mind! Let's turn off quantization. */
-	    if (nc_def_var_quantize(ncid, varid1, NC_NOQUANTIZE, 0)) ERR;
-	    if (nc_inq_var_quantize(ncid, varid1, &quantize_mode_in, &nsd_in)) ERR;
-	    if (quantize_mode_in != NC_NOQUANTIZE) ERR;
-	    if (nsd_in != 0) ERR;
+		/* Wait, I changed my mind! Let's turn off quantization. */
+		if (nc_def_var_quantize(ncid, varid1, NC_NOQUANTIZE, 0)) ERR;
+		if (nc_inq_var_quantize(ncid, varid1, &quantize_mode_in, &nsd_in)) ERR;
+		if (quantize_mode_in != NC_NOQUANTIZE) ERR;
+		if (nsd_in != 0) ERR;
 
-	    /* Changed my mind again, turn it on. */
-	    if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, NSD_3)) ERR;
+		/* Changed my mind again, turn it on. */
+		if (nc_def_var_quantize(ncid, varid1, quantize_mode[q], NSD_3)) ERR;
 
-	    /* I changed my mind again! Turn it off! */
-	    if (nc_def_var_quantize(ncid, varid1, NC_NOQUANTIZE, 0)) ERR;
-	    if (nc_inq_var_quantize(ncid, varid1, &quantize_mode_in, &nsd_in)) ERR;
-	    if (quantize_mode_in != NC_NOQUANTIZE) ERR;
-	    if (nsd_in != 0) ERR;
+		/* I changed my mind again! Turn it off! */
+		if (nc_def_var_quantize(ncid, varid1, NC_NOQUANTIZE, 0)) ERR;
+		if (nc_inq_var_quantize(ncid, varid1, &quantize_mode_in, &nsd_in)) ERR;
+		if (quantize_mode_in != NC_NOQUANTIZE) ERR;
+		if (nsd_in != 0) ERR;
 
-	    /* Changed my mind again, turn it on. */
-	    if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, NSD_3)) ERR;
+		/* Changed my mind again, turn it on. */
+		if (nc_def_var_quantize(ncid, varid1, quantize_mode[q], NSD_3)) ERR;
 
-	    /* This also will work for double. */
-	    if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM, NSD_9)) ERR;
-	    if (nc_inq_var_quantize(ncid, varid2, &quantize_mode_in, &nsd_in)) ERR;
-	    if (quantize_mode_in != NC_QUANTIZE_BITGROOM) ERR;
-	    if (nsd_in != NSD_9) ERR;
+		/* This also will work for double. */
+		if (nc_def_var_quantize(ncid, varid2, quantize_mode[q], NSD_9)) ERR;
+		if (nc_inq_var_quantize(ncid, varid2, &quantize_mode_in, &nsd_in)) ERR;
+		if (quantize_mode_in != quantize_mode[q]) ERR;
+		if (nsd_in != NSD_9) ERR;
 
-	    /* End define mode. */
-	    if (nc_enddef(ncid)) ERR;
+		/* End define mode. */
+		if (nc_enddef(ncid)) ERR;
 
-	    /* This will not work, it's too late! */
-	    if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, NSD_3) != NC_ELATEDEF) ERR;
+		/* This will not work, it's too late! */
+		if (nc_def_var_quantize(ncid, varid1, quantize_mode[q], NSD_3) != NC_ELATEDEF) ERR;
 
-	    /* Close the file. */
-	    if (nc_close(ncid)) ERR;
+		/* Close the file. */
+		if (nc_close(ncid)) ERR;
 
-	    /* Open the file and check. */
-	    if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
-	    /* Don't assume the varid !!! */
-	    if (nc_inq_varid(ncid, VAR_NAME_1, &varid1)) ERR;
-	    if (nc_inq_varid(ncid, VAR_NAME_2, &varid2)) ERR;
-	    if (nc_inq_var_quantize(ncid, varid1, &quantize_mode_in, &nsd_in)) ERR;
-	    if (quantize_mode_in != NC_QUANTIZE_BITGROOM) ERR;
-	    if (nsd_in != NSD_3) ERR;
-	    if (nc_inq_var_quantize(ncid, varid2, &quantize_mode_in, &nsd_in)) ERR;
-	    if (quantize_mode_in != NC_QUANTIZE_BITGROOM) ERR;
-	    if (nsd_in != NSD_9) ERR;
-	    if (nc_close(ncid)) ERR;
+		/* Open the file and check. */
+		if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+		/* Don't assume the varid !!! */
+		if (nc_inq_varid(ncid, VAR_NAME_1, &varid1)) ERR;
+		if (nc_inq_varid(ncid, VAR_NAME_2, &varid2)) ERR;
+		if (nc_inq_var_quantize(ncid, varid1, &quantize_mode_in, &nsd_in)) ERR;
+		if (quantize_mode_in != quantize_mode[q]) ERR;
+		if (nsd_in != NSD_3) ERR;
+		if (nc_inq_var_quantize(ncid, varid2, &quantize_mode_in, &nsd_in)) ERR;
+		if (quantize_mode_in != quantize_mode[q]) ERR;
+		if (nsd_in != NSD_9) ERR;
+		if (nc_close(ncid)) ERR;
+	    }
 	}
 	SUMMARIZE_ERR;
 
