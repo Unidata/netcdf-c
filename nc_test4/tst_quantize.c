@@ -107,7 +107,7 @@ main(int argc, char **argv)
 	    mode |= NC_CLASSIC_MODEL;
 	}
 	    
-	printf("\t**** testing quantization setting and error conditions...");
+	printf("\t**** testing quantization setting and error conditions...\n");
 	{
 	    int ncid, dimid, varid1, varid2;
 	    int quantize_mode_in, nsd_in;
@@ -222,7 +222,7 @@ main(int argc, char **argv)
 #define Y_NAME "distance_along_canal"
 #define NDIM2 2
 
-	printf("\t**** testing quantization handling of non-floats...");
+	printf("\t**** testing quantization handling of non-floats...\n");
 	{
 	    for (q = 0; q < NUM_QUANTIZE_MODES; q++)
 	    {
@@ -271,7 +271,7 @@ main(int argc, char **argv)
 	    }
 	}
 	SUMMARIZE_ERR;
-	printf("\t**** testing quantization of scalars...");
+	printf("\t**** testing quantization of scalars...\n");
 	{
 	    for (q = 0; q < NUM_QUANTIZE_MODES; q++)
 	    {
@@ -382,15 +382,16 @@ main(int argc, char **argv)
 	    }
 	}
 	SUMMARIZE_ERR;
-	printf("\t**** testing quantization of one value...");
+	printf("\t**** testing quantization of one value...\n");
 	{
 	    for (q = 0; q < NUM_QUANTIZE_MODES; q++)
 	    {
-		printf("\t\t**** testing quantize algorithm %d...\n", quantize_mode[q]);
 		int ncid, dimid, varid1, varid2;
 		int quantize_mode_in, nsd_in;
 		float float_data[DIM_LEN_1] = {1.1111111};
 		double double_data[DIM_LEN_1] = {1.111111111111};
+
+		printf("\t\t**** testing quantize algorithm %d...\n", quantize_mode[q]);
 
 		/* Create a netcdf-4 file with two vars. */
 		if (nc_create(FILE_NAME, mode, &ncid)) ERR;
@@ -467,89 +468,126 @@ main(int argc, char **argv)
 	    }
 	}
 	SUMMARIZE_ERR;
-	printf("\t**** testing more quantization values...");
+	printf("\t**** testing more quantization values...\n");
 	{
-	    int ncid, dimid, varid1, varid2;
-	    int quantize_mode_in, nsd_in;
-	    float float_data[DIM_LEN_5] = {1.11111111, 1.0, 9.99999999, 12345.67, .1234567};
-	    double double_data[DIM_LEN_5] = {1.1111111, 1.0, 9.999999999, 1234567890.12345, 123456789012345.0};
-	    int x;
-
-	    /* Create a netcdf-4 file with two vars. */
-	    if (nc_create(FILE_NAME, mode, &ncid)) ERR;
-	    if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_5, &dimid)) ERR;
-	    if (nc_def_var(ncid, VAR_NAME_1, NC_FLOAT, NDIM1, &dimid, &varid1)) ERR;
-	    if (nc_def_var(ncid, VAR_NAME_2, NC_DOUBLE, NDIM1, &dimid, &varid2)) ERR;
-
-	    /* Turn on quantize for both vars. */
-	    if (nc_def_var_quantize(ncid, varid1, NC_QUANTIZE_BITGROOM, NSD_3)) ERR;
-	    if (nc_def_var_quantize(ncid, varid2, NC_QUANTIZE_BITGROOM, NSD_3)) ERR;
-
-	    /* For classic mode, we must call enddef. */
-	    if (m)
-		if (nc_enddef(ncid)) ERR;
-
-	    /* Write some data. */
-	    if (nc_put_var_float(ncid, varid1, float_data)) ERR;
-	    if (nc_put_var_double(ncid, varid2, double_data)) ERR;
-
-	    /* Close the file. */
-	    if (nc_close(ncid)) ERR;
-
+	    for (q = 0; q < NUM_QUANTIZE_MODES; q++)
 	    {
-		float float_in[DIM_LEN_5];
-		double double_in[DIM_LEN_5];
-		union FU {
-		    float f;
-		    uint32_t u;
-		};
+		int ncid, dimid, varid1, varid2;
+		int quantize_mode_in, nsd_in;
+		float float_data[DIM_LEN_5] = {1.11111111, 1.0, 9.99999999, 12345.67, .1234567};
+		double double_data[DIM_LEN_5] = {1.1111111, 1.0, 9.999999999, 1234567890.12345, 123456789012345.0};
+		int x;
 
-		union FU fin;
-		/* union FU fout; */
-		union FU xpect[DIM_LEN_5];
-		union DU dfin;
-		/* union DU dfout; */
-		union DU double_xpect[DIM_LEN_5];
-		xpect[0].u = 0x3f8e3000;
-		xpect[1].u = 0x3f800fff;
-		xpect[2].u = 0x41200000;
-		xpect[3].u = 0x4640efff;
-		xpect[4].u = 0x3dfcd000;
-		double_xpect[0].u = 0x3ff1c60000000000;
-		double_xpect[1].u = 0x3ff001ffffffffff;
-		double_xpect[2].u = 0x4023fe0000000000;
-		double_xpect[3].u = 0x41d265ffffffffff;
-		double_xpect[4].u = 0x42dc120000000000;
+		printf("\t\t**** testing quantize algorithm %d...\n", quantize_mode[q]);
+		
+		/* Create a netcdf-4 file with two vars. */
+		if (nc_create(FILE_NAME, mode, &ncid)) ERR;
+		if (nc_def_dim(ncid, DIM_NAME_1, DIM_LEN_5, &dimid)) ERR;
+		if (nc_def_var(ncid, VAR_NAME_1, NC_FLOAT, NDIM1, &dimid, &varid1)) ERR;
+		if (nc_def_var(ncid, VAR_NAME_2, NC_DOUBLE, NDIM1, &dimid, &varid2)) ERR;
 
-		/* Open the file and check metadata. */
-		if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
-		if (nc_inq_varid(ncid,VAR_NAME_1,&varid1)) ERR;
-		if (nc_inq_varid(ncid,VAR_NAME_2,&varid2)) ERR;
-		if (nc_inq_var_quantize(ncid, varid1, &quantize_mode_in, &nsd_in)) ERR;
-		if (quantize_mode_in != NC_QUANTIZE_BITGROOM || nsd_in != NSD_3) ERR;
-		if (nc_inq_var_quantize(ncid, varid2, &quantize_mode_in, &nsd_in)) ERR;
-		if (quantize_mode_in != NC_QUANTIZE_BITGROOM || nsd_in != NSD_3) ERR;
+		/* Turn on quantize for both vars. */
+		if (nc_def_var_quantize(ncid, varid1, quantize_mode[q], NSD_3)) ERR;
+		if (nc_def_var_quantize(ncid, varid2, quantize_mode[q], NSD_3)) ERR;
 
-		/* Check the data. */
-		if (nc_get_var(ncid, varid1, float_in)) ERR;
-		if (nc_get_var(ncid, varid2, double_in)) ERR;
-		/* printf("\n"); */
-		for (x = 0; x < DIM_LEN_5; x++)
-		{
-		    /* fout.f = float_data[x]; */
-		    fin.f = float_in[x];
-		    /* printf ("float_data: %10f   : 0x%x  float_data_in: %10f   : 0x%x\n", */
-		    /*         float_data[x], fout.u, float_data[x], fin.u); */
-		    if (fin.u != xpect[x].u) ERR;
-		    /* dfout.d = double_data[x];		 */
-		    dfin.d = double_in[x];
-		    /*printf("double_data: %15g   : 0x%16llx  double_data_in: %15g   : 0x%16llx\n",*/
-		    /*		       double_data[x], dfout.u, double_data[x], dfin.u);*/
-		    if (dfin.u != double_xpect[x].u) ERR;
-		}
+		/* For classic mode, we must call enddef. */
+		if (m)
+		    if (nc_enddef(ncid)) ERR;
 
-		/* Close the file again. */
+		/* Write some data. */
+		if (nc_put_var_float(ncid, varid1, float_data)) ERR;
+		if (nc_put_var_double(ncid, varid2, double_data)) ERR;
+
+		/* Close the file. */
 		if (nc_close(ncid)) ERR;
+
+		{
+		    float float_in[DIM_LEN_5];
+		    double double_in[DIM_LEN_5];
+		    union FU {
+			float f;
+			uint32_t u;
+		    };
+
+		    union FU fin;
+		    union FU fout;
+		    union FU xpect[NUM_QUANTIZE_MODES][DIM_LEN_5];
+		    union DU dfin;
+		    union DU dfout;
+		    union DU double_xpect[NUM_QUANTIZE_MODES][DIM_LEN_5];
+
+		    switch (quantize_mode[q])
+		    {
+		    case NC_QUANTIZE_BITGROOM:
+			xpect[0][0].u = 0x3f8e3000;
+			xpect[0][1].u = 0x3f800fff;
+			xpect[0][2].u = 0x41200000;
+			xpect[0][3].u = 0x4640efff;
+			xpect[0][4].u = 0x3dfcd000;
+			double_xpect[0][0].u = 0x3ff1c60000000000;
+			double_xpect[0][1].u = 0x3ff001ffffffffff;
+			double_xpect[0][2].u = 0x4023fe0000000000;
+			double_xpect[0][3].u = 0x41d265ffffffffff;
+			double_xpect[0][4].u = 0x42dc120000000000;
+			break;
+		    case NC_QUANTIZE_GRANULARBR:
+			xpect[1][0].u = 0x3f8e0000;
+			xpect[1][1].u = 0x3f800000;
+			xpect[1][2].u = 0x41200000;
+			xpect[1][3].u = 0x46410000;
+			xpect[1][4].u = 0x3dfc0000;
+			double_xpect[1][0].u = 0x3ff1c00000000000;
+			double_xpect[1][1].u = 0x3ff0000000000000;
+			double_xpect[1][2].u = 0x4024000000000000;
+			double_xpect[1][3].u = 0x41d2600000000000;
+			double_xpect[1][4].u = 0x42dc200000000000;
+			break;
+		    case NC_QUANTIZE_BITROUND:
+			xpect[2][0].u = 0x3f900000;
+			xpect[2][1].u = 0x3f800000;
+			xpect[2][2].u = 0x41200000;
+			xpect[2][3].u = 0x46400000;
+			xpect[2][4].u = 0x3e000000;
+			double_xpect[2][0].u = 0x3ff2000000000000;
+			double_xpect[2][1].u = 0x3ff0000000000000;
+			double_xpect[2][2].u = 0x4024000000000000;
+			double_xpect[2][3].u = 0x41d2000000000000;
+			double_xpect[2][4].u = 0x42dc000000000000;
+			break;
+		    default:
+			ERR;
+		    }
+
+		    /* Open the file and check metadata. */
+		    if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+		    if (nc_inq_varid(ncid,VAR_NAME_1,&varid1)) ERR;
+		    if (nc_inq_varid(ncid,VAR_NAME_2,&varid2)) ERR;
+		    if (nc_inq_var_quantize(ncid, varid1, &quantize_mode_in, &nsd_in)) ERR;
+		    if (quantize_mode_in != quantize_mode[q] || nsd_in != NSD_3) ERR;
+		    if (nc_inq_var_quantize(ncid, varid2, &quantize_mode_in, &nsd_in)) ERR;
+		    if (quantize_mode_in != quantize_mode[q] || nsd_in != NSD_3) ERR;
+
+		    /* Check the data. */
+		    if (nc_get_var(ncid, varid1, float_in)) ERR;
+		    if (nc_get_var(ncid, varid2, double_in)) ERR;
+		    /* printf("\n"); */
+		    for (x = 0; x < DIM_LEN_5; x++)
+		    {
+			fout.f = float_data[x];
+			fin.f = float_in[x];
+			/* printf ("float_data: %10f   : 0x%x  float_data_in: %10f   : 0x%x\n", */
+			/*         float_data[x], fout.u, float_data[x], fin.u); */
+			if (fin.u != xpect[q][x].u) ERR;
+			dfout.d = double_data[x];
+			dfin.d = double_in[x];
+			/* printf("double_data: %15g   : 0x%16lx  double_data_in: %15g   : 0x%16lx\n", */
+			/* 		       double_data[x], dfout.u, double_data[x], dfin.u); */
+			if (dfin.u != double_xpect[q][x].u) ERR;
+		    }
+
+		    /* Close the file again. */
+		    if (nc_close(ncid)) ERR;
+		}
 	    }
 	}
 	SUMMARIZE_ERR;
