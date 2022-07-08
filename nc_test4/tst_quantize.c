@@ -998,10 +998,10 @@ main(int argc, char **argv)
 		    };
 
 		    union FU fin;
-		    /* union FU fout; */
 		    union FU xpect[NUM_QUANTIZE_MODES][DIM_LEN_5];
 		    union DU dfin;
-		    /* union DU dfout; */
+		    union FU fout;
+		    union DU dfout;
 		    union DU double_xpect[NUM_QUANTIZE_MODES][DIM_LEN_5];
 		    switch (quantize_mode[q])
 		    {
@@ -1019,27 +1019,27 @@ main(int argc, char **argv)
 			break;
 		    case NC_QUANTIZE_GRANULARBR:
 			xpect[1][0].u = 0x3f8e0000;
-			xpect[1][1].u = 0x7cf00000;
+			xpect[1][1].u = 0x42c7ffff;
 			xpect[1][2].u = 0x41200000;
 			xpect[1][3].u = 0x46410000;
-			xpect[1][4].u = 0x7cf00000;
+			xpect[1][4].u = 0x42c7ffff;
 			double_xpect[1][0].u = 0x3ff1c00000000000;
-			double_xpect[1][1].u = 0x479e000000000000;
+			double_xpect[1][1].u = 0xc0f869fffff583a5;
 			double_xpect[1][2].u = 0x4024000000000000;
 			double_xpect[1][3].u = 0x41d2600000000000;
-			double_xpect[1][4].u = 0x479e000000000000;
+			double_xpect[1][4].u = 0xc0f869fffff583a5;
 			break;
 		    case NC_QUANTIZE_BITROUND:
 			xpect[2][0].u = 0x3f900000;
-			xpect[2][1].u = 0x7cf00000;
+			xpect[2][1].u = 0x42c7ffff;
 			xpect[2][2].u = 0x41200000;
 			xpect[2][3].u = 0x46400000;
-			xpect[2][4].u = 0x7cf00000;
+			xpect[2][4].u = 0x42c7ffff;
 			double_xpect[2][0].u = 0x3ff2000000000000;
-			double_xpect[2][1].u = 0x479e000000000000;
+			double_xpect[2][1].u = 0xc0f869fffff583a5;
 			double_xpect[2][2].u = 0x4024000000000000;
 			double_xpect[2][3].u = 0x41d2000000000000;
-			double_xpect[2][4].u = 0x479e000000000000;
+			double_xpect[2][4].u = 0xc0f869fffff583a5;
 			break;
 		    default:
 			ERR;
@@ -1068,8 +1068,8 @@ main(int argc, char **argv)
 			dfin.d = double_in[x];
 			printf("double_data: %15g   : 0x%16lx  double_data_in: %15g   : 0x%16lx\n",
 			       double_data[x], dfout.u, double_data[x], dfin.u);
-			/* if (fin.u != xpect[q][x].u) ERR; */
-			/* if (dfin.u != double_xpect[q][x].u) ERR; */
+			if (fin.u != xpect[q][x].u) ERR;
+			if (dfin.u != double_xpect[q][x].u) ERR;
 		    }
 
 		    /* Close the file again. */
