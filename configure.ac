@@ -102,13 +102,15 @@ AM_INIT_AUTOMAKE([foreign dist-zip subdir-objects])
 AC_CONFIG_SRCDIR([include/netcdf.h])
 
 # Figure out platforms of special interest
-case "`uname`" in
-  CYGWIN*) ISCYGWIN=yes;;
-  Darwin*) ISOSX=yes;;
-  WIN*) ISMSVC=yes;;
-  MINGW*) ISMINGW=yes;;
-  MSYS*) ISMINGW=yes;;
-esac
+AC_CANONICAL_HOST
+AS_CASE([$host],
+    [*-*-cygwin], [ISCYGWIN=yes],
+    [*-*-darwin*], [ISOSX=yes],
+    [*-*-mingw*], [ISMINGW=yes],
+    [*-*-msys], [ISMINGW=yes],
+    [*-*-win*], [ISMSVC=yes],
+    []
+)
 
 if test "x$MSYSTEM" != x ; then
 ISMINGW=yes
