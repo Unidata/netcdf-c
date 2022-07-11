@@ -277,11 +277,13 @@ See [GitHub #1251](https://github.com/Unidata/netcdf-c/issues/1251).
 ### 4.5.0-rc1 - June 5, 2017
 
 * [Enhancement] DAP4 is now included. Since dap2 is the default for urls, dap4 must be specified by
-(1) using "dap4:" as the url protocol, or
-(2) appending "#protocol=dap4" to the end of the url, or
-(3) appending "#dap4" to the end of the url
-Note that dap4 is enabled by default but remote-testing is
-disabled until the testserver situation is resolved.
+    1. using "dap4:" as the url protocol, or
+    2. appending "\#protocol=dap4" to the end of the url, or
+    3. appending "\#dap4" to the end of the url
+
+    Note that dap4 is enabled by default but remote-testing is
+    disabled until the testserver situation is resolved.
+
 * [Enhancement] The remote testing server can now be specified with the `--with-testserver` option to ./configure.
 * [Enhancement] Modified netCDF4 to use ASCII for NC_CHAR.  See [Github Pull request #316](https://github.com/Unidata/netcdf-c/pull/316) for more information.
 * [Bug Fix] Corrected an error with how dimsizes might be read. See [Github #410](https://github.com/unidata/netcdf-c/issues/410) for more information.
