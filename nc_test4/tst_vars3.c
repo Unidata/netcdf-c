@@ -418,7 +418,7 @@ main(int argc, char **argv)
         if (nc_close(ncid)) ERR;
     }
     SUMMARIZE_ERR;
-#ifdef HAVE_SZ
+#ifdef HAVE_H5Z_SZIP
     printf("**** testing simple szip filter setup...");
     {
         int ncid;
@@ -748,9 +748,9 @@ main(int argc, char **argv)
         params[1] = NC_SZIP_EC_BPP_IN; /* pixels_per_block */
         if (nc_def_var_chunking(ncid, varid, NC_CHUNKED, NULL)) ERR;
         { int stat;
-	  if ((stat = nc_def_var_filter(ncid, varid, H5_FILTER_SZIP, NUM_PARAMS_IN,
-            params)) != NC_ENOFILTER)
-            ERR;
+	  stat = nc_def_var_filter(ncid, varid, H5_FILTER_SZIP, NUM_PARAMS_IN, params);
+	  if(stat != NC_ENOFILTER) 
+              ERR;
         }
         if (nc_def_var_szip(ncid, varid, NC_SZIP_NN,
                             NC_SZIP_EC_BPP_IN) != NC_ENOFILTER) ERR;
