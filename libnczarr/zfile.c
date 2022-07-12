@@ -377,13 +377,10 @@ ncz_sync_netcdf4_file(NC_FILE_INFO_T* file, int isclose)
     LOG((3, "%s", __func__));
     ZTRACE(2,"file=%s",file->hdr.name);
 
-    /* If we're in define mode, that's an error, for strict nc3 rules,
-     * otherwise, end define mode. */
+    /* End depend mode if needed. (Error checking for classic mode has
+     * already happened). */
     if (file->flags & NC_INDEF)
     {
-        if (file->cmode & NC_CLASSIC_MODEL)
-            return NC_EINDEFINE;
-
         /* Turn define mode off. */
         file->flags ^= NC_INDEF;
 

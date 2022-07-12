@@ -85,6 +85,7 @@ check_PROGRAMS += tst_multifilter tst_filter_avail
 TESTS += tst_filter.sh
 TESTS += tst_unknown.sh
 TESTS += tst_specific_filters.sh
+TESTS += tst_bloscfail.sh
 endif
 endif # USE_HDF5
 endif # BUILD_UTILITIES
@@ -112,7 +113,7 @@ ref_filter_repeat.txt ref_fillonly.cdl test_fillonly.sh                 \
 ref_filter_order_create.txt ref_filter_order_read.txt			\
 ref_any.cdl tst_specific_filters.sh tst_unknown.sh                      \
 tst_virtual_datasets.c noop1.cdl unknown.cdl  \
-tst_broken_files.c
+tst_broken_files.c ref_bloscx.cdl tst_bloscfail.sh
 
 # The tst_filterinstall test can only be run after an install
 # occurred with --with-plugin-dir enabled. So there is no point
