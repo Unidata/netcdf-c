@@ -120,9 +120,10 @@ zs3parse_SOURCES = zs3parse.c
 if ENABLE_NCZARR_S3
 noinst_PROGRAMS += s3util
 s3util_SOURCES = s3util.c
-if !ISCYGWIN
 TESTS += run_s3_cleanup.sh
-endif
+if ISCYGWIN
+XFAIL_TESTS = run_s3_cleanup.sh
+endif # ISCYGWIN
 endif
 
 # Given a netcdf4|NCZarr file, dump the actual chunk contents.
