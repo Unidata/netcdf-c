@@ -111,7 +111,8 @@ if USE_HDF5
 check_PROGRAMS += tst_fileinfo tst_create_files tst_h_rdc0	\
 tst_group_data tst_enum_data tst_opaque_data tst_string_data	\
 tst_vlen_data tst_comp tst_comp2 tst_nans tst_special_atts	\
-tst_unicode tst_fillbug tst_compress tst_chunking tst_h_scalar
+tst_unicode tst_fillbug tst_compress tst_chunking tst_h_scalar  \
+tst_enum_undef
 
 check_PROGRAMS += tst_vlen_demo
 
@@ -204,7 +205,7 @@ test_keywords.sh ref_keyword1.cdl ref_keyword2.cdl ref_keyword3.cdl ref_keyword4
 ref_tst_nofilters.cdl test_scope.sh  \
 test_rcmerge.sh ref_rcmerge1.txt ref_rcmerge2.txt ref_rcmerge3.txt \
 scope_ancestor_only.cdl scope_ancestor_subgroup.cdl scope_group_only.cdl scope_preorder.cdl \
-ref_rcapi.txt
+ref_rcapi.txt ref_tst_enum_undef.cdl
 
 # The L512.bin file is file containing exactly 512 bytes each of value 0.
 # It is used for creating hdf5 files with varying offsets for testing.
@@ -246,7 +247,7 @@ tst_roman_szip_unlim.cdl tst_perdimpspecs.nc tmppds.*                   \
 keyword1.nc keyword2.nc keyword3.nc keyword4.nc                         \
 tmp_keyword1.cdl tmp_keyword2.cdl tmp_keyword3.cdl tmp_keyword4.cdl     \
 type_*.nc copy_type_*.cdl                                               \
-scope_*.nc copy_scope_*.cdl keyword5.nc
+scope_*.nc copy_scope_*.cdl keyword5.nc tst_enum_undef.cdl
 
 # Remove directories
 clean-local:
