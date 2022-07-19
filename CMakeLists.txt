@@ -1983,22 +1983,18 @@ ENDIF()
 
 MACRO(GEN_m4 filename)
 
-set(dest "${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c")
+  set(fallbackdest "${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c")
+  set(dest "${CMAKE_CURRENT_BINARY_DIR}/${filename}.c")
 
   # If m4 isn't present, and the generated file doesn't exist,
   # it cannot be generated and an error should be thrown.
   IF(NOT HAVE_M4)
-    IF(NOT EXISTS ${dest})
-      MESSAGE(FATAL_ERROR "m4 is required to generate ${dest}. Please install m4 so that it is on the PATH and try again.")
+    IF(NOT EXISTS ${fallbackdest})
+      MESSAGE(FATAL_ERROR "m4 is required to generate ${filename}.c. Please install m4 so that it is on the PATH and try again.")
+    ELSE()
+      SET(${dest} ${fallbackdest})
     ENDIF()
-  ENDIF(NOT HAVE_M4)
-
-  IF(HAVE_M4)
-    # If m4 is available, remove generated file if it exists.
-    IF(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
-      FILE(REMOVE ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
-    ENDIF()
-
+  ELSE()
     ADD_CUSTOM_COMMAND(
       OUTPUT ${dest}
       COMMAND ${NC_M4}
@@ -2006,7 +2002,7 @@ set(dest "${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c")
       VERBATIM
       )
 
-  ENDIF(HAVE_M4)
+  ENDIF()
 ENDMACRO(GEN_m4)
 
 # Binary tests, but ones which depend on value of 'TEMP_LARGE' being defined.
