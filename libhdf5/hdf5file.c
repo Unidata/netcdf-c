@@ -128,13 +128,10 @@ sync_netcdf4_file(NC_FILE_INFO_T *h5)
     assert(h5 && h5->format_file_info);
     LOG((3, "%s", __func__));
 
-    /* If we're in define mode, that's an error, for strict nc3 rules,
-     * otherwise, end define mode. */
+    /* End depend mode if needed. (Error checking for classic mode has
+     * already happened). */
     if (h5->flags & NC_INDEF)
     {
-        if (h5->cmode & NC_CLASSIC_MODEL)
-            return NC_EINDEFINE;
-
         /* Turn define mode off. */
         h5->flags ^= NC_INDEF;
 
@@ -740,5 +737,6 @@ nc4_enddef_netcdf4_file(NC_FILE_INFO_T *h5)
     /* Redef mode needs to be tracked separately for nc_abort. */
     h5->redef = NC_FALSE;
 
+    /* Sync all metadata and data to storage. */
     return sync_netcdf4_file(h5);
 }
