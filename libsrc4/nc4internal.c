@@ -2106,11 +2106,11 @@ NC_createglobalstate(void)
     }
     /* Initialize struct pointers */
     if((nc_globalstate->rcinfo = calloc(1,sizeof(struct NCRCinfo)))==NULL)
-        {stat = NC_ENOMEM; goto done;}
+            {stat = NC_ENOMEM; goto done;}
     if((nc_globalstate->rcinfo->entries = nclistnew())==NULL)
-        {stat = NC_ENOMEM; goto done;}
+            {stat = NC_ENOMEM; goto done;}
     if((nc_globalstate->rcinfo->s3profiles = nclistnew())==NULL)
-        {stat = NC_ENOMEM; goto done;}
+            {stat = NC_ENOMEM; goto done;}
 
     /* Get environment variables */
     if(getenv(NCRCENVIGNORE) != NULL)
