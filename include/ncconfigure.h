@@ -53,6 +53,7 @@ extern "C" {
 #ifndef HAVE_STRDUP
 #ifndef strdup
 char* strdup(const char*);
+#define HAVE_STRDUP
 #endif
 #endif
 
@@ -120,11 +121,7 @@ unsigned long long int strtoull(const char*, char**, int);
 
 /* handle null arguments */
 #ifndef nulldup
-#ifdef HAVE_STRDUP
 #define nulldup(s) ((s)==NULL?NULL:strdup(s))
-#else
-extern char *nulldup(const char* s);
-#endif
 #endif
 
 #ifndef nulllen

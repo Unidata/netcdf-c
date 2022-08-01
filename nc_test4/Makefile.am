@@ -11,10 +11,10 @@
 include $(top_srcdir)/lib_flags.am
 
 # Un comment to use a more verbose test driver
-#SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-#TESTS_ENVIRONMENT = export SETX=1;
+SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+TESTS_ENVIRONMENT = export SETX=1;
 
 TEST_EXTENSIONS = .sh
 
@@ -70,6 +70,9 @@ TESTS += run_grp_rename.sh tst_misc.sh
 check_PROGRAMS += tst_fillonly
 TESTS += test_fillonly.sh
 
+# H5 and nczarr Fixed string support
+TESTS += tst_fixedstring.sh
+
 # Szip Tests (requires ncdump)
 if HAVE_H5Z_SZIP
 check_PROGRAMS += test_szip h5testszip
@@ -112,7 +115,8 @@ ref_filter_repeat.txt ref_fillonly.cdl test_fillonly.sh                 \
 ref_filter_order_create.txt ref_filter_order_read.txt			\
 ref_any.cdl tst_specific_filters.sh tst_unknown.sh                      \
 tst_virtual_datasets.c noop1.cdl unknown.cdl  \
-tst_broken_files.c
+tst_broken_files.c                                                      \
+tst_fixedstring.sh ref_fixedstring.h5 ref_fixedstring.cdl
 
 # The tst_filterinstall test can only be run after an install
 # occurred with --with-plugin-dir enabled. So there is no point
@@ -131,9 +135,19 @@ floats*.nc floats*.cdl shorts*.nc shorts*.cdl ints*.nc ints*.cdl        \
 testfilter_reg.nc filterrepeat.txt tmp_fillonly.nc                      \
 testfilter_order.nc crfilterorder.txt rdfilterorder.txt 1               \
 tmp_*.txt tmp_*.nc tmp*.dump tmp*.cdl tmp*.txt tmp*.tmp                 \
-tmp_bzip2.c bzip2.nc noop.nc tmp_*.dmp
+tmp_bzip2.c bzip2.nc noop.nc tmp_*.dmp tmp_*.cdl
 
 DISTCLEANFILES = findplugin.sh run_par_test.sh
 
 # If valgrind is present, add valgrind targets.
 @VALGRIND_CHECK_RULES@
+
+# The (otherwise unused) program build_fixedstring.c
+# is used to generate the test file ref_fixedstring.h5.
+# That test file is build and included as part of the distribution,
+# so the build_fixedstring.c program generally does not need to
+# be executed unless the test file needs to be modified..
+
+check_PROGRAMS += build_fixedstring
+ref_fixedstring.h5: build_fixedstring.c
+	${srcdir}/buildfixedstring

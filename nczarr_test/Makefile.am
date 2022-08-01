@@ -62,6 +62,7 @@ TESTS += run_interop.sh
 TESTS += run_misc.sh
 TESTS += run_nczarr_fill.sh
 TESTS += run_jsonconvention.sh
+TESTS += run_strings.sh
 
 endif
 
@@ -149,7 +150,8 @@ ref_xarray.cdl ref_purezarr.cdl ref_purezarr_base.cdl ref_nczarr2zarr.cdl \
 ref_bzip2.cdl ref_filtered.cdl ref_multi.cdl \
 ref_any.cdl ref_oldformat.cdl ref_oldformat.zip ref_newformatpure.cdl \
 ref_groups.h5 ref_byte.zarr.zip ref_byte_fill_value_null.zarr.zip \
-ref_groups_regular.cdl ref_byte.cdl ref_byte_fill_value_null.cdl ref_jsonconvention.cdl
+ref_groups_regular.cdl ref_byte.cdl ref_byte_fill_value_null.cdl ref_jsonconvention.cdl \
+ref_string.cdl
 
 # Interoperability files
 EXTRA_DIST += ref_power_901_constants_orig.zip ref_power_901_constants.cdl ref_quotes_orig.zip ref_quotes.cdl 

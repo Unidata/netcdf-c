@@ -20,19 +20,43 @@ struct ZCVT {
     signed long long int64v;
     unsigned long long uint64v;
     double float64v;
+    char* strv; /* null terminated utf-8 */
+};
+
+static const int ncz_type_size[NC_MAX_ATOMIC_TYPE+1] = {
+0, /*NC_NAT*/
+sizeof(char), /*NC_BYTE*/
+sizeof(char), /*NC_CHAR*/
+sizeof(short), /*NC_SHORT*/
+sizeof(int), /*NC_INT*/
+sizeof(float), /*NC_FLOAT*/
+sizeof(double), /*NC_DOUBLE*/
+sizeof(unsigned char), /*NC_UBYTE*/
+sizeof(unsigned short), /*NC_USHORT*/
+sizeof(unsigned int), /*NC_UINT*/
+sizeof(long long), /*NC_INT64*/
+sizeof(unsigned long long), /*NC_UINT64*/
+sizeof(char *), /*NC_STRING*/
 };
 
 /* Forward */
 static int typeid2jtype(nc_type typeid);
 
-/* Convert an NCJ_STRING to a memory equivalent value of specified dsttype */
+/* Convert an NCJ_STRING to a memory equivalent value of specified dsttype;
+   return # of bytes written
+*/
 int
-NCZ_convert1(NCjson* jsrc, nc_type dsttype, unsigned char* memory)
+NCZ_convert1(NCjson* jsrc, nc_type dsttype, unsigned char* memory, size_t* lenp)
 {
     int stat = NC_NOERR;
     nc_type srctype;
     struct ZCVT zcvt;
     int outofrange = 0;
+    size_t len = 0;
+
+    assert(dsttype != NC_NAT && dsttype <= NC_MAX_ATOMIC_TYPE);
+
+    len = ncz_type_size[dsttype];
 
     /* Convert the incoming jsrc string to a restricted set of values */
     switch (NCJsort(jsrc)) {
@@ -47,7 +71,6 @@ NCZ_convert1(NCjson* jsrc, nc_type dsttype, unsigned char* memory)
 	    srctype = NC_UINT64;
 	}
 	break;
-    case NCJ_STRING:
     case NCJ_DOUBLE:
 	/* Capture nan and infinity values */
 	if(strcasecmp(NCJstring(jsrc),"nan")==0)
@@ -70,6 +93,10 @@ NCZ_convert1(NCjson* jsrc, nc_type dsttype, unsigned char* memory)
 	    zcvt.uint64v = 0;
 	else
 	    zcvt.uint64v = 1;
+	break;
+    case NCJ_STRING:
+	srctype = NC_STRING;
+	zcvt.strv = NCJstring(jsrc);
 	break;
     default: stat = NC_EINTERNAL; goto done;
     }
@@ -230,8 +257,20 @@ NCZ_convert1(NCjson* jsrc, nc_type dsttype, unsigned char* memory)
 	    break;
 	}
 	} break;
+    case NC_STRING: {
+	char** p = (char**)memory;
+	if(srctype != NC_STRING) {stat = NC_EINVAL; goto done;}
+	*p = nulldup(zcvt.strv);
+	} break;
+    case NC_CHAR: {
+	if(srctype != NC_STRING) {stat = NC_EINVAL; goto done;}
+	len = strlen(zcvt.strv);
+	memcpy(memory,zcvt.strv,len);
+        } break;
     default: stat = NC_EINTERNAL; goto done;
     }
+
+    if(lenp) *lenp = len;
 
 done:
     if(stat == NC_NOERR && outofrange) stat = NC_ERANGE;
@@ -240,14 +279,15 @@ done:
 
 /* Convert a memory value to a JSON string value */
 int
-NCZ_stringconvert1(nc_type srctype, size_t len, char* src, NCjson* jvalue)
+NCZ_stringconvert1(nc_type srctype, char* src, NCjson* jvalue)
 {
     int stat = NC_NOERR;
     struct ZCVT zcvt;
     nc_type dsttype = NC_NAT;
     char s[1024];
+    char* p = NULL;
 
-    assert(srctype >= NC_NAT && srctype != NC_CHAR && srctype < NC_STRING);    
+    assert(srctype >= NC_NAT && srctype != NC_CHAR && srctype <= NC_STRING);    
     /* Convert to a restricted set of values */
     switch (srctype) {
     case NC_BYTE: {
@@ -290,6 +330,10 @@ NCZ_stringconvert1(nc_type srctype, size_t len, char* src, NCjson* jvalue)
 	dsttype = NC_DOUBLE;
 	zcvt.float64v= (double)(*((double*)src));
 	} break;
+    case NC_STRING: {
+	dsttype = NC_STRING;
+	zcvt.strv= *((char**)src);
+	} break;
     default: stat = NC_EINTERNAL; goto done;
     }
 
@@ -326,10 +370,17 @@ NCZ_stringconvert1(nc_type srctype, size_t len, char* src, NCjson* jvalue)
 	}
 #endif
 	} break;
+    case NC_STRING: {
+	p = nulldup(zcvt.strv);
+        } break;
     default: stat = NC_EINTERNAL; goto done;
     }
-    NCJsetstring(jvalue,strdup(s));
+    if(p == NULL)
+	p = strdup(s);
+    NCJsetstring(jvalue,p);
+    p = NULL;
 done:
+    nullfree(p);
     return stat;
 }
 
@@ -357,12 +408,12 @@ NCZ_stringconvert(nc_type typeid, size_t len, void* data0, NCjson** jdatap)
 	    goto done;
     } else if(len == 1) { /* create singleton */
 	if((stat = NCJnew(jtype,&jdata))) goto done;
-        if((stat = NCZ_stringconvert1(typeid, len, src, jdata))) goto done;
+        if((stat = NCZ_stringconvert1(typeid, src, jdata))) goto done;
     } else { /* len > 1 create array of values */
 	if((stat = NCJnew(NCJ_ARRAY,&jdata))) goto done;
 	for(i=0;i<len;i++) {
 	    if((stat = NCJnew(jtype,&jvalue))) goto done;
-	    if((stat = NCZ_stringconvert1(typeid, len, src, jvalue))) goto done;
+	    if((stat = NCZ_stringconvert1(typeid, src, jvalue))) goto done;
 	    NCJappend(jdata,jvalue);
 	    jvalue = NULL;
 	    src += typelen;
@@ -388,6 +439,7 @@ typeid2jtype(nc_type typeid)
     case NC_DOUBLE:
 	return NCJ_DOUBLE;
     case NC_CHAR:
+    case NC_STRING:
 	return NCJ_STRING;
     default: break;
     }

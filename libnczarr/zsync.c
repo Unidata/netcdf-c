@@ -22,8 +22,8 @@ static int ncz_sync_var(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose);
 
 static int ncz_jsonize_atts(NCindex* attlist, NCjson** jattrsp);
 static int load_jatts(NCZMAP* map, NC_OBJ* container, int nczarrv1, NCjson** jattrsp, NClist** atypes);
-static int zconvert(nc_type typeid, size_t typelen, NCjson* src, void* dst);
-static int computeattrinfo(const char* name, NClist* atypes, NCjson* values,
+static int zconvert(nc_type typeid, size_t typelen, size_t count, void* dst, NCjson* src);
+static int computeattrinfo(const char* name, NClist* atypes, nc_type typehint, int purezarr, NCjson* values,
 		nc_type* typeidp, size_t* typelenp, size_t* lenp, void** datap);
 static int parse_group_content(NCjson* jcontent, NClist* dimdefs, NClist* varnames, NClist* subgrps);
 static int parse_group_content_pure(NCZ_FILE_INFO_T*  zinfo, NC_GRP_INFO_T* grp, NClist* varnames, NClist* subgrps);
@@ -37,9 +37,7 @@ static int locategroup(NC_FILE_INFO_T* file, size_t nsegs, NClist* segments, NC_
 static int createdim(NC_FILE_INFO_T* file, const char* name, size64_t dimlen, NC_DIM_INFO_T** dimp);
 static int parsedimrefs(NC_FILE_INFO_T*, NClist* dimnames,  size64_t* shape, NC_DIM_INFO_T** dims, int create);
 static int decodeints(NCjson* jshape, size64_t* shapes);
-static int computeattrdata(nc_type* typeidp, NCjson* values, size_t* typelenp, size_t* lenp, void** datap);
-static int inferattrtype(NCjson* values, nc_type* typeidp);
-static int mininttype(unsigned long long u64, int negative);
+static int computeattrdata(nc_type typehint, nc_type* typeidp, NCjson* values, size_t* typelenp, size_t* lenp, void** datap);
 static int computedimrefs(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int purezarr, int xarray, int ndims, NClist* dimnames, size64_t* shapes, NC_DIM_INFO_T** dims);
 static int read_dict(NCjson* jdict, NCjson** jtextp);
 static int write_dict(size_t len, const void* data, NCjson** jsonp);
@@ -169,7 +167,7 @@ ncz_sync_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, int isclose)
 	    NC_GRP_INFO_T* g = (NC_GRP_INFO_T*)ncindexith(grp->children,i);
 	    if((stat = NCJaddstring(jsubgrps,NCJ_STRING,g->hdr.name))) goto done;
         }
-        /* Create the "_NCZARR_GROUP" dict */
+        /* Create the "_nczarr_group" dict */
         if((stat = NCJnew(NCJ_DICT,&json)))
 	    goto done;
         /* Insert the various dicts and arrays */
@@ -270,6 +268,8 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
     NCjson* jdimrefs = NULL;
     NCjson* jtmp = NULL;
     NCjson* jfill = NULL;
+    char* dtypename = NULL;
+    int purezarr = 0;
     size64_t shape[NC_MAX_VAR_DIMS];
     NCZ_VAR_INFO_T* zvar = var->format_var_info;
 #ifdef ENABLE_NCZARR_FILTERS
@@ -280,7 +280,8 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
     zinfo = file->format_file_info;
     map = zinfo->map;
 
-#if 1
+    purezarr = (zinfo->controls.flags & FLAG_PUREZARR)?1:0;
+
     /* Make sure that everything is established */
     /* ensure the fill value */
     if((stat = NCZ_ensure_fill_value(var))) goto done; /* ensure var->fill_value is set */
@@ -293,7 +294,6 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
     /* Build the filter working parameters for any filters */
     if((stat = NCZ_filter_setup(var))) goto done;
 #endif
-#endif /*0|1*/
 
     /* Construct var path */
     if((stat = NCZ_varkey(var,&fullpath)))
@@ -321,7 +321,9 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
     /* Integer list defining the length of each dimension of the array.*/
     /* Create the list */
     if((stat = NCJnew(NCJ_ARRAY,&jtmp))) goto done;
-    for(i=0;i<var->ndims+zvar->scalar;i++) {
+    if(zvar->scalar) {
+	NCJaddstring(jtmp,NCJ_INT,"1");
+    } else for(i=0;i<var->ndims;i++) {
 	snprintf(number,sizeof(number),"%llu",shape[i]);
 	NCJaddstring(jtmp,NCJ_INT,number);
     }
@@ -332,18 +334,12 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
     /* A string or list defining a valid data type for the array. */
     if((stat = NCJaddstring(jvar,NCJ_STRING,"dtype"))) goto done;
     {	/* Add the type name */
-	const char* dtypename;
 	int endianness = var->type_info->endianness;
-	int islittle;
-	switch (endianness) {
-	case NC_ENDIAN_LITTLE: islittle = 1; break;
-	case NC_ENDIAN_BIG: islittle = 0; break;
-	case NC_ENDIAN_NATIVE: abort(); /* should never happen */
-	}
 	int atomictype = var->type_info->hdr.id;
-	assert(atomictype > 0 && atomictype <= NC_MAX_ATOMIC_TYPE && atomictype != NC_STRING);
-	if((stat = ncz_zarr_type_name(atomictype,islittle,&dtypename))) goto done;
+	assert(atomictype > 0 && atomictype <= NC_MAX_ATOMIC_TYPE);
+	if((stat = ncz_nctype2dtype(atomictype,endianness,purezarr,NCZ_get_maxstrlen((NC_OBJ*)var),&dtypename))) goto done;
 	if((stat = NCJaddstring(jvar,NCJ_STRING,dtypename))) goto done;
+	nullfree(dtypename); dtypename = NULL;
     }
 
     /* chunks key */
@@ -356,7 +352,9 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
     if((stat = NCJaddstring(jvar,NCJ_STRING,"chunks"))) goto done;
     /* Create the list */
     if((stat = NCJnew(NCJ_ARRAY,&jtmp))) goto done;
-    for(i=0;i<(var->ndims+zvar->scalar);i++) {
+    if(zvar->scalar) {
+	NCJaddstring(jtmp,NCJ_INT,"1"); /* one chunk of size 1 */
+    } else for(i=0;i<var->ndims;i++) {
 	size64_t len = (var->storage == NC_CONTIGUOUS ? shape[i] : var->chunksizes[i]);
 	snprintf(number,sizeof(number),"%lld",len);
 	NCJaddstring(jtmp,NCJ_INT,number);
@@ -511,6 +509,7 @@ done:
     nclistfreeall(dimrefs);
     nullfree(fullpath);
     nullfree(key);
+    nullfree(dtypename);
     nullfree(dimpath);
     NCJreclaim(jvar);
     NCJreclaim(jncvar);
@@ -590,6 +589,7 @@ ncz_write_var(NC_VAR_INFO_T* var)
         }
     }
 
+    {
 	/* Iterate over all the chunks to create missing ones */
 	if((chunkodom = nczodom_new(var->ndims+zvar->scalar,start,stop,stride,stop))==NULL)
 	    {stat = NC_ENOMEM; goto done;}
@@ -609,6 +609,7 @@ next:
 	    nullfree(key);
 	    key = NULL;
 	}
+    }
     nczodom_free(chunkodom);
     nullfree(key);
     }
@@ -647,7 +648,9 @@ ncz_sync_atts(NC_FILE_INFO_T* file, NC_OBJ* container, NCindex* attlist, int isc
     int isrootgroup = 0;
     NC_VAR_INFO_T* var = NULL;
     NC_GRP_INFO_T* grp = NULL;
-	
+    char* tname = NULL;
+    int purezarr = 0;
+
     LOG((3, "%s", __func__));
  
     if(container->sort == NCVAR)
@@ -658,12 +661,13 @@ ncz_sync_atts(NC_FILE_INFO_T* file, NC_OBJ* container, NCindex* attlist, int isc
     zinfo = file->format_file_info;
     map = zinfo->map;
 
-    if(zinfo->controls.flags & FLAG_XARRAYDIMS) isxarray = 1;
-
     if(container->sort == NCVAR) {
 	if(var->container && var->container->parent == NULL)
 	    isrootgroup = 1;
     }
+
+    purezarr = (zinfo->controls.flags & FLAG_PUREZARR)?1:0;
+    if(zinfo->controls.flags & FLAG_XARRAYDIMS) isxarray = 1;
 
     if(ncindexsize(attlist) > 0) {
         /* Create the jncattr.types object */
@@ -672,15 +676,22 @@ ncz_sync_atts(NC_FILE_INFO_T* file, NC_OBJ* container, NCindex* attlist, int isc
         /* Walk all the attributes and collect the types by attribute name */
         for(i=0;i<ncindexsize(attlist);i++) {
 	    NC_ATT_INFO_T* a = (NC_ATT_INFO_T*)ncindexith(attlist,i);
-	    const char* tname = NULL;
 	    const NC_reservedatt* ra = NC_findreserved(a->hdr.name);
+	    size_t typesize = 0;
+	    int endianness = (NC_isLittleEndian()?NC_ENDIAN_LITTLE:NC_ENDIAN_BIG);
+
 	    /* If reserved and hidden, then ignore */
 	    if(ra && (ra->flags & HIDDENATTRFLAG)) continue;
-	    if(a->nc_typeid >= NC_STRING)
+	    if(a->nc_typeid > NC_MAX_ATOMIC_TYPE)
 	        {stat = THROW(NC_ENCZARR); goto done;}
-	    if((stat = ncz_zarr_type_name(a->nc_typeid,1,&tname))) goto done;
+	    if(a->nc_typeid == NC_STRING)
+	        typesize = NCZ_get_maxstrlen(container);
+	    else
+	        {if((stat = NC4_inq_atomic_type(a->nc_typeid,NULL,&typesize))) goto done;}
+	    if((stat = ncz_nctype2dtype(a->nc_typeid,endianness,purezarr,typesize,&tname))) goto done;
 	    if((stat = NCJnewstring(NCJ_STRING,tname,&jtype)))
 	        goto done;
+	    nullfree(tname); tname = NULL;
 	    if((stat = NCJinsert(jtypes,a->hdr.name,jtype))) /* add {name: type} */
 	        goto done;
 	    jtype = NULL;
@@ -705,7 +716,10 @@ ncz_sync_atts(NC_FILE_INFO_T* file, NC_OBJ* container, NCindex* attlist, int isc
 	    /* Insert the XARRAY _ARRAY_ATTRIBUTE attribute */
 	    if((stat = NCJnew(NCJ_ARRAY,&jdimrefs)))
 	        goto done;
-	    /* Walk the dimensions to check in root group */
+	    /* Fake the scalar case */
+	    if(var->ndims == 0) {
+	        NCJaddstring(jdimrefs,NCJ_STRING,XARRAYSCALAR);
+	    } else /* Walk the dimensions and capture the names */
 	    for(i=0;i<var->ndims;i++) {
 	        NC_DIM_INFO_T* dim = var->dim[i];
 		/* Verify that the dimension is in the root group */
@@ -780,6 +794,7 @@ done:
     nullfree(key);
     nullfree(content);
     nullfree(dimpath);
+    nullfree(tname);
     NCJreclaim(jatts);
     NCJreclaim(jtypes);
     NCJreclaim(jtype);
@@ -903,8 +918,10 @@ load_jatts(NCZMAP* map, NC_OBJ* container, int nczarrv1, NCjson** jattrsp, NClis
 	        if((stat = nczm_concat(fullpath,NCZATTRDEP,&key))) goto done;
 	        stat=NCZ_downloadjson(map,key,&jncattr);
 	    }
-	} else {/* Get _NCZARR_ATTRS from .zattrs */
-	    stat = NCJdictget(jattrs,NCZ_V2_ATTR,&jncattr);
+	} else {/* Get _nczarr_attrs from .zattrs */
+            stat = NCJdictget(jattrs,NCZ_V2_ATTR,&jncattr);
+	    if(!stat && jncattr == NULL)
+	        {stat = NCJdictget(jattrs,NCZ_V2_ATTR_UC,&jncattr);}
 	}
 	nullfree(key); key = NULL;
 	switch (stat) {
@@ -947,36 +964,71 @@ done:
     return THROW(stat);
 }
 
+/* Compute the NC_CHAR size of an array of json values */
+static int
+zcharify(NCjson* src, size_t* lenp, char** sp)
+{
+    int i, stat = NC_NOERR;
+    struct NCJconst jstr = NCJconst_empty;
+    NCbytes* buf = ncbytesnew();
+
+    assert(NCJsort(src) != NCJ_DICT);
+    if(NCJsort(src) != NCJ_ARRAY) { /* singleton */
+	if((stat = NCJcvt(src, NCJ_STRING, &jstr))) goto done;
+	ncbytescat(buf,jstr.sval);
+    } else for(i=0;i<NCJlength(src);i++) {
+	NCjson* value = NCJith(src,i);
+	if((stat = NCJcvt(value, NCJ_STRING, &jstr))) goto done;
+	ncbytescat(buf,jstr.sval);
+        nullfree(jstr.sval);jstr.sval = NULL;
+    }
+    if(lenp) *lenp = ncbyteslength(buf);
+    if(sp) *sp = ncbytesextract(buf);
+done:
+    nullfree(jstr.sval);
+    ncbytesfree(buf);
+    return stat;
+}
+
 /* Convert a json value to actual data values of an attribute. */
 static int
-zconvert(nc_type typeid, size_t typelen, NCjson* src, void* dst0)
+zconvert(nc_type typeid, size_t typelen, size_t count, void* dst0, NCjson* src)
 {
     int stat = NC_NOERR;
     int i;
     size_t len;
     unsigned char* dst = dst0; /* Work in char* space so we can do pointer arithmetic */
+    char* chars = NULL;
 
     switch (NCJsort(src)) {
     case NCJ_ARRAY:
-	for(i=0;i<NCJlength(src);i++) {
+        if(typeid == NC_CHAR) {
+	    if((stat = zcharify(src,&len,&chars))) goto done;
+	    if(len < count) len++; else len = count; /* Limit copy */
+	    memcpy(dst,chars,len);
+	    nullfree(chars);
+        } else for(i=0;i<NCJlength(src);i++) {
 	    NCjson* value = NCJith(src,i);
-	    assert(NCJsort(value) != NCJ_STRING);
-	    if((stat = NCZ_convert1(value, typeid, dst)))
+            if((stat = NCZ_convert1(value, typeid, dst, &len)))
 		goto done;
-	    dst += typelen;
-	}
+            dst += len;
+        }
 	break;
     case NCJ_STRING:
 	if(typeid == NC_CHAR) {
-	    len = strlen(NCJstring(src));
-	    memcpy(dst,NCJstring(src),len);
-	    dst[len] = '\0'; /* nul terminate */
-	    break;
+	    if((stat = zcharify(src,&len,&chars))) goto done;
+	    if(len < count) len++; else len = count; /* Limit copy */
+	    memcpy(dst,chars,len);
+	    nullfree(chars);
+	} else {
+	    if((stat = NCZ_convert1(src, typeid, dst, &len))) goto done;
+	    dst += len;
 	}
-	/* Fall thru */
+	break;
     case NCJ_INT: case NCJ_DOUBLE: case NCJ_BOOLEAN:
-	if((stat = NCZ_convert1(src, typeid, dst)))
+	if((stat = NCZ_convert1(src, typeid, dst, &len)))
 	    goto done;
+	dst += len;
 	break;
     default: stat = THROW(NC_ENCZARR); goto done;
     }
@@ -989,7 +1041,7 @@ done:
 Extract type and data for an attribute
 */
 static int
-computeattrinfo(const char* name, NClist* atypes, NCjson* values,
+computeattrinfo(const char* name, NClist* atypes, nc_type typehint, int purezarr, NCjson* values,
 		nc_type* typeidp, size_t* typelenp, size_t* lenp, void** datap)
 {
     int stat = NC_NOERR;
@@ -1004,15 +1056,19 @@ computeattrinfo(const char* name, NClist* atypes, NCjson* values,
 	const char* aname = nclistget(atypes,i);
 	if(strcmp(aname,name)==0) {
 	    const char* atype = nclistget(atypes,i+1);
-	    if((stat = ncz_dtype2typeinfo(atype,&typeid,NULL))) {
-		if((stat = ncz_nctype2typeinfo(atype,&typeid))) goto done;
+	    if((stat = ncz_dtype2nctype(atype,typehint,purezarr,&typeid,NULL,NULL))) {
+		if((stat = ncz_nctypedecode(atype,&typeid))) goto done;
 	    }
 	    break;
 	}
     }
-    if(typeid >= NC_STRING)
+    if(typeid > NC_MAX_ATOMIC_TYPE)
 	{stat = NC_EINTERNAL; goto done;}
-    if((stat = computeattrdata(&typeid, values, &typelen, &len, &data))) goto done;
+    /* Use the hint if given one */
+    if(typeid == NC_NAT)
+        typeid = typehint;
+
+    if((stat = computeattrdata(typehint, &typeid, values, &typelen, &len, &data))) goto done;
 
     if(typeidp) *typeidp = typeid;
     if(lenp) *lenp = len;
@@ -1028,10 +1084,10 @@ done:
 Extract data for an attribute
 */
 static int
-computeattrdata(nc_type* typeidp, NCjson* values, size_t* typelenp, size_t* lenp, void** datap)
+computeattrdata(nc_type typehint, nc_type* typeidp, NCjson* values, size_t* typelenp, size_t* lenp, void** datap)
 {
     int stat = NC_NOERR;
-    size_t count;
+    size_t count = 0;
     void* data = NULL;
     size_t typelen;
     nc_type typeid = NC_NAT;
@@ -1040,7 +1096,7 @@ computeattrdata(nc_type* typeidp, NCjson* values, size_t* typelenp, size_t* lenp
 
     /* Get assumed type */
     if(typeidp) typeid = *typeidp;
-    if(typeid == NC_NAT) if((stat = inferattrtype(values,&typeid))) goto done;
+    if(typeid == NC_NAT) if((stat = NCZ_inferattrtype(values,typehint, &typeid))) goto done;
     if(typeid == NC_NAT) {stat = NC_EBADTYPE; goto done;}
 
     if((stat = NC4_inq_atomic_type(typeid, NULL, &typelen)))
@@ -1049,7 +1105,10 @@ computeattrdata(nc_type* typeidp, NCjson* values, size_t* typelenp, size_t* lenp
     /* Collect the length of the attribute; might be a singleton  */
     switch (NCJsort(values)) {
     case NCJ_ARRAY:
-	count = NCJlength(values);
+	if(typeid == NC_CHAR) {
+	    if((stat = zcharify(values,&count,NULL))) goto done;
+	} else
+   	    count = NCJlength(values);
 	break;
     case NCJ_DICT:
 	/* Apply the JSON dictionary convention and convert to string */
@@ -1059,26 +1118,27 @@ computeattrdata(nc_type* typeidp, NCjson* values, size_t* typelenp, size_t* lenp
 	/* fall thru */
     case NCJ_STRING: /* requires special handling as an array of characters; also look out for empty string */
 	if(typeid == NC_CHAR) {
-	    count = strlen(NCJstring(values));
-	    if(count == 0) count = 1; /* Actually a single nul char, probably default fill value ugh!*/
+	    if((stat = zcharify(values,&count,NULL))) goto done;
+	} else if(typeid == NC_STRING) {
+	    count = 1;
 	} else
 	    count = 1;
 	break;
     default:
-	count = 1; /* singleton */
+	count = 1;
 	break;
     }
 
     if(count > 0 && data == NULL) {
         /* Allocate data space */
-        if(typeid == NC_CHAR)
-            data = malloc(typelen*(count+1));
-        else
+        if(typeid == NC_CHAR) {
+            data = malloc(count+1);
+        } else
             data = malloc(typelen*count);
         if(data == NULL)
 	    {stat = NC_ENOMEM; goto done;}
         /* convert to target type */
-        if((stat = zconvert(typeid, typelen, values, data)))
+        if((stat = zconvert(typeid, typelen, count, data, values)))
    	    goto done;
     }
     if(lenp) *lenp = count;
@@ -1090,87 +1150,6 @@ done:
     if(reclaimvalues) NCJreclaim(values); /* we created it */
     nullfree(data);
     return THROW(stat);
-}
-
-static int
-inferattrtype(NCjson* value, nc_type* typeidp)
-{
-    int stat = NC_NOERR;
-    nc_type typeid;
-    NCjson* j = NULL;
-    unsigned long long u64;
-    long long i64;
-    int negative = 0;
-
-    if(NCJsort(value) == NCJ_ARRAY && NCJlength(value) == 0)
-        {typeid = NC_NAT; goto done;}
-
-    if(NCJsort(value) == NCJ_NULL)
-        {typeid = NC_NAT; goto done;}
-
-    if(value->sort == NCJ_ARRAY) {
-        j=NCJith(value,0);
-	return inferattrtype(j,typeidp);
-    }
-
-    switch (NCJsort(value)) {
-    case NCJ_NULL:
-        typeid = NC_CHAR;
-	return NC_NOERR;
-    case NCJ_DICT:
-    	typeid = NC_CHAR;
-	goto done;
-    case NCJ_UNDEF:
-	return NC_EINVAL;
-    default: /* atomic */
-	break;
-    }
-    if(NCJstring(value) != NULL)
-        negative = (NCJstring(value)[0] == '-');
-    switch (value->sort) {
-    case NCJ_INT:
-	if(negative) {
-	    sscanf(NCJstring(value),"%lld",&i64);
-	    u64 = (unsigned long long)i64;
-	} else
-	    sscanf(NCJstring(value),"%llu",&u64);
-	typeid = mininttype(u64,negative);
-	break;
-    case NCJ_DOUBLE:
-	typeid = NC_DOUBLE;
-	break;
-    case NCJ_BOOLEAN:
-	typeid = NC_UBYTE;
-	break;
-    case NCJ_STRING: /* requires special handling as an array of characters */
-	typeid = NC_CHAR;
-	break;
-    default:
-	stat = NC_ENCZARR;
-    }
-done:
-    if(typeidp) *typeidp = typeid;
-    return stat;
-}
-
-static int
-mininttype(unsigned long long u64, int negative)
-{
-    long long i64 = (long long)u64; /* keep bit pattern */
-    if(!negative && u64 >= NC_MAX_INT64) return NC_UINT64;
-    if(i64 < 0) {
-	if(i64 >= NC_MIN_BYTE) return NC_BYTE;
-	if(i64 >= NC_MIN_SHORT) return NC_SHORT;
-	if(i64 >= NC_MIN_INT) return NC_INT;
-	return NC_INT64;
-    }
-    if(i64 <= NC_MAX_BYTE) return NC_BYTE;
-    if(i64 <= NC_MAX_UBYTE) return NC_UBYTE;
-    if(i64 <= NC_MAX_SHORT) return NC_SHORT;
-    if(i64 <= NC_MAX_USHORT) return NC_USHORT;
-    if(i64 <= NC_MAX_INT) return NC_INT;
-    if(i64 <= NC_MAX_UINT) return NC_UINT;
-    return NC_INT64;
 }
 
 
@@ -1255,9 +1234,10 @@ define_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp)
 	        goto done;
 	    /* Read */
 	    switch (stat=NCZ_downloadjson(map,key,&jgroup)) {
-	    case NC_NOERR: /* we read it */
-	        /* Extract the NCZ_V2_GROUP dict */
+	    case NC_NOERR: /* Extract the NCZ_V2_GROUP dict */
 	        if((stat = NCJdictget(jgroup,NCZ_V2_GROUP,&jdict))) goto done;
+		if(!stat && jdict == NULL)
+		    {if((stat = NCJdictget(jgroup,NCZ_V2_GROUP_UC,&jdict))) goto done;}
 	        break;
 	    case NC_EEMPTY: /* does not exist, use search */
 	        if((stat = parse_group_content_pure(zinfo,grp,varnames,subgrps)))
@@ -1316,6 +1296,9 @@ ncz_read_atts(NC_FILE_INFO_T* file, NC_OBJ* container)
     char* fullpath = NULL;
     char* key = NULL;
     NCZ_FILE_INFO_T* zinfo = NULL;
+    NC_VAR_INFO_T* var = NULL;
+    NCZ_VAR_INFO_T* zvar = NULL;
+    NC_GRP_INFO_T* grp = NULL;
     NCZMAP* map = NULL;
     NC_ATT_INFO_T* att = NULL;
     NCindex* attlist = NULL;
@@ -1325,14 +1308,22 @@ ncz_read_atts(NC_FILE_INFO_T* file, NC_OBJ* container)
     size_t len, typelen;
     void* data = NULL;
     NC_ATT_INFO_T* fillvalueatt = NULL;
+    nc_type typehint = NC_NAT;
+    int purezarr;
 
     zinfo = file->format_file_info;
     map = zinfo->map;
 
-    if(container->sort == NCGRP)
-	attlist = ((NC_GRP_INFO_T*)container)->att;
-    else
-	attlist = ((NC_VAR_INFO_T*)container)->att;
+    purezarr = (zinfo->controls.flags & FLAG_PUREZARR)?1:0;
+ 
+    if(container->sort == NCGRP) {	
+	grp = ((NC_GRP_INFO_T*)container);
+	attlist =  grp->att;
+    } else {
+	var = ((NC_VAR_INFO_T*)container);
+        zvar = (NCZ_VAR_INFO_T*)(var->format_var_info);
+	attlist =  var->att;
+    }
 
     switch ((stat = load_jatts(map, container, (zinfo->controls.flags & FLAG_NCZARR_V1), &jattrs, &atypes))) {
     case NC_NOERR: break;
@@ -1344,31 +1335,37 @@ ncz_read_atts(NC_FILE_INFO_T* file, NC_OBJ* container)
 
     if(jattrs != NULL) {
 	/* Iterate over the attributes to create the in-memory attributes */
-	/* Watch for special cases: _FillValue and  _ARRAY_DIMENSIONS (xarray) */
+	/* Watch for special cases: _FillValue and  _ARRAY_DIMENSIONS (xarray), etc. */
 	for(i=0;i<NCJlength(jattrs);i+=2) {
 	    NCjson* key = NCJith(jattrs,i);
 	    NCjson* value = NCJith(jattrs,i+1);
 	    const NC_reservedatt* ra = NULL;
+	    int isfillvalue = 0;
+    	    int isdfaltmaxstrlen = 0;
+       	    int ismaxstrlen = 0;
+	    const char* aname = NCJstring(key);
+	    
+	    /* See if this is a notable attribute */
+	    if(var != NULL && strcmp(aname,NC_ATT_FILLVALUE)==0) isfillvalue = 1;
+	    if(grp != NULL && grp->parent == NULL && strcmp(aname,NC_NCZARR_DEFAULT_MAXSTRLEN_ATTR)==0)
+	        isdfaltmaxstrlen = 1;
+	    if(var != NULL && strcmp(aname,NC_NCZARR_MAXSTRLEN_ATTR)==0)
+	        ismaxstrlen = 1;
 
 	    /* See if this is reserved attribute */
-	    ra = NC_findreserved(NCJstring(key));
+	    ra = NC_findreserved(aname);
 	    if(ra != NULL) {
-		/* case 1: name = _NCProperties, grp=root, varid==NC_GLOBAL, flags & READONLYFLAG */
-		if(strcmp(NCJstring(key),NCPROPS)==0
-		   && container->sort == NCGRP
-		   && file->root_grp == (NC_GRP_INFO_T*)container) {
+		/* case 1: name = _NCProperties, grp=root, varid==NC_GLOBAL */
+		if(strcmp(aname,NCPROPS)==0 && grp != NULL && file->root_grp == grp) {
 		    /* Setup provenance */
 		    if(NCJsort(value) != NCJ_STRING)
 			{stat = THROW(NC_ENCZARR); goto done;} /*malformed*/
-		    if((stat = NCZ_read_provenance(file,NCJstring(key),NCJstring(value))))
+		    if((stat = NCZ_read_provenance(file,aname,NCJstring(value))))
 			goto done;
 		}
 		/* case 2: name = _ARRAY_DIMENSIONS, sort==NCVAR, flags & HIDDENATTRFLAG */
-		if(strcmp(NCJstring(key),NC_XARRAY_DIMS)==0
-		   && container->sort == NCVAR
-		   && (ra->flags & HIDDENATTRFLAG)) {
-		       /* store for later */
-		    NCZ_VAR_INFO_T* zvar = (NCZ_VAR_INFO_T*)((NC_VAR_INFO_T*)container)->format_var_info;
+		if(strcmp(aname,NC_XARRAY_DIMS)==0 && var != NULL && (ra->flags & HIDDENATTRFLAG)) {
+  	            /* store for later */
 		    int i;
 		    assert(NCJsort(value) == NCJ_ARRAY);
 		    if((zvar->xarray = nclistnew())==NULL)
@@ -1379,19 +1376,25 @@ ncz_read_atts(NC_FILE_INFO_T* file, NC_OBJ* container)
 			nclistpush(zvar->xarray,strdup(NCJstring(k)));
 		    }
 		}
-		/* else ignore */
-		continue;
+		/* case other: if attribute is hidden */
+		if(ra->flags & HIDDENATTRFLAG) continue; /* ignore it */
 	    }
+	    if(isfillvalue)
+	        typehint = var->type_info->hdr.id ; /* if unknown use the var's type for _FillValue */
 	    /* Create the attribute */
 	    /* Collect the attribute's type and value  */
-	    if((stat = computeattrinfo(NCJstring(key),atypes,value,
+	    if((stat = computeattrinfo(aname,atypes,typehint,purezarr,value,
 				   &typeid,&typelen,&len,&data)))
 		goto done;
-	    if((stat = ncz_makeattr(container,attlist,NCJstring(key),typeid,len,data,&att)))
+	    if((stat = ncz_makeattr(container,attlist,aname,typeid,len,data,&att)))
 		goto done;
+	    if(isfillvalue)
+	        fillvalueatt = att;
+	    if(ismaxstrlen && att->nc_typeid == NC_INT)
+	        zvar->maxstrlen = ((int*)att->data)[0];
+	    if(isdfaltmaxstrlen && att->nc_typeid == NC_INT)
+	        zinfo->default_maxstrlen = ((int*)att->data)[0];
 	    nullfree(data); data = NULL; /* passed to the attribute */
-	    /* Is this _FillValue ? */
-	    if(strcmp(att->hdr.name,_FillValue)==0) fillvalueatt = att;
 	}
     }
     /* If we have not read a _FillValue, then go ahead and create it */
@@ -1480,9 +1483,11 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
     int purezarr = 0;
     int xarray = 0;
     int formatv1 = 0;
-    nc_type typeid;
+    nc_type vtype;
+    int vtypelen;
     size64_t* shapes = NULL;
     int rank = 0;
+    int zarr_rank = 1; /* Need to watch out for scalars */
     NClist* dimnames = nclistnew();
 #ifdef ENABLE_NCZARR_FILTERS
     NCjson* jfilter = NULL;
@@ -1501,7 +1506,6 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 	NC_VAR_INFO_T* var;
 	const char* varname = nclistget(varnames,i);
 
-	/* Create the NC_VAR_INFO_T object */
 	if((stat = nc4_var_list_add2(grp, varname, &var)))
 	    goto done;
 
@@ -1546,37 +1550,106 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 	}
 	/* Set the type and endianness of the variable */
 	{
-	    nc_type vtype;
 	    int endianness;
 	    if((stat = NCJdictget(jvar,"dtype",&jvalue))) goto done;
 	    /* Convert dtype to nc_type + endianness */
-	    if((stat = ncz_dtype2typeinfo(NCJstring(jvalue),&vtype,&endianness)))
+	    if((stat = ncz_dtype2nctype(NCJstring(jvalue),NC_NAT,purezarr,&vtype,&endianness,&vtypelen)))
 		goto done;
-	    if(vtype > NC_NAT && vtype < NC_STRING) {
+	    if(vtype > NC_NAT && vtype <= NC_MAX_ATOMIC_TYPE) {
 		/* Locate the NC_TYPE_INFO_T object */
 		if((stat = ncz_gettype(file,grp,vtype,&var->type_info)))
 		    goto done;
 	    } else {stat = NC_EBADTYPE; goto done;}
 	    if(endianness == NC_ENDIAN_NATIVE)
 		endianness = zinfo->native_endianness;
+	    if(endianness == NC_ENDIAN_NATIVE)
+	        endianness = (NCZ_isLittleEndian()?NC_ENDIAN_LITTLE:NC_ENDIAN_BIG);
 	    if(endianness == NC_ENDIAN_LITTLE || endianness == NC_ENDIAN_BIG) {
 		var->endianness = endianness;
 	    } else {stat = NC_EBADTYPE; goto done;}
 	    var->type_info->endianness = var->endianness; /* Propagate */
+	    if(vtype == NC_STRING) {
+		zvar->maxstrlen = vtypelen;
+		vtypelen = sizeof(char*); /* in-memory len */
+		if(zvar->maxstrlen <= 0) zvar->maxstrlen = NCZ_get_maxstrlen((NC_OBJ*)var);
+	    }
 	}
+
+	if(!purezarr) {
+  	    /* Extract the _NCZARR_ARRAY values */
+	    /* Do this first so we know about storage esp. scalar */
+ 	    if(formatv1) {
+		/* Construct the path to the zarray object */
+		if((stat = nczm_concat(varpath,NCZARRAY,&key)))
+		    goto done;
+		/* Download the nczarray object */
+		if((stat=NCZ_readdict(map,key,&jncvar)))
+		    goto done;
+		nullfree(key); key = NULL;
+	    } else {/* format v2 */
+		 /* Extract the NCZ_V2_ARRAY dict */
+	        if((stat = NCJdictget(jvar,NCZ_V2_ARRAY,&jncvar))) goto done;
+		if(!stat && jncvar == NULL)
+	            {if((stat = NCJdictget(jvar,NCZ_V2_ARRAY_UC,&jncvar))) goto done;}
+	    }
+	    if(jncvar == NULL) {stat = NC_ENCZARR; goto done;}
+   	    assert((NCJsort(jncvar) == NCJ_DICT));
+	    /* Extract storage flag */
+	    if((stat = NCJdictget(jncvar,"storage",&jvalue)))
+		goto done;
+	    if(jvalue != NULL) {
+		if(strcmp(NCJstring(jvalue),"chunked") == 0) {
+		    var->storage = NC_CHUNKED;
+		} else if(strcmp(NCJstring(jvalue),"compact") == 0) {
+		    var->storage = NC_COMPACT;
+		} else if(strcmp(NCJstring(jvalue),"scalar") == 0) {
+		    var->storage = NC_CONTIGUOUS;
+		    zvar->scalar = 1;
+		} else { /*storage = NC_CONTIGUOUS;*/
+		    var->storage = NC_CONTIGUOUS;
+		}
+	    }
+	    /* Extract dimrefs list  */
+	    switch ((stat = NCJdictget(jncvar,"dimrefs",&jdimrefs))) {
+	    case NC_NOERR: /* Extract the dimref names */
+		assert((NCJsort(jdimrefs) == NCJ_ARRAY));
+		if(zvar->scalar) {
+	   	    assert(NCJlength(jdimrefs) == 0);		   
+		} else {
+		    rank = NCJlength(jdimrefs);
+		    for(j=0;j<rank;j++) {
+		        const NCjson* dimpath = NCJith(jdimrefs,j);
+		        assert(NCJsort(dimpath) == NCJ_STRING);
+		        nclistpush(dimnames,strdup(NCJstring(dimpath)));
+		    }
+		}
+		jdimrefs = NULL; /* avoid double free */
+		break;
+	    case NC_EEMPTY: /* will simulate it from the shape of the variable */
+		stat = NC_NOERR;
+		break;
+	    default: goto done;
+	    }
+	    jdimrefs = NULL;
+	}
+
 	/* shape */
 	{
 	    if((stat = NCJdictget(jvar,"shape",&jvalue))) goto done;
 	    if(NCJsort(jvalue) != NCJ_ARRAY) {stat = THROW(NC_ENCZARR); goto done;}
-	    /* Verify the rank */
-	    if(zvar->scalar) rank = 0; else rank = NCJlength(jvalue);
-	    /* Set the rank of the variable */
+            if(zvar->scalar) {
+	        rank = 0;
+		zarr_rank = 1; /* Zarr does not support scalars */
+	    } else 
+		rank = (zarr_rank = NCJlength(jvalue));
+	    /* Save the rank of the variable */
 	    if((stat = nc4_var_set_ndims(var, rank))) goto done;
 	    /* extract the shapes */
-	    if((shapes = (size64_t*)malloc(sizeof(size64_t)*rank)) == NULL)
+	    if((shapes = (size64_t*)malloc(sizeof(size64_t)*zarr_rank)) == NULL)
 	        {stat = THROW(NC_ENOMEM); goto done;}
 	    if((stat = decodeints(jvalue, shapes))) goto done;
 	}
+
 	/* Capture dimension_separator (must precede chunk cache creation) */
 	{
 	    NCglobalstate* ngs = NC_getglobalstate();
@@ -1593,6 +1666,7 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 	        zvar->dimension_separator = ngs->zarr.dimension_separator; /* use global value */
 	    assert(islegaldimsep(zvar->dimension_separator)); /* we are hosed */
 	}
+
 	/* fill_value; must precede calls to adjust cache */
 	{
 	    if((stat = NCJdictget(jvar,"fill_value",&jvalue))) goto done;
@@ -1600,30 +1674,31 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 		var->no_fill = 1;
 	    else {
 		size_t fvlen;
-		typeid = var->type_info->hdr.id;
+		nc_type atypeid = vtype;
 		var->no_fill = 0;
-		if((stat = computeattrdata(&typeid, jvalue, NULL, &fvlen, &var->fill_value)))
+		if((stat = computeattrdata(var->type_info->hdr.id, &atypeid, jvalue, NULL, &fvlen, &var->fill_value)))
 		    goto done;
-		assert(typeid == var->type_info->hdr.id);
+		assert(atypeid == vtype);
 		/* Note that we do not create the _FillValue
 		   attribute here to avoid having to read all
 		   the attributes and thus foiling lazy read.*/
 	    }
 	}
+
 	/* chunks */
 	{
-	    int rank;
 	    size64_t chunks[NC_MAX_VAR_DIMS];
 	    if((stat = NCJdictget(jvar,"chunks",&jvalue))) goto done;
 	    if(jvalue != NULL && NCJsort(jvalue) != NCJ_ARRAY)
 		{stat = THROW(NC_ENCZARR); goto done;}
 	    /* Verify the rank */
-	    rank = NCJlength(jvalue);
-	    if(rank > 0) {
+	    assert (zarr_rank == NCJlength(jvalue));
+	    if(!zvar->scalar) {
+		if(zarr_rank == 0) {stat = NC_ENCZARR; goto done;}
 		var->storage = NC_CHUNKED;
-		if(var->ndims+zvar->scalar != rank)
+		if(var->ndims != rank)
 		    {stat = THROW(NC_ENCZARR); goto done;}
-		if((var->chunksizes = malloc(sizeof(size_t)*rank)) == NULL)
+		if((var->chunksizes = malloc(sizeof(size_t)*zarr_rank)) == NULL)
 		    {stat = NC_ENOMEM; goto done;}
 		if((stat = decodeints(jvalue, chunks))) goto done;
 		/* validate the chunk sizes */
@@ -1690,62 +1765,14 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 #endif
 	}
 
-	if(!purezarr) {
- 	    if(formatv1) {
-		/* Construct the path to the zarray object */
-		if((stat = nczm_concat(varpath,NCZARRAY,&key)))
-		    goto done;
-		/* Download the nczarray object */
-		if((stat=NCZ_readdict(map,key,&jncvar)))
-		    goto done;
-		nullfree(key); key = NULL;
-	    } else {/* format v2 */
-		 /* Extract the NCZ_V2_ARRAY dict */
-	        if((stat = NCJdictget(jvar,NCZ_V2_ARRAY,&jncvar))) goto done;
-	    }
-	    if(jncvar == NULL) {stat = NC_ENCZARR; goto done;}
-   	    assert((NCJsort(jncvar) == NCJ_DICT));
-	    /* Extract storage flag */
-	    if((stat = NCJdictget(jncvar,"storage",&jvalue)))
-		goto done;
-	    if(jvalue != NULL) {
-		if(strcmp(NCJstring(jvalue),"chunked") == 0) {
-		    var->storage = NC_CHUNKED;
-		} else if(strcmp(NCJstring(jvalue),"compact") == 0) {
-		    var->storage = NC_COMPACT;
-		} else if(strcmp(NCJstring(jvalue),"scalar") == 0) {
-		    var->storage = NC_CONTIGUOUS;
-		    zvar->scalar = 1;
-		} else { /*storage = NC_CONTIGUOUS;*/
-		    var->storage = NC_CONTIGUOUS;
-		}
-	    }
-	    /* Extract dimnames list  */
-	    switch ((stat = NCJdictget(jncvar,"dimrefs",&jdimrefs))) {
-	    case NC_NOERR: /* Extract the dimref names */
-		assert((NCJsort(jdimrefs) == NCJ_ARRAY));
-		assert(NCJlength(jdimrefs) == rank);
-		for(j=0;j<rank;j++) {
-		    const NCjson* dimpath = NCJith(jdimrefs,j);
-		    assert(NCJsort(dimpath) == NCJ_STRING);
-		    nclistpush(dimnames,strdup(NCJstring(dimpath)));
-		}
-		jdimrefs = NULL; /* avoid double free */
-		break;
-	    case NC_EEMPTY: /* will simulate it from the shape of the variable */
-		stat = NC_NOERR;
-		break;
-	    default: goto done;
-	    }
-	    jdimrefs = NULL;
-	}
-
 	if((stat = computedimrefs(file, var, purezarr, xarray, rank, dimnames, shapes, var->dim)))
 	    goto done;
 
-	/* Extract the dimids */
-	for(j=0;j<rank;j++)
-	    var->dimids[j] = var->dim[j]->hdr.id;
+	if(!zvar->scalar) {
+	    /* Extract the dimids */
+	    for(j=0;j<rank;j++)
+	        var->dimids[j] = var->dim[j]->hdr.id;
+	}
 
 #ifdef ENABLE_NCZARR_FILTERS
 	/* At this point, we can finalize the filters */
@@ -1846,7 +1873,9 @@ ncz_read_superblock(NC_FILE_INFO_T* file, char** nczarrvp, char** zarrfp)
     if(jzgroup != NULL) {
         /* See if this NCZarr V2 */
         if((stat = NCJdictget(jzgroup,NCZ_V2_SUPERBLOCK,&jsuper))) goto done;
-	if(jsuper != NULL) {
+	if(!stat && jsuper == NULL)
+            {if((stat = NCJdictget(jzgroup,NCZ_V2_SUPERBLOCK_UC,&jsuper))) goto done;}
+ 	if(jsuper != NULL) {
 	    /* Extract the equivalent attribute */
 	    if(jsuper->sort != NCJ_DICT)
 	        {stat = NC_ENCZARR; goto done;}
@@ -2062,7 +2091,7 @@ decodeints(NCjson* jshape, size64_t* shapes)
     for(i=0;i<NCJlength(jshape);i++) {
 	long long v;
 	NCjson* jv = NCJith(jshape,i);
-	if((stat = NCZ_convert1(jv,NC_INT64,(unsigned char*)&v))) goto done;
+	if((stat = NCZ_convert1(jv,NC_INT64,(unsigned char*)&v,NULL))) goto done;
 	if(v < 0) {stat = THROW(NC_ENCZARR); goto done;}
 	shapes[i] = (size64_t)v;
     }

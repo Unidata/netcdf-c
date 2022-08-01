@@ -64,6 +64,7 @@ typedef struct NCjson {
    don't use union so we can know when to reclaim sval
 */
 struct NCJconst {int bval; long long ival; double dval; char* sval;};
+#define NCJconst_empty {0,0,0.0,NULL}
 
 /**************************************************/
 /* Extended API */
