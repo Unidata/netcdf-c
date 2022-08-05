@@ -1880,6 +1880,9 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     void *bufr = NULL;
     int need_to_convert = 0;
     size_t len = 1;
+    int fixedlengthstring = 0;
+    hsize_t fstring_len = 0;
+    size_t fstring_count = 1;
 
     /* Find info for this file, group, and var. */
     if ((retval = nc4_hdf5_find_grp_h5_var(ncid, varid, &h5, &grp, &var)))
@@ -2068,14 +2071,21 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
             H5Tget_size(hdf5_type->hdf_typeid) > 1 &&
             !H5Tis_variable_str(hdf5_type->hdf_typeid))
         {
-            hsize_t fstring_len;
+	    size_t k;
 
             if ((fstring_len = H5Tget_size(hdf5_type->hdf_typeid)) == 0)
                 BAIL(NC_EHDFERR);
-            if (!(*(char **)data = malloc(1 + fstring_len)))
-                BAIL(NC_ENOMEM);
-            bufr = *(char **)data;
-        }
+	    /* Compute the total number of strings to read */
+            if (var->ndims) {
+                for (k = 0; k < var->ndims; k++) {
+                    fstring_count *= countp[k];
+		}
+	    }
+	    /* Allocate space for the all the strings */
+            if (!(bufr = malloc(fstring_len*fstring_count)))
+                    BAIL(NC_ENOMEM);
+	    fixedlengthstring = 1;
+	}
 
         /* Create the data transfer property list. */
         if ((xfer_plistid = H5Pcreate(H5P_DATASET_XFER)) < 0)
@@ -2128,6 +2138,24 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
         }
 #endif /* USE_PARALLEL4 */
     }
+
+    /* If we read a sequence of fixed length strings, then we need to convert to char* in memory */
+    if(fixedlengthstring) {
+	size_t k;
+	char** strvec = (char**)data;
+	char* p;
+	for(k=0;k < fstring_count;k++) {
+	    char* eol;
+	    if((p = (char*)malloc(1+fstring_len))==NULL) BAIL(NC_ENOMEM);
+	    memcpy(p,((char*)bufr)+(k*fstring_len),fstring_len);
+	    eol = p + fstring_len;
+	    *eol = '\0';
+	    strvec[k] = p; p = NULL;
+	}
+	free(bufr);
+	bufr = NULL;
+    }
+
     /* Now we need to fake up any further data that was asked for,
        using the fill values instead. First skip past the data we
        just read, if any. */
@@ -2207,6 +2235,7 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     }
     
 exit:
+    if(fixedlengthstring && bufr) free(bufr);
     if (file_spaceid > 0)
         if (H5Sclose(file_spaceid) < 0)
             BAIL2(NC_EHDFERR);
