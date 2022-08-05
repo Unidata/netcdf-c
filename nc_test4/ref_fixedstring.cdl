@@ -1,0 +1,9 @@
+netcdf ref_fixedstring {
+dimensions:
+	phony_dim_0 = 3 ;
+variables:
+	string test(phony_dim_0) ;
+data:
+
+ test = "foo", "bar", "baz" ;
+}

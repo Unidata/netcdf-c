@@ -32,7 +32,15 @@ endif
 
 EXTRA_DIST = CMakeLists.txt XGetopt.h netcdf_meta.h.in netcdf_dispatch.h.in
 
+# netcdf_json.h is constructed as a header-only file for use by
+# nczarr code wrappers in the plugin directory. It is
+# constructed by joining libdispatch/ncjson.c with
+# include/ncjson.h.  Additionally all the entry points are
+# marked with a macro (OPTSTATIC) that marks the entry point as
+# static inside netcdf_json.h.  This is an ugly hack to avoid
+# having to reference libnetcdf in the nczarr code wrappers.
+
 # Give the recipe for rebuilding netcdf_json.h
-makencjson::
+makepluginjson::
 	sed -e 's/NCJSON_H/NETCDF_JSON_H/' -e '/ncjson.h/d' <${srcdir}/ncjson.h > netcdf_json.h
 	sed -e '/ncjson.h/d' < ${srcdir}/../libdispatch/ncjson.c >> netcdf_json.h
