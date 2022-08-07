@@ -11,10 +11,10 @@
 include $(top_srcdir)/lib_flags.am
 
 # Un comment to use a more verbose test driver
-SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-TESTS_ENVIRONMENT = export SETX=1;
+#SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#TESTS_ENVIRONMENT = export SETX=1;
 
 TEST_EXTENSIONS = .sh
 
