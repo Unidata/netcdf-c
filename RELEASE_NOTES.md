@@ -7,6 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.9.1 - T.B.D.
 
+
 * [Enhancement] Add experimental support for fixed length string type in nczarr. See [Github #2467](https://github.com/Unidata/netcdf-c/pull/2467). 
 * [Bug Fix] Fix support for reading arrays of HDF5 fixed size strings. See [Github #2466](https://github.com/Unidata/netcdf-c/pull/2466).
 * [Bug Fix] Provide a default enum const when fill value does not match any enum constant for the value zero. See [Github #2462](https://github.com/Unidata/netcdf-c/pull/2462).
