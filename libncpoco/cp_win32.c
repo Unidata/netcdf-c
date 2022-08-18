@@ -16,6 +16,7 @@
 #include <errhandlingapi.h>
 
 #include "netcdf.h"
+#include "ncconfigure.h"
 #include "ncpoco.h"
 #include "ncpathmgr.h"
 
