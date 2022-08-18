@@ -35,7 +35,7 @@ jobs:
         run: autoreconf -if
 
       - name: (Autotools) Configure Build
-        run: ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests --disable-static --enable-plugins --enable-byterange --disable-dap-remote-tests --disable-logging
+        run: ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests --disable-static --enable-plugins --disable-byterange --disable-dap-remote-tests --disable-logging
         if: ${{ success() }}
 
       - name: (Autotools) Look at config.log if error
