@@ -25,7 +25,7 @@ jobs:
         with:
           msystem: MINGW64
           update: true
-          install: git mingw-w64-x86_64-toolchain automake libtool autoconf make cmake mingw-w64-x86_64-hdf5 unzip mingw-w64-x86_64-libxml2 libcurl-devel curl
+          install: git mingw-w64-x86_64-toolchain automake libtool autoconf make cmake mingw-w64-x86_64-hdf5 unzip mingw-w64-x86_64-libxml2 libcurl-devel curl libxml2-devel
 
 ###
 # Configure and build
@@ -35,7 +35,7 @@ jobs:
         run: autoreconf -if
 
       - name: (Autotools) Configure Build
-        run: ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests --disable-static --enable-plugins --disable-byterange --disable-dap-remote-tests --disable-logging
+        run: ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests --disable-static --enable-plugins --disable-byterange --disable-logging
         if: ${{ success() }}
 
       - name: (Autotools) Look at config.log if error
