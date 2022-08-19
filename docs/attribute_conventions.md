@@ -85,7 +85,7 @@ It is strongly recommended that applicable conventions be followed unless there 
 
 > When scale_factor and add_offset are used for packing, the associated variable (containing the packed data) is typically of type byte or short, whereas the unpacked values are intended to be of type float or double. The attributes scale_factor and add_offset should both be of the type intended for the unpacked data, e.g. float or double.
 
-`Coordinates`
+`coordinates`
 
 > Following the CF (Climate and Forecast) conventions for netCDF metadata, we define an auxiliary coordinate variable as any netCDF variable that contains coordinate data, but is not a coordinate variable (See Coordinate Variables). Unlike coordinate variables, there is no relationship between the name of an auxiliary coordinate variable and the name(s) of its dimension(s).
 
