@@ -173,10 +173,7 @@ test "x$enable_pnetcdf" = xyes || enable_pnetcdf=no
 AC_MSG_RESULT($enable_pnetcdf)
 
 # We need curl for remote operations
-AC_CHECK_LIB([curl],[curl_easy_setopt],[found_curl=yes],[found_curl=no])
-if test "x$found_curl" = "xyes" ; then
-   AC_SEARCH_LIBS([curl_easy_setopt],[curl curl.dll cygcurl.dll], [],[])
-fi
+AC_SEARCH_LIBS([curl_easy_setopt],[curl curl.dll cygcurl.dll libcurl.dll libcurl.dll.a], [found_curl=yes],[found_curl=no])
 
 ## Capture the state of the --enable-dap flag => enable dap2+dap4
 AC_MSG_CHECKING([whether DAP client(s) are to be built])
@@ -457,7 +454,6 @@ AC_MSG_RESULT($enable_set_log_level_func)
 
 # Save/restore CFLAGS
 SAVECFLAGS="$CFLAGS"
-CFLAGS="${curl_cflags}"
 
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 [#include "curl/curl.h"],

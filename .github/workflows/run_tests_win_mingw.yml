@@ -28,6 +28,12 @@ jobs:
           install: git mingw-w64-x86_64-toolchain automake libtool autoconf make cmake mingw-w64-x86_64-hdf5 unzip mingw-w64-x86_64-libxml2 libcurl-devel curl libxml2-devel
 
 ###
+# Set environmental variable
+###
+
+      - run: echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/lib/pkgconfig"
+
+###
 # Configure and build
 ###
 
@@ -35,7 +41,7 @@ jobs:
         run: autoreconf -if
 
       - name: (Autotools) Configure Build
-        run: ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests --disable-static --enable-plugins --disable-byterange --disable-logging
+        run: CFLAGS="$(pkg-config libcurl --cflags) LDFLAGS=$(pkg-config libcurl --libs)" ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests --disable-static --disable-plugins --disable-byterange --disable-logging
         if: ${{ success() }}
 
       - name: (Autotools) Look at config.log if error
@@ -46,7 +52,7 @@ jobs:
         run: cat libnetcdf.settings
 
       - name: (Autotools) Build Library and Utilities
-        run: make -j 8 LDFLAGS="-no-undefined -Wl,--export-all-symbols"
+        run: make -j 8 LDFLAGS="-no-undefined -Wl,--export-all-symbols $(pkg-config libcurl --libs) CFLAGS=$(pkg-config libcurl --cflags)"
         if: ${{ success() }}
 
       - name: (Autotools) Build and Run Tests
