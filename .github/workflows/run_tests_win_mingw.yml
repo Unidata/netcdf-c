@@ -38,7 +38,7 @@ jobs:
 ###
 
       - name: Find libcurl.pc
-        run cd / && find . -name 'libcurl.pc'
+        run: cd / && find . -name 'libcurl.pc'
 
       - name: Query libcurl 
         run: |
