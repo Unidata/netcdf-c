@@ -37,6 +37,17 @@ jobs:
 # Configure and build
 ###
 
+      - name: Query libcurl 
+        run: |
+          echo "pkg-config libcurl --libs:"
+          pkg-config libcurl --libs
+          echo "pkg-config libcurl --cflags"
+          pkg-config libcurl --cflags
+          echo "curl-config --cflags:"
+          curl-config --cflags
+          echo "curl-config --libs"
+          curl-config --libs
+
       - name: (Autotools) Run autoconf
         run: autoreconf -if
 
