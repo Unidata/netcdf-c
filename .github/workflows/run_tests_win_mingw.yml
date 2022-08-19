@@ -52,7 +52,7 @@ jobs:
         run: autoreconf -if
 
       - name: (Autotools) Configure Build
-        run: CFLAGS="$(pkg-config libcurl --cflags) LDFLAGS=$(pkg-config libcurl --libs)" ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests --disable-static --disable-plugins --disable-byterange --disable-logging
+        run: CFLAGS="$(pkg-config libcurl --cflags)" "LDFLAGS=$(pkg-config libcurl --libs)" ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests --disable-static --disable-plugins --disable-byterange --disable-logging
         if: ${{ success() }}
 
       - name: (Autotools) Look at config.log if error
