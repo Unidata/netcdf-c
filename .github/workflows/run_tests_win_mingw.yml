@@ -37,6 +37,9 @@ jobs:
 # Configure and build
 ###
 
+      - name: Find libcurl.pc
+        run cd / && find . -name 'libcurl.pc'
+
       - name: Query libcurl 
         run: |
           echo "pkg-config libcurl --libs:"
