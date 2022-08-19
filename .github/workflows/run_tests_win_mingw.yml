@@ -31,7 +31,7 @@ jobs:
 # Set environmental variable
 ###
 
-      - run: echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/lib/pkgconfig"
+      - run: echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/lib/pkgconfig" >> $GITHUB_ENV
 
 ###
 # Configure and build
@@ -43,9 +43,9 @@ jobs:
       - name: Query libcurl 
         run: |
           echo "pkg-config libcurl --libs:"
-          pkg-config libcurl --libs
+          PKG_CONFIG_PATH=/usr/lib/pkgconfig pkg-config libcurl --libs
           echo "pkg-config libcurl --cflags"
-          pkg-config libcurl --cflags
+          PKG_CONFIG_PATH=/usr/lib/pkgconfig pkg-config libcurl --cflags
           echo "curl-config --cflags:"
           curl-config --cflags
           echo "curl-config --libs"
