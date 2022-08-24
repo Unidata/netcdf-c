@@ -2406,7 +2406,8 @@ YY_RULE_SETUP
 		if(tag == NC_NAT) {
 		    sprintf(errstr,"Illegal integer suffix: %s",stag);
 		    yyerror(errstr);
-		    goto done;
+			//goto done;
+		    return 0;
 		}
 		yytext[slen - strlen(stag)] = '\0';
 	        if(xlen > 16) { /* truncate hi order digits */
