@@ -32,6 +32,9 @@ FEATURE_NCZARR_ZIP=@DO_NCZARR_ZIP_TESTS@
 FEATURE_FILTERTESTS=@DO_FILTER_TESTS@
 FEATURE_PLUGIN_INSTALL_DIR=@PLUGIN_INSTALL_DIR@
 
+# Thredds-test server is currently disabled
+#FEATURE_THREDDSTEST=1
+
 set -e
 
 # Figure out various locations in the src/build tree.

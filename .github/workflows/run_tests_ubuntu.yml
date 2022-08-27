@@ -42,7 +42,7 @@ jobs:
           wget https://support.hdfgroup.org/ftp/HDF/releases/HDF4.2.15/src/hdf-4.2.15.tar.bz2
           tar -jxf hdf-4.2.15.tar.bz2
           pushd hdf-4.2.15
-          ./configure --prefix=${HOME}/environments/${{ matrix.hdf5 }} --disable-static --enable-shared --disable-fortran --disable-netcdf --with-szlib 
+          ./configure --prefix=${HOME}/environments/${{ matrix.hdf5 }} --disable-static --enable-shared --disable-fortran --disable-netcdf --with-szlib
           make -j
           make install -j
           popd
@@ -164,7 +164,7 @@ jobs:
 
       - name: Configure
         shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure --enable-hdf4 --enable-hdf5 --enable-dap --disable-dap-remote-tests  --enable-doxygen
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure --enable-hdf4 --enable-hdf5 --enable-dap --disable-dap-remote-tests  --enable-doxygen  --enable-external-server-tests
         if: ${{ success() }}
 
       - name: Look at config.log if error
