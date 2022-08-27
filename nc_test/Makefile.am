@@ -75,25 +75,26 @@ endif
 
 TESTS = $(TESTPROGRAMS)
 
-if ENABLE_BYTERANGE
 if BUILD_UTILITIES
+
+if ENABLE_BYTERANGE
+if ENABLE_EXTERNAL_SERVER_TESTS
 tst_byterange_SOURCES = tst_byterange.c
 check_PROGRAMS += tst_byterange
 TESTS += test_byterange.sh
 endif
 endif
 
-if BUILD_UTILITIES
 TESTS += run_diskless.sh run_diskless5.sh run_inmemory.sh
 if LARGE_FILE_TESTS
 if ! ENABLE_PARALLEL
 TESTS += run_diskless2.sh
 endif
 endif
+
 if BUILD_MMAP
 TESTS += run_mmap.sh
 run_mmap.log: run_diskless.log
-endif
 endif
 
 # If pnetcdf is enabled, these tests are run by a test
@@ -103,6 +104,8 @@ TESTS += run_pnetcdf_tests.sh
 else
 TESTS += t_nc tst_atts3 tst_nofill nc_test tst_small
 endif
+
+endif # BUILD_UTILITIES
 
 # The .c files that are generated with m4 are already distributed, but
 # we also include the original m4 files, plus test scripts data.
