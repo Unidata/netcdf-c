@@ -12,6 +12,11 @@
 #include "zincludes.h"
 #include <math.h> /* For pow() used below. */
 
+/* Mnemonics */
+#define CREATE 0
+#define NOCREATE 1
+
+
 #ifdef LOGGING
 static void
 reportchunking(const char* title, NC_VAR_INFO_T* var)
@@ -107,10 +112,7 @@ ncz_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
     double total_chunk_size;
 #endif
 
-    if (var->type_info->nc_type_class == NC_STRING)
-	type_size = sizeof(char *);
-    else
-	type_size = var->type_info->size;
+    type_size = var->type_info->size;
 
 #ifdef LOGGING
     /* Later this will become the total number of bytes in the default
@@ -406,7 +408,7 @@ var->type_info->rc++;
     /* Set variables no_fill to match the database default unless the
      * variable type is variable length (NC_STRING or NC_VLEN) or is
      * user-defined type. */
-    if (var->type_info->nc_type_class < NC_STRING)
+    if (var->type_info->nc_type_class <= NC_STRING)
 	var->no_fill = (h5->fill_mode == NC_NOFILL);
 
     /* Assign dimensions to the variable. At the same time, check to
@@ -473,7 +475,6 @@ exit:
     if (type)
 	if ((retval = nc4_type_free(type)))
 	    BAILLOG(retval);
-
     return ZUNTRACE(retval);
 }
 

@@ -17,11 +17,14 @@ echo "*** Test: write then read using json convention"
 fileargs tmp_jsonconvention "mode=nczarr,$zext"
 deletemap $zext $file
 ${NCGEN} -4 -b -o "$fileurl" $srcdir/ref_jsonconvention.cdl
+# Clean up extraneous changes wrt _NCProperties
+${ZMD} -h $fileurl | sed -e 's/,key1=value1|key2=value2//' -e '/"_NCProperties"/ s/(378)/(354)/' > tmp_jsonconvention_${zext}.txt
 ${NCDUMP} $fileurl > tmp_jsonconvention_${zext}.cdl
 # remove '\n' from ref file before comparing
 rm -f tmp_jsonconvention.cdl
 sed -e 's|\\n||g' < ${srcdir}/ref_jsonconvention.cdl > tmp_jsonconvention.cdl
 diff -b tmp_jsonconvention.cdl tmp_jsonconvention_${zext}.cdl
+diff -b ${srcdir}/ref_jsonconvention.zmap tmp_jsonconvention_${zext}.txt
 }
 
 testcase file
