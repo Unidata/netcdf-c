@@ -279,12 +279,13 @@ done:
 int
 NC_readfileF(FILE* stream, NCbytes* content, long long amount)
 {
+#define READ_BLOCK_SIZE 4194304
     int ret = NC_NOERR;
     long long red = 0;
-    char part[1024];
+    char *part = (char*) malloc(4194304);
 
     while(amount < 0 || red < amount) {
-	size_t count = fread(part, 1, sizeof(part), stream);
+	size_t count = fread(part, 1, 4194304, stream);
 	if(ferror(stream)) {ret = NC_EIO; goto done;}
 	if(count > 0) ncbytesappendn(content,part,(unsigned long)count);
 	red += count;
@@ -297,6 +298,7 @@ NC_readfileF(FILE* stream, NCbytes* content, long long amount)
     }
     ncbytesnull(content);
 done:
+    free(part);
     return ret;
 }
 

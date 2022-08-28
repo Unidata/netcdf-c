@@ -397,8 +397,9 @@ NC4_inq_compound_fieldindex(int ncid, nc_type typeid1, const char *name, int *fi
 }
 
 /**
- * @internal Get enum name from enum value. Name size will be <=
- * NC_MAX_NAME.
+ * @internal Get enum name from enum value. Name size will be <= NC_MAX_NAME.
+ * If the value is not a legitimate enum identifier and the value is zero
+ * (the default HDF5 enum fill value), then return the identifier "_UNDEFINED".
  *
  * @param ncid File and group ID.
  * @param xtype Type ID.
@@ -408,7 +409,7 @@ NC4_inq_compound_fieldindex(int ncid, nc_type typeid1, const char *name, int *fi
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
  * @return ::NC_EBADTYPE Type not found.
- * @return ::NC_EINVAL Invalid type data.
+ * @return ::NC_EINVAL Invalid type data or no matching enum value is found
  * @author Ed Hartnett
  */
 int
@@ -479,9 +480,13 @@ NC4_inq_enum_ident(int ncid, nc_type xtype, long long value, char *identifier)
     }
 
     /* If we didn't find it, life sucks for us. :-( */
-    if (!found)
-        return NC_EINVAL;
-
+    if(!found) {
+        if(value == 0) /* Special case for HDF5 default Fill Value*/
+	    strcpy(identifier, NC_UNDEFINED_ENUM_IDENT);
+        else
+            return NC_EINVAL;
+    }
+    
     return NC_NOERR;
 }
 
