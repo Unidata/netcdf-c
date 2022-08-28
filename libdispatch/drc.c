@@ -189,6 +189,7 @@ NC_rcclear(NCRCinfo* info)
     nullfree(info->rchome);
     rcfreeentries(info->entries);
     freeprofilelist(info->s3profiles);
+
 }
 
 static void
@@ -1143,6 +1144,8 @@ aws_load_credentials(NCglobalstate* gstate)
 	nclistpush(profiles,noprof); noprof = NULL;
     }
 
+    if(gstate->rcinfo->s3profiles)
+        freeprofilelist(gstate->rcinfo->s3profiles);
     gstate->rcinfo->s3profiles = profiles; profiles = NULL;
 
 #ifdef AWSDEBUG

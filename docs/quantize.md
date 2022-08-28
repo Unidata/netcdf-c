@@ -145,6 +145,48 @@ changed, if that element is the fill value. This is necessary if the
 fill value is to retain its purpose as an indicator of values that
 have not been written.
 
+## Distortions Introduced by Lossy Compression
+
+Any lossy compression introduces distortions to data.
+  
+The Bitgroom algorithms implemented in netcdf-c introduce a distortoin
+that can be quantified in terms of a _relative_ error. The magnitude
+of distortion introduced to every single value V is guaranteed to be
+within a certain fraction of V, expressed as 0.5 * V * 2**{-NSB}:
+i.e. it is 0.5V for NSB=0, 0.25V for NSB=1, 0.125V for NSB=2 etc.
+ 
+Two quantize algorithms use different definitions of _decimal
+precision_, though both are guaranteed to reproduce NSD decimals when
+printed.
+
+The margin for a relative error introduced by the methods are
+summarised in the table:
+
+ ```
+  NSD                   1        2        3       4       5        6      7 
+
+  BitGroom   
+  Error Margin      3.1e-2  3.9e-3   4.9e-4  3.1e-5  3.8e-6    4.7e-7     -
+
+  GranularBitRound
+  Error Margin      1.4e-1  1.9e-2   2.2e-3  1.4e-4  1.8e-5    2.2e-6     - 
+   
+ ```
+ 
+If one defines decimal precision as in BitGroom, i.e. the introduced
+relative error must not exceed half of the unit at the decimal place
+NSD in the worst-case scenario, the following values of NSB should be
+used for BitRound:
+
+ ```
+  NSD     1     2    3     4     5     6     7   
+  NSB     3     6    9    13    16    19    23
+ ```
+ 
+The resulting application of BitRound is as fast as BitGroom, and is
+free from artifacts in multipoint statistics introduced by BitGroom
+(see https://doi.org/10.5194/gmd-14-377-2021).
+
 ## Using the Quantize Feature
 
 Turning on the quantize feature must be done on a per-variable basis,

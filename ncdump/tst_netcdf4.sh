@@ -75,6 +75,11 @@ ${execdir}/tst_enum_data ; ERR
 ${NCDUMP} tst_enum_data.nc | sed 's/e+0/e+/g' > tst_enum_data.cdl ; ERR
 diff -b tst_enum_data.cdl $srcdir/ref_tst_enum_data.cdl ; ERR
 
+echo "*** Running tst_enum_undef.c to create test files."
+${execdir}/tst_enum_undef ; ERR
+${NCDUMP} tst_enum_undef.nc | sed 's/e+0/e+/g' > tst_enum_undef.cdl ; ERR
+diff -b tst_enum_undef.cdl $srcdir/ref_tst_enum_undef.cdl ; ERR
+
 echo "*** Running tst_opaque_data.c to create test files."
 ${execdir}/tst_opaque_data ; ERR
 ${NCDUMP} tst_opaque_data.nc | sed 's/e+0/e+/g' > tst_opaque_data.cdl ; ERR
