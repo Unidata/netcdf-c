@@ -13,12 +13,10 @@ This extension provides a mapping from a subset of the full netCDF Enhanced (aka
 The NetCDF version of this storage format is called NCZarr <a href="#ref_nczarr">[4]</a>.
 
 A note on terminology in this document.
-
 1. The term "dataset" is used to refer to all of the Zarr objects constituting
    the meta-data and data. 
 
 There are some important "caveats" of which to be aware when using this software.
-
 1. NCZarr currently is not thread-safe. So any attempt to use it with parallelism, including MPIO, is likely to fail.
 
 # The NCZarr Data Model {#nczarr_data_model}
@@ -35,28 +33,29 @@ Specifically the XArray ''\_ARRAY\_DIMENSIONS'' attribute is one such.
 There are two other, secondary assumption:
 
 1. The actual storage format in which the dataset is stored -- a zip file, for example -- can be read by the _Zarr_ implementation.
-2. The filters used by the dataset can be encoded/decoded by the implementation.
+2. The compressors (aka filters) used by the dataset can be encoded/decoded by the implementation. NCZarr uses HDF5-style filters, so ensuring access to such filters is somewhat complicated. See [the companion document on
+filters](./md_filters.html "filters") for details.
 
-Briefly, the data model supported by NCZarr is netcdf-4 minus the user-defined types and the String type.
-As with netcdf-4 chunking is supported.
-Filters and compression are supported, but
-[the companion document on filters](./md_filters.html "filters")
-should be consulted for the details.
+Briefly, the data model supported by NCZarr is netcdf-4 minus
+the user-defined types. However, a restricted form of String type
+is supported (see Appendix H).
+As with netcdf-4 chunking is supported.  Filters and compression
+are also [supported](./md_filters.html "filters").
 
 Specifically, the model supports the following.
-- "Atomic" types: char, byte, ubyte, short, ushort, int, uint, int64, uint64.
+- "Atomic" types: char, byte, ubyte, short, ushort, int, uint, int64, uint64, string.
 - Shared (named) dimensions
 - Attributes with specified types -- both global and per-variable
 - Chunking
 - Fill values
 - Groups
 - N-Dimensional variables
+- Scalar variables
 - Per-variable endianness (big or little)
 - Filters (including compression)
 
 With respect to full netCDF-4, the following concepts are
 currently unsupported.
-- String type
 - User-defined types (enum, opaque, VLEN, and Compound)
 - Unlimited dimensions
 - Contiguous or compact storage
@@ -430,7 +429,7 @@ named  ".zdim_<len>" where len is the integer length.
 2. _\_nczarr_array\__ -- The dimrefs are inferred by using the shape
 in _.zarray_ and creating references to the simulated shared dimension.
 netcdf specific information.
-3. _\_NCZARR_ATTR\__ -- The type of each attribute is inferred by trying to parse the first attribute value string.
+3. _\_nczarr_attr\__ -- The type of each attribute is inferred by trying to parse the first attribute value string.
 
 # Compatibility {#nczarr_compatibility}
 
@@ -879,12 +878,64 @@ actions "read-write-read" is equivalent to a single "read" and "write-read-write
 The "almost" caveat is necessary because (1) whitespace may be added or lost during the sequence of operations,
 and (2) numeric precision may change.
 
+# Appendix H. Support for string types
+
+Zarr supports a string type, but it is restricted to
+fixed size strings. NCZarr also supports such strings,
+but there are some differences in order to interoperate
+with the netcdf-4/HDF5 variable length strings.
+
+The primary issue to be addressed is to provide a way for user
+to specify the maximum size of the fixed length strings. This is
+handled by providing the following new attributes:
+1. **_nczarr_default_maxstrlen** &mdash;
+This is an attribute of the root group. It specifies the default
+maximum string length for string types. If not specified, then
+it has the value of 64 characters.
+2. **_nczarr_maxstrlen** &mdash;
+This is a per-variable attribute. It specifies the maximum
+string length for the string type associated with the variable.
+If not specified, then it is assigned the value of
+**_nczarr_default_maxstrlen**.
+
+Note that when accessing a string through the netCDF API, the
+fixed length strings appear as variable length strings.  This
+means that they are stored as pointers to the string
+(i.e. **char\***) and with a trailing nul character.
+One consequence is that if the user writes a variable length
+string through the netCDF API, and the length of that string
+is greater than the maximum string length for a variable,
+then the string is silently truncated.
+Another consequence is that the user must reclaim the string storage.
+
+Adding strings also requires some hacking to handle the existing
+netcdf-c NC_CHAR type, which does not exist in Zarr. The goal
+was to choose NumPY types for both the netcdf-c NC_STRING type
+and the netcdf-c NC_CHAR type such that if a pure zarr
+implementation reads them, it will still work.
+
+For writing variables and NCZarr attributes, the type mapping is as follows:
+* "|S1" for NC_CHAR.
+* ">S1" for NC_STRING && MAXSTRLEN==1
+* ">Sn" for NC_STRING && MAXSTRLEN==n
+
+Note that it is a bit of a hack to use endianness, but it should be ok since for
+string/char, the endianness has no meaning.
+
+So when reading data with a pure zarr implementaion
+the above types should always appear as strings,
+and the type that signals NC_CHAR (in NCZarr)
+would be handled by Zarr as a string of length 1.
+
 # Change Log {#nczarr_changelog}
 
 Note, this log was only started as of 8/11/2022 and is not
 intended to be a detailed chronology. Rather, it provides highlights
 that will be of interest to NCZarr users. In order to see exact changes,
 It is necessary to use the 'git diff' command.
+
+## 8/29/2022
+1. Zarr fixed-size string types are now supported.
 
 ## 8/11/2022
 1. The NCZarr specific keys have been converted to lower-case
