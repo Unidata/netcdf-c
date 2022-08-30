@@ -116,6 +116,7 @@ IF(ENABLE_TESTS)
     add_sh_test(nczarr_test run_misc)
     add_sh_test(nczarr_test run_nczarr_fill)
     add_sh_test(nczarr_test run_jsonconvention)
+    add_sh_test(nczarr_test run_strings)
 
     BUILD_BIN_TEST(test_quantize ${TSTCOMMONSRC})
     add_sh_test(nczarr_test run_quantize)

@@ -52,10 +52,12 @@ TESTS += test_partvar
 if ENABLE_DAP_LONG_TESTS
  TESTS += tst_longremote3.sh
  tst_longremote3.log: tst_remote3.log
+if ENABLE_EXTERNAL_SERVER_TESTS
  test_manyurls_SOURCES = test_manyurls.c manyurls.h
  check_PROGRAMS += test_manyurls
- TESTS += test_manyurls
  test_manyurls.log: tst_longremote3.log
+ TESTS += test_manyurls
+endif
 endif
 
 test_partvar_SOURCES = test_partvar.c

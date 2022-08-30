@@ -106,9 +106,6 @@ typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP, NCFIL} NC_SORT;
 /** Subset of readonly flags; readable by name only thru the API. */
 #define NAMEONLYFLAG 4
 
-/** Subset of readonly flags; Value is actually in file. */
-#define MATERIALIZEDFLAG 8
-
 /** Per-variable attribute, as opposed to global */
 #define VARFLAG 16
 
@@ -492,9 +489,13 @@ extern void NC_freeglobalstate(void);
 #define NC_ATT_COORDINATES "_Netcdf4Coordinates" /*see hdf5internal.h:COORDINATES*/
 #define NC_ATT_FORMAT "_Format"
 #define NC_ATT_DIMID_NAME "_Netcdf4Dimid"
+#define NC_ATT_FILLVALUE "_FillValue"
 #define NC_ATT_NC3_STRICT_NAME "_nc3_strict"
 #define NC_XARRAY_DIMS "_ARRAY_DIMENSIONS"
 #define NC_ATT_CODECS "_Codecs"
-#define NC_NCZARR_ATTR "_NCZARR_ATTR"
+#define NC_NCZARR_ATTR "_nczarr_attr"
+#define NC_NCZARR_ATTR_UC "_NCZARR_ATTR"
+#define NC_NCZARR_MAXSTRLEN_ATTR "_nczarr_maxstrlen"
+#define NC_NCZARR_DEFAULT_MAXSTRLEN_ATTR "_nczarr_default_maxstrlen"
 
 #endif /* _NC4INTERNAL_ */

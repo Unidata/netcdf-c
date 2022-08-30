@@ -1,0 +1,17 @@
+netcdf ref_string {
+dimensions:
+	d = 2 ;
+variables:
+	char c(d);
+	string v(d) ;
+
+// global attributes:
+		string :stringattr = "abc", "def" ;
+		:charattr = "ghi", "jkl" ;
+		:_nczarr_default_maxstrlen = 6 ;
+data:
+
+ c = "a", "b" ;
+
+ v = "uvw", "xyz" ;
+}

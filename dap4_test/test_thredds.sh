@@ -28,6 +28,7 @@ failure() {
 setresultdir results_test_thredds
 
 if test "x${RESET}" = x1 ; then rm -fr ${BASELINEH}/*.thredds ; fi
+if test "x$FEATURE_THREDDSTEST" = x1 ; then
 for f in $F ; do
     makeurl "dap4://thredds-test.unidata.ucar.edu/thredds/dap4/casestudies" "$f"
     echo "testing: $URL"
@@ -43,6 +44,7 @@ for f in $F ; do
 	cp ./results_test_thredds/${base}.thredds ${BASELINETH}/${base}.thredds
     fi
 done
+fi # FEATURE_THREDDSTEST
 
 echo "*** Pass"
 exit 0

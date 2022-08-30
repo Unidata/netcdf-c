@@ -116,17 +116,6 @@ NCZ_enddef(NC_FILE_INFO_T* h5)
             assert(var);
             var->written_to = NC_TRUE; /* mark it written */
 	    var->created = 1;
-#if 0
-	    /* set the fill value and _FillValue attribute */
-	    if((stat = NCZ_ensure_fill_value(var))) goto done; /* ensure var->fill_value is set */
-            assert(var->no_fill || var->fill_value != NULL);
-	    /* rebuild the fill chunk */
-	    if((stat = NCZ_adjust_var_cache(var))) goto done;
-#ifdef ENABLE_NCZARR_FILTERS
-	    /* Build the filter working parameters for any filters */
-	    if((stat = NCZ_filter_setup(var))) goto done;
-#endif
-#endif /*0|1*/
         }
     }
     if((stat = ncz_enddef_netcdf4_file(h5))) goto done;
