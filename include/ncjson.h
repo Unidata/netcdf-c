@@ -64,6 +64,7 @@ typedef struct NCjson {
    don't use union so we can know when to reclaim sval
 */
 struct NCJconst {int bval; long long ival; double dval; char* sval;};
+#define NCJconst_empty {0,0,0.0,NULL}
 
 /**************************************************/
 /* Extended API */
@@ -116,6 +117,8 @@ OPTEXPORT int NCJclone(const NCjson* json, NCjson** clonep);
 #ifndef NETCDF_JSON_H
 /* dump NCjson* object to output file */
 OPTEXPORT void NCJdump(const NCjson* json, unsigned flags, FILE*);
+/* convert NCjson* object to output string */
+OPTEXPORT const char* NCJtotext(const NCjson* json);
 #endif
 
 #if defined(__cplusplus)

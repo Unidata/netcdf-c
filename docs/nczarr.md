@@ -13,12 +13,10 @@ This extension provides a mapping from a subset of the full netCDF Enhanced (aka
 The NetCDF version of this storage format is called NCZarr <a href="#ref_nczarr">[4]</a>.
 
 A note on terminology in this document.
-
 1. The term "dataset" is used to refer to all of the Zarr objects constituting
    the meta-data and data. 
 
 There are some important "caveats" of which to be aware when using this software.
-
 1. NCZarr currently is not thread-safe. So any attempt to use it with parallelism, including MPIO, is likely to fail.
 
 # The NCZarr Data Model {#nczarr_data_model}
@@ -35,28 +33,29 @@ Specifically the XArray ''\_ARRAY\_DIMENSIONS'' attribute is one such.
 There are two other, secondary assumption:
 
 1. The actual storage format in which the dataset is stored -- a zip file, for example -- can be read by the _Zarr_ implementation.
-2. The filters used by the dataset can be encoded/decoded by the implementation.
+2. The compressors (aka filters) used by the dataset can be encoded/decoded by the implementation. NCZarr uses HDF5-style filters, so ensuring access to such filters is somewhat complicated. See [the companion document on
+filters](./md_filters.html "filters") for details.
 
-Briefly, the data model supported by NCZarr is netcdf-4 minus the user-defined types and the String type.
-As with netcdf-4 chunking is supported.
-Filters and compression are supported, but
-[the companion document on filters](./md_filters.html "filters")
-should be consulted for the details.
+Briefly, the data model supported by NCZarr is netcdf-4 minus
+the user-defined types. However, a restricted form of String type
+is supported (see Appendix H).
+As with netcdf-4 chunking is supported.  Filters and compression
+are also [supported](./md_filters.html "filters").
 
 Specifically, the model supports the following.
-- "Atomic" types: char, byte, ubyte, short, ushort, int, uint, int64, uint64.
+- "Atomic" types: char, byte, ubyte, short, ushort, int, uint, int64, uint64, string.
 - Shared (named) dimensions
 - Attributes with specified types -- both global and per-variable
 - Chunking
 - Fill values
 - Groups
 - N-Dimensional variables
+- Scalar variables
 - Per-variable endianness (big or little)
 - Filters (including compression)
 
 With respect to full netCDF-4, the following concepts are
 currently unsupported.
-- String type
 - User-defined types (enum, opaque, VLEN, and Compound)
 - Unlimited dimensions
 - Contiguous or compact storage
@@ -65,6 +64,15 @@ Note that contiguous and compact are not actually supported
 because they are HDF5 specific.
 When specified, they are treated as chunked where the file consists of only one chunk.
 This means that testing for contiguous or compact is not possible; the _nc_inq_var_chunking_ function will always return NC_CHUNKED and the chunksizes will be the same as the dimension sizes of the variable's dimensions.
+
+Additionally, it should be noted that NCZarr supports scalar variables,
+but Zarr does not; Zarr only supports dimensioned variables.
+In order to support interoperability, NCZarr does the following.
+1. A scalar variable is recorded in the Zarr metadata as if it has a shape of **[1]**.
+2. A note is stored in the NCZarr metadata that this is actually a netCDF scalar variable.
+
+These actions allow NCZarr to properly show scalars in its API while still
+maintaining compatibility with Zarr.
 
 # Enabling NCZarr Support {#nczarr_enable}
 
@@ -322,7 +330,6 @@ aws_secret_access_key=YYYY...
 ```
 See Appendix E for additional information.
 
-
 ## Addressing Style
 
 The notion of "addressing style" may need some expansion.
@@ -378,14 +385,14 @@ of NCZarr specific information.
 
 These keys are as follows:
 
-_\_NCZARR_SUPERBLOCK\__ -- this is in the top level group -- key _/.zarr_.
+_\_nczarr_superblock\__ -- this is in the top level group -- key _/.zarr_.
 It is in effect the "superblock" for the dataset and contains
 any netcdf specific dataset level information.
 It is also used to verify that a given key is the root of a dataset.
 Currently it contains the following key(s):
 * "version" -- the NCZarr version defining the format of the dataset.
 
-_\_NCZARR_GROUP\__ -- this key appears in every _.zgroup_ object.
+_\_nczarr_group\__ -- this key appears in every _.zgroup_ object.
 It contains any netcdf specific group information.
 Specifically it contains the following keys:
 * "dims" -- the name and size of shared dimensions defined in this group.
@@ -393,13 +400,13 @@ Specifically it contains the following keys:
 * "groups" -- the name of sub-groups defined in this group.
 These lists allow walking the NCZarr dataset without having to use the potentially costly search operation.
 
-_\_NCZARR_ARRAY\__ -- this key appears in every _.zarray_ object.
+_\_nczarr_array\__ -- this key appears in every _.zarray_ object.
 It contains netcdf specific array information.
 Specifically it contains the following keys:
 * dimrefs -- the names of the shared dimensions referenced by the variable.
 * storage -- indicates if the variable is chunked vs contiguous in the netcdf sense.
 
-_\_NCZARR_ATTR\__ -- this key appears in every _.zattr_ object.
+_\_nczarr_attr\__ -- this key appears in every _.zattr_ object.
 This means that technically, it is attribute, but one for which access
 is normally surpressed .
 Specifically it contains the following keys:
@@ -412,17 +419,17 @@ The latter case, zarr reading nczarr is possible if the zarr library is willing 
 
 The former case, nczarr reading zarr is also possible if the nczarr can simulate or infer the contents of the missing _\_NCZARR\_XXX_ objects.
 As a rule this can be done as follows.
-1. _\_NCZARR_GROUP\__ -- The list of contained variables and sub-groups can be computed using the search API to list the keys "contained" in the key for a group.
+1. _\_nczarr_group\__ -- The list of contained variables and sub-groups can be computed using the search API to list the keys "contained" in the key for a group.
 The search looks for occurrences of _.zgroup_, _.zattr_, _.zarray_ to infer the keys for the contained groups, attribute sets, and arrays (variables).
 Constructing the set of "shared dimensions" is carried out
 by walking all the variables in the whole dataset and collecting
 the set of unique integer shapes for the variables.
 For each such dimension length, a top level dimension is created
 named  ".zdim_<len>" where len is the integer length.
-2. _\_NCZARR_ARRAY\__ -- The dimrefs are inferred by using the shape
+2. _\_nczarr_array\__ -- The dimrefs are inferred by using the shape
 in _.zarray_ and creating references to the simulated shared dimension.
 netcdf specific information.
-3. _\_NCZARR_ATTR\__ -- The type of each attribute is inferred by trying to parse the first attribute value string.
+3. _\_nczarr_attr\__ -- The type of each attribute is inferred by trying to parse the first attribute value string.
 
 # Compatibility {#nczarr_compatibility}
 
@@ -434,7 +441,7 @@ The Xarray <a href="#ref_xarray">[7]</a> Zarr implementation uses its own mechan
 It uses a special attribute named ''_ARRAY_DIMENSIONS''.
 The value of this attribute is a list of dimension names (strings).
 An example might be ````["time", "lon", "lat"]````.
-It is essentially equivalent to the ````_NCZARR_ARRAY "dimrefs" list````, except that the latter uses fully qualified names so the referenced dimensions can be anywhere in the dataset.
+It is essentially equivalent to the ````_nczarr_array "dimrefs" list````, except that the latter uses fully qualified names so the referenced dimensions can be anywhere in the dataset.
 
 As of _netcdf-c_ version 4.8.2, The Xarray ''_ARRAY_DIMENSIONS'' attribute is supported for both NCZarr and pure Zarr.
 If possible, this attribute will be read/written by default,
@@ -778,34 +785,169 @@ The version 1 format defines three specific objects: _.nczgroup_, _.nczarray_,_.
 These are stored in parallel with the corresponding Zarr objects. So if there is a key of the form "/x/y/.zarray", then there is also a key "/x/y/.nczarray".
 The content of these objects is the same as the contents of the corresponding keys. So the value of the ''_NCZARR_ARRAY'' key is the same as the content of the ''.nczarray'' object. The list of connections is as follows:
 
-* ''.nczarr'' <=> ''_NCZARR_SUPERBLOCK_''
-* ''.nczgroup <=> ''_NCZARR_GROUP_''
-* ''.nczarray <=> ''_NCZARR_ARRAY_''
-* ''.nczattr <=> ''_NCZARR_ATTR_''
+* ''.nczarr'' <=> ''_nczarr_superblock_''
+* ''.nczgroup <=> ''_nczarr_group_''
+* ''.nczarray <=> ''_nczarr_array_''
+* ''.nczattr <=> ''_nczarr_attr_''
 
 # Appendix G. JSON Attribute Convention. {#nczarr_json}
 
-An attribute may be encountered on read whose value when parsed
-by JSON is a dictionary. As a special conventions, the value
-converted to a string and stored as the value of the attribute
-and the type of the attribute is treated as char.
+The Zarr V2 specification is somewhat vague on what is a legal
+value for an attribute. The examples all show one of two cases:
+1. A simple JSON scalar atomic values (e.g. int, float, char, etc), or
+2. A JSON array  of such values.
 
-When writing a character valued attribute, it's value is examined
-to see if it looks like a JSON dictionary (i.e. "{...}")
-and is parseable as JSON.
-If so, then the attribute value is treated as one long string,
-parsed as JSON, and stored in the .zattr file in JSON form.
-
-These conventions are intended to help support various
+However, the Zarr specification can be read to infer that the value
+can in fact be any legal JSON expression.
+This "convention" is currently used routinely to help support various
 attributes created by other packages where the attribute is a
-complex JSON dictionary.  An example is the GDAL Driver
-convention <a href="#ref_gdal">[12]</a>.  The value is a complex
-JSON dictionary and it is desirable to both read and write that kind of
-information through the netcdf API.
+complex JSON expression.  An example is the GDAL Driver
+convention <a href="#ref_gdal">[12]</a>, where the value is a complex
+JSON dictionary.
+
+In order for NCZarr to be as consistent as possible with Zarr Version 2,
+it is desirable to support this convention  for attribute values.
+This means that there must be some way to handle an attribute
+whose value is not either of the two cases above. That is, its value
+is some more complex JSON expression. Ideally both reading and writing
+of such attributes should be supported.
+
+One more point. NCZarr attempts to record the associated netcdf
+attribute type (encoded in the form of a NumPy "dtype") for each
+attribute. This information is stored as NCZarr-specific
+metadata. Note that pure Zarr makes no attempt to record such
+type information.
+
+The current algorithm to support JSON valued attributes
+operates as follows.
+
+## Writing an attribute:
+There are mutiple cases to consider.
+
+1. The netcdf attribute **is not** of type NC_CHAR and its value is a single atomic value.
+    * Convert to an equivalent JSON atomic value and write that JSON expression.
+    * Compute the Zarr equivalent dtype and store in the NCZarr metadata.
+
+2. The netcdf attribute **is not** of type NC_CHAR and its value is a vector of atomic values.
+    * Convert to an equivalent JSON array of atomic values and write that JSON expression.
+    * Compute the Zarr equivalent dtype and store in the NCZarr metadata.
+
+3. The netcdf attribute **is** of type NC_CHAR and its value &ndash; taken as a single sequence of characters &ndash;
+**is** parseable as a legal JSON expression.
+    * Parse to produce a JSON expression and write that expression.
+    * Use "|S1" as the dtype and store in the NCZarr metadata.
+
+4. The netcdf attribute **is** of type NC_CHAR and its value &ndash; taken as a single sequence of characters &ndash;
+**is not** parseable as a legal JSON expression.
+    * Convert to a JSON string and write that expression
+    * Use "|S1" as the dtype and store in the NCZarr metadata.
+
+## Reading an attribute:
+
+The process of reading and interpreting an attribute value requires two
+pieces of information.
+* The value of the attribute as a JSON expression, and
+* The optional associated dtype of the attribute; note that this may not exist
+if, for example, the file is pure zarr.
+
+Given these two pieces of information, the read process is as follows.
+
+1. The JSON expression is a simple JSON atomic value.
+    * If the dtype is defined, then convert the JSON to that type of data,
+and then store it as the equivalent netcdf vector of size one.
+    * If the dtype is not defined, then infer the dtype based on the the JSON value,
+and then store it as the equivalent netcdf vector of size one.
+
+2. The JSON expression is an array of simple JSON atomic values.
+    * If the dtype is defined, then convert each JSON value in the array to that type of data,
+and then store it as the equivalent netcdf vector.
+    * If the dtype is not defined, then infer the dtype based on the first JSON value in the array,
+and then store it as the equivalent netcdf vector.
+
+3. The JSON expression is an array some of whose values are dictionaries or (sub-)arrays.
+    * Un-parse the expression to an equivalent sequence of characters, and then store it as of type NC_CHAR.
+
+3. The JSON expression is a dictionary.
+    * Un-parse the expression to an equivalent sequence of characters, and then store it as of type NC_CHAR.
+
+## Notes
+
+1. If a  character valued attributes's value can be parsed as a legal JSON expression, then it will be stored as such.
+2. Reading and writing are *almost* idempotent in that the sequence of
+actions "read-write-read" is equivalent to a single "read" and "write-read-write" is equivalent to a single "write".
+The "almost" caveat is necessary because (1) whitespace may be added or lost during the sequence of operations,
+and (2) numeric precision may change.
+
+# Appendix H. Support for string types
+
+Zarr supports a string type, but it is restricted to
+fixed size strings. NCZarr also supports such strings,
+but there are some differences in order to interoperate
+with the netcdf-4/HDF5 variable length strings.
+
+The primary issue to be addressed is to provide a way for user
+to specify the maximum size of the fixed length strings. This is
+handled by providing the following new attributes:
+1. **_nczarr_default_maxstrlen** &mdash;
+This is an attribute of the root group. It specifies the default
+maximum string length for string types. If not specified, then
+it has the value of 64 characters.
+2. **_nczarr_maxstrlen** &mdash;
+This is a per-variable attribute. It specifies the maximum
+string length for the string type associated with the variable.
+If not specified, then it is assigned the value of
+**_nczarr_default_maxstrlen**.
+
+Note that when accessing a string through the netCDF API, the
+fixed length strings appear as variable length strings.  This
+means that they are stored as pointers to the string
+(i.e. **char\***) and with a trailing nul character.
+One consequence is that if the user writes a variable length
+string through the netCDF API, and the length of that string
+is greater than the maximum string length for a variable,
+then the string is silently truncated.
+Another consequence is that the user must reclaim the string storage.
+
+Adding strings also requires some hacking to handle the existing
+netcdf-c NC_CHAR type, which does not exist in Zarr. The goal
+was to choose NumPY types for both the netcdf-c NC_STRING type
+and the netcdf-c NC_CHAR type such that if a pure zarr
+implementation reads them, it will still work.
+
+For writing variables and NCZarr attributes, the type mapping is as follows:
+* "|S1" for NC_CHAR.
+* ">S1" for NC_STRING && MAXSTRLEN==1
+* ">Sn" for NC_STRING && MAXSTRLEN==n
+
+Note that it is a bit of a hack to use endianness, but it should be ok since for
+string/char, the endianness has no meaning.
+
+So when reading data with a pure zarr implementaion
+the above types should always appear as strings,
+and the type that signals NC_CHAR (in NCZarr)
+would be handled by Zarr as a string of length 1.
+
+# Change Log {#nczarr_changelog}
+
+Note, this log was only started as of 8/11/2022 and is not
+intended to be a detailed chronology. Rather, it provides highlights
+that will be of interest to NCZarr users. In order to see exact changes,
+It is necessary to use the 'git diff' command.
+
+## 8/29/2022
+1. Zarr fixed-size string types are now supported.
+
+## 8/11/2022
+1. The NCZarr specific keys have been converted to lower-case
+(e.g. "_nczarr_attr" instead of "_NCZARR_ATTR"). Upper case is
+accepted for back compatibility.
+
+2. The legal values of an attribute has been extended to
+include arbitrary JSON expressions; see Appendix G for more details.
 
 # Point of Contact {#nczarr_poc}
 
 __Author__: Dennis Heimbigner<br>
 __Email__: dmh at ucar dot edu<br>
 __Initial Version__: 4/10/2020<br>
-__Last Revised__: 7/16/2021
+__Last Revised__: 8/27/2022

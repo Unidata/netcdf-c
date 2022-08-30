@@ -5,11 +5,14 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 set -e
 
+# Note: thredds-test is currently down and the URLs need to be replaced
+
 # Test Urls
+if test "x$FEATURE_THREDDSTEST" = x1 ; then
 URL3="https://thredds-test.unidata.ucar.edu/thredds/fileServer/pointData/cf_dsg/example/point.nc#mode=bytes&aws.profile=none"
-#URL3a="https://remotetest.unidata.ucar.edu/thredds/fileServer/testdata/2004050300_eta_211.nc#bytes&aws.profile=none"
-URL4a="https://s3.us-east-1.amazonaws.com/noaa-goes16/ABI-L1b-RadC/2017/059/03/OR_ABI-L1b-RadC-M3C13_G16_s20170590337505_e20170590340289_c20170590340316.nc#mode=bytes&aws.profile=none"
 URL4b="https://thredds-test.unidata.ucar.edu/thredds/fileServer/irma/metar/files/METAR_20170910_0000.nc#bytes&aws.profile=none"
+fi
+URL4a="https://s3.us-east-1.amazonaws.com/noaa-goes16/ABI-L1b-RadC/2017/059/03/OR_ABI-L1b-RadC-M3C13_G16_s20170590337505_e20170590340289_c20170590340316.nc#mode=bytes&aws.profile=none"
 URL4c="s3://noaa-goes16/ABI-L1b-RadC/2017/059/03/OR_ABI-L1b-RadC-M3C13_G16_s20170590337505_e20170590340289_c20170590340316.nc#mode=bytes&aws.profile=none"
 # Requires auth
 URL3b="s3://unidata-zarr-test-data/byterangefiles/upload3.nc#bytes&aws.profile=unidata"
@@ -81,12 +84,16 @@ testsetup https://s3.us-east-1.amazonaws.com/unidata-zarr-test-data
 
 echo "*** Testing reading NetCDF-3 file with http"
 
-echo "***Test remote classic file"
-testbytes nc3 classic "$URL3"
+if test "x$FEATURE_THREDDSTEST" = x1 ; then
+  echo "***Test remote classic file"
+  testbytes nc3 classic "$URL3"
+fi
 
 if test "x$FEATURE_HDF5" = xyes ; then
-    echo "***Test remote netcdf-4 file: non-s3"
-    testbytes nc4b netCDF-4 "$URL4b"
+    if test "x$FEATURE_THREDDSTEST" = x1 ; then
+	echo "***Test remote netcdf-4 file: non-s3"
+        testbytes nc4b netCDF-4 "$URL4b"
+    fi
 fi
 if test "x$FEATURE_S3TESTS" = xyes && test "x$FEATURE_HDF5" = xyes ; then
     echo "***Test remote netdf-4 file: s3"
