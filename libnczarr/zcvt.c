@@ -33,6 +33,7 @@ sizeof(char *), /*NC_STRING*/
 
 /* Forward */
 static int typeid2jtype(nc_type typeid);
+static int naninftest(const char* s, double* dcase, float* fcase);
 
 #if 0
 /* Convert a JSON value to a struct ZCVT value and also return the type */
@@ -104,6 +105,8 @@ NCZ_json2cvt(NCjson* jsrc, struct ZCVT* zcvt, nc_type* typeidp)
 {
     int stat = NC_NOERR;
     nc_type srctype = NC_NAT;
+    double naninf;
+    float naninff;
     
     /* Convert the incoming jsrc to a restricted set of values */
     switch (NCJsort(jsrc)) {
@@ -119,18 +122,14 @@ NCZ_json2cvt(NCjson* jsrc, struct ZCVT* zcvt, nc_type* typeidp)
 	}
 	break;
     case NCJ_DOUBLE:
-	/* Capture nan and infinity values */
-	if(strcasecmp(NCJstring(jsrc),"nan")==0)
-	    zcvt->float64v = NAN;
-	else if(strcasecmp(NCJstring(jsrc),"-nan")==0)
-	    zcvt->float64v = - NAN;
-	else if(strcasecmp(NCJstring(jsrc),"infinity")==0)
-	    zcvt->float64v = INFINITY;
-	else if(strcasecmp(NCJstring(jsrc),"-infinity")==0)
-	    zcvt->float64v = (- INFINITY);
-	else {
+	switch (naninftest(NCJstring(jsrc),&naninf,&naninff)) {
+	case NC_NAT:
 	    if(sscanf(NCJstring(jsrc),"%lg",&zcvt->float64v) != 1)
 	        {stat = NC_EINVAL; goto done;}
+	    break;
+	default:
+	    zcvt->float64v = naninf;
+	    break;
 	}
 	srctype = NC_DOUBLE;
 	break;
@@ -162,6 +161,8 @@ NCZ_convert1(NCjson* jsrc, nc_type dsttype, NCbytes* buf)
     struct ZCVT zcvt = zcvt_empty;
     int outofrange = 0;
     size_t len = 0;
+    double naninf;
+    float naninff;
 
     assert(dsttype != NC_NAT && dsttype <= NC_MAX_ATOMIC_TYPE && buf);
 
@@ -192,6 +193,7 @@ NCZ_convert1(NCjson* jsrc, nc_type dsttype, NCbytes* buf)
 	    c = (signed char)zcvt.uint64v;
 	    ncbytesappend(buf,(char)c);
 	    break;
+	default: abort();
 	}
 	} break;
     case NC_UBYTE: {
@@ -210,6 +212,7 @@ NCZ_convert1(NCjson* jsrc, nc_type dsttype, NCbytes* buf)
 	    c = (unsigned char)zcvt.uint64v;
 	    ncbytesappend(buf,(char)c);
 	    break;
+	default: abort();
 	}
 	} break;
     case NC_SHORT: {
@@ -228,6 +231,7 @@ NCZ_convert1(NCjson* jsrc, nc_type dsttype, NCbytes* buf)
 	    s = (signed short)zcvt.uint64v;
 	    ncbytesappendn(buf,(char*)&s,sizeof(s));
 	    break;
+	default: abort();
 	}
 	} break;
     case NC_USHORT: {
@@ -246,6 +250,7 @@ NCZ_convert1(NCjson* jsrc, nc_type dsttype, NCbytes* buf)
 	    s = (unsigned short)zcvt.uint64v;
 	    ncbytesappendn(buf,(char*)&s,sizeof(s));
 	    break;
+	default: abort();
 	}
 	} break;
     case NC_INT: {
@@ -264,6 +269,7 @@ NCZ_convert1(NCjson* jsrc, nc_type dsttype, NCbytes* buf)
 	    ii = (signed int)zcvt.uint64v;
 	    ncbytesappendn(buf,(char*)&ii,sizeof(ii));
 	    break;
+	default: abort();
 	}
 	} break;
     case NC_UINT: {
@@ -282,6 +288,7 @@ NCZ_convert1(NCjson* jsrc, nc_type dsttype, NCbytes* buf)
 	    ii = (unsigned int)zcvt.uint64v;
 	    ncbytesappendn(buf,(char*)&ii,sizeof(ii));
 	    break;
+	default: abort();
 	}
 	} break;
     case NC_INT64: {
@@ -299,6 +306,7 @@ NCZ_convert1(NCjson* jsrc, nc_type dsttype, NCbytes* buf)
 	    ll = (signed long long)zcvt.uint64v;
 	    ncbytesappendn(buf,(char*)&ll,sizeof(ll));
 	    break;
+	default: abort();
 	}
 	} break;
     case NC_UINT64: {
@@ -316,6 +324,7 @@ NCZ_convert1(NCjson* jsrc, nc_type dsttype, NCbytes* buf)
 	    ll = (unsigned long long)zcvt.uint64v;
 	    ncbytesappendn(buf,(char*)&ll,sizeof(ll));
 	    break;
+	default: abort();
 	}
 	} break;
     case NC_FLOAT: {
@@ -323,33 +332,50 @@ NCZ_convert1(NCjson* jsrc, nc_type dsttype, NCbytes* buf)
 	switch (srctype) {
 	case NC_DOUBLE:
 	    f = (float)zcvt.float64v;
-	    ncbytesappendn(buf,(char*)&f,sizeof(f));
 	    break;
 	case NC_INT64:
 	    f = (float)zcvt.int64v;
-	    ncbytesappendn(buf,(char*)&f,sizeof(f));
 	    break;
 	case NC_UINT64:
 	    f = (float)zcvt.uint64v;
-	    ncbytesappendn(buf,(char*)&f,sizeof(f));
 	    break;
+	case NC_STRING: /* Detect special constants encoded as strings e.g. "Nan" */
+	    switch (naninftest(zcvt.strv,&naninf,&naninff)) {
+	    case NC_NAT: abort();
+    	    case NC_FLOAT:
+       	    case NC_DOUBLE:
+	        f = naninff; break;
+		break;
+	    }
+	    break;
+	default: abort();
 	}
+        ncbytesappendn(buf,(char*)&f,sizeof(f));
 	} break;
     case NC_DOUBLE: {
 	double d = 0;
 	switch (srctype) {
 	case NC_DOUBLE:
 	    d = (double)zcvt.float64v;
-	    ncbytesappendn(buf,(char*)&d,sizeof(d));
 	    break;
 	case NC_INT64:
 	    d = (double)zcvt.int64v;
-	    ncbytesappendn(buf,(char*)&d,sizeof(d));
+	    break;
     	case NC_UINT64:
 	    d = (double)zcvt.uint64v;
-	    ncbytesappendn(buf,(char*)&d,sizeof(d));
 	    break;
+	case NC_STRING: /* NaN might be quoted */
+	    switch (naninftest(zcvt.strv,&naninf,&naninff)) {
+	    case NC_NAT: abort();
+    	    case NC_FLOAT:
+       	    case NC_DOUBLE:
+	        d = naninf; break;
+		break;
+	    }
+	    break;
+	default: abort();
 	}
+        ncbytesappendn(buf,(char*)&d,sizeof(d));
 	} break;
     case NC_STRING: {
 	char* scopy = NULL;
@@ -360,10 +386,25 @@ NCZ_convert1(NCjson* jsrc, nc_type dsttype, NCbytes* buf)
 	scopy = NULL;
 	} break;
     case NC_CHAR: {
-	if(srctype != NC_STRING) {stat = NC_EINVAL; goto done;}
-	len = strlen(zcvt.strv);
-	ncbytesappendn(buf,zcvt.strv,len);
-        } break;
+	char digits[64];
+	switch (srctype) {
+	case NC_DOUBLE:
+	    snprintf(digits,sizeof(digits),"%lf",(double)zcvt.float64v);
+	    ncbytesappendn(buf,digits,strlen(digits));
+	    break;
+	case NC_INT64:
+	    snprintf(digits,sizeof(digits),"%lli",(long long)zcvt.int64v);
+	    ncbytesappendn(buf,digits,strlen(digits));
+    	case NC_UINT64:
+	    snprintf(digits,sizeof(digits),"%lli",(unsigned long long)zcvt.uint64v);
+	    ncbytesappendn(buf,digits,strlen(digits));
+	    break;
+	case NC_STRING: 
+	    len = strlen(zcvt.strv);
+	    ncbytesappendn(buf,zcvt.strv,len);
+	default: abort();
+	}	
+	} break;
     default: stat = NC_EINTERNAL; goto done;
     }
 
@@ -380,7 +421,9 @@ NCZ_stringconvert1(nc_type srctype, char* src, NCjson* jvalue)
     struct ZCVT zcvt;
     nc_type dsttype = NC_NAT;
     char s[1024];
+    char sq[1024+2+1];
     char* p = NULL;
+    int isnanorinf = 0;
 
     assert(srctype >= NC_NAT && srctype != NC_CHAR && srctype <= NC_STRING);    
     /* Convert to a restricted set of values */
@@ -444,26 +487,35 @@ NCZ_stringconvert1(nc_type srctype, char* src, NCjson* jvalue)
 #ifdef _MSC_VER
 	switch (_fpclass(zcvt.float64v)) {
 	case _FPCLASS_SNAN: case _FPCLASS_QNAN:
-	     strcpy(s,"NaN"); break;
+	     strcpy(s,"NaN"); isnanorinf = 1; break;
 	case _FPCLASS_NINF:
-	     strcpy(s,"-Infinity"); break;
+	     strcpy(s,"-Infinity"); isnanorinf = 1; break;
 	case _FPCLASS_PINF:
-	     strcpy(s,"Infinity"); break;
+	     strcpy(s,"Infinity"); isnanorinf = 1; break;
 	default:
 	      snprintf(s,sizeof(s),"%lg",zcvt.float64v); /* handles NAN? */
 	      break;
 	}
 #else
 	if(isnan(zcvt.float64v))
-	     strcpy(s,"NaN");
+	     {strcpy(s,"NaN"); isnanorinf = 1;}
 	else if(isinf(zcvt.float64v) && zcvt.float64v < 0)
-	     strcpy(s,"-Infinity");
+	     {strcpy(s,"-Infinity"); isnanorinf = 1;}
 	else if(isinf(zcvt.float64v) && zcvt.float64v > 0)
-	     strcpy(s,"Infinity");
+	     {strcpy(s,"Infinity"); isnanorinf = 1;}
 	else {
              snprintf(s,sizeof(s),"%lg",zcvt.float64v); /* handles NAN? */
 	}
 #endif
+	/* Quote the nan/inf constant */
+	if(isnanorinf) {
+	    size_t l = strlen(s);
+	    memcpy(sq,s,l+1);
+	    s[0] = '"';
+	    memcpy(s+1,sq,l);
+	    s[l+1] = '"';
+    	    s[l+2] = '\0';
+	}
 	} break;
     case NC_STRING: {
 	p = nulldup(zcvt.strv);
@@ -542,4 +594,43 @@ typeid2jtype(nc_type typeid)
     default: break;
     }
     return NCJ_UNDEF;
+}
+
+/* Test for Nan(f) and Inf(f)
+   return 0 if not nan or inf
+   return NC_FLOAT if nanf or inff
+   return NC_DOUBLE if nan or inf
+   Always fill in both double and float cases so caller can choose
+*/
+static int
+naninftest(const char* s, double* dcase, float* fcase)
+{
+    nc_type nctype= NC_NAT;
+    assert(dcase && fcase);
+    if(strcasecmp(s,"nan")==0) {
+	*dcase = NAN; *fcase = NANF;
+	nctype = NC_DOUBLE;
+    } else if(strcasecmp(s,"-nan")==0) {
+	*dcase = (- NAN); *fcase = (- NANF);
+	nctype = NC_DOUBLE;
+    } else if(strcasecmp(s,"nanf")==0) {
+	*dcase = NAN; *fcase = NANF;
+	nctype = NC_FLOAT;
+    } else if(strcasecmp(s,"-nan")==0) {
+	*dcase = (- NAN); *fcase = (- NANF);
+	nctype = NC_FLOAT;
+    } else if(strcasecmp(s,"infinity")==0) {
+	*dcase = INFINITY; *fcase = INFINITYF;
+	nctype = NC_DOUBLE;
+    } else if(strcasecmp(s,"-infinity")==0) {
+	*dcase = (- INFINITY); *fcase = (- INFINITYF);
+	nctype = NC_DOUBLE;
+    } else if(strcasecmp(s,"infinityf")==0) {
+	*dcase = INFINITY; *fcase = INFINITYF;
+	nctype = NC_FLOAT;
+    } else if(strcasecmp(s,"-infinityf")==0) {
+	*dcase = (- INFINITY); *fcase = (- INFINITYF);
+	nctype = NC_FLOAT;
+    }    
+    return nctype;
 }
