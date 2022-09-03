@@ -9,36 +9,6 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 set -e
 
-# Cvt stringattr to single char string
-stringfixsa() {
-rm -f $2
-sed -e '/:stringattr/ s|string :|:|' -e '/:stringattr/ s|", "||g' < $1 > $2
-}
-
-# Cvt stringattr to JSON format string
-stringfixjsa() {
-rm -f $2
-sed -e '/:stringattr/ s|string :|:|' -e '/:stringattr/ s|"|\\"|g' -e '/:stringattr/ s|= \(.*\);|= "\[\1\]" ;|' < $1 > $2
-}
-
-# Cvt v var data to single char string
-stringfixv() {
-rm -f $2
-sed -e '/v = / s|", "||g' < $1 > $2
-}
-
-# Cvt charattr to single char string
-stringfixca() {
-rm -f $2
-sed -e '/:charattr/ s|", "||g' <$1 > $2
-}
-
-# Cvt c var data to single char string
-stringfixc() {
-rm -f $2
-sed -e '/c = / s|", "||g' < $1 > $2
-}
-
 testcase() {
 zext=$1
 
@@ -69,16 +39,11 @@ echo "*** read nczarr"
 ${NCDUMP} -n ref_string $nczarrurl > tmp_string_nczarr_${zext}.cdl
 ${ZMD} -h $nczarrurl > tmp_string_nczarr_${zext}.txt
 
-echo "*** convert for nczarr comparison"
-stringfixca ${srcdir}/ref_string.cdl tmp_ref_string_ca.cdl
-stringfixc tmp_ref_string_ca.cdl tmp_ref_string_cac.cdl
-   
-echo "*** convert for zarr comparison"
-stringfixjsa tmp_ref_string_cac.cdl tmp_ref_string_cacsa.cdl
+echo "*** verify zarr output"
+diff -bw ${srcdir}/ref_string_zarr.baseline tmp_string_zarr_${zext}.cdl
 
-echo "*** verify"
-diff -bw tmp_ref_string_cac.cdl tmp_string_nczarr_${zext}.cdl
-diff -bw tmp_ref_string_cacsa.cdl tmp_string_zarr_${zext}.cdl
+echo "*** verify nczarr output"
+diff -bw ${srcdir}/ref_string_nczarr.baseline tmp_string_nczarr_${zext}.cdl
 }
 
 testcase file
