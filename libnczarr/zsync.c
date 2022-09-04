@@ -2163,9 +2163,12 @@ parsedimrefs(NC_FILE_INFO_T* file, NClist* dimnames, size64_t* shape, NC_DIM_INF
 	    /* If not found and create then create it */
 	    if((stat = createdim(file, dimname, shape[i], &dims[i])))
 	        goto done;
+	} else {
+	    /* Verify consistency */
+	    if(dims[i]->len != shape[i])
+	        {stat = NC_EDIMSIZE; goto done;}
 	}
 	assert(dims[i] != NULL);
-	assert(dims[i]->len == shape[i]);
     }
 done:
     nclistfreeall(segments);
