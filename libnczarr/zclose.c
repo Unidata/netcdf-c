@@ -172,10 +172,10 @@ zclose_vars(NC_GRP_INFO_T* grp)
 	var->filters = NULL;
 #endif
 	/* Reclaim the type */
-	(void)zclose_type(var->type_info);
-        NCZ_free_chunk_cache(zvar->cache);
+	if(var->type_info) (void)zclose_type(var->type_info);
+        if(zvar->cache) NCZ_free_chunk_cache(zvar->cache);
 	/* reclaim xarray */
-	nclistfreeall(zvar->xarray);
+	if(zvar->xarray) nclistfreeall(zvar->xarray);
 	nullfree(zvar);
 	var->format_var_info = NULL; /* avoid memory errors */
     }
@@ -223,13 +223,9 @@ static int
 zclose_type(NC_TYPE_INFO_T* type)
 {
     int stat = NC_NOERR;
-    NCZ_TYPE_INFO_T* ztype;
 
     assert(type && type->format_type_info != NULL);
-    /* Get Zarr-specific type info. */
-    ztype = type->format_type_info;
-    nullfree(ztype);
-    type->format_type_info = NULL; /* avoid memory errors */
+    nullfree(type->format_type_info);
     return stat;
 }
 
