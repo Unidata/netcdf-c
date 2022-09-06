@@ -1078,15 +1078,24 @@ OPTION(ENABLE_BYTERANGE "Enable byte-range access to remote datasets.." OFF)
 # Check for the math library so it can be explicitly linked.
 IF(NOT WIN32)
   FIND_LIBRARY(HAVE_LIBM NAMES math m libm)
-  MESSAGE(STATUS "Found Math library: ${HAVE_LIBM}")
   IF(NOT HAVE_LIBM)
-    MESSAGE(FATAL_ERROR "Unable to find the math library.")
+    CHECK_FUNCTION_EXISTS(exp HAVE_LIBM_FUNC)
+    IF(NOT HAVE_LIBM_FUNC)
+        MESSAGE(FATAL_ERROR "Unable to find the math library.")
+    ELSE(NOT HAVE_LIBM_FUNC)
+        SET(HAVE_LIBM "")
+    ENDIF()
+  ELSE(NOT HAVE_LIBM)
+    MESSAGE(STATUS "Found Math library: ${HAVE_LIBM}")
   ENDIF()
 ENDIF()
 
 # Option to Enable DAP long tests, remote tests.
 OPTION(ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." ON)
+OPTION(ENABLE_EXTERNAL_SERVER_TESTS "Enable external Server remote tests." OFF)
 OPTION(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
+SET(REMOTETESTSERVERS "remotetest.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
+
 SET(REMOTETESTSERVERS "remotetest.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
 
 # See if we have zlib
@@ -1725,7 +1734,7 @@ ENDIF()
 
 # Set some of the options as advanced.
 MARK_AS_ADVANCED(ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_COVERAGE_TESTS )
-MARK_AS_ADVANCED(ENABLE_DAP_REMOTE_TESTS ENABLE_DAP_LONG_TESTS USE_REMOTE_CDASH)
+MARK_AS_ADVANCED(ENABLE_DAP_REMOTE_TESTS ENABLE_DAP_LONG_TESTS USE_REMOTE_CDASH ENABLE_EXTERNAL_SERVER_TESTS)
 MARK_AS_ADVANCED(ENABLE_DOXYGEN_BUILD_RELEASE_DOCS DOXYGEN_ENABLE_TASKS ENABLE_DOXYGEN_SERVER_SIDE_SEARCH)
 MARK_AS_ADVANCED(ENABLE_SHARED_LIBRARY_VERSION)
 

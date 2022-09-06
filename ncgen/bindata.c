@@ -422,6 +422,7 @@ done:
     return stat;
 }
 
+#if 0
 /**
 Internal equivalent of ncaux_reclaim_data.
 */
@@ -590,6 +591,9 @@ done:
     return stat;
 }
 #endif /*USE_NETCDF4*/
+
+#endif /*0*/
+
 
 #endif /*ENABLE_BINARY*/
 
