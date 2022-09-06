@@ -891,7 +891,7 @@ handled by providing the following new attributes:
 1. **_nczarr_default_maxstrlen** &mdash;
 This is an attribute of the root group. It specifies the default
 maximum string length for string types. If not specified, then
-it has the value of 64 characters.
+it has the value of 128 characters.
 2. **_nczarr_maxstrlen** &mdash;
 This is a per-variable attribute. It specifies the maximum
 string length for the string type associated with the variable.

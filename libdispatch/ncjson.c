@@ -467,13 +467,13 @@ testdouble(const char* word)
     double d;
     int count = 0;
     /* Check for Nan and Infinity */
-    if(strcasecmp("nan",word)==0) return NCJTHROW(NCJ_OK);
-    if(strcasecmp("infinity",word)==0) return NCJTHROW(NCJ_OK);
-    if(strcasecmp("-infinity",word)==0) return NCJTHROW(NCJ_OK);
+    if(0==(int)strcasecmp("nan",word)) return NCJTHROW(NCJ_OK);
+    if(0==(int)strcasecmp("infinity",word)) return NCJTHROW(NCJ_OK);
+    if(0==(int)strcasecmp("-infinity",word)) return NCJTHROW(NCJ_OK);
     /* Allow the XXXf versions as well */
-    if(strcasecmp("nanf",word)==0) return NCJTHROW(NCJ_OK);
-    if(strcasecmp("infinityf",word)==0) return NCJTHROW(NCJ_OK);
-    if(strcasecmp("-infinityf",word)==0) return NCJTHROW(NCJ_OK);
+    if(0==(int)strcasecmp("nanf",word)) return NCJTHROW(NCJ_OK);
+    if(0==(int)strcasecmp("infinityf",word)) return NCJTHROW(NCJ_OK);
+    if(0==(int)strcasecmp("-infinityf",word)) return NCJTHROW(NCJ_OK);
     /* Try to convert to number */
     ncvt = sscanf(word,"%lg%n",&d,&count);
     return NCJTHROW((ncvt == 1 && strlen(word)==count ? NCJ_OK : NCJ_ERR));

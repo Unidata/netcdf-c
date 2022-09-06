@@ -598,9 +598,13 @@ ncz_write_var(NC_VAR_INFO_T* var)
     }
 
     {
-	/* Iterate over all the chunks to create missing ones */
-	if((chunkodom = nczodom_new(var->ndims+zvar->scalar,start,stop,stride,stop))==NULL)
-	    {stat = NC_ENOMEM; goto done;}
+	if(zvar->scalar) {
+	    if((chunkodom = nczodom_new(1,start,stop,stride,stop))==NULL)
+	} else {
+	    /* Iterate over all the chunks to create missing ones */
+	    if((chunkodom = nczodom_new(var->ndims,start,stop,stride,stop))==NULL)
+	        {stat = NC_ENOMEM; goto done;}
+	}
 	for(;nczodom_more(chunkodom);nczodom_next(chunkodom)) {
 	    size64_t* indices = nczodom_indices(chunkodom);
 	    /* Convert to key */
@@ -1640,7 +1644,15 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 		{stat = (THROW(NC_ENCZARR)); goto done;}
 	    /* Verify the rank */
 	    assert (zarr_rank == NCJlength(jvalue));
-	    if(!zvar->scalar) {
+	    if(zvar->scalar) {
+		if(var->ndims != 0)
+		    {stat = (THROW(NC_ENCZARR)); goto done;}
+		zvar->chunkproduct = 1;
+		zvar->chunksize = zvar->chunkproduct * var->type_info->size;
+		/* Create the cache */
+		if((stat = NCZ_create_chunk_cache(var,var->type_info->size*zvar->chunkproduct,zvar->dimension_separator,&zvar->cache)))
+		    goto done;
+	    } else {/* !zvar->scalar */
 		if(zarr_rank == 0) {stat = NC_ENCZARR; goto done;}
 		var->storage = NC_CHUNKED;
 		if(var->ndims != rank)
@@ -1660,8 +1672,8 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 		/* Create the cache */
 		if((stat = NCZ_create_chunk_cache(var,var->type_info->size*zvar->chunkproduct,zvar->dimension_separator,&zvar->cache)))
 		    goto done;
-		if((stat = NCZ_adjust_var_cache(var))) goto done;
 	    }
+    	    if((stat = NCZ_adjust_var_cache(var))) goto done;
 	}
 	/* Capture row vs column major; currently, column major not used*/
 	{
@@ -2151,9 +2163,12 @@ parsedimrefs(NC_FILE_INFO_T* file, NClist* dimnames, size64_t* shape, NC_DIM_INF
 	    /* If not found and create then create it */
 	    if((stat = createdim(file, dimname, shape[i], &dims[i])))
 	        goto done;
+	} else {
+	    /* Verify consistency */
+	    if(dims[i]->len != shape[i])
+	        {stat = NC_EDIMSIZE; goto done;}
 	}
 	assert(dims[i] != NULL);
-	assert(dims[i]->len == shape[i]);
     }
 done:
     nclistfreeall(segments);
@@ -2183,7 +2198,7 @@ ncz_get_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var)
     
     /* Have we already read the var metadata? */
     if (var->meta_read)
-	return NC_NOERR;
+	goto done;
 
 #ifdef LOOK
     /* Get the current chunk cache settings. */
@@ -2223,12 +2238,12 @@ ncz_get_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var)
 
     if (var->coords_read && !var->dimscale)
 	if ((retval = get_attached_info(var, hdf5_var, var->ndims, hdf5_var->hdf_datasetid)))
-	    return retval;
+	    goto done;;
 #endif
 
     /* Remember that we have read the metadata for this var. */
     var->meta_read = NC_TRUE;
-
+done:
     return retval;
 }
 

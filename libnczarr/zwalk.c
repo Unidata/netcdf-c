@@ -130,7 +130,7 @@ NCZ_transferslice(NC_VAR_INFO_T* var, int reading,
     common.chunkcount = 1;
     if(common.scalar) {
 	dimlens[0] = 1;
-	chunklens[0] = var->chunksizes[0];
+	chunklens[0] = 1;
 	slices[0].start = 0;
 	slices[0].stride = 1;
 	slices[0].stop = 0;
