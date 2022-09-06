@@ -440,7 +440,7 @@ var->type_info->rc++;
 	 var->ndims, var->hdr.name));
     if(!var->chunksizes) {
 	if(var->ndims) {
-            if (!(var->chunksizes = calloc(var->ndims+zvar->scalar, sizeof(size_t))))
+            if (!(var->chunksizes = calloc(var->ndims, sizeof(size_t))))
 	        BAIL(NC_ENOMEM);
 	    if ((retval = ncz_find_default_chunksizes2(grp, var)))
 	        BAIL(retval);
@@ -454,7 +454,8 @@ var->type_info->rc++;
     
     /* Compute the chunksize cross product */
     zvar->chunkproduct = 1;
-    for(d=0;d<var->ndims+zvar->scalar;d++) {zvar->chunkproduct *= var->chunksizes[d];}
+    if(!zvar->scalar)
+        {for(d=0;d<var->ndims;d++) {zvar->chunkproduct *= var->chunksizes[d];}}
     zvar->chunksize = zvar->chunkproduct * var->type_info->size;
 
     /* Override the cache setting to use NCZarr defaults */
@@ -1948,8 +1949,12 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     {
         /* We must convert - allocate a buffer. */
         need_to_convert++;
-        for (d2 = 0; d2 < (var->ndims+zvar->scalar); d2++)
-            len *= countp[d2];
+	if(zvar->scalar) {
+	    len *= countp[0];	
+        } else {
+	    for (d2 = 0; d2 < (var->ndims); d2++)
+                len *= countp[d2];
+        }
         LOG((4, "converting data for var %s type=%d len=%d", var->hdr.name,
  		       var->type_info->hdr.id, len));
 

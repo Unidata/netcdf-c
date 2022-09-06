@@ -100,7 +100,7 @@ Inserted into any .zattrs ? or should it go into the container?
 #define DFALT_DIM_SEPARATOR '.'
 
 /* Default max string length for fixed length strings */
-#define NCZ_MAXSTR_DEFAULT 64
+#define NCZ_MAXSTR_DEFAULT 128
 
 #define islegaldimsep(c) ((c) != '\0' && strchr(LEGAL_DIM_SEPARATORS,(c)) != NULL)
 
