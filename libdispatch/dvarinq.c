@@ -60,9 +60,14 @@ int
 nc_inq_varid(int ncid, const char *name, int *varidp)
 {
    NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
-   return ncp->dispatch->inq_varid(ncid, name, varidp);
+   int stat;
+   NCLOCK;
+   stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) goto done;
+   stat = ncp->dispatch->inq_varid(ncid, name, varidp);
+done:
+   NCUNLOCK;
+   goto done;
 }
 
 /**
@@ -125,13 +130,18 @@ nc_inq_var(int ncid, int varid, char *name, nc_type *xtypep,
 	   int *ndimsp, int *dimidsp, int *nattsp)
 {
    NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
+   int stat;
+   NCLOCK;
+   stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) goto done;
    TRACE(nc_inq_var);
-   return ncp->dispatch->inq_var_all(ncid, varid, name, xtypep, ndimsp,
+   stat = ncp->dispatch->inq_var_all(ncid, varid, name, xtypep, ndimsp,
 				     dimidsp, nattsp, NULL, NULL, NULL,
 				     NULL, NULL, NULL, NULL, NULL, NULL,
 				     NULL,NULL,NULL);
+done:
+   NCUNLOCK;
+   goto done;
 }
 
 /**
@@ -300,8 +310,6 @@ nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep, int *defla
    int deflating = 0;
    int stat;
    
-   stat = NC_check_id(ncid,&ncp);
-   if(stat != NC_NOERR) return stat;
    TRACE(nc_inq_var_deflate);
 
    /* Verify id and  nparams */
@@ -321,7 +329,7 @@ nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep, int *defla
 	   *deflate_levelp = 0;
        return NC_NOERR;
        break;
-   default: return stat;
+   default: goto done;
    }
    if(deflatep) *deflatep = deflating;
    if(deflating) {
@@ -334,7 +342,10 @@ nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep, int *defla
    /* also get the shuffle state */
    if(!shufflep)
        return NC_NOERR;
-   return ncp->dispatch->inq_var_all(
+   NCLOCK;
+   stat = NC_check_id(ncid,&ncp);
+   if(stat != NC_NOERR) goto done;
+   stat = ncp->dispatch->inq_var_all(
       ncid, varid,
       NULL, /*name*/
       NULL, /*xtypep*/
@@ -352,6 +363,9 @@ nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep, int *defla
       NULL, /*endianp*/
       NULL, NULL, NULL
       );
+done:
+   NCUNLOCK;
+   goto done;
 }
 
 /** \ingroup variables
@@ -378,10 +392,12 @@ int
 nc_inq_var_fletcher32(int ncid, int varid, int *fletcher32p)
 {
    NC* ncp;
-   int stat = NC_check_id(ncid,&ncp);
-   if(stat != NC_NOERR) return stat;
+   int stat;
+   NCLOCK;
+   stat = NC_check_id(ncid,&ncp);
+   if(stat != NC_NOERR) goto done;
    TRACE(nc_inq_var_fletcher32);
-   return ncp->dispatch->inq_var_all(
+   stat = ncp->dispatch->inq_var_all(
       ncid, varid,
       NULL, /*name*/
       NULL, /*xtypep*/
@@ -399,6 +415,9 @@ nc_inq_var_fletcher32(int ncid, int varid, int *fletcher32p)
       NULL, /*endianp*/
       NULL, NULL, NULL
       );
+done:
+   NCUNLOCK;
+   goto done;
 }
 
 /**
@@ -466,13 +485,18 @@ int
 nc_inq_var_chunking(int ncid, int varid, int *storagep, size_t *chunksizesp)
 {
    NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
+   int stat;
+   NCLOCK;
+   stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) goto done;
    TRACE(nc_inq_var_chunking);
-   return ncp->dispatch->inq_var_all(ncid, varid, NULL, NULL, NULL, NULL,
+   stat = ncp->dispatch->inq_var_all(ncid, varid, NULL, NULL, NULL, NULL,
 				     NULL, NULL, NULL, NULL, NULL, storagep,
 				     chunksizesp, NULL, NULL, NULL,
                                      NULL, NULL, NULL);
+done:
+   NCUNLOCK;
+   goto done;
 }
 
 /** \ingroup variables
@@ -502,12 +526,13 @@ int
 nc_inq_var_fill(int ncid, int varid, int *no_fill, void *fill_valuep)
 {
    NC* ncp;
-   int stat = NC_check_id(ncid,&ncp);
-
-   if(stat != NC_NOERR) return stat;
+   int stat;
+   NCLOCK;
+   stat = NC_check_id(ncid,&ncp);
+   if(stat != NC_NOERR) goto done;
    TRACE(nc_inq_var_fill);
 
-   return ncp->dispatch->inq_var_all(
+   stat = ncp->dispatch->inq_var_all(
       ncid,varid,
       NULL, /*name*/
       NULL, /*xtypep*/
@@ -525,6 +550,9 @@ nc_inq_var_fill(int ncid, int varid, int *no_fill, void *fill_valuep)
       NULL, /*endianp*/
       NULL, NULL, NULL
       );
+done:
+   NCUNLOCK;
+   goto done;
 }
 
 /** @ingroup variables
@@ -545,16 +573,20 @@ int
 nc_inq_var_quantize(int ncid, int varid, int *quantize_modep, int *nsdp)
 {
    NC* ncp;
-   int stat = NC_check_id(ncid,&ncp);
-
-   if(stat != NC_NOERR) return stat;
+   int stat;
+   NCLOCK;
+   stat = NC_check_id(ncid,&ncp);
+   if(stat != NC_NOERR) goto done;
    TRACE(nc_inq_var_quantize);
    
    /* Using NC_GLOBAL is illegal. */
    if (varid == NC_GLOBAL) return NC_EGLOBAL;
 
-   return ncp->dispatch->inq_var_quantize(ncid, varid,
+   stat = ncp->dispatch->inq_var_quantize(ncid, varid,
 					  quantize_modep, nsdp);
+done:
+   NCUNLOCK;
+   goto done;
 }
 
 /** \ingroup variables
@@ -582,10 +614,12 @@ int
 nc_inq_var_endian(int ncid, int varid, int *endianp)
 {
    NC* ncp;
-   int stat = NC_check_id(ncid,&ncp);
-   if(stat != NC_NOERR) return stat;
+   int stat;
+   NCLOCK;
+   stat = NC_check_id(ncid,&ncp);
+   if(stat != NC_NOERR) goto done;
    TRACE(nc_inq_var_endian);
-   return ncp->dispatch->inq_var_all(
+   stat = ncp->dispatch->inq_var_all(
       ncid, varid,
       NULL, /*name*/
       NULL, /*xtypep*/
@@ -602,6 +636,9 @@ nc_inq_var_endian(int ncid, int varid, int *endianp)
       NULL, /*fillvaluep*/
       endianp, /*endianp*/
       NULL, NULL, NULL);
+done:
+   NCUNLOCK;
+   goto done;
 }
 
 /**
@@ -675,11 +712,16 @@ nc_inq_unlimdims(int ncid, int *nunlimdimsp, int *unlimdimidsp)
     return NC_ENOTNC4;
 #else
     NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
+    int stat;
+    NCLOCK;
+    stat = NC_check_id(ncid,&ncp);
+    if(stat != NC_NOERR) goto done;
     TRACE(nc_inq_unlimdims);
-    return ncp->dispatch->inq_unlimdims(ncid, nunlimdimsp,
+    stat = ncp->dispatch->inq_unlimdims(ncid, nunlimdimsp,
 					unlimdimidsp);
+done:
+   NCUNLOCK;
+   goto done;
 #endif
 }
 
@@ -731,12 +773,10 @@ szip is not in use for this variable. \ref ignored_if_null.
 int
 nc_inq_var_szip(int ncid, int varid, int *options_maskp, int *pixels_per_blockp)
 {
-   NC* ncp;
    size_t nparams;
    unsigned int params[4];
+   int stat = NC_NOERR;
 
-   int stat = NC_check_id(ncid,&ncp);
-   if(stat != NC_NOERR) return stat;
    TRACE(nc_inq_var_szip);
 
    /* Verify id and nparams */
@@ -757,13 +797,14 @@ nc_inq_var_szip(int ncid, int varid, int *options_maskp, int *pixels_per_blockp)
        stat = NC_NOERR;
        break;	   
    default:
-   	return stat;
+   	goto done;
    }
 
    /* Param[0] should be options_mask
       Param[1] should be pixels_per_block */
    if(options_maskp) *options_maskp = (int)params[0];
    if(pixels_per_blockp) *pixels_per_blockp = (int)params[1];
+done:
    return stat;
 }
 

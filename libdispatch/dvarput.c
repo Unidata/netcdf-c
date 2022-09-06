@@ -87,15 +87,19 @@ NC_put_vara(int ncid, int varid, const size_t *start,
    NC* ncp;
    size_t *my_count = (size_t *)edges;
 
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
+   int stat;
+   NCLOCK;
+   stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) goto done;
 
    if(start == NULL || edges == NULL) {
       stat = NC_check_nulls(ncid, varid, start, &my_count, NULL);
-      if(stat != NC_NOERR) return stat;
+      if(stat != NC_NOERR) goto done;
    }
    stat = ncp->dispatch->put_vara(ncid, varid, start, my_count, value, memtype);
    if(edges == NULL) free(my_count);
+done:
+   NCUNLOCK;
    return stat;
 }
 
@@ -107,11 +111,14 @@ NC_put_var(int ncid, int varid, const void *value, nc_type memtype)
 {
    int ndims;
    size_t shape[NC_MAX_VAR_DIMS];
-   int stat = nc_inq_varndims(ncid,varid, &ndims);
-   if(stat) return stat;
+   int stat = NC_NOERR;
+   stat = nc_inq_varndims(ncid,varid, &ndims);
+   if(stat) goto done;
    stat = NC_getshape(ncid,varid, ndims, shape);
-   if(stat) return stat;
-   return NC_put_vara(ncid, varid, NC_coord_zero, shape, value, memtype);
+   if(stat) goto done;
+   stat = NC_put_vara(ncid, varid, NC_coord_zero, shape, value, memtype);
+done:
+   return stat;
 }
 
 /** \internal
@@ -536,19 +543,22 @@ NC_put_vars(int ncid, int varid, const size_t *start,
    ptrdiff_t *my_stride = (ptrdiff_t *)stride;
    int stat;
 
+   NCLOCK;
    stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
+   if(stat != NC_NOERR) goto done;
 
    /* Handle any NULL parameters. */
    if(start == NULL || edges == NULL || stride == NULL) {
       stat = NC_check_nulls(ncid, varid, start, &my_count, &my_stride);
-      if(stat != NC_NOERR) return stat;
+      if(stat != NC_NOERR) goto done;
    }
 
    stat = ncp->dispatch->put_vars(ncid, varid, start, my_count, my_stride,
                                   value, memtype);
    if(edges == NULL) free(my_count);
    if(stride == NULL) free(my_stride);
+done:
+   NCUNLOCK;
    return stat;
 }
 
@@ -565,19 +575,22 @@ NC_put_varm(int ncid, int varid, const size_t *start,
    ptrdiff_t *my_stride = (ptrdiff_t *)stride;
    int stat;
 
+   NCLOCK;
    stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
+   if(stat != NC_NOERR) goto done;
 
    /* Handle any NULL parameters. */
    if(start == NULL || edges == NULL || stride == NULL) {
       stat = NC_check_nulls(ncid, varid, start, &my_count, &my_stride);
-      if(stat != NC_NOERR) return stat;
+      if(stat != NC_NOERR) goto done;
    }
 
    stat = ncp->dispatch->put_varm(ncid, varid, start, my_count, my_stride,
                                   map, value, memtype);
    if(edges == NULL) free(my_count);
    if(stride == NULL) free(my_stride);
+done:
+   NCUNLOCK;
    return stat;
 }
 
@@ -631,13 +644,13 @@ int
 nc_put_vara(int ncid, int varid, const size_t *startp,
 	    const size_t *countp, const void *op)
 {
-   NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
+   int stat;
    nc_type xtype;
-   if(stat != NC_NOERR) return stat;
    stat = nc_inq_vartype(ncid, varid, &xtype);
-   if(stat != NC_NOERR) return stat;
-   return NC_put_vara(ncid, varid, startp, countp, op, xtype);
+   if(stat != NC_NOERR) goto done;
+   stat = NC_put_vara(ncid, varid, startp, countp, op, xtype);
+done:
+   return stat;
 }
 
 int

@@ -121,10 +121,15 @@ int
 nc_def_dim(int ncid, const char *name, size_t len, int *idp)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
+    int stat;
+    NCLOCK;
+    stat = NC_check_id(ncid, &ncp);
+    if(stat != NC_NOERR) goto done;
     TRACE(nc_def_dim);
-    return ncp->dispatch->def_dim(ncid, name, len, idp);
+    stat = ncp->dispatch->def_dim(ncid, name, len, idp);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /**
@@ -152,10 +157,15 @@ int
 nc_inq_dimid(int ncid, const char *name, int *idp)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
+    int stat;
+    NCLOCK;
+    stat = NC_check_id(ncid, &ncp);
+    if(stat != NC_NOERR) goto done;
     TRACE(nc_inq_dimid);
-    return ncp->dispatch->inq_dimid(ncid,name,idp);
+    stat = ncp->dispatch->inq_dimid(ncid,name,idp);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /**
@@ -216,10 +226,15 @@ int
 nc_inq_dim(int ncid, int dimid, char *name, size_t *lenp)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
+    int stat;
+    NCLOCK;
+    stat = NC_check_id(ncid, &ncp);
+    if(stat != NC_NOERR) goto done;
     TRACE(nc_inq_dim);
-    return ncp->dispatch->inq_dim(ncid,dimid,name,lenp);
+    stat = ncp->dispatch->inq_dim(ncid,dimid,name,lenp);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /**
@@ -285,10 +300,15 @@ int
 nc_rename_dim(int ncid, int dimid, const char *name)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
+    int stat;
+    NCLOCK;
+    stat = NC_check_id(ncid, &ncp);
+    if(stat != NC_NOERR) goto done;
     TRACE(nc_rename_dim);
-    return ncp->dispatch->rename_dim(ncid,dimid,name);
+    stat = ncp->dispatch->rename_dim(ncid,dimid,name);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /**
@@ -317,11 +337,16 @@ int
 nc_inq_ndims(int ncid, int *ndimsp)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
+    int stat;
+    NCLOCK;
+    stat = NC_check_id(ncid, &ncp);
+    if(stat != NC_NOERR) goto done;
     if(ndimsp == NULL) return NC_NOERR;
     TRACE(nc_inq_ndims);
-    return ncp->dispatch->inq(ncid,ndimsp,NULL,NULL,NULL);
+    stat = ncp->dispatch->inq(ncid,ndimsp,NULL,NULL,NULL);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /**
@@ -350,10 +375,15 @@ int
 nc_inq_unlimdim(int ncid, int *unlimdimidp)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
+    int stat;
+    NCLOCK;
+    stat = NC_check_id(ncid, &ncp);
+    if(stat != NC_NOERR) goto done;
     TRACE(nc_inq_unlimdim);
-    return ncp->dispatch->inq_unlimdim(ncid,unlimdimidp);
+    stat = ncp->dispatch->inq_unlimdim(ncid,unlimdimidp);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /**
@@ -409,11 +439,16 @@ int
 nc_inq_dimname(int ncid, int dimid, char *name)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
+    int stat;
+    NCLOCK;
+    stat = NC_check_id(ncid, &ncp);
+    if(stat != NC_NOERR) goto done;
     if(name == NULL) return NC_NOERR;
     TRACE(nc_inq_dimname);
-    return ncp->dispatch->inq_dim(ncid,dimid,name,NULL);
+    stat = ncp->dispatch->inq_dim(ncid,dimid,name,NULL);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /**
@@ -467,11 +502,16 @@ int
 nc_inq_dimlen(int ncid, int dimid, size_t *lenp)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
+    int stat;
+    NCLOCK;
+    stat = NC_check_id(ncid, &ncp);
+    if(stat != NC_NOERR) goto done;
     if(lenp == NULL) return NC_NOERR;
     TRACE(nc_inq_dimlen);
-    return ncp->dispatch->inq_dim(ncid,dimid,NULL,lenp);
+    stat = ncp->dispatch->inq_dim(ncid,dimid,NULL,lenp);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /** @} */

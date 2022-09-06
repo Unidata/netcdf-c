@@ -217,11 +217,14 @@ nc_def_var(int ncid, const char *name, nc_type xtype,
     NC* ncp;
     int stat = NC_NOERR;
 
-    if ((stat = NC_check_id(ncid, &ncp)))
-        return stat;
+    NCLOCK;
+    if ((stat = NC_check_id(ncid, &ncp))) goto done;
     TRACE(nc_def_var);
-    return ncp->dispatch->def_var(ncid, name, xtype, ndims,
+    stat = ncp->dispatch->def_var(ncid, name, xtype, ndims,
                                   dimidsp, varidp);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /**
@@ -309,16 +312,20 @@ int
 nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
+    int stat;
+    NCLOCK;
+    stat = NC_check_id(ncid,&ncp);
+    if(stat != NC_NOERR) goto done;
 
     /* Using NC_GLOBAL is illegal, as this API has no provision for
      * specifying the type of the fillvalue, it must of necessity be
      * using the type of the variable to interpret the bytes of the
      * fill_value argument. */
-    if (varid == NC_GLOBAL) return NC_EGLOBAL;
-
-    return ncp->dispatch->def_var_fill(ncid,varid,no_fill,fill_value);
+    if (varid == NC_GLOBAL) {stat = NC_EGLOBAL; goto done;}
+    stat = ncp->dispatch->def_var_fill(ncid,varid,no_fill,fill_value);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /**
@@ -461,9 +468,13 @@ int
 nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_level)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->def_var_deflate(ncid,varid,shuffle,deflate,deflate_level);
+    int stat;
+    NCLOCK;
+    stat = NC_check_id(ncid,&ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->def_var_deflate(ncid,varid,shuffle,deflate,deflate_level);
+done:
+    return stat;
 }
 
 /**
@@ -560,12 +571,16 @@ int
 nc_def_var_quantize(int ncid, int varid, int quantize_mode, int nsd)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-
+    int stat;
+    NCLOCK;
+    stat = NC_check_id(ncid,&ncp);
+    if(stat != NC_NOERR) goto done;
     /* Using NC_GLOBAL is illegal. */
-    if (varid == NC_GLOBAL) return NC_EGLOBAL;
-    return ncp->dispatch->def_var_quantize(ncid,varid,quantize_mode,nsd);
+    if (varid == NC_GLOBAL) {stat = NC_EGLOBAL; goto done;}
+    stat = ncp->dispatch->def_var_quantize(ncid,varid,quantize_mode,nsd);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /**
@@ -609,9 +624,14 @@ int
 nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->def_var_fletcher32(ncid,varid,fletcher32);
+    int stat;
+    NCLOCK;
+    stat = NC_check_id(ncid,&ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->def_var_fletcher32(ncid,varid,fletcher32);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /**
@@ -729,10 +749,15 @@ int
 nc_def_var_chunking(int ncid, int varid, int storage, const size_t *chunksizesp)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->def_var_chunking(ncid, varid, storage,
+    int stat;
+    NCLOCK;
+    stat = NC_check_id(ncid, &ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->def_var_chunking(ncid, varid, storage,
                                            chunksizesp);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /**
@@ -807,9 +832,14 @@ int
 nc_def_var_endian(int ncid, int varid, int endian)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->def_var_endian(ncid,varid,endian);
+    int stat;
+    NCLOCK;
+    stat = NC_check_id(ncid,&ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->def_var_endian(ncid,varid,endian);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /**
@@ -872,7 +902,6 @@ nc_def_var_szip(int ncid, int varid, int options_mask, int pixels_per_block)
     params[1] = pixels_per_block;
     if ((ret = nc_def_var_filter(ncid, varid, HDF5_FILTER_SZIP, 2, params)))
         return ret;
-
     return NC_NOERR;
 }
 
@@ -946,10 +975,15 @@ int
 nc_rename_var(int ncid, int varid, const char *name)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
+    int stat;
+    NCLOCK;
+    stat = NC_check_id(ncid, &ncp);
+    if(stat != NC_NOERR) goto done;
     TRACE(nc_rename_var);
-    return ncp->dispatch->rename_var(ncid, varid, name);
+    stat = ncp->dispatch->rename_var(ncid, varid, name);
+done:
+    NCUNLOCK;
+    return stat;
 }
 /** @} */
 
@@ -1392,10 +1426,15 @@ nc_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
                        float preemption)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->set_var_chunk_cache(ncid, varid, size,
+    int stat;
+    NCLOCK;
+    stat = NC_check_id(ncid, &ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->set_var_chunk_cache(ncid, varid, size,
                                               nelems, preemption);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /**
@@ -1433,10 +1472,15 @@ nc_get_var_chunk_cache(int ncid, int varid, size_t *sizep, size_t *nelemsp,
                        float *preemptionp)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->get_var_chunk_cache(ncid, varid, sizep,
+    int stat = NC_NOERR;
+    NCLOCK;
+    stat = NC_check_id(ncid, &ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->get_var_chunk_cache(ncid, varid, sizep,
                                               nelemsp, preemptionp);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 #ifndef USE_NETCDF4

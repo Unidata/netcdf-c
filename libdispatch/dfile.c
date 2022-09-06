@@ -33,6 +33,7 @@
 #include <stdio.h>
 #endif
 
+#include "netcdf.h"
 #include "ncdispatch.h"
 #include "netcdf_mem.h"
 #include "ncpathmgr.h"
@@ -151,7 +152,6 @@ nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_numbe
             strncpy(UDF1_magic_number, magic_number, NC_MAX_MAGIC_NUMBER_LEN);
         break;
     }
-
     return NC_NOERR;
 }
 
@@ -895,8 +895,9 @@ nc_inq_path(int ncid, size_t *pathlen, char *path)
 {
     NC* ncp;
     int stat = NC_NOERR;
+    NCLOCK;
     if ((stat = NC_check_id(ncid, &ncp)))
-        return stat;
+        goto done;
     if(ncp->path == NULL) {
         if(pathlen) *pathlen = 0;
         if(path) path[0] = '\0';
@@ -904,6 +905,8 @@ nc_inq_path(int ncid, size_t *pathlen, char *path)
         if (pathlen) *pathlen = strlen(ncp->path);
         if (path) strcpy(path, ncp->path);
     }
+done:
+    NCUNLOCK;
     return stat;
 }
 
@@ -959,9 +962,14 @@ int
 nc_redef(int ncid)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->redef(ncid);
+    int stat;
+    NCLOCK;
+    stat = NC_check_id(ncid, &ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->redef(ncid);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /** \ingroup datasets
@@ -1022,11 +1030,15 @@ nc_redef(int ncid)
 int
 nc_enddef(int ncid)
 {
-    int status = NC_NOERR;
+    int stat = NC_NOERR;
     NC *ncp;
-    status = NC_check_id(ncid, &ncp);
-    if(status != NC_NOERR) return status;
-    return ncp->dispatch->_enddef(ncid,0,1,0,1);
+    NCLOCK;
+    stat = NC_check_id(ncid, &ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->_enddef(ncid,0,1,0,1);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /** \ingroup datasets
@@ -1115,9 +1127,13 @@ nc__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree,
            size_t r_align)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->_enddef(ncid,h_minfree,v_align,v_minfree,r_align);
+    int stat;
+    stat = NC_check_id(ncid, &ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->_enddef(ncid,h_minfree,v_align,v_minfree,r_align);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /** \ingroup datasets
@@ -1191,9 +1207,13 @@ int
 nc_sync(int ncid)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->sync(ncid);
+    int stat;
+    stat = NC_check_id(ncid, &ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->sync(ncid);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /** \ingroup datasets
@@ -1243,12 +1263,15 @@ int
 nc_abort(int ncid)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
+    int stat;
+    stat = NC_check_id(ncid, &ncp);
+    if(stat != NC_NOERR) goto done;
 
     stat = ncp->dispatch->abort(ncid);
     del_from_NCList(ncp);
     free_NC(ncp);
+done:
+    NCUNLOCK;
     return stat;
 }
 
@@ -1296,8 +1319,9 @@ int
 nc_close(int ncid)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
+    int stat;
+    stat = NC_check_id(ncid, &ncp);
+    if(stat != NC_NOERR) goto done;
 
     stat = ncp->dispatch->close(ncid,NULL);
     /* Remove from the nc list */
@@ -1306,6 +1330,8 @@ nc_close(int ncid)
         del_from_NCList(ncp);
         free_NC(ncp);
     }
+done:
+    NCUNLOCK;
     return stat;
 }
 
@@ -1355,8 +1381,9 @@ int
 nc_close_memio(int ncid, NC_memio* memio)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
+    int stat;
+    stat = NC_check_id(ncid, &ncp);
+    if(stat != NC_NOERR) goto done;
 
     stat = ncp->dispatch->close(ncid,memio);
     /* Remove from the nc list */
@@ -1365,6 +1392,8 @@ nc_close_memio(int ncid, NC_memio* memio)
         del_from_NCList(ncp);
         free_NC(ncp);
     }
+done:
+    NCUNLOCK;
     return stat;
 }
 
@@ -1470,9 +1499,13 @@ int
 nc_set_fill(int ncid, int fillmode, int *old_modep)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->set_fill(ncid,fillmode,old_modep);
+    int stat;
+    stat = NC_check_id(ncid, &ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->set_fill(ncid,fillmode,old_modep);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /**
@@ -1493,10 +1526,12 @@ int
 nc_inq_base_pe(int ncid, int *pe)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
+    int stat = NC_NOERR;
+    stat = NC_check_id(ncid, &ncp);
+    if(stat != NC_NOERR) goto done;
     if (pe) *pe = 0;
-    return NC_NOERR;
+done:
+    return stat;
 }
 
 /**
@@ -1517,9 +1552,11 @@ int
 nc_set_base_pe(int ncid, int pe)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return NC_NOERR;
+    int stat = NC_NOERR;
+    stat = NC_check_id(ncid, &ncp);
+    if(stat != NC_NOERR) goto done;
+done:
+    return stat;
 }
 
 /**
@@ -1543,9 +1580,13 @@ int
 nc_inq_format(int ncid, int *formatp)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->inq_format(ncid,formatp);
+    int stat;
+    stat = NC_check_id(ncid, &ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->inq_format(ncid,formatp);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /** \ingroup datasets
@@ -1578,9 +1619,13 @@ int
 nc_inq_format_extended(int ncid, int *formatp, int *modep)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->inq_format_extended(ncid,formatp,modep);
+    int stat;
+    stat = NC_check_id(ncid, &ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->inq_format_extended(ncid,formatp,modep);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /**\ingroup datasets
@@ -1631,9 +1676,13 @@ int
 nc_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->inq(ncid,ndimsp,nvarsp,nattsp,unlimdimidp);
+    int stat;
+    stat = NC_check_id(ncid, &ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->inq(ncid,ndimsp,nvarsp,nattsp,unlimdimidp);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /**
@@ -1650,9 +1699,13 @@ int
 nc_inq_nvars(int ncid, int *nvarsp)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->inq(ncid, NULL, nvarsp, NULL, NULL);
+    int stat;
+    stat = NC_check_id(ncid, &ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->inq(ncid, NULL, nvarsp, NULL, NULL);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /**\ingroup datasets
@@ -1724,24 +1777,28 @@ int
 nc_inq_type(int ncid, nc_type xtype, char *name, size_t *size)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
 
     /* Do a quick triage on xtype */
-    if(xtype <= NC_NAT) return NC_EBADTYPE;
+    if(xtype <= NC_NAT) {stat = NC_EBADTYPE; goto done;}
     /* For compatibility, we need to allow inq about
        atomic types, even if ncid is ill-defined */
     if(xtype <= ATOMICTYPEMAX4) {
         if(name) strncpy(name,NC_atomictypename(xtype),NC_MAX_NAME);
         if(size) *size = NC_atomictypelen(xtype);
-        return NC_NOERR;
+        goto done;
     }
     /* Apparently asking about a user defined type, so we need
        a valid ncid */
     stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) /* bad ncid */
-        return NC_EBADTYPE;
-    /* have good ncid */
-    return ncp->dispatch->inq_type(ncid,xtype,name,size);
+        {stat = NC_EBADTYPE; goto done;}
+
+/* have good ncid */
+    stat = ncp->dispatch->inq_type(ncid,xtype,name,size);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /**
@@ -1843,7 +1900,7 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 
     /* Check mode flag for sanity. */
     if ((stat = check_create_mode(cmode)))
-        return stat;
+        goto done;
 
     /* Initialize the library. The available dispatch tables
      * will depend on how netCDF was built
@@ -1851,7 +1908,7 @@ NC_create(const char *path0, int cmode, size_t initialsz,
     if(!NC_initialized)
     {
         if ((stat = nc_initialize()))
-            return stat;
+            goto done;
     }
 
     {
@@ -1921,6 +1978,7 @@ NC_create(const char *path0, int cmode, size_t initialsz,
         return NC_ENOTNC;
     }
 
+    NCLOCK;
     /* Create the NC* instance and insert its dispatcher and model */
     if((stat = new_NC(dispatcher,path,cmode,&ncp))) goto done;
 
@@ -1935,6 +1993,7 @@ NC_create(const char *path0, int cmode, size_t initialsz,
     } else {
         if(ncidp)*ncidp = ncp->ext_ncid;
     }
+    NCUNLOCK;
 done:
     nullfree(path);
     return stat;
@@ -1980,12 +2039,12 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
     TRACE(nc_open);
     if(!NC_initialized) {
         stat = nc_initialize();
-        if(stat) return stat;
+        if(stat) goto done;
     }
 
     /* Check inputs. */
     if (!path0)
-        return NC_EINVAL;
+        {stat = NC_EINVAL; goto done;}
 
     /* Capture the inmemory related flags */
     mmap = ((omode & NC_MMAP) == NC_MMAP);
@@ -2123,6 +2182,7 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
     /* If we can't figure out what dispatch table to use, give up. */
     if (!dispatcher) {stat = NC_ENOTNC; goto done;}
 
+    NCLOCK;
     /* Create the NC* instance and insert its dispatcher */
     if((stat = new_NC(dispatcher,path,omode,&ncp))) goto done;
 
@@ -2138,7 +2198,8 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
         del_from_NCList(ncp);
         free_NC(ncp);
     }
-
+    NCUNLOCK;
+    
 done:
     nullfree(path);
     nullfree(newpath);

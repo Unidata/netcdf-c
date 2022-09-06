@@ -115,8 +115,43 @@ ISMINGW=yes
 ISMSYS=yes
 fi
 
+# See if we have libpthreads
+if test xno = xyes ; then
+# why does this not work?
+AC_CHECK_LIB([pthreads],[pthread_mutex_init],[have_pthreads=yes],[have_pthreads=no])
+if test "x$have_pthreads" = "xyes" ; then
+   AC_SEARCH_LIBS([pthread_mutex_init],[pthreads pthreads.dll cygpthreads.dll], [], [])
+   AC_DEFINE([HAVE_PTHREADS], [1], [if true, pthreads library is available])
+fi
+fi
+
+AC_CHECK_HEADERS([pthread.h],[have_pthreads=yes],[have_pthreads=no])
+AC_MSG_CHECKING([whether libpthreads library is available])
+AC_MSG_RESULT([${have_pthreads}])
+if test "x$have_pthreads" = "xyes" ; then
+  AC_DEFINE([HAVE_PTHREADS], [1], [if true, pthread.h is available])
+fi
+
+AC_MSG_CHECKING([whether we should enable thread safety])
+AC_ARG_ENABLE([threadsafe], [AS_HELP_STRING([--enable-threadsafe],
+              [enable thread-safe operation])])
+test "x$enable_threadsafe" = xno || enable_threadsafe=yes
+AC_MSG_RESULT([$enable_threadsafe])
+if test "x$enable_threadsafe" = xyes && test "x$have_pthreads" = xno ; then
+  AC_MSG_NOTICE([!pthreads => !threadsafe])
+  enable_threadsafe=no
+fi
+if test "x$enable_threadsafe" = xyes ; then
+AC_DEFINE([ENABLE_THREADSAFE], [1], [if true, include experimental thread safe code])
+fi
+AM_CONDITIONAL(ENABLE_THREADSAFE, [test "x$enable_threadsafe" = xyes])
+
 # Get windows version info
+if test "x$ISMINGW" = xyes ; then
 WINVER=`systeminfo | sed -e '/^OS Version:/p' -ed | sed -e 's|[^0-9]*\([0-9.]*\).*|\1|'`
+else
+WINVER="0.0.0"
+fi
 WINVERMAJOR=`echo $WVER | sed -e 's|\([^.]*\)[.]\([^.]*\)[.]\(.*\)|\1|'`
 WINVERBUILD=`echo $WVER | sed -e 's|\([^.]*\)[.]\([^.]*\)[.]\(.*\)|\3|'`
 if test "x$WINVERMAJOR" = x ; then WINVERMAJOR=0; fi

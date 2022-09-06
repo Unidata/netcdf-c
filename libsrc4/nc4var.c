@@ -122,11 +122,12 @@ nc_get_var_chunk_cache_ints(int ncid, int varid, int *sizep,
 {
     size_t real_size, real_nelems;
     float real_preemption;
-    int ret;
+    int ret = NC_NOERR;
 
+    NCLOCK;
     if ((ret = NC4_get_var_chunk_cache(ncid, varid, &real_size,
                                        &real_nelems, &real_preemption)))
-        return ret;
+        goto done;
 
     if (sizep)
         *sizep = real_size / MEGABYTE;
@@ -135,7 +136,9 @@ nc_get_var_chunk_cache_ints(int ncid, int varid, int *sizep,
     if(preemptionp)
         *preemptionp = (int)(real_preemption * 100);
 
-    return NC_NOERR;
+done:
+    NCUNLOCK;
+    return ret;
 }
 
 /**
@@ -339,19 +342,20 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 int
 nc_inq_var_chunking_ints(int ncid, int varid, int *storagep, int *chunksizesp)
 {
-    NC_VAR_INFO_T *var;
+    NC_VAR_INFO_T *var = NULL;
     size_t *cs = NULL;
-    int i, retval;
+    int i, retval = NC_NOERR;
 
+    NCLOCK;
     /* Get pointer to the var. */
     if ((retval = nc4_find_grp_h5_var(ncid, varid, NULL, NULL, &var)))
-        return retval;
+        goto done;
     assert(var);
 
     /* Allocate space for the size_t copy of the chunksizes array. */
     if (var->ndims)
         if (!(cs = malloc(var->ndims * sizeof(size_t))))
-            return NC_ENOMEM;
+            {retval = NC_ENOMEM; goto done;}
 
     /* Call the netcdf-4 version directly. */
     retval = NC4_inq_var_all(ncid, varid, NULL, NULL, NULL, NULL, NULL,
@@ -369,8 +373,10 @@ nc_inq_var_chunking_ints(int ncid, int varid, int *storagep, int *chunksizesp)
         }
     }
 
+done:
     if (var->ndims)
         free(cs);
+    NCUNLOCK;
     return retval;
 }
 

@@ -1064,15 +1064,17 @@ nc_def_var_chunking_ints(int ncid, int varid, int storage, int *chunksizesp)
     size_t *cs = NULL;
     int i, retval;
 
+    NCLOCK;
+
     /* Get pointer to the var. */
     if ((retval = nc4_hdf5_find_grp_h5_var(ncid, varid, NULL, NULL, &var)))
-        return retval;
+        goto done;
     assert(var);
 
     /* Allocate space for the size_t copy of the chunksizes array. */
     if (var->ndims)
         if (!(cs = malloc(var->ndims * sizeof(size_t))))
-            return NC_ENOMEM;
+            {retval = NC_ENOMEM; goto done;}
 
     /* Copy to size_t array. */
     for (i = 0; i < var->ndims; i++)
@@ -1081,8 +1083,10 @@ nc_def_var_chunking_ints(int ncid, int varid, int storage, int *chunksizesp)
     retval = nc_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL,
                               &storage, cs, NULL, NULL, NULL, NULL, NULL);
 
+done:
     if (var->ndims)
         free(cs);
+    NCUNLOCK;
     return retval;
 }
 
@@ -2401,10 +2405,12 @@ int
 nc_set_var_chunk_cache_ints(int ncid, int varid, int size, int nelems,
                             int preemption)
 {
+    int stat = NC_NOERR;
     size_t real_size = H5D_CHUNK_CACHE_NBYTES_DEFAULT;
     size_t real_nelems = H5D_CHUNK_CACHE_NSLOTS_DEFAULT;
     float real_preemption = CHUNK_CACHE_PREEMPTION;
 
+    NCLOCK;
     LOG((1, "%s: ncid 0x%x varid %d size %d nelems %d preemption %d",
 	 __func__, ncid, varid, size, nelems, preemption));
     
@@ -2417,6 +2423,8 @@ nc_set_var_chunk_cache_ints(int ncid, int varid, int size, int nelems,
     if (preemption >= 0)
         real_preemption = preemption / 100.;
 
-    return NC4_HDF5_set_var_chunk_cache(ncid, varid, real_size, real_nelems,
+    stat = NC4_HDF5_set_var_chunk_cache(ncid, varid, real_size, real_nelems,
                                         real_preemption);
+    NCUNLOCK;
+    return stat;
 }

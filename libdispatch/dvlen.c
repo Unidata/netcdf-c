@@ -115,9 +115,14 @@ int
 nc_def_vlen(int ncid, const char *name, nc_type base_typeid, nc_type *xtypep)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->def_vlen(ncid,name,base_typeid,xtypep);
+    int stat;
+    NCLOCK;
+    stat = NC_check_id(ncid,&ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->def_vlen(ncid,name,base_typeid,xtypep);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /** \ingroup user_types
@@ -144,8 +149,9 @@ nc_inq_vlen(int ncid, nc_type xtype, char *name, size_t *datum_sizep, nc_type *b
 {
     int class = 0;
     int stat = nc_inq_user_type(ncid,xtype,name,datum_sizep,base_nc_typep,NULL,&class);
-    if(stat != NC_NOERR) return stat;
+    if(stat != NC_NOERR) goto done;
     if(class != NC_VLEN) stat = NC_EBADTYPE;
+done:
     return stat;
 }
 /*! \} */  /* End of named group ...*/
@@ -173,9 +179,14 @@ int
 nc_put_vlen_element(int ncid, int typeid1, void *vlen_element, size_t len, const void *data)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->put_vlen_element(ncid,typeid1,vlen_element,len,data);
+    int stat;
+    NCLOCK;
+    stat = NC_check_id(ncid,&ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->put_vlen_element(ncid,typeid1,vlen_element,len,data);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /** 
@@ -202,8 +213,13 @@ nc_get_vlen_element(int ncid, int typeid1, const void *vlen_element,
 		    size_t *len, void *data)
 {
     NC *ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->get_vlen_element(ncid, typeid1, vlen_element, 
+    int stat;
+    NCLOCK;
+    stat = NC_check_id(ncid,&ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->get_vlen_element(ncid, typeid1, vlen_element, 
 					   len, data);
+done:
+    NCUNLOCK;
+    return stat;
 }

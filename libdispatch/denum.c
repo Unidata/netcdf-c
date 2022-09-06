@@ -43,9 +43,14 @@ int
 nc_def_enum(int ncid, nc_type base_typeid, const char *name, nc_type *typeidp)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->def_enum(ncid,base_typeid,name,typeidp);
+    int stat;
+    NCLOCK;
+    stat = NC_check_id(ncid,&ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->def_enum(ncid,base_typeid,name,typeidp);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /** \ingroup user_types
@@ -72,10 +77,15 @@ nc_insert_enum(int ncid, nc_type xtype, const char *name,
 	       const void *value)
 {
     NC *ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->insert_enum(ncid, xtype, name,
+    int stat;
+    NCLOCK;
+    stat = NC_check_id(ncid, &ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->insert_enum(ncid, xtype, name,
 				      value);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /** \ingroup user_types
@@ -110,8 +120,10 @@ nc_inq_enum(int ncid, nc_type xtype, char *name, nc_type *base_nc_typep,
     int class = 0;
     int stat = nc_inq_user_type(ncid, xtype, name, base_sizep, 
 				base_nc_typep, num_membersp, &class);
-    if(stat != NC_NOERR) return stat;
+    if(stat != NC_NOERR) goto done;
     if(class != NC_ENUM) stat = NC_EBADTYPE;
+done:
+    NCUNLOCK;
     return stat;
 }
 
@@ -141,9 +153,14 @@ nc_inq_enum_member(int ncid, nc_type xtype, int idx, char *name,
 		   void *value)
 {
     NC *ncp;
-    int stat = NC_check_id(ncid, &ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->inq_enum_member(ncid, xtype, idx, name, value);
+    int stat;
+    NCLOCK;
+    stat = NC_check_id(ncid, &ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->inq_enum_member(ncid, xtype, idx, name, value);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /** \ingroup user_types
@@ -165,8 +182,13 @@ nc_inq_enum_ident(int ncid, nc_type xtype, long long value,
 		  char *identifier)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->inq_enum_ident(ncid,xtype,value,identifier);
+    int stat;
+    NCLOCK;
+    stat = NC_check_id(ncid,&ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->inq_enum_ident(ncid,xtype,value,identifier);
+done:
+    NCUNLOCK;
+    return stat;
 }
 /*! \} */  /* End of named group ...*/

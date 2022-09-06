@@ -2203,10 +2203,13 @@ specific details, interactions, and additional rules.
 int
 nc_set_alignment(int threshold, int alignment)
 {
-    NCglobalstate* gs = NC_getglobalstate();
+    NCglobalstate* gs;
+    NCLOCK;
+    gs = NC_getglobalstate();
     gs->alignment.threshold = threshold;
     gs->alignment.alignment = alignment;
     gs->alignment.defined = 1;
+    NCUNLOCK;
     return NC_NOERR;
 }
 

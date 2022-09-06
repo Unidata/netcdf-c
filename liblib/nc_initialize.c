@@ -82,6 +82,12 @@ nc_initialize()
 {
     int stat = NC_NOERR;
 
+#ifdef ENABLE_THREADSAFE
+    NC_global_mutex_initialize();
+#endif
+
+    NCLOCK;
+
     if(NC_initialized) return NC_NOERR;
     NC_initialized = 1;
     NC_finalized = 0;
@@ -123,6 +129,7 @@ nc_initialize()
 #endif
 
 done:
+    NCUNLOCK;
     return stat;
 }
 
@@ -141,6 +148,7 @@ nc_finalize(void)
     int stat = NC_NOERR;
     int failed = stat;
 
+    NCLOCK;
     if(NC_finalized) goto done;
     NC_initialized = 0;
     NC_finalized = 1;
@@ -182,6 +190,10 @@ nc_finalize(void)
 
     /* Do general finalization */
     if((stat = NCDISPATCH_finalize())) failed = stat;
+    NCUNLOCK;
+#ifdef ENABLE_THREADSAFE
+    NC_global_mutex_finalize();
+#endif
 
 done:
     if(failed) fprintf(stderr,"nc_finalize failed: %d\n",failed);

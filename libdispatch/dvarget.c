@@ -94,15 +94,19 @@ NC_get_vara(int ncid, int varid,
 {
    NC* ncp;
    size_t *my_count = (size_t *)edges;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
+   int stat;
+   NCLOCK;
+   stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) goto done;
 
    if(start == NULL || edges == NULL) {
       stat = NC_check_nulls(ncid, varid, start, &my_count, NULL);
-      if(stat != NC_NOERR) return stat;
+      if(stat != NC_NOERR) goto done;
    }
    stat =  ncp->dispatch->get_vara(ncid,varid,start,my_count,value,memtype);
    if(edges == NULL) free(my_count);
+done:
+   NCUNLOCK;
    return stat;
 }
 
@@ -167,16 +171,16 @@ NCDEFAULT_get_vars(int ncid, int varid, const size_t * start,
    char *memptr = NULL;
 
    status = NC_check_id (ncid, &ncp);
-   if(status != NC_NOERR) return status;
+   if(status != NC_NOERR) goto done;
 
    status = nc_inq_vartype(ncid, varid, &vartype);
-   if(status != NC_NOERR) return status;
+   if(status != NC_NOERR) goto done;
 
    if(memtype == NC_NAT) memtype = vartype;
 
    /* compute the variable type size */
    status = nc_inq_type(ncid,vartype,NULL,&vartypelen);
-   if(status != NC_NOERR) return status;
+   if(status != NC_NOERR) goto done;
 
    if(memtype > NC_MAX_ATOMIC_TYPE)
 	memtypelen = (int)vartypelen;
@@ -196,11 +200,11 @@ NCDEFAULT_get_vars(int ncid, int varid, const size_t * start,
 
    /* Get the variable rank */
    status = nc_inq_varndims(ncid, varid, &rank);
-   if(status != NC_NOERR) return status;
+   if(status != NC_NOERR) goto done;
 
    /* Start array is always required for non-scalar vars. */
    if(rank > 0 && start == NULL)
-      return NC_EINVALCOORDS;
+      {status = NC_EINVALCOORDS; goto done;}
 
    /* Get variable dimension sizes */
    isrecvar = NC_is_recvar(ncid,varid,&numrecs);
@@ -214,7 +218,8 @@ NCDEFAULT_get_vars(int ncid, int varid, const size_t * start,
        * (Why was I called?)
        */
       size_t edge1[1] = {1};
-      return NC_get_vara(ncid, varid, start, edge1, value, memtype);
+      status = NC_get_vara(ncid, varid, start, edge1, value, memtype);
+      goto done;
    }
 
    /* Do various checks and fixups on start/edges/stride */
@@ -226,7 +231,7 @@ NCDEFAULT_get_vars(int ncid, int varid, const size_t * start,
         /* illegal value checks */
 	dimlen = (i == 0 && isrecvar ? numrecs : varshape[i]);
         /* mystart is unsigned, never < 0 */
-	if (mystart[i] > dimlen) return NC_EINVALCOORDS;
+	if (mystart[i] > dimlen) {status = NC_EINVALCOORDS; goto done;}
 
 	if(edges == NULL) {
 	   if(i == 0 && isrecvar)
@@ -236,24 +241,25 @@ NCDEFAULT_get_vars(int ncid, int varid, const size_t * start,
 	} else
 	    myedges[i] = edges[i];
 
-	if (mystart[i] == dimlen && myedges[i] > 0) return NC_EINVALCOORDS;
+	if (mystart[i] == dimlen && myedges[i] > 0) {status = NC_EINVALCOORDS; goto done;}
 
         /* myedges is unsigned, never < 0 */
 	if(mystart[i] + myedges[i] > dimlen)
-	  return NC_EEDGE;
+	  {status = NC_EEDGE; goto done;}
 	mystride[i] = (stride == NULL ? 1 : stride[i]);
 	if(mystride[i] <= 0
 	   /* cast needed for braindead systems with signed size_t */
            || ((unsigned long) mystride[i] >= X_INT_MAX))
-           return NC_ESTRIDE;
+           {status = NC_ESTRIDE; goto done;}
   	if(mystride[i] != 1) simplestride = 0;
         if(myedges[i] == 0)
           nels = 0;
    }
    if(nels == 0)
-      return NC_NOERR; /* cannot read anything */
+      goto done; /* cannot read anything */
    if(simplestride) {
-      return NC_get_vara(ncid, varid, mystart, myedges, value, memtype);
+      status = NC_get_vara(ncid, varid, mystart, myedges, value, memtype);
+      goto done;
    }
 
    /* memptr indicates where to store the next value */
@@ -276,6 +282,8 @@ NCDEFAULT_get_vars(int ncid, int varid, const size_t * start,
       memptr += memtypelen;
       odom_next(&odom);
    }
+done:
+   NCUNLOCK;
    return status;
 }
 
@@ -305,20 +313,20 @@ NCDEFAULT_get_varm(int ncid, int varid, const size_t *start,
    char* value = (char*)value0;
 
    status = NC_check_id (ncid, &ncp);
-   if(status != NC_NOERR) return status;
+   if(status != NC_NOERR) goto done;
 
 /*
   if(NC_indef(ncp)) return NC_EINDEFINE;
 */
 
    status = nc_inq_vartype(ncid, varid, &vartype);
-   if(status != NC_NOERR) return status;
+   if(status != NC_NOERR) goto done;
    /* Check that this is an atomic type */
    if(vartype > NC_MAX_ATOMIC_TYPE)
 	return NC_EMAPTYPE;
 
    status = nc_inq_varndims(ncid, varid, &varndims);
-   if(status != NC_NOERR) return status;
+   if(status != NC_NOERR) goto done;
 
    if(memtype == NC_NAT) {
       memtype = vartype;
@@ -531,9 +539,10 @@ NCDEFAULT_get_varm(int ncid, int varid, const size_t *start,
 	    goto carry;
 	 }
       } /* I/O loop */
-     done:
       free(mystart);
    } /* variable is array */
+done:
+   NCUNLOCK;
    return status;
 }
 
@@ -579,19 +588,22 @@ NC_get_vars(int ncid, int varid, const size_t *start,
    ptrdiff_t *my_stride = (ptrdiff_t *)stride;
    int stat;
 
+   NCLOCK;
    stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
+   if(stat != NC_NOERR) goto done;
 
    /* Handle any NULL parameters. */
    if(start == NULL || edges == NULL || stride == NULL) {
       stat = NC_check_nulls(ncid, varid, start, &my_count, &my_stride);
-      if(stat != NC_NOERR) return stat;
+      if(stat != NC_NOERR) goto done;
    }
 
    stat = ncp->dispatch->get_vars(ncid,varid,start,my_count,my_stride,
                                   value,memtype);
    if(edges == NULL) free(my_count);
    if(stride == NULL) free(my_stride);
+done:
+   NCUNLOCK;
    return stat;
 }
 
@@ -641,19 +653,22 @@ NC_get_varm(int ncid, int varid, const size_t *start,
    ptrdiff_t *my_stride = (ptrdiff_t *)stride;
    int stat;
 
+   NCLOCK;
    stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
+   if(stat != NC_NOERR) goto done;
 
    /* Handle any NULL parameters. */
    if(start == NULL || edges == NULL || stride == NULL) {
       stat = NC_check_nulls(ncid, varid, start, &my_count, &my_stride);
-      if(stat != NC_NOERR) return stat;
+      if(stat != NC_NOERR) goto done;
    }
 
    stat = ncp->dispatch->get_varm(ncid, varid, start, my_count, my_stride,
                                   map, value, memtype);
    if(edges == NULL) free(my_count);
    if(stride == NULL) free(my_stride);
+done:
+   NCUNLOCK;
    return stat;
 }
 
@@ -741,13 +756,13 @@ int
 nc_get_vara(int ncid, int varid, const size_t *startp,
 	    const size_t *countp, void *ip)
 {
-   NC* ncp;
    nc_type xtype = NC_NAT;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
+   int stat = NC_NOERR;
    stat = nc_inq_vartype(ncid, varid, &xtype);
-   if(stat != NC_NOERR) return stat;
-   return NC_get_vara(ncid, varid, startp, countp, ip, xtype);
+   if(stat != NC_NOERR) goto done;
+   stat = NC_get_vara(ncid, varid, startp, countp, ip, xtype);
+done:
+   return stat;
 }
 
 int
