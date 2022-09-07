@@ -24,10 +24,6 @@
 #include <stdint.h>
 #endif
 
-#ifdef ENABLE_THREADSAFE
-#include "ncmutex.h"
-#endif
-
 /*
 This is included in bottom
 of config.h. It is where,

@@ -15,6 +15,10 @@ IF(BUILD_V2)
   SET(libdispatch_SOURCES ${libdispatch_SOURCES} dv2i.c)
 ENDIF(BUILD_V2)
 
+IF(ENABLE_THREADSAFE)
+  SET(libdispatch_SOURCES ${libdispatch_SOURCES} dmutext.c)
+ENDIF(ENABLE_THREADSAFE)
+
 IF(ENABLE_BYTERANGE)
   SET(libdispatch_SOURCES ${libdispatch_SOURCES} dhttp.c)
 ENDIF(ENABLE_BYTERANGE)

@@ -11,6 +11,7 @@
  */
 
 #include "config.h"
+#include "nc4dispatch.h"
 #include "nc4internal.h"
 
 /**

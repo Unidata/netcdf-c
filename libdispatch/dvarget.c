@@ -94,7 +94,7 @@ NC_get_vara(int ncid, int varid,
 {
    NC* ncp;
    size_t *my_count = (size_t *)edges;
-   int stat;
+   int stat = NC_NOERR;
    NCLOCK;
    stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) goto done;
@@ -586,7 +586,7 @@ NC_get_vars(int ncid, int varid, const size_t *start,
    NC* ncp;
    size_t *my_count = (size_t *)edges;
    ptrdiff_t *my_stride = (ptrdiff_t *)stride;
-   int stat;
+   int stat = NC_NOERR;
 
    NCLOCK;
    stat = NC_check_id(ncid, &ncp);
@@ -651,7 +651,7 @@ NC_get_varm(int ncid, int varid, const size_t *start,
    NC* ncp;
    size_t *my_count = (size_t *)edges;
    ptrdiff_t *my_stride = (ptrdiff_t *)stride;
-   int stat;
+   int stat = NC_NOERR;
 
    NCLOCK;
    stat = NC_check_id(ncid, &ncp);

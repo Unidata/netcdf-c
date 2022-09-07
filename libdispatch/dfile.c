@@ -962,7 +962,7 @@ int
 nc_redef(int ncid)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) goto done;
@@ -1127,7 +1127,8 @@ nc__enddef(int ncid, size_t h_minfree, size_t v_align, size_t v_minfree,
            size_t r_align)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
+    NCUNLOCK;
     stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) goto done;
     stat = ncp->dispatch->_enddef(ncid,h_minfree,v_align,v_minfree,r_align);
@@ -1207,7 +1208,8 @@ int
 nc_sync(int ncid)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
+    NCLOCK;
     stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) goto done;
     stat = ncp->dispatch->sync(ncid);
@@ -1263,10 +1265,10 @@ int
 nc_abort(int ncid)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
+    NCLOCK;
     stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) goto done;
-
     stat = ncp->dispatch->abort(ncid);
     del_from_NCList(ncp);
     free_NC(ncp);
@@ -1319,7 +1321,9 @@ int
 nc_close(int ncid)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
+
+    NCLOCK;
     stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) goto done;
 
@@ -1381,7 +1385,8 @@ int
 nc_close_memio(int ncid, NC_memio* memio)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
+    NCLOCK;
     stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) goto done;
 
@@ -1499,7 +1504,8 @@ int
 nc_set_fill(int ncid, int fillmode, int *old_modep)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
+    NCLOCK;
     stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) goto done;
     stat = ncp->dispatch->set_fill(ncid,fillmode,old_modep);
@@ -1527,10 +1533,12 @@ nc_inq_base_pe(int ncid, int *pe)
 {
     NC* ncp;
     int stat = NC_NOERR;
+    NCLOCK;
     stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) goto done;
     if (pe) *pe = 0;
 done:
+    NCUNLOCK;
     return stat;
 }
 
@@ -1553,9 +1561,11 @@ nc_set_base_pe(int ncid, int pe)
 {
     NC* ncp;
     int stat = NC_NOERR;
+    NCLOCK;
     stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) goto done;
 done:
+    NCUNLOCK;
     return stat;
 }
 
@@ -1580,7 +1590,8 @@ int
 nc_inq_format(int ncid, int *formatp)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
+    NCLOCK;
     stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) goto done;
     stat = ncp->dispatch->inq_format(ncid,formatp);
@@ -1619,7 +1630,8 @@ int
 nc_inq_format_extended(int ncid, int *formatp, int *modep)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
+    NCLOCK;
     stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) goto done;
     stat = ncp->dispatch->inq_format_extended(ncid,formatp,modep);
@@ -1676,7 +1688,8 @@ int
 nc_inq(int ncid, int *ndimsp, int *nvarsp, int *nattsp, int *unlimdimidp)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
+    NCLOCK;
     stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) goto done;
     stat = ncp->dispatch->inq(ncid,ndimsp,nvarsp,nattsp,unlimdimidp);
@@ -1699,7 +1712,8 @@ int
 nc_inq_nvars(int ncid, int *nvarsp)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
+    NCLOCK;
     stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) goto done;
     stat = ncp->dispatch->inq(ncid, NULL, nvarsp, NULL, NULL);
@@ -1779,6 +1793,7 @@ nc_inq_type(int ncid, nc_type xtype, char *name, size_t *size)
     NC* ncp;
     int stat = NC_NOERR;
 
+    NCLOCK;
     /* Do a quick triage on xtype */
     if(xtype <= NC_NAT) {stat = NC_EBADTYPE; goto done;}
     /* For compatibility, we need to allow inq about
@@ -1794,7 +1809,7 @@ nc_inq_type(int ncid, nc_type xtype, char *name, size_t *size)
     if(stat != NC_NOERR) /* bad ncid */
         {stat = NC_EBADTYPE; goto done;}
 
-/* have good ncid */
+    /* have good ncid */
     stat = ncp->dispatch->inq_type(ncid,xtype,name,size);
 done:
     NCUNLOCK;
@@ -1902,21 +1917,20 @@ NC_create(const char *path0, int cmode, size_t initialsz,
     if ((stat = check_create_mode(cmode)))
         goto done;
 
-    /* Initialize the library. The available dispatch tables
-     * will depend on how netCDF was built
-     * (with/without netCDF-4, DAP, CDMREMOTE). */
-    if(!NC_initialized)
-    {
-        if ((stat = nc_initialize()))
-            goto done;
-    }
-
     {
         /* Skip past any leading whitespace in path */
         const unsigned char* p;
         for(p=(const unsigned char*)path0;*p;p++) {if(*p > ' ') break;}
         path = nulldup((const char*)p);
     }
+
+    /* Initialize the library. The available dispatch tables
+     * will depend on how netCDF was built
+     * (with/without netCDF-4, DAP, CDMREMOTE). */
+    if(!NC_initialized)
+        {if ((stat = nc_initialize())) goto done;}
+
+    NCLOCK;
 
     memset(&model,0,sizeof(model));
     newpath = NULL;
@@ -1978,7 +1992,6 @@ NC_create(const char *path0, int cmode, size_t initialsz,
         return NC_ENOTNC;
     }
 
-    NCLOCK;
     /* Create the NC* instance and insert its dispatcher and model */
     if((stat = new_NC(dispatcher,path,cmode,&ncp))) goto done;
 
@@ -2036,12 +2049,6 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
     NCmodel model;
     char* newpath = NULL;
 
-    TRACE(nc_open);
-    if(!NC_initialized) {
-        stat = nc_initialize();
-        if(stat) goto done;
-    }
-
     /* Check inputs. */
     if (!path0)
         {stat = NC_EINVAL; goto done;}
@@ -2070,6 +2077,12 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
         for(p=(const char*)path0;*p;p++) {if(*p < 0 || *p > ' ') break;}
         path = nulldup(p);
     }
+
+    if(!NC_initialized)
+        {if((stat = nc_initialize())) goto done;}
+
+    NCLOCK;
+    TRACE(nc_open);
 
     memset(&model,0,sizeof(model));
     /* Infer model implementation and format, possibly by reading the file */
@@ -2182,7 +2195,6 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
     /* If we can't figure out what dispatch table to use, give up. */
     if (!dispatcher) {stat = NC_ENOTNC; goto done;}
 
-    NCLOCK;
     /* Create the NC* instance and insert its dispatcher */
     if((stat = new_NC(dispatcher,path,omode,&ncp))) goto done;
 

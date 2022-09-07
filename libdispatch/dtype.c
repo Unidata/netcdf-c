@@ -69,12 +69,12 @@ int
 nc_inq_type_equal(int ncid1, nc_type typeid1, int ncid2,
 		  nc_type typeid2, int *equal)
 {
-    NC* ncp1;
-    int stat;
+    NC* ncp;
+    int stat = NC_NOERR;
     NCLOCK;
-    stat = NC_check_id(ncid1,&ncp1);
+    stat = NC_check_id(ncid1,&ncp);
     if(stat != NC_NOERR) goto done;
-    stat = ncp1->dispatch->inq_type_equal(ncid1,typeid1,ncid2,typeid2,equal);
+    stat = ncp->dispatch->inq_type_equal(ncid1,typeid1,ncid2,typeid2,equal);
 done:
     NCUNLOCK;
     goto done;
@@ -107,7 +107,7 @@ int
 nc_inq_typeid(int ncid, const char *name, nc_type *typeidp)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) goto done;
@@ -157,7 +157,7 @@ nc_inq_user_type(int ncid, nc_type xtype, char *name, size_t *size,
 		 nc_type *base_nc_typep, size_t *nfieldsp, int *classp)
 {
     NC *ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) goto done;

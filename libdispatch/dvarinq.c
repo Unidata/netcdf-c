@@ -67,7 +67,7 @@ nc_inq_varid(int ncid, const char *name, int *varidp)
    stat = ncp->dispatch->inq_varid(ncid, name, varidp);
 done:
    NCUNLOCK;
-   goto done;
+   return stat;
 }
 
 /**
@@ -141,7 +141,7 @@ nc_inq_var(int ncid, int varid, char *name, nc_type *xtypep,
 				     NULL,NULL,NULL);
 done:
    NCUNLOCK;
-   goto done;
+   return stat;
 }
 
 /**
@@ -365,7 +365,7 @@ nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep, int *defla
       );
 done:
    NCUNLOCK;
-   goto done;
+   return stat;
 }
 
 /** \ingroup variables
@@ -417,7 +417,7 @@ nc_inq_var_fletcher32(int ncid, int varid, int *fletcher32p)
       );
 done:
    NCUNLOCK;
-   goto done;
+   return stat;
 }
 
 /**
@@ -496,7 +496,7 @@ nc_inq_var_chunking(int ncid, int varid, int *storagep, size_t *chunksizesp)
                                      NULL, NULL, NULL);
 done:
    NCUNLOCK;
-   goto done;
+   return stat;
 }
 
 /** \ingroup variables
@@ -552,7 +552,7 @@ nc_inq_var_fill(int ncid, int varid, int *no_fill, void *fill_valuep)
       );
 done:
    NCUNLOCK;
-   goto done;
+   return stat;
 }
 
 /** @ingroup variables
@@ -586,7 +586,7 @@ nc_inq_var_quantize(int ncid, int varid, int *quantize_modep, int *nsdp)
 					  quantize_modep, nsdp);
 done:
    NCUNLOCK;
-   goto done;
+   return stat;
 }
 
 /** \ingroup variables
@@ -638,7 +638,7 @@ nc_inq_var_endian(int ncid, int varid, int *endianp)
       NULL, NULL, NULL);
 done:
    NCUNLOCK;
-   goto done;
+   return stat;
 }
 
 /**
@@ -712,16 +712,15 @@ nc_inq_unlimdims(int ncid, int *nunlimdimsp, int *unlimdimidsp)
     return NC_ENOTNC4;
 #else
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
+    TRACE(nc_inq_unlimdims);
     NCLOCK;
     stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) goto done;
-    TRACE(nc_inq_unlimdims);
-    stat = ncp->dispatch->inq_unlimdims(ncid, nunlimdimsp,
-					unlimdimidsp);
+    stat = ncp->dispatch->inq_unlimdims(ncid, nunlimdimsp, unlimdimidsp);
 done:
    NCUNLOCK;
-   goto done;
+   return stat;
 #endif
 }
 
