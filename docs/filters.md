@@ -812,7 +812,7 @@ The h5 tag indicates that they assume that the result of the parse is a set of u
   * idp will contain the first constant &mdash; the filter id
   * nparamsp will contain the number of params 
   * paramsp will contain a vector of params &mdash; the caller must free
-This function can parse single filter spec strings as defined in the section on \ref{filters_syntax}.
+This function can parse single filter spec strings as defined in the section on \ref filters_syntax.
 2. *int ncaux\_h5filterspec\_parselist(const char* txt, int* formatp, size\_t* nspecsp, struct NC\_H5\_Filterspec*** vectorp);*
   * txt contains the text of a sequence '|' separated filter specs.
   * formatp currently always returns 0.
