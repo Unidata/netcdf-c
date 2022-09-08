@@ -1,7 +1,7 @@
 #! /bin/sh
 # test-driver - basic testsuite driver script.
 
-scriptversion=2018-06-26.01; # UTC
+scriptversion=2022-07-12.01; # UTC
 
 # Copyright (C) 2011-2013 Free Software Foundation, Inc.
 #
