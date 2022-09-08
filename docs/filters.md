@@ -309,7 +309,7 @@ The rules for all possible cases of the "-F none" flag are defined by this table
 <tr><td>false<td>defined<td>defined<td>use output filter(s)
 </table> 
 
-# Filter Specification Syntax {#filters_syntax}
+# Filter Specification Syntax  {#filters_syntax}
 
 The utilities <a href="#NCGEN">ncgen</a> and <a href="#NCCOPY">nccopy</a>, and also the output of *ncdump*, support the specification of filter ids, formats, and parameters in text format.
 The BNF specification is defined in [Appendix C](#filters_appendixc).
@@ -438,7 +438,7 @@ This means that some mechanism is needed to translate between the HDF5 id+parame
 3. It must be possible to modify the set of visible parameters in response to environment information such as the type of the associated variable; this is required to mimic the corresponding HDF5 capability.
 4. It must be possible to use filters even if HDF5 support is disabled.
 
-Note that the term "visible parameters" is used here to refer to the parameters provided by "nc\_def\_var\_filter" or those stored in the dataset's metadata as provided by the JSON codec. The term "working parameters" refers to the parameters given to the compressor itself and derived from the visible parameters.
+Note that the term "visible parameters" is used here to refer to the parameters provided by "nc_def_var_filter" or those stored in the dataset's metadata as provided by the JSON codec. The term "working parameters" refers to the parameters given to the compressor itself and derived from the visible parameters.
 
 The standard authority for defining Zarr filters is the list supported by the NumCodecs project [7].
 Comparing the set of standard filters (aka codecs) defined by NumCodecs to the set of standard filters defined by HDF5 [3], it can be seen that the two sets overlap, but each has filters not defined by the other.
@@ -514,8 +514,8 @@ This interrogation operates by seeing if certain well-known (function) names are
 
 There will be two library types:
 
-1. HDF5 &mdash; exports a specific API: "H5Z\_plugin\_type" and "H5Z\_get\_plugin\_info".
-2. Codec &mdash; exports a specific API: "NCZ\_get\_codec\_info"
+1. HDF5 &mdash; exports a specific API: "H5Z_plugin_type" and "H5Z_get_plugin_info".
+2. Codec &mdash; exports a specific API: "NCZ_get_codec_info"
 
 Note that a given library can export either or both of these APIs.
 This means that we can have three types of libraries:
@@ -605,7 +605,7 @@ is stored in the JSON dictionary form described earlier.
 
 The Codec style, using JSON, has the ability to provide very complex parameters that may be hard to encode as a vector of unsigned integers.
 It might be desirable to consider exporting a JSON-base API out of the netcdf-c API to support user access to this complexity.
-This would mean providing some alternate version of "nc\_def\_var\_filter" that takes a string-valued argument instead of a vector of unsigned ints.
+This would mean providing some alternate version of "nc_def_var_filter" that takes a string-valued argument instead of a vector of unsigned ints.
 This extension is unlikely to be implemented until a compelling use-case is encountered. 
 
 One bad side-effect of this is that we then may have two classes of plugins.
@@ -812,7 +812,7 @@ The h5 tag indicates that they assume that the result of the parse is a set of u
   * idp will contain the first constant &mdash; the filter id
   * nparamsp will contain the number of params 
   * paramsp will contain a vector of params &mdash; the caller must free
-This function can parse single filter spec strings as defined in the section on <a href="#filters_syntax">Filter Specification Syntax</a>.
+This function can parse single filter spec strings as defined in the section on \ref{filters_syntax}.
 2. *int ncaux\_h5filterspec\_parselist(const char* txt, int* formatp, size\_t* nspecsp, struct NC\_H5\_Filterspec*** vectorp);*
   * txt contains the text of a sequence '|' separated filter specs.
   * formatp currently always returns 0.
@@ -852,7 +852,7 @@ The include file *netcdf\_meta.h* contains the following definition.
 ````
     #define NC_HAS_MULTIFILTERS   1
 ````
-This, in conjunction with the error code *NC\_ENOFILTER* in *netcdf.h* can be used to see what filter mechanism is in place as described in the section on <a href="#filters_compatibility">incompatibities</a>.
+This, in conjunction with the error code *NC\_ENOFILTER* in *netcdf.h* can be used to see what filter mechanism is in place as described in the section on \ref filters_compatibility.
 
 1. !defined(NC\_ENOFILTER) && !defined(NC\_HAS\_MULTIFILTERS) &mdash; indicates that the old pre-4.7.4 mechanism is in place.
     It does not support multiple filters.
