@@ -32,6 +32,7 @@ typedef struct NCZCacheEntry {
     } key;
     size64_t hashkey;
     int isfiltered; /* 1=>data contains filtered data else real data */
+    int isfixedstring; /* 1 => data contains the fixed strings, 0 => data contains pointers to strings */
     size64_t size; /* |data| */
     void* data; /* contains either filtered or real data */
 } NCZCacheEntry;

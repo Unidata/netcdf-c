@@ -68,9 +68,11 @@ ncz_getattlist(NC_GRP_INFO_T *grp, int varid, NC_VAR_INFO_T **varp, NCindex **at
 }
 
 /**
- * @internal Get one of three special attributes, NCPROPS,
- * ISNETCDF4ATT, and SUPERBLOCKATT. These atts are not all really in
- * the file, they are constructed on the fly.
+ * @internal Get one of the special attributes:
+ * See the reserved attribute table in libsrc4/nc4internal.c.
+ * The special attributes are the ones marked with NAMEONLYFLAG.
+ * For example: NCPROPS, ISNETCDF4ATT, and SUPERBLOCKATT, and CODECS.
+ * These atts are not all really in the file, they are constructed on the fly.
  *
  * @param h5 Pointer to ZARR file info struct.
  * @param var Pointer to var info struct; NULL signals global.
@@ -323,8 +325,9 @@ NCZ_del_att(int ncid, int varid, const char *name)
         return NC_ENOTATT;
 
     /* Reclaim the content of the attribute */
-    if(att->data) 
+    if(att->data) {
 	if((retval = nc_reclaim_data_all(ncid,att->nc_typeid,att->data,att->len))) return retval;
+    }
     att->data = NULL;
     att->len = 0;
 
@@ -426,7 +429,7 @@ ncz_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
             size_t len, const void *data, nc_type mem_type, int force)
 {
     NC* nc;
-    NC_FILE_INFO_T *h5;
+    NC_FILE_INFO_T *h5 = NULL;
     NC_VAR_INFO_T *var = NULL;
     NCindex* attlist = NULL;
     NC_ATT_INFO_T* att;
@@ -575,7 +578,7 @@ ncz_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
     }
 
     /* If this is the _FillValue attribute, then we will also have to
-     * copy the value to the fill_vlue pointer of the NC_VAR_INFO_T
+     * copy the value to the fill_value pointer of the NC_VAR_INFO_T
      * struct for this var. (But ignore a global _FillValue
      * attribute). Also kill the cache fillchunk as no longer valid */
     if (!strcmp(att->hdr.name, _FillValue) && varid != NC_GLOBAL)
@@ -670,6 +673,23 @@ ncz_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
 	    att->data = copy; copy = NULL;
 	}
     }
+
+    /* If this is a maxstrlen attribute, then we will also have to
+     * sync the value to NCZ_VAR_INFO_T or NCZ_FILE_INFO_T structure */
+    {
+	if(strcmp(att->hdr.name,NC_NCZARR_DEFAULT_MAXSTRLEN_ATTR)==0 && varid == NC_GLOBAL && len == 1) {
+	    NCZ_FILE_INFO_T* zfile = (NCZ_FILE_INFO_T*)h5->format_file_info;
+	    if((retval = nc4_convert_type(att->data, &zfile->default_maxstrlen, file_type, NC_INT,
+				      len, &range_error, NULL, NC_CLASSIC_MODEL, NC_NOQUANTIZE, 0)))
+	        BAIL(retval);
+	} else if(strcmp(att->hdr.name,NC_NCZARR_MAXSTRLEN_ATTR)==0 && varid != NC_GLOBAL && len == 1) {
+	    NCZ_VAR_INFO_T* zvar = (NCZ_VAR_INFO_T*)var->format_var_info;
+	if((retval = nc4_convert_type(att->data, &zvar->maxstrlen, file_type, NC_INT,
+				      len, &range_error, NULL, NC_CLASSIC_MODEL, NC_NOQUANTIZE, 0)))
+	        BAIL(retval);
+	}
+    }
+
     att->dirty = NC_TRUE;
     att->created = NC_FALSE;
     att->len = len;
@@ -994,14 +1014,19 @@ ncz_makeattr(NC_OBJ* container, NCindex* attlist, const char* name, nc_type type
     NCZ_ATT_INFO_T* zatt = NULL;
     void* clone = NULL;
     size_t typesize, clonesize;
+    int ncid;
+    NC* nc = NULL;
     NC_GRP_INFO_T* grp = (container->sort == NCGRP ? (NC_GRP_INFO_T*)container
                                                    : ((NC_VAR_INFO_T*)container)->container);
+
+    nc = grp->nc4_info->controller;
+    ncid = nc->ext_ncid | grp->hdr.id;
 
     /* Duplicate the values */
     if ((stat = nc4_get_typelen_mem(grp->nc4_info, typeid, &typesize))) goto done;
     clonesize = len*typesize;
     if((clone = malloc(clonesize))==NULL) {stat = NC_ENOMEM; goto done;}
-    memcpy(clone,values,clonesize);
+    if((stat = nc_copy_data(ncid, typeid, values, len, clone))) goto done;
 
     if((stat=nc4_att_list_add(attlist,name,&att)))
 	goto done;

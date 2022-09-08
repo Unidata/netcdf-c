@@ -5,6 +5,10 @@
 
 # See netcdf-c/COPYRIGHT file for more info.
 
+# Load only once
+if test "x$TEST_COMMON_SH" = x ; then
+export TEST_COMMON_SH=1
+
 # Define location of execution
 TOPSRCDIR='@abs_top_srcdir@'
 TOPBUILDDIR='@abs_top_builddir@'
@@ -173,5 +177,10 @@ avail() {
 if test yes = `${execdir}/../ncdump/ncfilteravail $1` ; then return 0 ; else echo "filter $1 not available" ; return 1; fi
 }
 
+# Thredds-test is no longer available
+#FEATURE_THREDDSTEST=1
+
 # Make sure we are in builddir (not execdir)
 cd $builddir
+
+fi #TEST_COMMON_SH

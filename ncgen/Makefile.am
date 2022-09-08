@@ -61,7 +61,7 @@ CLEANFILES = c0.nc c0_64.nc c0_4.nc c0_4c.nc ref_camrun.c \
 
 makeparser::
 	rm -f ncgenl.c lex.ncg.c
-	flex -L -Pncg -8 ncgen.l
+	flex -Pncg -8 ncgen.l
 	sed -e s/lex.ncg.c/ncgenl.c/g <lex.ncg.c >ncgenl.c
 	bison -pncg -t -d ncgen.y
 	rm -f ncgeny.c ncgeny.h

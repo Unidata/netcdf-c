@@ -43,7 +43,7 @@ static const NC_reservedatt NCD4_reserved[] = {
     {D4CHECKSUMATTR, READONLYFLAG|NAMEONLYFLAG},      /*_DAP4_Checksum_CRC32*/
     {D4LEATTR, READONLYFLAG|NAMEONLYFLAG},            /*_DAP4_Little_Endian*/
     /* Also need to include the provenance attributes */
-    {NCPROPS, READONLYFLAG|NAMEONLYFLAG|MATERIALIZEDFLAG},		/*_NCProperties*/
+    {NCPROPS, READONLYFLAG|NAMEONLYFLAG},		/*_NCProperties*/
     {NULL, 0}
 };
 

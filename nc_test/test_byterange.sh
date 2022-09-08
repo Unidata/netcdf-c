@@ -5,6 +5,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 set -e
 
+# Note: thredds-test is currently down and the URLs need to be replaced
 
 # Test Urls
 if test "x$FEATURE_THREDDSTEST" = x1 ; then
