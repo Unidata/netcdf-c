@@ -811,6 +811,7 @@ INPUT                  = @abs_top_srcdir@/docs/mainpage.dox \
                          @abs_top_srcdir@/docs/windows-binaries.md \
                          @abs_top_srcdir@/docs/attribute_conventions.md \
                          @abs_top_srcdir@/docs/file_format_specifications.md \
+                         @abs_top_srcdir@/docs/all-error-codes.md \
                          @abs_top_srcdir@/docs/inmemory.md \
                          @abs_top_srcdir@/docs/filters.md \
                          @abs_top_srcdir@/docs/byterange.dox \
@@ -827,7 +828,6 @@ INPUT                  = @abs_top_srcdir@/docs/mainpage.dox \
                          @abs_top_srcdir@/docs/inmeminternal.dox \
                          @abs_top_srcdir@/docs/indexing.dox \
                          @abs_top_srcdir@/docs/testserver.dox \
-                         @abs_top_srcdir@/docs/all-error-codes.md \
                          @abs_top_srcdir@/docs/quantize.md \
                          @abs_top_srcdir@/include/netcdf.h \
                          @abs_top_srcdir@/include/netcdf_mem.h \

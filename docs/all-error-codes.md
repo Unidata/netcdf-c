@@ -1,4 +1,4 @@
-NetCDF Error Code Listing {#nc-error-codes}
+Appendix C. NetCDF Error Code Listing {#nc-error-codes}
 ==================
 
 \tableofcontents
