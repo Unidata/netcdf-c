@@ -79,10 +79,10 @@ erealloc (void* p0,			/* check return from realloc */
 }
 
 void
-check(int err, const char* file, const int line)
+check(int err, const char* file, const char* fcn, const int line)
 {
     fprintf(stderr,"%s\n",nc_strerror(err));
-    fprintf(stderr,"Location: file %s; line %d\n", file,line);
+    fprintf(stderr,"Location: file %s; fcn %s line %d\n",(file?file:"?"),(fcn?fcn:"?"),line);
     fflush(stderr); fflush(stdout);
     exit(1);
 }

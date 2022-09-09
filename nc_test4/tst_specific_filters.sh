@@ -15,7 +15,7 @@ if test "x$TESTNCZARR" = x1 ; then
 BLOSCARGS="32001,0,0,0,256,5,1,1"
 BLOSCCODEC='[{\"id\": \"blosc\",\"clevel\": 5,\"blocksize\": 256,\"cname\": \"lz4\",\"shuffle\": 1}]'
 else
-BLOSCARGS="32001,0,0,0,256,5,1,1"
+BLOSCARGS="32001,0,0,4,256,5,1,1"
 BLOSCCODEC='[{\"id\": \"blosc\",\"clevel\": 5,\"blocksize\": 256,\"cname\": \"lz4\",\"shuffle\": 1}]'
 fi
 

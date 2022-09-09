@@ -3,7 +3,7 @@ dimensions:
 	d2 = 2 ;
 	_scalar_ = 1 ;
 variables:
-	char c(d2) ;
+	string c(d2) ;
 	string truncated(_scalar_) ;
 		truncated:_nczarr_maxstrlen = 4 ;
 	string v(d2) ;
@@ -14,7 +14,7 @@ variables:
 		:_nczarr_default_maxstrlen = 6 ;
 data:
 
- c = "ab" ;
+ c = "a", "b" ;
 
  truncated = "0123" ;
 
