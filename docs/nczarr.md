@@ -835,12 +835,12 @@ There are mutiple cases to consider.
 3. The netcdf attribute **is** of type NC_CHAR and its value &ndash; taken as a single sequence of characters &ndash;
 **is** parseable as a legal JSON expression.
     * Parse to produce a JSON expression and write that expression.
-    * Use "|S1" as the dtype and store in the NCZarr metadata.
+    * Use "|U1" as the dtype and store in the NCZarr metadata.
 
 4. The netcdf attribute **is** of type NC_CHAR and its value &ndash; taken as a single sequence of characters &ndash;
 **is not** parseable as a legal JSON expression.
     * Convert to a JSON string and write that expression
-    * Use "|S1" as the dtype and store in the NCZarr metadata.
+    * Use "|U1" as the dtype and store in the NCZarr metadata.
 
 ## Reading an attribute:
 
@@ -915,12 +915,11 @@ and the netcdf-c NC_CHAR type such that if a pure zarr
 implementation reads them, it will still work.
 
 For writing variables and NCZarr attributes, the type mapping is as follows:
-* "|S1" for NC_CHAR.
-* ">S1" for NC_STRING && MAXSTRLEN==1
-* ">Sn" for NC_STRING && MAXSTRLEN==n
+* ">S1" for NC_CHAR.
+* "|S1" for NC_STRING && MAXSTRLEN==1
+* "|Sn" for NC_STRING && MAXSTRLEN==n
 
-Note that it is a bit of a hack to use endianness, but it should be ok since for
-string/char, the endianness has no meaning.
+Admittedly, this encoding is a bit of a hack.
 
 So when reading data with a pure zarr implementaion
 the above types should always appear as strings,

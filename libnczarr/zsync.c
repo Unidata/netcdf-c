@@ -986,6 +986,11 @@ zconvert(NCjson* src, nc_type typeid, size_t typelen, int* countp, NCbytes* dst)
 	if(typeid == NC_CHAR) {
 	    if((stat = zcharify(src,dst))) goto done;
 	    count = ncbyteslength(dst);
+	    /* Special case for "" */
+	    if(count == 0) {
+	        ncbytesappend(dst,'\0');
+	        count = 1;
+	    }
 	} else {
 	    if((stat = NCZ_convert1(src, typeid, dst))) goto done;
 	    count = 1;
@@ -1511,6 +1516,7 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 		if((stat = ncz_gettype(file,grp,vtype,&var->type_info)))
 		    goto done;
 	    } else {stat = NC_EBADTYPE; goto done;}
+#if 0 /* leave native in place */
 	    if(endianness == NC_ENDIAN_NATIVE)
 		endianness = zinfo->native_endianness;
 	    if(endianness == NC_ENDIAN_NATIVE)
@@ -1518,6 +1524,9 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 	    if(endianness == NC_ENDIAN_LITTLE || endianness == NC_ENDIAN_BIG) {
 		var->endianness = endianness;
 	    } else {stat = NC_EBADTYPE; goto done;}
+#else
+	    var->endianness = endianness;
+#endif
 	    var->type_info->endianness = var->endianness; /* Propagate */
 	    if(vtype == NC_STRING) {
 		zvar->maxstrlen = vtypelen;
@@ -2244,7 +2253,7 @@ ncz_get_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var)
     /* Remember that we have read the metadata for this var. */
     var->meta_read = NC_TRUE;
 done:
-    return retval;
+    return ZUNTRACE(retval);
 }
 
 #if 0
