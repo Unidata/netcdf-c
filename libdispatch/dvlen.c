@@ -148,10 +148,13 @@ int
 nc_inq_vlen(int ncid, nc_type xtype, char *name, size_t *datum_sizep, nc_type *base_nc_typep)
 {
     int class = 0;
-    int stat = nc_inq_user_type(ncid,xtype,name,datum_sizep,base_nc_typep,NULL,&class);
+    int stat = NC_NOERR;
+    NCLOCK;
+    stat = nc_inq_user_type(ncid,xtype,name,datum_sizep,base_nc_typep,NULL,&class);
     if(stat != NC_NOERR) goto done;
     if(class != NC_VLEN) stat = NC_EBADTYPE;
 done:
+    NCUNLOCK;
     return stat;
 }
 /*! \} */  /* End of named group ...*/

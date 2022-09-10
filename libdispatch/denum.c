@@ -118,7 +118,9 @@ nc_inq_enum(int ncid, nc_type xtype, char *name, nc_type *base_nc_typep,
 	    size_t *base_sizep, size_t *num_membersp)
 {
     int class = 0;
-    int stat = nc_inq_user_type(ncid, xtype, name, base_sizep, 
+    int stat = NC_NOERR;
+    NCLOCK;
+    stat = nc_inq_user_type(ncid, xtype, name, base_sizep, 
 				base_nc_typep, num_membersp, &class);
     if(stat != NC_NOERR) goto done;
     if(class != NC_ENUM) stat = NC_EBADTYPE;
