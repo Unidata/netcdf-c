@@ -424,6 +424,17 @@ IF(MSVC)
   ENDIF()
 ENDIF()
 
+# Control thread-safe operation
+OPTION (ENABLE_THREADSAFE "Enable Thread safe operation" OFF)
+
+IF(NOT WIN32)
+  # Look for pthreads
+  FIND_LIBRARY(LIB_PTHREAD NAMES pthread libpthread)
+  IF(NOT LIB_PTHREAD
+    MESSAGE(FATAL_ERROR "Thread Safety enabled, but Can't find or link to the pthread library.")
+  ENDIF()
+ENDIF()
+
 # Option to build netCDF Version 2
 OPTION (ENABLE_V2_API "Build netCDF Version 2." ON)
 SET(BUILD_V2 ${ENABLE_V2_API})
