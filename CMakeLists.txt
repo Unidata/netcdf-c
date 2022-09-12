@@ -433,9 +433,10 @@ IF(NOT WIN32)
   IF(NOT HAVE_PTHREADS)
     MESSAGE(FATAL_ERROR "Thread Safety enabled, but Can't find or link to the pthread library.")
   ENDIF()
+  FIND_PACKAGE(Threads)
+ELSE()
+  SET(HAVE_PTHREADS NO)
 ENDIF()
-
-FIND_PACKAGE(Threads)
 
 # Option to build netCDF Version 2
 OPTION (ENABLE_V2_API "Build netCDF Version 2." ON)
@@ -2555,6 +2556,7 @@ is_enabled(ENABLE_FILTER_TESTING DO_FILTER_TESTS)
 is_enabled(HAVE_SZ HAS_SZIP)
 is_enabled(HAVE_SZ HAS_SZLIB_WRITE)
 is_enabled(HAVE_ZSTD HAS_ZSTD)
+is_enabled(ENABLE_THREADSAFE IS_THREADSAFE)
 
 # Generate file from template.
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
