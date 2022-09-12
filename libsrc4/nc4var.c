@@ -348,7 +348,8 @@ int
 nc_def_var_chunking_ints(int ncid, int varid, int storage, int *chunksizesp)
 {
     size_t *cs = NULL;
-    int i, retval, ndims;
+    int i, retval = NC_NOERR;
+    int ndims = 0;
 
     if((retval = nc_inq_var(ncid,varid,NULL,NULL,&ndims,NULL,NULL))) goto done;
 
@@ -390,7 +391,8 @@ nc_inq_var_chunking_ints(int ncid, int varid, int *storagep, int *chunksizesp)
 {
     size_t *cs = NULL;
     int i, retval = NC_NOERR;
-    int ndims;
+    int ndims = 0;
+    int storage = -1;
  
     if((retval = nc_inq_var(ncid,varid,NULL,NULL,&ndims,NULL,NULL))) goto done;
 
@@ -399,10 +401,11 @@ nc_inq_var_chunking_ints(int ncid, int varid, int *storagep, int *chunksizesp)
         if (!(cs = malloc(ndims * sizeof(size_t))))
             {retval = NC_ENOMEM; goto done;}
 
-    if((retval = nc_inq_var_chunking(ncid, varid, storagep, cs))) goto done;
+    if((retval = nc_inq_var_chunking(ncid, varid, &storage, cs))) goto done;
+    if(storagep) *storagep = storage;
 
     /* Copy from size_t array. */
-    if (!retval && chunksizesp && *storagep == NC_CHUNKED)
+    if (chunksizesp && storage == NC_CHUNKED)
     {
         for (i = 0; i < ndims; i++)
         {
