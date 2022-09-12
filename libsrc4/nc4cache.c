@@ -188,10 +188,12 @@ nc_set_var_chunk_cache_ints(int ncid, int varid, int size, int nelems,
     return NC_NOERR;
 }
 
+#if 0
 int
 nc_def_var_chunking_ints(int ncid, int varid, int storage, int *chunksizesp)
 {
     return NC_NOERR;
 }
+#endif
 
 #endif /*USE_HDF5*/

@@ -64,7 +64,7 @@ nc_def_compound(int ncid, size_t size, const char *name,
 		nc_type *typeidp)
 {
    NC* ncp;
-   int stat;
+   int stat = NC_NOERR;
    NCLOCK;
    stat = NC_check_id(ncid,&ncp);
    if(stat != NC_NOERR) goto done;
@@ -105,7 +105,7 @@ nc_insert_compound(int ncid, nc_type xtype, const char *name,
 		   size_t offset, nc_type field_typeid)
 {
    NC *ncp;
-   int stat;
+   int stat = NC_NOERR;
    NCLOCK;
    stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) goto done;
@@ -153,7 +153,7 @@ nc_insert_array_compound(int ncid, nc_type xtype, const char *name,
 			 int ndims, const int *dim_sizes)
 {
    NC* ncp;
-   int stat;
+   int stat = NC_NOERR;
    NCLOCK;
    stat = NC_check_id(ncid,&ncp);
    if(stat != NC_NOERR) goto done;
@@ -305,7 +305,7 @@ nc_inq_compound_field(int ncid, nc_type xtype, int fieldid,
 		      int *dim_sizesp)
 {
    NC* ncp;
-   int stat;
+   int stat = NC_NOERR;
    NCLOCK;
    stat = NC_check_id(ncid,&ncp);
    if(stat != NC_NOERR) goto done;
@@ -342,7 +342,7 @@ nc_inq_compound_fieldname(int ncid, nc_type xtype, int fieldid,
 			  char *name)
 {
    NC* ncp;
-   int stat;
+   int stat = NC_NOERR;
    NCLOCK;
    stat = NC_check_id(ncid,&ncp);
    if(stat != NC_NOERR) goto done;
@@ -379,7 +379,7 @@ nc_inq_compound_fieldoffset(int ncid, nc_type xtype, int fieldid,
 			    size_t *offsetp)
 {
    NC* ncp;
-   int stat;
+   int stat = NC_NOERR;
    NCLOCK;
    stat = NC_check_id(ncid,&ncp);
    if(stat != NC_NOERR) goto done;
@@ -414,7 +414,7 @@ nc_inq_compound_fieldtype(int ncid, nc_type xtype, int fieldid,
 			  nc_type *field_typeidp)
 {
    NC* ncp;
-   int stat;
+   int stat = NC_NOERR;
    NCLOCK;
    stat = NC_check_id(ncid,&ncp);
    if(stat != NC_NOERR) goto done;
@@ -449,7 +449,7 @@ nc_inq_compound_fieldndims(int ncid, nc_type xtype, int fieldid,
 			   int *ndimsp)
 {
    NC* ncp;
-   int stat;
+   int stat = NC_NOERR;
    NCLOCK;
    stat = NC_check_id(ncid,&ncp);
    if(stat != NC_NOERR) goto done;
@@ -521,7 +521,7 @@ nc_inq_compound_fieldindex(int ncid, nc_type xtype, const char *name,
 			   int *fieldidp)
 {
    NC* ncp;
-   int stat;
+   int stat = NC_NOERR;
    NCLOCK;
    stat = NC_check_id(ncid,&ncp);
    if(stat != NC_NOERR) goto done;

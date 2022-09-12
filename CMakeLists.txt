@@ -425,12 +425,12 @@ IF(MSVC)
 ENDIF()
 
 # Control thread-safe operation
-OPTION (ENABLE_THREADSAFE "Enable Thread safe operation" OFF)
+OPTION (ENABLE_THREADSAFE "Enable Thread safe operation" ON)
 
 IF(NOT WIN32)
   # Look for pthreads
-  FIND_LIBRARY(LIB_PTHREAD NAMES pthread libpthread)
-  IF(NOT LIB_PTHREAD
+  FIND_LIBRARY(HAVE_PTHREADS NAMES pthread libpthread)
+  IF(NOT HAVE_PTHREADS)
     MESSAGE(FATAL_ERROR "Thread Safety enabled, but Can't find or link to the pthread library.")
   ENDIF()
 ENDIF()

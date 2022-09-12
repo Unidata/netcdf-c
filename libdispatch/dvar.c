@@ -218,8 +218,8 @@ nc_def_var(int ncid, const char *name, nc_type xtype,
     int stat = NC_NOERR;
 
     NCLOCK;
-    if ((stat = NC_check_id(ncid, &ncp))) goto done;
     TRACE(nc_def_var);
+    if ((stat = NC_check_id(ncid, &ncp))) goto done;
     stat = ncp->dispatch->def_var(ncid, name, xtype, ndims,
                                   dimidsp, varidp);
 done:
@@ -312,7 +312,7 @@ int
 nc_def_var_fill(int ncid, int varid, int no_fill, const void *fill_value)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) goto done;
@@ -467,13 +467,14 @@ done:
 int
 nc_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_level)
 {
-    NC* ncp;
-    int stat;
+    NC* ncp = NULL;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) goto done;
     stat = ncp->dispatch->def_var_deflate(ncid,varid,shuffle,deflate,deflate_level);
 done:
+    NCUNLOCK;
     return stat;
 }
 
@@ -571,7 +572,7 @@ int
 nc_def_var_quantize(int ncid, int varid, int quantize_mode, int nsd)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) goto done;
@@ -624,7 +625,7 @@ int
 nc_def_var_fletcher32(int ncid, int varid, int fletcher32)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) goto done;
@@ -749,7 +750,7 @@ int
 nc_def_var_chunking(int ncid, int varid, int storage, const size_t *chunksizesp)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) goto done;
@@ -832,7 +833,7 @@ int
 nc_def_var_endian(int ncid, int varid, int endian)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) goto done;
@@ -893,7 +894,7 @@ done:
 int
 nc_def_var_szip(int ncid, int varid, int options_mask, int pixels_per_block)
 {
-    int ret;
+    int ret = NC_NOERR;;
 
     /* This will cause H5Pset_szip to be called when the var is
      * created. */
@@ -975,7 +976,7 @@ int
 nc_rename_var(int ncid, int varid, const char *name)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) goto done;
@@ -1285,7 +1286,7 @@ NC_check_nulls(int ncid, int varid, const size_t *start, size_t **count,
                ptrdiff_t **stride)
 {
     int varndims;
-    int stat;
+    int stat = NC_NOERR;
 
     if ((stat = nc_inq_varndims(ncid, varid, &varndims)))
         return stat;
@@ -1426,7 +1427,7 @@ nc_set_var_chunk_cache(int ncid, int varid, size_t size, size_t nelems,
                        float preemption)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) goto done;

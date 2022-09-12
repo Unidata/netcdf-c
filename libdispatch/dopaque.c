@@ -33,7 +33,7 @@ int
 nc_def_opaque(int ncid, size_t size, const char *name, nc_type *xtypep)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) goto done;

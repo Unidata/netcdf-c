@@ -60,7 +60,7 @@ int
 nc_inq_varid(int ncid, const char *name, int *varidp)
 {
    NC* ncp;
-   int stat;
+   int stat = NC_NOERR;
    NCLOCK;
    stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) goto done;
@@ -130,11 +130,11 @@ nc_inq_var(int ncid, int varid, char *name, nc_type *xtypep,
 	   int *ndimsp, int *dimidsp, int *nattsp)
 {
    NC* ncp;
-   int stat;
+   int stat = NC_NOERR;
    NCLOCK;
+   TRACE(nc_inq_var);
    stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) goto done;
-   TRACE(nc_inq_var);
    stat = ncp->dispatch->inq_var_all(ncid, varid, name, xtypep, ndimsp,
 				     dimidsp, nattsp, NULL, NULL, NULL,
 				     NULL, NULL, NULL, NULL, NULL, NULL,
@@ -308,7 +308,7 @@ nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep, int *defla
    size_t nparams;
    unsigned int params[4];
    int deflating = 0;
-   int stat;
+   int stat = NC_NOERR;
    
    TRACE(nc_inq_var_deflate);
 
@@ -344,7 +344,7 @@ nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep, int *defla
        return NC_NOERR;
    NCLOCK;
    stat = NC_check_id(ncid,&ncp);
-   if(stat != NC_NOERR) goto done;
+   if(stat != NC_NOERR) goto unlock;
    stat = ncp->dispatch->inq_var_all(
       ncid, varid,
       NULL, /*name*/
@@ -363,8 +363,9 @@ nc_inq_var_deflate(int ncid, int varid, int *shufflep, int *deflatep, int *defla
       NULL, /*endianp*/
       NULL, NULL, NULL
       );
-done:
+unlock:
    NCUNLOCK;
+done:
    return stat;
 }
 
@@ -392,7 +393,7 @@ int
 nc_inq_var_fletcher32(int ncid, int varid, int *fletcher32p)
 {
    NC* ncp;
-   int stat;
+   int stat = NC_NOERR;
    NCLOCK;
    stat = NC_check_id(ncid,&ncp);
    if(stat != NC_NOERR) goto done;
@@ -485,7 +486,7 @@ int
 nc_inq_var_chunking(int ncid, int varid, int *storagep, size_t *chunksizesp)
 {
    NC *ncp;
-   int stat;
+   int stat = NC_NOERR;
    NCLOCK;
    stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) goto done;
@@ -526,7 +527,7 @@ int
 nc_inq_var_fill(int ncid, int varid, int *no_fill, void *fill_valuep)
 {
    NC* ncp;
-   int stat;
+   int stat = NC_NOERR;
    NCLOCK;
    stat = NC_check_id(ncid,&ncp);
    if(stat != NC_NOERR) goto done;
@@ -573,15 +574,15 @@ int
 nc_inq_var_quantize(int ncid, int varid, int *quantize_modep, int *nsdp)
 {
    NC* ncp;
-   int stat;
+   int stat = NC_NOERR;
+
+   /* Using NC_GLOBAL is illegal. */
+   if (varid == NC_GLOBAL) return NC_EGLOBAL;
+
    NCLOCK;
    stat = NC_check_id(ncid,&ncp);
    if(stat != NC_NOERR) goto done;
    TRACE(nc_inq_var_quantize);
-   
-   /* Using NC_GLOBAL is illegal. */
-   if (varid == NC_GLOBAL) return NC_EGLOBAL;
-
    stat = ncp->dispatch->inq_var_quantize(ncid, varid,
 					  quantize_modep, nsdp);
 done:
@@ -614,7 +615,7 @@ int
 nc_inq_var_endian(int ncid, int varid, int *endianp)
 {
    NC* ncp;
-   int stat;
+   int stat = NC_NOERR;
    NCLOCK;
    stat = NC_check_id(ncid,&ncp);
    if(stat != NC_NOERR) goto done;

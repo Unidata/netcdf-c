@@ -116,20 +116,10 @@ ISMSYS=yes
 fi
 
 # See if we have libpthreads
-if test xno = xyes ; then
-# why does this not work?
-AC_CHECK_LIB([pthreads],[pthread_mutex_init],[have_pthreads=yes],[have_pthreads=no])
+AC_SEARCH_LIBS([pthread_mutex_init],[pthreads pthreads.dll cygpthreads.dll], [have_pthreads=yes], [have_pthreads=no])
 if test "x$have_pthreads" = "xyes" ; then
-   AC_SEARCH_LIBS([pthread_mutex_init],[pthreads pthreads.dll cygpthreads.dll], [], [])
-   AC_DEFINE([HAVE_PTHREADS], [1], [if true, pthreads library is available])
-fi
-fi
-
-AC_CHECK_HEADERS([pthread.h],[have_pthreads=yes],[have_pthreads=no])
-AC_MSG_CHECKING([whether libpthreads library is available])
-AC_MSG_RESULT([${have_pthreads}])
-if test "x$have_pthreads" = "xyes" ; then
-  AC_DEFINE([HAVE_PTHREADS], [1], [if true, pthread.h is available])
+  AC_CHECK_LIB([pthread],[pthread_mutex_init],[],[]) # Make sure it gets included in the lib list
+  AC_DEFINE([HAVE_PTHREADS], [1], [if true, pthreads is available])
 fi
 
 AC_MSG_CHECKING([whether we should enable thread safety])

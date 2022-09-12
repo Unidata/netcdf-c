@@ -58,7 +58,7 @@ EXTERNL int
 nc_inq_var_filter_ids(int ncid, int varid, size_t* nfiltersp, unsigned int* ids)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) goto done;
@@ -97,7 +97,7 @@ EXTERNL int
 nc_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparamsp, unsigned int* params)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) goto done;
@@ -130,22 +130,22 @@ EXTERNL int
 nc_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams, const unsigned int* params)
 {
     int stat = NC_NOERR;
-    NC* ncp;
+    NC* ncp = NULL;
     int fixedsize;
     nc_type xtype;
 
-    TRACE(nc_inq_var_filter);
     NCLOCK;
+    TRACE(nc_inq_var_filter);
     if((stat = NC_check_id(ncid,&ncp))) goto done;
     /* Get variable' type */
     if((stat = nc_inq_vartype(ncid,varid,&xtype))) goto done;
     /* If the variable's type is not fixed-size, then signal error */
     if((stat = NC4_inq_type_fixed_size(ncid, xtype, &fixedsize))) goto done;
-    if(!fixedsize) return NC_EFILTER;
+    if(!fixedsize) {stat = NC_EFILTER; goto done;}
     if((stat = ncp->dispatch->def_var_filter(ncid,varid,id,nparams,params))) goto done;
 done:
    NCUNLOCK;
-    return stat;
+   return stat;
 }
 
 /**
@@ -181,7 +181,7 @@ nc_inq_var_filter(int ncid, int varid, unsigned int* idp, size_t* nparamsp, unsi
     NC* ncp;
     size_t nfilters;
     unsigned int* ids = NULL;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid,&ncp);
 

@@ -87,7 +87,7 @@ nc_inq_att(int ncid, int varid, const char *name, nc_type *xtypep,
 	   size_t *lenp)
 {
    NC* ncp;
-   int stat;
+   int stat = NC_NOERR;
    NCLOCK;
    stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) goto done;
@@ -169,7 +169,7 @@ int
 nc_inq_attid(int ncid, int varid, const char *name, int *idp)
 {
    NC* ncp;
-   int stat;
+   int stat = NC_NOERR;
    NCLOCK;
    stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) goto done;
@@ -265,7 +265,7 @@ int
 nc_inq_attname(int ncid, int varid, int attnum, char *name)
 {
    NC* ncp;
-   int stat;
+   int stat = NC_NOERR;
    NCLOCK;
    stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) goto done;
@@ -315,11 +315,11 @@ int
 nc_inq_natts(int ncid, int *nattsp)
 {
    NC* ncp;
-   int stat;
+   int stat = NC_NOERR;
+   if(nattsp == NULL) goto done;
    NCLOCK;
    stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) goto done;
-   if(nattsp == NULL) return NC_NOERR;
    stat = ncp->dispatch->inq(ncid, NULL, NULL, nattsp, NULL);
 done:
    NCUNLOCK;
@@ -378,7 +378,7 @@ int
 nc_inq_atttype(int ncid, int varid, const char *name, nc_type *xtypep)
 {
    NC* ncp;
-   int stat;
+   int stat = NC_NOERR;
    NCLOCK;
    stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) goto done;
@@ -449,7 +449,7 @@ int
 nc_inq_attlen(int ncid, int varid, const char *name, size_t *lenp)
 {
    NC* ncp;
-   int stat;
+   int stat = NC_NOERR;
    NCLOCK;
    stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) goto done;

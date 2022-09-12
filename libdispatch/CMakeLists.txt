@@ -16,7 +16,7 @@ IF(BUILD_V2)
 ENDIF(BUILD_V2)
 
 IF(ENABLE_THREADSAFE)
-  SET(libdispatch_SOURCES ${libdispatch_SOURCES} dmutext.c)
+  SET(libdispatch_SOURCES ${libdispatch_SOURCES} dmutex.c)
 ENDIF(ENABLE_THREADSAFE)
 
 IF(ENABLE_BYTERANGE)

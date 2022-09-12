@@ -117,6 +117,11 @@ IF(BUILD_UTILITIES)
     add_sh_test(nc_test run_mmap)
   ENDIF()
 
+  IF(ENABLE_THREADSAFE)
+    build_bin_test_no_prefix(tst_threads)
+    add_sh_test(nc_test test_threads)
+  ENABLE()
+
 ENDIF(BUILD_UTILITIES)
 
 # Copy some test files from current source dir to out-of-tree build dir.

@@ -121,7 +121,7 @@ int
 nc_def_dim(int ncid, const char *name, size_t len, int *idp)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) goto done;
@@ -157,7 +157,7 @@ int
 nc_inq_dimid(int ncid, const char *name, int *idp)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) goto done;
@@ -226,7 +226,7 @@ int
 nc_inq_dim(int ncid, int dimid, char *name, size_t *lenp)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) goto done;
@@ -300,7 +300,7 @@ int
 nc_rename_dim(int ncid, int dimid, const char *name)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) goto done;
@@ -337,11 +337,11 @@ int
 nc_inq_ndims(int ncid, int *ndimsp)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) goto done;
-    if(ndimsp == NULL) return NC_NOERR;
+    if(ndimsp == NULL) goto done;
     TRACE(nc_inq_ndims);
     stat = ncp->dispatch->inq(ncid,ndimsp,NULL,NULL,NULL);
 done:
@@ -375,7 +375,7 @@ int
 nc_inq_unlimdim(int ncid, int *unlimdimidp)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) goto done;
@@ -439,11 +439,11 @@ int
 nc_inq_dimname(int ncid, int dimid, char *name)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) goto done;
-    if(name == NULL) return NC_NOERR;
+    if(name == NULL) goto done;
     TRACE(nc_inq_dimname);
     stat = ncp->dispatch->inq_dim(ncid,dimid,name,NULL);
 done:
@@ -501,13 +501,13 @@ done:
 int
 nc_inq_dimlen(int ncid, int dimid, size_t *lenp)
 {
-    NC* ncp;
-    int stat;
+    NC* ncp = NULL;
+    int stat = NC_NOERR;
     NCLOCK;
+    TRACE(nc_inq_dimlen);
     stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) goto done;
-    if(lenp == NULL) return NC_NOERR;
-    TRACE(nc_inq_dimlen);
+    if(lenp == NULL) goto done;
     stat = ncp->dispatch->inq_dim(ncid,dimid,NULL,lenp);
 done:
     NCUNLOCK;

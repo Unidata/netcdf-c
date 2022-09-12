@@ -76,7 +76,7 @@ See include/netcdf.h.
 int
 nc_free_vlens(size_t len, nc_vlen_t vlens[])
 {
-   int ret;
+   int ret = NC_NOERR;
    size_t i;
 
    for(i = 0; i < len; i++) 
@@ -115,7 +115,7 @@ int
 nc_def_vlen(int ncid, const char *name, nc_type base_typeid, nc_type *xtypep)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) goto done;
@@ -182,7 +182,7 @@ int
 nc_put_vlen_element(int ncid, int typeid1, void *vlen_element, size_t len, const void *data)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) goto done;
@@ -216,7 +216,7 @@ nc_get_vlen_element(int ncid, int typeid1, const void *vlen_element,
 		    size_t *len, void *data)
 {
     NC *ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) goto done;

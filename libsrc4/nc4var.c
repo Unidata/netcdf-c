@@ -324,6 +324,52 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 }
 
 /**
+ * @internal Define chunking stuff for a var. This is called by
+ * the fortran API.
+ * Note: see libsrc4/nc4cache.c for definition when HDF5 is disabled
+ *
+ * @param ncid File ID.
+ * @param varid Variable ID.
+ * @param storage Pointer to storage setting.
+ * @param chunksizesp Array of chunksizes.
+ *
+ * @returns ::NC_NOERR No error.
+ * @returns ::NC_EBADID Bad ncid.
+ * @returns ::NC_ENOTVAR Invalid variable ID.
+ * @returns ::NC_ENOTNC4 Attempting netcdf-4 operation on file that is
+ * not netCDF-4/HDF5.
+ * @returns ::NC_ELATEDEF Too late to change settings for this variable.
+ * @returns ::NC_ENOTINDEFINE Not in define mode.
+ * @returns ::NC_EINVAL Invalid input
+ * @returns ::NC_EBADCHUNK Bad chunksize.
+ * @author Ed Hartnett
+ */
+int
+nc_def_var_chunking_ints(int ncid, int varid, int storage, int *chunksizesp)
+{
+    size_t *cs = NULL;
+    int i, retval, ndims;
+
+    if((retval = nc_inq_var(ncid,varid,NULL,NULL,&ndims,NULL,NULL))) goto done;
+
+    /* Allocate space for the size_t copy of the chunksizes array. */
+    if (ndims)
+        if (!(cs = malloc(ndims * sizeof(size_t))))
+            {retval = NC_ENOMEM; goto done;}
+
+    /* Copy to size_t array. */
+    for (i = 0; i < ndims; i++)
+        cs[i] = chunksizesp[i];
+
+    retval = nc_def_var_chunking(ncid, varid, storage, cs);
+
+done:
+    if (ndims)
+        free(cs);
+    return retval;
+}
+
+/**
  * @internal Inquire about chunking settings for a var. This is used
  * by the fortran API.
  *
@@ -342,30 +388,23 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
 int
 nc_inq_var_chunking_ints(int ncid, int varid, int *storagep, int *chunksizesp)
 {
-    NC_VAR_INFO_T *var = NULL;
     size_t *cs = NULL;
     int i, retval = NC_NOERR;
-
-    NCLOCK;
-    /* Get pointer to the var. */
-    if ((retval = nc4_find_grp_h5_var(ncid, varid, NULL, NULL, &var)))
-        goto done;
-    assert(var);
+    int ndims;
+ 
+    if((retval = nc_inq_var(ncid,varid,NULL,NULL,&ndims,NULL,NULL))) goto done;
 
     /* Allocate space for the size_t copy of the chunksizes array. */
-    if (var->ndims)
-        if (!(cs = malloc(var->ndims * sizeof(size_t))))
+    if (ndims)
+        if (!(cs = malloc(ndims * sizeof(size_t))))
             {retval = NC_ENOMEM; goto done;}
 
-    /* Call the netcdf-4 version directly. */
-    retval = NC4_inq_var_all(ncid, varid, NULL, NULL, NULL, NULL, NULL,
-                             NULL, NULL, NULL, NULL, storagep, cs, NULL,
-                             NULL, NULL, NULL, NULL, NULL);
+    if((retval = nc_inq_var_chunking(ncid, varid, storagep, cs))) goto done;
 
     /* Copy from size_t array. */
-    if (!retval && chunksizesp && var->storage == NC_CHUNKED)
+    if (!retval && chunksizesp && *storagep == NC_CHUNKED)
     {
-        for (i = 0; i < var->ndims; i++)
+        for (i = 0; i < ndims; i++)
         {
             chunksizesp[i] = (int)cs[i];
             if (cs[i] > NC_MAX_INT)
@@ -374,9 +413,8 @@ nc_inq_var_chunking_ints(int ncid, int varid, int *storagep, int *chunksizesp)
     }
 
 done:
-    if (var->ndims)
+    if (ndims)
         free(cs);
-    NCUNLOCK;
     return retval;
 }
 

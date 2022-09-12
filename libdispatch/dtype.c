@@ -77,7 +77,7 @@ nc_inq_type_equal(int ncid1, nc_type typeid1, int ncid2,
     stat = ncp->dispatch->inq_type_equal(ncid1,typeid1,ncid2,typeid2,equal);
 done:
     NCUNLOCK;
-    goto done;
+    return stat;
 }
 
 /** \name Learning about User-Defined Types

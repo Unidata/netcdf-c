@@ -95,6 +95,7 @@ NC_get_vara(int ncid, int varid,
    NC* ncp;
    size_t *my_count = (size_t *)edges;
    int stat = NC_NOERR;
+
    NCLOCK;
    stat = NC_check_id(ncid, &ncp);
    if(stat != NC_NOERR) goto done;
@@ -158,7 +159,6 @@ NCDEFAULT_get_vars(int ncid, int varid, const size_t * start,
    int rank;
    struct GETodometer odom;
    nc_type vartype = NC_NAT;
-   NC* ncp;
    int memtypelen;
    size_t vartypelen;
    size_t nels;
@@ -169,9 +169,6 @@ NCDEFAULT_get_vars(int ncid, int varid, const size_t * start,
    size_t myedges[NC_MAX_VAR_DIMS];
    ptrdiff_t mystride[NC_MAX_VAR_DIMS];
    char *memptr = NULL;
-
-   status = NC_check_id (ncid, &ncp);
-   if(status != NC_NOERR) goto done;
 
    status = nc_inq_vartype(ncid, varid, &vartype);
    if(status != NC_NOERR) goto done;
@@ -192,10 +189,10 @@ NCDEFAULT_get_vars(int ncid, int varid, const size_t * start,
       /* If !atomic, the two types must be the same */
       if(vartype > NC_MAX_ATOMIC_TYPE
          || memtype > NC_MAX_ATOMIC_TYPE)
-	 return NC_EBADTYPE;
+	 {status = NC_EBADTYPE; goto done;}
       /* ok, the types differ but both are atomic */
       if(memtype == NC_CHAR || vartype == NC_CHAR)
-	 return NC_ECHAR;
+	 {status = NC_ECHAR; goto done;}
    }
 
    /* Get the variable rank */
@@ -283,7 +280,6 @@ NCDEFAULT_get_vars(int ncid, int varid, const size_t * start,
       odom_next(&odom);
    }
 done:
-   NCUNLOCK;
    return status;
 }
 
@@ -308,22 +304,14 @@ NCDEFAULT_get_varm(int ncid, int varid, const size_t *start,
    int status = NC_NOERR;
    nc_type vartype = NC_NAT;
    int varndims,maxidim;
-   NC* ncp;
    int memtypelen;
    char* value = (char*)value0;
-
-   status = NC_check_id (ncid, &ncp);
-   if(status != NC_NOERR) goto done;
-
-/*
-  if(NC_indef(ncp)) return NC_EINDEFINE;
-*/
 
    status = nc_inq_vartype(ncid, varid, &vartype);
    if(status != NC_NOERR) goto done;
    /* Check that this is an atomic type */
    if(vartype > NC_MAX_ATOMIC_TYPE)
-	return NC_EMAPTYPE;
+	{status = NC_EMAPTYPE; goto done;}
 
    status = nc_inq_varndims(ncid, varid, &varndims);
    if(status != NC_NOERR) goto done;
@@ -333,9 +321,9 @@ NCDEFAULT_get_varm(int ncid, int varid, const size_t *start,
    }
 
    if(memtype == NC_CHAR && vartype != NC_CHAR)
-      return NC_ECHAR;
+      {status = NC_ECHAR; goto done;}
    else if(memtype != NC_CHAR && vartype == NC_CHAR)
-      return NC_ECHAR;
+      {status = NC_ECHAR; goto done;}
 
    memtypelen = nctypelen(memtype);
 
@@ -384,7 +372,7 @@ NCDEFAULT_get_varm(int ncid, int varid, const size_t *start,
 		/* cast needed for braindead systems with signed size_t */
                 || ((unsigned long) stride[idim] >= X_INT_MAX))
             {
-	       return NC_ESTRIDE;
+	       {status = NC_ESTRIDE; goto done;}
             }
 	    if(stride[idim] != 1) stride1 = 0;
 	 }
@@ -392,14 +380,15 @@ NCDEFAULT_get_varm(int ncid, int varid, const size_t *start,
             then call get_vara directly.
          */
          if(stride1 && imapp == NULL) {
-	     return NC_get_vara(ncid, varid, start, edges, value, memtype);
+	     status = NC_get_vara(ncid, varid, start, edges, value, memtype);
+	     goto done;
 	 }
       }
 
       /* assert(sizeof(ptrdiff_t) >= sizeof(size_t)); */
       /* Allocate space for mystart,mystride,mymap etc.all at once */
       mystart = (size_t *)calloc((size_t)(varndims * 7), sizeof(ptrdiff_t));
-      if(mystart == NULL) return NC_ENOMEM;
+      if(mystart == NULL) {status = NC_ENOMEM; goto done;}
       myedges = mystart + varndims;
       iocount = myedges + varndims;
       stop = iocount + varndims;
@@ -541,8 +530,8 @@ NCDEFAULT_get_varm(int ncid, int varid, const size_t *start,
       } /* I/O loop */
       free(mystart);
    } /* variable is array */
+
 done:
-   NCUNLOCK;
    return status;
 }
 

@@ -43,7 +43,7 @@ int
 nc_def_enum(int ncid, nc_type base_typeid, const char *name, nc_type *typeidp)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) goto done;
@@ -77,7 +77,7 @@ nc_insert_enum(int ncid, nc_type xtype, const char *name,
 	       const void *value)
 {
     NC *ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) goto done;
@@ -155,7 +155,7 @@ nc_inq_enum_member(int ncid, nc_type xtype, int idx, char *name,
 		   void *value)
 {
     NC *ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid, &ncp);
     if(stat != NC_NOERR) goto done;
@@ -184,7 +184,7 @@ nc_inq_enum_ident(int ncid, nc_type xtype, long long value,
 		  char *identifier)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) goto done;

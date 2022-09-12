@@ -33,24 +33,60 @@ call other API call.
 #include <ncmutex.h>
 
 /* Print lock/unlock */
-#define DEBUGPRINT
+#undef DEBUGPRINT
+
+#define MAXDEPTH 32
 
 typedef struct NCmutex {
-#ifdef DEBUGAPI
-    const char* fcn; /* match lock/unlock */
-#endif
-    int refcount; /* # times called by same thread */
 #ifdef HAVE_PTHREADS
     pthread_mutex_t mutex;
 #endif
 #ifdef _WIN32
     CRITICAL_SECTION mutex;
 #endif
+    int refcount; /* # times called by same thread */
+#ifdef DEBUGAPI
+    struct {
+        int depth;
+        const char* stack[MAXDEPTH]; /* match lock/unlock */
+     } fcns;
+#endif
 } NCmutex;
 
 static NCmutex NC_globalmutex;
 
 static volatile int global_mutex_initialized = 0; /* initialize once */
+
+#ifdef DEBUGAPI
+static void
+pushfcn(const char* fcn)
+{
+    int depth = NC_globalmutex.fcns.depth;
+    assert(depth < (MAXDEPTH-1));
+    NC_globalmutex.fcns.stack[depth] = fcn;
+    NC_globalmutex.fcns.depth++;
+}
+
+static void
+popfcn(void)
+{
+    assert(NC_globalmutex.fcns.depth > 0);
+    NC_globalmutex.fcns.depth--;
+//    NC_globalmutex.fcns.stack[NC_globalmutex.fcns.depth] = NULL;
+}
+
+#ifdef DEBUGPRINT
+static const char*
+fcntop(void)
+{
+    int depth = NC_globalmutex.fcns.depth;
+//    assert(depth > 0);
+    if(depth == 0) return "null";
+    return NC_globalmutex.fcns.stack[depth-1];
+}
+#endif
+
+#endif
 
 #ifdef HAVE_PTHREADS
 
@@ -114,9 +150,10 @@ void NC_lock(void)
 #endif
     mutex->refcount++;
 #ifdef DEBUGAPI
-    mutex->fcn = fcn;
+    
+    pushfcn(fcn);
 #ifdef DEBUGPRINT
-    fprintf(stderr,"@%s lock count=%d\n",mutex->fcn,mutex->refcount); fflush(stderr);
+    fprintf(stderr,"@%s lock count=%d depth=%d\n",fcn,mutex->refcount,mutex->fcns.depth); fflush(stderr);
 #endif
 #endif
 }
@@ -130,9 +167,9 @@ void NC_unlock(void)
     NCmutex* mutex = &NC_globalmutex;
 #ifdef DEBUGAPI
 #ifdef DEBUGPRINT
-    fprintf(stderr,"@%s unlock count=%d\n",mutex->fcn,mutex->refcount); fflush(stderr);
+    fprintf(stderr,"@%s unlock count=%d depth=%d\n",fcntop(),mutex->refcount,mutex->fcns.depth); fflush(stderr);
 #endif
-    mutex->fcn = NULL;
+    popfcn();
 #endif
     assert(mutex->refcount > 0);
     mutex->refcount--;

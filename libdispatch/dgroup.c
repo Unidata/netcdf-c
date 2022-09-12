@@ -56,7 +56,7 @@ files in one program context is limited to 32767.
 int nc_inq_ncid(int ncid, const char *name, int *grp_ncid)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) goto done;
@@ -78,7 +78,7 @@ done:
 int nc_inq_grps(int ncid, int *numgrps, int *ncids)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) goto done;
@@ -98,7 +98,7 @@ done:
 int nc_inq_grpname(int ncid, char *name)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) goto done;
@@ -121,7 +121,7 @@ done:
 int nc_inq_grpname_full(int ncid, size_t *lenp, char *full_name)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) goto done;
@@ -156,7 +156,7 @@ int nc_inq_grpname_len(int ncid, size_t *lenp)
 int nc_inq_grp_parent(int ncid, int *parent_ncid)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) goto done;
@@ -194,7 +194,7 @@ int nc_inq_grp_ncid(int ncid, const char *grp_name, int *grp_ncid)
 int nc_inq_grp_full_ncid(int ncid, const char *full_name, int *grp_ncid)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) goto done;
@@ -217,7 +217,7 @@ done:
 int nc_inq_varids(int ncid, int *nvars, int *varids)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) goto done;
@@ -240,7 +240,7 @@ done:
 int nc_inq_dimids(int ncid, int *ndims, int *dimids, int include_parents)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) goto done;
@@ -263,7 +263,7 @@ done:
 int nc_inq_typeids(int ncid, int *ntypes, int *typeids)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) goto done;
@@ -313,7 +313,7 @@ done:
 int nc_def_grp(int parent_ncid, const char *name, int *new_ncid)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(parent_ncid,&ncp);
     if(stat != NC_NOERR) goto done;
@@ -334,7 +334,7 @@ done:
 int nc_rename_grp(int grpid, const char *name)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(grpid,&ncp);
     if(stat != NC_NOERR) goto done;
@@ -354,7 +354,7 @@ done:
 int nc_show_metadata(int ncid)
 {
     NC* ncp;
-    int stat;
+    int stat = NC_NOERR;
     NCLOCK;
     stat = NC_check_id(ncid,&ncp);
     if(stat != NC_NOERR) goto done;

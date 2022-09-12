@@ -257,7 +257,7 @@ done:
 int
 NC_readfile(const char* filename, NCbytes* content)
 {
-    int stat;
+    int stat = NC_NOERR;
     stat = NC_readfilen(filename, content, -1);
     return stat;
 }
