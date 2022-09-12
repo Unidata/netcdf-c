@@ -435,6 +435,8 @@ IF(NOT WIN32)
   ENDIF()
 ENDIF()
 
+FIND_PACKAGE(Threads)
+
 # Option to build netCDF Version 2
 OPTION (ENABLE_V2_API "Build netCDF Version 2." ON)
 SET(BUILD_V2 ${ENABLE_V2_API})
@@ -867,8 +869,6 @@ IF(USE_HDF5)
     ENDIF()
 
   ENDIF(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR)
-
-  FIND_PACKAGE(Threads)
 
   # There is a missing case in the above code so default it
   IF(NOT HDF5_C_LIBRARY_hdf5 OR "${HDF5_C_LIBRARY_hdf5}" STREQUAL "" )

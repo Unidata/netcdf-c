@@ -17,29 +17,32 @@
 #include <assert.h>
 #include <netcdf.h>
 
+/* How does this program even work? */
 int
-main(int ac, char *av[])
+main(int ac, char* av[])
 {
-   int ncid = 0;
-/*   int t; */
-   size_t size_in;
-   char name_in[NC_MAX_NAME + 1];
+	int ncid = 0;
+	/*   int t; */
+	size_t size_in;
+	char name_in[NC_MAX_NAME + 1];
 
-   printf("\n*** Testing netCDF classic version of nc_inq_type...");
-   if (nc_inq_type(ncid, 0, name_in, &size_in) != NC_EBADTYPE) ERR;
-   if (nc_inq_type(ncid, NC_STRING + 1, name_in, &size_in) != NC_EBADTYPE) ERR;
-   if (nc_inq_type(ncid, NC_BYTE, name_in, &size_in)) ERR;
-   if (strcmp(name_in, "byte") || size_in != 1) ERR;
-   if (nc_inq_type(ncid, NC_CHAR, name_in, &size_in)) ERR;
-   if (strcmp(name_in, "char") || size_in != 1) ERR;
-   if (nc_inq_type(ncid, NC_SHORT, name_in, &size_in)) ERR;
-   if (strcmp(name_in, "short") || size_in != 2) ERR;
-   if (nc_inq_type(ncid, NC_INT, name_in, &size_in)) ERR;
-   if (strcmp(name_in, "int") || size_in != 4) ERR;
-   if (nc_inq_type(ncid, NC_FLOAT, name_in, &size_in)) ERR;
-   if (strcmp(name_in, "float") || size_in != 4) ERR;
-   if (nc_inq_type(ncid, NC_DOUBLE, name_in, &size_in)) ERR;
-   if (strcmp(name_in, "double") || size_in != 8) ERR;
-   SUMMARIZE_ERR;
-   FINAL_RESULTS;
+	nc_initialize();
+
+	printf("\n*** Testing netCDF classic version of nc_inq_type...");
+	if (nc_inq_type(ncid, 0, name_in, &size_in) != NC_EBADTYPE) ERR;
+	if (nc_inq_type(ncid, NC_STRING + 1, name_in, &size_in) != NC_EBADTYPE) ERR;
+	if (nc_inq_type(ncid, NC_BYTE, name_in, &size_in)) ERR;
+	if (strcmp(name_in, "byte") || size_in != 1) ERR;
+	if (nc_inq_type(ncid, NC_CHAR, name_in, &size_in)) ERR;
+	if (strcmp(name_in, "char") || size_in != 1) ERR;
+	if (nc_inq_type(ncid, NC_SHORT, name_in, &size_in)) ERR;
+	if (strcmp(name_in, "short") || size_in != 2) ERR;
+	if (nc_inq_type(ncid, NC_INT, name_in, &size_in)) ERR;
+	if (strcmp(name_in, "int") || size_in != 4) ERR;
+	if (nc_inq_type(ncid, NC_FLOAT, name_in, &size_in)) ERR;
+	if (strcmp(name_in, "float") || size_in != 4) ERR;
+	if (nc_inq_type(ncid, NC_DOUBLE, name_in, &size_in)) ERR;
+	if (strcmp(name_in, "double") || size_in != 8) ERR;
+	SUMMARIZE_ERR;
+	FINAL_RESULTS;
 }

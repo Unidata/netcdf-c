@@ -27,9 +27,23 @@ call other API call.
 #endif
 #include <assert.h>
 
+/* Define a single check for PTHREADS vs WIN32 */
+#ifdef _WIN32
+/* Win32 syncronization has priority */
+#undef USEPTHREADS
+#else
 #ifdef HAVE_PTHREADS
-#include <pthread.h>
+#define USEPTHREADS
 #endif
+#endif
+
+#ifdef USEPTHREADS
+#include <pthread.h>
+#else
+#include <windows.h>
+#include <synchapi.h>
+#endif
+
 #include <ncmutex.h>
 
 /* Print lock/unlock */
@@ -38,10 +52,9 @@ call other API call.
 #define MAXDEPTH 32
 
 typedef struct NCmutex {
-#ifdef HAVE_PTHREADS
+#ifdef USEPTHREADS
     pthread_mutex_t mutex;
-#endif
-#ifdef _WIN32
+#else
     CRITICAL_SECTION mutex;
 #endif
     int refcount; /* # times called by same thread */
@@ -85,10 +98,9 @@ fcntop(void)
     return NC_globalmutex.fcns.stack[depth-1];
 }
 #endif
-
 #endif
 
-#ifdef HAVE_PTHREADS
+#ifdef USEPTHREADS
 
 static pthread_once_t once_control = PTHREAD_ONCE_INIT;  /* for pthread_once */
 
@@ -108,7 +120,7 @@ globalncmutexinit(void)
 {
     ncmutexinit(&NC_globalmutex);
 }
-#endif /*HAVE_PTHREADS*/
+#endif /*USEPTHREADS*/
 
 /* Thread module init */
 void
@@ -117,12 +129,11 @@ NC_global_mutex_initialize(void)
     if(global_mutex_initialized) return;
     memset(&NC_globalmutex,0,sizeof(NC_globalmutex));
 
-#ifdef WIN32
-    InitializeCriticalSectionAndSpinCount(&NC_globalmutex.mutex, 4000); /* is this itself thread-safe?*/
-#endif
-#ifdef HAVE_PTHREADS
+#ifdef USEPTHREADS
     /* We use pthread_once to guarantee that the mutex is initialized */
     pthread_once(&once_control,globalncmutexinit);
+#else
+    InitializeCriticalSection(&NC_globalmutex.mutex); /* is this itself thread-safe?*/
 #endif
     global_mutex_initialized = 1;
 }    
@@ -142,15 +153,13 @@ void NC_lock(void)
 #endif
 {
     NCmutex* mutex = &NC_globalmutex;
-#ifdef _WIN32
-    EnterCriticalSection(&mutex->mutex);
-#endif
-#ifdef HAVE_PTHREADS
+#ifdef USEPTHREADS
     pthread_mutex_lock(&mutex->mutex);
+#else
+    EnterCriticalSection(&mutex->mutex);
 #endif
     mutex->refcount++;
 #ifdef DEBUGAPI
-    
     pushfcn(fcn);
 #ifdef DEBUGPRINT
     fprintf(stderr,"@%s lock count=%d depth=%d\n",fcn,mutex->refcount,mutex->fcns.depth); fflush(stderr);
@@ -173,10 +182,9 @@ void NC_unlock(void)
 #endif
     assert(mutex->refcount > 0);
     mutex->refcount--;
-#ifdef _WIN32
-    LeaveCriticalSection(&mutex->mutex);
-#endif
-#ifdef HAVE_PTHREADS
+#ifdef USEPTHREADS
     pthread_mutex_unlock(&mutex->mutex);
+#else
+    LeaveCriticalSection(&mutex->mutex);
 #endif
 }
