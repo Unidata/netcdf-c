@@ -435,7 +435,7 @@ IF(NOT WIN32)
   ENDIF()
   FIND_PACKAGE(Threads)
 ELSE()
-  SET(HAVE_PTHREADS NO)
+  SET(HAVE_PTHREADS NO CACHE BOOL "Use pthreads library")
 ENDIF()
 
 # Option to build netCDF Version 2
