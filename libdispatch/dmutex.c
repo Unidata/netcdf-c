@@ -189,6 +189,7 @@ void NC_unlock(void)
 #endif
 }
 
+#ifdef USEPTHREADS
 #ifdef __APPLE__
 
 /* Apparently OS/X pthreads does not implement
@@ -229,7 +230,7 @@ int
 pthread_barrier_wait(pthread_barrier_t* barrier)
 {
     int ret = 0;
-    if((ret=pthread_mutex_lock(&barrier->mutex)) goto done;
+    if((ret=pthread_mutex_lock(&barrier->mutex))) goto done;
     barrier->count++;
     if(barrier->count >= barrier->tripCount) {
         barrier->count = 0;
@@ -247,3 +248,4 @@ done:
 }
 
 #endif /*__APPLE__*/
+#endif /*USEPTHREADS*/
