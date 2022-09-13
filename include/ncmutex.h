@@ -49,7 +49,7 @@ typedef struct pthread_barrier_t {
 } pthread_barrier_t;
 
 EXTERNL int pthread_barrier_init(pthread_barrier_t* bar, int attr, int num);
-EXTERNL int pthread_barrier_wait(pthread_barrier_t *bar)
+EXTERNL int pthread_barrier_wait(pthread_barrier_t *bar);
 
 #endif /*__APPLE__*/
 #endif /*HAVE_PTHREADS*/
