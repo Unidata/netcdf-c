@@ -148,11 +148,8 @@ The options are as follows.
 ## Build Issues
 
 There are apparently problems with using certain pthread features
-on different platforms. For *example pthread_barrier_t* is
-undefined when C standard 99 is enabled.
-In order to try to work around this problem, the file
-netcdf-c/liblib/CMakeLists.txt sets a property on
-libnetcdf to use C_STANDARD with the value *11*.
+on different platforms.
+* OS/X: *pthread_barrier_t* is unavailable, so a built-in implementation is added libdispatch/dmutex.c and include/ncmutex.h.
 
 # Point of Contact
 __Author__: Dennis Heimbigner<br>

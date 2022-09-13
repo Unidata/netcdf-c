@@ -21,6 +21,9 @@
 
 #ifdef USEPTHREADS
 #include <pthread.h>
+#ifdef __APPLE__
+#include "ncmutex.h"
+#endif
 #else
 #include <windows.h>
 #include <synchapi.h>
