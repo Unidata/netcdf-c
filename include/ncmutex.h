@@ -42,12 +42,12 @@ extern void NC_unlock(void);
 
 typedef int pthread_barrierattr_t;
 
-typedef struct pthread_barrier_t {
-  pthread_mutex_t         mutex;
-  pthread_cond_t          cond;
-  volatile uint32_t       flag;
-  size_t                  count;
-  size_t                  num;
+typedef struct
+{
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+    int count;
+    int tripCount;
 } pthread_barrier_t;
 
 extern int pthread_barrier_init(pthread_barrier_t* barrier, const pthread_barrierattr_t* attr, unsigned int count);
