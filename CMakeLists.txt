@@ -427,16 +427,20 @@ ENDIF()
 # Control thread-safe operation
 OPTION (ENABLE_THREADSAFE "Enable Thread safe operation" ON)
 
-IF(NOT WIN32)
-  # Look for pthreads
-  FIND_LIBRARY(HAVE_PTHREADS NAMES pthread libpthread)
-  IF(NOT HAVE_PTHREADS)
-    MESSAGE(FATAL_ERROR "Thread Safety enabled, but Can't find or link to the pthread library.")
+FIND_PACKAGE(Threads)
+IF(NOT Threads_FOUND)
+  IF(ENABLE_THREADSAFE)
+    MESSAGE(FATAL_ERROR "No threads library available, but ENABLE_THREADS enabled")
   ENDIF()
-#  FIND_PACKAGE(Threads)
 ELSE()
-  SET(HAVE_PTHREADS NO CACHE BOOL "Use pthreads library")
+  SET(HAVE_PTHREADS YES CACHE BOOL "Have pthreads library")
+  IF(NOT (CMAKE_THREAD_LIBS_INIT STREQUAL ""))
+    IF(CMAKE_USE_WIN32_THREADS_INIT)
+      SET(HAVE_PTHREADS NO CACHE BOOL "Have pthreads library")
+    ENDIF()
+  ENDIF()
 ENDIF()
+MESSAGE("HAVE_PTHREADS=${HAVE_PTHREADS}")
 
 # Option to build netCDF Version 2
 OPTION (ENABLE_V2_API "Build netCDF Version 2." ON)
