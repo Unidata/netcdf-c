@@ -440,7 +440,6 @@ ELSE()
     ENDIF()
   ENDIF()
 ENDIF()
-MESSAGE("HAVE_PTHREADS=${HAVE_PTHREADS}")
 
 # Option to build netCDF Version 2
 OPTION (ENABLE_V2_API "Build netCDF Version 2." ON)
