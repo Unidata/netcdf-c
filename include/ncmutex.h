@@ -40,6 +40,8 @@ extern void NC_unlock(void);
 */
 #define PTHREAD_BARRIER_SERIAL_THREAD   1
 
+typedef int pthread_barrierattr_t;
+
 typedef struct pthread_barrier_t {
   pthread_mutex_t         mutex;
   pthread_cond_t          cond;
