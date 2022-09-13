@@ -128,6 +128,7 @@ fprintf(stderr,">>> &data[%d]=%p\n",i,&data[i]); fflush(stderr);
     for(i=0; i<NTHREADS; i++) {
         pthread_join(threads[i], NULL);
     }
+    pthread_barrier_destroy(&barrier);
 #else
     WaitForMultipleObjects(NTHREADS, threads, TRUE, INFINITE);
 #endif
