@@ -14,7 +14,7 @@ echo "PASS: thread safe netcdf-3"
 
 if test "x$FEATURE_HDF5" = xyes ; then
 echo "*** Testing netcdf-4 thread safe execution"
-${execdir}/tst_threads 3 "tmp_threadsafe_4_%d.nc"
+valgrind --leak-check=full ${execdir}/tst_threads 3 "tmp_threadsafe_4_%d.nc"
 echo "PASS: thread safe netcdf-4"
 fi
 
