@@ -33,6 +33,8 @@ extern void NC_unlock(void);
 #ifdef HAVE_PTHREADS
 #ifdef __APPLE__
 
+#include <pthread.h>
+
 /* Apparently OS/X pthreads does not implement
    pthread_barrier_t. So we have to fake it.
 */
@@ -44,8 +46,7 @@ typedef struct pthread_barrier_t {
   volatile uint32_t       flag;
   size_t                  count;
   size_t                  num;
-} Pthread_Barrier;
-
+} pthread_barrier_t;
 
 EXTERNL int pthread_barrier_init(pthread_barrier_t* bar, int attr, int num);
 EXTERNL int pthread_barrier_wait(pthread_barrier_t *bar)
