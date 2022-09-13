@@ -428,15 +428,13 @@ ENDIF()
 OPTION (ENABLE_THREADSAFE "Enable Thread safe operation" ON)
 
 IF(NOT WIN32)
-MESSAGE(">>> NOT WIN32")
   # Look for pthreads
   FIND_LIBRARY(HAVE_PTHREADS NAMES pthread libpthread)
   IF(NOT HAVE_PTHREADS)
     MESSAGE(FATAL_ERROR "Thread Safety enabled, but Can't find or link to the pthread library.")
   ENDIF()
-  FIND_PACKAGE(Threads)
+#  FIND_PACKAGE(Threads)
 ELSE()
-MESSAGE(">>> WIN32")
   SET(HAVE_PTHREADS NO CACHE BOOL "Use pthreads library")
 ENDIF()
 
