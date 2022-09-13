@@ -50,8 +50,9 @@ typedef struct pthread_barrier_t {
   size_t                  num;
 } pthread_barrier_t;
 
-extern int pthread_barrier_init(pthread_barrier_t* bar, int attr, int num);
-extern int pthread_barrier_wait(pthread_barrier_t *bar);
+extern int pthread_barrier_init(pthread_barrier_t* barrier, const pthread_barrierattr_t* attr, unsigned int count);
+extern int pthread_barrier_destroy(pthread_barrier_t* barrier);
+extern int pthread_barrier_wait(pthread_barrier_t* barrier);
 
 #endif /*__APPLE__*/
 #endif /*HAVE_PTHREADS*/
