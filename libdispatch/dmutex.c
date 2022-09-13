@@ -195,47 +195,65 @@ void NC_unlock(void)
    pthread_barrier_t. So we have to fake it.
 */
 
-int
-pthread_barrier_init(pthread_barrier_t *bar0, int attr, int num)
+#include <errno.h>
+
+typedef int pthread_barrierattr_t;
+
+typedef struct
 {
-  int ret = 0;
-  Pthread_Barrier* bar = (Pthread_Barrier*)bar0;
-  if ((ret = pthread_mutex_init(&(bar->mutex), 0))) return ret;
-  if ((ret = pthread_cond_init(&(bar->cond), 0))) return ret;
-  bar->flag = 0;
-  bar->count = 0;
-  bar->num = num;
-  return 0;
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+    int count;
+    int tripCount;
+} pthread_barrier_t;
+
+int
+pthread_barrier_init(pthread_barrier_t* barrier, const pthread_barrierattr_t* attr, unsigned int count)
+{
+    int ret = 0;
+
+    if(count == 0) {errno = EINVAL; ret = -1; goto done;}
+    if((ret=pthread_mutex_init(&barrier->mutex, 0)))
+	{ret = -1; goto done;}
+    if((ret=pthread_cond_init(&barrier->cond, 0))) {
+        if((ret=pthread_mutex_destroy(&barrier->mutex))) goto done;
+        return -1;
+    }
+    barrier->tripCount = count;
+    barrier->count = 0;
+done:
+    return ret;
 }
 
 int
-pthread_barrier_wait(pthread_barrier_t *bar)
+pthread_barrier_destroy(pthread_barrier_t* barrier)
 {
-  int ret = 0;
-  uint32_t flag = 0;
+    int ret = 0;
+    if((ret=pthread_cond_destroy(&barrier->cond))) goto done;
+    if((ret=pthread_mutex_destroy(&barrier->mutex))) goto done;
+done:
+    return ret;
+}
 
-  if ((ret = pthread_mutex_lock(&(bar->mutex)))) return ret;
-
-  flag = bar->flag;
-  bar->count++;
-
-  if (bar->count == bar->num) {
-    bar->count = 0;
-    bar->flag = 1 - bar->flag;
-    if ((ret = pthread_cond_broadcast(&(bar->cond)))) return ret;
-    if ((ret = pthread_mutex_unlock(&(bar->mutex)))) return ret;
-    return PTHREAD_BARRIER_SERIAL_THREAD;
-  }
-
-  while (1) {
-    if (bar->flag == flag) {
-      ret = pthread_cond_wait(&(bar->cond), &(bar->mutex));
-      if (ret) return ret;
-      } else { break; }
+int
+pthread_barrier_wait(pthread_barrier_t* barrier)
+{
+    int ret = 0;
+    if((ret=pthread_mutex_lock(&barrier->mutex)) goto done;
+    barrier->count++;
+    if(barrier->count >= barrier->tripCount) {
+        barrier->count = 0;
+        if((ret=pthread_cond_broadcast(&barrier->cond))) goto done;
+        if((ret=pthread_mutex_unlock(&barrier->mutex))) goto done;
+        ret = PTHREAD_BARRIER_SERIAL_THREAD;
+    } else {
+        if((ret=pthread_cond_wait(&barrier->cond, &(barrier->mutex))))
+	    goto done;
+        if((ret=pthread_mutex_unlock(&barrier->mutex))) goto done;
+        ret = 0;
     }
-
-  if ((ret = pthread_mutex_unlock(&(bar->mutex)))) return ret;
-  return 0;
+done:
+    return ret;
 }
 
 #endif /*__APPLE__*/
