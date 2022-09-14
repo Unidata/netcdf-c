@@ -72,9 +72,9 @@ extern "C" {
  * debian package builders. They already use NDEBUG to turn off the
  * file names in asserts. */
 #ifdef NDEBUG
-#define NC_CHECK(fncall) {int ncstat=fncall;if(ncstat!=NC_NOERR)check(ncstat,"",__LINE__);}
+#define NC_CHECK(fncall) {int ncstat=fncall;if(ncstat!=NC_NOERR)check(ncstat,NULL,NULL,__LINE__);}
 #else
-#define NC_CHECK(fncall) {int ncstat=fncall;if(ncstat!=NC_NOERR)check(ncstat,__FILE__,__LINE__);}
+#define NC_CHECK(fncall) {int ncstat=fncall;if(ncstat!=NC_NOERR)check(ncstat,__FILE__,__func__,__LINE__);}
 #endif /* NDEBUG */
 
 /* Print error message to stderr and exit */
@@ -88,7 +88,7 @@ extern void*    ecalloc ( size_t size );
 extern void*    erealloc (void* p, size_t size );
 
 /* Check error return.  If bad, print error message and exit. */
-extern void check(int err, const char* file, const int line);
+extern void check(int err, const char* file, const char* fcn, const int line);
 
 /* Return malloced name with chars special to CDL escaped. */
 char* escaped_name(const char* cp);
