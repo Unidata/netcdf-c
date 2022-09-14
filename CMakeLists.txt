@@ -133,6 +133,27 @@ IF(${BIGENDIAN})
   SET(WORDS_BIGENDIAN "1")
 ENDIF(${BIGENDIAN})
 
+# Define a function to convert various true or false values
+# to either TRUE|FALSE (uppercase).
+# If value is not a recognized boolean, then return NOTFOUND
+#1, ON, YES, TRUE, Y, 
+#0, OFF, NO, FALSE, N, IGNORE, NOTFOUND -NOTFOUND ""
+
+SET(TRUELIST "on;yes;y;true")
+SET(FALSELIST "off;no;n;false;0;ignore;notfound")
+function(booleanize VALUE RETVAR)
+  # force case
+  STRING(TOLOWER "${VALUE}" LCVALUE)
+  # Now do all the comparisons
+  if(LCVALUE IN_LIST TRUELIST OR LCVALUE GREATER 0)
+    SET(${RETVAR} TRUE PARENT_SCOPE)
+  elseif(LCVALUE IN_LIST FALSELIST OR LCVALUE MATCHES ".*-notfound" OR LCVALUE STREQUAL "")
+    SET(${RETVAR} FALSE PARENT_SCOPE)
+   else()
+     SET(${RETVAR} NOTFOUND PARENT_SCOPE)
+  endif()
+endfunction()
+
 # A macro to check if a C linker supports a particular flag.
 MACRO(CHECK_C_LINKER_FLAG M_FLAG M_RESULT)
   SET(T_REQ_FLAG "${CMAKE_REQUIRED_FLAGS}")
@@ -1057,15 +1078,24 @@ OPTION(ENABLE_BYTERANGE "Enable byte-range access to remote datasets.." OFF)
 # Check for the math library so it can be explicitly linked.
 IF(NOT WIN32)
   FIND_LIBRARY(HAVE_LIBM NAMES math m libm)
-  MESSAGE(STATUS "Found Math library: ${HAVE_LIBM}")
   IF(NOT HAVE_LIBM)
-    MESSAGE(FATAL_ERROR "Unable to find the math library.")
+    CHECK_FUNCTION_EXISTS(exp HAVE_LIBM_FUNC)
+    IF(NOT HAVE_LIBM_FUNC)
+        MESSAGE(FATAL_ERROR "Unable to find the math library.")
+    ELSE(NOT HAVE_LIBM_FUNC)
+        SET(HAVE_LIBM "")
+    ENDIF()
+  ELSE(NOT HAVE_LIBM)
+    MESSAGE(STATUS "Found Math library: ${HAVE_LIBM}")
   ENDIF()
 ENDIF()
 
 # Option to Enable DAP long tests, remote tests.
 OPTION(ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." ON)
+OPTION(ENABLE_EXTERNAL_SERVER_TESTS "Enable external Server remote tests." OFF)
 OPTION(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
+SET(REMOTETESTSERVERS "remotetest.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
+
 SET(REMOTETESTSERVERS "remotetest.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
 
 # See if we have zlib
@@ -1118,62 +1148,62 @@ ELSE()
   set(STD_FILTERS "${STD_FILTERS} bz2")
 ENDIF()
 
-# libdl is always available; built-in in Windows and OSX
-OPTION(ENABLE_PLUGINS "Enable dynamically loaded plugins (default on)." ON)
-IF(MINGW)
-    SET(ENABLE_PLUGINS OFF CACHE BOOL "Disable plugins" FORCE)
-ELSE()
-  IF(NOT WIN32)
-    IF(HAVE_DLFCN_H)
-      INCLUDE_DIRECTORIES("dlfcn.h")
+# If user wants, then install selected plugins (default on)
+SET(PLUGIN_INSTALL_DIR "NO" CACHE STRING "Whether and where we should install plugins; defaults to yes")
+
+# This is ugly, but seems necessary because of CMake's boolean structure
+SET(boolval FALSE)
+IF(DEFINED PLUGIN_INSTALL_DIR)
+  booleanize(${PLUGIN_INSTALL_DIR} boolval)
+  IF(boolval)
+    SET(ENABLE_PLUGIN_INSTALL YES)
+    # No actual value was specified
+    UNSET(PLUGIN_INSTALL_DIR CACHE)
+  ELSE()
+    IF(boolval STREQUAL "NOTFOUND")
+      # Must be an actual value
+      SET(ENABLE_PLUGIN_INSTALL YES)
+    ELSE()
+      SET(ENABLE_PLUGIN_INSTALL NO)
     ENDIF()
   ENDIF()
-ENDIF()
-IF(ENABLE_PLUGINS)
-  SET(USEPLUGINS yes)
-ENDIF()
-
-# If user wants, then install selected plugins (default off)
-SET(PLUGIN_INSTALL_DIR "NO" CACHE STRING "Whether and where we should install plugins")
-IF(NOT ENABLE_PLUGINS)
-    MESSAGE("ENABLE_PLUGINS=no => PLUGIN_INSTALL_DIR=no")
-    SET(PLUGIN_INSTALL_DIR "NO" CACHE STRING "")
-ENDIF()
-SET(ENABLE_PLUGIN_INSTALL NO)
-IF(DEFINED PLUGIN_INSTALL_DIR) #OR DEFINED CACHE{PLUGIN_INSTALL_DIR}
-  STRING(TOLOWER "${PLUGIN_INSTALL_DIR}" LCPID)
-  IF(LCPID STREQUAL "no")
-    SET(ENABLE_PLUGIN_INSTALL NO)
-  ELSE()
-    SET(ENABLE_PLUGIN_INSTALL YES)
-  ENDIF()
+ELSE()
+  SET(ENABLE_PLUGIN_INSTALL NO)
 ENDIF()
 
-IF(ENABLE_PLUGIN_INSTALL AND PLUGIN_INSTALL_DIR STREQUAL "YES")
-    # Default to last dir (lowest search priority) in HDF5_PLUGIN_PATH
-    IF(DEFINED ENV{HDF5_PLUGIN_PATH})
-      SET(PLUGIN_PATH "$ENV{HDF5_PLUGIN_PATH}")
-    ELSE()
+# Ensure no defined plugin dir if not enabled
+IF(NOT ENABLE_PLUGIN_INSTALL)
+    UNSET(PLUGIN_INSTALL_DIR CACHE)
+ENDIF()
+
+IF(ENABLE_PLUGIN_INSTALL)
+    IF(NOT DEFINED PLUGIN_INSTALL_DIR)
+      # Default to HDF5_PLUGIN_PATH or its default directories
+      IF(DEFINED ENV{HDF5_PLUGIN_PATH})
+        SET(PLUGIN_INSTALL_DIR "$ENV{HDF5_PLUGIN_PATH}")
+      ELSE()
         IF(ISMSVC OR ISMINGW)
-	  SET(PLUGIN_PATH "$ENV{ALLUSERSPROFILE}\\hdf5\\lib\\plugin")
+	  SET(PLUGIN_INSTALL_DIR "$ENV{ALLUSERSPROFILE}\\hdf5\\lib\\plugin")
 	ELSE()
-	  SET(PLUGIN_PATH "/usr/local/hdf5/lib/plugin")
+	  SET(PLUGIN_PLUGIN_DIR "/usr/local/hdf5/lib/plugin")
 	ENDIF()
+      ENDIF()
+        MESSAGE("Defaulting to -DPLUGIN_INSTALL_DIR=${PLUGIN_INSTALL_DIR}")
     ENDIF()
 ENDIF()
 
 IF(ENABLE_PLUGIN_INSTALL)
   # Use the lowest priority dir in the path
   IF(NOT ISMSVC AND NOT ISMINGW)
-    STRING(REPLACE ":" ";" PATH_LIST ${PLUGIN_PATH})
+    STRING(REPLACE ":" ";" PATH_LIST ${PLUGIN_INSTALL_DIR})
   ELSE()
-    SET(PATH_LIST ${PLUGIN_PATH})
+    SET(PATH_LIST ${PLUGIN_INSTALL_DIR})
   ENDIF()
 
   # Get last element
   LIST(GET PATH_LIST -1 PLUGIN_INSTALL_DIR)
-  MESSAGE("Defaulting to -DPLUGIN_INSTALL_DIR=${PLUGIN_INSTALL_DIR}")
   SET(PLUGIN_INSTALL_DIR_SETTING "${PLUGIN_INSTALL_DIR}")
+  MESSAGE("Final value of-DPLUGIN_INSTALL_DIR=${PLUGIN_INSTALL_DIR}")
 ELSE() # No option specified
     UNSET(PLUGIN_INSTALL_DIR)
     UNSET(PLUGIN_INSTALL_DIR CACHE)
@@ -1689,7 +1719,7 @@ ENDIF()
 
 # Set some of the options as advanced.
 MARK_AS_ADVANCED(ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_COVERAGE_TESTS )
-MARK_AS_ADVANCED(ENABLE_DAP_REMOTE_TESTS ENABLE_DAP_LONG_TESTS USE_REMOTE_CDASH)
+MARK_AS_ADVANCED(ENABLE_DAP_REMOTE_TESTS ENABLE_DAP_LONG_TESTS USE_REMOTE_CDASH ENABLE_EXTERNAL_SERVER_TESTS)
 MARK_AS_ADVANCED(ENABLE_DOXYGEN_BUILD_RELEASE_DOCS DOXYGEN_ENABLE_TASKS ENABLE_DOXYGEN_SERVER_SIDE_SEARCH)
 MARK_AS_ADVANCED(ENABLE_SHARED_LIBRARY_VERSION)
 
@@ -1947,22 +1977,18 @@ ENDIF()
 
 MACRO(GEN_m4 filename)
 
-set(dest "${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c")
+  set(fallbackdest "${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c")
+  set(dest "${CMAKE_CURRENT_BINARY_DIR}/${filename}.c")
 
   # If m4 isn't present, and the generated file doesn't exist,
   # it cannot be generated and an error should be thrown.
   IF(NOT HAVE_M4)
-    IF(NOT EXISTS ${dest})
-      MESSAGE(FATAL_ERROR "m4 is required to generate ${dest}. Please install m4 so that it is on the PATH and try again.")
+    IF(NOT EXISTS ${fallbackdest})
+      MESSAGE(FATAL_ERROR "m4 is required to generate ${filename}.c. Please install m4 so that it is on the PATH and try again.")
+    ELSE()
+      SET(${dest} ${fallbackdest})
     ENDIF()
-  ENDIF(NOT HAVE_M4)
-
-  IF(HAVE_M4)
-    # If m4 is available, remove generated file if it exists.
-    IF(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
-      FILE(REMOVE ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c)
-    ENDIF()
-
+  ELSE()
     ADD_CUSTOM_COMMAND(
       OUTPUT ${dest}
       COMMAND ${NC_M4}
@@ -1970,7 +1996,7 @@ set(dest "${CMAKE_CURRENT_SOURCE_DIR}/${filename}.c")
       VERBATIM
       )
 
-  ENDIF(HAVE_M4)
+  ENDIF()
 ENDMACRO(GEN_m4)
 
 # Binary tests, but ones which depend on value of 'TEMP_LARGE' being defined.

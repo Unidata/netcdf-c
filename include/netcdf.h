@@ -836,6 +836,9 @@ nc_inq_enum_member(int ncid, nc_type xtype, int idx, char *name,
 
 
 /* Get enum name from enum value. Name size will be <= NC_MAX_NAME. */
+/* If value is zero and there is no matching ident, then return _UNDEFINED */
+#define NC_UNDEFINED_ENUM_IDENT "_UNDEFINED"
+
 EXTERNL int
 nc_inq_enum_ident(int ncid, nc_type xtype, long long value, char *identifier);
 

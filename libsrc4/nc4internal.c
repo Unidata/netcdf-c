@@ -35,22 +35,24 @@
 */
 
 /** @internal List of reserved attributes.
-    WARNING: This list must be in sorted order for binary search. */
+    WARNING: This list must be in (strcmp) sorted order for binary search. */
 static const NC_reservedatt NC_reserved[] = {
     {NC_ATT_CLASS, READONLYFLAG|HIDDENATTRFLAG},			/*CLASS*/
     {NC_ATT_DIMENSION_LIST, READONLYFLAG|HIDDENATTRFLAG},		/*DIMENSION_LIST*/
     {NC_ATT_NAME, READONLYFLAG|HIDDENATTRFLAG},				/*NAME*/
     {NC_ATT_REFERENCE_LIST, READONLYFLAG|HIDDENATTRFLAG},		/*REFERENCE_LIST*/
-    {NC_XARRAY_DIMS, READONLYFLAG|HIDDENATTRFLAG},			/*_ARRAY_DIMENSIONS*/
-    {NC_ATT_CODECS, VARFLAG|READONLYFLAG|NAMEONLYFLAG|HIDDENATTRFLAG},	/*_Codecs*/
+    {NC_XARRAY_DIMS, READONLYFLAG|NAMEONLYFLAG|HIDDENATTRFLAG},		/*_ARRAY_DIMENSIONS*/
+    {NC_ATT_CODECS, VARFLAG|READONLYFLAG|NAMEONLYFLAG},			/*_Codecs*/
     {NC_ATT_FORMAT, READONLYFLAG},					/*_Format*/
     {ISNETCDF4ATT, READONLYFLAG|NAMEONLYFLAG},				/*_IsNetcdf4*/
-    {NCPROPS, READONLYFLAG|NAMEONLYFLAG|MATERIALIZEDFLAG},		/*_NCProperties*/
-    {NC_NCZARR_ATTR, READONLYFLAG|HIDDENATTRFLAG},			/*_NCZARR_ATTR*/
-    {NC_ATT_COORDINATES, READONLYFLAG|HIDDENATTRFLAG|MATERIALIZEDFLAG},	/*_Netcdf4Coordinates*/
-    {NC_ATT_DIMID_NAME, READONLYFLAG|HIDDENATTRFLAG|MATERIALIZEDFLAG},	/*_Netcdf4Dimid*/
+    {NCPROPS,READONLYFLAG|NAMEONLYFLAG|HIDDENATTRFLAG},			/*_NCProperties*/
+    {NC_NCZARR_ATTR_UC, READONLYFLAG|HIDDENATTRFLAG},			/*_NCZARR_ATTR */
+    {NC_ATT_COORDINATES, READONLYFLAG|HIDDENATTRFLAG},			/*_Netcdf4Coordinates*/
+    {NC_ATT_DIMID_NAME, READONLYFLAG|HIDDENATTRFLAG},			/*_Netcdf4Dimid*/
     {SUPERBLOCKATT, READONLYFLAG|NAMEONLYFLAG},				/*_SuperblockVersion*/
-    {NC_ATT_NC3_STRICT_NAME, READONLYFLAG|MATERIALIZEDFLAG},		/*_nc3_strict*/
+    {NC_ATT_NC3_STRICT_NAME, READONLYFLAG},				/*_nc3_strict*/
+    {NC_ATT_NC3_STRICT_NAME, READONLYFLAG},				/*_nc3_strict*/
+    {NC_NCZARR_ATTR, READONLYFLAG|HIDDENATTRFLAG},			/*_nczarr_attr */
 };
 #define NRESERVED (sizeof(NC_reserved) / sizeof(NC_reservedatt))  /*|NC_reservedatt|*/
 
@@ -1592,7 +1594,7 @@ nc4_rec_grp_del_att_data(NC_GRP_INFO_T *grp)
     LOG((3, "%s: grp->name %s", __func__, grp->hdr.name));
 
     /* Recursively call this function for each child, if any, stopping
-    * if there is an error. */
+     * if there is an error. */
     for (i = 0; i < ncindexsize(grp->children); i++)
         if ((retval = nc4_rec_grp_del_att_data((NC_GRP_INFO_T *)ncindexith(grp->children, i))))
             return retval;
@@ -2106,11 +2108,11 @@ NC_createglobalstate(void)
     }
     /* Initialize struct pointers */
     if((nc_globalstate->rcinfo = calloc(1,sizeof(struct NCRCinfo)))==NULL)
-        {stat = NC_ENOMEM; goto done;}
+            {stat = NC_ENOMEM; goto done;}
     if((nc_globalstate->rcinfo->entries = nclistnew())==NULL)
-        {stat = NC_ENOMEM; goto done;}
+            {stat = NC_ENOMEM; goto done;}
     if((nc_globalstate->rcinfo->s3profiles = nclistnew())==NULL)
-        {stat = NC_ENOMEM; goto done;}
+            {stat = NC_ENOMEM; goto done;}
 
     /* Get environment variables */
     if(getenv(NCRCENVIGNORE) != NULL)

@@ -1,0 +1,5 @@
+[0] /.zattrs : (354) |{"globalfloat": 1, "globalfloatvec": [1,2], "globalchar": "abc", "globalillegal": "[ [ 1.0, 0.0, 0.0 ], [ 0.0, 1.0, 0.0 ], [ 0.0, 0.0, 1.0 ", "_NCProperties": "version=2,netcdf=4.9.1-development,nczarr=2.0.0", "_nczarr_attr": {"types": {"globalfloat": "<f8", "globalfloatvec": "<f8", "globalchar": ">S1", "globalillegal": ">S1", "_NCProperties": ">S1"}}}|
+[1] /.zgroup : (129) |{"zarr_format": 2, "_nczarr_superblock": {"version": "2.0.0"}, "_nczarr_group": {"dims": {"d1": 1}, "vars": ["v"], "groups": []}}|
+[3] /v/.zarray : (202) |{"zarr_format": 2, "shape": [1], "dtype": "<i4", "chunks": [1], "fill_value": -2147483647, "order": "C", "compressor": null, "filters": null, "_nczarr_array": {"dimrefs": ["/d1"], "storage": "chunked"}}|
+[4] /v/.zattrs : (296) |{"varjson1": {"key1": [1,2,3], "key2": {"key3": "abc"}}, "varjson2": [[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,1.0]], "varvec1": "1.0, 0.0, 0.0", "varvec2": [0.,0.,1.], "_ARRAY_DIMENSIONS": ["d1"], "_nczarr_attr": {"types": {"varjson1": ">S1", "varjson2": ">S1", "varvec1": ">S1", "varvec2": ">S1"}}}|
+[5] /v/0 : (4) (ubyte) |...|

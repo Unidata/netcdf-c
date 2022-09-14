@@ -189,6 +189,7 @@ NC_rcclear(NCRCinfo* info)
     nullfree(info->rchome);
     rcfreeentries(info->entries);
     freeprofilelist(info->s3profiles);
+
 }
 
 static void

@@ -5,9 +5,9 @@
 
 # See netcdf-c/COPYRIGHT file for more info.
 
-# Call only once per shell script
-if test "x$TEST_COMMON_INITIALIZE" != xyes ; then
-TEST_COMMON_INITIALIZE=yes
+# Load only once
+if test "x$TEST_COMMON_SH" = x ; then
+export TEST_COMMON_SH=1
 
 # Define location of execution
 TOPSRCDIR='@abs_top_srcdir@'
@@ -35,6 +35,9 @@ FEATURE_S3TESTS=@DO_NCZARR_S3_TESTS@
 FEATURE_NCZARR_ZIP=@DO_NCZARR_ZIP_TESTS@
 FEATURE_FILTERTESTS=@DO_FILTER_TESTS@
 FEATURE_PLUGIN_INSTALL_DIR=@PLUGIN_INSTALL_DIR@
+
+# Thredds-test server is currently disabled
+#FEATURE_THREDDSTEST=1
 
 set -e
 
@@ -174,8 +177,10 @@ avail() {
 if test yes = `${execdir}/../ncdump/ncfilteravail $1` ; then return 0 ; else echo "filter $1 not available" ; return 1; fi
 }
 
+# Thredds-test is no longer available
+#FEATURE_THREDDSTEST=1
+
 # Make sure we are in builddir (not execdir)
 cd $builddir
 
-fi # TTEST_COMMON_INITIALIZE
-
+fi #TEST_COMMON_SH

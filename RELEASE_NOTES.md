@@ -8,7 +8,20 @@ This file contains a high-level description of this package's evolution. Release
 ## 4.9.1 - T.B.D.
 
 * [Bug Fix] Improve the handling of the testing libraries in the plugins directory. See [Github #2440](https://github.com/Unidata/netcdf-c/pull/2440).
+* [Bug Fix] Fix some errors detected in PR 2497. [PR #2497](https://github.com/Unidata/netcdf-c/pull/2497) . See [Github #2503](https://github.com/Unidata/netcdf-c/pull/2503).
+* [Bug Fix] Split the remote tests into two parts: one for the remotetest server and one for all other external servers. Also add a configure option to enable the latter set. See [Github #2491](https://github.com/Unidata/netcdf-c/pull/2491).
+* [Bug Fix] Fix blosc plugin errors. See [Github #2461](https://github.com/Unidata/netcdf-c/pull/2461).
+* [Bug Fix] Fix support for reading arrays of HDF5 fixed size strings. See [Github #2466](https://github.com/Unidata/netcdf-c/pull/2466).
+* [Bug Fix] Fix some errors detected in [PR #2492](https://github.com/Unidata/netcdf-c/pull/2492) . See [Github #2497](https://github.com/Unidata/netcdf-c/pull/2497).
+* [Enhancement] Add support for Zarr (fixed length) string type in nczarr. See [Github #2492](https://github.com/Unidata/netcdf-c/pull/2492). 
+* [Bug Fix] Split the remote tests into two parts: one for the remotetest server and one for all other external servers. Also add a configure option to enable the latter set. See [Github #2491](https://github.com/Unidata/netcdf-c/pull/2491).
+* [Bug Fix] Fix support for reading arrays of HDF5 fixed size strings. See [Github #2462](https://github.com/Unidata/netcdf-c/pull/2466).
+* [Bug Fix] Provide a default enum const when fill value does not match any enum constant for the value zero. See [Github #2462](https://github.com/Unidata/netcdf-c/pull/2462).
+* [Bug Fix] Fix the json submodule symbol conflicts between libnetcdf and the plugin specific netcdf_json.h. See [Github #2448](https://github.com/Unidata/netcdf-c/pull/2448).
+* [Bug Fix] Fix quantize with CLASSIC_MODEL files. See [Github #2405](https://github.com/Unidata/netcdf-c/pull/2445).
 * [Enhancement] Add `--disable-quantize` option to `configure`. See [Github #2439](https://github.com/Unidata/netcdf-c/pull/2439).
+* [Bug Fix] Fix CMakeLists.txt to handle all acceptable boolean values for -DPLUGIN_INSTALL_DIR. See [Github #2430](https://github.com/Unidata/netcdf-c/pull/2430).
+>>>>>>> master
 * [Enhancement] Provide a simple API to allow user access to the internal .rc file table: supports get/set/overwrite of entries of the form "key=value". See [Github #2408](https://github.com/Unidata/netcdf-c/pull/2408).
 * [Bug Fix] Use env variable USERPROFILE instead of HOME for windows and mingw. See [Github #2405](https://github.com/Unidata/netcdf-c/pull/2405).
 * [Bug Fix] Fix the nc_def_var_fletcher32 code in hdf5 to properly test value of the fletcher32 argument. See [Github #2403](https://github.com/Unidata/netcdf-c/pull/2403).
@@ -23,6 +36,7 @@ This file contains a high-level description of this package's evolution. Release
 * [Enhancement] Allow the read/write of JSON-valued Zarr attributes to allow
 for domain specific info such as used by GDAL/Zarr. See [Github #2278](https://github.com/Unidata/netcdf-c/pull/2278).
 * [Enhancement] Turn on the XArray convention for NCZarr files by default. WARNING, this means that the mode should explicitly specify "nczarr" or "zarr" even if "xarray" or "noxarray" is specified. See [Github #2257](https://github.com/Unidata/netcdf-c/pull/2257).
+* [Enhancement] Update the documentation to match the current filter capabilities  See [Github #2249](https://github.com/Unidata/netcdf-c/pull/2249).
 * [Enhancement] Update the documentation to match the current filter capabilities. See [Github #2249](https://github.com/Unidata/netcdf-c/pull/2249).
 * [Enhancement] Support installation of pre-built standard filters into user-specified location. See [Github #2318](https://github.com/Unidata/netcdf-c/pull/2318).
 * [Enhancement] Improve filter support. More specifically (1) add nc_inq_filter_avail to check if a filter is available, (2) add the notion of standard filters, (3) cleanup szip support to fix interaction with NCZarr. See [Github #2245](https://github.com/Unidata/netcdf-c/pull/2245).
@@ -193,7 +207,7 @@ See [GitHub #1251](https://github.com/Unidata/netcdf-c/issues/1251).
 * Fix of --enable-benchmark benchmark tests [Github #1211](https://github.com/Unidata/netcdf-c/issues/1211)
 * Update the license from the home-brewed NetCDF license to the standard 3-Clause BSD License.  This change does not result in any new restrictions; it is merely the adoption of a standard, well-known and well-understood license in place of the historic NetCDF license written at Unidata.  This is part of a broader push by Unidata to adopt modern, standardized licensing.
 * [BugFix] Corrected DAP-related issues on big-endian machines. See [Github #1321](https://github.com/Unidata/netcdf-c/issues/1321), [Github #1302](https://github.com/Unidata/netcdf-c/issues/1302) for more information.
-* [BugFix][Enhancement]  Various and sundry bugfixes and performance enhancements, thanks to \@edhartnett, \@gsjaardema, \@t-b, \@wkliao, and all of our other contributors.
+* [BugFix][Enhancement]  Various and sundry bugfixes and performance enhancements, thanks to \@edhartnett, \@gsjarrdema, \@t-b, \@wkliao, and all of our other contributors.
 * [Enhancement] Extended `nccopy -F` syntax to support multiple variables with a single invocation. See [Github #1311](https://github.com/Unidata/netcdf-c/issues/1311) for more information.
 * [BugFix] Corrected an issue where DAP2 was incorrectly converting signed bytes, resulting in an erroneous error message under some circumstances. See [GitHub #1317](https://github.com/Unidata/netcdf-c/issues/1317) for more information.  See [Github #1319](https://github.com/Unidata/netcdf-c/issues/1319) for related information.
 * [BugFix][Enhancement] Modified `nccopy` so that `_NCProperties` is not copied over verbatim but is instead generated based on the version of `libnetcdf` used when copying the file.  Additionally, `_NCProperties` are displayed if/when associated with a netcdf3 file, now. See [GitHub #803](https://github.com/Unidata/netcdf-c/issues/803) for more information.

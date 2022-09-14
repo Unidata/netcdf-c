@@ -95,7 +95,6 @@ AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat3.nc:nc_test4/ref_hdf5_compat3.nc])
 
 AC_CONFIG_LINKS([hdf4_test/ref_chunked.hdf4:hdf4_test/ref_chunked.hdf4])
 AC_CONFIG_LINKS([hdf4_test/ref_contiguous.hdf4:hdf4_test/ref_contiguous.hdf4])
-AC_CONFIG_LINKS([dap4_test/baselinethredds/GOES16_CONUS_20170821_020218_0.47_1km_33.3N_91.4W.nc4.thredds:dap4_test/baselinethredds/GOES16_TEST1.nc4.thredds])
 AM_INIT_AUTOMAKE([foreign dist-zip subdir-objects])
 
 # Check for the existence of this file before proceeding.
@@ -604,31 +603,52 @@ AM_CONDITIONAL(ENABLE_QUANTIZE, [test x$enable_quantize = xyes])
 
 # --enable-dap => enable-dap4
 enable_dap4=$enable_dap
-AC_MSG_CHECKING([whether dap remote testing should be enabled])
+AC_MSG_CHECKING([whether dap use of remotetest server should be enabled])
 AC_ARG_ENABLE([dap-remote-tests],
-              [AS_HELP_STRING([--enable-dap-remote-tests],
-                                 [enable dap remote tests])])
-test "x$enable_dap_remote_tests" = xno || enable_dap_remote_tests=yes
+              [AS_HELP_STRING([--disable-dap-remote-tests],
+                                 [disable dap remote tests])])
+# Default off
+test "x$enable_dap_remote_tests" = xyes || enable_dap_remote_tests=no
 if test "x$enable_dap" = "xno" ; then
   enable_dap_remote_tests=no
 fi
 AC_MSG_RESULT($enable_dap_remote_tests)
 
+AC_MSG_CHECKING([whether dap use of remotetest server should be enabled])
+AC_ARG_ENABLE([dap-remote-tests],
+              [AS_HELP_STRING([--disable-dap-remote-tests],
+                                 [disable dap remote tests])])
+test "x$enable_dap_remote_tests" = xno || enable_dap_remote_tests=yes
+AC_MSG_RESULT($enable_dap_remote_tests)
+
+AC_MSG_CHECKING([whether use of external servers should be enabled])
+AC_ARG_ENABLE([external-server-tests],
+              [AS_HELP_STRING([--enable-external-server-tests (default off)],
+                                 [enable external server tests])])
+test "x$enable_external_server_tests" = xyes || enable_external_server_tests=no
+AC_MSG_RESULT($enable_external_server_tests)
+
+if test "x$enable_dap_remote_tests" = "xno" ; then
+  AC_MSG_NOTICE([--disable-dap_remote_tests => --disable-external-server-tests])
+  enable_external_server_tests=no
+fi
+
 # Default is not to do the remote authorization tests.
-AC_MSG_CHECKING([whether dap remote authorization testing should be enabled (default off)])
+AC_MSG_CHECKING([whether dap authorization testing should be enabled (default off)])
 AC_ARG_ENABLE([dap-auth-tests],
               [AS_HELP_STRING([--enable-dap-auth-tests],
                                  [enable dap remote authorization tests])])
 test "x$enable_dap_auth_tests" = xyes || enable_dap_auth_tests=no
-# dap must be enabled
-if test "x$enable_dap" = "xno" ; then
-  enable_dap_auth_tests=no
-fi
-# if remote tests are disabled, then so is this
-if test "x$enable_dap_remote_tests" = "xno" ; then
-  enable_dap_remote_tests=no
-fi
 AC_MSG_RESULT($enable_dap_auth_tests)
+
+# dap must be enabled
+
+if test "x$enable_dap" = "xno" ; then
+  AC_MSG_NOTICE([--disable-dap => --disable-dap-remote-tests --disable-auth-tests --disable-external-server-tests])
+  enable_dap_remote_tests=no
+  enable_dap_auth_tests=no
+  enable_external_server_tests=no  
+fi
 
 # Did the user specify a list of test servers to try for remote tests?
 AC_MSG_CHECKING([which remote test server(s) to use])
@@ -653,16 +673,20 @@ fi
 if test "x$enable_dap_remote_tests" = xyes; then
    AC_DEFINE([ENABLE_DAP_REMOTE_TESTS], [1], [if true, do remote tests])
 fi
+if test "x$enable_external_server_tests" = xyes; then
+   AC_DEFINE([ENABLE_EXTERNAL_SERVER_TESTS], [1], [if true, do remote external tests])
+fi
 
 AC_MSG_CHECKING([whether the time-consuming dap tests should be enabled (default off)])
 AC_ARG_ENABLE([dap-long-tests],
               [AS_HELP_STRING([--enable-dap-long-tests],
                                  [enable dap long tests])])
 test "x$enable_dap_long_tests" = xyes || enable_dap_long_tests=no
-if test "x$enable_dap_remote_tests" = "xno" ; then
+AC_MSG_RESULT([$enable_dap_long_tests])
+if test "x$enable_dap_remote_tests" = "xno" || test "x$enable_external_server_tests" = "xno" ; then
+  AC_MSG_NOTICE([--disable-dap-remote|external-server-tests => --disable_dap_long_tests])
   enable_dap_long_tests=no
 fi
-AC_MSG_RESULT([$enable_dap_long_tests])
 
 # Control zarr storage
 if test "x$enable_nczarr" = xyes ; then
@@ -1758,6 +1782,7 @@ AM_CONDITIONAL(ENABLE_DAP4, [test "x$enable_dap4" = xyes])
 AM_CONDITIONAL(USE_STRICT_NULL_BYTE_HEADER_PADDING, [test x$enable_strict_null_byte_header_padding = xyes])
 AM_CONDITIONAL(ENABLE_CDF5, [test "x$enable_cdf5" = xyes])
 AM_CONDITIONAL(ENABLE_DAP_REMOTE_TESTS, [test "x$enable_dap_remote_tests" = xyes])
+AM_CONDITIONAL(ENABLE_EXTERNAL_SERVER_TESTS, [test "x$enable_external_server_tests" = xyes])
 AM_CONDITIONAL(ENABLE_DAP_AUTH_TESTS, [test "x$enable_dap_auth_tests" = xyes])
 AM_CONDITIONAL(ENABLE_DAP_LONG_TESTS, [test "x$enable_dap_long_tests" = xyes])
 AM_CONDITIONAL(USE_PNETCDF_DIR, [test ! "x$PNETCDFDIR" = x])
