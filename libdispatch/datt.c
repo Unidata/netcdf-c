@@ -113,10 +113,15 @@ int
 nc_rename_att(int ncid, int varid, const char *name, const char *newname)
 {
    NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
+   int stat = NC_NOERR;
+   NCLOCK;
+   stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) goto done;
    TRACE(nc_rename_att);
-   return ncp->dispatch->rename_att(ncid, varid, name, newname);
+   stat = ncp->dispatch->rename_att(ncid, varid, name, newname);
+done:
+   NCUNLOCK;
+   return stat;
 }
 
 /**
@@ -177,10 +182,14 @@ int
 nc_del_att(int ncid, int varid, const char *name)
 {
    NC* ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
+   int stat = NC_NOERR;
+   NCLOCK;
+   stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) goto done;
    TRACE(nc_del_att);
    stat = ncp->dispatch->del_att(ncid, varid, name);
+done:
+   NCUNLOCK;
    return stat;
 }
 /**@}*/  /* End doxygen member group. */

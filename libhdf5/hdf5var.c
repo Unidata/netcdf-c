@@ -1037,57 +1037,7 @@ NC4_def_var_chunking(int ncid, int varid, int storage, const size_t *chunksizesp
 }
 
 /**
- * @internal Define chunking stuff for a var. This is called by
- * the fortran API.
- * Note: see libsrc4/nc4cache.c for definition when HDF5 is disabled
- *
- * @param ncid File ID.
- * @param varid Variable ID.
- * @param storage Pointer to storage setting.
- * @param chunksizesp Array of chunksizes.
- *
- * @returns ::NC_NOERR No error.
- * @returns ::NC_EBADID Bad ncid.
- * @returns ::NC_ENOTVAR Invalid variable ID.
- * @returns ::NC_ENOTNC4 Attempting netcdf-4 operation on file that is
- * not netCDF-4/HDF5.
- * @returns ::NC_ELATEDEF Too late to change settings for this variable.
- * @returns ::NC_ENOTINDEFINE Not in define mode.
- * @returns ::NC_EINVAL Invalid input
- * @returns ::NC_EBADCHUNK Bad chunksize.
- * @author Ed Hartnett
- */
-int
-nc_def_var_chunking_ints(int ncid, int varid, int storage, int *chunksizesp)
-{
-    NC_VAR_INFO_T *var = NULL;
-    size_t *cs = NULL;
-    int i, retval;
-
-    /* Get pointer to the var. */
-    if ((retval = nc4_hdf5_find_grp_h5_var(ncid, varid, NULL, NULL, &var)))
-        return retval;
-    assert(var);
-
-    /* Allocate space for the size_t copy of the chunksizes array. */
-    if (var->ndims)
-        if (!(cs = malloc(var->ndims * sizeof(size_t))))
-            return NC_ENOMEM;
-
-    /* Copy to size_t array. */
-    for (i = 0; i < var->ndims; i++)
-        cs[i] = chunksizesp[i];
-
-    retval = nc_def_var_extra(ncid, varid, NULL, NULL, NULL, NULL,
-                              &storage, cs, NULL, NULL, NULL, NULL, NULL);
-
-    if (var->ndims)
-        free(cs);
-    return retval;
-}
-
-/**
- * @internal This functions sets fill value and no_fill mode for a
+ * @Internal This functions sets fill value and no_fill mode for a
  * netCDF-4 variable. It is called by nc_def_var_fill().
  *
  * @note All pointer parameters may be NULL, in which case they are ignored.
@@ -2401,10 +2351,12 @@ int
 nc_set_var_chunk_cache_ints(int ncid, int varid, int size, int nelems,
                             int preemption)
 {
+    int stat = NC_NOERR;
     size_t real_size = H5D_CHUNK_CACHE_NBYTES_DEFAULT;
     size_t real_nelems = H5D_CHUNK_CACHE_NSLOTS_DEFAULT;
     float real_preemption = CHUNK_CACHE_PREEMPTION;
 
+    NCLOCK;
     LOG((1, "%s: ncid 0x%x varid %d size %d nelems %d preemption %d",
 	 __func__, ncid, varid, size, nelems, preemption));
     
@@ -2417,6 +2369,8 @@ nc_set_var_chunk_cache_ints(int ncid, int varid, int size, int nelems,
     if (preemption >= 0)
         real_preemption = preemption / 100.;
 
-    return NC4_HDF5_set_var_chunk_cache(ncid, varid, real_size, real_nelems,
+    stat = NC4_HDF5_set_var_chunk_cache(ncid, varid, real_size, real_nelems,
                                         real_preemption);
+    NCUNLOCK;
+    return stat;
 }

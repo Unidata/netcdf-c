@@ -114,8 +114,33 @@ ISMINGW=yes
 ISMSYS=yes
 fi
 
+# See if we have libpthreads
+AC_SEARCH_LIBS([pthread_mutex_init],[pthreads pthreads.dll cygpthreads.dll], [have_pthreads=yes], [have_pthreads=no])
+if test "x$have_pthreads" = "xyes" ; then
+  AC_CHECK_LIB([pthread],[pthread_mutex_init],[],[]) # Make sure it gets included in the lib list
+  AC_DEFINE([HAVE_PTHREADS], [1], [if true, pthreads is available])
+fi
+
+AC_MSG_CHECKING([whether we should enable thread safety])
+AC_ARG_ENABLE([threadsafe], [AS_HELP_STRING([--enable-threadsafe],
+              [enable thread-safe operation])])
+test "x$enable_threadsafe" = xno || enable_threadsafe=yes
+AC_MSG_RESULT([$enable_threadsafe])
+if test "x$enable_threadsafe" = xyes && test "x$have_pthreads" = xno ; then
+  AC_MSG_NOTICE([!pthreads => !threadsafe])
+  enable_threadsafe=no
+fi
+if test "x$enable_threadsafe" = xyes ; then
+AC_DEFINE([ENABLE_THREADSAFE], [1], [if true, include experimental thread safe code])
+fi
+AM_CONDITIONAL(ENABLE_THREADSAFE, [test "x$enable_threadsafe" = xyes])
+
 # Get windows version info
+if test "x$ISMINGW" = xyes ; then
 WINVER=`systeminfo | sed -e '/^OS Version:/p' -ed | sed -e 's|[^0-9]*\([0-9.]*\).*|\1|'`
+else
+WINVER="0.0.0"
+fi
 WINVERMAJOR=`echo $WVER | sed -e 's|\([^.]*\)[.]\([^.]*\)[.]\(.*\)|\1|'`
 WINVERBUILD=`echo $WVER | sed -e 's|\([^.]*\)[.]\([^.]*\)[.]\(.*\)|\3|'`
 if test "x$WINVERMAJOR" = x ; then WINVERMAJOR=0; fi
@@ -1918,6 +1943,7 @@ AC_SUBST(DO_FILTER_TESTS,[$enable_filter_testing])
 AC_SUBST(HAS_SZLIB,[$have_sz])
 AC_SUBST(HAS_SZLIB_WRITE, [$have_sz])
 AC_SUBST(HAS_ZSTD,[$have_zstd])
+AC_SUBST(IS_THREADSAFE,[$enable_threadsafe])
 
 # Always available
 std_filters="deflate bz2"
@@ -2047,6 +2073,7 @@ AX_SET_META([NC_HAS_LOGGING],[$enable_logging],[yes])
 AX_SET_META([NC_HAS_QUANTIZE],[$enable_quantize],[yes])
 AX_SET_META([NC_HAS_SZIP],[$enable_hdf5_szip],[yes])
 AX_SET_META([NC_HAS_ZSTD],[$have_zstd],[yes])
+AX_SET_META([NC_IS_THREADSAFE],[$enable_threadsafe],[yes])
 
 # This is the version of the dispatch table. If the dispatch table is
 # changed, this should be incremented, so that user-defined format

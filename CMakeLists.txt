@@ -424,6 +424,23 @@ IF(MSVC)
   ENDIF()
 ENDIF()
 
+# Control thread-safe operation
+OPTION (ENABLE_THREADSAFE "Enable Thread safe operation" ON)
+
+FIND_PACKAGE(Threads)
+IF(NOT Threads_FOUND)
+  IF(ENABLE_THREADSAFE)
+    MESSAGE(FATAL_ERROR "No threads library available, but ENABLE_THREADS enabled")
+  ENDIF()
+ELSE()
+  SET(HAVE_PTHREADS YES CACHE BOOL "Have pthreads library")
+  IF(NOT (CMAKE_THREAD_LIBS_INIT STREQUAL ""))
+    IF(CMAKE_USE_WIN32_THREADS_INIT)
+      SET(HAVE_PTHREADS NO CACHE BOOL "Have pthreads library")
+    ENDIF()
+  ENDIF()
+ENDIF()
+
 # Option to build netCDF Version 2
 OPTION (ENABLE_V2_API "Build netCDF Version 2." ON)
 SET(BUILD_V2 ${ENABLE_V2_API})
@@ -856,8 +873,6 @@ IF(USE_HDF5)
     ENDIF()
 
   ENDIF(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR)
-
-  FIND_PACKAGE(Threads)
 
   # There is a missing case in the above code so default it
   IF(NOT HDF5_C_LIBRARY_hdf5 OR "${HDF5_C_LIBRARY_hdf5}" STREQUAL "" )
@@ -2544,6 +2559,7 @@ is_enabled(ENABLE_FILTER_TESTING DO_FILTER_TESTS)
 is_enabled(HAVE_SZ HAS_SZIP)
 is_enabled(HAVE_SZ HAS_SZLIB_WRITE)
 is_enabled(HAVE_ZSTD HAS_ZSTD)
+is_enabled(ENABLE_THREADSAFE IS_THREADSAFE)
 
 # Generate file from template.
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"

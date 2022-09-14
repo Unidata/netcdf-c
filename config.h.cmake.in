@@ -157,6 +157,9 @@ are set when opening a binary file on Windows. */
 /* if true, Allow dynamically loaded plugins */
 #cmakedefine ENABLE_PLUGINS 1
 
+/* if true, Support serialized thread safe operation */
+#cmakedefine ENABLE_THREADSAFE 1
+
 /* if true, run extra tests which may not work yet */
 #cmakedefine EXTRA_TESTS 1
 
@@ -327,6 +330,9 @@ are set when opening a binary file on Windows. */
 
 /* Define to 1 if you have the `random' function. */
 #cmakedefine HAVE_RANDOM 1
+
+/* Define to 1 if you have the pthreads library */
+#cmakedefine HAVE_PTHREADS 1
 
 /* Define to 1 if you have the `snprintf' function. */
 #cmakedefine HAVE_SNPRINTF 1

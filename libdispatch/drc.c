@@ -94,11 +94,15 @@ nc_rc_get(const char* key)
 
     if(!NC_initialized) nc_initialize();
 
+    NCLOCK;
     ncg = NC_getglobalstate();
     assert(ncg != NULL && ncg->rcinfo != NULL && ncg->rcinfo->entries != NULL);
-    if(ncg->rcinfo->ignore) return NC_NOERR;
+    if(ncg->rcinfo->ignore) goto done;
     value = NC_rclookup(key,NULL,NULL);
-    return nulldup(value);    
+done:
+    value = nulldup(value);   
+    NCUNLOCK;
+    return value;
 }
 
 /**
@@ -118,10 +122,13 @@ nc_rc_set(const char* key, const char* value)
 
     if(!NC_initialized) nc_initialize();
 
+    NCLOCK;
     ncg = NC_getglobalstate();
     assert(ncg != NULL && ncg->rcinfo != NULL && ncg->rcinfo->entries != NULL);
-    if(ncg->rcinfo->ignore) return NC_NOERR;
+    if(ncg->rcinfo->ignore) goto done;;
     stat = NC_rcfile_insert(key,NULL,NULL,value);
+done:
+    NCUNLOCK;
     return stat;
 }
 

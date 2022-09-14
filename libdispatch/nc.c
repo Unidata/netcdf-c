@@ -85,21 +85,25 @@ free_NC(NC *ncp)
 int
 new_NC(const NC_Dispatch* dispatcher, const char* path, int mode, NC** ncpp)
 {
-    NC *ncp = (NC*)calloc(1,sizeof(NC));
-    if(ncp == NULL) return NC_ENOMEM;
+    int stat = NC_NOERR;
+    NC *ncp = NULL;
+    ncp = (NC*)calloc(1,sizeof(NC));
+    if(ncp == NULL) {stat = NC_ENOMEM; goto done;}
     ncp->dispatch = dispatcher;
     ncp->path = nulldup(path);
     ncp->mode = mode;
     if(ncp->path == NULL) { /* fail */
         free_NC(ncp);
-        return NC_ENOMEM;
+        stat = NC_ENOMEM;
+	goto done;
     }
     if(ncpp) {
         *ncpp = ncp;
     } else {
         free_NC(ncp);
     }
-    return NC_NOERR;
+done:
+    return stat;
 }
 
 /**

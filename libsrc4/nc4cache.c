@@ -11,6 +11,7 @@
  */
 
 #include "config.h"
+#include "nc4dispatch.h"
 #include "nc4internal.h"
 
 /**
@@ -65,12 +66,15 @@
 int
 nc_set_chunk_cache(size_t size, size_t nelems, float preemption)
 {
-    NCglobalstate* gs = NC_getglobalstate();
+    NCglobalstate* gs;
     if (preemption < 0 || preemption > 1)
         return NC_EINVAL;
+    NCLOCK;
+    gs = NC_getglobalstate();
     gs->chunkcache.size = size;
     gs->chunkcache.nelems = nelems;
     gs->chunkcache.preemption = preemption;
+    NCUNLOCK;
     return NC_NOERR;
 }
 
@@ -94,7 +98,9 @@ nc_set_chunk_cache(size_t size, size_t nelems, float preemption)
 int
 nc_get_chunk_cache(size_t *sizep, size_t *nelemsp, float *preemptionp)
 {
-    NCglobalstate* gs = NC_getglobalstate();
+    NCglobalstate* gs;
+    NCLOCK;
+    gs = NC_getglobalstate();
     if (sizep)
         *sizep = gs->chunkcache.size;
 
@@ -103,6 +109,7 @@ nc_get_chunk_cache(size_t *sizep, size_t *nelemsp, float *preemptionp)
 
     if (preemptionp)
         *preemptionp = gs->chunkcache.preemption;
+    NCUNLOCK;
     return NC_NOERR;
 }
 
@@ -124,12 +131,15 @@ nc_get_chunk_cache(size_t *sizep, size_t *nelemsp, float *preemptionp)
 int
 nc_set_chunk_cache_ints(int size, int nelems, int preemption)
 {
-    NCglobalstate* gs = NC_getglobalstate();
+    NCglobalstate* gs;
     if (size <= 0 || nelems <= 0 || preemption < 0 || preemption > 100)
         return NC_EINVAL;
+    NCLOCK;
+    gs = NC_getglobalstate();
     gs->chunkcache.size = size;
     gs->chunkcache.nelems = nelems;
     gs->chunkcache.preemption = (float)preemption / 100;
+    NCUNLOCK;
     return NC_NOERR;
 }
 
@@ -151,14 +161,16 @@ nc_set_chunk_cache_ints(int size, int nelems, int preemption)
 int
 nc_get_chunk_cache_ints(int *sizep, int *nelemsp, int *preemptionp)
 {
-    NCglobalstate* gs = NC_getglobalstate();
+    NCglobalstate* gs;
+    NCLOCK;    
+    gs = NC_getglobalstate();
     if (sizep)
         *sizep = (int)gs->chunkcache.size;
     if (nelemsp)
         *nelemsp = (int)gs->chunkcache.nelems;
     if (preemptionp)
         *preemptionp = (int)(gs->chunkcache.preemption * 100);
-
+    NCUNLOCK;
     return NC_NOERR;
 }
 
@@ -176,10 +188,12 @@ nc_set_var_chunk_cache_ints(int ncid, int varid, int size, int nelems,
     return NC_NOERR;
 }
 
+#if 0
 int
 nc_def_var_chunking_ints(int ncid, int varid, int storage, int *chunksizesp)
 {
     return NC_NOERR;
 }
+#endif
 
 #endif /*USE_HDF5*/

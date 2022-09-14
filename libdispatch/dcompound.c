@@ -64,9 +64,14 @@ nc_def_compound(int ncid, size_t size, const char *name,
 		nc_type *typeidp)
 {
    NC* ncp;
-   int stat = NC_check_id(ncid,&ncp);
-   if(stat != NC_NOERR) return stat;
-   return ncp->dispatch->def_compound(ncid,size,name,typeidp);
+   int stat = NC_NOERR;
+   NCLOCK;
+   stat = NC_check_id(ncid,&ncp);
+   if(stat != NC_NOERR) goto done;
+   stat = ncp->dispatch->def_compound(ncid,size,name,typeidp);
+done:
+   NCUNLOCK;
+   return stat;
 }
 
 /** \ingroup user_types
@@ -100,10 +105,15 @@ nc_insert_compound(int ncid, nc_type xtype, const char *name,
 		   size_t offset, nc_type field_typeid)
 {
    NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
-   return ncp->dispatch->insert_compound(ncid, xtype, name,
+   int stat = NC_NOERR;
+   NCLOCK;
+   stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) goto done;
+   stat = ncp->dispatch->insert_compound(ncid, xtype, name,
 					 offset, field_typeid);
+done:
+   NCUNLOCK;
+   return stat;
 }
 
 /** \ingroup user_types
@@ -143,9 +153,14 @@ nc_insert_array_compound(int ncid, nc_type xtype, const char *name,
 			 int ndims, const int *dim_sizes)
 {
    NC* ncp;
-   int stat = NC_check_id(ncid,&ncp);
-   if(stat != NC_NOERR) return stat;
-   return ncp->dispatch->insert_array_compound(ncid,xtype,name,offset,field_typeid,ndims,dim_sizes);
+   int stat = NC_NOERR;
+   NCLOCK;
+   stat = NC_check_id(ncid,&ncp);
+   if(stat != NC_NOERR) goto done;
+   stat = ncp->dispatch->insert_array_compound(ncid,xtype,name,offset,field_typeid,ndims,dim_sizes);
+done:
+   NCUNLOCK;
+   return stat;
 }
 
 /**  \ingroup user_types
@@ -290,11 +305,16 @@ nc_inq_compound_field(int ncid, nc_type xtype, int fieldid,
 		      int *dim_sizesp)
 {
    NC* ncp;
-   int stat = NC_check_id(ncid,&ncp);
-   if(stat != NC_NOERR) return stat;
-   return ncp->dispatch->inq_compound_field(ncid, xtype, fieldid,
+   int stat = NC_NOERR;
+   NCLOCK;
+   stat = NC_check_id(ncid,&ncp);
+   if(stat != NC_NOERR) goto done;
+   stat = ncp->dispatch->inq_compound_field(ncid, xtype, fieldid,
 					    name, offsetp, field_typeidp,
 					    ndimsp, dim_sizesp);
+done:
+   NCUNLOCK;
+   return stat;
 }
 
 /**  \ingroup user_types
@@ -322,11 +342,16 @@ nc_inq_compound_fieldname(int ncid, nc_type xtype, int fieldid,
 			  char *name)
 {
    NC* ncp;
-   int stat = NC_check_id(ncid,&ncp);
-   if(stat != NC_NOERR) return stat;
-   return ncp->dispatch->inq_compound_field(ncid, xtype, fieldid,
+   int stat = NC_NOERR;
+   NCLOCK;
+   stat = NC_check_id(ncid,&ncp);
+   if(stat != NC_NOERR) goto done;
+   stat = ncp->dispatch->inq_compound_field(ncid, xtype, fieldid,
 					    name, NULL, NULL, NULL,
 					    NULL);
+done:
+   NCUNLOCK;
+   return stat;
 }
 
 /**  \ingroup user_types
@@ -354,9 +379,14 @@ nc_inq_compound_fieldoffset(int ncid, nc_type xtype, int fieldid,
 			    size_t *offsetp)
 {
    NC* ncp;
-   int stat = NC_check_id(ncid,&ncp);
-   if(stat != NC_NOERR) return stat;
-   return ncp->dispatch->inq_compound_field(ncid,xtype,fieldid,NULL,offsetp,NULL,NULL,NULL);
+   int stat = NC_NOERR;
+   NCLOCK;
+   stat = NC_check_id(ncid,&ncp);
+   if(stat != NC_NOERR) goto done;
+   stat = ncp->dispatch->inq_compound_field(ncid,xtype,fieldid,NULL,offsetp,NULL,NULL,NULL);
+done:
+   NCUNLOCK;
+   return stat;
 }
 
 /**  \ingroup user_types
@@ -384,9 +414,14 @@ nc_inq_compound_fieldtype(int ncid, nc_type xtype, int fieldid,
 			  nc_type *field_typeidp)
 {
    NC* ncp;
-   int stat = NC_check_id(ncid,&ncp);
-   if(stat != NC_NOERR) return stat;
-   return ncp->dispatch->inq_compound_field(ncid,xtype,fieldid,NULL,NULL,field_typeidp,NULL,NULL);
+   int stat = NC_NOERR;
+   NCLOCK;
+   stat = NC_check_id(ncid,&ncp);
+   if(stat != NC_NOERR) goto done;
+   stat = ncp->dispatch->inq_compound_field(ncid,xtype,fieldid,NULL,NULL,field_typeidp,NULL,NULL);
+done:
+   NCUNLOCK;
+   return stat;
 }
 
 /**  \ingroup user_types
@@ -414,9 +449,14 @@ nc_inq_compound_fieldndims(int ncid, nc_type xtype, int fieldid,
 			   int *ndimsp)
 {
    NC* ncp;
-   int stat = NC_check_id(ncid,&ncp);
-   if(stat != NC_NOERR) return stat;
-   return ncp->dispatch->inq_compound_field(ncid,xtype,fieldid,NULL,NULL,NULL,ndimsp,NULL);
+   int stat = NC_NOERR;
+   NCLOCK;
+   stat = NC_check_id(ncid,&ncp);
+   if(stat != NC_NOERR) goto done;
+   stat = ncp->dispatch->inq_compound_field(ncid,xtype,fieldid,NULL,NULL,NULL,ndimsp,NULL);
+done:
+   NCUNLOCK;
+   return stat;
 }
 
 /**  \ingroup user_types
@@ -444,11 +484,16 @@ nc_inq_compound_fielddim_sizes(int ncid, nc_type xtype, int fieldid,
 			       int *dim_sizesp)
 {
    NC *ncp;
-   int stat = NC_check_id(ncid, &ncp);
-   if(stat != NC_NOERR) return stat;
-   return ncp->dispatch->inq_compound_field(ncid, xtype, fieldid,
+   int stat = NC_NOERR;
+   NCLOCK;
+   stat = NC_check_id(ncid, &ncp);
+   if(stat != NC_NOERR) goto done;
+   stat = ncp->dispatch->inq_compound_field(ncid, xtype, fieldid,
 					    NULL, NULL, NULL, NULL,
 					    dim_sizesp);
+done:
+   NCUNLOCK;
+   return stat;
 }
 
 /**  \ingroup user_types
@@ -476,8 +521,13 @@ nc_inq_compound_fieldindex(int ncid, nc_type xtype, const char *name,
 			   int *fieldidp)
 {
    NC* ncp;
-   int stat = NC_check_id(ncid,&ncp);
-   if(stat != NC_NOERR) return stat;
-   return ncp->dispatch->inq_compound_fieldindex(ncid,xtype,name,fieldidp);
+   int stat = NC_NOERR;
+   NCLOCK;
+   stat = NC_check_id(ncid,&ncp);
+   if(stat != NC_NOERR) goto done;
+   stat = ncp->dispatch->inq_compound_fieldindex(ncid,xtype,name,fieldidp);
+done:
+   NCUNLOCK;
+   return stat;
 }
 /*! \} */  /* End of named group ...*/

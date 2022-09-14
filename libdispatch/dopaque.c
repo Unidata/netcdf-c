@@ -33,9 +33,14 @@ int
 nc_def_opaque(int ncid, size_t size, const char *name, nc_type *xtypep)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->def_opaque(ncid,size,name,xtypep);
+    int stat = NC_NOERR;
+    NCLOCK;
+    stat = NC_check_id(ncid,&ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->def_opaque(ncid,size,name,xtypep);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /** \ingroup user_types
