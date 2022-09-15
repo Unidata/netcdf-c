@@ -54,8 +54,6 @@ and if it is zero then the mutex is actually released.
 
 * Filters are implicitly locked because the nc_get/put_varX functions are locked.
 * It is unknown how this interacts with MPI.
-* It appears that libcurl is currently not operating correctly with thread-safe execution. This means that S3 support, Byterange support and DAP support need
-to be disabled if using the thread safe option.
 
 # Initialization and Finalization {#threadsafe_init}
 
