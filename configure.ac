@@ -718,9 +718,23 @@ AC_CHECK_LIB([zstd],[ZSTD_compress],[have_zstd=yes],[have_zstd=no])
 if test "x$have_zstd" = "xyes" ; then
    AC_SEARCH_LIBS([ZSTD_compress],[zstd zstd.dll cygzstd.dll], [], [])
    AC_DEFINE([HAVE_ZSTD], [1], [if true, zstd library is available])
+
 fi
 AC_MSG_CHECKING([whether libzstd library is available])
 AC_MSG_RESULT([${have_zstd}])
+
+##
+# Ensure that the zstd.h dev files are also available.
+##
+if test "x$have_zstd" = "xyes" ; then
+   AC_CHECK_HEADERS([zstd.h], [], [nc_zstd_h_missing=yes])
+   if test "x$nc_zstd_h_missing" = xyes; then
+         AC_MSG_WARN([zstd library detected, but zstd.h development file not found. Ensure that the zstd development files are installed in order to build zstd support.])
+         AC_DEFINE([HAVE_ZSTD], [0], [if true, zstd library is available])
+         have_zstd=no
+   fi
+fi
+
 
 # See if we have libbz2
 AC_CHECK_LIB([bz2],[BZ2_bzCompress],[have_bz2=yes],[have_bz2=no])
@@ -1172,7 +1186,7 @@ AC_CHECK_HEADERS([sys/param.h])
 AC_CHECK_HEADERS([libgen.h])
 #AC_CHECK_HEADERS([locale.h])
 AC_HEADER_STDC
-AC_CHECK_HEADERS([locale.h stdio.h stdarg.h fcntl.h malloc.h stdlib.h string.h strings.h unistd.h sys/stat.h getopt.h sys/time.h sys/types.h time.h dirent.h])
+AC_CHECK_HEADERS([locale.h stdio.h stdarg.h fcntl.h malloc.h stdlib.h string.h strings.h unistd.h sys/stat.h getopt.h sys/time.h sys/types.h time.h dirent.h stdint.h])
 
 # Do sys/resource.h separately
 #AC_CHECK_HEADERS([sys/resource.h],[havesysresource=1],[havesysresource=0])
