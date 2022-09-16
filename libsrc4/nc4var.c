@@ -433,7 +433,7 @@ NC4_inq_varid(int ncid, const char *name, int *varidp)
  * @returns ::NC_NOERR No error.
  * @returns ::NC_EBADID Invalid ncid passed.
  * @returns ::NC_ENOTVAR Invalid varid passed.
- * @returns ::NC_ENOPAR LFile was not opened with nc_open_par/nc_create_var.
+ * @returns ::NC_ENOPAR LFile was not opened with nc_open_par/nc_create_par.
  * @returns ::NC_EINVAL Invalid par_access specified.
  * @returns ::NC_NOERR for success
  * @author Ed Hartnett, Dennis Heimbigner

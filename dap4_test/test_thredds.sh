@@ -13,6 +13,14 @@ echo "test_thredds.sh:"
 
 FRAG="#checksummode=ignore"
 
+# The name GOES16_CONUS_20170821_020218_0.47_1km_33.3N_91.4W.nc4 is too long during distcheck,
+# so rename on the fly
+GOESSHORT=${srcdir}/baselinethredds/GOES16_TEST1.nc4.thredds
+GOESLONG=${BASELINETH}/GOES16_CONUS_20170821_020218_0.47_1km_33.3N_91.4W.nc4.thredds
+if ! test -f "${GOESLONG}" ; then
+   cp "${GOESSHORT}" "${GOESLONG}"
+fi
+
 F="\
 harvey/goes16/CONUS/Channel01/20170821/GOES16_CONUS_20170821_020218_0.47_1km_33.3N_91.4W.nc4?dap4.ce=y \
 "
@@ -28,6 +36,7 @@ failure() {
 setresultdir results_test_thredds
 
 if test "x${RESET}" = x1 ; then rm -fr ${BASELINEH}/*.thredds ; fi
+if test "x$FEATURE_THREDDSTEST" = x1 ; then
 for f in $F ; do
     makeurl "dap4://thredds-test.unidata.ucar.edu/thredds/dap4/casestudies" "$f"
     echo "testing: $URL"
@@ -43,6 +52,9 @@ for f in $F ; do
 	cp ./results_test_thredds/${base}.thredds ${BASELINETH}/${base}.thredds
     fi
 done
+fi # FEATURE_THREDDSTEST
+
+#rm -fr "${GOESLONG}"
 
 echo "*** Pass"
 exit 0

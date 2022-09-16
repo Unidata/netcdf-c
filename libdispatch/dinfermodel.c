@@ -907,7 +907,7 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
 	if(!modelcomplete(model)) {
 	    const char** p = ncurifragmentparams(uri); /* envv format */
 	    if(p != NULL) {
-	        for(;*p;p++) {
+	        for(;*p;p+=2) {
 		    const char* key = p[0];
 		    const char* value = p[1];;
         	    if((stat=processfragmentkeys(key,value,model))) goto done;

@@ -62,6 +62,8 @@ ncz_create_dataset(NC_FILE_INFO_T* file, NC_GRP_INFO_T* root, const char** contr
 	   &zinfo->zarr.nczarr_version.minor,
 	   &zinfo->zarr.nczarr_version.release);
 
+    zinfo->default_maxstrlen = NCZ_MAXSTR_DEFAULT;
+
     /* Apply client controls */
     if((stat = applycontrols(zinfo))) goto done;
 
@@ -126,6 +128,7 @@ ncz_open_dataset(NC_FILE_INFO_T* file, const char** controls)
     zinfo->native_endianness = (NCZ_isLittleEndian() ? NC_ENDIAN_LITTLE : NC_ENDIAN_BIG);
     if((zinfo->envv_controls = NCZ_clonestringvec(0,controls))==NULL) /*0=>envv style*/
 	{stat = NC_ENOMEM; goto done;}
+    zinfo->default_maxstrlen = NCZ_MAXSTR_DEFAULT;
 
     /* Add struct to hold NCZ-specific group info. */
     if (!(root->format_grp_info = calloc(1, sizeof(NCZ_GRP_INFO_T))))
@@ -288,75 +291,6 @@ done:
 }
 #endif
 
-#if 0
-/**
-@internal Rewrite attributes into a group or var
-@param map - [in] the map object for storage
-@param container - [in] the containing object
-@param jattrs - [in] the json for .zattrs
-@param jtypes - [in] the json for .ztypes
-@return NC_NOERR
-@author Dennis Heimbigner
-*/
-int
-ncz_unload_jatts(NCZ_FILE_INFO_T* zinfo, NC_OBJ* container, NCjson* jattrs, NCjson* jtypes)
-{
-    int stat = NC_NOERR;
-    char* fullpath = NULL;
-    char* akey = NULL;
-    char* tkey = NULL;
-    NCZMAP* map = zinfo->map;
-
-    assert((NCJsort(jattrs) == NCJ_DICT));
-    assert((NCJsort(jtypes) == NCJ_DICT));
-
-    if(container->sort == NCGRP) {
-        NC_GRP_INFO_T* grp = (NC_GRP_INFO_T*)container;
-        /* Get grp's fullpath name */
-        if((stat = NCZ_grpkey(grp,&fullpath)))
-	    goto done;
-    } else {
-        NC_VAR_INFO_T* var = (NC_VAR_INFO_T*)container;
-        /* Get var's fullpath name */
-        if((stat = NCZ_varkey(var,&fullpath)))
-	    goto done;
-    }
-
-    /* Construct the path to the .zattrs object */
-    if((stat = nczm_concat(fullpath,ZATTRS,&akey)))
-	goto done;
-
-    /* Always write as V2 */
-
-    {
-        NCjson* k = NULL;
-        NCjson* v = NULL;
-	/* remove any previous version */
-        if(!NCJremove(jattrs,NCZ_V2_ATTRS,&k,&v)) {
-	    NCJreclaim(k); NCJreclaim(v);
-	}
-    }
-
-    if(!(zinfo->controls.flags & FLAG_PUREZARR)) {
-        /* Insert the jtypes into the set of attributes */
-         if((stat = NCJinsert(jattrs,NCZ_V2_ATTRS,jtypes))) goto done;
-    }
-
-    /* Upload the .zattrs object */
-    if((stat=NCZ_uploadjson(map,tkey,jattrs)))
-	goto done;
-
-done:
-    if(stat) {
-	NCJreclaim(jattrs);
-	NCJreclaim(jtypes);
-    }
-    nullfree(fullpath);
-    nullfree(akey);
-    nullfree(tkey);
-    return stat;
-}
-#endif
 
 static const char*
 controllookup(const char** envv_controls, const char* key)
@@ -414,4 +348,76 @@ done:
     nclistfreeall(modelist);
     return stat;
 }
+
+#if 0
+/**
+@internal Rewrite attributes into a group or var
+@param map - [in] the map object for storage
+@param container - [in] the containing object
+@param jattrs - [in] the json for .zattrs
+@param jtypes - [in] the json for .ztypes
+@return NC_NOERR
+@author Dennis Heimbigner
+*/
+int
+ncz_unload_jatts(NCZ_FILE_INFO_T* zinfo, NC_OBJ* container, NCjson* jattrs, NCjson* jtypes)
+{
+    int stat = NC_NOERR;
+    char* fullpath = NULL;
+    char* akey = NULL;
+    char* tkey = NULL;
+    NCZMAP* map = zinfo->map;
+
+    assert((NCJsort(jattrs) == NCJ_DICT));
+    assert((NCJsort(jtypes) == NCJ_DICT));
+
+    if(container->sort == NCGRP) {
+        NC_GRP_INFO_T* grp = (NC_GRP_INFO_T*)container;
+        /* Get grp's fullpath name */
+        if((stat = NCZ_grpkey(grp,&fullpath)))
+	    goto done;
+    } else {
+        NC_VAR_INFO_T* var = (NC_VAR_INFO_T*)container;
+        /* Get var's fullpath name */
+        if((stat = NCZ_varkey(var,&fullpath)))
+	    goto done;
+    }
+
+    /* Construct the path to the .zattrs object */
+    if((stat = nczm_concat(fullpath,ZATTRS,&akey)))
+	goto done;
+
+    /* Always write as V2 */
+
+    {
+        NCjson* k = NULL;
+        NCjson* v = NULL;
+	/* remove any previous version */
+        if(!NCJremove(jattrs,NCZ_V2_ATTRS,1,&k,&v)) {
+	    NCJreclaim(k); NCJreclaim(v);
+	}
+    }
+
+    if(!(zinfo->controls.flags & FLAG_PUREZARR)) {
+        /* Insert the jtypes into the set of attributes */
+         if((stat = NCJinsert(jattrs,NCZ_V2_ATTRS,jtypes))) goto done;
+    }
+
+    /* Upload the .zattrs object */
+    if((stat=NCZ_uploadjson(map,tkey,jattrs)))
+	goto done;
+
+done:
+    if(stat) {
+	NCJreclaim(jattrs);
+	NCJreclaim(jtypes);
+    }
+    nullfree(fullpath);
+    nullfree(akey);
+    nullfree(tkey);
+    return stat;
+}
+#endif
+
+
 
