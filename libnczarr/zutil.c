@@ -32,10 +32,12 @@ to decide how to infer the type: NC_STRING vs NC_CHAR.
 
 Solution:
 For variables and for NCZarr type attributes, distinquish by using:
-* "|S1" for NC_CHAR.
-* ">S1" for NC_STRING && MAXSTRLEN==1
-It is a bit of a hack to use endianness, but it should be ok since for
-string/char, the endianness has no meaning.
+* ">S1" for NC_CHAR.
+* "|S1" for NC_STRING && MAXSTRLEN==1
+* "|Sn" for NC_STRING && MAXSTRLEN==n
+This is admittedly a bit of a hack, and the first case in particular
+will probably cause errors in some other Zarr implementations; the Zarr
+spec is unclear about what combinations are legal.
 Note that we could use "|U1", but since this is utf-16 or utf-32
 in python, it may cause problems when reading what amounts to utf-8.
 
@@ -46,7 +48,7 @@ For attributes, we infer:
   - e.g. string var:strattr = \"abc\", \"def\"" => NC_STRING
 
 Note also that if we read a pure zarr file we will probably always
-see "|S1", so we will never see a variable of type NC_STRING with length == 1.
+see "|S1", so we will never see a variable of type NC_CHAR.
 We might however see an attribute of type string.
 */
 static const struct ZTYPES {
@@ -57,7 +59,7 @@ static const struct ZTYPES {
                    NE   LE     BE       NE    LE    BE*/
 /*NC_NAT*/	{{NULL,NULL,NULL},   {NULL,NULL,NULL}},
 /*NC_BYTE*/	{{"|i1","<i1",">i1"},{"|i1","<i1",">i1"}},
-/*NC_CHAR*/	{{"|S1","|S1","|S1"},{"|S1","|S1","|S1"}},
+/*NC_CHAR*/	{{">S1",">S1",">S1"},{">S1",">S1",">S1"}},
 /*NC_SHORT*/	{{"|i2","<i2",">i2"},{"|i2","<i2",">i2"}},
 /*NC_INT*/	{{"|i4","<i4",">i4"},{"|i4","<i4",">i4"}},
 /*NC_FLOAT*/	{{"|f4","<f4",">f4"},{"|f4","<f4",">f4"}},
@@ -67,7 +69,7 @@ static const struct ZTYPES {
 /*NC_UINT*/	{{"|u4","<u4",">u4"},{"|u4","<u4",">u4"}},
 /*NC_INT64*/	{{"|i8","<i8",">i8"},{"|i8","<i8",">i8"}},
 /*NC_UINT64*/	{{"|u8","<u8",">u8"},{"|u8","<u8",">u8"}},
-/*NC_STRING*/	{{">S%d",">S%d",">S%d"},{">S%d",">S%d",">S%d"}},
+/*NC_STRING*/	{{"|S%d","|S%d","|S%d"},{"|S%d","|S%d","|S%d"}},
 };
 
 #if 0
@@ -576,7 +578,6 @@ ncz_dtype2nctype(const char* dtype, nc_type typehint, int purezarr, nc_type* nct
     switch (*p++) {
     case '<': endianness = NC_ENDIAN_LITTLE; break;
     case '>': endianness = NC_ENDIAN_BIG; break;
-    case '=': endianness = NC_ENDIAN_NATIVE; break;
     case '|': endianness = NC_ENDIAN_NATIVE; break;
     default: p--; endianness = NC_ENDIAN_NATIVE; break;
     }
@@ -589,20 +590,17 @@ ncz_dtype2nctype(const char* dtype, nc_type typehint, int purezarr, nc_type* nct
     /* Short circuit fixed length strings */
     if(tchar == 'S') {
 	/* Fixed length string */
-	switch (typehint) {
-	case NC_CHAR: nctype = NC_CHAR; typelen = 1; break;
-	case NC_STRING: nctype = NC_STRING; break;
+	switch (typelen) {
+	case 1:
+	    nctype = (endianness == NC_ENDIAN_BIG ? NC_CHAR : NC_STRING);
+	    if(purezarr) nctype = NC_STRING; /* Zarr has no NC_CHAR type */
+	    break;
 	default:
-	    if(typelen == 1) {/* so |S1 => NC_CHAR */
-	        if(purezarr || endianness == NC_ENDIAN_NATIVE) nctype = NC_CHAR;		    
-	    } else
-	        nctype = NC_STRING;
+	    nctype = NC_STRING;
+	    break;
 	}
-#if 0
-    } else if(tchar == 'U') {/*back compatibility*/
-	if(purezarr || typelen != 1) goto zerr;
-	nctype = NC_CHAR;
-#endif
+	/* String/char have no endianness */
+	endianness = NC_ENDIAN_NATIVE;
     } else {
 	switch(typelen) {
         case 1:
@@ -639,9 +637,11 @@ ncz_dtype2nctype(const char* dtype, nc_type typehint, int purezarr, nc_type* nct
         }
     }
 
+#if 0
     /* Convert NC_ENDIAN_NATIVE and NC_ENDIAN_NA */
     if(endianness == NC_ENDIAN_NATIVE)
         endianness = (NC_isLittleEndian()?NC_ENDIAN_LITTLE:NC_ENDIAN_BIG);
+#endif
 
     if(nctypep) *nctypep = nctype;
     if(typelenp) *typelenp = typelen;

@@ -14,7 +14,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.8.22, 1.10.8, 1.12.1 ]
+        hdf5: [ 1.8.22, 1.10.8, 1.12.2 ]
 
     steps:
 
@@ -61,7 +61,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.12.1 ]
+        hdf5: [ 1.12.2 ]
 
     steps:
 
@@ -121,7 +121,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.12.1 ]
+        hdf5: [ 1.12.2 ]
     steps:
 
       - uses: actions/checkout@v2
@@ -201,7 +201,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.12.1 ]
+        hdf5: [ 1.12.2 ]
     steps:
 
       - uses: actions/checkout@v2
@@ -281,7 +281,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.12.1 ]
+        hdf5: [ 1.12.2 ]
 
     steps:
 
@@ -361,7 +361,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.12.1 ]
+        hdf5: [ 1.12.2 ]
 
     steps:
 
@@ -438,7 +438,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.8.22, 1.10.8, 1.12.1 ]
+        hdf5: [ 1.8.22, 1.10.8, 1.12.2 ]
         use_nc4: [ nc3, nc4 ]
         use_dap: [ dap_off, dap_on ]
         use_nczarr: [ nczarr_off, nczarr_on ]
@@ -545,7 +545,7 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.8.22, 1.10.8, 1.12.1 ]
+        hdf5: [ 1.8.22, 1.10.8, 1.12.2 ]
         use_nc4: [ nc3, nc4 ]
         use_dap: [ dap_off, dap_on ]
         use_nczarr: [ nczarr_off, nczarr_on ]
