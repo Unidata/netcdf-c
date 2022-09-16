@@ -1346,7 +1346,7 @@ AC_STRUCT_ST_BLKSIZE
 UD_CHECK_IEEE
 AC_CHECK_TYPES([size_t, ssize_t, schar, uchar, longlong, ushort, uint, int64, uint64, size64_t, ssize64_t, _off64_t, uint64_t, ptrdiff_t])
 AC_TYPE_OFF_T
-AC_TYPE_UINTPTR_T
+AC_CHECK_TYPES([uintptr_t])
 AC_C_CHAR_UNSIGNED
 AC_C_BIGENDIAN
 
