@@ -178,8 +178,9 @@ IF(ENABLE_SHARED_LIBRARY_VERSION)
 ENDIF(ENABLE_SHARED_LIBRARY_VERSION)
 
 IF(HAVE_PTHREAD)
-target_link_libraries(netcdf ${CMAKE_THREAD_LIBS_INIT})
-SET_PROPERTY(TARGET netcdf PROPERTY C_STANDARD C11)
+target_link_libraries(netcdf Threads::Threads)
+//target_link_libraries(netcdf ${CMAKE_THREAD_LIBS_INIT})
+//SET_PROPERTY(TARGET netcdf PROPERTY C_STANDARD C11)
 ENDIF()
 
 ###

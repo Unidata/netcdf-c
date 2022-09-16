@@ -427,6 +427,8 @@ ENDIF()
 # Control thread-safe operation
 OPTION (ENABLE_THREADSAFE "Enable Thread safe operation" ON)
 
+set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 FIND_PACKAGE(Threads)
 IF(NOT Threads_FOUND)
   IF(ENABLE_THREADSAFE)
