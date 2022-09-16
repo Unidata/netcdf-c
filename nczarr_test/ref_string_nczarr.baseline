@@ -1,0 +1,21 @@
+netcdf ref_string {
+dimensions:
+	d2 = 2 ;
+variables:
+	char c(d2) ;
+	string v(d2) ;
+	string truncated ;
+		truncated:_nczarr_maxstrlen = 4 ;
+
+// global attributes:
+		string :stringattr = "abc", "def" ;
+		:charattr = "ghijkl" ;
+		:_nczarr_default_maxstrlen = 6 ;
+data:
+
+ c = "ab" ;
+
+ v = "uvw", "xyz" ;
+
+ truncated = "0123" ;
+}

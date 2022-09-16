@@ -2031,6 +2031,7 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
     }
 
     /* Suppress unsupported formats */
+#if 0
     /* (should be more compact, table-driven, way to do this) */
     {
 	int hdf5built = 0;
@@ -2041,9 +2042,9 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 	int nczarrbuilt = 0;
 #ifdef USE_NETCDF4
         hdf5built = 1;
+#endif
 #ifdef USE_HDF4
         hdf4built = 1;
-#endif
 #endif
 #ifdef ENABLE_CDF5
         cdf5built = 1;
@@ -2069,6 +2070,43 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
         if(!udf1built && model.impl == NC_FORMATX_UDF1)
         {stat = NC_ENOTBUILT; goto done;}
     }
+#else
+    {
+	unsigned built = 0 /* leave off the trailing semicolon so we can build constant */
+		| (1<<NC_FORMATX_NC3) /* NC3 always supported */
+#ifdef USE_HDF5
+		| (1<<NC_FORMATX_NC_HDF5)
+#endif
+#ifdef USE_HDF4
+		| (1<<NC_FORMATX_NC_HDF4)
+#endif
+#ifdef ENABLE_NCZARR
+		| (1<<NC_FORMATX_NCZARR)
+#endif
+#ifdef ENABLE_DAP
+		| (1<<NC_FORMATX_DAP2)
+#endif
+#ifdef ENABLE_DAP4
+		| (1<<NC_FORMATX_DAP4)
+#endif
+#ifdef USE_PNETCDF
+		| (1<<NC_FORMATX_PNETCDF)
+#endif
+		; /* end of the built flags */
+        if(UDF0_dispatch_table != NULL)
+	    built |= (1<<NC_FORMATX_UDF0);
+        if(UDF1_dispatch_table != NULL)
+	    built |= (1<<NC_FORMATX_UDF1);
+	/* Verify */
+	if((built & (1 << model.impl)) == 0)
+            {stat = NC_ENOTBUILT; goto done;}
+#ifndef ENABLE_CDF5
+	/* Special case because there is no separate CDF5 dispatcher */
+        if(model.impl == NC_FORMATX_NC3 && (omode & NC_64BIT_DATA))
+            {stat = NC_ENOTBUILT; goto done;}
+#endif
+    }
+#endif
     /* Figure out what dispatcher to use */
     if (!dispatcher) {
         switch (model.impl) {

@@ -147,7 +147,7 @@ NCZ_inq_typeids(int ncid, int *ntypes, int *typeids)
  * @param size Size in bytes of new type.
  * @param name Name of new type.
  * @param base_typeid Base type ID.
- * @param type_class NC_VLEN, NC_ENUM, or NC_STRING
+ * @param type_class NC_VLEN, NC_ENUM
  * @param typeidp Pointer that gets new type ID.
  *
  * @return ::NC_NOERR No error.
