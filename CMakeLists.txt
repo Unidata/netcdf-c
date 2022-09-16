@@ -439,11 +439,8 @@ ELSE()
       SET(HAVE_PTHREADS NO CACHE BOOL "Have pthreads library")
     ENDIF()
   ENDIF()
-  MESSAGE(">>> CMAKE_THREAD_LIBS_INIT = ${CMAKE_THREAD_LIBS_INIT}")
   link_libraries(pthread)
   SET_PROPERTY(GLOBAL PROPERTY C_STANDARD C11)
-ENDIF()
-
 ENDIF()
 
 # Option to build netCDF Version 2
