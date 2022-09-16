@@ -1921,14 +1921,8 @@ AC_SUBST(HAS_ZSTD,[$have_zstd])
 
 # Always available
 std_filters="deflate bz2"
+
 if test "x$enable_szlib" = xyes ; then
-std_filters="${std_filters} szip"
-fi
-# We need to include szip iff HDF5 && HDF5_HAS_SZIP || !HDF5 && NCZARR && libsz
-if test "x$enable_hdf5" = xyes && test "x$enable_hdf5_szip" = xyes ; then
-  std_filters="${std_filters} szip"
-fi
-if test "x$enable_hdf5" = xno && test "x$have_sz" = xyes ; then
 std_filters="${std_filters} szip"
 fi
 if test "x$have_blosc" = xyes ; then
