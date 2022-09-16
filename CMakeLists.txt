@@ -427,8 +427,6 @@ ENDIF()
 # Control thread-safe operation
 OPTION (ENABLE_THREADSAFE "Enable Thread safe operation" ON)
 
-set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
-set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 FIND_PACKAGE(Threads)
 IF(NOT Threads_FOUND)
   IF(ENABLE_THREADSAFE)
@@ -441,6 +439,11 @@ ELSE()
       SET(HAVE_PTHREADS NO CACHE BOOL "Have pthreads library")
     ENDIF()
   ENDIF()
+  MESSAGE(">>> CMAKE_THREAD_LIBS_INIT = ${CMAKE_THREAD_LIBS_INIT}")
+  link_libraries(pthread)
+  SET_PROPERTY(GLOBAL PROPERTY C_STANDARD C11)
+ENDIF()
+
 ENDIF()
 
 # Option to build netCDF Version 2
