@@ -31,7 +31,7 @@
 
 #include "netcdf.h"
 
-#define NTHREADS 8
+#define NTHREADS 1
 #define NCYCLES 4
 
 #define MODE3 (NC_CLOBBER)
