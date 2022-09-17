@@ -47,7 +47,7 @@ call other API call.
 #include <ncmutex.h>
 
 /* Print lock/unlock */
-#define DEBUGPRINT
+#undef DEBUGPRINT
 
 #define MAXDEPTH 32
 
