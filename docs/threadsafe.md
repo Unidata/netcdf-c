@@ -152,13 +152,13 @@ on different platforms.
 The current status of thread-safe operation is as follows.
 <table>
 <tr><td><u>Operating System</u><td><u>Build System</u><td><u>Local Build</u><td><u>Github Actions</u>
-<tr><td>Linux         <td> Automake <td> yes (Ubuntu-21) <td>no (probably out-of-date libpthread)
-<tr><td>Linux         <td> CMake    <td> yes (Ubuntu-21) <td>no (probably out-of-date libpthread)
-<tr><td>Visual Studio <td> CMake    <td> yes      <td>unknown
-<tr><td>OSX           <td> Automake <td> unknown  <td>no (seg fault)
-<tr><td>OSX           <td> CMake    <td> unknown  <td>no (seg fault)
+<tr><td>Linux         <td> Automake <td> yes (Ubuntu-21) <td>yes
+<tr><td>Linux         <td> CMake    <td> yes (Ubuntu-21) <td>yes
+<tr><td>Visual Studio <td> CMake    <td> yes      <td>N.A.
+<tr><td>OSX           <td> Automake <td> unknown  <td>yes
+<tr><td>OSX           <td> CMake    <td> unknown  <td>yes
 <tr><td>MinGW/MSYS2   <td> Automake <td> unknown  <td>no (seg fault)
-<tr><td>Cygwin        <td> Automake <td> unknown  <td>unknown
+<tr><td>Cygwin        <td> Automake <td> unknown  <td>N.A.
 </table>
 Fixing the seg-faults will require interactive debugging of the
 relevant platform.
