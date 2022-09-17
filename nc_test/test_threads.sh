@@ -3,7 +3,6 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
-set -x
 set -e
 
 echo "*** Testing netcdf-3 thread safe execution"
