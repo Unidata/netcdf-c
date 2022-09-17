@@ -47,7 +47,7 @@ call other API call.
 #include <ncmutex.h>
 
 /* Print lock/unlock */
-#undef DEBUGPRINT
+#define DEBUGPRINT
 
 #define MAXDEPTH 32
 
@@ -97,6 +97,23 @@ fcntop(void)
     if(depth == 0) return "null";
     return NC_globalmutex.fcns.stack[depth-1];
 }
+
+static int
+assertprint(int cond)
+{
+    if(!cond) {
+	int i;
+	fprintf(stderr,">>> mutex: (%d)",NC_globalmutex.fcns.depth);
+	for(i=0;i<NC_globalmutex.fcns.depth;i++) {
+	    fprintf(stderr," %s",NC_globalmutex.fcns.stack[i]);
+	}
+	fprintf(stderr,"\n");
+    }
+    return cond;
+}
+#define ASSERT(x) assertprint(x)
+#else
+#define ASSERT(x) assert(x)
 #endif
 #endif
 
@@ -180,7 +197,7 @@ void NC_unlock(void)
 #endif
     popfcn();
 #endif
-    assert(mutex->refcount > 0);
+    ASSERT(mutex->refcount > 0);
     mutex->refcount--;
 #ifdef USEPTHREADS
     pthread_mutex_unlock(&mutex->mutex);
