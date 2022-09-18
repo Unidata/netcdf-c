@@ -46,8 +46,15 @@ call other API call.
 
 #include <ncmutex.h>
 
+/* Verbose assert */
+#undef DEBUGASSERT
+
 /* Print lock/unlock */
 #undef DEBUGPRINT
+
+#ifdef DEBUGPRINT
+#define DEBUGASSERT
+#endif
 
 #define MAXDEPTH 32
 
@@ -71,22 +78,26 @@ static NCmutex NC_globalmutex;
 static volatile int global_mutex_initialized = 0; /* initialize once */
 
 #ifdef DEBUGAPI
-static void
-pushfcn(const char* fcn)
-{
-    int depth = NC_globalmutex.fcns.depth;
-    assert(depth < (MAXDEPTH-1));
-    NC_globalmutex.fcns.stack[depth] = fcn;
-    NC_globalmutex.fcns.depth++;
-}
 
+#ifdef DEBUGASSERT
 static void
-popfcn(void)
+assertprint(int cond, const char* fcn, int lineno, const char* scond)
 {
-    assert(NC_globalmutex.fcns.depth > 0);
-    NC_globalmutex.fcns.depth--;
-//    NC_globalmutex.fcns.stack[NC_globalmutex.fcns.depth] = NULL;
+    if(!cond) {
+	int i;
+        fprintf(stderr,"assertion failed: %s\n",scond);
+	fprintf(stderr,"\tmutex: fcn=%s line=%d (%d)", fcn,lineno,NC_globalmutex.fcns.depth);
+	for(i=0;i<NC_globalmutex.fcns.depth;i++) {
+	    fprintf(stderr," %s",NC_globalmutex.fcns.stack[i]);
+	}
+	fprintf(stderr,"\n");
+    }
+    assert(cond);
 }
+#define ASSERT(x) assertprint((x),__func__,__LINE__,(#x))
+#else
+#define ASSERT(x) assert(x)
+#endif /* DEBUGASSERT */
 
 #ifdef DEBUGPRINT
 static const char*
@@ -97,8 +108,26 @@ fcntop(void)
     if(depth == 0) return "null";
     return NC_globalmutex.fcns.stack[depth-1];
 }
-#endif
-#endif
+#endif /* DEBUGPRINT */
+
+static void
+pushfcn(const char* fcn)
+{
+    int depth = NC_globalmutex.fcns.depth;
+    ASSERT(depth < (MAXDEPTH-1));
+    NC_globalmutex.fcns.stack[depth] = fcn;
+    NC_globalmutex.fcns.depth++;
+}
+
+static void
+popfcn(void)
+{
+    ASSERT(NC_globalmutex.fcns.depth > 0);
+    NC_globalmutex.fcns.depth--;
+//    NC_globalmutex.fcns.stack[NC_globalmutex.fcns.depth] = NULL;
+}
+
+#endif /* DEBUGAPI */
 
 #ifdef USEPTHREADS
 
@@ -180,7 +209,7 @@ void NC_unlock(void)
 #endif
     popfcn();
 #endif
-    assert(mutex->refcount > 0);
+    ASSERT(mutex->refcount > 0);
     mutex->refcount--;
 #ifdef USEPTHREADS
     pthread_mutex_unlock(&mutex->mutex);

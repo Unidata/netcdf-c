@@ -54,8 +54,6 @@ and if it is zero then the mutex is actually released.
 
 * Filters are implicitly locked because the nc_get/put_varX functions are locked.
 * It is unknown how this interacts with MPI.
-* It appears that libcurl is currently not operating correctly with thread-safe execution. This means that S3 support, Byterange support and DAP support need
-to be disabled if using the thread safe option.
 
 # Initialization and Finalization {#threadsafe_init}
 
@@ -154,13 +152,13 @@ on different platforms.
 The current status of thread-safe operation is as follows.
 <table>
 <tr><td><u>Operating System</u><td><u>Build System</u><td><u>Local Build</u><td><u>Github Actions</u>
-<tr><td>Linux         <td> Automake <td> yes (Ubuntu-21) <td>no (probably out-of-date libpthread)
-<tr><td>Linux         <td> CMake    <td> yes (Ubuntu-21) <td>no (probably out-of-date libpthread)
-<tr><td>Visual Studio <td> CMake    <td> yes      <td>unknown
-<tr><td>OSX           <td> Automake <td> unknown  <td>no (seg fault)
-<tr><td>OSX           <td> CMake    <td> unknown  <td>no (seg fault)
-<tr><td>MinGW/MSYS2   <td> Automake <td> unknown  <td>no (seg fault)
-<tr><td>Cygwin        <td> Automake <td> unknown  <td>unknown
+<tr><td>Linux         <td> Automake <td> yes (Ubuntu-21) <td>yes
+<tr><td>Linux         <td> CMake    <td> yes (Ubuntu-21) <td>yes
+<tr><td>Visual Studio <td> CMake    <td> yes             <td>N.A.
+<tr><td>OSX           <td> Automake <td> unknown         <td>no (seg fault)
+<tr><td>OSX           <td> CMake    <td> unknown         <td>no (seg fault_
+<tr><td>MinGW/MSYS2   <td> Automake <td> unknown         <td>no (seg fault)
+<tr><td>Cygwin        <td> Automake <td> unknown         <td>N.A.
 </table>
 Fixing the seg-faults will require interactive debugging of the
 relevant platform.
@@ -169,7 +167,4 @@ relevant platform.
 __Author__: Dennis Heimbigner<br>
 __Email__: dmh at ucar dot edu<br>
 __Initial Version__: 9/9/2022<br>
-__Last Revised__: 9/12/2022<br>
-
-
-
+__Last Revised__: 9/18/2022<br>

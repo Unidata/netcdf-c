@@ -835,12 +835,12 @@ There are mutiple cases to consider.
 3. The netcdf attribute **is** of type NC_CHAR and its value &ndash; taken as a single sequence of characters &ndash;
 **is** parseable as a legal JSON expression.
     * Parse to produce a JSON expression and write that expression.
-    * Use "|U1" as the dtype and store in the NCZarr metadata.
+    * Use ">S1" as the dtype and store in the NCZarr metadata.
 
 4. The netcdf attribute **is** of type NC_CHAR and its value &ndash; taken as a single sequence of characters &ndash;
 **is not** parseable as a legal JSON expression.
     * Convert to a JSON string and write that expression
-    * Use "|U1" as the dtype and store in the NCZarr metadata.
+    * Use ">S1" as the dtype and store in the NCZarr metadata.
 
 ## Reading an attribute:
 
@@ -949,4 +949,4 @@ include arbitrary JSON expressions; see Appendix G for more details.
 __Author__: Dennis Heimbigner<br>
 __Email__: dmh at ucar dot edu<br>
 __Initial Version__: 4/10/2020<br>
-__Last Revised__: 8/27/2022
+__Last Revised__: 9/18/2022

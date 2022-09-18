@@ -439,6 +439,10 @@ ELSE()
       SET(HAVE_PTHREADS NO CACHE BOOL "Have pthreads library")
     ENDIF()
   ENDIF()
+  if(NOT WIN32)
+    link_libraries(pthread)
+    SET_PROPERTY(GLOBAL PROPERTY C_STANDARD C11)
+  endif()
 ENDIF()
 
 # Option to build netCDF Version 2
