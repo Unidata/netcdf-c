@@ -5,11 +5,11 @@
 #ifndef ZDEBUG_H
 #define ZDEBUG_H
 
-#undef ZDEBUG /* general debug */
-#undef ZDEBUG1 /* detailed debug */
-
 #undef ZCATCH /* Warning: significant performance impact */
 #undef ZTRACING /* Warning: significant performance impact */
+
+#undef ZDEBUG /* general debug */
+#undef ZDEBUG1 /* detailed debug */
 
 #include "ncexternl.h"
 #include "nclog.h"

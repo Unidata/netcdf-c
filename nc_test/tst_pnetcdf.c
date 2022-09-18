@@ -38,7 +38,7 @@
 
 int main(int argc, char* argv[])
 {
-    int i, j, rank, nprocs, ncid, cmode, varid[NVARS], dimid[2], *buf;
+    int i, j, rank, nprocs, ncid, cmode, varid[NVARS], dimid[2], *buf=NULL;
     int st, nerrs=0;
     char str[32];
     size_t start[2], count[2];
@@ -143,9 +143,8 @@ int main(int argc, char* argv[])
         }
     }
     st = nc_close(ncid); CHK_ERR(st)
-    free(buf);
-
 fn_exit:
+    free(buf);
     MPI_Finalize();
     err = nerrs;
     SUMMARIZE_ERR;
