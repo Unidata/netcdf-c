@@ -87,6 +87,7 @@ fcntop(void)
     if(depth == 0) return "null";
     return NC_globalmutex.fcns.stack[depth-1];
 }
+#endif /* DEBUGPRINT */
 
 static void
 pushfcn(const char* fcn)
@@ -104,8 +105,6 @@ popfcn(void)
     NC_globalmutex.fcns.depth--;
 //    NC_globalmutex.fcns.stack[NC_globalmutex.fcns.depth] = NULL;
 }
-
-#endif /* DEBUGPRINT */
 
 #ifdef DEBUGASSERT
 static int
