@@ -47,7 +47,7 @@ call other API call.
 #include <ncmutex.h>
 
 /* Verbose assert */
-#define DEBUGASSERT
+#undef DEBUGASSERT
 
 /* Print lock/unlock */
 #undef DEBUGPRINT
