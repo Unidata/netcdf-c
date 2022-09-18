@@ -152,7 +152,7 @@ on different platforms.
 The current status of thread-safe operation is as follows.
 <table>
 <tr><td><u>Operating System</u><td><u>Build System</u><td><u>Local Build</u><td><u>Github Actions</u>
-<tr><td>Linux         <td> Automake <td> yes (Ubuntu-21) <td>no
+<tr><td>Linux         <td> Automake <td> yes (Ubuntu-21) <td>yes
 <tr><td>Linux         <td> CMake    <td> yes (Ubuntu-21) <td>no
 <tr><td>Visual Studio <td> CMake    <td> yes      <td>N.A.
 <tr><td>OSX           <td> Automake <td> unknown  <td>no (seg fault)

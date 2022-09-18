@@ -71,23 +71,6 @@ static NCmutex NC_globalmutex;
 static volatile int global_mutex_initialized = 0; /* initialize once */
 
 #ifdef DEBUGAPI
-static void
-pushfcn(const char* fcn)
-{
-    int depth = NC_globalmutex.fcns.depth;
-    assert(depth < (MAXDEPTH-1));
-    NC_globalmutex.fcns.stack[depth] = fcn;
-    NC_globalmutex.fcns.depth++;
-}
-
-static void
-popfcn(void)
-{
-    assert(NC_globalmutex.fcns.depth > 0);
-    NC_globalmutex.fcns.depth--;
-//    NC_globalmutex.fcns.stack[NC_globalmutex.fcns.depth] = NULL;
-}
-
 #ifdef DEBUGPRINT
 static const char*
 fcntop(void)
@@ -99,11 +82,11 @@ fcntop(void)
 }
 
 static int
-assertprint(int cond)
+assertprint(int cond, const char* fcn, int lineno)
 {
     if(!cond) {
 	int i;
-	fprintf(stderr,">>> mutex: (%d)",NC_globalmutex.fcns.depth);
+	fprintf(stderr,"))) mutex: fcn=%s line=%d (%d)", fcn,lineno,NC_globalmutex.fcns.depth);
 	for(i=0;i<NC_globalmutex.fcns.depth;i++) {
 	    fprintf(stderr," %s",NC_globalmutex.fcns.stack[i]);
 	}
@@ -111,10 +94,28 @@ assertprint(int cond)
     }
     return cond;
 }
-#define ASSERT(x) assertprint(x)
+#define ASSERT(x) assertprint(x,__func__,__LINE__)
 #else
 #define ASSERT(x) assert(x)
 #endif
+
+static void
+pushfcn(const char* fcn)
+{
+    int depth = NC_globalmutex.fcns.depth;
+    ASSERT(depth < (MAXDEPTH-1));
+    NC_globalmutex.fcns.stack[depth] = fcn;
+    NC_globalmutex.fcns.depth++;
+}
+
+static void
+popfcn(void)
+{
+    ASSERT(NC_globalmutex.fcns.depth > 0);
+    NC_globalmutex.fcns.depth--;
+//    NC_globalmutex.fcns.stack[NC_globalmutex.fcns.depth] = NULL;
+}
+
 #endif
 
 #ifdef USEPTHREADS
