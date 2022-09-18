@@ -155,8 +155,8 @@ The current status of thread-safe operation is as follows.
 <tr><td>Linux         <td> Automake <td> yes (Ubuntu-21) <td>no
 <tr><td>Linux         <td> CMake    <td> yes (Ubuntu-21) <td>no
 <tr><td>Visual Studio <td> CMake    <td> yes      <td>N.A.
-<tr><td>OSX           <td> Automake <td> unknown  <td>no
-<tr><td>OSX           <td> CMake    <td> unknown  <td>no
+<tr><td>OSX           <td> Automake <td> unknown  <td>no (seg fault)
+<tr><td>OSX           <td> CMake    <td> unknown  <td>no (seg fault_
 <tr><td>MinGW/MSYS2   <td> Automake <td> unknown  <td>no (seg fault)
 <tr><td>Cygwin        <td> Automake <td> unknown  <td>N.A.
 </table>
