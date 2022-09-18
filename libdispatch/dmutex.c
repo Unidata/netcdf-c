@@ -80,20 +80,21 @@ static volatile int global_mutex_initialized = 0; /* initialize once */
 #ifdef DEBUGAPI
 
 #ifdef DEBUGASSERT
-static int
-assertprint(int cond, const char* fcn, int lineno)
+static void
+assertprint(int cond, const char* fcn, int lineno, const char* scond)
 {
     if(!cond) {
 	int i;
-	fprintf(stderr,"))) mutex: fcn=%s line=%d (%d)", fcn,lineno,NC_globalmutex.fcns.depth);
+        fprintf(stderr,"assertion failed: %s\n",scond);
+	fprintf(stderr,"\tmutex: fcn=%s line=%d (%d)", fcn,lineno,NC_globalmutex.fcns.depth);
 	for(i=0;i<NC_globalmutex.fcns.depth;i++) {
 	    fprintf(stderr," %s",NC_globalmutex.fcns.stack[i]);
 	}
 	fprintf(stderr,"\n");
     }
-    return cond;
+    assert(cond);
 }
-#define ASSERT(x) assertprint(x,__func__,__LINE__)
+#define ASSERT(x) assertprint((x),__func__,__LINE__,(#x))
 #else
 #define ASSERT(x) assert(x)
 #endif /* DEBUGASSERT */
