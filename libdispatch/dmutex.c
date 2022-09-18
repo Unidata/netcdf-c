@@ -46,8 +46,15 @@ call other API call.
 
 #include <ncmutex.h>
 
+/* Verbose assert */
+#define DEBUGASSERT
+
 /* Print lock/unlock */
-#define DEBUGPRINT
+#undef DEBUGPRINT
+
+#ifdef DEBUGPRINT
+#define DEBUGASSERT
+#endif
 
 #define MAXDEPTH 32
 
@@ -81,24 +88,6 @@ fcntop(void)
     return NC_globalmutex.fcns.stack[depth-1];
 }
 
-static int
-assertprint(int cond, const char* fcn, int lineno)
-{
-    if(!cond) {
-	int i;
-	fprintf(stderr,"))) mutex: fcn=%s line=%d (%d)", fcn,lineno,NC_globalmutex.fcns.depth);
-	for(i=0;i<NC_globalmutex.fcns.depth;i++) {
-	    fprintf(stderr," %s",NC_globalmutex.fcns.stack[i]);
-	}
-	fprintf(stderr,"\n");
-    }
-    return cond;
-}
-#define ASSERT(x) assertprint(x,__func__,__LINE__)
-#else
-#define ASSERT(x) assert(x)
-#endif
-
 static void
 pushfcn(const char* fcn)
 {
@@ -116,7 +105,28 @@ popfcn(void)
 //    NC_globalmutex.fcns.stack[NC_globalmutex.fcns.depth] = NULL;
 }
 
-#endif
+#endif /* DEBUGPRINT */
+
+#ifdef DEBUGASSERT
+static int
+assertprint(int cond, const char* fcn, int lineno)
+{
+    if(!cond) {
+	int i;
+	fprintf(stderr,"))) mutex: fcn=%s line=%d (%d)", fcn,lineno,NC_globalmutex.fcns.depth);
+	for(i=0;i<NC_globalmutex.fcns.depth;i++) {
+	    fprintf(stderr," %s",NC_globalmutex.fcns.stack[i]);
+	}
+	fprintf(stderr,"\n");
+    }
+    return cond;
+}
+#define ASSERT(x) assertprint(x,__func__,__LINE__)
+#else
+#define ASSERT(x) assert(x)
+#endif /* DEBUGASSERT */
+
+#endif /* DEBUGAPI */
 
 #ifdef USEPTHREADS
 
