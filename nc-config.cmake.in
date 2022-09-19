@@ -172,6 +172,12 @@ Available values for OPTION include:
   --has-parallel4 whether has parallel IO support via HDF5
   --has-parallel  whether has parallel IO support via HDF5 or PnetCDF
   --has-nczarr    whether nczarr enabled
+  --has-zstd      whether zstandard compression enabled
+  --has-multifilters whether multifilter support is enabled
+  --has-quanitze  whether quantize support is enabled
+  --has-stdfilters lists the standard filters enabled
+  --has-benchmarks whether benchmarks enabled
+
   --libs          library linking information for netcdf
   --static        library linking information for statically-compiled netcdf
   --prefix        Install prefix
@@ -240,8 +246,8 @@ if [ -f "$nfconf" ]; then
         echo "  --has-f03       -> $has_f03"
         echo
 fi
-        echo "  --has-dap       -> $has_dap2"
-        echo "  --has-dap2      -> $has_dap2"
+        echo "  --has-dap       -> $has_dap"
+        echo "  --has-dap2      -> $has_dap"
         echo "  --has-dap4      -> $has_dap4"
         echo "  --has-nc2       -> $has_nc2"
         echo "  --has-nc4       -> $has_nc4"
@@ -254,6 +260,11 @@ fi
         echo "  --has-parallel4 -> $has_parallel4"
         echo "  --has-parallel  -> $has_parallel"
         echo "  --has-nczarr    -> $has_nczarr"
+        echo "  --has-zstd      -> $has_zstd"
+        echo "  --has-benchmarks -> $has_benchmarks"
+        echo "  --has-multifilters -> $has_multifilters"
+        echo "  --has-stdfilters -> $has_multifilters"
+        echo "  --has-quantize   -> $has_quantize"
         echo
         echo "  --prefix        -> $prefix"
         echo "  --includedir    -> $includedir"
