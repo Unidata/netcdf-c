@@ -67,4 +67,7 @@
 #define NC_HAS_ZSTD          @NC_HAS_ZSTD@ /*!< Zstd support. */
 #define NC_HAS_BENCHMARKS    @NC_HAS_BENCHMARKS@ /*!< Benchmarks. */
 
+#define NC_HAS_BLOSC         @NC_HAS_BLOSC@ /*!< Blosc Support. */
+#define NC_HAS_BZ2           @NC_HAS_BZ2@ /*!< bzip2 support */
+
 #endif
