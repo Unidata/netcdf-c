@@ -10,7 +10,7 @@ libdir=@libdir@
 includedir=@includedir@
 plugindir=@PLUGIN_INSTALL_DIR@
 
-if test "@PLUGIN_INSTALL_DIR@" == "no" ; then
+if test "@PLUGIN_INSTALL_DIR@" = "no" ; then
     plugindir=""
 fi
 
