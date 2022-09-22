@@ -7,6 +7,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.9.1 - T.B.D.
 
+* [Enhancement] Add new entries in `netcdf_meta.h`, `NC_HAS_BLOSC` and `NC_HAS_BZ2`. See [Github #2511](https://github.com/Unidata/netcdf-c/issues/2511) and [Github #2512](https://github.com/Unidata/netcdf-c/issues/2512) for more information.
+* [Enhancement] Add new options to `nc-config`: `--has-multifilters`, `--has-stdfilters`, `--has-quantize`, `--plugindir`.  See [Github #2509](https://github.com/Unidata/netcdf-c/pull/2509) for more information.
 * [Enhancement] Add HIGHLY EXPERIMENTAL support for thread-safe operation via searialized access to the netcdf-C library. See [Github #2505](https://github.com/Unidata/netcdf-c/pull/2505). 
 * [Bug Fix] Fix some errors detected in PR 2497. [PR #2497](https://github.com/Unidata/netcdf-c/pull/2497) . See [Github #2503](https://github.com/Unidata/netcdf-c/pull/2503).
 * [Bug Fix] Split the remote tests into two parts: one for the remotetest server and one for all other external servers. Also add a configure option to enable the latter set. See [Github #2491](https://github.com/Unidata/netcdf-c/pull/2491).

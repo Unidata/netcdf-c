@@ -2081,6 +2081,8 @@ AX_SET_META([NC_HAS_LOGGING],[$enable_logging],[yes])
 AX_SET_META([NC_HAS_QUANTIZE],[$enable_quantize],[yes])
 AX_SET_META([NC_HAS_SZIP],[$enable_hdf5_szip],[yes])
 AX_SET_META([NC_HAS_ZSTD],[$have_zstd],[yes])
+AX_SET_META([NC_HAS_BLOSC],[$have_blosc],[yes])
+AX_SET_META([NC_HAS_BZ2],[$have_bz2],[yes])
 AX_SET_META([NC_IS_THREADSAFE],[$enable_threadsafe],[yes])
 
 # This is the version of the dispatch table. If the dispatch table is
