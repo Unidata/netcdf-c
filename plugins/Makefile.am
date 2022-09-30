@@ -74,6 +74,9 @@ if ENABLE_PLUGINS
 lib__nczstdfilters_la_SOURCES = NCZstdfilters.c
 lib__nczhdf5filters_la_SOURCES = NCZhdf5filters.c
 
+lib__nczstdfilters_la_LDFLAGS = ${plugin_version_info}
+lib__nczhdf5filters_la_LDFLAGS= ${plugin_version_info}
+
 plugin_LTLIBRARIES += lib__nczhdf5filters.la
 plugin_LTLIBRARIES += lib__nczstdfilters.la
 
