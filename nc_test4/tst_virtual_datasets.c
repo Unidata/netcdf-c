@@ -12,7 +12,8 @@ static void
 create_dataset_a() {
     hsize_t dims[1] = {VARIABLE_SIZE};
     float data[VARIABLE_SIZE];
-    for(size_t i = 0; i < VARIABLE_SIZE; ++i) {
+    size_t i;
+    for(i = 0; i < VARIABLE_SIZE; ++i) {
         data[i] = (float)i;
     }
 
@@ -51,6 +52,7 @@ create_dataset_b() {
 
 int read_back_contents(const char* filename) {
     int ncid, varid, ndims;
+    size_t i;
     float data[VARIABLE_SIZE];
 
     char var_name[NC_MAX_NAME+1];
@@ -63,7 +65,7 @@ int read_back_contents(const char* filename) {
     if (nc_inq_var(ncid, varid, var_name, &var_type, &ndims, dimids_var, &natts)) ERR;
     if (nc_get_var_float(ncid, varid, data)) ERR;
     printf("\t %s: ", var_name);
-    for (size_t i = 0; i < VARIABLE_SIZE; ++i) {
+    for (i = 0; i < VARIABLE_SIZE; ++i) {
         printf("%f, ", data[i]);
     }
     printf("\n");
