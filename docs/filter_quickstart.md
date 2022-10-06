@@ -10,10 +10,20 @@ NetCDF-4 Filter QuickStart {#nc_filters_quickstart}
 
 > For full **Filters** documentation, see \ref filters.
 
-Overview {#nc_filters_qs_overview}
--------------------------------
 
-The `libnetcdf.so` library cannot talk to plugin libraries directly. Instead, it requires an "interface" library, which acts as a go-between.  This interface library is built by the netCDF library, if `blosc` is detected at configure/build time.
+The `libnetcdf.so` library cannot talk to plugin libraries directly. Instead, it requires an "interface" library, which acts as a go-between.  The interface libraries are built by the netCDF libraries, when the underlying plugin libraries are detected during configure/build.
+
+Building {#nc_filters_qs_building}
+----------------------------------
+
+
+Run-time {#nc_filters_qs_runtime}
+---------------------------------
+
+
+
+Example Workflow {#nc_filters_qs_workflow_example}
+--------------------------------------------------
 
 From scratch, the steps to get this to work are as follows, and assumes `libhdf5` was installed.
 
