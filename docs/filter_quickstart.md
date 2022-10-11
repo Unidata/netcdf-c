@@ -1,4 +1,4 @@
-2NetCDF-4 Filter QuickStart
+NetCDF-4 Filter QuickStart
 ==============================
 
 \tableofcontents
