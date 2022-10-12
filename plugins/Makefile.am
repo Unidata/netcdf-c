@@ -30,9 +30,9 @@ tmp_LTLIBRARIES =
 # for information regarding incrementing `-version-info`.
 plugin_version_info = -version-info 0:0:0
 
-if ISMINGW
+#if ISMINGW
 LDADD =  ${top_builddir}/liblib/libnetcdf.la
-endif
+#endif
 
 EXTRA_DIST = CMakeLists.txt
 

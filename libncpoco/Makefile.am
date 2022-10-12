@@ -6,6 +6,8 @@
 
 # Get AM_CPPFLAGS and AM_LDFLAGS
 include $(top_srcdir)/lib_flags.am
+libncpoco_la_CPPFLAGS = ${AM_CPPFLAGS}
+
 #AM_CPPFLAGS += -D_LARGEFILE_SOURCE
 #AM_CPPFLAGS += -I$(top_srcdir)/libsrc4 -I$(top_srcdir)/libdap4
 #libnczarr_la_CPPFLAGS = ${AM_CPPFLAGS}

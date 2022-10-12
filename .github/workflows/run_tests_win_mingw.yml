@@ -25,17 +25,34 @@ jobs:
         with:
           msystem: MINGW64
           update: true
-          install: git mingw-w64-x86_64-toolchain automake libtool autoconf make cmake mingw-w64-x86_64-hdf5 unzip mingw-w64-x86_64-libxml2
+          install: git mingw-w64-x86_64-toolchain automake libtool autoconf make cmake mingw-w64-x86_64-hdf5 unzip mingw-w64-x86_64-libxml2 libcurl-devel curl libxml2-devel
+
+###
+# Set environmental variable
+###
+
+      - run: echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/lib/pkgconfig" >> $GITHUB_ENV
 
 ###
 # Configure and build
 ###
 
+      - name: Query libcurl 
+        run: |
+          echo "pkg-config libcurl --libs:"
+          PKG_CONFIG_PATH=/usr/lib/pkgconfig pkg-config libcurl --libs
+          echo "pkg-config libcurl --cflags"
+          PKG_CONFIG_PATH=/usr/lib/pkgconfig pkg-config libcurl --cflags
+          echo "curl-config --cflags:"
+          curl-config --cflags
+          echo "curl-config --libs"
+          curl-config --libs
+
       - name: (Autotools) Run autoconf
         run: autoreconf -if
 
       - name: (Autotools) Configure Build
-        run: ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests --disable-static --disable-plugins --disable-byterange --disable-dap-remote-tests --disable-logging
+        run: CFLAGS="$(PKG_CONFIG_PATH=/usr/lib/pkgconfig pkg-config libcurl --cflags)" "LDFLAGS=$(PKG_CONFIG_PATH=/usr/lib/pkgconfig pkg-config libcurl --libs)" ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests --disable-static --disable-plugins --disable-byterange --disable-logging
         if: ${{ success() }}
 
       - name: (Autotools) Look at config.log if error
@@ -46,7 +63,7 @@ jobs:
         run: cat libnetcdf.settings
 
       - name: (Autotools) Build Library and Utilities
-        run: make -j 8 LDFLAGS="-no-undefined -Wl,--export-all-symbols"
+        run: make -j 8 LDFLAGS="-no-undefined -Wl,--export-all-symbols $(pkg-config libcurl --libs)" CFLAGS="$(pkg-config libcurl --cflags)"
         if: ${{ success() }}
 
       - name: (Autotools) Build and Run Tests
