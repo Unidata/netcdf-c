@@ -118,7 +118,7 @@ ISMSYS=yes
 fi
 
 # Get windows version info
-if text "x$ISMSVC" = xyes ; then
+if test "x$ISMSVC" = xyes ; then
 WINVER=`systeminfo | sed -e '/^OS Version:/p' -ed | sed -e 's|[^0-9]*\([0-9.]*\).*|\1|'`
 else
 WINVER="0.0.0"
