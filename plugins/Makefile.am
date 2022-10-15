@@ -4,7 +4,12 @@
 # Put Together AM_CPPFLAGS and AM_LDFLAGS
 include $(top_srcdir)/lib_flags.am
 
-AM_LDFLAGS += -module -avoid-version -shared -export-dynamic	\
+# This linker flag specifies libtool version info.
+# See http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning
+# for information regarding incrementing `-version-info`.
+plugin_version_info = -version-info 0:0:0
+
+AM_LDFLAGS += -module $(plugin_version_info) -shared -export-dynamic	\
   $(NOUNDEFINED)
 
 # Create an alternate directory if not installing or for noinst installs.
@@ -27,11 +32,6 @@ plugins_to_install =
 
 check_LTLIBRARIES =
 noinst_LTLIBRARIES =
-
-# This linker flag specifies libtool version info.
-# See http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning
-# for information regarding incrementing `-version-info`.
-plugin_version_info = -version-info 0:0:0
 
 if ISMINGW
 LDADD =  ${top_builddir}/liblib/libnetcdf.la
@@ -63,15 +63,10 @@ lib__nch5shuffle_la_SOURCES = H5Zshuffle.c
 lib__nch5fletcher32_la_SOURCES = H5Zfletcher32.c H5checksum.c
 lib__nch5deflate_la_SOURCES = H5Zdeflate.c
 
-lib__nch5shuffle_la_LDFLAGS = ${plugin_version_info} $(AM_LDFLAGS)
-lib__nch5deflate_la_LDFLAGS = ${plugin_version_info} $(AM_LDFLAGS)
-lib__nch5fletcher32_la_LDFLAGS = ${plugin_version_info} $(AM_LDFLAGS)
-
 # Need our version of szip if libsz available and we are not using HDF5
 if HAVE_SZ
 plugins_to_install += lib__nch5szip.la
 lib__nch5szip_la_SOURCES = H5Zszip.c H5Zszip.h
-lib__nch5szip_la_LDFLAGS = ${plugin_version_info} $(AM_LDFLAGS)
 endif
 
 endif # ENABLE_NCZARR_FILTERS
@@ -84,21 +79,16 @@ lib__nczstdfilters_la_LIBADD = $(LIBADD)
 lib__nczhdf5filters_la_SOURCES = NCZhdf5filters.c
 lib__nczhdf5filters_la_LIBADD = $(LIBADD)
 
-lib__nczstdfilters_la_LDFLAGS = ${plugin_version_info}
-lib__nczhdf5filters_la_LDFLAGS= ${plugin_version_info}
-
 plugins_to_install += lib__nczhdf5filters.la
 plugins_to_install += lib__nczstdfilters.la
 
 if HAVE_BLOSC
 lib__nch5blosc_la_SOURCES = H5Zblosc.c H5Zblosc.h
-lib__nch5blosc_la_LDFLAGS = ${plugin_version_info} $(AM_LDFLAGS)
 plugins_to_install += lib__nch5blosc.la
 endif
 
 if HAVE_ZSTD
 lib__nch5zstd_la_SOURCES = H5Zzstd.c H5Zzstd.h
-lib__nch5zstd_la_LDFLAGS = ${plugin_version_info} $(AM_LDFLAGS)
 plugins_to_install += lib__nch5zstd.la
 endif
 
@@ -108,18 +98,18 @@ endif #ENABLE_PLUGINS
 # Need two distinct instances
 lib__nch5noop_la_SOURCES = H5Znoop.c H5Zutil.c h5noop.h
 lib__nch5noop1_la_SOURCES = H5Znoop1.c H5Zutil.c h5noop.h
-lib__nch5noop_la_LDFLAGS = ${plugin_version_info} $(AM_LDFLAGS) -rpath $(abs_builddir)/.libs
-lib__nch5noop1_la_LDFLAGS = ${plugin_version_info} $(AM_LDFLAGS) -rpath $(abs_builddir)/.libs
+lib__nch5noop_la_LDFLAGS = $(AM_LDFLAGS) -rpath $(abs_builddir)/.libs
+lib__nch5noop1_la_LDFLAGS = $(AM_LDFLAGS) -rpath $(abs_builddir)/.libs
 
 # The misc filter is to allow testing of filter arguments
 lib__nch5misc_la_SOURCES = H5Zmisc.c H5Zutil.c h5misc.h
-lib__nch5misc_la_LDFLAGS = ${plugin_version_info} $(AM_LDFLAGS) -rpath $(abs_builddir)/.libs
+lib__nch5misc_la_LDFLAGS = $(AM_LDFLAGS) -rpath $(abs_builddir)/.libs
 lib__nczmisc_la_SOURCES = NCZmisc.c
-lib__nczmisc_la_LDFLAGS = ${plugin_version_info} $(AM_LDFLAGS) -rpath $(abs_builddir)/.libs
+lib__nczmisc_la_LDFLAGS = $(AM_LDFLAGS) -rpath $(abs_builddir)/.libs
 
 # Provide a filter to test missing filter
 lib__nch5unknown_la_SOURCES = H5Zunknown.c
-lib__nch5unknown_la_LDFLAGS = ${plugin_version_info} $(AM_LDFLAGS) -rpath $(abs_builddir)/.libs
+lib__nch5unknown_la_LDFLAGS = $(AM_LDFLAGS) -rpath $(abs_builddir)/.libs
 
 check_LTLIBRARIES += lib__nch5noop.la lib__nch5noop1.la lib__nch5unknown.la
 # findplugin.sh needs these plugins, and I want to see if these get built properly
@@ -132,7 +122,6 @@ EXTRA_DIST += ${BZIP2SRC} BZIP2_LICENSE
 if HAVE_LOCAL_BZ2
 lib__nch5bzip2_la_SOURCES += ${BZIP2SRC}
 endif
-lib__nch5bzip2_la_LDFLAGS = ${plugin_version_info} $(AM_LDFLAGS)
 plugins_to_install += lib__nch5bzip2.la
 
 endif #ENABLE_FILTER_TESTING
