@@ -205,7 +205,7 @@ clean-local:
 	rm -fr rcmiscdir ref_power_901_constants.file 
 
 
-DISTCLEANFILES = findplugin.sh test_quantize.c run_specific_filters.sh run_filterinstall.sh
+DISTCLEANFILES = findplugin.sh test_quantize.c run_specific_filters.sh run_filterinstall.sh run_unknown.sh test_filter_avail.c
 
 # If valgrind is present, add valgrind targets.
 @VALGRIND_CHECK_RULES@
