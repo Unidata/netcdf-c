@@ -5,7 +5,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 set -e
 
-. ${srcdir}/d4test_common.sh
+. ${top_srcdir}/dap4_test/d4test_common.sh
 
 echo "test_data.sh:"
 
