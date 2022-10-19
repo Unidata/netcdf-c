@@ -17,14 +17,14 @@ fi
 
 # Define input paths
 WD=`pwd`
-cd ${srcdir}/daptestfiles; DAPTESTFILES=`pwd` ; cd ${WD}
-cd ${srcdir}/dmrtestfiles; DMRTESTFILES=`pwd` ; cd ${WD}
-cd ${srcdir}/cdltestfiles; CDLTESTFILES=`pwd` ; cd ${WD}
-cd ${srcdir}/baseline; BASELINE=`pwd` ; cd ${WD}
-cd ${srcdir}/baselineraw; BASELINERAW=`pwd` ; cd ${WD}
-cd ${srcdir}/baselineremote; BASELINEREM=`pwd` ; cd ${WD}
-cd ${srcdir}/baselinehyrax; BASELINEH=`pwd` ; cd ${WD}
-cd ${builddir}/baselinethredds; BASELINETH=`pwd` ; cd ${WD}
+cd ${top_srcdir}/dap4_test/daptestfiles; DAPTESTFILES=`pwd` ; cd ${WD}
+cd ${top_srcdir}/dap4_test/dmrtestfiles; DMRTESTFILES=`pwd` ; cd ${WD}
+cd ${top_srcdir}/dap4_test/cdltestfiles; CDLTESTFILES=`pwd` ; cd ${WD}
+cd ${top_srcdir}/dap4_test/baseline; BASELINE=`pwd` ; cd ${WD}
+cd ${top_srcdir}/dap4_test/baselineraw; BASELINERAW=`pwd` ; cd ${WD}
+cd ${top_srcdir}/dap4_test/baselineremote; BASELINEREM=`pwd` ; cd ${WD}
+cd ${top_srcdir}/dap4_test/baselinehyrax; BASELINEH=`pwd` ; cd ${WD}
+cd ${top_srcdir}/dap4_test/baselinethredds; BASELINETH=`pwd` ; cd ${WD}
 
 setresultdir() {
 rm -fr ${builddir}/$1
