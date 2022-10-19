@@ -50,7 +50,7 @@ diff -bw $top_srcdir/nczarr_test/ref_scalar.cdl tmp_scalar_nczarr_${zext}.cdl
 
 # Fixup
 zarrscalar tmp_scalar_zarr0_${zext}.cdl tmp_scalar_zarr_${zext}.cdl
-diff -bw ref_scalar.cdl tmp_scalar_zarr_${zext}.cdl
+diff -bw $top_srcdir/nczarr_test/ref_scalar.cdl tmp_scalar_zarr_${zext}.cdl
 }
 
 testcase file
