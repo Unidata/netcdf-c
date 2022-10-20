@@ -217,3 +217,11 @@ install-data-hook:
 	@echo '| https://www.unidata.ucar.edu                                 |'
 	@echo '+-------------------------------------------------------------+'
 	@echo ''
+
+
+# Create the VERSION file after the build
+# in case it is being used by packagers
+all-local: liblib/libnetcdf.la
+	echo ${PACKAGE_VERSION} > VERSION
+# Remove the VERSION file
+CLEANFILES = VERSION
