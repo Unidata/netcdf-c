@@ -7,12 +7,12 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.9.1 - T.B.D.
 
-### 4.9.1 - Release Candidate 1 - October 19, 2022
+### 4.9.1 - Release Candidate 1 - October 20, 2022
 
 #### Known Issues
 
 * A test in the `main` branch of `netcdf-cxx4` is broken by this rc; this will bear further investigation, but not being treated as a roadblock for the release candidate.
-* The new document, `filter_quickstart.md` is in rough-draft form.
+* The new document, `netcdf-c/docs/filter_quickstart.md` is in rough-draft form.
 
 #### Changes
 
