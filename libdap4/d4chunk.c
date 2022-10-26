@@ -100,7 +100,6 @@ NCD4_dechunk(NCD4meta* metadata)
        of the first header indicated that checksumming was not in force.
        Test for it, and propagate the _DAP4_Checksum_CRC32 attribute later */
     metadata->serial.checksumhack = ((hdr.flags & NCD4_NOCHECKSUM_CHUNK) ? 1 : 0);
-fprintf(stderr,"checksumhack=%d\n",metadata->serial.checksumhack);
 #endif
     metadata->serial.remotelittleendian = ((hdr.flags & NCD4_LITTLE_ENDIAN_CHUNK) ? 1 : 0);
     /* Again, avoid strxxx operations on dmr */
