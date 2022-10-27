@@ -9,8 +9,17 @@ include $(top_srcdir)/lib_flags.am
 # for information regarding incrementing `-version-info`.
 plugin_version_info = -version-info 0:0:0
 
-AM_LDFLAGS += -module $(plugin_version_info) -shared -export-dynamic	\
-  $(NOUNDEFINED)
+AM_LDFLAGS += -module -shared -export-dynamic $(NOUNDEFINED)
+
+if ISMINGW
+  AM_LDFLAGS += -avoid-version
+else !ISMINGW
+if ISCYGWIN
+AM_LDFLAGS += -avoid-version
+else !ISCYGWIN
+AM_LDFLAGS += $(plugin_version_info)
+endif !ISCYGWIN
+endif !ISMINGW
 
 # Create an alternate directory if not installing or for noinst installs.
 ALTPLUGINDIR = ${abs_top_builddir}/plugins/plugindir
