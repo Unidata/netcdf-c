@@ -121,7 +121,7 @@ unsigned long long int strtoull(const char*, char**, int);
 
 /* handle null arguments */
 #ifndef nulldup
-#ifndef(HAVE_STRDUP)
+#ifndef HAVE_STRDUP
 /** Copy s if not NULL.
  *
  * Implementation in terms of strdup in
