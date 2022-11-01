@@ -9,14 +9,17 @@
 #include <unistd.h>
 #endif
 
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#else
+#include "XGetopt.h"
+#endif
+
 #include "netcdf.h"
 #include "netcdf_threadsafe.h"
 
-#define NTHREADS 1
-#define NCYCLES 1
-
-#define MODE3 (NC_CLOBBER)
-#define MODE4 (NC_CLOBBER|NC_NETCDF4)
+#define MODE3 3
+#define MODE4 4
 
 typedef struct ThreadData {
     int id;
@@ -30,6 +33,15 @@ typedef struct ThreadData {
 #define RETURNTYPE void*
 #define WINAPI
 #endif
+
+typedef struct Options {
+    int mode;
+    int ncflags;
+    int nthreads;
+    int ncycles;
+    const char* format;
+} Options;
+
 
 static RETURNTYPE threadprog(void* data);
 
@@ -50,26 +62,32 @@ static ThreadData data[NTHREADS];
 int
 main(int argc, char **argv)
 {
-    int i, stat = NC_NOERR;
-    int mode = 0;
-    const char* format = NULL;
+    int i, c, stat = NC_NOERR;
+    Options options;
     NC_threadset_t* threads = NULL;
     
-    switch (argc) {
-    case 0: 
-    case 1:
-	usage();
-	break;
-    default: case 3:
-	format = argv[2];
-	if(format == NULL || strlen(format)==0) usage();
-	/*fall thru*/
-    case 2:
-        if(strcmp(argv[1],"3")==0) mode = MODE3;
-        else if(strcmp(argv[1],"4")==0) mode = MODE4;
-	else usage();
+    memset(&options,0,sizeof(Options));
+    while ((c = getopt(argc, argv, "h34C:T:F:")) != EOF) {
+	switch(c) {
+	case 'h': usage(); break;
+	case '3': mode = MODE3; break;
+	case '4': mode = MODE4; break;
+	case 'C': sscanf(optarg,"%d",&options.ncycles); break;
+	case 'T': sscanf(optarg,"%d",&options.nthreads); break;
+	case 'F': options.format = optarg; break;
+	case '?':
+	   fprintf(stderr,"unknown option\n");
+	   goto fail;
+	}
     }
-
+    if(options.format == NULL || strlen(options.format)==0) usage();
+    if(options.mode == 0) usage();
+    switch (options.mode) {
+    case MODE3: options.ncflag = NC_CLOBBER; break;
+    case MODE4: options.ncflag = NC_CLOBBER|NC_NETCDF4; break;
+    default: usage(); break;
+    }
+    
     memset(data,0,sizeof(ThreadData));
 
     if((stat=NC_threadset_create(NTHREADS,&threads))) goto done;

@@ -139,13 +139,13 @@ static void
 assertprint(int cond, const char* fcn, int lineno, const char* scond)
 {
     if(!cond) {
-	int i;
+        int i;
         fprintf(stderr,"assertion failed: %s\n",scond);
-	fprintf(stderr,"\tmutex: fcn=%s line=%d (%d)", fcn,lineno,NC_globalmutex.fcns.depth);
-	for(i=0;i<NC_globalmutex.fcns.depth;i++) {
-	    fprintf(stderr," %s",NC_globalmutex.fcns.stack[i]);
-	}
-	fprintf(stderr,"\n");
+        fprintf(stderr,"\tmutex: fcn=%s line=%d (%d)", fcn,lineno,NC_globalmutex.fcns.depth);
+        for(i=0;i<NC_globalmutex.fcns.depth;i++) {
+            fprintf(stderr," %s",NC_globalmutex.fcns.stack[i]);
+        }
+        fprintf(stderr,"\n");
     }
     assert(cond);
 }
@@ -286,8 +286,8 @@ static void
 freethreadset(NCthreadset* ncts)
 {
     if(ncts != NULL) {
-	if(ncts->threadset != NULL) free(ncts->threadset);
-	free(ncts);
+        if(ncts->threadset != NULL) free(ncts->threadset);
+        free(ncts);
     }
 }
 
@@ -295,7 +295,7 @@ static void
 freebarrier(NCbarrier* ncb)
 {
     if(ncb != NULL) {
-	free(ncb);
+        free(ncb);
     }
 }
 
@@ -311,18 +311,19 @@ NC_threadset_create(unsigned nthreads, NC_threadset_t** threadsetp)
     if((ncts = (NCthreadset*)calloc(1,sizeof(NCthreadset)))==NULL)
         {stat = NC_ENOMEM; goto done;}
     ncts->nthreads = nthreads;
+    /* nthreads indicates no. of additional threads over and above the calling thread */
     if(nthreads > 0) {
 #ifdef USEPTHREADS
-	ncts->threadset = (pthread_t*)calloc(nthreads,sizeof(pthread_t));
+        ncts->threadset = (pthread_t*)calloc(nthreads,sizeof(pthread_t));
 #else
 #ifdef BEGINTHREADEX
-	ncts->threadset = (uintptr_t*)calloc(nthreads,sizeof(uintptr_t));
+        ncts->threadset = (uintptr_t*)calloc(nthreads,sizeof(uintptr_t));
 #else
-	ncts->threadset = (HANDLE*)calloc(nthreads,sizeof(HANDLE));
+        ncts->threadset = (HANDLE*)calloc(nthreads,sizeof(HANDLE));
 #endif
 #endif
-	if(ncts->threadset == NULL)
-	    {stat = NC_ENOMEM; goto done;}
+        if(ncts->threadset == NULL)
+            {stat = NC_ENOMEM; goto done;}
     }
     *threadsetp = (void*)ncts; ncts = NULL;
 done:
@@ -338,7 +339,7 @@ NC_threadset_destroy(NC_threadset_t* threadset)
     if(ncts == NULL) {stat = NC_EINVAL; goto done;}
     for(i=0;i<ncts->nthreads;i++) {
 #ifdef USEPTHREADS
-	/* There is no pthread_destroy */
+        /* There is no pthread_destroy */
 #else
         if(!endthreadex(ncts->threads[i]))
             {stat = NC_EBADID; goto done;}        
@@ -386,24 +387,24 @@ NC_thread_create(NC_start_routine fcn, void* arg, NC_threadset_t* threadset, uns
 #else
 #ifdef BEGINTHREADEX
     id = _beginthreadex( 
-            NULL,	// default security attributes
-            0,		// use default stack size  
-            threadprog,	// thread function name
-            arg,	// argument to thread function 
-            0,		// use default creation flags 
-            NULL	// returns the thread identifier 
-	);
+            NULL,       // default security attributes
+            0,          // use default stack size  
+            threadprog, // thread function name
+            arg,        // argument to thread function 
+            0,          // use default creation flags 
+            NULL        // returns the thread identifier 
+        );
     if(id < 0) {stat = errno; goto done;}
     nct->threadset[pos] = id;
 #else
     ncts->threadset[pos] = CreateThread( 
-            NULL,	// default security attributes
-            0,		// use default stack size  
-            threadprog,	// thread function name
-            arg,	// argument to thread function 
-            0,		// use default creation flags 
-            NULL	// returns the thread identifier 
-	);
+            NULL,       // default security attributes
+            0,          // use default stack size  
+            threadprog, // thread function name
+            arg,        // argument to thread function 
+            0,          // use default creation flags 
+            NULL        // returns the thread identifier 
+        );
     if(nct->threadset[pos] == NULL) {stat = NC_EINVAL; goto done;}
 #endif
 #endif
@@ -421,12 +422,14 @@ NC_barrier_create(unsigned count, NC_barrier_t** barrierp)
         {stat = NC_ENOMEM; goto done;}
     ncb->count = count;
 #ifdef USEPTHREADS
-    if(pthread_barrier_init(&ncb->barrier,NULL,count) < 0)
-        {stat = errno; goto done;}
+    if(count > 0) {
+        if(pthread_barrier_init(&ncb->barrier,NULL,count) < 0)
+            {stat = errno; goto done;}
 #else
-    if(!InitializeSynchronizationBarrier(&ncb->barrier,(LONG)count,(LONG)-1))
-        {stat = NC_EBADID; goto done;}
+        if(!InitializeSynchronizationBarrier(&ncb->barrier,(LONG)count,(LONG)-1))
+            {stat = NC_EBADID; goto done;}
 #endif
+    }
     *barrierp = (void*)ncb; ncb = NULL;
 done:
     if(ncb) free(ncb);    
@@ -439,13 +442,15 @@ NC_barrier_destroy(NC_barrier_t* barrier)
     int stat = NC_NOERR;
     NCbarrier* ncb = (NCbarrier*)barrier;
     if(ncb == NULL) {stat = NC_EINVAL; goto done;}
+    if(ncb->count > 0) {
 #ifdef USEPTHREADS
-    if(pthread_barrier_destroy(&ncb->barrier) < 0)
-	{stat = errno; goto done;}
+        if(pthread_barrier_destroy(&ncb->barrier) < 0)
+            {stat = errno; goto done;}
 #else
-    if(!DeleteSynchronizationBarrier(ncts->barrier))
-	{stat = NC_EBADID; goto done;}
+        if(!DeleteSynchronizationBarrier(ncts->barrier))
+            {stat = NC_EBADID; goto done;}
 #endif
+    }
 done:
     if(ncb) freebarrier(ncb);
     return stat;
@@ -457,13 +462,15 @@ NC_barrier_wait(NC_barrier_t* barrier)
     int stat = NC_NOERR;
     NCbarrier* ncb = (NCbarrier*)barrier;
     if(ncb == NULL) {stat = NC_EINVAL; goto done;}
+    if(ncb->count > 0) {
 #ifdef USEPTHREADS
-    if(pthread_barrier_wait(&ncb->barrier) < 0)
-	{stat = errno; goto done;}
+        if(pthread_barrier_wait(&ncb->barrier) < 0)
+            {stat = errno; goto done;}
 #else
-    if(!EnterSynchronizationBarrier(ncb->barrier,SYNCHRONIZATION_BARRIER_FLAGS_BLOCK_ONLY))
-	{stat = NC_EBADID; goto done;}
+        if(!EnterSynchronizationBarrier(ncb->barrier,SYNCHRONIZATION_BARRIER_FLAGS_BLOCK_ONLY))
+            {stat = NC_EBADID; goto done;}
 #endif
+    }
 done:
     return stat;
 }
@@ -487,7 +494,7 @@ pthread_barrier_init(pthread_barrier_t* barrier, const pthread_barrierattr_t* at
 
     if(count == 0) {errno = EINVAL; ret = -1; goto done;}
     if((ret=pthread_mutex_init(&barrier->mutex, 0)))
-	{ret = -1; goto done;}
+        {ret = -1; goto done;}
     if((ret=pthread_cond_init(&barrier->cond, 0))) {
         if((ret=pthread_mutex_destroy(&barrier->mutex))) goto done;
         return -1;
@@ -521,7 +528,7 @@ pthread_barrier_wait(pthread_barrier_t* barrier)
         ret = PTHREAD_BARRIER_SERIAL_THREAD;
     } else {
         if((ret=pthread_cond_wait(&barrier->cond, &(barrier->mutex))))
-	    goto done;
+            goto done;
         if((ret=pthread_mutex_unlock(&barrier->mutex))) goto done;
         ret = 0;
     }

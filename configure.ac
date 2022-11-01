@@ -1212,7 +1212,12 @@ AC_CHECK_HEADERS([sys/param.h])
 AC_CHECK_HEADERS([libgen.h])
 #AC_CHECK_HEADERS([locale.h])
 AC_HEADER_STDC
-AC_CHECK_HEADERS([locale.h stdio.h stdarg.h fcntl.h malloc.h stdlib.h string.h strings.h unistd.h sys/stat.h getopt.h sys/time.h sys/types.h time.h dirent.h stdint.h])
+AC_CHECK_HEADERS([locale.h stdio.h stdarg.h fcntl.h malloc.h stdlib.h string.h strings.h unistd.h sys/stat.h sys/time.h sys/types.h time.h dirent.h stdint.h])
+
+# Do getopt.h separately so we can AM_CONDITIONAL it.
+# This should still do the implicit AC_DEFINE.
+AC_CHECK_HEADERS([getopt.h],[havegetopth=yes],[havegetopth=no])
+AM_CONDITIONAL(HAVE_GETOPT_H, [test "x$havegetopth" = xyes])
 
 # Do sys/resource.h separately
 #AC_CHECK_HEADERS([sys/resource.h],[havesysresource=1],[havesysresource=0])

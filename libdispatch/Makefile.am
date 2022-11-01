@@ -60,7 +60,11 @@ if ENABLE_THREADSAFE
 libdispatch_la_SOURCES += dthreaded.c
 endif
 
-EXTRA_DIST=CMakeLists.txt ncsettings.hdr utf8proc_data.c
+if ! HAVE_GETOPT_H
+libdispatch_la_SOURCES += XGetopt.c
+endif
+
+EXTRA_DIST=CMakeLists.txt ncsettings.hdr utf8proc_data.c XGetopt.c
 
 # Build ncsettings.c as follows:
 # 1. copy ncsettings.hdr to ncsettings.c
