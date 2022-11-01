@@ -28,6 +28,7 @@ typedef struct ThreadData {
     int id;
     const char* format;
     int mode;
+    NC_barrier_t* barrier;
 } ThreadData;
 
 #ifdef _WIN32
@@ -108,6 +109,7 @@ main(int argc, char **argv)
 	data[i].id = i;
 	data[i].format = options.format;
 	data[i].mode = options.mode;
+	data[i].barrier = barrier;
 	if((stat = NC_thread_create(threadprog,&data[i],threads,i))) goto done;
     }
 
@@ -132,7 +134,7 @@ threadprog(void* arg)
 
 fprintf(stderr,"<<< data[%d]=%p\n",data->id,arg); fflush(stderr);
 
-    if((stat=NC_barrier_wait(&barrier))) goto done;
+    if((stat=NC_barrier_wait(data->barrier))) goto done;
 
     fprintf(stderr,"starting thread: %d\n",data->id); fflush(stderr);
 

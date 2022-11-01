@@ -48,6 +48,9 @@ EXTERNL int NC_barrier_create(unsigned count, NC_barrier_t** barrierp);
 EXTERNL int NC_barrier_destroy(NC_barrier_t* barrier);
 EXTERNL int NC_barrier_wait(NC_barrier_t* barrier);
 
+/* Debug */
+EXTERNL void NC_threadsafe_trace(void);
+
 #if defined(__cplusplus)
 }
 #endif

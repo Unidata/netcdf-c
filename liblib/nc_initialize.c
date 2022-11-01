@@ -84,7 +84,9 @@ nc_initialize()
 
     if(NC_initialized) return NC_NOERR;
 
+#ifdef ENABLE_THREADSAFE
     NC_global_mutex_initialize();
+#endif
 
     NCLOCK;
 
@@ -194,7 +196,9 @@ nc_finalize(void)
 
     NCUNLOCK;
 
+#ifdef ENABLE_THREADSAFE
     NC_global_mutex_finalize();
+#endif
 
     if(failed) fprintf(stderr,"nc_finalize failed: %d\n",failed);
     return failed;

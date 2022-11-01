@@ -277,8 +277,6 @@ void NC_unlock(void)
 /**************************************************/
 /* Provide Barrier and Thread support primarily for testing. */
 
-#ifdef USEPTHREADS /* Pthreads Version */
-
 /**************************************************/
 /* Struct reclaim functions */
 
@@ -474,8 +472,6 @@ NC_barrier_wait(NC_barrier_t* barrier)
 done:
     return stat;
 }
-
-#endif
 
 /**************************************************/
 #ifdef USEPTHREADS

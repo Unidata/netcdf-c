@@ -27,9 +27,7 @@
 #ifdef USE_PARALLEL
 #include "netcdf_par.h"
 #endif
-#ifdef ENABLE_THREADSAFE
-#include "ncthreaded.h"
-#endif
+#include "ncthreaded.h" /* Always include */
 #include "netcdf_dispatch.h"
 
 #define longtype ((sizeof(long) == sizeof(int) ? NC_INT : NC_INT64))

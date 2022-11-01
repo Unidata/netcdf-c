@@ -28,7 +28,6 @@ extern void NC_unlock(void);
 #else
 #define NCLOCK
 #define NCUNLOCK
-#endif
 
 /* Define a single check for PTHREADS vs WIN32 */
 #ifdef _WIN32
@@ -46,5 +45,7 @@ extern void NC_unlock(void);
 #include <windows.h>
 #include <synchapi.h>
 #endif
+
+#endif /*ENABLE_THREADSAFE*/
 
 #endif /*_NCTHREADED_H_*/
