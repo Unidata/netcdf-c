@@ -167,7 +167,7 @@ unsigned long long int strtoull(const char*, char**, int);
  * @post returns NULL if s is NULL, or a new pointer to a
  *     freshly-allocated copy of s
  */
-extern char *nulldup(const char* s) {
+static char *nulldup(const char* s) {
     if (s != NULL) {
         ssize_t result_length = strlen(s) + 1;
         char *result = malloc(result_length);
