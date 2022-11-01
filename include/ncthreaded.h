@@ -3,8 +3,8 @@
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 
-#ifndef _NCMUTEX_H_
-#define _NCMUTEX_H_
+#ifndef _NCTHREADED_H_
+#define _NCTHREADED_H_
 
 #define DEBUGAPI
 
@@ -30,33 +30,21 @@ extern void NC_unlock(void);
 #define NCUNLOCK
 #endif
 
+/* Define a single check for PTHREADS vs WIN32 */
+#ifdef _WIN32
+/* Win32 synchronization has priority */
+#undef USEPTHREADS
+#else
 #ifdef HAVE_PTHREADS
-#ifdef __APPLE__
+#define USEPTHREADS
+#endif
+#endif
 
+#ifdef USEPTHREADS
 #include <pthread.h>
+#else /*_WIN32*/
+#include <windows.h>
+#include <synchapi.h>
+#endif
 
-/* Apparently OS/X pthreads does not implement
-   pthread_barrier_t. So we have to fake it.
-*/
-#define PTHREAD_BARRIER_SERIAL_THREAD   1
-
-typedef int pthread_barrierattr_t;
-
-typedef struct
-{
-    pthread_mutex_t mutex;
-    pthread_cond_t cond;
-    int count;
-    int tripCount;
-} pthread_barrier_t;
-
-extern int pthread_barrier_init(pthread_barrier_t* barrier, const pthread_barrierattr_t* attr, unsigned int count);
-extern int pthread_barrier_destroy(pthread_barrier_t* barrier);
-extern int pthread_barrier_wait(pthread_barrier_t* barrier);
-
-#endif /*__APPLE__*/
-#endif /*HAVE_PTHREADS*/
-
-#endif /*_NCMUTEX_H_*/
-
-
+#endif /*_NCTHREADED_H_*/

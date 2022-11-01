@@ -57,7 +57,7 @@ libdispatch_la_SOURCES += dreg.c
 endif
 
 if ENABLE_THREADSAFE
-libdispatch_la_SOURCES += dmutex.c
+libdispatch_la_SOURCES += dthreaded.c
 endif
 
 EXTRA_DIST=CMakeLists.txt ncsettings.hdr utf8proc_data.c

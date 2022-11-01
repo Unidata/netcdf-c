@@ -9,30 +9,11 @@
 #include <unistd.h>
 #endif
 
-/* Define a single check for PTHREADS vs WIN32 */
-#ifdef _WIN32
-/* Win32 syncronization has priority */
-#undef USEPTHREADS
-#else
-#ifdef HAVE_PTHREADS
-#define USEPTHREADS
-#endif
-#endif
-
-#ifdef USEPTHREADS
-#include <pthread.h>
-#ifdef __APPLE__
-#include "ncmutex.h"
-#endif
-#else
-#include <windows.h>
-#include <synchapi.h>
-#endif
-
 #include "netcdf.h"
+#include "netcdf_threadsafe.h"
 
-#define NTHREADS 8
-#define NCYCLES 4
+#define NTHREADS 1
+#define NCYCLES 1
 
 #define MODE3 (NC_CLOBBER)
 #define MODE4 (NC_CLOBBER|NC_NETCDF4)
@@ -43,21 +24,18 @@ typedef struct ThreadData {
     int mode;
 } ThreadData;
 
-#ifdef USEPTHREADS
+#ifdef _WIN32
+#define RETURNTYPE DWORD
+#else
 #define RETURNTYPE void*
 #define WINAPI
-#else
-#define RETURNTYPE DWORD
 #endif
 
-/* forward */
 static RETURNTYPE threadprog(void* data);
 
-#ifdef USEPTHREADS
-static pthread_barrier_t barrier;
-#else
-static SYNCHRONIZATION_BARRIER barrier;
-#endif
+/* forward */
+
+static NC_barrier_t* barrier = NULL;
 
 static void
 usage(void)
@@ -72,15 +50,10 @@ static ThreadData data[NTHREADS];
 int
 main(int argc, char **argv)
 {
-    int i;
+    int i, stat = NC_NOERR;
     int mode = 0;
     const char* format = NULL;
-    
-#ifdef USEPTHREADS
-    pthread_t threads[NTHREADS];
-#else
-    HANDLE threads[NTHREADS];
-#endif
+    NC_threadset_t* threads = NULL;
     
     switch (argc) {
     case 0: 
@@ -97,42 +70,27 @@ main(int argc, char **argv)
 	else usage();
     }
 
-    memset(threads,0,sizeof(threads));
     memset(data,0,sizeof(ThreadData));
 
-#ifdef USEPTHREADS
-    pthread_barrier_init(&barrier, NULL, NTHREADS);
-#else
-    InitializeSynchronizationBarrier(&barrier,(LONG)NTHREADS,(LONG)-1);
-#endif
+    if((stat=NC_threadset_create(NTHREADS,&threads))) goto done;
+    if((stat = NC_barrier_create(NTHREADS,&barrier))) goto done;
 
     for(i=0; i<NTHREADS; i++) {
 	data[i].id = i;
 	data[i].format = format;
 	data[i].mode = mode;
-#ifdef USEPTHREADS
-        pthread_create(&threads[i], NULL, threadprog, &data[i]);
-#else
-fprintf(stderr,">>> &data[%d]=%p\n",i,&data[i]); fflush(stderr);
-        threads[i] = CreateThread( 
-            NULL,                   // default security attributes
-            0,                      // use default stack size  
-            threadprog,             // thread function name
-            &data[i],               // argument to thread function 
-            0,                      // use default creation flags 
-            NULL);         // returns the thread identifier 
-#endif
+	if((stat = NC_thread_create(threadprog,&data[i],threads,i))) goto done;
     }
 
-#ifdef USEPTHREADS
-    for(i=0; i<NTHREADS; i++) {
-        pthread_join(threads[i], NULL);
-    }
-    pthread_barrier_destroy(&barrier);
-#else
-    WaitForMultipleObjects(NTHREADS, threads, TRUE, INFINITE);
-#endif
+    if((stat=NC_threadset_join(threads))) goto done;
+    if((stat=NC_barrier_destroy(barrier))) goto done;
 
+done:
+    if(stat) {
+        fprintf(stderr,"*** fail: %s\n",nc_strerror(stat));
+        exit(1);
+    } else
+        exit(0);
 }
 
 static RETURNTYPE WINAPI
@@ -145,11 +103,7 @@ threadprog(void* arg)
 
 fprintf(stderr,"<<< data[%d]=%p\n",data->id,arg); fflush(stderr);
 
-#ifdef USEPTHREADS
-    pthread_barrier_wait(&barrier);
-#else
-    EnterSynchronizationBarrier(&barrier,SYNCHRONIZATION_BARRIER_FLAGS_BLOCK_ONLY);
-#endif
+    if((stat=NC_barrier_wait(&barrier))) goto done;
 
     fprintf(stderr,"starting thread: %d\n",data->id); fflush(stderr);
 
@@ -162,11 +116,5 @@ fprintf(stderr,"<<< data[%d]=%p\n",data->id,arg); fflush(stderr);
 done:
     if(stat) {fprintf(stderr,"***Fail: thread=%d err=%d %s\n",data->id,stat,nc_strerror(stat)); fflush(stderr);}
     printf("stopping thread: %d\n",data->id); fflush(stdout);
-#ifdef USEPTHREADS
-    pthread_exit(NULL);
     return NULL;
-#else
-    ExitThread(0);
-    return 0;
-#endif
 }
