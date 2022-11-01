@@ -86,7 +86,7 @@ typedef struct NCthreadset {
     pthread_t* threadset;
 #else
 #ifdef BEGINTHREADEX
-    unintptr_t* threadset;
+    uintptr_t* threadset;
 #else
     HANDLE* threads;
 #endif
