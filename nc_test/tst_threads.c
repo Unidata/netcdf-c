@@ -56,47 +56,50 @@ usage(void)
    exit(1);
 }
 
+static Options options;
+
 /* Ensure this stays around */
-static ThreadData data[NTHREADS];
+static ThreadData* data = NULL;
 
 int
 main(int argc, char **argv)
 {
     int i, c, stat = NC_NOERR;
-    Options options;
     NC_threadset_t* threads = NULL;
     
     memset(&options,0,sizeof(Options));
     while ((c = getopt(argc, argv, "h34C:T:F:")) != EOF) {
 	switch(c) {
 	case 'h': usage(); break;
-	case '3': mode = MODE3; break;
-	case '4': mode = MODE4; break;
+	case '3': options.mode = MODE3; break;
+	case '4': options.mode = MODE4; break;
 	case 'C': sscanf(optarg,"%d",&options.ncycles); break;
 	case 'T': sscanf(optarg,"%d",&options.nthreads); break;
 	case 'F': options.format = optarg; break;
 	case '?':
 	   fprintf(stderr,"unknown option\n");
-	   goto fail;
+	   goto done;
 	}
     }
     if(options.format == NULL || strlen(options.format)==0) usage();
     if(options.mode == 0) usage();
+    if(options.ncycles <= 0) options.ncycles = 1;
+    
     switch (options.mode) {
-    case MODE3: options.ncflag = NC_CLOBBER; break;
-    case MODE4: options.ncflag = NC_CLOBBER|NC_NETCDF4; break;
+    case MODE3: options.ncflags = NC_CLOBBER; break;
+    case MODE4: options.ncflags = NC_CLOBBER|NC_NETCDF4; break;
     default: usage(); break;
     }
     
-    memset(data,0,sizeof(ThreadData));
+    data = (ThreadData*)calloc(options.nthreads,sizeof(ThreadData));
 
-    if((stat=NC_threadset_create(NTHREADS,&threads))) goto done;
-    if((stat = NC_barrier_create(NTHREADS,&barrier))) goto done;
+    if((stat=NC_threadset_create(options.nthreads,&threads))) goto done;
+    if((stat = NC_barrier_create(options.nthreads,&barrier))) goto done;
 
-    for(i=0; i<NTHREADS; i++) {
+    for(i=0; i<options.nthreads; i++) {
 	data[i].id = i;
-	data[i].format = format;
-	data[i].mode = mode;
+	data[i].format = options.format;
+	data[i].mode = options.mode;
 	if((stat = NC_thread_create(threadprog,&data[i],threads,i))) goto done;
     }
 
@@ -126,7 +129,7 @@ fprintf(stderr,"<<< data[%d]=%p\n",data->id,arg); fflush(stderr);
     fprintf(stderr,"starting thread: %d\n",data->id); fflush(stderr);
 
     snprintf(filename,sizeof(filename),data->format,data->id);
-    for(i=0;i<NCYCLES;i++) {
+    for(i=0;i<options.ncycles;i++) {
         if((stat = nc_create(filename,data->mode,&ncid))) goto done;
 	if((stat = nc_close(ncid))) goto done;
     }
