@@ -21,6 +21,9 @@
 #define MODE3 3
 #define MODE4 4
 
+#define DFALTCYCLES 1
+#define DFALTTHREADS 0
+
 typedef struct ThreadData {
     int id;
     const char* format;
@@ -67,7 +70,11 @@ main(int argc, char **argv)
     int i, c, stat = NC_NOERR;
     NC_threadset_t* threads = NULL;
     
+    /* Initialize options */
     memset(&options,0,sizeof(Options));
+    options.ncycles = DFALTCYCLES;
+    options.nthreads = DFALTTHREADS;
+
     while ((c = getopt(argc, argv, "h34C:T:F:")) != EOF) {
 	switch(c) {
 	case 'h': usage(); break;
@@ -83,7 +90,8 @@ main(int argc, char **argv)
     }
     if(options.format == NULL || strlen(options.format)==0) usage();
     if(options.mode == 0) usage();
-    if(options.ncycles <= 0) options.ncycles = 1;
+    if(options.ncycles <= 0) options.ncycles = DFALTCYCLES;
+    if(options.nthreads <= 0) options.ncycles = DFALTTHREADS;
     
     switch (options.mode) {
     case MODE3: options.ncflags = NC_CLOBBER; break;
