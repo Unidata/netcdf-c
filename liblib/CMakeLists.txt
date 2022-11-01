@@ -177,6 +177,10 @@ IF(ENABLE_SHARED_LIBRARY_VERSION)
     )
 ENDIF(ENABLE_SHARED_LIBRARY_VERSION)
 
+IF(HAVE_PTHREAD)
+SET_PROPERTY(TARGET netcdf PROPERTY C_STANDARD C11)
+ENDIF()
+
 ###
 # The INCLUDES directive was introduced in 2.8.12.
 # However, 2.8.11 is still the default on some

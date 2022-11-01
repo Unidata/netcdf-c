@@ -28,7 +28,7 @@
 #include "netcdf_par.h"
 #endif
 #ifdef ENABLE_THREADSAFE
-#include "ncmutex.h"
+#include "ncthreaded.h"
 #endif
 #include "netcdf_dispatch.h"
 

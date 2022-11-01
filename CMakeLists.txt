@@ -1204,7 +1204,7 @@ IF(ENABLE_PLUGIN_INSTALL)
         IF(ISMSVC OR ISMINGW)
 	  SET(PLUGIN_INSTALL_DIR "$ENV{ALLUSERSPROFILE}\\hdf5\\lib\\plugin")
 	ELSE()
-	  SET(PLUGIN_PLUGIN_DIR "/usr/local/hdf5/lib/plugin")
+	  SET(PLUGIN_INSTALL_DIR "/usr/local/hdf5/lib/plugin")
 	ENDIF()
       ENDIF()
         MESSAGE("Defaulting to -DPLUGIN_INSTALL_DIR=${PLUGIN_INSTALL_DIR}")
@@ -1261,27 +1261,28 @@ IF(ENABLE_EXTRA_TESTS)
   SET(EXTRA_TESTS ON)
 ENDIF()
 
-# Option to use bundled XGetopt in place of getopt(). This is mostly useful
-# for MSVC builds. If not building utilities or some tests,
+# Check if getopt is available else use bundled XGetopt.
+# This is mostly useful for MSVC builds. If not building utilities or some tests,
 # getopt() isn't required at all.
-IF(MSVC)
-  OPTION(ENABLE_XGETOPT "Enable bundled XGetOpt instead of external getopt()." ON)
-  IF(ENABLE_XGETOPT)
-    SET(USE_X_GETOPT ON CACHE BOOL "")
-    # Copy XGetopt.c to everywhere it is needed. Avoids
-    # inconsistent code
-    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/ncgen3/)
-    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/ncgen/)
-    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/ncdump/)
-    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
-    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/ncdap_test/)
-  ENDIF()
-ENDIF()
+CHECK_INCLUDE_FILE("getopt.h"  HAVE_GETOPT_H)
+#IF(MSVC)
+#  OPTION(ENABLE_XGETOPT "Enable bundled XGetOpt instead of external getopt()." ON)
+#  IF(ENABLE_XGETOPT)
+#    SET(USE_X_GETOPT ON CACHE BOOL "")
+#    # Copy XGetopt.c to everywhere it is needed. Avoids
+#    # inconsistent code
+#    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
+#         DESTINATION ${netCDF_BINARY_DIR}/ncgen3/)
+#    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
+#         DESTINATION ${netCDF_BINARY_DIR}/ncgen/)
+#    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
+#         DESTINATION ${netCDF_BINARY_DIR}/ncdump/)
+#    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
+#         DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
+#    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
+#         DESTINATION ${netCDF_BINARY_DIR}/ncdap_test/)
+#  ENDIF()
+#ENDIF()
 
 SET(MATH "")
 IF(NOT WIN32)
@@ -1773,7 +1774,6 @@ ENDIF()
 CHECK_INCLUDE_FILE("alloca.h"  HAVE_ALLOCA_H)
 CHECK_INCLUDE_FILE("malloc.h"    HAVE_MALLOC_H)
 CHECK_INCLUDE_FILE("fcntl.h"   HAVE_FCNTL_H)
-CHECK_INCLUDE_FILE("getopt.h"  HAVE_GETOPT_H)
 CHECK_INCLUDE_FILE("locale.h"  HAVE_LOCALE_H)
 CHECK_INCLUDE_FILE("stdint.h"  HAVE_STDINT_H)
 CHECK_INCLUDE_FILE("stdio.h"   HAVE_STDIO_H)
@@ -2563,6 +2563,8 @@ is_enabled(ENABLE_FILTER_TESTING DO_FILTER_TESTS)
 is_enabled(HAVE_SZ HAS_SZIP)
 is_enabled(HAVE_SZ HAS_SZLIB_WRITE)
 is_enabled(HAVE_ZSTD HAS_ZSTD)
+is_enabled(HAVE_BLOSC HAS_BLOSC)
+is_enabled(HAVE_BZ2 HAS_BZ2)
 is_enabled(ENABLE_THREADSAFE IS_THREADSAFE)
 
 # Generate file from template.

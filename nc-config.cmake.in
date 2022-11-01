@@ -8,6 +8,7 @@ prefix="@CMAKE_INSTALL_PREFIX@"
 exec_prefix="@CMAKE_INSTALL_PREFIX@"
 libdir="@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@"
 includedir="@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_INCLUDEDIR@"
+plugindir="@PLUGIN_INSTALL_DIR@"
 
 cc="@CMAKE_C_COMPILER@"
 cflags="-I@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_INCLUDEDIR@"
@@ -108,6 +109,34 @@ else
     has_nczarr="yes"
 fi
 
+has_benchmarks="@HAS_BENCHMARKS@"
+if [ -z "$has_benchmarks" -o "$has_benchmarks" = "OFF" -o "$has_benchmarks" = "FALSE" ]; then
+    has_benchmarks="no"
+else
+    has_benchmarks="yes"
+fi
+
+has_multifilters="@HAS_MULTIFILTERS@"
+if [ -z "$has_multifilters" -o "$has_multifilters" = "OFF" -o "$has_multifilters" = "FALSE" ]; then
+    has_multifilters="no"
+else
+    has_multifilters="yes"
+fi
+
+has_zstd="@HAS_ZSTD"
+if [ -z "$has_zstd" -o "$has_zstd" = "OFF" -o "$has_zstd" = "FALSE" ]; then
+    has_zstd="no"
+else
+    has_zstd="yes"
+fi
+
+has_quantize="@HAS_QUANTIZE@"
+if [ -z "$has_quantize" -o "$has_quantize" = "OFF" -o "$has_quantize" = "FALSE" ]; then
+    has_quantize="no"
+else
+    has_quantize="yes"
+fi
+
 version="@PACKAGE@ @VERSION@"
 
 
@@ -151,32 +180,39 @@ Usage: nc-config [OPTION]
 
 Available values for OPTION include:
 
-  --help          display this help message and exit
-  --all           display all options
-  --cc            C compiler
-  --cflags        pre-processor and compiler flags
-  --has-c++       whether C++ API is installed
-  --has-c++4      whether netCDF-4 C++ API is installed
-  --has-fortran   whether Fortran API is installed
-  --has-dap2      whether OPeNDAP (DAP2) is enabled in this build
-  --has-dap4      whether DAP4 is enabled in this build
-  --has-dap       same as --has-dap2 (Deprecated)
-  --has-nc2       whether NetCDF-2 API is enabled
-  --has-nc4       whether NetCDF-4/HDF-5 is enabled in this build
-  --has-hdf5      whether HDF5 is used in build (always the same as --has-nc4)
-  --has-hdf4      whether HDF4 was used in build
-  --has-logging   whether logging is enabled with --enable-logging.
-  --has-pnetcdf   whether PnetCDF was used in build
-  --has-szlib     whether szlib is included in build
-  --has-cdf5      whether cdf5 support is included in build
-  --has-parallel4 whether has parallel IO support via HDF5
-  --has-parallel  whether has parallel IO support via HDF5 or PnetCDF
-  --has-nczarr    whether nczarr enabled
+  --help             display this help message and exit
+  --all              display all options
+  --cc               C compiler
+  --cflags           pre-processor and compiler flags
+  --has-c++          whether C++ API is installed
+  --has-c++4         whether netCDF-4 C++ API is installed
+  --has-fortran      whether Fortran API is installed
+  --has-dap2         whether OPeNDAP (DAP2) is enabled in this build
+  --has-dap4         whether DAP4 is enabled in this build
+  --has-dap          same as --has-dap2 (Deprecated)
+  --has-nc2          whether NetCDF-2 API is enabled
+  --has-nc4          whether NetCDF-4/HDF-5 is enabled in this build
+  --has-hdf5         whether HDF5 is used in build (always the same as --has-nc4)
+  --has-hdf4         whether HDF4 was used in build
+  --has-logging      whether logging is enabled with --enable-logging.
+  --has-pnetcdf      whether PnetCDF was used in build
+  --has-szlib        whether szlib is included in build
+  --has-cdf5         whether cdf5 support is included in build
+  --has-parallel4    whether has parallel IO support via HDF5
+  --has-parallel     whether has parallel IO support via HDF5 or PnetCDF
+  --has-nczarr       whether nczarr enabled
+  --has-zstd         whether zstandard compression enabled
+  --has-multifilters whether multifilter support is enabled
+  --has-quanitze     whether quantize support is enabled
+  --has-stdfilters   lists the standard filters enabled
+  --has-benchmarks   whether benchmarks enabled
+
   --libs          library linking information for netcdf
   --static        library linking information for statically-compiled netcdf
   --prefix        Install prefix
   --includedir    Include directory
   --libdir        Library directory
+  --plugindir     Plugin directory
   --version       Library version
 
 EOF
@@ -230,7 +266,6 @@ if [ -f "$ncxx4conf" ]; then
         echo "  --cxx4libs      -> $cxx4libs"
 fi
         echo
-
         echo "  --has-fortran   -> $has_fortran"
 if [ -f "$nfconf" ]; then
         echo "  --fc            -> $fc"
@@ -240,24 +275,31 @@ if [ -f "$nfconf" ]; then
         echo "  --has-f03       -> $has_f03"
         echo
 fi
-        echo "  --has-dap       -> $has_dap2"
-        echo "  --has-dap2      -> $has_dap2"
-        echo "  --has-dap4      -> $has_dap4"
-        echo "  --has-nc2       -> $has_nc2"
-        echo "  --has-nc4       -> $has_nc4"
-        echo "  --has-hdf5      -> $has_hdf5"
-        echo "  --has-hdf4      -> $has_hdf4"
-        echo "  --has-logging   -> $has_logging"
-        echo "  --has-pnetcdf   -> $has_pnetcdf"
-        echo "  --has-szlib     -> $has_szlib"
-        echo "  --has-cdf5      -> $has_cdf5"
-        echo "  --has-parallel4 -> $has_parallel4"
-        echo "  --has-parallel  -> $has_parallel"
-        echo "  --has-nczarr    -> $has_nczarr"
+        echo 
+        echo "  --has-dap          -> $has_dap2"
+        echo "  --has-dap2         -> $has_dap2"
+        echo "  --has-dap4         -> $has_dap4"
+        echo "  --has-nc2          -> $has_nc2"
+        echo "  --has-nc4          -> $has_nc4"
+        echo "  --has-hdf5         -> $has_hdf5"
+        echo "  --has-hdf4         -> $has_hdf4"
+        echo "  --has-logging      -> $has_logging"
+        echo "  --has-pnetcdf      -> $has_pnetcdf"
+        echo "  --has-szlib        -> $has_szlib"
+        echo "  --has-cdf5         -> $has_cdf5"
+        echo "  --has-parallel4    -> $has_parallel4"
+        echo "  --has-parallel     -> $has_parallel"
+        echo "  --has-nczarr       -> $has_nczarr"
+        echo "  --has-zstd         -> $has_zstd"
+        echo "  --has-benchmarks   -> $has_benchmarks"
+        echo "  --has-multifilters -> $has_multifilters"
+        echo "  --has-stdfilters   -> @STD_FILTERS@"
+        echo "  --has-quantize     -> $has_quantize"
         echo
         echo "  --prefix        -> $prefix"
         echo "  --includedir    -> $includedir"
         echo "  --libdir        -> $libdir"
+        echo "  --plugindir     -> $plugindir"
         echo "  --version       -> $version"
         echo
 }
@@ -301,6 +343,10 @@ while test $# -gt 0; do
 
     --cflags)
         echo $cflags
+        ;;
+
+    --plugindir)
+        echo $plugindir
         ;;
 
     --has-dap)
@@ -357,6 +403,26 @@ while test $# -gt 0; do
 
     --has-nczarr)
         echo $has_nczarr
+        ;;
+
+    --has-zstd)
+        echo $has_zstd
+        ;;
+
+    --has-benchmarks)
+        echo $has_benchmarks
+        ;;
+
+    --has-multifilters)
+        echo $has_multifilters
+        ;;
+
+    --has-stdfilters)
+        echo @STD_FILTERS@
+        ;;
+
+    --has-quantize)
+        echo $has_quantize
         ;;
 
     --libs)
