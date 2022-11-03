@@ -144,7 +144,6 @@ fprintf(stderr,"<<< data[%d]=%p\n",data->id,arg); fflush(stderr);
         if((stat = nc_create(filename,data->mode,&ncid))) goto done;
 	if((stat = nc_close(ncid))) goto done;
     }
-
 done:
     if(stat) {fprintf(stderr,"***Fail: thread=%d err=%d %s\n",data->id,stat,nc_strerror(stat)); fflush(stderr);}
     printf("stopping thread: %d\n",data->id); fflush(stdout);

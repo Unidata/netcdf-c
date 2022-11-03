@@ -72,6 +72,8 @@ call other API call.
 #define RETURNTYPE DWORD
 #endif
 
+#ifdef ENABLE_THREADSAFE
+
 /* Types */
 
 #ifdef USEPTHREADS
@@ -287,9 +289,6 @@ void NC_unlock(void)
 
 /**************************************************/
 /* Provide Barrier and Thread support primarily for testing. */
-
-#ifdef ENABLE_THREADSAFE
-
 /**************************************************/
 /* Struct reclaim functions */
 
@@ -367,13 +366,7 @@ NC_threadset_join(NC_threadset_t* threadset)
         if(pthread_join(ncts->threadset[i],NULL) < 0)
             {stat = errno; goto done;}
 #else
-#ifdef BEGINTHREADEX
-        if(!WaitForSingleObject(ncts->threadset[i], INFINITE))
-            {stat = NC_EBADID; goto done;}
-#else
-        if(!WaitForSingleObject(ncts->threadset[i], INFINITE))
-            {stat = NC_EBADID; goto done;}
-#endif
+        WaitForSingleObject(ncts->threadset[i], INFINITE);
 #endif
     }
 done:
@@ -439,12 +432,8 @@ NC_barrier_create(unsigned count, NC_barrier_t** barrierp)
         if(pthread_barrier_init(&ncb->barrier,NULL,count) < 0)
             {stat = errno; goto done;}
 #else
-        BOOL b = InitializeSynchronizationBarrier(&(ncb->barrier), (LONG)count, (LONG)-1);
-        if (!b)
-        {
-            DWORD err = GetLastError();
- stat = NC_EBADID; goto done;
-        }
+        if(!InitializeSynchronizationBarrier(&(ncb->barrier), (LONG)count, (LONG)-1))
+	    {stat = NC_EPARINIT; goto done;}
 #endif
     }
     *barrierp = (NC_barrier_t*)ncb;
@@ -466,7 +455,7 @@ NC_barrier_destroy(NC_barrier_t* barrier)
             {stat = errno; goto done;}
 #else
         if(!DeleteSynchronizationBarrier(&(ncb->barrier)))
-            {stat = NC_EBADID; goto done;}
+            {stat = NC_EINTERNAL; goto done;}
 #endif
     }
 done:
@@ -491,8 +480,6 @@ NC_barrier_wait(NC_barrier_t* barrier)
 done:
     return stat;
 }
-
-#endif /*ENABLE_THREADSAFE*/
 
 /**************************************************/
 #ifdef __APPLE__
@@ -555,3 +542,5 @@ done:
 
 #endif /*USEPTHREADS*/
 #endif /*__APPLE__*/
+
+#endif /*ENABLE_THREADSAFE*/

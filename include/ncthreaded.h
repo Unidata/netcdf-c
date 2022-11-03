@@ -28,5 +28,6 @@ extern void NC_unlock(void);
 #else
 #define NCLOCK
 #define NCUNLOCK
+#endif
 
 #endif /*_NCTHREADED_H_*/
