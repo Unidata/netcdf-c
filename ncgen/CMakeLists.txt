@@ -4,10 +4,10 @@
 # University Corporation for Atmospheric Research/Unidata.
 
 # See netcdf-c/COPYRIGHT file for more info.
-IF(BUILD_SHARED_LIBS AND WIN32)
-  remove_definitions(-DDLL_EXPORT)
-  remove_definitions(-DDLL_NETCDF)
-ENDIF()
+#IF(BUILD_SHARED_LIBS AND WIN32)
+#  remove_definitions(-DDLL_EXPORT)
+#  remove_definitions(-DDLL_NETCDF)
+#ENDIF()
 
 SET(ncgen_FILES bindata.c bytebuffer.c cdata.c cvt.c data.c
 debug.c dump.c escapes.c f77data.c genbin.c
@@ -20,10 +20,6 @@ ncgen.h ncgeny.h util.h)
 
 # Obsolete
 SET(OBSOLETE odom.c odom.h jdatastd.c jdatajni.c genjni.c cdfdata.c cmldata.c)
-
-IF(USE_X_GETOPT)
-  SET(ncgen_FILES ${ncgen_FILES} XGetopt.c)
-ENDIF()
 
 # don't add the automatically determined parts of the RPATH
 # which point to directories outside the build tree to the install RPATH

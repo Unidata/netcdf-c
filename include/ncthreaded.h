@@ -30,21 +30,4 @@ extern void NC_unlock(void);
 #define NCUNLOCK
 #endif
 
-/* Define a single check for PTHREADS vs WIN32 */
-#ifdef _WIN32
-/* Win32 synchronization has priority */
-#undef USEPTHREADS
-#else
-#ifdef HAVE_PTHREADS
-#define USEPTHREADS
-#endif
-#endif
-
-#ifdef USEPTHREADS
-#include <pthread.h>
-#else /*_WIN32*/
-#include <windows.h>
-#include <synchapi.h>
-#endif
-
 #endif /*_NCTHREADED_H_*/

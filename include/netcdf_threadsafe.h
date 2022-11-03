@@ -24,11 +24,7 @@
 /* Types */
 typedef void NC_barrier_t; /* opaque */
 typedef void NC_threadset_t; /* opaque */
-#ifdef _WIN32
-typedef unsigned (__stdcall *NC_start_routine)(void*arg);
-#else
-typedef void* (*NC_start_routine)(void*arg);
-#endif
+typedef uintptr_t (*NC_threadprog)(void* arg);
 
 #if defined(__cplusplus)
 extern "C" {
@@ -40,7 +36,7 @@ EXTERNL int NC_threadset_destroy(NC_threadset_t* threadset);
 EXTERNL int NC_threadset_join(NC_threadset_t* threadset);
 
 /* Create a thread */
-EXTERNL int NC_thread_create(NC_start_routine fcn, void* arg, NC_threadset_t* threadset, unsigned threadpos);
+EXTERNL int NC_thread_create(NC_threadprog fcn, void* arg, NC_threadset_t* threadset, unsigned threadpos);
 EXTERNL int NC_thread_exit(void);
 
 /* Create/destroy a barrier */

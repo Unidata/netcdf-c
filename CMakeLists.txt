@@ -1138,7 +1138,6 @@ IF(${filter}_FOUND)
   SET(ENABLE_${upfilter} TRUE)
   SET(HAVE_${upfilter} ON)
   SET(STD_FILTERS "${STD_FILTERS} ${downfilter}")
-  MESSAGE(">>> Standard Filter: ${downfilter}")
 ELSE()
   SET(ENABLE_${upfilter} FALSE)
   SET(HAVE_${upfilter} OFF)
@@ -1264,25 +1263,12 @@ ENDIF()
 # Check if getopt is available else use bundled XGetopt.
 # This is mostly useful for MSVC builds. If not building utilities or some tests,
 # getopt() isn't required at all.
-CHECK_INCLUDE_FILE("getopt.h"  HAVE_GETOPT_H)
-#IF(MSVC)
-#  OPTION(ENABLE_XGETOPT "Enable bundled XGetOpt instead of external getopt()." ON)
-#  IF(ENABLE_XGETOPT)
-#    SET(USE_X_GETOPT ON CACHE BOOL "")
-#    # Copy XGetopt.c to everywhere it is needed. Avoids
-#    # inconsistent code
-#    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-#         DESTINATION ${netCDF_BINARY_DIR}/ncgen3/)
-#    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-#         DESTINATION ${netCDF_BINARY_DIR}/ncgen/)
-#    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-#         DESTINATION ${netCDF_BINARY_DIR}/ncdump/)
-#    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-#         DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
-#    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-#         DESTINATION ${netCDF_BINARY_DIR}/ncdap_test/)
-#  ENDIF()
-#ENDIF()
+CHECK_INCLUDE_FILE("getopt.h"  TEST_GETOPT_H)
+IF("${TEST_GETOPT_H}" STREQUAL "")
+  SET(HAVE_GETOPT_H OFF CACHE BOOL "") 
+ELSE()
+  SET(HAVE_GETOPT_H ON CACHE BOOL "") 
+ENDIF()
 
 SET(MATH "")
 IF(NOT WIN32)

@@ -11,10 +11,12 @@
 
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
-#else
+#endif
+#if defined(_WIN32) && !defined(__MINGW32__)
 #include "XGetopt.h"
 #endif
 
+#define DLL_NETCDF
 #include "netcdf.h"
 #include "netcdf_threadsafe.h"
 
@@ -44,7 +46,6 @@ typedef struct Options {
     int ncycles;
     const char* format;
 } Options;
-
 
 static RETURNTYPE threadprog(void* data);
 
@@ -145,5 +146,5 @@ fprintf(stderr,"<<< data[%d]=%p\n",data->id,arg); fflush(stderr);
 done:
     if(stat) {fprintf(stderr,"***Fail: thread=%d err=%d %s\n",data->id,stat,nc_strerror(stat)); fflush(stderr);}
     printf("stopping thread: %d\n",data->id); fflush(stdout);
-    return NULL;
+    return (RETURNTYPE)0;
 }

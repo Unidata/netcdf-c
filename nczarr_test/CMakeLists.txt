@@ -42,14 +42,8 @@ FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSION
 IF(ENABLE_TESTS)
 
   SET(COMMONSRC ut_util.c ut_test.c)
-  IF(USE_X_GETOPT)
-    SET(COMMONSRC ${COMMONSRC} XGetopt.c)
-  ENDIF()
   
   SET(TSTCOMMONSRC tst_utils.c)
-  IF(USE_X_GETOPT)
-    SET(TSTCOMMONSRC ${TSTCOMMONSRC} XGetopt.c)
-  ENDIF()
 
   # Base tests
   # The tests are set up as a combination of shell scripts and executables that

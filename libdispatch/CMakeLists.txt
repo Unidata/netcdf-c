@@ -31,9 +31,9 @@ IF(ENABLE_THREADSAFE)
   SET(libdispatch_SOURCES ${libdispatch_SOURCES} dthreaded.c)
 ENDIF(ENABLE_THREADSAFE)
 
-IF(HAVE_GETOP_H)
+IF(NOT HAVE_GETOPT_H)
   SET(libdispatch_SOURCES ${libdispatch_SOURCES} XGetopt.c)
-ENDIF(HAVE_GETOPT_H)
+ENDIF(NOT HAVE_GETOPT_H)
 
 add_library(dispatch OBJECT ${libdispatch_SOURCES})
 IF(MPI_C_INCLUDE_PATH)
