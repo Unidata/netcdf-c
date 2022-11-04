@@ -183,7 +183,7 @@ jobs:
 
       - name: distcheck
         shell: bash -l {0}
-        run: DISTCHECK_CONFIGURE_FLAGS=--disable-dap-remote-tests CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make -j distcheck
+        run: DISTCHECK_CONFIGURE_FLAGS="--disable-dap-remote-tests --enable-hdf4 --enable-doxygen  --enable-external-server-tests" CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make -j distcheck
         if: ${{ success() }}
 
   ##
