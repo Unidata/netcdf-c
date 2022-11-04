@@ -7,7 +7,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 # This shell script tests support for the NC_STRING type
 
-set -e
+set -e -x
 
 zarrscalar() {
     rm -f $2
