@@ -254,14 +254,8 @@ jobs:
 
       - name: Build Tests
         shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} CC=mpicc make check TESTS="" -j
+        run: DISTCHECK_CONFIGURE_FLAGS="--enable-hdf4 --disable-dap-remote-tests --enable-parallel-tests --enable-pnetcdf" CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} CC=mpicc make -j distcheck
         if: ${{ success() }}
-
-      - name: Run Tests
-        shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} CC=mpicc make check -j
-        if: ${{ success() }}
-
 
   #####
   # One-Off CMake-based tests.
