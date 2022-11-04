@@ -181,14 +181,9 @@ jobs:
         run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make -j
         if: ${{ success() }}
 
-      - name: Build Tests
+      - name: distcheck
         shell: bash -l {0}
         run: DISTCHECK_CONFIGURE_FLAGS=--disable-dap-remote-tests CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make -j distcheck
-        if: ${{ success() }}
-
-      - name: Run Tests
-        shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check -j
         if: ${{ success() }}
 
   ##
