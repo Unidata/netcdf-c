@@ -16,9 +16,11 @@
 #include "XGetopt.h"
 #endif
 
-#define DLL_NETCDF
+#ifdef HAVE_LIBPTHREAD
+#include <pthread.h>
+#endif
+
 #include "netcdf.h"
-#include "netcdf_threadsafe.h"
 
 #define MODE3 3
 #define MODE4 4
@@ -46,7 +48,7 @@ typedef struct Options {
     const char* format;
 } Options;
 
-static NC_barrier_t* barrier = NULL;
+static pthread_barrier_t barrier;
 
 static Options options;
 
@@ -62,7 +64,7 @@ int
 main(int argc, char **argv)
 {
     int i, c, stat = NC_NOERR;
-    NC_threadset* threadset = NULL;
+    NC_Threadset* threadset = NULL;
     
     /* Initialize options */
     memset(&options,0,sizeof(Options));
@@ -102,15 +104,15 @@ main(int argc, char **argv)
     pthread_barrier_init(&barrier, NULL, options.nthreads);
 
     for(i=0; i<options.nthreads; i++) {
-	data[i]->id = i;
-	data[i]->format = options.format;
-	data[i]->mode = options.mode;
-	data[i]->barrier = barrier;
-        pthread_create(&threadset->threads[i], NULL, threadprog, data[i]);
+	data[i].id = i;
+	data[i].format = options.format;
+	data[i].mode = options.mode;
+	data[i].barrier = &barrier;
+        pthread_create(&threadset->threadset[i], NULL, threadprog, (void*)&data[i]);
     }
 
     NC_threadset_join(threadset);
-    if((stat=NC_barrier_destroy(barrier))) goto done;
+    pthread_barrier_destroy(&barrier);
 
 done:
     if(stat) {
@@ -120,7 +122,7 @@ done:
         exit(0);
 }
 
-static RETURNTYPE WINAPI
+static void*
 threadprog(void* arg)
 {
     int i, stat = NC_NOERR;
@@ -151,7 +153,7 @@ NC_threadset_join(NC_Threadset* threadset)
 {
     unsigned i;
     for(i=0; i<threadset->nthreads; i++) {
-        pthread_join(threadset->threads[i], NULL);
+        pthread_join(threadset->threadset[i], NULL);
     }
 }
 
