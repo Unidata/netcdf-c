@@ -2146,6 +2146,11 @@ AC_CONFIG_FILES([Makefile
                  ncdap_test/expected3/Makefile
                  ncdap_test/expectremote3/Makefile
                  dap4_test/Makefile
+                 dap4_test/baseline/Makefile
+                 dap4_test/baselinethredds/Makefile
+                 dap4_test/baselineraw/Makefile
+                 dap4_test/baselineremote/Makefile
+                 dap4_test/baselinehyrax/Makefile
                  plugins/Makefile
 		 nczarr_test/Makefile
                  ])
