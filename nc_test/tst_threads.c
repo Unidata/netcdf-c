@@ -26,19 +26,17 @@
 #define DFALTCYCLES 1
 #define DFALTTHREADS 0
 
-typedef struct ThreadData {
+typedef struct NC_ThreadData {
     int id;
     const char* format;
     int mode;
-    NC_barrier_t* barrier;
-} ThreadData;
+    pthread_barrier_t* barrier;
+} NC_ThreadData;
 
-#ifdef _WIN32
-#define RETURNTYPE DWORD
-#else
-#define RETURNTYPE void*
-#define WINAPI
-#endif
+typedef struct NC_Threadset {
+    unsigned nthreads;
+    pthread_t* threadset;
+} NC_Threadset;
 
 typedef struct Options {
     int mode;
@@ -48,29 +46,23 @@ typedef struct Options {
     const char* format;
 } Options;
 
-static RETURNTYPE threadprog(void* data);
-
-/* forward */
-
 static NC_barrier_t* barrier = NULL;
-
-static void
-usage(void)
-{
-   fprintf(stderr,"usage: tst_threads 3|4 \"filenameformatstring\"");
-   exit(1);
-}
 
 static Options options;
 
 /* Ensure this stays around */
-static ThreadData* data = NULL;
+static NC_ThreadData* data = NULL;
+
+/* forward */
+static void* threadprog(void* data);
+static void NC_threadset_join(NC_Threadset* threadset);
+static void usage(void);
 
 int
 main(int argc, char **argv)
 {
     int i, c, stat = NC_NOERR;
-    NC_threadset_t* threads = NULL;
+    NC_threadset* threadset = NULL;
     
     /* Initialize options */
     memset(&options,0,sizeof(Options));
@@ -100,21 +92,24 @@ main(int argc, char **argv)
     case MODE4: options.ncflags = NC_CLOBBER|NC_NETCDF4; break;
     default: usage(); break;
     }
-    
-    data = (ThreadData*)calloc(options.nthreads,sizeof(ThreadData));
 
-    if((stat=NC_threadset_create(options.nthreads,&threads))) goto done;
-    if((stat = NC_barrier_create(options.nthreads,&barrier))) goto done;
+    data = (NC_ThreadData*)calloc(options.nthreads,sizeof(NC_ThreadData));
+
+    threadset = (NC_Threadset*)calloc(1,sizeof(NC_Threadset));
+    threadset->nthreads = options.nthreads;
+    threadset->threadset = (pthread_t*)calloc(threadset->nthreads,sizeof(pthread_t));
+
+    pthread_barrier_init(&barrier, NULL, options.nthreads);
 
     for(i=0; i<options.nthreads; i++) {
-	data[i].id = i;
-	data[i].format = options.format;
-	data[i].mode = options.mode;
-	data[i].barrier = barrier;
-	if((stat = NC_thread_create(threadprog,&data[i],threads,i))) goto done;
+	data[i]->id = i;
+	data[i]->format = options.format;
+	data[i]->mode = options.mode;
+	data[i]->barrier = barrier;
+        pthread_create(&threadset->threads[i], NULL, threadprog, data[i]);
     }
 
-    if((stat=NC_threadset_join(threads))) goto done;
+    NC_threadset_join(threadset);
     if((stat=NC_barrier_destroy(barrier))) goto done;
 
 done:
@@ -130,12 +125,12 @@ threadprog(void* arg)
 {
     int i, stat = NC_NOERR;
     int ncid = 0;
-    ThreadData* data = (ThreadData*)arg;
+    NC_ThreadData* data = (NC_ThreadData*)arg;
     char filename[1024];
 
 fprintf(stderr,"<<< data[%d]=%p\n",data->id,arg); fflush(stderr);
 
-    if((stat=NC_barrier_wait(data->barrier))) goto done;
+    pthread_barrier_wait(data->barrier);
 
     fprintf(stderr,"starting thread: %d\n",data->id); fflush(stderr);
 
@@ -147,5 +142,22 @@ fprintf(stderr,"<<< data[%d]=%p\n",data->id,arg); fflush(stderr);
 done:
     if(stat) {fprintf(stderr,"***Fail: thread=%d err=%d %s\n",data->id,stat,nc_strerror(stat)); fflush(stderr);}
     printf("stopping thread: %d\n",data->id); fflush(stdout);
-    return (RETURNTYPE)0;
+    pthread_exit(NULL);
+    return NULL;
+}
+
+static void
+NC_threadset_join(NC_Threadset* threadset)
+{
+    unsigned i;
+    for(i=0; i<threadset->nthreads; i++) {
+        pthread_join(threadset->threads[i], NULL);
+    }
+}
+
+static void
+usage(void)
+{
+   fprintf(stderr,"usage: tst_threads 3|4 \"filenameformatstring\"");
+   exit(1);
 }

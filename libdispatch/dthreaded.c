@@ -21,37 +21,18 @@ call other API call.
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #include <stdio.h>
+#include <errno.h>
 #endif
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
 #include <assert.h>
 
-#ifdef USEPTHREADS
+/* We always use some form of pthread, even on Windows. */
 #include <pthread.h>
-#else /*_WIN32*/
-#include <windows.h>
-#include <stddef.h>
-#include <synchapi.h>
-#include <process.h>
-#endif
-
-/* Define a single check for PTHREADS vs WIN32 */
-#ifdef _WIN32
-/* Win32 synchronization has priority */
-#undef USEPTHREADS
-#else
-#ifdef HAVE_PTHREADS
-#define USEPTHREADS
-#endif
-#endif
 
 #include "netcdf.h"
-#include "netcdf_threadsafe.h"
 #include "ncthreaded.h"
-
-/* Unclear if we should CreateThread or _beginthreadex */
-#define BEGINTHREADEX
 
 /* Verbose assert */
 #undef DEBUGASSERT
@@ -65,58 +46,9 @@ call other API call.
 
 #define MAXDEPTH 32
 
-#ifdef USEPTHREADS
-#define RETURNTYPE void*
-#define WINAPI
-#else
-#define RETURNTYPE DWORD
-#endif
-
 #ifdef ENABLE_THREADSAFE
 
-/* Types */
-
-#ifdef USEPTHREADS
-typedef void* (*Threadprog)(void* arg);
-#else
-typedef unsigned (*Threadprog)(void* arg);
-#endif
-
-typedef struct NCmutex {
-#ifdef USEPTHREADS
-    pthread_mutex_t mutex;
-#else
-    CRITICAL_SECTION mutex;
-#endif
-    int refcount; /* # times called by same thread */
-#ifdef DEBUGAPI
-    struct {
-        int depth;
-        const char* stack[MAXDEPTH]; /* match lock/unlock */
-     } fcns;
-#endif
-} NCmutex;
-
-typedef struct NCthreadset {
-    unsigned nthreads;
-#ifdef USEPTHREADS
-    pthread_t* threadset;
-#else
-    HANDLE* threadset;
-#endif
-} NCthreadset;
-
-typedef struct NCbarrier {
-#ifdef USEPTHREADS
-    pthread_barrier_t barrier;
-#else
-    SYNCHRONIZATION_BARRIER barrier;
-#endif
-    unsigned int count;
-} NCbarrier;
-
 #ifdef __APPLE__
-#ifdef USEPTHREADS
 /* Apparently OS/X pthreads does not implement
    pthread_barrier_t. So we have to fake it.
 */
@@ -134,8 +66,18 @@ EXTERNL int pthread_barrier_init(pthread_barrier_t* barrier, const pthread_barri
 EXTERNL int pthread_barrier_destroy(pthread_barrier_t* barrier);
 EXTERNL int pthread_barrier_wait(pthread_barrier_t* barrier);
 
-#endif /*USEPTHREADS*/
 #endif /*__APPLE__*/
+
+typedef struct NCmutex {
+    pthread_mutex_t mutex;
+    int refcount; /* # times called by same thread */
+#ifdef DEBUGAPI
+    struct {
+        int depth;
+        const char* stack[MAXDEPTH]; /* match lock/unlock */
+     } fcns;
+#endif
+} NCmutex;
 
 /**************************************************/
 /* Global data */
@@ -198,7 +140,6 @@ popfcn(void)
 #endif /* DEBUGAPI */
 
 /**************************************************/
-#ifdef USEPTHREADS
 
 static pthread_once_t once_control = PTHREAD_ONCE_INIT;  /* for pthread_once */
 
@@ -218,7 +159,6 @@ globalncmutexinit(void)
 {
     ncmutexinit(&NC_globalmutex);
 }
-#endif /*USEPTHREADS*/
 
 /* Thread module init */
 void
@@ -227,12 +167,8 @@ NC_global_mutex_initialize(void)
     if(global_mutex_initialized) return;
     memset(&NC_globalmutex,0,sizeof(NC_globalmutex));
 
-#ifdef USEPTHREADS
     /* We use pthread_once to guarantee that the mutex is initialized */
     pthread_once(&once_control,globalncmutexinit);
-#else
-    InitializeCriticalSection(&NC_globalmutex.mutex); /* is this itself thread-safe?*/
-#endif
     global_mutex_initialized = 1;
 }    
 
@@ -251,11 +187,7 @@ void NC_lock(void)
 #endif
 {
     NCmutex* mutex = &NC_globalmutex;
-#ifdef USEPTHREADS
     pthread_mutex_lock(&mutex->mutex);
-#else
-    EnterCriticalSection(&mutex->mutex);
-#endif
     mutex->refcount++;
 #ifdef DEBUGAPI
     pushfcn(fcn);
@@ -280,216 +212,14 @@ void NC_unlock(void)
 #endif
     ASSERT(mutex->refcount > 0);
     mutex->refcount--;
-#ifdef USEPTHREADS
     pthread_mutex_unlock(&mutex->mutex);
-#else
-    LeaveCriticalSection(&mutex->mutex);
-#endif
 }
 
-/**************************************************/
-/* Provide Barrier and Thread support primarily for testing. */
-/**************************************************/
-/* Struct reclaim functions */
-
-static void
-freethreadset(NCthreadset* ncts)
-{
-    if(ncts != NULL) {
-        if(ncts->threadset != NULL) free(ncts->threadset);
-        free(ncts);
-    }
-}
-
-static void
-freebarrier(NCbarrier* ncb)
-{
-    if(ncb != NULL) {
-        free(ncb);
-    }
-}
-
-/**************************************************/
-/* Create/Destroy a threadset */
-
-EXTERNL int
-NC_threadset_create(unsigned nthreads, NC_threadset_t** threadsetp)
-{
-    int stat = NC_NOERR;
-    NCthreadset* ncts = NULL;
-    if(threadsetp == NULL) {stat = NC_EINVAL; goto done;}
-    if((ncts = (NCthreadset*)calloc(1,sizeof(NCthreadset)))==NULL)
-        {stat = NC_ENOMEM; goto done;}
-    ncts->nthreads = nthreads;
-    /* nthreads indicates no. of additional threads over and above the calling thread */
-    if(nthreads > 0) {
-#ifdef USEPTHREADS
-        ncts->threadset = (pthread_t*)calloc(nthreads,sizeof(pthread_t));
-#else
-        ncts->threadset = (HANDLE*)calloc(nthreads,sizeof(HANDLE));
-#endif
-        if(ncts->threadset == NULL)
-            {stat = NC_ENOMEM; goto done;}
-    }
-    *threadsetp = (void*)ncts; ncts = NULL;
-done:
-    if(ncts) freethreadset(ncts);
-    return stat;
-}
-
-EXTERNL int
-NC_threadset_destroy(NC_threadset_t* threadset)
-{
-    int i,stat = NC_NOERR;
-    NCthreadset* ncts = (NCthreadset*)threadset;
-    if(ncts == NULL) {stat = NC_EINVAL; goto done;}
-    for(i=0;i<ncts->nthreads;i++) {
-#ifdef USEPTHREADS
-        /* There is no pthread_destroy */
-#else
-        _endthreadex(0);
-#endif
-    }
-done:
-    if(ncts) freethreadset(ncts);
-    return stat;
-}
-
-EXTERNL int
-NC_threadset_join(NC_threadset_t* threadset)
-{
-    int i,stat = NC_NOERR;
-    NCthreadset* ncts = (NCthreadset*)threadset;
-    if(ncts == NULL) {stat = NC_EINVAL; goto done;}
-    for(i=0;i<ncts->nthreads;i++) {
-#ifdef USEPTHREADS
-        if(pthread_join(ncts->threadset[i],NULL) < 0)
-            {stat = errno; goto done;}
-#else
-        WaitForSingleObject(ncts->threadset[i], INFINITE);
-#endif
-    }
-done:
-    return stat;
-}
-
-/**************************************************/
-
-EXTERNL int
-NC_thread_create(NC_threadprog ncthreadprog, void* arg, NC_threadset_t* threadset, unsigned pos)
-{
-    int stat = NC_NOERR;
-    NCthreadset* ncts = (NCthreadset*)threadset;
-    Threadprog threadprog = (Threadprog)ncthreadprog;
-    HANDLE id;
-
-    if(threadset == NULL || threadprog == NULL || pos < 0 || pos >= ncts->nthreads)
-        {stat = NC_EINVAL; goto done;}
-    id = ncts->threadset[pos];
-    if(id != NULL) {stat = NC_EBADID; goto done;}
-#ifdef USEPTHREADS
-    if(pthread_create(&ncts->threadset[pos], NULL, threadprog, arg) < 0)
-        {stat = errno; goto done;}
-#else
-#ifdef BEGINTHREADEX
-    id = (HANDLE)_beginthreadex( 
-            NULL,       // default security attributes
-            0,          // use default stack size  
-            threadprog,	// thread function name
-            arg,        // argument to thread function 
-            0,          // use default creation flags 
-            NULL        // returns the thread identifier 
-        );
-    if(id == NULL) {stat = errno; goto done;}
-#else
-    ncts->threadset[pos] = CreateThread( 
-            NULL,       // default security attributes
-            0,          // use default stack size  
-            threadprog, // thread function name
-            arg,        // argument to thread function 
-            0,          // use default creation flags 
-            NULL        // returns the thread identifier 
-        );
-    if(id == NULL) {stat = NC_EINVAL; goto done;}
-#endif
-    ncts->threadset[pos] = id;
-#endif
-done:
-    return stat;
-}
-
-EXTERNL int
-NC_barrier_create(unsigned count, NC_barrier_t** barrierp)
-{
-    int stat = NC_NOERR;
-    NCbarrier* ncb = NULL;
-    if(barrierp == NULL) {stat = NC_EINVAL; goto done;}
-    if((ncb = (NCbarrier*)calloc(1,sizeof(NCbarrier)))==NULL)
-        {stat = NC_ENOMEM; goto done;}
-    ncb->count = count;
-    if(count > 0) {
-#ifdef USEPTHREADS
-        if(pthread_barrier_init(&ncb->barrier,NULL,count) < 0)
-            {stat = errno; goto done;}
-#else
-        if(!InitializeSynchronizationBarrier(&(ncb->barrier), (LONG)count, (LONG)-1))
-	    {stat = NC_EPARINIT; goto done;}
-#endif
-    }
-    *barrierp = (NC_barrier_t*)ncb;
-    ncb = NULL;
-done:
-    if(ncb) free(ncb);    
-    return stat;
-}
-
-EXTERNL int
-NC_barrier_destroy(NC_barrier_t* barrier)
-{
-    int stat = NC_NOERR;
-    NCbarrier* ncb = (NCbarrier*)barrier;
-    if(ncb == NULL) {stat = NC_EINVAL; goto done;}
-    if(ncb->count > 0) {
-#ifdef USEPTHREADS
-        if(pthread_barrier_destroy(&ncb->barrier) < 0)
-            {stat = errno; goto done;}
-#else
-        if(!DeleteSynchronizationBarrier(&(ncb->barrier)))
-            {stat = NC_EINTERNAL; goto done;}
-#endif
-    }
-done:
-    if(ncb) freebarrier(ncb);
-    return stat;
-}
-
-EXTERNL int
-NC_barrier_wait(NC_barrier_t* barrier)
-{
-    int stat = NC_NOERR;
-    NCbarrier* ncb = (NCbarrier*)barrier;
-    if(ncb == NULL) {stat = NC_EINVAL; goto done;}
-    if(ncb->count > 0) {
-#ifdef USEPTHREADS
-        if(pthread_barrier_wait(&ncb->barrier) < 0)
-            {stat = errno; goto done;}
-#else
-        EnterSynchronizationBarrier(&(ncb->barrier), SYNCHRONIZATION_BARRIER_FLAGS_BLOCK_ONLY);
-#endif
-    }
-done:
-    return stat;
-}
-
-/**************************************************/
 #ifdef __APPLE__
-#ifdef USEPTHREADS
 
 /* Apparently OS/X pthreads does not implement
    pthread_barrier_t. So we have to fake it.
 */
-
-#include <errno.h>
 
 EXTERNL int
 pthread_barrier_init(pthread_barrier_t* barrier, const pthread_barrierattr_t* attr, unsigned int count)
@@ -540,7 +270,6 @@ done:
     return ret;
 }
 
-#endif /*USEPTHREADS*/
 #endif /*__APPLE__*/
 
 #endif /*ENABLE_THREADSAFE*/
