@@ -12,7 +12,7 @@ To date, the netcdf-c library has not supported
 thread-safe use. However, this is one of the most
 requested extensions to the library.
 
-As of this Github Pull Request, support for thread-safe access is now
+As of version 4.x.x support for thread-safe access is now
 provided.  The support is **HIGHLY EXPERIMENTAL** since it has
 been tested to only a very limited extent.
 
@@ -143,11 +143,23 @@ The options are as follows.
 * [Automake] ````--enable-threadsafe````
 * [CMake] ````-DENABLE_THREADSAFE=on````
 
-## Build Issues
+## PThreads
+This implementation is based on the pthread library.
+The situation for various platforms is as follows.
+* For *nix* platforms, pthread support is usually built-in.
+* For *nix* platforms, pthread support is usually built-in.
+
+For Windows, it is necessary to use an external
+implementation of libpthread. 
+
+
 
 There are apparently problems with using certain pthread features
 on different platforms.
 * OS/X: *pthread_barrier_t* is unavailable, so a built-in implementation is added libdispatch/dmutex.c and include/ncmutex.h.
+
+
+## Build Status
 
 The current status of thread-safe operation is as follows.
 <table>

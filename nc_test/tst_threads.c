@@ -16,7 +16,7 @@
 #include "XGetopt.h"
 #endif
 
-#ifdef HAVE_LIBPTHREAD
+#ifdef HAVE_PTHREADS
 #include <pthread.h>
 #endif
 

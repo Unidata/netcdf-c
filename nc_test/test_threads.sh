@@ -9,7 +9,7 @@ NCYCLES=1
 set -e
 
 echo "*** Testing netcdf-3 thread safe execution"
-${execdir}/tst_threads -e3 -F "tmp_threadsafe_3_%d.nc" -T ${NTHREADS} -C ${NCYCLES}
+${execdir}/tst_threads -3 -F "tmp_threadsafe_3_%d.nc" -T ${NTHREADS} -C ${NCYCLES}
 echo "PASS: thread safe netcdf-3"
 rm -f tmp_threadsafe*.nc
 
