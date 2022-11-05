@@ -628,7 +628,8 @@ fi
 AM_CONDITIONAL(ENABLE_QUANTIZE, [test x$enable_quantize = xyes])
 
 # --enable-dap => enable-dap4
-enable_dap4=$enable_dap
+# For now default disable dap4
+enable_dap4=no
 AC_MSG_CHECKING([whether dap use of remotetest server should be enabled])
 AC_ARG_ENABLE([dap-remote-tests],
               [AS_HELP_STRING([--disable-dap-remote-tests],
