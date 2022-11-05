@@ -40,11 +40,6 @@
 
 #undef DEBUG
 
-#ifndef nulldup
- #define nulldup(s) ((s)?strdup(s):NULL)
-#endif
-
-
 extern int NC_initialized; /**< True when dispatch table is initialized. */
 
 /* User-defined formats. */

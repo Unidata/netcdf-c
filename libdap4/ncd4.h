@@ -53,14 +53,6 @@ defined here, including function-like #defines.
 #define D4LEATTR "_DAP4_Little_Endian" 
 
 /**************************************************/
-
-#undef nullfree
-#ifndef nullfree
-#define nullfree(m) ((m)==NULL?NULL:(free(m),NULL))
-#endif
-#define nulldup(s) ((s)==NULL?NULL:strdup(s))
-
-/**************************************************/
 /* DSP API wrappers */
 
 #ifdef FIX

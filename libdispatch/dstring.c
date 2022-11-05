@@ -293,9 +293,12 @@ char*
 strdup(const char* s)
 {
     char* dup;
+    size_t len;
     if(s == NULL) return NULL;
-    dup = malloc(strlen(s)+1);
-    strcpy(dup,s);
+    len = strlen(s);
+    dup = malloc(len+1);
+    memcpy(dup,s,len);
+    dup[len] = '\0';
     return dup;
 }
 #endif

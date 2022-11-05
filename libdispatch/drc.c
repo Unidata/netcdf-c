@@ -25,10 +25,6 @@ See COPYRIGHT for license information.
 #include "nc4internal.h"
 #include "ncdispatch.h"
 
-#ifndef nulldup
- #define nulldup(x) ((x)?strdup(x):(x))
-#endif
-
 #undef NOREAD
 
 #undef DRCDEBUG

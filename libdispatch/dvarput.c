@@ -474,7 +474,7 @@ NCDEFAULT_put_varm(
        * As an optimization, adjust I/O parameters when the fastest
        * dimension has unity stride both externally and internally.
        * In this case, the user could have called a simpler routine
-       * (i.e. ncvar$1()
+       * (i.e. ncvar$1())
        */
       if (mystride[maxidim] == 1
 	  && mymap[maxidim] == 1)

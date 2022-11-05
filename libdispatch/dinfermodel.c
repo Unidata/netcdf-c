@@ -32,10 +32,6 @@
 #endif
 #endif
 
-#ifndef nulldup
- #define nulldup(x) ((x)?strdup(x):(x))
-#endif
-
 #undef DEBUG
 
 /* If Defined, then use only stdio for all magic number io;
