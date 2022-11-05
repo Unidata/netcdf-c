@@ -12,7 +12,7 @@
 #ifndef NETCDF_THREADSAFE_H
 #define NETCDF_THREADSAFE_H 1
 
-#include <pthhead.h>
+#include <pthread.h>
 
 #ifdef __APPLE__
 
