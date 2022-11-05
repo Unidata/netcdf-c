@@ -55,6 +55,7 @@ and if it is zero then the mutex is actually released.
 * This implementation only supports *libpthread*.
 * Filters are implicitly locked because the nc_get/put_varX functions are locked.
 * It is unknown how this interacts with MPI.
+* There are some difficult memory leaks.
 
 # Initialization and Finalization {#threadsafe_init}
 

@@ -129,7 +129,14 @@ unsigned long long int strtoull(const char*, char**, int);
 #endif
 
 #ifndef nullfree
-#define nullfree(s) {if((s)!=NULL) {free(s);} else {}}
+#define nullfree(s) do {if((s)!=NULL) free(s);} while(0)
+#if 0
+static void nullfree(void* s)
+{
+    if(s != NULL)
+        free(s);
+}
+#endif
 #endif
 
 #ifndef HAVE_UCHAR

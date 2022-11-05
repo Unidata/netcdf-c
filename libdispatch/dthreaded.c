@@ -159,6 +159,7 @@ NC_global_mutex_finalize(void)
 {
     if(!global_mutex_initialized) return;
     global_mutex_initialized = 0;
+    pthread_mutex_destroy(&NC_globalmutex.mutex);
 }    
 
 #ifdef DEBUGAPI

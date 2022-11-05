@@ -115,7 +115,11 @@ main(int argc, char **argv)
     NC_threadset_join(threadset);
     pthread_barrier_destroy(&barrier);
 
+    if(data) free(data);
+    if(threadset) {free(threadset->threadset); free(threadset);}
+
 done:
+    nc_finalize();
     if(stat) {
         fprintf(stderr,"*** fail: %s\n",nc_strerror(stat));
         exit(1);
