@@ -32,6 +32,7 @@ call other API call.
 #include <pthread.h>
 
 #include "netcdf.h"
+#include "netcdf_threadsafe.h"
 #include "ncthreaded.h"
 
 /* Verbose assert */
