@@ -21,6 +21,7 @@
 #endif
 
 #include "netcdf.h"
+#include "netcdf_threadsafe.h"
 
 #define MODE3 3
 #define MODE4 4

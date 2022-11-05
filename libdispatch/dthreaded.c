@@ -48,26 +48,6 @@ call other API call.
 
 #ifdef ENABLE_THREADSAFE
 
-#ifdef __APPLE__
-/* Apparently OS/X pthreads does not implement
-   pthread_barrier_t. So we have to fake it.
-*/
-#define PTHREAD_BARRIER_SERIAL_THREAD   1
-typedef int pthread_barrierattr_t;
-typedef struct
-{
-    pthread_mutex_t mutex;
-    pthread_cond_t cond;
-    int count;
-    int tripCount;
-} pthread_barrier_t;
-
-EXTERNL int pthread_barrier_init(pthread_barrier_t* barrier, const pthread_barrierattr_t* attr, unsigned int count);
-EXTERNL int pthread_barrier_destroy(pthread_barrier_t* barrier);
-EXTERNL int pthread_barrier_wait(pthread_barrier_t* barrier);
-
-#endif /*__APPLE__*/
-
 typedef struct NCmutex {
     pthread_mutex_t mutex;
     int refcount; /* # times called by same thread */
@@ -220,6 +200,8 @@ void NC_unlock(void)
 /* Apparently OS/X pthreads does not implement
    pthread_barrier_t. So we have to fake it.
 */
+
+#define PTHREAD_BARRIER_SERIAL_THREAD   1
 
 EXTERNL int
 pthread_barrier_init(pthread_barrier_t* barrier, const pthread_barrierattr_t* attr, unsigned int count)
