@@ -177,6 +177,7 @@ The derived port used here is Github repository
 [Vollstrecker/pthreads4w](https://github.com/Vollstrecker/pthreads4w).
 That port is used because it provides a cmake build, which
 allows for building for Visual Studio. 
+Both code bases are released using the Apache V2 license.
 
 The script used to build and install this port is below.
 It is probably best to set INSTALLDIR to an absolute path
