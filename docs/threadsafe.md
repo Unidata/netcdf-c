@@ -52,6 +52,7 @@ and if it is zero then the mutex is actually released.
 
 # Known Issues
 
+* This implementation only supports *libpthread*.
 * Filters are implicitly locked because the nc_get/put_varX functions are locked.
 * It is unknown how this interacts with MPI.
 
@@ -134,49 +135,79 @@ any time soon.
 
 Enabling thread-safety is controlled at build time
 using options to *configure* (Automake) and
-*cmake* (Cmake).
-Currently, these options default to enabled, but once
-this capabilitiy is placed into production,
-they will default to disabled.
+*cmake* (Cmake). These options are disabled by default.
 
 The options are as follows.
 * [Automake] ````--enable-threadsafe````
 * [CMake] ````-DENABLE_THREADSAFE=on````
 
-## PThreads
+## Platform Support for libpthread
 This implementation is based on the pthread library.
 The situation for various platforms is as follows.
-* For *nix* platforms, pthread support is usually built-in.
-* For *nix* platforms, pthread support is usually built-in.
-
-For Windows, it is necessary to use an external
-implementation of libpthread. 
-
-
-
-There are apparently problems with using certain pthread features
-on different platforms.
-* OS/X: *pthread_barrier_t* is unavailable, so a built-in implementation is added libdispatch/dmutex.c and include/ncmutex.h.
-
+* For \*nix\* platforms (including MINGW), pthread support is usually built-in.
+* For OS/X platforms, pthread support is usually built-in. However, the *pthread_barrier_t* type and associated operations are not implemented, so a built-in implementation is added to libdispatch/dthreaded.c and the API is defined in include/netcdf_threadsafe.h.
+* For Windows (using Visual Studio), it is necessary to use an external implementation of libpthread. See Appendix A for details.
 
 ## Build Status
 
 The current status of thread-safe operation is as follows.
 <table>
 <tr><td><u>Operating System</u><td><u>Build System</u><td><u>Local Build</u><td><u>Github Actions</u>
-<tr><td>Linux         <td> Automake <td> yes (Ubuntu-21) <td>yes
-<tr><td>Linux         <td> CMake    <td> yes (Ubuntu-21) <td>yes
-<tr><td>Visual Studio <td> CMake    <td> yes             <td>N.A.
-<tr><td>OSX           <td> Automake <td> unknown         <td>no (seg fault)
-<tr><td>OSX           <td> CMake    <td> unknown         <td>no (seg fault_
-<tr><td>MinGW/MSYS2   <td> Automake <td> unknown         <td>no (seg fault)
-<tr><td>Cygwin        <td> Automake <td> unknown         <td>N.A.
+<tr><td>Linux         <td> Automake <td> yes		<td>yes
+<tr><td>Linux         <td> CMake    <td> yes		<td>yes
+<tr><td>Visual Studio <td> CMake    <td> yes            <td>N.A.
+<tr><td>OS/X           <td> Automake <td> unknown        <td>yes
+<tr><td>OS/X           <td> CMake    <td> unknown        <td>yes
+<tr><td>MinGW/MSYS2   <td> Automake <td> unknown        <td>yes
+<tr><td>Cygwin        <td> Automake <td> unknown	<td>N.A.
 </table>
-Fixing the seg-faults will require interactive debugging of the
-relevant platform.
+
+# Appendix A. Providing libpthread Support for Windows Visual Studio
+
+The capability for thread safe operation is based soley on using
+*libpthread*, even for Windows using Visual Studio.
+Microsoft does not support (yet) the *pthread* API for Visual Studio,
+so in order to enable thread safe operation on Windows, it is necessary
+to install a libpthread implementation.
+
+At the moment the only port supported by Unidata is derived from
+[PTHREADS4W](https://sourceforge.net/projects/pthreads4w/),
+version 3.0.0 (2017-01-01) or later.
+The derived port used here is Github repository
+[Vollstrecker/pthreads4w](https://github.com/Vollstrecker/pthreads4w).
+That port is used because it provides a cmake build, which
+allows for building for Visual Studio. 
+
+The script used to build and install this port is below.
+It is probably best to set INSTALLDIR to an absolute path
+that contains no blanks.
+In order to get the netcdf-c library cmake build to recognize
+the pthread library, one needs to add the follow path(s)
+to the *PATH* environment variable.
+* *${INSTALLDIR}/lib*
+* *${INSTALLDIR}/bin*
+
+## Cmake Build Script
+````
+# Visual Studio
+CFG="Release"
+INSTALLDIR="c:/tools/hdf5-1.10.6"
+FLAGS=
+FLAGS="$FLAGS -DCMAKE_INSTALL_PREFIX=${PREFIX}"
+FLAGS="$FLAGS -DCMAKE_INSTALL_LIBDIR=lib"
+FLAGS="$FLAGS -DCMAKE_MODULE_PATH=${PREFIX}/cmake"
+rm -fr build
+mkdir -p build
+cd build
+cmake -DCMAKE_BUILD_TYPE=${CFG} $FLAGS ..
+cmake --build . --config ${CFG}
+cmake --build . --config ${CFG} --target RUN_TESTS
+cmake --install . --config ${CFG}
+cd ..
+````
 
 # Point of Contact
 __Author__: Dennis Heimbigner<br>
 __Email__: dmh at ucar dot edu<br>
 __Initial Version__: 9/9/2022<br>
-__Last Revised__: 9/18/2022<br>
+__Last Revised__: 11/4/2022<br>
