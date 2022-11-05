@@ -124,8 +124,8 @@ fi
 
 AC_MSG_CHECKING([whether we should enable thread safety])
 AC_ARG_ENABLE([threadsafe], [AS_HELP_STRING([--enable-threadsafe],
-              [enable thread-safe operation (default=yes)])])
-test "x$enable_threadsafe" = xno || enable_threadsafe=yes
+              [enable thread-safe operation (default=no)])])
+test "x$enable_threadsafe" = xyes || enable_threadsafe=no
 AC_MSG_RESULT([$enable_threadsafe])
 if test "x$enable_threadsafe" = xyes && test "x$have_pthreads" = xno ; then
   AC_MSG_NOTICE([!pthreads => !threadsafe])

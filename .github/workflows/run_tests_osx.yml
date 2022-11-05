@@ -41,7 +41,7 @@ jobs:
           wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$(echo ${{ matrix.hdf5 }} | cut -d. -f 1,2)/hdf5-${{ matrix.hdf5 }}/src/hdf5-${{ matrix.hdf5 }}.tar.bz2
           tar -jxf hdf5-${{ matrix.hdf5 }}.tar.bz2
           pushd hdf5-${{ matrix.hdf5 }}
-          ./configure --disable-static --enable-shared --prefix=${HOME}/environments/${{ matrix.hdf5 }} --enable-hl --with-szlib
+          ./configure --disable-static --enable-shared --prefix=${HOME}/environments/${{ matrix.hdf5 }} --enable-hl --with-szlib --enable-threadsafe
           make -j
           make install -j
           popd

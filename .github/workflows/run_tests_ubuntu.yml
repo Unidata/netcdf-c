@@ -111,6 +111,7 @@ jobs:
   #####
   # One-Off Autotools-based tests.
   #####
+
   ##
   # Serial
   ##
@@ -164,7 +165,7 @@ jobs:
 
       - name: Configure
         shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure --enable-hdf4 --enable-hdf5 --enable-dap --disable-dap-remote-tests  --enable-doxygen  --enable-external-server-tests
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure --enable-hdf4 --enable-hdf5 --enable-dap --disable-dap-remote-tests  --enable-doxygen  --enable-external-server-tests --enable-threadsafe
         if: ${{ success() }}
 
       - name: Look at config.log if error
