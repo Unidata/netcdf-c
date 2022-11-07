@@ -68,7 +68,11 @@ endif
 
 if ENABLE_THREADSAFE
 check_PROGRAMS += tst_threads
-TESTS += test_threads.sh
+TESTS += run_threads.sh
+nc_test_threads_SOURCES = nc_test_threads.c error.c test_get.c test_put.c test_read.c	\
+                          test_write.c util.c error.h tests.h
+check_PROGRAMS += nc_test_threads
+TESTS += run_nc_test_threads.sh
 endif
 
 # Set up the tests.
@@ -124,15 +128,15 @@ ref_tst_diskless3_create.cdl ref_tst_diskless3_open.cdl			\
 run_inmemory.sh run_mmap.sh f03tst_open_mem.nc test_byterange.sh	\
 ref_tst_http_nc3.cdl ref_tst_http_nc4a.cdl ref_tst_http_nc4b.cdl	\
 ref_tst_http_nc4c.cdl CMakeLists.txt run_pnetcdf_tests.sh.in \
-tst_misc.c tst_norm.c test_threads.sh
+tst_misc.c tst_norm.c run_threads.sh
+
+EXTRA_DIST += bad_cdf5_begin.nc run_cdf5.sh nc_enddef.cdl tests.h.in
 
 # These files are created by the tests.
 CLEANFILES = nc_test_*.nc tst_*.nc t_nc.nc large_files.nc		\
 quick_large_files.nc tst_diskless3_file.cdl                             \
 tst_diskless4.cdl ref_tst_diskless4.cdl benchmark.nc                    \
 tst_http_nc3.cdl tst_http_nc4?.cdl tmp*.cdl tmp*.nc
-
-EXTRA_DIST += bad_cdf5_begin.nc run_cdf5.sh nc_enddef.cdl
 
 if ENABLE_CDF5
    # bad_cdf5_begin.nc is a corrupted CDF-5 file with bad variable starting
@@ -152,6 +156,22 @@ MAINTAINERCLEANFILES = test_get.c test_put.c
 # This rule tells make how to turn our .m4 files into .c files.
 .m4.c:
 	m4 $(AM_M4FLAGS) $(M4FLAGS) $< >$@
+
+if ENABLE_THREADSAFE
+tests.h: $(srcdir)/tests.h.in
+	rm -f $@
+	echo "#define USETHREADS"      >> $@
+	echo "#include \"tests.h.in\"" >> $@
+
+nc_test_threads.c: $(srcdir)/nc_test.c
+	rm -f $@
+	echo "#define USETHREADS"     >> $@
+	echo "#include \"nc_test.c\"" >> $@
+else
+tests.h: $(srcdir)/tests.h.in
+	rm -f $@
+	cat $(srcdir)/tests.h.in > $@
+endif
 
 # If valgrind is present, add valgrind targets.
 @VALGRIND_CHECK_RULES@

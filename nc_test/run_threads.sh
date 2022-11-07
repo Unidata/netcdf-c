@@ -3,8 +3,8 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
-NTHREADS=1
-NCYCLES=1
+NTHREADS=8
+NCYCLES=4
 
 set -e
 

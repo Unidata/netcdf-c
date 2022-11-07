@@ -16,10 +16,6 @@
 #include "XGetopt.h"
 #endif
 
-#ifdef HAVE_PTHREADS
-#include <pthread.h>
-#endif
-
 #include "netcdf.h"
 #include "netcdf_threadsafe.h"
 
@@ -31,8 +27,8 @@
 
 typedef struct NC_ThreadData {
     int id;
-    const char* format;
     int mode;
+    const char* format;
     pthread_barrier_t* barrier;
 } NC_ThreadData;
 
@@ -137,9 +133,9 @@ threadprog(void* arg)
 
 fprintf(stderr,"<<< data[%d]=%p\n",data->id,arg); fflush(stderr);
 
-    pthread_barrier_wait(data->barrier);
-
     fprintf(stderr,"starting thread: %d\n",data->id); fflush(stderr);
+
+    pthread_barrier_wait(data->barrier);
 
     snprintf(filename,sizeof(filename),data->format,data->id);
     for(i=0;i<options.ncycles;i++) {

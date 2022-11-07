@@ -4,13 +4,6 @@
  *   $Id: error.c,v 1.7 2007/05/15 01:36:57 ed Exp $
  *********************************************************************/
 
-#include <config.h>
-#include <stddef.h>	/* because gcc 2.7.2.2 doesn't define size_t */
-			/* in <stdio.h> and it cannot hurt */
-#include <stdio.h>
-#include <stdarg.h>
-
-#include "error.h"
 #include "tests.h"
 
 /*
