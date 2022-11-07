@@ -161,6 +161,6 @@ NC_threadset_join(NC_Threadset* threadset)
 static void
 usage(void)
 {
-   fprintf(stderr,"usage: tst_threads 3|4 \"filenameformatstring\"");
+   fprintf(stderr,"usage: tst_threads [-h][-3|-4][-F <filenameformatstring>][-C <ncycles>][-T <nthreads>]");
    exit(1);
 }

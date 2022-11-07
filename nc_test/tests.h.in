@@ -220,7 +220,7 @@ typedef unsigned long long  uint64;
 #endif
 
 #if defined(USETHREADS) && defined(ENABLE_THREADSAFE)
-#ifdef __MSC_VER
+#if defined(_WIN32) && ! defined(__MINGW32__)
 #define THREADED __declspec(thread)
 #else
 #define THREADED __thread

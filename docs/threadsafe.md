@@ -132,6 +132,42 @@ Unfortunately, implementing this level of locking
 is quite complex, so it is unlikely to be realized
 any time soon.
 
+# Testing
+
+Testing of this feature is currently very limited.
+Currently there are two tests in the nc_test directory.
+
+## run_threads.sh + tst_threads.c
+The shell script invokes tst_threads.c with some different options.
+Usage of tst_threads is as follows:
+````
+tst_threads [-h][-3|-4][-F <filenameformatstring>][-C <ncycles>][-T <nthreads>]"
+````
+where 
+* -h &mdash; print usage.
+* -3 &mdash; create a netcdf-3 (classic) file.
+* -4 &mdash; create a netcdf-4 (enhanced) file.
+* -F &mdash; use this template to specify the name of the created file.
+* -C &mdash; execute the body of the test ncycles times.
+* -T &mdash; execute the body of the test using n threads.
+
+One cycle creates a file, manipulates it, and then closes the file.
+
+## run_nc_test_threads.sh + nc_test_threads.c
+The shell script invokes nc_test_threads.c with some different options.
+Usage of nc_test_threads is as follows:
+````
+nc_test_threads [-h] [-v] [-m <max-messages>] [-T <nthreads>]\n");
+````
+where 
+* -h &mdash; print usage.
+* -v &mdash; provide verbose output (default off).
+* -m &mdash; provide at most max-messages for each test.
+* -T &mdash; execute the body of the test using n threads.
+
+This test performs the same set of tests as the nc_test program,
+but using multiple threads.
+
 # Configuration {#threadsafe_config}
 
 Enabling thread-safety is controlled at build time
@@ -195,9 +231,9 @@ to the *PATH* environment variable.
 CFG="Release"
 INSTALLDIR="c:/tools/hdf5-1.10.6"
 FLAGS=
-FLAGS="$FLAGS -DCMAKE_INSTALL_PREFIX=${PREFIX}"
+FLAGS="$FLAGS -DCMAKE_INSTALL_PREFIX=${INSTALLDIR}"
 FLAGS="$FLAGS -DCMAKE_INSTALL_LIBDIR=lib"
-FLAGS="$FLAGS -DCMAKE_MODULE_PATH=${PREFIX}/cmake"
+FLAGS="$FLAGS -DCMAKE_MODULE_PATH=${INSTALLDIR}/cmake"
 rm -fr build
 mkdir -p build
 cd build
