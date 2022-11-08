@@ -7,7 +7,7 @@
 name: Run macOS-based netCDF Tests
 
 
-on: [pull_request, workflow_dispatch]
+on: [push,pull_request, workflow_dispatch]
 
 jobs:
 
