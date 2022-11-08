@@ -36,6 +36,7 @@ findpluginext() {
   TSO=`find ${TOPBUILDDIR}/plugins -name '*misc.so'`
   TDY=`find ${TOPBUILDDIR}/plugins -name '*misc.dylib'`
   TCYG=`find ${TOPBUILDDIR}/plugins -name 'cyg*misc.dll'`
+  TMING=`find ${TOPBUILDDIR}/plugins -name lib*misc.dll`
   TDLL=`find ${TOPBUILDDIR}/plugins -name '*misc.dll'`
   if test "x$TSO" != x ; then
     FP_PLUGIN_EXT="so"
@@ -45,7 +46,10 @@ findpluginext() {
     FP_PLUGIN_PRE="lib__nc"  
   elif test "x$TCYG" != x ; then
     FP_PLUGIN_EXT="dll"
-    FP_PLUGIN_PRE="cyg__nc"  
+    FP_PLUGIN_PRE="cyg__nc"
+  elif test "x$TMING" != x ; then
+    FP_PLUGIN_EXT="dll"
+    FP_PLUGIN_PRE="lib__nc"
   elif test "x$TDLL" != x ; then
     FP_PLUGIN_EXT="dll"
     FP_PLUGIN_PRE="__nc"  

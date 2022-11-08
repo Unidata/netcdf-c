@@ -96,8 +96,12 @@ TESTS += run_nczfilter.sh
 # Echo filter tests from nc_test4
 check_PROGRAMS += testfilter testfilter_misc testfilter_order testfilter_repeat testfilter_multi test_filter_avail
 TESTS += run_filter.sh 
-TESTS += run_unknown.sh 
+TESTS += run_unknown.sh
 TESTS += run_specific_filters.sh
+
+if ISMINGW
+XFAIL_TESTS = run_filter.sh run_unknown.sh run_specific_filters.sh
+endif  # ISMINGW
 
 endif #ENABLE_FILTER_TESTING
 
@@ -117,6 +121,9 @@ if ENABLE_NCZARR_S3
 noinst_PROGRAMS += s3util
 s3util_SOURCES = s3util.c
 TESTS += run_s3_cleanup.sh
+if ISCYGWIN
+XFAIL_TESTS = run_s3_cleanup.sh
+endif # ISCYGWIN
 endif
 
 # Given a netcdf4|NCZarr file, dump the actual chunk contents.
