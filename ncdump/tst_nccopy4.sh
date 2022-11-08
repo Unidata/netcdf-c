@@ -91,13 +91,13 @@ echo "*** Test that nccopy -c can chunk and unchunk files"
 ${NCCOPY} -M0 tst_chunking.nc tmp_ncc4.nc
 ${NCDUMP} tmp_ncc4.nc > tmp_ncc4.cdl
 ${NCCOPY} -c dim0/,dim1/1,dim2/,dim3/1,dim4/,dim5/1,dim6/ tst_chunking.nc tmp-chunked.nc
-${NCDUMP} -n tmp tmp-chunked.nc > tmp-chunked.cdl
+${NCDUMP} -n tmp_ncc4 tmp-chunked.nc > tmp-chunked.cdl
 diff tmp_ncc4.cdl tmp-chunked.cdl
 ${NCCOPY} -c dim0/,dim1/,dim2/,dim3/,dim4/,dim5/,dim6/ tmp-chunked.nc tmp-unchunked.nc
-${NCDUMP} -n tmp tmp-unchunked.nc > tmp-unchunked.cdl
+${NCDUMP} -n tmp_ncc4 tmp-unchunked.nc > tmp-unchunked.cdl
 diff tmp_ncc4.cdl tmp-unchunked.cdl
 ${NCCOPY} -c // tmp-chunked.nc tmp-unchunked2.nc
-${NCDUMP} -n tmp tmp-unchunked.nc > tmp-unchunked2.cdl
+${NCDUMP} -n tmp_ncc4 tmp-unchunked.nc > tmp-unchunked2.cdl
 diff tmp_ncc4.cdl tmp-unchunked2.cdl
 echo "*** Test that nccopy -c works as intended for record dimension default (1)"
 ${NCGEN} -b -o tst_bug321.nc $srcdir/tst_bug321.cdl
