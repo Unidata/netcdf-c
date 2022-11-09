@@ -814,12 +814,12 @@ INPUT                  = @abs_top_srcdir@/docs/mainpage.dox \
                          @abs_top_srcdir@/docs/all-error-codes.md \
                          @abs_top_srcdir@/docs/inmemory.md \
                          @abs_top_srcdir@/docs/filters.md \
+                         @abs_top_srcdir@/docs/filter_quickstart.md \
                          @abs_top_srcdir@/docs/byterange.dox \
                          @abs_top_srcdir@/docs/nczarr.md \
                          @abs_top_srcdir@/docs/notes.md \
                          @abs_top_srcdir@/docs/building-with-cmake.md \
                          @abs_top_srcdir@/docs/FAQ.md \
-                         @abs_top_srcdir@/docs/known_problems.md \
                          @abs_top_srcdir@/docs/COPYRIGHT.md \
                          @abs_top_srcdir@/docs/credits.md \
                          @abs_top_srcdir@/docs/tutorial.dox \
