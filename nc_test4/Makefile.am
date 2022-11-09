@@ -41,14 +41,12 @@ if HAS_PAR_FILTERS
 NC4_TESTS += tst_alignment
 endif
 
-# Temporary I hoped, but hoped in vain.
-if !ISCYGWIN
 NC4_TESTS += tst_h_strbug tst_h_refs
-endif
 
 # Build test programs plus programs used in test scripts.
 check_PROGRAMS = $(NC4_TESTS) tst_empty_vlen_unlim tst_charvlenbug tst_vlenstr
 TESTS = $(NC4_TESTS) run_empty_vlen_test.sh
+XFAIL_TESTS =
 
 # Add these if large file tests are turned on.
 if LARGE_FILE_TESTS
@@ -89,7 +87,10 @@ TESTS += tst_filter.sh
 TESTS += tst_unknown.sh
 TESTS += tst_specific_filters.sh
 TESTS += tst_bloscfail.sh
-endif
+if ISMINGW
+XFAIL_TESTS += tst_filter.sh
+endif # ISMINGW
+endif # ENABLE_FILTER_TESTING
 endif # USE_HDF5
 endif # BUILD_UTILITIES
 
