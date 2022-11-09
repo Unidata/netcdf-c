@@ -30,15 +30,15 @@ fileargs tmp
 ./tst_zchunks3 -e ${zext}
 echo "*** Test that nccopy -c can chunk files"
 ${NCCOPY} -M0 tmp_chunks3.nc "$fileurl"
-${NCDUMP} -n tmp -sh "$fileurl" > tmp.cdl
-verifychunking tmp.cdl "ivar:_ChunkSizes=7,4,2,3,5,6,9;" "fvar:_ChunkSizes=9,6,5,3,2,4,7;"
+${NCDUMP} -n tmp -sh "$fileurl" > tmp_nccz.cdl
+verifychunking tmp_nccz.cdl "ivar:_ChunkSizes=7,4,2,3,5,6,9;" "fvar:_ChunkSizes=9,6,5,3,2,4,7;"
 
 fileargs tmp_chunked
 ./tst_zchunks3 -e ${zext}
 ${NCCOPY} -M0 -c dim0/,dim1/1,dim2/,dim3/1,dim4/,dim5/1,dim6/ tmp_chunks3.nc "$fileurl"
 ${NCDUMP} -sh -n tmp "$fileurl" > tmp_chunked.cdl
 verifychunking tmp_chunked.cdl "ivar:_ChunkSizes=7,1,2,1,5,1,9;" "fvar:_ChunkSizes=9,1,5,1,2,1,7;"
-chunkclean tmp.cdl tmpx.cdl
+chunkclean tmp_nccz.cdl tmpx.cdl
 chunkclean tmp_chunked.cdl tmp_chunkedx.cdl
 diff tmpx.cdl tmp_chunkedx.cdl
 
