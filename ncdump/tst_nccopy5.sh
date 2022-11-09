@@ -70,7 +70,7 @@ cleanup() {
 # remove all created files
 reset() {
     cleanup
-    rm -fr tst_nc5.nc tst_nc5.cdl tmp.cdl
+    rm -fr tst_nc5.nc tst_nc5.cdl tmp_ncc5.cdl
     rm -f tst_nc5_omit.nc tst_nc5_omit.cdl
 }
 
