@@ -3,7 +3,7 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
 . ../test_common.sh
 
-. "$srcdir/test_nczarr.sh"
+. "$top_srcdir/nczarr_test/test_nczarr.sh"
 
 # This shell script tests support for the NC_STRING type
 
@@ -34,9 +34,9 @@ deletemap $zext $nczarrfile
 
 # Create alternate ref files
 echo "*** create pure zarr file"
-${NCGEN} -4 -b -o "$zarrurl" $srcdir/ref_scalar.cdl
+${NCGEN} -4 -b -o "$zarrurl" $top_srcdir/nczarr_test/ref_scalar.cdl
 echo "*** create nczarr file"
-${NCGEN} -4 -b -o "$nczarrurl" $srcdir/ref_scalar.cdl
+${NCGEN} -4 -b -o "$nczarrurl" $top_srcdir/nczarr_test/ref_scalar.cdl
 
 echo "*** read purezarr"
 ${NCDUMP} -n ref_scalar $zarrurl > tmp_scalar_zarr0_${zext}.cdl
@@ -46,11 +46,11 @@ ${NCDUMP} -n ref_scalar $nczarrurl > tmp_scalar_nczarr_${zext}.cdl
 ${ZMD} -h $nczarrurl > tmp_scalar_nczarr_${zext}.txt
 
 echo "*** verify"
-diff -bw ref_scalar.cdl tmp_scalar_nczarr_${zext}.cdl
+diff -bw $top_srcdir/nczarr_test/ref_scalar.cdl tmp_scalar_nczarr_${zext}.cdl
 
 # Fixup
 zarrscalar tmp_scalar_zarr0_${zext}.cdl tmp_scalar_zarr_${zext}.cdl
-diff -bw ref_scalar.cdl tmp_scalar_zarr_${zext}.cdl
+diff -bw $top_srcdir/nczarr_test/ref_scalar.cdl tmp_scalar_zarr_${zext}.cdl
 }
 
 testcase file
