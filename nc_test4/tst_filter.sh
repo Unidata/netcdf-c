@@ -110,7 +110,7 @@ fi
 
 if test "x$NCP" = x1 ; then
 echo "*** Testing dynamic filters using nccopy"
-rm -f ./tmp_unfiltered.nc ./tmp_filtered.nc ./tmp.nc ./tmp_filtered.dump ./tmp_filter.txt
+rm -f ./tmp_unfiltered.nc ./tmp_filtered.nc ./tmp_filtered.dump ./tmp_filter.txt
 # Create our input test files
 ${NCGEN} -4 -lb -o tmp_unfiltered.nc ${srcdir}/ref_unfiltered.cdl
 ${NCGEN} -4 -lb -o tmp_unfilteredvv.nc ${srcdir}/ref_unfilteredvv.cdl
