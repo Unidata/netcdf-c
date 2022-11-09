@@ -3,9 +3,7 @@
 
 Known Problems with netCDF 4.3.0
 --------------------------------
-
--   [clang compiler (default on OSX 10.9 Mavericks) detects error
-    building ncgen3](#clang-ncgen3)
+cd
 
 Known Problems with netCDF 4.2
 ------------------------------
