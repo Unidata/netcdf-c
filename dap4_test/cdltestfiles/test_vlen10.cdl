@@ -1,0 +1,14 @@
+netcdf test_vlen10 {
+
+types:
+  compound c_t {int x; float y;};
+  c_t(*) v_t;
+
+variables:
+  v_t v;  
+
+data:
+
+ v = {{17,30.7}, {19,101.1}};
+}
+

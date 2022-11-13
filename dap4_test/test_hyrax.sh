@@ -10,11 +10,14 @@ export srcdir;
 set -e
 echo "test_hyrax.sh:"
 
-FRAG="#checksummode=ignore"
+FRAG=""
 
 F="\
+nc4_test_files/nc4_nc_classic_no_comp.nc \
 nc4_test_files/nc4_nc_classic_comp.nc \
+nc4_test_files/nc4_unsigned_types.nc \
 nc4_test_files/nc4_unsigned_types_comp.nc \
+nc4_test_files/nc4_strings.nc \
 nc4_test_files/nc4_strings_comp.nc \
 nc4_test_files/ref_tst_compounds.nc \
 hyrax/RSS/amsre/bmaps_v05/y2006/m01/amsre_20060131v5.dat?dap4.ce=time_a \
@@ -32,22 +35,22 @@ echo "***XFAIL: Cannot find test.opendap.org testserver; test skipped"
 exit 0
 fi
 
-if test "x${RESET}" = x1 ; then rm -fr ${BASELINEH}/*.hyrax ; fi
+if test "x${RESET}" = x1 ; then rm -fr ${BASELINEHY}/*.hyrax ; fi
 for f in $F ; do
 
     makeurl "dap4://test.opendap.org/opendap" "$f"
 
     echo "testing: $URL"
-    if ! ${NCDUMP} "${URL}" > ./results_test_hyrax/${base}.hyrax; then
+    if ! ${NCDUMP} ${DUMPFLAGS} "${URL}" > ./results_test_hyrax/${base}.hyrax; then
         failure "${URL}"
     fi
     if test "x${TEST}" = x1 ; then
-	if ! diff -wBb ${BASELINEH}/${base}.hyrax ./results_test_hyrax/${base}.hyrax ; then
+	if ! diff -wBb ${BASELINEHY}/${base}.hyrax ./results_test_hyrax/${base}.hyrax ; then
 	    failure "diff ${base}.hyrax"
 	fi
     elif test "x${RESET}" = x1 ; then
 	echo "${f}:" 
-	cp ./results_test_hyrax/${base}.hyrax ${BASELINEH}/${base}.hyrax
+	cp ./results_test_hyrax/${base}.hyrax ${BASELINEHY}/${base}.hyrax
     fi
 done
 

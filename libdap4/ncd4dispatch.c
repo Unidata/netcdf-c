@@ -62,7 +62,6 @@ NCD4_initialize(void)
     ncloginit();
 #ifdef D4DEBUG
     /* force logging to go to stderr */
-    nclogclose();
     if(nclogopen(NULL))
         ncsetlogging(1); /* turn it on */
 #endif

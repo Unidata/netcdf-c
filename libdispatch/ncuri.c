@@ -58,7 +58,7 @@
 
 /* Allowable character sets for encode */
 
-/* ascii = " !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~" */
+static char* ascii = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 
 /* Classes according to the URL RFC" */
 #define RFCRESERVED " !*'();:@&=+$,/?#[]"
@@ -1217,7 +1217,7 @@ ensurequerylist(NCURI* uri)
     } else if(!nolist && noquery) {
 	/* Create the query string from querylist */
 	query = ncbytesnew();
-	buildlist((const char**)uri->querylist,1,query);
+	buildlist((const char**)uri->querylist,0,query); /* do not encode */
 	uri->query = ncbytesextract(query);
     }
 
@@ -1280,4 +1280,11 @@ extendenvv(char*** envvp, int amount, int* oldlenp)
     nullfree(*envvp);
     *envvp = envv; envv = NULL;
     return NC_NOERR;
+}
+
+/* Use for gdb debug */
+char*
+ncuriunescape(const char* s)
+{
+    return ncuridecodepartial(s,ascii);
 }

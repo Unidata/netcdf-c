@@ -5,7 +5,6 @@ types:
       Altocumulus = 7, Cirrostratus = 8, Cirrocumulus = 9, Cirrus = 10, 
       Missing = 127} ;
 
-
 group: h {
   variables:
   	cloud_class_t primary_cloud ;

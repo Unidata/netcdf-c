@@ -663,13 +663,15 @@ AC_ARG_WITH([testservers],
               [AS_HELP_STRING([--with-testservers=<host:port>,<host:port>...],
                               [Specify the testserver(s) to try for remote tests.])],
             [REMOTETESTSERVERS=$with_testservers], [REMOTETESTSERVERS=no])
-msg="$REMOTETESTSERVERS"
 if test "x$REMOTETESTSERVERS" = xno ; then
-  svclist="remotetest.unidata.ucar.edu"
-  REMOTETESTSERVERS="$svclist"
+  dfaltsvc="remotetest.unidata.ucar.edu"
+  REMOTETESTSERVERS="${dfaltsvc}"
 fi
 AC_MSG_RESULT([$svclist])
 AC_DEFINE_UNQUOTED([REMOTETESTSERVERS], ["$REMOTETESTSERVERS"], [the testservers for remote tests.])
+if test "x$dfaltsvc" != x ; then
+  AC_MSG_NOTICE([Using default: --with-testservers=${dfaltsvc}])
+fi
 
 # Set the config.h flags
 if test "x$enable_dap" = xyes; then

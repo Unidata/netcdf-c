@@ -84,7 +84,7 @@ setup(int tdmr, int argc, char** argv)
     controller->controls.translation = NCD4_TRANSNC4;
     if(translatenc4)
 	controller->controls.translation = NCD4_TRANSNC4;
-    NCD4_applyclientparamcontrols(controller);
+    NCD4_applyclientfragmentcontrols(controller);
     if((metadata=NCD4_newmeta(controller))==NULL)
 	fail(NC_ENOMEM);
     metadata->mode = mode;
