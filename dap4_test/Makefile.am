@@ -52,7 +52,7 @@ EXTRA_DIST = CMakeLists.txt test_common.h \
 	d4test_common.sh \
 	test_curlopt.sh test_data.sh test_hyrax.sh test_meta.sh \
 	test_parse.sh test_raw.sh test_remote.sh test_thredds.sh \
-	cdltestfiles rawtestfiles nctestfiles \
+	cdltestfiles rawtestfiles \
 	baseline baselineraw baselineremote baselinehyrax baselinethredds
 
 CLEANFILES = *.exe
