@@ -47,7 +47,7 @@ static void walk(NCD4node* node, NClist* sorted);
 static void
 ADDNODE(NClist* list, NCD4node* node)
 {
-    fprintf(stderr,"addnode: %s: %s %s (%llu)\n",
+    fprintf(stderr,"addnode: %s: %s %s (%p)\n",
 	node->name,
 	NCD4_sortname(node->sort),
 	NCD4_subsortname(node->subsort),

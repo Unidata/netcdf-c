@@ -40,7 +40,7 @@ if test "x$FEATURE_THREDDSTEST" = x1 ; then
 for f in $F ; do
     makeurl "dap4://thredds-test.unidata.ucar.edu/thredds/dap4/casestudies" "$f"
     echo "testing: $URL"
-    if ! ${NCDUMP} "${URL}" > ./results_test_thredds/${base}.thredds; then
+    if ! ${NCDUMP} ${DUMPFLAGS} "${URL}" > ./results_test_thredds/${base}.thredds; then
         failure "${URL}"
     fi
     if test "x${TEST}" = x1 ; then

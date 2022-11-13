@@ -5,9 +5,12 @@
    xmlns="http://xml.opendap.org/ns/DAP/4.0#"
    xmlns:dap="http://xml.opendap.org/ns/DAP/4.0#">
   <Variables>
-    <Opaque name="vo1" type="/opaque8_t"/>
+    <Opaque name="vo1" type="/opaque16_t"/>
   </Variables>
   <Attribute name="_DAP4_Little_Endian" type="UInt8">
     <Value value="1"/>
+  </Attribute>
+  <Attribute name="_NCProperties" type="String">
+    <Value value="version=2,netcdf=4.9.1-development,hdf5=1.12.2"/>
   </Attribute>
 </Dataset>

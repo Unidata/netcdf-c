@@ -161,8 +161,9 @@ EXTERNL int NCD4_rcdefault(NCD4INFO*);
 EXTERNL int NCD4_convert(nc_type srctype, nc_type dsttype, char* memory0, char* value0, size_t count);
 
 /* d4file.c */
-EXTERNL void NCD4_applyclientparamcontrols(NCD4INFO*);
 EXTERNL int NCD4_readDMRorDAP(NCD4INFO* d4info, NCD4mode mode);
+EXTERNL void NCD4_applyclientfragmentcontrols(NCD4INFO* d4info);
+EXTERNL void NCD4_applyclientquerycontrols(NCD4INFO* d4info);
 
 /* ncd4dispatch.c */
 struct NC_reservedatt; /*forward*/

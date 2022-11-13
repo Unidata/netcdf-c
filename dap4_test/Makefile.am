@@ -30,9 +30,9 @@ check_PROGRAMS += test_parse test_meta test_data
 
 noinst_PROGRAMS =
 
-TESTS += test_parse.sh test_meta.sh test_data.sh test_fillmismatch.sh test_raw.sh 
+TESTS += test_parse.sh test_meta.sh test_data.sh test_raw.sh 
 
-# Note tst_curlopt.sh is intended to be run manually; see comments in file.
+# Note test_curlopt.sh is intended to be run manually; see comments in file.
 
 # Note: This program name was changed to findtestserver4
 # to avoid cmake complaint about duplicate targets.
@@ -41,21 +41,19 @@ findtestserver4_SOURCES = findtestserver4.c
 pingurl4_SOURCES = pingurl4.c
 
 # Disable Dap4 Remote Tests until the test server is working
-if ENABLE_DAP_REMOTE_TESTS
 if BUILD_UTILITIES
-  # relies on ncdump
-  TESTS += test_hyrax.sh test_thredds.sh
-if AX_IGNORE
-  TESTS += test_remote.sh
-endif
+if ENABLE_DAP_REMOTE_TESTS
+# Test require help at the server end
+#  TESTS += test_remote.sh test_hyrax.sh test_thredds.sh
 endif
 endif
 
-EXTRA_DIST = test_parse.sh test_meta.sh test_data.sh \
-             test_raw.sh test_remote.sh test_hyrax.sh test_thredds.sh test_fillmismatch.sh \
-             tst_curlopt.sh d4test_common.sh \
-	     daptestfiles dmrtestfiles cdltestfiles nctestfiles misctestfiles \
-	     baseline baselineraw baselineremote baselinehyrax baselinethredds CMakeLists.txt test_common.h
+EXTRA_DIST = CMakeLists.txt test_common.h \
+	d4test_common.sh \
+	test_curlopt.sh test_data.sh test_hyrax.sh test_meta.sh \
+	test_parse.sh test_raw.sh test_remote.sh test_thredds.sh \
+	cdltestfiles rawtestfiles nctestfiles \
+	baseline baselineraw baselineremote baselinehyrax baselinethredds
 
 CLEANFILES = *.exe
 # This should only be left behind if using parallel io
@@ -80,7 +78,7 @@ clean-local-check:
 
 # The shell file maketests.sh is used to build the testdata
 # for dap4 testing. It creates and fills the directories
-# daptestfiles, dmrtestfiles, and cdltestfiles
+# daptestfiles, dmrtestfiles, and testsrc
 # As a rule, this will only be invoked if there was a change
 # in the GenerateRaw.java program in the thredds tree.
 maketests::
