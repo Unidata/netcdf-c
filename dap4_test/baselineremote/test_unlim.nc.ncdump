@@ -1,0 +1,37 @@
+netcdf test_unlim {
+dimensions:
+	lon = 2 ;
+	time = UNLIMITED ; // (2 currently)
+	lat = 3 ;
+variables:
+	float lon(lon) ;
+		string lon:units = "degrees_east" ;
+	double time(time) ;
+		time:_ChunkSizes = 512U ;
+		string time:units = "seconds since 2009-01-01" ;
+	float lat(lat) ;
+		string lat:units = "degrees_north" ;
+	float pr(time, lat, lon) ;
+		pr:_ChunkSizes = 1U, 3U, 2U ;
+		string pr:standard_name = "air_pressure_at_sea_level" ;
+		string pr:units = "hPa" ;
+		string pr:_edu.ucar.maps = "/time", "/lat", "/lon" ;
+
+// global attributes:
+		string :title = "example for workshop" ;
+data:
+
+ lon = _, _ ;
+
+ time = _, _ ;
+
+ lat = _, _, _ ;
+
+ pr =
+  0, 1,
+  2, 3,
+  4, 5,
+  10, 11,
+  12, 13,
+  14, 15 ;
+}

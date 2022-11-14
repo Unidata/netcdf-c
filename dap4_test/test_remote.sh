@@ -10,7 +10,7 @@ set -e
 echo "test_remote.sh:"
 
 #BIG=1
-#NOCSUM=1
+#CSUM=1
 
 computetestablefiles
 
@@ -24,13 +24,19 @@ fi
 
 if test "x${RESET}" = x1 ; then rm -fr ${BASELINEREM}/*.ncdump ; fi
 for f in $F ; do
-    URL="[log][show=fetch][dap4]${TESTSERVER}/testfiles/${f}"
+    FRAG="#dap4&log&show=fetch"
+    QUERY=""
     if test "x$BIG" = x1; then
-	URL="[ucar.littleendian=0]${URL}"
+	FRAG="${FRAG}&ucar.littleendian=0"
     fi
-    if test "x$NOCSUM" = x1; then
-	URL="[ucar.checksummode=none]${URL}"
+    if test "x$CSUM" = x1 ; then
+	QUERY="${QUERY}&dap4.checksum=true"
+    else
+	QUERY="${QUERY}${QCHAR}&dap4.checksum=false"
     fi
+    # Fix up QUERY
+    if test "x$QUERY" != x ; then QUERY=`echo -n $QUERY | sed -e 's/^&/?/'` ; fi
+    URL="${TESTSERVER}/testfiles/${f}${QUERY}${FRAG}"
     ${NCDUMP} ${DUMPFLAGS} "${URL}" > ${builddir}/results_test_remote/${f}.ncdump
     if test "x${TEST}" = x1 ; then
 	diff -wBb "${BASELINEREM}/${f}.ncdump" "${builddir}/results_test_remote/${f}.ncdump"
