@@ -200,11 +200,11 @@ fillstruct(NCD4meta* meta, NCD4node* type, NCD4offset* offset, void** dstp, NCli
     for(i=0;i<nclistlength(type->vars);i++) {
 	NCD4node* field = nclistget(type->vars,i);
 	NCD4node* ftype = field->basetype;
-	void* fdst = (dst + field->meta.offset);
+	void* fdst = (((char*)dst) + field->meta.offset);
 	if((ret=NCD4_fillinstance(meta,ftype,offset,&fdst,blobs)))
             FAIL(ret,"fillstruct");
     }
-    dst += type->meta.memsize;
+    dst = ((char*)dst) + type->meta.memsize;
     *dstp = dst;
 done:
     return THROW(ret);
@@ -235,7 +235,7 @@ fillseq(NCD4meta* meta, NCD4node* type, NCD4offset* offset, void** dstp, NClist*
 
     for(i=0;i<recordcount;i++) {
 	/* Read each record instance */
-	void* recdst = ((dst->p)+(recordsize * i));
+	void* recdst = ((char*)(dst->p))+(recordsize * i);
 	if((ret=NCD4_fillinstance(meta,vlentype,offset,&recdst,blobs)))
 	    FAIL(ret,"fillseq");
     }
@@ -304,7 +304,7 @@ fillopfixed(NCD4meta* meta, d4size_t opaquesize, NCD4offset* offset, void** dstp
     }
     /* move */
     TRANSFER(dst,offset,count);
-    dst += count;
+    dst = ((char*)dst) + count;
     *dstp = dst;
     INCR(offset,count);
 #ifndef FIXEDOPAQUE
@@ -340,7 +340,7 @@ fillopvar(NCD4meta* meta, NCD4node* type, NCD4offset* offset, void** dstp, NClis
     vlen->p = q;
     vlen->len = (size_t)count;
     q = NULL; /*nclistpush(blobs,q);*/
-    dst += sizeof(nc_vlen_t);
+    dst = ((char*)dst) + sizeof(nc_vlen_t);
     *dstp = dst;
     INCR(offset,count);
 done:

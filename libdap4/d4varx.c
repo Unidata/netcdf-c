@@ -81,7 +81,7 @@ NCD4_get_vars(int ncid, int varid,
 	    ret = THROW(NC_EINVALCOORDS);
 	    goto done;
 	}
-        xpos = (memoryin+(xsize * dstcount)); /* ultimate destination */
+        xpos = ((char*)memoryin)+(xsize * dstcount); /* ultimate destination */
 	/* We need to compute the offset in the dap4 data of this instance;
 	   for fixed size types, this is easy, otherwise we have to walk
 	   the variable size type
