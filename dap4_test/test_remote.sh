@@ -6,7 +6,6 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ${srcdir}/d4test_common.sh
 
 set -e
-set -x
 
 echo "test_remote.sh:"
 
