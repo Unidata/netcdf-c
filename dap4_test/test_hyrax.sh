@@ -22,6 +22,7 @@ nc4_test_files/nc4_strings_comp.nc \
 nc4_test_files/ref_tst_compounds.nc \
 hyrax/RSS/amsre/bmaps_v05/y2006/m01/amsre_20060131v5.dat?dap4.ce=time_a \
 "
+F=nc4_test_files/nc4_nc_classic_no_comp.nc
 
 failure() {
       echo "*** Fail: $1"
@@ -38,8 +39,9 @@ fi
 if test "x${RESET}" = x1 ; then rm -fr ${BASELINEHY}/*.hyrax ; fi
 for f in $F ; do
 
-    makeurl "dap4://test.opendap.org/opendap" "$f"
+    makeurl "dap4://test.opendap.org/opendap" "$f?dap4.checksum=true"
 
+URL="$URL#log&show=fetch"
     echo "testing: $URL"
     if ! ${NCDUMP} ${DUMPFLAGS} "${URL}" > ./results_test_hyrax/${base}.hyrax; then
         failure "${URL}"
