@@ -401,7 +401,7 @@ NCD4_buildoffset(void* base, d4size_t limit)
     NCD4offset* offset = (NCD4offset*)calloc(1,sizeof(NCD4offset));
     assert(offset != NULL);
     offset->base = base;
-    offset->limit = base+limit;
+    offset->limit = ((char*)base)+limit;
     offset->offset = base;
     return offset;
 }
@@ -434,7 +434,7 @@ NCD4_getheader(void* p, NCD4HDR* hdr, int hostlittleendian)
 {
     unsigned char bytes[4];
     memcpy(bytes,p,sizeof(bytes));
-    p += 4; /* on-the-wire hdr is 4 bytes */
+    p = ((char*)p) + 4; /* on-the-wire hdr is 4 bytes */
     /* assume header is network (big) order */
     hdr->flags = bytes[0]; /* big endian => flags are in byte 0 */
     hdr->flags &= NCD4_ALL_CHUNK_FLAGS; /* Ignore extraneous flags */
