@@ -51,7 +51,7 @@ ENDIF()
   ENDIF(BUILD_UTILITIES)
 
   IF(ENABLE_DAP_REMOTE_TESTS)
-#      add_sh_test(dap4_test test_remote)
+      add_sh_test(dap4_test test_remote)
 #      add_sh_test(dap4_test test_hyrax)
 #      add_sh_test(dap4_test test_thredds)
   ENDIF(ENABLE_DAP_REMOTE_TESTS)
