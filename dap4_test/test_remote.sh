@@ -36,7 +36,7 @@ for f in $F ; do
 	QUERY="${QUERY}${QCHAR}&dap4.checksum=false"
     fi
     # Fix up QUERY
-    if test "x$QUERY" != x ; then QUERY=`echo -n $QUERY | sed -e 's/^&/?/'` ; fi
+    if test "x$QUERY" != x ; then QUERY=`echo ${QUERY} | sed -e 's/^&/?/'` ; fi
     URL="${TESTSERVER}/testfiles/${f}${QUERY}${FRAG}"
     ${NCDUMP} ${DUMPFLAGS} "${URL}" > ${builddir}/results_test_remote/${f}.ncdump
     if test "x${TEST}" = x1 ; then
