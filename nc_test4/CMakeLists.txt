@@ -51,9 +51,13 @@ IF(USE_HDF5 AND ENABLE_FILTER_TESTING)
   build_bin_test(tst_filter_avail)
   build_bin_test(test_filter_vlen)
   ADD_SH_TEST(nc_test4 tst_filter)
-  ADD_SH_TEST(nc_test4 tst_unknown)
   ADD_SH_TEST(nc_test4 tst_specific_filters)
   ADD_SH_TEST(nc_test4 tst_bloscfail)
+  IF(FALSE)
+    # This test is too dangerous to run in a parallel make environment.
+    # It causes race conditions. So suppress and only test by hand.
+    ADD_SH_TEST(nc_test4 tst_unknown)
+  ENDIF(FALSE)
 ENDIF(USE_HDF5 AND ENABLE_FILTER_TESTING)
 
 ENDIF(BUILD_UTILITIES)
