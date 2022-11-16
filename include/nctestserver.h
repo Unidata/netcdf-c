@@ -102,7 +102,7 @@ nc_findtestserver(const char* path, const char* serverlist)
 	if(reportsearch)
 	    fprintf(stderr,"nc_findtestserver: candidate=%s/%s: found=",*svc,path);
 	/* Try http: first */
-        snprintf(url,MAXSERVERURL,"http://%s/%s",*svc,path);
+        snprintf(url,MAXSERVERURL,"http://%s/%s",*svc,path); /*lgtm [cpp/non-https-url]*/
 	if(ping(url) == NC_NOERR) {
 	    if(reportsearch) fprintf(stderr,"yes\n");
 	    match = strdup(url);
