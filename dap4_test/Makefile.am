@@ -43,8 +43,9 @@ pingurl4_SOURCES = pingurl4.c
 # Disable Dap4 Remote Tests until the test server is working
 if BUILD_UTILITIES
 if ENABLE_DAP_REMOTE_TESTS
+TESTS += test_remote.sh
 # Test require help at the server end
-#  TESTS += test_remote.sh test_hyrax.sh test_thredds.sh
+#  TESTS += test_hyrax.sh test_thredds.sh
 endif
 endif
 
@@ -52,7 +53,7 @@ EXTRA_DIST = CMakeLists.txt test_common.h \
 	d4test_common.sh \
 	test_curlopt.sh test_data.sh test_hyrax.sh test_meta.sh \
 	test_parse.sh test_raw.sh test_remote.sh test_thredds.sh \
-	cdltestfiles rawtestfiles nctestfiles \
+	cdltestfiles rawtestfiles \
 	baseline baselineraw baselineremote baselinehyrax baselinethredds
 
 CLEANFILES = *.exe

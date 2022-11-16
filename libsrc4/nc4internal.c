@@ -227,7 +227,7 @@ nc4_file_list_add(int ncid, const char *path, int mode, void **dispatchdata)
  * integration.
  *
  * @param ncid The ncid of the file (aka ext_ncid).
- * @param new_ncid The new ncid index to use (i.e. the first two bytes
+ * @param new_ncid_index The new ncid index to use (i.e. the first two bytes
  * of the ncid).
  *
  * @return ::NC_NOERR No error.
@@ -725,8 +725,6 @@ obj_track(NC_FILE_INFO_T* file, NC_OBJ* obj)
  * @param name the name for the new variable
  * @param var Pointer in which to return a pointer to the new var.
  *
- * @param var Pointer to pointer that gets variable info struct.
- *
  * @return ::NC_NOERR No error.
  * @return ::NC_ENOMEM Out of memory.
  * @author Ed Hartnett
@@ -775,8 +773,6 @@ nc4_var_list_add2(NC_GRP_INFO_T *grp, const char *name, NC_VAR_INFO_T **var)
  * @param var Pointer to the var.
  * @param ndims Number of dimensions for this var.
  *
- * @param var Pointer to pointer that gets variable info struct.
- *
  * @return ::NC_NOERR No error.
  * @return ::NC_ENOMEM Out of memory.
  * @author Ed Hartnett
@@ -812,8 +808,6 @@ nc4_var_set_ndims(NC_VAR_INFO_T *var, int ndims)
  * @param name the name for the new variable
  * @param ndims the rank of the new variable
  * @param var Pointer in which to return a pointer to the new var.
- *
- * @param var Pointer to pointer that gets variable info struct.
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_ENOMEM Out of memory.
@@ -1228,7 +1222,6 @@ nc4_enum_member_add(NC_TYPE_INFO_T *parent, size_t size,
  *
  * @param field Pointer to field info of field to delete.
  *
- * @return ::NC_NOERR No error.
  * @author Ed Hartnett
  */
 static void

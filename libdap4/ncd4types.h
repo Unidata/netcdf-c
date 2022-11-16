@@ -49,6 +49,7 @@ typedef struct NCD4meta NCD4meta;
 typedef struct NCD4node NCD4node;
 typedef struct NCD4params NCD4params;
 typedef struct NCD4HDR NCD4HDR;
+typedef struct NCD4offset NCD4offset;
 
 /* Define the NCD4HDR flags */
 /* Header flags */
@@ -167,6 +168,18 @@ union ATOMICS {
 struct NCD4HDR {unsigned int flags; unsigned int count;};
 
 /**************************************************/
+/* Define the structure for walking a stream */
+
+/* base <= offset < limit */
+struct NCD4offset {
+    char* offset; /* use char* so we can do arithmetic */
+    char* base;
+    char* limit;
+};
+
+typedef char* NCD4mark; /* Mark a position */
+
+/**************************************************/
 /* !Node type for the NetCDF-4 metadata produced from
    parsing the DMR tree.
    We only use a single node type tagged with the sort.
@@ -246,7 +259,7 @@ struct NCD4node {
 typedef struct NCD4serial {
     size_t rawsize; /* |rawdata| */ 
     void* rawdata;
-    size_t dapsize; /* |dapdata|; this is transient */
+    size_t dapsize; /* |dap|; this is transient */
     void* dap; /* pointer into rawdata where dap data starts */ 
     char* dmr;/* copy of dmr */ 
     char* errdata; /* null || error chunk (null terminated) */
