@@ -8,6 +8,7 @@ export srcdir;
 . ${srcdir}/d4test_common.sh
 
 set -e
+
 echo "test_hyrax.sh:"
 
 FRAG=""
@@ -38,8 +39,9 @@ fi
 if test "x${RESET}" = x1 ; then rm -fr ${BASELINEHY}/*.hyrax ; fi
 for f in $F ; do
 
-    makeurl "dap4://test.opendap.org/opendap" "$f"
+    makeurl "dap4://test.opendap.org/opendap" "$f?dap4.checksum=true"
 
+URL="$URL#log&show=fetch"
     echo "testing: $URL"
     if ! ${NCDUMP} ${DUMPFLAGS} "${URL}" > ./results_test_hyrax/${base}.hyrax; then
         failure "${URL}"

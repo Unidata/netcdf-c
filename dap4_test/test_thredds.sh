@@ -11,7 +11,7 @@ export srcdir;
 set -e
 echo "test_thredds.sh:"
 
-FRAG="#checksummode=ignore"
+FRAG="#dap4.checksum=true"
 
 # The name GOES16_CONUS_20170821_020218_0.47_1km_33.3N_91.4W.nc4 is too long during distcheck,
 # so rename on the fly

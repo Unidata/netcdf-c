@@ -9,15 +9,23 @@ The NetCDF NCZarr Implementation
 # NCZarr Introduction {#nczarr_introduction}
 
 Beginning with netCDF version 4.8.0, the Unidata NetCDF group has extended the netcdf-c library to provide access to cloud storage (e.g. Amazon S3 <a href="#ref_aws">[1]</a> ).
-This extension provides a mapping from a subset of the full netCDF Enhanced (aka netCDF-4) data model to a variant of the Zarr <a href="#ref_zarrv2">[4]</a> data model.
-The NetCDF version of this storage format is called NCZarr <a href="#ref_nczarr">[4]</a>.
 
-A note on terminology in this document.
-1. The term "dataset" is used to refer to all of the Zarr objects constituting
+The goal of this project is to provide maximum interoperability between the netCDF Enhanced (netcdf-4) data model and the Zarr version 2 <a href="#ref_zarrv2">[4]</a> data model. This is embodied in the netcdf-c library so that it is possible to use the netcdf API to read and write Zarr formatted datasets.
+
+In order to better support the netcdf-4 data model, the netcdf-c library implements a limited set of extensions to the Zarr data model. 
+This extended model is referred to as *NCZarr*.
+An important goal is that those extensions not interfere with reading of those extended datasets by other Zarr specification conforming implementations. This means that one can write a dataset using the NCZarr extensions and expect that dataset to be readable by other Zarr implementations.
+
+As a secondary -- but equally important -- goal, it must be possible to use
+the NCZarr library to read and write datasets that are pure Zarr,
+which means that none of the NCZarr extensions are used. This feature does come
+with some costs, namely that information contained in the netcdf-4
+data model may be lost in the pure Zarr dataset.
+
+Notes on terminology in this document.
+* The term "dataset" is used to refer to all of the Zarr objects constituting
    the meta-data and data. 
-
-There are some important "caveats" of which to be aware when using this software.
-1. NCZarr currently is not thread-safe. So any attempt to use it with parallelism, including MPIO, is likely to fail.
+* NCZarr currently is not thread-safe. So any attempt to use it with parallelism, including MPIO, is likely to fail.
 
 # The NCZarr Data Model {#nczarr_data_model}
 
