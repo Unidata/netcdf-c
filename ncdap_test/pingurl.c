@@ -41,7 +41,7 @@ main(int argc, char** argv)
 	usage();
  
     /* Try http: first */
-    snprintf(url,MAXSERVERURL,"http://%s",argv[0]);
+    snprintf(url,MAXSERVERURL,"http://%s",argv[0]); /* lgtm [cpp/non-https-url] */
     if(timedping(url,PINGTIME) == NC_NOERR) 
 	found = 1;
     else {
