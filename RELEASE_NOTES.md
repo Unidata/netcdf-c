@@ -7,7 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.9.1 - T.B.D.
 
-### 4.9.1 - Release Candidate 2 - November 18, 2022
+### 4.9.1 - Release Candidate 2 - November 21, 2022
 
 #### Known Issues
 
