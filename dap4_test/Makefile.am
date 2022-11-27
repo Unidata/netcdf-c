@@ -49,7 +49,7 @@ TESTS += test_remote.sh
 endif
 endif
 
-EXTRA_DIST = CMakeLists.txt test_common.h \
+EXTRA_DIST = CMakeLists.txt test_common.h build.sh \
 	d4test_common.sh \
 	test_curlopt.sh test_data.sh test_hyrax.sh test_meta.sh \
 	test_parse.sh test_raw.sh test_remote.sh test_thredds.sh \

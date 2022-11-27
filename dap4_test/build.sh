@@ -102,7 +102,7 @@ excluded() {
 fileset() {
   local TMP x X
   # Total file set
-  TMP=`ls -1 ${srcdir}/testsrc/*.cdl`
+  TMP=`ls -1 ${srcdir}/cdltestfiles/*.cdl`
   for x in $TMP ; do
     X=`basename $x .cdl`
     F="$F $X"
@@ -142,7 +142,7 @@ build() {
     for f in $F ; do
       excluded ${f} cdl
       if test $? = 0 ; then
-          ${NCGEN} -4 -o "${srcdir}/downloads/${f}.nc" "${srcdir}/testsrc/${f}.cdl"
+          ${NCGEN} -4 -o "${srcdir}/downloads/${f}.nc" "${srcdir}/cdltestfiles/${f}.cdl"
           ${NCDUMP} "${srcdir}/downloads/${f}.nc" > ${srcdir}/downloads/${f}.ncdump
       fi
     done
