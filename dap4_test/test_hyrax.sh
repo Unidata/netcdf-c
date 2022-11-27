@@ -23,6 +23,7 @@ nc4_test_files/nc4_strings_comp.nc \
 nc4_test_files/ref_tst_compounds.nc \
 hyrax/RSS/amsre/bmaps_v05/y2006/m01/amsre_20060131v5.dat?dap4.ce=time_a \
 "
+F=nc4_test_files/nc4_nc_classic_no_comp.nc
 
 failure() {
       echo "*** Fail: $1"
