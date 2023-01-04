@@ -4,7 +4,7 @@
 
 name: Run Ubuntu/Linux netCDF Tests
 
-on: [pull_request, workflow_dispatch]
+on: [pull_request,workflow_dispatch]
 
 jobs:
 
@@ -39,6 +39,15 @@ jobs:
         if: steps.cache-hdf5.outputs.cache-hit != 'true'
         run: |
           set -x
+
+          wget https://support.hdfgroup.org/ftp/HDF/releases/HDF4.2.15/src/hdf-4.2.15.tar.bz2
+          tar -jxf hdf-4.2.15.tar.bz2
+          pushd hdf-4.2.15
+          ./configure --prefix=${HOME}/environments/${{ matrix.hdf5 }} --disable-static --enable-shared --disable-fortran --disable-netcdf --with-szlib --enable-hdf4-xdr
+          make -j
+          make install -j
+          popd
+
           wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$(echo ${{ matrix.hdf5 }} | cut -d. -f 1,2)/hdf5-${{ matrix.hdf5 }}/src/hdf5-${{ matrix.hdf5 }}.tar.bz2
           tar -jxf hdf5-${{ matrix.hdf5 }}.tar.bz2
           pushd hdf5-${{ matrix.hdf5 }}
@@ -79,6 +88,16 @@ jobs:
         if: steps.cache-hdf5.outputs.cache-hit != 'true'
         run: |
           set -x
+<<<<<<< HEAD
+=======
+          wget https://support.hdfgroup.org/ftp/HDF/releases/HDF4.2.15/src/hdf-4.2.15.tar.bz2
+          tar -jxf hdf-4.2.15.tar.bz2
+          pushd hdf-4.2.15
+          CC=mpicc ./configure --prefix=${HOME}/environments/${{ matrix.hdf5 }} --disable-static --enable-shared --disable-fortran --disable-netcdf --with-szlib --enable-parallel --enable-hdf4-xdr
+          make -j
+          make install -j
+          popd
+>>>>>>> a03bb5e60165b11be11f8c1e8e492a274a742011
           wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$(echo ${{ matrix.hdf5 }} | cut -d. -f 1,2)/hdf5-${{ matrix.hdf5 }}/src/hdf5-${{ matrix.hdf5 }}.tar.bz2
           tar -jxf hdf5-${{ matrix.hdf5 }}.tar.bz2
           pushd hdf5-${{ matrix.hdf5 }}
