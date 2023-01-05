@@ -501,31 +501,37 @@ jobs:
 
       - name: Configure
         shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure ${ENABLE_HDF5} ${ENABLE_DAP} ${ENABLE_NCZARR}
+        run: |
+          current_directory="$(pwd)"
+          mkdir ../build
+          cd ../build && CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} "${current_directory}/configure" ${ENABLE_HDF5} ${ENABLE_DAP} ${ENABLE_NCZARR}
         if: ${{ success() }}
 
       - name: Look at config.log if error
         shell: bash -l {0}
-        run: cat config.log
+        run: cd ../build && cat config.log
         if: ${{ failure() }}
 
       - name: Print Summary
         shell: bash -l {0}
-        run: cat libnetcdf.settings
+        run: cd ../build && cat libnetcdf.settings
 
       - name: Build Library and Utilities
         shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make -j
+        run: |
+          cd ../build && CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make -j
         if: ${{ success() }}
 
       - name: Build Tests
         shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check TESTS="" -j
+        run: |
+          cd ../build && CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check TESTS="" -j
         if: ${{ success() }}
 
       - name: Run Tests
         shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check -j
+        run: |
+          cd ../build && CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check -j
         if: ${{ success() }}
 
   nc-cmake:
