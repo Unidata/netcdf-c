@@ -213,6 +213,7 @@ endif()
   add_sh_test(ncdump tst_64bit)
   add_sh_test(ncdump tst_lengths)
   add_sh_test(ncdump tst_calendars)
+  add_sh_test(ncdump tst_calendars_nc4)
   add_sh_test(ncdump run_utf8_tests)
 
   add_sh_test(ncdump tst_nccopy3_subset)
@@ -242,7 +243,7 @@ endif()
     endif()
 
     SET_TESTS_PROPERTIES(ncdump_tst_nccopy3 PROPERTIES DEPENDS
-        "ncdump_tst_calendars;ncdump_run_utf8_tests;ncdump_tst_output;ncdump_tst_64bit;ncdump_run_tests;ncdump_tst_lengths")
+        "ncdump_tst_calendars;ncdump_tst_calendars_nc4;ncdump_run_utf8_tests;ncdump_tst_output;ncdump_tst_64bit;ncdump_run_tests;ncdump_tst_lengths")
 
   ENDIF()
 
