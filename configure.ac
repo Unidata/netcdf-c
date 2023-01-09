@@ -10,7 +10,7 @@
 AC_PREREQ([2.59])
 
 # Initialize with name, version, and support email address.
-AC_INIT([netCDF],[4.9.2-development],[support-netcdf@unidata.ucar.edu],[netcdf-c])
+AC_INIT([netCDF],[4.9.1-rc2],[support-netcdf@unidata.ucar.edu],[netcdf-c])
 
 ##
 # Prefer an empty CFLAGS variable instead of the default -g -O2.
@@ -21,8 +21,8 @@ AC_INIT([netCDF],[4.9.2-development],[support-netcdf@unidata.ucar.edu],[netcdf-c
 
 AC_SUBST([NC_VERSION_MAJOR]) NC_VERSION_MAJOR=4
 AC_SUBST([NC_VERSION_MINOR]) NC_VERSION_MINOR=9
-AC_SUBST([NC_VERSION_PATCH]) NC_VERSION_PATCH=2
-AC_SUBST([NC_VERSION_NOTE]) NC_VERSION_NOTE="-development"
+AC_SUBST([NC_VERSION_PATCH]) NC_VERSION_PATCH=1
+AC_SUBST([NC_VERSION_NOTE]) NC_VERSION_NOTE="-rc2"
 
 ##
 # These linker flags specify libtool version info.
@@ -97,7 +97,7 @@ AC_CONFIG_LINKS([nc_test4/ref_hdf5_compat3.nc:nc_test4/ref_hdf5_compat3.nc])
 AC_CONFIG_LINKS([hdf4_test/ref_chunked.hdf4:hdf4_test/ref_chunked.hdf4])
 AC_CONFIG_LINKS([hdf4_test/ref_contiguous.hdf4:hdf4_test/ref_contiguous.hdf4])
 AM_INIT_AUTOMAKE([foreign dist-zip subdir-objects])
-
+AM_MAINTAINER_MODE()
 # Check for the existence of this file before proceeding.
 AC_CONFIG_SRCDIR([include/netcdf.h])
 
@@ -1282,9 +1282,9 @@ fi
 # Does the user want to allow reading of remote data via range headers?
 AC_MSG_CHECKING([whether byte range support is enabled])
 AC_ARG_ENABLE([byterange],
-              [AS_HELP_STRING([--enable-byterange],
+              [AS_HELP_STRING([--disable-byterange],
                               [allow byte-range I/O])])
-test "x$enable_byterange" = xyes || enable_byterange=no
+test "x$disable_byterange" = xyes || enable_byterange=no
 AC_MSG_RESULT($enable_byterange)
 # Need curl for byte ranges
 if test "x$found_curl" = xno && test "x$enable_byterange" = xyes ; then
@@ -1929,6 +1929,7 @@ AC_SUBST(HAS_ERANGE_FILL,[$enable_erange_fill])
 AC_SUBST(HAS_BYTERANGE,[$enable_byterange])
 AC_SUBST(RELAX_COORD_BOUND,[yes])
 AC_SUBST([HAS_PAR_FILTERS], [$hdf5_supports_par_filters])
+AC_SUBST(HAS_NCZARR_S3,[$enable_nczarr_s3])
 AC_SUBST(HAS_NCZARR,[$enable_nczarr])
 AC_SUBST(DO_NCZARR_S3_TESTS,[$enable_nczarr_s3_tests])
 AC_SUBST(HAS_MULTIFILTERS,[$has_multifilters])
