@@ -1284,7 +1284,7 @@ AC_MSG_CHECKING([whether byte range support is enabled])
 AC_ARG_ENABLE([byterange],
               [AS_HELP_STRING([--disable-byterange],
                               [allow byte-range I/O])])
-test "x$disable_byterange" = xyes || enable_byterange=no
+test "x$enable_byterange" = xno || enable_byterange=yes
 AC_MSG_RESULT($enable_byterange)
 # Need curl for byte ranges
 if test "x$found_curl" = xno && test "x$enable_byterange" = xyes ; then
