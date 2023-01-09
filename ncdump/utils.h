@@ -10,6 +10,8 @@
 
 #include "config.h"
 
+struct ncatt_t;
+
 #ifndef NCSTREQ
 #define	NCSTREQ(a, b)	(*(a) == *(b) && strcmp((a), (b)) == 0)
 #endif
@@ -180,6 +182,16 @@ extern int nc_next_giter(ncgiter_t *iterp, int *grpid);
  */
 extern void nc_free_giter(ncgiter_t *iterp);
 extern int getrootid(int grpid);
+
+/*
+ * Get attribute value for a single string value from either of NC_CHAR or NC_STRING types.
+ * This routine assumes that the attribute holds a single string value. If there are more
+ * than one string, subequent strings after the first one will be ignored.
+ *
+ * The caller is responsible for allocating and freeing memory for the str_out parameter.
+ */
+extern void nc_get_att_single_string(const int ncid, const int varid,
+                                     const struct ncatt_t *att, char **str_out);
 
 #ifdef __cplusplus
 }
