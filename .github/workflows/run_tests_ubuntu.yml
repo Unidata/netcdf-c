@@ -1,10 +1,10 @@
 ###
-# Build hdf4, hdf5 dependencies and cache them in a combined directory.
+# Build hdf5 dependencies and cache them in a combined directory.
 ###
 
 name: Run Ubuntu/Linux netCDF Tests
 
-on: [pull_request,workflow_dispatch]
+on: [pull_request, workflow_dispatch]
 
 jobs:
 
@@ -25,7 +25,7 @@ jobs:
         run: sudo apt update && sudo apt install -y libaec-dev zlib1g-dev automake autoconf libcurl4-openssl-dev libjpeg-dev wget curl bzip2 m4 flex bison cmake libzip-dev doxygen
 
         ###
-        # Installing libhdf4 and libhdf5
+        # Installing libhdf5
         ###
       - name: Cache libhdf5-${{ matrix.hdf5 }}
         id: cache-hdf5
@@ -39,6 +39,7 @@ jobs:
         if: steps.cache-hdf5.outputs.cache-hit != 'true'
         run: |
           set -x
+
           wget https://support.hdfgroup.org/ftp/HDF/releases/HDF4.2.15/src/hdf-4.2.15.tar.bz2
           tar -jxf hdf-4.2.15.tar.bz2
           pushd hdf-4.2.15
@@ -46,6 +47,7 @@ jobs:
           make -j
           make install -j
           popd
+
           wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$(echo ${{ matrix.hdf5 }} | cut -d. -f 1,2)/hdf5-${{ matrix.hdf5 }}/src/hdf5-${{ matrix.hdf5 }}.tar.bz2
           tar -jxf hdf5-${{ matrix.hdf5 }}.tar.bz2
           pushd hdf5-${{ matrix.hdf5 }}
@@ -72,7 +74,7 @@ jobs:
         run: sudo apt update && sudo apt install -y libaec-dev zlib1g-dev automake autoconf libcurl4-openssl-dev libjpeg-dev wget curl bzip2 m4 flex bison cmake libzip-dev mpich libmpich-dev 
 
         ###
-        # Installing libhdf4 and libhdf5
+        # Installing libhdf5
         ###
       - name: Cache libhdf5-parallel-${{ matrix.hdf5 }}
         id: cache-hdf5
@@ -86,6 +88,7 @@ jobs:
         if: steps.cache-hdf5.outputs.cache-hit != 'true'
         run: |
           set -x
+
           wget https://support.hdfgroup.org/ftp/HDF/releases/HDF4.2.15/src/hdf-4.2.15.tar.bz2
           tar -jxf hdf-4.2.15.tar.bz2
           pushd hdf-4.2.15
@@ -93,6 +96,7 @@ jobs:
           make -j
           make install -j
           popd
+
           wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-$(echo ${{ matrix.hdf5 }} | cut -d. -f 1,2)/hdf5-${{ matrix.hdf5 }}/src/hdf5-${{ matrix.hdf5 }}.tar.bz2
           tar -jxf hdf5-${{ matrix.hdf5 }}.tar.bz2
           pushd hdf5-${{ matrix.hdf5 }}
@@ -164,7 +168,7 @@ jobs:
 
       - name: Configure
         shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure --enable-hdf4 --enable-hdf5 --enable-dap --disable-dap-remote-tests  --enable-doxygen  --enable-external-server-tests
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests  --enable-doxygen  --enable-external-server-tests
         if: ${{ success() }}
 
       - name: Look at config.log if error
@@ -240,7 +244,7 @@ jobs:
 
       - name: Configure
         shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} CC=mpicc ./configure --enable-hdf4 --enable-hdf5 --enable-dap --disable-dap-remote-tests --enable-parallel-tests --enable-pnetcdf
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} CC=mpicc ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests --enable-parallel-tests --enable-pnetcdf
         if: ${{ success() }}
 
       - name: Look at config.log if error
@@ -322,7 +326,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DENABLE_HDF4=TRUE -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DENABLE_DAP=TRUE -DENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -D ENABLE_DAP_LONG_TESTS=TRUE
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DENABLE_DAP=TRUE -DENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -D ENABLE_DAP_LONG_TESTS=TRUE
 
       - name: Print Summary
         shell: bash -l {0}
@@ -402,7 +406,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_C_COMPILER=mpicc -DENABLE_HDF4=TRUE -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DENABLE_DAP=TRUE -DENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -D ENABLE_DAP_LONG_TESTS=TRUE -DENABLE_PNETCDF=TRUE
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_C_COMPILER=mpicc -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DENABLE_DAP=TRUE -DENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -D ENABLE_DAP_LONG_TESTS=TRUE -DENABLE_PNETCDF=TRUE
 
       - name: Print Summary
         shell: bash -l {0}
@@ -458,11 +462,9 @@ jobs:
       - run: echo "LDFLAGS=-L${HOME}/environments/${{ matrix.hdf5 }}/lib" >> $GITHUB_ENV
       - run: echo "LD_LIBRARY_PATH=${HOME}/environments/${{ matrix.hdf5 }}/lib" >> $GITHUB_ENV
       - run: |
-          echo "ENABLE_HDF4=--disable-hdf4" >> $GITHUB_ENV
           echo "ENABLE_HDF5=--disable-hdf5" >> $GITHUB_ENV
         if: matrix.use_nc4 == 'nc3'
       - run: |
-          echo "ENABLE_HDF4=--enable-hdf4" >> $GITHUB_ENV
           echo "ENABLE_HDF5=--enable-hdf5" >> $GITHUB_ENV
         if: matrix.use_nc4 == 'nc4'
       - run: echo "ENABLE_DAP=--disable-dap" >> $GITHUB_ENV
@@ -499,7 +501,7 @@ jobs:
 
       - name: Configure
         shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure ${ENABLE_HDF4} ${ENABLE_HDF5} ${ENABLE_DAP} ${ENABLE_NCZARR}
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure ${ENABLE_HDF5} ${ENABLE_DAP} ${ENABLE_NCZARR}
         if: ${{ success() }}
 
       - name: Look at config.log if error
@@ -525,18 +527,6 @@ jobs:
         shell: bash -l {0}
         run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check -j
         if: ${{ success() }}
-
-      # - name: Make Distcheck
-      #   shell: bash -l {0}
-      #   run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} DISTCHECK_CONFIGURE_FLAGS="${ENABLE_HDF4} ${ENABLE_HDF5} ${ENABLE_DAP} ${ENABLE_NCZARR}" make distcheck
-      #   if: ${{ success() }}
-
-      #- name: Start SSH Debug
-      #  uses: luchihoratiu/debug-via-ssh@main
-      #  with:
-      #    NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
-      #    SSH_PASS: ${{ secrets.SSH_PASS }}
-      #  if: ${{ failure() }}
 
   nc-cmake:
 
@@ -564,11 +554,9 @@ jobs:
       - run: echo "CMAKE_PREFIX_PATH=${HOME}/environments/${{ matrix.hdf5 }}/" >> $GITHUB_ENV
       - run: echo "LD_LIBRARY_PATH=${HOME}/environments/${{ matrix.hdf5 }}/lib" >> $GITHUB_ENV
       - run: |
-          echo "ENABLE_HDF4=OFF" >> $GITHUB_ENV
           echo "ENABLE_HDF5=OFF" >> $GITHUB_ENV
         if: matrix.use_nc4 == 'nc3'
       - run: |
-          echo "ENABLE_HDF4=ON" >> $GITHUB_ENV
           echo "ENABLE_HDF5=ON" >> $GITHUB_ENV
         if: matrix.use_nc4 == 'nc4'
       - run: echo "ENABLE_DAP=OFF" >> $GITHUB_ENV
@@ -605,7 +593,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DENABLE_HDF4=${ENABLE_HDF4} -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DENABLE_DAP=${ENABLE_DAP} -DENABLE_HDF5=${ENABLE_HDF5} -DENABLE_NCZARR=${ENABLE_NCZARR}
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DENABLE_DAP=${ENABLE_DAP} -DENABLE_HDF5=${ENABLE_HDF5} -DENABLE_NCZARR=${ENABLE_NCZARR}
 
       - name: Print Summary
         shell: bash -l {0}
