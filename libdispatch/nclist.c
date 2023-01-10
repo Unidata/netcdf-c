@@ -183,6 +183,7 @@ nclistremove(NClist* l, size_t i)
   return elem;
 }
 
+/* Match on == */
 int
 nclistcontains(NClist* l, void* elem)
 {
@@ -193,7 +194,7 @@ nclistcontains(NClist* l, void* elem)
     return 0;
 }
 
-/* Return 1/0 */
+/* Match on str(case)cmp */
 int
 nclistmatch(NClist* l, const char* elem, int casesensitive)
 {
@@ -229,7 +230,6 @@ nclistelemremove(NClist* l, void* elem)
   }
   return found;
 }
-
 
 /* Extends nclist to include a unique operator
    which remove duplicate values; NULL values removed

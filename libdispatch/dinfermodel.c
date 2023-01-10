@@ -143,7 +143,15 @@ static const struct MACRODEF {
 {NULL,NULL,{NULL}}
 };
 
-/* Mode inferences: if mode contains key, then add the inference and infer again */
+/*
+Mode inferences: if mode contains key value, then add the inferred value;
+Warning: be careful how this list is constructed to avoid infinite inferences.
+In order to (mostly) avoid that consequence, any attempt to
+infer a value that is already present will be ignored.
+This effectively means that the inference graph
+must be a DAG and may not have cycles.
+You have been warned.
+*/
 static const struct MODEINFER {
     char* key;
     char* inference;
@@ -151,6 +159,7 @@ static const struct MODEINFER {
 {"zarr","nczarr"},
 {"xarray","zarr"},
 {"noxarray","nczarr"},
+{"noxarray","zarr"},
 {NULL,NULL}
 };
 
@@ -202,6 +211,7 @@ static int processmacros(NClist** fraglistp);
 static char* envvlist2string(NClist* pairs, const char*);
 static void set_default_mode(int* cmodep);
 static int parseonchar(const char* s, int ch, NClist* segments);
+static int mergelist(NClist** valuesp);
 
 static int openmagic(struct MagicFile* file);
 static int readmagic(struct MagicFile* file, long pos, char* magic);
@@ -217,8 +227,9 @@ static int parsepair(const char* pair, char** keyp, char** valuep);
 static NClist* parsemode(const char* modeval);
 static const char* getmodekey(const NClist* envv);
 static int replacemode(NClist* envv, const char* newval);
-static int inferone(const char* mode, NClist* newmodes);
+static void infernext(NClist* current, NClist* next);
 static int negateone(const char* mode, NClist* modes);
+static void cleanstringlist(NClist* strs, int caseinsensitive);
 
 /*
 If the path looks like a URL, then parse it, reformat it.
@@ -416,28 +427,6 @@ envvlist2string(NClist* envv, const char* delim)
     return result;
 }
 
-/* Convert a list into a comma'd string */
-static char*
-list2string(NClist* list)
-{
-    int i;
-    NCbytes* buf = NULL;
-    char* result = NULL;
-
-    if(list == NULL || nclistlength(list)==0) return strdup("");
-    buf = ncbytesnew();
-    for(i=0;i<nclistlength(list);i++) {
-	const char* m = nclistget(list,i);
-	if(m == NULL || strlen(m) == 0) continue;
-	if(i > 0) ncbytescat(buf,",");
-	ncbytescat(buf,m);
-    }
-    result = ncbytesextract(buf);
-    ncbytesfree(buf);
-    if(result == NULL) result = strdup("");
-    return result;
-}
-
 /* Given a mode= argument, fill in the impl */
 static int
 processmodearg(const char* arg, NCmodel* model)
@@ -504,9 +493,10 @@ processinferences(NClist* fraglenv)
 {
     int stat = NC_NOERR;
     const char* modeval = NULL;
-    NClist* modes = NULL;
     NClist* newmodes = nclistnew();
-    int i,inferred = 0;
+    NClist* currentmodes = NULL;
+    NClist* nextmodes = nclistnew();
+    int i;
     char* newmodeval = NULL;
 
     if(fraglenv == NULL || nclistlength(fraglenv) == 0) goto done;
@@ -515,22 +505,53 @@ processinferences(NClist* fraglenv)
     if((modeval = getmodekey(fraglenv))==NULL) goto done;
 
     /* Get the mode as list */
-    modes = parsemode(modeval);
+    currentmodes = parsemode(modeval);
 
-    /* Repeatedly walk the mode list until no more new positive inferences */
-    do {
-	for(i=0;i<nclistlength(modes);i++) {
-	    const char* mode = nclistget(modes,i);
-	    inferred = inferone(mode,newmodes);
-	    nclistpush(newmodes,strdup(mode)); /* keep key */
-	    if(!inferred) nclistpush(newmodes,strdup(mode));
+#ifdef DEBUG
+    printlist(currentmodes,"processinferences: initial mode list");
+#endif
+
+    /* Do what amounts to breadth first inferencing down the inference DAG. */
+
+    for(;;) {
+        NClist* tmp = NULL;
+        /* Compute the next set of inferred modes */
+#ifdef DEBUG
+printlist(currentmodes,"processinferences: current mode list");
+#endif
+        infernext(currentmodes,nextmodes);
+#ifdef DEBUG
+printlist(nextmodes,"processinferences: next mode list");
+#endif
+        /* move current modes into list of newmodes */
+        for(i=0;i<nclistlength(currentmodes);i++) {
+	    nclistpush(newmodes,nclistget(currentmodes,i));
 	}
-    } while(inferred);
+        nclistsetlength(currentmodes,0); /* clear current mode list */
+        if(nclistlength(nextmodes) == 0) break; /* nothing more to do */
+#ifdef DEBUG
+printlist(newmodes,"processinferences: new mode list");
+#endif
+	/* Swap current and next */
+        tmp = currentmodes;
+	currentmodes = nextmodes;
+	nextmodes = tmp;
+        tmp = NULL;
+    }
+    /* cleanup any unused elements in currenmodes */
+    nclistclearall(currentmodes);
+
+    /* Ensure no duplicates */
+    cleanstringlist(newmodes,1);
+
+#ifdef DEBUG
+    printlist(newmodes,"processinferences: final inferred mode list");
+#endif
 
    /* Remove negative inferences */
-   for(i=0;i<nclistlength(modes);i++) {
-	const char* mode = nclistget(modes,i);
-	inferred = negateone(mode,newmodes);
+   for(i=0;i<nclistlength(newmodes);i++) {
+	const char* mode = nclistget(newmodes,i);
+	negateone(mode,newmodes);
     }
 
     /* Store new mode value */
@@ -541,10 +562,12 @@ processinferences(NClist* fraglenv)
 
 done:
     nullfree(newmodeval);
-    nclistfreeall(modes);
     nclistfreeall(newmodes);
+    nclistfreeall(currentmodes);
+    nclistfreeall(nextmodes);
     return check(stat);
 }
+
 
 static int
 negateone(const char* mode, NClist* newmodes)
@@ -568,23 +591,28 @@ negateone(const char* mode, NClist* newmodes)
     return changed;
 }
 
-static int
-inferone(const char* mode, NClist* newmodes)
+static void
+infernext(NClist* current, NClist* next)
 {
-    const struct MODEINFER* tests = modeinferences;
-    int changed = 0;
-    for(;tests->key;tests++) {
-	if(strcasecmp(tests->key,mode)==0) {
-	    /* Append the inferred mode; dups removed later */
-	    nclistpush(newmodes,strdup(tests->inference));
-	    changed = 1;
+    int i;
+    for(i=0;i<nclistlength(current);i++) {
+        const struct MODEINFER* tests = NULL;
+	const char* cur = nclistget(current,i);
+        for(tests=modeinferences;tests->key;tests++) {
+	    if(strcasecmp(tests->key,cur)==0) {
+	        /* Append the inferred mode unless dup */
+		if(!nclistmatch(next,tests->inference,1))
+	            nclistpush(next,strdup(tests->inference));
+	    }
         }
     }
-    return changed;
 }
 
+/*
+Given a list of strings, remove nulls and duplicates
+*/
 static int
-mergekey(NClist** valuesp)
+mergelist(NClist** valuesp)
 {
     int i,j;
     int stat = NC_NOERR;
@@ -686,12 +714,12 @@ cleanfragments(NClist** fraglenvp)
 
     /* collect all unique keys */
     collectallkeys(fraglenv,allkeys);
-    /* Collect all values for same key across all fragments */
+    /* Collect all values for same key across all fragment pairs */
     for(i=0;i<nclistlength(allkeys);i++) {
 	key = nclistget(allkeys,i);
 	collectvaluesbykey(fraglenv,key,tmp);
 	/* merge the key values, remove duplicate */
-	if((stat=mergekey(&tmp))) goto done;
+	if((stat=mergelist(&tmp))) goto done;
         /* Construct key,value pair and insert into newlist */
 	key = strdup(key);
 	nclistpush(newlist,key);
@@ -923,7 +951,7 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
         }
 
     } else {/* Not URL */
-	if(*newpathp) *newpathp = NULL;
+	if(newpathp) *newpathp = NULL;
     }
 
     /* Phase 8: mode inference from mode flags */
@@ -1100,6 +1128,71 @@ parsemode(const char* modeval)
         (void)parseonchar(modeval,',',modes);/* split on commas */
     return modes;    
 }
+
+/* Convert a list into a comma'd string */
+static char*
+list2string(NClist* list)
+{
+    int i;
+    NCbytes* buf = NULL;
+    char* result = NULL;
+
+    if(list == NULL || nclistlength(list)==0) return strdup("");
+    buf = ncbytesnew();
+    for(i=0;i<nclistlength(list);i++) {
+	const char* m = nclistget(list,i);
+	if(m == NULL || strlen(m) == 0) continue;
+	if(i > 0) ncbytescat(buf,",");
+	ncbytescat(buf,m);
+    }
+    result = ncbytesextract(buf);
+    ncbytesfree(buf);
+    if(result == NULL) result = strdup("");
+    return result;
+}
+
+#if 0
+/* Given a comma separated string, remove duplicates; mostly used to cleanup mode list */
+static char* 
+cleancommalist(const char* commalist, int caseinsensitive)
+{
+    NClist* tmp = nclistnew();
+    char* newlist = NULL;
+    if(commalist == NULL || strlen(commalist)==0) return nulldup(commalist);
+    (void)parseonchar(commalist,',',tmp);/* split on commas */
+    cleanstringlist(tmp,caseinsensitive);
+    newlist = list2string(tmp);
+    nclistfreeall(tmp);
+    return newlist;
+}
+#endif
+
+/* Given a list of strings, remove nulls and duplicated */
+static void
+cleanstringlist(NClist* strs, int caseinsensitive)
+{
+    int i,j;
+    if(nclistlength(strs) == 0) return;
+    /* Remove nulls */
+    for(i=nclistlength(strs)-1;i>=0;i--) {
+        if(nclistget(strs,i)==NULL) nclistremove(strs,i);
+    }
+    /* Remove duplicates*/
+    for(i=0;i<nclistlength(strs);i++) {
+        const char* value = nclistget(strs,i);
+	/* look ahead for duplicates */
+        for(j=nclistlength(strs)-1;j>i;j--) {
+	    int match;
+            const char* candidate = nclistget(strs,j);
+            if(caseinsensitive)
+	        match = (strcasecmp(value,candidate) == 0);
+	    else
+		match = (strcmp(value,candidate) == 0);
+	    if(match) {char* dup = nclistremove(strs,j); nullfree(dup);}
+	}
+    }
+}
+
 
 /**************************************************/
 /**
@@ -1502,8 +1595,10 @@ printlist(NClist* list, const char* tag)
 {
     int i;
     fprintf(stderr,"%s:",tag);
-    for(i=0;i<nclistlength(list);i++)
+    for(i=0;i<nclistlength(list);i++) {
         fprintf(stderr," %s",(char*)nclistget(list,i));
+	fprintf(stderr,"[%p]",(char*)nclistget(list,i));
+    }
     fprintf(stderr,"\n");
     dbgflush();
 }
