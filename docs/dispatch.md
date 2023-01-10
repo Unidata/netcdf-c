@@ -501,9 +501,8 @@ work.
 
 # Appendix A. Changing NC_DISPATCH_VERSION
 
-When new entries are added to the *struct NC_Dispatch* type
--- located in *include/netcdf_dispatch.h.in -- it is necessary to
-do two things.
+When new entries are added to the *struct NC_Dispatch* type `located in include/netcdf_dispatch.h.in` it is necessary to do two things.
+
 1. Bump the NC_DISPATCH_VERSION number
 2. Modify the existing dispatch tables to include the new entries.
 It if often the case that the new entries do not mean anything for
