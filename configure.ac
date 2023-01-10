@@ -2065,12 +2065,12 @@ AX_SET_META([NC_HAS_SZIP],[$enable_hdf5_szip],[yes])
 AX_SET_META([NC_HAS_ZSTD],[$have_zstd],[yes])
 AX_SET_META([NC_HAS_BLOSC],[$have_blosc],[yes])
 AX_SET_META([NC_HAS_BZ2],[$have_bz2],[yes])
+
 # This is the version of the dispatch table. If the dispatch table is
 # changed, this should be incremented, so that user-defined format
 # applications like PIO can determine whether they have an appropriate
 # dispatch table to submit. If this is changed, make sure the value in
 # CMakeLists.txt also changes to match.
-
 AC_SUBST([NC_DISPATCH_VERSION], [5])
 AC_DEFINE_UNQUOTED([NC_DISPATCH_VERSION], [${NC_DISPATCH_VERSION}], [Dispatch table version.])
 
