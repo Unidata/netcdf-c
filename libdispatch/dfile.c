@@ -1839,19 +1839,16 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 
     TRACE(nc_create);
     if(path0 == NULL)
-        return NC_EINVAL;
+        {stat = NC_EINVAL; goto done;}
 
     /* Check mode flag for sanity. */
-    if ((stat = check_create_mode(cmode)))
-        return stat;
+    if ((stat = check_create_mode(cmode))) goto done;
 
     /* Initialize the library. The available dispatch tables
      * will depend on how netCDF was built
      * (with/without netCDF-4, DAP, CDMREMOTE). */
-    if(!NC_initialized)
-    {
-        if ((stat = nc_initialize()))
-            return stat;
+    if(!NC_initialized) {
+        if ((stat = nc_initialize())) goto done;
     }
 
     {
@@ -1863,10 +1860,7 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 
     memset(&model,0,sizeof(model));
     newpath = NULL;
-    if((stat = NC_infermodel(path,&cmode,1,useparallel,NULL,&model,&newpath))) {
-	nullfree(newpath);
-        goto done;
-    }
+    if((stat = NC_infermodel(path,&cmode,1,useparallel,NULL,&model,&newpath))) goto done;
     if(newpath) {
         nullfree(path);
         path = newpath;
@@ -1918,7 +1912,7 @@ NC_create(const char *path0, int cmode, size_t initialsz,
         dispatcher = NC3_dispatch_table;
         break;
     default:
-        return NC_ENOTNC;
+        {stat = NC_ENOTNC; goto done;}
     }
 
     /* Create the NC* instance and insert its dispatcher and model */
@@ -1937,6 +1931,7 @@ NC_create(const char *path0, int cmode, size_t initialsz,
     }
 done:
     nullfree(path);
+    nullfree(newpath);
     return stat;
 }
 
@@ -1980,12 +1975,12 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
     TRACE(nc_open);
     if(!NC_initialized) {
         stat = nc_initialize();
-        if(stat) return stat;
+        if(stat) goto done;
     }
 
     /* Check inputs. */
     if (!path0)
-        return NC_EINVAL;
+        {stat = NC_EINVAL; goto done;}
 
     /* Capture the inmemory related flags */
     mmap = ((omode & NC_MMAP) == NC_MMAP);

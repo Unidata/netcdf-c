@@ -7,7 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.9.1 - T.B.D.
 
-### 4.9.1 - Release Candidate 2 - TBD
+### 4.9.1 - Release Candidate 2 - November 21, 2022
 
 #### Known Issues
 
@@ -18,6 +18,10 @@ This file contains a high-level description of this package's evolution. Release
 
 * [Bug Fix] Fix a race condition when testing missing filters. See [Github #2557](https://github.com/Unidata/netcdf-c/pull/2557). 
 * [Bug Fix] Fix some race conditions due to use of a common file in multiple shell scripts . See [Github #2552](https://github.com/Unidata/netcdf-c/pull/2552).
+
+
+### 4.9.1 - Release Candidate 1 - October 24, 2022
+
 * [Enhancement][Documentation] Add Plugins Quick Start Guide.  See [GitHub #2524](https://github.com/Unidata/netcdf-c/pull/2524) for more information.
 * [Enhancement] Add new entries in `netcdf_meta.h`, `NC_HAS_BLOSC` and `NC_HAS_BZ2`. See [Github #2511](https://github.com/Unidata/netcdf-c/issues/2511) and [Github #2512](https://github.com/Unidata/netcdf-c/issues/2512) for more information.
 * [Enhancement] Add new options to `nc-config`: `--has-multifilters`, `--has-stdfilters`, `--has-quantize`, `--plugindir`.  See [Github #2509](https://github.com/Unidata/netcdf-c/pull/2509) for more information.
