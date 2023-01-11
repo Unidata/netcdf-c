@@ -391,9 +391,11 @@ NCZ_def_var(int ncid, const char *name, nc_type xtype, int ndims,
     var->meta_read = NC_TRUE;
     var->atts_read = NC_TRUE;
 
+#ifdef ENABLE_NCZARR_FILTERS
     /* Set the filter list */
     assert(var->filters == NULL);
     var->filters = (void*)nclistnew();
+#endif
 
     /* Point to the type, and increment its ref. count */
     var->type_info = type;
@@ -558,10 +560,12 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
     
     /* Can't turn on parallel and deflate/fletcher32/szip/shuffle
      * before HDF5 1.10.3. */
+#ifdef ENABLE_NCZARR_FILTERS
 #ifndef HDF5_SUPPORTS_PAR_FILTERS
     if (h5->parallel == NC_TRUE)
 	if (nclistlength(((NClist*)var->filters)) > 0  || fletcher32 || shuffle)
 	    {retval = NC_EINVAL; goto done;}
+#endif
 #endif
 
     /* If the HDF5 dataset has already been created, then it is too
@@ -628,8 +632,10 @@ ncz_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
 	 * no filters in use for this data. */
 	if (storage != NC_CHUNKED)
 	{
+#ifdef NCZARR_FILTERS
 	    if (nclistlength(((NClist*)var->filters)) > 0)
 		{retval = NC_EINVAL; goto done;}
+#endif
 	    for (d = 0; d < var->ndims; d++)
 		if (var->dim[d]->unlimited)
 		    {retval = NC_EINVAL; goto done;}
