@@ -776,15 +776,12 @@ NC_omodeinfer(int useparallel, int cmode, NCmodel* model)
     if(fIsSet(cmode, NC_UDF2)) {
       model->impl = NC_FORMATX_UDF2;
       if(fIsSet(cmode,NC_64BIT_OFFSET)) {
-        model->impl = NC_FORMATX_NC3;
         model->format = NC_FORMAT_64BIT_OFFSET;
       }
       else if(fIsSet(cmode,NC_64BIT_DATA)) {
-        model->impl = NC_FORMATX_NC3;
         model->format = NC_FORMAT_64BIT_DATA;
       }
       else if(fIsSet(cmode,NC_NETCDF4)) {
-        model->impl = NC_FORMATX_NC4;
         if(fIsSet(cmode,NC_CLASSIC_MODEL))
             model->format = NC_FORMAT_NETCDF4_CLASSIC;
         else
