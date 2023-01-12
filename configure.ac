@@ -273,9 +273,9 @@ AC_ARG_ENABLE([doxygen-pdf-output],
 AC_SUBST([NC_ENABLE_DOXYGEN_PDF_OUTPUT], [$enable_doxygen_pdf_output])
 
 AC_ARG_ENABLE([dot],
-	[AS_HELP_STRING([--enable-dot],
-	[Use dot (provided by graphviz) to generate charts and graphs in the doxygen-based documentation.])])
-	test "x$enable_dot" = xyes || enable_dot=no
+        [AS_HELP_STRING([--enable-dot],
+        [Use dot (provided by graphviz) to generate charts and graphs in the doxygen-based documentation.])])
+        test "x$enable_dot" = xyes || enable_dot=no
 
 AC_ARG_ENABLE([internal-docs],
   [AS_HELP_STRING([--enable-internal-docs],
@@ -297,8 +297,8 @@ AC_MSG_CHECKING([if fsync support is enabled])
 AC_ARG_ENABLE([fsync],
               [AS_HELP_STRING([--enable-fsync],
                               [enable fsync support])],
-				[],
-				[enable_fsync=no])
+                                [],
+                                [enable_fsync=no])
 test "x$enable_fsync" = xno || enable_fsync=yes
 AC_MSG_RESULT($enable_fsync)
 if test "x$enable_fsync" = xyes ; then
@@ -315,8 +315,8 @@ AC_MSG_CHECKING([if jna bug workaround is enabled])
 AC_ARG_ENABLE([jna],
               [AS_HELP_STRING([--enable-jna],
                               [enable jna bug workaround])],
-				[],
-				[enable_jna=no])
+                                [],
+                                [enable_jna=no])
 test "x$enable_jna" = xno || enable_jna=yes
 AC_MSG_RESULT($enable_jna)
 if test "x$enable_jna" = xyes ; then
@@ -337,7 +337,7 @@ AM_CONDITIONAL([BUILD_UNIT_TESTS], [test "x$enable_unit_tests" = xyes])
 # This is only for those hdf5 installs that support it.
 AC_MSG_CHECKING([do we require hdf5 dynamic-loading support])
 AC_ARG_ENABLE([dynamic-loading], [AS_HELP_STRING([--enable-dynamic-loading],
-				 [enable dynamic loading for use with supported hdf5 installs (libdl, HDF5 required)])])
+                                 [enable dynamic loading for use with supported hdf5 installs (libdl, HDF5 required)])])
 test "x$enable_dynamic_loading" = xno || enable_dynamic_loading=yes
 AC_MSG_RESULT([$enable_dynamic_loading])
 
@@ -356,7 +356,7 @@ AC_MSG_RESULT($enable_hdf4_file_tests)
 # automatically?
 AC_MSG_CHECKING([whether we should attempt to install netcdf-fortran (EXPERIMENTAL)])
 AC_ARG_ENABLE([remote-fortran-bootstrap], [AS_HELP_STRING([--enable-remote-fortran-bootstrap],
-			 [Download and install netcdf-fortran (EXPERIMENTAL)])])
+                         [Download and install netcdf-fortran (EXPERIMENTAL)])])
 test "x$enable_remote_fortran_bootstrap" = xyes || enable_remote_fortran_bootstrap=no
 AC_MSG_RESULT([$enable_remote_fortran_bootstrap])
 
@@ -437,8 +437,8 @@ AC_MSG_CHECKING([whether netCDF-4 logging is enabled])
 AC_ARG_ENABLE([logging],
               [AS_HELP_STRING([--enable-logging],
                               [enable logging capability (only applies when netCDF-4 is built). \
-			      This debugging features is only of interest to netCDF developers. \
-			      Ignored if netCDF-4 is not enabled.])])
+                              This debugging features is only of interest to netCDF developers. \
+                              Ignored if netCDF-4 is not enabled.])])
 test "x$enable_logging" = xyes || enable_logging=no
 AC_MSG_RESULT([$enable_logging])
 
@@ -1084,13 +1084,37 @@ if test -n "$UDF1_DISPATCH"; then
                                  [])
 fi
 
-# Did the user specify a magic number for user-defined format 0?
+# Did the user specify a magic number for user-defined format 1?
 AC_MSG_CHECKING([whether a magic number for user-defined format 1 was specified])
 AC_ARG_WITH([udf1-magic-number],
               [AS_HELP_STRING([--with-udf1-magic-number=<magic_number>],
                               [Specify a magic number for user-defined format 1 (ignored unless --with-udf1 is also used).])],
             [UDF1_MAGIC_NUMBER=$with_udf1_magic_number])
 AC_MSG_RESULT([$UDF1_MAGIC_NUMBER])
+
+# Did the user specify a user-defined format 2?
+AC_MSG_CHECKING([whether user-defined format 2 was specified])
+AC_ARG_WITH([udf2],
+              [AS_HELP_STRING([--with-udf2=<dispatch_name>],
+                              [Specify a dispatch table for user-defined format 2.])],
+            [UDF2_DISPATCH=$with_udf2])
+AC_MSG_RESULT([$UDF2_DISPATCH])
+if test -n "$UDF2_DISPATCH"; then
+   AC_DEFINE_UNQUOTED([UDF2_DISPATCH], [$UDF2_DISPATCH], [dispatch table for user-defined format 2.])
+   AC_DEFINE_UNQUOTED([UDF2_DISPATCH_FUNC], [get_$UDF2_DISPATCH()], [function to get dispatch table for user-defined format 2.])
+   AC_DEFINE([USE_UDF2], [2], [if true, use user-defined format 2 in utilities])
+   AC_CHECK_LIB([$UDF2_DISPATCH], [get_$UDF2_DISPATCH], [],
+                                 [AC_MSG_ERROR([Can't find or link to the user-defined format 2 library.])],
+                                 [])
+fi
+
+# Did the user specify a magic number for user-defined format 2?
+AC_MSG_CHECKING([whether a magic number for user-defined format 2 was specified])
+AC_ARG_WITH([udf2-magic-number],
+              [AS_HELP_STRING([--with-udf2-magic-number=<magic_number>],
+                              [Specify a magic number for user-defined format 2 (ignored unless --with-udf2 is also used).])],
+            [UDF2_MAGIC_NUMBER=$with_udf2_magic_number])
+AC_MSG_RESULT([$UDF2_MAGIC_NUMBER])
 
 # According to the autoconf mailing list gurus, we must test for
 # compilers unconditionally. That is, we can't skip looking for the
@@ -1210,9 +1234,9 @@ AC_CHECK_HEADERS([execinfo.h])
 # Check for these functions...
 AC_CHECK_FUNCS([strlcat snprintf strcasecmp fileno \
                 strdup strtoll strtoull \
-		mkstemp mktemp random \
-		getrlimit gettimeofday fsync MPI_Comm_f2c MPI_Info_f2c \
-		strncasecmp])
+                mkstemp mktemp random \
+                getrlimit gettimeofday fsync MPI_Comm_f2c MPI_Info_f2c \
+                strncasecmp])
 
 # See if clock_gettime is available and its arg types.
 AC_CHECK_FUNCS([clock_gettime])
@@ -1599,21 +1623,21 @@ fi
 # Should we provide parallel io for netcdf-4?
 if test "x$enable_hdf5" = xyes ; then
    AC_ARG_ENABLE([parallel4],
-	[AS_HELP_STRING([--disable-parallel4],
+        [AS_HELP_STRING([--disable-parallel4],
                         [disable parallel I/O for netcdf-4, even if it's enabled in libhdf5])],
-			[user_set_parallel4=${enableval}]2)
+                        [user_set_parallel4=${enableval}]2)
    test "x$enable_parallel4" = xno || enable_parallel4=yes
 
    # If user wants parallel IO for netCDF-4, make sure HDF5 can provide it.
    if test "x$enable_parallel4" = xyes; then
       if test "x$hdf5_parallel" = xno; then
-      	 # If user specifically asked for parallel4, then error out.
-	 if test "x$user_set_parallel4" = xyes; then
-	    AC_MSG_ERROR([Paralllel IO in netCDF-4 requested, but HDF5 does not provide parallel IO.])
-	 fi
+         # If user specifically asked for parallel4, then error out.
+         if test "x$user_set_parallel4" = xyes; then
+            AC_MSG_ERROR([Paralllel IO in netCDF-4 requested, but HDF5 does not provide parallel IO.])
+         fi
          # User didn't specify, so disable parallel4
-	 enable_parallel4=no
-	 AC_MSG_WARN([Parallel io disabled for netcdf-4 because hdf5 does not support])
+         enable_parallel4=no
+         AC_MSG_WARN([Parallel io disabled for netcdf-4 because hdf5 does not support])
       fi
    fi
 else
@@ -1895,9 +1919,9 @@ xsolaris*)
   for x in $NC_LIBS ; do
     case "$x" in
     -L*) r=`echo "$x" | sed -e 's|^-L|-R|'`
-	 NEWNCLIBS="$NEWNCLIBS $x $r"
-	 ;;
-    *)	 NEWNCLIBS="$NEWNCLIBS $x" ;;
+         NEWNCLIBS="$NEWNCLIBS $x $r"
+         ;;
+    *)   NEWNCLIBS="$NEWNCLIBS $x" ;;
     esac
   done
   NC_LIBS="$NEWNCLIBS"
@@ -1960,7 +1984,7 @@ AC_SUBST(STD_FILTERS,[$std_filters])
 AC_MSG_CHECKING([whether and where we should install plugins])
 AC_ARG_WITH([plugin-dir], [AS_HELP_STRING([--with-plugin-dir=<absolute directory>|no|--without-plugin-dir],
               [Install selected standard filters in specified or default directory])],
-	      [],[with_plugin_dir=no])
+              [],[with_plugin_dir=no])
 AC_MSG_RESULT([$with_plugin_dir])
 if test "x$with_plugin_dir" = xno ; then # option missing|disabled
     with_plugin_dir=no
@@ -1971,10 +1995,10 @@ elif test "x$with_plugin_dir" = xyes ; then # --with-plugin-dir, no argument
     PLUGIN_PATH="$HDF5_PLUGIN_PATH"
     if test "x${PLUGIN_PATH}" = x ; then
         if test "x$ISMSVC" = xyes || test "x$ISMINGW" = xyes; then
-	    PLUGIN_PATH="${ALLUSERSPROFILE}\\hdfd5\\lib\\plugin"
-	else
-	    PLUGIN_PATH="/usr/local/hdf5/lib/plugin"
-	fi
+            PLUGIN_PATH="${ALLUSERSPROFILE}\\hdfd5\\lib\\plugin"
+        else
+            PLUGIN_PATH="/usr/local/hdf5/lib/plugin"
+        fi
     fi
     # Use the lowest priority dir in the path
     if test "x$ISMSVC" = xyes || test "x$ISMINGW" = xyes; then
@@ -2150,7 +2174,7 @@ AC_CONFIG_FILES([Makefile
                  ncdap_test/expectremote3/Makefile
                  dap4_test/Makefile
                  plugins/Makefile
-		 nczarr_test/Makefile
+                 nczarr_test/Makefile
                  ])
 AC_OUTPUT()
 
