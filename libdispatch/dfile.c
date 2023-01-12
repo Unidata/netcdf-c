@@ -52,6 +52,8 @@ NC_Dispatch *UDF0_dispatch_table = NULL;
 char UDF0_magic_number[NC_MAX_MAGIC_NUMBER_LEN + 1] = "";
 NC_Dispatch *UDF1_dispatch_table = NULL;
 char UDF1_magic_number[NC_MAX_MAGIC_NUMBER_LEN + 1] = "";
+NC_Dispatch *UDF2_dispatch_table = NULL;
+char UDF2_magic_number[NC_MAX_MAGIC_NUMBER_LEN + 1] = "";
 
 /**************************************************/
 
@@ -111,7 +113,7 @@ char UDF1_magic_number[NC_MAX_MAGIC_NUMBER_LEN + 1] = "";
  * not match the current dispatch table version), then ::NC_EINVAL
  * will be returned.
  *
- * @param mode_flag NC_UDF0 or NC_UDF1
+ * @param mode_flag NC_UDF0 or NC_UDF1 or NC_UDF2
  * @param dispatch_table Pointer to dispatch table to use for this user format.
  * @param magic_number Magic number used to identify file. Ignored if
  * NULL.
@@ -125,7 +127,7 @@ int
 nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_number)
 {
     /* Check inputs. */
-    if (mode_flag != NC_UDF0 && mode_flag != NC_UDF1)
+    if (mode_flag != NC_UDF0 && mode_flag != NC_UDF1 && mode_flag != NC_UDF2)
         return NC_EINVAL;
     if (!dispatch_table)
         return NC_EINVAL;
@@ -150,6 +152,11 @@ nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_numbe
         if (magic_number)
             strncpy(UDF1_magic_number, magic_number, NC_MAX_MAGIC_NUMBER_LEN);
         break;
+    case NC_UDF2:
+        UDF2_dispatch_table = dispatch_table;
+        if (magic_number)
+            strncpy(UDF2_magic_number, magic_number, NC_MAX_MAGIC_NUMBER_LEN);
+        break;
     }
 
     return NC_NOERR;
@@ -158,7 +165,7 @@ nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_numbe
 /**
  * Inquire about user-defined format.
  *
- * @param mode_flag NC_UDF0 or NC_UDF1
+ * @param mode_flag NC_UDF0 or NC_UDF1 or NC_UDF2
  * @param dispatch_table Pointer that gets pointer to dispatch table
  * to use for this user format, or NULL if this user-defined format is
  * not defined. Ignored if NULL.
@@ -175,7 +182,7 @@ int
 nc_inq_user_format(int mode_flag, NC_Dispatch **dispatch_table, char *magic_number)
 {
     /* Check inputs. */
-    if (mode_flag != NC_UDF0 && mode_flag != NC_UDF1)
+    if (mode_flag != NC_UDF0 && mode_flag != NC_UDF1 && mode_flag != NC_UDF2)
         return NC_EINVAL;
 
     switch(mode_flag)
@@ -191,6 +198,12 @@ nc_inq_user_format(int mode_flag, NC_Dispatch **dispatch_table, char *magic_numb
             *dispatch_table = UDF1_dispatch_table;
         if (magic_number)
             strncpy(magic_number, UDF1_magic_number, NC_MAX_MAGIC_NUMBER_LEN);
+        break;
+    case NC_UDF2:
+        if (dispatch_table)
+            *dispatch_table = UDF2_dispatch_table;
+        if (magic_number)
+            strncpy(magic_number, UDF2_magic_number, NC_MAX_MAGIC_NUMBER_LEN);
         break;
     }
 
@@ -1906,8 +1919,11 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 #ifdef ENABLE_NCZARR
     case NC_FORMATX_NCZARR:
         dispatcher = NCZ_dispatch_table;
-	break;
+        break;
 #endif
+    case NC_FORMATX_UDF2:
+        dispatcher = UDF2_dispatch_table;
+        break;
     case NC_FORMATX_NC3:
         dispatcher = NC3_dispatch_table;
         break;
@@ -2014,7 +2030,7 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
     if(newpath) {
         nullfree(path);
         path = newpath;
-	newpath = NULL;
+        newpath = NULL;
     }
 
     /* Still no implementation, give up */
@@ -2029,12 +2045,13 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
 #if 0
     /* (should be more compact, table-driven, way to do this) */
     {
-	int hdf5built = 0;
-	int hdf4built = 0;
-	int cdf5built = 0;
-	int udf0built = 0;
-	int udf1built = 0;
-	int nczarrbuilt = 0;
+        int hdf5built = 0;
+        int hdf4built = 0;
+        int cdf5built = 0;
+        int udf0built = 0;
+        int udf1built = 0;
+        int udf2built = 0;
+        int nczarrbuilt = 0;
 #ifdef USE_NETCDF4
         hdf5built = 1;
 #endif
@@ -2045,12 +2062,14 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
         cdf5built = 1;
 #endif
 #ifdef ENABLE_NCZARR
-	nczarrbuilt = 1;
+        nczarrbuilt = 1;
 #endif
         if(UDF0_dispatch_table != NULL)
             udf0built = 1;
         if(UDF1_dispatch_table != NULL)
             udf1built = 1;
+        if(UDF2_dispatch_table != NULL)
+            udf2built = 1;
 
         if(!hdf5built && model.impl == NC_FORMATX_NC4)
         {stat = NC_ENOTBUILT; goto done;}
@@ -2058,45 +2077,49 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
         {stat = NC_ENOTBUILT; goto done;}
         if(!cdf5built && model.impl == NC_FORMATX_NC3 && model.format == NC_FORMAT_CDF5)
         {stat = NC_ENOTBUILT; goto done;}
-	if(!nczarrbuilt && model.impl == NC_FORMATX_NCZARR)
+        if(!nczarrbuilt && model.impl == NC_FORMATX_NCZARR)
         {stat = NC_ENOTBUILT; goto done;}
         if(!udf0built && model.impl == NC_FORMATX_UDF0)
         {stat = NC_ENOTBUILT; goto done;}
         if(!udf1built && model.impl == NC_FORMATX_UDF1)
         {stat = NC_ENOTBUILT; goto done;}
+        if(!udf2built && model.impl == NC_FORMATX_UDF2)
+        {stat = NC_ENOTBUILT; goto done;}
     }
 #else
     {
-	unsigned built = 0 /* leave off the trailing semicolon so we can build constant */
-		| (1<<NC_FORMATX_NC3) /* NC3 always supported */
+        unsigned built = 0 /* leave off the trailing semicolon so we can build constant */
+                | (1<<NC_FORMATX_NC3) /* NC3 always supported */
 #ifdef USE_HDF5
-		| (1<<NC_FORMATX_NC_HDF5)
+                | (1<<NC_FORMATX_NC_HDF5)
 #endif
 #ifdef USE_HDF4
-		| (1<<NC_FORMATX_NC_HDF4)
+                | (1<<NC_FORMATX_NC_HDF4)
 #endif
 #ifdef ENABLE_NCZARR
-		| (1<<NC_FORMATX_NCZARR)
+                | (1<<NC_FORMATX_NCZARR)
 #endif
 #ifdef ENABLE_DAP
-		| (1<<NC_FORMATX_DAP2)
+                | (1<<NC_FORMATX_DAP2)
 #endif
 #ifdef ENABLE_DAP4
-		| (1<<NC_FORMATX_DAP4)
+                | (1<<NC_FORMATX_DAP4)
 #endif
 #ifdef USE_PNETCDF
-		| (1<<NC_FORMATX_PNETCDF)
+                | (1<<NC_FORMATX_PNETCDF)
 #endif
-		; /* end of the built flags */
+                ; /* end of the built flags */
         if(UDF0_dispatch_table != NULL)
-	    built |= (1<<NC_FORMATX_UDF0);
+            built |= (1<<NC_FORMATX_UDF0);
         if(UDF1_dispatch_table != NULL)
-	    built |= (1<<NC_FORMATX_UDF1);
-	/* Verify */
-	if((built & (1 << model.impl)) == 0)
+            built |= (1<<NC_FORMATX_UDF1);
+        if(UDF2_dispatch_table != NULL)
+            built |= (1<<NC_FORMATX_UDF2);
+        /* Verify */
+        if((built & (1 << model.impl)) == 0)
             {stat = NC_ENOTBUILT; goto done;}
 #ifndef ENABLE_CDF5
-	/* Special case because there is no separate CDF5 dispatcher */
+        /* Special case because there is no separate CDF5 dispatcher */
         if(model.impl == NC_FORMATX_NC3 && (omode & NC_64BIT_DATA))
             {stat = NC_ENOTBUILT; goto done;}
 #endif
@@ -2116,9 +2139,9 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
             break;
 #endif
 #ifdef ENABLE_NCZARR
-	case NC_FORMATX_NCZARR:
-	    dispatcher = NCZ_dispatch_table;
-	    break;
+        case NC_FORMATX_NCZARR:
+            dispatcher = NCZ_dispatch_table;
+            break;
 #endif
 #ifdef USE_PNETCDF
         case NC_FORMATX_PNETCDF:
@@ -2143,12 +2166,15 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
             dispatcher = UDF1_dispatch_table;
             break;
 #endif /* USE_NETCDF4 */
+        case NC_FORMATX_UDF2:
+            dispatcher = UDF2_dispatch_table;
+            break;
         case NC_FORMATX_NC3:
             dispatcher = NC3_dispatch_table;
             break;
         default:
             stat = NC_ENOTNC;
-	    goto done;
+            goto done;
         }
     }
 

@@ -270,9 +270,9 @@ static NC_Dispatch tst_dispatcher_bad_version = {
 #endif
 };
 
-#define NUM_UDFS 2
+#define NUM_UDFS 3
 
-int mode[NUM_UDFS] = {NC_UDF0, NC_UDF1};
+int mode[NUM_UDFS] = {NC_UDF0, NC_UDF1, NC_UDF2};
 
 int
 main(int argc, char **argv)
@@ -297,7 +297,6 @@ main(int argc, char **argv)
             /* Check that our user-defined format has been added. */
             if (nc_inq_user_format(mode[i], &disp_in, NULL)) ERR;
             if (disp_in != &tst_dispatcher) ERR;
-
             /* Open file with our defined functions. */
             if (nc_open(FILE_NAME, mode[i], &ncid)) ERR;
             if (nc_close(ncid)) ERR;
@@ -307,7 +306,11 @@ main(int argc, char **argv)
              * priority. If NC_NETCDF4 flag were given priority, then
              * nc_abort() will not return TEST_VAL_42, but instead will
              * return 0. */
-            if (nc_open(FILE_NAME, mode[i]|NC_NETCDF4, &ncid)) ERR;
+            if (mode[i] & NC_UDF0 || mode[i] & NC_UDF1){
+                if (nc_open(FILE_NAME, mode[i]|NC_NETCDF4, &ncid)) ERR;
+            }else{
+                if (nc_open(FILE_NAME, mode[i], &ncid)) ERR;
+            }
             if (nc_inq_format(ncid, NULL) != TEST_VAL_42) ERR;
             if (nc_inq_format_extended(ncid, NULL, NULL) != TEST_VAL_42) ERR;
             if (nc_abort(ncid) != TEST_VAL_42) ERR;

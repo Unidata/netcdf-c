@@ -134,8 +134,9 @@ extern "C" {
 #define NC_64BIT_DATA    0x0020  /**< CDF-5 format: classic model but 64 bit dimensions and sizes */
 #define NC_CDF5          NC_64BIT_DATA  /**< Alias NC_CDF5 to NC_64BIT_DATA */
 
-#define NC_UDF0          0x0040  /**< User-defined format 0. */
-#define NC_UDF1          0x0080  /**< User-defined format 1. */
+#define NC_UDF0          0x0040  /**< User-defined format 0. NETCDF4 only */
+#define NC_UDF1          0x0080  /**< User-defined format 1. NETCDF4 only */
+#define NC_UDF2          0x0400 /**< User-defined format 3.  May be used with classic and pnetcdf */
 
 #define NC_CLASSIC_MODEL 0x0100 /**< Enforce classic model on netCDF-4. Mode flag for nc_create(). */
 #define NC_64BIT_OFFSET  0x0200  /**< Use large (64-bit) file offsets. Mode flag for nc_create(). */
@@ -191,7 +192,7 @@ Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_FORMAT_CDF5    NC_FORMAT_64BIT_DATA
 
 /* Define a mask covering format flags only */
-#define NC_FORMAT_ALL (NC_64BIT_OFFSET|NC_64BIT_DATA|NC_CLASSIC_MODEL|NC_NETCDF4|NC_UDF0|NC_UDF1)
+#define NC_FORMAT_ALL (NC_64BIT_OFFSET|NC_64BIT_DATA|NC_CLASSIC_MODEL|NC_NETCDF4|NC_UDF0|NC_UDF1|NC_UDF2)
 
 /**@}*/
 
@@ -223,6 +224,7 @@ Use this in mode flags for both nc_create() and nc_open(). */
 #define NC_FORMATX_UDF0      (8)
 #define NC_FORMATX_UDF1      (9)
 #define NC_FORMATX_NCZARR    (10)
+#define NC_FORMATX_UDF2      (11)
 #define NC_FORMATX_UNDEFINED (0)
 
   /* To avoid breaking compatibility (such as in the python library),
@@ -372,16 +374,16 @@ there. */
 
 The specified netCDF ID does not refer to an
 open netCDF dataset. */
-#define	NC_EBADID	(-33)
-#define	NC_ENFILE	(-34)	   /**< Too many netcdfs open */
-#define	NC_EEXIST	(-35)	   /**< netcdf file exists && NC_NOCLOBBER */
-#define	NC_EINVAL	(-36)	   /**< Invalid Argument */
-#define	NC_EPERM	(-37)	   /**< Write to read only */
+#define NC_EBADID       (-33)
+#define NC_ENFILE       (-34)      /**< Too many netcdfs open */
+#define NC_EEXIST       (-35)      /**< netcdf file exists && NC_NOCLOBBER */
+#define NC_EINVAL       (-36)      /**< Invalid Argument */
+#define NC_EPERM        (-37)      /**< Write to read only */
 
 /** Operation not allowed in data mode. This is returned for netCDF
 classic or 64-bit offset files, or for netCDF-4 files, when they were
 been created with ::NC_CLASSIC_MODEL flag in nc_create(). */
-#define NC_ENOTINDEFINE	(-38)
+#define NC_ENOTINDEFINE (-38)
 
 /** Operation not allowed in define mode.
 
@@ -390,43 +392,43 @@ The specified netCDF is in define mode rather than data mode.
 With netCDF-4/HDF5 files, this error will not occur, unless
 ::NC_CLASSIC_MODEL was used in nc_create().
  */
-#define	NC_EINDEFINE	(-39)
+#define NC_EINDEFINE    (-39)
 
 /** Index exceeds dimension bound.
 
 The specified corner indices were out of range for the rank of the
 specified variable. For example, a negative index or an index that is
 larger than the corresponding dimension length will cause an error. */
-#define	NC_EINVALCOORDS	(-40)
+#define NC_EINVALCOORDS (-40)
 
 /** NC_MAX_DIMS exceeded. Max number of dimensions exceeded in a
 classic or 64-bit offset file, or an netCDF-4 file with
 ::NC_CLASSIC_MODEL on. */
-#define	NC_EMAXDIMS	(-41) /* not enforced after 4.5.0 */
+#define NC_EMAXDIMS     (-41) /* not enforced after 4.5.0 */
 
-#define	NC_ENAMEINUSE	(-42)	   /**< String match to name in use */
-#define NC_ENOTATT	(-43)	   /**< Attribute not found */
-#define	NC_EMAXATTS	(-44)	   /**< NC_MAX_ATTRS exceeded - not enforced after 4.5.0 */
-#define NC_EBADTYPE	(-45)	   /**< Not a netcdf data type */
-#define NC_EBADDIM	(-46)	   /**< Invalid dimension id or name */
-#define NC_EUNLIMPOS	(-47)	   /**< NC_UNLIMITED in the wrong index */
+#define NC_ENAMEINUSE   (-42)      /**< String match to name in use */
+#define NC_ENOTATT      (-43)      /**< Attribute not found */
+#define NC_EMAXATTS     (-44)      /**< NC_MAX_ATTRS exceeded - not enforced after 4.5.0 */
+#define NC_EBADTYPE     (-45)      /**< Not a netcdf data type */
+#define NC_EBADDIM      (-46)      /**< Invalid dimension id or name */
+#define NC_EUNLIMPOS    (-47)      /**< NC_UNLIMITED in the wrong index */
 
 /** NC_MAX_VARS exceeded. Max number of variables exceeded in a
 classic or 64-bit offset file, or an netCDF-4 file with
 ::NC_CLASSIC_MODEL on. */
-#define	NC_EMAXVARS	(-48) /* not enforced after 4.5.0 */
+#define NC_EMAXVARS     (-48) /* not enforced after 4.5.0 */
 
 /** Variable not found.
 
 The variable ID is invalid for the specified netCDF dataset. */
-#define NC_ENOTVAR	(-49)
-#define NC_EGLOBAL	(-50)	   /**< Action prohibited on NC_GLOBAL varid */
-#define NC_ENOTNC	(-51)	   /**< Not a netcdf file */
-#define NC_ESTS        	(-52)	   /**< In Fortran, string too short */
-#define NC_EMAXNAME    	(-53)	   /**< NC_MAX_NAME exceeded */
-#define NC_EUNLIMIT    	(-54)	   /**< NC_UNLIMITED size already in use */
-#define NC_ENORECVARS  	(-55)	   /**< nc_rec op when there are no record vars */
-#define NC_ECHAR	(-56)	   /**< Attempt to convert between text & numbers */
+#define NC_ENOTVAR      (-49)
+#define NC_EGLOBAL      (-50)      /**< Action prohibited on NC_GLOBAL varid */
+#define NC_ENOTNC       (-51)      /**< Not a netcdf file */
+#define NC_ESTS         (-52)      /**< In Fortran, string too short */
+#define NC_EMAXNAME     (-53)      /**< NC_MAX_NAME exceeded */
+#define NC_EUNLIMIT     (-54)      /**< NC_UNLIMITED size already in use */
+#define NC_ENORECVARS   (-55)      /**< nc_rec op when there are no record vars */
+#define NC_ECHAR        (-56)      /**< Attempt to convert between text & numbers */
 
 /** Start+count exceeds dimension bound.
 
