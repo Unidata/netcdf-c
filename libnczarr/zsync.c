@@ -1429,6 +1429,7 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
     char* varpath = NULL;
     char* key = NULL;
     NCZ_FILE_INFO_T* zinfo = NULL;
+    NC_VAR_INFO_T* var = NULL;
     NCZ_VAR_INFO_T* zvar = NULL;
     NCZMAP* map = NULL;
     NCjson* jvar = NULL;
@@ -1460,7 +1461,6 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 
     /* Load each var in turn */
     for(i = 0; i < nclistlength(varnames); i++) {
-	NC_VAR_INFO_T* var;
 	const char* varname = nclistget(varnames,i);
 	if((stat = nc4_var_list_add2(grp, varname, &var)))
 	    goto done;
@@ -1476,10 +1476,6 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 
 	/* Indicate we do not have quantizer yet */
 	var->quantize_mode = -1;
-
-	/* Set filter list */
-	assert(var->filters == NULL);
-	var->filters = (void*)nclistnew();
 
 	/* Construct var path */
 	if((stat = NCZ_varkey(var,&varpath)))
@@ -1697,9 +1693,9 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
            object MUST contain a "id" key identifying the codec to be used. */
 	/* Do filters key before compressor key so final filter chain is in correct order */
 	{
+#ifdef ENABLE_NCZARR_FILTERS
 	    if(var->filters == NULL) var->filters = (void*)nclistnew();
    	    if(zvar->incompletefilters == NULL) zvar->incompletefilters = (void*)nclistnew();
-#ifdef ENABLE_NCZARR_FILTERS
 	    { int k;
 	    chainindex = 0; /* track location of filter in the chain */
 	    if((stat = NCZ_filter_initialize())) goto done;
@@ -1722,8 +1718,8 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
         /* From V2 Spec: A JSON object identifying the primary compression codec and providing
            configuration parameters, or ``null`` if no compressor is to be used. */
 	{
-	    if(var->filters == NULL) var->filters = (void*)nclistnew();
 #ifdef ENABLE_NCZARR_FILTERS
+	    if(var->filters == NULL) var->filters = (void*)nclistnew();
 	    if((stat = NCZ_filter_initialize())) goto done;
 	    if((stat = NCJdictget(jvar,"compressor",&jfilter))) goto done;
 	    if(jfilter != NULL && NCJsort(jfilter) != NCJ_NULL) {
@@ -1752,6 +1748,7 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
         nullfree(shapes); shapes = NULL;
         if(formatv1) {NCJreclaim(jncvar); jncvar = NULL;}
         NCJreclaim(jvar); jvar = NULL;
+        var = NULL;
     }
 
 done:
