@@ -27,22 +27,27 @@ XML Parser:             @XMLPARSER@
 
 # Features
 --------
+Benchmarks:		@HAS_BENCHMARKS@
 NetCDF-2 API:		@HAS_NC2@
 HDF4 Support:		@HAS_HDF4@
 HDF5 Support:		@HAS_HDF5@
 NetCDF-4 API:		@HAS_NC4@
+CDF5 Support:		@HAS_CDF5@
 NC-4 Parallel Support:	@HAS_PARALLEL4@
 PnetCDF Support:	@HAS_PNETCDF@
+
 DAP2 Support:		@HAS_DAP2@
 DAP4 Support:		@HAS_DAP4@
 Byte-Range Support:	@HAS_BYTERANGE@
+NCZarr Support:		@HAS_NCZARR@
+NCZarr S3 Support:      @HAS_NCZARR_S3@
+
 Diskless Support:	@HAS_DISKLESS@
 MMap Support:		@HAS_MMAP@
 JNA Support:		@HAS_JNA@
-CDF5 Support:		@HAS_CDF5@
 ERANGE Fill Support:	@HAS_ERANGE_FILL@
 Relaxed Boundary Check:	@RELAX_COORD_BOUND@
-Parallel Filters:       @HAS_PAR_FILTERS@
+
 NCZarr Support:		@HAS_NCZARR@
 Multi-Filter Support:	@HAS_MULTIFILTERS@
 Quantization:		@HAS_QUANTIZE@
@@ -50,4 +55,5 @@ Logging:     		@HAS_LOGGING@
 SZIP Write Support:     @HAS_SZLIB_WRITE@
 Standard Filters:       @STD_FILTERS@
 ZSTD Support:           @HAS_ZSTD@
-Benchmarks:		@HAS_BENCHMARKS@
+Parallel Filters:       @HAS_PAR_FILTERS@
+
