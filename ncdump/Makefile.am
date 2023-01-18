@@ -151,7 +151,7 @@ TESTS += tst_output.sh
 TESTS += tst_nccopy3.sh
 if USE_HDF5
 TESTS += run_back_comp_tests.sh tst_netcdf4_4.sh
-TESTS += tst_nccopy4.sh tst_nccopy5.sh
+TESTS += tst_nccopy4.sh tst_nccopy5.sh tst_calendars_nc4.sh
 endif
 endif
 endif
