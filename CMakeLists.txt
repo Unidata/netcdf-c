@@ -1214,16 +1214,12 @@ ELSE() # No option specified
     SET(PLUGIN_INSTALL_DIR_SETTING "N.A.")
 ENDIF()
 
-# See if we have libzip
-FIND_PACKAGE(Zip)
-
-# Define a test flag for have zip library
-IF(Zip_FOUND)
+# Try to enable NCZarr zip support
+OPTION(ENABLE_NCZARR_ZIP "Enable NCZarr ZIP support." ON)
+IF (ENABLE_NCZARR_ZIP)
+  FIND_PACKAGE(Zip REQUIRED)
   INCLUDE_DIRECTORIES(${Zip_INCLUDE_DIRS})
-  SET(ENABLE_NCZARR_ZIP TRUE)
-ELSE()
-  SET(ENABLE_NCZARR_ZIP FALSE)
-ENDIF()
+ENDIF ()
 
 # libdl is always available; built-in in Windows and OSX
 OPTION(ENABLE_PLUGINS "Enable dynamically loaded plugins (default on)." ON)
