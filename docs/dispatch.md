@@ -499,6 +499,31 @@ The code in *hdf4var.c* does an *nc_get_vara()* on the HDF4 SD
 dataset. This is all that is needed for all the nc_get_* functions to
 work.
 
+# Appendix A. Changing NC_DISPATCH_VERSION
+
+When new entries are added to the *struct NC_Dispatch* type `located in include/netcdf_dispatch.h.in` it is necessary to do two things.
+
+1. Bump the NC_DISPATCH_VERSION number
+2. Modify the existing dispatch tables to include the new entries.
+It if often the case that the new entries do not mean anything for
+a given dispatch table. In that case, the new entries may be set to
+some variant of *NC_RO_XXX* or *NC_NOTNC4_XXX* *NC_NOTNC3_XXX*.
+
+Modifying the dispatch version requires two steps:
+1. Modify the version number in *netcdf-c/configure.ac*, and
+2. Modify the version number in *netcdf-c/CMakeLists.txt*.
+
+The two should agree in value.
+
+### NC_DISPATCH_VERSION Incompatibility
+
+When dynamically adding a dispatch table
+-- in nc_def_user_format (see libdispatch/dfile.c) --
+the version of the new table is compared with that of the built-in
+NC_DISPATCH_VERSION; if they differ, then an error is returned from
+that function.
+
+
 # Point of Contact {#dispatch_poc}
 
 *Author*: Dennis Heimbigner<br>
