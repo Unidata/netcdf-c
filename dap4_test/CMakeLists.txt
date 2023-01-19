@@ -52,14 +52,17 @@ ENDIF()
 
   IF(ENABLE_DAP_REMOTE_TESTS)
       add_sh_test(dap4_test test_remote)
-#      add_sh_test(dap4_test test_hyrax)
+      add_sh_test(dap4_test test_hyrax)
 #      add_sh_test(dap4_test test_thredds)
   ENDIF(ENABLE_DAP_REMOTE_TESTS)
 
 ENDIF(ENABLE_TESTS)
 
-#FILE(COPY ./baselineraw DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
 #FILE(COPY ./baseline DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
+#FILE(COPY ./baselineraw DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
+#FILE(COPY ./baselineremote DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
+#FILE(COPY ./baselinethredds DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
+#FILE(COPY ./baselinehyrax DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
 #FILE(COPY ./cdltestfiles DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
 #FILE(COPY ./rawtestfiles DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -69,6 +72,9 @@ ${CMAKE_CURRENT_SOURCE_DIR}/cdltestfiles
 ${CMAKE_CURRENT_SOURCE_DIR}/rawtestfiles
 ${CMAKE_CURRENT_SOURCE_DIR}/baseline
 ${CMAKE_CURRENT_SOURCE_DIR}/baselineraw
+${CMAKE_CURRENT_SOURCE_DIR}/baselineremote
+#${CMAKE_CURRENT_SOURCE_DIR}/baselinerthredds
+${CMAKE_CURRENT_SOURCE_DIR}/baselinehyrax
 )
 SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am)
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")

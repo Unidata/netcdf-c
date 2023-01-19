@@ -111,8 +111,7 @@ typedef enum NCD4sort {
 
 /* dap4.x query keys */
 #define DAP4CE		"dap4.ce"
-#define DAP4CSUM	"dap4.checksum=true"
-#define DAP4NOCSUM	"dap4.checksum=false"
+#define DAP4CSUM	"dap4.checksum"
 
 /**************************************************/
 /* Misc.*/
@@ -242,7 +241,6 @@ struct NCD4node {
         unsigned int localchecksum; /* toplevel variable checksum as computed by client */    
 	int checksumattr; /* 1=> _DAP4_Checksum_CRC32 is defined */
 	int attrchecksum; /* _DAP4_Checksum_CRC32 value */
-	int remotechecksummed; /* 1 if we know that this variable was checksummed */
     } data;
     struct { /* Track netcdf-4 conversion info */
 	int isvlen;	/*  _edu.ucar.isvlen */
@@ -342,10 +340,11 @@ struct NCD4INFO {
         d4size_t   datasize; /* size on disk or in memory */
         long dmrlastmodified;
         long daplastmodified;
-        int querychecksum; /* 1 => user specified dap4.ce value */
-	int checksumattr; /* 1=> _DAP4_Checksum_CRC32 is defined for at least one variable */
-        int inferredchecksum; /* 1 => we infer that incoming data has checksums */
-    } data;
+        int querychecksumming; /* 1 => user specified dap4.ce value */
+	int attrchecksumming; /* 1=> _DAP4_Checksum_CRC32 is defined for at least one variable */
+	int inferredchecksumming; /* 1 => either query checksum || att checksum */
+        int checksumignore; /* 1 => assume checksum, but do not validate */
+	} data;
     struct {
 	int realfile; /* 1 => we created actual temp file */
 	char* filename; /* of the substrate file */

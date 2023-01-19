@@ -591,8 +591,8 @@ For linux, the following context works. Of course your mileage may vary.
 ### AWS-SDK-CPP Build Recipe
 
 ````
-git clone --recurse-submodules https://www.github.com/aws/aws-sdk-cpp
-pushd aws-sdk-cpp
+git clone --recurse-submodules https://www.github.com/aws/aws-sdk-cpp.git
+cd aws-sdk-cpp
 mkdir build
 cd build
 PREFIX=/usr/local
@@ -604,12 +604,13 @@ FLAGS="-DCMAKE_INSTALL_PREFIX=${PREFIX} \
        -DENABLE_UNITY_BUILD=ON \
        -DENABLE_TESTING=OFF \
        -DCMAKE_BUILD_TYPE=$CFG \
-       -DSIMPLE_INSTALL=ON"
+       -DSIMPLE_INSTALL=ON \
+       _DMY_ASSEMBLER_IS_TOO_OLD_FOR_AVX=ON"
 cmake -GNinja $FLAGS ..
 ninja all
-ninja install
+sudo ninja install
 cd ..
-popd
+cd ..
 ````
 
 ### NetCDF Build

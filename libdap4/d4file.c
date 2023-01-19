@@ -429,16 +429,12 @@ NCD4_applyclientfragmentcontrols(NCD4INFO* info)
     const char* value;
 
     /* clear all flags */
-    /* clear the flags */
-    CLRFLAG(info->controls.flags,NCF_CACHE);
-    CLRFLAG(info->controls.flags,NCF_SHOWFETCH);
-    CLRFLAG(info->controls.flags,NCF_NC4);
-    CLRFLAG(info->controls.flags,NCF_NCDAP);
-    CLRFLAG(info->controls.flags,NCF_FILLMISMATCH);
-    CLRFLAG(info->controls.flags,NCF_FILLMISMATCH_FAIL);
+    CLRFLAG(info->controls.flags,ALL_NCF_FLAGS);
 
     /* Turn on any default on flags */
     SETFLAG(info->controls.flags,DFALT_ON_FLAGS);
+
+    /* Set these also */
     SETFLAG(info->controls.flags,(NCF_NC4|NCF_NCDAP));
 
     if(fragmentcheck(info,"show","fetch"))
@@ -454,6 +450,11 @@ NCD4_applyclientfragmentcontrols(NCD4INFO* info)
     value = getfragment(info,"substratename");
     if(value != NULL)
       strncpy(info->controls.substratename,value,(NC_MAX_NAME-1));
+
+    value = getfragment(info,"hyrax");
+    if(value != NULL) {
+      info->data.checksumignore = 1; /* Assume checksum, but ignore */	    
+    }
 
     info->controls.opaquesize = DFALTOPAQUESIZE;
     value = getfragment(info,"opaquesize");
@@ -480,13 +481,18 @@ NCD4_applyclientfragmentcontrols(NCD4INFO* info)
 void
 NCD4_applyclientquerycontrols(NCD4INFO* info)
 {
-    const char* value = getquery(info,DAP4CE);
-    if(value != NULL) {
-        info->data.querychecksum = DEFAULT_CHECKSUM_STATE;
-        if(strcasecmp(value,"false")==0)
-	    info->data.querychecksum = 0;
-        else
-	    info->data.querychecksum = 1;
+    const char* value = getquery(info,DAP4CSUM);
+    if(value == NULL) {
+        info->data.querychecksumming = DEFAULT_CHECKSUM_STATE;
+    } else {
+        if(strcasecmp(value,"false")==0) {
+	    info->data.querychecksumming = 0;
+        } else if(strcasecmp(value,"true")==0) {
+	    info->data.querychecksumming = 1;
+        } else {
+            nclog(NCLOGWARN,"Unknown checksum mode: %s ; using default",value);
+    	    info->data.querychecksumming = DEFAULT_CHECKSUM_STATE;
+	}
     }
 }
 

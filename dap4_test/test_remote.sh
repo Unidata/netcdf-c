@@ -7,8 +7,6 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 set -e
 
-echo "test_remote.sh:"
-
 #BIG=1
 #CSUM=1
 
@@ -30,12 +28,13 @@ for f in $F ; do
 	FRAG="${FRAG}&ucar.littleendian=0"
     fi
     if test "x$CSUM" = x1 ; then
-	QUERY="${QUERY}&dap4.checksum=true"
+	QUERY="dap4.checksum=true"
     else
-	QUERY="${QUERY}${QCHAR}&dap4.checksum=false"
+	QUERY="dap4.checksum=false"
     fi
     # Fix up QUERY
-    if test "x$QUERY" != x ; then QUERY=`echo ${QUERY} | sed -e 's/^&/?/'` ; fi
+    QUERY="?${QUERY}"
+    # Built test URL
     URL="${TESTSERVER}/testfiles/${f}${QUERY}${FRAG}"
     ${NCDUMP} ${DUMPFLAGS} "${URL}" > ${builddir}/results_test_remote/${f}.ncdump
     if test "x${TEST}" = x1 ; then
