@@ -20,6 +20,8 @@ This code serves two purposes
 
 */
 
+#undef DUMPCHECKSUM
+
 /***************************************************/
 /* Forwards */
 static int fillstring(NCD4meta*, NCD4offset* offset, void** dstp, NClist* blobs);
@@ -28,6 +30,7 @@ static int fillopvar(NCD4meta*, NCD4node* type, NCD4offset* offset, void** dstp,
 static int fillstruct(NCD4meta*, NCD4node* type, NCD4offset* offset, void** dstp, NClist* blobs);
 static int fillseq(NCD4meta*, NCD4node* type, NCD4offset* offset, void** dstp, NClist* blobs);
 static int NCD4_inferChecksums(NCD4meta* meta, NClist* toplevel);
+static unsigned NCD4_computeChecksum(NCD4meta* meta, NCD4node* topvar);
 
 /***************************************************/
 /* Macro define procedures */
@@ -73,43 +76,35 @@ NCD4_processdata(NCD4meta* meta)
     meta->swap = (meta->serial.hostlittleendian != meta->serial.remotelittleendian);
 
     /* Compute the  offset and size of the toplevel vars in the raw dap data. */
-    /* Also extract checksums */ 
+    /* Also extract remote checksums */ 
     offset = BUILDOFFSET(meta->serial.dap,meta->serial.dapsize);
     for(i=0;i<nclistlength(toplevel);i++) {
 	NCD4node* var = (NCD4node*)nclistget(toplevel,i);
         if((ret=NCD4_delimit(meta,var,offset)))
 	    FAIL(ret,"delimit failure");
-    }
-
-    /* Compute the checksums of the top variables if needed */
-    /* must occur before any byte swapping */
-    for(i=0;i<nclistlength(toplevel);i++) {
-	    NCD4node* var = (NCD4node*)nclistget(toplevel,i);
-            unsigned int csum = 0;
-	    if(var->data.remotechecksummed) {
-                csum = CRC32(csum,var->data.dap4data.memory,var->data.dap4data.size);
-                var->data.localchecksum = csum;
+        if(meta->controller->data.inferredchecksumming) {
+	    /* Compute remote checksum: must occur before any byte swapping */
+            var->data.localchecksum = NCD4_computeChecksum(meta,var);
+#ifdef DUMPCHECKSUM
+            fprintf(stderr,"var %s: remote-checksum = 0x%x\n",var->name,var->data.remotechecksum);
+#endif
+            /* verify checksums */
+	    if(!meta->controller->data.checksumignore) {
+                if(var->data.localchecksum != var->data.remotechecksum) {
+                    nclog(NCLOGERR,"Checksum mismatch: %s\n",var->name);
+                    ret = NC_EDAP;
+                    goto done;
+                 }
+                 /* Also verify checksum attribute */
+                 if(meta->controller->data.attrchecksumming) {
+                    if(var->data.attrchecksum != var->data.remotechecksum) {
+                        nclog(NCLOGERR,"Attribute Checksum mismatch: %s\n",var->name);
+                        ret = NC_EDAP;
+                        goto done;
+                    }
+                }
 	    }
-    }
-
-    /* verify checksums */
-    for(i=0;i<nclistlength(toplevel);i++) {
-	    NCD4node* var = (NCD4node*)nclistget(toplevel,i);
-	    if(var->data.remotechecksummed) {
-	        if(var->data.localchecksum != var->data.remotechecksum) {
-		    nclog(NCLOGERR,"Checksum mismatch: %s\n",var->name);
-		    ret = NC_EDAP;
-		    goto done;
-		}
-	     }
-	     /* Also verify checksum attribute */
-	     if(var->data.checksumattr) {
-	        if(var->data.attrchecksum != var->data.remotechecksum) {
-		        nclog(NCLOGERR,"Attribute Checksum mismatch: %s\n",var->name);
-		        ret = NC_EDAP;
-		        goto done;
-		    }
-	    }
+	}
     }
 
     /* Swap the data for each top level variable,
@@ -382,13 +377,15 @@ static int
 NCD4_inferChecksums(NCD4meta* meta, NClist* toplevel)
 {
     int ret = NC_NOERR;
-    int i;
+    int i, attrfound;
     NCD4INFO* info = meta->controller;
 
+    /* First, look thru the DMR to see if there is a checksum attribute */
+    attrfound = 0;
     for(i=0;i<nclistlength(toplevel);i++) {
-	int a, found;
+	int a;
         NCD4node* node = (NCD4node*)nclistget(toplevel,i);
-	for(found=0,a=0;a<nclistlength(node->attributes);a++) {	
+	for(a=0;a<nclistlength(node->attributes);a++) {	
             NCD4node* attr = (NCD4node*)nclistget(node->attributes,a);
 	    if(strcmp(D4CHECKSUMATTR,attr->name)==0) {
 		const char* val =  NULL;
@@ -397,16 +394,52 @@ NCD4_inferChecksums(NCD4meta* meta, NClist* toplevel)
 		val = (const char*)nclistget(attr->attr.values,0);
 		sscanf(val,"%u",&node->data.attrchecksum);
 		node->data.checksumattr = 1;
-	        node->data.remotechecksummed = 1;
-		found = 1;
+		attrfound = 1;
 		break;
 	    }
 	}
-	if(!found) info->data.checksumattr = 0;
     }
+    info->data.attrchecksumming = (attrfound ? 1 : 0);
     /* Infer checksums */
-    info->data.querychecksum = (info->data.checksumattr || info->data.querychecksum ? 1 : 0);
+    info->data.inferredchecksumming = ((info->data.attrchecksumming || info->data.querychecksumming) ? 1 : 0);
     return THROW(ret);
+}
+
+/* Compute the checksum of each variable's data.
+*/
+static unsigned
+NCD4_computeChecksum(NCD4meta* meta, NCD4node* topvar)
+{
+    unsigned int csum = 0;
+
+    ASSERT((ISTOPLEVEL(topvar)));
+
+#ifndef HYRAXCHECKSUM
+    csum = CRC32(csum,topvar->data.dap4data.memory,topvar->data.dap4data.size);
+#else
+    if(topvar->basetype->subsort != NC_STRING) {
+            csum = CRC32(csum,topvar->data.dap4data.memory,topvar->data.dap4data.size);
+    } else { /* Checksum over the actual strings */
+	int i;
+        unsigned long long count;
+	NCD4offset offset;
+        d4size_t dimproduct = NCD4_dimproduct(topvar);
+	offset.base = topvar->data.dap4data.memory;
+	offset.limit = offset.base + topvar->data.dap4data.size;
+	offset.offset = offset.base;
+        for(i=0;i<dimproduct;i++) {
+            /* Get string count */
+            count = GETCOUNTER(&offset);
+            SKIPCOUNTER(&offset);
+  	    if(meta->swap) swapinline64(&count);
+            /* CRC32 count bytes */
+            csum = CRC32(csum,offset.offset,count);
+	    /* Skip count bytes */
+  	    INCR(&offset,count);
+        }
+    }
+#endif
+    return csum;
 }
 
 #if 0

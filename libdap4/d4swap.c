@@ -55,7 +55,7 @@ NCD4_swapdata(NCD4meta* compiler, NClist* topvars)
 	}
 	var->data.dap4data.size = DELTA(offset,var->data.dap4data.memory);
 	/* skip checksum, if there is one */
-        if(var->data.remotechecksummed)
+        if(compiler->controller->data.inferredchecksumming)
 	    INCR(offset,CHECKSUMSIZE);
     }
 done:

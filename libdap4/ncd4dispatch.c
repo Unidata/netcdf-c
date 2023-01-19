@@ -881,7 +881,7 @@ ncd4_get_att_reserved(NC* ncp, int ncid, int varid, const char* name, void* valu
             {ret = NC_EBADID; goto done;}
 	if(t != NC_UINT) {ret = NC_EBADTYPE; goto done;}
         if((ret=NCD4_findvar(ncp,ncid,varid,&var,NULL))) goto done;
-	if(var->data.remotechecksummed == 0)
+	if(var->data.checksumattr == 0)
 	    {ret = NC_ENOTATT; goto done;} 
 	*ip = (var->data.remotechecksum);
     } else if(strcmp(rsvp->name,D4LEATTR)==0) {
@@ -905,7 +905,7 @@ ncd4_inq_att_reserved(NC* ncp, int ncid, int varid, const char* name, nc_type* x
 	if(varid == NC_GLOBAL)
             {ret = NC_EBADID; goto done;}
         if((ret=NCD4_findvar(ncp,ncid,varid,&var,NULL))) goto done;
-	if(var->data.remotechecksummed == 0)
+	if(var->data.checksumattr == 0)
 	    {ret = NC_ENOTATT; goto done;} 
 	if(xtypep) *xtypep = NC_UINT;
 	if(lenp) *lenp = 1;

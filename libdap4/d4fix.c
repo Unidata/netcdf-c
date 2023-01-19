@@ -210,12 +210,11 @@ NCD4_delimit(NCD4meta* compiler, NCD4node* topvar, NCD4offset* offset)
             break;
 	}
     }
-    /* Track the variable size (in the dap4 data) but do not include
-       any checksum */
+    /* Track the variable size (in the dap4 data) but do not include any checksum */
     topvar->data.dap4data.memory = mark;
     topvar->data.dap4data.size = OFFSETSIZE(offset,mark);
     /* extract the dap4 data checksum, if present */
-    if(topvar->data.remotechecksummed) {
+    if(compiler->controller->data.inferredchecksumming) {
 	union ATOMICS csum;
         TRANSFER(csum.u8,offset,CHECKSUMSIZE);
         topvar->data.remotechecksum = csum.u32[0];

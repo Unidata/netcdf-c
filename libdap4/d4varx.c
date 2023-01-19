@@ -37,7 +37,7 @@ NCD4_get_vars(int ncid, int varid,
     NCD4node* nctype;
     D4odometer* odom = NULL;
     nc_type nc4type;
-    size_t nc4size, xsize;
+    size_t nc4size, xsize, dapsize;
     void* instance = NULL; /* Staging area in case we have to convert */
     NClist* blobs = NULL;
     int rank;
@@ -46,6 +46,7 @@ NCD4_get_vars(int ncid, int varid,
     size_t dstcount;
     NCD4offset* offset = NULL;
     
+    /* Get netcdf type info */
     if((ret=getvarx(ncid, varid, &info, &ncvar, &xtype, &xsize, &nc4type, &nc4size)))
 	{goto done;}
 
@@ -53,6 +54,9 @@ NCD4_get_vars(int ncid, int varid,
     nctype = ncvar->basetype;
     rank = nclistlength(ncvar->dims);
     blobs = nclistnew();
+
+    /* Get the type's dapsize */
+    dapsize = nctype->meta.dapsize;
 
     instance = malloc(nc4size);
     if(instance == NULL)
@@ -93,7 +97,7 @@ NCD4_get_vars(int ncid, int varid,
         BLOB2OFFSET(offset,ncvar->data.dap4data);
 	/* Move offset to the count'th element of the array */
 	if(nctype->meta.isfixedsize) {
-	    INCR(offset,(nc4size*count));
+	    INCR(offset,(dapsize*count));
 	} else {
 	    /* We have to walk to the count'th location in the data */
 	    if((ret=NCD4_moveto(meta,ncvar,count,offset)))
