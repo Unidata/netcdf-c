@@ -49,7 +49,6 @@ tst_close(int ncid, void *v)
 int
 tst_inq_format(int ncid, int *formatp)
 {
-    printf("in tst_inq_format\n");
     return TEST_VAL_42;
 }
 
