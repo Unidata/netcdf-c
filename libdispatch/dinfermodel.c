@@ -764,7 +764,7 @@ NC_omodeinfer(int useparallel, int cmode, NCmodel* model)
      * flag. */
     if(fIsSet(cmode, NC_UDF0)  || fIsSet(cmode, NC_UDF1))
     {
-        if(fIsSet(cmode, NC_UDF0)
+        if(fIsSet(cmode, NC_UDF0))
         {
 	    model->impl = NC_FORMATX_UDF0;
 	} else {
