@@ -1,5 +1,4 @@
 /**
-@if INTERNAL
 
 @page byterange Remote Dataset Access Using HTTP Byte Ranges
 
@@ -150,7 +149,5 @@ __Initial Version__: 12/30/2018<br>
 __Last Revised__: 12/30/2018
 
 <!-- End MarkDown -->
-
-@endif
 
 */
