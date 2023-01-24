@@ -1,9 +1,7 @@
-/**
+NetCDF Byterange Support {#netcdf_byterange}
+================================
 
-@page byterange Remote Dataset Access Using HTTP Byte Ranges
-
-\tableofcontents
-
+[TOC]
 <!-- Note that this file has the .dox extension, but is mostly markdown -->
 <!-- Begin MarkDown -->
 
