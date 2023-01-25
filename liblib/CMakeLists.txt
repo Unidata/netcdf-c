@@ -53,7 +53,7 @@ IF(MPI_C_INCLUDE_PATH)
 ENDIF(MPI_C_INCLUDE_PATH)
 
 IF(TARGET MPI::MPI_C)
-  target_link_libraries(netcdf PUBLIC MPI::MPI_C)
+  target_link_libraries(netcdf MPI::MPI_C)
 ENDIF(TARGET MPI::MPI_C)
 
 IF(MOD_NETCDF_NAME)
