@@ -987,7 +987,8 @@ void nc_get_att_single_string(const int ncid, const int varid,
         *str_out = emalloc((att_str_len + 1) * att->tinfo->size);
 	(*str_out)[att_str_len] = '\0';
         strncpy(*str_out, att_strings[0], att_str_len);
-        nc_free_string(att->len, att_strings);
+        nc_free_string(att->len, att_strings); /* Warning: does not free att_strings */
+	free(att_strings);
     } else {
         fprintf(stderr,"nc_get_att_single_string: unknown attribute type: %d\n", att->type);
         fprintf(stderr,"                          must use one of:  NC_CHAR, NC_STRING\n");
