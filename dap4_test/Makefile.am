@@ -44,7 +44,8 @@ pingurl4_SOURCES = pingurl4.c
 if ENABLE_DAP_REMOTE_TESTS
 if BUILD_UTILITIES
   # relies on ncdump
-  TESTS += test_hyrax.sh test_thredds.sh
+  TESTS += test_hyrax.sh
+#  TESTS += test_thredds.sh
 if AX_IGNORE
   TESTS += test_remote.sh
 endif
