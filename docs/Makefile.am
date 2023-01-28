@@ -7,15 +7,13 @@
 # See netcdf-c/COPYRIGHT file for more info.
 
 # These files will be included with the dist.
-EXTRA_DIST = CMakeLists.txt  COPYRIGHT.md FAQ.md		\
-netcdf.m4 DoxygenLayout.xml Doxyfile.in footer.html		\
-mainpage.dox tutorial.dox architecture.dox			\
-groups.dox  indexing.dox  inmeminternal.dox testserver.dox	\
-byterange.dox							\
-windows-binaries.md dispatch.md building-with-cmake.md		\
-notes.md install-fortran.md credits.md auth.md filters.md	\
-obsolete/fan_utils.html inmemory.md known_problems.md		\
-nczarr.md quantize.md all-error-codes.md
+EXTRA_DIST = netcdf.m4 DoxygenLayout.xml Doxyfile.in footer.html	\
+mainpage.dox tutorial.dox architecture.dox internal.dox			\
+windows-binaries.md dispatch.md building-with-cmake.md CMakeLists.txt groups.dox	\
+notes.md install-fortran.md credits.md auth.md filters.md		\
+obsolete/fan_utils.html indexing.dox inmemory.md FAQ.md			\
+known_problems.md COPYRIGHT.md inmeminternal.dox testserver.dox		\
+byterange.md nczarr.md quantize.md all-error-codes.md
 
 # Turn off parallel builds in this directory.
 .NOTPARALLEL:

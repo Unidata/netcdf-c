@@ -748,7 +748,7 @@ INPUT = \
     ./docs/windows-binaries.md \
     ./docs/attribute_conventions.md \
     ./docs/file_format_specifications.md \
-    ./docs/byterange.dox \
+    ./docs/byterange.md \
     ./docs/inmemory.md \
     ./docs/auth.md \
     ./docs/filters.md \
