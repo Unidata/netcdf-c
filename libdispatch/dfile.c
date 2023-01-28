@@ -125,8 +125,6 @@ int
 nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_number)
 {
     /* Check inputs. */
-    if (mode_flag != NC_UDF0 && mode_flag != NC_UDF1)
-        return NC_EINVAL;
     if (!dispatch_table)
         return NC_EINVAL;
     if (magic_number && strlen(magic_number) > NC_MAX_MAGIC_NUMBER_LEN)
@@ -135,21 +133,29 @@ nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_numbe
     /* Check the version of the dispatch table provided. */
     if (dispatch_table->dispatch_version != NC_DISPATCH_VERSION)
         return NC_EINVAL;
-
+    /* user defined magic numbers not allowed with netcdf3 modes */ 
+    if (magic_number && (fIsSet(mode_flag, NC_64BIT_OFFSET) ||
+                         fIsSet(mode_flag, NC_64BIT_DATA) ||
+                        (fIsSet(mode_flag, NC_CLASSIC_MODEL) &&
+                        !fIsSet(mode_flag, NC_NETCDF4))))
+        return NC_EINVAL;
     /* Retain a pointer to the dispatch_table and a copy of the magic
      * number, if one was provided. */
-    switch(mode_flag)
+    if (fIsSet(mode_flag,NC_UDF0))
     {
-    case NC_UDF0:
         UDF0_dispatch_table = dispatch_table;
         if (magic_number)
             strncpy(UDF0_magic_number, magic_number, NC_MAX_MAGIC_NUMBER_LEN);
-        break;
-    case NC_UDF1:
+    }
+    else if(fIsSet(mode_flag, NC_UDF1))
+    {
         UDF1_dispatch_table = dispatch_table;
         if (magic_number)
             strncpy(UDF1_magic_number, magic_number, NC_MAX_MAGIC_NUMBER_LEN);
-        break;
+    }
+    else
+    {
+        return NC_EINVAL;
     }
 
     return NC_NOERR;
@@ -175,23 +181,23 @@ int
 nc_inq_user_format(int mode_flag, NC_Dispatch **dispatch_table, char *magic_number)
 {
     /* Check inputs. */
-    if (mode_flag != NC_UDF0 && mode_flag != NC_UDF1)
-        return NC_EINVAL;
-
-    switch(mode_flag)
+    if (fIsSet(mode_flag,NC_UDF0))
     {
-    case NC_UDF0:
         if (dispatch_table)
             *dispatch_table = UDF0_dispatch_table;
         if (magic_number)
             strncpy(magic_number, UDF0_magic_number, NC_MAX_MAGIC_NUMBER_LEN);
-        break;
-    case NC_UDF1:
+    }
+    else if(fIsSet(mode_flag,NC_UDF1))
+    {
         if (dispatch_table)
             *dispatch_table = UDF1_dispatch_table;
         if (magic_number)
             strncpy(magic_number, UDF1_magic_number, NC_MAX_MAGIC_NUMBER_LEN);
-        break;
+    }
+    else
+    {
+        return NC_EINVAL;
     }
 
     return NC_NOERR;

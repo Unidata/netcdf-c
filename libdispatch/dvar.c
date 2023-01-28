@@ -1303,6 +1303,9 @@ NC_check_nulls(int ncid, int varid, const size_t *start, size_t **count,
    pointer back to this function, when you're done with the data, and
    it will free the string memory.
 
+   WARNING: This does not free the data vector itself, only
+   the strings to which it points.
+
    @param len The number of character arrays in the array.
    @param data The pointer to the data array.
 
