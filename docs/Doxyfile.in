@@ -811,7 +811,6 @@ INPUT                  = @abs_top_srcdir@/docs/mainpage.dox \
                          @abs_top_srcdir@/docs/windows-binaries.md \
                          @abs_top_srcdir@/docs/inmemory.md \
                          @abs_top_srcdir@/docs/filters.md \
-                         @abs_top_srcdir@/docs/filter_quickstart.md \
                          @abs_top_srcdir@/docs/byterange.md \
                          @abs_top_srcdir@/docs/nczarr.md \
                          @abs_top_srcdir@/docs/notes.md \

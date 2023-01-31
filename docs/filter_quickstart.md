@@ -3,7 +3,7 @@ NetCDF-4 Filter QuickStart
 
 [TOC]
 
-<!--  double header is needed to workaround doxygen bug  -->
+
 
 NetCDF-4 Filter QuickStart {#nc_filters_quickstart}
 ==============================
@@ -15,13 +15,14 @@ NetCDF-4 Filter QuickStart {#nc_filters_quickstart}
 Building and Installing the Interface Libraries {#nc_filters_qs_building}
 ----------------------------------
 
+### Configuring 
+
 When configuring netcdf via either the `configure` script or via `cmake`, you'll need to specify the location to install the interface libraries, as follows:
 
 * configure: `--with-plugin-dir=<absolutely directory>`
 * cmake: `-DPLUGIN_INSTALL_DIR=<absolutely directory>`
 
 After compiling and installing `libnetcdf`, the interface libraries for those filters detected will be installed in the user-specified `<absolute directory>`.
-
 
 Using the Interface Libraries at Run-time {#nc_filters_qs_runtime}
 ---------------------------------
