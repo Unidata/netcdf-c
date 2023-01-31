@@ -1,7 +1,7 @@
 NetCDF-4 Filter QuickStart
 ==============================
 
-\tableofcontents
+[TOC]
 
 <!--  double header is needed to workaround doxygen bug  -->
 
@@ -26,7 +26,7 @@ After compiling and installing `libnetcdf`, the interface libraries for those fi
 Using the Interface Libraries at Run-time {#nc_filters_qs_runtime}
 ---------------------------------
 
-For historical reasons, `libnetcdf` uses the environmental variable `HDF5_PLUGIN_PATH` to local the interface libraries at run-time. 
+For historical reasons, `libnetcdf` uses the environmental variable `HDF5_PLUGIN_PATH` to locate the interface libraries at run-time. This location should be set to the `<absolute directory>` specified when building and installing `libnetcdf`.
 
 
 Example Workflow (blosc) {#nc_filters_qs_workflow_example}
