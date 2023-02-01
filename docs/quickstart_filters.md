@@ -1,11 +1,4 @@
-NetCDF-4 Filter QuickStart
-==============================
-
-\tableofcontents
-
-<!--  double header is needed to workaround doxygen bug  -->
-
-NetCDF-4 Filter QuickStart {#nc_filters_quickstart}
+Appendix D.1. NetCDF-4 Filter QuickStart {#nc_filters_quickstart}
 ==============================
 
 > For full **Filters** documentation, see \ref filters.
@@ -15,18 +8,23 @@ NetCDF-4 Filter QuickStart {#nc_filters_quickstart}
 Building and Installing the Interface Libraries {#nc_filters_qs_building}
 ----------------------------------
 
+### Configuring 
+
 When configuring netcdf via either the `configure` script or via `cmake`, you'll need to specify the location to install the interface libraries, as follows:
 
-* configure: `--with-plugin-dir=<absolutely directory>`
-* cmake: `-DPLUGIN_INSTALL_DIR=<absolutely directory>`
+* configure: `--enable-plugins` `--with-plugin-dir=$NCPLUGIN_DIR`
+* cmake: `-DPLUGIN_INSTALL_DIR=$NCPLUGIN_DIR`
 
-After compiling and installing `libnetcdf`, the interface libraries for those filters detected will be installed in the user-specified `<absolute directory>`.
+where `$NCPLUGIN_DIR` is the path to the user-defined directory, e.g. `/usr/local/nc-plugins`
 
+After compiling and installing `libnetcdf`, the interface libraries for those filters detected will be installed in the user-specified `NCPLUGIN_DIR`.
+
+> `nc-config --plugindir` will return the location where plugins were installed. 
 
 Using the Interface Libraries at Run-time {#nc_filters_qs_runtime}
 ---------------------------------
 
-For historical reasons, `libnetcdf` uses the environmental variable `HDF5_PLUGIN_PATH` to local the interface libraries at run-time. 
+For historical reasons, `libnetcdf` uses the environmental variable `HDF5_PLUGIN_PATH` to locate the interface libraries at run-time. This location should be set to the `$NCPLUGIN_DIR` specified when building and installing `libnetcdf`.
 
 
 Example Workflow (blosc) {#nc_filters_qs_workflow_example}
@@ -45,4 +43,3 @@ The reason this works is because:
 
 1. NetCDF builds the interface library.
 2. `ncdump` knows where to find the interface library because `HDF5_PLUGIN_PATH` is set.  
-
