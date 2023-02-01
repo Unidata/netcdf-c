@@ -3,6 +3,8 @@ Appendix D. NetCDF-4 Filter Support {#filters}
 
 [TOC]
 
+> See @ref nc_filters_quickstart for tips to get started quickly with NetCDF-4 Filter Support. 
+
 ## Filters Overview {#filters_overview}
 
 NetCDF-C filters have some features of which the user
@@ -355,6 +357,7 @@ As with all other "...PATH" variables, it is a sequence of absolute
 directories separated by a separator character. For *nix* operating systems,
 this separator is the colon (':') character. For Windows and Mingw, the
 separator is the semi-colon (';') character. So for example:
+
 * Linux:   export HDF5_PLUGIN_PATH=/usr/lib:/usr/local/lib
 * Windows: export HDF5_PLUGIN_PATH=c:\\ProgramData\\hdf5\\plugin;c:\\tools\\lib
 
@@ -364,8 +367,9 @@ exported symbols representing the entry points into the library.
 
 If HDF5_PLUGIN_PATH is not defined, the loader defaults to using
 these default directories:
-* Linux:   "/usr/local/hdf5/lib/plugin”
-* Windows: “%ALLUSERSPROFILE%\\hdf5\\lib\\plugin”
+
+* Linux:  /usr/local/hdf5/lib/plugin
+* Windows: %ALLUSERSPROFILE%\\hdf5\\lib\\plugin
 
 It should be noted that there is a difference between the search order
 for HDF5 versus NCZarr. The HDF5 loader will search only the directories
