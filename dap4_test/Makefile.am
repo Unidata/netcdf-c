@@ -62,7 +62,7 @@ CLEANFILES = *.exe
 # This should only be left behind if using parallel io
 CLEANFILES += tmp_*
 CLEANFILES += ${execdir}/baselinethredds/GOES16_CONUS_20170821_020218_0.47_1km_33.3N_91.4W.nc4.thredds
- 
+
 DISTCLEANFILES = findtestserver4.c pingurl4.c
 
 # One last thing
