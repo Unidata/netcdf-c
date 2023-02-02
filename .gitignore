@@ -1,38 +1,4 @@
-#####
-# The following generated files are
-# ignored in development branch,
-# but should be included in releases.
-#####
-libsrc/attr.c
-libsrc/ncx.c
-libsrc/putget.c
-ctest.c
-ctest64.c
-nc_test/test_get.c
-nc_test/test_put.c
-nc_test/test_read.c
-nc_test/test_write.c
-dap4_test/findtestserver4.c
-dap4_test/pingurl4.c
-ncdap_test/findtestserver.c
 
-Makefile.in
-aclocal.m4
-compile
-config.guess
-config.h.in
-config.sub
-configure
-depcomp
-install-sh
-ltmain.sh
-m4
-missing
-test-driver
-
-#####
-# End ignored generated files.
-#####
 
 ### 'Normal' gitignore files.
 .vscode
