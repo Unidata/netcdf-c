@@ -5,7 +5,7 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
-## 4.9.1 - February 2, 2023
+## 4.9.1 - February 3, 2023
 
 ### 4.9.1 - Release Candidate 2 - November 21, 2022
 
