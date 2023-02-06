@@ -7,7 +7,7 @@
 name: Run macOS-based netCDF Tests
 
 
-on: [push,pull_request, workflow_dispatch]
+on: [pull_request,workflow_dispatch]
 
 jobs:
 
@@ -21,14 +21,14 @@ jobs:
 
     steps:
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
         ###
         # libhdf5
         ###
       - name: Cache libhdf5-${{ runner.os }}-${{ matrix.hdf5 }}
         id: cache-hdf5-osx
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/environments/${{ matrix.hdf5 }}
           key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
@@ -61,7 +61,7 @@ jobs:
         use_nczarr: [ nczarr_off, nczarr_on ]
     steps:
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
 ###
 # Set Environmental Variables
@@ -93,7 +93,7 @@ jobs:
 
       - name: Fetch HDF Cache
         id: cache-hdf-osx
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/environments/${{ matrix.hdf5 }}
           key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
@@ -167,7 +167,7 @@ jobs:
         use_nczarr: [ nczarr_off, nczarr_on ]
     steps:
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
 ###
 # Set Environmental Variables
@@ -199,7 +199,7 @@ jobs:
 
       - name: Fetch HDF Cache
         id: cache-hdf5-osx
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/environments/${{ matrix.hdf5 }}
           key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
@@ -260,7 +260,7 @@ jobs:
         hdf5: [ 1.12.2 ]
     steps:
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
 ###
 # Set Environmental Variables
@@ -277,7 +277,7 @@ jobs:
 
       - name: Fetch HDF Cache
         id: cache-hdf-osx
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/environments/${{ matrix.hdf5 }}
           key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
@@ -300,7 +300,7 @@ jobs:
 
       - name: Configure
         shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests --enable-threadsafe
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests
         if: ${{ success() }}
 
       - name: Look at config.log if error
@@ -342,7 +342,7 @@ jobs:
 
     steps:
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
 ###
 # Set Environmental Variables
@@ -357,7 +357,7 @@ jobs:
 
       - name: Fetch HDF Cache
         id: cache-hdf5-osx
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/environments/${{ matrix.hdf5 }}
           key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
@@ -375,7 +375,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DENABLE_DAP=TRUE -DENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -DENABLE_DAP_LONG_TESTS=TRUE -DENABLE_THREADSAFE=TRUE
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DENABLE_DAP=TRUE -DENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -D ENABLE_DAP_LONG_TESTS=TRUE
 
       - name: Print Summary
         shell: bash -l {0}

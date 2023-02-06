@@ -31,7 +31,7 @@ set(PACKAGE "netCDF" CACHE STRING "")
 
 SET(NC_VERSION_MAJOR 4)
 SET(NC_VERSION_MINOR 9)
-SET(NC_VERSION_PATCH 1)
+SET(NC_VERSION_PATCH 2)
 SET(NC_VERSION_NOTE "-development")
 SET(netCDF_VERSION ${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
@@ -215,7 +215,7 @@ FILE(COPY ${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake DESTINATION ${CMAKE_CURR
 
 # Set Memory test program for non-MSVC based builds.
 # Assume valgrind for now.
-IF((NOT MSVC) AND (NOT MINGW))
+IF((NOT MSVC) AND (NOT MINGW) AND (NOT ISCYGWIN))
   SET(CTEST_MEMORYCHECK_COMMAND valgrind CACHE STRING "")
 ENDIF()
 
@@ -549,8 +549,8 @@ OPTION(ENABLE_CDF5 "Enable CDF5 support" ON)
 # Netcdf-4 support (i.e. libsrc4) is required by more than just HDF5 (e.g. NCZarr)
 # So depending on what above formats are enabled, enable netcdf-4
 if(ENABLE_HDF5 OR ENABLE_HDF4 OR ENABLE_NCZARR)
-SET(ENABLE_NETCDF_4 ON CACHE BOOL "Enable netCDF-4 API" FORCE)
-SET(ENABLE_NETCDF4 ON CACHE BOOL "Enable netCDF4 Alias" FORCE)
+  SET(ENABLE_NETCDF_4 ON CACHE BOOL "Enable netCDF-4 API" FORCE)
+  SET(ENABLE_NETCDF4 ON CACHE BOOL "Enable netCDF4 Alias" FORCE)
 endif()
 
 IF(ENABLE_HDF4)
@@ -1090,20 +1090,24 @@ ENDIF()
 IF(ENABLE_DAP)
   SET(USE_DAP ON CACHE BOOL "")
   SET(ENABLE_DAP2 ON CACHE BOOL "")
-
+ 
   IF(ENABLE_HDF5)
+    MESSAGE(STATUS "Enabling DAP4")
     SET(ENABLE_DAP4 ON CACHE BOOL "")
+  ELSE()
+    MESSAGE(STATUS "Disabling DAP4")
+    SET(ENABLE_DAP4 OFF CACHE BOOL "")
   ENDIF(ENABLE_HDF5)
 
 ELSE()
-  SET(ENABLE_DAP2 OFF)
-  SET(ENABLE_DAP4 OFF)
+  SET(ENABLE_DAP2 OFF CACHE BOOL "")
+  SET(ENABLE_DAP4 OFF CACHE BOOL "")
 ENDIF()
 # Default disabel dap4 for now
 SET(ENABLE_DAP4 OFF CACHE BOOL "")
     
 # Option to support byte-range reading of remote datasets
-OPTION(ENABLE_BYTERANGE "Enable byte-range access to remote datasets.." OFF)
+OPTION(ENABLE_BYTERANGE "Enable byte-range access to remote datasets.." ON)
 
 # Check for the math library so it can be explicitly linked.
 IF(NOT WIN32)
@@ -1325,7 +1329,7 @@ ENDIF()
 
 IF(NOT ENABLE_S3_SDK)
   IF(ENABLE_NCZARR_S3 OR ENABLE_NCZARR_S3_TESTS)
-    message(FATAL_ERROR "S3 support library not found; please specify option DENABLE_NCZARR_S3=NO")
+    message(FATAL_ERROR "S3 support library not found; please specify option -DENABLE_NCZARR_S3=NO")
     SET(ENABLE_NCZARR_S3 OFF CACHE BOOL "NCZARR S3 support" FORCE)
     SET(ENABLE_NCZARR_S3_TESTS OFF CACHE BOOL "S3 tests" FORCE)
   ENDIF()
@@ -2550,6 +2554,7 @@ is_enabled(ENABLE_ZERO_LENGTH_COORD_BOUND RELAX_COORD_BOUND)
 is_enabled(USE_CDF5 HAS_CDF5)
 is_enabled(ENABLE_ERANGE_FILL HAS_ERANGE_FILL)
 is_enabled(HDF5_HAS_PAR_FILTERS HAS_PAR_FILTERS)
+is_enabled(ENABLE_NCZARR_S3 HAS_NCZARR_S3)
 is_enabled(ENABLE_NCZARR HAS_NCZARR)
 is_enabled(ENABLE_NCZARR_S3_TESTS DO_NCZARR_S3_TESTS)
 is_enabled(ENABLE_MULTIFILTERS HAS_MULTIFILTERS)

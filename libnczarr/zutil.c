@@ -530,7 +530,7 @@ ncz_nctypedecode(const char* snctype, nc_type* nctypep)
 */
 
 int
-ncz_nctype2dtype(nc_type nctype, int endianness, int purezarr, int strlen, char** dnamep)
+ncz_nctype2dtype(nc_type nctype, int endianness, int purezarr, int len, char** dnamep)
 {
     char dname[64];
     char* format = NULL;
@@ -540,7 +540,7 @@ ncz_nctype2dtype(nc_type nctype, int endianness, int purezarr, int strlen, char*
         format = znames[nctype].zarr[endianness];
     else
         format = znames[nctype].nczarr[endianness];
-    snprintf(dname,sizeof(dname),format,strlen);
+    snprintf(dname,sizeof(dname),format,len);
     if(dnamep) *dnamep = strdup(dname);
     return NC_NOERR;		
 }

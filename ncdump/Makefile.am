@@ -151,7 +151,7 @@ TESTS += tst_output.sh
 TESTS += tst_nccopy3.sh
 if USE_HDF5
 TESTS += run_back_comp_tests.sh tst_netcdf4_4.sh
-TESTS += tst_nccopy4.sh tst_nccopy5.sh
+TESTS += tst_nccopy4.sh tst_nccopy5.sh tst_calendars_nc4.sh
 endif
 endif
 endif
@@ -177,7 +177,7 @@ ref_tst_noncoord.cdl ref_tst_compounds2.nc ref_tst_compounds2.cdl	\
 ref_tst_compounds3.nc ref_tst_compounds3.cdl ref_tst_compounds4.nc	\
 ref_tst_compounds4.cdl ref_tst_group_data_v23.cdl tst_mslp.cdl		\
 tst_bug321.cdl ref_tst_format_att.cdl ref_tst_format_att_64.cdl		\
-tst_nccopy3.sh tst_nccopy4.sh tst_nccopy5.sh				\
+tst_nccopy3.sh tst_nccopy4.sh tst_nccopy5.sh tst_calendars_nc4.sh	\
 ref_nc_test_netcdf4_4_0.nc run_back_comp_tests.sh			\
 ref_nc_test_netcdf4.cdl ref_tst_special_atts3.cdl tst_brecs.cdl		\
 ref_tst_grp_spec0.cdl ref_tst_grp_spec.cdl tst_grp_spec.sh		\
@@ -205,7 +205,7 @@ test_keywords.sh ref_keyword1.cdl ref_keyword2.cdl ref_keyword3.cdl ref_keyword4
 ref_tst_nofilters.cdl test_scope.sh  \
 test_rcmerge.sh ref_rcmerge1.txt ref_rcmerge2.txt ref_rcmerge3.txt \
 scope_ancestor_only.cdl scope_ancestor_subgroup.cdl scope_group_only.cdl scope_preorder.cdl \
-ref_rcapi.txt ref_tst_enum_undef.cdl
+ref_rcapi.txt ref_tst_enum_undef.cdl tst_calendars_nc4.cdl ref_times_nc4.cdl
 
 # The L512.bin file is file containing exactly 512 bytes each of value 0.
 # It is used for creating hdf5 files with varying offsets for testing.
@@ -247,7 +247,7 @@ tst_roman_szip_unlim.cdl tst_perdimpspecs.nc tmppds.*                   \
 keyword1.nc keyword2.nc keyword3.nc keyword4.nc                         \
 tmp_keyword1.cdl tmp_keyword2.cdl tmp_keyword3.cdl tmp_keyword4.cdl     \
 type_*.nc copy_type_*.cdl                                               \
-scope_*.nc copy_scope_*.cdl keyword5.nc tst_enum_undef.cdl
+scope_*.nc copy_scope_*.cdl keyword5.nc tst_enum_undef.cdl tst_times_nc4.cdl
 
 # Remove directories
 clean-local:

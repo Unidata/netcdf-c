@@ -121,11 +121,16 @@ int
 nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_number)
 {
     /* Check inputs. */
-    if (mode_flag != NC_UDF0 && mode_flag != NC_UDF1)
-        return NC_EINVAL;
     if (!dispatch_table)
         return NC_EINVAL;
     if (magic_number && strlen(magic_number) > NC_MAX_MAGIC_NUMBER_LEN)
+        return NC_EINVAL;
+
+    /* user defined magic numbers not allowed with netcdf3 modes */ 
+    if (magic_number && (fIsSet(mode_flag, NC_64BIT_OFFSET) ||
+                         fIsSet(mode_flag, NC_64BIT_DATA) ||
+                        (fIsSet(mode_flag, NC_CLASSIC_MODEL) &&
+                        !fIsSet(mode_flag, NC_NETCDF4))))
         return NC_EINVAL;
 
     /* Check the version of the dispatch table provided. */
@@ -133,20 +138,24 @@ nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_numbe
         return NC_EINVAL;
 
     NCLOCK;
+
     /* Retain a pointer to the dispatch_table and a copy of the magic
      * number, if one was provided. */
-    switch(mode_flag)
+    if (fIsSet(mode_flag,NC_UDF0))
     {
-    case NC_UDF0:
         UDF0_dispatch_table = dispatch_table;
         if (magic_number)
             strncpy(UDF0_magic_number, magic_number, NC_MAX_MAGIC_NUMBER_LEN);
-        break;
-    case NC_UDF1:
+    }
+    else if(fIsSet(mode_flag, NC_UDF1))
+    {
         UDF1_dispatch_table = dispatch_table;
         if (magic_number)
             strncpy(UDF1_magic_number, magic_number, NC_MAX_MAGIC_NUMBER_LEN);
-        break;
+    }
+    else
+    {
+        return NC_EINVAL;
     }
     NCUNLOCK;
     return NC_NOERR;
@@ -172,23 +181,23 @@ int
 nc_inq_user_format(int mode_flag, NC_Dispatch **dispatch_table, char *magic_number)
 {
     /* Check inputs. */
-    if (mode_flag != NC_UDF0 && mode_flag != NC_UDF1)
-        return NC_EINVAL;
-
-    switch(mode_flag)
+    if (fIsSet(mode_flag,NC_UDF0))
     {
-    case NC_UDF0:
         if (dispatch_table)
             *dispatch_table = UDF0_dispatch_table;
         if (magic_number)
             strncpy(magic_number, UDF0_magic_number, NC_MAX_MAGIC_NUMBER_LEN);
-        break;
-    case NC_UDF1:
+    }
+    else if(fIsSet(mode_flag,NC_UDF1))
+    {
         if (dispatch_table)
             *dispatch_table = UDF1_dispatch_table;
         if (magic_number)
             strncpy(magic_number, UDF1_magic_number, NC_MAX_MAGIC_NUMBER_LEN);
-        break;
+    }
+    else
+    {
+        return NC_EINVAL;
     }
 
     return NC_NOERR;
@@ -1908,11 +1917,17 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 
     TRACE(nc_create);
     if(path0 == NULL)
-        return NC_EINVAL;
+        {stat = NC_EINVAL; goto done;}
 
     /* Check mode flag for sanity. */
-    if ((stat = check_create_mode(cmode)))
-        goto done;
+    if ((stat = check_create_mode(cmode))) goto done;
+
+    /* Initialize the library. The available dispatch tables
+     * will depend on how netCDF was built
+     * (with/without netCDF-4, DAP, CDMREMOTE). */
+    if(!NC_initialized) {
+        if ((stat = nc_initialize())) goto done;
+    }
 
     {
         /* Skip past any leading whitespace in path */
@@ -2008,6 +2023,7 @@ unlock:
     NCUNLOCK;
 done:
     nullfree(path);
+    nullfree(newpath);
     return stat;
 }
 
@@ -2047,6 +2063,12 @@ NC_open(const char *path0, int omode, int basepe, size_t *chunksizehintp,
     char* path = NULL;
     NCmodel model;
     char* newpath = NULL;
+
+    TRACE(nc_open);
+    if(!NC_initialized) {
+        stat = nc_initialize();
+        if(stat) goto done;
+    }
 
     /* Check inputs. */
     if (!path0)

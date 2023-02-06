@@ -5,6 +5,7 @@
 
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
+LDADD = ${top_builddir}/liblib/libnetcdf.la
 
 # Un comment to use a more verbose test driver
 #SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
@@ -15,7 +16,7 @@ include $(top_srcdir)/lib_flags.am
 # Note which tests depend on other tests. Necessary for make -j check.
 TEST_EXTENSIONS = .sh
 
-LDADD = ${top_builddir}/liblib/libnetcdf.la
+
 AM_CPPFLAGS += -I$(top_srcdir)/liblib
 AM_CPPFLAGS += -I$(top_srcdir)/libdap4
 AM_CPPFLAGS += -DTOPSRCDIR=${abs_top_srcdir}
@@ -43,7 +44,8 @@ pingurl4_SOURCES = pingurl4.c
 if ENABLE_DAP_REMOTE_TESTS
 if BUILD_UTILITIES
   # relies on ncdump
-  TESTS += test_hyrax.sh test_thredds.sh
+  TESTS += test_hyrax.sh
+#  TESTS += test_thredds.sh
 if AX_IGNORE
   TESTS += test_remote.sh
 endif

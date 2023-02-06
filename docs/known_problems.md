@@ -3,9 +3,7 @@
 
 Known Problems with netCDF 4.3.0
 --------------------------------
-
--   [clang compiler (default on OSX 10.9 Mavericks) detects error
-    building ncgen3](#clang-ncgen3)
+cd
 
 Known Problems with netCDF 4.2
 ------------------------------
@@ -47,7 +45,7 @@ Known Problems with netCDF 4.1.1
 
 ------------------------------------------------------------------------
 
-### The clang compiler (default on OSX 10.9 Mavericks) detects error building ncgen3
+### The clang compiler (default on OSX 10.9 Mavericks) detects error building ncgen3 {#clang-ncgen3}
 
 Building the netCDF C library with the clang C compiler, the default
 /usr/bin/cc on OSX 10.9 Mavericks, detects an error in compiling
@@ -60,7 +58,7 @@ ncgen3/genlib.h.
 
 This fix will be in the next release.
 
-### Fortran options of nc-config utility (--fflags, --flibs, --has-f90) don't work correctly
+### Fortran options of nc-config utility (--fflags, --flibs, --has-f90) don't work correctly {#nc-config-fortran}
 
 Beginning with version 4.2 of the C-based netCDF software, the netCDF
 Fortran library is built from an independent netcdf-fortran release with
@@ -69,7 +67,7 @@ detect whether nf-config is installed and make use of its output to
 preserve backward compatibility with nc-config from previous releases.
 This problem is fixed in netCDF-4.2.1-rc1 and later releases.
 
-### Using "--with-hdf5=..." configure option doesn't seem to work
+### Using "--with-hdf5=..." configure option doesn't seem to work {#with-hdf5}
 
 With releases of netCDF-4 after version 4.1.2 (this includes 4.1.3, 4.2,
 4.2.1, ...) you don't use "--with-hdf5" to specify the location of the
@@ -80,7 +78,7 @@ HDF5 libraries, you use CPPFLAGS and LDFLAGS, as in
 The reason for this change is explained
 [here](https://www.unidata.ucar.edu/jira/browse/NCF-20).
 
-### nccopy -d and -c options for compression and chunking don't work on netCDF-4 input files
+### nccopy -d and -c options for compression and chunking don't work on netCDF-4 input files {#nccopy-compression-bug}
 
 Due to a bug in nccopy, the "-d n" and "-c" options only work for
 classic and 64-bit input files, producing netCDF-4 classic model output
@@ -93,7 +91,7 @@ issue tracker.
 The bug has been fixed in all releases since 4.1.3, including the
 netcdf-4.2-rc1 release candidate.
 
-### Debug statement left in F90 source
+### Debug statement left in F90 source {#f90-debug-segfault}
 
 The debugging statement
 
@@ -104,13 +102,13 @@ and should be removed. If the variable has a second dimension less than
 4, this can cause a segfault. The problem has been fixed in the
 subsequent netcdf-fortran-4.2 release.
 
-### Ncgen is known to produce bad output.
+### Ncgen is known to produce bad output.  {#bad-ncgen}
 
 Dave Allured at NOAA has reported that the ncgen for 4.1.1 produces bad
 .nc files under circumstances. We recommend that this version of ncgen
 should not be used.
 
-### Building with Intel Fortran on Mac OS X
+### Building with Intel Fortran on Mac OS X {#intel-fortran-macosx}
 
 Setting the environment variable **lt\_cv\_ld\_force\_load=no** before
 invoking the configure script is a workaround to successfully build
@@ -127,7 +125,7 @@ C and Fortran libraries and passing all tests on Lion:
 building and testing the legacy netCDF-3 C++ API, because of an as yet
 unsolved error that's not relevant to this Fortran problem.)
 
-### Accessing OPeNDAP servers using a constraint expression
+### Accessing OPeNDAP servers using a constraint expression {#dap-413}
 
 The use of subsetting by specifying a URL with subsetting information to
 dap-enabled netCDF is broken for stable release 4.1.3. This can be
@@ -140,13 +138,13 @@ in the error message
 This bug is fixed in 4.2 releases after 2011-09-11, as well as by fixing
 the 4.1.3 release using the 3 replacement source files in the 4.1.3-fix.tar file. 
 
-### Configuring with "--enable-benchmarks" option
+### Configuring with "--enable-benchmarks" option {#enabling-benchmarks}
 
 Using the "--enable-benchmarks" option to the configure script fails
 with a compile error on some platforms, and has been reported to fail in
 other ways on some other platforms.
 
-### Problem with disabling fill mode when using Lustre (or other large blksize file system)
+### Problem with disabling fill mode when using Lustre (or other large blksize file system) {#lustre}
 
 Joerg Henrichs has reported a bug when writing netCDF classic format
 data with fill mode disabled, on a file system such as Lustre that uses
@@ -180,7 +178,7 @@ using nc\_\_create with a blocksize outside the range in which erroneous
 writes occur. Some of these workarounds slow the write performance of
 netCDF.
 
-### "make check" fails when linked with HDF5-1.8.6
+### "make check" fails when linked with HDF5-1.8.6 {#incompat-411-186}
 
 When built with HDF5 version 1.8.6, version 4.1.1 fails one of the tests
 invoked by "make check":
@@ -212,7 +210,7 @@ The HDF5 1.8.5-patch1 release is available from the HDF5 site at
 <http://www.hdfgroup.org/ftp/HDF5/prev-releases/> or from the netCDF-4
 ftp site at <ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4>.
 
-### Make tries to regenerate documentation with texi2dvi command
+### Make tries to regenerate documentation with texi2dvi command {#texi2dvi}
 
 After building netCDF-4.1.1, invoking "make clean", and then building it
 again with "make all" or "make check", a failure to find the texi2dvi
@@ -237,7 +235,7 @@ without invoking "make clean" until after the software and documentation
 is successfully installed. An alternative workaround is to just invoke
 "make install" after the error above and use online documentation.
 
-### Accessing a multidimensional variable with more than 4 billion values on a 32-bit platform
+### Accessing a multidimensional variable with more than 4 billion values on a 32-bit platform {#big-mvar-32bit}
 
 Kari Hoijarvi has reported a bug in implementation of large variable
 support that has been in netCDF software since at least 1997, and which
@@ -283,14 +281,14 @@ Known Problems with netCDF 4.0.1
 -   [With Sun C compiler, 64-bit ncdump fails](#suncc-m64-ncdump)
 -   [Portland Group compilers can't build shared fortran 90 or shared
     C++ library, or 64-bit C++ API](#PG_shared)
--   [Intel 10.1 64-bit C++ compiler problem](#intel_10.1_64_bit_c++)
+-   [Intel 10.1 64-bit C++ compiler problem](#intel_10-1_64_bit_cpp)
 -   [Intel 9.1 C++ compiler problem doesn't build C++
-    API](#intel_9.1__c++)
+    API](#intel_9-1__cpp)
 -   [ncgen/ncdump test failure with Intel version 11
     compilers](#intel_11-ncgen)
 -   ["ncdump -v group/var" reports "group not found"](#ncdump-v)
 
-### Including mpi.h before netcdf.h breaks MPI
+### Including mpi.h before netcdf.h breaks MPI {#include_mpi_order}
 
 Luis Kornblueh reports a subtle bug in netcdf 4.0.1. In the netcdf.h
 header file, the following mpi entities are defined:
@@ -305,7 +303,7 @@ header file, the following mpi entities are defined:
 If mpi.h is included before netcdf.h, these defines (may) break the MPI
 implementation.
 
-### With Sun C compiler, 64-bit ncdump fails
+### With Sun C compiler, 64-bit ncdump fails {#suncc-m64-ncdump}
 
 As identified by Udo Grabowski, using the "-m64" option to build netCDF
 with the Sun C compiler results in a failed test when running "make
@@ -333,7 +331,7 @@ little data at a time, there is no benefit to a 64-bit ncdump. The
 32-bit ncdump handles classic, 64-bit offset, and netCDF-4 files
 correctly even if they are larger than 4 GiB.
 
-### Portland Group compilers can't build shared fortran 90 library or shared C++ library
+### Portland Group compilers can't build shared fortran 90 library or shared C++ library {#PG_shared}
 
 The portland group compilers can't build netCDF shared fortran 90
 library. They fail with this error:
@@ -389,7 +387,7 @@ here as [Technical Problem Report
 This bug was also previously [reported by a
 user](https://www.unidata.ucar.edu/support/help/MailArchives/netcdf/msg03783.html).
 
-### Intel 10.1 64-bit C++ compiler problem
+### Intel 10.1 64-bit C++ compiler problem {#intel_10-1_64_bit_cpp}
 
 On my test machine, the intel 10.1 C++ compiler cannot build the netCDF
 C++ API in 64-bit mode. I get an error like this:
@@ -428,7 +426,7 @@ six-mile deep mine shaft.) Put the bin directory at the beginning of
 your PATH, and the lib (or lib64) directory at the beginning at the
 LD\_LIBRARY\_PATH. Then rebuild.
 
-### Intel 9.1 C++ compiler problem doesn't build C++ API
+### Intel 9.1 C++ compiler problem doesn't build C++ API {#intel_9-1__cpp}
 
 On my test machine, the intel 9.1 C++ compile fails like this:
 
@@ -466,7 +464,7 @@ On my test machine, the intel 9.1 C++ compile fails like this:
 Anyone who can shed light on this should send email to
 support-netcdf@unidata.ucar.edu.
 
-### ncgen/ncdump test failure with Intel version 11 compilers
+### ncgen/ncdump test failure with Intel version 11 compilers {#intel_11-ncgen}
 
 Ed Anderson reports that the tests of the netcdf-4.0 (and presumable
 4.0.1 and 3.6.3) package fail with the recently released version 11 of
@@ -508,7 +506,7 @@ that there is a workaround:
     This was the only change I needed to pass the netcdf-4 tests with Intel
     version 11.
 
-### "ncdump -v group/var" reports "group not found"
+### "ncdump -v group/var" reports "group not found" {#ncdump-v}
 
 John Storrs reported a bug using ncdump -v applied to netCDF-4 files, in
 which an erroneous 'group not found' message was displayed for valid
@@ -534,7 +532,7 @@ Known Problems with netCDF 4.0
 -   [ncgen/ncdump test failure with Intel version 11
     compilers](#intel_11-ncgen)
 
-### Ncdump assumes default fill value for unsigned byte data
+### Ncdump assumes default fill value for unsigned byte data {#ncdump_ubyte_fill}
 
 The ncdump utility incorrectly assumes a default fill value of "255" for
 data of unsigned byte type, although no default fill value is assumed
@@ -544,19 +542,19 @@ are too small to assume one of the values should appear as a missing
 value unless a \_FillValue attribute is set explicitly. This bug is
 fixed in the current snapshot distribution.
 
-### Ncdump of compound type with array field
+### Ncdump of compound type with array field {#compound_array_field}
 
 Running the ncdump utility on a file with a compound type with an array
 field may result in a segmentation violation. A fix is in the current
 netCDF-4.0 snapshot distribution.
 
-### Memory leak with VLEN attributes
+### Memory leak with VLEN attributes {#mem_leak}
 
 We believe there are some memory leaks associated with VLEN attributes
 in HDF5 1.8.1. This is being addressed by the HDF5 team, and will be
 fixed by the next HDF5 release.
 
-### Error dyld: Symbol not found: _H5P_CLS_FILE_ACCESS_g
+### Error dyld: Symbol not found: _H5P_CLS_FILE_ACCESS_g {#o_problem_mac}
 
 On some Macintosh systems here at NetCDF World Test Center, on the
 hundreth floor of UCAR Tower \#2, the following build error occurs:
@@ -591,7 +589,7 @@ the link flags in the generated Makefiles. Set LDFLAGS to include
 
 ------------------------------------------------------------------------
 
-Bug with multiple unlimited dimensions in one var
+### Bug with multiple unlimited dimensions in one var {#multiple_unlimited}
 
 There is a bug in the 4.0 release related to the lengths of dimensions
 when more than one unlimited dimension is used in the same variable.
@@ -599,22 +597,21 @@ when more than one unlimited dimension is used in the same variable.
 The bug is fixed in the latest [netCDF-4 snapshot
 release](ftp://ftp.unidata.ucar.edu/pub/netcdf/snapshot/netcdf-4-daily.tar.gz).
 
-### Fortran90 interface Using Intel ifort under Cygwin
+### Fortran90 interface Using Intel ifort under Cygwin {#ifort-f90-cygwin}
 
 Chris Dallimore reports success in getting the Fortran 90 interface of
 Version 4.0 to compile under CYGWIN using the Intel ifort compile;
 
-    1 - Download and unpack netcdf-4.0.tar.gz
+    1. Download and unpack netcdf-4.0.tar.gz
 
-    2 - In configure replace conftest.o and conftestf.o with conftest. 
-    $ac_objext and conftest.$ac_objext, I'm Not sure why autoconf doesn't  
+    2. In configure replace conftest.o and conftestf.o with conftest. 
+    $ac_objext and conftestf.$ac_objext, I'm Not sure why autoconf doesn't 
     do this.
 
-    3 -
-    Save http://msinttypes.googlecode.com/svn/trunk/inttypes.h as libsrc/ 
-    inttypes_msvc.h
-    Save ttp://msinttypes.googlecode.com/svn/trunk/stdint.h as libsrc/ 
-    stdint_msvc.h
+    3. Save http://msinttypes.googlecode.com/svn/trunk/inttypes.h as 
+	`libsrc/inttypes_msvc.h`
+    Save ttp://msinttypes.googlecode.com/svn/trunk/stdint.h as 
+	`libsrc/stdint_msvc.h`
 
     modify line 43 of libsrc/inttypes_msvc.h
     from
@@ -622,7 +619,7 @@ Version 4.0 to compile under CYGWIN using the Intel ifort compile;
     to
     #include 
 
-    4 - in libsrc utf8proc.h at line 79 replaces
+    4. in libsrc utf8proc.h at line 79 replaces
 
     #include 
 
@@ -636,7 +633,7 @@ Version 4.0 to compile under CYGWIN using the Intel ifort compile;
     typedef unsigned int uint32_t;
     #endif
 
-    It looks like configure is checking for ssize_t so there is probably a  
+    It looks like configure is checking for ssize_t so there is probably a 
     better way to do this.
 
     5 -
@@ -749,10 +746,10 @@ Version 4.0 to compile under CYGWIN using the Intel ifort compile;
     libtool: link: ( cd ".libs" && rm -f "libnetcdf2.la" && ln -s "../ 
     libnetcdf2.la" "libnetcdf2.la" )
     /bin/sh ../libtool --tag=CC   --mode=link /cygdrive/z/cwr/Software/ 
-    Eclipse/CWRModelSource/src/external/netcdf_src/netcdf-4.0/compile  
+    Eclipse/CWRModelSource/src/external/netcdf_src/netcdf-4.0/compile 
     cl      -version-info 4:0:0   -o libnetcdf.la -rpath /cygdrive/z/cwr/ 
-    Software/Eclipse/CWRModelSource/lib attr.lo ncx.lo putget.lo dim.lo  
-    error.lo libvers.lo nc.lo string.lo v1hpg.lo var.lo utf8proc.lo   
+    Software/Eclipse/CWRModelSource/lib attr.lo ncx.lo putget.lo dim.lo 
+    error.lo libvers.lo nc.lo string.lo v1hpg.lo var.lo utf8proc.lo 
     posixio.lo libnetcdf2.la ../fortran/libnetcdff.la
     libtool: link: warning: undefined symbols not allowed in i686-pc- 
     cygwin shared libraries
@@ -762,16 +759,16 @@ Version 4.0 to compile under CYGWIN using the Intel ifort compile;
     libtool: link: (cd .libs/libnetcdf.lax/libnetcdff.lib && ar x "/ 
     cygdrive/z/cwr/Software/Eclipse/CWRModelSource/src/external/netcdf_src/ 
     netcdf-4.0/libsrc/../fortran/.libs/libnetcdff.lib")
-    .libs/libnetcdff.lax/libnetcdff90.lib/typeSizes.obj: No such file or  
+    .libs/libnetcdff.lax/libnetcdff90.lib/typeSizes.obj: No such file or 
     directory
 
     It looks like the Microsoft LInker doesn't like the GNU lib format.
 
-    I was however able to compile and link using some static (ie non  
-    automake) makefiles that are part of our overall model build  
+    I was however able to compile and link using some static (ie non 
+    automake) makefiles that are part of our overall model build 
     environment.
 
-### ncdump bug for filenames beginning with a numeric character
+### ncdump bug for filenames beginning with a numeric character {#ncdump-numeric-filename}
 
 The ncdump utility in releases 4.0 and 3.6.3 rejects filenames starting
 with the digits 0,1 and 2 with an error message such as:
@@ -804,7 +801,7 @@ Known Problems with netCDF 3.6.3
 
 ------------------------------------------------------------------------
 
-### Can't build shared library with F90 API on IRIX
+### Can't build shared library with F90 API on IRIX {#IRIX_f90_shared}
 
 When building shared libraries on out IRIX test system, I got the
 following error:
@@ -848,7 +845,7 @@ Known Problems with netCDF 3.6.2
 
 ------------------------------------------------------------------------
 
-### Setting ARFLAGS does not work
+### Setting ARFLAGS does not work {#ARFLAGS}
 
 Sometimes when building netCDF, flags to the ar utility need to be set.
 Setting ARFLAGS does not work.
@@ -860,7 +857,7 @@ you must setr flags for ar, read on.)
 
 Try the build again, setting AR\_FLAGS instead of ARFLAGS.
 
-### Bugs in support for variables larger than 4 GiB
+### Bugs in support for variables larger than 4 GiB {#large_vars_362}
 
 As first reported by Mario Emmenlauer, there is a bug in netCDF-3.6.2
 (and earlier versions) in the code for creating byte and short type
@@ -900,7 +897,7 @@ fixed in releases 3.6.3 and later.
 
             Assertion failed: *ulp <= X_SIZE_MAX, file ncx.c, line 1810
 
-### Bug in C++ interface prevents creating 64-bit offset format files
+### Bug in C++ interface prevents creating 64-bit offset format files {#cxx_64-bit}
 
 As reported by Jos Verdoold, a bug in the netCDF 3.6.2 (and earlier
 versions) C++ interface prevents creating new files in Offset64Bits mode
@@ -919,7 +916,7 @@ rebuild:
 
 This fix has been incorporated into netCDF 3.6.3 and later versions.
 
-### The tests in nf\_test fail with seg fault with the Absoft Version 10.0 fortran compiler.
+### The tests in nf\_test fail with seg fault with the Absoft Version 10.0 fortran compiler. {#absoft10}
 
 The absoft fortran compiler, version 10.0, changes the way that a C
 function returning string is called from fortran.
@@ -936,7 +933,7 @@ Get the snapshot, and see the working output, on the [netCDF-3
 snapshot](https://www.unidata.ucar.edu/software/netcdf/builds/snapshot/)
 page.
 
-### Shared libraries do not work with the NAG fortran compiler.
+### Shared libraries do not work with the NAG fortran compiler. {#nag_362}
 
 We have reports that the shared library build does not work with the NAG
 fortran compiler. The NAG compiler is not one of the compilers we
@@ -951,7 +948,7 @@ Interested users may also wish to subscribe to the [netcdf-porting
 mailing
 list](https://www.unidata.ucar.edu/mailing_lists/archives/netcdf-porting/).
 
-### The documented --enable-64bit option doesn't work.
+### The documented --enable-64bit option doesn't work. {#enable-64bit}
 
 The --enable-64bit option appeared in the 3.6.1 release, and was--
 removed for the 3.6.2 release.
@@ -965,7 +962,7 @@ and the [netCDF-4
 snapshot](https://www.unidata.ucar.edu/software/netcdf/builds/snapshot/index_4.html)
 documentation.
 
-### Building netCDF-3.6.2 with gfortran version 4.2.x or 4.3.x fails.
+### Building netCDF-3.6.2 with gfortran version 4.2.x or 4.3.x fails. {#gfortran_43}
 
 Something changed in gfortran version 4.3 relating to how fortran
 functions can call C functions.
@@ -989,7 +986,7 @@ This problem has been fixed in the [netCDF-3
 snapshot](../builds/snapshot). Now configure checks the version of
 gfortran before setting the appropriate flag.
 
-### Building shared libraries on Macintosh with g95 fails.
+### Building shared libraries on Macintosh with g95 fails. {#g95_mac_shared}
 
 Building shared libraries on the Macintosh fails
 
@@ -1011,7 +1008,7 @@ Building shared libraries on the Macintosh fails
     Please report to support@unidata.ucar.edu
     =========================================
 
-### Building shared libraries on HPUX with native tools results in only static libraries.
+### Building shared libraries on HPUX with native tools results in only static libraries. {#HPUX_shared}
 
 On the only HPUX machine I have access to for testing, the
 --enable-shared still results in only the static library being linked.
@@ -1021,7 +1018,7 @@ Any HPUX use who can provide information about this should send email to
 support-netcdf@unidata.ucar.edu. bash-2.04\$ uname -a HP-UX tweety
 B.11.00 A 9000/785 2004553471
 
-### Building shared libraries on AIX fails.
+### Building shared libraries on AIX fails. {#AIX_shared}
 
 On the Unidata AIX platforms, the shared netCDF build fails with either
 the Fortran or C++ compilers, like this:
@@ -1049,7 +1046,7 @@ that would be most helpful.
 
 Shared builds also fail the same way when using GNU compilers.
 
-### Building with older versions of g++ fails.
+### Building with older versions of g++ fails. {#old_gpp}
 
 The build fails like this:
 
@@ -1072,7 +1069,7 @@ This happens in old versions of g++ when large files are used. To fix
 this, either upgrade your g++ compiler, or else use --disable-largefile
 with configure, to turn off large file handling.
 
-### The .NET build files are not included in the 3.6.2 release.
+### The .NET build files are not included in the 3.6.2 release. {#NET_3_6_2}
 
 The netCDF 3.6.2 release does not contain the .NET build files. Whoops!
 Sorry about that.
@@ -1083,7 +1080,7 @@ release.
 This is now fixed in the netCDF-3 snapshot. Get the snapshot from the
 [netCDF-3 snapshot build page](../builds/snapshot).
 
-### Snapshot .NET build files do not work for Visual Studio 8.0 beta.
+### Snapshot .NET build files do not work for Visual Studio 8.0 beta. {#NET_80_362}
 
 A user has reported that Visual Studio .NET version 8.0 beta does not
 build with the netCDF .NET build files in win32/NET.
@@ -1092,7 +1089,7 @@ Interested users may also wish to subscribe to the [netcdf-porting
 mailing
 list](https://www.unidata.ucar.edu/mailing_lists/archives/netcdf-porting/).
 
-### The -disable-v2 option causes the fortran build to fail with some fortran compilers.
+### The -disable-v2 option causes the fortran build to fail with some fortran compilers. {#disable-v2_3_6_2}
 
 The netCDF version 2 API is maintained for backward compatibility. We
 are committed to maintaining the V2 API for all future releases of
@@ -1110,7 +1107,7 @@ you can get the netCDF-3 [snapshot](../builds/snapshot).
 
 This is fixed for future releases of netCDF.
 
-### The --disable-c option does not work.
+### The --disable-c option does not work. {#disable-c_3_6_2}
 
 The --disable-c option should turn off the building of the netCDF C
 library for use with --enable-separate-fortran (to save a small amount
@@ -1128,7 +1125,7 @@ Known Problems with netCDF 3.6.1
 
 [Linux x86 Fedora4 with Intel ifort 9.0 compiler](#ifort_3_6_1)
 
-### Building on IBM Bluegene login node (SUSE Linux)
+### Building on IBM Bluegene login node (SUSE Linux) {#login_node_3_6_1}
 
 Michael McCracken reports the following:
 
@@ -1169,7 +1166,7 @@ Michael McCracken reports the following:
 
     I get a clean build, and ncdump works for me...
 
-### Linux x86 Fedora4 with Intel ifort 9.0 compiler
+### Linux x86 Fedora4 with Intel ifort 9.0 compiler {#ifort_3_6_1}
 
 For netCDF version 3.6.1, Jonathan Rougier contributes the following
 work around for an intel fortran compiler bug.
@@ -1226,7 +1223,7 @@ Known Problems with netCDF 3.6.0
 
 ------------------------------------------------------------------------
 
-### nctest fails on IRIX platform
+### nctest fails on IRIX platform {#irix-nctest}
 
 It has been reported (by Atro Tossavainen) that nctest fails on some
 Irix builds. (We cannot duplicate this problem at netCDF World HQ).
@@ -1236,12 +1233,12 @@ of the output.
 
 This problem was fixed in the 3.6.1 release.
 
-### C++ API doesn't build on Irix
+### C++ API doesn't build on Irix {#irix-CXX-build}
 
 On Irix systems without a recent version of the C++ compiler, the C++
 API won't build. The solution is to set CXXFLAGS to -LANG:std.
 
-### Potentially serious bug with 64-bit offset files
+### Potentially serious bug with 64-bit offset files {#cdf2-bug}
 
 Kevin Thomas of the University of Oklahoma has reported a potentially
 serious bug in using the new large file support in netCDF 3.6.0. Users
@@ -1293,19 +1290,19 @@ FAQ [How can I tell if a netCDF file uses the classic format or new
 64-bit offset
 format?](/software/netcdf/faq.html#Large%20File%20Support5).
 
-### Cygwin Build Doesn't Work
+### Cygwin Build Doesn't Work {#bad-cygwin}
 
 To build on Cygwin, you must get the [latest 3.6.1 beta
 release](ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-beta.tar.gz).
 
-### Windows DLL doesn't include F77 API
+### Windows DLL doesn't include F77 API {#dll-fortran}
 
 The netCDF windows DLL doesn't include the Fortran API. We are working
 on this problem for the next release. Meanwhile, if you need the fortran
 API in your DLL, you'll have to use the [netCDF 3.5.1
 DLL](ftp://ftp.unidata.ucar.edu/pub/netcdf/contrib/win32/netcdf-3.5.1-win32dll.zip).
 
-### F90 tests fail with Portland F90 compiler
+### F90 tests fail with Portland F90 compiler {#portland-f90}
 
 On some versions of the Portland Group F90 compiler, the F90 tests fail,
 looking something like this:
@@ -1339,7 +1336,7 @@ This problem is caused by a bug in the Portland F90 compiler. Upgrade to
 the latest version of the compiler or get the free patch from Portland
 Group to fix this.
 
-### Config doesn't find working F77 or F90 compiler on AIX
+### Config doesn't find working F77 or F90 compiler on AIX {#aix-config}
 
 On AIX systems, the configure step can't find either the F90 or the F77
 compiler. On AIX system, you must set the environment variables FC and
@@ -1356,7 +1353,7 @@ configure.
 
 This will be fixed in the next beta release.
 
-### F90 functions not added to library on AIX
+### F90 functions not added to library on AIX {#aix-make}
 
 On AIX systems, the F90 functions may not be added to the library. This
 is due to a quirk of AIX make.
@@ -1364,7 +1361,7 @@ is due to a quirk of AIX make.
 Before doing "make install", change to the Fortran90 directory (src/f90)
 and do "make". Then proceed to "make install".
 
-### Problems with fortran compile because of -Df2cFortran being added by configure"
+### Problems with fortran compile because of -Df2cFortran being added by configure" {#fortran-config}
 
 With some fortran compilers, such as Absoft, the configure script
 stupidly adds a -Df2cFortran to the C preprocessor flags, which causes
@@ -1373,7 +1370,7 @@ the fortran tests in nf\_test to fail to link.
 This problem is fixed in the 3.6.1 beta release. Get the [3.6.1 beta
 release](ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-beta.tar.Z).
 
-### Message: "ncgenyy.c is out-of-date with respect to ncgen.l"
+### Message: "ncgenyy.c is out-of-date with respect to ncgen.l" {#ncgen-timestamp}
 
 On some platforms (HP-UX 11.00, maybe others), make fails with an error
 message like:
@@ -1394,7 +1391,7 @@ src/ directory to update the modification time of the derived file:
 
 Then rerun the make command.
 
-### Configure help specifies FCFLAGS instead of FFLAGS
+### Configure help specifies FCFLAGS instead of FFLAGS {#fcflags}
 
 If you run "configure --help", it suggests setting "FCFLAGS" for the
 fortran compiler flags, but "FFLAGS" is actually used for the Fortran
@@ -1403,7 +1400,7 @@ compiler flags. "FCFLAGS" is ignored when compiling.
 This problem will be is fixed in the next beta release. Until then, use
 FFLAGS, not FCFLAGS.
 
-### Specifying a count length of zero returns an error instead of no data
+### Specifying a count length of zero returns an error instead of no data {#zeroedge}
 
 For access to array sections, strided access, or mapped access, you need
 to specify both a start index vector and a count vector, where the count
@@ -1417,7 +1414,7 @@ returned rather than gracefully accessing no data.
 
 This will be fixed in the next minor version.
 
-### C++ library doesn't build under Cygwin
+### C++ library doesn't build under Cygwin {#cygwincpp}
 
 Running configure on Cygwin fails to find GNU C++ compiler, even if it
 is present on the platform. As a result, the C++ interface is never
@@ -1427,7 +1424,7 @@ This problem is fixed in the 3.6.1 beta release. Cygwin users interested
 in the C++ interface should get the [3.6.1 beta
 release](ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-3.6.1-beta1.tar.Z).
 
-### Large file problems in Visual C++ compile
+### Large file problems in Visual C++ compile {#visualcpp_largefile}
 
 The use of large files, and an 8-byte off\_t type, is not handled
 correctly in the 3.6.0 release of the code and project files needed to
@@ -1438,7 +1435,7 @@ building their own DLL should get the [3.6.1 beta
 release](ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-3.6.1-beta1.tar.Z).
 The DLL offered on the binary release page is 3.6.1 beta.
 
-### When using TEMP\_LARGE, need a trailing slash
+### When using TEMP\_LARGE, need a trailing slash {#temp_large}
 
 When using the environment variable TEMP\_LARGE during the netCDF 3.6.0
 make extra\_test phase, the directory name must be followed by a slash

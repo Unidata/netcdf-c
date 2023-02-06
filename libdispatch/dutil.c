@@ -394,9 +394,11 @@ done:
     return found;
 }
 
-#if ! defined __INTEL_COMPILER 
+#if ! defined __INTEL_COMPILER
 #if defined __APPLE__ 
 /** \internal */
+
+#if ! defined HAVE_DECL_ISINF
 
 int isinf(double x)
 {
@@ -406,6 +408,9 @@ int isinf(double x)
            ( (unsigned)ieee754.u == 0 );
 }
 
+#endif /* HAVE_DECL_ISINF */
+
+#if ! defined HAVE_DECL_ISNAN
 /** \internal */
 int isnan(double x)
 {
@@ -414,6 +419,8 @@ int isnan(double x)
     return ( (unsigned)(ieee754.u >> 32) & 0x7fffffff ) +
            ( (unsigned)ieee754.u != 0 ) > 0x7ff00000;
 }
+
+#endif /* HAVE_DECL_ISNAN */
 
 #endif /*APPLE*/
 #endif /*!_INTEL_COMPILER*/
