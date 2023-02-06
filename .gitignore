@@ -16,6 +16,20 @@ dap4_test/findtestserver4.c
 dap4_test/pingurl4.c
 ncdap_test/findtestserver.c
 
+Makefile.in
+aclocal.m4
+compile
+config.guess
+config.h.in
+config.sub
+configure
+depcomp
+install-sh
+ltmain.sh
+m4
+missing
+test-driver
+
 #####
 # End ignored generated files.
 #####

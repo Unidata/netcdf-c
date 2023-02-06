@@ -1,0 +1,69 @@
+name: Run Cygwin-based tests
+
+on: [pull_request,workflow_dispatch]
+
+env:
+  SHELLOPTS: igncr
+  CHERE_INVOKING: 1
+  CYGWIN_NOWINPATH: 1
+
+jobs:
+  build-and-test-autotools:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash -eo pipefail -o igncr "{0}"
+
+    name: Cygwin-based Autotools tests
+
+    steps:
+      - name: Fix line endings
+        run: git config --global core.autocrlf input
+
+      - uses: actions/checkout@v3
+
+      - uses: cygwin/cygwin-install-action@v2
+        with:
+          platform: x86_64
+          packages: >-
+            git automake libtool autoconf2.5 make libhdf5-devel
+            libhdf4-devel zipinfo libxml2-devel perl zlib-devel
+            libzstd-devel libbz2-devel libaec-devel libzip-devel
+            libdeflate-devel gcc-core libcurl-devel libiconv-devel
+
+      - name: (Autotools) Run autoconf and friends
+        run: |
+          cp -f /bin/dash /bin/sh
+          mkdir m4
+          /bin/dash /usr/bin/libtoolize --force --copy --verbose
+          /usr/bin/autoreconf-2.69 --force --install --verbose --debug
+
+      - name: (Autotools) Configure in-tree build
+        run: >-
+          /bin/dash ./configure --enable-hdf5 --enable-shared
+          --disable-static --enable-dap --disable-dap-remote-tests
+          --enable-plugins --disable-nczarr-filters
+          --disable-nczarr-s3 --disable-nczarr-s3-tests --disable-nczarr
+
+      - name: Look at config.log if error
+        if: ${{ failure() }}
+        run: cat config.log
+
+      - name: Print summary
+        run: cat libnetcdf.settings
+
+      - name: (Autotools) Build library and utilities
+        run: make -j8 SHELL=/bin/dash
+
+      - name: (Autotools) Test DESTDIR install
+        run: |
+          make install DESTDIR=/tmp/pretend-root SHELL=/bin/dash
+          if [ -d "/tmp/pretend-root/$(pwd)" ];
+          then
+              find /tmp/pretend-root/$(pwd)
+              if [ $(find /tmp/pretend-root/$(pwd) -type f | wc -l) -gt 0 ]; then exit 1; fi
+          fi
+
+      - name: (Autotools) Build and run tests
+        timeout-minutes: 30
+        run: make check -j8 SHELL=/bin/dash

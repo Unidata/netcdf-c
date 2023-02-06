@@ -41,14 +41,12 @@ if HAS_PAR_FILTERS
 NC4_TESTS += tst_alignment
 endif
 
-# Temporary I hoped, but hoped in vain.
-if !ISCYGWIN
 NC4_TESTS += tst_h_strbug tst_h_refs
-endif
 
 # Build test programs plus programs used in test scripts.
 check_PROGRAMS = $(NC4_TESTS) tst_empty_vlen_unlim tst_charvlenbug tst_vlenstr
 TESTS = $(NC4_TESTS) run_empty_vlen_test.sh
+XFAIL_TESTS =
 
 # Add these if large file tests are turned on.
 if LARGE_FILE_TESTS
@@ -86,10 +84,15 @@ extradir =
 check_PROGRAMS += test_filter test_filter_misc test_filter_order test_filter_repeat test_filter_vlen
 check_PROGRAMS += tst_multifilter tst_filter_avail
 TESTS += tst_filter.sh
-TESTS += tst_unknown.sh
 TESTS += tst_specific_filters.sh
 TESTS += tst_bloscfail.sh
-endif
+if ISMINGW
+XFAIL_TESTS += tst_filter.sh
+endif # ISMINGW
+# This test is too dangerous to run in a parallel make environment.
+# It causes race conditions. So suppress and only test by hand.
+#TESTS += tst_unknown.sh
+endif # ENABLE_FILTER_TESTING
 endif # USE_HDF5
 endif # BUILD_UTILITIES
 

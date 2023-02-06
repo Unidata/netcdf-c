@@ -7,7 +7,22 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.9.1 - T.B.D.
 
-* [Enhancement] Add HIGHLY EXPERIMENTAL support for thread-safe operation via searialized access to the netcdf-C library. See [Github #2505](https://github.com/Unidata/netcdf-c/pull/2505). 
+### 4.9.1 - Release Candidate 2 - November 21, 2022
+
+#### Known Issues
+
+* A test in the `main` branch of `netcdf-cxx4` is broken by this rc; this will bear further investigation, but not being treated as a roadblock for the release candidate.
+* The new document, `netcdf-c/docs/filter_quickstart.md` is in rough-draft form.
+
+#### Changes
+
+* [Bug Fix] Fix a race condition when testing missing filters. See [Github #2557](https://github.com/Unidata/netcdf-c/pull/2557). 
+* [Bug Fix] Fix some race conditions due to use of a common file in multiple shell scripts . See [Github #2552](https://github.com/Unidata/netcdf-c/pull/2552).
+
+
+### 4.9.1 - Release Candidate 1 - October 24, 2022
+
+* [Enhancement][Documentation] Add Plugins Quick Start Guide.  See [GitHub #2524](https://github.com/Unidata/netcdf-c/pull/2524) for more information.
 * [Enhancement] Add new entries in `netcdf_meta.h`, `NC_HAS_BLOSC` and `NC_HAS_BZ2`. See [Github #2511](https://github.com/Unidata/netcdf-c/issues/2511) and [Github #2512](https://github.com/Unidata/netcdf-c/issues/2512) for more information.
 * [Enhancement] Add new options to `nc-config`: `--has-multifilters`, `--has-stdfilters`, `--has-quantize`, `--plugindir`.  See [Github #2509](https://github.com/Unidata/netcdf-c/pull/2509) for more information.
 * [Bug Fix] Fix some errors detected in PR 2497. [PR #2497](https://github.com/Unidata/netcdf-c/pull/2497) . See [Github #2503](https://github.com/Unidata/netcdf-c/pull/2503).
@@ -278,11 +293,13 @@ See [GitHub #1251](https://github.com/Unidata/netcdf-c/issues/1251).
 ### 4.5.0-rc1 - June 5, 2017
 
 * [Enhancement] DAP4 is now included. Since dap2 is the default for urls, dap4 must be specified by
-(1) using "dap4:" as the url protocol, or
-(2) appending "#protocol=dap4" to the end of the url, or
-(3) appending "#dap4" to the end of the url
-Note that dap4 is enabled by default but remote-testing is
-disabled until the testserver situation is resolved.
+    1. using "dap4:" as the url protocol, or
+    2. appending "\#protocol=dap4" to the end of the url, or
+    3. appending "\#dap4" to the end of the url
+
+    Note that dap4 is enabled by default but remote-testing is
+    disabled until the testserver situation is resolved.
+
 * [Enhancement] The remote testing server can now be specified with the `--with-testserver` option to ./configure.
 * [Enhancement] Modified netCDF4 to use ASCII for NC_CHAR.  See [Github Pull request #316](https://github.com/Unidata/netcdf-c/pull/316) for more information.
 * [Bug Fix] Corrected an error with how dimsizes might be read. See [Github #410](https://github.com/unidata/netcdf-c/issues/410) for more information.
