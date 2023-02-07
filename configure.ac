@@ -29,7 +29,7 @@ AC_SUBST([NC_VERSION_NOTE]) NC_VERSION_NOTE="-development"
 # See http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning
 # for information regarding incrementing `-version-info`.
 # These values should match those in CMakeLists.txt
-AC_SUBST([netCDF_SO_VERSION]) netCDF_SO_VERSION=21:0:2
+AC_SUBST([netCDF_SO_VERSION]) netCDF_SO_VERSION=21:1:2
 
 #####
 # Set some variables used to generate a libnetcdf.settings file,
