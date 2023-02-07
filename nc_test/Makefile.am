@@ -69,7 +69,7 @@ endif
 if ENABLE_THREADSAFE
 check_PROGRAMS += tst_threads
 TESTS += run_threads.sh
-nc_test_threads_SOURCES = nc_test_threads.c error.c test_get.c test_put.c test_read.c	\
+nc_test_threads_SOURCES = nc_test.c error.c test_get.c test_put.c test_read.c	\
                           test_write.c util.c error.h tests.h
 check_PROGRAMS += nc_test_threads
 TESTS += run_nc_test_threads.sh
@@ -156,22 +156,6 @@ MAINTAINERCLEANFILES = test_get.c test_put.c
 # This rule tells make how to turn our .m4 files into .c files.
 .m4.c:
 	m4 $(AM_M4FLAGS) $(M4FLAGS) $< >$@
-
-if ENABLE_THREADSAFE
-tests.h: $(srcdir)/tests.h.in
-	rm -f $@
-	echo "#define USETHREADS"      >> $@
-	echo "#include \"tests.h.in\"" >> $@
-
-nc_test_threads.c: $(srcdir)/nc_test.c
-	rm -f $@
-	echo "#define USETHREADS"     >> $@
-	echo "#include \"nc_test.c\"" >> $@
-else
-tests.h: $(srcdir)/tests.h.in
-	rm -f $@
-	cat $(srcdir)/tests.h.in > $@
-endif
 
 # If valgrind is present, add valgrind targets.
 @VALGRIND_CHECK_RULES@

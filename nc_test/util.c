@@ -435,7 +435,7 @@ hash( const nc_type xtype, const int rank, const size_t *index )
                     case NC_INT64:  return X_INT_MIN - 128.0; /* slight smaller
                                                                  than INT_MIN */
                     case NC_UINT64: return 0;
-		    default:  assert(0);
+		    default:  fprintf(stderr,"\nxtype=%d\n",xtype); assert(0);
 		}
 	    case 1:
 		switch (xtype) {

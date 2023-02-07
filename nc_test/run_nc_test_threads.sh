@@ -1,0 +1,29 @@
+#!/bin/sh
+
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
+. ../test_common.sh
+
+NTHREADS=2
+NMSGS=1
+FORMAT="-F nc3"
+
+set -e
+
+if test 1 = 1 ; then
+echo "*** Testing netcdf-3 thread safe execution"
+${execdir}/nc_test_threads -T ${NTHREADS} -M ${NMSGS} ${FORMAT}
+echo "PASS: thread safe netcdf-3"
+rm -f tmp_threadsafe*.nc
+fi
+
+if test 1 = 0 ; then
+if test "x$FEATURE_HDF5" = xyes ; then
+echo "*** Testing netcdf-4 thread safe execution"
+#export NETCDF_LOG_LEVEL=5
+${execdir}/nc_test_threads -T ${NTHREADS} -M ${NMSGS} ${FORMAT}
+echo "PASS: thread safe netcdf-4"
+fi
+rm -f tmp_threadsafe*.nc
+fi
+
+exit

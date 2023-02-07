@@ -26,7 +26,7 @@
 #ifdef USE_PARALLEL
 #include "netcdf_par.h"
 #endif
-#if defined(USETHREADS) && defined(ENABLE_THREADSAFE)
+#if defined(ENABLE_THREADSAFE)
 #include "netcdf_threadsafe.h"
 #endif
 
@@ -219,7 +219,7 @@ typedef          long long  int64;
 typedef unsigned long long  uint64;
 #endif
 
-#if defined(USETHREADS) && defined(ENABLE_THREADSAFE)
+#if defined(ENABLE_THREADSAFE)
 #if defined(_WIN32) && ! defined(__MINGW32__)
 #define THREADED __declspec(thread)
 #else
