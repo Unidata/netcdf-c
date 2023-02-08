@@ -18,7 +18,7 @@ jobs:
 
     steps:
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install System dependencies
         shell: bash -l {0}
@@ -29,7 +29,7 @@ jobs:
         ###
       - name: Cache libhdf5-${{ matrix.hdf5 }}
         id: cache-hdf5
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/environments/${{ matrix.hdf5 }}
           key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
@@ -67,7 +67,7 @@ jobs:
 
     steps:
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install System dependencies
         shell: bash -l {0}
@@ -78,7 +78,7 @@ jobs:
         ###
       - name: Cache libhdf5-parallel-${{ matrix.hdf5 }}
         id: cache-hdf5
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/environments/${{ matrix.hdf5 }}
           key: hdf5-parallel-${{ runner.os }}-${{ matrix.hdf5 }}
@@ -128,7 +128,7 @@ jobs:
         hdf5: [ 1.12.2 ]
     steps:
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install System dependencies
         shell: bash -l {0}
@@ -149,7 +149,7 @@ jobs:
 
       - name: Fetch HDF Cache
         id: cache-hdf
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/environments/${{ matrix.hdf5 }}
           key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
@@ -208,7 +208,7 @@ jobs:
         hdf5: [ 1.12.2 ]
     steps:
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install System dependencies
         shell: bash -l {0}
@@ -224,7 +224,7 @@ jobs:
 
       - name: Fetch HDF Cache
         id: cache-hdf
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/environments/${{ matrix.hdf5 }}
           key: hdf5-parallel-${{ runner.os }}-${{ matrix.hdf5 }}
@@ -289,7 +289,7 @@ jobs:
 
     steps:
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install System dependencies
         shell: bash -l {0}
@@ -308,7 +308,7 @@ jobs:
 
       - name: Fetch HDF Cache
         id: cache-hdf5
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/environments/${{ matrix.hdf5 }}
           key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
@@ -369,7 +369,7 @@ jobs:
 
     steps:
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install System dependencies
         shell: bash -l {0}
@@ -388,7 +388,7 @@ jobs:
 
       - name: Fetch HDF Cache
         id: cache-hdf5
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/environments/${{ matrix.hdf5 }}
           key: hdf5-parallel-${{ runner.os }}-${{ matrix.hdf5 }}
@@ -448,7 +448,7 @@ jobs:
         use_nczarr: [ nczarr_off, nczarr_on ]
     steps:
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install System dependencies
         shell: bash -l {0}
@@ -482,7 +482,7 @@ jobs:
 
       - name: Fetch HDF Cache
         id: cache-hdf
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/environments/${{ matrix.hdf5 }}
           key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
@@ -501,31 +501,37 @@ jobs:
 
       - name: Configure
         shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure ${ENABLE_HDF5} ${ENABLE_DAP} ${ENABLE_NCZARR}
+        run: |
+          current_directory="$(pwd)"
+          mkdir ../build
+          cd ../build && CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} "${current_directory}/configure" ${ENABLE_HDF5} ${ENABLE_DAP} ${ENABLE_NCZARR}
         if: ${{ success() }}
 
       - name: Look at config.log if error
         shell: bash -l {0}
-        run: cat config.log
+        run: cd ../build && cat config.log
         if: ${{ failure() }}
 
       - name: Print Summary
         shell: bash -l {0}
-        run: cat libnetcdf.settings
+        run: cd ../build && cat libnetcdf.settings
 
       - name: Build Library and Utilities
         shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make -j
+        run: |
+          cd ../build && CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make -j
         if: ${{ success() }}
 
       - name: Build Tests
         shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check TESTS="" -j
+        run: |
+          cd ../build && CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check TESTS="" -j
         if: ${{ success() }}
 
       - name: Run Tests
         shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check -j
+        run: |
+          cd ../build && CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check -j
         if: ${{ success() }}
 
   nc-cmake:
@@ -541,7 +547,7 @@ jobs:
         use_nczarr: [ nczarr_off, nczarr_on ]
     steps:
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install System dependencies
         shell: bash -l {0}
@@ -575,7 +581,7 @@ jobs:
 
       - name: Fetch HDF Cache
         id: cache-hdf5
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/environments/${{ matrix.hdf5 }}
           key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}

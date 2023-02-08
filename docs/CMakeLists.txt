@@ -95,6 +95,6 @@ obsolete/fan_utils.html bestpractices.md filters.md indexing.md
 inmemory.md DAP2.dox FAQ.md
 known_problems.md
 COPYRIGHT.dox user_defined_formats.md DAP4.md DAP4.dox
-testserver.dox byterange.dox filters.md nczarr.md auth.md quantize.md)
+testserver.dox byterange.md filters.md nczarr.md auth.md quantize.md)
 
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")

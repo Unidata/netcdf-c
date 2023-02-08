@@ -1,14 +1,11 @@
-NetCDF-4 Filter Support
-============================
-
-<!--  double header is needed to workaround doxygen bug  -->
-
-NetCDF-4 Filter Support {#filters}
+Appendix D. NetCDF-4 Filter Support {#filters} 
 ==================================
 
-\tableofcontents
+[TOC]
 
-# Feature Overview {#filters_overview}
+> See @ref nc_filters_quickstart for tips to get started quickly with NetCDF-4 Filter Support. 
+
+## Filters Overview {#filters_overview}
 
 NetCDF-C filters have some features of which the user
 should be aware.
@@ -28,7 +25,7 @@ and have them processed using HDF5-style wrapper shared libraries.
 Zarr filters can be used even if HDF5 support is disabled
 in the netCDF-C library.
 
-# Introduction to Filters {#filters_introduction}
+## Introduction to Filters {#filters_introduction}
 
 The netCDF library supports a general filter mechanism to apply
 various kinds of filters to datasets before reading or writing.
@@ -51,7 +48,7 @@ reading.
 This document describes the support for HDF5 filters and also
 the newly added support for NCZarr filters.
 
-# A Warning on Backward Compatibility {#filters_compatibility}
+## A Warning on Backward Compatibility {#filters_compatibility}
 
 The API defined in this document should accurately reflect the
 current state of filters in the netCDF-c library.  Be aware that
@@ -73,7 +70,7 @@ A user may encounter an incompatibility if any of the following appears in user 
 
 For additional information, see [Appendix B](#filters_appendixb).
 
-# Enabling A HDF5 Compression Filter {#filters_enable}
+## Enabling A HDF5 Compression Filter {#filters_enable}
 
 HDF5 supports dynamic loading of compression filters using the
 following process for reading of compressed data.
@@ -309,7 +306,7 @@ The rules for all possible cases of the "-F none" flag are defined by this table
 <tr><td>false<td>defined<td>defined<td>use output filter(s)
 </table> 
 
-# Filter Specification Syntax  {#filters_syntax}
+## Filter Specification Syntax  {#filters_syntax}
 
 The utilities <a href="#NCGEN">ncgen</a> and <a href="#NCCOPY">nccopy</a>, and also the output of *ncdump*, support the specification of filter ids, formats, and parameters in text format.
 The BNF specification is defined in [Appendix C](#filters_appendixc).
@@ -344,13 +341,13 @@ Some things to note.
 4. For double, and signed|unsigned long long, they are converted as specified in the section on <a href="#filters_paramcoding">parameter encode/decode</a>.
 5. In order to support mutiple filters, the argument to *\_Filter* may be a pipeline separated  (using '|') to specify a list of filters specs.
 
-# Dynamic Loading Process {#filters_Process}
+## Dynamic Loading Process {#filters_Process}
 
 Each filter is assumed to be compiled into a separate dynamically loaded library.
 For HDF5 conformant filters, these filter libraries are assumed to be in some specific location.
 The details for writing such a filter are defined in the HDF5 documentation[1,2].
 
-## Plugin directory {#filters_plugindir}
+### Plugin directory {#filters_plugindir}
 
 The HDF5 loader searches for plugins in a number of directories.
 This search is contingent on the presence or absence of the environment
@@ -360,6 +357,7 @@ As with all other "...PATH" variables, it is a sequence of absolute
 directories separated by a separator character. For *nix* operating systems,
 this separator is the colon (':') character. For Windows and Mingw, the
 separator is the semi-colon (';') character. So for example:
+
 * Linux:   export HDF5_PLUGIN_PATH=/usr/lib:/usr/local/lib
 * Windows: export HDF5_PLUGIN_PATH=c:\\ProgramData\\hdf5\\plugin;c:\\tools\\lib
 
@@ -369,8 +367,9 @@ exported symbols representing the entry points into the library.
 
 If HDF5_PLUGIN_PATH is not defined, the loader defaults to using
 these default directories:
-* Linux:   "/usr/local/hdf5/lib/plugin”
-* Windows: “%ALLUSERSPROFILE%\\hdf5\\lib\\plugin”
+
+* Linux:  /usr/local/hdf5/lib/plugin
+* Windows: %ALLUSERSPROFILE%\\hdf5\\lib\\plugin
 
 It should be noted that there is a difference between the search order
 for HDF5 versus NCZarr. The HDF5 loader will search only the directories
@@ -378,7 +377,7 @@ specificed in HDF5_PLUGIN_PATH. In NCZarr, the loader
 searches HDF5_PLUGIN_PATH and as a last resort,
 it also searches the default directory.
 
-## Plugin Library Naming {#filters_Pluginlib}
+### Plugin Library Naming {#filters_Pluginlib}
 
 Given a plugin directory, HDF5 examines every file in that directory
 that conforms to a specified name pattern as determined by the
@@ -392,7 +391,7 @@ platform on which the library is being executed.
 <tr halign="left"><td>Windows<td>*<td>.dll
 </table>
 
-## Plugin Verification {#filters_Pluginverify}
+### Plugin Verification {#filters_Pluginverify}
 
 For each dynamic library located using the previous patterns,
 HDF5 attempts to load the library and attempts to obtain
@@ -406,7 +405,7 @@ with the following signatures.
 
 If plugin verification fails, then that plugin is ignored and the search continues for another, matching plugin.
 
-# NCZarr Filter Support {#filters_nczarr}
+## NCZarr Filter Support {#filters_nczarr}
 
 The inclusion of Zarr support in the netcdf-c library creates the need to provide a new representation consistent with the way that Zarr files store filter information.
 For Zarr, filters are represented using the JSON notation.
@@ -452,7 +451,7 @@ The shared library exports a well-known function name to access Codec informatio
 Note that the shared library may optionally be the same library containing the HDF5
 filter processor.
 
-## Processing Overview
+### Processing Overview
 
 There are several paths by which the NCZarr filter API is invoked.
 
@@ -462,33 +461,33 @@ There are several paths by which the NCZarr filter API is invoked.
 3. The filter is invoked with the working parameters.
 4. The dataset is closed using the final set of visible parameters.
 
-### Step 1: Invoking nc\_def\_var\_filter
+#### Step 1: Invoking nc\_def\_var\_filter
 
 In this case, the filter plugin is located and the set of visible parameters (from nc\_def\_var\_filter) are provided.
 
-### Step 1a: Reading metadata
+#### Step 1a: Reading metadata
 
 In this case, the codec is read from the metadata and must be converted to a visible set of HDF5 style parameters.
 It is possible that this set of visible parameters differs from the set that was provided by nc\_def\_var\_filter.
 If this is important, then the filter implementation is responsible for marking this difference using, for example, different number of parameters or some differing value.
 
-### Step 2: Convert visible parameters to working parameters
+#### Step 2: Convert visible parameters to working parameters
 
 Given environmental information such as the associated variable's base type, the visible parameters
 are converted to a potentially larger set of working parameters; additionally provide the opportunity
 to modify the visible parameters.
 
-### Step 3: Invoking the filter
+#### Step 3: Invoking the filter
 
 As chunks are read or written, the filter is repeatedly invoked using the working parameters.
 
-### Step 4: Closing the dataset
+#### Step 4: Closing the dataset
 
 The visible parameters from step 2 are stored in the dataset's metadata.
 It is desirable to determine if the set of visible parameters changes.
 If no change is detected, then re-writing the compressor metadata may be avoided.
 
-## Client API
+### Client API
 
 Currently, there is no way to specify use of a filter via Codec through
 the netcdf-c API. Rather, one must know the HDF5 id and parameters of
@@ -497,14 +496,14 @@ Internally, the NCZarr code will use information about known Codecs to convert t
 This restriction also holds for the specification of filters in *ncgen* and *nccopy*.
 This limitation may be lifted in the future.
 
-## Special Codecs Attribute
+### Special Codecs Attribute
 
 A new special attribute is defined called *\_Codecs* in parallel to the current *\_Filters* special attribute. Its value is a string containing the JSON representation of the Codecs associated with a given variable. 
 This can be especially useful when a file is unreadable because it uses a filter not available to the netcdf-c library.
 That is, no implementation was found in the e.g. *HDF5\_PLUGIN\_PATH* directory.
 In this case *ncdump -hs* will display the raw Codec information so that it may be possible to see what filter is missing.
 
-## Pre-Processing Filter Libraries
+### Pre-Processing Filter Libraries
 
 The process for using filters for NCZarr is defined to operate in several steps.
 First, as with HDF5, all shared libraries in a specified directory
@@ -529,7 +528,7 @@ Then by adding a corresponding, separate, Codec-only library to that same locati
 It is possible to do this without having to modify the HDF5-only library.
 Over time, it is possible to merge an HDF5-only library with a Codec-only library to produce a single, combined library.
 
-## Using Plugin Libraries
+### Using Plugin Libraries
 
 The netcdf-c library processes all of the shared libraries by interrogating each one for the well-known APIs and recording the result.
 Any libraries that do not export one or both of the well-known APIs is ignored.
@@ -544,7 +543,7 @@ This results in this table for associated codec and hdf5 libraries.
 <tr><td>Defined<td>Defined<td>NCZarr usable
 </table>
 
-## Filter Defaults Library
+### Filter Defaults Library
 
 As a special case, a shared library may be created to hold
 defaults for a common set of filters.
@@ -554,13 +553,13 @@ no other library provides codec information for a filter.
 Currently, the defaults library provides codec defaults
 for Shuffle, Fletcher32, Deflate (zlib), and SZIP.
 
-## Using the Codec API
+### Using the Codec API
 
 Given a set of filters for which the HDF5 API and the Codec API
 are defined, it is then possible to use the APIs to invoke the
 filters and to process the meta-data in Codec JSON format.
 
-### Writing an NCZarr Container
+#### Writing an NCZarr Container
 
 When writing, the user program will invoke the NetCDF API function *nc\_def\_var\_filter*.
 This function is currently defined to operate using HDF5-style id and parameters (unsigned ints).
@@ -571,7 +570,7 @@ Then during writing of data, the corresponding HDF5 filter is invoked to encode 
 When it comes time to write out the meta-data, the stored HDF5-style parameters are passed to a specific Codec function to obtain the corresponding JSON representation. Again see [Appendix E](#filters_appendixe).
 This resulting JSON is then written in the NCZarr metadata. 
 
-### Reading an NCZarr Container
+#### Reading an NCZarr Container
 
 When reading, the netcdf-c library will read the metadata for a given variable and will see that some set of filters are applied to this variable.
 The metadata is encoded as Codec-style JSON.
@@ -581,7 +580,7 @@ The netcdf-c library examines its list of known filters to find one matching the
 The JSON is passed to a Codec function to obtain the corresponding HDF5-style *unsigned int* parameter vector.
 These parameters are stored for later use.
 
-## Supporting Filter Chains
+### Supporting Filter Chains
 
 HDF5 supports *filter chains*, which is a sequence of filters where the output of one filter is provided as input to the next filter in the sequence.
 When encoding, the filters are executed in the "forward" direction,
@@ -601,7 +600,7 @@ filters are assigned as the "filters".
 But independent of this, each codec, whether a compressor or a filter,
 is stored in the JSON dictionary form described earlier.
 
-## Extensions
+### Extensions
 
 The Codec style, using JSON, has the ability to provide very complex parameters that may be hard to encode as a vector of unsigned integers.
 It might be desirable to consider exporting a JSON-base API out of the netcdf-c API to support user access to this complexity.
@@ -611,13 +610,13 @@ This extension is unlikely to be implemented until a compelling use-case is enco
 One bad side-effect of this is that we then may have two classes of plugins.
 One class can be used by both HDF5 and NCZarr, and a second class that is usable only with NCZarr.
 
-## Using The NetCDF-C Plugins
+### Using The NetCDF-C Plugins
 
 As part of its testing, the NetCDF build process creates a number of shared libraries in the *netcdf-c/plugins* (or sometimes *netcdf-c/plugins/.libs*) directory.
 If you need a filter from that set, you may be able to set *HDF5\_PLUGIN\_PATH*
 to point to that directory or you may be able to copy the shared libraries out of that directory to your own location.
 
-# Debugging {#filters_debug}
+## Debugging {#filters_debug}
 
 Depending on the debugger one uses, debugging plugins can be very difficult.
 It may be necessary to use the old printf approach for debugging the filter itself.
@@ -631,7 +630,7 @@ This can be accomplished using this command.
 Since ncdump is not being asked to access the data (the -h flag), it can obtain the filter information without failures.
 Then it can print out the filter id and the parameters as well as the Codecs (via the -s flag).
 
-## Test Cases {#filters_TestCase}
+### Test Cases {#filters_TestCase}
 
 Within the netcdf-c source tree, the directory two directories contain test cases for testing dynamic filter operation.
 
@@ -641,7 +640,7 @@ Within the netcdf-c source tree, the directory two directories contain test case
 These tests are disabled if *--disable-shared* or if *--disable-filter-tests* is specified
 or if *--disable-plugins* is specified.
 
-## HDF5 Example {#filters_Example}
+### HDF5 Example {#filters_Example}
 
 A slightly simplified version of one of the HDF5 filter test cases is also available as an example within the netcdf-c source tree directory *netcdf-c/examples/C*.
 The test is called *filter\_example.c* and it is executed as part of the *run\_examples4.sh* shell script.
@@ -649,9 +648,9 @@ The test case demonstrates dynamic filter writing and reading.
 
 The files *example/C/hdf5plugins/Makefile.am* and  *example/C/hdf5plugins/CMakeLists.txt* demonstrate how to build the hdf5 plugin for bzip2.
 
-# Notes
+## Notes
 
-## Order of Invocation for Multiple Filters 
+### Order of Invocation for Multiple Filters 
 
 When multiple filters are defined on a variable, the order of application, when writing data to the file, is same as the order in which *nc\_def\_var\_filter*is called.
 When reading a file the order of application is of necessity the reverse.
@@ -666,7 +665,7 @@ There are some special cases.
     However, the shuffle filter, if enabled, is *always* applied before applying any other filters, except fletcher32.
 4. Once a filter is defined for a variable, it cannot be removed nor can its position in the filter order be changed.
 
-## Memory Allocation Issues
+### Memory Allocation Issues
 
 Starting with HDF5 version 1.10.*, the plugin code MUST be careful when using the standard *malloc()*, *realloc()*, and *free()* function.
 
@@ -682,7 +681,7 @@ Additionally, if your filter code leaks memory, then the HDF5 library generates 
 
 One can look at the the code in plugins/H5Zbzip2.c and H5Zmisc.c as illustrations.
 
-## SZIP Issues
+### SZIP Issues
 
 The current szip plugin code in the HDF5 library has some behaviors that can catch the unwary.
 These are handled internally to (mostly) hide them so that they should not affect users.
@@ -706,7 +705,7 @@ HDF5 szip wrapper to be used by NCZarr. This can be confusing,
 but is generally transparent to the use since the plugins
 HDF5 szip wrapper was taken from the HDF5 code base.
 
-## Supported Systems
+### Supported Systems
 
 The current matrix of OS X build systems known to work is as follows.
 <table>
@@ -715,12 +714,12 @@ The current matrix of OS X build systems known to work is as follows.
 <tr><td>Cmake<td>Linux, Cygwin, OSX, Visual Studio
 </table>
 
-## Generic Plugin Build
+### Generic Plugin Build
 If you do not want to use Automake or Cmake, the following has been known to work.
 
     gcc -g -O0 -shared -o libbzip2.so <plugin source files>  -L${HDF5LIBDIR} -lhdf5\_hl -lhdf5 -L${ZLIBDIR} -lz
 
-# References {#filters_References}
+## References {#filters_References}
 
 1. https://support.hdfgroup.org/HDF5/doc/Advanced/DynamicallyLoadedFilters/HDF5DynamicallyLoadedFilters.pdf
 2. https://support.hdfgroup.org/HDF5/doc/TechNotes/TechNote-HDF5-CompressionTroubleshooting.pdf
@@ -732,7 +731,7 @@ If you do not want to use Automake or Cmake, the following has been known to wor
 8. https://github.com/ccr/ccr
 9. https://escholarship.org/uc/item/7xd1739k
 
-# Appendix A. HDF5 Parameter Encode/Decode {#filters_appendixa}
+## Appendix A. HDF5 Parameter Encode/Decode {#filters_appendixa}
 
 The filter id for an HDF5 format filter is an unsigned integer.
 Further, the parameters passed to an HDF5 format filter are encoded internally as a vector of 32-bit unsigned integers.
@@ -764,7 +763,7 @@ So, we have this situation (for HDF5 only):
 3. HDF5 takes each four byte piece and ensures that each piece is in network (big) endian order.
 4. When the filter is called, the two pieces are returned in the same order but with the bytes in each piece consistent with the native machine order for the machine executing the filter.
 
-## Encoding Algorithms for HDF5
+### Encoding Algorithms for HDF5
 
 In order to properly extract the correct 8-byte value, we need to ensure that the values stored in the HDF5 file have a known format independent of the native format of the creating machine.
 
@@ -774,7 +773,7 @@ When read, the filter code needs to be aware of this convention and do the appro
 
 This leads to the following set of rules.
 
-### Encoding 
+#### Encoding 
 
 1. Encode on little endian (LE) machine: no special action is required.
    The 8-byte value is passed to HDF5 as two 4-byte integers.
@@ -786,7 +785,7 @@ This leads to the following set of rules.
       So it is necessary to simulate little endian encoding by byte-swapping each 4-byte integer separately. 
    3. This doubly swapped pair of integers is then passed to HDF5 and is stored unchanged.
 
-### Decoding 
+#### Decoding 
 
 1. Decode on LE machine: no special action is required.
     HDF5 will get the two 4-bytes values from the file and byte-swap each separately.
@@ -801,7 +800,7 @@ This leads to the following set of rules.
 
 To support these rules, some utility programs exist and are discussed in [Appendix B](#filters_appendixb).
 
-# Appendix B. Support Utilities {#filters_appendixb}
+## Appendix B. Support Utilities {#filters_appendixb}
 
 Several functions are exported from the netcdf-c library for use by client programs and by filter implementations.
 They are defined in the header file *netcdf\_aux.h*.
@@ -846,7 +845,7 @@ typedef struct NC_H5_Filterspec {
 ````
 This struct in effect encapsulates all of the information about and HDF5 formatted filter &mdash; the id, the number of parameters, and the parameters themselves. 
 
-# Appendix C. Build Flags for Detecting the Filter Mechanism {#filters_appendixc}
+## Appendix C. Build Flags for Detecting the Filter Mechanism {#filters_appendixc}
 
 The include file *netcdf\_meta.h* contains the following definition.
 ````
@@ -861,7 +860,7 @@ This, in conjunction with the error code *NC\_ENOFILTER* in *netcdf.h* can be us
 3. defined(NC\_ENOFILTER) && defined(NC\_HAS\_MULTIFILTERS) &mdash; indicates that the multiple filters are supported, and that *nc\_inq\_var\_filter* returns a filterid of zero to indicate that a variable has no filters.
     Also, the filter spec parsers have the names and signatures described in this document and are define in *netcdf\_aux.h*.
 
-# Appendix D. BNF for Specifying Filters in Utilities {#filters_appendixd}
+## Appendix D. BNF for Specifying Filters in Utilities {#filters_appendixd}
 
 ````
 speclist:   spec
@@ -881,24 +880,24 @@ where
 unsigned32: <32 bit unsigned integer>
 ````
 
-# Appendix E. Codec API {#filters_appendixe}
+## Appendix E. Codec API {#filters_appendixe}
 
 The Codec API mirrors the HDF5 API closely. It has one well-known function that can be invoked to obtain information about the Codec as well as pointers to special functions to perform conversions.
 
-## The Codec Plugin API
+### The Codec Plugin API
 
-### NCZ\_get\_codec\_info
+#### NCZ\_get\_codec\_info
 
 This function returns a pointer to a C struct that provides detailed information about the codec plugin.
 
-#### Signature
+##### Signature
 ````
     void* NCZ_get_codec_info(void);
 ````
 The value returned is actually of type *struct NCZ\_codec\_t*,
 but is of type *void\** to allow for extensions.
 
-### NCZ\_codec\_t
+#### NCZ\_codec\_t
 ````
 typedef struct NCZ_codec_t {
     int version; /* Version number of the struct */
@@ -921,32 +920,33 @@ The semantics of the non-function fields is as follows:
 3. *codecid* &mdash; The name/id of the codec.
 4. *hdf5id* &mdash;  The corresponding hdf5 id.
 
-### NCZ\_codec\_to\_hdf5
+#### NCZ\_codec\_to\_hdf5
 
 Given a JSON Codec representation, it will return a corresponding vector of unsigned integers representing the
 visible parameters.
 
-#### Signature
+##### Signature
 ````
     int NCZ_codec_to_hdf(const char* codec, int* nparamsp, unsigned** paramsp);
 ````
-#### Arguments
+##### Arguments
 1. codec &mdash; (in) ptr to JSON string representing the codec.
 2. nparamsp &mdash; (out) store the length of the converted HDF5 unsigned vector
 3. paramsp &mdash; (out) store a pointer to the converted HDF5 unsigned vector; caller must free the returned vector. Note the double indirection.
 
 Return Value: a netcdf-c error code.
 
-### NCZ\_hdf5\_to\_codec
+#### NCZ\_hdf5\_to\_codec
 
 Given an HDF5 visible parameters vector of unsigned integers and its length,
 return a corresponding JSON codec representation of those visible parameters.
 
-#### Signature
+##### Signature
 ````
     int NCZ_hdf5_to_codec)(int ncid, int varid, size_t nparams, const unsigned* params, char** codecp);
 ````
-#### Arguments
+##### Arguments
+
 1. ncid    &mdash; the variables' containing group
 2. varid   &mdash; the containing variable
 3. nparams &mdash; (in) the length of the HDF5 visible parameters vector
@@ -955,16 +955,17 @@ return a corresponding JSON codec representation of those visible parameters.
 
 Return Value: a netcdf-c error code.
 
-### NCZ\_modify\_parameters
+#### NCZ\_modify\_parameters
 
 Extract environment information from the (ncid,varid) and use it to convert a set of visible parameters
 to a set of working parameters; also provide option to modify visible parameters.
 
-#### Signature
+##### Signature
 ````
     int NCZ_modify_parameters(int ncid, int varid, size_t* vnparamsp, unsigned** vparamsp, size_t* wnparamsp, unsigned** wparamsp);
 ````
-#### Arguments
+##### Arguments
+
 1. ncid &mdash; (in) group id containing the variable.
 2. varid &mdash; (in) the id of the variable to which this filter is being attached.
 3. vnparamsp &mdash; (in/out) the count of visible parameters
@@ -974,40 +975,40 @@ to a set of working parameters; also provide option to modify visible parameters
 
 Return Value: a netcdf-c error code.
 
-### NCZ\_codec\_initialize
+#### NCZ\_codec\_initialize
 
 Some compressors may require library initialization.
 This function is called as soon as a shared library is loaded and matched with an HDF5 filter.
 
-#### Signature
+##### Signature
 ````
     int NCZ_codec_initialize)(void);
 ````
 Return Value: a netcdf-c error code.
 
-### NCZ\_codec\_finalize
+#### NCZ\_codec\_finalize
 
 Some compressors (like blosc) require invoking a finalize function in order to avoid memory loss.
 This function is called during a call to *nc\_finalize* to do any finalization.
 If the client code does not invoke *nc\_finalize* then memory checkers may complain about lost memory.
 
-#### Signature
+##### Signature
 ````
     int NCZ_codec_finalize)(void);
 ````
 Return Value: a netcdf-c error code.
 
-## Multi-Codec API
+### Multi-Codec API
 
 As an aid to clients, it is convenient if a single shared library can provide multiple *NCZ\_code\_t* instances at one time.
 This API is not intended to be used by plugin developers.
 A shared library must only export this function.
 
-### NCZ\_codec\_info\_defaults
+#### NCZ\_codec\_info\_defaults
 
 Return a NULL terminated vector of pointers to instances of *NCZ\_codec\_t*.
 
-#### Signature
+##### Signature
 ````
     void* NCZ_codec_info_defaults(void);
 ````
@@ -1017,7 +1018,7 @@ The list of returned items are used to try to provide defaults
 for any HDF5 filters that have no corresponding Codec.
 This is for internal use only.
 
-# Appendix F. Standard Filters  {#filters_appendixf}
+## Appendix F. Standard Filters  {#filters_appendixf}
 
 Support for a select set of standard filters is built into the NetCDF API.
 Generally, they are accessed using the following generic API, where XXXX is
@@ -1050,7 +1051,7 @@ When installing the netcdf library, the following other libraries must be instal
 2. The HDF5 wrapper for *libzstd.so* -- There are several options for obtaining this (see [Appendix G](#filters_appendixg).)
 3. (Optional) The Zarr wrapper for *libzstd.so* -- you need this if you intend to read/write Zarr datasets that were compressed using zstandard; again see [Appendix G](#filters_appendixg).
 
-# Appendix G. Finding Filters  {#filters_appendixg}
+## Appendix G. Finding Filters  {#filters_appendixg}
 
 A major problem for filter users is finding an implementation of an HDF5 filter wrapper and (optionally)
 its corresponding NCZarr wrapper. There are several ways to do this.
@@ -1071,7 +1072,7 @@ You can install this library to get access to these supported filters.
 It does not currently include the required NCZarr Codec API,
 so they are only usable with netcdf-4. This will change in the future.
 
-# Appendix H. Auto-Install of Filter Wrappers {#filters_appendixh}
+## Appendix H. Auto-Install of Filter Wrappers {#filters_appendixh}
 
 As part of the overall build process, a number of filter wrappers are built as shared libraries in the "plugins" directory.
 These wrappers can be installed as part of the overall netcdf-c installation process.
@@ -1124,7 +1125,7 @@ provided by the *lib__nczh5filters.so* shared library.  Note also that
 if you disable HDF5 support, but leave NCZarr support enabled,
 then all of the above filters should continue to work.
 
-## HDF5_PLUGIN_PATH
+### HDF5_PLUGIN_PATH
 
 At the moment, NetCDF uses the existing HDF5 environment variable
 *HDF5\_PLUGIN\_PATH* to locate the directories in which filter wrapper
@@ -1149,7 +1150,7 @@ The important thing to note is that at run-time, there are several cases to cons
 3. HDF5_PLUGIN_DIR is not defined at either run-time or build-time -- no action needed
 4. HDF5_PLUGIN_DIR is not defined at run-time but was defined at build-time -- this will probably fail
 
-# Point of Contact {#filters_poc}
+## Point of Contact {#filters_poc}
 
 *Author*: Dennis Heimbigner<br>
 *Email*: dmh at ucar dot edu<br>

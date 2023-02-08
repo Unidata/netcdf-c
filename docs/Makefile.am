@@ -13,7 +13,7 @@ windows-binaries.md dispatch.md building-with-cmake.md CMakeLists.txt groups.dox
 notes.md install-fortran.md credits.md auth.md filters.md		\
 obsolete/fan_utils.html indexing.dox inmemory.md FAQ.md			\
 known_problems.md COPYRIGHT.md inmeminternal.dox testserver.dox		\
-byterange.dox nczarr.md quantize.md all-error-codes.md
+byterange.md nczarr.md quantize.md all-error-codes.md
 
 # Turn off parallel builds in this directory.
 .NOTPARALLEL:
