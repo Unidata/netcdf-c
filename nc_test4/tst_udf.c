@@ -307,7 +307,7 @@ main(int argc, char **argv)
              * priority. If NC_NETCDF4 flag were given priority, then
              * nc_abort() will not return TEST_VAL_42, but instead will
              * return 0. */
-            if (nc_open(FILE_NAME, mode[i]|NC_NETCDF4, &ncid)) ERR;
+            if (nc_open(FILE_NAME, mode[i], &ncid)) ERR;
             if (nc_inq_format(ncid, NULL) != TEST_VAL_42) ERR;
             if (nc_inq_format_extended(ncid, NULL, NULL) != TEST_VAL_42) ERR;
             if (nc_abort(ncid) != TEST_VAL_42) ERR;
@@ -336,6 +336,7 @@ main(int argc, char **argv)
         for (i = 0; i < NUM_UDFS; i++)
         {
             /* Add our test user defined format. */
+            mode[i] = mode[i]|NC_NETCDF4;
             if (nc_def_user_format(mode[i], &tst_dispatcher, magic_number)) ERR;
 
             /* Check that our user-defined format has been added. */
@@ -360,6 +361,7 @@ main(int argc, char **argv)
     printf("*** testing bad version causes dispatch table to be rejected...");
     {
         int i;
+        char magic_number[5] = "1111";
 
         /* Test all available user-defined format slots. */
         for (i = 0; i < NUM_UDFS; i++)
@@ -367,6 +369,9 @@ main(int argc, char **argv)
             /* Make sure our bad version format is rejected. */
             if (nc_def_user_format(mode[i], &tst_dispatcher_bad_version,
                                    NULL) != NC_EINVAL) ERR;
+            /* Make sure defining a magic number with netcdf3 is rejected. */
+            if (nc_def_user_format(NC_CLASSIC_MODEL, &tst_dispatcher, 
+                                   magic_number) != NC_EINVAL) ERR;
         }
     }
     SUMMARIZE_ERR;

@@ -263,6 +263,7 @@ endif()
     add_sh_test(ncdump tst_ncgen4)
     add_sh_test(ncdump tst_netcdf4_4)
     add_sh_test(ncdump tst_nccopy4)
+    add_sh_test(ncdump tst_calendars_nc4)
 
     SET_TESTS_PROPERTIES(ncdump_tst_nccopy4 PROPERTIES DEPENDS "ncdump_run_ncgen_tests;ncdump_tst_output;ncdump_tst_ncgen4;ncdump_sh_tst_fillbug;ncdump_tst_netcdf4_4;ncdump_tst_h_scalar;tst_comp;tst_comp2;tst_nans;tst_opaque_data;tst_create_files;tst_special_atts")
     SET_TESTS_PROPERTIES(ncdump_tst_nccopy5 PROPERTIES DEPENDS "ncdump_tst_nccopy4")
