@@ -1768,7 +1768,7 @@ posixio_open(const char *path,
 #endif
 	if(fd < 0)
 	{
-		status = errno;
+		status = errno ? errno : ENOENT;
 		goto unwind_new;
 	}
 	*((int *)&nciop->fd) = fd; /* cast away const */
