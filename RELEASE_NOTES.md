@@ -7,6 +7,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.9.2 - TBD
 
+* [Bug Fix] Update H5FDhttp.[ch] to work with HDF5 version 1.14.0. See [Github #2615](https://github.com/Unidata/netcdf-c/pull/2615).
+
 ## 4.9.1 - February 2, 2023
 
 ## Known Issues
