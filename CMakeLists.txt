@@ -1417,8 +1417,8 @@ IF(ENABLE_TESTS)
   # Option to turn on performance testing.
   # See https://github.com/Unidata/netcdf-c/issues/2627 for more information.
   ###
-  OPTION(ENABLE_BENCHMARKS "Run benchmark Tests." ON)
-  
+  OPTION(ENABLE_BENCHMARKS "Run benchmark Tests." OFF)
+
 
   ###
   # End known-failures.
