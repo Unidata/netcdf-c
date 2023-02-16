@@ -7,9 +7,9 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.9.2 - TBD
 
-
-* Update `nc-config` to remove inclusion from automatically-detected `nf-config` and `ncxx-config` files, as the wrong files could be included in the output.  This is in support of [GitHub #2274](https://github.com/Unidata/netcdf-c/issues/2274).
+* [Ehancement] Update H5FDhttp.c to use the newly registered standard VFD identifier. See [Github #????](https://github.com/Unidata/netcdf-c/pull/????).
 * [Bug Fix] Update H5FDhttp.[ch] to work with HDF5 version 1.14.0. See [Github #2615](https://github.com/Unidata/netcdf-c/pull/2615).
+* [Bug Fix] Update `nc-config` to remove inclusion from automatically-detected `nf-config` and `ncxx-config` files, as the wrong files could be included in the output.  This is in support of [GitHub #2274](https://github.com/Unidata/netcdf-c/issues/2274).
 
 ## 4.9.1 - February 2, 2023
 
