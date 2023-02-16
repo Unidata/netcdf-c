@@ -2619,6 +2619,8 @@ IF(ENABLE_BENCHMARKS)
     CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/nc_perf/run_par_bm_test.sh.in ${CMAKE_CURRENT_BINARY_DIR}/nc_perf/run_par_bm_test.sh @ONLY NEWLINE_STYLE LF)
     CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/nc_perf/run_gfs_test.sh.in ${CMAKE_CURRENT_BINARY_DIR}/nc_perf/run_gfs_test.sh @ONLY NEWLINE_STYLE LF)
   ENDIF(ENABLE_PARALLEL4)
+ENDIF(ENABLE_BENCHMARKS)
+
 IF(ENABLE_TESTS)
     #####
     # Build ncdap_test|dap4_test/findtestserver[4].c
