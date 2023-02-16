@@ -1411,7 +1411,14 @@ IF(ENABLE_TESTS)
   # Option to turn on unit testing. See
   # https://github.com/Unidata/netcdf-c/pull/1472 for more information.
   ###
-  OPTION(ENABLE_UNIT_TESTS "Run Unit Tests." OFF)
+  OPTION(ENABLE_UNIT_TESTS "Run Unit Tests." ON)
+
+  ###
+  # Option to turn on performance testing.
+  # See https://github.com/Unidata/netcdf-c/issues/2627 for more information.
+  ###
+  OPTION(ENABLE_BENCHMARKS "Run benchmark Tests." ON)
+  
 
   ###
   # End known-failures.
@@ -2364,6 +2371,9 @@ IF(ENABLE_TESTS)
   IF(ENABLE_EXAMPLES)
     ADD_SUBDIRECTORY(examples)
   ENDIF()
+  IF(ENABLE_BENCHMARKS)
+    ADD_SUBDIRECTORY(nc_perf)
+  ENDIF(ENABLE_BENCHMARKS)
   IF(ENABLE_UNIT_TESTS)
     ADD_SUBDIRECTORY(unit_test)
   ENDIF(ENABLE_UNIT_TESTS)
