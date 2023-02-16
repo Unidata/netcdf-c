@@ -40,7 +40,6 @@ add_sh_test(nc_perf run_bm_test2)
 IF(TEST_PARALLEL4)
 add_bin_test(nc_perf tst_compress_par tst_utils.c)
 add_sh_test(nc_perf run_par_bm_test)
-add_sh_test(nc_test )
 ENDIF(TEST_PARALLEL4)
 ENDIF(BUILD_UTILITIES)
 
