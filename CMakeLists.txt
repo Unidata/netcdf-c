@@ -2614,6 +2614,11 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURREN
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/plugins/findplugin.sh @ONLY NEWLINE_STYLE LF)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/examples/C/findplugin.sh @ONLY NEWLINE_STYLE LF)
 
+IF(ENABLE_BENCHMARKS)
+  IF(ENABLE_PARALLEL4)
+    CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/nc_perf/run_par_bm_test.sh.in ${CMAKE_CURRENT_BINARY_DIR}/nc_perf/run_par_bm_test.sh @ONLY NEWLINE_STYLE LF)
+    CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/nc_perf/run_gfs_test.sh.in ${CMAKE_CURRENT_BINARY_DIR}/nc_perf/run_gfs_test.sh @ONLY NEWLINE_STYLE LF)
+  ENDIF(ENABLE_PARALLEL4)
 IF(ENABLE_TESTS)
     #####
     # Build ncdap_test|dap4_test/findtestserver[4].c
