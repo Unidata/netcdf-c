@@ -325,13 +325,13 @@ fi
 
 # Does the user want to turn off unit tests (useful for test coverage
 # analysis).
-AC_MSG_CHECKING([if unit tests should be disabled])
+AC_MSG_CHECKING([if unit tests should be enabled])
 AC_ARG_ENABLE([unit-tests],
-  [AS_HELP_STRING([--disable-unit-tests],
+  [AS_HELP_STRING([--enable-unit-tests],
     [Disable tests in unit_test directory. Other tests still run.])])
 test "x$enable_unit_tests" = xno || enable_unit_tests=yes
 AC_MSG_RESULT($enable_unit_tests)
-AM_CONDITIONAL([BUILD_UNIT_TESTS], [test "x$enable_unit_tests" = xyes])
+AM_CONDITIONAL(BUILD_UNIT_TESTS, [test "x$enable_unit_tests" = xyes])
 
 # Does the user require dynamic loading?
 # This is only for those hdf5 installs that support it.
