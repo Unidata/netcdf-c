@@ -1411,7 +1411,14 @@ IF(ENABLE_TESTS)
   # Option to turn on unit testing. See
   # https://github.com/Unidata/netcdf-c/pull/1472 for more information.
   ###
-  OPTION(ENABLE_UNIT_TESTS "Run Unit Tests." OFF)
+  OPTION(ENABLE_UNIT_TESTS "Run Unit Tests." ON)
+
+  ###
+  # Option to turn on performance testing.
+  # See https://github.com/Unidata/netcdf-c/issues/2627 for more information.
+  ###
+  OPTION(ENABLE_BENCHMARKS "Run benchmark Tests." OFF)
+
 
   ###
   # End known-failures.
@@ -2364,6 +2371,9 @@ IF(ENABLE_TESTS)
   IF(ENABLE_EXAMPLES)
     ADD_SUBDIRECTORY(examples)
   ENDIF()
+  IF(ENABLE_BENCHMARKS)
+    ADD_SUBDIRECTORY(nc_perf)
+  ENDIF(ENABLE_BENCHMARKS)
   IF(ENABLE_UNIT_TESTS)
     ADD_SUBDIRECTORY(unit_test)
   ENDIF(ENABLE_UNIT_TESTS)
@@ -2603,6 +2613,13 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURREN
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/nczarr_test/findplugin.sh @ONLY NEWLINE_STYLE LF)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/plugins/findplugin.sh @ONLY NEWLINE_STYLE LF)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/examples/C/findplugin.sh @ONLY NEWLINE_STYLE LF)
+
+IF(ENABLE_BENCHMARKS)
+  IF(ENABLE_PARALLEL4)
+    CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/nc_perf/run_par_bm_test.sh.in ${CMAKE_CURRENT_BINARY_DIR}/nc_perf/run_par_bm_test.sh @ONLY NEWLINE_STYLE LF)
+    CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/nc_perf/run_gfs_test.sh.in ${CMAKE_CURRENT_BINARY_DIR}/nc_perf/run_gfs_test.sh @ONLY NEWLINE_STYLE LF)
+  ENDIF(ENABLE_PARALLEL4)
+ENDIF(ENABLE_BENCHMARKS)
 
 IF(ENABLE_TESTS)
     #####
