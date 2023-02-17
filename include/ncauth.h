@@ -18,8 +18,8 @@ Every curl connection will need a copy of this.
 typedef struct NCauth {
     struct curlflags {
         int proto_https; /* is https: supported? */
-	int compress; /*CURLOPT_ENCODING*/
-	int verbose; /*CURLOPT_ENCODING*/
+	int encode; /*turn on CURLOPT_ACCEPT_ENCODING*/
+	int verbose; /*CURLOPT_VERBOSE*/
 	int timeout; /*CURLOPT_TIMEOUT*/
 	int connecttimeout; /*CURLOPT_CONNECTTIMEOUT*/
 	int maxredirs; /*CURLOPT_MAXREDIRS*/

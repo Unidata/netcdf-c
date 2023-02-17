@@ -373,7 +373,7 @@ daplexcleanup(DAPlexstate** lexstatep)
 */
 #ifdef DECODE_PARTIAL
 static const char* decodeset = /* Specify which characters are decoded */
-  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_!~*'-\"";
+  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_!~*'-\"@";
 #endif
 
 char*
