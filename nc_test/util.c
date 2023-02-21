@@ -969,7 +969,7 @@ check_dims(int  ncid)
 void
 check_vars(int  ncid)
 {
-    size_t index[MAX_RANK];
+    size_t index[MAX_RANK] = {0};
     char  text, name[NC_MAX_NAME];
     int  i, err;		/* status */
     size_t  j;
