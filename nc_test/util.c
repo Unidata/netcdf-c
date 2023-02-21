@@ -413,8 +413,8 @@ int dbl2nc ( const double d, const nc_type xtype, void *p)
 double
 hash( const nc_type xtype, const int rank, const size_t *index )
 {
-    double base;
-    double result;
+    double base = 0;
+    double result = 0;
     int  d;       /* index of dimension */
 
 	/* If vector then elements 0 & 1 are min & max. Elements 2 & 3 are */
