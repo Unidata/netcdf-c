@@ -170,8 +170,8 @@ equal(const double x,
         /* because in-memory data type char can be signed or unsigned,
          * type cast the value from external NC_CHAR before the comparison
          */
-        char x2 = (char) x;
-        char y2 = (char) y;
+        char x2 = *(char *)&x;
+        char y2 = *(char *)&y;
         return ABS(x2-y2) <= epsilon * MAX( ABS(x2), ABS(y2));
     }
 
@@ -194,8 +194,8 @@ equal2(const double x,
         /* because in-memory data type char can be signed or unsigned,
          * type cast the value from external NC_CHAR before the comparison
          */
-        char x2 = (char) x;
-        char y2 = (char) y;
+        char x2 = *(char *)&x;
+        char y2 = *(char *)&y;
         return ABS(x2-y2) <= epsilon * MAX( ABS(x2), ABS(y2));
     }
 
