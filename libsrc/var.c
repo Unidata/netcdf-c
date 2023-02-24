@@ -175,10 +175,12 @@ dup_NC_var(const NC_var *rvarp)
 		return NULL;
 	}
 
-	(void) memcpy(varp->shape, rvarp->shape,
-			 rvarp->ndims * sizeof(size_t));
-	(void) memcpy(varp->dsizes, rvarp->dsizes,
-			 rvarp->ndims * sizeof(off_t));
+	if(rvarp->shape != NULL)
+		(void) memcpy(varp->shape, rvarp->shape,
+				 rvarp->ndims * sizeof(size_t));
+	if(rvarp->dsizes != NULL)
+		(void) memcpy(varp->dsizes, rvarp->dsizes,
+				 rvarp->ndims * sizeof(off_t));
 	varp->xsz = rvarp->xsz;
 	varp->len = rvarp->len;
 	varp->begin = rvarp->begin;
