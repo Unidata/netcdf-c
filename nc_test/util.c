@@ -343,7 +343,7 @@ int dbl2nc ( const double d, const nc_type xtype, void *p)
              * reporting it as a range error.
              */
             if ( r < X_CHAR_MIN || r > X_CHAR_MAX ) return 2;
-            *((signed char*) p) = (signed char)r;
+            *((unsigned char*) p) = (unsigned char)r;
             break;
         case NC_BYTE:
             r = floor(0.5+d);
@@ -1006,7 +1006,7 @@ check_vars(int  ncid)
           	err = nc_get_var1_text(ncid, i, index, &text);
             IF (err)
 		    error("nc_get_var1_text: %s", nc_strerror(err));
-            IF (text != (char)expect) {
+            IF ((unsigned char)text != (unsigned char)expect) {
               error("Var %s [%lu] value read %hhd not that expected %g ",
                   var_name[i], j, text, expect);
 		    print_n_size_t(var_rank[i], index);
@@ -1073,7 +1073,7 @@ check_atts(int  ncid)
 		    error("nc_get_att_text: %s", nc_strerror(err));
 		for (k = 0; k < ATT_LEN(i,j); k++) {
 		    expect = hash(xtype, -1, &k);
-		    IF (text[k] != (char)expect) {
+		    IF ((unsigned char)text[k] != (unsigned char)expect) {
 			error("nc_get_att_text: unexpected value");
             	    } else {
               		nok++;
