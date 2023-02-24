@@ -841,7 +841,7 @@ put_atts(int ncid)
 	for (j = 0; j < NATTS(i); j++) {
 	    if (ATT_TYPE(i,j) == NC_CHAR) {
 		for (k = 0; k < ATT_LEN(i,j); k++) {
-                    catt[k] = (char) hash(ATT_TYPE(i,j), -1, &k);
+                    catt[k] = (unsigned char) hash(ATT_TYPE(i,j), -1, &k);
 		}
 		err = nc_put_att_text(ncid, i, ATT_NAME(i,j),
 		    ATT_LEN(i,j), catt);
@@ -1074,7 +1074,8 @@ check_atts(int  ncid)
 		for (k = 0; k < ATT_LEN(i,j); k++) {
 		    expect = hash(xtype, -1, &k);
 		    IF ((unsigned char)text[k] != (unsigned char)expect) {
-			error("nc_get_att_text: unexpected value");
+            error("Var %s [%lu] value read %hhd not that expected %g ",
+                  var_name[i], j, text, expect);
             	    } else {
               		nok++;
             	    }
