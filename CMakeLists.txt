@@ -1214,16 +1214,12 @@ ELSE() # No option specified
     SET(PLUGIN_INSTALL_DIR_SETTING "N.A.")
 ENDIF()
 
-# See if we have libzip
-FIND_PACKAGE(Zip)
-
-# Define a test flag for have zip library
-IF(Zip_FOUND)
+# Try to enable NCZarr zip support
+OPTION(ENABLE_NCZARR_ZIP "Enable NCZarr ZIP support." OFF)
+IF (ENABLE_NCZARR_ZIP)
+  FIND_PACKAGE(Zip REQUIRED)
   INCLUDE_DIRECTORIES(${Zip_INCLUDE_DIRS})
-  SET(ENABLE_NCZARR_ZIP TRUE)
-ELSE()
-  SET(ENABLE_NCZARR_ZIP FALSE)
-ENDIF()
+ENDIF ()
 
 # libdl is always available; built-in in Windows and OSX
 OPTION(ENABLE_PLUGINS "Enable dynamically loaded plugins (default on)." ON)
@@ -2551,6 +2547,7 @@ is_enabled(HDF5_HAS_PAR_FILTERS HAS_PAR_FILTERS)
 is_enabled(ENABLE_NCZARR_S3 HAS_NCZARR_S3)
 is_enabled(ENABLE_NCZARR HAS_NCZARR)
 is_enabled(ENABLE_NCZARR_S3_TESTS DO_NCZARR_S3_TESTS)
+is_enabled(ENABLE_NCZARR_ZIP HAS_NCZARR_ZIP)
 is_enabled(ENABLE_MULTIFILTERS HAS_MULTIFILTERS)
 is_enabled(ENABLE_NCZARR_ZIP DO_NCZARR_ZIP_TESTS)
 is_enabled(ENABLE_QUANTIZE HAS_QUANTIZE)
@@ -2561,6 +2558,7 @@ is_enabled(HAVE_SZ HAS_SZLIB_WRITE)
 is_enabled(HAVE_ZSTD HAS_ZSTD)
 is_enabled(HAVE_BLOSC HAS_BLOSC)
 is_enabled(HAVE_BZ2 HAS_BZ2)
+
 
 # Generate file from template.
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
