@@ -288,7 +288,7 @@ typedef struct NC_FILE_INFO
 {
     NC_OBJ hdr;
     NC *controller; /**< Pointer to containing NC. */
-#ifdef USE_PARALLEL4
+#ifdef USE_PARALLEL
     MPI_Comm comm;  /**< Copy of MPI Communicator used to open the file. */
     MPI_Info info;  /**< Copy of MPI Information Object used to open the file. */
 #endif
