@@ -2008,7 +2008,7 @@ MACRO(GEN_m4 filename)
     IF(NOT EXISTS ${fallbackdest})
       MESSAGE(FATAL_ERROR "m4 is required to generate ${filename}.c. Please install m4 so that it is on the PATH and try again.")
     ELSE()
-      SET(${dest} ${fallbackdest})
+      SET(dest ${fallbackdest})
     ENDIF()
   ELSE()
     ADD_CUSTOM_COMMAND(
