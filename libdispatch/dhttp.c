@@ -258,7 +258,7 @@ nc_http_write(NC_HTTP_STATE* state, const char* objecturl, NCbytes* payload)
     Trace("write");
 
     if((stat = nc_http_set_payload(state,ncbyteslength(payload),ncbytescontents(payload)))) goto fail;
-    if((stat = nc_http_set_method(state,HTTPPUT)));
+    if((stat = nc_http_set_method(state,HTTPPUT))) goto fail;
     if((stat = setupconn(state,objecturl))) goto fail;
     if((stat = execute(state)))
 	goto done;
