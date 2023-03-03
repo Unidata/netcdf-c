@@ -7,7 +7,8 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.9.2 - TBD
 
-* Fix 'make distcheck' error in run_interop.sh. See [Github #????](https://github.com/Unidata/netcdf-c/pull/????).
+* Fix byterange failures for certain URLs. See [Github #????](https://github.com/Unidata/netcdf-c/pull/????).
+* Fix 'make distcheck' error in run_interop.sh. See [Github #2631](https://github.com/Unidata/netcdf-c/pull/2631).
 * Update `nc-config` to remove inclusion from automatically-detected `nf-config` and `ncxx-config` files, as the wrong files could be included in the output.  This is in support of [GitHub #2274](https://github.com/Unidata/netcdf-c/issues/2274).
 * Update H5FDhttp.[ch] to work with HDF5 version 1.14.0. See [Github #2615](https://github.com/Unidata/netcdf-c/pull/2615).
 
