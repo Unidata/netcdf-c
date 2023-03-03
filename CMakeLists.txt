@@ -1280,19 +1280,26 @@ IF(NOT WIN32)
   ENDIF()
 ENDIF()
 
-# Options to Extend NCZarr support
-OPTION(ENABLE_NCZARR_S3 "Enable NCZarr S3 support." OFF)
+# Options for S3 Support
+OPTION(ENABLE_S3 "Enable S3 support." OFF)
+OPTION(ENABLE_NCZARR_S3 "Enable NCZarr S3 support; Deprecated in favor of ENABLE_S3" OFF)
 OPTION(ENABLE_NCZARR_S3_TESTS "Enable NCZarr S3 tests." OFF)
 
-IF(ENABLE_NCZARR_S3_TESTS AND NOT ENABLE_NCZARR_S3)
-  message(FATAL_ERROR "NCZarr S3 support is disabled; please specify option -DENABLE_NCZARR_S3_TESTS=no")
-  SET(ENABLE_NCZARR_S3_TESTS OFF CACHE BOOL "NCARR S3 TESTS" FORCE)
+# ENABLE_NCZARR_S3 is now an alias for ENABLE_S3 (but...)
+if (NOT ENABLE_S3 AND ENABLE_NCZARR_S3)
+  SET(ENABLE_S3 ON CACHE BOOL "NCARR S3" FORCE) # For back compatibility
+ENDIF()
+UNSET(ENABLE_NCZARR_S3)
+
+IF(ENABLE_NCZARR_S3_TESTS AND NOT ENABLE_S3)
+  message(FATAL_ERROR "S3 support is disabled; please specify option -DENABLE_NCZARR_S3_TESTS=NO")
+  SET(ENABLE_NCZARR_S3_TESTS OFF CACHE BOOL "NCZARR S3 TESTS" FORCE)
 ENDIF()
 
-# Note we check for the library after checking for enable_nczarr_s3
+# Note we check for the library after checking for enable_s3
 # because for some reason this screws up if we unconditionally test for sdk
 # and it is not available. Fix someday
-IF(ENABLE_NCZARR_S3)
+IF(ENABLE_S3)
   # See if aws-s3-sdk is available
   find_package(AWSSDK REQUIRED COMPONENTS s3;core)
   IF(AWSSDK_FOUND)
@@ -1307,9 +1314,9 @@ ELSE()
 ENDIF()
 
 IF(NOT ENABLE_S3_SDK)
-  IF(ENABLE_NCZARR_S3 OR ENABLE_NCZARR_S3_TESTS)
-    message(FATAL_ERROR "S3 support library not found; please specify option -DENABLE_NCZARR_S3=NO")
-    SET(ENABLE_NCZARR_S3 OFF CACHE BOOL "NCZARR S3 support" FORCE)
+  IF(ENABLE_S3)
+    message(FATAL_ERROR "S3 support library not found; please specify option -DENABLE_S3=NO")
+    SET(ENABLE_S3 OFF CACHE BOOL "S3 support" FORCE)
     SET(ENABLE_NCZARR_S3_TESTS OFF CACHE BOOL "S3 tests" FORCE)
   ENDIF()
 ENDIF()
@@ -1335,8 +1342,8 @@ IF(NOT FOUND_CURL)
     SET(ENABLE_HDF5_ROS3 OFF CACHE BOOL "Use ROS3" FORCE)
   ENDIF()
 
-  IF(ENABLE_NCZARR_S3)
-    MESSAGE(FATAL_ERROR "NCZarr S3 support specified, CURL libraries are not found.")
+  IF(ENABLE_S3)
+    MESSAGE(FATAL_ERROR "S3 support specified, but CURL libraries are not found.")
   ENDIF()
 ENDIF(NOT FOUND_CURL)
 
@@ -2544,7 +2551,8 @@ is_enabled(ENABLE_ZERO_LENGTH_COORD_BOUND RELAX_COORD_BOUND)
 is_enabled(USE_CDF5 HAS_CDF5)
 is_enabled(ENABLE_ERANGE_FILL HAS_ERANGE_FILL)
 is_enabled(HDF5_HAS_PAR_FILTERS HAS_PAR_FILTERS)
-is_enabled(ENABLE_NCZARR_S3 HAS_NCZARR_S3)
+is_enabled(ENABLE_S3 HAS_S3)
+is_enabled(ENABLE_S3_SDK HAS_S3_SDK)
 is_enabled(ENABLE_NCZARR HAS_NCZARR)
 is_enabled(ENABLE_NCZARR_S3_TESTS DO_NCZARR_S3_TESTS)
 is_enabled(ENABLE_NCZARR_ZIP HAS_NCZARR_ZIP)

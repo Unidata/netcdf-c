@@ -117,7 +117,7 @@ zisjson_SOURCES = zisjson.c
 noinst_PROGRAMS += zs3parse
 zs3parse_SOURCES = zs3parse.c
 
-if ENABLE_NCZARR_S3
+if ENABLE_S3
 noinst_PROGRAMS += s3util
 s3util_SOURCES = s3util.c
 TESTS += run_s3_cleanup.sh
