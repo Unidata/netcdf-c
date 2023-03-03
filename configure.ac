@@ -325,13 +325,13 @@ fi
 
 # Does the user want to turn off unit tests (useful for test coverage
 # analysis).
-AC_MSG_CHECKING([if unit tests should be disabled])
+AC_MSG_CHECKING([if unit tests should be enabled])
 AC_ARG_ENABLE([unit-tests],
-  [AS_HELP_STRING([--disable-unit-tests],
+  [AS_HELP_STRING([--enable-unit-tests],
     [Disable tests in unit_test directory. Other tests still run.])])
 test "x$enable_unit_tests" = xno || enable_unit_tests=yes
 AC_MSG_RESULT($enable_unit_tests)
-AM_CONDITIONAL([BUILD_UNIT_TESTS], [test "x$enable_unit_tests" = xyes])
+AM_CONDITIONAL(BUILD_UNIT_TESTS, [test "x$enable_unit_tests" = xyes])
 
 # Does the user require dynamic loading?
 # This is only for those hdf5 installs that support it.
@@ -775,18 +775,16 @@ AC_MSG_RESULT([${have_sz}])
 ##########
 
 # See if we have libzip for NCZarr
-AC_CHECK_LIB([zip],[zip_open],[have_zip=yes],[have_zip=no])
-if test "x$have_zip" = "xyes" ; then
-   AC_SEARCH_LIBS([zip_open],[zip zip.dll cygzip.dll], [], [])
-fi
+AC_SEARCH_LIBS([zip_open],[zip zip.dll cygzip.dll],[have_zip=yes],[have_zip=no])
 AC_MSG_CHECKING([whether libzip library is available])
 AC_MSG_RESULT([${have_zip}])
 
 enable_nczarr_zip=${have_zip} # alias
 
 if test "x$enable_nczarr" = xno ; then
-enable_nczarr_zip=no
+   enable_nczarr_zip=no
 fi
+
 
 
 AC_MSG_CHECKING([whether nczarr zip support is enabled])
@@ -1220,7 +1218,7 @@ if test "x$enable_hdf5" = "xno" ; then
     enable_dap4=no
 fi
 
-if test "x$ISOSX" = xyes && "x$have_libxml2" = xno ; then
+if test "x$ISOSX" = xyes && test "x$have_libxml2" = xno ; then
   AC_MSG_ERROR([Error: OSX requires libxml2 => --disable-dap4.])
   enable_dap4=no
 fi
@@ -1928,6 +1926,7 @@ AC_SUBST([HAS_PAR_FILTERS], [$hdf5_supports_par_filters])
 AC_SUBST(HAS_NCZARR_S3,[$enable_nczarr_s3])
 AC_SUBST(HAS_NCZARR,[$enable_nczarr])
 AC_SUBST(DO_NCZARR_S3_TESTS,[$enable_nczarr_s3_tests])
+AC_SUBST(HAS_NCZARR_ZIP,[$enable_nczarr_zip])
 AC_SUBST(HAS_MULTIFILTERS,[$has_multifilters])
 AC_SUBST(DO_NCZARR_ZIP_TESTS,[$enable_nczarr_zip])
 AC_SUBST(HAS_QUANTIZE,[$enable_quantize])

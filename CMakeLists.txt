@@ -1214,16 +1214,12 @@ ELSE() # No option specified
     SET(PLUGIN_INSTALL_DIR_SETTING "N.A.")
 ENDIF()
 
-# See if we have libzip
-FIND_PACKAGE(Zip)
-
-# Define a test flag for have zip library
-IF(Zip_FOUND)
+# Try to enable NCZarr zip support
+OPTION(ENABLE_NCZARR_ZIP "Enable NCZarr ZIP support." OFF)
+IF (ENABLE_NCZARR_ZIP)
+  FIND_PACKAGE(Zip REQUIRED)
   INCLUDE_DIRECTORIES(${Zip_INCLUDE_DIRS})
-  SET(ENABLE_NCZARR_ZIP TRUE)
-ELSE()
-  SET(ENABLE_NCZARR_ZIP FALSE)
-ENDIF()
+ENDIF ()
 
 # libdl is always available; built-in in Windows and OSX
 OPTION(ENABLE_PLUGINS "Enable dynamically loaded plugins (default on)." ON)
@@ -1413,7 +1409,14 @@ IF(ENABLE_TESTS)
   # Option to turn on unit testing. See
   # https://github.com/Unidata/netcdf-c/pull/1472 for more information.
   ###
-  OPTION(ENABLE_UNIT_TESTS "Run Unit Tests." OFF)
+  OPTION(ENABLE_UNIT_TESTS "Run Unit Tests." ON)
+
+  ###
+  # Option to turn on performance testing.
+  # See https://github.com/Unidata/netcdf-c/issues/2627 for more information.
+  ###
+  OPTION(ENABLE_BENCHMARKS "Run benchmark Tests." OFF)
+
 
   ###
   # End known-failures.
@@ -2007,7 +2010,7 @@ MACRO(GEN_m4 filename)
     IF(NOT EXISTS ${fallbackdest})
       MESSAGE(FATAL_ERROR "m4 is required to generate ${filename}.c. Please install m4 so that it is on the PATH and try again.")
     ELSE()
-      SET(${dest} ${fallbackdest})
+      SET(dest ${fallbackdest})
     ENDIF()
   ELSE()
     ADD_CUSTOM_COMMAND(
@@ -2366,6 +2369,9 @@ IF(ENABLE_TESTS)
   IF(ENABLE_EXAMPLES)
     ADD_SUBDIRECTORY(examples)
   ENDIF()
+  IF(ENABLE_BENCHMARKS)
+    ADD_SUBDIRECTORY(nc_perf)
+  ENDIF(ENABLE_BENCHMARKS)
   IF(ENABLE_UNIT_TESTS)
     ADD_SUBDIRECTORY(unit_test)
   ENDIF(ENABLE_UNIT_TESTS)
@@ -2543,6 +2549,7 @@ is_enabled(HDF5_HAS_PAR_FILTERS HAS_PAR_FILTERS)
 is_enabled(ENABLE_NCZARR_S3 HAS_NCZARR_S3)
 is_enabled(ENABLE_NCZARR HAS_NCZARR)
 is_enabled(ENABLE_NCZARR_S3_TESTS DO_NCZARR_S3_TESTS)
+is_enabled(ENABLE_NCZARR_ZIP HAS_NCZARR_ZIP)
 is_enabled(ENABLE_MULTIFILTERS HAS_MULTIFILTERS)
 is_enabled(ENABLE_NCZARR_ZIP DO_NCZARR_ZIP_TESTS)
 is_enabled(ENABLE_QUANTIZE HAS_QUANTIZE)
@@ -2553,6 +2560,7 @@ is_enabled(HAVE_SZ HAS_SZLIB_WRITE)
 is_enabled(HAVE_ZSTD HAS_ZSTD)
 is_enabled(HAVE_BLOSC HAS_BLOSC)
 is_enabled(HAVE_BZ2 HAS_BZ2)
+
 
 # Generate file from template.
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
@@ -2605,6 +2613,13 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURREN
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/nczarr_test/findplugin.sh @ONLY NEWLINE_STYLE LF)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/plugins/findplugin.sh @ONLY NEWLINE_STYLE LF)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/nc_test4/findplugin.in ${CMAKE_CURRENT_BINARY_DIR}/examples/C/findplugin.sh @ONLY NEWLINE_STYLE LF)
+
+IF(ENABLE_BENCHMARKS)
+  IF(ENABLE_PARALLEL4)
+    CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/nc_perf/run_par_bm_test.sh.in ${CMAKE_CURRENT_BINARY_DIR}/nc_perf/run_par_bm_test.sh @ONLY NEWLINE_STYLE LF)
+    CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/nc_perf/run_gfs_test.sh.in ${CMAKE_CURRENT_BINARY_DIR}/nc_perf/run_gfs_test.sh @ONLY NEWLINE_STYLE LF)
+  ENDIF(ENABLE_PARALLEL4)
+ENDIF(ENABLE_BENCHMARKS)
 
 IF(ENABLE_TESTS)
     #####

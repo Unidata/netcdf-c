@@ -17,35 +17,35 @@ UB="${NCZARR_S3_TEST_BUCKET}"
 
 testcasefile() {
   zext=file
-  ref=$1
+  base=$1
   mode=$2
   metaonly=$3
   if test "x$metaonly" = xmetaonly ; then flags="-h"; fi
-  fileargs ${execdir}/$ref "mode=$mode,$zext"
-  rm -f tmp_${ref}_${zext}.cdl
-  ${NCDUMP} $flags $fileurl > tmp_${ref}_${zext}.cdl
-  diff -b ${srcdir}/${ref}.cdl tmp_${ref}_${zext}.cdl
+  fileargs ${builddir}/ref_$base "mode=$mode,$zext"
+  rm -f tmp_${base}_${zext}.cdl
+  ${NCDUMP} $flags $fileurl > tmp_${base}_${zext}.cdl
+  diff -b ${srcdir}/ref_${base}.cdl tmp_${base}_${zext}.cdl
 }
 
 testcasezip() {
   zext=zip
-  ref=$1
+  base=$1
   mode=$2
-  fileargs $ref "mode=$mode,$zext"
-  rm -f tmp_${ref}_${zext}.cdl
-  ${NCDUMP} -h $flags $fileurl > tmp_${ref}_${zext}.cdl
-  diff -b ${srcdir}/${ref}.cdl tmp_${ref}_${zext}.cdl
+  fileargs ${builddir}/ref_$base "mode=$mode,$zext"
+  rm -f tmp_${base}_${zext}.cdl
+  ${NCDUMP} -h $flags $fileurl > tmp_${base}_${zext}.cdl
+  diff -b ${srcdir}/ref_${base}.cdl tmp_${base}_${zext}.cdl
 }
 
 testcases3() {
   zext=s3
-  zarr=$1
-  ref=$2
-  mode=$3
-  rm -f tmp_${zarr}_${zext}.cdl
-  url="https://${UH}/${UB}/${zarr}#mode=${mode},s3"
-  ${NCDUMP} $url > tmp_${zarr}_${zext}.cdl
-  diff -b ${srcdir}/${ref}.cdl tmp_${zarr}_${zext}.cdl
+  base=$1
+  mode=$2
+  rm -f tmp_${base}_${zext}.cdl
+  url="https://${UH}/${UB}/${base}.zarr#mode=${mode},s3"
+  ${NCDUMP} $url > tmp_${base}_${zext}.cdl
+  # Find the proper ref file
+  diff -b ${builddir}/ref_${base}.cdl tmp_${base}_${zext}.cdl
 }
 
 testallcases() {
@@ -54,27 +54,35 @@ case "$zext" in
     file)
 	# need to unpack
 	rm -fr ref_power_901_constants ref_power_901_constants.file
-	unzip ${srcdir}/ref_power_901_constants_orig.zip > /dev/null
-	mv ref_power_901_constants ref_power_901_constants.file
-	testcasefile ref_power_901_constants zarr metaonly; # test xarray as default
+        if ! test -f ${builddir}/ref_power_901_constants_orig.zip ; then
+          cp -f ${srcdir}/ref_power_901_constants_orig.zip ${builddir}/ref_power_901_constants_orig.zip
+	fi
+	unzip ${builddir}/ref_power_901_constants_orig.zip > /dev/null
+	mv ${builddir}/ref_power_901_constants ${builddir}/ref_power_901_constants.file
+	testcasefile power_901_constants zarr metaonly; # test xarray as default
 	;;
     zip)
 	# Move into position
-        cp ${srcdir}/ref_power_901_constants_orig.zip ${execdir}/ref_power_901_constants.zip
-        cp ${srcdir}/ref_quotes_orig.zip ${execdir}/ref_quotes.zip
-	testcasezip ref_power_901_constants xarray metaonly
+        if ! test -f ${builddir}/ref_power_901_constants.zip ; then
+          cp -f ${srcdir}/ref_power_901_constants_orig.zip ${builddir}/ref_power_901_constants.zip
+        fi
+        if ! test -f ${builddir}/ref_quotes.zip ; then
+          cp -f ${srcdir}/ref_quotes_orig.zip ${builddir}/ref_quotes.zip
+	fi
+	testcasezip power_901_constants xarray metaonly
 	# Test large constant interoperability 
-	testcasezip ref_quotes zarr metaonly
+	testcasezip quotes zarr metaonly
 	;;
     s3)
 	# Read a test case created by netcdf-java zarr.
 	# Move into position
-        rm -f ${execdir}/ref_zarr_test_data.cdl
-	# Use gunzip because it always appears to be available
-	if ! test -f ${srcdir}/ref_zarr_test_data.cdl ; then
-            gunzip -c ${srcdir}/ref_zarr_test_data.cdl.gz > ${srcdir}/ref_zarr_test_data.cdl
+        rm -f ${builddir}/ref_zarr_test_data.cdl
+        if ! test -f ${builddir}/ref_zarr_test_data.cdl.gz ; then
+	  cp -f ${srcdir}/ref_zarr_test_data.cdl.gz ${builddir}/ref_zarr_test_data.cdl.gz 
 	fi
-        testcases3 zarr_test_data.zarr ref_zarr_test_data xarray
+	# Use gunzip because it always appears to be available
+        gunzip -c ${builddir}/ref_zarr_test_data.cdl.gz > ${builddir}/ref_zarr_test_data.cdl
+        testcases3 zarr_test_data xarray
  	;;
     *) echo "unimplemented kind: $1" ; exit 1;;
 esac
@@ -83,9 +91,9 @@ esac
 testallcases file
 if test "x$FEATURE_NCZARR_ZIP" = xyes ; then testallcases zip; fi
 if test "x$FEATURE_S3TESTS" = xyes ; then testallcases s3; fi
-exit
+
 # Cleanup
-rm -fr ${execdir}/ref_power_901_constants.file
-rm -f ${execdir}/ref_zarr_test_data.cdl
+rm -fr ${builddir}/ref_power_901_constants_orig.zip
+rm -fr ${builddir}/ref_zarr_test_data.cdl.gz
 
 exit 0
