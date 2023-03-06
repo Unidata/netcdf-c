@@ -780,10 +780,6 @@ IF(USE_HDF5)
         unset(_hdf5_version)
         unset(_hdf5_version_lines)
         MESSAGE(STATUS "Found HDF5 libraries version ${HDF5_VERSION}")
-
-        IF(ENABLE_HDF5_SWMR)
-            ADD_DEFINITIONS(-DHDF5_HAS_SWMR)
-        ENDIF()
       ENDIF()
     ELSE()
       SET(HDF5_VERSION ${HDF5_VERSION} CACHE STRING "")
@@ -806,7 +802,8 @@ IF(USE_HDF5)
       MESSAGE(FATAL_ERROR "netCDF requires at least HDF5 ${HDF5_VERSION_REQUIRED}. Found ${HDF5_VERSION}.")
     ENDIF()
 
-
+    SET(HDF5_HAS_SWMR ${ENABLE_HDF5_SWMR})
+    MESSAGE(STATUS "HDF5 SWMR support: ${HDF5_HAS_SWMR}")
 
     ##
     # Include the HDF5 include directory.
