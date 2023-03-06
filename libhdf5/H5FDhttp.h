@@ -27,6 +27,8 @@
 #ifndef H5FDHTTP_H
 #define H5FDHTTP_H
 
+#define S3_REGION_DEFAULT "us-east-1"
+
 #include "H5Ipublic.h"
 
 #if H5_VERSION_GE(1,14,0)
