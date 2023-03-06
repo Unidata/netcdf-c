@@ -756,7 +756,7 @@ IF(USE_HDF5)
     # Assert HDF5 version meets minimum required version.
     ##
     SET(HDF5_VERSION_REQUIRED 1.8.10)
-    IF(ENABLE_HDF5_SWMR_SUPPORT)
+    IF(ENABLE_HDF5_SWMR)
         SET(HDF5_VERSION_REQUIRED 1.10)
         MESSAGE(STATUS "HDF5 SWMR is enabled. This implies that HDF5 version at least ${HDF5_VERSION_REQUIRED} is required.")
     ENDIF()
@@ -780,7 +780,8 @@ IF(USE_HDF5)
         unset(_hdf5_version)
         unset(_hdf5_version_lines)
         MESSAGE(STATUS "Found HDF5 libraries version ${HDF5_VERSION}")
-        IF(ENABLE_HDF5_SWMR_SUPPORT)
+
+        IF(ENABLE_HDF5_SWMR)
             ADD_DEFINITIONS(-DHDF5_HAS_SWMR)
         ENDIF()
       ENDIF()
