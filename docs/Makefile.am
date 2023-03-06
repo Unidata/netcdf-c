@@ -8,15 +8,12 @@
 
 # These files will be included with the dist.
 EXTRA_DIST = netcdf.m4 DoxygenLayout.xml Doxyfile.in footer.html	\
-mainpage.dox tutorial.dox guide.dox types.dox cdl.dox			\
-architecture.dox internal.dox windows-binaries.md			\
-building-with-cmake.md CMakeLists.txt groups.dox install.md notes.md	\
-install-fortran.md all-error-codes.md credits.md auth.md		\
-obsolete/fan_utils.html bestpractices.md filters.md indexing.dox	\
-inmemory.md DAP2.dox attribute_conventions.md FAQ.md	                \
-file_format_specifications.md known_problems.md COPYRIGHT.md		\
-user_defined_formats.md inmeminternal.dox DAP4.md DAP4.dox              \
-testserver.dox byterange.dox
+mainpage.dox tutorial.dox architecture.dox internal.dox			\
+windows-binaries.md dispatch.md building-with-cmake.md CMakeLists.txt groups.dox	\
+notes.md install-fortran.md credits.md auth.md filters.md		\
+obsolete/fan_utils.html indexing.dox inmemory.md FAQ.md			\
+known_problems.md COPYRIGHT.md inmeminternal.dox testserver.dox		\
+byterange.md nczarr.md quantize.md all-error-codes.md
 
 # Turn off parallel builds in this directory.
 .NOTPARALLEL:
@@ -65,6 +62,7 @@ CLEANFILES = doxyfile.stamp
 # everything needed for the website. Run this and copy the resulting
 # tarball to the /contents/netcdf/docs directory to update the on-line
 # docs.
+# UPDATE Nov 12, 2021: docs now published to Unidata artifacts server.
 web-tarball: doxyfile.stamp
 	cd html; tar cf ../netcdf_docs.tar *
 	gzip -f netcdf_docs.tar

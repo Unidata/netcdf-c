@@ -96,7 +96,8 @@ main(int argc, char **argv)
       char vals[MAX_VALS];
       int i;
 
-      nc_set_log_level(4);
+      nc_set_log_level(0);
+
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
 
       /* Define dimensions and two vars, a 1D coordinate var for

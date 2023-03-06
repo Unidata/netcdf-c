@@ -5,7 +5,7 @@
    This program creates some test files which ncdump will read. This
    is only done if netCDF-4 is enabled.
 
-   $Id: tst_create_files.c,v 1.16 2008/10/20 01:48:08 ed Exp $
+   Ed Hartnett 2008/10/20
 */
 
 #include <nc_tests.h>
@@ -263,5 +263,60 @@ main(int argc, char **argv)
 
    SUMMARIZE_ERR;
 
+   /* These files only get created for builds in which szip support is
+    * present in HDF5. */
+#ifdef HAVE_H5Z_SZIP
+#define SZIP_DIM_NAME "Centuria"
+#define SZIP_DIM_LEN 100
+#define SZIP_VAR_NAME "Legio_tertia_Gallica"
+#define FILE_NAME_SZIP_SIMPLE "tst_roman_szip_simple.nc"
+   printf("*** creating simple file with szip compression %s...", FILE_NAME_SZIP_SIMPLE);
+   {
+       int ncid, dimid, varid;
+       int data[SZIP_DIM_LEN];
+       int i;
+
+       for (i = 0; i < SZIP_DIM_LEN; i++)
+	   data[i] = i;
+
+      /* Create a file with szip compression. */
+      if (nc_create(FILE_NAME_SZIP_SIMPLE, NC_NETCDF4, &ncid)) ERR;
+      if (nc_def_dim(ncid, SZIP_DIM_NAME, SZIP_DIM_LEN, &dimid)) ERR;
+      if (nc_def_var(ncid, SZIP_VAR_NAME, NC_INT, 1, &dimid, &varid)) ERR;
+      if (nc_def_var_szip(ncid, varid, 32, 32)) ERR;
+      if (nc_put_var(ncid, varid, data)) ERR;
+
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+#define NDIM3 3
+#define SZIP_OTHER_DIM_NAME "heredia"
+#define SZIP_UNLIM_DIM_NAME "Primi_ordinis"
+#define FILE_NAME_SZIP_UNLIM "tst_roman_szip_unlim.nc"
+#define SZIP_DIM_LEN_10 10
+   printf("*** creating file with szip compression and unlim dim %s...", FILE_NAME_SZIP_UNLIM);
+   {
+       int ncid, dimid[NDIM3], varid;
+       int data[SZIP_DIM_LEN_10 * SZIP_DIM_LEN_10];
+       size_t start[NDIM3] = {0, 0, 0};
+       size_t count[NDIM3] = {1, SZIP_DIM_LEN_10, SZIP_DIM_LEN_10};
+       int i;
+
+       for (i = 0; i < SZIP_DIM_LEN_10 * SZIP_DIM_LEN_10; i++)
+	   data[i] = i;
+
+      /* Create a file with szip compression. */
+      if (nc_create(FILE_NAME_SZIP_UNLIM, NC_NETCDF4, &ncid)) ERR;
+      if (nc_def_dim(ncid, SZIP_UNLIM_DIM_NAME, NC_UNLIMITED, &dimid[0])) ERR;
+      if (nc_def_dim(ncid, SZIP_DIM_NAME, SZIP_DIM_LEN_10, &dimid[1])) ERR;
+      if (nc_def_dim(ncid, SZIP_OTHER_DIM_NAME, SZIP_DIM_LEN_10, &dimid[2])) ERR;
+      if (nc_def_var(ncid, SZIP_VAR_NAME, NC_INT, 3, dimid, &varid)) ERR;
+      if (nc_def_var_szip(ncid, varid, 32, 32)) ERR;
+      if (nc_put_vara_int(ncid, varid, start, count, data)) ERR;
+
+      if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+#endif /* HAVE_H5Z_SZIP */
    FINAL_RESULTS;
 }

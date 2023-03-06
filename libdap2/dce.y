@@ -5,7 +5,7 @@
   They will be commennted out when building a java parser.
 */
 
-%pure-parser
+%define api.pure
 %lex-param {DCEparsestate* parsestate}
 %parse-param {DCEparsestate* parsestate}
 %{
@@ -58,7 +58,7 @@ projection:
 	  segmentlist
 	    {$$=projection(parsestate,$1);}
 	| function
-	    {$$=$1;}
+	    {$$=projection(parsestate,$1);}
 	;
 
 function:

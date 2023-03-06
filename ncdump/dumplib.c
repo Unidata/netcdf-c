@@ -189,7 +189,7 @@ sbuf_cat(safebuf_t *sb, const char *s2) {
     assert(SAFEBUF_CHECK(sb));
     s2len = strlen(s2);
     sbuf_grow(sb, 1 + sb->cl + s2len);
-    res = strlcat(sb->buf + sb->cl, s2, sb->len);
+    res = strlcat(sb->buf + sb->cl, s2, sb->len - sb->cl);
     assert( res < sb->len );
     sb->cl += s2len;
     assert(SAFEBUF_CHECK(sb));
@@ -205,7 +205,7 @@ sbuf_catb(safebuf_t *s1, const safebuf_t *s2) {
     assert(SAFEBUF_CHECK(s2));
     s2len = sbuf_len(s2);
     sbuf_grow(s1, 1 + s1->cl + s2len);
-    res = strlcat(s1->buf + s1->cl, s2->buf, s1->len);
+    res = strlcat(s1->buf + s1->cl, s2->buf, s1->len - s1->cl);
     assert( res < s1->len );
     s1->cl += s2len;
     assert(SAFEBUF_CHECK(s1));
@@ -239,19 +239,19 @@ void
 set_formats(int float_digits, int double_digits)
 {
     int res;
-    res = snprintf(float_var_fmt, strlen(float_var_fmt) + 1, "%%.%dg",
+    res = snprintf(float_var_fmt, sizeof float_var_fmt, "%%.%dg",
 		   float_digits) + 1;
     assert(res <= sizeof(float_var_fmt));
-    res = snprintf(double_var_fmt, strlen(double_var_fmt) + 1, "%%.%dg",
+    res = snprintf(double_var_fmt, sizeof double_var_fmt, "%%.%dg",
 		   double_digits) + 1;
     assert(res <= sizeof(double_var_fmt));
-    res = snprintf(float_att_fmt, strlen(float_att_fmt) + 1, "%%#.%dgf",
+    res = snprintf(float_att_fmt, sizeof float_att_fmt, "%%#.%dgf",
 		   float_digits) + 1;
     assert(res <= sizeof(float_att_fmt));
-    res = snprintf(float_attx_fmt, strlen(float_attx_fmt) + 1, "%%#.%dg",
+    res = snprintf(float_attx_fmt, sizeof float_attx_fmt, "%%#.%dg",
 		   float_digits) + 1;
     assert(res <= sizeof(float_attx_fmt));
-    res = snprintf(double_att_fmt, strlen(double_att_fmt) + 1, "%%#.%dg",
+    res = snprintf(double_att_fmt, sizeof double_att_fmt, "%%#.%dg",
 		   double_digits) + 1;
     assert(res <= sizeof(double_att_fmt));
 }
@@ -651,7 +651,7 @@ ncvlen_val_equals(const nctype_t *this,
     return true;
 }
 
-/* Determine if two compound values are equal, by testing eqaulity of
+/* Determine if two compound values are equal, by testing equality of
  * each member field. */
 bool_t
 nccomp_val_equals(const nctype_t *this,
@@ -696,8 +696,11 @@ ncbyte_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp) {
 int
 ncchar_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp) {
     char sout[PRIM_LEN];
+    char cstr[2];
     int res;
-    res = snprintf(sout, PRIM_LEN, typ->fmt, *(char *)valp);
+cstr[0] = *(char*)valp;
+cstr[1] = '\0';
+    res = snprintf(sout, PRIM_LEN, typ->fmt, cstr);
     assert(res < PRIM_LEN);
     sbuf_cpy(sfbf, sout);
     return sbuf_len(sfbf);
@@ -1803,6 +1806,7 @@ init_is_unlim(int ncid, int **is_unlim_p)
 {
     int num_grps;	 /* total number of groups */
     int num_dims = 0;    /* total number of dimensions in all groups */
+    int max_dimid = -1;    /* maximum dimid across whole dataset */
     int num_undims = 0;  /* total number of unlimited dimensions in all groups */
     int *grpids = NULL;	 /* temporary list of all grpids */
     int igrp;
@@ -1822,13 +1826,22 @@ init_is_unlim(int ncid, int **is_unlim_p)
     NC_CHECK( nc_inq_grps_full(ncid, &num_grps, grpids) );
 #define DONT_INCLUDE_PARENTS 0
     /* Get all dimensions in groups and info about which ones are unlimited */
+    /* Warning: we cannot assume that the dimension ids are packed */
+    /* Find maximum dimension id */
+    max_dimid = -1;
     for(igrp = 0; igrp < num_grps; igrp++) {
-	int ndims;
+	int i,ndims;
+	int* dimids = NULL;
 	grpid = grpids[igrp];
 	NC_CHECK( nc_inq_dimids(grpid, &ndims, NULL, DONT_INCLUDE_PARENTS) );
 	num_dims += ndims;
+	dimids = (int*)emalloc(ndims*sizeof(int));
+	NC_CHECK( nc_inq_dimids(grpid, &ndims, dimids, DONT_INCLUDE_PARENTS) );
+	for(i=0;i<ndims;i++) {if(dimids[i] > max_dimid) max_dimid = dimids[i];}
+	free(dimids);
     }
-    *is_unlim_p = emalloc((num_dims + 1) * sizeof(int));
+    assert(max_dimid >= 0);
+    *is_unlim_p = emalloc((max_dimid + 1 + 1) * sizeof(int));
     for(igrp = 0; igrp < num_grps; igrp++) {
 	int ndims, idim, *dimids, nundims;
 	grpid = grpids[igrp];
@@ -1837,13 +1850,17 @@ init_is_unlim(int ncid, int **is_unlim_p)
 	NC_CHECK( nc_inq_dimids(grpid, &ndims, dimids, DONT_INCLUDE_PARENTS) );
 	/* mark all dims in this group as fixed-size */
 	for(idim = 0; idim < ndims; idim++) {
-	    (*is_unlim_p)[dimids[idim]] = 0;
+	    int* isunlim = *is_unlim_p;
+	    int did = dimids[idim];
+	    isunlim[did] = 0;
 	}
 	NC_CHECK( nc_inq_unlimdims(grpid, &nundims, dimids) );
 	assert(nundims <= ndims);
 	/* mark the subset of dims in this group that are unlimited */
 	for(idim = 0; idim < nundims; idim++) {
-	    (*is_unlim_p)[dimids[idim]] = 1;
+	    int* isunlim = *is_unlim_p;
+	    int did = dimids[idim];
+	    isunlim[did] = 1;
 	    num_undims++;
 	}
 	if(dimids)

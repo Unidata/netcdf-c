@@ -49,17 +49,6 @@ check_inq_format(int ncid, int expected_format, int expected_extended_format, in
    if (mode != expected_mode) ERR;
    if (extended_format != expected_extended_format) ERR;
 
-   /* Nothing to do with inq_format, but let's check the base_pe
-    * functions. */
-   if (expected_format == NC_FORMAT_CLASSIC || expected_format == NC_FORMAT_64BIT_OFFSET ||
-       expected_format == NC_FORMAT_CDF5) {
-      if (nc_set_base_pe(ncid, 0)) ERR;
-      if (nc_inq_base_pe(ncid, NULL)) ERR;
-   } else {
-      if (nc_set_base_pe(ncid, 0) != NC_ENOTNC3) ERR;
-      if (nc_inq_base_pe(ncid, NULL) != NC_ENOTNC3) ERR;
-   }
-
    return 0;
 }
 

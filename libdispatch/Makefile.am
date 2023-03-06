@@ -15,12 +15,13 @@ noinst_LTLIBRARIES = libdispatch.la
 libdispatch_la_CPPFLAGS = ${AM_CPPFLAGS}
 
 # The source files.
-libdispatch_la_SOURCES = dparallel.c dcopy.c dfile.c ddim.c datt.c	\
-dattinq.c dattput.c dattget.c derror.c dvar.c dvarget.c dvarput.c	\
-dvarinq.c dinternal.c ddispatch.c dutf8.c nclog.c dstring.c ncuri.c	\
-nclist.c ncbytes.c nchashmap.c nctime.c nc.c nclistmgr.c		\
-dauth.c doffsets.c dwinpath.c dutil.c dreadonly.c dnotnc4.c dnotnc3.c	\
-crc32.c crc32.h daux.c dinfermodel.c
+libdispatch_la_SOURCES = dcopy.c dfile.c ddim.c datt.c dattinq.c	\
+dattput.c dattget.c derror.c dvar.c dvarget.c dvarput.c dvarinq.c	\
+dinternal.c ddispatch.c dutf8.c nclog.c dstring.c ncuri.c nclist.c	\
+ncbytes.c nchashmap.c nctime.c nc.c nclistmgr.c dauth.c doffsets.c	\
+dpathmgr.c dutil.c dreadonly.c dnotnc4.c dnotnc3.c dinfermodel.c	\
+daux.c dinstance.c dcrc32.c dcrc32.h dcrc64.c ncexhash.c ncxcache.c	\
+ncjson.c ds3util.c dparallel.c
 
 # Add the utf8 codebase
 libdispatch_la_SOURCES += utf8proc.c utf8proc.h
@@ -28,7 +29,7 @@ libdispatch_la_SOURCES += utf8proc.c utf8proc.h
 # The rc code is currently only used by libdap2 and libdap4,
 # but in the future, it will be expanded to be used as the
 # general .rc file for the netcdf-c library. So, always compile it.
-libdispatch_la_SOURCES += drc.c
+libdispatch_la_SOURCES += drc.c 
 
 # Add functions only found in netCDF-4.
 # They are always defined, even if they just return an error
@@ -45,6 +46,15 @@ endif # BUILD_V2
 if ENABLE_BYTERANGE
 libdispatch_la_SOURCES += dhttp.c
 endif # ENABLE_BYTERANGE
+
+if ENABLE_S3_SDK
+libdispatch_la_SOURCES += ncs3sdk.cpp awsincludes.h
+AM_CXXFLAGS = -std=c++11
+endif
+
+if REGEDIT
+libdispatch_la_SOURCES += dreg.c
+endif
 
 EXTRA_DIST=CMakeLists.txt ncsettings.hdr utf8proc_data.c
 
@@ -68,8 +78,15 @@ ncsettings.c: $(top_srcdir)/libnetcdf.settings ncsettings.hdr
 	cat >> ncsettings.c
 	echo ';' >> ncsettings.c
 
-# Unit tests
-test_ncuri_SOURCES = test_ncuri.c ncuri.c ncbytes.c nclist.c
-test_pathcvt_SOURCES = test_pathcvt.c dwinpath.c
-check_PROGRAMS = test_ncuri test_pathcvt
-TESTS = test_ncuri test_pathcvt
+# Show what is needed to insert a new version of ezxml
+# primary fix: The original ezxml.[ch] uses '//' comments;
+# unpack and replace with '/*..*/'
+
+REPO=https://downloads.sourceforge.net/project/ezxml/
+EZXML=ezxml-0.8.6.tar.gz
+ezxml::
+	rm -fr ./ezxml ./ezxml.[ch] ./license.txt
+	tar -zxf ./${EZXML}
+	sed -e 's|//\(.*\)|/*\1*/|' <ezxml/ezxml.c >./ezxml.c
+	sed -e 's|//\(.*\)|/*\1*/|' <ezxml/ezxml.h >./ezxml.h
+	cp ezxml/license.txt .

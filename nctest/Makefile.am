@@ -4,6 +4,11 @@
 # This file builds and runs the nctest program, which tests the netCDF
 # version 2 interface.
 
+#SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#TESTS_ENVIRONMENT = export SETX=1;
+
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
 
@@ -25,13 +30,16 @@ nctest_classic.cdl ref_nctest_classic.cdl
 # reference file.
 TESTPROGRAMS = nctest tst_rename
 check_PROGRAMS = $(TESTPROGRAMS)
+
+# This test requires that the utilites also be built.
+if BUILD_UTILITIES
 TESTS = $(TESTPROGRAMS) compare_test_files.sh
+# compare_test_files depends on nctest executing first.
+compare_test_files.log: nctest.log
+endif
 
 # Note which tests depend on other tests. Necessary for make -j check.
 TEST_EXTENSIONS = .sh
-
-# compare_test_files depends on nctest executing first.
-compare_test_files.log: nctest.log
 
 # These are the source files for the nctest program.
 nctest_SOURCES = add.c add.h atttests.c cdftests.c dimtests.c driver.c	\

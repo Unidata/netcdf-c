@@ -22,7 +22,7 @@
 
 /* Test with both classic and 64-bit offset files. If netcdf-4 is
  * included, test with both netCDF-4 format variants also. */
-#ifdef USE_NETCDF4
+#ifdef USE_HDF5
 #define NUM_FORMATS (4)
 #else
 #define NUM_FORMATS (2)

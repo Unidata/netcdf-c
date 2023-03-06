@@ -4,14 +4,14 @@
 #ifndef NCBYTES_H
 #define NCBYTES_H 1
 
-#include "ncexternl.h"
-
 typedef struct NCbytes {
   int nonextendible; /* 1 => fail if an attempt is made to extend this buffer*/
   unsigned long alloc;
   unsigned long length;
   char* content;
 } NCbytes;
+
+#include "ncexternl.h"
 
 #if defined(_CPLUSPLUS_) || defined(__CPLUSPLUS__) || defined(__CPLUSPLUS)
 extern "C" {
@@ -48,7 +48,7 @@ EXTERNL int ncbytesremove(NCbytes*,unsigned long);
 EXTERNL int ncbytescat(NCbytes*,const char*);
 
 /* Set the contents of the buffer; mark the buffer as non-extendible */
-EXTERNL int ncbytessetcontents(NCbytes*, char*, unsigned long);
+EXTERNL int ncbytessetcontents(NCbytes*, void*, unsigned long);
 
 /* Following are always "in-lined"*/
 #define ncbyteslength(bb) ((bb)!=NULL?(bb)->length:0)

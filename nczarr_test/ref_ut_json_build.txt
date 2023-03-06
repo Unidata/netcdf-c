@@ -1,0 +1,32 @@
+/String/ "string"
+/Int/ 117
+/Double/ 3.14159
+/Boolean/ true
+/Null/ null
+/Array/ []
+/Array/ 
+[1] /String/ "string"
+[1] /Int/ 117
+[1] /Double/ 3.14159
+[1] /Boolean/ true
+[1] /Null/ null
+[1] /Array/ []
+
+/Dict/ {}
+/Dict/ 
+{1} "string" => /String/ "string"
+{1} "int" => /Int/ 117
+{1} "double" => /Double/ 3.14159
+{1} "boolean" => /Boolean/ true
+{1} "null" => /Null/ null
+{1} "array1" => /Array/ []
+{1} "array2" => /Array/ 
+[2] /String/ "string"
+[2] /Int/ 117
+[2] /Double/ 3.14159
+[2] /Boolean/ true
+[2] /Null/ null
+[2] /Array/ []
+
+{1} "dict1" => /Dict/ {}
+

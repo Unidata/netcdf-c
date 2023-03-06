@@ -7,7 +7,6 @@
 #include <stdarg.h>
 #include "nc4internal.h"
 #include "ncoffsets.h"
-#include "ezxml.h"
 
 /**
  * Build the netcdf-4 metadata from the NCD4node nodes.
@@ -64,14 +63,15 @@ NCD4_metabuild(NCD4meta* metadata, int ncid)
     metadata->root->meta.id = ncid;
 
     /* Fix up the atomic types */
-    for(i=0;i<nclistlength(metadata->allnodes);i++) {
-	NCD4node* n = (NCD4node*)nclistget(metadata->allnodes,i);
+    for(i=0;i<nclistlength(metadata->atomictypes);i++) {
+	NCD4node* n = (NCD4node*)nclistget(metadata->atomictypes,i);
 	if(n->sort != NCD4_TYPE) continue;
 	if(n->subsort > NC_MAX_ATOMIC_TYPE) continue;
 	n->meta.id = n->subsort;
         n->meta.isfixedsize = (n->subsort == NC_STRING ? 0 : 1);
 	if(n->subsort <= NC_STRING)
 	    n->meta.dapsize = NCD4_typesize(n->subsort);
+	n->container = metadata->root;
     }
 
     /* Topo sort the set of all nodes */
@@ -95,17 +95,25 @@ done:
 */
 
 NCD4meta*
-NCD4_newmeta(size_t rawsize, void* rawdata)
+NCD4_newmeta(NCD4INFO* info)
 {
     NCD4meta* meta = (NCD4meta*)calloc(1,sizeof(NCD4meta));
     if(meta == NULL) return NULL;
     meta->allnodes = nclistnew();
-    meta->serial.rawsize = rawsize;
-    meta->serial.rawdata = rawdata;
 #ifdef D4DEBUG
     meta->debuglevel = 1;
 #endif
+    meta->controller = info;
+    meta->ncid = info->substrate.nc4id; /* Transfer netcdf ncid */
     return meta;
+}
+
+/* Attach raw data to metadata */
+void
+NCD4_attachraw(NCD4meta* meta, size_t rawsize, void* rawdata)
+{
+    assert(meta != NULL);
+    NCD4_resetSerial(&meta->serial,rawsize,rawdata);
 }
 
 void
@@ -119,16 +127,27 @@ NCD4_reclaimMeta(NCD4meta* dataset)
 {
     int i;
     if(dataset == NULL) return;
+    NCD4_resetMeta(dataset);
+
     for(i=0;i<nclistlength(dataset->allnodes);i++) {
 	NCD4node* node = (NCD4node*)nclistget(dataset->allnodes,i);
 	reclaimNode(node);
     }
-    nullfree(dataset->error.parseerror);
-    nullfree(dataset->error.message);
-    nullfree(dataset->error.context);
-    nullfree(dataset->error.otherinfo);
-    nullfree(dataset->serial.errdata);
+    nclistfree(dataset->allnodes);
     nclistfree(dataset->groupbyid);
+    nclistfree(dataset->atomictypes);
+    free(dataset);
+}
+
+void
+NCD4_resetMeta(NCD4meta* dataset)
+{
+    if(dataset == NULL) return;
+    nullfree(dataset->error.parseerror); dataset->error.parseerror = NULL;
+    nullfree(dataset->error.message); dataset->error.message = NULL;
+    nullfree(dataset->error.context); dataset->error.context = NULL;
+    nullfree(dataset->error.otherinfo); dataset->error.otherinfo = NULL;
+    NCD4_resetSerial(&dataset->serial,0,NULL);
 #if 0
     for(i=0;i<nclistlength(dataset->blobs);i++) {
 	void* p = nclistget(dataset->blobs,i);
@@ -136,31 +155,29 @@ NCD4_reclaimMeta(NCD4meta* dataset)
     }
     nclistfree(dataset->blobs);
 #endif
-    nclistfree(dataset->allnodes);
-    nullfree(dataset->serial.dmr);
-    free(dataset);
 }
 
 void
 reclaimNode(NCD4node* node)
 {
     if(node == NULL) return;
-    nullfree(node->name);
-    nclistfree(node->groups);
-    nclistfree(node->vars);
-    nclistfree(node->types);
-    nclistfree(node->dims);
-    nclistfree(node->attributes);
-    nclistfree(node->maps);
-    nclistfreeall(node->xmlattributes);
-    nclistfreeall(node->attr.values);
-    nclistfree(node->en.econsts);
-    nclistfree(node->group.elements);
-    nullfree(node->group.dapversion);
-    nullfree(node->group.dmrversion);
-    nullfree(node->group.datasetname);
-    nclistfree(node->group.varbyid);
-    nullfree(node->nc4.orig.name);
+    nullfree(node->name); node->name = NULL;
+    nclistfree(node->groups); node->groups = NULL;
+    nclistfree(node->vars); node->vars = NULL;
+    nclistfree(node->types); node->types = NULL;
+    nclistfree(node->dims); node->dims = NULL;
+    nclistfree(node->attributes); node->attributes = NULL;
+    nclistfreeall(node->mapnames); node->mapnames = NULL;
+    nclistfree(node->maps); node->maps = NULL;
+    nclistfreeall(node->xmlattributes); node->xmlattributes = NULL;
+    nclistfreeall(node->attr.values); node->attr.values = NULL;
+    nclistfree(node->en.econsts); node->en.econsts = NULL;
+    nclistfree(node->group.elements); node->group.elements = NULL;
+    nullfree(node->group.dapversion); node->group.dapversion = NULL;
+    nullfree(node->group.dmrversion); node->group.dmrversion = NULL;
+    nullfree(node->group.datasetname); node->group.datasetname = NULL;
+    nclistfree(node->group.varbyid); node->group.varbyid = NULL;
+    nullfree(node->nc4.orig.name); node->nc4.orig.name = NULL;
     nullfree(node);
 }
 
@@ -437,6 +454,10 @@ buildAttributes(NCD4meta* builder, NCD4node* varorgroup)
 	if(strncmp(attr->name,UCARTAG,strlen(UCARTAG)) == 0)
 	    continue;
 
+	/* Suppress all reserved attributes */
+	if(NCD4_lookupreserved(attr->name) != NULL)
+	    continue;
+
 	if(ISGROUP(varorgroup->sort))
 	    varid = NC_GLOBAL;
 	else
@@ -652,7 +673,7 @@ savevarbyid(NCD4node* group, NCD4node* var)
     nclistinsert(group->group.varbyid,var->meta.id,var);
 }
 
-/* Collect FQN path from node upto (but not including)
+/* Collect FQN path from node up to (but not including)
    the first enclosing group and create an name from it
 */
 static char*
@@ -1151,4 +1172,33 @@ markdapsize(NCD4meta* meta)
 	}
     }
     return NC_NOERR;
+}
+
+int
+NCD4_findvar(NC* ncp, int ncid, int varid, NCD4node** varp, NCD4node** grpp)
+{
+    int ret = NC_NOERR;
+    NCD4INFO* info = NULL;
+    NCD4meta* meta = NULL;
+    NCD4node* var = NULL;
+    NCD4node* group = NULL;
+    int grp_id;
+
+    info = getdap(ncp);
+    if(info == NULL)
+	return THROW(NC_EBADID);
+    meta = info->substrate.metadata;
+    if(meta == NULL)
+	return THROW(NC_EBADID);
+    /* Locate var node via (grpid,varid) */
+    grp_id = GROUPIDPART(ncid);
+    group = nclistget(meta->groupbyid,grp_id);
+    if(group == NULL)
+	return THROW(NC_EBADID);
+    var = nclistget(group->group.varbyid,varid);
+    if(var == NULL)
+	return THROW(NC_EBADID);
+    if(varp) *varp = var;
+    if(grpp) *grpp = group;
+    return ret;
 }

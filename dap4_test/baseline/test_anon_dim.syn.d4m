@@ -4,6 +4,4 @@ dimensions:
 variables:
 	int vu32(_Anonymous6) ;
 
-// global attributes:
-		:_DAP4_Little_Endian = 1UB ;
 }

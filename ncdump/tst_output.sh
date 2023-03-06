@@ -4,6 +4,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
 # This shell script tests the output from several previous tests.
+
 set -e
 
 echo ""
@@ -25,7 +26,7 @@ diff -b tst_output_c1.cdl $srcdir/ref_ctest1_nc4c.cdl
 echo "*** comparing ncdump of C program output (ctest1.cdl) with c1.cdl..."
 diff -b tst_output_c1.cdl tst_output_ctest1.cdl
 echo "*** test output for ncdump -k"
-KIND=`${NCDUMP} -k tst_output_c0.nc`
+KIND=`${NCDUMP} -k tst_output_c0.nc |tr -d '\r'`
 test "$KIND" = "classic";
 ${NCGEN} -k $KIND -b -o tst_output_c0tmp.nc ${ncgenc0}
 cmp tst_output_c0tmp.nc tst_output_c0.nc
@@ -34,7 +35,7 @@ echo "*** test output for ncdump -x"
 echo "*** creating tst_ncml.nc from tst_ncml.cdl"
 ${NCGEN} -b -o tst_ncml.nc $srcdir/tst_ncml.cdl
 echo "*** creating c1.ncml from tst_ncml.nc"
-${NCDUMP} -x tst_ncml.nc | sed 's/e-00/e-0/g' > c1.ncml
+${NCDUMP} -x tst_ncml.nc | sed 's/e-00/e-0/g' |tr -d '\000' > c1.ncml
 echo "*** comparing ncdump -x of generated file with ref1.ncml ..."
 diff -b c1.ncml $srcdir/ref1.ncml
 
@@ -63,7 +64,8 @@ ${NCDUMP} -n c1 tst_output_c0_64.nc | sed 's/e+0/e+/g' > tst_output_c1_64.cdl
 echo "*** comparing ncdump of C program output (ctest1_64.cdl) with tst_output_c1_64.cdl..."
 diff -b tst_output_c1_64.cdl tst_output_ctest1_64.cdl
 echo "*** test output for ncdump -k"
-test "`${NCDUMP} -k tst_output_c0_64.nc`" = "64-bit offset";
+KIND=`${NCDUMP} -k tst_output_c0_64.nc | tr -d '\r'`
+test "$KIND" = "64-bit offset";
 ${NCGEN} -k nc6 -b -o tst_output_c0_64_tmp.nc ${ncgenc0}
 cmp tst_output_c0_64_tmp.nc tst_output_c0_64.nc
 

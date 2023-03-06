@@ -87,7 +87,7 @@ main(int argc, char **argv)
       for (i = 0; i < LAT_LEN * LON_LEN; i++)
          if (data_int[i] != i) ERR;
 
-      /* NULL count is treated as meaing entire variable. */
+      /* NULL count is treated as meaning entire variable. */
       if (nc_get_vara_int(ncid, 0, start, NULL, data_int2)) ERR;
       for (i = 0; i < LAT_LEN * LON_LEN; i++)
          if (data_int2[i] != i) ERR;
@@ -128,8 +128,8 @@ main(int argc, char **argv)
       if (nc_inq(ncid + TEST_VAL_42, NULL, NULL, NULL, NULL) != NC_EBADID) ERR;
 
       /* These only work for netCDF-3 files. */
-      if (nc_set_base_pe(ncid, 0) != NC_ENOTNC3) ERR;
-      if (nc_inq_base_pe(ncid, NULL) != NC_ENOTNC3) ERR;
+      if (nc_set_base_pe(ncid, 0)) ERR;
+      if (nc_inq_base_pe(ncid, NULL)) ERR;
 
       /* Attempt to write. */
       if (nc_rename_att(ncid, NC_GLOBAL, ATT_NAME, NAME_DUMB) != NC_EPERM) ERR;

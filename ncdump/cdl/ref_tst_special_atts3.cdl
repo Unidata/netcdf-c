@@ -27,6 +27,10 @@ variables:
 		var4:_Shuffle = "true" ;
 		var4:_Endianness = "little" ;
 		var4:_NoFill = "true" ;
+	int var5(dim1, dim2, dim3) ;
+		var5:_Storage = "compact" ;
+	int var6;
+		var6:_Storage = "compact" ;
         float slp(time, lat, lon) ;
                 slp:_FillValue = 1.e+15f ;
                 slp:_DeflateLevel = 1 ;

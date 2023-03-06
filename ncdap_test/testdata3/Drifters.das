@@ -75,7 +75,7 @@ Attributes {
         String Description "Short description of study area (ex: Oregon, California, Southern Ocean, etc.)";
     }
     Decimal_Day {
-        String Description "The time of the mesurement in a decimal format, useful for plots, starts on January 1st 1993 or January 1st 2000.";
+        String Description "The time of the measurement in a decimal format, useful for plots, starts on January 1st 1993 or January 1st 2000.";
     }
     Calibration_File {
         String Description "Path to the file on our file server of the calibration file for the drifter.";

@@ -18,6 +18,7 @@
 
 /* We will create this file. */
 #define FILE_NAME "tst_floats_1D.nc"
+#define MAX_TYPE_NAME 6
 
 int
 main(int argc, char **argv)
@@ -142,7 +143,7 @@ main(int argc, char **argv)
 
        int ncid, dimids[MAX_DIMS], varid;
        char dim_name[NC_MAX_NAME + 1], file_name[NC_MAX_NAME + 1];
-       char type_name[MAX_TYPES][NC_MAX_NAME + 1] = {"floats", "ints", "shorts"};
+       char type_name[MAX_TYPES][MAX_TYPE_NAME + 1] = {"floats", "ints", "shorts"};
        int typeid[MAX_TYPES] = {NC_FLOAT, NC_INT, NC_SHORT};
        size_t len;
        float fdata[TOTAL_SIZE];
@@ -217,6 +218,7 @@ main(int argc, char **argv)
        /* Write the data. */
        if (nc_put_var(ncid, varid, idata)) ERR;
        if (nc_close(ncid)) ERR;
+       free(idata);
     }
 
     SUMMARIZE_ERR;
@@ -254,7 +256,7 @@ main(int argc, char **argv)
 
        int ncid, dimids[MAX_DIMS], varid;
        char dim_name[NC_MAX_NAME + 1], file_name[NC_MAX_NAME + 1];
-       char type_name[MAX_TYPES][NC_MAX_NAME + 1] = {"floats", "ints", "shorts"};
+       char type_name[MAX_TYPES][MAX_TYPE_NAME + 1] = {"floats", "ints", "shorts"};
        int typeid[MAX_TYPES] = {NC_FLOAT, NC_INT, NC_SHORT};
        size_t len;
        float fdata[TOTAL_SIZE];

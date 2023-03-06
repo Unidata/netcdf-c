@@ -44,11 +44,11 @@ determine_test_formats(int *num_formats, int *format)
    format[ind++] = NC_FORMAT_64BIT_OFFSET;
 
    /* Do we have netCDF-4 and netCDF-4 classic? */
-#ifdef USE_NETCDF4
+#ifdef USE_HDF5
    num += 2;
    format[ind++] = NC_FORMAT_NETCDF4_CLASSIC;
    format[ind++] = NC_FORMAT_NETCDF4;
-#endif /* USE_NETCDF4 */
+#endif /* USE_HDF5 */
 
    /* Do we have CDF5? */
 #ifdef ENABLE_CDF5

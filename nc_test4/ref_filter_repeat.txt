@@ -1,0 +1,8 @@
+test1: def filter repeat .
+test1: compression.
+direction=compress id=40000 cd_nelmts=2 cd_values= 0 18
+test1: decompression.
+filter(40000): |params|=2 params= 0 18
+direction=decompress id=40000 cd_nelmts=2 cd_values= 0 18
+data comparison: |array|=256
+no data errors

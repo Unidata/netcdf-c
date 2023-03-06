@@ -46,6 +46,9 @@ extern int ncgdebug;
 
 extern void fdebug(const char *fmt, ...);
 
+#define CHECK_ERR(x) check_err((x),__LINE__,__FILE__,__func__)
+#define CHECK_ERR2(x,cl) check_err2((x),(cl),__LINE__,__FILE__,__func__)
+
 #define PANIC(msg) assert(panic(msg))
 #define PANIC1(msg,arg) assert(panic(msg,arg))
 #define PANIC2(msg,arg1,arg2) assert(panic(msg,arg1,arg2))

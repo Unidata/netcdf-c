@@ -6,6 +6,7 @@
 #include <strings.h>
 #endif
 
+#include "oc.h"
 #include "dapparselex.h"
 #include "dapy.h"
 

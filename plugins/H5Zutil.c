@@ -4,7 +4,8 @@
  */
 
 
-#include <hdf5.h>
+#include "config.h"
+#include "netcdf_filter_build.h"
 
 /*
 Common utilities related to filters.
@@ -46,7 +47,7 @@ byteswap4(unsigned char* mem)
 #endif /*WORDS_BIGENDIAN*/
 
 void
-NC_filterfix8(void* mem0, int decode)
+NC_h5filterspec_fix8(void* mem0, int decode)
 {
 #ifdef WORDS_BIGENDIAN
     unsigned char* mem = mem0;

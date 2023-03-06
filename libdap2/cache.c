@@ -247,7 +247,7 @@ buildcachenode(NCDAPCOMMON* nccomm,
     /* create the cache node */
     cachenode = createnccachenode();
     cachenode->isprefetch = isprefetch;
-    cachenode->vars = nclistclone(varlist);
+    cachenode->vars = nclistclone(varlist,0);
     cachenode->datadds = dxdroot;
     /* Give the constraint over to the cachenode */
     cachenode->constraint = constraint;

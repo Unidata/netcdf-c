@@ -111,7 +111,7 @@ occompile1(OCstate* state, OCnode* xnode, XXDR* xxdrs, OCdata** datap)
    	        {ocstat=OCTHROW(OC_EINVALCOORDS); goto fail;}
 
 	    /* allocate space to capture all the element instances */
-	    data->instances = (OCdata**)malloc(nelements*sizeof(OCdata*));
+	    data->instances = (OCdata**)calloc(nelements,sizeof(OCdata*));
 	    MEMGOTO(data->instances,ocstat,fail);
 	    data->ninstances = 0;
 
@@ -167,7 +167,7 @@ occompile1(OCstate* state, OCnode* xnode, XXDR* xxdrs, OCdata** datap)
         OCASSERT(nelements == nclistlength(records));
 	/* extract the content */
 	data->ninstances = nelements;
-	data->instances = (OCdata**)nclistdup(records);
+	data->instances = nclistextract(records);
 	MEMGOTO(data,ocstat,fail);
 	nclistfree(records);	    
 	records = NULL;

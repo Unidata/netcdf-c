@@ -96,6 +96,7 @@ NCD4_debugcopy(NCD4INFO* info)
     NCD4meta* meta = info->substrate.metadata;
     NClist* topvars = nclistnew();
     NC* ncp = info->controller;
+    void* memory = NULL;
 
     /* Walk each top level variable, read all of it and write it to the substrate */
     if((ret=NCD4_getToplevelVars(meta, NULL, topvars)))
@@ -108,7 +109,6 @@ NCD4_debugcopy(NCD4INFO* info)
 	int grpid = grp->meta.id;
 	int varid = var->meta.id;
 	d4size_t varsize;
-	void* memory = NULL;
 	size_t dimprod = NCD4_dimproduct(var);
 	int ncid = info->substrate.nc4id;
 
@@ -141,12 +141,11 @@ NCD4_debugcopy(NCD4INFO* info)
 	}
 	if((ret=ncaux_reclaim_data(ncid,type->meta.id,memory,dimprod)))
 	    goto done;
-	free(memory);
-	memory = NULL;
+	nullfree(memory); memory = NULL;
     }	    
 done:
-    if(topvars)
-        nclistfree(topvars);
+    nullfree(memory);
+    nclistfree(topvars);
     if(ret != NC_NOERR) {
         fprintf(stderr,"debugcopy: %d %s\n",ret,nc_strerror(ret));
     }

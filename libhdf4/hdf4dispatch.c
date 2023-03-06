@@ -12,12 +12,15 @@
 #include <stdlib.h>
 #include "hdf4dispatch.h"
 #include "nc4dispatch.h"
+#include "hdf5dispatch.h"
+#include "netcdf_filter.h"
 
 /* This is the dispatch object that holds pointers to all the
  * functions that make up the HDF4 dispatch interface. */
 static const NC_Dispatch HDF4_dispatcher = {
 
     NC_FORMATX_NC_HDF4,
+    NC_DISPATCH_VERSION,
 
     NC_RO_create,
     NC_HDF4_open,
@@ -28,8 +31,6 @@ static const NC_Dispatch HDF4_dispatcher = {
     NC_HDF4_abort,
     NC_HDF4_close,
     NC_RO_set_fill,
-    NC_NOTNC3_inq_base_pe,
-    NC_NOTNC3_set_base_pe,
     NC_HDF4_inq_format,
     NC_HDF4_inq_format_extended,
 
@@ -38,7 +39,7 @@ static const NC_Dispatch HDF4_dispatcher = {
 
     NC_RO_def_dim,
     NC4_inq_dimid,
-    NC4_inq_dim,
+    HDF5_inq_dim,
     NC4_inq_unlimdim,
     NC_RO_rename_dim,
 
@@ -102,7 +103,15 @@ static const NC_Dispatch HDF4_dispatcher = {
     NC_NOTNC4_def_var_endian,
     NC_NOTNC4_def_var_filter,
     NC_NOTNC4_set_var_chunk_cache,
-    NC_NOTNC4_get_var_chunk_cache
+    NC_NOTNC4_get_var_chunk_cache,
+
+    NC_NOOP_inq_var_filter_ids,
+    NC_NOOP_inq_var_filter_info,
+
+    NC_NOTNC4_def_var_quantize,
+    NC_NOTNC4_inq_var_quantize,
+
+    NC_NOOP_inq_filter_avail,
 };
 
 const NC_Dispatch *HDF4_dispatch_table = NULL;

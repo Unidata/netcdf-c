@@ -21,8 +21,8 @@ nc_blkio_init(size_t bufsize, 	/* size in bytes of in-memory copy buffer */
 	      size_t value_size, /* size in bytes of each variable element */
 	      int rank,		 /* number of dimensions for variable */
 	      int chunked,	  /* 1 if variable is chunked, 0 otherwise */
-	      nciter_t *iter /* returned iteration state, don't mess with it */
-    ) {
+	      nciter_t *iter) /* returned iteration state, don't mess with it */
+{
     int stat = NC_NOERR;
     int i;
     long long prod;
@@ -73,9 +73,9 @@ nc_blkio_init(size_t bufsize, 	/* size in bytes of in-memory copy buffer */
  * value.  Wouldn't be needed if nc_inq_type() was a netCDF-3 function
  * too. */
 static int
-inq_value_size(int igrp, nc_type vartype, size_t *value_sizep) {
+inq_value_size(int igrp, nc_type vartype, size_t *value_sizep)
+{
     int stat = NC_NOERR;
-
 #ifdef USE_NETCDF4
     NC_CHECK(nc_inq_type(igrp, vartype, NULL, value_sizep));
 #else
@@ -174,8 +174,8 @@ up_start_by_chunks(
 int
 nc_get_iter(int ncid,
 	     int varid,
-	     size_t bufsize,   /* size in bytes of memory buffer */
-	     nciter_t **iterpp /* returned opaque iteration state */)
+	     size_t bufsize,    /* size in bytes of memory buffer */
+	     nciter_t **iterpp) /* returned opaque iteration state */
 {
     int stat = NC_NOERR;
     nciter_t *iterp;
@@ -239,8 +239,8 @@ nc_get_iter(int ncid,
 size_t
 nc_next_iter(nciter_t *iter,	/* returned opaque iteration state */
 	     size_t *start, 	/* returned start vector for next vara call */
-	     size_t *count	/* returned count vector for next vara call */
-    ) {
+	     size_t *count)	/* returned count vector for next vara call */
+{
     int i;
     /* Note: special case for chunked variables is just an
      * optimization, the contiguous code below is OK even
@@ -307,7 +307,8 @@ nc_next_iter(nciter_t *iter,	/* returned opaque iteration state */
 
 /* Free iterator and its internally allocated memory */
 int
-nc_free_iter(nciter_t *iterp) {
+nc_free_iter(nciter_t *iterp)
+{
     if(iterp->dimsizes)
 	free(iterp->dimsizes);
     if(iterp->chunksizes)

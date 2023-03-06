@@ -12,6 +12,8 @@ remove_definitions(-DDLL_EXPORT)
 ADD_SUBDIRECTORY(baseline)
 ADD_SUBDIRECTORY(baselineraw)
 ADD_SUBDIRECTORY(baselineremote)
+ADD_SUBDIRECTORY(baselinehyrax)
+ADD_SUBDIRECTORY(baselinethredds)
 ADD_SUBDIRECTORY(cdltestfiles)
 ADD_SUBDIRECTORY(daptestfiles)
 ADD_SUBDIRECTORY(dmrtestfiles)
@@ -26,6 +28,7 @@ IF(ENABLE_DAP_REMOTE_TESTS)
     # Change name (add '4') to avoid cmake
     # complaint about duplicate targets.
     BUILD_BIN_TEST(findtestserver4)
+    BUILD_BIN_TEST(pingurl4)
 ENDIF()
 
 IF(ENABLE_TESTS)
@@ -36,15 +39,26 @@ IF(ENABLE_TESTS)
   # keep it from being too bad.
 
   IF(BUILD_UTILITIES)
-    add_sh_test(dap4_test test_raw)
+    add_sh_test(dap4_test test_fillmismatch)
+
+    # Following tests are Unit tests, so not tested under visual studio
+    IF(NOT MSVC)
+      INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/libdap4)
+      build_bin_test(test_parse)
+      build_bin_test(test_meta)
+      build_bin_test(test_data)
+      add_sh_test(dap4_test test_parse)
+      add_sh_test(dap4_test test_raw)
+      add_sh_test(dap4_test test_meta)
+      add_sh_test(dap4_test test_data)
+    ENDIF()
   ENDIF(BUILD_UTILITIES)
 
   IF(ENABLE_DAP_REMOTE_TESTS)
-
-    IF(BUILD_UTILITIES)
-      #add_sh_test(dap4_test test_remote)
-    ENDIF(BUILD_UTILITIES)
+      add_sh_test(dap4_test test_hyrax)
+      add_sh_test(dap4_test test_thredds)
   ENDIF(ENABLE_DAP_REMOTE_TESTS)
+
 ENDIF(ENABLE_TESTS)
 
 FILE(COPY ./baselineraw DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})

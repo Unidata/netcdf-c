@@ -3,7 +3,7 @@
 # This shell runs some benchmarks that Elena ran as described here:
 # http://hdfeos.org/workshops/ws06/presentations/Pourmal/HDF5_IO_Perf.pdf. Also
 # added tst_files2, which needs to be run from a script because it is
-# dependant on tst_files being run first, and the dependency tacking
+# dependent on tst_files being run first, and the dependency tacking
 # only works for .sh tests.
 
 # Ed Hartnett

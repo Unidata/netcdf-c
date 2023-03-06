@@ -9,7 +9,7 @@
 /**********************************************/
 /* Define methods for a dimension dapodometer*/
 
-/* Build an odometer covering slices startslice upto, but not including, stopslice */
+/* Build an odometer covering slices startslice up to, but not including, stopslice */
 Dapodometer*
 dapodom_fromsegment(DCEsegment* segment, size_t startindex, size_t stopindex)
 {

@@ -33,7 +33,11 @@ main()
       hsize_t num_obj;
       hid_t fileid, grpid, spaceid;
       int i;
+#if H5_VERSION_GE(1,12,0)
+      H5O_info2_t obj_info;
+#else
       H5O_info_t obj_info;
+#endif
       char names[NUM_ELEMENTS][MAX_SYMBOL_LEN + 1] = {"H", "He", "Li", "Be", "B", "C"};
       char names2[NUM_ELEMENTS][MAX_SYMBOL_LEN + 1] = {"h", "He", "Li", "Be", "B", "C"};
       char name[MAX_SYMBOL_LEN + 1];
@@ -60,7 +64,7 @@ main()
       /* Create the variables, one per element. */
       for (i = 0; i < NUM_ELEMENTS; i++)
       {
-	 if ((did[i] = H5Dcreate(grpid, names[i], H5T_NATIVE_INT,
+	 if ((did[i] = H5Dcreate1(grpid, names[i], H5T_NATIVE_INT,
 				 spaceid, H5P_DEFAULT)) < 0) ERR;
 	 if (H5Dclose(did[i]) < 0) ERR;
       }
@@ -76,15 +80,20 @@ main()
       if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
       if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDWR, fapl_id)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, ELEMENTS_NAME)) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, ELEMENTS_NAME)) < 0) ERR;
 
       if (H5Gget_num_objs(grpid, &num_obj) < 0) ERR;
       if (num_obj != NUM_ELEMENTS) ERR;
       printf("Original order:\n");
       for (i = 0; i < num_obj; i++)
       {
+#if H5_VERSION_GE(1,12,0)
+	 if (H5Oget_info_by_idx3(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
+                                 i, &obj_info, H5O_INFO_BASIC, H5P_DEFAULT) < 0) ERR;
+#else
 	 if (H5Oget_info_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
 				i, &obj_info, H5P_DEFAULT) < 0) ERR;
+#endif
 	 if (obj_info.type != H5O_TYPE_DATASET) ERR;
 	 if ((size = H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i,
 					NULL, 0, H5P_DEFAULT)) < 0) ERR;
@@ -107,15 +116,20 @@ main()
       if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
       if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, fapl_id)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, ELEMENTS_NAME)) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, ELEMENTS_NAME)) < 0) ERR;
 
       if (H5Gget_num_objs(grpid, &num_obj) < 0) ERR;
       if (num_obj != NUM_ELEMENTS) ERR;
       printf("New order:\n");
       for (i = 0; i < num_obj; i++)
       {
+#if H5_VERSION_GE(1,12,0)
+         if (H5Oget_info_by_idx3(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
+                                 i, &obj_info, H5O_INFO_BASIC, H5P_DEFAULT) < 0) ERR;
+#else
          if (H5Oget_info_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
         			i, &obj_info, H5P_DEFAULT) < 0) ERR;
+#endif
          if (obj_info.type != H5O_TYPE_DATASET) ERR;
          if ((size = H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i,
         				NULL, 0, H5P_DEFAULT)) < 0) ERR;

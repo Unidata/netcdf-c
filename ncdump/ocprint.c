@@ -26,14 +26,13 @@
 #include "ncuri.h"
 #include "ncbytes.h"
 #include "nclog.h"
+#include "ncpathmgr.h"
 
 #include "oc.h"
 #include "ocx.h"
 
-#ifdef _MSC_VER
+#if defined(_WIN32) && !defined(__MINGW32__)
 #include "XGetopt.h"
-int opterr, optind;
-char* optarg;
 #endif
 
 #ifndef nulldup
@@ -55,8 +54,6 @@ char* optarg;
 
 /*Mnemonic*/
 #define TOPLEVEL 1
-
-int ocdebug;
 
 static OCerror ocstat;
 static OClink glink;
@@ -246,7 +243,7 @@ main(int argc, char **argv)
             if(ocopt.output != NULL) fclose(ocopt.output);
 	    if(optarg == NULL)
 		usage("-o does not specify a file name");
-	    ocopt.output = fopen(optarg,"w");
+	    ocopt.output = NCfopen(optarg,"w");
             if(ocopt.output == NULL)
 		usage("-o file not writeable");
 	    break;
@@ -303,7 +300,7 @@ main(int argc, char **argv)
     }
 
     /* Compile the url */
-    if(ncuriparse(ocopt.surl,&ocopt.url) != NCU_OK) {
+    if(ncuriparse(ocopt.surl,&ocopt.url)) {
 	fprintf(stderr,"malformed source url: %s\n",ocopt.surl);
 	exit(1);
     }
@@ -346,7 +343,7 @@ main(int argc, char **argv)
     ocopt.surl = ncuribuild(ocopt.url,NULL,NULL,NCURIALL);
 
     /* Reparse */
-    if(ncuriparse(ocopt.surl,&ocopt.url) != NCU_OK) {
+    if(ncuriparse(ocopt.surl,&ocopt.url)) {
 	fprintf(stderr,"malformed source url: %s\n",ocopt.surl);
 	exit(1);
     }
@@ -559,8 +556,7 @@ printdata_container(OClink link, OCdatanode datanode, NCbytes* buffer, int istop
 	pushstack(field);
         FAIL(printdata_indices(link,field,buffer,istoplevel));
 	popstack();
-	if(oc_data_free(link,field) != OC_NOERR)
-	    break;
+	oc_data_free(link,field);
     }
     return stat;
 }

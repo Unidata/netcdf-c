@@ -1,0 +1,18 @@
+netcdf scope_preorder {
+
+group: preorder {
+  types:
+    ubyte enum test_enum_type {OPTION1 = 0, OPTION2 = 1, OPTION3 = 2} ;
+  dimensions:
+  	d1 = 1 ;
+  	d2 = 1 ;
+  } // group preorder
+
+group: test_group {
+  variables:
+  	/preorder/test_enum_type test_variable(/preorder/d1, /preorder/d2) ;
+  		/preorder/test_enum_type test_variable:_FillValue = OPTION1 ;
+  	/preorder/test_enum_type test_variable2(/preorder/d1, /preorder/d2) ;
+  		/preorder/test_enum_type test_variable2:_FillValue = OPTION1 ;
+  } // group test_group
+}

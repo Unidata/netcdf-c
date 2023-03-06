@@ -12,7 +12,7 @@ static long maxflag = -1;
 static struct OCCURLFLAG* nameindices[26]; /* for radix access */
 static struct OCCURLFLAG** flagindices = NULL; /* for radix access */
 
-/* Define supported curl flags */
+/* Define supported curlflags */
 
 static struct OCCURLFLAG oc_curlflags[] = {
 #ifdef HAVE_CURLOPT_BUFFERSIZE
@@ -45,6 +45,7 @@ static struct OCCURLFLAG oc_curlflags[] = {
 {"CURLOPT_TCP_KEEPALIVE",CURLOPT_TCP_KEEPALIVE,213,CF_LONG},
 #endif
 {"CURLOPT_TIMEOUT",CURLOPT_TIMEOUT,13,CF_LONG},
+{"CURLOPT_CONNECTTIMEOUT",CURLOPT_CONNECTTIMEOUT,78,CF_LONG},
 {"CURLOPT_USERAGENT",CURLOPT_USERAGENT,10018,CF_STRING},
 {"CURLOPT_USERPWD",CURLOPT_USERPWD,10005,CF_STRING},
 {"CURLOPT_VERBOSE",CURLOPT_VERBOSE,41,CF_LONG},

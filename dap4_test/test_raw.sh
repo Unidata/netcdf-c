@@ -3,8 +3,9 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
-set -e
 . ${srcdir}/d4test_common.sh
+
+set -e
 
 echo "test_raw.sh:"
 
@@ -65,6 +66,5 @@ for f in $F ; do
 	fi
     fi
 done
-rm -rf ${builddir}/results_test_raw
 
 finish

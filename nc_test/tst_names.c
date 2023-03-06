@@ -234,7 +234,7 @@ main(int argc, char **argv)
        NC_FORMAT_NETCDF4
        ,
        NC_FORMAT_NETCDF4_CLASSIC
-#endif	/* USE_NETCDF4 */
+#endif	/* USE_HDF5 */
    };
    int num_formats = (sizeof formats) / (sizeof formats[0]);
    char *format_names[] = {

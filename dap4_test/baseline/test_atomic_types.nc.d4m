@@ -24,6 +24,4 @@ variables:
 	cloud_class_t secondary_cloud ;
 		cloud_class_t secondary_cloud:_FillValue = Missing ;
 
-// global attributes:
-		:_DAP4_Little_Endian = 1UB ;
 }

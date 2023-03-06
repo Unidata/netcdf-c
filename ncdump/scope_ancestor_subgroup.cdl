@@ -1,0 +1,20 @@
+netcdf scope_ancestor_subgroup {
+types:
+  ubyte enum test_enum_type {OPTION1 = 0, OPTION2 = 1, OPTION3 = 2} ;
+  dimensions:
+  	d1 = 1 ;
+  	d2 = 1 ;
+group: test_group {
+  variables:
+  	test_enum_type test_variable(d1,d2);
+  		test_enum_type test_variable:_FillValue = OPTION1 ;
+  group: sub_group {
+      types:
+        ubyte enum test_enum_type {OPTION1 = 0, OPTION2 = 1, OPTION3 = 2} ;
+      dimensions:
+  	d1 = 1 ;
+  	d2 = 1 ;
+  } // group sub_group
+
+  } // group test_group
+}

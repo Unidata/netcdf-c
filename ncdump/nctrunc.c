@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "nc_tests.h"
 
 #define BUFLEN 100000
 
@@ -19,7 +20,7 @@ main(int argc, char** argv)
     FILE* input = stdin;
 
     if(argc > 1) {
-	input = fopen(argv[1],"r");
+	input = NCfopen(argv[1],"r");
     }
 
     /* Read the whole file */

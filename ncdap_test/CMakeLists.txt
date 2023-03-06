@@ -4,29 +4,34 @@
 # University Corporation for Atmospheric Research/Unidata.
 
 # See netcdf-c/COPYRIGHT file for more info.
-add_definitions(-D"TOPSRCDIR=${CMAKE_SOURCE_DIR}")
-add_definitions(-D"TOPBINDIR=${CMAKE_BINARY_DIR}")
+add_definitions(-D"TOPSRCDIR=${CMAKE_CURRENT_SOURCE_DIR}/../")
+add_definitions(-D"TOPBINDIR=${CMAKE_CURRENT_BINARY_DIR}/../")
 
 remove_definitions(-DDLL_EXPORT)
-add_definitions(-D"TOPSRCDIR=${CMAKE_SOURCE_DIR}")
+# add_definitions(-D"TOPSRCDIR=${CMAKE_CURRENT_SOURCE_DIR}")
 
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
-
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
 
-
-IF(ENABLE_DAP_REMOTE_TESTS)
-    BUILD_BIN_TEST(findtestserver)
-ENDIF()
-
 IF(ENABLE_TESTS)
+
+  IF(ENABLE_DAP_REMOTE_TESTS)
+    BUILD_BIN_TEST(findtestserver)
+    BUILD_BIN_TEST(pingurl)
+  ENDIF()
+
   # Base tests
   # The tests are set up as a combination of shell scripts and executables that
   # must be run in a particular order. It is painful but will use macros to help
   # keep it from being too bad.
   # Binary Test Macro
 
-  add_sh_test(ncdap tst_ncdap3)
+  IF(BUILD_UTILITIES)
+    add_sh_test(ncdap tst_ncdap3)
+    IF(HAVE_BASH)
+      SET_TESTS_PROPERTIES(ncdap_tst_ncdap3 PROPERTIES RUN_SERIAL TRUE)
+    ENDIF(HAVE_BASH)
+  ENDIF()
 
   IF(NOT MSVC)
     add_bin_env_test(ncdap t_dap3a)
@@ -39,14 +44,22 @@ IF(ENABLE_TESTS)
     IF(BUILD_UTILITIES)
       add_sh_test(ncdap tst_ber)
       add_sh_test(ncdap tst_remote3)
+      IF(HAVE_BASH)
+        SET_TESTS_PROPERTIES(ncdap_tst_remote3 PROPERTIES RUN_SERIAL TRUE)
+      ENDIF(HAVE_BASH)
       add_sh_test(ncdap tst_zero_len_var)
-# not yet      add_sh_test(ncdap tst_hyrax)
+      add_sh_test(ncdap tst_encode)
+      # not yet      add_sh_test(ncdap tst_hyrax)
       add_sh_test(ncdap tst_fillmismatch)
       IF(ENABLE_DAP_LONG_TESTS)
-        add_sh_test(ncdap tst_longremote3)
+        add_sh_test(ncdap tst_longremote3)	
+        SET_TESTS_PROPERTIES(ncdap_tst_longremote3 PROPERTIES RUN_SERIAL TRUE)
       ENDIF(ENABLE_DAP_LONG_TESTS)
-
     ENDIF(BUILD_UTILITIES)
+    IF(ENABLE_EXTERNAL_SERVER_TESTS)
+          add_bin_test(ncdap test_manyurls)
+          SET_TESTS_PROPERTIES(ncdap_test_manyurls PROPERTIES RUN_SERIAL TRUE)
+    ENDIF()
 
     IF(ENABLE_DAP_AUTH_TESTS)
 ##obsolete      add_bin_test(ncdap t_auth)
@@ -54,6 +67,7 @@ IF(ENABLE_TESTS)
     ENDIF()
 
     add_bin_test(ncdap test_varm3)
+    add_bin_test(ncdap test_nstride_cached)
 
     ###
     # This test relates to NCF-330 in

@@ -1,0 +1,2 @@
+text  : |{"string": "string","int": 117,"double": 3.1415926,"boolean": true,"null": null,"array1": [],"array2": ["string",117,3.1415926,true,null,[]],"dict1": {}}|
+result: |{"string": "string","int": 117,"double": 3.1415926,"boolean": true,"null": null,"array1": [],"array2": ["string",117,3.1415926,true,null,[]],"dict1": {}}|

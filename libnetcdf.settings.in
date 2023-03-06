@@ -4,10 +4,12 @@
 # General
 -------
 NetCDF Version:		@PACKAGE_VERSION@
+Dispatch Version:       @NC_DISPATCH_VERSION@
 Configured On:		@CONFIG_DATE@
 Host System:		@host_cpu@-@host_vendor@-@host_os@
 Build Directory: 	@abs_top_builddir@
 Install Prefix:         @prefix@
+Plugin Install Prefix:  @PLUGIN_INSTALL_DIR_SETTING@
 
 # Compiling Options
 -----------------
@@ -21,21 +23,38 @@ AM_LDFLAGS:		@AM_LDFLAGS@
 Shared Library:		@enable_shared@
 Static Library:		@enable_static@
 Extra libraries:	@LIBS@
+XML Parser:             @XMLPARSER@
 
 # Features
 --------
+Benchmarks:		@HAS_BENCHMARKS@
 NetCDF-2 API:		@HAS_NC2@
 HDF4 Support:		@HAS_HDF4@
 HDF5 Support:		@HAS_HDF5@
 NetCDF-4 API:		@HAS_NC4@
+CDF5 Support:		@HAS_CDF5@
 NC-4 Parallel Support:	@HAS_PARALLEL4@
 PnetCDF Support:	@HAS_PNETCDF@
-DAP2 Support:		@HAS_DAP@
+
+DAP2 Support:		@HAS_DAP2@
 DAP4 Support:		@HAS_DAP4@
 Byte-Range Support:	@HAS_BYTERANGE@
+
+NCZarr Support:		@HAS_NCZARR@
+NCZarr S3 Support:      @HAS_NCZARR_S3@
+NCZarr Zip Support:     @HAS_NCZARR_ZIP@
+
 Diskless Support:	@HAS_DISKLESS@
 MMap Support:		@HAS_MMAP@
 JNA Support:		@HAS_JNA@
-CDF5 Support:		@HAS_CDF5@
 ERANGE Fill Support:	@HAS_ERANGE_FILL@
 Relaxed Boundary Check:	@RELAX_COORD_BOUND@
+
+Multi-Filter Support:	@HAS_MULTIFILTERS@
+Quantization:		@HAS_QUANTIZE@
+Logging:     		@HAS_LOGGING@
+SZIP Write Support:     @HAS_SZLIB_WRITE@
+Standard Filters:       @STD_FILTERS@
+ZSTD Support:           @HAS_ZSTD@
+Parallel Filters:       @HAS_PAR_FILTERS@
+

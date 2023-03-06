@@ -87,7 +87,7 @@ fail:
 }
 
 int
-NCD4_fetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime)
+NCD4_fetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime, int* httpcodep)
 {
     int ret = NC_NOERR;
     CURLcode cstat = CURLE_OK;
@@ -97,12 +97,12 @@ NCD4_fetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime)
     /* send all data to this function  */
     cstat = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
     if (cstat != CURLE_OK)
-        goto fail;
+        goto done;
 
     /* we pass our file to the callback function */
     cstat = curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)buf);
     if (cstat != CURLE_OK)
-        goto fail;
+        goto done;
 
     /* One last thing; always try to get the last modified time */
     cstat = curl_easy_setopt(curl, CURLOPT_FILETIME, (long)1);
@@ -111,7 +111,7 @@ NCD4_fetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime)
     cstat = curl_easy_setopt(curl, CURLOPT_URL, (void*)"");
     cstat = curl_easy_setopt(curl, CURLOPT_URL, (void*)url);
     if (cstat != CURLE_OK)
-        goto fail;
+        goto done;
 
     cstat = curl_easy_perform(curl);
 
@@ -121,14 +121,15 @@ NCD4_fetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime)
                curl_easy_strerror(cstat));
         cstat = CURLE_OK;
     }
-    httpcode = NCD4_fetchhttpcode(curl);
+    if(cstat != CURLE_OK) goto done;
 
-    if(cstat != CURLE_OK) goto fail;
+    httpcode = NCD4_fetchhttpcode(curl);
+    if(httpcodep) *httpcodep = httpcode;
 
     /* Get the last modified time */
     if(filetime != NULL)
         cstat = curl_easy_getinfo(curl,CURLINFO_FILETIME,filetime);
-    if(cstat != CURLE_OK) goto fail;
+    if(cstat != CURLE_OK) goto done;
 
     /* Null terminate the buffer*/
     len = ncbyteslength(buf);
@@ -137,18 +138,19 @@ NCD4_fetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime)
 #ifdef D4DEBUG
     nclog(NCLOGNOTE,"buffersize: %lu bytes",(d4size_t)ncbyteslength(buf));
 #endif
-    return THROW(ret);
 
-fail:
+done:
     if(cstat != CURLE_OK) {
         nclog(NCLOGERR, "curl error: %s", curl_easy_strerror(cstat));
         ret = curlerrtoncerr(cstat);
     } else switch (httpcode) {
-    case 401: ret = NC_EAUTH; break;
-    case 404: ret = ENOENT; break;
-    case 500: ret = NC_EDAPSVC; break;
-    case 200: break;
-    default: ret = NC_ECURL; break;
+           case 400: ret = NC_EDATADAP; break;
+           case 401: ret = NC_EACCESS; break;
+	   case 403: ret = NC_EAUTH; break;
+           case 404: ret = ENOENT; break;
+           case 500: ret = NC_EDAPSVC; break;
+           case 200: break;
+           default: ret = NC_ECURL; break;
     }
     return THROW(ret);
 }
@@ -290,7 +292,7 @@ NCD4_ping(const char* url)
 
     /* Try to get the file */
     buf = ncbytesnew();
-    ret = NCD4_fetchurl(curl,url,buf,NULL);
+    ret = NCD4_fetchurl(curl,url,buf,NULL,NULL);
     if(ret == NC_NOERR) {
         /* Don't trust curl to return an error when request gets 404 */
         long http_code = 0;

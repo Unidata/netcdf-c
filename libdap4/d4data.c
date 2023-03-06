@@ -6,9 +6,9 @@
 #include "d4includes.h"
 #include <stdarg.h>
 #include <assert.h>
-#include "ezxml.h"
 #include "d4includes.h"
 #include "d4odom.h"
+#include "nccrc.h"
 
 /**
 This code serves two purposes
@@ -27,6 +27,7 @@ static int fillopfixed(NCD4meta*, d4size_t opaquesize, void** offsetp, void** ds
 static int fillopvar(NCD4meta*, NCD4node* type, void** offsetp, void** dstp, NClist* blobs);
 static int fillstruct(NCD4meta*, NCD4node* type, void** offsetp, void** dstp, NClist* blobs);
 static int fillseq(NCD4meta*, NCD4node* type, void** offsetp, void** dstp, NClist* blobs);
+static int NCD4_checkChecksums(NCD4meta* meta, NClist* toplevel);
 
 /***************************************************/
 /* Macro define procedures */
@@ -38,11 +39,11 @@ static unsigned int debugcrc32(unsigned int crc, const void *buf, size_t size)
     fprintf(stderr,"crc32: ");
     for(i=0;i<size;i++) {fprintf(stderr,"%02x",((unsigned char*)buf)[i]);}
     fprintf(stderr,"\n");
-    return NCD4_crc32(crc,buf,size);
+    return NC_crc32(crc,buf,size);
 }
 #define CRC32 debugcrc32
 #else
-#define CRC32 NCD4_crc32
+#define CRC32 NC_crc32
 #endif
 
 #define ISTOPLEVEL(var) ((var)->container == NULL || (var)->container->sort == NCD4_GROUP)
@@ -64,11 +65,15 @@ NCD4_processdata(NCD4meta* meta)
     toplevel = nclistnew();
     NCD4_getToplevelVars(meta,root,toplevel);
 
+    /* See if we need to compute checksums on which variables */
+    NCD4_checkChecksums(meta,toplevel);
+
     /* If necessary, byte swap the serialized data */
     /* Do we need to swap the dap4 data? */
     meta->swap = (meta->serial.hostlittleendian != meta->serial.remotelittleendian);
 
     /* Compute the  offset and size of the toplevel vars in the raw dap data. */
+    /* Also extract checksums */ 
     offset = meta->serial.dap;
     for(i=0;i<nclistlength(toplevel);i++) {
 	NCD4node* var = (NCD4node*)nclistget(toplevel,i);
@@ -76,25 +81,35 @@ NCD4_processdata(NCD4meta* meta)
 	    FAIL(ret,"delimit failure");
     }
 
-    /* Compute the checksums of the top variables */
+    /* Compute the checksums of the top variables if needed */
     /* must occur before any byte swapping */
-    if(meta->localchecksumming) {
-	for(i=0;i<nclistlength(toplevel);i++) {
-	    unsigned int csum = 0;
-	    NCD4node* var = (NCD4node*)nclistget(toplevel,i);
+    for(i=0;i<nclistlength(toplevel);i++) {
+	NCD4node* var = (NCD4node*)nclistget(toplevel,i);
+	if(var->data.remotechecksummed) {
+            unsigned int csum = 0;
             csum = CRC32(csum,var->data.dap4data.memory,var->data.dap4data.size);
             var->data.localchecksum = csum;
 	}
     }
 
     /* verify checksums */
-    if(!meta->ignorechecksums && meta->serial.remotechecksumming) {
+    if(!meta->ignorechecksums) {
         for(i=0;i<nclistlength(toplevel);i++) {
 	    NCD4node* var = (NCD4node*)nclistget(toplevel,i);
-	    if(var->data.localchecksum != var->data.remotechecksum) {
-		nclog(NCLOGERR,"Checksum mismatch: %s\n",var->name);
-		ret = NC_EDAP;
-		goto done;
+	    if(var->data.remotechecksummed) {
+	        if(var->data.localchecksum != var->data.remotechecksum) {
+		    nclog(NCLOGERR,"Checksum mismatch: %s\n",var->name);
+		    ret = NC_EDAP;
+		    goto done;
+		}
+	        /* Also verify checksum attribute */
+		if(var->data.checksumattr) {
+	            if(var->data.attrchecksum != var->data.remotechecksum) {
+		        nclog(NCLOGERR,"Attribute Checksum mismatch: %s\n",var->name);
+		        ret = NC_EDAP;
+		        goto done;
+		    }
+		}
 	    }
         }
     }
@@ -349,6 +364,7 @@ done:
 
 /**************************************************/
 /* Utilities */
+
 int
 NCD4_getToplevelVars(NCD4meta* meta, NCD4node* group, NClist* toplevel)
 {
@@ -375,3 +391,63 @@ fprintf(stderr,"toplevel: var=%s\n",node->name);
 done:
     return THROW(ret);
 }
+
+static int
+NCD4_checkChecksums(NCD4meta* meta, NClist* toplevel)
+{
+    int ret = NC_NOERR;
+    int i;
+
+    for(i=0;i<nclistlength(toplevel);i++) {
+	int a;
+        NCD4node* node = (NCD4node*)nclistget(toplevel,i);
+	/* See if the checksum attribute is defined or checksum hack is in use*/
+#ifdef CHECKSUMHACK
+        node->data.remotechecksummed = (meta->serial.checksumhack ? 0  : 1);
+#endif
+	for(a=0;a<nclistlength(node->attributes);a++) {	
+            NCD4node* attr = (NCD4node*)nclistget(node->attributes,a);
+	    if(strcmp(D4CHECKSUMATTR,attr->name)==0) {
+		const char* val =  NULL;
+		if(nclistlength(attr->attr.values) != 1)
+		    return NC_EDMR;
+		val = (const char*)nclistget(attr->attr.values,0);
+		sscanf(val,"%u",&node->data.attrchecksum);
+		node->data.checksumattr = 1;
+	        node->data.remotechecksummed = 1;
+	    }
+	}
+    }
+    return THROW(ret);
+}
+
+#if 0
+/* As a hack, if the server sent remotechecksums and
+       _DAP4_Checksum_CRC32 is not defined, then define it.
+*/
+static int
+NCD4_addchecksumattr(NCD4meta* meta, NClist* toplevel)
+{
+    int ret = NC_NOERR;
+    int i;
+
+    for(i=0;i<nclistlength(toplevel);i++) {
+        NCD4node* node = (NCD4node*)nclistget(toplevel,i);
+	
+        /* Is remote checksum available? */
+	if(node->data.remotechecksummed) {
+	    NCD4node* attr = NCD4_findAttr(node,D4CHECKSUMATTR);
+	    if(attr == NULL) { /* add it */
+		char value[64];
+		snprintf(value,sizeof(value),"%u",node->data.remotechecksum);
+	        if((ret=NCD4_defineattr(meta,node,D4CHECKSUMATTR,"UInt32",&attr)))
+			return NC_EINTERNAL;
+		attr->attr.values = nclistnew();
+		nclistpush(attr->attr.values,strdup(value));
+	    }
+	}
+    }
+    return THROW(ret);
+}
+#endif
+

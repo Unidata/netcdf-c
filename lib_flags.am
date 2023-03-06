@@ -6,11 +6,26 @@
 # libraries for netCDF-4.
 #
 
-AM_CPPFLAGS = -I$(top_srcdir)/include
+AM_CPPFLAGS = -I$(top_builddir)/include -I$(top_srcdir)/include
 AM_LDFLAGS =
 
 if USE_DAP
 AM_CPPFLAGS += -I${top_srcdir}/oc2
+endif
+
+
+if ENABLE_NCZARR
+AM_CPPFLAGS += -I${top_srcdir}/libnczarr
+endif
+
+
+if ENABLE_S3_SDK 
+AM_LDFLAGS += -lstdc++
+endif
+
+if ! ENABLE_LIBXML2
+# => tinyxml2
+AM_LDFLAGS += -lstdc++
 endif
 
 AM_TESTS_ENVIRONMENT = export TOPSRCDIR=${abs_top_srcdir}; export TOPBUILDDIR=${abs_top_builddir};

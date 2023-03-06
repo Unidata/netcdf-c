@@ -82,6 +82,8 @@ extern struct Datalist* getfiller(Symbol*); /* symbol isa variable|type */
 
 /* from: ncgen.y */
 extern Symbol* install(const char *sname);
+extern Symbol* installin(const char *sname,Symbol* grp);
+extern void freesymbol(Symbol*);
 extern Symbol* basetypefor(nc_type nctype);/* Convert nctype to a Symbol*/
 extern Symbol* makearraytype(Symbol*, Dimset*);
 
@@ -163,6 +165,7 @@ extern int specials_flag; /* 1 => special attributes are present */
 extern int usingclassic;   /* 1 => k_flag == 1|2|5 */
 extern int k_flag;
 extern int ncloglevel;
+extern int wholevarsize;
 extern GlobalSpecialData globalspecials;
 
 /* Global data */
@@ -191,12 +194,14 @@ extern char* binary_ext;
 extern int nofill_flag;
 extern int header_only;
 extern char* mainname;
-extern size_t nciterbuffersize;
 
 extern char* progname; /* for error messages*/
 extern char *netcdf_name; /* command line -o file name */
 extern char *datasetname; /* name from the netcdf <name> {} */
 extern char *cdlname; /* name from the command line */
+
+extern size_t zerosvector[NC_MAX_VAR_DIMS];
+extern size_t onesvector[NC_MAX_VAR_DIMS];
 
 extern const char* specialname(int tag);
 

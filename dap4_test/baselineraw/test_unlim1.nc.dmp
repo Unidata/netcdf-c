@@ -16,7 +16,6 @@ variables:
 		string pr:_edu.ucar.maps = "/time", "/lat", "/lon" ;
 
 // global attributes:
-		:_DAP4_Little_Endian = 1UB ;
 		string :title = "example for workshop" ;
 data:
 

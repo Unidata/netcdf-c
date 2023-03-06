@@ -38,13 +38,14 @@
 
 int main(int argc, char* argv[])
 {
-    int i, j, rank, nprocs, ncid, cmode, varid[NVARS], dimid[2], *buf;
+    int i, j, rank, nprocs, ncid, cmode, varid[NVARS], dimid[2], *buf=NULL;
     int st, nerrs=0;
     char str[32];
     size_t start[2], count[2];
     MPI_Comm comm=MPI_COMM_SELF;
     MPI_Info info=MPI_INFO_NULL;
-
+    char file_name[NC_MAX_NAME + 1];
+    
     printf("\n*** Testing bug fix with changing PnetCDF variable offsets...");
 
     MPI_Init(&argc,&argv);
@@ -63,7 +64,9 @@ int main(int argc, char* argv[])
 #endif
 
     cmode = NC_CLOBBER;
-    st = nc_create_par(FILENAME, cmode, comm, info, &ncid);
+    sprintf(file_name, "%s/%s", TEMP_LARGE, FILENAME);
+    st = nc_create_par(file_name, cmode, comm, info, &ncid);
+
 #ifdef USE_PNETCDF
     CHK_ERR(st)
 #else
@@ -109,7 +112,7 @@ int main(int argc, char* argv[])
     if (info != MPI_INFO_NULL) MPI_Info_free(&info);
 
     /* re-open the file with netCDF (parallel) and enter define mode */
-    st = nc_open_par(FILENAME, NC_WRITE, comm, info, &ncid); CHK_ERR(st)
+    st = nc_open_par(file_name, NC_WRITE, comm, info, &ncid); CHK_ERR(st)
 
     st = nc_redef(ncid); CHK_ERR(st)
 
@@ -140,9 +143,8 @@ int main(int argc, char* argv[])
         }
     }
     st = nc_close(ncid); CHK_ERR(st)
-    free(buf);
-
 fn_exit:
+    free(buf);
     MPI_Finalize();
     err = nerrs;
     SUMMARIZE_ERR;

@@ -291,6 +291,9 @@
         <a href="#WebWinds">WebWinds</a>
       </li>
       <li>
+        <a href="#xdfv" >xdfv (A slick NetCDF/HDF4/HDF5 contents viewer with developers in mind)<A>
+      </li>
+      <li>
         <a href="#xray" >xray (Python N-D labelled arrays)</a>
       </li>
       <li>
@@ -396,7 +399,7 @@
       <a href="http://engineering.arm.gov/~sbeus/andx-web/html/" >ANDX (ARM
       NetCDF Data eXtract)</a>,
       a command-line utility designed for routine examination and
-      extraction of data from netcdf files. Data can be displayed
+      extraction of data from netCDF files. Data can be displayed
       graphically (line-plot, scatter-plot, overlay, color-intensity, etc.)
       or extracted as ASCII data. Whether displayed graphically or extracted
       as ASCII, results can be saved to disk or viewed on screen.
@@ -414,7 +417,7 @@
       The ARM Program has developed <a
       href="http://science.arm.gov/~cflynn/ANTS/" >ANTS (ARM NetCDF Tool
       Suite)</a>, a collection of netCDF tools and utilities providing
-      various means of creating and modifying netcdf files. ANTS is based on
+      various means of creating and modifying netCDF files. ANTS is based on
       nctools written by Chuck Denham. The utilities within nctools were
       modified to compile with version 3.5 of the netCDF library, the
       command syntax was modified for consistency with other tools, and
@@ -436,7 +439,7 @@
 
     <p>
       Essentially every type of netCDF library function call is
-      exercised in ANTS. In this way then, this open-source collection of
+      exercised in ANTS. In this way, this open-source collection of
       tools also represents a library of coding examples for fundamental
       netCDF tasks.  See the <a href="http://science.arm.gov/~cflynn/ANTS/"
       >website</a> for more information.
@@ -449,12 +452,12 @@
       tool, developed by <a
       href="http://www.lapeth.ethz.ch/~david/index.html">David N. Bresch</a> and <a href="http://www.lapeth.ethz.ch/~mark/index.html">Mark
       A. Liniger</a> at the Institute for Atmospheric Science at the Swiss Federal Institute
-      of Technology, ETH, ZÃ¼rich.
+      of Technology, ETH, Z&uumlrich.
     </p>
 
     <p>
       A highly optimized graphical user interface allows quick and elegant creation
-      of even complex 3D graphics (volume rendering, isosurfaces,...), including Z-buffered
+      of even complex 3D graphics (volume rendering, isosurfaces, etc.), including Z-buffered
       overlays (with hidden lines), light and data shading, Xray images, 3D trajectories,
       animations and virtual flights around your data, all documented in a full on-line
       <a
@@ -795,13 +798,13 @@ or using ECMWF reanalysis on a reduced grid
       graphics are produced with a single command. Graphics styles included line plots,
       scatter plots, contour plots, color-filled contour plots, vector plots, wire
       frame plots, etc. Detailed controls over plot characteristics, page layout and
-      overlays are provided. NetCDF is supported both as an input and an output format.
+      overlays are provided. NetCDF is supported as both an input and an output format.
     </p>
     <p>
       Many excellent software packages have been developed recently for scientific
       visualization. The features that make FERRET distinctive among these packages
       are Mathematica-like flexibility, geophysical formatting (latitude/longitude/date),
-      &quot;intelligent&quot; connection to its data base, special memory management
+      &quot;intelligent&quot; connection to its database, special memory management
       for very large calculations, and symmetrical processing in 4 dimensions. Contact
       Steve Hankin, hankin@noaapmel.gov, for more information.
     </p>
@@ -844,8 +847,7 @@ or using ECMWF reanalysis on a reduced grid
     <h2><a id="GDAL" name="GDAL">GDAL</a></h2>
 
     <p>
-      Frank Warmerdam's <a
-      href="http://www.remotesensing.org/gdal/index.html" >GDAL</a> is a
+      Frank Warmerdam's <a href="http://www.remotesensing.org/gdal/index.html" >GDAL</a> is a
       translator library for raster geospatial data formats that is released
       under an X/MIT style Open Source license.  As a library, it presents a
       <a href="http://www.remotesensing.org/gdal/gdal_datamodel.html"> single abstract data model</a> to the calling application for all
@@ -938,9 +940,9 @@ or using ECMWF reanalysis on a reduced grid
     Dr L. Mun Woo <mun.woo@uwa.edu.au>
     at ANFOG (Australian National Facility for Ocean Gliders)
     has developed
-    <a href="http://imos.org.au/facilities/oceangliders/glider-data/gliderscope/">Gliderscope</a>.
+    <a href="https://imos.org.au/gliderscope">Gliderscope</a>.
     Gliderscope is an IMOS (Integrated Marine Observing System)
-    oceanographic software package allow users quick easy visualisation
+    oceanographic software package allowing users quick easy visualisation
     of ocean glider data, via a convenient graphical user interface.
     Originally developed for use with ANFOG NetCDF data, it has now
     been expanded to handle NetCDF data files from IOOS (U.S.
@@ -958,7 +960,7 @@ or using ECMWF reanalysis on a reduced grid
     etc. Additionally, users can also export their data to text or NetCDF
     files for easy access in other applications. Gliderscope is available
     on Windows and Macintosh platforms, as standalone executable software
-    as well as an App for use within Matlab.
+    as well as an App for use within MATLAB.
     </p>
 
     <p></p>
@@ -1209,7 +1211,7 @@ or using ECMWF reanalysis on a reduced grid
         </li>
         <li>
           Support for non-gridded data through the <a
-          href="/software/netcdf-java/CDM/" >Common Data Model (CDM)</a>
+          href="https://docs.unidata.ucar.edu/netcdf-java/current/userguide/common_data_model_overview.html">Common Data Model (CDM)</a>
         </li>
       </ul>
       The IDV uses the <a href="http://www.ssec.wisc.edu/~billh/visad.html"
@@ -1347,7 +1349,7 @@ or using ECMWF reanalysis on a reduced grid
       subroutines.
     </p>
     <p>
-      IVE uses NetCDF for the data input format, and uses the <a
+      IVE uses netCDF for the data input format, and uses the <a
       href="http://ngwww.ucar.edu/ng/">NCAR Graphics Library</a> to produce graphical
       output. IVE is <a
       href="http://www.atmos.washington.edu/ive/getting.html">available</a> as source
@@ -1374,23 +1376,25 @@ or using ECMWF reanalysis on a reduced grid
     <h2><a id="Java interface" name="Java interface">Java interface</a></h2>
     <p>
       The <a href="/software/netcdf-java/"
-      >NetCDF-Java 4.2 Library</a> is a Java interface to netCDF files,
+      >NetCDF-Java Library</a> is a Java interface to netCDF files,
       as well as to many other types of scientific data formats. It
       is freely available and the source code is released under the
-      (MIT-style) netCDF C library license. Previous versions use the GNU
-      Lesser General Public License (LGPL).
+      BSD-3 license. Previous versions used the (MIT-style) netCDF C
+      library license, and prior to that, the GNU Lesser General
+      Public License (LGPL).
     </p>
     <p>
       The library implements a Common Data Model (<a
-      href="/software/netcdf-java/CDM/" >CDM</a>), a generalization
+      href="https://docs.unidata.ucar.edu/netcdf-java/current/userguide/common_data_model_overview.html" >CDM</a>), a generalization
       of the netCDF, OpenDAP and HDF5 data models. The library is a
       prototype for the netCDF-4 project, which provides a C language API
       for the "data access layer" of the CDM, on top of the HDF5 file
       format. The NetCDF-Java library is a 100% Java framework for <em>reading</em> netCDF
       and other file formats into the CDM, as well as <em>writing</em> to the
-      netCDF-3 file format.
+      netCDF-3 file format. Write support for the netCDF-4 is provided by 
+      native calls to the netCDF-C library.
       The library also implements <a
-      href="http://www.unidata.ucar.edu/software/netcdf/ncml/">NcML</a>,
+      href="https://docs.unidata.ucar.edu/netcdf-java/current/userguide/ncml_overview.html">NcML</a>,
       which allows you to add metadata to CDM datasets, as well as to create
       virtual datasets through aggregation.
     </p>
@@ -1442,7 +1446,7 @@ or using ECMWF reanalysis on a reduced grid
 
     <p>
       A netCDF Labview interface, implemented in the Labview programming
-      language is available.  The software includes A graphical user
+      language is available.  The software includes a graphical user
       interface for editing netCDF data and
       conversion to other data formats.  The package was developed and is
       maintained by L. F. Hwang of Sun Yat-sen University in China.
@@ -1479,7 +1483,7 @@ or using ECMWF reanalysis on a reduced grid
     <h2><a id="Max_diff_nc" name="Max_diff_nc">Max_diff_nc</a></h2>
 
     <p>
-      This is a program which compares two NetCDF files. Variables with the
+    This is a program which compares two NetCDF files. Variables with the
       same ID in the two files are assumed to be of the same type and have
       the same shape.  For each such couple of variables, the program
       computes the maximum of the absolute value of the difference, and the
@@ -1656,7 +1660,7 @@ or using ECMWF reanalysis on a reduced grid
     <p>
       John Evans of Rutgers University maintains MEXNC and developed SNCTOOLS.
       <a href="http://mexcdf.sourceforge.net/" >MEXNC</a> is a mexfile
-      interface to NetCDF files for MATLAB that has roughly a one-to-one
+      interface to netCDF files for MATLAB that has roughly a one-to-one
       equivalence with the C API for netCDF. <a
       href="http://mexcdf.sourceforge.net/tutorial/index.html"
       >SNCTOOLS</a> is a set of
@@ -1823,8 +1827,7 @@ or using ECMWF reanalysis on a reduced grid
       <a href="http://www.ncl.ucar.edu/">NCL website</a>, which contains
       hundreds of <a
       href="http://www.ncl.ucar.edu/Applications/">application examples</a>
-      for one to download. You can also contact Mary Haley, at <a
-      href="mailto:haley@ucar.edu">haley@ucar.edu</a> for more information.
+      for one to download.
 
     <p></p>
     <h2><a id="NCO" name="NCO">NCO</a></h2>
@@ -1911,7 +1914,7 @@ or using ECMWF reanalysis on a reduced grid
       <a
       href="http://nctoolbox.github.io/nctoolbox/" >nctoolbox</a> is a MATLAB
       interface that provides read-only access to <a
-      href="/software/netcdf-java/CDM/index.html" >Common Data Model</a>
+      href="https://docs.unidata.ucar.edu/netcdf-java/current/userguide/common_data_model_overview.html" >Common Data Model</a>
       datasets.
       Under the hood, nctoolbox uses Unidata's NetCDF-Java as the data access layer.
       This allows nctoolbox to access to netCDF, OPeNDAP, HDF5, GRIB, GRIB2, HDF4,
@@ -1975,8 +1978,8 @@ or using ECMWF reanalysis on a reduced grid
 
     <p>
       <a href="http://ncvtk.sourceforge.net/" >Ncvtk</a> is a program for
-      exploring planetary data stored in a NetCDF file.
-      The NetCDF file  should loosely follow the <a
+      exploring planetary data stored in a netCDF file.
+      The netCDF file  should loosely follow the <a
       href="http://www.cgd.ucar.edu/cms/eaton/cf-metadata/" >CF metadata
       conventions</a>.
     </p>
@@ -2001,22 +2004,22 @@ or using ECMWF reanalysis on a reduced grid
 
     <p></p>
 
-    <h2><a id="netcdf_ninja" name="netcdf_ninja">netCDF Ninja</a></h2>
+    <h2><a id="netcdf_ninja" name="netcdf_ninja">NetCDF Ninja</a></h2>
     <p>
     Dr L. Mun Woo of University of Western Australia <mun.woo@uwa.edu.au>
     has developed
-    <a href="http://imos.org.au/facilities/oceangliders/glider-data/netcdfninja/">NetCDF Ninja</a>,
+    <a href="https://imos.org.au/netcdfninja">NetCDF Ninja</a>,
     a graphical user interface that allows users to browse all
-    the metadata contained in NetCDF files, scrutinise the data using an
+    the metadata contained in netCDF files, scrutinise the data using an
     interactive graphical plot and even make small alterations or export
     the data in text format without having any knowledge of coding. NetCDF
     Ninja is available on Windows and Macintosh platforms, as standalone
-    executable software as well as an App for use within Matlab.
+    executable software as well as an App for use within MATLAB.
     </p>
 
     <p></p>
 
-    <h2><a id="netcdf_tools" name="netcdf_tools">Ivan Shmakov's netcdf tools</a></h2>
+    <h2><a id="netcdf_tools" name="netcdf_tools">Ivan Shmakov's Netcdf tools</a></h2>
 
     <p>
       The NetCDF tools is a free software package consisting of a few
@@ -2028,7 +2031,7 @@ or using ECMWF reanalysis on a reduced grid
     </p>
     <ul>
       <li>
-        a couple of simple shell wrappers over the respective NetCDF
+        a couple of simple shell wrappers over the respective netCDF
         functions (ncattget and ncattput);
       </li>
       <li>
@@ -2066,7 +2069,7 @@ or using ECMWF reanalysis on a reduced grid
         has developed <a
         href="http://code.google.com/p/netcdf4excel/" >a netCDF add-in written in
         Visual Basic for MS Excel</a>.  This add-in simplifies the use of
-        NetCDF data in Excel, providing a ready to use solution for
+        netCDF data in Excel, providing a ready to use solution for
         manipulating this type of data.
     </p>
     <p>
@@ -2090,7 +2093,7 @@ or using ECMWF reanalysis on a reduced grid
     <p>
       Lionel Guez has developed and made feely available <a
       href="http://web.lmd.jussieu.fr/~lglmd/NetCDF95" >NetCDF95</a>, a new
-      alternative Fortran interface to the NetCDF library.  Compared to the
+      alternative Fortran interface to the netCDF library.  Compared to the
       Unidata-provided Fortran 90 netCDF interface, the NetCDF95 interface
       is meant to be easier to use and more secure.
     </p>
@@ -2172,10 +2175,10 @@ or using ECMWF reanalysis on a reduced grid
       Octcdf is a netCDF toolbox for <a
       href="http://www.octave.org/">Octave</a> which uses the same operator
       syntax as the <a
-      href="http://mexcdf.sourceforge.net/netcdf_toolbox.html">matlab netCDF
+      href="http://mexcdf.sourceforge.net/netcdf_toolbox.html">MATLAB netCDF
       toolbox</a> of Charles R. Denham. NetCDF dimensions, attributes and
       variables are Octave objects and can be accessed, sliced and changed
-      just as regular variables. Unlike most netCDF toolboxes for matlab, it
+      just as regular variables. Unlike most netCDF toolboxes for MATLAB, it
       does not depend on the NCMEX wrapper around the netCDF interface. This
       octave toolbox is written in C++ calling directly the netCDF library.
       The octcdf toolbox can also be used to download data from an OpenDAP
@@ -2197,7 +2200,7 @@ or using ECMWF reanalysis on a reduced grid
       provides tools for transforming existing applications into OPeNDAP
       clients, enabling them to remotely access OPeNDAP served data.
       OPeNDAP is based on existing data access tools; rather than developing
-      a self contained system, it makes extensive use of existing data
+      a self-contained system, it makes extensive use of existing data
       access APIs.
     </p>
 
@@ -2469,7 +2472,7 @@ or using ECMWF reanalysis on a reduced grid
       of data sets provide the user with a quick learning tool.
     </p>
     <p>
-      Currently PolyPaint+ accepts only data which is in the NetCDF file format.
+      Currently PolyPaint+ accepts only data which is in the netCDF file format.
       A file conversion utility which converts from raw binary data to netCDf is a
       part of the application.
     </p>
@@ -2774,7 +2777,7 @@ or using ECMWF reanalysis on a reduced grid
     </p>
     <p>
       SIS supports creating ISO 19115 metadata from metadata in a netCDF
-      store from a given file, URL, stream, or NetcdfFile object.  SIS
+      store from a given file, URL, stream, or netcdfFile object.  SIS
       netCDF storage is intended to be a bridge between NetCDF Climate and
       Forecast (CF) conventions and ISO 19115 metadata.
     </p>
@@ -2799,7 +2802,7 @@ or using ECMWF reanalysis on a reduced grid
       processor) is a loadable extension of Tcl which provides a powerful and efficient
       facility for processing data in the form of n-dimensional arrays. It has been
       designed to provide an array-processing facility with much of the functionality
-      of languages such as <a href="http://www.acm.org/sigapl/" >APL</a>, Fortran-90, <a href="#IDL" >IDL</a>, <a href="http://www.jsoftware.com/" >J</a>, <a href="http://www.mathworks.com" >matlab</a>, and <a href="http://www.octave.org/" >octave</a>.
+      of languages such as <a href="http://www.acm.org/sigapl/" >APL</a>, Fortran-90, <a href="#IDL" >IDL</a>, <a href="http://www.jsoftware.com/" >J</a>, <a href="http://www.mathworks.com" >MATLAB</a>, and <a href="http://www.octave.org/" >octave</a>.
     </p>
     <p>
       Support is provided for data based on n-dimensional grids, where the dimensions
@@ -2896,7 +2899,7 @@ or using ECMWF reanalysis on a reduced grid
       ESRI Grid and Gridded NetCDF. These data export features
       promote the interoperability of weather and climate
       information with various scientific communities and common
-      software packages such as ArcGIS, Google Earth, MatLAB,
+      software packages such as ArcGIS, Google Earth, MATLAB,
       QGIS, R and many more. Advanced data export support for
       Google Earth enables the 2-D and 3D export of rendered data
       and isosurfaces.
@@ -2930,11 +2933,11 @@ or using ECMWF reanalysis on a reduced grid
     <p>
       In addition, this version contains a capability to geo-reference some data
       and to read ASCII data in tabular format. Also new is the ability to output
-      data in numerical form (e.g. NetCDF) and a context sensitive, integrated help
+      data in numerical form (e.g. netCDF) and a context sensitive, integrated help
       system.
     </p>
     <p>
-      As with earlier versions, data in several different formats, including NetCDF,
+      As with earlier versions, data in several different formats, including netCDF,
       can be read in easily from your local machine or from the Web. In addition,
       most data can be subset or subsampled on load, making it possible to visualize
       very large multidimensional and/or multispectral datasets. The package includes
@@ -2962,7 +2965,7 @@ or using ECMWF reanalysis on a reduced grid
     </p>
     <p>
       xray adopts the <a
-      href="http://www.unidata.ucar.edu/software/thredds/current/netcdf-java/CDM"
+      href="https://docs.unidata.ucar.edu/netcdf-java/current/userguide/common_data_model_overview.html"
       >Common Data Model</a> for self-describing scientific data in
       widespread use in the Earth sciences (e.g., netCDF and OPeNDAP):
       xray.Dataset is an in-memory representation of a netCDF file.
@@ -2972,7 +2975,9 @@ or using ECMWF reanalysis on a reduced grid
       href="https://github.com/xray/xray/graphs/contributors" >other
       contributors</a>.
     </p>
-
+    <h2><a id="xdfv" name="xdfv">xdfv</a></h2>
+      Xdfv is a developer-centric visualizer for NetCDF/HDF4/HDF5 data files.  The project is available from GitHub at <a href="https://github.com/gmcgarragh/xdfv"> https://github.com/gmcgarragh/xdfv</a>.
+    </p>
     <h2><a id="Zebra" name="Zebra">Zebra</a></h2>
     <a href="http://www.atd.ucar.edu/rdp/zebra.html">Zebra</a> (formerly named Zeb)
     is a system for data ingest, storage, integration and display, designed to operate
@@ -3042,29 +3047,44 @@ or using ECMWF reanalysis on a reduced grid
 
     <h2><a id="ArcGIS" name="ArcGIS">ArcGIS Pro - Space Time Pattern Mining Toolbox</a></h2>
     <p>
-      The <a href="https://pro.arcgis.com/en/pro-app/tool-reference/space-time-pattern-mining/an-overview-of-the-space-time-pattern-mining-toolbox.htm">Space Time Pattern Mining toolbox</a> contains statistical tools for analyzing data distributions and patterns in the context of both space and time. It includes a toolset for visualizing the data stored in the space-time netCDF cube in both 2D and 3D.
+      The <a href="https://pro.arcgis.com/en/pro-app/tool-reference/space-time-pattern-mining/an-overview-of-the-space-time-pattern-mining-toolbox.htm">Space Time Pattern Mining toolbox</a> 
+      contains statistical tools for analyzing data distributions and patterns in the context of both space and time. It includes a toolset for visualizing the data stored in the space-time netCDF cube in both 2D and 3D.
 
-      Create Space Time Cube takes point datasets and builds a multidimensional cube data structure (netCDF) for analysis. Emerging Hot Spot Analysis then takes the cube as input and identifies statistically significant hot and cold spot trends over time. You might use the Emerging Hot Spot Analysis tool to analyze crime or disease outbreak data in order to locate new, intensifying, persistent, or sporadic hot spot patterns at different time-step intervals. The Local Outlier Analysis tool takes the cube as input to identify statistically significant clusters of high or low values as well as outliers that have values that are statistically different than their neighbors in space and time. The Utilities toolset enables you to visualize the data and analysis results stored in the space-time cube in two and three dimensions. These visualization tools can be used to understand the structure of the cube, how the cube aggregation process works, and to visualize the analytical results added to the cube by other Space Time Pattern Mining tools. See Visualizing the Space Time Cube for strategies to allow you to look at cube contents.
+      Create Space Time Cube takes point datasets and builds a multidimensional cube data structure (netCDF) for analysis. 
+      Emerging Hot Spot Analysis then takes the cube as input and identifies statistically significant hot and cold spot 
+      trends over time. You might use the Emerging Hot Spot Analysis tool to analyze crime or disease outbreak data in 
+      order to locate new, intensifying, persistent, or sporadic hot spot patterns at different time-step intervals. 
+    </p>
+    <p>
+      The Local Outlier Analysis tool takes the cube as input to identify statistically significant clusters of high or 
+      low values as well as outliers that have values that are statistically different than their neighbors in space and time.
+    </p> 
+    <p>
+      The Utilities toolset enables you to visualize the data and analysis results stored in the space-time cube in two and 
+      three dimensions.These visualization tools can be used to understand the structure of the cube, how the cube aggregation 
+      process works, and to visualize the analytical results added to the cube by other Space Time Pattern Mining tools. 
+      See Visualizing the Space Time Cube for strategies to allow you to look at cube contents. 
     </p>
     <p></p>
 
     <h2><a id="Agrimetsoft" name="Agrimetsoft">AgriMetSoft Netcdf-Extractor</a></h2>
-
-    NetCDF Extractor is a windows software for view, convert, merge, and
-    extract data from .nc and .nc4 files. It can extract several nc files,
-    simultaneously. When a user wants to extract several files of nc format
-    simultaneously, he/she requires to load them at a same time with together,
-    loading the files one by one will be a time consuming and tedious process
-    and prone to error. By this software the user can save his/her time, and
-    quickly do the extract process. Also, it has a calculator tool. In this
-    calculator by entering latitude and longitude of the desirable region, the
-    user can view of the grid number of that region. In the latest version of
-    NetCDF Extractor, Agrimetsoft has added two options: Sum” and “Average”.
-    So, the user can easily calculate the average and sum values of the
-    selected area (grids). Data is shown in an organized table, and you can
-    choose to export everything to Excel. This tool is flexible to run for
-    various datasets such as CMIP5 models, AgMERRA, Aphrodite, CRU, and etc.
-    Agrimetsoft support all the users until they can extract the data.
+    <p>
+    NetCDF Extractor is a Windows software for viewing, converting, merging, and extracting 
+    data from .nc and .nc4 files. It can extract several nc files simultaneously. When a user 
+    wants to extract several files of nc format simultaneously, he/she requires to load them 
+    at a same time: loading the files one by one will be a time consuming and tedious process 
+    and prone to error. With this software the user can save time and quickly do the extract process.
+    </p>
+    <p>
+    In addition, it has a calculator tool. By entering latitude and longitude of the desirable region 
+    into the calculator, the user can view the grid number of that region
+    </p>
+    <p>
+    In the latest version of NetCDF Extractor, Agrimetsoft has added two options:”Sum” and “Average”.
+    So, the user can easily calculate the average and sum values of the selected area (grids). Data is 
+    shown in an organized table, and you can choose to export everything to Excel. This tool is flexible 
+    to run for various datasets such as CMIP5 models, AgMERRA, Aphrodite, CRU, and etc.Agrimetsoft support 
+    all the users until they can extract the data.
     </p>
     <p></p>
 
@@ -3638,7 +3658,7 @@ or using ECMWF reanalysis on a reduced grid
     <h2><a id="SlicerDicer" name="SlicerDicer">Slicer Dicer</a></h2>
     <a href="http://www.slicerdicer.com/">Slicer Dicer</a> is a volumetric data visualization
     tool, currently available for Windows and under development for other platforms.
-    The Slicer Dicer Web site includes a complete list of features, an on-line user&#39;s
+    The Slicer Dicer website includes a complete list of features, an online user&#39;s
     guide, and examples of Slicer Dicer output. Visualizations features include:
     <ul>
       <li>
@@ -3674,7 +3694,7 @@ or using ECMWF reanalysis on a reduced grid
       visualization software package. Surfer's sophisticated
       interpolation engine transforms XYZ data into
       publication-quality maps. Surfer imports from and exports to
-      a multitude of file formats, including NetCDF grids.
+      a multitude of file formats, including netCDF grids.
     </p>
 
     <h2><a id="vGeo" name="vGeo">vGeo</a></h2>

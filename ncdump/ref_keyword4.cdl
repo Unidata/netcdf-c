@@ -1,0 +1,9 @@
+netcdf x {
+dimensions:
+    string = 17;
+variables:
+int string;
+  int string:x = 17;
+int :string = 17;
+data: string = 1;
+}

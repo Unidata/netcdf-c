@@ -15,29 +15,32 @@ add_definitions(-D"TOPBINDIR=${CMAKE_BINARY_DIR}")
 
 INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include)
 
-SET (nc_test_m4_SOURCES test_get test_put test_read test_write)
-FOREACH (F ${nc_test_m4_SOURCES})
-  GEN_m4(${F})
-ENDFOREACH()
-
 SET (nc_test_SRC
   nc_test.c
   error.c
-  test_get.c
-  test_put.c
-  test_read.c
-  test_write.c
   util.c
   )
 
+
+SET (nc_test_m4_SOURCES test_get test_put test_read test_write)
+FOREACH (F ${nc_test_m4_SOURCES})
+  GEN_m4(${F} dest)
+  LIST(APPEND nc_test_SRC ${dest})
+ENDFOREACH()
+
 ADD_EXECUTABLE(nc_test ${nc_test_SRC})
+TARGET_INCLUDE_DIRECTORIES(nc_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 TARGET_LINK_LIBRARIES(nc_test
   netcdf
   ${HAVE_LIBM}
   )
 
 # Some extra stand-alone tests
-SET(TESTS t_nc tst_small tst_misc tst_norm tst_names tst_nofill tst_nofill2 tst_nofill3 tst_meta tst_inq_type tst_utf8_validate tst_utf8_phrases tst_global_fillval tst_max_var_dims tst_formats tst_def_var_fill tst_err_enddef tst_default_format)
+SET(TESTS t_nc tst_small tst_misc tst_norm tst_names tst_nofill tst_nofill2 tst_nofill3 tst_meta tst_inq_type tst_utf8_phrases tst_global_fillval tst_max_var_dims tst_formats tst_def_var_fill tst_err_enddef tst_default_format)
+
+IF(NOT MSVC)
+SET(TESTS ${TESTS} tst_utf8_validate)
+ENDIF()
 
 IF(NOT HAVE_BASH)
   SET(TESTS ${TESTS} tst_atts3)
@@ -47,9 +50,17 @@ IF(USE_PNETCDF)
   build_bin_test_no_prefix(tst_pnetcdf)
   build_bin_test_no_prefix(tst_parallel2)
   build_bin_test_no_prefix(tst_addvar)
-  add_sh_test(nc_test run_pnetcdf_test)
+  build_bin_test_no_prefix(t_nc)
+  build_bin_test_no_prefix(tst_atts3)
+  build_bin_test_no_prefix(tst_default_format_pnetcdf)
+  build_bin_test_no_prefix(tst_small)
+  build_bin_test_no_prefix(tst_formatx_pnetcdf)
+  build_bin_test_no_prefix(tst_cdf5format)
+  build_bin_test_no_prefix(tst_nofill)
   add_bin_test(nc_test tst_formatx_pnetcdf)
   add_bin_test(nc_test tst_default_format_pnetcdf)
+  add_sh_test(nc_test run_pnetcdf_tests)
+  SET_TESTS_PROPERTIES(nc_test_run_pnetcdf_tests PROPERTIES RUN_SERIAL TRUE)
 ENDIF()
 
 IF(LARGE_FILE_TESTS)
@@ -60,8 +71,8 @@ IF(LARGE_FILE_TESTS)
 
 ENDIF()
 
-SET(TESTFILES ${TESTFILES} tst_diskless tst_diskless3 tst_diskless4 tst_diskless5 tst_inmemory tst_open_mem)
-IF(USE_NETCDF4)
+SET(TESTFILES ${TESTFILES} tst_diskless tst_diskless3 tst_diskless4 tst_diskless5  tst_inmemory  tst_open_mem)
+IF(USE_HDF5)
   SET(TESTFILES ${TESTFILES} tst_diskless2)
   SET(TESTS ${TESTS} tst_diskless6)
 ENDIF()
@@ -83,18 +94,24 @@ IF(BUILD_UTILITIES)
     add_sh_test(nc_test run_diskless)
     IF(BUILD_MMAP)
       add_sh_test(nc_test run_mmap)
-      SET_TESTS_PROPERTIES(nc_test_run_mmap PROPERTIES RUN_SERIAL TRUE)
+      IF(HAVE_BASH)
+        SET_TESTS_PROPERTIES(nc_test_run_mmap PROPERTIES RUN_SERIAL TRUE)
+      ENDIF(HAVE_BASH)
     ENDIF(BUILD_MMAP)
     add_sh_test(nc_test run_diskless5)
     add_sh_test(nc_test run_inmemory)
     IF(LARGE_FILE_TESTS)
-      add_sh_test(nc_test run_diskless2)
+      IF(NOT USE_PARALLEL)
+        add_sh_test(nc_test run_diskless2)
+      ENDIF()
     ENDIF()
 
-  IF(ENABLE_BYTERANGE)
-    build_bin_test_no_prefix(tst_byterange)
-    add_sh_test(nc_test test_byterange)
-  ENDIF()
+    IF(ENABLE_BYTERANGE)
+      IF(ENABLE_EXTERNAL_SERVER_TESTS)
+        build_bin_test_no_prefix(tst_byterange)
+        add_sh_test(nc_test test_byterange)
+      ENDIF()
+    ENDIF()
 
   IF(BUILD_MMAP)
     add_sh_test(nc_test run_mmap)
@@ -118,5 +135,5 @@ FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SO
 SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am)
 SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} test_get.m4 test_put.m4 test_read.m4 test_write.m4 ref_tst_diskless2.cdl tst_diskless5.cdl
 ref_tst_diskless3_create.cdl ref_tst_diskless3_open.cdl
-ref_tst_http_nc3.cdl ref_tst_http_nc4.cdl)
+ref_tst_http_nc3.cdl ref_tst_http_nc4a.cdl ref_tst_http_nc4b.cdl ref_tst_http_nc4c.cdl)
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")

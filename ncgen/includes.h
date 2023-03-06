@@ -40,15 +40,18 @@
 #define ENABLE_JAVA
 
 #include "netcdf.h"
+#include "netcdf_filter.h"
+#include "nc4internal.h"
+#include "ncoffsets.h"
+#include "netcdf_aux.h"
 #include "data.h"
 #include "ncgen.h"
+#include "generate.h"
 #include "genlib.h"
 #include "util.h"
 #include "debug.h"
 #include "nc.h"
-#ifdef USE_NETCDF4
-#include "nc4internal.h"
-#endif
+#include "netcdf_aux.h"
 
 extern int specialconstants;
 

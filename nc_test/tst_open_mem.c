@@ -19,51 +19,49 @@ See \ref copyright file for more info.
 #include "netcdf.h"
 #include "netcdf_mem.h"
 #include "ncbytes.h"
+#include "ncpathmgr.h"
 #include "nc_tests.h"
 
-#ifdef USE_NETCDF4
+#ifdef USE_HDF5
 #include <hdf5.h>
-extern int H5Eprint1(FILE * stream);
 #endif
 
 static int
 readfile(const char* path, NC_memio* memio)
 {
     int status = NC_NOERR;
-    FILE* f = NULL;
-    size_t filesize = 0;
-    size_t count = 0;
+    int fd = -1;
+    off_t filesize = 0;
+    off_t count = 0;
     char* memory = NULL;
     char* p = NULL;
-
-    /* Open the file for reading */
-#ifdef _MSC_VER
-    f = fopen(path,"rb");
-#else
-    f = fopen(path,"r");
+    int oflags = O_RDONLY;
+#ifdef O_BINARY
+    oflags |= O_BINARY;
 #endif
-    if(f == NULL) {
+
+    /* Open the file to get its size*/
+    fd = NCopen2(path,oflags);
+    if(fd < 0) {
 	fprintf(stderr,"cannot open file: %s\n",path);
-	fflush(stderr);
 	status = errno;
 	goto done;
     }
     /* get current filesize */
-    if(fseek(f,0,SEEK_END) < 0)
+    filesize = lseek(fd,0,SEEK_END);
+    if(filesize < 0)
 	{status = errno; goto done;}
-    filesize = (size_t)ftell(f);
+    count = lseek(fd,0,SEEK_SET); /* rewind */
     /* allocate memory */
     memory = malloc((size_t)filesize);
     if(memory == NULL)
 	{status = NC_ENOMEM; goto done;}
-    /* move pointer back to beginning of file */
-    rewind(f);
     count = filesize;
     p = memory;
     while(count > 0) {
-        size_t actual;
-        actual = fread(p,1,count,f);
-	if(actual == 0 || ferror(f))
+        ssize_t actual;
+        actual = read(fd,p,count);
+	if(actual <= 0)
 	    {status = NC_EIO; goto done;}
 	count -= actual;
 	p += actual;
@@ -76,7 +74,7 @@ readfile(const char* path, NC_memio* memio)
 done:
     if(status != NC_NOERR && memory != NULL)
 	free(memory);
-    if(f != NULL) fclose(f);
+    if(fd  >= 0) close(fd);
     return status;
 }
 
@@ -90,10 +88,8 @@ main(int argc, char** argv)
 
     if(argc > 1)
 	path = argv[1];
-
     if((retval=readfile(path,&mem)))
 	goto exit;
-
     if((retval = nc_open_mem("mem", NC_INMEMORY|NC_NETCDF4, mem.size, mem.memory, &ncid)))
 	goto exit;
     if((retval = nc_close(ncid)))

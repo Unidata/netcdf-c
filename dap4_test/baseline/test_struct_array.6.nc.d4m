@@ -11,5 +11,4 @@ variables:
 
 // global attributes:
 		string :_dap4.ce = "/s[0:2:3][0:1]" ;
-		:_DAP4_Little_Endian = 1UB ;
 }

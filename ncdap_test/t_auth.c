@@ -16,7 +16,7 @@ See \ref copyright file for more info.
 #include <unistd.h>
 #endif
 
-#define DEBUG
+#undef DEBUG
 
 #include "netcdf.h"
 #include "nctestserver.h"
@@ -28,15 +28,17 @@ See \ref copyright file for more info.
 
 #define KEEPRC
 
-#define RC ".ocrc"
-#define SPECRC "./ocrc"
+#define AUTHTESTSERVER "thredds.ucar.edu"
 
-#define USERPWD "tiggeUser:tigge"
+#define RC ".daprc"
+#define SPECRC "./daprc"
+
+#define USERPWD "authtester:auth"
 #define COOKIEFILE "./cookies"
 
-#define URL1 "https://%s@%s/dodsC/restrict/testData.nc"
-#define URL2 "https://%s/dodsC/restrict/testData.nc"
-#define URL3 "https://%s@thredds-test.ucar.edu/thredds/dodsC/restrict/testData.nc"
+#define URL1 "https://%s@%s/thredds/dodsC/test3/testData.nc"
+#define URL2 "https://thredds/%s/dodsC/test3/testData.nc"
+#define URL3 "https://%s@" AUTHTESTSERVER "/thredds/dodsC/test3/testData.nc"
 
 /* Embedded user:pwd */
 static char url1[1024];
@@ -45,35 +47,29 @@ static char url1[1024];
 static char url2[1024];
 
 /* Test redirect from different machine*/
+#ifndef NOREDIR
 static char url3[1024];
+#endif
 
 static int testrc(const char* prefix, const char* url);
 static void fillrc(const char* path);
 static void killrc();
 
-#ifdef DEBUG
-static void
-CHECK(int e, const char* msg)
-{
-    if(e == NC_NOERR) return;
-    if(msg == NULL) msg = "Error";
-    fprintf(stderr,"%s: %s\n", msg, nc_strerror(e));
-    exit(1);
-}
-#endif
-
 int
 main(int argc, char** argv)
 {
     int ncid,retval,pass;
-    FILE* rc;
     const char* dfaltsvc;
-    char buffer[8192];
     const char* home;
 
     fprintf(stderr,"Testing: Authorization\n");
 
-    dfaltsvc = nc_findtestserver("thredds",0,REMOTETESTSERVERS);
+    dfaltsvc = nc_findtestserver("thredds",AUTHTESTSERVER);
+    if(dfaltsvc == NULL) {
+        fprintf(stderr,"WARNING: Cannot locate test server\n");
+	exit(0);
+    }
+    
     snprintf(url1,sizeof(url1),URL1,USERPWD,dfaltsvc); /* embedded */
     snprintf(url2,sizeof(url2),URL2,dfaltsvc); /* using rc file */
 
@@ -105,7 +101,7 @@ fflush(stderr);
 #ifndef NOLOCAL
     {
         /* Test 1: RC in ./ */
-        fprintf(stderr,"Testing: user:pwd in %s/%s: %s\n",".",RC);
+        fprintf(stderr,"Testing: user:pwd in %s/%s\n",".",RC);
 	if(!testrc(".",url2)) {
 	    fprintf(stderr,"user:pwd in %s/%s failed\n",".",RC);
 	    exit(1);
@@ -116,8 +112,12 @@ fflush(stderr);
 #ifndef NOHOME
     {
         /* Test 1: RC in HOME  */
-	home = getenv("HOME");
-        fprintf(stderr,"user:pwd in %s/%s: %s\n",home,RC);
+#if defined(_WIN32) && !defined(__MINGW32__)
+        home = getenv("HOME");
+#else
+        home = getenv("USERPROFILE");
+#endif
+        fprintf(stderr,"user:pwd in %s/%s\n",home,RC);
 	if(!testrc(home,url2)) {
 	    fprintf(stderr,"user:pwd in %s/%s failed\n",home,RC);
 	    exit(1);
@@ -154,7 +154,7 @@ testrc(const char* prefix, const char* url)
     FILE* rc;
 
     snprintf(rcpath,sizeof(rcpath),"%s/%s",prefix,RC);
-    rc = fopen(rcpath,"w");
+    rc = NCfopen(rcpath,"w");
     if(rc == NULL) {
         fprintf(stderr,"Cannot create ./%s\n",RC);
         exit(1);
@@ -182,7 +182,7 @@ fillrc(const char* path)
     FILE* rc;
     killrc();
 
-    rc = fopen(path,"w");
+    rc = NCfopen(path,"w");
     if(rc == NULL) {
 	fprintf(stderr,"cannot create rc file: %s\n",path);
 	exit(1);
@@ -200,10 +200,10 @@ static void
 killrc()
 {
     const char* home;
-    char path[1024];
 #ifdef KEEPRC
     fprintf(stderr,"kill: ./%s\n",RC);
-#else
+#else 
+    char path[1024];
     snprintf(path,sizeof(path),"%s/%s",".",RC);
     unlink(path); /* delete the file */
 #endif

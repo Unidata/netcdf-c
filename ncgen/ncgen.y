@@ -6,7 +6,7 @@
 
 /* yacc source for "ncgen", a netCDL parser and netCDF generator */
 
-%error-verbose
+%define parse.error verbose
 
 %{
 /*
@@ -25,6 +25,8 @@ static char SccsId[] = "$Id: ncgen.y,v 1.42 2010/05/18 21:32:46 dmh Exp $";
 #define ncatt_t void*
 #define ncvar_t void
 #include "nctime.h"
+
+#undef GENLIB1
 
 /* parser controls */
 #define YY_NO_INPUT 1
@@ -108,7 +110,6 @@ List* gattdefs; /* global attributes only*/
 List* xattdefs; /* unknown attributes*/
 List* typdefs;
 List* vardefs;
-List* condefs; /* non-dimension constants used in type defs*/
 List* tmp;
 
 /* Forward */
@@ -129,6 +130,12 @@ static void vercheck(int ncid);
 static long long extractint(NCConstant* con);
 #ifdef USE_NETCDF4
 static int parsefilterflag(const char* sdata0, Specialdata* special);
+static int parsecodecsflag(const char* sdata0, Specialdata* special);
+static Symbol* identkeyword(const Symbol*);
+
+#ifdef GENDEBUG1
+static void printfilters(int nfilters, NC_ParsedFilterSpec** filters);
+#endif
 #endif
 
 int yylex(void);
@@ -208,13 +215,18 @@ NCConstant*    constant;
 	_ISNETCDF4
 	_SUPERBLOCK
 	_FILTER
+	_CODECS
+        _QUANTIZEBG
+        _QUANTIZEGBR
+        _QUANTIZEBR
 	DATASETID
 
 %type <sym> ident typename primtype dimd varspec
 	    attrdecl enumid path dimref fielddim fieldspec
+	    varident
 %type <sym> typeref
 %type <sym> varref
-%type <sym> type_var_ref
+%type <sym> ambiguous_ref
 %type <mark> enumidlist fieldlist fields varlist dimspec dimlist field
 	     fielddimspec fielddimlist
 %type <constant> dataitem constdata constint conststring constbool
@@ -363,7 +375,7 @@ opaquedecl: OPAQUE_ '(' INT_CONST ')' typename
                     $5->subclass=NC_OPAQUE;
                     $5->typ.typecode=NC_OPAQUE;
                     $5->typ.size=int32_val;
-                    $5->typ.alignment=ncaux_class_alignment(NC_OPAQUE);
+                    (void)ncaux_class_alignment(NC_OPAQUE,&$5->typ.alignment);
                 }
             ;
 
@@ -377,7 +389,7 @@ vlendecl: typeref '(' '*' ')' typename
                     $5->typ.basetype=basetype;
                     $5->typ.typecode=NC_VLEN;
                     $5->typ.size=VLENSIZE;
-                    $5->typ.alignment=ncaux_class_alignment(NC_VLEN);
+                    (void)ncaux_class_alignment(NC_VLEN,&$5->typ.alignment);
                 }
           ;
 
@@ -519,9 +531,6 @@ vardecl:        typeref varlist
 		  	    sym->typ.basetype = $1;
 	                    addtogroup(sym);
 		            listpush(vardefs,(void*)sym);
-			    sym->var.special = ecalloc(sizeof(Specialdata));
-			    if(sym->var.special == NULL)
-			        derror("out of memory");
 			}
 		    }
 		    listsetlength(stack,stackbase);/* remove stack nodes*/
@@ -536,7 +545,7 @@ varlist:      varspec
 	        {$$=$1; listpush(stack,(void*)$3);}
             ;
 
-varspec:        ident dimspec
+varspec:        varident dimspec
                     {
 		    int i;
 		    Dimset dimset;
@@ -667,7 +676,7 @@ fielddim:
 /* Use this when referencing defined objects */
 
 varref:
-	type_var_ref
+	ambiguous_ref
 	    {Symbol* vsym = $1;
 		if(vsym->objectclass != NC_VAR) {
 		    derror("Undefined or forward referenced variable: %s",vsym->name);
@@ -678,7 +687,7 @@ varref:
 	  ;
 
 typeref:
-	type_var_ref
+	ambiguous_ref
 	    {Symbol* tsym = $1;
 		if(tsym->objectclass != NC_TYPE) {
 		    derror("Undefined or forward referenced type: %s",tsym->name);
@@ -688,7 +697,7 @@ typeref:
 	    }
 	;
 
-type_var_ref:
+ambiguous_ref:
 	path
 	    {Symbol* tvsym = $1; Symbol* sym;
 		/* disambiguate*/
@@ -726,7 +735,7 @@ attrdecl:
 	    {$$ = makespecial(_SUPERBLOCK_FLAG,NULL,NULL,(void*)$4,ISCONST);}
 	| ':' ident '=' datalist
 	    { $$=makeattribute($2,NULL,NULL,$4,ATTRGLOBAL);}
-	| typeref type_var_ref ':' ident '=' datalist
+	| typeref ambiguous_ref ':' ident '=' datalist
 	    {Symbol* tsym = $1; Symbol* vsym = $2; Symbol* asym = $4;
 		if(vsym->objectclass == NC_VAR) {
 		    $$=makeattribute(asym,vsym,tsym,$6,ATTRVAR);
@@ -735,7 +744,7 @@ attrdecl:
 		    YYABORT;
 		}
 	    }
-	| type_var_ref ':' ident '=' datalist
+	| ambiguous_ref ':' ident '=' datalist
 	    {Symbol* sym = $1; Symbol* asym = $3;
 		if(sym->objectclass == NC_VAR) {
 		    $$=makeattribute(asym,sym,NULL,$5,ATTRVAR);
@@ -746,25 +755,33 @@ attrdecl:
 		    YYABORT;
 		}
 	    }
-	| type_var_ref ':' _FILLVALUE '=' datalist
+	| ambiguous_ref ':' _FILLVALUE '=' datalist
 	    {$$ = makespecial(_FILLVALUE_FLAG,$1,NULL,(void*)$5,ISLIST);}
-	| typeref type_var_ref ':' _FILLVALUE '=' datalist
+	| typeref ambiguous_ref ':' _FILLVALUE '=' datalist
 	    {$$ = makespecial(_FILLVALUE_FLAG,$2,$1,(void*)$6,ISLIST);}
-	| type_var_ref ':' _STORAGE '=' conststring
+	| ambiguous_ref ':' _STORAGE '=' conststring
 	    {$$ = makespecial(_STORAGE_FLAG,$1,NULL,(void*)$5,ISCONST);}
-	| type_var_ref ':' _CHUNKSIZES '=' intlist
+	| ambiguous_ref ':' _CHUNKSIZES '=' intlist
 	    {$$ = makespecial(_CHUNKSIZES_FLAG,$1,NULL,(void*)$5,ISLIST);}
-	| type_var_ref ':' _FLETCHER32 '=' constbool
+	| ambiguous_ref ':' _FLETCHER32 '=' constbool
 	    {$$ = makespecial(_FLETCHER32_FLAG,$1,NULL,(void*)$5,ISCONST);}
-	| type_var_ref ':' _DEFLATELEVEL '=' constint
+	| ambiguous_ref ':' _DEFLATELEVEL '=' constint
 	    {$$ = makespecial(_DEFLATE_FLAG,$1,NULL,(void*)$5,ISCONST);}
-	| type_var_ref ':' _SHUFFLE '=' constbool
+	| ambiguous_ref ':' _SHUFFLE '=' constbool
 	    {$$ = makespecial(_SHUFFLE_FLAG,$1,NULL,(void*)$5,ISCONST);}
-	| type_var_ref ':' _ENDIANNESS '=' conststring
+	| ambiguous_ref ':' _ENDIANNESS '=' conststring
 	    {$$ = makespecial(_ENDIAN_FLAG,$1,NULL,(void*)$5,ISCONST);}
-	| type_var_ref ':' _FILTER '=' conststring
+	| ambiguous_ref ':' _FILTER '=' conststring
 	    {$$ = makespecial(_FILTER_FLAG,$1,NULL,(void*)$5,ISCONST);}
-	| type_var_ref ':' _NOFILL '=' constbool
+	| ambiguous_ref ':' _CODECS '=' conststring
+	    {$$ = makespecial(_CODECS_FLAG,$1,NULL,(void*)$5,ISCONST);}
+	| ambiguous_ref ':' _QUANTIZEBG '=' constint
+	    {$$ = makespecial(_QUANTIZEBG_FLAG,$1,NULL,(void*)$5,ISCONST);}
+	| ambiguous_ref ':' _QUANTIZEGBR '=' constint
+	    {$$ = makespecial(_QUANTIZEGBR_FLAG,$1,NULL,(void*)$5,ISCONST);}
+	| ambiguous_ref ':' _QUANTIZEBR '=' constint
+	    {$$ = makespecial(_QUANTIZEBR_FLAG,$1,NULL,(void*)$5,ISCONST);}
+	| ambiguous_ref ':' _NOFILL '=' constbool
 	    {$$ = makespecial(_NOFILL_FLAG,$1,NULL,(void*)$5,ISCONST);}
 	| ':' _FORMAT '=' conststring
 	    {$$ = makespecial(_FORMAT_FLAG,NULL,NULL,(void*)$4,ISCONST);}
@@ -884,7 +901,14 @@ constbool:
 
 /* End OF RULES */
 
-/* Push all idents thru here*/
+
+/* Push all idents thru these*/
+
+varident:
+	  IDENT {$$=$1;}
+	| DATA {$$=identkeyword($1);}
+	;
+
 ident:
 	IDENT {$$=$1;}
 	;
@@ -938,7 +962,6 @@ parse_init(void)
     xattdefs = listnew();
     typdefs = listnew();
     vardefs = listnew();
-    condefs = listnew();
     tmp = listnew();
     /* Create the primitive types */
     for(i=NC_NAT+1;i<=NC_STRING;i++) {
@@ -957,7 +980,7 @@ makeprimitivetype(nc_type nctype)
     sym->typ.typecode = nctype;
     sym->typ.size = ncsize(nctype);
     sym->typ.nelems = 1;
-    sym->typ.alignment = ncaux_class_alignment(nctype);
+    (void)ncaux_class_alignment(nctype,&sym->typ.alignment);
     /* Make the basetype circular so we can always ask for it */
     sym->typ.basetype = sym;
     sym->prefix = listnew();
@@ -969,12 +992,18 @@ makeprimitivetype(nc_type nctype)
 Symbol*
 install(const char *sname)
 {
+    return installin(sname,currentgroup());
+}
+
+Symbol*
+installin(const char *sname, Symbol* grp)
+{
     Symbol* sp;
     sp = (Symbol*) ecalloc (sizeof (struct Symbol));
     sp->name = nulldup(sname);
     sp->lineno = lineno;
-    sp->location = currentgroup();
-    sp->container = currentgroup();
+    sp->location = grp;
+    sp->container = grp;
     listpush(symlist,sp);
     return sp;
 }
@@ -1206,6 +1235,7 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
     case _NCPROPS_FLAG:
     case _ENDIAN_FLAG:
     case _FILTER_FLAG:
+    case _CODECS_FLAG:
 	tmp = nullconst();
         tmp->nctype = NC_STRING;
 	convert1(con,tmp);
@@ -1219,6 +1249,9 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
 	break;
     case _SUPERBLOCK_FLAG:
     case _DEFLATE_FLAG:
+    case _QUANTIZEBG_FLAG:
+    case _QUANTIZEGBR_FLAG:
+    case _QUANTIZEBR_FLAG:
 	tmp = nullconst();
         tmp->nctype = NC_INT;
 	convert1(con,tmp);
@@ -1264,12 +1297,7 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
     } else {
         Specialdata* special;
         /* Set up special info */
-	if(vsym->var.special == NULL) {
-            vsym->var.special = ecalloc(sizeof(Specialdata));
-	    if(vsym->var.special == NULL)
-	        derror("Out of memory");
-	}
-        special = vsym->var.special;
+        special = &vsym->var.special;
         if(tag == _FILLVALUE_FLAG) {
             /* fillvalue must be a single value*/
 	    if(!isconst && datalistlen(list) != 1)
@@ -1288,9 +1316,11 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
                 derror("_FillValue attribute not associated with variable: %s",vsym->name);
             }
             if(tsym  == NULL) tsym = vsym->typ.basetype;
+#if 0 /* No longer require matching types */
             else if(vsym->typ.basetype != tsym) {
                 derror("_FillValue attribute type does not match variable type: %s",vsym->name);
             }
+#endif
             special->_Fillvalue = clonedatalist(list);
 	    /* Create the corresponding attribute */
             attr = makeattribute(install("_FillValue"),vsym,tsym,list,ATTRVAR);
@@ -1302,6 +1332,8 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
                 derror("_Storage: illegal NULL value");
               else if(strcmp(sdata,"contiguous") == 0)
                 special->_Storage = NC_CONTIGUOUS;
+              else if(strcmp(sdata,"compact") == 0)
+                special->_Storage = NC_COMPACT;
               else if(strcmp(sdata,"chunked") == 0)
                 special->_Storage = NC_CHUNKED;
               else
@@ -1315,6 +1347,21 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
             case _DEFLATE_FLAG:
                 special->_DeflateLevel = idata;
                 special->flags |= _DEFLATE_FLAG;
+                break;
+            case _QUANTIZEBG_FLAG:
+		special->_Quantizer = NC_QUANTIZE_BITGROOM;
+                special->_NSD = idata;
+                special->flags |= _QUANTIZEBG_FLAG;
+                break;
+            case _QUANTIZEGBR_FLAG:
+		special->_Quantizer = NC_QUANTIZE_GRANULARBR;
+                special->_NSD = idata;
+                special->flags |= _QUANTIZEGBR_FLAG;
+                break;
+            case _QUANTIZEBR_FLAG:
+		special->_Quantizer = NC_QUANTIZE_BITROUND;
+                special->_NSD = idata;
+                special->flags |= _QUANTIZEBR_FLAG;
                 break;
             case _SHUFFLE_FLAG:
                 special->_Shuffle = tf;
@@ -1363,11 +1410,22 @@ makespecial(int tag, Symbol* vsym, Symbol* tsym, void* data, int isconst)
 		if(parsefilterflag(sdata,special) == NC_NOERR)
                     special->flags |= _FILTER_FLAG;
 		else {
-		    efree(special->_FilterParams);
-		    derror("_Filter: unparseable filter spec: %s",sdata);
+		    derror("_Filter: unparsable filter spec: %s",sdata);
 		}
 #else
 	        derror("%s: the filter attribute requires netcdf-4 to be enabled",specialname(tag));
+#endif
+                break;
+          case _CODECS_FLAG:
+#ifdef USE_NETCDF4
+		/* Parse the codec spec */
+		if(parsecodecsflag(sdata,special) == NC_NOERR)
+                    special->flags |= _CODECS_FLAG;
+		else {
+		    derror("_Codecs: unparsable codec spec: %s",sdata);
+		}
+#else
+	        derror("%s: the _Codecs attribute requires netcdf-4 to be enabled",specialname(tag));
 #endif
                 break;
             default: PANIC1("makespecial: illegal token: %d",tag);
@@ -1488,9 +1546,27 @@ parsefilterflag(const char* sdata, Specialdata* special)
 
     if(sdata == NULL || strlen(sdata) == 0) return NC_EINVAL;
 
-    stat = NC_parsefilterspec(sdata, &special->_FilterID, &special->nparams, &special->_FilterParams);
+    stat = ncaux_h5filterspec_parselist(sdata, NULL, &special->nfilters, &special->_Filters);
     if(stat)
         derror("Malformed filter spec: %s",sdata);
+#ifdef GENDEBUG1
+printfilters(special->nfilters,special->_Filters);
+#endif
+    return stat;
+}
+
+/*
+Store a Codecs spec string in special
+*/
+static int
+parsecodecsflag(const char* sdata, Specialdata* special)
+{
+    int stat = NC_NOERR;
+
+    if(sdata == NULL || strlen(sdata) == 0) return NC_EINVAL;
+
+    if((special->_Codecs = strdup(sdata))==NULL)
+        return NC_ENOMEM;
     return stat;
 }
 #endif
@@ -1566,3 +1642,31 @@ evaluate(Symbol* fcn, Datalist* arglist)
 done:
     return result;
 }
+
+#ifdef GENDEBUG1
+static void
+printfilters(int nfilters, NC_FilterSpec** filters)
+{
+    int i;
+    fprintf(stderr,"xxx: nfilters=%lu: ",(unsigned long)nfilters);
+    for(i=0;i<nfilters;i++) {
+	int k;
+	NC_Filterspec* sp = filters[i];
+        fprintf(stderr,"{");
+        fprintf(stderr,"filterid=%llu format=%d nparams=%lu params=%p",
+		sp->filterid,sp->format,(unsigned long)sp->nparams,sp->params);
+	if(sp->nparams > 0 && sp->params != NULL) {
+            fprintf(stderr," params={");
+            for(k=0;k<sp->nparams;k++) {
+	        if(i==0) fprintf(stderr,",");
+	        fprintf(stderr,"%u",sp->params[i]);
+	    }
+            fprintf(stderr,"}");
+	} else
+            fprintf(stderr,"params=NULL");
+        fprintf(stderr,"}");
+    }
+    fprintf(stderr,"\n");
+    fflush(stderr);
+}
+#endif

@@ -1,0 +1,17 @@
+netcdf multifilter {
+dimensions:
+	dim0 = 4 ;
+	dim1 = 4 ;
+	dim2 = 4 ;
+	dim3 = 4 ;
+variables:
+	float var(dim0, dim1, dim2, dim3) ;
+		var:_Storage = "chunked" ;
+		var:_ChunkSizes = 4, 4, 4, 4 ;
+		var:_Filter = "307,9|1,2|40000" ;
+		var:_Codecs = "[{\"id\": \"bz2\",\"level\": \"9\"},{\"id\": \"zlib\",\"level\": \"2\"},{\"id\": \"noop\"}]" ;
+		var:_NoFill = "true" ;
+
+// global attributes:
+		:_Format = "netCDF-4" ;
+}

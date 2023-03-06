@@ -7,6 +7,7 @@
 #include "includes.h"
 #include <ctype.h>      /* for isprint() */
 #include "netcdf_aux.h"
+#include "netcdf_filter.h"
 
 #ifdef ENABLE_BINARY
 
@@ -60,10 +61,15 @@ genbin_netcdf(void)
 #endif
 
     stat = nc_create(filename, cmode_modifier, &ncid);
-    check_err(stat,__LINE__,"ncgen");
+    CHECK_ERR(stat);
 
     /* ncid created above is also root group*/
     rootgroup->nc_id = ncid;
+
+    if (nofill_flag) {
+        stat = nc_set_fill(rootgroup->nc_id, NC_NOFILL, 0);
+        CHECK_ERR(stat);
+    }
 
 #ifdef USE_NETCDF4
     /* Define the group structure */
@@ -72,7 +78,7 @@ genbin_netcdf(void)
         Symbol* gsym = (Symbol*)listget(grpdefs,igrp);
         if(gsym == rootgroup) continue; /* ignore root group*/
         stat = nc_def_grp(gsym->container->nc_id,gsym->name,&gsym->nc_id);
-        check_err(stat,__LINE__,"ncgen");
+        CHECK_ERR(stat);
     }
 #endif
 
@@ -95,7 +101,7 @@ genbin_netcdf(void)
                               dsym->name,
                               (dsym->dim.isunlimited?NC_UNLIMITED:dsym->dim.declsize),
                               &dsym->nc_id);
-            check_err(stat,__LINE__,"ncgen");
+            CHECK_ERR(stat);
        }
     }
 
@@ -122,7 +128,7 @@ genbin_netcdf(void)
                                   NULL,
                                   &vsym->nc_id);
             }
-            check_err(stat,__LINE__,"ncgen");
+            CHECK_ERR(stat);
         }
     }
 
@@ -136,7 +142,7 @@ genbin_netcdf(void)
     }
 #endif /*USE_NETCDF4*/
 
-/* define global attributes */
+    /* define global attributes */
     if(ngatts > 0) {
         for(iatt = 0; iatt < ngatts; iatt++) {
             Symbol* gasym = (Symbol*)listget(gattdefs,iatt);
@@ -154,12 +160,12 @@ genbin_netcdf(void)
 
     if (nofill_flag) {
         stat = nc_set_fill(rootgroup->nc_id, NC_NOFILL, 0);
-        check_err(stat,__LINE__,"ncgen");
+        CHECK_ERR(stat);
     }
 
     /* leave define mode */
     stat = nc_enddef(rootgroup->nc_id);
-    check_err(stat,__LINE__,"ncgen");
+    CHECK_ERR(stat);
 
     if(!header_only) {
         /* Load values into those variables with defined data */
@@ -189,7 +195,7 @@ genbin_defineglobalspecials(void)
     /* Watch out, this is a global Attribute */
     format = kind_string(/*Main.*/format_flag);
     stat = nc_put_att_text(rootgroup->nc_id,NC_GLOBAL,"_Format",strlen(format),format);
-    check_err(stat,__LINE__,"ncgen");
+    CHECK_ERR(stat);
 }
 #endif /*0*/
 
@@ -197,22 +203,23 @@ static int
 genbin_definespecialattributes(Symbol* var)
 {
     int stat = NC_NOERR;
-    Specialdata* special = var->var.special;
+    Specialdata* special = &var->var.special;
     if(special->flags & _STORAGE_FLAG) {
-	if(special->_Storage == NC_CONTIGUOUS) {
-	    stat = nc_def_var_chunking(var->container->nc_id, var->nc_id, NC_CONTIGUOUS, NULL);
+	if(special->_Storage == NC_CONTIGUOUS
+	   || special->_Storage == NC_COMPACT) {
+	    stat = nc_def_var_chunking(var->container->nc_id, var->nc_id, special->_Storage, NULL);
 	} else { /* chunked */
 	    if(special->nchunks == 0 || special->_ChunkSizes == NULL)
 	        derror("NC_CHUNKED requested, but no chunksizes specified");
             stat = nc_def_var_chunking(var->container->nc_id, var->nc_id, NC_CHUNKED, special->_ChunkSizes);
 	}
-        check_err(stat,__LINE__,"ncgen");
+        CHECK_ERR(stat);
     }
     if(special->flags & _FLETCHER32_FLAG) {
         stat = nc_def_var_fletcher32(var->container->nc_id,
                                      var->nc_id,
                                      special->_Fletcher32);
-        check_err(stat,__LINE__,"ncgen");
+        CHECK_ERR(stat);
     }
     if(special->flags & (_DEFLATE_FLAG | _SHUFFLE_FLAG)) {
         stat = nc_def_var_deflate(var->container->nc_id,
@@ -221,7 +228,7 @@ genbin_definespecialattributes(Symbol* var)
                                   (special->_DeflateLevel >= 0?1:0),
                                   (special->_DeflateLevel >= 0?special->_DeflateLevel
                                                               :0));
-        check_err(stat,__LINE__,"ncgen");
+        CHECK_ERR(stat);
     }
     if(special->flags & _ENDIAN_FLAG) {
         stat = nc_def_var_endian(var->container->nc_id,
@@ -229,53 +236,52 @@ genbin_definespecialattributes(Symbol* var)
                                  (special->_Endianness == NC_ENDIAN_LITTLE?
                                         NC_ENDIAN_LITTLE
                                        :NC_ENDIAN_BIG));
-        check_err(stat,__LINE__,"ncgen");
+        CHECK_ERR(stat);
     }
     if(special->flags & _NOFILL_FLAG) {
         stat = nc_def_var_fill(var->container->nc_id,
                                  var->nc_id,
                                  (special->_Fill?NC_FILL:NC_NOFILL),
                                  NULL);
-        check_err(stat,__LINE__,"ncgen");
+        CHECK_ERR(stat);
     }
     if(special->flags & _FILTER_FLAG) {
-        /* Special check for alternate way to specify _Deflate */
-        if(special->_FilterID == ZIP_ID) {
-            unsigned int level;
-            if(special->nparams == 0 || special->_FilterParams == NULL)
-                level = 9; /* default */
-            else
-                level = special->_FilterParams[0];
-            if(level > 9)
-                derror("Illegal deflate level");
-            else {
-                stat = nc_def_var_deflate(var->container->nc_id,
-                        var->nc_id,
-                        (special->_Shuffle == 1?1:0),
-                        (level > 0?1:0),
-                        level);
-            }
-        } else {
+	int k;
+	for(k=0;k<special->nfilters;k++) {
+	    NC_H5_Filterspec* nfs = special->_Filters[k];
+	    /* See if the filter is available */
+	    stat = nc_inq_filter_avail(var->container->nc_id, nfs->filterid);
+	    switch (stat) {
+	    case NC_NOERR: break;
+	    case NC_ENOFILTER:
+		derror("Filter id=%u; filter not available",nfs->filterid);
+		/* fall thru */
+	    default: CHECK_ERR(stat); break;
+	    }
             stat = nc_def_var_filter(var->container->nc_id,
                         var->nc_id,
-                        special->_FilterID,
-                        special->nparams,
-                        special->_FilterParams
+			nfs->filterid,
+                        nfs->nparams,
+                        nfs->params
                         );
         }
-        check_err(stat,__LINE__,"ncgen");
+        CHECK_ERR(stat);
+    }
+    if(special->flags & (_QUANTIZEBG_FLAG | _QUANTIZEGBR_FLAG | _QUANTIZEBR_FLAG)) {
+        stat = nc_def_var_quantize(var->container->nc_id,
+                                 var->nc_id, special->_Quantizer, special->_NSD);
+        CHECK_ERR(stat);
     }
     return stat;
 }
 #endif /*USE_NETCDF4*/
-
 
 void
 genbin_close(void)
 {
     int stat;
     stat = nc_close(rootgroup->nc_id);
-    check_err(stat,__LINE__,"ncgen");
+    CHECK_ERR(stat);
 }
 
 #ifdef USE_NETCDF4
@@ -286,7 +292,7 @@ static int
 genbin_deftype(Symbol* tsym)
 {
     unsigned long i;
-    int stat;
+    int stat = 0;
 
     ASSERT(tsym->objectclass == NC_TYPE);
     switch (tsym->subclass) {
@@ -296,7 +302,7 @@ genbin_deftype(Symbol* tsym)
                              tsym->typ.size,
                              tsym->name,
                              &tsym->nc_id);
-        check_err(stat,__LINE__,"ncgen");
+        CHECK_ERR(stat);
         break;
     case NC_ENUM:
       {
@@ -305,7 +311,7 @@ genbin_deftype(Symbol* tsym)
                            tsym->typ.basetype->nc_id,
                            tsym->name,
                            &tsym->nc_id);
-        check_err(stat,__LINE__,"ncgen");
+        CHECK_ERR(stat);
         datum = bbNew();
         for(i=0;i<listlength(tsym->subnodes);i++) {
           Symbol* econst = (Symbol*)listget(tsym->subnodes,i);
@@ -317,7 +323,7 @@ genbin_deftype(Symbol* tsym)
                                 tsym->nc_id,
                                 econst->name,
                                 bbContents(datum));
-          check_err(stat,__LINE__,"ncgen");
+          CHECK_ERR(stat);
         }
         bbFree(datum);
       }
@@ -327,14 +333,14 @@ genbin_deftype(Symbol* tsym)
                            tsym->name,
                            tsym->typ.basetype->nc_id,
                            &tsym->nc_id);
-        check_err(stat,__LINE__,"ncgen");
+        CHECK_ERR(stat);
         break;
     case NC_COMPOUND:
         stat = nc_def_compound(tsym->container->nc_id,
                                tsym->typ.size,
                                tsym->name,
                                &tsym->nc_id);
-        check_err(stat,__LINE__,"ncgen");
+        CHECK_ERR(stat);
         for(i=0;i<listlength(tsym->subnodes);i++) {
             Symbol* efield = (Symbol*)listget(tsym->subnodes,i);
             ASSERT(efield->subclass == NC_FIELD);
@@ -362,7 +368,7 @@ genbin_deftype(Symbol* tsym)
                                 efield->typ.dimset.ndims,
                                 dimsizes);
             }
-            check_err(stat,__LINE__,"ncgen");
+            CHECK_ERR(stat);
         }
         break;
     default: panic("definectype: unexpected type subclass");
@@ -378,9 +384,7 @@ genbin_defineattr(Symbol* asym)
     Bytebuffer* databuf = bbNew();
     generator_reset(bin_generator,NULL);
     generate_attrdata(asym,bin_generator,(Writer)genbin_write,databuf);
-    if((stat = ncaux_reclaim_data(asym->container->nc_id,asym->typ.basetype->nc_id,bbContents(databuf),datalistlen(asym->data))))
-        goto done;
-done:
+    stat = nc_reclaim_data(asym->container->nc_id,asym->typ.basetype->nc_id,bbContents(databuf),datalistlen(asym->data));
     bbFree(databuf);
     return stat;
 }
@@ -396,7 +400,7 @@ genbin_definevardata(Symbol* vsym)
     databuf = bbNew();
     generator_reset(bin_generator,NULL);
     generate_vardata(vsym,bin_generator,(Writer)genbin_write,databuf);
-    ncaux_reclaim_data(vsym->container->nc_id,vsym->typ.basetype->nc_id,bbContents(databuf),datalistlen(vsym->data));
+    stat = nc_reclaim_data_all(vsym->container->nc_id,vsym->typ.basetype->nc_id,bbExtract(databuf),datalistlen(vsym->data));
 done:
     bbFree(databuf);
     return stat;
@@ -424,7 +428,7 @@ genbin_writevar(Generator* generator, Symbol* vsym, Bytebuffer* memory,
     char* data = bbContents(memory);
     size_t nelems;
 
-    /* Compute total number of elements */ 
+    /* Compute total number of elements */
     for(nelems=1,i=0;i<rank;i++) nelems *= count[i];
 
 #ifdef GENDEBUG
@@ -448,11 +452,11 @@ genbin_writevar(Generator* generator, Symbol* vsym, Bytebuffer* memory,
     } else {
         stat = nc_put_vara(vsym->container->nc_id, vsym->nc_id, start, count, data);
     }
-    check_err(stat,__LINE__,"ncgen");
+    CHECK_ERR(stat);
 #if 0
     /* Reclaim the data */
-    stat = ncaux_reclaim_data(vsym->container->nc_id, vsym->typ.basetype->nc_id, data, nelems);
-    check_err(stat,__LINE__,"ncgen");
+    stat = nc_reclaim_data(vsym->container->nc_id, vsym->typ.basetype->nc_id, data, nelems);
+    CHECK_ERR(stat);
     bbClear(memory); /* reclaim top-level memory */
 #endif
     return stat;
@@ -476,12 +480,12 @@ genbin_writeattr(Generator* generator, Symbol* asym, Bytebuffer* databuf,
     len = list->length;
 
     /* Use the specialized put_att_XX routines if possible*/
-    if(isprim(basetype->typ.typecode)) {
+    if(isprim(typid)) {
       switch (basetype->typ.typecode) {
       case NC_BYTE: {
         signed char* data = (signed char*)bbContents(databuf);
         stat = nc_put_att_schar(grpid,varid,asym->name,typid,len,data);
-        check_err(stat,__LINE__,"ncgen");
+        CHECK_ERR(stat);
       } break;
       case NC_CHAR: {
         char* data = (char*)bbContents(databuf);
@@ -495,27 +499,27 @@ genbin_writeattr(Generator* generator, Symbol* asym, Bytebuffer* databuf,
           slen++;
         }
         stat = nc_put_att_text(grpid,varid,asym->name,slen,data);
-        check_err(stat,__LINE__,"ncgen");
+        CHECK_ERR(stat);
       } break;
       case NC_SHORT: {
         short* data = (short*)bbContents(databuf);
         stat = nc_put_att_short(grpid,varid,asym->name,typid,len,data);
-        check_err(stat,__LINE__,"ncgen");
+        CHECK_ERR(stat);
         } break;
         case NC_INT: {
             int* data = (int*)bbContents(databuf);
             stat = nc_put_att_int(grpid,varid,asym->name,typid,len,data);
-            check_err(stat,__LINE__,"ncgen");
+            CHECK_ERR(stat);
         } break;
         case NC_FLOAT: {
             float* data = (float*)bbContents(databuf);
             stat = nc_put_att_float(grpid,varid,asym->name,typid,len,data);
-            check_err(stat,__LINE__,"ncgen");
+            CHECK_ERR(stat);
         } break;
         case NC_DOUBLE: {
             double* data = (double*)bbContents(databuf);
             stat = nc_put_att_double(grpid,varid,asym->name,typid,len,data);
-            check_err(stat,__LINE__,"ncgen");
+            CHECK_ERR(stat);
         } break;
         case NC_STRING: {
             const char** data;
@@ -527,27 +531,27 @@ genbin_writeattr(Generator* generator, Symbol* asym, Bytebuffer* databuf,
         case NC_UBYTE: {
             unsigned char* data = (unsigned char*)bbContents(databuf);
             stat = nc_put_att_uchar(grpid,varid,asym->name,typid,len,data);
-            check_err(stat,__LINE__,"ncgen");
+            CHECK_ERR(stat);
         } break;
         case NC_USHORT: {
             unsigned short* data = (unsigned short*)bbContents(databuf);
             stat = nc_put_att_ushort(grpid,varid,asym->name,typid,len,data);
-            check_err(stat,__LINE__,"ncgen");
+            CHECK_ERR(stat);
         } break;
         case NC_UINT: {
             unsigned int* data = (unsigned int*)bbContents(databuf);
             stat = nc_put_att_uint(grpid,varid,asym->name,typid,len,data);
-            check_err(stat,__LINE__,"ncgen");
+            CHECK_ERR(stat);
         } break;
         case NC_INT64: {
             long long* data = (long long*)bbContents(databuf);
             stat = nc_put_att_longlong(grpid,varid,asym->name,typid,len,data);
-            check_err2(stat,asym->lineno,__LINE__,"ncgen");
+            CHECK_ERR2(stat,asym->lineno);
         } break;
         case NC_UINT64: {
             unsigned long long* data = (unsigned long long*)bbContents(databuf);
             stat = nc_put_att_ulonglong(grpid,varid,asym->name,typid,len,data);
-            check_err(stat,__LINE__,"ncgen");
+            CHECK_ERR(stat);
         } break;
 	default: PANIC1("genbin_defineattr: unexpected basetype: %d",basetype->typ.typecode);
         }
@@ -556,13 +560,13 @@ genbin_writeattr(Generator* generator, Symbol* asym, Bytebuffer* databuf,
         data = (const char*)bbContents(databuf);
         stat = nc_put_att(grpid,varid,asym->name,typid,
                                 len,(void*)data);
-        check_err(stat,__LINE__,"ncgen");
+        CHECK_ERR(stat);
 #ifdef GENDEBUG
         {
             char out[4096];
             memset(out,0x77,sizeof(out));
             stat = nc_get_att(grpid,varid,asym->name,&out);
-            check_err(stat,__LINE__,"ncgen");
+            CHECK_ERR(stat);
         }
 #endif
     }

@@ -58,7 +58,7 @@ variables:
 	char Drifters.Region(Drifters, maxStrlen64) ;
 		Drifters.Region:Description = "Short description of study area (ex: Oregon, California, Southern Ocean, etc.)" ;
 	double Drifters.Decimal_Day(Drifters) ;
-		Drifters.Decimal_Day:Description = "The time of the mesurement in a decimal format, useful for plots, starts on January 1st 1993 or January 1st 2000." ;
+		Drifters.Decimal_Day:Description = "The time of the measurement in a decimal format, useful for plots, starts on January 1st 1993 or January 1st 2000." ;
 	char Drifters.Calibration_File(Drifters, maxStrlen64) ;
 		Drifters.Calibration_File:Description = "Path to the file on our file server of the calibration file for the drifter." ;
 	char Drifters.Drifter_Type(Drifters, maxStrlen64) ;

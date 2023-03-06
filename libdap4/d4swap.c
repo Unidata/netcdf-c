@@ -6,7 +6,6 @@
 #include "d4includes.h"
 #include <stdarg.h>
 #include "d4includes.h"
-#include "ezxml.h"
 
 /*
 The primary purpose of this code is to recursively traverse
@@ -56,7 +55,7 @@ NCD4_swapdata(NCD4meta* compiler, NClist* topvars)
 	}
 	var->data.dap4data.size = DELTA(offset,var->data.dap4data.memory);
 	/* skip checksum, if there is one */
-        if(compiler->serial.remotechecksumming)
+        if(var->data.remotechecksummed)
 	    offset = INCR(offset,CHECKSUMSIZE);
     }
 done:

@@ -61,7 +61,7 @@ main()
       /* Open file and create group. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
 			      H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gcreate(fileid, EMP_GRP, 0)) < 0) ERR;
+      if ((grpid = H5Gcreate1(fileid, EMP_GRP, 0)) < 0) ERR;
 
       /* Create space fo zero-length attributes. */
       if ((spaceid = H5Screate(H5S_NULL)) < 0) ERR;
@@ -69,7 +69,7 @@ main()
       /* Attach some zero-length float attributes! */
       for (e = 0; e < NUM_EMPS; e++)
       {
-	 if ((attid = H5Acreate(grpid, emp[e], H5T_NATIVE_FLOAT, spaceid,
+	 if ((attid = H5Acreate1(grpid, emp[e], H5T_NATIVE_FLOAT, spaceid,
 				H5P_DEFAULT)) < 0) ERR;
 	 if (H5Awrite(attid, H5T_NATIVE_FLOAT, &val) < 0) ERR;
 	 if (H5Aclose(attid) < 0) ERR;
@@ -83,7 +83,7 @@ main()
       /* Now open the file again and read in the attributes. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDWR,
 			    H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, EMP_GRP)) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, EMP_GRP)) < 0) ERR;
 
       /* How many attributes are there? */
       if ((num_obj = H5Aget_num_attrs(grpid)) != NUM_EMPS) ERR;
@@ -106,13 +106,13 @@ main()
       /* Create a file and open the root group. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
 			      H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
 
       /* Attach a text attribute with some of Hamlet's lines. */
       if ((spaceid = H5Screate(H5S_SCALAR)) < 0) ERR;
       if ((typeid = H5Tcopy(H5T_C_S1)) < 0) ERR;
       if (H5Tset_size(typeid, strlen(txt) + 1) < 0) ERR;
-      if ((attid = H5Acreate(grpid, ATT1_NAME, typeid, spaceid,
+      if ((attid = H5Acreate1(grpid, ATT1_NAME, typeid, spaceid,
 			     H5P_DEFAULT)) < 0) ERR;
       if (H5Awrite(attid, typeid, txt) < 0) ERR;
 
@@ -121,7 +121,7 @@ main()
       if (H5Adelete(grpid, ATT1_NAME) < 0) ERR;
 
       /* Create and write it again. */
-      if ((attid = H5Acreate(grpid, ATT1_NAME, typeid, spaceid,
+      if ((attid = H5Acreate1(grpid, ATT1_NAME, typeid, spaceid,
 			     H5P_DEFAULT)) < 0) ERR;
       if (H5Awrite(attid, typeid, txt) < 0) ERR;
 
@@ -139,13 +139,13 @@ main()
       /* See if we can write an attribute to the root group. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
 			      H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
 
       /* Attach a text attribute with some of Hamlet's lines. */
       if ((spaceid = H5Screate(H5S_SCALAR)) < 0) ERR;
       if ((typeid = H5Tcopy(H5T_C_S1)) < 0) ERR;
       if (H5Tset_size(typeid, strlen(txt) + 1) < 0) ERR;
-      if ((attid = H5Acreate(grpid, ATT1_NAME, typeid, spaceid,
+      if ((attid = H5Acreate1(grpid, ATT1_NAME, typeid, spaceid,
 			     H5P_DEFAULT)) < 0) ERR;
       if (H5Awrite(attid, typeid, txt) < 0) ERR;
       if (H5Aclose(attid) < 0 ||
@@ -160,13 +160,13 @@ main()
       /* Open file and create group. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
 			      H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gcreate(fileid, GRP_NAME, 0)) < 0) ERR;
+      if ((grpid = H5Gcreate1(fileid, GRP_NAME, 0)) < 0) ERR;
 
       /* Attach a text attribute with some of Hamlet's lines. */
       if ((spaceid = H5Screate(H5S_SCALAR)) < 0) ERR;
       if ((typeid = H5Tcopy(H5T_C_S1)) < 0) ERR;
       if (H5Tset_size(typeid, strlen(txt) + 1) < 0) ERR;
-      if ((attid = H5Acreate(grpid, ATT1_NAME, typeid, spaceid,
+      if ((attid = H5Acreate1(grpid, ATT1_NAME, typeid, spaceid,
 			     H5P_DEFAULT)) < 0) ERR;
       if (H5Awrite(attid, typeid, txt) < 0) ERR;
       if (H5Aclose(attid) < 0 ||
@@ -178,7 +178,7 @@ main()
       /* Now open the file again and read in the attribute. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY,
 			    H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, GRP_NAME)) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, GRP_NAME)) < 0) ERR;
       if ((attid = H5Aopen_name(grpid, ATT1_NAME)) < 0) ERR;
       if ((typeid = H5Aget_type(attid)) < 0) ERR;
 
@@ -224,7 +224,7 @@ main()
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
 			      H5P_DEFAULT)) < 0)
 	 ERR;
-      if ((grpid = H5Gcreate(fileid, GRP_NAME, 0)) < 0)
+      if ((grpid = H5Gcreate1(fileid, GRP_NAME, 0)) < 0)
 	 ERR;
 
       /* Attach a float attribute with no data. The
@@ -233,7 +233,7 @@ main()
 	 ERR;
       if ((typeid = H5Tcopy(H5T_NATIVE_FLOAT)) < 0)
 	 ERR;
-      if ((attid = H5Acreate(grpid, ATT1_NAME,
+      if ((attid = H5Acreate1(grpid, ATT1_NAME,
 			     typeid, spaceid, H5P_DEFAULT)) < 0)
 	 ERR;
       if (H5Awrite(attid, H5T_NATIVE_FLOAT, &val) < 0) ERR;
@@ -246,7 +246,7 @@ main()
       /* Now open the file again and read in the attribute. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDWR,
 			    H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, GRP_NAME)) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, GRP_NAME)) < 0) ERR;
       if ((attid = H5Aopen_name(grpid, ATT1_NAME)) < 0) ERR;
       if ((spaceid = H5Aget_space(attid)) < 0) ERR;
       if ((size = H5Sget_simple_extent_npoints(spaceid)) < 0) ERR;
@@ -258,7 +258,7 @@ main()
       if ((spaceid = H5Screate(H5S_NULL)) < 0) ERR;
       if ((typeid = H5Tcopy(H5T_C_S1)) < 0) ERR;
       if (H5Tset_size(typeid, 1) < 0) ERR;
-      if ((attid1 = H5Acreate(grpid, ATT2_NAME, typeid, spaceid,
+      if ((attid1 = H5Acreate1(grpid, ATT2_NAME, typeid, spaceid,
 			     H5P_DEFAULT)) < 0) ERR;
       if (H5Awrite(attid1, H5T_NATIVE_FLOAT, &val) < 0) ERR;
       if (H5Sclose(spaceid) < 0 ||
@@ -271,7 +271,7 @@ main()
       /* Now open the file again and read in the attribute. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY,
 			    H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, GRP_NAME)) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, GRP_NAME)) < 0) ERR;
       if ((attid = H5Aopen_name(grpid, ATT2_NAME)) < 0) ERR;
       if ((spaceid = H5Aget_space(attid)) < 0) ERR;
       if ((size = H5Sget_simple_extent_npoints(spaceid)) < 0) ERR;
@@ -331,12 +331,12 @@ main()
       /* Create a file and get its root group. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
 			      H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
 
       /* Create a dataset. */
       dims[0] = DIM1_LEN;
       if ((var_spaceid = H5Screate_simple(1, dims, dims)) < 0) ERR;
-      if ((datasetid = H5Dcreate(grpid, VAR_NAME, H5T_NATIVE_HBOOL,
+      if ((datasetid = H5Dcreate1(grpid, VAR_NAME, H5T_NATIVE_HBOOL,
 				 var_spaceid, H5P_DEFAULT)) < 0) ERR;
 
       /* Attach three text attributes with some of Hamlet's lines to
@@ -347,7 +347,7 @@ main()
       for (i = 0; i < NUM_SPEECHES; i++)
       {
 	 if (H5Tset_size(typeid, strlen(speech[i]) + 1) < 0) ERR;
-	 if ((attid = H5Acreate(datasetid, speech_name[i], typeid, spaceid,
+	 if ((attid = H5Acreate1(datasetid, speech_name[i], typeid, spaceid,
 				H5P_DEFAULT)) < 0) ERR;
 	 if (H5Awrite(attid, typeid, speech[i]) < 0) ERR;
 	 if (H5Aclose(attid) < 0) ERR;
@@ -366,7 +366,7 @@ main()
       /* Open file, group, and dataset. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDWR,
 			    H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
       if ((datasetid = H5Dopen1(grpid, VAR_NAME)) < 0) ERR;
 
       /* How many attributes are there? */
@@ -387,7 +387,7 @@ main()
 
       /* Recreate it and add the attributes again. */
       if ((var_spaceid = H5Screate_simple(1, dims, dims)) < 0) ERR;
-      if ((datasetid = H5Dcreate(grpid, VAR_NAME, H5T_NATIVE_HBOOL,
+      if ((datasetid = H5Dcreate1(grpid, VAR_NAME, H5T_NATIVE_HBOOL,
 				 var_spaceid, H5P_DEFAULT)) < 0) ERR;
 
       /* Attach three text attributes with some of Hamlet's lines to
@@ -398,7 +398,7 @@ main()
       for (i = 0; i < NUM_SPEECHES; i++)
       {
 	 if (H5Tset_size(typeid, strlen(speech[i]) + 1) < 0) ERR;
-	 if ((attid = H5Acreate(datasetid, speech_name[i], typeid, spaceid,
+	 if ((attid = H5Acreate1(datasetid, speech_name[i], typeid, spaceid,
 				H5P_DEFAULT)) < 0) ERR;
 	 if (H5Awrite(attid, typeid, speech[i]) < 0) ERR;
 	 if (H5Aclose(attid) < 0) ERR;
@@ -506,7 +506,7 @@ main()
 
       /* Write an attribute. */
       if ((spaceid = H5Screate(H5S_SCALAR)) < 0) ERR;
-      if ((attid = H5Acreate(grpid, NC3_STRICT_ATT_NAME, H5T_NATIVE_INT,
+      if ((attid = H5Acreate1(grpid, NC3_STRICT_ATT_NAME, H5T_NATIVE_INT,
 			      spaceid, H5P_DEFAULT)) < 0) ERR;
       if (H5Awrite(attid, H5T_NATIVE_INT, &one) < 0) ERR;
       if (H5Sclose(spaceid) < 0) ERR;
@@ -558,17 +558,17 @@ main()
 					       H5P_CRT_ORDER_INDEXED)) < 0) ERR;
 
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, fcpl_id, fapl_id)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
 
       /* Write two group-level attributes containing byte attays of
        * length 2, call them "first" and "second". */
       dims[0] = DIM2_LEN;
       if ((att_spaceid = H5Screate_simple(1, dims, dims)) < 0) ERR;
-      if ((attid = H5Acreate(grpid, att_name[0], H5T_NATIVE_UCHAR,
+      if ((attid = H5Acreate1(grpid, att_name[0], H5T_NATIVE_UCHAR,
 			     att_spaceid, H5P_DEFAULT)) < 0) ERR;
       if (H5Awrite(attid, H5T_NATIVE_UCHAR, b) < 0) ERR;
       if (H5Aclose(attid) < 0) ERR;
-      if ((attid = H5Acreate(grpid , att_name[1], H5T_NATIVE_UCHAR,
+      if ((attid = H5Acreate1(grpid , att_name[1], H5T_NATIVE_UCHAR,
 			     att_spaceid, H5P_DEFAULT)) < 0) ERR;
       if (H5Awrite(attid, H5T_NATIVE_UCHAR, b) < 0) ERR;
       if (H5Aclose(attid) < 0) ERR;
@@ -576,7 +576,7 @@ main()
       /* Create a dataset which will be a HDF5 dimension scale. */
       dims[0] = 1;
       if ((spaceid = H5Screate_simple(1, dims, dims)) < 0) ERR;
-      if ((dimscaleid = H5Dcreate(grpid, "D1", H5T_IEEE_F32BE,
+      if ((dimscaleid = H5Dcreate1(grpid, "D1", H5T_IEEE_F32BE,
 				  spaceid, H5P_DEFAULT)) < 0)
 	 ERR;
 
@@ -584,7 +584,7 @@ main()
       if (H5DSset_scale(dimscaleid, NULL) < 0) ERR;
 
       /* Add another attribute to the group. Call it "third". */
-      if ((attid = H5Acreate(grpid , att_name[2], H5T_NATIVE_UCHAR,
+      if ((attid = H5Acreate1(grpid , att_name[2], H5T_NATIVE_UCHAR,
 			     att_spaceid, H5P_DEFAULT)) < 0) ERR;
       if (H5Awrite(attid, H5T_NATIVE_UCHAR, b) < 0) ERR;
       if (H5Aclose(attid) < 0) ERR;
@@ -606,7 +606,7 @@ main()
       if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDWR,
 			    fapl_id)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
 
       /* How many attributes are there? */
       if ((num_obj = H5Aget_num_attrs(grpid)) != 3) ERR;
@@ -649,14 +649,14 @@ main()
 
       /* Create a file and get its root group. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, fcpl_id, fapl_id)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
 
       /* These will all be zero-length atts. */
       if ((att_spaceid = H5Screate(H5S_NULL)) < 0) ERR;
 
       for (i = 0; i < NUM_SIMPLE_ATTS; i++)
       {
-	 if ((attid = H5Acreate(grpid, name[i], H5T_NATIVE_INT,
+	 if ((attid = H5Acreate1(grpid, name[i], H5T_NATIVE_INT,
 				att_spaceid, H5P_DEFAULT)) < 0) ERR;
 	 if (H5Aclose(attid) < 0) ERR;
       }
@@ -672,7 +672,7 @@ main()
      if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDWR,
 			    fapl_id)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
 
       /* How many attributes are there? */
       if ((num_obj = H5Aget_num_attrs(grpid)) != NUM_SIMPLE_ATTS) ERR;

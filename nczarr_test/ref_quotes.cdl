@@ -1,0 +1,19 @@
+netcdf ref_quotes {
+dimensions:
+	time = 10 ;
+	lat = 20 ;
+	lon = 30 ;
+variables:
+	float fractional_snow_cover(time, lat, lon) ;
+		fractional_snow_cover:ID = 68 ;
+		fractional_snow_cover:esa_cci_path = NaN ;
+		fractional_snow_cover:long_name = "Surface Fraction Covered by Snow" ;
+		fractional_snow_cover:orig_attrs = "{\'comment\': \'Grid cell fractional snow cover based on the Globsnow CCI product.\', \'long_name\': \'Surface fraction covered by snow.\', \'project_name\': \'GlobSnow\', \'references\': \'Luojus, Kari, et al. \"ESA DUE Globsnow-Global Snow Database for Climate Research.\" ESA Special Publication. Vol. 686. 2010.\', \'source_name\': \'MFSC\', \'standard_name\': \'surface_snow_area_fraction\', \'units\': \'percent\', \'url\': \'http://www.globsnow.info/\'}" ;
+		fractional_snow_cover:orig_version = "v2.0" ;
+		fractional_snow_cover:project_name = "GlobSnow" ;
+		fractional_snow_cover:time_coverage_end = "2013-01-05" ;
+		fractional_snow_cover:time_coverage_resolution = "P8D" ;
+		fractional_snow_cover:time_coverage_start = "2003-01-05" ;
+		fractional_snow_cover:units = "percent" ;
+		fractional_snow_cover:url = "http://www.globsnow.info/" ;
+}

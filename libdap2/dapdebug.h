@@ -5,8 +5,11 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 
+/* Warning: setting CATCHERROR has significant performance impact */
+#undef CATCHERROR
+
 #if 0
-#define DAPDEBUG 1
+#define DAPDEBUG 2
 #define OCDEBUG 1
 #endif
 
@@ -29,8 +32,6 @@
 #undef DCEVERBOSE
 
 #undef PARSEDEBUG
-/* Warning: setting CATCHERROR has significant performance impact */
-#undef CATCHERROR
 
 #include <stdarg.h>
 #include <assert.h>

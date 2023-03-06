@@ -79,13 +79,18 @@ calendar_type(int ncid, int varid) {
     int ncals = (sizeof calmap)/(sizeof calmap[0]);
     ctype = cdMixed;  /* default mixed Gregorian/Julian ala udunits */
     stat = nc_inq_att(ncid, varid, CF_CAL_ATT_NAME, &catt.type, &catt.len);
-    if(stat == NC_NOERR && catt.type == NC_CHAR && catt.len > 0) {
-	char *calstr = (char *)emalloc(catt.len + 1);
+    if(stat == NC_NOERR && (catt.type == NC_CHAR || catt.type == NC_STRING) && catt.len > 0) {
+	char *calstr;
+	size_t cf_cal_att_name_len = strlen(CF_CAL_ATT_NAME);
+	strncpy(catt.name, CF_CAL_ATT_NAME, cf_cal_att_name_len);
+	catt.name[cf_cal_att_name_len] = '\0';
+	catt.tinfo = get_typeinfo(catt.type);
+	nc_get_att_single_string(ncid, varid, &catt, &calstr);
+
 	int itype;
-	NC_CHECK(nc_get_att(ncid, varid, CF_CAL_ATT_NAME, calstr));	
-	calstr[catt.len] = '\0';
+	int calstr_len = strlen(calstr);
 	for(itype = 0; itype < ncals; itype++) {
-	    if(strncmp(calstr, calmap[itype].attname, catt.len) == 0) {
+	    if(strncasecmp(calstr, calmap[itype].attname, calstr_len) == 0) {
 		ctype = calmap[itype].type;
 		break;
 	    }
@@ -128,28 +133,28 @@ is_valid_time_unit(const char *units) {
 	    return false;
 	/* Check for unit compatible with cdtime library, no attempt
 	 * to enforce CF-compliance or udunits compliance here ... */
-	if(!strncmp(charunits,"sec",3) || !strcmp(charunits,"s")){
+	if(!strncasecmp(charunits,"sec",3) || !strcasecmp(charunits,"s")){
 	    okunit = true;
 	}
-	else if(!strncmp(charunits,"min",3) || !strcmp(charunits,"mn")){
+	else if(!strncasecmp(charunits,"min",3) || !strcasecmp(charunits,"mn")){
 	    okunit = true;
 	}
-	else if(!strncmp(charunits,"hour",4) || !strcmp(charunits,"hr")){
+	else if(!strncasecmp(charunits,"hour",4) || !strcasecmp(charunits,"hr")){
 	    okunit = true;
 	}
-	else if(!strncmp(charunits,"day",3) || !strcmp(charunits,"dy")){
+	else if(!strncasecmp(charunits,"day",3) || !strcasecmp(charunits,"dy")){
 	    okunit = true;
 	}
-	else if(!strncmp(charunits,"week",4) || !strcmp(charunits,"wk")){
+	else if(!strncasecmp(charunits,"week",4) || !strcasecmp(charunits,"wk")){
 	    okunit = true;
 	}
-	else if(!strncmp(charunits,"month",5) || !strcmp(charunits,"mo")){
+	else if(!strncasecmp(charunits,"month",5) || !strcasecmp(charunits,"mo")){
 	    okunit = true;
 	}
-	else if(!strncmp(charunits,"season",6)){
+	else if(!strncasecmp(charunits,"season",6)){
 	    okunit = true;
 	}
-	else if(!strncmp(charunits,"year",4) || !strcmp(charunits,"yr")){
+	else if(!strncasecmp(charunits,"year",4) || !strcasecmp(charunits,"yr")){
 	    okunit = true;
 	}
 	if (!okunit)
@@ -204,10 +209,11 @@ get_timeinfo(int ncid1, int varid1, ncvar_t *vp) {
 
     /* time variables must have appropriate units attribute or be a bounds variable */
     nc_status = nc_inq_att(ncid, varid, "units", &uatt.type, &uatt.len);
-    if(nc_status == NC_NOERR && uatt.type == NC_CHAR) { /* TODO: NC_STRING? */
-	units = emalloc(uatt.len + 1);
-	NC_CHECK(nc_get_att(ncid, varid, "units", units));
-	units[uatt.len] = '\0';
+    if(nc_status == NC_NOERR && (uatt.type == NC_CHAR || uatt.type == NC_STRING)) {
+	strncpy(uatt.name, "units", 5);
+	uatt.name[5] = '\0';
+	uatt.tinfo = get_typeinfo(uatt.type);
+	nc_get_att_single_string(ncid, varid, &uatt, &units);
 	if(!is_valid_time_unit(units)) {
 	    free(units);
 	    return;

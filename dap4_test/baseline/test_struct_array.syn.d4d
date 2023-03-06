@@ -13,8 +13,6 @@ variables:
 	s_t s(dx, dy) ;
  		string s:_edu.ucar.maps = "/z", "/t" ;
 
-// global attributes:
-		:_DAP4_Little_Endian = 1UB ;
 data:
 
  z = 0.7276533, 0.785633, 0.513679, 0.2468447 ;

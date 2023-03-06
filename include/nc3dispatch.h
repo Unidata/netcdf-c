@@ -84,12 +84,6 @@ extern "C" {
     NC3_set_fill(int ncid, int fillmode, int *old_modep);
 
     extern int
-    NC3_set_base_pe(int ncid, int pe);
-
-    extern int
-    NC3_inq_base_pe(int ncid, int *pe);
-
-    extern int
     NC3_inq_format(int ncid, int *formatp);
 
     extern int
@@ -180,8 +174,8 @@ extern "C" {
 
 /* End _var */
 
-    extern int NC3_initialize();
-    extern int NC3_finalize();
+    extern int NC3_initialize(void);
+    extern int NC3_finalize(void);
 
 #if defined(__cplusplus)
 }

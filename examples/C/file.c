@@ -55,7 +55,7 @@ main()
 
    int i, res;
 
-   /* Create a classic format netCDF file, overwritting any file of
+   /* Create a classic format netCDF file, overwriting any file of
       this name that may already exist. */
    if ((res = nc_create(FILENAME, NC_CLOBBER, &ncid)))
       BAIL(res);

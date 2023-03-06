@@ -7,19 +7,20 @@
 
 #include "includes.h"
 #include "ncoffsets.h"
-#include "ncwinpath.h"
+#include "ncpathmgr.h"
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
 
-#ifdef _MSC_VER
+#if defined(_WIN32) && !defined(__MINGW32__)
 #include "XGetopt.h"
-int opterr;
-int optind;
 #endif
 
 /* Default is netcdf-3 mode 1 */
 #define DFALTCMODE 0
+
+/*Mnemonic*/
+#define DEPRECATED 1
 
 /* For error messages */
 char* progname; /* Global: not reclaimed */
@@ -42,12 +43,14 @@ int usingclassic;
 int cmode_modifier;
 int diskless;
 int ncloglevel;
+int wholevarsize;
 
 GlobalSpecialData globalspecials;
 
-char* binary_ext = ".nc";
+size_t zerosvector[NC_MAX_VAR_DIMS];
+size_t onesvector[NC_MAX_VAR_DIMS];
 
-size_t nciterbuffersize;
+char* binary_ext = ".nc";
 
 struct Vlendata* vlendata;
 
@@ -65,46 +68,46 @@ int main( int argc, char** argv );
 /* Define tables vs modes for legal -k values*/
 struct Kvalues legalkinds[] = {
     /* NetCDF-3 classic format (32-bit offsets) */
-    {"classic", NC_FORMAT_CLASSIC}, /* canonical format name */
-    {"nc3", NC_FORMAT_CLASSIC},	    /* short format name */
-    {"1", NC_FORMAT_CLASSIC},	/* deprecated, use "-3" or "-k nc3" instead */
+    {"classic", NC_FORMAT_CLASSIC, !DEPRECATED}, /* canonical format name */
+    {"nc3", NC_FORMAT_CLASSIC, !DEPRECATED},	    /* short format name */
+    {"1", NC_FORMAT_CLASSIC, !DEPRECATED},	/* deprecated, use "-3" or "-k nc3" instead */
 
     /* NetCDF-3 64-bit offset format */
-    {"64-bit offset", NC_FORMAT_64BIT_OFFSET}, /* canonical format name */
-    {"nc6", NC_FORMAT_64BIT_OFFSET},		/* short format name */
-    {"2", NC_FORMAT_64BIT_OFFSET},     /* deprecated, use "-6" or "-k nc6" instead */
-    {"64-bit-offset", NC_FORMAT_64BIT_OFFSET}, /* aliases */
+    {"64-bit offset", NC_FORMAT_64BIT_OFFSET, !DEPRECATED}, /* canonical format name */
+    {"nc6", NC_FORMAT_64BIT_OFFSET, !DEPRECATED},		/* short format name */
+    {"2", NC_FORMAT_64BIT_OFFSET, !DEPRECATED},     /* deprecated, use "-6" or "-k nc6" instead */
+    {"64-bit-offset", NC_FORMAT_64BIT_OFFSET, !DEPRECATED}, /* aliases */
 
     /* NetCDF-4 HDF5-based format */
-    {"netCDF-4", NC_FORMAT_NETCDF4}, /* canonical format name */
-    {"nc4", NC_FORMAT_NETCDF4},	     /* short format name */
-    {"3", NC_FORMAT_NETCDF4},   /* deprecated, use "-4" or "-k nc4" instead */
-    {"netCDF4", NC_FORMAT_NETCDF4},  /* aliases */
-    {"hdf5", NC_FORMAT_NETCDF4},
-    {"enhanced", NC_FORMAT_NETCDF4},
-    {"netcdf-4", NC_FORMAT_NETCDF4},
-    {"netcdf4", NC_FORMAT_NETCDF4},
+    {"netCDF-4", NC_FORMAT_NETCDF4, !DEPRECATED}, /* canonical format name */
+    {"nc4", NC_FORMAT_NETCDF4, !DEPRECATED},	     /* short format name */
+    {"3", NC_FORMAT_NETCDF4, !DEPRECATED},   /* deprecated, use "-4" or "-k nc4" instead */
+    {"netCDF4", NC_FORMAT_NETCDF4, !DEPRECATED},  /* aliases */
+    {"hdf5", NC_FORMAT_NETCDF4, !DEPRECATED},
+    {"enhanced", NC_FORMAT_NETCDF4, !DEPRECATED},
+    {"netcdf-4", NC_FORMAT_NETCDF4, !DEPRECATED},
+    {"netcdf4", NC_FORMAT_NETCDF4, !DEPRECATED},
 
     /* NetCDF-4 HDF5-based format, restricted to classic data model */
-    {"netCDF-4 classic model", NC_FORMAT_NETCDF4_CLASSIC}, /* canonical format name */
-    {"nc7", NC_FORMAT_NETCDF4_CLASSIC}, /* short format name */
-    {"4", NC_FORMAT_NETCDF4_CLASSIC}, /* deprecated, use "-7" or -k nc7" instead */
-    {"netCDF-4-classic", NC_FORMAT_NETCDF4_CLASSIC}, /* aliases */
-    {"netCDF-4_classic", NC_FORMAT_NETCDF4_CLASSIC},
-    {"netCDF4_classic", NC_FORMAT_NETCDF4_CLASSIC},
-    {"hdf5-nc3", NC_FORMAT_NETCDF4_CLASSIC},
-    {"enhanced-nc3", NC_FORMAT_NETCDF4_CLASSIC},
+    {"netCDF-4 classic model", NC_FORMAT_NETCDF4_CLASSIC, !DEPRECATED}, /* canonical format name */
+    {"nc7", NC_FORMAT_NETCDF4_CLASSIC, !DEPRECATED}, /* short format name */
+    {"4", NC_FORMAT_NETCDF4_CLASSIC, !DEPRECATED}, /* deprecated, use "-7" or -k nc7" instead */
+    {"netCDF-4-classic", NC_FORMAT_NETCDF4_CLASSIC, !DEPRECATED}, /* aliases */
+    {"netCDF-4_classic", NC_FORMAT_NETCDF4_CLASSIC, !DEPRECATED},
+    {"netCDF4_classic", NC_FORMAT_NETCDF4_CLASSIC, !DEPRECATED},
+    {"hdf5-nc3", NC_FORMAT_NETCDF4_CLASSIC, !DEPRECATED},
+    {"enhanced-nc3", NC_FORMAT_NETCDF4_CLASSIC, !DEPRECATED},
 
     /* CDF-5 format */
-    {"5", NC_FORMAT_64BIT_DATA},
-    {"64-bit-data", NC_FORMAT_64BIT_DATA},
-    {"64-bit data", NC_FORMAT_64BIT_DATA},
-    {"nc5", NC_FORMAT_64BIT_DATA},
-    {"cdf5", NC_FORMAT_64BIT_DATA},
-    {"cdf-5", NC_FORMAT_64BIT_DATA},
+    {"5", NC_FORMAT_64BIT_DATA, !DEPRECATED},
+    {"64-bit-data", NC_FORMAT_64BIT_DATA, !DEPRECATED},
+    {"64-bit data", NC_FORMAT_64BIT_DATA, !DEPRECATED},
+    {"nc5", NC_FORMAT_64BIT_DATA, !DEPRECATED},
+    {"cdf5", NC_FORMAT_64BIT_DATA, !DEPRECATED},
+    {"cdf-5", NC_FORMAT_64BIT_DATA, !DEPRECATED},
 
     /* null terminate*/
-    {NULL,0}
+    {NULL,0,0}
 };
 
 #ifndef _MSC_VER
@@ -141,22 +144,6 @@ struct Languages legallanguages[] = {
 };
 #endif
 
-#if 0 /*not used*/
-/* BOM Sequences */
-static char* U8   = "\xEF\xBB\xBF";    /* UTF-8 */
-static char* BE32 = "\x00\x00\xFE\xFF"; /* UTF-32; big-endian */
-static char* LE32 = "\xFF\xFE";       /* UTF-32; little-endian */
-static char* BE16 = "\xFE\xFF";       /* UTF-16; big-endian */
-static char* LE16 = "\xFF\xFE";       /* UTF-16; little-endian */
-#endif
-
-/* The default minimum iterator size depends
-   on whether we are doing binary or language
-   based output.
-*/
-#define DFALTBINNCITERBUFFERSIZE  0x40000 /* about 250k bytes */
-#define DFALTLANGNCITERBUFFERSIZE  0x4000 /* about 15k bytes */
-
 /* strip off leading path */
 /* result is malloc'd */
 
@@ -185,7 +172,6 @@ usage(void)
 " [-6]"
 " [-7]"
 " [-b]"
-" [-B buffersize]"
 " [-d]"
 " [-D debuglevel]"
 " [-h]"
@@ -199,6 +185,7 @@ usage(void)
 " [-N datasetname]"
 " [-L loglevel]"
 " [-H]"
+" [-W generate whole var upload]"
 " [file ... ]",
 	   progname);
     derror("netcdf library version %s", nc_inq_libvers());
@@ -213,9 +200,6 @@ main(
     int c;
     FILE *fp;
 	struct Languages* langs;
-#ifdef __hpux
-    setlocale(LC_CTYPE,"");
-#endif
 
     init_netcdf();
 
@@ -229,7 +213,6 @@ main(
     syntax_only = 0;
     header_only = 0;
     mainname = "main";
-    nciterbuffersize = 0;
 
     k_flag = 0;
     format_attribute = 0;
@@ -237,6 +220,7 @@ main(
     cdf5_flag = 0;
     specials_flag = 0;
     diskless = 0;
+    wholevarsize = 1024;
 #ifdef LOGGING
     ncloglevel = NC_TURN_OFF_LOGGING;
 #else
@@ -244,18 +228,17 @@ main(
 #endif
     memset(&globalspecials,0,sizeof(GlobalSpecialData));
 
-#if _CRAYMPP && 0
-    /* initialize CRAY MPP parallel-I/O library */
-    (void) par_io_init(32, 32);
-#endif
-
-    while ((c = getopt(argc, argv, "134567bB:cdD:fhHk:l:M:no:Pv:xL:N:")) != EOF)
+    while ((c = getopt(argc, argv, "134567bcdD:fhHk:l:M:no:Pv:xL:N:B:W:")) != EOF)
       switch(c) {
-	case 'd':
-	  debug = 1;
+	case 'b': /* for binary netcdf output, ".nc" extension */
+	  if(l_flag != 0) {
+	    fprintf(stderr,"Please specify only one language\n");
+	    return 1;
+	  }
+	  l_flag = L_BINARY;
 	  break;
-	case 'D':
-	  debug = atoi(optarg);
+	case 'B':
+	  /* Ignore, but keep for back compatibility */
 	  break;
 	case 'c': /* for c output, old version of "-lc" */
 	  if(l_flag != 0) {
@@ -265,6 +248,12 @@ main(
 	  l_flag = L_C;
 	  fprintf(stderr,"-c is deprecated: please use -lc\n");
 	  break;
+	case 'd':
+	  debug = 1;
+	  break;
+	case 'D':
+	  debug = atoi(optarg);
+	  break;
 	case 'f': /* for f77 output, old version of "-lf" */
 	  if(l_flag != 0) {
 	    fprintf(stderr,"Please specify only one language\n");
@@ -273,70 +262,11 @@ main(
 	  l_flag = L_F77;
 	  fprintf(stderr,"-f is deprecated: please use -lf77\n");
 	  break;
-	case 'b': /* for binary netcdf output, ".nc" extension */
-	  if(l_flag != 0) {
-	    fprintf(stderr,"Please specify only one language\n");
-	    return 1;
-	  }
-	  l_flag = L_BINARY;
-	  break;
-	case 'H':
-	  header_only = 1;
-	  break;
 	case 'h':
 	  usage();
 	  goto done;
-        case 'l': /* specify language, instead of using -c or -f or -b */
-	{
-            char* lang_name = NULL;
-	    if(l_flag != 0) {
-              fprintf(stderr,"Please specify only one language\n");
-              return 1;
-	    }
-            if(!optarg) {
-              derror("%s: output language is null", progname);
-              return(1);
-            }
-#if 0
-            lang_name = estrdup(optarg);
-#endif
-            lang_name = (char*) emalloc(strlen(optarg)+1);
-            (void)strcpy(lang_name, optarg);
-
-            for(langs=legallanguages;langs->name != NULL;langs++) {
-              if(strcmp(lang_name,langs->name)==0) {
-                l_flag = langs->flag;
-                break;
-              }
-            }
-	    if(langs->name == NULL) {
-              derror("%s: output language %s not implemented",progname, lang_name);
-              nullfree(lang_name);
-              return(1);
-	    }
-            nullfree(lang_name);
-	}; break;
-	case 'L':
-	    ncloglevel = atoi(optarg);
-	    break;
-	case 'n':		/* old version of -b, uses ".cdf" extension */
-	  if(l_flag != 0) {
-	    fprintf(stderr,"Please specify only one language\n");
-	    return 1;
-	  }
-	  l_flag = L_BINARY;
-          binary_ext = ".cdf";
-	  break;
-	case 'o':		/* to explicitly specify output name */
-	  if(netcdf_name) efree(netcdf_name);
-	  netcdf_name = nulldup(optarg);
-	  break;
-	case 'N':		/* to explicitly specify dataset name */
-	  if(datasetname) efree(datasetname);
-	  datasetname = nulldup(optarg);
-	  break;
-	case 'x': /* set nofill mode to speed up creation of large files */
-	  nofill_flag = 1;
+	case 'H':
+	  header_only = 1;
 	  break;
         case 'v': /* a deprecated alias for "kind" option */
 	    /*FALLTHRU*/
@@ -364,6 +294,8 @@ main(
             for(kvalue=legalkinds;kvalue->name;kvalue++) {
                 if(strcmp(optarg,kvalue->name) == 0) {
                   k_flag = kvalue->k_flag;
+		  if(kvalue->deprecated)
+		      fprintf(stderr,"-k%s is deprecated; use corresponding -k<name> or -3|-4|-5|-6|-7\n",optarg);
                   break;
                 }
             }
@@ -372,6 +304,63 @@ main(
                 return 2;
             }
 	} break;
+        case 'l': /* specify language, instead of using -c or -f or -b */
+	{
+            char* lang_name = NULL;
+	    if(l_flag != 0) {
+              fprintf(stderr,"Please specify only one language\n");
+              return 1;
+	    }
+            if(!optarg) {
+              derror("%s: output language is null", progname);
+              return(1);
+            }
+            lang_name = (char*) emalloc(strlen(optarg)+1);
+            (void)strcpy(lang_name, optarg);
+
+            for(langs=legallanguages;langs->name != NULL;langs++) {
+              if(strcmp(lang_name,langs->name)==0) {
+                l_flag = langs->flag;
+                break;
+              }
+            }
+	    if(langs->name == NULL) {
+              derror("%s: output language %s not implemented",progname, lang_name);
+              nullfree(lang_name);
+              return(1);
+	    }
+            nullfree(lang_name);
+	}; break;
+	case 'L':
+	    ncloglevel = atoi(optarg);
+	    break;
+	case 'M': /* Determine the name for the main function */
+	    mainname = nulldup(optarg);
+	    break;
+	case 'n':		/* old version of -b, uses ".cdf" extension */
+	  if(l_flag != 0) {
+	    fprintf(stderr,"Please specify only one language\n");
+	    return 1;
+	  }
+	  l_flag = L_BINARY;
+          binary_ext = ".cdf";
+	  break;
+	case 'N':		/* to explicitly specify dataset name */
+	  if(datasetname) efree(datasetname);
+	  datasetname = nulldup(optarg);
+	  break;
+	case 'o':		/* to explicitly specify output name */
+	  if(netcdf_name) efree(netcdf_name);
+	  netcdf_name = NC_shellUnescape(optarg);
+	  break;
+	case 'P': /* diskless with persistence */
+	  diskless = 1;
+	case 'W':
+	  wholevarsize = atoi(optarg);
+	  break;
+	case 'x': /* set nofill mode to speed up creation of large files */
+	  nofill_flag = 1;
+	  break;
 	case '3':		/* output format is classic (netCDF-3) */
 	    k_flag = NC_FORMAT_CLASSIC;
 	    break;
@@ -387,15 +376,6 @@ main(
 	case '7':		/* output format is netCDF-4 (restricted to classic model)*/
 	    k_flag = NC_FORMAT_NETCDF4_CLASSIC;
 	    break;
-	case 'M': /* Determine the name for the main function */
-	    mainname = nulldup(optarg);
-	    break;
-	case 'B':
-	  nciterbuffersize = atoi(optarg);
-	  break;
-	case 'P': /* diskless with persistence */
-	  diskless = 1;
-	  break;
 	case '?':
 	  usage();
 	  return(8);
@@ -406,15 +386,6 @@ main(
 	/* Treat -k or -o as an implicit -lb assuming no other -l flags */
         if(k_flag == 0 && netcdf_name == NULL)
 	    syntax_only = 1;
-    }
-
-    /* Compute/default the iterator buffer size */
-    if(l_flag == L_BINARY) {
-	if(nciterbuffersize == 0 )
-	    nciterbuffersize = DFALTBINNCITERBUFFERSIZE;
-    } else {
-	if(nciterbuffersize == 0)
-	    nciterbuffersize = DFALTLANGNCITERBUFFERSIZE;
     }
 
 #ifndef ENABLE_C
@@ -489,7 +460,7 @@ main(
 	}
     }
 
-    cdlname = nulldup(argv[0]);
+    cdlname = NC_shellUnescape(argv[0]);
     if(cdlname != NULL) {
 	if(strlen(cdlname) > NC_MAX_NAME)
 	  cdlname[NC_MAX_NAME] = '\0';
@@ -596,13 +567,22 @@ done:
 void
 init_netcdf(void) /* initialize global counts, flags */
 {
+    int i;
     memset((void*)&nullconstant,0,sizeof(NCConstant));
     fillconstant = nullconstant;
     fillconstant.nctype = NC_FILLVALUE;
 
+    filldatalist = builddatalist(1);
+    dlappend(filldatalist,&fillconstant);
+    filldatalist->readonly = 1;
+
     codebuffer = bbNew();
     stmt = bbNew();
     error_count = 0; /* Track # of errors */
+
+    for(i=0;i<NC_MAX_VAR_DIMS;i++) onesvector[i] = 1;
+    memset(zerosvector,0,sizeof(zerosvector));
+
 }
 
 void

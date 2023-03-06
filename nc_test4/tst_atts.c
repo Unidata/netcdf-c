@@ -424,5 +424,99 @@ main(int argc, char **argv)
       free(data_in);
    }
    SUMMARIZE_ERR;
+   printf("*** testing modification of an attribute 2^16 times (changing size)...");
+   {
+       /* This test documents that if the size of an attribute changes
+        * from one modification to the next we have to delete and
+        * re-create it, incrementing HDF5's attribute creation order
+        * index. In this case after about 2^16 modifications this
+        * index reaches its maximum, making it impossible to modify
+        * this file's metadata because nc_enddef() will fail. */
+       int ncid = -1, i = -1, error_code = NC_NOERR;
+       int data[2] = {1, 2};
+
+       /* Create a file. Note that we use a different file name here
+        * because we will not be able to close this file. */
+       if (nc_create("tst_att_modification.nc", NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
+       if (nc_enddef(ncid)) ERR;
+
+       /* Modify an attribute 2^16 times. */
+       for (i = 0; i < 65536; ++i)
+       {
+           if (nc_redef(ncid)) ERR;
+
+           /* Note that the attribute size changes every time. */
+           if (nc_put_att_int(ncid, NC_GLOBAL, "attribute", NC_INT,
+                              1 + i % 2, data)) ERR;
+
+           /* nc_enddef() synchronizes attributes. */
+           error_code = nc_enddef(ncid);
+
+           /* After a number of iterations nc_enddef() will fail with
+            * NC_EATTMETA. */
+           if (error_code == NC_EATTMETA)
+               break;
+
+           /* Catch other errors. */
+           if (error_code != NC_NOERR) ERR;
+       }
+
+       /* nc_close() will fail too: just like nc_enddef() it tries to
+        * write dirty attributes to disc. */
+       if (nc_close(ncid) != NC_EATTMETA) ERR;
+
+       /* In this test reaching the end of the loop without encountering
+        * NC_EATTMETA is a failure. */
+       if (error_code != NC_EATTMETA) ERR;
+   }
+   SUMMARIZE_ERR;
+   printf("*** testing modification of a scalar attribute 2^16 times (same type and size)...");
+   {
+       /* This test ensures that a scalar attribute can be modified
+        * 2^16 times as long as its type and size remain the same. */
+       int ncid = -1, i = -1;
+
+       /* Create a file. */
+       if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
+       if (nc_enddef(ncid)) ERR;
+
+       /* Modify an attribute 2^16 times. */
+       for (i = 0; i < 65536; ++i)
+       {
+           if (nc_redef(ncid)) ERR;
+           /* All built-in attribute types except for NC_CHAR (but
+            * including NC_STRING) use the same logic so it is enough
+            * to test nc_put_att_int(). */
+           if (nc_put_att_int(ncid, NC_GLOBAL, "attribute", NC_INT, 1, &i)) ERR;
+           /* nc_enddef() synchronizes attributes. */
+           if (nc_enddef(ncid)) ERR;
+       }
+
+       if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+   printf("*** testing modification of a text attribute 2^16 times (same size)...");
+   {
+       /* This test ensures that a text attribute can be modified
+        * 2^16 times as long as its size remains the same. */
+       int ncid = -1, i = -1;
+       const char *string = "test string"; /* 11 characters */
+
+       /* Create a file. */
+       if (nc_create(FILE_NAME, NC_NETCDF4|NC_CLOBBER, &ncid)) ERR;
+       if (nc_enddef(ncid)) ERR;
+
+       /* Modify an attribute 2^16 times. */
+       for (i = 0; i < 65536; ++i)
+       {
+           if (nc_redef(ncid)) ERR;
+           if (nc_put_att_text(ncid, NC_GLOBAL, "attribute", 11, string)) ERR;
+           /* nc_enddef() synchronizes attributes */
+           if (nc_enddef(ncid)) ERR;
+       }
+
+       if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
    FINAL_RESULTS;
 }

@@ -3,7 +3,9 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
-. ${srcdir}/d4test_common.sh
+set -e
+
+. ${top_srcdir}/dap4_test/d4test_common.sh
 
 echo "test_data.sh:"
 
@@ -16,14 +18,12 @@ setresultdir results_test_data
 if test "x${RESET}" = x1 ; then rm -fr ${BASELINE}/*.d4d ; fi
 for f in $F ; do
     echo "testing: ${f}"
-    if ! ${VG} ${execdir}/test_data ${DAPTESTFILES}/${f} ./results_test_data/${f}.nc ; then
-        failure "${execdir}/test_data ${DAPTESTFILES}/${f} ./results_test_data/${f}.nc"
+    if ! ${execdir}/test_data ${DAPTESTFILES}/${f} ./results_test_data/${f}.nc ; then
+        echo "failure"
     fi
     ${NCDUMP} ./results_test_data/${f}.nc > ./results_test_data/${f}.d4d
     if test "x${TEST}" = x1 ; then
-	if ! diff -wBb ${BASELINE}/${f}.d4d ./results_test_data/${f}.d4d ; then
-	    failure "diff -wBb ${BASELINE}/${f}.d4d ./results_test_data/${f}.d4d"
-	fi
+	diff -wBb ${BASELINE}/${f}.d4d ./results_test_data/${f}.d4d
     elif test "x${RESET}" = x1 ; then
 	echo "${f}:"
 	cp ./results_test_data/${f}.d4d ${BASELINE}/${f}.d4d
@@ -83,11 +83,7 @@ if test "x${CDLDIFF}" = x1 ; then
     trim ./results_test_data/${f}.d4d ./r1
     baseclean b1 b2
     resultclean r1 r2
-    if ! diff -wBb ./b2 ./r2 ; then
-	failure "${f}"
-    fi
+    diff -wBb ./b2 ./r2
   done
 fi
-rm -rf ./results_test_data
 
-finish

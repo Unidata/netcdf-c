@@ -570,6 +570,20 @@ test_redef(int format)
    if (strcmp(var_name, REDEF_VAR2_NAME) || xtype_in != NC_BYTE || ndims != REDEF_NDIMS ||
        dimids_in[0] != dimids[0] || dimids_in[1] != dimids[1]) ERR;
 
+   /* Try enddef/redef. */
+   if (nc_enddef(ncid)) ERR;
+   if (nc_redef(ncid)) ERR;
+
+   /* NetCDF/HDF5 files ignore the repeated redef(). */
+   if (format != NC_FORMAT_NETCDF4)
+   {
+       if (nc_redef(ncid) != NC_EINDEFINE) ERR;
+   }
+   else
+   {
+       if (nc_redef(ncid)) ERR;
+   }
+   
    /* Close it up. */
    if (format != NC_FORMAT_NETCDF4)
       if (nc_enddef(ncid)) ERR;

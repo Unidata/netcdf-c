@@ -37,7 +37,7 @@ main()
       /* Open file. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, 
 			      H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gcreate(fileid, GRP_NAME, 0)) < 0) ERR;
+      if ((grpid = H5Gcreate1(fileid, GRP_NAME, 0)) < 0) ERR;
       
       /* Create string type. */
       if ((typeid =  H5Tcopy(H5T_C_S1)) < 0) ERR;
@@ -45,7 +45,7 @@ main()
       
       /* Write an attribute of this type. */
       if ((spaceid = H5Screate(H5S_SCALAR)) < 0) ERR;
-      if ((attid = H5Acreate(grpid, ATT_NAME, typeid, spaceid, 
+      if ((attid = H5Acreate1(grpid, ATT_NAME, typeid, spaceid, 
 			     H5P_DEFAULT)) < 0) ERR;
       if (H5Awrite(attid, typeid, &data) < 0) ERR;
 
@@ -58,7 +58,7 @@ main()
 
       /* Now reopen the file and check it out. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, GRP_NAME)) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, GRP_NAME)) < 0) ERR;
       if ((attid = H5Aopen_name(grpid, ATT_NAME)) < 0) ERR;
       if ((typeid = H5Aget_type(attid)) < 0) ERR;
       if ((spaceid = H5Aget_space(attid)) < 0) ERR;
@@ -106,7 +106,7 @@ main()
       /* Open file. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, 
 			      H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gcreate(fileid, GRP_NAME, 0)) < 0) ERR;
+      if ((grpid = H5Gcreate1(fileid, GRP_NAME, 0)) < 0) ERR;
 
       /* Create string type. */
       if ((typeid =  H5Tcopy(H5T_C_S1)) < 0) ERR;
@@ -118,7 +118,7 @@ main()
 
       /* Write an attribute of this (string) type. */
       if ((spaceid = H5Screate_simple(1, dims, NULL)) < 0) ERR;
-      if ((attid = H5Acreate(grpid, ATT_NAME, typeid, spaceid, 
+      if ((attid = H5Acreate1(grpid, ATT_NAME, typeid, spaceid, 
 			     H5P_DEFAULT)) < 0) ERR;
       if (H5Awrite(attid, typeid, data) < 0) ERR;
 
@@ -129,7 +129,7 @@ main()
 
       /* Now reopen the file and check it out. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, GRP_NAME)) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, GRP_NAME)) < 0) ERR;
       if ((attid = H5Aopen_name(grpid, ATT_NAME)) < 0) ERR;
       if ((typeid = H5Aget_type(attid)) < 0) ERR;
 
@@ -190,7 +190,7 @@ main()
       /* Open file. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, 
 			   H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gcreate(fileid, GRP_NAME, 0)) < 0) ERR;
+      if ((grpid = H5Gcreate1(fileid, GRP_NAME, 0)) < 0) ERR;
       
       /* Create string type. */
       if ((typeid =  H5Tcopy(H5T_C_S1)) < 0) ERR;
@@ -202,7 +202,7 @@ main()
       
       /* Write an attribute of this type. */
       if ((spaceid = H5Screate_simple(1, dims, NULL)) < 0) ERR;
-      if ((attid = H5Acreate(grpid, ATT_NAME, typeid, spaceid, 
+      if ((attid = H5Acreate1(grpid, ATT_NAME, typeid, spaceid, 
 			     H5P_DEFAULT)) < 0) ERR;
       if (H5Awrite(attid, typeid, data) < 0) ERR;
 
@@ -214,7 +214,7 @@ main()
       
       /* Now reopen the file and check it out. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, GRP_NAME)) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, GRP_NAME)) < 0) ERR;
       if ((attid = H5Aopen_name(grpid, ATT_NAME)) < 0) ERR;
       if ((typeid = H5Aget_type(attid)) < 0) ERR;
       
@@ -273,7 +273,7 @@ main()
       /* Open file. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, 
 			   H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gcreate(fileid, GRP_NAME, 0)) < 0) ERR;
+      if ((grpid = H5Gcreate1(fileid, GRP_NAME, 0)) < 0) ERR;
       
       /* Create string type. */
       if ((typeid =  H5Tcopy(H5T_C_S1)) < 0) ERR;
@@ -285,7 +285,7 @@ main()
       
       /* Write an attribute of this type. */
       if ((spaceid = H5Screate_simple(1, dims, NULL)) < 0) ERR;
-      if ((attid = H5Acreate(grpid, ATT_NAME, typeid, spaceid, 
+      if ((attid = H5Acreate1(grpid, ATT_NAME, typeid, spaceid, 
 			     H5P_DEFAULT)) < 0) ERR;
       if (H5Awrite(attid, typeid, data) < 0) ERR;
 
@@ -297,7 +297,7 @@ main()
       
       /* Now reopen the file and check it out. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, GRP_NAME)) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, GRP_NAME)) < 0) ERR;
       if ((attid = H5Aopen_name(grpid, ATT_NAME)) < 0) ERR;
       if ((typeid = H5Aget_type(attid)) < 0) ERR;
       

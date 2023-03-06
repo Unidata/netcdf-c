@@ -1,3 +1,5 @@
+if test "x$SETX" = x1 ; then set -x ; fi
+
 if test $# = 0 ; then
 TEST=1
 else
@@ -15,13 +17,14 @@ fi
 
 # Define input paths
 WD=`pwd`
-cd ${srcdir}/daptestfiles; DAPTESTFILES=`pwd` ; cd ${WD}
-cd ${srcdir}/dmrtestfiles; DMRTESTFILES=`pwd` ; cd ${WD}
-cd ${srcdir}/cdltestfiles; CDLTESTFILES=`pwd` ; cd ${WD}
-cd ${srcdir}/baseline; BASELINE=`pwd` ; cd ${WD}
-cd ${srcdir}/baselineraw; BASELINERAW=`pwd` ; cd ${WD}
-cd ${srcdir}/baselineremote; BASELINEREM=`pwd` ; cd ${WD}
-BASELINEH=${BASELINEREM}
+cd ${top_srcdir}/dap4_test/daptestfiles; DAPTESTFILES=`pwd` ; cd ${WD}
+cd ${top_srcdir}/dap4_test/dmrtestfiles; DMRTESTFILES=`pwd` ; cd ${WD}
+cd ${top_srcdir}/dap4_test/cdltestfiles; CDLTESTFILES=`pwd` ; cd ${WD}
+cd ${top_srcdir}/dap4_test/baseline; BASELINE=`pwd` ; cd ${WD}
+cd ${top_srcdir}/dap4_test/baselineraw; BASELINERAW=`pwd` ; cd ${WD}
+cd ${top_srcdir}/dap4_test/baselineremote; BASELINEREM=`pwd` ; cd ${WD}
+cd ${top_srcdir}/dap4_test/baselinehyrax; BASELINEH=`pwd` ; cd ${WD}
+cd ${top_srcdir}/dap4_test/baselinethredds; BASELINETH=`pwd` ; cd ${WD}
 
 setresultdir() {
 rm -fr ${builddir}/$1
@@ -51,6 +54,23 @@ filesexist() {
 	fi
     done
 }
+
+urlbasename() {
+    constraint=`echo "$1" | cut -d '?' -f2`
+    unconstrained=`echo "$1" | cut -d '?' -f1`
+    base=`basename $unconstrained`
+    prefix=`dirname $unconstrained`
+}
+
+makeurl() {
+    urlbasename "$2"
+    if test "x$constraint" = "x$unconstrained" ; then
+        URL="$1/${prefix}/${base}${FRAG}"
+    else
+	URL="$1/${prefix}/${base}?$constraint${FRAG}"
+    fi
+}
+
 
 finish() {
 if test "x$FAILURES" = x1 ; then

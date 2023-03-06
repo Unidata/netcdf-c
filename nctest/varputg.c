@@ -49,7 +49,7 @@ test_ncvarputg(path)
     }
 
     /* opened in data mode, try putting and getting hypercubes of each type.
-     * prints out messages for discrepencies */
+     * prints out messages for discrepancies */
     nerrs += test_varputgetg (cdfid);
 
     /* find a variable with at least one dimension */

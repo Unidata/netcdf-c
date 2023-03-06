@@ -10,16 +10,28 @@
 # This directory stores libtool macros, put there by aclocal.
 ACLOCAL_AMFLAGS = -I m4
 
+##
+# Turn off plugin directory during distcheck, see
+# comment thread at https://github.com/Unidata/netcdf-c/pull/2348
+# for more information.
+##
+AM_DISTCHECK_CONFIGURE_FLAGS = --without-plugin-dir
+
 # These files get added to the distribution.
 EXTRA_DIST = README.md COPYRIGHT INSTALL.md test_prog.c lib_flags.am	\
 cmake CMakeLists.txt COMPILE.cmake.txt config.h.cmake.in		\
 cmake_uninstall.cmake.in FixBundle.cmake.in nc-config.cmake.in		\
 RELEASE_NOTES.md CTestCustom.cmake CTestConfig.cmake.in			\
 libnetcdf.settings.in netCDFConfig.cmake.in CMakeInstallation.cmake	\
-test-driver-verbose test_common.in
+test-driver-verbose test_common.in fuzz
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = netcdf.pc
+
+# Does the user want to build and run unit tests?
+if BUILD_UNIT_TESTS
+UNIT_TEST = unit_test
+endif # BUILD_UNIT_TESTS
 
 # Does the user want to build the V2 API?
 if BUILD_V2
@@ -44,10 +56,13 @@ LIBSRC4_DIR = libsrc4
 endif
 
 # Is the user building with HDF5?
+# Note that USE_HDF5 does not imply USE_NETCDF4
 if USE_HDF5
 H5_TEST_DIR = h5_test
 LIBHDF5 = libhdf5
+if USE_HDF5
 NC_TEST4 = nc_test4
+endif
 endif
 
 # Build the dap2 client
@@ -59,6 +74,7 @@ endif
 
 if ENABLE_DAP4
 DAP4 = libdap4
+XML = libncxml
 NCDAP4TESTDIR = dap4_test
 endif #DAP4
 
@@ -73,9 +89,22 @@ HDF4_TEST_DIR = hdf4_test
 LIBHDF4 = libhdf4
 endif
 
-# Optionally build plugins
+# Build Plugin support
+if ENABLE_PLUGINS
+NCPOCO = libncpoco
+endif
+
+# Build Cloud Storage if desired.
+if ENABLE_NCZARR
+ZARR_TEST_DIR = nczarr_test
+ZARR = libnczarr
+endif
+
+# Optionally build test plugins
+if ENABLE_PLUGINS
 if ENABLE_FILTER_TESTING
 PLUGIN_DIR = plugins
+endif
 endif
 
 # If benchmarks were turned on, build and run a bunch more tests.
@@ -85,16 +114,19 @@ endif # BUILD_BENCHMARKS
 
 # Define Test directories
 if BUILD_TESTSETS
-TESTDIRS = $(V2_TEST) nc_test $(NC_TEST4) $(BENCHMARKS_DIR)	\
-$(HDF4_TEST_DIR) $(NCDAP2TESTDIR) $(NCDAP4TESTDIR)
+TESTDIRS = $(H5_TEST_DIR)
+TESTDIRS += $(UNIT_TEST) $(V2_TEST) nc_test $(NC_TEST4)
+TESTDIRS += $(BENCHMARKS_DIR) $(HDF4_TEST_DIR) $(NCDAP2TESTDIR) $(NCDAP4TESTDIR)
+TESTDIRS += ${ZARR_TEST_DIR}
 endif
 
 # This is the list of subdirs for which Makefiles will be constructed
 # and run. ncgen must come before ncdump, because their tests
 # depend on it.
-SUBDIRS = include $(H5_TEST_DIR) libdispatch libsrc $(LIBSRC4_DIR)	\
-$(LIBSRCP) $(LIBHDF4) $(LIBHDF5) $(OCLIB) $(DAP2) ${DAP4} liblib	\
-$(NCGEN3) $(NCGEN) $(NCDUMP) ${PLUGIN_DIR} $(TESTDIRS) docs		\
+SUBDIRS = include ${XML} libdispatch libsrc $(LIBSRC4_DIR)	\
+$(LIBSRCP) $(LIBHDF4) $(LIBHDF5) $(OCLIB) $(DAP2) ${DAP4} \
+${NCPOCO} ${ZARR} liblib \
+$(NCGEN3) $(NCGEN) $(NCDUMP) ${PLUGIN_DIR} $(TESTDIRS) docs	\
 $(EXAMPLES)
 
 # Remove these generated files, for a distclean.
@@ -177,11 +209,19 @@ install-data-hook:
 	@echo '| but your platform is probably different in some ways.       |'
 	@echo '|                                                             |'
 	@echo '| If any tests fail, please see the netCDF web site:          |'
-	@echo '| http://www.unidata.ucar.edu/software/netcdf/                |'
+	@echo '| https://www.unidata.ucar.edu/software/netcdf/                |'
 	@echo '|                                                             |'
 	@echo '| NetCDF is developed and maintained at the Unidata Program   |'
 	@echo '| Center. Unidata provides a broad array of data and software |'
 	@echo '| tools for use in geoscience education and research.         |'
-	@echo '| http://www.unidata.ucar.edu                                 |'
+	@echo '| https://www.unidata.ucar.edu                                 |'
 	@echo '+-------------------------------------------------------------+'
 	@echo ''
+
+
+# Create the VERSION file after the build
+# in case it is being used by packagers
+all-local: liblib/libnetcdf.la
+	echo ${PACKAGE_VERSION} > VERSION
+# Remove the VERSION file
+CLEANFILES = VERSION

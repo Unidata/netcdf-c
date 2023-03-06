@@ -12,7 +12,7 @@ set -e
 # Figure our dst server
 DTS=`./findtestserver dap2 dts`
 if test "x$DTS" = "x" ; then
-echo "cannot locate test server for dts"
+echo "WARNING: cannot locate test server for dts"
 exit
 fi
 URL="$DTS/test.03"

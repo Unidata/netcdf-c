@@ -6,7 +6,7 @@
 
   This program tests for a bug discovered with nofill mode that failed
   only on file systems with block size in a particular range.  This version
-  of the test showed failure using a normal nc_create() call rather tha
+  of the test showed failure using a normal nc_create() call rather than
   a special nc__create() call to change the blksize.
 */
 

@@ -5,7 +5,6 @@
  *********************************************************************/
 
 #include "includes.h"
-#include "nc_iter.h"
 #include <ctype.h>	/* for isprint() */
 
 #ifdef ENABLE_C
@@ -96,11 +95,14 @@ genc_netcdf(void)
         for(ivar=0;ivar<nvars;ivar++) {
             Bytebuffer* tmp = bbNew();
             Symbol* var = (Symbol*)listget(vardefs,ivar);
-            Specialdata* special = var->var.special;
+            Specialdata* special = &var->var.special;
             if(special->flags & _CHUNKSIZES_FLAG) {
                 int i;
                 size_t* chunks = special->_ChunkSizes;
-                if(special->nchunks == 0 || chunks == NULL) continue;
+                if(special->nchunks == 0 || chunks == NULL) {
+                    bbFree(tmp);
+                    continue;
+                }
                 bbClear(tmp);
                 for(i=0;i<special->nchunks;i++) {
                     bbprintf(tmp,"%s%ld",
@@ -113,21 +115,28 @@ genc_netcdf(void)
                 codeline("} ;");
             }
             if(special->flags & _FILTER_FLAG) {
-                int i;
-                unsigned int* params = special->_FilterParams;
-                if(special->nparams == 0 || params == NULL) continue;
-                bbClear(tmp);
-                for(i=0;i<special->nparams;i++) {
-                    bbprintf(tmp,"%s%luU",
+		int k;
+		for(k=0;k<special->nfilters;k++) {
+		    int i;
+		    size_t nparams;
+		    unsigned int* params = NULL;
+		    NC_H5_Filterspec* nfs = special->_Filters[k];
+		    if(nfs->nparams == 0 || nfs->params == NULL) continue;
+	   	    bbClear(tmp);
+		    nparams = nfs->nparams;
+		    params = nfs->params;
+		    for(i=0;i<nparams;i++) {
+                        bbprintf(tmp,"%s%uU",
                             (i == 0?"":", "),params[i]);
+		    }
+                    bbprintf0(stmt,"static unsigned int %s_%d_filterparams[%d] = {",
+                            cname(var),k,nparams);
+                    codedump(stmt);
+                    codedump(tmp);
+                    codeline("} ;");
                 }
-                bbprintf0(stmt,"static unsigned int %s_filterparams[%d] = {",
-                            cname(var),special->nparams);
-                codedump(stmt);
-                codedump(tmp);
-                codeline("} ;");
-            }
-	    bbFree(tmp);
+	    }
+            bbFree(tmp);
         }
 	codeline("");
     }
@@ -135,13 +144,15 @@ genc_netcdf(void)
 
     /* Now construct the main procedures*/
     codeline("void");
-    codeline("check_err(const int stat, const int line, const char *file) {");
+    codeline("check_err(const int stat, int line, const char* file, const char* func) {");
     codelined(1,"if (stat != NC_NOERR) {");
-    codelined(2,"(void)fprintf(stderr,\"line %d of %s: %s\\n\", line, file, nc_strerror(stat));");
+    codelined(2,"(void)fprintf(stderr,\"line %d of %s.%s: %s\\n\", line, file, func, nc_strerror(stat));");
     codelined(2,"fflush(stderr);");
     codelined(2,"exit(1);");
     codelined(1,"}");
     codeline("}");
+    codeline("");
+    codeline("#define CHECK_ERR(err) check_err(err, __LINE__, __FILE__, __func__)");
     codeline("");
     codeline("int");
     bbprintf0(stmt,"%s() {/* create %s */\n", mainname, filename);
@@ -274,7 +285,7 @@ genc_netcdf(void)
     bbprintf0(stmt,"    stat = nc_create(\"%s\", %s, &ncid);\n",
 		 filename,cmode_string);
     codedump(stmt);
-    codelined(1,"check_err(stat,__LINE__,__FILE__);");
+    codelined(1,"CHECK_ERR(stat);");
     codeflush();
 
 #ifdef USE_NETCDF4
@@ -298,7 +309,7 @@ genc_netcdf(void)
 		groupncid(gsym->container),
 		gsym->name, groupncid(gsym));
 	    codedump(stmt);
-	    codelined(1,"check_err(stat,__LINE__,__FILE__);");
+	    codelined(1,"CHECK_ERR(stat);");
 	}
         codeflush();
     }
@@ -334,7 +345,7 @@ genc_netcdf(void)
                           dimncid(dsym));
 	    }
 	    codedump(stmt);
-	    codelined(1,"check_err(stat,__LINE__,__FILE__);");
+	    codelined(1,"CHECK_ERR(stat);");
        }
     }
     codeflush();
@@ -368,7 +379,7 @@ genc_netcdf(void)
 			(dimset->ndims == 0?"0":poolcat(cname(vsym),"_dims")),
 			varncid(vsym));
 	    codedump(stmt);
-	    codelined(1,"check_err(stat,__LINE__,__FILE__);");
+	    codelined(1,"CHECK_ERR(stat);");
 #ifdef USE_NETCDF4
 	    genc_definespecialattributes(vsym);
 #endif /*USE_NETCDF4*/
@@ -404,14 +415,14 @@ genc_netcdf(void)
         codelined(1,"/* don't initialize variables with fill values */");
 	bbindent(stmt,1);
 	bbprintf0(stmt,"stat = nc_set_fill(%s, NC_NOFILL, 0);",groupncid(rootgroup));
-	codelined(1,"check_err(stat,__LINE__,__FILE__);");
+	codelined(1,"CHECK_ERR(stat);");
     }
 
     codeline("");
     codelined(1,"/* leave define mode */");
     bbprintf0(stmt,"    stat = nc_enddef (%s);\n",groupncid(rootgroup));
     codedump(stmt);
-    codelined(1,"check_err(stat,__LINE__,__FILE__);");
+    codelined(1,"CHECK_ERR(stat);");
     codeflush();
 
     if(!header_only) {
@@ -434,31 +445,30 @@ genc_netcdf(void)
 static void
 genc_defineglobalspecials(void)
 {
-    const char* format = NULL;
     if(usingclassic) return;
     if(!/*Main.*/format_attribute) return;
-    /* Watch out, this is a global Attribute */
-    format = kind_string(globalspecials._Format);
-    bbprintf0(stmt,"%sstat = nc_put_att_text(ncid, NC_GLOBAL, \"_Format\", 1, \"%s\");\n",
-	          indented(1),
-		  format);
-    codedump(stmt);
-    codelined(1,"check_err(stat,__LINE__,__FILE__);");
+    /* There are currently no global specials that
+       can be defined using nc_put_att.*/
 }
 
 static void
 genc_definespecialattributes(Symbol* vsym)
 {
-    Specialdata* special = vsym->var.special;
+    Specialdata* special = &vsym->var.special;
     if(usingclassic) return;
     if(special->flags & _STORAGE_FLAG) {
-        int storage = special->_Storage;
+        const char* storage = NULL;
         size_t* chunks = special->_ChunkSizes;
+	switch (special->_Storage) {
+	case NC_CONTIGUOUS: storage = "NC_CONTIGUOUS"; break;
+	case NC_COMPACT: storage = "NC_COMPACT"; break;
+	case NC_CHUNKED: storage = "NC_CHUNKED"; break;
+	}
         bbprintf0(stmt,
                 "    stat = nc_def_var_chunking(%s, %s, %s, ",
                 groupncid(vsym->container),
                 varncid(vsym),
-                (storage == NC_CONTIGUOUS?"NC_CONTIGUOUS":"NC_CHUNKED"));
+		storage);
         codedump(stmt);
         if(special->nchunks == 0 || chunks == NULL)
             codepartial("NULL");
@@ -467,7 +477,7 @@ genc_definespecialattributes(Symbol* vsym)
             codedump(stmt);
         }
         codeline(");");
-        codelined(1,"check_err(stat,__LINE__,__FILE__);");
+        codelined(1,"CHECK_ERR(stat);");
     }
     if(special->flags & _FLETCHER32_FLAG) {
         bbprintf0(stmt,
@@ -476,7 +486,7 @@ genc_definespecialattributes(Symbol* vsym)
                 varncid(vsym),
                 special->_Fletcher32);
         codedump(stmt);
-        codelined(1,"check_err(stat,__LINE__,__FILE__);");
+        codelined(1,"CHECK_ERR(stat);");
     }
     if(special->flags & (_DEFLATE_FLAG | _SHUFFLE_FLAG)) {
         bbprintf0(stmt,
@@ -487,7 +497,7 @@ genc_definespecialattributes(Symbol* vsym)
                 (special->_DeflateLevel >= 0?1:0),
                 (special->_DeflateLevel >= 0?special->_DeflateLevel:0));
         codedump(stmt);
-        codelined(1,"check_err(stat,__LINE__,__FILE__);");
+        codelined(1,"CHECK_ERR(stat);");
     }
     if(special->flags & _ENDIAN_FLAG) {
         bbprintf0(stmt,
@@ -498,7 +508,7 @@ genc_definespecialattributes(Symbol* vsym)
                                                     :"NC_ENDIAN_BIG")
                 );
         codedump(stmt);
-        codelined(1,"check_err(stat,__LINE__,__FILE__);");
+        codelined(1,"CHECK_ERR(stat);");
     }
     if(special->flags & _NOFILL_FLAG) {
         bbprintf0(stmt,
@@ -508,49 +518,46 @@ genc_definespecialattributes(Symbol* vsym)
                 (special->_Fill?"NC_FILL":"NC_NOFILL")
                 );
         codedump(stmt);
-        codelined(1,"check_err(stat,__LINE__,__FILE__);");
+        codelined(1,"CHECK_ERR(stat);");
     }
     if(special->flags & _FILTER_FLAG) {
-	/* Special check for alternate way to specify _Deflate */
-	if(special->_FilterID == ZIP_ID) {
-	    unsigned int level;
-	    if(special->nparams == 0 || special->_FilterParams == NULL)
-		level = 9; /* default */
-	    else
-		level = special->_FilterParams[0];
-	    if(level > 9)
-		derror("Illegal deflate level");		
-	    else {
-	        bbprintf0(stmt,
-	                "    stat = nc_def_var_deflate(%s, %s, %s, %d, %d);\n",
-	                groupncid(vsym->container),
-	                varncid(vsym),
-	                (special->_Shuffle == 1?"NC_SHUFFLE":"NC_NOSHUFFLE"),
-	                1,
-			level);
-	        codedump(stmt);
-	    }
-	} else {
-	        bbprintf0(stmt,
+	int k;
+	for(k=0;k<special->nfilters;k++) {
+	     NC_H5_Filterspec* nfs = special->_Filters[k];
+	     bbprintf0(stmt,
 	                "    stat = nc_def_var_filter(%s, %s, %u, %lu, ",
 	                groupncid(vsym->container),
 	                varncid(vsym),
-			special->_FilterID,
-			special->nparams
+			nfs->filterid,
+			(unsigned long)nfs->nparams
 			);
+	    codedump(stmt);
+	    if(nfs->nparams == 0 || nfs->params == NULL)
+	        codepartial("NULL");
+            else {
+	        bbprintf0(stmt,"%s_%d_filterparams",cname(vsym),k);
 	        codedump(stmt);
-	        if(special->nparams == 0 || special->_FilterParams == NULL)
-	            codepartial("NULL");
-        	else {
-	            bbprintf0(stmt,"%s_filterparams",cname(vsym));
-	            codedump(stmt);
-		}
-	        codeline(");");
+	    }
+	    codeline(");");
+            codelined(1,"CHECK_ERR(stat);");
 	}
-        codelined(1,"check_err(stat,__LINE__,__FILE__);");
     }
-
-
+    if(special->flags & (_QUANTIZEBG_FLAG | _QUANTIZEGBR_FLAG)) {
+    	const char* alg = NULL;
+	switch(special->_Quantizer) {
+	case NC_QUANTIZE_BITGROOM: alg = "NC_QUANTIZE_BITGROOM";
+	case NC_QUANTIZE_GRANULARBR: alg = "NC_QUANTIZE_GRANULARBR";
+	default: alg = "NC_NOQUANTIZE";
+	}
+        bbprintf0(stmt,
+                "    stat = nc_def_var_quantize(%s, %s, %s, %d);\n",
+                groupncid(vsym->container),
+                varncid(vsym),
+		alg, special->_NSD
+                );
+        codedump(stmt);
+        codelined(1,"CHECK_ERR(stat);");
+    }
 }
 #endif /*USE_NETCDF4*/
 
@@ -559,7 +566,7 @@ genc_close(void)
 {
     bbprintf0(stmt,"%sstat = nc_close(%s);\n",indented(1),groupncid(rootgroup));
     codedump(stmt);
-    codelined(1,"check_err(stat,__LINE__,__FILE__);");
+    codelined(1,"CHECK_ERR(stat);");
 #ifndef vms
     codelined(1,"return 0;");
 #else
@@ -850,7 +857,7 @@ genc_deftype(Symbol* tsym)
 		tsym->name,
 		typencid(tsym));
 	codedump(stmt);
-	codelined(1,"check_err(stat,__LINE__,__FILE__);");
+	codelined(1,"CHECK_ERR(stat);");
 	break;
     case NC_ENUM:
 	codelined(1,"{");
@@ -865,7 +872,7 @@ genc_deftype(Symbol* tsym)
 		tsym->name,
 		typencid(tsym));
 	codedump(stmt);
-	codelined(1,"check_err(stat,__LINE__,__FILE__);");
+	codelined(1,"CHECK_ERR(stat);");
 	for(i=0;i<listlength(tsym->subnodes);i++) {
 	    Symbol* econst = (Symbol*)listget(tsym->subnodes,i);
 	    Bytebuffer* econststring = bbNew();
@@ -893,7 +900,7 @@ genc_deftype(Symbol* tsym)
 		typencid(tsym->typ.basetype),
 		typencid(tsym));
 	codedump(stmt);
-	codelined(1,"check_err(stat,__LINE__,__FILE__);");
+	codelined(1,"CHECK_ERR(stat);");
 	break;
     case NC_COMPOUND:
 	bbprintf0(stmt,"%sstat = nc_def_compound(%s, sizeof(%s), \"%s\", &%s);",
@@ -903,7 +910,7 @@ genc_deftype(Symbol* tsym)
 		escapifyname(tsym->name),
 		typencid(tsym));
 	codedump(stmt);
-	codelined(1,"check_err(stat,__LINE__,__FILE__);");
+	codelined(1,"CHECK_ERR(stat);");
 	/* Generate the field dimension constants*/
 	codelined(1,"{");
 	for(i=0;i<listlength(tsym->subnodes);i++) {
@@ -955,7 +962,7 @@ genc_deftype(Symbol* tsym)
 		    typencid(efield->typ.basetype));
 	    }
 	    codedump(stmt);
-	    codelined(1,"check_err(stat,__LINE__,__FILE__);");
+	    codelined(1,"CHECK_ERR(stat);");
 	}
 	codelined(1,"}");
 	break;
@@ -1053,7 +1060,7 @@ genc_writevar(Generator* generator, Symbol* vsym, Bytebuffer* code,
 		varncid(vsym),
 		cname(vsym));
         codedump(stmt);
-        codelined(1,"check_err(stat,__LINE__,__FILE__);");
+        codelined(1,"CHECK_ERR(stat);");
 	codeflush();
     } else { /* rank > 0 */
 	int i;
@@ -1115,7 +1122,7 @@ genc_writevar(Generator* generator, Symbol* vsym, Bytebuffer* code,
 			cname(vsym),
 			cname(vsym));
 	codedump(stmt);
-	codelined(1,"check_err(stat,__LINE__,__FILE__);");
+	codelined(1,"CHECK_ERR(stat);");
 
     }
     /* end defined block*/
@@ -1268,7 +1275,7 @@ genc_writeattr(Generator* generator, Symbol* asym, Bytebuffer* code,
 	break;
     }
 
-    codelined(1,"check_err(stat,__LINE__,__FILE__);");
+    codelined(1,"CHECK_ERR(stat);");
     codelined(1,"}");
 }
 

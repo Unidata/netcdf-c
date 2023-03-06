@@ -6,10 +6,10 @@
  *   $Header: /upc/share/CVS/netcdf-3/ncgen/ncgen.h,v 1.18 2010/06/01 15:34:53 ed Exp $
 *********************************************************************/
 
-#ifdef _MSC_VER
-#include <float.h>
-#include "../ncdump/isnan.h"
-#define strcasecmp _stricmp
+#include "config.h"
+
+#ifndef nulldup
+ #define nulldup(x) ((x)?strdup(x):(x))
 #endif
 
 #ifdef USE_NETCDF4
@@ -40,23 +40,8 @@
 /* Extend nc types with NIL value*/
 #define NC_NIL       32
 
-/* Must be a better way to do this */
-#ifndef INFINITE
-#ifdef _MSC_VER
-#define NC_INFINITE (DBL_MAX+DBL_MAX)
-#define NC_INFINITEF NC_INFINITE
-#define NAN (NC_INFINITE-NC_INFINITE)
-#define NANF NAN
-#else
-#define NC_INFINITE (1.0/0.0)
-#define NC_INFINITEF (1.0f/0.0f)
-#define NAN (0.0/0.0)
-#define NANF (0.0f/0.0f)
-#endif
-
 #define NEGNC_INFINITEF (-NC_INFINITEF)
 #define NEGNC_INFINITE (-NC_INFINITEF)
-#endif
 
 /* nc_class is one of:
         NC_GRP NC_DIM NC_VAR NC_ATT NC_TYPE
@@ -94,6 +79,10 @@ various C global variables
 #define _SUPERBLOCK_FLAG    0x400
 #define _FORMAT_FLAG        0x800
 #define _FILTER_FLAG        0x1000
+#define _CODECS_FLAG        0x2000
+#define _QUANTIZEBG_FLAG    0x4000
+#define _QUANTIZEGBR_FLAG   0x8000
+#define _QUANTIZEBR_FLAG    0x10000
 
 extern struct Specialtoken {
     char* name;
@@ -113,14 +102,10 @@ typedef enum Language {
 struct Kvalues {
 char* name;
 int k_flag;
+int deprecated;
 };
 
 extern struct Kvalues legalkinds[];
-
-struct FilterID {
-char* name;
-unsigned int id;
-};
 
 #define ZIP_ID  0xFFFFFFFF
 #define SZIP_ID  0xFFFFFFFE
@@ -132,7 +117,7 @@ unsigned int id;
 typedef struct Specialdata {
     int flags;
     Datalist*      _Fillvalue; /* This is a per-type ; points to the _FillValue attribute node */
-    int           _Storage;      /* NC_CHUNKED | NC_CONTIGUOUS*/
+    int           _Storage;      /* NC_CHUNKED | NC_CONTIGUOUS | NC_COMPACT*/
     size_t*       _ChunkSizes;     /* NULL => defaults*/
         int nchunks;     /*  |_Chunksize| ; 0 => not specified*/
     int           _Fletcher32;     /* 1=>fletcher32*/
@@ -140,9 +125,11 @@ typedef struct Specialdata {
     int           _Shuffle;      /* 0 => false, 1 => true*/
     int           _Endianness;   /* 1 =>little, 2 => big*/
     int           _Fill ;        /* 0 => false, 1 => true WATCHOUT: this is inverse of NOFILL*/
-    unsigned int  _FilterID;
-    size_t nparams;          /*  |_FilterParms| ; 0 => not specified*/
-        unsigned int* _FilterParams; /* NULL => defaults*/
+    int           _Quantizer;    /* algorithm */
+    int           _NSD;          /* No. of significant digits */
+    NC_H5_Filterspec** _Filters;
+    size_t 	   nfilters; /* |filters| */
+    char*          _Codecs; /* in JSON form */
 } Specialdata;
 
 typedef struct GlobalSpecialdata {
@@ -200,7 +187,7 @@ typedef struct Typeinfo {
 typedef struct Varinfo {
     int		nattributes; /* |attributes|*/
     List*       attributes;  /* List<Symbol*>*/
-    Specialdata* special;
+    Specialdata special;
 } Varinfo;
 
 typedef struct Groupinfo {

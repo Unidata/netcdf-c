@@ -40,7 +40,7 @@ main()
       /* Open file. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, 
 			      H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gcreate(fileid, GROUP_NAME, 0)) < 0) ERR;
+      if ((grpid = H5Gcreate1(fileid, GROUP_NAME, 0)) < 0) ERR;
 
       /* Create VLEN type. */
       if ((typeid =  H5Tvlen_create(H5T_NATIVE_INT)) < 0) ERR;
@@ -51,7 +51,7 @@ main()
 
       /* Write an attribute of this vlen type. */
       if ((spaceid = H5Screate_simple(1, dims, NULL)) < 0) ERR;
-      if ((attid = H5Acreate(grpid, ATT_NAME, typeid, spaceid, 
+      if ((attid = H5Acreate1(grpid, ATT_NAME, typeid, spaceid, 
 			     H5P_DEFAULT)) < 0) ERR;
       if (H5Awrite(attid, typeid, data) < 0) ERR;
       if (H5Aclose(attid) < 0) ERR;
@@ -61,7 +61,7 @@ main()
 
       /* Reopen the file and read the vlen data. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, GROUP_NAME)) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, GROUP_NAME)) < 0) ERR;
       if ((attid = H5Aopen_name(grpid, ATT_NAME)) < 0) ERR;
       if ((spaceid = H5Aget_space(attid)) < 0) ERR;
       if ((typeid = H5Aget_type(attid)) < 0) ERR;
@@ -80,7 +80,11 @@ main()
 	 free(data[i].p);
 
       /* HDF5 allocated memory to store the data. Free that memory. */
+#if H5_VERSION_GE(1,12,0)
+      if (H5Treclaim(typeid, spaceid, H5P_DEFAULT, data_in) < 0) ERR;
+#else
       if (H5Dvlen_reclaim(typeid, spaceid, H5P_DEFAULT, data_in) < 0) ERR;
+#endif
 
       /* Close everything. */
       if (H5Aclose(attid) < 0 ||
@@ -116,7 +120,7 @@ main()
 /*       /\* Create file. *\/ */
 /*       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,  */
 /* 			      H5P_DEFAULT)) < 0) ERR; */
-/*       if ((grpid = H5Gcreate(fileid, "grp1", 0)) < 0) ERR; */
+/*       if ((grpid = H5Gcreate1(fileid, "grp1", 0)) < 0) ERR; */
       
 /*       /\* Create VLEN type. *\/ */
 /*       if ((vlen_typeid =  H5Tvlen_create(H5T_NATIVE_FLOAT)) < 0) ERR; */
@@ -131,7 +135,7 @@ main()
 /*       if (H5Tcommit(grpid, "sea_sounding_type", compound_typeid) < 0) ERR; */
 
 /*       if ((spaceid = H5Screate_simple(1, dims, NULL)) < 0) ERR; */
-/*       if ((datasetid = H5Dcreate(grpid, "sea_sounding_dataset", compound_typeid,  */
+/*       if ((datasetid = H5Dcreate1(grpid, "sea_sounding_dataset", compound_typeid,  */
 /* 				 spaceid, H5P_DEFAULT)) < 0) ERR; */
 /*       if (H5Dwrite(datasetid, compound_typeid, H5S_ALL, H5S_ALL, H5P_DEFAULT,  */
 /* 		   data) < 0) ERR; */

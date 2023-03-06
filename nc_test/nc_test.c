@@ -98,7 +98,7 @@ main(int argc, char *argv[])
      */
     (void) signal(SIGFPE, SIG_IGN);
 
-    verbose = 0;
+    verbose = 1;
     max_nmpt = 8;
 
     /* If you uncomment the nc_set_log_level line, you will get a lot

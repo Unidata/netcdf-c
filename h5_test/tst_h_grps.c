@@ -41,14 +41,14 @@ main()
       if (H5Pset_fclose_degree(access_plistid, H5F_CLOSE_SEMI)) ERR;
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, 
 			      access_plistid)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
       if (H5Gclose(grpid) < 0 ||
 	  H5Fclose(fileid) < 0) ERR;
       
       /* Reopen file and root group. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDWR, 
 			    access_plistid)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
       if (H5Gclose(grpid) < 0 ||
 	  H5Fclose(fileid) < 0)
 	 ERR;
@@ -64,9 +64,9 @@ main()
       /* Create file with one dataset. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, 
 			      H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
       if ((spaceid = H5Screate(H5S_SCALAR)) < 0) ERR;
-      if ((datasetid = H5Dcreate(grpid, DATASET_NAME, H5T_NATIVE_INT, 
+      if ((datasetid = H5Dcreate1(grpid, DATASET_NAME, H5T_NATIVE_INT, 
 				 spaceid, H5P_DEFAULT)) < 0) ERR;
       if (H5Dclose(datasetid) < 0 ||
 	  H5Sclose(spaceid) < 0 ||
@@ -76,7 +76,7 @@ main()
       /* Reopen file and check, then rename dataset. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDWR, 
 			    H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
       if ((datasetid = H5Dopen1(grpid, DATASET_NAME)) < 0) ERR;
       if (H5Dclose(datasetid) < 0) ERR;
       if (H5Gmove(grpid, DATASET_NAME, NEW_NAME) < 0) ERR;
@@ -96,16 +96,16 @@ main()
       /* Create file with some nested groups. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, 
 			      H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gcreate(fileid, GRP_NAME, 0)) < 0) ERR;
-      if ((subgrpid = H5Gcreate(grpid, SUB_GRP_NAME, 0)) < 0) ERR;
+      if ((grpid = H5Gcreate1(fileid, GRP_NAME, 0)) < 0) ERR;
+      if ((subgrpid = H5Gcreate1(grpid, SUB_GRP_NAME, 0)) < 0) ERR;
       if (H5Gclose(subgrpid) < 0 ||
 	  H5Gclose(grpid) < 0 ||
 	  H5Fclose(fileid) < 0) ERR;
       
       /* Reopen file and discover groups. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, GRP_NAME)) < 0) ERR;
-      if ((subgrpid = H5Gopen(grpid, SUB_GRP_NAME)) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, GRP_NAME)) < 0) ERR;
+      if ((subgrpid = H5Gopen1(grpid, SUB_GRP_NAME)) < 0) ERR;
       if (H5Gclose(subgrpid) < 0 ||
 	  H5Gclose(grpid) < 0 ||
 	  H5Fclose(fileid) < 0) ERR;
@@ -120,16 +120,16 @@ main()
       /* Create file with nested group. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, 
 			      H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gcreate(fileid, (char *)norm_utf8, 0)) < 0) ERR;
-      if ((subgrpid = H5Gcreate(grpid, SUB_GRP_NAME, 0)) < 0) ERR;
+      if ((grpid = H5Gcreate1(fileid, (char *)norm_utf8, 0)) < 0) ERR;
+      if ((subgrpid = H5Gcreate1(grpid, SUB_GRP_NAME, 0)) < 0) ERR;
       if (H5Gclose(subgrpid) < 0 ||
 	  H5Gclose(grpid) < 0 ||
 	  H5Fclose(fileid) < 0) ERR;
       
       /* Reopen file and discover groups. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, (char *)norm_utf8)) < 0) ERR;
-      if ((subgrpid = H5Gopen(grpid, SUB_GRP_NAME)) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, (char *)norm_utf8)) < 0) ERR;
+      if ((subgrpid = H5Gopen1(grpid, SUB_GRP_NAME)) < 0) ERR;
       if (H5Gclose(subgrpid) < 0 ||
 	  H5Gclose(grpid) < 0 ||
 	  H5Fclose(fileid) < 0) ERR;
@@ -154,15 +154,15 @@ main()
       if ((grpid = H5Gcreate_anon(fileid, gcpl_id, H5P_DEFAULT)) < 0) ERR;
       if ((H5Olink(grpid, fileid, (char *)norm_utf8, H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
 
-      if ((subgrpid = H5Gcreate(grpid, SUB_GRP_NAME, 0)) < 0) ERR;
+      if ((subgrpid = H5Gcreate1(grpid, SUB_GRP_NAME, 0)) < 0) ERR;
       if (H5Gclose(subgrpid) < 0 ||
 	  H5Gclose(grpid) < 0 ||
 	  H5Fclose(fileid) < 0) ERR;
       
       /* Reopen file and discover groups. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, (char *)norm_utf8)) < 0) ERR;
-      if ((subgrpid = H5Gopen(grpid, SUB_GRP_NAME)) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, (char *)norm_utf8)) < 0) ERR;
+      if ((subgrpid = H5Gopen1(grpid, SUB_GRP_NAME)) < 0) ERR;
       if (H5Gclose(subgrpid) < 0 ||
 	  H5Gclose(grpid) < 0 ||
 	  H5Fclose(fileid) < 0) ERR;

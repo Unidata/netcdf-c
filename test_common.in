@@ -5,8 +5,39 @@
 
 # See netcdf-c/COPYRIGHT file for more info.
 
+# Load only once
+if test "x$TEST_COMMON_SH" = x ; then
+export TEST_COMMON_SH=1
+
+# Define location of execution
 TOPSRCDIR='@abs_top_srcdir@'
 TOPBUILDDIR='@abs_top_builddir@'
+FP_ISCMAKE=@ISCMAKE@
+FP_ISMSVC=@ISMSVC@
+  FP_WINVERMAJOR=@WINVERMAJOR@
+  FP_WINVERBUILD=@WINVERBUILD@
+FP_ISCYGWIN=@ISCYGWIN@
+FP_ISMINGW=@ISMINGW@
+FP_ISMSYS=@ISMSYS@
+FP_ISOSX=@ISOSX@
+
+FP_ISREGEDIT=@ISREGEDIT@
+FP_USEPLUGINS=@USEPLUGINS@
+
+# Feature flags
+FEATURE_HDF5=@HAS_HDF5@
+FEATURE_PARALLEL=@HAS_PARALLEL@
+
+# Define selected features of the build
+FEATURE_HDF5=@HAS_HDF5@
+FEATURE_NCZARR=@HAS_NCZARR@
+FEATURE_S3TESTS=@DO_NCZARR_S3_TESTS@
+FEATURE_NCZARR_ZIP=@DO_NCZARR_ZIP_TESTS@
+FEATURE_FILTERTESTS=@DO_FILTER_TESTS@
+FEATURE_PLUGIN_INSTALL_DIR=@PLUGIN_INSTALL_DIR@
+
+# Thredds-test server is currently disabled
+#FEATURE_THREDDSTEST=1
 
 set -e
 
@@ -57,9 +88,20 @@ set -e
 # 7. NCCOPY - absolute path to the nccopy.exe executable
 # 8. NCGEN - absolute path to ncgen.exe
 # 9. NCGEN3 - absolute path to ncgen3.exe
+#10. NCPATHCVT - absolute path to ncpathcvt.exe
 
 # Allow global set -x mechanism for debugging.
 if test "x$SETX" = x1 ; then set -x ; fi
+
+# On MINGW, bash and other POSIX utilities use a mounted root directory,
+# but executables compiled for Windows do not recognise the mount point.
+# Here we ensure that Windows paths are used in tests of Windows executables.
+
+system=`uname`
+if test "x${system##MINGW*}" = x; then
+  alias pwd='pwd -W'
+
+fi
 
 # We assume that TOPSRCDIR and TOPBUILDDIR are defined
 # At the top of this shell script
@@ -95,9 +137,6 @@ cd $builddir; builddir=`pwd` ; cd $WD
 cd $top_builddir; top_builddir=`pwd` ; cd $WD
 cd $execdir; execdir=`pwd` ; cd $WD
 
-# If we have cygpath (which only exists under CYGWIN),
-# then try to normalize selected file paths.
-
 # For sun os
 export srcdir top_srcdir builddir top_builddir execdir
 
@@ -114,6 +153,7 @@ export NCDUMP="${top_builddir}/ncdump${VS}/ncdump${ext}"
 export NCCOPY="${top_builddir}/ncdump${VS}/nccopy${ext}"
 export NCGEN="${top_builddir}/ncgen${VS}/ncgen${ext}"
 export NCGEN3="${top_builddir}/ncgen3${VS}/ncgen3${ext}"
+export NCPATHCVT="${top_builddir}/ncdump${VS}/ncpathcvt${ext}"
 
 # Temporary hacks (until we have a test_utils directory)
 # to locate certain specific test files
@@ -121,5 +161,26 @@ ncgen3c0="${top_srcdir}/ncgen3/c0.cdl"
 ncgenc0="${top_srcdir}/ncgen/c0.cdl"
 ncgenc04="${top_srcdir}/ncgen/c0_4.cdl"
 
+# Set LC_ALL
+if test "x$FP_ISMSVC" = xyes || test "x$FP_ISCYGWIN" = xyes; then export LC_ALL="en_US.utf8"; fi
+
+# Set HOME
+if test "x$FP_ISMSVC" = xyes || test "x$FP_MINGW" = xyes; then
+if test "x$HOME" = x ; then
+HOME=`echo $USERPROFILE |tr '\\\' '/'`
+export HOME
+fi
+fi
+
+# Test for filter availability
+avail() {
+if test yes = `${execdir}/../ncdump/ncfilteravail $1` ; then return 0 ; else echo "filter $1 not available" ; return 1; fi
+}
+
+# Thredds-test is no longer available
+#FEATURE_THREDDSTEST=1
+
 # Make sure we are in builddir (not execdir)
 cd $builddir
+
+fi #TEST_COMMON_SH

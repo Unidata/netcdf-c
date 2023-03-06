@@ -14,7 +14,7 @@
 #define NDIMS3 3
 
 /* Calculate the waste of the chunking. A waste of 10% means the
- * chunked data is 10% larget then the unchunked data. */
+ * chunked data is 10% larger then the unchunked data. */
 static int
 calculate_waste(int ndims, size_t *dimlen, size_t *chunksize, float *waste)
 {

@@ -50,7 +50,7 @@ main()
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, fcpl_id, fapl_id)) < 0) ERR;
 
       /* Open root group. */
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
 
       /* Create 1 D data space with unlimited dimension. */
       dimsize[0] = 0;
@@ -69,7 +69,7 @@ main()
       {
 	 sprintf(var_name, "var_%d", v);
 /*	 printf("creating var %s\n", var_name);*/
-	 if ((datasetid[v] = H5Dcreate(grpid, var_name, H5T_NATIVE_INT,
+	 if ((datasetid[v] = H5Dcreate1(grpid, var_name, H5T_NATIVE_INT,
 				    spaceid, plistid)) < 0) ERR_RET;
       }
 
@@ -88,7 +88,7 @@ main()
       if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
       if (H5Pset_libver_bounds(fapl_id, H5F_LIBVER_LATEST, H5F_LIBVER_LATEST) < 0) ERR;
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, fapl_id)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
 
 /*       if ((datasetid = H5Dopen1(grpid, SIMPLE_VAR_NAME)) < 0) ERR; */
 /*       if ((spaceid = H5Dget_space(datasetid)) < 0) */

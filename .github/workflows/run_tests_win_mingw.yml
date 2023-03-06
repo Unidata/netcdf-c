@@ -1,0 +1,71 @@
+###
+# Build hdf4, hdf5 dependencies and cache them in a combined directory.
+# See https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners
+# for information related to github runners.
+###
+
+name: Run MSYS2, MinGW64-based Tests
+
+env:
+  CPPFLAGS: "-D_BSD_SOURCE"
+
+on: [pull_request,workflow_dispatch]
+
+jobs:
+
+  build-and-test-autotools:
+
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+
+      - uses: actions/checkout@v3
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: git mingw-w64-x86_64-toolchain automake libtool autoconf make cmake mingw-w64-x86_64-hdf5 unzip mingw-w64-x86_64-libxml2
+
+###
+# Configure and build
+###
+
+      - name: (Autotools) Run autoconf
+        run: autoreconf -if
+
+      - name: (Autotools) Configure Build
+        run: ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests --disable-static --disable-byterange --disable-dap-remote-tests --disable-logging --enable-plugins --disable-nczarr-filters --disable-nczarr-s3 --disable-nczarr-s3-tests
+        if: ${{ success() }}
+
+      - name: (Autotools) Look at config.log if error
+        run: cat config.log
+        if: ${{ failure() }}
+
+      - name: (Autotools) Print Summary
+        run: cat libnetcdf.settings
+
+      - name: (Autotools) Build Library and Utilities
+        run: make -j 8 LDFLAGS="-Wl,--export-all-symbols"
+        if: ${{ success() }}
+
+      - name: Check for plugins
+        run: |
+          dir ./plugins
+          dir ./plugins/.libs
+
+      - name: (Autotools) Build and Run Tests
+        run: make check -j 8 LDFLAGS="-Wl,--export-all-symbols"
+        if: ${{ success() }}
+        id: tests
+
+      - name: Upload test failures
+        if: ${{ failure() && steps.tests.conclusion == 'failure' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: mingw-autotools-test-logs
+          path: |
+            */*.log
+            */*.trs

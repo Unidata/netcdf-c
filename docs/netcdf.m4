@@ -435,7 +435,7 @@ f90 \-dp \-i64 ... \-lnetcdf
 )
 .ad
 .hy
-Complete documentation for the netCDF libraries can be found at the netCDF website: http://www.unidata.ucar.edu/software/netcdf/.
+Complete documentation for the netCDF libraries can be found at the netCDF website: https://www.unidata.ucar.edu/software/netcdf/.
 .sp
 .SH "LIBRARY VERSION"
 .LP
@@ -782,7 +782,7 @@ Learn about a variable length array type.
 .HP
 FDECL(free_vlen, (nc_vlen_t *vl))
 .sp
-Free memory comsumed by reading data of a variable length array type.
+Free memory consumed by reading data of a variable length array type.
 .HP
 FDECL(put_vlen_element, (INCID(), INCTYPE(), IVOIDP(vlen_element), ISIZET(len), IVOIDP(data)))
 .sp
@@ -794,7 +794,7 @@ Read one VLEN.
 .HP
 FDECL(free_string, (ISIZET(len), char **data))
 .sp
-Free memory comsumed by reading data of a string type.
+Free memory consumed by reading data of a string type.
 .HP
 FDECL(inq_user_type, (INCID(), INCTYPE(), ONAME(), OSIZET(), ONCTYPE(), OSIZET(), OINT()))
 .sp
@@ -1411,47 +1411,29 @@ May be used to change access to a variable from independent to collective data a
 .HP
 .SH "MPP FUNCTION DESCRIPTIONS"
 .LP
-Additional functions for use on SGI/Cray MPP machines (_CRAYMPP).
-These are used to set and inquire which PE is the base for MPP
-for a particular netCDF. These are only relevant when
-using the SGI/Cray ``global''
-Flexible File I/O layer and desire to have
-only a subset of PEs to open the specific netCDF file.
-For technical reasons, these functions are available on all platforms.
-On a platform other than SGI/Cray MPP, it is as if
-only processor available were processor 0.
+These functions were used on archaic SGI/Cray MPP machines. These
+functions are retained for backward compatibility; the PE arguments
+must all be set to zero.
 .LP
-To use this feature, you need to specify a communicator group and call
-CODE(glio_group_mpi(\|)) or CODE(glio_group_shmem(\|)) prior to the netCDF
-FREF(open) and FREF(create) calls.
 .HP
 FDECL(_create_mp, (IPATH(), ICMODE(), IINITSIZE(), IPE(), OCHUNKSIZE(), ONCID()))
 .sp
-Like FREF(_create) but allows the base PE to be set.
+Like FREF(_create).
 .sp
-The argument ARG(pe) sets the base PE at creation time. In the MPP
-environment, FREF(_create) and FREF(create) set the base PE to processor
-zero by default.
+The argument ARG(pe) must be zero.
 .HP
 FDECL(_open_mp, (IPATH(), IMODE(), IPE(), OCHUNKSIZE(), ONCID()))
 .sp
-Like FREF(_open) but allows the base PE to be set.
-The argument ARG(pe) sets the base PE at creation time. In the MPP
-environment, FREF(_open) and FREF(open) set the base PE to processor
-zero by default.
+Like FREF(_open).
+The argument ARG(pe) must be zero.
 .HP
 FDECL(inq_base_pe, (INCID(), OPE()))
 .sp
-Inquires of the netCDF dataset which PE is being used as the base for MPP use.
-This is safe to use at any time.
+Always returns pe of zero.
 .HP
 FDECL(set_base_pe, (INCID(), IPE()))
 .sp
-Resets the base PE for the netCDF dataset.
-Only perform this operation when the affected communicator group
-synchronizes before and after the call.
-This operation is very risky and should only be contemplated
-under only the most extreme cases.
+This function does nothing.
 .SH "ENVIRONMENT VARIABLES"
 .TP 4
 .B NETCDF_FFIOSPEC

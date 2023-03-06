@@ -17,6 +17,11 @@ chunkspec_parse(int ncid, const char *spec);
 extern size_t
 dimchunkspec_size(int dimid);
 
+/* Return 1 if a dimension spec is defined
+ * corresponding to dimid, 0 if not found */
+extern bool_t
+dimchunkspec_exists(int indimid);
+
 /* Return number of dimensions for which chunking was specified in
  * chunkspec string on command line, 0 if no chunkspec string was
  * specified. */
@@ -35,6 +40,8 @@ extern size_t* varchunkspec_chunksizes(int grpid, int varid);
 extern size_t varchunkspec_ndims(int grpid, int varid);
 
 extern bool_t varchunkspec_exists(int grpid, int varid);
+
+extern int varchunkspec_kind(int grpid, int varid);
 
 extern void chunkspecinit(void);
 

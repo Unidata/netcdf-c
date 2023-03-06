@@ -24,7 +24,6 @@ herr_t alien_visitor(hid_t did, unsigned dim, hid_t dsid,
 		     void *visitor_data)
 {
    char name1[STR_LEN];
-   H5G_stat_t statbuf;
    HDF5_OBJID_T *objid = visitor_data;
 
    /* This should get "/var1", the name of the dataset that the scale
@@ -33,28 +32,42 @@ herr_t alien_visitor(hid_t did, unsigned dim, hid_t dsid,
    if (strcmp(&name1[1], VAR1_NAME)) ERR;
    
    /* Get more info on the dimscale object.*/
+#if H5_VERSION_GE(1,12,0)
+   H5O_info2_t statbuf;
+   if (H5Oget_info3(dsid, &statbuf, H5O_INFO_BASIC ) < 0) ERR;
+   objid->fileno = statbuf.fileno;
+   objid->token = statbuf.token;
+#else
+   H5G_stat_t statbuf;
    if (H5Gget_objinfo(dsid, ".", 1, &statbuf) < 0) ERR;
    objid->fileno[0] = statbuf.fileno[0];
    objid->objno[0] = statbuf.objno[0];
    objid->fileno[1] = statbuf.fileno[1];
    objid->objno[1] = statbuf.objno[1];
+#endif
 
    return 0;
 }
 
 herr_t alien_visitor2(hid_t did, unsigned dim, hid_t dsid, void *visitor_data)
 {
-   H5G_stat_t statbuf;
    HDF5_OBJID_T *objid = visitor_data;
 
    /* Get obj id of the dimscale object. THis will be used later to
     * match dimensions to dimscales. */
+#if H5_VERSION_GE(1,12,0)
+   H5O_info2_t statbuf;
+   if (H5Oget_info3(dsid, &statbuf, H5O_INFO_BASIC ) < 0) ERR;
+   objid->fileno = statbuf.fileno;
+   objid->token = statbuf.token;
+#else
+   H5G_stat_t statbuf;
    if (H5Gget_objinfo(dsid, ".", 1, &statbuf) < 0) ERR;
    objid->fileno[0] = statbuf.fileno[0];
    objid->objno[0] = statbuf.objno[0];
    objid->fileno[1] = statbuf.fileno[1];
    objid->objno[1] = statbuf.objno[1];
-
+#endif
    return 0;
 }
 
@@ -82,12 +95,12 @@ main()
       if (H5Pset_chunk(cparmsid, NDIMS, dims) < 0) ERR;
 
       /* Create our dimension scale, as an unlimited dataset. */
-      if ((dimscaleid = H5Dcreate(fileid, DIMSCALE_NAME, H5T_NATIVE_INT,
+      if ((dimscaleid = H5Dcreate1(fileid, DIMSCALE_NAME, H5T_NATIVE_INT,
 				  spaceid, cparmsid)) < 0) ERR;
       if (H5DSset_scale(dimscaleid, NAME_ATTRIBUTE) < 0) ERR;
 
       /* Create a variable which uses it. */
-      if ((datasetid = H5Dcreate(fileid, VAR1_NAME, H5T_NATIVE_INT,
+      if ((datasetid = H5Dcreate1(fileid, VAR1_NAME, H5T_NATIVE_INT,
 				 spaceid, cparmsid)) < 0) ERR;
       if (H5DSattach_scale(datasetid, dimscaleid, 0) < 0) ERR;
       if (H5DSset_label(datasetid, 0, DIMSCALE_LABEL) < 0) ERR;
@@ -112,7 +125,11 @@ main()
       char label[STR_LEN+1];
       int num_scales;
       hsize_t dims[1], maxdims[1];
+#if H5_VERSION_GE(1,12,0)
+      H5O_info2_t statbuf;
+#else
       H5G_stat_t statbuf;
+#endif
       HDF5_OBJID_T dimscale_obj, vars_dimscale_obj;
 
       /* Open the file. */
@@ -153,11 +170,17 @@ main()
 
 		  /* fileno and objno uniquely identify an object and a
 		   * HDF5 file. */
+#if H5_VERSION_GE(1,12,0)
+		  if (H5Oget_info3(datasetid, &statbuf, H5O_INFO_BASIC) < 0) ERR;
+		  dimscale_obj.fileno = statbuf.fileno;
+		  dimscale_obj.token = statbuf.token;
+#else
 		  if (H5Gget_objinfo(datasetid, ".", 1, &statbuf) < 0) ERR;
 		  dimscale_obj.fileno[0] = statbuf.fileno[0];
 		  dimscale_obj.objno[0] = statbuf.objno[0];
 		  dimscale_obj.fileno[1] = statbuf.fileno[1];
 		  dimscale_obj.objno[1] = statbuf.objno[1];
+#endif
 	       }
 	       else
 	       {
@@ -169,11 +192,19 @@ main()
 		  /* Go through all dimscales for this var and learn about them. */
 		  if (H5DSiterate_scales(datasetid, 0, NULL, alien_visitor,
 					 &vars_dimscale_obj) < 0) ERR;
+#if H5_VERSION_GE(1,12,0)
+                  int token_cmp;
+                  if (H5Otoken_cmp(datasetid,
+                                   &vars_dimscale_obj.token,
+                                   &dimscale_obj.token, &token_cmp) < 0) ERR;
+                  if (vars_dimscale_obj.fileno != dimscale_obj.fileno ||
+                      token_cmp != 0) ERR;
+#else
 		  if (vars_dimscale_obj.fileno[0] != dimscale_obj.fileno[0] ||
 		      vars_dimscale_obj.objno[0] != dimscale_obj.objno[0] ||
 		      vars_dimscale_obj.fileno[1] != dimscale_obj.fileno[1] ||
 		      vars_dimscale_obj.objno[1] != dimscale_obj.objno[1]) ERR;
-		  
+#endif
 		  /* There's also a label for dimension 0. */
 		  if (H5DSget_label(datasetid, 0, label, STR_LEN) < 0) ERR;
 	       }
@@ -224,15 +255,15 @@ main()
       if ((pres_spaceid = H5Screate_simple(DIMS_2, dims, dims)) < 0) ERR;
 
       /* Create our dimension scales. */
-      if ((lat_dimscaleid = H5Dcreate(fileid, LAT_NAME, H5T_NATIVE_INT,
+      if ((lat_dimscaleid = H5Dcreate1(fileid, LAT_NAME, H5T_NATIVE_INT,
 				      lat_spaceid, H5P_DEFAULT)) < 0) ERR;
       if (H5DSset_scale(lat_dimscaleid, NULL) < 0) ERR;
-      if ((lon_dimscaleid = H5Dcreate(fileid, LON_NAME, H5T_NATIVE_INT,
+      if ((lon_dimscaleid = H5Dcreate1(fileid, LON_NAME, H5T_NATIVE_INT,
 				      lon_spaceid, H5P_DEFAULT)) < 0) ERR;
       if (H5DSset_scale(lon_dimscaleid, NULL) < 0) ERR;
 
       /* Create a variable which uses these two dimscales. */
-      if ((pres_datasetid = H5Dcreate(fileid, PRES_NAME, H5T_NATIVE_FLOAT,
+      if ((pres_datasetid = H5Dcreate1(fileid, PRES_NAME, H5T_NATIVE_FLOAT,
 				      pres_spaceid, H5P_DEFAULT)) < 0) ERR;
       if (H5DSattach_scale(pres_datasetid, lat_dimscaleid, 0) < 0) ERR;
       if (H5DSattach_scale(pres_datasetid, lon_dimscaleid, 1) < 0) ERR;
@@ -259,7 +290,11 @@ main()
       htri_t is_scale;
       int num_scales;
       hsize_t dims[NDIMS2], maxdims[NDIMS2];
+#if H5_VERSION_GE(1,12,0)
+      H5O_info2_t statbuf;
+#else
       H5G_stat_t statbuf;
+#endif
       HDF5_OBJID_T dimscale_obj[2], vars_dimscale_obj[2];
       int dimscale_cnt = 0;
       int d, ndims;
@@ -297,11 +332,17 @@ main()
 	       {
 		  /* fileno and objno uniquely identify an object and a
 		   * HDF5 file. */
+#if H5_VERSION_GE(1,12,0)
+		  if (H5Oget_info3(datasetid, &statbuf, H5O_INFO_BASIC) < 0) ERR;
+		  dimscale_obj[dimscale_cnt].fileno = statbuf.fileno;
+		  dimscale_obj[dimscale_cnt].token = statbuf.token;
+#else
 		  if (H5Gget_objinfo(datasetid, ".", 1, &statbuf) < 0) ERR;
 		  dimscale_obj[dimscale_cnt].fileno[0] = statbuf.fileno[0];
 		  dimscale_obj[dimscale_cnt].objno[0] = statbuf.objno[0];
 		  dimscale_obj[dimscale_cnt].fileno[1] = statbuf.fileno[1];
 		  dimscale_obj[dimscale_cnt].objno[1] = statbuf.objno[1];
+#endif
 		  dimscale_cnt++;
 	       }
 	       else
@@ -322,10 +363,19 @@ main()
 		     /* Verify that the object ids passed from the
 		      * alien_visitor2 function match the ones we found
 		      * for the lat and lon datasets. */
+#if H5_VERSION_GE(1,12,0)
+                     int token_cmp;
+                     if (H5Otoken_cmp(datasetid,
+                                   &vars_dimscale_obj[d].token,
+                                   &dimscale_obj[d].token, &token_cmp) < 0) ERR;
+                     if (vars_dimscale_obj[d].fileno != dimscale_obj[d].fileno ||
+                         token_cmp != 0) ERR;
+#else
 		     if (vars_dimscale_obj[d].fileno[0] != dimscale_obj[d].fileno[0] ||
 		     vars_dimscale_obj[d].objno[0] != dimscale_obj[d].objno[0]) ERR;
 		     if (vars_dimscale_obj[d].fileno[1] != dimscale_obj[d].fileno[1] ||
 		     vars_dimscale_obj[d].objno[1] != dimscale_obj[d].objno[1]) ERR;
+#endif
 		  }
 	       }
 	       if (H5Dclose(datasetid) < 0) ERR;
@@ -363,7 +413,11 @@ main()
       char obj_name[STR_LEN + 1];
       htri_t is_scale;
       int num_scales;
+#if H5_VERSION_GE(1,12,0)
+      H5O_info2_t statbuf;
+#else
       H5G_stat_t statbuf;
+#endif
       HDF5_OBJID_T dimscale_obj[2], vars_dimscale_obj[2];
       int dimscale_cnt = 0;
       int d, ndims;
@@ -409,10 +463,10 @@ main()
 				     H5P_CRT_ORDER_INDEXED) < 0) ERR;
 
       /* Create our dimension scales. */
-      if ((lat_dimscaleid = H5Dcreate(grpid, U1_NAME, H5T_NATIVE_INT,
+      if ((lat_dimscaleid = H5Dcreate1(grpid, U1_NAME, H5T_NATIVE_INT,
 				      lat_spaceid, plistid)) < 0) ERR;
       if (H5DSset_scale(lat_dimscaleid, NULL) < 0) ERR;
-      if ((lon_dimscaleid = H5Dcreate(grpid, U2_NAME, H5T_NATIVE_INT,
+      if ((lon_dimscaleid = H5Dcreate1(grpid, U2_NAME, H5T_NATIVE_INT,
 				      lon_spaceid, plistid)) < 0) ERR;
       if (H5DSset_scale(lon_dimscaleid, NULL) < 0) ERR;
 
@@ -423,7 +477,7 @@ main()
 				     H5P_CRT_ORDER_INDEXED) < 0) ERR;
 
       /* Create a variable which uses these two dimscales. */
-      if ((pres_datasetid = H5Dcreate(grpid, VNAME, H5T_NATIVE_DOUBLE, pres_spaceid,
+      if ((pres_datasetid = H5Dcreate1(grpid, VNAME, H5T_NATIVE_DOUBLE, pres_spaceid,
 				      plistid2)) < 0) ERR;
       if (H5DSattach_scale(pres_datasetid, lat_dimscaleid, 0) < 0) ERR;
       if (H5DSattach_scale(pres_datasetid, lon_dimscaleid, 1) < 0) ERR;
@@ -476,11 +530,17 @@ main()
 	       {
 		  /* fileno and objno uniquely identify an object and a
 		   * HDF5 file. */
+#if H5_VERSION_GE(1,12,0)
+		  if (H5Oget_info3(datasetid, &statbuf, H5O_INFO_BASIC) < 0) ERR;
+		  dimscale_obj[dimscale_cnt].fileno = statbuf.fileno;
+		  dimscale_obj[dimscale_cnt].token = statbuf.token;
+#else
 		  if (H5Gget_objinfo(datasetid, ".", 1, &statbuf) < 0) ERR;
 		  dimscale_obj[dimscale_cnt].fileno[0] = statbuf.fileno[0];
 		  dimscale_obj[dimscale_cnt].objno[0] = statbuf.objno[0];
 		  dimscale_obj[dimscale_cnt].fileno[1] = statbuf.fileno[1];
 		  dimscale_obj[dimscale_cnt].objno[1] = statbuf.objno[1];
+#endif
 		  dimscale_cnt++;
 	       }
 	       else
@@ -501,10 +561,19 @@ main()
 		     /* Verify that the object ids passed from the
 		      * alien_visitor2 function match the ones we found
 		      * for the lat and lon datasets. */
+#if H5_VERSION_GE(1,12,0)
+                     int token_cmp;
+                     if (H5Otoken_cmp(datasetid,
+                                   &vars_dimscale_obj[d].token,
+                                   &dimscale_obj[d].token, &token_cmp) < 0) ERR;
+                     if (vars_dimscale_obj[d].fileno != dimscale_obj[d].fileno ||
+                         token_cmp != 0) ERR;
+#else
 		     if (vars_dimscale_obj[d].fileno[0] != dimscale_obj[d].fileno[0] ||
 			 vars_dimscale_obj[d].objno[0] != dimscale_obj[d].objno[0]) ERR;
 		     if (vars_dimscale_obj[d].fileno[1] != dimscale_obj[d].fileno[1] ||
 			 vars_dimscale_obj[d].objno[1] != dimscale_obj[d].objno[1]) ERR;
+#endif
 		  }
 
 	       }
@@ -666,7 +735,11 @@ main()
       htri_t is_scale;
       int num_scales;
       hsize_t maxdims[DIMS_3];
+#if H5_VERSION_GE(1,12,0)
+      H5O_info2_t statbuf;
+#else
       H5G_stat_t statbuf;
+#endif
       HDF5_OBJID_T dimscale_obj[NUM_DIMSCALES1], vars_dimscale_obj[NUM_DIMSCALES1];
       int dimscale_cnt = 0;
       int d, ndims;
@@ -777,11 +850,17 @@ main()
 	       {
 		  /* fileno and objno uniquely identify an object and a
 		   * HDF5 file. */
+#if H5_VERSION_GE(1,12,0)
+		  if (H5Oget_info3(datasetid, &statbuf, H5O_INFO_BASIC) < 0) ERR;
+		  dimscale_obj[dimscale_cnt].fileno = statbuf.fileno;
+		  dimscale_obj[dimscale_cnt].token = statbuf.token;
+#else
 		  if (H5Gget_objinfo(datasetid, ".", 1, &statbuf) < 0) ERR;
 		  dimscale_obj[dimscale_cnt].fileno[0] = statbuf.fileno[0];
 		  dimscale_obj[dimscale_cnt].objno[0] = statbuf.objno[0];
 		  dimscale_obj[dimscale_cnt].fileno[1] = statbuf.fileno[1];
 		  dimscale_obj[dimscale_cnt].objno[1] = statbuf.objno[1];
+#endif
 		  dimscale_cnt++;
 	       }
 	       else
@@ -802,10 +881,19 @@ main()
 		     /* Verify that the object ids passed from the
 		      * alien_visitor2 function match the ones we found
 		      * for the lat and lon datasets. */
+#if H5_VERSION_GE(1,12,0)
+                     int token_cmp;
+                     if (H5Otoken_cmp(datasetid,
+                                   &vars_dimscale_obj[d].token,
+                                   &dimscale_obj[d].token, &token_cmp) < 0) ERR;
+                     if (vars_dimscale_obj[d].fileno != dimscale_obj[d].fileno ||
+                         token_cmp != 0) ERR;
+#else
 		     if (vars_dimscale_obj[d].fileno[0] != dimscale_obj[d].fileno[0] ||
 		     vars_dimscale_obj[d].objno[0] != dimscale_obj[d].objno[0]) ERR;
 		     if (vars_dimscale_obj[d].fileno[1] != dimscale_obj[d].fileno[1] ||
 		     vars_dimscale_obj[d].objno[1] != dimscale_obj[d].objno[1]) ERR;
+#endif
 		  }
 	       }
 	       if (H5Dclose(datasetid) < 0) ERR;
@@ -851,7 +939,11 @@ main()
       htri_t is_scale;
       int num_scales;
       hsize_t maxdims[DIMS_3];
+#if H5_VERSION_GE(1,12,0)
+      H5O_info2_t statbuf;
+#else
       H5G_stat_t statbuf;
+#endif
       HDF5_OBJID_T dimscale_obj[NUM_DIMSCALES2], vars_dimscale_obj[NUM_DIMSCALES2];
       int dimscale_cnt = 0;
       int d, ndims;
@@ -962,11 +1054,17 @@ main()
 	       {
 		  /* fileno and objno uniquely identify an object and a
 		   * HDF5 file. */
+#if H5_VERSION_GE(1,12,0)
+		  if (H5Oget_info3(datasetid, &statbuf, H5O_INFO_BASIC) < 0) ERR;
+		  dimscale_obj[dimscale_cnt].fileno = statbuf.fileno;
+		  dimscale_obj[dimscale_cnt].token = statbuf.token;
+#else
 		  if (H5Gget_objinfo(datasetid, ".", 1, &statbuf) < 0) ERR;
 		  dimscale_obj[dimscale_cnt].fileno[0] = statbuf.fileno[0];
 		  dimscale_obj[dimscale_cnt].objno[0] = statbuf.objno[0];
 		  dimscale_obj[dimscale_cnt].fileno[1] = statbuf.fileno[1];
 		  dimscale_obj[dimscale_cnt].objno[1] = statbuf.objno[1];
+#endif
 		  dimscale_cnt++;
 	       }
 	       else
@@ -987,10 +1085,19 @@ main()
 		     /* Verify that the object ids passed from the
 		      * alien_visitor2 function match the ones we found
 		      * for the lat and lon datasets. */
+#if H5_VERSION_GE(1,12,0)
+                     int token_cmp;
+                     if (H5Otoken_cmp(datasetid,
+                                   &vars_dimscale_obj[d].token,
+                                   &dimscale_obj[d].token, &token_cmp) < 0) ERR;
+                     if (vars_dimscale_obj[d].fileno != dimscale_obj[d].fileno ||
+                         token_cmp != 0) ERR;
+#else
 		     if (vars_dimscale_obj[d].fileno[0] != dimscale_obj[d].fileno[0] ||
 		     vars_dimscale_obj[d].objno[0] != dimscale_obj[d].objno[0]) ERR;
 		     if (vars_dimscale_obj[d].fileno[1] != dimscale_obj[d].fileno[1] ||
 		     vars_dimscale_obj[d].objno[1] != dimscale_obj[d].objno[1]) ERR;
+#endif
 		  }
 	       }
 	       if (H5Dclose(datasetid) < 0) ERR;

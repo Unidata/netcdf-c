@@ -158,7 +158,7 @@ extern int xxdr_float(XXDR* , float*);
 extern int xxdr_double(XXDR* , double*);
 
 /* get some bytes from underlying stream;
-   Warning: will read upto the next XDRUNIT boundary
+   Warning: will read up to the next XDRUNIT boundary
 */
 extern int xxdr_opaque(XXDR*, char*, off_t);
 
@@ -189,7 +189,7 @@ extern int xxdr_skip_strings(XXDR* xdrs, off_t n);
 
 extern unsigned int xxdr_roundup(off_t n); /* procedural version of RNDUP macro */
 
-extern void xxdr_init();
+extern void xxdr_init(void);
 
 /* Define some inlines */
 #define xxdr_length(xdrs) ((xdrs)->length)

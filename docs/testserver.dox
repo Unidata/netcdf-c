@@ -13,13 +13,13 @@
 The test suite for the DAP2 and DAP4 (aka DAP) protocols optionally
 uses a continuously running test server to verify that the
 DAP protocols can successfully be used against a remote server such
-as a Unidata Thredds server or a OPeNDAP Hyrax server.
+as a Unidata THREDDS Data Server or a OPeNDAP Hyrax server.
 
 The way that this is tests is to establish two servlets running
 under a Tomcat server on some machine with a known IP address
 or DNS name. For example, accessing this URL.
 ````
-http://149.165.169.123:8080/dts/
+https://remotetest.unidata.ucar.edu/dts/
 ````
 will bring up a page with a variety of DAP2 accessible files.
 These files are accessed by the netcdf-c test case
@@ -30,7 +30,7 @@ Similarly, the DAP4 test case is
 _netcdf-c/ncdap_test/test_remote.sh_
 and it accesses the test server web page with this URL.
 ````
-http://149.165.169.123:8080/d4ts/
+https://remotetest.unidata.ucar.edu/d4ts/
 ````
 Setting up and Maintaining the test server involves a somewhat complex
 set of tasks. This document shows how to do those tasks.
@@ -156,9 +156,9 @@ to verify that the d4ts test server is working.
 # Building d4ts.war and dts.war {#remotesvc_buildservlets}
 
 In order to build the servlet (.war) files, you will need to
-clone the Thredds directory on github: https://github.com/Unidata/thredds.
+clone the Thredds directory on github: https://github.com/Unidata/tds.
 
-Once you have a clone, you will need to enter the thredds directory
+Once you have a clone, you will need to enter the tds directory
 and build by invoking gradle using this command.
 ````
 ./gradlew --info --no-daemon  clean assemble

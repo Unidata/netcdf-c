@@ -2,24 +2,27 @@
 # Copyright 2018, see the COPYRIGHT file for more information.
 # This file builds and runs the ncgen program.
 
+#SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#TESTS_ENVIRONMENT = export SETX=1;
 
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
 include $(top_srcdir)/lib_flags.am
 
 # Link to the netCDF library.
-ncgen3_LDADD = ${top_builddir}/liblib/libnetcdf.la
+LDADD = ${top_builddir}/liblib/libnetcdf.la
 
 # Build ncgen from the listed sources.
 bin_PROGRAMS = ncgen3
 ncgen3_SOURCES = main.c load.c escapes.c getfill.c init.c	\
-genlib.c generic.h ncgen.h genlib.h ncgentab.h ncgentab.c
+genlib.c generic.h ncgen.h genlib.h ncgeny.h ncgeny.c
 
 man_MANS = ncgen3.1
 
 # These files all need to be distributed.
-EXTRA_DIST = ncgen.y ncgenyy.c ncgen.l c0.cdl run_tests.sh	\
-run_nc4_tests.sh XGetopt.c $(man_MANS)
+EXTRA_DIST = ncgen.y ncgen.l ncgenl.c c0.cdl run_tests.sh	\
+run_nc4_tests.sh $(man_MANS) CMakeLists.txt
 
 # There is a netcdf classic and netcdf-4 test script, but don't run
 # them for DLL builds.
@@ -33,14 +36,16 @@ endif # USE_HDF5
 
 CLEANFILES = c0.nc c0_64.nc c0_4.nc c0_4c.nc
 
-EXTRA_DIST += CMakeLists.txt XGetopt.c
 
-# This is used if someone wants to rebuild ncgenyy.c or ncgentab.c
-# Otherwise never invoked, but records how to do it. Don't forget to
-# manually insert #include "config.h" in ncgenyy.c!
+# This is used if someone wants to rebuild the parser and lexer
+# Otherwise never invoked, but records how to do it.
 makeparser::
+	rm -f ncgenl.c lex.ncg.c
 	flex -Pncg -8 ncgen.l
-	mv lex.ncg.c ncgenyy.c
-	bison -pncg -d ncgen.y
-	mv ncgen.tab.c ncgentab.c
-	mv ncgen.tab.h ncgentab.h
+	rm -f ncgenl.c
+	sed -e s/lex.ncg.c/ncgenl.c/g <lex.ncg.c >ncgenl.c
+	bison -pncg -t -d ncgen.y
+	rm -f ncgeny.c ncgeny.h
+	sed -e s/ncgen.tab.c/ncgeny.c/g -e s/ncgen.tab.h/ncgeny.h/g <ncgen.tab.c >ncgeny.c
+	sed -e s/ncgen.tab.c/ncgeny.c/g -e s/ncgen.tab.h/ncgeny.h/g <ncgen.tab.h >ncgeny.h
+	rm -f ncgen.tab.c ncgen.tab.h

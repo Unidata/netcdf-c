@@ -129,12 +129,12 @@ extern void dcesegment_transpose(DCEsegment* seg,
 
 
 /* Find leftmost index of segment slices
-   s.t. that index and all upto last
+   s.t. that index and all up to last
    satisfy dceiswholeslice
 */
 extern size_t dcesafeindex(DCEsegment* seg, size_t start, size_t stop);
    
-/* Compute segment size for start upto stop */
+/* Compute segment size for start up to stop */
 extern size_t dcesegmentsize(DCEsegment*, size_t start, size_t stop);
 
 /* Convert a DCE projection/selection/constraint instance into a string

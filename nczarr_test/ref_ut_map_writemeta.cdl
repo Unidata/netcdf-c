@@ -1,0 +1,5 @@
+[0] /.nczarr : (0) ||
+[2] /meta1/.zarray : (50) |{
+"foo": 42,
+"bar": "apples",
+"baz": [1, 2, 3, 4]}|

@@ -1,0 +1,13 @@
+netcdf tmp_misc2 {
+dimensions:
+        d0 = 2;
+	d1 = 2;
+variables:
+	int v(d0, d1) ;
+ 		v:_FillValue = -2147483647 ;
+data:
+
+  v =
+   0, 1,
+   2, 3 ;
+}

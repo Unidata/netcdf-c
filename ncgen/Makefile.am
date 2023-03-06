@@ -9,13 +9,17 @@ LDADD = ${top_builddir}/liblib/libnetcdf.la
 # Build ncgen from the listed sources.
 bin_PROGRAMS = ncgen
 
-ncgen_SOURCES=generate.c main.c cdata.c bindata.c genchar.c cvt.c data.c debug.c	\
-escapes.c genc.c genbin.c generr.c genlib.c getfill.c odom.c	\
-semantics.c dump.c util.c bytebuffer.c list.c data.h		\
-debug.h generr.h genlib.h includes.h ncgen.h odom.h  dump.h	\
-util.h bytebuffer.h list.h genf77.c f77data.c genj.c jdata.c nc_iter.h	\
-nc_iter.c \
-ncgeny.c ncgeny.h
+ncgen_SOURCES = bindata.c bytebuffer.c cdata.c cvt.c data.c \
+debug.c dump.c escapes.c f77data.c genbin.c \
+genc.c genchar.c generate.c generr.c genf77.c \
+genj.c genlib.c getfill.c jdata.c list.c \
+main.c ncgeny.c semantics.c \
+util.c bytebuffer.h data.h debug.h dump.h \
+generate.h generr.h genlib.h includes.h list.h \
+ncgen.h ncgeny.h util.h
+
+# Obsolete
+OBSOLETE = odom.c odom.h jdatastd.c jdatajni.c genjni.c cdfdata.c cmldata.c
 
 # This is the man page.
 man_MANS = ncgen.1
@@ -23,7 +27,7 @@ man_MANS = ncgen.1
 # These files all need to be distributed.
 EXTRA_DIST = ncgen.y ncgen.l ncgenl.c $(man_MANS) internals.html	\
 c0.cdl c0_4.cdl ref_camrun.cdl \
-ncf199.cdl CMakeLists.txt XGetopt.c c5.cdl \
+ncf199.cdl CMakeLists.txt c5.cdl \
 compound_datasize_test.cdl compound_datasize_test2.cdl \
 tst_gattenum.cdl tst_usuffix.cdl
 
@@ -34,9 +38,9 @@ tst_gattenum.cdl tst_usuffix.cdl
 # Moved to ncdump as these tests rely on ncdump having been built.
 ##
 #TESTS = run_tests.sh
-#if USE_NETCDF4
+#if USE_HDF5
 #TESTS += run_nc4_tests.sh
-#endif # USE_NETCDF4
+#endif # USE_HDF5
 #endif # !BUILD_DLL
 
 CLEANFILES = c0.nc c0_64.nc c0_4.nc c0_4c.nc ref_camrun.c \
@@ -60,7 +64,7 @@ makeparser::
 	flex -Pncg -8 ncgen.l
 	sed -e s/lex.ncg.c/ncgenl.c/g <lex.ncg.c >ncgenl.c
 	bison -pncg -t -d ncgen.y
-	rm -f ncgeny.c ncgeny.h 
+	rm -f ncgeny.c ncgeny.h
 	sed -e s/ncgen.tab.c/ncgeny.c/g -e s/ncgen.tab.h/ncgeny.h/g <ncgen.tab.c >ncgeny.c
 	sed -e s/ncgen.tab.c/ncgeny.c/g -e s/ncgen.tab.h/ncgeny.h/g <ncgen.tab.h >ncgeny.h
 	rm -f lex.ncg.c ncgen.tab.h ncgen.tab.c

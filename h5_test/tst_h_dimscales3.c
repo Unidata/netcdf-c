@@ -27,7 +27,6 @@ herr_t alien_visitor(hid_t did, unsigned dim, hid_t dsid,
 		     void *visitor_data)
 {
    char name1[STR_LEN];
-   H5G_stat_t statbuf;
    HDF5_OBJID_T *objid = visitor_data;
 
    /* This should get "/var1", the name of the dataset that the scale
@@ -36,27 +35,42 @@ herr_t alien_visitor(hid_t did, unsigned dim, hid_t dsid,
    if (strcmp(&name1[1], VAR1_NAME)) ERR;
    
    /* Get more info on the dimscale object.*/
+#if H5_VERSION_GE(1,12,0)
+   H5O_info2_t statbuf;
+   if (H5Oget_info3(dsid, &statbuf, H5O_INFO_BASIC ) < 0) ERR;
+   objid->fileno = statbuf.fileno;
+   objid->token = statbuf.token;
+#else
+   H5G_stat_t statbuf;
    if (H5Gget_objinfo(dsid, ".", 1, &statbuf) < 0) ERR;
    objid->fileno[0] = statbuf.fileno[0];
    objid->objno[0] = statbuf.objno[0];
    objid->fileno[1] = statbuf.fileno[1];
    objid->objno[1] = statbuf.objno[1];
+#endif
 
    return 0;
 }
 
 herr_t alien_visitor2(hid_t did, unsigned dim, hid_t dsid, void *visitor_data)
 {
-   H5G_stat_t statbuf;
    HDF5_OBJID_T *objid = visitor_data;
 
    /* Get obj id of the dimscale object. THis will be used later to
     * match dimensions to dimscales. */
+#if H5_VERSION_GE(1,12,0)
+   H5O_info2_t statbuf;
+   if (H5Oget_info3(dsid, &statbuf, H5O_INFO_BASIC ) < 0) ERR;
+   objid->fileno = statbuf.fileno;
+   objid->token = statbuf.token;
+#else
+   H5G_stat_t statbuf;
    if (H5Gget_objinfo(dsid, ".", 1, &statbuf) < 0) ERR;
    objid->fileno[0] = statbuf.fileno[0];
    objid->objno[0] = statbuf.objno[0];
    objid->fileno[1] = statbuf.fileno[1];
    objid->objno[1] = statbuf.objno[1];
+#endif
 
    return 0;
 }
@@ -85,12 +99,12 @@ main()
       if (H5Pset_chunk(cparmsid, NDIMS, dims) < 0) ERR;
 
       /* Create our dimension scale, as an unlimited dataset. */
-      if ((dimscaleid = H5Dcreate(fileid, DIMSCALE_NAME, H5T_NATIVE_INT,
+      if ((dimscaleid = H5Dcreate1(fileid, DIMSCALE_NAME, H5T_NATIVE_INT,
 				  spaceid, cparmsid)) < 0) ERR;
       if (H5DSset_scale(dimscaleid, NAME_ATTRIBUTE) < 0) ERR;
 
       /* Create a variable which uses it. */
-      if ((datasetid = H5Dcreate(fileid, VAR1_NAME, H5T_NATIVE_INT,
+      if ((datasetid = H5Dcreate1(fileid, VAR1_NAME, H5T_NATIVE_INT,
 				 spaceid, cparmsid)) < 0) ERR;
       if (H5DSattach_scale(datasetid, dimscaleid, 0) < 0) ERR;
       if (H5DSset_label(datasetid, 0, DIMSCALE_LABEL) < 0) ERR;
@@ -111,7 +125,11 @@ main()
 	 char label[STR_LEN+1];
 	 int num_scales;
 	 hsize_t dims[1], maxdims[1];
-	 H5G_stat_t statbuf;
+#if H5_VERSION_GE(1,12,0)
+         H5O_info2_t statbuf;
+#else
+         H5G_stat_t statbuf;
+#endif
 	 HDF5_OBJID_T dimscale_obj, vars_dimscale_obj;
 
 	 /* Open the file. */
@@ -133,7 +151,7 @@ main()
 		  break;
 	       case H5G_DATASET:
 		  /* Open the dataset. */
-		  if ((datasetid = H5Dopen(fileid, obj_name)) < 0) ERR;
+		  if ((datasetid = H5Dopen1(fileid, obj_name)) < 0) ERR;
 
 		  /* This should be an unlimited dataset. */
 		  if ((spaceid = H5Dget_space(datasetid)) < 0) ERR;
@@ -152,11 +170,17 @@ main()
 
 		     /* fileno and objno uniquely identify an object and a
 		      * HDF5 file. */
+#if H5_VERSION_GE(1,12,0)
+                     if (H5Oget_info3(datasetid, &statbuf, H5O_INFO_BASIC) < 0) ERR;
+                     dimscale_obj.fileno = statbuf.fileno;
+                     dimscale_obj.token = statbuf.token;
+#else
 		     if (H5Gget_objinfo(datasetid, ".", 1, &statbuf) < 0) ERR;
 		     dimscale_obj.fileno[0] = statbuf.fileno[0];
 		     dimscale_obj.objno[0] = statbuf.objno[0];
 		     dimscale_obj.fileno[1] = statbuf.fileno[1];
 		     dimscale_obj.objno[1] = statbuf.objno[1];
+#endif
 		  }
 		  else
 		  {
@@ -168,11 +192,19 @@ main()
 		     /* Go through all dimscales for this var and learn about them. */
 		     if (H5DSiterate_scales(datasetid, 0, NULL, alien_visitor,
 		     &vars_dimscale_obj) < 0) ERR;
+#if H5_VERSION_GE(1,12,0)
+                  int token_cmp;
+                  if (H5Otoken_cmp(datasetid,
+                                   &vars_dimscale_obj.token,
+                                   &dimscale_obj.token, &token_cmp) < 0) ERR;
+                  if (vars_dimscale_obj.fileno != dimscale_obj.fileno ||
+                      token_cmp != 0) ERR;
+#else
 		     if (vars_dimscale_obj.fileno[0] != dimscale_obj.fileno[0] ||
 		     vars_dimscale_obj.objno[0] != dimscale_obj.objno[0] ||
 		     vars_dimscale_obj.fileno[1] != dimscale_obj.fileno[1] ||
 		     vars_dimscale_obj.objno[1] != dimscale_obj.objno[1]) ERR;
-		  
+#endif
 		     /* There's also a label for dimension 0. */
 		     if (H5DSget_label(datasetid, 0, label, STR_LEN) < 0) ERR;
 		  }

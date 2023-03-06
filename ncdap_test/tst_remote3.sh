@@ -1,7 +1,5 @@
 #!/bin/bash
 
-if test "x$SETX" = x1 ; then set -x ; fi
-
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
@@ -26,7 +24,7 @@ EXPECTED="$expected3"
 RESULTSDIR="remote_results"
 
 rm -fr ${RESULTSDIR}
-mkdir "${RESULTSDIR}"
+mkdir -p "${RESULTSDIR}"
 
 echo "*** Testing $TITLE "
 echo "        Base URL: ${DTS}"

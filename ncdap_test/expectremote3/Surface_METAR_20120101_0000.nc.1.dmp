@@ -37,7 +37,7 @@ variables:
 			"    The metar2nc decoder creates a netCDF file based on a set of variables \n",
 			"    that are commonly used in display programs. Since not all the variables\n",
 			"    that are possible(over 135) are written, the raw METAR report is stored \n",
-			"    for future decoding of variables not explicited specified. The \n",
+			"    for future decoding of variables not explicitly specified. The \n",
 			"    lastChild variable gives the record number of the most recent report \n",
 			"    for a particular station and the prevChild variable is the record \n",
 			"    number of the next most recent. By following the links, all the reports\n",

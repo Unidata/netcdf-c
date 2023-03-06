@@ -2,14 +2,26 @@
    Corporation for Atmospheric Research/Unidata See COPYRIGHT file for
    conditions of use. See www.unidata.ucar.edu for more info.
 
-   Test netcdf-4 dimensions inheritance.
+   Test netcdf-4 dimensions inheritance, and dims with and without
+   coordinate variables.
 
-   $Id: tst_dims3.c,v 1.7 2010/05/25 13:53:04 ed Exp $
+   Ed Hartnett
 */
 
 #include <config.h>
 #include <nc_tests.h>
 #include "err_macros.h"
+
+#define NDIM1 1
+#define NDIM2 2
+#define DATALEN2 2
+#define VAR_NAME "var"
+#define DIM_NAME1 "y"
+#define DIM_NAME2 "x"
+#define NY 3
+#define NX 3
+#define DIM_LEN 2
+#define FILE_NAME "tst_dims3.nc"
 
 int
 main(int argc, char **argv)
@@ -17,7 +29,6 @@ main(int argc, char **argv)
    printf("\n*** Testing netcdf-4 dimensions even more.\n");
    printf("*** testing netcdf-4 dimension inheritance...");
    {
-#define FILE_NAME "tst_dims3.nc"
 #define RANK_time 1
 #define GRP_NAME  "G"
 #define GRP2_NAME "G2"
@@ -196,6 +207,288 @@ main(int argc, char **argv)
 
       if (nc_close(ncid))
 	ERR_RET;
+   }
+   SUMMARIZE_ERR;
+   printf("*** testing var and unlim dim with same name, but not related...");
+   {
+       /* This test code based on test code from Jeff Whitaker. See
+        * https://github.com/Unidata/netcdf4-python/issues/975 and
+        * https://github.com/Unidata/netcdf-c/issues/1496. */
+       int ncid, timesubset_id, time_id, timevar_id, dummyvar_id;
+       size_t start[1] = {0};
+       size_t count[1] = {1};
+       double data[1] = {TEST_VAL_42};
+       size_t len;
+       double data_in;
+
+       if (nc_create(FILE_NAME, NC_CLOBBER | NC_NETCDF4, &ncid)) ERR;
+       if (nc_def_dim(ncid, "time", NC_UNLIMITED, &time_id)) ERR;
+       if (nc_def_dim(ncid, "time_subset", 50, &timesubset_id)) ERR;
+
+       /* Define vars. */
+       if (nc_def_var(ncid, "time", NC_DOUBLE, 1, &timesubset_id, &timevar_id)) ERR;
+       if (nc_def_var(ncid, "dummy", NC_DOUBLE, 1, &time_id, &dummyvar_id)) ERR;
+       if (nc_enddef(ncid)) ERR;
+
+       /* Write some data. */
+       if (nc_put_vara(ncid, dummyvar_id, start, count, data)) ERR;
+
+       /* Close the file. */
+       if (nc_close(ncid)) ERR;
+
+       /* Reopen file and check. */
+       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+       if (nc_inq_dim(ncid, 0, NULL, &len)) ERR;
+       if (len != 1) ERR;
+       if (nc_get_vara_double(ncid, 1, start, count, &data_in)) ERR;
+       if (data_in != TEST_VAL_42) ERR;
+       if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+
+   printf("*** testing very simple case writing data with 2 unlim dims...");
+   {
+       /* This test code based on test code from Jeff Whitaker. See
+        * https://github.com/Unidata/netcdf4-python/issues/1413. This
+        * is a simplified version. */
+       int varid1, varid, ncid;
+       int dimids[NDIM2];
+       size_t start[1] = {0};
+       size_t count[1] = {NY};
+       int ydata[NY];
+       int y, i;
+       size_t len_in;
+
+       /* Fill Y data array. */
+       for (i = 0; i < NY; ++i)
+           ydata[i] = i;
+
+       /* Create a file. */
+       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+
+       /* Define two unlimited dims. */
+       if (nc_def_dim(ncid, DIM_NAME1, NC_UNLIMITED, &dimids[0])) ERR;
+       if (nc_def_dim(ncid, DIM_NAME2, NC_UNLIMITED, &dimids[1])) ERR;
+
+       /* Define coord var for first dim Y. */
+       if (nc_def_var(ncid, DIM_NAME1, NC_INT, 1, &dimids[0], &varid1)) ERR;
+
+       /* Define a data var with dims Y,X. */
+       if (nc_def_var(ncid, VAR_NAME, NC_INT, NDIM2, dimids, &varid)) ERR;
+
+       /* Write data to coordinate var to extend Y. */
+       if (nc_put_vara_int(ncid, varid1, start, count, ydata)) ERR;
+       if (nc_close(ncid)) ERR;
+
+       /* Reopen the file and check. */
+       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+       if (nc_inq_dimlen(ncid, 0, &len_in)) ERR;
+       if (len_in != NY) ERR;
+       if (nc_inq_dimlen(ncid, 1, &len_in)) ERR;
+       if (len_in != 0) ERR;
+
+       /* Read and check each value of the coordinate var. */
+       for (y = 0; y < NY; y++)
+       {
+           size_t index = y;
+           int data_in;
+
+           if (nc_get_var1_int(ncid, varid1, &index, &data_in)) ERR;
+           if (data_in != y) ERR;
+       }
+
+       if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+   printf("*** testing simple case writing data with 2 unlim dims...");
+   {
+       /* This test code based on test code from Jeff Whitaker. See
+        * https://github.com/Unidata/netcdf4-python/issues/1413. This
+        * is a simplified version. */
+       int varid1, varid, ncid;
+       int dimids[NDIM2];
+       size_t start[1] = {0};
+       size_t count[1] = {NY};
+       size_t start2[NDIM2] = {0, 2};
+       size_t count2[NDIM2] = {1, 1};
+       int ydata[NY];
+       int data = TEST_VAL_42;
+       int x, y, i;
+
+       /* Fill Y data array. */
+       for (i = 0; i < NY; ++i)
+           ydata[i] = i;
+
+       /* Create a file. */
+       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+
+       /* Define two unlimited dims. */
+       if (nc_def_dim(ncid, DIM_NAME1, NC_UNLIMITED, &dimids[0])) ERR;
+       if (nc_def_dim(ncid, DIM_NAME2, NC_UNLIMITED, &dimids[1])) ERR;
+
+       /* Define coord var for first dim Y. */
+       if (nc_def_var(ncid, DIM_NAME1, NC_INT, 1, &dimids[0], &varid1)) ERR;
+
+       /* Define a data var with dims Y,X. */
+       if (nc_def_var(ncid, VAR_NAME, NC_INT, NDIM2, dimids, &varid)) ERR;
+
+       /* Write data to coordinate var to extend Y. */
+       if (nc_put_vara_int(ncid, varid1, start, count, ydata)) ERR;
+       if (nc_sync(ncid)) ERR;
+
+       /* write a single data point to the 2d variable */
+       if (nc_put_vara_int(ncid, varid, start2, count2, &data)) ERR;
+       if (nc_close(ncid)) ERR;
+
+       /* Reopen the file and check. */
+       if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+
+       /* Read and check each value with nc_get_var1_int(). */
+       for (x = 0; x < NX; x++)
+       {
+           for (y = 0; y < NY; y++)
+           {
+               size_t index[NDIM2] = {y, x};
+               int data_in;
+
+               if (nc_get_var1_int(ncid, varid, index, &data_in)) ERR;
+               if (y == start2[0] && x == start2[1])
+               {
+                   if (data_in != data) ERR;
+               }
+               else
+               {
+                   if (data_in != NC_FILL_INT) ERR;
+               }
+           }
+       }
+
+       /* Read and check each row with nc_get_vara_int(). */
+       for (y = 0; y < NY; y++)
+       {
+           size_t start_row[NDIM2] = {y, 0};
+           size_t count_row[NDIM2] = {1, NX};
+           int data_in[NX];
+
+           if (nc_get_vara_int(ncid, varid, start_row, count_row,
+                               data_in)) ERR;
+           if (y == start2[0])
+           {
+               /* This row has data. */
+               for (x = 0; x < NX; x++)
+                   if (data_in[x] != (x == start2[1] ? TEST_VAL_42 : NC_FILL_INT)) ERR;
+           }
+           else
+           {
+               /* This row is all fill. */
+               for (x = 0; x < NX; x++)
+               {
+                   /* printf("y %d x %d data %d\n", y, x, data_in[x]); */
+                   if (data_in[x] != NC_FILL_INT) ERR;
+               }
+           }
+       }
+
+       if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+   printf("*** testing dimlen issue reported in 2357 by Jeff W...");
+   {
+       /* This test code based on test code from Jeff Whitaker. See
+        * https://github.com/Unidata/netcdf-c/issues/2357. This is a
+        * simplified version. */
+       int varid, ncid;
+       int dimids[NDIM2];
+       size_t start[NDIM2] = {0, 0}, count[NDIM2] = {DATALEN2, 1}, dimlen;
+       int data[DATALEN2] = {42, 42};
+       
+       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+       if (nc_def_dim(ncid, "x", DATALEN2, &dimids[0])) ERR;
+       if (nc_def_dim(ncid, "t", NC_UNLIMITED, &dimids[1])) ERR;
+       if (nc_def_var(ncid, "v", NC_INT, NDIM2, dimids, &varid)) ERR;
+       if (nc_put_vara_int(ncid, varid, start, count, data)) ERR;
+       start[1] = 1;
+       if (nc_put_vara_int(ncid, varid, start, count, data)) ERR;
+       if (nc_close(ncid)) ERR;
+
+       /* Reopen file and add more data. */
+       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+       start[1] = 2;
+       if (nc_put_vara_int(ncid, varid, start, count, data)) ERR;
+       if (nc_inq_dimlen(ncid, dimids[1], &dimlen)) ERR;
+       if (dimlen != 3) ERR;
+       if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+   printf("*** testing dimlen with NC_UNLIMITED reopen and rewrite...");
+   {
+       int varid, ncid;
+       int dimid;
+       size_t start[NDIM1] = {0}, count[NDIM1] = {DATALEN2}, dimlen;
+       int data[DATALEN2] = {42, 42};
+       int data2 = 99;
+
+       /* Create a file with unlimited dim and one var. */
+       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+       if (nc_def_dim(ncid, "Number_of_beaches", NC_UNLIMITED, &dimid)) ERR;
+       if (nc_def_var(ncid, "Paros", NC_INT, NDIM1, &dimid, &varid)) ERR;
+       if (nc_put_vara_int(ncid, varid, start, count, data)) ERR;
+       if (nc_inq_dimlen(ncid, dimid, &dimlen)) ERR;
+       if (dimlen != DATALEN2) ERR;
+       if (nc_close(ncid)) ERR;
+
+       /* Reopen file and change first element of array. */
+       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+       count[0] = 1;
+       if (nc_put_vara_int(ncid, varid, start, count, &data2)) ERR;
+       if (nc_inq_dimlen(ncid, dimid, &dimlen)) ERR;
+       if (dimlen != 2) ERR;
+       if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+   printf("*** testing dimlen issue reported in 2357 by Jeff W...");
+   {
+       int i, dimidx, dimidt, varid, ncid;
+       int dimids[NDIM2];
+       size_t start[NDIM2], count[NDIM2], dimlen;
+       int data[DATALEN2];
+       
+       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+       if (nc_def_dim(ncid, "x", DATALEN2, &dimidx)) ERR;
+       if (nc_def_dim(ncid, "t", NC_UNLIMITED, &dimidt)) ERR;
+       dimids[0] = dimidt; /* note order is now reversed */
+       dimids[1] = dimidx;
+       if (nc_def_var(ncid, "v", NC_INT, NDIM2, dimids, &varid)) ERR;
+       start[0]=0;
+       start[1]=0;
+       count[0]=1;
+       count[1]=DATALEN2;
+       for (i = 0; i < DATALEN2; i++)
+   	   data[i] = 1;
+       if (nc_put_vara_int(ncid, varid, start, count, data)) ERR;
+       start[0]=1;
+       start[1]=0;
+       count[0]=1;
+       count[1]=DATALEN2;
+       for (i = 0; i < DATALEN2; i++)
+   	   data[i] = 2;
+       if (nc_put_vara_int(ncid, varid, start, count, data)) ERR;
+       if (nc_close(ncid)) ERR;
+
+       /* Reopen the file. */
+       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+       if (nc_inq_varid(ncid, "v", &varid)) ERR;
+       if (nc_inq_dimid(ncid, "t", &dimidt)) ERR;
+       start[0]=0;
+       start[1]=0;
+       count[0]=1;
+       count[1]=DATALEN2;
+       for (i = 0; i < DATALEN2; i++)
+   	   data[i] = 0;
+       if (nc_put_vara_int(ncid, varid, start, count, data)) ERR;
+       if (nc_inq_dimlen(ncid, dimidt, &dimlen)) ERR;
+       if (dimlen != DATALEN2) ERR;
+       if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;
    FINAL_RESULTS;

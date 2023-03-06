@@ -13,6 +13,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include "utils.h"
+#include "nccomps.h"
 #ifndef isascii
 EXTERNL int isascii(int c);
 #endif
@@ -79,10 +80,10 @@ erealloc (void* p0,			/* check return from realloc */
 }
 
 void
-check(int err, const char* file, const int line)
+check(int err, const char* file, const char* fcn, const int line)
 {
     fprintf(stderr,"%s\n",nc_strerror(err));
-    fprintf(stderr,"Location: file %s; line %d\n", file,line);
+    fprintf(stderr,"Location: file %s; fcn %s line %d\n",(file?file:"?"),(fcn?fcn:"?"),line);
     fflush(stderr); fflush(stdout);
     exit(1);
 }
@@ -173,6 +174,41 @@ print_name(const char* name) {
     fputs(ename, stdout);
     free(ename);
 }
+
+/* 
+ * Returns malloced string with selected chars escaped.
+ * Caller should free result when done with it.
+ */
+char*
+escaped_string(const char* cp) {
+    char *ret;			/* string returned */
+    char *sp;
+    assert(cp != NULL);
+
+    /* For some reason, and on some machines (e.g. tweety)
+       utf8 characters such as \343 are considered control character. */
+
+    ret = emalloc(4*strlen(cp) + 1); /* max if every char escaped */
+    sp = ret;
+    *sp = 0;			    /* empty name OK */
+    for (; *cp; cp++) {
+	if (isascii((int)*cp)) {
+	    if(iscntrl((int)*cp)) {	/* render control chars as two hex digits, \%xx */
+		snprintf(sp, 4+1,"\\%%%.2x", *cp);
+		sp += 4;
+	    } else if(*cp == '"') {
+		*sp++ = '\\';
+		*sp++ = '"';
+	    } else 
+  	        *sp++ = *cp;
+	} else { 		/* not ascii, assume just UTF-8 byte */
+	    *sp++ = *cp;
+	}
+    }
+    *sp = 0;
+    return ret;
+}
+
 
 /* Convert a full path name to a group to the specific groupid. */
 int 
@@ -923,3 +959,40 @@ done:
     return stat;
 }
 #endif
+
+/*********************************************************************************/
+void nc_get_att_single_string(const int ncid, const int varid,
+                              const struct ncatt_t *att, char **str_out) {
+    if (att->type == NC_CHAR) {
+        // NC_CHAR type attribute
+        // Use a call to nc_get_att_text which expects to output the attribute value
+        // into a char * pointing to allocated memory. The number of bytes to allocate
+        // is the attribute length (which is the number of elements in a vector, 1 for
+        // scalar) times the size of each element in bytes. The attribute length is
+        // held in att->len, and the attribute element size is in att->tinfo->size.
+        *str_out = emalloc((att->len + 1) * att->tinfo->size);
+	(*str_out)[att->len] = '\0';
+        NC_CHECK(nc_get_att_text(ncid, varid, att->name, *str_out));
+    } else if (att->type == NC_STRING) {
+        // NC_STRING type attribute
+        // Use a call to nc_get_att_string which expects to output the attribute value
+        // into a vector of char pointers, where each entry points to allocated memory.
+        // The vector of char pointers needs to be allocated to the length (number of strings)
+        // times the size of each entry (size of a char *).
+        char **att_strings = emalloc((att->len + 1) * att->tinfo->size);
+        NC_CHECK(nc_get_att_string(ncid, varid, att->name, att_strings));
+        // str_out needs to be allocated to a size large enough to hold the string that
+        // the first pointer in att_strings is pointing to.
+        size_t att_str_len = strlen(att_strings[0]);
+        *str_out = emalloc((att_str_len + 1) * att->tinfo->size);
+	(*str_out)[att_str_len] = '\0';
+        strncpy(*str_out, att_strings[0], att_str_len);
+        nc_free_string(att->len, att_strings); /* Warning: does not free att_strings */
+	free(att_strings);
+    } else {
+        fprintf(stderr,"nc_get_att_single_string: unknown attribute type: %d\n", att->type);
+        fprintf(stderr,"                          must use one of:  NC_CHAR, NC_STRING\n");
+        fflush(stderr); fflush(stdout);
+        exit(2);
+    }
+}

@@ -7,7 +7,6 @@
 #include <assert.h>
 
 #include "d4includes.h"
-#include "ezxml.h"
 
 /*
 The primary purpose of this code is to provide node and data walkers
@@ -216,7 +215,7 @@ NCD4_delimit(NCD4meta* compiler, NCD4node* topvar, void** offsetp)
        any checksum */
     topvar->data.dap4data.size = (d4size_t)(((char*)offset) - ((char*)*offsetp));
     /* extract the dap4 data checksum, if present */
-    if(compiler->serial.remotechecksumming) {
+    if(topvar->data.remotechecksummed) {
 	union ATOMICS csum;
         memcpy(csum.u8,offset,CHECKSUMSIZE);
         topvar->data.remotechecksum = csum.u32[0];

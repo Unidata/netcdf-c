@@ -1,0 +1,9 @@
+netcdf ref_tst_special_atts3 {
+dimensions:
+	dim1 = 10;
+variables:
+	int var1(dim1) ;
+		var1:_DeflateLevel = 2 ;
+data:
+    var1 = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9;
+}

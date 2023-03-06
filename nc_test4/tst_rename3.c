@@ -140,7 +140,7 @@ main(int argc, char **argv)
       /* if (nc_rename_var(ncid, varid1, D2_NAME)) ERR; */
       if (nc_close(ncid)) ERR;
 
-      /* Reopen file and check, this should work but doesnt yet. */
+      /* Reopen file and check, this should work but doesn't yet. */
       if (nc_open(file_name, NC_WRITE, &ncid)) ERR;
       /* if (nc_inq_dimid(ncid, D1_NAME, &dimid_in)) ERR; */
       /* if (dimid_in != dimid1) ERR; */

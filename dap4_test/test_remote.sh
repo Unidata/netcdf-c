@@ -86,7 +86,5 @@ for f in $F ; do
     fi
 done
 
-rm -fr ${builddir}/results_test_remote
-
 finish
 

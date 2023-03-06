@@ -133,27 +133,33 @@ getvarx(int ncid, int varid, NCD4INFO** infop, NCD4node** varp,
     NCD4node* type;
     nc_type xtype, actualtype;
     size_t instancesize, xsize;
-    int grp_id;
 
     if((ret = NC_check_id(ncid, (NC**)&ncp)) != NC_NOERR)
 	goto done;
 
     info = getdap(ncp);
-    if(info == NULL)
-	{ret = THROW(NC_EBADID); goto done;}
     meta = info->substrate.metadata;
-    if(meta == NULL)
-	{ret = THROW(NC_EBADID); goto done;}
 
-    /* Locate var node via (grpid,varid) */
-    grp_id = GROUPIDPART(ncid);
-        
-    group = nclistget(meta->groupbyid,grp_id);
-    if(group == NULL)
-	return THROW(NC_EBADID);
-    var = nclistget(group->group.varbyid,varid);
-    if(var == NULL)
-	return THROW(NC_EBADID);
+    /* If the data has not already been read and processed, then do so. */
+    if(meta->serial.dap == NULL) {
+	size_t len = 0;
+	void* content = NULL;
+        /* (Re)Build the meta data; sets serial.rawdata */
+        NCD4_resetMeta(info->substrate.metadata);
+        meta->controller = info;
+        meta->ncid = info->substrate.nc4id; /* Transfer netcdf ncid */
+
+        if((ret=NCD4_readDAP(info, info->controls.flags.flags))) goto done;
+	len = ncbyteslength(info->curl->packet);
+	content = ncbytesextract(info->curl->packet);
+	NCD4_resetSerial(&meta->serial, len, content);
+        /* Process the data part */
+        if((ret=NCD4_dechunk(meta))) goto done;
+        if((ret = NCD4_processdata(info->substrate.metadata))) goto done;
+    }
+
+    if((ret = NCD4_findvar(ncp,ncid,varid,&var,&group))) goto done;
+
     type = var->basetype;
     actualtype = type->meta.id;
     instancesize = type->meta.memsize;
@@ -180,6 +186,8 @@ getvarx(int ncid, int varid, NCD4INFO** infop, NCD4node** varp,
     if(nc4sizep) *nc4sizep = instancesize;
     if(varp) *varp = var;
 done:
+    if(meta->error.message != NULL)
+	NCD4_reporterror(info);    /* Make sure the user sees this */
     return THROW(ret);    
 }
 

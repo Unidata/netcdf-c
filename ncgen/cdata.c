@@ -4,7 +4,6 @@
  *********************************************************************/
 
 #include "includes.h"
-#include "nc_iter.h"
 
 #ifdef ENABLE_C
 
@@ -105,11 +104,11 @@ c_constant(Generator* generator, Symbol* sym, NCConstant* con, Bytebuffer* buf,.
 	strcpy(special,"\"");
 	p = con->value.opaquev.stringv;
 	while(*p) {
-	    strcat(special,"\\x");
-	    strncat(special,p,2);	    	    
+	    strlcat(special,"\\x",bslen+3);
+	    strlcat(special,p,bslen+3);
 	    p += 2;	
 	}
-	strcat(special,"\"");
+	strlcat(special,"\"",bslen+3);
 	} break;
 
     default: PANIC1("ncstype: bad type code: %d",con->nctype);

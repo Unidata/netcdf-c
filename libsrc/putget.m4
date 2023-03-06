@@ -28,13 +28,6 @@ dnl
 #include "ncx.h"
 #include "fbits.h"
 #include "onstack.h"
-#ifdef LOCKNUMREC
-#  include <mpp/shmem.h>	/* for SGI/Cray SHMEM routines */
-#  ifdef LN_TEST
-#    include <stdio.h>
-#  endif
-#endif
-
 
 #undef MIN  /* system may define MIN somewhere and complain */
 #define MIN(mm,nn) (((mm) < (nn)) ? (mm) : (nn))
@@ -403,40 +396,6 @@ static int
 NCvnrecs(NC3_INFO* ncp, size_t numrecs)
 {
 	int status = NC_NOERR;
-#ifdef LOCKNUMREC
-	ushmem_t myticket = 0, nowserving = 0;
-	ushmem_t numpe = (ushmem_t) _num_pes();
-
-	/* get ticket and wait */
-	myticket = shmem_short_finc((shmem_t *) ncp->lock + LOCKNUMREC_LOCK,
-		ncp->lock[LOCKNUMREC_BASEPE]);
-#ifdef LN_TEST
-		fprintf(stderr,"%d of %d : ticket = %hu\n",
-			_my_pe(), _num_pes(), myticket);
-#endif
-	do {
-		shmem_short_get((shmem_t *) &nowserving,
-			(shmem_t *) ncp->lock + LOCKNUMREC_SERVING, 1,
-			ncp->lock[LOCKNUMREC_BASEPE]);
-#ifdef LN_TEST
-		fprintf(stderr,"%d of %d : serving = %hu\n",
-			_my_pe(), _num_pes(), nowserving);
-#endif
-		/* work-around for non-unique tickets */
-		if (nowserving > myticket && nowserving < myticket + numpe ) {
-			/* get a new ticket ... you've been bypassed */
-			/* and handle the unlikely wrap-around effect */
-			myticket = shmem_short_finc(
-				(shmem_t *) ncp->lock + LOCKNUMREC_LOCK,
-				ncp->lock[LOCKNUMREC_BASEPE]);
-#ifdef LN_TEST
-				fprintf(stderr,"%d of %d : new ticket = %hu\n",
-					_my_pe(), _num_pes(), myticket);
-#endif
-		}
-	} while(nowserving != myticket);
-	/* now our turn to check & update value */
-#endif
 
 	if(numrecs > NC_get_numrecs(ncp))
 	{
@@ -519,11 +478,6 @@ NCvnrecs(NC3_INFO* ncp, size_t numrecs)
 
 	}
 common_return:
-#ifdef LOCKNUMREC
-	/* finished with our lock - increment serving number */
-	(void) shmem_short_finc((shmem_t *) ncp->lock + LOCKNUMREC_SERVING,
-		ncp->lock[LOCKNUMREC_BASEPE]);
-#endif
 	return status;
 }
 
@@ -544,11 +498,7 @@ NCcoordck(NC3_INFO* ncp, const NC_var *varp, const size_t *coord)
 	{
 		if(*coord > X_UINT_MAX) /* rkr: bug fix from previous X_INT_MAX */
 			return NC_EINVALCOORDS; /* sanity check */
-#ifdef RELAX_COORD_BOUND
 		if(NC_readonly(ncp) && *coord > NC_get_numrecs(ncp))
-#else
-		if(NC_readonly(ncp) && *coord >= NC_get_numrecs(ncp))
-#endif
 		{
 			if(!NC_doNsync(ncp))
 				return NC_EINVALCOORDS;
@@ -558,11 +508,7 @@ NCcoordck(NC3_INFO* ncp, const NC_var *varp, const size_t *coord)
 				const int status = read_numrecs(ncp);
 				if(status != NC_NOERR)
 					return status;
-#ifdef RELAX_COORD_BOUND
 				if(*coord > NC_get_numrecs(ncp))
-#else
-				if(*coord >= NC_get_numrecs(ncp))
-#endif
 					return NC_EINVALCOORDS;
 			}
 		}
@@ -589,11 +535,7 @@ fprintf(stderr,"	NCcoordck: ip %p, *ip %ld, up %p, *up %lu\n",
 #endif /* CDEBUG */
 
 		/* cast needed for braindead systems with signed size_t */
-#ifdef RELAX_COORD_BOUND
 		if((unsigned long) *ip > (unsigned long) *up )
-#else
-		if((unsigned long) *ip >= (unsigned long) *up )
-#endif
 			return NC_EINVALCOORDS;
 	}
 
@@ -617,11 +559,9 @@ NCedgeck(const NC3_INFO* ncp, const NC_var *varp,
 
 	if(IS_RECVAR(varp))
 	{
-#ifdef RELAX_COORD_BOUND
 		if (NC_readonly(ncp) &&
                     (start[0] == NC_get_numrecs(ncp) && edges[0] > 0))
 			return(NC_EINVALCOORDS);
-#endif
 		start++;
 		edges++;
 		shp++;
@@ -629,10 +569,8 @@ NCedgeck(const NC3_INFO* ncp, const NC_var *varp,
 
 	for(; start < end; start++, edges++, shp++)
 	{
-#ifdef RELAX_COORD_BOUND
 		if ((unsigned long) *start == *shp && *edges > 0)
 			return(NC_EINVALCOORDS);
-#endif
 		/* cast needed for braindead systems with signed size_t */
 		if((unsigned long) *edges > *shp ||
 			(unsigned long) *start + (unsigned long) *edges > *shp)
@@ -705,6 +643,8 @@ putNCvx_$1_$2(NC3_INFO* ncp, const NC_var *varp,
 	int status = NC_NOERR;
 	void *xp;
         void *fillp=NULL;
+
+	NC_UNUSED(fillp);
 
 	if(nelems == 0)
 		return NC_NOERR;
@@ -909,7 +849,9 @@ getNCvx_$1_$2(const NC3_INFO* ncp, const NC_var *varp,
 }
 ')dnl
 
+#if 0 /*unused*/
 GETNCVX(char, char)
+#endif
 
 GETNCVX(schar, schar)
 GETNCVX(schar, short)

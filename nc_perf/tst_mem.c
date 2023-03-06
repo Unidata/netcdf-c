@@ -2,8 +2,8 @@
    Copyright 2018 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.
 
-   Test internal netcdf-4 file code.
-   $Id$
+   Test memory use of a netCDF-4 file with unlimited dimensions.
+   Ed Hartnett
 */
 
 #include <config.h>
@@ -30,7 +30,7 @@ get_mem_used2(int *mem_used)
    FILE *pf;
 
    snprintf(buf, 30, "/proc/%u/statm", (unsigned)getpid());
-   pf = fopen(buf, "r");
+   pf = NCfopen(buf, "r");
    if (pf) {
       unsigned size; /*       total program size */
       unsigned resident;/*   resident set size */

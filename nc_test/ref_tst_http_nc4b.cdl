@@ -1,0 +1,84 @@
+netcdf METAR_20170910_0000 {
+dimensions:
+	sample = UNLIMITED ; // (12538 currently)
+	station = UNLIMITED ; // (4606 currently)
+variables:
+	float lon(station) ;
+		lon:long_name = "longitude" ;
+		lon:units = "degrees_east" ;
+		lon:standard_name = "longitude" ;
+	float lat(station) ;
+		lat:long_name = "latitude" ;
+		lat:units = "degrees_north" ;
+		lat:standard_name = "latitude" ;
+	float alt(station) ;
+		alt:long_name = "vertical distance above mean sea level" ;
+		alt:units = "meter" ;
+		alt:positive = "up" ;
+		alt:standard_name = "surface_altitude" ;
+	string stid(station) ;
+		stid:long_name = "station id" ;
+		stid:standard_name = "platform_id" ;
+		stid:cf_role = "timeseries_id" ;
+	string name(station) ;
+		name:long_name = "station name" ;
+		name:standard_name = "platform_name" ;
+	int index(sample) ;
+		index:instance_dimension = "station" ;
+	int time(sample) ;
+		time:long_name = "time of observation" ;
+		time:units = "minutes since 1970-1-1 00:00:00" ;
+	float altimeter_setting(sample) ;
+		altimeter_setting:units = "millibars" ;
+		altimeter_setting:coordinates = "lon lat alt time stid" ;
+		altimeter_setting:missing_value = -999.f ;
+	float dewpoint(sample) ;
+		dewpoint:units = "degC" ;
+		dewpoint:standard_name = "dew_point_temperature" ;
+		dewpoint:coordinates = "lon lat alt time stid" ;
+		dewpoint:missing_value = -999.f ;
+	float sea_level_pressure(sample) ;
+		sea_level_pressure:units = "millibars" ;
+		sea_level_pressure:standard_name = "air_pressure_at_sea_level" ;
+		sea_level_pressure:coordinates = "lon lat alt time stid" ;
+		sea_level_pressure:missing_value = -999.f ;
+	float sky_coverage(sample) ;
+		sky_coverage:units = "percent" ;
+		sky_coverage:standard_name = "cloud_area_fraction" ;
+		sky_coverage:coordinates = "lon lat alt time stid" ;
+		sky_coverage:missing_value = -999.f ;
+	float temperature(sample) ;
+		temperature:units = "degC" ;
+		temperature:standard_name = "air_temperature" ;
+		temperature:coordinates = "lon lat alt time stid" ;
+		temperature:missing_value = -999.f ;
+	float visibility(sample) ;
+		visibility:units = "meters" ;
+		visibility:standard_name = "visibility_in_air" ;
+		visibility:coordinates = "lon lat alt time stid" ;
+		visibility:missing_value = -999.f ;
+	float wind_direction(sample) ;
+		wind_direction:units = "degrees" ;
+		wind_direction:standard_name = "wind_from_direction" ;
+		wind_direction:coordinates = "lon lat alt time stid" ;
+		wind_direction:missing_value = -999.f ;
+	float wind_speed(sample) ;
+		wind_speed:units = "m/s" ;
+		wind_speed:standard_name = "wind_speed" ;
+		wind_speed:coordinates = "lon lat alt time stid" ;
+		wind_speed:missing_value = -999.f ;
+	float wind_gust(sample) ;
+		wind_gust:units = "m/s" ;
+		wind_gust:standard_name = "wind_speed_of_gust" ;
+		wind_gust:coordinates = "lon lat alt time stid" ;
+		wind_gust:missing_value = -999.f ;
+	string report(sample) ;
+		report:coordinates = "lon lat alt time stid" ;
+
+// global attributes:
+		:featureType = "timeSeries" ;
+		:Conventions = "CF-1.7" ;
+		:institution = "UCAR/Unidata" ;
+		:source = "METAR Reports" ;
+		:title = "Reformatted METAR observations" ;
+}

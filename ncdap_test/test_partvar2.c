@@ -99,10 +99,10 @@ main()
     char url[4096];
 
     /* Find Test Server */
-    svc = nc_findtestserver("dts",0, REMOTETESTSERVER);
+    svc = nc_findtestserver("dts",REMOTETESTSERVER);
 
     if(svc == NULL) {
-	fprintf(stderr,"Cannot locate test server\n");
+	fprintf(stderr,"WARNING: Cannot locate test server\n");
 	exit(1);
     }
     strncpy(url,PARAMS,sizeo(url));

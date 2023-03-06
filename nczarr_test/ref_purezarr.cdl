@@ -1,0 +1,12 @@
+netcdf tmp_purezarr {
+dimensions:
+	_zdim_2 = 2 ;
+	_zdim_5 = 5 ;
+variables:
+	int i(_zdim_2, _zdim_5) ;
+data:
+
+ i =
+  _, _, _, _, _,
+  _, _, _, _, _ ;
+}

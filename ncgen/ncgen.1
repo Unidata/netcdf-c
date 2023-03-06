@@ -9,7 +9,6 @@ ncgen
 \%[\-\fIformat_code\fP]
 \%[\-1|3|4|5|6|7]
 \%[\-b]
-\%[\-B \fIbuffersize\fP]
 \%[\-c]
 \%[\-d]
 \%[\-D \fIdebuglevel\fP]
@@ -24,6 +23,7 @@ ncgen
 \%[\-N \fIdatasetname\fP]
 \%[\-o \fInetcdf_filename\fP]
 \%[\-P]
+.\%[\-W \fImaxwholevarsize\fP]
 \%[\-x]
 .hy
 .ft
@@ -69,8 +69,6 @@ Create a (binary) netCDF file.  If the \fB-o\fP option is absent, a
 default file name will be constructed from the basename of the CDL
 file, with any suffix replaced by the `.nc' extension.  If a
 file already exists with the specified name, it will be overwritten.
-.IP "\fB-B\fP \fRbuffersize\fP\fP"
-Specify the internal iterator buffer size.
 .IP "\fB-c\fP"
 Generate
 .B C
@@ -107,7 +105,7 @@ The possible \fIformat_name\fP values for the \-k option are:
 .IP "'netCDF-4 classic model' or 'nc7' => netCDF-4 classic model format"
 .RE
 .RE
-Accepted \fIformat_number\fP arguments, just shortcuts for format_names, are:
+Accepted \fIformat_code\fP numeric arguments, just shortcuts for format_names, are:
 .RS
 .RS
 .IP "3 => netcdf classic format"
@@ -205,6 +203,10 @@ seekable.
 .IP "\fB-P\fP"
 Use NC_DISKLESS mode to create the file totally in memory
 before persisting it to disk.
+.IP "\fB-W\fP \fRmaxwholevarsize\fP"
+Set wholevarsizem where if total number of elements is less than maxwholevarsize
+then update a variable using a single nc_put_var. Requires
+that the variable has no unlimited dimensions.
 .IP "\fB-x\fP"
 Don't initialize data with fill values.  This can speed up creation of
 large netCDF files greatly, but later attempts to read unwritten data
@@ -394,8 +396,8 @@ are reserved for the use of Unidata and should not be used in user
 defined attributes.
 .LP
 Note also that the words
-`variable',
-`dimension',
+`variables',
+`dimensions',
 `data',
 `group',
 and `types'
@@ -808,7 +810,7 @@ for the variable.
 .IP 4. 3
 `_Shuffle' specifies if the the shuffle filter should be used.
 .IP 5. 3
-`_Storage' is `contiguous' or `chunked'.
+`_Storage' is `contiguous' or `compact` or `chunked'.
 .IP 6. 3
 `_ChunkSizes' is a list of chunk sizes for each dimension of
 the variable
@@ -981,6 +983,19 @@ The CDL syntax makes it easy to assign what looks like an array of
 variable-length strings to a netCDF variable, but the strings may simply be
 concatenated into a single array of characters.
 Specific use of the \fIstring\fP type specifier may solve the problem
+
+.SH "Identifiers and Keywords"
+.LP
+Under certain conditions, some keywords can be used as identifiers.
+.IP "\fB1.\fP
+If a type keyword is not a type supported by the format of the .cdl file,
+then it can be used as an identifier. So, for example, when translating a .cdl
+file as a netCDF-3 file, then "string" or "uint64" can be
+used as identifiers.
+.IP "\fB2.\fP
+The keyword "data" can be used as an identifier because it can be tested
+in a context sensitive fashion to see if "data" is a keyword versus an
+identifier.
 
 .SH "CDL Grammar"
 .LP

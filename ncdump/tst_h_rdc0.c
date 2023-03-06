@@ -28,7 +28,7 @@ main()
       char obj_name[MAX_NAME];
 
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
 
       /* Find the variables. Read their metadata and attributes. */
       if (H5Gget_num_objs(grpid, &num_obj) < 0) ERR;

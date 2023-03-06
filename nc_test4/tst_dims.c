@@ -618,7 +618,7 @@ main(int argc, char **argv)
       count[0] = 1;
       if (nc_put_vara_ulonglong(ncid, 0, start, count, uint64_data)) ERR;
 
-      /* Check dimension informaiton again. Now the length of this
+      /* Check dimension information again. Now the length of this
        * dimension should be one. */
       if (nc_inq_dim(ncid, dimid, name_in, &len_in)) ERR;
       if (len_in != 1 || strcmp(name_in, LEVEL_NAME)) ERR;
@@ -1332,7 +1332,8 @@ main(int argc, char **argv)
       strcat(file_in, REF_FILE_NAME);
 
       /* Reopen and check it out again. */
-      if (nc_open(file_in, NC_NOWRITE, &ncid)) ERR;
+      if ((ret = nc_open(file_in, NC_NOWRITE, &ncid)))
+          ERR;
 
       /* Check it out. */
       ret = nc_inq_dim(ncid, dimid, name_in, &len_in);

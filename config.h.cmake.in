@@ -46,7 +46,9 @@ are set when opening a binary file on Windows. */
    #define read _read
    #define lseek _lseeki64
 
+   #ifndef __clang__
    #define fstat _fstat64
+   #endif
 
    #define off_t __int64
    #define _off_t __int64
@@ -54,19 +56,6 @@ are set when opening a binary file on Windows. */
    #ifndef _OFF_T_DEFINED
    #define _OFF_T_DEFINED
    #endif
-
-   #ifdef _WIN32
-    #ifndef strcasecmp
-      #define strcasecmp _stricmp
-    #endif
-
-    #ifndef snprintf
-     #if _MSC_VER<1900
-       #define snprintf _snprintf
-     #endif
-    #endif
-   #endif
-
 
    #define strdup _strdup
    #define fdopen _fdopen
@@ -97,6 +86,9 @@ are set when opening a binary file on Windows. */
 /* default file chunk cache size in bytes. */
 #cmakedefine CHUNK_CACHE_SIZE ${CHUNK_CACHE_SIZE}
 
+/* default nczarr chunk cache size in bytes. */
+#cmakedefine CHUNK_CACHE_SIZE_NCZARR ${CHUNK_CACHE_SIZE_NCZARR}
+
 /* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
    systems. This function is required for `alloca.c' support on those systems.
    */
@@ -117,11 +109,20 @@ are set when opening a binary file on Windows. */
 /* set this only when building a DLL under MinGW */
 #cmakedefine DLL_NETCDF 1
 
+/* if true, use atexist */
+#cmakedefine ENABLE_ATEXIT_FINALIZE 1
+
 /* if true, build byte-range Client */
 #cmakedefine ENABLE_BYTERANGE 1
 
+/* if true, use hdf5 S3 virtual file reader */
+#cmakedefine ENABLE_HDF5_ROS3 1
+
 /* if true, enable CDF5 Support */
 #cmakedefine ENABLE_CDF5 1
+
+/* if true, enable client side filters */
+#cmakedefine ENABLE_CLIENT_FILTERS 1
 
 /* if true, enable strict null byte header padding. */
 #cmakedefine USE_STRICT_NULL_BYTE_HEADER_PADDING 1
@@ -132,14 +133,29 @@ are set when opening a binary file on Windows. */
 /* if true, build DAP4 Client */
 #cmakedefine ENABLE_DAP4 1
 
-/* if true, build DAP4 Client */
-#cmakedefine ENABLE_DAP4 1
-
 /* if true, do remote tests */
 #cmakedefine ENABLE_DAP_REMOTE_TESTS 1
 
-/* define the possible sources for remote test servers */
-#cmakedefine REMOTETESTSERVERS	"${REMOTETESTSERVERS}"
+/* if true, enable NCZARR */
+#cmakedefine ENABLE_NCZARR 1
+
+/* if true, enable nczarr filter support */
+#cmakedefine ENABLE_NCZARR_FILTERS 1
+
+/* if true, enable S3 support */
+#cmakedefine ENABLE_NCZARR_S3 1
+
+/* if true, enable nczarr zip support */
+#cmakedefine ENABLE_NCZARR_ZIP 1
+
+/* if true, enable S3 testing*/
+#cmakedefine ENABLE_NCZARR_S3_TESTS 1
+
+/* if true, S3 SDK is available */
+#cmakedefine ENABLE_S3_SDK 1
+
+/* if true, Allow dynamically loaded plugins */
+#cmakedefine ENABLE_PLUGINS 1
 
 /* if true, run extra tests which may not work yet */
 #cmakedefine EXTRA_TESTS 1
@@ -150,9 +166,20 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have `alloca', as a function or macro. */
 #cmakedefine HAVE_ALLOCA 1
 
-/* Define to 1 if you have <alloca.h> and it should be used (not on Ultrix).
-   */
+/* Define to 1 if you have <alloca.h> and it should be used (not on Ultrix). */
 #cmakedefine HAVE_ALLOCA_H 1
+
+/* Define to 1 if you have the `atexit function. */
+#cmakedefine HAVE_ATEXIT 1
+
+/* Define to 1 if bzip2 library available. */
+#cmakedefine HAVE_BZ2 1
+
+/* Define to 1 if zstd library available. */
+#cmakedefine HAVE_ZSTD 1
+
+/* Define to 1 if blosc library available. */
+#cmakedefine HAVE_BLOSC 1
 
 /* Define to 1 if you have hdf5_coll_metadata_ops */
 #cmakedefine HDF5_HAS_COLL_METADATA_OPS 1
@@ -178,6 +205,9 @@ are set when opening a binary file on Windows. */
 /* Is CURLOPT_USERNAME defined */
 #cmakedefine HAVE_CURLOPT_USERNAME 1
 
+/* Is LIBCURL version >= 7.66 */
+#cmakedefine HAVE_LIBCURL_766 1
+
 /* Define to 1 if you have the declaration of `isfinite', and to 0 if you
    don't. */
 #cmakedefine HAVE_DECL_ISFINITE 1
@@ -189,6 +219,12 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the declaration of `isnan', and to 0 if you don't.
    */
 #cmakedefine HAVE_DECL_ISNAN 1
+
+/* Define to 1 if you have the <dirent.h> header file. */
+#cmakedefine HAVE_DIRENT_H 1
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#cmakedefine HAVE_DLFCN_H 1
 
 /* Define to 1 if you have the <fcntl.h> header file. */
 #cmakedefine HAVE_FCNTL_H 1
@@ -217,11 +253,17 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the `gettimeofday' function. */
 #cmakedefine HAVE_GETTIMEOFDAY 1
 
-/* if true, netcdf4 file properties will be set using H5Pset_libver_bounds */
-#cmakedefine HAVE_H5PSET_LIBVER_BOUNDS 1
+/* Define to 1 if you have the `clock_gettime' function. */
+#cmakedefine HAVE_CLOCK_GETTIME 1
+
+/* Define to 1 if you have the `gettimeofday' function. */
+#cmakedefine HAVE_STRUCT_TIMESPEC 1
 
 /* Define to 1 if you have the `H5Z_SZIP' function. */
 #cmakedefine HAVE_H5Z_SZIP 1
+
+/* Define to 1 if you have libsz */
+#cmakedefine HAVE_SZ 1
 
 /* Define to 1 if you have the <hdf5.h> header file. */
 #cmakedefine HAVE_HDF5_H 1
@@ -250,6 +292,9 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the `pnetcdf' library (-lpnetcdf). */
 #cmakedefine HAVE_LIBPNETCDF 1
 
+/* Define to 1 if you have the libxml2 library. */
+#cmakedefine ENABLE_LIBXML2 1
+
 /* Define to 1 if you have the <locale.h> header file. */
 #cmakedefine HAVE_LOCALE_H 1
 
@@ -274,6 +319,9 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the `MPI_Comm_f2c' function. */
 #cmakedefine HAVE_MPI_COMM_F2C 1
 
+/* Define to 1 if you have the `MPI_Info_f2c' function. */
+#cmakedefine HAVE_MPI_INFO_F2C 1
+
 /* Define to 1 if you have the `mremap' function. */
 #cmakedefine HAVE_MREMAP 1
 
@@ -286,6 +334,12 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if the system has the type `ssize_t'. */
 #cmakedefine HAVE_SSIZE_T 1
 
+/* Define to 1 if the system has the type `ptrdiff_t'. */
+#cmakedefine HAVE_PTRDIFF_T 1
+
+/* Define to 1 if the system has the type `uintptr_t'. */
+#cmakedefine HAVE_UINTPTR_T 1
+
 /* Define to 1 if you have the <stdarg.h> header file. */
 #cmakedefine HAVE_STDARG_H 1
 
@@ -297,12 +351,6 @@ are set when opening a binary file on Windows. */
 
 /* Define to 1 if you have the <stdlib.h> header file. */
 #cmakedefine HAVE_STDLIB_H 1
-
-/* Define to 1 if you have the `strdup' function. */
-#cmakedefine HAVE_STRDUP 1
-
-/* Define to 1 if you have the `strndup` function. */
-#cmakedefine HAVE_STRNDUP
 
 /* Define to 1 if you have the <strings.h> header file. */
 #cmakedefine HAVE_STRINGS_H 1
@@ -318,6 +366,15 @@ are set when opening a binary file on Windows. */
 
 /* Define to 1 if you have the <libgen.h> header file. */
 #cmakedefine HAVE_LIBGEN_H 1
+
+/* Define to 1 if you have the `strdup' function. */
+#cmakedefine HAVE_STRDUP 1
+
+/* Define to 1 if you have the `strndup` function. */
+#cmakedefine HAVE_STRNDUP
+
+/* Define to 1 if you have the `strcasecmp` function. */
+#cmakedefine HAVE_STRCASECMP
 
 /* Define to 1 if you have the `strlcat' function. */
 #cmakedefine HAVE_STRLCAT 1
@@ -352,6 +409,9 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the <sys/types.h> header file. */
 #cmakedefine HAVE_SYS_TYPES_H 1
 
+/* Define to 1 if you have the <time.h> header file. */
+#cmakedefine HAVE_TIME_H 1
+
 /* Define to 1 if the system has the type `uchar'. */
 #cmakedefine HAVE_UCHAR 1
 
@@ -361,6 +421,9 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if the system has the type `uint64'. */
 #cmakedefine HAVE_UINT64 1
 
+/* Define to 1 if the system has the type `uint64_t'. */
+#cmakedefine HAVE_UINT64_T 1
+
 /* Define to 1 if you have the <unistd.h> header file. */
 #cmakedefine HAVE_UNISTD_H 1
 #cmakedefine YY_NO_UNISTD_H 1
@@ -368,18 +431,18 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if the system has the type `ushort'. */
 #cmakedefine HAVE_USHORT 1
 
-/* if true, H5free_memory() will be used to free hdf5-allocated memory in
-   nc4file. */
-#cmakedefine HAVE_H5FREE_MEMORY 1
-
-/* if true, H5allocate_memory() will be used. */
-#cmakedefine HAVE_H5ALLOCATE_MEMORY 1
-
-/* if true, H5resize_memory() will be used. */
-#cmakedefine HAVE_H5RESIZE_MEMORY 1
-
 /* if true, hdf5 has parallelism enabled */
 #cmakedefine HDF5_PARALLEL 1
+
+/* if true, HDF5 is at least version 1.10. 3 and allows parallel I/O
+with zip */
+#cmakedefine HDF5_SUPPORTS_PAR_FILTERS 1
+
+/* if true, HDF5 is at least version 1.10.5 and supports UTF8 paths */
+#cmakedefine HDF5_UTF8_PATHS 1
+
+/* if true, backtrace support will be used. */
+#cmakedefine HAVE_EXECINFO_H 1
 
 /* if true, include JNA bug fix */
 #cmakedefine JNA 1
@@ -401,6 +464,9 @@ are set when opening a binary file on Windows. */
 
 /* Add extra properties to _NCProperties attribute */
 #cmakedefine NCPROPERTIES_EXTRA ${NCPROPERTIES_EXTRA}
+
+/* Idspatch table version */
+#cmakedefine NC_DISPATCH_VERSION ${NC_DISPATCH_VERSION}
 
 /* no IEEE float on this platform */
 #cmakedefine NO_IEEE_FLOAT 1
@@ -440,6 +506,12 @@ are set when opening a binary file on Windows. */
 
 /* Define to the version of this package. */
 #cmakedefine PACKAGE_VERSION "${netCDF_VERSION}"
+
+/* Do we have access to the Windows Registry */
+#cmakedefine REGEDIT 1
+
+/* define the possible sources for remote test servers */
+#cmakedefine REMOTETESTSERVERS	"${REMOTETESTSERVERS}"
 
 /* The size of `ulonglong` as computed by sizeof. */
 #cmakedefine SIZEOF_ULONGLONG @SIZEOF_ULONGLONG@
@@ -550,11 +622,18 @@ are set when opening a binary file on Windows. */
 /* if true, use stdio instead of posixio */
 #cmakedefine USE_STDIO 1
 
-/* if true, compile in szip compression in netCDF-4 variables */
-#cmakedefine USE_SZIP 1
+/* if true, multi-filters enabled*/
+#cmakedefine ENABLE_MULTIFILTERS 1
+
+/* if true, enable nczarr blosc support */
+#cmakedefine ENABLE_BLOSC 1
 
 /* Version number of package */
 #cmakedefine VERSION "${netCDF_VERSION}"
+
+/* Capture  Windows version and build */
+#cmakedefine WINVERMAJOR ${WINVERMAJOR}
+#cmakedefine WINVERBUILD ${WINVERBUILD}
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */
@@ -585,19 +664,11 @@ are set when opening a binary file on Windows. */
 /* Define to `int' if <sys/types.h> does not define. */
 #cmakedefine ssize_t int
 
+/* Define to `signed long if <sys/types.h> does not define. */
+#cmakedefine ptrdiff_t signed long
+
 /* Define to `unsigned long if <sys/types.h> does not define. */
 #cmakedefine uintptr_t unsigned long
-
-/* Define strcasecmp, snprintf on Win32 systems. */
-#ifdef _WIN32
-    #ifndef HAVE_STRCASECMP
-	 #define strcasecmp _stricmp
-    #endif
-
-    #ifndef HAVE_SNPRINTF
-	 #define snprintf _snprintf
-    #endif
-#endif
 
 #cmakedefine WORDS_BIGENDIAN
 

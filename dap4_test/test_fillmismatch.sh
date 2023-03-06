@@ -3,8 +3,9 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
-set -e
 . ${srcdir}/d4test_common.sh
+
+set -e
 
 echo "test_fillmismatch.sh:"
 
@@ -13,17 +14,17 @@ F="test_fillmismatch.nc"
 URL='[dap4]file://'
 URL="${URL}${srcdir}/misctestfiles/$F"
 
-# First check that without [fillmismatch], we get a failure
+# First check that with [nofillmismatch], we get a failure
 rm -f ./tmp_dap4_mismatch
-if ${NCDUMP} -h "${URL}" > ./tmp_dap4_mismatch 2>&1 ; then
-echo "*** Fail: ${NCDUMP} ${URL} passed"
+URLNO="[nofillmismatch]$URL"
+if ${NCDUMP} -h "${NOURL}" > ./tmp_dap4_mismatch 2>&1 ; then
+echo "*** Fail: ${NCDUMP} ${NOURL} passed"
 exit 1
 else
-echo "*** XFail: ${NCDUMP} ${URL} failed"
+echo "*** XFail: ${NCDUMP} ${NOURL} failed"
 fi
 
-# Now check that with [fillmismatch], we get sucess
-URL="[fillmismatch]${URL}"
+# Now check that with [fillmismatch] (default), we get success
 rm -f ./tmp_dap4_mismatch
 if ${NCDUMP} -h "${URL}" > ./tmp_dap4_mismatch ; then
 echo "*** Pass: ${NCDUMP} ${URL} passed"
@@ -36,4 +37,3 @@ fi
 diff -w ${srcdir}/baselineraw/$F.dmp ./tmp_dap4_mismatch
 #cleanup
 rm -f ./tmp_dap4_mismatch
-exit

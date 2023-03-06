@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <errno.h>
 
+#include "ncpathmgr.h"
+
 /*
 Implement the ncstdio.h interface using unix stdio.h
 */
@@ -61,7 +63,7 @@ ncFile_create(const char *path, int ioflags, ncstdio** filepp)
     File* f;
     struct ncFileState* state;
 
-    f = fopen(path,"w+");
+    f = NCfopen(path,"w+");
     if(f == NULL)
 	return errno;
     filep = (ncstdio*)calloc(sizeof(ncstdio),1);
@@ -84,9 +86,9 @@ ncFile_open(const char *path, int ioflags, ncstdio** filepp)
     File* f;
 
     if(fIsSet(ioflags,NC_NOCLOBBER))
-        f = fopen(path,"r");
+        f = NCfopen(path,"r");
     else
-        f = fopen(path,"w+");
+        f = NCfopen(path,"w+");
     if(f == NULL)
 	return errno;
 
@@ -159,11 +161,11 @@ NCFile_sync(ncstdio* filep);
 #ifdef HAVE_FSYNC
 #ifdef USE_FSYNC
     fd = fileno(state->file);
-#ifndef WIN32
+#ifndef _WIN32
     fsync(fd);
 #else
     _commit(fd);
-#endif	/* WIN32 */
+#endif	/* _WIN32 */
 #endif
 #endif
     return NC_NOERR;

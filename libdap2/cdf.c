@@ -748,7 +748,7 @@ definedimsetplus(NCDAPCOMMON* nccomm/*notused*/, CDFnode* node)
 
     if(node->array.dimset0 != NULL)
         /* copy the dimset0 into dimset */
-        dimset = nclistclone(node->array.dimset0);
+        dimset = nclistclone(node->array.dimset0, 0);
     /* Insert the sequence or string dims */
     if(node->array.stringdim != NULL) {
         if(dimset == NULL) dimset = nclistnew();
@@ -1021,7 +1021,7 @@ buildcdftreer(NCDAPCOMMON* nccomm, OCddsnode ocnode, CDFnode* container,
 	break;
 
     case OC_Dimension:
-    default: PANIC1("buildcdftree: unexpect OC node type: %d",(int)octype);
+    default: PANIC1("buildcdftree: unexpected OC node type: %d",(int)octype);
 
     }
     /* Avoid a rare but perhaps possible null-dereference
@@ -1089,6 +1089,7 @@ free1cdfnode(CDFnode* node)
     nullfree(node->ocname);
     nullfree(node->ncbasename);
     nullfree(node->ncfullname);
+    nullfree(node->dodsspecial.dimname);
     if(node->attributes != NULL) {
 	for(j=0;j<nclistlength(node->attributes);j++) {
 	    NCattribute* att = (NCattribute*)nclistget(node->attributes,j);
@@ -1099,7 +1100,6 @@ free1cdfnode(CDFnode* node)
 	    nullfree(att);
 	}
     }
-    nullfree(node->dodsspecial.dimname);
     nclistfree(node->subnodes);
     nclistfree(node->attributes);
     nclistfree(node->array.dimsetplus);

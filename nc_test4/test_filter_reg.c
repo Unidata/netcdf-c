@@ -15,7 +15,7 @@
 #include <H5PLextern.h>
 
 #include "netcdf.h"
-#include "netcdf_filter.h"
+#include "netcdf_filter_hdf5_build_.h"
 
 #undef TESTODDSIZE
 
@@ -57,7 +57,10 @@ static size_t nparams = 0;
 static unsigned int params[MAXPARAMS];
 static unsigned int baseline[NPARAMS] = {PARAMVAL};
 
-static NC_FILTER_INFO baseinfo;
+static struct Base {
+    unsigned int id;
+    H5Z_class2_t* info;
+} baseinfo;
 
 static const H5Z_class2_t H5Z_REG[1];
 
@@ -84,6 +87,7 @@ check(int err,int line)
 {
     if(err != NC_NOERR) {
         fprintf(stderr,"fail (%d): %s\n",line,nc_strerror(err));
+	nerrs++;
     }
     return NC_NOERR;
 }
@@ -137,21 +141,14 @@ create(void)
 }
 
 static int
-verifyfilterinfo(NC_FILTER_INFO* info, NC_FILTER_INFO* base)
+verifyfilterinfo(struct Base* info, struct Base* base)
 {
     int stat = NC_NOERR;
-    if(info->version != base->version)
-	{stat = NC_EINVAL; fprintf(stderr,"verifyfilterinfo: version mismatch\n");}
-    if(info->format != base->format)
-	{stat = NC_EINVAL; fprintf(stderr,"verifyfilterinfo: format mismatch\n");}
     if(info->id != base->id)
 	{stat = NC_EINVAL; fprintf(stderr,"verifyfilterinfo: id mismatch\n");}
-    if(info->format == NC_FILTER_FORMAT_HDF5) {
 #ifdef USE_HDF5
 	H5Z_class2_t* h5info = (H5Z_class2_t*)info->info;
 	H5Z_class2_t* h5base = (H5Z_class2_t*)base->info;
-        if(h5info->version != h5base->version)
-	    {stat = NC_EINVAL; fprintf(stderr,"verifyfilterinfo: H5Z_class_t: version mismatch\n");}
         if(h5info->id != h5base->id)
 	    {stat = NC_EINVAL; fprintf(stderr,"verifyfilterinfo: H5Z_class_t: id mismatch\n");}
         if(h5info->encoder_present != h5base->encoder_present)
@@ -171,46 +168,57 @@ verifyfilterinfo(NC_FILTER_INFO* info, NC_FILTER_INFO* base)
 #else
 	stat = NC_ENOTBUILT; fprintf(stderr,"Unknown format\n")}
 #endif
-    } else
-	{stat = NC_EINVAL; fprintf(stderr,"Unknown format\n");}
-
     return stat;
 }
 
 static void
 registerfilter(void)
 {
-    NC_FILTER_INFO inqinfo;
+    int stat;
+    struct Base inqinfo;
 
-    baseinfo.version = NC_FILTER_INFO_VERSION;
-    baseinfo.format = NC_FILTER_FORMAT_HDF5;
     baseinfo.id = FILTER_ID;
-    baseinfo.info = (void*)&H5Z_REG[0];
-    CHECK(nc_filter_register(&baseinfo));
+    baseinfo.info = (H5Z_class2_t*)&H5Z_REG[0];
+    stat = nc_filter_client_register(baseinfo.id,baseinfo.info);
+    if(stat == NC_ENOTBUILT) {
+	fprintf(stderr,"client side filters not implemented: test skipped\n");
+	exit(0);
+    }
+    CHECK(stat);
     /* Verify by inquiry */
-    memset(&inqinfo,0,sizeof(NC_FILTER_INFO));
-    CHECK((nc_filter_inq(NC_FILTER_FORMAT_HDF5, FILTER_ID, &inqinfo)));
+    memset(&inqinfo,0,sizeof(struct Base));
+    inqinfo.id = FILTER_ID;
+    inqinfo.info = calloc(1,sizeof(H5Z_class2_t));
+    if(inqinfo.info == NULL) CHECK(NC_ENOMEM);
+    CHECK((nc_filter_client_inq(inqinfo.id,(void*)inqinfo.info)));
     CHECK((verifyfilterinfo(&inqinfo,&baseinfo)));
+    nullfree(inqinfo.info);
 }
 
 static void
 unregisterfilter(void)
 {
     int stat = NC_NOERR;
-    NC_FILTER_INFO inqinfo;
+    struct Base inqinfo;
 
     /* Verify that the filter info is still good */
-    memset(&inqinfo,0,sizeof(NC_FILTER_INFO));
-    CHECK((stat = nc_filter_inq(NC_FILTER_FORMAT_HDF5, FILTER_ID, &inqinfo)));
+    memset(&inqinfo,0,sizeof(struct Base));
+    inqinfo.id = FILTER_ID;
+    inqinfo.info = calloc(1,sizeof(H5Z_class2_t));
+    if(inqinfo.info == NULL) CHECK(NC_ENOMEM);
+    CHECK((stat=nc_filter_client_inq(inqinfo.id,(void*)inqinfo.info)));
     CHECK((verifyfilterinfo(&inqinfo,&baseinfo)));    
     /* Unregister */
-    CHECK((stat = nc_filter_unregister(NC_FILTER_FORMAT_HDF5, FILTER_ID)));
+    inqinfo.id = FILTER_ID;
+    CHECK((stat = nc_filter_client_unregister(inqinfo.id)));
     /* Inq again to verify unregistered */
-    stat = nc_filter_inq(NC_FILTER_FORMAT_HDF5, FILTER_ID, NULL);
-    if(stat != NC_EFILTER) {
+    inqinfo.id = FILTER_ID;
+    stat=nc_filter_client_inq(inqinfo.id,(void*)inqinfo.info);
+    if(stat != NC_ENOFILTER) {
 	fprintf(stderr,"unregister: failed\n");
 	CHECK(NC_EFILTER);
     }
+    nullfree(inqinfo.info);
 }
 
 static void
@@ -488,7 +496,7 @@ int
 main(int argc, char **argv)
 {
 #ifdef DEBUG
-    H5Eprint(stderr);
+    H5Eprint1(stderr);
     nc_set_log_level(1);
 #endif
     init(argc,argv);
@@ -544,39 +552,26 @@ H5Z_filter_reg(unsigned int flags, size_t cd_nelmts,
     fprintf(stderr,"nbytes=%ld\n",(long)nbytes);
 
     if (flags & H5Z_FLAG_REVERSE) {
-
         /* Replace buffer */
-#ifdef HDF5_HAS_ALLOCATE_MEMORY
         newbuf = H5allocate_memory(*buf_size,0);
-#else
-        newbuf = malloc(*buf_size * sizeof(void));
-#endif
         if(newbuf == NULL) abort();
-        memcpy(newbuf,*buf,*buf_size);
-        /* reclaim old buffer */
-#ifdef HDF5_HAS_H5FREE
-        H5free_memory(*buf);
-#else
-        free(*buf);
-#endif
+	if(*buf != NULL) {
+            memcpy(newbuf,*buf,*buf_size);
+            /* reclaim old buffer */
+            H5free_memory(*buf);
+	}
         *buf = newbuf;
 
     } else {
 
         /* Replace buffer */
-#ifdef HDF5_HAS_ALLOCATE_MEMORY
-      newbuf = H5allocate_memory(*buf_size,0);
-#else
-      newbuf = malloc(*buf_size * sizeof(void));
-#endif
-      if(newbuf == NULL) abort();
-        memcpy(newbuf,*buf,*buf_size);
-	/* reclaim old buffer */
-#ifdef HDF5_HAS_H5FREE
-        H5free_memory(*buf);
-#else
-        free(*buf);
-#endif
+        newbuf = H5allocate_memory(*buf_size,0);
+	if(newbuf == NULL) abort();
+	if(*buf != NULL) {
+            memcpy(newbuf,*buf,*buf_size);
+    	    /* reclaim old buffer */
+            H5free_memory(*buf);
+	}
         *buf = newbuf;
 
     }

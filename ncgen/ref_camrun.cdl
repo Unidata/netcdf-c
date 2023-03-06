@@ -1442,7 +1442,7 @@ variables:
 		TROP_P:_ChunkSizes = 1, 96, 144 ;
 	double TROP_PD(time, lev, lat, lon) ;
 		TROP_PD:units = "probability" ;
-		TROP_PD:long_name = "Tropopause Probabilty" ;
+		TROP_PD:long_name = "Tropopause Probability" ;
 		TROP_PD:cell_methods = "time: mean" ;
 		TROP_PD:_Storage = "chunked" ;
 		TROP_PD:_ChunkSizes = 1, 30, 96, 144 ;

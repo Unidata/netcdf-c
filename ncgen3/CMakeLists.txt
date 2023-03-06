@@ -4,28 +4,36 @@
 # University Corporation for Atmospheric Research/Unidata.
 
 # See netcdf-c/COPYRIGHT file for more info.
-SET(ncgen3_FILES main.c load.c escapes.c getfill.c init.c genlib.c ncgentab.c)
-
-FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.sh ${CMAKE_CURRENT_SOURCE_DIR}/*.cdl)
-FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
-
-IF(NOT EXISTS ${netCDF_SOURCE_DIR}/ncgen3/ncgentab.c AND NOT EXISTS
-    ${netCDF_SOURCE_DIR}/ncgen3/ncgentab.h)
-  ADD_CUSTOM_COMMAND(
-    OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/ncgentab.c ${CMAKE_CURRENT_SOURCE_DIR}/ncgentab.h
-    COMMAND bison -pncg -d ${netCDF_SOURCE_DIR}/ncgen3/ncgen.y
-    COMMAND mv ncgen.tab.c ${netCDF_SOURCE_DIR}/ncgen3/ncgentab.c
-    COMMAND mv ncgen.tab.h ${netCDF_SOURCE_DIR}/ncgen3/ncgentab.h
-    VERBATIM
-    )
-ENDIF()
+SET(ncgen3_FILES main.c load.c escapes.c getfill.c init.c genlib.c ncgeny.c)
 
 IF(USE_X_GETOPT)
   SET(ncgen3_FILES ${ncgen3_FILES} XGetopt.c)
 ENDIF()
 
+FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.sh ${CMAKE_CURRENT_SOURCE_DIR}/*.cdl)
+FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
+
+IF(NOT EXISTS ${netCDF_SOURCE_DIR}/ncgen3/ncgeny.c AND NOT EXISTS
+    ${netCDF_SOURCE_DIR}/ncgen3/ncgeny.h)
+  ADD_CUSTOM_COMMAND(
+  OUTPUT ncgentab.h
+  COMMAND flex -Pncg -8 ncgen.l
+  COMMAND rm -f ncgenl.c
+  COMMAND mv lex.ncg.c ncgenl.c
+  COMMAND bison -pncg -t -d ncgen.y
+  COMMAND rm -f ncgeny.c ncgeny.h
+  COMMAND mv ncgen.tab.c ncgeny.c
+  COMMAND mv ncgen.tab.h ncgeny.h
+  COMMAND mv ncgeny.h ${CMAKE_CURRENT_SOURCE_DIR}
+  COMMAND mv ncgeny.c ${CMAKE_CURRENT_SOURCE_DIR}
+  COMMAND mv ncgenl.c ${CMAKE_CURRENT_SOURCE_DIR}
+  VERBATIM
+    )
+ENDIF()
+
 ADD_EXECUTABLE(ncgen3 ${ncgen3_FILES})
 TARGET_LINK_LIBRARIES(ncgen3 netcdf ${ALL_TLL_LIBS})
+
 ####
 # We have to do a little tweaking
 # to remove the Release/ and Debug/ directories
@@ -45,7 +53,7 @@ ENDIF()
 
 IF(ENABLE_TESTS)
   SET(NCGEN3_TESTS run_tests)
-  IF(USE_NETCDF4)
+  IF(USE_HDF5)
     SET(NCGEN3_TESTS ${NCGEN3_TESTS} run_nc4_tests)
   ENDIF()
 
@@ -62,7 +70,7 @@ ENDIF()
 
 ## Specify files to be distributed by 'make dist'
 FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
-SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt XGetopt.c Makefile.am ncgen.y ncgenyy.c ncgen.l c0.cdl ncgen3.1)
+SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am ncgen.y ncgenyy.c ncgen.l c0.cdl ncgen3.1)
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")
 
 

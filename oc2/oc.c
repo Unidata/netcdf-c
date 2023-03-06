@@ -5,6 +5,9 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#endif
 
 #include "netcdf.h"
 #include "ocinternal.h"
@@ -14,7 +17,7 @@
 #include "ncrc.h"
 #include "occurlfunctions.h"
 #include "ochttp.h"
-#include "ncwinpath.h"
+#include "ncpathmgr.h"
 
 #undef TRACK
 
@@ -95,7 +98,7 @@ oc_close(OCobject link)
 This procedure is used to send requests to the server
 to obtain either a DAS, DDS, or DATADDS response
 and produce a corresponding tree.
-It fetchs and parses a given class of DXD the server specified
+It fetches and parses a given class of DXD the server specified
 at open time, and using a specified set of constraints
 and flags.
 
@@ -1801,12 +1804,12 @@ oc_raw_xdrsize(OCobject link, OCobject ddsroot, off_t* xdrsizep)
 
 /* Resend a url as a head request to check the Last-Modified time */
 OCerror
-oc_update_lastmodified_data(OCobject link)
+oc_update_lastmodified_data(OCobject link, OCflags flags)
 {
     OCstate* state;
     OCVERIFY(OC_State,link);
     OCDEREF(OCstate*,state,link);
-    return OCTHROW(ocupdatelastmodifieddata(state));
+    return OCTHROW(ocupdatelastmodifieddata(state,flags));
 }
 
 long
@@ -1940,6 +1943,7 @@ oc_data_mode(OCobject link, OCobject datanode, OCDT* modep)
     return OC_NOERR;
 }
 
+#if 0
 /* Free up a datanode that is no longer being used;
    Currently does nothing
 */
@@ -1948,6 +1952,7 @@ oc_data_free(OCobject link, OCobject datanode)
 {
     return OCTHROW(OC_NOERR);
 }
+#endif
 
 /* Free up a ddsnode that is no longer being used;
    Currently does nothing

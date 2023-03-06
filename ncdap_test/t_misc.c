@@ -50,13 +50,13 @@ main()
 #endif
 
     if(serverlist == NULL || strlen(serverlist) == 0) {
-	fprintf(stderr,"Cannot determine a server list");
-	exit(1);
+	fprintf(stderr,"WARNING: Cannot determine a server list");
+	exit(0);
     }
-    svcurl = nc_findtestserver(servlet,0,serverlist);
+    svcurl = nc_findtestserver(servlet,serverlist);
     if(svcurl == NULL) {
-	fprintf(stderr,"not found: %s\n",servlet);
-	exit(1);
+	fprintf(stderr,"WARNING: Server not found: %s\n",servlet);
+	exit(0);
     }
 
     snprintf(url,sizeof(url),FURL,svcurl);

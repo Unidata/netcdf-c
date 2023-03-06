@@ -1,12 +1,15 @@
 #!/bin/sh
 
 # This .in file is processed at build time into a shell that runs some
-# parallel I/O tests for HDF5 parallel I/O.
+# parallel I/O tests for netCDF/HDF5 parallel I/O.
 
 # Ed Hartnett, Dennis Heimbigner, Ward Fisher
 
-set -x
 set -e
+
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
+. ../test_common.sh
+
 echo
 echo "Testing MPI parallel I/O with various other mode flags..."
 @MPIEXEC@ -n 1 ./tst_mode
@@ -26,6 +29,7 @@ echo "num_proc   time(s)  write_rate(B/s)"
 @MPIEXEC@ -n 4 ./tst_parallel4
 @MPIEXEC@ -n 8 ./tst_parallel4
 
+# These work but are commented out to speed up the testing.
 #@MPIEXEC@ -n 16 ./tst_parallel4
 #@MPIEXEC@ -n 32 ./tst_parallel4
 #@MPIEXEC@ -n 64 ./tst_parallel4
@@ -42,3 +46,25 @@ echo "Parallel I/O test for Collective I/O, contributed by HDF Group."
 @MPIEXEC@ -n 1 ./tst_simplerw_coll_r
 @MPIEXEC@ -n 2 ./tst_simplerw_coll_r
 @MPIEXEC@ -n 4 ./tst_simplerw_coll_r
+
+# Only run these tests if HDF5 supports parallel filters (v1.10.2 and
+# later).
+if test "@HAS_PAR_FILTERS@" = "yes"; then
+    echo
+    echo "Parallel I/O test with zlib."
+    @MPIEXEC@ -n 4 ./tst_parallel_zlib
+
+    echo
+    echo "Parallel I/O more tests with zlib and szip (if present in HDF5)."
+    @MPIEXEC@ -n 1 ./tst_parallel_compress
+    @MPIEXEC@ -n 4 ./tst_parallel_compress
+fi
+
+echo
+echo "Parallel I/O test for quantize feature."
+@MPIEXEC@ -n 4 ./tst_quantize_par
+
+echo
+echo "Parallel I/O test contributed by wkliao from pnetcdf."
+@MPIEXEC@ -n 4 ./tst_parallel6
+

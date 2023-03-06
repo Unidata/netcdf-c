@@ -5,7 +5,7 @@
  * Read the simple_xy file, with some of the features of netCDF-4.
  *
  * This is a very simple example which is based on the simple_xy
- * example, but whch uses netCDF-4 features, such as
+ * example, but which uses netCDF-4 features, such as
  * compression. Please see the simple_xy example to learn more about
  * the netCDF-3 API.
  *
@@ -14,7 +14,7 @@
  * to illustrate the use of the netCDF C API.
  *
  * Full documentation for netCDF can be found at:
- * http://www.unidata.ucar.edu/netcdf/docs.
+ * https://docs.unidata.ucar.edu/netcdf-c.
  *
  * @author Ed Hartnett
 */

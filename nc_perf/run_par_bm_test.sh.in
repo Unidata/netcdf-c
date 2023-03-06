@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# This shell file tests the bm_ile program for parallel I/O.
+# This shell file tests the bm_file program for parallel I/O.
 # Ed Hartnett
 
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi

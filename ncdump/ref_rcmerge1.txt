@@ -1,0 +1,6 @@
+|daprc_home|->|daprc|
+|daprc_local|->|daprc|
+|dodsrc_home|->|dodsrc|
+|dodsrc_local|->|dodsrc|
+|ncrc_home|->|ncrc|
+|ncrc_local|->|ncrc|

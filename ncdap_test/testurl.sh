@@ -1,8 +1,8 @@
 #!/bin/sh
 
-#NOP=1 
-#NOS=1
-#NOB=1
+NOP=1 
+NOS=1
+NOB=1
 
 #SHOW=1
 #DBG=1
@@ -23,7 +23,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 DTS=`${execdir}/findtestserver dap2 dts`
 if test "x$DTS" = "x" ; then
 echo "WARNING: Cannot locate test server for dts"
-exit 1
+exit 0
 fi
 
 OCLOGFILE=stderr

@@ -1,8 +1,10 @@
-/* This is part of the netCDF package. Copyright 2005-2018, University
-   Corporation for Atmospheric Research/Unidata.  See COPYRIGHT file
+/* This is part of the netCDF package. Copyright 2005-2019, University
+   Corporation for Atmospheric Research/Unidata. See COPYRIGHT file
    for conditions of use.
 
    Test that HDF5 and NetCDF-4 can read and write the same file.
+
+   Ed Hartnett
 */
 #include <config.h>
 #include <nc_tests.h>
@@ -48,10 +50,10 @@ main(int argc, char **argv)
       yscaleDims[0] = ncolCur;
       if ((xdimSpaceId = H5Screate_simple(1, xscaleDims, NULL)) < 0) ERR;
 
-      /* With the SEMI close degree, the HDF5 file close will fail if
+      /* With the WEAK close degree, the HDF5 file close will not fail if
        * anything is left open. */
       if ((fapl = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
-      if (H5Pset_fclose_degree(fapl, H5F_CLOSE_SEMI)) ERR;
+      if (H5Pset_fclose_degree(fapl, H5F_CLOSE_WEAK)) ERR;
 
       /* Create file */
       if((fileId = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC,
@@ -178,7 +180,7 @@ main(int argc, char **argv)
       }
    }
    SUMMARIZE_ERR;
-#ifdef USE_SZIP
+#ifdef HAVE_H5Z_SZIP
    printf("*** testing HDF5 compatibility with szip...");
    {
 
@@ -209,7 +211,7 @@ main(int argc, char **argv)
       /* Open file and create group. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
 			      H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gcreate(fileid, GRP_NAME, 0)) < 0) ERR;
+      if ((grpid = H5Gcreate1(fileid, GRP_NAME, 0)) < 0) ERR;
 
       /* Write an array of bools, with szip compression. */
       if ((propid = H5Pcreate(H5P_DATASET_CREATE)) < 0) ERR;
@@ -217,7 +219,7 @@ main(int argc, char **argv)
       if (H5Pset_chunk(propid, 1, dims)) ERR;
       if (H5Pset_szip(propid, H5_SZIP_EC_OPTION_MASK, 32)) ERR;
       if ((spaceid = H5Screate_simple(1, dims, dims)) < 0) ERR;
-      if ((datasetid = H5Dcreate(grpid, BATTLE_RECORD, H5T_NATIVE_INT,
+      if ((datasetid = H5Dcreate1(grpid, BATTLE_RECORD, H5T_NATIVE_INT,
 				 spaceid, propid)) < 0) ERR;
       if (H5Dwrite(datasetid, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT,
 		   data_out) < 0) ERR;
@@ -252,6 +254,25 @@ main(int argc, char **argv)
 
    }
    SUMMARIZE_ERR;
-#endif /* USE_SZIP */
+#endif /* HAVE_H5Z_SZIP */
+   /* This test suggested by user brentd42 to find a memory problem in
+    * function rec_read_metadata(). This test demonstrates the bug on
+    * address sanitizer runs. See
+    * https://github.com/Unidata/netcdf-c/issues/1558. */
+   printf("*** testing error when opening HDF5 file without creating ordering...");
+   {
+       hid_t file_hid;
+       int ncid;
+       char *filename = "tst_interops5.h5";
+
+       /* Create a HDF5 file, but don't set creation ordering on. */
+       file_hid = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+       H5Fclose(file_hid);
+
+       /* Open the file with netCDF. */
+       nc_set_log_level(3);
+       if (nc_open(filename, NC_WRITE, &ncid) != NC_ECANTWRITE) ERR;
+   }
+   SUMMARIZE_ERR;
    FINAL_RESULTS;
 }

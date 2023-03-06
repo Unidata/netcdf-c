@@ -8,9 +8,11 @@ Research/Unidata. See \ref copyright file for more info.  */
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
-#ifdef _MSC_VER /* Microsoft Compilers */
-#include <io.h>
+
+#if defined(_WIN32) && !defined(__MINGW32__)
+#include "XGetopt.h"
 #endif
+
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -18,24 +20,15 @@ Research/Unidata. See \ref copyright file for more info.  */
 #include <fcntl.h>
 #endif
 
-#ifdef _MSC_VER
-#define snprintf _snprintf
-#include "XGetopt.h"
-int opterr;
-int optind;
-#endif
-
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
 #include <math.h>
-#ifdef HAVE_LOCALE_H
-#include <locale.h>
-#endif	/* HAVE_LOCALE_H */
 
 #include "netcdf.h"
 #include "netcdf_mem.h"
+#include "netcdf_filter.h"
 #include "netcdf_aux.h"
 #include "utils.h"
 #include "nccomps.h"
@@ -47,20 +40,20 @@ int optind;
 #include "isnan.h"
 #include "cdl.h"
 #include "nclog.h"
-#include "ncwinpath.h"
-#include "netcdf_aux.h"
+#include "ncpathmgr.h"
 #include "nclist.h"
+#include "ncuri.h"
 #include "nc_provenance.h"
+#include "ncpathmgr.h"
 
 #ifdef USE_NETCDF4
 #include "nc4internal.h" /* to get name of the special properties file */
 #endif
 
-#ifdef USE_DAP
-extern int nc__testurl(const char*,char**);
-#endif
-
 #define XML_VERSION "1.0"
+
+#define LPAREN "("
+#define RPAREN ")"
 
 #define int64_t long long
 #define uint64_t unsigned long long
@@ -69,13 +62,17 @@ extern int nc__testurl(const char*,char**);
    we need to be careful about printing their attributes.
 */
 static const char* keywords[] = {
-"variable",
-"dimension",
+"variables",
+"dimensions",
 "data",
 "group",
 "types",
 NULL
 };
+
+/*Forward*/
+static int searchgrouptreedim(int ncid, int dimid, int* parentidp);
+extern int nc__testurl(const char*,char**);
 
 static int iskeyword(const char* kw)
 {
@@ -98,6 +95,7 @@ fspec_t formatting_specs =	/* defaults, overridden by command-line options */
     false,		/* human-readable output for date-time values? */
     false,		/* use 'T' separator between date and time values as strings? */
     false,		/* output special attributes, eg chunking? */
+    false,              /* if -F specified */
     LANG_C,		/* language conventions for indices */
     false,	        /* for DAP URLs, client-side cache used */
     0,			/* if -v specified, number of variables in list */
@@ -127,12 +125,13 @@ usage(void)
   [-g grp1[,...]]  Data and metadata for group(s) <grp1>,... only\n\
   [-w]             With client-side caching of variables for DAP URLs\n\
   [-x]             Output XML (NcML) instead of CDL\n\
+  [-F]             Output _Filter and _Codecs instead of _Fletcher32, _Shuffle, and _Deflate\n\
   [-Xp]            Unconditionally suppress output of the properties attribute\n\
   [-Ln]            Set log level to n (>= 0); ignore if logging not enabled.\n\
   file             Name of netCDF file (or URL if DAP access enabled)\n"
 
     (void) fprintf(stderr,
-		   "%s [-c|-h] [-v ...] [[-b|-f] [c|f]] [-l len] [-n name] [-p n[,n]] [-k] [-x] [-s] [-t|-i] [-g ...] [-w] [-Ln] file\n%s",
+		   "%s [-c|-h] [-v ...] [[-b|-f] [c|f]] [-l len] [-n name] [-p n[,n]] [-k] [-x] [-s] [-t|-i] [-g ...] [-w] [-F] [-Ln] file\n%s",
 		   progname,
 		   USAGE);
 
@@ -151,42 +150,35 @@ usage(void)
 static char *
 name_path(const char *path)
 {
-    const char *cp;
-    char *new;
-    char *sp;
+    char* cvtpath = NULL;
+    const char *cp = NULL;
+    char *sp = NULL;
+    size_t cplen = 0;
+    char* base = NULL;
 
-#ifdef vms
-#define FILE_DELIMITER ']'
-#endif
-#if defined(WIN32) || defined(msdos)
-#define FILE_DELIMITER '\\'
-#endif
-#ifndef FILE_DELIMITER /* default to unix */
-#define FILE_DELIMITER '/'
-#endif
+    if (NCpathcanonical(path, &cvtpath) || cvtpath==NULL)
+        return NULL;
 
-#ifdef USE_DAP
     /* See if this is a url */
-    {
-	char* base;
-        extern int nc__testurl(const char*,char**);
- 	if(nc__testurl(path,&base)) {
- 	    return base; /* Looks like a url */
-	}
-	/* else fall thru and treat like a file path */
-    }
-#endif /*USE_DAP*/
+    if(nc__testurl(cvtpath,&base))
+ 	 goto done; /* Looks like a url */
+    /* else fall thru and treat like a file path */
 
-    cp = strrchr(path, FILE_DELIMITER);
-    if (cp == 0)		/* no delimiter */
-      cp = path;
+    cp = strrchr(cvtpath, '/');
+    if (cp == NULL)		/* no delimiter */
+      cp = cvtpath;
     else			/* skip delimiter */
       cp++;
-    new = (char *) emalloc((unsigned) (strlen(cp)+1));
-    (void) strncpy(new, cp, strlen(cp) + 1);	/* copy last component of path */
-    if ((sp = strrchr(new, '.')) != NULL)
+    cplen = strlen(cp);
+    base = (char *) emalloc((unsigned) (cplen+1));
+    base[0] = '\0';
+    strlcat(base,cp,cplen+1);
+    if ((sp = strrchr(base, '.')) != NULL)
       *sp = '\0';		/* strip off any extension */
-    return new;
+
+done:
+    nullfree(cvtpath);
+    return base;
 }
 
 /* Return primitive type name */
@@ -342,7 +334,7 @@ fileopen(const char* path, void** memp, size_t* sizep)
 #endif
     oflags |= O_EXCL;
 #ifdef vms
-    fd = open(path, oflags, 0, "ctx=stm");
+    fd = NCopen3(path, oflags, 0, "ctx=stm");
 #else
     fd  = NCopen2(path, oflags);
 #endif
@@ -404,7 +396,7 @@ done:
 static void
 pr_initx(int ncid, const char *path)
 {
-    printf("<?xml version=\"%s\" encoding=\"UTF-8\"?>\n<netcdf xmlns=\"http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2\" location=\"%s\">\n",
+    printf("<?xml version=\"%s\" encoding=\"UTF-8\"?>\n<netcdf xmlns=\"https://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2\" location=\"%s\">\n",
 	   XML_VERSION, path);
 }
 
@@ -771,7 +763,7 @@ pr_att(
     if (ncid == getrootid(ncid)
         && varid == NC_GLOBAL
         && strcmp(att.name,NCPROPS)==0)
-	return; /* will be printed elsewere */
+	return; /* will be printed elsewhere */
 #endif
     NC_CHECK( nc_inq_att(ncid, varid, att.name, &att.type, &att.len) );
     att.tinfo = get_typeinfo(att.type);
@@ -926,8 +918,7 @@ pr_att(
        default:
 	   error("unrecognized class of user defined type: %d", class);
        }
-       ncaux_reclaim_data(ncid,att.type,data,att.len);
-       free(data);
+       NC_CHECK(nc_reclaim_data_all(ncid,att.type,data,att.len));
        printf (" ;");		/* terminator for user defined types */
     }
 #endif /* USE_NETCDF4 */
@@ -982,17 +973,19 @@ pr_att_specials(
     const ncvar_t *varp
     )
 {
+    int contig = NC_CHUNKED;
     /* No special variable attributes for classic or 64-bit offset data */
     if(kind == 1 || kind == 2)
 	return;
-    /* _Chunking */
-    if (varp->ndims > 0) {	/* no chunking for scalar variables */
-	int contig = 0;
-	NC_CHECK( nc_inq_var_chunking(ncid, varid, &contig, NULL ) );
-	if(contig == 1) {
-	    pr_att_name(ncid, varp->name, NC_ATT_STORAGE);
+    /* _Chunking tests */
+    NC_CHECK( nc_inq_var_chunking(ncid, varid, &contig, NULL ) );
+    if(contig == NC_CONTIGUOUS) {
+  	    pr_att_name(ncid, varp->name, NC_ATT_STORAGE);
 	    printf(" = \"contiguous\" ;\n");
-	} else {
+    } else if(contig == NC_COMPACT) {
+	    pr_att_name(ncid, varp->name, NC_ATT_STORAGE);
+	    printf(" = \"compact\" ;\n");
+    } else if(contig == NC_CHUNKED) {
  	   size_t *chunkp;
 	   int i;
 	    pr_att_name(ncid, varp->name, NC_ATT_STORAGE);
@@ -1006,30 +999,114 @@ pr_att_specials(
 		printf("%lu%s", (unsigned long)chunkp[i], i+1 < varp->ndims ? ", " : " ;\n");
 	    }
 	    free(chunkp);
-	}
+    } else if(contig == NC_VIRTUAL) {
+	    pr_att_name(ncid, varp->name, NC_ATT_STORAGE);
+	    printf(" = \"virtual\" ;\n");
+    } else {
+	    pr_att_name(ncid, varp->name, NC_ATT_STORAGE);
+	    printf(" = \"unknown\" ;\n");
     }
 
-    /*_Deflate, _Shuffle */
-    {
-	int shuffle=NC_NOSHUFFLE, deflate=0, deflate_level=0;
-	NC_CHECK( nc_inq_var_deflate(ncid, varid, &shuffle,
-				     &deflate, &deflate_level) );
-	if(deflate != 0) {
-	    pr_att_name(ncid, varp->name, NC_ATT_DEFLATE);
-	    printf(" = %d ;\n", deflate_level);
-	}
-	if(shuffle != NC_NOSHUFFLE) {
-	    pr_att_name(ncid, varp->name, NC_ATT_SHUFFLE);
-	    printf(" = \"true\" ;\n");
-	}
-    }
-    /* _Checksum */
-    {
+    /* _Checksum (fletcher32) */
+    if(!formatting_specs.filter_atts) {
 	int fletcher32 = 0;
 	NC_CHECK( nc_inq_var_fletcher32(ncid, varid, &fletcher32) );
 	if(fletcher32 != 0) {
 	    pr_att_name(ncid, varp->name, NC_ATT_CHECKSUM);
 	    printf(" = \"true\" ;\n");
+	}
+    }
+    /* _Shuffle */
+    if(!formatting_specs.filter_atts) {
+	int haveshuffle = 0;
+	NC_CHECK( nc_inq_var_deflate(ncid, varid, &haveshuffle, NULL, NULL));
+	if(haveshuffle) {
+	    pr_att_name(ncid, varp->name, NC_ATT_SHUFFLE);
+	    printf(" = \"true\" ;\n");
+	}
+    }
+
+    /* _Deflate*/
+    if(!formatting_specs.filter_atts) {
+	int havedeflate = 0;
+	int level = -1;
+	NC_CHECK( nc_inq_var_deflate(ncid, varid, NULL, &havedeflate, &level));
+	if(havedeflate) {
+	    pr_att_name(ncid, varp->name, NC_ATT_DEFLATE);
+	    printf(" = %d ;\n",level);
+	}
+    }
+
+    /* _Filter */
+    {
+	size_t nparams, nfilters, nbytes;
+	unsigned int* filterids = NULL;
+	unsigned int* params = NULL;
+
+	/* Get applicable filter ids */
+	NC_CHECK(nc_inq_var_filter_ids(ncid, varid, &nfilters, NULL));
+	/* Get set of filters for this variable */
+        filterids = NULL;
+	if(nfilters > 0) {
+	    filterids = (unsigned int*)malloc(sizeof(unsigned int)*nfilters);
+	    if(filterids == NULL) NC_CHECK(NC_ENOMEM);
+	    NC_CHECK(nc_inq_var_filter_ids(ncid, varid, &nfilters, filterids));
+	}
+        if(nfilters > 0) {
+	    int k;
+	    int first = 1;
+	    int _filter = 0;
+	    for(k=0;k<nfilters;k++) {
+		NC_CHECK(nc_inq_var_filter_info(ncid, varid, filterids[k], &nparams, NULL));
+		if(!formatting_specs.filter_atts && (
+	  	      filterids[k] == H5Z_FILTER_FLETCHER32
+		   || filterids[k] == H5Z_FILTER_SHUFFLE
+   		   || filterids[k] == H5Z_FILTER_DEFLATE))
+		    continue; /* Ignore fletcher32 and shuffle and deflate*/
+		_filter = 1;
+	        if(nparams > 0) {
+  	            params = (unsigned int*)calloc(1,sizeof(unsigned int)*nparams);
+	            NC_CHECK(nc_inq_var_filter_info(ncid, varid, filterids[k], &nbytes, params));
+		} else
+		    params = NULL;
+		if(first) {
+		    pr_att_name(ncid,varp->name,NC_ATT_FILTER);
+		    printf(" = \"");
+		} else 
+	            printf("|");
+		printf("%u",filterids[k]);
+		if(nparams > 0) {
+	            int i;
+		    for(i=0;i<nparams;i++)
+		        printf(",%u",params[i]);
+	        }
+       	        nullfree(params); params = NULL;
+		first = 0;
+	    }
+            if(_filter) printf("\" ;\n");
+	}
+	if(filterids) free(filterids);
+    }
+    /* _Codecs*/
+    {
+	int stat;
+	size_t len;
+	nc_type typeid;
+        stat = nc_inq_att(ncid,varid,NC_ATT_CODECS,&typeid,&len);
+        if(stat == NC_NOERR && typeid == NC_CHAR && len > 0) {
+	    char* json = (char*)malloc(len+1);
+	    if(json != NULL) {	    
+                stat = nc_get_att_text(ncid,varid,NC_ATT_CODECS,json);
+                if(stat == NC_NOERR) {
+		    char* escapedjson = NULL;
+		    pr_att_name(ncid, varp->name, NC_ATT_CODECS);
+		    /* Escape the json */
+		    escapedjson = escaped_string(json);	
+                    printf(" = \"%s\" ;\n",escapedjson);
+		    free(escapedjson);
+		}
+		free(json);
+	    }
 	}
     }
     /* _Endianness */
@@ -1053,28 +1130,6 @@ pr_att_specials(
 	    }
 	    printf(" ;\n");
 	}
-    }
-    /* _Filter */
-    {
-	unsigned int id;
-	size_t nparams;
-	unsigned int* params = NULL;
-	if(nc_inq_var_filter(ncid, varid, &id, &nparams, NULL) == NC_NOERR
-	   && id > 0) {
-	    if(nparams > 0) {
-	        params = (unsigned int*)calloc(1,sizeof(unsigned int)*nparams);
-	        NC_CHECK(nc_inq_var_filter(ncid, varid, &id, &nparams, params));
-	    }
-	    pr_att_name(ncid,varp->name,NC_ATT_FILTER);
-	    printf(" = \"%u",id);
-	    if(nparams > 0) {
-	        int i;
-		for(i=0;i<nparams;i++)
-		    printf(",%u",params[i]);
-	    }
-	    printf("\" ;\n");
-	}
-	if(params) free(params);
     }
     {
 	int no_fill = 0;
@@ -1536,6 +1591,7 @@ do_ncdump_rec(int ncid, const char *path)
    int ngatts;			/* number of global attributes */
    int xdimid;			/* id of unlimited dimension */
    int varid;			/* variable id */
+   int rootncid;		/* id of root group */
    ncdim_t *dims;		/* dimensions */
    size_t *vdims=0;	        /* dimension sizes for a single variable */
    ncvar_t var;			/* variable */
@@ -1561,6 +1617,7 @@ do_ncdump_rec(int ncid, const char *path)
    if (nc_inq_grp_parent(ncid, NULL) != NC_ENOGRP)
        is_root = 0;
 #endif /* USE_NETCDF4 */
+   NC_CHECK(nc_inq_ncid(ncid,NULL,&rootncid)); /* get root group ncid */
 
    /*
     * If any vars were specified with -v option, get list of
@@ -1721,11 +1778,13 @@ do_ncdump_rec(int ncid, const char *path)
       if (var.ndims > 0)
 	 printf ("(");
       for (id = 0; id < var.ndims; id++) {
-	 /* This dim may be in a parent group, so let's look up the
-	  * name. */
+	 /* Get the base name of the dimension */
 	 NC_CHECK( nc_inq_dimname(ncid, var.dims[id], dim_name) );
 #ifdef USE_NETCDF4
-	 /* Subtlety: The following code block is needed because
+	 /* This dim may be in a parent group, so let's look up dimid
+	  * parent group; if it is not current group, then we will print
+	  * the fully qualified name.
+	  * Subtlety: The following code block is needed because
 	  * nc_inq_dimname() currently returns only a simple dimension
 	  * name, without a prefix identifying the group it came from.
 	  * That's OK unless the dimid identifies a dimension in an
@@ -1734,45 +1793,83 @@ do_ncdump_rec(int ncid, const char *path)
 	  * group), in which case the simple name is ambiguous.  This
 	  * code tests for that case and provides an absolute dimname
 	  * only in the case where a simple name would be
-	  * ambiguous. */
-	 {
-	     int dimid_test;	/* to see if dimname is ambiguous */
-	     int target_dimid;  /* from variable dim list */
-	     int locid;		/* group id where dimension is defined */
-	     /*Locate the innermost definition of a dimension with given name*/
-	     NC_CHECK( nc_inq_dimid(ncid, dim_name, &dimid_test) );
+	  * ambiguous.
+	  * The algorithm is as follows:
+	  * 1. Search up the tree of ancestor groups.
+	  * 2. If one of those groups contains the dimid, then call it dimgrp.
+	  * 3. If one of those groups contains a dim with the same name as the dimid,
+	  *    but with a different dimid, then record that as duplicate=true.
+	  * 4. If dimgrp is defined and duplicate == false, then we do not need an fqn.
+	  * 5. If dimgrp is defined and duplicate == true, then we do need an fqn to avoid using the duplicate.
+	  * 6. if dimgrp is undefined, then do a preorder breadth-first search of all the groups looking for the
+	  *    dimid.
+	  * 7. If found, then use the fqn of that dimension location.
+  	  * 8. If not found, then signal NC_EBADDIM.
+          */	 
 
-	     /* Now, starting with current group, walk the parent chain
-                upward looking for the target dim_id */
-	     target_dimid = var.dims[id];
-	     locid = ncid;
-	     while(target_dimid != dimid_test) {/*not in locid, try ancestors*/
-		 int parent_id;
-		 NC_CHECK( nc_inq_grp_parent(locid, &parent_id) );
-		 locid = parent_id;
-		 /* Is dim of this name defined in this group or higher? */
-		 NC_CHECK( nc_inq_dimid(locid, dim_name, &dimid_test) );
+	  int target_dimid, dimgrp, duplicate, stopsearch, usefqn;
+
+	  target_dimid = var.dims[id];
+	  dimgrp = ncid; /* start with the parent group of the variable */
+	  duplicate = 0;
+	  usefqn = 0;
+
+	  /* Walk up the ancestor groups */
+	  for(stopsearch=0;stopsearch==0;) {
+	     int tmpid;
+	     int localdimid;
+	     int ret = NC_NOERR;
+	     ret = nc_inq_dimid(dimgrp,dim_name,&localdimid);
+	     switch (ret) {
+	     case NC_NOERR: /* We have a name match */
+	         if(localdimid == target_dimid) stopsearch = 1; /* 1 means stop because found */
+		 else duplicate = 1;
+		 break;
+	     case NC_EBADDIM:
+		 break; /* no match at all */
+	     default: NC_CHECK(ret);
 	     }
-	     /* innermost dimid with given name is in group locid.
-                If this is not current group, then use fully qualified
-                name (fqn) for the dimension name by prefixing dimname
+	     if(stopsearch != 0) break; /* no need to continue */
+	     /* move to ancestor group */
+	     ret = nc_inq_grp_parent(dimgrp,&tmpid);
+	     switch(ret) {
+	     case NC_NOERR:
+	         dimgrp = tmpid;
+		 break;
+	     case NC_ENOGRP:
+		 /* we processed the root, so try the breadth-first search */
+		 stopsearch = -1; /* -1 means we hit the root group but did not find it */
+		 rootncid = dimgrp;
+		 break;		 
+	     default: NC_CHECK(ret);
+	     }
+	  }
+	  assert(stopsearch != 0);
+	  if(stopsearch == 1) {
+	      /* We found it; do we need to use fqn */
+	      usefqn = duplicate;
+	  } else { /* stopsearch == -1 */
+	      /* do the whole-tree search */
+	      usefqn = 1;
+	      NC_CHECK(searchgrouptreedim(rootncid,target_dimid,&dimgrp));
+              /* group containing target dimid is in group dimgrp */
+	  }
+	  if(usefqn) {
+             /* use fully qualified name (fqn) for the dimension name by prefixing dimname
                 with group name */
-	     if(locid != ncid) { /* We need to use fqn */
-		 size_t len;
-		 char *locname;	/* the group name */
-		 NC_CHECK( nc_inq_grpname_full(locid, &len, NULL) );
-		 locname = emalloc(len + 1);
-		 NC_CHECK( nc_inq_grpname_full(locid, &len, locname) );
-		 print_name (locname);
-		 if(strcmp("/", locname) != 0) { /* not the root group */
-		     printf("/");		 /* ensure a trailing slash */
-		 }
-		 free(locname);
-	     }
-	 }
-#endif	/* USE_NETCDF4 */
-	 print_name (dim_name);
-	 printf ("%s", id < var.ndims-1 ? ", " : ")");
+	      size_t len;
+	      char *grpfqn = NULL;	/* the group fqn */
+	      NC_CHECK( nc_inq_grpname_full(dimgrp, &len, NULL) );
+	      grpfqn = emalloc(len + 1);
+	      NC_CHECK( nc_inq_grpname_full(dimgrp, &len, grpfqn) );
+	      print_name (grpfqn);
+	      if(strcmp("/", grpfqn) != 0) /* not the root group */
+	          printf("/");		 /* ensure a trailing slash */
+	      free(grpfqn);
+	   }
+#endif /*USE_NETCDF4*/
+	   print_name (dim_name);
+	   printf ("%s", id < var.ndims-1 ? ", " : RPAREN);
       }
       printf (" ;\n");
 
@@ -1870,7 +1967,7 @@ do_ncdump_rec(int ncid, const char *path)
 	    goto done;
 	 }
 	 if(var.fillvalp != NULL)
-	     {ncaux_reclaim_data(ncid,var.tinfo->tid,var.fillvalp,1); free(var.fillvalp); var.fillvalp = NULL;}
+	     {NC_CHECK(nc_reclaim_data_all(ncid,var.tinfo->tid,var.fillvalp,1)); var.fillvalp = NULL;}
       }
       if (vdims) {
 	  free(vdims);
@@ -1923,8 +2020,7 @@ done:
    if(var.dims != NULL) free(var.dims);
    if(var.fillvalp != NULL) {
 	/* Release any data hanging off of fillvalp */
-	ncaux_reclaim_data(ncid,var.tinfo->tid,var.fillvalp,1);
-	free(var.fillvalp);
+	nc_reclaim_data_all(ncid,var.tinfo->tid,var.fillvalp,1);
 	var.fillvalp = NULL;
    }
    if(var.timeinfo != NULL) {
@@ -2124,21 +2220,22 @@ set_precision(const char *optarg)
 
 
 #ifdef USE_DAP
-#define DAP_CLIENT_CACHE_DIRECTIVE	"[cache]"
+#define DAP_CLIENT_CACHE_DIRECTIVE	"cache"
 /* replace path string with same string prefixed by
  * DAP_CLIENT_NCDUMP_DIRECTIVE */
-static
-void adapt_url_for_cache(char **pathp) {
-    char prefix[] = DAP_CLIENT_CACHE_DIRECTIVE;
+static void
+adapt_url_for_cache(char **pathp)
+{
     char* path = *pathp;
-    char *tmp_path = strdup(path);
-    path = (char *)emalloc(strlen(prefix) + strlen(tmp_path) + 1);
-    path[0] = '\0';
-    strncat(path, prefix, strlen(prefix));
-    strncat(path, tmp_path, strlen(tmp_path));
-    if(tmp_path) free(tmp_path);
-    if(*path) free(*pathp);
-    *pathp = path;
+    NCURI* url = NULL;
+    ncuriparse(path,&url);
+    if(url == NULL) return;
+    ncuriappendfragmentkey(url,DAP_CLIENT_CACHE_DIRECTIVE,NULL);
+    if(*pathp) free(*pathp);
+    path = ncuribuild(url,NULL,NULL,NCURIALL);
+    if(pathp) {*pathp = path; path = NULL;}
+    ncurifree(url);
+    nullfree(path);
     return;
 }
 #endif
@@ -2160,14 +2257,10 @@ main(int argc, char *argv[])
 
     errmsg[0] = '\0';
 
-#if defined(WIN32) || defined(msdos) || defined(WIN64)
+#if defined(_WIN32) || defined(msdos) || defined(WIN64)
     putenv("PRINTF_EXPONENT_DIGITS=2"); /* Enforce unix/linux style exponent formatting. */
 #endif
 
-#ifdef HAVE_LOCALE_H
-    setlocale(LC_ALL, "C");     /* CDL may be ambiguous with other locales */
-#endif /* HAVE_LOCALE_H */
-    opterr = 1;
     progname = argv[0];
     set_formats(FLT_DIGITS, DBL_DIGITS); /* default for float, double data */
 
@@ -2179,7 +2272,8 @@ main(int argc, char *argv[])
        exit(EXIT_SUCCESS);
     }
 
-    while ((c = getopt(argc, argv, "b:cd:f:g:hikl:n:p:stv:xwKL:X:")) != EOF)
+    opterr = 1;
+    while ((c = getopt(argc, argv, "b:cd:f:g:hikl:n:p:stv:xwFKL:X:")) != EOF)
       switch(c) {
 	case 'h':		/* dump header only, no data */
 	  formatting_specs.header_only = true;
@@ -2293,6 +2387,9 @@ main(int argc, char *argv[])
 #endif
 	  ncsetlogging(1);
 	  break;
+	case 'F':
+	  formatting_specs.filter_atts = true;
+	  break;
         case '?':
 	  usage();
 	  exit(EXIT_FAILURE);
@@ -2324,25 +2421,29 @@ main(int argc, char *argv[])
 
     init_epsilons();
 
-    path = strdup(argv[i]);
-    if(!path) {
-	snprintf(errmsg,sizeof(errmsg),"out of memory copying argument %s", argv[i]);
+    /* We need to look for escape characters because the argument
+       may have come in via a shell script */
+    path = NC_shellUnescape(argv[i]);
+    if(path == NULL) {
+	snprintf(errmsg,sizeof(errmsg),"out of memory un-escaping argument %s", argv[i]);
 	goto fail;
     }
+
     if (!nameopt)
         formatting_specs.name = name_path(path);
     if (argc > 0) {
         int ncid;
-	/* If path is a URL, prefix with client-side directive to
-         * make ncdump reasonably efficient */
+	/* If path is a URL, do some fixups */
+	if(nc__testurl(path, NULL)) {/* See if this is a url */
+	    /*  Prefix with client-side directive to
+             * make ncdump reasonably efficient */
 #ifdef USE_DAP
 	    if(formatting_specs.with_cache) { /* by default, don't use cache directive */
-		if(nc__testurl(path, NULL)) /* See if this is a url */
-		    adapt_url_for_cache(&path);
-		/* else fall thru and treat like a file path */
+	        adapt_url_for_cache(&path);
 	    }
-#endif /*USE_DAP*/
-	    if(formatting_specs.xopt_inmemory) {
+#endif
+	} /* else fall thru and treat like a file path */
+        if(formatting_specs.xopt_inmemory) {
 #if 0
 		size_t size = 0;
 		void* mem = NULL;
@@ -2391,15 +2492,97 @@ main(int argc, char *argv[])
 	    }
 	    NC_CHECK( nc_close(ncid) );
     }
-    if(path) {free(path); path = NULL;}
+    nullfree(path) path = NULL;
+    nc_finalize();
     exit(EXIT_SUCCESS);
 
 fail: /* ncstat failures */
     path = (path?path:strdup("<unknown>"));
     if(ncstat && strlen(errmsg) == 0)
 	snprintf(errmsg,sizeof(errmsg),"%s: %s", path, nc_strerror(ncstat));
+    nullfree(path); path = NULL;
     if(strlen(errmsg) > 0)
-	error("%s: %s", path, errmsg);
-    if(path) free(path);
+	error("%s", errmsg);
+    nc_finalize();
     exit(EXIT_FAILURE);
+}
+
+/* Helper function for searchgrouptreedim
+   search a specified group for matching dimid.
+*/
+static int
+searchgroupdim(int grp, int dimid)
+{
+    int i,ret = NC_NOERR;
+    int nids;
+    int* ids = NULL;
+
+    /* Get all dimensions in parentid */
+    if ((ret = nc_inq_dimids(grp, &nids, NULL, 0)))
+	goto done;
+    if (nids > 0) {
+	if (!(ids = (int *)malloc((size_t)nids * sizeof(int))))
+	    {ret = NC_ENOMEM; goto done;}
+	if ((ret = nc_inq_dimids(grp, &nids, ids, 0)))
+	    goto done;
+	for(i = 0; i < nids; i++) {
+	    if(ids[i] == dimid) goto done;
+	}
+    } else
+        ret = NC_EBADDIM;
+
+done:
+    nullfree(ids);
+    return ret;
+}
+
+/* Helper function for do_ncdump_rec
+   search a tree of groups for a matching dimid
+   using a breadth first queue. Return the
+   immediately enclosing group.
+*/
+static int
+searchgrouptreedim(int ncid, int dimid, int* parentidp)
+{
+    int i,ret = NC_NOERR;
+    int nids;
+    int* ids = NULL;
+    NClist* queue = nclistnew();
+    int gid;
+    uintptr_t id;
+
+    id = ncid;
+    nclistpush(queue,(void*)id); /* prime the queue */
+    while(nclistlength(queue) > 0) {
+        id = (uintptr_t)nclistremove(queue,0);
+	gid  = (int)id;
+        switch (ret = searchgroupdim(gid,dimid)) {
+	case NC_NOERR: /* found it */
+	    if(parentidp) *parentidp = gid;
+	    goto done;
+	case NC_EBADDIM: /* not in this group; keep looking */
+	    break;
+	default: goto done;
+	}
+	/* Get subgroups of gid and push onto front of the queue (for breadth first) */
+        if((ret = nc_inq_grps(gid,&nids,NULL)))
+            goto done;
+        if (!(ids = (int *)malloc((size_t)nids * sizeof(int))))
+	    {ret = NC_ENOMEM; goto done;}
+        if ((ret = nc_inq_grps(gid, &nids, ids)))
+            goto done;
+	/* push onto the end of the queue */
+        for(i=0;i<nids;i++) {
+	    id = ids[i];
+	    nclistpush(queue,(void*)id);
+	}
+	free(ids); ids = NULL;
+    }
+    /* Not found */
+    ret = NC_EBADDIM;
+
+done:
+    nclistfree(queue);
+    nullfree(ids);
+    return ret;
 }

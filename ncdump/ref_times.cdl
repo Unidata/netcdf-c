@@ -6,6 +6,8 @@ dimensions:
 variables:
 	double t1_days(time) ;
 		t1_days:units = "days since 1500-1-1" ;
+	double t1_days_case(time) ;
+		t1_days_case:units = "DaYs since 1500-1-1" ;
 	double t1_st_days(time) ;
 		t1_st_days:calendar = "standard" ;
 		t1_st_days:units = "days since 1500-01-01 00:00:00" ;
@@ -90,6 +92,8 @@ variables:
 data:
 
  t1_days = "2009-01-01" ;
+
+ t1_days_case = "2009-01-01" ;
 
  t1_st_days = "2009-01-01" ;
 

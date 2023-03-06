@@ -114,6 +114,7 @@ qualifyprojectionnames(DCEprojection* proj)
     NCerror ncstat = NC_NOERR;
     NClist* fullpath = nclistnew();
 
+    if (proj->discrim == CES_VAR) {
     ASSERT((proj->discrim == CES_VAR
             && proj->var->annotation != NULL
             && ((CDFnode*)proj->var->annotation)->ocnode != NULL));
@@ -129,6 +130,7 @@ fprintf(stderr,"qualify: %s -> ",
 fprintf(stderr,"%s\n",
 	dumpprojection(proj));
 #endif
+    }
     nclistfree(fullpath);
     return ncstat;
 }
@@ -138,6 +140,7 @@ static NCerror
 qualifyprojectionsizes(DCEprojection* proj)
 {
     size_t i,j;
+    if (proj->discrim == CES_VAR) {
     ASSERT(proj->discrim == CES_VAR);
 #ifdef DEBUG
 fprintf(stderr,"qualifyprojectionsizes.before: %s\n",
@@ -168,6 +171,7 @@ fprintf(stderr,"qualifyprojectionsizes.before: %s\n",
 fprintf(stderr,"qualifyprojectionsizes.after: %s\n",
 		dumpprojection(proj));
 #endif
+    }
     return NC_NOERR;
 }
 

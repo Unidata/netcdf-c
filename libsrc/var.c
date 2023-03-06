@@ -175,10 +175,12 @@ dup_NC_var(const NC_var *rvarp)
 		return NULL;
 	}
 
-	(void) memcpy(varp->shape, rvarp->shape,
-			 rvarp->ndims * sizeof(size_t));
-	(void) memcpy(varp->dsizes, rvarp->dsizes,
-			 rvarp->ndims * sizeof(off_t));
+	if(rvarp->shape != NULL)
+		(void) memcpy(varp->shape, rvarp->shape,
+				 rvarp->ndims * sizeof(size_t));
+	if(rvarp->dsizes != NULL)
+		(void) memcpy(varp->dsizes, rvarp->dsizes,
+				 rvarp->ndims * sizeof(off_t));
 	varp->xsz = rvarp->xsz;
 	varp->len = rvarp->len;
 	varp->begin = rvarp->begin;
@@ -415,6 +417,7 @@ ncx_szof(nc_type type)
 	case NC_UINT64 :
 		return X_SIZEOF_UINT64;
 	default:
+		/* 37824 Ignore */
 	        assert("ncx_szof invalid type" == 0);
 	        return 0;
 	}
@@ -511,7 +514,7 @@ out :
  */
 int
 NC_check_vlen(NC_var *varp, long long vlen_max) {
-    int ii;
+    size_t ii;
     long long prod=varp->xsz;	/* product of xsz and dimensions so far */
 
     assert(varp != NULL);

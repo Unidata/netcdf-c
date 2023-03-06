@@ -13,11 +13,6 @@ extern int vsnprintf(char*, size_t, const char*, va_list ap);
 
 int error_count;
 
-#if 0
-#define vastart(argv,fmt) va_start(argv,fmt)
-#define vaend(argv,fmt) va_end(argv)
-#endif
-
 /*
  * For logging error conditions.
  * Designed to be called by other vararg procedures
@@ -56,8 +51,8 @@ verror(const char *fmt, ...)
     char newfmt[2048];
     va_list argv;
     va_start(argv,fmt);
-    strcpy(newfmt,"netCDF classic: not supported: ");
-    strncat(newfmt,fmt,2000);
+    strncpy(newfmt,"netCDF classic: not supported: ",sizeof(newfmt));
+    strlcat(newfmt,fmt,sizeof(newfmt));
     vderror(newfmt,argv);
     va_end(argv);
 }

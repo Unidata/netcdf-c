@@ -9,19 +9,31 @@ IF(BUILD_SHARED_LIBS AND WIN32)
   remove_definitions(-DDLL_NETCDF)
 ENDIF()
 
-SET(ncgen_FILES generate.c main.c cdata.c bindata.c genchar.c cvt.c data.c debug.c escapes.c genc.c genbin.c generr.c genlib.c getfill.c odom.c semantics.c ncgeny.c dump.c util.c bytebuffer.c list.c genf77.c f77data.c genj.c jdata.c nc_iter.c ncgen.h)
+SET(ncgen_FILES bindata.c bytebuffer.c cdata.c cvt.c data.c
+debug.c dump.c escapes.c f77data.c genbin.c
+genc.c genchar.c generate.c generr.c genf77.c
+genj.c genlib.c getfill.c jdata.c list.c
+main.c ncgeny.c semantics.c
+util.c bytebuffer.h data.h debug.h dump.h
+generate.h generr.h genlib.h includes.h list.h
+ncgen.h ncgeny.h util.h)
 
-# don't add the automatically determined parts of the RPATH
-# which point to directories outside the build tree to the install RPATH
-SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
-
+# Obsolete
+SET(OBSOLETE odom.c odom.h jdatastd.c jdatajni.c genjni.c cdfdata.c cmldata.c)
 
 IF(USE_X_GETOPT)
   SET(ncgen_FILES ${ncgen_FILES} XGetopt.c)
 ENDIF()
 
+# don't add the automatically determined parts of the RPATH
+# which point to directories outside the build tree to the install RPATH
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
+
 ADD_EXECUTABLE(ncgen ${ncgen_FILES})
 TARGET_LINK_LIBRARIES(ncgen netcdf ${ALL_TLL_LIBS})
+
+# Given a netcdf4 file, dump the actual chunk contents.
+# Used to validate nczarr chunking code.
 
 ####
 # We have to do a little tweaking

@@ -239,19 +239,6 @@ NCP_set_fill(int ncid, int fillmode, int *old_mode_ptr)
 }
 
 static int
-NCP_inq_base_pe(int ncid, int *pep)
-{
-    if (pep) *pep = 0;
-    return NC_NOERR;
-}
-
-static int
-NCP_set_base_pe(int ncid, int pe)
-{
-    return NC_NOERR;
-}
-
-static int
 NCP_inq_format(int ncid, int *formatp)
 {
     NC *nc;
@@ -1389,6 +1376,7 @@ NCP_inq_user_type(int ncid, nc_type typeid, char *name, size_t *size,
 static const NC_Dispatch NCP_dispatcher = {
 
 NC_FORMATX_PNETCDF,
+NC_DISPATCH_VERSION,
 
 NCP_create,
 NCP_open,
@@ -1399,8 +1387,6 @@ NCP_sync,
 NCP_abort,
 NCP_close,
 NCP_set_fill,
-NCP_inq_base_pe,
-NCP_set_base_pe,
 NCP_inq_format,
 NCP_inq_format_extended,
 
@@ -1475,6 +1461,13 @@ NC_NOTNC4_def_var_filter,
 NC_NOTNC4_set_var_chunk_cache,
 NC_NOTNC4_get_var_chunk_cache,
 
+NC_NOOP_inq_var_filter_ids,
+NC_NOOP_inq_var_filter_info,
+
+NC_NOTNC4_def_var_quantize,
+NC_NOTNC4_inq_var_quantize,
+
+NC_NOOP_inq_filter_avail,
 };
 
 const NC_Dispatch *NCP_dispatch_table = NULL; /* moved here from ddispatch.c */

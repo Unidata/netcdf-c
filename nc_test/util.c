@@ -48,7 +48,7 @@ inRange_uchar(const int     cdf_format,
     if (cdf_format < NC_FORMAT_CDF5 && xtype == NC_BYTE) {
         /* netCDF specification make a special case for type conversion between
          * uchar and scahr: do not check for range error. See
-         * http://www.unidata.ucar.edu/software/netcdf/docs/data_type.html#type_conversion
+         * https://docs.unidata.ucar.edu/netcdf-c/current/data_type.html#type_conversion
          */
         return(value >= 0 && value <= 255);
         /* this is to ensure value is within the range of uchar */
@@ -126,7 +126,7 @@ inRange3(const int    cdf_format,
 {
     /* netCDF specification make a special case for type conversion between
      * uchar and NC_BYTE: do not check for range error. See
-     * http://www.unidata.ucar.edu/software/netcdf/docs/data_type.html#type_conversion
+     * https://docs.unidata.ucar.edu/netcdf-c/current/data_type.html#type_conversion
      * The _uchar and _schar functions were introduced in netCDF-3 to eliminate
      * an ambiguity, and support both signed and unsigned byte data. In
      * netCDF-2, whether the external NC_BYTE type represented signed or
@@ -170,8 +170,8 @@ equal(const double x,
         /* because in-memory data type char can be signed or unsigned,
          * type cast the value from external NC_CHAR before the comparison
          */
-        char x2 = (char) x;
-        char y2 = (char) y;
+        char x2 = *(char *)&x;
+        char y2 = *(char *)&y;
         return ABS(x2-y2) <= epsilon * MAX( ABS(x2), ABS(y2));
     }
 
@@ -194,8 +194,8 @@ equal2(const double x,
         /* because in-memory data type char can be signed or unsigned,
          * type cast the value from external NC_CHAR before the comparison
          */
-        char x2 = (char) x;
-        char y2 = (char) y;
+        char x2 = *(char *)&x;
+        char y2 = *(char *)&y;
         return ABS(x2-y2) <= epsilon * MAX( ABS(x2), ABS(y2));
     }
 
@@ -343,7 +343,7 @@ int dbl2nc ( const double d, const nc_type xtype, void *p)
              * reporting it as a range error.
              */
             if ( r < X_CHAR_MIN || r > X_CHAR_MAX ) return 2;
-            *((signed char*) p) = (signed char)r;
+            *((unsigned char*) p) = (unsigned char)r;
             break;
         case NC_BYTE:
             r = floor(0.5+d);
@@ -413,8 +413,8 @@ int dbl2nc ( const double d, const nc_type xtype, void *p)
 double
 hash( const nc_type xtype, const int rank, const size_t *index )
 {
-    double base;
-    double result;
+    double base = 0;
+    double result = 0;
     int  d;       /* index of dimension */
 
 	/* If vector then elements 0 & 1 are min & max. Elements 2 & 3 are */
@@ -628,7 +628,7 @@ hash4(const int        cdf_format,
 
     /* netCDF specification make a special case for type conversion between
      * uchar and NC_BYTE: do not check for range error. See
-     * http://www.unidata.ucar.edu/software/netcdf/docs/data_type.html#type_conversion
+     * https://docs.unidata.ucar.edu/netcdf-c/current/data_type.html#type_conversion
      * The _uchar and _schar functions were introduced in netCDF-3 to eliminate
      * an ambiguity, and support both signed and unsigned byte data. In
      * netCDF-2, whether the external NC_BYTE type represented signed or
@@ -841,7 +841,7 @@ put_atts(int ncid)
 	for (j = 0; j < NATTS(i); j++) {
 	    if (ATT_TYPE(i,j) == NC_CHAR) {
 		for (k = 0; k < ATT_LEN(i,j); k++) {
-                    catt[k] = (char) hash(ATT_TYPE(i,j), -1, &k);
+                    catt[k] = (unsigned char) hash(ATT_TYPE(i,j), -1, &k);
 		}
 		err = nc_put_att_text(ncid, i, ATT_NAME(i,j),
 		    ATT_LEN(i,j), catt);
@@ -969,7 +969,7 @@ check_dims(int  ncid)
 void
 check_vars(int  ncid)
 {
-    size_t index[MAX_RANK];
+    size_t index[MAX_RANK] = {0};
     char  text, name[NC_MAX_NAME];
     int  i, err;		/* status */
     size_t  j;
@@ -1006,7 +1006,7 @@ check_vars(int  ncid)
           	err = nc_get_var1_text(ncid, i, index, &text);
             IF (err)
 		    error("nc_get_var1_text: %s", nc_strerror(err));
-            IF (text != (char)expect) {
+            IF ((unsigned char)text != (unsigned char)expect) {
               error("Var %s [%lu] value read %hhd not that expected %g ",
                   var_name[i], j, text, expect);
 		    print_n_size_t(var_rank[i], index);
@@ -1073,8 +1073,9 @@ check_atts(int  ncid)
 		    error("nc_get_att_text: %s", nc_strerror(err));
 		for (k = 0; k < ATT_LEN(i,j); k++) {
 		    expect = hash(xtype, -1, &k);
-		    IF (text[k] != (char)expect) {
-			error("nc_get_att_text: unexpected value");
+		    IF ((unsigned char)text[k] != (unsigned char)expect) {
+            error("Var %s [%lu] value read %hhd not that expected %g ",
+                  var_name[i], j, text, expect);
             	    } else {
               		nok++;
             	    }

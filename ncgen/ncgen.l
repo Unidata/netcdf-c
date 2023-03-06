@@ -37,8 +37,7 @@
 
 #include "ncgen.h"
 #include "ncgeny.h"
-
-EXTERNL int fileno(FILE*);
+#include "isnan.h"
 
 #define FILL_STRING "_"
 #define XDR_INT32_MIN (-2147483647-1)
@@ -114,6 +113,7 @@ char char_val;                 /* last char value read */
 signed char byte_val;                 /* last byte value read */
 unsigned char ubyte_val;       /* last byte value read */
 
+/* Forward */
 static Symbol* makepath(char* text);
 static int lexdebug(int);
 static unsigned long long parseULL(int radix, char* text, int*);
@@ -121,6 +121,7 @@ static nc_type downconvert(unsigned long long uint64, int*, int, int);
 static int tagmatch(nc_type nct, int tag);
 static int nct2lexeme(nc_type nct);
 static int collecttag(char* text, char** stagp);
+static int identcheck(int token);
 
 struct Specialtoken specials[] = {
 {"_FillValue",_FILLVALUE,_FILLVALUE_FLAG},
@@ -136,6 +137,10 @@ struct Specialtoken specials[] = {
 {"_IsNetcdf4",_ISNETCDF4,_ISNETCDF4_FLAG},
 {"_SuperblockVersion",_SUPERBLOCK,_SUPERBLOCK_FLAG},
 {"_Filter",_FILTER,_FILTER_FLAG},
+{"_Codecs",_CODECS,_CODECS_FLAG},
+{"_QuantizeBitGroomNumberOfSignificantDigits",_QUANTIZEBG,_QUANTIZEBG_FLAG},
+{"_QuantizeGranularBitRoundNumberOfSignificantDigits",_QUANTIZEGBR,_QUANTIZEGBR_FLAG},
+{"_QuantizeBitRoundNumberOfSignificantDigits",_QUANTIZEBR,_QUANTIZEBR_FLAG},
 {NULL,0} /* null terminate */
 };
 
@@ -214,7 +219,7 @@ NUMBER       [+-]?[0-9][0-9]*[Uu]?([BbSs]|[Ll]|[Ll][Ll])?
 DBLNUMBER    [+-]?[0-9]*\.[0-9]*{exp}?[LlDd]?|[+-]?[0-9]*{exp}[LlDd]?
 FLTNUMBER    [+-]?[0-9]*\.[0-9]*{exp}?[Ff]|[+-]?[0-9]*{exp}[Ff]
 
-SPECIAL "_FillValue"|"_Format"|"_Storage"|"_ChunkSizes"|"_Fletcher32"|"_DeflateLevel"|"_Shuffle"|"_Endianness"|"_NoFill"|"_NCProperties"|"_IsNetcdf4"|"_SuperblockVersion"|"_Filter"
+SPECIAL "_FillValue"|"_Format"|"_Storage"|"_ChunkSizes"|"_Fletcher32"|"_DeflateLevel"|"_Shuffle"|"_Endianness"|"_NoFill"|"_NCProperties"|"_IsNetcdf4"|"_SuperblockVersion"|"_Filter"|"_Codecs"|"_QuantizeBitgroomNumberOfSignificantDIgits"|"_QuantizeGranularBitRoundNumberOfSignificantDigits"|"_QuantizeBitRoundNumberOfSignificantDigits"
 
 USASCII   [\x01-\x7F]
 
@@ -264,18 +269,25 @@ compound|struct|structure {return lexdebug(COMPOUND);}
 enum				{return lexdebug(ENUM);}
 opaque				{return lexdebug(OPAQUE_);}
 
-float|real		{return lexdebug(FLOAT_K);}
+float			{return lexdebug(FLOAT_K);}
+double			{return lexdebug(DOUBLE_K);}
 char			{return lexdebug(CHAR_K);}
 byte			{return lexdebug(BYTE_K);}
-ubyte			{return lexdebug(UBYTE_K);}
 short			{return lexdebug(SHORT_K);}
-ushort			{return lexdebug(USHORT_K);}
-long|int|integer	{return lexdebug(INT_K);}
-ulong|uint|uinteger	{return lexdebug(UINT_K);}
-int64			{return lexdebug(INT64_K);}
-uint64			{return lexdebug(UINT64_K);}
-double			{return lexdebug(DOUBLE_K);}
-string                  {return lexdebug(STRING_K);}
+int			{return lexdebug(INT_K);}
+ubyte			{return lexdebug(identcheck(UBYTE_K));}
+ushort			{return lexdebug(identcheck(USHORT_K));}
+uint			{return lexdebug(identcheck(UINT_K));}
+int64			{return lexdebug(identcheck(INT64_K));}
+uint64			{return lexdebug(identcheck(UINT64_K));}
+string                  {return lexdebug(identcheck(STRING_K));}
+
+real			{return lexdebug(FLOAT_K);}
+long			{return lexdebug(INT_K);}
+integer			{return lexdebug(INT_K);}
+ulong			{return lexdebug(identcheck(UINT_K));}
+uinteger		{return lexdebug(identcheck(UINT_K));}
+
 
 unlimited|UNLIMITED	{int32_val = -1;
 			 return lexdebug(NC_UNLIMITED_K);}
@@ -290,9 +302,9 @@ group:			{return lexdebug(GROUP);}
 
 DoubleInf|-?Infinity { /* missing value (pre-2.4 backward compatibility) */
                 if (yytext[0] == '-') {
-		    double_val = NEGNC_INFINITE;
+		    double_val = -INFINITY;
                 } else {
-		    double_val = NC_INFINITE;
+		    double_val = INFINITY;
                 }
 		specialconstants = 1;
 		return lexdebug(DOUBLE_CONST);
@@ -305,9 +317,9 @@ NaN|nan { /* missing value (pre-2.4 backward compatibility) */
 
 FloatInf|-?Infinityf|-?Inff {/* missing value (pre-2.4 backward compatibility)*/
                 if (yytext[0] == '-') {
-		    float_val = NEGNC_INFINITEF;
+		    float_val = -INFINITYF;
                 } else {
-		    float_val = NC_INFINITEF;
+		    float_val = INFINITYF;
                 }
 		specialconstants = 1;
 		return lexdebug(FLOAT_CONST);
@@ -469,7 +481,8 @@ done: return 0;
 		if(tag == NC_NAT) {
 		    sprintf(errstr,"Illegal integer suffix: %s",stag);
 		    yyerror(errstr);
-		    goto done;
+			//goto done;
+		    return 0;
 		}
 		yytext[slen - strlen(stag)] = '\0';
 	        if(xlen > 16) { /* truncate hi order digits */
@@ -515,7 +528,7 @@ done: return 0;
 		}
                 return lexdebug(FLOAT_CONST);
                 }
-\'[^\\]\'          {
+\'[^\\]\'       {
 	        (void) sscanf((char*)&yytext[1],"%c",&byte_val);
 		return lexdebug(BYTE_CONST);
                 }
@@ -547,8 +560,9 @@ done: return 0;
 		  case 'r': byte_val = '\r'; break;
 		  case 't': byte_val = '\t'; break;
 		  case 'v': byte_val = '\v'; break;
+  		  case '0' : byte_val = '\0'; break;
 		  case '\\': byte_val = '\\'; break;
-		  case '?': byte_val = '\177'; break;
+		  case '?':  byte_val = '\177'; break;
 		  case '\'': byte_val = '\''; break;
 		  default: byte_val = (char)yytext[2];
 	           }
@@ -589,9 +603,7 @@ lexdebug(int token)
 {
     if(debug >= 2)
     {
-	char* text = yytext;
-	text[yyleng] = 0;
-        fprintf(stderr,"Token=%d |%s| line=%d\n",token,text,lineno);
+        fprintf(stderr,"Token=%d |%s| line=%d\n",token,yytext,lineno);
     }
     return token;
 }
@@ -664,7 +676,6 @@ Return the value.
 static unsigned long long
 parseULL(int radix, char* text, int* failp)
 {
-    extern int errno;
     char* endptr;
     unsigned long long uint64 = 0;
 
@@ -874,4 +885,38 @@ collecttag(char* text, char** stagp)
 	tag = NC_NAT;
     }
     return tag;
+}
+
+static Symbol*
+identkeyword(const Symbol* kw)
+{
+    Symbol* sym = NULL;
+    sym = install(kw->name);
+    return sym;
+}
+
+static int
+identcheck(int token)
+{
+    switch (token) {
+    case UBYTE_K:
+    case USHORT_K:
+    case UINT_K:
+    case INT64_K:
+    case UINT64_K:
+	if(k_flag != NC_FORMAT_NETCDF4 	&& k_flag != NC_FORMAT_64BIT_DATA) {
+	    yylval.sym = install(yytext);
+   	    token = IDENT;
+	}
+	break;
+    case STRING_K:
+	if(k_flag != NC_FORMAT_NETCDF4) {
+	    yylval.sym = install(yytext);
+   	    token = IDENT;
+	}
+	break;
+    default:
+         break;    
+    }
+    return token;
 }

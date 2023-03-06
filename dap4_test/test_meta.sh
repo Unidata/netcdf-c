@@ -55,7 +55,7 @@ if test "x${CDLDIFF}" = x1 ; then
     fi
   done
 fi
-rm -rf ./results_test_meta
+
 finish
 
 

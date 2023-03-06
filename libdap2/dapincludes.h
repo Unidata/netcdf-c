@@ -32,6 +32,7 @@
 #include "oc.h"
 
 #include "ncdap.h"
+#include "nccommon.h"
 #include "dapdebug.h"
 #include "daputil.h"
 
@@ -47,7 +48,6 @@ struct NCsegment;
 
 /**************************************************/
 
-#include "nccommon.h"
 #include "getvara.h"
 #include "constraints.h"
 

@@ -1,0 +1,32 @@
+netcdf testmeta {
+
+group: _nczarr {
+
+  // group attributes:
+  		:data = "{\"zarr_format\": 2,\"nczarr_version\": \"1.0.0\"}" ;
+  } // group _nczarr
+
+group: _zgroup {
+
+  // group attributes:
+  		:data = "{\"zarr_format\": 2}" ;
+  } // group _zgroup
+
+group: _nczgroup {
+
+  // group attributes:
+  		:data = "{\"dims\": {},\"vars\": [],\"groups\": []}" ;
+  } // group _nczgroup
+
+group: _nczattr {
+
+  // group attributes:
+  		:data = "{\"types\": {\"_NCProperties\": \"2\"}}" ;
+  } // group _nczattr
+
+group: _zattrs {
+
+  // group attributes:
+  		:data = "{\"_NCProperties\": \"version=\"}" ;
+  } // group _zattrs
+}

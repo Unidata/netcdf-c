@@ -36,6 +36,8 @@ ocerrtoncerr(OCerror ocerr)
     case OC_EDATADDS:	  return NC_EDATADDS;
     case OC_ERCFILE:	  return NC_EDAP;
     case OC_ENOFILE:	  return NC_ECANTREAD;
+    case OC_EAUTH:	  return NC_EAUTH;
+    case OC_EACCESS:	  return NC_EACCESS;
     default: break;
     }
     return NC_EDAP; /* default;*/

@@ -43,7 +43,7 @@ main(int argc, char **argv)
       for (i = DATA_LEN; i >= 0; i--)
       {
 	 /* Create a small file which is not a netCDF file. */
-	 if (!(file = fopen(FILE_NAME, "w+"))) ERR;
+	 if (!(file = NCfopen(FILE_NAME, "w+"))) ERR;
 	 if (fwrite(dummy_data, 1, i, file) != i) ERR;
 	 if (fclose(file)) ERR;
 
@@ -61,7 +61,7 @@ main(int argc, char **argv)
    }
 
    SUMMARIZE_ERR;
-#ifndef USE_NETCDF4
+#ifndef USE_HDF5
    printf("*** Trying to create netCDF-4 file without netCDF-4...");
    {
        int ncid;
@@ -70,7 +70,7 @@ main(int argc, char **argv)
 	   ERR;
    }
    SUMMARIZE_ERR;
-#endif /* USE_NETCDF4 undefined */
+#endif /* USE_HDF5 undefined */
 
 #ifdef TEST_PNETCDF
    MPI_Finalize();

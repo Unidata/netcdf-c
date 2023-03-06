@@ -15,19 +15,12 @@
 #include <getopt.h>
 #endif
 
-#ifdef _MSC_VER
+#if defined(_WIN32) && !defined(__MINGW32__)
 #include "XGetopt.h"
-#define snprintf _snprintf
-int opterr;
-int optind;
 #endif
 
-#ifdef __hpux
-#include <locale.h>
-#endif
-    
 #include "netcdf.h"
-#include "ncwinpath.h"
+#include "ncpathmgr.h"
 
 #include "generic.h"
 #include "ncgen.h"
@@ -89,22 +82,14 @@ main(
 	int argc,
 	char *argv[])
 {
-/*    MSC_EXTRA extern int optind;
-    MSC_EXTRA extern int opterr;
-    MSC_EXTRA extern char *optarg;*/
     int any_error;
     int c;
     FILE *fp;
 
-#ifdef __hpux
-    setlocale(LC_CTYPE,"");
-#endif
-    
 #ifdef MDEBUG
 	malloc_debug(2) ;	/* helps find malloc/free errors on Sun */
 #endif /* MDEBUG */
 
-    opterr = 1;			/* print error message if bad option */
     progname = ubasename(argv[0]);
     cdlname = "-";
 
@@ -113,11 +98,6 @@ main(
     netcdf_flag = 0;
     cmode_modifier = 0;
     nofill_flag = 0;
-
-#if _CRAYMPP && 0
-    /* initialize CRAY MPP parallel-I/O library */
-    (void) par_io_init(32, 32);
-#endif
 
     while ((c = getopt(argc, argv, "bcfk:l:no:v:x")) != EOF)
       switch(c) {
@@ -188,7 +168,7 @@ main(
 			 strcmp(kind_name, "64-bit offset") == 0) {
 		    cmode_modifier |= NC_64BIT_OFFSET;
 		}
-#ifdef USE_NETCDF4
+#ifdef USE_HDF5
 		/* NetCDF-4 HDF5 format*/
 		else if (strcmp(kind_name, "3") == 0 || 
 			 strcmp(kind_name, "hdf5") == 0 ||
@@ -224,6 +204,9 @@ main(
     argv += optind;
 
     if (argc > 1) {
+int i;
+for(i=0;i<argc;i++)
+fprintf(stderr,"xarg(%d): |%s|\n",i,argv[i]);
 	derror ("%s: only one input file argument permitted",progname);
 	return(6);
     }
@@ -239,6 +222,7 @@ main(
     }
     ncgin = fp;
     any_error = ncgparse();
+    nc_finalize();
     if (any_error || derror_count > 0)
 	return 1;
     return 0;

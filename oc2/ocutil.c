@@ -38,7 +38,7 @@ ocstrndup(const char* s, size_t len)
 }
 
 /* Do not trust strncmp semantics; this one
-   compares upto len chars or to null terminators */
+   compares up to len chars or to null terminators */
 int
 ocstrncmp(const char* s1, const char* s2, size_t len)
 {
@@ -404,6 +404,10 @@ ocerrstring(int err)
 	case OC_EAUTH:
 	    return "OC_EAUTH: authorization failure";
 
+	/* Access Error */
+	case OC_EACCESS:
+	    return "OC_EACCESS: access failure";
+
 	default: break;
     }
     return "<unknown error code>";
@@ -554,25 +558,23 @@ ocdtmodestring(OCDT mode,int compact)
     char* result = NULL;
     int i;
     char* p = NULL;
+    size_t len = 1+(NMODES*(MAXMODENAME+1));
 
-    result = malloc(1+(NMODES*(MAXMODENAME+1)));
+    result = malloc(len);
     if(result == NULL) return NULL;
     p = result;
     result[0] = '\0';
     if(mode == 0) {
 	if(compact) *p++ = '-';
-	else if(!occoncat(result,sizeof(result),1,"NONE"))
-	    return NULL;
+	else strlcat(result,"NONE",len);
     } else for(i=0;;i++) {
 	const char* ms = modestrings[i];
 	if(ms == NULL) break;
 	if(!compact && i > 0)
-	    if(!occoncat(result,sizeof(result),1,","))
-		return NULL;
+	    strlcat(result,";",len);
         if(fisset(mode,(1<<i))) {
 	    if(compact) *p++ = ms[0];
-	    else if(!occoncat(result,sizeof(result),1,ms))
-		return NULL;
+	    else strlcat(result,ms,len);
 	}
     }
     /* pad compact list out to NMODES in length (+1 for null terminator) */

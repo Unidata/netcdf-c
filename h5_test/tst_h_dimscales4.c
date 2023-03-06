@@ -36,15 +36,22 @@ struct nc_hdf5_link_info
 herr_t alien_visitor(hid_t did, unsigned dim, hid_t dsid, 
 		     void *visitor_data)
 {
-   H5G_stat_t statbuf;
    HDF5_OBJID_T *objid = visitor_data;
 
    /* Get more info on the dimscale object.*/
+#if H5_VERSION_GE(1,12,0)
+   H5O_info2_t statbuf;
+   if (H5Oget_info3(dsid, &statbuf, H5O_INFO_BASIC ) < 0) ERR;
+   objid->fileno = statbuf.fileno;
+   objid->token = statbuf.token;
+#else
+   H5G_stat_t statbuf;
    if (H5Gget_objinfo(dsid, ".", 1, &statbuf) < 0) ERR;
    objid->fileno[0] = statbuf.fileno[0];
    objid->objno[0] = statbuf.objno[0];
    objid->fileno[1] = statbuf.fileno[1];
    objid->objno[1] = statbuf.objno[1];
+#endif
 
    return 0;
 }

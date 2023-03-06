@@ -98,11 +98,11 @@ define(`TEST_NC_GET_VAR1',dnl
 int
 TestFunc(var1)_$1(VarArgs)
 {
-    int i, err, ncid, cdf_format;
+    int i=0, err=0, ncid=0, cdf_format=0;
     int nok = 0;        /* count of valid comparisons */
-    int canConvert;     /* Both text or both numeric */
-    IntType j, index[MAX_RANK];
-    double expect;
+    int canConvert=0;     /* Both text or both numeric */
+    IntType j=0, index[MAX_RANK];
+    double expect=0;
     $1 value[1];
 
     err = FileOpen(testfile, NC_NOWRITE);
@@ -253,6 +253,10 @@ TestFunc(var)_$1(VarArgs)
     double expect[MAX_NELS];
     $1 value[MAX_NELS];
 
+    for(j = 0; j < MAX_NELS; j++) {
+          expect[j] = 0;
+    }
+
     err = FileOpen(testfile, NC_NOWRITE);
     IF (err != NC_NOERR) error("open: %s", APIFunc(strerror)(err));
 
@@ -376,6 +380,10 @@ TestFunc(vara)_$1(VarArgs)
     double expect[MAX_NELS];
     $1 value[MAX_NELS];
 
+    for(j = 0; j < MAX_NELS; j++) {
+          expect[j] = 0;
+    }
+
     err = FileOpen(testfile, NC_NOWRITE);
     IF (err != NC_NOERR) error("open: %s", APIFunc(strerror)(err));
 
@@ -487,13 +495,8 @@ ifelse(`$1',`uchar',`ifdef(`PNETCDF',,``#'endif')')
                 start[j] = 0;
                 continue;
             }
-#ifdef RELAX_COORD_BOUND
             IF (err != NC_NOERR) /* allowed when edge[j]==0 */
                 EXPECT_ERR(NC_NOERR, err)
-#else
-            IF (err != NC_EINVALCOORDS) /* not allowed even when edge[j]==0 */
-                EXPECT_ERR(NC_EINVALCOORDS, err)
-#endif
             start[j] = var_shape[i][j]+1; /* should cause NC_EINVALCOORDS */
             err = GetVara($1)(ncid, i, start, edge, value);
             IF (err != NC_EINVALCOORDS)
@@ -640,6 +643,10 @@ TestFunc(vars)_$1(VarArgs)
     double expect[MAX_NELS];
     $1 value[MAX_NELS];
 
+    for(j = 0; j < MAX_NELS; j++) {
+          expect[j] = 0;
+    }
+
     err = FileOpen(testfile, NC_NOWRITE);
     IF (err != NC_NOERR) error("open: %s", APIFunc(strerror)(err));
 
@@ -756,13 +763,8 @@ ifdef(`PNETCDF',`dnl
                 start[j] = 0;
                 continue;
             }
-#ifdef RELAX_COORD_BOUND
             IF (err != NC_NOERR) /* allowed when edge[j]==0 */
                 EXPECT_ERR(NC_NOERR, err)
-#else
-            IF (err != NC_EINVALCOORDS) /* not allowed even when edge[j]==0 */
-                EXPECT_ERR(NC_EINVALCOORDS, err)
-#endif
             start[j] = var_shape[i][j]+1;  /* should cause NC_EINVALCOORDS */
             err = GetVars($1)(ncid, i, start, edge, stride, value);
             IF (err != NC_EINVALCOORDS)
@@ -824,7 +826,7 @@ ifelse(`$1',`uchar',`ifdef(`PNETCDF',,``#'endif')')
                 IF (err != 0) error("error in toMixedBase");
                 nels = 1;
                 for (j = 0; j < var_rank[i]; j++) {
-                    count[j] = 1 + (edge[j]-index[j]-1) / (IntType)stride[j];
+                    count[j] = 1 + (edge[j]-index[j]-1) / ( (IntType)stride[j] == 0 ? 1 : (IntType)stride[j]);
                     nels *= count[j];
                     index[j] += start[j];
                 }
@@ -937,6 +939,10 @@ TestFunc(varm)_$1(VarArgs)
     PTRDType stride[MAX_RANK], imap[MAX_RANK];
     double expect[MAX_NELS];
     $1 value[MAX_NELS];
+
+    for(j = 0; j < MAX_NELS; j++) {
+          expect[j] = 0;
+    }
 
     err = FileOpen(testfile, NC_NOWRITE);
     IF (err != NC_NOERR) error("open: %s", APIFunc(strerror)(err));
@@ -1054,13 +1060,8 @@ ifdef(`PNETCDF',`dnl
                 start[j] = 0;
                 continue;
             }
-#ifdef RELAX_COORD_BOUND
             IF (err != NC_NOERR) /* allowed when edge[j]==0 */
                 EXPECT_ERR(NC_NOERR, err)
-#else
-            IF (err != NC_EINVALCOORDS) /* not allowed even when edge[j]==0 */
-                EXPECT_ERR(NC_EINVALCOORDS, err)
-#endif
             start[j] = var_shape[i][j]+1;  /* should cause NC_EINVALCOORDS */
             err = GetVarm($1)(ncid, i, start, edge, stride, imap, value);
             IF (err != NC_EINVALCOORDS)
@@ -1122,7 +1123,7 @@ ifelse(`$1',`uchar',`ifdef(`PNETCDF',,``#'endif')')
                 IF (err != 0) error("error in toMixedBase");
                 nels = 1;
                 for (j = 0; j < var_rank[i]; j++) {
-                    count[j] = 1 + (edge[j]-index[j]-1) / (IntType)stride[j];
+                    count[j] = 1 + (edge[j]-index[j]-1) / ( (IntType)stride[j] == 0 ? 1 : (IntType)stride[j]);
                     nels *= count[j];
                     index[j] += start[j];
                 }
@@ -1236,6 +1237,10 @@ TestFunc(att)_$1(AttVarArgs)
     double expect[MAX_NELS];
     $1 value[MAX_NELS];
 
+    for(j = 0; j < MAX_NELS; j++) {
+          expect[j] = 0;
+    }
+
     err = FileOpen(testfile, NC_NOWRITE);
     IF (err != NC_NOERR) error("open: %s", APIFunc(strerror)(err));
 
@@ -1282,7 +1287,7 @@ ifdef(`PNETCDF',,``#'endif')
 		    /* netCDF specification make a special case for type
 		     * conversion between uchar and scahr: do not check for
 		     * range error. See
-		     * http://www.unidata.ucar.edu/software/netcdf/docs/data_type.html#type_conversion
+		     * https://docs.unidata.ucar.edu/netcdf-c/current/data_type.html#type_conversion
                      */
 		    IfCheckTextChar($1, ATT_TYPE(i,j))
 		    ifelse(`$1',`uchar', `if (cdf_format > NC_FORMAT_64BIT_OFFSET || (cdf_format < NC_FORMAT_CDF5 && ATT_TYPE(i,j) != NC_BYTE))')
@@ -1363,4 +1368,3 @@ TEST_NC_GET_ATT(ushort)
 TEST_NC_GET_ATT(uint)
 TEST_NC_GET_ATT(longlong)
 TEST_NC_GET_ATT(ulonglong)
-

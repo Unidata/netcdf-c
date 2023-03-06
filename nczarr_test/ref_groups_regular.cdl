@@ -1,0 +1,45 @@
+netcdf tmp_groups_regular {
+dimensions:
+	_zdim_3 = 3 ;
+	_zdim_2 = 2 ;
+	_zdim_10 = 10 ;
+
+// global attributes:
+		:_Format = "netCDF-4" ;
+
+group: MyGroup {
+  variables:
+  	int dset1(_zdim_3, _zdim_3) ;
+  		dset1:_Storage = "chunked" ;
+  		dset1:_ChunkSizes = 3, 3 ;
+  		dset1:_NoFill = "true" ;
+
+  // group attributes:
+  data:
+
+   dset1 =
+  1, 2, 3,
+  1, 2, 3,
+  1, 2, 3 ;
+
+  group: Group_A {
+    variables:
+    	int dset2(_zdim_2, _zdim_10) ;
+    		dset2:_Storage = "chunked" ;
+    		dset2:_ChunkSizes = 2, 10 ;
+    		dset2:_NoFill = "true" ;
+
+    // group attributes:
+    data:
+
+     dset2 =
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ;
+    } // group Group_A
+
+  group: Group_B {
+
+    // group attributes:
+    } // group Group_B
+  } // group MyGroup
+}

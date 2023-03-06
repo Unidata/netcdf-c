@@ -72,4 +72,6 @@ extern int dap_badname(char* name);
 extern char* dap_repairname(char* name);
 extern char* dap_getselection(NCURI* uri);
 
+extern int dapparamparselist(const char* s0, int delim, NClist* list);
+
 #endif /*DAPUTIL_H*/

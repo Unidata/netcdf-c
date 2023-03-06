@@ -495,7 +495,7 @@ print_rows(
 	    print_any_val(sb, vp, (void *)valp);
 	}
         /* In case vals has memory hanging off e.g. vlen or string, make sure to reclaim it */
-        (void)ncaux_reclaim_data(ncid,vp->type,vals,ncols);
+        NC_CHECK(nc_reclaim_data(ncid,vp->type,vals,ncols));
 
 	/* determine if this is the last row */
 	lastrow = true;
@@ -506,12 +506,12 @@ print_rows(
             }
 	}
 	if (formatting_specs.full_data_cmnts) {
-            for (j = 0; j < marks_pending; j++) {
+      for (j = 0; j < marks_pending; j++) {
 		sbuf_cat(sb, RBRACE);
-            }
-            printf("%s", sbuf_str(sb));
-            lastdelim (0, lastrow);
-            annotate (vp, cor, d0-1);
+      }
+      printf("%s", sbuf_str(sb));
+      lastdelim (0, lastrow);
+      annotate (vp, cor, (d0 > 0 ? d0-1 : d0));
 	} else {
             for (j = 0; j < marks_pending; j++) {
 		sbuf_cat(sb, RBRACE);

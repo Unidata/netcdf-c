@@ -4,16 +4,18 @@
 
 
 static size_t var_chunksizes[4] = {4, 4, 4, 4} ;
-static unsigned int var_filterparams[1] = {9U} ;
+static unsigned int var_0_filterparams[1] = {9U} ;
 
 void
-check_err(const int stat, const int line, const char *file) {
+check_err(const int stat, int line, const char* file, const char* func) {
     if (stat != NC_NOERR) {
-        (void)fprintf(stderr,"line %d of %s: %s\n", line, file, nc_strerror(stat));
+        (void)fprintf(stderr,"line %d of %s.%s: %s\n", line, file, func, nc_strerror(stat));
         fflush(stderr);
         exit(1);
     }
 }
+
+#define CHECK_ERR(err) check_err(err, __LINE__, __FILE__, __func__)
 
 int
 main() {/* create bzip2.nc */
@@ -47,20 +49,18 @@ main() {/* create bzip2.nc */
 
     /* enter define mode */
     stat = nc_create("bzip2.nc", NC_CLOBBER|NC_NETCDF4, &ncid);
-    check_err(stat,__LINE__,__FILE__);
-    stat = nc_put_att_text(ncid, NC_GLOBAL, "_Format", 1, "netCDF-4");
-    check_err(stat,__LINE__,__FILE__);
+    CHECK_ERR(stat);
     bzip2_grp = ncid;
 
     /* define dimensions */
     stat = nc_def_dim(bzip2_grp, "dim0", dim0_len, &dim0_dim);
-    check_err(stat,__LINE__,__FILE__);
+    CHECK_ERR(stat);
     stat = nc_def_dim(bzip2_grp, "dim1", dim1_len, &dim1_dim);
-    check_err(stat,__LINE__,__FILE__);
+    CHECK_ERR(stat);
     stat = nc_def_dim(bzip2_grp, "dim2", dim2_len, &dim2_dim);
-    check_err(stat,__LINE__,__FILE__);
+    CHECK_ERR(stat);
     stat = nc_def_dim(bzip2_grp, "dim3", dim3_len, &dim3_dim);
-    check_err(stat,__LINE__,__FILE__);
+    CHECK_ERR(stat);
 
     /* define variables */
 
@@ -69,17 +69,17 @@ main() {/* create bzip2.nc */
     var_dims[2] = dim2_dim;
     var_dims[3] = dim3_dim;
     stat = nc_def_var(bzip2_grp, "var", NC_FLOAT, RANK_var, var_dims, &var_id);
-    check_err(stat,__LINE__,__FILE__);
+    CHECK_ERR(stat);
     stat = nc_def_var_chunking(bzip2_grp, var_id, NC_CHUNKED, var_chunksizes);
-    check_err(stat,__LINE__,__FILE__);
+    CHECK_ERR(stat);
     stat = nc_def_var_fill(bzip2_grp, var_id, NC_NOFILL, NULL);
-    check_err(stat,__LINE__,__FILE__);
-    stat = nc_def_var_filter(bzip2_grp, var_id, 307, 1, var_filterparams);
-    check_err(stat,__LINE__,__FILE__);
+    CHECK_ERR(stat);
+    stat = nc_def_var_filter(bzip2_grp, var_id, 307, 1, var_0_filterparams);
+    CHECK_ERR(stat);
 
     /* leave define mode */
     stat = nc_enddef (bzip2_grp);
-    check_err(stat,__LINE__,__FILE__);
+    CHECK_ERR(stat);
 
     /* assign variable data */
 
@@ -88,11 +88,11 @@ main() {/* create bzip2.nc */
     size_t var_startset[4] = {0, 0, 0, 0} ;
     size_t var_countset[4] = {4, 4, 4, 4};
     stat = nc_put_vara(bzip2_grp, var_id, var_startset, var_countset, var_data);
-    check_err(stat,__LINE__,__FILE__);
+    CHECK_ERR(stat);
     }
 
 
     stat = nc_close(bzip2_grp);
-    check_err(stat,__LINE__,__FILE__);
+    CHECK_ERR(stat);
     return 0;
 }

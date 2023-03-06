@@ -1503,11 +1503,11 @@ jconst(Constant* ci)
 	strcpy(bstring,"\"");
 	p = ci->value.opaquev.stringv;
 	while(*p) {
-	    strcat(bstring,"\\x");
-	    strncat(bstring,p,2);	    	    
+	    strlcat(bstring,"\\x",bslen+3);
+	    strlcat(bstring,p,bslen+3);
 	    p += 2;	
 	}
-	strcat(bstring,"\"");
+	strlcat(bstring,"\"",bslen+3);
 	return bstring;
 	} break;
 

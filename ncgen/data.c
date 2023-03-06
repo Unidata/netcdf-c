@@ -11,6 +11,9 @@
 #include        "dump.h"
 
 #undef VERIFY
+#ifndef __MINGW32__
+#define HHPRINT
+#endif
 
 #define XVSNPRINTF vsnprintf
 /*
@@ -26,7 +29,7 @@ List* alldatalists = NULL;
 NCConstant nullconstant;
 NCConstant fillconstant;
 
-Datalist nildatalist; /* to support NIL keyword */
+Datalist* filldatalist;
 
 Bytebuffer* codebuffer;
 Bytebuffer* codetmp;
@@ -80,7 +83,7 @@ list2const(Datalist* list)
     NCConstant* con = nullconst();
     ASSERT(list != NULL);
     con->nctype = NC_COMPOUND;
-    con->lineno = list->data[0]->lineno;
+    if(!list->readonly) con->lineno = list->data[0]->lineno;
     setconstlist(con,list);
     con->filled = 0;
     return con;
@@ -198,43 +201,6 @@ freeconstant(NCConstant* con, int shallow)
 
 /**************************************************/
 
-#if 0
-Datalist*
-datalistclone(Datalist* dl)
-{
-    int i;
-    Datalist* clone = builddatalist(dl->length);
-    for(i=0;i<dl->length;i++) {
-	clone->data[i] = cloneconstant(dl->data[i]);
-    }
-    return clone;
-}
-
-Datalist*
-datalistappend(Datalist* dl, NCConstant* con)
-{
-    NCConstant** vector;
-    ASSERT(dl != NULL);
-    if(con == NULL) return dl;
-    vector = (NCConstant**)erealloc(dl->data,sizeof(NCConstant*)*(dl->length+1));
-    if(vector == NULL) return NULL;
-    vector[dl->length] = cloneconstant(con);
-    dl->length++;
-    dl->data = vector;
-    return dl;
-}
-
-Datalist*
-datalistreplace(Datalist* dl, unsigned int index, NCConstant* con)
-{
-    ASSERT(dl != NULL);
-    ASSERT(index < dl->length);
-    ASSERT(con != NULL);
-    dl->data[index] = cloneconstant(con);
-    return dl;
-}
-#endif
-
 int
 datalistline(Datalist* ds)
 {
@@ -340,22 +306,25 @@ static const char zeros[] =
 void
 alignbuffer(NCConstant* prim, Bytebuffer* buf)
 {
-    int alignment,pad,offset;
+    int stat = NC_NOERR;
+    size_t alignment;
+    int pad,offset;
 
     ASSERT(prim->nctype != NC_COMPOUND);
 
     if(prim->nctype == NC_ECONST)
-        alignment = ncaux_class_alignment(prim->value.enumv->typ.typecode);
+        stat = ncaux_class_alignment(prim->value.enumv->typ.typecode,&alignment);
     else if(usingclassic && prim->nctype == NC_STRING)
-        alignment = ncaux_class_alignment(NC_CHAR);
+        stat = ncaux_class_alignment(NC_CHAR,&alignment);
     else if(prim->nctype == NC_CHAR)
-        alignment = ncaux_class_alignment(NC_CHAR);
+        stat = ncaux_class_alignment(NC_CHAR,&alignment);
     else
-        alignment = ncaux_class_alignment(prim->nctype);
-    offset = bbLength(buf);
-    pad = getpadding(offset,alignment);
-    if(pad > 0) {
-	bbAppendn(buf,(void*)zeros,pad);
+        stat = ncaux_class_alignment(prim->nctype,&alignment);
+    if(!stat) {
+        offset = bbLength(buf);
+        pad = getpadding(offset,alignment);
+        if(pad > 0)
+   	    bbAppendn(buf,(void*)zeros,pad);
     }
 }
 
@@ -450,10 +419,15 @@ retry:	    switch ((c=*p++)) {
 		goto retry;	        
 	    case 'u':
 		if(hcount == 2) {
-   	            snprintf(tmp,sizeof(tmp),"%hhu",
-			(unsigned char)va_arg(argv,unsigned int));
+   	            snprintf(tmp,sizeof(tmp),
+#ifdef HHPRINT
+			"%hhu"
+#else
+			"%2u"
+#endif
+			,(unsigned char)va_arg(argv,unsigned int));
 		} else if(hcount == 1) {
-   	            snprintf(tmp,sizeof(tmp),"%hu",
+   	            snprintf(tmp,sizeof(tmp), "%hu",
 			(unsigned short)va_arg(argv,unsigned int));
 		} else if(lcount == 2) {
    	            snprintf(tmp,sizeof(tmp),"%llu",
@@ -469,8 +443,13 @@ retry:	    switch ((c=*p++)) {
 		break;
 	    case 'd':
 		if(hcount == 2) {
-   	            snprintf(tmp,sizeof(tmp),"%hhd",
-			(signed char)va_arg(argv,signed int));
+   	            snprintf(tmp,sizeof(tmp),
+#ifdef HHPRINT
+			"%hhd"
+#else
+			"%2d"
+#endif
+			,(signed char)va_arg(argv,signed int));
 		} else if(hcount == 1) {
    	            snprintf(tmp,sizeof(tmp),"%hd",
 			(signed short)va_arg(argv,signed int));
@@ -585,17 +564,27 @@ indented(int n)
 }
 
 void
+dlsetalloc(Datalist* dl, size_t need)
+{
+    NCConstant** newdata = NULL;
+    if(dl->readonly) abort();
+    if(dl->alloc < need) {
+        newdata = (NCConstant**)ecalloc(need*sizeof(NCConstant*));
+        if(dl->length > 0)
+            memcpy(newdata,dl->data,sizeof(NCConstant*)*dl->length);
+        dl->alloc = need;
+        nullfree(dl->data);
+        dl->data = newdata;
+    }
+}
+
+void
 dlextend(Datalist* dl)
 {
     size_t newalloc;
-    NCConstant** newdata = NULL;
+    if(dl->readonly) abort();
     newalloc = (dl->alloc > 0?2*dl->alloc:2);
-    newdata = (NCConstant**)ecalloc(newalloc*sizeof(NCConstant*));
-    if(dl->length > 0)
-        memcpy(newdata,dl->data,sizeof(NCConstant*)*dl->length);
-    dl->alloc = newalloc;
-    nullfree(dl->data);
-    dl->data = newdata;
+    dlsetalloc(dl,newalloc);
 }
 
 
@@ -623,6 +612,7 @@ builddatalist(int initial)
 void
 dlappend(Datalist* dl, NCConstant* constant)
 {
+    if(dl->readonly) abort();
     if(dl->length >= dl->alloc)
 	dlextend(dl);
     dl->data[dl->length++] = (constant);
@@ -633,6 +623,40 @@ dlset(Datalist* dl, size_t pos, NCConstant* constant)
 {
     ASSERT(pos < dl->length);
     dl->data[pos] = (constant);
+}
+
+NCConstant*
+dlremove(Datalist* dl, size_t pos)
+{
+    int i;
+    NCConstant* con = NULL;
+    ASSERT(dl->length > 0 && pos < dl->length);	
+    con = dl->data[pos];
+    for(i=pos+1;i<dl->length;i++)
+        dl->data[i-1] = dl->data[i];
+    dl->length--;
+    return con;
+}
+
+void
+dlinsert(Datalist* dl, size_t pos, Datalist* insertion)
+{
+    int i;
+    int len1 = datalistlen(dl);
+    int len2 = datalistlen(insertion);
+    int delta = len1 - pos;
+    dlsetalloc(dl,len2+len1+1);
+
+   
+    /* move contents of dl up to make room for insertion */
+    if(delta > 0)
+        memmove(&dl->data[pos+len2],&dl->data[pos],delta*sizeof(NCConstant*));
+    dl->length += len2;
+    for(i=0;i<len2;i++) {
+	NCConstant* con = insertion->data[i];
+	con = cloneconstant(con);
+        dl->data[pos+i] = con;
+    }    
 }
 
 /* Convert a datalist to a compound constant */
@@ -647,6 +671,23 @@ builddatasublist(Datalist* dl)
   d->filled = 0;
   return d;
 
+}
+
+/* Convert a subsequence of a datalist to its own datalist */
+Datalist*
+builddatasubset(Datalist* dl, size_t start, size_t count)
+{
+    Datalist* subset;
+
+    if(dl == NULL || start >= datalistlen(dl)) return NULL;
+    if((start + count) > datalistlen(dl))
+        count = (datalistlen(dl) - start);
+    subset = (Datalist*)ecalloc(sizeof(Datalist));
+    subset->readonly = 1;
+    subset->length = count;
+    subset->alloc = count;
+    subset->data = &dl->data[start];
+    return subset;
 }
 
 /* Deep copy */
@@ -666,29 +707,11 @@ clonedatalist(Datalist* dl)
 	con = cloneconstant(con);
 	dlappend(newdl,con);
     }
-#if 0
-    newdl->vlen = dl->vlen;
-#endif
-    newdl->readonly = dl->readonly;
     return newdl;
 }
 
 
 /* recursive helpers */
-
-#if 0
-static int
-isdup(Datalist* dl)
-{
-    int i;
-    size_t limit = listlength(alldatalists);
-    for(i=0;i<limit;i++) {
-	Datalist* di = listget(alldatalists,i);
-	if(di == dl) return 1;
-    }
-    return 0;
-}
-#endif
 
 void
 reclaimconstant(NCConstant* con)
@@ -726,36 +749,33 @@ reclaimdatalist(Datalist* list)
 {
    int i;
    if(list == NULL) return;
-   if(list->data != NULL) {
-       for(i=0;i<list->length;i++) {
-	    NCConstant* con = list->data[i];
-	    if(con != NULL) reclaimconstant(con);
-       }
-       efree(list->data);
-       list->data = NULL;
-   }
-   efree(list);
+   if(!list->readonly) {
+	if(list->data != NULL) {
+	    for(i=0;i<list->length;i++) {
+	        NCConstant* con = list->data[i];
+	        if(con != NULL) reclaimconstant(con);
+            }
+        }
+    }
+    freedatalist(list);
+}
+
+/* Like reclaimdatalist, but do not try to reclaim contained constants */
+void
+freedatalist(Datalist* list)
+{
+   if(list == NULL) return;
+   if(!list->readonly) {
+        efree(list->data);
+        list->data = NULL;
+    }
+    efree(list);
 }
 
 void
 reclaimalldatalists(void)
 {
     int i;
-#if 0
-    int j;
-    /* Remove duplicates */
-    for(i=0;i<listlength(alldatalists);i++) {
-	Datalist* di = listget(alldatalists,i);
-	if(di == NULL) continue;
-        for(j=i;j<listlength(alldatalists);j++) {
-	    Datalist* dj = listget(alldatalists,j);
-	    if(dj == di) {
-	        listset(alldatalists,j,NULL);
-fprintf(stderr,"XXX\n");
-	    }
-        }
-    }
-#endif
     for(i=0;i<listlength(alldatalists);i++) {
         Datalist* di = listget(alldatalists,i);
 	if(di != NULL)
@@ -765,179 +785,33 @@ fprintf(stderr,"XXX\n");
     alldatalists = NULL;    
 }
 
-/* Obsolete */
-#if 0
-/* return 1 if the next element in the datasrc is compound*/
-int
-issublist(Datasrc* datasrc) {return istype(datasrc,NC_COMPOUND);}
-
-/* return 1 if the next element in the datasrc is a string*/
-int
-isstring(Datasrc* datasrc) {return istype(datasrc,NC_STRING);}
-
-/* return 1 if the next element in the datasrc is a fill value*/
-int
-isfillvalue(Datasrc* datasrc)
+static void
+flattenR(Datalist* result, Datalist* data, int rank, int depth)
 {
-return srcpeek(datasrc) == NULL || istype(datasrc,NC_FILLVALUE);
-}
-
-/* return 1 if the next element in the datasrc is nc_type*/
-int
-istype(Datasrc* datasrc , nc_type nctype)
-{
-    NCConstant* ci = srcpeek(datasrc);
-    if(ci != NULL && ci->nctype == nctype) return 1;
-    return 0;
-}
-
-/**************************************************/
-
-void
-freedatasrc(Datasrc* src)
-{
-    efree(src);
-}
-
-Datasrc*
-allocdatasrc(void)
-{
-    Datasrc* src;
-    src = ecalloc(sizeof(Datasrc));
-    src->data = NULL;
-    src->index = 0;
-    src->length = 0;
-    src->prev = NULL;
-    return src;
-}
-
-Datasrc*
-datalist2src(Datalist* list)
-{
-    Datasrc* src;
-    ASSERT(list != NULL);
-    src = allocdatasrc();
-    src->data = list->data;
-    src->index = 0;
-    src->length = list->length;
-    DUMPSRC(src,"#");
-    return src;
-}
-
-Datasrc*
-const2src(NCConstant* con)
-{
-    Datasrc* src;
-    ASSERT(con != NULL);
-    src = allocdatasrc();
-    src->data = emalloc(sizeof(NCConstant*));
-    src->data[0] = con;
-    src->index = 0;
-    src->length = 1;
-    DUMPSRC(src,"#");
-    return src;
-}
-
-NCConstant*
-srcpeek(Datasrc* ds)
-{
-    if(ds == NULL) return NULL;
-    if(ds->index < ds->length)
-	return ds->data[ds->index];
-    if(ds->spliced)
-	return srcpeek(ds->prev);
-    return NULL;
-}
-
-void
-srcreset(Datasrc* ds)
-{
-    ds->index = 0;
-}
-
-NCConstant*
-srcnext(Datasrc* ds)
-{
-    DUMPSRC(ds,"!");
-    if(ds == NULL) return NULL;
-    if(ds->index < ds->length)
-	return ds->data[ds->index++];
-    if(ds->spliced) {
-	srcpop(ds);
-	return srcnext(ds);
-    }
-    return NULL;
-}
-
-int
-srcmore(Datasrc* ds)
-{
-    if(ds == NULL) return 0;
-    if(ds->index < ds->length) return 1;
-    if(ds->spliced) return srcmore(ds->prev);
-    return 0;
-}
-
-int
-srcline(Datasrc* ds)
-{
-    int index = ds->index;
-    int len = ds->length;
-    /* pick closest available entry*/
-    if(len == 0) return 0;
-    if(index >= len) index = len-1;
-    return ds->data[index]->lineno;
-}
-
-void
-srcpush(Datasrc* src)
-{
+    int i;
     NCConstant* con;
-    ASSERT(src != NULL);
-    con = srcnext(src);
-    ASSERT(con->nctype == NC_COMPOUND);
-    srcpushlist(src,con->value.compoundv);
-}
 
-void
-srcpushlist(Datasrc* src, Datalist* dl)
-{
-    Datasrc* newsrc;
-    ASSERT(src != NULL && dl != NULL);
-    newsrc = allocdatasrc();
-    *newsrc = *src;
-    src->prev = newsrc;
-    src->index = 0;
-    src->data = dl->data;
-    src->length = dl->length;
-    DUMPSRC(src,">!");
-}
-
-void
-srcpop(Datasrc* src)
-{
-    if(src != NULL) {
-        Datasrc* prev = src->prev;
-	*src = *prev;
-        freedatasrc(prev);
+    if(rank == depth) return;
+    if(datalistlen(data) == 0) return;
+    for(i=0;i<datalistlen(data);i++) {
+	con = datalistith(data,i);
+        if(depth < rank - 1) {
+	    /* Is this is a char list, then we might have short depth */
+	    if(islistconst(con))
+	        flattenR(result,compoundfor(con),rank,depth+1);
+	    else
+	        dlappend(result,con);
+        } else { /* depth == rank -1, last dimension */
+	    dlappend(result,con);
+	}
     }
-    DUMPSRC(src,"<");
 }
 
-void
-srcsplice(Datasrc* ds, Datalist* list)
+/* Produce a new list that is the concat of all the leaf constants */
+Datalist*
+flatten(Datalist* list,int rank)
 {
-    srcpushlist(ds,list);
-    ds->spliced = 1;    
+    Datalist* result = builddatalist(0);
+    flattenR(result,list,rank,0);
+    return result;
 }
-
-void
-srcsetfill(Datasrc* ds, Datalist* list)
-{
-    if(ds->index >= ds->length) PANIC("srcsetfill: no space");
-    if(ds->data[ds->index]->nctype != NC_FILLVALUE) PANIC("srcsetfill: not fill");
-    ds->data[ds->index]->nctype = NC_COMPOUND;
-    setconstlist(ds->data[ds->index],list);
-}
-
-#endif /*0*/

@@ -13,6 +13,9 @@ are defined here.
 
 #undef COMPILEBYDEFAULT
 
+/* Turn on/off checksum hack; on until I can rebuild test cases*/
+#define CHECKSUMHACK
+
 #include "ncrc.h"
 #include "ncauth.h"
 
@@ -39,11 +42,27 @@ Currently turned off because semantics are unclear.
 typedef struct NCD4INFO NCD4INFO;
 typedef enum NCD4CSUM NCD4CSUM;
 typedef enum NCD4mode NCD4mode;
+typedef enum NCD4format NCD4format;
 typedef enum NCD4translation NCD4translation;
 typedef struct NCD4curl NCD4curl;
 typedef struct NCD4meta NCD4meta;
 typedef struct NCD4node NCD4node;
 typedef struct NCD4params NCD4params;
+typedef struct NCD4HDR NCD4HDR;
+
+/* Define the NCD4HDR flags */
+/* Header flags */
+#define NCD4_LAST_CHUNK          (1)
+#define NCD4_ERR_CHUNK           (2)
+#define NCD4_LITTLE_ENDIAN_CHUNK (4)
+#ifdef CHECKSUMHACK
+#define NCD4_NOCHECKSUM_CHUNK    (8)
+#else
+#define NCD4_NOCHECKSUM_CHUNK    (0)
+#endif
+
+#define NCD4_ALL_CHUNK_FLAGS (NCD4_LAST_CHUNK|NCD4_ERR_CHUNK|NCD4_LITTLE_ENDIAN_CHUNK|NCD4_NOCHECKSUM_CHUNK)
+
 
 /**************************************************/
 /* DMR Tree node sorts */
@@ -114,6 +133,11 @@ NCD4_DAP = 2,
 NCD4_DSR = 4
 };
 
+/* Define possible retrieval formats */
+enum NCD4format {
+NCD4_FORMAT_NONE = 0,
+NCD4_FORMAT_XML = 1
+};
 
 /* Define storage for all the primitive types (plus vlen) */
 union ATOMICS {
@@ -138,6 +162,11 @@ union ATOMICS {
 };
 
 /**************************************************/
+/* Define the structure of the chunk header */
+
+struct NCD4HDR {unsigned int flags; unsigned int count;};
+
+/**************************************************/
 /* !Node type for the NetCDF-4 metadata produced from
    parsing the DMR tree.
    We only use a single node type tagged with the sort.
@@ -155,6 +184,7 @@ struct NCD4node {
     NClist* types;   /* NClist<NCD4node*> types in group */
     NClist* dims;    /* NClist<NCD4node*>; dimdefs in group, dimrefs in vars */
     NClist* attributes; /* NClist<NCD4node*> */
+    NClist* mapnames;       /* NClist<char*> */
     NClist* maps;       /* NClist<NCD4node*> */
     NClist* xmlattributes; /* NClist<String> */
     NCD4node* basetype;
@@ -195,8 +225,11 @@ struct NCD4node {
     struct { /* Data compilation info */
         int flags; /* See d4data for actual flags */
 	D4blob dap4data; /* offset and start pos for this var's data in serialization */
-        unsigned int remotechecksum; /* toplevel variable checksum as sent by server*/    
+        int remotechecksummed; /* 1 => data includes checksum */
+        unsigned int remotechecksum; /* checksum from data as sent by server */
         unsigned int localchecksum; /* toplevel variable checksum as computed by client */    
+	int checksumattr; /* 1=> _DAP4_Checksum_CRC32 is defined */
+	int attrchecksum; /* _DAP4_Checksum_CRC32 value */
     } data;
     struct { /* Track netcdf-4 conversion info */
 	int isvlen;	/*  _edu.ucar.isvlen */
@@ -217,9 +250,12 @@ typedef struct NCD4serial {
     void* dap; /* pointer into rawdata where dap data starts */ 
     char* dmr;/* copy of dmr */ 
     char* errdata; /* null || error chunk (null terminated) */
+    int httpcode; /* returned from last request */
     int hostlittleendian; /* 1 if the host is little endian */
     int remotelittleendian; /* 1 if the packet says data is little endian */
-    int remotechecksumming; /* 1 if the packet says checksums are included */
+#ifdef CHECKSUMHACK
+    int checksumhack; /* 1 if the packet says checksums are NOT included */
+#endif
 } NCD4serial;
 
 /* This will be passed out of the parse */
@@ -240,11 +276,12 @@ struct NCD4meta {
     int debuglevel;
     NCD4serial serial;
     int ignorechecksums; /* 1=> compute but ignore */
-    int localchecksumming; /* 1=>compute local checksum */
     int swap; /* 1 => swap data */
     /* Define some "global" (to a DMR) data */
     NClist* groupbyid; /* NClist<NCD4node*> indexed by groupid >> 16; this is global */
     NCD4node* _bytestring; /* If needed */
+    /* Table of known atomictypes */
+    NClist* atomictypes; /*list<NCD4node>*/
 };
 
 typedef struct NCD4parser {
@@ -252,13 +289,10 @@ typedef struct NCD4parser {
     int debuglevel;
     NCD4meta* metadata;
     /* Capture useful subsets of dataset->allnodes */
-    NClist* types; /*list<NCD4node>*/
+    NClist* types; /*list<NCD4node>; user-defined types only*/
     NClist* dims; /*list<NCD4node>*/
     NClist* vars; /*list<NCD4node>*/
     NClist* groups; /*list<NCD4node>*/
-    /* Convenience for short cut fqn detection */
-    NClist* atomictypes; /*list<NCD4node>*/
-    char* used; /* mark indices in atomictypes that have been used */
     NCD4node* dapopaque; /* Single non-fixed-size opaque type */
 } NCD4parser;
 
@@ -313,7 +347,7 @@ struct NCD4INFO {
 	char substratename[NC_MAX_NAME];
 	size_t opaquesize; /* default opaque size */
     } controls;
-    NCauth auth;
+    NCauth* auth;
     struct {
 	char* filename;
     } fileproto;

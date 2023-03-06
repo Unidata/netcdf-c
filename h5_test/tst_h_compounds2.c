@@ -48,7 +48,11 @@ main()
       hsize_t dims[1];
       hsize_t num_obj, i_obj;
       char obj_name[STR_LEN + 1];
+#if H5_VERSION_GE(1,12,0)
+      H5O_info2_t obj_info;
+#else
       H5O_info_t obj_info;
+#endif
       hid_t fapl_id, fcpl_id;
       htri_t equal;
       char file_in[STR_LEN * 2];
@@ -79,18 +83,18 @@ main()
 
       /* Create file and get root group. */
       if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, fcpl_id, fapl_id)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
 
       /* Create the inner compound type. */
       if ((typeid_inner = H5Tcreate(H5T_COMPOUND, sizeof(struct s1))) < 0) ERR;
       if (H5Tinsert(typeid_inner, "x", HOFFSET(struct s1, x), H5T_NATIVE_FLOAT) < 0) ERR;
       if (H5Tinsert(typeid_inner, "y", HOFFSET(struct s1, y), H5T_NATIVE_DOUBLE) < 0) ERR;
-      if (H5Tcommit(grpid, INNER_TYPE_NAME, typeid_inner) < 0) ERR;
+      if (H5Tcommit1(grpid, INNER_TYPE_NAME, typeid_inner) < 0) ERR;
 
       /* Create a compound type containing a compound type. */
       if ((typeid_outer = H5Tcreate(H5T_COMPOUND, sizeof(struct s2))) < 0) ERR;
       if (H5Tinsert(typeid_outer, INNER_TYPE_NAME, HOFFSET(struct s2, s1), typeid_inner) < 0) ERR;
-      if (H5Tcommit(grpid, OUTER_TYPE_NAME, typeid_outer) < 0) ERR;
+      if (H5Tcommit1(grpid, OUTER_TYPE_NAME, typeid_outer) < 0) ERR;
 
       /* Create a space. */
       dims[0] = DIM_CMP_LEN;
@@ -112,7 +116,7 @@ main()
 
       /* Now open the file and get the type of the attribute. */
       if ((fileid = H5Fopen(FILE_NAME, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
       if ((attid = H5Aopen_by_name(grpid, ".", ATT_NAME1, H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
       if ((att_typeid = H5Aget_type(attid)) < 0) ERR;
       if ((att_native_typeid = H5Tget_native_type(att_typeid, H5T_DIR_DEFAULT)) < 0) ERR;
@@ -131,8 +135,13 @@ main()
       if (H5Gget_num_objs(grpid, &num_obj) < 0) ERR;
       for (i_obj = 0; i_obj < num_obj; i_obj++)
       {
+#if H5_VERSION_GE(1,12,0)
+	 if (H5Oget_info_by_idx3(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
+                                 i_obj, &obj_info, H5O_INFO_BASIC, H5P_DEFAULT) < 0) ERR;
+#else
 	 if (H5Oget_info_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
 				i_obj, &obj_info, H5P_DEFAULT) < 0) ERR;
+#endif
 	 if (H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC,
 				i_obj, obj_name, STR_LEN + 1, H5P_DEFAULT) < 0) ERR;
 
@@ -175,7 +184,7 @@ main()
          strcpy(file_in, REF_FILE_IN);
 
       if ((fileid = H5Fopen(file_in, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0) ERR;
-      if ((grpid = H5Gopen(fileid, "/")) < 0) ERR;
+      if ((grpid = H5Gopen1(fileid, "/")) < 0) ERR;
       if ((attid = H5Aopen_by_name(grpid, ".", ATT_NAME1, H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
       if ((att_typeid = H5Aget_type(attid)) < 0) ERR;
       if ((att_native_typeid = H5Tget_native_type(att_typeid, H5T_DIR_DEFAULT)) < 0) ERR;
@@ -194,8 +203,13 @@ main()
       if (H5Gget_num_objs(grpid, &num_obj) < 0) ERR;
       for (i_obj = 0; i_obj < num_obj; i_obj++)
       {
+#if H5_VERSION_GE(1,12,0)
+         if (H5Oget_info_by_idx3(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i_obj, &obj_info,
+                                 H5O_INFO_BASIC, H5P_DEFAULT) < 0) ERR;
+#else
 	 if (H5Oget_info_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i_obj, &obj_info,
 				H5P_DEFAULT) < 0) ERR;
+#endif
 	 if (H5Lget_name_by_idx(grpid, ".", H5_INDEX_CRT_ORDER, H5_ITER_INC, i_obj, obj_name,
 				STR_LEN + 1, H5P_DEFAULT) < 0) ERR;
 

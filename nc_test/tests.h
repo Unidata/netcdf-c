@@ -43,11 +43,11 @@
 /* FLT_MAX < X_FLOAT_MAX */
 #define X_FLOAT_MAX	FLT_MAX
 #else
-#ifdef WIN32 /* Windows, of course, has to be a *little* different. */
+#ifdef _WIN32 /* Windows, of course, has to be a *little* different. */
 #define X_FLOAT_MAX	3.402823466e+38f
 #else
 #define X_FLOAT_MAX	3.40282347e+38f
-#endif /* WIN32 */
+#endif /* _WIN32 */
 #endif
 #define X_FLOAT_MIN	(-X_FLOAT_MAX)
 #if CRAYFLOAT

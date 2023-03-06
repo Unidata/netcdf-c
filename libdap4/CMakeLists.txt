@@ -4,7 +4,7 @@
 # University Corporation for Atmospheric Research/Unidata.
 
 # See netcdf-c/COPYRIGHT file for more info.
-SET(dap4_SOURCES d4crc32.c d4curlfunctions.c d4fix.c d4data.c d4file.c d4parser.c d4meta.c d4varx.c d4dump.c d4swap.c d4chunk.c d4printer.c d4read.c d4http.c d4util.c d4odom.c d4cvt.c d4debug.c ncd4dispatch.c ezxml_extra.c ezxml.c)
+SET(dap4_SOURCES d4curlfunctions.c d4fix.c d4data.c d4file.c d4parser.c d4meta.c d4varx.c d4dump.c d4swap.c d4chunk.c d4printer.c d4read.c d4http.c d4util.c d4odom.c d4cvt.c d4debug.c ncd4dispatch.c)
 
 add_library(dap4 OBJECT ${dap4_SOURCES})
 
@@ -20,9 +20,9 @@ set(man_MANS netcdf.3)
 
 set(ARGS_MANPAGE -DAPI=C)
 
-IF (USE_NETCDF4)
+IF (USE_HDF5)
   SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DNETCDF4=TRUE)
-ENDIF(USE_NETCDF4)
+ENDIF(USE_HDF5)
 
 IF (BUILD_DAP)
   SET(ARGS_MANPAGE ${ARGS_MANPAGE} -DDAP=TRUE)

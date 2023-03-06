@@ -65,13 +65,13 @@ main()
     * cause overflows. */
    dims[0] = DIM1_LEN;
    if ((spaceid = H5Screate_simple(1, dims, dims)) < 0) ERR;
-   if ((datasetid = H5Dcreate(grpid, INT_VAR_NAME, H5T_NATIVE_INT, 
+   if ((datasetid = H5Dcreate1(grpid, INT_VAR_NAME, H5T_NATIVE_INT, 
 			      spaceid, H5P_DEFAULT)) < 0) ERR;
-   if ((schar_datasetid = H5Dcreate(grpid, SCHAR_VAR_NAME, H5T_NATIVE_SCHAR, 
+   if ((schar_datasetid = H5Dcreate1(grpid, SCHAR_VAR_NAME, H5T_NATIVE_SCHAR, 
 				    spaceid, H5P_DEFAULT)) < 0) ERR;
-   if ((double_datasetid = H5Dcreate(grpid, DOUBLE_VAR_NAME, H5T_NATIVE_DOUBLE, 
+   if ((double_datasetid = H5Dcreate1(grpid, DOUBLE_VAR_NAME, H5T_NATIVE_DOUBLE, 
 				    spaceid, H5P_DEFAULT)) < 0) ERR;
-   if ((float_datasetid = H5Dcreate(grpid, FLOAT_VAR_NAME, H5T_NATIVE_FLOAT, 
+   if ((float_datasetid = H5Dcreate1(grpid, FLOAT_VAR_NAME, H5T_NATIVE_FLOAT, 
 				    spaceid, H5P_DEFAULT)) < 0) ERR;
    if (H5Dwrite(datasetid, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, xfer_plistid, 
 		int_data_out) < 0) ERR;

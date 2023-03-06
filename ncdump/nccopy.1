@@ -96,17 +96,19 @@ storage format for performance. Credit is due to NCO for use of these
 numeric codes instead of the old and confusing format numbers.
 .IP "\fB \-d \fP \fI n \fP"
 For netCDF-4 output, including netCDF-4 classic model, specify
-deflation level (level of compression) for variable data output.  0
-corresponds to no compression and 9 to maximum compression, with
-higher levels of compression requiring marginally more time to
-compress or uncompress than lower levels.  Compression achieved may
-also depend on output chunking parameters.  If this option is
-specified for a classic format or 64-bit offset format input file, it
-is not necessary to also specify that the output should be netCDF-4
-classic model, as that will be the default.  If this option is not
-specified and the input file has compressed variables, the compression
-will still be preserved in the output, using the same chunking as in
-the input by default.
+deflation level (level of compression) for variable data output.
+0 corresponds to no compression and 9 to maximum compression,
+with higher levels of compression requiring marginally more time
+to compress or uncompress than lower levels. As a side effect
+specifying a compression level of 0 (via "-d 0") actually turns
+off deflation altogether.  Compression achieved may also depend
+on output chunking parameters.  If this option is specified for
+a classic format or 64-bit offset format input file, it is not
+necessary to also specify that the output should be netCDF-4
+classic model, as that will be the default.  If this option is
+not specified and the input file has compressed variables, the
+compression will still be preserved in the output, using the
+same chunking as in the input by default.
 .IP
 Note that \fBnccopy\fP requires all variables to be compressed using the
 same compression level, but the API has no such restriction.  With
@@ -142,7 +144,7 @@ other filters such as checksums.  Changing the chunking in a netCDF
 file can also greatly speedup access, by choosing chunk shapes that
 are appropriate for the most common access patterns.
 .IP
-The \fIchunkspec\fP argument has two forms. The first form is the
+The \fIchunkspec\fP argument has several forms. The first form is the
 original, deprecated form and is a string of comma-separated associations,
 each specifying a dimension name, a '/' character, and optionally the
 corresponding chunk length for that dimension.  No blanks should
@@ -186,6 +188,12 @@ If the same variable is specified
 more than once, the second and later specifications are ignored.
 Also, this second form, per-variable chunking, takes precedence over any
 per-dimension chunking except the bare "/" case.
+.IP
+The third form of the \fIchunkspec\fP has the
+syntax: \fI var:compact\fP or \fI var:contiguous\fP.
+This explicitly attempts to set the variable storage type as
+compact or contiguous, respectively. These may be overridden
+if other flags require the variable to be chunked.
 .IP "\fB \-v \fP \fI var1,... \fP"
 The output will include data values for the specified variables, in
 addition to the declarations of all dimensions, variables, and

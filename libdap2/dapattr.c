@@ -79,12 +79,18 @@ fprintf(stderr,"%s.maxstrlen=%d\n",node->ocname,(int)node->dodsspecial.maxstrlen
 #endif
 		} else if(strcmp(ocname,"DODS.dimName")==0
 		   || strcmp(ocname,"DODS_EXTRA.dimName")==0) {
+	            nullfree(node->dodsspecial.dimname); /* in case repeated */
+		    node->dodsspecial.dimname = NULL;
 		    if(values != NULL) {
+			nullfree(node->dodsspecial.dimname);
 		        node->dodsspecial.dimname = nulldup(values[0]);
 #ifdef DEBUG
 fprintf(stderr,"%s.dimname=%s\n",node->ocname,node->dodsspecial.dimname);
 #endif
-		    } else node->dodsspecial.dimname = NULL;
+		    } else {
+		        nullfree(node->dodsspecial.dimname);
+			node->dodsspecial.dimname = NULL;
+		    }
 		} else if(strcmp(ocname,"DODS.Unlimited_Dimension")==0
 		   || strcmp(ocname,"DODS_EXTRA.Unlimited_Dimension")==0) {
 		    char* val0 = NULL;

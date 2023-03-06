@@ -55,23 +55,23 @@ main()
 	if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
 	
 	/* Create scalar datasets of variable- and fixed-length strings. */
-	if ((vsdsetid = H5Dcreate (fileid, VS_VAR_NAME, vstypeid, scalar_spaceid, 
+	if ((vsdsetid = H5Dcreate1 (fileid, VS_VAR_NAME, vstypeid, scalar_spaceid, 
 				   H5P_DEFAULT)) < 0) ERR;
 	if (H5Dwrite (vsdsetid, vstypeid, H5S_ALL, H5S_ALL, H5P_DEFAULT, &vs)) ERR;
-	if ((fsdsetid = H5Dcreate (fileid, FS_VAR_NAME, fstypeid, scalar_spaceid, 
+	if ((fsdsetid = H5Dcreate1 (fileid, FS_VAR_NAME, fstypeid, scalar_spaceid, 
 				   H5P_DEFAULT)) < 0) ERR;
 	if (H5Dwrite (fsdsetid, fstypeid, H5S_ALL, H5S_ALL, H5P_DEFAULT, &fsdata)) ERR;
 
 	/* Create 1D dataset of variable-length strings. */
-	if ((v1ddsetid = H5Dcreate (fileid, V1D_VAR_NAME, vstypeid, v1dspaceid, 
+	if ((v1ddsetid = H5Dcreate1 (fileid, V1D_VAR_NAME, vstypeid, v1dspaceid, 
 				   H5P_DEFAULT)) < 0) ERR;
 	if (H5Dwrite (v1ddsetid, vstypeid, H5S_ALL, H5S_ALL, H5P_DEFAULT, &v1ddata)) ERR;
 	
 	/* Write scalar global attributes of these types. */
-	if ((vsattid = H5Acreate(fileid, VS_ATT_NAME, vstypeid, scalar_spaceid, 
+	if ((vsattid = H5Acreate1(fileid, VS_ATT_NAME, vstypeid, scalar_spaceid, 
 				 H5P_DEFAULT)) < 0) ERR;
 	if (H5Awrite(vsattid, vstypeid, &vs) < 0) ERR;
-	if ((fsattid = H5Acreate(fileid, FS_ATT_NAME, fstypeid, scalar_spaceid, 
+	if ((fsattid = H5Acreate1(fileid, FS_ATT_NAME, fstypeid, scalar_spaceid, 
 				 H5P_DEFAULT)) < 0) ERR;
 	if (H5Awrite(fsattid, fstypeid, &fsdata) < 0) ERR;
 	

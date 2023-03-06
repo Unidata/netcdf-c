@@ -1,0 +1,24 @@
+netcdf ref_tst_compounds {
+types:
+  compound obs_t {
+    short day ;
+    short elev ;
+    int count ;
+    float relhum ;
+    double time ;
+  }; // obs_t
+dimensions:
+	n = 3 ;
+variables:
+	obs_t obs(n) ;
+		obs:day = -99s ;
+		obs:elev = -99s ;
+		obs:count = -99 ;
+		obs:relhum = -99.00005f ;
+		obs:time = -99. ;
+data:
+
+ obs = {15, 2, 1, 0.5, 3600.01}, 
+    {-99, -1, -1027211264, 0, 8.34446731226507e-309}, 
+    {0, 16192, -1889785610, 5.610353, 5.08101286513212e+233} ;
+}

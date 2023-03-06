@@ -1,0 +1,10 @@
+test2: filter order: read
+test2: decompression.
+inq filter ids(2)=[40000,40001]
+inq filter id[0]=40000 nparams=1 params[0]=0
+inq filter id[1]=40001 nparams=1 params[0]=1
+test2: decompression.
+direction=decompress id=40001 cd_nelmts=1 cd_values= 1
+direction=decompress id=40000 cd_nelmts=1 cd_values= 0
+data comparison: |array|=256
+no data errors

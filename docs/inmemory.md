@@ -152,7 +152,7 @@ cannot complete because the memory needs to be expanded.
 the netcdf library will take control of the incoming memory.
 This means that the user should not make any attempt to free
 or even read the incoming memory block in this case.
-The newcdf library is free to reallocate the incomming
+The newcdf library is free to reallocate the incoming
 memory block to obtain a larger block when an attempt to modify
 the in-memory file requires more space. Note that implicit in this
 is that the old block -- the one originally provided -- may be

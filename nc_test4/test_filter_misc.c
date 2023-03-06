@@ -10,6 +10,7 @@
 
 #include <hdf5.h>
 #include "netcdf.h"
+#include "netcdf_aux.h"
 #include "netcdf_filter.h"
 
 #undef TESTODDSIZE
@@ -31,9 +32,11 @@
 
 static unsigned int baseline[NPARAMS];
 
+static const char* testfile = NULL;
+
 #define MAXDIMS 8
 
-#define TESTFILE "testmisc.nc"
+#define DFALT_TESTFILE "tmp_misc.nc"
 
 #define spec "32768, -17b, 23ub, -25S, 27US, 77, 93U, 789f, 12345678.12345678d, -9223372036854775807L, 18446744073709551615UL"
 
@@ -128,17 +131,24 @@ verifychunks(void)
 static int
 create(void)
 {
+    /* Create a file with one big variable, but whose dimensions arte not a multiple of chunksize (to see what happens) */
+    CHECK(nc_create(testfile, NC_NETCDF4|NC_CLOBBER, &ncid));
+    CHECK(nc_set_fill(ncid, NC_NOFILL, NULL));
+    return NC_NOERR;
+}
+
+static int
+defvar(nc_type xtype)
+{
     int i;
 
     /* Create a file with one big variable, but whose dimensions arte not a multiple of chunksize (to see what happens) */
-    CHECK(nc_create(TESTFILE, NC_NETCDF4|NC_CLOBBER, &ncid));
-    CHECK(nc_set_fill(ncid, NC_NOFILL, NULL));
     for(i=0;i<ndims;i++) {
         char dimname[1024];
         snprintf(dimname,sizeof(dimname),"dim%d",i);
         CHECK(nc_def_dim(ncid, dimname, dimsize[i], &dimids[i]));
     }
-    CHECK(nc_def_var(ncid, "var", NC_FLOAT, ndims, dimids, &varid));
+    CHECK(nc_def_var(ncid, "var", xtype, ndims, dimids, &varid));
     return NC_NOERR;
 }
 
@@ -168,7 +178,7 @@ openfile(void)
     unsigned int* params = NULL;
 
     /* Open the file and check it. */
-    CHECK(nc_open(TESTFILE, NC_NOWRITE, &ncid));
+    CHECK(nc_open(testfile, NC_NOWRITE, &ncid));
     CHECK(nc_inq_varid(ncid, "var", &varid));
 
     /* Check the compression algorithm */
@@ -181,22 +191,22 @@ openfile(void)
     }
     if(filterid != TEST_ID) {
         fprintf(stderr,"open: test id mismatch: %d\n",filterid);
+        free(params);
         return NC_EFILTER;
     }
     if(nparams != NPARAMS) {
-	size_t i;
-	unsigned int inqparams[MAXPARAMS];
+        size_t i;
         fprintf(stderr,"nparams  mismatch\n");
         for(nerrs=0,i=0;i<nparams;i++) {
-            if(inqparams[i] != baseline[i]) {
+            if(params[i] != baseline[i]) {
                 fprintf(stderr,"open: testparam mismatch: %ld\n",(unsigned long)i);
-		nerrs++;
-	    }
-	}
+                nerrs++;
+            }
+        }
     }
-    if(nerrs > 0) return NC_EFILTER; 
+    free(params);
 
-    if(params) free(params);
+    if(nerrs > 0) return NC_EFILTER;
 
     /* Verify chunking */
     if(!verifychunks())
@@ -309,7 +319,7 @@ insert(int index, void* src, size_t size)
     void* dst = &baseline[index];
     if(size == 8) {
 	memcpy(src8,src,size);
-	NC_filterfix8(src8,0);
+	ncaux_h5filterspec_fix8(src8,0);
 	src = src8;
     }
     memcpy(dst,src,size);
@@ -348,6 +358,7 @@ buildbaseline(unsigned int testcasenumber)
         insert(12,&val8,sizeof(val8)); /* 12 unsigned long long */
 	break;
     case 2:
+    case 3:
     	break;
     default:
 	fprintf(stderr,"Unknown testcase number: %d\n",testcasenumber);
@@ -366,6 +377,7 @@ test_test1(void)
 
     fprintf(stderr,"test1: compression.\n");
     create();
+    defvar(NC_FLOAT);
     setchunking();
     setvarfilter();
     showparameters();
@@ -397,6 +409,7 @@ test_test2(void)
 
     fprintf(stderr,"test2: dimsize %% chunksize != 0: compress.\n");
     create();
+    defvar(NC_FLOAT);
     setchunking();
     setvarfilter();
     showparameters();
@@ -409,6 +422,42 @@ test_test2(void)
     CHECK(nc_close(ncid));
 
     fprintf(stderr,"test2: dimsize %% chunksize != 0: decompress.\n");
+    reset();
+    openfile();
+    CHECK(nc_get_var_float(ncid, varid, array));
+    ok = compare();
+    CHECK(nc_close(ncid));
+    return ok;
+}
+
+static int
+test_test3(void)
+{
+    int ok = 1;
+    int stat = NC_NOERR;
+
+    reset();
+
+    buildbaseline(3);
+
+    fprintf(stderr,"test3: dimsize %% chunksize != 0: compress.\n");
+    create();
+    defvar(NC_FLOAT);
+    setchunking();
+    setvarfilter();
+    showparameters();
+    CHECK(nc_enddef(ncid));
+
+    /* Fill in the array */
+    fill();
+    /* write array */
+    stat = nc_put_var(ncid,varid,expected);
+
+    fprintf(stderr,"test3: error code = %d\n",stat);
+
+    CHECK(nc_close(ncid));
+
+    fprintf(stderr,"test3: dimsize %% chunksize != 0: decompress.\n");
     reset();
     openfile();
     CHECK(nc_get_var_float(ncid, varid, array));
@@ -480,6 +529,13 @@ static void
 init(int argc, char** argv)
 {
     int i;
+
+    /* get the testfile path */
+    if(argc > 1)
+        testfile = argv[1];
+    else
+        testfile = DFALT_TESTFILE;
+
     /* Setup various variables */
     totalproduct = 1;
     actualproduct = 1;
@@ -503,11 +559,12 @@ int
 main(int argc, char **argv)
 {
 #ifdef DEBUG
-    H5Eprint(stderr);
+    H5Eprint1(stderr);
     nc_set_log_level(1);
 #endif
     init(argc,argv);
     if(!test_test1()) ERRR;
     if(!test_test2()) ERRR;
+    if(!test_test3()) ERRR;
     exit(nerrs > 0?1:0);
 }

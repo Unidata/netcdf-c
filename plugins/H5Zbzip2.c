@@ -4,22 +4,15 @@
 #include <string.h>
 #include <assert.h>
 #include <stdio.h>
-#include <hdf5.h>
-/* Older versions of the hdf library may define H5PL_type_t here */
-#include <H5PLextern.h>
 
-
-
-#ifndef DLL_EXPORT
-#define DLL_EXPORT
-#endif
+#include "netcdf_filter_build.h"
 
 /* WARNING:
 Starting with HDF5 version 1.10.x, the plugin code MUST be
 careful when using the standard *malloc()*, *realloc()*, and
 *free()* function.
 
-In the event that the code is allocating, reallocating, for
+In the event that the code is allocating, reallocating, or
 free'ing memory that either came from or will be exported to the
 calling HDF5 library, then one MUST use the corresponding HDF5
 functions *H5allocate_memory()*, *H5resize_memory()*,
@@ -30,7 +23,24 @@ will generate an error.
 
 */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <errno.h>
+
+#include "netcdf_filter_build.h"
+#include <netcdf_json.h>
+
 #include "h5bzip2.h"
+
+/* Forward */
+static htri_t H5Z_bzip2_can_apply(hid_t dcpl_id, hid_t type_id, hid_t space_id);
+static size_t H5Z_filter_bzip2(unsigned flags,size_t cd_nelmts,const unsigned cd_values[],
+                    size_t nbytes,size_t *buf_size,void**buf);
 
 const H5Z_class2_t H5Z_BZIP2[1] = {{
     H5Z_CLASS_T_VERS,       /* H5Z_class_t version */
@@ -44,12 +54,14 @@ const H5Z_class2_t H5Z_BZIP2[1] = {{
 }};
 
 /* External Discovery Functions */
+DLLEXPORT
 H5PL_type_t
 H5PLget_plugin_type(void)
 {
     return H5PL_TYPE_FILTER;
 }
 
+DLLEXPORT
 const void*
 H5PLget_plugin_info(void)
 {
@@ -61,13 +73,14 @@ H5PLget_plugin_info(void)
  * The "can_apply" callback returns positive a valid combination, zero for an
  * invalid combination and negative for an error.
  */
-htri_t
+static htri_t
 H5Z_bzip2_can_apply(hid_t dcpl_id, hid_t type_id, hid_t space_id)
 {
     return 1; /* Assume it can always apply */
 }
 
-size_t H5Z_filter_bzip2(unsigned int flags, size_t cd_nelmts,
+static size_t
+H5Z_filter_bzip2(unsigned int flags, size_t cd_nelmts,
                      const unsigned int cd_values[], size_t nbytes,
                      size_t *buf_size, void **buf)
 {
@@ -93,11 +106,7 @@ size_t H5Z_filter_bzip2(unsigned int flags, size_t cd_nelmts,
 
     /* Prepare the output buffer. */
     outbuflen = nbytes * 3 + 1;  /* average bzip2 compression ratio is 3:1 */
-#ifdef HAVE_H5ALLOCATE_MEMORY
     outbuf = H5allocate_memory(outbuflen,0);
-#else
-    outbuf = (char*)malloc(outbuflen * sizeof(char));
-#endif
     if (outbuf == NULL) {
       fprintf(stderr, "memory allocation failed for bzip2 decompression\n");
       goto cleanupAndFail;
@@ -130,11 +139,7 @@ size_t H5Z_filter_bzip2(unsigned int flags, size_t cd_nelmts,
       if (ret != BZ_STREAM_END && stream.avail_out == 0) {
         /* Grow the output buffer. */
         newbuflen = outbuflen * 2;
-#ifdef HAVE_H5RESIZE_MEMORY
         newbuf = H5resize_memory(outbuf, newbuflen);
-#else
-        newbuf = realloc(outbuf,newbuflen);
-#endif
         if (newbuf == NULL) {
           fprintf(stderr, "memory allocation failed for bzip2 decompression\n");
           goto cleanupAndFail;
@@ -178,11 +183,7 @@ size_t H5Z_filter_bzip2(unsigned int flags, size_t cd_nelmts,
 
     /* Prepare the output buffer. */
     outbuflen = nbytes + nbytes / 100 + 600;  /* worst case (bzip2 docs) */
-#ifdef HAVE_H5ALLOCATE_MEMORY
     outbuf = H5allocate_memory(outbuflen,0);
-#else
-    outbuf = (char*)malloc(outbuflen * sizeof(char));
-#endif
 
     if (outbuf == NULL) {
       fprintf(stderr, "memory allocation failed for bzip2 compression\n");
@@ -201,11 +202,7 @@ size_t H5Z_filter_bzip2(unsigned int flags, size_t cd_nelmts,
   }
 
   /* Always replace the input buffer with the output buffer. */
-#ifdef HAVE_H5FREE_MEMORY
   H5free_memory(*buf);
-#else
-  free(*buf);
-#endif
 
   *buf = outbuf;
   *buf_size = outbuflen;
@@ -213,11 +210,7 @@ size_t H5Z_filter_bzip2(unsigned int flags, size_t cd_nelmts,
 
  cleanupAndFail:
   if (outbuf)
-#ifdef HAVE_H5FREE_MEMORY
     H5free_memory(outbuf);
-#else
-  free(outbuf);
-#endif
-
   return 0;
 }
+

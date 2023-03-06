@@ -4,7 +4,7 @@ Getting and Building netCDF {#getting_and_building_netcdf}
 [TOC]
 
 This document is for getting and building the netCDF C library and
-utilities, version 4.3.0.  Other libraries that depend on the netCDF C
+utilities, version 4.7.1 and later.  Other libraries that depend on the netCDF C
 library, such as the Fortran and C++ libraries, are available as
 separate distributions that can be built and installed after the C
 library is successfully installed.  The netCDF-Java library is also a
@@ -84,6 +84,10 @@ Requirements {#netcdf_requirements}
 * zlib 1.2.5
 * curl 7.18.0 (DAP support)
 
+> Note: If you are working with a development version of the source code, you will need to generate the `configure` script by running the following command from the top-level `netcdf-c/` directory:
+
+> **$ autoreconf -if**
+
 
 CMake and Windows support {#sub}
 --------------------------------
@@ -154,7 +158,7 @@ is being built.
 
 Note that for shared libraries, you may need to add the install
 directory to the LD_LIBRARY_PATH environment variable. See
-the <a href="http://www.unidata.ucar.edu/netcdf/docs/faq.html#Shared%20Libraries">netCDF
+the <a href="https://docs.unidata.ucar.edu/netcdf-c/current/faq.html#Shared%20Libraries">netCDF
 FAQ</a> for more details on using shared libraries.
 
 If you are building HDF5 with szip, then include the <CODE>--with-szlib=</CODE>

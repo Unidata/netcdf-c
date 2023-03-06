@@ -60,6 +60,9 @@ THIS SOFTWARE.
 */
 
 #include "config.h"
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>  /* open() */
@@ -73,12 +76,13 @@ THIS SOFTWARE.
 #include <unistd.h>     /* read() getopt() */
 #endif
 
-#ifdef _WIN32
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#endif
+
+#if defined(_WIN32) && !defined(__MINGW32__)
 #include <io.h>
-#define snprintf _snprintf
 #include "XGetopt.h"
-int opterr;
-int optind;
 #endif
 
 #define X_ALIGN         4
@@ -790,7 +794,7 @@ out :
     return NC_NOERR;
 }
 
-/* calculate the followings
+/* calculate the following
  *   ncp->begin_var           first variable's offset, file header extent
  *   ncp->begin_rec           first record variable's offset
  *   ncp->recsize             sum of all single record size of all variables
@@ -1426,7 +1430,7 @@ new_NC_attr(char        *name,
     (*attrp)->nelems   = nelems;
     (*attrp)->xvalue   = NULL;
     (*attrp)->name     = name;
-    (*attrp)->name_len = strlen(name);
+    (*attrp)->name_len = (name?strlen(name):0);
 
     if (nelems > 0) {
         long long xsz = x_len_NC_attrV(xtype, nelems);
@@ -2022,7 +2026,7 @@ val_NC_check_vlens(NC *ncp)
     /* For CDF-2, no record variable can require more than 2^32 - 4 bytes of
      * storage for each record's worth of data, unless it is the last record
      * variable. See
-     * http://www.unidata.ucar.edu/software/netcdf/docs/file_structure_and_performance.html#offset_format_limitations
+     * https://docs.unidata.ucar.edu/netcdf-c/current/file_structure_and_performance.html#offset_format_limitations
      */
     if (large_rec_vars_count > 1) { /* only one "too-large" variable allowed */
         if (verbose) printf("Error:\n");
@@ -2149,7 +2153,7 @@ val_get_NC(int fd, NC *ncp)
     getbuf.pos = (char*)getbuf.pos + 4;
 
     if (memcmp(magic, ncmagic, 3) != 0) {
-        if (verbose) printf("Error: Unknow file signature\n");
+        if (verbose) printf("Error: Unknown file signature\n");
         if (verbose) printf("\tExpecting \"CDF1\", \"CDF2\", or \"CDF5\", but got \"%4s\"\n",magic);
         status = NC_ENOTNC;
         goto fn_exit;
@@ -2166,7 +2170,7 @@ val_get_NC(int fd, NC *ncp)
         getbuf.version = 5;
         ncp->format = 5;
     } else {
-        if (verbose) printf("Error: Unknow file signature\n");
+        if (verbose) printf("Error: Unknown file signature\n");
         if (verbose) printf("\tExpecting \"CDF1\", \"CDF2\", or \"CDF5\", but got \"%4s\"\n",magic);
         status = NC_ENOTNC;
         goto fn_exit;
@@ -2276,7 +2280,8 @@ usage(char *argv0)
     fprintf(stderr, help, argv0);
 }
 
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
     char filename[512], *path;
     int i, omode, fd, status=NC_NOERR;

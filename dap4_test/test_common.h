@@ -26,26 +26,6 @@ static char* outfile = NULL;
 static int ncid = 0;
 static int translatenc4 = 0;
 
-static int
-readfile(const char* filename, NCbytes* content)
-{
-    FILE* stream;
-    char part[1024];
-
-    stream = fopen(filename,"r");
-    if(stream == NULL) return errno;
-    for(;;) {
-	size_t count = fread(part, 1, sizeof(part), stream);
-	if(count <= 0) break;
-	ncbytesappendn(content,part,count);
-	if(ferror(stream)) {fclose(stream); return NC_EIO;}
-	if(feof(stream)) break;
-    }
-    ncbytesnull(content);
-    fclose(stream);
-    return NC_NOERR;
-}
-
 static void
 fail(int code)
 {
@@ -61,6 +41,7 @@ setup(int tdmr, int argc, char** argv)
     argc--; argv++;
     int expected = 0;
     NCD4mode mode = 0;
+    NCD4INFO* controller = NULL;
 
     switch(tdmr) {
     case TDMR_PARSE:
@@ -85,7 +66,7 @@ setup(int tdmr, int argc, char** argv)
     outfile = NULL;
     input = ncbytesnew();
     output = ncbytesnew();
-    if((ret = readfile(infile,input))) fail(ret);
+    if((ret = NC_readfile(infile,input))) fail(ret);
     {
 	const char* trans = getenv("translatenc4");
 	if(trans != NULL)
@@ -96,21 +77,19 @@ setup(int tdmr, int argc, char** argv)
     NCD4_dumpbytes(ncbyteslength(input),ncbytescontents(input),0);
 #endif
 
-    if((metadata=NCD4_newmeta(ncbyteslength(input),ncbytescontents(input)))==NULL)
+    /* Create a fake NCD4INFO */
+    controller = (NCD4INFO*)calloc(1,sizeof(NCD4INFO));
+    if(controller == NULL)
+	fail(NC_ENOMEM);
+    controller->controls.translation = NCD4_TRANSNC4;
+    if(translatenc4)
+	controller->controls.translation = NCD4_TRANSNC4;
+    NCD4_applyclientparamcontrols(controller);
+    if((metadata=NCD4_newmeta(controller))==NULL)
 	fail(NC_ENOMEM);
     metadata->mode = mode;
+    NCD4_attachraw(metadata, ncbyteslength(input),ncbytescontents(input));
 
-    /* Create a fake NCD4INFO */
-    {
-	NCD4INFO* controller = (NCD4INFO*)calloc(1,sizeof(NCD4INFO));
-	if(controller == NULL)
-	    fail(NC_ENOMEM);
-        metadata->controller = controller;
-	controller->controls.translation = NCD4_TRANSNC4;
-        if(translatenc4)
-	    controller->controls.translation = NCD4_TRANSNC4;
-	NCD4_applyclientparamcontrols(controller);
-    }
     if((ret=NCD4_dechunk(metadata))) /* ok for mode == DMR or mode == DAP */
 	fail(ret);
 #ifdef DEBUG
@@ -163,7 +142,6 @@ cleanup(int ret)
     if(metadata->controller != NULL)
 	free(metadata->controller);
     NCD4_reclaimMeta(metadata);
-    ncbytesfree(input);
     ncbytesfree(output);
     if(ret)
 	fail(ret);

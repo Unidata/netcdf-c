@@ -7,6 +7,6 @@
 
 set -e
 echo
-echo "Runnung pnetcdf parallel I/O example..."
+echo "Running pnetcdf parallel I/O example..."
 @MPIEXEC@ -n 4 ./parallel_vara
 echo '*** SUCCESS!!!'

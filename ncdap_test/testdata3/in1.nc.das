@@ -312,7 +312,7 @@ Attributes {
     tpt {
         String long_name "Temperature";
         String units "kelvin";
-        String hieght "Leave hieght mispelled for NCO User's guide example";
+        String hieght "Leave hieght misspelled for NCO User's guide example";
     }
     rec_var_dbl_mss_val_dbl_upk {
         String long_name "record variable, double, with double missing values";
