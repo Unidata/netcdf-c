@@ -128,7 +128,7 @@ main(int argc, char** argv)
 
     dumpoptions.nctype = NC_UBYTE; /* default */
 
-    while ((c = getopt(argc, argv, "df:k:p:t:T:u:v")) != EOF) {
+    while ((c = getopt(argc, argv, "df:hk:p:t:T:u:v")) != EOF) {
 	switch(c) {
 	case 'd': 
 	    dumpoptions.debug = 1;	    
@@ -136,6 +136,9 @@ main(int argc, char** argv)
 	case 'f':
 	    dumpoptions.filename = strdup(optarg);
 	    break;
+	case 'h':
+	    usage();
+	    return 0;
 	case 'k': {
 	    size_t len = strlen(optarg);
 	    dumpoptions.key = (char*)malloc(len+1+1);
