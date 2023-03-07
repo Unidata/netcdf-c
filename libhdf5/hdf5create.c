@@ -280,14 +280,6 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
     if ((retval = NC4_new_provenance(nc4_info)))
         BAIL(retval);
 
-#ifdef HDF5_HAS_SWMR
-    if ((cmode & NC_HDF5_SWMR)) {
-      /* Prepare for single writer multiple readers */
-      if ((retval = H5Fstart_swmr_write(hdf5_info->hdfid)))
-        BAIL(retval);
-    }
-#endif
-
     return NC_NOERR;
 
 exit: /*failure exit*/

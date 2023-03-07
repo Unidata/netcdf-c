@@ -711,6 +711,11 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
     /* Determine the HDF5 open flag to use. */
     if((mode & NC_WRITE)) {
       flags = H5F_ACC_RDWR;
+#ifdef HDF5_HAS_SWMR
+      if((mode & NC_HDF5_SWMR)) {
+        flags |= H5F_ACC_SWMR_WRITE;
+      }
+#endif
     } else {
       flags = H5F_ACC_RDONLY;
 #ifdef HDF5_HAS_SWMR
@@ -1002,15 +1007,6 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
     /* Close the property list. */
     if (H5Pclose(fapl_id) < 0)
         BAIL(NC_EHDFERR);
-
-#ifdef HDF5_HAS_SWMR
-    /* Prepare for single writer multiple reader. */
-    if (mode & NC_WRITE && mode & NC_HDF5_SWMR) {
-      if ((retval = H5Fstart_swmr_write(h5->hdfid))) {
-        BAIL(retval);
-      }
-    }
-#endif
 
     return NC_NOERR;
 
