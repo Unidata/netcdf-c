@@ -43,6 +43,7 @@
 #define NC_HAS_NC4       @NC_HAS_NC4@ /*!< API version 4 support. */
 #define NC_HAS_HDF4      @NC_HAS_HDF4@ /*!< HDF4 support. */
 #define NC_HAS_HDF5      @NC_HAS_HDF5@ /*!< HDF5 support. */
+#define NC_HAS_HDF5_SWMR @NC_HAS_HDF5_SWMR@ /*!< HDF5 single-writer multiple reader support. */
 #define NC_HAS_SZIP      @NC_HAS_SZIP@ /*!< szip support */
 #define NC_HAS_SZIP_WRITE @NC_HAS_SZIP@ /*!< szip write support */
 #define NC_HAS_DAP2      @NC_HAS_DAP2@ /*!< DAP2 support. */
