@@ -156,6 +156,14 @@ if test "x$enable_netcdf4" = xno ; then enable_hdf5=no ; fi
 # disable-netcdf4 is synonym for disable-hdf5
 AC_MSG_RESULT([$enable_hdf5])
 
+AC_MSG_CHECKING([whether we should build with HDF5 SWMR support])
+AC_ARG_ENABLE([hdf5_swmr], [AS_HELP_STRING([--enable-hdf5-swmr],
+              [build with HDF5 SWMR support (requires HDF5 version 1.10 or later)])])
+test "x$enable_hdf5_swmr" = xyes || enable_hdf5_swmr=no
+if test "x$enable_hdf5" = xno ; then enable_hdf5_swmr=no ; fi
+# Don't enable HDF5 SWMR if we're not using HDF5
+AC_MSG_RESULT([$enable_hdf5_swmr])
+
 # Check whether we want to enable CDF5 support.
 AC_MSG_CHECKING([whether CDF5 support should be disabled])
 AC_ARG_ENABLE([cdf5],
@@ -1481,6 +1489,7 @@ hdf5_parallel=no
 hdf5_supports_par_filters=no
 enable_hdf5_szip=no
 has_ross3=no
+hdf5_swmr=no
 
 if test "x$enable_hdf5" = xyes; then
 
@@ -1506,7 +1515,7 @@ if test "x$enable_hdf5" = xyes; then
    # H5Pset_fapl_mpiposix and H5Pget_fapl_mpiposix have been removed since HDF5 1.8.12.
    # Use H5Pset_fapl_mpio and H5Pget_fapl_mpio, instead.
 
-   AC_CHECK_FUNCS([H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5Pset_all_coll_metadata_ops H5Literate])
+   AC_CHECK_FUNCS([H5Pget_fapl_mpio H5Pset_deflate H5Z_SZIP H5Pset_all_coll_metadata_ops H5Literate H5Fstart_swmr_write])
 
    # Check to see if HDF5 library has collective metadata APIs, (HDF5 >= 1.10.0)
    if test "x$ac_cv_func_H5Pset_all_coll_metadata_ops" = xyes; then
@@ -1567,6 +1576,13 @@ if test "x$enable_hdf5" = xyes; then
   if test "x$hdf5_version_1106" = xyes; then
       AC_DEFINE([HDF5_UTF8_PATHS], [1], [if true, HDF5 paths can be utf-8])
    fi
+
+   if test "x$enable_hdf5_swmr" = xyes && test "x$ac_cv_func_H5Fstart_swmr_write" = xyes; then
+      hdf5_swmr=yes
+      AC_DEFINE([HDF5_HAS_SWMR], [1], [if true, HDF5 supports single-writer multiple-reader])
+   fi
+   AC_MSG_CHECKING([whether HDF5 supports SWMR])
+   AC_MSG_RESULT([$hdf5_swmr])
 
 fi
 
