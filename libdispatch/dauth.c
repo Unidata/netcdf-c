@@ -38,7 +38,8 @@ static const char* AUTHDEFAULTS[] = {
 "HTTP.SSL.VERIFYHOST","-1", /* Use default */
 "HTTP.TIMEOUT","1800", /*seconds */ /* Long but not infinite */
 "HTTP.CONNECTTIMEOUT","50", /*seconds */ /* Long but not infinite */
-NULL
+"HTTP.ENCODE","1", /* Use default */
+NULL,
 };
 
 /* Forward */
@@ -108,8 +109,6 @@ NC_authsetup(NCauth** authp, NCURI* uri)
        to getinfo e.g. host+port  from url
     */
 
-    setauthfield(auth,"HTTP.DEFLATE",
-		      NC_rclookup("HTTP.DEFLATE",uri_hostport,uri->path));
     setauthfield(auth,"HTTP.VERBOSE",
 			NC_rclookup("HTTP.VERBOSE",uri_hostport,uri->path));
     setauthfield(auth,"HTTP.TIMEOUT",
@@ -220,10 +219,10 @@ setauthfield(NCauth* auth, const char* flag, const char* value)
 {
     int ret = NC_NOERR;
     if(value == NULL) goto done;
-    if(strcmp(flag,"HTTP.DEFLATE")==0) {
-        if(atoi(value)) auth->curlflags.compress = 1;
+    if(strcmp(flag,"HTTP.ENCODE")==0) {
+        if(atoi(value)) {auth->curlflags.encode = 1;} else {auth->curlflags.encode = 0;}
 #ifdef DEBUG
-        nclog(NCLOGNOTE,"HTTP.DEFLATE: %ld", (long)auth->curlflags.compress);
+        nclog(NCLOGNOTE,"HTTP.encode: %ld", (long)auth->curlflags.encode);
 #endif
     }
     if(strcmp(flag,"HTTP.VERBOSE")==0) {
