@@ -9,6 +9,7 @@
  * @author Ed Hartnett
  */
 
+#include "H5version.h"
 #include "config.h"
 #include "hdf5internal.h"
 #include "hdf5err.h"
@@ -832,6 +833,25 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 	        BAIL(NC_EHDFERR);
 	    }
 	}
+    }
+
+    {
+      H5F_libver_t low, high;
+#if H5_VERSION_GE(1,10,2)
+      low = H5F_LIBVER_EARLIEST;
+      high = H5F_LIBVER_V18;
+#ifdef HDF5_HAS_SWMR
+      if ((mode & NC_HDF5_SWMR)) {
+        low = H5F_LIBVER_LATEST;
+        high = H5F_LIBVER_LATEST;
+      }
+#endif /* HDF5_HAS_SWMR */
+#else
+      low = H5F_LIBVER_EARLIEST;
+      high = H5F_LIBVER_LATEST;
+#endif
+      if (H5Pset_libver_bounds(fapl_id, low, high) < 0)
+        BAIL(NC_EHDFERR);
     }
 
     /* Set HDF5 format compatibility in the FILE ACCESS property list.
