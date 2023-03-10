@@ -94,6 +94,7 @@ main()
     if (nc_inq_typeids(ncid, NULL, typeids)) ERR;
 
     if (nc_inq_user_type(ncid, typeids[0], name, &size, &base_nc_type, &nfields, &class)) ERR;
+    free(typeids);
 
     /* Verify that the dataset is present */
     if (nc_inq_varid(ncid, VAR_NAME, &varid)) ERR;
