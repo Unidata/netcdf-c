@@ -89,7 +89,11 @@ main()
     nc_set_log_level(4);
     if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
 
+    /* Read known types */
     if (nc_inq_typeids(ncid, &num_types, NULL)) ERR;
+    /* Verify there are two known: complex and bool enum */
+    if (num_types != 2) ERR;
+
     typeids = (int*)malloc((size_t)num_types * sizeof(int));
     if (nc_inq_typeids(ncid, NULL, typeids)) ERR;
 
