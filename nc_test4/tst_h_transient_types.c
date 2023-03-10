@@ -57,9 +57,21 @@ main()
   {
     int ncid, varid;
     double complex read_z;
+    int num_types, class;
+    int *typeids;
+    nc_type base_nc_type;
+    char name[NC_MAX_NAME];
+    size_t size, nfields;
+
 
     nc_set_log_level(4);
     if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
+
+    if (nc_inq_typeids(ncid, &num_types, NULL)) ERR;
+    typeids = (int*)malloc((size_t)num_types * sizeof(int));
+    if (nc_inq_typeids(ncid, NULL, typeids)) ERR;
+
+    if (nc_inq_user_type(ncid, typeids[0], name, &size, &base_nc_type, &nfields, &class)) ERR;
 
     /* Verify that the dataset is present */
     if (nc_inq_varid(ncid, VAR_NAME, &varid)) ERR;
