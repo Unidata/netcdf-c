@@ -13,17 +13,22 @@
 #include <nc_tests.h>
 #include <err_macros.h>
 #include <hdf5.h>
-#include <complex.h>
 
 #define FILE_NAME "tst_h_transient.h5"
 #define VAR_NAME "var"
 #define INT_ATT_NAME "intatt"
 #define INT_VAR_NAME "intvar"
 
+/* Don't use the C99 standard `complex` because MSVC has non-compliant
+ * implementation */
+typedef struct {
+  double r, i;
+} complex;
+
 int
 main()
 {
-  double complex expected_z = 1 + 2*I;
+  complex expected_z = {1, 2};
 
   printf("\n*** Creating file with datasets that have transient datatypes.\n");
   {
@@ -34,7 +39,7 @@ main()
 	if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
 
     /* Create compound datatype, but don't commit to file */
-    if ((complex_dtype = H5Tcreate(H5T_COMPOUND, sizeof(double complex))) < 0) ERR;
+    if ((complex_dtype = H5Tcreate(H5T_COMPOUND, sizeof(complex))) < 0) ERR;
     if (H5Tinsert(complex_dtype, "r", 0, H5T_NATIVE_DOUBLE) < 0) ERR;
     if (H5Tinsert(complex_dtype, "i", sizeof(double), H5T_NATIVE_DOUBLE) < 0) ERR;
 
@@ -56,7 +61,7 @@ main()
   printf("*** Checking accessing file through netCDF-4 API...");
   {
     int ncid, varid;
-    double complex read_z;
+    complex read_z;
     int num_types, class;
     int *typeids;
     nc_type base_nc_type;
@@ -79,7 +84,8 @@ main()
     /* Read complex variable */
     if (nc_get_var(ncid, varid, &read_z)) ERR;
 
-    if (read_z != expected_z) ERR;
+    if (read_z.r != expected_z.r) ERR;
+    if (read_z.i != expected_z.i) ERR;
 
     if (nc_close(ncid)) ERR;
   }
