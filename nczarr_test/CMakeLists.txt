@@ -124,6 +124,9 @@ IF(ENABLE_TESTS)
     BUILD_BIN_TEST(test_quantize ${TSTCOMMONSRC})
     add_sh_test(nczarr_test run_quantize)
 
+    BUILD_BIN_TEST(tst_notzarr ${TSTCOMMONSRC})
+    add_sh_test(nczarr_test run_notzarr)
+
     if(ENABLE_S3)
 	add_sh_test(nczarr_test run_s3_cleanup)
     ENDIF()
