@@ -53,7 +53,7 @@ main()
     if ((H5Dwrite(dsetid, complex_dtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, &expected_z)) <0) ERR;
 
     /* Create enum datatype, but don't commit to file */
-    if ((enum_dtype = H5Tenum_create(H5T_NATIVE_INT)) < 0) ERR;
+    if ((enum_dtype = H5Tenum_create(H5T_NATIVE_CHAR)) < 0) ERR;
     enum_value = false;
     if (H5Tenum_insert(enum_dtype, "FALSE", &enum_value) < 0) ERR;
     enum_value = true;
