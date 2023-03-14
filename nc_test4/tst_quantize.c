@@ -515,6 +515,7 @@ main(int argc, char **argv)
 		    union DU dfin;
 		    union DU dfout;
 		    union DU double_xpect[NUM_QUANTIZE_MODES][DIM_LEN_5];
+		    NC_UNUSED(fout); NC_UNUSED(dfout);
 
 		    switch (quantize_mode[q])
 		    {
@@ -633,6 +634,7 @@ main(int argc, char **argv)
 		    union FU fout;
 		    union DU dfout;
 		    int nsd_att_in;
+		    NC_UNUSED(fout); NC_UNUSED(dfout);
 
 		    /* Open the file and check metadata. */
 		    if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
@@ -752,6 +754,7 @@ main(int argc, char **argv)
 		    union FU fout;
 		    union DU dfout;
 		    union DU double_xpect[NUM_QUANTIZE_MODES][DIM_LEN_5];
+		    NC_UNUSED(fout); NC_UNUSED(dfout);
 
 		    switch (quantize_mode[q])
 		    {
@@ -875,6 +878,8 @@ main(int argc, char **argv)
 		    union FU fout;
 		    union DU dfout;
 		    union DU double_xpect[NUM_QUANTIZE_MODES][DIM_LEN_5];
+		    NC_UNUSED(fout); NC_UNUSED(dfout);
+
 		    switch (quantize_mode[q])
 		    {
 		    case NC_QUANTIZE_BITGROOM:
@@ -1003,6 +1008,8 @@ main(int argc, char **argv)
 		    union FU fout;
 		    union DU dfout;
 		    union DU double_xpect[NUM_QUANTIZE_MODES][DIM_LEN_5];
+		    NC_UNUSED(fout); NC_UNUSED(dfout);
+		    
 		    switch (quantize_mode[q])
 		    {
 		    case NC_QUANTIZE_BITGROOM:

@@ -19,7 +19,7 @@ struct ZUTEST* zutest = NULL;
 int
 zbreakpoint(int err)
 {
-    return err;
+    return ncbreakpoint(err);
 }
 
 int
