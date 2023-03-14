@@ -1866,7 +1866,7 @@ ncz_read_superblock(NC_FILE_INFO_T* file, char** nczarrvp, char** zarrfp)
 	/* ok, assume pure zarr with no groups */
 	zinfo->controls.flags |= FLAG_PUREZARR;	
 	zinfo->controls.flags &= ~(FLAG_NCZARR_V1);
-	zarr_format = strdup("2");
+	if(zarr_format == NULL) zarr_format = strdup("2");
     } else if(jnczgroup != NULL) {
 	zinfo->controls.flags |= FLAG_NCZARR_V1;
 	/* Also means file is read only */
