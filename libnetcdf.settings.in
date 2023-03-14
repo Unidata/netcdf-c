@@ -39,8 +39,11 @@ PnetCDF Support:	@HAS_PNETCDF@
 DAP2 Support:		@HAS_DAP2@
 DAP4 Support:		@HAS_DAP4@
 Byte-Range Support:	@HAS_BYTERANGE@
+
+S3 Support:	        @HAS_S3@
+
 NCZarr Support:		@HAS_NCZARR@
-NCZarr S3 Support:      @HAS_NCZARR_S3@
+NCZarr Zip Support:     @HAS_NCZARR_ZIP@
 
 Diskless Support:	@HAS_DISKLESS@
 MMap Support:		@HAS_MMAP@
@@ -48,7 +51,6 @@ JNA Support:		@HAS_JNA@
 ERANGE Fill Support:	@HAS_ERANGE_FILL@
 Relaxed Boundary Check:	@RELAX_COORD_BOUND@
 
-NCZarr Support:		@HAS_NCZARR@
 Multi-Filter Support:	@HAS_MULTIFILTERS@
 Quantization:		@HAS_QUANTIZE@
 Logging:     		@HAS_LOGGING@
