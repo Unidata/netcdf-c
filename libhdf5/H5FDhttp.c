@@ -162,7 +162,7 @@ static herr_t H5FD_http_unlock(H5FD_t *_file);
 
 /* Beware, not same as H5FD_HTTP_g */
 static const H5FD_class_t H5FD_http_g = {
-#if H5_VERSION_GE(1,14,0)
+#if H5_VERSION_GE(1,13,2)
     H5FD_CLASS_VERSION,		/* struct version  */
     H5_VFD_HTTP,		/* value           */
 #endif
@@ -195,7 +195,7 @@ static const H5FD_class_t H5FD_http_g = {
     H5FD_http_get_handle,	/* get_handle   */
     H5FD_http_read,		/* read         */
     H5FD_http_write,		/* write        */
-#if H5_VERSION_GE(1,14,0)
+#if H5_VERSION_GE(1,13,2)
     NULL,			/* read_vector     */
     NULL,			/* write_vector    */
     NULL,			/* read_selection  */
@@ -205,7 +205,7 @@ static const H5FD_class_t H5FD_http_g = {
     NULL,			/* truncate     */
     H5FD_http_lock,		/* lock         */
     H5FD_http_unlock,		/* unlock       */
-#if H5_VERSION_GE(1,14,0)
+#if H5_VERSION_GE(1,13,2)
     NULL,			/* del          */
     NULL,			/* ctl	        */
 #endif
