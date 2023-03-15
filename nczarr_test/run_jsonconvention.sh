@@ -27,7 +27,7 @@ sed -e 's|\\n||g' < ${srcdir}/ref_jsonconvention.zmap > tmp_jsonconvention_clean
 cat < tmp_jsonconvention_${zext}.cdl > tmp_jsonconvention_clean_${zext}.cdl 
 sed -e 's|"_NCProperties": "version=2,netcdf=[^,]*,nczarr=2.0.0",||' < tmp_jsonconvention_${zext}.txt > tmp_jsonconvention_clean_${zext}.txt 
 diff -b tmp_jsonconvention_clean.cdl tmp_jsonconvention_clean_${zext}.cdl
-diff -b ${srcdir}/tmp_jsonconvention_clean.zmap tmp_jsonconvention_clean_${zext}.txt
+diff -b tmp_jsonconvention_clean.zmap tmp_jsonconvention_clean_${zext}.txt
 }
 
 testcase file
