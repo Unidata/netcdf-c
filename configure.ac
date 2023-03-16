@@ -565,7 +565,7 @@ if test "x$enable_libxml2" = xyes; then
    if test -z "$NC_XML2_CONFIG"; then
       AC_MSG_ERROR([Cannot find xml2-config utility. Either install the libxml2 development package, or re-run configure with --disable-libxml2 to use the bundled xml2 parser])
    fi
-  # We can optionally use libxml2 for DAP4, if available
+  # We can optionally use libxml2 for DAP4
   AC_CHECK_LIB([xml2],[xmlReadMemory],[have_libxml2=yes],[have_libxml2=no])
   if test "x$have_libxml2" = "xyes" ; then
       AC_SEARCH_LIBS([xmlReadMemory],[xml2 xml2.dll cygxml2.dll], [],[])
@@ -778,14 +778,11 @@ AC_MSG_RESULT([${have_sz}])
 AC_SEARCH_LIBS([zip_open],[zip zip.dll cygzip.dll],[have_zip=yes],[have_zip=no])
 AC_MSG_CHECKING([whether libzip library is available])
 AC_MSG_RESULT([${have_zip}])
-
 enable_nczarr_zip=${have_zip} # alias
 
 if test "x$enable_nczarr" = xno ; then
    enable_nczarr_zip=no
 fi
-
-
 
 AC_MSG_CHECKING([whether nczarr zip support is enabled])
 AC_MSG_RESULT([${enable_nczarr_zip}])
@@ -793,43 +790,47 @@ AC_MSG_RESULT([${enable_nczarr_zip}])
 if test "x$enable_nczarr_zip" = xyes ; then
 AC_DEFINE([ENABLE_NCZARR_ZIP], [1], [If true, then libzip found])
 fi
-AM_CONDITIONAL(ENABLE_NCZARR_ZIP, [test "x$enable_nczarr_zip" = xyes])
 
 # Check for enabling of S3 support
-AC_MSG_CHECKING([whether netcdf zarr S3 support should be enabled])
+AC_MSG_CHECKING([whether netcdf S3 support should be enabled])
+AC_ARG_ENABLE([s3],
+              [AS_HELP_STRING([--enable-s3],
+                              [enable netcdf S3 support])])
+test "x$enable_s3" = xyes || enable_s3=no
+AC_MSG_RESULT($enable_s3)
+
+# --enable-nczarr-s3 is synonym for --enable-s3 (but...)
+AC_MSG_CHECKING([whether netcdf NCZarr S3 support should be enabled])
 AC_ARG_ENABLE([nczarr-s3],
               [AS_HELP_STRING([--enable-nczarr-s3],
-                              [enable netcdf zarr S3 support; make sure to set LDFLAGS])])
-test "x$enable_nczarr_s3" = xyes || enable_nczarr_s3=no
-if test "x$enable_nczarr" = xno ; then
-enable_nczarr_s3=no
+                              [enable netcdf NCZarr S3 support; Deprecated in favor of --enable-s3])])
+# Set enable_s3 instead of enable_nczarr_s3
+if test "x$enable_s3" = xno && test "x$enable_nczarr_s3" = xyes ; then
+enable_s3=yes # back compatibility
 fi
-AC_MSG_RESULT($enable_nczarr_s3)
+unset enable_nczarr_s3
+AC_MSG_RESULT($enable_s3)
 
-# Note we check for the library after checking for enable_nczarr_s3
-# because for some reason this screws up if we unconditionally test for sdk
+# Note we check for the library after checking for enable_s3
+# because for some reason this fails if we unconditionally test for sdk
 # and it is not available. Fix someday
-enable_s3_sdk=no
-if test "x$enable_nczarr_s3" = xyes ; then
+if test "x$enable_s3" = xyes ; then
 # See if we have the s3 aws library
 # Check for the AWS S3 SDK library
 AC_LANG_PUSH([C++])
 AC_SEARCH_LIBS([aws_allocator_is_valid],[aws-c-common aws-cpp-sdk-s3 aws-cpp-sdk-core], [enable_s3_sdk=yes],[enable_s3_sdk=no])
 AC_LANG_POP
+else
+enable_s3_sdk=no
 fi
 
 AC_MSG_CHECKING([whether AWS S3 SDK library is available])
 AC_MSG_RESULT([$enable_s3_sdk])
 
 if test "x$enable_s3_sdk" = xno ; then
-AC_MSG_WARN([No S3 library available; disabling S3 support])
-enable_nczarr_s3=no
+AC_MSG_WARN([No S3 library available => S3 support disabled])
+enable_S3=no
 fi
-
-if test "x$enable_s3_sdk" = xyes ; then
-AC_DEFINE([ENABLE_S3_SDK], [1], [If true, then S3 sdk was found])
-fi
-AM_CONDITIONAL(ENABLE_S3_SDK, [test "x$enable_s3_sdk" = xyes])
 
 # Check for enabling S3 testing
 AC_MSG_CHECKING([whether netcdf zarr S3 testing should be enabled])
@@ -840,20 +841,22 @@ test "x$enable_nczarr_s3_tests" = xyes || enable_nczarr_s3_tests=no
 AC_MSG_RESULT($enable_nczarr_s3_tests)
 
 # Disable S3 tests if S3 support is disabled
-if test "x$enable_nczarr_s3" = xno && test "x$enable_nczarr_s3_tests" = xyes ; then
-    AC_MSG_ERROR([NCZarr S3 support is disabled; please remove option --enable-nczarr-s3-tests])
+if test "x$enable_nczarr_s3_tests" = xyes ; then
+  if test "x$enable_s3" = xno ; then
+    AC_MSG_ERROR([S3 support is disabled => no testing])
     enable_nczarr_s3_tests=no
+  fi
 fi
 
-if test "x$enable_nczarr_s3" = xyes ; then
-  AC_DEFINE([ENABLE_NCZARR_S3], [1], [if true, build libnczarr with S3 support enabled])
+if test "x$enable_s3" = xyes ; then
+  AC_DEFINE([ENABLE_S3], [1], [if true, build netcdf-c with S3 support enabled])
 fi
-AM_CONDITIONAL(ENABLE_NCZARR_S3, [test "x$enable_nczarr_s3" = xyes])
-
 if test "x$enable_nczarr_s3_tests" = xyes ; then
   AC_DEFINE([ENABLE_NCZARR_S3_TESTS], [1], [if true, build libnczarr with S3 tests enabled])
 fi
-AM_CONDITIONAL(ENABLE_NCZARR_S3_TESTS, [test "x$enable_nczarr_s3_tests" = xyes])
+if test "x$enable_s3_sdk" = xyes ; then
+AC_DEFINE([ENABLE_S3_SDK], [1], [If true, then S3 sdk was found])
+fi
 
 if test "x$enable_nczarr_s3_tests" = xyes ; then
   AC_MSG_WARN([*** DO NOT ENABLE_NCZARR_S3_TESTS UNLESS YOU HAVE ACCESS TO THE UNIDATA S3 BUCKET! ***])
@@ -1187,7 +1190,7 @@ AC_CHECK_HEADERS([sys/param.h])
 AC_CHECK_HEADERS([libgen.h])
 #AC_CHECK_HEADERS([locale.h])
 AC_HEADER_STDC
-AC_CHECK_HEADERS([locale.h stdio.h stdarg.h fcntl.h malloc.h stdlib.h string.h strings.h unistd.h sys/stat.h getopt.h sys/time.h sys/types.h time.h dirent.h stdint.h])
+AC_CHECK_HEADERS([locale.h stdio.h stdarg.h fcntl.h malloc.h stdlib.h string.h strings.h unistd.h sys/stat.h getopt.h sys/time.h sys/types.h time.h dirent.h stdint.h ctype.h])
 
 # Do sys/resource.h separately
 #AC_CHECK_HEADERS([sys/resource.h],[havesysresource=1],[havesysresource=0])
@@ -1280,6 +1283,7 @@ AC_ARG_ENABLE([byterange],
                               [allow byte-range I/O])])
 test "x$enable_byterange" = xno || enable_byterange=yes
 AC_MSG_RESULT($enable_byterange)
+
 # Need curl for byte ranges
 if test "x$found_curl" = xno && test "x$enable_byterange" = xyes ; then
   AC_MSG_ERROR([curl required for byte range support. Install curl or build without --enable-byterange.])
@@ -1818,8 +1822,12 @@ AM_CONDITIONAL(ENABLE_METADATA_PERF, [test x$enable_metadata_perf = xyes])
 AM_CONDITIONAL(ENABLE_BYTERANGE, [test "x$enable_byterange" = xyes])
 AM_CONDITIONAL(RELAX_COORD_BOUND, [test "xyes" = xyes])
 AM_CONDITIONAL(HAS_PAR_FILTERS, [test x$hdf5_supports_par_filters = xyes ])
-AM_CONDITIONAL(ENABLE_NCZARR, [test "x$enable_nczarr" = xyes])
+# We need to simplify the set of S3 and Zarr flag combinations
+AM_CONDITIONAL(ENABLE_S3, [test "x$enable_s3" = xyes])
 AM_CONDITIONAL(ENABLE_S3_SDK, [test "x$enable_s3_sdk" = xyes])
+AM_CONDITIONAL(ENABLE_NCZARR, [test "x$enable_nczarr" = xyes])
+AM_CONDITIONAL(ENABLE_NCZARR_S3_TESTS, [test "x$enable_nczarr_s3_tests" = xyes])
+AM_CONDITIONAL(ENABLE_NCZARR_ZIP, [test "x$enable_nczarr_zip" = xyes])
 AM_CONDITIONAL(HAS_MULTIFILTERS, [test "x$has_multifilters" = xyes])
 AM_CONDITIONAL(HAVE_SZ, [test "x$have_sz" = xyes])
 AM_CONDITIONAL(HAVE_H5Z_SZIP, [test "x$enable_hdf5_szip" = xyes])
@@ -1923,7 +1931,7 @@ AC_SUBST(HAS_ERANGE_FILL,[$enable_erange_fill])
 AC_SUBST(HAS_BYTERANGE,[$enable_byterange])
 AC_SUBST(RELAX_COORD_BOUND,[yes])
 AC_SUBST([HAS_PAR_FILTERS], [$hdf5_supports_par_filters])
-AC_SUBST(HAS_NCZARR_S3,[$enable_nczarr_s3])
+AC_SUBST(HAS_S3,[$enable_s3])
 AC_SUBST(HAS_NCZARR,[$enable_nczarr])
 AC_SUBST(DO_NCZARR_S3_TESTS,[$enable_nczarr_s3_tests])
 AC_SUBST(HAS_NCZARR_ZIP,[$enable_nczarr_zip])
@@ -2053,6 +2061,7 @@ AX_SET_META([NC_HAS_ERANGE_FILL], [$enable_erange_fill],[yes])
 AX_SET_META([NC_HAS_PAR_FILTERS], [$hdf5_supports_par_filters],[yes])
 AX_SET_META([NC_HAS_BYTERANGE],[$enable_byterange],[yes])
 AX_SET_META([NC_HAS_NCZARR],[$enable_nczarr],[yes])
+AX_SET_META([NC_HAS_S3],[$enable_s3],[yes])
 AX_SET_META([NC_HAS_MULTIFILTERS],[$has_multifilters],[yes])
 AX_SET_META([NC_HAS_LOGGING],[$enable_logging],[yes])
 AX_SET_META([NC_HAS_QUANTIZE],[$enable_quantize],[yes])
