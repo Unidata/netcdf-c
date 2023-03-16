@@ -1,0 +1,50 @@
+netcdf HadCRUT.4.6.0.0.median {
+dimensions:
+	latitude = 36 ;
+	longitude = 72 ;
+	field_status_string_length = 1 ;
+	time = UNLIMITED ; // (2062 currently)
+variables:
+	float latitude(latitude) ;
+		latitude:standard_name = "latitude" ;
+		latitude:long_name = "latitude" ;
+		latitude:point_spacing = "even" ;
+		latitude:units = "degrees_north" ;
+		latitude:axis = "Y" ;
+	float longitude(longitude) ;
+		longitude:standard_name = "longitude" ;
+		longitude:long_name = "longitude" ;
+		longitude:point_spacing = "even" ;
+		longitude:units = "degrees_east" ;
+		longitude:axis = "X" ;
+	float time(time) ;
+		time:standard_name = "time" ;
+		time:long_name = "time" ;
+		time:units = "days since 1850-1-1 00:00:00" ;
+		time:calendar = "gregorian" ;
+		time:start_year = 1850s ;
+		time:end_year = 2021s ;
+		time:start_month = 1s ;
+		time:end_month = 10s ;
+		time:axis = "T" ;
+	float temperature_anomaly(time, latitude, longitude) ;
+		temperature_anomaly:long_name = "near_surface_temperature_anomaly" ;
+		temperature_anomaly:units = "K" ;
+		temperature_anomaly:missing_value = -1.e+30f ;
+		temperature_anomaly:_FillValue = -1.e+30f ;
+		temperature_anomaly:reference_period = 1961s, 1990s ;
+	char field_status(time, field_status_string_length) ;
+		field_status:long_name = "field_status" ;
+
+// global attributes:
+		:title = "HadCRUT4 near-surface temperature ensemble data - ensemble median" ;
+		:institution = "Met Office Hadley Centre / Climatic Research Unit, University of East Anglia" ;
+		:history = "Updated at 15/12/2021 19:37:52" ;
+		:source = "CRUTEM.4.6.0.0, HadSST.3.1.1.0" ;
+		:comment = "" ;
+		:reference = "Morice, C. P., J. J. Kennedy, N. A. Rayner, and P. D. Jones (2012), Quantifying uncertainties in global and regional temperature change using an ensemble of observational estimates: The HadCRUT4 dataset, J. Geophys. Res., doi:10.1029/2011JD017187" ;
+		:version = "HadCRUT.4.6.0.0" ;
+		:Conventions = "CF-1.0" ;
+		:ensemble_members = 100s ;
+		:ensemble_member_index = 0s ;
+}

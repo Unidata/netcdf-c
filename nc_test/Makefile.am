@@ -116,7 +116,7 @@ ref_tst_diskless3_create.cdl ref_tst_diskless3_open.cdl			\
 run_inmemory.sh run_mmap.sh f03tst_open_mem.nc test_byterange.sh	\
 ref_tst_http_nc3.cdl ref_tst_http_nc4a.cdl ref_tst_http_nc4b.cdl	\
 ref_tst_http_nc4c.cdl CMakeLists.txt run_pnetcdf_tests.sh.in \
-tst_misc.c tst_norm.c
+tst_misc.c tst_norm.c ref_tst_http_nc4e.cdl ref_tst_http_nc4f.cdl
 
 # These files are created by the tests.
 CLEANFILES = nc_test_*.nc tst_*.nc t_nc.nc large_files.nc		\
