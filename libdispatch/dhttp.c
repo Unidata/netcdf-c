@@ -135,7 +135,7 @@ nc_http_reset(NC_HTTP_STATE* state)
     if(cstat != CURLE_OK) {stat = NC_ECURL; goto done;}
     cstat = CURLERR(curl_easy_setopt(state->curl, CURLOPT_NOBODY, 0L));
     if(cstat != CURLE_OK) {stat = NC_ECURL; goto done;}
-    cstat = CURLERR(curl_easy_setopt(state->curl, CURLOPT_PUT, 0L));
+    cstat = CURLERR(curl_easy_setopt(state->curl, CURLOPT_UPLOAD, 0L));
     if(cstat != CURLE_OK) {stat = NC_ECURL; goto done;}
     cstat = curl_easy_setopt(state->curl, CURLOPT_CUSTOMREQUEST, NULL);
     if(cstat != CURLE_OK) {stat = NC_ECURL; goto done;}
@@ -168,7 +168,7 @@ nc_http_set_method(NC_HTTP_STATE* state, HTTPMETHOD method)
         cstat = CURLERR(curl_easy_setopt(state->curl, CURLOPT_NOBODY, 1L));
         break;
     case HTTPPUT:
-        cstat = CURLERR(curl_easy_setopt(state->curl, CURLOPT_PUT, 1L));
+        cstat = CURLERR(curl_easy_setopt(state->curl, CURLOPT_UPLOAD, 1L));
 	break;
     case HTTPDELETE:
 	cstat = curl_easy_setopt(state->curl, CURLOPT_CUSTOMREQUEST, "DELETE");

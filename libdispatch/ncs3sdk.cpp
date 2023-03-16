@@ -635,16 +635,20 @@ s3commonprefixes(Aws::Vector<Aws::S3::Model::CommonPrefix> list, char*** keysp)
     if(!stat)  {
         i = 0;
         for (auto const &s3prefix : list) {
-	    char* p; char* p1;
-	    size_t len;
+	    char* p; const char* px; char* p1;
+	    size_t len, alloc;
 	    const Aws::String& prefix = s3prefix.GetPrefix();
 	    len = prefix.length();
-	    if((p = (char*) malloc(len+1+1))==NULL) /* for nul + leading '/' */
+	    alloc = len + 1 + 1; /* for nul + leading '/' */
+	    if((p = (char*) malloc(alloc))==NULL)
 		stat = NC_ENOMEM;
 	    if(stat == NC_NOERR) {
-		if(*p == '/') {p1 = p;} else {*p = '/'; p1 = p+1;}
-		memcpy(p1,prefix.c_str(),len);
-		p1[len] = '\0';
+		px = prefix.c_str();
+		p1 = p;
+		if(*px != '/') *p1++ = '/';
+		memcpy(p1,px,len);
+		p1 += len;
+		*p1 = '\0';
 	        keys[i++] = p;
 	    }
 	}
