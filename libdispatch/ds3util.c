@@ -76,41 +76,48 @@ NC_s3urlrebuild(NCURI* url, NCURI** newurlp, char** bucketp, char** outregionp)
     if((stat = NC_split_delim(url->path,'/',pathsegments))) goto done;
 
     /* Distinguish path-style from virtual-host style from s3: and from other.
-       Virtual: https://bucket-name.s3.Region.amazonaws.com/<path>
-       Path: https://s3.Region.amazonaws.com/bucket-name/<path>
-       S3: s3://bucket-name/<path>
-       Other: https://<host>/bucketname/<path>
+       Virtual: https://bucket-name.s3.Region.amazonaws.com/<path>				(1)
+            or: https://bucket-name.s3.amazonaws.com/<path> -- region defaults to us-east-1	(2)
+       Path: https://s3.Region.amazonaws.com/bucket-name/<path>					(3)
+         or: https://s3.amazonaws.com/bucket-name/<path> -- region defaults to us-east-1        (4)
+       S3: s3://bucket-name/<path>								(5)
+       Other: https://<host>/bucketname/<path>							(6)
     */
     if(url->host == NULL || strlen(url->host) == 0)
         {stat = NC_EURL; goto done;}
-    if(strcmp(url->protocol,"s3")==0 && nclistlength(hostsegments)==1) {
-	bucket = strdup(url->host);
-	region = NULL; /* unknown at this point */
+    if(strcmp(url->protocol,"s3")==0 && nclistlength(hostsegments)==1) { /* Case (5) */
+	bucket = nclistremove(hostsegments,0);
+	/* region unknown at this point */
     } else if(endswith(url->host,AWSHOST)) { /* Virtual or path */
+	/* If we find a bucket as part of the host, then remove it */
 	switch (nclistlength(hostsegments)) {
 	default: stat = NC_EURL; goto done;
-	case 4:
-            if(strcasecmp(nclistget(hostsegments,0),"s3")!=0)
-	        {stat = NC_EURL; goto done;}
-	    region = strdup(nclistget(hostsegments,1));
-	    if(nclistlength(pathsegments) > 0)
-	        bucket = nclistremove(pathsegments,0);
+	case 3: /* Case (4) */ 
+	    /* region unknown at this point */
+    	    /* bucket unknown at this point */
 	    break;
-	case 5:
+	case 4: /* Case (2) or (3) */
+            if(strcasecmp(nclistget(hostsegments,1),"s3")==0) { /* Case (2) */
+	        /* region unknown at this point */
+	        bucket = nclistremove(hostsegments,0); /* Note removal */
+            } else if(strcasecmp(nclistget(hostsegments,0),"s3")==0) { /* Case (3) */
+	        region = strdup(nclistget(hostsegments,1));
+	        /* bucket unknown at this point */
+	    } else /* ! (2) and !(3) => error */
+	        {stat = NC_EURL; goto done;}
+	    break;
+	case 5: /* Case (1) */
             if(strcasecmp(nclistget(hostsegments,1),"s3")!=0)
 	        {stat = NC_EURL; goto done;}
 	    region = strdup(nclistget(hostsegments,2));
-    	    bucket = strdup(nclistget(hostsegments,0));
+    	    bucket = strdup(nclistremove(hostsegments,0));
 	    break;
 	}
-    } else {
+    } else { /* Presume Case (6) */
         if((host = strdup(url->host))==NULL)
 	    {stat = NC_ENOMEM; goto done;}
         /* region is unknown */
-	region = NULL;
-	/* bucket is assumed to be start of the path */
-	if(nclistlength(pathsegments) > 0)
-	    bucket = nclistremove(pathsegments,0);
+	/* bucket is unknown */
     }
     /* If region is null, use default */
     if(region == NULL) {
@@ -119,6 +126,14 @@ NC_s3urlrebuild(NCURI* url, NCURI** newurlp, char** bucketp, char** outregionp)
 	if((stat = NC_getdefaults3region(url,&region0))) goto done;
 	region = strdup(region0);
     }
+    /* if bucket is null, use first segment of the path, if any */
+    if(bucket == NULL) {
+	if(nclistlength(pathsegments) > 0)
+	    bucket = nclistremove(pathsegments,0);
+    }
+    assert(bucket != NULL);
+    /* bucket may still be null */
+
     if(host == NULL) { /* Construct the revised host */
         ncbytescat(buf,"s3.");
         ncbytescat(buf,region);

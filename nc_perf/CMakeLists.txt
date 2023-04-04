@@ -24,8 +24,10 @@ add_bin_test(nc_perf tst_files3 tst_utils.c)
 add_bin_test(nc_perf tst_mem tst_utils.c)
 add_bin_test(nc_perf tst_wrf_reads tst_utils.c)
 add_bin_test(nc_perf tst_attsperf tst_utils.c)
+add_bin_test(nc_perf tst_bm_rando tst_utils.c)
+add_bin_test(nc_perf tst_compress tst_utils.c)
 
-add_sh_test(nc_perf run_knmi_bm)
+#add_sh_test(nc_perf run_knmi_bm)
 add_sh_test(nc_perf perftest)
 add_sh_test(nc_perf run_tst_chunks)
 add_sh_test(nc_perf run_bm_elena)
@@ -36,9 +38,11 @@ add_sh_test(nc_perf run_bm_test2)
 
 # This will run a parallel I/O benchmark for parallel builds.
 IF(TEST_PARALLEL4)
+add_bin_test(nc_perf tst_compress_par tst_utils.c)
 add_sh_test(nc_perf run_par_bm_test)
-ENDIF()
-ENDIF()
+ENDIF(TEST_PARALLEL4)
+ENDIF(BUILD_UTILITIES)
 
-ADD_EXTRA_DIST(run_par_bm_test.sh.in run_knmi_bm.sh CMakeLists.txt
-perftest.sh run_bm_test1.sh run_bm_test2.sh)
+FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
+FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
+

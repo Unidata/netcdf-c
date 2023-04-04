@@ -494,6 +494,7 @@ parseVlenField(NCD4parser* parser, NCD4node* container, ncxml_t xml, NCD4node** 
 	if((ret = parseVariable(parser,container,x,&field)))
 	    goto done;
     }
+    if(field == NULL) {ret = NC_EBADTYPE; goto done;}
     if(fieldp) *fieldp = field;
 done:
     return THROW(ret);
