@@ -2103,7 +2103,6 @@ AX_SET_META([NC_HAS_BLOSC],[$have_blosc],[yes])
 AX_SET_META([NC_HAS_BZ2],[$have_bz2],[yes])
 AX_SET_META([NC_IS_THREADSAFE],[$enable_threadsafe],[yes])
 
-
 # This is the version of the dispatch table. If the dispatch table is
 # changed, this should be incremented, so that user-defined format
 # applications like PIO can determine whether they have an appropriate
