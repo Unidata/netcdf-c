@@ -23,7 +23,6 @@
 #include <string.h>
 #include <math.h>
 #include <netcdf.h>
-#include <netcdf_par.h>
 #include <netcdf_meta.h>
 
 #define TEST_NAME "tst_compress"

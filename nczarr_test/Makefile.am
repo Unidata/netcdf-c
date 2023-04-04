@@ -117,7 +117,7 @@ zisjson_SOURCES = zisjson.c
 noinst_PROGRAMS += zs3parse
 zs3parse_SOURCES = zs3parse.c
 
-if ENABLE_NCZARR_S3
+if ENABLE_S3
 noinst_PROGRAMS += s3util
 s3util_SOURCES = s3util.c
 TESTS += run_s3_cleanup.sh
@@ -164,7 +164,8 @@ ref_string.cdl ref_string_nczarr.baseline ref_string_zarr.baseline ref_scalar.cd
 ref_nulls_nczarr.baseline ref_nulls_zarr.baseline ref_nulls.cdl
 
 # Interoperability files
-EXTRA_DIST += ref_power_901_constants_orig.zip ref_power_901_constants.cdl ref_quotes_orig.zip ref_quotes.cdl 
+EXTRA_DIST += ref_power_901_constants_orig.zip ref_power_901_constants.cdl ref_quotes_orig.zip ref_quotes.cdl \
+ref_zarr_test_data.cdl.gz
 
 CLEANFILES = ut_*.txt ut*.cdl tmp*.nc tmp*.cdl tmp*.txt tmp*.dmp tmp*.zip tmp*.nc tmp*.dump tmp*.tmp tmp_ngc.c ref_zarr_test_data.cdl tst_*.nc.zip ref_quotes.zip ref_power_901_constants.zip
 

@@ -44,7 +44,7 @@ nch5breakpoint(int err)
 #  endif
 #endif
 #endif
-    return err;
+    return ncbreakpoint(err);
 }
 
 int

@@ -5,7 +5,107 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
-## 4.9.1 - T.B.D.
+## 4.9.2 - TBD
+
+* Fix 'make distcheck' error in run_interop.sh. See [Github #????](https://github.com/Unidata/netcdf-c/pull/????).
+* Update `nc-config` to remove inclusion from automatically-detected `nf-config` and `ncxx-config` files, as the wrong files could be included in the output.  This is in support of [GitHub #2274](https://github.com/Unidata/netcdf-c/issues/2274).
+* Update H5FDhttp.[ch] to work with HDF5 version 1.13.2 and later. See [Github #2635](https://github.com/Unidata/netcdf-c/pull/2635).
+* [Bug Fix] Update DAP code to enable CURLOPT_ACCEPT_ENCODING by default. See [Github #2630](https://github.com/Unidata/netcdf-c/pull/2630).
+* [Bug Fix] Fix byterange failures for certain URLs. See [Github #????](https://github.com/Unidata/netcdf-c/pull/????).
+* [Bug Fix] Fix 'make distcheck' error in run_interop.sh. See [Github #2631](https://github.com/Unidata/netcdf-c/pull/2631).
+* [Enhancement] Update `nc-config` to remove inclusion from automatically-detected `nf-config` and `ncxx-config` files, as the wrong files could be included in the output.  This is in support of [GitHub #2274](https://github.com/Unidata/netcdf-c/issues/2274).
+* [Enhancement] Update H5FDhttp.[ch] to work with HDF5 version 1.14.0. See [Github #2615](https://github.com/Unidata/netcdf-c/pull/2615).
+
+## 4.9.1 - February 2, 2023
+
+## Known Issues
+
+* A test in the `main` branch of `netcdf-cxx4` is broken by this rc; this will bear further investigation, but not being treated as a roadblock for the release candidate.
+* The new document, `netcdf-c/docs/filter_quickstart.md` is in rough-draft form.
+* Race conditions exist in some of the tests when run concurrently with large numbers of processors
+
+## What's Changed from v4.9.0 (automatically generated)
+
+* Fix nc_def_var_fletcher32 operation by \@DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/2403
+* Merge relevant info updates back into `main` by \@WardF in https://github.com/Unidata/netcdf-c/pull/2387
+* Add manual GitHub actions triggers for the tests. by \@WardF in https://github.com/Unidata/netcdf-c/pull/2404
+* Use env variable USERPROFILE instead of HOME for windows and mingw. by \@DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/2405
+* Make public a limited API for programmatic access to internal .rc tables by \@DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/2408
+* Fix typo in CMakeLists.txt by \@georgthegreat in https://github.com/Unidata/netcdf-c/pull/2412
+* Fix choice of HOME dir by \@DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/2416
+* Check for libxml2 development files by \@WardF in https://github.com/Unidata/netcdf-c/pull/2417
+* Updating Doxyfile.in with doxygen-1.8.17, turned on WARN_AS_ERROR, added doxygen build to CI run by \@edwardhartnett in https://github.com/Unidata/netcdf-c/pull/2377
+* updated release notes by \@edwardhartnett in https://github.com/Unidata/netcdf-c/pull/2392
+* increase read block size from 1 KB to 4 MB by \@wkliao in https://github.com/Unidata/netcdf-c/pull/2319
+* fixed RELEASE_NOTES.md by \@edwardhartnett in https://github.com/Unidata/netcdf-c/pull/2423
+* Fix pnetcdf tests in cmake by \@WardF in https://github.com/Unidata/netcdf-c/pull/2437
+* Updated CMakeLists to avoid corner case cmake error by \@WardF in https://github.com/Unidata/netcdf-c/pull/2438
+* Add `--disable-quantize` to configure by \@WardF in https://github.com/Unidata/netcdf-c/pull/2439
+* Fix the way CMake handles -DPLUGIN_INSTALL_DIR by \@DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/2430
+* fix and test quantize mode for NC_CLASSIC_MODEL by \@edwardhartnett in https://github.com/Unidata/netcdf-c/pull/2445
+* Guard _declspec(dllexport) in support of #2446 by \@WardF in https://github.com/Unidata/netcdf-c/pull/2460
+* Ensure that netcdf_json.h does not interfere with ncjson. by \@DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/2448
+* Prevent cmake writing to source dir by \@magnusuMET in https://github.com/Unidata/netcdf-c/pull/2463
+* more quantize testing and adding pre-processor constant NC_MAX_FILENAME to nc_tests.h by \@edwardhartnett in https://github.com/Unidata/netcdf-c/pull/2457
+* Provide a default enum const when fill value does not match any enum constant by \@DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/2462
+* Fix support for reading arrays of HDF5 fixed size strings by \@DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/2466
+* fix musl build by \@magnusuMET in https://github.com/Unidata/netcdf-c/pull/1701
+* Fix AWS SDK linking errors by \@dzenanz in https://github.com/Unidata/netcdf-c/pull/2470
+* Address jump-misses-init issue. by \@WardF in https://github.com/Unidata/netcdf-c/pull/2488
+* Remove stray merge conflict markers by \@WardF in https://github.com/Unidata/netcdf-c/pull/2493
+* Add support for Zarr string type to NCZarr by \@DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/2492
+* Fix some problems with PR 2492 by \@DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/2497
+* Fix some bugs in the blosc filter wrapper by \@DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/2461
+* Add option to control accessing external servers by \@DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/2491
+* Changed attribute case in documentation by \@WardF in https://github.com/Unidata/netcdf-c/pull/2482
+* Adding all-error-codes.md back in to distribution documentation. by \@WardF in https://github.com/Unidata/netcdf-c/pull/2501
+* Update hdf5 version in github actions. by \@WardF in https://github.com/Unidata/netcdf-c/pull/2504
+* Minor update to doxygen function documentation by \@gsjaardema in https://github.com/Unidata/netcdf-c/pull/2451
+* Fix some addtional errors in NCZarr by \@DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/2503
+* Cleanup szip handling some more by \@DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/2421
+* Check for zstd development headers in autotools by \@WardF in https://github.com/Unidata/netcdf-c/pull/2507
+* Add new options to nc-config by \@WardF in https://github.com/Unidata/netcdf-c/pull/2509
+* Cleanup built test sources in nczarr_test by \@DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/2508
+* Fix inconsistency in netcdf_meta.h by \@WardF in https://github.com/Unidata/netcdf-c/pull/2512
+* Small fix in nc-config.in by \@WardF in https://github.com/Unidata/netcdf-c/pull/2513
+* For loop initial declarations are only allowed in C99 mode by \@gsjaardema in https://github.com/Unidata/netcdf-c/pull/2517
+* Fix some dependencies in tst_nccopy3 by \@WardF in https://github.com/Unidata/netcdf-c/pull/2518
+* Update plugins/Makefile.am  by \@WardF in https://github.com/Unidata/netcdf-c/pull/2519
+* Fix prereqs in ncdump/tst_nccopy4 in order to avoid race conditions. by \@WardF in https://github.com/Unidata/netcdf-c/pull/2520
+* Move construction of VERSION file to end of the build by \@DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/2527
+* Add draft filter quickstart guide by \@WardF in https://github.com/Unidata/netcdf-c/pull/2531
+* Turn off extraneous debug output by \@DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/2537
+* typo fix by \@wkliao in https://github.com/Unidata/netcdf-c/pull/2538
+* replace 4194304 with READ_BLOCK_SIZE by \@wkliao in https://github.com/Unidata/netcdf-c/pull/2539
+* Rename variable to avoid function name conflict by \@ibaned in https://github.com/Unidata/netcdf-c/pull/2550
+* Add Cygwin CI and stop installing unwanted plugins by \@DWesl in https://github.com/Unidata/netcdf-c/pull/2529
+* Merge subset of v4.9.1 files back into main development branch by \@WardF in https://github.com/Unidata/netcdf-c/pull/2530
+* Add a Filter quickstart guide document by \@WardF in https://github.com/Unidata/netcdf-c/pull/2524
+* Fix race condition in ncdump (and other) tests. by \@DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/2552
+* Make dap4 reference dap instead of hard-wired to be disabled. by \@WardF in https://github.com/Unidata/netcdf-c/pull/2553
+* Suppress nczarr_test/tst_unknown filter test by \@DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/2557
+* Add fenceposting for HAVE_DECL_ISINF and HAVE_DECL_ISNAN by \@WardF in https://github.com/Unidata/netcdf-c/pull/2559
+* Add an old static file. by \@WardF in https://github.com/Unidata/netcdf-c/pull/2575
+* Fix infinite loop in file inferencing by \@DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/2574
+* Merge Wellspring back into development branch by \@WardF in https://github.com/Unidata/netcdf-c/pull/2560
+* Allow ncdump -t to handle variable length string attributes by \@srherbener in https://github.com/Unidata/netcdf-c/pull/2584
+* Fix an issue I introduced with make distcheck by \@WardF in https://github.com/Unidata/netcdf-c/pull/2590
+* make UDF0 not require NC_NETCDF4 by \@jedwards4b in https://github.com/Unidata/netcdf-c/pull/2586
+* Expose user-facing documentation related to byterange DAP functionality.  by \@WardF in https://github.com/Unidata/netcdf-c/pull/2596
+* Fix Memory Leak by \@DennisHeimbigner in https://github.com/Unidata/netcdf-c/pull/2598
+* CI: Change autotools CI build to out-of-tree build. by \@DWesl in https://github.com/Unidata/netcdf-c/pull/2577
+* Update github action configuration scripts. by \@WardF in https://github.com/Unidata/netcdf-c/pull/2600
+* Update the filter quickstart guide.  by \@WardF in https://github.com/Unidata/netcdf-c/pull/2602
+* Fix symbol export on Windows by \@WardF in https://github.com/Unidata/netcdf-c/pull/2604
+
+## New Contributors
+* \@georgthegreat made their first contribution in https://github.com/Unidata/netcdf-c/pull/2412
+* \@dzenanz made their first contribution in https://github.com/Unidata/netcdf-c/pull/2470
+* \@DWesl made their first contribution in https://github.com/Unidata/netcdf-c/pull/2529
+* \@srherbener made their first contribution in https://github.com/Unidata/netcdf-c/pull/2584
+* \@jedwards4b made their first contribution in https://github.com/Unidata/netcdf-c/pull/2586
+
+**Full Changelog**: https://github.com/Unidata/netcdf-c/compare/v4.9.0...v4.9.1
 
 ### 4.9.1 - Release Candidate 2 - November 21, 2022
 
