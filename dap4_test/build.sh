@@ -107,7 +107,8 @@ fileset() {
     X=`basename $x .cdl`
     F="$F $X"
   done
-  F=`echo -n $F | cut -f1-`
+  # Mac echo does not support -n flag
+  F=`echon $F | cut -f1-`
 }
 
 constrainedfileset() {
@@ -127,14 +128,14 @@ test_struct_array?/s[0:2:3][0:1]=8 \
 splitce() {
     local expr tmp
     expr="$1"
-    CE_F=`echo -n $expr | cut -d'?' -f1`
-    CE_INDEX=`echo -n $expr | cut -d'=' -f2`
-    tmp=`echo -n $expr | cut -d'?' -f2`
-    CE_CE=`echo -n $tmp | cut -d'=' -f1`
+    CE_F=`echon $expr | cut -d'?' -f1`
+    CE_INDEX=`echon $expr | cut -d'=' -f2`
+    tmp=`echon $expr | cut -d'?' -f2`
+    CE_CE=`echon $tmp | cut -d'=' -f1`
 }
 
 ceescape() {
-    CEX=`echo -n "$1" | sed -e 's|\[|%5b|g' -e 's|]|%5d|g'`
+    CEX=`echon "$1" | sed -e 's|\[|%5b|g' -e 's|]|%5d|g'`
 }
 
 build() {

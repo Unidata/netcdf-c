@@ -1,6 +1,6 @@
 # not executable
 
-. ./d4manifest.sh
+. ${srcdir}/d4manifest.sh
 
 if test "x$SETX" = x1 ; then set -x ; fi
 
