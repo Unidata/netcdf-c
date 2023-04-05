@@ -844,7 +844,7 @@ if test "x$enable_s3" = xyes ; then
 # See if we have the s3 aws library
 # Check for the AWS S3 SDK library
 AC_LANG_PUSH([C++])
-AC_SEARCH_LIBS([aws_allocator_is_valid],[aws-c-common aws-cpp-sdk-s3 aws-cpp-sdk-core], [enable_s3_sdk=yes],[enable_s3_sdk=no])
+AC_SEARCH_LIBS([aws_allocator_is_valid],[aws-cpp-sdk-s3 aws-c-common aws-cpp-sdk-core], [enable_s3_sdk=yes],[enable_s3_sdk=no])
 AC_LANG_POP
 else
 enable_s3_sdk=no

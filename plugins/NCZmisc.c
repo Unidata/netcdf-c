@@ -167,9 +167,9 @@ NCZ_misc_hdf5_to_codec(size_t nparams, const unsigned* params, char** codecp)
     snprintf(json,sizeof(json),"{\"id\": \"%s\"",NCZ_misc_codec.codecid);
     for(i=0;i<14;i++) {
         snprintf(value,sizeof(value),", \"%s\": \"%u\"",fields[i],params[i]);
-	strlcat(json,value,sizeof(json));
+	strncat(json,value,sizeof(json)-1);
     }
-    strlcat(json,"}",sizeof(json));
+    strncat(json,"}",sizeof(json)-1);
     if(codecp) {
         if((*codecp = strdup(json))==NULL) {stat = NC_ENOMEM; goto done;}
     }
