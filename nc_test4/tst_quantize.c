@@ -308,10 +308,10 @@ main(int argc, char **argv)
 		    union FU fin;
 		    int nsd_att_in;
 		    union DU dfin;
-#if 0
 		    union FU fout;
 		    union DU dfout;
-#endif
+
+		    NC_UNUSED(fout); NC_UNUSED(dfout);
 
 		    /* Open the file and check metadata. */
 		    if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
@@ -425,10 +425,11 @@ main(int argc, char **argv)
 		    double double_in;
 		    union FU fin;
 		    union DU dfin;
-#if 0
 		    union FU fout;
 		    union DU dfout;
-#endif
+
+		    NC_UNUSED(fout); NC_UNUSED(dfout);
+
 		    /* Open the file and check metadata. */
 		    if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
 		    if (nc_inq_varid(ncid,VAR_NAME_1,&varid1)) ERR;
@@ -522,11 +523,10 @@ main(int argc, char **argv)
 		    union FU fin;
 		    union FU xpect[NUM_QUANTIZE_MODES][DIM_LEN_5];
 		    union DU dfin;
-#if 0
 		    union FU fout;
 		    union DU dfout;
-#endif
 		    union DU double_xpect[NUM_QUANTIZE_MODES][DIM_LEN_5];
+
 		    NC_UNUSED(fout); NC_UNUSED(dfout);
 
 		    switch (quantize_mode[q])
@@ -649,11 +649,10 @@ main(int argc, char **argv)
 		    double double_in;
 		    union FU fin;
 		    union DU dfin;
-#if 0
 		    union FU fout;
 		    union DU dfout;
-#endif
 		    int nsd_att_in;
+
 		    NC_UNUSED(fout); NC_UNUSED(dfout);
 
 		    /* Open the file and check metadata. */
@@ -772,11 +771,10 @@ main(int argc, char **argv)
 		    union FU fin;
 		    union FU xpect[NUM_QUANTIZE_MODES][DIM_LEN_5];
 		    union DU dfin;
-#if 0
 		    union FU fout;
 		    union DU dfout;
-#endif
 		    union DU double_xpect[NUM_QUANTIZE_MODES][DIM_LEN_5];
+
 		    NC_UNUSED(fout); NC_UNUSED(dfout);
 
 		    switch (quantize_mode[q])
@@ -902,11 +900,10 @@ main(int argc, char **argv)
 		    union FU fin;
 		    union FU xpect[NUM_QUANTIZE_MODES][DIM_LEN_5];
 		    union DU dfin;
-#if 0
 		    union FU fout;
 		    union DU dfout;
-#endif
 		    union DU double_xpect[NUM_QUANTIZE_MODES][DIM_LEN_5];
+
 		    NC_UNUSED(fout); NC_UNUSED(dfout);
 
 		    switch (quantize_mode[q])
@@ -1038,11 +1035,10 @@ main(int argc, char **argv)
 		    union FU fin;
 		    union FU xpect[NUM_QUANTIZE_MODES][DIM_LEN_5];
 		    union DU dfin;
-#if 0
 		    union FU fout;
 		    union DU dfout;
-#endif
 		    union DU double_xpect[NUM_QUANTIZE_MODES][DIM_LEN_5];
+
 		    NC_UNUSED(fout); NC_UNUSED(dfout);
 		    
 		    switch (quantize_mode[q])

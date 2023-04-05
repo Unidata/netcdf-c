@@ -54,6 +54,7 @@ ENDIF()
       add_sh_test(dap4_test test_remote)
       add_sh_test(dap4_test test_hyrax)
 #      add_sh_test(dap4_test test_thredds)
+      add_sh_test(dap4_test test_dap4url)
   ENDIF(ENABLE_DAP_REMOTE_TESTS)
 
 ENDIF(ENABLE_TESTS)

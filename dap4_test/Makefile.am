@@ -48,6 +48,7 @@ TESTS += test_remote.sh
 TESTS += test_constraints.sh
 TESTS += test_hyrax.sh
 #TESTS += test_thredds.sh
+TESTS += test_dap4url.sh
 endif
 endif
 
@@ -56,6 +57,7 @@ EXTRA_DIST = CMakeLists.txt test_common.h build.sh \
 	test_curlopt.sh test_data.sh test_hyrax.sh test_meta.sh \
 	test_parse.sh test_raw.sh \
         test_remote.sh test_constraints.sh test_thredds.sh \
+	test_dap4url.sh \
 	cdltestfiles rawtestfiles \
 	baseline baselineraw baselineremote baselinehyrax baselinethredds
 
