@@ -573,10 +573,11 @@ int test_pio_hyper(int flag){
    if(mpi_size == 1) return 0;
 
    /* Create a parallel netcdf-4 file. */
-   nc_set_log_level(4);
+/*      nc_set_log_level(NC_TURN_OFF_LOGGING); */
+/*      nc_set_log_level(4);*/
+
    if (nc_create_par(file_name, facc_type, comm, info, &ncid)) ERR;
-   nc_set_log_level(NC_TURN_OFF_LOGGING);
-   
+
    /* The case is two dimensional variables, no unlimited dimension */
 
    /* Create two dimensions. */
