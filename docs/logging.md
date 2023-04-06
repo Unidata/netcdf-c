@@ -10,6 +10,20 @@ The netCDF C/Fortran libraries offer a diagonstic logging capability
 for advanced users. This logging capability works best with NC_NETCDF4
 files. Logging must be enabled at build time in the C library.
 
+# HDF5 Error Messages
+
+HDF5 has an error message facility, usually turned off by the netCDF
+library. In normal operation, we don't want error messages to be sent
+to stdout by the library. Instead, all error communication occurs with
+return codes. It's left up to the user application to decide if an
+error message should be printed, or what other action should occur.
+
+But when logging is turned on to any level, the HDF5 error logging
+will be turned on. Not all HDF5 error messages are a problem, it
+depends on how the calling application handles errors. But HDF5 error
+messages can be useful in debugging, so they are turned on if logging
+is turned on.
+
 # Building with Logging {#logging_build}
 
 Logging is turned off by default in netcdf-c builds. When the library
@@ -66,6 +80,139 @@ summary:
 
 # Turing Logging On/Off {#logging_use}
 
+In netcdf-c, the function nc_set_log_level() is used to turn logging
+on and off. In netcdf-fortran, the equivalent nf_set_log_level() is
+provided.
+
+If the netcdf-c build does not enable logging, then calls to
+nc_set_log_level() and nf_set_log_level() do nothing.
+
+The nc_set_log_level() function is defined in libsrc4/nc4internal.c, and has the following documentation and signature:
+
+```
+/**
+ * Use this to set the global log level. 
+ * 
+ * Set it to NC_TURN_OFF_LOGGING (-1) to turn off all logging. Set it
+ * to 0 to show only errors, and to higher numbers to show more and
+ * more logging details. If logging is not enabled when building
+ * netCDF, this function will do nothing.
+ *
+ * @param new_level The new logging level.
+ *
+ * @return ::NC_NOERR No error.
+ * @author Ed Hartnett
+ */
+int
+nc_set_log_level(int new_level)
+```
+
+Call the nc_set_log_level() in your code just before the netCDF code
+under investigation, and turn it off after the code under
+investigation. For example, in the test program
+nc_test4/tst_interops5.c, we have:
+
+```
+       /* Open the file with netCDF. */
+       nc_set_log_level(3);
+       if (nc_open(filename, NC_WRITE, &ncid) != NC_ECANTWRITE) ERR;
+```
+
+This turns the log level to 3 just before the call to nc_open(). The
+output of this is (lines that start with '***' are regurlar test
+output. All other output is produced by the logger):
+
+```
+./tst_interops5 
+
+*** Testing HDF5/NetCDF-4 interoperability...
+*** testing HDF5 compatibility...ok.
+	log_level changed to 3
+	NC4_open: path tst_interops5.h5 mode 4097 params 0
+	HDF5 error messages turned on.
+			nc4_open_file: path tst_interops5.h5 mode 4097
+			nc4_grp_list_add: name / 
+			rec_read_metadata: grp->hdr.name /
+ERROR: file hdf5open.c, line 2891.
+NetCDF: Can't write file
+ERROR: file hdf5open.c, line 953.
+NetCDF: Can't write file
+			nc4_close_hdf5_file: h5->path tst_interops5.h5 abort 1
+			nc4_rec_grp_HDF5_del: grp->name /
+			nc4_close_netcdf4_file: h5->path tst_interops5.h5 abort 1
+			nc4_rec_grp_del_att_data: grp->name /
+			nc4_rec_grp_del: grp->name /
+*** testing error when opening HDF5 file without creating ordering...ok.
+*** Tests successful!
+```
+
 ## Log Levels
 
+The nc_set_log_level() function accepts one parameter, the new log
+level. Set the log level to turn logging on and off, and control the
+verbosity of the logging. The log level can be set to:
+* -1 to turn off all logging (there's a predefined constant in the
+netcdf.h include file ::NC_TURN_OFF_LOGGING).
+* 0 will log only internal errors.
+* 1-5 will log internal operations with increasing verbosity. Setting
+higher log levels is the same as log level 5.
+
+Setting the log level to 1 will show netCDF interal function calls and
+their parameters. Setting log level to 2 or 3 will show important
+internal varaibles. Setting the log level to 4 or 5 will output a
+large amount of text.
+
 # Logging with Parallel I/O {#logging_parallel}
+
+Logging with parallel I/O presents challenges. As different processors
+run their code, they encounter logging commands and send output to
+stdout. Since there is only one stdout and multiple processors, the
+results get jumbled together and the result is unreadable.
+
+To surmount this problem, in parallel I/O runs, logging generates a
+file for each processor, with the logging for that processor. The
+logging output is not sent to stdout.
+
+The logging files are named nc4_log_N.log, where N is the number of
+the processor.
+
+For example, in nc_test4/tst_parallel3.c we have:
+
+```
+   /* Create a parallel netcdf-4 file. */
+   nc_set_log_level(4);
+   if (nc_create_par(file_name, facc_type, comm, info, &ncid)) ERR;
+   nc_set_log_level(NC_TURN_OFF_LOGGING);
+```
+
+When run with 4 processors, this causes 4 files to be created,
+nc4_log_0.log, nc4_log_1.log, nc4_log_2.log, and nc4_log_3.log.
+
+Here's the contents of nc4_log_0.log:
+
+```
+	log_level changed to 4
+	NC4_create: path ./tst_parallel3.nc cmode 0x1000 parameters 0x7ffd7a021ea0
+	HDF5 error messages turned on.
+			nc4_create_file: path ./tst_parallel3.nc mode 0x1000
+			nc4_grp_list_add: name / 
+				creating parallel file with MPI/IO
+```                                
+
+Note that that with parallel I/O logging, users must call
+nc_set_log_level(NC_TURN_OFF_LOGGING). Without the call to turn off
+logging, the logging output to the files is not flushed from buffer
+and may not be complete. Explicitly turning off the logging causes the
+library to fluch buffers and write the log files to disk.
+
+# Caution
+
+The logging facilities of netCDF are for advanced users and
+developers, and do not offer a very user-friendly view of library
+operations. However, sometimes a detailed view of internal variables
+is helpful when debugging problems, especially in complex parallel I/O
+situations.
+
+Logging output is not considered part of the public API of netCDF, and
+may change at any time without notice. Do not write code which depends
+on particular logging output from the netCDF libary.
