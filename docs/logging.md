@@ -78,7 +78,7 @@ summary:
 
 `Logging Support:                yes`
 
-# Turing Logging On/Off {#logging_use}
+# Implementation
 
 In netcdf-c, the function nc_set_log_level() is used to turn logging
 on and off. In netcdf-fortran, the equivalent nf_set_log_level() is
@@ -87,7 +87,8 @@ provided.
 If the netcdf-c build does not enable logging, then calls to
 nc_set_log_level() and nf_set_log_level() do nothing.
 
-The nc_set_log_level() function is defined in libsrc4/nc4internal.c, and has the following documentation and signature:
+The nc_set_log_level() function is defined in libsrc4/nc4internal.c,
+and has the following documentation and signature:
 
 ```
 /**
@@ -107,10 +108,16 @@ int
 nc_set_log_level(int new_level)
 ```
 
-Call the nc_set_log_level() in your code just before the netCDF code
-under investigation, and turn it off after the code under
-investigation. For example, in the test program
-nc_test4/tst_interops5.c, we have:
+# Turing Logging On/Off {#logging_use}
+
+Turn logging on in your code, just before the netCDF code that is
+under investigation. After that code runs, turn off logging by setting
+the log level to -1.
+
+## Setting Log Level in C Programs
+
+Call the nc_set_log_level() to set the log level.  For example, in the
+test program nc_test4/tst_interops5.c, we have:
 
 ```
        /* Open the file with netCDF. */
@@ -144,6 +151,107 @@ NetCDF: Can't write file
 			nc4_rec_grp_del: grp->name /
 *** testing error when opening HDF5 file without creating ordering...ok.
 *** Tests successful!
+```
+
+## Setting Log Level in F77 Programs
+
+Use the nf_set_log_level() function to change the logging level in
+Fortran. This function is defined in netcdf.inc:
+
+```
+!     This is to turn on netCDF internal logging.
+      integer nf_set_log_level
+      external nf_set_log_level
+```
+
+For example, in the netcdf-fortran code we have
+nf_test4/ftst_var_compact.F, which contains this code:
+
+```
+      retval = nf_set_log_level(3)
+
+C     Create the netCDF file.
+      retval = nf_create(FILE_NAME, NF_NETCDF4, ncid)
+      if (retval .ne. nf_noerr) stop 1
+
+C     Create a dimension.
+      retval = nf_def_dim(ncid, dim_name, DIM_LEN, dimids(1))
+      if (retval .ne. nf_noerr) stop 1
+
+      retval = nf_set_log_level(-1)
+```
+
+The output of this test is:
+
+```
+./ftst_var_compact 
+ 
+ *** Testing compact vars.
+	log_level changed to 3
+	HDF5 error messages have been turned off.
+	NC4_create: path ftst_var_compact.nc cmode 0x1000 parameters (nil)
+	HDF5 error messages turned on.
+			nc4_create_file: path ftst_var_compact.nc mode 0x1000
+			nc4_grp_list_add: name / 
+		HDF5_def_dim: ncid 0x10000 name dim1 len 22
+```                
+
+## Setting Log Level in F90 Programs
+
+Use nf_set_log_level() in F90 programs to change the log level. For
+F90, the function needs to be defined as integer type.
+
+For example, this F90 code turns on logging for some of the metadata
+definition code:
+
+```
+  integer :: nf_set_log_level, ierr
+
+  ierr = nf_set_log_level(3)
+  ! Create the netCDF file. 
+  call handle_err(nf90_create(FILE_NAME, nf90_netcdf4, ncid))
+
+  ! Define the dimensions.
+  call handle_err(nf90_def_dim(ncid, "x", NF90_UNLIMITED, x_dimid))
+  call handle_err(nf90_def_dim(ncid, "y", NY, y_dimid))
+  dimids =  (/ y_dimid, x_dimid /)
+
+  ! Define the variables. 
+  do v = 1, NUM_VARS
+     call handle_err(nf90_def_var(ncid, var_name(v), var_type(v), dimids, varid(v)))
+  end do
+  ierr = nf_set_log_level(-1)
+```
+
+This produces the output:
+
+```
+ *** Testing netCDF-4 fill values with unlimited dimension.
+	log_level changed to 3
+	HDF5 error messages have been turned off.
+	NC4_create: path f90tst_fill2.nc cmode 0x1000 parameters (nil)
+	HDF5 error messages turned on.
+			nc4_create_file: path f90tst_fill2.nc mode 0x1000
+			nc4_grp_list_add: name / 
+		HDF5_def_dim: ncid 0x10000 name x len 0
+		HDF5_def_dim: ncid 0x10000 name y len 16
+		NC4_def_var: name byte type 1 ndims 2
+		nc_inq_atomic_type: typeid 1
+		NC4_def_var: name short type 3 ndims 2
+		nc_inq_atomic_type: typeid 3
+		NC4_def_var: name int type 4 ndims 2
+		nc_inq_atomic_type: typeid 4
+		NC4_def_var: name float type 5 ndims 2
+		nc_inq_atomic_type: typeid 5
+		NC4_def_var: name double type 6 ndims 2
+		nc_inq_atomic_type: typeid 6
+		NC4_def_var: name ubyte type 7 ndims 2
+		nc_inq_atomic_type: typeid 7
+		NC4_def_var: name ushort type 8 ndims 2
+		nc_inq_atomic_type: typeid 8
+		NC4_def_var: name uint type 9 ndims 2
+		nc_inq_atomic_type: typeid 9
+ *** SUCCESS!
 ```
 
 ## Log Levels
