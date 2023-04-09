@@ -1334,37 +1334,6 @@ nc4_att_free(NC_ATT_INFO_T *att)
     if (att->hdr.name)
         free(att->hdr.name);
 
-#ifdef SEPDATA
-    /* Free memory that was malloced to hold data for this
-     * attribute. */
-    if (att->data) {
-        free(att->data);
-    }
-    
-    /* If this is a string array attribute, delete all members of the
-     * string array, then delete the array of pointers to strings. (The
-     * array was filled with pointers by HDF5 when the att was read,
-     * and memory for each string was allocated by HDF5. That's why I
-     * use free and not nc_free, because the netCDF library didn't
-     * allocate the memory that is being freed.) */
-    if (att->stdata)
-    {
-	int i;
-        for (i = 0; i < att->len; i++)
-            if(att->stdata[i])
-                free(att->stdata[i]);
-        free(att->stdata);
-    }
-
-    /* If this att has vlen data, release it. */
-    if (att->vldata)
-    {
-	int i;
-        for (i = 0; i < att->len; i++)
-            nc_free_vlen(&att->vldata[i]);
-        free(att->vldata);
-    }
-#else
     if (att->data) {
 	NC_OBJ* parent;
 	NC_FILE_INFO_T* h5 = NULL;
@@ -1379,7 +1348,6 @@ nc4_att_free(NC_ATT_INFO_T *att)
 	free(att->data); /* reclaim top level */
 	att->data = NULL;
     }
-#endif
 
 done:
     free(att);
