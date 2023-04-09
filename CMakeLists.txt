@@ -1249,18 +1249,6 @@ IF(MSVC)
   OPTION(ENABLE_XGETOPT "Enable bundled XGetOpt instead of external getopt()." ON)
   IF(ENABLE_XGETOPT)
     SET(USE_X_GETOPT ON CACHE BOOL "")
-    # Copy XGetopt.c to everywhere it is needed. Avoids
-    # inconsistent code
-    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/ncgen3/)
-    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/ncgen/)
-    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/ncdump/)
-    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
-    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/ncdap_test/)
   ENDIF()
 ENDIF()
 
