@@ -7,12 +7,11 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.9.2 - TBD
 
-* Simplify the handling of XGetopt. See [Github #2678](https://github.com/Unidata/netcdf-c/pull/2678).
-* Fix 'make distcheck' error in run_interop.sh. See [Github #2631](https://github.com/Unidata/netcdf-c/pull/2631).
+* Fix 'make distcheck' error in run_interop.sh. See [Github #????](https://github.com/Unidata/netcdf-c/pull/????).
 * Update `nc-config` to remove inclusion from automatically-detected `nf-config` and `ncxx-config` files, as the wrong files could be included in the output.  This is in support of [GitHub #2274](https://github.com/Unidata/netcdf-c/issues/2274).
 * Update H5FDhttp.[ch] to work with HDF5 version 1.13.2 and later. See [Github #2635](https://github.com/Unidata/netcdf-c/pull/2635).
 * [Bug Fix] Update DAP code to enable CURLOPT_ACCEPT_ENCODING by default. See [Github #2630](https://github.com/Unidata/netcdf-c/pull/2630).
-* [Bug Fix] Fix byterange failures for certain URLs. See [Github #2649](https://github.com/Unidata/netcdf-c/pull/2649).
+* [Bug Fix] Fix byterange failures for certain URLs. See [Github #????](https://github.com/Unidata/netcdf-c/pull/????).
 * [Bug Fix] Fix 'make distcheck' error in run_interop.sh. See [Github #2631](https://github.com/Unidata/netcdf-c/pull/2631).
 * [Enhancement] Update `nc-config` to remove inclusion from automatically-detected `nf-config` and `ncxx-config` files, as the wrong files could be included in the output.  This is in support of [GitHub #2274](https://github.com/Unidata/netcdf-c/issues/2274).
 * [Enhancement] Update H5FDhttp.[ch] to work with HDF5 version 1.14.0. See [Github #2615](https://github.com/Unidata/netcdf-c/pull/2615).
