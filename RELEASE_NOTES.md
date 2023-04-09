@@ -7,6 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.9.2 - TBD
 
+* Fix a minor bug in reporting the use of szip. See [Github #2679](https://github.com/Unidata/netcdf-c/pull/2679).
 * Simplify the handling of XGetopt. See [Github #2678](https://github.com/Unidata/netcdf-c/pull/2678).
 * Fix 'make distcheck' error in run_interop.sh. See [Github #2631](https://github.com/Unidata/netcdf-c/pull/2631).
 * Update `nc-config` to remove inclusion from automatically-detected `nf-config` and `ncxx-config` files, as the wrong files could be included in the output.  This is in support of [GitHub #2274](https://github.com/Unidata/netcdf-c/issues/2274).
