@@ -3,12 +3,13 @@
 # 2015, 2016, 2017, 2018
 # University Corporation for Atmospheric Research/Unidata.
 
-# See netcdf-c/COPYRIGHT file for more info.
-SET(ncgen3_FILES main.c load.c escapes.c getfill.c init.c genlib.c ncgeny.c)
 
 IF(USE_X_GETOPT)
-  SET(ncgen3_FILES ${ncgen3_FILES} XGetopt.c)
+  SET(XGETOPTSRC "${CMAKE_CURRENT_SOURCE_DIR}/../libdispatch/XGetopt.c")
 ENDIF()
+
+# See netcdf-c/COPYRIGHT file for more info.
+SET(ncgen3_FILES main.c load.c escapes.c getfill.c init.c genlib.c ncgeny.c ${XGETOPTSRC})
 
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.sh ${CMAKE_CURRENT_SOURCE_DIR}/*.cdl)
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
