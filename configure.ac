@@ -1951,7 +1951,7 @@ AC_SUBST(HAS_ZSTD,[$have_zstd])
 # Always available
 std_filters="deflate bz2"
 
-if test "x$enable_szlib" = xyes ; then
+if test "x$have_sz" = xyes ; then
 std_filters="${std_filters} szip"
 fi
 if test "x$have_blosc" = xyes ; then
