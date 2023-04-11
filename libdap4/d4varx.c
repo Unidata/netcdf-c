@@ -37,14 +37,16 @@ NCD4_get_vars(int ncid, int varid,
     NCD4node* nctype;
     D4odometer* odom = NULL;
     nc_type nc4type;
-    size_t nc4size, xsize;
+    size_t nc4size, xsize, dapsize;
     void* instance = NULL; /* Staging area in case we have to convert */
     NClist* blobs = NULL;
     int rank;
     size_t dimsizes[NC_MAX_VAR_DIMS];
     d4size_t dimproduct;
     size_t dstcount;
+    NCD4offset* offset = NULL;
     
+    /* Get netcdf type info */
     if((ret=getvarx(ncid, varid, &info, &ncvar, &xtype, &xsize, &nc4type, &nc4size)))
 	{goto done;}
 
@@ -52,6 +54,9 @@ NCD4_get_vars(int ncid, int varid,
     nctype = ncvar->basetype;
     rank = nclistlength(ncvar->dims);
     blobs = nclistnew();
+
+    /* Get the type's dapsize */
+    dapsize = nctype->meta.dapsize;
 
     instance = malloc(nc4size);
     if(instance == NULL)
@@ -72,29 +77,34 @@ NCD4_get_vars(int ncid, int varid,
     dstcount = 0; /* We always write into dst starting at position 0*/
     for(;d4odom_more(odom);dstcount++) {
 	void* xpos;
-	void* offset;
 	void* dst;
 	d4size_t count;
+
         count = d4odom_next(odom);
 	if(count >= dimproduct) {
 	    ret = THROW(NC_EINVALCOORDS);
 	    goto done;
 	}
-        xpos = INCR(memoryin,(xsize * dstcount)); /* ultimate destination */
+        xpos = ((char*)memoryin)+(xsize * dstcount); /* ultimate destination */
 	/* We need to compute the offset in the dap4 data of this instance;
 	   for fixed size types, this is easy, otherwise we have to walk
 	   the variable size type
 	*/
+	/* Allocate the offset object */
+        if(offset) free(offset); /* Reclaim last loop */
+	offset = NULL;
+	offset = BUILDOFFSET(NULL,0);
+        BLOB2OFFSET(offset,ncvar->data.dap4data);
+	/* Move offset to the count'th element of the array */
 	if(nctype->meta.isfixedsize) {
-	    offset = INCR(ncvar->data.dap4data.memory,(nc4size * count));
+	    INCR(offset,(dapsize*count));
 	} else {
-            offset = ncvar->data.dap4data.memory;
 	    /* We have to walk to the count'th location in the data */
-	    if((ret=NCD4_moveto(meta,ncvar,count,&offset)))
+	    if((ret=NCD4_moveto(meta,ncvar,count,offset)))
 	        {goto done;}		    
 	}
 	dst = instance;
-	if((ret=NCD4_fillinstance(meta,nctype,&offset,&dst,blobs)))
+	if((ret=NCD4_fillinstance(meta,nctype,offset,&dst,blobs)))
 	    {goto done;}
 	if(xtype == nc4type) {
 	    /* We can just copy out the data */
@@ -106,6 +116,7 @@ NCD4_get_vars(int ncid, int varid,
     }
 
 done:
+    if(offset) free(offset); /* Reclaim last loop */
     /* cleanup */
     if(odom != NULL)
 	d4odom_free(odom);

@@ -1,3 +1,7 @@
+# not executable
+
+. ${srcdir}/d4manifest.sh
+
 if test "x$SETX" = x1 ; then set -x ; fi
 
 if test "x$NOOPTIONS" = x ; then
@@ -92,18 +96,15 @@ suppress() {
   done        
 }
 
-# Compute the set of testable names using cdltestfiles
+# Compute the set of testable names using the manifest.
 EXCLUDEDFILES="test_vlen9 test_vlen10"
 
 computetestablefiles() {
   local F0 firs excluded
-  cd ${CDLTESTFILES}
-  F0=`ls -1 *.cdl | sed -e 's/[.]cdl//g' | tr '\r\n' '  '`
-  cd ..
   # remove untestable files  
   F=
   first=0  
-  for f in $F0 ; do
+  for f in ${dap4_manifest} ; do
     excluded=0
     for x in $EXCLUDEDFILES ; do
       if test "x$x" = "x$f" ; then excluded=1; break; fi
@@ -112,6 +113,18 @@ computetestablefiles() {
       if test "x$first" = x1 ; then F="${f}.nc"; first=0; else F="$F ${f}.nc"; fi
     fi
    done
+}
+
+# Split a d4manifest.sh constraint line
+# Result is to set 4 variables: FILE QUERY INDEX FRAG
+splitconstraint() {
+  local tpl
+  tpl="$1"
+  FILE=`echo $tpl | cut -d"?" -f1`
+  tpl=`echo $tpl | cut -d"?" -f2`
+  QUERY=`echo $tpl | cut -d"=" -f1`
+  INDEX=`echo $tpl | cut -d"=" -f2`
+  FRAG="#dap4&log&show=fetch"
 }
 
 VG="valgrind --leak-check=full --error-exitcode=1 --num-callers=100"

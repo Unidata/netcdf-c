@@ -857,15 +857,15 @@ done:
 /* Wrappers to export selected functions from libnetcdf */
 
 EXTERNL int
-ncaux_readfile(const char* filename, size_t* sizep, void** contentp)
+ncaux_readfile(const char* filename, size_t* sizep, void** datap)
 {
     int stat = NC_NOERR;
     NCbytes* content = ncbytesnew();
     stat = NC_readfile(filename,content);
     if(stat == NC_NOERR && sizep)
         *sizep = ncbyteslength(content);
-    if(stat == NC_NOERR && contentp)
-        *contentp = ncbytesextract(content);
+    if(stat == NC_NOERR && datap)
+        *datap = ncbytesextract(content);
     ncbytesfree(content);
     return stat;        
 }

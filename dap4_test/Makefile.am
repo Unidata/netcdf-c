@@ -36,23 +36,31 @@ TESTS += test_parse.sh test_meta.sh test_data.sh test_raw.sh
 
 # Note: This program name was changed to findtestserver4
 # to avoid cmake complaint about duplicate targets.
-noinst_PROGRAMS += findtestserver4 pingurl4
+noinst_PROGRAMS += findtestserver4 pingurl4 dump
 findtestserver4_SOURCES = findtestserver4.c
 pingurl4_SOURCES = pingurl4.c
+dump_SOURCES = dump.c
 
 # Disable Dap4 Remote Tests until the test server is working
 if BUILD_UTILITIES
 if ENABLE_DAP_REMOTE_TESTS
-# Test require help at the server end
-#  TESTS += test_remote.sh test_hyrax.sh test_thredds.sh
+
+TESTS += test_remote.sh
+TESTS += test_constraints.sh
+TESTS += test_hyrax.sh
+#TESTS += test_thredds.sh
+TESTS += test_dap4url.sh
+
 endif
 endif
 
-EXTRA_DIST = CMakeLists.txt test_common.h \
-	d4test_common.sh \
+EXTRA_DIST = CMakeLists.txt test_common.h build.sh \
+	d4manifest.sh d4test_common.sh \
 	test_curlopt.sh test_data.sh test_hyrax.sh test_meta.sh \
-	test_parse.sh test_raw.sh test_remote.sh test_thredds.sh \
-	cdltestfiles rawtestfiles nctestfiles \
+	test_parse.sh test_raw.sh \
+        test_remote.sh test_constraints.sh test_thredds.sh \
+	test_dap4url.sh \
+	cdltestfiles rawtestfiles \
 	baseline baselineraw baselineremote baselinehyrax baselinethredds
 
 CLEANFILES = *.exe
@@ -83,3 +91,4 @@ clean-local-check:
 # in the GenerateRaw.java program in the thredds tree.
 maketests::
 	bash ./maketests.sh
+

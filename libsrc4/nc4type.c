@@ -119,7 +119,8 @@ NC4_inq_atomic_type(nc_type typeid1, char *name, size_t *size)
  * @internal Get the id and size of an atomic type by name.
  *
  * @param name [in] the name of the type.
- * @param size [out] the size of one element of the type in bytes.
+ * @param idp [out] the type index of the type.
+ * @param sizep [out] the size of one element of the type in bytes.
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
