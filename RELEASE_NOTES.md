@@ -5,7 +5,11 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
-## 4.9.2 - TBD
+## 4.9.3 - TBD
+
+## 4.9.2 - March 14, 2023
+
+This is the maintenance release which adds support for HDF5 version 1.14.0, in addition to a handful of other changes and bugfixes.  
 
 * Fix a minor bug in reporting the use of szip. See [Github #2679](https://github.com/Unidata/netcdf-c/pull/2679).
 * Simplify the handling of XGetopt. See [Github #2678](https://github.com/Unidata/netcdf-c/pull/2678).
