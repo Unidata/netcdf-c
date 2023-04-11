@@ -49,6 +49,7 @@ typedef struct NCD4meta NCD4meta;
 typedef struct NCD4node NCD4node;
 typedef struct NCD4params NCD4params;
 typedef struct NCD4HDR NCD4HDR;
+typedef struct NCD4offset NCD4offset;
 
 /* Define the NCD4HDR flags */
 /* Header flags */
@@ -110,8 +111,7 @@ typedef enum NCD4sort {
 
 /* dap4.x query keys */
 #define DAP4CE		"dap4.ce"
-#define DAP4CSUM	"dap4.checksum=true"
-#define DAP4NOCSUM	"dap4.checksum=false"
+#define DAP4CSUM	"dap4.checksum"
 
 /**************************************************/
 /* Misc.*/
@@ -165,6 +165,18 @@ union ATOMICS {
 /* Define the structure of the chunk header */
 
 struct NCD4HDR {unsigned int flags; unsigned int count;};
+
+/**************************************************/
+/* Define the structure for walking a stream */
+
+/* base <= offset < limit */
+struct NCD4offset {
+    char* offset; /* use char* so we can do arithmetic */
+    char* base;
+    char* limit;
+};
+
+typedef char* NCD4mark; /* Mark a position */
 
 /**************************************************/
 /* !Node type for the NetCDF-4 metadata produced from
@@ -229,7 +241,6 @@ struct NCD4node {
         unsigned int localchecksum; /* toplevel variable checksum as computed by client */    
 	int checksumattr; /* 1=> _DAP4_Checksum_CRC32 is defined */
 	int attrchecksum; /* _DAP4_Checksum_CRC32 value */
-	int remotechecksummed; /* 1 if we know that this variable was checksummed */
     } data;
     struct { /* Track netcdf-4 conversion info */
 	int isvlen;	/*  _edu.ucar.isvlen */
@@ -246,7 +257,7 @@ struct NCD4node {
 typedef struct NCD4serial {
     size_t rawsize; /* |rawdata| */ 
     void* rawdata;
-    size_t dapsize; /* |dapdata|; this is transient */
+    size_t dapsize; /* |dap|; this is transient */
     void* dap; /* pointer into rawdata where dap data starts */ 
     char* dmr;/* copy of dmr */ 
     char* errdata; /* null || error chunk (null terminated) */
@@ -329,10 +340,11 @@ struct NCD4INFO {
         d4size_t   datasize; /* size on disk or in memory */
         long dmrlastmodified;
         long daplastmodified;
-        int querychecksum; /* 1 => user specified dap4.ce value */
-	int checksumattr; /* 1=> _DAP4_Checksum_CRC32 is defined for at least one variable */
-        int inferredchecksum; /* 1 => we infer that incoming data has checksums */
-    } data;
+        int querychecksumming; /* 1 => user specified dap4.ce value */
+	int attrchecksumming; /* 1=> _DAP4_Checksum_CRC32 is defined for at least one variable */
+	int inferredchecksumming; /* 1 => either query checksum || att checksum */
+        int checksumignore; /* 1 => assume checksum, but do not validate */
+	} data;
     struct {
 	int realfile; /* 1 => we created actual temp file */
 	char* filename; /* of the substrate file */

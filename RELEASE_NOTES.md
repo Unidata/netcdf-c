@@ -122,6 +122,8 @@ This is the maintenance release which adds support for HDF5 version 1.14.0, in a
 
 #### Changes
 
+
+* [Bug Fix] Get remotetest server working for DAP4 and re-enable its use in the netcdf-c library for testing. See [Github #2558](https://github.com/Unidata/netcdf-c/pull/2558).
 * [Bug Fix] Fix a race condition when testing missing filters. See [Github #2557](https://github.com/Unidata/netcdf-c/pull/2557). 
 * [Bug Fix] Make major changes to libdap4 and dap4_test to update the non-remote DAP4 tests. See [Github #2555](https://github.com/Unidata/netcdf-c/pull/2555).
 * [Bug Fix] Fix some race conditions due to use of a common file in multiple shell scripts . See [Github #2552](https://github.com/Unidata/netcdf-c/pull/2552).

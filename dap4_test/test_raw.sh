@@ -42,7 +42,7 @@ setresultdir results_test_raw
 if test "x${RESET}" = x1 ; then rm -fr ${BASELINERAW}/*.ncdump ; fi
 for f in $F ; do
     echo "testing: $f"
-    URL="[log][dap4]file://${RAWTESTFILES}/${f}"
+    URL="file://${RAWTESTFILES}/${f}?dap4.checksum=false#log&dap4"
     if ! ${NCDUMP} ${DUMPFLAGS} "${URL}" > ${builddir}/results_test_raw/${f}.ncdump; then
         failure "${URL}"
     fi

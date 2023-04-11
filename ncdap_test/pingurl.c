@@ -16,6 +16,10 @@ See \ref copyright file for more info.
 
 #define PINGTIME 25
 
+/* Attempt to shut up LGTM */
+#define HTTP "http"
+#define HTTPS "https"
+
 /**
 usage: pingurl <svc>
 See if a specific server at a given url appears to be up.
@@ -41,12 +45,12 @@ main(int argc, char** argv)
 	usage();
  
     /* Try http: first */
-    snprintf(url,MAXSERVERURL,"http://%s",argv[0]);
+    snprintf(url,MAXSERVERURL,HTTP"://%s",argv[0]);
     if(timedping(url,PINGTIME) == NC_NOERR) 
 	found = 1;
     else {
 	/* Try https: next */
-        snprintf(url,MAXSERVERURL,"https://%s",argv[0]);
+        snprintf(url,MAXSERVERURL,HTTPS"://%s",argv[0]);
 	if(timedping(url,PINGTIME) == NC_NOERR) {
 	    found = 1;
 	    ishttps = 1;

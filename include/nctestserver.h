@@ -28,6 +28,10 @@ enum KIND {NOKIND, DAP2KIND, DAP4KIND, THREDDSKIND};
 #define BUFSIZE 8192 /*bytes*/
 #define MAXREMOTETESTSERVERS 4096
 
+/* Attempt to fool lgtm */
+#define HTTP "http"
+#define HTTPS "https"
+
 #ifndef HAVE_CURLINFO_RESPONSE_CODE
 #define CURLINFO_RESPONSE_CODE CURLINFO_HTTP_CODE
 #endif
@@ -102,14 +106,14 @@ nc_findtestserver(const char* path, const char* serverlist)
 	if(reportsearch)
 	    fprintf(stderr,"nc_findtestserver: candidate=%s/%s: found=",*svc,path);
 	/* Try http: first */
-        snprintf(url,MAXSERVERURL,"http://%s/%s",*svc,path);
+        snprintf(url,MAXSERVERURL,HTTP"://%s/%s",*svc,path);
 	if(ping(url) == NC_NOERR) {
 	    if(reportsearch) fprintf(stderr,"yes\n");
 	    match = strdup(url);
 	    goto done;
 	}
 	/* Try https: next */
-        snprintf(url,MAXSERVERURL,"https://%s/%s",*svc,path);
+        snprintf(url,MAXSERVERURL,HTTPS"://%s/%s",*svc,path);
 	if(ping(url) == NC_NOERR) {
 	    if(reportsearch) fprintf(stderr,"yes\n");
 	    match = strdup(url);

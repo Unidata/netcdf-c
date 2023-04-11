@@ -102,12 +102,13 @@ excluded() {
 fileset() {
   local TMP x X
   # Total file set
-  TMP=`ls -1 ${srcdir}/testsrc/*.cdl`
+  TMP=`ls -1 ${srcdir}/cdltestfiles/*.cdl`
   for x in $TMP ; do
     X=`basename $x .cdl`
     F="$F $X"
   done
-  F=`echo -n $F | cut -f1-`
+  # Mac echo does not support -n flag
+  F=`echon $F | cut -f1-`
 }
 
 constrainedfileset() {
@@ -127,14 +128,14 @@ test_struct_array?/s[0:2:3][0:1]=8 \
 splitce() {
     local expr tmp
     expr="$1"
-    CE_F=`echo -n $expr | cut -d'?' -f1`
-    CE_INDEX=`echo -n $expr | cut -d'=' -f2`
-    tmp=`echo -n $expr | cut -d'?' -f2`
-    CE_CE=`echo -n $tmp | cut -d'=' -f1`
+    CE_F=`echon $expr | cut -d'?' -f1`
+    CE_INDEX=`echon $expr | cut -d'=' -f2`
+    tmp=`echon $expr | cut -d'?' -f2`
+    CE_CE=`echon $tmp | cut -d'=' -f1`
 }
 
 ceescape() {
-    CEX=`echo -n "$1" | sed -e 's|\[|%5b|g' -e 's|]|%5d|g'`
+    CEX=`echon "$1" | sed -e 's|\[|%5b|g' -e 's|]|%5d|g'`
 }
 
 build() {
@@ -142,7 +143,7 @@ build() {
     for f in $F ; do
       excluded ${f} cdl
       if test $? = 0 ; then
-          ${NCGEN} -4 -o "${srcdir}/downloads/${f}.nc" "${srcdir}/testsrc/${f}.cdl"
+          ${NCGEN} -4 -o "${srcdir}/downloads/${f}.nc" "${srcdir}/cdltestfiles/${f}.cdl"
           ${NCDUMP} "${srcdir}/downloads/${f}.nc" > ${srcdir}/downloads/${f}.ncdump
       fi
     done
