@@ -9,5 +9,4 @@ dimensions:
 	dy = 3 ;
 variables:
 	s_t s(dx, dy) ;
-
 }

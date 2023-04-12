@@ -1,0 +1,6 @@
+netcdf test_test {
+types:
+  byte enum enum_t {c1 = 1, c2 = 2, c3 = 3} ;
+variables:
+	enum_t v1 ;
+}
