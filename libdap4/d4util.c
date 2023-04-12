@@ -19,6 +19,8 @@ extern int mkstemp(char *template);
 #define LBRACKET '['
 #define RBRACKET ']'
 
+#define VERIFY(off,space) assert((off)->offset+(space) <= (off)->limit)
+
 /**************************************************/
 /* Forward */
 
@@ -393,12 +395,38 @@ NCD4_errorNC(int code, const int line, const char* file)
     return NCD4_error(code,line,file,nc_strerror(code));
 }
 
+NCD4offset*
+NCD4_buildoffset(void* base, d4size_t limit)
+{
+    NCD4offset* offset = (NCD4offset*)calloc(1,sizeof(NCD4offset));
+    assert(offset != NULL);
+    offset->base = base;
+    offset->limit = ((char*)base)+limit;
+    offset->offset = base;
+    return offset;
+}
+
 d4size_t
-NCD4_getcounter(void* p)
+NCD4_getcounter(NCD4offset* p)
 {
     COUNTERTYPE v;
-    memcpy(&v,p,sizeof(v));
+    VERIFY(p,sizeof(v));
+    memcpy(&v,p->offset,sizeof(v));
     return (d4size_t)v;
+}
+
+void
+NCD4_incr(NCD4offset* p, d4size_t size)
+{
+    VERIFY(p,size);    
+    p->offset += size;
+}
+
+void
+NCD4_decr(NCD4offset* p, d4size_t size)
+{
+    VERIFY(p,size);    
+    p->offset -= size;
 }
 
 void*
@@ -406,7 +434,7 @@ NCD4_getheader(void* p, NCD4HDR* hdr, int hostlittleendian)
 {
     unsigned char bytes[4];
     memcpy(bytes,p,sizeof(bytes));
-    p = INCR(p,4); /* on-the-wire hdr is 4 bytes */
+    p = ((char*)p) + 4; /* on-the-wire hdr is 4 bytes */
     /* assume header is network (big) order */
     hdr->flags = bytes[0]; /* big endian => flags are in byte 0 */
     hdr->flags &= NCD4_ALL_CHUNK_FLAGS; /* Ignore extraneous flags */

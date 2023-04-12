@@ -15,6 +15,10 @@
 
 SET(UNIT_TESTS test_ncuri)
 
+IF(USE_X_GETOPT)
+SET(XGETOPTSRC "${CMAKE_CURRENT_SOURCE_DIR}/../libdispatch/XGetopt.c")
+ENDIF()
+
 IF(NOT MSVC)
   IF(ENABLE_NETCDF_4)
     SET(UNIT_TESTS ${UNIT_TESTS} tst_nclist tst_nc4internal)
