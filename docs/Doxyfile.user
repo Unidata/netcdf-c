@@ -760,7 +760,7 @@ INPUT = \
     ./docs/COPYRIGHT.md \
     ./docs/credits.md \
     ./docs/tutorial.dox \
-    ./docs/internal.dox \
+    ./docs/internal.md \
     ./docs/inmeminternal.dox \
     ./docs/indexing.dox \
     ./docs/testserver.dox \
