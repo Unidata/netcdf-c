@@ -95,12 +95,6 @@ NCD4_dechunk(NCD4meta* metadata)
         return processerrchunk(metadata, (void*)phdr, hdr.count);
     }
 
-#ifdef CHECKSUMHACK
-    /* Temporary hack; We mistakenly thought that bit 3 of the flags
-       of the first header indicated that checksumming was not in force.
-       Test for it, and propagate the _DAP4_Checksum_CRC32 attribute later */
-    metadata->serial.checksumhack = ((hdr.flags & NCD4_NOCHECKSUM_CHUNK) ? 1 : 0);
-#endif
     metadata->serial.remotelittleendian = ((hdr.flags & NCD4_LITTLE_ENDIAN_CHUNK) ? 1 : 0);
     /* Again, avoid strxxx operations on dmr */
     if((metadata->serial.dmr = malloc(hdr.count+1)) == NULL)

@@ -3,5 +3,4 @@ dimensions:
 	d2 = 2 ;
 variables:
 	string vs(d2) ;
-
 }

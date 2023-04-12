@@ -1,13 +1,12 @@
 netcdf test_vlen3 {
-
 types:
-  int(*) v_t;
-  compound c_t {v_t f1;};
-
+  int(*) v_t ;
+  compound c_t {
+    v_t f1 ;
+  }; // c_t
 variables:
-  c_t v1;  
-
+	c_t v1 ;
 data:
-  v1 = {{1, 3, 5, 7}} ;
-}
 
+ v1 = {{1, 3, 5, 7}} ;
+}
