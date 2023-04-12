@@ -11,5 +11,4 @@ dimensions:
 	d2 = 2 ;
 variables:
 	v1_t v1(d2) ;
-
 }

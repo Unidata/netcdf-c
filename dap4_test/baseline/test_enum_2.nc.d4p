@@ -23,11 +23,14 @@
   <Attribute name="_DAP4_Little_Endian" type="UInt8">
     <Value value="1"/>
   </Attribute>
+  <Attribute name="_NCProperties" type="String">
+    <Value value="version=2,netcdf=4.9.1-development,hdf5=1.12.2"/>
+  </Attribute>
   <Groups>
     <Group name="h">
       <Variables>
         <Enum name="primary_cloud" enum="/cloud_class_t">
-          <Attribute name="_FillValue" type="/cloud_class_t">
+          <Attribute name="_FillValue" type="String">
             <Value value="Missing"/>
           </Attribute>
         </Enum>

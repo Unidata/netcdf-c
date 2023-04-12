@@ -13,7 +13,7 @@ variables:
 	uint temp(time, lat, lon) ;
 		string temp:_edu.ucar.maps = "/time", "/lat", "/lon" ;
 	ushort rh(time, lat, lon) ;
-		rh:_FillValue = 9999US ;
+		ushort rh:_FillValue = 9999US ;
 		string rh:_edu.ucar.maps = "/time", "/lat", "/lon" ;
 data:
 
