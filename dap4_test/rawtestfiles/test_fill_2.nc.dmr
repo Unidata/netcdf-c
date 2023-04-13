@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Dataset
+         name="test_fill_2.nc"
+         dapVersion="4.0"
+         dmrVersion="1.0"
+         xmlns="http://xml.opendap.org/ns/DAP/4.0#"
+         xmlns:dap="http://xml.opendap.org/ns/DAP/4.0#">
+    <Dimension name="d2" size="2"/>
+    <Enumeration name="cloud_class_t" basetype="Int8">
+        <EnumConst name="Clear" value="0"/>
+        <EnumConst name="Cumulonimbus" value="1"/>
+        <EnumConst name="Stratus" value="2"/>
+        <EnumConst name="Stratocumulus" value="3"/>
+        <EnumConst name="Cumulus" value="4"/>
+        <EnumConst name="Altostratus" value="5"/>
+        <EnumConst name="Nimbostratus" value="6"/>
+        <EnumConst name="Altocumulus" value="7"/>
+        <EnumConst name="Cirrostratus" value="8"/>
+        <EnumConst name="Cirrocumulus" value="9"/>
+        <EnumConst name="Cirrus" value="10"/>
+        <EnumConst name="Missing" value="127"/>
+    </Enumeration>
+    <Enum name="enumvar" enum="/cloud_class_t">
+        <Dim name="/d2"/>
+        <Attribute name="_FillValue" type="String">
+            <Value value="Missing"/>
+        </Attribute>
+    </Enum>
+    <Int32 name="uv32">
+        <Dim name="/d2"/>
+        <Attribute name="_FillValue" type="Int32">
+            <Value value="17"/>
+        </Attribute>
+    </Int32>
+    <UInt8 name="uv8">
+        <Dim name="/d2"/>
+        <Attribute name="_FillValue" type="UInt8">
+            <Value value="120"/>
+        </Attribute>
+    </UInt8>
+    <Int16 name="v16">
+        <Dim name="/d2"/>
+        <Attribute name="_FillValue" type="Int16">
+            <Value value="-37"/>
+        </Attribute>
+    </Int16>
+    <Attribute name="_DAP4_Little_Endian" type="UInt8">
+        <Value value="1"/>
+    </Attribute>
+    <Attribute name="_NCProperties" type="String">
+        <Value value="version=2,netcdf=4.9.2-development,hdf5=1.12.2"/>
+    </Attribute>
+</Dataset>

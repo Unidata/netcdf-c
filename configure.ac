@@ -614,21 +614,14 @@ AC_MSG_CHECKING([whether dap use of remotetest server should be enabled])
 AC_ARG_ENABLE([dap-remote-tests],
               [AS_HELP_STRING([--disable-dap-remote-tests],
                                  [disable dap remote tests])])
-# Default off
-test "x$enable_dap_remote_tests" = xyes || enable_dap_remote_tests=no
+# Default on
+test "x$enable_dap_remote_tests" = xno || enable_dap_remote_tests=yes
 if test "x$enable_dap" = "xno" ; then
   enable_dap_remote_tests=no
 fi
 AC_MSG_RESULT($enable_dap_remote_tests)
 
-AC_MSG_CHECKING([whether dap use of remotetest server should be enabled])
-AC_ARG_ENABLE([dap-remote-tests],
-              [AS_HELP_STRING([--disable-dap-remote-tests],
-                                 [disable dap remote tests])])
-test "x$enable_dap_remote_tests" = xno || enable_dap_remote_tests=yes
-AC_MSG_RESULT($enable_dap_remote_tests)
-
-AC_MSG_CHECKING([whether use of external servers should be enabled])
+AC_MSG_CHECKING([whether use of external (non-unidata) servers should be enabled])
 AC_ARG_ENABLE([external-server-tests],
               [AS_HELP_STRING([--enable-external-server-tests (default off)],
                                  [enable external server tests])])
@@ -663,12 +656,15 @@ AC_ARG_WITH([testservers],
               [AS_HELP_STRING([--with-testservers=<host:port>,<host:port>...],
                               [Specify the testserver(s) to try for remote tests.])],
             [REMOTETESTSERVERS=$with_testservers], [REMOTETESTSERVERS=no])
-msg="$REMOTETESTSERVERS"
 if test "x$REMOTETESTSERVERS" = xno ; then
-  svclist="remotetest.unidata.ucar.edu"
-  REMOTETESTSERVERS="$svclist"
+  dfaltsvc="remotetest.unidata.ucar.edu"
+  REMOTETESTSERVERS="${dfaltsvc}"
 fi
-AC_MSG_RESULT([$svclist])
+msg="${REMOTETESTSERVERS}"
+if test "x$dfaltsvc" != x ; then
+  msg="${msg} (default)"
+fi
+AC_MSG_RESULT([${msg}])
 AC_DEFINE_UNQUOTED([REMOTETESTSERVERS], ["$REMOTETESTSERVERS"], [the testservers for remote tests.])
 
 # Set the config.h flags

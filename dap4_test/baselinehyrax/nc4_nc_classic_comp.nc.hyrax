@@ -13,15 +13,15 @@ variables:
 	float z(time, lat, lon) ;
 		string z:units = "meters" ;
 		z:valid_range = 0., 5000. ;
-		z:_FillValue = 1.f ;
+		float z:_FillValue = 1.f ;
 		string z:_edu.ucar.maps = "/time", "/lat", "/lon" ;
 	float t(time, lat, lon) ;
 		string t:_edu.ucar.maps = "/time", "/lat", "/lon" ;
 	double p(time, lat, lon) ;
-		p:_FillValue = -9999. ;
+		double p:_FillValue = -9999. ;
 		string p:_edu.ucar.maps = "/time", "/lat", "/lon" ;
 	short rh(time, lat, lon) ;
-		rh:_FillValue = -1s ;
+		short rh:_FillValue = -1s ;
 		string rh:_edu.ucar.maps = "/time", "/lat", "/lon" ;
 	short pixel(lat, lon) ;
 		string pixel:_edu.ucar.maps = "/lat", "/lon" ;
