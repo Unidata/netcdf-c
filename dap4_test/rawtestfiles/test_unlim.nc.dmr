@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Dataset
+         name="test_unlim.nc"
+         dapVersion="4.0"
+         dmrVersion="1.0"
+         xmlns="http://xml.opendap.org/ns/DAP/4.0#"
+         xmlns:dap="http://xml.opendap.org/ns/DAP/4.0#">
+    <Dimension name="lon" size="2"/>
+    <Dimension name="time" size="2" _edu.ucar.isunlimited="1"/>
+    <Dimension name="lat" size="3"/>
+    <Float32 name="lon">
+        <Dim name="/lon"/>
+        <Attribute name="units" type="String">
+            <Value value="degrees_east"/>
+        </Attribute>
+    </Float32>
+    <Float32 name="pr">
+        <Dim name="/time"/>
+        <Dim name="/lat"/>
+        <Dim name="/lon"/>
+        <Attribute name="_ChunkSizes" type="UInt32">
+            <Value value="1"/>
+            <Value value="3"/>
+            <Value value="2"/>
+        </Attribute>
+        <Attribute name="standard_name" type="String">
+            <Value value="air_pressure_at_sea_level"/>
+        </Attribute>
+        <Attribute name="units" type="String">
+            <Value value="hPa"/>
+        </Attribute>
+        <Map name="/time"/>
+        <Map name="/lat"/>
+        <Map name="/lon"/>
+    </Float32>
+    <Float64 name="time">
+        <Dim name="/time"/>
+        <Attribute name="_ChunkSizes" type="UInt32">
+            <Value value="512"/>
+        </Attribute>
+        <Attribute name="units" type="String">
+            <Value value="seconds since 2009-01-01"/>
+        </Attribute>
+    </Float64>
+    <Float32 name="lat">
+        <Dim name="/lat"/>
+        <Attribute name="units" type="String">
+            <Value value="degrees_north"/>
+        </Attribute>
+    </Float32>
+    <Attribute name="_DAP4_Little_Endian" type="UInt8">
+        <Value value="1"/>
+    </Attribute>
+    <Attribute name="title" type="String">
+        <Value value="example for workshop"/>
+    </Attribute>
+    <Attribute name="_NCProperties" type="String">
+        <Value value="version=2,netcdf=4.9.1-development,hdf5=1.12.2"/>
+    </Attribute>
+</Dataset>

@@ -9,5 +9,4 @@ dimensions:
 variables:
 	cloud_class_t primary_cloud(d5) ;
 		cloud_class_t primary_cloud:_FillValue = Missing ;
-
 }
