@@ -1,16 +1,14 @@
 netcdf test_vlen5 {
-
 types:
-  int(*) v_t;
-  compound c_t {v_t v;};
-
+  int(*) v_t ;
+  compound c_t {
+    v_t v ;
+  }; // c_t
 dimensions:
-  d2=2;
-
+	d2 = 2 ;
 variables:
-  c_t v1(d2);  
-
+	c_t v1(d2) ;
 data:
-  v1 = {{1, 3, 5, 7}},{{100,200}} ;
-}
 
+ v1 = {{1, 3, 5, 7}}, {{100, 200}} ;
+}

@@ -61,19 +61,19 @@ URLPATH="${URLPATH}#log&show=fetch"
 fi
 
 # Split the combo
-BASICUSER=`echo $BASICCOMBO | cut -d: -f1`
-BASICPWD=`echo $BASICCOMBO | cut -d: -f2`
+BASICUSER=`echon $BASICCOMBO | cut -d: -f1`
+BASICPWD=`echon $BASICCOMBO | cut -d: -f2`
 
 OUTPUT="./.output"
 
 if test "x$TEMP" = x ; then
   TEMP="/tmp"
 fi
-TEMP=`echo "$TEMP" | sed -e "s|/$||"`
+TEMP=`echon "$TEMP" | sed -e "s|/$||"`
 
 LOCALRC=./$RC
 HOMERC=${HOME}/$RC
-HOMERC=`echo "$HOMERC" | sed -e "s|//|/|g"`
+HOMERC=`echon "$HOMERC" | sed -e "s|//|/|g"`
 SPECRC="$TEMP/temprc"
 ENVRC="$WD/envrc"
 
@@ -137,12 +137,12 @@ createnetrc() {
     echo "machine uat.urs.earthdata.nasa.gov login $BASICUSER password $BASICPWD" >>$NCP
     #echo "machine 54.86.135.31 login $BASICUSER password $BASICPWD" >>$1
   else
-    echo -n "${PROTO}://$URLSERVER/$URLPATH" >>$NCP
+    echon "${PROTO}://$URLSERVER/$URLPATH" >>$NCP
     if test "x$NOPWD" = x ; then
       if test "x$BADPWD" = x ; then
-        echo -n " login $BASICUSER password $BASICPWD" >>$NCP
+        echon " login $BASICUSER password $BASICPWD" >>$NCP
       else
-        echo -n " login $BASICUSER password xxxxxx" >>$NCP
+        echon " login $BASICUSER password xxxxxx" >>$NCP
       fi
     fi
     echo "" >>$NCP

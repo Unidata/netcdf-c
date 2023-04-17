@@ -175,6 +175,9 @@ export HOME
 fi
 fi
 
+# OS/X apparently has no echo -n option, so fake it
+echon() { echo "$@" | tr -d '\r\n' ; }
+
 # Test for filter availability
 avail() {
 if test yes = `${execdir}/../ncdump/ncfilteravail $1` ; then return 0 ; else echo "filter $1 not available" ; return 1; fi
