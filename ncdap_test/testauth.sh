@@ -68,20 +68,20 @@ URLPATH="${URLPATH}#log&show=fetch"
 fi
 
 # Split the combo
-BASICUSER=`echo $BASICCOMBO | cut -d: -f1`
-BASICPWD=`echo $BASICCOMBO | cut -d: -f2`
+BASICUSER=`echon $BASICCOMBO | cut -d: -f1`
+BASICPWD=`echon $BASICCOMBO | cut -d: -f2`
 
 if test "x$TEMP" = x ; then
   TEMP="/tmp"
 fi
-TEMP=`echo "$TEMP" | sed -e "s|/$||"`
+TEMP=`echon "$TEMP" | sed -e "s|/$||"`
 
 LOCALRC=${WD}/$RC
 LOCALNETRC=${WD}/$NETRC
 HOMERC=${HOME}/$RC
-HOMERC=`echo "$HOMERC" | sed -e "s|//|/|g"`
+HOMERC=`echon "$HOMERC" | sed -e "s|//|/|g"`
 HOMENETRC=${HOME}/$NETRC
-HOMENETRC=`echo "$HOMENETRC" | sed -e "s|//|/|g"`
+HOMENETRC=`echon "$HOMENETRC" | sed -e "s|//|/|g"`
 
 createrc() {
     local RCP
@@ -112,9 +112,9 @@ createnetrc() {
   NETRCPATH="$1"; # netrc file path
   if test "x$NETRCPATH" = x ; then return; fi
   echo "Creating netrc file $NETRCPATH"
-#  echo -n "${PROTO}://$URLSERVER/$URLPATH" >>$NETRCPATH
-  echo -n "machine $URLSERVER" >>$NETRCPATH
-  echo  -n "  login $BASICUSER password $BASICPWD" >>$NETRCPATH
+#  echon "${PROTO}://$URLSERVER/$URLPATH" >>$NETRCPATH
+  echon "machine $URLSERVER" >>$NETRCPATH
+  echon "  login $BASICUSER password $BASICPWD" >>$NETRCPATH
   echo "" >>$NETRCPATH
   chmod go-rwx $NETRCPATH
 }

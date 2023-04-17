@@ -20,14 +20,17 @@ This code serves two purposes
 
 */
 
+#undef DUMPCHECKSUM
+
 /***************************************************/
 /* Forwards */
-static int fillstring(NCD4meta*, void** offsetp, void** dstp, NClist* blobs);
-static int fillopfixed(NCD4meta*, d4size_t opaquesize, void** offsetp, void** dstp);
-static int fillopvar(NCD4meta*, NCD4node* type, void** offsetp, void** dstp, NClist* blobs);
-static int fillstruct(NCD4meta*, NCD4node* type, void** offsetp, void** dstp, NClist* blobs);
-static int fillseq(NCD4meta*, NCD4node* type, void** offsetp, void** dstp, NClist* blobs);
-static int NCD4_checkChecksums(NCD4meta* meta, NClist* toplevel);
+static int fillstring(NCD4meta*, NCD4offset* offset, void** dstp, NClist* blobs);
+static int fillopfixed(NCD4meta*, d4size_t opaquesize, NCD4offset* offset, void** dstp);
+static int fillopvar(NCD4meta*, NCD4node* type, NCD4offset* offset, void** dstp, NClist* blobs);
+static int fillstruct(NCD4meta*, NCD4node* type, NCD4offset* offset, void** dstp, NClist* blobs);
+static int fillseq(NCD4meta*, NCD4node* type, NCD4offset* offset, void** dstp, NClist* blobs);
+static int NCD4_inferChecksums(NCD4meta* meta, NClist* toplevel);
+static unsigned NCD4_computeChecksum(NCD4meta* meta, NCD4node* topvar);
 
 /***************************************************/
 /* Macro define procedures */
@@ -58,60 +61,50 @@ NCD4_processdata(NCD4meta* meta)
     int i;
     NClist* toplevel = NULL;
     NCD4node* root = meta->root;
-    void* offset;
+    NCD4offset* offset = NULL;
 
     /* Recursively walk the tree in prefix order 
        to get the top-level variables; also mark as unvisited */
     toplevel = nclistnew();
     NCD4_getToplevelVars(meta,root,toplevel);
 
-    /* See if we need to compute checksums on which variables */
-    NCD4_checkChecksums(meta,toplevel);
+    /* Otherwise */
+    NCD4_inferChecksums(meta,toplevel);
 
     /* If necessary, byte swap the serialized data */
     /* Do we need to swap the dap4 data? */
     meta->swap = (meta->serial.hostlittleendian != meta->serial.remotelittleendian);
 
     /* Compute the  offset and size of the toplevel vars in the raw dap data. */
-    /* Also extract checksums */ 
-    offset = meta->serial.dap;
+    /* Also extract remote checksums */ 
+    offset = BUILDOFFSET(meta->serial.dap,meta->serial.dapsize);
     for(i=0;i<nclistlength(toplevel);i++) {
 	NCD4node* var = (NCD4node*)nclistget(toplevel,i);
-        if((ret=NCD4_delimit(meta,var,&offset)))
+        if((ret=NCD4_delimit(meta,var,offset)))
 	    FAIL(ret,"delimit failure");
-    }
-
-    /* Compute the checksums of the top variables if needed */
-    /* must occur before any byte swapping */
-    for(i=0;i<nclistlength(toplevel);i++) {
-	NCD4node* var = (NCD4node*)nclistget(toplevel,i);
-	if(var->data.remotechecksummed) {
-            unsigned int csum = 0;
-            csum = CRC32(csum,var->data.dap4data.memory,var->data.dap4data.size);
-            var->data.localchecksum = csum;
-	}
-    }
-
-    /* verify checksums */
-    if(!meta->ignorechecksums) {
-        for(i=0;i<nclistlength(toplevel);i++) {
-	    NCD4node* var = (NCD4node*)nclistget(toplevel,i);
-	    if(var->data.remotechecksummed) {
-	        if(var->data.localchecksum != var->data.remotechecksum) {
-		    nclog(NCLOGERR,"Checksum mismatch: %s\n",var->name);
-		    ret = NC_EDAP;
-		    goto done;
-		}
-	        /* Also verify checksum attribute */
-		if(var->data.checksumattr) {
-	            if(var->data.attrchecksum != var->data.remotechecksum) {
-		        nclog(NCLOGERR,"Attribute Checksum mismatch: %s\n",var->name);
-		        ret = NC_EDAP;
-		        goto done;
-		    }
-		}
+        if(meta->controller->data.inferredchecksumming) {
+	    /* Compute remote checksum: must occur before any byte swapping */
+            var->data.localchecksum = NCD4_computeChecksum(meta,var);
+#ifdef DUMPCHECKSUM
+            fprintf(stderr,"var %s: remote-checksum = 0x%x\n",var->name,var->data.remotechecksum);
+#endif
+            /* verify checksums */
+	    if(!meta->controller->data.checksumignore) {
+                if(var->data.localchecksum != var->data.remotechecksum) {
+                    nclog(NCLOGERR,"Checksum mismatch: %s\n",var->name);
+                    ret = NC_EDAP;
+                    goto done;
+                 }
+                 /* Also verify checksum attribute */
+                 if(meta->controller->data.attrchecksumming) {
+                    if(var->data.attrchecksum != var->data.remotechecksum) {
+                        nclog(NCLOGERR,"Attribute Checksum mismatch: %s\n",var->name);
+                        ret = NC_EDAP;
+                        goto done;
+                    }
+                }
 	    }
-        }
+	}
     }
 
     /* Swap the data for each top level variable,
@@ -122,6 +115,7 @@ NCD4_processdata(NCD4meta* meta)
     }
 
 done:
+    if(offset) free(offset);
     if(toplevel) nclistfree(toplevel);
     return THROW(ret);
 }
@@ -139,10 +133,9 @@ Assumes that NCD4_processdata has been called.
 */
 
 int
-NCD4_fillinstance(NCD4meta* meta, NCD4node* type, void** offsetp, void** dstp, NClist* blobs)
+NCD4_fillinstance(NCD4meta* meta, NCD4node* type, NCD4offset* offset, void** dstp, NClist* blobs)
 {
     int ret = NC_NOERR;
-    void* offset = *offsetp;
     void* dst = *dstp;
     d4size_t memsize = type->meta.memsize;
     d4size_t dapsize = type->meta.dapsize;
@@ -151,30 +144,30 @@ NCD4_fillinstance(NCD4meta* meta, NCD4node* type, void** offsetp, void** dstp, N
     if(type->subsort <= NC_UINT64 || type->subsort == NC_ENUM) {
 	/* memsize and dapsize are the same */
 	assert(memsize == dapsize);
-	memcpy(dst,offset,dapsize);
-	offset = INCR(offset,dapsize);
+	TRANSFER(dst,offset,dapsize);
+	INCR(offset,dapsize);
     } else switch(type->subsort) {
         case NC_STRING: /* oob strings */
-	    if((ret=fillstring(meta,&offset,&dst,blobs)))
+	    if((ret=fillstring(meta,offset,&dst,blobs)))
 	        FAIL(ret,"fillinstance");
 	    break;
 	case NC_OPAQUE:
 	    if(type->opaque.size > 0) {
 	        /* We know the size and its the same for all instances */
-	        if((ret=fillopfixed(meta,type->opaque.size,&offset,&dst)))
+	        if((ret=fillopfixed(meta,type->opaque.size,offset,&dst)))
 	            FAIL(ret,"fillinstance");
    	    } else {
 	        /* Size differs per instance, so we need to convert each opaque to a vlen */
-	        if((ret=fillopvar(meta,type,&offset,&dst,blobs)))
+	        if((ret=fillopvar(meta,type,offset,&dst,blobs)))
 	            FAIL(ret,"fillinstance");
 	    }
 	    break;
 	case NC_STRUCT:
-	    if((ret=fillstruct(meta,type,&offset,&dst,blobs)))
+	    if((ret=fillstruct(meta,type,offset,&dst,blobs)))
                 FAIL(ret,"fillinstance");
 	    break;
 	case NC_SEQ:
-	    if((ret=fillseq(meta,type,&offset,&dst,blobs)))
+	    if((ret=fillseq(meta,type,offset,&dst,blobs)))
                 FAIL(ret,"fillinstance");
 	    break;
 	default:
@@ -182,16 +175,15 @@ NCD4_fillinstance(NCD4meta* meta, NCD4node* type, void** offsetp, void** dstp, N
             FAIL(ret,"fillinstance");
     }
     *dstp = dst;
-    *offsetp = offset; /* return just past this object in dap data */
+
 done:
     return THROW(ret);
 }
 
 static int
-fillstruct(NCD4meta* meta, NCD4node* type, void** offsetp, void** dstp, NClist* blobs)
+fillstruct(NCD4meta* meta, NCD4node* type, NCD4offset* offset, void** dstp, NClist* blobs)
 {
     int i,ret = NC_NOERR;
-    void* offset = *offsetp;
     void* dst = *dstp;
  
 #ifdef CLEARSTRUCT
@@ -203,28 +195,24 @@ fillstruct(NCD4meta* meta, NCD4node* type, void** offsetp, void** dstp, NClist* 
     for(i=0;i<nclistlength(type->vars);i++) {
 	NCD4node* field = nclistget(type->vars,i);
 	NCD4node* ftype = field->basetype;
-	void* fdst = INCR(dst,field->meta.offset);
-	if((ret=NCD4_fillinstance(meta,ftype,&offset,&fdst,blobs)))
+	void* fdst = (((char*)dst) + field->meta.offset);
+	if((ret=NCD4_fillinstance(meta,ftype,offset,&fdst,blobs)))
             FAIL(ret,"fillstruct");
     }
-    dst = INCR(dst,type->meta.memsize);
+    dst = ((char*)dst) + type->meta.memsize;
     *dstp = dst;
-    *offsetp = offset;    
 done:
     return THROW(ret);
 }
 
 static int
-fillseq(NCD4meta* meta, NCD4node* type, void** offsetp, void** dstp, NClist* blobs)
+fillseq(NCD4meta* meta, NCD4node* type, NCD4offset* offset, void** dstp, NClist* blobs)
 {
     int ret = NC_NOERR;
     d4size_t i,recordcount;    
-    void* offset;
     nc_vlen_t* dst;
     NCD4node* vlentype;
     d4size_t recordsize;
-
-    offset = *offsetp;
 
     dst = (nc_vlen_t*)*dstp;
     vlentype = type->basetype;    
@@ -242,13 +230,12 @@ fillseq(NCD4meta* meta, NCD4node* type, void** offsetp, void** dstp, NClist* blo
 
     for(i=0;i<recordcount;i++) {
 	/* Read each record instance */
-	void* recdst = INCR((dst->p),(recordsize * i));
-	if((ret=NCD4_fillinstance(meta,vlentype,&offset,&recdst,blobs)))
+	void* recdst = ((char*)(dst->p))+(recordsize * i);
+	if((ret=NCD4_fillinstance(meta,vlentype,offset,&recdst,blobs)))
 	    FAIL(ret,"fillseq");
     }
     dst++;
     *dstp = dst;
-    *offsetp = offset;
 done:
     return THROW(ret);
 }
@@ -257,11 +244,10 @@ done:
 Extract and oob a single string instance
 */
 static int
-fillstring(NCD4meta* meta, void** offsetp, void** dstp, NClist* blobs)
+fillstring(NCD4meta* meta, NCD4offset* offset, void** dstp, NClist* blobs)
 {
     int ret = NC_NOERR;
     d4size_t count;    
-    void* offset = *offsetp;
     char** dst = *dstp;
     char* q;
 
@@ -272,14 +258,13 @@ fillstring(NCD4meta* meta, void** offsetp, void** dstp, NClist* blobs)
     q = (char*)d4alloc(count+1);
     if(q == NULL)
 	{FAIL(NC_ENOMEM,"out of space");}
-    memcpy(q,offset,count);
+    TRANSFER(q,offset,count);
     q[count] = '\0';
     /* Write the pointer to the string */
     *dst = q;
     dst++;
     *dstp = dst;    
-    offset = INCR(offset,count);
-    *offsetp = offset;
+    INCR(offset,count);
 #if 0
     nclistpush(blobs,q);
 #else
@@ -290,12 +275,11 @@ done:
 }
 
 static int
-fillopfixed(NCD4meta* meta, d4size_t opaquesize, void** offsetp, void** dstp)
+fillopfixed(NCD4meta* meta, d4size_t opaquesize, NCD4offset* offset, void** dstp)
 {
     int ret = NC_NOERR;
     d4size_t count, actual;
     int delta;
-    void* offset = *offsetp;
     void* dst = *dstp;
 
     /* Get opaque count */
@@ -314,11 +298,10 @@ fillopfixed(NCD4meta* meta, d4size_t opaquesize, void** offsetp, void** dstp)
 #endif
     }
     /* move */
-    memcpy(dst,offset,count);
-    dst = INCR(dst,count);
+    TRANSFER(dst,offset,count);
+    dst = ((char*)dst) + count;
     *dstp = dst;
-    offset = INCR(offset,count);
-    *offsetp = offset;
+    INCR(offset,count);
 #ifndef FIXEDOPAQUE
 done:
 #endif
@@ -331,12 +314,11 @@ We treat as if it was (in cdl) ubyte(*).
 */
 
 static int
-fillopvar(NCD4meta* meta, NCD4node* type, void** offsetp, void** dstp, NClist* blobs)
+fillopvar(NCD4meta* meta, NCD4node* type, NCD4offset* offset, void** dstp, NClist* blobs)
 {
     int ret = NC_NOERR;
     d4size_t count;
     nc_vlen_t* vlen;
-    void* offset = *offsetp;
     void* dst = *dstp;
     char* q;
 
@@ -349,14 +331,13 @@ fillopvar(NCD4meta* meta, NCD4node* type, void** offsetp, void** dstp, NClist* b
     /* Transfer out of band */
     q = (char*)d4alloc(count);
     if(q == NULL) FAIL(NC_ENOMEM,"out of space");
-    memcpy(q,offset,count);
+    TRANSFER(q,offset,count);
     vlen->p = q;
     vlen->len = (size_t)count;
     q = NULL; /*nclistpush(blobs,q);*/
-    dst = INCR(dst,sizeof(nc_vlen_t));
+    dst = ((char*)dst) + sizeof(nc_vlen_t);
     *dstp = dst;
-    offset = INCR(offset,count);
-    *offsetp = offset;
+    INCR(offset,count);
 done:
     return THROW(ret);
 }
@@ -393,18 +374,17 @@ done:
 }
 
 static int
-NCD4_checkChecksums(NCD4meta* meta, NClist* toplevel)
+NCD4_inferChecksums(NCD4meta* meta, NClist* toplevel)
 {
     int ret = NC_NOERR;
-    int i;
+    int i, attrfound;
+    NCD4INFO* info = meta->controller;
 
+    /* First, look thru the DMR to see if there is a checksum attribute */
+    attrfound = 0;
     for(i=0;i<nclistlength(toplevel);i++) {
 	int a;
         NCD4node* node = (NCD4node*)nclistget(toplevel,i);
-	/* See if the checksum attribute is defined or checksum hack is in use*/
-#ifdef CHECKSUMHACK
-        node->data.remotechecksummed = (meta->serial.checksumhack ? 0  : 1);
-#endif
 	for(a=0;a<nclistlength(node->attributes);a++) {	
             NCD4node* attr = (NCD4node*)nclistget(node->attributes,a);
 	    if(strcmp(D4CHECKSUMATTR,attr->name)==0) {
@@ -414,11 +394,52 @@ NCD4_checkChecksums(NCD4meta* meta, NClist* toplevel)
 		val = (const char*)nclistget(attr->attr.values,0);
 		sscanf(val,"%u",&node->data.attrchecksum);
 		node->data.checksumattr = 1;
-	        node->data.remotechecksummed = 1;
+		attrfound = 1;
+		break;
 	    }
 	}
     }
+    info->data.attrchecksumming = (attrfound ? 1 : 0);
+    /* Infer checksums */
+    info->data.inferredchecksumming = ((info->data.attrchecksumming || info->data.querychecksumming) ? 1 : 0);
     return THROW(ret);
+}
+
+/* Compute the checksum of each variable's data.
+*/
+static unsigned
+NCD4_computeChecksum(NCD4meta* meta, NCD4node* topvar)
+{
+    unsigned int csum = 0;
+
+    ASSERT((ISTOPLEVEL(topvar)));
+
+#ifndef HYRAXCHECKSUM
+    csum = CRC32(csum,topvar->data.dap4data.memory,topvar->data.dap4data.size);
+#else
+    if(topvar->basetype->subsort != NC_STRING) {
+            csum = CRC32(csum,topvar->data.dap4data.memory,topvar->data.dap4data.size);
+    } else { /* Checksum over the actual strings */
+	int i;
+        unsigned long long count;
+	NCD4offset offset;
+        d4size_t dimproduct = NCD4_dimproduct(topvar);
+	offset.base = topvar->data.dap4data.memory;
+	offset.limit = offset.base + topvar->data.dap4data.size;
+	offset.offset = offset.base;
+        for(i=0;i<dimproduct;i++) {
+            /* Get string count */
+            count = GETCOUNTER(&offset);
+            SKIPCOUNTER(&offset);
+  	    if(meta->swap) swapinline64(&count);
+            /* CRC32 count bytes */
+            csum = CRC32(csum,offset.offset,count);
+	    /* Skip count bytes */
+  	    INCR(&offset,count);
+        }
+    }
+#endif
+    return csum;
 }
 
 #if 0

@@ -26,8 +26,9 @@
  * file info. Always locate the attribute by name, never by attnum.
  * The mem_type is ignored if data=NULL.
  *
- * @param ncid File and group ID.
- * @param varid Variable ID.
+ * @param h5 File object
+ * @param grp Group object
+ * @param var Variable object
  * @param name Name of attribute. Must already be normalized.
  * @param xtype Pointer that gets (file) type of attribute. Ignored if
  * NULL.

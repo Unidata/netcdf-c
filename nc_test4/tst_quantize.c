@@ -308,8 +308,10 @@ main(int argc, char **argv)
 		    union FU fin;
 		    int nsd_att_in;
 		    union DU dfin;
-		    /* union FU fout; */
-		    /* union DU dfout; */
+		    union FU fout;
+		    union DU dfout;
+
+		    NC_UNUSED(fout); NC_UNUSED(dfout);
 
 		    /* Open the file and check metadata. */
 		    if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
@@ -348,15 +350,19 @@ main(int argc, char **argv)
 		    /* Check the data. */
 		    if (nc_get_var(ncid, varid1, &float_in)) ERR;
 		    if (nc_get_var(ncid, varid2, &double_in)) ERR;
-		    /* fout.f = float_data[0]; */
-		    /* dfout.d = double_data[0]; */
+#if 0
+		    fout.f = float_data[0];
+		    dfout.d = double_data[0];
+#endif
 		    fin.f = float_in;
 		    dfin.d = double_in;
-		    /* printf ("\nfloat_data: %10f   : 0x%x  float_data_in: %10f   : 0x%x\n", */
-		    /*         float_data[0], fout.u, float_data[0], fin.u); */
-		    /* printf ("\ndouble_data: %15g   : 0x%16lx  double_data_in: %15g   : 0x%lx\n", */
-		    /*          double_data[0], dfout.u, double_data[0], dfin.u); */
+#if 0
+		    printf ("\nfloat_data: %10f   : 0x%x  float_data_in: %10f   : 0x%x\n",
+		            float_data[0], fout.u, float_data[0], fin.u);
+		    printf ("\ndouble_data: %15g   : 0x%16lx  double_data_in: %15g   : 0x%lx\n",
+		             double_data[0], dfout.u, double_data[0], dfin.u);
 
+#endif
 		    /* Check the results, slightly different for each quantize algorithm. */
 		    switch (quantize_mode[q])
 		    {
@@ -419,8 +425,10 @@ main(int argc, char **argv)
 		    double double_in;
 		    union FU fin;
 		    union DU dfin;
-		    /* union FU fout; */
-		    /* union DU dfout; */
+		    union FU fout;
+		    union DU dfout;
+
+		    NC_UNUSED(fout); NC_UNUSED(dfout);
 
 		    /* Open the file and check metadata. */
 		    if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
@@ -434,15 +442,18 @@ main(int argc, char **argv)
 		    /* Check the data. */
 		    if (nc_get_var(ncid, varid1, &float_in)) ERR;
 		    if (nc_get_var(ncid, varid2, &double_in)) ERR;
-		    /* fout.f = float_data[0]; */
-		    /* dfout.d = double_data[0]; */
+#if 0
+		    fout.f = float_data[0];
+		    dfout.d = double_data[0];
+#endif
 		    fin.f = float_in;
 		    dfin.d = double_in;
-		    /* printf ("\nfloat_data: %10f   : 0x%x  float_data_in: %10f   : 0x%x\n", */
-		    /*         float_data[0], fout.u, float_data[0], fin.u); */
-		    /* printf ("\ndouble_data: %15g   : 0x%16lx  double_data_in: %15g   : 0x%lx\n", */
-		    /*         double_data[0], dfout.u, double_data[0], dfin.u); */
-
+#if 0
+		    printf ("\nfloat_data: %10f   : 0x%x  float_data_in: %10f   : 0x%x\n",
+		            float_data[0], fout.u, float_data[0], fin.u);
+		    printf ("\ndouble_data: %15g   : 0x%16lx  double_data_in: %15g   : 0x%lx\n",
+		            double_data[0], dfout.u, double_data[0], dfin.u);
+#endif
 		    /* Check the results, slightly different for each quantize algorithm. */
 		    switch (quantize_mode[q])
 		    {
@@ -510,11 +521,12 @@ main(int argc, char **argv)
 		    };
 
 		    union FU fin;
-		    union FU fout;
 		    union FU xpect[NUM_QUANTIZE_MODES][DIM_LEN_5];
 		    union DU dfin;
+		    union FU fout;
 		    union DU dfout;
 		    union DU double_xpect[NUM_QUANTIZE_MODES][DIM_LEN_5];
+
 		    NC_UNUSED(fout); NC_UNUSED(dfout);
 
 		    switch (quantize_mode[q])
@@ -571,18 +583,24 @@ main(int argc, char **argv)
 		    /* Check the data. */
 		    if (nc_get_var(ncid, varid1, float_in)) ERR;
 		    if (nc_get_var(ncid, varid2, double_in)) ERR;
-		    /* printf("\n"); */
+#if 0
+		    printf("\n");
+#endif
 		    for (x = 0; x < DIM_LEN_5; x++)
 		    {
-			fout.f = float_data[x];
 			fin.f = float_in[x];
-			/* printf ("float_data: %10f   : 0x%x  float_data_in: %10f   : 0x%x\n", */
-			/*         float_data[x], fout.u, float_data[x], fin.u); */
+#if 0
+			fout.f = float_data[x];
+			printf ("float_data: %10f   : 0x%x  float_data_in: %10f   : 0x%x\n",
+			        float_data[x], fout.u, float_data[x], fin.u);
+#endif
 			if (fin.u != xpect[q][x].u) ERR;
-			dfout.d = double_data[x];
 			dfin.d = double_in[x];
-			/* printf("double_data: %15g   : 0x%16lx  double_data_in: %15g   : 0x%16lx\n", */
-			/* 		       double_data[x], dfout.u, double_data[x], dfin.u); */
+#if 0
+			dfout.d = double_data[x];
+			printf("double_data: %15g   : 0x%16lx  double_data_in: %15g   : 0x%16lx\n",
+			 		       double_data[x], dfout.u, double_data[x], dfin.u);
+#endif
 			if (dfin.u != double_xpect[q][x].u) ERR;
 		    }
 
@@ -634,6 +652,7 @@ main(int argc, char **argv)
 		    union FU fout;
 		    union DU dfout;
 		    int nsd_att_in;
+
 		    NC_UNUSED(fout); NC_UNUSED(dfout);
 
 		    /* Open the file and check metadata. */
@@ -673,16 +692,17 @@ main(int argc, char **argv)
 		    /* Check the data. */
 		    if (nc_get_var(ncid, varid1, &float_in)) ERR;
 		    if (nc_get_var(ncid, varid2, &double_in)) ERR;
-		    fout.f = (float)double_data[0];
 		    fin.f = float_in;
-		    dfout.d = float_data[0];
 		    dfin.d = double_in;
-		    /* printf ("\ndouble_data: %15g   : 0x%x  float_data_in: %10f   : 0x%x\n", */
-		    /*         double_data[0], fout.u, float_in, fin.u); */
-		    /* printf ("\nfloat_data: %15g   : 0x%16lx  double_data_in: %15g   : 0x%lx\n", */
-		    /*         float_data[0], dfout.u, double_in, dfin.u); */
+#if 0
+		    fout.f = (float)double_data[0];
+		    dfout.d = float_data[0];
+		    printf ("\ndouble_data: %15g   : 0x%x  float_data_in: %10f   : 0x%x\n",
+		           double_data[0], fout.u, float_in, fin.u);
+		    printf ("\nfloat_data: %15g   : 0x%16lx  double_data_in: %15g   : 0x%lx\n",
+		            float_data[0], dfout.u, double_in, dfin.u);
 
-		    
+#endif		    
 		    switch (quantize_mode[q])
 		    {
 		    case NC_QUANTIZE_BITGROOM:
@@ -754,6 +774,7 @@ main(int argc, char **argv)
 		    union FU fout;
 		    union DU dfout;
 		    union DU double_xpect[NUM_QUANTIZE_MODES][DIM_LEN_5];
+
 		    NC_UNUSED(fout); NC_UNUSED(dfout);
 
 		    switch (quantize_mode[q])
@@ -810,17 +831,21 @@ main(int argc, char **argv)
 		    /* Check the data. */
 		    if (nc_get_var(ncid, varid1, float_in)) ERR;
 		    if (nc_get_var(ncid, varid2, double_in)) ERR;
-		    /* printf("\n"); */
+#if 0
+		    printf("\n");
+#endif
 		    for (x = 0; x < DIM_LEN_5; x++)
 		    {
-			fout.f = float_data[x];
 			fin.f = float_in[x];
-			/* printf ("float_data: %10f   : 0x%x  float_data_in: %10f   : 0x%x\n", */
-			/*         float_data[x], fout.u, float_data[x], fin.u); */
-			dfout.d = double_data[x];
 			dfin.d = double_in[x];
-			/* printf("double_data: %15g   : 0x%16lx  double_data_in: %15g   : 0x%16lx\n", */
-			/*        double_data[x], dfout.u, double_data[x], dfin.u); */
+#if 0
+			fout.f = float_data[x];
+			printf ("float_data: %10f   : 0x%x  float_data_in: %10f   : 0x%x\n",
+			        float_data[x], fout.u, float_data[x], fin.u);
+			dfout.d = double_data[x];
+			printf("double_data: %15g   : 0x%16lx  double_data_in: %15g   : 0x%16lx\n",
+			       double_data[x], dfout.u, double_data[x], dfin.u);
+#endif
 			if (fin.u != xpect[q][x].u) ERR;
 			if (dfin.u != double_xpect[q][x].u) ERR;
 		    }
@@ -878,6 +903,7 @@ main(int argc, char **argv)
 		    union FU fout;
 		    union DU dfout;
 		    union DU double_xpect[NUM_QUANTIZE_MODES][DIM_LEN_5];
+
 		    NC_UNUSED(fout); NC_UNUSED(dfout);
 
 		    switch (quantize_mode[q])
@@ -934,17 +960,21 @@ main(int argc, char **argv)
 		    /* Check the data. */
 		    if (nc_get_var(ncid, varid1, float_in)) ERR;
 		    if (nc_get_var(ncid, varid2, double_in)) ERR;
-		    /* printf("\n"); */
+#if 0
+		    printf("\n");
+#endif
 		    for (x = 0; x < DIM_LEN_5; x++)
 		    {
-			fout.f = float_data[x];
 			fin.f = float_in[x];
-			dfout.d = double_data[x];
 			dfin.d = double_in[x];
-			/* printf ("float_data: %10f   : 0x%x  float_data_in: %10f   : 0x%x\n", */
-			/*         float_data[x], fout.u, float_data[x], fin.u); */
-			/* printf("double_data: %15g   : 0x%16lx  double_data_in: %15g   : 0x%16lx\n", */
-			/*        double_data[x], dfout.u, double_data[x], dfin.u); */
+#if 0
+			fout.f = float_data[x];
+			dfout.d = double_data[x];
+			printf ("float_data: %10f   : 0x%x  float_data_in: %10f   : 0x%x\n",
+			        float_data[x], fout.u, float_data[x], fin.u);
+			printf("double_data: %15g   : 0x%16lx  double_data_in: %15g   : 0x%16lx\n",
+			       double_data[x], dfout.u, double_data[x], dfin.u);
+#endif
 			if (fin.u != xpect[q][x].u) ERR;
 			if (dfin.u != double_xpect[q][x].u) ERR;
 		    }
@@ -1008,6 +1038,7 @@ main(int argc, char **argv)
 		    union FU fout;
 		    union DU dfout;
 		    union DU double_xpect[NUM_QUANTIZE_MODES][DIM_LEN_5];
+
 		    NC_UNUSED(fout); NC_UNUSED(dfout);
 		    
 		    switch (quantize_mode[q])
@@ -1064,17 +1095,21 @@ main(int argc, char **argv)
 		    /* Check the data. */
 		    if (nc_get_var(ncid, varid1, float_in)) ERR;
 		    if (nc_get_var(ncid, varid2, double_in)) ERR;
-		    /* printf("\n"); */
+#if 0
+		    printf("\n");
+#endif
 		    for (x = 0; x < DIM_LEN_5; x++)
 		    {
-			fout.f = float_data[x];
 			fin.f = float_in[x];
-			dfout.d = double_data[x];
 			dfin.d = double_in[x];
-			/* printf ("float_data: %10f   : 0x%x  float_data_in: %10f   : 0x%x\n", */
-			/*         float_data[x], fout.u, float_data[x], fin.u); */
-			/* printf("double_data: %15g   : 0x%16lx  double_data_in: %15g   : 0x%16lx\n", */
-			/*        double_data[x], dfout.u, double_data[x], dfin.u); */
+#if 0
+			fout.f = float_data[x];
+			dfout.d = double_data[x];
+			printf ("float_data: %10f   : 0x%x  float_data_in: %10f   : 0x%x\n",
+			        float_data[x], fout.u, float_data[x], fin.u);
+			printf("double_data: %15g   : 0x%16lx  double_data_in: %15g   : 0x%16lx\n",
+			       double_data[x], dfout.u, double_data[x], dfin.u);
+#endif
 			if (fin.u != xpect[q][x].u) ERR;
 			if (dfin.u != double_xpect[q][x].u) ERR;
 		    }
@@ -1242,10 +1277,12 @@ main(int argc, char **argv)
 			union DU dfin;
 			fin.f = float_data_in[x];
 			dfin.d = double_data_in[x];
-			/* printf ("%d float_data_in : %08.8f   : 0x%x expected %08.8f   : 0x%x\n",  */
-			/*  	x, float_data_in[x], fin.u, xpect[q][x].f, xpect[q][x].u);  */
-			/* printf ("%d double_data_in : %15g   : 0x%lx expected %15g   : 0x%lx\n", */
-			/* 	x, double_data_in[x], dfin.u, double_xpect[q][x].d, double_xpect[q][x].u); */
+#if 0
+			printf ("%d float_data_in : %08.8f   : 0x%x expected %08.8f   : 0x%x\n",
+			 	x, float_data_in[x], fin.u, xpect[q][x].f, xpect[q][x].u);
+			printf ("%d double_data_in : %15g   : 0x%lx expected %15g   : 0x%lx\n",
+				x, double_data_in[x], dfin.u, double_xpect[q][x].d, double_xpect[q][x].u);
+#endif
 			if (fin.u != xpect[q][x].u) ERR;
 			if (dfin.u != double_xpect[q][x].u) ERR;
 		    }

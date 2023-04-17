@@ -1191,12 +1191,14 @@ static int get_quantize_info(NC_VAR_INFO_T *var)
 {
     hid_t attid;
     hid_t datasetid;
+    htri_t attr_exists;
 
     /* Try to open an attribute of the correct name for quantize
      * info. */
     datasetid = ((NC_HDF5_VAR_INFO_T *)var->format_var_info)->hdf_datasetid;
-    attid = H5Aopen_by_name(datasetid, ".", NC_QUANTIZE_BITGROOM_ATT_NAME,
-			    H5P_DEFAULT, H5P_DEFAULT);
+    attr_exists = H5Aexists(datasetid, NC_QUANTIZE_BITGROOM_ATT_NAME);
+    attid = attr_exists ? H5Aopen_by_name(datasetid, ".", NC_QUANTIZE_BITGROOM_ATT_NAME,
+			    H5P_DEFAULT, H5P_DEFAULT) : 0;
 
     if (attid > 0)
       {
@@ -1204,16 +1206,18 @@ static int get_quantize_info(NC_VAR_INFO_T *var)
       }
     else
       {
-	attid = H5Aopen_by_name(datasetid, ".", NC_QUANTIZE_GRANULARBR_ATT_NAME,
-			    H5P_DEFAULT, H5P_DEFAULT);
+        attr_exists = H5Aexists(datasetid, NC_QUANTIZE_GRANULARBR_ATT_NAME);
+	attid = attr_exists ? H5Aopen_by_name(datasetid, ".", NC_QUANTIZE_GRANULARBR_ATT_NAME,
+			    H5P_DEFAULT, H5P_DEFAULT) : 0;
 	if (attid > 0)
 	  {
 	    var->quantize_mode = NC_QUANTIZE_GRANULARBR;
 	  }
 	else
 	  {
-	    attid = H5Aopen_by_name(datasetid, ".", NC_QUANTIZE_BITROUND_ATT_NAME,
-				    H5P_DEFAULT, H5P_DEFAULT);
+            attr_exists = H5Aexists(datasetid, NC_QUANTIZE_BITROUND_ATT_NAME);
+	    attid = attr_exists ? H5Aopen_by_name(datasetid, ".", NC_QUANTIZE_BITROUND_ATT_NAME,
+				    H5P_DEFAULT, H5P_DEFAULT) : 0;
 	    if (attid > 0)
 	      var->quantize_mode = NC_QUANTIZE_BITROUND;
 	  }
