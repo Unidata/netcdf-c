@@ -1,0 +1,11 @@
+// Test cross group enum references
+netcdf test_enum_2 {
+  types:
+    byte enum cloud_class_t {Clear = 0, Stratus = 1, Missing = 127 };
+  group: h {
+  variables:
+    /cloud_class_t primary_cloud;
+  data:
+    primary_cloud = Stratus;
+  }
+}
