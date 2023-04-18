@@ -6,5 +6,4 @@ types:
   }; // s_t
 variables:
 	s_t s ;
-
 }

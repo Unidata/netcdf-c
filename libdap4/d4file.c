@@ -21,12 +21,12 @@
 /**************************************************/
 /* Forward */
 
-static void applyclientmetacontrols(NCD4meta* meta);
 static int constrainable(NCURI*);
 static void freeCurl(NCD4curl*);
 static void freeInfo(NCD4INFO*);
-static int paramcheck(NCD4INFO*, const char* key, const char* subkey);
-static const char* getparam(NCD4INFO* info, const char* key);
+static int fragmentcheck(NCD4INFO*, const char* key, const char* subkey);
+static const char* getfragment(NCD4INFO* info, const char* key);
+static const char* getquery(NCD4INFO* info, const char* key);
 static int set_curl_properties(NCD4INFO*);
 static int makesubstrate(NCD4INFO* d4info);
 static void resetInfoforRead(NCD4INFO* d4info);
@@ -82,16 +82,19 @@ NCD4_open(const char * path, int mode,
 
     /* fail if we are unconstrainable but have constraints */
     if(FLAGSET(d4info->controls.flags,NCF_UNCONSTRAINABLE)) {
-	if(d4info->uri != NULL && d4info->uri->query != NULL) {
-	    nclog(NCLOGWARN,"Attempt to constrain an unconstrainable data source: %s",
-		   d4info->uri->query);
-	    ret = THROW(NC_EDAPCONSTRAINT);
-	    goto done;
+	if(d4info->uri != NULL) {
+	    const char* ce = ncuriquerylookup(d4info->uri,DAP4CE); /* Look for dap4.ce */
+	    if(ce != NULL) {
+	        nclog(NCLOGWARN,"Attempt to constrain an unconstrainable data source: %s=%s",
+		   DAP4CE,ce);
+	        ret = THROW(NC_EDAPCONSTRAINT);
+	        goto done;
+	    }
 	}
     }
 
-    /* process control client parameters */
-    NCD4_applyclientparamcontrols(d4info);
+    /* process control client fragment parameters */
+    NCD4_applyclientfragmentcontrols(d4info);
 
     /* Use libsrc4 code (netcdf-4) for storing metadata */
     {
@@ -161,13 +164,16 @@ NCD4_open(const char * path, int mode,
     contents = ncbytesextract(d4info->curl->packet);
     NCD4_attachraw(d4info->substrate.metadata, len, contents);
 
-    meta = d4info->substrate.metadata;
+    /* process query parameters */
+    NCD4_applyclientquerycontrols(d4info);
 
-    /* process meta control parameters */
-    applyclientmetacontrols(meta);
+    meta = d4info->substrate.metadata;
 
     /* Infer the mode */
     if((ret=NCD4_infermode(meta))) goto done;
+
+    /* Process the dmr part */
+    if((ret=NCD4_dechunk(meta))) goto done;
 
 #ifdef D4DUMPDMR
   {
@@ -177,9 +183,6 @@ NCD4_open(const char * path, int mode,
     fflush(stderr);
   }
 #endif
-
-    /* Process the dmr part */
-    if((ret=NCD4_dechunk(meta))) goto done;
 
     if((ret = NCD4_parse(d4info->substrate.metadata))) goto done;
 
@@ -421,37 +424,40 @@ fail:
 }
 
 void
-NCD4_applyclientparamcontrols(NCD4INFO* info)
+NCD4_applyclientfragmentcontrols(NCD4INFO* info)
 {
     const char* value;
 
-    /* clear the flags */
-    CLRFLAG(info->controls.flags,NCF_CACHE);
-    CLRFLAG(info->controls.flags,NCF_SHOWFETCH);
-    CLRFLAG(info->controls.flags,NCF_NC4);
-    CLRFLAG(info->controls.flags,NCF_NCDAP);
-    CLRFLAG(info->controls.flags,NCF_FILLMISMATCH);
+    /* clear all flags */
+    CLRFLAG(info->controls.flags,ALL_NCF_FLAGS);
 
     /* Turn on any default on flags */
     SETFLAG(info->controls.flags,DFALT_ON_FLAGS);
+
+    /* Set these also */
     SETFLAG(info->controls.flags,(NCF_NC4|NCF_NCDAP));
 
-    if(paramcheck(info,"show","fetch"))
+    if(fragmentcheck(info,"show","fetch"))
 	SETFLAG(info->controls.flags,NCF_SHOWFETCH);
 
-    if(paramcheck(info,"translate","nc4"))
+    if(fragmentcheck(info,"translate","nc4"))
 	info->controls.translation = NCD4_TRANSNC4;
 
     /* Look at the debug flags */
-    if(paramcheck(info,"debug","copy"))
+    if(fragmentcheck(info,"debug","copy"))
 	SETFLAG(info->controls.debugflags,NCF_DEBUG_COPY); /* => close */
 
-    value = getparam(info,"substratename");
+    value = getfragment(info,"substratename");
     if(value != NULL)
       strncpy(info->controls.substratename,value,(NC_MAX_NAME-1));
 
+    value = getfragment(info,"hyrax");
+    if(value != NULL) {
+      info->data.checksumignore = 1; /* Assume checksum, but ignore */	    
+    }
+
     info->controls.opaquesize = DFALTOPAQUESIZE;
-    value = getparam(info,"opaquesize");
+    value = getfragment(info,"opaquesize");
     if(value != NULL) {
 	long long len = 0;
 	if(sscanf(value,"%lld",&len) != 1 || len == 0)
@@ -460,36 +466,46 @@ NCD4_applyclientparamcontrols(NCD4INFO* info)
 	    info->controls.opaquesize = (size_t)len;
     }
 
-    value = getparam(info,"fillmismatch");
-    if(value != NULL)
+    value = getfragment(info,"fillmismatch");
+    if(value != NULL) {
 	SETFLAG(info->controls.flags,NCF_FILLMISMATCH);
-
-    value = getparam(info,"nofillmismatch");
-    if(value != NULL)
+	CLRFLAG(info->controls.debugflags,NCF_FILLMISMATCH_FAIL);
+    }
+    value = getfragment(info,"nofillmismatch");
+    if(value != NULL) {
 	CLRFLAG(info->controls.debugflags,NCF_FILLMISMATCH);
+	SETFLAG(info->controls.debugflags,NCF_FILLMISMATCH_FAIL);
+    }
 }
 
-static void
-applyclientmetacontrols(NCD4meta* meta)
+void
+NCD4_applyclientquerycontrols(NCD4INFO* info)
 {
-    NCD4INFO* info = meta->controller;
-    const char* value = getparam(info,"checksummode");
-    if(value != NULL) {
-        if(strcmp(value,"ignore")==0)
-	    meta->ignorechecksums = 1;
+    const char* value = getquery(info,DAP4CSUM);
+    if(value == NULL) {
+        info->data.querychecksumming = DEFAULT_CHECKSUM_STATE;
+    } else {
+        if(strcasecmp(value,"false")==0) {
+	    info->data.querychecksumming = 0;
+        } else if(strcasecmp(value,"true")==0) {
+	    info->data.querychecksumming = 1;
+        } else {
+            nclog(NCLOGWARN,"Unknown checksum mode: %s ; using default",value);
+    	    info->data.querychecksumming = DEFAULT_CHECKSUM_STATE;
+	}
     }
 }
 
 /* Search for substring in value of param. If substring == NULL; then just
-   check if param is defined.
+   check if fragment is defined.
 */
 static int
-paramcheck(NCD4INFO* info, const char* key, const char* subkey)
+fragmentcheck(NCD4INFO* info, const char* key, const char* subkey)
 {
     const char* value;
     char* p;
 
-    value = getparam(info, key);
+    value = getfragment(info, key);
     if(value == NULL)
 	return 0;
     if(subkey == NULL) return 1;
@@ -501,15 +517,29 @@ paramcheck(NCD4INFO* info, const char* key, const char* subkey)
 }
 
 /*
-Given a parameter key, return its value or NULL if not defined.
+Given a fragment key, return its value or NULL if not defined.
 */
 static const char*
-getparam(NCD4INFO* info, const char* key)
+getfragment(NCD4INFO* info, const char* key)
 {
     const char* value;
 
     if(info == NULL || key == NULL) return NULL;
     if((value=ncurifragmentlookup(info->uri,key)) == NULL)
+	return NULL;
+    return value;
+}
+
+/*
+Given a query key, return its value or NULL if not defined.
+*/
+static const char*
+getquery(NCD4INFO* info, const char* key)
+{
+    const char* value;
+
+    if(info == NULL || key == NULL) return NULL;
+    if((value=ncuriquerylookup(info->uri,key)) == NULL)
 	return NULL;
     return value;
 }

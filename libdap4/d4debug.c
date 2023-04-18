@@ -13,7 +13,9 @@
 #ifdef D4CATCH
 /* Place breakpoint here to catch errors close to where they occur*/
 int
-d4breakpoint(int err) {return err;}
+d4breakpoint(int err) {
+    return err;
+}
 
 int
 d4throw(int err)
@@ -55,7 +57,7 @@ NCD4_sortname(NCD4sort sort)
     case NCD4_ECONST: return "NCD4_ECONST";
     default: break;
     }
-    return "unknown";
+    return "sort.unknown";
 }
 
 const char*
@@ -75,13 +77,13 @@ NCD4_subsortname(nc_type subsort)
     case NC_INT64: return "NC_INT64";
     case NC_UINT64: return "NC_UINT64";
     case NC_STRING: return "NC_STRING";
-    case NC_VLEN: return "NC_VLEN";
+    case NC_VLEN: return "NC_SEQ";
     case NC_OPAQUE: return "NC_OPAQUE";
     case NC_ENUM: return "NC_ENUM";
-    case NC_COMPOUND: return "NC_COMPOUND";
+    case NC_COMPOUND: return "NC_STRUCT";
     default: break;
     }
-    return "unknown";
+    return "subsort.unknown";
 }
 
 /*

@@ -685,8 +685,6 @@ exit:
  * added to the var, containing the quantize information.
  *
  * @param var Pointer to var info struct.
- * @param att_name Name of the qunatize attribute.
- * @param nsd Number of significant digits.
  *
  * @returns NC_NOERR No error.
  * @returns NC_EHDFERR HDF5 returned an error.
@@ -1770,8 +1768,6 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
  * coordinate variable. This is a special 1-D dataset.
  *
  * @param dim Pointer to dim info struct.
- * @param grp Pointer to group info struct.
- * @param write_dimid
  *
  * @returns ::NC_NOERR No error.
  * @returns ::NC_EPERM Read-only file.

@@ -136,23 +136,23 @@ are set when opening a binary file on Windows. */
 /* if true, do remote tests */
 #cmakedefine ENABLE_DAP_REMOTE_TESTS 1
 
+/* if true, enable S3 support */
+#cmakedefine ENABLE_S3 1
+
+/* if true, S3 SDK is available */
+#cmakedefine ENABLE_S3_SDK 1
+
 /* if true, enable NCZARR */
 #cmakedefine ENABLE_NCZARR 1
 
 /* if true, enable nczarr filter support */
 #cmakedefine ENABLE_NCZARR_FILTERS 1
 
-/* if true, enable S3 support */
-#cmakedefine ENABLE_NCZARR_S3 1
-
-/* if true, enable nczarr zip support */
-#cmakedefine ENABLE_NCZARR_ZIP 1
-
 /* if true, enable S3 testing*/
 #cmakedefine ENABLE_NCZARR_S3_TESTS 1
 
-/* if true, S3 SDK is available */
-#cmakedefine ENABLE_S3_SDK 1
+/* if true, enable nczarr zip support */
+#cmakedefine ENABLE_NCZARR_ZIP 1
 
 /* if true, Allow dynamically loaded plugins */
 #cmakedefine ENABLE_PLUGINS 1
