@@ -35,14 +35,14 @@ U=$1
 # Create and upload test files
 if test "x$FEATURE_S3TESTS" = xyes ; then
 rm -f upload4.nc upload3.nc
-${execdir}/../nczarr_test/s3util clear -u ${U} -k /byterangefiles
+${execdir}/../nczarr_test/s3util -u ${U} -k /byterangefiles clear
 ${NCGEN} -lb -3 ${srcdir}/nc_enddef.cdl
 mv nc_enddef.nc upload3.nc
-${execdir}/../nczarr_test/s3util upload -u ${U} -k /byterangefiles/upload3.nc -f upload3.nc
+${execdir}/../nczarr_test/s3util -u ${U} -k /byterangefiles/upload3.nc -f upload3.nc upload
 if test "x$FEATURE_HDF5" = xyes ; then
 ${NCGEN} -lb -4 ${srcdir}/nc_enddef.cdl
 mv nc_enddef.nc upload4.nc
-${execdir}/../nczarr_test/s3util upload -u ${U} -k /byterangefiles/upload4.nc -f upload4.nc
+${execdir}/../nczarr_test/s3util -u ${U} -k /byterangefiles/upload4.nc -f upload4.nc upload
 fi
 fi
 rm -f tst_http_nc3.cdl tst_http_nc4?.cdl 
@@ -52,7 +52,7 @@ testcleanup() {
 U=$1
 rm -f upload4.nc upload3.nc
 if test "x$FEATURE_S3TESTS" = xyes ; then
-${execdir}/../nczarr_test/s3util clear -u ${U} -k /byterangefiles
+${execdir}/../nczarr_test/s3util -u ${U} -k /byterangefiles clear
 fi
 }
 
@@ -60,7 +60,7 @@ testbytes() {
 TAG="$1"
 EXPECTED="$2"
 U="$3"
-K=`${NCDUMP} -k "$U" | tr -d '\r'`
+K=`${NCDUMP} -k "$U" | tr -d '\r\n'`
 if test "x$K" != "x$EXPECTED" ; then
    echo "test_http: -k flag mismatch: expected=$EXPECTED have=$K"
    exit 1
@@ -76,7 +76,7 @@ tests3auth() {
 TAG="$1"
 EXPECTED="$2"
 U="$3"
-K=`${NCDUMP} -k "$U" | tr -d '\r'`
+K=`${NCDUMP} -k "$U" | tr -d '\r\n'`
 if test "x$K" != "x$EXPECTED" ; then
    echo "test_http: -k flag mismatch: expected=$EXPECTED have=$K"
    exit 1

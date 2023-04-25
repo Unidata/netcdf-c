@@ -90,7 +90,7 @@ If NCZarr support is enabled, then support for datasets stored as files in a dir
 However, several addition storage mechanisms are available if additional libraries are installed.
 
 1. Zip format -- if _libzip_ is installed, then it is possible to directly read and write datasets stored in zip files.
-2. If the AWS C++ SDK is installed, and _libcurl_ is installed, then it is possible to directly read and write datasets stored in the Amazon S3 cloud storage.
+2. If one of the supported AWS SDKs is installed, then it is possible to directly read and write datasets stored in the Amazon S3 cloud storage.
 
 # Accessing Data Using the NCZarr Prototocol {#nczarr_accessing_data}
 
@@ -101,29 +101,14 @@ In this case, it is indicated by the URL path.
 ## URL Format
 The URL is the usual format.
 ````
-scheme:://host:port/path?query#fragment format
+protocol:://host:port/path?query#fragment
 ````
-There are some details that are important.
-- Scheme: this should be _https_ or _s3_,or _file_.
-  The _s3_ scheme is equivalent
-  to "https" plus setting "mode=nczarr,s3" (see below).
-  Specifying "file" is mostly used for testing, but is used to support
-  directory tree or zipfile format storage.
-- Host: Amazon S3 defines three forms: _Virtual_, _Path_, and _S3_
-  + _Virtual_: the host includes the bucket name as in
-    __bucket.s3.&lt;region&gt;.amazonaws.com__
-  + _Path_: the host does not include the bucket name, but
-    rather the bucket name is the first segment of the path.
-    For example __s3.&lt;region&gt;.amazonaws.com/bucket__
-  + _S3_: the protocol is "s3:" and if the host is a single name,
-    then it is interpreted as the bucket. The region is determined
-    using the algorithm in Appendix E.
-  + _Other_: It is possible to use other non-Amazon cloud storage, but
-    that is cloud library dependent.
-- Query: currently not used.
-- Fragment: the fragment is of the form _key=value&key=value&..._.
-  Depending on the key, the _value_ part may be left out and some
-  default value will be used.
+See the document "quickstart_paths" for details about
+using URLs.
+
+There are, however, some details that are important.
+- Protocol: this should be _https_ or _s3_,or _file_.
+  The _s3_ scheme is equivalent to "https" plus setting "mode=nczarr,s3" (see below). Specifying "file" is mostly used for testing, but is used to support directory tree or zipfile format storage.
 
 ## Client Parameters
 
@@ -275,7 +260,7 @@ Another storage format uses a file system tree of directories and files (_mode=n
 A third storage format uses a zip file (_mode=nczarr,zip_).
 The latter two are used mostly for debugging and testing.
 However, the _file_ and _zip_ formats are important because they are intended to match corresponding storage formats used by the Python Zarr implementation.
-Hence it should serve to provide interoperability between NCZarr and the Python Zarr, although this interoperability has not been tested.
+Hence it should serve to provide interoperability between NCZarr and the Python Zarr, although this interoperability has had only limited testing.
 
 Examples of the typical URL form for _file_ and _zip_ are as follows.
 ````
@@ -284,7 +269,7 @@ file:///xxx/yyy/testdata.zip#mode=nczarr,zip
 ````
 
 Note that the extension (e.g. ".file" in "testdata.file")
-is arbitraty, so this would be equally acceptable.
+is arbitrary, so this would be equally acceptable.
 ````
 file:///xxx/yyy/testdata.anyext#mode=nczarr,file
 ````
@@ -324,24 +309,11 @@ A good value of _n_ is 9.
 In order to use the _zip_ storage format, the libzip [3] library must be installed.
 Note that this is different from zlib.
 
-# Amazon S3 Storage {#nczarr_s3}
-
-The Amazon AWS S3 storage driver currently uses the Amazon AWS S3 Software Development Kit for C++ (aws-s3-sdk-cpp).
-In order to use it, the client must provide some configuration information.
-Specifically, the ''~/.aws/config'' file should contain something like this.
-
-```
-[default]
-output = json
-aws_access_key_id=XXXX...
-aws_secret_access_key=YYYY...
-```
-See Appendix E for additional information.
-
 ## Addressing Style
 
 The notion of "addressing style" may need some expansion.
-Amazon S3 accepts two forms for specifying the endpoint for accessing the data.
+Amazon S3 accepts two forms for specifying the endpoint for accessing the data
+(see the document "quickstart_path).
 
 1. Virtual -- the virtual addressing style places the bucket in the host part of a URL.
 For example:
@@ -351,7 +323,7 @@ https://<bucketname>.s2.&lt;region&gt.amazonaws.com/
 2. Path -- the path addressing style places the bucket in at the front of the path part of a URL.
 For example:
 ```
-https://s2.&lt;region&gt.amazonaws.com/<bucketname>/
+https://s3.&lt;region&gt.amazonaws.com/<bucketname>/
 ```
 
 The NCZarr code will accept either form, although internally, it is standardized on path style.
@@ -422,10 +394,10 @@ Specifically it contains the following keys:
 
 ## Translation {#nczarr_translation}
 
-With some constraints, it is possible for an nczarr library to read Zarr and for a zarr library to read the nczarr format.
-The latter case, zarr reading nczarr is possible if the zarr library is willing to ignore keys whose name it does not recognize; specifically anything beginning with _\_NCZARR\__.
+With some constraints, it is possible for an nczarr library to read the pure Zarr format and for a zarr library to read the nczarr format.
+The latter case, zarr reading nczarr is possible if the zarr library is willing to ignore keys whose name it does not recognize; specifically anything beginning with _\_nczarr\__.
 
-The former case, nczarr reading zarr is also possible if the nczarr can simulate or infer the contents of the missing _\_NCZARR\_XXX_ objects.
+The former case, nczarr reading zarr is also possible if the nczarr can simulate or infer the contents of the missing _\_nczarr\_xxx_ objects.
 As a rule this can be done as follows.
 1. _\_nczarr_group\__ -- The list of contained variables and sub-groups can be computed using the search API to list the keys "contained" in the key for a group.
 The search looks for occurrences of _.zgroup_, _.zattr_, _.zarray_ to infer the keys for the contained groups, attribute sets, and arrays (variables).
@@ -508,47 +480,42 @@ collections — High-performance dataset datatypes](https://docs.python.org/2/li
 # Appendix A. Building NCZarr Support {#nczarr_build}
 
 Currently the following build cases are known to work.
+Note that this does not include S3 support.
+A separate tabulation of S3 support is in the document cloud.md.
 
 <table>
-<tr><td><u>Operating System</u><td><u>Build System</u><td><u>NCZarr</u><td><u>S3 Support</u>
-<tr><td>Linux            <td> Automake     <td> yes          <td> yes
-<tr><td>Linux            <td> CMake        <td> yes          <td> yes
-<tr><td>Cygwin           <td> Automake     <td> yes          <td> no
-<tr><td>OSX              <td> Automake     <td> unknown      <td> unknown
-<tr><td>OSX              <td> CMake        <td> unknown      <td> unknown
-<tr><td>Visual Studio    <td> CMake        <td> yes          <td> tests fail
+<tr><td><u>Operating System</u><td><u>Build System</u><td><u>NCZarr</u>
+<tr><td>Linux            <td> Automake     <td> yes
+<tr><td>Linux            <td> CMake        <td> yes
+<tr><td>Cygwin           <td> Automake     <td> yes
+<tr><td>Cygwin           <td> CMake        <td> unknown
+<tr><td>OSX              <td> Automake     <td> unknown
+<tr><td>OSX              <td> CMake        <td> unknown
+<tr><td>Visual Studio    <td> CMake        <td> yes
 </table>
-
-Note: S3 support includes both compiling the S3 support code as well as running the S3 tests.
 
 ## Automake
 
-There are several options relevant to NCZarr support and to Amazon S3 support.
-These are as follows.
+The relevant ./configure options are as follows.
 
-1. _--disable-nczarr_ -- disable the NCZarr support.
-If disabled, then all of the following options are disabled or irrelevant.
-2. _--enable-nczarr-s3_ -- Enable NCZarr S3 support.
-3. _--enable-nczarr-s3-tests_ -- the NCZarr S3 tests are currently only usable by Unidata personnel, so they are disabled by default.
+1. *--disable-nczarr* -- disable the NCZarr support.
+2. *--enable-nczarr-s3-tests* -- the NCZarr S3 tests are currently only usable by Unidata personnel, so they are disabled by default.
 
-__A note about using S3 with Automake.__
+### A note about using S3 with Automake.
 If S3 support is desired, and using Automake, then LDFLAGS must be properly set, namely to this.
 ````
 LDFLAGS="$LDFLAGS -L/usr/local/lib -laws-cpp-sdk-s3"
 ````
 The above assumes that these libraries were installed in '/usr/local/lib', so the above requires modification if they were installed elsewhere.
 
-Note also that if S3 support is enabled, then you need to have a C++ compiler installed because part of the S3 support code is written in C++.
+## CMake
 
-## CMake {#nczarr_cmake}
+The relevant CMake flags are as follows.
 
-The necessary CMake flags are as follows (with defaults)
+1. *-DENABLE_NCZARR=off* -- equivalent to the Automake *--disable-nczarr* option.
+2. *-DENABLE_NCZARR_S3_TESTS=off* -- equivalent to the Automake *--enable-nczarr-s3-tests* option.
 
-1. -DENABLE_NCZARR=off -- equivalent to the Automake _--disable-nczarr_ option.
-2. -DENABLE_NCZARR_S3=off -- equivalent to the Automake _--enable-nczarr-s3_ option.
-3. -DENABLE_NCZARR_S3_TESTS=off -- equivalent to the Automake _--enable-nczarr-s3-tests_ option.
-
-Note that unlike Automake, CMake can properly locate C++ libraries, so it should not be necessary to specify _-laws-cpp-sdk-s3_ assuming that the aws s3 libraries are installed in the default location.
+Note that unlike Automake, CMake can properly locate C++ libraries, so it should not be necessary to specify *-laws-cpp-sdk-s3*, assuming that the aws s3 libraries are installed in the default location.
 For CMake with Visual Studio, the default location is here:
 
 ````
@@ -691,7 +658,6 @@ Then the following options must be specified for cmake.
 -DAWSSDK_ROOT_DIR=${AWSSDK_ROOT_DIR}
 -DAWSSDK_DIR=${AWSSDK_ROOT_DIR}/lib/cmake/AWSSDK"
 ````
-
 # Appendix C. Amazon S3 Imposed Limits {#nczarr_s3limits}
 
 The Amazon S3 cloud storage imposes some significant limits that are inherited by NCZarr (and Zarr also, for that matter).
@@ -701,88 +667,6 @@ Some of the relevant limits are as follows:
 2. S3 key names can be any UNICODE name with a maximum length of 1024 bytes.
 Note that the limit is defined in terms of bytes and not (Unicode) characters.
 This affects the depth to which groups can be nested because the key encodes the full path name of a group.
-
-# Appendix D. Alternative Mechanisms for Accessing Remote Datasets {#nczarr_altremote}
-
-The NetCDF-C library contains an alternate mechanism for accessing traditional netcdf-4 files stored in Amazon S3: The byte-range mechanism.
-The idea is to treat the remote data as if it was a big file.
-This remote "file" can be randomly accessed using the HTTP Byte-Range header.
-
-In the Amazon S3 context, a copy of a dataset, a netcdf-3 or netdf-4 file, is uploaded into a single object in some bucket.
-Then using the key to this object, it is possible to tell the netcdf-c library to treat the object as a remote file and to use the HTTP Byte-Range protocol to access the contents of the object.
-The dataset object is referenced using a URL with the trailing fragment containing the string ````#mode=bytes````.
-
-An examination of the test program _nc_test/test_byterange.sh_ shows simple examples using the _ncdump_ program.
-One such test is specified as follows:
-````
-https://s3.us-east-1.amazonaws.com/noaa-goes16/ABI-L1b-RadC/2017/059/03/OR_ABI-L1b-RadC-M3C13_G16_s20170590337505_e20170590340289_c20170590340316.nc#mode=bytes
-````
-Note that for S3 access, it is expected that the URL is in what is called "path" format where the bucket, _noaa-goes16_ in this case, is part of the URL path instead of the host.
-
-The _#mode=bytes_ mechanism generalizes to work with most servers that support byte-range access.
- 
-Specifically, Thredds servers support such access using the HttpServer access method as can be seen from this URL taken from the above test program.
-````
-https://thredds-test.unidata.ucar.edu/thredds/fileServer/irma/metar/files/METAR_20170910_0000.nc#bytes
-````
-
-# Appendix E. AWS Selection Algorithms. {#nczarr_awsselect}
-
-If byterange support is enabled, the netcdf-c library will parse the files
-````
-${HOME}/.aws/config
-and
-${HOME}/.aws/credentials
-````
-to extract profile names plus a list
-of key=value pairs. This example is typical.
-````
-[default]
-    aws_access_key_id=XXXXXXXXXXXXXXXXXXXX
-    aws_secret_access_key=YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
-    aws_region=ZZZZZZZZZ
-````
-The keys in the profile will be used to set various parameters in the library
-
-## Profile Selection
-
-The algorithm for choosing the active profile to use is as follows:
-
-1. If the "aws.profile" fragment flag is defined in the URL, then it is used. For example, see this URL.
-````
-https://...#mode=nczarr,s3&aws.profile=xxx
-````
-2. If the "AWS.PROFILE" entry in the .rc file (i.e. .netrc or .dodsrc) is set, then it is used.
-3. Otherwise the profile "default" is used.
-
-The profile named "none" is a special profile that the netcdf-c library automatically defines.
-It should not be defined anywhere else. It signals to the library that no credentialas are to used.
-It is equivalent to the "--no-sign-request" option in the AWS CLI.
-Also, it must be explicitly specified by name. Otherwise "default" will be used.
-
-## Region Selection
-
-If the specified URL is of the form
-````
-s3://<bucket>/key
-````
-Then this is rebuilt to this form:
-````
-s3://s2.&lt;region&gt.amazonaws.com>/key
-````
-However this requires figuring out the region to use.
-The algorithm for picking an region is as follows.
-
-1. If the "aws.region" fragment flag is defined in the URL, then it is used.
-2. The active profile is searched for the "aws_region" key.
-3. If the "AWS.REGION" entry in the .rc file (i.e. .netrc or .dodsrc) is set, then it is used.
-4. Otherwise use "us-east-1" region.
-
-## Authorization Selection
-
-Picking an access-key/secret-key pair is always determined
-by the current active profile. To choose to not use keys
-requires that the active profile must be "none".
 
 # Appendix F. NCZarr Version 1 Meta-Data Representation. {#nczarr_version1}
 
@@ -936,11 +820,15 @@ and the type that signals NC_CHAR (in NCZarr)
 would be handled by Zarr as a string of length 1.
 
 # Change Log {#nczarr_changelog}
+[Note: minor text changes are not included.]
 
 Note, this log was only started as of 8/11/2022 and is not
 intended to be a detailed chronology. Rather, it provides highlights
 that will be of interest to NCZarr users. In order to see exact changes,
 It is necessary to use the 'git diff' command.
+
+## 3/10/2023
+1. Move most of the S3 text to the cloud.md document.
 
 ## 8/29/2022
 1. Zarr fixed-size string types are now supported.
@@ -958,4 +846,4 @@ include arbitrary JSON expressions; see Appendix G for more details.
 __Author__: Dennis Heimbigner<br>
 __Email__: dmh at ucar dot edu<br>
 __Initial Version__: 4/10/2020<br>
-__Last Revised__: 8/27/2022
+__Last Revised__: 3/8/2023

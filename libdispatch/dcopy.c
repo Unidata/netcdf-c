@@ -520,88 +520,6 @@ NC_copy_att(int ncid_in, int varid_in, const char *name,
    if ((res = nc_inq_att(ncid_in, varid_in, name, &xtype, &len)))
       return res;
 
-#ifdef SEPDATA
-   if (xtype < NC_STRING)
-   {
-      /* Handle non-string atomic types. */
-      if (len)
-      {
-         size_t size = NC_atomictypelen(xtype);
-
-         assert(size > 0);
-	 if (!(data = malloc(len * size)))
-	    return NC_ENOMEM;
-      }
-
-      res = nc_get_att(ncid_in, varid_in, name, data);
-      if (!res)
-	 res = nc_put_att(ncid_out, varid_out, name, xtype,
-			  len, data);
-      if (len)
-	 free(data);
-   }
-#ifdef USE_NETCDF4
-   else if (xtype == NC_STRING)
-   {
-      /* Copy string attributes. */
-      char **str_data;
-      if (!(str_data = malloc(sizeof(char *) * len)))
-	 return NC_ENOMEM;
-      res = nc_get_att_string(ncid_in, varid_in, name, str_data);
-      if (!res)
-	 res = nc_put_att_string(ncid_out, varid_out, name, len,
-				 (const char **)str_data);
-      nc_free_string(len, str_data);
-      free(str_data);
-   }
-   else
-   {
-      /* Copy user-defined type attributes. */
-      int class;
-      size_t size;
-      void *data;
-      nc_type xtype_out = NC_NAT;
-
-      /* Find out if there is an equal type in the output file. */
-      /* Note: original code used a libsrc4 specific internal function
-	 which we had to "duplicate" here */
-      if ((res = NC_find_equal_type(ncid_in, xtype, ncid_out, &xtype_out)))
-	 return res;
-      if (xtype_out)
-      {
-	 /* We found an equal type! */
-	 if ((res = nc_inq_user_type(ncid_in, xtype, NULL, &size,
-				    NULL, NULL, &class)))
-	    return res;
-	 if (class == NC_VLEN) /* VLENs are different... */
-	 {
-	    nc_vlen_t *vldata;
-	    int i;
-	    if (!(vldata = malloc(sizeof(nc_vlen_t) * len)))
-	       return NC_ENOMEM;
-	    if ((res = nc_get_att(ncid_in, varid_in, name, vldata)))
-	       return res;
-	    if ((res = nc_put_att(ncid_out, varid_out, name, xtype_out,
-				 len, vldata)))
-	       return res;
-	    for (i = 0; i < len; i++)
-	       if((res = nc_free_vlen(&vldata[i])))
-		  return res;
-	    free(vldata);
-         }
-	 else /* not VLEN */
-	 {
-	    if (!(data = malloc(size * len)))
-	       return NC_ENOMEM;
-	    res = nc_get_att(ncid_in, varid_in, name, data);
-	    if (!res)
-	       res = nc_put_att(ncid_out, varid_out, name, xtype_out, len, data);
-	    free(data);
-         }
-      }
-   }
-#endif /*!USE_NETCDF4*/
-#else /*!SEPDATA*/
    {
 	/* Copy arbitrary attributes. */
         int class;
@@ -629,7 +547,6 @@ NC_copy_att(int ncid_in, int varid_in, const char *name,
 	    res = nc_put_att(ncid_out, varid_out, name, xtype_out, len, data);
 	(void)nc_reclaim_data_all(ncid_out,xtype_out,data,len);
       }
-#endif /*SEPDATA*/
 
    return res;
 }
