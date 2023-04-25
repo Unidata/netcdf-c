@@ -60,14 +60,17 @@
 #define NC_RELAX_COORD_BOUND 1 /*!< Always allow 0 counts in parallel I/O. */
 #define NC_DISPATCH_VERSION  @NC_DISPATCH_VERSION@ /*!< Dispatch table version. */
 #define NC_HAS_PAR_FILTERS   @NC_HAS_PAR_FILTERS@ /* Parallel I/O with filter support. */
-#define NC_HAS_NCZARR        @NC_HAS_NCZARR@ /*!< Parallel I/O with filter support. */
 #define NC_HAS_MULTIFILTERS  @NC_HAS_MULTIFILTERS@ /*!< Nczarr support. */
 #define NC_HAS_LOGGING       @NC_HAS_LOGGING@ /*!< Logging support. */
 #define NC_HAS_QUANTIZE      @NC_HAS_QUANTIZE@ /*!< Quantization support. */
 #define NC_HAS_ZSTD          @NC_HAS_ZSTD@ /*!< Zstd support. */
 #define NC_HAS_BENCHMARKS    @NC_HAS_BENCHMARKS@ /*!< Benchmarks. */
-#define NC_HAS_S3            @NC_HAS_S3@ /*!< Amazon S3 Support. */
 #define NC_HAS_BLOSC         @NC_HAS_BLOSC@ /*!< Blosc Support. */
 #define NC_HAS_BZ2           @NC_HAS_BZ2@ /*!< bzip2 support */
+#define NC_HAS_S3            @NC_HAS_S3@ /*!< Amazon S3 Support. */
+#define NC_HAS_S3_AWS        @NC_HAS_S3_AWS@ /*!< Amazon S3 SDK. */
+#define NC_HAS_S3_INTERNAL   @NC_HAS_S3_INTERNAL@ /*!< Internal S3 SDK. */
+#define NC_HAS_HDF5_ROS3     @NC_HAS_HDF5_ROS3@ /*!< HDF5 ROS3 Support. */
+#define NC_HAS_NCZARR        @NC_HAS_NCZARR@ /*!< Parallel I/O with filter support. */
 
 #endif

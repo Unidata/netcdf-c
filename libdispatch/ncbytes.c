@@ -135,10 +135,9 @@ ncbytesappendn(NCbytes* bb, const void* elem, unsigned long n)
 {
   if(bb == NULL || elem == NULL) return ncbytesfail();
   if(n == 0) {n = strlen((char*)elem);}
-  ncbytessetalloc(bb,bb->length+n+1);
+  ncbytessetalloc(bb,bb->length+n);
   memcpy((void*)&bb->content[bb->length],(void*)elem,n);
   bb->length += n;
-  bb->content[bb->length] = '\0';
   return TRUE;
 }
 

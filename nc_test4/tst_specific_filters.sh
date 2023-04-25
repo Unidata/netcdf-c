@@ -12,6 +12,12 @@ set -e
 
 if test "x$TESTNCZARR" = x1 ; then
 . "$srcdir/test_nczarr.sh"
+s3isolate "testdir_specific_filters"
+THISDIR=`pwd`
+cd $ISOPATH
+fi
+
+if test "x$TESTNCZARR" = x1 ; then
 BLOSCARGS="32001,0,0,0,256,5,1,1"
 BLOSCCODEC='[{\"id\": \"blosc\",\"clevel\": 5,\"blocksize\": 256,\"cname\": \"lz4\",\"shuffle\": 1}]'
 else
@@ -178,6 +184,7 @@ if test "x$TESTNCZARR" = x1 ; then
     testset file
     if test "x$FEATURE_NCZARR_ZIP" = xyes ; then testset zip ; fi
     if test "x$FEATURE_S3TESTS" = xyes ; then testset s3 ; fi
+    if test "x$FEATURE_S3TESTS" = xyes ; then s3sdkdelete "/${S3ISOPATH}" ; fi # Cleanup
 else
     testset nc
 fi

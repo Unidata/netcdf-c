@@ -23,6 +23,7 @@
 #include "nc3internal.h"
 #include "nclist.h"
 #include "ncbytes.h"
+#include "ncuri.h"
 
 #undef DEBUG
 
@@ -160,15 +161,19 @@ httpio_open(const char* path,
     int status;
     NCHTTP* http = NULL;
     size_t sizehint;
+    NCURI* uri = NULL;
 
     if(path == NULL ||* path == 0)
         return EINVAL;
 
+    ncuriparse(path,&uri);
+    if(uri == NULL) {status = NC_EURL; goto done;}
+
     /* Create private data */
     if((status = httpio_new(path, ioflags, &nciop, &http))) goto done;
     /* Open the path and get curl handle and object size */
-    if((status = nc_http_init(&http->state))) goto done;
-    if((status = nc_http_size(http->state,path,&http->size))) goto done;
+    if((status = nc_http_open(path,&http->state))) goto done;
+    if((status = nc_http_size(http->state,&http->size))) goto done;
 
     sizehint = pagesize;
 
@@ -256,7 +261,7 @@ httpio_get(ncio* const nciop, off_t offset, size_t extent, int rflags, void** co
     assert(http->region == NULL);
     http->region = ncbytesnew();
     ncbytessetalloc(http->region,(unsigned long)extent);
-    if((status = nc_http_read(http->state,nciop->path,offset,extent,http->region)))
+    if((status = nc_http_read(http->state,offset,extent,http->region)))
 	goto done;
     assert(ncbyteslength(http->region) == extent);
     if(vpp) *vpp = ncbytescontents(http->region);

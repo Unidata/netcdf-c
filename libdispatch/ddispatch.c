@@ -28,7 +28,7 @@ See LICENSE.txt for license information.
 #include <curl/curl.h>
 #endif
 
-#ifdef ENABLE_S3_SDK
+#ifdef ENABLE_S3
 #include "ncs3sdk.h"
 #endif
 

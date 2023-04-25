@@ -7,6 +7,10 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 set -e
 
+s3isolate "testdir_newformat"
+THISDIR=`pwd`
+cd $ISOPATH
+
 echo ""
 echo "*** Testing backward compatibilty between nczarr meta data format V1 vs V2"
 
@@ -43,4 +47,4 @@ if test "x$FEATURE_NCZARR_ZIP" = xyes ; then
     testcasepure zip
 fi
 
-exit 0
+if test "x$FEATURE_S3TESTS" = xyes ; then s3sdkdelete "/${S3ISOPATH}" ; fi # Cleanup

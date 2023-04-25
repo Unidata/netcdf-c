@@ -7,13 +7,12 @@
 include $(top_srcdir)/lib_flags.am
 
 TESTS_ENVIRONMENT =
-
 #TEST_EXTENSIONS = .sh
-
 #SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #TESTS_ENVIRONMENT += export SETX=1;
+#TESTS_ENVIRONMENT += export NCTRACING=1;
 
 AM_CPPFLAGS += -I${top_srcdir} -I${top_srcdir}/libnczarr
 AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
@@ -23,7 +22,7 @@ LDADD = ${top_builddir}/liblib/libnetcdf.la
 check_PROGRAMS =
 TESTS =
 
-check_PROGRAMS += ut_map ut_mapapi ut_json ut_projections ut_chunking
+check_PROGRAMS += ut_map ut_mapapi ut_json ut_projections ut_chunking 
 
 commonsrc = ut_util.c ut_test.c ut_includes.h ut_test.h ut_util.h test_nczarr_utils.h
 tstcommonsrc = tst_utils.c tst_utils.h
@@ -42,8 +41,8 @@ TESTS += run_ut_chunk.sh
 if BUILD_UTILITIES
 
 TESTS += run_ut_map.sh
-TESTS += run_ut_mapapi.sh
 TESTS += run_ut_misc.sh
+TESTS += run_ut_mapapi.sh
 TESTS += run_ncgen4.sh
 
 if USE_HDF5
@@ -65,6 +64,7 @@ TESTS += run_strings.sh
 TESTS += run_scalar.sh
 TESTS += run_nulls.sh
 TESTS += run_notzarr.sh
+TESTS += run_external.sh
 
 endif #BUILD_UTILITIES
 
@@ -98,11 +98,14 @@ TESTS += run_nczfilter.sh
 # Echo filter tests from nc_test4
 check_PROGRAMS += testfilter testfilter_misc testfilter_order testfilter_repeat testfilter_multi test_filter_avail
 TESTS += run_filter.sh 
-TESTS += run_unknown.sh
 TESTS += run_specific_filters.sh
 
+# This test is too dangerous to run in a parallel make environment.
+# It causes race conditions. So suppress and only test by hand.
+#TESTS += run_unknown.sh
+
 if ISMINGW
-XFAIL_TESTS = run_filter.sh run_unknown.sh run_specific_filters.sh
+XFAIL_TESTS = run_filter.sh run_specific_filters.sh
 endif  # ISMINGW
 
 endif #ENABLE_FILTER_TESTING
@@ -120,12 +123,8 @@ noinst_PROGRAMS += zs3parse
 zs3parse_SOURCES = zs3parse.c
 
 if ENABLE_S3
-noinst_PROGRAMS += s3util
+noinst_PROGRAMS += s3util 
 s3util_SOURCES = s3util.c
-TESTS += run_s3_cleanup.sh
-if ISCYGWIN
-XFAIL_TESTS = run_s3_cleanup.sh
-endif # ISCYGWIN
 endif
 
 # Given a netcdf4|NCZarr file, dump the actual chunk contents.
@@ -141,7 +140,7 @@ run_purezarr.sh run_interop.sh run_misc.sh \
 run_filter.sh \
 run_newformat.sh run_nczarr_fill.sh run_quantize.sh \
 run_jsonconvention.sh run_nczfilter.sh run_unknown.sh \
-run_scalar.sh run_strings.sh run_nulls.sh run_notzarr.sh
+run_scalar.sh run_strings.sh run_nulls.sh run_notzarr.sh run_external.sh
 
 EXTRA_DIST += \
 ref_ut_map_create.cdl ref_ut_map_writedata.cdl ref_ut_map_writemeta2.cdl ref_ut_map_writemeta.cdl \
@@ -163,13 +162,13 @@ ref_groups.h5 ref_byte.zarr.zip ref_byte_fill_value_null.zarr.zip \
 ref_groups_regular.cdl ref_byte.cdl ref_byte_fill_value_null.cdl \
 ref_jsonconvention.cdl ref_jsonconvention.zmap \
 ref_string.cdl ref_string_nczarr.baseline ref_string_zarr.baseline ref_scalar.cdl \
-ref_nulls_nczarr.baseline ref_nulls_zarr.baseline ref_nulls.cdl
+ref_nulls_nczarr.baseline ref_nulls_zarr.baseline ref_nulls.cdl ref_notzarr.tar.gz
 
 # Interoperability files
 EXTRA_DIST += ref_power_901_constants_orig.zip ref_power_901_constants.cdl ref_quotes_orig.zip ref_quotes.cdl \
 ref_zarr_test_data.cdl.gz
 
-CLEANFILES = ut_*.txt ut*.cdl tmp*.nc tmp*.cdl tmp*.txt tmp*.dmp tmp*.zip tmp*.nc tmp*.dump tmp*.tmp tmp_ngc.c ref_zarr_test_data.cdl tst_*.nc.zip ref_quotes.zip ref_power_901_constants.zip
+CLEANFILES = ut_*.txt ut*.cdl tmp*.nc tmp*.cdl tmp*.txt tmp*.dmp tmp*.zip tmp*.nc tmp*.dump tmp*.tmp tmp*.zmap tmp_ngc.c ref_zarr_test_data.cdl tst_*.nc.zip ref_quotes.zip ref_power_901_constants.zip
 
 BUILT_SOURCES = test_quantize.c test_filter_avail.c run_specific_filters.sh run_filterinstall.sh run_unknown.sh
 test_quantize.c: $(top_srcdir)/nc_test4/tst_quantize.c
@@ -211,11 +210,16 @@ run_filterinstall.sh: $(top_srcdir)/nc_test4/tst_filterinstall.sh
 
 # Remove directories
 clean-local:
+	rm -fr testdir_*
 	rm -fr tmp_*.nc tmp_*.zarr tst_quantize*.zarr tmp*.file results.file results.s3 results.zip
 	rm -fr rcmiscdir ref_power_901_constants.file 
 
 
 DISTCLEANFILES = findplugin.sh test_quantize.c run_specific_filters.sh run_filterinstall.sh run_unknown.sh test_filter_avail.c
+
+# Provide a specific s3 cleanup action
+s3cleanup::
+	${srcdir}/run_s3_cleanup.sh
 
 # If valgrind is present, add valgrind targets.
 @VALGRIND_CHECK_RULES@

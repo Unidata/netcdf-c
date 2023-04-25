@@ -30,6 +30,7 @@ jobs:
             libhdf4-devel zipinfo libxml2-devel perl zlib-devel
             libzstd-devel libbz2-devel libaec-devel libzip-devel
             libdeflate-devel gcc-core libcurl-devel libiconv-devel
+            libssl-devel libcrypt-devel
 
       - name: (Autotools) Run autoconf and friends
         run: |
@@ -40,10 +41,11 @@ jobs:
 
       - name: (Autotools) Configure in-tree build
         run: >-
-          /bin/dash ./configure --enable-hdf5 --enable-shared
-          --disable-static --enable-dap --disable-dap-remote-tests
-          --enable-plugins --disable-nczarr-filters
-          --disable-nczarr-s3 --disable-nczarr-s3-tests --disable-nczarr
+           /bin/dash ./configure --enable-hdf5 --enable-shared
+           --disable-static --enable-dap --disable-dap-remote-tests
+           --enable-plugins --enable-nczarr
+           --enable-s3 --enable-s3-internal
+
 
       - name: Look at config.log if error
         if: ${{ failure() }}
@@ -66,4 +68,11 @@ jobs:
 
       - name: (Autotools) Build and run tests
         timeout-minutes: 30
-        run: make check -j8 SHELL=/bin/dash
+        env:
+          AWS_PROFILE: ${{ secrets.DEFAULT_PROFILE }}
+        run: |
+          mkdir -p ~/.aws
+          echo "" > ~/.aws/config
+          chmod go-rwx ~/.aws/config
+          echo "${AWS_PROFILE}" >> ~/.aws/config
+          make check -j8 SHELL=/bin/dash

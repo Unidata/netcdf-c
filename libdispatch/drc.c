@@ -19,6 +19,7 @@ See COPYRIGHT for license information.
 #include "ncbytes.h"
 #include "ncuri.h"
 #include "ncrc.h"
+#include "ncs3sdk.h"
 #include "nclog.h"
 #include "ncauth.h"
 #include "ncpathmgr.h"
@@ -67,8 +68,8 @@ static void freeprofilelist(NClist* profiles);
 /* Define default rc files and aliases, also defines load order*/
 static const char* rcfilenames[] = {".ncrc", ".daprc", ".dodsrc",NULL};
 
-/* Read these files */
-static const char* awsconfigfiles[] = {".aws/credentials",".aws/config",NULL};
+/* Read these files in order and later overriding earlier */
+static const char* awsconfigfiles[] = {".aws/config",".aws/credentials",NULL};
 
 static int NCRCinitialized = 0;
 
@@ -158,7 +159,7 @@ ncrc_initialize(void)
     if((stat = NC_rcload())) {
         nclog(NCLOGWARN,".rc loading failed");
     }
-    /* Load .aws/config */
+    /* Load .aws/config &/ credentials */
     if((stat = aws_load_credentials(ncg))) {
         nclog(NCLOGWARN,"AWS config file not loaded");
     }
@@ -488,7 +489,8 @@ rccompile(const char* filepath)
 	         NCURI* newuri = NULL;
 	        /* Rebuild the url to S3 "path" format */
 	        nullfree(bucket);
-	        if((ret = NC_s3urlrebuild(uri,&newuri,&bucket,NULL))) goto done;
+		bucket = NULL;
+	        if((ret = NC_s3urlrebuild(uri,&bucket,NULL,&newuri))) goto done;
 		ncurifree(uri);
 		uri = newuri;
 		newuri = NULL;
@@ -1038,13 +1040,14 @@ fprintf(stderr,">>> parse: entry=(%s,%s)\n",entry->key,entry->value);
 	        {stat = NCTHROW(NC_EINVAL); goto done;}
 	}
 
-	/* If this profile already exists, then ignore new one */
+	/* If this profile already exists, then replace old one */
 	for(i=0;i<nclistlength(profiles);i++) {
 	    struct AWSprofile* p = (struct AWSprofile*)nclistget(profiles,i);
 	    if(strcasecmp(p->name,profile->name)==0) {
-		/* reclaim and ignore */
-		freeprofile(profile);
-		profile = NULL;
+		nclistset(profiles,i,profile);
+                profile = NULL;
+		/* reclaim old one */
+		freeprofile(p);
 		break;
 	    }
 	}
@@ -1069,7 +1072,7 @@ freeentry(struct AWSentry* e)
 {
     if(e) {
 #ifdef AWSDEBUG
-fprintf(stderr,">>> freeentry: key=%s value=%s\n",e->key,e->value);
+fprintf(stderr,">>> freeentry: key=%p value=%p\n",e->key,e->value);
 #endif
         nullfree(e->key);
         nullfree(e->value);
@@ -1108,7 +1111,7 @@ freeprofilelist(NClist* profiles)
     }
 }
 
-/* Find, load, and parse the aws credentials file */
+/* Find, load, and parse the aws config &/or credentials file */
 static int
 aws_load_credentials(NCglobalstate* gstate)
 {
@@ -1152,12 +1155,16 @@ aws_load_credentials(NCglobalstate* gstate)
 #ifdef AWSDEBUG
     {int i,j;
 	fprintf(stderr,">>> profiles:\n");
-	for(i=0;i<nclistlength(creds->profiles);i++) {
-	    struct AWSprofile* p = (struct AWSprofile*)nclistget(creds->profiles,i);
+	for(i=0;i<nclistlength(gstate->rcinfo->s3profiles);i++) {
+	    struct AWSprofile* p = (struct AWSprofile*)nclistget(gstate->rcinfo->s3profiles,i);
 	    fprintf(stderr,"    [%s]",p->name);
 	    for(j=0;j<nclistlength(p->entries);j++) {
 	        struct AWSentry* e = (struct AWSentry*)nclistget(p->entries,j);
-		fprintf(stderr," %s=%s",e->key,e->value);
+		if(strcmp(e->key,"aws_access_key_id")
+		    fprintf(stderr," %s=%d",e->key,(int)strlen(e->value));
+		else if(strcmp(e->key,"aws_secret_access_key")
+		    fprintf(stderr," %s=%d",e->key,(int)strlen(e->value));
+		else fprintf(stderr," %s=%s",e->key,e->value);
 	    }
             fprintf(stderr,"\n");
 	}
