@@ -54,7 +54,7 @@ jobs:
       - name: Check for plugins
         run: |
           dir ./plugins
-          if test -f ./plugins/.libs ; then dir ./plugins/.libs; fi
+          if test -e ./plugins/.libs ; then dir ./plugins/.libs ; fi
 
       - name: (Autotools) Build and Run Tests
         run: make check -j 8 LDFLAGS="-Wl,--export-all-symbols"

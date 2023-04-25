@@ -35,7 +35,7 @@ ut_projections_SOURCES = ut_projections.c ${commonsrc}
 ut_chunking_SOURCES = ut_chunking.c ${commonsrc}
 tst_fillonlyz_SOURCES = tst_fillonlyz.c ${tstcommonsrc}
 
-check_PROGRAMS += tst_zchunks tst_zchunks2 tst_zchunks3 tst_fillonlyz test_quantize 
+check_PROGRAMS += tst_zchunks tst_zchunks2 tst_zchunks3 tst_fillonlyz test_quantize tst_notzarr
 
 TESTS += run_ut_chunk.sh
 
@@ -64,7 +64,9 @@ TESTS += run_jsonconvention.sh
 TESTS += run_strings.sh
 TESTS += run_scalar.sh
 TESTS += run_nulls.sh
-endif
+TESTS += run_notzarr.sh
+
+endif #BUILD_UTILITIES
 
 if BUILD_UTILITIES 
 
@@ -139,7 +141,7 @@ run_purezarr.sh run_interop.sh run_misc.sh \
 run_filter.sh \
 run_newformat.sh run_nczarr_fill.sh run_quantize.sh \
 run_jsonconvention.sh run_nczfilter.sh run_unknown.sh \
-run_scalar.sh run_strings.sh run_nulls.sh
+run_scalar.sh run_strings.sh run_nulls.sh run_notzarr.sh
 
 EXTRA_DIST += \
 ref_ut_map_create.cdl ref_ut_map_writedata.cdl ref_ut_map_writemeta2.cdl ref_ut_map_writemeta.cdl \
