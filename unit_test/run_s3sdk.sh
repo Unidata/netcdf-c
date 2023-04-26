@@ -6,7 +6,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 set -e
 set -x
 
-CMD="valgrind --leak-check=full"
+#CMD="valgrind --leak-check=full"
 
 URL="https://s3.us-east-1.amazonaws.com/unidata-zarr-test-data"
 
@@ -18,7 +18,7 @@ S3ISOPATH="/netcdf-c"
 S3ISOPATH="${S3ISOPATH}/$S3ISODIR"
 
 test_cleanup() {
-${execdir}/../nczarr_test/s3util -u "${URL}" -k "${S3ISOPATH}" clear
+${CMD} ${execdir}/../nczarr_test/s3util -u "${URL}" -k "${S3ISOPATH}" clear
 }
 if ! test "x$GITHUB_ACTIONS" ; then
 trap test_cleanup EXIT
@@ -48,7 +48,7 @@ fi
 
 if test "x$GITHUB_ACTIONS" ; then
 # Cleanup on exit
-${execdir}/../nczarr_test/s3util -u "${URL}" -k "${S3ISOPATH}" clear
+${CMD} ${execdir}/../nczarr_test/s3util -u "${URL}" -k "${S3ISOPATH}" clear
 fi
 
 exit
