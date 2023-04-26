@@ -6,7 +6,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 set -e
 set -x
 
-CMD="valgrind --leak-check=full"
+VG="valgrind --leak-check=full"
 
 URL="https://s3.us-east-1.amazonaws.com/unidata-zarr-test-data"
 
@@ -18,7 +18,8 @@ S3ISOPATH="/netcdf-c"
 S3ISOPATH="${S3ISOPATH}/$S3ISODIR"
 
 test_cleanup() {
-${execdir}/../nczarr_test/s3util -u "${URL}" -k "${S3ISOPATH}" clear
+echo ">>> error exit"
+$VG ${execdir}/../nczarr_test/s3util -u "${URL}" -k "${S3ISOPATH}" clear
 }
 trap test_cleanup EXIT
 
@@ -36,4 +37,5 @@ if test "x$FEATURE_LARGE_TESTS" = xyes ; then
 ${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}"                longlist
 fi
 # Cleanup on exit
-${execdir}/../nczarr_test/s3util -u "${URL}" -k "${S3ISOPATH}" clear
+echo ">>> clean exit"
+$VG ${execdir}/../nczarr_test/s3util -u "${URL}" -k "${S3ISOPATH}" clear
