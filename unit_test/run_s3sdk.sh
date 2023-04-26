@@ -4,6 +4,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
 set -e
+set -x
 
 URL="https://s3.us-east-1.amazonaws.com/unidata-zarr-test-data"
 
