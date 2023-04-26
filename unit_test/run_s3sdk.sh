@@ -6,8 +6,6 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 set -e
 set -x
 
-CMD="valgrind --leak-check=full"
-
 URL="https://s3.us-east-1.amazonaws.com/unidata-zarr-test-data"
 
 isolate "testdir_uts3sdk"
@@ -18,7 +16,10 @@ S3ISOPATH="/netcdf-c"
 S3ISOPATH="${S3ISOPATH}/$S3ISODIR"
 
 test_cleanup() {
-${execdir}/../nczarr_test/s3util -u "${URL}" -k "${S3ISOPATH}" clear
+echo ">>>> Cleanup"
+if test -e ${execdir}/../nczarr_test/s3util ; then
+  ${execdir}/../nczarr_test/s3util -u "${URL}" -k "${S3ISOPATH}" clear
+fi
 }
 trap test_cleanup EXIT
 
