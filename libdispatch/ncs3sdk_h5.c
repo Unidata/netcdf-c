@@ -174,8 +174,6 @@ NC_s3sdkbucketexists(void* s3client0, const char* bucket, int* existsp, char** e
     if(errmsgp) *errmsgp = NULL;
 
     if((stat = makes3fullpath(s3client->rooturl,bucket,NULL,NULL,url))) goto done;
-fprintf(stderr,">>> bucketexits: url=%s\n",ncbytescontents(url));
-
     if((stat = NCH5_s3comms_s3r_head(s3client->h5s3client, ncbytescontents(url), NULL, NULL, &httpcode, NULL))) goto done;
 
     if(existsp) {*existsp = (stat == 0 && httpcode == 200);}
@@ -492,6 +490,10 @@ static int
 makes3fullpath(const char* rooturl, const char* bucket, const char* prefix, const char* key, NCbytes* url)
 {
     int stat = NC_NOERR;
+
+fprintf(stderr,">>> makes3fullpath: rooturl=|%s| url=|%s|\n",
+(rooturl?rooturl:"null"),
+(ncbytescontents(url)?ncbytescontents(url):"null"));
 
     assert(url != NULL);
     assert(rooturl != NULL);
