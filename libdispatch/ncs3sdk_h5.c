@@ -499,8 +499,8 @@ dumps3info(info,"makes3rooturl");
     ncbytescat(buf,"https://");
     ncbytescat(buf,info->host);
     result = ncbytesextract(buf);
-fprintf(stderr,">>> makes3rooturl: result=|%s|\n",result);
     ncbytesfree(buf);
+fprintf(stderr,">>> makes3rooturl: result=|%s|\n",result);
     return result;
 }
 
@@ -510,7 +510,6 @@ makes3fullpath(const char* rooturl, const char* bucket, const char* prefix, cons
     int stat = NC_NOERR;
 
 fprintf(stderr,"@@@ makes3fullpath: rooturl=%p\n",rooturl);
-fprintf(stderr,"@@@ makes3fullpath: rooturl[0]=%d\n",(int)rooturl[0]);
 
     assert(url != NULL);
     assert(rooturl != NULL);
