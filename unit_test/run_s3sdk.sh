@@ -6,7 +6,7 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 set -e
 set -x
 
-#CMD="valgrind --leak-check=full"
+CMD="valgrind --leak-check=full"
 
 URL="https://s3.us-east-1.amazonaws.com/unidata-zarr-test-data"
 
