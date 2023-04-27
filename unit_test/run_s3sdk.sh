@@ -27,6 +27,8 @@ fi
 THISDIR=`pwd`
 cd $ISOPATH
 
+${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}"                list
+${CMD} ${execdir}/test_s3sdk -u "${URL}"                                  exists
 ${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}/test_s3sdk.txt" write
 ${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}/test_s3sdk.txt" read
 ${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}/test_s3sdk.txt" size
@@ -36,7 +38,6 @@ ${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}/test_s3sdk.txt" delete
 if test "x$FEATURE_LARGE_TESTS" = xyes ; then
 ${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}"                longlist
 fi
-${CMD} ${execdir}/test_s3sdk -u "${URL}"                                  exists
 
 if test "x$GITHUB_ACTIONS" = xtrue; then
 # Cleanup on exit
