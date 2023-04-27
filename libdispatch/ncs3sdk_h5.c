@@ -509,6 +509,8 @@ makes3fullpath(const char* rooturl, const char* bucket, const char* prefix, cons
 {
     int stat = NC_NOERR;
 
+fprintf(stderr,"@@@ makes3fullpath: rooturl=|%.10s|\n",rooturl);
+
     assert(url != NULL);
     assert(rooturl != NULL);
 
