@@ -109,6 +109,20 @@ static int queryadd(NClist* query, const char* key, const char* value);
 static int queryend(NClist* query, char** querystring);
 static int queryinsert(NClist* list, char* ekey, char* evalue);
 
+#define NT(x) ((x)==NULL?"null":x)
+static void
+dumps3info(NCS3INFO* s3info)
+{
+    fprintf(stderr,">>> s3info=%p\n",s3info);
+    if(s3info != NULL) {
+        fprintf(stderr,">>> s3info->host=%s\n",NT(s3info->host));
+        fprintf(stderr,">>> s3info->region=%s\n",NT(s3info->regions));
+        fprintf(stderr,">>> s3info->bucket=%s\n",NT(s3info->bucket));
+        fprintf(stderr,">>> s3info->rootkey=%s\n",NT(s3info->rootkey));
+        fprintf(stderr,">>> s3info->profile=%s\n",NT(s3info->profile));
+    }
+}
+
 /**************************************************/
 
 EXTERNL int
@@ -141,6 +155,8 @@ NC_s3sdkcreateclient(NCS3INFO* info)
     const char* accesskey = NULL;
     char* urlroot = NULL;
     NCS3CLIENT* s3client = NULL;
+
+dumps3info(info);
 
     NCTRACE(11,NULL);
     s3client = (NCS3CLIENT*)calloc(1,sizeof(NCS3CLIENT));
@@ -490,17 +506,6 @@ static int
 makes3fullpath(const char* rooturl, const char* bucket, const char* prefix, const char* key, NCbytes* url)
 {
     int stat = NC_NOERR;
-
-if(rooturl == NULL)
-fprintf(stderr,">>> makes3fullpath: rooturl=|%s|\n","null");
-else
-fprintf(stderr,">>> makes3fullpath: rooturl=|%s|\n",rooturl);
-
-if(url == NULL)
-fprintf(stderr,">>> makes3fullpath: url=|%s|\n","null");
-else
-fprintf(stderr,">>> makes3fullpath: |url|=%d\n",(int)ncbyteslength(url));
-fflush(stderr);
 
     assert(url != NULL);
     assert(rooturl != NULL);
@@ -1036,3 +1041,4 @@ queryinsert(NClist* list, char* ekey, char* evalue)
 done:
     return NCTHROW(stat);
 }
+
