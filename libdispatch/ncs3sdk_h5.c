@@ -492,6 +492,9 @@ makes3fullpath(const char* rooturl, const char* bucket, const char* prefix, cons
 {
     int stat = NC_NOERR;
 
+    assert(url != NULL);
+    assert(rooturl != NULL);
+
     ncbytescat(url,rooturl);
 
     if(bucket) {
