@@ -97,12 +97,12 @@ if(0) {
 }
 }
 
-
 static int
 profilesetup(const char* url)
 {
     int stat = NC_NOERR;
 
+fprintf(stderr,">>> profilesetup: url=%s\n",url);
     ncuriparse(url,&purl);
     if(purl == NULL) {
         fprintf(stderr,"URI parse fail: %s\n",url);
