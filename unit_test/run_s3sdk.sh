@@ -17,8 +17,6 @@ S3ISODIR="$ISODIR"
 S3ISOPATH="/netcdf-c"
 S3ISOPATH="${S3ISOPATH}/$S3ISODIR"
 
-echo ">>> GITHUB_ACTIONS=$GITHUB_ACTIONS"
-
 test_cleanup() {
 ${CMD} ${execdir}/../nczarr_test/s3util -u "${URL}" -k "${S3ISOPATH}" clear
 }
@@ -29,28 +27,20 @@ fi
 THISDIR=`pwd`
 cd $ISOPATH
 
-echo ">>>exists"
-${CMD} ${execdir}/test_s3sdk -u "${URL}"                                  exists
-echo ">>>write"
 ${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}/test_s3sdk.txt" write
-echo ">>>read"
 ${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}/test_s3sdk.txt" read
-echo ">>>size"
 ${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}/test_s3sdk.txt" size
-echo ">>>list"
 ${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}"                list
-echo ">>>search"
 ${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}"                search
-echo ">>>delete"
 ${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}/test_s3sdk.txt" delete
 if test "x$FEATURE_LARGE_TESTS" = xyes ; then
-echo ">>>longlist"
 ${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}"                longlist
 fi
+${CMD} ${execdir}/test_s3sdk -u "${URL}"                                  exists
 
 if test "x$GITHUB_ACTIONS" = xtrue; then
 # Cleanup on exit
-${CMD} ${execdir}/../nczarr_test/s3util -u "${URL}" -k "${S3ISOPATH}" clear
+test_cleanup
 fi
 
 exit
