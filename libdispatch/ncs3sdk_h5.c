@@ -174,6 +174,7 @@ NC_s3sdkbucketexists(void* s3client0, const char* bucket, int* existsp, char** e
     if(errmsgp) *errmsgp = NULL;
 
     if((stat = makes3fullpath(s3client->rooturl,bucket,NULL,NULL,url))) goto done;
+fprintf(stderr,">>> bucketexits: url=%s\n",ncbytescontents(url));
 
     if((stat = NCH5_s3comms_s3r_head(s3client->h5s3client, ncbytescontents(url), NULL, NULL, &httpcode, NULL))) goto done;
 
