@@ -491,9 +491,16 @@ makes3fullpath(const char* rooturl, const char* bucket, const char* prefix, cons
 {
     int stat = NC_NOERR;
 
-fprintf(stderr,">>> makes3fullpath: rooturl=|%s| url=|%s|\n",
-(rooturl?rooturl:"null"),
-(ncbytescontents(url)?ncbytescontents(url):"null"));
+if(rooturl == NULL)
+fprintf(stderr,">>> makes3fullpath: rooturl=|%s|\n","null");
+else
+fprintf(stderr,">>> makes3fullpath: rooturl=|%s|\n",rooturl);
+
+if(url == NULL)
+fprintf(stderr,">>> makes3fullpath: url=|%s|\n","null");
+else
+fprintf(stderr,">>> makes3fullpath: |url|=%d\n",(int)ncbyteslength(url));
+fflush(stderr);
 
     assert(url != NULL);
     assert(rooturl != NULL);
