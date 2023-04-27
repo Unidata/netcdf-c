@@ -22,9 +22,9 @@ echo ">>> GITHUB_ACTIONS=$GITHUB_ACTIONS"
 test_cleanup() {
 ${CMD} ${execdir}/../nczarr_test/s3util -u "${URL}" -k "${S3ISOPATH}" clear
 }
-#if ! test "x$GITHUB_ACTIONS" ; then
-#trap test_cleanup EXIT
-#fi
+if test "x$GITHUB_ACTIONS" != xtrue; then
+trap test_cleanup EXIT
+fi
 
 THISDIR=`pwd`
 cd $ISOPATH
@@ -48,7 +48,7 @@ echo ">>>longlist"
 ${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}"                longlist
 fi
 
-if test "x$GITHUB_ACTIONS" ; then
+if test "x$GITHUB_ACTIONS" = xtrue; then
 # Cleanup on exit
 ${CMD} ${execdir}/../nczarr_test/s3util -u "${URL}" -k "${S3ISOPATH}" clear
 fi
