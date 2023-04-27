@@ -111,15 +111,16 @@ static int queryinsert(NClist* list, char* ekey, char* evalue);
 
 #define NT(x) ((x)==NULL?"null":x)
 static void
-dumps3info(NCS3INFO* s3info)
+dumps3info(NCS3INFO* s3info, const char* tag)
 {
-    fprintf(stderr,">>> s3info=%p\n",s3info);
+    if(tag == NULL) tag = "dumps3info";
+    fprintf(stderr,">>> %s: s3info=%p\n",tag,s3info);
     if(s3info != NULL) {
-        fprintf(stderr,">>> s3info->host=%s\n",NT(s3info->host));
-        fprintf(stderr,">>> s3info->region=%s\n",NT(s3info->region));
-        fprintf(stderr,">>> s3info->bucket=%s\n",NT(s3info->bucket));
-        fprintf(stderr,">>> s3info->rootkey=%s\n",NT(s3info->rootkey));
-        fprintf(stderr,">>> s3info->profile=%s\n",NT(s3info->profile));
+        fprintf(stderr,">>> %s: s3info->host=%s\n",tag,NT(s3info->host));
+        fprintf(stderr,">>> %s: s3info->region=%s\n",tag,NT(s3info->region));
+        fprintf(stderr,">>> %s: s3info->bucket=%s\n",tag,NT(s3info->bucket));
+        fprintf(stderr,">>> %s: s3info->rootkey=%s\n",tag,NT(s3info->rootkey));
+        fprintf(stderr,">>> %s: s3info->profile=%s\n",tag,NT(s3info->profile));
     }
 }
 
@@ -155,8 +156,6 @@ NC_s3sdkcreateclient(NCS3INFO* info)
     const char* accesskey = NULL;
     char* urlroot = NULL;
     NCS3CLIENT* s3client = NULL;
-
-dumps3info(info);
 
     NCTRACE(11,NULL);
     s3client = (NCS3CLIENT*)calloc(1,sizeof(NCS3CLIENT));
@@ -495,9 +494,12 @@ makes3rooturl(NCS3INFO* info)
     NCbytes* buf = ncbytesnew();
     char* result = NULL;
     
+dumps3info(info,"makes3rooturl");
+
     ncbytescat(buf,"https://");
     ncbytescat(buf,info->host);
     result = ncbytesextract(buf);
+fprintf(stderr,">>> makes3rooturl: result=|%s|\n",result);
     ncbytesfree(buf);
     return result;
 }
