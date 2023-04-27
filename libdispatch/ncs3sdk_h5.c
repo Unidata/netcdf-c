@@ -116,7 +116,7 @@ dumps3info(NCS3INFO* s3info)
     fprintf(stderr,">>> s3info=%p\n",s3info);
     if(s3info != NULL) {
         fprintf(stderr,">>> s3info->host=%s\n",NT(s3info->host));
-        fprintf(stderr,">>> s3info->region=%s\n",NT(s3info->regions));
+        fprintf(stderr,">>> s3info->region=%s\n",NT(s3info->region));
         fprintf(stderr,">>> s3info->bucket=%s\n",NT(s3info->bucket));
         fprintf(stderr,">>> s3info->rootkey=%s\n",NT(s3info->rootkey));
         fprintf(stderr,">>> s3info->profile=%s\n",NT(s3info->profile));
