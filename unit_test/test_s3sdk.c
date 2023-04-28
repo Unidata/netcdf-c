@@ -147,6 +147,7 @@ testbucketexists(void)
     if(!exists) {stat = NC_EINVAL; goto done;}
 
 done:
+    cleanup();
     return stat;
 }
 
@@ -169,6 +170,7 @@ testinfo(void)
     printf("testinfo: size=%llu\n",size);
 
 done:
+    cleanup();
     return stat;
 }
 
@@ -197,6 +199,7 @@ testread(void)
     free(content);
 
 done:
+    cleanup();
     return stat;
 }
 
@@ -229,6 +232,7 @@ testwrite(void)
     free(content);
 
 done:
+    cleanup();
     return stat;
 }
 
@@ -255,6 +259,7 @@ testgetkeys(void)
     printf("\n");
 
 done:
+    cleanup();
     for(i=0;i<nkeys;i++) nullfree(keys[i]);
     nullfree(keys);
     return stat;
@@ -325,6 +330,7 @@ testgetkeyslong(void)
 #endif
 
 done:
+    cleanup();
     for(i=0;i<nkeys;i++) nullfree(keys[i]);
     nullfree(keys);
     return stat;
@@ -353,6 +359,8 @@ testsearch(void)
     printf("\n");
 
 done:
+    cleanup();
+    NC_s3sdkclose(s3client,&s3info,0,NULL); s3client = NULL;
     for(i=0;i<nkeys;i++) nullfree(keys[i]);
     nullfree(keys);
     return stat;
@@ -394,6 +402,7 @@ testdeletekey(void)
     stat = NC_NOERR; /* reset */
 
 done:
+    cleanup();
     return stat;
 }
 
@@ -402,6 +411,7 @@ cleanup(void)
 {
     if(s3client)
         NC_s3sdkclose(s3client, &s3info, 0/*deleteit*/, NULL);
+    s3client = NULL;
     NC_s3clear(&s3info);
     ncurifree(purl);
 }
