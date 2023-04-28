@@ -184,7 +184,9 @@ NC_s3sdkcreateclient(NCS3INFO* info)
 done:
     nullfree(urlroot);
     if(stat && s3client) {
-        if(s3client) NC_s3sdkclose(s3client,info,0,NULL);
+fprintf(stderr,">>> NC_s3sdkcreateclient: stat=%d s3client=%p\n",stat,s3client);
+dumps3client(s3client,"NC_s3sdkcreateclient");
+        NC_s3sdkclose(s3client,info,0,NULL);
 	abort();
     }
     NCNILTRACE(NC_NOERR);
