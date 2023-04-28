@@ -416,7 +416,7 @@ cleanup(void)
         NC_s3sdkclose(s3client, &s3info, 0/*deleteit*/, NULL);
     s3client = NULL;
     NC_s3clear(&s3info);
-    ncurifree(purl);
+    ncurifree(purl); purl = NULL;
 }
 
 int
