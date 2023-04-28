@@ -21,7 +21,7 @@
 #include "XGetopt.h"
 #endif
 
-#undef DEBUG
+#define DEBUG
 
 #define SELF_CLEAN
 
