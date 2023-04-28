@@ -111,6 +111,7 @@ static int queryinsert(NClist* list, char* ekey, char* evalue);
 
 #define NT(x) ((x)==NULL?"null":x)
 
+#if 1
 static void
 dumps3info(NCS3INFO* s3info, const char* tag)
 {
@@ -136,6 +137,7 @@ dumps3client(void* s3client0, const char* tag)
 	fprintf(stderr,">>> %s: s3client->h5s3client=%p\n",tag,s3client->rooturl);
     }
 }
+#endif
 
 /**************************************************/
 
@@ -179,18 +181,18 @@ NC_s3sdkcreateclient(NCS3INFO* info)
     }
     if((s3client->rooturl = makes3rooturl(info))==NULL) {stat = NC_ENOMEM; goto done;}
     s3client->h5s3client = NCH5_s3comms_s3r_open(s3client->rooturl,info->region,accessid,accesskey);
+fprintf(stderr,">>> (1) NC_s3sdkcreateclient: s3client=%p h5s3client=%p\n",s3client,s3client->h5s3client);
     if(s3client->h5s3client == NULL) {stat = NC_ES3; goto done;}
 
 done:
     nullfree(urlroot);
     if(stat && s3client) {
-fprintf(stderr,">>> NC_s3sdkcreateclient: stat=%d s3client=%p\n",stat,s3client);
+fprintf(stderr,">>> (2) NC_s3sdkcreateclient: stat=%d s3client=%p\n",stat,s3client);
 dumps3client(s3client,"NC_s3sdkcreateclient");
         NC_s3sdkclose(s3client,info,0,NULL);
 	abort();
     }
     NCNILTRACE(NC_NOERR);
-dumps3client(s3client,"NC_s3sdkcreateclient");
     return (void*)s3client;
 }
 
@@ -204,8 +206,6 @@ NC_s3sdkbucketexists(void* s3client0, const char* bucket, int* existsp, char** e
 
     NCTRACE(11,"bucket=%s",bucket);
     if(errmsgp) *errmsgp = NULL;
-
-dumps3client(s3client,"NC_s3sdkbucketexists");
 
     if((stat = makes3fullpath(s3client->rooturl,bucket,NULL,NULL,url))) goto done;
     if((stat = NCH5_s3comms_s3r_head(s3client->h5s3client, ncbytescontents(url), NULL, NULL, &httpcode, NULL))) goto done;
@@ -513,8 +513,6 @@ makes3rooturl(NCS3INFO* info)
     NCbytes* buf = ncbytesnew();
     char* result = NULL;
     
-dumps3info(info,"makes3rooturl");
-
     ncbytescat(buf,"https://");
     ncbytescat(buf,info->host);
     ncbytesnull(buf);
