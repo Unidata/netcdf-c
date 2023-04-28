@@ -110,6 +110,7 @@ static int queryend(NClist* query, char** querystring);
 static int queryinsert(NClist* list, char* ekey, char* evalue);
 
 #define NT(x) ((x)==NULL?"null":x)
+
 static void
 dumps3info(NCS3INFO* s3info, const char* tag)
 {
@@ -121,6 +122,18 @@ dumps3info(NCS3INFO* s3info, const char* tag)
         fprintf(stderr,">>> %s: s3info->bucket=%s\n",tag,NT(s3info->bucket));
         fprintf(stderr,">>> %s: s3info->rootkey=%s\n",tag,NT(s3info->rootkey));
         fprintf(stderr,">>> %s: s3info->profile=%s\n",tag,NT(s3info->profile));
+    }
+}
+
+static void
+dumps3client(void* s3client0, const char* tag)
+{
+    NCS3CLIENT* s3client = (NCS3CLIENT*)s3client0;
+    if(tag == NULL) tag = "dumps3client";
+    fprintf(stderr,">>> %s: s3client=%p\n",tag,s3client);
+    if(s3client != NULL) {
+	fprintf(stderr,">>> %s: s3client->rooturl=%s\n",tag,NT(s3client->rooturl));
+	fprintf(stderr,">>> %s: s3client->h5s3client=%p\n",tag,s3client->rooturl);
     }
 }
 
@@ -188,7 +201,8 @@ NC_s3sdkbucketexists(void* s3client0, const char* bucket, int* existsp, char** e
     NCTRACE(11,"bucket=%s",bucket);
     if(errmsgp) *errmsgp = NULL;
 
-fprintf(stderr,"??? |%s|\n",s3client->rooturl);
+dumps3client(s3client,"NC_s3sdkbucketexists");
+
     if((stat = makes3fullpath(s3client->rooturl,bucket,NULL,NULL,url))) goto done;
     if((stat = NCH5_s3comms_s3r_head(s3client->h5s3client, ncbytescontents(url), NULL, NULL, &httpcode, NULL))) goto done;
 
@@ -500,7 +514,6 @@ dumps3info(info,"makes3rooturl");
     ncbytescat(buf,"https://");
     ncbytescat(buf,info->host);
     ncbytesnull(buf);
-fprintf(stderr,">>> makes3rooturl: |buf|=%d\n",(int)ncbyteslength(buf));
     result = ncbytesextract(buf);
     ncbytesfree(buf);
     return result;
@@ -511,14 +524,10 @@ makes3fullpath(const char* rooturl, const char* bucket, const char* prefix, cons
 {
     int stat = NC_NOERR;
 
-fprintf(stderr,"@@@ makes3fullpath: rooturl=|%s|\n",rooturl);
-
     assert(url != NULL);
     assert(rooturl != NULL);
 
     ncbytescat(url,rooturl);
-
-fprintf(stderr,"@@@ makes3fullpath: url=|%s|\n",ncbytescontents(url));
 
     if(bucket) {
         if(ncbyteslength(url) > 0 && ncbytesget(url,ncbyteslength(url)-1) != '/') ncbytescat(url,"/");
