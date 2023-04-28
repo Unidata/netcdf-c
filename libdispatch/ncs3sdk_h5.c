@@ -500,7 +500,7 @@ dumps3info(info,"makes3rooturl");
     ncbytescat(buf,"https://");
     ncbytescat(buf,info->host);
     ncbytesnull(buf);
-fprintf(stderr,">>> makes3rooturl: result=%d\n",(int)ncbyteslength(result));
+fprintf(stderr,">>> makes3rooturl: |buf|=%d\n",(int)ncbyteslength(buf));
     result = ncbytesextract(buf);
     ncbytesfree(buf);
     return result;
