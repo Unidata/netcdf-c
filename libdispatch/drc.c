@@ -1194,10 +1194,17 @@ done:
     return stat;
 }
 
+/**
+@param profile name of profile
+@param key key to search for in profile
+@param valup place to store the value if key is found.
+@return NC_NOERR if key is found, NC_NOOBJECT if key is not found, or other error.
+*/
+
 int
 NC_s3profilelookup(const char* profile, const char* key, const char** valuep)
 {
-    int i,stat = NC_NOERR;
+    int i,stat = NC_ENOOBJECT;
     struct AWSprofile* awsprof = NULL;
     const char* value = NULL;
 
@@ -1208,6 +1215,7 @@ NC_s3profilelookup(const char* profile, const char* key, const char** valuep)
 	    struct AWSentry* entry = (struct AWSentry*)nclistget(awsprof->entries,i);
 	    if(strcasecmp(entry->key,key)==0) {
 		value = entry->value;
+		stat = NC_NOERR;
 	        break;
 	    }
 	}
