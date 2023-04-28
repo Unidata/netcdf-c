@@ -109,7 +109,7 @@
  * 2 -> in addition to above, print information for all performs; sets all
  *      curl handles with CURLOPT_VERBOSE
  */
-#define S3COMMS_CURL_VERBOSITY 0
+#define S3COMMS_CURL_VERBOSITY 1
 
 /* Apparently Apple/OSX C Compiler does not (yet) accept __VA_OPT__(,),
    so we have to case it out (ugh!)

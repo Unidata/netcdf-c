@@ -181,16 +181,14 @@ NC_s3sdkcreateclient(NCS3INFO* info)
     }
     if((s3client->rooturl = makes3rooturl(info))==NULL) {stat = NC_ENOMEM; goto done;}
     s3client->h5s3client = NCH5_s3comms_s3r_open(s3client->rooturl,info->region,accessid,accesskey);
-fprintf(stderr,">>> (1) NC_s3sdkcreateclient: s3client=%p h5s3client=%p\n",s3client,s3client->h5s3client);
     if(s3client->h5s3client == NULL) {stat = NC_ES3; goto done;}
 
 done:
     nullfree(urlroot);
     if(stat && s3client) {
-fprintf(stderr,">>> (2) NC_s3sdkcreateclient: stat=%d s3client=%p\n",stat,s3client);
-dumps3client(s3client,"NC_s3sdkcreateclient");
+	abort()
         NC_s3sdkclose(s3client,info,0,NULL);
-	abort();
+	s3client = NULL;
     }
     NCNILTRACE(NC_NOERR);
     return (void*)s3client;
