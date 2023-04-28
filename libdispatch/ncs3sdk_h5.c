@@ -511,12 +511,14 @@ makes3fullpath(const char* rooturl, const char* bucket, const char* prefix, cons
 {
     int stat = NC_NOERR;
 
-fprintf(stderr,"@@@ makes3fullpath: rooturl=%p\n",rooturl);
+fprintf(stderr,"@@@ makes3fullpath: rooturl=|%s|\n",rooturl);
 
     assert(url != NULL);
     assert(rooturl != NULL);
 
     ncbytescat(url,rooturl);
+
+fprintf(stderr,"@@@ makes3fullpath: url=|%s|\n",ncbytescontents(url));
 
     if(bucket) {
         if(ncbyteslength(url) > 0 && ncbytesget(url,ncbyteslength(url)-1) != '/') ncbytescat(url,"/");
