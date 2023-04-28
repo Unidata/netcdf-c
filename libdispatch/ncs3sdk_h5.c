@@ -111,7 +111,7 @@ static int queryinsert(NClist* list, char* ekey, char* evalue);
 
 #define NT(x) ((x)==NULL?"null":x)
 
-#if 1
+#if 0
 static void
 dumps3info(NCS3INFO* s3info, const char* tag)
 {
@@ -186,7 +186,7 @@ NC_s3sdkcreateclient(NCS3INFO* info)
 done:
     nullfree(urlroot);
     if(stat && s3client) {
-	abort()
+	abort();
         NC_s3sdkclose(s3client,info,0,NULL);
 	s3client = NULL;
     }
