@@ -185,8 +185,10 @@ done:
     nullfree(urlroot);
     if(stat && s3client) {
         if(s3client) NC_s3sdkclose(s3client,info,0,NULL);
+	abort();
     }
     NCNILTRACE(NC_NOERR);
+dumps3client(s3client,"NC_s3sdkcreateclient");
     return (void*)s3client;
 }
 
