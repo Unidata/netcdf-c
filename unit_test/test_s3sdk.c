@@ -56,6 +56,9 @@ void* s3client = NULL;
 
 char* testkeypath = NULL;
 
+/* Forward */
+static void cleanup(void);
+
 #define CHECK(code) do {stat = check(code,__func__,__LINE__); if(stat) {goto done;}} while(0)
 
 static int
