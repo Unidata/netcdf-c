@@ -498,6 +498,7 @@ dumps3info(info,"makes3rooturl");
 
     ncbytescat(buf,"https://");
     ncbytescat(buf,info->host);
+    ncbytesnull(buf);
     result = ncbytesextract(buf);
     ncbytesfree(buf);
 fprintf(stderr,">>> makes3rooturl: result=|%s|\n",result);
