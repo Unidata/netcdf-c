@@ -188,6 +188,7 @@ NC_s3sdkbucketexists(void* s3client0, const char* bucket, int* existsp, char** e
     NCTRACE(11,"bucket=%s",bucket);
     if(errmsgp) *errmsgp = NULL;
 
+fprintf(stderr,"??? |%s|\n",s3cient->rooturl);
     if((stat = makes3fullpath(s3client->rooturl,bucket,NULL,NULL,url))) goto done;
     if((stat = NCH5_s3comms_s3r_head(s3client->h5s3client, ncbytescontents(url), NULL, NULL, &httpcode, NULL))) goto done;
 
@@ -499,9 +500,9 @@ dumps3info(info,"makes3rooturl");
     ncbytescat(buf,"https://");
     ncbytescat(buf,info->host);
     ncbytesnull(buf);
+fprintf(stderr,">>> makes3rooturl: result=%d\n",(int)ncbyteslength(result));
     result = ncbytesextract(buf);
     ncbytesfree(buf);
-fprintf(stderr,">>> makes3rooturl: result=|%s|\n",result);
     return result;
 }
 
