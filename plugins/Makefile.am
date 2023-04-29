@@ -21,7 +21,7 @@ AM_LDFLAGS += $(plugin_version_info)
 endif !ISCYGWIN
 endif !ISMINGW
 
-# Create an alternate directory if not installing or for noinst installs.
+# Create an alternate directory if not installing.
 ALTPLUGINDIR = ${abs_top_builddir}/plugins/plugindir
 
 RPATH = -rpath $(abs_builddir)/.libs
@@ -80,11 +80,11 @@ endif # ENABLE_NCZARR_FILTERS
 
 if ENABLE_PLUGINS
 
-# The NCZarr codec libraries
+# The NCZarr codec libraries (they need libnetcdf)
 lib__nczstdfilters_la_SOURCES = NCZstdfilters.c
-lib__nczstdfilters_la_LIBADD = $(LIBADD)
+lib__nczstdfilters_la_LIBADD = $(LIBADD)  $(top_builddir)/liblib/libnetcdf.la
 lib__nczhdf5filters_la_SOURCES = NCZhdf5filters.c
-lib__nczhdf5filters_la_LIBADD = $(LIBADD)
+lib__nczhdf5filters_la_LIBADD = $(LIBADD) $(top_builddir)/liblib/libnetcdf.la
 
 plugins_to_install += lib__nczhdf5filters.la
 plugins_to_install += lib__nczstdfilters.la
@@ -119,7 +119,6 @@ lib__nch5unknown_la_SOURCES = H5Zunknown.c
 lib__nch5unknown_la_LDFLAGS = $(AM_LDFLAGS) ${RPATH}
 
 check_LTLIBRARIES += lib__nch5noop.la lib__nch5noop1.la lib__nch5unknown.la
-# findplugin.sh needs these plugins, and I want to see if these get built properly
 check_LTLIBRARIES += lib__nch5misc.la lib__nczmisc.la
 
 # Bzip2 is used to test more complex filters

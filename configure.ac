@@ -530,19 +530,19 @@ AC_MSG_RESULT([${havecurloption}])
 if test $havecurloption = yes; then
   AC_DEFINE([HAVE_CURLOPT_KEEPALIVE],[1],[Is CURLOPT_TCP_KEEPALIVE defined])
 fi
+
 # CURLOPT_VERIFYHOST semantics differ depending on version
 AC_MSG_CHECKING([whether libcurl is version 7.66 or later?])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 [#include "curl/curl.h"],
 [[
-#if LIBCURL_VERSION_NUM < 0x074200
+#if !CURL_AT_LEAST_VERSION(7,66,0)
 error "<7.66";
 #endif
 ]])], [libcurl766=yes], [libcurl766=no])
-
 AC_MSG_RESULT([$libcurl766])
-if test x$libcurl66 = xno; then
-  AC_DEFINE([HAVE_LIBCURL_766],[1],[Is libcurl version 7.66 or later])
+if test x$libcurl766 = xyes; then
+AC_DEFINE([HAVE_LIBCURL_766],[1],[libcurl version is 7.66 or later])
 fi
 
 CFLAGS="$SAVECFLAGS"
