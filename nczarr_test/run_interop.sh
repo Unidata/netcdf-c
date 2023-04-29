@@ -46,7 +46,6 @@ testcases3() {
   mode=$2
   rm -f tmp_${base}_${zext}.cdl
   url="https://${UH}/${UB}/${base}.zarr#mode=${mode},s3"
-  ${ZMD} -t int $url
   ${NCDUMP} $url > tmp_${base}_${zext}.cdl
   # Find the proper ref file
   diff -b ${ISOPATH}/ref_${base}.cdl tmp_${base}_${zext}.cdl
