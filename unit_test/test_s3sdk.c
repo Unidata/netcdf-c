@@ -116,6 +116,8 @@ fprintf(stderr,">>> profilesetup: url=%s\n",url);
     CHECK(NC_getactives3profile(purl, &activeprofile));
     CHECK(NC_s3profilelookup(activeprofile, "aws_access_key_id", &accessid));
     CHECK(NC_s3profilelookup(activeprofile, "aws_secret_access_key", &accesskey));
+fprint(stderr,">>> (y) aws_access_key_id=%d\n",(accessid != NULL && strlen(accessid)> 0)?1:0);
+fprint(stderr,">>> (y) aws_secret_access_key=%d\n",(accesskey != NULL && strlen(accesskey)> 0)?1:0);
     if(s3info.profile) free(s3info.profile);
     s3info.profile = nulldup(activeprofile);
     if(s3info.region == NULL) s3info.region = "";
