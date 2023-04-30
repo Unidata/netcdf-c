@@ -296,7 +296,7 @@ static int httptonc(long httpcode);
 /* Functions */
 /*************/
 
-#if S3COMMS_CURL_VERBOSITY > 
+#if S3COMMS_CURL_VERBOSITY > 0
 static void
 nch5breakpoint(int stat)
 {
