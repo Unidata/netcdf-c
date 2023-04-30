@@ -2,7 +2,6 @@ netcdf test_groups1 {
 dimensions:
 	dim1 = 5 ;
 
-
 group: g {
   dimensions:
   	dim2 = 3 ;

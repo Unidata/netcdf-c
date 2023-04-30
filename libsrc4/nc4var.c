@@ -1917,7 +1917,7 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
  * @internal Get the default fill value for an atomic type. Memory for
  * fill_value must already be allocated, or you are DOOMED!
  *
- * @param xtype type id
+ * @param tinfo type object
  * @param fill_value Pointer that gets the default fill value.
  *
  * @returns NC_NOERR No error.

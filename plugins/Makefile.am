@@ -28,10 +28,10 @@ RPATH = -rpath $(abs_builddir)/.libs
 
 # This is where the plugins are to be installed
 if ENABLE_PLUGIN_DIR
-plugindir = @PLUGIN_INSTALL_DIR@
+  plugindir = @PLUGIN_INSTALL_DIR@
 else
-plugindir = ${ALTPLUGINDIR}
-AM_LDFLAGS += ${RPATH}
+  plugindir = ${ALTPLUGINDIR}
+  AM_LDFLAGS += ${RPATH}
 endif
 
 plugin_LTLIBRARIES =

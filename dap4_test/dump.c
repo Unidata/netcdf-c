@@ -44,6 +44,7 @@ main(int argc, char *argv[])
     char* tag = NULL;
     size_t offset = 0;
     size_t len = 0;
+    char* data0 = NULL;
     char* data = NULL;
     int swap = 0;
 
@@ -79,10 +80,16 @@ main(int argc, char *argv[])
     }
 
     if(tag == NULL) tag = strdup(progname);    
-    if(ncaux_readfile(fname,&len,&((void*)data))) usage();
-    data += offset;
+    if(ncaux_readfile(fname,&len,(void**)&data0)) usage();
+    if(offset >= len) {
+	fprintf(stderr,"Offset too large: file length = %u\n",(unsigned)len);
+	return 1;
+    }
+    data = data0 + offset;
     NCD4_tagdump(len,data,swap,tag);
-    nullfree(data);
+    nullfree(data0);
+    nullfree(fname);
+    nullfree(tag);
     return 0;
 }
 

@@ -5,13 +5,23 @@ Release Notes       {#RELEASE_NOTES}
 
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
-## 4.9.2 - TBD
+## 4.9.3 - TBD
 
-* Fix 'make distcheck' error in run_interop.sh. See [Github #????](https://github.com/Unidata/netcdf-c/pull/????).
+* [Bug Fix] Add a crude test to see if an NCZarr path looks like a valid NCZarr/Zarr file. See [Github #2658](https://github.com/Unidata/netcdf-c/pull/2658).
+
+## 4.9.2 - March 14, 2023
+
+This is the maintenance release which adds support for HDF5 version 1.14.0, in addition to a handful of other changes and bugfixes.  
+
+* Fix 'make distcheck' error in run_interop.sh. See [Github #2549](https://github.com/Unidata/netcdf-c/pull/2549).
+* Fix a minor bug in reporting the use of szip. See [Github #2679](https://github.com/Unidata/netcdf-c/pull/2679).
+* Simplify the handling of XGetopt. See [Github #2678](https://github.com/Unidata/netcdf-c/pull/2678).
+* Fix 'make distcheck' error in run_interop.sh. See [Github #2631](https://github.com/Unidata/netcdf-c/pull/2631).
 * Update `nc-config` to remove inclusion from automatically-detected `nf-config` and `ncxx-config` files, as the wrong files could be included in the output.  This is in support of [GitHub #2274](https://github.com/Unidata/netcdf-c/issues/2274).
 * Update H5FDhttp.[ch] to work with HDF5 version 1.13.2 and later. See [Github #2635](https://github.com/Unidata/netcdf-c/pull/2635).
+* Fix 'make distcheck' error in run_interop.sh. See [Github #2631](https://github.com/Unidata/netcdf-c/pull/2631).
 * [Bug Fix] Update DAP code to enable CURLOPT_ACCEPT_ENCODING by default. See [Github #2630](https://github.com/Unidata/netcdf-c/pull/2630).
-* [Bug Fix] Fix byterange failures for certain URLs. See [Github #????](https://github.com/Unidata/netcdf-c/pull/????).
+* [Bug Fix] Fix byterange failures for certain URLs. See [Github #2649](https://github.com/Unidata/netcdf-c/pull/2649).
 * [Bug Fix] Fix 'make distcheck' error in run_interop.sh. See [Github #2631](https://github.com/Unidata/netcdf-c/pull/2631).
 * [Enhancement] Update `nc-config` to remove inclusion from automatically-detected `nf-config` and `ncxx-config` files, as the wrong files could be included in the output.  This is in support of [GitHub #2274](https://github.com/Unidata/netcdf-c/issues/2274).
 * [Enhancement] Update H5FDhttp.[ch] to work with HDF5 version 1.14.0. See [Github #2615](https://github.com/Unidata/netcdf-c/pull/2615).
@@ -116,7 +126,10 @@ This file contains a high-level description of this package's evolution. Release
 
 #### Changes
 
+
+* [Bug Fix] Get remotetest server working for DAP4 and re-enable its use in the netcdf-c library for testing. See [Github #2558](https://github.com/Unidata/netcdf-c/pull/2558).
 * [Bug Fix] Fix a race condition when testing missing filters. See [Github #2557](https://github.com/Unidata/netcdf-c/pull/2557). 
+* [Bug Fix] Make major changes to libdap4 and dap4_test to update the non-remote DAP4 tests. See [Github #2555](https://github.com/Unidata/netcdf-c/pull/2555).
 * [Bug Fix] Fix some race conditions due to use of a common file in multiple shell scripts . See [Github #2552](https://github.com/Unidata/netcdf-c/pull/2552).
 
 

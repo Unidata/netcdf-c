@@ -1,0 +1,24 @@
+netcdf test_zerodim {
+dimensions:
+	lon = 4 ;
+	time = UNLIMITED ; // (0 currently)
+	lat = 6 ;
+	unlim = UNLIMITED ; // (3 currently)
+variables:
+	float var(unlim) ;
+		var:_ChunkSizes = 1024U ;
+	float lon(lon) ;
+		string lon:units = "degrees_east" ;
+	float lat(lat) ;
+		string lat:units = "degrees_north" ;
+
+// global attributes:
+		string :title = "example for workshop" ;
+data:
+
+ var = 0, 1, 3 ;
+
+ lon = _, _, _, _ ;
+
+ lat = _, _, _, _, _, _ ;
+}
