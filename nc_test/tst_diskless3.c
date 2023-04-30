@@ -133,7 +133,7 @@ test_two_growing_with_att(const char *testfile)
    {
       count[0] = 1;
       start[0] = r;
-      sprintf(att_name, "a_%d", data[r]);
+      snprintf(att_name, sizeof(att_name), "a_%d", data[r]);
       for (v = 0; v < NUM_VARS; v++)
       {
 	 if((status=nc_put_vara_text(ncid, varid[v], start, count, &data[r]))) ERRSTAT(status);

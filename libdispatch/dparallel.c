@@ -76,7 +76,7 @@ parallel I/O.
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
 
-    sprintf(file_name, "%s/%s", TEMP_LARGE, FILE);
+    snprintf(file_name, sizeof(file_name), "%s/%s", TEMP_LARGE, FILE);
     if ((res = nc_create_par(file_name, NC_NETCDF4, comm, info, &ncid))) ERR;
 
     if (nc_def_dim(ncid, "d1", DIMSIZE, dimids)) ERR;

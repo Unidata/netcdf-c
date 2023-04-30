@@ -41,7 +41,7 @@ get_mem_used1(int *mem_used)
 
    /* Run the ps command for this process, putting output (one number)
     * into file TMP_FILE_NAME. */
-   sprintf(cmd, "ps -o size= %d > %s", getpid(), TMP_FILE_NAME);
+   snprintf(cmd, sizeof(cmd), "ps -o size= %d > %s", getpid(), TMP_FILE_NAME);
    system(cmd);
 
    /* Read the results and delete temp file. */
@@ -116,7 +116,7 @@ create_sample_file(char *file_name, int ndims, int *dim_len,
    /* Create the dimensions. */
    for (d = 0; d < ndims; d++)
    {
-      sprintf(dim_name, "dim_%d", d);
+      snprintf(dim_name, sizeof(dim_name), "dim_%d", d);
       if (nc_def_dim(ncid, dim_name, dim_len[d], &dimids[d])) ERR_RET;
    }
 
@@ -124,7 +124,7 @@ create_sample_file(char *file_name, int ndims, int *dim_len,
    if (!(varids = malloc(num_vars * sizeof(int)))) ERR_RET;
    for (i = 0; i < num_vars; i++)
    {
-      sprintf(varname, "a_%d", i);
+      snprintf(varname, sizeof(varname), "a_%d", i);
       if (nc_def_var(ncid, varname, NC_FLOAT, ndims, dimids,
 		     &varids[i])) ERR_RET;
    }
@@ -218,7 +218,7 @@ main(int argc, char **argv)
 	 for (f = 0; f < num_files[t]; f++)
          {
             /* Set up filename. */
-            sprintf(file_name[t], "tst_files2_%d_%d.nc", t, f);
+            snprintf(file_name[t], sizeof(file_name[t]), "tst_files2_%d_%d.nc", t, f);
             if (create_sample_file(file_name[t], ndims[t], dim_len[t], num_vars[t],
                                    mode[t], num_recs[t])) ERR;
 
@@ -273,20 +273,20 @@ main(int argc, char **argv)
 
          /* Prepare the dimensions string. */
          if (ndims[t] == MAX_DIMS)
-            sprintf(dimstr, "%dx%dx%dx%d", dim_len[t][0], dim_len[t][1],
+            snprintf(dimstr, sizeof(dimstr), "%dx%dx%dx%d", dim_len[t][0], dim_len[t][1],
                     dim_len[t][2], dim_len[t][3]);
          else
-            sprintf(dimstr, "%dx%dx%d", dim_len[t][0], dim_len[t][1],
+            snprintf(dimstr, sizeof(dimstr), "%dx%dx%d", dim_len[t][0], dim_len[t][1],
                     dim_len[t][2]);
 
          /* Prepare the chunksize string. */
          if (storage == NC_CHUNKED)
          {
             if (ndims[t] == MAX_DIMS)
-               sprintf(chunkstr, "%dx%dx%dx%d", (int)chunksize[0], (int)chunksize[1],
+               snprintf(chunkstr, sizeof(chunkstr), "%dx%dx%dx%d", (int)chunksize[0], (int)chunksize[1],
                        (int)chunksize[2], (int)chunksize[3]);
             else
-               sprintf(chunkstr, "%dx%dx%d", (int)chunksize[0], (int)chunksize[1],
+               snprintf(chunkstr, sizeof(chunkstr), "%dx%dx%d", (int)chunksize[0], (int)chunksize[1],
                        (int)chunksize[2]);
          }
          else
