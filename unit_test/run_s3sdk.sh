@@ -27,6 +27,9 @@ fi
 THISDIR=`pwd`
 cd $ISOPATH
 
+if test -e ~/.aws/config ; then cat ~/.aws/config; fi
+if test -e ~/.aws/credentials ; then cat ~/.aws/credentials; fi
+
 ${CMD} ${execdir}/.libs/test_s3sdk -u "${URL}"                                  exists
 ${CMD} ${execdir}/.libs/test_s3sdk -u "${URL}" -k "${S3ISOPATH}/.libs/test_s3sdk.txt" write
 ${CMD} ${execdir}/.libs/test_s3sdk -u "${URL}" -k "${S3ISOPATH}/.libs/test_s3sdk.txt" read
