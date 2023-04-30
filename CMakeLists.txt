@@ -1275,10 +1275,9 @@ ENDIF()
 # This is mostly useful for MSVC builds. If not building utilities or some tests,
 # getopt() isn't required at all.
 IF(MSVC)
-  OPTION(ENABLE_XGETOPT "Enable bundled XGetOpt instead of external getopt()." ON)
-  IF(ENABLE_XGETOPT)
-    SET(USE_X_GETOPT ON CACHE BOOL "")
-  ENDIF()
+  SET(USE_X_GETOPT ON CACHE BOOL "")
+ELSE()
+  SET(USE_X_GETOPT OFF CACHE BOOL "")
 ENDIF()
 
 SET(MATH "")
@@ -1783,7 +1782,7 @@ IF(NOT HAVE_UNISTD_H)
 ENDIF()
 
 CHECK_INCLUDE_FILE("alloca.h"  HAVE_ALLOCA_H)
-CHECK_INCLUDE_FILE("malloc.h"    HAVE_MALLOC_H)
+CHECK_INCLUDE_FILE("malloc.h"  HAVE_MALLOC_H)
 CHECK_INCLUDE_FILE("fcntl.h"   HAVE_FCNTL_H)
 CHECK_INCLUDE_FILE("getopt.h"  HAVE_GETOPT_H)
 CHECK_INCLUDE_FILE("locale.h"  HAVE_LOCALE_H)
