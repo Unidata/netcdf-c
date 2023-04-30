@@ -9,6 +9,10 @@
 #  remove_definitions(-DDLL_NETCDF)
 #ENDIF()
 
+IF(USE_X_GETOPT)
+  SET(XGETOPTSRC "${CMAKE_CURRENT_SOURCE_DIR}/../libdispatch/XGetopt.c")
+ENDIF()
+
 SET(ncgen_FILES bindata.c bytebuffer.c cdata.c cvt.c data.c
 debug.c dump.c escapes.c f77data.c genbin.c
 genc.c genchar.c generate.c generr.c genf77.c
@@ -16,7 +20,7 @@ genj.c genlib.c getfill.c jdata.c list.c
 main.c ncgeny.c semantics.c
 util.c bytebuffer.h data.h debug.h dump.h
 generate.h generr.h genlib.h includes.h list.h
-ncgen.h ncgeny.h util.h)
+ncgen.h ncgeny.h util.h ${XGETOPTSRC})
 
 # Obsolete
 SET(OBSOLETE odom.c odom.h jdatastd.c jdatajni.c genjni.c cdfdata.c cmldata.c)

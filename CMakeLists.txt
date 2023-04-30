@@ -31,7 +31,7 @@ set(PACKAGE "netCDF" CACHE STRING "")
 
 SET(NC_VERSION_MAJOR 4)
 SET(NC_VERSION_MINOR 9)
-SET(NC_VERSION_PATCH 2)
+SET(NC_VERSION_PATCH 3)
 SET(NC_VERSION_NOTE "-development")
 SET(netCDF_VERSION ${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
@@ -1090,7 +1090,7 @@ ENDIF()
 IF(ENABLE_DAP)
   SET(USE_DAP ON CACHE BOOL "")
   SET(ENABLE_DAP2 ON CACHE BOOL "")
- 
+
   IF(ENABLE_HDF5)
     MESSAGE(STATUS "Enabling DAP4")
     SET(ENABLE_DAP4 ON CACHE BOOL "")
@@ -1274,11 +1274,11 @@ ENDIF()
 # Check if getopt is available else use bundled XGetopt.
 # This is mostly useful for MSVC builds. If not building utilities or some tests,
 # getopt() isn't required at all.
-CHECK_INCLUDE_FILE("getopt.h"  TEST_GETOPT_H)
-IF("${TEST_GETOPT_H}" STREQUAL "")
-  SET(HAVE_GETOPT_H OFF CACHE BOOL "") 
-ELSE()
-  SET(HAVE_GETOPT_H ON CACHE BOOL "") 
+IF(MSVC)
+  OPTION(ENABLE_XGETOPT "Enable bundled XGetOpt instead of external getopt()." ON)
+  IF(ENABLE_XGETOPT)
+    SET(USE_X_GETOPT ON CACHE BOOL "")
+  ENDIF()
 ENDIF()
 
 SET(MATH "")

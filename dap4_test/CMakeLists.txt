@@ -15,10 +15,7 @@ ADD_SUBDIRECTORY(baselineremote)
 ADD_SUBDIRECTORY(baselinehyrax)
 ADD_SUBDIRECTORY(baselinethredds)
 ADD_SUBDIRECTORY(cdltestfiles)
-ADD_SUBDIRECTORY(daptestfiles)
-ADD_SUBDIRECTORY(dmrtestfiles)
-ADD_SUBDIRECTORY(nctestfiles)
-ADD_SUBDIRECTORY(misctestfiles)
+ADD_SUBDIRECTORY(rawtestfiles)
 
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 
@@ -39,41 +36,46 @@ IF(ENABLE_TESTS)
   # keep it from being too bad.
 
   IF(BUILD_UTILITIES)
-    add_sh_test(dap4_test test_fillmismatch)
-
-    # Following tests are Unit tests, so not tested under visual studio
-    IF(NOT MSVC)
       INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/libdap4)
       build_bin_test(test_parse)
       build_bin_test(test_meta)
+IF(USE_X_GETOPT)
+      build_bin_test(test_data ${CMAKE_SOURCE_DIR}/libdispatch/XGetopt.c)
+ELSE()
       build_bin_test(test_data)
+ENDIF()
       add_sh_test(dap4_test test_parse)
       add_sh_test(dap4_test test_raw)
       add_sh_test(dap4_test test_meta)
       add_sh_test(dap4_test test_data)
-    ENDIF()
   ENDIF(BUILD_UTILITIES)
 
   IF(ENABLE_DAP_REMOTE_TESTS)
+      add_sh_test(dap4_test test_remote)
       add_sh_test(dap4_test test_hyrax)
-      add_sh_test(dap4_test test_thredds)
+#      add_sh_test(dap4_test test_thredds)
+      add_sh_test(dap4_test test_dap4url)
   ENDIF(ENABLE_DAP_REMOTE_TESTS)
 
 ENDIF(ENABLE_TESTS)
 
-FILE(COPY ./baselineraw DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
 #FILE(COPY ./baseline DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
+#FILE(COPY ./baselineraw DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
+#FILE(COPY ./baselineremote DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
+#FILE(COPY ./baselinethredds DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
+#FILE(COPY ./baselinehyrax DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
 #FILE(COPY ./cdltestfiles DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
-#FILE(COPY ./daptestfiles DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
-#FILE(COPY ./dmrtestfiles DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
+#FILE(COPY ./rawtestfiles DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
 
 ## Specify files to be distributed by 'make dist'
 FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh
-#${CMAKE_CURRENT_SOURCE_DIR}/daptestfiles
-#${CMAKE_CURRENT_SOURCE_DIR}/dmrtestfiles
-#${CMAKE_CURRENT_SOURCE_DIR}/cdltestfiles
-#${CMAKE_CURRENT_SOURCE_DIR}/baseline
+${CMAKE_CURRENT_SOURCE_DIR}/cdltestfiles
+${CMAKE_CURRENT_SOURCE_DIR}/rawtestfiles
+${CMAKE_CURRENT_SOURCE_DIR}/baseline
 ${CMAKE_CURRENT_SOURCE_DIR}/baselineraw
+${CMAKE_CURRENT_SOURCE_DIR}/baselineremote
+#${CMAKE_CURRENT_SOURCE_DIR}/baselinerthredds
+${CMAKE_CURRENT_SOURCE_DIR}/baselinehyrax
 )
 SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am)
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")

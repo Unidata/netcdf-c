@@ -8,7 +8,7 @@ netcdf test_struct_nested3 {
     }; // s2_t
     compound s3_t {
       s2_t field3 ;
-    }; // s2_t
+    }; // s3_t
 variables:
   s3_t x;
 data:
