@@ -129,6 +129,7 @@ cstring(
     int *intp;
     float *floatp;
     double *doublep;
+    size_t cp_size;
 
     switch (type) {
       case NC_CHAR:
@@ -162,34 +163,39 @@ cstring(
 	return sp;
 	
       case NC_BYTE:
-	cp = (char *) emalloc (7);
+    cp_size = 7;
+	cp = (char *) emalloc (cp_size);
 	bytep = (signed char *)valp;
 	/* Need to convert '\377' to -1, for example, on all platforms */
-	(void) sprintf(cp,"%d", (signed char) *(bytep+num));
+	(void) snprintf(cp,cp_size,"%d", (signed char) *(bytep+num));
 	return cp;
 
       case NC_SHORT:
-	cp = (char *) emalloc (10);
+    cp_size = 10;
+	cp = (char *) emalloc (cp_size);
 	shortp = (short *)valp;
-	(void) sprintf(cp,"%d",* (shortp + num));
+	(void) snprintf(cp,cp_size,"%d",* (shortp + num));
 	return cp;
 
       case NC_INT:
-	cp = (char *) emalloc (20);
+    cp_size = 20;
+	cp = (char *) emalloc (cp_size);
 	intp = (int *)valp;
-	(void) sprintf(cp,"%d",* (intp + num));
+	(void) snprintf(cp,cp_size,"%d",* (intp + num));
 	return cp;
 
       case NC_FLOAT:
-	cp = (char *) emalloc (20);
+    cp_size = 20;
+	cp = (char *) emalloc (cp_size);
 	floatp = (float *)valp;
-	(void) sprintf(cp,"%.8g",* (floatp + num));
+	(void) snprintf(cp,cp_size,"%.8g",* (floatp + num));
 	return cp;
 
       case NC_DOUBLE:
-	cp = (char *) emalloc (20);
+    cp_size = 20;
+	cp = (char *) emalloc (cp_size);
 	doublep = (double *)valp;
-	(void) sprintf(cp,"%.16g",* (doublep + num));
+	(void) snprintf(cp,cp_size,"%.16g",* (doublep + num));
 	return cp;
 
       default:
@@ -1046,36 +1052,42 @@ fstring(
     int *intp;
     float *floatp;
     double *doublep;
+    size_t cp_size;
 
     switch (type) {
       case NC_BYTE:
-	cp = (char *) emalloc (10);
+    cp_size = 10;
+	cp = (char *) emalloc (cp_size);
 	schp = (signed char *)valp;
-        sprintf(cp,"%d", schp[num]);
+        snprintf(cp,cp_size,"%d", schp[num]);
 	return cp;
 
       case NC_SHORT:
-	cp = (char *) emalloc (10);
+    cp_size = 10;
+	cp = (char *) emalloc (cp_size);
 	shortp = (short *)valp;
-	(void) sprintf(cp,"%d",* (shortp + num));
+	(void) snprintf(cp,cp_size,"%d",* (shortp + num));
 	return cp;
 
       case NC_INT:
-	cp = (char *) emalloc (20);
+    cp_size = 20;
+	cp = (char *) emalloc (cp_size);
 	intp = (int *)valp;
-	(void) sprintf(cp,"%d",* (intp + num));
+	(void) snprintf(cp,cp_size,"%d",* (intp + num));
 	return cp;
 
       case NC_FLOAT:
-	cp = (char *) emalloc (20);
+    cp_size = 20;
+	cp = (char *) emalloc (cp_size);
 	floatp = (float *)valp;
-	(void) sprintf(cp,"%.8g",* (floatp + num));
+	(void) snprintf(cp,cp_size,"%.8g",* (floatp + num));
 	return cp;
 
       case NC_DOUBLE:
-	cp = (char *) emalloc (25);
+    cp_size = 25;
+	cp = (char *) emalloc (cp_size);
 	doublep = (double *)valp;
-	(void) sprintf(cp,"%.16g",* (doublep + num));
+	(void) snprintf(cp,cp_size,"%.16g",* (doublep + num));
 	expe2d(cp);	/* change 'e' to 'd' in exponent */
 	return cp;
 
