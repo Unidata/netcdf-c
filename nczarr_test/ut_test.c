@@ -1,5 +1,5 @@
 /*
-x *      Copyright 2018, University Corporation for Atmospheric Research
+ *      Copyright 2018, University Corporation for Atmospheric Research
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 

@@ -46,6 +46,7 @@ static int markdapsize(NCD4meta* meta);
 static int markfixedsize(NCD4meta* meta);
 static void savegroupbyid(NCD4meta*,NCD4node* group);
 static void savevarbyid(NCD4node* group, NCD4node* var);
+static int isfilltypecompatible(NCD4node* parenttype, NCD4node* attrtype);
 #ifndef FIXEDOPAQUE
 static int buildBytestringType(NCD4meta* builder);
 #endif
@@ -467,9 +468,11 @@ buildAttributes(NCD4meta* builder, NCD4node* varorgroup)
 	    nullfree(memory);
             FAIL(ret,"Malformed attribute value(s) for: %s",attr->name);
         }
-	group = NCD4_groupFor(varorgroup);
-        NCCHECK((nc_put_att(group->meta.id,varid,attr->name,attr->basetype->meta.id,count,memory)));
-	nclistfreeall(blobs); blobs = NULL;
+        if(memory != NULL) {
+  	    group = NCD4_groupFor(varorgroup);
+            NCCHECK((nc_put_att(group->meta.id,varid,attr->name,attr->basetype->meta.id,count,memory)));
+	}
+        nclistfreeall(blobs); blobs = NULL;
         nullfree(memory);
     }
 done:
@@ -769,17 +772,19 @@ compileAttrValues(NCD4meta* builder, NCD4node* attr, void** memoryp, NClist* blo
 
     /* Deal with _FillValue */
     if(container->sort == NCD4_VAR && strcmp(attr->name,"_FillValue")==0) {
-	/* Verify or fix or fail on type match */
-	if(container->basetype != basetype) {
-	    /* _FillValue/Variable type mismatch */
-	    if(FLAGSET(builder->controller->controls.flags,NCF_FILLMISMATCH)) {
+	/* Verify or fix or ignore or fail on type mismatch */
+	if(container->basetype != basetype) {/* _FillValue/Variable type mismatch */
+	    int compatible = isfilltypecompatible(container->basetype, basetype);
+	    /* Test type compatibility */
+	    if(compatible && FLAGSET(builder->controller->controls.flags,NCF_FILLMISMATCH)) {
 		/* Force type match */
 		basetype = (attr->basetype = container->basetype);
-	    } else {/* Fail */
+	    } else if(FLAGSET(builder->controller->controls.flags,NCF_FILLMISMATCH_FAIL)) {/* Fail */
 	        FAIL(NC_EBADTYPE,"_FillValue/Variable type mismatch: %s:%s",container->name,attr->name);
-	    }
+	    } else
+	        goto done; /* ignore */
 	}
-    }
+    }  
     isenum = (basetype->subsort == NC_ENUM);
     truebase = (isenum ? basetype->basetype : basetype);
     if(!ISTYPE(truebase->sort) || (truebase->meta.id > NC_MAX_ATOMIC_TYPE))
@@ -1201,4 +1206,35 @@ NCD4_findvar(NC* ncp, int ncid, int varid, NCD4node** varp, NCD4node** grpp)
     if(varp) *varp = var;
     if(grpp) *grpp = group;
     return ret;
+}
+
+static int
+isnumerictype(int typesort)
+{
+    switch (typesort) {
+    case NC_BYTE:
+    case NC_SHORT:
+    case NC_INT:
+    case NC_FLOAT:
+    case NC_DOUBLE:
+    case NC_UBYTE:
+    case NC_USHORT:
+    case NC_UINT:
+    case NC_INT64:
+    case NC_UINT64:
+	return 1;	
+    default: break;
+    }
+    return 0;
+}
+
+static int
+isfilltypecompatible(NCD4node* parenttype, NCD4node* attrtype)
+{
+    assert(parenttype->sort == NCD4_TYPE && attrtype->sort == NCD4_TYPE);
+    if(isnumerictype(parenttype->subsort) && isnumerictype(attrtype->subsort))
+        return 1;
+    if(parenttype->subsort == NC_ENUM && attrtype->subsort == NC_STRING)
+        return 1;
+    return 0;
 }

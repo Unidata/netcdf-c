@@ -18,7 +18,7 @@ for x in ${FILETESTS} ; do
   # determine if this is an xfailtest
   isxfail=0
   if test "x${XFAILTESTS}" != x ; then
-    if IGNORE=`echo -n " ${XFAILTESTS} " | fgrep " ${x} "`; then isxfail=1; fi
+    if IGNORE=`echon " ${XFAILTESTS} " | fgrep " ${x} "`; then isxfail=1; fi
   fi
   ok=1
   if ${NCDUMP} ${DUMPFLAGS} "${url}" | sed 's/\\r//g' > ${x}.dmp ; then ok=$ok; else ok=0; fi

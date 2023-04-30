@@ -40,17 +40,15 @@ ${CMAKE_CURRENT_SOURCE_DIR}/ref*.zmap)
 
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
 
+IF(USE_X_GETOPT)
+SET(XGETOPTSRC "${CMAKE_CURRENT_SOURCE_DIR}/../libdispatch/XGetopt.c")
+ENDIF()
+
 IF(ENABLE_TESTS)
 
-  SET(COMMONSRC ut_util.c ut_test.c)
-  IF(USE_X_GETOPT)
-    SET(COMMONSRC ${COMMONSRC} XGetopt.c)
-  ENDIF()
+  SET(COMMONSRC ut_util.c ut_test.c ${XGETOPTSRC})
   
-  SET(TSTCOMMONSRC tst_utils.c)
-  IF(USE_X_GETOPT)
-    SET(TSTCOMMONSRC ${TSTCOMMONSRC} XGetopt.c)
-  ENDIF()
+  SET(TSTCOMMONSRC tst_utils.c ${XGETOPTSRC})
 
   # Base tests
   # The tests are set up as a combination of shell scripts and executables that
@@ -91,9 +89,7 @@ IF(ENABLE_TESTS)
   endif()
   
   SET(ncdumpchunks_SOURCE ncdumpchunks.c)
-  IF(USE_X_GETOPT)
-    SET(ncdumpchunks_SOURCE ${ncdumpchunks_SOURCE} XGetopt.c)
-  ENDIF()
+  SET(ncdumpchunks_SOURCE ${ncdumpchunks_SOURCE} ${XGETOPTSRC})
   BUILD_BIN_TEST(ncdumpchunks ${ncdumpchunks_SOURCE})
   TARGET_INCLUDE_DIRECTORIES(ncdumpchunks PUBLIC ../libnczarr)
 
@@ -123,6 +119,9 @@ IF(ENABLE_TESTS)
 
     BUILD_BIN_TEST(test_quantize ${TSTCOMMONSRC})
     add_sh_test(nczarr_test run_quantize)
+
+    BUILD_BIN_TEST(tst_notzarr ${TSTCOMMONSRC})
+    add_sh_test(nczarr_test run_notzarr)
 
     if(ENABLE_S3)
 	add_sh_test(nczarr_test run_s3_cleanup)

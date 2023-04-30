@@ -31,7 +31,7 @@ set(PACKAGE "netCDF" CACHE STRING "")
 
 SET(NC_VERSION_MAJOR 4)
 SET(NC_VERSION_MINOR 9)
-SET(NC_VERSION_PATCH 2)
+SET(NC_VERSION_PATCH 3)
 SET(NC_VERSION_NOTE "-development")
 SET(netCDF_VERSION ${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
@@ -1081,7 +1081,7 @@ ENDIF()
 IF(ENABLE_DAP)
   SET(USE_DAP ON CACHE BOOL "")
   SET(ENABLE_DAP2 ON CACHE BOOL "")
- 
+
   IF(ENABLE_HDF5)
     MESSAGE(STATUS "Enabling DAP4")
     SET(ENABLE_DAP4 ON CACHE BOOL "")
@@ -1268,18 +1268,6 @@ IF(MSVC)
   OPTION(ENABLE_XGETOPT "Enable bundled XGetOpt instead of external getopt()." ON)
   IF(ENABLE_XGETOPT)
     SET(USE_X_GETOPT ON CACHE BOOL "")
-    # Copy XGetopt.c to everywhere it is needed. Avoids
-    # inconsistent code
-    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/ncgen3/)
-    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/ncgen/)
-    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/ncdump/)
-    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
-    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/ncdap_test/)
   ENDIF()
 ENDIF()
 
