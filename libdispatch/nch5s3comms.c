@@ -89,7 +89,7 @@
 /* Local Macros */
 /****************/
 
-#define TRACING
+#undef TRACING
 #undef DEBUG
 
 #define SUCCEED NC_NOERR
