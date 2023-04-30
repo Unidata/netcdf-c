@@ -178,6 +178,8 @@ NC_s3sdkcreateclient(NCS3INFO* info)
     if(info->profile != NULL) {
         if((stat = NC_s3profilelookup(info->profile, "aws_access_key_id", &accessid))) goto done;
         if((stat = NC_s3profilelookup(info->profile, "aws_secret_access_key", &accesskey))) goto done;
+fprintf(stderr,">>> (x) aws_access_key_id=%s\n",accessid);
+fprintf(stderr,">>> (x) aws_secret_access_key=%s\n",accesskey);
     }
     if((s3client->rooturl = makes3rooturl(info))==NULL) {stat = NC_ENOMEM; goto done;}
     s3client->h5s3client = NCH5_s3comms_s3r_open(s3client->rooturl,info->region,accessid,accesskey);
