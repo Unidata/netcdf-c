@@ -1224,9 +1224,9 @@ char* nc_err_code_name(int err)
     if (err > 0) { /* system error */
         const char *cp = (const char *) strerror(err);
         if (cp == NULL)
-            sprintf(unknown_str,"Unknown error code %d",err);
+            snprintf(unknown_str,sizeof(unknown_str),"Unknown error code %d",err);
         else
-            sprintf(unknown_str,"Error code %d (%s)",err,cp);
+            snprintf(unknown_str,sizeof(unknown_str),"Error code %d (%s)",err,cp);
         return unknown_str;
     }
 
@@ -1396,7 +1396,7 @@ char* nc_err_code_name(int err)
 #endif
 #endif
         default:
-              sprintf(unknown_str,"Unknown code %d",err);
+              snprintf(unknown_str,sizeof(unknown_str),"Unknown code %d",err);
     }
     return unknown_str;
 }

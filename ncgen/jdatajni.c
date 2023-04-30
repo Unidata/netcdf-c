@@ -244,13 +244,13 @@ genjjni_data(Symbol* tsym, Datasrc* datasrc, Datalist* fillsrc,
 	    semerror(srcline(datasrc),"Vlen data must be enclosed in {..}");
         }
         cp = srcnext(datasrc);
-        sprintf(vlenname,"vlen_%u",cp->value.compoundv->vlen.uid);
+        snprintf(vlenname,sizeof(vlenname),"vlen_%u",cp->value.compoundv->vlen.uid);
 	/* Use special alignment */
         nprintf(stmt,sizeof(stmt),"Memory.align(%s,%d);\n",
 		vlenname,jvlenalignment());
         bbCat(databuf,stmt);
         /* generate and store the nc_vlen_t instance*/
-        sprintf(stmt,"Memory.put_vlen(%s,new long[]{%lld, %s_addr});\n",
+        snprintf(stmt,sizeof(stmt),"Memory.put_vlen(%s,new long[]{%lld, %s_addr});\n",
 		memname,
 		(long long)cp->value.compoundv->vlen.count,
 		vlenname);
@@ -336,7 +336,7 @@ genjjni_vlendata(List* vlenconstants, Bytebuffer* databuf)
         Symbol* basetype = tsym->typ.basetype;
 	int typecode = basetype->typ.typecode;
 
-        sprintf(memname,"vlen_%u",cmpd->value.compoundv->vlen.uid);
+        snprintf(memname,sizeof(memname),"vlen_%u",cmpd->value.compoundv->vlen.uid);
 
 	count = 0;
 	vlensrc = datalist2src(cmpd->value.compoundv);
@@ -362,7 +362,7 @@ genjjni_vlendata(List* vlenconstants, Bytebuffer* databuf)
 	        bbCat(databuf,bbContents(vlenbuf));
 	    }
 	    /* Now store the address */
-            sprintf(tmp,"%s_addr = Memory.address(%s);\n",
+            snprintf(tmp,sizeof(tmp),"%s_addr = Memory.address(%s);\n",
 			memname,memname);
 	    bbCat(databuf,tmp);
         }
@@ -380,11 +380,11 @@ genjjni_vlenconstants(List* vlenconstants, Bytebuffer* databuf)
     for(i=0;i<listlength(vlenconstants);i++) {
 	Constant* cmpd = (Constant*)listget(vlenconstants,i);
 
-        sprintf(memname,"vlen_%u",cmpd->value.compoundv->vlen.uid);
+        snprintf(memname,sizeof(memname),"vlen_%u",cmpd->value.compoundv->vlen.uid);
 	/* Define the memory buffer and a place to stick its address */
-        sprintf(tmp,"static long %s = Memory.create();\n",memname);
+        snprintf(tmp,sizeof(tmp),"static long %s = Memory.create();\n",memname);
 	bbCat(databuf,tmp);
-        sprintf(tmp,"static long %s_addr = 0L;\n",memname);
+        snprintf(tmp,sizeof(tmp),"static long %s_addr = 0L;\n",memname);
 	bbCat(databuf,tmp);
     }
 }

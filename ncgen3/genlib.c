@@ -225,7 +225,7 @@ gen_c(
     cline("}");
     cline("");
     cline("int");
-    sprintf(stmnt, "main() {\t\t\t/* create %s */", filename);
+    snprintf(stmnt, sizeof(stmnt), "main() {\t\t\t/* create %s */", filename);
     cline(stmnt);
 
     /* create necessary declarations */
@@ -237,7 +237,7 @@ gen_c(
 	cline("");
 	cline("   /* dimension ids */");
 	for (idim = 0; idim < ndims; idim++) {
-	    sprintf(stmnt, "   int %s_dim;", dims[idim].lname);
+	    snprintf(stmnt, sizeof(stmnt), "   int %s_dim;", dims[idim].lname);
 	    cline(stmnt);
 	    }
 
@@ -245,10 +245,10 @@ gen_c(
 	cline("   /* dimension lengths */");
 	for (idim = 0; idim < ndims; idim++) {
 	    if (dims[idim].size == NC_UNLIMITED) {
-		sprintf(stmnt, "   size_t %s_len = NC_UNLIMITED;",
+		snprintf(stmnt, sizeof(stmnt), "   size_t %s_len = NC_UNLIMITED;",
 			dims[idim].lname);
 	    } else {
-		sprintf(stmnt, "   size_t %s_len = %lu;",
+		snprintf(stmnt, sizeof(stmnt), "   size_t %s_len = %lu;",
 			dims[idim].lname,
 			(unsigned long) dims[idim].size);
 	    }
@@ -265,14 +265,14 @@ gen_c(
 	cline("");
 	cline("   /* variable ids */");
 	for (ivar = 0; ivar < nvars; ivar++) {
-	    sprintf(stmnt, "   int %s_id;", vars[ivar].lname);
+	    snprintf(stmnt, sizeof(stmnt), "   int %s_id;", vars[ivar].lname);
 	    cline(stmnt);
 	}
 
 	cline("");
 	cline("   /* rank (number of dimensions) for each variable */");
 	for (ivar = 0; ivar < nvars; ivar++) {
-	    sprintf(stmnt, "#  define RANK_%s %d", vars[ivar].lname,
+	    snprintf(stmnt, sizeof(stmnt), "#  define RANK_%s %d", vars[ivar].lname,
 		    vars[ivar].ndims);
 	    cline(stmnt);
 	}
@@ -281,7 +281,7 @@ gen_c(
 	    cline("   /* variable shapes */");
 	    for (ivar = 0; ivar < nvars; ivar++) {
 		if (vars[ivar].ndims > 0) {
-		    sprintf(stmnt, "   int %s_dims[RANK_%s];",
+		    snprintf(stmnt, sizeof(stmnt), "   int %s_dims[RANK_%s];",
 			    vars[ivar].lname, vars[ivar].lname);
 		    cline(stmnt);
 		}
@@ -302,7 +302,7 @@ gen_c(
 	cline("   /* attribute vectors */");
 	for (iatt = 0; iatt < natts; iatt++) {
 	    if (atts[iatt].type != NC_CHAR) {
-		sprintf(stmnt,
+		snprintf(stmnt, sizeof(stmnt),
 		    "   %s %s_%s[%lu];",
 		    ncatype(atts[iatt].type),
 		    atts[iatt].var == -1 ? "cdf" : vars[atts[iatt].var].lname,
@@ -318,20 +318,20 @@ gen_c(
     cline("   /* enter define mode */");
 
     if (!cmode_modifier) {
-	sprintf(stmnt,
+	snprintf(stmnt, sizeof(stmnt),
 		"   stat = nc_create(\"%s\", NC_CLOBBER, &ncid);",
 		filename);
     } else if (cmode_modifier & NC_64BIT_OFFSET) {
-	sprintf(stmnt,
+	snprintf(stmnt, sizeof(stmnt),
 		"   stat = nc_create(\"%s\", NC_CLOBBER|NC_64BIT_OFFSET, &ncid);",
 		filename);
 #ifdef USE_NETCDF4
     } else if (cmode_modifier & NC_CLASSIC_MODEL) {
-	sprintf(stmnt,
+	snprintf(stmnt, sizeof(stmnt),
 		"   stat = nc_create(\"%s\", NC_CLOBBER|NC_NETCDF4|NC_CLASSIC_MODEL, &ncid);",
 		filename);
     } else if (cmode_modifier & NC_NETCDF4) {
-	sprintf(stmnt,
+	snprintf(stmnt, sizeof(stmnt),
 		"   stat = nc_create(\"%s\", NC_CLOBBER|NC_NETCDF4, &ncid);",
 		filename);
 #endif
@@ -347,7 +347,7 @@ gen_c(
 	cline("   /* define dimensions */");
     }
     for (idim = 0; idim < ndims; idim++) {
-	sprintf(stmnt,
+	snprintf(stmnt, sizeof(stmnt),
 		"   stat = nc_def_dim(ncid, \"%s\", %s_len, &%s_dim);",
 		dims[idim].name, dims[idim].lname, dims[idim].lname);
 	cline(stmnt);
@@ -361,7 +361,7 @@ gen_c(
 	for (ivar = 0; ivar < nvars; ivar++) {
 	    cline("");
 	    for (idim = 0; idim < vars[ivar].ndims; idim++) {
-		sprintf(stmnt,
+		snprintf(stmnt, sizeof(stmnt),
 			"   %s_dims[%d] = %s_dim;",
 			vars[ivar].lname,
 			idim,
@@ -369,7 +369,7 @@ gen_c(
 		cline(stmnt);
 	    }
 	    if (vars[ivar].ndims > 0) {	/* a dimensioned variable */
-		sprintf(stmnt,
+		snprintf(stmnt, sizeof(stmnt),
 			"   stat = nc_def_var(ncid, \"%s\", %s, RANK_%s, %s_dims, &%s_id);",
 			vars[ivar].name,
 			nctype(vars[ivar].type),
@@ -377,7 +377,7 @@ gen_c(
 			vars[ivar].lname,
 			vars[ivar].lname);
 	    } else {		/* a scalar */
-		sprintf(stmnt,
+		snprintf(stmnt, sizeof(stmnt),
 			"   stat = nc_def_var(ncid, \"%s\", %s, RANK_%s, 0, &%s_id);",
 			vars[ivar].name,
 			nctype(vars[ivar].type),
@@ -396,7 +396,7 @@ gen_c(
 	for (iatt = 0; iatt < natts; iatt++) {
 	    if (atts[iatt].type == NC_CHAR) { /* string */
 		val_string = cstrstr((char *) atts[iatt].val, atts[iatt].len);
-		sprintf(stmnt,
+		snprintf(stmnt, sizeof(stmnt),
 			"   stat = nc_put_att_text(ncid, %s%s, \"%s\", %lu, %s);",
 			atts[iatt].var == -1 ? "NC_GLOBAL" : vars[atts[iatt].var].lname,
 			atts[iatt].var == -1 ? "" : "_id",
@@ -409,7 +409,7 @@ gen_c(
 	    else {			/* vector attribute */
 		for (jatt = 0; jatt < atts[iatt].len ; jatt++) {
 		    val_string = cstring(atts[iatt].type,atts[iatt].val,jatt);
-		    sprintf(stmnt, "   %s_%s[%d] = %s;",
+		    snprintf(stmnt, sizeof(stmnt), "   %s_%s[%d] = %s;",
 			    atts[iatt].var == -1 ? "cdf" : vars[atts[iatt].var].lname,
 			    atts[iatt].lname,
 			    jatt, 
@@ -418,7 +418,7 @@ gen_c(
 		    free (val_string);
 		}
 		
-		sprintf(stmnt,
+		snprintf(stmnt, sizeof(stmnt),
 			"   stat = nc_put_att_%s(ncid, %s%s, \"%s\", %s, %lu, %s_%s);",
 			ncatype(atts[iatt].type),
 			atts[iatt].var == -1 ? "NC_GLOBAL" : vars[atts[iatt].var].lname,
@@ -610,21 +610,21 @@ gen_fortran(
     if (ndims > 0) {
 	fline("* dimension ids");
 	for (idim = 0; idim < ndims; idim++) {
-	    sprintf(stmnt, "integer  %s_dim", dims[idim].lname);
+	    snprintf(stmnt, sizeof(stmnt), "integer  %s_dim", dims[idim].lname);
 	    fline(stmnt);
 	}
 
 	fline("* dimension lengths");
 	for (idim = 0; idim < ndims; idim++) {
-	    sprintf(stmnt, "integer  %s_len", dims[idim].lname);
+	    snprintf(stmnt, sizeof(stmnt), "integer  %s_len", dims[idim].lname);
 	    fline(stmnt);
 	}
 	for (idim = 0; idim < ndims; idim++) {
 	    if (dims[idim].size == NC_UNLIMITED) {
-		sprintf(stmnt, "parameter (%s_len = NF_UNLIMITED)",
+		snprintf(stmnt, sizeof(stmnt), "parameter (%s_len = NF_UNLIMITED)",
 			dims[idim].lname);
 	    } else {
-		sprintf(stmnt, "parameter (%s_len = %lu)",
+		snprintf(stmnt, sizeof(stmnt), "parameter (%s_len = %lu)",
 			dims[idim].lname,
 			(unsigned long) dims[idim].size);
 	    }
@@ -641,17 +641,17 @@ gen_fortran(
     if (nvars > 0) {
 	fline("* variable ids");
 	for (ivar = 0; ivar < nvars; ivar++) {
-	    sprintf(stmnt, "integer  %s_id", vars[ivar].lname);
+	    snprintf(stmnt, sizeof(stmnt), "integer  %s_id", vars[ivar].lname);
 	    fline(stmnt);
 	}
 
 	fline("* rank (number of dimensions) for each variable");
 	for (ivar = 0; ivar < nvars; ivar++) {
-	    sprintf(stmnt, "integer  %s_rank", vars[ivar].lname);
+	    snprintf(stmnt, sizeof(stmnt), "integer  %s_rank", vars[ivar].lname);
 	    fline(stmnt);
 	}
 	for (ivar = 0; ivar < nvars; ivar++) {
-	    sprintf(stmnt, "parameter (%s_rank = %d)", vars[ivar].lname,
+	    snprintf(stmnt, sizeof(stmnt), "parameter (%s_rank = %d)", vars[ivar].lname,
 		    vars[ivar].ndims);
 	    fline(stmnt);
 	}
@@ -659,7 +659,7 @@ gen_fortran(
 	fline("* variable shapes");
 	for (ivar = 0; ivar < nvars; ivar++) {
 	    if (vars[ivar].ndims > 0) {
-		sprintf(stmnt, "integer  %s_dims(%s_rank)",
+		snprintf(stmnt, sizeof(stmnt), "integer  %s_dims(%s_rank)",
 			vars[ivar].lname, vars[ivar].lname);
 		fline(stmnt);
 	    }
@@ -683,14 +683,14 @@ gen_fortran(
                 continue;
             }
 	    if (v->ndims == 0) { /* scalar */
-		sprintf(stmnt, "%s  %s", ncftype(v->type),
+		snprintf(stmnt, sizeof(stmnt), "%s  %s", ncftype(v->type),
 			v->lname);
 	    } else {
-		sprintf(stmnt, "%s  %s(", ncftype(v->type),
+		snprintf(stmnt, sizeof(stmnt), "%s  %s(", ncftype(v->type),
 			v->lname);
 		/* reverse dimensions for FORTRAN */
 		for (idim = v->ndims-1; idim >= 0; idim--) {
-		    sprintf(s2, "%s_len, ",
+		    snprintf(s2, sizeof(s2), "%s_len, ",
 			    dims[v->dims[idim]].lname);
 		    strcat(stmnt, s2);
 		}
@@ -719,7 +719,7 @@ gen_fortran(
 	fline("* attribute vectors");
 	for (itype = 0; itype < ntypes; itype++) {
 	    if (types[itype] != NC_CHAR && max_atts[(int)types[itype]] > 0) {
-		sprintf(stmnt, "%s  %sval(%lu)", ncftype(types[itype]),
+		snprintf(stmnt, sizeof(stmnt), "%s  %sval(%lu)", ncftype(types[itype]),
 			nfstype(types[itype]),
 			(unsigned long) max_atts[(int)types[itype]]);
 		fline(stmnt);
@@ -730,14 +730,14 @@ gen_fortran(
     /* create netCDF file, uses NC_CLOBBER mode */
     fline("* enter define mode");
     if (!cmode_modifier) {
-	sprintf(stmnt, "iret = nf_create(\'%s\', NF_CLOBBER, ncid)", filename);
+	snprintf(stmnt, sizeof(stmnt), "iret = nf_create(\'%s\', NF_CLOBBER, ncid)", filename);
     } else if (cmode_modifier & NC_64BIT_OFFSET) {
-	sprintf(stmnt, "iret = nf_create(\'%s\', OR(NF_CLOBBER,NF_64BIT_OFFSET), ncid)", filename);
+	snprintf(stmnt, sizeof(stmnt), "iret = nf_create(\'%s\', OR(NF_CLOBBER,NF_64BIT_OFFSET), ncid)", filename);
 #ifdef USE_NETCDF4
     } else if (cmode_modifier & NC_CLASSIC_MODEL) {
-	sprintf(stmnt, "iret = nf_create(\'%s\', OR(NF_CLOBBER,NC_NETCDF4,NC_CLASSIC_MODEL), ncid)", filename);
+	snprintf(stmnt, sizeof(stmnt), "iret = nf_create(\'%s\', OR(NF_CLOBBER,NC_NETCDF4,NC_CLASSIC_MODEL), ncid)", filename);
     } else if (cmode_modifier & NC_NETCDF4) {
-	sprintf(stmnt, "iret = nf_create(\'%s\', OR(NF_CLOBBER,NF_NETCDF4), ncid)", filename);
+	snprintf(stmnt, sizeof(stmnt), "iret = nf_create(\'%s\', OR(NF_CLOBBER,NF_NETCDF4), ncid)", filename);
 #endif
     } else {
        derror("unknown cmode modifier");
@@ -750,10 +750,10 @@ gen_fortran(
         fline("* define dimensions");
     for (idim = 0; idim < ndims; idim++) {
 	if (dims[idim].size == NC_UNLIMITED)
-            sprintf(stmnt, "iret = nf_def_dim(ncid, \'%s\', NF_UNLIMITED, %s_dim)",
+            snprintf(stmnt, sizeof(stmnt), "iret = nf_def_dim(ncid, \'%s\', NF_UNLIMITED, %s_dim)",
                     dims[idim].name, dims[idim].lname);
 	else
-            sprintf(stmnt, "iret = nf_def_dim(ncid, \'%s\', %lu, %s_dim)",
+            snprintf(stmnt, sizeof(stmnt), "iret = nf_def_dim(ncid, \'%s\', %lu, %s_dim)",
                     dims[idim].name, (unsigned long) dims[idim].size,
 			dims[idim].lname);
 	fline(stmnt);
@@ -765,14 +765,14 @@ gen_fortran(
 	fline("* define variables");
 	for (ivar = 0; ivar < nvars; ivar++) {
 	    for (idim = 0; idim < vars[ivar].ndims; idim++) {
-		sprintf(stmnt, "%s_dims(%d) = %s_dim",
+		snprintf(stmnt, sizeof(stmnt), "%s_dims(%d) = %s_dim",
 			vars[ivar].lname,
 			vars[ivar].ndims - idim, /* reverse dimensions */
 			dims[vars[ivar].dims[idim]].lname);
 		fline(stmnt);
 	    }
 	    if (vars[ivar].ndims > 0) {	/* a dimensioned variable */
-		sprintf(stmnt, 
+		snprintf(stmnt, sizeof(stmnt), 
 			"iret = nf_def_var(ncid, \'%s\', %s, %s_rank, %s_dims, %s_id)",
 			vars[ivar].name,
 			ftypename(vars[ivar].type),
@@ -780,7 +780,7 @@ gen_fortran(
 			vars[ivar].lname,
 			vars[ivar].lname);
 	    } else {		/* a scalar */
-		sprintf(stmnt, 
+		snprintf(stmnt, sizeof(stmnt), 
 			"iret = nf_def_var(ncid, \'%s\', %s, %s_rank, 0, %s_id)",
 			vars[ivar].name,
 			ftypename(vars[ivar].type),
@@ -798,7 +798,7 @@ gen_fortran(
 	for (iatt = 0; iatt < natts; iatt++) {
 	    if (atts[iatt].type == NC_CHAR) { /* string */
 		val_string = fstrstr((char *) atts[iatt].val, atts[iatt].len);
-		sprintf(stmnt, 
+		snprintf(stmnt, sizeof(stmnt), 
 			"iret = nf_put_att_text(ncid, %s%s, \'%s\', %lu, %s)",
 			atts[iatt].var == -1 ? "NF_GLOBAL" : vars[atts[iatt].var].lname,
 			atts[iatt].var == -1 ? "" : "_id",
@@ -811,7 +811,7 @@ gen_fortran(
 	    } else {
 		for (jatt = 0; jatt < atts[iatt].len ; jatt++) {
 		    val_string = fstring(atts[iatt].type,atts[iatt].val,jatt);
-		    sprintf(stmnt, "%sval(%d) = %s",
+		    snprintf(stmnt, sizeof(stmnt), "%sval(%d) = %s",
 			    nfstype(atts[iatt].type),
 			    jatt+1, 
 			    val_string);
@@ -819,7 +819,7 @@ gen_fortran(
 		    free (val_string);
 		}
 	    
-		sprintf(stmnt,
+		snprintf(stmnt, sizeof(stmnt),
 			"iret = nf_put_att_%s(ncid, %s%s, \'%s\', %s, %lu, %sval)",
 			nfftype(atts[iatt].type),
 			atts[iatt].var == -1 ? "NCGLOBAL" : vars[atts[iatt].var].lname,
@@ -1206,7 +1206,7 @@ fstrstr(
 	*cp = '\0';
 	was_print = 1;
     } else {
-	sprintf(tstr, "char(%d)", (unsigned char)*istr);
+	snprintf(tstr, sizeof(tstr), "char(%d)", (unsigned char)*istr);
 	strcat(cp, tstr);
 	cp += strlen(tstr);
 	was_print = 0;
@@ -1239,7 +1239,7 @@ fstrstr(
 		*cp++ = '\'';
 		*cp = '\0';
 	    }
-	    sprintf(tstr, "//char(%d)", (unsigned char)*istr);
+	    snprintf(tstr, sizeof(tstr), "//char(%d)", (unsigned char)*istr);
 	    strcat(cp, tstr);
 	    cp += strlen(tstr);
 	    was_print = 0;
@@ -1346,13 +1346,13 @@ cl_fortran(void)
     if (have_rec_var) {
 	fline(" ");
 	fline("* Write record variables");
-        sprintf(stmnt, "call writerecs(ncid,");
+        snprintf(stmnt, sizeof(stmnt), "call writerecs(ncid,");
         /* generate parameter list for subroutine to write record vars */
         for (ivar = 0; ivar < nvars; ivar++) {
             struct vars *v = &vars[ivar];
             /* if a record variable, include id in parameter list */
             if (v->ndims > 0 && v->dims[0] == rec_dim) {
-                sprintf(s2, "%s_id,", v->lname);
+                snprintf(s2, sizeof(s2), "%s_id,", v->lname);
                 strcat(stmnt, s2);
             }
         }        
@@ -1372,11 +1372,11 @@ cl_fortran(void)
     fline(" ");
 
     if (have_rec_var) {
-        sprintf(stmnt, "subroutine writerecs(ncid,");
+        snprintf(stmnt, sizeof(stmnt), "subroutine writerecs(ncid,");
         for (ivar = 0; ivar < nvars; ivar++) {
             struct vars *v = &vars[ivar];
             if (v->ndims > 0 && v->dims[0] == rec_dim) {
-                sprintf(s2, "%s_id,", v->lname);
+                snprintf(s2, sizeof(s2), "%s_id,", v->lname);
                 strcat(stmnt, s2);
             }
         }        
@@ -1394,7 +1394,7 @@ cl_fortran(void)
 	for (ivar = 0; ivar < nvars; ivar++) {
 	    struct vars *v = &vars[ivar];
             if (v->ndims > 0 && v->dims[0] == rec_dim) {
-                sprintf(stmnt, "integer  %s_id", v->lname);
+                snprintf(stmnt, sizeof(stmnt), "integer  %s_id", v->lname);
                 fline(stmnt);
             }
 	}
@@ -1413,9 +1413,9 @@ cl_fortran(void)
         for (idim = 0; idim < ndims; idim++) {
             /* if used in a record variable and not record dimension */
             if (used_in_rec_var(idim) && dims[idim].size != NC_UNLIMITED) {
-                sprintf(stmnt, "integer  %s_len", dims[idim].lname);
+                snprintf(stmnt, sizeof(stmnt), "integer  %s_len", dims[idim].lname);
                 fline(stmnt);
-                sprintf(stmnt, "parameter (%s_len = %lu)",
+                snprintf(stmnt, sizeof(stmnt), "parameter (%s_len = %lu)",
                         dims[idim].lname, (unsigned long) dims[idim].size);
                 fline(stmnt);
             }
@@ -1426,14 +1426,14 @@ cl_fortran(void)
 	for (ivar = 0; ivar < nvars; ivar++) {
 	    struct vars *v = &vars[ivar];
             if (v->ndims > 0 && v->dims[0] == rec_dim) {
-                sprintf(stmnt, "integer  %s_rank", v->lname);
+                snprintf(stmnt, sizeof(stmnt), "integer  %s_rank", v->lname);
                 fline(stmnt);
             }
 	}
 	for (ivar = 0; ivar < nvars; ivar++) {
 	    struct vars *v = &vars[ivar];
             if (v->ndims > 0 && v->dims[0] == rec_dim) {
-                sprintf(stmnt, "parameter (%s_rank = %d)", v->lname,
+                snprintf(stmnt, sizeof(stmnt), "parameter (%s_rank = %d)", v->lname,
                         v->ndims);
                 fline(stmnt);
             }
@@ -1443,7 +1443,7 @@ cl_fortran(void)
 	for (ivar = 0; ivar < nvars; ivar++) {
 	    struct vars *v = &vars[ivar];
 	    if (v->ndims > 0 && v->dims[0] == rec_dim) {
-		sprintf(stmnt,
+		snprintf(stmnt, sizeof(stmnt),
 			"integer  %s_start(%s_rank), %s_count(%s_rank)",
 			v->lname, v->lname, v->lname, v->lname);
 		fline(stmnt);
@@ -1459,25 +1459,25 @@ cl_fortran(void)
                 char *sp;
 	    
                 fline(" ");
-                sprintf(stmnt, "integer  %s_nr", v->lname);
+                snprintf(stmnt, sizeof(stmnt), "integer  %s_nr", v->lname);
                 fline(stmnt);
                 if (v->nrecs > 0) {
-                    sprintf(stmnt, "parameter (%s_nr = %lu)",
+                    snprintf(stmnt, sizeof(stmnt), "parameter (%s_nr = %lu)",
                             v->lname, (unsigned long) v->nrecs);
                 } else {
-                    sprintf(stmnt, "parameter (%s_nr = 1)",
+                    snprintf(stmnt, sizeof(stmnt), "parameter (%s_nr = 1)",
                             v->lname);
                 }
                 fline(stmnt);
 		if (v->type != NC_CHAR) {
-		    sprintf(stmnt, "%s  %s(", ncftype(v->type),
+		    snprintf(stmnt, sizeof(stmnt), "%s  %s(", ncftype(v->type),
 			    v->lname);
 		    /* reverse dimensions for FORTRAN */
 		    for (idim = v->ndims-1; idim >= 0; idim--) {
 			if(v->dims[idim] == rec_dim) {
-			    sprintf(s2, "%s_nr, ", v->lname);
+			    snprintf(s2, sizeof(s2), "%s_nr, ", v->lname);
 			} else {
-			    sprintf(s2, "%s_len, ",
+			    snprintf(s2, sizeof(s2), "%s_len, ",
 				    dims[v->dims[idim]].lname);
 			}
 			strcat(stmnt, s2);
@@ -1507,7 +1507,7 @@ cl_fortran(void)
                     for (idim = 1; idim < v->ndims; idim++) {
                         rec_len *= dims[v->dims[idim]].size;
                     }
-                    sprintf(stmnt,"data %s /%lu * %s/", v->lname,
+                    snprintf(stmnt, sizeof(stmnt),"data %s /%lu * %s/", v->lname,
 			(unsigned long) rec_len,
                             f_fill_name(v->type));		
                     fline(stmnt);
@@ -1521,28 +1521,28 @@ cl_fortran(void)
 	    if (v->ndims > 0 && v->dims[0] == rec_dim) {
 		if (!v->has_data)
 		    continue;
-		sprintf(stmnt, "* store %s", v->name);
+		snprintf(stmnt, sizeof(stmnt), "* store %s", v->name);
 		fline(stmnt);
 
 		for (idim = 0; idim < v->ndims; idim++) {
-		    sprintf(stmnt, "%s_start(%d) = 1", v->lname, idim+1);
+		    snprintf(stmnt, sizeof(stmnt), "%s_start(%d) = 1", v->lname, idim+1);
 		    fline(stmnt);
 		}
 		for (idim = v->ndims-1; idim > 0; idim--) {
-		    sprintf(stmnt, "%s_count(%d) = %s_len", v->lname,
+		    snprintf(stmnt, sizeof(stmnt), "%s_count(%d) = %s_len", v->lname,
 			    v->ndims - idim, dims[v->dims[idim]].lname);
 		    fline(stmnt);
 		}
-                sprintf(stmnt, "%s_count(%d) = %s_nr", v->lname,
+                snprintf(stmnt, sizeof(stmnt), "%s_count(%d) = %s_nr", v->lname,
                         v->ndims, v->lname);
 		fline(stmnt);
 		
 		if (v->type != NC_CHAR) {
-		    sprintf(stmnt,
+		    snprintf(stmnt, sizeof(stmnt),
 			    "iret = nf_put_vara_%s(ncid, %s_id, %s_start, %s_count, %s)",
 			    nfftype(v->type), v->lname, v->lname, v->lname, v->lname);
 		} else {
-		    sprintf(stmnt,
+		    snprintf(stmnt, sizeof(stmnt),
 			    "iret = nf_put_vara_%s(ncid, %s_id, %s_start, %s_count, %s)",
 			    nfftype(v->type), v->lname, v->lname, v->lname,
 			    v->data_stmnt);

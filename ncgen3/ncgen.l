@@ -181,12 +181,12 @@ FloatInf|-?Inff	{ /* missing value (pre-2.4 backward compatibility) */
 [+-]?[0-9]*[0-9][Bb]  {
                 int ii;
 		if (sscanf((char*)yytext, "%d", &ii) != 1) {
-		    sprintf(errstr,"bad byte constant: %s",(char*)yytext);
+		    snprintf(errstr, sizeof(errstr),"bad byte constant: %s",(char*)yytext);
 		    yyerror(errstr);
 		}
                 byte_val = ii;
 		if (ii != (int)byte_val) {
-		    sprintf(errstr,"byte constant out of range (-128,127): %s",(char*)yytext);
+		    snprintf(errstr, sizeof(errstr),"byte constant out of range (-128,127): %s",(char*)yytext);
 		    yyerror(errstr);
 		}
 		return (BYTE_CONST);
@@ -194,14 +194,14 @@ FloatInf|-?Inff	{ /* missing value (pre-2.4 backward compatibility) */
 
 [+-]?[0-9]*\.[0-9]*{exp}?[LlDd]?|[+-]?[0-9]*{exp}[LlDd]? {
 		if (sscanf((char*)yytext, "%le", &double_val) != 1) {
-		    sprintf(errstr,"bad long or double constant: %s",(char*)yytext);
+		    snprintf(errstr, sizeof(errstr),"bad long or double constant: %s",(char*)yytext);
 		    yyerror(errstr);
 		}
                 return (DOUBLE_CONST);
                 }
 [+-]?[0-9]*\.[0-9]*{exp}?[Ff]|[+-]?[0-9]*{exp}[Ff] {
 		if (sscanf((char*)yytext, "%e", &float_val) != 1) {
-		    sprintf(errstr,"bad float constant: %s",(char*)yytext);
+		    snprintf(errstr, sizeof(errstr),"bad float constant: %s",(char*)yytext);
 		    yyerror(errstr);
 		}
                 return (FLOAT_CONST);
@@ -209,7 +209,7 @@ FloatInf|-?Inff	{ /* missing value (pre-2.4 backward compatibility) */
 [+-]?[0-9]+[sS]|0[xX][0-9a-fA-F]+[sS] {
 		int tmp = 0;
 		if (sscanf((char*)yytext, "%d", &tmp) != 1) {
-		    sprintf(errstr,"bad short constant: %s",(char*)yytext);
+		    snprintf(errstr, sizeof(errstr),"bad short constant: %s",(char*)yytext);
 		    yyerror(errstr);
 		}
 		short_val = (short)tmp;
@@ -220,7 +220,7 @@ FloatInf|-?Inff	{ /* missing value (pre-2.4 backward compatibility) */
                 errno = 0;
 		double_val = strtod((char*)yytext, &ptr);
 		if (errno != 0 && double_val == 0.0) {
-		    sprintf(errstr,"bad numerical constant: %s",(char*)yytext);
+		    snprintf(errstr, sizeof(errstr),"bad numerical constant: %s",(char*)yytext);
 		    yyerror(errstr);
 		}
                 if (double_val < XDR_INT_MIN ||double_val > XDR_INT_MAX) {
@@ -236,7 +236,7 @@ FloatInf|-?Inff	{ /* missing value (pre-2.4 backward compatibility) */
                 errno = 0;
 		long_val = strtol((char*)yytext, &ptr, 0);
 		if (errno != 0) {
-		    sprintf(errstr,"bad long constant: %s",(char*)yytext);
+		    snprintf(errstr, sizeof(errstr),"bad long constant: %s",(char*)yytext);
 		    yyerror(errstr);
 		}
                 if (long_val < XDR_INT_MIN || long_val > XDR_INT_MAX) {
