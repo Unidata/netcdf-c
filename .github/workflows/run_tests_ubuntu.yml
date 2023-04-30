@@ -198,6 +198,7 @@ jobs:
           echo "" > ~/.aws/config
           chmod go-rwx ~/.aws/config
           echo "${AWS_PROFILE}" >> ~/.aws/config
+	  ls -l ~/.aws/config
           pwd
           LD_LIBRARY_PATH="/home/runner/work/netcdf-c/netcdf-c/liblib/.libs:${LD_LIBRARY_PATH}"
           CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check -j
