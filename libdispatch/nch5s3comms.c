@@ -296,7 +296,14 @@ static int httptonc(long httpcode);
 /* Functions */
 /*************/
 
-#if S3COMMS_CURL_VERBOSITY > 0
+#if S3COMMS_CURL_VERBOSITY > 
+static void
+nch5breakpoint(int stat)
+{
+    if(stat == -78) abort();
+    ncbreakpoint(stat);
+}
+
 static int
 report(int stat, const char* fcn, int lineno, const char* fmt, ...)
 {
@@ -307,7 +314,7 @@ report(int stat, const char* fcn, int lineno, const char* fmt, ...)
     snprintf(bigfmt,sizeof(bigfmt),"(%d)%s ; fcn=%s line=%d ; %s",stat,nc_strerror(stat),fcn,lineno,fmt);
     va_start(args,fmt);
     ncvlog(NCLOGERR,bigfmt,args);
-    ncbreakpoint(stat);
+    nch5breakpoint(stat);
 
 done:
     va_end(args);
