@@ -196,8 +196,8 @@ jobs:
         run: |
           mkdir -p ~/.aws
           echo "" > ~/.aws/config
-          chmod go-rwx ~/.aws/config
           echo "${AWS_PROFILE}" >> ~/.aws/config
+          echo "" > ~/.aws/config
           ls -l ~/.aws/config
           if test -e ~/.aws/config ; then wc ~/.aws/config ; fi
           pwd
