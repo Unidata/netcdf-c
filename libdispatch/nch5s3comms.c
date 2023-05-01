@@ -36,12 +36,27 @@
  * - rename H5FD_s3comms to NCH5_s3comms to avoid name conflicts
  * - Remove HDF5 dependencies
  * - Support zmap API
+ *
+ * Note that this code is very ugly because it is the bastard
+ * child of the HDF5 coding style and the NetCDF-C coding style
+ * and some libcurl as well.
+ * 
+ * A note about the nccurl_hmac.c and nccurl_sha256.c files.
+ * The code in this file depends on having access to two
+ * cryptographic functions:
+ * 1. HMAC signing function 
+ * 2. SHA256 digest function
+ * 
+ * There are a number of libraries providing these functions.
+ * For example, OPENSSL, WOLFSSL, GNUTLS, Windows crypto package
+ * etc.  It turns out that libcurl has identified all of these
+ * possible sources and set up a wrapper to handle the
+ * possibilities.  So, this code copies the libcurl wrapper to
+ * inherit its multi-source capabilities.
+ *
  * Author: Dennis Heimbigner
  * Creation Date: 2/12/2023
- * Last Modified: 2/12/2023
- *
- * Note that this code is very ugly because it is the bastard child
- * of the HDF5 coding style and the NetCDF-C coding style.
+ * Last Modified: 5/1/2023
  */
 
 /****************/
