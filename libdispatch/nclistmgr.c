@@ -81,8 +81,8 @@ free_NCList(void)
 int
 add_to_NCList(NC* ncp)
 {
-    int i;
-    int new_id;
+    unsigned int i;
+    unsigned int new_id;
     if(nc_filelist == NULL) {
         if (!(nc_filelist = calloc(1, sizeof(NC*)*NCFILELISTLENGTH)))
             return NC_ENOMEM;
