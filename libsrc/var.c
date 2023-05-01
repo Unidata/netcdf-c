@@ -267,7 +267,7 @@ dup_NC_vararrayV(NC_vararray *ncap, const NC_vararray *ref)
 	{
 		NC_var **vpp = ncap->value;
 		const NC_var **drpp = (const NC_var **)ref->value;
-		NC_var *const *const end = &vpp[ref->nelems];
+		NC_var *const *const end = vpp ? &vpp[ref->nelems] : NULL;
 		for( /*NADA*/; vpp < end; drpp++, vpp++, ncap->nelems++)
 		{
 			*vpp = dup_NC_var(*drpp);

@@ -229,7 +229,7 @@ dup_NC_dimarrayV(NC_dimarray *ncap, const NC_dimarray *ref)
 	{
 		NC_dim **dpp = ncap->value;
 		const NC_dim **drpp = (const NC_dim **)ref->value;
-		NC_dim *const *const end = &dpp[ref->nelems];
+		NC_dim *const *const end = dpp ? &dpp[ref->nelems] : NULL;
 		for( /*NADA*/; dpp < end; drpp++, dpp++, ncap->nelems++)
 		{
 			*dpp = dup_NC_dim(*drpp);

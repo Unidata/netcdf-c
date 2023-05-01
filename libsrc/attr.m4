@@ -231,7 +231,7 @@ dup_NC_attrarrayV(NC_attrarray *ncap, const NC_attrarray *ref)
 	{
 		NC_attr **app = ncap->value;
 		const NC_attr **drpp = (const NC_attr **)ref->value;
-		NC_attr *const *const end = &app[ref->nelems];
+		NC_attr *const *const end = app ? &app[ref->nelems] : NULL;
 		for( /*NADA*/; app < end; drpp++, app++, ncap->nelems++)
 		{
 			*app = dup_NC_attr(*drpp);
