@@ -178,8 +178,6 @@ NC_s3sdkcreateclient(NCS3INFO* info)
     if(info->profile != NULL) {
         if((stat = NC_s3profilelookup(info->profile, "aws_access_key_id", &accessid))) goto done;
         if((stat = NC_s3profilelookup(info->profile, "aws_secret_access_key", &accesskey))) goto done;
-fprintf(stderr,">>> (x) aws_access_key_id=%s\n",accessid);
-fprintf(stderr,">>> (x) aws_secret_access_key=%s\n",accesskey);
     }
     if((s3client->rooturl = makes3rooturl(info))==NULL) {stat = NC_ENOMEM; goto done;}
     s3client->h5s3client = NCH5_s3comms_s3r_open(s3client->rooturl,info->region,accessid,accesskey);
@@ -188,7 +186,6 @@ fprintf(stderr,">>> (x) aws_secret_access_key=%s\n",accesskey);
 done:
     nullfree(urlroot);
     if(stat && s3client) {
-	abort();
         NC_s3sdkclose(s3client,info,0,NULL);
 	s3client = NULL;
     }
@@ -515,7 +512,6 @@ makes3rooturl(NCS3INFO* info)
     
     ncbytescat(buf,"https://");
     ncbytescat(buf,info->host);
-    ncbytesnull(buf);
     result = ncbytesextract(buf);
     ncbytesfree(buf);
     return result;

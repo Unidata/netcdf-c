@@ -6,8 +6,6 @@ export TEST_NCZARR_SH=1
 
 if test "x$SETX" != x; then set -x; fi
 
-GDBB="gdb -batch -ex r -ex bt -ex q --args"
-
 # Figure out which cloud repo to use
 if test "x$NCZARR_S3_TEST_HOST" = x ; then
 #    export NCZARR_S3_TEST_HOST=stratus.ucar.edu
@@ -20,16 +18,16 @@ fi
 export NCZARR_S3_TEST_URL="https://${NCZARR_S3_TEST_HOST}/${NCZARR_S3_TEST_BUCKET}"
 
 if test "x$VALGRIND" != x ; then
-    ZMD="valgrind --leak-check=full ${execdir}/.libs/zmapio"
-    S3UTIL="valgrind --leak-check=full ${execdir}/.libs/s3util"
+    ZMD="valgrind --leak-check=full ${execdir}/zmapio"
+    S3UTIL="valgrind --leak-check=full ${execdir}/s3util"
 else
     ZMD="${execdir}/zmapio"
-    S3UTIL="${execdir}/.libs/s3util"
+    S3UTIL="${execdir}/s3util"
 fi
 
 s3sdkdelete() {
 # aws s3api delete-object --endpoint-url=https://${NCZARR_S3_TEST_HOST} --bucket=${NCZARR_S3_TEST_BUCKET} --key="/${S3ISOPATH}/$1"
-$GDBB ${S3UTIL} ${PROFILE} -u "${NCZARR_S3_TEST_URL}" -k "$1" clear
+${S3UTIL} ${PROFILE} -u "${NCZARR_S3_TEST_URL}" -k "$1" clear
 }
 
 

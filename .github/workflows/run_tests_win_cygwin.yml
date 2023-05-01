@@ -43,8 +43,7 @@ jobs:
         run: >-
            /bin/dash ./configure --enable-hdf5 --enable-shared
            --disable-static --enable-dap --disable-dap-remote-tests
-           --enable-plugins --enable-nczarr
-           --enable-s3 --enable-s3-internal
+           --enable-plugins --enable-nczarr --disable-s3
 
 
       - name: Look at config.log if error

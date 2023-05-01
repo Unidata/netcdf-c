@@ -216,12 +216,10 @@ NC_s3urlprocess(NCURI* url, NCS3INFO* s3)
     if((stat = NC_getactives3profile(url,&profile0))) goto done;
     if(profile0 == NULL) profile0 = "none";
     s3->profile = strdup(profile0);
-fprintf(stderr,">>> s3urlprocess: profile=%s\n",s3->profile);
 
     /* Rebuild the URL to path format and get a usable region and optional bucket*/
     if((stat = NC_s3urlrebuild(url,&s3->bucket,&s3->region,&url2))) goto done;
     s3->host = strdup(url2->host);
-fprintf(stderr,">>> s3urlprocess: host=%s\n",s3->host);
     /* construct the rootkey minus the leading bucket */
     pathsegments = nclistnew();
     if((stat = NC_split_delim(url2->path,'/',pathsegments))) goto done;
@@ -230,7 +228,6 @@ fprintf(stderr,">>> s3urlprocess: host=%s\n",s3->host);
         nullfree(seg);
     }
     if((stat = NC_join(pathsegments,&s3->rootkey))) goto done;
-fprintf(stderr,">>> s3urlprocess: rootkey=%s\n",s3->rootkey);
 
 done:
     ncurifree(url2);
