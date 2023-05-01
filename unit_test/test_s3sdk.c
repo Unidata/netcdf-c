@@ -21,7 +21,7 @@
 #include "XGetopt.h"
 #endif
 
-#define DEBUG
+#undef DEBUG
 
 #define SELF_CLEAN
 
@@ -105,7 +105,6 @@ profilesetup(const char* url)
 {
     int stat = NC_NOERR;
 
-fprintf(stderr,">>> profilesetup: url=%s\n",url);
     ncuriparse(url,&purl);
     if(purl == NULL) {
         fprintf(stderr,"URI parse fail: %s\n",url);
