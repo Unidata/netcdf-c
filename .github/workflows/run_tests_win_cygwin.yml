@@ -46,7 +46,6 @@ jobs:
            --enable-plugins --enable-nczarr
            --disable-s3
 
-
       - name: Look at config.log if error
         if: ${{ failure() }}
         run: cat config.log
@@ -72,7 +71,6 @@ jobs:
           AWS_PROFILE: ${{ secrets.DEFAULT_PROFILE }}
         run: |
           mkdir -p ~/.aws
-          echo "" >  ~/.aws/config
-          chmod go-rwx ~/.aws/config
           echo "${AWS_PROFILE}" >> ~/.aws/config
+          chmod go-rwx ~/.aws/config
           make check -j8 SHELL=/bin/dash
