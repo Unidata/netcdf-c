@@ -167,7 +167,7 @@ jobs:
 
       - name: Configure
         shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests  --enable-doxygen  --enable-external-server-tests --disable-s3
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests  --enable-doxygen  --enable-external-server-tests --enable-s3 --enable-s3-internal --enable-nczarr-s3-tests
         if: ${{ success() }}
 
       - name: Look at config.log if error
@@ -195,9 +195,8 @@ jobs:
           AWS_PROFILE: ${{ secrets.DEFAULT_PROFILE }}
         run: |
           mkdir -p ~/.aws
-          echo "" >  ~/.aws/config
+          echo "${AWS_PROFILE}" > ~/.aws/config
           chmod go-rwx ~/.aws/config
-          echo "${AWS_PROFILE}" >> ~/.aws/config
           ls -l  ~/.aws/config
           wc  ~/.aws/config
           LD_LIBRARY_PATH="/home/runner/work/netcdf-c/netcdf-c/liblib/.libs:${LD_LIBRARY_PATH}"
