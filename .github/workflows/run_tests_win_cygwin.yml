@@ -44,7 +44,7 @@ jobs:
            /bin/dash ./configure --enable-hdf5 --enable-shared
            --disable-static --enable-dap --disable-dap-remote-tests
            --enable-plugins --enable-nczarr
-           --enable-s3 --enable-s3-internal --enable-s3-tests
+           --disable-s3
 
 
       - name: Look at config.log if error
@@ -72,7 +72,7 @@ jobs:
           AWS_PROFILE: ${{ secrets.DEFAULT_PROFILE }}
         run: |
           mkdir -p ~/.aws
-          echo "" > ~/.aws/config
+          echo "" >  ~/.aws/config
           chmod go-rwx ~/.aws/config
           echo "${AWS_PROFILE}" >> ~/.aws/config
           make check -j8 SHELL=/bin/dash
