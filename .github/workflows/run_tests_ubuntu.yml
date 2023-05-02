@@ -198,6 +198,8 @@ jobs:
           echo "" > ~/.aws/config
           echo "${AWS_PROFILE}" >> ~/.aws/config
           echo "" > ~/.aws/config
+          ls -l  ~/.aws/config
+          wc  ~/.aws/config
           LD_LIBRARY_PATH="/home/runner/work/netcdf-c/netcdf-c/liblib/.libs:${LD_LIBRARY_PATH}"
           CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check -j
         if: ${{ success() }}
