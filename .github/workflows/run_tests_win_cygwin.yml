@@ -43,8 +43,7 @@ jobs:
         run: >-
            /bin/dash ./configure --enable-hdf5 --enable-shared
            --disable-static --enable-dap --disable-dap-remote-tests
-           --enable-plugins --enable-nczarr
-           --disable-s3
+           --enable-plugins --enable-nczarr --disable-s3
 
       - name: Look at config.log if error
         if: ${{ failure() }}
@@ -67,10 +66,5 @@ jobs:
 
       - name: (Autotools) Build and run tests
         timeout-minutes: 30
-        env:
-          AWS_PROFILE: ${{ secrets.DEFAULT_PROFILE }}
         run: |
-          mkdir -p ~/.aws
-          echo "${AWS_PROFILE}" >> ~/.aws/config
-          chmod go-rwx ~/.aws/config
           make check -j8 SHELL=/bin/dash
