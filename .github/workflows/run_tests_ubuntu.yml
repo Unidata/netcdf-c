@@ -4,7 +4,7 @@
 
 name: Run Ubuntu/Linux netCDF Tests
 
-on: [pull_request, workflow_dispatch]
+on: [push,pull_request, workflow_dispatch]
 
 jobs:
 
@@ -195,10 +195,11 @@ jobs:
           AWS_PROFILE: ${{ secrets.DEFAULT_PROFILE }}
         run: |
           mkdir -p ~/.aws
-          echo "${AWS_PROFILE}" > ~/.aws/config
-          chmod go-rwx ~/.aws/config
-          ls -l  ~/.aws/config
-          wc  ~/.aws/config
+          echo "${AWS_PROFILE}" > ${HOME}/.aws/credentials
+          chmod go-rwx ${HOME}/.aws/credentials
+          ls -l  ${HOME}/.aws/credentials
+          wc  ${HOME}/.aws/credentials
+          pwd
           LD_LIBRARY_PATH="/home/runner/work/netcdf-c/netcdf-c/liblib/.libs:${LD_LIBRARY_PATH}"
           CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check -j
         if: ${{ success() }}
