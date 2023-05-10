@@ -2642,7 +2642,7 @@ oinfo_list_add(user_data_t *udata, const hdf5_obj_info_t *oinfo)
  */
 static int
 read_hdf5_obj(hid_t grpid, const char *name,
-#if H5_VERSION_GE(1,12,0)
+#if defined(H5Lget_info_vers) && H5Lget_info_vers == 2
 	      const H5L_info2_t *info,
 #else
 	      const H5L_info_t *info,
