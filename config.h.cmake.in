@@ -142,9 +142,6 @@ are set when opening a binary file on Windows. */
 /* if true, enable nczarr filter support */
 #cmakedefine ENABLE_NCZARR_FILTERS 1
 
-/* if true, enable S3 testing*/
-#cmakedefine ENABLE_NCZARR_S3_TESTS 1
-
 /* if true, enable nczarr zip support */
 #cmakedefine ENABLE_NCZARR_ZIP 1
 
@@ -159,6 +156,9 @@ are set when opening a binary file on Windows. */
 
 /* if true, Force use of S3 internal library */
 #cmakedefine ENABLE_S3_INTERNAL 1
+
+/* if true, enable S3 testing*/
+#cmakedefine WITH_S3_TESTING "PUBLIC"
 
 /* if true, run extra tests which may not work yet */
 #cmakedefine EXTRA_TESTS 1

@@ -113,12 +113,12 @@ endif #ENABLE_FILTER_TESTING
 endif #BUILD_UTILITIES
 
 # These programs are used by the test cases
-noinst_PROGRAMS = zmapio
-zmapio_SOURCES = zmapio.c
-noinst_PROGRAMS += zhex
+noinst_PROGRAMS = zhex
 zhex_SOURCES = zhex.c
 noinst_PROGRAMS += zisjson
 zisjson_SOURCES = zisjson.c
+noinst_PROGRAMS += zmapio
+zmapio_SOURCES = zmapio.c
 noinst_PROGRAMS += zs3parse
 zs3parse_SOURCES = zs3parse.c
 

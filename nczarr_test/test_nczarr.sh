@@ -182,6 +182,8 @@ atexit() {
   trap atexit_cleanup EXIT
 }
 
+GDBB="gdb -batch -ex r -ex bt -ex q --args"
+
 resetrc
 atexit
 

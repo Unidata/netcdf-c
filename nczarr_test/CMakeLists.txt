@@ -76,16 +76,18 @@ IF(ENABLE_TESTS)
   TARGET_INCLUDE_DIRECTORIES(tst_fillonlyz PUBLIC ../libnczarr)
 
   # Helper programs for testing
-  BUILD_BIN_TEST(zmapio ${COMMONSRC})
-  TARGET_INCLUDE_DIRECTORIES(zmapio PUBLIC ../libnczarr)
   BUILD_BIN_TEST(zhex)
   BUILD_BIN_TEST(zisjson ${COMMONSRC})
   TARGET_INCLUDE_DIRECTORIES(zisjson PUBLIC ../libnczarr)
   BUILD_BIN_TEST(zs3parse ${COMMONSRC})
   TARGET_INCLUDE_DIRECTORIES(zs3parse PUBLIC ../libnczarr)
-  if(ENABLE_S3)
-      BUILD_BIN_TEST(s3util ${COMMONSRC})
-      TARGET_INCLUDE_DIRECTORIES(s3util PUBLIC ../libnczarr)
+  BUILD_BIN_TEST(zmapio ${COMMONSRC})
+  TARGET_INCLUDE_DIRECTORIES(zmapio PUBLIC ../libnczarr)
+
+  IF(ENABLE_S3 AND NOT WITH_S3_TESTING STREQUAL "NO")
+  # Helper programs for testing
+  BUILD_BIN_TEST(s3util ${COMMONSRC})
+  TARGET_INCLUDE_DIRECTORIES(s3util PUBLIC ../libnczarr)
   endif()
   
   SET(ncdumpchunks_SOURCE ncdumpchunks.c)

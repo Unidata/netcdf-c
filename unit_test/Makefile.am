@@ -8,9 +8,9 @@
 
 # Ed Hartnett 8/9/19
 
-SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
-LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
 #TESTS_ENVIRONMENT = export SETX=1;
 
 # Put together AM_CPPFLAGS and AM_LDFLAGS.
@@ -38,8 +38,10 @@ TESTS += tst_nc4internal
 endif # USE_NETCDF4
 
 if ENABLE_S3
+if ENABLE_S3_TESTALL
 check_PROGRAMS += test_s3sdk
 TESTS += run_s3sdk.sh
+endif
 endif
 
 EXTRA_DIST = CMakeLists.txt run_s3sdk.sh

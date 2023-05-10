@@ -89,7 +89,7 @@ static int ncs3_finalized = 0;
 static void s3client_destroy(NCS3CLIENT* s3client);
 static char* makes3rooturl(NCS3INFO* info);
 static int makes3fullpath(const char* pathkey, const char* bucket, const char* prefix, const char* key, NCbytes* url);
-static int parse_listbucketresult(char* xml, size_t xmllen, struct LISTOBJECTSV2**);
+static int parse_listbucketresult(char* xml, unsigned long long xmllen, struct LISTOBJECTSV2**);
 static int parse_object(ncxml_t root, NClist* objects);
 static int parse_owner(ncxml_t root, struct Owner* ownerp);
 static int parse_prefix(ncxml_t root, NClist* prefixes);
@@ -103,7 +103,7 @@ static int makes3prefix(const char* prefix, char** prefixdirp);
 static int s3objectsinfo(NClist* contents, NClist* keys, NClist* lens);
 static int s3commonprefixes(NClist* list, NClist* keys);
 static int mergekeysets(NClist*,NClist*,NClist*);
-static int rawtokeys(NCbytes* response, NClist* keys, NClist* lengths, struct LISTOBJECTSV2** listv2p);
+static int rawtokeys(s3r_buf_t* response, NClist* keys, NClist* lengths, struct LISTOBJECTSV2** listv2p);
 
 static int queryadd(NClist* query, const char* key, const char* value);
 static int queryend(NClist* query, char** querystring);
@@ -172,7 +172,8 @@ NC_s3sdkcreateclient(NCS3INFO* info)
     char* urlroot = NULL;
     NCS3CLIENT* s3client = NULL;
 
-    NCTRACE(11,NULL);
+    NCTRACE(11,"info=%s",NC_s3dumps3info(info));
+
     s3client = (NCS3CLIENT*)calloc(1,sizeof(NCS3CLIENT));
     if(s3client == NULL) goto done;
     if(info->profile != NULL) {
@@ -281,23 +282,18 @@ NC_s3sdkread(void* s3client0, const char* bucket, const char* pathkey, size64_t 
     int stat = NC_NOERR;
     NCS3CLIENT* s3client = (NCS3CLIENT*)s3client0;
     NCbytes* url = ncbytesnew();
-    NCbytes* wrap = ncbytesnew();
+    struct s3r_buf_t data = {0,NULL};
 
     NCTRACE(11,"bucket=%s pathkey=%s start=%llu count=%llu content=%p",bucket,pathkey,start,count,content);
 
     if((stat = makes3fullpath(s3client->rooturl,bucket,pathkey,NULL,url))) goto done;
 
-    /* Wrap contents as a byte buffer */
-    ncbytessetcontents(wrap,content,count);
-    ncbytessetlength(wrap,0); /* prepare for writing */  
-    
     /* Read the data */
-    if((stat = NCH5_s3comms_s3r_read(s3client->h5s3client,ncbytescontents(url),(size_t)start,(size_t)count,wrap))) goto done;
-    assert(ncbyteslength(wrap) == count);
+    data.count = count;
+    data.content = content;
+    if((stat = NCH5_s3comms_s3r_read(s3client->h5s3client,ncbytescontents(url),(size_t)start,(size_t)count,&data))) goto done;
     
 done:
-    (void)ncbytesextract(wrap); /* reset the wrapper */
-    ncbytesfree(wrap);
     ncbytesfree(url);
     return NCUNTRACE(stat);
 }
@@ -312,21 +308,18 @@ NC_s3sdkwriteobject(void* s3client0, const char* bucket, const char* pathkey,  s
     int stat = NC_NOERR;
     NCS3CLIENT* s3client = (NCS3CLIENT*)s3client0;
     NCbytes* url = ncbytesnew();
-    NCbytes* wrap = ncbytesnew();
+    s3r_buf_t data;
 
     NCTRACE(11,"bucket=%s pathkey=%s count=%llu content=%p",bucket,pathkey,count,content);
 
     if((stat = makes3fullpath(s3client->rooturl,bucket,pathkey,NULL,url))) goto done;
 
-    /* Wrap contents as a byte buffer */
-    ncbytessetcontents(wrap,(void*)content,count);
-
     /* Write the data */
-    if((stat = NCH5_s3comms_s3r_write(s3client->h5s3client,ncbytescontents(url),wrap))) goto done;
+    data.count = count;
+    data.content = (void*)content;
+    if((stat = NCH5_s3comms_s3r_write(s3client->h5s3client,ncbytescontents(url),&data))) goto done;
     
 done:
-    (void)ncbytesextract(wrap); /* reset the wrapper */
-    ncbytesfree(wrap);
     ncbytesfree(url);
     return NCUNTRACE(stat);
 }
@@ -337,7 +330,7 @@ NC_s3sdkclose(void* s3client0, NCS3INFO* info, int deleteit, char** errmsgp)
     int stat = NC_NOERR;
     NCS3CLIENT* s3client = (NCS3CLIENT*)s3client0;
 
-    NCTRACE(11,"info=%s rootkey=%s deleteit=%d",NC_s3dumps3info(info),deleteit);
+    NCTRACE(11,"info=%s deleteit=%d",NC_s3dumps3info(info),deleteit);
     
     if(deleteit) {
         /* Delete the root key; ok it if does not exist */
@@ -347,7 +340,6 @@ NC_s3sdkclose(void* s3client0, NCS3INFO* info, int deleteit, char** errmsgp)
         default: break;
         }
     }
-    stat = NCH5_s3comms_s3r_close(s3client->h5s3client);
     s3client_destroy(s3client);
     return NCUNTRACE(stat);
 }
@@ -363,7 +355,6 @@ getkeys(void* s3client0, const char* bucket, const char* prefixkey0, const char*
 {
     int stat = NC_NOERR;
     NCS3CLIENT* s3client = (NCS3CLIENT*)s3client0;
-    NCbytes* response = ncbytesnew();
     char* prefixdir = NULL;
     NClist* query = NULL;
     char* querystring = NULL;
@@ -373,6 +364,7 @@ getkeys(void* s3client0, const char* bucket, const char* prefixkey0, const char*
     struct LISTOBJECTSV2* listv2 = NULL;
     int istruncated = 0;
     char* continuetoken = NULL;
+    s3r_buf_t response = {0,NULL};
 
     NCTRACE(11,"bucket=%s prefixkey0=%s",bucket,prefixkey0);
     
@@ -385,7 +377,7 @@ getkeys(void* s3client0, const char* bucket, const char* prefixkey0, const char*
 	nullfree(querystring);
 	querystring = NULL;
         ncbytesclear(listurl);
-        ncbytesclear(response);
+        nullfree(response.content); response.content = NULL; response.count = 0;
         /* Make sure order is sorted (after encoding) */
         if((stat = queryadd(query,"list-type","2"))) goto done;
         if((stat = queryadd(query,"prefix",prefixdir))) goto done;
@@ -403,9 +395,8 @@ getkeys(void* s3client0, const char* bucket, const char* prefixkey0, const char*
         ncbytescat(listurl,"?");
         ncbytescat(listurl,querystring);
 
-        if((stat = NCH5_s3comms_s3r_getkeys(s3client->h5s3client, ncbytescontents(listurl), response))) goto done;
-        ncbytesnull(response);
-        if((stat = rawtokeys(response,allkeys,NULL,&listv2))) goto done;
+        if((stat = NCH5_s3comms_s3r_getkeys(s3client->h5s3client, ncbytescontents(listurl), &response))) goto done;
+        if((stat = rawtokeys(&response,allkeys,NULL,&listv2))) goto done;
 	istruncated = (strcasecmp(listv2->istruncated,"true")==0?1:0);
 	nullfree(continuetoken);
 	continuetoken = nulldup(listv2->nextcontinuationtoken);
@@ -422,7 +413,7 @@ done:
     nullfree(querystring);
     ncurifree(purl);
     ncbytesfree(listurl);
-    ncbytesfree(response);
+    nullfree(response.content);
     if(prefixdir) free(prefixdir);
     return NCUNTRACEX(stat,"nkeys=%u",PTRVAL(unsigned,nkeysp,0));
 }
@@ -459,7 +450,7 @@ NC_s3sdkdeletekey(void* s3client0, const char* bucket, const char* pathkey, char
     NCbytes* url = ncbytesnew();
     long httpcode = 0;
     
-    NCTRACE(11,"bucket=%s pathkey=%s",bucket,pathkey);
+    NCTRACE(11,"s3client0=%p bucket=%s pathkey=%s",s3client0,bucket,pathkey);
 
     if((stat = makes3fullpath(s3client->rooturl,bucket,pathkey,NULL,url))) goto done;
 
@@ -477,14 +468,14 @@ done:
 Convert raw getkeys response to vector of keys
 */
 static int
-rawtokeys(NCbytes* response, NClist* allkeys, NClist* lengths, struct LISTOBJECTSV2** listv2p)
+rawtokeys(s3r_buf_t* response, NClist* allkeys, NClist* lengths, struct LISTOBJECTSV2** listv2p)
 {
     int stat = NC_NOERR;
     struct LISTOBJECTSV2* listv2 = NULL;
     NClist* realkeys = nclistnew();
     NClist* commonkeys = nclistnew();
 
-    if((stat = parse_listbucketresult(ncbytescontents(response),ncbyteslength(response),&listv2))) goto done;
+    if((stat = parse_listbucketresult(response->content,response->count,&listv2))) goto done;
 
     if(nclistlength(listv2->contents) > 0) {
         if((stat = s3objectsinfo(listv2->contents,realkeys,lengths))) goto done;
@@ -589,6 +580,7 @@ s3client_destroy(NCS3CLIENT* s3client)
 {
     if(s3client) {
 	nullfree(s3client->rooturl);
+        (void)NCH5_s3comms_s3r_close(s3client->h5s3client);
         free(s3client);
     }
 }
@@ -636,7 +628,7 @@ HTTP/1.1 200
 */
 
 static int
-parse_listbucketresult(char* xml, size_t xmllen, struct LISTOBJECTSV2** resultp)
+parse_listbucketresult(char* xml, unsigned long long xmllen, struct LISTOBJECTSV2** resultp)
 {
     int stat = NC_NOERR;
     ncxml_doc_t doc = NULL;
@@ -990,19 +982,14 @@ static int
 queryadd(NClist* query, const char* key, const char* value)
 {
     int stat = NC_NOERR;
-    NCbytes* buf = NULL;
     char* ekey = NULL;
     char* evalue = NULL;
 
     if(key == NULL) {stat = NC_EINVAL; goto done;}
-    buf = ncbytesnew();
-    if((stat = NCH5_s3comms_uriencode(buf, key, strlen(key), 1/*true*/, NULL))) goto done;
-    ekey = ncbytesextract(buf);
+    if((stat = NCH5_s3comms_uriencode(&ekey, key, strlen(key), 1/*true*/, NULL))) goto done;
     evalue = NULL;
     if(value != NULL) {
-	ncbytesclear(buf);
-	if((stat = NCH5_s3comms_uriencode(buf, value, strlen(value), 1/*true*/, NULL))) goto done;
- 	evalue = ncbytesextract(buf);
+	if((stat = NCH5_s3comms_uriencode(&evalue, value, strlen(value), 1/*true*/, NULL))) goto done;
     }
     /* Insert encoded key+value keeping sorted order */
     if((stat = queryinsert(query, ekey, evalue))) goto done;
@@ -1011,7 +998,6 @@ queryadd(NClist* query, const char* key, const char* value)
 done:
     nullfree(ekey);
     nullfree(evalue);    
-    ncbytesfree(buf);
     return NCTHROW(stat);
 }
 

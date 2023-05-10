@@ -155,9 +155,11 @@ nc_http_close(NC_HTTP_STATE* state)
         break;
 #ifdef ENABLE_S3
     case HTTPS3: {
-        NC_s3sdkclose(state->s3.s3client, state->s3.info, 0, &state->errmsg);
+	if(state->s3.s3client)
+            NC_s3sdkclose(state->s3.s3client, state->s3.info, 0, NULL);
         NC_s3clear(state->s3.info);
 	nullfree(state->s3.info);
+	state->s3.s3client = NULL;
         } break;
 #endif   
     default: stat = NCTHROW(NC_ENOTBUILT); goto done;

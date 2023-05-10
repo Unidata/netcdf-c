@@ -1,3 +1,4 @@
+
 Cloud Storage Access Using The NetCDF-C Library 
 ============================
 <!-- double header is needed to workaround doxygen bug -->
@@ -98,11 +99,12 @@ Currently the following build cases are known to work.
 
 ## Automake
 
-There are several options relevant to NCZarr support and to Amazon S3 support.
+There are several options relevant to Amazon S3 support.
 These are as follows.
 
 1. _--enable-s3_ -- Enable S3 support.
 2. _--enable-s3-internal_ -- Force use of the *nch5s3comms* SDK instead of the *aws-cpp-sdk* (assuming it is available).
+3. _--with-s3-testing_=yes|no|public -- "yes" means do all S3 tests, "no" means do no S3 testing, "public" means do only those tests that involve publically accessible S3 data.
 
 __A note about using S3 with Automake.__
 If S3 support is desired, and using the Amazon "aws-sdk-cpp" SDK, and using Automake, then LDFLAGS must be properly set, namely to this.
@@ -117,8 +119,9 @@ Note also that if S3 support is enabled, then you need to have a C++ compiler in
 
 The necessary CMake flags are as follows (with defaults)
 
-1. -DENABLE_S3 -- Enable S3 support, including NCZarr support if NCZarr is enabled
-2. -DENABLE_S3_INTERNAL -- Force use of the *nch5s3comms* SDK instead of the *aws-cpp-sdk*.
+1. *-DENABLE_S3* -- Controll S3 support
+2. *-DENABLE_S3_INTERNAL* -- Force use of the *nch5s3comms* SDK instead of the *aws-cpp-sdk*.
+3. *-DWITH-S3-TESTING_=ON|OFF|PUBLIC -- "ON" means do all S3 tests, "OFF" means do no S3 testing, "PUBLIC" means do only those tests that involve publically accessible S3 data.
 
 Note that unlike Automake, CMake can properly locate C++ libraries, so it should not be necessary to specify _-laws-cpp-sdk-s3_ assuming that the aws s3 libraries are installed in the default location.
 For CMake with Visual Studio, the default location is here:
@@ -167,7 +170,7 @@ has a number of properties of interest:
 For linux, the following context works. Of course your mileage may vary.
 * OS: ubuntu 21
 * aws-sdk-cpp version 1.9.96 (or later)
-* Dependencies: openssl, libcurl, cmake, ninja (ninja-build in apt)
+* Dependencies: openssl, libcurl, cmake, ninja (ninja-build using *apt-get*)
 
 #### AWS-SDK-CPP CMake Build Recipe
 ````
@@ -249,14 +252,13 @@ Then the following options must be specified for cmake.
 -DAWSSDK_ROOT_DIR=${AWSSDK_ROOT_DIR}
 -DAWSSDK_DIR=${AWSSDK_ROOT_DIR}/lib/cmake/AWSSDK"
 ````
-
 ## Building ``nch5s3comms''
 
 This is an experimental SDK provided internally in the netcdf-c library.
 
 * It is written in C
 * It provides the minimum functionality necessary to read/write/search an Amazon S3 bucket.
-* It was constructed by heavily modifying the HDF5 *H5FDros3* Virtual File Driver and combining it with crypto code wrappers provided by libcurl.
+* It was constructed by heavily modifying the HDF5 *H5FDros3* Virtual File Driver and combining it with crypto code wrappers provided by libcurl. The resulting file was then modified to fit into the netcdf coding style.
 * The resulting code is rather ugly, but appears to work under at least Linux and under Windows (using Visual C++).
 
 ### Dependencies
@@ -303,12 +305,12 @@ The algorithm for choosing the active profile to use is as follows:
 https://...#mode=nczarr,s3&aws.profile=xxx
 ````
 2. If the "AWS.PROFILE" entry in the .rc file (i.e. .netrc or .dodsrc) is set, then it is used.
-3. Otherwise the profile "default" is used.
+3. If defined, then profile "default" is used.
+4. Otherwise the profile "no" is used.
 
-The profile named "none" is a special profile that the netcdf-c library automatically defines.
+The profile named "no" is a special profile that the netcdf-c library automatically defines.
 It should not be defined anywhere else. It signals to the library that no credentialas are to used.
 It is equivalent to the "--no-sign-request" option in the AWS CLI.
-Also, it must be explicitly specified by name. Otherwise "default" will be used.
 
 ## Region Selection
 
@@ -332,7 +334,7 @@ The algorithm for picking an region is as follows.
 
 Picking an access-key/secret-key pair is always determined
 by the current active profile. To choose to not use keys
-requires that the active profile must be "none".
+requires that the active profile must be "no".
 
 # Change Log {#nccloud_changelog}
 [Note: minor text changes are not included.]

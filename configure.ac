@@ -855,18 +855,18 @@ fi
 fi
 
 # Check for enabling S3 testing
-AC_MSG_CHECKING([whether netcdf zarr S3 testing should be enabled])
-AC_ARG_ENABLE([nczarr-s3-tests],
-              [AS_HELP_STRING([--enable-nczarr-s3-tests],
-                              [enable netcdf zarr S3 testing])])
-test "x$enable_nczarr_s3_tests" = xyes || enable_nczarr_s3_tests=no
-AC_MSG_RESULT($enable_nczarr_s3_tests)
+AC_MSG_CHECKING([what level of netcdf S3 testing should be enabled])
+AC_ARG_WITH([s3-testing],
+              [AS_HELP_STRING([--with-s3-testing=yes|no|public],
+                              [control netcdf S3 testing])],
+            [], [with_s3_testing=public])
+AC_MSG_RESULT($with_s3_testing)
 
 # Disable S3 tests if S3 support is disabled
-if test "x$enable_nczarr_s3_tests" = xyes ; then
-  if test "x$enable_s3" = xno ; then
-    AC_MSG_ERROR([S3 support is disabled => no testing])
-    enable_nczarr_s3_tests=no
+if test "x$enable_s3" = xno ; then
+  if test "x$with_s3_testing" != xno ; then
+    AC_MSG_WARN([S3 support is disabled => no testing])
+    with_s3_testing=no
   fi
 fi
 
@@ -882,12 +882,10 @@ if test "x$enable_s3_internal" = xyes ; then
 AC_DEFINE([ENABLE_S3_INTERNAL], [1], [If true, then use internal S3 library])
 fi
 
-if test "x$enable_nczarr_s3_tests" = xyes ; then
-  AC_DEFINE([ENABLE_NCZARR_S3_TESTS], [1], [if true, build libnczarr with S3 tests enabled])
-fi
+AC_DEFINE_UNQUOTED([WITH_S3_TESTING], [$with_s3_testing], [control S3 testing.])
 
-if test "x$enable_nczarr_s3_tests" = xyes ; then
-  AC_MSG_WARN([*** DO NOT ENABLE_NCZARR_S3_TESTS UNLESS YOU HAVE ACCESS TO THE UNIDATA S3 BUCKET! ***])
+if test "x$with_s3_testing" = xyes ; then
+  AC_MSG_WARN([*** DO NOT SPECIFY WITH_S3_TESTING=YES UNLESS YOU HAVE ACCESS TO THE UNIDATA S3 BUCKET! ***])
 fi
 
 # Set default
@@ -1855,7 +1853,8 @@ AM_CONDITIONAL(ENABLE_S3, [test "x$enable_s3" = xyes])
 AM_CONDITIONAL(ENABLE_S3_AWS, [test "x$enable_s3_aws" = xyes])
 AM_CONDITIONAL(ENABLE_S3_INTERNAL, [test "x$enable_s3_internal" = xyes])
 AM_CONDITIONAL(ENABLE_NCZARR, [test "x$enable_nczarr" = xyes])
-AM_CONDITIONAL(ENABLE_NCZARR_S3_TESTS, [test "x$enable_nczarr_s3_tests" = xyes])
+AM_CONDITIONAL(ENABLE_S3_TESTPUB, [test "x$with_s3_testing" != xno]) # all => public
+AM_CONDITIONAL(ENABLE_S3_TESTALL, [test "x$with_s3_testing" = xyes])
 AM_CONDITIONAL(ENABLE_NCZARR_ZIP, [test "x$enable_nczarr_zip" = xyes])
 AM_CONDITIONAL(HAS_MULTIFILTERS, [test "x$has_multifilters" = xyes])
 AM_CONDITIONAL(HAVE_SZ, [test "x$have_sz" = xyes])
@@ -1965,7 +1964,7 @@ AC_SUBST(HAS_S3_AWS,[$enable_s3_aws])
 AC_SUBST(HAS_S3_INTERNAL,[$enable_s3_internal])
 AC_SUBST(HAS_HDF5_ROS3,[$has_hdf5_ros3])
 AC_SUBST(HAS_NCZARR,[$enable_nczarr])
-AC_SUBST(DO_NCZARR_S3_TESTS,[$enable_nczarr_s3_tests])
+AC_SUBST(DO_S3_TESTING,[$with_s3_testing])
 AC_SUBST(HAS_NCZARR_ZIP,[$enable_nczarr_zip])
 AC_SUBST(HAS_MULTIFILTERS,[$has_multifilters])
 AC_SUBST(DO_NCZARR_ZIP_TESTS,[$enable_nczarr_zip])
@@ -2075,7 +2074,7 @@ AC_SUBST([NOUNDEFINED])
 # example: AX_SET_META([NC_HAS_NC2],[$nc_build_v2],[]) # Because it checks for no.
 #          AX_SET_META([NC_HAS_HDF4],[$enable_hdf4],[yes])
 AC_DEFUN([AX_SET_META],[
-  if [ test "x$2" = x$3 ]; then
+  if [ test "x$2" = "x$3" ]; then
      AC_SUBST([$1]) $1=1
   else
      AC_SUBST([$1]) $1=0
@@ -2103,10 +2102,10 @@ AX_SET_META([NC_HAS_CDF5],[$enable_cdf5],[yes])
 AX_SET_META([NC_HAS_ERANGE_FILL], [$enable_erange_fill],[yes])
 AX_SET_META([NC_HAS_PAR_FILTERS], [$hdf5_supports_par_filters],[yes])
 AX_SET_META([NC_HAS_BYTERANGE],[$enable_byterange],[yes])
-AX_SET_META([NC_HAS_S3],[$enable_s3],[no])
-AX_SET_META([NC_HAS_S3_AWS],[$enable_s3_aws],[no])
-AX_SET_META([HAS_HAS_S3_INTERNAL],[$enable_s3_internal],[no])
-AX_SET_META([HAS_HDF5_ROS3],[$has_hdf5_ros3],[no])
+AX_SET_META([NC_HAS_S3],[$enable_s3],[yes])
+AX_SET_META([NC_HAS_S3_AWS],[$enable_s3_aws],[yes])
+AX_SET_META([NC_HAS_S3_INTERNAL],[$enable_s3_internal],[yes])
+AX_SET_META([NC_HAS_HDF5_ROS3],[$has_hdf5_ros3],[yes])
 AX_SET_META([NC_HAS_NCZARR],[$enable_nczarr],[yes])
 AX_SET_META([NC_HAS_MULTIFILTERS],[$has_multifilters],[yes])
 AX_SET_META([NC_HAS_LOGGING],[$enable_logging],[yes])

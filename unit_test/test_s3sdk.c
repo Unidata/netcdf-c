@@ -362,7 +362,6 @@ testsearch(void)
 
 done:
     cleanup();
-    NC_s3sdkclose(s3client,&s3info,0,NULL); s3client = NULL;
     for(i=0;i<nkeys;i++) nullfree(keys[i]);
     nullfree(keys);
     return stat;

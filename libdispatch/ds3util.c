@@ -214,7 +214,7 @@ NC_s3urlprocess(NCURI* url, NCS3INFO* s3)
         {stat = NC_EURL; goto done;}
     /* Get current profile */
     if((stat = NC_getactives3profile(url,&profile0))) goto done;
-    if(profile0 == NULL) profile0 = "none";
+    if(profile0 == NULL) profile0 = "no";
     s3->profile = strdup(profile0);
 
     /* Rebuild the URL to path format and get a usable region and optional bucket*/

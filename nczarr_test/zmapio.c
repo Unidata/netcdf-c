@@ -286,6 +286,7 @@ rootpathfor(const char* path)
     case NCZM_ZIP:
 	rootpath = strdup("/"); /*constant*/
 	break;
+#ifdef ENABLE_S3  
     case NCZM_S3:
         /* Split the path part */
         if((stat = nczm_split(uri->path,segments))) goto done;
@@ -295,6 +296,7 @@ rootpathfor(const char* path)
         /* Put it back together */
         if((stat = nczm_join(segments,&rootpath))) goto done;
 	break;
+#endif
     default:
         stat = NC_EINVAL;
 	goto done;
