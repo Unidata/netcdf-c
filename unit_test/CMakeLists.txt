@@ -33,7 +33,7 @@ ENDFOREACH()
 add_bin_test(unit_test test_pathcvt)
 
 IF(BUILD_UTILITIES)
-IF(ENABLE_S3)
+IF(ENABLE_S3 AND WITH_S3_TESTING)
 # SDK Test
 BUILD_BIN_TEST(test_s3sdk ${XGETOPTSRC})
 ADD_SH_TEST(unit_test run_s3sdk)

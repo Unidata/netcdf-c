@@ -90,4 +90,3 @@ if test "x$FEATURE_NCZARR_ZIP" = xyes ; then testallcases zip; fi
 if test "x$FEATURE_S3TESTS" = xyes ; then testallcases s3; fi
 
 if test "x$FEATURE_S3TESTS" = xyes ; then s3sdkdelete "/${S3ISOPATH}" ; fi # Cleanup
-

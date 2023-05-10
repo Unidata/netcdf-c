@@ -46,7 +46,7 @@ filters](./md_filters.html "filters") for details.
 
 Briefly, the data model supported by NCZarr is netcdf-4 minus
 the user-defined types. However, a restricted form of String type
-is supported (see Appendix H).
+is supported (see Appendix E).
 As with netcdf-4 chunking is supported.  Filters and compression
 are also [supported](./md_filters.html "filters").
 
@@ -455,11 +455,10 @@ Here are a couple of examples using the _ncgen_ and _ncdump_ utilities.
     ```
     ncgen -4 -lb -o "s3://datasetbucket/rootkey#mode=nczarr,awsprofile=unidata" dataset.cdl
     ```
-    Note that the URLis internally translated to this
+    Note that the URL is internally translated to this
     ````
     https://s2.&lt;region&gt.amazonaws.com/datasetbucket/rootkey#mode=nczarr,awsprofile=unidata" dataset.cdl
     ````
-    The region is from the algorithm described in Appendix E1.
 
 # References {#nczarr_bib}
 
@@ -499,153 +498,37 @@ A separate tabulation of S3 support is in the document cloud.md.
 The relevant ./configure options are as follows.
 
 1. *--disable-nczarr* -- disable the NCZarr support.
-2. *--enable-nczarr-s3-tests* -- the NCZarr S3 tests are currently only usable by Unidata personnel, so they are disabled by default.
-
-### A note about using S3 with Automake.
-If S3 support is desired, and using Automake, then LDFLAGS must be properly set, namely to this.
-````
-LDFLAGS="$LDFLAGS -L/usr/local/lib -laws-cpp-sdk-s3"
-````
-The above assumes that these libraries were installed in '/usr/local/lib', so the above requires modification if they were installed elsewhere.
 
 ## CMake
 
 The relevant CMake flags are as follows.
 
 1. *-DENABLE_NCZARR=off* -- equivalent to the Automake *--disable-nczarr* option.
-2. *-DENABLE_NCZARR_S3_TESTS=off* -- equivalent to the Automake *--enable-nczarr-s3-tests* option.
-
-Note that unlike Automake, CMake can properly locate C++ libraries, so it should not be necessary to specify *-laws-cpp-sdk-s3*, assuming that the aws s3 libraries are installed in the default location.
-For CMake with Visual Studio, the default location is here:
-
-````
-C:/Program Files (x86)/aws-cpp-sdk-all
-````
-
-It is possible to install the sdk library in another location.
-In this case, one must add the following flag to the cmake command.
-````
-cmake ... -DAWSSDK_DIR=\<awssdkdir\>
-````
-where "awssdkdir" is the path to the sdk installation.
-For example, this might be as follows.
-````
-cmake ... -DAWSSDK_DIR="c:\tools\aws-cpp-sdk-all"
-````
-This can be useful if blanks in path names cause problems in your build environment.
-
-## Testing S3 Support {#nczarr_testing_S3_support}
+## Testing NCZarr S3 Support {#nczarr_testing_S3_support}
 
 The relevant tests for S3 support are in the _nczarr_test_ directory.
 Currently, by default, testing of S3 with NCZarr is supported only for Unidata members of the NetCDF Development Group.
-This is because it uses a Unidata-specific bucket is inaccessible to the general user.
-
-# Appendix B. Building aws-sdk-cpp {#nczarr_s3sdk}
-
-In order to use the S3 storage driver, it is necessary to install the Amazon [aws-sdk-cpp library](https://github.com/aws/aws-sdk-cpp.git).
-
-Building this package from scratch has proven to be a formidable task.
-This appears to be due to dependencies on very specific versions of,
-for example, openssl.
-
-## *\*nix\** Build
-
-For linux, the following context works. Of course your mileage may vary.
-* OS: ubuntu 21
-* aws-sdk-cpp version 1.9.96 (or later?)
-* Required installed libraries: openssl, libcurl, cmake, ninja (ninja-build in apt)
-
-### AWS-SDK-CPP Build Recipe
-
-````
-git clone --recurse-submodules https://www.github.com/aws/aws-sdk-cpp.git
-cd aws-sdk-cpp
-mkdir build
-cd build
-PREFIX=/usr/local
-FLAGS="-DCMAKE_INSTALL_PREFIX=${PREFIX} \
-       -DCMAKE_INSTALL_LIBDIR=lib \
-       -DCMAKE_MODULE_PATH=${PREFIX}/lib/cmake \
-       -DCMAKE_POLICY_DEFAULT_CMP0075=NEW \
-       -DBUILD_ONLY=s3 \
-       -DENABLE_UNITY_BUILD=ON \
-       -DENABLE_TESTING=OFF \
-       -DCMAKE_BUILD_TYPE=$CFG \
-       -DSIMPLE_INSTALL=ON \
-       _DMY_ASSEMBLER_IS_TOO_OLD_FOR_AVX=ON"
-cmake -GNinja $FLAGS ..
-ninja all
-sudo ninja install
-cd ..
-cd ..
-````
+This is because it uses a Unidata-specific bucket that is inaccessible to the general user.
 
 ### NetCDF Build
 
 In order to build netcdf-c with S3 sdk support,
 the following options must be specified for ./configure.
 ````
---enable-nczarr-s3
+--enable-s3
 ````
 If you have access to the Unidata bucket on Amazon, then you can
 also test S3 support with this option.
 ````
---enable-nczarr-s3-tests
+--with-s3-testing=yes
 ````
-
-## Windows build
-It is possible to build and install aws-sdk-cpp. It is also possible
-to build netcdf-c using cmake. Unfortunately, testing currently fails.
-
-For Windows, the following context work. Of course your mileage may vary.
-* OS: Windows 10 64-bit with Visual Studio community edition 2019.
-* aws-sdk-cpp version 1.9.96 (or later?)
-* Required installed libraries: openssl, libcurl, cmake
-
-### AWS-SDK-CPP Build Recipe
-
-This command-line build assumes one is using Cygwin or Mingw to provide
-tools such as bash.
-
-````
-git clone --recurse-submodules https://www.github.com/aws/aws-sdk-cpp
-pushd aws-sdk-cpp
-mkdir build
-cd build
-CFG="Release"
-PREFIX="c:/tools/aws-sdk-cpp"
-
-FLAGS="-DCMAKE_INSTALL_PREFIX=${PREFIX} \
-       -DCMAKE_INSTALL_LIBDIR=lib" \
-       -DCMAKE_MODULE_PATH=${PREFIX}/cmake \
-       -DCMAKE_POLICY_DEFAULT_CMP0075=NEW \
-       -DBUILD_ONLY=s3 \
-       -DENABLE_UNITY_BUILD=ON \
-       -DCMAKE_BUILD_TYPE=$CFG \
-       -DSIMPLE_INSTALL=ON"
-
-rm -fr build
-mkdir -p build
-cd build
-cmake -DCMAKE_BUILD_TYPE=${CFG} $FLAGS ..
-cmake --build . --config ${CFG}
-cmake --install . --config ${CFG}
-cd ..
-popd
-````
-Notice that the sdk is being installed in the directory "c:\tools\aws-sdk-cpp"
-rather than the default location "c:\Program Files (x86)/aws-sdk-cpp-all"
-This is because when using a command line, an install path that contains
-blanks may not work.
 
 ### NetCDF CMake Build
 
-Enabling S3 support is controlled by these two cmake options:
+Enabling S3 support is controlled by this cmake option:
 ````
--DENABLE_NCZARR_S3=ON
--DENABLE_NCZARR_S3_TESTS=OFF
+-DENABLE_S3=ON
 ````
-
 However, to find the aws sdk libraries,
 the following environment variables must be set:
 ````
@@ -658,7 +541,7 @@ Then the following options must be specified for cmake.
 -DAWSSDK_ROOT_DIR=${AWSSDK_ROOT_DIR}
 -DAWSSDK_DIR=${AWSSDK_ROOT_DIR}/lib/cmake/AWSSDK"
 ````
-# Appendix C. Amazon S3 Imposed Limits {#nczarr_s3limits}
+# Appendix B. Amazon S3 Imposed Limits {#nczarr_s3limits}
 
 The Amazon S3 cloud storage imposes some significant limits that are inherited by NCZarr (and Zarr also, for that matter).
 
@@ -668,7 +551,7 @@ Some of the relevant limits are as follows:
 Note that the limit is defined in terms of bytes and not (Unicode) characters.
 This affects the depth to which groups can be nested because the key encodes the full path name of a group.
 
-# Appendix F. NCZarr Version 1 Meta-Data Representation. {#nczarr_version1}
+# Appendix C. NCZarr Version 1 Meta-Data Representation. {#nczarr_version1}
 
 In NCZarr Version 1, the NCZarr specific metadata was represented using new objects rather than as keys in existing Zarr objects.
 Due to conflicts with the Zarr specification, that format is deprecated in favor of the one described above.
@@ -683,7 +566,7 @@ The content of these objects is the same as the contents of the corresponding ke
 * ''.nczarray <=> ''_nczarr_array_''
 * ''.nczattr <=> ''_nczarr_attr_''
 
-# Appendix G. JSON Attribute Convention. {#nczarr_json}
+# Appendix D. JSON Attribute Convention. {#nczarr_json}
 
 The Zarr V2 specification is somewhat vague on what is a legal
 value for an attribute. The examples all show one of two cases:
@@ -771,7 +654,7 @@ actions "read-write-read" is equivalent to a single "read" and "write-read-write
 The "almost" caveat is necessary because (1) whitespace may be added or lost during the sequence of operations,
 and (2) numeric precision may change.
 
-# Appendix H. Support for string types
+# Appendix E. Support for string types
 
 Zarr supports a string type, but it is restricted to
 fixed size strings. NCZarr also supports such strings,
@@ -839,7 +722,7 @@ It is necessary to use the 'git diff' command.
 accepted for back compatibility.
 
 2. The legal values of an attribute has been extended to
-include arbitrary JSON expressions; see Appendix G for more details.
+include arbitrary JSON expressions; see Appendix D for more details.
 
 # Point of Contact {#nczarr_poc}
 

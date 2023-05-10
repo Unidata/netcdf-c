@@ -74,6 +74,7 @@
 /* Opaque Handles */
 struct CURL;
 struct NCURI;
+struct VString;
 
 /*****************
  * PUBLIC MACROS *
@@ -184,11 +185,11 @@ struct NCURI;
  *---------------------------------------------------------------------------
  */
 #define S3COMMS_FORMAT_CREDENTIAL(dest, access, iso8601_date, region, service)	\
-    ncbytescat((dest),(access)); ncbytescat((dest),"/");			\
-    ncbytescat((dest),(iso8601_date)); ncbytescat((dest),"/");			\
-    ncbytescat((dest),(region)); ncbytescat((dest),"/");			\
-    ncbytescat((dest),(service)); ncbytescat((dest),"/");			\
-    ncbytescat((dest),"aws4_request");
+    vscat((dest),(access)); vscat((dest),"/");			\
+    vscat((dest),(iso8601_date)); vscat((dest),"/");			\
+    vscat((dest),(region)); vscat((dest),"/");			\
+    vscat((dest),(service)); vscat((dest),"/");			\
+    vscat((dest),"aws4_request");
 			
 #if 0
     snprintf((dest), S3COMMS_MAX_CREDENTIAL_SIZE, "%s/%s/%s/%s/aws4_request", (access), (iso8601_date),    \
@@ -274,11 +275,6 @@ struct NCURI;
  *     as the field would appear in an HTTP request.
  *     e.g., "Range: bytes=0-9"
  *
- * `next` (hrb_node_t *)
- *
- *     Pointers to next node in the list, or NULL sentinel as end of list.
- *     Next node must have a greater `lowername` as determined by strcmp().
- *
  *----------------------------------------------------------------------------
  */
 typedef struct hrb_node_t {
@@ -358,12 +354,11 @@ typedef struct hrb_node_t {
  *----------------------------------------------------------------------------
  */
 typedef struct {
-    unsigned long magic;
-    char         *body;
-    size_t        body_len;
-    hrb_node_t   *first_header;
-    char         *resource;
-    char         *version;
+    unsigned long  magic;
+    struct VString *body;
+    struct VList   *headers;
+    char           *resource;
+    char           *version;
 } hrb_t;
 #define S3COMMS_HRB_MAGIC 0x6DCC84UL
 
@@ -466,11 +461,18 @@ typedef struct {
     char          *accessid;
     char          *accesskey;
     char           httpverb[S3COMMS_VERB_MAX];
-    unsigned char signing_key[SHA256_DIGEST_LENGTH];
+    unsigned char *signing_key; /*|signing_key| = SHA256_DIGEST_LENGTH*/
     char          iso8601now[ISO8601_SIZE];
     char         *reply;
     struct curl_slist *curlheaders;
 } s3r_t;
+
+/* Combined storage for space + size */
+typedef struct s3r_buf_t {
+    unsigned long long count; /* |content| */
+    void* content;
+} s3r_buf_t;
+
 
 #define S3COMMS_S3R_MAGIC 0x44d8d79
 
@@ -492,7 +494,7 @@ EXTERNL int NCH5_s3comms_hrb_node_set(hrb_node_t **L, const char *name, const ch
  * DECLARATION OF HTTP REQUEST BUFFER ROUTINES *
  ***********************************************/
 
-EXTERNL int NCH5_s3comms_hrb_destroy(hrb_t **buf);
+EXTERNL int NCH5_s3comms_hrb_destroy(hrb_t *buf);
 
 EXTERNL hrb_t *NCH5_s3comms_hrb_init_request(const char *resource, const char *host);
 
@@ -504,13 +506,11 @@ EXTERNL s3r_t *NCH5_s3comms_s3r_open(const char* root, const char* region, const
 
 EXTERNL int NCH5_s3comms_s3r_close(s3r_t *handle);
 
-EXTERNL int NCH5_s3comms_s3r_read(s3r_t *handle, const char* url, size_t offset, size_t len, NCbytes* dest);
+EXTERNL int NCH5_s3comms_s3r_read(s3r_t *handle, const char* url, size_t offset, size_t len, s3r_buf_t* data);
 
-EXTERNL int NCH5_s3comms_s3r_write(s3r_t *handle, const char* url, NCbytes* data);
+EXTERNL int NCH5_s3comms_s3r_write(s3r_t *handle, const char* url, const s3r_buf_t* data);
 
-EXTERNL int NCH5_s3comms_s3r_getkeys(s3r_t *handle, const char* url, NCbytes* response);
-
-EXTERNL int NCH5_s3comms_s3r_execute(s3r_t *handle, const char* url, HTTPVerb verb, const char* byterange, const char* header, const char** otherheaders, long* httpcodep, NCbytes* data);
+EXTERNL int NCH5_s3comms_s3r_getkeys(s3r_t *handle, const char* url, s3r_buf_t* response);
 
 EXTERNL int NCH5_s3comms_s3r_getsize(s3r_t *handle, const char* url, long long * sizep);
 
@@ -524,8 +524,8 @@ EXTERNL int NCH5_s3comms_s3r_head(s3r_t *handle, const char* url, const char* he
 
 EXTERNL struct tm *gmnow(void);
 
-EXTERNL int NCH5_s3comms_aws_canonical_request(NCbytes* canonical_request_dest,
-                                                 NCbytes* signed_headers_dest,
+EXTERNL int NCH5_s3comms_aws_canonical_request(struct VString* canonical_request_dest,
+                                                 struct VString* signed_headers_dest,
 						 HTTPVerb verb,
 						 const char* query,
  						 const char* payloadsha256,
@@ -544,15 +544,15 @@ EXTERNL int NCH5_s3comms_nlowercase(char *dest, const char *s, size_t len);
 
 EXTERNL int NCH5_s3comms_percent_encode_char(char *repr, const unsigned char c, size_t *repr_len);
 
-EXTERNL int NCH5_s3comms_signing_key(unsigned char *md, const char *secret, const char *region,
+EXTERNL int NCH5_s3comms_signing_key(unsigned char **mdp, const char *secret, const char *region,
                                        const char *iso8601now);
 
-EXTERNL int NCH5_s3comms_tostringtosign(NCbytes* dest, const char *req_str, const char *now,
+EXTERNL int NCH5_s3comms_tostringtosign(struct VString* dest, const char *req_str, const char *now,
                                           const char *region);
 
 EXTERNL int NCH5_s3comms_trim(char *dest, char *s, size_t s_len, size_t *n_written);
 
-EXTERNL int NCH5_s3comms_uriencode(NCbytes* dest, const char *s, size_t s_len, int encode_slash, size_t *n_written);
+EXTERNL int NCH5_s3comms_uriencode(char** destp, const char *s, size_t s_len, int encode_slash, size_t *n_written);
 
 #ifdef __cplusplus
 }

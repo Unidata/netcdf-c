@@ -1,6 +1,6 @@
 name: Run Cygwin-based tests
 
-on: [pull_request,workflow_dispatch]
+on: [push,pull_request,workflow_dispatch]
 
 env:
   SHELLOPTS: igncr
@@ -43,7 +43,7 @@ jobs:
         run: >-
            /bin/dash ./configure --enable-hdf5 --enable-shared
            --disable-static --enable-dap --disable-dap-remote-tests
-           --enable-plugins --enable-nczarr --disable-s3
+           --enable-plugins --enable-nczarr
 
       - name: Look at config.log if error
         if: ${{ failure() }}
