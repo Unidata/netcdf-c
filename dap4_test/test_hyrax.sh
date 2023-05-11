@@ -11,8 +11,10 @@ set -e
 
 echo "test_hyrax.sh:"
 
+# Some test baseline paths are too long for tar.
+TOOLONG="AIRS/AIRH3STM.003/2002.12.01/AIRS.2002.12.01.L3.RetStd_H031.v4.0.21.0.G06101132853.hdf?/TotalCounts_A"
+
 F="\
-AIRS/AIRH3STM.003/2002.12.01/AIRS.2002.12.01.L3.RetStd_H031.v4.0.21.0.G06101132853.hdf?/TotalCounts_A \
 RSS/amsre/bmaps_v05/y2006/m01/amsre_20060131v5.dat?/time_a[0:2][0:5] \
 nc4_test_files/nc4_nc_classic_no_comp.nc \
 nc4_test_files/nc4_nc_classic_comp.nc \
@@ -34,6 +36,13 @@ if test "x$TESTSERVER" = x ; then
 echo "***XFAIL: Cannot find test.opendap.org testserver; test skipped"
 exit 0
 fi
+
+gethyraxbaseline() {
+    ARG1="$1"
+    BASELINEPART=`echo $ARG1 | cut -d':' -f1`
+    URLPART=`echo $ARG1 | cut -d':' -f2`    
+    if test "x$BASELINEPART" = "x$URLPART" ; then BASELINEPART=""; fi
+}
 
 makehyraxurl() {
     if test "x$QUERY" != x ; then QUERY="&dap4.ce=$QUERY"; fi

@@ -885,7 +885,7 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 	    if(iss3) {
 	        /* Rebuild the URL */
 		NCURI* newuri = NULL;
-		if((retval = NC_s3urlrebuild(h5->uri,&newuri,NULL,&awsregion0))) goto exit;
+		if((retval = NC_s3urlrebuild(h5->uri,NULL,&awsregion0,&newuri))) goto exit;
 		if((newpath = ncuribuild(newuri,NULL,NULL,NCURISVC))==NULL)
 		    {retval = NC_EURL; goto exit;}
 		ncurifree(h5->uri);
@@ -1158,20 +1158,6 @@ static int get_fill_info(hid_t propid, NC_VAR_INFO_T *var)
         /* Allocate space to hold the fill value. */
         if (!var->fill_value)
         {
-#ifdef SEPDATA
-
-            if (var->type_info->nc_type_class == NC_VLEN)
-            {
-                if (!(var->fill_value = malloc(sizeof(nc_vlen_t))))
-                    return NC_ENOMEM;
-            }
-            else if (var->type_info->nc_type_class == NC_STRING)
-            {
-                if (!(var->fill_value = malloc(sizeof(char *))))
-                    return NC_ENOMEM;
-            }
-            else
-#endif
             {
                 assert(var->type_info->size);
                 if (!(var->fill_value = malloc(var->type_info->size)))
@@ -1870,70 +1856,6 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
         if ((retval = nc4_get_typelen_mem(grp->nc4_info, att->nc_typeid,
                                           &type_size)))
             return retval;
-#ifdef SEPDATA
-        if (att_class == H5T_VLEN)
-        {
-            if (!(att->vldata = malloc((unsigned int)(att->len * sizeof(hvl_t)))))
-                BAIL(NC_ENOMEM);
-            if (H5Aread(attid, hdf5_att->native_hdf_typeid, att->vldata) < 0)
-                BAIL(NC_EATTMETA);
-        }
-        else if (att->nc_typeid == NC_STRING)
-        {
-            if (!(att->stdata = calloc(att->len, sizeof(char *))))
-                BAIL(NC_ENOMEM);
-            /* For a fixed length HDF5 string, the read requires
-             * contiguous memory. Meanwhile, the netCDF API requires that
-             * nc_free_string be called on string arrays, which would not
-             * work if one contiguous memory block were used. So here I
-             * convert the contiguous block of strings into an array of
-             * malloced strings -- each string with its own malloc. Then I
-             * copy the data and free the contiguous memory. This
-             * involves copying the data, which is bad, but this only
-             * occurs for fixed length string attributes, and presumably
-             * these are small. Note also that netCDF-4 does not create them - it
-             * always uses variable length strings. */
-            if (fixed_len_string)
-            {
-                int i;
-                char *contig_buf, *cur;
-
-                /* Alloc space for the contiguous memory read. */
-                if (!(contig_buf = malloc(att->len * fixed_size * sizeof(char))))
-                    BAIL(NC_ENOMEM);
-
-                /* Read the fixed-len strings as one big block. */
-                if (H5Aread(attid, hdf5_att->native_hdf_typeid, contig_buf) < 0) {
-                    free(contig_buf);
-                    BAIL(NC_EATTMETA);
-                }
-
-                /* Copy strings, one at a time, into their new home. Alloc
-                   space for each string. The user will later free this
-                   space with nc_free_string. */
-                cur = contig_buf;
-                for (i = 0; i < att->len; i++)
-                {
-                    if (!(att->stdata[i] = malloc(fixed_size))) {
-                        free(contig_buf);
-                        BAIL(NC_ENOMEM);
-                    }
-                    strncpy(att->stdata[i], cur, fixed_size);
-                    cur += fixed_size;
-                }
-
-                /* Free contiguous memory buffer. */
-                free(contig_buf);
-            }
-            else
-            {
-                /* Read variable-length string atts. */
-                if (H5Aread(attid, hdf5_att->native_hdf_typeid, att->stdata) < 0)
-                    BAIL(NC_EATTMETA);
-            }
-        }
-        else
-#else
         {
             if (!(att->data = malloc((unsigned int)(att->len * type_size))))
                 BAIL(NC_ENOMEM);
@@ -1990,7 +1912,6 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
                     BAIL(NC_EATTMETA);
 	    }
         }
-#endif
     }
 
     if (H5Tclose(file_typeid) < 0)

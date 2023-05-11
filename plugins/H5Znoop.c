@@ -230,16 +230,21 @@ NCZ_noop_hdf5_to_codec(size_t nparams, const unsigned* params, char** codecp)
     int i,stat = NC_NOERR;
     char json[8192];
     char value[1024];
+    size_t jlen, count;
 
     if(nparams != 0 && params == NULL)
         {stat = NC_EINVAL; goto done;}
 
-    snprintf(json,sizeof(json),"{\"id\": \"%s\"",NCZ_noop_codec.codecid);
+
+    jlen = sizeof(json);
+    count = snprintf(json,sizeof(json),"{\"id\": \"%s\"",NCZ_noop_codec.codecid);
     for(i=0;i<nparams;i++) {
-        snprintf(value,sizeof(value),", \"p%d\": \"%u\"",i,params[i]);
-	strlcat(json,value,sizeof(json));
+        size_t len = snprintf(value,sizeof(value),", \"p%d\": \"%u\"",i,params[i]);
+	count += len; assert(jlen > count);
+	strcat(json,value);
     }
-    strlcat(json,"}",sizeof(json));
+    count += 1; assert(jlen > count);
+    strcat(json,"}");
     if(codecp) {
         if((*codecp = strdup(json))==NULL) {stat = NC_ENOMEM; goto done;}
     }

@@ -8,7 +8,9 @@
 
 #include "ncexternl.h"
 
-/* Define flags to control what is included by ncuribuild*/
+/* Define flags to control what is included by ncuribuild;
+   protocol+host+port always included
+*/
 #define NCURIPATH	    1
 #define NCURIPWD	    2
 #define NCURIQUERY	    4

@@ -368,7 +368,7 @@ NCZ_addfilter(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, unsigned int id, size_t 
     if((stat = NCZ_plugin_loaded(id,&plugin))) goto done;
     if(plugin == NULL) {
 	ZLOG(NCLOGWARN,"no such plugin: %u",(unsigned)id);
-	stat = NC_ENOFILTER;
+	stat = THROW(NC_ENOFILTER);
 	goto done;
     }
 
@@ -432,7 +432,7 @@ NCZ_filter_remove(NC_VAR_INFO_T* var, unsigned int id)
 	}
     }
     ZLOG(NCLOGERR,"no such filter: %u",(unsigned)id);
-    stat = NC_ENOFILTER;
+    stat = THROW(NC_ENOFILTER);
 done:
     return ZUNTRACE(stat);
 }
@@ -705,7 +705,7 @@ NCZ_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparamsp, 
 	    memcpy(params,spec->hdf5.visible.params,sizeof(unsigned int)*spec->hdf5.visible.nparams);
     } else {
         ZLOG(NCLOGWARN,"no such filter: %u",(unsigned)id);
-        stat = NC_ENOFILTER;
+        stat = THROW(NC_ENOFILTER);
     } 
 done:
     return ZUNTRACEX(stat,"nparams=%u",(unsigned)(nparamsp?*nparamsp:0));
@@ -731,7 +731,7 @@ NCZ_inq_filter_avail(int ncid, unsigned id)
     /* Check the available filters list */
     if((stat = NCZ_plugin_loaded((int)id, &plug))) goto done;
     if(plug == NULL || plug->incomplete)
-        stat = NC_ENOFILTER;
+        stat = THROW(NC_ENOFILTER);
 done:
     return ZUNTRACE(stat);
 }
@@ -846,7 +846,7 @@ NCZ_applyfilterchain(const NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, NClist* cha
     for(i=0;i<nclistlength(chain);i++) {
 	struct NCZ_Filter* f = (struct NCZ_Filter*)nclistget(chain,i);
 	assert(f != NULL);
-	if(FILTERINCOMPLETE(f)) {stat = NC_ENOFILTER; goto done;}
+	if(FILTERINCOMPLETE(f)) {stat = THROW(NC_ENOFILTER); goto done;}
 	assert(f->hdf5.id > 0 && f->plugin != NULL);
 	if(!(f->flags & FLAG_WORKING)) {/* working not yet available */
 	    if((stat = ensure_working(var,f))) goto done;
@@ -984,7 +984,7 @@ NCZ_filter_build(const NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, const NCjson* j
     if(NCJdictget(jfilter,"id",&jvalue)<0) {stat = NC_EFILTER; goto done;}
     if(NCJsort(jvalue) != NCJ_STRING) {
         ZLOG(NCLOGERR,"no such filter: %s",NCJstring(jvalue));
-	stat = NC_ENOFILTER; goto done;
+	stat = THROW(NC_ENOFILTER); goto done;
     }
 
     /* Build the codec */
@@ -1451,7 +1451,7 @@ NCZ_load_plugin(const char* path, struct NCZ_Plugin** plugp)
 	const NCZ_codec_info_defaults_proto  cpd =  (NCZ_codec_info_defaults_proto)ncpgetsymbol(lib,"NCZ_codec_info_defaults");
 
         if(gpt == NULL && gpi == NULL && npi == NULL && cpd == NULL)
-	    {stat = NC_ENOFILTER; goto done;}
+	    {stat = THROW(NC_ENOFILTER); goto done;}
 
 	/* We can have cpd  or we can have (gpt && gpi && npi) but not both sets */
 	if(cpd != NULL) {
@@ -1656,7 +1656,7 @@ static int
 ensure_working(const NC_VAR_INFO_T* var, NCZ_Filter* filter)
 {
     int stat = NC_NOERR;
-    if(FILTERINCOMPLETE(filter)) {stat = NC_ENOFILTER; goto done;}
+    if(FILTERINCOMPLETE(filter)) {stat = THROW(NC_ENOFILTER); goto done;}
     if(!(filter->flags & FLAG_WORKING)) {
 	const size_t oldnparams = filter->hdf5.visible.nparams;
 	const unsigned* oldparams = filter->hdf5.visible.params;
