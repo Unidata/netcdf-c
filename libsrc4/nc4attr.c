@@ -139,55 +139,10 @@ nc4_get_att_ptrs(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var,
        bugs! */
     if (data)
     {
-#ifdef SEPDATA
-        if (att->vldata)
-        {
-            size_t base_typelen;
-            nc_hvl_t *vldest = data;
-            NC_TYPE_INFO_T *type;
-	    int i;
-
-            /* Get the type object for the attribute's type */
-            if ((retval = nc4_find_type(h5, att->nc_typeid, &type)))
-                BAIL(retval);
-
-            /* Retrieve the size of the base type */
-            if ((retval = nc4_get_typelen_mem(h5, type->u.v.base_nc_typeid, &base_typelen)))
-                BAIL(retval);
-
-            for (i = 0; i < att->len; i++)
-            {
-                vldest[i].len = att->vldata[i].len;
-                if (!(vldest[i].p = malloc(vldest[i].len * base_typelen)))
-                    BAIL(NC_ENOMEM);
-                memcpy(vldest[i].p, att->vldata[i].p, vldest[i].len * base_typelen);
-            }
-        }
-        else if (att->stdata)
-        {
-	    int i;
-            for (i = 0; i < att->len; i++)
-            {
-                /* Check for NULL pointer for string (valid in HDF5) */
-                if(att->stdata[i])
-                {
-                    if (!(((char **)data)[i] = strdup(att->stdata[i])))
-                        BAIL(NC_ENOMEM);
-                }
-                else
-                    ((char **)data)[i] = att->stdata[i];
-            }
-        }
-        else
-        {
-            memcpy(data, bufr, (size_t)(att->len * type_size));
-        }
-#else
 	{
 	    if((retval = nc_copy_data(h5->controller->ext_ncid,mem_type,bufr,att->len,data)))
 	        BAIL(retval);
 	}
-#endif
     }
 
 exit:

@@ -2184,35 +2184,11 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
         for (i = 0; i < fill_len; i++)
         {
 
-#ifdef SEPDATA
-            if (var->type_info->nc_type_class == NC_STRING)
-            {
-                if (*(char **)fillvalue)
-                {
-                    if (!(*(char **)filldata = strdup(*(char **)fillvalue)))
-                        BAIL(NC_ENOMEM);
-                }
-                else
-                    *(char **)filldata = NULL;
-            }
-            else if (var->type_info->nc_type_class == NC_VLEN)
-            {
-                if (fillvalue)
-                {
-                    memcpy(filldata,fillvalue,file_type_size);
-                } else {
-                    *(char **)filldata = NULL;
-                }
-            }
-            else
-                memcpy(filldata, fillvalue, file_type_size);
-#else
 	    {
 		/* Copy one instance of the fill_value */
 		if((retval = nc_copy_data(ncid,var->type_info->hdr.id,fillvalue,1,filldata)))
 		    BAIL(retval);
 	    }
-#endif
             filldata = (char *)filldata + file_type_size;
 	}        
     }

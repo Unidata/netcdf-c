@@ -53,14 +53,6 @@ typedef struct NCRCinfo {
 	NClist* s3profiles; /* NClist<struct AWSprofile*> */
 } NCRCinfo;
 
-typedef struct NCS3INFO {
-    char* host; /* non-null if other*/
-    char* region; /* region */
-    char* bucket; /* bucket name */
-    char* rootkey;
-    char* profile;
-} NCS3INFO;
-
 #if defined(__cplusplus)
 extern "C" {
 #endif
@@ -98,14 +90,11 @@ EXTERNL int NC_join(struct NClist* segments, char** pathp);
 
 /* From ds3util.c */
 /* S3 profiles */
-EXTERNL int NC_s3urlrebuild(NCURI* url, NCURI** newurlp, char** bucketp, char** regionp);
 EXTERNL int NC_getactives3profile(NCURI* uri, const char** profilep);
-EXTERNL int NC_getdefaults3region(NCURI* uri, const char** regionp);
-EXTERNL int NC_authgets3profile(const char* profile, struct AWSprofile** profilep);
 EXTERNL int NC_s3profilelookup(const char* profile, const char* key, const char** valuep);
-EXTERNL int NC_s3urlprocess(NCURI* url, NCS3INFO* s3);
-EXTERNL int NC_s3clear(NCS3INFO* s3);
+EXTERNL int NC_authgets3profile(const char* profile, struct AWSprofile** profilep);
 EXTERNL int NC_iss3(NCURI* uri);
+EXTERNL int NC_s3urlrebuild(NCURI* url, char** inoutbucketp, char** inoutregionp, NCURI** newurlp);
 
 #if defined(__cplusplus)
 }
