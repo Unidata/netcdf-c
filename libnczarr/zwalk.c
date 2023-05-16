@@ -411,7 +411,6 @@ NCZ_walk(NCZProjection** projv, NCZOdometer* chunkodom, NCZOdometer* slpodom, NC
 	        nczodom_skipavail(memodom);
 	    } else {
 	        slpavail = 1;
-		memavail = 1;
 	    }
    	    if(slpavail > 0) {
 if(wdebug > 0) wdebug2(common,slpptr0,memptr0,slpavail,laststride,chunkdata);

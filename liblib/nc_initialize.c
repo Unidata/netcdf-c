@@ -46,7 +46,7 @@ extern int NC_HDF4_initialize(void);
 extern int NC_HDF4_finalize(void);
 #endif
 
-#ifdef ENABLE_S3_SDK
+#ifdef ENABLE_S3
 EXTERNL int NC_s3sdkinitialize(void);
 EXTERNL int NC_s3sdkfinalize(void);
 #endif
@@ -109,7 +109,7 @@ nc_initialize()
 #ifdef USE_HDF4
     if((stat = NC_HDF4_initialize())) goto done;
 #endif
-#ifdef ENABLE_S3_SDK
+#ifdef ENABLE_S3
     if((stat = NC_s3sdkinitialize())) goto done;
 #endif
 #ifdef ENABLE_NCZARR
@@ -174,7 +174,7 @@ nc_finalize(void)
     if((stat = NCZ_finalize())) failed = stat;
 #endif
 
-#ifdef ENABLE_S3_SDK
+#ifdef ENABLE_S3
     if((stat = NC_s3sdkfinalize())) failed = stat;
 #endif
 

@@ -5,10 +5,14 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 . "$srcdir/test_nczarr.sh"
 
+set -e
+
+s3isolate "testdir_jsonconvention"
+THISDIR=`pwd`
+cd $ISOPATH
+
 # This shell script tests support for:
 # read/write using json convention
-
-set -e
 
 testcase() {
 zext=$1
@@ -22,16 +26,17 @@ ${ZMD} -h $fileurl > tmp_jsonconvention_${zext}.txt
 # | sed -e 's/,key1=value1|key2=value2//' -e '/"_NCProperties"/ s/(378)/(354)/'
 # Clean up extraneous changes so comparisons work
 # remove '\n' from ref file before comparing
-sed -e 's|\\n||g' < ${srcdir}/ref_jsonconvention.cdl > tmp_jsonconvention_clean.cdl
-sed -e 's|\\n||g' < ${srcdir}/ref_jsonconvention.zmap > tmp_jsonconvention_clean.zmap
+#sed -e 's|\\n||g' < ${srcdir}/ref_jsonconvention.cdl > tmp_jsonconvention_clean.cdl
+cat < ${srcdir}/ref_jsonconvention.cdl > tmp_jsonconvention_clean.cdl
 cat < tmp_jsonconvention_${zext}.cdl > tmp_jsonconvention_clean_${zext}.cdl 
-sed -e 's|"_NCProperties": "version=2,netcdf=[^,]*,nczarr=2.0.0",||' < tmp_jsonconvention_${zext}.txt > tmp_jsonconvention_clean_${zext}.txt 
+sed -e 's|\(.z[a-z][a-z]*\) : ([0-9][0-9]*)|\1 : ()|g' < tmp_jsonconvention_${zext}.txt >tmp1.tmp 
+sed -e 's|"_NCProperties": "version=[0-9],[^"]*",||' <tmp1.tmp > tmp_jsonconvention_clean_${zext}.txt 
 diff -b tmp_jsonconvention_clean.cdl tmp_jsonconvention_clean_${zext}.cdl
-diff -b tmp_jsonconvention_clean.zmap tmp_jsonconvention_clean_${zext}.txt
+diff -b ${srcdir}/ref_jsonconvention.zmap tmp_jsonconvention_clean_${zext}.txt
 }
 
 testcase file
 if test "x$FEATURE_NCZARR_ZIP" = xyes ; then testcase zip; fi
 if test "x$FEATURE_S3TESTS" = xyes ; then testcase s3; fi
 
-exit 0
+if test "x$FEATURE_S3TESTS" = xyes ; then s3sdkdelete "/${S3ISOPATH}" ; fi # Cleanup

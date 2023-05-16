@@ -552,26 +552,6 @@ nc4_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
     if ((retval = nc4_get_typelen_mem(h5, file_type, &type_size)))
         return retval;
 
-#ifdef SEPDATA
-    /* If this att has vlen or string data, release it before we lose the length value. */
-    if (att->stdata)
-    {
-        int i;
-        for (i = 0; i < att->len; i++)
-            if(att->stdata[i])
-                free(att->stdata[i]);
-        free(att->stdata);
-        att->stdata = NULL;
-    }
-    if (att->vldata)
-    {
-        int i;
-        for (i = 0; i < att->len; i++) {
-            nc_free_vlen(&att->vldata[i]); /* FIX: see warning of nc_free_vlen */
-        free(att->vldata);
-        att->vldata = NULL;
-    }
-#else
     if (att->data)
     {
 	assert(attsave.data == NULL);
@@ -579,7 +559,6 @@ nc4_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
 	attsave.len = att->len;
         att->data = NULL;
     }
-#endif
 
     /* If this is the _FillValue attribute, then we will also have to
      * copy the value to the fill_vlue pointer of the NC_VAR_INFO_T
@@ -611,74 +590,15 @@ nc4_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
          * one. Make up your damn mind, would you? */
         if (var->fill_value)
         {
-#ifdef SEPDATA
-            if (var->type_info->nc_type_class == NC_VLEN)
-            {
-                if ((retval = nc_free_vlen(var->fill_value)))
-                    BAIL(retval);
-            }
-            else if (var->type_info->nc_type_class == NC_STRING)
-            {
-                if (*(char **)var->fill_value)
-                    free(*(char **)var->fill_value);
-            }
-            free(var->fill_value);
-#else
 	    /* reclaim later */
 	    fillsave.data = var->fill_value;
 	    fillsave.type = var->type_info->hdr.id;
 	    fillsave.len = 1;
-#endif
 	    var->fill_value = NULL;
         }
 
         /* Determine the size of the fill value in bytes. */
-#ifdef SEPDATA
-        if (var->type_info->nc_type_class == NC_VLEN)
-            size = sizeof(hvl_t);
-        else if (var->type_info->nc_type_class == NC_STRING)
-            size = sizeof(char *);
-        else
-            size = type_size;
-#endif
 
-#ifdef SEPDATA
-        /* Allocate space for the fill value. */
-        if (!(var->fill_value = calloc(1, size)))
-            BAIL(NC_ENOMEM);
-
-        /* Copy the fill_value. */
-        LOG((4, "Copying fill value into metadata for variable %s", var->hdr.name));
-        if (var->type_info->nc_type_class == NC_VLEN)
-        {
-            nc_vlen_t *in_vlen = (nc_vlen_t *)data, *fv_vlen = (nc_vlen_t *)(var->fill_value);
-            NC_TYPE_INFO_T* basetype;
-            size_t basetypesize = 0;
-
-            /* get the basetype and its size */
-            basetype = var->type_info;
-            if ((retval = nc4_get_typelen_mem(grp->nc4_info, basetype->hdr.id, &basetypesize)))
-                BAIL(retval);
-            /* shallow clone the content of the vlen; shallow because it has only a temporary existence */
-            fv_vlen->len = in_vlen->len;
-            if (!(fv_vlen->p = malloc(basetypesize * in_vlen->len)))
-                BAIL(NC_ENOMEM);
-            memcpy(fv_vlen->p, in_vlen->p, in_vlen->len * basetypesize);
-        }
-        else if (var->type_info->nc_type_class == NC_STRING)
-        {
-            if (*(char **)data)
-            {
-                if (!(*(char **)(var->fill_value) = malloc(strlen(*(char **)data) + 1)))
-                    BAIL(NC_ENOMEM);
-                strcpy(*(char **)var->fill_value, *(char **)data);
-            }
-            else
-                *(char **)var->fill_value = NULL;
-        }
-        else
-            memcpy(var->fill_value, data, type_size);
-#else
 	{
 	    nc_type var_type = var->type_info->hdr.id;
    	    size_t var_type_size = var->type_info->size;
@@ -704,7 +624,6 @@ nc4_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
 	    var->fill_value = copy;
 	    copy = NULL;
 	}
-#endif
         /* Indicate that the fill value was changed, if the variable has already
          * been created in the file, so the dataset gets deleted and re-created. */
         if (var->created)
@@ -721,82 +640,6 @@ nc4_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
             BAIL(retval);
 
         assert(data);
-#ifdef SEPDATA
-        if (type_class == NC_VLEN)
-        {
-            const hvl_t *vldata1;
-            NC_TYPE_INFO_T *vltype;
-            size_t base_typelen;
-
-            /* Get the type object for the attribute's type */
-            if ((retval = nc4_find_type(h5, file_type, &vltype)))
-                BAIL(retval);
-
-            /* Retrieve the size of the base type */
-            if ((retval = nc4_get_typelen_mem(h5, vltype->u.v.base_nc_typeid, &base_typelen)))
-                BAIL(retval);
-
-            vldata1 = data;
-            if (!(att->vldata = (nc_vlen_t*)malloc(att->len * sizeof(hvl_t))))
-                BAIL(NC_ENOMEM);
-            for (i = 0; i < att->len; i++)
-            {
-                att->vldata[i].len = vldata1[i].len;
-                /* Warning, this only works for cases described for nc_free_vlen() */
-                if (!(att->vldata[i].p = malloc(base_typelen * att->vldata[i].len)))
-                    BAIL(NC_ENOMEM);
-                memcpy(att->vldata[i].p, vldata1[i].p, base_typelen * att->vldata[i].len);
-            }
-        }
-        else if (type_class == NC_STRING)
-        {
-            LOG((4, "copying array of NC_STRING"));
-            if (!(att->stdata = malloc(sizeof(char *) * att->len))) {
-                BAIL(NC_ENOMEM);
-            }
-
-            /* If we are overwriting an existing attribute,
-               specifically an NC_CHAR, we need to clean up
-               the pre-existing att->data. */
-            if (!new_att && att->data) {
-		
-                free(att->data);
-                att->data = NULL;
-            }
-
-            for (i = 0; i < att->len; i++)
-            {
-                if(NULL != ((char **)data)[i]) {
-                    LOG((5, "copying string %d of size %d", i, strlen(((char **)data)[i]) + 1));
-                    if (!(att->stdata[i] = strdup(((char **)data)[i])))
-                        BAIL(NC_ENOMEM);
-                }
-                else
-                    att->stdata[i] = ((char **)data)[i];
-            }
-        }
-        else
-        {
-            /* [Re]allocate memory for the attribute data */
-            if (!new_att)
-                free (att->data);
-            if (!(att->data = malloc(att->len * type_size)))
-                BAIL(NC_ENOMEM);
-
-            /* Just copy the data, for non-atomic types */
-            if (type_class == NC_OPAQUE || type_class == NC_COMPOUND || type_class == NC_ENUM)
-                memcpy(att->data, data, len * type_size);
-            else
-            {
-                /* Data types are like religions, in that one can convert.  */
-                if ((retval = nc4_convert_type(data, att->data, mem_type, file_type,
-                                               len, &range_error, NULL,
-                                               (h5->cmode & NC_CLASSIC_MODEL),
-					       NC_NOQUANTIZE, 0)))
-                    BAIL(retval);
-            }
-        }
-#else
         {
 	    /* Allocate top level of the copy */
 	    if (!(copy = malloc(len * type_size)))
@@ -816,7 +659,6 @@ nc4_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
 	    /* Store it */
 	    att->data = copy; copy = NULL;
 	}
-#endif
     }
     att->dirty = NC_TRUE;
     att->created = NC_FALSE;

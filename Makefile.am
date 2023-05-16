@@ -7,8 +7,18 @@
 
 # Ed Hartnett, Ward Fisher
 
+# Put together AM_CPPFLAGS and AM_LDFLAGS.
+include $(top_srcdir)/lib_flags.am
+
 # This directory stores libtool macros, put there by aclocal.
 ACLOCAL_AMFLAGS = -I m4
+
+TESTS_ENVIRONMENT =
+TEST_EXTENSIONS = .sh
+#SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#TESTS_ENVIRONMENT += export SETX=1;
 
 ##
 # Turn off plugin directory during distcheck, see
@@ -74,9 +84,13 @@ endif
 
 if ENABLE_DAP4
 DAP4 = libdap4
-XML = libncxml
 NCDAP4TESTDIR = dap4_test
+XML = libncxml
 endif #DAP4
+
+if ENABLE_S3_INTERNAL
+XML = libncxml # Internal S3 requires XML
+endif #ENABLE_S3_INTERNAL
 
 # Build PnetCDF
 if USE_PNETCDF
