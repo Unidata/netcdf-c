@@ -286,6 +286,7 @@ rootpathfor(const char* path)
     case NCZM_ZIP:
 	rootpath = strdup("/"); /*constant*/
 	break;
+#ifdef ENABLE_S3  
     case NCZM_S3:
         /* Split the path part */
         if((stat = nczm_split(uri->path,segments))) goto done;
@@ -295,6 +296,7 @@ rootpathfor(const char* path)
         /* Put it back together */
         if((stat = nczm_join(segments,&rootpath))) goto done;
 	break;
+#endif
     default:
         stat = NC_EINVAL;
 	goto done;
@@ -334,6 +336,8 @@ objdump(void)
         size64_t len = 0;
 	OBJKIND kind = 0;
 	int hascontent = 0;
+	nullfree(content); content = NULL;
+	nullfree(obj); obj = NULL;
 	obj = nclistremove(stack,0); /* zero pos is always top of stack */
 	kind = keykind(obj);
 	/* Now print info for this obj key */
@@ -343,14 +347,12 @@ objdump(void)
 	    case NC_EACCESS: hascontent = 0; len = 0; stat = NC_NOERR; break;
 	    default: goto done;
 	}
-	if(!hascontent) goto next; /* ignore it */
+	if(!hascontent) continue; /* ignore it */
 	if(len > 0) {
 	    size_t padlen = (len+dumpoptions.nctype->typesize);
 	    content = calloc(1,padlen+1);
   	    if((stat=nczmap_read(map,obj,0,len,content))) goto done;
 	    content[len] = '\0';
-        } else {
-	    content = NULL;
 	}
 	if(hascontent) {
 	    if(len > 0) {
@@ -382,9 +384,6 @@ objdump(void)
 	} else {
 	    printf("[%d] %s\n",depth,obj);
 	}
-	nullfree(content); content = NULL;
-next:
-	nullfree(obj); obj = NULL;
     }
 done:
     nullfree(obj);
@@ -458,12 +457,12 @@ printcontent(size64_t len, const char* content, OBJKIND kind)
     format = dumpoptions.nctype->format;
     if(dumpoptions.format[0] != '\0')
         format = dumpoptions.format;
+    strlen = dumpoptions.strlen;
+    count = len;
 
-    if(dumpoptions.strlen > 0) {
-        strlen = dumpoptions.strlen;
-	count = ((len+strlen)-1)/strlen;
-    } else
-        count = len;
+#ifdef DEBUG
+    printf("debug: len=%d strlen=%d count=%d\n",(int)len,(int)strlen,(int)count); fflush(stdout);
+#endif
 
     for(i=0;i<count;i++) {
         /* If kind is chunk, then len is # of values, not # of bytes */

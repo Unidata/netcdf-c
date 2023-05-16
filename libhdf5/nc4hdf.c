@@ -470,12 +470,6 @@ put_att_grpa(NC_GRP_INFO_T *grp, int varid, NC_ATT_INFO_T *att)
      * some phoney data (which won't be written anyway.)*/
     if (!dims[0])
         data = &phoney_data;
-#ifdef SEPDATA
-    else if (att->vldata)
-        data = att->vldata;
-    else if (att->stdata)
-        data = att->stdata;
-#endif
     else
         data = att->data;
 

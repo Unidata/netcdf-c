@@ -18,8 +18,7 @@ if ENABLE_NCZARR
 AM_CPPFLAGS += -I${top_srcdir}/libnczarr
 endif
 
-
-if ENABLE_S3_SDK 
+if ENABLE_S3_AWS
 AM_LDFLAGS += -lstdc++
 endif
 

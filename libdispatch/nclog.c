@@ -141,7 +141,7 @@ ncvlog(int tag, const char* fmt, va_list ap)
     if(tag == NCLOGERR) was = ncsetlogging(1);
     if(!nclog_global.nclogging || nclog_global.nclogstream == NULL) return was;
     prefix = nctagname(tag);
-    fprintf(nclog_global.nclogstream,"%s:",prefix);
+    fprintf(nclog_global.nclogstream,"%s: ",prefix);
     if(fmt != NULL) {
       vfprintf(nclog_global.nclogstream, fmt, ap);
     }

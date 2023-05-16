@@ -10,8 +10,12 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 . "$srcdir/test_nczarr.sh"
 
-set -e
+# Isolate both test and S3
+s3isolate "testdir_ncgen4"
+THISDIR=`pwd`
+cd $ISOPATH
 
+set -e
 
 # To add a new test,
 # 1. put the .cdl file in the 'ncdump/cdl' directory
@@ -36,7 +40,6 @@ ALLTESTS="$TESTS $FVTESTS"
 # Location constants
 cdl="$srcdir/../ncdump/cdl"
 expected="$srcdir/../ncdump/expected"
-RESULTSDIR="./results"
 
 # Functions
 
@@ -83,12 +86,7 @@ done
 runtestset() {
 extfor $1
 echo "*** Testing nczarr X ncgen with zmap=${zext}"
-rm -fr ${RESULTSDIR}.$zext
-mkdir ${RESULTSDIR}.${zext}
-WD=`pwd	`
-cd ${RESULTSDIR}.${zext}
 difftest
-cd $WD
 echo "*** PASSED: zext=${zext}"
 }
 
@@ -97,3 +95,5 @@ if test "x$FEATURE_NCZARR_ZIP" = xyes ; then runtestset zip; fi
 if test "x$FEATURE_S3TESTS" = xyes ; then runtestset s3; fi
 
 echo "*** PASSED ***"
+
+if test "x$FEATURE_S3TESTS" = xyes ; then s3sdkdelete "/${S3ISOPATH}" ; fi # Cleanup

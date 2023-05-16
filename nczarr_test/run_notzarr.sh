@@ -5,13 +5,16 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 . "$srcdir/test_nczarr.sh"
 
+# Build both ISOPATH and S3ISOPATH
+s3isolate "testdir_notzarr"
+THISDIR=`pwd`
+cd $ISOPATH
+
 # Test ability to detect NCZarr/Zarr files
 
 URL="${NCZARR_S3_TEST_HOST}/${NCZARR_S3_TEST_BUCKET}"
-KEY="/netcdf-c"
+KEY="/${S3ISOPATH}"
 
-THISDIR=`pwd`
-RESULTSDIR=tmp_notzarr
 sometestfailed=
 
 testfailed() {
@@ -21,25 +24,12 @@ testfailed() {
   fi
 }
 
-rm -fr ${RESULTSDIR}
-mkdir -p ${RESULTSDIR}
-cd ${RESULTSDIR}
-
 # Make test sets
-mkdir empty.file # empty
-mkdir notzarr.file # non-empty, non-zarr
-echo "random data" >notzarr.file/notzarr.txt
-if test "x$FEATURE_NCZARR_ZIP" = xyes ; then
-    mkdir empty
-    zip -r empty.zip empty
-    cp -r notzarr.file ./notzarr
-    zip -r notzarr.zip notzarr
-    rm -fr empty notzarr
-fi
+cp ${srcdir}/ref_notzarr.tar.gz .
+gunzip ref_notzarr.tar.gz
+tar -xf ref_notzarr.tar
 if test "x$FEATURE_S3TESTS" = xyes ; then
-    cat /dev/null > empty.txt
-    # not possible: ${execdir}/s3util -f notzarr.txt -u "https://${URL}" -k "/netcdf-c/empty.s3" upload
-    ${execdir}/s3util -f notzarr.file/notzarr.txt -u "https://${URL}" -k "/netcdf-c/notzarr.s3/notzarr.txt" upload
+    ${execdir}/s3util -f notzarr.file/notzarr.txt -u "https://${URL}" -k "/${S3ISOPATH}/notzarr.s3/notzarr.txt" upload
 fi
 
 echo "Test empty file"
@@ -62,21 +52,13 @@ if test "x$FEATURE_S3TESTS" = xyes ; then
 if test 1 = 0 ; then
   # This test is NA for S3
   echo "Test empty S3 file"
-  KEY="/netcdf-c/empty.s3"
-  RET=`${execdir}/tst_notzarr "https://$URL${KEY}#mode=zarr,s3"`
+  KEY2="${KEY}/empty.s3"
+  RET=`${execdir}/tst_notzarr "https://$URL${KEY2}#mode=zarr,s3"`
   testfailed "$RET"
 fi
 echo "Test non-zarr S3 file"
-RET=`${execdir}/tst_notzarr "https://$URL/netcdf-c/notzarr.s3#mode=zarr,s3"`
+RET=`${execdir}/tst_notzarr "https://$URL/${S3ISOPATH}/notzarr.s3#mode=zarr,s3"`
 testfailed "$RET"
 fi
 
-cd ${THISDIR}
-
-# Cleanup
-rm -fr ${RESULTSDIR}
-if test "x$FEATURE_S3TESTS" = xyes ; then
-    awsdelete "/netcdf-c"
-fi
-
-exit 0
+if test "x$FEATURE_S3TESTS" = xyes ; then s3sdkdelete "/${S3ISOPATH}" ; fi # Cleanup

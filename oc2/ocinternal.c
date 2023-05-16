@@ -433,6 +433,7 @@ ocextractddsinfile(OCstate* state, OCtree* tree, OCflags flags)
         count = fread(chunk,1,sizeof(chunk),tree->data.file);
 	if(count <= 0) break; /* EOF;*/
         ncbytesappendn(state->packet,chunk,count);
+	ncbytesnull(state->packet);
 	bodfound = ocfindbod(state->packet,&bod,&ddslen);
     } while(!bodfound);
     if(!bodfound) {/* No BOD; pretend */

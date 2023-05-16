@@ -10,9 +10,7 @@
 #include <stdarg.h>
 #include "ncexternl.h"
 
-#ifndef NCCATCH
-#undef NCCATCH
-#endif
+#define NCCATCH
 
 #define NCENVLOGGING "NCLOGGING"
 #define NCENVTRACING "NCTRACING"
@@ -22,6 +20,9 @@
 #define NCLOGWARN 1
 #define NCLOGERR 2
 #define NCLOGDBG 3
+
+/* Support ptr valued arguments that are used to store results */
+#define PTRVAL(t,p,d) ((t)((p) == NULL ? (d) : *(p)))
 
 #if defined(_CPLUSPLUS_) || defined(__CPLUSPLUS__)
 extern "C" {
