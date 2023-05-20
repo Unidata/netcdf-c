@@ -10,6 +10,8 @@
 #include "ncdispatch.h"
 #include "netcdf_aux.h"
 
+extern NC* NCD4_get_substrate(NC* nc);
+
 #ifdef D4CATCH
 /* Place breakpoint here to catch errors close to where they occur*/
 int
@@ -112,7 +114,6 @@ NCD4_debugcopy(NCD4INFO* info)
 	int varid = var->meta.id;
 	d4size_t varsize;
 	size_t dimprod = NCD4_dimproduct(var);
-	int ncid = info->substrate.nc4id;
 
 	varsize = type->meta.memsize * dimprod;
 	memory = d4alloc(varsize);
@@ -141,7 +142,7 @@ NCD4_debugcopy(NCD4INFO* info)
             if((ret=nc_put_vara(grpid,varid,NC_coord_zero,edges,memory)))
 	        goto done;
 	}
-	if((ret=ncaux_reclaim_data(ncid,type->meta.id,memory,dimprod)))
+	if((ret=NC_reclaim_data(NCD4_get_substrate(ncp),type->meta.id,memory,dimprod)))
 	    goto done;
 	nullfree(memory); memory = NULL;
     }	    

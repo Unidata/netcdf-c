@@ -140,7 +140,7 @@ nc4_get_att_ptrs(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var,
     if (data)
     {
 	{
-	    if((retval = nc_copy_data(h5->controller->ext_ncid,mem_type,bufr,att->len,data)))
+	    if((retval = NC_copy_data(h5->controller,mem_type,bufr,att->len,data)))
 	        BAIL(retval);
 	}
     }

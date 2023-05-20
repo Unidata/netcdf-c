@@ -948,9 +948,8 @@ NCZ_reclaim_fill_value(NC_VAR_INFO_T* var)
 {
     int stat = NC_NOERR;
     if(var->fill_value) {
-	int ncid = var->container->nc4_info->controller->ext_ncid;
 	int tid = var->type_info->hdr.id;
-	stat = nc_reclaim_data_all(ncid,tid,var->fill_value,1);
+	stat = NC_reclaim_data_all(var->container->nc4_info->controller,tid,var->fill_value,1);
 	var->fill_value = NULL;
     }
     /* Reclaim any existing fill_chunk */
@@ -962,16 +961,15 @@ int
 NCZ_copy_fill_value(NC_VAR_INFO_T* var, void**  dstp)
 {
     int stat = NC_NOERR;
-    int ncid = var->container->nc4_info->controller->ext_ncid;
     int tid = var->type_info->hdr.id;
     void* dst = NULL;
 
     if(var->fill_value) {
-	if((stat = nc_copy_data_all(ncid,tid,var->fill_value,1,&dst))) goto done;
+	if((stat = NC_copy_data_all(var->container->nc4_info->controller,tid,var->fill_value,1,&dst))) goto done;
     }
     if(dstp) {*dstp = dst; dst = NULL;}
 done:
-    if(dst) (void)nc_reclaim_data_all(ncid,tid,dst,1);
+    if(dst) (void)NC_reclaim_data_all(var->container->nc4_info->controller,tid,dst,1);
     return stat;
 }
 
@@ -1057,7 +1055,7 @@ NCZ_copy_data(NC_FILE_INFO_T* file, NC_TYPE_INFO_T* xtype, const void* memory, s
 	    scopy[i] = NULL;
 	}
     }
-    return nc_copy_data(file->controller->ext_ncid,xtype->hdr.id,memory,count,copy);
+    return NC_copy_data(file->controller,xtype->hdr.id,memory,count,copy);
 }
 
 #if 0
