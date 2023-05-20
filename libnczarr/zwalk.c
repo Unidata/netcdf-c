@@ -755,19 +755,20 @@ EXTERNL int
 NCZ_read_chunk(int ncid, int varid, size64_t* zindices, void* chunkdata)
 {
     int stat = NC_NOERR;
+    NC_FILE_INFO_T* h5 = NULL;
     NC_VAR_INFO_T* var = NULL;
     NCZ_VAR_INFO_T* zvar = NULL;
     struct NCZChunkCache* cache = NULL;
     void* cachedata = NULL;
 
-    if ((stat = nc4_find_grp_h5_var(ncid, varid, NULL, NULL, &var)))
+    if ((stat = nc4_find_grp_h5_var(ncid, varid, &h5, NULL, &var)))
 	return THROW(stat);
     zvar = (NCZ_VAR_INFO_T*)var->format_var_info;
     cache = zvar->cache;
 
     if((stat = NCZ_read_cache_chunk(cache,zindices,&cachedata))) goto done;
     if(chunkdata) {
-	if((stat = nc_copy_data(ncid,var->type_info->hdr.id,cachedata,cache->chunkcount,chunkdata))) goto done;
+	if((stat = NC_copy_data(h5->controller,var->type_info->hdr.id,cachedata,cache->chunkcount,chunkdata))) goto done;
     }	
     
 done:

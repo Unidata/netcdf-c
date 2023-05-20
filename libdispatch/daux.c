@@ -25,6 +25,7 @@ See COPYRIGHT for license information.
 #include "config.h"
 #include "netcdf.h"
 #include "netcdf_aux.h"
+#include "nc4internal.h"
 #include "ncoffsets.h"
 #include "nclog.h"
 #include "ncrc.h"
@@ -915,6 +916,14 @@ ncaux_reclaim_data_all(int ncid, int xtype, void* memory, size_t count)
     return nc_reclaim_data_all(ncid, xtype, memory, count);
 }
 
+EXTERNL int NC_inq_any_type(int ncid, nc_type typeid, char *name, size_t *size, nc_type *basetypep, size_t *nfieldsp, int *classp);
+
+EXTERNL int
+ncaux_inq_any_type(int ncid, nc_type typeid, char *name, size_t *sizep, nc_type *basetypep, size_t *nfieldsp, int *classp)
+{
+    return NC_inq_any_type(ncid, typeid, name, sizep, basetypep, nfieldsp, classp);
+}
+
 /**
  @param ncid - only needed for a compound type
  @param xtype - type for which alignment is requested
@@ -924,4 +933,23 @@ ncaux_type_alignment(int xtype, int ncid, size_t* alignp)
 {
     /* Defer to the internal version */
     return NC_type_alignment(ncid, xtype, alignp);
+}
+
+/**
+Dump the output tree of data from a call
+to e.g. nc_get_vara or the input to e.g. nc_put_vara.
+This function is just a wrapper around nc_dump__data.
+
+@param ncid file ncid
+@param xtype type id
+@param memory to print
+@param count number of instances of the type in memory
+@return error code
+*/
+
+EXTERNL int
+ncaux_dump_data(int ncid, int xtype, void* memory, size_t count, char** bufp)
+{
+EXTERNL int nc_dump_data(int ncid, nc_type xtype, void* memory, size_t count, char** bufp);
+    return nc_dump_data(ncid, xtype, memory, count, bufp);
 }
