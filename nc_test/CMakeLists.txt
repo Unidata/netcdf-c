@@ -119,7 +119,9 @@ IF(BUILD_UTILITIES)
 
   IF(ENABLE_THREADSAFE)
     build_bin_test_no_prefix(tst_threads)
-    add_sh_test(nc_test test_threads)
+    add_sh_test(nc_test run_threads)
+    build_bin_test_no_prefix(nc_tst_threads)
+    add_sh_test(nc_test run_nc_test_threads)
   ENDIF()
 
 ENDIF(BUILD_UTILITIES)
