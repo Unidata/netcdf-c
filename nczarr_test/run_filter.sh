@@ -7,6 +7,10 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 set -e
 
+s3isolate "testdir_filter"
+THISDIR=`pwd`
+cd $ISOPATH
+
 testset() {
 # Which test cases to exercise
 testapi $1
@@ -177,4 +181,4 @@ testset file
 if test "x$FEATURE_NCZARR_ZIP" = xyes ; then testset zip ; fi
 if test "x$FEATURE_S3TESTS" = xyes ; then testset s3 ; fi
 
-exit 0
+if test "x$FEATURE_S3TESTS" = xyes ; then s3sdkdelete "/${S3ISOPATH}" ; fi # Cleanup

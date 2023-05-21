@@ -284,6 +284,7 @@ static void
 dapaddyytext(DAPlexstate* lex, int c)
 {
     ncbytesappend(lex->yytext,c);
+    ncbytesnull(lex->yytext);
 }
 
 #ifndef DAP2ENCODE
