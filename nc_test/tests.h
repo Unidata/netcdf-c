@@ -559,7 +559,7 @@ extern void init_gvars(void);
 
 extern void def_dims(int ncid);
 
-extern int def_vars(int ncid);
+extern void def_vars(int ncid);
 
 extern void put_atts(int ncid);
 
