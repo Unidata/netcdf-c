@@ -555,33 +555,33 @@ double hash4(
     const size_t *index,
     const nct_itype itype);
 
-void init_gvars(void);
+extern void init_gvars(void);
 
-void def_dims(int ncid);
+extern void def_dims(int ncid);
 
-void def_vars(int ncid);
+extern def_vars(int ncid);
 
-void put_atts(int ncid);
+extern void put_atts(int ncid);
 
-void put_vars(int ncid);
+extern void put_vars(int ncid);
 
-void write_file(char *filename);
+extern void write_file(char *filename);
 
-void check_dims(int  ncid);
+extern void check_dims(int  ncid);
 
-void check_vars(int  ncid);
+extern void check_vars(int  ncid);
 
-void check_atts(int  ncid);
+extern void check_atts(int  ncid);
 
-void check_file(char *filename);
+extern void check_file(char *filename);
 
-int file_create(const char *filename, int cmode, int *ncid);
+extern int file_create(const char *filename, int cmode, int *ncid);
 
-int file__create(const char *filename, int cmode, size_t initialsz, size_t *bufrsizehintp, int *ncid);
+extern int file__create(const char *filename, int cmode, size_t initialsz, size_t *bufrsizehintp, int *ncid);
 
-int file_open(const char *filename, int omode, int *ncid);
+extern int file_open(const char *filename, int omode, int *ncid);
 
-char* nc_err_code_name(int err);
+extern char* nc_err_code_name(int err);
 
 #ifdef __cplusplus
 }
