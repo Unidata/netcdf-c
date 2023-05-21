@@ -8,15 +8,6 @@
 #include <math.h> /* floor() */
 #include "tests.h"
 
-void
-print_nok(int nok)
-{
-    if (verbose || nfails > 0)
-        print("\n");
-    print(" %d good comparisons. ", nok);
-}
-
-
 /* Is value within external type range? */
 int
 inRange(const double value, const nc_type xtype)
@@ -34,8 +25,8 @@ inRange(const double value, const nc_type xtype)
   case NC_INT64:  return value >= X_INT64_MIN  && value <= X_INT64_MAX;
   case NC_UINT64: return value >= 0            && value <= X_UINT64_MAX;
   default:  assert(0);
-    return(0);
   }
+  return(0);
 }
 
 static int
@@ -435,7 +426,7 @@ hash( const nc_type xtype, const int rank, const size_t *index )
                     case NC_INT64:  return X_INT_MIN - 128.0; /* slight smaller
                                                                  than INT_MIN */
                     case NC_UINT64: return 0;
-		    default:  fprintf(stderr,"\nxtype=%d\n",xtype); assert(0);
+		    default:  fprintf(stderr,">>> xtype=%d\n",xtype); assert(0);
 		}
 	    case 1:
 		switch (xtype) {
@@ -804,7 +795,7 @@ def_dims(int ncid)
     for (i = 0; i < NDIMS; i++) {
 	err = nc_def_dim(ncid, dim_name[i], i==0 ? NC_UNLIMITED : dim_len[i],
 	    &dimid);
-	IF (err) error("nc_def_dim: %s", nc_strerror(err));
+        IF (err) error("nc_def_dim: %s", nc_strerror(err));
     }
 }
 

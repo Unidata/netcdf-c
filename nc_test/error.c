@@ -4,6 +4,13 @@
  *   $Id: error.c,v 1.7 2007/05/15 01:36:57 ed Exp $
  *********************************************************************/
 
+#include <config.h>
+#include <stddef.h>	/* because gcc 2.7.2.2 doesn't define size_t */
+			/* in <stdio.h> and it cannot hurt */
+#include <stdio.h>
+#include <stdarg.h>
+
+#include "error.h"
 #include "tests.h"
 
 /*
@@ -62,4 +69,12 @@ print_n_size_t(int nelems, const size_t *array)
 			fprintf(stderr, " ");
 	}
 	fprintf(stderr, "]");
+}
+
+void
+print_nok(int nok)
+{
+    if (verbose || nfails > 0)
+        print("\n");
+    print(" %d good comparisons. ", nok);
 }

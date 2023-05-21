@@ -4,31 +4,30 @@
  *   $Id: tests.h 2785 2014-10-26 05:21:20Z wkliao $
  *********************************************************************/
 
-#include "config.h"
-#include <stdlib.h>
+#include <config.h>
 #include <stdio.h>
-#include <stdarg.h>
 #include <string.h>
+#include <stdlib.h>
 #include <assert.h>
 #include <limits.h>
 #include <float.h>
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-#ifdef HAVE_SYS_TYPES_H
-/* Non-standard internal types */
-# include <sys/types.h>
-#endif
-#include "error.h"
-
 #define NO_NETCDF_2 1
 #include "netcdf.h"
 #ifdef USE_PARALLEL
 #include "netcdf_par.h"
 #endif
-#if defined(ENABLE_THREADSAFE)
+#include "error.h"
+
+#ifdef ENABLE_THREADSAFE
 #include "netcdf_threadsafe.h"
+#if defined(_WIN32) && ! defined(__MINGW32__)
+#define THREAD_LOCAL __declspec(thread)
+#else
+#define THREAD_LOCAL __thread
 #endif
+#else /*!ENABLE_THREADSAFE*/
+#define THREAD_LOCAL
+#endif /*ENABLE_THREADSAFE*/
 
 #if defined(_CRAY) && !defined(_CRAYIEEE) && !defined(__crayx1)
 #define CRAYFLOAT 1 /* CRAY Floating point */
@@ -151,7 +150,12 @@
 #define MAX_DIM_LEN 4
 #define MAX_NATTS 3
 
-/* Limits of internal types */
+extern THREAD_LOCAL int numGatts;  /* number of global attributes */
+extern THREAD_LOCAL int numVars;   /* number of variables */
+extern THREAD_LOCAL int numTypes;  /* number of netCDF data types to test */
+
+
+    /* Limits of internal types */
 
 #define text_min SCHAR_MIN
 #define uchar_min 0
@@ -200,6 +204,17 @@
 
 #define LEN_OF(array) ((sizeof array) / (sizeof array[0]))
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+    /* Non-standard internal types */
+
+#ifdef HAVE_SYS_TYPES_H
+# include <sys/types.h>
+#endif
+
 typedef char text;
 typedef signed char schar;
 
@@ -219,15 +234,37 @@ typedef          long long  int64;
 typedef unsigned long long  uint64;
 #endif
 
-#if defined(ENABLE_THREADSAFE)
-#if defined(_WIN32) && ! defined(__MINGW32__)
-#define THREADED __declspec(thread)
-#else
-#define THREADED __thread
-#endif
-#else
-#define THREADED
-#endif
+
+    /* Global variables - filenames */
+
+extern THREAD_LOCAL char testfile[];		/* netCDF read-only test data */
+extern THREAD_LOCAL char scratch[];		/* netCDF test file for writing */
+
+    /* Global variables - command-line arguments */
+
+extern int  read_only;		/* if 1, don't try to change files */
+extern int  verbose;		/* if 1, print details of tests */
+extern THREAD_LOCAL int  nfails;		/* number of failures in specific test */
+extern int  max_nmpt;		/* max. number of messages per test */
+
+    /* Global variables - test data */
+
+extern THREAD_LOCAL char dim_name[NDIMS][3];
+extern THREAD_LOCAL size_t dim_len[NDIMS];
+extern THREAD_LOCAL char var_name[NVARS][2+MAX_RANK];
+extern THREAD_LOCAL nc_type var_type[NVARS];
+extern THREAD_LOCAL int var_rank[NVARS];
+extern THREAD_LOCAL int var_dimid[NVARS][MAX_RANK];
+extern THREAD_LOCAL size_t var_shape[NVARS][MAX_RANK];
+extern THREAD_LOCAL size_t var_nels[NVARS];
+extern THREAD_LOCAL int var_natts[NVARS];
+extern THREAD_LOCAL char att_name[NVARS][MAX_NATTS][2];
+extern THREAD_LOCAL char gatt_name[NGATTS][3];
+extern THREAD_LOCAL nc_type att_type[NVARS][NGATTS];
+extern THREAD_LOCAL nc_type gatt_type[NGATTS];
+extern THREAD_LOCAL size_t att_len[NVARS][MAX_NATTS];
+extern THREAD_LOCAL size_t gatt_len[NGATTS];
+
 
     /* Macros for accessing attribute test data */
     /* varid is -1 for NC_GLOBAL so can do global atts in same loop */
@@ -237,72 +274,6 @@ typedef unsigned long long  uint64;
 #define ATT_NAME(varid,j) (varid < 0 ? gatt_name[j] : att_name[varid][j])
 #define ATT_TYPE(varid,j) (varid < 0 ? gatt_type[j] : att_type[varid][j])
 #define ATT_LEN(varid,j)  (varid < 0 ? gatt_len[j] : att_len[varid][j])
-
-/*
- * internal types
- */
-typedef enum {
-	NCT_UNSPECIFIED = 0,
-	NCT_UCHAR =	1,	/* unsigned char */
-	NCT_TEXT =	16,	/* char */
-#define NCT_CHAR NCT_TEXT
-	NCT_SCHAR =	17,	/* signed char */
-	NCT_SHORT =	18,	/* short */
-	NCT_INT =	20,	/* int */
-	NCT_LONG =	22,	/* long */
-	NCT_FLOAT =	36,	/* float */
-	NCT_DOUBLE =	40,	/* double */
-        NCT_USHORT =    41,
-        NCT_UINT =      42,
-        NCT_INT64 =     43,
-#define NCT_LONGLONG NCT_INT64
-        NCT_UINT64 =    44
-#define NCT_ULONGLONG NCT_UINT64
-} nct_itype;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-    /* Global variables - Netcdf object counts*/
-
-extern THREADED int numGatts;  /* number of global attributes */
-extern THREADED int numVars;   /* number of variables */
-extern THREADED int numTypes;  /* number of netCDF data types to test */
-
-    /* Global variables - filenames */
-
-extern THREADED char testfile[];		/* netCDF read-only test data */
-extern THREADED char scratch[];		/* netCDF test file for writing */
-
-    /* Global variables - Misc. */
-extern THREADED int  nfails;		/* number of failures in specific test */
-
-    /* Global variables - test data */
-
-extern THREADED char dim_name[NDIMS][3];
-extern THREADED size_t dim_len[NDIMS];
-extern THREADED char var_name[NVARS][2+MAX_RANK];
-extern THREADED nc_type var_type[NVARS];
-extern THREADED int var_rank[NVARS];
-extern THREADED int var_dimid[NVARS][MAX_RANK];
-extern THREADED size_t var_shape[NVARS][MAX_RANK];
-extern THREADED size_t var_nels[NVARS];
-extern THREADED int var_natts[NVARS];
-extern THREADED char att_name[NVARS][MAX_NATTS][2];
-extern THREADED char gatt_name[NGATTS][3];
-extern THREADED nc_type att_type[NVARS][NGATTS];
-extern THREADED nc_type gatt_type[NGATTS];
-extern THREADED size_t att_len[NVARS][MAX_NATTS];
-extern THREADED size_t gatt_len[NGATTS];
-
-    /* Global variables - command-line arguments */
-extern int  verbose;		/* if 1, print details of tests */
-extern int  max_nmpt;		/* max. number of messages per test */
-#if 0 /* unused */
-extern int  read_only;		/* if 1, don't try to change files */
-#endif
-
 
 extern const char *s_nc_type(nc_type);
 
@@ -522,73 +493,95 @@ extern int test_nc_set_fill(void);
 extern int test_nc_set_default_format(void);
 extern int test_nc_against_pnetcdf(void);
 
-extern void print_nok(int nok);
+void print_nok(int nok);
 
-extern int inRange(const double value, const nc_type datatype);
+int inRange(const double value, const nc_type datatype);
 
-extern int inRange3(const int cdf_format, const double value, const nc_type datatype, const nct_itype itype);
+/*
+ * internal types
+ */
+typedef enum {
+	NCT_UNSPECIFIED = 0,
+	NCT_UCHAR =	1,	/* unsigned char */
+	NCT_TEXT =	16,	/* char */
+#define NCT_CHAR NCT_TEXT
+	NCT_SCHAR =	17,	/* signed char */
+	NCT_SHORT =	18,	/* short */
+	NCT_INT =	20,	/* int */
+	NCT_LONG =	22,	/* long */
+	NCT_FLOAT =	36,	/* float */
+	NCT_DOUBLE =	40,	/* double */
+        NCT_USHORT =    41,
+        NCT_UINT =      42,
+        NCT_INT64 =     43,
+#define NCT_LONGLONG NCT_INT64
+        NCT_UINT64 =    44
+#define NCT_ULONGLONG NCT_UINT64
+} nct_itype;
 
-extern int equal(const double x, const double y, nc_type extType, nct_itype itype);
+int inRange3(const int cdf_format, const double value, const nc_type datatype, const nct_itype itype);
 
-extern int equal2(const double x, const double y, nc_type extType);
+int equal(const double x, const double y, nc_type extType, nct_itype itype);
 
-extern int int_vec_eq(const int *v1, const int *v2, const int n);
+int equal2(const double x, const double y, nc_type extType);
 
-extern size_t roll( size_t n );
+int int_vec_eq(const int *v1, const int *v2, const int n);
 
-extern int
+size_t roll( size_t n );
+
+int
 toMixedBase(
     size_t number,        /* number to be converted to mixed base */
     int    length,
     const size_t base[],  /* dimensioned [length], base[0] ignored */
     size_t result[]);     /* dimensioned [length] */
 
-extern size_t
+size_t
 fromMixedBase(
     int    length,
     size_t number[],      /* dimensioned [length] */
     size_t base[]);       /* dimensioned [length], base[0] ignored */
 
-extern int nc2dbl ( const nc_type datatype, const void *p, double *result);
+int nc2dbl ( const nc_type datatype, const void *p, double *result);
 
-extern int dbl2nc ( const double d, const nc_type datatype, void *p);
+int dbl2nc ( const double d, const nc_type datatype, void *p);
 
-extern double hash( const nc_type type, const int rank, const size_t *index );
+double hash( const nc_type type, const int rank, const size_t *index );
 
-extern double hash4(
+double hash4(
     const int cdf_format,
     const nc_type type,
     const int rank,
     const size_t *index,
     const nct_itype itype);
 
-extern void init_gvars(void);
+void init_gvars(void);
 
-extern void def_dims(int ncid);
+void def_dims(int ncid);
 
-extern void def_vars(int ncid);
+void def_vars(int ncid);
 
-extern void put_atts(int ncid);
+void put_atts(int ncid);
 
-extern void put_vars(int ncid);
+void put_vars(int ncid);
 
-extern void write_file(char *filename);
+void write_file(char *filename);
 
-extern void check_dims(int  ncid);
+void check_dims(int  ncid);
 
-extern void check_vars(int  ncid);
+void check_vars(int  ncid);
 
-extern void check_atts(int  ncid);
+void check_atts(int  ncid);
 
-extern void check_file(char *filename);
+void check_file(char *filename);
 
-extern int file_create(const char *filename, int cmode, int *ncid);
+int file_create(const char *filename, int cmode, int *ncid);
 
-extern int file__create(const char *filename, int cmode, size_t initialsz, size_t *bufrsizehintp, int *ncid);
+int file__create(const char *filename, int cmode, size_t initialsz, size_t *bufrsizehintp, int *ncid);
 
-extern int file_open(const char *filename, int omode, int *ncid);
+int file_open(const char *filename, int omode, int *ncid);
 
-extern char* nc_err_code_name(int err);
+char* nc_err_code_name(int err);
 
 #ifdef __cplusplus
 }

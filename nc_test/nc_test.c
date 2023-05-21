@@ -5,10 +5,12 @@
  *********************************************************************/
 
 #include "tests.h"
+#include "config.h"
 
-#if 1		/* both CRAY MPP and OSF/1 Alpha systems need this */
-#include <signal.h>
-#endif /* T90 */
+
+THREAD_LOCAL int numGatts;  /* number of global attributes */
+THREAD_LOCAL int numVars;   /* number of variables */
+THREAD_LOCAL int numTypes;  /* number of netCDF data types to test */
 
 /*
  * Test driver for netCDF-3 interface.  This program performs tests against
@@ -28,86 +30,40 @@
  * It is described by the following global variables.
  */
 
-#if defined(ENABLE_THREADSAFE)
-typedef struct ThreadData {
-    int id;		/* (in) Thread id */ 
-    int format;
-    int nfailsTotal;	/* (out) total fails for this thread */
-    pthread_barrier_t* barrier;
-} ThreadData;
-
-typedef struct Threadset {
-    unsigned nthreads;
-    pthread_t* threadset;
-} Threadset;
-
-static pthread_barrier_t barrier;
-
-/* Ensure this stays around */
-static ThreadData* threaddata = NULL;
-
-#endif
-
 /*
  * global variables (defined by function init_gvars) describing file test.nc
  */
-
-/*
- * The following globals are thread-independent
- */
-
-/*
- * The following globals are thread-dependent
- */
-THREADED char dim_name[NDIMS][3];
-THREADED size_t dim_len[NDIMS];
-THREADED char var_name[NVARS][2+MAX_RANK];
-THREADED nc_type var_type[NVARS];
-THREADED int var_rank[NVARS];
-THREADED int var_dimid[NVARS][MAX_RANK];
-THREADED size_t var_shape[NVARS][MAX_RANK];
-THREADED size_t var_nels[NVARS];
-THREADED int var_natts[NVARS];
-THREADED char att_name[NVARS][MAX_NATTS][2];
-THREADED char gatt_name[NGATTS][3];
-THREADED nc_type att_type[NVARS][NGATTS];
-THREADED nc_type gatt_type[NGATTS];
-THREADED size_t att_len[NVARS][MAX_NATTS];
-THREADED size_t gatt_len[NGATTS];
-
-THREADED int numGatts;  /* number of global attributes */
-THREADED int numVars;   /* number of variables */
-THREADED int numTypes;  /* number of netCDF data types to test */
-
-THREADED int  nfailsTotal = 0;        /* total number of failures (per-thread) */
+THREAD_LOCAL char dim_name[NDIMS][3];
+THREAD_LOCAL size_t dim_len[NDIMS];
+THREAD_LOCAL char var_name[NVARS][2+MAX_RANK];
+THREAD_LOCAL nc_type var_type[NVARS];
+THREAD_LOCAL int var_rank[NVARS];
+THREAD_LOCAL int var_dimid[NVARS][MAX_RANK];
+THREAD_LOCAL size_t var_shape[NVARS][MAX_RANK];
+THREAD_LOCAL size_t var_nels[NVARS];
+THREAD_LOCAL int var_natts[NVARS];
+THREAD_LOCAL char att_name[NVARS][MAX_NATTS][2];
+THREAD_LOCAL char gatt_name[NGATTS][3];
+THREAD_LOCAL nc_type att_type[NVARS][NGATTS];
+THREAD_LOCAL nc_type gatt_type[NGATTS];
+THREAD_LOCAL size_t att_len[NVARS][MAX_NATTS];
+THREAD_LOCAL size_t gatt_len[NGATTS];
 
 /*
  * command-line options
  */
 int  verbose;		/* if 1, print details of tests */
 int  max_nmpt;		/* max. number of messages per test */
-int  nthreads;
-int format;
-
-/* Test everything for classic and 64-bit offsetfiles. If netcdf-4 is
- * included, that means another whole round of testing. */
-#define NUM_FORMATS (5)
 
 /*
  * Misc. global variables
  */
-THREADED int  nfails;		/* number of failures in specific test */
-THREADED char testfile[NC_MAX_NAME];
-THREADED char scratch[NC_MAX_NAME];  /* writable scratch file */
-
-#if defined(ENABLE_THREADSAFE)
-#define printtest(func) print( "*** (%d) testing " #func " ... ",threaddata->id);
-#else
-#define printtest(func) print( "*** testing " #func " ... ");
-#endif
+THREAD_LOCAL int  nfails;		/* number of failures in specific test */
+THREAD_LOCAL char testfile[NC_MAX_NAME];
+THREAD_LOCAL char scratch[] = "scratch.nc";  /* writable scratch file */
 
 #define NC_TEST(func) \
-    printtest(func); \
+    print( "*** testing " #func " ... ");\
     nfails = 0;\
     test_ ## func();\
     nfailsTotal += nfails;\
@@ -118,74 +74,32 @@ THREADED char scratch[NC_MAX_NAME];  /* writable scratch file */
     else\
         print( "\n\t### %d FAILURES TESTING %s! ###\n", nfails, #func)
 
-/* Create the testfile name based on format and thread id */
-static void
-filenames(const char* base, const char* ext, int tid)
+
+#if 1		/* both CRAY MPP and OSF/1 Alpha systems need this */
+#include <signal.h>
+#endif /* T90 */
+
+/* Test everything for classic and 64-bit offsetfiles. If netcdf-4 is
+ * included, that means another whole round of testing. */
+#define NUM_FORMATS (5)
+
+int
+main(int argc, char *argv[])
 {
-    static char filename[8192];
-    snprintf(filename,sizeof(testfile),"%s_%d%s",base,tid,ext);
-    testfile[0] = '\0';
-    strlcat(testfile,filename,sizeof(testfile));
-    snprintf(filename,sizeof(filename),"scratch_%d%s",tid,ext);
-    scratch[0] = '\0';
-    strlcat(scratch,filename,sizeof(testfile));
-    if(verbose) {
-	fprintf(stderr,"thread: %d testfile=%s scratch=%s\n",tid,testfile,scratch);
-    }
-}
+    int i;
+    int  nfailsTotal = 0;        /* total number of failures */
 
-static const char*
-unparseformat(int f)
-{
-    switch (f) {
-    case NC_FORMAT_NETCDF4: return "netcdf-4";
-    case NC_FORMAT_CLASSIC: return "netcdf-3";
-    case NC_FORMAT_64BIT_OFFSET: return "netcdf-64";
-    case NC_FORMAT_64BIT_DATA: return "cdf5";
-    case NC_FORMAT_NETCDF4_CLASSIC: return "netcdf-4-classic";
-    default: break;
-    }
-    return NULL;
-}
-
-#ifdef ENABLE_THREADSAFE
-#define NC_TEST_ARG void* perthreaddata
-#else
-#define NC_TEST_ARG int format
+#ifdef USE_PNETCDF
+    MPI_Init(&argc, &argv);
 #endif
-
-void*
-nc_test(NC_TEST_ARG)
-{
-    int i,nf;
-    int formatvec[NUM_FORMATS];
-    int nformats = NUM_FORMATS;
-    int specific_format;
-
-#if defined(ENABLE_THREADSAFE)
-    ThreadData* threaddata = (ThreadData*)perthreaddata;
-    specific_format = threaddata->format;
-#else
-    specific_format = format;
-#endif
-
-    for (i = 0; i < NUM_FORMATS; i++) formatvec[i] = i+1;
-    if(specific_format > 0) {formatvec[0] = specific_format; nformats = 1;}
-
-    fprintf(stderr, "Testing %d different netCDF formats:", nformats);
-    for(i=0;i<nformats;i++) fprintf(stderr, " %s", unparseformat(formatvec[i]));
-    fprintf(stderr,"\n");
-
-#if defined(ENABLE_THREADSAFE)
-    fprintf(stderr,"starting thread: %d\n",threaddata->id); fflush(stderr);
-    pthread_barrier_wait(threaddata->barrier);
-#endif
-
     /* Both CRAY MPP and OSF/1 Alpha systems need this.  Some of the
      * extreme test assignments in this program trigger floating point
      * exceptions on CRAY T90
      */
     (void) signal(SIGFPE, SIG_IGN);
+
+    verbose = 1;
+    max_nmpt = 8;
 
     /* If you uncomment the nc_set_log_level line, you will get a lot
      * of debugging info. If you set the number higher, you'll get
@@ -193,15 +107,15 @@ nc_test(NC_TEST_ARG)
      * start. */
     /*nc_set_log_level(3);*/
 
+    fprintf(stderr, "Testing %d different netCDF formats.\n", NUM_FORMATS);
+
     /* Go thru formats and run all tests for each of two (for netCDF-3
      * only builds), or 3 (for netCDF-4 builds) different formats. Do
      * the netCDF-4 format last, however, because, as an additional
      * test, the ../nc_test4/tst_nc_test_file program looks at the
      * output of this program. */
-    for (nf=0; nf<nformats; nf++)
+    for (i = 1; i <= NUM_FORMATS; i++)
     {
-       i = formatvec[nf];
-
        numGatts = 6;
        numVars  = 136;
        numTypes = 6;
@@ -211,19 +125,19 @@ nc_test(NC_TEST_ARG)
 	  case NC_FORMAT_CLASSIC:
 	     nc_set_default_format(NC_FORMAT_CLASSIC, NULL);
 	     fprintf(stderr, "\n\nSwitching to netCDF classic format.\n");
-	     filenames("nc_test_classic",".nc",threaddata->id);
+	     strcpy(testfile, "nc_test_classic.nc");
 	     break;
 	  case NC_FORMAT_64BIT_OFFSET:
 	     nc_set_default_format(NC_FORMAT_64BIT_OFFSET, NULL);
 	     fprintf(stderr, "\n\nSwitching to 64-bit offset format.\n");
-	     filenames("nc_test_64bit",".nc",threaddata->id);
+	     strcpy(testfile, "nc_test_64bit.nc");
 	     break;
 
 	  case NC_FORMAT_CDF5:
 #ifdef ENABLE_CDF5
         nc_set_default_format(NC_FORMAT_CDF5, NULL);
 	     fprintf(stderr, "\n\nSwitching to 64-bit data format.\n");
-	     filenames("nc_test_cdf5",".nc",threaddata->id);
+	     strcpy(testfile, "nc_test_cdf5.nc");
              numGatts = NGATTS;
              numVars  = NVARS;
              numTypes = NTYPES;
@@ -241,15 +155,15 @@ nc_test(NC_TEST_ARG)
        case NC_FORMAT_NETCDF4_CLASSIC:
 #ifdef USE_HDF5
 	     nc_set_default_format(NC_FORMAT_NETCDF4_CLASSIC, NULL);
-	     filenames("nc_test_classic",".nc",threaddata->id);
+	     strcpy(testfile, "nc_test_netcdf4.nc");
 	     fprintf(stderr, "\n\nSwitching to netCDF-4 format (with NC_CLASSIC_MODEL).\n");
 	     break;
 #else
 	     continue; /* loop i */
 #endif
 	  default:
-	     fprintf(stderr, "Unexpected format: %d!\n",i);
-	     goto done;
+	     fprintf(stderr, "Unexpected format!\n");
+	     return 2;
        }
 
        /* Initialize global variables defining test file */
@@ -459,106 +373,9 @@ nc_test(NC_TEST_ARG)
 	NC_TEST(nc_set_default_format);
     }
 
-done:
-#if defined(ENABLE_THREADSAFE)
-    threaddata->nfailsTotal = nfailsTotal;
-    if(nfailsTotal > 0) {fprintf(stderr,"***Fail: thread=%d nfailsTotal=%d\n",threaddata->id,nfailsTotal); fflush(stderr);}
-    printf("stopping thread: %d\n",threaddata->id); fflush(stdout);
-    pthread_exit(NULL);
-#endif
+    fprintf(stderr, "\n*** Total number of failures: %d\n", nfailsTotal);
 
-return NULL;
-}     
-
-static int
-parseformat(const char* f)
-{
-    int format = 0;
-    if(strcmp(optarg,"cdf5")==0) format = NC_FORMAT_64BIT_DATA;
-    else if(strcmp(optarg,"nc4")==0) format = NC_FORMAT_NETCDF4;
-    else if(strcmp(optarg,"nc3")==0) format = NC_FORMAT_CLASSIC;
-    else if(strcmp(optarg,"nc3_64")==0) format = NC_FORMAT_64BIT_OFFSET;
-    else if(strcmp(optarg,"nc4c")==0) format = NC_FORMAT_NETCDF4_CLASSIC;
-    else if(strcmp(optarg,"netcdf-4")==0) format = NC_FORMAT_NETCDF4;
-    else if(strcmp(optarg,"netcdf-3")==0) format = NC_FORMAT_CLASSIC;
-    else if(strcmp(optarg,"netcdf-64")==0) format = NC_FORMAT_64BIT_OFFSET;
-    else if(strcmp(optarg,"netcdf-4-classic")==0) format = NC_FORMAT_NETCDF4_CLASSIC;
-    else {fprintf(stderr,"unknown format: %s; ignored\n",optarg); format = 0;}
-    return format;
-}
-
-static void
-usage(void)
-{
-   fprintf(stderr,"usage: nc_test [-h] [-v] [-m <max messages>] [-T <nthreads>] [-F nc4|nc4|nc4_64|cdf5|nc4c]\n");
-   exit(1);
-}
-
-int
-main(int argc, char *argv[])
-{
-    int c, retcode;
-    int  allfailsTotal = 0;        /* total number of failures across all threads */
-#if defined(ENABLE_THREADSAFE)
-    int i;
-    Threadset* threadset = NULL;
-#endif
-
-#ifdef USE_PNETCDF
-    MPI_Init(&argc, &argv);
-#endif
-
-    nc_initialize();
-
-    verbose = 1;
-    max_nmpt = 8;
-    nthreads = 0;
-    format = 0;
-    
-    while ((c = getopt(argc, argv, "hvF:M:T:")) != EOF) {
-	switch(c) {
-	case 'h': usage(); break;
-	case 'v': verbose = 1; break;
-	case 'F':
-	  format = parseformat(optarg);
-	  break;
-	case 'M': sscanf(optarg,"%d",&max_nmpt); break;
-	case 'T': sscanf(optarg,"%d",&nthreads); break;
-	case '?':
-	   fprintf(stderr,"unknown option\n");
-	   goto done;
-	}
-    }
-
-#if defined(ENABLE_THREADSAFE)
-    if(nthreads > 0) {
-        threaddata = (ThreadData*)calloc(nthreads,sizeof(ThreadData));
-        threadset = (Threadset*)calloc(1,sizeof(Threadset));
-        threadset->nthreads = nthreads;
-        threadset->threadset = (pthread_t*)calloc(threadset->nthreads,sizeof(pthread_t));
-        pthread_barrier_init(&barrier, NULL, nthreads);
-        for(i=0; i<nthreads; i++) {
-	    threaddata[i].id = i;
-    	    threaddata[i].format = format;
-	    threaddata[i].barrier = &barrier;
-            pthread_create(&threadset->threadset[i], NULL, nc_test, (void*)&threaddata[i]);
-	}
-        /* Wait for all threads to finish */
-        for(i=0; i<threadset->nthreads; i++)
-            pthread_join(threadset->threadset[i], NULL);
-        allfailsTotal = 0;
-        for(i=0; i<nthreads; i++)
-	    allfailsTotal += threaddata[i].nfailsTotal;
-    } else {
-        allfailsTotal = nfailsTotal;
-    }	
-#else
-    allfailsTotal = nfailsTotal;
-#endif
-
-    fprintf(stderr, "\n*** Total number of failures: %d\n", allfailsTotal);
-
-    if (allfailsTotal)
+    if (nfailsTotal)
     {
        fprintf(stderr, "*** nc_test FAILURE!!!\n");
        return 2;
@@ -566,21 +383,9 @@ main(int argc, char *argv[])
     else
        fprintf(stderr, "*** nc_test SUCCESS!!!\n");
 
-#if defined(ENABLE_THREADSAFE)
-    if(nthreads > 0)
-        pthread_barrier_destroy(&barrier);
-    if(threaddata) free(threaddata);
-    if(threadset) {if(threadset->threadset) free(threadset->threadset); free(threadset);}
-#endif
-
-done:
-    nc_finalize();
-
 #ifdef USE_PNETCDF
     MPI_Finalize();
 #endif
-
-    retcode = (allfailsTotal > 0 ? 1 : 0);
-    exit(retcode);
-    return retcode;
+    exit(0);
+    return 0;
 }

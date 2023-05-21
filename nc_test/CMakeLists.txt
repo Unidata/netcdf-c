@@ -5,6 +5,10 @@
 
 # See netcdf-c/COPYRIGHT file for more info.
 
+IF(USE_X_GETOPT)
+SET(XGETOPTSRC "${CMAKE_CURRENT_SOURCE_DIR}/../libdispatch/XGetopt.c")
+ENDIF()
+
 message(STATUS "CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}")
 message(STATUS "CMAKE_BINARY_DIR=${CMAKE_BINARY_DIR}")
 message(STATUS "CMAKE_CURRENT_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}")
@@ -120,7 +124,8 @@ IF(BUILD_UTILITIES)
   IF(ENABLE_THREADSAFE)
     build_bin_test_no_prefix(tst_threads)
     add_sh_test(nc_test run_threads)
-    build_bin_test_no_prefix(nc_tst_threads)
+    SET(nc_test_threads_sources thread_nc_test.c error.c test_get.c test_put.c test_read.c test_write.c util.c)
+    build_bin_test_no_prefix(nc_tst_threads ${nc_test_threads_sources})
     add_sh_test(nc_test run_nc_test_threads)
   ENDIF()
 
