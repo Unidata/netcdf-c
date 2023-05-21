@@ -5,17 +5,13 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 . "$srcdir/test_nczarr.sh"
 
-# This test uses a shared resource: the .rc files; so run in a special directory
-# Create a special directory
-# And enter it to execute tests
-rm -fr rcmiscdir
-mkdir rcmiscdir
-cd rcmiscdir
-WD=`pwd`
+set -e
+
+s3isolate "testdir_misc"
+THISDIR=`pwd`
+cd $ISOPATH
 
 # This shell script provides a miscellaneous set of tests
-
-set -e
 
 cleanup() {
     resetrc
@@ -24,7 +20,7 @@ cleanup() {
 # Setup the .rc files
 
 createrc() {
-  RCP="${WD}/.ncrc"
+  RCP="${ISOPATH}/.ncrc"
   echo "Creating rc file $RCP"
   echo "ZARR.DIMENSION_SEPARATOR=/" >>$RCP
 }
@@ -65,4 +61,4 @@ if test "x$FEATURE_S3TESTS" = xyes ; then
     testcase2 s3
 fi
 
-exit 0
+if test "x$FEATURE_S3TESTS" = xyes ; then s3sdkdelete "/${S3ISOPATH}" ; fi # Cleanup

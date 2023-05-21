@@ -5,9 +5,13 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 . "$top_srcdir/nczarr_test/test_nczarr.sh"
 
-# This shell script tests support for the NC_STRING type
-
 set -e
+
+s3isolate "testdir_nczarr"
+THISDIR=`pwd`
+cd $ISOPATH
+
+# This shell script tests support for the NC_STRING type
 
 zarrscalar() {
     rm -f $2
@@ -57,4 +61,4 @@ testcase file
 if test "x$FEATURE_NCZARR_ZIP" = xyes ; then testcase zip; fi
 if test "x$FEATURE_S3TESTS" = xyes ; then testcase s3; fi
 
-exit 0
+if test "x$FEATURE_S3TESTS" = xyes ; then s3sdkdelete "/${S3ISOPATH}" ; fi # Cleanup

@@ -3,22 +3,23 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
+
+. $srcdir/test_ncdump.sh
+
+isolate "testdir_ncdump_nccopy4"
+
+# Move into test directory
+cd $ISOPATH
+
 set -e
 
 # For a netCDF-4 build, test nccopy on netCDF files in this directory
 
-#if 0
-if test -f tst_group_data${ext} ; then ${execdir}/tst_group_data ; fi
-if test -f tst_enum_data${ext} ; then ${execdir}/tst_enum_data ; fi
-if test -f tst_comp${ext} ; then ${execdir}/tst_comp ; fi
-if test -f tst_comp2${ext} ; then ${execdir}/tst_comp2 ; fi
-#endif
-
 echo ""
 
-# These files are actually in $srcdir in distcheck builds, so they
-# need to be handled differently.
-# ref_tst_compounds2 ref_tst_compounds3 ref_tst_compounds4
+# Create common test inputs
+createtestinputs
+
 TESTFILES0='tst_comp tst_comp2 tst_enum_data tst_fillbug
  tst_group_data tst_nans tst_opaque_data tst_solar_1 tst_solar_2
  tst_solar_cmp tst_special_atts'
@@ -44,7 +45,7 @@ for i in $TESTFILES ; do
 done
 
 # echo "*** Testing compression of deflatable files ..."
-./tst_compress
+${execdir}/tst_compress
 echo "*** Test nccopy -d1 can compress a classic format file ..."
 ${NCCOPY} -d1 tst_inflated.nc tst_deflated.nc
 if test `wc -c < tst_deflated.nc` -ge  `wc -c < tst_inflated.nc`; then
@@ -86,7 +87,7 @@ for i in $TESTFILES0 ; do
     diff copy_of_$i.cdl tmp_ncc4.cdl
     rm copy_of_$i.nc copy_of_$i.cdl tmp_ncc4.cdl
 done
-./tst_chunking
+${execdir}/tst_chunking
 echo "*** Test that nccopy -c can chunk and unchunk files"
 ${NCCOPY} -M0 tst_chunking.nc tmp_ncc4.nc
 ${NCDUMP} tmp_ncc4.nc > tmp_ncc4.cdl

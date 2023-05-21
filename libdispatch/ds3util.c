@@ -23,8 +23,9 @@
 
 #include "netcdf.h"
 #include "ncuri.h"
+#include "nclist.h"
 #include "ncrc.h"
-
+#include "ncs3sdk.h"
 
 #undef AWSDEBUG
 
@@ -45,12 +46,13 @@ if provided, otherwise us-east-1.
 @param url (in) the current url
 @param region	(in) region to use if needed; NULL => us-east-1
 		(out) region from url or the input region
+@param bucketp	(in) bucket to use if needed
+		(out) bucket from url
 @param pathurlp (out) the resulting pathified url string
-@param bucketp (out) the bucket from the url
 */
 
 int
-NC_s3urlrebuild(NCURI* url, NCURI** newurlp, char** bucketp, char** outregionp)
+NC_s3urlrebuild(NCURI* url, char** inoutbucketp, char** inoutregionp, NCURI** newurlp)
 {
     int i,stat = NC_NOERR;
     NClist* hostsegments = NULL;
@@ -76,63 +78,68 @@ NC_s3urlrebuild(NCURI* url, NCURI** newurlp, char** bucketp, char** outregionp)
     if((stat = NC_split_delim(url->path,'/',pathsegments))) goto done;
 
     /* Distinguish path-style from virtual-host style from s3: and from other.
-       Virtual: https://bucket-name.s3.Region.amazonaws.com/<path>				(1)
-            or: https://bucket-name.s3.amazonaws.com/<path> -- region defaults to us-east-1	(2)
-       Path: https://s3.Region.amazonaws.com/bucket-name/<path>					(3)
-         or: https://s3.amazonaws.com/bucket-name/<path> -- region defaults to us-east-1        (4)
-       S3: s3://bucket-name/<path>								(5)
-       Other: https://<host>/bucketname/<path>							(6)
+       Virtual: https://<bucket-name>.s3.<region>.amazonaws.com/<path>				(1)
+            or: https://<bucket-name>.s3.amazonaws.com/<path> -- region defaults to us-east-1	(2)
+       Path: https://s3.<region>.amazonaws.com/<bucket-name>/<path>				(3)
+         or: https://s3.amazonaws.com/<bucket-name>/<path> -- region defaults to us-east-1      (4)
+       S3: s3://<bucket-name>/<path>								(5)
+      Other: https://<host>/<bucket-name>/<path>						(6)
     */
     if(url->host == NULL || strlen(url->host) == 0)
         {stat = NC_EURL; goto done;}
-    if(strcmp(url->protocol,"s3")==0 && nclistlength(hostsegments)==1) { /* Case (5) */
+    if(strcmp(url->protocol,"s3")==0 && nclistlength(hostsegments)==1) { /* Format (5) */
 	bucket = nclistremove(hostsegments,0);
 	/* region unknown at this point */
     } else if(endswith(url->host,AWSHOST)) { /* Virtual or path */
 	/* If we find a bucket as part of the host, then remove it */
 	switch (nclistlength(hostsegments)) {
 	default: stat = NC_EURL; goto done;
-	case 3: /* Case (4) */ 
+	case 3: /* Format (4) */ 
 	    /* region unknown at this point */
     	    /* bucket unknown at this point */
 	    break;
-	case 4: /* Case (2) or (3) */
-            if(strcasecmp(nclistget(hostsegments,1),"s3")==0) { /* Case (2) */
+	case 4: /* Format (2) or (3) */
+            if(strcasecmp(nclistget(hostsegments,1),"s3")==0) { /* Format (2) */
 	        /* region unknown at this point */
-	        bucket = nclistremove(hostsegments,0); /* Note removal */
-            } else if(strcasecmp(nclistget(hostsegments,0),"s3")==0) { /* Case (3) */
+	        bucket = nclistremove(hostsegments,0); /* Note removeal */
+            } else if(strcasecmp(nclistget(hostsegments,0),"s3")==0) { /* Format (3) */
 	        region = strdup(nclistget(hostsegments,1));
 	        /* bucket unknown at this point */
-	    } else /* ! (2) and !(3) => error */
+	    } else /* ! Format (2) and ! Format (3) => error */
 	        {stat = NC_EURL; goto done;}
 	    break;
-	case 5: /* Case (1) */
+	case 5: /* Format (1) */
             if(strcasecmp(nclistget(hostsegments,1),"s3")!=0)
 	        {stat = NC_EURL; goto done;}
 	    region = strdup(nclistget(hostsegments,2));
     	    bucket = strdup(nclistremove(hostsegments,0));
 	    break;
 	}
-    } else { /* Presume Case (6) */
+    } else { /* Presume Format (6) */
         if((host = strdup(url->host))==NULL)
 	    {stat = NC_ENOMEM; goto done;}
         /* region is unknown */
 	/* bucket is unknown */
     }
-    /* If region is null, use default */
+
+    /* region = (1) from url, (2) inoutregion, (3) default */
+    if(region == NULL)
+	region = (inoutregionp?nulldup(*inoutregionp):NULL);
     if(region == NULL) {
         const char* region0 = NULL;
 	/* Get default region */
 	if((stat = NC_getdefaults3region(url,&region0))) goto done;
 	region = strdup(region0);
     }
-    /* if bucket is null, use first segment of the path, if any */
-    if(bucket == NULL) {
-	if(nclistlength(pathsegments) > 0)
-	    bucket = nclistremove(pathsegments,0);
+    if(region == NULL) {stat = NC_ES3; goto done;}
+
+    /* bucket = (1) from url, (2) inoutbucket */
+    if(bucket == NULL && nclistlength(pathsegments) > 0) {
+	bucket = nclistremove(pathsegments,0); /* Get from the URL path; will reinsert below */
     }
-    assert(bucket != NULL);
-    /* bucket may still be null */
+    if(bucket == NULL)
+	bucket = (inoutbucketp?nulldup(*inoutbucketp):NULL);
+    if(bucket == NULL) {stat = NC_ES3; goto done;}
 
     if(host == NULL) { /* Construct the revised host */
         ncbytescat(buf,"s3.");
@@ -164,8 +171,8 @@ NC_s3urlrebuild(NCURI* url, NCURI** newurlp, char** bucketp, char** outregionp)
     fprintf(stderr,">>> NC_s3urlrebuild: final=%s bucket=%s region=%s\n",uri->uri,bucket,region);
 #endif
     if(newurlp) {*newurlp = newurl; newurl = NULL;}
-    if(bucketp) {*bucketp = bucket; bucket = NULL;}
-    if(outregionp) {*outregionp = region; region = NULL;}
+    if(inoutbucketp) {*inoutbucketp = bucket; bucket = NULL;}
+    if(inoutregionp) {*inoutregionp = region; region = NULL;}
 
 done:
     nullfree(region);
@@ -207,11 +214,11 @@ NC_s3urlprocess(NCURI* url, NCS3INFO* s3)
         {stat = NC_EURL; goto done;}
     /* Get current profile */
     if((stat = NC_getactives3profile(url,&profile0))) goto done;
-    if(profile0 == NULL) profile0 = "none";
+    if(profile0 == NULL) profile0 = "no";
     s3->profile = strdup(profile0);
 
-    /* Rebuild the URL to path format and get a usable region*/
-    if((stat = NC_s3urlrebuild(url,&url2,&s3->bucket,&s3->region))) goto done;
+    /* Rebuild the URL to path format and get a usable region and optional bucket*/
+    if((stat = NC_s3urlrebuild(url,&s3->bucket,&s3->region,&url2))) goto done;
     s3->host = strdup(url2->host);
     /* construct the rootkey minus the leading bucket */
     pathsegments = nclistnew();
@@ -226,6 +233,24 @@ done:
     ncurifree(url2);
     nclistfreeall(pathsegments);
     return stat;
+}
+
+int
+NC_s3clone(NCS3INFO* s3, NCS3INFO** news3p)
+{
+    NCS3INFO* news3 = NULL;
+    if(s3 && news3p) {
+	if((news3 = (NCS3INFO*)calloc(1,sizeof(NCS3INFO)))==NULL)
+           return NC_ENOMEM;
+	if((news3->host = nulldup(s3->host))==NULL) return NC_ENOMEM;
+	if((news3->region = nulldup(s3->region))==NULL) return NC_ENOMEM;
+	if((news3->bucket = nulldup(s3->bucket))==NULL) return NC_ENOMEM;
+	if((news3->rootkey = nulldup(s3->rootkey))==NULL) return NC_ENOMEM;
+	if((news3->profile = nulldup(s3->profile))==NULL) return NC_ENOMEM;
+    }
+    if(news3p) {*news3p = news3; news3 = NULL;}
+    else {NC_s3clear(news3); nullfree(news3);}
+    return NC_NOERR;
 }
 
 int
@@ -260,5 +285,18 @@ NC_iss3(NCURI* uri)
     
 done:
     return iss3;
+}
+
+const char*
+NC_s3dumps3info(NCS3INFO* info)
+{
+    static char text[8192];
+    snprintf(text,sizeof(text),"host=%s region=%s bucket=%s rootkey=%s profile=%s",
+		(info->host?info->host:"null"),
+		(info->region?info->region:"null"),
+		(info->bucket?info->bucket:"null"),
+		(info->rootkey?info->rootkey:"null"),
+		(info->profile?info->profile:"null"));
+    return text;
 }
 

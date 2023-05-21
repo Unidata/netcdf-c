@@ -5,6 +5,10 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 . "$srcdir/test_nczarr.sh"
 
+s3isolate "testdir_nczarr_fill"
+THISDIR=`pwd`
+cd $ISOPATH
+
 set -e
 
 echo "*** Test: Github issues #2063, #2062, #2059"
@@ -26,7 +30,7 @@ testcase2062() {
 zext=$1
 echo "*** Test: Github issue #2062"
 rm -fr ref_byte.zarr
-unzip ${srcdir}/ref_byte.zarr.zip
+unzip ref_byte.zarr.zip >> tmp_ignore.txt
 rm -fr tmp_nczfill.cdl
 ${ZMD} -h "file://ref_byte.zarr#mode=zarr,$zext"
 ${NCDUMP} -s "file://ref_byte.zarr#mode=zarr,$zext" > tmp_nczfill.cdl
@@ -39,7 +43,7 @@ testcase2063() {
 zext=$1
 echo "*** Test: Github issue #2063"
 rm -fr ref_byte_fill_value_null.zarr
-unzip ${srcdir}/ref_byte_fill_value_null.zarr.zip
+unzip ref_byte_fill_value_null.zarr.zip >> tmp_ignore.txt
 rm -fr tmp_nczfill.cdl
 ${ZMD} -h "file://ref_byte_fill_value_null.zarr#mode=zarr,$zext"
 ${NCDUMP} -s "file://ref_byte_fill_value_null.zarr#mode=zarr,$zext" > tmp_nczfill.cdl
@@ -48,6 +52,10 @@ diff -wb ${srcdir}/ref_byte_fill_value_null.cdl tmp_byte_fill_value_null_$zext.c
 rm -fr ref_byte_fill_value_null.zarr
 }
 
+if ! test -f ${ISOPATH}/ref_byte.zarr.zip ; then
+  cp -f ${srcdir}/ref_byte.zarr.zip ${ISOPATH}/ref_byte.zarr.zip
+  cp -f ${srcdir}/ref_byte_fill_value_null.zarr.zip ${ISOPATH}/ref_byte_fill_value_null.zarr.zip
+fi
 
 testcase2062 file
 testcase2063 file
@@ -61,4 +69,4 @@ if test "x$FEATURE_HDF5" = xyes ; then
   fi
 fi
 
-exit 0
+if test "x$FEATURE_S3TESTS" = xyes ; then s3sdkdelete "/${S3ISOPATH}" ; fi # Cleanup

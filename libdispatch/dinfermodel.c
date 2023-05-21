@@ -25,11 +25,9 @@
 #include "nclist.h"
 #include "nclog.h"
 #include "ncrc.h"
-#ifdef ENABLE_BYTERANGE
 #include "nchttp.h"
-#ifdef ENABLE_S3_SDK
+#ifdef ENABLE_S3
 #include "ncs3sdk.h"
-#endif
 #endif
 
 #undef DEBUG
@@ -56,14 +54,12 @@ struct MagicFile {
 #ifdef USE_PARALLEL
     MPI_File fh;
 #endif
-#ifdef ENABLE_BYTERANGE
     char* curlurl; /* url to use with CURLOPT_SET_URL */
     NC_HTTP_STATE* state;
-#ifdef ENABLE_S3_SDK
+#ifdef ENABLE_S3
     NCS3INFO s3;
     void* s3client;
     char* errmsg;
-#endif
 #endif
 };
 
@@ -914,7 +910,7 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
 	/* If s3, then rebuild the url */
 	if(NC_iss3(uri)) {
 	    NCURI* newuri = NULL;
-	    if((stat = NC_s3urlrebuild(uri,&newuri,NULL,NULL))) goto done;
+	    if((stat = NC_s3urlrebuild(uri,NULL,NULL,&newuri))) goto done;
 	    ncurifree(uri);
 	    uri = newuri;
 	} else if(strcmp(uri->protocol,"file")==0) {
@@ -1247,7 +1243,7 @@ check_file_type(const char *path, int omode, int use_parallel,
     memset((void*)&magicinfo,0,sizeof(magicinfo));
 
 #ifdef _WIN32 /* including MINGW */
-    /* Windows does not handle well multiple handles to the same file.
+    /* Windows does not handle multiple handles to the same file very well.
        So if file is already open/created, then find it and just get the
        model from that. */
     if((nc = find_in_NCList_by_name(path)) != NULL) {
@@ -1321,87 +1317,79 @@ static int
 openmagic(struct MagicFile* file)
 {
     int status = NC_NOERR;
-
     if(fIsSet(file->omode,NC_INMEMORY)) {
 	/* Get its length */
 	NC_memio* meminfo = (NC_memio*)file->parameters;
         assert(meminfo != NULL);
 	file->filelen = (long long)meminfo->size;
+	goto done;
+    }
+    if(file->uri != NULL) {
 #ifdef ENABLE_BYTERANGE
-    } else if(file->uri != NULL) {
-#ifdef ENABLE_S3_SDK
-	/* If this is an S3 URL, then handle specially */
-	if(NC_iss3(file->uri)) {
-	    if((status = NC_s3urlprocess(file->uri,&file->s3))) goto done;
-	    if((file->s3client = NC_s3sdkcreateclient(&file->s3))==NULL) {status = NC_EURL; goto done;}
-	    if((status = NC_s3sdkinfo(file->s3client,file->s3.bucket,file->s3.rootkey,&file->filelen,&file->errmsg)))
-	        goto done;
-	    file->iss3 = 1;
-	} else
-#endif
-	{
-	    /* Construct a URL minus any fragment */
-            file->curlurl = ncuribuild(file->uri,NULL,NULL,NCURISVC);
-	    /* Open the curl handle */
-	    if((status=nc_http_init(&file->state))) goto done;
-	    if((status=nc_http_size(file->state,file->curlurl,&file->filelen))) goto done;
-	}
+	/* Construct a URL minus any fragment */
+        file->curlurl = ncuribuild(file->uri,NULL,NULL,NCURISVC);
+	/* Open the curl handle */
+        if((status=nc_http_open(file->curlurl, &file->state))) goto done;
+	if((status=nc_http_size(file->state,&file->filelen))) goto done;
+#else /*!BYTERANGE*/
+	{status = NC_ENOTBUILT;}
 #endif /*BYTERANGE*/
-    } else {
+	goto done;
+    }	
 #ifdef USE_PARALLEL
-        if (file->use_parallel) {
-	    int retval;
-	    MPI_Offset size;
-            assert(file->parameters != NULL);
-	    if((retval = MPI_File_open(((NC_MPI_INFO*)file->parameters)->comm,
+    if (file->use_parallel) {
+	int retval;
+	MPI_Offset size;
+        assert(file->parameters != NULL);
+	if((retval = MPI_File_open(((NC_MPI_INFO*)file->parameters)->comm,
                                    (char*)file->path,MPI_MODE_RDONLY,
                                    ((NC_MPI_INFO*)file->parameters)->info,
                                    &file->fh)) != MPI_SUCCESS) {
 #ifdef MPI_ERR_NO_SUCH_FILE
-		int errorclass;
-		MPI_Error_class(retval, &errorclass);
-		if (errorclass == MPI_ERR_NO_SUCH_FILE)
+	    int errorclass;
+	    MPI_Error_class(retval, &errorclass);
+	    if (errorclass == MPI_ERR_NO_SUCH_FILE)
 #ifdef NC_ENOENT
-		    status = NC_ENOENT;
-#else
-		    status = errno;
-#endif
-		else
-#endif
-		    status = NC_EPARINIT;
-		file->fh = MPI_FILE_NULL;
-		goto done;
-	    }
-	    /* Get its length */
-	    if((retval=MPI_File_get_size(file->fh, &size)) != MPI_SUCCESS)
-	        {status = NC_EPARINIT; goto done;}
-	    file->filelen = (long long)size;
-	} else
+	        status = NC_ENOENT;
+#else /*!NC_ENOENT*/
+		status = errno;
+#endif /*NC_ENOENT*/
+	    else
+#endif /*MPI_ERR_NO_SUCH_FILE*/
+	        status = NC_EPARINIT;
+	    file->fh = MPI_FILE_NULL;
+	    goto done;
+	}
+	/* Get its length */
+	if((retval=MPI_File_get_size(file->fh, &size)) != MPI_SUCCESS)
+	    {status = NC_EPARINIT; goto done;}
+	file->filelen = (long long)size;
+	goto done;
+    }
 #endif /* USE_PARALLEL */
+    {
+        if (file->path == NULL || strlen(file->path) == 0)
+            {status = NC_EINVAL; goto done;}
+        file->fp = NCfopen(file->path, "r");
+        if(file->fp == NULL)
+	    {status = errno; goto done;}
+	/* Get its length */
 	{
-            if (file->path == NULL || strlen(file->path) == 0)
-                {status = NC_EINVAL; goto done;}
-            file->fp = NCfopen(file->path, "r");
-   	    if(file->fp == NULL)
-	        {status = errno; goto done;}
-  	    /* Get its length */
-	    {
-	        int fd = fileno(file->fp);
+	    int fd = fileno(file->fp);
 #ifdef _WIN32
-		__int64 len64 = _filelengthi64(fd);
-		if(len64 < 0)
-		    {status = errno; goto done;}
-		file->filelen = (long long)len64;
+	    __int64 len64 = _filelengthi64(fd);
+	    if(len64 < 0)
+		{status = errno; goto done;}
+	    file->filelen = (long long)len64;
 #else
-		off_t size;
-		size = lseek(fd, 0, SEEK_END);
-		if(size == -1)
-		    {status = errno; goto done;}
+	    off_t size;
+	    size = lseek(fd, 0, SEEK_END);
+	    if(size == -1)
+		{status = errno; goto done;}
 		file->filelen = (long long)size;
 #endif
-	    }
-	    rewind(file->fp);
-	  }
+	}
+        rewind(file->fp);
     }
 done:
     return check(status);
@@ -1424,26 +1412,17 @@ readmagic(struct MagicFile* file, long pos, char* magic)
 #ifdef DEBUG
 	printmagic("XXX: readmagic",magic,file);
 #endif
-#ifdef ENABLE_BYTERANGE
     } else if(file->uri != NULL) {
+#ifdef ENABLE_BYTERANGE
 	fileoffset_t start = (size_t)pos;
 	fileoffset_t count = MAGIC_NUMBER_LEN;
-#ifdef ENABLE_S3_SDK
-	if(file->iss3) {
-	    if((status = NC_s3sdkread(file->s3client,file->s3.bucket,file->s3.rootkey,start,count,(void*)magic,&file->errmsg)))
-	        {goto done;}
-    }
-    else
-#endif
-    {
-        status = nc_http_read(file->state, file->curlurl, start, count, buf);
+        status = nc_http_read(file->state, start, count, buf);
         if (status == NC_NOERR) {
             if (ncbyteslength(buf) != count)
                 status = NC_EINVAL;
             else
                 memcpy(magic, ncbytescontents(buf), count);
         }
-    }
 #endif
     } else {
 #ifdef USE_PARALLEL
@@ -1488,20 +1467,11 @@ closemagic(struct MagicFile* file)
 
     if(fIsSet(file->omode,NC_INMEMORY)) {
 	/* noop */
-#ifdef ENABLE_BYTERANGE
     } else if(file->uri != NULL) {
-#ifdef ENABLE_S3_SDK
-	if(file->iss3) {
-	    NC_s3sdkclose(file->s3client, &file->s3, 0, &file->errmsg);
-	    NC_s3clear(&file->s3);
-	    nullfree(file->errmsg);
-	} else
-#endif
-	{
+#ifdef ENABLE_BYTERANGE
 	    status = nc_http_close(file->state);
-	    nullfree(file->curlurl);
-	}
 #endif
+	    nullfree(file->curlurl);
     } else {
 #ifdef USE_PARALLEL
         if (file->use_parallel) {

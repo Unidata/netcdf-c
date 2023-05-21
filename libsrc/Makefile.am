@@ -32,10 +32,9 @@ endif !USE_FFIO
 if ENABLE_BYTERANGE
   libnetcdf3_la_SOURCES += httpio.c
 
-if ENABLE_S3_SDK
-    libnetcdf3_la_SOURCES += s3io.c
-AM_CXXFLAGS = -std=c++11
-endif ENABLE_S3_SDK
+if ENABLE_S3
+   libnetcdf3_la_SOURCES += s3io.c
+endif
 
 endif ENABLE_BYTERANGE
 

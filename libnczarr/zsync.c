@@ -1852,6 +1852,7 @@ ncz_read_superblock(NC_FILE_INFO_T* file, char** nczarrvp, char** zarrfp)
 	}
         /* In any case, extract the zarr format */
         if((stat = NCJdictget(jzgroup,"zarr_format",&jtmp))) goto done;
+	assert(zarr_format == NULL);
         zarr_format = nulldup(NCJstring(jtmp));
     }
     /* Set the format flags */
@@ -2426,7 +2427,7 @@ done:
 static int
 ncz_validate(NC_FILE_INFO_T* file)
 {
-    int i,stat = NC_NOERR;
+    int stat = NC_NOERR;
     NCZ_FILE_INFO_T* zinfo = (NCZ_FILE_INFO_T*)file->format_file_info;
     int validate = 0;
     NCbytes* prefix = ncbytesnew();
@@ -2443,15 +2444,14 @@ ncz_validate(NC_FILE_INFO_T* file)
     nclistpush(queue,path);
     path = NULL;
     do {
-	/* This should be full path key */
         nullfree(path); path = NULL;
+	/* This should be full path key */
 	path = nclistremove(queue,0); /* remove from front of queue */
 	/* get list of next level segments (partial keys) */
-	nclistclear(nextlevel);
+	assert(nclistlength(nextlevel)==0);
         if((stat=nczmap_search(map,path,nextlevel))) {validate = 0; goto done;}
         /* For each s in next level, test, convert to full path, and push onto queue */
-	for(i=0;i<nclistlength(nextlevel);i++) {
-	    nullfree(segment); segment = NULL;
+	while(nclistlength(nextlevel) > 0) {
             segment = nclistremove(nextlevel,0);
             seglen = nulllen(segment);
 	    if((seglen >= 2 && memcmp(segment,".z",2)==0) || (seglen >= 4 && memcmp(segment,".ncz",4)==0)) {
@@ -2465,6 +2465,7 @@ ncz_validate(NC_FILE_INFO_T* file)
 	     ncbytescat(prefix,segment);
 	     /* push onto queue */
 	     nclistpush(queue,ncbytesextract(prefix));
+ 	     nullfree(segment); segment = NULL;
 	 }
     } while(nclistlength(queue) > 0);
 done:

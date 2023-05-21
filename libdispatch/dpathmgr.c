@@ -28,6 +28,7 @@
 #include <direct.h>
 #endif
 #include <locale.h>
+
 #include "netcdf.h"
 #include "ncpathmgr.h"
 #include "nclog.h"
