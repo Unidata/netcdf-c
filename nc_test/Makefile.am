@@ -69,11 +69,11 @@ endif
 if ENABLE_THREADSAFE
 check_PROGRAMS += tst_threads
 TESTS += run_threads.sh
-nc_test_threads_SOURCES = thread_nc_test.c error.c \
+thread_nc_test_SOURCES = thread_nc_test.c error.c \
 			  test_get.c test_put.c test_read.c test_write.c util.c \
 			  error.h tests.h
-check_PROGRAMS += nc_test_threads
-TESTS += run_nc_test_threads.sh
+check_PROGRAMS += thread_nc_test
+TESTS += run_thread_nc_test.sh
 endif
 
 # Set up the tests.
