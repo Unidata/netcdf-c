@@ -55,6 +55,7 @@ static struct S3ops {
 /* Command line options */
 struct Dumpptions {
     int debug;
+    int verbose;
     S3op s3op;
     NCURI* url;
     char* key; /* via -k flag */    
@@ -162,14 +163,14 @@ main(int argc, char** argv)
 		ncuriparse(p,&dumpoptions.url);
 		nullfree(p);
 		if(dumpoptions.url == NULL) {
-		    fprintf(stderr,"malformed -f option: %s",optarg);
+		    fprintf(stderr,"malformed -u option: %s",optarg);
 		    stat = NC_EINVAL;
 		    goto done;
 		}
 	    } break;
 	case 'v': 
-	    usage();
-	    goto done;
+	    dumpoptions.verbose = 1;
+	    break;
 	case 'T':
 	    nctracelevel(atoi(optarg));
 	    break;
@@ -185,7 +186,10 @@ main(int argc, char** argv)
     argv += optind;
 
     if (argc > 1) {
-	fprintf(stderr, "s3util: only one command argument permitted\n");
+	int j;
+	fprintf(stderr, "s3util: only one command argument permitted:");
+	for(j=0;j<argc;j++) fprintf(stderr," %s",argv[j]);
+	fprintf(stderr, "\n");
 	stat = NC_EINVAL;
 	goto done;
     }
@@ -283,26 +287,29 @@ s3clear(void)
 
     if(s3setup()) goto done;
 
-    stat = NC_s3sdksearch(s3sdk.s3client, s3sdk.s3.bucket, s3sdk.s3.rootkey, &nkeys, &keys, &s3sdk.errmsg);
-    if(stat) goto done;
+    if((stat = NC_s3sdksearch(s3sdk.s3client, s3sdk.s3.bucket, s3sdk.s3.rootkey, &nkeys, &keys, &s3sdk.errmsg))) goto done;
 
-    if(nkeys > 0) {
+    if(nkeys > 0 && keys != NULL) {
 	size_t i;
 	/* Sort the list -- shortest first */
 	nczm_sortenvv(nkeys,keys);
-        printf("deleted keys:\n");
-	for(i=0;i<nkeys;i++) {
-            printf("\t%s\n",keys[i]);
+	if(dumpoptions.verbose) {
+            printf("deleted keys:\n");
+	    for(i=0;i<nkeys;i++) {
+                printf("\t%s\n",keys[i]);
+            }
+        }
 #ifndef NODELETE
+	for(i=0;i<nkeys;i++) {
 	    if((stat = NC_s3sdkdeletekey(s3sdk.s3client, s3sdk.s3.bucket, keys[i], &s3sdk.errmsg)))
 		goto done;
+        }
 #endif
-	}
     }
 
 done:
-    s3shutdown(0);
     NCZ_freeenvv(nkeys,keys);    
+    s3shutdown(0);
     return stat;
 }
 

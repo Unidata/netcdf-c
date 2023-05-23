@@ -168,10 +168,6 @@ typedef struct NC_ATT_INFO
     nc_type nc_typeid;      /**< NetCDF type of attribute's data. */
     void *format_att_info;  /**< Pointer to format-specific att info. */
     void *data;             /**< The attribute data. */
-#ifdef SEPDATA
-    nc_vlen_t *vldata;      /**< VLEN data (only used for vlen types). */
-    char **stdata;          /**< String data (only for string type). */
-#endif
 } NC_ATT_INFO_T;
 
 /** This is a struct to handle the var metadata. */

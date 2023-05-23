@@ -274,7 +274,7 @@ const char *nc_strerror(int ncerr1)
       case NC_ENCZARR:
 	 return "NetCDF: NCZarr error";
       case NC_ES3:
-	 return "NetCDF: AWS S3 error";
+	 return "NetCDF: S3 error";
       case NC_EEMPTY:
 	 return "NetCDF: Attempt to read empty NCZarr map key";
       case NC_EOBJECT:

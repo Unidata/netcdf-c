@@ -263,53 +263,14 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
     {
         /* Do we have a fill value for this var? */
         if (var->fill_value)
-#ifdef SEPDATA
-        {
-            if (var->type_info->nc_type_class == NC_STRING)
-            {
-                assert(*(char **)var->fill_value);
-                /* This will allocate memory and copy the string. */
-                if (!(*(char **)fill_valuep = strdup(*(char **)var->fill_value)))
-                {
-                    free(*(char **)fill_valuep);
-                    return NC_ENOMEM;
-                }
-            }
-            else
-            {
-                assert(var->type_info->size);
-                memcpy(fill_valuep, var->fill_value, var->type_info->size);
-            }
-        }
-#else
         {
 	    int xtype = var->type_info->hdr.id;
 	    if((retval = nc_copy_data(ncid,xtype,var->fill_value,1,fill_valuep))) return retval;
 	}
-#endif
         else
         {
-#ifdef SEPDATA
-	    if (var->type_info->nc_type_class == NC_STRING)
-            {
-                if (!(*(char **)fill_valuep = calloc(1, sizeof(char *))))
-                    return NC_ENOMEM;
-
-                if ((retval = nc4_get_default_fill_value(var->type_info->hdr.ud, (char **)fill_valuep)))
-                {
-                    free(*(char **)fill_valuep);
-                    return retval;
-                }
-            }
-            else
-            {
-                if ((retval = nc4_get_default_fill_value(var->type_info->hdr.id, fill_valuep)))
-                    return retval;
-            }
-#else
             if ((retval = nc4_get_default_fill_value(var->type_info, fill_valuep)))
                     return retval;
-#endif
         }
     }
 
@@ -1870,7 +1831,7 @@ nc4_find_default_chunksizes2(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
  * @internal Get the default fill value for an atomic type. Memory for
  * fill_value must already be allocated, or you are DOOMED!
  *
- * @param xtype type id
+ * @param tinfo type object
  * @param fill_value Pointer that gets the default fill value.
  *
  * @returns NC_NOERR No error.

@@ -123,6 +123,7 @@ static NCD4node* makeAnonDim(NCD4parser*, const char* sizestr);
 static int makeNode(NCD4parser*, NCD4node* parent, ncxml_t, NCD4sort, nc_type, NCD4node**);
 static int makeNodeStatic(NCD4meta* meta, NCD4node* parent, NCD4sort sort, nc_type subsort, NCD4node** nodep);
 static int parseAtomicVar(NCD4parser*, NCD4node* container, ncxml_t xml, NCD4node**);
+static int parseEnumVar(NCD4parser*, NCD4node* container, ncxml_t xml, NCD4node**);
 static int parseAttributes(NCD4parser*, NCD4node* container, ncxml_t xml);
 static int parseDimensions(NCD4parser*, NCD4node* group, ncxml_t xml);
 static int parseDimRefs(NCD4parser*, NCD4node* var, ncxml_t xml);
@@ -388,6 +389,9 @@ parseVariable(NCD4parser* parser, NCD4node* container, ncxml_t xml, NCD4node** n
     case NC_SEQ:
 	ret = parseSequence(parser,container,xml,&node);
 	break;
+    case NC_ENUM:
+	ret = parseEnumVar(parser,container,xml,&node);
+	break;
     default:
 	ret = parseAtomicVar(parser,container,xml,&node);
     }
@@ -625,6 +629,51 @@ done:
 }
 
 static int
+parseEnumVar(NCD4parser* parser, NCD4node* container, ncxml_t xml, NCD4node** nodep)
+{
+    int ret = NC_NOERR;
+    NCD4node* node = NULL;
+    NCD4node* base = NULL;
+    const char* typename;
+    const KEYWORDINFO* info;
+    char* enumfqn;
+
+    /* Check for aliases */
+    for(typename=ncxml_name(xml);;) {
+	info = keyword(typename);
+	if(info->aliasfor == NULL) break;
+	typename = info->aliasfor;
+    }
+    assert(info->subsort == NC_ENUM);
+    enumfqn = ncxml_attr(xml,"enum");
+    if(enumfqn == NULL)
+	base = NULL;
+    else
+	base = lookupFQN(parser,enumfqn,NCD4_TYPE);
+    nullfree(enumfqn);
+    if(base == NULL || !ISTYPE(base->sort)) {
+	FAIL(NC_EBADTYPE,"Unexpected variable type: %s",info->tag);
+    }
+    if((ret=makeNode(parser,container,xml,NCD4_VAR,base->subsort,&node))) goto done;
+    classify(container,node);
+    node->basetype = base;
+    /* Parse attributes, dims, and maps */
+    if((ret = parseMetaData(parser,node,xml))) goto done;
+    /* See if this var has UCARTAGORIGTYPE attribute */
+    if(parser->metadata->controller->controls.translation == NCD4_TRANSNC4) {
+	char* typetag = ncxml_attr(xml,UCARTAGORIGTYPE);
+	if(typetag != NULL) {
+	    /* yes, place it on the type */
+	    if((ret=addOrigType(parser,node,node,typetag))) goto done;
+	    nullfree(typetag);
+ 	}
+    }
+    if(nodep) *nodep = node;
+done:
+    return THROW(ret);
+}
+
+static int
 parseAtomicVar(NCD4parser* parser, NCD4node* container, ncxml_t xml, NCD4node** nodep)
 {
     int ret = NC_NOERR;
@@ -641,15 +690,9 @@ parseAtomicVar(NCD4parser* parser, NCD4node* container, ncxml_t xml, NCD4node** 
 	typename = info->aliasfor;
     }
     group = NCD4_groupFor(container);
-    /* Locate its basetype; handle opaque and enum separately */
-    if(info->subsort == NC_ENUM) {
-        char* enumfqn = ncxml_attr(xml,"enum");
-	if(enumfqn == NULL)
-	    base = NULL;
-	else
-	    base = lookupFQN(parser,enumfqn,NCD4_TYPE);
-	nullfree(enumfqn);
-    } else if(info->subsort == NC_OPAQUE) {
+    /* Locate its basetype; handle opaque */
+    assert(info->subsort != NC_ENUM);
+    if(info->subsort == NC_OPAQUE) {
 	/* See if the xml references an opaque type name */
 	base = getOpaque(parser,xml,group);
     } else {

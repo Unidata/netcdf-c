@@ -21,7 +21,7 @@ dinternal.c ddispatch.c dutf8.c nclog.c dstring.c ncuri.c nclist.c	\
 ncbytes.c nchashmap.c nctime.c nc.c nclistmgr.c dauth.c doffsets.c	\
 dpathmgr.c dutil.c dreadonly.c dnotnc4.c dnotnc3.c dinfermodel.c	\
 daux.c dinstance.c dcrc32.c dcrc32.h dcrc64.c ncexhash.c ncxcache.c	\
-ncjson.c ds3util.c dparallel.c
+ncjson.c ds3util.c dparallel.c dmissing.c
 
 # Add the utf8 codebase
 libdispatch_la_SOURCES += utf8proc.c utf8proc.h
@@ -47,16 +47,28 @@ if ENABLE_BYTERANGE
 libdispatch_la_SOURCES += dhttp.c
 endif # ENABLE_BYTERANGE
 
-if ENABLE_S3_SDK
-libdispatch_la_SOURCES += ncs3sdk.cpp awsincludes.h
+if ENABLE_S3
+if ENABLE_S3_INTERNAL
+# Renamed to avoid conflicts with the HDF5 files
+libdispatch_la_SOURCES += ncs3sdk_h5.c nch5s3comms.c nch5s3comms.h ncutil.h nccurl_setup.h \
+			  nccurl_sha256.c nccurl_sha256.h nccurl_hmac.c nccurl_hmac.h
+AM_CPPFLAGS += -I$(top_srcdir)/libncxml
+libdispatch_la_CPPFLAGS += ${AM_CPPFLAGS}
+else
+libdispatch_la_SOURCES += ncs3sdk_aws.cpp awsincludes.h
 AM_CXXFLAGS = -std=c++11
+endif
 endif
 
 if REGEDIT
 libdispatch_la_SOURCES += dreg.c
 endif
 
-EXTRA_DIST=CMakeLists.txt ncsettings.hdr utf8proc_data.c
+# Support generation of 32-bit unsigned int random numbers
+noinst_PROGRAMS = ncrandom
+ncrandom_SOURCES = ncrandom.c
+
+EXTRA_DIST = CMakeLists.txt ncsettings.hdr utf8proc_data.c XGetopt.c
 
 # Build ncsettings.c as follows:
 # 1. copy ncsettings.hdr to ncsettings.c

@@ -13,19 +13,18 @@ EXPECTED="${srcdir}/expected3"
 URL='file://'
 URL="${URL}${srcdir}/testdata3/$F"
 
-# First check that with [nofillmismatch], we get a failure
-rm -f ./tmp_tst_mismatch
-NOURL="[nofillmismatch]$URL"
-if ${NCDUMP} "${NOURL}" > ./tmp_tst_mismatch 2>&1 ; then
+echo "Check that with [nofillmismatch], we get a failure"
+NOURL="$URL#nofillmismatch"
+if ${NCDUMP} "${NOURL}" > /dev/null ; then
 echo "*** Fail: ${NCDUMP} ${NOURL} passed"
 exit 1
 else
 echo "*** XFail: ${NCDUMP} ${NOURL} failed"
 fi
 
-# Now check that with [fillmismatch] (default), we get success
-rm -f ./tmp_tst_mismatch
-if ${NCDUMP} "${URL}" > ./tmp_tst_mismatch ; then
+echo "Check that with [fillmismatch] (default), we get success"
+rm -f tmp_tst_mismatch
+if ${NCDUMP} "${URL}" > tmp_tst_mismatch ; then
 echo "*** Pass: ${NCDUMP} ${URL} passed"
 else
 echo "*** Fail: ${NCDUMP} ${URL} failed"

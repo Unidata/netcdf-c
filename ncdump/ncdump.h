@@ -81,7 +81,8 @@ typedef struct {			/* specification for how to format dump */
     int nc_mode;                /* mode as reported by inq_format_extended */
 
     int xopt_inmemory;      /* Use in-memory option; testing only */
-    int xopt_props ;      /* 1=>Unconditionally Suppress properties attribute */
+    int xopt_props;         /* 1=>Unconditionally Suppress properties attribute */
+    int xopt_filltype;      /* 1=>Unconditionally print _FillValue attribute type */
 } fspec_t;
 
 #endif	/*_NCDUMP_H_ */

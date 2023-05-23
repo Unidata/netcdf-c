@@ -1017,7 +1017,7 @@ NCZ_fixed2char(const void* fixed, char** charp, size_t count, int maxstrlen)
 	    memcpy(sp,p,maxstrlen);
 	    sp[maxstrlen] = '\0';
 	}
-	charp[i] = sp;
+	charp[i] = (char*)sp;
 	sp = NULL;
     }
     return NC_NOERR;

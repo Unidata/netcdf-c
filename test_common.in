@@ -33,11 +33,14 @@ FEATURE_HDF5=@HAS_HDF5@
 FEATURE_FILTERTESTS=@DO_FILTER_TESTS@
 FEATURE_PLUGIN_INSTALL_DIR=@PLUGIN_INSTALL_DIR@
 FEATURE_BYTERANGE=@HAS_BYTERANGE@
-FEATURE_S3_SDK=@HAS_S3_SDK@
+FEATURE_ROS3=@HAS_HDF5_ROS3@
+FEATURE_S3_AWS=@HAS_S3_AWS@
+FEATURE_S3_INTERNAL=@HAS_S3_INTERNAL@
 FEATURE_S3=@HAS_S3@
 FEATURE_NCZARR=@HAS_NCZARR@
-FEATURE_S3TESTS=@DO_NCZARR_S3_TESTS@
+FEATURE_S3TESTS=@DO_S3_TESTING@
 FEATURE_NCZARR_ZIP=@DO_NCZARR_ZIP_TESTS@
+FEATURE_LARGE_TESTS=@DO_LARGE_TESTS@
 
 # Thredds-test server is currently disabled
 #FEATURE_THREDDSTEST=1
@@ -175,15 +178,35 @@ export HOME
 fi
 fi
 
+# OS/X apparently has no echo -n option, so fake it
+echon() { echo "$@" | tr -d '\r\n' ; }
+
 # Test for filter availability
 avail() {
 if test yes = `${execdir}/../ncdump/ncfilteravail $1` ; then return 0 ; else echo "filter $1 not available" ; return 1; fi
 }
 
-# Thredds-test is no longer available
-#FEATURE_THREDDSTEST=1
 
 # Make sure we are in builddir (not execdir)
 cd $builddir
+
+# As a protection against parallel make inter-test dependencies and race conditions,
+# Support the creation of an isolation directory in which created products are stored.
+
+isolate() {
+local rnd
+if test "x$ISOPATH" = x ; then
+  ISOPATH=${builddir}
+  ISODIR="$1"
+  if test "x$ISODIR" != x ; then
+    # Make sure the path is unique
+    rnd=`${execdir}/../libdispatch/ncrandom`
+    ISODIR="${ISODIR}_$rnd"
+    ISOPATH="${ISOPATH}/$ISODIR"
+    rm -fr $ISOPATH
+    mkdir $ISOPATH
+  fi
+fi
+}
 
 fi #TEST_COMMON_SH

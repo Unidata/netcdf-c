@@ -37,7 +37,7 @@ jobs:
         run: autoreconf -if
 
       - name: (Autotools) Configure Build
-        run: ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests --disable-static --disable-byterange --disable-dap-remote-tests --disable-logging --enable-plugins --disable-nczarr-filters --disable-nczarr-s3 --disable-nczarr-s3-tests
+        run: ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests --disable-static --disable-byterange --disable-dap-remote-tests --disable-logging --enable-plugins --disable-nczarr-filters --disable-s3
         if: ${{ success() }}
 
       - name: (Autotools) Look at config.log if error
@@ -54,7 +54,7 @@ jobs:
       - name: Check for plugins
         run: |
           dir ./plugins
-          dir ./plugins/.libs
+          if test -f ./plugins/.libs ; then dir ./plugins/.libs; fi
 
       - name: (Autotools) Build and Run Tests
         run: make check -j 8 LDFLAGS="-Wl,--export-all-symbols"

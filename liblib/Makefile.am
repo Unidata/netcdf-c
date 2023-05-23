@@ -62,9 +62,16 @@ endif # ENABLE_DAP
 if ENABLE_DAP4
 AM_CPPFLAGS += -I${top_srcdir}/libdap4
 libnetcdf_la_LIBADD += ${top_builddir}/libdap4/libdap4.la
-AM_CPPFLAGS += -I${top_srcdir}/libncxml
-libnetcdf_la_LIBADD += ${top_builddir}/libncxml/libncxml.la
 endif # ENABLE_DAP4
+
+AM_CPPFLAGS += -I${top_srcdir}/libncxml
+if ENABLE_DAP4
+libnetcdf_la_LIBADD += ${top_builddir}/libncxml/libncxml.la
+else
+if ENABLE_S3_INTERNAL
+libnetcdf_la_LIBADD += ${top_builddir}/libncxml/libncxml.la
+endif
+endif # ENABLE_S3_INTERNAL || ENABLE_DAP4
 
 # NetCDF-4 ...
 if USE_NETCDF4
@@ -75,7 +82,7 @@ endif #USE_NETCDF4
 if ENABLE_NCZARR
 AM_CPPFLAGS += -I${top_srcdir}/libnczarr
 libnetcdf_la_LIBADD += ${top_builddir}/libnczarr/libnczarr.la
-if ENABLE_S3_SDK
+if ENABLE_S3_AWS
 libnetcdf_la_LIBADD += ${aws_cpp_sdk_core_LIBS} ${aws_cpp_sdk_s3_LIBS}
 endif
 endif #ENABLE_NCZARR
