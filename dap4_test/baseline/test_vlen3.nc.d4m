@@ -9,5 +9,4 @@ types:
   }; // v1_t
 variables:
 	v1_t v1 ;
-
 }

@@ -9,5 +9,4 @@ dimensions:
 	d2 = 2 ;
 variables:
 	x_t x(d3, d2) ;
-
 }

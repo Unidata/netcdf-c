@@ -1,0 +1,16 @@
+netcdf test_vlen9 {
+
+types:
+  compound c_t {int x; float y;};
+  c_t(*) v_t;
+
+dimensions:
+  d=2;
+
+variables:
+  v_t v(d);  
+
+data:
+
+ v = {{17,30.7}}, {{19,101.1},{2,1.0}} ;
+}

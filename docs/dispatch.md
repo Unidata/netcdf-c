@@ -4,7 +4,7 @@ Internal Dispatch Table Architecture
 
 # Internal Dispatch Table Architecture
 
-\tableofcontents
+[TOC]
 
 # Introduction {#dispatch_intro}
 
@@ -146,7 +146,9 @@ Finalization is handled in an analogous fashion.
 
 ## Testing the new dispatch table
 
-Add a directory of tests: *ncm_test*, say. The file *ncm_test/Makefile.am*
+Typically, tests for a new dispatcher are kept in a separate directory
+with a related name. For our running example, it might be *ncm_test*.
+The file *ncm_test/Makefile.am*
 will look something like this.
 ````
      # These files are created by the tests.
@@ -370,7 +372,7 @@ purpose:
 - NOTNC3_inq_base_pe
 - NOTNC3_set_base_pe
 
-# HDF4 Dispatch Layer as a Simple Example
+# Appendix A. HDF4 Dispatch Layer as a Simple Example
 
 The HDF4 dispatch layer is about the simplest possible dispatch
 layer. It is read-only, classic model. It will serve as a nice, simple
@@ -385,21 +387,25 @@ as follows.
 ...
 #endif /*USE_HDF4*/
 ````
-
 Code in libhdf4 is only compiled if HDF4 is
 turned on in the build.
 
+## Header File Changes
+
+Adding the HDF4 dispatch table will first require changes to
+a number of header files.
+
 ### The netcdf.h File
 
-In the main netcdf.h file, we have the following:
-
+In the main netcdf.h file, we add the following
+to the list of NC_FORMATX_XXX definitions
 ````
 #define NC_FORMATX_NC_HDF4   (3)
 ````
 
 ### The ncdispatch.h File
 
-In ncdispatch.h we have the following:
+In ncdispatch.h we add the following:
 
 ````
 #ifdef USE_HDF4
@@ -412,18 +418,17 @@ extern int HDF4_finalize(void);
 ### The netcdf_meta.h File
 
 The netcdf_meta.h file allows for easy determination of what features
-are in use. For HDF4, It contains the following, set by configure:
+are in use. For HDF4, the following is added -- as set by *./configure*:
 ````
-...
 #define NC_HAS_HDF4      0 /*!< HDF4 support. */
-...
 ````
 
 ### The hdf4dispatch.h File
 
 The file *hdf4dispatch.h* contains prototypes and
 macro definitions used within the HDF4 code in libhdf4. This include
-file should not be used anywhere except in libhdf4.
+file should not be used anywhere except in libhdf4. It can be kept
+in either the *include* directory or (preferably) the *libhdf4* directory.
 
 ### Initialization Code Changes in liblib Directory
 
@@ -462,8 +467,8 @@ table. It looks like this:
 /* This is the dispatch object that holds pointers to all the
  * functions that make up the HDF4 dispatch interface. */
 static NC_Dispatch HDF4_dispatcher = {
-NC_FORMATX_NC_HDF4,
-NC_DISPATCH_VERSION,
+NC_FORMATX_NC_HDF4,  /* The model identifier */
+NC_DISPATCH_VERSION, /* The version of this dispatch table */
 NC_RO_create,
 NC_HDF4_open,
 NC_RO_redef,
@@ -523,10 +528,67 @@ the version of the new table is compared with that of the built-in
 NC_DISPATCH_VERSION; if they differ, then an error is returned from
 that function.
 
+# Appendix B. Inferring the Dispatch Table
+
+As mentioned above, the dispatch table is inferred using the following
+information:
+1. The mode argument
+2. The file path/URL
+3. The file contents (when available)
+
+The primary function for doing this inference is in the file
+*libdispatch/dinfermodel.c* via the API in *include/ncmodel.h*.
+The term *model* is used here to include (at least) the following
+information (see the structure type *NCmodel* in *include/ncmodel.h*).
+
+1. impl -- this is an NC_FORMATX_XXX value defining, in effect, the
+   dispatch table to use.
+2. format -- this is an NC_FORMAT_XXX value defining the API to support: netcdf classic or netcdf enhanced.
+
+The construction of the model is primarily carried out by the function
+*NC*infermodel()* (in *libdispatch/dinfermodel.c*).
+It is given the following parameters:
+1. path -- (IN) absolute file path or URL
+2. modep -- (IN/OUT) the set of mode flags given to *NC_open* or *NC_create*.
+3. iscreate -- (IN) distinguish open from create.
+4. useparallel -- (IN) indicate if parallel IO can be used.
+5. params -- (IN/OUT) arbitrary data dependent on the mode and path.
+6. model -- (IN/OUT) place to store inferred model.
+7. newpathp -- (OUT) the canonical rewrite of the path argument.
+
+As a rule, these values are used in the this order to infer the model.
+1. file contents -- highest precedence
+2. url (if it is one) -- using the "mode=" key in the fragment (see below).
+3. mode flags
+4. default format -- lowest precedence
+ 
+If the path appears to be a URL, then it is parsed.
+Information is extracted from the URL, and specifically,
+the fragment key "mode=" is the critical element.
+The URL will be rewritten to a canonical form with the following
+changes.
+1. The fragment part ("#..." at the end) is parsed and the "mode=" key
+   is extracted and its value is converted to a list of tags.
+2. If the leading protocol is not http/https, then the protocol is added
+   to the mode list. That protocol is then replaced with either http or https.
+3. Certain singleton values in the fragment are extracted and removed
+   and added to the mode list. Consider, for example, "http://....#dap4".
+   The "dap4" singleton is removed and added to the mode list.
+4. For backward compatibility, the values of "proto=" and "protocol="
+   are removed from the fragment and their value is added to the mode list.
+5. The final mode list is converted to a comma separated string
+   and re-inserted into the fragment.
+6. The final mode list is modified to remove duplicates.
+
+The final result is the canonical form of the URL and is returned in the
+newpathp argument described above.
+
+The mode list then is used as part of the inference process to choose
+a dispatch table.
 
 # Point of Contact {#dispatch_poc}
 
 *Author*: Dennis Heimbigner<br>
 *Email*: dmh at ucar dot edu<br>
 *Initial Version*: 12/22/2021<br>
-*Last Revised*: 12/22/2021
+*Last Revised*: 11/15/2022

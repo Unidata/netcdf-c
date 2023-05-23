@@ -31,7 +31,7 @@ set(PACKAGE "netCDF" CACHE STRING "")
 
 SET(NC_VERSION_MAJOR 4)
 SET(NC_VERSION_MINOR 9)
-SET(NC_VERSION_PATCH 2)
+SET(NC_VERSION_PATCH 3)
 SET(NC_VERSION_NOTE "-development")
 SET(netCDF_VERSION ${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
@@ -1062,7 +1062,7 @@ ENDIF()
 IF(ENABLE_DAP)
   SET(USE_DAP ON CACHE BOOL "")
   SET(ENABLE_DAP2 ON CACHE BOOL "")
- 
+
   IF(ENABLE_HDF5)
     MESSAGE(STATUS "Enabling DAP4")
     SET(ENABLE_DAP4 ON CACHE BOOL "")
@@ -1249,18 +1249,6 @@ IF(MSVC)
   OPTION(ENABLE_XGETOPT "Enable bundled XGetOpt instead of external getopt()." ON)
   IF(ENABLE_XGETOPT)
     SET(USE_X_GETOPT ON CACHE BOOL "")
-    # Copy XGetopt.c to everywhere it is needed. Avoids
-    # inconsistent code
-    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/ncgen3/)
-    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/ncgen/)
-    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/ncdump/)
-    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
-    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/ncdap_test/)
   ENDIF()
 ENDIF()
 
@@ -1282,8 +1270,19 @@ ENDIF()
 
 # Options for S3 Support
 OPTION(ENABLE_S3 "Enable S3 support." OFF)
+OPTION(ENABLE_S3_INTERNAL "Enable S3 Internal support." OFF)
 OPTION(ENABLE_NCZARR_S3 "Enable NCZarr S3 support; Deprecated in favor of ENABLE_S3" OFF)
-OPTION(ENABLE_NCZARR_S3_TESTS "Enable NCZarr S3 tests." OFF)
+
+# Control S3 Testing: Multi-valued option
+SET(WITH_S3_TESTING OFF CACHE STRING "Control S3 Testing: ON (i.e. all) OFF (i.e. none)  PUBLIC")
+    SET_PROPERTY(CACHE WITH_S3_TESTING PROPERTY STRINGS ON OFF PUBLIC)  #
+IF(WITH_S3_TESTING STREQUAL "")
+  SET(WITH_S3_TESTING OFF CACHE STRING "") # Default
+ENDIF()
+
+IF(WITH_S3_TESTING)
+message(WARNING "**** DO NOT USE WITH_S3_TESTING=ON UNLESS YOU HAVE ACCESS TO THE UNIDATA S3 BUCKET! ***")
+ENDIF()
 
 # ENABLE_NCZARR_S3 is now an alias for ENABLE_S3 (but...)
 if (NOT ENABLE_S3 AND ENABLE_NCZARR_S3)
@@ -1291,38 +1290,46 @@ if (NOT ENABLE_S3 AND ENABLE_NCZARR_S3)
 ENDIF()
 UNSET(ENABLE_NCZARR_S3)
 
-IF(ENABLE_NCZARR_S3_TESTS AND NOT ENABLE_S3)
-  message(FATAL_ERROR "S3 support is disabled; please specify option -DENABLE_NCZARR_S3_TESTS=NO")
-  SET(ENABLE_NCZARR_S3_TESTS OFF CACHE BOOL "NCZARR S3 TESTS" FORCE)
-ENDIF()
-
 # Note we check for the library after checking for enable_s3
 # because for some reason this screws up if we unconditionally test for sdk
 # and it is not available. Fix someday
 IF(ENABLE_S3)
-  # See if aws-s3-sdk is available
-  find_package(AWSSDK REQUIRED COMPONENTS s3;core)
-  IF(AWSSDK_FOUND)
-    SET(service s3;core)
-    AWSSDK_DETERMINE_LIBS_TO_LINK(service AWS_LINK_LIBRARIES)
-    SET(ENABLE_S3_SDK ON CACHE BOOL "S3 SDK" FORCE)
-  ELSE()
-    SET(ENABLE_S3_SDK OFF CACHE BOOL "S3 SDK" FORCE)
+  IF(NOT ENABLE_S3_INTERNAL)
+    # See if aws-s3-sdk is available
+    find_package(AWSSDK REQUIRED COMPONENTS s3;core)
+    IF(AWSSDK_FOUND)
+      SET(service s3;core)
+      AWSSDK_DETERMINE_LIBS_TO_LINK(service AWS_LINK_LIBRARIES)
+      SET(ENABLE_S3_AWS ON CACHE BOOL "S3 AWS" FORCE)
+    ELSE()
+      SET(ENABLE_S3_AWS OFF CACHE BOOL "S3 AWS" FORCE)
+    ENDIF()
   ENDIF()
 ELSE()
-  SET(ENABLE_S3_SDK OFF CACHE BOOL "S3 SDK" FORCE)
+  SET(ENABLE_S3_AWS OFF CACHE BOOL "S3 AWS" FORCE)
 ENDIF()
 
-IF(NOT ENABLE_S3_SDK)
-  IF(ENABLE_S3)
+# Unless/until we get aws-sdk-cpp working for Windows, force use of internal
+IF(ENABLE_S3 AND MSVC)
+  SET(ENABLE_S3_INTERNAL ON CACHE BOOL "S3 Intern" FORCE)
+ENDIF()
+
+IF(ENABLE_S3)
+  IF(NOT ENABLE_S3_AWS AND NOT ENABLE_S3_INTERNAL)
     message(FATAL_ERROR "S3 support library not found; please specify option -DENABLE_S3=NO")
-    SET(ENABLE_S3 OFF CACHE BOOL "S3 support" FORCE)
-    SET(ENABLE_NCZARR_S3_TESTS OFF CACHE BOOL "S3 tests" FORCE)
+    SET(ENABLE_S3 OFF CACHE BOOL "S3 support" FORCE)        
+  ENDIF()
+  IF(ENABLE_S3_AWS AND ENABLE_S3_INTERNAL)
+    message(WARNING "Both aws-sdk-cpp and s3-internal enabled => use s3-internal")
+    SET(ENABLE_S3_AWS OFF CACHE BOOL "S3 AWS" FORCE)        
   ENDIF()
 ENDIF()
 
-IF(ENABLE_NCZARR_S3_TESTS)
-  message(WARNING "**** DO NOT ENABLE_NCZARR_S3_TESTS UNLESS YOU HAVE ACCESS TO THE UNIDATA S3 BUCKET! ***")
+IF(NOT ENABLE_S3)
+IF(WITH_S3_TESTING STREQUAL "PUBLIC" OR WITH_S3_TESTING)
+  message(WARNING "S3 support is disabled => WITH_S3_TESTING=OFF")
+  SET(WITH_S3_TESTING OFF CACHE STRING "" FORCE)
+ENDIF()
 ENDIF()
 
 # Start disabling if curl not found
@@ -1902,6 +1909,7 @@ ENDIF()
 # Check for various functions.
 CHECK_FUNCTION_EXISTS(fsync HAVE_FSYNC)
 CHECK_FUNCTION_EXISTS(strlcat   HAVE_STRLCAT)
+CHECK_FUNCTION_EXISTS(strlcpy  HAVE_STRLCPY)
 CHECK_FUNCTION_EXISTS(strdup  HAVE_STRDUP)
 CHECK_FUNCTION_EXISTS(strndup HAVE_STRNDUP)
 CHECK_FUNCTION_EXISTS(strtoll HAVE_STRTOLL)
@@ -2224,7 +2232,7 @@ ENDIF(ENABLE_BASH_SCRIPT_TESTING)
 
 MACRO(add_sh_test prefix F)
   IF(HAVE_BASH)
-    ADD_TEST(${prefix}_${F} bash "-c" "export srcdir=${CMAKE_CURRENT_SOURCE_DIR};export TOPSRCDIR=${CMAKE_SOURCE_DIR};${CMAKE_CURRENT_BINARY_DIR}/${F}.sh ${F}.sh ${ARGN}")
+    ADD_TEST(${prefix}_${F} bash "-c" "export srcdir=${CMAKE_CURRENT_SOURCE_DIR};export TOPSRCDIR=${CMAKE_SOURCE_DIR};${CMAKE_CURRENT_BINARY_DIR}/${F}.sh ${ARGN}")
   ENDIF()
 ENDMACRO()
 
@@ -2310,6 +2318,10 @@ ENDIF()
 IF(ENABLE_DAP4)
   ADD_SUBDIRECTORY(libdap4)
   ADD_SUBDIRECTORY(libncxml)
+ELSE()
+  IF(ENABLE_S3_INTERNAL)
+    ADD_SUBDIRECTORY(libncxml)
+  ENDIF()
 ENDIF()
 
 IF(ENABLE_PLUGINS)
@@ -2552,9 +2564,10 @@ is_enabled(USE_CDF5 HAS_CDF5)
 is_enabled(ENABLE_ERANGE_FILL HAS_ERANGE_FILL)
 is_enabled(HDF5_HAS_PAR_FILTERS HAS_PAR_FILTERS)
 is_enabled(ENABLE_S3 HAS_S3)
-is_enabled(ENABLE_S3_SDK HAS_S3_SDK)
+is_enabled(ENABLE_S3_AWS HAS_S3_AWS)
+is_enabled(ENABLE_S3_INTERNAL HAS_S3_INTERNAL)
+is_enabled(HAS_HDF5_ROS3 HAS_HDF5_ROS3)
 is_enabled(ENABLE_NCZARR HAS_NCZARR)
-is_enabled(ENABLE_NCZARR_S3_TESTS DO_NCZARR_S3_TESTS)
 is_enabled(ENABLE_NCZARR_ZIP HAS_NCZARR_ZIP)
 is_enabled(ENABLE_MULTIFILTERS HAS_MULTIFILTERS)
 is_enabled(ENABLE_NCZARR_ZIP DO_NCZARR_ZIP_TESTS)
@@ -2567,6 +2580,26 @@ is_enabled(HAVE_ZSTD HAS_ZSTD)
 is_enabled(HAVE_BLOSC HAS_BLOSC)
 is_enabled(HAVE_BZ2 HAS_BZ2)
 
+if(ENABLE_S3_INTERNAL)
+SET(WHICH_S3_SDK "internal")
+SET(NC_WHICH_S3_SDK "internal")
+elseif(ENABLE_S3_AWS)
+SET(WHICH_S3_SDK "aws-sdk-cpp")
+SET(NC_WHICH_S3_SDK "aws-sdk-cpp")
+else()
+SET(WHICH_S3_SDK "none")
+SET(NC_WHICH_S3_SDK "none")
+endif()
+
+if(WITH_S3_TESTING STREQUAL PUBLIC)
+SET(DO_S3_TESTING "public")
+elseif(WITH_S3_TESTING)
+SET(DO_S3_TESTING "yes")
+elseif(NOT WITH_S3_TESTING)
+SET(DO_S3_TESTING "no")
+else()
+SET(DO_S3_TESTING "no")
+endif()
 
 # Generate file from template.
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"

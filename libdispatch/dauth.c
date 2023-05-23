@@ -94,6 +94,7 @@ NC_authsetup(NCauth** authp, NCURI* uri)
     int ret = NC_NOERR;
     char* uri_hostport = NULL;
     NCauth* auth = NULL;
+    struct AWSprofile* ap = NULL;
 
     if(uri != NULL)
       uri_hostport = NC_combinehostport(uri);
@@ -175,8 +176,15 @@ NC_authsetup(NCauth** authp, NCURI* uri)
       nullfree(user);
       nullfree(pwd);
     }
+
     /* Get the Default profile */
-    auth->s3profile = strdup("default");
+    if((ret=NC_authgets3profile("no",&ap))) goto done;
+    if(ap == NULL)
+        if((ret=NC_authgets3profile("default",&ap))) goto done;
+    if(ap != NULL)
+        auth->s3profile = strdup(ap->name);
+    else
+        auth->s3profile = NULL;
 
     if(authp) {*authp = auth; auth = NULL;}
 done:

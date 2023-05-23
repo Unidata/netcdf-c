@@ -41,6 +41,8 @@ static int computedimrefs(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int purezarr
 static int json_convention_read(NCjson* jdict, NCjson** jtextp);
 static int jtypes2atypes(NCjson* jtypes, NClist* atypes);
 
+static int ncz_validate(NC_FILE_INFO_T* file);
+
 /**************************************************/
 /**************************************************/
 /* Synchronize functions to make map and memory
@@ -1829,7 +1831,7 @@ ncz_read_superblock(NC_FILE_INFO_T* file, char** nczarrvp, char** zarrfp)
 	break;
     default: goto done;
     }
-    /* Also gett Zarr Root Group */
+    /* Get Zarr Root Group, if any */
     switch(stat = NCZ_downloadjson(zinfo->map, ZMETAROOT, &jzgroup)) {
     case NC_NOERR:
 	break;
@@ -1842,8 +1844,9 @@ ncz_read_superblock(NC_FILE_INFO_T* file, char** nczarrvp, char** zarrfp)
     if(jzgroup != NULL) {
         /* See if this NCZarr V2 */
         if((stat = NCJdictget(jzgroup,NCZ_V2_SUPERBLOCK,&jsuper))) goto done;
-	if(!stat && jsuper == NULL)
-            {if((stat = NCJdictget(jzgroup,NCZ_V2_SUPERBLOCK_UC,&jsuper))) goto done;}
+	if(!stat && jsuper == NULL) { /* try uppercase name */
+            if((stat = NCJdictget(jzgroup,NCZ_V2_SUPERBLOCK_UC,&jsuper))) goto done;
+	}
  	if(jsuper != NULL) {
 	    /* Extract the equivalent attribute */
 	    if(jsuper->sort != NCJ_DICT)
@@ -1853,17 +1856,24 @@ ncz_read_superblock(NC_FILE_INFO_T* file, char** nczarrvp, char** zarrfp)
 	}
         /* In any case, extract the zarr format */
         if((stat = NCJdictget(jzgroup,"zarr_format",&jtmp))) goto done;
+	assert(zarr_format == NULL);
         zarr_format = nulldup(NCJstring(jtmp));
     }
-    /* Set the controls */
+    /* Set the format flags */
     if(jnczgroup == NULL && jsuper == NULL) {
-	zinfo->controls.flags |= FLAG_PUREZARR;
+	/* See if this is looks like a NCZarr/Zarr dataset at all
+           by looking for anything here of the form ".z*" */
+        if((stat = ncz_validate(file))) goto done;
+	/* ok, assume pure zarr with no groups */
+	zinfo->controls.flags |= FLAG_PUREZARR;	
+	zinfo->controls.flags &= ~(FLAG_NCZARR_V1);
+	if(zarr_format == NULL) zarr_format = strdup("2");
     } else if(jnczgroup != NULL) {
 	zinfo->controls.flags |= FLAG_NCZARR_V1;
 	/* Also means file is read only */
 	file->no_write = 1;
     } else if(jsuper != NULL) {
-       /* ! FLAG_NCZARR_V1 && ! FLAG_PUREZARR */
+	/* ! FLAG_NCZARR_V1 && ! FLAG_PUREZARR */
     }
     if(nczarrvp) {*nczarrvp = nczarr_version; nczarr_version = NULL;}
     if(zarrfp) {*zarrfp = zarr_format; zarr_format = NULL;}
@@ -2410,4 +2420,64 @@ jtypes2atypes(NCjson* jtypes, NClist* atypes)
     }
 done:
     return stat;
+}
+
+/* See if there is reason to believe the specified path is a legitimate (NC)Zarr file
+ * Do a breadth first walk of the tree starting at file path.
+ * @param file to validate
+ * @return NC_NOERR if it looks ok
+ * @return NC_ENOTNC if it does not look ok
+ */
+static int
+ncz_validate(NC_FILE_INFO_T* file)
+{
+    int stat = NC_NOERR;
+    NCZ_FILE_INFO_T* zinfo = (NCZ_FILE_INFO_T*)file->format_file_info;
+    int validate = 0;
+    NCbytes* prefix = ncbytesnew();
+    NClist* queue = nclistnew();
+    NClist* nextlevel = nclistnew();
+    NCZMAP* map = zinfo->map;
+    char* path = NULL;
+    char* segment = NULL;
+    size_t seglen;
+	    
+    ZTRACE(3,"file=%s",file->controller->path);
+
+    path = strdup("/");
+    nclistpush(queue,path);
+    path = NULL;
+    do {
+        nullfree(path); path = NULL;
+	/* This should be full path key */
+	path = nclistremove(queue,0); /* remove from front of queue */
+	/* get list of next level segments (partial keys) */
+	assert(nclistlength(nextlevel)==0);
+        if((stat=nczmap_search(map,path,nextlevel))) {validate = 0; goto done;}
+        /* For each s in next level, test, convert to full path, and push onto queue */
+	while(nclistlength(nextlevel) > 0) {
+            segment = nclistremove(nextlevel,0);
+            seglen = nulllen(segment);
+	    if((seglen >= 2 && memcmp(segment,".z",2)==0) || (seglen >= 4 && memcmp(segment,".ncz",4)==0)) {
+		validate = 1;
+	        goto done;
+	     }
+	     /* Convert to full path */
+	     ncbytesclear(prefix);
+	     ncbytescat(prefix,path);
+	     if(strlen(path) > 1) ncbytescat(prefix,"/");
+	     ncbytescat(prefix,segment);
+	     /* push onto queue */
+	     nclistpush(queue,ncbytesextract(prefix));
+ 	     nullfree(segment); segment = NULL;
+	 }
+    } while(nclistlength(queue) > 0);
+done:
+    if(!validate) stat = NC_ENOTNC;
+    nullfree(path);
+    nullfree(segment);
+    nclistfreeall(queue);
+    nclistfreeall(nextlevel);
+    ncbytesfree(prefix);
+    return ZUNTRACE(THROW(stat));
 }

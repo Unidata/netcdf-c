@@ -40,17 +40,15 @@ ${CMAKE_CURRENT_SOURCE_DIR}/ref*.zmap)
 
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
 
+IF(USE_X_GETOPT)
+SET(XGETOPTSRC "${CMAKE_CURRENT_SOURCE_DIR}/../libdispatch/XGetopt.c")
+ENDIF()
+
 IF(ENABLE_TESTS)
 
-  SET(COMMONSRC ut_util.c ut_test.c)
-  IF(USE_X_GETOPT)
-    SET(COMMONSRC ${COMMONSRC} XGetopt.c)
-  ENDIF()
+  SET(COMMONSRC ut_util.c ut_test.c ${XGETOPTSRC})
   
-  SET(TSTCOMMONSRC tst_utils.c)
-  IF(USE_X_GETOPT)
-    SET(TSTCOMMONSRC ${TSTCOMMONSRC} XGetopt.c)
-  ENDIF()
+  SET(TSTCOMMONSRC tst_utils.c ${XGETOPTSRC})
 
   # Base tests
   # The tests are set up as a combination of shell scripts and executables that
@@ -78,22 +76,22 @@ IF(ENABLE_TESTS)
   TARGET_INCLUDE_DIRECTORIES(tst_fillonlyz PUBLIC ../libnczarr)
 
   # Helper programs for testing
-  BUILD_BIN_TEST(zmapio ${COMMONSRC})
-  TARGET_INCLUDE_DIRECTORIES(zmapio PUBLIC ../libnczarr)
   BUILD_BIN_TEST(zhex)
   BUILD_BIN_TEST(zisjson ${COMMONSRC})
   TARGET_INCLUDE_DIRECTORIES(zisjson PUBLIC ../libnczarr)
   BUILD_BIN_TEST(zs3parse ${COMMONSRC})
   TARGET_INCLUDE_DIRECTORIES(zs3parse PUBLIC ../libnczarr)
-  if(ENABLE_S3)
-      BUILD_BIN_TEST(s3util ${COMMONSRC})
-      TARGET_INCLUDE_DIRECTORIES(s3util PUBLIC ../libnczarr)
+  BUILD_BIN_TEST(zmapio ${COMMONSRC})
+  TARGET_INCLUDE_DIRECTORIES(zmapio PUBLIC ../libnczarr)
+
+  IF(ENABLE_S3 AND NOT WITH_S3_TESTING STREQUAL "NO")
+  # Helper programs for testing
+  BUILD_BIN_TEST(s3util ${COMMONSRC})
+  TARGET_INCLUDE_DIRECTORIES(s3util PUBLIC ../libnczarr)
   endif()
   
   SET(ncdumpchunks_SOURCE ncdumpchunks.c)
-  IF(USE_X_GETOPT)
-    SET(ncdumpchunks_SOURCE ${ncdumpchunks_SOURCE} XGetopt.c)
-  ENDIF()
+  SET(ncdumpchunks_SOURCE ${ncdumpchunks_SOURCE} ${XGETOPTSRC})
   BUILD_BIN_TEST(ncdumpchunks ${ncdumpchunks_SOURCE})
   TARGET_INCLUDE_DIRECTORIES(ncdumpchunks PUBLIC ../libnczarr)
 
@@ -120,9 +118,13 @@ IF(ENABLE_TESTS)
     add_sh_test(nczarr_test run_strings)
     add_sh_test(nczarr_test run_scalar)
     add_sh_test(nczarr_test run_nulls)
+    add_sh_test(nczarr_test run_external)
 
     BUILD_BIN_TEST(test_quantize ${TSTCOMMONSRC})
     add_sh_test(nczarr_test run_quantize)
+
+    BUILD_BIN_TEST(tst_notzarr ${TSTCOMMONSRC})
+    add_sh_test(nczarr_test run_notzarr)
 
     if(ENABLE_S3)
 	add_sh_test(nczarr_test run_s3_cleanup)
@@ -138,8 +140,12 @@ IF(ENABLE_TESTS)
 	build_bin_test(test_filter_avail)
 	ADD_SH_TEST(nczarr_test run_nczfilter)
 	ADD_SH_TEST(nczarr_test run_filter)
-	ADD_SH_TEST(nczarr_test run_unknown)
 	ADD_SH_TEST(nczarr_test run_specific_filters)
+	IF(FALSE)
+	  # This test is too dangerous to run in a parallel make environment.
+          # It causes race conditions. So suppress and only test by hand.
+          ADD_SH_TEST(nczarr_test run_unknown)
+	ENDIF(FALSE)
     ENDIF(ENABLE_FILTER_TESTING)
     if(ENABLE_NCZARR_ZIP)
         add_sh_test(nczarr_test run_newformat)

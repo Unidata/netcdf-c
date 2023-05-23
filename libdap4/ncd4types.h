@@ -13,9 +13,6 @@ are defined here.
 
 #undef COMPILEBYDEFAULT
 
-/* Turn on/off checksum hack; on until I can rebuild test cases*/
-#define CHECKSUMHACK
-
 #include "ncrc.h"
 #include "ncauth.h"
 
@@ -33,6 +30,9 @@ Currently turned off because semantics are unclear.
 
 #define DEFAULTSTRINGLENGTH 64
 
+/* Default Checksum state */
+#define DEFAULT_CHECKSUM_STATE 1
+
 /* Size of the checksum */
 #define CHECKSUMSIZE 4
 
@@ -49,19 +49,15 @@ typedef struct NCD4meta NCD4meta;
 typedef struct NCD4node NCD4node;
 typedef struct NCD4params NCD4params;
 typedef struct NCD4HDR NCD4HDR;
+typedef struct NCD4offset NCD4offset;
 
 /* Define the NCD4HDR flags */
 /* Header flags */
 #define NCD4_LAST_CHUNK          (1)
 #define NCD4_ERR_CHUNK           (2)
 #define NCD4_LITTLE_ENDIAN_CHUNK (4)
-#ifdef CHECKSUMHACK
-#define NCD4_NOCHECKSUM_CHUNK    (8)
-#else
-#define NCD4_NOCHECKSUM_CHUNK    (0)
-#endif
 
-#define NCD4_ALL_CHUNK_FLAGS (NCD4_LAST_CHUNK|NCD4_ERR_CHUNK|NCD4_LITTLE_ENDIAN_CHUNK|NCD4_NOCHECKSUM_CHUNK)
+#define NCD4_ALL_CHUNK_FLAGS (NCD4_LAST_CHUNK|NCD4_ERR_CHUNK|NCD4_LITTLE_ENDIAN_CHUNK)
 
 
 /**************************************************/
@@ -112,6 +108,10 @@ typedef enum NCD4sort {
 
 /* These are attributes inserted into the netcdf-4 file */
 #define NC4TAGMAPS      "_edu.ucar.maps"
+
+/* dap4.x query keys */
+#define DAP4CE		"dap4.ce"
+#define DAP4CSUM	"dap4.checksum"
 
 /**************************************************/
 /* Misc.*/
@@ -165,6 +165,18 @@ union ATOMICS {
 /* Define the structure of the chunk header */
 
 struct NCD4HDR {unsigned int flags; unsigned int count;};
+
+/**************************************************/
+/* Define the structure for walking a stream */
+
+/* base <= offset < limit */
+struct NCD4offset {
+    char* offset; /* use char* so we can do arithmetic */
+    char* base;
+    char* limit;
+};
+
+typedef char* NCD4mark; /* Mark a position */
 
 /**************************************************/
 /* !Node type for the NetCDF-4 metadata produced from
@@ -225,7 +237,6 @@ struct NCD4node {
     struct { /* Data compilation info */
         int flags; /* See d4data for actual flags */
 	D4blob dap4data; /* offset and start pos for this var's data in serialization */
-        int remotechecksummed; /* 1 => data includes checksum */
         unsigned int remotechecksum; /* checksum from data as sent by server */
         unsigned int localchecksum; /* toplevel variable checksum as computed by client */    
 	int checksumattr; /* 1=> _DAP4_Checksum_CRC32 is defined */
@@ -246,16 +257,13 @@ struct NCD4node {
 typedef struct NCD4serial {
     size_t rawsize; /* |rawdata| */ 
     void* rawdata;
-    size_t dapsize; /* |dapdata|; this is transient */
+    size_t dapsize; /* |dap|; this is transient */
     void* dap; /* pointer into rawdata where dap data starts */ 
     char* dmr;/* copy of dmr */ 
     char* errdata; /* null || error chunk (null terminated) */
     int httpcode; /* returned from last request */
     int hostlittleendian; /* 1 if the host is little endian */
     int remotelittleendian; /* 1 if the packet says data is little endian */
-#ifdef CHECKSUMHACK
-    int checksumhack; /* 1 if the packet says checksums are NOT included */
-#endif
 } NCD4serial;
 
 /* This will be passed out of the parse */
@@ -275,7 +283,6 @@ struct NCD4meta {
     } error;
     int debuglevel;
     NCD4serial serial;
-    int ignorechecksums; /* 1=> compute but ignore */
     int swap; /* 1 => swap data */
     /* Define some "global" (to a DMR) data */
     NClist* groupbyid; /* NClist<NCD4node*> indexed by groupid >> 16; this is global */
@@ -333,7 +340,11 @@ struct NCD4INFO {
         d4size_t   datasize; /* size on disk or in memory */
         long dmrlastmodified;
         long daplastmodified;
-    } data;
+        int querychecksumming; /* 1 => user specified dap4.ce value */
+	int attrchecksumming; /* 1=> _DAP4_Checksum_CRC32 is defined for at least one variable */
+	int inferredchecksumming; /* 1 => either query checksum || att checksum */
+        int checksumignore; /* 1 => assume checksum, but do not validate */
+	} data;
     struct {
 	int realfile; /* 1 => we created actual temp file */
 	char* filename; /* of the substrate file */

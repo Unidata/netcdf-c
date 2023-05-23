@@ -15,6 +15,10 @@
 
 SET(UNIT_TESTS test_ncuri)
 
+IF(USE_X_GETOPT)
+  SET(XGETOPTSRC "${CMAKE_CURRENT_SOURCE_DIR}/../libdispatch/XGetopt.c")
+ENDIF()
+
 IF(NOT MSVC)
   IF(ENABLE_NETCDF_4)
     SET(UNIT_TESTS ${UNIT_TESTS} tst_nclist tst_nc4internal)
@@ -28,9 +32,13 @@ ENDFOREACH()
 # Path convert test(s)
 add_bin_test(unit_test test_pathcvt)
 
-# Aws Tests
-build_bin_test(test_aws)
-ADD_SH_TEST(unit_test run_aws)
+IF(BUILD_UTILITIES)
+IF(ENABLE_S3 AND WITH_S3_TESTING)
+# SDK Test
+BUILD_BIN_TEST(test_s3sdk ${XGETOPTSRC})
+ADD_SH_TEST(unit_test run_s3sdk)
+ENDIF()
+ENDIF()
 
 # Performance tests
 add_bin_test(unit_test tst_exhash timer_utils.c)

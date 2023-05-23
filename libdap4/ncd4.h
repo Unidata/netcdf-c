@@ -119,13 +119,13 @@ EXTERNL void NCD4_resetSerial(struct NCD4serial* serial, size_t rawsize, void* r
 EXTERNL int NCD4_swapdata(NCD4meta*, NClist* topvars);
 
 /* From d4fix.c */
-EXTERNL int NCD4_delimit(NCD4meta*, NCD4node* var, void** offsetp);
-EXTERNL int NCD4_moveto(NCD4meta*, NCD4node* var, d4size_t count, void** offsetp);
+EXTERNL int NCD4_delimit(NCD4meta*, NCD4node* var, NCD4offset* offset);
+EXTERNL int NCD4_moveto(NCD4meta*, NCD4node* var, d4size_t count, NCD4offset* offset);
 EXTERNL int NCD4_toposort(NCD4meta*);
 
 /* From d4data.c */
 EXTERNL int NCD4_processdata(NCD4meta*);
-EXTERNL int NCD4_fillinstance(NCD4meta*, NCD4node* type, void** offsetp, void** dstp, NClist* blobs);
+EXTERNL int NCD4_fillinstance(NCD4meta*, NCD4node* type, NCD4offset* offset, void** dstp, NClist* blobs);
 EXTERNL int NCD4_getToplevelVars(NCD4meta* meta, NCD4node* group, NClist* toplevel);
 
 /* From d4util.c */
@@ -161,8 +161,9 @@ EXTERNL int NCD4_rcdefault(NCD4INFO*);
 EXTERNL int NCD4_convert(nc_type srctype, nc_type dsttype, char* memory0, char* value0, size_t count);
 
 /* d4file.c */
-EXTERNL void NCD4_applyclientparamcontrols(NCD4INFO*);
 EXTERNL int NCD4_readDMRorDAP(NCD4INFO* d4info, NCD4mode mode);
+EXTERNL void NCD4_applyclientfragmentcontrols(NCD4INFO* d4info);
+EXTERNL void NCD4_applyclientquerycontrols(NCD4INFO* d4info);
 
 /* ncd4dispatch.c */
 struct NC_reservedatt; /*forward*/
@@ -181,12 +182,26 @@ EXTERNL int nc__dap4(void);
 #define NCCHECK(expr) if((ret=(expr))) {ret = NCD4_errorNC(ret,__LINE__,__FILE__); goto done;}else{}
 #define FAIL(code,fmt,...) do{ret=NCD4_error(code,__LINE__,__FILE__,fmt , ##__VA_ARGS__); goto done;}while(0)
 
+#undef BUILDOFFSET
+#define BUILDOFFSET(base,size) NCD4_buildoffset(base,size)
+EXTERNL NCD4offset* NCD4_buildoffset(void* base, d4size_t size);
+
 #undef INCR
 #undef DECR
 #undef DELTA
-#define INCR(offset,size) ((void*)(((char*)(offset))+(size)))
-#define DECR(offset,size) ((void*)(((char*)(offset))-(size)))
+#if 0
+#define INCR(offset,size) ((void*)(((char*)(offset->offset))+(size)))
+#define DECR(offset,size) ((void*)(((char*)(offset->offset))-(size)))
 #define DELTA(p1,p2) ((ptrdiff_t)(((char*)(p1))-((char*)(p2))))
+#endif
+EXTERNL void NCD4_incr(NCD4offset* p, d4size_t size);
+EXTERNL void NCD4_decr(NCD4offset* p, d4size_t size);
+#define INCR(offset,size) NCD4_incr(offset,size)
+#define DECR(offset,size) NCD4_decr(offset,size)
+#define OFFSETSIZE(p,mark) ((d4size_t)(((ptrdiff_t)(p)->offset) - ((ptrdiff_t)(mark))))
+#define TRANSFER(dst,src,size) memcpy((dst),(src)->offset,size)
+#define DELTA(p1,p2) ((ptrdiff_t)(((char*)(p1))-((char*)(p2))))
+#define MARK(p,mark) do {(mark) = (p)->offset;} while(0)
 
 #undef GETCOUNTER
 #undef SKIPCOUNTER
@@ -194,14 +209,18 @@ EXTERNL int nc__dap4(void);
 /* Unclear which macros are defined for which compilers.
    see: https://sourceforge.net/p/predef/wiki/Architectures/
 */
+#if 0
 #if defined(__arm__) && __ARM_ARCH < 8
 EXTERNL d4size_t NCD4_getcounter(void* p);
 #define GETCOUNTER(p) NCD4_getcounter(p)
 #else
 #define GETCOUNTER(p) ((d4size_t)*((COUNTERTYPE*)(p)))
-#endif /*defined(__arm__) && __ARM_ARCH < 8*/
+#endif
+#endif /*0*/
+EXTERNL d4size_t NCD4_getcounter(NCD4offset* p);
+#define GETCOUNTER(p) NCD4_getcounter(p)
 
-#define SKIPCOUNTER(p) {p=INCR(p,COUNTERSIZE);}
+#define SKIPCOUNTER(p) INCR(p,COUNTERSIZE)
 
 #undef PUSH
 #define PUSH(list,value) do{if((list)==NULL) {(list)=nclistnew();} else{}; nclistpush((list),(value));}while(0)
