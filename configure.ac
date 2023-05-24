@@ -138,6 +138,35 @@ AC_DEFINE([ENABLE_THREADSAFE], [1], [if true, include experimental thread safe c
 fi
 AM_CONDITIONAL(ENABLE_THREADSAFE, [test "x$enable_threadsafe" = xyes])
 
+# Get threadsafe options: idunique
+AC_MSG_CHECKING([thread safe options])
+AC_ARG_WITH([threadsafe-options],
+              [AS_HELP_STRING([--with-threadsafe-options=idunique|n0idunique],
+                              [control netcdf threadsafe operation])],
+            [], [with_threadsafe_options=none]) # default
+if test "x$with_threadsafe_options" = x || "x$with_threadsafe_options" = xnone ; then
+AC_MSG_NOTICE("Defaulting with_threadsafe_options to idunique")
+with_threadsafe_options=idunique
+fi
+AC_MSG_RESULT($with_threadsafe_options)
+
+# Setup the config.h
+# Make option set usable with sh for loop by converting comma to blank
+with_threadsafe_options=`echo $with_threadsafe_options | tr -d '\r\n' | tr ',' ' '`
+
+# Create the necessary flags
+for TO in $with_threadsafe_options ; do
+case "$TO" in
+idunique) threadsafe_idunique=yes ;;
+noidunique) threadsafe_idunique=no ;;
+*) AC_MSG_ERROR([Unexpected --with-threadsafe-option: $TO])
+esac
+done
+
+if test "x$threadsafe_idunique" = xyes ; then
+AC_DEFINE([THREADSAFE_IDUNIQUE], [1], [if true, use unique identifiers.])
+fi
+
 # Get windows version info
 if test "x$ISMINGW" = xyes || test "x$ISMSVC" = xyes ; then
 WINVER=`systeminfo | sed -e '/^OS Version:/p' -ed | sed -e 's|[^0-9]*\([0-9.]*\).*|\1|'`

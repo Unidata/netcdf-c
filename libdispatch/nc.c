@@ -39,6 +39,18 @@ NC_check_id(int ncid, NC** ncpp)
 {
     NC* nc = find_in_NCList(ncid);
     if(nc == NULL) return NC_EBADID;
+#ifdef THREADSAFE_SINGLE
+    /* Verify that only one thread uses this NC */
+    if(nc->threadid != pthread_getthreadid_np()) {
+	/* Report this occurrence */
+	nclog(NCLOGWARN," !!! multiple threads accessing same NC: owner=%llu this=%llu",
+		(unsigned long long)((uintptr_t)nc->threadid),
+		(unsigned long long)((uintptr_t)pthread_getthreadid_np()));
+#ifdef THREADSAFE_SINGLE_FAIL
+	abort();
+#endif
+    }
+#endif
     if(ncpp) *ncpp = nc;
     return NC_NOERR;
 }
@@ -93,6 +105,9 @@ new_NC(const NC_Dispatch* dispatcher, const char* path, int mode, NC** ncpp)
         stat = NC_ENOMEM;
 	goto done;
     }
+#ifdef THREADSAFE_SINGLE
+    ncp->threadid = pthread_getthreadid_np();
+#endif
     if(ncpp) {
         *ncpp = ncp;
     } else {

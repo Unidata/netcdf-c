@@ -163,6 +163,11 @@ are set when opening a binary file on Windows. */
 /* if true, enable S3 testing*/
 #cmakedefine WITH_S3_TESTING "PUBLIC"
 
+/* control threadsafe operation. */
+#cmakedefine THREADSAFE_IDUNIQUE 1
+#cmakedefine THREADSAFE_DEBUG_SINGLE 1
+#cmakedefine THREADSAFE_DEBUG_SINGLE_FAIL 1
+
 /* if true, run extra tests which may not work yet */
 #cmakedefine EXTRA_TESTS 1
 

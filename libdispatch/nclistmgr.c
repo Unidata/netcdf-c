@@ -33,6 +33,11 @@ static NC** nc_filelist = NULL;
 /** The number of files currently open. */
 static int numfiles = 0;
 
+#ifdef THREADSAFE_IDUNIQUE
+/** The last allocated file id */
+static int lastfile = 0; /* avoid using zero as file id */
+#endif
+
 /**
  * How many files are currently open?
  *
@@ -81,7 +86,6 @@ free_NCList(void)
 int
 add_to_NCList(NC* ncp)
 {
-    int i;
     int new_id;
     if(nc_filelist == NULL) {
         if (!(nc_filelist = calloc(1, sizeof(NC*)*NCFILELISTLENGTH)))
@@ -90,9 +94,18 @@ add_to_NCList(NC* ncp)
     }
 
     new_id = 0; /* id's begin at 1 */
+#ifdef THREADSAFE_IDUNIQUE
+    if(lastfile < NCFILELISTLENGTH) {
+        new_id = ++lastfile;
+    }
+#else /*!THREADSAFE_IDUNIQUE*/
+    {
+    int i;
     for(i=1; i < NCFILELISTLENGTH; i++) {
         if(nc_filelist[i] == NULL) {new_id = i; break;}
     }
+    }
+#endif
     if(new_id == 0) return NC_ENOMEM; /* no more slots */
     nc_filelist[new_id] = ncp;
     numfiles++;

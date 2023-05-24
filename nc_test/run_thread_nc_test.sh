@@ -16,7 +16,7 @@ echo "PASS: thread safe netcdf-3"
 rm -f tmp_threadsafe*.nc
 fi
 
-if test 1 = 0 ; then
+if test 1 = 1 ; then
 if test "x$FEATURE_HDF5" = xyes ; then
 echo "*** Testing netcdf-4 thread safe execution"
 #export NETCDF_LOG_LEVEL=5

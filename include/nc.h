@@ -27,6 +27,9 @@ typedef struct NC {
 	void* dispatchdata; /*per-'file' data; points to e.g. NC3_INFO data*/
 	char* path;
 	int   mode; /* as provided to nc_open/nc_create */
+#ifdef THREADSAFE_SINGLE
+        pthread_id_np_t threadid; /* Mark the first thread to open/create this NC */
+#endif
 } NC;
 
 /*

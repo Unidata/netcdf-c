@@ -1261,6 +1261,9 @@ main(int argc, char **argv)
       if (nc_close(ncid)) ERR;
       if ((retval = nc_open(FILE_NAME, NC_WRITE, &ncid))) ERR;
 
+      /* Access child group, in root group*/
+      if (nc_inq_ncid(ncid, GRP_NAME, &grpid)) ERR;
+
       /* Create compound datatype #2, in root group */
       if (nc_def_compound(ncid, sizeof(struct s2), CMP2_NAME, &typeid2)) ERR;
       if (nc_inq_compound(ncid, typeid2, name, &size, &nfields)) ERR;
