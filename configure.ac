@@ -144,7 +144,7 @@ AC_ARG_WITH([threadsafe-options],
               [AS_HELP_STRING([--with-threadsafe-options=idunique|n0idunique],
                               [control netcdf threadsafe operation])],
             [], [with_threadsafe_options=none]) # default
-if test "x$with_threadsafe_options" = x || "x$with_threadsafe_options" = xnone ; then
+if test "x$with_threadsafe_options" = x || test "x$with_threadsafe_options" = xnone ; then
 AC_MSG_NOTICE("Defaulting with_threadsafe_options to idunique")
 with_threadsafe_options=idunique
 fi
