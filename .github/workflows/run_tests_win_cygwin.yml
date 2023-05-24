@@ -15,6 +15,10 @@ jobs:
         shell: bash -eo pipefail -o igncr "{0}"
 
     name: Cygwin-based Autotools tests
+    
+    strategy:
+      matrix:
+        plugin_dir_option: ["", "--without-plugin-dir"]
 
     steps:
       - name: Fix line endings
@@ -41,9 +45,12 @@ jobs:
 
       - name: (Autotools) Configure in-tree build
         run: >-
-           /bin/dash ./configure --enable-hdf5 --enable-shared
-           --disable-static --enable-dap --disable-dap-remote-tests
-           --enable-plugins --enable-nczarr
+          /bin/dash ./configure --enable-hdf5 --enable-shared
+          --disable-static --enable-dap --disable-dap-remote-tests
+          --enable-plugins ${{ matrix.plugin_dir_option }}
+          --disable-nczarr --disable-nczarr-filters
+          --disable-nczarr-s3 --disable-nczarr-s3-tests
+
 
       - name: Look at config.log if error
         if: ${{ failure() }}
