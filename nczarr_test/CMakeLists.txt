@@ -21,8 +21,10 @@ FILE(READ ${CMAKE_CURRENT_SOURCE_DIR}/../nc_test4/tst_specific_filters.sh SPSOUR
 STRING(PREPEND SPSOURCE "#!/bin/bash\n")
 STRING(PREPEND SPSOURCE "TESTNCZARR=1\n")
 # Replace with FILE(CONFIGURE) when cmake 3.18 is in common use
+
 FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/run_specific_filters.1 "${SPSOURCE}")
 CONFIGURE_FILE(${CMAKE_CURRENT_BINARY_DIR}/run_specific_filters.1 ${CMAKE_CURRENT_BINARY_DIR}/run_specific_filters.sh FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE @ONLY NEWLINE_STYLE LF)
+
 FILE(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/run_specific_filters.1)
 	
 FILE(READ ${CMAKE_CURRENT_SOURCE_DIR}/../nc_test4/tst_unknown.sh SPSOURCE)
@@ -130,26 +132,26 @@ IF(ENABLE_TESTS)
 	add_sh_test(nczarr_test run_s3_cleanup)
     ENDIF()
 
-    IF(ENABLE_FILTER_TESTING)
-	build_bin_test(tst_nczfilter)
-	build_bin_test(testfilter)
-	build_bin_test(testfilter_misc)
-	build_bin_test(testfilter_multi)
-	build_bin_test(testfilter_order)
-	build_bin_test(testfilter_repeat)
-	build_bin_test(test_filter_avail)
-	ADD_SH_TEST(nczarr_test run_nczfilter)
-	ADD_SH_TEST(nczarr_test run_filter)
-	ADD_SH_TEST(nczarr_test run_specific_filters)
-	IF(FALSE)
+  IF(ENABLE_FILTER_TESTING)
+	  build_bin_test(tst_nczfilter)
+	  build_bin_test(testfilter)
+	  build_bin_test(testfilter_misc)
+	  build_bin_test(testfilter_multi)
+	  build_bin_test(testfilter_order)
+	  build_bin_test(testfilter_repeat)
+	  build_bin_test(test_filter_avail)
+	  ADD_SH_TEST(nczarr_test run_nczfilter)
+	  ADD_SH_TEST(nczarr_test run_filter)
+	  ADD_SH_TEST(nczarr_test run_specific_filters)
+	  IF(FALSE)
 	  # This test is too dangerous to run in a parallel make environment.
-          # It causes race conditions. So suppress and only test by hand.
-          ADD_SH_TEST(nczarr_test run_unknown)
-	ENDIF(FALSE)
-    ENDIF(ENABLE_FILTER_TESTING)
-    if(ENABLE_NCZARR_ZIP)
-        add_sh_test(nczarr_test run_newformat)
-    endif()
+    # It causes race conditions. So suppress and only test by hand.
+      ADD_SH_TEST(nczarr_test run_unknown)
+	  ENDIF(FALSE)
+  ENDIF(ENABLE_FILTER_TESTING)
+  if(ENABLE_NCZARR_ZIP)
+      add_sh_test(nczarr_test run_newformat)
+  endif()
 
   ENDIF(BUILD_UTILITIES)
 
