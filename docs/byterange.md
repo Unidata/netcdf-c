@@ -16,10 +16,9 @@ the remote server supports byte-range access.
 
 Two examples:
 
-1. An Amazon S3 object containing a netcdf classic file.
-   - location: "https://remotetest.unidata.ucar.edu/thredds/fileServer/testdata/2004050300_eta_211.nc#mode=bytes" 
-2. A Thredds Server dataset supporting the Thredds HTTPServer protocol.
-   and containing a netcdf enhanced file.
+1. A Thredds server supporting the Thredds "fileserver" Thredds protocol, and containing a netcdf classic file.
+   - location: "https://remotetest.unidata.ucar.edu/thredds/fileserver/testdata/2004050300_eta_211.nc#mode=bytes" 
+2. An Amazon S3 dataset containing a netcdf enhanced file.
    - location: "http://noaa-goes16.s3.amazonaws.com/ABI-L1b-RadC/2017/059/03/OR_ABI-L1b-RadC-M3C13_G16_s20170590337505_e20170590340289_c20170590340316.nc#mode=bytes"
 
 Other remote servers may also provide byte-range access in a similar form.
@@ -36,10 +35,8 @@ to the *./configure* command for Automake. For Cmake, the option flag is
 *-DENABLE_BYTERANGE=true*.
 
 This capability requires access to *libcurl*, and an error will occur
-if byterange is enabled, but no *libcurl* could not be located.
+if byterange is enabled, but *libcurl* could not be located.
 In this, it is similar to the DAP2 and DAP4 capabilities.
-
-Note also that here, the term "http" is often used as a synonym for *byterange*.
 
 # Run-time Usage {#byterange_url}
 
@@ -59,15 +56,17 @@ classic, enhanced, cdf5, etc.
 
 # Architecture {#byterange_arch}
 
-Internally, this capability is implemented with three files:
+Internally, this capability is implemented with the following drivers:
 
 1. libdispatch/dhttp.c -- wrap libcurl operations.
 2. libsrc/httpio.c -- provide byte-range reading to the netcdf-3 dispatcher.
-3. libhdf5/H5FDhttp.c -- provide byte-range reading to the netcdf-4 dispatcher.
+3. libhdf5/H5FDhttp.c -- provide byte-range reading to the netcdf-4 dispatcher for non-cloud storage.
+4. H5FDros3.c -- provide byte-range reading to the netcdf-4 dispatcher for cloud storage (Amazon S3 currently).
 
 Both *httpio.c* and *H5FDhttp.c* are adapters that use *dhttp.c*
 to do the work. Testing for the magic number is also carried out
 by using the *dhttp.c* code.
+*H5FDros3* is also an adapter, but specialized for cloud storage access.
 
 ## NetCDF Classic Access
 
@@ -77,12 +76,12 @@ netcdf-3 code be independent of the lowest level IO access mechanisms.
 This is how in-memory and mmap based access is implemented.
 The file *httpio.c* is the dispatcher used to provide byte-range
 IO for the netcdf-3 code.
-
 Note that *httpio.c* is mostly just an
 adapter between the *ncio* API and the *dhttp.c* code.
 
 ## NetCDF Enhanced Access
 
+### Non-Cloud Access
 Similar to the netcdf-3 code, the HDF5 library
 provides a secondary dispatch mechanism *H5FD*. This allows the
 HDF5 code to be independent of the lowest level IO access mechanisms.
@@ -90,13 +89,14 @@ The netcdf-4 code in libhdf5 is built on the HDF5 library, so
 it indirectly inherits the H5FD mechanism.
 
 The file *H5FDhttp.c* implements the H5FD dispatcher API
-and provides byte-range IO for the netcdf-4 code
+and provides byte-range IO for the netcdf-4 code 
 (and for the HDF5 library as a side effect).
+It only works for non-cloud servers such as the Unidata Thredds server.
 
 Note that *H5FDhttp.c* is mostly just an
 adapter between the *H5FD* API and the *dhttp.c* code.
 
-# The dhttp.c Code {#byterange_dhttp}
+#### The dhttp.c Code {#byterange_dhttp}
 
 The core of all this is *dhttp.c* (and its header
 *include/nchttp.c*). It is a wrapper over *libcurl*
@@ -112,7 +112,7 @@ The type *fileoffset_t* is used to avoid use of *off_t* or *off64_t*
 which are too volatile. It is intended to be represent file lengths
 and offsets.
 
-## nc_http_open
+##### nc_http_open
 The *nc_http_open* procedure creates a *Curl* handle and returns it
 in the *curlp* argument. It also obtains and searches the headers
 looking for two headers:
@@ -122,7 +122,7 @@ looking for two headers:
 
 The dataset length is returned in the *filelenp* argument.
 
-## nc_http_read
+#### nc_http_read
 
 The *nc_http_read* procedure reads a specified set of contiguous bytes
 as specified by the *start* and *count* arguments. It takes the *Curl*
@@ -134,18 +134,28 @@ is a dynamically expandable byte vector (see the file *include/ncbytes.h*).
 This procedure reads *count* bytes from the remote dataset starting at
 the offset *start* position. The bytes are stored in *buf*.
 
-## nc_http_close
+#### nc_http_close
 
 The *nc_http_close* function closes the *Curl* handle and does any
 necessary cleanup.
+
+### Cloud Access
+
+The HDF5 library code-base also provides a Virtual File Drive (VFD)
+capable of providing byte-range access to cloud storage
+(Amazon S3 specifically).
+
+This VFD is called *H5FDros3*. In order for the netcdf library
+to make use of it, the HDF5 library must be built using the
+*--enable-ros3-vfd* option.
+Netcdf can discover that this capability was enabled and can
+then make use of it to provide byte-range access to the cloud.
 
 # Point of Contact {#byterange_poc}
 
 __Author__: Dennis Heimbigner<br>
 __Email__: dmh at ucar dot edu<br>
 __Initial Version__: 12/30/2018<br>
-__Last Revised__: 12/30/2018
+__Last Revised__: 3/11/2023
 
 <!-- End MarkDown -->
-
-*/

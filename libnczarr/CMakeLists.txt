@@ -50,7 +50,7 @@ IF(ENABLE_NCZARR_ZIP)
 SET(libnczarr_SOURCES ${libnczarr_SOURCES} zmap_zip.c)
 ENDIF()
 
-IF(ENABLE_S3_SDK) 
+IF(ENABLE_S3) 
 SET(libnczarr_SOURCES ${libnczarr_SOURCES} zmap_s3sdk.c)
 ENDIF()
 
