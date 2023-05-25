@@ -5,11 +5,15 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 . "$srcdir/test_nczarr.sh"
 
+set -e
+
+s3isolate "testdir_purezarr"
+THISDIR=`pwd`
+cd $ISOPATH
+
 # This shell script tests support for:
 # 1. pure zarr (noxarray) read/write
 # 2. xarray read/write
-
-set -e
 
 testcase() {
 zext=$1
@@ -41,4 +45,3 @@ testcase file
 if test "x$FEATURE_NCZARR_ZIP" = xyes ; then testcase zip; fi
 if test "x$FEATURE_S3TESTS" = xyes ; then testcase s3; fi
 
-exit 0

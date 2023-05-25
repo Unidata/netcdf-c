@@ -1187,7 +1187,7 @@ ensurefraglist(NCURI* uri)
     } else if(!nolist && nofrag) {
 	/* Create the fragment string from fraglist */
 	frag = ncbytesnew();
-	buildlist((const char**)uri->fraglist,1,frag);
+	buildlist((const char**)uri->fraglist,0,frag); /* do not encode */
 	uri->fragment = ncbytesextract(frag);
     }
 
