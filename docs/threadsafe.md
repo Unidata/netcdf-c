@@ -121,6 +121,22 @@ only operate on the arguments to the function, then those tests
 can be performed before *NCLOCK* is invoked. This can avoid
 some of the locking overhead.
 
+# Inter-Thread Interference {#threadsafe_interfere}
+
+Even though access to the netcdf-c library is serialized,
+there are uncommon situations where one thread can interfere
+with another thread. Specifically, one thread can change the state
+of the netcdf-c library in a way that can interfere with the changes
+made by another thread.
+
+The most likely way this can occur is if one thread adds/deletes/renames
+an attribute and then in a separate thread, the same attribute is accessed.
+Another case is if one thread adds an object (group or type or dimension or
+variable) and another thread attempts to add an object with the same name.
+In this case, the second thread will get an unexpected failure.
+ 
+
+
 # Extensions {#threadsafe_extend}
 
 Eventually, it should be possible to convert
