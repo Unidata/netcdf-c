@@ -8,7 +8,7 @@
 #include <assert.h>
 #include <stdarg.h>
 
-#undef D4CATCH /* Warning: significant performance impact */
+#define D4CATCH /* Warning: significant performance impact */
 
 #undef D4DEBUG /* general debug */
 #undef D4DEBUGPARSER

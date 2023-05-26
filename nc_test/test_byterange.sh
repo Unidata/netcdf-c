@@ -86,7 +86,9 @@ ${NCDUMP} -n nc_enddef "$U" >tmp_${TAG}.cdl
 diff -wb tmp_$TAG.cdl ${srcdir}/nc_enddef.cdl 
 }
 
-testsetup https://s3.us-east-1.amazonaws.com/unidata-zarr-test-data 
+if test "x$FEATURE_S3TESTS" = xyes ; then
+    testsetup https://s3.us-east-1.amazonaws.com/unidata-zarr-test-data 
+fi
 
 echo "*** Testing reading NetCDF-3 file with http"
 
