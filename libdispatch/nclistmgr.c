@@ -17,6 +17,10 @@
 #include <assert.h>
 #include "ncdispatch.h"
 
+#ifdef ENABLE_THREADSAFE
+#include "ncthreaded.h"
+#endif
+
 /** This shift is applied to the ext_ncid in order to get the index in
  * the array of NC. */
 #define ID_SHIFT (16)

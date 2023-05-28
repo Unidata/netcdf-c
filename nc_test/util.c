@@ -809,6 +809,7 @@ def_vars(int ncid)
     int var_id;
 
     for (i = 0; i < numVars; i++) {
+	err = NC_NOERR;
 	err = nc_def_var(ncid, var_name[i], var_type[i], var_rank[i],
 	    var_dimid[i], &var_id);
 	IF (err) error("nc_def_var: %s", nc_strerror(err));

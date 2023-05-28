@@ -6,12 +6,16 @@
 #ifndef _NCTHREADED_H_
 #define _NCTHREADED_H_
 
-#define DEBUGAPI
+/* Debug flags */
+#undef THREADSAFE_TRACK
+#define THREADSAFE_IDUNIQUE
+#undef THREADSAFE_SINGLE
+#define THREADSAFE_SINGLE_FAIL
 
 #ifdef ENABLE_THREADSAFE
 extern void NC_global_mutex_initialize(void);
 extern void NC_global_mutex_finalize(void);
-#ifdef DEBUGAPI
+#ifdef THREADSAFE_TRACK
 extern void NC_lock(const char* fcn);
 extern void NC_unlock(const char* fcn);
 #define NCLOCK NC_lock(__func__)

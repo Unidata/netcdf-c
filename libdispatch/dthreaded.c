@@ -52,7 +52,7 @@ call other API call.
 typedef struct NCmutex {
     pthread_mutex_t mutex;
     int refcount; /* # times called by same thread */
-#ifdef DEBUGAPI
+#ifdef THREADSAFE_TRACK
     struct {
         int depth;
         const char* stack[MAXDEPTH]; /* match lock/unlock */
@@ -68,7 +68,7 @@ static NCmutex NC_globalmutex;
 static volatile int global_mutex_initialized = 0; /* initialize once */
 
 /**************************************************/
-#ifdef DEBUGAPI
+#ifdef THREADSAFE_TRACK
 
 #ifdef DEBUGASSERT
 static void
@@ -118,7 +118,7 @@ popfcn(void)
 //    NC_globalmutex.fcns.stack[NC_globalmutex.fcns.depth] = NULL;
 }
 
-#endif /* DEBUGAPI */
+#endif /* THREADSAFE_TRACK */
 
 /**************************************************/
 
@@ -138,6 +138,7 @@ ncmutexinit(NCmutex* mutex)
 static void
 globalncmutexinit(void)
 {
+    assert(sizeof(pthread_t) <= sizeof(uintptr_t));
     ncmutexinit(&NC_globalmutex);
 }
 
@@ -162,7 +163,7 @@ NC_global_mutex_finalize(void)
     pthread_mutex_destroy(&NC_globalmutex.mutex);
 }    
 
-#ifdef DEBUGAPI
+#ifdef THREADSAFE_TRACK
 void NC_lock(const char* fcn)
 #else
 void NC_lock(void)
@@ -171,7 +172,7 @@ void NC_lock(void)
     NCmutex* mutex = &NC_globalmutex;
     pthread_mutex_lock(&mutex->mutex);
     mutex->refcount++;
-#ifdef DEBUGAPI
+#ifdef THREADSAFE_TRACK
     pushfcn(fcn);
 #ifdef DEBUGPRINT
     fprintf(stderr,"@%s lock count=%d depth=%d\n",fcn,mutex->refcount,mutex->fcns.depth); fflush(stderr);
@@ -179,20 +180,20 @@ void NC_lock(void)
 #endif
 }
 
-#ifdef DEBUGAPI
+#ifdef THREADSAFE_TRACK
 void NC_unlock(const char* fcn)
 #else
 void NC_unlock(void)
 #endif
 {
     NCmutex* mutex = &NC_globalmutex;
-#ifdef DEBUGAPI
+#ifdef THREADSAFE_TRACK
 #ifdef DEBUGPRINT
     fprintf(stderr,"@%s unlock count=%d depth=%d\n",fcntop(),mutex->refcount,mutex->fcns.depth); fflush(stderr);
 #endif
     popfcn();
 #endif
-    ASSERT(mutex->refcount > 0);
+    assert(mutex->refcount > 0);
     mutex->refcount--;
     pthread_mutex_unlock(&mutex->mutex);
 }

@@ -22,13 +22,13 @@
 #endif
 #include "netcdf.h"
 #include "ncmodel.h"
-#include "nc.h"
 #include "ncuri.h"
 #ifdef USE_PARALLEL
 #include "netcdf_par.h"
 #endif
 #include "ncthreaded.h" /* Always include */
 #include "netcdf_dispatch.h"
+#include "nc.h"
 
 #define longtype ((sizeof(long) == sizeof(int) ? NC_INT : NC_INT64))
 

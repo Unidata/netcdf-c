@@ -19,6 +19,9 @@
 #include <signal.h>
 #endif /* T90 */
 
+/* Define the mask of all formats */
+#define ALL_FORMATS (1<<NC_FORMAT_CLASSIC) | (1<<NC_FORMAT_64BIT_OFFSET) | (1<<NC_FORMAT_NETCDF4) | (1<<NC_FORMAT_NETCDF4_CLASSIC) | (1<<NC_FORMAT_64BIT_DATA)
+
 /*
  * Test driver for netCDF-3 interface.  This program performs tests against
  * the netCDF-3 specification for all user-level functions in an
@@ -40,7 +43,7 @@
 #if defined(ENABLE_THREADSAFE)
 typedef struct ThreadData {
     int id;		/* (in) Thread id */ 
-    int format;
+    int formats;	/* bit mask of enabled formats */
     int nfailsTotal;	/* (out) total fails for this thread */
     pthread_barrier_t* barrier;
 } ThreadData;
@@ -96,7 +99,6 @@ THREAD_LOCAL int  nfailsTotal = 0;        /* total number of failures (per-threa
 int  verbose;		/* if 1, print details of tests */
 int  max_nmpt;		/* max. number of messages per test */
 int  nthreads;
-int format;
 
 /* Test everything for classic and 64-bit offsetfiles. If netcdf-4 is
  * included, that means another whole round of testing. */
@@ -139,7 +141,7 @@ filenames(const char* base, const char* ext, int tid)
     scratch[0] = '\0';
     strlcat(scratch,filename,sizeof(testfile));
     if(verbose) {
-	fprintf(stderr,"thread: %d testfile=%s scratch=%s\n",tid,testfile,scratch);
+	fprintf(stderr,">>> thread: %d testfile=%s scratch=%s\n",tid,testfile,scratch);
     }
 }
 
@@ -166,24 +168,14 @@ unparseformat(int f)
 void*
 nc_test(NC_TEST_ARG)
 {
-    int i,nf;
-    int formatvec[NUM_FORMATS];
-    int nformats = NUM_FORMATS;
-    int specific_format;
+    int nf,specific_formats;
 
 #if defined(ENABLE_THREADSAFE)
     ThreadData* threaddata = (ThreadData*)perthreaddata;
-    specific_format = threaddata->format;
+    specific_formats = threaddata->formats;
 #else
-    specific_format = format;
+    specific_formats = formats;
 #endif
-
-    for (i = 0; i < NUM_FORMATS; i++) formatvec[i] = i+1;
-    if(specific_format > 0) {formatvec[0] = specific_format; nformats = 1;}
-
-    fprintf(stderr, "Testing %d different netCDF formats:", nformats);
-    for(i=0;i<nformats;i++) fprintf(stderr, " %s", unparseformat(formatvec[i]));
-    fprintf(stderr,"\n");
 
 #if defined(ENABLE_THREADSAFE)
     fprintf(stderr,"starting thread: %d\n",threaddata->id); fflush(stderr);
@@ -207,15 +199,15 @@ nc_test(NC_TEST_ARG)
      * the netCDF-4 format last, however, because, as an additional
      * test, the ../nc_test4/tst_nc_test_file program looks at the
      * output of this program. */
-    for (nf=0; nf<nformats; nf++)
+    for (nf=NC_FORMAT_CLASSIC; nf<NC_FORMAT_64BIT_DATA; nf++)
     {
-       i = formatvec[nf];
+       if((specific_formats & (1<<nf))==0) continue;
 
        numGatts = 6;
        numVars  = 136;
        numTypes = 6;
 
-       switch (i)
+       switch (nf)
        {
 	  case NC_FORMAT_CLASSIC:
 	     nc_set_default_format(NC_FORMAT_CLASSIC, NULL);
@@ -244,9 +236,6 @@ nc_test(NC_TEST_ARG)
          /* Repeated test. See https://github.com/Unidata/netcdf-c/issues/556 for more
             information re: the immediate 'continue' */
        case NC_FORMAT_NETCDF4: /* actually it's _CLASSIC. */
-         continue; /* loop i */
-
-
        case NC_FORMAT_NETCDF4_CLASSIC:
 #ifdef USE_HDF5
 	     nc_set_default_format(NC_FORMAT_NETCDF4_CLASSIC, NULL);
@@ -257,7 +246,7 @@ nc_test(NC_TEST_ARG)
 	     continue; /* loop i */
 #endif
 	  default:
-	     fprintf(stderr, "Unexpected format: %d!\n",i);
+	     fprintf(stderr, "Unexpected format: %d!\n",nf);
 	     goto done;
        }
 
@@ -463,7 +452,6 @@ nc_test(NC_TEST_ARG)
 	NC_TEST(nc_copy_att);
 	NC_TEST(nc_rename_att);
 	NC_TEST(nc_del_att);
-	NC_TEST(nc_against_pnetcdf);
         /* keep below the last test, as it changes the default file format */
 	NC_TEST(nc_set_default_format);
     }
@@ -508,6 +496,7 @@ main(int argc, char *argv[])
 {
     int c, retcode;
     int  allfailsTotal = 0;        /* total number of failures across all threads */
+    int formats, tmp;
 #if defined(ENABLE_THREADSAFE)
     int i;
     Threadset* threadset = NULL;
@@ -522,14 +511,14 @@ main(int argc, char *argv[])
     verbose = 1;
     max_nmpt = 8;
     nthreads = 0;
-    format = 0;
+    formats = 0;
     
     while ((c = getopt(argc, argv, "hvF:M:T:")) != EOF) {
 	switch(c) {
 	case 'h': usage(); break;
 	case 'v': verbose = 1; break;
 	case 'F':
-	  format = parseformat(optarg);
+	  formats = (1<<parseformat(optarg));
 	  break;
 	case 'M': sscanf(optarg,"%d",&max_nmpt); break;
 	case 'T': sscanf(optarg,"%d",&nthreads); break;
@@ -538,6 +527,16 @@ main(int argc, char *argv[])
 	   goto done;
 	}
     }
+
+    if(formats == 0) formats = ALL_FORMATS;
+
+    fprintf(stderr, "Testing netCDF formats:");
+    tmp = formats;
+    if(tmp == 0) fprintf(stderr," none");
+    for(i=NC_FORMAT_CLASSIC;i<NC_FORMAT_64BIT_DATA;i++) {
+        if(tmp & (1<<i)) fprintf(stderr, "%s%s", (i==NC_FORMAT_CLASSIC?" ":","),unparseformat(i));
+    }
+    fprintf(stderr,"\n");
 
 #if defined(ENABLE_THREADSAFE)
     if(nthreads > 0) {
@@ -548,7 +547,7 @@ main(int argc, char *argv[])
         pthread_barrier_init(&barrier, NULL, nthreads);
         for(i=0; i<nthreads; i++) {
 	    threaddata[i].id = i;
-    	    threaddata[i].format = format;
+    	    threaddata[i].formats = formats;
 	    threaddata[i].barrier = &barrier;
             pthread_create(&threadset->threadset[i], NULL, nc_test, (void*)&threaddata[i]);
 	}

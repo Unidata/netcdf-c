@@ -36,6 +36,10 @@ dnl
 #include "config.h"
 #include "math.h"
 
+#ifdef ENABLE_THREADSAFE
+#include "ncthreads.h"
+#endif
+
 define(`EXPECT_ERR',`error("expecting $1 but got %s",nc_err_code_name($2));')dnl
 
 define(`IntType', `ifdef(`PNETCDF',`MPI_Offset',`size_t')')dnl

@@ -138,56 +138,7 @@ AC_DEFINE([ENABLE_THREADSAFE], [1], [if true, include experimental thread safe c
 fi
 AM_CONDITIONAL(ENABLE_THREADSAFE, [test "x$enable_threadsafe" = xyes])
 
-# Get threadsafe options: idunique
-AC_MSG_CHECKING([thread safe options])
-AC_ARG_WITH([threadsafe-options],
-              [AS_HELP_STRING([--with-threadsafe-options=idunique],
-                              [control netcdf threadsafe operation])],
-            [], [with_threadsafe_options=none]) # default
-if test "x$with_threadsafe_options" = x || test "x$with_threadsafe_options" = xnone ; then
-AC_MSG_RESULT()
-AC_MSG_NOTICE("Defaulting --with-threadsafe-options to none")
-with_threadsafe_options=
-else
-AC_MSG_RESULT($with_threadsafe_options)
-fi
-
-# Get threadsafe debug: single|single_fail
-AC_MSG_CHECKING([thread safe debug options])
-AC_ARG_WITH([threadsafe-debug],
-              [AS_HELP_STRING([--with-threadsafe-debug=single|single_fail],
-                              [control netcdf threadsafe debug options])],
-            [], [with_threadsafe_debug=none]) # default
-if test "x$with_threadsafe_debug" = x || test "x$with_threadsafe_debug" = xnone ; then
-AC_MSG_RESULT()
-AC_MSG_NOTICE("Defaulting --with-threadsafe-debug to none")
-with_threadsafe_debug=
-else
-AC_MSG_RESULT($with_threadsafe_debug)
-fi
-
 # Setup the config.h
-
-# Make option sets usable with sh for loop by converting comma to blank
-with_threadsafe_options=`echo $with_threadsafe_options | tr -d '\r\n' | tr ',' ' '`
-with_threadsafe_debug=`echo $with_threadsafe_debug | tr -d '\r\n' | tr ',' ' '`
-
-# Create the necessary flags
-for TO in $with_threadsafe_options ; do
-case "$TO" in
-idunique) AC_DEFINE([THREADSAFE_IDUNIQUE], [1], [if true, use unique identifiers.]) ;;
-noidunique) ;;
-*) AC_MSG_ERROR([Unexpected --with-threadsafe-option: $TO])
-esac
-done
-
-for TO in $with_threadsafe_debug ; do
-case "$TO" in
-single) AC_DEFINE([THREADSAFE_DEBUG_SINGLE], [1], [if true, report multi-thread interference.]) ;;
-single_fail) AC_DEFINE([THREADSAFE_DEBUG_SINGLE_FAIL], [1], [if true, abort multi-thread interference.]) ;;
-*) AC_MSG_ERROR([Unexpected --with-threadsafe-debug: $TO])
-esac
-done
 
 # Get windows version info
 if test "x$ISMINGW" = xyes || test "x$ISMSVC" = xyes ; then

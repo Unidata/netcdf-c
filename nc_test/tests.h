@@ -23,7 +23,7 @@
 #if defined(_WIN32) && ! defined(__MINGW32__)
 #define THREAD_LOCAL __declspec(thread)
 #else
-#define THREAD_LOCAL __thread
+#define THREAD_LOCAL _Thread_local
 #endif
 #else /*!ENABLE_THREADSAFE*/
 #define THREAD_LOCAL
