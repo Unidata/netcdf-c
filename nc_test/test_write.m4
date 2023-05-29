@@ -37,7 +37,7 @@ dnl
 #include "math.h"
 
 #ifdef ENABLE_THREADSAFE
-#include "ncthreads.h"
+#include "ncthreaded.h"
 #endif
 
 define(`EXPECT_ERR',`error("expecting $1 but got %s",nc_err_code_name($2));')dnl
