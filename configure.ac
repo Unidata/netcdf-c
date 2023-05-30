@@ -133,8 +133,12 @@ if test "x$enable_threadsafe" = xyes && test "x$have_pthreads" = xno ; then
   AC_MSG_NOTICE([!pthreads => !threadsafe])
   enable_threadsafe=no
 fi
+
 if test "x$enable_threadsafe" = xyes ; then
 AC_DEFINE([ENABLE_THREADSAFE], [1], [if true, include experimental thread safe code])
+AC_DEFINE_UNQUOTED([PTHREAD_T_MAX_SIZE], [64], [|pthread_t|])
+else
+AC_DEFINE_UNQUOTED([PTHREAD_T_MAX_SIZE], [0], [|pthread_t|])
 fi
 AM_CONDITIONAL(ENABLE_THREADSAFE, [test "x$enable_threadsafe" = xyes])
 
