@@ -3,10 +3,11 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
+set -x
+set -e
+
 NTHREADS=8
 NCYCLES=4
-
-set -e
 
 isolate "testdir_nc_tests_threads"
 
