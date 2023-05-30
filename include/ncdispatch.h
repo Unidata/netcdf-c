@@ -101,23 +101,23 @@ typedef struct NC_MPI_INFO {
 extern int NCDISPATCH_initialize(void);
 extern int NCDISPATCH_finalize(void);
 
-extern const NC_Dispatch* NC3_dispatch_table;
+extern NC_Dispatch* NC3_dispatch_table;
 extern int NC3_initialize(void);
 extern int NC3_finalize(void);
 
 #ifdef ENABLE_DAP
-extern const NC_Dispatch* NCD2_dispatch_table;
+extern NC_Dispatch* NCD2_dispatch_table;
 extern int NCD2_initialize(void);
 extern int NCD2_finalize(void);
 #endif
 #ifdef ENABLE_DAP4
-extern const NC_Dispatch* NCD4_dispatch_table;
+extern NC_Dispatch* NCD4_dispatch_table;
 extern int NCD4_initialize(void);
 extern int NCD4_finalize(void);
 #endif
 
 #ifdef USE_PNETCDF
-extern const NC_Dispatch* NCP_dispatch_table;
+extern NC_Dispatch* NCP_dispatch_table;
 extern int NCP_initialize(void);
 extern int NCP_finalize(void);
 #endif
@@ -128,19 +128,19 @@ extern int NC4_finalize(void);
 #endif
 
 #ifdef USE_HDF5
-extern const NC_Dispatch* HDF5_dispatch_table;
+extern NC_Dispatch* HDF5_dispatch_table;
 extern int NC_HDF5_initialize(void);
 extern int NC_HDF5_finalize(void);
 #endif
 
 #ifdef USE_HDF4
-extern const NC_Dispatch* HDF4_dispatch_table;
+extern NC_Dispatch* HDF4_dispatch_table;
 extern int HDF4_initialize(void);
 extern int HDF4_finalize(void);
 #endif
 
 #ifdef ENABLE_NCZARR
-extern const NC_Dispatch* NCZ_dispatch_table;
+extern NC_Dispatch* NCZ_dispatch_table;
 extern int NCZ_initialize(void);
 extern int NCZ_finalize(void);
 #endif

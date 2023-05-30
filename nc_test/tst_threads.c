@@ -19,8 +19,8 @@
 #include "netcdf.h"
 #include "netcdf_threadsafe.h"
 
-#define MODE3 3
-#define MODE4 4
+#define MODE3 (NC_CLOBBER)
+#define MODE4 (NC_CLOBBER|NC_NETCDF4)
 
 #define DFALTCYCLES 1
 #define DFALTTHREADS 0
@@ -39,7 +39,6 @@ typedef struct NC_Threadset {
 
 typedef struct Options {
     int mode;
-    int ncflags;
     int nthreads;
     int ncycles;
     const char* format;
@@ -55,7 +54,7 @@ static NC_ThreadData* data = NULL;
 /* forward */
 static void* threadprog(void* data);
 static void NC_threadset_join(NC_Threadset* threadset);
-static void usage(void);
+static void usage(const char*);
 
 int
 main(int argc, char **argv)
@@ -67,10 +66,11 @@ main(int argc, char **argv)
     memset(&options,0,sizeof(Options));
     options.ncycles = DFALTCYCLES;
     options.nthreads = DFALTTHREADS;
+    options.mode = -1; /* to detect if not set */
 
     while ((c = getopt(argc, argv, "h34C:T:F:")) != EOF) {
 	switch(c) {
-	case 'h': usage(); break;
+	case 'h': usage(NULL); break;
 	case '3': options.mode = MODE3; break;
 	case '4': options.mode = MODE4; break;
 	case 'C': sscanf(optarg,"%d",&options.ncycles); break;
@@ -81,16 +81,10 @@ main(int argc, char **argv)
 	   goto done;
 	}
     }
-    if(options.format == NULL || strlen(options.format)==0) usage();
-    if(options.mode == 0) usage();
+    if(options.format == NULL || strlen(options.format)==0) usage("no format");
+    if(options.mode < 0) usage("no mode");
     if(options.ncycles <= 0) options.ncycles = DFALTCYCLES;
     if(options.nthreads <= 0) options.ncycles = DFALTTHREADS;
-    
-    switch (options.mode) {
-    case MODE3: options.ncflags = NC_CLOBBER; break;
-    case MODE4: options.ncflags = NC_CLOBBER|NC_NETCDF4; break;
-    default: usage(); break;
-    }
 
     data = (NC_ThreadData*)calloc(options.nthreads,sizeof(NC_ThreadData));
     if(data == NULL) {
@@ -146,8 +140,10 @@ threadprog(void* arg)
 
     snprintf(filename,sizeof(filename),data->format,data->id);
     for(i=0;i<options.ncycles;i++) {
-        if((stat = nc_create(filename,data->mode,&ncid))) goto done;
-	if((stat = nc_close(ncid))) goto done;
+        stat = nc_create(filename,data->mode,&ncid);
+        fprintf(stderr, ">>> (1) filename=%s data->mode=%d stat=%d\n", filename, data->mode, stat);
+        (void)nc_close(ncid);
+        if (stat) goto done;
     }
 done:
     if(stat) {fprintf(stderr,"***Fail: thread=%d err=%d %s\n",data->id,stat,nc_strerror(stat)); fflush(stderr);}
@@ -166,8 +162,10 @@ NC_threadset_join(NC_Threadset* threadset)
 }
 
 static void
-usage(void)
+usage(const char* msg)
 {
-   fprintf(stderr,"usage: tst_threads [-h][-3|-4][-F <filenameformatstring>][-C <ncycles>][-T <nthreads>]");
+   fprintf(stderr,"usage: tst_threads [-h][-3|-4][-F <filenameformatstring>][-C <ncycles>][-T <nthreads>]\n");
+   if(msg != NULL)
+       fprintf(stderr,"error: %s\n",msg);
    exit(1);
 }
