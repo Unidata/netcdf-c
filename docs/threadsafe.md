@@ -21,7 +21,8 @@ been tested to only a very limited extent.
 The implementation is patterned after the HDF5 thread-safety support.
 For those platforms that support it, *pthreads* is used,
 and specifically the *pthread_mutex* functionality.
-For Windows, the Windows *CriticalSection* functionality is used.
+Note that for Windows, the *pthreads4w* <a href="#ref_voll">[2]</a>
+implementation is used.
 
 There is a single global mutex object that controls access to
 the netcdf-c API functions. This means that all netcdf-c
@@ -52,7 +53,7 @@ and if it is zero then the mutex is actually released.
 
 # Known Issues
 
-* This implementation only supports *libpthread*.
+* This implementation only supports *libpthread* (including *pthreads4w*).
 * Filters are implicitly locked because the nc_get/put_varX functions are locked.
 * It is unknown how this interacts with MPI.
 * There are some difficult memory leaks.
@@ -121,25 +122,14 @@ only operate on the arguments to the function, then those tests
 can be performed before *NCLOCK* is invoked. This can avoid
 some of the locking overhead.
 
-# Inter-Thread Interference {#threadsafe_interfere}
-
-Even though access to the netcdf-c library is serialized,
-there are uncommon situations where one thread can interfere
-with another thread. Specifically, one thread can change the state
-of the netcdf-c library in a way that can interfere with the changes
-made by another thread.
-
-The most likely way this can occur is if one thread adds/deletes/renames
-an attribute and then in a separate thread, the same attribute is accessed.
-Another case is if one thread adds an object (group or type or dimension or
-variable) and another thread attempts to add an object with the same name.
-In this case, the second thread will get an unexpected failure.
- 
-
-
 # Extensions {#threadsafe_extend}
 
-Eventually, it should be possible to convert
+* Ideally, it would be better to not use recursive mutex objects
+as it has some performance costs. But fixing this would require
+a significant refactoring of the netcdf-c library code. So this
+change may be fixed, but only piece-meal.
+
+* Eventually, it should be possible to convert
 total API serialization into a finer grain of
 locking so that a mutex is locked only when accessing
 a shared object such as the open files vector.
@@ -147,6 +137,12 @@ This should significantly improve parallel performance.
 Unfortunately, implementing this level of locking
 is quite complex, so it is unlikely to be realized
 any time soon.
+
+* In support of fine grain locking, it may be useful to,
+in some cases, move locking down into the dispatcher code.
+This means, for example, that the HDF5 dispatcher and the NCZarr
+dispatcher might have their on locking regime, while other dispatchers
+continue to use the global locking regime.
 
 # Testing
 
@@ -169,20 +165,26 @@ where
 
 One cycle creates a file, manipulates it, and then closes the file.
 
-## run_nc_test_threads.sh + nc_test_threads.c
-The shell script invokes nc_test_threads.c with some different options.
+## run_threads_nc_test.sh + threads_nc_test.c
+The shell script invokes threads_nc_test.c with some different options.
 Usage of nc_test_threads is as follows:
 ````
-nc_test_threads [-h] [-v] [-m <max-messages>] [-T <nthreads>]\n");
+threads_nc_test [-h] [-v] [-M <max-messages>] [-T <nthreads>]\n");
 ````
 where 
 * -h &mdash; print usage.
 * -v &mdash; provide verbose output (default off).
-* -m &mdash; provide at most max-messages for each test.
+* -M &mdash; provide at most max-messages for each test.
 * -T &mdash; execute the body of the test using n threads.
 
 This test performs the same set of tests as the nc_test program,
 but using multiple threads.
+
+# Debug Aids {#threadsafe_debug}
+
+Debugging multi-threaded applications are notoriously difficult.
+Fortunately, the GNU debugger (*gdb*) provides pretty good thread
+support capabilities.
 
 # Configuration {#threadsafe_config}
 
@@ -215,6 +217,10 @@ The current status of thread-safe operation is as follows.
 <tr><td>Cygwin        <td> Automake <td> unknown	<td>N.A.
 </table>
 
+# References {#nczarr_bib}
+<a name="ref_fwb">[1]</a> [Github/FWBuilder](https://github.com/fwbuilder/pthreads4w.git)<br>
+<a name="ref_voll">[2]</a> [Github/Vollstrecker](https://github.com/Vollstrecker/pthreads4w.git)
+
 # Appendix A. Providing libpthread Support for Windows Visual Studio
 
 The capability for thread safe operation is based soley on using
@@ -226,11 +232,15 @@ to install a libpthread implementation.
 At the moment the only port supported by Unidata is derived from
 [PTHREADS4W](https://sourceforge.net/projects/pthreads4w/),
 version 3.0.0 (2017-01-01) or later.
-The derived port used here is Github repository
-[Vollstrecker/pthreads4w](https://github.com/Vollstrecker/pthreads4w).
-That port is used because it provides a cmake build, which
-allows for building for Visual Studio. 
-Both code bases are released using the Apache V2 license.
+The derived port used here is the Vollstrecker Github repository
+<a href="#ref_voll">[2]</a>.
+This is in preference to the other major (and related) 
+FWBuilder implementation <a href="#ref_voll">[1]</a>.
+
+The Vollstrecker port is used because it provides a cmake build,
+which allows for building for Visual Studio. In addition, it
+appears to still be under active development. Both code bases
+are released using the Apache V2 license.
 
 The script used to build and install this port is below.
 It is probably best to set INSTALLDIR to an absolute path

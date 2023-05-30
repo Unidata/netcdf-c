@@ -138,7 +138,7 @@ ncmutexinit(NCmutex* mutex)
 static void
 globalncmutexinit(void)
 {
-    assert(sizeof(pthread_t) <= sizeof(uintptr_t));
+    assert(sizeof(pthread_t) <= PTHREAD_T_MAX_SIZE);
     ncmutexinit(&NC_globalmutex);
 }
 

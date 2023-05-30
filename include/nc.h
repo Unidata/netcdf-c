@@ -28,7 +28,7 @@ typedef struct NC {
 	char* path;
 	int   mode; /* as provided to nc_open/nc_create */
 #ifdef THREADSAFE_SINGLE
-        uintptr_t threadid; /* Mark the first thread to open/create this NC */
+        unsigned char threadid[PTHREAD_T_MAX_SIZE]; /* Mark the first thread to open/create this NC */
 #endif
 } NC;
 

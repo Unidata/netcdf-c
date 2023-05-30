@@ -8,6 +8,11 @@ NMSGS=4
 
 set -e
 
+isolate "testdir_nc_tests_threads"
+
+# Move into test directory
+cd $ISOPATH
+
 if test 1 = 1 ; then
 echo "*** Testing netcdf-3 thread safe execution"
 ${execdir}/thread_nc_test -T ${NTHREADS} -M ${NMSGS}

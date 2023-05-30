@@ -7,10 +7,12 @@
 #define _NCTHREADED_H_
 
 /* Debug flags */
+#ifdef ENABLE_THREADSAFE
 #undef THREADSAFE_TRACK
-#define THREADSAFE_IDUNIQUE
-#undef THREADSAFE_SINGLE
+#undef THREADSAFE_IDUNIQUE
+#define THREADSAFE_SINGLE
 #define THREADSAFE_SINGLE_FAIL
+#endif
 
 #ifdef ENABLE_THREADSAFE
 extern void NC_global_mutex_initialize(void);

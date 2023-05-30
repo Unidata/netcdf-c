@@ -131,8 +131,6 @@ threadprog(void* arg)
     NC_ThreadData* data = (NC_ThreadData*)arg;
     char filename[1024];
 
-fprintf(stderr,"<<< data[%d]=%p\n",data->id,arg); fflush(stderr);
-
     fprintf(stderr,"starting thread: %d\n",data->id); fflush(stderr);
 
     pthread_barrier_wait(data->barrier);

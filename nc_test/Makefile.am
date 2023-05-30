@@ -157,6 +157,10 @@ endif
 # regenerate.
 MAINTAINERCLEANFILES = test_get.c test_put.c
 
+# Remove directories
+clean-local:
+	rm -fr testdir_nc_test_*
+
 # This rule tells make how to turn our .m4 files into .c files.
 .m4.c:
 	m4 $(AM_M4FLAGS) $(M4FLAGS) $< >$@

@@ -3,7 +3,6 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
-
 . $srcdir/test_ncdump.sh
 
 isolate "testdir_ncdump_nccopy4"

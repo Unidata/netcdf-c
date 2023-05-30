@@ -19,7 +19,7 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#ifdef HAVE_LIBPTHREAD
+#if defined(HAVE_PTHREADS) || defined(HAVE_LIBPTHREAD)
 #include <pthread.h>
 #endif
 #include "ncdispatch.h"
@@ -44,10 +44,9 @@ NC_check_id(int ncid, NC** ncpp)
     if(nc == NULL) return NC_EBADID;
 #ifdef THREADSAFE_SINGLE
     /* Verify that only one thread uses this NC */
-    if(!pthread_equal((pthread_t)nc->threadid,pthread_self())) {
+    if(!pthread_equal(*((pthread_t*)nc->threadid),pthread_self())) {
 	/* Report this occurrence */
-	fprintf(stderr,">>> WARNING: !!! multiple threads accessing same NC: owner=%llu this=%llu",
-		(unsigned long long)nc->threadid, (unsigned long long)((uintptr_t)pthread_self()));
+	fprintf(stderr,">>> WARNING: !!! multiple threads accessing same NC\n");
 #ifdef THREADSAFE_SINGLE_FAIL
 	abort();
 #endif
@@ -108,7 +107,9 @@ new_NC(const NC_Dispatch* dispatcher, const char* path, int mode, NC** ncpp)
 	goto done;
     }
 #ifdef THREADSAFE_SINGLE
-    ncp->threadid = (uintptr_t)pthread_self();
+    { pthread_t pt = pthread_self();
+    memcpy(ncp->threadid,&pt,sizeof(pthread_t));
+    }
 #endif
     if(ncpp) {
         *ncpp = ncp;
