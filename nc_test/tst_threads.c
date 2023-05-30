@@ -75,7 +75,7 @@ main(int argc, char **argv)
 	case '4': options.mode = MODE4; break;
 	case 'C': sscanf(optarg,"%d",&options.ncycles); break;
 	case 'T': sscanf(optarg,"%d",&options.nthreads); break;
-	case 'F': options.format = optarg; break;
+	case 'F': options.format = strdup(optarg); break;
 	case '?':
 	   fprintf(stderr,"unknown option\n");
 	   goto done;
@@ -93,8 +93,17 @@ main(int argc, char **argv)
     }
 
     data = (NC_ThreadData*)calloc(options.nthreads,sizeof(NC_ThreadData));
+    if(data == NULL) {
+        fprintf(stderr,"out of memory\n");
+	exit(1);
+    }
 
     threadset = (NC_Threadset*)calloc(1,sizeof(NC_Threadset));
+    if(threadset == NULL) {
+        fprintf(stderr,"out of memory\n");
+	exit(1);
+    }
+
     threadset->nthreads = options.nthreads;
     threadset->threadset = (pthread_t*)calloc(threadset->nthreads,sizeof(pthread_t));
 
