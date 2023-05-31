@@ -217,7 +217,7 @@ The current status of thread-safe operation is as follows.
 <tr><td>Cygwin        <td> Automake <td> unknown	<td>N.A.
 </table>
 
-# References {#nczarr_bib}
+# References {#threadsafe_bib}
 <a name="ref_fwb">[1]</a> [Github/FWBuilder](https://github.com/fwbuilder/pthreads4w.git)<br>
 <a name="ref_voll">[2]</a> [Github/Vollstrecker](https://github.com/Vollstrecker/pthreads4w.git)
 
