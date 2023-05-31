@@ -72,9 +72,11 @@ if ENABLE_NCZARR_FILTERS
 libnczarr_la_SOURCES += zfilter.c
 endif
 
-if ENABLE_S3_SDK
+if ENABLE_S3
 libnczarr_la_SOURCES += zmap_s3sdk.c
+if ENABLE_S3_AWS
 AM_CXXFLAGS += -std=c++11
+endif
 endif
 
 # For now, ignore these

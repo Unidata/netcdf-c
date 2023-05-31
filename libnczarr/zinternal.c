@@ -85,7 +85,7 @@ NCZ_finalize_internal(void)
 #ifdef ENABLE_NCZARR_FILTERS
     NCZ_filter_finalize();
 #endif
-#ifdef ENABLE_S3_SDK
+#ifdef ENABLE_S3
     NCZ_s3finalize();
 #endif
     return NC_NOERR;

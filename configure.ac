@@ -156,9 +156,9 @@ AC_MSG_NOTICE([checking supported formats])
 # An explicit disable of netcdf-4 | netcdf4 is treated as if it was disable-hdf5
 AC_MSG_CHECKING([whether we should build with netcdf4 (alias for HDF5)])
 AC_ARG_ENABLE([netcdf4], [AS_HELP_STRING([--disable-netcdf4],
-              [(deprecated synonym for --enable-hdf5)])])
+              [(Deprecated) Synonym for --enable-hdf5)])])
 test "x$enable_netcdf4" = xno || enable_netcdf4=yes
-AC_MSG_RESULT([$enable_netcdf4 (deprecated; Please use with --disable-hdf5)])
+AC_MSG_RESULT([$enable_netcdf4 (Deprecated) Please use --disable-hdf5)])
 AC_MSG_CHECKING([whether we should build with netcdf-4 (alias for HDF5)])
 AC_ARG_ENABLE([netcdf-4], [AS_HELP_STRING([--disable-netcdf-4],
               [(synonym for --disable-netcdf4)])])
@@ -551,19 +551,19 @@ AC_MSG_RESULT([${havecurloption}])
 if test $havecurloption = yes; then
   AC_DEFINE([HAVE_CURLOPT_KEEPALIVE],[1],[Is CURLOPT_TCP_KEEPALIVE defined])
 fi
+
 # CURLOPT_VERIFYHOST semantics differ depending on version
 AC_MSG_CHECKING([whether libcurl is version 7.66 or later?])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 [#include "curl/curl.h"],
 [[
-#if LIBCURL_VERSION_NUM < 0x074200
+#if !CURL_AT_LEAST_VERSION(7,66,0)
 error "<7.66";
 #endif
 ]])], [libcurl766=yes], [libcurl766=no])
-
 AC_MSG_RESULT([$libcurl766])
-if test x$libcurl66 = xno; then
-  AC_DEFINE([HAVE_LIBCURL_766],[1],[Is libcurl version 7.66 or later])
+if test x$libcurl766 = xyes; then
+AC_DEFINE([HAVE_LIBCURL_766],[1],[libcurl version is 7.66 or later])
 fi
 
 CFLAGS="$SAVECFLAGS"
@@ -586,7 +586,7 @@ if test "x$enable_libxml2" = xyes; then
    if test -z "$NC_XML2_CONFIG"; then
       AC_MSG_ERROR([Cannot find xml2-config utility. Either install the libxml2 development package, or re-run configure with --disable-libxml2 to use the bundled xml2 parser])
    fi
-  # We can optionally use libxml2 for DAP4
+  # We can optionally use libxml2 for DAP4 and nch5comms, if enabled
   AC_CHECK_LIB([xml2],[xmlReadMemory],[have_libxml2=yes],[have_libxml2=no])
   if test "x$have_libxml2" = "xyes" ; then
       AC_SEARCH_LIBS([xmlReadMemory],[xml2 xml2.dll cygxml2.dll], [],[])
@@ -824,13 +824,14 @@ AC_MSG_RESULT($enable_s3)
 AC_MSG_CHECKING([whether netcdf NCZarr S3 support should be enabled])
 AC_ARG_ENABLE([nczarr-s3],
               [AS_HELP_STRING([--enable-nczarr-s3],
-                              [enable netcdf NCZarr S3 support; Deprecated in favor of --enable-s3])])
+                              [(Deprecated) enable netcdf NCZarr S3 support; Deprecated in favor of --enable-s3])])
+AC_MSG_RESULT([$enable_nczarr_s3 (Deprecated) Please use --enable-s3)])
+
 # Set enable_s3 instead of enable_nczarr_s3
 if test "x$enable_s3" = xno && test "x$enable_nczarr_s3" = xyes ; then
 enable_s3=yes # back compatibility
 fi
 unset enable_nczarr_s3
-AC_MSG_RESULT($enable_s3)
 
 # Note we check for the library after checking for enable_s3
 # because for some reason this fails if we unconditionally test for sdk
@@ -839,48 +840,73 @@ if test "x$enable_s3" = xyes ; then
 # See if we have the s3 aws library
 # Check for the AWS S3 SDK library
 AC_LANG_PUSH([C++])
-AC_SEARCH_LIBS([aws_allocator_is_valid],[aws-c-common aws-cpp-sdk-s3 aws-cpp-sdk-core], [enable_s3_sdk=yes],[enable_s3_sdk=no])
+AC_SEARCH_LIBS([aws_allocator_is_valid],[aws-c-common aws-cpp-sdk-s3 aws-cpp-sdk-core], [enable_s3_aws=yes],[enable_s3_aws=no])
 AC_LANG_POP
 else
-enable_s3_sdk=no
+enable_s3_aws=no
 fi
 
 AC_MSG_CHECKING([whether AWS S3 SDK library is available])
-AC_MSG_RESULT([$enable_s3_sdk])
+AC_MSG_RESULT([$enable_s3_aws])
 
-if test "x$enable_s3_sdk" = xno ; then
+# Check for enabling forced use of Internal S3 library
+AC_MSG_CHECKING([whether internal S3 support should be used])
+AC_ARG_ENABLE([s3-internal],
+              [AS_HELP_STRING([--enable-s3-internal],
+                              [enable internal S3 support])])
+test "x$enable_s3_internal" = xyes || enable_s3_internal=no
+AC_MSG_RESULT($enable_s3_internal)
+
+if test "x$enable_s3_aws" = xno && test "x$enable_s3_internal" = xno ; then
 AC_MSG_WARN([No S3 library available => S3 support disabled])
 enable_S3=no
 fi
 
+if test "x$enable_s3_aws" = xyes && test "x$enable_s3_internal" = xyes ; then
+AC_MSG_WARN([Both aws-sdk-cpp and s3-internal enabled => use s3-internal.])
+enable_s3_aws=no
+fi
+
+if test "x$enable_s3_internal" = xyes ; then
+if test "x$ISOSX" != xyes && test "x$ISMINGW" != xyes && test "x$ISMSVC" != xyes ; then
+# Find crypto libraries if using ssl
+AC_CHECK_LIB([ssl],[ssl_create_cipher_list])
+AC_CHECK_LIB([crypto],[SHA256])
+fi
+fi
+
 # Check for enabling S3 testing
-AC_MSG_CHECKING([whether netcdf zarr S3 testing should be enabled])
-AC_ARG_ENABLE([nczarr-s3-tests],
-              [AS_HELP_STRING([--enable-nczarr-s3-tests],
-                              [enable netcdf zarr S3 testing])])
-test "x$enable_nczarr_s3_tests" = xyes || enable_nczarr_s3_tests=no
-AC_MSG_RESULT($enable_nczarr_s3_tests)
+AC_MSG_CHECKING([what level of netcdf S3 testing should be enabled])
+AC_ARG_WITH([s3-testing],
+              [AS_HELP_STRING([--with-s3-testing=yes|no|public],
+                              [control netcdf S3 testing])],
+            [], [with_s3_testing=public])
+AC_MSG_RESULT($with_s3_testing)
 
 # Disable S3 tests if S3 support is disabled
-if test "x$enable_nczarr_s3_tests" = xyes ; then
-  if test "x$enable_s3" = xno ; then
-    AC_MSG_ERROR([S3 support is disabled => no testing])
-    enable_nczarr_s3_tests=no
+if test "x$enable_s3" = xno ; then
+  if test "x$with_s3_testing" != xno ; then
+    AC_MSG_WARN([S3 support is disabled => no testing])
+    with_s3_testing=no
   fi
 fi
 
 if test "x$enable_s3" = xyes ; then
   AC_DEFINE([ENABLE_S3], [1], [if true, build netcdf-c with S3 support enabled])
 fi
-if test "x$enable_nczarr_s3_tests" = xyes ; then
-  AC_DEFINE([ENABLE_NCZARR_S3_TESTS], [1], [if true, build libnczarr with S3 tests enabled])
-fi
-if test "x$enable_s3_sdk" = xyes ; then
-AC_DEFINE([ENABLE_S3_SDK], [1], [If true, then S3 sdk was found])
+
+if test "x$enable_s3_aws" = xyes ; then
+AC_DEFINE([ENABLE_S3_AWS], [1], [If true, then use aws S3 library])
 fi
 
-if test "x$enable_nczarr_s3_tests" = xyes ; then
-  AC_MSG_WARN([*** DO NOT ENABLE_NCZARR_S3_TESTS UNLESS YOU HAVE ACCESS TO THE UNIDATA S3 BUCKET! ***])
+if test "x$enable_s3_internal" = xyes ; then
+AC_DEFINE([ENABLE_S3_INTERNAL], [1], [If true, then use internal S3 library])
+fi
+
+AC_DEFINE_UNQUOTED([WITH_S3_TESTING], [$with_s3_testing], [control S3 testing.])
+
+if test "x$with_s3_testing" = xyes ; then
+  AC_MSG_WARN([*** DO NOT SPECIFY WITH_S3_TESTING=YES UNLESS YOU HAVE ACCESS TO THE UNIDATA S3 BUCKET! ***])
 fi
 
 # Set default
@@ -1230,7 +1256,7 @@ AC_CHECK_FUNCS([strlcat snprintf strcasecmp fileno \
                 strdup strtoll strtoull \
 		mkstemp mktemp random \
 		getrlimit gettimeofday fsync MPI_Comm_f2c MPI_Info_f2c \
-		strncasecmp])
+		strncasecmp strlcpy])
 
 # See if clock_gettime is available and its arg types.
 AC_CHECK_FUNCS([clock_gettime])
@@ -1501,7 +1527,7 @@ fi
 hdf5_parallel=no
 hdf5_supports_par_filters=no
 enable_hdf5_szip=no
-has_ross3=no
+has_hdf5_ros3=no
 
 if test "x$enable_hdf5" = xyes; then
 
@@ -1545,8 +1571,8 @@ if test "x$enable_hdf5" = xyes; then
    AC_SEARCH_LIBS([H5Dread_chunk],[hdf5_hldll hdf5_hl], [has_readchunks=yes], [has_readdhunks=no])
 
    # See if hdf5 library supports Read-Only S3 (byte-range) driver
-   AC_SEARCH_LIBS([H5Pset_fapl_ros3],[hdf5_hldll hdf5_hl], [has_ros3=yes], [has_ros3=no])
-   if test "x$has_ros3" = xyes && test "x$enable_byterange" = xyes; then
+   AC_SEARCH_LIBS([H5Pset_fapl_ros3],[hdf5_hldll hdf5_hl], [has_hdf5_ros3=yes], [has_hdf5_ros3=no])
+   if test "x$has_hdf5_ros3" = xyes && test "x$enable_byterange" = xyes; then
     AC_DEFINE([ENABLE_HDF5_ROS3], [1], [if true, support byte-range using hdf5 virtual file driver.])
    fi
 
@@ -1845,9 +1871,11 @@ AM_CONDITIONAL(RELAX_COORD_BOUND, [test "xyes" = xyes])
 AM_CONDITIONAL(HAS_PAR_FILTERS, [test x$hdf5_supports_par_filters = xyes ])
 # We need to simplify the set of S3 and Zarr flag combinations
 AM_CONDITIONAL(ENABLE_S3, [test "x$enable_s3" = xyes])
-AM_CONDITIONAL(ENABLE_S3_SDK, [test "x$enable_s3_sdk" = xyes])
+AM_CONDITIONAL(ENABLE_S3_AWS, [test "x$enable_s3_aws" = xyes])
+AM_CONDITIONAL(ENABLE_S3_INTERNAL, [test "x$enable_s3_internal" = xyes])
 AM_CONDITIONAL(ENABLE_NCZARR, [test "x$enable_nczarr" = xyes])
-AM_CONDITIONAL(ENABLE_NCZARR_S3_TESTS, [test "x$enable_nczarr_s3_tests" = xyes])
+AM_CONDITIONAL(ENABLE_S3_TESTPUB, [test "x$with_s3_testing" != xno]) # all => public
+AM_CONDITIONAL(ENABLE_S3_TESTALL, [test "x$with_s3_testing" = xyes])
 AM_CONDITIONAL(ENABLE_NCZARR_ZIP, [test "x$enable_nczarr_zip" = xyes])
 AM_CONDITIONAL(HAS_MULTIFILTERS, [test "x$has_multifilters" = xyes])
 AM_CONDITIONAL(HAVE_SZ, [test "x$have_sz" = xyes])
@@ -1953,8 +1981,11 @@ AC_SUBST(HAS_BYTERANGE,[$enable_byterange])
 AC_SUBST(RELAX_COORD_BOUND,[yes])
 AC_SUBST([HAS_PAR_FILTERS], [$hdf5_supports_par_filters])
 AC_SUBST(HAS_S3,[$enable_s3])
+AC_SUBST(HAS_S3_AWS,[$enable_s3_aws])
+AC_SUBST(HAS_S3_INTERNAL,[$enable_s3_internal])
+AC_SUBST(HAS_HDF5_ROS3,[$has_hdf5_ros3])
 AC_SUBST(HAS_NCZARR,[$enable_nczarr])
-AC_SUBST(DO_NCZARR_S3_TESTS,[$enable_nczarr_s3_tests])
+AC_SUBST(DO_S3_TESTING,[$with_s3_testing])
 AC_SUBST(HAS_NCZARR_ZIP,[$enable_nczarr_zip])
 AC_SUBST(HAS_MULTIFILTERS,[$has_multifilters])
 AC_SUBST(DO_NCZARR_ZIP_TESTS,[$enable_nczarr_zip])
@@ -1964,7 +1995,18 @@ AC_SUBST(DO_FILTER_TESTS,[$enable_filter_testing])
 AC_SUBST(HAS_SZLIB,[$have_sz])
 AC_SUBST(HAS_SZLIB_WRITE, [$have_sz])
 AC_SUBST(HAS_ZSTD,[$have_zstd])
+AC_SUBST(DO_LARGE_TESTS,[$enable_large_file_tests])
 AC_SUBST(IS_THREADSAFE,[$enable_threadsafe])
+
+if test "x$enable_s3_aws" = xyes ; then
+AC_SUBST(WHICH_S3_SDK,[aws-sdk-cpp])
+fi
+if test "x$enable_s3_internal" = xyes; then
+AC_SUBST(WHICH_S3_SDK,[internal])
+fi
+if test "x$enable_s3_aws" = xno && test "x$enable_s3_internal" = xno; then
+AC_SUBST(WHICH_S3_SDK,[none])
+fi
 
 # Always available
 std_filters="deflate bz2"
@@ -2054,7 +2096,7 @@ AC_SUBST([NOUNDEFINED])
 # example: AX_SET_META([NC_HAS_NC2],[$nc_build_v2],[]) # Because it checks for no.
 #          AX_SET_META([NC_HAS_HDF4],[$enable_hdf4],[yes])
 AC_DEFUN([AX_SET_META],[
-  if [ test "x$2" = x$3 ]; then
+  if [ test "x$2" = "x$3" ]; then
      AC_SUBST([$1]) $1=1
   else
      AC_SUBST([$1]) $1=0
@@ -2082,8 +2124,11 @@ AX_SET_META([NC_HAS_CDF5],[$enable_cdf5],[yes])
 AX_SET_META([NC_HAS_ERANGE_FILL], [$enable_erange_fill],[yes])
 AX_SET_META([NC_HAS_PAR_FILTERS], [$hdf5_supports_par_filters],[yes])
 AX_SET_META([NC_HAS_BYTERANGE],[$enable_byterange],[yes])
-AX_SET_META([NC_HAS_NCZARR],[$enable_nczarr],[yes])
 AX_SET_META([NC_HAS_S3],[$enable_s3],[yes])
+AX_SET_META([NC_HAS_S3_AWS],[$enable_s3_aws],[yes])
+AX_SET_META([NC_HAS_S3_INTERNAL],[$enable_s3_internal],[yes])
+AX_SET_META([NC_HAS_HDF5_ROS3],[$has_hdf5_ros3],[yes])
+AX_SET_META([NC_HAS_NCZARR],[$enable_nczarr],[yes])
 AX_SET_META([NC_HAS_MULTIFILTERS],[$has_multifilters],[yes])
 AX_SET_META([NC_HAS_LOGGING],[$enable_logging],[yes])
 AX_SET_META([NC_HAS_QUANTIZE],[$enable_quantize],[yes])
