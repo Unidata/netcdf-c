@@ -33,7 +33,7 @@ static int ncd4initialized = 0;
 
 static const NC_Dispatch NCD4_dispatch_base;
 
-const NC_Dispatch* NCD4_dispatch_table = NULL; /* moved here from ddispatch.c */
+NC_Dispatch* NCD4_dispatch_table = NULL; /* moved here from ddispatch.c */
 
 /**************************************************/
 /* Define a structure defining reserved attributes */

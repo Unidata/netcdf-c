@@ -306,6 +306,7 @@ NCDEFAULT_get_varm(int ncid, int varid, const size_t *start,
    int varndims,maxidim;
    int memtypelen;
    char* value = (char*)value0;
+   size_t *mystart = NULL; /* declare here to avoid memory leak */
 
    status = nc_inq_vartype(ncid, varid, &vartype);
    if(status != NC_NOERR) goto done;
@@ -346,7 +347,6 @@ NCDEFAULT_get_varm(int ncid, int varid, const size_t *start,
     */
    {
       int idim;
-      size_t *mystart = NULL;
       size_t *myedges;
       size_t *iocount;    /* count vector */
       size_t *stop;   /* stop indexes */
@@ -486,7 +486,7 @@ NCDEFAULT_get_varm(int ncid, int varid, const size_t *start,
        * As an optimization, adjust I/O parameters when the fastest
        * dimension has unity stride both externally and internally.
        * In this case, the user could have called a simpler routine
-       * (i.e. ncvar$1()
+       * (i.e. ncvar$1())
        */
       if (mystride[maxidim] == 1
 	  && mymap[maxidim] == 1)
@@ -528,10 +528,10 @@ NCDEFAULT_get_varm(int ncid, int varid, const size_t *start,
 	    goto carry;
 	 }
       } /* I/O loop */
-      free(mystart);
    } /* variable is array */
 
 done:
+   if(mystart) free(mystart);
    return status;
 }
 

@@ -65,7 +65,7 @@ libdispatch_la_SOURCES += dreg.c
 endif
 
 if ENABLE_THREADSAFE
-libdispatch_la_SOURCES += dmutex.c
+libdispatch_la_SOURCES += dthreaded.c
 endif
 
 # Support generation of 32-bit unsigned int random numbers

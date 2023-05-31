@@ -5,6 +5,10 @@
 
 # See netcdf-c/COPYRIGHT file for more info.
 
+IF(USE_X_GETOPT)
+SET(XGETOPTSRC "${CMAKE_CURRENT_SOURCE_DIR}/../libdispatch/XGetopt.c")
+ENDIF()
+
 message(STATUS "CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}")
 message(STATUS "CMAKE_BINARY_DIR=${CMAKE_BINARY_DIR}")
 message(STATUS "CMAKE_CURRENT_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}")
@@ -118,14 +122,18 @@ IF(BUILD_UTILITIES)
   ENDIF()
 
   IF(ENABLE_THREADSAFE)
-    build_bin_test_no_prefix(tst_threads)
-    add_sh_test(nc_test test_threads)
+    build_bin_test_no_prefix(tst_threads ${XGETOPTSRC})
+    add_sh_test(nc_test run_threads)
+    IF(LARGE_FILE_TESTS)
+      build_bin_test_no_prefix(thread_nc_test error.c test_get.c test_put.c test_read.c test_write.c util.c ${XGETOPTSRC})
+      add_sh_test(nc_test run_thread_nc_test)
+    ENDIF()
   ENDIF()
 
 ENDIF(BUILD_UTILITIES)
 
 # Copy some test files from current source dir to out-of-tree build dir.
-FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
+FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.nc ${CMAKE_CURRENT_SOURCE_DIR}/*.sh ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
 IF(MSVC)
 #MESSAGE(STATUS "XXX")
@@ -133,7 +141,6 @@ IF(MSVC)
 #MESSAGE(STATUS "${RUNTIME_OUTPUT_DIRECTORY}")
   FILE(COPY ${COPY_FILES} DESTINATION ${RUNTIME_OUTPUT_DIRECTORY}/)
 ENDIF()
-
 
 ## Specify files to be distributed by 'make dist'
 FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)

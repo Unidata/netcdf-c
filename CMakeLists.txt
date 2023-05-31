@@ -425,24 +425,40 @@ IF(MSVC)
 ENDIF()
 
 # Control thread-safe operation
-OPTION (ENABLE_THREADSAFE "Enable Thread safe operation" ON)
+OPTION (ENABLE_THREADSAFE "Enable Thread safe operation" OFF)
 
-FIND_PACKAGE(Threads)
-IF(NOT Threads_FOUND)
-  IF(ENABLE_THREADSAFE)
-    MESSAGE(FATAL_ERROR "No threads library available, but ENABLE_THREADS enabled")
-  ENDIF()
+IF(MSVC AND NOT MINGW)
+  FIND_PACKAGE(PTHREADS4W REQUIRED)
+  GET_TARGET_PROPERTY(PTHREADS4W_LIBS Threads::Threads IMPORTED_IMPLIB_RELEASE)
+  GET_TARGET_PROPERTY(PTHREADS4W_IMPL Threads::Threads IMPORTED_LOCATION_RELEASE)
+  GET_TARGET_PROPERTY(PTHREADS4W_INCLUDE_DIR Threads::Threads INTERFACE_INCLUDE_DIRECTORIES)
+  SET(Threads_FOUND ${PTHREADS4W_FOUND})
+  SET(CMAKE_THREAD_LIBS_INIT ${PTHREADS4W_LIBS})
+  SET(CMAKE_USE_WIN32_THREADS_INIT FALSE)
+  SET(CMAKE_USE_PTHREADS_INIT TRUE)
+  SET(CMAKE_HP_PTHREADS_INIT FALSE)
+  INCLUDE_DIRECTORIES(${PTHREADS4W_INCLUDE_DIR})
+message(">>> PTHREADS4W_INCLUDE_DIR = ${PTHREADS4W_INCLUDE_DIR}")
 ELSE()
+  SET(THREADS_PREFER_PTHREAD_FLAG TRUE)
+  FIND_PACKAGE(Threads REQUIRED)
+ENDIF(MSVC AND NOT MINGW)
+
+IF(Threads_FOUND)
   SET(HAVE_PTHREADS YES CACHE BOOL "Have pthreads library")
-  IF(NOT (CMAKE_THREAD_LIBS_INIT STREQUAL ""))
-    IF(CMAKE_USE_WIN32_THREADS_INIT)
-      SET(HAVE_PTHREADS NO CACHE BOOL "Have pthreads library")
-    ENDIF()
-  ENDIF()
-  if(NOT WIN32)
-    link_libraries(pthread)
-    SET_PROPERTY(GLOBAL PROPERTY C_STANDARD C11)
-  endif()
+ELSE()
+  SET(HAVE_PTHREADS NO CACHE BOOL "Have pthreads library")
+ENDIF()
+
+IF(ENABLE_THREADSAFE)
+  SET(PTHREAD_T_MAX_SIZE 64 CACHE STRING "|pthread_t|")
+ELSE()
+  SET(PTHREAD_T_MAX_SIZE 0 CACHE STRING "|pthread_t|")
+ENDIF()
+
+# Consistency
+IF(ENABLE_THREADSAFE AND NOT HAVE_PTHREADS)
+  MESSAGE(FATAL_ERROR "ENABLE_THREADSAFE requires HAVE_PTHREADS; Please disable  ENABLE_THREADSAFE")
 ENDIF()
 
 # Option to build netCDF Version 2
@@ -947,9 +963,10 @@ IF(USE_HDF5)
 
   # H5Pset_fapl_mpiposix and H5Pget_fapl_mpiposix have been removed since HDF5 1.8.12.
   # Use H5Pset_fapl_mpio and H5Pget_fapl_mpio, instead.
-  # CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pget_fapl_mpiposix "" HDF5_IS_PARALLEL_MPIPOSIX)
+  #  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pget_fapl_mpiposix "" HDF5_IS_PARALLEL_MPIO)
 
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pget_fapl_mpio "" HDF5_IS_PARALLEL_MPIO)
+
   IF(HDF5_IS_PARALLEL_MPIO)
     SET(HDF5_PARALLEL ON)
   ELSE()
@@ -1094,7 +1111,9 @@ ELSE()
   SET(ENABLE_DAP2 OFF CACHE BOOL "")
   SET(ENABLE_DAP4 OFF CACHE BOOL "")
 ENDIF()
-
+# Default disable dap4 for now
+#SET(ENABLE_DAP4 OFF CACHE BOOL "")
+    
 # Option to support byte-range reading of remote datasets
 OPTION(ENABLE_BYTERANGE "Enable byte-range access to remote datasets.." ON)
 
@@ -1142,7 +1161,6 @@ IF(${filter}_FOUND)
   SET(ENABLE_${upfilter} TRUE)
   SET(HAVE_${upfilter} ON)
   SET(STD_FILTERS "${STD_FILTERS} ${downfilter}")
-  MESSAGE(">>> Standard Filter: ${downfilter}")
 ELSE()
   SET(ENABLE_${upfilter} FALSE)
   SET(HAVE_${upfilter} OFF)
@@ -1261,14 +1279,13 @@ IF(ENABLE_EXTRA_TESTS)
   SET(EXTRA_TESTS ON)
 ENDIF()
 
-# Option to use bundled XGetopt in place of getopt(). This is mostly useful
-# for MSVC builds. If not building utilities or some tests,
+# Check if getopt is available else use bundled XGetopt.
+# This is mostly useful for MSVC builds. If not building utilities or some tests,
 # getopt() isn't required at all.
 IF(MSVC)
-  OPTION(ENABLE_XGETOPT "Enable bundled XGetOpt instead of external getopt()." ON)
-  IF(ENABLE_XGETOPT)
-    SET(USE_X_GETOPT ON CACHE BOOL "")
-  ENDIF()
+  SET(USE_X_GETOPT ON CACHE BOOL "")
+ELSE()
+  SET(USE_X_GETOPT OFF CACHE BOOL "")
 ENDIF()
 
 SET(MATH "")
@@ -1674,7 +1691,7 @@ OPTION(ENABLE_NCZARR_FILTERS_TESTING "Enable NCZarr filter testing." yes)
 
 # Constraints
 IF (NOT ENABLE_PLUGINS)
-  MESSAGE(WARNING "ENABLE_FILTER_TESTING requires shared libraries. Disabling.")
+  MESSAGE(WARNING "ENABLE_NCZARR_FILTERS requires ENABLE_PLUGINS. Disabling.")
   SET(ENABLE_NCZARR_FILTERS OFF CACHE BOOL "Enable NCZarr Filters." FORCE)
 ENDIF()
 
@@ -1792,7 +1809,7 @@ IF(NOT HAVE_UNISTD_H)
 ENDIF()
 
 CHECK_INCLUDE_FILE("alloca.h"  HAVE_ALLOCA_H)
-CHECK_INCLUDE_FILE("malloc.h"    HAVE_MALLOC_H)
+CHECK_INCLUDE_FILE("malloc.h"  HAVE_MALLOC_H)
 CHECK_INCLUDE_FILE("fcntl.h"   HAVE_FCNTL_H)
 CHECK_INCLUDE_FILE("getopt.h"  HAVE_GETOPT_H)
 CHECK_INCLUDE_FILE("locale.h"  HAVE_LOCALE_H)
@@ -2135,7 +2152,7 @@ ENDMACRO()
 
 # Binary tests which are used by a script looking for a specific name.
 MACRO(build_bin_test_no_prefix F)
-  build_bin_test(${F})
+  build_bin_test(${F} ${ARGN})
   IF(MSVC)
     #SET_PROPERTY(TEST ${F} PROPERTY FOLDER "tests/")
     SET_TARGET_PROPERTIES(${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY

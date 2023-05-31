@@ -29,9 +29,7 @@
 #include "ncpathmgr.h"
 
 #define NC_MAX_PATH 4096
-#ifndef nulldup
- #define nulldup(x) ((x)?strdup(x):(x))
-#endif
+
 /**************************************************/
 /** \internal
  * Provide a hidden interface to allow utilities

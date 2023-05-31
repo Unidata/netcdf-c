@@ -114,7 +114,7 @@ static const NC_Dispatch HDF4_dispatcher = {
     NC_NOOP_inq_filter_avail,
 };
 
-const NC_Dispatch *HDF4_dispatch_table = NULL;
+NC_Dispatch *HDF4_dispatch_table = NULL;
 
 /**
  * @internal Initialize HDF4 dispatch layer.

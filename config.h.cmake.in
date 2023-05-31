@@ -157,11 +157,11 @@ are set when opening a binary file on Windows. */
 /* if true, Force use of S3 internal library */
 #cmakedefine ENABLE_S3_INTERNAL 1
 
-/* if true, enable S3 testing*/
-#cmakedefine WITH_S3_TESTING "PUBLIC"
-
 /* if true, Support serialized thread safe operation */
 #cmakedefine ENABLE_THREADSAFE 1
+
+/* if true, enable S3 testing*/
+#cmakedefine WITH_S3_TESTING "PUBLIC"
 
 /* if true, run extra tests which may not work yet */
 #cmakedefine EXTRA_TESTS 1
@@ -524,6 +524,9 @@ with zip */
 
 /* define the possible sources for remote test servers */
 #cmakedefine REMOTETESTSERVERS	"${REMOTETESTSERVERS}"
+
+/* Max size for pthread_t instance */
+#cmakedefine PTHREAD_T_MAX_SIZE @PTHREAD_T_MAX_SIZE@
 
 /* The size of `ulonglong` as computed by sizeof. */
 #cmakedefine SIZEOF_ULONGLONG @SIZEOF_ULONGLONG@

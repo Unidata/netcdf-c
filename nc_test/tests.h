@@ -18,6 +18,17 @@
 #endif
 #include "error.h"
 
+#ifdef ENABLE_THREADSAFE
+#include "netcdf_threadsafe.h"
+#if defined(_WIN32) && ! defined(__MINGW32__)
+#define THREAD_LOCAL __declspec(thread)
+#else
+#define THREAD_LOCAL _Thread_local
+#endif
+#else /*!ENABLE_THREADSAFE*/
+#define THREAD_LOCAL
+#endif /*ENABLE_THREADSAFE*/
+
 #if defined(_CRAY) && !defined(_CRAYIEEE) && !defined(__crayx1)
 #define CRAYFLOAT 1 /* CRAY Floating point */
 #elif defined(_SX) && defined(_FLOAT2)	/* NEC SUPER-UX in CRAY mode */
@@ -139,9 +150,9 @@
 #define MAX_DIM_LEN 4
 #define MAX_NATTS 3
 
-extern int numGatts;  /* number of global attributes */
-extern int numVars;   /* number of variables */
-extern int numTypes;  /* number of netCDF data types to test */
+extern THREAD_LOCAL int numGatts;  /* number of global attributes */
+extern THREAD_LOCAL int numVars;   /* number of variables */
+extern THREAD_LOCAL int numTypes;  /* number of netCDF data types to test */
 
 
     /* Limits of internal types */
@@ -226,33 +237,33 @@ typedef unsigned long long  uint64;
 
     /* Global variables - filenames */
 
-extern char testfile[];		/* netCDF read-only test data */
-extern char scratch[];		/* netCDF test file for writing */
+extern THREAD_LOCAL char testfile[];		/* netCDF read-only test data */
+extern THREAD_LOCAL char scratch[];		/* netCDF test file for writing */
 
     /* Global variables - command-line arguments */
 
 extern int  read_only;		/* if 1, don't try to change files */
 extern int  verbose;		/* if 1, print details of tests */
-extern int  nfails;		/* number of failures in specific test */
+extern THREAD_LOCAL int  nfails;		/* number of failures in specific test */
 extern int  max_nmpt;		/* max. number of messages per test */
 
     /* Global variables - test data */
 
-extern char dim_name[NDIMS][3];
-extern size_t dim_len[NDIMS];
-extern char var_name[NVARS][2+MAX_RANK];
-extern nc_type var_type[NVARS];
-extern int var_rank[NVARS];
-extern int var_dimid[NVARS][MAX_RANK];
-extern size_t var_shape[NVARS][MAX_RANK];
-extern size_t var_nels[NVARS];
-extern int var_natts[NVARS];
-extern char att_name[NVARS][MAX_NATTS][2];
-extern char gatt_name[NGATTS][3];
-extern nc_type att_type[NVARS][NGATTS];
-extern nc_type gatt_type[NGATTS];
-extern size_t att_len[NVARS][MAX_NATTS];
-extern size_t gatt_len[NGATTS];
+extern THREAD_LOCAL char dim_name[NDIMS][3];
+extern THREAD_LOCAL size_t dim_len[NDIMS];
+extern THREAD_LOCAL char var_name[NVARS][2+MAX_RANK];
+extern THREAD_LOCAL nc_type var_type[NVARS];
+extern THREAD_LOCAL int var_rank[NVARS];
+extern THREAD_LOCAL int var_dimid[NVARS][MAX_RANK];
+extern THREAD_LOCAL size_t var_shape[NVARS][MAX_RANK];
+extern THREAD_LOCAL size_t var_nels[NVARS];
+extern THREAD_LOCAL int var_natts[NVARS];
+extern THREAD_LOCAL char att_name[NVARS][MAX_NATTS][2];
+extern THREAD_LOCAL char gatt_name[NGATTS][3];
+extern THREAD_LOCAL nc_type att_type[NVARS][NGATTS];
+extern THREAD_LOCAL nc_type gatt_type[NGATTS];
+extern THREAD_LOCAL size_t att_len[NVARS][MAX_NATTS];
+extern THREAD_LOCAL size_t gatt_len[NGATTS];
 
 
     /* Macros for accessing attribute test data */
@@ -544,33 +555,33 @@ double hash4(
     const size_t *index,
     const nct_itype itype);
 
-void init_gvars(void);
+extern void init_gvars(void);
 
-void def_dims(int ncid);
+extern void def_dims(int ncid);
 
-void def_vars(int ncid);
+extern void def_vars(int ncid);
 
-void put_atts(int ncid);
+extern void put_atts(int ncid);
 
-void put_vars(int ncid);
+extern void put_vars(int ncid);
 
-void write_file(char *filename);
+extern void write_file(char *filename);
 
-void check_dims(int  ncid);
+extern void check_dims(int  ncid);
 
-void check_vars(int  ncid);
+extern void check_vars(int  ncid);
 
-void check_atts(int  ncid);
+extern void check_atts(int  ncid);
 
-void check_file(char *filename);
+extern void check_file(char *filename);
 
-int file_create(const char *filename, int cmode, int *ncid);
+extern int file_create(const char *filename, int cmode, int *ncid);
 
-int file__create(const char *filename, int cmode, size_t initialsz, size_t *bufrsizehintp, int *ncid);
+extern int file__create(const char *filename, int cmode, size_t initialsz, size_t *bufrsizehintp, int *ncid);
 
-int file_open(const char *filename, int omode, int *ncid);
+extern int file_open(const char *filename, int omode, int *ncid);
 
-char* nc_err_code_name(int err);
+extern char* nc_err_code_name(int err);
 
 #ifdef __cplusplus
 }

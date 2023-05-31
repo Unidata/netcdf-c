@@ -15,10 +15,6 @@ IF(BUILD_V2)
   SET(libdispatch_SOURCES ${libdispatch_SOURCES} dv2i.c)
 ENDIF(BUILD_V2)
 
-IF(ENABLE_THREADSAFE)
-  SET(libdispatch_SOURCES ${libdispatch_SOURCES} dmutex.c)
-ENDIF(ENABLE_THREADSAFE)
-
 IF(ENABLE_BYTERANGE)
   SET(libdispatch_SOURCES ${libdispatch_SOURCES} dhttp.c)
 ENDIF(ENABLE_BYTERANGE)
@@ -34,6 +30,16 @@ ENDIF()
 IF(REGEDIT)
   SET(libdispatch_SOURCES ${libdispatch_SOURCES} dreg.c)
 ENDIF(REGEDIT)
+
+IF(ENABLE_THREADSAFE)
+  SET(libdispatch_SOURCES ${libdispatch_SOURCES} dthreaded.c)
+ENDIF(ENABLE_THREADSAFE)
+
+#IF(MSVC)
+#IF(NOT HAVE_GETOPT_H)
+#  SET(libdispatch_SOURCES ${libdispatch_SOURCES} XGetopt.c)
+#ENDIF(NOT HAVE_GETOPT_H)
+#ENDIF(MSVC)
 
 add_library(dispatch OBJECT ${libdispatch_SOURCES})
 IF(MPI_C_INCLUDE_PATH)

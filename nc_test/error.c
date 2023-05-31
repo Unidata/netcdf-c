@@ -70,3 +70,11 @@ print_n_size_t(int nelems, const size_t *array)
 	}
 	fprintf(stderr, "]");
 }
+
+void
+print_nok(int nok)
+{
+    if (verbose || nfails > 0)
+        print("\n");
+    print(" %d good comparisons. ", nok);
+}

@@ -12,16 +12,19 @@ To date, the netcdf-c library has not supported
 thread-safe use. However, this is one of the most
 requested extensions to the library.
 
-As of this Github Pull Request, support for thread-safe access is now
-provided.  The support is **HIGHLY EXPERIMENTAL** since it has
-been tested to only a very limited extent.
+As of version 4.9.3 support for thread-safe access is now
+provided.  The support is **EXPERIMENTAL** since it has
+been tested to only a very limited extent. Further on in this
+document, there is a table showing the extent of thread-safe support
+for various platforms.
 
 # Implementation {#threadsafe_impl}
 
 The implementation is patterned after the HDF5 thread-safety support.
 For those platforms that support it, *pthreads* is used,
 and specifically the *pthread_mutex* functionality.
-For Windows, the Windows *CriticalSection* functionality is used.
+Note that for Windows, the *pthreads4w* <a href="#ref_voll">[2]</a>
+implementation is used.
 
 There is a single global mutex object that controls access to
 the netcdf-c API functions. This means that all netcdf-c
@@ -52,8 +55,10 @@ and if it is zero then the mutex is actually released.
 
 # Known Issues
 
+* This implementation only supports *libpthread* (including *pthreads4w*).
 * Filters are implicitly locked because the nc_get/put_varX functions are locked.
 * It is unknown how this interacts with MPI.
+* There are some difficult memory leaks.
 
 # Initialization and Finalization {#threadsafe_init}
 
@@ -121,7 +126,12 @@ some of the locking overhead.
 
 # Extensions {#threadsafe_extend}
 
-Eventually, it should be possible to convert
+* Ideally, it would be better to not use recursive mutex objects
+as it has some performance costs. But fixing this would require
+a significant refactoring of the netcdf-c library code. So this
+change may be fixed, but only piece-meal.
+
+* Eventually, it should be possible to convert
 total API serialization into a finer grain of
 locking so that a mutex is locked only when accessing
 a shared object such as the open files vector.
@@ -130,41 +140,140 @@ Unfortunately, implementing this level of locking
 is quite complex, so it is unlikely to be realized
 any time soon.
 
+* In support of fine grain locking, it may be useful to,
+in some cases, move locking down into the dispatcher code.
+This means, for example, that the HDF5 dispatcher and the NCZarr
+dispatcher might have their on locking regime, while other dispatchers
+continue to use the global locking regime.
+
+# Testing
+
+Testing of this feature is currently very limited.
+Currently there are two tests in the nc_test directory.
+
+## run_threads.sh + tst_threads.c
+The shell script invokes tst_threads.c with some different options.
+Usage of tst_threads is as follows:
+````
+tst_threads [-h][-3|-4][-F <filenameformatstring>][-C <ncycles>][-T <nthreads>]"
+````
+where 
+* -h &mdash; print usage.
+* -3 &mdash; create a netcdf-3 (classic) file.
+* -4 &mdash; create a netcdf-4 (enhanced) file.
+* -F &mdash; use this template to specify the name of the created file.
+* -C &mdash; execute the body of the test ncycles times.
+* -T &mdash; execute the body of the test using n threads.
+
+One cycle creates a file, manipulates it, and then closes the file.
+
+## run_threads_nc_test.sh + threads_nc_test.c
+The shell script invokes threads_nc_test.c with some different options.
+Usage of nc_test_threads is as follows:
+````
+threads_nc_test [-h] [-v] [-M <max-messages>] [-T <nthreads>]\n");
+````
+where 
+* -h &mdash; print usage.
+* -v &mdash; provide verbose output (default off).
+* -M &mdash; provide at most max-messages for each test.
+* -T &mdash; execute the body of the test using n threads.
+
+This test performs the same set of tests as the nc_test program,
+but using multiple threads.
+
+# Debug Aids {#threadsafe_debug}
+
+Debugging multi-threaded applications are notoriously difficult.
+Fortunately, the GNU debugger (*gdb*) provides pretty good thread
+support capabilities.
+
 # Configuration {#threadsafe_config}
 
 Enabling thread-safety is controlled at build time
 using options to *configure* (Automake) and
-*cmake* (Cmake).
-Currently, these options default to enabled, but once
-this capabilitiy is placed into production,
-they will default to disabled.
+*cmake* (Cmake). These options are disabled by default.
 
 The options are as follows.
 * [Automake] ````--enable-threadsafe````
 * [CMake] ````-DENABLE_THREADSAFE=on````
 
-## Build Issues
+## Platform Support for libpthread
+This implementation is based on the pthread library.
+The situation for various platforms is as follows.
+* For \*nix\* platforms (including MINGW), pthread support is usually built-in.
+* For OS/X platforms, pthread support is usually built-in. However, the *pthread_barrier_t* type and associated operations are not implemented, so a built-in implementation is added to libdispatch/dthreaded.c and the API is defined in include/netcdf_threadsafe.h.
+* For Windows (using Visual Studio), it is necessary to use an external implementation of libpthread. See Appendix A for details.
 
-There are apparently problems with using certain pthread features
-on different platforms.
-* OS/X: *pthread_barrier_t* is unavailable, so a built-in implementation is added libdispatch/dmutex.c and include/ncmutex.h.
+## Build Status
 
 The current status of thread-safe operation is as follows.
 <table>
 <tr><td><u>Operating System</u><td><u>Build System</u><td><u>Local Build</u><td><u>Github Actions</u>
-<tr><td>Linux         <td> Automake <td> yes (Ubuntu-21) <td>yes
-<tr><td>Linux         <td> CMake    <td> yes (Ubuntu-21) <td>yes
-<tr><td>Visual Studio <td> CMake    <td> yes             <td>N.A.
-<tr><td>OSX           <td> Automake <td> unknown         <td>no (seg fault)
-<tr><td>OSX           <td> CMake    <td> unknown         <td>no (seg fault_
-<tr><td>MinGW/MSYS2   <td> Automake <td> unknown         <td>no (seg fault)
-<tr><td>Cygwin        <td> Automake <td> unknown         <td>N.A.
+<tr><td>Linux         <td> Automake <td> yes      <td>yes
+<tr><td>Linux         <td> CMake    <td> yes      <td>yes
+<tr><td>Visual Studio <td> CMake    <td> yes      <td>N.A.
+<tr><td>OS/X          <td> Automake <td> unknown  <td>unknown
+<tr><td>OS/X          <td> CMake    <td> unknown  <td>unknown
+<tr><td>MinGW/MSYS2   <td> Automake <td> unknown  <td>unknown
+<tr><td>Cygwin        <td> Automake <td> yes      <td>yes
 </table>
-Fixing the seg-faults will require interactive debugging of the
-relevant platform.
+
+# References {#threadsafe_bib}
+<a name="ref_fwb">[1]</a> [Github/FWBuilder](https://github.com/fwbuilder/pthreads4w.git)<br>
+<a name="ref_voll">[2]</a> [Github/Vollstrecker](https://github.com/Vollstrecker/pthreads4w.git)
+
+# Appendix A. Providing libpthread Support for Windows Visual Studio
+
+The capability for thread safe operation is based soley on using
+*libpthread*, even for Windows using Visual Studio.
+Microsoft does not support (yet) the *pthread* API for Visual Studio,
+so in order to enable thread safe operation on Windows, it is necessary
+to install a libpthread implementation.
+
+At the moment the only port supported by Unidata is derived from
+[PTHREADS4W](https://sourceforge.net/projects/pthreads4w/),
+version 3.0.0 (2017-01-01) or later.
+The derived port used here is the Vollstrecker Github repository
+<a href="#ref_voll">[2]</a>.
+This is in preference to the other major (and related) 
+FWBuilder implementation <a href="#ref_voll">[1]</a>.
+
+The Vollstrecker port is used because it provides a cmake build,
+which allows for building for Visual Studio. In addition, it
+appears to still be under active development. Both code bases
+are released using the Apache V2 license.
+
+The script used to build and install this port is below.
+It is probably best to set INSTALLDIR to an absolute path
+that contains no blanks.
+In order to get the netcdf-c library cmake build to recognize
+the pthread library, one needs to add the follow path(s)
+to the *PATH* environment variable.
+* *${INSTALLDIR}/lib*
+* *${INSTALLDIR}/bin*
+
+## Cmake Build Script
+````
+# Visual Studio
+CFG="Release"
+INSTALLDIR="c:/tools/hdf5-1.10.6"
+FLAGS=
+FLAGS="$FLAGS -DCMAKE_INSTALL_PREFIX=${INSTALLDIR}"
+FLAGS="$FLAGS -DCMAKE_INSTALL_LIBDIR=lib"
+FLAGS="$FLAGS -DCMAKE_MODULE_PATH=${INSTALLDIR}/cmake"
+rm -fr build
+mkdir -p build
+cd build
+cmake -DCMAKE_BUILD_TYPE=${CFG} $FLAGS ..
+cmake --build . --config ${CFG}
+cmake --build . --config ${CFG} --target RUN_TESTS
+cmake --install . --config ${CFG}
+cd ..
+````
 
 # Point of Contact
 __Author__: Dennis Heimbigner<br>
 __Email__: dmh at ucar dot edu<br>
 __Initial Version__: 9/9/2022<br>
-__Last Revised__: 9/18/2022<br>
+__Last Revised__: 5/31/2023<br>

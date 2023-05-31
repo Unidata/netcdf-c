@@ -126,17 +126,23 @@ fi
 
 AC_MSG_CHECKING([whether we should enable thread safety])
 AC_ARG_ENABLE([threadsafe], [AS_HELP_STRING([--enable-threadsafe],
-              [enable thread-safe operation])])
-test "x$enable_threadsafe" = xno || enable_threadsafe=yes
+              [enable thread-safe operation (default=no)])])
+test "x$enable_threadsafe" = xyes || enable_threadsafe=no
 AC_MSG_RESULT([$enable_threadsafe])
 if test "x$enable_threadsafe" = xyes && test "x$have_pthreads" = xno ; then
   AC_MSG_NOTICE([!pthreads => !threadsafe])
   enable_threadsafe=no
 fi
+
 if test "x$enable_threadsafe" = xyes ; then
 AC_DEFINE([ENABLE_THREADSAFE], [1], [if true, include experimental thread safe code])
+AC_DEFINE_UNQUOTED([PTHREAD_T_MAX_SIZE], [64], [|pthread_t|])
+else
+AC_DEFINE_UNQUOTED([PTHREAD_T_MAX_SIZE], [0], [|pthread_t|])
 fi
 AM_CONDITIONAL(ENABLE_THREADSAFE, [test "x$enable_threadsafe" = xyes])
+
+# Setup the config.h
 
 # Get windows version info
 if test "x$ISMINGW" = xyes || test "x$ISMSVC" = xyes ; then
@@ -630,7 +636,6 @@ fi
 AM_CONDITIONAL(ENABLE_QUANTIZE, [test x$enable_quantize = xyes])
 
 # --enable-dap => enable-dap4
-enable_dap4=$enable_dap
 AC_MSG_CHECKING([whether dap use of remotetest server should be enabled])
 AC_ARG_ENABLE([dap-remote-tests],
               [AS_HELP_STRING([--disable-dap-remote-tests],
@@ -1238,6 +1243,11 @@ AC_CHECK_HEADERS([libgen.h])
 #AC_CHECK_HEADERS([locale.h])
 AC_HEADER_STDC
 AC_CHECK_HEADERS([locale.h stdio.h stdarg.h fcntl.h malloc.h stdlib.h string.h strings.h unistd.h sys/stat.h getopt.h sys/time.h sys/types.h time.h dirent.h stdint.h ctype.h])
+
+# Do getopt.h separately so we can AM_CONDITIONAL it.
+# This should still do the implicit AC_DEFINE.
+AC_CHECK_HEADERS([getopt.h],[havegetopth=yes],[havegetopth=no])
+AM_CONDITIONAL(HAVE_GETOPT_H, [test "x$havegetopth" = xyes])
 
 # Do sys/resource.h separately
 #AC_CHECK_HEADERS([sys/resource.h],[havesysresource=1],[havesysresource=0])

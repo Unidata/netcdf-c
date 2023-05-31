@@ -657,7 +657,7 @@ nc_print_data(int ncid, nc_type xtype, void* memory, size_t count)
     int stat = NC_NOERR;
     if((stat=nc_dump_data(ncid,xtype,memory,count,&s))) return stat;
     fprintf(stderr,"%s\n",s);
-    nullfree(s)
+    nullfree(s);
     return stat;
 }
 
