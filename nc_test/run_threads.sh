@@ -15,6 +15,7 @@ isolate "testdir_nc_tests_threads"
 cd $ISOPATH
 
 echo "*** Testing netcdf-3 thread safe execution"
+ldd ${execdir}/.libs/tst_threads
 #gdb -batch -ex run -ex bt --args
 ${execdir}/.libs/tst_threads -3 -F 'tmp_threadsafe_3_%d.nc' -T ${NTHREADS} -C ${NCYCLES}
 echo "PASS: thread safe netcdf-3"
