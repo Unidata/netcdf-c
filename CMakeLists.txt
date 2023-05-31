@@ -425,7 +425,7 @@ IF(MSVC)
 ENDIF()
 
 # Control thread-safe operation
-OPTION (ENABLE_THREADSAFE "Enable Thread safe operation" ON)
+OPTION (ENABLE_THREADSAFE "Enable Thread safe operation" OFF)
 
 IF(MSVC AND NOT MINGW)
   FIND_PACKAGE(PTHREADS4W REQUIRED)

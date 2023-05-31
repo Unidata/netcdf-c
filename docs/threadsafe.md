@@ -213,7 +213,7 @@ The current status of thread-safe operation is as follows.
 <tr><td>Visual Studio <td> CMake    <td> yes      <td>N.A.
 <tr><td>OS/X          <td> Automake <td> unknown  <td>unknown
 <tr><td>OS/X          <td> CMake    <td> unknown  <td>unknown
-<tr><td>MinGW/MSYS2   <td> Automake <td> unknown  <td>yes
+<tr><td>MinGW/MSYS2   <td> Automake <td> unknown  <td>unknown
 <tr><td>Cygwin        <td> Automake <td> yes      <td>yes
 </table>
 
