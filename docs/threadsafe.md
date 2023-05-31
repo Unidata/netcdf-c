@@ -208,13 +208,13 @@ The situation for various platforms is as follows.
 The current status of thread-safe operation is as follows.
 <table>
 <tr><td><u>Operating System</u><td><u>Build System</u><td><u>Local Build</u><td><u>Github Actions</u>
-<tr><td>Linux         <td> Automake <td> yes		<td>yes
-<tr><td>Linux         <td> CMake    <td> yes		<td>yes
-<tr><td>Visual Studio <td> CMake    <td> yes            <td>N.A.
-<tr><td>OS/X           <td> Automake <td> unknown        <td>yes
-<tr><td>OS/X           <td> CMake    <td> unknown        <td>yes
-<tr><td>MinGW/MSYS2   <td> Automake <td> unknown        <td>yes
-<tr><td>Cygwin        <td> Automake <td> unknown	<td>N.A.
+<tr><td>Linux         <td> Automake <td> yes      <td>yes
+<tr><td>Linux         <td> CMake    <td> yes      <td>yes
+<tr><td>Visual Studio <td> CMake    <td> yes      <td>N.A.
+<tr><td>OS/X          <td> Automake <td> unknown  <td>unknown
+<tr><td>OS/X          <td> CMake    <td> unknown  <td>unknown
+<tr><td>MinGW/MSYS2   <td> Automake <td> unknown  <td>yes
+<tr><td>Cygwin        <td> Automake <td> yes      <td>yes
 </table>
 
 # References {#threadsafe_bib}
