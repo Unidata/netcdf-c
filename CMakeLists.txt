@@ -963,9 +963,9 @@ IF(USE_HDF5)
 
   # H5Pset_fapl_mpiposix and H5Pget_fapl_mpiposix have been removed since HDF5 1.8.12.
   # Use H5Pset_fapl_mpio and H5Pget_fapl_mpio, instead.
+  #  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pget_fapl_mpiposix "" HDF5_IS_PARALLEL_MPIO)
 
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pget_fapl_mpio "" HDF5_IS_PARALLEL_MPIO)
-#  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pget_fapl_mpiposix "" HDF5_IS_PARALLEL_MPIO)
 
   IF(HDF5_IS_PARALLEL_MPIO)
     SET(HDF5_PARALLEL ON)
@@ -1111,8 +1111,8 @@ ELSE()
   SET(ENABLE_DAP2 OFF CACHE BOOL "")
   SET(ENABLE_DAP4 OFF CACHE BOOL "")
 ENDIF()
-# Default disabel dap4 for now
-SET(ENABLE_DAP4 OFF CACHE BOOL "")
+# Default disable dap4 for now
+#SET(ENABLE_DAP4 OFF CACHE BOOL "")
     
 # Option to support byte-range reading of remote datasets
 OPTION(ENABLE_BYTERANGE "Enable byte-range access to remote datasets.." ON)

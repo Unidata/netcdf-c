@@ -12,9 +12,11 @@ To date, the netcdf-c library has not supported
 thread-safe use. However, this is one of the most
 requested extensions to the library.
 
-As of version 4.x.x support for thread-safe access is now
-provided.  The support is **HIGHLY EXPERIMENTAL** since it has
-been tested to only a very limited extent.
+As of version 4.9.3 support for thread-safe access is now
+provided.  The support is **EXPERIMENTAL** since it has
+been tested to only a very limited extent. Further on in this
+document, there is a table showing the extent of thread-safe support
+for various platforms.
 
 # Implementation {#threadsafe_impl}
 
@@ -274,4 +276,4 @@ cd ..
 __Author__: Dennis Heimbigner<br>
 __Email__: dmh at ucar dot edu<br>
 __Initial Version__: 9/9/2022<br>
-__Last Revised__: 11/4/2022<br>
+__Last Revised__: 5/31/2023<br>
