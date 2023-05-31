@@ -69,13 +69,13 @@ endif
 if ENABLE_THREADSAFE
 check_PROGRAMS += tst_threads
 TESTS += run_threads.sh
-#if LARGE_FILE_TESTS
+if LARGE_FILE_TESTS
 thread_nc_test_SOURCES = thread_nc_test.c error.c \
 			  test_get.c test_put.c test_read.c test_write.c util.c \
 			  error.h tests.h
 check_PROGRAMS += thread_nc_test
 TESTS += run_thread_nc_test.sh
-#endif
+endif
 endif
 
 # Set up the tests.
