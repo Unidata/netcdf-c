@@ -22,7 +22,8 @@ rm -f tmp_threadsafe*.nc
 
 if test "x$FEATURE_HDF5" = xyes ; then
 echo "*** Testing netcdf-4 thread safe execution"
-gdb -batch -ex run -ex bt --args ${execdir}/.libs/tst_threads -4 -F 'tmp_threadsafe_4_%d.nc' -T ${NTHREADS} -C ${NCYCLES}
+#gdb -batch -ex run -ex bt --args
+${execdir}/.libs/tst_threads -4 -F 'tmp_threadsafe_4_%d.nc' -T ${NTHREADS} -C ${NCYCLES}
 echo "PASS: thread safe netcdf-4"
 fi
 rm -f tmp_threadsafe*.nc
