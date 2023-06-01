@@ -34,7 +34,6 @@ build: off
 
 # Run a custom script.
 build_script:
-  - cmd: cmake --version
   - cmd: mkdir build
   - cmd: cd build
   - cmd: cmake .. -G "%CMAKE_GENERATOR%" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=%INSTALL_LOC% -DENABLE_BASH_SCRIPT_TESTING=OFF -DENABLE_FILTER_TESTING=OFF -DENABLE_BYTERANGE=ON
