@@ -446,7 +446,7 @@ ELSE()
   # Sometimes, FIND_PACKAGE(Threads) appears to work,
   # but pthread.h is still found
   IF(Threads_PTHREAD_H STREQUAL "")
-    Threads_FOUND=FALSE
+    SET(Threads_FOUND FALSE)
   ENDIF()
 message(">>> (2) Threads_FOUND=${Threads_FOUND}")
 ENDIF(MSVC AND NOT MINGW)
