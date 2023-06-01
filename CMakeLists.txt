@@ -454,6 +454,8 @@ message(">>> CMAKE_USE_PTHREADS_INIT=${CMAKE_USE_PTHREADS_INIT}")
     ENDIF()
   ENDIF(MSVC AND NOT MINGW)
 message(">>> (X) Threads_FOUND=${Threads_FOUND}")
+ELSE(ENABLE_THREADSAFE)
+  SET(Threads::Threads "" CACHE STRING "No pthreads library")
 ENDIF(ENABLE_THREADSAFE)
 
 IF(Threads_FOUND)
