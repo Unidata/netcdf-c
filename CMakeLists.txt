@@ -443,7 +443,7 @@ message(">>> (1) Threads_FOUND=${Threads_FOUND}")
 ELSE()
   SET(THREADS_PREFER_PTHREAD_FLAG TRUE)
   FIND_PACKAGE(Threads REQUIRED)
-message(">>> (2) Threads_FOUND=${Threads_FOUND}");
+message(">>> (2) Threads_FOUND=${Threads_FOUND}")
 ENDIF(MSVC AND NOT MINGW)
 
 IF(Threads_FOUND)
