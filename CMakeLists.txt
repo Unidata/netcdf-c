@@ -446,7 +446,7 @@ IF(MSVC AND NOT MINGW)
 #  # but pthread.h is still found
 #  IF(Threads_PTHREAD_H STREQUAL "")
 #    SET(Threads_FOUND FALSE)
-#  ENDIF()
+  ENDIF(PTHREADS4W_FOUND)
 ENDIF(MSVC AND NOT MINGW)
 
 message(">>> (X) Threads_FOUND=${Threads_FOUND}")
