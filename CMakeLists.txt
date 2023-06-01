@@ -449,7 +449,7 @@ IF(MSVC AND NOT MINGW)
     ENDIF()
     IF(Threads_FOUND)
       SET(CMAKE_THREAD_LIBS_INIT ${Threads::Threads})
-    ENDIF
+    ENDIF()
   ENDIF()
 message(">>> Threads_FOUND_H=${Threads_FOUND}")
 message(">>> Threads::Threads=${Threads::Threads}")
