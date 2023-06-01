@@ -975,7 +975,9 @@ IF(USE_HDF5)
   # Use H5Pset_fapl_mpio and H5Pget_fapl_mpio, instead.
   #  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pget_fapl_mpiposix "" HDF5_IS_PARALLEL_MPIO)
 
+if(Threads_FOUND)
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pget_fapl_mpio "" HDF5_IS_PARALLEL_MPIO)
+endif()
 
   IF(HDF5_IS_PARALLEL_MPIO)
     SET(HDF5_PARALLEL ON)
