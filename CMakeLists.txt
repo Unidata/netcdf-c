@@ -439,14 +439,18 @@ IF(MSVC AND NOT MINGW)
     SET(CMAKE_USE_PTHREADS_INIT TRUE)
     SET(CMAKE_HP_PTHREADS_INIT FALSE)
     INCLUDE_DIRECTORIES(${PTHREADS4W_INCLUDE_DIR})
-#ELSE()
-#  SET(THREADS_PREFER_PTHREAD_FLAG TRUE)
-#  CHECK_INCLUDE_FILE(pthread.h Threads_PTHREAD_H)
-#  # Sometimes, FIND_PACKAGE(Threads) appears to work,
-#  # but pthread.h is still found
-#  IF(Threads_PTHREAD_H STREQUAL "")
-#    SET(Threads_FOUND FALSE)
-  ENDIF(PTHREADS4W_FOUND)
+  ELSE()
+    SET(THREADS_PREFER_PTHREAD_FLAG TRUE)
+    FIND_PACKAGE(Threads)
+message(">>> Threads_FOUND_H=${Threads_FOUND}")
+message(">>> Threads_PTHREAD_H=${Threads_PTHREADS_H}")
+message(">>> CMAKE_USE_PTHREADS_INIT=${CMAKE_USE_PTHREADS_INIT}")
+    # Sometimes, FIND_PACKAGE(Threads) appears to work,
+    # but pthread.h is still not found
+    IF(Threads_PTHREAD_H STREQUAL "")
+      SET(Threads_FOUND FALSE)
+    ENDIF()
+  ENDIF()
 ENDIF(MSVC AND NOT MINGW)
 
 message(">>> (X) Threads_FOUND=${Threads_FOUND}")
