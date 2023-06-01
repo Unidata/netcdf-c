@@ -451,6 +451,8 @@ message(">>> (2) Threads_INCLUDE_DIRS=${Threads_INCLUDE_DIRS}")
 ENDIF(MSVC AND NOT MINGW)
 
 IF(Threads_FOUND)
+  CHECK_INCLUDE_FILE(pthread.h Threads_PTHREAD_H)
+message(">>> (3) Threads_PTHREAD_H=${Threads_PTHREAD_H}")
   SET(HAVE_PTHREADS YES CACHE BOOL "Have pthreads library")
 ELSE()
   SET(HAVE_PTHREADS NO CACHE BOOL "Have pthreads library")
