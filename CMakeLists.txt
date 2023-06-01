@@ -427,8 +427,6 @@ ENDIF()
 # Control thread-safe operation
 OPTION (ENABLE_THREADSAFE "Enable Thread safe operation" OFF)
 
-  CHECK_INCLUDE_FILE(pthread.h Threads_PTHREAD_H)
-message(">>> (3) Threads_PTHREAD_H=${Threads_PTHREAD_H}")
 IF(MSVC AND NOT MINGW)
   FIND_PACKAGE(PTHREADS4W)
   GET_TARGET_PROPERTY(PTHREADS4W_LIBS Threads::Threads IMPORTED_IMPLIB_RELEASE)
@@ -444,12 +442,13 @@ message(">>> PTHREADS4W_INCLUDE_DIR = ${PTHREADS4W_INCLUDE_DIR}")
 message(">>> (1) Threads_FOUND=${Threads_FOUND}")
 ELSE()
   SET(THREADS_PREFER_PTHREAD_FLAG TRUE)
-  FIND_PACKAGE(Threads)
-  IF(Threads_FOUND)
-    INCLUDE_DIRECTORIES(${Threads_INCLUDE_DIRS})
+  CHECK_INCLUDE_FILE(pthread.h Threads_PTHREAD_H)
+  # Sometimes, FIND_PACKAGE(Threads) appears to work,
+  # but pthread.h is still found
+  IF(Threads_PTHREAD_H STREQUAL "")
+    Threads_FOUND=FALSE
   ENDIF()
 message(">>> (2) Threads_FOUND=${Threads_FOUND}")
-message(">>> (2) Threads_INCLUDE_DIRS=${Threads_INCLUDE_DIRS}")
 ENDIF(MSVC AND NOT MINGW)
 
 IF(Threads_FOUND)
