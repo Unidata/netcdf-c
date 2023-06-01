@@ -427,6 +427,8 @@ ENDIF()
 # Control thread-safe operation
 OPTION (ENABLE_THREADSAFE "Enable Thread safe operation" OFF)
 
+  CHECK_INCLUDE_FILE(pthread.h Threads_PTHREAD_H)
+message(">>> (3) Threads_PTHREAD_H=${Threads_PTHREAD_H}")
 IF(MSVC AND NOT MINGW)
   FIND_PACKAGE(PTHREADS4W)
   GET_TARGET_PROPERTY(PTHREADS4W_LIBS Threads::Threads IMPORTED_IMPLIB_RELEASE)
@@ -451,8 +453,6 @@ message(">>> (2) Threads_INCLUDE_DIRS=${Threads_INCLUDE_DIRS}")
 ENDIF(MSVC AND NOT MINGW)
 
 IF(Threads_FOUND)
-  CHECK_INCLUDE_FILE(pthread.h Threads_PTHREAD_H)
-message(">>> (3) Threads_PTHREAD_H=${Threads_PTHREAD_H}")
   SET(HAVE_PTHREADS YES CACHE BOOL "Have pthreads library")
 ELSE()
   SET(HAVE_PTHREADS NO CACHE BOOL "Have pthreads library")
