@@ -427,6 +427,7 @@ ENDIF()
 # Control thread-safe operation
 OPTION (ENABLE_THREADSAFE "Enable Thread safe operation" OFF)
 
+SET(Threads_FOUND FALSE)
 IF(MSVC)
   FIND_PACKAGE(PTHREADS4W QUIET)
   IF(PTHREADS4W_FOUND)
@@ -439,17 +440,20 @@ IF(MSVC)
     SET(CMAKE_USE_PTHREADS_INIT TRUE)
     SET(CMAKE_HP_PTHREADS_INIT FALSE)
     INCLUDE_DIRECTORIES(${PTHREADS4W_INCLUDE_DIR})
-  ELSE(NOT PTHREADS4W_FOUND)
-    SET(THREADS_PREFER_PTHREAD_FLAG TRUE)
-    FIND_PACKAGE(Threads)
-    # If the window's threads is found, then do not use it.
-    if(CMAKE_USE_WIN32_THREADS_INIT)
-      message(WARNING "*** Only WinThreads found, so disable Threads_FOUND")
-      SET(Threads_FOUND FALSE)
-    ENDIF()
-#    SET_TARGET_PROPERTIES(Threads::Threads PROPERTIES IMPORTED_GLOBAL TRUE)
   ENDIF(PTHREADS4W_FOUND)
 ENDIF(MSVC)
+
+IF(NOT Threads_FOUND)
+  # Look for some other pthreads library
+  SET(THREADS_PREFER_PTHREAD_FLAG TRUE)
+  FIND_PACKAGE(Threads)
+  # If the window's threads is found, then do not use it.
+  if(CMAKE_USE_WIN32_THREADS_INIT)
+    message(WARNING "*** Only WinThreads found, so disable Threads_FOUND")
+    SET(Threads_FOUND FALSE)
+  ENDIF()
+#    SET_TARGET_PROPERTIES(Threads::Threads PROPERTIES IMPORTED_GLOBAL TRUE)
+ENDIF(NOT Threads_FOUND)
 
 IF(Threads_FOUND)
   SET(HAVE_PTHREADS YES CACHE BOOL "Have pthreads library")
