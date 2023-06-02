@@ -30,10 +30,6 @@
 #include "ncbytes.h"
 #include "zincludes.h"
 
-#ifndef nulldup
- #define nulldup(x) ((x)?strdup(x):(x))
-#endif
-
 static char* progname = NULL;
 
 struct ITOptions {

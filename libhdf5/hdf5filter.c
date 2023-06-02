@@ -246,7 +246,7 @@ NC4_hdf5_filter_free(struct NC_HDF5_Filter* spec)
 {
     if(spec == NULL) goto done;
 PRINTFILTER(spec,"free");
-    if(spec->nparams > 0) nullfree(spec->params)
+    if(spec->nparams > 0) nullfree(spec->params);
     free(spec);
 done:
     return NC_NOERR;

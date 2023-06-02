@@ -8,10 +8,6 @@
 
 #include "config.h"
 
-#ifndef nulldup
- #define nulldup(x) ((x)?strdup(x):(x))
-#endif
-
 #ifdef USE_NETCDF4
 #define CLASSICONLY 0
 #else

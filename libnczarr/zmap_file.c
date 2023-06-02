@@ -621,7 +621,7 @@ zffullpath(ZFMAP* zfmap, const char* key, char** pathp)
     }
     if(pathp) {*pathp = path; path = NULL;}
 done:
-    nullfree(path)
+    nullfree(path);
     return ZUNTRACEX(stat,"path=%s",(pathp?*pathp:"null"));
 }
 

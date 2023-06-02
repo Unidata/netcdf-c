@@ -21,30 +21,19 @@ call other API call.
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #include <stdio.h>
+#include <errno.h>
 #endif
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
 #include <assert.h>
 
-/* Define a single check for PTHREADS vs WIN32 */
-#ifdef _WIN32
-/* Win32 syncronization has priority */
-#undef USEPTHREADS
-#else
-#ifdef HAVE_PTHREADS
-#define USEPTHREADS
-#endif
-#endif
-
-#ifdef USEPTHREADS
+/* We always use some form of pthread, even on Windows. */
 #include <pthread.h>
-#else
-#include <windows.h>
-#include <synchapi.h>
-#endif
 
-#include <ncmutex.h>
+#include "netcdf.h"
+#include "netcdf_threadsafe.h"
+#include "ncthreaded.h"
 
 /* Verbose assert */
 #undef DEBUGASSERT
@@ -58,14 +47,12 @@ call other API call.
 
 #define MAXDEPTH 32
 
+#ifdef ENABLE_THREADSAFE
+
 typedef struct NCmutex {
-#ifdef USEPTHREADS
     pthread_mutex_t mutex;
-#else
-    CRITICAL_SECTION mutex;
-#endif
     int refcount; /* # times called by same thread */
-#ifdef DEBUGAPI
+#ifdef THREADSAFE_TRACK
     struct {
         int depth;
         const char* stack[MAXDEPTH]; /* match lock/unlock */
@@ -73,24 +60,28 @@ typedef struct NCmutex {
 #endif
 } NCmutex;
 
+/**************************************************/
+/* Global data */
+
 static NCmutex NC_globalmutex;
 
 static volatile int global_mutex_initialized = 0; /* initialize once */
 
-#ifdef DEBUGAPI
+/**************************************************/
+#ifdef THREADSAFE_TRACK
 
 #ifdef DEBUGASSERT
 static void
 assertprint(int cond, const char* fcn, int lineno, const char* scond)
 {
     if(!cond) {
-	int i;
+        int i;
         fprintf(stderr,"assertion failed: %s\n",scond);
-	fprintf(stderr,"\tmutex: fcn=%s line=%d (%d)", fcn,lineno,NC_globalmutex.fcns.depth);
-	for(i=0;i<NC_globalmutex.fcns.depth;i++) {
-	    fprintf(stderr," %s",NC_globalmutex.fcns.stack[i]);
-	}
-	fprintf(stderr,"\n");
+        fprintf(stderr,"\tmutex: fcn=%s line=%d (%d)", fcn,lineno,NC_globalmutex.fcns.depth);
+        for(i=0;i<NC_globalmutex.fcns.depth;i++) {
+            fprintf(stderr," %s",NC_globalmutex.fcns.stack[i]);
+        }
+        fprintf(stderr,"\n");
     }
     assert(cond);
 }
@@ -127,9 +118,9 @@ popfcn(void)
 //    NC_globalmutex.fcns.stack[NC_globalmutex.fcns.depth] = NULL;
 }
 
-#endif /* DEBUGAPI */
+#endif /* THREADSAFE_TRACK */
 
-#ifdef USEPTHREADS
+/**************************************************/
 
 static pthread_once_t once_control = PTHREAD_ONCE_INIT;  /* for pthread_once */
 
@@ -147,9 +138,9 @@ ncmutexinit(NCmutex* mutex)
 static void
 globalncmutexinit(void)
 {
+    assert(sizeof(pthread_t) <= PTHREAD_T_MAX_SIZE);
     ncmutexinit(&NC_globalmutex);
 }
-#endif /*USEPTHREADS*/
 
 /* Thread module init */
 void
@@ -158,12 +149,8 @@ NC_global_mutex_initialize(void)
     if(global_mutex_initialized) return;
     memset(&NC_globalmutex,0,sizeof(NC_globalmutex));
 
-#ifdef USEPTHREADS
     /* We use pthread_once to guarantee that the mutex is initialized */
     pthread_once(&once_control,globalncmutexinit);
-#else
-    InitializeCriticalSection(&NC_globalmutex.mutex); /* is this itself thread-safe?*/
-#endif
     global_mutex_initialized = 1;
 }    
 
@@ -173,22 +160,19 @@ NC_global_mutex_finalize(void)
 {
     if(!global_mutex_initialized) return;
     global_mutex_initialized = 0;
+    pthread_mutex_destroy(&NC_globalmutex.mutex);
 }    
 
-#ifdef DEBUGAPI
+#ifdef THREADSAFE_TRACK
 void NC_lock(const char* fcn)
 #else
 void NC_lock(void)
 #endif
 {
     NCmutex* mutex = &NC_globalmutex;
-#ifdef USEPTHREADS
     pthread_mutex_lock(&mutex->mutex);
-#else
-    EnterCriticalSection(&mutex->mutex);
-#endif
     mutex->refcount++;
-#ifdef DEBUGAPI
+#ifdef THREADSAFE_TRACK
     pushfcn(fcn);
 #ifdef DEBUGPRINT
     fprintf(stderr,"@%s lock count=%d depth=%d\n",fcn,mutex->refcount,mutex->fcns.depth); fflush(stderr);
@@ -196,45 +180,40 @@ void NC_lock(void)
 #endif
 }
 
-#ifdef DEBUGAPI
+#ifdef THREADSAFE_TRACK
 void NC_unlock(const char* fcn)
 #else
 void NC_unlock(void)
 #endif
 {
     NCmutex* mutex = &NC_globalmutex;
-#ifdef DEBUGAPI
+#ifdef THREADSAFE_TRACK
 #ifdef DEBUGPRINT
     fprintf(stderr,"@%s unlock count=%d depth=%d\n",fcntop(),mutex->refcount,mutex->fcns.depth); fflush(stderr);
 #endif
     popfcn();
 #endif
-    ASSERT(mutex->refcount > 0);
+    assert(mutex->refcount > 0);
     mutex->refcount--;
-#ifdef USEPTHREADS
     pthread_mutex_unlock(&mutex->mutex);
-#else
-    LeaveCriticalSection(&mutex->mutex);
-#endif
 }
 
-#ifdef USEPTHREADS
 #ifdef __APPLE__
 
 /* Apparently OS/X pthreads does not implement
    pthread_barrier_t. So we have to fake it.
 */
 
-#include <errno.h>
+#define PTHREAD_BARRIER_SERIAL_THREAD   1
 
-int
+EXTERNL int
 pthread_barrier_init(pthread_barrier_t* barrier, const pthread_barrierattr_t* attr, unsigned int count)
 {
     int ret = 0;
 
     if(count == 0) {errno = EINVAL; ret = -1; goto done;}
     if((ret=pthread_mutex_init(&barrier->mutex, 0)))
-	{ret = -1; goto done;}
+        {ret = -1; goto done;}
     if((ret=pthread_cond_init(&barrier->cond, 0))) {
         if((ret=pthread_mutex_destroy(&barrier->mutex))) goto done;
         return -1;
@@ -245,7 +224,7 @@ done:
     return ret;
 }
 
-int
+EXTERNL int
 pthread_barrier_destroy(pthread_barrier_t* barrier)
 {
     int ret = 0;
@@ -255,7 +234,7 @@ done:
     return ret;
 }
 
-int
+EXTERNL int
 pthread_barrier_wait(pthread_barrier_t* barrier)
 {
     int ret = 0;
@@ -268,7 +247,7 @@ pthread_barrier_wait(pthread_barrier_t* barrier)
         ret = PTHREAD_BARRIER_SERIAL_THREAD;
     } else {
         if((ret=pthread_cond_wait(&barrier->cond, &(barrier->mutex))))
-	    goto done;
+            goto done;
         if((ret=pthread_mutex_unlock(&barrier->mutex))) goto done;
         ret = 0;
     }
@@ -277,4 +256,5 @@ done:
 }
 
 #endif /*__APPLE__*/
-#endif /*USEPTHREADS*/
+
+#endif /*ENABLE_THREADSAFE*/

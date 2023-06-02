@@ -1081,6 +1081,7 @@ NCJtotext(const NCjson* json)
     if(json == NULL) {strcpy(outtext,"<null>"); goto done;}
     (void)NCJunparse(json,0,&text);
     strncpy(outtext,text,sizeof(outtext));
+    outtext[sizeof(outtext)-1] = '\0'; /* ensure null terminated */
     nullfree(text);
 done:
     return outtext;

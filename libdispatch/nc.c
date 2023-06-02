@@ -19,11 +19,10 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#include "ncdispatch.h"
-
-#ifndef nulldup
- #define nulldup(x) ((x)?strdup(x):(x))
+#if defined(HAVE_PTHREADS) || defined(HAVE_LIBPTHREAD)
+#include <pthread.h>
 #endif
+#include "ncdispatch.h"
 
 /** This is the default create format for nc_create and nc__create. */
 static int default_create_format = NC_FORMAT_CLASSIC;
@@ -43,6 +42,16 @@ NC_check_id(int ncid, NC** ncpp)
 {
     NC* nc = find_in_NCList(ncid);
     if(nc == NULL) return NC_EBADID;
+#ifdef THREADSAFE_SINGLE
+    /* Verify that only one thread uses this NC */
+    if(!pthread_equal(*((pthread_t*)nc->threadid),pthread_self())) {
+	/* Report this occurrence */
+	fprintf(stderr,">>> WARNING: !!! multiple threads accessing same NC\n");
+#ifdef THREADSAFE_SINGLE_FAIL
+	abort();
+#endif
+    }
+#endif
     if(ncpp) *ncpp = nc;
     return NC_NOERR;
 }
@@ -97,6 +106,11 @@ new_NC(const NC_Dispatch* dispatcher, const char* path, int mode, NC** ncpp)
         stat = NC_ENOMEM;
 	goto done;
     }
+#ifdef THREADSAFE_SINGLE
+    { pthread_t pt = pthread_self();
+    memcpy(ncp->threadid,&pt,sizeof(pthread_t));
+    }
+#endif
     if(ncpp) {
         *ncpp = ncp;
     } else {

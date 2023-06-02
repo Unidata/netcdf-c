@@ -26,10 +26,6 @@ See COPYRIGHT for license information.
 #include "nc4internal.h"
 #include "ncdispatch.h"
 
-#ifndef nulldup
- #define nulldup(x) ((x)?strdup(x):(x))
-#endif
-
 #undef NOREAD
 
 #undef DRCDEBUG
@@ -576,11 +572,12 @@ rcequal(NCRCentry* e1, NCRCentry* e2)
     nulltest = 0;
     if(e1->host == NULL) nulltest |= 1;
     if(e2->host == NULL) nulltest |= 2;
+    /* Use host to decide if entry applies */
     switch (nulltest) {
     case 0: if(strcmp(e1->host,e2->host) != 0) {return 0;}  break;
-    case 1: return 0;
-    case 2: return 0;
-    case 3: break;
+    case 1: break;    /* .rc->host == NULL && candidate->host != NULL */
+    case 2: return 0; /* .rc->host != NULL && candidate->host == NULL */
+    case 3: break;    /* .rc->host == NULL && candidate->host == NULL */
     default: return 0;
     }
     /* test urlpath take NULL into account*/
@@ -589,9 +586,9 @@ rcequal(NCRCentry* e1, NCRCentry* e2)
     if(e2->urlpath == NULL) nulltest |= 2;
     switch (nulltest) {
     case 0: if(strcmp(e1->urlpath,e2->urlpath) != 0) {return 0;} break;
-    case 1: return 0;
-    case 2: return 0;
-    case 3: break;
+    case 1: break;    /* .rc->urlpath == NULL && candidate->urlpath != NULL */
+    case 2: return 0; /* .rc->urlpath != NULL && candidate->urlpath == NULL */
+    case 3: break;    /* .rc->urlpath == NULL && candidate->urlpath == NULL */
     default: return 0;
     }
     return 1;

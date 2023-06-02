@@ -176,9 +176,9 @@ NC_s3urlrebuild(NCURI* url, char** inoutbucketp, char** inoutregionp, NCURI** ne
 
 done:
     nullfree(region);
-    nullfree(bucket)
-    nullfree(host)
-    nullfree(path)
+    nullfree(bucket);
+    nullfree(host);
+    nullfree(path);
     ncurifree(newurl);
     ncbytesfree(buf);
     nclistfreeall(hostsegments);

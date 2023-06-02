@@ -525,6 +525,9 @@ with zip */
 /* define the possible sources for remote test servers */
 #cmakedefine REMOTETESTSERVERS	"${REMOTETESTSERVERS}"
 
+/* Max size for pthread_t instance */
+#cmakedefine PTHREAD_T_MAX_SIZE @PTHREAD_T_MAX_SIZE@
+
 /* The size of `ulonglong` as computed by sizeof. */
 #cmakedefine SIZEOF_ULONGLONG @SIZEOF_ULONGLONG@
 

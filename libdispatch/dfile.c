@@ -41,11 +41,6 @@
 
 #undef DEBUG
 
-#ifndef nulldup
- #define nulldup(s) ((s)?strdup(s):NULL)
-#endif
-
-
 extern int NC_initialized; /**< True when dispatch table is initialized. */
 
 /* User-defined formats. */
@@ -142,7 +137,7 @@ nc_def_user_format(int mode_flag, NC_Dispatch *dispatch_table, char *magic_numbe
                         !fIsSet(mode_flag, NC_NETCDF4))))
         return NC_EINVAL;
 
-    NC_LOCK;
+    NCLOCK;
 
     /* Retain a pointer to the dispatch_table and a copy of the magic
      * number, if one was provided. */
@@ -1955,7 +1950,6 @@ NC_create(const char *path0, int cmode, size_t initialsz,
 	nullfree(newpath);
         goto unlock;
     }
-
     if(newpath) {
         nullfree(path);
         path = newpath;

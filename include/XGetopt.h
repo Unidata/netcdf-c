@@ -20,7 +20,6 @@
 #include <stdio.h>
 #include <tchar.h>
 
-#if 0
 #ifdef _MSC_VER
 # ifdef DLL_EXPORT
 #  define GTOPT_EXTRA __declspec(dllexport)
@@ -30,9 +29,7 @@
 #else
 #  define GTOP_EXTRA
 #endif
-#endif
 
-#define GTOPT_EXTRA
 GTOPT_EXTRA extern int optind, opterr;
 GTOPT_EXTRA extern TCHAR* optarg;
 GTOPT_EXTRA extern int getopt(int argc, TCHAR *argv[], TCHAR *optstring);

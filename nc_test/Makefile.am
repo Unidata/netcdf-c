@@ -68,7 +68,14 @@ endif
 
 if ENABLE_THREADSAFE
 check_PROGRAMS += tst_threads
-TESTS += test_threads.sh
+TESTS += run_threads.sh
+if LARGE_FILE_TESTS
+thread_nc_test_SOURCES = thread_nc_test.c error.c \
+			  test_get.c test_put.c test_read.c test_write.c util.c \
+			  error.h tests.h
+check_PROGRAMS += thread_nc_test
+TESTS += run_thread_nc_test.sh
+endif
 endif
 
 # Set up the tests.
@@ -123,17 +130,17 @@ test_write.m4 ref_tst_diskless2.cdl tst_diskless5.cdl			\
 ref_tst_diskless3_create.cdl ref_tst_diskless3_open.cdl			\
 run_inmemory.sh run_mmap.sh f03tst_open_mem.nc test_byterange.sh	\
 ref_tst_http_nc3.cdl ref_tst_http_nc4a.cdl ref_tst_http_nc4b.cdl	\
-ref_tst_http_nc4c.cdl CMakeLists.txt run_pnetcdf_tests.sh.in            \
-tst_misc.c tst_norm.c ref_tst_http_nc4e.cdl ref_tst_http_nc4f.cdl       \
-test_threads.sh
+ref_tst_http_nc4c.cdl CMakeLists.txt run_pnetcdf_tests.sh.in \
+tst_misc.c tst_norm.c ref_tst_http_nc4e.cdl ref_tst_http_nc4f.cdl      \
+run_threads.sh
+
+EXTRA_DIST += bad_cdf5_begin.nc run_cdf5.sh nc_enddef.cdl tests.h.in
 
 # These files are created by the tests.
 CLEANFILES = nc_test_*.nc tst_*.nc t_nc.nc large_files.nc		\
 quick_large_files.nc tst_diskless3_file.cdl                             \
 tst_diskless4.cdl ref_tst_diskless4.cdl benchmark.nc                    \
 tst_http_nc3.cdl tst_http_nc4?.cdl tmp*.cdl tmp*.nc
-
-EXTRA_DIST += bad_cdf5_begin.nc run_cdf5.sh nc_enddef.cdl
 
 if ENABLE_CDF5
    # bad_cdf5_begin.nc is a corrupted CDF-5 file with bad variable starting
@@ -149,6 +156,10 @@ endif
 # Only clean these on maintainer-clean, because they require m4 to
 # regenerate.
 MAINTAINERCLEANFILES = test_get.c test_put.c
+
+# Remove directories
+clean-local:
+	rm -fr testdir_nc_test_*
 
 # This rule tells make how to turn our .m4 files into .c files.
 .m4.c:

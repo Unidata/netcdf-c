@@ -4,10 +4,10 @@
 # University Corporation for Atmospheric Research/Unidata.
 
 # See netcdf-c/COPYRIGHT file for more info.
-IF(BUILD_SHARED_LIBS AND WIN32)
-  remove_definitions(-DDLL_EXPORT)
-  remove_definitions(-DDLL_NETCDF)
-ENDIF()
+#IF(BUILD_SHARED_LIBS AND WIN32)
+#  remove_definitions(-DDLL_EXPORT)
+#  remove_definitions(-DDLL_NETCDF)
+#ENDIF()
 
 IF(USE_X_GETOPT)
   SET(XGETOPTSRC "${CMAKE_CURRENT_SOURCE_DIR}/../libdispatch/XGetopt.c")
