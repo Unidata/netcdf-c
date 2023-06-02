@@ -19,7 +19,7 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#if defined(HAVE_PTHREADS) || defined(HAVE_LIBPTHREAD)
+#ifdef HAVE_PTHREADS
 #include <pthread.h>
 #endif
 #include "ncdispatch.h"
