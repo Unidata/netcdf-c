@@ -1,6 +1,6 @@
 name: Run Cygwin-based tests
 
-on: [push,pull_request,workflow_dispatch]
+on: [pull_request,workflow_dispatch]
 
 env:
   SHELLOPTS: igncr
@@ -18,7 +18,7 @@ jobs:
     
     strategy:
       matrix:
-        plugin_dir_option: [push,"", "--without-plugin-dir"]
+        plugin_dir_option: ["", "--without-plugin-dir"]
 
     steps:
       - name: Fix line endings
