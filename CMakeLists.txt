@@ -427,12 +427,12 @@ ENDIF()
 # Control thread-safe operation
 OPTION (ENABLE_THREADSAFE "Enable Thread safe operation" OFF)
 
-message(">>> X0");
+message(">>> X0")
 IF(MSVC AND NOT MINGW)
 message(">>> X1");
   FIND_PACKAGE(PTHREADS4W QUIET)
   IF(PTHREADS4W_FOUND)
-message(">>> X2");
+message(">>> X2")
     GET_TARGET_PROPERTY(PTHREADS4W_LIBS Threads::Threads IMPORTED_IMPLIB_RELEASE)
     GET_TARGET_PROPERTY(PTHREADS4W_IMPL Threads::Threads IMPORTED_LOCATION_RELEASE)
     GET_TARGET_PROPERTY(PTHREADS4W_INCLUDE_DIR Threads::Threads INTERFACE_INCLUDE_DIRECTORIES)
@@ -443,7 +443,7 @@ message(">>> X2");
     SET(CMAKE_HP_PTHREADS_INIT FALSE)
     INCLUDE_DIRECTORIES(${PTHREADS4W_INCLUDE_DIR})
   ELSE()
-message(">>> X3");
+message(">>> X3")
     SET(THREADS_PREFER_PTHREAD_FLAG TRUE)
     FIND_PACKAGE(Threads)
     # Sometimes, FIND_PACKAGE(Threads) appears to work, but pthread.h is still not found
@@ -452,13 +452,13 @@ message(">>> X3");
     ENDIF(Threads_PTHREAD_H STREQUAL "")
     SET_TARGET_PROPERTIES(Threads::Threads PROPERTIES IMPORTED_GLOBAL TRUE)
   ENDIF(PTHREADS4W_FOUND)
-message(">>> X5");
+message(">>> X5")
 message(">>> Threads_FOUND=${Threads_FOUND}")
 message(">>> Threads_PTHREAD_H=${Threads_PTHREADS_H}")
 message(">>> CMAKE_THREAD_LIBS_INIT=${CMAKE_THREAD_LIBS_INIT}")
 message(">>> CMAKE_USE_PTHREADS_INIT=${CMAKE_USE_PTHREADS_INIT}")
 ENDIF(MSVC AND NOT MINGW)
-message(">>> X5");
+message(">>> X5")
 
 IF(Threads_FOUND)
   SET(HAVE_PTHREADS YES CACHE BOOL "Have pthreads library")
