@@ -429,7 +429,7 @@ OPTION (ENABLE_THREADSAFE "Enable Thread safe operation" OFF)
 
 message(">>> X0")
 IF(MSVC AND NOT MINGW)
-message(">>> X1");
+message(">>> X1")
   FIND_PACKAGE(PTHREADS4W QUIET)
   IF(PTHREADS4W_FOUND)
 message(">>> X2")
