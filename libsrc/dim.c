@@ -229,7 +229,7 @@ dup_NC_dimarrayV(NC_dimarray *ncap, const NC_dimarray *ref)
 	{
 		NC_dim **dpp = ncap->value;
 		const NC_dim **drpp = (const NC_dim **)ref->value;
-		if(dpp != NULL) {
+		assert(dpp != NULL);
 		NC_dim *const *const end = &dpp[ref->nelems];
 		for( /*NADA*/; dpp < end; drpp++, dpp++, ncap->nelems++)
 		{
@@ -239,7 +239,6 @@ dup_NC_dimarrayV(NC_dimarray *ncap, const NC_dimarray *ref)
 				status = NC_ENOMEM;
 				break;
 			}
-		}
 		}
 	}
 
