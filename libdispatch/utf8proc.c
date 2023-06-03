@@ -499,6 +499,7 @@ static nc_utf8proc_ssize_t nc_seqindex_write_char_decomposed(nc_utf8proc_uint16_
 ) {
   /* strlen will be ignored, if UTF8PROC_NULLTERM is set in options */
   nc_utf8proc_ssize_t wpos = 0;
+  if(buffer == NULL) return wpos;
   if ((options & UTF8PROC_COMPOSE) && (options & UTF8PROC_DECOMPOSE))
     return UTF8PROC_ERROR_INVALIDOPTS;
   if ((options & UTF8PROC_STRIPMARK) &&
@@ -525,10 +526,8 @@ static nc_utf8proc_ssize_t nc_seqindex_write_char_decomposed(nc_utf8proc_uint16_
       if (custom_func != NULL) {
         uc = custom_func(uc, custom_data);   /* user-specified custom mapping */
       }
-      nc_utf8proc_int32_t *dst = NULL;
-      if (buffer) dst = buffer + wpos;
       decomp_result = nc_utf8proc_decompose_char(
-        uc, dst, (bufsize > wpos) ? (bufsize - wpos) : 0, options,
+        uc, buffer+wpos, (bufsize > wpos) ? (bufsize - wpos) : 0, options,
         &boundclass
       );
       if (decomp_result < 0) return decomp_result;
