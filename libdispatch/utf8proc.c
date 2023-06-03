@@ -499,7 +499,7 @@ static nc_utf8proc_ssize_t nc_seqindex_write_char_decomposed(nc_utf8proc_uint16_
 ) {
   /* strlen will be ignored, if UTF8PROC_NULLTERM is set in options */
   nc_utf8proc_ssize_t wpos = 0;
-  if(buffer == NULL) return wpos;
+  assert(buffer != NULL);
   if ((options & UTF8PROC_COMPOSE) && (options & UTF8PROC_DECOMPOSE))
     return UTF8PROC_ERROR_INVALIDOPTS;
   if ((options & UTF8PROC_STRIPMARK) &&
