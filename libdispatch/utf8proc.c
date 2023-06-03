@@ -348,7 +348,7 @@ static nc_utf8proc_ssize_t nc_seqindex_write_char_decomposed(nc_utf8proc_uint16_
   nc_utf8proc_ssize_t written = 0;
   const nc_utf8proc_uint16_t *entry = &nc_utf8proc_sequences[seqindex & 0x1FFF];
   int len = seqindex >> 13;
-  if(dst == NULL) return written;
+  assert(dst != NULL);
   if (len >= 7) {
     len = *entry;
     entry++;
