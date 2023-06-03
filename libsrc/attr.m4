@@ -230,7 +230,7 @@ dup_NC_attrarrayV(NC_attrarray *ncap, const NC_attrarray *ref)
 	ncap->nelems = 0;
 	{
 		NC_attr **app = ncap->value;
-		if(app != NULL) {
+		assert(app != NULL);
 		const NC_attr **drpp = (const NC_attr **)ref->value;
 		NC_attr *const *const end = &app[ref->nelems];
 		for( /*NADA*/; app < end; drpp++, app++, ncap->nelems++)
@@ -241,7 +241,6 @@ dup_NC_attrarrayV(NC_attrarray *ncap, const NC_attrarray *ref)
 				status = NC_ENOMEM;
 				break;
 			}
-		}
 		}
 	}
 
