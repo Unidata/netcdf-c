@@ -348,15 +348,14 @@ static nc_utf8proc_ssize_t nc_seqindex_write_char_decomposed(nc_utf8proc_uint16_
   nc_utf8proc_ssize_t written = 0;
   const nc_utf8proc_uint16_t *entry = &nc_utf8proc_sequences[seqindex & 0x1FFF];
   int len = seqindex >> 13;
+  if(dst == NULL) return written;
   if (len >= 7) {
     len = *entry;
     entry++;
   }
   for (; len >= 0; entry++, len--) {
     nc_utf8proc_int32_t entry_cp = nc_seqindex_decode_entry(&entry);
-
-    nc_utf8proc_int32_t *dest = dst ? (dst+written) : NULL;
-    written += nc_utf8proc_decompose_char(entry_cp, dest,
+    written += nc_utf8proc_decompose_char(entry_cp, dst+written,
       (bufsize > written) ? (bufsize - written) : 0, options,
     last_boundclass);
     if (written < 0) return UTF8PROC_ERROR_OVERFLOW;
