@@ -156,6 +156,7 @@ NCZ_misc_hdf5_to_codec(size_t nparams, const unsigned* params, char** codecp)
     int i,stat = NC_NOERR;
     char json[4096];
     char value[1024];
+    size_t count, jlen;
 
     if(nparams == 0 || params == NULL)
         {stat = NC_EINVAL; goto done;}
@@ -164,12 +165,15 @@ NCZ_misc_hdf5_to_codec(size_t nparams, const unsigned* params, char** codecp)
 	stat = NC_EINVAL;
 	goto done;
     }
-    snprintf(json,sizeof(json),"{\"id\": \"%s\"",NCZ_misc_codec.codecid);
+    jlen = sizeof(json);
+    count = snprintf(json,sizeof(json),"{\"id\": \"%s\"",NCZ_misc_codec.codecid);
     for(i=0;i<14;i++) {
-        snprintf(value,sizeof(value),", \"%s\": \"%u\"",fields[i],params[i]);
-	strlcat(json,value,sizeof(json));
+        size_t len = snprintf(value,sizeof(value),", \"%s\": \"%u\"",fields[i],params[i]);
+	count += len; assert(jlen > count);
+	strcat(json,value);
     }
-    strlcat(json,"}",sizeof(json));
+    count += 1; assert(jlen > count);
+    strcat(json,"}");
     if(codecp) {
         if((*codecp = strdup(json))==NULL) {stat = NC_ENOMEM; goto done;}
     }

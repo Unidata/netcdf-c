@@ -15,6 +15,10 @@ jobs:
         shell: bash -eo pipefail -o igncr "{0}"
 
     name: Cygwin-based Autotools tests
+    
+    strategy:
+      matrix:
+        plugin_dir_option: ["", "--without-plugin-dir"]
 
     steps:
       - name: Fix line endings
@@ -30,6 +34,7 @@ jobs:
             libhdf4-devel zipinfo libxml2-devel perl zlib-devel
             libzstd-devel libbz2-devel libaec-devel libzip-devel
             libdeflate-devel gcc-core libcurl-devel libiconv-devel
+            libssl-devel libcrypt-devel
 
       - name: (Autotools) Run autoconf and friends
         run: |
@@ -42,8 +47,10 @@ jobs:
         run: >-
           /bin/dash ./configure --enable-hdf5 --enable-shared
           --disable-static --enable-dap --disable-dap-remote-tests
-          --enable-plugins --disable-nczarr-filters
-          --disable-nczarr-s3 --disable-nczarr-s3-tests --disable-nczarr
+          --enable-plugins ${{ matrix.plugin_dir_option }}
+          --disable-nczarr --disable-nczarr-filters
+          --disable-nczarr-s3 --disable-nczarr-s3-tests
+
 
       - name: Look at config.log if error
         if: ${{ failure() }}
@@ -66,4 +73,5 @@ jobs:
 
       - name: (Autotools) Build and run tests
         timeout-minutes: 30
-        run: make check -j8 SHELL=/bin/dash
+        run: |
+          make check -j8 SHELL=/bin/dash

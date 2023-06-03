@@ -885,7 +885,7 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 	    if(iss3) {
 	        /* Rebuild the URL */
 		NCURI* newuri = NULL;
-		if((retval = NC_s3urlrebuild(h5->uri,&newuri,NULL,&awsregion0))) goto exit;
+		if((retval = NC_s3urlrebuild(h5->uri,NULL,&awsregion0,&newuri))) goto exit;
 		if((newpath = ncuribuild(newuri,NULL,NULL,NCURISVC))==NULL)
 		    {retval = NC_EURL; goto exit;}
 		ncurifree(h5->uri);
@@ -2642,7 +2642,7 @@ oinfo_list_add(user_data_t *udata, const hdf5_obj_info_t *oinfo)
  */
 static int
 read_hdf5_obj(hid_t grpid, const char *name,
-#if H5_VERSION_GE(1,12,0)
+#if defined(H5Lget_info_vers) && H5Lget_info_vers == 2
 	      const H5L_info2_t *info,
 #else
 	      const H5L_info_t *info,

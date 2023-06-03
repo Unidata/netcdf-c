@@ -9,6 +9,7 @@
 #include <execinfo.h>
 #endif
 
+#include "nclog.h"
 #include "hdf5debug.h"
 
 #ifdef H5CATCH

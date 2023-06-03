@@ -5,7 +5,7 @@ export srcdir;
 
 . ../test_common.sh
 
-set -x
+set -e
 
 . ${srcdir}/d4test_common.sh
 
