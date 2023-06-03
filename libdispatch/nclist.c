@@ -10,7 +10,7 @@
 #define strcasecmp _stricmp
 #endif
 
-int nclistnull(void* e) {return e == NULL;}
+int nclistisnull(void* e) {return e == NULL;}
 
 #ifndef TRUE
 #define TRUE 1
@@ -292,3 +292,17 @@ nclistextract(NClist* l)
     l->content = NULL;
     return result;
 }
+
+/* Extends nclist to include a NULL that is not included
+   in list length.
+   return value is always 1.
+*/
+int
+nclistnull(NClist* l)
+{
+    if(l == NULL || l->length == 0) return 1;
+    nclistpush(l,NULL);
+    nclistsetlength(l,l->length-1);
+    return 1;
+}
+

@@ -17,6 +17,10 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 set -e
 
+s3isolate "testdir_chunkcases"
+THISDIR=`pwd`
+cd $ISOPATH
+
 TC="${execdir}/tst_chunkcases -4"
 ZM="${execdir}/zmapio -t int"
 
@@ -52,25 +56,35 @@ makefile() {
   esac
 }
 
-testcases() {
-
+testcasesxfail() {
 zext=$1
-echo ""; echo "*** Test format $1"
-    
+echo ""; echo "*** XFAIL Test format $1"
 # Test whole chunk write and read
 echo "Test whole chunk write then read"
+makefile tmp_xwhole
+rm -f tmp_xwhole_${zext}.txt tmp_xwhole_${zext}.cdl tmp_xerr_${zext}.txt
+# This should fail 
+if ! $TC -d 8,8 -c 4,4 -f 4,3 -e 4,4 -X w -OWw $F >> tmp_xerr_${zext}.txt ; then
+echo "XFAIL: wholechunk with bad -f"
+else
+echo "Unexpected PASS: wholechunk with bad -f"
+exit 1
+fi
+remfile $file
+if ! $TC -d 8,8 -c 4,4 -f 4,4 -e 1,4 -X w -OWw $F  >> tmp_xerr_${zext}.txt ; then
+echo "XFAIL: wholechunk with bad -e"
+else
+echo "Unexpected PASS: wholechunk with bad -e"
+exit 1
+fi
+} # testcasesxfail()
+
+testcasespass() {
+zext=$1
+echo ""; echo "*** Test format $1"
 makefile tmp_whole
 rm -f tmp_whole_${zext}.txt tmp_whole_${zext}.cdl tmp_err_${zext}.txt
-# This should fail 
-if ! $TC -d 8,8 -c 4,4 -f 4,3 -e 4,4 -X w -OWw $F >> tmp_err_${zext}.txt ; then
-echo "XFAIL: wholechunk with bad -f"
-fi
-remfile $file
-if ! $TC -d 8,8 -c 4,4 -f 4,4 -e 1,4 -X w -OWw $F  >> tmp_err_${zext}.txt ; then
-
-echo "XFAIL: wholechunk with bad -e"
-fi
-remfile $file
+makefile tmp_whole
 # This should succeed
 $TC -d 8,8 -c 4,4 -f 4,4 -e 4,4 -X w -OWw $F
 $TC -d 8,8 -c 4,4 -f 4,4 -e 4,4 -X w -OWr $F > tmp_whole_${zext}.txt
@@ -91,14 +105,12 @@ diff -b ${srcdir}/ref_skip.cdl tmp_skip_${zext}.cdl
 echo "Test chunk skipping during write"
 makefile tmp_skipw
 rm -f tmp_skipw_${zext}.cdl
-
 $TC -d 6,6 -s 5,5 -p 6,6 -Ow $F
 ${NCDUMP} $F > tmp_skipw_${zext}.cdl
 diff -b ${srcdir}/ref_skipw.cdl tmp_skipw_${zext}.cdl
 
 echo "Test dimlen % chunklen != 0"
 makefile tmp_rem
-
 rm -f tmp_rem_${zext}.txt tmp_rem_${zext}.cdl
 $TC -d 8,8 -c 3,3 -Ow $F
 ${NCDUMP} $F > tmp_rem_${zext}.cdl
@@ -119,14 +131,22 @@ echo "Test miscellaneous 1"
 makefile tmp_misc1
 rm -f tmp_misc1_${zext}.txt tmp_misc1_${zext}.cdl
 $TC -d 6,12,4 -c 2,3,1 -f 0,0,0 -e 6,1,4 -Ow $F
+if test "x$FEATURE_S3TESTS" = xyes ; then
+${S3UTIL} -u 'https://s3.us-east-1.amazonaws.com/unidata-zarr-test-data' -k '/netcdf-c' list
+fi
 ${NCDUMP} $F > tmp_misc1_${zext}.cdl
 diff -b ${srcdir}/ref_misc1.cdl tmp_misc1_${zext}.cdl
 ${execdir}/ncdumpchunks -v v $F > tmp_misc1_${zext}.dmp
 diff -b ${srcdir}/ref_misc1.dmp tmp_misc1_${zext}.dmp
+} # testcasespass()
 
-} # testcases()
+testcases() {
+  testcasesxfail $1
+  testcasespass $1
+}
 
 testcases file
 if test "x$FEATURE_NCZARR_ZIP" = xyes ; then testcases zip; fi
 if test "x$FEATURE_S3TESTS" = xyes ; then testcases s3; fi
 
+if test "x$FEATURE_S3TESTS" = xyes ; then s3sdkdelete "/${S3ISOPATH}" ; fi # Cleanup

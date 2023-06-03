@@ -41,9 +41,9 @@ DAP4 Support:		@HAS_DAP4@
 Byte-Range Support:	@HAS_BYTERANGE@
 
 S3 Support:	        @HAS_S3@
+S3 SDK:  	        @WHICH_S3_SDK@
 
 NCZarr Support:		@HAS_NCZARR@
-NCZarr Zip Support:     @HAS_NCZARR_ZIP@
 
 Diskless Support:	@HAS_DISKLESS@
 MMap Support:		@HAS_MMAP@

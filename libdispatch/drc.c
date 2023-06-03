@@ -19,6 +19,7 @@ See COPYRIGHT for license information.
 #include "ncbytes.h"
 #include "ncuri.h"
 #include "ncrc.h"
+#include "ncs3sdk.h"
 #include "nclog.h"
 #include "ncauth.h"
 #include "ncpathmgr.h"
@@ -67,8 +68,8 @@ static void freeprofilelist(NClist* profiles);
 /* Define default rc files and aliases, also defines load order*/
 static const char* rcfilenames[] = {".ncrc", ".daprc", ".dodsrc",NULL};
 
-/* Read these files */
-static const char* awsconfigfiles[] = {".aws/credentials",".aws/config",NULL};
+/* Read these files in order and later overriding earlier */
+static const char* awsconfigfiles[] = {".aws/config",".aws/credentials",NULL};
 
 static int NCRCinitialized = 0;
 
@@ -158,7 +159,7 @@ ncrc_initialize(void)
     if((stat = NC_rcload())) {
         nclog(NCLOGWARN,".rc loading failed");
     }
-    /* Load .aws/config */
+    /* Load .aws/config &/ credentials */
     if((stat = aws_load_credentials(ncg))) {
         nclog(NCLOGWARN,"AWS config file not loaded");
     }
@@ -488,7 +489,8 @@ rccompile(const char* filepath)
 	         NCURI* newuri = NULL;
 	        /* Rebuild the url to S3 "path" format */
 	        nullfree(bucket);
-	        if((ret = NC_s3urlrebuild(uri,&newuri,&bucket,NULL))) goto done;
+		bucket = NULL;
+	        if((ret = NC_s3urlrebuild(uri,&bucket,NULL,&newuri))) goto done;
 		ncurifree(uri);
 		uri = newuri;
 		newuri = NULL;
@@ -567,11 +569,12 @@ rcequal(NCRCentry* e1, NCRCentry* e2)
     nulltest = 0;
     if(e1->host == NULL) nulltest |= 1;
     if(e2->host == NULL) nulltest |= 2;
+    /* Use host to decide if entry applies */
     switch (nulltest) {
     case 0: if(strcmp(e1->host,e2->host) != 0) {return 0;}  break;
-    case 1: return 0;
-    case 2: return 0;
-    case 3: break;
+    case 1: break;    /* .rc->host == NULL && candidate->host != NULL */
+    case 2: return 0; /* .rc->host != NULL && candidate->host == NULL */
+    case 3: break;    /* .rc->host == NULL && candidate->host == NULL */
     default: return 0;
     }
     /* test urlpath take NULL into account*/
@@ -580,9 +583,9 @@ rcequal(NCRCentry* e1, NCRCentry* e2)
     if(e2->urlpath == NULL) nulltest |= 2;
     switch (nulltest) {
     case 0: if(strcmp(e1->urlpath,e2->urlpath) != 0) {return 0;} break;
-    case 1: return 0;
-    case 2: return 0;
-    case 3: break;
+    case 1: break;    /* .rc->urlpath == NULL && candidate->urlpath != NULL */
+    case 2: return 0; /* .rc->urlpath != NULL && candidate->urlpath == NULL */
+    case 3: break;    /* .rc->urlpath == NULL && candidate->urlpath == NULL */
     default: return 0;
     }
     return 1;
@@ -760,6 +763,7 @@ Get the current active profile. The priority order is as follows:
 1. aws.profile key in mode flags
 2. aws.profile in .rc entries
 4. "default"
+5. "no" -- meaning do not use any profile => no secret key
 
 @param uri uri with mode flags, may be NULL
 @param profilep return profile name here or NULL if none found
@@ -772,16 +776,27 @@ NC_getactives3profile(NCURI* uri, const char** profilep)
 {
     int stat = NC_NOERR;
     const char* profile = NULL;
+    struct AWSprofile* ap = NULL;
 
     profile = ncurifragmentlookup(uri,"aws.profile");
     if(profile == NULL)
         profile = NC_rclookupx(uri,"AWS.PROFILE");
-    if(profile == NULL)
-        profile = "default";
+
+    if(profile == NULL) {
+        if((stat=NC_authgets3profile("default",&ap))) goto done;
+	if(ap) profile = "default";
+    }
+
+    if(profile == NULL) {
+        if((stat=NC_authgets3profile("no",&ap))) goto done;
+	if(ap) profile = "no";
+    }
+
 #ifdef AWSDEBUG
     fprintf(stderr,">>> activeprofile = %s\n",(profile?profile:"null"));
 #endif
     if(profilep) *profilep = profile;
+done:
     return stat;
 }
 
@@ -809,7 +824,7 @@ NC_getdefaults3region(NCURI* uri, const char** regionp)
     if(region == NULL)
         region = NC_rclookupx(uri,"AWS.REGION");
     if(region == NULL) {/* See if we can find a profile */
-        if((stat = NC_getactives3profile(uri,&profile))==NC_NOERR) {
+        if(NC_getactives3profile(uri,&profile)==NC_NOERR) {
 	    if(profile)
 	        (void)NC_s3profilelookup(profile,"aws_region",&region);
 	}
@@ -1038,13 +1053,14 @@ fprintf(stderr,">>> parse: entry=(%s,%s)\n",entry->key,entry->value);
 	        {stat = NCTHROW(NC_EINVAL); goto done;}
 	}
 
-	/* If this profile already exists, then ignore new one */
+	/* If this profile already exists, then replace old one */
 	for(i=0;i<nclistlength(profiles);i++) {
 	    struct AWSprofile* p = (struct AWSprofile*)nclistget(profiles,i);
 	    if(strcasecmp(p->name,profile->name)==0) {
-		/* reclaim and ignore */
-		freeprofile(profile);
-		profile = NULL;
+		nclistset(profiles,i,profile);
+                profile = NULL;
+		/* reclaim old one */
+		freeprofile(p);
 		break;
 	    }
 	}
@@ -1069,7 +1085,7 @@ freeentry(struct AWSentry* e)
 {
     if(e) {
 #ifdef AWSDEBUG
-fprintf(stderr,">>> freeentry: key=%s value=%s\n",e->key,e->value);
+fprintf(stderr,">>> freeentry: key=%p value=%p\n",e->key,e->value);
 #endif
         nullfree(e->key);
         nullfree(e->value);
@@ -1108,7 +1124,7 @@ freeprofilelist(NClist* profiles)
     }
 }
 
-/* Find, load, and parse the aws credentials file */
+/* Find, load, and parse the aws config &/or credentials file */
 static int
 aws_load_credentials(NCglobalstate* gstate)
 {
@@ -1118,6 +1134,14 @@ aws_load_credentials(NCglobalstate* gstate)
     const char* aws_root = getenv(NC_TEST_AWS_DIR);
     NCbytes* buf = ncbytesnew();
     char path[8192];
+
+    /* add a "no" credentials */
+    {
+	struct AWSprofile* noprof = (struct AWSprofile*)calloc(1,sizeof(struct AWSprofile));
+	noprof->name = strdup("no");
+	noprof->entries = nclistnew();
+	nclistpush(profiles,noprof); noprof = NULL;
+    }
 
     for(;*awscfg;awscfg++) {
         /* Construct the path ${HOME}/<file> or Windows equivalent. */
@@ -1137,14 +1161,6 @@ aws_load_credentials(NCglobalstate* gstate)
 	}
     }
 
-    /* add a "none" credentials */
-    {
-	struct AWSprofile* noprof = (struct AWSprofile*)calloc(1,sizeof(struct AWSprofile));
-	noprof->name = strdup("none");
-	noprof->entries = nclistnew();
-	nclistpush(profiles,noprof); noprof = NULL;
-    }
-
     if(gstate->rcinfo->s3profiles)
         freeprofilelist(gstate->rcinfo->s3profiles);
     gstate->rcinfo->s3profiles = profiles; profiles = NULL;
@@ -1152,12 +1168,16 @@ aws_load_credentials(NCglobalstate* gstate)
 #ifdef AWSDEBUG
     {int i,j;
 	fprintf(stderr,">>> profiles:\n");
-	for(i=0;i<nclistlength(creds->profiles);i++) {
-	    struct AWSprofile* p = (struct AWSprofile*)nclistget(creds->profiles,i);
+	for(i=0;i<nclistlength(gstate->rcinfo->s3profiles);i++) {
+	    struct AWSprofile* p = (struct AWSprofile*)nclistget(gstate->rcinfo->s3profiles,i);
 	    fprintf(stderr,"    [%s]",p->name);
 	    for(j=0;j<nclistlength(p->entries);j++) {
 	        struct AWSentry* e = (struct AWSentry*)nclistget(p->entries,j);
-		fprintf(stderr," %s=%s",e->key,e->value);
+		if(strcmp(e->key,"aws_access_key_id")
+		    fprintf(stderr," %s=%d",e->key,(int)strlen(e->value));
+		else if(strcmp(e->key,"aws_secret_access_key")
+		    fprintf(stderr," %s=%d",e->key,(int)strlen(e->value));
+		else fprintf(stderr," %s=%s",e->key,e->value);
 	    }
             fprintf(stderr,"\n");
 	}
@@ -1169,6 +1189,13 @@ done:
     freeprofilelist(profiles);
     return stat;
 }
+
+/* Lookup a profile by name;
+@param profilename to lookup
+@param profilep return the matching profile; null if profile not found
+@return NC_NOERR if no error
+@return other error
+*/
 
 int
 NC_authgets3profile(const char* profilename, struct AWSprofile** profilep)
@@ -1187,6 +1214,13 @@ done:
     return stat;
 }
 
+/**
+@param profile name of profile
+@param key key to search for in profile
+@param value place to store the value if key is found; NULL if not found
+@return NC_NOERR if key is found, Some other error otherwise.
+*/
+
 int
 NC_s3profilelookup(const char* profile, const char* key, const char** valuep)
 {
@@ -1195,8 +1229,7 @@ NC_s3profilelookup(const char* profile, const char* key, const char** valuep)
     const char* value = NULL;
 
     if(profile == NULL) return NC_ES3;
-    stat = NC_authgets3profile(profile,&awsprof);
-    if(stat == NC_NOERR && awsprof != NULL) {
+    if((stat=NC_authgets3profile(profile,&awsprof))==NC_NOERR && awsprof != NULL) {
         for(i=0;i<nclistlength(awsprof->entries);i++) {
 	    struct AWSentry* entry = (struct AWSentry*)nclistget(awsprof->entries,i);
 	    if(strcasecmp(entry->key,key)==0) {
