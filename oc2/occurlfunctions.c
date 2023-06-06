@@ -130,6 +130,7 @@ ocset_curlflag(OCstate* state, int flag)
     case CURLOPT_USE_SSL:
     case CURLOPT_SSLCERT: case CURLOPT_SSLKEY:
     case CURLOPT_SSL_VERIFYPEER: case CURLOPT_SSL_VERIFYHOST:
+    case CURLOPT_CAINFO: case CURLOPT_CAPATH:
     {
         struct ssl* ssl = &state->auth->ssl;
 	/* VERIFYPEER == 0 => VERIFYHOST == 0 */
