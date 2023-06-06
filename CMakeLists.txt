@@ -2205,7 +2205,7 @@ MACRO(print_conf_summary)
 
   MESSAGE("")
 ENDMACRO()
-##
+##specific
 # Shell script Macro
 ##
 # Determine if 'bash' is on the system.
@@ -2232,7 +2232,7 @@ ENDIF(ENABLE_BASH_SCRIPT_TESTING)
 
 MACRO(add_sh_test prefix F)
   IF(HAVE_BASH)
-    ADD_TEST(${prefix}_${F} bash "-c" "export srcdir=${CMAKE_CURRENT_SOURCE_DIR};export TOPSRCDIR=${CMAKE_SOURCE_DIR};${CMAKE_CURRENT_BINARY_DIR}/${F}.sh ${ARGN}")
+    ADD_TEST(${prefix}_${F} bash "-c" "export srcdir=${CMAKE_CURRENT_SOURCE_DIR};export TOPSRCDIR=${CMAKE_SOURCE_DIR};bash ${CMAKE_CURRENT_BINARY_DIR}/${F}.sh ${ARGN}")
   ENDIF()
 ENDMACRO()
 
