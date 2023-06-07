@@ -763,19 +763,6 @@ EXTERNL int
 nc_inq_vlen(int ncid, nc_type xtype, char *name, size_t *datum_sizep,
             nc_type *base_nc_typep);
 
-/* When you read VLEN type the library will actually allocate the
- * storage space for the data. This storage space must be freed, so
- * pass the pointer back to this function, when you're done with the
- * data, and it will free the vlen memory.
- * These two functions are deprecated in favor of the nc_reclaim_data function.
- */
-
-EXTERNL int
-nc_free_vlen(nc_vlen_t *vl);
-
-EXTERNL int
-nc_free_vlens(size_t len, nc_vlen_t vlens[]);
-
 /* Put or get one element in a vlen array. */
 EXTERNL int
 nc_put_vlen_element(int ncid, int typeid1, void *vlen_element,
@@ -784,15 +771,6 @@ nc_put_vlen_element(int ncid, int typeid1, void *vlen_element,
 EXTERNL int
 nc_get_vlen_element(int ncid, int typeid1, const void *vlen_element,
                     size_t *len, void *data);
-
-/* When you read the string type the library will allocate the storage
- * space for the data. This storage space must be freed, so pass the
- * pointer back to this function, when you're done with the data, and
- * it will free the string memory.
- * This function is deprecated in favor of the nc_reclaim_data function.
- */
-EXTERNL int
-nc_free_string(size_t len, char **data);
 
 /* Find out about a user defined type. */
 EXTERNL int
@@ -1785,20 +1763,49 @@ nc_put_var_string(int ncid, int varid, const char **op);
 EXTERNL int
 nc_get_var_string(int ncid, int varid, char **ip);
 
-/* Begin recursive instance walking functions */
+/* Begin instance walking functions */
+
+/* When you read an array of string typed instances, the library will allocate
+ * the storage space for the strings in the array (but not the array itself).
+ * The strings must be freed eventually, so pass the pointer to the array plus
+ * the number of elements in the array to this function when you're done with
+ * the data, and it will free the all the string instances.
+ * The caller is still responsible for free'ing the array itself,
+ * if it was dynamically allocated.
+ */
+EXTERNL int
+nc_free_string(size_t nelems, char **data);
+
+/* When you read an array of VLEN typed instances, the library will allocate
+ * the storage space for the data in each VLEN in the array (but not the array itself).
+ * That VLEN data must be freed eventually, so pass the pointer to the array plus
+ * the number of elements in the array to this function when you're done with
+ * the data, and it will free the all the VLEN instances.
+ * The caller is still responsible for free'ing the array itself,
+ * if it was dynamically allocated.
+ *
+ * WARNING: this function only works if the basetype of the vlen type
+ * is fixed size. This means it is an atomic type except NC_STRING,
+ * or an NC_ENUM, or and NC_OPAQUE, or an NC_COMPOUND where all
+ * the fields of the compound type are themselves fixed size.
+ */
+EXTERNL int
+nc_free_vlens(size_t nelems, nc_vlen_t vlens[]);
+
+/* This function is a special case of "nc_free_vlens" where nelem == 1 */
+EXTERNL int
+nc_free_vlen(nc_vlen_t *vl);
 
 /**
-Reclaim a vector of instances of arbitrary type.  Intended for
-use with e.g. nc_get_vara or the input to e.g. nc_put_vara.
-This recursively walks the top-level instances to reclaim any
-nested data such as vlen or strings or such.
-
-Assumes it is passed a pointer to count instances of xtype.
-Reclaims any nested data.
+Reclaim an array of instances of an arbitrary type.
+This function is intended for use with e.g. nc_get_vara
+or the input to e.g. nc_put_vara.
+This function recursively walks the top-level instances to
+reclaim any nested data such as vlen or strings or such.
 
 WARNING: nc_reclaim_data does not reclaim the top-level
 memory because we do not know how it was allocated.  However
-nc_reclaim_data_all does reclaim top-level memory.
+nc_reclaim_data_all does attempt to reclaim top-level memory.
 
 WARNING: all data blocks below the top-level (e.g. string
 instances) will be reclaimed, so do not call if there is any
@@ -1807,11 +1814,10 @@ static data in the instance.
 Should work for any netcdf format.
 */
 
-EXTERNL int nc_reclaim_data(int ncid, nc_type xtypeid, void* memory, size_t count);
-EXTERNL int nc_reclaim_data_all(int ncid, nc_type xtypeid, void* memory, size_t count);
+EXTERNL int nc_reclaim_data(int ncid, nc_type xtypeid, void* memory, size_t nelems);
+EXTERNL int nc_reclaim_data_all(int ncid, nc_type xtypeid, void* memory, size_t nelems);
 
 /**
-
 Copy vector of arbitrary type instances.  This recursively walks
 the top-level instances to copy any nested data such as vlen or
 strings or such.
@@ -1826,9 +1832,6 @@ Should work for any netcdf format.
 
 EXTERNL int nc_copy_data(int ncid, nc_type xtypeid, const void* memory, size_t count, void* copy);
 EXTERNL int nc_copy_data_all(int ncid, nc_type xtypeid, const void* memory, size_t count, void** copyp);
-
-/* Instance dumper for debugging */
-EXTERNL int nc_dump_data(int ncid, nc_type xtypeid, void* memory, size_t count, char** buf);
 
 /* end recursive instance walking functions */
 

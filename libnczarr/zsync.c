@@ -1341,7 +1341,7 @@ ncz_read_atts(NC_FILE_INFO_T* file, NC_OBJ* container)
 	    if((stat = ncz_makeattr(container,attlist,aname,typeid,len,data,&att)))
 		goto done;
 	    /* No longer need this copy of the data */
-   	    if((stat = nc_reclaim_data_all(file->controller->ext_ncid,att->nc_typeid,data,len))) goto done;	    	    
+   	    if((stat = NC_reclaim_data_all(file->controller,att->nc_typeid,data,len))) goto done;	    	    
 	    data = NULL;
 	    if(isfillvalue)
 	        fillvalueatt = att;
@@ -1365,7 +1365,7 @@ ncz_read_atts(NC_FILE_INFO_T* file, NC_OBJ* container)
 
 done:
     if(data != NULL)
-        stat = nc_reclaim_data(file->controller->ext_ncid,att->nc_typeid,data,len);
+        stat = NC_reclaim_data(file->controller,att->nc_typeid,data,len);
     NCJreclaim(jattrs);
     nclistfreeall(atypes);
     nullfree(fullpath);

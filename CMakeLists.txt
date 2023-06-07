@@ -1636,7 +1636,7 @@ IF (ENABLE_PARALLEL_TESTS AND NOT USE_PARALLEL)
 ENDIF()
 
 # Enable special filter test; experimental when using cmake.
-OPTION(ENABLE_FILTER_TESTING "Enable filter testing. Ignored if shared libraries or netCDF4 are not enabled" yes)
+OPTION(ENABLE_FILTER_TESTING "Enable filter testing. Ignored if shared libraries or netCDF4 are not enabled" ON)
 
 IF(ENABLE_FILTER_TESTING)
   if(NOT ENABLE_HDF5 AND NOT ENABLE_NCZARR)
@@ -1650,8 +1650,8 @@ IF(NOT BUILD_SHARED_LIBS)
   SET(ENABLE_FILTER_TESTING OFF)
 ENDIF()
 
-OPTION(ENABLE_NCZARR_FILTERS "Enable NCZarr filters" yes)
-OPTION(ENABLE_NCZARR_FILTERS_TESTING "Enable NCZarr filter testing." yes)
+OPTION(ENABLE_NCZARR_FILTERS "Enable NCZarr filters" ON)
+OPTION(ENABLE_NCZARR_FILTERS_TESTING "Enable NCZarr filter testing." ON)
 
 # Constraints
 IF (NOT ENABLE_PLUGINS)
@@ -1968,20 +1968,20 @@ ENDIF(ENABLE_MMAP)
 # Used in the `configure_file` calls below
 SET(ISCMAKE "yes")
 IF(MSVC)
-SET(ISMSVC yes CACHE BOOL "" FORCE)
-SET(REGEDIT yes CACHE BOOL "" FORCE)
-# Get windows major version and build number
-EXECUTE_PROCESS(COMMAND "systeminfo" OUTPUT_VARIABLE WININFO)
-IF(WININFO STREQUAL "")
-  SET(WVM 0)
-  SET(WVB 0)
-ELSE()
-  STRING(REGEX MATCH "\nOS Version:[ \t]+[0-9.]+" WINVERLINE "${WININFO}")
-  STRING(REGEX REPLACE "[^0-9]*([0-9]+)[.]([0-9])+[.]([0-9]+)" "\\1" WVM "${WINVERLINE}")
-  STRING(REGEX REPLACE "[^0-9]*([0-9]+)[.]([0-9])+[.]([0-9]+)" "\\3" WVB "${WINVERLINE}")
-ENDIF()
-SET(WINVERMAJOR ${WVM} CACHE STRING "" FORCE)
-SET(WINVERBUILD ${WVB} CACHE STRING "" FORCE)
+  SET(ISMSVC ON CACHE BOOL "" FORCE)
+  SET(REGEDIT ON CACHE BOOL "" FORCE)
+  # Get windows major version and build number
+  EXECUTE_PROCESS(COMMAND "systeminfo" OUTPUT_VARIABLE WININFO)
+  IF(WININFO STREQUAL "")
+    SET(WVM 0)
+    SET(WVB 0)
+  ELSE()
+    STRING(REGEX MATCH "\nOS Version:[ \t]+[0-9.]+" WINVERLINE "${WININFO}")
+    STRING(REGEX REPLACE "[^0-9]*([0-9]+)[.]([0-9])+[.]([0-9]+)" "\\1" WVM "${WINVERLINE}")
+    STRING(REGEX REPLACE "[^0-9]*([0-9]+)[.]([0-9])+[.]([0-9]+)" "\\3" WVB "${WINVERLINE}")
+  ENDIF()
+  SET(WINVERMAJOR ${WVM} CACHE STRING "" FORCE)
+  SET(WINVERBUILD ${WVB} CACHE STRING "" FORCE)
 ENDIF()
 
 #####
@@ -2205,7 +2205,7 @@ MACRO(print_conf_summary)
 
   MESSAGE("")
 ENDMACRO()
-##
+##specific
 # Shell script Macro
 ##
 # Determine if 'bash' is on the system.
@@ -2232,7 +2232,7 @@ ENDIF(ENABLE_BASH_SCRIPT_TESTING)
 
 MACRO(add_sh_test prefix F)
   IF(HAVE_BASH)
-    ADD_TEST(${prefix}_${F} bash "-c" "export srcdir=${CMAKE_CURRENT_SOURCE_DIR};export TOPSRCDIR=${CMAKE_SOURCE_DIR};${CMAKE_CURRENT_BINARY_DIR}/${F}.sh ${ARGN}")
+    ADD_TEST(${prefix}_${F} bash "-c" "export srcdir=${CMAKE_CURRENT_SOURCE_DIR};export TOPSRCDIR=${CMAKE_SOURCE_DIR};bash ${CMAKE_CURRENT_BINARY_DIR}/${F}.sh ${ARGN}")
   ENDIF()
 ENDMACRO()
 

@@ -10,6 +10,8 @@ This file contains a high-level description of this package's evolution. Release
 * Fix a race condition in some ncdump tests. See [Github #2682](https://github.com/Unidata/netcdf-c/pull/2682).
 * Fix a minor bug in reporting the use of szip. See [Github #2679](https://github.com/Unidata/netcdf-c/pull/2679).
 * Simplify the handling of XGetopt. See [Github #2678](https://github.com/Unidata/netcdf-c/pull/2678).
+* Improve performance and testing of the new nc_reclaim/copy functions. See [Github #2699](https://github.com/Unidata/netcdf-c/pull/2699).
+* [Bug Fix] Provide a partial fix to the libcurl certificates problem. See [Github #2690](https://github.com/Unidata/netcdf-c/pull/2690).
 * Improve S3 documentation, testing, and support See [Github #2686](https://github.com/Unidata/netcdf-c/pull/2686).
 * Remove obsolete code. See [Github #2680](https://github.com/Unidata/netcdf-c/pull/2680).
 * [Bug Fix] Add a crude test to see if an NCZarr path looks like a valid NCZarr/Zarr file. See [Github #2658](https://github.com/Unidata/netcdf-c/pull/2658).
