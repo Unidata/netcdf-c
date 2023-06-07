@@ -1,0 +1,75 @@
+netcdf reclaim_tests {
+types:
+    int(*) vint_t;
+    string(*) vstr_t;
+    vint_t(*) vvint_t;
+    vstr_t(*) vvstr_t;
+
+    compound cmpd_atomic_t { /* compound with all atomic fields */
+        int f1;
+	float f2(2,2);
+    };
+    compound cmpd_str_t { /* compound with string typed field(s) */
+        string f1(3);
+    };
+    compound cmpd_vlen_t { /* compound with vlen typed field(s) */
+        vint_t f1(2);        
+    };
+    compound cmpd_cmpd_t { /* compound with nested variable length compound field(s) */
+        vstr_t f1(2) ;
+	cmpd_vlen_t f2(2);
+    };
+
+    cmpd_atomic_t(*) vcmpd_atomic_t;
+    cmpd_str_t(*) vcmpd_str_t;
+    cmpd_vlen_t(*) vcmpd_vlen_t;
+    cmpd_cmpd_t(*) vcmpd_cmpd_t;
+
+dimensions:
+    d1 = 1;
+    d2 = 2;
+    d3 = 3;
+    d4 = 4;
+
+variables:
+    /* atomic types */
+    int intvar(d4); /* fixed-size atomic type */
+    string strvar(d4); /* string type */
+
+    /* vlen types */
+    vint_t vintvar(d4);
+    vstr_t vstrvar(d4);
+    vvint_t vvintvar(d4);
+    vvstr_t vvstrvar(d4);
+
+    /* compound types */
+    cmpd_atomic_t catomvar(d2);
+    cmpd_str_t cstrvar(d2);
+    cmpd_vlen_t cvlenvar(d2);
+    cmpd_cmpd_t ccmpdvar(d2);
+
+    /* vlen of compound types */
+    vcmpd_atomic_t vcatomvar;
+    vcmpd_str_t vcstrvar(d2);
+    vcmpd_vlen_t vcvlenvar(d3);
+    vcmpd_cmpd_t vccmpdvar;
+
+data:
+    intvar = 17, 13, 11, 7 ;
+    strvar = "a", "ab", "abc", "abcd" ; 
+    vintvar = {1}, {1,2}, {1,2,3}, {1,2,3,4} ;
+    vstrvar = {"a","ab","abc","abcd"}, {"abcd","abc","ab"}, {"a","ab"}, {"abcd"} ;
+    vvintvar = {{1}, {1,2}}, {{1,2,3}}, {{1,2,3,4}}, {{17,13},{11,7},{5,3},{2,1}} ;
+    vvstrvar = {{"1"}, {"1","2"}}, {{"1","2","3"}}, {{"1","2","3","4"}}, {{"17","13"},{"11","7"},{5,"3"},{"2","1"}} ;
+    catomvar = {17, {1.1, 2.2, 3.3, 4.4}}, {27, {4.1, 3.2, 3.3, 1.4}} ;
+    cstrvar = {{"a","abc","abcd"}}, {{"x","yz", "ijkl"}} ;
+    cvlenvar = {{{17,13},{11}}}, {{{3,5},{7,11}}} ;
+    ccmpdvar = {{{"xxx"},{"yyy"}},{{{{17,13},{12,9}}},{{{1,3},{2,11}}}}}, {{{"uv"},{"w"}},{{{{117,113},{112,119}}},{{{111,113},{112,1111}}}}} ;
+    vcatomvar = {{17, {1.1, 2.2, 3.3, 4.4}}, {27, {4.1, 3.2, 3.3, 1.4}}} ;
+    vcstrvar = {{{"c11a","c12a","c13a"}},{{"c11b","c12b","c13b"}},{{"c11c","c12c","c13c"}},{{"c11d","c12d","c13d"}}},{{{"c21a","c22a","c23a"}},{{"c21b","c22b","c23b"}},{{"c21c","c22c","c23c"}},{{"c21d","c22d","c23d"}}};
+    vcvlenvar = {{{{117,113},{111}}}, {{{13,15},{17,111}}},{{{217,213},{211}}}, {{{23,25},{27,211}}}}, {{{{2117,2113},{2211}}}, {{{2223,2215},{2227,22111}}},{{{22217,22213},{22211}}}, {{{2223,2225},{2227,22211}}}}, {{{{33117,33113},{33111}}}, {{{3313,3315},{3317,33111}}},{{{33217,33213},{33211}}}, {{{3323,3325},{3327,33211}}}};
+    vccmpdvar = {{{{"xxx"},{"yyy"}},{{{{17,13},{12,9}}},{{{1,3},{2,11}}}}}, {{{"uv"},{"w"}},{{{{117,113},{112,119}}},{{{111,113},{112,1111}}}}}};
+
+} //reclaim_tests
+
+

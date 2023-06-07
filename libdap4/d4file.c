@@ -275,11 +275,9 @@ freeInfo(NCD4INFO* d4info)
            when aborted, it should be deleted. But that is not working
            for some reason, so we delete it ourselves.
 	*/
-#if 0
 	if(d4info->substrate.filename != NULL) {
 	    unlink(d4info->substrate.filename);
 	}
-#endif
     }
     nullfree(d4info->substrate.filename); /* always reclaim */
     NCD4_reclaimMeta(d4info->substrate.metadata);
@@ -580,15 +578,21 @@ makesubstrate(NCD4INFO* d4info)
     return THROW(ret);
 }
 
-int
-NCD4_get_substrate(int ncid)
+/* This function breaks the abstraction, but is necessary for
+   code that accesses the underlying netcdf-4 metadata objects.
+   Used in: NC_reclaim_data[_all]
+            NC_copy_data[_all]
+*/
+
+NC*
+NCD4_get_substrate(NC* nc)
 {
-    NC* nc = NULL;
-    NCD4INFO* d4 = NULL;
-    int subncid = 0;
-    /* Find pointer to NC struct for this file. */
-    (void)NC_check_id(ncid,&nc);
-    d4 = (NCD4INFO*)nc->dispatchdata;
-    subncid = d4->substrate.nc4id;
-    return subncid;
+    NC* subnc = NULL;
+    /* Iff nc->dispatch is the DAP4 dispatcher, then do a level of indirection */
+    if(USED4INFO(nc)) {
+        NCD4INFO* d4 = (NCD4INFO*)nc->dispatchdata;
+        /* Find pointer to NC struct for this file. */
+        (void)NC_check_id(d4->substrate.nc4id,&subnc);
+    } else subnc = nc;
+    return subnc;
 }

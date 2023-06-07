@@ -277,7 +277,6 @@ rootpathfor(const char* path)
     NCURI* uri = NULL;
     char* rootpath = NULL;
     NClist* segments = nclistnew();
-    char* p = NULL;
 
     ncuriparse(path,&uri);
     if(uri == NULL) goto done;
@@ -287,7 +286,8 @@ rootpathfor(const char* path)
 	rootpath = strdup("/"); /*constant*/
 	break;
 #ifdef ENABLE_S3  
-    case NCZM_S3:
+    case NCZM_S3: {
+	char* p = NULL;
         /* Split the path part */
         if((stat = nczm_split(uri->path,segments))) goto done;
 	/* remove the bucket name */
@@ -295,7 +295,7 @@ rootpathfor(const char* path)
 	nullfree(p); p = NULL;
         /* Put it back together */
         if((stat = nczm_join(segments,&rootpath))) goto done;
-	break;
+	} break;
 #endif
     default:
         stat = NC_EINVAL;

@@ -65,10 +65,13 @@ EXTRA_DIST += H5checksum.c
 if ENABLE_FILTER_TESTING
 
 if ENABLE_NCZARR_FILTERS
-plugins_to_install += lib__nch5fletcher32.la lib__nch5shuffle.la lib__nch5deflate.la
+plugins_to_install += lib__nch5fletcher32.la lib__nch5shuffle.la 
 lib__nch5shuffle_la_SOURCES = H5Zshuffle.c
 lib__nch5fletcher32_la_SOURCES = H5Zfletcher32.c H5checksum.c
+if HAVE_DEFLATE
+plugins_to_install += lib__nch5deflate.la
 lib__nch5deflate_la_SOURCES = H5Zdeflate.c
+endif
 
 # Need our version of szip if libsz available and we are not using HDF5
 if HAVE_SZ

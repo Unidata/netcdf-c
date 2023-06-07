@@ -180,7 +180,7 @@ generate_basetype(Symbol* tsym, NCConstant* con, Bytebuffer* codebuf, Datalist* 
         } else {
             generator->listbegin(generator,tsym,NULL,LISTVLEN,data->length,codebuf,&uid);
             for(count=0;count<data->length;count++) {
-              NCConstant* con;
+                NCConstant* con;
                 generator->list(generator,tsym,NULL,LISTVLEN,uid,count,vlenbuf);
                 con = datalistith(data,count);
                 generate_basetype(tsym->typ.basetype,con,vlenbuf,NULL,generator);
@@ -399,6 +399,7 @@ generate_arrayR(struct Args* args, int dimindex, size_t* index, Datalist* data)
         args->generator->listend(args->generator,args->vsym,NULL,LISTDATA,uid,counter,args->code);
         memcpy(count,onesvector,sizeof(size_t)*dimindex);
         count[dimindex] = stop;
+        /* Write the data; also reclaims written data */
         args->writer(args->generator,args->vsym,args->code,args->rank,index,count);
         bbClear(args->code);
     } else {

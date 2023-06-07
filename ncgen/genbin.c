@@ -14,11 +14,12 @@
 #undef TRACE
 
 /* Forward*/
-static int genbin_defineattr(Symbol* asym);
-static int genbin_definevardata(Symbol* vsym);
-static int  genbin_write(Generator*,Symbol*,Bytebuffer*,int,size_t*,size_t*);
+static int genbin_defineattr(int ncid, Symbol* asym);
+static int genbin_definevardata(int ncid, Symbol* vsym);
+static int genbin_write(Generator*,Symbol*,Bytebuffer*,int,size_t*,size_t*);
 static int genbin_writevar(Generator*,Symbol*,Bytebuffer*,int,size_t*,size_t*);
 static int genbin_writeattr(Generator*,Symbol*,Bytebuffer*,int,size_t*,size_t*);
+
 #ifdef USE_NETCDF4
 static int genbin_deftype(Symbol* tsym);
 static int genbin_definespecialattributes(Symbol* var);
@@ -67,7 +68,7 @@ genbin_netcdf(void)
     rootgroup->nc_id = ncid;
 
     if (nofill_flag) {
-        stat = nc_set_fill(rootgroup->nc_id, NC_NOFILL, 0);
+        stat = nc_set_fill(ncid, NC_NOFILL, 0);
         CHECK_ERR(stat);
     }
 
@@ -146,7 +147,7 @@ genbin_netcdf(void)
     if(ngatts > 0) {
         for(iatt = 0; iatt < ngatts; iatt++) {
             Symbol* gasym = (Symbol*)listget(gattdefs,iatt);
-            genbin_defineattr(gasym);
+            genbin_defineattr(ncid,gasym);
         }
     }
 
@@ -154,17 +155,17 @@ genbin_netcdf(void)
     if(natts > 0) {
         for(iatt = 0; iatt < natts; iatt++) {
             Symbol* asym = (Symbol*)listget(attdefs,iatt);
-            genbin_defineattr(asym);
+            genbin_defineattr(ncid,asym);
         }
     }
 
     if (nofill_flag) {
-        stat = nc_set_fill(rootgroup->nc_id, NC_NOFILL, 0);
+        stat = nc_set_fill(ncid, NC_NOFILL, 0);
         CHECK_ERR(stat);
     }
 
     /* leave define mode */
-    stat = nc_enddef(rootgroup->nc_id);
+    stat = nc_enddef(ncid);
     CHECK_ERR(stat);
 
     if(!header_only) {
@@ -173,7 +174,7 @@ genbin_netcdf(void)
             for(ivar = 0; ivar < nvars; ivar++) {
                 Symbol* vsym = (Symbol*)listget(vardefs,ivar);
                 if(vsym->data != NULL) {
-                    genbin_definevardata(vsym);
+                    genbin_definevardata(ncid,vsym);
                 }
             }
         }
@@ -316,7 +317,7 @@ genbin_deftype(Symbol* tsym)
         for(i=0;i<listlength(tsym->subnodes);i++) {
           Symbol* econst = (Symbol*)listget(tsym->subnodes,i);
           ASSERT(econst->subclass == NC_ECONST);
-          generator_reset(bin_generator,NULL);
+          generator_reset(bin_generator,rootgroup);
           bbClear(datum);
           generate_basetype(econst->typ.basetype,econst->typ.econst,datum,NULL,bin_generator);
           stat = nc_insert_enum(tsym->container->nc_id,
@@ -378,13 +379,13 @@ genbin_deftype(Symbol* tsym)
 #endif /*USE_NETCDF4*/
 
 static int
-genbin_defineattr(Symbol* asym)
+genbin_defineattr(int ncid, Symbol* asym)
 {
     int stat = NC_NOERR;
     Bytebuffer* databuf = bbNew();
-    generator_reset(bin_generator,NULL);
+    generator_reset(bin_generator,rootgroup);
     generate_attrdata(asym,bin_generator,(Writer)genbin_write,databuf);
-    stat = nc_reclaim_data(asym->container->nc_id,asym->typ.basetype->nc_id,bbContents(databuf),datalistlen(asym->data));
+    stat = nc_reclaim_data(ncid,asym->typ.basetype->nc_id,bbContents(databuf),datalistlen(asym->data));
     bbFree(databuf);
     return stat;
 }
@@ -392,15 +393,15 @@ genbin_defineattr(Symbol* asym)
 
 /* Following is patterned after the walk functions in semantics.c */
 static int
-genbin_definevardata(Symbol* vsym)
+genbin_definevardata(int ncid, Symbol* vsym)
 {
     int stat = NC_NOERR;
     Bytebuffer* databuf = NULL;
     if(vsym->data == NULL) goto done;
     databuf = bbNew();
-    generator_reset(bin_generator,NULL);
+    generator_reset(bin_generator,rootgroup);
     generate_vardata(vsym,bin_generator,(Writer)genbin_write,databuf);
-    stat = nc_reclaim_data_all(vsym->container->nc_id,vsym->typ.basetype->nc_id,bbExtract(databuf),datalistlen(vsym->data));
+    stat = nc_reclaim_data(ncid,vsym->typ.basetype->nc_id,bbContents(databuf),datalistlen(vsym->data));
 done:
     bbFree(databuf);
     return stat;
@@ -416,6 +417,7 @@ genbin_write(Generator* generator, Symbol* sym, Bytebuffer* memory,
         return genbin_writevar(generator,sym,memory,rank,start,count);
     else
         PANIC("illegal symbol for genbin_write");
+
     return NC_EINVAL;
 }
 
@@ -453,12 +455,6 @@ genbin_writevar(Generator* generator, Symbol* vsym, Bytebuffer* memory,
         stat = nc_put_vara(vsym->container->nc_id, vsym->nc_id, start, count, data);
     }
     CHECK_ERR(stat);
-#if 0
-    /* Reclaim the data */
-    stat = nc_reclaim_data(vsym->container->nc_id, vsym->typ.basetype->nc_id, data, nelems);
-    CHECK_ERR(stat);
-    bbClear(memory); /* reclaim top-level memory */
-#endif
     return stat;
 }
 
@@ -489,9 +485,9 @@ genbin_writeattr(Generator* generator, Symbol* asym, Bytebuffer* databuf,
       } break;
       case NC_CHAR: {
         char* data = (char*)bbContents(databuf);
-                size_t slen = bbLength(databuf);
-                /* Revise length if slen == 0 */
-                if(slen == 0) {
+        size_t slen = bbLength(databuf);
+        /* Revise length if slen == 0 */
+        if(slen == 0) {
           bbAppend(databuf,'\0');
           /* bbAppend frees the memory pointed to by char* data,
              so re-assign.  See Coverity issue: 1265731.*/
@@ -506,55 +502,55 @@ genbin_writeattr(Generator* generator, Symbol* asym, Bytebuffer* databuf,
         stat = nc_put_att_short(grpid,varid,asym->name,typid,len,data);
         CHECK_ERR(stat);
         } break;
-        case NC_INT: {
-            int* data = (int*)bbContents(databuf);
-            stat = nc_put_att_int(grpid,varid,asym->name,typid,len,data);
-            CHECK_ERR(stat);
+      case NC_INT: {
+          int* data = (int*)bbContents(databuf);
+          stat = nc_put_att_int(grpid,varid,asym->name,typid,len,data);
+          CHECK_ERR(stat);
         } break;
-        case NC_FLOAT: {
-            float* data = (float*)bbContents(databuf);
-            stat = nc_put_att_float(grpid,varid,asym->name,typid,len,data);
-            CHECK_ERR(stat);
+      case NC_FLOAT: {
+          float* data = (float*)bbContents(databuf);
+          stat = nc_put_att_float(grpid,varid,asym->name,typid,len,data);
+          CHECK_ERR(stat);
         } break;
-        case NC_DOUBLE: {
-            double* data = (double*)bbContents(databuf);
-            stat = nc_put_att_double(grpid,varid,asym->name,typid,len,data);
-            CHECK_ERR(stat);
-        } break;
-        case NC_STRING: {
-            const char** data;
-            data = (const char**)bbContents(databuf);
-            stat = nc_put_att_string(grpid,varid,asym->name,
+      case NC_DOUBLE: {
+          double* data = (double*)bbContents(databuf);
+          stat = nc_put_att_double(grpid,varid,asym->name,typid,len,data);
+          CHECK_ERR(stat);
+      } break;
+      case NC_STRING: {
+          const char** data;
+          data = (const char**)bbContents(databuf);
+          stat = nc_put_att_string(grpid,varid,asym->name,
                                      bbLength(databuf)/sizeof(char*),
                                      data);
-            } break;
-        case NC_UBYTE: {
-            unsigned char* data = (unsigned char*)bbContents(databuf);
-            stat = nc_put_att_uchar(grpid,varid,asym->name,typid,len,data);
-            CHECK_ERR(stat);
+          } break;
+      case NC_UBYTE: {
+          unsigned char* data = (unsigned char*)bbContents(databuf);
+          stat = nc_put_att_uchar(grpid,varid,asym->name,typid,len,data);
+          CHECK_ERR(stat);
         } break;
-        case NC_USHORT: {
-            unsigned short* data = (unsigned short*)bbContents(databuf);
-            stat = nc_put_att_ushort(grpid,varid,asym->name,typid,len,data);
-            CHECK_ERR(stat);
+      case NC_USHORT: {
+          unsigned short* data = (unsigned short*)bbContents(databuf);
+          stat = nc_put_att_ushort(grpid,varid,asym->name,typid,len,data);
+          CHECK_ERR(stat);
         } break;
-        case NC_UINT: {
-            unsigned int* data = (unsigned int*)bbContents(databuf);
-            stat = nc_put_att_uint(grpid,varid,asym->name,typid,len,data);
-            CHECK_ERR(stat);
+      case NC_UINT: {
+          unsigned int* data = (unsigned int*)bbContents(databuf);
+          stat = nc_put_att_uint(grpid,varid,asym->name,typid,len,data);
+          CHECK_ERR(stat);
         } break;
-        case NC_INT64: {
-            long long* data = (long long*)bbContents(databuf);
-            stat = nc_put_att_longlong(grpid,varid,asym->name,typid,len,data);
-            CHECK_ERR2(stat,asym->lineno);
+      case NC_INT64: {
+          long long* data = (long long*)bbContents(databuf);
+          stat = nc_put_att_longlong(grpid,varid,asym->name,typid,len,data);
+          CHECK_ERR2(stat,asym->lineno);
         } break;
-        case NC_UINT64: {
-            unsigned long long* data = (unsigned long long*)bbContents(databuf);
-            stat = nc_put_att_ulonglong(grpid,varid,asym->name,typid,len,data);
-            CHECK_ERR(stat);
+      case NC_UINT64: {
+          unsigned long long* data = (unsigned long long*)bbContents(databuf);
+          stat = nc_put_att_ulonglong(grpid,varid,asym->name,typid,len,data);
+          CHECK_ERR(stat);
         } break;
-	default: PANIC1("genbin_defineattr: unexpected basetype: %d",basetype->typ.typecode);
-        }
+      default: PANIC1("genbin_defineattr: unexpected basetype: %d",basetype->typ.typecode);
+      }
     } else { /* use the generic put_attribute for user defined types*/
         const char* data;
         data = (const char*)bbContents(databuf);
@@ -570,6 +566,7 @@ genbin_writeattr(Generator* generator, Symbol* asym, Bytebuffer* databuf,
         }
 #endif
     }
+    CHECK_ERR(stat);
     return stat;
 }
 

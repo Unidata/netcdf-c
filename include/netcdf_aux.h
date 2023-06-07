@@ -48,6 +48,13 @@ are here for back compatibilty.
 
 EXTERNL int ncaux_reclaim_data(int ncid, int xtype, void* memory, size_t count);
 EXTERNL int ncaux_reclaim_data_all(int ncid, int xtype, void* memory, size_t count);
+EXTERNL int ncaux_copy_data(int ncid, int xtype, void* memory, size_t count, void* copy);
+EXTERNL int ncaux_copy_data_all(int ncid, int xtype, void* memory, size_t count, void** copyp);
+
+EXTERNL int ncaux_dump_data(int ncid, nc_type xtypeid, void* memory, size_t count, char** buf);
+
+
+EXTERNL int ncaux_inq_any_type(int ncid, nc_type typeid, char *name, size_t *size, nc_type *basetypep, size_t *nfieldsp, int *classp);
 
 /**************************************************/
 /* Capture the id and parameters for a filter
