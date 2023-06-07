@@ -228,6 +228,8 @@ add_user_type(int ncid, size_t size, const char *name, nc_type base_typeid,
     } else if (type_class == NC_COMPOUND)
         type->u.c.field = nclistnew();
 
+    (void)NC4_set_varsize(type);
+
     /* Return the typeid to the user. */
     if (typeidp)
         *typeidp = type->hdr.id;
@@ -337,6 +339,8 @@ NCZ_insert_array_compound(int ncid, int typeid1, const char *name,
     if ((retval = ncz_field_list_add(type, norm_name, offset, field_typeid,
                                      ndims, dim_sizesp)))
         return retval;
+
+    NC4_recheck_varsize(type,field_typeid);
 
     return NC_NOERR;
 }

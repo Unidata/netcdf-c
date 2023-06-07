@@ -330,7 +330,7 @@ close_vars(NC_GRP_INFO_T *grp)
                 if (var->type_info)
                 {
 		    int stat = NC_NOERR;
-		    if((stat = nc_reclaim_data(grp->nc4_info->controller->ext_ncid,var->type_info->hdr.id,var->fill_value,1)))
+		    if((stat = NC_reclaim_data(grp->nc4_info,var->type_info->hdr.id,var->fill_value,1)))
 		        return stat;
 		    nullfree(var->fill_value);
                 }

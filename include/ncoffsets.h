@@ -57,4 +57,14 @@ EXTERNL void NC_compute_alignments(void);
 /* From libdispatch/dinstance.c */
 EXTERNL int NC_type_alignment(int ncid, nc_type xtype, size_t*);
 
+/* From libdispatch/dinstance_intern.c */
+/**
+ * Internal version of NC_type_alignment
+ */
+struct NC_FILE_INFO; /* forward */
+struct NC_TYPE_INFO; /* forward */
+
+EXTERNL int NC_type_alignment_internal(struct NC_FILE_INFO* file, nc_type xtype, struct NC_TYPE_INFO* utype, size_t* alignp);
+EXTERNL uintptr_t NC_read_align(uintptr_t addr, size_t alignment);
+
 #endif /*NCOFFSETS_H*/
