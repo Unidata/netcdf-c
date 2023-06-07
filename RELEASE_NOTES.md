@@ -7,6 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.9.3 - TBD
 
+* Improve performance and testing of the new nc_reclaim/copy functions. See [Github #2699](https://github.com/Unidata/netcdf-c/pull/2699).
 * [Bug Fix] Provide a partial fix to the libcurl certificates problem. See [Github #2690](https://github.com/Unidata/netcdf-c/pull/2690).
 * Improve S3 documentation, testing, and support See [Github #2686](https://github.com/Unidata/netcdf-c/pull/2686).
 * Remove obsolete code. See [Github #2680](https://github.com/Unidata/netcdf-c/pull/2680).

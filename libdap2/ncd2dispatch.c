@@ -2864,3 +2864,23 @@ NCD2_get_var_chunk_cache(int ncid, int p2, size_t* p3, size_t* p4, float* p5)
     return THROW(ret);
 }
 
+/* Get substrate NC* object.
+   This function breaks the abstraction, but is necessary for
+   code that accesses the underlying netcdf-4 metadata objects.
+   Used in: NC_reclaim_data[_all]
+            NC_copy_data[_all]
+*/
+
+NC*
+NCD2_get_substrate(NC* nc)
+{
+    NC* subnc = NULL;
+    /* Iff nc->dispatch is the DAP2 dispatcher, then do a level of indirection */
+    if(USED2INFO(nc)) {
+        NCDAPCOMMON* d2 = (NCDAPCOMMON*)nc->dispatchdata;
+        /* Find pointer to NC struct for this file. */
+        (void)NC_check_id(d2->substrate.nc3id,&subnc);
+    } else subnc = nc;
+    return subnc;
+}
+

@@ -1488,10 +1488,14 @@ AC_CHECK_SIZEOF(ssize_t)
 $SLEEPCMD
 AC_CHECK_SIZEOF([void*])
 
-if test "x$enable_hdf5" = xyes || test "x$enable_dap" = xyes ; then
-   AC_SEARCH_LIBS([deflate], [zlibwapi zlibstat zlib zlib1 z], [], [
-     AC_MSG_ERROR([Can't find or link to the z library. Turn off netCDF-4 and \
-     DAP clients with --disable-hdf5 --disable-dap, or see config.log for errors.])])
+# Check for deflate library
+AC_SEARCH_LIBS([deflate], [zlibwapi zlibstat zlib zlib1 z], [have_deflate=yes], [have_deflate=no])
+AC_MSG_CHECKING([whether deflate library is available])
+AC_MSG_RESULT([${have_deflate}])
+
+if test "x$have_deflate" = xno ; then
+  AC_MSG_ERROR([Can't find or link to the z library. Turn off netCDF-4 and \
+                DAP and NCZarr clients with --disable-hdf5 --disable-dap --disable-nczarr, or see config.log for errors.])
 fi
 
 # We need the math library
@@ -1857,6 +1861,7 @@ AM_CONDITIONAL(ENABLE_S3_TESTPUB, [test "x$with_s3_testing" != xno]) # all => pu
 AM_CONDITIONAL(ENABLE_S3_TESTALL, [test "x$with_s3_testing" = xyes])
 AM_CONDITIONAL(ENABLE_NCZARR_ZIP, [test "x$enable_nczarr_zip" = xyes])
 AM_CONDITIONAL(HAS_MULTIFILTERS, [test "x$has_multifilters" = xyes])
+AM_CONDITIONAL(HAVE_DEFLATE, [test "x$have_deflate" = xyes])
 AM_CONDITIONAL(HAVE_SZ, [test "x$have_sz" = xyes])
 AM_CONDITIONAL(HAVE_H5Z_SZIP, [test "x$enable_hdf5_szip" = xyes])
 AM_CONDITIONAL(HAVE_BLOSC, [test "x$have_blosc" = xyes])
@@ -1971,6 +1976,7 @@ AC_SUBST(DO_NCZARR_ZIP_TESTS,[$enable_nczarr_zip])
 AC_SUBST(HAS_QUANTIZE,[$enable_quantize])
 AC_SUBST(HAS_LOGGING,[$enable_logging])
 AC_SUBST(DO_FILTER_TESTS,[$enable_filter_testing])
+AC_SUBST(HAS_DEFLATE,[$have_deflate])
 AC_SUBST(HAS_SZLIB,[$have_sz])
 AC_SUBST(HAS_SZLIB_WRITE, [$have_sz])
 AC_SUBST(HAS_ZSTD,[$have_zstd])
@@ -1987,8 +1993,10 @@ AC_SUBST(WHICH_S3_SDK,[none])
 fi
 
 # Always available
-std_filters="deflate bz2"
-
+std_filters="bz2"
+if test "x$have_deflate" = xyes ; then
+std_filters="${std_filters} deflate"
+fi
 if test "x$have_sz" = xyes ; then
 std_filters="${std_filters} szip"
 fi
