@@ -74,9 +74,6 @@ are set when opening a binary file on Windows. */
 /* Define if building universal (internal helper macro) */
 #cmakedefine AC_APPLE_UNIVERSAL_BUILD 1
 
-/* If true, will attempt to download and build netcdf-fortran. */
-#cmakedefine BUILD_FORTRAN 1
-
 /* default file chunk cache nelems. */
 #cmakedefine CHUNK_CACHE_NELEMS ${CHUNK_CACHE_NELEMS}
 
