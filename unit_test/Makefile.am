@@ -45,7 +45,7 @@ TESTS += run_s3sdk.sh
 endif
 endif
 
-EXTRA_DIST = CMakeLists.txt run_s3sdk.sh run_reclaim.sh
+EXTRA_DIST = CMakeLists.txt run_s3sdk.sh run_reclaim_tests.sh
 EXTRA_DIST += nctest_netcdf4_classic.nc reclaim_tests.cdl
 
 CLEANFILES = reclaim_tests*.txt reclaim_tests.nc
