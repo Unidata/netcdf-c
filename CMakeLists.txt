@@ -523,6 +523,15 @@ if(ENABLE_HDF5 OR ENABLE_HDF4 OR ENABLE_NCZARR)
   SET(ENABLE_NETCDF4 ON CACHE BOOL "Enable netCDF4 Alias" FORCE)
 endif()
 
+# enable|disable all forms of network access
+OPTION(ENABLE_NETWORK_ACCESS "Enable|disable all forms of network access" ON)
+MESSAGE(">>> ENABLE_NETWORK_ACCESS=${ENABLE_NETWORK_ACCESS}")
+if(NOT ENABLE_NETWORK_ACCESS)
+MESSAGE(WARNING "ENABLE_NETWORK_ACCESS=NO => ENABLE_DAP[4]=NO")
+SET(ENABLE_DAP OFF CACHE BOOL "ENABLE_NETWORK_ACCESS=NO => ENABLE_DAP=NO" FORCE)
+SET(ENABLE_DAP4 OFF CACHE BOOL "ENABLE_NETWORK_ACCESS=NO => ENABLE_DAP4=NO" FORCE)
+ENDIF()
+
 IF(ENABLE_HDF4)
   SET(USE_HDF4 ON)
   # Check for include files, libraries.
@@ -622,9 +631,6 @@ IF(ENABLE_NETCDF_4 AND NOT ENABLE_LOGGING AND ENABLE_SET_LOG_LEVEL_FUNC)
   SET(ENABLE_SET_LOG_LEVEL ON)
 ENDIF()
 
-# This has multiversion capability
-SET(ENABLE_MULTIFILTERS yes CACHE BOOL "")
-
 # Option to allow for strict null file padding.
 # See https://github.com/Unidata/netcdf-c/issues/657 for more information
 OPTION(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING "Enable strict null byte header padding." OFF)
@@ -632,12 +638,6 @@ OPTION(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING "Enable strict null byte header pa
 IF(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING)
   SET(USE_STRICT_NULL_BYTE_HEADER_PADDING ON CACHE BOOL "")
 ENDIF(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING)
-
-# Option for building RPC
-#OPTION(ENABLE_RPC "Enable RPC Client and Server." OFF)
-#IF(ENABLE_RPC)
-#  SET(BUILD_RPC ON CACHE BOOL "")
-#ENDIF()
 
 # Note that szip management is tricky.
 # This is because we have three things to consider:
@@ -995,6 +995,12 @@ ELSE()
   SET(FOUND_CURL FALSE)
 ENDIF()
 
+# Start disabling if curl not found
+IF(NOT FOUND_CURL)
+  MESSAGE(WARNING "ENABLE_NETWORK_ACCESS requires libcurl; disabling")
+  SET(ENABLE_NETWORK_ACCESS OFF CACHE BOOL "ENABLE_NETWORK_ACCESS requires libcurl; disabling" FORCE)
+ENDIF()
+
 set (CMAKE_REQUIRED_INCLUDES ${CURL_INCLUDE_DIRS})
 # Check to see if we have libcurl 7.66 or later
 CHECK_C_SOURCE_COMPILES("
@@ -1078,6 +1084,11 @@ ENDIF()
 
 # Option to support byte-range reading of remote datasets
 OPTION(ENABLE_BYTERANGE "Enable byte-range access to remote datasets.." ON)
+if(NOT ENABLE_NETWORK_ACCESS)
+MESSAGE(WARNING "ENABLE_NETWORK_ACCESS=NO => ENABLE_BYTERANGE=NO")
+SET(ENABLE_BYTERANGE OFF CACHE BOOL "ENABLE_NETWORK_ACCESS=NO => ENABLE_BYTERANGE=NO" FORCE)
+ENDIF()
+
 
 # Check for the math library so it can be explicitly linked.
 IF(NOT WIN32)
@@ -1098,8 +1109,14 @@ ENDIF()
 OPTION(ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." ON)
 OPTION(ENABLE_EXTERNAL_SERVER_TESTS "Enable external Server remote tests." OFF)
 OPTION(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
-SET(REMOTETESTSERVERS "remotetest.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
 
+if(NOT ENABLE_DAP)
+SET(ENABLE_DAP_REMOTE_TESTS OFF CACHE BOOL "" FORCE)
+SET(ENABLE_EXTERNAL_SERVER_TESTS OFF CACHE BOOL "" FORCE)
+SET(ENABLE_DAP_LONG_TESTS OFF CACHE BOOL "" FORCE)
+ENDIF()
+
+SET(REMOTETESTSERVERS "remotetest.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
 SET(REMOTETESTSERVERS "remotetest.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
 
 # See if we have zlib
@@ -1273,6 +1290,12 @@ OPTION(ENABLE_S3 "Enable S3 support." OFF)
 OPTION(ENABLE_S3_INTERNAL "Enable S3 Internal support." OFF)
 OPTION(ENABLE_NCZARR_S3 "Enable NCZarr S3 support; Deprecated in favor of ENABLE_S3" OFF)
 
+IF(NOT ENABLE_NETWORK_ACCESS)
+  SET(ENABLE_S3 OFF CACHE BOOL "" FORCE)
+  SET(ENABLE_S3_INTERNAL OFF CACHE BOOL "" FORCE)
+  SET(ENABLE_NCZARR_S3 OFF CACHE BOOL "" FORCE)
+ENDIF()
+
 # Control S3 Testing: Multi-valued option
 SET(WITH_S3_TESTING OFF CACHE STRING "Control S3 Testing: ON (i.e. all) OFF (i.e. none)  PUBLIC")
     SET_PROPERTY(CACHE WITH_S3_TESTING PROPERTY STRINGS ON OFF PUBLIC)  #
@@ -1289,6 +1312,15 @@ if (NOT ENABLE_S3 AND ENABLE_NCZARR_S3)
   SET(ENABLE_S3 ON CACHE BOOL "NCARR S3" FORCE) # For back compatibility
 ENDIF()
 UNSET(ENABLE_NCZARR_S3)
+
+IF(NOT ENABLE_NETWORK_ACCESS)
+  MESSAGE(WARNING "ENABLE_NETWORK_ACCESS=NO => disable all s3 functionality")
+  SET(ENABLE_S3 OFF CACHE BOOL "" FORCE)
+  SET(ENABLE_S3_INTERNAL OFF CACHE BOOL "" FORCE)
+  SET(ENABLE_NCZARR_S3 OFF CACHE BOOL "" FORCE)
+  SET(ENABLE_HDF5_ROS3 OFF CACHE BOOL "Use ROS3" FORCE)
+  SET(WITH_S3_TESTING OFF CACHE STRING "" FORCE)
+ENDIF()
 
 # Note we check for the library after checking for enable_s3
 # because for some reason this screws up if we unconditionally test for sdk
@@ -1331,29 +1363,6 @@ IF(WITH_S3_TESTING STREQUAL "PUBLIC" OR WITH_S3_TESTING)
   SET(WITH_S3_TESTING OFF CACHE STRING "" FORCE)
 ENDIF()
 ENDIF()
-
-# Start disabling if curl not found
-IF(NOT FOUND_CURL)
-  IF(ENABLE_BYTERANGE)
-    MESSAGE(FATAL_ERROR "Byte-range support specified, CURL libraries are not found.")
-  ENDIF()
-
-  IF(ENABLE_DAP2 OR ENABLE_DAP4)
-    MESSAGE(WARNING "CURL libraries are not found; DAP support disabled")
-    SET(ENABLE_DAP2 OFF CACHE BOOL "Use DAP2" FORCE)
-    SET(ENABLE_DAP4 OFF CACHE BOOL "Use DAP4" FORCE)
-  ENDIF()
-
-  IF(ENABLE_HDF5_ROS3)
-    MESSAGE(WARNING "CURL libraries are not found; ROS3 support disabled.")
-    SET(ENABLE_HDF5_ROS3 OFF CACHE BOOL "Use ROS3" FORCE)
-  ENDIF()
-
-  IF(ENABLE_S3)
-    MESSAGE(FATAL_ERROR "S3 support specified, but CURL libraries are not found.")
-  ENDIF()
-ENDIF(NOT FOUND_CURL)
-
 
 OPTION(ENABLE_LIBXML2 "Link against libxml2 if it is available, use the packaged tinyxml2 parser otherwise." ON)
 SET(XMLPARSER "tinyxml2 (bundled)")
@@ -2569,7 +2578,6 @@ is_enabled(ENABLE_S3_INTERNAL HAS_S3_INTERNAL)
 is_enabled(HAS_HDF5_ROS3 HAS_HDF5_ROS3)
 is_enabled(ENABLE_NCZARR HAS_NCZARR)
 is_enabled(ENABLE_NCZARR_ZIP HAS_NCZARR_ZIP)
-is_enabled(ENABLE_MULTIFILTERS HAS_MULTIFILTERS)
 is_enabled(ENABLE_NCZARR_ZIP DO_NCZARR_ZIP_TESTS)
 is_enabled(ENABLE_QUANTIZE HAS_QUANTIZE)
 is_enabled(ENABLE_LOGGING HAS_LOGGING)
@@ -2579,6 +2587,7 @@ is_enabled(HAVE_SZ HAS_SZLIB_WRITE)
 is_enabled(HAVE_ZSTD HAS_ZSTD)
 is_enabled(HAVE_BLOSC HAS_BLOSC)
 is_enabled(HAVE_BZ2 HAS_BZ2)
+is_enabled(ENABLE_NETWORK_ACCESS DO_NETWORK_ACCESS)
 
 if(ENABLE_S3_INTERNAL)
 SET(WHICH_S3_SDK "internal")
