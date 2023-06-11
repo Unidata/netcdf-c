@@ -71,7 +71,7 @@ EXTRA_DIST = CMakeLists.txt test_common.h build.sh \
 	test_curlopt.sh test_data.sh test_hyrax.sh test_meta.sh \
 	test_parse.sh test_raw.sh \
         test_remote.sh test_constraints.sh test_thredds.sh \
-	test_dap4url.sh run test_earthdata.sh \
+	test_dap4url.sh test_earthdata.sh \
 	cdltestfiles rawtestfiles \
 	baseline baselineraw baselineremote baselinehyrax baselinethredds
 
