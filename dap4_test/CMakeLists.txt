@@ -65,7 +65,7 @@ ENDIF()
     ENDIF()
     IF(RUN_IGNORED_TESTS)
       add_sh_test(dap4_test test_thredds)
-    ENDIF
+    ENDIF()
   ENDIF(ENABLE_DAP_REMOTE_TESTS)
 
 ENDIF(ENABLE_TESTS)

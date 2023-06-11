@@ -9,7 +9,7 @@
 
 name: Run S3 netCDF Tests (under Ubuntu Linux)
 
-on: [workflow_dispatch]
+on: [push,workflow_dispatch]
 
 jobs:
 
