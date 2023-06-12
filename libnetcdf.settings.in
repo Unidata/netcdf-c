@@ -57,4 +57,3 @@ SZIP Write Support:     @HAS_SZLIB_WRITE@
 Standard Filters:       @STD_FILTERS@
 ZSTD Support:           @HAS_ZSTD@
 Parallel Filters:       @HAS_PAR_FILTERS@
-Allow Network Access:   @DO_NETWORK_ACCESS@
