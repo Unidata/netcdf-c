@@ -51,11 +51,9 @@ JNA Support:		@HAS_JNA@
 ERANGE Fill Support:	@HAS_ERANGE_FILL@
 Relaxed Boundary Check:	@RELAX_COORD_BOUND@
 
-Multi-Filter Support:	@HAS_MULTIFILTERS@
 Quantization:		@HAS_QUANTIZE@
 Logging:     		@HAS_LOGGING@
 SZIP Write Support:     @HAS_SZLIB_WRITE@
 Standard Filters:       @STD_FILTERS@
 ZSTD Support:           @HAS_ZSTD@
 Parallel Filters:       @HAS_PAR_FILTERS@
-

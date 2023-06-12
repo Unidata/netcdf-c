@@ -138,7 +138,4 @@ mergecase3
 # Test the .rc api
 rcapi1
 
-# Test the .rc api
-rcapi1
-
 resetrc
