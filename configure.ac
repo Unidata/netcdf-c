@@ -179,10 +179,10 @@ test "x$enable_pnetcdf" = xyes || enable_pnetcdf=no
 AC_MSG_RESULT($enable_pnetcdf)
 
 AC_MSG_CHECKING([whether any network access should be allowed])
-AC_ARG_ENABLE([network-access], [AS_HELP_STRING([--enable-network-access],
+AC_ARG_ENABLE([remote-functionality], [AS_HELP_STRING([--enable-remote-functionality],
               [enable|disable all forms of network access (default enabled)])])
-test "x$enable_network_access" = xno || enable_network_access=yes
-AC_MSG_RESULT($enable_network_access)
+test "x$enable_remote_functionality" = xno || enable_remote_functionality=yes
+AC_MSG_RESULT($enable_remote_functionality)
 
 # We need curl for remote operations
 AC_CHECK_LIB([curl],[curl_easy_setopt],[found_curl=yes],[found_curl=no])
@@ -198,7 +198,7 @@ AC_ARG_ENABLE([dap],
 test "x$enable_dap" = xno || enable_dap=yes
 AC_MSG_RESULT($enable_dap)
 
-if test "x$enable_network_access" = xno ; then
+if test "x$enable_remote_functionality" = xno ; then
   AC_MSG_WARN([All network access is disabled => DAP support disabled.])
   enable_dap=no
 fi
@@ -809,8 +809,8 @@ AC_ARG_ENABLE([s3],
 test "x$enable_s3" = xyes || enable_s3=no
 AC_MSG_RESULT($enable_s3)
 
-if test "x$enable_network_access" = xno ; then
-  AC_MSG_WARN([--disable-network-access => --disable-s3])
+if test "x$enable_remote_functionality" = xno ; then
+  AC_MSG_WARN([--disable-remote-functionality => --disable-s3])
   enable_s3=no
 fi
 
@@ -822,7 +822,7 @@ AC_ARG_ENABLE([nczarr-s3],
 AC_MSG_RESULT([$enable_nczarr_s3 (Deprecated) Please use --enable-s3)])
 
 # Set enable_s3 instead of enable_nczarr_s3
-if test "x$enable_s3" = xno && test "x$enable_nczarr_s3" = xyes && test "x$enable_network_access" = xyes; then
+if test "x$enable_s3" = xno && test "x$enable_nczarr_s3" = xyes && test "x$enable_remote_functionality" = xyes; then
 enable_s3=yes # back compatibility
 fi
 unset enable_nczarr_s3
@@ -1319,8 +1319,8 @@ AC_ARG_ENABLE([byterange],
 test "x$enable_byterange" = xno || enable_byterange=yes
 AC_MSG_RESULT($enable_byterange)
 
-if test "x$enable_network_access" = xno ; then
-  AC_MSG_WARN([--disable-network-access => --disable-byterange])
+if test "x$enable_remote_functionality" = xno ; then
+  AC_MSG_WARN([--disable-remote-functionality => --disable-byterange])
   enable_byterange=no
 fi
 
@@ -1992,7 +1992,7 @@ AC_SUBST(HAS_SZLIB,[$have_sz])
 AC_SUBST(HAS_SZLIB_WRITE, [$have_sz])
 AC_SUBST(HAS_ZSTD,[$have_zstd])
 AC_SUBST(DO_LARGE_TESTS,[$enable_large_file_tests])
-AC_SUBST(DO_NETWORK_ACCESS,[$enable_network_access])
+AC_SUBST(DO_REMOTE_FUNCTIONALITY,[$enable_remote_functionality])
 
 if test "x$enable_s3_aws" = xyes ; then
 AC_SUBST(WHICH_S3_SDK,[aws-sdk-cpp])
