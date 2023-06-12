@@ -8,6 +8,7 @@ This file contains a high-level description of this package's evolution. Release
 ## 4.9.3 - TBD
 
 * Provide a single option to disable all network access and testing. See [Github #2708](https://github.com/Unidata/netcdf-c/pull/2708).
+* Fix some problems with earthdata authorization and data access. See [Github #2709](https://github.com/Unidata/netcdf-c/pull/2709).
 * Fix a race condition in some ncdump tests. See [Github #2682](https://github.com/Unidata/netcdf-c/pull/2682).
 * Fix a minor bug in reporting the use of szip. See [Github #2679](https://github.com/Unidata/netcdf-c/pull/2679).
 * Simplify the handling of XGetopt. See [Github #2678](https://github.com/Unidata/netcdf-c/pull/2678).

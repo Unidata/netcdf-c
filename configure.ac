@@ -2151,6 +2151,8 @@ AC_SUBST([ISCMAKE], [])
 
 # Provide  conditional to temporarily suppress tests and such
 AM_CONDITIONAL([AX_IGNORE], [test xno = xyes])
+# Provide  conditional to identify tests that must be run manually
+AM_CONDITIONAL([AX_MANUAL], [test xno = xyes])
 
 AC_MSG_NOTICE([generating header files and makefiles])
 AC_CONFIG_FILES(test_common.sh:test_common.in)
