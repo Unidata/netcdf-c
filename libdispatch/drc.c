@@ -26,10 +26,6 @@ See COPYRIGHT for license information.
 #include "nc4internal.h"
 #include "ncdispatch.h"
 
-#ifndef nulldup
- #define nulldup(x) ((x)?strdup(x):(x))
-#endif
-
 #undef NOREAD
 
 #undef DRCDEBUG
@@ -66,7 +62,7 @@ static void freeprofile(struct AWSprofile* profile);
 static void freeprofilelist(NClist* profiles);
 
 /* Define default rc files and aliases, also defines load order*/
-static const char* rcfilenames[] = {".ncrc", ".daprc", ".dodsrc",NULL};
+static const char* rcfilenames[] = {".ncrc", ".daprc", ".dodsrc", NULL};
 
 /* Read these files in order and later overriding earlier */
 static const char* awsconfigfiles[] = {".aws/config",".aws/credentials",NULL};
@@ -97,9 +93,11 @@ nc_rc_get(const char* key)
 
     ncg = NC_getglobalstate();
     assert(ncg != NULL && ncg->rcinfo != NULL && ncg->rcinfo->entries != NULL);
-    if(ncg->rcinfo->ignore) return NC_NOERR;
+    if(ncg->rcinfo->ignore) goto done;
     value = NC_rclookup(key,NULL,NULL);
-    return nulldup(value);    
+done:
+    value = nulldup(value);   
+    return value;
 }
 
 /**
@@ -121,8 +119,9 @@ nc_rc_set(const char* key, const char* value)
 
     ncg = NC_getglobalstate();
     assert(ncg != NULL && ncg->rcinfo != NULL && ncg->rcinfo->entries != NULL);
-    if(ncg->rcinfo->ignore) return NC_NOERR;
+    if(ncg->rcinfo->ignore) goto done;;
     stat = NC_rcfile_insert(key,NULL,NULL,value);
+done:
     return stat;
 }
 
@@ -132,7 +131,6 @@ nc_rc_set(const char* key, const char* value)
 /*
 Initialize defaults and load:
 * .ncrc
-* .daprc
 * .dodsrc
 * ${HOME}/.aws/config
 * ${HOME}/.aws/credentials
@@ -235,13 +233,11 @@ NC_rcload(void)
     /* locate the configuration files in order of use:
        1. Specified by NCRCENV_RC environment variable.
        2. If NCRCENV_RC is not set then merge the set of rc files in this order:
-	  1. $RCHOME/.ncrc
-  	  2. $RCHOME/.daprc
-	  3. $RCHOME/.docsrc
-	  4. $CWD/.ncrc
-  	  5. $CWD/.daprc
-	  6. $CWD/.docsrc
-	  Entry in later files override any of the earlier files
+	  1. $HOME/.ncrc
+	  2. $HOME/.dodsrc
+	  3. $CWD/.ncrc
+	  4. $CWD/.dodsrc
+	  Entries in later files override any of the earlier files
     */
     if(globalstate->rcinfo->rcfile != NULL) { /* always use this */
 	nclistpush(rcfileorder,strdup(globalstate->rcinfo->rcfile));

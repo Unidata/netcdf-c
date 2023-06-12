@@ -13,17 +13,14 @@ NetCDF Authorization Support {#auth}
 netCDF can support user authorization using the facilities provided by the curl
 library. This includes basic password authentication as well as
 certificate-based authorization.
-
-At the moment, this document only applies to DAP2 and DAP4 access
-because they are (for now) the only parts of the netCDF-C library
-that uses libcurl.
+At the moment, this document only applies to DAP2 and DAP4 access.
 
 With some exceptions (e.g. see the section on <a href="#REDIR">redirection</a>)
 The libcurl authorization mechanisms can be accessed in two ways
 
 1. Inserting the username and password into the url, or
 2. Accessing information from a so-called _rc_ file named either
-   `.ncrc` or `.dodsrc`. The latter is deprecated, but will be supported indefinitely.
+   `.ncrc` or `.dodsrc`. The latter is historical and deprecated, but will be supported indefinitely.
 
 ## URL-Based Authentication {#auth_url}
 
@@ -52,29 +49,18 @@ Locating the _rc_ file is a multi-step process.
 
 ### Search Order
 
-The file must be called one of the following names:
-".daprc" or ".dodsrc".
-If both ".daprc" and ".dodsrc" exist, then
-the ".daprc" file will take precedence.
+The netcdf-c library searches for, and loads from, the following files,
+in this order:
+1. $HOME/.ncrc
+2. $HOME/.dodsrc
+3. $CWD/.ncrc
+4. $CWD/.dodsrc
 
-It is strongly suggested that you pick one of the two names
-and use it always. Otherwise you may observe unexpected results
-when the netcdf-c library finds one that you did not intend.
+*$HOME* is the user's home directory and *$CWD* is the current working directory. Entries in later files override any of the earlier files
 
-The search for an _rc_ file looks in the following places in this order.
-
-1. Check for the environment variable named _DAPRCFILE_.
-   This will specify the full path for the _rc_ file
-   (not just the containing directory).
-2. Search the current working directory (`./`) looking
-   for (in order) .daprc or .dodsrc.
-3. Search the HOME directory (`$HOME`) looking
-   for (in order) .daprc or .dodsrc. The HOME environment
-   variable is used to define the directory in which to search.
-
-It is strongly suggested that you pick a uniform location
-and use it always. Otherwise you may observe unexpected results
-when the netcdf-c library get an rc file you did not expect.
+It is strongly suggested that you pick a uniform location and a uniform name
+and use them always. Otherwise you may observe unexpected results
+when the netcdf-c library loads an rc file you did not expect.
 
 ### RC File Format
 
@@ -86,22 +72,18 @@ where the bracket-enclosed host:port is optional.
 
 ### URL Constrained RC File Entries
 
-Each line of the rc file can begin with
-a host+port enclosed in square brackets.
-The form is "host:port".
-If the port is not specified
-then the form is just "host".
-The reason that more of the url is not used is that
-libcurl's authorization grain is not any finer than host level.
+Each line of the rc file can begin with a host+port enclosed in
+square brackets.  The form is "host:port".  If the port is not
+specified then the form is just "host".  The reason that more of
+the url is not used is that libcurl's authorization grain is not
+any finer than host level.
 
-Examples.
-
+Here are some examples.
+````
     [remotetest.unidata.ucar.edu]HTTP.VERBOSE=1
-
 or
-
     [fake.ucar.edu:9090]HTTP.VERBOSE=0
-
+````
 If the url request from, say, the _netcdf_open_ method
 has a host+port matching one of the prefixes in the rc file, then
 the corresponding entry will be used, otherwise ignored.
@@ -109,15 +91,15 @@ This means that an entry with a matching host+port will take
 precedence over an entry without a host+port.
 
 For example, the URL
-
+````
     http://remotetest.unidata.ucar.edu/thredds/dodsC/testdata/testData.nc
-
+````
 will have HTTP.VERBOSE set to 1 because its host matches the example above.
 
 Similarly,
-
+````
     http://fake.ucar.edu:9090/dts/test.01
-
+````
 will have HTTP.VERBOSE set to 0 because its host+port matches the example above.
 
 ## Authorization-Related Keys {#auth_keys}
@@ -128,7 +110,7 @@ The second column is the affected curl_easy_setopt option(s), if any
 <table>
 <tr><th>Key</th><th>Affected curl_easy_setopt Options</th><th>Notes</th>
 <tr><td>HTTP.COOKIEJAR</td><td>CURLOPT_COOKIEJAR</td>
-<tr><td>HTTP.COOKIEFILE</td><td>CURLOPT_COOKIEJAR</td><td>Alias for CURLOPT_COOKIEJAR</td>
+<tr><td>HTTP.COOKIEFILE</td><td>CURLOPT_COOKIEJAR</td><td>COOKIEJAR and COOKIEFILE are considered aliases, so setting one will set the other as well.</td>
 <tr><td>HTTP.PROXY.SERVER</td><td>CURLOPT_PROXY, CURLOPT_PROXYPORT, CURLOPT_PROXYUSERPWD</td>
 <tr><td>HTTP.PROXY_SERVER</td><td>CURLOPT_PROXY, CURLOPT_PROXYPORT, CURLOPT_PROXYUSERPWD</td><td>Decprecated: use HTTP.PROXY.SERVER</td>
 <tr><td>HTTP.SSL.CERTIFICATE</td><td>CURLOPT_SSLCERT</td>
@@ -141,7 +123,7 @@ The second column is the affected curl_easy_setopt option(s), if any
 <tr><td>HTTP.CREDENTIALS.USERPASSWORD</td><td>CURLOPT_USERPASSWORD</td>
 <tr><td>HTTP.CREDENTIALS.USERNAME</td><td>CURLOPT_USERNAME</td>
 <tr><td>HTTP.CREDENTIALS.PASSWORD</td><td>CURLOPT_PASSWORD</td>
-<tr><td>HTTP.NETRC</td><td>N.A.</td><td>Specify path of the .netrc file</td>
+<tr><td>HTTP.NETRC</td><td>CURLOPT_NETRC, CURLOPT_NETRC_FILE</td><td>Specify path of the .netrc file to use and enables its use.</td>
 <tr><td>AWS.PROFILE</td><td>N.A.</td><td>Specify name of a profile in from the .aws/credentials file</td>
 <tr><td>AWS.REGION</td><td>N.A.</td><td>Specify name of a default region</td>
 </table>
@@ -188,7 +170,7 @@ HTTP.SSL.KEY is essentially the same as HTTP.SSL.CERTIFICATE
 and should always have the same value.
 
 HTTP.SSL.KEYPASSWORD
-specifies the password for accessing the HTTP.SSL.CERTIFICAT/HTTP.SSL.key file.
+specifies the password for accessing the HTTP.SSL.CERTIFICATE/HTTP.SSL.key file.
 
 HTTP.SSL.CAPATH
 specifies the path to a directory containing
@@ -207,9 +189,10 @@ HTTP.PROXY_SERVER
 deprecated; use HTTP.PROXY.SERVER
 
 HTTP.NETRC
-specifies the absolute path of the .netrc file.
+specifies the absolute path of the .netrc file,
+and causes it to be used instead of username and password.
 See [redirection authorization](#REDIR)
-for information about using .netrc.
+for information about using *.netrc*.
 
 ## Password Escaping {#auth_userpwdescape}
 
@@ -252,12 +235,12 @@ using the _https_ protocol (note the use of _https_ instead of _http_).
 the client back to the SOI to actually obtain the data.
 
 It turns out that libcurl, by default, uses the password in the
-`.daprc` file (or from the url) for all connections that request
+`.ncrc` file (or from the url) for all connections that request
 a password.  This causes problems because only the the specific
 redirected connection is the one that actually requires the password.
 This is where the `.netrc` file comes in. Libcurl will use `.netrc`
 for the redirected connection. It is possible to cause libcurl
-to use the `.daprc` password always, but this introduces a
+to use the `.ncrc` password always, but this introduces a
 security hole because it may send the initial user+pwd to every
 server in the redirection chain.
 In summary, if you are using redirection, then you are
@@ -274,9 +257,9 @@ which the client is redirected for authorization, and the
 login and password are those needed to authenticate on that machine.
 
 The location of the `.netrc` file can be specified by
-putting the following line in your `.daprc`/`.dodsrc` file.
+putting the following line in your `.ncrc`/`.dodsrc` file.
 
-    HTTP.NETRC=<path to netrc file>
+    HTTP.NETRC=<path to .ncrc file>
 
 If not specified, then libcurl will look first in the current
 directory, and then in the HOME directory.
@@ -285,6 +268,22 @@ One final note. In using this, you MUST
 to specify a real file in the file system to act as the
 cookie jar file (HTTP.COOKIEJAR) so that the
 redirect site can properly pass back authorization information.
+
+### Accessing *earthdata.nasa.gov*
+
+Since it is so common, here is a set of templates to use to
+access *earthdata.nasa.gov*.
+
+#### *.ncrc* File
+````
+HTTP.NETRC=/home/<user>/.netrc
+HTTP.COOKIEJAR=/home/<user>/.urs_cookies
+````
+
+#### *.netrc* File
+````
+machine urs.earthdata.nasa.gov login <user> password <password>
+````
 
 ## Client-Side Certificates {#auth_clientcerts}
 
