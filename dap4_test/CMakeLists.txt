@@ -53,8 +53,19 @@ ENDIF()
   IF(ENABLE_DAP_REMOTE_TESTS)
       add_sh_test(dap4_test test_remote)
       add_sh_test(dap4_test test_hyrax)
-#      add_sh_test(dap4_test test_thredds)
       add_sh_test(dap4_test test_dap4url)
+    IF(RUN_MANUAL_TESTS)
+        # The following test can only be run by hand.
+        # It tests earthdata authorization.
+        # Before running it, one needs to do the following:
+        #     export USERPWD="<username>:<password>"
+        # where the username and password are registered
+        # with urs.earthdata.nasa.gov.
+      add_sh_test(dap4_test test_earthdata)
+    ENDIF()
+    IF(RUN_IGNORED_TESTS)
+      add_sh_test(dap4_test test_thredds)
+    ENDIF()
   ENDIF(ENABLE_DAP_REMOTE_TESTS)
 
 ENDIF(ENABLE_TESTS)
