@@ -150,10 +150,10 @@ NC_s3urlrebuild(NCURI* url, char** inoutbucketp, char** inoutregionp, NCURI** ne
 
     /* Construct the revised path */
     ncbytesclear(buf);
-    ncbytescat(buf,"/");
-    if(bucket == NULL)
-        {stat = NC_EURL; goto done;}
-    ncbytescat(buf,bucket);
+    if(bucket != NULL) {
+        ncbytescat(buf,"/");
+        ncbytescat(buf,bucket);
+    }
     for(i=0;i<nclistlength(pathsegments);i++) {
 	ncbytescat(buf,"/");
 	ncbytescat(buf,nclistget(pathsegments,i));

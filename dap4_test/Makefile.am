@@ -48,8 +48,20 @@ if ENABLE_DAP_REMOTE_TESTS
 TESTS += test_remote.sh
 TESTS += test_constraints.sh
 TESTS += test_hyrax.sh
-#TESTS += test_thredds.sh
 TESTS += test_dap4url.sh
+
+# The following test can only be run by hand.
+# It tests earthdata authorization.
+# Before running it, one needs to do the following:
+#     export USERPWD="<username>:<password>"
+# where the username and password are registered with urs.earthdata.nasa.gov.
+if AX_MANUAL
+TESTS += test_earthdata.sh
+endif
+
+if AX_MANUAL
+TESTS += test_thredds.sh
+endif
 
 endif
 endif
@@ -59,7 +71,7 @@ EXTRA_DIST = CMakeLists.txt test_common.h build.sh \
 	test_curlopt.sh test_data.sh test_hyrax.sh test_meta.sh \
 	test_parse.sh test_raw.sh \
         test_remote.sh test_constraints.sh test_thredds.sh \
-	test_dap4url.sh \
+	test_dap4url.sh test_earthdata.sh \
 	cdltestfiles rawtestfiles \
 	baseline baselineraw baselineremote baselinehyrax baselinethredds
 
@@ -81,8 +93,8 @@ clean-local: clean-local-check
 .PHONY: clean-local-check
 
 clean-local-check:
-	-rm -rf results results_test_*
-	-rm -f .dodsrc .daprc
+	-rm -rf results results_*
+	-rm -f .dodsrc .daprc .ncrc .netrc
 
 # The shell file maketests.sh is used to build the testdata
 # for dap4 testing. It creates and fills the directories
