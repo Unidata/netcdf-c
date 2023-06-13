@@ -565,18 +565,17 @@ CFLAGS="$SAVECFLAGS"
 AC_MSG_CHECKING([whether to search for and use external libxml2])
 AC_ARG_ENABLE([libxml2],
               [AS_HELP_STRING([--disable-libxml2],
-                              [disable detection and use of libxml2 in favor of the bundled ezxml interpreter])])
+                              [disable detection and use of libxml2 in favor of the bundled xml parser])])
 test "x$enable_libxml2" = xno || enable_libxml2=yes
 AC_MSG_RESULT([$enable_libxml2])
 
-
+# We can optionally use libxml2 for DAP4 and nch5comms, if enabled
 have_libxml2=no
 if test "x$enable_libxml2" = xyes; then
    AC_CHECK_PROGS([NC_XML2_CONFIG], [xml2-config])
    if test -z "$NC_XML2_CONFIG"; then
       AC_MSG_ERROR([Cannot find xml2-config utility. Either install the libxml2 development package, or re-run configure with --disable-libxml2 to use the bundled xml2 parser])
    fi
-  # We can optionally use libxml2 for DAP4 and nch5comms, if enabled
   AC_CHECK_LIB([xml2],[xmlReadMemory],[have_libxml2=yes],[have_libxml2=no])
   if test "x$have_libxml2" = "xyes" ; then
       AC_SEARCH_LIBS([xmlReadMemory],[xml2 xml2.dll cygxml2.dll], [],[])
@@ -1254,11 +1253,6 @@ AC_CHECK_TYPES([struct timespec])
 if test "x$enable_hdf5" = "xno" ; then
     AC_MSG_WARN([netcdf-4 not enabled; disabling DAP4])
     enable_dap4=no
-fi
-
-if test "x$ISOSX" = xyes && test "x$have_libxml2" = xno && test "x$enable_dap4" = xyes ; then
-  AC_MSG_WARN([OSX requires libxml2 for DAP4 support; disabling DAP4])
-  enable_dap4=no
 fi
 
 if test "x$enable_dap4" = xyes; then
