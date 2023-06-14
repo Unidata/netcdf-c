@@ -1156,10 +1156,18 @@ OPTION(ENABLE_SZIP  "Enable use of Szip compression library if it is available."
 OPTION(ENABLE_BZ2   "Enable use of Bz2 compression library if it is available." ON)
 OPTION(ENABLE_BLOSC "Enable use of blosc compression library if it is available." ON)
 OPTION(ENABLE_ZSTD  "Enable use of Zstd compression library if it is available." ON)
-FIND_PACKAGE(Szip)
-FIND_PACKAGE(Bz2)
-FIND_PACKAGE(Blosc)
-FIND_PACKAGE(Zstd)
+IF (ENABLE_SZIP)
+  FIND_PACKAGE(Szip)
+ENDIF()
+IF (ENABLE_BZ2)
+  FIND_PACKAGE(Bz2)
+ENDIF()
+IF (ENABLE_BLOSC)
+  FIND_PACKAGE(Blosc)
+ENDIF()
+IF (ENABLE_ZSTD)
+  FIND_PACKAGE(Zstd)
+ENDIF()
 
 # Accumulate standard filters
 set(STD_FILTERS "deflate") # Always have deflate*/
