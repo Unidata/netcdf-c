@@ -39,6 +39,7 @@ plugins_to_install =
 
 # These libraries are for testing only
 check_LTLIBRARIES =
+test_plugins = 
 
 if ISMINGW
 LDADD =  ${top_builddir}/liblib/libnetcdf.la
@@ -81,7 +82,7 @@ endif
 
 endif # ENABLE_NCZARR_FILTERS
 
-if ENABLE_PLUGINS
+if ENABLE_NCZARR_FILTERS
 
 # The NCZarr codec libraries (they need libnetcdf)
 lib__nczstdfilters_la_SOURCES = NCZstdfilters.c
@@ -102,8 +103,6 @@ lib__nch5zstd_la_SOURCES = H5Zzstd.c H5Zzstd.h
 plugins_to_install += lib__nch5zstd.la
 endif
 
-endif #ENABLE_PLUGINS
-
 # The noop filter is to allow testing of multifilters and filter order
 # Need two distinct instances
 lib__nch5noop_la_SOURCES = H5Znoop.c H5Zutil.c h5noop.h
@@ -121,8 +120,8 @@ lib__nczmisc_la_LDFLAGS = $(AM_LDFLAGS) ${RPATH}
 lib__nch5unknown_la_SOURCES = H5Zunknown.c
 lib__nch5unknown_la_LDFLAGS = $(AM_LDFLAGS) ${RPATH}
 
-check_LTLIBRARIES += lib__nch5noop.la lib__nch5noop1.la lib__nch5unknown.la
-check_LTLIBRARIES += lib__nch5misc.la lib__nczmisc.la
+test_plugins += lib__nch5noop.la lib__nch5noop1.la lib__nch5unknown.la
+test_plugins += lib__nch5misc.la lib__nczmisc.la
 
 # Bzip2 is used to test more complex filters
 lib__nch5bzip2_la_SOURCES = H5Zbzip2.c h5bzip2.h
@@ -133,12 +132,14 @@ lib__nch5bzip2_la_SOURCES += ${BZIP2SRC}
 endif
 plugins_to_install += lib__nch5bzip2.la
 
+endif # ENABLE_NCZARR_FILTERS
+
 endif #ENABLE_FILTER_TESTING
 
 if ENABLE_PLUGIN_DIR
 plugin_LTLIBRARIES += $(plugins_to_install)
 else
-check_LTLIBRARIES += $(plugins_to_install)
+check_LTLIBRARIES += $(plugins_to_install) $(test_libraries)
 endif
 
 BUILT_SOURCES = H5Znoop1.c
