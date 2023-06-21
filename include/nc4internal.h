@@ -451,6 +451,7 @@ extern int NC4_inq_type_fixed_size(int ncid, nc_type xtype, int* isfixedsizep);
 /* Manage the fixed/var sized'ness of a type */
 extern int NC4_recheck_varsize(NC_TYPE_INFO_T* parenttype, nc_type addedtype);
 extern int NC4_set_varsize(NC_TYPE_INFO_T* parenttype);
+extern int NC4_var_varsized(NC_VAR_INFO_T* var);
 
 /* Close the file. */
 extern int nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio);
