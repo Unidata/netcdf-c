@@ -82,16 +82,29 @@ if USE_HDF5
 if ENABLE_FILTER_TESTING
 extradir =
 check_PROGRAMS += test_filter test_filter_misc test_filter_order test_filter_repeat test_filter_vlen
-check_PROGRAMS += tst_multifilter tst_filter_avail
+check_PROGRAMS += tst_multifilter tst_filter_vlen
 TESTS += tst_filter.sh
 TESTS += tst_specific_filters.sh
 TESTS += tst_bloscfail.sh
+TESTS += tst_filter_vlen.sh
 if ISMINGW
 XFAIL_TESTS += tst_filter.sh
 endif # ISMINGW
+
+if AX_MANUAL
 # This test is too dangerous to run in a parallel make environment.
 # It causes race conditions. So suppress and only test by hand.
-#TESTS += tst_unknown.sh
+TESTS += tst_unknown.sh
+endif
+
+if AX_MANUAL
+# The tst_filterinstall test can only be run after an install
+# occurred with --with-plugin-dir enabled. So there is no point
+#in running it via make check. It is kept here so it can be
+# manually invoked if desired
+TESTS += tst_filterinstall.sh
+endif
+
 endif # ENABLE_FILTER_TESTING
 endif # USE_HDF5
 endif # BUILD_UTILITIES
@@ -120,13 +133,8 @@ ref_filter_order_create.txt ref_filter_order_read.txt			\
 ref_any.cdl tst_specific_filters.sh tst_unknown.sh                      \
 tst_virtual_datasets.c noop1.cdl unknown.cdl  \
 tst_broken_files.c ref_bloscx.cdl tst_bloscfail.sh			\
-tst_fixedstring.sh ref_fixedstring.h5 ref_fixedstring.cdl
-
-# The tst_filterinstall test can only be run after an install
-# occurred with --with-plugin-dir enabled. So there is no point
-#in running it via make check. It is kept here so it can be
-# manually invoked if desired
-EXTRA_DIST += tst_filterinstall.sh
+tst_fixedstring.sh ref_fixedstring.h5 ref_fixedstring.cdl               \
+tst_filterinstall.sh tst_filter_vlen.sh
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
 tst_floats_1D.cdl floats_1D_3.nc floats_1D.cdl tst_*.nc tmp_*.txt       \
