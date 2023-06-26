@@ -799,3 +799,21 @@ NC4_set_varsize(NC_TYPE_INFO_T* typ)
 done:
     return stat;
 }
+
+/**
+ * Test if a variable's type is fixed sized or not.
+ * @param var - to test
+ * @return 0 if fixed size, 1 otherwise.
+ */
+int
+NC4_var_varsized(NC_VAR_INFO_T* var)
+{
+    NC_TYPE_INFO_T* vtype = NULL;
+    
+    /* Check the variable type */
+    vtype = var->type_info;
+    if(vtype->hdr.id < NC_STRING) return 0;
+    if(vtype->hdr.id == NC_STRING) return 1;
+    return vtype->varsized;
+}
+

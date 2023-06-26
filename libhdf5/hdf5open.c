@@ -1061,6 +1061,7 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
     int f;
     int stat = NC_NOERR;
     NC_HDF5_VAR_INFO_T *hdf5_var;
+    int varsized = 0;
 
     assert(var);
 
@@ -1070,17 +1071,26 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
     if ((num_filters = H5Pget_nfilters(propid)) < 0)
 	{stat = NC_EHDFERR; goto done;}
 
+    /* If the type of the variable is variable length, and
+       it has filters defined, suppress the variable. */
+    varsized = NC4_var_varsized(var);
+
     for (f = 0; f < num_filters; f++)
     {
-	int flags = 0;
 	htri_t avail = -1;
+        unsigned flags = 0;
 	cd_nelems = 0;
-        if ((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems, NULL, 0, NULL, NULL)) < 0)
+        if ((filter = H5Pget_filter2(propid, f, &flags, &cd_nelems, NULL, 0, NULL, NULL)) < 0)
  	    {stat = NC_ENOFILTER; goto done;} /* Assume this means an unknown filter */
 	if((avail = H5Zfilter_avail(filter)) < 0)
  	    {stat = NC_EHDFERR; goto done;} /* Something in HDF5 went wrong */
 	if(!avail) {
 	    flags |= NC_HDF5_FILTER_MISSING;
+	    /* mark variable as unreadable */
+	    hdf5_var->flags |= NC_HDF5_VAR_FILTER_MISSING;
+	}
+	/* If variable type is varsized and filter is mandatory then this variable is unreadable */
+	if(varsized && (flags & H5Z_FLAG_MANDATORY) != 0) {
 	    /* mark variable as unreadable */
 	    hdf5_var->flags |= NC_HDF5_VAR_FILTER_MISSING;
 	}
