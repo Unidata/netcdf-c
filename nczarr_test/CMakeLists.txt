@@ -13,9 +13,9 @@ FILE(READ ${CMAKE_CURRENT_SOURCE_DIR}/../nc_test4/tst_quantize.c QSOURCE)
 FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/test_quantize.c "#define TESTNCZARR\n")
 FILE(APPEND ${CMAKE_CURRENT_BINARY_DIR}/test_quantize.c "${QSOURCE}")
 
-FILE(READ ${CMAKE_CURRENT_SOURCE_DIR}/../nc_test4/tst_filter_avail.c ASOURCE)
+FILE(READ ${CMAKE_CURRENT_SOURCE_DIR}/../nc_test4/tst_filter_vlen.c ASOURCE)
 STRING(PREPEND ASOURCE "#define TESTNCZARR\n")
-FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/test_filter_avail.c "${ASOURCE}")
+FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/test_filter_vlen.c "${ASOURCE}")
 
 FILE(READ ${CMAKE_CURRENT_SOURCE_DIR}/../nc_test4/tst_specific_filters.sh SPSOURCE)
 STRING(PREPEND SPSOURCE "#!/bin/bash\n")
@@ -34,6 +34,14 @@ STRING(PREPEND SPSOURCE "TESTNCZARR=1\n")
 FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/run_unknown.1 "${SPSOURCE}")
 CONFIGURE_FILE(${CMAKE_CURRENT_BINARY_DIR}/run_unknown.1 ${CMAKE_CURRENT_BINARY_DIR}/run_unknown.sh FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE @ONLY NEWLINE_STYLE LF)
 FILE(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/run_unknown.1)
+	
+FILE(READ ${CMAKE_CURRENT_SOURCE_DIR}/../nc_test4/tst_filter_vlen.sh SPSOURCE)
+STRING(PREPEND SPSOURCE "#!/bin/bash\n")
+STRING(PREPEND SPSOURCE "TESTNCZARR=1\n")
+# Replace with FILE(CONFIGURE) when cmake 3.18 is in common use
+FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/run_filter_vlen.1 "${SPSOURCE}")
+CONFIGURE_FILE(${CMAKE_CURRENT_BINARY_DIR}/run_filter_vlen.1 ${CMAKE_CURRENT_BINARY_DIR}/run_filter_vlen.sh FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE @ONLY NEWLINE_STYLE LF)
+FILE(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/run_filter_vlen.1)
 	
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.sh
 ${CMAKE_CURRENT_SOURCE_DIR}/ref*.cdl
@@ -139,14 +147,13 @@ IF(ENABLE_TESTS)
 	  build_bin_test(testfilter_multi)
 	  build_bin_test(testfilter_order)
 	  build_bin_test(testfilter_repeat)
-	  build_bin_test(test_filter_avail)
 	  ADD_SH_TEST(nczarr_test run_nczfilter)
 	  ADD_SH_TEST(nczarr_test run_filter)
 	  ADD_SH_TEST(nczarr_test run_specific_filters)
 	  IF(FALSE)
-	  # This test is too dangerous to run in a parallel make environment.
-    # It causes race conditions. So suppress and only test by hand.
-      ADD_SH_TEST(nczarr_test run_unknown)
+	    # This test is too dangerous to run in a parallel make environment.
+            # It causes race conditions. So suppress and only test by hand.
+            ADD_SH_TEST(nczarr_test run_unknown)
 	  ENDIF(FALSE)
   ENDIF(ENABLE_FILTER_TESTING)
   if(ENABLE_NCZARR_ZIP)

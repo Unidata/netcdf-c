@@ -19,6 +19,7 @@
 #include "netcdf_filter.h"
 #include "ncdispatch.h"
 #include "nc4internal.h"
+#include "nclog.h"
 
 #ifdef USE_HDF5
 #include "hdf5internal.h"
@@ -134,7 +135,10 @@ nc_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams, const un
     if((stat = nc_inq_vartype(ncid,varid,&xtype))) return stat;
     /* If the variable's type is not fixed-size, then signal error */
     if((stat = NC4_inq_type_fixed_size(ncid, xtype, &fixedsize))) return stat;
-    if(!fixedsize) return NC_EFILTER;
+    if(!fixedsize) {
+	nclog(NCLOGWARN,"Filters cannot be applied to variable length data types.");
+        return NC_NOERR; /* Deliberately suppress */
+    }
     if((stat = ncp->dispatch->def_var_filter(ncid,varid,id,nparams,params))) goto done;
 done:
     return stat;
