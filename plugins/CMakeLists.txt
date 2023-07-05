@@ -94,12 +94,12 @@ IF(HAVE_SZ)
   buildplugin(h5szip "h5szip" ${Szip_LIBRARIES})
 ENDIF()
 
-IF(HAVE_LOCAL_BZ2)
+IF(HAVE_LOCAL_BZIP2)
 SET(h5bzip2_SOURCES H5Zbzip2.c blocksort.c huffman.c crctable.c randtable.c compress.c decompress.c bzlib.c bzlib.h bzlib_private.h)
 buildplugin(h5bzip2 "h5bzip2")
 ELSE()
 SET(h5bzip2_SOURCES H5Zbzip2.c)
-buildplugin(h5bzip2 "h5bzip2" ${Bzip2_LIBRARIES})
+buildplugin(h5bzip2 "h5bzip2" ${BZIP2_LIBRARIES})
 ENDIF()
 
 
@@ -113,7 +113,7 @@ MACRO(installplugin PLUG)
 ENDMACRO()
 
 install(DIRECTORY DESTINATION ${PLUGIN_INSTALL_DIR})
-IF(Bzip2_FOUND)
+IF(BZIP2_FOUND)
 installplugin(h5bzip2)
 ENDIF()
 IF(Zstd_FOUND)
