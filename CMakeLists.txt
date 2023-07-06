@@ -1058,6 +1058,9 @@ ELSE()
   SET(ENABLE_DAP4 OFF CACHE BOOL "")
 ENDIF()
 
+# Temporarily disable DAP4
+SET(ENABLE_DAP4 OFF CACHE BOOL "")
+
 # Option to support byte-range reading of remote datasets
 OPTION(ENABLE_BYTERANGE "Enable byte-range access to remote datasets.." ON)
 if(NOT ENABLE_REMOTE_FUNCTIONALITY)
