@@ -32,10 +32,11 @@ tst_xcache_SOURCES = tst_xcache.c timer_utils.c timer_utils.h
 
 TESTS += tst_nclist test_ncuri test_pathcvt  tst_exhash tst_xcache
 
-if USE_NETCDF4
-check_PROGRAMS += tst_nc4internal
+if USE_HDF5
+check_PROGRAMS += tst_nc4internal tst_reclaim
 TESTS += tst_nc4internal
-endif # USE_NETCDF4
+TESTS += run_reclaim_tests.sh
+endif # USE_HDF5
 
 if ENABLE_S3
 if ENABLE_S3_TESTALL
@@ -44,8 +45,10 @@ TESTS += run_s3sdk.sh
 endif
 endif
 
-EXTRA_DIST = CMakeLists.txt run_s3sdk.sh
-EXTRA_DIST += nctest_netcdf4_classic.nc
+EXTRA_DIST = CMakeLists.txt run_s3sdk.sh run_reclaim_tests.sh
+EXTRA_DIST += nctest_netcdf4_classic.nc reclaim_tests.cdl
+
+CLEANFILES = reclaim_tests*.txt reclaim_tests.nc
 
 # If valgrind is present, add valgrind targets.
 @VALGRIND_CHECK_RULES@

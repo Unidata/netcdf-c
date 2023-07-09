@@ -684,7 +684,7 @@ nc_def_var_extra(int ncid, int varid, int *shuffle, int *unused1,
         /* If there's a _FillValue attribute, delete it. */
         retval = NC4_HDF5_del_att(ncid, varid, _FillValue);
         if (retval && retval != NC_ENOTATT) return retval;
-	if((retval = nc_reclaim_data_all(ncid,var->type_info->hdr.id,var->fill_value,1))) return retval;
+	if((retval = NC_reclaim_data_all(h5->controller,var->type_info->hdr.id,var->fill_value,1))) return retval;
 	var->fill_value = NULL;
     }
 
@@ -2136,7 +2136,7 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 
 	    {
 		/* Copy one instance of the fill_value */
-		if((retval = nc_copy_data(ncid,var->type_info->hdr.id,fillvalue,1,filldata)))
+		if((retval = NC_copy_data(h5->controller,var->type_info->hdr.id,fillvalue,1,filldata)))
 		    BAIL(retval);
 	    }
             filldata = (char *)filldata + file_type_size;

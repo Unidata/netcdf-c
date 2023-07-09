@@ -82,4 +82,16 @@ ${execdir}/tst_fillbug
 ${NCDUMP} tst_fillbug.nc > tst_fillbug.cdl
 # echo "*** comparing tst_fillbug.cdl with ref_tst_fillbug.cdl..."
 diff -b tst_fillbug.cdl $srcdir/ref_tst_fillbug.cdl
+
+
 }
+
+NCDUMPPATH=${builddir}
+if test "x$NCDUMPDIR" != x ; then
+  NCDUMPPATH="${NCDUMPPATH}/$NCDUMPDIR"
+  rm -fr $NCDUMPPATH
+  mkdir $NCDUMPPATH
+fi
+find $NCDUMPPATH
+
+

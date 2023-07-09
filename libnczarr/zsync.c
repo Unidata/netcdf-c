@@ -1337,7 +1337,7 @@ ncz_read_atts(NC_FILE_INFO_T* file, NC_OBJ* container)
 	    if((stat = ncz_makeattr(container,attlist,aname,typeid,len,data,&att)))
 		goto done;
 	    /* No longer need this copy of the data */
-   	    if((stat = nc_reclaim_data_all(file->controller->ext_ncid,att->nc_typeid,data,len))) goto done;	    	    
+   	    if((stat = NC_reclaim_data_all(file->controller,att->nc_typeid,data,len))) goto done;	    	    
 	    data = NULL;
 	    if(isfillvalue)
 	        fillvalueatt = att;
@@ -1361,7 +1361,7 @@ ncz_read_atts(NC_FILE_INFO_T* file, NC_OBJ* container)
 
 done:
     if(data != NULL)
-        stat = nc_reclaim_data(file->controller->ext_ncid,att->nc_typeid,data,len);
+        stat = NC_reclaim_data(file->controller,att->nc_typeid,data,len);
     NCJreclaim(jattrs);
     nclistfreeall(atypes);
     nullfree(fullpath);
@@ -1447,6 +1447,8 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
     NCjson* jfilter = NULL;
     int chainindex;
 #endif
+    int varsized;
+    int suppressvar = 0; /* 1 => make this variable invisible */
 
     ZTRACE(3,"file=%s grp=%s |varnames|=%u",file->controller->path,grp->hdr.name,nclistlength(varnames));
 
@@ -1528,6 +1530,9 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 		if(zvar->maxstrlen <= 0) zvar->maxstrlen = NCZ_get_maxstrlen((NC_OBJ*)var);
 	    }
 	}
+
+        /* See if this variable is variable sized */
+	varsized = NC4_var_varsized(var);
 
 	if(!purezarr) {
   	    /* Extract the _NCZARR_ARRAY values */
@@ -1715,7 +1720,7 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
         /* compressor key */
         /* From V2 Spec: A JSON object identifying the primary compression codec and providing
            configuration parameters, or ``null`` if no compressor is to be used. */
-	{
+	if(!varsized) { /* Only process if variable is fixed-size */
 #ifdef ENABLE_NCZARR_FILTERS
 	    if(var->filters == NULL) var->filters = (void*)nclistnew();
 	    if((stat = NCZ_filter_initialize())) goto done;
@@ -1726,6 +1731,9 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 	    }
 #endif
 	}
+	/* Suppress variable if there are filters and var is not fixed-size */
+	if(varsized && nclistlength((NClist*)var->filters) > 0)
+	    suppressvar = 1;
 
 	if((stat = computedimrefs(file, var, purezarr, xarray, rank, dimnames, shapes, var->dim)))
 	    goto done;
@@ -1737,9 +1745,16 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 	}
 
 #ifdef ENABLE_NCZARR_FILTERS
-	/* At this point, we can finalize the filters */
-        if((stat = NCZ_filter_setup(var))) goto done;
+	if(!suppressvar) {
+    	    /* At this point, we can finalize the filters */
+            if((stat = NCZ_filter_setup(var))) goto done;
+	}
 #endif
+
+        if(suppressvar) {
+	    if((stat = NCZ_zclose_var1(var))) goto done;
+	}
+
 	/* Clean up from last cycle */
 	nclistfreeall(dimnames); dimnames = nclistnew();
         nullfree(varpath); varpath = NULL;

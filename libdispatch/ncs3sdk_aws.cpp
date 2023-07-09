@@ -24,11 +24,13 @@
 #define NCTRACEMORE(level,fmt,...) nctracemore((level),fmt,##__VA_ARGS__)
 #define NCUNTRACE(e) ncuntrace(__func__,THROW(e),NULL)
 #define NCUNTRACEX(e,fmt,...) ncuntrace(__func__,THROW(e),fmt,##__VA_ARGS__)
+#define NCUNTRACENOOP(e) NCUNTRACE(e)
 #else
 #define NCTRACE(level,fmt,...)
 #define NCTRACEMORE(level,fmt,...)
 #define NCUNTRACE(e) (e)
 #define NCUNTRACEX(e,fmt,...) (e)
+#define NCUNTRACENOOP(e)
 #endif
 
 #ifdef __CYGWIN__
@@ -150,7 +152,6 @@ makeerrmsg(const Aws::Client::AWSError<Aws::S3::S3Errors> err, const char* key="
 static Aws::Client::ClientConfiguration
 s3sdkcreateconfig(NCS3INFO* info)
 {
-    int stat = NC_NOERR;
     NCTRACE(11,"info=%s", dumps3info(info));
 
     Aws::Client::ClientConfiguration config;
@@ -164,7 +165,7 @@ s3sdkcreateconfig(NCS3INFO* info)
     if(info->host) config.endpointOverride = info->host;
     config.enableEndpointDiscovery = true;
     config.followRedirects = Aws::Client::FollowRedirectsPolicy::ALWAYS;
-    stat = NCUNTRACE(stat);
+    NCUNTRACENOOP(NC_NOERR);
     return config;
 }
 
@@ -190,7 +191,7 @@ NC_s3sdkcreateclient(NCS3INFO* info)
 			       false);
     }
 //    delete config;
-    stat = NCUNTRACE(stat);
+    NCUNTRACENOOP(NC_NOERR);
     return (void*)s3client;
 }
 

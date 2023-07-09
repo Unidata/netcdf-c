@@ -62,7 +62,7 @@ static void freeprofile(struct AWSprofile* profile);
 static void freeprofilelist(NClist* profiles);
 
 /* Define default rc files and aliases, also defines load order*/
-static const char* rcfilenames[] = {".ncrc", ".daprc", ".dodsrc",NULL};
+static const char* rcfilenames[] = {".ncrc", ".daprc", ".dodsrc", NULL};
 
 /* Read these files in order and later overriding earlier */
 static const char* awsconfigfiles[] = {".aws/config",".aws/credentials",NULL};
@@ -135,7 +135,6 @@ done:
 /*
 Initialize defaults and load:
 * .ncrc
-* .daprc
 * .dodsrc
 * ${HOME}/.aws/config
 * ${HOME}/.aws/credentials
@@ -238,13 +237,11 @@ NC_rcload(void)
     /* locate the configuration files in order of use:
        1. Specified by NCRCENV_RC environment variable.
        2. If NCRCENV_RC is not set then merge the set of rc files in this order:
-	  1. $RCHOME/.ncrc
-  	  2. $RCHOME/.daprc
-	  3. $RCHOME/.docsrc
-	  4. $CWD/.ncrc
-  	  5. $CWD/.daprc
-	  6. $CWD/.docsrc
-	  Entry in later files override any of the earlier files
+	  1. $HOME/.ncrc
+	  2. $HOME/.dodsrc
+	  3. $CWD/.ncrc
+	  4. $CWD/.dodsrc
+	  Entries in later files override any of the earlier files
     */
     if(globalstate->rcinfo->rcfile != NULL) { /* always use this */
 	nclistpush(rcfileorder,strdup(globalstate->rcinfo->rcfile));

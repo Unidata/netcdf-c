@@ -268,7 +268,7 @@ NC4_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
         if (var->fill_value)
         {
 	    int xtype = var->type_info->hdr.id;
-	    if((retval = nc_copy_data(ncid,xtype,var->fill_value,1,fill_valuep))) return retval;
+	    if((retval = NC_copy_data(h5->controller,xtype,var->fill_value,1,fill_valuep))) return retval;
 	}
         else
         {

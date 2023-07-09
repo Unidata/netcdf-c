@@ -33,6 +33,9 @@ The most common kind of filter is a compression-decompression
 filter, and that is the focus of this document.
 But non-compression filters &ndash; fletcher32, for example &ndash; also exist.
 
+This document describes the support for HDF5 filters and also
+the newly added support for NCZarr filters.
+
 The netCDF enhanced (aka netCDF-4) library inherits this
 capability since it depends on the HDF5 library.  The HDF5
 library (1.8.11 and later) supports filters, and netCDF is based
@@ -45,30 +48,22 @@ multiple filters are defined on a variable, they are applied in
 first-defined order on writing and on the reverse order when
 reading.
 
-This document describes the support for HDF5 filters and also
-the newly added support for NCZarr filters.
+There is an important "caveat" with respect to filters
+and their application to variables.
+If the type of the variable is variable-sized, then attempts
+to define a filter on such a variable will not be allowed.
+In this case, the call to *nc\_def\_var\_filter* will succeed
+but the filter will be suppressed and a warning will be logged.
+Similarly, if an existing file is opened, and there is a
+variable-sized variable with a filter, then that variable will be
+suppressed and will be inaccessible through the netcdf-c API.
 
-## A Warning on Backward Compatibility {#filters_compatibility}
-
-The API defined in this document should accurately reflect the
-current state of filters in the netCDF-c library.  Be aware that
-there was a short period in which the filter code was undergoing
-some revision and extension.  Those extensions have largely been
-reverted.  Unfortunately, some users may experience some
-compilation problems for previously working code because of
-these reversions.  In that case, please revise your code to
-adhere to this document. Apologies are extended for any
-inconvenience.
-
-A user may encounter an incompatibility if any of the following appears in user code.
-
-* The function *\_nc\_inq\_var\_filter* was returning the error value NC\_ENOFILTER  if a variable had no associated filters.
-  It has been reverted to the previous case where it returns NC\_NOERR and the returned filter id was set to zero if the variable had no filters.
-* The function *nc\_inq\_var\_filterids* was renamed to *nc\_inq\_var\_filter\_ids*.
-* Some auxilliary functions for parsing textual filter specifications have been moved to the file *netcdf\_aux.h*. See [Appendix A](#filters_appendixa).
-* All of the "filterx" functions have been removed. This is unlikely to cause problems because they had limited visibility.
-
-For additional information, see [Appendix B](#filters_appendixb).
+The concept of a variable-sized type is defined as follows:
+1. The type NC_STRING is variable-sized.
+2. Any user defined type of the class NC_VLEN is variable sized.
+3. If a compound type has any field that is (transitively) variable-sized,
+   then that compound type is variable-sized.
+4. All other types are fixed-size.
 
 ## Enabling A HDF5 Compression Filter {#filters_enable}
 
@@ -1149,6 +1144,28 @@ The important thing to note is that at run-time, there are several cases to cons
 2. HDF5_PLUGIN_PATH is defined and is has a different value from build time -- the user is responsible for ensuring that the run-time path includes the same directory used at build time, otherwise this case will fail.
 3. HDF5_PLUGIN_DIR is not defined at either run-time or build-time -- no action needed
 4. HDF5_PLUGIN_DIR is not defined at run-time but was defined at build-time -- this will probably fail
+
+## Appendix I. A Warning on Backward Compatibility {#filters_appendixi}
+
+The API defined in this document should accurately reflect the
+current state of filters in the netCDF-c library.  Be aware that
+there was a short period in which the filter code was undergoing
+some revision and extension.  Those extensions have largely been
+reverted.  Unfortunately, some users may experience some
+compilation problems for previously working code because of
+these reversions.  In that case, please revise your code to
+adhere to this document. Apologies are extended for any
+inconvenience.
+
+A user may encounter an incompatibility if any of the following appears in user code.
+
+* The function *\_nc\_inq\_var\_filter* was returning the error value NC\_ENOFILTER  if a variable had no associated filters.
+  It has been reverted to the previous case where it returns NC\_NOERR and the returned filter id was set to zero if the variable had no filters.
+* The function *nc\_inq\_var\_filterids* was renamed to *nc\_inq\_var\_filter\_ids*.
+* Some auxilliary functions for parsing textual filter specifications have been moved to the file *netcdf\_aux.h*. See [Appendix A](#filters_appendixa).
+* All of the "filterx" functions have been removed. This is unlikely to cause problems because they had limited visibility.
+
+For additional information, see [Appendix B](#filters_appendixb).
 
 ## Point of Contact {#filters_poc}
 

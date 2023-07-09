@@ -116,12 +116,7 @@ else
     has_benchmarks="yes"
 fi
 
-has_multifilters="@HAS_MULTIFILTERS@"
-if [ -z "$has_multifilters" -o "$has_multifilters" = "OFF" -o "$has_multifilters" = "FALSE" ]; then
-    has_multifilters="no"
-else
-    has_multifilters="yes"
-fi
+has_multifilters="yes"
 
 has_zstd="@HAS_ZSTD"
 if [ -z "$has_zstd" -o "$has_zstd" = "OFF" -o "$has_zstd" = "FALSE" ]; then

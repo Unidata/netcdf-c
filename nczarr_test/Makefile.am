@@ -96,7 +96,7 @@ check_PROGRAMS += tst_nczfilter
 TESTS += run_nczfilter.sh
 
 # Echo filter tests from nc_test4
-check_PROGRAMS += testfilter testfilter_misc testfilter_order testfilter_repeat testfilter_multi test_filter_avail
+check_PROGRAMS += testfilter testfilter_misc testfilter_order testfilter_repeat testfilter_multi
 TESTS += run_filter.sh 
 TESTS += run_specific_filters.sh
 
@@ -170,16 +170,17 @@ ref_zarr_test_data.cdl.gz
 
 CLEANFILES = ut_*.txt ut*.cdl tmp*.nc tmp*.cdl tmp*.txt tmp*.dmp tmp*.zip tmp*.nc tmp*.dump tmp*.tmp tmp*.zmap tmp_ngc.c ref_zarr_test_data.cdl tst_*.nc.zip ref_quotes.zip ref_power_901_constants.zip
 
-BUILT_SOURCES = test_quantize.c test_filter_avail.c run_specific_filters.sh run_filterinstall.sh run_unknown.sh
+BUILT_SOURCES = test_quantize.c run_specific_filters.sh run_filterinstall.sh run_unknown.sh test_filter_vlen.c run_filter_vlen.sh
+
 test_quantize.c: $(top_srcdir)/nc_test4/tst_quantize.c
 	rm -f $@
 	echo "#define TESTNCZARR" > $@
 	cat $(top_srcdir)/nc_test4/tst_quantize.c >> $@
 
-test_filter_avail.c: $(top_srcdir)/nc_test4/tst_filter_avail.c
+test_filter_vlen.c: $(top_srcdir)/nc_test4/tst_filter_vlen.c
 	rm -f $@
 	echo "#define TESTNCZARR" > $@
-	cat $(top_srcdir)/nc_test4/tst_filter_avail.c >> $@
+	cat $(top_srcdir)/nc_test4/tst_filter_vlen.c >> $@
 
 run_unknown.sh: $(top_srcdir)/nc_test4/tst_unknown.sh
 	rm -f $@ run_unknown.tmp
@@ -199,6 +200,15 @@ run_specific_filters.sh: $(top_srcdir)/nc_test4/tst_specific_filters.sh
 	chmod a+x $@
 	rm -f run_specific_filters.tmp
 
+run_filter_vlen.sh: $(top_srcdir)/nc_test4/tst_filter_vlen.sh
+	rm -f $@ run_filter_vlen.tmp
+	echo "#!/bin/bash" > run_filter_vlen.tmp
+	echo "TESTNCZARR=1" >> run_filter_vlen.tmp
+	cat $(top_srcdir)/nc_test4/tst_filter_vlen.sh >> run_filter_vlen.tmp
+	tr -d '\r' < run_filter_vlen.tmp > $@
+	chmod a+x $@
+	rm -f run_filter_vlen.tmp
+
 run_filterinstall.sh: $(top_srcdir)/nc_test4/tst_filterinstall.sh
 	rm -f $@ run_filterinstall.tmp
 	echo "#!/bin/bash" > run_filterinstall.tmp
@@ -215,7 +225,7 @@ clean-local:
 	rm -fr rcmiscdir ref_power_901_constants.file 
 
 
-DISTCLEANFILES = findplugin.sh test_quantize.c run_specific_filters.sh run_filterinstall.sh run_unknown.sh test_filter_avail.c
+DISTCLEANFILES = findplugin.sh test_quantize.c run_specific_filters.sh run_filterinstall.sh run_unknown.sh test_filter_vlen.c run_filter_vlen.sh
 
 # Provide a specific s3 cleanup action
 s3cleanup::

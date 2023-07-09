@@ -205,6 +205,12 @@ AC_ARG_ENABLE([pnetcdf], [AS_HELP_STRING([--enable-pnetcdf],
 test "x$enable_pnetcdf" = xyes || enable_pnetcdf=no
 AC_MSG_RESULT($enable_pnetcdf)
 
+AC_MSG_CHECKING([whether any network access should be allowed])
+AC_ARG_ENABLE([remote-functionality], [AS_HELP_STRING([--enable-remote-functionality],
+              [enable|disable all forms of network access (default enabled)])])
+test "x$enable_remote_functionality" = xno || enable_remote_functionality=yes
+AC_MSG_RESULT($enable_remote_functionality)
+
 # We need curl for remote operations
 AC_CHECK_LIB([curl],[curl_easy_setopt],[found_curl=yes],[found_curl=no])
 if test "x$found_curl" = "xyes" ; then
@@ -218,6 +224,11 @@ AC_ARG_ENABLE([dap],
                                  [build without DAP client support.])])
 test "x$enable_dap" = xno || enable_dap=yes
 AC_MSG_RESULT($enable_dap)
+
+if test "x$enable_remote_functionality" = xno ; then
+  AC_MSG_WARN([All network access is disabled => DAP support disabled.])
+  enable_dap=no
+fi
 
 if test "x$enable_dap" = xyes & test "x$found_curl" = xno ; then
   AC_MSG_WARN([curl required for dap access. DAP support disabled.])
@@ -378,14 +389,6 @@ if test "x$enable_hdf4_file_tests" = xyes; then
    AC_DEFINE([USE_HDF4_FILE_TESTS], 1, [If true, use use wget to fetch some sample HDF4 data, and then test against it.])
 fi
 AC_MSG_RESULT($enable_hdf4_file_tests)
-
-# Does the user want to try to install netcdf-fortran
-# automatically?
-AC_MSG_CHECKING([whether we should attempt to install netcdf-fortran (EXPERIMENTAL)])
-AC_ARG_ENABLE([remote-fortran-bootstrap], [AS_HELP_STRING([--enable-remote-fortran-bootstrap],
-			 [Download and install netcdf-fortran (EXPERIMENTAL)])])
-test "x$enable_remote_fortran_bootstrap" = xyes || enable_remote_fortran_bootstrap=no
-AC_MSG_RESULT([$enable_remote_fortran_bootstrap])
 
 # Does the user want to run extra parallel tests when parallel netCDF-4 is built?
 AC_MSG_CHECKING([whether parallel IO tests should be run])
@@ -581,18 +584,17 @@ CFLAGS="$SAVECFLAGS"
 AC_MSG_CHECKING([whether to search for and use external libxml2])
 AC_ARG_ENABLE([libxml2],
               [AS_HELP_STRING([--disable-libxml2],
-                              [disable detection and use of libxml2 in favor of the bundled ezxml interpreter])])
+                              [disable detection and use of libxml2 in favor of the bundled xml parser])])
 test "x$enable_libxml2" = xno || enable_libxml2=yes
 AC_MSG_RESULT([$enable_libxml2])
 
-
+# We can optionally use libxml2 for DAP4 and nch5comms, if enabled
 have_libxml2=no
 if test "x$enable_libxml2" = xyes; then
    AC_CHECK_PROGS([NC_XML2_CONFIG], [xml2-config])
    if test -z "$NC_XML2_CONFIG"; then
       AC_MSG_ERROR([Cannot find xml2-config utility. Either install the libxml2 development package, or re-run configure with --disable-libxml2 to use the bundled xml2 parser])
    fi
-  # We can optionally use libxml2 for DAP4 and nch5comms, if enabled
   AC_CHECK_LIB([xml2],[xmlReadMemory],[have_libxml2=yes],[have_libxml2=no])
   if test "x$have_libxml2" = "xyes" ; then
       AC_SEARCH_LIBS([xmlReadMemory],[xml2 xml2.dll cygxml2.dll], [],[])
@@ -667,7 +669,7 @@ AC_ARG_ENABLE([dap-auth-tests],
 test "x$enable_dap_auth_tests" = xyes || enable_dap_auth_tests=no
 AC_MSG_RESULT($enable_dap_auth_tests)
 
-# dap must be enabled
+# dap must be enabled in order to use various other flags
 
 if test "x$enable_dap" = "xno" ; then
   AC_MSG_NOTICE([--disable-dap => --disable-dap-remote-tests --disable-auth-tests --disable-external-server-tests])
@@ -764,7 +766,6 @@ if test "x$have_zstd" = "xyes" ; then
    fi
 fi
 
-
 # See if we have libbz2
 AC_CHECK_LIB([bz2],[BZ2_bzCompress],[have_bz2=yes],[have_bz2=no])
 if test "x$have_bz2" = "xyes" ; then
@@ -825,6 +826,11 @@ AC_ARG_ENABLE([s3],
 test "x$enable_s3" = xyes || enable_s3=no
 AC_MSG_RESULT($enable_s3)
 
+if test "x$enable_remote_functionality" = xno ; then
+  AC_MSG_WARN([--disable-remote-functionality => --disable-s3])
+  enable_s3=no
+fi
+
 # --enable-nczarr-s3 is synonym for --enable-s3 (but...)
 AC_MSG_CHECKING([whether netcdf NCZarr S3 support should be enabled])
 AC_ARG_ENABLE([nczarr-s3],
@@ -833,7 +839,7 @@ AC_ARG_ENABLE([nczarr-s3],
 AC_MSG_RESULT([$enable_nczarr_s3 (Deprecated) Please use --enable-s3)])
 
 # Set enable_s3 instead of enable_nczarr_s3
-if test "x$enable_s3" = xno && test "x$enable_nczarr_s3" = xyes ; then
+if test "x$enable_s3" = xno && test "x$enable_nczarr_s3" = xyes && test "x$enable_remote_functionality" = xyes; then
 enable_s3=yes # back compatibility
 fi
 unset enable_nczarr_s3
@@ -923,12 +929,6 @@ AC_ARG_WITH([chunk-cache-size-nczarr],
             [CHUNK_CACHE_SIZE_NCZARR=$with_chunk_cache_size_nczarr], [CHUNK_CACHE_SIZE_NCZARR=4194304])
 AC_MSG_RESULT([$CHUNK_CACHE_SIZE_NCZARR])
 AC_DEFINE_UNQUOTED([CHUNK_CACHE_SIZE_NCZARR], [$CHUNK_CACHE_SIZE_NCZARR], [default nczarr chunk cache size.])
-
-# This has multiversion capability
-AC_MSG_CHECKING([whether multi-filter support is enabled])
-has_multifilters=yes
-AC_MSG_RESULT($has_multifilters)
-AC_DEFINE([HAS_MULTIFILTERS], [1], [if true, multi-filter support enabled])
 
 # Check whether we want to enable strict null byte header padding.
 # See https://github.com/Unidata/netcdf-c/issues/657 for more information.
@@ -1278,11 +1278,6 @@ if test "x$enable_hdf5" = "xno" ; then
     enable_dap4=no
 fi
 
-if test "x$ISOSX" = xyes && test "x$have_libxml2" = xno ; then
-  AC_MSG_ERROR([Error: OSX requires libxml2 => --disable-dap4.])
-  enable_dap4=no
-fi
-
 if test "x$enable_dap4" = xyes; then
    AC_DEFINE([ENABLE_DAP4], [1], [if true, build DAP4 Client])
 fi
@@ -1340,6 +1335,11 @@ AC_ARG_ENABLE([byterange],
                               [allow byte-range I/O])])
 test "x$enable_byterange" = xno || enable_byterange=yes
 AC_MSG_RESULT($enable_byterange)
+
+if test "x$enable_remote_functionality" = xno ; then
+  AC_MSG_WARN([--disable-remote-functionality => --disable-byterange])
+  enable_byterange=no
+fi
 
 # Need curl for byte ranges
 if test "x$found_curl" = xno && test "x$enable_byterange" = xyes ; then
@@ -1464,7 +1464,6 @@ AC_CHECK_SIZEOF(size_t)
 $SLEEPCMD
 AC_CHECK_SIZEOF(unsigned long long)
 
-
 if test "$ac_cv_sizeof_size_t" -lt "8" ; then
    if test "x${enable_cdf5}" = xyes ; then
       dnl unable to support CDF5, but --enable-cdf5 is explicitly set
@@ -1519,10 +1518,14 @@ AC_CHECK_SIZEOF(ssize_t)
 $SLEEPCMD
 AC_CHECK_SIZEOF([void*])
 
-if test "x$enable_hdf5" = xyes || test "x$enable_dap" = xyes ; then
-   AC_SEARCH_LIBS([deflate], [zlibwapi zlibstat zlib zlib1 z], [], [
-     AC_MSG_ERROR([Can't find or link to the z library. Turn off netCDF-4 and \
-     DAP clients with --disable-hdf5 --disable-dap, or see config.log for errors.])])
+# Check for deflate library
+AC_SEARCH_LIBS([deflate], [zlibwapi zlibstat zlib zlib1 z], [have_deflate=yes], [have_deflate=no])
+AC_MSG_CHECKING([whether deflate library is available])
+AC_MSG_RESULT([${have_deflate}])
+
+if test "x$have_deflate" = xno ; then
+  AC_MSG_ERROR([Can't find or link to the z library. Turn off netCDF-4 and \
+                DAP and NCZarr clients with --disable-hdf5 --disable-dap --disable-nczarr, or see config.log for errors.])
 fi
 
 # We need the math library
@@ -1784,11 +1787,6 @@ if test "x$enable_erange_fill" = xyes ; then
 fi
 AC_SUBST(M4FLAGS)
 
-# Check for downloading/building fortran via postinstall script.
-if test "x$enable_remote_fortran_bootstrap" = xyes; then
-   AC_DEFINE([BUILD_FORTRAN], 1, [If true, will attempt to download and build netcdf-fortran.])
-fi
-
 # No logging for netcdf-3.
 if test "x$enable_netcdf_4" = xno; then
    enable_logging=no
@@ -1869,7 +1867,6 @@ AM_CONDITIONAL(USE_HDF5, [test x$enable_hdf5 = xyes])
 AM_CONDITIONAL(USE_HDF4, [test x$enable_hdf4 = xyes])
 AM_CONDITIONAL(USE_HDF4_FILE_TESTS, [test x$enable_hdf4_file_tests = xyes])
 AM_CONDITIONAL(USE_RENAMEV3, [test x$enable_netcdf_4 = xyes -o x$enable_dap = xyes])
-AM_CONDITIONAL(BUILD_FORTRAN, [test x$enable_remote_fortran_bootstrap = xyes])
 AM_CONDITIONAL(USE_PNETCDF, [test x$enable_pnetcdf = xyes])
 AM_CONDITIONAL(USE_DISPATCH, [test x$enable_dispatch = xyes])
 AM_CONDITIONAL(BUILD_MMAP, [test x$enable_mmap = xyes])
@@ -1887,7 +1884,7 @@ AM_CONDITIONAL(ENABLE_NCZARR, [test "x$enable_nczarr" = xyes])
 AM_CONDITIONAL(ENABLE_S3_TESTPUB, [test "x$with_s3_testing" != xno]) # all => public
 AM_CONDITIONAL(ENABLE_S3_TESTALL, [test "x$with_s3_testing" = xyes])
 AM_CONDITIONAL(ENABLE_NCZARR_ZIP, [test "x$enable_nczarr_zip" = xyes])
-AM_CONDITIONAL(HAS_MULTIFILTERS, [test "x$has_multifilters" = xyes])
+AM_CONDITIONAL(HAVE_DEFLATE, [test "x$have_deflate" = xyes])
 AM_CONDITIONAL(HAVE_SZ, [test "x$have_sz" = xyes])
 AM_CONDITIONAL(HAVE_H5Z_SZIP, [test "x$enable_hdf5_szip" = xyes])
 AM_CONDITIONAL(HAVE_BLOSC, [test "x$have_blosc" = xyes])
@@ -1997,15 +1994,16 @@ AC_SUBST(HAS_HDF5_ROS3,[$has_hdf5_ros3])
 AC_SUBST(HAS_NCZARR,[$enable_nczarr])
 AC_SUBST(DO_S3_TESTING,[$with_s3_testing])
 AC_SUBST(HAS_NCZARR_ZIP,[$enable_nczarr_zip])
-AC_SUBST(HAS_MULTIFILTERS,[$has_multifilters])
 AC_SUBST(DO_NCZARR_ZIP_TESTS,[$enable_nczarr_zip])
 AC_SUBST(HAS_QUANTIZE,[$enable_quantize])
 AC_SUBST(HAS_LOGGING,[$enable_logging])
 AC_SUBST(DO_FILTER_TESTS,[$enable_filter_testing])
+AC_SUBST(HAS_DEFLATE,[$have_deflate])
 AC_SUBST(HAS_SZLIB,[$have_sz])
 AC_SUBST(HAS_SZLIB_WRITE, [$have_sz])
 AC_SUBST(HAS_ZSTD,[$have_zstd])
 AC_SUBST(DO_LARGE_TESTS,[$enable_large_file_tests])
+AC_SUBST(DO_REMOTE_FUNCTIONALITY,[$enable_remote_functionality])
 AC_SUBST(IS_THREADSAFE,[$enable_threadsafe])
 
 if test "x$enable_s3_aws" = xyes ; then
@@ -2019,8 +2017,10 @@ AC_SUBST(WHICH_S3_SDK,[none])
 fi
 
 # Always available
-std_filters="deflate bz2"
-
+std_filters="bz2"
+if test "x$have_deflate" = xyes ; then
+std_filters="${std_filters} deflate"
+fi
 if test "x$have_sz" = xyes ; then
 std_filters="${std_filters} szip"
 fi
@@ -2139,7 +2139,6 @@ AX_SET_META([NC_HAS_S3_AWS],[$enable_s3_aws],[yes])
 AX_SET_META([NC_HAS_S3_INTERNAL],[$enable_s3_internal],[yes])
 AX_SET_META([NC_HAS_HDF5_ROS3],[$has_hdf5_ros3],[yes])
 AX_SET_META([NC_HAS_NCZARR],[$enable_nczarr],[yes])
-AX_SET_META([NC_HAS_MULTIFILTERS],[$has_multifilters],[yes])
 AX_SET_META([NC_HAS_LOGGING],[$enable_logging],[yes])
 AX_SET_META([NC_HAS_QUANTIZE],[$enable_quantize],[yes])
 AX_SET_META([NC_HAS_SZIP],[$enable_hdf5_szip],[yes])
@@ -2165,6 +2164,8 @@ AC_SUBST([ISCMAKE], [])
 
 # Provide  conditional to temporarily suppress tests and such
 AM_CONDITIONAL([AX_IGNORE], [test xno = xyes])
+# Provide  conditional to identify tests that must be run manually
+AM_CONDITIONAL([AX_MANUAL], [test xno = xyes])
 
 AC_MSG_NOTICE([generating header files and makefiles])
 AC_CONFIG_FILES(test_common.sh:test_common.in)
@@ -2192,7 +2193,6 @@ AC_CONFIG_FILES([nc-config], [chmod 755 nc-config])
 AC_CONFIG_FILES([Makefile
                  netcdf.pc
                  libnetcdf.settings
-                 postinstall.sh
                  include/netcdf_meta.h
                  include/netcdf_dispatch.h
                  include/Makefile

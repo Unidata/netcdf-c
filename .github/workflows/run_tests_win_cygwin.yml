@@ -49,8 +49,7 @@ jobs:
           --disable-static --enable-dap --disable-dap-remote-tests
           --enable-plugins ${{ matrix.plugin_dir_option }}
           --disable-nczarr --disable-nczarr-filters
-          --disable-nczarr-s3 --disable-nczarr-s3-tests
-          --enable-threadsafe
+          --disable-s3 --with-s3-testing=no --enable-threadsafe
 
       - name: Look at config.log if error
         if: ${{ failure() }}

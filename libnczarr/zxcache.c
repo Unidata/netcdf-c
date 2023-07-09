@@ -207,8 +207,7 @@ free_cache_entry(NCZChunkCache* cache, NCZCacheEntry* entry)
     if(entry) {
         int tid = cache->var->type_info->hdr.id;
 	if(tid == NC_STRING && !entry->isfixedstring) {
-            int ncid = cache->var->container->nc4_info->controller->ext_ncid;
-            nc_reclaim_data(ncid,tid,entry->data,cache->chunkcount);
+            NC_reclaim_data(cache->var->container->nc4_info->controller,tid,entry->data,cache->chunkcount);
 	}
 	nullfree(entry->data);
 	nullfree(entry->key.varkey);
@@ -508,10 +507,9 @@ NCZ_reclaim_fill_chunk(NCZChunkCache* zcache)
     int stat = NC_NOERR;
     if(zcache && zcache->fillchunk) {
 	NC_VAR_INFO_T* var = zcache->var;
-	int ncid = var->container->nc4_info->controller->ext_ncid;
 	int tid = var->type_info->hdr.id;
 	size_t chunkcount = zcache->chunkcount;
-        stat = nc_reclaim_data_all(ncid,tid,zcache->fillchunk,chunkcount);
+        stat = NC_reclaim_data_all(var->container->nc4_info->controller,tid,zcache->fillchunk,chunkcount);
 	zcache->fillchunk = NULL;
     }
     return stat;
@@ -610,7 +608,6 @@ put_chunk(NCZChunkCache* cache, NCZCacheEntry* entry)
     char* path = NULL;
     nc_type tid = NC_NAT;
     void* strchunk = NULL;
-    int ncid = 0;
 
     ZTRACE(5,"cache.var=%s entry.key=%s",cache->var->hdr.name,entry->key);
     LOG((3, "%s: var: %p", __func__, cache->var));
@@ -620,7 +617,6 @@ put_chunk(NCZChunkCache* cache, NCZCacheEntry* entry)
     map = zfile->map;
 
     /* Collect some info */
-    ncid = file->controller->ext_ncid;
     tid = cache->var->type_info->hdr.id;
 
     if(tid == NC_STRING && !entry->isfixedstring) {
@@ -631,7 +627,7 @@ put_chunk(NCZChunkCache* cache, NCZCacheEntry* entry)
         /* copy char* to char[] format */
         if((stat = NCZ_char2fixed((const char**)entry->data,strchunk,cache->chunkcount,maxstrlen))) goto done;
         /* Reclaim the old chunk */
-        if((stat = nc_reclaim_data_all(ncid,tid,entry->data,cache->chunkcount))) goto done;
+        if((stat = NC_reclaim_data_all(file->controller,tid,entry->data,cache->chunkcount))) goto done;
         entry->data = NULL;
         entry->data = strchunk; strchunk = NULL;
         entry->size = cache->chunkcount * maxstrlen;
