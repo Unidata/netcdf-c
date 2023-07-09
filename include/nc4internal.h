@@ -239,6 +239,7 @@ typedef struct NC_TYPE_INFO
     nc_bool_t committed;         /**< True when datatype is committed in the file */
     nc_type nc_type_class;       /**< NC_VLEN, NC_COMPOUND, NC_OPAQUE, NC_ENUM, NC_INT, NC_FLOAT, or NC_STRING. */
     void *format_type_info;      /**< HDF5-specific type info. */
+    int varsized; 	         /**< <! 1 if this type is (recursively) variable sized; 0 if fixed size */
 
     /** Information for each type or class */
     union {
@@ -248,7 +249,6 @@ typedef struct NC_TYPE_INFO
         } e;                        /**< Enum */
         struct Fields {
             NClist* field;        /**< <! NClist<NC_FIELD_INFO_T*> */
-	    int varsized;         /**< <! 1 if this compound is variable sized; 0 if fixed size */
         } c;                      /**< Compound */
         struct {
             nc_type base_nc_typeid; /**< Typeid of the base type. */
@@ -446,8 +446,12 @@ extern int nc4_get_att_ptrs(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *grp, NC_VAR_INFO_
                      const char *name, nc_type *xtype, nc_type mem_type,
                      size_t *lenp, int *attnum, void *data);
 
-/* Get variable/fixed size flag for type */
+/* Get variable/fixed size flag for type (ncid API level)*/
 extern int NC4_inq_type_fixed_size(int ncid, nc_type xtype, int* isfixedsizep);
+/* Manage the fixed/var sized'ness of a type */
+extern int NC4_recheck_varsize(NC_TYPE_INFO_T* parenttype, nc_type addedtype);
+extern int NC4_set_varsize(NC_TYPE_INFO_T* parenttype);
+extern int NC4_var_varsized(NC_VAR_INFO_T* var);
 
 /* Close the file. */
 extern int nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio);

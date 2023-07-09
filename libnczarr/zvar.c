@@ -2127,7 +2127,7 @@ NCZ_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 	for (i = 0; i < fill_len; i++)
 	{
 	    /* Copy one instance of the fill_value */
-	    if((retval = nc_copy_data(ncid,var->type_info->hdr.id,var->fill_value,1,filldata)))
+	    if((retval = NC_copy_data(h5->controller,var->type_info->hdr.id,var->fill_value,1,filldata)))
 	        BAIL(retval);
 	    filldata = (char *)filldata + file_type_size;
 	}

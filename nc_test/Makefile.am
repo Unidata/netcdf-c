@@ -134,7 +134,7 @@ ref_tst_http_nc4c.cdl CMakeLists.txt run_pnetcdf_tests.sh.in \
 tst_misc.c tst_norm.c ref_tst_http_nc4e.cdl ref_tst_http_nc4f.cdl      \
 run_threads.sh
 
-EXTRA_DIST += bad_cdf5_begin.nc run_cdf5.sh nc_enddef.cdl tests.h.in
+EXTRA_DIST += bad_cdf5_begin.nc run_cdf5.sh nc_enddef.cdl
 
 # These files are created by the tests.
 CLEANFILES = nc_test_*.nc tst_*.nc t_nc.nc large_files.nc		\

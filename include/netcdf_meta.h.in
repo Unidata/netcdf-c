@@ -60,8 +60,8 @@
 #define NC_RELAX_COORD_BOUND 1 /*!< Always allow 0 counts in parallel I/O. */
 #define NC_DISPATCH_VERSION  @NC_DISPATCH_VERSION@ /*!< Dispatch table version. */
 #define NC_HAS_PAR_FILTERS   @NC_HAS_PAR_FILTERS@ /* Parallel I/O with filter support. */
-#define NC_HAS_MULTIFILTERS  @NC_HAS_MULTIFILTERS@ /*!< Nczarr support. */
 #define NC_HAS_LOGGING       @NC_HAS_LOGGING@ /*!< Logging support. */
+#define NC_HAS_MULTIFILTERS  @NC_HAS_MULTIFILTERS@ /*!< Nczarr support. */
 #define NC_HAS_QUANTIZE      @NC_HAS_QUANTIZE@ /*!< Quantization support. */
 #define NC_HAS_ZSTD          @NC_HAS_ZSTD@ /*!< Zstd support. */
 #define NC_HAS_BENCHMARKS    @NC_HAS_BENCHMARKS@ /*!< Benchmarks. */

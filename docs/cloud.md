@@ -258,7 +258,7 @@ This is an experimental SDK provided internally in the netcdf-c library.
 
 * It is written in C
 * It provides the minimum functionality necessary to read/write/search an Amazon S3 bucket.
-* It was constructed by heavily modifying the HDF5 *H5FDros3* Virtual File Driver and combining it with crypto code wrappers provided by libcurl. The resulting file was then modified to fit into the netcdf coding style.
+* It was constructed by heavily modifying the HDF5 *H5Fs3commons.c* file and combining it with crypto code wrappers provided by libcurl. The resulting file was then modified to fit into the netcdf coding style.
 * The resulting code is rather ugly, but appears to work under at least Linux and under Windows (using Visual C++).
 
 ### Dependencies

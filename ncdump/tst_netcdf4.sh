@@ -5,12 +5,13 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
+
+NCDUMPDIR="testdir_ncdump_netcdf4"
 . $srcdir/test_ncdump.sh
 
-isolate "testdir_ncdump_netcdf4"
+# Move into test directory
+cd $NCDUMPPATH
 
-# Move into isolation directory
-cd $ISOPATH
 
 set -e
 

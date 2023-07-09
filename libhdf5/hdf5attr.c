@@ -316,7 +316,7 @@ NC4_HDF5_del_att(int ncid, int varid, const char *name)
 
     /* Reclaim the content of the attribute */
     if(att->data) 
-	if((retval = nc_reclaim_data_all(ncid,att->nc_typeid,att->data,att->len))) return retval;
+	if((retval = NC_reclaim_data_all(h5->controller,att->nc_typeid,att->data,att->len))) return retval;
     att->data = NULL;
     att->len = 0;
 
@@ -618,7 +618,7 @@ nc4_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
 	    } else { /* no conversion */
 		/* Still need a copy of the input data */
 		copy = NULL;
-	        if((retval = nc_copy_data_all(h5->controller->ext_ncid, mem_type, data, 1, &copy)))
+	        if((retval = NC_copy_data_all(h5->controller, mem_type, data, 1, &copy)))
 		    BAIL(retval);
 	    }
 	    var->fill_value = copy;
@@ -652,7 +652,7 @@ nc4_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
 					       NC_NOQUANTIZE, 0)))
                     BAIL(retval);
 	    } else if(mem_type == file_type) { /* General case: no conversion */
-	        if((retval = nc_copy_data(h5->controller->ext_ncid,file_type,data,len,copy)))
+	        if((retval = NC_copy_data(h5->controller,file_type,data,len,copy)))
 		    BAIL(retval);
 	    } else
 	    	BAIL(NC_EURL);
@@ -670,30 +670,30 @@ nc4_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
     /* Reclaim saved data */
     if(attsave.data != NULL) {
         assert(attsave.len > 0);
-        (void)nc_reclaim_data_all(h5->controller->ext_ncid,attsave.type,attsave.data,attsave.len);
+        (void)NC_reclaim_data_all(h5->controller,attsave.type,attsave.data,attsave.len);
 	attsave.len = 0; attsave.data = NULL;
     }
     if(fillsave.data != NULL) {
         assert(fillsave.len > 0);
-        (void)nc_reclaim_data_all(h5->controller->ext_ncid,fillsave.type,fillsave.data,fillsave.len);
+        (void)NC_reclaim_data_all(h5->controller,fillsave.type,fillsave.data,fillsave.len);
 	fillsave.len = 0; fillsave.data = NULL;
     }
 
 exit:
     if(copy)
-        (void)nc_reclaim_data_all(h5->controller->ext_ncid,file_type,copy,len);
+        (void)NC_reclaim_data_all(h5->controller,file_type,copy,len);
     if(retval) {
 	/* Rollback */
         if(attsave.data != NULL) {
             assert(attsave.len > 0);
 	    if(att->data)
-                (void)nc_reclaim_data_all(h5->controller->ext_ncid,attsave.type,att->data,att->len);
+                (void)NC_reclaim_data_all(h5->controller,attsave.type,att->data,att->len);
 	    att->len = attsave.len; att->data = attsave.data;
         }
         if(fillsave.data != NULL) {
             assert(fillsave.len > 0);
 	    if(att->data)
-                (void)nc_reclaim_data_all(h5->controller->ext_ncid,fillsave.type,var->fill_value,1);
+                (void)NC_reclaim_data_all(h5->controller,fillsave.type,var->fill_value,1);
 	    var->fill_value = fillsave.data;
         }
     }    

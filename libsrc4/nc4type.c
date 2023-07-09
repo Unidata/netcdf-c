@@ -14,8 +14,10 @@
 #include "nc4internal.h"
 #include "nc4dispatch.h"
 
+#if 0
 #ifdef ENABLE_DAP4
-EXTERNL int NCD4_get_substrate(int ncid);
+EXTERNL NC* NCD4_get_substrate_nc(int ncid);
+#endif
 #endif
 
 /* The sizes of types may vary from platform to platform, but within
@@ -729,38 +731,89 @@ NC4_inq_type_fixed_size(int ncid, nc_type xtype, int* fixedsizep)
 {
     int stat = NC_NOERR;   
     int f = 0;
-    int xclass;
+    NC_FILE_INFO_T* h5 = NULL;
+    NC_TYPE_INFO_T* typ = NULL;
 
     if(xtype < NC_STRING) {f = 1; goto done;}
     if(xtype == NC_STRING) {f = 0; goto done;}
 
 #ifdef USE_NETCDF4
     /* Must be user type */
-    if((stat = nc_inq_user_type(ncid,xtype,NULL,NULL,NULL,NULL,&xclass))) goto done;
-    switch (xclass) {
-    case NC_ENUM: case NC_OPAQUE: f = 1; break;
-    case NC_VLEN: f = 0; break;
-    case NC_COMPOUND: {
-	NC_FILE_INFO_T* h5 = NULL;
-	NC_TYPE_INFO_T* typ = NULL;
-#ifdef ENABLE_DAP4
-        NC* nc = NULL;
-	int xformat;
-        if ((stat = NC_check_id(ncid, &nc))) goto done;
-        xformat = nc->dispatch->model;
-	if(xformat == NC_FORMATX_DAP4) {
-	    ncid = NCD4_get_substrate(ncid);
-	} /* Fall thru */
-#endif
-        if ((stat = nc4_find_grp_h5(ncid, NULL, &h5)))
-	    goto done;
-        if((stat = nc4_find_type(h5,xtype,&typ))) goto done;
-	f = !typ->u.c.varsized;
-	} break;
-    default: stat = NC_EBADTYPE; goto done;
-    }    
+    if ((stat = nc4_find_grp_h5(ncid, NULL, &h5)))
+        goto done;
+    if((stat = nc4_find_type(h5,xtype,&typ))) goto done;
+    f = !typ->varsized;
 #endif
 done:
     if(fixedsizep) *fixedsizep = f;
     return stat;
 }
+
+
+/**
+For types with one or more subtypes (e.g. basetype or
+fieldtype), determine the varsizedness of the type based on the
+basetype.  The idea is to inform the code of the fact that
+parenttype has addedtype "inserted" into it.
+@param parenttype
+@param subtype
+*/
+
+int
+NC4_recheck_varsize(NC_TYPE_INFO_T* parenttype, nc_type subtype)
+{
+    int stat = NC_NOERR;
+    NC_FILE_INFO_T* file = NULL;
+    NC_TYPE_INFO_T* utype = NULL;
+    if(subtype < NC_STRING) goto done; /* will not change the "variable-sizedness" of parenttype */
+    if(subtype == NC_STRING) {parenttype->varsized = 1; goto done;}
+    /* Get the inferred user-type */
+    file = parenttype->container->nc4_info;
+    if((stat = nc4_find_type(file,subtype,&utype))) goto done;
+    switch (utype->nc_type_class) {
+    case NC_OPAQUE: case NC_ENUM: break; /* no change */
+    case NC_VLEN: parenttype->varsized = 1; break;
+    case NC_COMPOUND: if(utype->varsized) parenttype->varsized = 1; break;
+    }
+    
+done:
+    return stat;
+}
+
+/**
+When creating a type, mark it as variable-sized if known for sure.
+@param typ
+*/
+
+int
+NC4_set_varsize(NC_TYPE_INFO_T* typ)
+{
+    int stat = NC_NOERR;
+    if(typ->hdr.id < NC_STRING) goto done; /* will not change the "variable-sizedness" of typ */
+    if(typ->hdr.id == NC_STRING) {typ->varsized = 1; goto done;}
+    switch (typ->nc_type_class) {
+    case NC_OPAQUE: case NC_ENUM: break; /* no change */
+    case NC_VLEN: typ->varsized = 1; break;
+    case NC_COMPOUND: typ->varsized = 0; break; /* until proven otherwise */
+    }
+done:
+    return stat;
+}
+
+/**
+ * Test if a variable's type is fixed sized or not.
+ * @param var - to test
+ * @return 0 if fixed size, 1 otherwise.
+ */
+int
+NC4_var_varsized(NC_VAR_INFO_T* var)
+{
+    NC_TYPE_INFO_T* vtype = NULL;
+    
+    /* Check the variable type */
+    vtype = var->type_info;
+    if(vtype->hdr.id < NC_STRING) return 0;
+    if(vtype->hdr.id == NC_STRING) return 1;
+    return vtype->varsized;
+}
+

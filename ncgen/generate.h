@@ -55,7 +55,7 @@ extern int generator_reset(Generator*,void*);
 typedef int (*Writer)(Generator*,struct Symbol*,Bytebuffer*,int,const size_t*,const size_t*);
 
 extern void generate_attrdata(struct Symbol*, Generator*, Writer writer, Bytebuffer*);
-extern void generate_vardata(struct Symbol*, Generator*, Writer writer,Bytebuffer*);
+extern void generate_vardata(struct Symbol*, Generator*, Writer writer, Bytebuffer*);
 extern void generate_basetype(struct Symbol*,NCConstant*,Bytebuffer*,Datalist*,Generator*);
 
 #endif /*DATA_H*/

@@ -48,15 +48,20 @@ IF(USE_HDF5 AND ENABLE_FILTER_TESTING)
   build_bin_test(tst_multifilter)
   build_bin_test(test_filter_order)
   build_bin_test(test_filter_repeat)
-  build_bin_test(tst_filter_avail)
-  build_bin_test(test_filter_vlen)
+  build_bin_test(tst_filter_vlen)
   ADD_SH_TEST(nc_test4 tst_filter)
   ADD_SH_TEST(nc_test4 tst_specific_filters)
   ADD_SH_TEST(nc_test4 tst_bloscfail)
+  ADD_SH_TEST(nc_test4 tst_filter_vlen)
   IF(FALSE)
     # This test is too dangerous to run in a parallel make environment.
     # It causes race conditions. So suppress and only test by hand.
     ADD_SH_TEST(nc_test4 tst_unknown)
+    # The tst_filterinstall test can only be run after an install
+    # occurred with --with-plugin-dir enabled. So there is no point
+    #in running it via make check. It is kept here so it can be
+    # manually invoked if desired
+    ADD_SH_TEST(nc_test4 tst_filterinstall)
   ENDIF(FALSE)
 ENDIF(USE_HDF5 AND ENABLE_FILTER_TESTING)
 

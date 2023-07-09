@@ -183,6 +183,7 @@ get_type_info2(NC_FILE_INFO_T *h5, hid_t datasetid, NC_TYPE_INFO_T **type_info)
                 /* Set a class for the type */
                 t = NUM_TYPES - 1;
                 (*type_info)->nc_type_class = NC_STRING;
+		NC4_set_varsize(*type_info);
             }
             else
             {
@@ -1060,6 +1061,7 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
     int f;
     int stat = NC_NOERR;
     NC_HDF5_VAR_INFO_T *hdf5_var;
+    int varsized = 0;
 
     assert(var);
 
@@ -1069,17 +1071,26 @@ static int get_filter_info(hid_t propid, NC_VAR_INFO_T *var)
     if ((num_filters = H5Pget_nfilters(propid)) < 0)
 	{stat = NC_EHDFERR; goto done;}
 
+    /* If the type of the variable is variable length, and
+       it has filters defined, suppress the variable. */
+    varsized = NC4_var_varsized(var);
+
     for (f = 0; f < num_filters; f++)
     {
-	int flags = 0;
 	htri_t avail = -1;
+        unsigned flags = 0;
 	cd_nelems = 0;
-        if ((filter = H5Pget_filter2(propid, f, NULL, &cd_nelems, NULL, 0, NULL, NULL)) < 0)
+        if ((filter = H5Pget_filter2(propid, f, &flags, &cd_nelems, NULL, 0, NULL, NULL)) < 0)
  	    {stat = NC_ENOFILTER; goto done;} /* Assume this means an unknown filter */
 	if((avail = H5Zfilter_avail(filter)) < 0)
  	    {stat = NC_EHDFERR; goto done;} /* Something in HDF5 went wrong */
 	if(!avail) {
 	    flags |= NC_HDF5_FILTER_MISSING;
+	    /* mark variable as unreadable */
+	    hdf5_var->flags |= NC_HDF5_VAR_FILTER_MISSING;
+	}
+	/* If variable type is varsized and filter is mandatory then this variable is unreadable */
+	if(varsized && (flags & H5Z_FLAG_MANDATORY) != 0) {
 	    /* mark variable as unreadable */
 	    hdf5_var->flags |= NC_HDF5_VAR_FILTER_MISSING;
 	}
@@ -2014,6 +2025,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
     {
     case H5T_STRING:
         type->nc_type_class = NC_STRING;
+        if((retval = NC4_set_varsize(type))) return retval;
         break;
 
     case H5T_COMPOUND:
@@ -2026,6 +2038,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
 #endif
 
         type->nc_type_class = NC_COMPOUND;
+        if((retval = NC4_set_varsize(type))) return retval;
 
         if ((nmembers = H5Tget_nmembers(hdf_typeid)) < 0)
             return NC_EHDFERR;
@@ -2045,7 +2058,6 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
              * compound type. */
             if ((member_hdf_typeid = H5Tget_member_type(native_typeid, m)) < 0)
                 return NC_EHDFERR;
-
             if ((member_native_typeid = H5Tget_native_type(member_hdf_typeid,
                                                            H5T_DIR_DEFAULT)) < 0)
                 return NC_EHDFERR;
@@ -2107,11 +2119,8 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
                     return retval;
             }
 
-	    {   /* See if this changes from fixed size to variable size */
-		int fixedsize;
-                if((retval = NC4_inq_type_fixed_size(grp->nc4_info->controller->ext_ncid,member_xtype,&fixedsize))) return retval;
-		if(!fixedsize) type->u.c.varsized = 1;
-	    }
+	    /* See if this changes from fixed size to variable size */
+	    if((retval=NC4_recheck_varsize(type,member_xtype))) return retval;
 
             hdf5free(member_name);
         }
@@ -2156,11 +2165,13 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
             /* Remember the base type for this vlen. */
             type->u.v.base_nc_typeid = base_nc_type;
         }
+        if((retval = NC4_set_varsize(type))) return retval;
     }
     break;
 
     case H5T_OPAQUE:
         type->nc_type_class = NC_OPAQUE;
+        if((retval = NC4_set_varsize(type))) return retval;
         break;
 
     case H5T_ENUM:
@@ -2175,7 +2186,8 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
 #endif
 
         type->nc_type_class = NC_ENUM;
-
+        if((retval = NC4_set_varsize(type))) return retval;
+	
         /* Find the base type of this enum (i.e. what is this a
          * enum of?) */
         if (!(base_hdf_typeid = H5Tget_super(hdf_typeid)))
@@ -2236,6 +2248,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
         LOG((0, "unknown class"));
         return NC_EBADCLASS;
     }
+
     return retval;
 }
 
