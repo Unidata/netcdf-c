@@ -13,6 +13,7 @@
 #include "hdf5internal.h"
 #include "hdf5err.h"
 #include "hdf5debug.h"
+#include "nc4internal.h"
 #include "ncrc.h"
 #include "ncauth.h"
 #include "ncmodel.h"
@@ -63,6 +64,7 @@ extern int NC4_open_image_file(NC_FILE_INFO_T* h5);
 
 /* Defined later in this file. */
 static int rec_read_metadata(NC_GRP_INFO_T *grp);
+static int read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name);
 
 /**
  * @internal Struct to track HDF5 object info, for
@@ -103,7 +105,7 @@ typedef struct {
  * struct, either an existing one (for user-defined types) or a newly
  * created one.
  *
- * @param h5 Pointer to HDF5 file info struct.
+ * @param h5_grp Pointer to group info struct.
  * @param datasetid HDF5 dataset ID.
  * @param type_info Pointer to pointer that gets type info struct.
  *
@@ -114,7 +116,7 @@ typedef struct {
  * @author Ed Hartnett
  */
 static int
-get_type_info2(NC_FILE_INFO_T *h5, hid_t datasetid, NC_TYPE_INFO_T **type_info)
+get_type_info2(NC_GRP_INFO_T *h5_grp, hid_t datasetid, NC_TYPE_INFO_T **type_info)
 {
     NC_HDF5_TYPE_INFO_T *hdf5_type;
     htri_t is_str, equal = 0;
@@ -123,7 +125,7 @@ get_type_info2(NC_FILE_INFO_T *h5, hid_t datasetid, NC_TYPE_INFO_T **type_info)
     H5T_order_t order;
     int t;
 
-    assert(h5 && type_info);
+    assert(h5_grp && type_info);
 
     /* Because these N5T_NATIVE_* constants are actually function calls
      * (!) in H5Tpublic.h, I can't initialize this array in the usual
@@ -232,10 +234,23 @@ get_type_info2(NC_FILE_INFO_T *h5, hid_t datasetid, NC_TYPE_INFO_T **type_info)
     else
     {
         NC_TYPE_INFO_T *type;
+        NC_FILE_INFO_T *h5 = h5_grp->nc4_info;
 
         /* This is a user-defined type. */
         if((type = nc4_rec_find_hdf_type(h5, native_typeid)))
             *type_info = type;
+
+        /* If we didn't find the type, then it's probably a transient
+         * type, stored in the dataset itself, so let's read it now */
+        if (type == NULL) {
+          /* If we still can't read the type, ignore it, it probably
+           * means this object is a reference */
+          if (read_type(h5_grp, native_typeid, ""))
+            return NC_EBADTYPID;
+
+          if((type = nc4_rec_find_hdf_type(h5, native_typeid)))
+            *type_info = type;
+        }
 
         /* The type entry in the array of user-defined types already has
          * an open data typeid (and native typeid), so close the ones we
@@ -1589,7 +1604,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
     /* Learn all about the type of this variable. This will fail for
      * HDF5 reference types, and then the var we just created will be
      * deleted, thus ignoring HDF5 reference type objects. */
-    if ((retval = get_type_info2(var->container->nc4_info, hdf5_var->hdf_datasetid,
+    if ((retval = get_type_info2(var->container, hdf5_var->hdf_datasetid,
                                  &var->type_info)))
         BAIL(retval);
 
@@ -1989,6 +2004,14 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
     LOG((4, "%s: type_name %s grp->hdr.name %s", __func__, type_name,
          grp->hdr.name));
 
+    /* What is the class of this type, compound, vlen, etc. */
+    if ((class = H5Tget_class(hdf_typeid)) < 0)
+        return NC_EHDFERR;
+
+    /* Explicitly don't handle reference types */
+    if (class == H5T_REFERENCE)
+        return NC_EBADCLASS;
+
     /* What is the native type for this platform? */
     if ((native_typeid = H5Tget_native_type(hdf_typeid, H5T_DIR_DEFAULT)) < 0)
         return NC_EHDFERR;
@@ -2018,9 +2041,6 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
     if (H5Iinc_ref(hdf5_type->hdf_typeid) < 0)
         return NC_EHDFERR;
 
-    /* What is the class of this type, compound, vlen, etc. */
-    if ((class = H5Tget_class(hdf_typeid)) < 0)
-        return NC_EHDFERR;
     switch (class)
     {
     case H5T_STRING:
