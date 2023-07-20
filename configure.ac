@@ -711,12 +711,29 @@ AM_CONDITIONAL(ENABLE_NCZARR, [test x$enable_nczarr = xyes])
 # Look for Standardized libraries
 ##########
 
-# See if we have libblosc
-AC_CHECK_LIB([blosc],[blosc_init],[have_blosc=yes],[have_blosc=no])
-if test "x$have_blosc" = "xyes" ; then
-   AC_SEARCH_LIBS([blosc_init],[blosc blosc.dll cygblosc.dll], [], [])
-   AC_DEFINE([HAVE_BLOSC], [1], [if true, blosc library is available])
+##
+# blosc checks
+##
+
+# See if we want to enable blosc, and if so, search for the library. 
+AC_MSG_CHECKING([whether to search for and enable blosc filter support])
+AC_ARG_ENABLE([filter-blosc],
+               [AS_HELP_STRING([--disable-filter-blosc],
+                               [disable blosc filter support.])])
+test "x$enable_filter_blosc" = xno || enable_filter_blosc=yes
+AC_MSG_RESULT($enable_filter_blosc)
+
+if test "x$enable_filter_blosc" = "xyes" ; then
+   # See if we have libblosc
+   AC_CHECK_LIB([blosc],[blosc_init],[have_blosc=yes],[have_blosc=no])
+   if test "x$have_blosc" = "xyes" ; then
+      AC_SEARCH_LIBS([blosc_init],[blosc blosc.dll cygblosc.dll], [], [])
+      AC_DEFINE([HAVE_BLOSC], [1], [if true, blosc library is available])
+   fi
 fi
+##
+# End blosc checks
+##
 
 # See if we have libzstd
 AC_CHECK_LIB([zstd],[ZSTD_compress],[have_zstd=yes],[have_zstd=no])
@@ -744,9 +761,8 @@ fi
 # Beging bz2 checks
 ##
 
-# See if we want to enable BZ2, and if so, enable it. 
-# Then see if we have libbz2
-AC_MSG_CHECKING([whether to search for and enable external bz2 support])
+# See if we want to enable BZ2, and if so, search for the library. 
+AC_MSG_CHECKING([whether to search for and enable external bz2 filter support])
 AC_ARG_ENABLE([filter-bz2],
                [AS_HELP_STRING([--disable-filter-bz2],
                                [disable external bz2 filter support. bz2 support defaults to internal implementation if this is disabled or if the external library is not found.])])
