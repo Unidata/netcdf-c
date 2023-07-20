@@ -730,35 +730,57 @@ if test "x$enable_filter_blosc" = "xyes" ; then
       AC_SEARCH_LIBS([blosc_init],[blosc blosc.dll cygblosc.dll], [], [])
       AC_DEFINE([HAVE_BLOSC], [1], [if true, blosc library is available])
    fi
+else
+   have_blosc=no
 fi
 ##
 # End blosc checks
 ##
 
-# See if we have libzstd
-AC_CHECK_LIB([zstd],[ZSTD_compress],[have_zstd=yes],[have_zstd=no])
-if test "x$have_zstd" = "xyes" ; then
-   AC_SEARCH_LIBS([ZSTD_compress],[zstd zstd.dll cygzstd.dll], [], [])
-   AC_DEFINE([HAVE_ZSTD], [1], [if true, zstd library is available])
-
-fi
-AC_MSG_CHECKING([whether libzstd library is available])
-AC_MSG_RESULT([${have_zstd}])
-
 ##
-# Ensure that the zstd.h dev files are also available.
+# libzstd checks
 ##
-if test "x$have_zstd" = "xyes" ; then
-   AC_CHECK_HEADERS([zstd.h], [], [nc_zstd_h_missing=yes])
-   if test "x$nc_zstd_h_missing" = xyes; then
-         AC_MSG_WARN([zstd library detected, but zstd.h development file not found. Ensure that the zstd development files are installed in order to build zstd support.])
-         AC_DEFINE([HAVE_ZSTD], [0], [if true, zstd library is available])
-         have_zstd=no
+
+# See if we want to enable libzstd, and if so, search for the library. 
+AC_MSG_CHECKING([whether to search for and enable libzstd filter support])
+AC_ARG_ENABLE([filter-zstd],
+               [AS_HELP_STRING([--disable-filter-zstd],
+                               [disable zstd filter support.])])
+test "x$enable_filter_zstd" = xno || enable_filter_zstd=yes
+AC_MSG_RESULT($enable_filter_zstd)
+
+if test "x$enable_filter_zstd" = "xyes" ; then
+   # See if we have libzstd
+   AC_CHECK_LIB([zstd],[ZSTD_compress],[have_zstd=yes],[have_zstd=no])
+   if test "x$have_zstd" = "xyes" ; then
+      AC_SEARCH_LIBS([ZSTD_compress],[zstd zstd.dll cygzstd.dll], [], [])
+      AC_DEFINE([HAVE_ZSTD], [1], [if true, zstd library is available])
+
    fi
+   AC_MSG_CHECKING([whether libzstd library is available])
+   AC_MSG_RESULT([${have_zstd}])
+
+   ##
+   # Ensure that the zstd.h dev files are also available.
+   ##
+   if test "x$have_zstd" = "xyes" ; then
+      AC_CHECK_HEADERS([zstd.h], [], [nc_zstd_h_missing=yes])
+      if test "x$nc_zstd_h_missing" = xyes; then
+            AC_MSG_WARN([zstd library detected, but zstd.h development file not found. Ensure that the zstd development files are installed in order to build zstd support.])
+            AC_DEFINE([HAVE_ZSTD], [0], [if true, zstd library is available])
+            have_zstd=no
+      fi
+   fi
+
+else
+   have_zstd=no
 fi
+##
+# End zstd checks
+##
 
 ##
-# Beging bz2 checks
+# Begin bz2 checks
 ##
 
 # See if we want to enable BZ2, and if so, search for the library. 
