@@ -1110,7 +1110,7 @@ macro(set_std_filter filter)
 # Upper case the filter name
 string(TOUPPER "${filter}" upfilter)
 string(TOLOWER "${filter}" downfilter)
-if(ENABLE_${upfilter})
+if(ENABLE_FILTER_${upfilter})
 # Define a test flag for filter
   IF(${filter}_FOUND)
     INCLUDE_DIRECTORIES(${${filter}_INCLUDE_DIRS})
@@ -1148,7 +1148,7 @@ ENDIF()
 # Accumulate standard filters
 set(STD_FILTERS "deflate") # Always have deflate*/
 set_std_filter(Szip)
-  SET(HAVE_SZ ${Szip_FOUND})
+SET(HAVE_SZ ${Szip_FOUND})
 set_std_filter(Blosc)
 set_std_filter(Zstd)
 IF(Bz2_FOUND)
