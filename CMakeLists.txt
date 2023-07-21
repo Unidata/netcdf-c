@@ -1128,11 +1128,11 @@ ENDIF()
 endmacro(set_std_filter)
 
 # Locate some compressors
-OPTION(ENABLE_SZIP  "Enable use of Szip compression library if it is available." ON)
+OPTION(ENABLE_FILTER_SZIP  "Enable use of Szip compression library if it is available." ON)
 OPTION(ENABLE_FILTER_BZ2   "Enable use of Bz2 compression library if it is available." ON)
 OPTION(ENABLE_FILTER_BLOSC "Enable use of blosc compression library if it is available." ON)
 OPTION(ENABLE_FILTER_ZSTD  "Enable use of Zstd compression library if it is available." ON)
-IF (ENABLE_SZIP)
+IF (ENABLE_FILTER_SZIP)
   FIND_PACKAGE(Szip)
 ENDIF()
 IF (ENABLE_FILTER_BZ2)
