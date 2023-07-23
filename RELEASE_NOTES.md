@@ -7,6 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.9.3 - TBD
 
+* Fix memory leak WRT unreclaimed HDF5 plist. See [Github #????](https://github.com/Unidata/netcdf-c/pull/????).
 * Suppress filters on variables with non-fixed-size types. See [Github #2716](https://github.com/Unidata/netcdf-c/pull/2716).
 * Provide a single option to disable all network access and testing. See [Github #2708](https://github.com/Unidata/netcdf-c/pull/2708).
 * Fix some problems with earthdata authorization and data access. See [Github #2709](https://github.com/Unidata/netcdf-c/pull/2709).
