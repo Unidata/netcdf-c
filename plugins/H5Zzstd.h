@@ -1,7 +1,9 @@
 #ifndef H5ZSTD_H
 #define H5ZSTD_H
 
+#ifdef HAVE_ZSTD
 #include "zstd.h"
+#endif
 
 #ifdef _MSC_VER
   #ifdef DLL_EXPORT /* define when building the library */
