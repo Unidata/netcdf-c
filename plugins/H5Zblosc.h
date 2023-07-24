@@ -27,7 +27,10 @@ extern "C" {
 #endif
 
 #include "netcdf_filter_build.h"
+
+#ifdef HAVE_BLOSC
 #include "blosc.h"
+#endif
 
 #ifdef _MSC_VER
   #ifdef DLL_EXPORT /* define when building the library */
