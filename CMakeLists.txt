@@ -1148,9 +1148,11 @@ ENDIF()
 # Accumulate standard filters
 set(STD_FILTERS "deflate") # Always have deflate*/
 set_std_filter(Szip)
-  SET(HAVE_SZ ${Szip_FOUND})
+SET(HAVE_SZ ${Szip_FOUND})
 set_std_filter(Blosc)
+IF(Zstd_FOUND)
 set_std_filter(Zstd)
+ENDIF()
 IF(Bz2_FOUND)
   set_std_filter(Bz2)
 ELSE()
