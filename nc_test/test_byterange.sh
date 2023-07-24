@@ -26,9 +26,10 @@ URL4d="s3://unidata-zarr-test-data/byterangefiles/upload4.nc#bytes&aws.profile=u
 fi
 URL4f="https://crudata.uea.ac.uk/cru/data/temperature/HadCRUT.4.6.0.0.median.nc#mode=bytes"
 
+if test "x$FEATURE_S3TESTS" = xyes ; then
 # Do not use unless we know it has some permanence (note the segment 'testing' in the URL);
 URL4x="https://s3.us-west-2.amazonaws.com/coawst-public/testing/HadCRUT.4.6.0.0.median.nc#mode=bytes,&aws.profile=none"
-
+fi
 
 echo ""
 
@@ -86,7 +87,9 @@ ${NCDUMP} -n nc_enddef "$U" >tmp_${TAG}.cdl
 diff -wb tmp_$TAG.cdl ${srcdir}/nc_enddef.cdl 
 }
 
+if test "x$FEATURE_S3TESTS" = xyes ; then
 testsetup https://s3.us-east-1.amazonaws.com/unidata-zarr-test-data 
+fi
 
 echo "*** Testing reading NetCDF-3 file with http"
 
