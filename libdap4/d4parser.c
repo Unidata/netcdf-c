@@ -1357,7 +1357,7 @@ makeAnonDim(NCD4parser* parser, const char* sizestr)
 
     ret = parseLL(sizestr,&size);
     if(ret) return NULL;
-    snprintf(name,NC_MAX_NAME,"/_Anonymous%lld",size);
+    snprintf(name,NC_MAX_NAME,"/_AnonymousDim%lld",size);
     /* See if it exists already */
     dim = lookupFQN(parser,name,NCD4_DIM);
     if(dim == NULL) {/* create it */

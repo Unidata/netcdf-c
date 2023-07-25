@@ -1,8 +1,8 @@
 netcdf test_one_vararray {
 dimensions:
-	_Anonymous2 = 2 ;
+	_AnonymousDim2 = 2 ;
 variables:
-	int t(_Anonymous2) ;
+	int t(_AnonymousDim2) ;
 
 // global attributes:
 		string :_dap4.ce = "/t[0:1]" ;

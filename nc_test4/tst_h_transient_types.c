@@ -76,17 +76,14 @@ main()
 
   printf("*** Checking accessing file through netCDF-4 API...");
   {
-    int ncid, varid, enumid;
+    int i, ncid, varid, enumid;
     complex read_z;
-    int num_types, class;
     int *typeids;
-    nc_type base_nc_type;
     char name[NC_MAX_NAME];
-    size_t size, nfields;
     bool read_b;
+    int num_types;
 
-
-    nc_set_log_level(4);
+    nc_set_log_level(0); /* Report HDF5 errors */
     if (nc_open(FILE_NAME, NC_NOWRITE, &ncid)) ERR;
 
     /* Read known types */
@@ -97,7 +94,15 @@ main()
     typeids = (int*)malloc((size_t)num_types * sizeof(int));
     if (nc_inq_typeids(ncid, NULL, typeids)) ERR;
 
-    if (nc_inq_user_type(ncid, typeids[0], name, &size, &base_nc_type, &nfields, &class)) ERR;
+    /* Verify transient names */
+    for(i=0;i<num_types;i++) {
+        if (nc_inq_user_type(ncid, typeids[i], name, NULL, NULL, NULL, NULL)) ERR;
+	if(strlen(name) == 0) {
+            fprintf(stderr,"Transient type has no name\n");
+	    ERR;
+	}
+	fprintf(stderr,"type: %s\n",name);
+    }
     free(typeids);
 
     /* Verify that the dataset is present */

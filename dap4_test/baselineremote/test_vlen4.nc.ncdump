@@ -8,7 +8,7 @@ types:
     v1_f1_t f1(2) ;
   }; // v1_t
 dimensions:
-	_Anonymous2 = 2 ;
+	_AnonymousDim2 = 2 ;
 variables:
 	v1_t v1 ;
 data:
