@@ -711,51 +711,110 @@ AM_CONDITIONAL(ENABLE_NCZARR, [test x$enable_nczarr = xyes])
 # Look for Standardized libraries
 ##########
 
-# See if we have libblosc
-AC_CHECK_LIB([blosc],[blosc_init],[have_blosc=yes],[have_blosc=no])
-if test "x$have_blosc" = "xyes" ; then
-   AC_SEARCH_LIBS([blosc_init],[blosc blosc.dll cygblosc.dll], [], [])
-   AC_DEFINE([HAVE_BLOSC], [1], [if true, blosc library is available])
-fi
+##
+# blosc checks
+##
 
-# See if we have libzstd
-AC_CHECK_LIB([zstd],[ZSTD_compress],[have_zstd=yes],[have_zstd=no])
-if test "x$have_zstd" = "xyes" ; then
-   AC_SEARCH_LIBS([ZSTD_compress],[zstd zstd.dll cygzstd.dll], [], [])
-   AC_DEFINE([HAVE_ZSTD], [1], [if true, zstd library is available])
+# See if we want to enable blosc, and if so, search for the library. 
+AC_MSG_CHECKING([whether to search for and enable blosc filter support])
+AC_ARG_ENABLE([filter-blosc],
+               [AS_HELP_STRING([--disable-filter-blosc],
+                               [disable blosc filter support.])])
+test "x$enable_filter_blosc" = xno || enable_filter_blosc=yes
+AC_MSG_RESULT($enable_filter_blosc)
 
+if test "x$enable_filter_blosc" = "xyes" ; then
+   # See if we have libblosc
+   AC_CHECK_LIB([blosc],[blosc_init],[have_blosc=yes],[have_blosc=no])
+   if test "x$have_blosc" = "xyes" ; then
+      AC_SEARCH_LIBS([blosc_init],[blosc blosc.dll cygblosc.dll], [], [])
+      AC_DEFINE([HAVE_BLOSC], [1], [if true, blosc library is available])
+   fi
+else
+   have_blosc=no
 fi
-AC_MSG_CHECKING([whether libzstd library is available])
-AC_MSG_RESULT([${have_zstd}])
+##
+# End blosc checks
+##
 
 ##
-# Ensure that the zstd.h dev files are also available.
+# libzstd checks
 ##
-if test "x$have_zstd" = "xyes" ; then
-   AC_CHECK_HEADERS([zstd.h], [], [nc_zstd_h_missing=yes])
-   if test "x$nc_zstd_h_missing" = xyes; then
-         AC_MSG_WARN([zstd library detected, but zstd.h development file not found. Ensure that the zstd development files are installed in order to build zstd support.])
-         AC_DEFINE([HAVE_ZSTD], [0], [if true, zstd library is available])
-         have_zstd=no
+
+# See if we want to enable libzstd, and if so, search for the library. 
+AC_MSG_CHECKING([whether to search for and enable libzstd filter support])
+AC_ARG_ENABLE([filter-zstd],
+               [AS_HELP_STRING([--disable-filter-zstd],
+                               [disable zstd filter support.])])
+test "x$enable_filter_zstd" = xno || enable_filter_zstd=yes
+AC_MSG_RESULT($enable_filter_zstd)
+
+if test "x$enable_filter_zstd" = "xyes" ; then
+   # See if we have libzstd
+   AC_CHECK_LIB([zstd],[ZSTD_compress],[have_zstd=yes],[have_zstd=no])
+   if test "x$have_zstd" = "xyes" ; then
+      AC_SEARCH_LIBS([ZSTD_compress],[zstd zstd.dll cygzstd.dll], [], [])
+      AC_DEFINE([HAVE_ZSTD], [1], [if true, zstd library is available])
+
+   fi
+   AC_MSG_CHECKING([whether libzstd library is available])
+   AC_MSG_RESULT([${have_zstd}])
+
+   ##
+   # Ensure that the zstd.h dev files are also available.
+   ##
+   if test "x$have_zstd" = "xyes" ; then
+      AC_CHECK_HEADERS([zstd.h], [], [nc_zstd_h_missing=yes])
+      if test "x$nc_zstd_h_missing" = xyes; then
+            AC_MSG_WARN([zstd library detected, but zstd.h development file not found. Ensure that the zstd development files are installed in order to build zstd support.])
+            AC_DEFINE([HAVE_ZSTD], [0], [if true, zstd library is available])
+            have_zstd=no
+      fi
+   fi
+
+else
+   have_zstd=no
+fi
+##
+# End zstd checks
+##
+
+##
+# Begin bz2 checks
+##
+
+# See if we want to enable BZ2, and if so, search for the library. 
+AC_MSG_CHECKING([whether to search for and enable external bz2 filter support])
+AC_ARG_ENABLE([filter-bz2],
+               [AS_HELP_STRING([--disable-filter-bz2],
+                               [disable external bz2 filter support. bz2 support defaults to internal implementation if this is disabled or if the external library is not found.])])
+test "x$enable_filter_bz2" = xno || enable_filter_bz2=yes
+AC_MSG_RESULT($enable_filter_bz2)
+
+if test "x$enable_filter_bz2" = "xyes" ; then
+
+   AC_CHECK_LIB([bz2],[BZ2_bzCompress],[have_bz2=yes],[have_bz2=no])
+   if test "x$have_bz2" = "xyes" ; then
+      AC_SEARCH_LIBS([BZ2_bzCompress],[bz2 bz2.dll cygbz2.dll], [], [])
+      AC_DEFINE([HAVE_BZ2], [1], [if true, bz2 library is installed])
+   fi
+   AC_MSG_CHECKING([whether libbz2 library is available])
+   AC_MSG_RESULT([${have_bz2}])
+
+
+
+   if test "x$have_bz2" = "xno" ; then
+   have_local_bz2=yes
+   AC_MSG_NOTICE([Defaulting to internal libbz2])
+   else
+   have_local_bz2=no
    fi
 fi
 
-# See if we have libbz2
-AC_CHECK_LIB([bz2],[BZ2_bzCompress],[have_bz2=yes],[have_bz2=no])
-if test "x$have_bz2" = "xyes" ; then
-     AC_SEARCH_LIBS([BZ2_bzCompress],[bz2 bz2.dll cygbz2.dll], [], [])
-     AC_DEFINE([HAVE_BZ2], [1], [if true, bz2 library is installed])
-fi
-AC_MSG_CHECKING([whether libbz2 library is available])
-AC_MSG_RESULT([${have_bz2}])
-
-if test "x$have_bz2" = "xno" ; then
-  have_local_bz2=yes
-  AC_MSG_NOTICE([Defaulting to internal libbz2])
-else
-  have_local_bz2=no
-fi
 AM_CONDITIONAL(HAVE_LOCAL_BZ2, [test "x$have_local_bz2" = xyes])
+##
+# End bz2 checks
+##
 
 # Note that szip management is tricky.
 # This is because we have three things to consider:
