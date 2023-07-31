@@ -184,7 +184,7 @@ WriteMemoryCallback(void *ptr, size_t size, size_t nmemb, void *data)
     if(realsize == 0)
         nclog(NCLOGWARN,"WriteMemoryCallback: zero sized chunk");
     /* Optimize for reading potentially large dods datasets */
-    if(!ncbytesavail(buf,realsize)) {
+    while(!ncbytesavail(buf,realsize)) {
         /* double the size of the packet */
         ncbytessetalloc(buf,2*ncbytesalloc(buf));
     }

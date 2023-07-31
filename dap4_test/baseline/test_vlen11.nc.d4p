@@ -1,0 +1,26 @@
+<Dataset
+   name="test_vlen11.nc"
+   dapVersion="4.0"
+   dmrVersion="1.0"
+   xmlns="http://xml.opendap.org/ns/DAP/4.0#"
+   xmlns:dap="http://xml.opendap.org/ns/DAP/4.0#">
+  <Types>
+    <Structure name="v_base">
+      <Int32 name="v"/>
+    </Structure>
+    <Vlen name="v_t" type="/v_base"/>
+  </Types>
+  <Variables>
+    <Seq name="v" type="/v_t">
+      <Attribute name="_FillValue" type="Int32">
+        <Value value="0"/>
+      </Attribute>
+    </Sequence>
+  </Variables>
+  <Attribute name="_DAP4_Little_Endian" type="UInt8">
+    <Value value="1"/>
+  </Attribute>
+  <Attribute name="_NCProperties" type="String">
+    <Value value="version=2,netcdf=4.9.1-development,hdf5=1.12.2"/>
+  </Attribute>
+</Dataset>

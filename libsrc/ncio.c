@@ -41,7 +41,7 @@ extern int ffio_open(const char*,int,off_t,size_t,size_t*,void*,ncio**,void** co
     extern int httpio_open(const char*,int,off_t,size_t,size_t*,void*,ncio**,void** const);
 #endif
 
-#ifdef ENABLE_S3_SDK
+#ifdef ENABLE_S3
     extern int s3io_open(const char*,int,off_t,size_t,size_t*,void*,ncio**,void** const);
 #endif
 
@@ -107,7 +107,7 @@ ncio_open(const char *path, int ioflags,
    if(modetest == NC_HTTP) {
         return httpio_open(path,ioflags,igeto,igetsz,sizehintp,parameters,iopp,mempp);
    }
-#  ifdef ENABLE_S3_SDK
+#  ifdef ENABLE_S3
    if(modetest == NC_S3SDK) {
        return s3io_open(path,ioflags,igeto,igetsz,sizehintp,parameters,iopp,mempp);
    }

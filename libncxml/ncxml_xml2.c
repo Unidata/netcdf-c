@@ -51,7 +51,7 @@ const char*
 ncxml_name(ncxml_t xml0)
 {
     xmlNode* xml = (xmlNode*)xml0;    
-    return (xml?xml->name:(const char*)NULL);
+    return (const char*)(xml?xml->name:NULL);
 }
 
 char*

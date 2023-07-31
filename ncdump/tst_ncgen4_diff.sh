@@ -42,7 +42,7 @@ for x in ${TESTSET} ; do
   ${NCDUMP} ${headflag} ${specflag} -n ${x} ${x}_$$.nc | sed 's/e+0/e+/g' > ${x}.dmp
   # compare the expected (silently if XFAIL)
   if test "x$isxfail" = "x1" -a "x$SHOWXFAILS" = "x" ; then
-    if diff -b -bw ${expected}/${x}.dmp ${x}.dmp >/dev/null 2>&1; then ok=1; else ok=0; fi
+    if diff -b -bw ${expected}/${x}.dmp ${x}.dmp &>/dev/null ; then ok=1; else ok=0; fi
   else
     if diff -b -w ${expected}/${x}.dmp ${x}.dmp ; then ok=1; else ok=0; fi
   fi

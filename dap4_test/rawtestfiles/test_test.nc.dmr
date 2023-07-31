@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Dataset
+         name="test_test.nc"
+         dapVersion="4.0"
+         dmrVersion="1.0"
+         xmlns="http://xml.opendap.org/ns/DAP/4.0#"
+         xmlns:dap="http://xml.opendap.org/ns/DAP/4.0#">
+    <Enumeration name="enum_t" basetype="Int8">
+        <EnumConst name="c1" value="1"/>
+        <EnumConst name="c2" value="2"/>
+        <EnumConst name="c3" value="3"/>
+    </Enumeration>
+    <Enum name="v1" enum="/enum_t"/>
+    <Attribute name="_DAP4_Little_Endian" type="UInt8">
+        <Value value="1"/>
+    </Attribute>
+    <Attribute name="_NCProperties" type="String">
+        <Value value="version=2,netcdf=4.9.1-development,hdf5=1.12.2"/>
+    </Attribute>
+</Dataset>

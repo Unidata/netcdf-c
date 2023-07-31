@@ -136,6 +136,49 @@ zclose_gatts(NC_GRP_INFO_T* grp)
 }
 
 /**
+ * @internal Close resources for single var
+ *
+ * @param var var to reclaim
+ *
+ * @return ::NC_NOERR No error.
+ * @author Dennis Heimbigner
+ */
+int
+NCZ_zclose_var1(NC_VAR_INFO_T* var)
+{
+    int stat = NC_NOERR;
+    NCZ_VAR_INFO_T* zvar;
+    NC_ATT_INFO_T* att;
+    int a;
+
+    assert(var && var->format_var_info);
+    zvar = var->format_var_info;;
+    for(a = 0; a < ncindexsize(var->att); a++) {
+	NCZ_ATT_INFO_T* zatt;
+	att = (NC_ATT_INFO_T*)ncindexith(var->att, a);
+	assert(att && att->format_att_info);
+	zatt = att->format_att_info;
+	nullfree(zatt);
+	att->format_att_info = NULL; /* avoid memory errors */
+    }
+#ifdef ENABLE_NCZARR_FILTERS
+    /* Reclaim filters */
+    if(var->filters != NULL) {
+	(void)NCZ_filter_freelists(var);
+    }
+    var->filters = NULL;
+#endif
+    /* Reclaim the type */
+    if(var->type_info) (void)zclose_type(var->type_info);
+    if(zvar->cache) NCZ_free_chunk_cache(zvar->cache);
+    /* reclaim xarray */
+    if(zvar->xarray) nclistfreeall(zvar->xarray);
+    nullfree(zvar);
+    var->format_var_info = NULL; /* avoid memory errors */
+    return stat;
+}
+
+/**
  * @internal Close resources for vars in a group.
  *
  * @param grp Pointer to group info struct.
@@ -148,37 +191,14 @@ zclose_vars(NC_GRP_INFO_T* grp)
 {
     int stat = NC_NOERR;
     NC_VAR_INFO_T* var;
-    NCZ_VAR_INFO_T* zvar;
-    NC_ATT_INFO_T* att;
-    int a, i;
+    int i;
 
     for(i = 0; i < ncindexsize(grp->vars); i++) {
         var = (NC_VAR_INFO_T*)ncindexith(grp->vars, i);
         assert(var && var->format_var_info);
-        zvar = var->format_var_info;;
-        for(a = 0; a < ncindexsize(var->att); a++) {
-            NCZ_ATT_INFO_T* zatt;
-            att = (NC_ATT_INFO_T*)ncindexith(var->att, a);
-            assert(att && att->format_att_info);
-            zatt = att->format_att_info;
-	    nullfree(zatt);
-	    att->format_att_info = NULL; /* avoid memory errors */
-        }
-#ifdef ENABLE_NCZARR_FILTERS
-	/* Reclaim filters */
-	if(var->filters != NULL) {
-	    (void)NCZ_filter_freelists(var);
-	}
-	var->filters = NULL;
-#endif
-	/* Reclaim the type */
-	if(var->type_info) (void)zclose_type(var->type_info);
-        if(zvar->cache) NCZ_free_chunk_cache(zvar->cache);
-	/* reclaim xarray */
-	if(zvar->xarray) nclistfreeall(zvar->xarray);
-	nullfree(zvar);
-	var->format_var_info = NULL; /* avoid memory errors */
+	if((stat = NCZ_zclose_var1(var))) goto done;
     }
+done:
     return stat;
 }
 

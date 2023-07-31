@@ -1,4 +1,4 @@
-netcdf test_struct_nested.nc {
+netcdf test_struct_nested {
 types:
   compound x_field1_t {
     int x ;
@@ -14,7 +14,6 @@ types:
   }; // x_t
 variables:
 	x_t x ;
-
 data:
 
  x = {{1, -2}, {255, 90}} ;
