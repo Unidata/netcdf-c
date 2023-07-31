@@ -9,6 +9,7 @@
 #include <execinfo.h>
 #endif
 
+#include "nclog.h"
 #include "hdf5debug.h"
 
 #ifdef H5CATCH
@@ -44,7 +45,7 @@ nch5breakpoint(int err)
 #  endif
 #endif
 #endif
-    return err;
+    return ncbreakpoint(err);
 }
 
 int

@@ -105,12 +105,12 @@ ocset_curlflag(OCstate* state, int flag)
 	SETCURLOPT(state, CURLOPT_ERRORBUFFER, state->error.curlerrorbuf);
 	break;
 
-    case CURLOPT_ENCODING:
-#ifdef CURLOPT_ENCODING
-	if(state->auth->curlflags.compress) {
-	    SETCURLOPT(state, CURLOPT_ENCODING,"deflate, gzip");
+    case CURLOPT_ACCEPT_ENCODING:
+	if(state->auth->curlflags.encode) {
+	    SETCURLOPT(state, CURLOPT_ACCEPT_ENCODING, "" ); /* Accept all available encodings */
+	} else {
+    	    SETCURLOPT(state, CURLOPT_ACCEPT_ENCODING, NULL);
         }
-#endif
 	break;
 
     case CURLOPT_PROXY:
@@ -130,6 +130,7 @@ ocset_curlflag(OCstate* state, int flag)
     case CURLOPT_USE_SSL:
     case CURLOPT_SSLCERT: case CURLOPT_SSLKEY:
     case CURLOPT_SSL_VERIFYPEER: case CURLOPT_SSL_VERIFYHOST:
+    case CURLOPT_CAINFO: case CURLOPT_CAPATH:
     {
         struct ssl* ssl = &state->auth->ssl;
 	/* VERIFYPEER == 0 => VERIFYHOST == 0 */
@@ -200,7 +201,7 @@ ocset_flags_perlink(OCstate* state)
     OCerror stat = OC_NOERR;
 
     /* Following are always set */
-    if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_ENCODING);
+    if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_ACCEPT_ENCODING);
     if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_NETRC);
     if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_VERBOSE);
     if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_TIMEOUT);

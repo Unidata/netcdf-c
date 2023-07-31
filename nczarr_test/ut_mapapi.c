@@ -88,8 +88,8 @@ simplecreate(void)
     title(__func__);
 
     switch(stat = nczmap_create(impl,url,0,0,NULL,&map)) {
-    case NC_NOERR: break; /* already exists */
-    case NC_EEMPTY: break; /*created*/
+    case NC_EOBJECT: break; /* already exists */
+    case NC_NOERR: break; /*created*/
     default: goto done;
     }
     

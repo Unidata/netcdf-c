@@ -21,7 +21,7 @@ nczmap_features(NCZM_IMPL impl)
 #ifdef ENABLE_NCZARR_ZIP
     case NCZM_ZIP: return zmap_zip.features;
 #endif
-#ifdef ENABLE_S3_SDK
+#ifdef ENABLE_S3
     case NCZM_S3: return zmap_s3sdk.features;
 #endif
     default: break;
@@ -52,7 +52,7 @@ nczmap_create(NCZM_IMPL impl, const char *path, int mode, size64_t flags, void* 
 	if(stat) goto done;
 	break;
 #endif
-#ifdef ENABLE_S3_SDK
+#ifdef ENABLE_S3
     case NCZM_S3:
         stat = zmap_s3sdk.create(path, mode, flags, parameters, &map);
 	if(stat) goto done;
@@ -90,7 +90,7 @@ nczmap_open(NCZM_IMPL impl, const char *path, int mode, size64_t flags, void* pa
 	if(stat) goto done;
 	break;
 #endif
-#ifdef ENABLE_S3_SDK
+#ifdef ENABLE_S3
     case NCZM_S3:
         stat = zmap_s3sdk.open(path, mode, flags, parameters, &map);
 	if(stat) goto done;
@@ -477,40 +477,40 @@ nczm_sortlist(NClist* l)
     nczm_sortenvv(nclistlength(l),(char**)nclistcontents(l));
 }
 
-/* bubble sort a list of strings */
+static int
+nczm_compare(const void* arg1, const void* arg2)
+{
+    char* n1 = *((char**)arg1);
+    char* n2 = *((char**)arg2);
+    return strcmp(n1,n2);
+}
+
+/* quick sort a list of strings */
 void
 nczm_sortenvv(int n, char** envv)
 {
-    size_t i, switched;
-
     if(n <= 1) return;
-    do {
-	switched = 0;
-        for(i=0;i<n-1;i++) {
-	    char* ith = envv[i];
-	    char* ith1 = envv[i+1];
-	    if(strcmp(ith,ith1) > 0) {
-	        envv[i] = ith1;
-    	        envv[i+1] = ith;
-	        switched = 1;
-	    }
-	}
-    } while(switched);
+    qsort(envv, n, sizeof(char*), nczm_compare);
 #if 0
+{int i;
 for(i=0;i<n;i++)
-fprintf(stderr,"sorted: [%d] %s\n",i,(const char*)envv[i]);
+fprintf(stderr,">>> sorted: [%d] %s\n",i,(const char*)envv[i]);
+}
 #endif
 }
 
 void
 NCZ_freeenvv(int n, char** envv)
 {
-   int i;
-   char** p;
-   if(envv == NULL) return;
-   if(n < 0)
+    int i;
+    char** p;
+    if(envv == NULL) return;
+    if(n < 0)
        {for(n=0, p = envv; *p; n++); /* count number of strings */}
-    for(i=0;i<n;i++)
-        if(envv[i]) free(envv[i]);
+    for(i=0;i<n;i++) {
+        if(envv[i]) {
+	    free(envv[i]);
+	}
+    }
     free(envv);    
 }

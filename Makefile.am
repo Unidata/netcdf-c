@@ -7,8 +7,18 @@
 
 # Ed Hartnett, Ward Fisher
 
+# Put together AM_CPPFLAGS and AM_LDFLAGS.
+include $(top_srcdir)/lib_flags.am
+
 # This directory stores libtool macros, put there by aclocal.
 ACLOCAL_AMFLAGS = -I m4
+
+TESTS_ENVIRONMENT =
+TEST_EXTENSIONS = .sh
+#SH_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#sh_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-verbose
+#TESTS_ENVIRONMENT += export SETX=1;
 
 ##
 # Turn off plugin directory during distcheck, see
@@ -74,9 +84,13 @@ endif
 
 if ENABLE_DAP4
 DAP4 = libdap4
-XML = libncxml
 NCDAP4TESTDIR = dap4_test
+XML = libncxml
 endif #DAP4
+
+if ENABLE_S3_INTERNAL
+XML = libncxml # Internal S3 requires XML
+endif #ENABLE_S3_INTERNAL
 
 # Build PnetCDF
 if USE_PNETCDF
@@ -153,32 +167,6 @@ mm4::
 	for m in ${MM4} ; do \
 	  b=`basename $$m` ; d=`dirname $$m`;\
 	  pushd $$d; m4 -s $${b}.m4 > $${b}.c ; popd; done
-
-#####
-# If ENABLE_FORTRAN was turned on,
-# we have new make targets, build-netcdf-fortran and
-# install-netcdf-fortran.
-#####
-
-###
-# build-netcdf-fortran
-###
-if BUILD_FORTRAN
-
-build-netcdf-fortran:
-	echo "Downloading and Building NetCDF-Fortran"
-	chmod u+x $(abs_top_builddir)/postinstall.sh
-	sh -c "$(abs_top_builddir)/postinstall.sh -t autotools -a build"
-
-###
-# install-netcdf-fortran
-###
-install-netcdf-fortran:
-	echo "Installing NetCDF-Fortran"
-	chmod u+x $(abs_top_builddir)/postinstall.sh
-	sh -c "$(abs_top_builddir)/postinstall.sh -t autotools -a install"
-
-endif
 
 check_nc_config:
 	$(CC) `./nc-config --cflags` test_prog.c -o test_prog `./nc-config --libs`

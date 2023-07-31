@@ -8,5 +8,4 @@ dimensions:
 	d = 1 ;
 variables:
 	v1_t v1(d) ;
-
 }

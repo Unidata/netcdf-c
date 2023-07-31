@@ -21,7 +21,7 @@ ${execdir}/tst_chunks2 -e $1 $CLOUD
 
 ittest file
 if test "x$FEATURE_NCZARR_ZIP" = xyes ; then ittest zip; fi
-if test "x$FEATURE_S3TESTS" = xyes ; then ittest s3 "${NCZARR_S3_TEST_URL}/netcdf-c'; fi
+if test "x$FEATURE_S3TESTS" = xyes ; then ittest s3 "${NCZARR_S3_TEST_URL}/${S3TESTPATH}'; fi
 }
 
 

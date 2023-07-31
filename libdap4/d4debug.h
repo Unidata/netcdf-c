@@ -8,6 +8,8 @@
 #include <assert.h>
 #include <stdarg.h>
 
+#undef D4CATCH /* Warning: significant performance impact */
+
 #undef D4DEBUG /* general debug */
 #undef D4DEBUGPARSER
 #undef D4DEBUGMETA
@@ -25,8 +27,6 @@
 #define D4DUMPDMR
 #define D4DUMPDAP
 #endif
-
-#undef D4CATCH /* Warning: significant performance impact */
 
 #define PANIC(msg) assert(d4panic(msg));
 #define PANIC1(msg,arg) assert(d4panic(msg,arg));

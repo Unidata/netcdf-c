@@ -85,7 +85,7 @@ NCZ_finalize_internal(void)
 #ifdef ENABLE_NCZARR_FILTERS
     NCZ_filter_finalize();
 #endif
-#ifdef ENABLE_S3_SDK
+#ifdef ENABLE_S3
     NCZ_s3finalize();
 #endif
     return NC_NOERR;
@@ -330,7 +330,7 @@ close_vars(NC_GRP_INFO_T *grp)
                 if (var->type_info)
                 {
 		    int stat = NC_NOERR;
-		    if((stat = nc_reclaim_data(grp->nc4_info->controller->ext_ncid,var->type_info->hdr.id,var->fill_value,1)))
+		    if((stat = NC_reclaim_data(grp->nc4_info,var->type_info->hdr.id,var->fill_value,1)))
 		        return stat;
 		    nullfree(var->fill_value);
                 }

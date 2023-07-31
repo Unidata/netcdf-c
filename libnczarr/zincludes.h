@@ -43,7 +43,7 @@ extern "C" {
 #include "ncbytes.h"
 #include "ncauth.h"
 #include "nclog.h"
-#include "ncrc.h"
+#include "ncs3sdk.h"
 #include "ncindex.h"
 #include "ncjson.h"
 

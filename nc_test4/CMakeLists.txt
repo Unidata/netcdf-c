@@ -23,7 +23,7 @@ SET(NC4_TESTS tst_dims tst_dims2 tst_dims3 tst_files tst_files4
   tst_rename2 tst_rename3 tst_h5_endians tst_atts_string_rewrite tst_put_vars_two_unlim_dim
   tst_hdf5_file_compat tst_fill_attr_vanish tst_rehash tst_types tst_bug324
   tst_atts3 tst_put_vars tst_elatefill tst_udf tst_bug1442 tst_broken_files
-  tst_quantize)
+  tst_quantize tst_h_transient_types)
 
 IF(HAS_PAR_FILTERS)
 SET(NC4_tests $NC4_TESTS tst_alignment)
@@ -48,15 +48,20 @@ IF(USE_HDF5 AND ENABLE_FILTER_TESTING)
   build_bin_test(tst_multifilter)
   build_bin_test(test_filter_order)
   build_bin_test(test_filter_repeat)
-  build_bin_test(tst_filter_avail)
-  build_bin_test(test_filter_vlen)
+  build_bin_test(tst_filter_vlen)
   ADD_SH_TEST(nc_test4 tst_filter)
   ADD_SH_TEST(nc_test4 tst_specific_filters)
   ADD_SH_TEST(nc_test4 tst_bloscfail)
+  ADD_SH_TEST(nc_test4 tst_filter_vlen)
   IF(FALSE)
     # This test is too dangerous to run in a parallel make environment.
     # It causes race conditions. So suppress and only test by hand.
     ADD_SH_TEST(nc_test4 tst_unknown)
+    # The tst_filterinstall test can only be run after an install
+    # occurred with --with-plugin-dir enabled. So there is no point
+    #in running it via make check. It is kept here so it can be
+    # manually invoked if desired
+    ADD_SH_TEST(nc_test4 tst_filterinstall)
   ENDIF(FALSE)
 ENDIF(USE_HDF5 AND ENABLE_FILTER_TESTING)
 

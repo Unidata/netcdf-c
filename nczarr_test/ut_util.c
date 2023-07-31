@@ -239,7 +239,7 @@ parseintvector(const char* s0, int typelen, void** vectorp)
 void
 freedimdefs(NClist* defs)
 {
-    int i;
+    size_t i;
     for(i=0;i<nclistlength(defs);i++) {
 	Dimdef* dd = nclistget(defs,i);
 	nullfree(dd->name);
@@ -250,7 +250,7 @@ freedimdefs(NClist* defs)
 void
 freevardefs(NClist* defs)
 {
-    int i;
+    size_t i;
     for(i=0;i<nclistlength(defs);i++) {
 	Vardef* vd = nclistget(defs,i);
 	nullfree(vd->name);
@@ -348,7 +348,7 @@ ut_typeforname(const char* tname)
 static Dimdef*
 finddim(const char* name, NClist* defs)
 {
-    int i;
+    size_t i;
     for(i=0;i<nclistlength(defs);i++) {
         Dimdef* dd = nclistget(defs,i);
         if(strcmp(dd->name,name) == 0)
@@ -421,7 +421,7 @@ void
 printoptions(struct UTOptions* opts)
 {
     char** p;
-    int i;
+    size_t i;
     printf("Options:");
 #if 0
     printf(" debug=%d",opts->debug);
@@ -455,7 +455,7 @@ printoptions(struct UTOptions* opts)
     }
 
     printf(" -s ");
-    for(i=0;i<opts->nslices;i++) {
+    for(i=0;i<(size_t)opts->nslices;i++) {
 	NCZSlice* sl = &opts->slices[i];
 	printf("%s",nczprint_slicex(*sl,1));
     }
@@ -477,7 +477,8 @@ hasdriveletter(const char* f)
 void
 ut_sortlist(NClist* l)
 {
-    int i, switched;
+    int switched;
+    size_t i;
 
     if(nclistlength(l) <= 1) return;
     do {
