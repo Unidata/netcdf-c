@@ -1156,6 +1156,15 @@ aws_load_credentials(NCglobalstate* gstate)
             if((stat = awsparse(text,profiles))) goto done;
 	}
     }
+  
+    /* add a "none" credentials */
+    {
+	struct AWSprofile* noprof = (struct AWSprofile*)calloc(1,sizeof(struct AWSprofile));
+    if(noprof == NULL) {stat = NC_ENOMEM; goto done;}
+	noprof->name = strdup("none");
+	noprof->entries = nclistnew();
+	nclistpush(profiles,noprof); noprof = NULL;
+    }
 
     if(gstate->rcinfo->s3profiles)
         freeprofilelist(gstate->rcinfo->s3profiles);
