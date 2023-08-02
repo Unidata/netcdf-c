@@ -74,6 +74,7 @@ IF(ENABLE_TESTS)
   BUILD_BIN_TEST(tst_zchunks2 ${COMMONSRC})
   BUILD_BIN_TEST(tst_zchunks3 ${COMMONSRC})
   BUILD_BIN_TEST(tst_fillonlyz ${TSTCOMMONSRC})
+  TARGET_LINK_LIBRARIES(tst_fillonlyz ${NC_LIBS_HDF5})
 
   TARGET_INCLUDE_DIRECTORIES(ut_map PUBLIC ../libnczarr)
   TARGET_INCLUDE_DIRECTORIES(ut_mapapi PUBLIC ../libnczarr)
@@ -104,6 +105,7 @@ IF(ENABLE_TESTS)
   SET(ncdumpchunks_SOURCE ${ncdumpchunks_SOURCE} ${XGETOPTSRC})
   BUILD_BIN_TEST(ncdumpchunks ${ncdumpchunks_SOURCE})
   TARGET_INCLUDE_DIRECTORIES(ncdumpchunks PUBLIC ../libnczarr)
+  TARGET_LINK_LIBRARIES(ncdumpchunks ${NC_LIBS_HDF5})
 
   IF(BUILD_UTILITIES)
     add_sh_test(nczarr_test run_ut_map)
@@ -118,6 +120,7 @@ IF(ENABLE_TESTS)
 
     BUILD_BIN_TEST(tst_chunkcases ${TSTCOMMONSRC})
     TARGET_INCLUDE_DIRECTORIES(tst_chunkcases PUBLIC ../libnczarr)
+    TARGET_LINK_LIBRARIES(tst_chunkcases ${NC_LIBS_HDF5})
     add_sh_test(nczarr_test run_chunkcases)
 
     add_sh_test(nczarr_test run_purezarr)

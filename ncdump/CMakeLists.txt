@@ -40,20 +40,20 @@ IF(ENABLE_DAP)
   ADD_EXECUTABLE(ocprint ${ocprint_FILES})
 ENDIF(ENABLE_DAP)
 
-TARGET_LINK_LIBRARIES(ncdump netcdf ${ALL_TLL_LIBS})
-TARGET_LINK_LIBRARIES(nccopy netcdf ${ALL_TLL_LIBS})
-TARGET_LINK_LIBRARIES(ncvalidator netcdf ${ALL_TLL_LIBS})
-TARGET_LINK_LIBRARIES(ncpathcvt netcdf ${ALL_TLL_LIBS})
-TARGET_LINK_LIBRARIES(ncfilteravail netcdf ${ALL_TLL_LIBS})
+TARGET_LINK_LIBRARIES(ncdump netcdf)
+TARGET_LINK_LIBRARIES(nccopy netcdf)
+TARGET_LINK_LIBRARIES(ncvalidator netcdf)
+TARGET_LINK_LIBRARIES(ncpathcvt netcdf)
+TARGET_LINK_LIBRARIES(ncfilteravail netcdf)
 
 IF(USE_HDF5)
-  TARGET_LINK_LIBRARIES(nc4print netcdf ${ALL_TLL_LIBS})
-  TARGET_LINK_LIBRARIES(printfqn netcdf ${ALL_TLL_LIBS})
-  TARGET_LINK_LIBRARIES(nchdf5version netcdf ${ALL_TLL_LIBS})
+  TARGET_LINK_LIBRARIES(nc4print netcdf)
+  TARGET_LINK_LIBRARIES(printfqn netcdf)
+  TARGET_LINK_LIBRARIES(nchdf5version netcdf)
 ENDIF(USE_HDF5)
 
 IF(ENABLE_DAP)
-  TARGET_LINK_LIBRARIES(ocprint netcdf ${ALL_TLL_LIBS})
+  TARGET_LINK_LIBRARIES(ocprint netcdf)
 ENDIF(ENABLE_DAP)
 
 ####
@@ -112,7 +112,7 @@ endif()
 
   IF(USE_HDF5)
     ADD_EXECUTABLE(tst_fileinfo tst_fileinfo.c)
-    TARGET_LINK_LIBRARIES(tst_fileinfo netcdf)
+    TARGET_LINK_LIBRARIES(tst_fileinfo netcdf ${NC_LIBS_HDF5} ${HDF4_LIBRARIES})
   ENDIF()
 
   IF(MSVC)
@@ -172,24 +172,29 @@ endif()
   build_bin_test_no_prefix(tst_utf8)
   build_bin_test_no_prefix(tst_fillbug)
   IF(USE_HDF5)
-    build_bin_test_no_prefix(tst_h_rdc0)
-    build_bin_test_no_prefix(tst_unicode)
-    build_bin_test_no_prefix(tst_vlen_data)
-    build_bin_test_no_prefix(tst_create_files)
-    build_bin_test_no_prefix(tst_opaque_data)
-    build_bin_test_no_prefix(tst_string_data)
-    build_bin_test_no_prefix(tst_comp2)
-    build_bin_test_no_prefix(tst_nans)
-    build_bin_test_no_prefix(tst_h_scalar)
-    build_bin_test_no_prefix(tst_compress)
-    build_bin_test_no_prefix(tst_chunking)
-    build_bin_test_no_prefix(tst_group_data)
-    build_bin_test_no_prefix(tst_enum_data)
-    build_bin_test_no_prefix(tst_enum_undef)
-    build_bin_test_no_prefix(tst_comp)
-    # Add this test by hand, as it is also called from a script.
-    # Editing the script would break autotools compatibility.
-    build_bin_test_no_prefix(tst_special_atts)
+    FOREACH(tst
+        tst_h_rdc0
+        tst_unicode
+        tst_vlen_data
+        tst_create_files
+        tst_opaque_data
+        tst_string_data
+        tst_comp2
+        tst_nans
+        tst_h_scalar
+        tst_compress
+        tst_chunking
+        tst_group_data
+        tst_enum_data
+        tst_enum_undef
+        tst_comp
+      # Add this test by hand, as it is also called from a script.
+      # Editing the script would break autotools compatibility.
+        tst_special_atts
+      )
+      build_bin_test_no_prefix(${tst})
+      TARGET_LINK_LIBRARIES(${tst} ${NC_LIBS_HDF5} ${HDF4_LIBRARIES})
+    ENDFOREACH()
   ENDIF(USE_HDF5)
 
   # Base tests

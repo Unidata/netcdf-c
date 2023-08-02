@@ -30,7 +30,7 @@ SET(OBSOLETE odom.c odom.h jdatastd.c jdatajni.c genjni.c cdfdata.c cmldata.c)
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
 
 ADD_EXECUTABLE(ncgen ${ncgen_FILES})
-TARGET_LINK_LIBRARIES(ncgen netcdf ${ALL_TLL_LIBS})
+TARGET_LINK_LIBRARIES(ncgen netcdf ${ALL_TLL_LIBS} ${NC_LIBS_HDF5})
 
 # Given a netcdf4 file, dump the actual chunk contents.
 # Used to validate nczarr chunking code.

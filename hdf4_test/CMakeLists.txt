@@ -20,4 +20,8 @@ IF(USE_HDF4_FILE_TESTS AND NOT MSVC)
   add_bin_test(hdf4_test tst_hdf4_extra)
   add_sh_test(hdf4_test run_get_hdf4_files)
   add_sh_test(hdf4_test run_formatx_hdf4)
+
+  FOREACH(test tst_interops2 hdf4_test_tst_h4_lendian hdf4_test_tst_hdf4_extra)
+    TARGET_LINK_LIBRARIES(${test} ${HDF4_LIBRARIES})
+  ENDFOREACH()
 ENDIF()

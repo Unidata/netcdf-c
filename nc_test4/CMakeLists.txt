@@ -26,13 +26,13 @@ SET(NC4_TESTS tst_dims tst_dims2 tst_dims3 tst_files tst_files4
   tst_quantize tst_h_transient_types)
 
 IF(HAS_PAR_FILTERS)
-SET(NC4_tests $NC4_TESTS tst_alignment)
+  LIST(APPEND NC4_TESTS tst_alignment)
 ENDIF()
 
 # Note, renamegroup needs to be compiled before run_grp_rename
 
 IF(BUILD_UTILITIES)
-  SET(NC4_TESTS ${NC4_TESTS} tst_xplatform)
+  LIST(APPEND NC4_TESTS tst_xplatform)
   build_bin_test(renamegroup)
   add_sh_test(nc_test4 run_grp_rename)
   build_bin_test(tst_charvlenbug)
@@ -68,7 +68,7 @@ ENDIF(USE_HDF5 AND ENABLE_FILTER_TESTING)
 ENDIF(BUILD_UTILITIES)
 
 IF(${HDF5_VERSION} VERSION_GREATER "1.10.0")
-  SET(NC4_TESTS ${NC4_TESTS} tst_virtual_datasets)
+  LIST(APPEND NC4_TESTS tst_virtual_datasets)
 ENDIF(${HDF5_VERSION} VERSION_GREATER "1.10.0")
 
 ##
@@ -79,7 +79,7 @@ BUILD_BIN_TEST(tst_empty_vlen_unlim)
 ADD_SH_TEST(nc_test4 run_empty_vlen_test)
 
 IF(NOT MSVC)
-  SET(NC4_TESTS ${NC4_TESTS} tst_interops5 tst_camrun)
+  LIST(APPEND NC4_TESTS tst_interops5 tst_camrun)
 ENDIF()
 
 # If the v2 API was built, add the test program.
@@ -88,13 +88,14 @@ IF(ENABLE_V2_API)
 ENDIF()
 
 IF(LARGE_FILE_TESTS)
-  SET(NC4_TESTS ${NC4_TESTS} tst_large tst_large2)
+  LIST(APPEND NC4_TESTS tst_large tst_large2)
 ENDIF()
 
 
 IF(HAVE_H5Z_SZIP)
   BUILD_BIN_TEST(test_szip)
   BUILD_BIN_TEST(h5testszip)
+  TARGET_LINK_LIBRARIES(h5testszip ${NC_LIBS_HDF5})
   IF(BUILD_UTILITIES)
     add_sh_test(nc_test4 tst_szip)
   ENDIF()
@@ -111,6 +112,7 @@ ENDIF()
 FOREACH(CTEST ${NC4_TESTS})
   add_bin_test(nc_test4 ${CTEST})
   SET_TESTS_PROPERTIES(nc_test4_${CTEST} PROPERTIES ENVIRONMENT srcdir=${CMAKE_CURRENT_SOURCE_DIR})
+  TARGET_LINK_LIBRARIES(nc_test4_${CTEST} ${NC_LIBS_HDF5})
 ENDFOREACH()
 
 IF(TEST_PARALLEL4)

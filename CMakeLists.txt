@@ -531,7 +531,7 @@ IF(ENABLE_HDF4)
 
   SET(HAVE_LIBMFHDF TRUE)
 
-  SET(HDF4_LIBRARIES ${HDF4_DF_LIB} ${HDF4_MFHDF_LIB})
+  SET(HDF4_LIBRARIES ${HDF4_MFHDF_LIB} ${HDF4_DF_LIB})
   # End include files, libraries.
   MESSAGE(STATUS "HDF4 libraries: ${HDF4_DF_LIB}, ${HDF4_MFHDF_LIB}")
 
@@ -551,7 +551,7 @@ IF(ENABLE_HDF4)
   IF(NOT JPEG_LIB)
     MESSAGE(FATAL_ERROR "HDF4 Support enabled but cannot find libjpeg")
   ENDIF()
-  SET(HDF4_LIBRARIES ${JPEG_LIB} ${HDF4_LIBRARIES})
+  LIST(PREPEND HDF4_LIBRARIES ${JPEG_LIB})
   MESSAGE(STATUS "Found JPEG libraries: ${JPEG_LIB}")
 
   # Option to enable HDF4 file tests.
@@ -866,12 +866,11 @@ IF(USE_HDF5)
     IF(NOT ZLIB_LIBRARY)
       find_package(ZLIB)
       IF(ZLIB_FOUND)
-        SET(ZLIB_LIBRARY ${ZLIB_LIBRARIES})
+        SET(ZLIB_LIBRARY ZLIB::ZLIB)
       ELSE()
         MESSAGE(FATAL_ERROR "HDF5 Requires ZLIB, but cannot find libz.")
       ENDIF()
     ENDIF()
-    SET(CMAKE_REQUIRED_LIBRARIES ${ZLIB_LIBRARY} ${CMAKE_REQUIRED_LIBRARIES})
     MESSAGE(STATUS "HDF5 has zlib.")
   ENDIF()
 
