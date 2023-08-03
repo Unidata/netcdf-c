@@ -17,11 +17,7 @@
 
 #undef DEBUG
 
-#ifndef H5Z_FILTER_BZIP2
-#define H5Z_FILTER_BZIP2      307
-#endif
-
-#define TEST_ID 32768
+#define FILTER_ID 1 /*deflate*/
 
 #define MAXERRS 8
 
@@ -51,8 +47,7 @@ static int nerrs = 0;
 
 static int ncid, varid;
 static int dimids[MAXDIMS];
-static float* array = NULL;
-static float* expected = NULL;
+static char** array = NULL;
 
 /* Forward */
 static int test_test1(void);
@@ -101,25 +96,141 @@ defvar(nc_type xtype)
 }
 
 static int
+reopen(void)
+{
+    size_t i;
+    
+    CHECK(nc_open(testfile, NC_NETCDF4, &ncid));
+    for(i=0;i<ndims;i++) {
+        char dimname[1024];
+        snprintf(dimname,sizeof(dimname),"dim%u",(unsigned)i);
+        CHECK(nc_inq_dimid(ncid, dimname, &dimids[i]));
+        CHECK(nc_inq_dim(ncid, dimids[i], NULL, &dimsize[i]));
+    }
+    CHECK(nc_inq_varid(ncid, "var", &varid));
+    return NC_NOERR;
+}
+
+
+
+/* Test that a filter is a variable length var is defined */
+static int
 test_test1(void)
 {
     int ok = 1;
-    int id = -1;
-    size_t nparams;    
+    size_t nfilters = 0;
+    unsigned filterids[64];
+    unsigned params[NPARAMS] = {5};
+    size_t nparams = 0;
 
-    reset();
     fprintf(stderr,"test4: filter on a variable length type.\n");
     create();
     defvar(NC_STRING);
     /* Do explicit filter; should never fail, but may produce log warning */
-    CHECK(nc_def_var_filter(ncid,varid,H5Z_FILTER_BZIP2,0,NULL));
+    CHECK(nc_def_var_filter(ncid,varid,FILTER_ID,1,params));
     /* Now see if filter was defined or not */
-    CHECK(nc_inq_var_filter(ncid,varid,&id,&nparams,NULL));
-    if(id > 0) {
-	fprintf(stderr,"*** id=%d\n",id);
+    memset(filterids,0,sizeof(filterids));
+    params[0] = 5;
+    CHECK(nc_inq_var_filter_ids(ncid,varid,&nfilters,filterids));
+    fprintf(stderr,"test_test1: nc_var_filter_ids: nfilters=%u filterids[0]=%d\n",(unsigned)nfilters,filterids[0]);
+    if(nfilters != 1 && filterids[0] != FILTER_ID) {
+	fprintf(stderr,"test_test1: nc_var_filter_ids: failed\n");
 	ok = 0;
     }
-    CHECK(nc_abort(ncid));
+    params[0] = 0;
+    CHECK(nc_inq_var_filter_info(ncid, varid, filterids[0], &nparams, params));
+    fprintf(stderr,"test_test1: nc_inq_var_filter_info: nparams=%u params[0]=%u\n",(unsigned)nparams,(unsigned)params[0]);
+    return ok;
+}
+
+/* Test that a filter on a variable length var is suppressed */
+static int
+test_test2(void)
+{
+    int stat = NC_NOERR;
+    int ok = 1;
+    size_t i;
+
+    reset();
+    fprintf(stderr,"test4: write with filter on a variable length type.\n");
+    /* generate the data to write */
+    for(i=0;i<actualproduct;i++) {
+        char digits[64];
+	snprintf(digits,sizeof(digits),"%u",(unsigned)i);
+	array[i] = strdup(digits);
+    }
+    /* write the data */
+    if((stat=nc_put_var(ncid,varid,(void*)array))) {
+	fprintf(stderr,"test_test2: nc_put_var: error = (%d)%s\n",stat,nc_strerror(stat));
+	ok = 0;
+	goto done;
+    }
+    /* re-read the data */
+    reset();
+    if((stat=nc_get_var(ncid,varid,(void*)array))) {
+	fprintf(stderr,"test_test2: nc_get_var: error = (%d)%s\n",stat,nc_strerror(stat));
+	ok = 0;
+	goto done;
+    }
+    /* verify the data */    
+    for(i=0;i<actualproduct;i++) {
+	unsigned value = 0xffffffff;
+	if(array[i] != NULL)
+	    sscanf(array[i],"%u",&value);
+	if(array[i] == NULL || i != value) {
+	    fprintf(stderr,"test_test2: nc_get_var: value mismatch at %u\n",(unsigned)i);
+	    ok = 0;
+	    goto done;
+	}
+    }
+    nc_close(ncid);
+done:
+    return ok;
+}
+
+/* Test that a filter on a variable length var is suppressed */
+static int
+test_test3(void)
+{
+    int stat = NC_NOERR;
+    int ok = 1;
+    size_t i,nfilters;
+    unsigned filterids[64];
+
+    fprintf(stderr,"test4: re-open variable with filter on a variable length type and verify state.\n");
+
+    reopen();    
+
+    /* verify filter state */
+    memset(filterids,0,sizeof(filterids));
+    CHECK(nc_inq_var_filter_ids(ncid,varid,&nfilters,filterids));
+    fprintf(stderr,"test_test3: nc_var_filter_ids: nfilters=%u filterids[0]=%d\n",(unsigned)nfilters,filterids[0]);
+    if(nfilters != 1 && filterids[0] != FILTER_ID) {
+	fprintf(stderr,"test_test3: nc_var_filter_ids: failed\n");
+	ok = 0;
+	goto done;
+    }
+
+    /* re-read the data */
+    reset();
+    if((stat=nc_get_var(ncid,varid,(void*)array))) {
+	fprintf(stderr,"test_test3: nc_get_var: error = (%d)%s\n",stat,nc_strerror(stat));
+	ok = 0;
+	goto done;
+    }
+    /* verify the data */    
+    for(i=0;i<actualproduct;i++) {
+	unsigned value = 0xffffffff;
+	if(array[i] != NULL)
+	    sscanf(array[i],"%u",&value);
+	if(array[i] == NULL || i != value) {
+	    fprintf(stderr,"test_test3: nc_get_var: value mismatch at %u\n",(unsigned)i);
+	    ok = 0;
+	    goto done;
+	}
+    }
+    nc_close(ncid);
+done:
     return ok;
 }
 
@@ -129,7 +240,11 @@ test_test1(void)
 static void
 reset()
 {
-    memset(array,0,sizeof(float)*actualproduct);
+    size_t i;
+    for(i=0;i<actualproduct;i++) {
+        if(array[i]) free(array[i]);
+	array[i] = NULL;
+    }
 }
 
 static void
@@ -153,8 +268,7 @@ init(int argc, char** argv)
         }
     }
     /* Allocate max size */
-    array = (float*)calloc(1,sizeof(float)*actualproduct);
-    expected = (float*)calloc(1,sizeof(float)*actualproduct);
+    array = (char**)calloc(1,sizeof(char*)*actualproduct);
 }
 
 /**************************************************/
@@ -167,6 +281,8 @@ main(int argc, char **argv)
 #endif
     init(argc,argv);
     if(!test_test1()) ERRR;
+    if(!test_test2()) ERRR;
+    if(!test_test3()) ERRR;
     fprintf(stderr,"*** %s\n",(nerrs > 0 ? "FAILED" : "PASS"));
     exit(nerrs > 0?1:0);
 }

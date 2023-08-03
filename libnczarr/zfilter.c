@@ -130,12 +130,13 @@ ncz_hdf5_clear(NCZ_HDF5* h) {
 
 typedef struct NCZ_Filter {
     int flags;             	/**< Flags describing state of this filter. */
-#	define FLAG_VISIBLE 1 /* If set, then visible parameters are defined */
-#	define FLAG_WORKING 2 /* If set, then WORKING parameters are defined */
-#	define FLAG_CODEC 4 /* If set, then visbile parameters come from an existing codec string */
-#	define FLAG_HDF5  8 /* If set, => visible parameters came from nc_def_var_filter */
-#	define FLAG_NEWVISIBLE  16 /* If set, => visible parameters  were modified */
-#	define FLAG_INCOMPLETE  32 /* If set, => filter has no complete matching plugin */
+#	define FLAG_VISIBLE	1 /* If set, then visible parameters are defined */
+#	define FLAG_WORKING	2 /* If set, then WORKING parameters are defined */
+#	define FLAG_CODEC	4 /* If set, then visbile parameters come from an existing codec string */
+#	define FLAG_HDF5	8 /* If set, => visible parameters came from nc_def_var_filter */
+#	define FLAG_NEWVISIBLE	16 /* If set, => visible parameters  were modified */
+#	define FLAG_INCOMPLETE	32 /* If set, => filter has no complete matching plugin */
+#	define FLAG_SUPPRESS	64 /* If set, => filter should not be used (probably because variable is not fixed size */
     NCZ_HDF5 hdf5;
     NCZ_Codec codec;
     struct NCZ_Plugin* plugin;  /**< Implementation of this filter. */
@@ -387,6 +388,12 @@ NCZ_addfilter(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, unsigned int id, size_t 
 	    nclistpush((NClist*)zvar->incompletefilters, fi);
 	} else
 	    nclistpush((NClist*)var->filters, fi);
+    }
+
+    /* If this variable is not fixed size, mark filter as suppressed */
+    if(var->type_info->varsized) {
+	fi->flags |= FLAG_SUPPRESS;
+	nclog(NCLOGWARN,"Filters cannot be applied to variable length data types; ignored");
     }
 
     if(!FILTERINCOMPLETE(fi)) {
@@ -870,6 +877,7 @@ fprintf(stderr,">>> current: alloc=%u used=%u buf=%p\n",(unsigned)current_alloc,
         if(encode) {
             for(i=0;i<nclistlength(chain);i++) {
 	        f = (struct NCZ_Filter*)nclistget(chain,i);	
+		if(f->flags & FLAG_SUPPRESS) continue; /* this filter should not be applied */		
 	        ff = f->plugin->hdf5.filter;
 	        /* code can be simplified */
 	        next_alloc = current_alloc;
@@ -889,6 +897,7 @@ fprintf(stderr,">>> next: alloc=%u used=%u buf=%p\n",(unsigned)next_alloc,(unsig
 	    /* Apply in reverse order */
             for(i=nclistlength(chain)-1;i>=0;i--) {
 	        f = (struct NCZ_Filter*)nclistget(chain,i);	
+		if(f->flags & FLAG_SUPPRESS) continue; /* this filter should not be applied */
 	        ff = f->plugin->hdf5.filter;
 	        /* code can be simplified */
 	        next_alloc = current_alloc;

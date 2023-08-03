@@ -914,11 +914,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
                     BAIL(NC_EFILTER);
             } else {
                 herr_t code = H5Pset_filter(plistid, fi->filterid,
-#if 1
-                                            H5Z_FLAG_MANDATORY,
-#else
-                                            H5Z_FLAG_OPTIONAL,
-#endif
+                                            H5Z_FLAG_OPTIONAL, /* always make optional so filters on vlens are ignored */
                                            fi->nparams, fi->params);
 		if(code < 0)
                     BAIL(NC_EFILTER);
