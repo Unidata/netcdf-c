@@ -536,9 +536,8 @@ px_get(ncio *const nciop, ncio_px *const pxp,
 	off_t diff = (size_t)(offset - blkoffset);
 	off_t blkextent = _RNDUP(diff + extent, pxp->blksz);
 
-	assert(extent != 0);
-	assert(extent < X_INT_MAX); /* sanity check */
-	assert(offset >= 0); /* sanity check */
+	if(extent == 0 || extent >= X_INT_MAX || offset >= 0) /* sanity check */
+	    return NC_ENOTNC;
 
 	if(2 * pxp->blksz < blkextent)
 		return E2BIG; /* TODO: temporary kludge */
