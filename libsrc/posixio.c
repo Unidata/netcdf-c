@@ -63,7 +63,7 @@
 #undef MIN  /* system may define MIN somewhere and complain */
 #define MIN(mm,nn) (((mm) < (nn)) ? (mm) : (nn))
 
-#if !defined(NDEBUG) && !defined(X_INT_MAX)
+#if /*!defined(NDEBUG) &&*/ !defined(X_INT_MAX)
 #define  X_INT_MAX 2147483647
 #endif
 
