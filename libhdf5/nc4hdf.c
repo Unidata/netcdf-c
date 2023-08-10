@@ -1144,8 +1144,8 @@ nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
         if (chunk_size_bytes > var->chunkcache.size)
         {
             var->chunkcache.size = chunk_size_bytes * DEFAULT_CHUNKS_IN_CACHE;
-            if (var->chunkcache.size > MAX_DEFAULT_CACHE_SIZE)
-                var->chunkcache.size = MAX_DEFAULT_CACHE_SIZE;
+            if (var->chunkcache.size > DEFAULT_CHUNK_CACHE_SIZE)
+                var->chunkcache.size = DEFAULT_CHUNK_CACHE_SIZE;
             if ((retval = nc4_reopen_dataset(grp, var)))
                 return retval;
         }
