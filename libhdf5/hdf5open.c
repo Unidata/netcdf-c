@@ -958,6 +958,8 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
       if (!(crt_order_flags & H5P_CRT_ORDER_TRACKED)) {
 	  nc4_info->no_attr_create_order = NC_TRUE;
       }
+      if (H5Pclose(pid) < 0)
+	  BAIL(NC_EHDFERR);
     }
 
     /* Now read in all the metadata. Some types and dimscale

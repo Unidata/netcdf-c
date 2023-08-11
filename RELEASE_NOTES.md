@@ -7,6 +7,9 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.9.3 - TBD
 
+* Fix default parameters for caching of NCZarr. See [Github #2734](https://github.com/Unidata/netcdf-c/pull/2734).
+* Introducing configure-time options to disable various filters, even if the required libraries are available on the system, in support of [GitHub #2712](https://github.com/Unidata/netcdf-c/pull/2712). 
+* Fix memory leak WRT unreclaimed HDF5 plist. See [Github #2752](https://github.com/Unidata/netcdf-c/pull/2752).
 * Support HDF5 transient types when reading an HDF5 file.  See [Github #2724](https://github.com/Unidata/netcdf-c/pull/2724).
 * Suppress filters on variables with non-fixed-size types. See [Github #2716](https://github.com/Unidata/netcdf-c/pull/2716).
 * Provide a single option to disable all network access and testing. See [Github #2708](https://github.com/Unidata/netcdf-c/pull/2708).
@@ -473,7 +476,7 @@ See [GitHub #1251](https://github.com/Unidata/netcdf-c/issues/1251).
 
 ### 4.4.1-RC1 - April 15, 2016
 
-* [Bug Fix][Enhancement] Fixed an issue with netCDF4 files generated using version `1.10.0` of the HDF5 library.  The 1.10 release potentially changed the underlying file format, introducing a backwards compatibility issue with the files generated.  HDF5 provided an API for retaining the 1.8.x file format, which is now on by default.  See [GitHub Issue #250](https://github.com/Unidata/netcdf-c/issues/250) for more information.
+* [Bug Fix][Enhancement][File Change] Fixed an issue with netCDF4 files generated using version `1.10.0` of the HDF5 library.  The 1.10 release potentially changed the underlying file format, introducing a backwards compatibility issue with the files generated.  HDF5 provided an API for retaining the 1.8.x file format, which is now on by default.  See [GitHub Issue #250](https://github.com/Unidata/netcdf-c/issues/250) for more information.
 * [Bug Fix] Corrected an issue with autotools-based builds performed out-of-source-tree.  See [GitHub Issue #242](https://github.com/Unidata/netcdf-c/issues/242) for more information.
 * [Enhancement] Modified `nc_inq_type()` so that it would work more broadly without requiring a valid ncid.  See [GitHub Issue #240](https://github.com/Unidata/netcdf-c/issues/240) for more information.
 * [Enhancement] Accepted a patch code which added a hashmap lookup for rapid var and dim retrieval in nc3 files, contributed by Greg Sjaardema.  See [GitHub Pull Request #238](https://github.com/Unidata/netcdf-c/pull/238) for more information.
@@ -527,7 +530,7 @@ See [GitHub #1251](https://github.com/Unidata/netcdf-c/issues/1251).
     2. Given #1, then the NC_PNETCDF mode flag becomes a subset of NC_MPIIO, so made NC_PNETCDF an alias for NC_MPII.
     3. NC_FORMAT_64BIT is now deprecated.  Use NC_FORMAT_64BIT_OFFSET.
 
-Further information regarding the CDF-5 file format specifrication may be found here: http://cucis.ece.northwestern.edu/projects/PnetCDF/CDF-5.html
+Further information regarding the CDF-5 file format specification may be found here: http://cucis.ece.northwestern.edu/projects/PnetCDF/CDF-5.html
 
 * Modified configure.ac to provide finer control over parallel
   support. Specifically, add flags for:
