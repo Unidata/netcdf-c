@@ -99,10 +99,10 @@ Inserted into any .zattrs ? or should it go into the container?
 #define LEGAL_DIM_SEPARATORS "./"
 #define DFALT_DIM_SEPARATOR '.'
 
+#define islegaldimsep(c) ((c) != '\0' && strchr(LEGAL_DIM_SEPARATORS,(c)) != NULL)
+
 /* Default max string length for fixed length strings */
 #define NCZ_MAXSTR_DEFAULT 128
-
-#define islegaldimsep(c) ((c) != '\0' && strchr(LEGAL_DIM_SEPARATORS,(c)) != NULL)
 
 /* Mnemonics */
 #define ZCLEAR	0 /* For NCZ_copy_data */
