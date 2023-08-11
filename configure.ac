@@ -799,7 +799,7 @@ AC_ARG_ENABLE([filter-bz2],
                [AS_HELP_STRING([--disable-filter-bz2],
                                [disable external bz2 filter support. bz2 support defaults to internal implementation if this is disabled or if the external library is not found.])])
 test "x$enable_filter_bz2" = xno || enable_filter_bz2=yes
-AC_MSG_RESULT($enable_filter_bz2)
+AC_MSG_RESULT([$enable_filter_bz2])
 
 if test "x$enable_filter_bz2" = "xyes" ; then
 
@@ -811,14 +811,27 @@ if test "x$enable_filter_bz2" = "xyes" ; then
    AC_MSG_CHECKING([whether libbz2 library is available])
    AC_MSG_RESULT([${have_bz2}])
 
+fi
 
+# How about bzip2
 
-   if test "x$have_bz2" = "xno" ; then
-   have_local_bz2=yes
-   AC_MSG_NOTICE([Defaulting to internal libbz2])
-   else
-   have_local_bz2=no
+if test "x$have_bz2" = x ; then
+
+   AC_CHECK_LIB([bzip2],[BZ2_bzCompress],[have_bz2=yes],[have_bz2=no])
+   if test "x$have_bz2" = "xyes" ; then
+      AC_SEARCH_LIBS([BZ2_bzCompress],[bzip2 bzip2.dll cygbzip2.dll], [], [])
+      AC_DEFINE([HAVE_BZ2], [1], [if true, bzip2 library is installed])
    fi
+   AC_MSG_CHECKING([whether libbzip2 library is available])
+   AC_MSG_RESULT([${have_bz2}])
+
+fi
+
+if test "x$have_bz2" = "xno" ; then
+  have_local_bz2=yes
+  AC_MSG_NOTICE([Defaulting to internal libbz2])
+else
+  have_local_bz2=no
 fi
 
 AM_CONDITIONAL(HAVE_LOCAL_BZ2, [test "x$have_local_bz2" = xyes])

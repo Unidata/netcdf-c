@@ -26,9 +26,10 @@ URL4d="s3://unidata-zarr-test-data/byterangefiles/upload4.nc#bytes&aws.profile=u
 fi
 URL4f="https://crudata.uea.ac.uk/cru/data/temperature/HadCRUT.4.6.0.0.median.nc#mode=bytes"
 
+if test "x$FEATURE_S3TESTS" = xyes ; then
 # Do not use unless we know it has some permanence (note the segment 'testing' in the URL);
 URL4x="https://s3.us-west-2.amazonaws.com/coawst-public/testing/HadCRUT.4.6.0.0.median.nc#mode=bytes,&aws.profile=none"
-
+fi
 
 echo ""
 
