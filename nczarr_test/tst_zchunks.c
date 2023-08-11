@@ -363,7 +363,7 @@ main(int argc, char **argv)
           cache_preemption_in != cache_preemption) ERR;
       if (nc_get_var_chunk_cache(ncid, varid2, &cache_size_in, &cache_nelems_in,
                                  &cache_preemption_in)) ERR;
-      if (cache_size_in != CHUNK_CACHE_SIZE_NCZARR) ERR;
+      if (cache_size_in != DEFAULT_CHUNK_CACHE_SIZE) ERR;
 
 #if 0
       /* Inapplicable to zarr */

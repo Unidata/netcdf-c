@@ -120,8 +120,9 @@ fprintf(stderr,"xxx: adjusting cache for: %s\n",var->hdr.name);
     /* Reclaim any existing fill_chunk */
     if((stat = NCZ_reclaim_fill_chunk(zcache))) goto done;
     /* Reset the parameters */
-    zvar->cache->maxsize = var->chunkcache.size;
-    zvar->cache->maxentries = var->chunkcache.nelems;
+    zvar->cache->params.size = var->chunkcache.size;
+    zvar->cache->params.nelems = var->chunkcache.nelems;
+    zvar->cache->params.preemption = var->chunkcache.preemption;
 #ifdef DEBUG
     fprintf(stderr,"%s.cache.adjust: size=%ld nelems=%ld\n",
         var->hdr.name,(unsigned long)zvar->cache->maxsize,(unsigned long)zvar->cache->maxentries);
@@ -181,6 +182,9 @@ NCZ_create_chunk_cache(NC_VAR_INFO_T* var, size64_t chunksize, char dimsep, NCZC
         }
     }
     
+    /* Set default cache parameters */
+    cache->params = NC_getglobalstate()->chunkcache;
+
 #ifdef FLUSH
     cache->maxentries = 1;
 #endif
@@ -192,7 +196,7 @@ NCZ_create_chunk_cache(NC_VAR_INFO_T* var, size64_t chunksize, char dimsep, NCZC
     if((stat = ncxcachenew(LEAFLEN,&cache->xcache))) goto done;
     if((cache->mru = nclistnew()) == NULL)
 	{stat = NC_ENOMEM; goto done;}
-    nclistsetalloc(cache->mru,cache->maxentries);
+    nclistsetalloc(cache->mru,cache->params.nelems);
 
     if(cachep) {*cachep = cache; cache = NULL;}
 done:
@@ -371,8 +375,12 @@ done:
 static int
 flushcache(NCZChunkCache* cache)
 {
-    cache->maxentries = 0;
-    return constraincache(cache);
+    int stat = NC_NOERR;
+    size_t oldsize = cache->params.size;
+    cache->params.size = 0;
+    stat = constraincache(cache);
+    cache->params.size = oldsize;
+    return stat;
 }
 
 
@@ -391,7 +399,7 @@ constraincache(NCZChunkCache* cache)
     if(cache->used == 0) goto done;
 
     /* Flush from LRU end if we are at capacity */
-    while(nclistlength(cache->mru) > cache->maxentries || cache->used > cache->maxsize) {
+    while(nclistlength(cache->mru) > cache->params.nelems || cache->used > cache->params.size) {
 	int i;
 	void* ptr;
 	NCZCacheEntry* e = ncxcachelast(cache->xcache); /* last entry is the least recently used */
@@ -858,8 +866,8 @@ NCZ_printxcache(NCZChunkCache* cache)
     ncbytescat(buf,s);
 
     snprintf(s,sizeof(s),"\tmaxentries=%u\n\tmaxsize=%u\n\tused=%u\n\tdimsep='%c'\n",
-    	(unsigned)cache->maxentries,
-    	(unsigned)cache->maxsize,
+    	(unsigned)cache->params.nelems,
+	(unsigned)cache->params.size,
     	(unsigned)cache->used,
     	cache->dimension_separator
 	);
