@@ -81,7 +81,7 @@ endif
 if USE_HDF5
 if ENABLE_FILTER_TESTING
 extradir =
-check_PROGRAMS += test_filter test_filter_misc test_filter_order test_filter_repeat test_filter_vlen
+check_PROGRAMS += test_filter test_filter_misc test_filter_order test_filter_repeat
 check_PROGRAMS += tst_multifilter tst_filter_vlen
 TESTS += tst_filter.sh
 TESTS += tst_specific_filters.sh

@@ -1,8 +1,6 @@
 #!/bin/bash 
 
-# Test the filter install
-# This cannot be run as a regular test
-# because installation will not have occurred
+# Test filters on non-fixed size variables.
 
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
@@ -95,6 +93,7 @@ if test "x$TESTNCZARR" = x1 ; then
     testset file
     if test "x$FEATURE_NCZARR_ZIP" = xyes ; then testset zip ; fi
     if test "x$FEATURE_S3TESTS" = xyes ; then testset s3 ; fi
+    if test "x$FEATURE_S3TESTS" = xyes ; then s3sdkdelete "/${S3ISOPATH}" ; fi # Cleanup
 else
     testset nc
 fi
