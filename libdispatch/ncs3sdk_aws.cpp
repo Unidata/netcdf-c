@@ -24,11 +24,13 @@
 #define NCTRACEMORE(level,fmt,...) nctracemore((level),fmt,##__VA_ARGS__)
 #define NCUNTRACE(e) ncuntrace(__func__,THROW(e),NULL)
 #define NCUNTRACEX(e,fmt,...) ncuntrace(__func__,THROW(e),fmt,##__VA_ARGS__)
+#define NCUNTRACENOOP(e) NCUNTRACE(e)
 #else
 #define NCTRACE(level,fmt,...)
 #define NCTRACEMORE(level,fmt,...)
 #define NCUNTRACE(e) (e)
 #define NCUNTRACEX(e,fmt,...) (e)
+#define NCUNTRACENOOP(e)
 #endif
 
 #ifdef __CYGWIN__
@@ -37,6 +39,46 @@ extern char* strdup(const char*);
 
 #define size64_t unsigned long long
 
+struct KeySet {
+    size_t nkeys;
+    size_t alloc;
+    char** keys;
+    KeySet() {nkeys = 0; alloc = 0; keys = NULL;}
+    ~KeySet() {clear();}
+    void push(char* key) {
+       if(alloc == 0) {
+           keys = (char**)calloc(10,sizeof(char*));
+	   alloc = 10;
+       }
+       if(nkeys >= alloc) {
+           char** newkeys = (char**)calloc(alloc*2,sizeof(char*));
+	   memcpy(newkeys,keys,sizeof(char*)*nkeys);
+	   alloc *= 2;
+	   free(keys);
+	   keys = newkeys;
+	}     
+	keys[nkeys++] = key;
+    }
+    char** extractkeys() {char** outkeys = keys; keys = NULL; clear(); return outkeys;}
+    char* extractithkey(size_t i) {
+        if(i >= nkeys) return NULL;
+	char* k = keys[i];
+	keys[i] = NULL;
+	return k;
+    }
+    size_t getnkeys() {return nkeys;}
+    void clear() {
+        if(keys) {
+	    for(size_t i=0;i<nkeys;i++)
+	        {if(keys[i] != NULL) free(keys[i]);}
+            free(keys);
+        }
+	nkeys = 0;
+	alloc = 0;
+	keys = NULL;
+    }
+};
+
 static int ncs3_initialized = 0;
 static int ncs3_finalized = 0;
 
@@ -44,16 +86,15 @@ static Aws::SDKOptions ncs3options;
 
 /* Forward */
 static Aws::S3::Model::BucketLocationConstraint s3findregion(const char* name);
-static int s3objectinfo1(const Aws::S3::Model::Object& s3_object, char** fullkeyp, size64_t* lenp);
-static int s3objectsinfo(Aws::Vector<Aws::S3::Model::Object> list, size_t*, char*** keysp, size64_t** lenp);
-static int s3commonprefixes(Aws::Vector<Aws::S3::Model::CommonPrefix> list, char*** keysp);
-static void freestringenvv(char** ss);
+static int s3objectinfo1(const Aws::S3::Model::Object& s3_object, char** fullkeyp);
+static int s3objectsinfo(Aws::Vector<Aws::S3::Model::Object> list, KeySet* keys);
+static int s3commonprefixes(Aws::Vector<Aws::S3::Model::CommonPrefix> list, KeySet* keys);
 static int makes3key(const char* pathkey, const char** keyp);
 static int makes3keydir(const char* prefix, char** prefixdirp);
-static char** mergekeysets(size_t nkeys1, char** keys1, size_t nkeys2, char** keys2);
+static int mergekeysets(KeySet* keys1, KeySet* keys2, KeySet* merge);
     
-static const char*
-dumps3info(NCS3INFO* info)
+const char*
+NCS3_dumps3info(NCS3INFO* info)
 {
     static char text[8192];
     snprintf(text,sizeof(text),"host=%s region=%s bucket=%s rootkey=%s profile=%s",
@@ -73,6 +114,9 @@ NC_s3sdkinitialize(void)
 	ncs3_finalized = 0;
         NCTRACE(11,NULL);
 	Aws::InitAPI(ncs3options);
+#ifdef DEBUG
+	ncs3options.loggingOptions.logLevel = Aws::Utils::Logging::LogLevel::Debug;
+#endif
     }
     return NCUNTRACE(NC_NOERR);
 }
@@ -108,19 +152,12 @@ makeerrmsg(const Aws::Client::AWSError<Aws::S3::S3Errors> err, const char* key="
 static Aws::Client::ClientConfiguration
 s3sdkcreateconfig(NCS3INFO* info)
 {
-    int stat = NC_NOERR;
     NCTRACE(11,"info=%s", dumps3info(info));
 
     Aws::Client::ClientConfiguration config;
 
     if(info->profile)
-#if 0
-        config = new Aws::Client::ClientConfiguration(info->profile);
-    else
-        config = new Aws::Client::ClientConfiguration();
-#else
         config.profileName = info->profile;
-#endif
     config.scheme = Aws::Http::Scheme::HTTPS;
     config.connectTimeoutMs = 300000;
     config.requestTimeoutMs = 600000;
@@ -128,13 +165,14 @@ s3sdkcreateconfig(NCS3INFO* info)
     if(info->host) config.endpointOverride = info->host;
     config.enableEndpointDiscovery = true;
     config.followRedirects = Aws::Client::FollowRedirectsPolicy::ALWAYS;
-    NCUNTRACE(NC_NOERR);
+    NCUNTRACENOOP(NC_NOERR);
     return config;
 }
 
 EXTERNL void*
 NC_s3sdkcreateclient(NCS3INFO* info)
 {
+    int stat = NC_NOERR;
     NCTRACE(11,NULL);
 
     Aws::Client::ClientConfiguration config = s3sdkcreateconfig(info);
@@ -153,7 +191,7 @@ NC_s3sdkcreateclient(NCS3INFO* info)
 			       false);
     }
 //    delete config;
-    NCUNTRACE(NC_NOERR);
+    NCUNTRACENOOP(NC_NOERR);
     return (void*)s3client;
 }
 
@@ -166,9 +204,14 @@ NC_s3sdkbucketexists(void* s3client0, const char* bucket, int* existsp, char** e
 
     NCTRACE(11,"bucket=%s",bucket);
     if(errmsgp) *errmsgp = NULL;
+#if 0
+    char* errmsg = NULL;
     auto result = s3client->ListBuckets();
     if(!result.IsSuccess()) {
-	if(errmsgp) *errmsgp = makeerrmsg(result.GetError());	
+	auto re = result.GetError();
+        errmsg = makeerrmsg(re);
+	fprintf(stderr,">>> errmsg=%s\n",errmsg);
+	if(errmsgp) {*errmsgp = errmsg; errmsg = NULL;}
 	stat = NC_ES3;
     } else {
         Aws::Vector<Aws::S3::Model::Bucket> bucket_list = result.GetResult().GetBuckets();
@@ -177,6 +220,12 @@ NC_s3sdkbucketexists(void* s3client0, const char* bucket, int* existsp, char** e
 	   if(name == bucket) {exists = 1; break;}
 	}
     }
+#else
+    Aws::S3::Model::HeadBucketRequest request;
+    request.SetBucket(bucket);
+    auto result = s3client->HeadBucket(request);
+    exists = result.IsSuccess() ? 1 : 0;
+#endif
     if(existsp) *existsp = exists;
     return NCUNTRACEX(stat,"exists=%d",*existsp);
 }
@@ -398,61 +447,87 @@ Return a list of names of legal objects immediately below a specified key.
 In theory, the returned list should be sorted in lexical order,
 but it possible that it is not.
 */
+static int
+getkeys(void* s3client0, const char* bucket, const char* prefixkey0, const char* delim, size_t* nkeysp, char*** keysp, char** errmsgp)
+{
+    int stat = NC_NOERR;
+    const char* prefix = NULL;
+    char* prefixdir = NULL;
+    bool istruncated = false;
+    char* continuetoken = NULL;
+    Aws::S3::S3Client* s3client = NULL;
+    KeySet commonkeys;
+    KeySet realkeys;
+    KeySet allkeys;
+    
+    NCTRACE(11,"bucket=%s prefixkey0=%s",bucket,prefixkey0);
+    
+    if(*prefixkey0 != '/') {stat = NC_EINTERNAL; goto done;}
+    if(errmsgp) *errmsgp = NULL;
+
+    s3client = (Aws::S3::S3Client*)s3client0;
+
+    do {
+        Aws::S3::Model::ListObjectsV2Request objects_request;
+        if(prefixdir != NULL) free(prefixdir);
+	realkeys.clear();
+	commonkeys.clear();
+        /* Make sure that the prefix ends with '/' */
+        if((stat = makes3keydir(prefixkey0,&prefixdir))) goto done;
+        /* remove leading '/' */
+        if((stat = makes3key(prefixdir,&prefix))) goto done;
+        objects_request.SetBucket(bucket);
+        objects_request.SetPrefix(prefix);
+        if(delim != NULL) {
+            objects_request.SetDelimiter(delim); /* Force return of common prefixes */
+        }
+	if(istruncated && continuetoken != NULL) {
+            objects_request.SetContinuationToken(continuetoken);
+            free(continuetoken); continuetoken = NULL;
+        }
+        auto objects_outcome = s3client->ListObjectsV2(objects_request);
+        if(objects_outcome.IsSuccess()) {
+	    const Aws::S3::Model::ListObjectsV2Result& result = objects_outcome.GetResult();
+	    istruncated = result.GetIsTruncated();
+	    if(istruncated)
+		continuetoken = strdup(result.GetNextContinuationToken().c_str());
+            Aws::Vector<Aws::S3::Model::Object> object_list =
+                objects_outcome.GetResult().GetContents();
+            if((stat = s3objectsinfo(object_list,&realkeys))) goto done;
+	    /* Add common prefixes */
+            Aws::Vector<Aws::S3::Model::CommonPrefix> common_list =
+                objects_outcome.GetResult().GetCommonPrefixes();
+            if((stat = s3commonprefixes(common_list,&commonkeys))) goto done;
+	    /* merge the two lists; target list might not be empty */
+	    if((stat=mergekeysets(&realkeys, &commonkeys, &allkeys))) goto done;
+	} else {
+            if(errmsgp) *errmsgp = makeerrmsg(objects_outcome.GetError());
+            stat = NC_ES3;
+            goto done;
+        }
+    } while(istruncated);
+    if(nkeysp) {*nkeysp = allkeys.getnkeys();}
+    if(keysp) {*keysp = allkeys.extractkeys();}
+done:
+    realkeys.clear();
+    commonkeys.clear();
+    allkeys.clear();
+    if(prefixdir != NULL) free(prefixdir);
+    if(continuetoken != NULL) free(continuetoken);
+    if(stat)
+        return NCUNTRACE(stat);        
+    else
+	return NCUNTRACEX(stat,"nkeys=%u",(unsigned)*nkeysp);
+}
+
+/*
+Return a list of full keys  of legal objects immediately below a specified key.
+Not necessarily sorted.
+*/
 EXTERNL int
 NC_s3sdkgetkeys(void* s3client0, const char* bucket, const char* prefixkey0, size_t* nkeysp, char*** keysp, char** errmsgp)
 {
-    int stat = NC_NOERR;
-    size_t nkeys = 0;
-    const char* prefix = NULL;
-    char* prefixdir = NULL;
-    char** realkeys = NULL;
-    char** commonkeys = NULL;
-    char** allkeys = NULL;
-
-    NCTRACE(11,"bucket=%s prefixkey0=%s",bucket,prefixkey0);
-    
-    Aws::S3::S3Client* s3client = (Aws::S3::S3Client*)s3client0;
-    Aws::S3::Model::ListObjectsV2Request objects_request;
-
-    if(*prefixkey0 != '/') return NCUNTRACE(NC_EINTERNAL);
-    /* Make sure that the prefix ends with '/' */
-    if((stat = makes3keydir(prefixkey0,&prefixdir))) return NCUNTRACE(stat);        
-    /* remove leading '/' */
-    if((stat = makes3key(prefixdir,&prefix))) return NCUNTRACE(stat);
-
-    if(errmsgp) *errmsgp = NULL;
-    objects_request.SetBucket(bucket);
-    objects_request.SetPrefix(prefix);
-    objects_request.SetDelimiter("/"); /* Force return of common prefixes */
-    auto objects_outcome = s3client->ListObjectsV2(objects_request);
-    if(objects_outcome.IsSuccess()) {
-	size_t nrealkeys = 0;
-	size_t ncommonkeys = 0;	
-        Aws::Vector<Aws::S3::Model::Object> object_list =
-            objects_outcome.GetResult().GetContents();
-        nrealkeys = (size_t)object_list.size();
-        stat = s3objectsinfo(object_list,NULL,&realkeys,NULL);
-	/* Add common prefixes */
-        Aws::Vector<Aws::S3::Model::CommonPrefix> common_list =
-            objects_outcome.GetResult().GetCommonPrefixes();
-        ncommonkeys = (size_t)common_list.size();
-        stat = s3commonprefixes(common_list,&commonkeys);
-	/* merge the two lists */
-	if((allkeys=mergekeysets(nrealkeys, realkeys, ncommonkeys, commonkeys))==NULL)
-	    stat = NC_ENOMEM;
-	if(stat == NC_NOERR) {
-            if(nkeysp) {*nkeysp = nrealkeys + ncommonkeys;}
-	    if(keysp) {*keysp = allkeys; allkeys = NULL;}
-	}
-	freestringenvv(allkeys);
-	freestringenvv(realkeys);
-	freestringenvv(commonkeys);
-    } else {
-        if(errmsgp) *errmsgp = makeerrmsg(objects_outcome.GetError());
-        stat = NC_ES3;
-    }
-    if(prefixdir) free(prefixdir);
-    return NCUNTRACEX(stat,"nkeys=%u",(unsigned)*nkeysp);
+    return getkeys(s3client0, bucket, prefixkey0, "/", nkeysp, keysp, errmsgp);
 }
 
 /*
@@ -462,63 +537,7 @@ Not necessarily sorted.
 EXTERNL int
 NC_s3sdksearch(void* s3client0, const char* bucket, const char* prefixkey0, size_t* nkeysp, char*** keysp, char** errmsgp)
 {
-    int stat = NC_NOERR;
-    size_t nkeys = 0;
-    const char* prefix = NULL;
-    char* prefixdir = NULL;
-    char** keys = NULL;
-
-    NCTRACE(11,"bucket=%s prefixkey0=%s",bucket,prefixkey0);
-
-    Aws::S3::S3Client* s3client = (Aws::S3::S3Client*)s3client0;
-    Aws::S3::Model::ListObjectsV2Request objects_request;
-
-    if(*prefixkey0 != '/') return NCUNTRACE(NC_EINTERNAL);
-    /* Make sure that the prefix ends with '/' */
-    if((stat = makes3keydir(prefixkey0,&prefixdir))) return NCUNTRACE(stat);        
-    /* remove leading '/' */
-    if((stat = makes3key(prefixdir,&prefix))) return NCUNTRACE(stat);
-
-    if(errmsgp) *errmsgp = NULL;
-    objects_request.SetBucket(bucket);
-    objects_request.SetPrefix(prefix);
-    /* Do not use delimiter so we get all full key paths */
-    auto objects_outcome = s3client->ListObjectsV2(objects_request);
-    if(objects_outcome.IsSuccess()) {
-	size_t nkeys = 0;
-        Aws::Vector<Aws::S3::Model::Object> object_list =
-            objects_outcome.GetResult().GetContents();
-        nkeys = (size_t)object_list.size();
-        if((keys=(char**)calloc(sizeof(char*),(nkeys+1)))==NULL) /* NULL terminate list */
-            stat = NC_ENOMEM;
-        if(!stat)  {
-	    int i;
-            i = 0;
-            for (auto const &s3obj : object_list) {
-		const char* s;
-	        const Aws::String& name = s3obj.GetKey();
-		s = name.c_str();
-		if(s != NULL) {
-		    char* p;
-		    size_t slen = name.length();
-		    p = (char*)malloc(slen+1+1); /* nul plus leading '/' */
-		    if(s[0] != '/') {p[0] = '/'; memcpy(p+1,s,slen); slen++;} else {memcpy(p,s,slen);}
-		    p[slen] = '\0';
-		    keys[i++] = p;
-		}
-	    }
-	}
-	if(stat == NC_NOERR) {
-            if(nkeysp) {*nkeysp = nkeys;}
-	    if(keysp) {*keysp = keys; keys = NULL;}
-	}
-	freestringenvv(keys);
-    } else {
-        if(errmsgp) *errmsgp = makeerrmsg(objects_outcome.GetError());
-        stat = NC_ES3;
-    }
-    if(prefixdir) free(prefixdir);
-    return NCUNTRACEX(stat,"nkeys=%u",(unsigned)*nkeysp);
+    return getkeys(s3client0, bucket, prefixkey0, NULL, nkeysp, keysp, errmsgp);
 }
 
 EXTERNL int
@@ -532,7 +551,7 @@ NC_s3sdkdeletekey(void* s3client0, const char* bucket, const char* pathkey, char
     Aws::S3::S3Client* s3client = (Aws::S3::S3Client*)s3client0;
     Aws::S3::Model::DeleteObjectRequest delete_request;
 
-    if(*pathkey != '/') return NC_EINTERNAL;
+    assert(pathkey != NULL && *pathkey == '/');
     if((stat = makes3key(pathkey,&key))) return NCUNTRACE(stat);
     /* Delete this key object */
     delete_request.SetBucket(bucket);
@@ -549,7 +568,7 @@ NC_s3sdkdeletekey(void* s3client0, const char* bucket, const char* pathkey, char
 Get Info about a single object from a vector
 */
 static int
-s3objectinfo1(const Aws::S3::Model::Object& s3_object, char** fullkeyp, size64_t* lenp)
+s3objectinfo1(const Aws::S3::Model::Object& s3_object, char** fullkeyp)
 {
     int stat = NC_NOERR;
     char* cstr = NULL;
@@ -577,9 +596,6 @@ s3objectinfo1(const Aws::S3::Model::Object& s3_object, char** fullkeyp, size64_t
 	    cstr = NULL;
 	}
     }
-    if(!stat) {
-        if(lenp) *lenp = (size64_t)s3_object.GetSize();
-    }
     if(cstr) free(cstr);
     return stat;
 }
@@ -588,73 +604,45 @@ s3objectinfo1(const Aws::S3::Model::Object& s3_object, char** fullkeyp, size64_t
 Get Info about a vector of objects; Keys are fixed up to start with a '/'
 */
 static int
-s3objectsinfo(Aws::Vector<Aws::S3::Model::Object> list, size_t* nkeysp, char*** keysp, size64_t** lenp)
+s3objectsinfo(Aws::Vector<Aws::S3::Model::Object> list, KeySet* keys)
 {
     int stat = NC_NOERR;
-    char** keys = NULL;
-    size_t nkeys;
-    size64_t *lengths = NULL;
     int i;
 
-    nkeys = list.size();
-    if(nkeysp) *nkeysp = nkeys;
-    if((keys=(char**)calloc(sizeof(char*),(nkeys+1)))==NULL)
-        stat = NC_ENOMEM;
-    if(!stat) {
-        if((lengths=(size64_t*)calloc(sizeof(size64_t),(nkeys)))==NULL)
-            stat = NC_ENOMEM;
+    i = 0;
+    for (auto const &s3_object : list) {
+	char* akey = NULL;
+        stat = s3objectinfo1(s3_object,&akey);
+        i++;
+        if(stat) break;
+	keys->push(akey);
     }
-    if(!stat)  {
-        i = 0;
-        for (auto const &s3_object : list) {
-            stat = s3objectinfo1(s3_object,&keys[i],&lengths[i]);
-            i++;
-	    if(stat) break;
-	}
-    }
-    if(!stat) {
-        if(keysp) {keys[nkeys] = NULL; *keysp = keys; keys = NULL;}
-        if(lenp) {*lenp = lengths; lengths = NULL;}
-    }
-    if(keys != NULL) freestringenvv(keys);
-    if(lengths != NULL) free(lengths);
     return stat;
 }
 
 static int
-s3commonprefixes(Aws::Vector<Aws::S3::Model::CommonPrefix> list, char*** keysp)
+s3commonprefixes(Aws::Vector<Aws::S3::Model::CommonPrefix> list, KeySet* keys)
 {
     int stat = NC_NOERR;
-    char** keys = NULL;
-    size_t nkeys;
-    int i;
 
-    nkeys = list.size();
-    if((keys=(char**)calloc(sizeof(char*),(nkeys+1)))==NULL)
-        stat = NC_ENOMEM;
-    if(!stat)  {
-        i = 0;
-        for (auto const &s3prefix : list) {
-	    char* p; const char* px; char* p1;
-	    size_t len, alloc;
-	    const Aws::String& prefix = s3prefix.GetPrefix();
-	    len = prefix.length();
-	    alloc = len + 1 + 1; /* for nul + leading '/' */
-	    if((p = (char*) malloc(alloc))==NULL)
-		stat = NC_ENOMEM;
-	    if(stat == NC_NOERR) {
-		px = prefix.c_str();
-		p1 = p;
-		if(*px != '/') *p1++ = '/';
-		memcpy(p1,px,len);
-		p1 += len;
-		*p1 = '\0';
-	        keys[i++] = p;
-	    }
+    for (auto const &s3prefix : list) {
+        char* p; const char* px; char* p1;
+	size_t len, alloc;
+	const Aws::String& prefix = s3prefix.GetPrefix();
+	len = prefix.length();
+	alloc = len + 1 + 1; /* for nul + leading '/' */
+	if((p = (char*) malloc(alloc))==NULL)
+	    stat = NC_ENOMEM;
+	if(stat == NC_NOERR) {
+	    px = prefix.c_str();
+	    p1 = p;
+	    if(*px != '/') *p1++ = '/';
+	    memcpy(p1,px,len);
+	    p1 += len;
+	    *p1 = '\0';
+	    keys->push(p);
 	}
     }
-    if(keysp) {keys[nkeys] = NULL; *keysp = keys; keys = NULL;}
-    if(keys != NULL) freestringenvv(keys);
     return stat;
 }
 
@@ -671,6 +659,7 @@ struct MemBuf: std::streambuf {
     }
 };
 
+#if 0
 static void
 freestringenvv(char** ss)
 {
@@ -681,6 +670,7 @@ freestringenvv(char** ss)
         free(ss);
     }
 }
+#endif
 
 static int
 makes3key(const char* pathkey, const char** keyp)
@@ -705,25 +695,13 @@ makes3keydir(const char* prefix, char** prefixdirp)
     return NC_NOERR;
 }
 
-static char**
-mergekeysets(size_t nkeys1, char** keys1, size_t nkeys2, char** keys2)
+static int
+mergekeysets(KeySet* keys1, KeySet* keys2, KeySet* merge)
 {
-    char** merge = NULL;
-    char** p1;
-    char** p2;
-
-    merge = (char**)malloc(sizeof(char*)*(nkeys1+nkeys2+1));
-    if(merge == NULL) return NULL;
-    if(nkeys1 > 0) {
-        memcpy(merge,keys1,sizeof(char*)*nkeys1);
-        /* avoid double free */
-        memset(keys1,0,sizeof(char*)*nkeys1);
-    }
-    if(nkeys2 > 0) {
-        memcpy(merge+nkeys1,keys2,sizeof(char*)*nkeys2);
-        /* avoid double free */
-        memset(keys2,0,sizeof(char*)*nkeys2);
-    }
-    merge[nkeys1+nkeys2] = NULL;   
-    return merge;
+    size_t i;
+    for(i=0;i<keys1->getnkeys();i++)
+	merge->push(keys1->extractithkey(i));
+    for(i=0;i<keys2->getnkeys();i++)
+	merge->push(keys2->extractithkey(i));
+    return NC_NOERR;
 }

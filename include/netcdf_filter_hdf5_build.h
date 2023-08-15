@@ -27,6 +27,10 @@
 #include "config.h"
 #endif
 
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdio.h>
+
 /* Support headers */
 #include <netcdf.h>
 #include <netcdf_filter.h>
@@ -142,7 +146,7 @@ typedef const void* (*H5PL_get_plugin_info_proto)(void);
 #define H5MM_realloc realloc
 #endif
 #ifndef H5MM_xfree
-#define H5MM_xfree nullfree
+#define H5MM_xfree(x) do{if((x)!=NULL) free(x);}while(0)
 #endif
 #ifndef H5_ATTR_UNUSED
 #define H5_ATTR_UNUSED 

@@ -41,9 +41,9 @@ DAP4 Support:		@HAS_DAP4@
 Byte-Range Support:	@HAS_BYTERANGE@
 
 S3 Support:	        @HAS_S3@
+S3 SDK:  	        @WHICH_S3_SDK@
 
 NCZarr Support:		@HAS_NCZARR@
-NCZarr Zip Support:     @HAS_NCZARR_ZIP@
 
 Diskless Support:	@HAS_DISKLESS@
 MMap Support:		@HAS_MMAP@
@@ -51,11 +51,9 @@ JNA Support:		@HAS_JNA@
 ERANGE Fill Support:	@HAS_ERANGE_FILL@
 Relaxed Boundary Check:	@RELAX_COORD_BOUND@
 
-Multi-Filter Support:	@HAS_MULTIFILTERS@
 Quantization:		@HAS_QUANTIZE@
 Logging:     		@HAS_LOGGING@
 SZIP Write Support:     @HAS_SZLIB_WRITE@
 Standard Filters:       @STD_FILTERS@
 ZSTD Support:           @HAS_ZSTD@
 Parallel Filters:       @HAS_PAR_FILTERS@
-

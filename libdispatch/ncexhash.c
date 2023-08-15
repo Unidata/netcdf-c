@@ -855,6 +855,7 @@ ncexhashprintstats(NCexhashmap* map)
     fprintf(stderr," load=%g",leafload);
     fprintf(stderr,"]\n");
     dirsize = (1ULL<<(map->depth))*((unsigned long long)sizeof(void*));
+
     leafsize = (nleaves)*((unsigned long long)sizeof(NCexleaf));
     total = dirsize + leafsize;
     fprintf(stderr,"\tsizeof(directory)=%llu sizeof(leaves)=%lld total=%lld\n",

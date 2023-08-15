@@ -105,7 +105,7 @@ mergecase3() {
     # Test cross file overrides
     resetrc
     rm -f tmp_rcmerge.txt tmp_rcmerge.txt
-    echo "ncrc=ncrc1" >> $HOME/.ncrc
+    echo "ncrc=ncrc1" >> $RCHOME/.ncrc
     echo "ncrcx=ncrcx" >> $RCHOME/.ncrc
     echo "ncrc=ncrc2" >> $RCHOME/.dodsrc
     echo "daprc=daprc" >> $RCHOME/.daprc
@@ -135,9 +135,6 @@ resetrc
 mergecase1
 mergecase2
 mergecase3
-# Test the .rc api
-rcapi1
-
 # Test the .rc api
 rcapi1
 

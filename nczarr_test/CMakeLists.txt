@@ -13,16 +13,18 @@ FILE(READ ${CMAKE_CURRENT_SOURCE_DIR}/../nc_test4/tst_quantize.c QSOURCE)
 FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/test_quantize.c "#define TESTNCZARR\n")
 FILE(APPEND ${CMAKE_CURRENT_BINARY_DIR}/test_quantize.c "${QSOURCE}")
 
-FILE(READ ${CMAKE_CURRENT_SOURCE_DIR}/../nc_test4/tst_filter_avail.c ASOURCE)
+FILE(READ ${CMAKE_CURRENT_SOURCE_DIR}/../nc_test4/tst_filter_vlen.c ASOURCE)
 STRING(PREPEND ASOURCE "#define TESTNCZARR\n")
-FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/test_filter_avail.c "${ASOURCE}")
+FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/test_filter_vlen.c "${ASOURCE}")
 
 FILE(READ ${CMAKE_CURRENT_SOURCE_DIR}/../nc_test4/tst_specific_filters.sh SPSOURCE)
 STRING(PREPEND SPSOURCE "#!/bin/bash\n")
 STRING(PREPEND SPSOURCE "TESTNCZARR=1\n")
 # Replace with FILE(CONFIGURE) when cmake 3.18 is in common use
+
 FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/run_specific_filters.1 "${SPSOURCE}")
 CONFIGURE_FILE(${CMAKE_CURRENT_BINARY_DIR}/run_specific_filters.1 ${CMAKE_CURRENT_BINARY_DIR}/run_specific_filters.sh FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE @ONLY NEWLINE_STYLE LF)
+
 FILE(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/run_specific_filters.1)
 	
 FILE(READ ${CMAKE_CURRENT_SOURCE_DIR}/../nc_test4/tst_unknown.sh SPSOURCE)
@@ -32,6 +34,14 @@ STRING(PREPEND SPSOURCE "TESTNCZARR=1\n")
 FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/run_unknown.1 "${SPSOURCE}")
 CONFIGURE_FILE(${CMAKE_CURRENT_BINARY_DIR}/run_unknown.1 ${CMAKE_CURRENT_BINARY_DIR}/run_unknown.sh FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE @ONLY NEWLINE_STYLE LF)
 FILE(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/run_unknown.1)
+	
+FILE(READ ${CMAKE_CURRENT_SOURCE_DIR}/../nc_test4/tst_filter_vlen.sh SPSOURCE)
+STRING(PREPEND SPSOURCE "#!/bin/bash\n")
+STRING(PREPEND SPSOURCE "TESTNCZARR=1\n")
+# Replace with FILE(CONFIGURE) when cmake 3.18 is in common use
+FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/run_filter_vlen.1 "${SPSOURCE}")
+CONFIGURE_FILE(${CMAKE_CURRENT_BINARY_DIR}/run_filter_vlen.1 ${CMAKE_CURRENT_BINARY_DIR}/run_filter_vlen.sh FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE @ONLY NEWLINE_STYLE LF)
+FILE(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/run_filter_vlen.1)
 	
 FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.sh
 ${CMAKE_CURRENT_SOURCE_DIR}/ref*.cdl
@@ -76,16 +86,18 @@ IF(ENABLE_TESTS)
   TARGET_INCLUDE_DIRECTORIES(tst_fillonlyz PUBLIC ../libnczarr)
 
   # Helper programs for testing
-  BUILD_BIN_TEST(zmapio ${COMMONSRC})
-  TARGET_INCLUDE_DIRECTORIES(zmapio PUBLIC ../libnczarr)
   BUILD_BIN_TEST(zhex)
   BUILD_BIN_TEST(zisjson ${COMMONSRC})
   TARGET_INCLUDE_DIRECTORIES(zisjson PUBLIC ../libnczarr)
   BUILD_BIN_TEST(zs3parse ${COMMONSRC})
   TARGET_INCLUDE_DIRECTORIES(zs3parse PUBLIC ../libnczarr)
-  if(ENABLE_S3)
-      BUILD_BIN_TEST(s3util ${COMMONSRC})
-      TARGET_INCLUDE_DIRECTORIES(s3util PUBLIC ../libnczarr)
+  BUILD_BIN_TEST(zmapio ${COMMONSRC})
+  TARGET_INCLUDE_DIRECTORIES(zmapio PUBLIC ../libnczarr)
+
+  IF(ENABLE_S3 AND NOT WITH_S3_TESTING STREQUAL "NO")
+  # Helper programs for testing
+  BUILD_BIN_TEST(s3util ${COMMONSRC})
+  TARGET_INCLUDE_DIRECTORIES(s3util PUBLIC ../libnczarr)
   endif()
   
   SET(ncdumpchunks_SOURCE ncdumpchunks.c)
@@ -116,6 +128,7 @@ IF(ENABLE_TESTS)
     add_sh_test(nczarr_test run_strings)
     add_sh_test(nczarr_test run_scalar)
     add_sh_test(nczarr_test run_nulls)
+    add_sh_test(nczarr_test run_external)
 
     BUILD_BIN_TEST(test_quantize ${TSTCOMMONSRC})
     add_sh_test(nczarr_test run_quantize)
@@ -127,22 +140,25 @@ IF(ENABLE_TESTS)
 	add_sh_test(nczarr_test run_s3_cleanup)
     ENDIF()
 
-    IF(ENABLE_FILTER_TESTING)
-	build_bin_test(tst_nczfilter)
-	build_bin_test(testfilter)
-	build_bin_test(testfilter_misc)
-	build_bin_test(testfilter_multi)
-	build_bin_test(testfilter_order)
-	build_bin_test(testfilter_repeat)
-	build_bin_test(test_filter_avail)
-	ADD_SH_TEST(nczarr_test run_nczfilter)
-	ADD_SH_TEST(nczarr_test run_filter)
-	ADD_SH_TEST(nczarr_test run_unknown)
-	ADD_SH_TEST(nczarr_test run_specific_filters)
-    ENDIF(ENABLE_FILTER_TESTING)
-    if(ENABLE_NCZARR_ZIP)
-        add_sh_test(nczarr_test run_newformat)
-    endif()
+  IF(ENABLE_FILTER_TESTING)
+	  build_bin_test(tst_nczfilter)
+	  build_bin_test(testfilter)
+	  build_bin_test(testfilter_misc)
+	  build_bin_test(testfilter_multi)
+	  build_bin_test(testfilter_order)
+	  build_bin_test(testfilter_repeat)
+	  ADD_SH_TEST(nczarr_test run_nczfilter)
+	  ADD_SH_TEST(nczarr_test run_filter)
+	  ADD_SH_TEST(nczarr_test run_specific_filters)
+	  IF(FALSE)
+	    # This test is too dangerous to run in a parallel make environment.
+            # It causes race conditions. So suppress and only test by hand.
+            ADD_SH_TEST(nczarr_test run_unknown)
+	  ENDIF(FALSE)
+  ENDIF(ENABLE_FILTER_TESTING)
+  if(ENABLE_NCZARR_ZIP)
+      add_sh_test(nczarr_test run_newformat)
+  endif()
 
   ENDIF(BUILD_UTILITIES)
 

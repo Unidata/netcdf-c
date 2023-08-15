@@ -205,14 +205,14 @@ test_keywords.sh ref_keyword1.cdl ref_keyword2.cdl ref_keyword3.cdl ref_keyword4
 ref_tst_nofilters.cdl test_scope.sh  \
 test_rcmerge.sh ref_rcmerge1.txt ref_rcmerge2.txt ref_rcmerge3.txt \
 scope_ancestor_only.cdl scope_ancestor_subgroup.cdl scope_group_only.cdl scope_preorder.cdl \
-ref_rcapi.txt ref_tst_enum_undef.cdl tst_calendars_nc4.cdl ref_times_nc4.cdl
+ref_rcapi.txt ref_tst_enum_undef.cdl tst_calendars_nc4.cdl ref_times_nc4.cdl ref_tst_comp2.cdl
 
 # The L512.bin file is file containing exactly 512 bytes each of value 0.
 # It is used for creating hdf5 files with varying offsets for testing.
 EXTRA_DIST += L512.bin
 
 EXTRA_DIST += tst_ctests.sh ref_ctest_small_3.c ref_ctest_small_4.c \
-	ref_ctest_special_atts_4.c
+	ref_ctest_special_atts_4.c test_ncdump.sh
 
 EXTRA_DIST += testpathcvt.sh ref_pathcvt.txt
 
@@ -251,5 +251,4 @@ scope_*.nc copy_scope_*.cdl keyword5.nc tst_enum_undef.cdl tst_times_nc4.cdl
 
 # Remove directories
 clean-local:
-	rm -fr rcmergedir rchome
-
+	rm -fr rcmergedir rchome testdir_ncdump_*
