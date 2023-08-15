@@ -77,6 +77,7 @@
 /** @} */
 
 #include <stdlib.h>
+#include <assert.h>
 #include "ncexternl.h"
 
 #if defined(_MSC_VER) && _MSC_VER < 1800
