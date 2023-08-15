@@ -22,7 +22,7 @@ zext=$1
 fileargs tmp_fillonly
 deletemap $zext $file
 ${NCGEN} -4 -b -o "$fileurl" $srcdir/ref_fillonly.cdl
-${execdir}/tst_fillonlyz${ext} "$fileurl"
+${execdir}/test_fillonlyz${ext} "$fileurl"
 }
 
 testcase file

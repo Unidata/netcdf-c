@@ -37,7 +37,7 @@ if test "x$S3ISOPATH" = x ; then
   if test "x$ISOPATH" = x ; then isolate "$1"; fi
   S3ISODIR="$ISODIR"
   S3ISOPATH="netcdf-c"
-  if test "x$S3ISODIR" == x ; then
+  if test "x$S3ISODIR" = x ; then
     S3ISODIR=`${execdir}/../libdispatch/ncrandom`
   fi
   S3ISOPATH="${S3ISOPATH}/$S3ISODIR"

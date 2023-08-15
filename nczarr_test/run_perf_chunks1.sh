@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# This shell just tests the tst_chunks3 program by running it a few
+# This shell just tests the test_chunks3 program by running it a few
 # times to generate a simple test file. Then it uses ncdump -s to
 # check that the output is what it should be.
 # Copied from nc_perf/.

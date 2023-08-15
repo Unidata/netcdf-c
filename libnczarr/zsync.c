@@ -102,9 +102,17 @@ ncz_collect_dims(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NCjson** jdimsp)
     for(i=0; i<ncindexsize(grp->dim); i++) {
 	NC_DIM_INFO_T* dim = (NC_DIM_INFO_T*)ncindexith(grp->dim,i);
 	char slen[128];
-	snprintf(slen,sizeof(slen),"%llu",(unsigned long long)dim->len);
+        NCjson* jdimargs = NULL;
+	NCJnew(NCJ_DICT,&jdimargs);
+        snprintf(slen,sizeof(slen),"%llu",(unsigned long long)dim->len);
+	if((stat = NCJaddstring(jdimargs,NCJ_STRING,"size"))) goto done;
+	if((stat = NCJaddstring(jdimargs,NCJ_INT,slen))) goto done;
+	if(dim->unlimited) {
+  	    if((stat = NCJaddstring(jdimargs,NCJ_STRING,"unlimited"))) goto done;
+	    if((stat = NCJaddstring(jdimargs,NCJ_INT,"1"))) goto done;
+	}
 	if((stat = NCJaddstring(jdims,NCJ_STRING,dim->hdr.name))) goto done;
-	if((stat = NCJaddstring(jdims,NCJ_INT,slen))) goto done;
+	if((stat = NCJappend(jdims,jdimargs))) goto done;
     }
     if(jdimsp) {*jdimsp = jdims; jdims = NULL;}
 done:
@@ -1378,7 +1386,7 @@ done:
  *
  * @param file Pointer to file info struct.
  * @param grp Pointer to grp info struct.
- * @param diminfo List of (name,length) pairs
+ * @param diminfo List of (name,length,isunlimited) triples
  *
  * @return ::NC_NOERR No error.
  * @author Dennis Heimbigner
@@ -1391,18 +1399,23 @@ define_dims(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* diminfo)
     ZTRACE(3,"file=%s grp=%s |diminfo|=%u",file->controller->path,grp->hdr.name,nclistlength(diminfo));
 
     /* Reify each dim in turn */
-    for(i = 0; i < nclistlength(diminfo); i+=2) {
+    for(i = 0; i < nclistlength(diminfo); i+=3) {
 	NC_DIM_INFO_T* dim = NULL;
 	size64_t len = 0;
+	long long isunlim = 0;
 	const char* name = nclistget(diminfo,i);
-	const char* value = nclistget(diminfo,i+1);
+	const char* slen = nclistget(diminfo,i+1);
+	const char* sisunlimited = nclistget(diminfo,i+2);
 
 	/* Create the NC_DIM_INFO_T object */
-	sscanf(value,"%lld",&len); /* Get length */
-	if(len <= 0)
-	    {stat = NC_EDIMSIZE; goto done;}
+	sscanf(slen,"%lld",&len); /* Get length */
+	if(sisunlimited != NULL)
+	    sscanf(sisunlimited,"%lld",&isunlim); /* Get unlimited flag */
+	else
+	    isunlim = 0;
 	if((stat = nc4_dim_list_add(grp, name, (size_t)len, -1, &dim)))
 	    goto done;
+	dim->unlimited = (isunlim ? 1 : 0);
 	if((dim->format_dim_info = calloc(1,sizeof(NCZ_DIM_INFO_T))) == NULL)
 	    {stat = NC_ENOMEM; goto done;}
 	((NCZ_DIM_INFO_T*)dim->format_dim_info)->common.file = file;
@@ -1675,7 +1688,7 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 		/* validate the chunk sizes */
 		zvar->chunkproduct = 1;
 		for(j=0;j<rank;j++) {
-		    if(chunks[j] == 0 || chunks[j] > shapes[j])
+		    if(chunks[j] == 0)
 			{stat = (THROW(NC_ENCZARR)); goto done;}
 		    var->chunksizes[j] = (size_t)chunks[j];
 		    zvar->chunkproduct *= chunks[j];
@@ -1917,18 +1930,30 @@ parse_group_content(NCjson* jcontent, NClist* dimdefs, NClist* varnames, NClist*
 	/* Extract the dimensions defined in this group */
 	for(i=0;i<NCJlength(jvalue);i+=2) {
 	    NCjson* jname = NCJith(jvalue,i);
-	    NCjson* jlen = NCJith(jvalue,i+1);
+	    NCjson* jleninfo = NCJith(jvalue,i+1);
+    	    NCjson* jtmp = NULL;
+       	    const char* slen = "0";
+       	    const char* sunlim = "0";
 	    char norm_name[NC_MAX_NAME + 1];
-	    size64_t len;
 	    /* Verify name legality */
 	    if((stat = nc4_check_name(NCJstring(jname), norm_name)))
 		{stat = NC_EBADNAME; goto done;}
 	    /* check the length */
-	    sscanf(NCJstring(jlen),"%lld",&len);
-	    if(len < 0)
-		{stat = NC_EDIMSIZE; goto done;}
+            if(NCJsort(jleninfo) == NCJ_DICT) {
+		if((stat = NCJdictget(jleninfo,"size",&jtmp))) goto done;
+		if(jtmp== NULL)
+		    {stat = NC_EBADNAME; goto done;}
+		slen = NCJstring(jtmp);
+		/* See if unlimited */
+		if((stat = NCJdictget(jleninfo,"unlimited",&jtmp))) goto done;
+	        if(jtmp == NULL) sunlim = "0"; else sunlim = NCJstring(jtmp);
+            } else if(jleninfo != NULL && NCJsort(jleninfo) == NCJ_INT) {
+		slen = NCJstring(jleninfo);		
+	    } else
+		{stat = NC_ENCZARR; goto done;}
 	    nclistpush(dimdefs,strdup(norm_name));
-	    nclistpush(dimdefs,strdup(NCJstring(jlen)));
+	    nclistpush(dimdefs,strdup(slen));
+    	    nclistpush(dimdefs,strdup(sunlim));
 	}
     }
 

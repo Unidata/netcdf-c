@@ -35,7 +35,7 @@ main(int argc, char** argv)
     zutester.print = ut_chunk_print;
     zutest = &zutester;
 
-    if((stat = NCZ_projectslices(var->dimsizes, var->chunksizes, utoptions.slices, &common, &odom)))
+    if((stat = NCZ_projectslices(&common, utoptions.slices, &odom)))
 	goto done;
 
 #if 0

@@ -197,6 +197,7 @@ isolate() {
 local rnd
 if test "x$ISOPATH" = x ; then
   ISOPATH=${builddir}
+  if test "x$NOISOPATH" = x ; then  
   ISODIR="$1"
   if test "x$ISODIR" != x ; then
     # Make sure the path is unique
@@ -205,6 +206,7 @@ if test "x$ISOPATH" = x ; then
     ISOPATH="${ISOPATH}/$ISODIR"
     rm -fr $ISOPATH
     mkdir $ISOPATH
+  fi
   fi
 fi
 }

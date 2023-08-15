@@ -1,3 +1,4 @@
+#define TESTNCZARR
 /* This is part of the netCDF package.
    Copyright 2020 University Corporation for Atmospheric Research/Unidata
    See COPYRIGHT file for conditions of use.

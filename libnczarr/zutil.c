@@ -1044,8 +1044,10 @@ NCZ_char2fixed(const char** charp, void* fixed, size_t count, int maxstrlen)
 Wrap NC_copy_data, but take string value into account when overwriting
 */
 int
-NCZ_copy_data(NC_FILE_INFO_T* file, NC_TYPE_INFO_T* xtype, const void* memory, size_t count, int noclear, void* copy)
+NCZ_copy_data(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, const void* memory, size_t count, int noclear, void* copy)
 {
+    int stat = NC_NOERR;    
+    NC_TYPE_INFO_T* xtype = var->type_info;
     if(xtype->hdr.id == NC_STRING && !noclear) {
 	size_t i;
 	char** scopy = (char**)copy;
@@ -1055,7 +1057,8 @@ NCZ_copy_data(NC_FILE_INFO_T* file, NC_TYPE_INFO_T* xtype, const void* memory, s
 	    scopy[i] = NULL;
 	}
     }
-    return NC_copy_data(file->controller,xtype->hdr.id,memory,count,copy);
+    stat = NC_copy_data(file->controller,xtype->hdr.id,memory,count,copy);
+    return stat;
 }
 
 #if 0

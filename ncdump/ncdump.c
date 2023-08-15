@@ -1764,8 +1764,8 @@ do_ncdump_rec(int ncid, const char *path)
    memset((void*)&var,0,sizeof(var));
 
    /* For each var, get and print out info. */
-
    for (varid = 0; varid < nvars; varid++) {
+      memset((void*)&var,0,sizeof(var));
       NC_CHECK( nc_inq_varndims(ncid, varid, &var.ndims) );
       if(var.dims != NULL) free(var.dims);
       var.dims = (int *) emalloc((var.ndims + 1) * sizeof(int));

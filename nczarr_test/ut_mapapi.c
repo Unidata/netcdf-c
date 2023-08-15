@@ -16,7 +16,6 @@
 #define FAIL 0
 #define XFAIL -1
 
-
 static const char* metadata1 = "{\n\"foo\": 42,\n\"bar\": \"apples\",\n\"baz\": [1, 2, 3, 4]}";
 static const char* metaarray1 = "{\n\"shape\": [1,2,3],\n\"dtype\": \"<1\"}";
 

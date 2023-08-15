@@ -8,8 +8,8 @@ set -e
 # Test chunking code
 
 # Control which test sets are executed
-# possible sets: proj walk
-TESTS=proj
+# possible sets: proj(obsolete) walk
+TESTS=walk
 
 # Functions
 
@@ -42,7 +42,7 @@ for T in $TESTS ; do
 case "$T" in
 
 proj)
-echo ""; echo "*** Test projection computations"
+echo ""; echo "*** Test projection computations: obsolete"
 echo ""; echo "*** Test 1"
 testproj
 ;;
