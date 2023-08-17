@@ -27,7 +27,7 @@ jobs:
         with:
           msystem: MINGW64
           update: true
-          install: git mingw-w64-x86_64-toolchain automake libtool autoconf make cmake mingw-w64-x86_64-hdf5 unzip mingw-w64-x86_64-libxml2 mingw-w64-x86_64-ntldd
+          install: git mingw-w64-x86_64-toolchain automake libtool autoconf make cmake mingw-w64-x86_64-hdf5 unzip mingw-w64-x86_64-libxml2
 
 ###
 # Configure and build
@@ -48,9 +48,7 @@ jobs:
         run: cat libnetcdf.settings
 
       - name: (Autotools) Build Library and Utilities
-        run: |
-            make -j 8 LDFLAGS="-Wl,--export-all-symbols"
-            find . -name '*.dll'
+        run: make -j 8 LDFLAGS="-Wl,--export-all-symbols"
         if: ${{ success() }}
 
       - name: Check for plugins

@@ -346,9 +346,6 @@ jobs:
         shell: bash -l {0}
         run: |
           cd build
-          echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-          cat nczarr_test/run_specific_filters.sh
-          echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
           LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest --output-on-failure -j 12 .
         if: ${{ success() }}
 
