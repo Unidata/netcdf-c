@@ -120,6 +120,12 @@ IF(ENABLE_TESTS)
     TARGET_INCLUDE_DIRECTORIES(tst_chunkcases PUBLIC ../libnczarr)
     add_sh_test(nczarr_test run_chunkcases)
 
+    if(LARGE_FILE_TESTS)
+      BUILD_BIN_TEST(test_readcaching})
+      BUILD_BIN_TEST(test_writecaching})
+      add_sh_test(nczarr_test run_cachetest)
+    ENDIF()
+
     add_sh_test(nczarr_test run_purezarr)
     add_sh_test(nczarr_test run_interop)
     add_sh_test(nczarr_test run_misc)
