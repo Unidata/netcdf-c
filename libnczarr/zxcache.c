@@ -21,12 +21,14 @@
 
 #define LEAFLEN 32
 
+#define USEPARAMSIZE 0xffffffffffffffff
+
 /* Forward */
 static int get_chunk(NCZChunkCache* cache, NCZCacheEntry* entry);
 static int put_chunk(NCZChunkCache* cache, NCZCacheEntry*);
-static int makeroom(NCZChunkCache* cache);
+static int verifycache(NCZChunkCache* cache);
 static int flushcache(NCZChunkCache* cache);
-static int constraincache(NCZChunkCache* cache);
+static int constraincache(NCZChunkCache* cache, size64_t needed);
 
 /**************************************************/
 /* Dispatch table per-var cache functions */
@@ -298,7 +300,7 @@ NCZ_read_cache_chunk(NCZChunkCache* cache, const size64_t* indices, void** datap
 	if((stat=get_chunk(cache,entry))) goto done;
 	assert(entry->data != NULL);
 	/* Ensure cache constraints not violated; but do it before entry is added */
-	if((stat=makeroom(cache))) goto done;
+	if((stat=verifycache(cache))) goto done;
         nclistpush(cache->mru,entry);
 	if((stat = ncxcacheinsert(cache->xcache,entry->hashkey,entry))) goto done;
     }
@@ -348,7 +350,7 @@ fprintf(stderr,"|cache.write|=%ld\n",nclistlength(cache->mru));
     entry = NULL;
 
     /* Ensure cache constraints not violated */
-    if((stat=makeroom(cache))) goto done;
+    if((stat=verifycache(cache))) goto done;
 
 done:
     if(entry) free_cache_entry(cache,entry);
@@ -356,16 +358,18 @@ done:
 }
 #endif
 
-/* Constrain cache, but allow at least one entry */
+/* Constrain cache */
 static int
-makeroom(NCZChunkCache* cache)
+verifycache(NCZChunkCache* cache)
 {
     int stat = NC_NOERR;
 
+#if 0
     /* Sanity check; make sure at least one entry is always allowed */
     if(nclistlength(cache->mru) == 1)
 	goto done;
-    stat = constraincache(cache);
+#endif
+    if((stat = constraincache(cache,USEPARAMSIZE))) goto done;
 done:
     return stat;
 }
@@ -376,10 +380,14 @@ static int
 flushcache(NCZChunkCache* cache)
 {
     int stat = NC_NOERR;
+#if 0
     size_t oldsize = cache->params.size;
     cache->params.size = 0;
-    stat = constraincache(cache);
+    stat = constraincache(cache,USEPARAMSIZE);
     cache->params.size = oldsize;
+#else
+    stat = constraincache(cache,USEPARAMSIZE);
+#endif
     return stat;
 }
 
@@ -388,21 +396,32 @@ flushcache(NCZChunkCache* cache)
    violating any of its constraints.
    On entry, constraints might be violated.
    Make sure that the entryinuse (NULL => no constraint) is not reclaimed.
+@param cache
+@param needed make sure there is room for this much space; USEPARAMSIZE => ensure no more than  cache params is used.
 */
 
 static int
-constraincache(NCZChunkCache* cache)
+constraincache(NCZChunkCache* cache, size64_t needed)
 {
     int stat = NC_NOERR;
+    size64_t final_size;
 
     /* If the cache is empty then do nothing */
     if(cache->used == 0) goto done;
 
+    if(needed == USEPARAMSIZE)
+        final_size = cache->params.size;
+    else if(cache->used > needed)
+        final_size = cache->used - needed;
+    else
+        final_size = 0;
+
     /* Flush from LRU end if we are at capacity */
-    while(nclistlength(cache->mru) > cache->params.nelems || cache->used > cache->params.size) {
+    while(nclistlength(cache->mru) > cache->params.nelems || cache->used > final_size) {
 	int i;
 	void* ptr;
 	NCZCacheEntry* e = ncxcachelast(cache->xcache); /* last entry is the least recently used */
+	if(e == NULL) break;
         if((stat = ncxcacheremove(cache->xcache,e->hashkey,&ptr))) goto done;
    	assert(e == ptr);
         for(i=0;i<nclistlength(cache->mru);i++) {
@@ -427,6 +446,12 @@ done:
     return stat;
 }
 
+/**
+Push modified cache entries to disk.
+Also make sure the cache size is correct.
+@param cache
+@return NC_EXXX error
+*/
 int
 NCZ_flush_chunk_cache(NCZChunkCache* cache)
 {
@@ -441,15 +466,21 @@ NCZ_flush_chunk_cache(NCZChunkCache* cache)
     for(i=0;i<nclistlength(cache->mru);i++) {
         NCZCacheEntry* entry = nclistget(cache->mru,i);
         if(entry->modified) {
-	    /* Make cache used be consistent across filter application */
-	    cache->used -= entry->size;
 	    /* Write out this chunk in toto*/
   	    if((stat=put_chunk(cache,entry)))
 	        goto done;
-	    cache->used += entry->size;
 	}
         entry->modified = 0;
     }
+    /* Re-compute space used */
+    cache->used = 0;
+    for(i=0;i<nclistlength(cache->mru);i++) {
+        NCZCacheEntry* entry = nclistget(cache->mru,i);
+        cache->used += entry->size;
+    }
+    /* Make sure cache size and nelems are correct */
+    if((stat=verifycache(cache))) goto done;
+
 
 done:
     return ZUNTRACE(stat);
@@ -726,6 +757,9 @@ get_chunk(NCZChunkCache* cache, NCZCacheEntry* entry)
     default: goto done;
     }
 
+    /* make room in the cache */
+    if((stat = constraincache(cache,size))) goto done;    
+
     if(!empty) {
         /* Make sure we have a place to read it */
         if((entry->data = (void*)calloc(1,entry->size)) == NULL)
@@ -794,6 +828,9 @@ get_chunk(NCZChunkCache* cache, NCZCacheEntry* entry)
 	entry->size = cache->chunkcount * sizeof(char*);
 	entry->isfixedstring = 0;
     }
+
+    /* track new chunk */
+    cache->used += entry->size;
 
 done:
     nullfree(strchunk);
@@ -892,5 +929,4 @@ NCZ_printxcache(NCZChunkCache* cache)
     strlcat(xs,ncbytescontents(buf),sizeof(xs));
     ncbytesfree(buf);
     fprintf(stderr,"%s\n",xs);
-//    return xs;
 }
