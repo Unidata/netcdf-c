@@ -96,8 +96,18 @@ IF(ENABLE_TESTS)
 
   IF(ENABLE_S3 AND NOT WITH_S3_TESTING STREQUAL "NO")
   # Helper programs for testing
-  BUILD_BIN_TEST(s3util ${COMMONSRC})
-  TARGET_INCLUDE_DIRECTORIES(s3util PUBLIC ../libnczarr)
+    BUILD_BIN_TEST(s3util ${COMMONSRC})
+  # Pure AWS Test
+    IF(ENABLE_S3_AWS)
+      SET(TMP_CMAKE_CXX_STANDARD ${MAKE_CXX_STANDARD})
+      SET(CMAKE_CXX_STANDARD 11)
+      ADD_EXECUTABLE(tst_pure_aws tst_pure_aws.cpp)
+      TARGET_LINK_LIBRARIES(tst_pure_aws ${AWSSDK_CORE_LIB_FILE})
+      ADD_TEST(tst_pure_aws ${EXECUTABLE_PUTPUT_PATH}/tst_pure_aws)
+
+      SET(CMAKE_CXX_STANDARD ${TMP_CMAKE_CXX_STANDARD})
+    ENDIF(ENABLE_S3_AWS)
+    TARGET_INCLUDE_DIRECTORIES(s3util PUBLIC ../libnczarr)
   endif()
   
   SET(ncdumpchunks_SOURCE ncdumpchunks.c)
@@ -143,7 +153,7 @@ IF(ENABLE_TESTS)
     add_sh_test(nczarr_test run_notzarr)
 
     if(ENABLE_S3)
-	add_sh_test(nczarr_test run_s3_cleanup)
+	    add_sh_test(nczarr_test run_s3_cleanup)
     ENDIF()
 
   IF(ENABLE_FILTER_TESTING)

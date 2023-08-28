@@ -2135,6 +2135,35 @@ MACRO(build_bin_test_no_prefix F)
   ENDIF()
 ENDMACRO()
 
+# Build a test and add it to the test list.
+MACRO(add_bin_test_cpp prefix F)
+  ADD_EXECUTABLE(${prefix}_${F} ${F}.cpp ${ARGN})
+  SET_TARGET_PROPERTIES(${prefix}_${F} PROPERTIES LINKER_LANGUAGE CXX)
+  TARGET_LINK_LIBRARIES(${prefix}_${F}
+    ${ALL_TLL_LIBS}
+    netcdf
+    )
+  IF(MSVC)
+    SET_TARGET_PROPERTIES(${prefix}_${F}
+      PROPERTIES LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
+      )
+  ENDIF()
+  ADD_TEST(${prefix}_${F}
+           ${EXECUTABLE_OUTPUT_PATH}/${prefix}_${F}
+           )
+  IF(MSVC)
+    SET_PROPERTY(TEST ${prefix}_${F} PROPERTY FOLDER "tests/")
+    SET_TARGET_PROPERTIES(${prefix}_${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY
+      ${CMAKE_CURRENT_BINARY_DIR})
+    SET_TARGET_PROPERTIES(${prefix}_${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG
+      ${CMAKE_CURRENT_BINARY_DIR})
+    SET_TARGET_PROPERTIES(${prefix}_${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE
+      ${CMAKE_CURRENT_BINARY_DIR})
+  ENDIF()
+ENDMACRO()
+
+
+# Build a test and add it to the test list.
 MACRO(add_bin_test prefix F)
   ADD_EXECUTABLE(${prefix}_${F} ${F}.c ${ARGN})
   TARGET_LINK_LIBRARIES(${prefix}_${F}
