@@ -61,17 +61,17 @@ ENDIF()
 
 # Define some Platforms
 if(osname MATCHES "CYGWIN.*")
-SET(ISCYGWIN yes)
+  SET(ISCYGWIN yes)
 endif()
-if(osname MATCHES "Darwin.*")
-SET(ISOSX yes)
+  if(osname MATCHES "Darwin.*")
+  SET(ISOSX yes)
 endif()
 if(MSVC)
-SET(ISMSVC yes)
+  SET(ISMSVC yes)
 endif()
 if(osname MATCHES "MINGW.*" OR osname MATCHES "MSYS.*")
-SET(ISMINGW yes)
-SET(MINGW yes)
+  SET(ISMINGW yes)
+  SET(MINGW yes)
 endif()
 
 ###
@@ -1353,9 +1353,9 @@ ELSE()
 ENDIF()
 
 # Unless/until we get aws-sdk-cpp working for Windows, force use of internal
-IF(ENABLE_S3 AND MSVC)
-  SET(ENABLE_S3_INTERNAL ON CACHE BOOL "S3 Intern" FORCE)
-ENDIF()
+#IF(ENABLE_S3 AND MSVC)
+#  SET(ENABLE_S3_INTERNAL ON CACHE BOOL "S3 Intern" FORCE)
+#ENDIF()
 
 IF(ENABLE_S3)
   IF(NOT ENABLE_S3_AWS AND NOT ENABLE_S3_INTERNAL)
@@ -1966,16 +1966,16 @@ ENDIF()
 
 # Check to see if MAP_ANONYMOUS is defined.
 IF(MSVC)
-MESSAGE(WARNING "mmap not supported under visual studio: disabling MMAP support.")
-SET(ENABLE_MMAP OFF)
-ELSE()
-CHECK_C_SOURCE_COMPILES("
-#include <sys/mman.h>
-int main() {int x = MAP_ANONYMOUS;}" HAVE_MAPANON)
-IF(NOT HAVE_MMAP OR NOT HAVE_MAPANON)
-  MESSAGE(WARNING "mmap or MAP_ANONYMOUS not found: disabling MMAP support.")
+  MESSAGE(WARNING "mmap not supported under visual studio: disabling MMAP support.")
   SET(ENABLE_MMAP OFF)
-ENDIF()
+ELSE()
+  CHECK_C_SOURCE_COMPILES("
+  #include <sys/mman.h>
+  int main() {int x = MAP_ANONYMOUS;}" HAVE_MAPANON)
+  IF(NOT HAVE_MMAP OR NOT HAVE_MAPANON)
+    MESSAGE(WARNING "mmap or MAP_ANONYMOUS not found: disabling MMAP support.")
+    SET(ENABLE_MMAP OFF)
+  ENDIF()
 ENDIF()
 
 IF(ENABLE_MMAP)
