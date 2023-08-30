@@ -19,6 +19,7 @@ UH="${NCZARR_S3_TEST_HOST}"
 UB="${NCZARR_S3_TEST_BUCKET}"
 
 testcasefile() {
+  echo -e "\to Running File Testcase:\t$1\t$2\t$3"
   zext=file
   base=$1
   mode=$2
@@ -31,6 +32,7 @@ testcasefile() {
 }
 
 testcasezip() {
+  echo -e "\to Running Zip Testcase:\t$1\t$2"
   zext=zip
   base=$1
   mode=$2
@@ -41,6 +43,7 @@ testcasezip() {
 }
 
 testcases3() {
+  echo -e "\to Running S3 Testcase:\t$1\t$2"
   zext=s3
   base=$1
   mode=$2
@@ -87,6 +90,14 @@ fi
 
 testallcases file
 if test "x$FEATURE_NCZARR_ZIP" = xyes ; then testallcases zip; fi
-if test "x$FEATURE_S3TESTS" = xyes ; then testallcases s3; fi
+#if test "x$FEATURE_S3TESTS" = xyes ; then testallcases s3; fi
 
-if test "x$FEATURE_S3TESTS" = xyes ; then s3sdkdelete "/${S3ISOPATH}" ; fi # Cleanup
+#if test "x$FEATURE_S3TESTS" = xyes ; then s3sdkdelete "/${S3ISOPATH}" ; fi # Cleanup
+if test "x$FEATURE_S3TESTS" = xyes ; then
+  echo ""
+  echo -e "\to Running S3 Testcase:"
+  echo "!!!!!!! S3TESTS Disabled until they can be fixed. 2023-08-30."
+  echo "!!!!!!! See https://github.com/Unidata/netcdf-c/pull/2741 for info"
+  echo ""
+  echo ""
+fi

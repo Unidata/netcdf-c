@@ -26,16 +26,41 @@ fi
 THISDIR=`pwd`
 cd $ISOPATH
 
+echo -e "Running S3 AWSSDK Unit Tests."
+echo -e "\to Checking ${URL} exists"
 ${CMD} ${execdir}/test_s3sdk -u "${URL}"                                  exists
+
+echo -e "\to Checking write to ${URL}"
 ${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}/test_s3sdk.txt" write
+echo "Status: $?"
+
+echo -e "\to Checking read from ${URL}"
 ${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}/test_s3sdk.txt" read
+echo "Status: $?"
+
+echo -e "\to Checking size of ${URL}/test_s3sdk.txt"
 ${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}/test_s3sdk.txt" size
+echo "Status: $?"
+
+echo -e "\to Checking list command for ${URL}"
 ${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}"                list
+echo "Status: $?"
+
+echo -e "\to Checking search command for ${URL}"
 ${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}"                search
+echo "Status: $?"
+
+echo -e "\to Checking delete command for ${URL}/test_s3sdk.txt"
 ${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}/test_s3sdk.txt" delete
+echo "Status: $?"
+
 if test "x$FEATURE_LARGE_TESTS" = xyes ; then
-${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}"                longlist
+    echo -e "\to Checking longlist command for ${URL}"
+    ${CMD} ${execdir}/test_s3sdk -u "${URL}" -k "${S3ISOPATH}"                longlist
+    echo "Status: $?"
 fi
+
+echo -e "Finished"
 
 exit
 if test "x$GITHUB_ACTIONS" = xtrue; then
