@@ -6,7 +6,7 @@
 /* WARNING: changes to this file may need to be propagated to libsrc/s3sdk.cpp */
 
 #define NOOP
-#define DEBUG
+#undef DEBUG
 
 
 
@@ -112,16 +112,19 @@ EXTERNL int
 NC_s3sdkinitialize(void)
 {
     if(!ncs3_initialized) {
-	ncs3_initialized = 1;
-	ncs3_finalized = 0;
+    	ncs3_initialized = 1;
+	    ncs3_finalized = 0;
 
-    ncs3options.loggingOptions.logLevel = Aws::Utils::Logging::LogLevel::Trace;
-    ncs3options.loggingOptions.logger_create_fn = [] { return std::make_shared<Aws::Utils::Logging::ConsoleLogSystem>(Aws::Utils::Logging::LogLevel::Trace); };
-	Aws::InitAPI(ncs3options);
-
+	
 #ifdef DEBUG
-	ncs3options.loggingOptions.logLevel = Aws::Utils::Logging::LogLevel::Debug;
+	    //ncs3options.loggingOptions.logLevel = Aws::Utils::Logging::LogLevel::Debug;
+        ncs3options.loggingOptions.logLevel = Aws::Utils::Logging::LogLevel::Trace;
+        ncs3options.httpOptions.installSigPipeHandler = true; 
+        ncs3options.loggingOptions.logger_create_fn = [] { return std::make_shared<Aws::Utils::Logging::ConsoleLogSystem>(Aws::Utils::Logging::LogLevel::Trace); };
+
 #endif
+        Aws::InitAPI(ncs3options);
+
     }
     return NCUNTRACE(NC_NOERR);
 }
@@ -164,8 +167,10 @@ s3sdkcreateconfig(NCS3INFO* info)
     if(info->profile)
         config.profileName = info->profile;
     config.scheme = Aws::Http::Scheme::HTTPS;
-    config.connectTimeoutMs = 300000;
-    config.requestTimeoutMs = 600000;
+    config.connectTimeoutMs = 1000;
+    config.requestTimeoutMs = 0;
+    //config.connectTimeoutMs = 300000;
+    //config.requestTimeoutMs = 600000;
     if(info->region) config.region = info->region;
     if(info->host) config.endpointOverride = info->host;
     config.enableEndpointDiscovery = true;
@@ -414,7 +419,11 @@ NC_s3sdkwriteobject(void* s3client0, const char* bucket, const char* pathkey,  s
     if(errmsgp) *errmsgp = NULL;
     put_request.SetBucket(bucket);
     put_request.SetKey(key);
-    put_request.SetContentLength((long long)count);
+    /* Disabled in support of https://github.com/Unidata/netcdf-c/pull/2741.
+       Conversation at https://github.com/aws/aws-sdk-js/issues/281 suggested an issue
+       with SetContentLength(), and also that the fix may be letting this be auto-computed. This
+       appears to have fixed the issue we were observing. */
+    /*put_request.SetContentLength((long long)count);*/
 
     std::shared_ptr<Aws::IOStream> data = std::shared_ptr<Aws::IOStream>(new Aws::StringStream());
     data->rdbuf()->pubsetbuf((char*)content,count);
