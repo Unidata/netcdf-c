@@ -6,6 +6,7 @@
 #ifndef NCS3SDK_H
 #define NCS3SDK_H 1
 
+
 typedef struct NCS3INFO {
     char* host; /* non-null if other*/
     char* region; /* region */
