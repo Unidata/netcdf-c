@@ -8,6 +8,8 @@
 #define NOOP
 #define DEBUG
 
+
+
 #include "awsincludes.h"
 #include <stdlib.h>
 #include <string.h>
@@ -112,8 +114,11 @@ NC_s3sdkinitialize(void)
     if(!ncs3_initialized) {
 	ncs3_initialized = 1;
 	ncs3_finalized = 0;
-        NCTRACE(11,NULL);
+
+    ncs3options.loggingOptions.logLevel = Aws::Utils::Logging::LogLevel::Trace;
+    ncs3options.loggingOptions.logger_create_fn = [] { return std::make_shared<Aws::Utils::Logging::ConsoleLogSystem>(Aws::Utils::Logging::LogLevel::Trace); };
 	Aws::InitAPI(ncs3options);
+
 #ifdef DEBUG
 	ncs3options.loggingOptions.logLevel = Aws::Utils::Logging::LogLevel::Debug;
 #endif
