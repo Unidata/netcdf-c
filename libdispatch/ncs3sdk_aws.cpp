@@ -167,10 +167,10 @@ s3sdkcreateconfig(NCS3INFO* info)
     if(info->profile)
         config.profileName = info->profile;
     config.scheme = Aws::Http::Scheme::HTTPS;
-    config.connectTimeoutMs = 1000;
-    config.requestTimeoutMs = 0;
-    //config.connectTimeoutMs = 300000;
-    //config.requestTimeoutMs = 600000;
+    //config.connectTimeoutMs = 1000;
+    //config.requestTimeoutMs = 0;
+    config.connectTimeoutMs = 300000;
+    config.requestTimeoutMs = 600000;
     if(info->region) config.region = info->region;
     if(info->host) config.endpointOverride = info->host;
     config.enableEndpointDiscovery = true;
@@ -407,7 +407,8 @@ NC_s3sdkwriteobject(void* s3client0, const char* bucket, const char* pathkey,  s
 {
     int stat = NC_NOERR;
     const char* key = NULL;
-
+    
+    const char* mcontent = (char*)content;
     NCTRACE(11,"bucket=%s pathkey=%s count=%lld content=%p",bucket,pathkey,count,content);
     
     Aws::S3::S3Client* s3client = (Aws::S3::S3Client*)s3client0;
@@ -419,15 +420,12 @@ NC_s3sdkwriteobject(void* s3client0, const char* bucket, const char* pathkey,  s
     if(errmsgp) *errmsgp = NULL;
     put_request.SetBucket(bucket);
     put_request.SetKey(key);
-    /* Disabled in support of https://github.com/Unidata/netcdf-c/pull/2741.
-       Conversation at https://github.com/aws/aws-sdk-js/issues/281 suggested an issue
-       with SetContentLength(), and also that the fix may be letting this be auto-computed. This
-       appears to have fixed the issue we were observing. */
-    /*put_request.SetContentLength((long long)count);*/
-
+    put_request.SetContentLength((long long)count);
+   
     std::shared_ptr<Aws::IOStream> data = std::shared_ptr<Aws::IOStream>(new Aws::StringStream());
     data->rdbuf()->pubsetbuf((char*)content,count);
     put_request.SetBody(data);
+
     auto put_result = s3client->PutObject(put_request);
     if(!put_result.IsSuccess()) {
         if(errmsgp) *errmsgp = makeerrmsg(put_result.GetError(),key);
