@@ -33,16 +33,16 @@ tst_xcache_SOURCES = tst_xcache.c timer_utils.c timer_utils.h
 TESTS += tst_nclist test_ncuri test_pathcvt  tst_exhash tst_xcache
 
 if USE_HDF5
-    check_PROGRAMS += tst_nc4internal tst_reclaim
-    TESTS += tst_nc4internal
-    TESTS += run_reclaim_tests.sh
+check_PROGRAMS += tst_nc4internal tst_reclaim
+TESTS += tst_nc4internal
+TESTS += run_reclaim_tests.sh
 endif # USE_HDF5
 
 if ENABLE_S3
-    if ENABLE_S3_TESTALL
-        check_PROGRAMS += test_s3sdk
-        TESTS += run_s3sdk.sh
-    endif
+if ENABLE_S3_TESTALL
+check_PROGRAMS += test_s3sdk
+TESTS += run_s3sdk.sh
+endif
 endif
 
 EXTRA_DIST = CMakeLists.txt run_s3sdk.sh run_reclaim_tests.sh
