@@ -17,7 +17,7 @@ TESTS_ENVIRONMENT =
 AM_CPPFLAGS += -I${top_srcdir} -I${top_srcdir}/libnczarr
 AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
 LDADD = ${top_builddir}/liblib/libnetcdf.la
-
+AM_CXXFLAGS = 
 # Set up the tests; do the .sh first, then .c
 check_PROGRAMS =
 TESTS =
@@ -133,7 +133,8 @@ s3util_SOURCES = s3util.c
 if ENABLE_S3_TESTALL
 if ENABLE_S3_AWS
 check_PROGRAMS += tst_pure_awssdk
-tst_pure_aws_SORUCES = tst_pure_awssdk.cpp
+tst_pure_awssdk_SOURCES = tst_pure_awssdk.cpp
+AM_CXXFLAGS += -std=c++11
 endif 	
 endif
 endif

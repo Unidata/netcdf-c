@@ -36,7 +36,7 @@ IF(BUILD_UTILITIES)
   # SDK Test
     build_bin_test(test_s3sdk ${XGETOPTSRC})
     add_sh_test(unit_test run_s3sdk)
-  NDIF()
+  ENDIF()
 ENDIF()
 
 # Performance tests
