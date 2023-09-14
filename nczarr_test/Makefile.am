@@ -67,8 +67,8 @@ TESTS += run_notzarr.sh
 TESTS += run_external.sh
 
 if LARGE_FILE_TESTS
-check_PROGRAMS += test_writecaching test_readcaching
-TESTS += run_cachetest.sh
+	check_PROGRAMS += test_writecaching test_readcaching
+	TESTS += run_cachetest.sh
 endif
 
 endif #BUILD_UTILITIES
