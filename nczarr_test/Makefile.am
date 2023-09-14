@@ -76,7 +76,7 @@ endif #BUILD_UTILITIES
 if BUILD_UTILITIES 
 
 if ENABLE_NCZARR_ZIP
-TESTS += run_newformat.sh
+	TESTS += run_newformat.sh
 endif
 
 if BUILD_BENCHMARKS
@@ -89,7 +89,7 @@ check_PROGRAMS += bm_chunks3
 
 # The perf tests need modernization
 if AX_IGNORE
-TESTS += run_perf_chunks1.sh
+	TESTS += run_perf_chunks1.sh
 endif
 
 endif # BUILD_BENCHMARKS
@@ -130,6 +130,12 @@ zs3parse_SOURCES = zs3parse.c
 if ENABLE_S3
 noinst_PROGRAMS += s3util 
 s3util_SOURCES = s3util.c
+if ENABLE_S3_TESTALL
+if ENABLE_S3_AWS
+check_PROGRAMS += tst_pure_awssdk
+tst_pure_aws_SORUCES = tst_pure_awssdk.cpp
+endif 	
+endif
 endif
 
 # Given a netcdf4|NCZarr file, dump the actual chunk contents.
@@ -145,7 +151,7 @@ run_purezarr.sh run_interop.sh run_misc.sh \
 run_filter.sh \
 run_newformat.sh run_nczarr_fill.sh run_quantize.sh \
 run_jsonconvention.sh run_nczfilter.sh run_unknown.sh \
-run_scalar.sh run_strings.sh run_nulls.sh run_notzarr.sh run_external.sh
+run_scalar.sh run_strings.sh run_nulls.sh run_notzarr.sh run_external.sh 
 
 EXTRA_DIST += \
 ref_ut_map_create.cdl ref_ut_map_writedata.cdl ref_ut_map_writemeta2.cdl ref_ut_map_writemeta.cdl \
