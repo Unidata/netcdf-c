@@ -121,7 +121,7 @@ nc_http_open_verbose(const char* path, int verbose, NC_HTTP_STATE** statep)
     case HTTPS3: {
 	if((state->s3.info = (NCS3INFO*)calloc(1,sizeof(NCS3INFO)))==NULL)
 	    {stat = NCTHROW(NC_ENOMEM); goto done;}
-        if((stat = NC_s3urlprocess(state->url,state->s3.info))) goto done;
+        if((stat = NC_s3urlprocess(state->url,state->s3.info,NULL))) goto done;
 	if((state->s3.s3client = NC_s3sdkcreateclient(state->s3.info))==NULL)
 	    {stat = NCTHROW(NC_EURL); goto done;}
         } break;

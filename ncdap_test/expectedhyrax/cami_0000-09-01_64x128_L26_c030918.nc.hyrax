@@ -1,0 +1,34 @@
+netcdf cami_0000-09-01_64x128_L26_c030918 {
+dimensions:
+	ilev = 27 ;
+variables:
+	double hyai.hyai(ilev) ;
+		hyai.hyai:long_name = "hybrid A coefficient at layer interfaces" ;
+		hyai.hyai:_FillValue = 9.99999961690316e+35 ;
+
+// global attributes:
+		:Conventions = "CF-1.0" ;
+		:logname = "olson" ;
+		:host = "bb0001en" ;
+		:source = "Interpolated from:/fs/cgd/data0/olson/inputIC/newICeul.cam2.i.0000-09-01-00000.nc::CAM" ;
+		:case = "cam2run" ;
+		:title = "Interpolated from:/fs/cgd/data0/olson/inputIC/newICeul.cam2.i.0000-09-01-00000.nc::atm ver atm, eul ver v013, case newICeul" ;
+		:history = "\n",
+			"05/07/03 12:15:34 olson:chinookfe:interpic -t SEP1.T42L26.gaussian.template.nc /fs/cgd/data0/olson/inputIC/newICeul.cam2.i.0000-09-01-00000.nc cami_0000-09-01_64x128_L26_c030507.nc\n",
+			"definesurf -t /fs/cgd/csm/inputdata/atm/cam1/hrtopo/topo.nc cami_0000-09-01_64x128_L26_c030507.nc\n",
+			"definesurf -t /fs/cgd/csm/inputdata/atm/cam2/hrtopo/topo.nc cami_0000-09-01_64x128_L26_c030507.nc\n",
+			"definesurf -t /fs/cgd/csm/inputdata/atm/cam2/hrtopo/topo-usgs-10min.nc cami_0000-09-01_64x128_L26_c030507.nc\n",
+			"definesurf -t /fs/cgd/csm/inputdata/atm/cam2/hrtopo/topo10min.merged_c030506.nc cami_0000-09-01_64x128_L26_c030507.nc\n",
+			"definesurf -t /fs/cgd/csm/inputdata/atm/cam2/hrtopo/topo10min.merged_c030506.nc -l cami_0000-09-01_64x128_L26_c030624.nc.new" ;
+		:make_ross = "true" ;
+		:DODS_EXTRA.Unlimited_Dimension = "time" ;
+data:
+
+ hyai.hyai = 0.00219406700000001, 0.00489520900000001, 0.009882418, 
+    0.01805201, 0.02983724, 0.0446233400000002, 0.0616058700000002, 
+    0.0785124300000004, 0.0773127100000002, 0.0759013100000003, 
+    0.0742408600000002, 0.0722874400000002, 0.0699893299999998, 0.06728574, 
+    0.06410509, 0.0603632200000002, 0.0559611100000001, 0.0507822500000001, 
+    0.0446896000000001, 0.0375219099999999, 0.0290894900000001, 0.02084739, 
+    0.01334443, 0.00708499000000001, 0.00252136, 0, 0 ;
+}

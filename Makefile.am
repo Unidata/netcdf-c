@@ -31,7 +31,7 @@ AM_DISTCHECK_CONFIGURE_FLAGS = --without-plugin-dir
 EXTRA_DIST = README.md COPYRIGHT INSTALL.md test_prog.c lib_flags.am	\
 cmake CMakeLists.txt COMPILE.cmake.txt config.h.cmake.in		\
 cmake_uninstall.cmake.in FixBundle.cmake.in nc-config.cmake.in		\
-RELEASE_NOTES.md CTestCustom.cmake CTestConfig.cmake.in			\
+RELEASE_NOTES.md CTestConfig.cmake.in CTestCustom.cmake.in		\
 libnetcdf.settings.in netCDFConfig.cmake.in CMakeInstallation.cmake	\
 test-driver-verbose test_common.in fuzz
 
@@ -116,9 +116,7 @@ endif
 
 # Optionally build test plugins
 if ENABLE_PLUGINS
-if ENABLE_FILTER_TESTING
 PLUGIN_DIR = plugins
-endif
 endif
 
 # If benchmarks were turned on, build and run a bunch more tests.
@@ -209,7 +207,17 @@ install-data-hook:
 
 # Create the VERSION file after the build
 # in case it is being used by packagers
+# Also track the S3 cleanup id
 all-local: liblib/libnetcdf.la
 	echo ${PACKAGE_VERSION} > VERSION
+if ENABLE_S3_TESTALL
+	echo "@TESTUID@" >> ${abs_top_builddir}/s3cleanup_@PLATFORMUID@.uids
+endif
+
+if ENABLE_S3_TESTALL
+distclean-local:
+	rm -f ${abs_top_builddir}/s3cleanup_@PLATFORMUID@.uids
+endif
+
 # Remove the VERSION file
 CLEANFILES = VERSION

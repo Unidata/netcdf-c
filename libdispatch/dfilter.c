@@ -101,6 +101,7 @@ nc_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparamsp, u
     if((stat = ncp->dispatch->inq_var_filter_info(ncid,varid,id,nparamsp,params))) goto done;
 
 done:
+     if(stat == NC_ENOFILTER) nclog(NCLOGWARN,"Undefined filter: %u",(unsigned)id);
      return stat;
 }
 
@@ -131,6 +132,7 @@ nc_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams, const un
     if((stat = NC_check_id(ncid,&ncp))) return stat;
     if((stat = ncp->dispatch->def_var_filter(ncid,varid,id,nparams,params))) goto done;
 done:
+     if(stat == NC_ENOFILTER) nclog(NCLOGWARN,"Undefined filter: %u",(unsigned)id);
     return stat;
 }
 

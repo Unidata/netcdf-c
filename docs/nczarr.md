@@ -53,6 +53,7 @@ are also [supported](./md_filters.html "filters").
 Specifically, the model supports the following.
 - "Atomic" types: char, byte, ubyte, short, ushort, int, uint, int64, uint64, string.
 - Shared (named) dimensions
+- Unlimited dimensions
 - Attributes with specified types -- both global and per-variable
 - Chunking
 - Fill values
@@ -65,7 +66,6 @@ Specifically, the model supports the following.
 With respect to full netCDF-4, the following concepts are
 currently unsupported.
 - User-defined types (enum, opaque, VLEN, and Compound)
-- Unlimited dimensions
 - Contiguous or compact storage
 
 Note that contiguous and compact are not actually supported
@@ -375,7 +375,7 @@ Currently it contains the following key(s):
 _\_nczarr_group\__ -- this key appears in every _.zgroup_ object.
 It contains any netcdf specific group information.
 Specifically it contains the following keys:
-* "dims" -- the name and size of shared dimensions defined in this group.
+* "dims" -- the name and size of shared dimensions defined in this group, as well an optional flag indictating if the dimension is UNLIMITED.
 * "vars" -- the name of variables defined in this group.
 * "groups" -- the name of sub-groups defined in this group.
 These lists allow walking the NCZarr dataset without having to use the potentially costly search operation.
@@ -487,9 +487,9 @@ A separate tabulation of S3 support is in the document cloud.md.
 <tr><td>Linux            <td> Automake     <td> yes
 <tr><td>Linux            <td> CMake        <td> yes
 <tr><td>Cygwin           <td> Automake     <td> yes
-<tr><td>Cygwin           <td> CMake        <td> unknown
-<tr><td>OSX              <td> Automake     <td> unknown
-<tr><td>OSX              <td> CMake        <td> unknown
+<tr><td>Cygwin           <td> CMake        <td> yes
+<tr><td>OSX              <td> Automake     <td> yes
+<tr><td>OSX              <td> CMake        <td> yes
 <tr><td>Visual Studio    <td> CMake        <td> yes
 </table>
 

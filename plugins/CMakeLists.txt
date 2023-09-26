@@ -65,7 +65,7 @@ MACRO(buildplugin TARGET TARGETLIB)
   ENDIF()
 ENDMACRO()
 
-buildplugin(h5misc "h5misc")
+buildplugin(h5misc "h5misc" netcdf)
 buildplugin(h5noop "h5noop")
 buildplugin(h5noop1 "h5noop1")
 buildplugin(h5unknown "h5unknown")
