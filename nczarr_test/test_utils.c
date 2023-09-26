@@ -23,12 +23,32 @@
 #include <H5DSpublic.h>
 #endif
 
-#include "tst_utils.h"
+#include "test_utils.h"
 
 Options* options = NULL;
 Metadata* meta = NULL;
 
 NClist* capture = NULL;
+
+void
+usage(int err)
+{
+    if(err) {
+	fprintf(stderr,"error: (%d) %s\n",err,nc_strerror(err));
+    }
+    fprintf(stderr,"usage:");
+        fprintf(stderr," -d <dimlen>[,<dimlen>*]");
+        fprintf(stderr," -c <chunklen>[,<chunklen>*]");
+        fprintf(stderr," -s <start>[,<start>*]");
+        fprintf(stderr," -e <edges>[,<edges>*]");
+        fprintf(stderr," -i <stride>[,<stride>*]");
+        fprintf(stderr," -v <int>[,<int>*]");
+        fprintf(stderr," -x c|r|w");
+        fprintf(stderr," <filename>");
+	fprintf(stderr,"\n");	
+    fflush(stderr);
+    exit(1);
+}
 
 static void
 CHECKRANK(int r)
@@ -56,11 +76,8 @@ getoptions(int* argcp, char*** argvp)
     /* Set defaults */
     options->mode = 0; /* classic netcdf-3 */
 
-    while ((c = getopt(*argcp, *argvp, "T:34c:d:e:f:n:m:p:s:D:O:X:")) != EOF) {
+    while ((c = getopt(*argcp, *argvp, "34c:d:e:hi:m:n:p:s:v:D:O:T:X:")) != EOF) {
 	switch(c) {
-	case 'T':
-	    nctracelevel(atoi(optarg));
-	    break;	
 	case '3':
 	    options->mode = 0;
 	    break;
@@ -76,16 +93,13 @@ getoptions(int* argcp, char*** argvp)
 	    options->flags |= HAS_DIMLENS;
 	    break;
 	case 'e':
-	    CHECKRANK(parsevector(optarg,options->count));
-	    options->flags |= HAS_COUNT;
+	    CHECKRANK(parsevector(optarg,options->edges));
+	    options->flags |= HAS_EDGES;
 	    break;
-	case 'f':
-	    CHECKRANK(parsevector(optarg,options->start));
-	    options->flags |= HAS_START;
-	    break;
-	case 'p':
-	    CHECKRANK(parsevector(optarg,options->stop));
-	    options->flags |= HAS_STOP;
+	case 'h': usage(0); break;
+	case 'i':
+	    CHECKRANK(parsevector(optarg,options->stride));
+	    options->flags |= HAS_STRIDE;
 	    break;
 	case 'm':
 	    CHECKRANK(parsevector(optarg,options->max));
@@ -94,9 +108,20 @@ getoptions(int* argcp, char*** argvp)
 	case 'n':
 	    CHECKRANK(atoi(optarg));
 	    break;
+	case 'p':
+	    CHECKRANK(parsevector(optarg,options->stop));
+	    options->flags |= HAS_STOP;
+	    break;
 	case 's':
-	    CHECKRANK(parsevector(optarg,options->stride));
-	    options->flags |= HAS_STRIDE;
+	    CHECKRANK(parsevector(optarg,options->start));
+	    options->flags |= HAS_START;
+	    break;
+	case 'v':
+	    if(strcmp(optarg,"n")==0)
+	        options->data = 0x7fffffff;
+	    else
+	        options->data = atoi(optarg);
+	    options->flags |= HAS_DATA;
 	    break;
 	case 'D': 
 	    options->debug = (unsigned)atoi(optarg);
@@ -104,13 +129,18 @@ getoptions(int* argcp, char*** argvp)
 	case 'O': 
 	    for(p=optarg;*p;p++) {
 	        switch (*p) {
+	        case 'c': options->create = Create; break;
 	        case 'r': options->op = Read; break;
     	        case 'w': options->op = Write; break;
-	        case 'W': options->wholechunk = 1; break;
+	        case 'x': options->op = Extend; break;
     	        case 'o': options->op = Odom; break;
+	        case 'W': options->wholechunk = 1; break;
 		default: fprintf(stderr,"Unknown operation '%c'\n",*p); exit(1);
 	        }
 	    } break;
+	case 'T':
+	    nctracelevel(atoi(optarg));
+	    break;	
 	case 'X': 
 	    if(strcmp(optarg,"opt")==0) {
 	        options->optimize = 1;
@@ -174,29 +204,51 @@ getoptions(int* argcp, char*** argvp)
 #endif
 
     /* Default some vectors */
-    if(!(options->flags & HAS_DIMLENS)) {for(i=0;i<NC_MAX_VAR_DIMS;i++) {options->dimlens[i] = 4;}}
-    if(!(options->flags & HAS_CHUNKS)) {for(i=0;i<NC_MAX_VAR_DIMS;i++) {options->chunks[i] = 2;}}
-    if(!(options->flags & HAS_STRIDE)) {for(i=0;i<NC_MAX_VAR_DIMS;i++) {options->stride[i] = 1;}}
+    if(!(options->flags & HAS_STRIDE)) {
+        for(i=0;i<NC_MAX_VAR_DIMS;i++) {options->stride[i] = 1;}
+	options->flags |= HAS_STRIDE;
+    }
 
     /* Computed Defaults */
-    if((options->flags & HAS_COUNT) && (options->flags & HAS_STOP)) {
-        fprintf(stderr,"cannot specify both count and stop\n");
+    if((options->flags & HAS_EDGES) && (options->flags & HAS_STOP)) {
+        fprintf(stderr,"cannot specify both edges and stop\n");
 	ERR(NC_EINVAL);
     }
-    if(!(options->flags & HAS_COUNT) && !(options->flags & HAS_STOP)) {
+    if(  !(options->flags & HAS_EDGES)
+       && (options->flags & HAS_DIMLENS)
+       && (options->flags & HAS_STRIDE)) {
         for(i=0;i<options->rank;i++)
-            options->count[i] = (options->dimlens[i]+options->stride[i]-1)/options->stride[i];
+            options->edges[i] = (options->dimlens[i]+options->stride[i]-1)/options->stride[i];
+	options->flags |= HAS_EDGES;
     }
-    if((options->flags & HAS_COUNT) && !(options->flags & HAS_STOP)) {
+    if(  !(options->flags & HAS_STOP)
+       && (options->flags & HAS_START)
+       && (options->flags & HAS_EDGES)
+       && (options->flags & HAS_STRIDE)) {
         for(i=0;i<options->rank;i++)
-            options->stop[i] = (options->count[i] * options->stride[i]);
+            options->stop[i] = options->start[i] + (options->edges[i] * options->stride[i]);
+	options->flags |= HAS_STOP;
     }
-    if(!(options->flags & HAS_COUNT) && (options->flags & HAS_STOP)) {
+    if(  !(options->flags & HAS_EDGES)
+       && (options->flags & HAS_STRIDE)
+       && (options->flags & HAS_STOP)) {
         for(i=0;i<options->rank;i++)
-            options->count[i] = ((options->stop[i]+options->stride[i]-1) / options->stride[i]);
+            options->edges[i] = ((options->stop[i]+(options->stride[i]-1)) / (options->stride[i]));
+	options->flags |= HAS_EDGES;
     }	
     
-    if(!(options->flags & HAS_MAX)) {for(i=0;i<NC_MAX_VAR_DIMS;i++) {options->max[i] = options->stop[i];}}
+    if(  !(options->flags & HAS_MAX)
+       && (options->flags & HAS_STOP)) {
+        for(i=0;i<NC_MAX_VAR_DIMS;i++) {options->max[i] = options->stop[i];}
+	options->flags |= HAS_MAX;
+    }
+
+    if(options->create == Create) {
+	if((ret=getmetadata(1)))
+	    ERR(ret);
+	if(meta->ncid && (ret = nc_close(meta->ncid)))
+	    ERR(ret);
+    }
 
     if(options->debug) {
 #ifdef USE_HDF5
@@ -205,6 +257,42 @@ getoptions(int* argcp, char*** argvp)
     }
 
 done:
+    return ret;
+}
+
+int
+verifyoptions(Options* options)
+{
+    int ret = NC_NOERR;
+    /* Check that we have or can compute relevant values */
+    if(options->create == Create) {
+        if(!(options->flags & HAS_DIMLENS)) {
+            fprintf(stderr,"dimlens option not computable\n");
+	    ERR(NC_EINVAL);
+	}
+        if(!(options->flags & HAS_CHUNKS)) {
+            fprintf(stderr,"chunklens option not computable\n");
+	    ERR(NC_EINVAL);
+        }
+        if(!(options->flags & HAS_STRIDE)) {
+            fprintf(stderr,"stride option not computable\n");
+	    ERR(NC_EINVAL);
+        }
+    }
+    if(options->op == Read || options->op == Write) {
+        if(!(options->flags & HAS_STOP)) {
+            fprintf(stderr,"stop option not computable\n");
+	    ERR(NC_EINVAL);
+        }
+        if(!(options->flags & HAS_EDGES)) {
+            fprintf(stderr,"edges option not computable\n");
+    	    ERR(NC_EINVAL);
+        }
+        if(!(options->flags & HAS_MAX)) {
+            fprintf(stderr,"max option not computable\n");
+	    ERR(NC_EINVAL);
+        }
+    }
     return ret;
 }
 
@@ -223,10 +311,19 @@ getmetadata(int create)
     }
 
     if(create) {
-        if((ret = nc_create(options->file,options->mode,&meta->ncid))) goto done;
+	if((options->flags & (HAS_DIMLENS | HAS_CHUNKS)) != (HAS_DIMLENS | HAS_CHUNKS)) {
+	    fprintf(stderr,"dimlens or chunks not specified\n");
+	    ret = NC_EINVAL;
+	    goto done;
+	}
+        if((ret = nc_create(options->file,options->mode|NC_CLOBBER,&meta->ncid))) goto done;
         for(i=0;i<options->rank;i++) {
             snprintf(dname,sizeof(dname),"d%d",i);
-            if((ret = nc_def_dim(meta->ncid,dname,options->dimlens[i],&meta->dimids[i]))) goto done;
+	    if(options->dimlens[i] == 0)
+                ret = nc_def_dim(meta->ncid,dname,NC_UNLIMITED,&meta->dimids[i]);
+	    else
+                ret = nc_def_dim(meta->ncid,dname,options->dimlens[i],&meta->dimids[i]);
+	    if(ret) goto done;
         }
         if((ret = nc_def_var(meta->ncid,"v",NC_INT,options->rank,meta->dimids,&meta->varid))) goto done;
         if((ret = nc_def_var_fill(meta->ncid,meta->varid,0,&meta->fill))) goto done;
@@ -235,22 +332,23 @@ getmetadata(int create)
         }
         if((ret = nc_enddef(meta->ncid))) goto done;
     } else {/*Open*/
-        if((ret = nc_open(options->file,options->mode,&meta->ncid))) goto done;
+        if((ret = nc_open(options->file,options->mode|NC_WRITE,&meta->ncid))) goto done;
         for(i=0;i<options->rank;i++) {
             snprintf(dname,sizeof(dname),"d%d",i);
             if((ret = nc_inq_dimid(meta->ncid,dname,&meta->dimids[i]))) goto done;
             if((ret = nc_inq_dimlen(meta->ncid,meta->dimids[i],&options->dimlens[i]))) goto done;
         }
+	options->flags |= HAS_DIMLENS;
         if((ret = nc_inq_varid(meta->ncid,"v",&meta->varid))) goto done;
         if(options->formatx == NC_FORMATX_NC4 || options->formatx == NC_FORMATX_NCZARR) {
 	    int storage = -1;
 	    /* Get chunk sizes also */
             if((ret = nc_inq_var_chunking(meta->ncid,meta->varid,&storage,options->chunks))) goto done;
 	    if(storage != NC_CHUNKED) {ret = NC_EBADCHUNK; goto done;}
+	    options->flags |= HAS_CHUNKS;
 	}
-	
     }
-
+    
 done:
     return ret;
 }
@@ -259,7 +357,7 @@ void
 cleanup(void)
 {
     if(meta) {
-        if(meta->ncid) nc_close(meta->ncid);
+        if(meta->ncid) {nc_close(meta->ncid); meta->ncid = 0;}
     }
     nclistfreeall(capture);
     nullfree(meta);
@@ -281,7 +379,32 @@ parsevector(const char* s0, size_t* vec)
         p = strchr(q,',');
         if(p == NULL) {p = q+strlen(q); done=1;}
         *p++ = '\0';
-        vec[i++] = (size_t)atol(q);
+	if(strcasecmp(q,"u")==0)
+            vec[i++] = 0; /* signals unlimited */
+	else
+            vec[i++] = (size_t)atol(q);
+    }
+    if(s) free(s);
+    return i;
+}
+
+int
+parsedata(const char* s0, int* data)
+{
+    char* s = strdup(s0);
+    char* p = NULL;
+    int i, done;
+
+
+    if(s0 == NULL || data == NULL) abort();
+
+    for(done=0,p=s,i=0;!done;) {
+	char* q;
+	q = p;
+        p = strchr(q,',');
+        if(p == NULL) {p = q+strlen(q); done=1;}
+        *p++ = '\0';
+        data[i++] = (size_t)atoi(q);
     }
     if(s) free(s);
     return i;
@@ -319,7 +442,7 @@ printvector64(int rank, const size64_t* vec)
 Odometer*
 odom_new(size_t rank, const size_t* start, const size_t* stop, const size_t* stride, const size_t* max)
 {
-     int i;
+     size_t i;
      Odometer* odom = NULL;
      if((odom = calloc(1,sizeof(Odometer))) == NULL)
 	 return NULL;
@@ -329,7 +452,7 @@ odom_new(size_t rank, const size_t* start, const size_t* stop, const size_t* str
 	 odom->stop[i] = stop[i];
  	 odom->stride[i] = stride[i];
 	 odom->max[i] = (max?max[i]:stop[i]);
-         odom->count[i] = (odom->stop[i]+odom->stride[i]-1)/odom->stride[i];
+         odom->edges[i] = (odom->stop[i]+odom->stride[i]-1)/odom->stride[i];
 	 odom->index[i] = 0;
      }
      return odom;
@@ -371,7 +494,7 @@ size_t
 odom_offset(Odometer* odom)
 {
      size_t offset;
-     int i;
+     size_t i;
 
      offset = 0;
      for(i=0;i<odom->rank;i++) {
@@ -396,7 +519,7 @@ odom_print1(Odometer* odom, int isshort)
         strcat(s," stop=("); sv = printvector(odom->rank,odom->stop); strcat(s,sv); strcat(s,")");
         strcat(s," stride=("); sv = printvector(odom->rank,odom->stride); strcat(s,sv); strcat(s,")");
         strcat(s," max=("); sv = printvector(odom->rank,odom->max); strcat(s,sv); strcat(s,")");
-        strcat(s," count=("); sv = printvector(odom->rank,odom->count); strcat(s,sv); strcat(s,")");
+        strcat(s," edges=("); sv = printvector(odom->rank,odom->edges); strcat(s,sv); strcat(s,")");
     }
     snprintf(tmp,sizeof(tmp)," offset=%u",(unsigned)odom_offset(odom)); strcat(s,tmp);
     strcat(s," indices=("); sv = printvector(odom->rank,odom->index); strcat(s,sv); strcat(s,")");
@@ -417,6 +540,60 @@ odom_printshort(Odometer* odom)
 }
 
 static const char* urlexts[] = {"nzf", "zip", "nz4", NULL};
+
+nc_type
+gettype(const char* name)
+{
+    if(strcasecmp(name,"byte")==0) return NC_BYTE;
+    if(strcasecmp(name,"ubyte")==0) return NC_UBYTE;
+    if(strcasecmp(name,"short")==0) return NC_SHORT;
+    if(strcasecmp(name,"ushort")==0) return NC_USHORT;
+    if(strcasecmp(name,"int")==0) return NC_INT;
+    if(strcasecmp(name,"uint")==0) return NC_UINT;
+    if(strcasecmp(name,"int64")==0) return NC_INT64;
+    if(strcasecmp(name,"uint64")==0) return NC_UINT64;
+    if(strcasecmp(name,"float")==0) return NC_FLOAT;
+    if(strcasecmp(name,"double")==0) return NC_DOUBLE;
+    return NC_NAT;
+}
+
+size_t
+gettypesize(nc_type t)
+{
+    switch (t) {
+    case NC_BYTE: return sizeof(char);
+    case NC_UBYTE: return sizeof(unsigned char);
+    case NC_SHORT: return sizeof(short);
+    case NC_USHORT: return sizeof(unsigned short);
+    case NC_INT: return sizeof(int);
+    case NC_UINT: return sizeof(unsigned int);
+    case NC_INT64: return sizeof(long long int);
+    case NC_UINT64: return sizeof(unsigned long long int);
+    case NC_FLOAT: return sizeof(float);
+    case NC_DOUBLE: return sizeof(double);
+    default: break;
+    }
+    return 0;
+}
+
+const char*
+gettypename(nc_type t)
+{
+    switch (t) {
+    case NC_BYTE: return "byte";
+    case NC_UBYTE: return "ubyte";
+    case NC_SHORT: return "short";
+    case NC_USHORT: return "ushort";
+    case NC_INT: return "int";
+    case NC_UINT: return "uint";
+    case NC_INT64: return "int64";
+    case NC_UINT64: return "uint64";
+    case NC_FLOAT: return "float";
+    case NC_DOUBLE: return "double";
+    default: break;
+    }
+    return NULL;
+}
 
 const char*
 filenamefor(const char* f0)
@@ -465,3 +642,11 @@ ncz_gets3testurl(void)
     }
     return s3testurlp;
 }
+
+void
+ncz_report(int err, int lineno)
+{
+    fprintf(stderr,"Error: %d: %s\n", lineno, nc_strerror(err));
+    exit(1);
+}
+

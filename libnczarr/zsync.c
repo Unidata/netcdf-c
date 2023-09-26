@@ -94,6 +94,8 @@ ncz_collect_dims(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NCjson** jdimsp)
 {
     int i, stat=NC_NOERR;
     NCjson* jdims = NULL;
+    NCjson* jdimsize = NULL;
+    NCjson* jdimargs = NULL;
 
     LOG((3, "%s: ", __func__));
     ZTRACE(3,"file=%s grp=%s",file->controller->path,grp->hdr.name);
@@ -102,9 +104,26 @@ ncz_collect_dims(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NCjson** jdimsp)
     for(i=0; i<ncindexsize(grp->dim); i++) {
 	NC_DIM_INFO_T* dim = (NC_DIM_INFO_T*)ncindexith(grp->dim,i);
 	char slen[128];
-	snprintf(slen,sizeof(slen),"%llu",(unsigned long long)dim->len);
+
+        snprintf(slen,sizeof(slen),"%llu",(unsigned long long)dim->len);
+	if((stat = NCJnewstring(NCJ_INT,slen,&jdimsize))) goto done;
+
+	/* If dim is not unlimited, then write in the old format to provide
+           maximum back compatibility.
+        */
+	if(dim->unlimited) {
+	    NCJnew(NCJ_DICT,&jdimargs);
+	    if((stat = NCJaddstring(jdimargs,NCJ_STRING,"size"))) goto done;
+	    if((stat = NCJappend(jdimargs,jdimsize))) goto done;
+	    jdimsize = NULL;
+  	    if((stat = NCJaddstring(jdimargs,NCJ_STRING,"unlimited"))) goto done;
+	    if((stat = NCJaddstring(jdimargs,NCJ_INT,"1"))) goto done;
+	} else { /* !dim->unlimited */
+	    jdimargs = jdimsize;
+	    jdimsize = NULL;
+	}
 	if((stat = NCJaddstring(jdims,NCJ_STRING,dim->hdr.name))) goto done;
-	if((stat = NCJaddstring(jdims,NCJ_INT,slen))) goto done;
+	if((stat = NCJappend(jdims,jdimargs))) goto done;
     }
     if(jdimsp) {*jdimsp = jdims; jdims = NULL;}
 done:
@@ -348,10 +367,8 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
     }
 
     /* chunks key */
-    /* It is not clear if the zarr format supports the concept
-       of contiguous, so we will simulate by:
-       1. setting a flag in _nczvar (below)
-       2. making the chunk sizes all be same as the max dim size (here)
+    /* The zarr format does not support the concept
+       of contiguous (or compact), so it will never appear in the read case.
     */
     /* list of chunk sizes */
     if((stat = NCJaddstring(jvar,NCJ_STRING,"chunks"))) goto done;
@@ -360,7 +377,7 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
     if(zvar->scalar) {
 	NCJaddstring(jtmp,NCJ_INT,"1"); /* one chunk of size 1 */
     } else for(i=0;i<var->ndims;i++) {
-	size64_t len = (var->storage == NC_CONTIGUOUS ? shape[i] : var->chunksizes[i]);
+	size64_t len = var->chunksizes[i];
 	snprintf(number,sizeof(number),"%lld",len);
 	NCJaddstring(jtmp,NCJ_INT,number);
     }
@@ -475,16 +492,14 @@ ncz_sync_var_meta(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, int isclose)
 	jdimrefs = NULL; /* Avoid memory problems */
 
 	/* Add the _Storage flag */
-	/* Record if this is a scalar; use the storage field */
+	/* Record if this is a scalar */
 	if(var->ndims == 0) {
-	    if((stat = NCJnewstring(NCJ_STRING,"scalar",&jtmp)))goto done;
-	} else if(var->storage == NC_CONTIGUOUS) {
-	     if((stat = NCJnewstring(NCJ_STRING,"contiguous",&jtmp)))goto done;
-	} else if(var->storage == NC_COMPACT) {
-	     if((stat = NCJnewstring(NCJ_STRING,"compact",&jtmp)))goto done;
-	} else {/* chunked */
-	     if((stat = NCJnewstring(NCJ_STRING,"chunked",&jtmp)))goto done;
+	    if((stat = NCJnewstring(NCJ_INT,"1",&jtmp)))goto done;
+	    if((stat = NCJinsert(jncvar,"scalar",jtmp))) goto done;
+	    jtmp = NULL;
 	}
+	/* everything looks like it is chunked */
+	if((stat = NCJnewstring(NCJ_STRING,"chunked",&jtmp)))goto done;
 	if((stat = NCJinsert(jncvar,"storage",jtmp))) goto done;
 	jtmp = NULL;
 
@@ -1378,7 +1393,7 @@ done:
  *
  * @param file Pointer to file info struct.
  * @param grp Pointer to grp info struct.
- * @param diminfo List of (name,length) pairs
+ * @param diminfo List of (name,length,isunlimited) triples
  *
  * @return ::NC_NOERR No error.
  * @author Dennis Heimbigner
@@ -1391,18 +1406,23 @@ define_dims(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* diminfo)
     ZTRACE(3,"file=%s grp=%s |diminfo|=%u",file->controller->path,grp->hdr.name,nclistlength(diminfo));
 
     /* Reify each dim in turn */
-    for(i = 0; i < nclistlength(diminfo); i+=2) {
+    for(i = 0; i < nclistlength(diminfo); i+=3) {
 	NC_DIM_INFO_T* dim = NULL;
 	size64_t len = 0;
+	long long isunlim = 0;
 	const char* name = nclistget(diminfo,i);
-	const char* value = nclistget(diminfo,i+1);
+	const char* slen = nclistget(diminfo,i+1);
+	const char* sisunlimited = nclistget(diminfo,i+2);
 
 	/* Create the NC_DIM_INFO_T object */
-	sscanf(value,"%lld",&len); /* Get length */
-	if(len <= 0)
-	    {stat = NC_EDIMSIZE; goto done;}
+	sscanf(slen,"%lld",&len); /* Get length */
+	if(sisunlimited != NULL)
+	    sscanf(sisunlimited,"%lld",&isunlim); /* Get unlimited flag */
+	else
+	    isunlim = 0;
 	if((stat = nc4_dim_list_add(grp, name, (size_t)len, -1, &dim)))
 	    goto done;
+	dim->unlimited = (isunlim ? 1 : 0);
 	if((dim->format_dim_info = calloc(1,sizeof(NCZ_DIM_INFO_T))) == NULL)
 	    {stat = NC_ENOMEM; goto done;}
 	((NCZ_DIM_INFO_T*)dim->format_dim_info)->common.file = file;
@@ -1451,8 +1471,6 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
     NCjson* jfilter = NULL;
     int chainindex;
 #endif
-    int varsized;
-    int suppressvar = 0; /* 1 => make this variable invisible */
 
     ZTRACE(3,"file=%s grp=%s |varnames|=%u",file->controller->path,grp->hdr.name,nclistlength(varnames));
 
@@ -1535,9 +1553,6 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 	    }
 	}
 
-        /* See if this variable is variable sized */
-	varsized = NC4_var_varsized(var);
-
 	if(!purezarr) {
   	    /* Extract the _NCZARR_ARRAY values */
 	    /* Do this first so we know about storage esp. scalar */
@@ -1557,20 +1572,18 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 	    }
 	    if(jncvar == NULL) {stat = NC_ENCZARR; goto done;}
    	    assert((NCJsort(jncvar) == NCJ_DICT));
+	    /* Extract scalar flag */
+	    if((stat = NCJdictget(jncvar,"scalar",&jvalue)))
+		goto done;
+	    if(jvalue != NULL) {
+	        var->storage = NC_CHUNKED;
+		zvar->scalar = 1;
+	    }
 	    /* Extract storage flag */
 	    if((stat = NCJdictget(jncvar,"storage",&jvalue)))
 		goto done;
 	    if(jvalue != NULL) {
-		if(strcmp(NCJstring(jvalue),"chunked") == 0) {
-		    var->storage = NC_CHUNKED;
-		} else if(strcmp(NCJstring(jvalue),"compact") == 0) {
-		    var->storage = NC_COMPACT;
-		} else if(strcmp(NCJstring(jvalue),"scalar") == 0) {
-		    var->storage = NC_CONTIGUOUS;
-		    zvar->scalar = 1;
-		} else { /*storage = NC_CONTIGUOUS;*/
-		    var->storage = NC_CONTIGUOUS;
-		}
+		var->storage = NC_CHUNKED;
 	    }
 	    /* Extract dimrefs list  */
 	    switch ((stat = NCJdictget(jncvar,"dimrefs",&jdimrefs))) {
@@ -1675,7 +1688,7 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 		/* validate the chunk sizes */
 		zvar->chunkproduct = 1;
 		for(j=0;j<rank;j++) {
-		    if(chunks[j] == 0 || chunks[j] > shapes[j])
+		    if(chunks[j] == 0)
 			{stat = (THROW(NC_ENCZARR)); goto done;}
 		    var->chunksizes[j] = (size_t)chunks[j];
 		    zvar->chunkproduct *= chunks[j];
@@ -1703,11 +1716,11 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 #ifdef ENABLE_NCZARR_FILTERS
 	    if(var->filters == NULL) var->filters = (void*)nclistnew();
    	    if(zvar->incompletefilters == NULL) zvar->incompletefilters = (void*)nclistnew();
-	    { int k;
 	    chainindex = 0; /* track location of filter in the chain */
 	    if((stat = NCZ_filter_initialize())) goto done;
 	    if((stat = NCJdictget(jvar,"filters",&jvalue))) goto done;
 	    if(jvalue != NULL && NCJsort(jvalue) != NCJ_NULL) {
+	        int k;
 	        if(NCJsort(jvalue) != NCJ_ARRAY) {stat = NC_EFILTER; goto done;}
 		for(k=0;;k++) {
 		    jfilter = NULL;
@@ -1717,15 +1730,14 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 		    if((stat = NCZ_filter_build(file,var,jfilter,chainindex++))) goto done;
 		}
 	    }
-	    }
 #endif
 	}
 
         /* compressor key */
         /* From V2 Spec: A JSON object identifying the primary compression codec and providing
            configuration parameters, or ``null`` if no compressor is to be used. */
-	if(!varsized) { /* Only process if variable is fixed-size */
 #ifdef ENABLE_NCZARR_FILTERS
+	{ 
 	    if(var->filters == NULL) var->filters = (void*)nclistnew();
 	    if((stat = NCZ_filter_initialize())) goto done;
 	    if((stat = NCJdictget(jvar,"compressor",&jfilter))) goto done;
@@ -1733,12 +1745,8 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 	        if(NCJsort(jfilter) != NCJ_DICT) {stat = NC_EFILTER; goto done;}
 		if((stat = NCZ_filter_build(file,var,jfilter,chainindex++))) goto done;
 	    }
-#endif
 	}
-	/* Suppress variable if there are filters and var is not fixed-size */
-	if(varsized && nclistlength((NClist*)var->filters) > 0)
-	    suppressvar = 1;
-
+#endif
 	if((stat = computedimrefs(file, var, purezarr, xarray, rank, dimnames, shapes, var->dim)))
 	    goto done;
 
@@ -1749,15 +1757,9 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 	}
 
 #ifdef ENABLE_NCZARR_FILTERS
-	if(!suppressvar) {
-    	    /* At this point, we can finalize the filters */
-            if((stat = NCZ_filter_setup(var))) goto done;
-	}
+        /* At this point, we can finalize the filters */
+        if((stat = NCZ_filter_setup(var))) goto done;
 #endif
-
-        if(suppressvar) {
-	    if((stat = NCZ_zclose_var1(var))) goto done;
-	}
 
 	/* Clean up from last cycle */
 	nclistfreeall(dimnames); dimnames = nclistnew();
@@ -1917,18 +1919,30 @@ parse_group_content(NCjson* jcontent, NClist* dimdefs, NClist* varnames, NClist*
 	/* Extract the dimensions defined in this group */
 	for(i=0;i<NCJlength(jvalue);i+=2) {
 	    NCjson* jname = NCJith(jvalue,i);
-	    NCjson* jlen = NCJith(jvalue,i+1);
+	    NCjson* jleninfo = NCJith(jvalue,i+1);
+    	    NCjson* jtmp = NULL;
+       	    const char* slen = "0";
+       	    const char* sunlim = "0";
 	    char norm_name[NC_MAX_NAME + 1];
-	    size64_t len;
 	    /* Verify name legality */
 	    if((stat = nc4_check_name(NCJstring(jname), norm_name)))
 		{stat = NC_EBADNAME; goto done;}
 	    /* check the length */
-	    sscanf(NCJstring(jlen),"%lld",&len);
-	    if(len < 0)
-		{stat = NC_EDIMSIZE; goto done;}
+            if(NCJsort(jleninfo) == NCJ_DICT) {
+		if((stat = NCJdictget(jleninfo,"size",&jtmp))) goto done;
+		if(jtmp== NULL)
+		    {stat = NC_EBADNAME; goto done;}
+		slen = NCJstring(jtmp);
+		/* See if unlimited */
+		if((stat = NCJdictget(jleninfo,"unlimited",&jtmp))) goto done;
+	        if(jtmp == NULL) sunlim = "0"; else sunlim = NCJstring(jtmp);
+            } else if(jleninfo != NULL && NCJsort(jleninfo) == NCJ_INT) {
+		slen = NCJstring(jleninfo);		
+	    } else
+		{stat = NC_ENCZARR; goto done;}
 	    nclistpush(dimdefs,strdup(norm_name));
-	    nclistpush(dimdefs,strdup(NCJstring(jlen)));
+	    nclistpush(dimdefs,strdup(slen));
+    	    nclistpush(dimdefs,strdup(sunlim));
 	}
     }
 

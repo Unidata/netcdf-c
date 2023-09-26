@@ -81,7 +81,6 @@ EXTERNL int NCZ_comma_parse(const char* s, NClist* list);
 EXTERNL int NCZ_swapatomicdata(size_t datalen, void* data, int typesize);
 EXTERNL char** NCZ_clonestringvec(size_t len, const char** vec);
 EXTERNL void NCZ_freestringvec(size_t len, char** vec);
-EXTERNL int NCZ_s3clear(NCS3INFO* s3map);
 EXTERNL int NCZ_ischunkname(const char* name,char dimsep);
 EXTERNL char* NCZ_chunkpath(struct ChunkKey key);
 EXTERNL int NCZ_reclaim_fill_value(NC_VAR_INFO_T* var);
@@ -89,7 +88,7 @@ EXTERNL int NCZ_copy_fill_value(NC_VAR_INFO_T* var, void** dstp);
 EXTERNL int NCZ_get_maxstrlen(NC_OBJ* obj);
 EXTERNL int NCZ_fixed2char(const void* fixed, char** charp, size_t count, int maxstrlen);
 EXTERNL int NCZ_char2fixed(const char** charp, void* fixed, size_t count, int maxstrlen);
-EXTERNL int NCZ_copy_data(NC_FILE_INFO_T* file, NC_TYPE_INFO_T* xtype, const void* memory, size_t count, int nofill, void* copy);
+EXTERNL int NCZ_copy_data(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, const void* memory, size_t count, int reading, void* copy);
 EXTERNL int NCZ_iscomplexjson(NCjson* value, nc_type typehint);
 
 /* zwalk.c */

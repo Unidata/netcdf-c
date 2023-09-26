@@ -3,14 +3,11 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
-
-
-NCDUMPDIR="testdir_ncdump_nccopy4"
 . $srcdir/test_ncdump.sh
 
-# Move into test directory
-cd $NCDUMPPATH
-
+isolate "testdir_nccopy4"
+THISDIR=`pwd`
+cd $ISOPATH
 
 set -e
 

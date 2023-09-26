@@ -41,6 +41,11 @@ nczmap_create(NCZM_IMPL impl, const char *path, int mode, size64_t flags, void* 
 
     if(mapp) *mapp = NULL;
 
+    if((mode & NC_NOCLOBBER) == 0) {
+        /* Truncate the file */
+        if((stat = nczmap_truncate(impl,path))) goto done;
+    }
+
     switch (impl) {
     case NCZM_FILE:
         stat = zmap_file.create(path, mode, flags, parameters, &map);
@@ -108,6 +113,31 @@ done:
     return THROW(stat);
 }
 
+int
+nczmap_truncate(NCZM_IMPL impl, const char *path)
+{
+    int stat = NC_NOERR;
+    switch (impl) {
+    case NCZM_FILE:
+        if((stat = zmap_file.truncate(path))) goto done;
+	break;
+#ifdef ENABLE_NCZARR_ZIP
+    case NCZM_ZIP:
+        if((stat = zmap_zip.truncate(path))) goto done;
+	break;
+#endif
+#ifdef ENABLE_S3
+    case NCZM_S3:
+        if((stat = zmap_s3sdk.truncate(path))) goto done;
+	break;
+#endif
+    default:
+	{stat = REPORT(NC_ENOTBUILT,"nczmap_truncate"); goto done;}
+    }
+done:
+    return stat;
+}
+
 /**************************************************/
 /* API Wrapper */
 
@@ -139,9 +169,9 @@ nczmap_read(NCZMAP* map, const char* key, size64_t start, size64_t count, void* 
 }
 
 int
-nczmap_write(NCZMAP* map, const char* key, size64_t start, size64_t count, const void* content)
+nczmap_write(NCZMAP* map, const char* key, size64_t count, const void* content)
 {
-    return map->api->write(map, key, start, count, content);
+    return map->api->write(map, key, count, content);
 }
 
 /* Define a static qsort comparator for strings for use with qsort */

@@ -20,6 +20,7 @@ See LICENSE.txt for license information.
 #define INLINED
 
 #ifdef CATCH
+/* Warning: do not evaluate x more than once */
 #define THROW(x) throw(x)
 static void breakpoint(void) {}
 static int ignore[] = {NC_ENOTFOUND, 0};

@@ -35,7 +35,7 @@ EXTERNL const char* NC_s3dumps3info(NCS3INFO* info);
 
 /* From ds3util.c */
 EXTERNL int NC_getdefaults3region(NCURI* uri, const char** regionp);
-EXTERNL int NC_s3urlprocess(NCURI* url, NCS3INFO* s3);
+EXTERNL int NC_s3urlprocess(NCURI* url, NCS3INFO* s3, NCURI** newurlp);
 EXTERNL int NC_s3clear(NCS3INFO* s3);
 EXTERNL int NC_s3clone(NCS3INFO* s3, NCS3INFO** news3p);
 
