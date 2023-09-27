@@ -110,9 +110,11 @@ IF(ENABLE_TESTS)
   BUILD_BIN_TEST(s3util ${COMMONSRC})
   endif()
   
+  if(ENABLE_NCDUMPCHUNKS)
   SET(ncdumpchunks_SOURCE ncdumpchunks.c)
   SET(ncdumpchunks_SOURCE ${ncdumpchunks_SOURCE} ${XGETOPTSRC})
   BUILD_BIN_TEST(ncdumpchunks ${ncdumpchunks_SOURCE})
+  endif()
 
   IF(BUILD_UTILITIES)
     add_sh_test(nczarr_test run_ut_map)

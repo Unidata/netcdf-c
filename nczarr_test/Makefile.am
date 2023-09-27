@@ -174,11 +174,13 @@ noinst_PROGRAMS += s3util
 s3util_SOURCES = s3util.c
 endif
 
+if ENABLE_NCDUMPCHUNKS
 # Given a netcdf4|NCZarr file, dump the actual chunk contents.
 # Used to validate nczarr chunking code.
 AM_CPPFLAGS += -I$(top_srcdir)/libnczarr
 noinst_PROGRAMS += ncdumpchunks
 ncdumpchunks_SOURCES = ncdumpchunks.c
+endif
 
 EXTRA_DIST = CMakeLists.txt \
 run_ut_map.sh run_ut_mapapi.sh run_ut_misc.sh run_ncgen4.sh \
