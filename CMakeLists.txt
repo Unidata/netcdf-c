@@ -2614,7 +2614,7 @@ SET(S3TESTBUCKET "unidata-zarr-test-data" CACHE STRING "S3 test bucket")
 
 # The working S3 path tree within the Unidata bucket.
 # WARNING: this must match the value in configure.ac
-SET(S3TESTSUBTREE "netcdf-x" CACHE STRING "Working S3 path.")
+SET(S3TESTSUBTREE "netcdf-c" CACHE STRING "Working S3 path.")
 # Build a unique id based on the date
 string(TIMESTAMP TESTUID "%s")
 if(ENABLE_S3_TESTING)
