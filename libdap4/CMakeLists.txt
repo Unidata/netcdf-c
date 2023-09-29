@@ -8,6 +8,10 @@ SET(dap4_SOURCES d4curlfunctions.c d4fix.c d4data.c d4file.c d4parser.c d4meta.c
 
 add_library(dap4 OBJECT ${dap4_SOURCES})
 
+IF(STATUS_PARALLEL)
+  target_link_libraries(dap4 PUBLIC MPI::MPI_C)
+ENDIF(STATUS_PARALLEL)
+
 ###
 # Options related to the man page generation.
 ###
