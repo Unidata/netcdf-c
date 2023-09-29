@@ -11,9 +11,9 @@ nc4internal.c nc4type.c nc4var.c ncfunc.c ncindex.c nc4cache.c)
 
 add_library(netcdf4 OBJECT ${libsrc4_SOURCES})
 
-IF(MPI_C_INCLUDE_PATH)
-    target_include_directories(netcdf4 PUBLIC ${MPI_C_INCLUDE_PATH})
-ENDIF(MPI_C_INCLUDE_PATH)
+IF(STATUS_PARALLEL)
+    target_link_libraries(netcdf4 PUBLIC MPI::MPI_C)
+ENDIF(STATUS_PARALLEL)
 
 # Files for make dist
 FILE(GLOB libsrc4_HEADERS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)

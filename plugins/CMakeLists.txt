@@ -63,6 +63,10 @@ MACRO(buildplugin TARGET TARGETLIB)
     # Set file name & location
     set_target_properties(${TARGET} PROPERTIES COMPILE_PDB_NAME ${TARGET} COMPILE_PDB_OUTPUT_DIR ${CMAKE_BINARY_DIR})
   ENDIF()
+
+  IF(STATUS_PARALLEL)
+    target_link_libraries(${TARGET} MPI::MPI_C)
+  ENDIF(STATUS_PARALLEL)
 ENDMACRO()
 
 buildplugin(h5misc "h5misc")
