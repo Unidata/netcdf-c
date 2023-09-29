@@ -22,7 +22,7 @@
 #endif
 
 #undef DEBUG
-
+//#define DEBUG 1
 #define SELF_CLEAN
 
 /* Mnemonic(s) */
