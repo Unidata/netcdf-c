@@ -903,14 +903,18 @@ unset enable_nczarr_s3
 # Note we check for the library after checking for enable_s3
 # because for some reason this fails if we unconditionally test for sdk
 # and it is not available. Fix someday
+S3LIBS=""
 if test "x$enable_s3" = xyes ; then
 # See if we have the s3 aws library
 # Check for the AWS S3 SDK library
-AC_LANG_PUSH([C++])
-AC_SEARCH_LIBS([aws_allocator_is_valid],[aws-c-common aws-cpp-sdk-s3 aws-cpp-sdk-core], [enable_s3_aws=yes],[enable_s3_aws=no])
-AC_LANG_POP
+   AC_LANG_PUSH([C++])
+   AC_CHECK_LIB([aws-c-common], [aws_string_destroy], [enable_s3_aws=yes],[enable_s3_aws=no])
+   if test "x$enable_s3_aws" = "xyes" ; then
+      S3LIBS="-laws-cpp-sdk-core -laws-cpp-sdk-s3"
+   fi
+   AC_LANG_POP
 else
-enable_s3_aws=no
+   enable_s3_aws=no
 fi
 
 AC_MSG_CHECKING([whether AWS S3 SDK library is available])
@@ -926,7 +930,7 @@ AC_MSG_RESULT($enable_s3_internal)
 
 if test "x$enable_s3_aws" = xno && test "x$enable_s3_internal" = xno ; then
 AC_MSG_WARN([No S3 library available => S3 support disabled])
-enable_S3=no
+enable_s3=no
 fi
 
 if test "x$enable_s3_aws" = xyes && test "x$enable_s3_internal" = xyes ; then
@@ -963,11 +967,12 @@ if test "x$enable_s3" = xyes ; then
 fi
 
 if test "x$enable_s3_aws" = xyes ; then
-AC_DEFINE([ENABLE_S3_AWS], [1], [If true, then use aws S3 library])
+   LIBS="$LIBS$S3LIBS"
+   AC_DEFINE([ENABLE_S3_AWS], [1], [If true, then use aws S3 library])
 fi
 
 if test "x$enable_s3_internal" = xyes ; then
-AC_DEFINE([ENABLE_S3_INTERNAL], [1], [If true, then use internal S3 library])
+   AC_DEFINE([ENABLE_S3_INTERNAL], [1], [If true, then use internal S3 library])
 fi
 
 AC_DEFINE_UNQUOTED([WITH_S3_TESTING], [$with_s3_testing], [control S3 testing.])

@@ -131,13 +131,19 @@ EXTERNL int
 NC_s3sdkinitialize(void)
 {
     if(!ncs3_initialized) {
-	ncs3_initialized = 1;
-	ncs3_finalized = 0;
-        NCTRACE(11,NULL);
-	Aws::InitAPI(ncs3options);
+    	ncs3_initialized = 1;
+	    ncs3_finalized = 0;
+
+	
 #ifdef DEBUG
-	ncs3options.loggingOptions.logLevel = Aws::Utils::Logging::LogLevel::Debug;
+	    //ncs3options.loggingOptions.logLevel = Aws::Utils::Logging::LogLevel::Debug;
+        ncs3options.loggingOptions.logLevel = Aws::Utils::Logging::LogLevel::Trace;
+        ncs3options.httpOptions.installSigPipeHandler = true; 
+        ncs3options.loggingOptions.logger_create_fn = [] { return std::make_shared<Aws::Utils::Logging::ConsoleLogSystem>(Aws::Utils::Logging::LogLevel::Trace); };
+
 #endif
+        Aws::InitAPI(ncs3options);
+
     }
     return NCUNTRACE(NC_NOERR);
 }
@@ -180,6 +186,8 @@ s3sdkcreateconfig(NCS3INFO* info)
     if(info->profile)
         config.profileName = info->profile;
     config.scheme = Aws::Http::Scheme::HTTPS;
+    //config.connectTimeoutMs = 1000;
+    //config.requestTimeoutMs = 0;
     config.connectTimeoutMs = 300000;
     config.requestTimeoutMs = 600000;
     if(info->region) config.region = info->region;
@@ -491,7 +499,8 @@ NC_s3sdkwriteobject(void* s3client0, const char* bucket, const char* pathkey,  s
 {
     int stat = NC_NOERR;
     const char* key = NULL;
-
+    
+    const char* mcontent = (char*)content;
     NCTRACE(11,"bucket=%s pathkey=%s count=%lld content=%p",bucket,pathkey,count,content);
     
     AWSS3CLIENT s3client = (AWSS3CLIENT)s3client0;
@@ -524,7 +533,7 @@ NC_s3sdkwriteobject(void* s3client0, const char* bucket, const char* pathkey,  s
     put_request.SetBucket(bucket);
     put_request.SetKey(key);
     put_request.SetContentLength((long long)count);
-
+   
     std::shared_ptr<Aws::IOStream> data = std::shared_ptr<Aws::IOStream>(new Aws::StringStream());
     data->rdbuf()->pubsetbuf((char*)content,count);
     put_request.SetBody(data);
