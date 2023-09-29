@@ -21,6 +21,7 @@ UH="${NCZARR_S3_TEST_HOST}"
 UB="${NCZARR_S3_TEST_BUCKET}"
 
 testcasefile() {
+  echo -e "\to Running File Testcase:\t$1\t$2\t$3"
   zext=file
   base=$1
   mode=$2
@@ -31,6 +32,7 @@ testcasefile() {
 }
 
 testcasezip() {
+  echo -e "\to Running Zip Testcase:\t$1\t$2"
   zext=zip
   base=$1
   mode=$2
@@ -41,6 +43,7 @@ testcasezip() {
 }
 
 testcases3() {
+  echo -e "\to Running S3 Testcase:\t$1\t$2"
   zext=s3
   base=$1
   mode=$2

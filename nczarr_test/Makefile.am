@@ -19,6 +19,10 @@ TEST_EXTENSIONS = .sh
 #TESTS_ENVIRONMENT += export SETX=1;
 #TESTS_ENVIRONMENT += export NCTRACING=1;
 
+AM_CPPFLAGS += -I${top_srcdir} -I${top_srcdir}/libnczarr
+AM_LDFLAGS += ${top_builddir}/liblib/libnetcdf.la
+LDADD = ${top_builddir}/liblib/libnetcdf.la
+AM_CXXFLAGS = 
 # Set up the tests; do the .sh first, then .c
 check_PROGRAMS =
 TESTS =
@@ -89,8 +93,8 @@ TESTS += run_unlim_io.sh run_nccopyz.sh
 endif
 
 if LARGE_FILE_TESTS
-check_PROGRAMS += test_writecaching test_readcaching
-TESTS += run_cachetest.sh
+	check_PROGRAMS += test_writecaching test_readcaching
+	TESTS += run_cachetest.sh
 endif
 
 endif #BUILD_UTILITIES
@@ -98,7 +102,7 @@ endif #BUILD_UTILITIES
 if BUILD_UTILITIES 
 
 if ENABLE_NCZARR_ZIP
-TESTS += run_newformat.sh
+	TESTS += run_newformat.sh
 endif
 
 if LARGE_FILE_TESTS
@@ -172,6 +176,13 @@ zs3parse_SOURCES = zs3parse.c
 if ENABLE_S3
 noinst_PROGRAMS += s3util 
 s3util_SOURCES = s3util.c
+if ENABLE_S3_TESTALL
+if ENABLE_S3_AWS
+check_PROGRAMS += tst_pure_awssdk
+tst_pure_awssdk_SOURCES = tst_pure_awssdk.cpp
+AM_CXXFLAGS += -std=c++11
+endif 	
+endif
 endif
 
 if ENABLE_NCDUMPCHUNKS
