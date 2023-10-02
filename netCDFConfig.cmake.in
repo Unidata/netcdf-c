@@ -40,3 +40,8 @@ set(netCDF_HAS_DAP4 @HAS_DAP4@)
 set(netCDF_HAS_DISKLESS @HAS_DISKLESS@)
 set(netCDF_HAS_MMAP @HAS_MMAP@)
 set(netCDF_HAS_JNA @HAS_JNA@)
+
+if (@HAS_PARALLEL@)
+  include(CMakeFindDependencyMacro)
+  find_dependency(MPI @MPI_C_VERSION@ EXACT)
+endif()
