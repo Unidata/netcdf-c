@@ -9,6 +9,10 @@ SET(oc_SOURCES oc.c daplex.c dapparse.c dapy.c occompile.c occurlfunctions.c ocd
 
 add_library(oc2 OBJECT ${oc_SOURCES})
 
+IF(STATUS_PARALLEL)
+  target_link_libraries(oc2 PUBLIC MPI::MPI_C)
+ENDIF(STATUS_PARALLEL)
+
 # Apparently fails under cmake
 #set(ocprint_FILES ocprint.c )
 #ADD_EXECUTABLE(ocprint ${ocprint_FILES})

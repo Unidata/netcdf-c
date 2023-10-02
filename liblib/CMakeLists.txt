@@ -52,9 +52,10 @@ ENDFOREACH()
 
 ADD_LIBRARY(netcdf nc_initialize.c ${LARGS} )
 
-IF(MPI_C_INCLUDE_PATH)
-    target_include_directories(netcdf PUBLIC ${MPI_C_INCLUDE_PATH})
-ENDIF(MPI_C_INCLUDE_PATH)
+IF(STATUS_PARALLEL)
+  # TODO: Make PUBLIC when other dependencies have PUBLIC/PRIVATE specified
+  target_link_libraries(netcdf MPI::MPI_C)
+ENDIF(STATUS_PARALLEL)
 
 IF(MOD_NETCDF_NAME)
   SET_TARGET_PROPERTIES(netcdf PROPERTIES LIBRARY_OUTPUT_NAME ${NETCDF_LIB_NAME})

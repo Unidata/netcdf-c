@@ -19,9 +19,9 @@ ENDIF()
 # the netCDF library.
 add_library(netcdfhdf5 OBJECT ${libnchdf5_SOURCES})
 
-IF(MPI_C_INCLUDE_PATH)
-    target_include_directories(netcdfhdf5 PUBLIC ${MPI_C_INCLUDE_PATH})
-ENDIF(MPI_C_INCLUDE_PATH)
+IF(STATUS_PARALLEL)
+    target_link_libraries(netcdfhdf5 PUBLIC MPI::MPI_C)
+ENDIF(STATUS_PARALLEL)
 
 # Remember to package this file for CMake builds.
 ADD_EXTRA_DIST(${libnchdf5_SOURCES} CMakeLists.txt)
