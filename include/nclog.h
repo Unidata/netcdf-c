@@ -15,11 +15,13 @@
 #define NCENVLOGGING "NCLOGGING"
 #define NCENVTRACING "NCTRACING"
 
+/* Log level: linear order */
 /* Suggested tag values */
-#define NCLOGNOTE 0
-#define NCLOGWARN 1
-#define NCLOGERR 2
-#define NCLOGDBG 3
+#define NCLOGOFF   (0)	/* Stop Logging */
+#define NCLOGERR   (1)	/* Errors */
+#define NCLOGWARN  (2)	/* Warnings */
+#define NCLOGNOTE  (3)	/* General info */
+#define NCLOGDEBUG (4)	/* Everything */
 
 /* Support ptr valued arguments that are used to store results */
 #define PTRVAL(t,p,d) ((t)((p) == NULL ? (d) : *(p)))
@@ -29,12 +31,12 @@ extern "C" {
 #endif
 
 EXTERNL void ncloginit(void);
-EXTERNL int ncsetlogging(int tf);
+EXTERNL int ncsetloglevel(int level);
 EXTERNL int nclogopen(FILE* stream);
 
 /* The tag value is an arbitrary integer */
 EXTERNL void nclog(int tag, const char* fmt, ...);
-EXTERNL int ncvlog(int tag, const char* fmt, va_list ap);
+EXTERNL void ncvlog(int tag, const char* fmt, va_list ap);
 EXTERNL void nclogtext(int tag, const char* text);
 EXTERNL void nclogtextn(int tag, const char* text, size_t count);
 
@@ -49,7 +51,8 @@ EXTERNL int ncbreakpoint(int err);
 
 /* Debug support */
 #if defined(NCCATCH)
-#define NCTHROW(e) ((e) == NC_NOERR ? (e) : ncthrow(e,__FILE__,__LINE__))
+/* Warning: do not evaluate e more than once */
+#define NCTHROW(e) ncthrow(e,__FILE__,__LINE__)
 #else
 #define NCTHROW(e) (e)
 #endif

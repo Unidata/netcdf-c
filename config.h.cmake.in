@@ -163,6 +163,12 @@ are set when opening a binary file on Windows. */
 /* if true, enable S3 testing*/
 #cmakedefine WITH_S3_TESTING "PUBLIC"
 
+/* S3 Test Bucket */
+#define S3TESTBUCKET "${S3TESTBUCKET}"
+
+/* S3 Working subtree path prefix*/
+#define S3TESTSUBTREE "${S3TESTSUBTREE}"
+
 /* if true, run extra tests which may not work yet */
 #cmakedefine EXTRA_TESTS 1
 
@@ -337,6 +343,9 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the `snprintf' function. */
 #cmakedefine HAVE_SNPRINTF 1
 
+/* Define to 1 if the system has the type `mode_t'. */
+#cmakedefine HAVE_MODE_T 1
+
 /* Define to 1 if the system has the type `ssize_t'. */
 #cmakedefine HAVE_SSIZE_T 1
 
@@ -357,6 +366,9 @@ are set when opening a binary file on Windows. */
 
 /* Define to 1 if you have the <stdlib.h> header file. */
 #cmakedefine HAVE_STDLIB_H 1
+
+/* Define to 1 if you have the <ctype.h> header file. */
+#cmakedefine HAVE_CTYPE_H 1
 
 /* Define to 1 if you have the <strings.h> header file. */
 #cmakedefine HAVE_STRINGS_H 1

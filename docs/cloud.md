@@ -82,19 +82,19 @@ Currently the following build cases are known to work.
 <tr><td>Linux		<td>CMake	<td>aws-s3-sdk	<td>yes
 <tr><td>Linux		<td>CMake	<td>nch5s3comms	<td>yes
 <tr><td>OSX		<td>Automake	<td>aws-s3-sdk	<td>unknown
-<tr><td>OSX		<td>Automake	<td>nch5s3comms	<td>unknown
+<tr><td>OSX		<td>Automake	<td>nch5s3comms	<td>yes
 <tr><td>OSX		<td>CMake	<td>aws-s3-sdk	<td>unknown
-<tr><td>OSX		<td>CMake	<td>nch5s3comms	<td>unknown
-<tr><td>Visual Studio	<td>CMake	<td>aws-s3-sdk	<td>no (tests-fail)
+<tr><td>OSX		<td>CMake	<td>nch5s3comms	<td>yes
+<tr><td>Visual Studio	<td>CMake	<td>aws-s3-sdk	<td>no (tests fail)
 <tr><td>Visual Studio	<td>CMake	<td>nch5s3comms	<td>yes
-<tr><td>Cygwin		<td>Automake	<td>aws-s3-sdk	<td>unknown
+<tr><td>Cygwin		<td>Automake	<td>aws-s3-sdk	<td>no (tests fail)
 <tr><td>Cygwin		<td>Automake	<td>nch5s3comms	<td>yes
-<tr><td>Cygwin		<td>CMake	<td>aws-s3-sdk	<td>unknown
-<tr><td>Cygwin		<td>CMake	<td>nch5s3comms	<td>unknown
+<tr><td>Cygwin		<td>CMake	<td>aws-s3-sdk	<td>no
+<tr><td>Cygwin		<td>CMake	<td>nch5s3comms	<td>yes
 <tr><td>Mingw		<td>Automake	<td>aws-s3-sdk	<td>unknown
-<tr><td>Mingw		<td>Automake	<td>nch5s3comms	<td>unknown
+<tr><td>Mingw		<td>Automake	<td>nch5s3comms	<td>yes
 <tr><td>Mingw		<td>CMake	<td>aws-s3-sdk	<td>unknown
-<tr><td>Mingw		<td>CMake	<td>nch5s3comms	<td>unknown
+<tr><td>Mingw		<td>CMake	<td>nch5s3comms	<td>yes
 </table>
 
 ## Automake
@@ -163,7 +163,7 @@ This library, [aws-sdk-cpp library](https://github.com/aws/aws-sdk-cpp.git),
 has a number of properties of interest:
 * It is written in C++
 * It is available on [GitHub](https://github.com/aws/aws-sdk-cpp.git),
-* It uses CMake + ninja as its primary build system.
+* It uses CMake as its primary build system.
 
 ### *\*nix\** Build
 
@@ -179,18 +179,17 @@ pushd aws-sdk-cpp
 mkdir build
 cd build
 PREFIX=/usr/local
-FLAGS="-DCMAKE_INSTALL_PREFIX=${PREFIX} \
-       -DCMAKE_INSTALL_LIBDIR=lib \
-       -DCMAKE_MODULE_PATH=${PREFIX}/lib/cmake \
+FLAGS="-DCMAKE_INSTALL_PREFIX=/usr/local \
        -DCMAKE_POLICY_DEFAULT_CMP0075=NEW \
-       -DBUILD_ONLY=s3 \
+       -DBUILD_ONLY=s3;transfer \
        -DENABLE_UNITY_BUILD=ON \
-       -DENABLE_TESTING=OFF \
-       -DCMAKE_BUILD_TYPE=$CFG \
-       -DSIMPLE_INSTALL=ON"
-cmake -GNinja $FLAGS ..
-ninja all
-ninja install
+       -DCMAKE_BUILD_TYPE=Release \
+       -DSIMPLE_INSTALL=ON \
+       -DENABLE_TESTING=OFF
+
+cmake $FLAGS ..
+cmake --build . --config Release
+sudo cmake --install . --config Release
 cd ..
 popd
 ````

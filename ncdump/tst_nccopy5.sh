@@ -3,32 +3,45 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
-# If we want to run valgrind
-#NCCOPY="valgrind --leak-check=full ${NCCOPY}"
+set -e
 
-# Choose tests to run
-T1=1
-T2=1
-T3=1
-T4=1
-T5=1
+if test "x$TESTNCZARR" = x1 ; then
+. "$srcdir/test_nczarr.sh"
+s3isolate "testdir_nccopy5"
+else
+isolate testdir_ncccopy5
+fi
+THISDIR=`pwd`
+cd $ISOPATH
+
+# Program to run
+if test "x$TESTNCZARR" = x1 ; then
+    CHUNKTEST="${execdir}/test_chunking"
+else
+    CHUNKTEST="${execdir}/tst_chunking"
+fi
 
 # For a netCDF-4 build, test nccopy chunking rules
 
-set -e
 echo ""
 
 # Trim off leading and trailing whitespace
-# Also remove any <cr>
+# Also remove any <cr> and de-tabify
 # usage: trim <line>
 # Leaves result in variable TRIMMED
 trim() {
     # trim leading whitespace and remove <cr>
-    TMP=`echo "$1" |tr -d '\r' | sed -e 's/^[ 	]*//'`
+    TMP=`echo "$1" |tr -d '\r' | tr '\t' ' ' |sed -e 's/^[ 	]*//'`
     # trim trailing whitespace
     TRIMMED=`echo "$TMP" | sed -e 's/[ 	]*$//'`
 }
 
+if test "x$TESTNCZARR" = x1 ; then
+# NCZARR does not support contiguous storage
+checkfvar() {
+return
+}
+else
 # usage: checkfvar <file>
 checkfvar() {
   # Make sure that fvar was not chunked
@@ -38,6 +51,7 @@ checkfvar() {
       exit 1
   fi
 }
+fi
 
 # usage: checkivar <file>
 checkivar() {
@@ -67,135 +81,192 @@ cleanup() {
     rm -f tmp_nc5_omit.nc tmp_nc5_omit.cdl
 }
 
-# remove all created files
-reset() {
-    cleanup
-    rm -fr tst_nc5.nc tst_nc5.cdl tmp_ncc5.cdl
-    rm -f tst_nc5_omit.nc tst_nc5_omit.cdl
+buildfile() {
+zext=$1
+index=$2
+if test "x$TESTNCZARR" = x1 ; then
+fileargs "tmp_nc5_${index}_${zext}"
+deletemap $zext $file
+file="$fileurl"
+else
+file="tmp_nc5_${index}_${zext}.nc"
+rm -f $file
+fi
 }
 
-reset
+testcase1() {
+zext=$1
+buildfile ${zext} 1
 
-if test "x$T1" = x1 ; then
+rm -fr tmp1${zext}.dir
+mkdir tmp1${zext}.dir
+cd tmp1${zext}.dir
 
 # Create a simple classic input file 
-${execdir}/tst_chunking tmp_nc5_base.nc
+${CHUNKTEST} $file
 
 # Save a .cdl version
-${NCDUMP} tmp_nc5_base.nc > tmp_nc5_base.cdl
+${NCDUMP} -n tmp_nc5_base ${file} > tmp_nc5.cdl
 
 echo "*** Test nccopy -c with per-variable chunking; classic->enhanced"
 # This should produce same as -c dim0/,dim1/1,dim2/,dim3/1,dim4/,dim5/1,dim6/
 # But note that the chunk product is less than default, so we need to reduce it (-M)
-${NCCOPY} -M1000 -c ivar:7,1,2,1,5,1,9 tmp_nc5_base.nc tmp_nc5.nc
-${NCDUMP} -n tmp_nc5_base tmp_nc5.nc > tmp_nc5.cdl
+${NCCOPY} -M1000 -c ivar:7,1,2,1,5,1,9 ${file} tmp_nc34.nc
+${NCDUMP} -n tmp_nc5_base tmp_nc34.nc > tmp_nc34.cdl
 # Verify that the core cdl is the same
-diff tmp_nc5_base.cdl tmp_nc5.cdl
-# Look at the output chunking of ivar
-rm -f tmp_nc5a.cdl # reuse
-${NCDUMP} -hs -n tmp_nc5_base tmp_nc5.nc > tmp_nc5.cdl
+diff tmp_nc5.cdl tmp_nc34.cdl
+
+# Look at the output chunking
+${NCDUMP} -hs -n tmp_nc5_base tmp_nc34.nc > tmp_chunking.cdl
 # extract the chunking line
-TESTLINE=`sed -e '/ivar:_ChunkSizes/p' -e d <tmp_nc5.cdl`
+TESTLINE=`sed -e '/ivar:_ChunkSizes/p' -e d <tmp_chunking.cdl`
 # track line to match
 BASELINE='ivar:_ChunkSizes = 7, 1, 2, 1, 5, 1, 9 ;'
 verifychunkline "$TESTLINE" "$BASELINE"
 # Make sure that fvar was not chunked
-checkfvar tmp_nc5.cdl
+checkfvar tmp_chunking.cdl
+} # T1
 
-fi # T1
+testcase2() {
+zext=$1
+buildfile ${zext} 2
+    
+rm -fr tmp2${zext}.dir
+mkdir tmp2${zext}.dir
+cd tmp2${zext}.dir
 
-if test "x$T2" = x1 ; then
+${CHUNKTEST} ${file} deflate
+
+# Save a .cdl version
+${NCDUMP} -n tmp_nc5_base ${file} > tmp_nc5.cdl
 
 echo "*** Test nccopy -c with per-variable chunking; enhanced->enhanced"
-reset
-${execdir}/tst_chunking tst_nc5.nc deflate
-${NCDUMP} -n tmp_nc5_base tst_nc5.nc > tst_nc5.cdl
 # Use -M to ensure that chunking takes effect
-${NCCOPY} -M500 -c ivar:4,1,2,1,5,2,3 tst_nc5.nc tmp_nc5.nc
-${NCDUMP} -n tmp_nc5_base tmp_nc5.nc > tmp_nc5.cdl
-diff tst_nc5.cdl tmp_nc5.cdl
+${NCCOPY} -M500 -c ivar:4,1,2,1,5,2,3 $file tmp_nc44.nc
+${NCDUMP} -n tmp_nc5_base tmp_nc44.nc > tmp_nc44.cdl
+diff tmp_nc5.cdl tmp_nc44.cdl
 
 # Look at the output chunking
-rm -f tmp_nc5.cdl # reuse
-${NCDUMP} -hs -n tmp_nc5_base tmp_nc5.nc > tmp_nc5.cdl
+${NCDUMP} -hs -n tmp_nc5_base tmp_nc44.nc > tmp_chunking.cdl
 # extract the chunking line
-TESTLINE=`sed -e '/ivar:_ChunkSizes/p' -e d <tmp_nc5.cdl`
+TESTLINE=`sed -e '/ivar:_ChunkSizes/p' -e d <tmp_chunking.cdl`
 # track line to match
 BASELINE='ivar:_ChunkSizes = 4, 1, 2, 1, 5, 2, 3 ;'
 verifychunkline "$TESTLINE" "$BASELINE"
 # Make sure that fvar was not chunked
-checkfvar tmp_nc5.cdl
+checkfvar tmp_chunking.cdl
 
-fi # T2
+} # T2
 
-if test "x$T3" = x1 ; then
+testcase3() {
+zext=$1
+buildfile ${zext} 3
+    
+rm -fr tmp3${zext}.dir
+mkdir tmp3${zext}.dir
+cd tmp3${zext}.dir
+
+${CHUNKTEST} ${file} group
+
+# Save a .cdl version
+${NCDUMP} -n tmp_nc5_base ${file} > tmp_nc5.cdl
 
 echo "*** Test nccopy -c with FQN var name; enhanced ->enhanced"
-reset
-${execdir}/tst_chunking tst_nc5.nc group
-${NCDUMP} -n tmp_nc5_base tst_nc5.nc > tst_nc5.cdl
-${NCCOPY} -M500 -c /g/ivar:4,1,2,1,5,2,3 tst_nc5.nc tmp_nc5.nc
-${NCDUMP} -n tmp_nc5_base tmp_nc5.nc > tmp_nc5.cdl
-diff tst_nc5.cdl tmp_nc5.cdl
+${NCCOPY} -M500 -c /g/ivar:4,1,2,1,5,2,3 ${file} tmp_nc44.nc
+${NCDUMP} -n tmp_nc5_base tmp_nc44.nc > tmp_nc44.cdl
+diff tmp_nc5.cdl tmp_nc44.cdl
 
 # Verify chunking
-${NCDUMP} -hs -n tmp_nc5_base tmp_nc5.nc > tmp_nc5.cdl
+${NCDUMP} -hs -n tmp_nc5_base tmp_nc44.nc > tmp_chunking.cdl
 # extract the chunking line
-TESTLINE=`sed -e '/ivar:_ChunkSizes/p' -e d <tmp_nc5.cdl`
+TESTLINE=`sed -e '/ivar:_ChunkSizes/p' -e d <tmp_chunking.cdl`
 # track line to match
 BASELINE='ivar:_ChunkSizes = 4, 1, 2, 1, 5, 2, 3 ;'
 verifychunkline "$TESTLINE" "$BASELINE"
+# Make sure that fvar was not chunked
+checkfvar tmp_chunking.cdl
 
-fi #T3
+} #T3
 
-if test "x$T4" = x1 ; then
+testcase4() {
+zext=$1
+buildfile ${zext} 4
+    
+rm -fr tmp4${zext}.dir
+mkdir tmp4${zext}.dir
+cd tmp4${zext}.dir
+
+${CHUNKTEST} ${file} unlimited
+
+# Save a .cdl version
+${NCDUMP} -n tmp_nc5_base ${file} > tmp_nc5.cdl
 
 echo "*** Test nccopy -c with unlimited dimension; classic ->enhanced"
-reset
-${execdir}/tst_chunking tst_nc5.nc unlimited # should produce modified tmp_nc5.nc with ivar of rank 2
-${NCDUMP} -n tmp_nc5_base tst_nc5.nc > tst_nc5.cdl
-${NCCOPY} -M500 -c ivar:5,3 tst_nc5.nc tmp_nc5.nc
-${NCDUMP} -n tmp_nc5_base tmp_nc5.nc > tmp_nc5.cdl
-diff tst_nc5.cdl tmp_nc5.cdl
+# Warning: make sure that nccopy does not convert small chunking to contiguous => -M<small value>
+${NCCOPY} -M50 -c ivar:5,3 $file tmp_nc34.nc
+${NCDUMP} -n tmp_nc5_base tmp_nc34.nc > tmp_nc34.cdl
+diff tmp_nc5.cdl tmp_nc34.cdl
 
 # Verify chunking
-${NCDUMP} -hs -n tmp_nc5_base tmp_nc5.nc > tmp_nc5.cdl
+${NCDUMP} -hs -n tmp_nc5_base tmp_nc34.nc > tmp_chunking.cdl
 # extract the chunking line
-TESTLINE=`sed -e '/ivar:_ChunkSizes/p' -e d <tmp_nc5.cdl`
+TESTLINE=`sed -e '/ivar:_ChunkSizes/p' -e d <tmp_chunking.cdl`
 # track line to match
 BASELINE='   ivar:_ChunkSizes = 5, 3 ;   '
 verifychunkline "$TESTLINE" "$BASELINE"
 
 # Make sure that fvar was not chunked
-checkfvar tmp_nc5.cdl
+checkfvar tmp_chunking.cdl
 
-fi # T4
+} # T4
 
-if test "x$T5" = x1 ; then
+testcase5() {
+zext=$1
+buildfile ${zext} 5
+    
+rm -fr tmp5${zext}.dir
+mkdir tmp5${zext}.dir
+cd tmp5${zext}.dir
+
+${CHUNKTEST} ${file}
+
+# Save a .cdl version
+${NCDUMP} -n tmp_nc5_base ${file} > tmp_nc5_omit.cdl
 
 echo "*** Test nccopy -c fvar: to suppress chunking; classic ->enhanced"
-reset
-${execdir}/tst_chunking tst_nc5_omit.nc
-${NCDUMP} -n tst_nc5_omit tst_nc5_omit.nc > tst_nc5_omit.cdl
-${NCCOPY} -M500 -c ivar:7,1,2,1,5,1,9 -c fvar: tst_nc5_omit.nc tmp_nc5_omit.nc
-${NCDUMP} -n tst_nc5_omit tmp_nc5_omit.nc > tmp_nc5_omit.cdl
-diff tst_nc5_omit.cdl tmp_nc5_omit.cdl
+${NCCOPY} -M500 -c ivar:7,1,2,1,5,1,9 -c fvar: $file tmp_nc34_omit.nc
+${NCDUMP} -n tmp_nc5_base tmp_nc34_omit.nc > tmp_nc34_omit.cdl
+diff tmp_nc5_omit.cdl tmp_nc34_omit.cdl
 
 # Verify chunking of ivar
-${NCDUMP} -hs -n tst_nc5_omit tmp_nc5_omit.nc > tmp_nc5_omit.cdl
+${NCDUMP} -hs -n tmp_nc5_omit tmp_nc34_omit.nc > tmp_chunking_omit.cdl
 # extract the chunking line
-TESTLINE=`sed -e '/ivar:_ChunkSizes/p' -e d <tmp_nc5_omit.cdl`
+TESTLINE=`sed -e '/ivar:_ChunkSizes/p' -e d <tmp_chunking_omit.cdl`
 # track line to match
 BASELINE='   ivar:_ChunkSizes = 7, 1, 2, 1, 5, 1, 9 ;   '
 verifychunkline "$TESTLINE" "$BASELINE"
 
 # Make sure that fvar was not chunked
-checkfvar tmp_nc5_omit.cdl
+checkfvar tmp_chunking_omit.cdl
 
-fi # T5
+} # T5
 
-# Cleanup all created files
-reset
+testcases() {
+    testcase1 $1
+    testcase2 $1
+    testcase3 $1
+    testcase4 $1
+    testcase5 $1
+}
+
+if test "x$TESTNCZARR" != x ; then
+    testcases file
+    if test "x$FEATURE_NCZARR_ZIP" = xyes ; then testcases zip ; fi
+    if test "x$FEATURE_S3TESTS" = xyes ; then testcases s3 ; fi
+    if test "x$FEATURE_S3TESTS" = xyes ; then s3sdkdelete "/${S3ISOPATH}" ; fi # Cleanup
+else
+    testcases nc
+fi
 
 echo "*** All nccopy tests passed!"
 exit 0

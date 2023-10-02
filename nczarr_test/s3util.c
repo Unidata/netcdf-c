@@ -203,7 +203,7 @@ main(int argc, char** argv)
 
     memset(&s3sdk,0,sizeof(s3sdk));
 
-    if((stat = NC_s3urlprocess(dumpoptions.url, &s3sdk.s3))) goto done;
+    if((stat = NC_s3urlprocess(dumpoptions.url, &s3sdk.s3, NULL))) goto done;
     if(s3sdk.s3.rootkey != NULL && dumpoptions.key != NULL) {
 	/* Make the root key be the concatenation of rootkey+dumpoptions.key */
         if((stat = nczm_concat(s3sdk.s3.rootkey,dumpoptions.key,&tmp))) goto done;

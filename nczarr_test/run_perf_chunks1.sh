@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# This shell just tests the tst_chunks3 program by running it a few
+# This shell just tests the test_chunks3 program by running it a few
 # times to generate a simple test file. Then it uses ncdump -s to
 # check that the output is what it should be.
 # Copied from nc_perf/.
@@ -38,5 +38,3 @@ echo '*** SUCCESS!!!'
 testcases file
 if test "x$FEATURE_NCZARR_ZIP" = xyes ; then testcases zip; fi
 if test "x$FEATURE_S3TESTS" = xyes ; then testcases s3; fi
-
-if test "x$FEATURE_S3TESTS" = xyes ; then s3sdkdelete "/${S3ISOPATH}" ; fi # Cleanup

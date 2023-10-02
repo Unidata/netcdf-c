@@ -53,7 +53,7 @@ IF(ENABLE_TESTS)
         add_sh_test(ncdap tst_longremote3)	
         SET_TESTS_PROPERTIES(ncdap_tst_longremote3 PROPERTIES RUN_SERIAL TRUE)
       ENDIF(ENABLE_DAP_LONG_TESTS)
-      IF(FALSE)
+      IF(TRUE)
         # Apparently iridl.ldeo.columbia.edu is down for now
         add_sh_test(ncdap tst_encode)
         # not yet fixed

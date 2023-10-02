@@ -42,6 +42,7 @@ extern int d4panic(const char* fmt, ...);
 
 #ifdef D4CATCH
 /* Place breakpoint on dapbreakpoint to catch errors close to where they occur*/
+/* WARNING: do not evaluate e more than once */
 #define THROW(e) d4throw(e)
 #define THROWCHK(e) (void)d4throw(e)
 extern int d4breakpoint(int err);

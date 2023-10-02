@@ -16,6 +16,8 @@
 #include "netcdf_aux.h"
 #include "netcdf_filter.h"
 
+#include "h5misc.h" /* from plugins dir */
+
 #undef TESTODDSIZE
 
 #undef DEBUG
@@ -31,8 +33,6 @@
 
 #define MAXPARAMS 32
 
-#define NPARAMS 14
-
 static unsigned int baseline[NPARAMS];
 
 static const char* testfile = NULL;
@@ -40,8 +40,6 @@ static const char* testfile = NULL;
 #define MAXDIMS 8
 
 #define DFALT_TESTFILE "tmp_misc.nc"
-
-#define spec "32768, -17b, 23ub, -25S, 27US, 77, 93U, 789f, 12345678.12345678d, -9223372036854775807L, 18446744073709551615UL"
 
 #ifdef TESTODDSIZE
 #define NDIMS 1
@@ -136,7 +134,7 @@ create(void)
 {
     int i;
 
-    /* Create a file with one big variable, but whose dimensions arte not a multiple of chunksize (to see what happens) */
+    /* Create a file with one big variable whose dimensions may or may not be a multiple of chunksize (to see what happens) */
     CHECK(nc_create(testfile, NC_NETCDF4|NC_CLOBBER, &ncid));
     CHECK(nc_set_fill(ncid, NC_NOFILL, NULL));
     for(i=0;i<ndims;i++) {
@@ -145,6 +143,18 @@ create(void)
         CHECK(nc_def_dim(ncid, dimname, dimsize[i], &dimids[i]));
     }
     CHECK(nc_def_var(ncid, "var", NC_FLOAT, ndims, dimids, &varid));
+    return NC_NOERR;
+}
+
+static int
+setchunking(void)
+{
+    int store;
+
+    store = NC_CHUNKED;
+    CHECK(nc_def_var_chunking(ncid,varid,store,chunksize));
+    if(!verifychunks())
+        return NC_EINVAL;
     return NC_NOERR;
 }
 
@@ -210,35 +220,28 @@ openfile(void)
     return 1;
 }
 
-static int
-setchunking(void)
-{
-    int store;
-
-    store = NC_CHUNKED;
-    CHECK(nc_def_var_chunking(ncid,varid,store,chunksize));
-    if(!verifychunks())
-        return NC_EINVAL;
-    return NC_NOERR;
-}
-
 static void
 fill(void)
 {
-   odom_reset();
-   if(1) {
+
+#ifdef NOODOM
+   {
         int i;
-        if(actualproduct <= 1) abort();
+	if(actualproduct <= 1) abort();
         for(i=0;i<actualproduct;i++)
             expected[i] = (float)i;
-   } else {
-       while(odom_more()) {
+   }
+#else
+   {
+	odom_reset();
+	while(odom_more()) {
             int offset = odom_offset();
             float expect = expectedvalue();
             expected[offset] = expect;
             odom_next();
         }
    }
+#endif
 }
 
 
@@ -247,7 +250,7 @@ compare(void)
 {
     int errs = 0;
     fprintf(stderr,"data comparison: |array|=%ld\n",(unsigned long)actualproduct);
-    if(1)
+#ifdef NOODOM
     {
         int i;
         for(i=0;i<actualproduct;i++) {
@@ -259,7 +262,8 @@ compare(void)
                     break;
             }
         }
-   } else
+   }
+#else
    {
        odom_reset();
        while(odom_more()) {
@@ -275,6 +279,7 @@ compare(void)
             odom_next();
        }
    }
+#endif
 
    if(errs == 0)
         fprintf(stderr,"no data errors\n");
@@ -310,50 +315,60 @@ showparameters(void)
 static void
 insert(int index, void* src, size_t size)
 {
-    unsigned char src8[8];
-    void* dst = &baseline[index];
-    if(size == 8) {
-	memcpy(src8,src,size);
-	ncaux_h5filterspec_fix8(src8,0);
-	src = src8;
+    union {
+        unsigned char src8[8];
+        unsigned param[2];
+    } u;
+    unsigned char b = 0;
+    unsigned short s = 0;
+    unsigned int i = 0;
+    memset(&u,0,sizeof(u));
+    switch (size) {
+    case 1:
+	b = *((unsigned char*)src);
+        u.param[0] = (unsigned)b;
+	baseline[index+0] = u.param[0];
+	break;
+    case 2:
+	s = *((unsigned short*)src);
+        u.param[0] = (unsigned)s;
+	baseline[index+0] = u.param[0];
+	break;
+    case 4:
+	i = *((unsigned int*)src);
+        u.param[0] = (unsigned)i;
+	baseline[index+0] = u.param[0];
+	break;
+    case 8:
+	memcpy(u.src8,src,size);
+	ncaux_h5filterspec_fix8(u.src8,0);
+	baseline[index+0] = u.param[0];
+	baseline[index+1] = u.param[1];
+	break;
+    default: fprintf(stderr,"insert: unexpected size: %u\n",(unsigned)size); abort();
     }
-    memcpy(dst,src,size);
 }
 
 static void
 buildbaseline(unsigned int testcasenumber)
 {
-    unsigned int val4;
-    unsigned long long val8;
-    float float4;
-    double float8;
-
+    memset(baseline,0,sizeof(baseline));
     baseline[0] = testcasenumber;
     switch (testcasenumber) {
-    case 1:
-        val4 = ((unsigned int)-17) & 0xff;
-        insert(1,&val4,sizeof(val4)); /* 1 signed int*/
-	val4 = (unsigned int)23;
-        insert(2,&val4,sizeof(val4)); /* 2 unsigned int*/
-        val4 = ((unsigned int)-25) & 0xffff;
-        insert(3,&val4,sizeof(val4)); /* 3 signed int*/
-	val4 = (unsigned int)27;
-        insert(4,&val4,sizeof(val4)); /* 4 unsigned int*/
-	val4 = (unsigned int)77;
-        insert(5,&val4,sizeof(val4)); /* 5 signed int*/
-	val4 = (unsigned int)93;
-        insert(6,&val4,sizeof(val4)); /* 6 unsigned int*/
-	float4 = 789.0f;
-        insert(7,&float4,sizeof(float4)); /* 7 float */
-	float8 = DBLVAL;
-        insert(8,&float8,sizeof(float8)); /* 8 double */
-	val8 = -9223372036854775807L;
-        insert(10,&val8,sizeof(val8)); /* 10 signed long long */
-	val8 = 18446744073709551615UL;
-        insert(12,&val8,sizeof(val8)); /* 12 unsigned long long */
+    case TC_PARAMS:
+	insert(1,&spec.tbyte,sizeof(spec.tbyte));
+	insert(2,&spec.tubyte,sizeof(spec.tubyte));
+	insert(3,&spec.tshort,sizeof(spec.tshort));
+	insert(4,&spec.tushort,sizeof(spec.tushort));
+	insert(5,&spec.tint,sizeof(spec.tint));
+	insert(6,&spec.tuint,sizeof(spec.tuint));
+	insert(7,&spec.tfloat32,sizeof(spec.tfloat32));
+	insert(8,&spec.tint64,sizeof(spec.tint64)); /*size=8*/
+	insert(10,&spec.tuint64,sizeof(spec.tuint64)); /*size=8*/
+	insert(12,&spec.tfloat64,sizeof(spec.tfloat64)); /*size=8*/
 	break;
-    case 2:
-    case 3:
+    case TC_ODDSIZE:
+    case TC_EXPANDED:
     	break;
     default:
 	fprintf(stderr,"Unknown testcase number: %d\n",testcasenumber);
@@ -361,6 +376,7 @@ buildbaseline(unsigned int testcasenumber)
     }
 }
 
+/* Test simple parameter passing of all the known numeric types */
 static int
 test_test1(void)
 {
@@ -368,14 +384,13 @@ test_test1(void)
 
     reset();
 
-    buildbaseline(1);
+    buildbaseline(TC_PARAMS);
 
     fprintf(stderr,"test1: compression.\n");
     create();
     setchunking();
     setvarfilter();
-    showparameters();
-    CHECK(nc_enddef(ncid));
+    showparameters();    CHECK(nc_enddef(ncid));
 
     /* Fill in the array */
     fill();
@@ -399,7 +414,7 @@ test_test2(void)
 
     reset();
 
-    buildbaseline(2);
+    buildbaseline(TC_ODDSIZE);
 
     fprintf(stderr,"test2: dimsize %% chunksize != 0: compress.\n");
     create();
@@ -431,9 +446,9 @@ test_test3(void)
 
     reset();
 
-    buildbaseline(3);
+    buildbaseline(TC_EXPANDED);
 
-    fprintf(stderr,"test3: dimsize %% chunksize != 0: compress.\n");
+    fprintf(stderr,"test3: buffer expansion != 0: compress.\n");
     create();
     setchunking();
     setvarfilter();
@@ -449,7 +464,7 @@ test_test3(void)
 
     CHECK(nc_close(ncid));
 
-    fprintf(stderr,"test3: dimsize %% chunksize != 0: decompress.\n");
+    fprintf(stderr,"test3: expansion != 0: decompress.\n");
     reset();
     openfile();
     CHECK(nc_get_var_float(ncid, varid, array));

@@ -1,9 +1,5 @@
 #!/bin/bash 
 
-# Test the filter install
-# This cannot be run as a regular test
-# because installation will not have occurred
-
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
@@ -21,11 +17,21 @@ if test "x$TESTNCZARR" = x1; then
 s3isolate
 fi
 
+if test "x$TESTNCZARR" = x1; then
+    TFAVAIL=${execdir}/test_filter_avail
+    TFVLEN=${execdir}/test_filter_vlen
+else
+    TFAVAIL=${execdir}/tst_filter_avail
+    TFVLEN=${execdir}/tst_filter_vlen
+fi
+
 # Load the findplugins function
 . ${builddir}/findplugin.sh
 echo "findplugin.sh loaded"
 
-if ! filteravail bzip2 ; then 
+# test for deflate filter
+if avail 1 ; then HAVE_DEFLATE=1; else HAVE_DEFLATE=0; fi
+if test "$HAVE_DEFLAGE" = 0 ; then
    echo ">>> Filter bzip2 not available; discontinuing test"
    exit 0;
 fi
@@ -85,20 +91,12 @@ setfilter() {
 testavail() {
   zext=$1
   if ! filteravail bzip2; then return 0; fi
-  if test "x$TESTNCZARR" = x1 ; then
-      ${execdir}/test_filter_avail
-  else
-      ${execdir}/tst_filter_avail
-  fi
+  ${TFAVAIL}
 }
 
 testvlen() {
   zext=$1
-  if test "x$TESTNCZARR" = x1 ; then
-      ${execdir}/test_filter_vlen
-  else
-      ${execdir}/tst_filter_vlen
-  fi
+  ${TFVLEN}
 }
 
 testset() {

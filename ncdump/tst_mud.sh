@@ -8,28 +8,74 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 set -e
 
+if test "x$TESTNCZARR" = x1 ; then
+. "$srcdir/test_nczarr.sh"
+s3isolate "testdir_mud4"
+else
+isolate "testdir_mud4"
+ISOPATH=`pwd`
+fi
+THISDIR=`pwd`
+cd $ISOPATH
+
 echo ""
 echo "*** Testing ncdump output for multiple unlimited dimensions"
-echo "*** creating netcdf file tst_mud4.nc from ref_tst_mud4.cdl ..."
-${NCGEN} -4 -b -o tst_mud4.nc $srcdir/ref_tst_mud4.cdl
-echo "*** creating tst_mud4.cdl from tst_mud4.nc ..."
-${NCDUMP} tst_mud4.nc > tst_mud4.cdl
+
+# This is where the ref files are kept
+refdir="${srcdir}/../ncdump"
+
+testcase() {
+zext=$1
+
+if test "x$TESTNCZARR" = x1 ; then
+fileargs "tmp_mud4_${zext}"
+deletemap $zext $file
+file="$fileurl"
+else
+file="tmp_mud4_${zext}.nc"
+rm -f $file
+fi
+
+echo "*** creating netcdf file $file from ref_tst_mud4.cdl ..."
+${NCGEN} -4 -b -o $file $refdir/ref_tst_mud4.cdl
+echo "*** creating tmp_mud4.cdl from $file ..."
+${NCDUMP} -n tst_mud4 $file > tmp_mud4.cdl
 # echo "*** comparing tst_mud4.cdl with ref_tst_mud4.cdl..."
-diff -b tst_mud4.cdl $srcdir/ref_tst_mud4.cdl
-# echo "*** comparing annotation from ncdump -bc tst_mud4.nc with expected output..."
-${NCDUMP} -bc tst_mud4.nc > tst_mud4-bc.cdl
-diff -b tst_mud4-bc.cdl $srcdir/ref_tst_mud4-bc.cdl
+diff -b tmp_mud4.cdl $refdir/ref_tst_mud4.cdl
+# echo "*** comparing annotation from ncdump -bc $file with expected output..."
+${NCDUMP} -n tst_mud4 -bc $file > tmp_mud4-bc.cdl
+diff -b tmp_mud4-bc.cdl $refdir/ref_tst_mud4-bc.cdl
+
 # Now test with char arrays instead of ints
-echo "*** creating netcdf file tst_mud4_chars.nc from ref_tst_mud4_chars.cdl ..."
-${NCGEN} -4 -b -o tst_mud4_chars.nc $srcdir/ref_tst_mud4_chars.cdl
-echo "*** creating tst_mud4_chars.cdl from tst_mud4_chars.nc ..."
-${NCDUMP} tst_mud4_chars.nc > tst_mud4_chars.cdl
-# echo "*** comparing tst_mud4_chars.cdl with ref_tst_mud4_chars.cdl..."
-diff -b tst_mud4_chars.cdl $srcdir/ref_tst_mud4_chars.cdl
-exit 0
-# unused
-# echo "*** comparing annotation from ncdump -bc tst_mud4_chars.nc with expected output..."
-${NCDUMP} -bc tst_mud4_chars.nc > tst_mud4_chars-bc.cdl
-# diff -b tst_mud4_chars-bc.cdl $srcdir/ref_tst_mud4_chars-bc.cdl
-echo "*** All ncdump test output for multiple unlimited dimensions passed!"
+if test "x$TESTNCZARR" = x1 ; then
+fileargs "tmp_mud4_chars${zext}"
+deletemap $zext $file
+file="$fileurl"
+else
+file="tmp_mud4_chars${zext}.nc"
+rm -f $file
+fi
+echo "*** creating netcdf file $file from ref_tst_mud4_chars.cdl ..."
+${NCGEN} -4 -b -o $file $refdir/ref_tst_mud4_chars.cdl
+echo "*** creating ${file}.cdl from $file ..."
+${NCDUMP} -n tst_mud4_chars $file > tmp_mud4_chars.cdl
+# echo "*** comparing tmp_mud4_chars.cdl with ref_tst_mud4_chars.cdl..."
+diff -b tmp_mud4_chars.cdl $refdir/ref_tst_mud4_chars.cdl
+if test 1 = 0 ; then
+  # unused
+  echo "*** comparing annotation from ncdump -bc tst_mud4_chars.nc with expected output..."
+  ${NCDUMP} -n tst_mud4_chars -bc $file > tmp_mud4_chars-bc.cdl
+  diff -b tmp_mud4_chars-bc.cdl $refdir/ref_tst_mud4_chars-bc.cdl
+  echo "*** All ncdump test output for multiple unlimited dimensions passed!"
+fi
+}
+
+if test "x$TESTNCZARR" = x1 ; then
+    testcase file
+    if test "x$FEATURE_NCZARR_ZIP" = xyes ; then testcase zip ; fi
+    if test "x$FEATURE_S3TESTS" = xyes ; then testcase s3 ; fi
+else
+    testcase nc
+fi
+
 exit 0

@@ -12,6 +12,7 @@ It covers the following issues.
 * [Managing instances of variable-length data types](#intern_vlens)
 * [Inferring File Types](#intern_infer)
 * [Adding a Standard Filter](#intern_filters)
+* [Test Interference](#intern_isolation)
 
 # 1. Including C++ Code in the netcdf-c Library {#intern_c++}
 
@@ -647,9 +648,124 @@ done:
 #endif /*HAVE_ZSTD*/
 ````
 
+# 5. Test Interference {#intern_isolation}
+
+At some point, Unidata switched from running tests serially to running tests in parallel.
+It soon became apparent that there were resources shared between tests and that parallel
+execution sometimes caused interference between tests.
+
+In order to fix the inter-test interference, several approaches were used.
+1. Renaming resources (primarily files) so that tests would create difference test files.
+2. Telling the test system that there were explicit dependencies between tests so that they would not be run in parallel.
+3. Isolating test resources by creating independent directories for each test.
+
+## Test Isolation
+The isolation mechanism is currently used mostly in nczarr_tests.
+It requires that tests are all executed inside a shell script.
+When the script starts, it invokes a shell function called "isolate".
+This function looks in current directory for a directory called "testset_\<uid\>".
+If "testset_\<uid\> is not found then it creates it.
+This directory is then used to isolate all test output.
+
+After calling "isolate", the script enters the "testset_\<uid\>"
+directory.  Then each actual test creates a directory in which to
+store any file resources that it creates during execution.
+Suppose, for example, that the shell script is called "run_XXXX.sh".
+The isolate function creates a directory with the general name "testset_\<uid\>".
+Then the run_XXX.sh script creates a directory "testset_\<uid\>/testdir_XXX",
+enters it and runs the test.
+During cleanup, specifically "make clean", all the testset_\<uid\> directories are deleted.
+
+The "\<uid\>" is a unique identifier created using the "date +%s" command. It returns an integer
+representing the number of seconds since the start of the so-called "epoch" basically
+"00:00:00 UTC, 1 January 1970". Using a date makes it easier to detect and reclaim obsolete
+testset directories.
+
+## Cloud Test Isolation
+
+When testing against the cloud (currently Amazon S3), the interference
+problem is intensified.
+This is because the current cloud testing uses a single S3 bucket,
+which means that not only is there inter-test interference, but there
+is also potential interference across builds.
+This means, for example, that testing by github actions could
+interfere with local testing by individual users.
+This problem is difficult to solve, but a mostly complete solution has been implemented
+possible with cmake, but not (as yet) possible with automake.
+
+In any case, there is a shell function called s3isolate in nczarr_test/test_nczarr.sh that operates on cloud resources in a way that is similar to the isolate function.
+The s3isolate does several things:
+1. It invokes isolate to ensure local isolation.
+2. It creates a path prefix relative to the Unidata S3 bucket that has the name "testset_\<uid\>", where this name
+   is the same as the one created by the isolate function.
+3. It appends the uid to a file called s3cleanup_\<pid\>.uids. This file may accumulate several uids indicating
+   the keys that need to be cleaned up. The pid is a separate small unique id to avoid s3cleanup interference.
+
+The test script then ensures that any cloud resources are created as extensions of the path prefix.
+
+Cleanup of S3 resources is complex.
+In configure.ac or the top-level CMakeList.txt files, the path "netcdf-c/testset_\<uid\>"
+is created and via configuration commands, is propagated to various Makefile.am
+and specific script files.
+
+The actual cleanup requires different approaches for cmake and for automake.
+In cmake, the CTestCustom.cmake mechanism is used and contains the following command:
+````
+ IF(ENABLE_S3_TESTING)
+ # Assume run in top-level CMAKE_BINARY_DIR
+ set(CTEST_CUSTOM_POST_TEST "bash -x ${CMAKE_BINARY_DIR}/s3cleanup.sh")
+ ENDIF()
+````
+
+In automake, the "check-local" extension mechanism is used
+because it is invoked after all tests are run in the nczarr_test
+directory. So nczarr_test/Makefile.am contains the following
+equivalent code:
+````
+ if ENABLE_S3_TESTALL
+ check-local:
+ 	bash -x ${top_srcdir}/s3cleanup.sh
+ endif
+````
+
+### s3cleanup.sh
+This script is created by configuring the base file s3cleanup.in.
+It is unfortunately complex, but roughly it does the following.
+1. It computes a list of all the keys for all objects in the Unidata bucket and stores them in a file
+   named "s3cleanup_\<pid\>.keys".
+2. Get a list of date based uids created above.
+3. Iterate over the keys and the uids to collect the set of keys matching any one of the uids.
+4. Divide the keys into sets of 500. This is because the delete-objects command will not accept more than 1000 keys at a time.
+5. Convert each set of 500 keys from step 4 into a properly formatted JSON file suitable for use by the "aws delete-objects" command.
+This file is called "s3cleanup_\<pid\>.json".
+6. Use the "aws delete-objects" command to delete the keys.
+7. Repeat steps 5 and 6 for each set of 500 keys.
+
+The pid is a small random number to avoid local interference.
+It is important to note that this script assumes that the
+AWS command line package is installed.
+This can be installed, for example, using this command:
+````apt install awscli````.
+
+### s3gc.sh
+This script is created by configuring the base file s3gc.in.
+It is intended as a way for users to manually cleanup the S3 Unidata bucket.
+It takes a single argument, delta, that is the number of days before the present day
+and computes a stop date corresponding to "present_day - delta".
+All keys for all uids on or before the stop date.
+
+It operates as follows:
+1. Get a list of date based uids created above.
+2. Iterate over the keys and collect all that are on or before the stop date.
+3. Divide the keys into sets of 500. This is in recognition of the 1000 key limit mentioned previously.
+4. Convert each set of 500 keys from step 3 into a properly formatted JSON file suitable for use by the "aws delete-objects" command.
+This file is called "s3cleanup_\<pid\>.json".
+5. Use the "aws delete-objects" command to delete the keys.
+6. Repeat steps 4 and 5 for each set of 500 keys.
+
 # Point of Contact {#intern_poc}
 
 *Author*: Dennis Heimbigner<br>
 *Email*: dmh at ucar dot edu<br>
 *Initial Version*: 12/22/2021<br>
-*Last Revised*: 5/16/2023
+*Last Revised*: 9/16/2023
