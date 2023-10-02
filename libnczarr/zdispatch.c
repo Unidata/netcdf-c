@@ -38,7 +38,7 @@ static const NC_Dispatch NCZ_dispatcher = {
     NCZ_def_dim,
     NCZ_inq_dimid,
     NCZ_inq_dim,
-    NCZ_inq_unlimdim,
+    NC4_inq_unlimdim,
     NCZ_rename_dim,
 
     NCZ_inq_att,
@@ -65,7 +65,7 @@ static const NC_Dispatch NCZ_dispatcher = {
     NCZ_def_var_fill,
 
     NCZ_show_metadata,
-    NCZ_inq_unlimdims,
+    NC4_inq_unlimdims,
 
     NCZ_inq_ncid,
     NCZ_inq_grps,

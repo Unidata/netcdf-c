@@ -130,7 +130,7 @@ prefetchdata(NCDAPCOMMON* nccomm)
 	    /* Should be prefetchable */
 	    nclistpush(vars,(void*)var);
 if(SHOWFETCH) {
-nclog(NCLOGDBG,"prefetch: %s",var->ncfullname);
+nclog(NCLOGDEBUG,"prefetch: %s",var->ncfullname);
 }
 	}
     }
@@ -428,7 +428,7 @@ markprefetch(NCDAPCOMMON* nccomm)
             {
               extern char* ocfqn(OCddsnode);
               char *tmp = ocfqn(var->ocnode);
-              nclog(NCLOGDBG,"prefetchable: %s=%lu",
+              nclog(NCLOGDEBUG,"prefetchable: %s=%lu",
                     tmp,(unsigned long)nelems);
               free(tmp);
             }

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Run (tst_chunks,tst_chunks2) X (file,zip,s3)
+# Run (test_chunks,test_chunks2) X (file,zip,s3)
 
 
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
@@ -15,8 +15,8 @@ set -e
 ittest() {
 extfor $1
 if test "x$2" != x ; then CLOUD="-c $2"; fi
-${execdir}/tst_chunks -e $1 $CLOUD
-${execdir}/tst_chunks2 -e $1 $CLOUD
+${execdir}/test_chunks -e $1 $CLOUD
+${execdir}/test_chunks2 -e $1 $CLOUD
 }
 
 ittest file

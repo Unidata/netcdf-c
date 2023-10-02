@@ -24,6 +24,7 @@
 #include <aws/core/utils/logging/DefaultLogSystem.h>
 #include <aws/core/utils/logging/AWSLogging.h>
 #include <aws/core/Version.h>
+#include <aws/core/utils/logging/ConsoleLogSystem.h>
 #include <ios>
 #include <iostream>
 #include <fstream>

@@ -55,7 +55,7 @@ static int zs3len(NCZMAP* map, const char* key, size64_t* lenp);
 static void freevector(size_t nkeys, char** list);
 
 static void zs3initialize(void);
-static int s3clear(ZS3MAP* z3map, const char* key);
+static int s3clear(void* s3client, const char* bucket, const char* key);
 
 static int maketruekey(const char* rootpath, const char* key, char** truekeyp);
 
@@ -136,7 +136,7 @@ zs3create(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
         {stat = NC_EURL; goto done;}
 
     /* Convert to canonical path-style */
-    if((stat = NC_s3urlprocess(url,&z3map->s3))) goto done;
+    if((stat = NC_s3urlprocess(url,&z3map->s3,NULL))) goto done;
     /* Verify the root path */
     if(z3map->s3.rootkey == NULL)
         {stat = NC_EURL; goto done;}
@@ -152,18 +152,19 @@ zs3create(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
 	    if((stat = NC_s3sdkbucketcreate(z3map->s3client,z3map->s3.region,z3map->s3.bucket,&z3map->errmsg)))
 	        goto done;
 	}
-	/* The root object should not exist */
+	/* The root object may or may not already exist */
         switch (stat = NC_s3sdkinfo(z3map->s3client,z3map->s3.bucket,z3map->s3.rootkey,NULL,&z3map->errmsg)) {
 	case NC_EEMPTY: /* no such object */
 	    stat = NC_NOERR;  /* which is what we want */
 	    errclear(z3map);
 	    break;
-	case NC_NOERR: stat = NC_EOBJECT; goto done; /* already exists */
-	default: reporterr(z3map); goto done;
-	}
-	if(!stat) {
+	case NC_NOERR:
+	    stat = NC_EOBJECT;
+	    errclear(z3map);
             /* Delete objects inside root object tree */
-            s3clear(z3map,z3map->s3.rootkey);
+            s3clear(z3map->s3client,z3map->s3.bucket,z3map->s3.rootkey);
+	    goto done; /* already exists */
+	default: reporterr(z3map); goto done;
 	}
     }
     
@@ -214,7 +215,7 @@ zs3open(const char *path, int mode, size64_t flags, void* parameters, NCZMAP** m
         {stat = NC_EURL; goto done;}
 
     /* Convert to canonical path-style */
-    if((stat = NC_s3urlprocess(url,&z3map->s3))) goto done;
+    if((stat = NC_s3urlprocess(url,&z3map->s3,NULL))) goto done;
     /* Verify root path */
     if(z3map->s3.rootkey == NULL)
         {stat = NC_EURL; goto done;}
@@ -238,6 +239,30 @@ done:
     ncurifree(url);
     if(stat) nczmap_close((NCZMAP*)z3map,0);
     return ZUNTRACE(stat);
+}
+
+/* This uses url so we can get bucket */ 
+static int
+zs3truncate(const char *s3url)
+{
+    int stat = NC_NOERR;
+    void* s3client = NULL;
+    NCURI* url = NULL;
+    NCURI* purl = NULL;
+    NCS3INFO info;
+
+    ZTRACE(6,"url=%s",s3url);
+    ncuriparse(s3url,&url);
+    if(url == NULL) {stat = NC_EURL; goto done;}
+    if((stat=NC_s3urlprocess(url,&info,&purl))) goto done;
+    if((s3client = NC_s3sdkcreateclient(&info))) {stat = NC_ES3; goto done;}
+    if((stat = s3clear(s3client,info.bucket,purl->path))) goto done;
+done:
+    if(s3client) {stat=NC_s3sdkclose(s3client,&info,1,NULL);}
+    ncurifree(url);
+    ncurifree(purl);
+    (void)NC_s3clear(&info);
+    return stat;
 }
 
 /**************************************************/
@@ -328,56 +353,37 @@ done:
 @return NC_EXXX return true error
 */
 static int
-zs3write(NCZMAP* map, const char* key, size64_t start, size64_t count, const void* content)
+zs3write(NCZMAP* map, const char* key, size64_t count, const void* content)
 {
     int stat = NC_NOERR;
     ZS3MAP* z3map = (ZS3MAP*)map; /* cast to true type */
     char* chunk = NULL; /* use char* so we can do arithmetic with it */
-    size64_t objsize = 0;
-    size64_t memsize = 0;
-    size64_t endwrite = start+count; /* first pos just above overwritten data */
     char* truekey = NULL;
-    int isempty = 0;
+    size64_t objsize;
 	
-    ZTRACE(6,"map=%s key=%s start=%llu count=%llu",map->url,key,start,count);
+    ZTRACE(6,"map=%s key=%s count=%llu",map->url,key,count);
 
     if((stat = maketruekey(z3map->s3.rootkey,key,&truekey))) goto done;
 
     /* Apparently S3 has no write byterange operation, so we need to read the whole object,
        copy data, and then rewrite */       
     switch (stat=NC_s3sdkinfo(z3map->s3client, z3map->s3.bucket, truekey, &objsize, &z3map->errmsg)) {
-    case NC_NOERR: /* Figure out the memory size of the object */
-	memsize = (endwrite > objsize ? endwrite : objsize);
+    case NC_NOERR: /* Figure out the new size of the object */
         break;
     case NC_EEMPTY:
-	memsize = endwrite;
-	isempty = 1;
+	stat = NC_NOERR; /* reset */
         break;
     default: reporterr(z3map); goto done;
     }
 
-    if(isempty)
-        chunk = (char*)calloc(1,memsize); /* initialize it */
-    else
-        chunk = (char*)malloc(memsize);
+    chunk = (char*)calloc(1,count); /* initialize it */
     if(chunk == NULL)
 	{stat = NC_ENOMEM; goto done;}
-    if(start > 0 && objsize > 0) { /* must read to preserve data before start */
-        if((stat = NC_s3sdkread(z3map->s3client, z3map->s3.bucket, truekey, 0, objsize, (void*)chunk, &z3map->errmsg)))
-            goto done;
-    }
-#if 0
-    if(newsize > objsize) {
-        /* Zeroize the part of the object added */
-	memset(((char*)chunk)+objsize,0,(newsize-objsize));
-	objsize = newsize;
-    }
-#endif
     /* overwrite the relevant part of the memory with the contents */
     if(count > 0)
-        memcpy(((char*)chunk)+start,content,count); /* there may be data above start+count */
+        memcpy((char*)chunk,content,count);
     /* (re-)write */
-    if((stat = NC_s3sdkwriteobject(z3map->s3client, z3map->s3.bucket, truekey, memsize, (void*)chunk, &z3map->errmsg)))
+    if((stat = NC_s3sdkwriteobject(z3map->s3client, z3map->s3.bucket, truekey, count, (void*)chunk, &z3map->errmsg)))
         goto done;
 
 done:
@@ -396,8 +402,8 @@ zs3close(NCZMAP* map, int deleteit)
     ZTRACE(6,"map=%s deleteit=%d",map->url, deleteit);
 
     if(deleteit) 
-        s3clear(z3map,z3map->s3.rootkey);
-    if(z3map->s3client && z3map->s3.bucket && z3map->s3.rootkey) {
+        s3clear(z3map->s3client,z3map->s3.bucket,z3map->s3.rootkey);
+     if(z3map->s3client && z3map->s3.bucket && z3map->s3.rootkey) {
         NC_s3sdkclose(z3map->s3client, &z3map->s3, deleteit, &z3map->errmsg);
     }
     reporterr(z3map);
@@ -485,18 +491,19 @@ done:
 /* S3 Utilities */
 
 /*
-Remove all objects with keys which have
+Remove all objects in bucket with keys which have
 rootkey as prefix; rootkey is a truekey
 */
 static int
-s3clear(ZS3MAP* z3map, const char* rootkey)
+s3clear(void* s3client, const char* bucket, const char* rootkey)
 {
     int stat = NC_NOERR;
     char** list = NULL;
     char** p;
     size_t nkeys = 0;
-    if(z3map->s3client && z3map->s3.bucket && rootkey) {
-        if((stat = NC_s3sdksearch(z3map->s3client, z3map->s3.bucket, rootkey, &nkeys, &list, &z3map->errmsg)))
+
+    if(s3client && bucket && rootkey) {
+        if((stat = NC_s3sdksearch(s3client, bucket, rootkey, &nkeys, &list, NULL)))
             goto done;
         if(list != NULL) {
             for(p=list;*p;p++) {
@@ -505,14 +512,13 @@ s3clear(ZS3MAP* z3map, const char* rootkey)
 #ifdef S3DEBUG
 fprintf(stderr,"s3clear: %s\n",*p);
 #endif
-                if((stat = NC_s3sdkdeletekey(z3map->s3client, z3map->s3.bucket, *p, &z3map->errmsg)))	
+                if((stat = NC_s3sdkdeletekey(s3client, bucket, *p, NULL)))	
 	            goto done;
 	    }
         }
     }
 
 done:
-    reporterr(z3map);
     NCZ_freestringvec(nkeys,list);
     return THROW(stat);
 }
@@ -568,6 +574,7 @@ NCZMAP_DS_API zmap_s3sdk = {
     ZS3_PROPERTIES,
     zs3create,
     zs3open,
+    zs3truncate,
 };
 
 static NCZMAP_API

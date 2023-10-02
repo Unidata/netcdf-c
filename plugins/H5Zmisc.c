@@ -4,8 +4,10 @@
 #include <assert.h>
 #include <stdio.h>
 #include <sys/types.h>
-#include "netcdf_filter_build.h"
+
 #include "h5misc.h"
+
+#include "netcdf_aux.h"
 
 /* WARNING:
 Starting with HDF5 version 1.10.x, the plugin code MUST be
@@ -35,8 +37,8 @@ static size_t H5Z_filter_test(unsigned int flags, size_t cd_nelmts,
                      const unsigned int cd_values[], size_t nbytes,
                      size_t *buf_size, void **buf);
 
-static int paramcheck(size_t nparams, const unsigned int* params);
-static void mismatch(size_t i, const char* which);
+static int paramcheck(size_t nparams, const unsigned int* params, struct All* extracted);
+static void mismatch(const char* which);
 
 const H5Z_class2_t H5Z_TEST[1] = {{
     H5Z_CLASS_T_VERS,                /* H5Z_class_t version */
@@ -97,6 +99,7 @@ H5Z_filter_test(unsigned int flags, size_t cd_nelmts,
     void* newbuf;
     unsigned int testcase = 0;
     size_t size = 1024 * sizeof(float) * 2;
+    struct All values;
 
     if(cd_nelmts == 0)
 	goto fail;
@@ -104,8 +107,8 @@ H5Z_filter_test(unsigned int flags, size_t cd_nelmts,
     testcase = cd_values[0];
 
     switch (testcase) {
-    case TC_ENDIAN:
-	if(!paramcheck(cd_nelmts,cd_values))
+    case TC_PARAMS:
+	if(!paramcheck(cd_nelmts,cd_values,&values))
 	    goto fail;
 	break;
     case TC_ODDSIZE:
@@ -142,14 +145,14 @@ fprintf(stderr,"TC_EXPANDED: decompress: nbytes=%u buf_size=%u xdata[0..8]=|",(u
         H5free_memory(*buf);
         *buf = newbuf;
 
-    } else { /* Compress */
+    } else { /* (flags & H5Z_FLAG_REVERSE) Compress */
         if(testcase == TC_EXPANDED) {
 	    int i;
 	    float* b;
 #if 0	
 fprintf(stderr,"TC_EXPANDED: compress: nbytes=%u buf_size=%u size=%u\n",(unsigned)nbytes,(unsigned)*buf_size,(unsigned)size);
 #endif
-	    /* Replace buffer with one that is bigger than the chunk size */
+	    /* Replace buffer with one that is bigger than the input size */
             newbuf = H5allocate_memory(size,0);
             if(newbuf == NULL) abort();
 	    b = (float*)newbuf;
@@ -176,103 +179,93 @@ fail:
     return 0;
 }
 
-static int
-paramcheck(size_t nparams, const unsigned int* params)
+static void
+extract1(void* field, size_t size, const unsigned int* params)
 {
-    size_t i;
-    unsigned char mem[8];
+    union {
+	unsigned long long ll;
+        unsigned char char8[8];
+        unsigned param[2];
+    } u;
+    unsigned char b = 0;
+    unsigned short s = 0;
+    unsigned int i = 0;
+    unsigned char* bp = 0;
+    unsigned short* sp = NULL;
+    unsigned int* ip = NULL;
+    unsigned long long* llp = NULL;
+    memset(&u,0,sizeof(u));
+    switch (size) {
+    case 1:
+	b = (unsigned char)(params[0]);
+	bp = (unsigned char*)field;
+	*bp = b;
+	break;
+    case 2:
+	s = (unsigned short)(params[0]);
+	sp = (unsigned short*)field;
+	*sp = s;
+	break;
+    case 4:
+	i = (unsigned)(params[0]);
+	ip = (unsigned*)field;
+	*ip = i;
+	break;
+    case 8:
+	u.param[0] = params[0];
+	u.param[1] = params[1];
+	ncaux_h5filterspec_fix8(u.char8,0);
+	llp = (unsigned long long*)field;
+	*llp = u.ll;
+	break;
+    default: fprintf(stderr,"insert: unexpected size: %u\n",(unsigned)size); abort();
+    }
+}
 
-    if(nparams != 14) {
-	fprintf(stderr,"Too few parameters: need=14 sent=%ld\n",(unsigned long)nparams);
+static void
+extractparams(size_t nparams, const unsigned int* params, struct All* all)
+{
+    size_t offset = 0;
+    extract1(&all->tbyte,sizeof(all->tbyte),&params[offset]); offset += 1;
+    extract1(&all->tubyte,sizeof(all->tubyte),&params[offset]); offset += 1;
+    extract1(&all->tshort,sizeof(all->tshort),&params[offset]); offset += 1;
+    extract1(&all->tushort,sizeof(all->tushort),&params[offset]); offset += 1;
+    extract1(&all->tint,sizeof(all->tint),&params[offset]); offset += 1;
+    extract1(&all->tuint,sizeof(all->tuint),&params[offset]); offset += 1;
+    extract1(&all->tfloat32,sizeof(all->tfloat32),&params[offset]); offset += 1;
+    extract1(&all->tint64,sizeof(all->tint64),&params[offset]); offset += 2*1;
+    extract1(&all->tuint64,sizeof(all->tuint64),&params[offset]); offset += 2*1;
+    extract1(&all->tfloat64,sizeof(all->tfloat64),&params[offset]); offset += 2*1;
+}
+
+/* Verify values of the parameters */
+static int
+paramcheck(size_t nparams, const unsigned int* params, struct All* extracted)
+{
+    struct All all;
+
+    memset(&all,0,sizeof(all));
+
+    if(nparams != NPARAMS) {
+	fprintf(stderr,"Incorrect number of parameters: expected=%ld sent=%ld\n",(unsigned long)NPARAMS,(unsigned long)nparams);
 	goto fail;
     }
 
-    for(i=0;i<nparams;i++) {
-	unsigned int ival;
-	unsigned long long lval;
-	float fval;
-	double dval;
-        switch (i) {
-        case 0: break; /* this is the testcase # */
-        case 1:
-	    ival = (-17) & 0xff;
-	    if(ival != (signed int)(params[i]))
-	    {mismatch(i,"signed byte"); goto fail; };
-	    break;
-        case 2:
-	    ival = 23;
-	    if(ival != (unsigned int)(params[i]))
-	    {mismatch(i,"unsigned byte"); goto fail; };
-	    break;
-        case 3:
-	    ival = (-25) & 0xffff;
-	    if(ival != (signed int)(params[i]))
-	    {mismatch(i,"signed short"); goto fail; };
-	    break;
-        case 4:
-	    ival = 27;
-	    if(ival != (unsigned int)(params[i]))
-	    {mismatch(i,"unsigned short"); goto fail; };
-	    break;
-        case 5:
-	    ival = 77;
-	    if(ival != (signed int)(params[i]))
-	    {mismatch(i,"signed int"); goto fail; };
-	    break;
-        case 6:
-	    ival = 93u;
-	    if(ival != (unsigned int)(params[i]))
-	    {mismatch(i,"unsigned int"); goto fail; };
-	    break;
-        case 7:
-	    fval = 789.0f;
-	    if(fval != *(float*)(&params[i]))
-	    {mismatch(i,"float"); goto fail; };
-	    break;
-        case 8: {/*double*/
-            double x;
-	    memcpy(mem,&params[i],sizeof(mem));
-	    NC_h5filterspec_fix8(mem,1); /* Fix up endianness */
-            x = *(double*)mem;
-	    dval = DBLVAL;
-            i++; /* takes two parameters */
-	    if(dval != x) {
-                mismatch(i,"double");
-                goto fail;
-            }
-            }; break;
-        case 10: {/*signed long long*/
-            signed long long x;
-	    memcpy(mem,&params[i],sizeof(mem));
-	    NC_h5filterspec_fix8(mem,1); /* Fix up endianness */
-            x = *(signed long long*)mem;
-	    NC_h5filterspec_fix8(&x,1); /* Fix up endianness */
-	    lval = -9223372036854775807L;
-            i++; /* takes two parameters */
-            if(lval != x) {
-                mismatch(i,"signed long long");
-                goto fail;
-            }
-            }; break;
-        case 12: {/*unsigned long long*/
-            unsigned long long x;
-	    memcpy(mem,&params[i],sizeof(mem));
-	    NC_h5filterspec_fix8(mem,1); /* Fix up endianness */
-            x = *(unsigned long long*)mem;
-	    lval = 18446744073709551615UL;
-            i++; /* takes two parameters */
-            if(lval != x) {
-                mismatch(i,"unsigned long long");
-                goto fail;
-            }
-            }; break;
+    /* Convert numeric params to instance of struct All */
+    extractparams(nparams-1, &params[1], &all);
+    if(extracted) *extracted = all;
 
-        default:
-            mismatch(i,"unexpected parameter");
-            goto fail;
-            break;
-        }
-    }
+    /* verify */
+    if(all.tbyte != spec.tbyte) mismatch("tbyte");
+    if(all.tubyte != spec.tubyte) mismatch("tubyte");
+    if(all.tshort != spec.tshort) mismatch("tshort");
+    if(all.tushort != spec.tushort) mismatch("tushort");
+    if(all.tint != spec.tint) mismatch("tint");
+    if(all.tuint != spec.tuint) mismatch("tuint");
+    if(all.tfloat32 != spec.tfloat32) mismatch("tfloat32");
+    if(all.tint64 != spec.tint64) mismatch("tint64");
+    if(all.tuint64 != spec.tuint64) mismatch("tuint64");
+    if(all.tfloat64 != spec.tfloat64) mismatch("tfloat64");
 
 #ifdef DEBUG
     {
@@ -290,8 +283,9 @@ fail:
 }
 
 static void
-mismatch(size_t i, const char* which)
+mismatch(const char* which)
 {
-    fprintf(stderr,"mismatch: [%ld] %s\n",(unsigned long)i,which);
+    fprintf(stderr,"mismatch: %s\n",which);
     fflush(stderr);
 }
+

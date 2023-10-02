@@ -44,8 +44,6 @@ and do the command:
 
 #define NCJ_NSORTS   8
 
-/* No flags are currently defined, but the argument is a placeholder */
-
 /* Define a struct to store primitive values as unquoted
    strings. The sort will provide more info.  Do not bother with
    a union since the amount of saved space is minimal.

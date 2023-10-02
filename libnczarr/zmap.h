@@ -141,7 +141,7 @@ of the implementation.
 
 #define NCZM_DOT '.'
 
-/*Mnemonic*/
+/*Mnemonics*/
 #define LOCALIZE 1
 
 /* Forward */
@@ -163,7 +163,6 @@ typedef size64_t NCZM_FEATURES;
 /* powers of 2 */
 #define NCZM_UNIMPLEMENTED 1 /* Unknown/ unimplemented */
 #define NCZM_WRITEONCE 2     /* Objects can only be written once */
-#define NCZM_ZEROSTART 4     /* Objects can only be written using a start count of zero */
 
 /*
 For each dataset, we create what amounts to a class
@@ -200,7 +199,7 @@ struct NCZMAP_API {
 	int (*exists)(NCZMAP* map, const char* key);
 	int (*len)(NCZMAP* map, const char* key, size64_t* sizep);
 	int (*read)(NCZMAP* map, const char* key, size64_t start, size64_t count, void* content);
-	int (*write)(NCZMAP* map, const char* key, size64_t start, size64_t count, const void* content);
+	int (*write)(NCZMAP* map, const char* key, size64_t count, const void* content);
         int (*search)(NCZMAP* map, const char* prefix, struct NClist* matches);
 };
 
@@ -210,6 +209,7 @@ typedef struct NCZMAP_DS_API {
     NCZM_FEATURES features;
     int (*create)(const char *path, int mode, size64_t constraints, void* parameters, NCZMAP** mapp);
     int (*open)(const char *path, int mode, size64_t constraints, void* parameters, NCZMAP** mapp);
+    int (*truncate)(const char* url);
 } NCZMAP_DS_API;
 
 extern NCZMAP_DS_API zmap_file;
@@ -276,16 +276,18 @@ EXTERNL int nczmap_read(NCZMAP* map, const char* key, size64_t start, size64_t c
 
 /**
 Write the content of a specified content-bearing object.
+This assumes that it is not possible to write a subset of an object.
+Any such partial writes must be handled at a higher level by
+reading the object, modifying it, and then writing the whole object.
 @param map -- the containing map
 @param key -- the key specifying the content-bearing object
-@param start -- offset into the content to start writing
 @param count -- number of bytes to write
 @param content -- write the data from this memory
 @return NC_NOERR if the operation succeeded
 @return NC_EXXX if the operation failed for one of several possible reasons
 Note that this makes the key a content-bearing object.
 */
-EXTERNL int nczmap_write(NCZMAP* map, const char* key, size64_t start, size64_t count, const void* content);
+EXTERNL int nczmap_write(NCZMAP* map, const char* key, size64_t count, const void* content);
 
 /**
 Return a vector of names (not keys) representing the
@@ -297,6 +299,15 @@ next segment of legal objects that are immediately contained by the prefix key.
 @return NC_EXXX if the operation failed for one of several possible reasons
 */
 EXTERNL int nczmap_search(NCZMAP* map, const char* prefix, struct NClist* matches);
+
+/**
+"Truncate" the storage associated with a map. Delete all contents except
+the root, which is sized to zero.
+@param url -- the url specifying the root object.
+@return NC_NOERR if the truncation succeeded
+@return NC_EXXX if the operation failed for one of several possible reasons
+*/
+EXTERNL int nczmap_truncate(NCZM_IMPL impl, const char* url);
 
 /**
 Close a map

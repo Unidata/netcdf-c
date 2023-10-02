@@ -332,13 +332,12 @@ objdump(void)
         for(i=0;i<nclistlength(stack);i++)
             fprintf(stderr,"[%d] %s\n",i,(char*)nclistget(stack,i));
     }    
-    for(depth=0;nclistlength(stack) > 0;depth++) {
+    for(depth=0;depth < nclistlength(stack);depth++) {
         size64_t len = 0;
 	OBJKIND kind = 0;
 	int hascontent = 0;
 	nullfree(content); content = NULL;
-	nullfree(obj); obj = NULL;
-	obj = nclistremove(stack,0); /* zero pos is always top of stack */
+	obj = nclistget(stack,depth);
 	kind = keykind(obj);
 	/* Now print info for this obj key */
         switch (stat=nczmap_len(map,obj,&len)) {
@@ -386,7 +385,6 @@ objdump(void)
 	}
     }
 done:
-    nullfree(obj);
     nullfree(content);
     nczmap_close(map,0);
     nclistfreeall(stack);
