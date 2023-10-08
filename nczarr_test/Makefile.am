@@ -161,6 +161,9 @@ endif  # ISMINGW
 endif #ENABLE_FILTER_TESTING
 endif #ENABLE_NCZARR_FILTERS
 
+# Test various corrupted files
+TESTS += run_corrupt.sh
+
 endif #BUILD_UTILITIES
 
 # These programs are used by the test cases
@@ -200,7 +203,8 @@ run_purezarr.sh run_interop.sh run_misc.sh \
 run_filter.sh \
 run_newformat.sh run_nczarr_fill.sh run_quantize.sh \
 run_jsonconvention.sh run_nczfilter.sh run_unknown.sh \
-run_scalar.sh run_strings.sh run_nulls.sh run_notzarr.sh run_external.sh run_unlim_io.sh
+run_scalar.sh run_strings.sh run_nulls.sh run_notzarr.sh run_external.sh \
+run_unlim_io.sh run_corrupt.sh
 
 EXTRA_DIST += \
 ref_ut_map_create.cdl ref_ut_map_writedata.cdl ref_ut_map_writemeta2.cdl ref_ut_map_writemeta.cdl \
@@ -227,6 +231,9 @@ ref_nulls_nczarr.baseline ref_nulls_zarr.baseline ref_nulls.cdl ref_notzarr.tar.
 # Interoperability files
 EXTRA_DIST += ref_power_901_constants_orig.zip ref_power_901_constants.cdl ref_quotes_orig.zip ref_quotes.cdl \
 ref_zarr_test_data.cdl.gz ref_zarr_test_data_2d.cdl.gz
+
+# Additional Files
+EXTRA_DIST += ref_noshape.file.zip
 
 CLEANFILES = ut_*.txt ut*.cdl tmp*.nc tmp*.cdl tmp*.txt tmp*.dmp tmp*.zip tmp*.nc tmp*.dump tmp*.tmp tmp*.zmap tmp_ngc.c ref_zarr_test_data.cdl tst_*.nc.zip ref_quotes.zip ref_power_901_constants.zip
 
