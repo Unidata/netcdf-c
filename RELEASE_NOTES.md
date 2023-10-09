@@ -7,6 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.9.3 - TBD
 
+* Improve the speed and data quantity for DAP4 queries. See [Github #????](https://github.com/Unidata/netcdf-c/pull/????).
 * Mitigate the problem of test interference. See [Github #2755](https://github.com/Unidata/netcdf-c/pull/2755).
 * Extend NCZarr to support unlimited dimensions. See [Github #2755](https://github.com/Unidata/netcdf-c/pull/2755).
 * Fix significant bug in the NCZarr cache management. See [Github #2737](https://github.com/Unidata/netcdf-c/pull/2737).
