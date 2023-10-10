@@ -60,5 +60,3 @@ if test "x$FEATURE_S3TESTS" = xyes ; then
     testcase1 s3
     testcase2 s3
 fi
-
-if test "x$FEATURE_S3TESTS" = xyes ; then s3sdkdelete "/${S3ISOPATH}" ; fi # Cleanup

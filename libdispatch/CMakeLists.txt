@@ -42,13 +42,9 @@ ENDIF(ENABLE_THREADSAFE)
 #ENDIF(MSVC)
 
 add_library(dispatch OBJECT ${libdispatch_SOURCES})
-IF(MPI_C_INCLUDE_PATH)
-    target_include_directories(dispatch PUBLIC ${MPI_C_INCLUDE_PATH})
-ENDIF(MPI_C_INCLUDE_PATH)
-
-IF(MPI_C_LIBRARIES)
-    target_link_libraries(dispatch PUBLIC ${MPI_C_LIBRARIES})
-ENDIF(MPI_C_LIBRARIES)
+IF(STATUS_PARALLEL)
+    target_link_libraries(dispatch PUBLIC MPI::MPI_C)
+ENDIF(STATUS_PARALLEL)
 
 IF(ENABLE_NCZARR)
     target_include_directories(dispatch PUBLIC ../libnczarr)

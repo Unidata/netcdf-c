@@ -25,8 +25,8 @@ nczodom_new(int rank, const size64_t* start, const size64_t* stop, const size64_
     odom->properties.start0 = 1; /* assume */
     for(i=0;i<rank;i++) { 
 	odom->start[i] = (size64_t)start[i];
-	odom->stop[i] = (size64_t)stop[i];
 	odom->stride[i] = (size64_t)stride[i];
+	odom->stop[i] = (size64_t)stop[i];
 	odom->len[i] = (size64_t)len[i];
 	if(odom->start[i] != 0) odom->properties.start0 = 0;
 	if(odom->stride[i] != 1) odom->properties.stride1 = 0;
@@ -131,11 +131,11 @@ buildodom(int rank, NCZOdometer** odomp)
         if((odom = calloc(1,sizeof(NCZOdometer))) == NULL)
 	    goto done;   
         odom->rank = rank;
-        if((odom->start=malloc(sizeof(size64_t)*rank))==NULL) goto nomem;
-        if((odom->stop=malloc(sizeof(size64_t)*rank))==NULL) goto nomem;
-        if((odom->stride=malloc(sizeof(size64_t)*rank))==NULL) goto nomem;
-        if((odom->len=malloc(sizeof(size64_t)*rank))==NULL) goto nomem;
-        if((odom->index=malloc(sizeof(size64_t)*rank))==NULL) goto nomem;
+        if((odom->start=calloc(1,(sizeof(size64_t)*rank)))==NULL) goto nomem;
+        if((odom->stop=calloc(1,(sizeof(size64_t)*rank)))==NULL) goto nomem;
+        if((odom->stride=calloc(1,(sizeof(size64_t)*rank)))==NULL) goto nomem;
+        if((odom->len=calloc(1,(sizeof(size64_t)*rank)))==NULL) goto nomem;
+        if((odom->index=calloc(1,(sizeof(size64_t)*rank)))==NULL) goto nomem;
         *odomp = odom; odom = NULL;
     }
 done:
@@ -168,7 +168,6 @@ nczodom_skipavail(NCZOdometer* odom)
         odom->index[odom->rank-1] = odom->stop[odom->rank-1];
 }
 
-#if 0
 size64_t
 nczodom_laststride(const NCZOdometer* odom)
 {
@@ -182,4 +181,26 @@ nczodom_lastlen(const NCZOdometer* odom)
     assert(odom != NULL && odom->rank > 0);
     return odom->len[odom->rank-1];
 }
-#endif
+
+void
+nczodom_print(const NCZOdometer* odom)
+{
+    size_t i;
+    fprintf(stderr,"odom{rank=%d offset=%llu avail=%llu",odom->rank,nczodom_offset(odom),nczodom_avail(odom));
+    fprintf(stderr," start=(");
+        for(i=0;i<odom->rank;i++) {fprintf(stderr,"%s%llu",(i==0?"":" "),(unsigned long long)odom->start[i]);}
+	fprintf(stderr,")");
+    fprintf(stderr," stride=(");
+        for(i=0;i<odom->rank;i++) {fprintf(stderr,"%s%llu",(i==0?"":" "),(unsigned long long)odom->stride[i]);}
+	fprintf(stderr,")");
+    fprintf(stderr," stop=(");
+        for(i=0;i<odom->rank;i++) {fprintf(stderr,"%s%llu",(i==0?"":" "),(unsigned long long)odom->stop[i]);}
+	fprintf(stderr,")");
+    fprintf(stderr," len=(");
+        for(i=0;i<odom->rank;i++) {fprintf(stderr,"%s%llu",(i==0?"":" "),(unsigned long long)odom->len[i]);}
+	fprintf(stderr,")");
+    fprintf(stderr," index=(");
+        for(i=0;i<odom->rank;i++) {fprintf(stderr,"%s%llu",(i==0?"":" "),(unsigned long long)odom->index[i]);}
+	fprintf(stderr,")");
+    fprintf(stderr,"}\n");
+}

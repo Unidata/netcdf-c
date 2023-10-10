@@ -229,7 +229,7 @@ NC_rcload(void)
     globalstate = NC_getglobalstate();
 
     if(globalstate->rcinfo->ignore) {
-        nclog(NCLOGDBG,".rc file loading suppressed");
+        nclog(NCLOGNOTE,".rc file loading suppressed");
 	goto done;
     }
     if(globalstate->rcinfo->loaded) goto done;
@@ -657,7 +657,7 @@ rcsearch(const char* prefix, const char* rcname, char** pathp)
     /* see if file is readable */
     f = NCfopen(path,"r");
     if(f != NULL)
-        nclog(NCLOGDBG, "Found rc file=%s",path);
+        nclog(NCLOGNOTE, "Found rc file=%s",path);
 done:
     if(f == NULL || ret != NC_NOERR) {
 	nullfree(path);
@@ -1159,6 +1159,15 @@ aws_load_credentials(NCglobalstate* gstate)
 	    const char* text = ncbytescontents(buf);
             if((stat = awsparse(text,profiles))) goto done;
 	}
+    }
+  
+    /* add a "none" credentials */
+    {
+	struct AWSprofile* noprof = (struct AWSprofile*)calloc(1,sizeof(struct AWSprofile));
+    if(noprof == NULL) {stat = NC_ENOMEM; goto done;}
+	noprof->name = strdup("none");
+	noprof->entries = nclistnew();
+	nclistpush(profiles,noprof); noprof = NULL;
     }
 
     if(gstate->rcinfo->s3profiles)

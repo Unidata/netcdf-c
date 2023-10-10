@@ -417,48 +417,58 @@ AC_ARG_WITH([default-chunk-size],
 AC_MSG_RESULT([$DEFAULT_CHUNK_SIZE])
 AC_DEFINE_UNQUOTED([DEFAULT_CHUNK_SIZE], [$DEFAULT_CHUNK_SIZE], [default chunk size in bytes])
 
-# Did the user specify a max per-var cache size?
-AC_MSG_CHECKING([whether a maximum per-variable cache size for HDF5 was specified])
-AC_ARG_WITH([max-default-cache-size],
-              [AS_HELP_STRING([--with-max-default-cache-size=<integer>],
-                              [Specify maximum size (in bytes) for the default per-var chunk cache.])],
-            [MAX_DEFAULT_CACHE_SIZE=$with_max_default_cache_size], [MAX_DEFAULT_CACHE_SIZE=67108864])
-AC_MSG_RESULT([$MAX_DEFAULT_CACHE_SIZE])
-AC_DEFINE_UNQUOTED([MAX_DEFAULT_CACHE_SIZE], [$MAX_DEFAULT_CACHE_SIZE], [max size of the default per-var chunk cache.])
+# Did the user specify a default cache size?
+AC_MSG_CHECKING([whether a default cache size was specified])
+AC_ARG_WITH([default-chunk-cache-size],
+              [AS_HELP_STRING([--with-default-chunk-cache-size=<integer>],
+                              [Specify default size (in bytes) for chunk cache.])],
+            [DEFAULT_CHUNK_CACHE_SIZE=$with_default_chunk_cache_size], [DEFAULT_CHUNK_CACHE_SIZE=16777216U])
+AC_MSG_RESULT([$DEFAULT_CHUNK_CACHE_SIZE])
+AC_DEFINE_UNQUOTED([DEFAULT_CHUNK_CACHE_SIZE], [$DEFAULT_CHUNK_CACHE_SIZE], [default size of the chunk cache.])
 
-# Did the user specify a number of chunks in default per-var cache size?
-AC_MSG_CHECKING([whether a number of chunks for the default per-variable cache was specified])
+# Did the user specify a max number of chunks in default per-var cache size?
+AC_MSG_CHECKING([whether a default number of entries for the chunk cache was specified])
 AC_ARG_WITH([default-chunks-in-cache],
               [AS_HELP_STRING([--with-default-chunks-in-cache=<integer>],
-                              [Specify the number of chunks to store in default per-variable cache.])],
-            [DEFAULT_CHUNKS_IN_CACHE=$with_default_chunks_in_cache], [DEFAULT_CHUNKS_IN_CACHE=10])
+                              [Specify the max number of chunks to store in cache.])],
+            [DEFAULT_CHUNKS_IN_CACHE=$with_default_chunks_in_cache], [DEFAULT_CHUNKS_IN_CACHE=1000])
 AC_MSG_RESULT([$DEFAULT_CHUNKS_IN_CACHE])
-AC_DEFINE_UNQUOTED([DEFAULT_CHUNKS_IN_CACHE], [$DEFAULT_CHUNKS_IN_CACHE], [num chunks in default per-var chunk cache.])
+AC_DEFINE_UNQUOTED([DEFAULT_CHUNKS_IN_CACHE], [$DEFAULT_CHUNKS_IN_CACHE], [default max num chunks in chunk cache.])
 
+# Did the user specify a default cache preemption
+AC_MSG_CHECKING([whether a default cache preemption was specified])
+AC_ARG_WITH([default-chunk-cache-preemption],
+              [AS_HELP_STRING([--with-chunk-cache-preemption=<float between 0 and 1 inclusive>],
+                              [Specify default file chunk cache preemption policy (a number between 0 and 1, inclusive).])],
+            [DEFAULT_CHUNK_CACHE_PREEMPTION=$with_chunk_cache_preemption], [DEFAULT_CHUNK_CACHE_PREEMPTION=0.75])
+AC_MSG_RESULT([$DEFAULT_CHUNK_CACHE_PREEMPTION])
+AC_DEFINE_UNQUOTED([DEFAULT_CHUNK_CACHE_PREEMPTION], [$DEFAULT_CHUNK_CACHE_PREEMPTION], [default file chunk cache preemption policy.])
+
+# These three options are redundant over the --with-default... options above.
 # Did the user specify a default cache size for HDF5?
 AC_MSG_CHECKING([whether a default file cache size for HDF5 was specified])
 AC_ARG_WITH([chunk-cache-size],
               [AS_HELP_STRING([--with-chunk-cache-size=<integer>],
                               [Specify default file cache chunk size for HDF5 files in bytes.])],
-            [CHUNK_CACHE_SIZE=$with_chunk_cache_size], [CHUNK_CACHE_SIZE=16777216])
+            [CHUNK_CACHE_SIZE=$with_chunk_cache_size], [CHUNK_CACHE_SIZE=DEFAULT_CHUNK_CACHE_SIZE])
 AC_MSG_RESULT([$CHUNK_CACHE_SIZE])
 AC_DEFINE_UNQUOTED([CHUNK_CACHE_SIZE], [$CHUNK_CACHE_SIZE], [default file chunk cache size in bytes.])
 
-# Did the user specify a default cache nelems?
+# Did the user specify a default max cache entries for HDF5
 AC_MSG_CHECKING([whether a default file cache maximum number of elements for HDF5 was specified])
 AC_ARG_WITH([chunk-cache-nelems],
               [AS_HELP_STRING([--with-chunk-cache-nelems=<integer>],
                               [Specify default maximum number of elements in the file chunk cache chunk for HDF5 files (should be prime number).])],
-            [CHUNK_CACHE_NELEMS=$with_chunk_cache_nelems], [CHUNK_CACHE_NELEMS=4133])
+            [CHUNK_CACHE_NELEMS=$with_chunk_cache_nelems], [CHUNK_CACHE_NELEMS=DEFAULT_CHUNKS_IN_CACHE])
 AC_MSG_RESULT([$CHUNK_CACHE_NELEMS])
 AC_DEFINE_UNQUOTED([CHUNK_CACHE_NELEMS], [$CHUNK_CACHE_NELEMS], [default file chunk cache nelems.])
 
-# Did the user specify a default cache preemption?
+# Did the user specify a default cache preemption for HDF5?
 AC_MSG_CHECKING([whether a default cache preemption for HDF5 was specified])
 AC_ARG_WITH([chunk-cache-preemption],
               [AS_HELP_STRING([--with-chunk-cache-preemption=<float between 0 and 1 inclusive>],
                               [Specify default file chunk cache preemption policy for HDF5 files (a number between 0 and 1, inclusive).])],
-            [CHUNK_CACHE_PREEMPTION=$with_chunk_cache_preemption], [CHUNK_CACHE_PREEMPTION=0.75])
+            [CHUNK_CACHE_PREEMPTION=$with_chunk_cache_preemption], [CHUNK_CACHE_PREEMPTION=DEFAULT_CHUNK_CACHE_PREEMPTION])
 AC_MSG_RESULT([$CHUNK_CACHE_PREEMPTION])
 AC_DEFINE_UNQUOTED([CHUNK_CACHE_PREEMPTION], [$CHUNK_CACHE_PREEMPTION], [default file chunk cache preemption policy.])
 
@@ -737,43 +747,111 @@ AM_CONDITIONAL(ENABLE_NCZARR, [test x$enable_nczarr = xyes])
 # Look for Standardized libraries
 ##########
 
-# See if we have libblosc
-AC_CHECK_LIB([blosc],[blosc_init],[have_blosc=yes],[have_blosc=no])
-if test "x$have_blosc" = "xyes" ; then
-   AC_SEARCH_LIBS([blosc_init],[blosc blosc.dll cygblosc.dll], [], [])
-   AC_DEFINE([HAVE_BLOSC], [1], [if true, blosc library is available])
-fi
-
-# See if we have libzstd
-AC_CHECK_LIB([zstd],[ZSTD_compress],[have_zstd=yes],[have_zstd=no])
-if test "x$have_zstd" = "xyes" ; then
-   AC_SEARCH_LIBS([ZSTD_compress],[zstd zstd.dll cygzstd.dll], [], [])
-   AC_DEFINE([HAVE_ZSTD], [1], [if true, zstd library is available])
-
-fi
-AC_MSG_CHECKING([whether libzstd library is available])
-AC_MSG_RESULT([${have_zstd}])
-
 ##
-# Ensure that the zstd.h dev files are also available.
+# blosc checks
 ##
-if test "x$have_zstd" = "xyes" ; then
-   AC_CHECK_HEADERS([zstd.h], [], [nc_zstd_h_missing=yes])
-   if test "x$nc_zstd_h_missing" = xyes; then
-         AC_MSG_WARN([zstd library detected, but zstd.h development file not found. Ensure that the zstd development files are installed in order to build zstd support.])
-         AC_DEFINE([HAVE_ZSTD], [0], [if true, zstd library is available])
-         have_zstd=no
+
+# See if we want to enable blosc, and if so, search for the library. 
+AC_MSG_CHECKING([whether to search for and enable blosc filter support])
+AC_ARG_ENABLE([filter-blosc],
+               [AS_HELP_STRING([--disable-filter-blosc],
+                               [disable blosc filter support.])])
+test "x$enable_filter_blosc" = xno || enable_filter_blosc=yes
+AC_MSG_RESULT($enable_filter_blosc)
+
+if test "x$enable_filter_blosc" = "xyes" ; then
+   # See if we have libblosc
+   AC_CHECK_LIB([blosc],[blosc_init],[have_blosc=yes],[have_blosc=no])
+   if test "x$have_blosc" = "xyes" ; then
+      AC_SEARCH_LIBS([blosc_init],[blosc blosc.dll cygblosc.dll], [], [])
+      AC_DEFINE([HAVE_BLOSC], [1], [if true, blosc library is available])
    fi
+else
+   have_blosc=no
+fi
+##
+# End blosc checks
+##
+
+##
+# libzstd checks
+##
+
+# See if we want to enable libzstd, and if so, search for the library. 
+AC_MSG_CHECKING([whether to search for and enable libzstd filter support])
+AC_ARG_ENABLE([filter-zstd],
+               [AS_HELP_STRING([--disable-filter-zstd],
+                               [disable zstd filter support.])])
+test "x$enable_filter_zstd" = xno || enable_filter_zstd=yes
+AC_MSG_RESULT($enable_filter_zstd)
+
+if test "x$enable_filter_zstd" = "xyes" ; then
+   # See if we have libzstd
+   AC_CHECK_LIB([zstd],[ZSTD_compress],[have_zstd=yes],[have_zstd=no])
+   if test "x$have_zstd" = "xyes" ; then
+      AC_SEARCH_LIBS([ZSTD_compress],[zstd zstd.dll cygzstd.dll], [], [])
+      AC_DEFINE([HAVE_ZSTD], [1], [if true, zstd library is available])
+
+   fi
+   AC_MSG_CHECKING([whether libzstd library is available])
+   AC_MSG_RESULT([${have_zstd}])
+
+   ##
+   # Ensure that the zstd.h dev files are also available.
+   ##
+   if test "x$have_zstd" = "xyes" ; then
+      AC_CHECK_HEADERS([zstd.h], [], [nc_zstd_h_missing=yes])
+      if test "x$nc_zstd_h_missing" = xyes; then
+            AC_MSG_WARN([zstd library detected, but zstd.h development file not found. Ensure that the zstd development files are installed in order to build zstd support.])
+            AC_DEFINE([HAVE_ZSTD], [0], [if true, zstd library is available])
+            have_zstd=no
+      fi
+   fi
+
+else
+   have_zstd=no
+fi
+##
+# End zstd checks
+##
+
+##
+# Begin bz2 checks
+##
+
+# See if we want to enable BZ2, and if so, search for the library. 
+AC_MSG_CHECKING([whether to search for and enable external bz2 filter support])
+AC_ARG_ENABLE([filter-bz2],
+               [AS_HELP_STRING([--disable-filter-bz2],
+                               [disable external bz2 filter support. bz2 support defaults to internal implementation if this is disabled or if the external library is not found.])])
+test "x$enable_filter_bz2" = xno || enable_filter_bz2=yes
+AC_MSG_RESULT([$enable_filter_bz2])
+
+if test "x$enable_filter_bz2" = "xyes" ; then
+
+   AC_CHECK_LIB([bz2],[BZ2_bzCompress],[have_bz2=yes],[have_bz2=no])
+   if test "x$have_bz2" = "xyes" ; then
+      AC_SEARCH_LIBS([BZ2_bzCompress],[bz2 bz2.dll cygbz2.dll], [], [])
+      AC_DEFINE([HAVE_BZ2], [1], [if true, bz2 library is installed])
+   fi
+   AC_MSG_CHECKING([whether libbz2 library is available])
+   AC_MSG_RESULT([${have_bz2}])
+
 fi
 
-# See if we have libbz2
-AC_CHECK_LIB([bz2],[BZ2_bzCompress],[have_bz2=yes],[have_bz2=no])
-if test "x$have_bz2" = "xyes" ; then
-     AC_SEARCH_LIBS([BZ2_bzCompress],[bz2 bz2.dll cygbz2.dll], [], [])
-     AC_DEFINE([HAVE_BZ2], [1], [if true, bz2 library is installed])
+# How about bzip2
+
+if test "x$have_bz2" = x ; then
+
+   AC_CHECK_LIB([bzip2],[BZ2_bzCompress],[have_bz2=yes],[have_bz2=no])
+   if test "x$have_bz2" = "xyes" ; then
+      AC_SEARCH_LIBS([BZ2_bzCompress],[bzip2 bzip2.dll cygbzip2.dll], [], [])
+      AC_DEFINE([HAVE_BZ2], [1], [if true, bzip2 library is installed])
+   fi
+   AC_MSG_CHECKING([whether libbzip2 library is available])
+   AC_MSG_RESULT([${have_bz2}])
+
 fi
-AC_MSG_CHECKING([whether libbz2 library is available])
-AC_MSG_RESULT([${have_bz2}])
 
 if test "x$have_bz2" = "xno" ; then
   have_local_bz2=yes
@@ -781,7 +859,11 @@ if test "x$have_bz2" = "xno" ; then
 else
   have_local_bz2=no
 fi
+
 AM_CONDITIONAL(HAVE_LOCAL_BZ2, [test "x$have_local_bz2" = xyes])
+##
+# End bz2 checks
+##
 
 # Note that szip management is tricky.
 # This is because we have three things to consider:
@@ -847,14 +929,18 @@ unset enable_nczarr_s3
 # Note we check for the library after checking for enable_s3
 # because for some reason this fails if we unconditionally test for sdk
 # and it is not available. Fix someday
+S3LIBS=""
 if test "x$enable_s3" = xyes ; then
 # See if we have the s3 aws library
 # Check for the AWS S3 SDK library
-AC_LANG_PUSH([C++])
-AC_SEARCH_LIBS([aws_allocator_is_valid],[aws-c-common aws-cpp-sdk-s3 aws-cpp-sdk-core], [enable_s3_aws=yes],[enable_s3_aws=no])
-AC_LANG_POP
+   AC_LANG_PUSH([C++])
+   AC_CHECK_LIB([aws-c-common], [aws_string_destroy], [enable_s3_aws=yes],[enable_s3_aws=no])
+   if test "x$enable_s3_aws" = "xyes" ; then
+      S3LIBS="-laws-cpp-sdk-core -laws-cpp-sdk-s3"
+   fi
+   AC_LANG_POP
 else
-enable_s3_aws=no
+   enable_s3_aws=no
 fi
 
 AC_MSG_CHECKING([whether AWS S3 SDK library is available])
@@ -870,7 +956,7 @@ AC_MSG_RESULT($enable_s3_internal)
 
 if test "x$enable_s3_aws" = xno && test "x$enable_s3_internal" = xno ; then
 AC_MSG_WARN([No S3 library available => S3 support disabled])
-enable_S3=no
+enable_s3=no
 fi
 
 if test "x$enable_s3_aws" = xyes && test "x$enable_s3_internal" = xyes ; then
@@ -907,28 +993,20 @@ if test "x$enable_s3" = xyes ; then
 fi
 
 if test "x$enable_s3_aws" = xyes ; then
-AC_DEFINE([ENABLE_S3_AWS], [1], [If true, then use aws S3 library])
+   LIBS="$LIBS$S3LIBS"
+   AC_DEFINE([ENABLE_S3_AWS], [1], [If true, then use aws S3 library])
 fi
 
 if test "x$enable_s3_internal" = xyes ; then
-AC_DEFINE([ENABLE_S3_INTERNAL], [1], [If true, then use internal S3 library])
+   AC_DEFINE([ENABLE_S3_INTERNAL], [1], [If true, then use internal S3 library])
 fi
 
 AC_DEFINE_UNQUOTED([WITH_S3_TESTING], [$with_s3_testing], [control S3 testing.])
 
 if test "x$with_s3_testing" = xyes ; then
   AC_MSG_WARN([*** DO NOT SPECIFY WITH_S3_TESTING=YES UNLESS YOU HAVE ACCESS TO THE UNIDATA S3 BUCKET! ***])
+  AC_DEFINE([ENABLE_S3_TESTALL], [yes], [control S3 testing.])
 fi
-
-# Set default
-# Did the user specify a default cache size for NCZarr?
-AC_MSG_CHECKING([whether a default file cache size for NCZarr was specified])
-AC_ARG_WITH([chunk-cache-size-nczarr],
-              [AS_HELP_STRING([--with-chunk-cache-size-nczarr=<integer>],
-                              [Specify default maximum space used by the chunk cache NCZarr.])],
-            [CHUNK_CACHE_SIZE_NCZARR=$with_chunk_cache_size_nczarr], [CHUNK_CACHE_SIZE_NCZARR=4194304])
-AC_MSG_RESULT([$CHUNK_CACHE_SIZE_NCZARR])
-AC_DEFINE_UNQUOTED([CHUNK_CACHE_SIZE_NCZARR], [$CHUNK_CACHE_SIZE_NCZARR], [default nczarr chunk cache size.])
 
 # Check whether we want to enable strict null byte header padding.
 # See https://github.com/Unidata/netcdf-c/issues/657 for more information.
@@ -1411,6 +1489,8 @@ AC_TYPE_OFF_T
 AC_TYPE_UINTPTR_T
 AC_C_CHAR_UNSIGNED
 AC_C_BIGENDIAN
+
+AC_CHECK_TYPES([mode_t])
 
 AM_CONDITIONAL(ISCYGWIN, [test "x$ISCYGWIN" = xyes])
 AM_CONDITIONAL(ISMSVC, [test "x$ISMSVC" = xyes])
@@ -1992,7 +2072,7 @@ AC_SUBST(HAS_S3_AWS,[$enable_s3_aws])
 AC_SUBST(HAS_S3_INTERNAL,[$enable_s3_internal])
 AC_SUBST(HAS_HDF5_ROS3,[$has_hdf5_ros3])
 AC_SUBST(HAS_NCZARR,[$enable_nczarr])
-AC_SUBST(DO_S3_TESTING,[$with_s3_testing])
+AC_SUBST(ENABLE_S3_TESTING,[$with_s3_testing])
 AC_SUBST(HAS_NCZARR_ZIP,[$enable_nczarr_zip])
 AC_SUBST(DO_NCZARR_ZIP_TESTS,[$enable_nczarr_zip])
 AC_SUBST(HAS_QUANTIZE,[$enable_quantize])
@@ -2015,6 +2095,26 @@ fi
 if test "x$enable_s3_aws" = xno && test "x$enable_s3_internal" = xno; then
 AC_SUBST(WHICH_S3_SDK,[none])
 fi
+
+# The Unidata testing S3 bucket
+# WARNING: this must match the value in CMakeLists.txt
+AC_DEFINE([S3TESTBUCKET], ["unidata-zarr-test-data"], [S3 test bucket])
+AC_SUBST([S3TESTBUCKET],["unidata-zarr-test-data"])
+
+# The working S3 path tree within the Unidata bucket.
+# WARNING: this must match the value in CMakeLists.txt
+AC_DEFINE([S3TESTSUBTREE], ["netcdf-c"], [S3 test path prefix])
+AC_SUBST([S3TESTSUBTREE],[netcdf-c])
+
+# Build a small unique id to avoid interference on same platform
+PLATFORMUID="$RANDOM"
+# Make sure uid > 0
+PLATFORMUID=$((PLATFORMUID % 1000 + 1))
+# Build a unique id based on the date
+TESTUID=`date +%s`
+AC_DEFINE_UNQUOTED([TESTUID], [${TESTUID}], [S3 working path])
+AC_SUBST([TESTUID],${TESTUID})
+AC_SUBST([PLATFORMUID],${PLATFORMUID})
 
 # Always available
 std_filters="bz2"
@@ -2162,18 +2262,21 @@ AC_DEFINE_UNQUOTED([NC_DISPATCH_VERSION], [${NC_DISPATCH_VERSION}], [Dispatch ta
 # This would be true for a cmake build.
 AC_SUBST([ISCMAKE], [])
 
-# Provide  conditional to temporarily suppress tests and such
-AM_CONDITIONAL([AX_IGNORE], [test xno = xyes])
+# Provide  true/false conditionals to temporarily suppress tests and such
+AM_CONDITIONAL([AX_DISABLE], [test xno = xyes])
+AM_CONDITIONAL([AX_ENABLE], [test xyes = xyes])
 # Provide  conditional to identify tests that must be run manually
 AM_CONDITIONAL([AX_MANUAL], [test xno = xyes])
 
 AC_MSG_NOTICE([generating header files and makefiles])
 AC_CONFIG_FILES(test_common.sh:test_common.in)
-AC_CONFIG_FILES(nc_test4/findplugin.sh:nc_test4/findplugin.in)
-AC_CONFIG_FILES(nczarr_test/findplugin.sh:nc_test4/findplugin.in)
-AC_CONFIG_FILES(plugins/findplugin.sh:nc_test4/findplugin.in)
-AC_CONFIG_FILES(examples/C/findplugin.sh:nc_test4/findplugin.in)
-AC_CONFIG_FILES(ncdap_test/findtestserver.c:ncdap_test/findtestserver.c.in)
+AC_CONFIG_FILES(s3cleanup.sh:s3cleanup.in, [chmod ugo+x s3cleanup.sh])
+AC_CONFIG_FILES(s3gc.sh:s3gc.in, [chmod ugo+x s3gc.sh])
+AC_CONFIG_FILES(nc_test4/findplugin.sh:nc_test4/findplugin.in, [chmod ugo+x nc_test4/findplugin.sh])
+AC_CONFIG_FILES(nczarr_test/findplugin.sh:nc_test4/findplugin.in, [chmod ugo+x nczarr_test/findplugin.sh])
+AC_CONFIG_FILES(plugins/findplugin.sh:nc_test4/findplugin.in, [chmod ugo+x plugins/findplugin.sh])
+AC_CONFIG_FILES(examples/C/findplugin.sh:nc_test4/findplugin.in, [chmod ugo+x examples/C/findplugin.sh])
+AC_CONFIG_FILES(ncdap_test/findtestserver.c:ncdap_test/findtestserver.c.in, [chmod ugo+x ncdap_test/findtestserver.c])
 AC_CONFIG_FILES([nc_test/run_pnetcdf_tests.sh:nc_test/run_pnetcdf_tests.sh.in],[chmod ugo+x nc_test/run_pnetcdf_tests.sh])
 AC_CONFIG_FILES(dap4_test/findtestserver4.c:ncdap_test/findtestserver.c.in)
 AC_CONFIG_FILES(dap4_test/pingurl4.c:ncdap_test/pingurl.c)
@@ -2230,6 +2333,7 @@ AC_CONFIG_FILES([Makefile
                  ncdap_test/testdata3/Makefile
                  ncdap_test/expected3/Makefile
                  ncdap_test/expectremote3/Makefile
+                 ncdap_test/expectedhyrax/Makefile
                  dap4_test/Makefile
                  plugins/Makefile
 		 nczarr_test/Makefile

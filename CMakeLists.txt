@@ -61,17 +61,17 @@ ENDIF()
 
 # Define some Platforms
 if(osname MATCHES "CYGWIN.*")
-SET(ISCYGWIN yes)
+  SET(ISCYGWIN yes)
 endif()
-if(osname MATCHES "Darwin.*")
-SET(ISOSX yes)
+  if(osname MATCHES "Darwin.*")
+  SET(ISOSX yes)
 endif()
 if(MSVC)
-SET(ISMSVC yes)
+  SET(ISMSVC yes)
 endif()
 if(osname MATCHES "MINGW.*" OR osname MATCHES "MSYS.*")
-SET(ISMINGW yes)
-SET(MINGW yes)
+  SET(ISMINGW yes)
+  SET(MINGW yes)
 endif()
 
 ###
@@ -209,9 +209,6 @@ SET(EXTRA_DEPS "")
 
 ENABLE_TESTING()
 INCLUDE(CTest)
-
-# Copy the CTest customization file into binary directory, as required.
-FILE(COPY ${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 # Set Memory test program for non-MSVC based builds.
 # Assume valgrind for now.
@@ -364,14 +361,17 @@ ENDIF()
 # Option checks
 ################################
 
-# HDF5 cache variables.
+# Default Cache variables.
 SET(DEFAULT_CHUNK_SIZE 16777216 CACHE STRING "Default Chunk Cache Size.")
-SET(DEFAULT_CHUNKS_IN_CACHE 10 CACHE STRING "Default number of chunks in cache.")
-SET(CHUNK_CACHE_SIZE 16777216 CACHE STRING "Default Chunk Cache Size.")
-SET(CHUNK_CACHE_NELEMS 4133 CACHE STRING "Default maximum number of elements in cache.")
-SET(CHUNK_CACHE_PREEMPTION 0.75 CACHE STRING "Default file chunk cache preemption policy for HDf5 files(a number between 0 and 1, inclusive.")
-SET(CHUNK_CACHE_SIZE_NCZARR 4194304 CACHE STRING "Default NCZarr Chunk Cache Size.")
-SET(MAX_DEFAULT_CACHE_SIZE 67108864 CACHE STRING "Default maximum cache size.")
+SET(DEFAULT_CHUNK_CACHE_SIZE 16777216U CACHE STRING "Default Chunk Cache Size.")
+SET(DEFAULT_CHUNKS_IN_CACHE 1000 CACHE STRING "Default number of chunks in cache.")
+SET(DEFAULT_CHUNK_CACHE_PREEMPTION 0.75 CACHE STRING "Default file chunk cache preemption policy (a number between 0 and 1, inclusive.")
+
+# HDF5 default cache size values
+SET(CHUNK_CACHE_SIZE ${DEFAULT_CHUNK_CACHE_SIZE} CACHE STRING "Default HDF5 Chunk Cache Size.")
+SET(CHUNK_CACHE_NELEMS ${DEFAULT_CHUNKS_IN_CACHE} CACHE STRING "Default maximum number of elements in cache.")
+SET(CHUNK_CACHE_PREEMPTION ${DEFAULT_CHUNK_CACHE_PREEMPTION} CACHE STRING "Default file chunk cache preemption policy for HDf5 files(a number between 0 and 1, inclusive.")
+
 SET(NETCDF_LIB_NAME "" CACHE STRING "Default name of the netcdf library.")
 SET(TEMP_LARGE "." CACHE STRING "Where to put large temp files if large file tests are run.")
 SET(NCPROPERTIES_EXTRA "" CACHE STRING "Specify extra pairs for _NCProperties.")
@@ -899,7 +899,7 @@ IF(USE_HDF5)
   # This needs to be near the beginning since we
   # need to know whether to add "-lz" to the symbol
   # tests below.
-  CHECK_C_SOURCE_COMPILES("#include <H5public.h>
+  CHECK_C_SOURCE_COMPILES("#include <H5pubconf.h>
    #if !H5_HAVE_ZLIB_H
    #error
    #endif
@@ -922,7 +922,7 @@ IF(USE_HDF5)
   ENDIF()
 
   #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip library.
-  CHECK_C_SOURCE_COMPILES("#include <H5public.h>
+  CHECK_C_SOURCE_COMPILES("#include <H5pubconf.h>
    #if !H5_HAVE_FILTER_SZIP
    #error
    #endif
@@ -1163,30 +1163,51 @@ macro(set_std_filter filter)
 # Upper case the filter name
 string(TOUPPER "${filter}" upfilter)
 string(TOLOWER "${filter}" downfilter)
+if(ENABLE_FILTER_${upfilter})
 # Define a test flag for filter
-IF(${filter}_FOUND)
-  INCLUDE_DIRECTORIES(${${filter}_INCLUDE_DIRS})
-  SET(ENABLE_${upfilter} TRUE)
-  SET(HAVE_${upfilter} ON)
-  SET(STD_FILTERS "${STD_FILTERS} ${downfilter}")
+  IF(${filter}_FOUND)
+    INCLUDE_DIRECTORIES(${${filter}_INCLUDE_DIRS})
+    SET(ENABLE_${upfilter} TRUE)
+    SET(HAVE_${upfilter} ON)
+    SET(STD_FILTERS "${STD_FILTERS} ${downfilter}")
+    MESSAGE(">>> Standard Filter: ${downfilter}")
+  ELSE()
+    SET(ENABLE_${upfilter} FALSE)
+    SET(HAVE_${upfilter} OFF)
+  ENDIF()
 ELSE()
-  SET(ENABLE_${upfilter} FALSE)
   SET(HAVE_${upfilter} OFF)
 ENDIF()
 endmacro(set_std_filter)
 
 # Locate some compressors
-FIND_PACKAGE(Szip)
-FIND_PACKAGE(Bz2)
-FIND_PACKAGE(Blosc)
-FIND_PACKAGE(Zstd)
+OPTION(ENABLE_FILTER_SZIP  "Enable use of Szip compression library if it is available. Required if ENABLE_NCZARR is true." ON)
+OPTION(ENABLE_FILTER_BZ2   "Enable use of Bz2 compression library if it is available." ON)
+OPTION(ENABLE_FILTER_BLOSC "Enable use of blosc compression library if it is available." ON)
+OPTION(ENABLE_FILTER_ZSTD  "Enable use of Zstd compression library if it is available." ON)
+IF (ENABLE_FILTER_SZIP)
+  FIND_PACKAGE(Szip)
+ELSEIF(ENABLE_NCZARR)
+  FIND_PACKAGE(Szip)
+ENDIF()
+IF (ENABLE_FILTER_BZ2)
+  FIND_PACKAGE(Bz2)
+ENDIF()
+IF (ENABLE_FILTER_BLOSC)
+  FIND_PACKAGE(Blosc)
+ENDIF()
+IF (ENABLE_FILTER_ZSTD)
+  FIND_PACKAGE(Zstd)
+ENDIF()
 
 # Accumulate standard filters
 set(STD_FILTERS "deflate") # Always have deflate*/
 set_std_filter(Szip)
-  SET(HAVE_SZ ${Szip_FOUND})
+SET(HAVE_SZ ${Szip_FOUND})
 set_std_filter(Blosc)
+IF(Zstd_FOUND)
 set_std_filter(Zstd)
+ENDIF()
 IF(Bz2_FOUND)
   set_std_filter(Bz2)
 ELSE()
@@ -1355,22 +1376,29 @@ ENDIF()
 IF(ENABLE_S3)
   IF(NOT ENABLE_S3_INTERNAL)
     # See if aws-s3-sdk is available
-    find_package(AWSSDK REQUIRED COMPONENTS s3;core)
+    find_package(AWSSDK REQUIRED COMPONENTS s3;transfer)
     IF(AWSSDK_FOUND)
-      SET(service s3;core)
-      AWSSDK_DETERMINE_LIBS_TO_LINK(service AWS_LINK_LIBRARIES)
       SET(ENABLE_S3_AWS ON CACHE BOOL "S3 AWS" FORCE)
-    ELSE()
+      INCLUDE_DIRECTORIES(${AWSSDK_INCLUDE_DIR})
+    ELSE(AWSSDK_FOUND)
       SET(ENABLE_S3_AWS OFF CACHE BOOL "S3 AWS" FORCE)
-    ENDIF()
-  ENDIF()
+    ENDIF(AWSSDK_FOUND)
+  ELSE(NOT ENABLE_S3_INTERNAL)
+    # Find crypto libraries required with testing with the internal s3 api.
+    #FIND_LIBRARY(SSL_LIB NAMES ssl openssl)
+    find_package(OpenSSL REQUIRED)
+    IF(NOT OpenSSL_FOUND)
+      MESSAGE(FATAL_ERROR "Can't find an ssl library, required by S3_INTERNAL")
+    ENDIF(NOT OpenSSL_FOUND)
+    
+    #find_package(Crypto REQUIRED)
+    #IF(NOT CRYPTO_LIB)
+    #  MESSAGE(FATAL_ERROR "Can't find a crypto library, required by S3_INTERNAL")
+    #ENDIF(NOT CRYPTO_LIB)
+
+  ENDIF(NOT ENABLE_S3_INTERNAL)
 ELSE()
   SET(ENABLE_S3_AWS OFF CACHE BOOL "S3 AWS" FORCE)
-ENDIF()
-
-# Unless/until we get aws-sdk-cpp working for Windows, force use of internal
-IF(ENABLE_S3 AND MSVC)
-  SET(ENABLE_S3_INTERNAL ON CACHE BOOL "S3 Intern" FORCE)
 ENDIF()
 
 IF(ENABLE_S3)
@@ -1385,10 +1413,10 @@ IF(ENABLE_S3)
 ENDIF()
 
 IF(NOT ENABLE_S3)
-IF(WITH_S3_TESTING STREQUAL "PUBLIC" OR WITH_S3_TESTING)
-  message(WARNING "S3 support is disabled => WITH_S3_TESTING=OFF")
-  SET(WITH_S3_TESTING OFF CACHE STRING "" FORCE)
-ENDIF()
+  IF(WITH_S3_TESTING STREQUAL "PUBLIC" OR WITH_S3_TESTING)
+    message(WARNING "S3 support is disabled => WITH_S3_TESTING=OFF")
+    SET(WITH_S3_TESTING OFF CACHE STRING "" FORCE)
+  ENDIF()
 ENDIF()
 
 OPTION(ENABLE_LIBXML2 "Link against libxml2 if it is available, use the packaged tinyxml2 parser otherwise." ON)
@@ -1819,6 +1847,7 @@ IF(MSVC)
 CHECK_INCLUDE_FILE("io.h"      HAVE_IO_H)
 ENDIF(MSVC)
 CHECK_INCLUDE_FILE("stdlib.h"  HAVE_STDLIB_H)
+CHECK_INCLUDE_FILE("ctype.h"   HAVE_CTYPE_H)
 CHECK_INCLUDE_FILE("stdarg.h"    HAVE_STDARG_H)
 CHECK_INCLUDE_FILE("strings.h"   HAVE_STRINGS_H)
 CHECK_INCLUDE_FILE("signal.h"    HAVE_SIGNAL_H)
@@ -1919,6 +1948,10 @@ CHECK_TYPE_SIZE("uintptr_t" SIZEOF_UINTPTR_T)
 IF(SIZEOF_UINTPTR_T)
   SET(HAVE_UINTPTR_T TRUE)
 ENDIF(SIZEOF_UINTPTR_T)
+CHECK_TYPE_SIZE("mode_t" SIZEOF_MODE_T)
+IF(SIZEOF_MODE_T)
+  SET(HAVE_MODE_T TRUE)
+ENDIF(SIZEOF_MODE_T)
 
 # __int64 is used on Windows for large file support.
 CHECK_TYPE_SIZE("__int64"   SIZEOF___INT_64)
@@ -1981,16 +2014,16 @@ ENDIF()
 
 # Check to see if MAP_ANONYMOUS is defined.
 IF(MSVC)
-MESSAGE(WARNING "mmap not supported under visual studio: disabling MMAP support.")
-SET(ENABLE_MMAP OFF)
-ELSE()
-CHECK_C_SOURCE_COMPILES("
-#include <sys/mman.h>
-int main() {int x = MAP_ANONYMOUS;}" HAVE_MAPANON)
-IF(NOT HAVE_MMAP OR NOT HAVE_MAPANON)
-  MESSAGE(WARNING "mmap or MAP_ANONYMOUS not found: disabling MMAP support.")
+  MESSAGE(WARNING "mmap not supported under visual studio: disabling MMAP support.")
   SET(ENABLE_MMAP OFF)
-ENDIF()
+ELSE()
+  CHECK_C_SOURCE_COMPILES("
+  #include <sys/mman.h>
+  int main() {int x = MAP_ANONYMOUS;}" HAVE_MAPANON)
+  IF(NOT HAVE_MMAP OR NOT HAVE_MAPANON)
+    MESSAGE(WARNING "mmap or MAP_ANONYMOUS not found: disabling MMAP support.")
+    SET(ENABLE_MMAP OFF)
+  ENDIF()
 ENDIF()
 
 IF(ENABLE_MMAP)
@@ -2164,6 +2197,7 @@ MACRO(build_bin_test_no_prefix F)
   ENDIF()
 ENDMACRO()
 
+# Build a test and add it to the test list.
 MACRO(add_bin_test prefix F)
   ADD_EXECUTABLE(${prefix}_${F} ${F}.c ${ARGN})
   TARGET_LINK_LIBRARIES(${prefix}_${F}
@@ -2569,7 +2603,9 @@ SET(host_vendor "${osname}")
 SET(host_os "${osrel}")
 SET(abs_top_builddir "${CMAKE_CURRENT_BINARY_DIR}")
 SET(abs_top_srcdir "${CMAKE_CURRENT_SOURCE_DIR}")
-
+STRING(RANDOM LENGTH 3 ALPHABET "0123456789" PLATFORMUID)
+MATH(EXPR PLATFORMUID "${PLATFORMUID} + 1" OUTPUT_FORMAT DECIMAL)
+       
 SET(CC_VERSION "${CMAKE_C_COMPILER}")
 
 # Build *FLAGS for libnetcdf.settings.
@@ -2618,25 +2654,42 @@ is_enabled(ENABLE_REMOTE_FUNCTIONALITY DO_REMOTE_FUNCTIONALITY)
 is_enabled(ENABLE_THREADSAFE IS_THREADSAFE)
 
 if(ENABLE_S3_INTERNAL)
-SET(WHICH_S3_SDK "internal")
-SET(NC_WHICH_S3_SDK "internal")
+  SET(WHICH_S3_SDK "internal")
+  SET(NC_WHICH_S3_SDK "internal")
 elseif(ENABLE_S3_AWS)
-SET(WHICH_S3_SDK "aws-sdk-cpp")
-SET(NC_WHICH_S3_SDK "aws-sdk-cpp")
+  SET(WHICH_S3_SDK "aws-sdk-cpp")
+  SET(NC_WHICH_S3_SDK "aws-sdk-cpp")
 else()
-SET(WHICH_S3_SDK "none")
-SET(NC_WHICH_S3_SDK "none")
+  SET(WHICH_S3_SDK "none")
+  SET(NC_WHICH_S3_SDK "none")
 endif()
 
 if(WITH_S3_TESTING STREQUAL PUBLIC)
-SET(DO_S3_TESTING "public")
+SET(ENABLE_S3_TESTING "public")
 elseif(WITH_S3_TESTING)
-SET(DO_S3_TESTING "yes")
+SET(ENABLE_S3_TESTING "yes")
+SET(ENABLE_S3_TESTALL "yes")
 elseif(NOT WITH_S3_TESTING)
-SET(DO_S3_TESTING "no")
+SET(ENABLE_S3_TESTING "no")
 else()
-SET(DO_S3_TESTING "no")
+SET(ENABLE_S3_TESTING "no")
 endif()
+
+# The Unidata testing S3 bucket
+# WARNING: this must match the value in configure.ac
+SET(S3TESTBUCKET "unidata-zarr-test-data" CACHE STRING "S3 test bucket")
+
+# The working S3 path tree within the Unidata bucket.
+# WARNING: this must match the value in configure.ac
+SET(S3TESTSUBTREE "netcdf-c" CACHE STRING "Working S3 path.")
+# Build a unique id based on the date
+string(TIMESTAMP TESTUID "%s")
+if(ENABLE_S3_TESTING)
+FILE(APPEND "${CMAKE_CURRENT_BINARY_DIR}/s3cleanup_${PLATFORMUID}.uids" "${TESTUID}\n")
+endif()
+
+# Copy the CTest customization file into binary directory, as required.
+CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/CTestCustom.cmake")
 
 # Generate file from template.
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
@@ -2682,6 +2735,15 @@ SET(TOPSRCDIR "${CMAKE_CURRENT_SOURCE_DIR}")
 SET(TOPBUILDDIR "${CMAKE_CURRENT_BINARY_DIR}")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test_common.in ${CMAKE_CURRENT_BINARY_DIR}/test_common.sh @ONLY NEWLINE_STYLE LF)
 
+####
+# Build s3cleanup.sh and s3gc.sh
+#####
+SET(EXTRA_DIST ${EXTRA_DIST} ${CMAKE_CURRENT_SOURCE_DIR}/s3cleanup.in ${CMAKE_CURRENT_SOURCE_DIR}/s3gc.in)
+SET(TOPSRCDIR "${CMAKE_CURRENT_SOURCE_DIR}")
+SET(TOPBUILDDIR "${CMAKE_CURRENT_BINARY_DIR}")
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/s3cleanup.in ${CMAKE_CURRENT_BINARY_DIR}/s3cleanup.sh @ONLY NEWLINE_STYLE LF)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/s3gc.in ${CMAKE_CURRENT_BINARY_DIR}/s3gc.sh @ONLY NEWLINE_STYLE LF)
+
 #####
 # Build and copy nc_test4/findplugin.sh to various places
 #####
@@ -2708,6 +2770,13 @@ IF(ENABLE_TESTS)
     # Build dap4_test/pingurl4.c
     #####
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ncdap_test/pingurl.c ${CMAKE_CURRENT_BINARY_DIR}/dap4_test/pingurl4.c @ONLY NEWLINE_STYLE LF)
+
+    #####
+    # Build CTestCustom.cmake to cleanup S3 after tests are done.
+    #####
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/CTestCustom.cmake NEWLINE_STYLE LF)
+   
+
 ENDIF()
 
 if(DEFINED ENV{LIB_FUZZING_ENGINE})

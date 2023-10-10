@@ -11,7 +11,12 @@
 #include <nc_tests.h>
 #include "err_macros.h"
 
+#ifdef TESTNCZARR
+#define FILE_NAME "file://tmp_unlim_vars.file#mode=nczarr,file"
+#else
 #define FILE_NAME "tst_unlim_vars.nc"
+#endif
+
 #define SFC_TEMP_NAME "surface_temperature"
 #define LAT_NAME "lat"
 #define LAT_LEN 2
@@ -25,6 +30,8 @@
 int
 main(int argc, char **argv)
 {
+    int stat = NC_NOERR;
+    
     printf("\n*** Testing netcdf-4 variables with unlimited dimensions.\n");
     printf("*** Testing file with one var, one unlim dim...");
     {
@@ -74,9 +81,20 @@ main(int argc, char **argv)
         if (len_in != LAT_LEN || strcmp(name_in, LAT_NAME)) ERR;
         if (nc_inq_dim(ncid, 2, name_in, &len_in)) ERR;
         if (len_in != LON_LEN || strcmp(name_in, LON_NAME)) ERR;
+
+	{
+	    size_t chunksizes[3];
+	    int i,storage;
+	    fprintf(stderr,">>> chunks =");
+            if (nc_inq_var_chunking(ncid, sfc_tempid, &storage, chunksizes)) ERR;
+	    for(i=0;i<3;i++) fprintf(stderr," %llu", (unsigned long long)chunksizes[i]);
+	    fprintf(stderr," ; storage=%d\n", storage);
+	}
+
         if (nc_close(ncid)) ERR;
 
-        if (nc_open(FILE_NAME, 0, &ncid)) ERR;
+        if ((stat=nc_open(FILE_NAME, 0, &ncid)))
+	    ERR;
 
         /* Check metadata. */
         if (nc_inq(ncid, &ndims_in, &nvars_in, &natts_in, &unlimdimid_in)) ERR;

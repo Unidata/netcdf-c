@@ -241,7 +241,7 @@ while test $# -gt 0; do
         echo @STD_FILTERS@
         ;;
 
-    --has_quantize)
+    --has-quantize)
         echo $has_quantize
         ;;
 

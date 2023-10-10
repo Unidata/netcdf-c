@@ -47,7 +47,7 @@ ncz_close_file(NC_FILE_INFO_T* file, int abort)
 
     zinfo = file->format_file_info;
 
-    if((stat = nczmap_close(zinfo->map,(abort && zinfo->created)?1:0)))
+    if((stat = nczmap_close(zinfo->map,(abort && zinfo->creating)?1:0)))
 	goto done;
     NCZ_freestringvec(0,zinfo->envv_controls);
     NC_authfree(zinfo->auth);

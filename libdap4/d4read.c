@@ -180,7 +180,7 @@ readpacket(NCD4INFO* state, NCURI* url, NCbytes* packet, NCD4mode dxx, NCD4forma
         fetchurl = ncuribuild(url,NULL,suffix,flags);
 	MEMCHECK(fetchurl);
 	if(FLAGSET(state->controls.flags,NCF_SHOWFETCH)) {
-	    nclog(NCLOGDBG,"fetch url=%s",fetchurl);
+	    nclog(NCLOGDEBUG,"fetch url=%s",fetchurl);
 #ifdef HAVE_GETTIMEOFDAY
    	    gettimeofday(&time0,NULL);
 #endif
@@ -194,7 +194,7 @@ readpacket(NCD4INFO* state, NCURI* url, NCbytes* packet, NCD4mode dxx, NCD4forma
    	    gettimeofday(&time1,NULL);
 	    secs = deltatime(time0,time1);
 #endif
-            nclog(NCLOGDBG,"fetch complete: %0.3f",secs);
+            nclog(NCLOGDEBUG,"fetch complete: %0.3f",secs);
 	}
     }
 #ifdef D4DEBUG
@@ -271,7 +271,7 @@ readfile(NCD4INFO* state, const NCURI* uri, NCD4mode dxx, NCD4format fxx, NCbyte
 	gettimeofday(&time0,NULL);
 #endif
         surl = ncuribuild((NCURI*)uri,NULL,NULL,NCURIALL);
-	nclog(NCLOGDBG,"fetch uri=%s file=%s",surl,filename);
+	nclog(NCLOGDEBUG,"fetch uri=%s file=%s",surl,filename);
     }
     switch (dxx) {
     case NCD4_DMR:
@@ -293,7 +293,7 @@ readfile(NCD4INFO* state, const NCURI* uri, NCD4mode dxx, NCD4format fxx, NCbyte
    	gettimeofday(&time1,NULL);
 	secs = deltatime(time0,time1);
 #endif
-        nclog(NCLOGDBG,"%s fetch complete: %0.3f",suffix,secs);
+        nclog(NCLOGDEBUG,"%s fetch complete: %0.3f",suffix,secs);
     }
     return THROW(stat);
 }
@@ -326,7 +326,7 @@ readfileDAPDMR(NCD4INFO* state, const NCURI* uri, NCbytes* packet)
 	gettimeofday(&time0,NULL);
 #endif
         surl = ncuribuild((NCURI*)uri,NULL,".dap",NCURIALL);
-	nclog(NCLOGDBG,"fetch uri=%s file=%s",surl,filename);
+	nclog(NCLOGDEBUG,"fetch uri=%s file=%s",surl,filename);
     }
     stat = NC_readfile(filename,packet);
 
@@ -336,7 +336,7 @@ readfileDAPDMR(NCD4INFO* state, const NCURI* uri, NCbytes* packet)
    	gettimeofday(&time1,NULL);
 	secs = deltatime(time0,time1);
 #endif
-        nclog(NCLOGDBG,"fetch complete: %0.3f",secs);
+        nclog(NCLOGDEBUG,"fetch complete: %0.3f",secs);
     }
 
     if(stat != NC_NOERR) goto done;

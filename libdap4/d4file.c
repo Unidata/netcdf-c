@@ -117,7 +117,7 @@ NCD4_open(const char * path, int mode,
     /* Turn on logging; only do this after oc_open*/
     if((value = ncurifragmentlookup(d4info->uri,"log")) != NULL) {
 	ncloginit();
-	ncsetlogging(1);
+	ncsetloglevel(NCLOGNOTE);
     }
 
     /* Check env values */

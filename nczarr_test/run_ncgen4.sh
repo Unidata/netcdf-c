@@ -2,7 +2,7 @@
 # Tests for ncgen4 using list of test cdl files from the cdl4
 # directory, and comparing output to expected results in the expected4
 # directory. Note that these tests are run for classic files in
-# tst_ncgen4_classic.sh
+# test_ncgen4_classic.sh
 # Dennis Heimbigner
 
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
@@ -95,5 +95,3 @@ if test "x$FEATURE_NCZARR_ZIP" = xyes ; then runtestset zip; fi
 if test "x$FEATURE_S3TESTS" = xyes ; then runtestset s3; fi
 
 echo "*** PASSED ***"
-
-if test "x$FEATURE_S3TESTS" = xyes ; then s3sdkdelete "/${S3ISOPATH}" ; fi # Cleanup

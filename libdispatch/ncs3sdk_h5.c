@@ -427,7 +427,7 @@ EXTERNL int
 NC_s3sdkgetkeys(void* s3client0, const char* bucket, const char* prefixkey0, size_t* nkeysp, char*** keysp, char** errmsgp)
 {
     NCTRACE(11,"bucket=%s prefixkey0=%s",bucket,prefixkey0);
-    return getkeys(s3client0, bucket, prefixkey0, "/", nkeysp, keysp, errmsgp);
+    return NCUNTRACE(getkeys(s3client0, bucket, prefixkey0, "/", nkeysp, keysp, errmsgp));
 }
 
 /*
@@ -439,7 +439,7 @@ EXTERNL int
 NC_s3sdksearch(void* s3client0, const char* bucket, const char* prefixkey0, size_t* nkeysp, char*** keysp, char** errmsgp)
 {
     NCTRACE(11,"bucket=%s prefixkey0=%s",bucket,prefixkey0);
-    return getkeys(s3client0, bucket, prefixkey0, NULL, nkeysp, keysp, errmsgp);
+    return NCUNTRACE(getkeys(s3client0, bucket, prefixkey0, NULL, nkeysp, keysp, errmsgp));
 }
 
 EXTERNL int
@@ -561,7 +561,8 @@ makes3prefix(const char* prefix, char** prefixdirp)
     return NC_NOERR;
 }
 
-/* Copy keys1 concat keys2 into merge; note that merge list may not be empty. */
+/* Move keys1 concat keys2 into merge; note that merge list may not be empty. */
+/* Will leave keys1 and keys2 empty */
 static int
 mergekeysets(NClist* keys1, NClist* keys2, NClist* merge)
 {

@@ -173,8 +173,9 @@ and do the command:
 
 #undef NCJDEBUG
 #ifdef NCJDEBUG
+/* Warning: do not evaluate err more than once */
+#define NCJTHROW(err) ncjbreakpoint(err)
 static int ncjbreakpoint(int err) {return err;}
-#define NCJTHROW(err) ((err)==NCJ_ERR?ncjbreakpoint(err):(err))
 #else
 #define NCJTHROW(err) (err)
 #endif

@@ -9,6 +9,8 @@
 if test "x$TEST_COMMON_SH" = x ; then
 export TEST_COMMON_SH=1
 
+# Define various global constants
+
 # Define location of execution
 TOPSRCDIR='@abs_top_srcdir@'
 TOPBUILDDIR='@abs_top_builddir@'
@@ -38,12 +40,22 @@ FEATURE_S3_AWS=@HAS_S3_AWS@
 FEATURE_S3_INTERNAL=@HAS_S3_INTERNAL@
 FEATURE_S3=@HAS_S3@
 FEATURE_NCZARR=@HAS_NCZARR@
-FEATURE_S3TESTS=@DO_S3_TESTING@
+FEATURE_S3TESTS=@ENABLE_S3_TESTING@
 FEATURE_NCZARR_ZIP=@DO_NCZARR_ZIP_TESTS@
 FEATURE_LARGE_TESTS=@DO_LARGE_TESTS@
 
 # Thredds-test server is currently disabled
 #FEATURE_THREDDSTEST=1
+
+# This is the Unidata S3 test bucket
+# All S3 tests should use this to store intermediate results.
+S3TESTBUCKET=@S3TESTBUCKET@
+
+# This is the s3 path within the Unidata bucket;
+# All S3 tests should use this to store intermediate results.
+S3TESTSUBTREE=@S3TESTSUBTREE@
+
+TESTUID=@TESTUID@
 
 set -e
 
@@ -122,8 +134,10 @@ if test "x$srcdir" = x ; then
   # we need to figure out our directory
   # pick off the last component as the relative name of this directory
   srcdir=`pwd`
-  current=`basename $srcdir`
-  srcdir="${top_srcdir}/$current"
+  if test "x$srcdir" != "x$top_srcdir" ; then
+      current=`basename $srcdir`
+      srcdir="${top_srcdir}/$current"
+  fi
 fi
 
 # We also assume we are executing in builddir
@@ -190,23 +204,26 @@ if test yes = `${execdir}/../ncdump/ncfilteravail $1` ; then return 0 ; else ech
 # Make sure we are in builddir (not execdir)
 cd $builddir
 
-# As a protection against parallel make inter-test dependencies and race conditions,
-# Support the creation of an isolation directory in which created products are stored.
+
+# Parallel make can cause inter-test interference (mostly because of historical naming issues).
+# As a protection against this, the isolate() function supports the creation of an
+# isolation directory in which created products are stored.
+# Cleanup can be accomplished by deleting the whole isolation directory.
+# The name of the isolation directory is by convention "testdir_<random>".
+# The isolation dir is created within the ${builddir} directory.
+# The <random> is a generated 32 bit unsigned random integer to make the chance
+# of collision very small.
+# Process ID was not used because of the small but real chance of collision.
 
 isolate() {
-local rnd
-if test "x$ISOPATH" = x ; then
-  ISOPATH=${builddir}
-  ISODIR="$1"
-  if test "x$ISODIR" != x ; then
-    # Make sure the path is unique
-    rnd=`${execdir}/../libdispatch/ncrandom`
-    ISODIR="${ISODIR}_$rnd"
-    ISOPATH="${ISOPATH}/$ISODIR"
-    rm -fr $ISOPATH
-    mkdir $ISOPATH
+  if test "x$ISOPATH" = x ; then
+      ISOTESTSET="${builddir}/testset_"
+      if test "x$NOISOPATH" = x ; then ISOTESTSET="${ISOTESTSET}${TESTUID}"; fi    
+      ISODIR="$1"
+      ISOPATH="${ISOTESTSET}/$ISODIR"
+      rm -fr $ISOPATH
+      mkdir -p $ISOPATH
   fi
-fi
 }
 
 fi #TEST_COMMON_SH

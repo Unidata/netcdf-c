@@ -33,11 +33,22 @@ defined and missing types defined.
 */
 
 #ifdef _WIN32
+
 #ifndef HAVE_SSIZE_T
 #include <basetsd.h>
 typedef SSIZE_T ssize_t;
 #define HAVE_SSIZE_T 1
 #endif
+
+#ifndef HAVE_MODE_T
+typedef int mode_t;
+#define HAVE_MODE_T 1
+#endif
+
+#ifndef F_OK
+#define F_OK 00
+#endif
+
 #endif
 
 /*Warning: Cygwin with -ansi does not define these functions

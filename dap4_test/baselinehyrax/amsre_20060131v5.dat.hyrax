@@ -1,9 +1,9 @@
 netcdf amsre_20060131v5 {
 dimensions:
-	_Anonymous3 = 3 ;
-	_Anonymous6 = 6 ;
+	_AnonymousDim3 = 3 ;
+	_AnonymousDim6 = 6 ;
 variables:
-	byte time_a(_Anonymous3, _Anonymous6) ;
+	byte time_a(_AnonymousDim3, _AnonymousDim6) ;
 		string time_a:Equator_Crossing_Time = "1:30 PM" ;
 data:
 

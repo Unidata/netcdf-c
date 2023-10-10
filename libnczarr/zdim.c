@@ -83,8 +83,8 @@ NCZ_def_dim(int ncid, const char *name, size_t len, int *idp)
     if ((stat = nc4_check_name(name, norm_name)))
         return stat;
 
-    /* Since unlimited is not supported, len > 0 */
-    if(len <= 0)
+    /* Since unlimited is supported, len >= 0 */
+    if(len < 0)
         return NC_EDIMSIZE;
 
     /* For classic model: dim length has to fit in a 32-bit unsigned
@@ -110,10 +110,14 @@ NCZ_def_dim(int ncid, const char *name, size_t len, int *idp)
     if ((stat = nc4_dim_list_add(grp, norm_name, len, -1, &dim)))
         return stat;
 
-    /* Create struct for NCZ-specific dim info. */
-    if (!(dim->format_dim_info = calloc(1, sizeof(NCZ_DIM_INFO_T))))
-        return NC_ENOMEM;
-    ((NCZ_DIM_INFO_T*)dim->format_dim_info)->common.file = h5;
+    {
+        NCZ_DIM_INFO_T* diminfo = NULL;
+        /* Create struct for NCZ-specific dim info. */
+        if (!(diminfo = calloc(1, sizeof(NCZ_DIM_INFO_T))))
+            return NC_ENOMEM;
+        dim->format_dim_info = diminfo;
+        diminfo->common.file = h5;
+    }    
 
     /* Pass back the dimid. */
     if (idp)
@@ -267,12 +271,5 @@ NCZ_rename_dim(int ncid, int dimid, const char *name)
     if (!ncindexrebuild(grp->dim))
         return NC_EINTERNAL;
 
-    return NC_NOERR;
-}
-
-int
-NCZ_inq_unlimdims(int ncid, int *ndimsp, int *unlimdimidsp)
-{
-    if(ndimsp) *ndimsp = 0;
     return NC_NOERR;
 }

@@ -1,8 +1,8 @@
 netcdf test_atomic_array {
 dimensions:
-	_Anonymous3 = 3 ;
+	_AnonymousDim3 = 3 ;
 variables:
-	short v16(_Anonymous3) ;
+	short v16(_AnonymousDim3) ;
 
 // global attributes:
 		string :_dap4.ce = "/v16[0:1,3]" ;

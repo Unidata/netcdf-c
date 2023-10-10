@@ -22,7 +22,7 @@
 #endif
 
 #undef DEBUG
-
+//#define DEBUG 1
 #define SELF_CLEAN
 
 /* Mnemonic(s) */
@@ -43,7 +43,7 @@ struct Options {
 /* Upload data */
 static const char* uploaddata = "line1\nline2\nline3";
 
-//static const char* testurl = "https://s3.us-east-1.amazonaws.com/unidata-zarr-test-data";
+//static const char* testurl = "https://s3.us-east-1.amazonaws.com/${S3TESTBUCKET}";
 
 /* Global values */
 NCURI* purl = NULL;
@@ -66,10 +66,7 @@ check(int code, const char* fcn, int line)
 {
     if(code == NC_NOERR) return code;
     fprintf(stderr,"***FAIL: (%d) %s @ %s:%d\n",code,nc_strerror(code),fcn,line);
-#ifdef DEBUG
     abort();
-#endif
-    exit(1);
 }
 
 static enum Actions
@@ -110,7 +107,7 @@ profilesetup(const char* url)
         fprintf(stderr,"URI parse fail: %s\n",url);
         goto done;
     }
-    CHECK(NC_s3urlprocess(purl, &s3info));
+    CHECK(NC_s3urlprocess(purl, &s3info, NULL));
 
     CHECK(NC_getactives3profile(purl, &activeprofile));
     CHECK(NC_s3profilelookup(activeprofile, "aws_access_key_id", &accessid));
@@ -135,7 +132,7 @@ testbucketexists(void)
     int stat = NC_NOERR;
     int exists = 0;
 
-    seturl("https://s3.us-east-1.amazonaws.com/unidata-zarr-test-data",NULL,!FORCE);
+    seturl("https://s3.us-east-1.amazonaws.com/${S3TESTBUCKET}",NULL,!FORCE);
 
     CHECK(profilesetup(dumpoptions.url));
     newurl = ncuribuild(purl,NULL,NULL,NCURIALL);
@@ -159,7 +156,7 @@ testinfo(void)
     int stat = NC_NOERR;
     unsigned long long size = 0;
 
-    seturl("https://s3.us-east-1.amazonaws.com/unidata-zarr-test-data","/object_store/dir1/nested1/file1.txt",!FORCE);
+    seturl("https://s3.us-east-1.amazonaws.com/${S3TESTBUCKET}","/object_store/dir1/nested1/file1.txt",!FORCE);
 
     CHECK(profilesetup(dumpoptions.url));
     newurl = ncuribuild(purl,NULL,NULL,NCURIALL);
@@ -183,7 +180,7 @@ testread(void)
     unsigned long long size = 0;
     void* content = NULL;
 
-    seturl("https://s3.us-east-1.amazonaws.com/unidata-zarr-test-data", "/netcdf-c/test_s3.txt",!FORCE);
+    seturl("https://s3.us-east-1.amazonaws.com/${S3TESTBUCKET}", "/netcdf-c/test_s3.txt",!FORCE);
 
     CHECK(profilesetup(dumpoptions.url));
     newurl = ncuribuild(purl,NULL,NULL,NCURIALL);
@@ -212,7 +209,7 @@ testwrite(void)
     size64_t size = 0;
     void* content = NULL;
 
-    seturl("https://s3.us-east-1.amazonaws.com/unidata-zarr-test-data", "/netcdf-c/test_s3.txt",!FORCE);
+    seturl("https://s3.us-east-1.amazonaws.com/${S3TESTBUCKET}", "/netcdf-c/test_s3.txt",!FORCE);
 
     CHECK(profilesetup(dumpoptions.url));
     newurl = ncuribuild(purl,NULL,NULL,NCURIALL);
@@ -245,7 +242,7 @@ testgetkeys(void)
     size_t i,nkeys = 0;
     char** keys = NULL;
 
-    seturl("https://s3.us-east-1.amazonaws.com/unidata-zarr-test-data", "/object_store/dir1",!FORCE);
+    seturl("https://s3.us-east-1.amazonaws.com/${S3TESTBUCKET}", "/object_store/dir1",!FORCE);
 
     CHECK(profilesetup(dumpoptions.url));
     newurl = ncuribuild(purl,NULL,NULL,NCURIALL);
@@ -261,9 +258,9 @@ testgetkeys(void)
     printf("\n");
 
 done:
-    cleanup();
     for(i=0;i<nkeys;i++) nullfree(keys[i]);
-    nullfree(keys);
+    nullfree(keys); keys = NULL;
+    cleanup();
     return stat;
 }
 
@@ -276,7 +273,7 @@ testgetkeyslong(void)
     char path[4096];
     unsigned char checklist[LONGCOUNT];
 
-    seturl("https://s3.us-east-1.amazonaws.com/unidata-zarr-test-data", "/object_store/dir1",!FORCE);
+    seturl("https://s3.us-east-1.amazonaws.com/${S3TESTBUCKET}", "/object_store/dir1",!FORCE);
 
     CHECK(profilesetup(dumpoptions.url));
     newurl = ncuribuild(purl,NULL,NULL,NCURIALL);
@@ -345,7 +342,7 @@ testsearch(void)
     size_t i,nkeys = 0;
     char** keys = NULL;
 
-    seturl("https://s3.us-east-1.amazonaws.com/unidata-zarr-test-data", "/object_store/dir1",!FORCE);
+    seturl("https://s3.us-east-1.amazonaws.com/${S3TESTBUCKET}", "/object_store/dir1",!FORCE);
 
     CHECK(profilesetup(dumpoptions.url));
     newurl = ncuribuild(purl,NULL,NULL,NCURIALL);
@@ -373,7 +370,7 @@ testdeletekey(void)
     int stat = NC_NOERR;
     size64_t size = 0;
 
-    seturl("https://s3.us-east-1.amazonaws.com/unidata-zarr-test-data", "/netcdf-c/test_s3.txt",!FORCE);
+    seturl("https://s3.us-east-1.amazonaws.com/${S3TESTBUCKET}", "/netcdf-c/test_s3.txt",!FORCE);
 
     CHECK(profilesetup(dumpoptions.url));
     newurl = ncuribuild(purl,NULL,NULL,NCURIALL);

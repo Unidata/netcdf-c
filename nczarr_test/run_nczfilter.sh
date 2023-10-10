@@ -5,15 +5,12 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 . "$srcdir/test_nczarr.sh"
 
-# This shell script runs tst_nczfilter.c
+# This shell script runs test_nczfilter.c
 
 set -e
 
-pwd
-
 s3isolate "testdir_nczfilter"
+THISDIR=`pwd`
 cd $ISOPATH
 
-${execdir}/tst_nczfilter 
-
-if test "x$FEATURE_S3TESTS" = xyes ; then s3sdkdelete "/${S3ISOPATH}" ; fi # Cleanup
+${execdir}/test_nczfilter

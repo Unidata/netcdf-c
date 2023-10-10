@@ -2084,9 +2084,9 @@ NC_createglobalstate(void)
     if(tmp != NULL && strlen(tmp) > 0)
         nc_globalstate->rcinfo->rcfile = strdup(tmp);
     /* Initialize chunk cache defaults */
-    nc_globalstate->chunkcache.size = CHUNK_CACHE_SIZE;            /**< Default chunk cache size. */
-    nc_globalstate->chunkcache.nelems = CHUNK_CACHE_NELEMS;        /**< Default chunk cache number of elements. */
-    nc_globalstate->chunkcache.preemption = CHUNK_CACHE_PREEMPTION; /**< Default chunk cache preemption. */
+    nc_globalstate->chunkcache.size = DEFAULT_CHUNK_CACHE_SIZE;		    /**< Default chunk cache size. */
+    nc_globalstate->chunkcache.nelems = DEFAULT_CHUNKS_IN_CACHE;	    /**< Default chunk cache number of elements. */
+    nc_globalstate->chunkcache.preemption = DEFAULT_CHUNK_CACHE_PREEMPTION; /**< Default chunk cache preemption. */
     
 done:
     return stat;

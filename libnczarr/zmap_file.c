@@ -128,17 +128,17 @@ static void zfrelease(ZFMAP* zfmap, FD* fd);
 static void zfunlink(const char* canonpath);
 
 static int platformerr(int err);
-static int platformcreatefile(ZFMAP* map, const char* truepath,FD*);
-static int platformcreatedir(ZFMAP* map, const char* truepath);
-static int platformopenfile(ZFMAP* zfmap, const char* truepath, FD* fd);
-static int platformopendir(ZFMAP* map, const char* truepath);
-static int platformdircontent(ZFMAP* map, const char* path, NClist* contents);
-static int platformdelete(ZFMAP* map, const char* path, int delroot);
-static int platformseek(ZFMAP* map, FD* fd, int pos, size64_t* offset);
-static int platformread(ZFMAP* map, FD* fd, size64_t count, void* content);
-static int platformwrite(ZFMAP* map, FD* fd, size64_t count, const void* content);
-static void platformrelease(ZFMAP* zfmap, FD* fd);
-static int platformtestcontentbearing(ZFMAP* zfmap, const char* truepath);
+static int platformcreatefile(mode_t mode, const char* truepath,FD*);
+static int platformcreatedir(mode_t mode, const char* truepath);
+static int platformopenfile(mode_t mode, const char* truepath, FD* fd);
+static int platformopendir(mode_t mode, const char* truepath);
+static int platformdircontent(const char* path, NClist* contents);
+static int platformdelete(const char* path, int delroot);
+static int platformseek(FD* fd, int pos, size64_t* offset);
+static int platformread(FD* fd, size64_t count, void* content);
+static int platformwrite(FD* fd, size64_t count, const void* content);
+static void platformrelease(FD* fd);
+static int platformtestcontentbearing(const char* truepath);
 
 #ifdef VERIFY
 static int verify(const char* path, int isdir);
@@ -226,10 +226,10 @@ zfilecreate(const char *path, int mode, size64_t flags, void* parameters, NCZMAP
 
     /* If NC_CLOBBER, then delete below file tree */
     if(!fIsSet(mode,NC_NOCLOBBER))
-	platformdelete(zfmap,zfmap->root,0);
+	platformdelete(zfmap->root,0);
     
     /* make sure we can access the root directory; create if necessary */
-    if((stat = platformcreatedir(zfmap, zfmap->root)))
+    if((stat = platformcreatedir(zfmap->map.mode, zfmap->root)))
 	goto done;
 
     /* Dataset superblock will be written by higher layer */
@@ -298,7 +298,7 @@ zfileopen(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
 	abspath = NULL;
     
     /* Verify root dir exists */
-    if((stat = platformopendir(zfmap,zfmap->root)))
+    if((stat = platformopendir(zfmap->map.mode,zfmap->root)))
 	goto done;
     
     /* Dataset superblock will be read by higher layer */
@@ -311,6 +311,21 @@ done:
     nullfree(abspath);
     if(stat) zfileclose((NCZMAP*)zfmap,0);
     return ZUNTRACE(stat);
+}
+
+static int
+zfiletruncate(const char* surl)
+{
+    int stat = NC_NOERR;
+    NCURI* url = NULL;
+
+    ZTRACE(6,"url=%s",surl);
+    ncuriparse(surl,&url);
+    if(url == NULL) {stat = NC_EURL; goto done;}
+    platformdelete(url->path,0); /* leave root; ignore errors */
+done:
+    ncurifree(url);
+    return stat;    
 }
 
 /**************************************************/
@@ -347,7 +362,7 @@ zfilelen(NCZMAP* map, const char* key, size64_t* lenp)
     switch (stat=zflookupobj(zfmap,key,&fd)) {
     case NC_NOERR:
         /* Get file size */
-        if((stat=platformseek(zfmap, &fd, SEEK_END, &len))) goto done;
+        if((stat=platformseek(&fd, SEEK_END, &len))) goto done;
 	break;
     case NC_ENOOBJECT: stat = NC_EEMPTY;
     case NC_EEMPTY: break;
@@ -376,8 +391,8 @@ zfileread(NCZMAP* map, const char* key, size64_t start, size64_t count, void* co
 
     switch (stat = zflookupobj(zfmap,key,&fd)) {
     case NC_NOERR:
-        if((stat = platformseek(zfmap, &fd, SEEK_SET, &start))) goto done;
-        if((stat = platformread(zfmap, &fd, count, content))) goto done;
+        if((stat = platformseek(&fd, SEEK_SET, &start))) goto done;
+        if((stat = platformread(&fd, count, content))) goto done;
 	break;
     case NC_ENOOBJECT: stat = NC_EEMPTY;
     case NC_EEMPTY: break;
@@ -390,12 +405,13 @@ done:
 }
 
 static int
-zfilewrite(NCZMAP* map, const char* key, size64_t start, size64_t count, const void* content)
+zfilewrite(NCZMAP* map, const char* key, size64_t count, const void* content)
 {
     int stat = NC_NOERR;
     FD fd = FDNUL;
     ZFMAP* zfmap = (ZFMAP*)map; /* cast to true type */
     char* truepath = NULL;
+    size64_t start = 0;
 
     ZTRACE(5,"map=%s key=%s start=%llu count=%llu",map->url,key,start,count);
 
@@ -413,11 +429,11 @@ zfilewrite(NCZMAP* map, const char* key, size64_t start, size64_t count, const v
         /* Create truepath */
         if((stat = zffullpath(zfmap,key,&truepath))) goto done;
 	/* Create file */
-	if((stat = platformcreatefile(zfmap,truepath,&fd))) goto done;
+	if((stat = platformcreatefile(zfmap->map.mode,truepath,&fd))) goto done;
 	/* Fall thru to write the object */
     case NC_NOERR:
-        if((stat = platformseek(zfmap, &fd, SEEK_SET, &start))) goto done;
-        if((stat = platformwrite(zfmap, &fd, count, content))) goto done;
+        if((stat = platformseek(&fd, SEEK_SET, &start))) goto done;
+        if((stat = platformwrite(&fd, count, content))) goto done;
 	break;
     default: break;
     }
@@ -439,7 +455,7 @@ zfileclose(NCZMAP* map, int delete)
     
     /* Delete the subtree below the root and the root */
     if(delete) {
-	stat = platformdelete(zfmap,zfmap->root,1);
+	stat = platformdelete(zfmap->root,1);
 	zfunlink(zfmap->root);
     }
     nczm_clear(map);
@@ -472,7 +488,7 @@ zfilesearch(NCZMAP* map, const char* prefixkey, NClist* matches)
     else if((stat = nczm_concat(zfmap->root,prefixkey,&fullpath))) goto done;
 
     /* get names of the next level path entries */
-    switch (stat = platformdircontent(zfmap, fullpath, nextlevel)) {
+    switch (stat = platformdircontent(fullpath, nextlevel)) {
     case NC_NOERR: /* ok */
 	break;
     case NC_EEMPTY: /* not a dir */
@@ -529,7 +545,7 @@ zfcreategroup(ZFMAP* zfmap, const char* key, int nskip)
 	ncbytescat(path,"/");
 	ncbytescat(path,seg);
 	/* open and optionally create the directory */	
-	stat = platformcreatedir(zfmap,ncbytescontents(path));
+	stat = platformcreatedir(zfmap->map.mode,ncbytescontents(path));
 	if(stat) goto done;
     }
 done:
@@ -556,11 +572,11 @@ zflookupobj(ZFMAP* zfmap, const char* key, FD* fd)
 	{goto done;}    
 
     /* See if this is content-bearing */
-    if((stat = platformtestcontentbearing(zfmap,path)))
+    if((stat = platformtestcontentbearing(path)))
 	goto done;        
 
     /* Open the file */
-    if((stat = platformopenfile(zfmap,path,fd)))
+    if((stat = platformopenfile(zfmap->map.mode,path,fd)))
         goto done;
 
 done:
@@ -574,7 +590,7 @@ static void
 zfrelease(ZFMAP* zfmap, FD* fd)
 {
     ZTRACE(5,"map=%s fd=%d",zfmap->map.url,(fd?fd->fd:-1));
-    platformrelease(zfmap,fd);
+    platformrelease(fd);
     (void)ZUNTRACE(NC_NOERR);
 }
 
@@ -586,6 +602,7 @@ NCZMAP_DS_API zmap_file = {
     0,
     zfilecreate,
     zfileopen,
+    zfiletruncate,
 };
 
 static NCZMAP_API zapi = {
@@ -663,7 +680,7 @@ platformerr(int err)
 @return NC_ENOOBJECT if not found
 */
 static int
-platformtestcontentbearing(ZFMAP* zfmap, const char* canonpath)
+platformtestcontentbearing(const char* canonpath)
 {
     int ret = 0;
     struct stat buf;
@@ -685,12 +702,11 @@ platformtestcontentbearing(ZFMAP* zfmap, const char* canonpath)
 
 /* Create a file */
 static int
-platformcreatefile(ZFMAP* zfmap, const char* canonpath, FD* fd)
+platformcreatefile(mode_t mode, const char* canonpath, FD* fd)
 {
     int stat = NC_NOERR;
     int ioflags = 0;
     int createflags = 0;
-    int mode = zfmap->map.mode;
     int permissions = NC_DEFAULT_ROPEN_PERMS;
 
     ZTRACE(6,"map=%s canonpath=%s",zfmap->map.url,canonpath);
@@ -727,11 +743,10 @@ done:
 
 /* Open a file; fail if it does not exist */
 static int
-platformopenfile(ZFMAP* zfmap, const char* canonpath, FD* fd)
+platformopenfile(mode_t mode, const char* canonpath, FD* fd)
 {
     int stat = NC_NOERR;
     int ioflags = 0;
-    int mode = zfmap->map.mode;
     int permissions = 0;
 
     ZTRACE(6,"map=%s canonpath=%s",zfmap->map.url,canonpath);
@@ -764,10 +779,9 @@ done:
 
 /* Create a dir */
 static int
-platformcreatedir(ZFMAP* zfmap, const char* canonpath)
+platformcreatedir(mode_t mode, const char* canonpath)
 {
     int ret = NC_NOERR;
-    int mode = zfmap->map.mode;
 
     ZTRACE(6,"map=%s canonpath=%s",zfmap->map.url,canonpath);
 
@@ -795,7 +809,7 @@ done:
 
 /* Open a dir; fail if it does not exist */
 static int
-platformopendir(ZFMAP* zfmap, const char* canonpath)
+platformopendir(mode_t mode, const char* canonpath)
 {
     int ret = NC_NOERR;
 
@@ -826,7 +840,7 @@ There are several possibilities:
 
 #ifdef _WIN32
 static int
-platformdircontent(ZFMAP* zfmap, const char* canonpath, NClist* contents)
+platformdircontent(const char* canonpath, NClist* contents)
 {
     int ret = NC_NOERR;
     errno = 0;
@@ -839,7 +853,7 @@ platformdircontent(ZFMAP* zfmap, const char* canonpath, NClist* contents)
 
     ZTRACE(6,"map=%s canonpath=%s",zfmap->map.url,canonpath);
 
-    switch (ret = platformtestcontentbearing(zfmap, canonpath)) {
+    switch (ret = platformtestcontentbearing(canonpath)) {
     case NC_EEMPTY: ret = NC_NOERR; break; /* directory */    
     case NC_NOERR: ret = NC_EEMPTY; goto done;
     default: goto done;
@@ -893,7 +907,7 @@ done:
 #else /*!_WIN32*/
 
 static int
-platformdircontent(ZFMAP* zfmap, const char* canonpath, NClist* contents)
+platformdircontent(const char* canonpath, NClist* contents)
 {
     int ret = NC_NOERR;
     errno = 0;
@@ -901,9 +915,10 @@ platformdircontent(ZFMAP* zfmap, const char* canonpath, NClist* contents)
 
     ZTRACE(6,"map=%s canonpath=%s",zfmap->map.url,canonpath);
 
-    switch (ret = platformtestcontentbearing(zfmap, canonpath)) {
+    switch (ret = platformtestcontentbearing(canonpath)) {
     case NC_EEMPTY: ret = NC_NOERR; break; /* directory */    
     case NC_NOERR: ret = NC_EEMPTY; goto done; 
+    case NC_ENOOBJECT: ret = NC_EEMPTY; goto done;
     default: goto done;
     }
 
@@ -929,70 +944,8 @@ done:
 }
 #endif /*_WIN32*/
 
-#if 0
 static int
-platformdeleter(ZFMAP* zfmap, NClist* segments, int depth)
-{
-    int ret = NC_NOERR;
-    struct stat statbuf;
-    struct dirent* entry = NULL;
-    DIR* dir = NULL;
-    char* path = NULL;
-    char* tmp = NULL;
-
-    if((ret = nczm_join(segments,&path))) goto done;
-
-    /* When running on any platform that can accept drive letters */
-    if((ret = nczm_fixpath(path,&tmp))) goto done;
-    nullfree(path); path = NULL;
-    if((path = NCpathcvt(tmp))==NULL) {ret = NC_ENOMEM; goto done;}
-
-    errno = 0;
-    ret = NCstat(path, &statbuf);
-    if(ret < 0) {
-        if(errno == ENOENT) {ret = NC_NOERR; goto done;}
-	else {ret = platformerr(errno); goto done;}
-    }
-    /* process this file */
-    if(S_ISDIR(statbuf.st_mode)) {
-        if((dir = NCopendir(path)) == NULL)
-	     {ret = platformerr(errno); goto done;}
-        for(;;) {
-	    char* seg = NULL;
-	    errno = 0;
-            entry = readdir(dir);
-	    if(entry == NULL) {ret = platformerr(errno); break;}
-	    /* Ignore "." and ".." */
-	    if(strcmp(entry->d_name,".")==0) continue;
-    	    if(strcmp(entry->d_name,"..")==0) continue;
-	    /* append name to segments */
-	    if((seg = strdup(entry->d_name)) == NULL)
-		{ret = NC_ENOMEM; goto done;}
-	    nclistpush(segments,seg);
-	    /* recurse */
-	    if((ret = platformdeleter(zfmap, segments, depth+1))) goto done;
-	    /* remove+reclaim last segment */
-	    nclistpop(segments);
-	    nullfree(seg);	    	    
-        }
-	/* Delete this file */
-	rmdir(path);
-    } else {
-	assert(S_ISREG(statbuf.st_mode));
-	unlink(path);
-    }
-done:
-    if(dir) NCclosedir(dir);
-    /* delete this file|dir */
-    ret = NCremove(path);
-    nullfree(path);
-    nullfree(tmp);
-    return ZUNTRACE(ret);
-}
-#endif /*0*/
-
-static int
-platformdeleter(ZFMAP* zfmap, NCbytes* canonpath, int delroot, int depth)
+platformdeleter(NCbytes* canonpath, int depth)
 {
     int ret = NC_NOERR;
     int i;
@@ -1003,7 +956,7 @@ platformdeleter(ZFMAP* zfmap, NCbytes* canonpath, int delroot, int depth)
     local = ncbytescontents(canonpath);
     ZTRACE(6,"map=%s canonpath=%s delroot=%d depth=%d",zfmap->map.url,local,delroot,depth);
 
-    ret = platformdircontent(zfmap, local, subfiles);
+    ret = platformdircontent(local, subfiles);
 #ifdef DEBUG
     {int i;
 	fprintf(stderr,"xxx: contents:\n");
@@ -1020,12 +973,12 @@ platformdeleter(ZFMAP* zfmap, NCbytes* canonpath, int delroot, int depth)
             ncbytescat(canonpath, "/");
             ncbytescat(canonpath, name);
             /* recurse */
-            if ((ret = platformdeleter(zfmap, canonpath,delroot,depth+1))) goto done;
+            if ((ret = platformdeleter(canonpath,depth+1))) goto done;
             ncbytessetlength(canonpath,tpathlen); /* reset */
 	    ncbytesnull(canonpath);
 	    local = ncbytescontents(canonpath);
 	}
-	if(depth > 0 || delroot) {
+	if(depth > 0) {
 #ifdef DEBUG
 fprintf(stderr,"xxx: remove:  %s\n",canonpath);
 #endif
@@ -1043,13 +996,13 @@ fprintf(stderr,"xxx: remove: errno=%d|%s\n",errno,nc_strerror(errno));
 #ifdef DEBUG
 fprintf(stderr,"xxx: remove:  %s\n",canonpath);
 #endif
-        if(NCremove(local) < 0) {/* kill this file */
+            if(NCremove(local) < 0) {/* kill this file */
 #ifdef DEBUG
 fprintf(stderr,"xxx: remove: errno=%d|%s\n",errno,nc_strerror(errno));
 #endif
-	    ret = errno;
-	    goto done;
-	}
+	        ret = errno;
+	        goto done;
+	    }
 	break;
     case NC_ENOTFOUND:
     default:
@@ -1066,7 +1019,7 @@ done:
 
 /* Deep file/dir deletion; depth first */
 static int
-platformdelete(ZFMAP* zfmap, const char* rootpath, int delroot)
+platformdelete(const char* rootpath, int delroot)
 {
     int stat = NC_NOERR;
     NCbytes* canonpath = ncbytesnew();
@@ -1077,7 +1030,19 @@ platformdelete(ZFMAP* zfmap, const char* rootpath, int delroot)
     ncbytescat(canonpath,rootpath);
     if(rootpath[strlen(rootpath)-1] == '/') /* elide trailing '/' */
 	ncbytessetlength(canonpath,ncbyteslength(canonpath)-1);
-    if((stat = platformdeleter(zfmap,canonpath,delroot,0))) goto done;
+    /* See if file even exists */
+    stat = NCaccess(ncbytescontents(canonpath),F_OK);
+    if(stat < 0) {
+	stat = errno;
+	goto done;
+    }
+    if((stat = platformdeleter(canonpath,0))) goto done;
+    if(delroot) {
+        if(NCrmdir(rootpath) < 0) { /* kill this dir */
+    	    stat = errno;
+	    goto done;
+	 }
+    }
 done:
     ncbytesfree(canonpath);
     errno = 0;
@@ -1085,7 +1050,7 @@ done:
 }
 
 static int
-platformseek(ZFMAP* zfmap, FD* fd, int pos, size64_t* sizep)
+platformseek(FD* fd, int pos, size64_t* sizep)
 {
     int ret = NC_NOERR;
     off_t size, newsize;
@@ -1108,7 +1073,7 @@ done:
 }
 
 static int
-platformread(ZFMAP* zfmap, FD* fd, size64_t count, void* content)
+platformread(FD* fd, size64_t count, void* content)
 {
     int stat = NC_NOERR;
     size_t need = count;
@@ -1131,7 +1096,7 @@ done:
 }
 
 static int
-platformwrite(ZFMAP* zfmap, FD* fd, size64_t count, const void* content)
+platformwrite(FD* fd, size64_t count, const void* content)
 {
     int ret = NC_NOERR;
     size_t need = count;
@@ -1169,7 +1134,7 @@ platformcwd(char** cwdp)
    equivalent to closing the file descriptor.
 */
 static void
-platformrelease(ZFMAP* zfmap, FD* fd)
+platformrelease(FD* fd)
 {
     ZTRACE(6,"map=%s fd=%d",zfmap->map.url,(fd?fd->fd:-1));
     if(fd->fd >=0) NCclose(fd->fd);
@@ -1181,7 +1146,7 @@ platformrelease(ZFMAP* zfmap, FD* fd)
 /* Close FD => return typ to FDNONE */
 */
 static void
-platformclose(ZFMAP* zfmap, FD* fd)
+platformclose(FD* fd)
 {
     if(fd->typ == FDFILE) {
         if(fd->fd >=0) close(fd->u,fd);

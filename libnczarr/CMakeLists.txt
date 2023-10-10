@@ -61,10 +61,9 @@ add_library(nczarr OBJECT ${libnczarr_SOURCES})
 
 TARGET_INCLUDE_DIRECTORIES(nczarr PUBLIC ../libncpoco)
 
-IF(MPI_C_INCLUDE_PATH)
-    target_include_directories(nczarr PUBLIC ${MPI_C_INCLUDE_PATH})
-ENDIF(MPI_C_INCLUDE_PATH)
+IF(STATUS_PARALLEL)
+    target_link_libraries(nczarr PUBLIC MPI::MPI_C)
+ENDIF(STATUS_PARALLEL)
 
 # Remember to package this file for CMake builds.
 ADD_EXTRA_DIST(${libnczarr_SOURCES} CMakeLists.txt)
-

@@ -251,4 +251,4 @@ scope_*.nc copy_scope_*.cdl keyword5.nc tst_enum_undef.cdl tst_times_nc4.cdl
 
 # Remove directories
 clean-local:
-	rm -fr rcmergedir rchome testdir_ncdump_*
+	rm -fr rcmergedir rchome testset_*
