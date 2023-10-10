@@ -36,9 +36,9 @@ ENDIF(ENABLE_BYTERANGE)
 
 add_library(netcdf3 OBJECT ${libsrc_SOURCES})
 
-IF(MPI_C_INCLUDE_PATH)
-    target_include_directories(netcdf3 PUBLIC ${MPI_C_INCLUDE_PATH})
-ENDIF(MPI_C_INCLUDE_PATH)
+IF(STATUS_PARALLEL)
+  target_link_libraries(netcdf3 PUBLIC MPI::MPI_C)
+ENDIF(STATUS_PARALLEL)
 
 # The C API man page.
 
