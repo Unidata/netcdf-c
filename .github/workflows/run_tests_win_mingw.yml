@@ -9,7 +9,7 @@ name: Run MSYS2, MinGW64-based Tests
 env:
   CPPFLAGS: "-D_BSD_SOURCE"
 
-on: [push,pull_request,workflow_dispatch]
+on: [pull_request,workflow_dispatch]
 
 jobs:
 
