@@ -93,13 +93,15 @@ NC_reclaim_data(NC* nc, nc_type xtype, void* memory, size_t count)
         goto done;
     }
 
+    NCLOCK; /* Following code touches internal data structures */
+    
     /* Process User types */
     assert(USEFILEINFO(nc) != 0);
     file = (NC_FILE_INFO_T*)(nc)->dispatchdata;
-    if((stat = nc4_find_type(file,xtype,&utype))) goto done;
+    if((stat = nc4_find_type(file,xtype,&utype))) goto unlock;
 
     /* Optimize: vector of fixed sized compound type instances */
-    if(!utype->varsized) goto done; /* no need to reclaim anything */
+    if(!utype->varsized) goto unlock; /* no need to reclaim anything */
 
     /* Remaining cases: vector of VLEN and vector of (transitive) variable sized compound types.
        These all require potential recursion.
@@ -110,9 +112,13 @@ NC_reclaim_data(NC* nc, nc_type xtype, void* memory, size_t count)
     /* Walk each vector instance */
     /* Note that we avoid reclaiming the top level memory */
     for(i=0;i<count;i++) {
-        if((stat=reclaim_datar(file,utype,instance))) goto done;
+        if((stat=reclaim_datar(file,utype,instance))) goto unlock;
 	instance.memory += utype->size; /* move to next entry */
     }
+
+unlock:
+    NCUNLOCK;
+
 #else
     stat = NC_EBADTYPE;
 #endif
@@ -294,16 +300,18 @@ NC_copy_data(NC* nc, nc_type xtype, const void* memory, size_t count, void* copy
         goto done;
     }
 
+    NCLOCK;
+
     assert(USEFILEINFO(nc) != 0);
     file = (NC_FILE_INFO_T*)(nc)->dispatchdata;
 
     /* Process User types */
-    if((stat = nc4_find_type(file,xtype,&utype))) goto done;
+    if((stat = nc4_find_type(file,xtype,&utype))) goto unlock;
 
     /* Optimize: vector of fixed sized compound type instances */
     if(!utype->varsized) {
         memcpy(copy,memory,count*utype->size);
-	goto done;
+	goto unlock;
     }
 
     /* Remaining cases: vector of VLEN and vector of variable sized compound types.
@@ -318,6 +326,8 @@ NC_copy_data(NC* nc, nc_type xtype, const void* memory, size_t count, void* copy
 	src.memory += utype->size;
 	dst.memory += utype->size;
     }
+unlock:
+    NCUNLOCK;
 #else
     stat = NC_EBADTYPE;
 #endif
@@ -584,15 +594,20 @@ NC_copy_data_all(NC* nc, nc_type xtype, const void* memory, size_t count, void**
     }
 #ifdef USE_NETCDF4
     else {
+	NCLOCK;
         file = (NC_FILE_INFO_T*)(nc)->dispatchdata;
-        if((stat = nc4_find_type(file,xtype,&utype))) goto done;
+        if((stat = nc4_find_type(file,xtype,&utype))) goto unlock;
         xsize = utype->size;
         /* allocate the top-level */
         if(count > 0) {
-            if((copy = calloc(xsize,count))==NULL) {stat = NC_ENOMEM; goto done;}
+            if((copy = calloc(xsize,count))==NULL) {stat = NC_ENOMEM; goto unlock;}
         }
-        if((stat = NC_copy_data(nc,xtype,memory,count,copy)))
+        if((stat = NC_copy_data(nc,xtype,memory,count,copy))) {
             (void)NC_reclaim_data_all(nc,xtype,copy,count);
+	    copy = NULL;
+	}
+unlock:
+	NCUNLOCK;
     }
 #endif
     if(copyp) {*copyp = copy; copy = NULL;}

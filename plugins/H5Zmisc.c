@@ -122,13 +122,6 @@ H5Z_filter_test(unsigned int flags, size_t cd_nelmts,
     if (flags & H5Z_FLAG_REVERSE) { /* Decompress */
 
         if(testcase == TC_EXPANDED) {
-	    int i;
-	    float* b = (float*)*buf;
-fprintf(stderr,"TC_EXPANDED: decompress: nbytes=%u buf_size=%u xdata[0..8]=|",(unsigned)nbytes,(unsigned)*buf_size);
-	    for(i=0;i<8;i++) {
-		fprintf(stderr," %u",(int)(b[1024+i]));
-	    }
-	    fprintf(stderr,"|\n");
             /* Replace buffer */
             newbuf = H5allocate_memory(*buf_size,0);
             if(newbuf == NULL) abort();

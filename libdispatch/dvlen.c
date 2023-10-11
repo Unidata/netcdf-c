@@ -65,46 +65,6 @@ nc_free_vlen(nc_vlen_t *vl)
 }
 
 /** 
-\ingroup user_types 
-Free an array of vlens given the number of elements and an array. 
-
-When you read VLEN type the library will actually allocate the storage
-space for the data. This storage space must be freed, so pass the
-pointer back to this function, when you're done with the data, and it
-will free the vlen memory.
-
-WARNING: this code is incorrect because it will only
-work if the basetype of the vlen is
-- atomic
-- + enum
-- + opaque
-- excluding string basetype,
-
-The reason is that to operate properly, it needs to recurse when
-the basetype is a complex object such as another vlen or compound.
-
-This function is deprecated in favor of the function "nc_reclaim_data".
-See include/netcdf.h.
-
-\param len number of elements in the array.
-\param vlens pointer to the vlen object.
-
-\returns ::NC_NOERR No error.
-*/ 
-int
-nc_free_vlens(size_t len, nc_vlen_t vlens[])
-{
-   int ret = NC_NOERR;
-   size_t i;
-
-   for(i = 0; i < len; i++) 
-      if ((ret = nc_free_vlen(&vlens[i])))
-	 return ret;
-
-   return NC_NOERR;
-}
-
-/** 
 \ingroup user_types
 Use this function to define a variable length array type.
 
