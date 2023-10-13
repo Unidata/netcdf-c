@@ -168,6 +168,7 @@ done:
     }
     nullfree(tmp1);
     clearPath(&inparsed);
+    //fprintf(stderr,">>> ncpathcvt: inpath=%s result=%s\n",inpath,result);
     return result;
 }
 

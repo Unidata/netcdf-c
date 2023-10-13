@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
 . ../test_common.sh
 
@@ -43,6 +45,7 @@ testcasezip() {
 }
 
 testcases3() {
+  set -x
   echo -e "\to Running S3 Testcase:\t$1\t$2"
   zext=s3
   base=$1
@@ -53,6 +56,7 @@ testcases3() {
   ${NCDUMP} -v "/group_with_dims/var2D" $flags $url > tmp_${base}_${zext}.cdl
   # Find the proper ref file
   diff -b ${ISOPATH}/ref_${base}_2d.cdl tmp_${base}_${zext}.cdl
+  set +x
 }
 
 testallcases() {
