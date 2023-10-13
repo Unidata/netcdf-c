@@ -52,8 +52,9 @@ testcases3() {
   mode=$2
   rm -f tmp_${base}_${zext}.cdl
   url="https://${UH}/${UB}/${base}.zarr#mode=${mode},s3"
+  echo "flags: $flags"
   # Dumping everything causes timeout so dump a single var
-  ${NCDUMP} -v "/group_with_dims/var2D" $flags $url > tmp_${base}_${zext}.cdl
+  ${NCDUMP} -v "group_with_dims/var2D" $flags $url > tmp_${base}_${zext}.cdl
   # Find the proper ref file
   diff -b ${ISOPATH}/ref_${base}_2d.cdl tmp_${base}_${zext}.cdl
   set +x
