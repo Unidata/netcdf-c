@@ -6,9 +6,7 @@
 # Set Project Properties
 ##################################
 
-#Minimum required CMake Version
-cmake_minimum_required(VERSION 3.12.0)
-# CMake 3.12: Use libraries specified in CMAKE_REQUIRED_LIBRARIES for check include macros
+cmake_minimum_required(VERSION 3.21.0)
 
 #Project Name
 project(netCDF
@@ -2789,5 +2787,6 @@ install(
 ####
 
 # CPack inclusion must come last.
-# INCLUDE(CPack)
-INCLUDE(CMakeInstallation.cmake)
+if (PROJECT_IS_TOP_LEVEL)
+  include(CMakeInstallation.cmake)
+endif()
