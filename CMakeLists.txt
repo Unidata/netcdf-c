@@ -269,7 +269,7 @@ IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
   IF(ENABLE_COVERAGE_TESTS)
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -coverage -fprofile-arcs -ftest-coverage")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -coverage -fprofile-arcs -ftest-coverage")
-    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs")
+    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
     MESSAGE(STATUS "Coverage Tests: On.")
   ENDIF()
 
