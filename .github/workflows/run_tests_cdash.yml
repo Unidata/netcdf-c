@@ -123,6 +123,7 @@ jobs:
       strategy:
         matrix:
           hdf5: [ 1.10.8, 1.12.2, 1.14.0 ]
+     
       steps:          
       - uses: actions/checkout@v3
 
@@ -154,9 +155,9 @@ jobs:
         run: ls ${HOME}/environments/${{ matrix.hdf5 }} && ls ${HOME}/environments/${{ matrix.hdf5}}/lib
 
       - name: Run ctest serial script
-        with: # Access the CDash TOken
-          CDASH_TOKEN: ${{ secrets.CDASH_TOKEN }}
         shell: bash -l {0}
+        env:
+          CDASH_TOKEN: ${{ secrets.CDASH_TOKEN }}
         run: |
           mkdir build
           cd build
