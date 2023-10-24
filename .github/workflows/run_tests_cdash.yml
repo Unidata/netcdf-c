@@ -4,12 +4,16 @@
 
 name: Run CDash Ubuntu/Linux netCDF Tests
 
-on: [pull_request, workflow_dispatch]
+on: 
+  workflow_dispatch:
+  pull_request:
   workflow_call:
     secrets:
-      CDASH_TOKEN:
-        description: 'A token required to access the cdash dashboard'
-        required: true
+        CDASH_TOKEN:
+          description: 'A token required to access the cdash dashboard'
+          required: true
+  
+          
 
 jobs:
 
