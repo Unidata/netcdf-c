@@ -2,7 +2,7 @@
 # Build hdf5 dependencies and cache them in a combined directory.
 ###
 
-name: Run Ubuntu/Linux netCDF Tests with CDash
+name: Run CDash Ubuntu/Linux netCDF Tests
 
 on: [pull_request, workflow_dispatch]
 
@@ -111,7 +111,7 @@ jobs:
           make install -j
           popd
 
-          
+
       ###
       # Run CTest Serial Script
       ###
