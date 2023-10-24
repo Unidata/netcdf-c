@@ -1,0 +1,120 @@
+#!/bin/bash
+
+# Uncomment to get verbose output
+#VERBOSE=1
+
+if test "x$VERBOSE" = x1 ; then set -x; fi
+
+# Constants passed in from configure.ac/CMakeLists
+abs_top_srcdir='@abs_top_srcdir@'
+abs_top_builddir='@abs_top_builddir@'
+
+# Additional configuration information
+. ${abs_top_builddir}/test_common.sh
+
+delta="$1"
+
+# Sanity checks
+
+# 1. This requires that the AWS CLI (command line interface) is installed.
+if ! which aws ; then
+    echo ">>>> The s3cleanup script requires the \"aws\" command (i.e. the AWS command line interface program)"
+    echo ">>>> Try installing \"awscli\" package with apt or equivalent."
+    exit 0
+fi
+
+# 2. Make sure S3TESTSUBTREE is defined
+if test "x$S3TESTSUBTREE" = x ; then
+    echo ">>>> The s3cleanup script requires that S3TESTSUBTREE is defined."
+    exit 1
+fi
+
+# 3. Make sure delta is defined
+if test "x$delta" = x ; then
+    echo ">>>> No delta argument provided"
+    echo ">>>> Usage: s3gc <delta>"
+    echo ">>>>        where <delta> is number of days prior to today to begin cleanup"
+    exit 1
+fi
+
+
+# This script takes a delta (in days) as an argument.
+# It then removes from the Unidata S3 bucket those keys
+# that are older than (current_date - delta).
+
+# Compute current_date - delta
+
+# current date
+current=`date +%s`
+# convert delta to seconds
+deltasec=$((delta*24*60*60))
+# Compute cleanup point
+lastdate=$((current-deltasec))
+
+rm -f s3gc.json
+
+# Get complete set of keys in ${S3TESTSUBTREE} prefix
+if ! aws s3api list-objects-v2 --bucket ${S3TESTBUCKET} --prefix "${S3TESTSUBTREE}" | grep -F '"Key":' >s3gc.keys ; then
+    echo "No keys found"
+    rm -f s3gc.json
+    exit 0
+fi
+aws s3api list-objects-v2 --bucket ${S3TESTBUCKET} --prefix "${S3TESTSUBTREE}" | grep -F '"Key":' >s3gc.keys
+while read -r line; do
+  KEY=`echo "$line" | sed -e 's|[^"]*"Key":[^"]*"\([^"]*\)".*|\1|'`
+  # Ignore keys that do not start with ${S3TESTSUBTREE}
+  PREFIX=`echo "$KEY" | sed -e 's|\([^/]*\)/.*|\1|'`
+  if test "x$PREFIX" = "x$S3TESTSUBTREE" ; then
+      ALLKEYS="$ALLKEYS $KEY"
+  fi
+done < s3gc.keys
+
+# Look at each key and see if it is less than lastdate.
+# If so, then record that key
+
+# Capture the keys with old uids to delete
+unset MATCHKEYS
+for key in $ALLKEYS ; do
+    case "$key" in
+        "$S3TESTSUBTREE/testset_"*)
+             # Capture the uid for this key         
+             s3uid=`echo $key | sed -e "s|$S3TESTSUBTREE/testset_\([0-9][0-9]*\)/.*|\1|"`
+             # check that we got a uid       
+             if test "x$s3uid" != x ; then
+                # Test age of the uid
+                if test $((s3uid < lastdate)) = 1; then
+                    MATCHKEYS="${MATCHKEYS} $key"
+                fi
+             else
+                 if test "x$VERBOSE" = x1 ; then echo "Excluding \"$key\""; fi
+             fi
+	     ;;
+        *) if test "x$VERBOSE" = x1; then echo "Ignoring \"$key\""; fi ;;
+    esac
+done
+
+# We can delete at most 1000 objects at a time, so divide into sets of size 500
+REM="$MATCHKEYS"
+while test "x$REM" != x ; do
+    K500=`echo "$REM" | cut -d' ' -f 1-500`
+    REM=`echo "$REM" | cut -d' ' -f 501-`
+    unset DELLIST
+    MATCH=0
+    FIRST=1
+    DELLIST="{\"Objects\":["
+    for key in $K500 ; do
+        if test $FIRST = 0 ; then DELLIST="${DELLIST},"; fi
+        DELLIST="${DELLIST}
+{\"Key\":\"$key\"}"
+        FIRST=0
+        MATCH=1
+    done
+    DELLIST="${DELLIST}],\"Quiet\":false}"
+    rm -f s3gc.json
+    if test "x$MATCH" = x1 ;then
+	rm -f s3gc.json
+        echo "$DELLIST" > s3gc.json
+        aws s3api delete-objects --bucket ${S3TESTBUCKET} --delete "file://s3gc.json"
+    fi
+done
+rm -f s3gc.json

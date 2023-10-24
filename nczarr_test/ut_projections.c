@@ -38,7 +38,7 @@ main(int argc, char** argv)
     fillcommon(&common,var);
 
     /* Compute chunk ranges */
-    if((stat = NCZ_compute_chunk_ranges(var->rank,utoptions.slices,var->chunksizes,ncrv)))
+    if((stat = NCZ_compute_chunk_ranges(&common,utoptions.slices,ncrv)))
 	goto done;
 
     if((stat=NCZ_compute_all_slice_projections(

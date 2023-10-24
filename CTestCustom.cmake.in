@@ -12,3 +12,10 @@
 ## for more information.
 
 set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS "500")
+
+IF(HAVE_BASH)
+IF(ENABLE_S3_TESTING)
+# Assume run in top-level CMAKE_BINARY_DIR
+set(CTEST_CUSTOM_POST_TEST "bash ${CMAKE_BINARY_DIR}/s3cleanup.sh")
+ENDIF()
+ENDIF()

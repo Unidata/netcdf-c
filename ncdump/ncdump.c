@@ -1767,7 +1767,6 @@ do_ncdump_rec(int ncid, const char *path)
 
    for (varid = 0; varid < nvars; varid++) {
       NC_CHECK( nc_inq_varndims(ncid, varid, &var.ndims) );
-      if(var.dims != NULL) free(var.dims);
       var.dims = (int *) emalloc((var.ndims + 1) * sizeof(int));
       NC_CHECK( nc_inq_var(ncid, varid, var.name, &var.type, 0,
 			   var.dims, &var.natts) );
@@ -1890,6 +1889,7 @@ do_ncdump_rec(int ncid, const char *path)
 	  pr_att_specials(ncid, kind, varid, &var);
       }
 #endif /* USE_NETCDF4 */
+      if(var.dims) {free((void*)var.dims); var.dims = NULL;}
    }
 
    if (ngatts > 0 || formatting_specs.special_atts) {
@@ -1927,7 +1927,7 @@ do_ncdump_rec(int ncid, const char *path)
 	 if (formatting_specs.nlvars > 0 && ! idmember(vlist, varid))
 	    continue;
 	 NC_CHECK( nc_inq_varndims(ncid, varid, &var.ndims) );
-	 if(var.dims != NULL) free(var.dims);
+	 if(var.dims != NULL) {free(var.dims); var.dims = NULL;}
 	 var.dims = (int *) emalloc((var.ndims + 1) * sizeof(int));
 	 NC_CHECK( nc_inq_var(ncid, varid, var.name, &var.type, 0,
 			      var.dims, &var.natts) );
@@ -1975,6 +1975,7 @@ do_ncdump_rec(int ncid, const char *path)
 	 }
 	 if(var.fillvalp != NULL)
 	     {NC_CHECK(nc_reclaim_data_all(ncid,var.tinfo->tid,var.fillvalp,1)); var.fillvalp = NULL;}
+	 if(var.dims) {free(var.dims); var.dims = NULL;}
       }
       if (vdims) {
 	  free(vdims);
@@ -2396,7 +2397,7 @@ main(int argc, char *argv[])
 	    nc_set_log_level(level);
 	  }
 #endif
-	  ncsetlogging(1);
+	  ncsetloglevel(NCLOGNOTE);
 	  break;
 	case 'F':
 	  formatting_specs.filter_atts = true;

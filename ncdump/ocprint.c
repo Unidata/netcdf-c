@@ -279,7 +279,7 @@ main(int argc, char **argv)
 
     if(ocopt.logging) {
 	ncloginit();
-	ncsetlogging(1);
+	ncsetloglevel(NCLOGNOTE);
 	if(!nclogopen(NULL))
 	    fprintf(stderr,"Failed to open logging output\n");
     }

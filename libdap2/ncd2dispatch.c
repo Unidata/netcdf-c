@@ -419,8 +419,7 @@ fprintf(stderr,"ce=%s\n",dumpconstraint(dapcomm->oc.dapconstraint));
 
     /* Turn on logging; only do this after oc_open*/
     if((value = dapparamvalue(dapcomm,"log")) != NULL) {
-        ncsetlogging(1);
-        nclogopen(NULL);
+        ncsetloglevel(NCLOGNOTE);
     }
 
     /* fetch and build the unconstrained DDS for use as

@@ -67,5 +67,6 @@ extern size64_t NCZ_cache_size(NCZChunkCache* cache);
 extern int NCZ_buildchunkpath(NCZChunkCache* cache, const size64_t* chunkindices, struct ChunkKey* key);
 extern int NCZ_ensure_fill_chunk(NCZChunkCache* cache);
 extern int NCZ_reclaim_fill_chunk(NCZChunkCache* cache);
+extern int NCZ_chunk_cache_modify(NCZChunkCache* cache, const size64_t* indices);
 
 #endif /*ZCACHE_H*/

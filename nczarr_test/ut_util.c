@@ -88,6 +88,7 @@ parsedimdef(const char* s0, Dimdef** defp)
     sscanf(s,"%u%n",&l,&nchars);
     if(nchars == -1) return NC_EINVAL;
     def->size = (size_t)l;
+    if(def->size == 0) def->isunlimited = 1;
     s += nchars;
     if(*s != '\0') return NC_EINVAL;
     if(defp) *defp = def;
@@ -507,8 +508,8 @@ fillcommon(struct Common* common, Vardef* var)
     common->typesize = sizeof(int);
     if(var != NULL) {
         common->rank = var->rank;
-        common->dimlens = var->dimsizes;
-        common->chunklens = var->chunksizes;
-        common->memshape = common->dimlens; /* fake it */
+        memcpy(common->dimlens,var->dimsizes,sizeof(size64_t)*common->rank);
+        memcpy(common->chunklens,var->chunksizes,sizeof(size64_t)*common->rank);
+        memcpy(common->memshape,common->dimlens,sizeof(size64_t)*common->rank); /* fake it */
     }
 }

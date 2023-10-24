@@ -111,8 +111,6 @@ reopen(void)
     return NC_NOERR;
 }
 
-
-
 /* Test that a filter is a variable length var is defined */
 static int
 test_test1(void)
@@ -123,7 +121,7 @@ test_test1(void)
     unsigned params[NPARAMS] = {5};
     size_t nparams = 0;
 
-    fprintf(stderr,"test4: filter on a variable length type.\n");
+    fprintf(stderr,"test_test1: filter on a variable length type.\n");
     create();
     defvar(NC_STRING);
     /* Do explicit filter; should never fail, but may produce log warning */
@@ -152,7 +150,7 @@ test_test2(void)
     size_t i;
 
     reset();
-    fprintf(stderr,"test4: write with filter on a variable length type.\n");
+    fprintf(stderr,"test_test2: write with filter on a variable length type.\n");
     /* generate the data to write */
     for(i=0;i<actualproduct;i++) {
         char digits[64];
@@ -197,7 +195,7 @@ test_test3(void)
     size_t i,nfilters;
     unsigned filterids[64];
 
-    fprintf(stderr,"test4: re-open variable with filter on a variable length type and verify state.\n");
+    fprintf(stderr,"test_test3: re-open variable with filter on a variable length type and verify state.\n");
 
     reopen();    
 

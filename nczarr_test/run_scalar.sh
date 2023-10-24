@@ -60,5 +60,3 @@ diff -bw $top_srcdir/nczarr_test/ref_scalar.cdl tmp_scalar_zarr_${zext}.cdl
 testcase file
 if test "x$FEATURE_NCZARR_ZIP" = xyes ; then testcase zip; fi
 if test "x$FEATURE_S3TESTS" = xyes ; then testcase s3; fi
-
-if test "x$FEATURE_S3TESTS" = xyes ; then s3sdkdelete "/${S3ISOPATH}" ; fi # Cleanup
