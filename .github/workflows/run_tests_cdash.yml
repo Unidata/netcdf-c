@@ -123,9 +123,6 @@ jobs:
       strategy:
         matrix:
           hdf5: [ 1.10.8, 1.12.2, 1.14.0 ]
-          use_nc4: [ nc3, nc4 ]
-          use_dap: [ dap_off, dap_on ]
-          use_nczarr: [ nczarr_off, nczarr_on ]
       steps:          
       - uses: actions/checkout@v3
 
@@ -139,20 +136,6 @@ jobs:
 
       - run: echo "CMAKE_PREFIX_PATH=${HOME}/environments/${{ matrix.hdf5 }}/" >> $GITHUB_ENV
       - run: echo "LD_LIBRARY_PATH=${HOME}/environments/${{ matrix.hdf5 }}/lib" >> $GITHUB_ENV
-      - run: |
-          echo "ENABLE_HDF5=OFF" >> $GITHUB_ENV
-        if: matrix.use_nc4 == 'nc3'
-      - run: |
-          echo "ENABLE_HDF5=ON" >> $GITHUB_ENV
-        if: matrix.use_nc4 == 'nc4'
-      - run: echo "ENABLE_DAP=OFF" >> $GITHUB_ENV
-        if: matrix.use_dap == 'dap_off'
-      - run: echo "ENABLE_DAP=ON" >> $GITHUB_ENV
-        if: matrix.use_dap == 'dap_on'
-      - run: echo "ENABLE_NCZARR=OFF" >> $GITHUB_ENV
-        if: matrix.use_nczarr == 'nczarr_off'
-      - run: echo "ENABLE_NCZARR=ON" >> $GITHUB_ENV
-        if: matrix.use_nczarr == 'nczarr_on'
       - run: echo "CTEST_OUTPUT_ON_FAILURE=1" >> $GITHUB_ENV
 
       ###
@@ -174,7 +157,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest -V -S ../ctest_scripts/ctest_serial.ctest
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ctest -j 12 -V -S ../ctest_scripts/ctest_serial.ctest
 
       - name: Verbose Output if CTest Failure
         shell: bash -l {0}
