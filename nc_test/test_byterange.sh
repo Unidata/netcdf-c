@@ -20,9 +20,9 @@ URL4e="http://noaa-goes16.s3.amazonaws.com/ABI-L1b-RadF/2022/001/18/OR_ABI-L1b-R
 fi
 if test "x$FEATURE_S3TESTS" = xyes ; then
 # Requires auth
-URL3b="s3://unidata-zarr-test-data/byterangefiles/upload3.nc#bytes"
+URL3b="s3://${S3TESTBUCKET}/byterangefiles/upload3.nc#bytes"
 # Requires auth
-URL4d="s3://unidata-zarr-test-data/byterangefiles/upload4.nc#bytes&aws.profile=unidata"
+URL4d="s3://${S3TESTBUCKET}/byterangefiles/upload4.nc#bytes&aws.profile=unidata"
 fi
 URL4f="https://crudata.uea.ac.uk/cru/data/temperature/HadCRUT.4.6.0.0.median.nc#mode=bytes"
 
@@ -88,7 +88,7 @@ diff -wb tmp_$TAG.cdl ${srcdir}/nc_enddef.cdl
 }
 
 if test "x$FEATURE_S3TESTS" = xyes ; then
-testsetup https://s3.us-east-1.amazonaws.com/unidata-zarr-test-data 
+testsetup https://s3.us-east-1.amazonaws.com/${S3TESTBUCKET}
 fi
 
 echo "*** Testing reading NetCDF-3 file with http"
@@ -130,7 +130,7 @@ fi
 
 # Cleanup
 if test "x$FEATURE_S3TESTS" = xyes ; then
-testcleanup https://s3.us-east-1.amazonaws.com/unidata-zarr-test-data
+testcleanup https://s3.us-east-1.amazonaws.com/${S3TESTBUCKET}
 fi
 
 exit

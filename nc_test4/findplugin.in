@@ -54,8 +54,8 @@ findpluginext() {
     FP_PLUGIN_EXT="dll"
     FP_PLUGIN_PRE="__nc"  
   else # unknown
-    unset FP_PLUGIN_EXT
-    unset FP_PLUGIN_PRE
+    echo "Cannot find plugin extension: please execute 'cd ../plugins; make check'"
+    exit 1
   fi
 }
   
@@ -88,13 +88,16 @@ fi
 
 # Verify
 if test "x$FP_PLUGIN_DIR" = x ; then
-  echo "***Fail: Could not locate a usable HDF5_PLUGIN_DIR"
+  echo "***Fail: Could not locate a usable $FP_PLUGIN_DIR"
   return 1
 fi
 
 # Make local path
 FP_PLUGIN_DIR=`${NCPATHCVT} -F $FP_PLUGIN_DIR`
 HDF5_PLUGIN_DIR="$FP_PLUGIN_DIR"
+if test "x$HDF5_PLUGIN_PATH" = x ; then
+    HDF5_PLUGIN_PATH="$HDF5_PLUGIN_DIR"
+fi
 }
 
 findplugin() {    
@@ -108,14 +111,13 @@ FP_PLUGIN_LIB="${FP_PLUGIN_PRE}${FP_NAME}.${FP_PLUGIN_EXT}"
 
 # Verify
 if ! test -f "$FP_PLUGIN_DIR/$FP_PLUGIN_LIB" ; then
-  echo "***Fail: Could not locate a usable HDF5_PLUGIN_LIB"
+  echo "***Fail: Could not locate a usable $FP_PLUGIN_LIB"
   return 1
 fi
 
 # Set the final output variables
 HDF5_PLUGIN_LIB="$FP_PLUGIN_LIB"
 HDF5_PLUGIN_DIR="$FP_PLUGIN_DIR"
-
 return 0
 }
 

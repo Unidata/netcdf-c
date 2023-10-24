@@ -903,14 +903,18 @@ unset enable_nczarr_s3
 # Note we check for the library after checking for enable_s3
 # because for some reason this fails if we unconditionally test for sdk
 # and it is not available. Fix someday
+S3LIBS=""
 if test "x$enable_s3" = xyes ; then
 # See if we have the s3 aws library
 # Check for the AWS S3 SDK library
-AC_LANG_PUSH([C++])
-AC_SEARCH_LIBS([aws_allocator_is_valid],[aws-c-common aws-cpp-sdk-s3 aws-cpp-sdk-core], [enable_s3_aws=yes],[enable_s3_aws=no])
-AC_LANG_POP
+   AC_LANG_PUSH([C++])
+   AC_CHECK_LIB([aws-c-common], [aws_string_destroy], [enable_s3_aws=yes],[enable_s3_aws=no])
+   if test "x$enable_s3_aws" = "xyes" ; then
+      S3LIBS="-laws-cpp-sdk-core -laws-cpp-sdk-s3"
+   fi
+   AC_LANG_POP
 else
-enable_s3_aws=no
+   enable_s3_aws=no
 fi
 
 AC_MSG_CHECKING([whether AWS S3 SDK library is available])
@@ -926,7 +930,7 @@ AC_MSG_RESULT($enable_s3_internal)
 
 if test "x$enable_s3_aws" = xno && test "x$enable_s3_internal" = xno ; then
 AC_MSG_WARN([No S3 library available => S3 support disabled])
-enable_S3=no
+enable_s3=no
 fi
 
 if test "x$enable_s3_aws" = xyes && test "x$enable_s3_internal" = xyes ; then
@@ -963,17 +967,19 @@ if test "x$enable_s3" = xyes ; then
 fi
 
 if test "x$enable_s3_aws" = xyes ; then
-AC_DEFINE([ENABLE_S3_AWS], [1], [If true, then use aws S3 library])
+   LIBS="$LIBS$S3LIBS"
+   AC_DEFINE([ENABLE_S3_AWS], [1], [If true, then use aws S3 library])
 fi
 
 if test "x$enable_s3_internal" = xyes ; then
-AC_DEFINE([ENABLE_S3_INTERNAL], [1], [If true, then use internal S3 library])
+   AC_DEFINE([ENABLE_S3_INTERNAL], [1], [If true, then use internal S3 library])
 fi
 
 AC_DEFINE_UNQUOTED([WITH_S3_TESTING], [$with_s3_testing], [control S3 testing.])
 
 if test "x$with_s3_testing" = xyes ; then
   AC_MSG_WARN([*** DO NOT SPECIFY WITH_S3_TESTING=YES UNLESS YOU HAVE ACCESS TO THE UNIDATA S3 BUCKET! ***])
+  AC_DEFINE([ENABLE_S3_TESTALL], [yes], [control S3 testing.])
 fi
 
 # Check whether we want to enable strict null byte header padding.
@@ -1452,6 +1458,8 @@ AC_TYPE_OFF_T
 AC_TYPE_UINTPTR_T
 AC_C_CHAR_UNSIGNED
 AC_C_BIGENDIAN
+
+AC_CHECK_TYPES([mode_t])
 
 AM_CONDITIONAL(ISCYGWIN, [test "x$ISCYGWIN" = xyes])
 AM_CONDITIONAL(ISMSVC, [test "x$ISMSVC" = xyes])
@@ -2033,7 +2041,7 @@ AC_SUBST(HAS_S3_AWS,[$enable_s3_aws])
 AC_SUBST(HAS_S3_INTERNAL,[$enable_s3_internal])
 AC_SUBST(HAS_HDF5_ROS3,[$has_hdf5_ros3])
 AC_SUBST(HAS_NCZARR,[$enable_nczarr])
-AC_SUBST(DO_S3_TESTING,[$with_s3_testing])
+AC_SUBST(ENABLE_S3_TESTING,[$with_s3_testing])
 AC_SUBST(HAS_NCZARR_ZIP,[$enable_nczarr_zip])
 AC_SUBST(DO_NCZARR_ZIP_TESTS,[$enable_nczarr_zip])
 AC_SUBST(HAS_QUANTIZE,[$enable_quantize])
@@ -2055,6 +2063,26 @@ fi
 if test "x$enable_s3_aws" = xno && test "x$enable_s3_internal" = xno; then
 AC_SUBST(WHICH_S3_SDK,[none])
 fi
+
+# The Unidata testing S3 bucket
+# WARNING: this must match the value in CMakeLists.txt
+AC_DEFINE([S3TESTBUCKET], ["unidata-zarr-test-data"], [S3 test bucket])
+AC_SUBST([S3TESTBUCKET],["unidata-zarr-test-data"])
+
+# The working S3 path tree within the Unidata bucket.
+# WARNING: this must match the value in CMakeLists.txt
+AC_DEFINE([S3TESTSUBTREE], ["netcdf-c"], [S3 test path prefix])
+AC_SUBST([S3TESTSUBTREE],[netcdf-c])
+
+# Build a small unique id to avoid interference on same platform
+PLATFORMUID="$RANDOM"
+# Make sure uid > 0
+PLATFORMUID=$((PLATFORMUID % 1000 + 1))
+# Build a unique id based on the date
+TESTUID=`date +%s`
+AC_DEFINE_UNQUOTED([TESTUID], [${TESTUID}], [S3 working path])
+AC_SUBST([TESTUID],${TESTUID})
+AC_SUBST([PLATFORMUID],${PLATFORMUID})
 
 # Always available
 std_filters="bz2"
@@ -2201,18 +2229,21 @@ AC_DEFINE_UNQUOTED([NC_DISPATCH_VERSION], [${NC_DISPATCH_VERSION}], [Dispatch ta
 # This would be true for a cmake build.
 AC_SUBST([ISCMAKE], [])
 
-# Provide  conditional to temporarily suppress tests and such
-AM_CONDITIONAL([AX_IGNORE], [test xno = xyes])
+# Provide  true/false conditionals to temporarily suppress tests and such
+AM_CONDITIONAL([AX_DISABLE], [test xno = xyes])
+AM_CONDITIONAL([AX_ENABLE], [test xyes = xyes])
 # Provide  conditional to identify tests that must be run manually
 AM_CONDITIONAL([AX_MANUAL], [test xno = xyes])
 
 AC_MSG_NOTICE([generating header files and makefiles])
 AC_CONFIG_FILES(test_common.sh:test_common.in)
-AC_CONFIG_FILES(nc_test4/findplugin.sh:nc_test4/findplugin.in)
-AC_CONFIG_FILES(nczarr_test/findplugin.sh:nc_test4/findplugin.in)
-AC_CONFIG_FILES(plugins/findplugin.sh:nc_test4/findplugin.in)
-AC_CONFIG_FILES(examples/C/findplugin.sh:nc_test4/findplugin.in)
-AC_CONFIG_FILES(ncdap_test/findtestserver.c:ncdap_test/findtestserver.c.in)
+AC_CONFIG_FILES(s3cleanup.sh:s3cleanup.in, [chmod ugo+x s3cleanup.sh])
+AC_CONFIG_FILES(s3gc.sh:s3gc.in, [chmod ugo+x s3gc.sh])
+AC_CONFIG_FILES(nc_test4/findplugin.sh:nc_test4/findplugin.in, [chmod ugo+x nc_test4/findplugin.sh])
+AC_CONFIG_FILES(nczarr_test/findplugin.sh:nc_test4/findplugin.in, [chmod ugo+x nczarr_test/findplugin.sh])
+AC_CONFIG_FILES(plugins/findplugin.sh:nc_test4/findplugin.in, [chmod ugo+x plugins/findplugin.sh])
+AC_CONFIG_FILES(examples/C/findplugin.sh:nc_test4/findplugin.in, [chmod ugo+x examples/C/findplugin.sh])
+AC_CONFIG_FILES(ncdap_test/findtestserver.c:ncdap_test/findtestserver.c.in, [chmod ugo+x ncdap_test/findtestserver.c])
 AC_CONFIG_FILES([nc_test/run_pnetcdf_tests.sh:nc_test/run_pnetcdf_tests.sh.in],[chmod ugo+x nc_test/run_pnetcdf_tests.sh])
 AC_CONFIG_FILES(dap4_test/findtestserver4.c:ncdap_test/findtestserver.c.in)
 AC_CONFIG_FILES(dap4_test/pingurl4.c:ncdap_test/pingurl.c)
@@ -2269,6 +2300,7 @@ AC_CONFIG_FILES([Makefile
                  ncdap_test/testdata3/Makefile
                  ncdap_test/expected3/Makefile
                  ncdap_test/expectremote3/Makefile
+                 ncdap_test/expectedhyrax/Makefile
                  dap4_test/Makefile
                  plugins/Makefile
 		 nczarr_test/Makefile

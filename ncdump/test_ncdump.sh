@@ -85,13 +85,3 @@ diff -b tst_fillbug.cdl $srcdir/ref_tst_fillbug.cdl
 
 
 }
-
-NCDUMPPATH=${builddir}
-if test "x$NCDUMPDIR" != x ; then
-  NCDUMPPATH="${NCDUMPPATH}/$NCDUMPDIR"
-  rm -fr $NCDUMPPATH
-  mkdir $NCDUMPPATH
-fi
-find $NCDUMPPATH
-
-

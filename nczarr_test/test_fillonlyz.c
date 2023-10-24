@@ -10,7 +10,7 @@
 
 #include "zincludes.h"
 
-#include "tst_utils.h"
+#include "test_utils.h"
 
 #undef DEBUG
 
@@ -18,7 +18,7 @@ static void
 nccheck(int ret, int lineno)
 {
     if(ret == NC_NOERR) return;
-    report(ret,lineno);
+    ncz_report(ret,lineno);
 }
 
 #define NCCHECK(err) nccheck(err,__LINE__)
@@ -36,6 +36,8 @@ main(int argc, char *argv[] )
     size_t i;
 
     NCCHECK(getoptions(&argc,&argv));
+    if(options->op == Write) NCCHECK(verifyoptions(options));
+    
     filename = options->file;
 
     NCCHECK(err = nc_open(filename,NC_NETCDF4,&ncid));
@@ -72,16 +74,3 @@ main(int argc, char *argv[] )
     if(idat) free(idat);
     return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

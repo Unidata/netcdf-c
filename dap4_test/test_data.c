@@ -21,7 +21,7 @@ Test the netcdf-4 data building process.
 #endif
 #endif
 
-#define DEBUG
+#undef DEBUG
 
 static struct Options {
     char* file;

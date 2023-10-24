@@ -1,5 +1,6 @@
 #!/bin/sh
-
+#set -x
+#set -e
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
 . ../test_common.sh
 
@@ -29,22 +30,22 @@ cp ${srcdir}/ref_notzarr.tar.gz .
 gunzip ref_notzarr.tar.gz
 tar -xf ref_notzarr.tar
 if test "x$FEATURE_S3TESTS" = xyes ; then
-    ${execdir}/s3util -f notzarr.file/notzarr.txt -u "https://${URL}" -k "/${S3ISOPATH}/notzarr.s3/notzarr.txt" upload
+    ${execdir}/s3util -f notzarr.file/notzarr.txt -u "https://${URL}" -k "//${S3ISOPATH}/notzarr.s3/notzarr.txt" upload
 fi
 
 echo "Test empty file"
-RET=`${execdir}/tst_notzarr "file://empty.file#mode=zarr,file"`
+RET=`${execdir}/test_notzarr "file://empty.file#mode=zarr,file"`
 testfailed "$RET"
 echo "Test non-zarr file"
-RET=`${execdir}/tst_notzarr "file://notzarr.file#mode=zarr,file"`
+RET=`${execdir}/test_notzarr "file://notzarr.file#mode=zarr,file"`
 testfailed "$RET"
 
 if test "x$FEATURE_NCZARR_ZIP" = xyes ; then
 echo "Test empty zip file"
-RET=`${execdir}/tst_notzarr "file://empty.zip#mode=zarr,zip"`
+RET=`${execdir}/test_notzarr "file://empty.zip#mode=zarr,zip"`
 testfailed "$RET"
 echo "Test non-zarr zip file"
-RET=`${execdir}/tst_notzarr "file://notzarr.zip#mode=zarr,zip"`
+RET=`${execdir}/test_notzarr "file://notzarr.zip#mode=zarr,zip"`
 testfailed "$RET"
 fi
 
@@ -53,12 +54,10 @@ if test 1 = 0 ; then
   # This test is NA for S3
   echo "Test empty S3 file"
   KEY2="${KEY}/empty.s3"
-  RET=`${execdir}/tst_notzarr "https://$URL${KEY2}#mode=zarr,s3"`
+  RET=`${execdir}/test_notzarr "https://$URL${KEY2}#mode=zarr,s3"`
   testfailed "$RET"
 fi
 echo "Test non-zarr S3 file"
-RET=`${execdir}/tst_notzarr "https://$URL/${S3ISOPATH}/notzarr.s3#mode=zarr,s3"`
+RET=`${execdir}/test_notzarr "https://$URL/${S3ISOPATH}/notzarr.s3#mode=zarr,s3"`
 testfailed "$RET"
 fi
-
-if test "x$FEATURE_S3TESTS" = xyes ; then s3sdkdelete "/${S3ISOPATH}" ; fi # Cleanup

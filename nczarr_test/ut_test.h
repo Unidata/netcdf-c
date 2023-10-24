@@ -11,6 +11,7 @@
 typedef struct Dimdef {
     char* name;
     size64_t size;
+    int isunlimited;
 } Dimdef;
 
 typedef struct Vardef  {
