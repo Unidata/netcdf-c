@@ -4,7 +4,7 @@
 # for information related to github runners.
 ###
 
-name: Run MSYS2, MinGW64-based Tests
+name: Run MSYS2, MinGW64-based Tests (Not Visual Studio)
 
 env:
   CPPFLAGS: "-D_BSD_SOURCE"
