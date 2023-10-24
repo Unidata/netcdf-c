@@ -82,9 +82,11 @@ ncloginit(void)
 }
 
 /*!
-Enable/Disable logging.
+Enable logging messages to a given level. Set to NCLOGOFF to disable
+all messages, NCLOGERR for errors only, NCLOGWARN for warnings and
+errors, and so on
 
-\param[in] tf If 1, then turn on logging, if 0, then turn off logging.
+\param[in] level Messages above this level are ignored
 
 \return The previous value of the logging flag.
 */
@@ -136,8 +138,11 @@ ncvlog(int level, const char* fmt, va_list ap)
     const char* prefix;
 
     if(!nclogginginitialized) ncloginit();
-    if(nclog_global.loglevel < level)
-	return;
+
+    if(nclog_global.loglevel < level || nclog_global.nclogstream == NULL) {
+        return;
+    }
+
     prefix = nctagname(level);
     fprintf(nclog_global.nclogstream,"%s: ",prefix);
     if(fmt != NULL) {
