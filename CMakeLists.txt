@@ -267,8 +267,8 @@ IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
 
   # Coverage tests need to have optimization turned off.
   IF(ENABLE_COVERAGE_TESTS)
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
-    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -g -O0 -coverage -fprofile-arcs -ftest-coverage")
+    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs")
     MESSAGE(STATUS "Coverage Tests: On.")
   ENDIF()
 
