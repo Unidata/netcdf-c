@@ -7,7 +7,7 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.9.3 - TBD
 
-* Obviate a number of irrelevant warning. See [Github #????](https://github.com/Unidata/netcdf-c/pull/????).
+* Obviate a number of irrelevant warnings. See [Github #2781](https://github.com/Unidata/netcdf-c/pull/2781).
 * Mitigate the problem of remote/nczarr-related test interference. See [Github #2755](https://github.com/Unidata/netcdf-c/pull/2755).
 * Extend NCZarr to support unlimited dimensions. See [Github #2755](https://github.com/Unidata/netcdf-c/pull/2755).
 * Fix significant bug in the NCZarr cache management. See [Github #2737](https://github.com/Unidata/netcdf-c/pull/2737).
