@@ -91,7 +91,7 @@ main(int argc, char **argv)
        array[i] = (float *) malloc(ncolumns * sizeof(float));
        if(array[i] == NULL) ERR;
        for (j = 0; j < ncolumns; j++) {
-	   array[i][j] = 10.0 * (i + 1) + j;
+	   array[i][j] = 10.0f * (float)(i + 1) + (float)j;
        }
    }
    array[4][0] = missing_value; /* overwrite last row with missing for equality test */

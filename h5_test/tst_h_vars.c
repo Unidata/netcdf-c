@@ -76,7 +76,7 @@ main()
          * dimension varies most slowly. */
         for (lat = 0; lat < LAT_LEN; lat++)
             for (lon = 0; lon < LON_LEN; lon++)
-                float_data_out[lat][lon] = -666.666;
+                float_data_out[lat][lon] = -666.666f;
 
         /* Create file and group. */
         if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,

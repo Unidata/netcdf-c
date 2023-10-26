@@ -209,7 +209,7 @@ main(int argc, char **argv)
       int dimids_var[2], var_type;
       size_t dim_len;
       char dim_name[NC_MAX_NAME+1], var_name[NC_MAX_NAME+1];
-      float float_in, float_out = 99.99;
+      float float_in, float_out = 99.99f;
       int int_in, int_out = -9999;
 
       /* Create a file, this time with attributes. */
