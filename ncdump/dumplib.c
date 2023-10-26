@@ -11,6 +11,7 @@
 
 #include "config.h"
 #include <stdarg.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -203,7 +204,7 @@ sbuf_catb(safebuf_t *s1, const safebuf_t *s2) {
     size_t res;
     assert(SAFEBUF_CHECK(s1));
     assert(SAFEBUF_CHECK(s2));
-    s2len = sbuf_len(s2);
+    s2len = (size_t)sbuf_len(s2);
     sbuf_grow(s1, 1 + s1->cl + s2len);
     res = strlcat(s1->buf + s1->cl, s2->buf, s1->len - s1->cl);
     assert( res < s1->len );
@@ -212,10 +213,10 @@ sbuf_catb(safebuf_t *s1, const safebuf_t *s2) {
 }
 
 /* Return length of string in sbuf */
-size_t
+int
 sbuf_len(const safebuf_t *sb) {
     assert(SAFEBUF_CHECK(sb));
-    return sb->cl;
+    return (int)sb->cl;
 }
 
 /* Return C string in an sbuf */
