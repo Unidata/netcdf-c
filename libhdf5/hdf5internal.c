@@ -995,7 +995,7 @@ nc4_hdf5_get_chunk_cache(int ncid, size_t *sizep, size_t *nelemsp,
     if (H5Pget_cache(plistid, NULL, nelemsp, sizep, &dpreemption) < 0)
 	return NC_EHDFERR;
     if (preemptionp)
-	*preemptionp = dpreemption;
+	*preemptionp = (float)dpreemption;
 
     return NC_NOERR;
 }
