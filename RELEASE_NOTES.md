@@ -6,6 +6,8 @@ Release Notes       {#RELEASE_NOTES}
 This file contains a high-level description of this package's evolution. Releases are in reverse chronological order (most recent first). Note that, as of netcdf 4.2, the `netcdf-c++` and `netcdf-fortran` libraries have been separated into their own libraries.
 
 ## 4.9.3 - TBD
+
+* Fix DAP2 proxy problems. See [Github #2764](https://github.com/Unidata/netcdf-c/pull/2764).
 * Cleanup a number of misc issues. See [Github #2763](https://github.com/Unidata/netcdf-c/pull/2763).
 * Mitigate the problem of test interference. See [Github #2755](https://github.com/Unidata/netcdf-c/pull/2755).
 * Extend NCZarr to support unlimited dimensions. See [Github #2755](https://github.com/Unidata/netcdf-c/pull/2755).
