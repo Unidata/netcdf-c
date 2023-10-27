@@ -53,6 +53,9 @@ typedef struct NCRCinfo {
 	NClist* s3profiles; /* NClist<struct AWSprofile*> */
 } NCRCinfo;
 
+/* Opaque structures */
+struct NCS3INFO;
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
@@ -94,7 +97,7 @@ EXTERNL int NC_getactives3profile(NCURI* uri, const char** profilep);
 EXTERNL int NC_s3profilelookup(const char* profile, const char* key, const char** valuep);
 EXTERNL int NC_authgets3profile(const char* profile, struct AWSprofile** profilep);
 EXTERNL int NC_iss3(NCURI* uri);
-EXTERNL int NC_s3urlrebuild(NCURI* url, char** inoutbucketp, char** inoutregionp, NCURI** newurlp);
+EXTERNL int NC_s3urlrebuild(NCURI* url, struct NCS3INFO* s3, NCURI** newurlp);
 
 #if defined(__cplusplus)
 }
