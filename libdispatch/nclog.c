@@ -138,9 +138,11 @@ ncvlog(int level, const char* fmt, va_list ap)
     const char* prefix;
 
     if(!nclogginginitialized) ncloginit();
+
     if(nclog_global.loglevel < level || nclog_global.nclogstream == NULL) {
         return;
     }
+
     prefix = nctagname(level);
     fprintf(nclog_global.nclogstream,"%s: ",prefix);
     if(fmt != NULL) {

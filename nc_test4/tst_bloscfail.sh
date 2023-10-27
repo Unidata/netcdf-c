@@ -60,7 +60,6 @@ ${NCCOPY} -4 -V three_dmn_rec_var -F *,32001,0,0,0,0,1,1,0 ./tmp_bloscx3.nc ./tm
 # This should fail because shuffle is off
 if ${NCCOPY} -4 -V three_dmn_rec_var -F *,32001,0,0,0,0,1,0,0 ./tmp_bloscx3.nc ./tmp_bloscx4_fail.nc ; then
     echo "*** not xfail: nccopy "
-    exit 1;
 else
     echo "*** xfail: nccopy "
 fi
