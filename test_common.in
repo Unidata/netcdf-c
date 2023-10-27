@@ -129,6 +129,9 @@ top_builddir="$TOPBUILDDIR"
 # Currently not used, but left as a Visual Studio placeholder.
 # VS=Debug
 
+# Set when using gdb
+#DL=".libs/"
+
 # srcdir may or may not be defined, but if not, then create it
 if test "x$srcdir" = x ; then
   # we need to figure out our directory
@@ -169,11 +172,11 @@ fi
 
 # We need to locate certain executables (and other things),
 # capture absolute paths, and make visible
-export NCDUMP="${top_builddir}/ncdump${VS}/ncdump${ext}"
-export NCCOPY="${top_builddir}/ncdump${VS}/nccopy${ext}"
-export NCGEN="${top_builddir}/ncgen${VS}/ncgen${ext}"
-export NCGEN3="${top_builddir}/ncgen3${VS}/ncgen3${ext}"
-export NCPATHCVT="${top_builddir}/ncdump${VS}/ncpathcvt${ext}"
+export NCDUMP="${top_builddir}/ncdump${VS}/${DL}ncdump${ext}"
+export NCCOPY="${top_builddir}/ncdump${VS}/${DL}nccopy${ext}"
+export NCGEN="${top_builddir}/ncgen${VS}/${DL}ncgen${ext}"
+export NCGEN3="${top_builddir}/ncgen3${VS}/${DL}ncgen3${ext}"
+export NCPATHCVT="${top_builddir}/ncdump${VS}/${DL}ncpathcvt${ext}"
 
 # Temporary hacks (until we have a test_utils directory)
 # to locate certain specific test files
