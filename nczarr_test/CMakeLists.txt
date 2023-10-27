@@ -193,6 +193,8 @@ IF(ENABLE_TESTS)
 
   if(ENABLE_NCZARR_ZIP)
       add_sh_test(nczarr_test run_newformat)
+      # Test various corrupted files
+      ADD_SH_TEST(nczarr_test run_corrupt.sh)
   endif()
 
   IF(FALSE) # Obsolete tests

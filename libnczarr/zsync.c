@@ -1448,29 +1448,11 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 {
     int stat = NC_NOERR;
     int i,j;
-    char* varpath = NULL;
-    char* key = NULL;
     NCZ_FILE_INFO_T* zinfo = NULL;
-    NC_VAR_INFO_T* var = NULL;
-    NCZ_VAR_INFO_T* zvar = NULL;
     NCZMAP* map = NULL;
-    NCjson* jvar = NULL;
-    NCjson* jncvar = NULL;
-    NCjson* jdimrefs = NULL;
-    NCjson* jvalue = NULL;
     int purezarr = 0;
     int xarray = 0;
     int formatv1 = 0;
-    nc_type vtype;
-    int vtypelen;
-    size64_t* shapes = NULL;
-    int rank = 0;
-    int zarr_rank = 1; /* Need to watch out for scalars */
-    NClist* dimnames = nclistnew();
-#ifdef ENABLE_NCZARR_FILTERS
-    NCjson* jfilter = NULL;
-    int chainindex;
-#endif
 
     ZTRACE(3,"file=%s grp=%s |varnames|=%u",file->controller->path,grp->hdr.name,nclistlength(varnames));
 
@@ -1483,7 +1465,32 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 
     /* Load each var in turn */
     for(i = 0; i < nclistlength(varnames); i++) {
-	const char* varname = nclistget(varnames,i);
+	/* per-variable info */
+        NC_VAR_INFO_T* var = NULL;
+        NCZ_VAR_INFO_T* zvar = NULL;
+        NCjson* jvar = NULL;
+        NCjson* jncvar = NULL;
+        NCjson* jdimrefs = NULL;
+        NCjson* jvalue = NULL;
+        char* varpath = NULL;
+        char* key = NULL;
+	const char* varname = NULL;
+        size64_t* shapes = NULL;
+        NClist* dimnames = NULL;
+        int varsized = 0;
+        int suppress = 0; /* Abort processing of this variable */
+        nc_type vtype = NC_NAT;
+        int vtypelen = 0;
+        int rank = 0;
+        int zarr_rank = 0; /* Need to watch out for scalars */
+#ifdef ENABLE_NCZARR_FILTERS
+        NCjson* jfilter = NULL;
+        int chainindex = 0;
+#endif
+
+        dimnames = nclistnew();
+	varname = nclistget(varnames,i);
+
 	if((stat = nc4_var_list_add2(grp, varname, &var)))
 	    goto done;
 
@@ -1522,6 +1529,7 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 	    if(version != zinfo->zarr.zarr_version)
 		{stat = (THROW(NC_ENCZARR)); goto done;}
 	}
+
 	/* Set the type and endianness of the variable */
 	{
 	    int endianness;
@@ -1609,23 +1617,6 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 	    jdimrefs = NULL;
 	}
 
-	/* shape */
-	{
-	    if((stat = NCJdictget(jvar,"shape",&jvalue))) goto done;
-	    if(NCJsort(jvalue) != NCJ_ARRAY) {stat = (THROW(NC_ENCZARR)); goto done;}
-            if(zvar->scalar) {
-	        rank = 0;
-		zarr_rank = 1; /* Zarr does not support scalars */
-	    } else 
-		rank = (zarr_rank = NCJlength(jvalue));
-	    /* Save the rank of the variable */
-	    if((stat = nc4_var_set_ndims(var, rank))) goto done;
-	    /* extract the shapes */
-	    if((shapes = (size64_t*)malloc(sizeof(size64_t)*zarr_rank)) == NULL)
-	        {stat = (THROW(NC_ENOMEM)); goto done;}
-	    if((stat = decodeints(jvalue, shapes))) goto done;
-	}
-
 	/* Capture dimension_separator (must precede chunk cache creation) */
 	{
 	    NCglobalstate* ngs = NC_getglobalstate();
@@ -1661,6 +1652,36 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 	    }
 	}
 
+	/* shape */
+	{
+	    if((stat = NCJdictget(jvar,"shape",&jvalue))) goto done;
+	    if(NCJsort(jvalue) != NCJ_ARRAY) {stat = (THROW(NC_ENCZARR)); goto done;}
+	    
+	    /* Process the rank */
+	    zarr_rank = NCJlength(jvalue);
+	    if(zarr_rank == 0) {
+		/* suppress variable */
+		ZLOG(NCLOGWARN,"Empty shape for variable %s suppressed",var->hdr.name);
+		suppress = 1;
+		goto suppressvar;
+	    }
+
+	    if(zvar->scalar) {
+	        rank = 0;
+		zarr_rank = 1; /* Zarr does not support scalars */
+	    } else 
+		rank = (zarr_rank = NCJlength(jvalue));
+
+	    if(zarr_rank > 0) {
+  	        /* Save the rank of the variable */
+	        if((stat = nc4_var_set_ndims(var, rank))) goto done;
+	        /* extract the shapes */
+	        if((shapes = (size64_t*)malloc(sizeof(size64_t)*zarr_rank)) == NULL)
+	            {stat = (THROW(NC_ENOMEM)); goto done;}
+	        if((stat = decodeints(jvalue, shapes))) goto done;
+	    }
+	}
+
 	/* chunks */
 	{
 	    size64_t chunks[NC_MAX_VAR_DIMS];
@@ -1668,8 +1689,7 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 	    if(jvalue != NULL && NCJsort(jvalue) != NCJ_ARRAY)
 		{stat = (THROW(NC_ENCZARR)); goto done;}
 	    /* Verify the rank */
-	    assert (zarr_rank == NCJlength(jvalue));
-	    if(zvar->scalar) {
+	    if(zvar->scalar || zarr_rank == 0) {
 		if(var->ndims != 0)
 		    {stat = (THROW(NC_ENCZARR)); goto done;}
 		zvar->chunkproduct = 1;
@@ -1746,37 +1766,47 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 		if((stat = NCZ_filter_build(file,var,jfilter,chainindex++))) goto done;
 	    }
 	}
+	/* Suppress variable if there are filters and var is not fixed-size */
+	if(varsized && nclistlength((NClist*)var->filters) > 0)
+	    suppress = 1;
 #endif
-	if((stat = computedimrefs(file, var, purezarr, xarray, rank, dimnames, shapes, var->dim)))
-	    goto done;
-
-	if(!zvar->scalar) {
-	    /* Extract the dimids */
-	    for(j=0;j<rank;j++)
-	        var->dimids[j] = var->dim[j]->hdr.id;
+	if(zarr_rank > 0) {
+    	    if((stat = computedimrefs(file, var, purezarr, xarray, rank, dimnames, shapes, var->dim)))
+	        goto done;
+   	    if(!zvar->scalar) {
+	        /* Extract the dimids */
+	        for(j=0;j<rank;j++)
+	            var->dimids[j] = var->dim[j]->hdr.id;
+	    }
 	}
 
 #ifdef ENABLE_NCZARR_FILTERS
-        /* At this point, we can finalize the filters */
-        if((stat = NCZ_filter_setup(var))) goto done;
+	if(!suppress) {
+    	    /* At this point, we can finalize the filters */
+            if((stat = NCZ_filter_setup(var))) goto done;
+	}
 #endif
 
+suppressvar:
+        if(suppress) {
+	    /* Reclaim NCZarr variable specific info */
+	    (void)NCZ_zclose_var1(var);
+	    /* Remove from list of variables and reclaim the top level var object */
+	    (void)nc4_var_list_del(grp, var);
+	    var = NULL;
+	}
+
 	/* Clean up from last cycle */
-	nclistfreeall(dimnames); dimnames = nclistnew();
+	nclistfreeall(dimnames); dimnames = NULL;
         nullfree(varpath); varpath = NULL;
         nullfree(shapes); shapes = NULL;
+        nullfree(key); key = NULL;
         if(formatv1) {NCJreclaim(jncvar); jncvar = NULL;}
         NCJreclaim(jvar); jvar = NULL;
         var = NULL;
     }
 
 done:
-    nullfree(shapes);
-    nullfree(varpath);
-    nullfree(key);
-    nclistfreeall(dimnames);
-    NCJreclaim(jvar);
-    if(formatv1) NCJreclaim(jncvar);
     return ZUNTRACE(THROW(stat));
 }
 

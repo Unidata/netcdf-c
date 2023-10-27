@@ -113,7 +113,7 @@ H5Z_filter_test(unsigned int flags, size_t cd_nelmts,
 	break;
     case TC_ODDSIZE:
         /* Print out the chunk size */
-        fprintf(stderr,"nbytes = %lld chunk size = %lld\n",(long long)nbytes,(long long)*buf_size);
+        fprintf(stderr,">>> nbytes = %lld chunk size = %lld\n",(long long)nbytes,(long long)*buf_size);
         fflush(stderr);
 	break;
     default: break;
@@ -122,13 +122,15 @@ H5Z_filter_test(unsigned int flags, size_t cd_nelmts,
     if (flags & H5Z_FLAG_REVERSE) { /* Decompress */
 
         if(testcase == TC_EXPANDED) {
+#ifdef DEBUG
 	    int i;
 	    float* b = (float*)*buf;
-fprintf(stderr,"TC_EXPANDED: decompress: nbytes=%u buf_size=%u xdata[0..8]=|",(unsigned)nbytes,(unsigned)*buf_size);
+fprintf(stderr,">>> TC_EXPANDED: decompress: nbytes=%u buf_size=%u xdata[0..8]=|",(unsigned)nbytes,(unsigned)*buf_size);
 	    for(i=0;i<8;i++) {
 		fprintf(stderr," %u",(int)(b[1024+i]));
 	    }
 	    fprintf(stderr,"|\n");
+#endif
             /* Replace buffer */
             newbuf = H5allocate_memory(*buf_size,0);
             if(newbuf == NULL) abort();
@@ -149,8 +151,8 @@ fprintf(stderr,"TC_EXPANDED: decompress: nbytes=%u buf_size=%u xdata[0..8]=|",(u
         if(testcase == TC_EXPANDED) {
 	    int i;
 	    float* b;
-#if 0	
-fprintf(stderr,"TC_EXPANDED: compress: nbytes=%u buf_size=%u size=%u\n",(unsigned)nbytes,(unsigned)*buf_size,(unsigned)size);
+#ifdef DEBUG
+fprintf(stderr,">>> TC_EXPANDED: compress: nbytes=%u buf_size=%u size=%u\n",(unsigned)nbytes,(unsigned)*buf_size,(unsigned)size);
 #endif
 	    /* Replace buffer with one that is bigger than the input size */
             newbuf = H5allocate_memory(size,0);
@@ -218,7 +220,7 @@ extract1(void* field, size_t size, const unsigned int* params)
 	llp = (unsigned long long*)field;
 	*llp = u.ll;
 	break;
-    default: fprintf(stderr,"insert: unexpected size: %u\n",(unsigned)size); abort();
+    default: fprintf(stderr,">>> insert: unexpected size: %u\n",(unsigned)size); abort();
     }
 }
 
@@ -247,7 +249,7 @@ paramcheck(size_t nparams, const unsigned int* params, struct All* extracted)
     memset(&all,0,sizeof(all));
 
     if(nparams != NPARAMS) {
-	fprintf(stderr,"Incorrect number of parameters: expected=%ld sent=%ld\n",(unsigned long)NPARAMS,(unsigned long)nparams);
+	fprintf(stderr,">>> Incorrect number of parameters: expected=%ld sent=%ld\n",(unsigned long)NPARAMS,(unsigned long)nparams);
 	goto fail;
     }
 
@@ -270,7 +272,7 @@ paramcheck(size_t nparams, const unsigned int* params, struct All* extracted)
 #ifdef DEBUG
     {
 	size_t i;
-	fprintf(stderr,"bigendian=%d nparams=%d params=\n",bigendian,nparams);
+	fprintf(stderr,">>> nparams=%lu params=\n",nparams);
 	for(i=0;i<nparams;i++) {
 	    fprintf(stderr,"[%d] %ud %d %f\n", (unsigned int)i, params[i],(signed int)params[i],*(float*)&params[i]);
 	}
@@ -285,7 +287,7 @@ fail:
 static void
 mismatch(const char* which)
 {
-    fprintf(stderr,"mismatch: %s\n",which);
+    fprintf(stderr,">>> mismatch: %s\n",which);
     fflush(stderr);
 }
 
