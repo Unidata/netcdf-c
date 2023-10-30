@@ -1,6 +1,11 @@
 /* Copyright 2018, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
 
+/* WARNING: oc2/occurlfunctions.c and libdap4/d4curlfunctions.c
+should be merged since they are essentially the same file.
+In the meantime, changes to one should be propagated to the other.
+*/
+
 #include "config.h"
 #include <stdlib.h>
 #ifdef HAVE_STDINT_H
@@ -127,36 +132,43 @@ ocset_curlflag(OCstate* state, int flag)
 	}
 	break;
 
-    case CURLOPT_USE_SSL:
-    case CURLOPT_SSLCERT: case CURLOPT_SSLKEY:
-    case CURLOPT_SSL_VERIFYPEER: case CURLOPT_SSL_VERIFYHOST:
-    case CURLOPT_CAINFO: case CURLOPT_CAPATH:
-    {
-        struct ssl* ssl = &state->auth->ssl;
+    case CURLOPT_SSL_VERIFYPEER:
 	/* VERIFYPEER == 0 => VERIFYHOST == 0 */
 	/* We need to have 2 states: default and a set value */
 	/* So -1 => default >= 0 => use value */
-	if(ssl->verifypeer >= 0) {
-            SETCURLOPT(state, CURLOPT_SSL_VERIFYPEER, (OPTARG)(ssl->verifypeer));
-	}
+	if(state->auth->ssl.verifypeer >= 0) {
+            SETCURLOPT(state, CURLOPT_SSL_VERIFYPEER, (OPTARG)(state->auth->ssl.verifypeer));
+	    if(state->auth->ssl.verifypeer == 0) state->auth->ssl.verifyhost = 0;
+        }
+	break;
+    case CURLOPT_SSL_VERIFYHOST:
 #ifdef HAVE_LIBCURL_766
-	if(ssl->verifyhost >= 0) {
-            SETCURLOPT(state, CURLOPT_SSL_VERIFYHOST, (OPTARG)(ssl->verifyhost));
+	if(state->auth->ssl.verifyhost >= 0) {
+            SETCURLOPT(state, CURLOPT_SSL_VERIFYHOST, (OPTARG)(state->auth->ssl.verifyhost));
 	}
 #endif
-        if(ssl->certificate)
-            SETCURLOPT(state, CURLOPT_SSLCERT, ssl->certificate);
-        if(ssl->key)
-            SETCURLOPT(state, CURLOPT_SSLKEY, ssl->key);
-        if(ssl->keypasswd)
+	break;
+    case CURLOPT_SSLCERT:
+        if(state->auth->ssl.certificate)
+            SETCURLOPT(state, CURLOPT_SSLCERT, state->auth->ssl.certificate);
+	break;
+    case CURLOPT_SSLKEY:
+        if(state->auth->ssl.key)
+            SETCURLOPT(state, CURLOPT_SSLKEY, state->auth->ssl.key);
+        if(state->auth->ssl.keypasswd)
             /* libcurl prior to 7.16.4 used 'CURLOPT_SSLKEYPASSWD' */
-            SETCURLOPT(state, CURLOPT_KEYPASSWD, ssl->keypasswd);
-        if(ssl->cainfo)
-            SETCURLOPT(state, CURLOPT_CAINFO, ssl->cainfo);
-        if(ssl->capath)
-            SETCURLOPT(state, CURLOPT_CAPATH, ssl->capath);
-    }
-    break;
+            SETCURLOPT(state, CURLOPT_SSLKEYPASSWD, state->auth->ssl.keypasswd);
+	break;
+    case CURLOPT_CAINFO:
+        if(state->auth->ssl.cainfo)
+            SETCURLOPT(state, CURLOPT_CAINFO, state->auth->ssl.cainfo);
+	break;
+    case CURLOPT_CAPATH:
+	if(state->auth->ssl.capath)
+            SETCURLOPT(state, CURLOPT_CAPATH, state->auth->ssl.capath);
+        break;
+    case CURLOPT_USE_SSL:
+	break;
 
 #ifdef HAVE_CURLOPT_BUFFERSIZE
     case CURLOPT_BUFFERSIZE:
@@ -210,6 +222,12 @@ ocset_flags_perlink(OCstate* state)
     if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_COOKIEJAR);
     if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_USERPWD);
     if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_PROXY);
+    if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_SSL_VERIFYPEER);
+    if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_SSL_VERIFYHOST);
+    if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_SSLCERT);
+    if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_SSLKEY);
+    if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_CAINFO);
+    if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_CAPATH);
     if(stat == OC_NOERR) stat = ocset_curlflag(state,CURLOPT_USE_SSL);
     if(stat == OC_NOERR) stat = ocset_curlflag(state, CURLOPT_FOLLOWLOCATION);
     if(stat == OC_NOERR) stat = ocset_curlflag(state, CURLOPT_MAXREDIRS);

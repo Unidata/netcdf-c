@@ -30,6 +30,7 @@
 #undef AWSDEBUG
 
 #define AWSHOST ".amazonaws.com"
+#define GOOGLEHOST "storage.googleapis.com"
 
 enum URLFORMAT {UF_NONE=0, UF_VIRTUAL=1, UF_PATH=2, UF_S3=3, UF_OTHER=4};
 
@@ -44,15 +45,12 @@ Rebuild an S3 url into a canonical path-style url.
 If region is not in the host, then use specified region
 if provided, otherwise us-east-1.
 @param url (in) the current url
-@param region	(in) region to use if needed; NULL => us-east-1
-		(out) region from url or the input region
-@param bucketp	(in) bucket to use if needed
-		(out) bucket from url
+@param s3	(in/out) NCS3INFO structure
 @param pathurlp (out) the resulting pathified url string
 */
 
 int
-NC_s3urlrebuild(NCURI* url, char** inoutbucketp, char** inoutregionp, NCURI** newurlp)
+NC_s3urlrebuild(NCURI* url, NCS3INFO* s3, NCURI** newurlp)
 {
     int i,stat = NC_NOERR;
     NClist* hostsegments = NULL;
@@ -63,6 +61,7 @@ NC_s3urlrebuild(NCURI* url, char** inoutbucketp, char** inoutregionp, NCURI** ne
     char* host = NULL;
     char* path = NULL;
     char* region = NULL;
+    NCS3SVC svc = NCS3UNK;
     
     if(url == NULL)
         {stat = NC_EURL; goto done;}
@@ -83,14 +82,27 @@ NC_s3urlrebuild(NCURI* url, char** inoutbucketp, char** inoutregionp, NCURI** ne
        Path: https://s3.<region>.amazonaws.com/<bucket-name>/<path>				(3)
          or: https://s3.amazonaws.com/<bucket-name>/<path> -- region defaults to us-east-1      (4)
        S3: s3://<bucket-name>/<path>								(5)
-      Other: https://<host>/<bucket-name>/<path>						(6)
+       Google: https://storage.googleapis.com/<bucket-name>/<path>				(6)
+           or: gs3://<bucket-name>/<path>							(7)
+       Other: https://<host>/<bucket-name>/<path>						(8)
     */
     if(url->host == NULL || strlen(url->host) == 0)
         {stat = NC_EURL; goto done;}
+
+    /* Reduce the host to standard form such as s3.amazonaws.com by pulling out the
+       region and bucket from the host */
     if(strcmp(url->protocol,"s3")==0 && nclistlength(hostsegments)==1) { /* Format (5) */
 	bucket = nclistremove(hostsegments,0);
 	/* region unknown at this point */
+	/* Host will be set to canonical form later */
+	svc = NCS3;
+    } else if(strcmp(url->protocol,"gs3")==0 && nclistlength(hostsegments)==1) { /* Format (7) */
+	bucket = nclistremove(hostsegments,0);
+	/* region unknown at this point */
+	/* Host will be set to canonical form later */
+	svc = NCS3GS;
     } else if(endswith(url->host,AWSHOST)) { /* Virtual or path */
+	svc = NCS3;
 	/* If we find a bucket as part of the host, then remove it */
 	switch (nclistlength(hostsegments)) {
 	default: stat = NC_EURL; goto done;
@@ -99,11 +111,11 @@ NC_s3urlrebuild(NCURI* url, char** inoutbucketp, char** inoutregionp, NCURI** ne
     	    /* bucket unknown at this point */
 	    break;
 	case 4: /* Format (2) or (3) */
-            if(strcasecmp(nclistget(hostsegments,1),"s3")==0) { /* Format (2) */
+            if(strcasecmp(nclistget(hostsegments,0),"s3")!=0) { /* Presume format (2) */
 	        /* region unknown at this point */
-	        bucket = nclistremove(hostsegments,0); /* Note removeal */
+	        bucket = nclistremove(hostsegments,0); /* Make canonical */
             } else if(strcasecmp(nclistget(hostsegments,0),"s3")==0) { /* Format (3) */
-	        region = strdup(nclistget(hostsegments,1));
+	        region = nclistremove(hostsegments,1); /* Make canonical */
 	        /* bucket unknown at this point */
 	    } else /* ! Format (2) and ! Format (3) => error */
 	        {stat = NC_EURL; goto done;}
@@ -111,20 +123,27 @@ NC_s3urlrebuild(NCURI* url, char** inoutbucketp, char** inoutregionp, NCURI** ne
 	case 5: /* Format (1) */
             if(strcasecmp(nclistget(hostsegments,1),"s3")!=0)
 	        {stat = NC_EURL; goto done;}
-	    region = strdup(nclistget(hostsegments,2));
-    	    bucket = strdup(nclistremove(hostsegments,0));
+	    /* Make canonical */
+	    region = nclistremove(hostsegments,2);
+    	    bucket = nclistremove(hostsegments,0);
 	    break;
 	}
-    } else { /* Presume Format (6) */
+    } else if(strcasecmp(url->host,GOOGLEHOST)==0) { /* Google (6) */
+        if((host = strdup(url->host))==NULL)
+	    {stat = NC_ENOMEM; goto done;}
+        /* region is unknown */
+	/* bucket is unknown at this point */
+	svc = NCS3GS;
+    } else { /* Presume Format (8) */
         if((host = strdup(url->host))==NULL)
 	    {stat = NC_ENOMEM; goto done;}
         /* region is unknown */
 	/* bucket is unknown */
     }
 
-    /* region = (1) from url, (2) inoutregion, (3) default */
-    if(region == NULL)
-	region = (inoutregionp?nulldup(*inoutregionp):NULL);
+    /* region = (1) from url, (2) s3->region, (3) default */
+    if(region == NULL && s3 != NULL)
+	region = nulldup(s3->region);
     if(region == NULL) {
         const char* region0 = NULL;
 	/* Get default region */
@@ -133,23 +152,30 @@ NC_s3urlrebuild(NCURI* url, char** inoutbucketp, char** inoutregionp, NCURI** ne
     }
     if(region == NULL) {stat = NC_ES3; goto done;}
 
-    /* bucket = (1) from url, (2) inoutbucket */
+    /* bucket = (1) from url, (2) s3->bucket */
     if(bucket == NULL && nclistlength(pathsegments) > 0) {
 	bucket = nclistremove(pathsegments,0); /* Get from the URL path; will reinsert below */
     }
-    if(bucket == NULL)
-	bucket = (inoutbucketp?nulldup(*inoutbucketp):NULL);
+    if(bucket == NULL && s3 != NULL)
+	bucket = nulldup(s3->bucket);
     if(bucket == NULL) {stat = NC_ES3; goto done;}
 
-    if(host == NULL) { /* Construct the revised host */
+    if(svc == NCS3) {
+        /* Construct the revised host */
+	ncbytesclear(buf);
         ncbytescat(buf,"s3.");
         ncbytescat(buf,region);
         ncbytescat(buf,AWSHOST);
+	nullfree(host);
         host = ncbytesextract(buf);
+    } else if(svc == NCS3GS) {
+	nullfree(host);
+	host = strdup(GOOGLEHOST);
     }
 
-    /* Construct the revised path */
     ncbytesclear(buf);
+
+    /* Construct the revised path */
     if(bucket != NULL) {
         ncbytescat(buf,"/");
         ncbytescat(buf,bucket);
@@ -159,10 +185,13 @@ NC_s3urlrebuild(NCURI* url, char** inoutbucketp, char** inoutregionp, NCURI** ne
 	ncbytescat(buf,nclistget(pathsegments,i));
     }
     path = ncbytesextract(buf);
+
     /* complete the new url */
     if((newurl=ncuriclone(url))==NULL) {stat = NC_ENOMEM; goto done;}
     ncurisetprotocol(newurl,"https");
+    assert(host != NULL);
     ncurisethost(newurl,host);
+    assert(path != NULL);
     ncurisetpath(newurl,path);
     /* Rebuild the url->url */
     ncurirebuild(newurl);
@@ -171,9 +200,11 @@ NC_s3urlrebuild(NCURI* url, char** inoutbucketp, char** inoutregionp, NCURI** ne
     fprintf(stderr,">>> NC_s3urlrebuild: final=%s bucket=%s region=%s\n",uri->uri,bucket,region);
 #endif
     if(newurlp) {*newurlp = newurl; newurl = NULL;}
-    if(inoutbucketp) {*inoutbucketp = bucket; bucket = NULL;}
-    if(inoutregionp) {*inoutregionp = region; region = NULL;}
-
+    if(s3 != NULL) {
+        s3->bucket = bucket; bucket = NULL;
+        s3->region = region; region = NULL;
+        s3->svc = svc;
+    }
 done:
     nullfree(region);
     nullfree(bucket)
@@ -218,7 +249,7 @@ NC_s3urlprocess(NCURI* url, NCS3INFO* s3, NCURI** newurlp)
     s3->profile = strdup(profile0);
 
     /* Rebuild the URL to path format and get a usable region and optional bucket*/
-    if((stat = NC_s3urlrebuild(url,&s3->bucket,&s3->region,&url2))) goto done;
+    if((stat = NC_s3urlrebuild(url,s3,&url2))) goto done;
     s3->host = strdup(url2->host);
     /* construct the rootkey minus the leading bucket */
     pathsegments = nclistnew();
@@ -268,7 +299,7 @@ NC_s3clear(NCS3INFO* s3)
 }
 
 /*
-Check if a url has indicators that signal an S3 url.
+Check if a url has indicators that signal an S3 or Google S3 url.
 */
 
 int
@@ -277,13 +308,17 @@ NC_iss3(NCURI* uri)
     int iss3 = 0;
 
     if(uri == NULL) goto done; /* not a uri */
-    /* is the protocol "s3"? */
+    /* is the protocol "s3" or "gs3" ? */
     if(strcasecmp(uri->protocol,"s3")==0) {iss3 = 1; goto done;}
-    /* Is "s3" in the mode list? */
-    if(NC_testmode(uri,"s3")) {iss3 = 1; goto done;}    
+    if(strcasecmp(uri->protocol,"gs3")==0) {iss3 = 1; goto done;}
+    /* Is "s3" or "gs3" in the mode list? */
+    if(NC_testmode(uri,"s3")) {iss3 = 1; goto done;}
+    if(NC_testmode(uri,"gs3")) {iss3 = 1; goto done;}    
     /* Last chance; see if host looks s3'y */
-    if(endswith(uri->host,AWSHOST)) {iss3 = 1; goto done;}
-    
+    if(uri->host != NULL) {
+        if(endswith(uri->host,AWSHOST)) {iss3 = 1; goto done;}
+        if(strcasecmp(uri->host,GOOGLEHOST)==0) {iss3 = 1; goto done;}
+    }    
 done:
     return iss3;
 }
