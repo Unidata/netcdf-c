@@ -7,7 +7,9 @@ This file contains a high-level description of this package's evolution. Release
 
 ## 4.9.3 - TBD
 
-* Mitigate the problem of remote/nczarr-related test interference. See [Github #2755](https://github.com/Unidata/netcdf-c/pull/2755).
+* Fix DAP2 proxy problems. See [Github #2764](https://github.com/Unidata/netcdf-c/pull/2764).
+* Cleanup a number of misc issues. See [Github #2763](https://github.com/Unidata/netcdf-c/pull/2763).
+* Mitigate the problem of test interference. See [Github #2755](https://github.com/Unidata/netcdf-c/pull/2755).
 * Extend NCZarr to support unlimited dimensions. See [Github #2755](https://github.com/Unidata/netcdf-c/pull/2755).
 * Fix significant bug in the NCZarr cache management. See [Github #2737](https://github.com/Unidata/netcdf-c/pull/2737).
 * Fix default parameters for caching of NCZarr. See [Github #2734](https://github.com/Unidata/netcdf-c/pull/2734).

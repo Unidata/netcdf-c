@@ -1237,7 +1237,7 @@ removedups(NClist* list)
 	/* look for dups for this entry */
 	for(j=nclistlength(list)-2;j>i;j-=2) {
 	    if(strcasecmp(nclistget(list,i),nclistget(list,j))==0
-		&& strcasecmp(nclistget(list,i+1),nclistget(list,j+1))) {
+		&& strcasecmp(nclistget(list,i+1),nclistget(list,j+1))==0) {
 		nclistremove(list,j+1); nclistremove(list,j);
 	    }
 	}
