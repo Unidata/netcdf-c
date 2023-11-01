@@ -9,6 +9,7 @@ SET(abs_top_srcdir ${CMAKE_CURRENT_SOURCE_DIR})
 
 remove_definitions(-DDLL_EXPORT)
 
+
 # Create nczarr tests from nc_test4 tests
 macro(NCZARR_SH_TEST basename src)
 FILE(READ ${CMAKE_CURRENT_SOURCE_DIR}/../${src}/tst_${basename}.sh SHSOURCE)
@@ -55,11 +56,13 @@ ENDIF()
 
 IF(ENABLE_TESTS)
 
-  add_library(ut_util ut_util.c ut_test.c ${XGETOPTSRC})
+  add_library(ut_util STATIC ut_util.c ut_test.c ut_includes.h ut_test.h ${XGETOPTSRC})
+  target_compile_definitions(ut_util PUBLIC -DDLL_EXPORT -DDLL_NETCDF)
   target_include_directories(ut_util PUBLIC ../libnczarr ../plugins ${CMAKE_CURRENT_LIST_DIR})
   target_link_libraries(ut_util PUBLIC netcdf ${ALL_TLL_LIBS})
 
-  add_library(test_utils test_utils.c test_utils.h ${XGETOPTSRC})
+  add_library(test_utils STATIC test_utils.c test_utils.h ${XGETOPTSRC})
+  target_compile_definitions(test_utils PUBLIC -DDLL_EXPORT -DDLL_NETCDF)
   target_include_directories(test_utils PUBLIC ../libnczarr ../plugins ${CMAKE_CURRENT_LIST_DIR})
   target_link_libraries(test_utils PUBLIC netcdf ${ALL_TLL_LIBS})
 
@@ -71,12 +74,15 @@ IF(ENABLE_TESTS)
 
   macro(build_bin_test_with_util_lib F UTIL_LIB)
     build_bin_test(${F})
-    target_link_libraries(${F} ${UTIL_LIB})
+    target_compile_definitions(${F} PUBLIC -DDLL_NETCDF)
+    target_link_libraries(${F} ${UTIL_LIB} ${ALL_TLL_LIBS})
   endmacro()
 
   macro(add_bin_test_with_util_lib PREFIX F UTIL_LIB)
     add_bin_test(${PREFIX} ${F})
-    target_link_libraries(${PREFIX}_${F} ${UTIL_LIB})
+    target_compile_definitions(${PREFIX}_${F} PUBLIC -DDLL_NETCDF)
+    target_link_libraries(${PREFIX}_${F} ${UTIL_LIB} ${ALL_TLL_LIBS})
+
   endmacro()
 
   # Base tests
