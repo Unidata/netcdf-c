@@ -286,14 +286,8 @@ static int
 mapvars(NCD4meta* dapmeta, NCD4meta* dmrmeta, int inferredchecksumming)
 {
     int i, ret = NC_NOERR;
-    NCD4node* dmrroot = dmrmeta->root;
-    NClist* dmrtop = NULL; /* top variables in dmr tree */
     NCD4node* daproot = dapmeta->root;
     NClist* daptop = NULL; /* top variables in dap tree */
-
-    /* Get top level variables from the dmr node tree */
-    dmrtop = nclistnew();
-    NCD4_getToplevelVars(dmrmeta,dmrroot,dmrtop);
 
     /* Get top level variables from the dap node tree */
     daptop = nclistnew();
@@ -311,5 +305,6 @@ mapvars(NCD4meta* dapmeta, NCD4meta* dmrmeta, int inferredchecksumming)
     }
 
 done:
+    nclistfree(daptop);
     return THROW(ret);
 }

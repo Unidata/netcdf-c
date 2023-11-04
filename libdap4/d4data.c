@@ -78,6 +78,8 @@ NCD4_parcelvars(NCD4meta* meta, NCD4response* resp)
 	var->data.response = resp; /* cross link */	
     }
 done:
+    nclistfree(toplevel);
+    nullfree(offset);    
     return THROW(ret);
 }
 
@@ -421,6 +423,7 @@ NCD4_inferChecksums(NCD4meta* meta, NCD4response* resp)
 	    }
 	}
     }
+    nclistfree(toplevel);
     resp->attrchecksumming = (attrfound ? 1 : 0);
     /* Infer checksums */
     resp->inferredchecksumming = ((resp->attrchecksumming || resp->querychecksumming) ? 1 : 0);

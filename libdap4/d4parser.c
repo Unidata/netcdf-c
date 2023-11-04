@@ -228,7 +228,8 @@ traverse(NCD4parser* parser, ncxml_t dom)
         if((ret=makeNode(parser,NULL,NULL,NCD4_GROUP,NC_NULL,&parser->metadata->root))) goto done;
         parser->metadata->root->group.isdataset = 1;
         parser->metadata->root->meta.id = parser->metadata->ncid;
-        parser->metadata->groupbyid = nclistnew();
+        if(parser->metadata->groupbyid == NULL)
+	    parser->metadata->groupbyid = nclistnew();
         SETNAME(parser->metadata->root,"/");
 	xattr = ncxml_attr(dom,"name");
 	if(xattr != NULL) parser->metadata->root->group.datasetname = xattr;
