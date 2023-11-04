@@ -154,7 +154,6 @@ NCD4_open(const char * path, int mode,
     NCD4_resetInfoForRead(d4info);
     /* Rebuild metadata */
     if((ret = NCD4_newMeta(d4info,&d4info->dmrmetadata))) goto done;
-    meta = d4info->dmrmetadata;
 
     /* Capture response */    
     if((dmrresp = (NCD4response*)calloc(1,sizeof(NCD4response)))==NULL)
@@ -188,10 +187,11 @@ NCD4_open(const char * path, int mode,
   }
 #endif
 
-    if((ret = NCD4_parse(meta,dmrresp,0))) goto done;
+    if((ret = NCD4_parse(d4info->dmrmetadata,dmrresp,0))) goto done;
 
 #ifdef D4DEBUGMETA
   {
+    meta = d4info->dmrmetadata;
     fprintf(stderr,"\n/////////////\n");
     NCbytes* buf = ncbytesnew();
     NCD4_print(meta,buf);
@@ -204,7 +204,7 @@ NCD4_open(const char * path, int mode,
 #endif
 
     /* Build the substrate metadata */
-    ret = NCD4_metabuild(meta,meta->ncid);
+    ret = NCD4_metabuild(d4info->dmrmetadata,meta->ncid);
     if(ret != NC_NOERR && ret != NC_EVARSIZE) goto done;
 
     /* Remember the response */
@@ -634,6 +634,7 @@ done:
 void
 NCD4_reclaimResponse(NCD4response* d4resp)
 {
+    int i;
     struct NCD4serial* serial = NULL;
     if(d4resp == NULL) return;
     serial = &d4resp->serial;

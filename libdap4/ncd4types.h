@@ -342,7 +342,7 @@ struct NCD4INFO {
     NCURI* dmruri;      /* parse of rawuritext */
     NCD4curl* curl;
     int inmemory; /* store fetched data in memory? */
-    NCD4meta* dmrmetadata;
+    NCD4meta* dmrmetadata; /* Independent of responses */
     NClist* responses; /* NClist<NCD4response> all responses from this curl handle */
     struct { /* Properties that are per-platform */
         int hostlittleendian; /* 1 if the host is little endian */
