@@ -1,6 +1,10 @@
 #!/bin/sh
 
+if test "x$srcdir" = x ; then srcdir=`pwd`; fi
+. ../test_common.sh
+
 if test "x$SETX" != x ; then set -x ; fi
+
 set -e
 
 quiet=0

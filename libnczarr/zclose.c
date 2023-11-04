@@ -179,7 +179,7 @@ NCZ_zclose_var1(NC_VAR_INFO_T* var)
 }
 
 /**
- * @internal Close resources for vars in a group.
+ * @internal Close nczarr resources for vars in a group.
  *
  * @param grp Pointer to group info struct.
  *

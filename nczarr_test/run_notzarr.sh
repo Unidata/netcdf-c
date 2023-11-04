@@ -1,5 +1,6 @@
 #!/bin/sh
-
+#set -x
+#set -e
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi 
 . ../test_common.sh
 
@@ -29,7 +30,7 @@ cp ${srcdir}/ref_notzarr.tar.gz .
 gunzip ref_notzarr.tar.gz
 tar -xf ref_notzarr.tar
 if test "x$FEATURE_S3TESTS" = xyes ; then
-    ${execdir}/s3util -f notzarr.file/notzarr.txt -u "https://${URL}" -k "/${S3ISOPATH}/notzarr.s3/notzarr.txt" upload
+    ${execdir}/s3util -f notzarr.file/notzarr.txt -u "https://${URL}" -k "//${S3ISOPATH}/notzarr.s3/notzarr.txt" upload
 fi
 
 echo "Test empty file"
