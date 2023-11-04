@@ -388,11 +388,11 @@ NCD4_inq_attname(int ncid, int varid, int attnum, char* name)
     const NC_reservedatt* rsvp = NULL;
     
     if((ret = NC_check_id(ncid, (NC**)&ncp)) != NC_NOERR) return (ret);
+    substrateid = makenc4id(ncp,ncid);
+    ret = nc_inq_attname(substrateid, varid, attnum, name);
     /* Is this a reserved attribute name? */
     if(name && (rsvp = NCD4_lookupreserved(name)))
 	return NC_EATTMETA;
-    substrateid = makenc4id(ncp,ncid);
-    ret = nc_inq_attname(substrateid, varid, attnum, name);
     return (ret);
 }
 
