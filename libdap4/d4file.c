@@ -46,7 +46,6 @@ NCD4_open(const char * path, int mode,
     NCD4INFO* d4info = NULL;
     const char* value;
     NC* nc;
-    NCD4meta* meta = NULL;
     size_t len = 0;
     void* contents = NULL;
     NCD4response* dmrresp = NULL;
@@ -204,7 +203,7 @@ NCD4_open(const char * path, int mode,
 #endif
 
     /* Build the substrate metadata */
-    ret = NCD4_metabuild(d4info->dmrmetadata,meta->ncid);
+    ret = NCD4_metabuild(d4info->dmrmetadata,d4info->dmrmetadata->ncid);
     if(ret != NC_NOERR && ret != NC_EVARSIZE) goto done;
 
     /* Remember the response */
@@ -634,7 +633,6 @@ done:
 void
 NCD4_reclaimResponse(NCD4response* d4resp)
 {
-    int i;
     struct NCD4serial* serial = NULL;
     if(d4resp == NULL) return;
     serial = &d4resp->serial;
@@ -643,6 +641,45 @@ NCD4_reclaimResponse(NCD4response* d4resp)
     nullfree(d4resp->raw.memory);
     nullfree(serial->dmr);
     nullfree(serial->errdata);
+
+    /* clear all fields */
+    memset(serial,0,sizeof(struct NCD4serial));
+
+    nullfree(d4resp->error.parseerror);
+    nullfree(d4resp->error.message);
+    nullfree(d4resp->error.context);
+    nullfree(d4resp->error.otherinfo);
+    memset(&d4resp->error,0,sizeof(d4resp->error));
+
+    free(d4resp);
+}
+
+/* Create an empty NCD4meta object for
+   use in subsequent calls
+   (is the the right src file to hold this?)
+*/
+
+int
+NCD4_newMeta(NCD4INFO* info, NCD4meta** metap)
+{
+    int ret = NC_NOERR;
+    NCD4meta* meta = (NCD4meta*)calloc(1,sizeof(NCD4meta));
+    if(meta == NULL) return NC_ENOMEM;
+    meta->allnodes = nclistnew();
+#ifdef D4DEBUG
+    meta->debuglevel = 1;
+#endif
+    meta->controller = info;
+    meta->ncid = info->substrate.nc4id; /* Transfer netcdf ncid */
+    if(metap) {*metap = meta; meta = NULL;}
+    return THROW(ret);
+}
+
+void
+NCD4_reclaimMeta(NCD4meta* dataset)
+{
+    int i;
+    if(dataset == NULL) return;
 
     for(i=0;i<nclistlength(dataset->allnodes);i++) {
 	NCD4node* node = (NCD4node*)nclistget(dataset->allnodes,i);
