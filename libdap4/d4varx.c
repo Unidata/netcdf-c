@@ -187,24 +187,31 @@ getvarx(int gid, int varid, NCD4INFO** infop, NCD4node** varp,
     }
 
     /* Read and process the data */
-        /* Setup the meta-data for the DAP */
-	if((ret=NCD4_newMeta(info,&dapmeta))) goto done;
-	if((ret=NCD4_newResponse(info,&dapresp))) goto done;
-	dapresp->mode = NCD4_DAP;
-	nclistpush(info->responses,dapresp);
-        if((ret=NCD4_readDAP(info, info->controls.flags.flags, ceuri, dapresp))) goto done;
-        /* Extract DMR and dechunk the data part */
-        if((ret=NCD4_dechunk(dapresp))) goto done;
-        /* Process the dmr part */
-	if((ret=NCD4_parse(dapmeta,dapresp,1))) goto done;
-	/* See if we are checksumming */
-        if((ret=NCD4_inferChecksums(dapmeta,dapresp))) goto done;
-	/* connect variables and corresponding dap data */
-        if((ret = NCD4_parcelvars(dapmeta,dapresp))) goto done;
-	/* Process checksums and byte-order swapping */
-        if((ret = NCD4_processdata(dapmeta,dapresp))) goto done;
-	/* Transfer and process the data */
-        if((ret = mapvars(dapmeta,dmrmeta,dapresp->inferredchecksumming))) goto done;
+
+    /* Setup the meta-data for the DAP */
+    if((ret=NCD4_newMeta(info,&dapmeta))) goto done;
+    if((ret=NCD4_newResponse(info,&dapresp))) goto done;
+    dapresp->mode = NCD4_DAP;
+    nclistpush(info->responses,dapresp);
+    if((ret=NCD4_readDAP(info, info->controls.flags.flags, ceuri, dapresp))) goto done;
+
+    /* Extract DMR and dechunk the data part */
+    if((ret=NCD4_dechunk(dapresp))) goto done;
+
+    /* Process the dmr part */
+    if((ret=NCD4_parse(dapmeta,dapresp,1))) goto done;
+
+    /* See if we are checksumming */
+    if((ret=NCD4_inferChecksums(dapmeta,dapresp))) goto done;
+
+    /* connect variables and corresponding dap data */
+    if((ret = NCD4_parcelvars(dapmeta,dapresp))) goto done;
+
+    /* Process checksums and byte-order swapping */
+    if((ret = NCD4_processdata(dapmeta,dapresp))) goto done;
+
+    /* Transfer and process the data */
+    if((ret = mapvars(dapmeta,dmrmeta,dapresp->inferredchecksumming))) goto done;
 
 validated:
     /* Return relevant info */
