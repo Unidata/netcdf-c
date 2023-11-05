@@ -211,7 +211,11 @@ install-data-hook:
 all-local: liblib/libnetcdf.la
 	echo ${PACKAGE_VERSION} > VERSION
 if ENABLE_S3_TESTALL
+	rm -f ${abs_top_builddir}/tmp_@PLATFORMUID@.uids
 	echo "@TESTUID@" >> ${abs_top_builddir}/s3cleanup_@PLATFORMUID@.uids
+	cat ${abs_top_builddir}/s3cleanup_@PLATFORMUID@.uids | sort | uniq > ${abs_top_builddir}/tmp_@PLATFORMUID@.uids
+	rm -f ${abs_top_builddir}/s3cleanup_@PLATFORMUID@.uids
+	mv ${abs_top_builddir}/tmp_@PLATFORMUID@.uids ${abs_top_builddir}/s3cleanup_@PLATFORMUID@.uids
 endif
 
 if ENABLE_S3_TESTALL

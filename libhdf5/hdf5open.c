@@ -25,6 +25,7 @@
 
 #ifdef ENABLE_HDF5_ROS3
 #include <H5FDros3.h>
+#include "ncs3sdk.h"
 #endif
 
 /*Nemonic */
@@ -883,12 +884,11 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 #ifdef ENABLE_BYTERANGE
 	else if(h5->byterange) {   /* Arrange to use the byte-range drivers */
 	    char* newpath = NULL;
-            char* awsregion0 = NULL;
 #ifdef ENABLE_HDF5_ROS3
 	    H5FD_ros3_fapl_t fa;
-	    const char* profile0 = NULL;
 	    const char* awsaccessid0 = NULL;
 	    const char* awssecretkey0 = NULL;
+	    const char* profile0 = NULL;
 	    int iss3 = NC_iss3(h5->uri);
 	    
             fa.version = H5FD_CURR_ROS3_FAPL_T_VERSION;
@@ -898,9 +898,11 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 	    fa.secret_key[0] = '\0';
 
 	    if(iss3) {
-	        /* Rebuild the URL */
+	        NCS3INFO s3;
 		NCURI* newuri = NULL;
-		if((retval = NC_s3urlrebuild(h5->uri,NULL,&awsregion0,&newuri))) goto exit;
+	        /* Rebuild the URL */
+	        memset(&s3,0,sizeof(s3));
+		if((retval = NC_s3urlrebuild(h5->uri,&s3,&newuri))) goto exit;
 		if((newpath = ncuribuild(newuri,NULL,NULL,NCURISVC))==NULL)
 		    {retval = NC_EURL; goto exit;}
 		ncurifree(h5->uri);
@@ -909,22 +911,23 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 		    BAIL(retval);
    	        if((retval = NC_s3profilelookup(profile0,AWS_ACCESS_KEY_ID,&awsaccessid0)))
 		    BAIL(retval);		
-	        if((retval = NC_s3profilelookup(profile0,AWS_SECRET_ACCESS_KEY,&awssecretkey0)))
+		if((retval = NC_s3profilelookup(profile0,AWS_SECRET_ACCESS_KEY,&awssecretkey0)))
 		    BAIL(retval);		
-		if(awsregion0 == NULL)
-		    awsregion0 = strdup(S3_REGION_DEFAULT);
+		if(s3.region == NULL)
+		    s3.region = strdup(S3_REGION_DEFAULT);
 	        if(awsaccessid0 == NULL || awssecretkey0 == NULL ) {
 		    /* default, non-authenticating, "anonymous" fapl configuration */
 		    fa.authenticate = (hbool_t)0;
 	        } else {
 		    fa.authenticate = (hbool_t)1;
-	  	    assert(awsregion0 != NULL && strlen(awsregion0) > 0);
+	  	    assert(s3.region != NULL && strlen(s3.region) > 0);
 		    assert(awsaccessid0 != NULL && strlen(awsaccessid0) > 0);
 		    assert(awssecretkey0 != NULL && strlen(awssecretkey0) > 0);
-		    strlcat(fa.aws_region,awsregion0,H5FD_ROS3_MAX_REGION_LEN);
+		    strlcat(fa.aws_region,s3.region,H5FD_ROS3_MAX_REGION_LEN);
 		    strlcat(fa.secret_id, awsaccessid0, H5FD_ROS3_MAX_SECRET_ID_LEN);
                     strlcat(fa.secret_key, awssecretkey0, H5FD_ROS3_MAX_SECRET_KEY_LEN);
 	        }
+		NC_s3clear(&s3);
                 /* create and set fapl entry */
                 if(H5Pset_fapl_ros3(fapl_id, &fa) < 0)
                     BAIL(NC_EHDFERR);
@@ -938,7 +941,6 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
             if ((h5->hdfid = nc4_H5Fopen((newpath?newpath:path), flags, fapl_id)) < 0)
                 BAIL(NC_EHDFERR);
 	    nullfree(newpath);
-	    nullfree(awsregion0);
         }
 #endif
         else {

@@ -6,9 +6,7 @@
 # Set Project Properties
 ##################################
 
-#Minimum required CMake Version
 cmake_minimum_required(VERSION 3.12.0)
-# CMake 3.12: Use libraries specified in CMAKE_REQUIRED_LIBRARIES for check include macros
 
 #Project Name
 project(netCDF
@@ -17,6 +15,14 @@ HOMEPAGE_URL "https://www.unidata.ucar.edu/software/netcdf/"
 DESCRIPTION "NetCDF is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data."
 )
 set(PACKAGE "netCDF" CACHE STRING "")
+
+# Backport of built-in `PROJECT_IS_TOP_LEVEL` from CMake 3.21
+if (NOT DEFINED NETCDF_IS_TOP_LEVEL)
+  set(NETCDF_IS_TOP_LEVEL OFF)
+  if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+    set(NETCDF_IS_TOP_LEVEL ON)
+  endif ()
+endif ()
 
 #####
 # Version Info:
@@ -51,7 +57,7 @@ SET(NC_DISPATCH_VERSION 5)
 find_program(UNAME NAMES uname)
 IF(UNAME)
   macro(getuname name flag)
-    exec_program("${UNAME}" ARGS "${flag}" OUTPUT_VARIABLE "${name}")
+    execute_process(COMMAND "${UNAME}" "${flag}" OUTPUT_VARIABLE "${name}" OUTPUT_STRIP_TRAILING_WHITESPACE)
   endmacro(getuname)
   getuname(osname -s)
   getuname(osrel  -r)
@@ -1405,7 +1411,7 @@ IF(ENABLE_TESTS)
     SET(HOSTNAME_ARG "-s")
   ENDIF()
   IF(HOSTNAME_CMD)
-    EXEC_PROGRAM(${HOSTNAME_CMD} ARGS "${HOSTNAME_ARG}" OUTPUT_VARIABLE HOSTNAME)
+    EXECUTE_PROCESS(COMMAND ${HOSTNAME_CMD} "${HOSTNAME_ARG}" OUTPUT_VARIABLE HOSTNAME OUTPUT_STRIP_TRAILING_WHITESPACE)
     SET(NC_CTEST_SITE "${HOSTNAME}" CACHE STRING "Hostname of test machine.")
   ENDIF()
 
@@ -2790,5 +2796,8 @@ install(
 ####
 
 # CPack inclusion must come last.
-# INCLUDE(CPack)
-INCLUDE(CMakeInstallation.cmake)
+option(NETCDF_PACKAGE "Create netCDF-C package " ${NETCDF_IS_TOP_LEVEL})
+
+if (NETCDF_PACKAGE)
+  include(CMakeInstallation.cmake)
+endif()

@@ -74,7 +74,7 @@ FIND_PROGRAM(NC_DPKG NAMES dpkg)
 IF(NC_DPKG)
   # Define a macro for getting the dpkg architecture.
   MACRO(getdpkg_arch arch)
-    exec_program("${NC_DPKG}" ARGS "--print-architecture" OUTPUT_VARIABLE "${arch}")
+    execute_process(COMMAND "${NC_DPKG}" "--print-architecture" OUTPUT_VARIABLE "${arch}" OUTPUT_STRIP_TRAILING_WHITESPACE)
   ENDMACRO(getdpkg_arch)
   getdpkg_arch(dpkg_arch)
 
