@@ -143,8 +143,8 @@ IF(ENABLE_TESTS)
     add_sh_test(nczarr_test run_ut_misc)
     add_sh_test(nczarr_test run_ncgen4)
     if(LARGE_FILE_TESTS)
-      BUILD_BIN_TEST(test_readcaching})
-      BUILD_BIN_TEST(test_writecaching})
+      BUILD_BIN_TEST(test_readcaching)
+      BUILD_BIN_TEST(test_writecaching)
       BUILD_BIN_TEST(test_chunkcases ${TSTCOMMONSRC})
       add_sh_test(nczarr_test run_cachetest)
       add_sh_test(nczarr_test run_chunkcases)
@@ -193,6 +193,8 @@ IF(ENABLE_TESTS)
 
   if(ENABLE_NCZARR_ZIP)
       add_sh_test(nczarr_test run_newformat)
+      # Test various corrupted files
+      ADD_SH_TEST(nczarr_test run_corrupt.sh)
   endif()
 
   IF(FALSE) # Obsolete tests
