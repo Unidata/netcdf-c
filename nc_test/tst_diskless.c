@@ -46,7 +46,7 @@ void fail(int line) {
 #endif
 
 /* Control flags  */
-static int flags, persist, usenetcdf4, mmap, diskless;
+static int flags, persist, usenetcdf4, use_mmap, diskless;
 
 char*
 smode(int mode)
@@ -90,13 +90,13 @@ main(int argc, char **argv)
     /* Set defaults */
     persist = 0;
     usenetcdf4 = 0;
-    mmap = 0;
+    use_mmap = 0;
     diskless = 0;
 
     for(i=1;i<argc;i++) {
 	if(strcmp(argv[i],"netcdf4")==0) usenetcdf4=1;
 	else if(strcmp(argv[i],"persist")==0) persist=1;
-	else if(strcmp(argv[i],"mmap")==0) mmap=1;
+	else if(strcmp(argv[i],"mmap")==0) use_mmap=1;
 	else if(strcmp(argv[i],"diskless")==0) diskless=1;
 	else if(strncmp(argv[i],"file:",strlen("file:"))==0) {
 	    filename = argv[i];
@@ -111,12 +111,12 @@ main(int argc, char **argv)
 #endif
 
     /* Invalid combinations */
-    if(mmap && diskless) {fprintf(stderr,"Illegal: mmap+diskless\n"); exit(1);};
-    if(mmap && usenetcdf4) {fprintf(stderr,"Illegal: mmap+netcdf4\n"); exit(1);};
+    if(use_mmap && diskless) {fprintf(stderr,"Illegal: mmap+diskless\n"); exit(1);};
+    if(use_mmap && usenetcdf4) {fprintf(stderr,"Illegal: mmap+netcdf4\n"); exit(1);};
 
     flags = usenetcdf4?FLAGS4:FLAGS3;
     if(persist) flags |= NC_PERSIST;
-    if(mmap) flags |= NC_MMAP;
+    if(use_mmap) flags |= NC_MMAP;
     if(diskless) flags |= NC_DISKLESS;
 
 printf("\n*** Testing the diskless|mmap API.\n");
