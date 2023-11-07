@@ -105,8 +105,7 @@ init_epsilons()
  *    try in data mode, check error
  */
 int
-test_ncvardef(path)
-     const char *path;		/* name of writable netcdf file to open */
+test_ncvardef(const char *path) /* name of writable netcdf file to open */
 {
     int nerrs = 0;
     int cdfid;			/* netcdf id */

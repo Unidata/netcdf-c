@@ -41,8 +41,7 @@
  *    try with bad netCDF handle, check error
  */
 int
-test_ncattput(path)
-     const char *path;		/* name of writable netcdf file to open */
+test_ncattput(const char *path) /* name of writable netcdf file to open */
 {
     int nerrs = 0;
     static char pname[] = "test_ncattput";
@@ -341,8 +340,7 @@ test_ncattput(path)
  *    try with bad netCDF handle, check error
  */
 int
-test_ncattinq(path)
-     const char *path;		/* name of writable netcdf file to open */
+test_ncattinq(const char *path) /* name of writable netcdf file to open */
 {
     int nerrs = 0;
     static char pname[] = "test_ncattinq";
@@ -456,8 +454,7 @@ test_ncattinq(path)
  *    try with bad netCDF handle, check error
  */
 int
-test_ncattget(path)
-     const char *path;		/* name of writable netcdf file to open */
+test_ncattget(const char *path) /* name of writable netcdf file to open */
 {
     int nerrs = 0;
     int cdfid;			/* netcdf id */
@@ -627,10 +624,10 @@ test_ncattget(path)
  *    try with bad source or target netCDF handles, check error
  *    try with bad source or target variable handle, check error
  */
+/* path1: name of input netcdf file to open */
+/* path2: name of output netcdf file to create */
 int
-test_ncattcopy(path1, path2)
-     const char *path1;		/* name of input netcdf file to open */
-     const char *path2;		/* name of output netcdf file to create */
+test_ncattcopy(const char *path1, const char *path2)
 {
     int nerrs = 0;
     static char pname[] = "test_ncattcopy";
@@ -905,8 +902,7 @@ test_ncattcopy(path1, path2)
  *    try with bad attribute number, check error
  */
 int
-test_ncattname(path)
-     const char *path;		/* name of writable netcdf file to open */
+test_ncattname(const char *path) /* name of writable netcdf file to open */
 {
     int nerrs = 0;
     static char pname[] = "test_ncattname";
@@ -1091,8 +1087,7 @@ test_ncattname(path)
  *    try with bad netCDF handle, check error
  */
 int
-test_ncattrename(path)
-     const char *path;		/* name of writable netcdf file to open */
+test_ncattrename(const char *path) /* name of writable netcdf file to open */
 {
     int nerrs = 0;
     static char pname[] = "test_ncattrename";
@@ -1234,8 +1229,7 @@ test_ncattrename(path)
  *    try in data mode, check error
  */
 int
-test_ncattdel(path)
-     const char *path;		/* name of writable netcdf file to open */
+test_ncattdel(const char *path) /* name of writable netcdf file to open */
 {
     int nerrs = 0;
     static char pname[] = "test_ncattdel";

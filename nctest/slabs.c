@@ -30,12 +30,12 @@
  * 	
  * 	v[ii] = val;
  */
+/* type: netcdf type of v, NC_BYTE, ..., NC_DOUBLE */
+/* v: array of specified type */
+/* ii: it's v[ii] we want to store into */
+/* val: value to store */
 static void
-val_stuff(type, v, ii, val)	/* v[ii] = val */
-     nc_type type;		/* netcdf type of v, NC_BYTE, ..., NC_DOUBLE */
-     void *v;			/* array of specified type */
-     int ii;			/* it's v[ii] we want to store into */
-     long val;			/* value to store */
+val_stuff(nc_type type, void *v, int ii, long val)	/* v[ii] = val */
 {
     static char pname[] = "val_stuff";
 
@@ -70,12 +70,12 @@ val_stuff(type, v, ii, val)	/* v[ii] = val */
  * returns 0 if equal, 1 if not equal 
  */
 
+/* type: netcdf type of v, NC_BYTE, ..., NC_DOUBLE */
+/* v: array of specified type */
+/* ii: it's v[ii] we want to compare */
+/* val: value to compare with */
 static int
-val_diff(type, v, ii, val)	/* v[ii] != val */
-     nc_type type;		/* netcdf type of v, NC_BYTE, ..., NC_DOUBLE */
-     void *v;			/* array of specified type */
-     int ii;			/* it's v[ii] we want to compare */
-     long val;			/* value to compare with */
+val_diff(nc_type type, void *v, int ii, long val)	/* v[ii] != val */
 {
     static char pname[] = "val_diff";
 
@@ -109,8 +109,7 @@ val_diff(type, v, ii, val)	/* v[ii] != val */
  */
 
 int
-test_slabs(cdfid)
-     int cdfid;			/* handle of netcdf open and in data mode */
+test_slabs(int cdfid) /* handle of netcdf open and in data mode */
 {
     int nerrs = 0;
     static char pname[] = "test_slabs";
