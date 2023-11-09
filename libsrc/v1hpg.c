@@ -445,6 +445,8 @@ ncx_len_NC_dimarray(const NC_dimarray *ncap, int version)
 	xlen += (version == 5) ? X_SIZEOF_INT64 : X_SIZEOF_SIZE_T; /* count */
 	if(ncap == NULL)
 		return xlen;
+	if(ncap->value == NULL)
+		return xlen;
 	/* else */
 	{
 		const NC_dim **dpp = (const NC_dim **)ncap->value;
@@ -633,7 +635,9 @@ v1h_put_NC_attrV(v1hs *psp, const NC_attr *attrp)
 	size_t nbytes = 0, padding = 0;
 
 	assert(psp->extent % X_ALIGN == 0);
-
+	if(!value)
+		return NC_ENULLPAD;
+	
 	do {
 		nbytes = MIN(perchunk, remaining);
 
@@ -701,7 +705,8 @@ v1h_get_NC_attrV(v1hs *gsp, NC_attr *attrp)
 #if USE_STRICT_NULL_BYTE_HEADER_PADDING
 	size_t padding;
 #endif /* USE_STRICT_NULL_BYTE_HEADER_PADDING */
-
+    if(!value)
+		return NC_ENULLPAD;
 	do {
 		nget = MIN(perchunk, remaining);
 
@@ -786,6 +791,8 @@ ncx_len_NC_attrarray(const NC_attrarray *ncap, int version)
 	size_t xlen = X_SIZEOF_NCTYPE;	/* type */
 	xlen += (version == 5) ? X_SIZEOF_INT64 : X_SIZEOF_SIZE_T; /* count */
 	if(ncap == NULL)
+		return xlen;
+	if(ncap->value == NULL)
 		return xlen;
 	/* else */
 	{
@@ -1087,6 +1094,8 @@ ncx_len_NC_vararray(const NC_vararray *ncap, size_t sizeof_off_t, int version)
 	xlen += (version == 5) ? X_SIZEOF_INT64 : X_SIZEOF_SIZE_T; /* count */
 	if(ncap == NULL)
 		return xlen;
+	if(ncap->value == NULL)
+		return xlen;
 	/* else */
 	{
 		const NC_var **vpp = (const NC_var **)ncap->value;
@@ -1223,6 +1232,9 @@ v1h_get_NC_vararray(v1hs *gsp, NC_vararray *ncap)
 static int
 NC_computeshapes(NC3_INFO* ncp)
 {
+	if(ncp->vars.value == NULL)
+		return(0);
+
 	NC_var **vpp = (NC_var **)ncp->vars.value;
 	NC_var *const *const end = &vpp[ncp->vars.nelems];
 	NC_var *first_var = NULL;	/* first "non-record" var */
