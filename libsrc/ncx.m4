@@ -760,7 +760,8 @@ APIPrefix`x_put_'NC_TYPE($1)_$2(void *xp, const $2 *ip, void *fillp)
 #endif',
         `$2', `float',  `if (*ip > (double)Xmax($1) || *ip < FXmin($1)) {
         FillValue($1, &xx)
-        DEBUG_ASSIGN_ERROR(err, NC_ERANGE)
+        /* DEBUG_ASSIGN_ERROR(err, NC_ERANGE) */
+		return NC_ERANGE;
     }
 #ifdef ERANGE_FILL
     else
