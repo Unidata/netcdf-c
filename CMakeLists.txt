@@ -6,9 +6,7 @@
 # Set Project Properties
 ##################################
 
-#Minimum required CMake Version
 cmake_minimum_required(VERSION 3.12.0)
-# CMake 3.12: Use libraries specified in CMAKE_REQUIRED_LIBRARIES for check include macros
 
 #Project Name
 project(netCDF
@@ -17,6 +15,14 @@ HOMEPAGE_URL "https://www.unidata.ucar.edu/software/netcdf/"
 DESCRIPTION "NetCDF is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data."
 )
 set(PACKAGE "netCDF" CACHE STRING "")
+
+# Backport of built-in `PROJECT_IS_TOP_LEVEL` from CMake 3.21
+if (NOT DEFINED NETCDF_IS_TOP_LEVEL)
+  set(NETCDF_IS_TOP_LEVEL OFF)
+  if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+    set(NETCDF_IS_TOP_LEVEL ON)
+  endif ()
+endif ()
 
 #####
 # Version Info:
@@ -31,7 +37,7 @@ set(PACKAGE "netCDF" CACHE STRING "")
 
 SET(NC_VERSION_MAJOR 4)
 SET(NC_VERSION_MINOR 9)
-SET(NC_VERSION_PATCH 2)
+SET(NC_VERSION_PATCH 3)
 SET(NC_VERSION_NOTE "-development")
 SET(netCDF_VERSION ${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
@@ -51,7 +57,7 @@ SET(NC_DISPATCH_VERSION 5)
 find_program(UNAME NAMES uname)
 IF(UNAME)
   macro(getuname name flag)
-    exec_program("${UNAME}" ARGS "${flag}" OUTPUT_VARIABLE "${name}")
+    execute_process(COMMAND "${UNAME}" "${flag}" OUTPUT_VARIABLE "${name}" OUTPUT_STRIP_TRAILING_WHITESPACE)
   endmacro(getuname)
   getuname(osname -s)
   getuname(osrel  -r)
@@ -61,17 +67,17 @@ ENDIF()
 
 # Define some Platforms
 if(osname MATCHES "CYGWIN.*")
-SET(ISCYGWIN yes)
+  SET(ISCYGWIN yes)
 endif()
-if(osname MATCHES "Darwin.*")
-SET(ISOSX yes)
+  if(osname MATCHES "Darwin.*")
+  SET(ISOSX yes)
 endif()
 if(MSVC)
-SET(ISMSVC yes)
+  SET(ISMSVC yes)
 endif()
 if(osname MATCHES "MINGW.*" OR osname MATCHES "MSYS.*")
-SET(ISMINGW yes)
-SET(MINGW yes)
+  SET(ISMINGW yes)
+  SET(MINGW yes)
 endif()
 
 ###
@@ -210,9 +216,6 @@ SET(EXTRA_DEPS "")
 ENABLE_TESTING()
 INCLUDE(CTest)
 
-# Copy the CTest customization file into binary directory, as required.
-FILE(COPY ${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-
 # Set Memory test program for non-MSVC based builds.
 # Assume valgrind for now.
 IF((NOT MSVC) AND (NOT MINGW) AND (NOT ISCYGWIN))
@@ -270,7 +273,8 @@ IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
 
   # Coverage tests need to have optimization turned off.
   IF(ENABLE_COVERAGE_TESTS)
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -coverage -fprofile-arcs -ftest-coverage")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -coverage -fprofile-arcs -ftest-coverage")
     SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
     MESSAGE(STATUS "Coverage Tests: On.")
   ENDIF()
@@ -364,14 +368,17 @@ ENDIF()
 # Option checks
 ################################
 
-# HDF5 cache variables.
+# Default Cache variables.
 SET(DEFAULT_CHUNK_SIZE 16777216 CACHE STRING "Default Chunk Cache Size.")
-SET(DEFAULT_CHUNKS_IN_CACHE 10 CACHE STRING "Default number of chunks in cache.")
-SET(CHUNK_CACHE_SIZE 16777216 CACHE STRING "Default Chunk Cache Size.")
-SET(CHUNK_CACHE_NELEMS 4133 CACHE STRING "Default maximum number of elements in cache.")
-SET(CHUNK_CACHE_PREEMPTION 0.75 CACHE STRING "Default file chunk cache preemption policy for HDf5 files(a number between 0 and 1, inclusive.")
-SET(CHUNK_CACHE_SIZE_NCZARR 4194304 CACHE STRING "Default NCZarr Chunk Cache Size.")
-SET(MAX_DEFAULT_CACHE_SIZE 67108864 CACHE STRING "Default maximum cache size.")
+SET(DEFAULT_CHUNK_CACHE_SIZE 16777216U CACHE STRING "Default Chunk Cache Size.")
+SET(DEFAULT_CHUNKS_IN_CACHE 1000 CACHE STRING "Default number of chunks in cache.")
+SET(DEFAULT_CHUNK_CACHE_PREEMPTION 0.75 CACHE STRING "Default file chunk cache preemption policy (a number between 0 and 1, inclusive.")
+
+# HDF5 default cache size values
+SET(CHUNK_CACHE_SIZE ${DEFAULT_CHUNK_CACHE_SIZE} CACHE STRING "Default HDF5 Chunk Cache Size.")
+SET(CHUNK_CACHE_NELEMS ${DEFAULT_CHUNKS_IN_CACHE} CACHE STRING "Default maximum number of elements in cache.")
+SET(CHUNK_CACHE_PREEMPTION ${DEFAULT_CHUNK_CACHE_PREEMPTION} CACHE STRING "Default file chunk cache preemption policy for HDf5 files(a number between 0 and 1, inclusive.")
+
 SET(NETCDF_LIB_NAME "" CACHE STRING "Default name of the netcdf library.")
 SET(TEMP_LARGE "." CACHE STRING "Where to put large temp files if large file tests are run.")
 SET(NCPROPERTIES_EXTRA "" CACHE STRING "Specify extra pairs for _NCProperties.")
@@ -442,30 +449,6 @@ OPTION(ENABLE_MMAP "Use MMAP." ON)
 # Option to use examples.
 OPTION(ENABLE_EXAMPLES "Build Examples" ON)
 
-# Option to automatically build netcdf-fortran.
-IF(NOT MSVC)
-  OPTION(ENABLE_REMOTE_FORTRAN_BOOTSTRAP "Download and build netcdf-fortran automatically (EXPERIMENTAL)." OFF)
-  IF(ENABLE_REMOTE_FORTRAN_BOOTSTRAP)
-    SET(BUILD_FORTRAN ON)
-  ENDIF()
-  IF(BUILD_FORTRAN)
-    CONFIGURE_FILE("${CMAKE_SOURCE_DIR}/postinstall.sh.in"
-      "${CMAKE_BINARY_DIR}/postinstall.sh"
-      @ONLY)
-
-    ADD_CUSTOM_TARGET(build-netcdf-fortran
-      COMMAND sh -c "${CMAKE_BINARY_DIR}/postinstall.sh -t cmake -a build"
-      DEPENDS netcdf
-      )
-
-    ADD_CUSTOM_TARGET(install-netcdf-fortran
-      COMMAND sh -c "${CMAKE_BINARY_DIR}/postinstall.sh -t cmake -a install"
-      DEPENDS build-netcdf-fortran
-      )
-
-  ENDIF(BUILD_FORTRAN)
-ENDIF()
-
 ###
 # Allow the user to specify libraries
 # to link against, similar to automakes 'LIBS' variable.
@@ -522,6 +505,15 @@ if(ENABLE_HDF5 OR ENABLE_HDF4 OR ENABLE_NCZARR)
   SET(ENABLE_NETCDF_4 ON CACHE BOOL "Enable netCDF-4 API" FORCE)
   SET(ENABLE_NETCDF4 ON CACHE BOOL "Enable netCDF4 Alias" FORCE)
 endif()
+
+# enable|disable all forms of network access
+OPTION(ENABLE_REMOTE_FUNCTIONALITY "Enable|disable all forms remote data access (DAP, S3, etc)" ON)
+MESSAGE(">>> ENABLE_REMOTE_FUNCTIONALITY=${ENABLE_REMOTE_FUNCTIONALITY}")
+if(NOT ENABLE_REMOTE_FUNCTIONALITY)
+MESSAGE(WARNING "ENABLE_REMOTE_FUNCTIONALITY=NO => ENABLE_DAP[4]=NO")
+SET(ENABLE_DAP OFF CACHE BOOL "ENABLE_REMOTE_FUNCTIONALITY=NO => ENABLE_DAP=NO" FORCE)
+SET(ENABLE_DAP4 OFF CACHE BOOL "ENABLE_REMOTE_FUNCTIONALITY=NO => ENABLE_DAP4=NO" FORCE)
+ENDIF()
 
 IF(ENABLE_HDF4)
   SET(USE_HDF4 ON)
@@ -624,9 +616,6 @@ IF(ENABLE_NETCDF_4 AND NOT ENABLE_LOGGING AND ENABLE_SET_LOG_LEVEL_FUNC)
   SET(ENABLE_SET_LOG_LEVEL ON)
 ENDIF()
 
-# This has multiversion capability
-SET(ENABLE_MULTIFILTERS yes CACHE BOOL "")
-
 # Option to allow for strict null file padding.
 # See https://github.com/Unidata/netcdf-c/issues/657 for more information
 OPTION(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING "Enable strict null byte header padding." OFF)
@@ -634,12 +623,6 @@ OPTION(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING "Enable strict null byte header pa
 IF(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING)
   SET(USE_STRICT_NULL_BYTE_HEADER_PADDING ON CACHE BOOL "")
 ENDIF(ENABLE_STRICT_NULL_BYTE_HEADER_PADDING)
-
-# Option for building RPC
-#OPTION(ENABLE_RPC "Enable RPC Client and Server." OFF)
-#IF(ENABLE_RPC)
-#  SET(BUILD_RPC ON CACHE BOOL "")
-#ENDIF()
 
 # Note that szip management is tricky.
 # This is because we have three things to consider:
@@ -889,7 +872,7 @@ IF(USE_HDF5)
   # This needs to be near the beginning since we
   # need to know whether to add "-lz" to the symbol
   # tests below.
-  CHECK_C_SOURCE_COMPILES("#include <H5public.h>
+  CHECK_C_SOURCE_COMPILES("#include <H5pubconf.h>
    #if !H5_HAVE_ZLIB_H
    #error
    #endif
@@ -912,7 +895,7 @@ IF(USE_HDF5)
   ENDIF()
 
   #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip library.
-  CHECK_C_SOURCE_COMPILES("#include <H5public.h>
+  CHECK_C_SOURCE_COMPILES("#include <H5pubconf.h>
    #if !H5_HAVE_FILTER_SZIP
    #error
    #endif
@@ -1007,6 +990,12 @@ ELSE()
   SET(FOUND_CURL FALSE)
 ENDIF()
 
+# Start disabling if curl not found
+IF(NOT FOUND_CURL)
+  MESSAGE(WARNING "ENABLE_REMOTE_FUNCTIONALITY requires libcurl; disabling")
+  SET(ENABLE_REMOTE_FUNCTIONALITY OFF CACHE BOOL "ENABLE_REMOTE_FUNCTIONALITY requires libcurl; disabling" FORCE)
+ENDIF()
+
 set (CMAKE_REQUIRED_INCLUDES ${CURL_INCLUDE_DIRS})
 # Check to see if we have libcurl 7.66 or later
 CHECK_C_SOURCE_COMPILES("
@@ -1074,7 +1063,7 @@ ENDIF()
 IF(ENABLE_DAP)
   SET(USE_DAP ON CACHE BOOL "")
   SET(ENABLE_DAP2 ON CACHE BOOL "")
- 
+
   IF(ENABLE_HDF5)
     MESSAGE(STATUS "Enabling DAP4")
     SET(ENABLE_DAP4 ON CACHE BOOL "")
@@ -1090,6 +1079,11 @@ ENDIF()
 
 # Option to support byte-range reading of remote datasets
 OPTION(ENABLE_BYTERANGE "Enable byte-range access to remote datasets.." ON)
+if(NOT ENABLE_REMOTE_FUNCTIONALITY)
+MESSAGE(WARNING "ENABLE_REMOTE_FUNCTIONALITY=NO => ENABLE_BYTERANGE=NO")
+SET(ENABLE_BYTERANGE OFF CACHE BOOL "ENABLE_REMOTE_FUNCTIONALITY=NO => ENABLE_BYTERANGE=NO" FORCE)
+ENDIF()
+
 
 # Check for the math library so it can be explicitly linked.
 IF(NOT WIN32)
@@ -1110,8 +1104,14 @@ ENDIF()
 OPTION(ENABLE_DAP_REMOTE_TESTS "Enable DAP remote tests." ON)
 OPTION(ENABLE_EXTERNAL_SERVER_TESTS "Enable external Server remote tests." OFF)
 OPTION(ENABLE_DAP_LONG_TESTS "Enable DAP long tests." OFF)
-SET(REMOTETESTSERVERS "remotetest.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
 
+if(NOT ENABLE_DAP)
+SET(ENABLE_DAP_REMOTE_TESTS OFF CACHE BOOL "" FORCE)
+SET(ENABLE_EXTERNAL_SERVER_TESTS OFF CACHE BOOL "" FORCE)
+SET(ENABLE_DAP_LONG_TESTS OFF CACHE BOOL "" FORCE)
+ENDIF()
+
+SET(REMOTETESTSERVERS "remotetest.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
 SET(REMOTETESTSERVERS "remotetest.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
 
 # See if we have zlib
@@ -1129,31 +1129,51 @@ macro(set_std_filter filter)
 # Upper case the filter name
 string(TOUPPER "${filter}" upfilter)
 string(TOLOWER "${filter}" downfilter)
+if(ENABLE_FILTER_${upfilter})
 # Define a test flag for filter
-IF(${filter}_FOUND)
-  INCLUDE_DIRECTORIES(${${filter}_INCLUDE_DIRS})
-  SET(ENABLE_${upfilter} TRUE)
-  SET(HAVE_${upfilter} ON)
-  SET(STD_FILTERS "${STD_FILTERS} ${downfilter}")
-  MESSAGE(">>> Standard Filter: ${downfilter}")
+  IF(${filter}_FOUND)
+    INCLUDE_DIRECTORIES(${${filter}_INCLUDE_DIRS})
+    SET(ENABLE_${upfilter} TRUE)
+    SET(HAVE_${upfilter} ON)
+    SET(STD_FILTERS "${STD_FILTERS} ${downfilter}")
+    MESSAGE(">>> Standard Filter: ${downfilter}")
+  ELSE()
+    SET(ENABLE_${upfilter} FALSE)
+    SET(HAVE_${upfilter} OFF)
+  ENDIF()
 ELSE()
-  SET(ENABLE_${upfilter} FALSE)
   SET(HAVE_${upfilter} OFF)
 ENDIF()
 endmacro(set_std_filter)
 
 # Locate some compressors
-FIND_PACKAGE(Szip)
-FIND_PACKAGE(Bz2)
-FIND_PACKAGE(Blosc)
-FIND_PACKAGE(Zstd)
+OPTION(ENABLE_FILTER_SZIP  "Enable use of Szip compression library if it is available. Required if ENABLE_NCZARR is true." ON)
+OPTION(ENABLE_FILTER_BZ2   "Enable use of Bz2 compression library if it is available." ON)
+OPTION(ENABLE_FILTER_BLOSC "Enable use of blosc compression library if it is available." ON)
+OPTION(ENABLE_FILTER_ZSTD  "Enable use of Zstd compression library if it is available." ON)
+IF (ENABLE_FILTER_SZIP)
+  FIND_PACKAGE(Szip)
+ELSEIF(ENABLE_NCZARR)
+  FIND_PACKAGE(Szip)
+ENDIF()
+IF (ENABLE_FILTER_BZ2)
+  FIND_PACKAGE(Bz2)
+ENDIF()
+IF (ENABLE_FILTER_BLOSC)
+  FIND_PACKAGE(Blosc)
+ENDIF()
+IF (ENABLE_FILTER_ZSTD)
+  FIND_PACKAGE(Zstd)
+ENDIF()
 
 # Accumulate standard filters
 set(STD_FILTERS "deflate") # Always have deflate*/
 set_std_filter(Szip)
-  SET(HAVE_SZ ${Szip_FOUND})
+SET(HAVE_SZ ${Szip_FOUND})
 set_std_filter(Blosc)
+IF(Zstd_FOUND)
 set_std_filter(Zstd)
+ENDIF()
 IF(Bz2_FOUND)
   set_std_filter(Bz2)
 ELSE()
@@ -1261,18 +1281,6 @@ IF(MSVC)
   OPTION(ENABLE_XGETOPT "Enable bundled XGetOpt instead of external getopt()." ON)
   IF(ENABLE_XGETOPT)
     SET(USE_X_GETOPT ON CACHE BOOL "")
-    # Copy XGetopt.c to everywhere it is needed. Avoids
-    # inconsistent code
-    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/ncgen3/)
-    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/ncgen/)
-    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/ncdump/)
-    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/nczarr_test/)
-    FILE(COPY ${netCDF_SOURCE_DIR}/libsrc/XGetopt.c
-         DESTINATION ${netCDF_BINARY_DIR}/ncdap_test/)
   ENDIF()
 ENDIF()
 
@@ -1292,66 +1300,91 @@ IF(NOT WIN32)
   ENDIF()
 ENDIF()
 
-# Options to Extend NCZarr support
-OPTION(ENABLE_NCZARR_S3 "Enable NCZarr S3 support." OFF)
-OPTION(ENABLE_NCZARR_S3_TESTS "Enable NCZarr S3 tests." OFF)
+# Options for S3 Support
+OPTION(ENABLE_S3 "Enable S3 support." OFF)
+OPTION(ENABLE_S3_INTERNAL "Enable S3 Internal support." OFF)
+OPTION(ENABLE_NCZARR_S3 "Enable NCZarr S3 support; Deprecated in favor of ENABLE_S3" OFF)
 
-IF(ENABLE_NCZARR_S3_TESTS AND NOT ENABLE_NCZARR_S3)
-  message(FATAL_ERROR "NCZarr S3 support is disabled; please specify option -DENABLE_NCZARR_S3_TESTS=no")
-  SET(ENABLE_NCZARR_S3_TESTS OFF CACHE BOOL "NCARR S3 TESTS" FORCE)
+IF(NOT ENABLE_REMOTE_FUNCTIONALITY)
+  SET(ENABLE_S3 OFF CACHE BOOL "" FORCE)
+  SET(ENABLE_S3_INTERNAL OFF CACHE BOOL "" FORCE)
+  SET(ENABLE_NCZARR_S3 OFF CACHE BOOL "" FORCE)
 ENDIF()
 
-# Note we check for the library after checking for enable_nczarr_s3
+# Control S3 Testing: Multi-valued option
+SET(WITH_S3_TESTING OFF CACHE STRING "Control S3 Testing: ON (i.e. all) OFF (i.e. none)  PUBLIC")
+    SET_PROPERTY(CACHE WITH_S3_TESTING PROPERTY STRINGS ON OFF PUBLIC)  #
+IF(WITH_S3_TESTING STREQUAL "")
+  SET(WITH_S3_TESTING OFF CACHE STRING "") # Default
+ENDIF()
+
+IF(WITH_S3_TESTING)
+message(WARNING "**** DO NOT USE WITH_S3_TESTING=ON UNLESS YOU HAVE ACCESS TO THE UNIDATA S3 BUCKET! ***")
+ENDIF()
+
+# ENABLE_NCZARR_S3 is now an alias for ENABLE_S3 (but...)
+if (NOT ENABLE_S3 AND ENABLE_NCZARR_S3)
+  SET(ENABLE_S3 ON CACHE BOOL "NCARR S3" FORCE) # For back compatibility
+ENDIF()
+UNSET(ENABLE_NCZARR_S3)
+
+IF(NOT ENABLE_REMOTE_FUNCTIONALITY)
+  MESSAGE(WARNING "ENABLE_REMOTE_FUNCTIONALITY=NO => disable all s3 functionality")
+  SET(ENABLE_S3 OFF CACHE BOOL "" FORCE)
+  SET(ENABLE_S3_INTERNAL OFF CACHE BOOL "" FORCE)
+  SET(ENABLE_NCZARR_S3 OFF CACHE BOOL "" FORCE)
+  SET(ENABLE_HDF5_ROS3 OFF CACHE BOOL "Use ROS3" FORCE)
+  SET(WITH_S3_TESTING OFF CACHE STRING "" FORCE)
+ENDIF()
+
+# Note we check for the library after checking for enable_s3
 # because for some reason this screws up if we unconditionally test for sdk
 # and it is not available. Fix someday
-IF(ENABLE_NCZARR_S3)
-  # See if aws-s3-sdk is available
-  find_package(AWSSDK REQUIRED COMPONENTS s3;core)
-  IF(AWSSDK_FOUND)
-    SET(service s3;core)
-    AWSSDK_DETERMINE_LIBS_TO_LINK(service AWS_LINK_LIBRARIES)
-    SET(ENABLE_S3_SDK ON CACHE BOOL "S3 SDK" FORCE)
-  ELSE()
-    SET(ENABLE_S3_SDK OFF CACHE BOOL "S3 SDK" FORCE)
-  ENDIF()
+IF(ENABLE_S3)
+  IF(NOT ENABLE_S3_INTERNAL)
+    # See if aws-s3-sdk is available
+    find_package(AWSSDK REQUIRED COMPONENTS s3;transfer)
+    IF(AWSSDK_FOUND)
+      SET(ENABLE_S3_AWS ON CACHE BOOL "S3 AWS" FORCE)
+      INCLUDE_DIRECTORIES(${AWSSDK_INCLUDE_DIR})
+    ELSE(AWSSDK_FOUND)
+      SET(ENABLE_S3_AWS OFF CACHE BOOL "S3 AWS" FORCE)
+    ENDIF(AWSSDK_FOUND)
+  ELSE(NOT ENABLE_S3_INTERNAL)
+    # Find crypto libraries required with testing with the internal s3 api.
+    #FIND_LIBRARY(SSL_LIB NAMES ssl openssl)
+    find_package(OpenSSL REQUIRED)
+    IF(NOT OpenSSL_FOUND)
+      MESSAGE(FATAL_ERROR "Can't find an ssl library, required by S3_INTERNAL")
+    ENDIF(NOT OpenSSL_FOUND)
+    
+    #find_package(Crypto REQUIRED)
+    #IF(NOT CRYPTO_LIB)
+    #  MESSAGE(FATAL_ERROR "Can't find a crypto library, required by S3_INTERNAL")
+    #ENDIF(NOT CRYPTO_LIB)
+
+  ENDIF(NOT ENABLE_S3_INTERNAL)
 ELSE()
-  SET(ENABLE_S3_SDK OFF CACHE BOOL "S3 SDK" FORCE)
+  SET(ENABLE_S3_AWS OFF CACHE BOOL "S3 AWS" FORCE)
 ENDIF()
 
-IF(NOT ENABLE_S3_SDK)
-  IF(ENABLE_NCZARR_S3 OR ENABLE_NCZARR_S3_TESTS)
-    message(FATAL_ERROR "S3 support library not found; please specify option -DENABLE_NCZARR_S3=NO")
-    SET(ENABLE_NCZARR_S3 OFF CACHE BOOL "NCZARR S3 support" FORCE)
-    SET(ENABLE_NCZARR_S3_TESTS OFF CACHE BOOL "S3 tests" FORCE)
+IF(ENABLE_S3)
+  IF(NOT ENABLE_S3_AWS AND NOT ENABLE_S3_INTERNAL)
+    message(FATAL_ERROR "S3 support library not found; please specify option -DENABLE_S3=NO")
+    SET(ENABLE_S3 OFF CACHE BOOL "S3 support" FORCE)        
+  ENDIF()
+  IF(ENABLE_S3_AWS AND ENABLE_S3_INTERNAL)
+    message(WARNING "Both aws-sdk-cpp and s3-internal enabled => use s3-internal")
+    SET(ENABLE_S3_AWS OFF CACHE BOOL "S3 AWS" FORCE)        
   ENDIF()
 ENDIF()
 
-IF(ENABLE_NCZARR_S3_TESTS)
-  message(WARNING "**** DO NOT ENABLE_NCZARR_S3_TESTS UNLESS YOU HAVE ACCESS TO THE UNIDATA S3 BUCKET! ***")
+IF(NOT ENABLE_S3)
+  IF(WITH_S3_TESTING STREQUAL "PUBLIC" OR WITH_S3_TESTING)
+    message(WARNING "S3 support is disabled => WITH_S3_TESTING=OFF")
+    SET(WITH_S3_TESTING OFF CACHE STRING "" FORCE)
+  ENDIF()
 ENDIF()
-
-# Start disabling if curl not found
-IF(NOT FOUND_CURL)
-  IF(ENABLE_BYTERANGE)
-    MESSAGE(FATAL_ERROR "Byte-range support specified, CURL libraries are not found.")
-  ENDIF()
-
-  IF(ENABLE_DAP2 OR ENABLE_DAP4)
-    MESSAGE(WARNING "CURL libraries are not found; DAP support disabled")
-    SET(ENABLE_DAP2 OFF CACHE BOOL "Use DAP2" FORCE)
-    SET(ENABLE_DAP4 OFF CACHE BOOL "Use DAP4" FORCE)
-  ENDIF()
-
-  IF(ENABLE_HDF5_ROS3)
-    MESSAGE(WARNING "CURL libraries are not found; ROS3 support disabled.")
-    SET(ENABLE_HDF5_ROS3 OFF CACHE BOOL "Use ROS3" FORCE)
-  ENDIF()
-
-  IF(ENABLE_NCZARR_S3)
-    MESSAGE(FATAL_ERROR "NCZarr S3 support specified, CURL libraries are not found.")
-  ENDIF()
-ENDIF(NOT FOUND_CURL)
-
 
 OPTION(ENABLE_LIBXML2 "Link against libxml2 if it is available, use the packaged tinyxml2 parser otherwise." ON)
 SET(XMLPARSER "tinyxml2 (bundled)")
@@ -1390,7 +1423,7 @@ IF(ENABLE_TESTS)
     SET(HOSTNAME_ARG "-s")
   ENDIF()
   IF(HOSTNAME_CMD)
-    EXEC_PROGRAM(${HOSTNAME_CMD} ARGS "${HOSTNAME_ARG}" OUTPUT_VARIABLE HOSTNAME)
+    EXECUTE_PROCESS(COMMAND ${HOSTNAME_CMD} "${HOSTNAME_ARG}" OUTPUT_VARIABLE HOSTNAME OUTPUT_STRIP_TRAILING_WHITESPACE)
     SET(NC_CTEST_SITE "${HOSTNAME}" CACHE STRING "Hostname of test machine.")
   ENDIF()
 
@@ -1634,7 +1667,7 @@ IF (ENABLE_PARALLEL_TESTS AND NOT USE_PARALLEL)
 ENDIF()
 
 # Enable special filter test; experimental when using cmake.
-OPTION(ENABLE_FILTER_TESTING "Enable filter testing. Ignored if shared libraries or netCDF4 are not enabled" yes)
+OPTION(ENABLE_FILTER_TESTING "Enable filter testing. Ignored if shared libraries or netCDF4 are not enabled" ON)
 
 IF(ENABLE_FILTER_TESTING)
   if(NOT ENABLE_HDF5 AND NOT ENABLE_NCZARR)
@@ -1648,8 +1681,8 @@ IF(NOT BUILD_SHARED_LIBS)
   SET(ENABLE_FILTER_TESTING OFF)
 ENDIF()
 
-OPTION(ENABLE_NCZARR_FILTERS "Enable NCZarr filters" yes)
-OPTION(ENABLE_NCZARR_FILTERS_TESTING "Enable NCZarr filter testing." yes)
+OPTION(ENABLE_NCZARR_FILTERS "Enable NCZarr filters" ON)
+OPTION(ENABLE_NCZARR_FILTERS_TESTING "Enable NCZarr filter testing." ON)
 
 # Constraints
 IF (NOT ENABLE_PLUGINS)
@@ -1781,6 +1814,7 @@ IF(MSVC)
 CHECK_INCLUDE_FILE("io.h"      HAVE_IO_H)
 ENDIF(MSVC)
 CHECK_INCLUDE_FILE("stdlib.h"  HAVE_STDLIB_H)
+CHECK_INCLUDE_FILE("ctype.h"   HAVE_CTYPE_H)
 CHECK_INCLUDE_FILE("stdarg.h"    HAVE_STDARG_H)
 CHECK_INCLUDE_FILE("strings.h"   HAVE_STRINGS_H)
 CHECK_INCLUDE_FILE("signal.h"    HAVE_SIGNAL_H)
@@ -1881,6 +1915,10 @@ CHECK_TYPE_SIZE("uintptr_t" SIZEOF_UINTPTR_T)
 IF(SIZEOF_UINTPTR_T)
   SET(HAVE_UINTPTR_T TRUE)
 ENDIF(SIZEOF_UINTPTR_T)
+CHECK_TYPE_SIZE("mode_t" SIZEOF_MODE_T)
+IF(SIZEOF_MODE_T)
+  SET(HAVE_MODE_T TRUE)
+ENDIF(SIZEOF_MODE_T)
 
 # __int64 is used on Windows for large file support.
 CHECK_TYPE_SIZE("__int64"   SIZEOF___INT_64)
@@ -1907,6 +1945,7 @@ ENDIF()
 # Check for various functions.
 CHECK_FUNCTION_EXISTS(fsync HAVE_FSYNC)
 CHECK_FUNCTION_EXISTS(strlcat   HAVE_STRLCAT)
+CHECK_FUNCTION_EXISTS(strlcpy  HAVE_STRLCPY)
 CHECK_FUNCTION_EXISTS(strdup  HAVE_STRDUP)
 CHECK_FUNCTION_EXISTS(strndup HAVE_STRNDUP)
 CHECK_FUNCTION_EXISTS(strtoll HAVE_STRTOLL)
@@ -1942,16 +1981,16 @@ ENDIF()
 
 # Check to see if MAP_ANONYMOUS is defined.
 IF(MSVC)
-MESSAGE(WARNING "mmap not supported under visual studio: disabling MMAP support.")
-SET(ENABLE_MMAP OFF)
-ELSE()
-CHECK_C_SOURCE_COMPILES("
-#include <sys/mman.h>
-int main() {int x = MAP_ANONYMOUS;}" HAVE_MAPANON)
-IF(NOT HAVE_MMAP OR NOT HAVE_MAPANON)
-  MESSAGE(WARNING "mmap or MAP_ANONYMOUS not found: disabling MMAP support.")
+  MESSAGE(WARNING "mmap not supported under visual studio: disabling MMAP support.")
   SET(ENABLE_MMAP OFF)
-ENDIF()
+ELSE()
+  CHECK_C_SOURCE_COMPILES("
+  #include <sys/mman.h>
+  int main() {int x = MAP_ANONYMOUS;}" HAVE_MAPANON)
+  IF(NOT HAVE_MMAP OR NOT HAVE_MAPANON)
+    MESSAGE(WARNING "mmap or MAP_ANONYMOUS not found: disabling MMAP support.")
+    SET(ENABLE_MMAP OFF)
+  ENDIF()
 ENDIF()
 
 IF(ENABLE_MMAP)
@@ -1965,20 +2004,20 @@ ENDIF(ENABLE_MMAP)
 # Used in the `configure_file` calls below
 SET(ISCMAKE "yes")
 IF(MSVC)
-SET(ISMSVC yes CACHE BOOL "" FORCE)
-SET(REGEDIT yes CACHE BOOL "" FORCE)
-# Get windows major version and build number
-EXECUTE_PROCESS(COMMAND "systeminfo" OUTPUT_VARIABLE WININFO)
-IF(WININFO STREQUAL "")
-  SET(WVM 0)
-  SET(WVB 0)
-ELSE()
-  STRING(REGEX MATCH "\nOS Version:[ \t]+[0-9.]+" WINVERLINE "${WININFO}")
-  STRING(REGEX REPLACE "[^0-9]*([0-9]+)[.]([0-9])+[.]([0-9]+)" "\\1" WVM "${WINVERLINE}")
-  STRING(REGEX REPLACE "[^0-9]*([0-9]+)[.]([0-9])+[.]([0-9]+)" "\\3" WVB "${WINVERLINE}")
-ENDIF()
-SET(WINVERMAJOR ${WVM} CACHE STRING "" FORCE)
-SET(WINVERBUILD ${WVB} CACHE STRING "" FORCE)
+  SET(ISMSVC ON CACHE BOOL "" FORCE)
+  SET(REGEDIT ON CACHE BOOL "" FORCE)
+  # Get windows major version and build number
+  EXECUTE_PROCESS(COMMAND "systeminfo" OUTPUT_VARIABLE WININFO)
+  IF(WININFO STREQUAL "")
+    SET(WVM 0)
+    SET(WVB 0)
+  ELSE()
+    STRING(REGEX MATCH "\nOS Version:[ \t]+[0-9.]+" WINVERLINE "${WININFO}")
+    STRING(REGEX REPLACE "[^0-9]*([0-9]+)[.]([0-9])+[.]([0-9]+)" "\\1" WVM "${WINVERLINE}")
+    STRING(REGEX REPLACE "[^0-9]*([0-9]+)[.]([0-9])+[.]([0-9]+)" "\\3" WVB "${WINVERLINE}")
+  ENDIF()
+  SET(WINVERMAJOR ${WVM} CACHE STRING "" FORCE)
+  SET(WINVERBUILD ${WVB} CACHE STRING "" FORCE)
 ENDIF()
 
 #####
@@ -2125,6 +2164,7 @@ MACRO(build_bin_test_no_prefix F)
   ENDIF()
 ENDMACRO()
 
+# Build a test and add it to the test list.
 MACRO(add_bin_test prefix F)
   ADD_EXECUTABLE(${prefix}_${F} ${F}.c ${ARGN})
   TARGET_LINK_LIBRARIES(${prefix}_${F}
@@ -2202,7 +2242,7 @@ MACRO(print_conf_summary)
 
   MESSAGE("")
 ENDMACRO()
-##
+##specific
 # Shell script Macro
 ##
 # Determine if 'bash' is on the system.
@@ -2229,7 +2269,7 @@ ENDIF(ENABLE_BASH_SCRIPT_TESTING)
 
 MACRO(add_sh_test prefix F)
   IF(HAVE_BASH)
-    ADD_TEST(${prefix}_${F} bash "-c" "export srcdir=${CMAKE_CURRENT_SOURCE_DIR};export TOPSRCDIR=${CMAKE_SOURCE_DIR};${CMAKE_CURRENT_BINARY_DIR}/${F}.sh ${F}.sh ${ARGN}")
+    ADD_TEST(${prefix}_${F} bash "-c" "export srcdir=${CMAKE_CURRENT_SOURCE_DIR};export TOPSRCDIR=${CMAKE_SOURCE_DIR};${CMAKE_CURRENT_BINARY_DIR}/${F}.sh ${ARGN}")
   ENDIF()
 ENDMACRO()
 
@@ -2315,6 +2355,10 @@ ENDIF()
 IF(ENABLE_DAP4)
   ADD_SUBDIRECTORY(libdap4)
   ADD_SUBDIRECTORY(libncxml)
+ELSE()
+  IF(ENABLE_S3_INTERNAL)
+    ADD_SUBDIRECTORY(libncxml)
+  ENDIF()
 ENDIF()
 
 IF(ENABLE_PLUGINS)
@@ -2526,7 +2570,9 @@ SET(host_vendor "${osname}")
 SET(host_os "${osrel}")
 SET(abs_top_builddir "${CMAKE_CURRENT_BINARY_DIR}")
 SET(abs_top_srcdir "${CMAKE_CURRENT_SOURCE_DIR}")
-
+STRING(RANDOM LENGTH 3 ALPHABET "0123456789" PLATFORMUID)
+MATH(EXPR PLATFORMUID "${PLATFORMUID} + 1" OUTPUT_FORMAT DECIMAL)
+       
 SET(CC_VERSION "${CMAKE_C_COMPILER}")
 
 # Build *FLAGS for libnetcdf.settings.
@@ -2557,11 +2603,12 @@ is_enabled(ENABLE_ZERO_LENGTH_COORD_BOUND RELAX_COORD_BOUND)
 is_enabled(USE_CDF5 HAS_CDF5)
 is_enabled(ENABLE_ERANGE_FILL HAS_ERANGE_FILL)
 is_enabled(HDF5_HAS_PAR_FILTERS HAS_PAR_FILTERS)
-is_enabled(ENABLE_NCZARR_S3 HAS_NCZARR_S3)
+is_enabled(ENABLE_S3 HAS_S3)
+is_enabled(ENABLE_S3_AWS HAS_S3_AWS)
+is_enabled(ENABLE_S3_INTERNAL HAS_S3_INTERNAL)
+is_enabled(HAS_HDF5_ROS3 HAS_HDF5_ROS3)
 is_enabled(ENABLE_NCZARR HAS_NCZARR)
-is_enabled(ENABLE_NCZARR_S3_TESTS DO_NCZARR_S3_TESTS)
 is_enabled(ENABLE_NCZARR_ZIP HAS_NCZARR_ZIP)
-is_enabled(ENABLE_MULTIFILTERS HAS_MULTIFILTERS)
 is_enabled(ENABLE_NCZARR_ZIP DO_NCZARR_ZIP_TESTS)
 is_enabled(ENABLE_QUANTIZE HAS_QUANTIZE)
 is_enabled(ENABLE_LOGGING HAS_LOGGING)
@@ -2571,7 +2618,45 @@ is_enabled(HAVE_SZ HAS_SZLIB_WRITE)
 is_enabled(HAVE_ZSTD HAS_ZSTD)
 is_enabled(HAVE_BLOSC HAS_BLOSC)
 is_enabled(HAVE_BZ2 HAS_BZ2)
+is_enabled(ENABLE_REMOTE_FUNCTIONALITY DO_REMOTE_FUNCTIONALITY)
 
+if(ENABLE_S3_INTERNAL)
+  SET(WHICH_S3_SDK "internal")
+  SET(NC_WHICH_S3_SDK "internal")
+elseif(ENABLE_S3_AWS)
+  SET(WHICH_S3_SDK "aws-sdk-cpp")
+  SET(NC_WHICH_S3_SDK "aws-sdk-cpp")
+else()
+  SET(WHICH_S3_SDK "none")
+  SET(NC_WHICH_S3_SDK "none")
+endif()
+
+if(WITH_S3_TESTING STREQUAL PUBLIC)
+SET(ENABLE_S3_TESTING "public")
+elseif(WITH_S3_TESTING)
+SET(ENABLE_S3_TESTING "yes")
+SET(ENABLE_S3_TESTALL "yes")
+elseif(NOT WITH_S3_TESTING)
+SET(ENABLE_S3_TESTING "no")
+else()
+SET(ENABLE_S3_TESTING "no")
+endif()
+
+# The Unidata testing S3 bucket
+# WARNING: this must match the value in configure.ac
+SET(S3TESTBUCKET "unidata-zarr-test-data" CACHE STRING "S3 test bucket")
+
+# The working S3 path tree within the Unidata bucket.
+# WARNING: this must match the value in configure.ac
+SET(S3TESTSUBTREE "netcdf-c" CACHE STRING "Working S3 path.")
+# Build a unique id based on the date
+string(TIMESTAMP TESTUID "%s")
+if(ENABLE_S3_TESTING)
+FILE(APPEND "${CMAKE_CURRENT_BINARY_DIR}/s3cleanup_${PLATFORMUID}.uids" "${TESTUID}\n")
+endif()
+
+# Copy the CTest customization file into binary directory, as required.
+CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/CTestCustom.cmake")
 
 # Generate file from template.
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/libnetcdf.settings.in"
@@ -2617,6 +2702,15 @@ SET(TOPSRCDIR "${CMAKE_CURRENT_SOURCE_DIR}")
 SET(TOPBUILDDIR "${CMAKE_CURRENT_BINARY_DIR}")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test_common.in ${CMAKE_CURRENT_BINARY_DIR}/test_common.sh @ONLY NEWLINE_STYLE LF)
 
+####
+# Build s3cleanup.sh and s3gc.sh
+#####
+SET(EXTRA_DIST ${EXTRA_DIST} ${CMAKE_CURRENT_SOURCE_DIR}/s3cleanup.in ${CMAKE_CURRENT_SOURCE_DIR}/s3gc.in)
+SET(TOPSRCDIR "${CMAKE_CURRENT_SOURCE_DIR}")
+SET(TOPBUILDDIR "${CMAKE_CURRENT_BINARY_DIR}")
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/s3cleanup.in ${CMAKE_CURRENT_BINARY_DIR}/s3cleanup.sh @ONLY NEWLINE_STYLE LF)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/s3gc.in ${CMAKE_CURRENT_BINARY_DIR}/s3gc.sh @ONLY NEWLINE_STYLE LF)
+
 #####
 # Build and copy nc_test4/findplugin.sh to various places
 #####
@@ -2643,6 +2737,13 @@ IF(ENABLE_TESTS)
     # Build dap4_test/pingurl4.c
     #####
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ncdap_test/pingurl.c ${CMAKE_CURRENT_BINARY_DIR}/dap4_test/pingurl4.c @ONLY NEWLINE_STYLE LF)
+
+    #####
+    # Build CTestCustom.cmake to cleanup S3 after tests are done.
+    #####
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/CTestCustom.cmake NEWLINE_STYLE LF)
+   
+
 ENDIF()
 
 if(DEFINED ENV{LIB_FUZZING_ENGINE})
@@ -2708,5 +2809,8 @@ install(
 ####
 
 # CPack inclusion must come last.
-# INCLUDE(CPack)
-INCLUDE(CMakeInstallation.cmake)
+option(NETCDF_PACKAGE "Create netCDF-C package " ${NETCDF_IS_TOP_LEVEL})
+
+if (NETCDF_PACKAGE)
+  include(CMakeInstallation.cmake)
+endif()

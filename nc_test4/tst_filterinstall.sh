@@ -7,11 +7,19 @@
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 . ../test_common.sh
 
-if test "x$TESTNCZARR" = x1 ; then
-. ./test_nczarr.sh
+if test "x$TESTNCZARR" = x1; then
+. $srcdir/test_nczarr.sh
 fi
 
 set -e
+
+isolate "testdir_filterinstall"
+THISDIR=`pwd`
+cd $ISOPATH
+
+if test "x$TESTNCZARR" = x1; then
+s3isolate
+fi
 
 # Use this plugin path
 export HDF5_PLUGIN_PATH="${FEATURE_PLUGIN_INSTALL_DIR}"

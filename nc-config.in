@@ -36,7 +36,7 @@ has_parallel4="@HAS_PARALLEL4@"
 has_nczarr="@HAS_NCZARR@"
 has_zstd="@HAS_ZSTD@"
 has_benchmarks="@HAS_BENCHMARKS@"
-has_multifilters="@HAS_MULTIFILTERS@"
+has_multifilters="yes"
 has_quantize="@HAS_QUANTIZE@"
 has_stdfilters="@STD_FILTERS@"
 version="@PACKAGE_NAME@ @PACKAGE_VERSION@"
@@ -248,7 +248,7 @@ while test $# -gt 0; do
         echo @STD_FILTERS@
         ;;
 
-    --has_quantize)
+    --has-quantize)
         echo $has_quantize
         ;;
 

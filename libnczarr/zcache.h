@@ -44,8 +44,7 @@ typedef struct NCZChunkCache {
     size64_t chunksize; /* for real data */
     size64_t chunkcount; /* cross product of chunksizes */
     void* fillchunk; /* enough fillvalues to fill a real chunk */
-    size_t maxentries; /* Max number of entries allowed; maxsize can override */
-    size_t maxsize; /* Maximum space used by cache; 0 => nolimit */
+    struct ChunkCache params;
     size_t used; /* How much total space is being used */
     NClist* mru; /* NClist<NCZCacheEntry> all cache entries in mru order */
     struct NCxcache* xcache;
@@ -68,5 +67,6 @@ extern size64_t NCZ_cache_size(NCZChunkCache* cache);
 extern int NCZ_buildchunkpath(NCZChunkCache* cache, const size64_t* chunkindices, struct ChunkKey* key);
 extern int NCZ_ensure_fill_chunk(NCZChunkCache* cache);
 extern int NCZ_reclaim_fill_chunk(NCZChunkCache* cache);
+extern int NCZ_chunk_cache_modify(NCZChunkCache* cache, const size64_t* indices);
 
 #endif /*ZCACHE_H*/

@@ -11,5 +11,4 @@ types:
   }; // x_t
 variables:
 	x_t x ;
-
 }

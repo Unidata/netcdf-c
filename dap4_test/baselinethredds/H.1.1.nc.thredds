@@ -1,0 +1,49 @@
+netcdf H.1.1 {
+dimensions:
+	obs = 12 ;
+variables:
+	double time(obs) ;
+		string time:standard_name = "time" ;
+		string time:units = "days since 1970-01-01 00:00:00" ;
+		string time:long_name = "time of measurement" ;
+	float lat(obs) ;
+		string lat:standard_name = "latitude" ;
+		string lat:units = "degrees_north" ;
+		string lat:long_name = "latitude of the observation" ;
+	float lon(obs) ;
+		string lon:standard_name = "longitude" ;
+		string lon:units = "degrees_east" ;
+		string lon:long_name = "longitude of the observation" ;
+	float alt(obs) ;
+		string alt:standard_name = "height" ;
+		string alt:units = "m" ;
+		string alt:positive = "up" ;
+		string alt:axis = "Z" ;
+		string alt:long_name = "vertical distance above the surface" ;
+	float humidity(obs) ;
+		string humidity:coordinates = "time lat lon alt" ;
+		string humidity:standard_name = "specific_humidity" ;
+		string humidity:_edu.ucar.maps = "/time", "/lat", "/lon", "/alt" ;
+	float temp(obs) ;
+		string temp:coordinates = "time lat lon alt" ;
+		string temp:standard_name = "air_temperature" ;
+		string temp:units = "Celsius" ;
+		string temp:_edu.ucar.maps = "/time", "/lat", "/lon", "/alt" ;
+
+// global attributes:
+		string :Conventions = "CF-1.6" ;
+		string :featureType = "point" ;
+data:
+
+ time = 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 ;
+
+ lat = 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36 ;
+
+ lon = 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24 ;
+
+ alt = 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48 ;
+
+ humidity = 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60 ;
+
+ temp = 6, 12, 18, 24, 30, 36, 42, 48, 54, 60, 66, 72 ;
+}

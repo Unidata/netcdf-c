@@ -49,7 +49,7 @@ ncz_create_dataset(NC_FILE_INFO_T* file, NC_GRP_INFO_T* root, const char** contr
     zgrp->common.file = file;
 
     /* Fill in NCZ_FILE_INFO_T */
-    zinfo->created = 1;
+    zinfo->creating = 1;
     zinfo->common.file = file;
     zinfo->native_endianness = (NCZ_isLittleEndian() ? NC_ENDIAN_LITTLE : NC_ENDIAN_BIG);
     if((zinfo->envv_controls=NCZ_clonestringvec(0,controls)) == NULL)
@@ -123,7 +123,7 @@ ncz_open_dataset(NC_FILE_INFO_T* file, const char** controls)
     zinfo = file->format_file_info;
 
     /* Fill in NCZ_FILE_INFO_T */
-    zinfo->created = 0;
+    zinfo->creating = 0;
     zinfo->common.file = file;
     zinfo->native_endianness = (NCZ_isLittleEndian() ? NC_ENDIAN_LITTLE : NC_ENDIAN_BIG);
     if((zinfo->envv_controls = NCZ_clonestringvec(0,controls))==NULL) /*0=>envv style*/
@@ -142,6 +142,7 @@ ncz_open_dataset(NC_FILE_INFO_T* file, const char** controls)
     if((stat = nczmap_open(zinfo->controls.mapimpl,nc->path,mode,zinfo->controls.flags,NULL,&zinfo->map)))
 	goto done;
 
+    /* Ok, try to read superblock */
     if((stat = ncz_read_superblock(file,&nczarr_version,&zarr_format))) goto done;
 
     if(nczarr_version == NULL) /* default */
@@ -338,7 +339,7 @@ applycontrols(NCZ_FILE_INFO_T* zinfo)
     /* Process other controls */
     if((value = controllookup((const char**)zinfo->envv_controls,"log")) != NULL) {
 	zinfo->controls.flags |= FLAG_LOGGING;
-        ncsetlogging(1);
+        ncsetloglevel(NCLOGNOTE);
     }
     if((value = controllookup((const char**)zinfo->envv_controls,"show")) != NULL) {
 	if(strcasecmp(value,"fetch")==0)

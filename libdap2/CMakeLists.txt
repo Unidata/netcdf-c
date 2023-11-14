@@ -8,6 +8,10 @@ SET(dap2_SOURCES constraints.c dapcvt.c dapodom.c daputil.c ncdaperr.c cdf.c cac
 
 add_library(dap2 OBJECT ${dap2_SOURCES})
 
+IF(STATUS_PARALLEL)
+  target_link_libraries(dap2 PUBLIC MPI::MPI_C)
+ENDIF(STATUS_PARALLEL)
+
 ###
 # Options related to the man page generation.
 ###

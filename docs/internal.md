@@ -4,10 +4,15 @@ Notes On the Internals of the NetCDF-C Library
 
 # Notes On the Internals of the NetCDF-C Library {#intern_head}
 
-\tableofcontents
-
 This document attempts to record important information about
 the internal architecture and operation of the netcdf-c library.
+It covers the following issues.
+
+* [Including C++ Code in the netcdf-c Library](#intern_c++)
+* [Managing instances of variable-length data types](#intern_vlens)
+* [Inferring File Types](#intern_infer)
+* [Adding a Standard Filter](#intern_filters)
+* [Test Interference](#intern_isolation)
 
 # 1. Including C++ Code in the netcdf-c Library {#intern_c++}
 
@@ -41,46 +46,71 @@ AM_CXXFLAGS = -std=c++11
 ````
 It is possible that other values (e.g. *-std=c++14*) may also work.
 
-# 2. Managing instances of complex data types
+# 2. Managing instances of variable-length data types {#intern_vlens}
 
 For a long time, there have been known problems with the
 management of complex types containing VLENs.  This also
-involves the string type because it is stored as a VLEN of
-chars.
+involves the string type because it is stored as a VLEN of chars.
 
-The term complex type refers to any type that directly or
-recursively references a VLEN type. So an array of VLENS, a
-compound with a VLEN field, and so on.
+The term "variable-length" refers to any
+type that directly or recursively references a VLEN type. So an
+array of VLENS, a compound with a VLEN field, and so on.
 
-In order to properly handle instances of these complex types, it
+In order to properly handle instances of these variable-length types, it
 is necessary to have function that can recursively walk
 instances of such types to perform various actions on them.  The
 term "deep" is also used to mean recursive.
 
-Two deep walking operations are provided by the netcdf-c library
-to aid in managing instances of complex structures.
-- free'ing an instance of the complex type
-- copying an instance of the complex type.
+Two primary deep walking operations are provided by the netcdf-c library
+to aid in managing instances of variable-length types.
+- free'ing an instance of the type
+- copying an instance of the type.
 
-Previously The netcdf-c library only did shallow free and shallow copy of
-complex types. This meant that only the top level was properly
-free'd or copied, but deep internal blocks in the instance were
-not touched. This led to a host of memory leaks and failures
-when the deep data was effectively shared between the netcdf-c library
-internally and the user's data. 
+Note that the term "vector" is used in the following text to
+mean a contiguous (in memory) sequence of instances of some
+type. Given an array with, say, dimensions 2 X 3 X 4, this will
+be stored in memory as a vector of length 2\*3\*4=24 instances.
 
-Note that the term "vector" is used to mean a contiguous (in
-memory) sequence of instances of some type. Given an array with,
-say, dimensions 2 X 3 X 4, this will be stored in memory as a
-vector of length 2\*3\*4=24 instances.
+## Special case reclamation functions
 
-The use cases are primarily these.
+Previously The netcdf-c library provided functions to reclaim an
+instance of a subset of the possible variable-length types.  It
+provided no specialized support for copying instances of
+variable-length types.
 
-## nc\_get\_vars
+These specialized functions are still available and can be used
+when their pre-conditions are met. They have the advantage of
+being faster than the general purpose functions described
+later in this document.
+
+These functions, and their pre and post conditions, are as follows.
+* *int nc_free_string(size_t len, char\* data[])*  
+<u>Action</u>: reclaim a vector of variable length strings.  
+<u>Pre-condition(s)</u>: the data argument is a vector containing *len* pointers to variable length, nul-terminated strings.  
+<u>Post-condition(s)</u>: only the strings in the vector are reclaimed -- the vector itself is not reclaimed.
+
+* int nc_free_vlens(size_t len, nc_vlen_t vlens[])  
+<u>Action</u>: reclaim a vector of VLEN instances.  
+<u>Pre-condition(s)</u>: the data argument is a vector containing *len* pointers to variable length, nul-terminated strings.  
+<u>Post-condition(s)</u>:
+    * only the data pointed to by the VLEN instances (i.e. *nc_vlen_t.p* in the vector are reclaimed -- the vector itself is not reclaimed.
+    * the base type of the VLEN must be a fixed-size type -- this means atomic types in the range NC_CHAR thru NC_UINT64, and compound types where the basetype of each field is itself fixed-size.
+
+* *int nc_free_vlen(nc_vlen_t \*vl)*  
+<u>Action</u>: this is equivalent to calling *nc_free_vlens(1,&vl)*.
+
+If the pre and post conditions are not met, then using these
+functions can lead to a host of memory leaks and failures
+because the deep data variable-length data is in effect
+shared between the netcdf-c library internally and the user's data.
+
+## Typical use cases
+
+### *nc\_get\_vars*
 Suppose one is reading a vector of instances using nc\_get\_vars
 (or nc\_get\_vara or nc\_get\_var, etc.).  These functions will
 return the vector in the top-level memory provided.  All
-interior blocks (form nested VLEN or strings) will have been
+interior blocks (from nested VLEN or strings) will have been
 dynamically allocated. Note that computing the size of the vector 
 may be tricky because the strides must be taken into account.
 
@@ -90,14 +120,7 @@ memory leak occurs.  So, the recursive reclaim function is used
 to walk the returned instance vector and do a deep reclaim of
 the data.
 
-Currently functions are defined in netcdf.h that are supposed to
-handle this: nc\_free\_vlen(), nc\_free\_vlens(), and
-nc\_free\_string().  Unfortunately, these functions only do a
-shallow free, so deeply nested instances are not properly
-handled by them. They are marked in the description as
-deprecated in favor of the newer recursive function.
-
-## nc\_put\_vars
+### *nc\_put\_vars*
 
 Suppose one is writing a vector of instances using nc\_put\_vars
 (or nc\_put\_vara or nc\_put\_var, etc.).  These functions will
@@ -113,7 +136,10 @@ So again, the recursive reclaim function can be used
 to walk the returned instance vector and do a deep reclaim of
 the data.
 
-## nc\_put\_att
+WARNING: If the data passed into these functions contains statically
+allocated data, then using any of the reclaim functions will fail.
+
+### *nc\_put\_att*
 Suppose one is writing a vector of instances as the data of an attribute
 using, say, nc\_put\_att.
 
@@ -122,25 +148,17 @@ so that changes/reclamation of the input data will not affect
 the attribute. Note that this copying behavior is different from
 writing to a variable, where the data is written immediately.
 
-Again, the code inside the netcdf library used to use only shallow copying
-rather than deep copy. As a result, one saw effects such as described
-in Github Issue https://github.com/Unidata/netcdf-c/issues/2143.
-
-Also, after defining the attribute, it may be necessary for the user
+After defining the attribute, it may be necessary for the user
 to free the data that was provided as input to nc\_put\_att() as in the
 nc\_put\_xxx functions (previously described).
 
-## nc\_get\_att
+### *nc\_get\_att*
 Suppose one is reading a vector of instances as the data of an attribute
 using, say, nc\_get\_att.
 
 Internally, the existing attribute data must be copied and returned
 to the caller, and the caller is responsible for reclaiming
 the returned data.
-
-Again, the code inside the netcdf library used to only do shallow copying
-rather than deep copy. So this could lead to memory leaks and errors
-because the deep data was shared between the library and the user.
 
 ## New Instance Walking API
 
@@ -156,14 +174,14 @@ int nc_reclaim_data_all(int ncid, nc_type xtypeid, void* memory, size_t count);
 int nc_copy_data(int ncid, nc_type xtypeid, const void* memory, size_t count, void* copy);
 int nc_copy_data_all(int ncid, nc_type xtypeid, const void* memory, size_t count, void** copyp);
 ````
-There are two variants. The first two, nc\_reclaim\_data() and
+There are two variants. The two functions, nc\_reclaim\_data() and
 nc\_copy\_data(), assume the top-level vector is managed by the
 caller. For reclaim, this is so the user can use, for example, a
 statically allocated vector. For copy, it assumes the user
 provides the space into which the copy is stored.
 
-The second two, nc\_reclaim\_data\_all() and
-nc\_copy\_data\_all(), allows the functions to manage the
+The other two, nc\_reclaim\_data\_all() and
+nc\_copy\_data\_all(), allow the called functions to manage the
 top-level.  So for nc\_reclaim\_data\_all, the top level is
 assumed to be dynamically allocated and will be free'd by
 nc\_reclaim\_data\_all().  The nc\_copy\_data\_all() function
@@ -171,12 +189,10 @@ will allocate the top level and return a pointer to it to the
 user. The user can later pass that pointer to
 nc\_reclaim\_data\_all() to reclaim the instance(s).
 
-# Internal Changes
+## Internal Changes
 The netcdf-c library internals are changed to use the proper reclaim
 and copy functions. This also allows some simplification of the code
 since the stdata and vldata fields of NC\_ATT\_INFO are no longer needed.
-Currently this is commented out using the SEPDATA \#define macro.
-When the bugs are found and fixed, all this code will be removed.
 
 ## Optimizations
 
@@ -202,7 +218,7 @@ The classification of types can be made at the time the type is defined
 or is read in from some existing file. The reclaim and copy functions
 use this information to speed up the handling of fixed size types.
 
-# Warnings
+## Warnings
 
 1. The new API functions require that the type information be
    accessible. This means that you cannot use these functions
@@ -228,7 +244,7 @@ use this information to speed up the handling of fixed size types.
         }
 ````
 
-# 3. Inferring File Types
+# 3. Inferring File Types {#intern_infer}
 
 As described in the companion document -- docs/dispatch.md --
 when nc\_create() or nc\_open() is called, it must figure out what
@@ -478,7 +494,7 @@ So for example, if DAP2 is the model, then all netcdf-4 mode flags
 and some netcdf-3 flags are removed from the set of mode flags
 because DAP2 provides only a standard netcdf-classic format.
 
-# 4. Adding a Standard Filter
+# 4. Adding a Standard Filter {#intern_filters}
 
 The standard filter system extends the netcdf-c library API to
 support a fixed set of "standard" filters. This is similar to the
@@ -534,7 +550,7 @@ and CMake (CMakeLists.txt)
 Configure.ac must have a block that similar to this that locates
 the implementing library.
 ````
-# See if we have libzstd
+\# See if we have libzstd
 AC_CHECK_LIB([zstd],[ZSTD_compress],[have_zstd=yes],[have_zstd=no])
 if test "x$have_zstd" = "xyes" ; then
    AC_SEARCH_LIBS([ZSTD_compress],[zstd zstd.dll cygzstd.dll], [], [])
@@ -559,7 +575,7 @@ endif
 ````
 
 ````
-# Need our version of szip if libsz available and we are not using HDF5
+\# Need our version of szip if libsz available and we are not using HDF5
 if HAVE_SZ
 noinst_LTLIBRARIES += libh5szip.la
 libh5szip_la_SOURCES = H5Zszip.c H5Zszip.h
@@ -632,9 +648,124 @@ done:
 #endif /*HAVE_ZSTD*/
 ````
 
+# 5. Test Interference {#intern_isolation}
+
+At some point, Unidata switched from running tests serially to running tests in parallel.
+It soon became apparent that there were resources shared between tests and that parallel
+execution sometimes caused interference between tests.
+
+In order to fix the inter-test interference, several approaches were used.
+1. Renaming resources (primarily files) so that tests would create difference test files.
+2. Telling the test system that there were explicit dependencies between tests so that they would not be run in parallel.
+3. Isolating test resources by creating independent directories for each test.
+
+## Test Isolation
+The isolation mechanism is currently used mostly in nczarr_tests.
+It requires that tests are all executed inside a shell script.
+When the script starts, it invokes a shell function called "isolate".
+This function looks in current directory for a directory called "testset_\<uid\>".
+If "testset_\<uid\> is not found then it creates it.
+This directory is then used to isolate all test output.
+
+After calling "isolate", the script enters the "testset_\<uid\>"
+directory.  Then each actual test creates a directory in which to
+store any file resources that it creates during execution.
+Suppose, for example, that the shell script is called "run_XXXX.sh".
+The isolate function creates a directory with the general name "testset_\<uid\>".
+Then the run_XXX.sh script creates a directory "testset_\<uid\>/testdir_XXX",
+enters it and runs the test.
+During cleanup, specifically "make clean", all the testset_\<uid\> directories are deleted.
+
+The "\<uid\>" is a unique identifier created using the "date +%s" command. It returns an integer
+representing the number of seconds since the start of the so-called "epoch" basically
+"00:00:00 UTC, 1 January 1970". Using a date makes it easier to detect and reclaim obsolete
+testset directories.
+
+## Cloud Test Isolation
+
+When testing against the cloud (currently Amazon S3), the interference
+problem is intensified.
+This is because the current cloud testing uses a single S3 bucket,
+which means that not only is there inter-test interference, but there
+is also potential interference across builds.
+This means, for example, that testing by github actions could
+interfere with local testing by individual users.
+This problem is difficult to solve, but a mostly complete solution has been implemented
+possible with cmake, but not (as yet) possible with automake.
+
+In any case, there is a shell function called s3isolate in nczarr_test/test_nczarr.sh that operates on cloud resources in a way that is similar to the isolate function.
+The s3isolate does several things:
+1. It invokes isolate to ensure local isolation.
+2. It creates a path prefix relative to the Unidata S3 bucket that has the name "testset_\<uid\>", where this name
+   is the same as the one created by the isolate function.
+3. It appends the uid to a file called s3cleanup_\<pid\>.uids. This file may accumulate several uids indicating
+   the keys that need to be cleaned up. The pid is a separate small unique id to avoid s3cleanup interference.
+
+The test script then ensures that any cloud resources are created as extensions of the path prefix.
+
+Cleanup of S3 resources is complex.
+In configure.ac or the top-level CMakeList.txt files, the path "netcdf-c/testset_\<uid\>"
+is created and via configuration commands, is propagated to various Makefile.am
+and specific script files.
+
+The actual cleanup requires different approaches for cmake and for automake.
+In cmake, the CTestCustom.cmake mechanism is used and contains the following command:
+````
+ IF(ENABLE_S3_TESTING)
+ # Assume run in top-level CMAKE_BINARY_DIR
+ set(CTEST_CUSTOM_POST_TEST "bash -x ${CMAKE_BINARY_DIR}/s3cleanup.sh")
+ ENDIF()
+````
+
+In automake, the "check-local" extension mechanism is used
+because it is invoked after all tests are run in the nczarr_test
+directory. So nczarr_test/Makefile.am contains the following
+equivalent code:
+````
+ if ENABLE_S3_TESTALL
+ check-local:
+ 	bash -x ${top_srcdir}/s3cleanup.sh
+ endif
+````
+
+### s3cleanup.sh
+This script is created by configuring the base file s3cleanup.in.
+It is unfortunately complex, but roughly it does the following.
+1. It computes a list of all the keys for all objects in the Unidata bucket and stores them in a file
+   named "s3cleanup_\<pid\>.keys".
+2. Get a list of date based uids created above.
+3. Iterate over the keys and the uids to collect the set of keys matching any one of the uids.
+4. Divide the keys into sets of 500. This is because the delete-objects command will not accept more than 1000 keys at a time.
+5. Convert each set of 500 keys from step 4 into a properly formatted JSON file suitable for use by the "aws delete-objects" command.
+This file is called "s3cleanup_\<pid\>.json".
+6. Use the "aws delete-objects" command to delete the keys.
+7. Repeat steps 5 and 6 for each set of 500 keys.
+
+The pid is a small random number to avoid local interference.
+It is important to note that this script assumes that the
+AWS command line package is installed.
+This can be installed, for example, using this command:
+````apt install awscli````.
+
+### s3gc.sh
+This script is created by configuring the base file s3gc.in.
+It is intended as a way for users to manually cleanup the S3 Unidata bucket.
+It takes a single argument, delta, that is the number of days before the present day
+and computes a stop date corresponding to "present_day - delta".
+All keys for all uids on or before the stop date.
+
+It operates as follows:
+1. Get a list of date based uids created above.
+2. Iterate over the keys and collect all that are on or before the stop date.
+3. Divide the keys into sets of 500. This is in recognition of the 1000 key limit mentioned previously.
+4. Convert each set of 500 keys from step 3 into a properly formatted JSON file suitable for use by the "aws delete-objects" command.
+This file is called "s3cleanup_\<pid\>.json".
+5. Use the "aws delete-objects" command to delete the keys.
+6. Repeat steps 4 and 5 for each set of 500 keys.
+
 # Point of Contact {#intern_poc}
 
 *Author*: Dennis Heimbigner<br>
 *Email*: dmh at ucar dot edu<br>
 *Initial Version*: 12/22/2021<br>
-*Last Revised*: 01/25/2022
+*Last Revised*: 9/16/2023

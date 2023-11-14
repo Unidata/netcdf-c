@@ -162,7 +162,7 @@ static herr_t H5FD_http_unlock(H5FD_t *_file);
 
 /* Beware, not same as H5FD_HTTP_g */
 static const H5FD_class_t H5FD_http_g = {
-#if H5_VERSION_GE(1,14,0)
+#if H5_VERSION_GE(1,13,2)
     H5FD_CLASS_VERSION,		/* struct version  */
     H5_VFD_HTTP,		/* value           */
 #endif
@@ -195,7 +195,7 @@ static const H5FD_class_t H5FD_http_g = {
     H5FD_http_get_handle,	/* get_handle   */
     H5FD_http_read,		/* read         */
     H5FD_http_write,		/* write        */
-#if H5_VERSION_GE(1,14,0)
+#if H5_VERSION_GE(1,13,2)
     NULL,			/* read_vector     */
     NULL,			/* write_vector    */
     NULL,			/* read_selection  */
@@ -205,7 +205,7 @@ static const H5FD_class_t H5FD_http_g = {
     NULL,			/* truncate     */
     H5FD_http_lock,		/* lock         */
     H5FD_http_unlock,		/* unlock       */
-#if H5_VERSION_GE(1,14,0)
+#if H5_VERSION_GE(1,13,2)
     NULL,			/* del          */
     NULL,			/* ctl	        */
 #endif
@@ -347,10 +347,10 @@ H5FD_http_open( const char *name, unsigned flags, hid_t /*UNUSED*/ fapl_id,
     write_access = 0;
 
    /* Open file in read-only mode, to check for existence  and get length */
-    if((ncstat = nc_http_init(&state))) {
+    if((ncstat = nc_http_open(name,&state))) {
         H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_CANTOPENFILE, "cannot access object", NULL);
     }
-    if((ncstat = nc_http_size(state,name,&len))) {
+    if((ncstat = nc_http_size(state,&len))) {
         H5Epush_ret(func, H5E_ERR_CLS, H5E_IO, H5E_CANTOPENFILE, "cannot access object", NULL);
     }
 
@@ -729,7 +729,7 @@ H5FD_http_read(H5FD_t *_file, H5FD_mem_t /*UNUSED*/ type, hid_t /*UNUSED*/ dxpl_
 
     {
 	NCbytes* bbuf = ncbytesnew();
-        if((ncstat = nc_http_read(file->state,file->url,addr,size,bbuf))) {
+        if((ncstat = nc_http_read(file->state,addr,size,bbuf))) {
             file->op = H5FD_HTTP_OP_UNKNOWN;
             file->pos = HADDR_UNDEF;
 	    ncbytesfree(bbuf); bbuf = NULL;

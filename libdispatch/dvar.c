@@ -1291,19 +1291,18 @@ NC_check_nulls(int ncid, int varid, const size_t *start, size_t **count,
 /**
    @name Free String Resources
 
-   Use this functions to free resources associated with ::NC_STRING
-   data.
+   Use these functions to free resources associated with ::NC_STRING data.
 */
 /*! @{ */
 /**
    Free string space allocated by the library.
 
-   When you read string type the library will allocate the storage
-   space for the data. This storage space must be freed, so pass the
-   pointer back to this function, when you're done with the data, and
-   it will free the string memory.
+   When you read an array string typed data the library will allocate the storage
+   space for the data. The allocated strings must be freed, so pass the
+   pointer to the array plus a count of the number of elements in the array to this function,
+   when you're done with the data, and it will free the allocated string memory.
 
-   WARNING: This does not free the data vector itself, only
+   WARNING: This does not free the top-level array itself, only
    the strings to which it points.
 
    @param len The number of character arrays in the array.

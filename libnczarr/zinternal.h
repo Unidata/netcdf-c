@@ -99,14 +99,14 @@ Inserted into any .zattrs ? or should it go into the container?
 #define LEGAL_DIM_SEPARATORS "./"
 #define DFALT_DIM_SEPARATOR '.'
 
+#define islegaldimsep(c) ((c) != '\0' && strchr(LEGAL_DIM_SEPARATORS,(c)) != NULL)
+
 /* Default max string length for fixed length strings */
 #define NCZ_MAXSTR_DEFAULT 128
 
-#define islegaldimsep(c) ((c) != '\0' && strchr(LEGAL_DIM_SEPARATORS,(c)) != NULL)
-
 /* Mnemonics */
-#define ZCLEAR	0 /* For NCZ_copy_data */
-#define ZCLOSE	1 /* this is closeorabort as opposed to enddef */
+#define ZCLOSE	 1 /* this is closeorabort as opposed to enddef */
+#define ZREADING 1 /* this is reading data rather than writing */
 
 /* Useful macro */
 #define ncidforx(file,grpid) ((file)->controller->ext_ncid | (grpid))
@@ -142,7 +142,7 @@ typedef struct NCZ_FILE_INFO {
 	    unsigned long release;
 	} nczarr_version;
     } zarr;
-    int created; /* 1=> created 0=>open */
+    int creating; /* 1=> created 0=>open */
     int native_endianness; /* NC_ENDIAN_LITTLE | NC_ENDIAN_BIG */
     char** envv_controls; /* Envv format */
     struct Controls {
@@ -253,6 +253,7 @@ int ncz_closeorabort(NC_FILE_INFO_T*, void* params, int abort);
 
 /* zclose.c */
 int ncz_close_ncz_file(NC_FILE_INFO_T* file, int abort);
+int NCZ_zclose_var1(NC_VAR_INFO_T* var);
 
 /* zattr.c */
 int ncz_getattlist(NC_GRP_INFO_T *grp, int varid, NC_VAR_INFO_T **varp, NCindex **attlist);

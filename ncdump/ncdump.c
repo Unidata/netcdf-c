@@ -103,7 +103,12 @@ fspec_t formatting_specs =	/* defaults, overridden by command-line options */
     0,			/* if -g specified, number of groups names in list */
     0,			/* if -g specified, list of group names */
     0,			/* if -g specified, list of matching grpids */
-    0			/* kind of netCDF file */
+    0,			/* kind of netCDF file */
+    0,                  /* extended format */
+    0,                  /* mode */
+    0,                  /* inmemory */
+    0,                  /* print _NCproperties */
+    0                   /* print _FillValue type*/
 };
 
 static void
@@ -127,6 +132,7 @@ usage(void)
   [-x]             Output XML (NcML) instead of CDL\n\
   [-F]             Output _Filter and _Codecs instead of _Fletcher32, _Shuffle, and _Deflate\n\
   [-Xp]            Unconditionally suppress output of the properties attribute\n\
+  [-XF]            Unconditionally output the type of the _FillValue attribute\n\
   [-Ln]            Set log level to n (>= 0); ignore if logging not enabled.\n\
   file             Name of netCDF file (or URL if DAP access enabled)\n"
 
@@ -771,7 +777,8 @@ pr_att(
     indent_out();
     printf ("\t\t");
 #ifdef USE_NETCDF4
-    if (is_user_defined_type(att.type) || att.type == NC_STRING)
+    if (is_user_defined_type(att.type) || att.type == NC_STRING
+        || (formatting_specs.xopt_filltype && varid != NC_GLOBAL && strcmp(_FillValue,att.name)==0))
 #else
     if (is_user_defined_type(att.type))
 #endif
@@ -1760,7 +1767,6 @@ do_ncdump_rec(int ncid, const char *path)
 
    for (varid = 0; varid < nvars; varid++) {
       NC_CHECK( nc_inq_varndims(ncid, varid, &var.ndims) );
-      if(var.dims != NULL) free(var.dims);
       var.dims = (int *) emalloc((var.ndims + 1) * sizeof(int));
       NC_CHECK( nc_inq_var(ncid, varid, var.name, &var.type, 0,
 			   var.dims, &var.natts) );
@@ -1883,6 +1889,7 @@ do_ncdump_rec(int ncid, const char *path)
 	  pr_att_specials(ncid, kind, varid, &var);
       }
 #endif /* USE_NETCDF4 */
+      if(var.dims) {free((void*)var.dims); var.dims = NULL;}
    }
 
    if (ngatts > 0 || formatting_specs.special_atts) {
@@ -1920,7 +1927,7 @@ do_ncdump_rec(int ncid, const char *path)
 	 if (formatting_specs.nlvars > 0 && ! idmember(vlist, varid))
 	    continue;
 	 NC_CHECK( nc_inq_varndims(ncid, varid, &var.ndims) );
-	 if(var.dims != NULL) free(var.dims);
+	 if(var.dims != NULL) {free(var.dims); var.dims = NULL;}
 	 var.dims = (int *) emalloc((var.ndims + 1) * sizeof(int));
 	 NC_CHECK( nc_inq_var(ncid, varid, var.name, &var.type, 0,
 			      var.dims, &var.natts) );
@@ -1968,6 +1975,7 @@ do_ncdump_rec(int ncid, const char *path)
 	 }
 	 if(var.fillvalp != NULL)
 	     {NC_CHECK(nc_reclaim_data_all(ncid,var.tinfo->tid,var.fillvalp,1)); var.fillvalp = NULL;}
+	 if(var.dims) {free(var.dims); var.dims = NULL;}
       }
       if (vdims) {
 	  free(vdims);
@@ -2252,6 +2260,7 @@ main(int argc, char *argv[])
     bool_t kind_out = false;	/* if true, just output kind of netCDF file */
     bool_t kind_out_extended = false;	/* output inq_format vs inq_format_extended */
     int Xp_flag = 0;    /* indicate that -Xp flag was set */
+    int XF_flag = 0;    /* indicate that -XF flag was set */
     char* path = NULL;
     char errmsg[4096];
 
@@ -2372,6 +2381,9 @@ main(int argc, char *argv[])
 	    case 'p': /* suppress the properties attribute */
 	      Xp_flag = 1; /* record that this flag was set */
 	      break;
+	    case 'f': /* output the _FillValue attribute type */
+	      XF_flag = 1; /* record that this flag was set */
+	      break;
 	    default:
 	      snprintf(errmsg,sizeof(errmsg),"invalid value for -X option: %s", optarg);
 	      goto fail;
@@ -2385,7 +2397,7 @@ main(int argc, char *argv[])
 	    nc_set_log_level(level);
 	  }
 #endif
-	  ncsetlogging(1);
+	  ncsetloglevel(NCLOGNOTE);
 	  break;
 	case 'F':
 	  formatting_specs.filter_atts = true;
@@ -2404,6 +2416,9 @@ main(int argc, char *argv[])
 	formatting_specs.xopt_props = 0;
     else
 	formatting_specs.xopt_props = 0;
+
+    /* Decide xopt_filltype */
+    formatting_specs.xopt_filltype = XF_flag;
 
     set_max_len(max_len);
 

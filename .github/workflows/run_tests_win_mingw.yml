@@ -4,12 +4,16 @@
 # for information related to github runners.
 ###
 
-name: Run MSYS2, MinGW64-based Tests
+name: Run MSYS2, MinGW64-based Tests (Not Visual Studio)
 
 env:
   CPPFLAGS: "-D_BSD_SOURCE"
 
 on: [pull_request,workflow_dispatch]
+
+concurrency:  
+  group: ${{ github.workflow}}-${{ github.head_ref }}  
+  cancel-in-progress: true
 
 jobs:
 
@@ -27,7 +31,7 @@ jobs:
         with:
           msystem: MINGW64
           update: true
-          install: git mingw-w64-x86_64-toolchain automake libtool autoconf make cmake mingw-w64-x86_64-hdf5 unzip mingw-w64-x86_64-libxml2
+          install: git mingw-w64-x86_64-toolchain automake libtool autoconf make cmake mingw-w64-x86_64-hdf5 unzip mingw-w64-x86_64-libxml2 mingw-w64-x86_64-zlib
 
 ###
 # Configure and build
@@ -37,7 +41,7 @@ jobs:
         run: autoreconf -if
 
       - name: (Autotools) Configure Build
-        run: ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests --disable-static --disable-byterange --disable-dap-remote-tests --disable-logging --enable-plugins --disable-nczarr-filters --disable-nczarr-s3 --disable-nczarr-s3-tests
+        run: ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests --disable-static --disable-byterange --disable-dap-remote-tests --disable-logging --enable-plugins --disable-nczarr-filters --disable-s3
         if: ${{ success() }}
 
       - name: (Autotools) Look at config.log if error
@@ -54,7 +58,7 @@ jobs:
       - name: Check for plugins
         run: |
           dir ./plugins
-          dir ./plugins/.libs
+          if test -f ./plugins/.libs ; then dir ./plugins/.libs; fi
 
       - name: (Autotools) Build and Run Tests
         run: make check -j 8 LDFLAGS="-Wl,--export-all-symbols"

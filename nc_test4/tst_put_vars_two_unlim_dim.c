@@ -19,7 +19,15 @@ See \ref copyright file for more info.
 
 #include <stdio.h>
 
-int main(int argc, char* argv[])
+#ifdef TESTNCZARR
+#include "test_utils.h"
+#define FILE_NAME "file://tmp_put_vars_two_unlim_dim.file#mode=nczarr,file"
+#else
+#define FILE_NAME "tst_put_vars_two_unlim_dim.nc"
+#endif
+
+int
+main(int argc, char* argv[])
 {
     int ret;
     int ncid;
@@ -29,7 +37,7 @@ int main(int argc, char* argv[])
     size_t count = 5;
     double vals[] = { 1.0, 2.0, 3.0, 4.0, 5.0 };
 
-    if ((ret = nc_create("tst_put_vars_two_unlim_dim.nc", NC_NETCDF4 | NC_CLOBBER, &ncid))) {
+    if ((ret = nc_create(FILE_NAME, NC_NETCDF4 | NC_CLOBBER, &ncid))) {
         printf("nc_create(...): error code = %d\n", ret);
         return -1;
     }
