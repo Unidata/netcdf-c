@@ -38,8 +38,8 @@ main(int argc, char **argv)
 #define LAT_NAME "lat"
 #define LON_NAME "lon"
 #define NVARS 2
-#define START_LAT 25.0
-#define START_LON -125.0
+#define START_LAT 25.0f
+#define START_LON -125.0f
       {
 	 int ncid, lon_dimid, lat_dimid;
 	 int lat_varid, lon_varid;
@@ -52,9 +52,9 @@ main(int argc, char **argv)
 
 	 /* Initialize coord data. */
 	 for (lat = 0; lat < NLAT; lat++)
-	    lats[lat] = START_LAT + 5. * lat;
+	    lats[lat] = START_LAT + 5.f * (float)lat;
 	 for (lon = 0; lon < NLON; lon++)
-	    lons[lon] = START_LON + 5. * lon;
+	    lons[lon] = START_LON + 5.f * (float)lon;
 
 	 /* Create file with two dimensions. */
 	 if (nc_create(FILE_NAME, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
@@ -103,7 +103,7 @@ main(int argc, char **argv)
 #define DIM0_NAME "d0"
 #define CACHE_SIZE 1000000
 #define CACHE_NELEMS 1009
-#define CACHE_PREEMPTION .90
+#define CACHE_PREEMPTION .90f
 
       int ncid, dimid, varid;
       char name_in[NC_MAX_NAME + 1];
@@ -413,12 +413,12 @@ main(int argc, char **argv)
 	 check_err(stat,__LINE__,__FILE__);
       }
       { /* missing_value */
-	 static const float pr_missing_value_att[1] = {1e+20} ;
+	 static const float pr_missing_value_att[1] = {1e+20f} ;
 	 stat = nc_put_att_float(root_grp, pr_id, "missing_value", NC_FLOAT, 1, pr_missing_value_att);
 	 check_err(stat,__LINE__,__FILE__);
       }
       { /* _FillValue */
-	 static const float pr_FillValue_att[1] = {1e+20} ;
+	 static const float pr_FillValue_att[1] = {1e+20f} ;
 	 stat = nc_put_att_float(root_grp, pr_id, "_FillValue", NC_FLOAT, 1, pr_FillValue_att);
 	 check_err(stat,__LINE__,__FILE__);
       }

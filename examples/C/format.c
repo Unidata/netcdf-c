@@ -45,7 +45,7 @@ main()
     /* Create a bunch of phoney data so we have something to write in
        the example file. */
     for (fp=(float *)temp, i=0; i<LAT_LEN*LON_LEN; i++)
-        *fp++ = 10. + i/10.;
+        *fp++ = 10.f + (float)i/10.f;
 
     /* Now create the file in both formats with the same code. */
     for (i=0; i<2; i++)

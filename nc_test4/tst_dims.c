@@ -849,9 +849,9 @@ main(int argc, char **argv)
 
       /* Lats and lons suitable for some South American data. */
       for (lat[0] = 40.0, i = 1; i < LAT_LEN; i++)
-         lat[i] = lat[i - 1] + .5;
+         lat[i] = (float)lat[i - 1] + .5f;
       for (lon[0] = 20.0, i = 1; i < LON_LEN; i++)
-         lon[i] = lon[i - 1] + 1.5;
+         lon[i] = (float)lon[i - 1] + 1.5f;
 
       /* Some phoney 2D pressure data. */
       for (i = 0; i < LAT_LEN; i++)
@@ -1002,9 +1002,9 @@ main(int argc, char **argv)
 
       /* Some phony 1D lats and lons. */
       for (i = 0; i < LAT_LEN; i++)
-         lat[i] = i * 5.;
+         lat[i] = (float)i * 5.f;
       for (i = 0; i < LON_LEN; i++)
-         lon[i] = i * 5.;
+         lon[i] = (float)i * 5.f;
 
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
 

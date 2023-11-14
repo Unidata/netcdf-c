@@ -75,7 +75,7 @@ main()
 	 if (!(vc_out[i].p = calloc(sizeof(struct s1), vc_out[i].len))) ERR;
 	 for (k = 0; k < vc_out[i].len; k++)
 	 {
-	    ((struct s1 *)vc_out[i].p)[k].x = 42.42;
+	    ((struct s1 *)vc_out[i].p)[k].x = 42.42f;
 	    ((struct s1 *)vc_out[i].p)[k].y = 2.0;
 	 }
       }
