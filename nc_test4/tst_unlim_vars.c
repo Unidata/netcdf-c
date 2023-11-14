@@ -51,7 +51,7 @@ main(int argc, char **argv)
         for (time = 0; time < NUM_TIMESTEPS; time++)
             for (lat = 0; lat < LAT_LEN; lat++)
                 for (lon = 0; lon < LON_LEN; lon++)
-                    data_out[time][lat][lon] = 25.5 + lat + lon + time;
+                    data_out[time][lat][lon] = 25.5f + (float)(lat + lon + time);
 
         /* Create a file with a 3D surface temp variable. */
         if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
