@@ -136,7 +136,7 @@ main(int argc, char **argv)
 
       for (i = 0; i < ATT_LEN; i++)
       {
-	 a1_att[i].s1.x = 13.3;
+	 a1_att[i].s1.x = 13.3f;
 	 a1_att[i].s1.y = 13.3;
       }
       /* Create a file with two groups, define a type in each group,
