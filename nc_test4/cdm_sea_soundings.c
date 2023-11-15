@@ -28,11 +28,11 @@ main(int argc, char **argv)
    /* Create phony data. */
    for (i = 0; i < DIM_LEN; i++)
    {
-      if (!(data[i].temp_vl.p = malloc(sizeof(float) * (i + 1))))
+      if (!(data[i].temp_vl.p = malloc(sizeof(float) * (size_t)(i + 1))))
 	 return NC_ENOMEM;
       for (j = 0; j < i + 1; j++)
-	 ((float *)(data[i].temp_vl.p))[j] = 23.5 - j;
-      data[i].temp_vl.len = i + 1;
+	 ((float *)(data[i].temp_vl.p))[j] = 23.5f - (float)j;
+      data[i].temp_vl.len = (size_t)i + 1;
    }
 
    printf("\n*** Testing netcdf-4 CDM compliance: sea soundings.\n");
