@@ -40,10 +40,10 @@
 #define DEGREES_NORTH "degrees_north"
 
 /* These are used to construct some example data. */
-#define SAMPLE_PRESSURE 900
-#define SAMPLE_TEMP 9.0
-#define START_LAT 25.0
-#define START_LON -125.0
+#define SAMPLE_PRESSURE 900.0f
+#define SAMPLE_TEMP 9.0f
+#define START_LAT 25.0f
+#define START_LON -125.0f
 
 /* For the units attributes. */
 #define UNITS "units"
@@ -87,16 +87,16 @@ main()
     * would have some real data to write, for example, model
     * output. */
    for (lat = 0; lat < NLAT; lat++)
-      lats[lat] = START_LAT + 5.*lat;
+      lats[lat] = START_LAT + 5.f*(float)lat;
    for (lon = 0; lon < NLON; lon++)
-      lons[lon] = START_LON + 5.*lon;
+      lons[lon] = START_LON + 5.f*(float)lon;
 
    for (lvl = 0; lvl < NLVL; lvl++)
       for (lat = 0; lat < NLAT; lat++)
 	 for (lon = 0; lon < NLON; lon++)
 	 {
-	    pres_out[lvl][lat][lon] = SAMPLE_PRESSURE + i;
-	    temp_out[lvl][lat][lon] = SAMPLE_TEMP + i++;
+	    pres_out[lvl][lat][lon] = SAMPLE_PRESSURE + (float)i;
+	    temp_out[lvl][lat][lon] = SAMPLE_TEMP + (float)i++;
 	 }
 
    /* Create the file. */

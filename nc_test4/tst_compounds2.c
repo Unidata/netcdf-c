@@ -49,7 +49,7 @@ main(int argc, char **argv)
       /* Create some phony data. */
       for (i = 0; i < DIM1_LEN; i++)
       {
-	 data_out[i].y = 99.99;
+	 data_out[i].y = 99.99f;
 	 for (j = 0; j < ARRAY_LEN; j++)
 	    data_out[i].x[j] = j;
       }

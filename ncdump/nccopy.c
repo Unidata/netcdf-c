@@ -7,6 +7,7 @@
  *********************************************************************/
 
 #include "config.h"		/* for USE_NETCDF4 macro */
+#include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
 #ifdef HAVE_GETOPT_H
@@ -2310,7 +2311,7 @@ main(int argc, char**argv)
 	    double dval = double_with_suffix(optarg);	/* "K" for kilobytes. "M" for megabytes, ... */
 	    if(dval < 0)
 		error("Suffix used for '-m' option value must be K, M, G, T, or P");
-	    option_copy_buffer_size = dval;
+	    option_copy_buffer_size = (size_t)dval;
 	    break;
 	}
 	case 'h':		/* non-default size of chunk cache */
@@ -2318,7 +2319,7 @@ main(int argc, char**argv)
 	    double dval = double_with_suffix(optarg);	/* "K" for kilobytes. "M" for megabytes, ... */
 	    if(dval < 0)
 		error("Suffix used for '-h' option value must be K, M, G, T, or P");
-	    option_chunk_cache_size = dval;
+	    option_chunk_cache_size = (size_t)dval;
 	    break;
 	}
 	case 'e':		/* number of elements chunk cache can hold */
@@ -2326,7 +2327,7 @@ main(int argc, char**argv)
 	    double dval = double_with_suffix(optarg);	/* "K" for kilobytes. "M" for megabytes, ... */
 	    if(dval < 0 )
 		error("Suffix used for '-e' option value must be K, M, G, T, or P");
-	    option_chunk_cache_nelems = (long)dval;
+	    option_chunk_cache_nelems = (size_t)dval;
 	    break;
 	}
 	case 'r':
