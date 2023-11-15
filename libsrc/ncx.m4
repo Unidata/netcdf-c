@@ -528,9 +528,9 @@ swapn8b(void *dst, const void *src, IntType nn)
     for (i=0; i<nn; i++) {
         /* copy over, make the below swap in-place */
         uint64_t temp;
-        memcpy(&temp, src + i * sizeof(uint64_t), sizeof(uint64_t));
+        memcpy(&temp, (uint64_t*)src + i * sizeof(uint64_t), sizeof(uint64_t));
         temp = SWAP8(temp);
-        memcpy(dst + i * sizeof(uint64_t), &temp, sizeof(uint64_t));
+        memcpy((uint64_t*)dst + i * sizeof(uint64_t), &temp, sizeof(uint64_t));
     }
 #endif
 
