@@ -226,8 +226,8 @@ main(int argc, char **argv)
 #define ATT_NAME_CMP "my_favorite_wind_speeds"
 #define COMPOUND_NAME "wind_vector"
 #define NUM_FAVS 3
-#define U_VALUE 13.3
-#define V_VALUE 12.2
+#define U_VALUE 13.3f
+#define V_VALUE 12.2f
 
    {
       int ncid;

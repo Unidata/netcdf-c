@@ -199,7 +199,7 @@ main()
         hid_t did, fapl_id, fcpl_id, gcpl_id, attid;
         hsize_t num_obj;
         hid_t fileid, grpid, spaceid;
-        float val = 3.1495;
+        float val = 3.1495f;
 #if H5_VERSION_GE(1,12,0)
         H5O_info2_t obj_info;
 #else
