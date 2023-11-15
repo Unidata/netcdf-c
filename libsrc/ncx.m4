@@ -527,8 +527,10 @@ swapn8b(void *dst, const void *src, IntType nn)
     uint64_t *ip = (uint64_t*) src;
     for (i=0; i<nn; i++) {
         /* copy over, make the below swap in-place */
-        op[i] = ip[i];
-        op[i] = SWAP8(op[i]);
+        uint64_t temp;
+        memcpy(&temp, src + i * sizeof(uint64_t), sizeof(uint64_t));
+        temp = SWAP8(temp);
+        memcpy(dst + i * sizeof(uint64_t), &temp, sizeof(uint64_t));
     }
 #endif
 
