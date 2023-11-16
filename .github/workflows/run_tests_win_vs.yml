@@ -1,0 +1,36 @@
+###
+# Using Conda for dependencies, build and run NetCDF tests
+# using cmake + Visual Studio
+###
+
+name: Run Visual-Studio based Tests
+
+on: [workflow_dispatch]
+
+concurrency:  
+  group: ${{ github.workflow}}-${{ github.head_ref }}  
+  cancel-in-progress: true
+
+jobs:
+
+    install-dependencies:
+
+        runs-on: windows-latest
+        defaults:
+            run:
+                shell: msys2 {0}
+
+        steps:
+            - uses: actions/checkout@v3
+            - uses: mamba-org/setup-micromamba@v1
+              with:
+                environment-name: base
+                create-args: >-
+                    cmake
+                    hdf5
+                    zlib
+            - uses: msys2/setup-msys2@v2
+              with:
+                msystem: MINGW64
+                update: true
+                install: unzip automake libtool autoconf make toolchain
