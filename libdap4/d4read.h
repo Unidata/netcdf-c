@@ -7,6 +7,6 @@
 #define D4READ_H
 
 extern int NCD4_readDMR(NCD4INFO*, int flags);
-extern int NCD4_readDAP(NCD4INFO*, int flags);
+extern int NCD4_readDAP(NCD4INFO*, int flags, NCURI* uri);
 
 #endif /*READ_H*/

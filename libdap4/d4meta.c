@@ -89,75 +89,6 @@ done:
     return THROW(ret);
 }
 
-
-/* Create an empty NCD4meta object for
-   use in subsequent calls
-   (is the the right src file to hold this?)
-*/
-
-NCD4meta*
-NCD4_newmeta(NCD4INFO* info)
-{
-    NCD4meta* meta = (NCD4meta*)calloc(1,sizeof(NCD4meta));
-    if(meta == NULL) return NULL;
-    meta->allnodes = nclistnew();
-#ifdef D4DEBUG
-    meta->debuglevel = 1;
-#endif
-    meta->controller = info;
-    meta->ncid = info->substrate.nc4id; /* Transfer netcdf ncid */
-    return meta;
-}
-
-/* Attach raw data to metadata */
-void
-NCD4_attachraw(NCD4meta* meta, size_t rawsize, void* rawdata)
-{
-    assert(meta != NULL);
-    NCD4_resetSerial(&meta->serial,rawsize,rawdata);
-}
-
-void
-NCD4_setdebuglevel(NCD4meta* meta, int debuglevel)
-{
-    meta->debuglevel = debuglevel;
-}
-
-void
-NCD4_reclaimMeta(NCD4meta* dataset)
-{
-    int i;
-    if(dataset == NULL) return;
-    NCD4_resetMeta(dataset);
-
-    for(i=0;i<nclistlength(dataset->allnodes);i++) {
-	NCD4node* node = (NCD4node*)nclistget(dataset->allnodes,i);
-	reclaimNode(node);
-    }
-    nclistfree(dataset->allnodes);
-    nclistfree(dataset->groupbyid);
-    nclistfree(dataset->atomictypes);
-    free(dataset);
-}
-
-void
-NCD4_resetMeta(NCD4meta* dataset)
-{
-    if(dataset == NULL) return;
-    nullfree(dataset->error.parseerror); dataset->error.parseerror = NULL;
-    nullfree(dataset->error.message); dataset->error.message = NULL;
-    nullfree(dataset->error.context); dataset->error.context = NULL;
-    nullfree(dataset->error.otherinfo); dataset->error.otherinfo = NULL;
-    NCD4_resetSerial(&dataset->serial,0,NULL);
-#if 0
-    for(i=0;i<nclistlength(dataset->blobs);i++) {
-	void* p = nclistget(dataset->blobs,i);
-	nullfree(p);
-    }
-    nclistfree(dataset->blobs);
-#endif
-}
-
 void
 reclaimNode(NCD4node* node)
 {
@@ -676,6 +607,39 @@ savevarbyid(NCD4node* group, NCD4node* var)
     nclistinsert(group->group.varbyid,var->meta.id,var);
 }
 
+/* Collect FQN path from var node up to and including
+   the root group and create an name from it
+*/
+char*
+NCD4_getVarFQN(NCD4node* var, const char* tail)
+{
+    int i;
+    NCD4node* x = NULL;
+    NClist* path = NULL;
+    NCbytes* fqn =  NULL;
+    char* result;
+
+    path = nclistnew();
+    for(x=var->container;ISGROUP(x->sort);x=x->container) {
+	nclistinsert(path,0,x);
+    }
+    fqn = ncbytesnew();
+    for(i=0;i<nclistlength(path);i++) {
+	NCD4node* grp = (NCD4node*)nclistget(path,i);
+	char* escaped = backslashEscape(grp->name);
+	if(escaped == NULL) return NULL;
+	if(i > 0) ncbytesappend(fqn,'/');
+	ncbytescat(fqn,escaped);
+	free(escaped);
+    }
+    nclistfree(path);
+    if(tail != NULL)
+        ncbytescat(fqn,tail);
+    result = ncbytesextract(fqn);
+    ncbytesfree(fqn);
+    return result;
+}
+
 /* Collect FQN path from node up to (but not including)
    the first enclosing group and create an name from it
 */
@@ -1180,7 +1144,7 @@ markdapsize(NCD4meta* meta)
 }
 
 int
-NCD4_findvar(NC* ncp, int ncid, int varid, NCD4node** varp, NCD4node** grpp)
+NCD4_findvar(NC* ncp, int gid, int varid, NCD4node** varp, NCD4node** grpp)
 {
     int ret = NC_NOERR;
     NCD4INFO* info = NULL;
@@ -1192,11 +1156,11 @@ NCD4_findvar(NC* ncp, int ncid, int varid, NCD4node** varp, NCD4node** grpp)
     info = getdap(ncp);
     if(info == NULL)
 	return THROW(NC_EBADID);
-    meta = info->substrate.metadata;
+    meta = info->dmrmetadata;
     if(meta == NULL)
 	return THROW(NC_EBADID);
     /* Locate var node via (grpid,varid) */
-    grp_id = GROUPIDPART(ncid);
+    grp_id = GROUPIDPART(gid);
     group = nclistget(meta->groupbyid,grp_id);
     if(group == NULL)
 	return THROW(NC_EBADID);
@@ -1205,7 +1169,7 @@ NCD4_findvar(NC* ncp, int ncid, int varid, NCD4node** varp, NCD4node** grpp)
 	return THROW(NC_EBADID);
     if(varp) *varp = var;
     if(grpp) *grpp = group;
-    return ret;
+    return THROW(ret);
 }
 
 static int
