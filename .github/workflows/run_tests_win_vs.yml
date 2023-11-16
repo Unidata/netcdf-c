@@ -3,7 +3,7 @@
 # using cmake + Visual Studio
 ###
 
-name: Run Visual-Studio based Tests
+name: Run Visual-Studio based tests using MSYS2 and micromamba
 
 on: [push,workflow_dispatch]
 
