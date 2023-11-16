@@ -215,7 +215,7 @@ main(int argc, char **argv)
       if (uint64_in != ivalue) ERR;
       if (nc_get_var_float(ncid, varid, &float_in)) ERR;
 
-      if(fabs( (float_in-X_INT_MAX) - ((float)ivalue - X_INT_MAX)) > 1) ERR;
+      if(fabs( (float_in-(float)X_INT_MAX) - ((float)ivalue - (float)X_INT_MAX)) > 1) ERR;
 
       if (nc_get_var_double(ncid, varid, &double_in)) ERR;
       if (double_in != (double)ivalue) ERR;
