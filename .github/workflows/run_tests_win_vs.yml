@@ -5,7 +5,7 @@
 
 name: Run Visual-Studio based Tests
 
-on: [workflow_dispatch]
+on: [push,workflow_dispatch]
 
 concurrency:  
   group: ${{ github.workflow}}-${{ github.head_ref }}  
