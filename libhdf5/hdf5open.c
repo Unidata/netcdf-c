@@ -1483,7 +1483,7 @@ nc4_get_var_meta(NC_VAR_INFO_T *var)
     if ((H5Pget_chunk_cache(access_pid, &(var->chunkcache.nelems),
                             &(var->chunkcache.size), &rdcc_w0)) < 0)
         BAIL(NC_EHDFERR);
-    var->chunkcache.preemption = rdcc_w0;
+    var->chunkcache.preemption = (float)rdcc_w0;
 
     /* Get the dataset creation properties. */
     if ((propid = H5Dget_create_plist(hdf5_var->hdf_datasetid)) < 0)

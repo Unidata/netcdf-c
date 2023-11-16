@@ -88,8 +88,8 @@ inRange_float(const double value, const nc_type xtype)
         case NC_UBYTE:  min = 0;            max = X_UCHAR_MAX;  break;
         case NC_USHORT: min = 0;            max = X_USHORT_MAX; break;
         case NC_UINT:   min = 0;            max = X_UINT_MAX;   break;
-        case NC_INT64:  min = X_INT64_MIN;  max = X_INT64_MAX;  break;
-        case NC_UINT64: min = 0;            max = X_UINT64_MAX; break;
+        case NC_INT64:  min = X_INT64_MIN;  max = (double)X_INT64_MAX;  break;
+        case NC_UINT64: min = 0;            max = (double)X_UINT64_MAX; break;
 	default:  assert(0);
     }
     if(!( value >= min && value <= max)) {
