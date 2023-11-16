@@ -35,6 +35,15 @@ jobs:
               shell: bash -l {0}
               run: micromamba install --quiet --yes hdf5 zlib cmake
 
-
             - name: (Query Environment)
               run: ls && env
+
+            - name: CMake (Generate)
+             shell: bash -l {0}
+             run: >
+                mkdir build 
+                cd build
+                cmake .. -DENABLE_FILTER_TESTING=OFF
+                
+
+                
