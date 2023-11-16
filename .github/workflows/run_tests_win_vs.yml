@@ -36,7 +36,7 @@ jobs:
               run: micromamba install --quiet --yes hdf5 zlib cmake
 
             - name: (Query Environment)
-              run: ls && env
+              run: ls && env && echo "" && pwd && echo "" && which m4
 
             - name: CMake (Generate)
               shell: bash -l {0}
