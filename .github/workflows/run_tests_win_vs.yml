@@ -39,7 +39,7 @@ jobs:
               run: ls && env && echo "" && pwd && echo "" && which m4
 
             - name: Find m4
-              run: find /c/msys64 -name 'm4'
+              run: find /c/msys64 -name 'm4*'
 
             - name: CMake (Generate)
               shell: bash -l {0}
