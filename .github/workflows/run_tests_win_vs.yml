@@ -39,8 +39,8 @@ jobs:
               run: ls && env
 
             - name: CMake (Generate)
-             shell: bash -l {0}
-             run: >
+              shell: bash -l {0}
+              run: >
                 mkdir build 
                 cd build
                 cmake .. -DENABLE_FILTER_TESTING=OFF
