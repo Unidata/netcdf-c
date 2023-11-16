@@ -355,7 +355,8 @@ static nc_utf8proc_ssize_t nc_seqindex_write_char_decomposed(nc_utf8proc_uint16_
   for (; len >= 0; entry++, len--) {
     nc_utf8proc_int32_t entry_cp = nc_seqindex_decode_entry(&entry);
 
-    written += nc_utf8proc_decompose_char(entry_cp, dst+written,
+    nc_utf8proc_int32_t *dest = dst ? (dst+written) : NULL;
+    written += nc_utf8proc_decompose_char(entry_cp, dest,
       (bufsize > written) ? (bufsize - written) : 0, options,
     last_boundclass);
     if (written < 0) return UTF8PROC_ERROR_OVERFLOW;
@@ -525,8 +526,10 @@ static nc_utf8proc_ssize_t nc_seqindex_write_char_decomposed(nc_utf8proc_uint16_
       if (custom_func != NULL) {
         uc = custom_func(uc, custom_data);   /* user-specified custom mapping */
       }
+      nc_utf8proc_int32_t *dest = NULL;
+      if (buffer) dest = buffer + wpos;
       decomp_result = nc_utf8proc_decompose_char(
-        uc, buffer + wpos, (bufsize > wpos) ? (bufsize - wpos) : 0, options,
+        uc, dest, (bufsize > wpos) ? (bufsize - wpos) : 0, options,
         &boundclass
       );
       if (decomp_result < 0) return decomp_result;
