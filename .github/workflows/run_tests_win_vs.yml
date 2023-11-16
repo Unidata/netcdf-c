@@ -34,3 +34,6 @@ jobs:
                 msystem: MINGW64
                 update: true
                 install: unzip automake libtool autoconf make toolchain
+
+            - name: (Query Environment)
+              run: ls && env
