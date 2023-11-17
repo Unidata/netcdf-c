@@ -6,7 +6,6 @@
 #include "d4includes.h"
 #include "d4curlfunctions.h"
 
-static size_t WriteFileCallback(void*, size_t, size_t, void*);
 static size_t WriteMemoryCallback(void*, size_t, size_t, void*);
 static int curlerrtoncerr(CURLcode cstat);
 
@@ -31,59 +30,6 @@ NCD4_fetchhttpcode(CURL* curl)
         nclog(NCLOGERR, "curl error: %s", curl_easy_strerror(cstat));
     }
     return httpcode;
-}
-
-int
-NCD4_fetchurl_file(CURL* curl, const char* url, FILE* stream,
-                d4size_t* sizep, long* filetime)
-{
-    int ret = NC_NOERR;
-    CURLcode cstat = CURLE_OK;
-    struct Fetchdata fetchdata;
-
-    /* Set the URL */
-    cstat = curl_easy_setopt(curl, CURLOPT_URL, (void*)url);
-    if (cstat != CURLE_OK) goto fail;
-
-    /* send all data to this function  */
-    cstat = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteFileCallback);
-    if (cstat != CURLE_OK) goto fail;
-
-    /* we pass our file to the callback function */
-    cstat = curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&fetchdata);
-    if(cstat != CURLE_OK) goto fail;
-
-    /* One last thing; always try to get the last modified time */
-    cstat = curl_easy_setopt(curl, CURLOPT_FILETIME, (long)1);
-    if (cstat != CURLE_OK) goto fail;
-
-    fetchdata.stream = stream;
-    fetchdata.size = 0;
-    cstat = curl_easy_perform(curl);
-    if (cstat != CURLE_OK)
-        {ret = NC_EDAPSVC; goto fail;}
-
-    if (ret == NC_NOERR) {
-        /* return the file size*/
-#ifdef D4DEBUG
-	nclog(NCLOGNOTE,"filesize: %lu bytes",fetchdata.size);
-#endif
-        if (sizep != NULL)
-            *sizep = fetchdata.size;
-        /* Get the last modified time */
-        if(filetime != NULL)
-            cstat = curl_easy_getinfo(curl,CURLINFO_FILETIME,filetime);
-        if(cstat != CURLE_OK)
-	    {ret = NC_ECURL; goto fail;}
-    }
-    return THROW(ret);
-
-fail:
-    if(cstat != CURLE_OK) {
-        nclog(NCLOGERR, "curl error: %s", curl_easy_strerror(cstat));
-        ret = curlerrtoncerr(cstat);
-    }
-    return THROW(ret);
 }
 
 int
@@ -153,27 +99,6 @@ done:
            default: ret = NC_ECURL; break;
     }
     return THROW(ret);
-}
-
-static size_t
-WriteFileCallback(void* ptr, size_t size, size_t nmemb, void* data)
-{
-    size_t realsize = size * nmemb;
-    size_t count;
-    struct Fetchdata* fetchdata;
-    fetchdata = (struct Fetchdata*) data;
-    if(realsize == 0)
-        nclog(NCLOGWARN,"WriteFileCallback: zero sized chunk");
-    count = fwrite(ptr, size, nmemb, fetchdata->stream);
-    if (count > 0) {
-            fetchdata->size += (count * size);
-    } else {
-        nclog(NCLOGWARN,"WriteFileCallback: zero sized write");
-    }
-#ifdef PROGRESS
-    nclog(NCLOGNOTE,"callback: %lu bytes",(d4size_t)realsize);
-#endif
-    return count;
 }
 
 static size_t
