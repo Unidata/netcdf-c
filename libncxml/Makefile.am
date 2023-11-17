@@ -35,7 +35,20 @@ tinyxml2::
 	rm -fr ./tinyxml2 ./license.txt
 	git clone --depth=1 ${REPO}
 	cat tinyxml2/LICENSE.txt > ./license.txt
-	cat tinyxml2/tinyxml2.h > ./tinyxml2.h
-	sed -e 's/__BORLANDC__/__APPLE__/' < tinyxml2/tinyxml2.cpp \
-	| sed -e 's/ptrdiff_t/long/g' > ./tinyxml2.cpp
+	tr -d '\r' < tinyxml2/tinyxml2.h > tinyxml2.h
+	cat tinyxml2/tinyxml2.cpp \
+	| sed -e 's/__BORLANDC__/__APPLE__/' \
+	| sed -e 's/ptrdiff_t/long/g' \
+	| sed -e '/^static[ ]*FILE[*][ ]*callfopen(/i\
+\#if 0' \
+	| sed -e '/^void[ ]*XMLDocument::DeleteNode(/i\
+\#endif /*0*/\
+' \
+	| sed -e '/^XMLError[ ]*XMLDocument::LoadFile([ ]*const[ ]*char[*]/i\
+\#if 0' \
+	| sed -e '/^XMLError[ ]*XMLDocument::Parse(/i\
+\#endif /*0*/\
+' \
+	| tr -d '\r' \
+	| cat > ./tinyxml2.cpp
 	rm -fr tinyxml2
