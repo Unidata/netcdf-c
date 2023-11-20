@@ -950,7 +950,6 @@ int
 NC_calcsize(const NC3_INFO *ncp, off_t *calcsizep)
 {
 	NC_var **vpp = (NC_var **)ncp->vars.value;
-	NC_var *const *const end = &vpp[ncp->vars.nelems];
 	NC_var *last_fix = NULL;	/* last "non-record" var */
 	int numrecvars = 0;	/* number of record variables */
 
@@ -960,12 +959,16 @@ NC_calcsize(const NC3_INFO *ncp, off_t *calcsizep)
 	    return NC_NOERR;
 	}
 
-	for( /*NADA*/; vpp < end; vpp++) {
-	    if(IS_RECVAR(*vpp)) {
-		numrecvars++;
-	    } else {
-		last_fix = *vpp;
-	    }
+	if (vpp)
+	{
+		NC_var *const *const end = &vpp[ncp->vars.nelems];
+		for( /*NADA*/; vpp < end; vpp++) {
+		    if(IS_RECVAR(*vpp)) {
+			numrecvars++;
+		    } else {
+			last_fix = *vpp;
+		    }
+		}
 	}
 
 	if(numrecvars == 0) {
