@@ -655,7 +655,10 @@ IF(USE_HDF5)
   # Assert HDF5 version meets minimum required version.
   ##
   SET(HDF5_VERSION_REQUIRED 1.8.10)
-
+  IF(ENABLE_HDF5_SWMR)
+      SET(HDF5_VERSION_REQUIRED 1.10)
+      MESSAGE(STATUS "HDF5 SWMR is enabled. This implies that HDF5 version at least ${HDF5_VERSION_REQUIRED} is required.")
+  ENDIF()
 
   ##
   # Accommodate developers who have hdf5 libraries and
@@ -735,15 +738,6 @@ IF(USE_HDF5)
     # HDF5 variables we need to munge.
     ##
 
-    ##
-    # Assert HDF5 version meets minimum required version.
-    ##
-    SET(HDF5_VERSION_REQUIRED 1.8.10)
-    IF(ENABLE_HDF5_SWMR)
-        SET(HDF5_VERSION_REQUIRED 1.10)
-        MESSAGE(STATUS "HDF5 SWMR is enabled. This implies that HDF5 version at least ${HDF5_VERSION_REQUIRED} is required.")
-    ENDIF()
-
     # Some versions of HDF5 set HDF5_VERSION_STRING instead of HDF5_VERSION
     IF(HDF5_VERSION_STRING AND NOT HDF5_VERSION)
       SET(HDF5_VERSION ${HDF5_VERSION_STRING})
@@ -784,9 +778,6 @@ IF(USE_HDF5)
     IF(${HDF5_VERSION} VERSION_LESS ${HDF5_VERSION_REQUIRED})
       MESSAGE(FATAL_ERROR "netCDF requires at least HDF5 ${HDF5_VERSION_REQUIRED}. Found ${HDF5_VERSION}.")
     ENDIF()
-
-    SET(HDF5_HAS_SWMR ${ENABLE_HDF5_SWMR})
-    MESSAGE(STATUS "HDF5 SWMR support: ${HDF5_HAS_SWMR}")
 
     ##
     # Include the HDF5 include directory.
@@ -851,6 +842,11 @@ IF(USE_HDF5)
     ENDIF()
 
   ENDIF(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR)
+
+  # Requesting SWMR support sets the minimum version to 1.10, so if
+  # we've got this far, we've got SWMR support
+  set(HDF5_HAS_SWMR ${ENABLE_HDF5_SWMR})
+  message(STATUS "HDF5 SWMR support: ${HDF5_HAS_SWMR}")
 
   FIND_PACKAGE(Threads)
 
