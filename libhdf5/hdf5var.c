@@ -1798,8 +1798,11 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 
 #ifdef HDF5_HAS_SWMR
     /* Flush data for SWMR */
-    if (H5Dflush(hdf5_var->hdf_datasetid) < 0)
-      BAIL(NC_EHDFERR);
+    if (h5->cmode & NC_HDF5_SWMR)
+    {
+      if (H5Dflush(hdf5_var->hdf_datasetid) < 0)
+        BAIL(NC_EHDFERR);
+    }
 #endif
 
     /* Remember that we have written to this var so that Fill Value
