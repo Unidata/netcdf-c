@@ -144,7 +144,7 @@ typedef struct NCZ_FILE_INFO {
     } zarr;
     int creating; /* 1=> created 0=>open */
     int native_endianness; /* NC_ENDIAN_LITTLE | NC_ENDIAN_BIG */
-    char** envv_controls; /* Envv format */
+    NClist* controllist; /* Envv format */
     struct Controls {
         size64_t flags;
 #		define FLAG_PUREZARR    1

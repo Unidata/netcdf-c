@@ -2283,6 +2283,7 @@ XMLUnknown* XMLDocument::NewUnknown( const char* str )
     return unk;
 }
 
+#if 0
 static FILE* callfopen( const char* filepath, const char* mode )
 {
     TIXMLASSERT( filepath );
@@ -2298,6 +2299,8 @@ static FILE* callfopen( const char* filepath, const char* mode )
 #endif
     return fp;
 }
+
+#endif /*0*/
 
 void XMLDocument::DeleteNode( XMLNode* node )	{
     TIXMLASSERT( node );
@@ -2317,6 +2320,7 @@ void XMLDocument::DeleteNode( XMLNode* node )	{
 }
 
 
+#if 0
 XMLError XMLDocument::LoadFile( const char* filename )
 {
     if ( !filename ) {
@@ -2419,6 +2423,8 @@ XMLError XMLDocument::SaveFile( FILE* fp, bool compact )
     return _errorID;
 }
 
+
+#endif /*0*/
 
 XMLError XMLDocument::Parse( const char* xml, size_t nBytes )
 {

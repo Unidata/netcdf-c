@@ -465,9 +465,6 @@ with zip */
 /* if true, HDF5 is at least version 1.10 and supports single-writer multiple-reader IO */
 #cmakedefine HDF5_HAS_SWMR 1
 
-/* if true, backtrace support will be used. */
-#cmakedefine HAVE_EXECINFO_H 1
-
 /* if true, include JNA bug fix */
 #cmakedefine JNA 1
 

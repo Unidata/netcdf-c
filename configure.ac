@@ -1320,9 +1320,6 @@ AC_CHECK_HEADERS([sys/resource.h])
 # See if we have ftw.h to walk directory trees
 AC_CHECK_HEADERS([ftw.h])
 
-# See if we can do stack tracing programmatically
-AC_CHECK_HEADERS([execinfo.h])
-
 # Check for these functions...
 AC_CHECK_FUNCS([strlcat snprintf strcasecmp fileno \
                 strdup strtoll strtoull \

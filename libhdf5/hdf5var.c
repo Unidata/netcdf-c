@@ -2398,7 +2398,7 @@ nc_set_var_chunk_cache_ints(int ncid, int varid, int size, int nelems,
         real_nelems = nelems;
 
     if (preemption >= 0)
-        real_preemption = preemption / 100.;
+        real_preemption = (float)(preemption / 100.);
 
     return NC4_HDF5_set_var_chunk_cache(ncid, varid, real_size, real_nelems,
                                         real_preemption);
