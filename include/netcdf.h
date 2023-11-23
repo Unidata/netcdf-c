@@ -161,7 +161,7 @@ Use this in mode flags for both nc_create() and nc_open(). */
 
 #define NC_PERSIST       0x4000  /**< Save diskless contents to disk. Mode flag for nc_open() or nc_create() */
 #define NC_INMEMORY      0x8000  /**< Read from memory. Mode flag for nc_open() or nc_create() */
-#define NC_HDF5_SWMR     0x2000 /** Reuse deprecated MPIIO flag for SWMR **/
+#define NC_HDF5_SWMR    0x10000  /**< Enable HDF5's Single Writer Multiple Reader mode **/
 
 /* Upper 16 bits */
 #define NC_NOATTCREORD  0x20000 /**< Disable the netcdf-4 (hdf5) attribute creation order tracking */
