@@ -71,6 +71,12 @@ IF(${HDF5_VERSION} VERSION_GREATER "1.10.0")
   SET(NC4_TESTS ${NC4_TESTS} tst_virtual_datasets)
 ENDIF(${HDF5_VERSION} VERSION_GREATER "1.10.0")
 
+if (ENABLE_HDF5_SWMR)
+  build_bin_test(test_hdf5_swmr_writer)
+  build_bin_test(test_hdf5_swmr_reader)
+  add_sh_test(nc_test4 test_hdf5_swmr)
+endif()
+
 ##
 # The shell script, run_empty_vlen_test.sh,
 # depends on the 'tst_empty_vlen_unlim' binary.

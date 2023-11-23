@@ -293,6 +293,8 @@ main(int argc, char **argv)
    }
    SUMMARIZE_ERR;
 #ifdef HDF5_HAS_SWMR
+   // Note that this test is really only a *very* rough test. See
+   // `test_hdf5_swmr.sh` for a more complete test
    printf("*** testing HDF5 SWMR...");
    {
 #define DATA_LEN 3
