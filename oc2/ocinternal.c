@@ -2,6 +2,7 @@
    See the COPYRIGHT file for more information. */
 
 #include "config.h"
+#include <stddef.h>
 #include <stdio.h>
 
 #ifdef HAVE_STDINT_H
@@ -320,7 +321,7 @@ createtempfile(OCstate* state, OCtree* tree)
     int stat = OC_NOERR;
     char* path = NULL;
     char* tmppath = NULL;
-    int len;
+    size_t len;
     NCglobalstate* globalstate = NC_getglobalstate();
 
     len =
@@ -552,7 +553,7 @@ ocset_curlproperties(OCstate* state)
         int stat = NC_NOERR;
         char* path = NULL;
         char* tmppath = NULL;
-        int len;
+        size_t len;
         errno = 0;
         /* Create the unique cookie file name */
         len =

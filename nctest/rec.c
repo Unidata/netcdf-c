@@ -359,8 +359,8 @@ test_ncrecput(path)
 
     /* get a block of data of the right type for each record variable */
     for (iv = 0; iv < nrvars; iv++) {
-	datap[iv] = emalloc(rvarsizes[iv]);
-	datar[iv] = emalloc(rvarsizes[iv]); /* for comparison values */
+	datap[iv] = emalloc((size_t)rvarsizes[iv]);
+	datar[iv] = emalloc((size_t)rvarsizes[iv]); /* for comparison values */
 	if (ncvarinq(ncid, rvarids[iv], 0, &vartype[iv], 0, 0, 0) == -1) {
 	    error("%s: ncvarinq failed", pname);
 	    ncclose(ncid);
@@ -517,8 +517,8 @@ test_ncrecget(path)
 
     /* get a block of data of the right type for each record variable */
     for (iv = 0; iv < nrvars; iv++) {
-	datap[iv] = emalloc(rvarsizes[iv]);
-	datar[iv] = emalloc(rvarsizes[iv]); /* for comparison values */
+	datap[iv] = emalloc((size_t)rvarsizes[iv]);
+	datar[iv] = emalloc((size_t)rvarsizes[iv]); /* for comparison values */
 	if (ncvarinq(ncid, rvarids[iv], 0, &vartype[iv], 0, 0, 0) == -1) {
 	    error("%s: ncvarinq failed", pname);
 	    ncclose(ncid);

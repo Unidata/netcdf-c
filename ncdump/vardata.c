@@ -451,8 +451,8 @@ print_rows(
 	marks_pending++;	/* matching "}"s to emit after last "row" */
     }
     if(rank - level > 1) {     	/* this level is just d0 next levels */
-	size_t *local_cor = emalloc((rank + 1) * sizeof(size_t));
-	size_t *local_edg = emalloc((rank + 1) * sizeof(size_t));
+	size_t *local_cor = emalloc((size_t)(rank + 1) * sizeof(size_t));
+	size_t *local_edg = emalloc((size_t)(rank + 1) * sizeof(size_t));
 	for(i = 0; i < rank; i++) {
 	    local_cor[i] = cor[i];
 	    local_edg[i] = edg[i];
@@ -546,9 +546,9 @@ vardata(
     int level = 0;
     int marks_pending = 0;
 
-    cor = (size_t *) emalloc((1 + vrank) * sizeof(size_t));
-    edg = (size_t *) emalloc((1 + vrank) * sizeof(size_t));
-    add = (size_t *) emalloc((1 + vrank) * sizeof(size_t));
+    cor = (size_t *) emalloc((size_t)(1 + vrank) * sizeof(size_t));
+    edg = (size_t *) emalloc((size_t)(1 + vrank) * sizeof(size_t));
+    add = (size_t *) emalloc((size_t)(1 + vrank) * sizeof(size_t));
 
     nels = 1;
     if(vrank == 0) { /*scalar*/
@@ -733,9 +733,9 @@ vardatax(
     size_t nrows;
     int vrank = vp->ndims;
 
-    cor = (size_t *) emalloc((vrank + 1) * sizeof(size_t));
-    edg = (size_t *) emalloc((vrank + 1) * sizeof(size_t));
-    add = (size_t *) emalloc((vrank + 1) * sizeof(size_t));
+    cor = (size_t *) emalloc((size_t)(vrank + 1) * sizeof(size_t));
+    edg = (size_t *) emalloc((size_t)(vrank + 1) * sizeof(size_t));
+    add = (size_t *) emalloc((size_t)(vrank + 1) * sizeof(size_t));
 
     nels = 1;
     for (id = 0; id < vrank; id++) {

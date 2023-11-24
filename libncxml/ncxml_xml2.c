@@ -1,5 +1,6 @@
 /* Copyright 2018-2018 University Corporation for Atmospheric  Research/Unidata. */
 
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <libxml2/libxml/parser.h>
@@ -139,7 +140,8 @@ ncxml_attr_pairs(ncxml_t xml0, char*** pairsp)
     char** pairs = NULL;
     xmlNode* xml = (xmlNode*)xml0;
     xmlAttr* attr = NULL;
-    int i,count = 0;
+    int i;
+    size_t count = 0;
 
     if(xml == NULL) return 0;
     /* First count */

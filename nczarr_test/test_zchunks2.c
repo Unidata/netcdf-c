@@ -26,7 +26,7 @@ calculate_waste(int ndims, size_t *dimlen, size_t *chunksize, float *waste)
    size_t chunk_size = 1;
 
    assert(waste && dimlen && chunksize && ndims);
-   if (!(num_chunks = calloc(ndims, sizeof(size_t)))) ERR;
+   if (!(num_chunks = calloc((size_t)ndims, sizeof(size_t)))) ERR;
 
 #ifdef PRINT_CHUNK_WASTE_REPORT
    printf("\n");

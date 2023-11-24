@@ -66,7 +66,7 @@ test_ncvarputg(path)
 	}
 
 	/* fill in vals with value of appropriate type */
-	hc.vals = emalloc(nctypelen(test.vars[iv].type));
+	hc.vals = emalloc((size_t)nctypelen(test.vars[iv].type));
 	val_fill(test.vars[iv].type, 1, hc.vals);
 
 #	define TEST_FAILS(varid) \

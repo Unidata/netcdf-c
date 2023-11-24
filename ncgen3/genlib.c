@@ -5,6 +5,7 @@
  *********************************************************************/
 
 #include "config.h"
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -1756,7 +1757,7 @@ grow_iarray(
   }
   if (! pow2(nar))		/* return unless nar is a power of two */
     return;
-  *arpp = (int *) erealloc(*arpp, 2 * nar * sizeof(int));
+  *arpp = (int *) erealloc(*arpp, 2 * (size_t)nar * sizeof(int));
 }
 
 
@@ -1782,7 +1783,7 @@ grow_varray(
   }
   if (! pow2(nar))		/* return unless nar is a power of two */
     return;
-  *arpp = (struct vars *) erealloc(*arpp, 2 * nar * sizeof(struct vars));
+  *arpp = (struct vars *) erealloc(*arpp, 2 * (size_t)nar * sizeof(struct vars));
 }
 
 
@@ -1808,7 +1809,7 @@ grow_darray(
   }
   if (! pow2(nar))		/* return unless nar is a power of two */
     return;
-  *arpp = (struct dims *) erealloc(*arpp, 2 * nar * sizeof(struct dims));
+  *arpp = (struct dims *) erealloc(*arpp, 2 * (size_t)nar * sizeof(struct dims));
 }
 
 
@@ -1834,7 +1835,7 @@ grow_aarray(
   }
   if (! pow2(nar))		/* return unless nar is a power of two */
     return;
-  *arpp = (struct atts *) erealloc(*arpp, 2 * nar * sizeof(struct atts));
+  *arpp = (struct atts *) erealloc(*arpp, 2 * (size_t)nar * sizeof(struct atts));
 }
 
 
@@ -1899,9 +1900,9 @@ decodify (
 /* 	{'_', "_UNDERSCORE_"} */
     };
     static int idtlen;
-    static int hexlen;
+    static size_t hexlen;
     int nctable = (sizeof(ctable))/(sizeof(ctable[0]));
-    int newlen;
+    size_t newlen;
 
     idtlen = strlen("DIGIT_n_"); /* initial digit template */
     hexlen = 1+strlen("_XHH"); /* template for hex of non-ASCII bytes */

@@ -421,7 +421,7 @@ main(int argc, char **argv)
 	   char varname2[NC_MAX_NAME];
 	   /* How many values in this variable to compare? */
 	   if (nc_inq_varndims(ncid1, varid, &ndims)) ERR;
-	   dimids = malloc((ndims + 1) * sizeof(int));
+	   dimids = malloc((size_t)(ndims + 1) * sizeof(int));
 	   if (!dimids) ERR;
 	   if (nc_inq_vardimid (ncid1, varid, dimids)) ERR;
 	   nvals = 1;

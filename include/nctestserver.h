@@ -52,7 +52,7 @@ parseServers(const char* remotetestservers)
 
     /* Keep LGTM quiet */
     if(rtslen > MAXREMOTETESTSERVERS) goto done;
-    list = (char**)malloc(sizeof(char*) * (int)(rtslen/2));
+    list = (char**)malloc(sizeof(char*) * (rtslen/2));
     if(list == NULL) return NULL;
     rts = strdup(remotetestservers);
     if(rts == NULL) goto done;

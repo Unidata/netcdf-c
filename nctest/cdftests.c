@@ -275,7 +275,7 @@ test_ncredef(path)
     add_dim(&test, &ii);	/* keep in-memory netcdf in sync */
 
     /* dimension added OK, add a variable */
-    aa.dims = (int *)emalloc(sizeof(int) * aa.ndims);
+    aa.dims = (int *)emalloc(sizeof(int) * (size_t)aa.ndims);
     aa.dims[0] = ii_dim;
     if ((aa_id = ncvardef(ncid, aa.name, aa.type,
 			   aa.ndims, aa.dims)) == -1) {
@@ -367,7 +367,7 @@ test_ncendef(path)
     add_dim(&test, &kk);	/* keep in-memory netcdf in sync */
     
     /* dimensions added OK, add a variable */
-    bb.dims = (int *) emalloc(sizeof(int) * bb.ndims);
+    bb.dims = (int *) emalloc(sizeof(int) * (size_t)bb.ndims);
     bb.dims[0] = kk_dim;
     bb.dims[1] = jj_dim;
     if ((bb_id = ncvardef(ncid, bb.name, bb.type,
@@ -562,7 +562,7 @@ test_ncinquire(path)
 
     /* add some record variables */
     for (iv = 0; iv < nv; iv++) {
-	cc[iv].dims = (int *) emalloc(sizeof(int) * cc[iv].ndims);
+	cc[iv].dims = (int *) emalloc(sizeof(int) * (size_t)cc[iv].ndims);
 	cc[iv].dims[0] = rec_dim; /* first dimension unlimited */
 	for (id = 1; id < cc[iv].ndims; id++)
 	  cc[iv].dims[id] = dimids[id];
@@ -676,7 +676,7 @@ test_ncsync(path)
     }
     add_dim(&test, &ll);
 
-    dd.dims = (int *) emalloc(sizeof(int) * dd.ndims);
+    dd.dims = (int *) emalloc(sizeof(int) * (size_t)dd.ndims);
     dd.dims[0] = ll_dim;
     if ((dd_id=ncvardef(ncid0, dd.name, dd.type, dd.ndims, dd.dims)) == -1) {
 	error("%s: ncvardef failed", pname);

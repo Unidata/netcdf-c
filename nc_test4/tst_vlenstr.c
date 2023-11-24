@@ -1,3 +1,4 @@
+#include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -34,7 +35,7 @@ checkErrorCode(int status, const char* message)
 
 
 void
-writeVariable(int dimlength, int ncid, nc_type vlen_typeID)
+writeVariable(size_t dimlength, int ncid, nc_type vlen_typeID)
 {
     int retval = NC_NOERR;
     int dimid;
@@ -99,12 +100,12 @@ createFruitsData(int elemno, int vlensize, int* stringIndexp, nc_vlen_t* data)
 }
 
 void
-writeAttribute(int len, int ncid, nc_type vlen_typeID)
+writeAttribute(size_t len, int ncid, nc_type vlen_typeID)
 {
     int retval = NC_NOERR;
     
     /* Setup data */
-    nc_vlen_t* data = calloc(sizeof(nc_vlen_t),len);
+    nc_vlen_t* data = calloc(sizeof(nc_vlen_t), len);
 
     /* create six variable length arrays of strings */
     int stringIndex = 0;
