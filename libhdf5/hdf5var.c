@@ -433,7 +433,7 @@ NC4_def_var(int ncid, const char *name, nc_type xtype, int ndims,
      * remember whether dimension scales have been attached to each
      * dimension. */
     if (!hdf5_var->dimscale && ndims)
-        if (!(hdf5_var->dimscale_attached = calloc(ndims, sizeof(nc_bool_t))))
+        if (!(hdf5_var->dimscale_attached = calloc((size_t)ndims, sizeof(nc_bool_t))))
             BAIL(NC_ENOMEM);
 
     /* Return the varid. */

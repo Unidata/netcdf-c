@@ -60,7 +60,7 @@ add_var (test, ivar)		/* add the variable ivar to the netcdf test */
     (void) strcpy(test->vars[test->nvars].name, ivar->name);
     test->vars[test->nvars].type = ivar->type;
     test->vars[test->nvars].ndims = ivar->ndims;
-    test->vars[test->nvars].dims = (int *) emalloc(sizeof(int)*ivar->ndims);
+    test->vars[test->nvars].dims = (int *) emalloc(sizeof(int)*(size_t)ivar->ndims);
     for (i = 0; i < ivar->ndims; i++)
       test->vars[test->nvars].dims[i] = ivar->dims[i];
     test->vars[test->nvars].natts = 0;
