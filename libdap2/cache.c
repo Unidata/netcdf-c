@@ -25,7 +25,9 @@ static int iscacheableconstraint(DCEconstraint* con);
 int
 iscached(NCDAPCOMMON* nccomm, CDFnode* target, NCcachenode** cachenodep)
 {
-    int i,j,found,index;
+    int i, found;
+    size_t j;
+    size_t index;
     NCcache* cache;
     NCcachenode* cachenode;
 
