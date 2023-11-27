@@ -5,6 +5,7 @@
 #include "config.h"
 #include "dapparselex.h"
 #include "dapy.h"
+#include <stddef.h>
 
 /* Forward */
 
@@ -403,7 +404,7 @@ static NClist*
 scopeduplicates(NClist* list)
 {
     unsigned int i,j;
-    unsigned int len = nclistlength(list);
+    size_t len = nclistlength(list);
     NClist* dups = NULL;
     for(i=0;i<len;i++) {
 	OCnode* io = (OCnode*)nclistget(list,i);

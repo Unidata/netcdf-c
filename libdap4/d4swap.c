@@ -5,6 +5,7 @@
 
 #include "d4includes.h"
 #include <stdarg.h>
+#include <stddef.h>
 #include "d4includes.h"
 
 /*
@@ -151,7 +152,7 @@ static int
 walkStruct(NCD4response* resp, NCD4node* topvar, NCD4node* structtype, NCD4offset* offset, int doswap)
 {
     int ret = NC_NOERR;
-    int i;
+    size_t i;
 
     for(i=0;i<nclistlength(structtype->vars);i++) {
 	NCD4node* field = (NCD4node*)nclistget(structtype->vars,i);

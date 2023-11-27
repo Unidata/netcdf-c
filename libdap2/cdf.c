@@ -6,6 +6,7 @@
 #include "dapincludes.h"
 #include "daputil.h"
 #include "dapdump.h"
+#include <stddef.h>
 
 #ifdef DAPDEBUG
 extern char* ocfqn(OCddsnode);
@@ -433,7 +434,7 @@ we expected a grid.
 static int
 restructr(NCDAPCOMMON* ncc, CDFnode* dxdparent, CDFnode* patternparent, NClist* repairlist)
 {
-    int index, i, j, match;
+    size_t index, i, j, match;
 
 #ifdef DEBUG
 fprintf(stderr,"restruct: matched: %s -> %s\n",
@@ -501,7 +502,7 @@ static NCerror
 repairgrids(NCDAPCOMMON* ncc, NClist* repairlist)
 {
     NCerror ncstat = NC_NOERR;
-    int i;
+    size_t i;
     assert(nclistlength(repairlist) % 2 == 0);
     for(i=0;i<nclistlength(repairlist);i+=2) {
 	CDFnode* node = (CDFnode*)nclistget(repairlist,i);
@@ -541,7 +542,7 @@ structwrap(NCDAPCOMMON* ncc, CDFnode* node, CDFnode* parent, int parentindex,
 static int
 findin(CDFnode* parent, CDFnode* child)
 {
-    int i;
+    size_t i;
     NClist* subnodes = parent->subnodes;
     for(i=0;i<nclistlength(subnodes);i++) {
 	if(nclistget(subnodes,i) == child)
@@ -674,13 +675,13 @@ dimimprint(NCDAPCOMMON* nccomm)
 {
     NCerror ncstat = NC_NOERR;
     NClist* allnodes;
-    int i,j;
+    size_t i,j;
     CDFnode* basenode;
 
     allnodes = nccomm->cdf.ddsroot->tree->nodes;
     for(i=0;i<nclistlength(allnodes);i++) {
 	CDFnode* node = (CDFnode*)nclistget(allnodes,i);
-	int noderank, baserank;
+	size_t noderank, baserank;
         /* Do dimension imprinting */
 	basenode = node->basenode;
 	if(basenode == NULL) continue;
@@ -689,7 +690,7 @@ dimimprint(NCDAPCOMMON* nccomm)
 	if(noderank == 0) continue;
         ASSERT(noderank == baserank);
 #ifdef DEBUG
-fprintf(stderr,"dimimprint %s/%d -> %s/%d\n",
+fprintf(stderr,"dimimprint %s/%zu -> %s/%zu\n",
 	makecdfpathstring(basenode,"."),
 	noderank,
 	makecdfpathstring(node,"."),
@@ -725,7 +726,7 @@ static NClist*
 clonedimset(NCDAPCOMMON* nccomm, NClist* dimset, CDFnode* var)
 {
     NClist* result = NULL;
-    int i;
+    size_t i;
 
     for(i=0;i<nclistlength(dimset);i++) {
         CDFnode *dim = NULL;
@@ -768,7 +769,7 @@ definedimsetplus(NCDAPCOMMON* nccomm/*notused*/, CDFnode* node)
 static NCerror
 definedimsetall(NCDAPCOMMON* nccomm/*notused*/, CDFnode* node)
 {
-    int i;
+    size_t i;
     int ncstat = NC_NOERR;
     NClist* dimsetall = NULL;
 
@@ -795,7 +796,7 @@ fprintf(stderr,"dimsetall: |%s|=%d\n",node->ocname,(int)nclistlength(dimsetall))
 static NCerror
 definetransdimset(NCDAPCOMMON* nccomm/*notused*/, CDFnode* node)
 {
-    int i;
+    size_t i;
     int ncstat = NC_NOERR;
     NClist* dimsettrans = NULL;
 
@@ -842,7 +843,7 @@ Recursive helper for definedimsettrans3
 static NCerror
 definedimsettransR(NCDAPCOMMON* nccomm, CDFnode* node)
 {
-    int i;
+    size_t i;
     int ncstat = NC_NOERR;
 
     definetransdimset(nccomm,node);
@@ -882,7 +883,7 @@ Recursive helper
 static NCerror
 definedimsetsR(NCDAPCOMMON* nccomm, CDFnode* node)
 {
-    int i;
+    size_t i;
     int ncstat = NC_NOERR;
 
     definedimsetplus(nccomm,node);
@@ -1057,7 +1058,7 @@ buildcdftreer(NCDAPCOMMON* nccomm, OCddsnode ocnode, CDFnode* container,
 void
 freecdfroot(CDFnode* root)
 {
-    int i;
+    size_t i;
     CDFtree* tree;
     NCDAPCOMMON* nccomm;
     if(root == NULL) return;
@@ -1187,7 +1188,7 @@ fix1node(NCDAPCOMMON* nccomm, CDFnode* node)
 static NCerror
 fixnodes(NCDAPCOMMON* nccomm, NClist* cdfnodes)
 {
-    int i;
+    size_t i;
     for(i=0;i<nclistlength(cdfnodes);i++) {
 	CDFnode* node = (CDFnode*)nclistget(cdfnodes,i);
 	NCerror err = fix1node(nccomm,node);

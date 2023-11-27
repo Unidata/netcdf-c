@@ -1,5 +1,6 @@
 /* Copyright 2018, UCAR/Unidata and OPeNDAP, Inc.
    See the COPYRIGHT file for more information. */
+#include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -270,7 +271,7 @@ nclistclone(const NClist* l, int deep)
         nclistsetlength(clone,l->length);
         memcpy((void*)clone->content,(void*)l->content,sizeof(void*)*l->length);
     } else { /*deep*/
-	int i;
+	size_t i;
 	for(i=0;i<nclistlength(l);i++) {
 	    char* dups = strdup(nclistget(l,i));
 	    if(dups == NULL) {nclistfreeall(clone); clone = NULL; goto done;}

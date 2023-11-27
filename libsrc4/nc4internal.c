@@ -24,6 +24,7 @@
 #include "ncdispatch.h" /* from libdispatch */
 #include "ncutf8.h"
 #include <stdarg.h>
+#include <stddef.h>
 #include "ncrc.h"
 
 /** @internal Number of reserved attributes. These attributes are
@@ -507,7 +508,7 @@ nc4_find_dim(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T **dim,
     LOG((4, "%s: dimid %d", __func__, dimid));
 
     /* Find the dim info. */
-    if (!((*dim) = nclistget(grp->nc4_info->alldims, dimid)))
+    if (!((*dim) = nclistget(grp->nc4_info->alldims, (size_t)dimid)))
         return NC_EBADDIM;
 
     /* Give the caller the group the dimension is in. */
@@ -597,7 +598,7 @@ nc4_find_type(const NC_FILE_INFO_T *h5, nc_type typeid, NC_TYPE_INFO_T **type)
         return NC_NOERR;
 
     /* Find the type. */
-    if (!(*type = nclistget(h5->alltypes,typeid)))
+    if (!(*type = nclistget(h5->alltypes, (size_t)typeid)))
         return NC_EBADTYPID;
 
     return NC_NOERR;
@@ -1252,7 +1253,7 @@ field_free(NC_FIELD_INFO_T *field)
 int
 nc4_type_free(NC_TYPE_INFO_T *type)
 {
-    int i;
+    size_t i;
 
     assert(type && type->rc && type->hdr.name);
 
