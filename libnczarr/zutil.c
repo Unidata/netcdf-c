@@ -11,6 +11,7 @@
  */
 
 #include "zincludes.h"
+#include <stddef.h>
 
 #undef DEBUG
 
@@ -125,7 +126,7 @@ NCZ_grpkey(const NC_GRP_INFO_T* grp, char** pathp)
     NClist* segments = nclistnew();
     NCbytes* path = NULL;
     NC_GRP_INFO_T* parent = NULL;
-    int i;
+    size_t i;
 
     nclistinsert(segments,0,(void*)grp);
     parent = grp->parent;
@@ -475,7 +476,8 @@ Note: need to test with "/", "", and with and without trailing "/".
 int
 NCZ_subobjects(NCZMAP* map, const char* prefix, const char* tag, char dimsep, NClist* objlist)
 {
-    int i,stat=NC_NOERR;
+    size_t i;
+    int stat = NC_NOERR;
     NClist* matches = nclistnew();
     NCbytes* path = ncbytesnew();
 

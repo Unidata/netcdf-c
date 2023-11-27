@@ -5,6 +5,7 @@
 #include "ocinternal.h"
 #include "occompile.h"
 #include "ocdebug.h"
+#include <stddef.h>
 
 static OCerror mergedas1(OCnode* dds, OCnode* das);
 static OCerror mergedods1(OCnode* dds, OCnode* das);
@@ -417,7 +418,7 @@ static OCerror
 mergeother(OCnode* ddsroot, NClist* dasnodes)
 {
     OCerror stat = OC_NOERR;
-    int i;
+    size_t i;
     for(i=0;i<nclistlength(dasnodes);i++) {
 	OCnode* das = (OCnode*)nclistget(dasnodes,i);
 	if(das == NULL) continue;
@@ -445,7 +446,7 @@ mergeother1(OCnode* root, OCnode* das)
         att = makeattribute(das->fullname,das->etype,das->att.values);	
         nclistpush(root->attributes,(void*)att);
     } else if(das->octype == OC_Attributeset) {
-	int i;
+	size_t i;
 	/* Recurse */
         for(i=0;i<nclistlength(das->subnodes);i++) {
 	    OCnode* sub = (OCnode*)nclistget(das->subnodes,i);

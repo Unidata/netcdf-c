@@ -22,6 +22,7 @@
 #include "hdf5err.h" /* For BAIL2 */
 #include "hdf5debug.h"
 #include <math.h>
+#include <stddef.h>
 
 #ifdef HAVE_INTTYPES_H
 #define __STDC_FORMAT_MACROS
@@ -886,7 +887,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
      * nc_def_var_filter(). If the user
      * has specified a filter, it will be applied here. */
     if(var->filters != NULL) {
-	int j;
+	size_t j;
 	NClist* filters = (NClist*)var->filters;
 	for(j=0;j<nclistlength(filters);j++) {
 	    struct NC_HDF5_Filter* fi = (struct NC_HDF5_Filter*)nclistget(filters,j);
@@ -1191,7 +1192,7 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
     {
         NC_FIELD_INFO_T *field;
         hid_t hdf_base_typeid, hdf_typeid;
-        int i;
+        size_t i;
 
         if ((hdf5_type->hdf_typeid = H5Tcreate(H5T_COMPOUND, type->size)) < 0)
             return NC_EHDFERR;
@@ -1255,7 +1256,7 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
     else if (type->nc_type_class == NC_ENUM)
     {
         NC_ENUM_MEMBER_INFO_T *enum_m;
-        int i;
+        size_t i;
 
         if (nclistlength(type->u.e.enum_member) == 0)
             return NC_EINVAL;

@@ -4,6 +4,7 @@
  *********************************************************************/
 
 #include "config.h"
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -378,7 +379,7 @@ NC_testmode(NCURI* uri, const char* tag)
 {
     int stat = NC_NOERR;
     int found = 0;
-    int i;
+    size_t i;
     const char* modestr = NULL;
     NClist* modelist = NULL;
 
@@ -467,7 +468,7 @@ int
 NC_join(NClist* segments, char** pathp)
 {
     int stat = NC_NOERR;
-    int i;
+    size_t i;
     NCbytes* buf = NULL;
 
     if(segments == NULL)

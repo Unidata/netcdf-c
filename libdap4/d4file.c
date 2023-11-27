@@ -7,6 +7,7 @@
 #include "ncd4dispatch.h"
 #include "d4includes.h"
 #include "d4curlfunctions.h"
+#include <stddef.h>
 
 #ifdef _MSC_VER
 #include <process.h>
@@ -678,7 +679,7 @@ NCD4_newMeta(NCD4INFO* info, NCD4meta** metap)
 void
 NCD4_reclaimMeta(NCD4meta* dataset)
 {
-    int i;
+    size_t i;
     if(dataset == NULL) return;
 
     for(i=0;i<nclistlength(dataset->allnodes);i++) {

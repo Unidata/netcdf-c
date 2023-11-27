@@ -4,6 +4,7 @@
  *********************************************************************/
 
 #include "dapincludes.h"
+#include <stddef.h>
 
 #define OCCHECK(exp) if((ocstat = (exp))) {THROWCHK(ocstat); goto done;}
 
@@ -18,7 +19,7 @@ and stuff from DODS_EXTRA.
 int
 dapmerge(NCDAPCOMMON* nccomm, CDFnode* ddsroot, OCddsnode dasroot)
 {
-    int i,j;
+    size_t i,j;
     NCerror ncstat = NC_NOERR;
     OCerror ocstat = OC_NOERR;
     NClist* allnodes;

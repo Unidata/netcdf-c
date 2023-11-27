@@ -18,6 +18,7 @@
 #include "ncauth.h"
 #include "ncmodel.h"
 #include "ncpathmgr.h"
+#include <stddef.h>
 
 #ifdef ENABLE_BYTERANGE
 #include "H5FDhttp.h"
@@ -2088,7 +2089,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
             return NC_EHDFERR;
         LOG((5, "compound type has %d members", nmembers));
         type->u.c.field = nclistnew();
-        nclistsetalloc(type->u.c.field,nmembers);
+        nclistsetalloc(type->u.c.field, (size_t)nmembers);
 
         for (m = 0; m < nmembers; m++)
         {
@@ -2253,7 +2254,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
         if ((nmembers = H5Tget_nmembers(hdf_typeid)) < 0)
             return NC_EHDFERR;
         type->u.e.enum_member = nclistnew();
-        nclistsetalloc(type->u.e.enum_member,nmembers);
+        nclistsetalloc(type->u.e.enum_member, (size_t)nmembers);
 
         /* Allocate space for one value. */
         if (!(value = calloc(1, type_size)))
@@ -2816,7 +2817,8 @@ rec_read_metadata(NC_GRP_INFO_T *grp)
     hid_t pid = -1;
     unsigned crt_order_flags = 0;
     H5_index_t iter_index;
-    int i, retval = NC_NOERR;
+    size_t i;
+    int retval = NC_NOERR;
 
     assert(grp && grp->hdr.name && grp->format_grp_info);
     LOG((3, "%s: grp->hdr.name %s", __func__, grp->hdr.name));

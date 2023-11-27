@@ -5,6 +5,7 @@
 
 #include "dapincludes.h"
 #include "dapdump.h"
+#include <stddef.h>
 
 /*
 Grads servers always require a constraint,
@@ -92,7 +93,7 @@ else
 NCerror
 prefetchdata(NCDAPCOMMON* nccomm)
 {
-    int i;
+    size_t i;
     NCFLAGS flags;
     NCerror ncstat = NC_NOERR;
     NClist* allvars = nccomm->cdf.ddsroot->tree->varnodes;
@@ -341,7 +342,7 @@ fprintf(stderr,"freecachenode: %s\n",
 void
 freenccache(NCDAPCOMMON* nccomm, NCcache* cache)
 {
-    int i;
+    size_t i;
     if(cache == NULL) return;
     freenccachenode(nccomm,cache->prefetch);
     for(i=0;i<nclistlength(cache->nodes);i++) {
@@ -367,7 +368,8 @@ createnccache(void)
 static int
 iscacheableprojection(DCEprojection* proj)
 {
-    int i,cacheable;
+    size_t i;
+    int cacheable;
     if(proj->discrim != CES_VAR) return 0;
     cacheable = 1; /* assume so */
     for(i=0;i<nclistlength(proj->var->segments);i++) {
@@ -380,7 +382,7 @@ iscacheableprojection(DCEprojection* proj)
 static int
 iscacheableconstraint(DCEconstraint* con)
 {
-    int i;
+    size_t i;
     if(con == NULL) return 1;
     if(con->selections != NULL && nclistlength(con->selections) > 0)
 	return 0; /* can't deal with selections */
@@ -400,7 +402,7 @@ A variable is prefetchable if
 NCerror
 markprefetch(NCDAPCOMMON* nccomm)
 {
-    int i,j;
+    size_t i,j;
     NClist* allvars = nccomm->cdf.fullddsroot->tree->varnodes;
     assert(allvars != NULL);
     /* mark those variables of sufficiently small size */
