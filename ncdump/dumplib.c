@@ -657,8 +657,8 @@ ncvlen_val_equals(const nctype_t *this,
 bool_t
 nccomp_val_equals(const nctype_t *this,
 		  const void *v1p, const void *v2p) {
-    int nfields = this->nfields;
-    int fidx;			/* field id */
+    size_t nfields = this->nfields;
+    size_t fidx;			/* field id */
 
     for (fidx = 0; fidx < nfields; fidx++) {
 	size_t offset = this->offsets[fidx];
@@ -969,7 +969,7 @@ ncopaque_val_as_hex(size_t size, char *sout, const void *valp) {
     char *sp = sout;
     int i;
     char *prefix = "0X";
-    int prelen = strlen(prefix);
+    size_t prelen = strlen(prefix);
 
     snprintf(sp, prelen + 1, "%s", prefix);
     sp += prelen;
@@ -980,7 +980,7 @@ ncopaque_val_as_hex(size_t size, char *sout, const void *valp) {
 	sp += 2;
     }
     *sp = '\0';
-    return 2*size + prelen;
+    return (int)(2*size + prelen);
 }
 
 /* Convert an opaque value to a string, represented as hexadecimal
@@ -1080,8 +1080,8 @@ chars_tostring(
    each member field */
 int
 nccomp_typ_tostring(const nctype_t *tinfo, safebuf_t *sfbf, const void *valp) {
-    int nfields = tinfo->nfields;
-    int fidx;			/* field id */
+    size_t nfields = tinfo->nfields;
+    size_t fidx;			/* field id */
     safebuf_t* sout2 = sbuf_new();
 
     sbuf_cpy(sfbf, "{");
@@ -1104,11 +1104,9 @@ nccomp_typ_tostring(const nctype_t *tinfo, safebuf_t *sfbf, const void *valp) {
 	    sbuf_cpy(sout2, "{");
 	    if(finfo->tid == NC_CHAR) { /* aggregate char rows into strings */
 		int rank = tinfo->ranks[fidx];
-		size_t nstrings;
-		size_t slen;
 		int j;
-		slen = tinfo->sides[fidx][rank-1];
-		nstrings = 1;	/* product of all but last array dimension */
+		size_t slen = (size_t)tinfo->sides[fidx][rank-1];
+		int nstrings = 1;	/* product of all but last array dimension */
 		for(j=0; j < rank-1; j++) {
 		    nstrings *= tinfo->sides[fidx][j];
 		}
@@ -1135,7 +1133,7 @@ nccomp_typ_tostring(const nctype_t *tinfo, safebuf_t *sfbf, const void *valp) {
 	    sbuf_free(sout3);
 	}
 	sbuf_catb(sfbf, sout2);
-	if(fidx < nfields - 1) {
+	if((fidx + 1) < nfields) {
 	    sbuf_cat(sfbf, ", ");
 	}
     }
@@ -1265,7 +1263,7 @@ nctime_val_tostring(const ncvar_t *varp, safebuf_t *sfbf, const void *valp) {
     if(isfinite(vv)) {
 	int oldopts = 0;
 	int newopts = 0;
-	int res;
+	size_t res;
 	sout[0]='"';
 	/* Make nctime dump error messages */
 	oldopts = cdSetErrOpts(0);
