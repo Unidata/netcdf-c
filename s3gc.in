@@ -61,7 +61,9 @@ if ! aws s3api list-objects-v2 --bucket ${S3TESTBUCKET} --prefix "${S3TESTSUBTRE
 fi
 aws s3api list-objects-v2 --bucket ${S3TESTBUCKET} --prefix "${S3TESTSUBTREE}" | grep -F '"Key":' >s3gc.keys
 while read -r line; do
-  KEY=`echo "$line" | sed -e 's|[^"]*"Key":[^"]*"\([^"]*\)".*|\1|'`
+  KEY0=`echo "$line" | sed -e 's|[^"]*"Key":[^"]*"\([^"]*\)".*|\1|'`
+  # Strip off any leading '/'
+  KEY=`echo "$KEY0" | sed -e 's|^[/]*\(.*\)|\1|'`
   # Ignore keys that do not start with ${S3TESTSUBTREE}
   PREFIX=`echo "$KEY" | sed -e 's|\([^/]*\)/.*|\1|'`
   if test "x$PREFIX" = "x$S3TESTSUBTREE" ; then
