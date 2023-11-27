@@ -255,7 +255,8 @@ nclistconcat(NClist* l1, NClist* l2)
 int
 nclistminus(NClist* l1, NClist* l2)
 {
-    unsigned int i,len,found;
+    size_t i, len;
+    int found;
     len = nclistlength(l2);
     found = 0;
     for(i=0;i<len;i++) {

@@ -496,15 +496,14 @@ buildCompound(NCD4meta* builder, NCD4node* cmpdtype, NCD4node* group, char* name
 
     /* Step 3: add the fields to type */
     for(i=0;i<nclistlength(cmpdtype->vars);i++) {
-	int rank;
 	int dimsizes[NC_MAX_VAR_DIMS];
         NCD4node* field = (NCD4node*)nclistget(cmpdtype->vars,i);
-	rank = nclistlength(field->dims);
+	size_t rank = nclistlength(field->dims);
         if(rank == 0) { /* scalar */
             NCCHECK((nc_insert_compound(group->meta.id, cmpdtype->meta.id,
 					field->name, field->meta.offset,
 					field->basetype->meta.id)));
-        } else if(rank > 0) { /* array  */
+        } else { /* array  */
   	    int idimsizes[NC_MAX_VAR_DIMS];
 	    int j;
 	    getDimsizes(field,dimsizes);
@@ -513,7 +512,7 @@ buildCompound(NCD4meta* builder, NCD4node* cmpdtype, NCD4node* group, char* name
             NCCHECK((nc_insert_array_compound(group->meta.id, cmpdtype->meta.id,
 					      field->name, field->meta.offset,
 					      field->basetype->meta.id,
-					      rank, idimsizes)));
+					      (int)rank, idimsizes)));
 	}
     }
 
@@ -551,14 +550,13 @@ buildStructure(NCD4meta* builder, NCD4node* structvar)
 {
     int ret = NC_NOERR;
     NCD4node* group;
-    int rank;
     int dimids[NC_MAX_VAR_DIMS];
 
     /* Step 1: define the variable */
-    rank = nclistlength(structvar->dims);
+    size_t rank = nclistlength(structvar->dims);
     getDimrefs(structvar,dimids);
     group = NCD4_groupFor(structvar);
-    NCCHECK((nc_def_var(group->meta.id,structvar->name,structvar->basetype->meta.id,rank,dimids,&structvar->meta.id)));
+    NCCHECK((nc_def_var(group->meta.id,structvar->name,structvar->basetype->meta.id,(int)rank,dimids,&structvar->meta.id)));
     /* Tag the var */
     savevarbyid(group,structvar);
 
@@ -575,13 +573,12 @@ buildSequence(NCD4meta* builder, NCD4node* seq)
 
     int ret = NC_NOERR;
     NCD4node* group;
-    int rank;
     int dimids[NC_MAX_VAR_DIMS];
 
-    rank = nclistlength(seq->dims);
+    size_t rank = nclistlength(seq->dims);
     getDimrefs(seq,dimids);
     group = NCD4_groupFor(seq);
-    NCCHECK((nc_def_var(group->meta.id,seq->name,seq->basetype->meta.id,rank,dimids,&seq->meta.id)));
+    NCCHECK((nc_def_var(group->meta.id,seq->name,seq->basetype->meta.id,(int)rank,dimids,&seq->meta.id)));
     savevarbyid(group,seq);
 
     /* Build attributes and map attributes WRT the variable */

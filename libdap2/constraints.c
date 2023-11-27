@@ -296,7 +296,7 @@ matchnode->ncfullname,dumpsegments(segments));
 	break;
     default: {
 	CDFnode* minnode = NULL;
-	int minpath = 0;
+	size_t minpath = 0;
 	int nmin = 0; /* to catch multiple ones with same short path */
 	/* ok, see if one of the matches has a path that is shorter
            then all the others */

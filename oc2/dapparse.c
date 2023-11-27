@@ -236,8 +236,8 @@ isnumber(const char* text)
 static void
 dimension(OCnode* node, NClist* dimensions)
 {
-    unsigned int i;
-    unsigned int rank = nclistlength(dimensions);
+    size_t i;
+    size_t rank = nclistlength(dimensions);
     node->array.dimensions = (NClist*)dimensions;
     node->array.rank = rank;
     for(i=0;i<rank;i++) {

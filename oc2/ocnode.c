@@ -80,23 +80,23 @@ computefullname(OCnode* node)
 static char*
 pathtostring(NClist* path, char* separator)
 {
-    int slen,i,len;
+    size_t slen,i,len;
     char* pathname;
     if(path == NULL) return NULL;
     len = nclistlength(path);
     if(len == 0) return NULL;
     for(i=0,slen=0;i<len;i++) {
-	OCnode* node = (OCnode*)nclistget(path,(size_t)i);
+	OCnode* node = (OCnode*)nclistget(path, i);
 	if(node->container == NULL || node->name == NULL) continue;
 	slen += strlen(node->name);
     }
     slen += ((len-1)*strlen(separator));
     slen += 1;   /* for null terminator*/
-    pathname = (char*)ocmalloc((size_t)slen);
+    pathname = (char*)ocmalloc(slen);
     MEMCHECK(pathname,NULL);
     pathname[0] = '\0';
     for(i=0;i<len;i++) {
-	OCnode* node = (OCnode*)nclistget(path,(size_t)i);
+	OCnode* node = (OCnode*)nclistget(path, i);
 	if(node->container == NULL || node->name == NULL) continue;
 	if(strlen(pathname) > 0) strcat(pathname,separator);
         strcat(pathname,node->name);
