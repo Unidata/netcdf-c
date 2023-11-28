@@ -518,7 +518,7 @@ nczm_compare(const void* arg1, const void* arg2)
 
 /* quick sort a list of strings */
 void
-nczm_sortenvv(int n, char** envv)
+nczm_sortenvv(size_t n, char** envv)
 {
     if(n <= 1) return;
     qsort(envv, n, sizeof(char*), nczm_compare);
