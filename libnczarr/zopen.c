@@ -64,7 +64,7 @@ check_for_classic_model(NC_GRP_INFO_T *root_grp, int *is_classic)
  * @author Dennis Heimbigner, Ed Hartnett
  */
 static int
-ncz_open_file(const char *path, int mode, const char** controls, int ncid)
+ncz_open_file(const char *path, int mode, NClist* controls, int ncid)
 {
     int stat = NC_NOERR;
     NC_FILE_INFO_T *h5 = NULL;

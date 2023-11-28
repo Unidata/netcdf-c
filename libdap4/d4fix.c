@@ -190,7 +190,7 @@ walk(NCD4node* node, NClist* sorted)
 */
 
 int
-NCD4_delimit(NCD4meta* compiler, NCD4node* topvar, NCD4offset* offset)
+NCD4_delimit(NCD4meta* compiler, NCD4node* topvar, NCD4offset* offset, int inferredchecksumming)
 {
     int ret = NC_NOERR;
     NCD4mark mark = 0;
@@ -214,7 +214,7 @@ NCD4_delimit(NCD4meta* compiler, NCD4node* topvar, NCD4offset* offset)
     topvar->data.dap4data.memory = mark;
     topvar->data.dap4data.size = OFFSETSIZE(offset,mark);
     /* extract the dap4 data checksum, if present */
-    if(compiler->controller->data.inferredchecksumming) {
+    if(inferredchecksumming) {
 	union ATOMICS csum;
         TRANSFER(csum.u8,offset,CHECKSUMSIZE);
         topvar->data.remotechecksum = csum.u32[0];

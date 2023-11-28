@@ -97,7 +97,7 @@ int
 NCD4_debugcopy(NCD4INFO* info)
 {
     int i,ret=NC_NOERR;
-    NCD4meta* meta = info->substrate.metadata;
+    NCD4meta* meta = info->dmrmetadata;
     NClist* topvars = nclistnew();
     NC* ncp = info->controller;
     void* memory = NULL;
