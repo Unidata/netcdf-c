@@ -1244,10 +1244,10 @@ double to_double(const ncvar_t *varp, const void *valp) {
 	dd = *(unsigned int *)valp;
 	break;
     case NC_INT64:
-	dd = *(long long *)valp;
+	dd = (double)*(long long *)valp;
 	break;
     case NC_UINT64:
-	dd = *(unsigned long long *)valp;
+	dd = (double)*(unsigned long long *)valp;
 	break;
     default:
 	error("to_double: type not numeric primitive");
