@@ -30,7 +30,7 @@ static const int ILLEGAL_CREATE_FLAGS = (NC_NOWRITE|NC_MMAP|NC_DISKLESS|NC_64BIT
  * @author Dennis Heimbigner, Ed Hartnett
  */
 static int
-ncz_create_file(const char *path, int cmode, size_t initialsz, const char** controls, int ncid)
+ncz_create_file(const char *path, int cmode, size_t initialsz, NClist* controls, int ncid)
 {
     int retval = NC_NOERR;
     NC_FILE_INFO_T* h5 = NULL;

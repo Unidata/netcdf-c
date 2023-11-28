@@ -20,7 +20,7 @@ main(int argc, char** argv)
     fprintf(stderr,"t_dmrmeta %s -> %s\n",infile,outfile);
 #endif
 
-    if((ret = NCD4_parse(metadata))) goto done;
+    if((ret = NCD4_parse(metadata,resp,0))) goto done;
     if((ret = NCD4_metabuild(metadata,ncid))) goto done;
 
 done:
