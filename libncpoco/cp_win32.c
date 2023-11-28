@@ -105,10 +105,9 @@ load(NCPSharedLib* lib , const char* path0, int flags)
 	char* msg = NULL;
         FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
                           NULL, errcode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), &msg, 0, NULL);
-	if(msg) {
+	memset(lib->err.msg,0,sizeof(lib->err.msg));
+	if(msg)
 	    strncpy(lib->err.msg,msg,sizeof(lib->err.msg));
-	} else
-	    lib->err.msg[0] = '\0';
 	ret = NC_ENOTFOUND;
 	goto ldone;
     }
