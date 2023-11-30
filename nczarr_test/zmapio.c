@@ -3,6 +3,8 @@
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 
+#include "ncconfigure.h"
+#include <stddef.h>
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -54,7 +56,7 @@ static struct Mops {
 static struct Type {
     const char* typename;
     nc_type nctype;
-    int typesize;
+    size_t typesize;
     const char format[16];
 } types[] = {
 {"ubyte",NC_UBYTE,1,"%u"},
@@ -448,12 +450,11 @@ printcontent(size64_t len, const char* content, OBJKIND kind)
     size64_t i, count;
 
     const char* format = NULL;
-    int strlen = 1;
+    size64_t strlen = (size64_t)dumpoptions.strlen;
 
     format = dumpoptions.nctype->format;
     if(dumpoptions.format[0] != '\0')
         format = dumpoptions.format;
-    strlen = dumpoptions.strlen;
     count = len;
 
 #ifdef DEBUG

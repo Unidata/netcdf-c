@@ -9,6 +9,7 @@
 
 #include "ut_includes.h"
 #include "test_nczarr_utils.h"
+#include <stddef.h>
 
 #define FILE_NAME "tst_chunks2"
 #define MAX_WASTE 25.0
@@ -37,13 +38,13 @@ calculate_waste(int ndims, size_t *dimlen, size_t *chunksize, float *waste)
       for (num_chunks[d] = 0; (num_chunks[d] * chunksize[d]) < (dimlen[d] ? dimlen[d] : 1);
 	   num_chunks[d]++)
 	 ;
-      chunked *= (num_chunks[d] * chunksize[d]);
+      chunked *= (float)(num_chunks[d] * chunksize[d]);
    }
 
    /* Calculate the minimum space required for this data
     * (i.e. unchunked) or one record of it. */
    for (d = 0; d < ndims; d++)
-      unchunked *= (dimlen[d] ? dimlen[d] : 1);
+      unchunked *= (dimlen[d] ? (float)dimlen[d] : 1);
 
 #ifdef PRINT_CHUNK_WASTE_REPORT
    printf("size for unchunked %g elements; size for chunked %g elements\n",
@@ -51,7 +52,7 @@ calculate_waste(int ndims, size_t *dimlen, size_t *chunksize, float *waste)
 #endif
 
    /* Percent of the chunked file that is wasted space. */
-   *waste = ((float)(chunked - unchunked) / (float)chunked) * 100.0f;
+   *waste = ((chunked - unchunked) / chunked) * 100.0f;
 
 #ifdef PRINT_CHUNK_WASTE_REPORT
    printf("\ndimlen\tchunksize\tnum_chunks\n");
@@ -359,7 +360,7 @@ main(int argc, char **argv)
 	 /* Create a few dimensions. */
 	 for (d = 0; d < NDIMS3; d++)
 	 {
-	    dim_len[d] = rand();
+	    dim_len[d] = (size_t)rand();
 	    sprintf(dim_name, "dim_%d", d);
 	    if (nc_def_dim(ncid, dim_name, dim_len[d], &dimids[d])) ERR;
 	 }
@@ -393,9 +394,9 @@ main(int argc, char **argv)
       {
 	 if (nc_create(itoptions.path, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
 
-	 dim_len[0] = rand();
-	 dim_len[1] = rand();
-	 dim_len[2] = rand() % 1000;
+	 dim_len[0] = (size_t)rand();
+	 dim_len[1] = (size_t)rand();
+	 dim_len[2] = (size_t)rand() % 1000;
 	 /* Create a few dimensions. */
 	 for (d = 0; d < NDIMS3; d++)
 	 {
@@ -432,9 +433,9 @@ main(int argc, char **argv)
       {
 	 if (nc_create(itoptions.path, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
 
-	 dim_len[0] = rand();
-	 dim_len[1] = rand() % 1000;
-	 dim_len[2] = rand() % 1000;
+	 dim_len[0] = (size_t)rand();
+	 dim_len[1] = (size_t)rand() % 1000;
+	 dim_len[2] = (size_t)rand() % 1000;
 	 /* Create a few dimensions. */
 	 for (d = 0; d < NDIMS3; d++)
 	 {

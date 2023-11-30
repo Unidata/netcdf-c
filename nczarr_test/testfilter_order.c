@@ -34,7 +34,7 @@
 static size_t dimsize[NDIMS] = {4,4,4,4};
 static size_t chunksize[NDIMS] = {4,4,4,4};
 
-static size_t ndims = NDIMS;
+static int ndims = NDIMS;
 
 static int creating = 1; /* Default is to do filter test 1 */
 static size_t totalproduct = 1; /* x-product over max dims */
@@ -363,8 +363,8 @@ odom_offset(void)
     int i;
     int offset = 0;
     for(i=0;i<ndims;i++) {
-        offset *= dimsize[i];
-        offset += odom[i];
+        offset *= (int)dimsize[i];
+        offset += (int)odom[i];
     }
     return offset;
 }
@@ -376,8 +376,8 @@ expectedvalue(void)
     float offset = 0;
 
     for(i=0;i<ndims;i++) {
-        offset *= dimsize[i];
-        offset += odom[i];
+        offset *= (float)dimsize[i];
+        offset += (float)odom[i];
     }
     return offset;
 }

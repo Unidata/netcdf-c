@@ -7,6 +7,7 @@
 
 #include "stdlib.h"
 #include "stdio.h"
+#include <stddef.h>
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -28,7 +29,7 @@ main(int argc, char** argv)
         f = stdin;
 
     for(;;) {
-	int ret = fread(&c, 1, 1, f);
+	size_t ret = fread(&c, 1, 1, f);
 	if(ret != 1) break;
         printf("%.2hhx", c);
     }

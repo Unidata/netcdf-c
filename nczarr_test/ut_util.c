@@ -314,7 +314,7 @@ printvec(int len, size64_t* vec)
 #endif /*0*/
 
 /**************************************************/
-int
+size_t
 ut_typesize(nc_type t)
 {
     switch (t) {

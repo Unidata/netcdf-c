@@ -193,7 +193,7 @@ getoptions(int* argcp, char*** argvp)
 #ifndef _WIN32
     if(options->wdebug) {
 	char s[64];
-	snprintf(s,sizeof(s),"%u",options->wdebug);
+	snprintf(s,sizeof(s),"%d",options->wdebug);
         setenv("NCZ_WDEBUG",s,1);
     }
     if(options->optimize) {
@@ -404,7 +404,7 @@ parsedata(const char* s0, int* data)
         p = strchr(q,',');
         if(p == NULL) {p = q+strlen(q); done=1;}
         *p++ = '\0';
-        data[i++] = (size_t)atoi(q);
+        data[i++] = atoi(q);
     }
     if(s) free(s);
     return i;
@@ -440,7 +440,7 @@ printvector64(int rank, const size64_t* vec)
 }
 
 Odometer*
-odom_new(size_t rank, const size_t* start, const size_t* stop, const size_t* stride, const size_t* max)
+odom_new(int rank, const size_t* start, const size_t* stop, const size_t* stride, const size_t* max)
 {
      size_t i;
      Odometer* odom = NULL;
@@ -473,7 +473,7 @@ odom_more(Odometer* odom)
 int
 odom_next(Odometer* odom)
 {
-     size_t i;
+     int i;
      for(i=odom->rank-1;i>=0;i--) {
 	 odom->index[i] += odom->stride[i];
 	 if(odom->index[i] < odom->stop[i]) break;
