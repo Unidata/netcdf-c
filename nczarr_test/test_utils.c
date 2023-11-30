@@ -165,7 +165,7 @@ getoptions(int* argcp, char*** argvp)
     }
 
     /* Figure out the FORMATX for this file */
-    if(options->file) {
+    if(options->file[0]) {
 	NCURI* uri = NULL;
 	ncuriparse(options->file,&uri);
 	if(uri == NULL) { /* not a url */
