@@ -4,6 +4,7 @@
  *********************************************************************/
 
 #include "includes.h"
+#include <stddef.h>
 
 /******************************************************/
 /* Code for generating char variables etc; mostly
@@ -14,7 +15,7 @@
 static size_t gen_charconstant(NCConstant*, Bytebuffer*, int fillchar);
 static int getfillchar(Datalist* fillsrc);
 static void gen_leafchararray(Dimset*,int,Datalist*,Bytebuffer*, int);
-static NCConstant* makeconst(int lineno, int len, char* str);
+static NCConstant* makeconst(int lineno, size_t len, char* str);
 static void rebuildsingletons(Datalist* data);
 
 /*
@@ -237,7 +238,7 @@ gen_charconstant(NCConstant* con, Bytebuffer* databuf, int fillchar)
 
 /* Create a new string constant */
 static NCConstant*
-makeconst(int lineno, int len, char* str)
+makeconst(int lineno, size_t len, char* str)
 {
     NCConstant* con = nullconst();
     con->nctype = NC_STRING;
@@ -245,8 +246,8 @@ makeconst(int lineno, int len, char* str)
     con->filled = 0;
     con->value.stringv.len = len;
     /* We cannot use strdup because str might have embedded nuls */
-    con->value.stringv.stringv = (char*)ecalloc((size_t)len+1);
-    memcpy((void*)con->value.stringv.stringv,(void*)str, (size_t)len);
+    con->value.stringv.stringv = (char*)ecalloc(len+1);
+    memcpy((void*)con->value.stringv.stringv,(void*)str, len);
     con->value.stringv.stringv[len] = '\0';
     return con;
 }
