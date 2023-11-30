@@ -441,13 +441,11 @@ breadthfirst(NCZMAP* map, const char* key, NClist* stack)
     return stat;
 }
 
-static char hex[16] = "0123456789abcdef";
 
 static void
 printcontent(size64_t len, const char* content, OBJKIND kind)
 {
     size64_t i, count;
-    unsigned int c0,c1;
 
     const char* format = NULL;
     int strlen = 1;
@@ -487,12 +485,7 @@ printcontent(size64_t len, const char* content, OBJKIND kind)
 	    printf("%c",content[i]);
 	    break;
 	default:
-	    c1 = (unsigned char)(content[i]);
-            c0 = c1 & 0xf;
-	    c1 = (c1 >> 4);
-            c0 = hex[c0];
-            c1 = hex[c1];
-	    printf("%c%c",(char)c1,(char)c0);
+	    printf("%.2hhx", content[i]);
         }
     }
 }
