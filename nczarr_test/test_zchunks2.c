@@ -23,7 +23,6 @@ calculate_waste(int ndims, size_t *dimlen, size_t *chunksize, float *waste)
    int d;
    float chunked = 1, unchunked = 1;
    size_t *num_chunks;
-   size_t chunk_size = 1;
 
    assert(waste && dimlen && chunksize && ndims);
    if (!(num_chunks = calloc(ndims, sizeof(size_t)))) ERR;
@@ -56,16 +55,13 @@ calculate_waste(int ndims, size_t *dimlen, size_t *chunksize, float *waste)
 
 #ifdef PRINT_CHUNK_WASTE_REPORT
    printf("\ndimlen\tchunksize\tnum_chunks\n");
-#endif
+   size_t chunk_size = 1;
    for (d = 0; d < ndims; d++)
    {
-#ifdef PRINT_CHUNK_WASTE_REPORT
       printf("%ld\t%ld\t\t%ld\n", (long int)dimlen[d], (long int)chunksize[d],
 	     (long int)num_chunks[d]);
-#endif
       chunk_size *= chunksize[d];
    }
-#ifdef PRINT_CHUNK_WASTE_REPORT
    printf("size of chunk: %ld elements; wasted space: %2.2f percent\n",
 	  (long int)chunk_size, *waste);
 #endif
