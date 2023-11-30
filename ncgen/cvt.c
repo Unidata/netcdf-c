@@ -9,6 +9,7 @@
 #include "bytebuffer.h"
 #include "isnan.h"
 #include <math.h>
+#include <stddef.h>
 
 
 #ifndef nulldup
@@ -71,7 +72,7 @@ case CASE(NC_CHAR,NC_CHAR):
     tmp.charv  = src->value.charv;
     break;
 case CASE(NC_CHAR,NC_BYTE):
-    tmp.int8v  = (unsigned char)src->value.charv;
+    tmp.int8v  = (signed char)src->value.charv;
     break;
 case CASE(NC_CHAR,NC_UBYTE):
     tmp.uint8v	= (unsigned char)src->value.charv;
@@ -636,10 +637,9 @@ convertstringtochars(NCConstant* str)
 {
     int i;
     Datalist* dl;
-    int slen;
     char* s;
 
-    slen = str->value.stringv.len;
+    size_t slen = str->value.stringv.len;
     dl = builddatalist(slen);
     s = str->value.stringv.stringv;
     for(i=0;i<slen;i++) {

@@ -1338,7 +1338,7 @@ explode(NCConstant* con)
     len = con->value.stringv.len;
     chars = builddatalist(len);
     p = con->value.stringv.stringv;
-fprintf(stderr,"p[%d]=|%s|\n",con->value.stringv.len,p);
+fprintf(stderr,"p[%zu]=|%s|\n",con->value.stringv.len,p);
     for(i=0;i<len;i++,p++) {
 	NCConstant* chcon = nullconst();
 	chcon->nctype = NC_CHAR;

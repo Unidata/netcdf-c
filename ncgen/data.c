@@ -219,7 +219,7 @@ datalistline(Datalist* ds)
 */
 
 static char* commifyr(char* p, Bytebuffer* buf);
-static char* wordstring(char* p, Bytebuffer* buf, int quote);
+static char* wordstring(char* p, Bytebuffer* buf, char quote);
 
 void
 commify(Bytebuffer* buf)
@@ -242,7 +242,7 @@ static char*
 commifyr(char* p, Bytebuffer* buf)
 {
     int comma = 0;
-    int c;
+    char c;
     while((c=*p++)) {
 	if(c == ' ') continue;
 	if(c == ',') continue;
@@ -267,7 +267,7 @@ commifyr(char* p, Bytebuffer* buf)
 char*
 word(char* p, Bytebuffer* buf)
 {
-    int c;
+    char c;
     while((c=*p++)) {
 	if(c == '}' || c == ' ' || c == ',') break;
 	if(c == '\\') {
@@ -275,16 +275,16 @@ word(char* p, Bytebuffer* buf)
 	    c=*p++;
 	    if(!c) break;
 	}
-	bbAppend(buf,(char)c);	
+	bbAppend(buf, c);
     }	
     p--; /* leave terminator for parent */
     return p;
 }
 
 static char*
-wordstring(char* p, Bytebuffer* buf, int quote)
+wordstring(char* p, Bytebuffer* buf, char quote)
 {
-    int c;
+    char c;
     bbAppend(buf,quote);
     while((c=*p++)) {	    
 	if(c == '\\') {
@@ -392,7 +392,7 @@ vbbprintf(Bytebuffer* buf, const char* fmt, va_list argv)
 {
     char tmp[128];
     const char* p;
-    int c;
+    char c;
     int hcount;
     int lcount;
 

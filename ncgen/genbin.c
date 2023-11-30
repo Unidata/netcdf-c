@@ -6,6 +6,7 @@
 
 #include "includes.h"
 #include <ctype.h>      /* for isprint() */
+#include <stddef.h>
 #include "netcdf_aux.h"
 #include "netcdf_filter.h"
 
@@ -32,12 +33,12 @@ void
 genbin_netcdf(void)
 {
     int stat, ncid;
-    int idim, ivar, iatt;
+    size_t idim, ivar, iatt;
     int ndims, nvars, natts, ngatts;
     const char* filename = rootgroup->file.filename;
 
 #ifdef USE_NETCDF4
-    int ntyps, ngrps, igrp;
+    int ntyps, ngrps;
 #endif
 
     ndims = listlength(dimdefs);
@@ -75,7 +76,7 @@ genbin_netcdf(void)
 #ifdef USE_NETCDF4
     /* Define the group structure */
     /* walking grdefs list will do a preorder walk of all defined groups*/
-    for(igrp=0;igrp<ngrps;igrp++) {
+    for(size_t igrp=0;igrp<ngrps;igrp++) {
         Symbol* gsym = (Symbol*)listget(grpdefs,igrp);
         if(gsym == rootgroup) continue; /* ignore root group*/
         stat = nc_def_grp(gsym->container->nc_id,gsym->name,&gsym->nc_id);
@@ -86,8 +87,7 @@ genbin_netcdf(void)
 #ifdef USE_NETCDF4
     /* Define the types*/
     if (ntyps > 0) {
-        int ityp;
-        for(ityp = 0; ityp < ntyps; ityp++) {
+        for(size_t ityp = 0; ityp < ntyps; ityp++) {
             Symbol* tsym = (Symbol*)listget(typdefs,ityp);
             genbin_deftype(tsym);
         }

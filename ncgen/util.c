@@ -374,7 +374,7 @@ prefixtostring(List* prefix, char* separator)
 {
     size_t slen=0;
     int plen;
-    int i;
+    size_t i;
     char* result;
     if(prefix == NULL) return pooldup("");
     plen = prefixlen(prefix);
@@ -439,11 +439,10 @@ List*
 prefixdup(List* prefix)
 {
     List* dupseq;
-    int i;
     if(prefix == NULL) return listnew();
     dupseq = listnew();
     listsetalloc(dupseq, (size_t)listlength(prefix));
-    for(i=0;i<listlength(prefix);i++) listpush(dupseq,listget(prefix,i));
+    for(size_t i=0;i<listlength(prefix);i++) listpush(dupseq,listget(prefix,i));
     return dupseq;
 }
 
@@ -519,7 +518,7 @@ makebytestring(char* s, size_t* lenp)
 	unsigned int digit1 = chartohex(*s++);
 	unsigned int digit2 = chartohex(*s++);
 	unsigned int byte = (digit1 << 4) | digit2;
-	*b++ = byte;
+	*b++ = (unsigned char)byte;
     }
     if(lenp) *lenp = blen;
     return bytes;
@@ -536,8 +535,7 @@ getpadding(int offset, int alignment)
 static void
 reclaimSymbols(void)
 {
-    int i;
-    for(i=0;i<listlength(symlist);i++) {
+    for(size_t i=0;i<listlength(symlist);i++) {
         Symbol* sym = listget(symlist,i);
         freeSymbol(sym);
     }
