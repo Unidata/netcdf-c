@@ -218,7 +218,7 @@ gen_charconstant(NCConstant* con, Bytebuffer* databuf, int fillchar)
         bbAppend(databuf,con->value.int8v);
         break;
     case NC_UBYTE:
-        bbAppend(databuf,con->value.uint8v);
+        bbAppend(databuf,(char)con->value.uint8v);
         break;
     case NC_STRING:
         constsize = con->value.stringv.len;

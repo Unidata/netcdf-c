@@ -2,6 +2,7 @@
    See the COPYRIGHT file for more information. */
 
 #include "config.h"
+#include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -22,7 +23,7 @@
 int bbdebug = 1;
 
 /* For debugging purposes*/
-static long
+static int
 bbFail(void)
 {
     fflush(stdout);

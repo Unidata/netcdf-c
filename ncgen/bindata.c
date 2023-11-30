@@ -105,7 +105,7 @@ bin_listbegin(Generator* generator, Symbol* tsym, void* liststate, ListClass lc,
 {
     if(uidp) *uidp = ++bin_uid;
     if(lc == LISTCOMPOUND)
-        *((int*)liststate) = bbLength(buf);
+        *((int*)liststate) = (int)bbLength(buf);
     return 1;
 }
 
