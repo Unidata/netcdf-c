@@ -12,9 +12,9 @@
 /******************************************************/
 
 /*Forward*/
-static size_t gen_charconstant(NCConstant*, Bytebuffer*, int fillchar);
-static int getfillchar(Datalist* fillsrc);
-static void gen_leafchararray(Dimset*,int,Datalist*,Bytebuffer*, int);
+static size_t gen_charconstant(NCConstant*, Bytebuffer*, char fillchar);
+static char getfillchar(Datalist* fillsrc);
+static void gen_leafchararray(Dimset*,int,Datalist*,Bytebuffer*, char);
 static NCConstant* makeconst(int lineno, size_t len, char* str);
 static void rebuildsingletons(Datalist* data);
 
@@ -54,7 +54,7 @@ Two special cases:
 void
 gen_chararray(Dimset* dimset, int dimindex, Datalist* data, Bytebuffer* charbuf, Datalist* fillsrc)
 {
-    int fillchar = getfillchar(fillsrc);
+    char fillchar = getfillchar(fillsrc);
     int rank = rankfor(dimset);
     int firstunlim = findunlimited(dimset,0);
     int nunlim = countunlimited(dimset);
@@ -95,7 +95,7 @@ gen_chararray(Dimset* dimset, int dimindex, Datalist* data, Bytebuffer* charbuf,
 
 static void
 gen_leafchararray(Dimset* dimset, int dimindex, Datalist* data,
-                   Bytebuffer* charbuf, int fillchar)
+                   Bytebuffer* charbuf, char fillchar)
 {
     int i;
     size_t expectedsize,xproduct,unitsize;
@@ -206,7 +206,7 @@ gen_charseq(Datalist* data, Bytebuffer* databuf)
 }
 
 static size_t
-gen_charconstant(NCConstant* con, Bytebuffer* databuf, int fillchar)
+gen_charconstant(NCConstant* con, Bytebuffer* databuf, char fillchar)
 {
     /* Following cases should be consistent with isstringable */
     size_t constsize = 1;
@@ -252,23 +252,21 @@ makeconst(int lineno, size_t len, char* str)
     return con;
 }
 
-static int
+static char
 getfillchar(Datalist* fillsrc)
 {
     /* Determine the fill char */
-    int fillchar = 0;
     if(fillsrc != NULL && fillsrc->length > 0) {
         NCConstant* ccon = fillsrc->data[0];
         if(ccon->nctype == NC_CHAR) {
-            fillchar = ccon->value.charv;
+            return ccon->value.charv;
         } else if(ccon->nctype == NC_STRING) {
             if(ccon->value.stringv.len > 0) {
-                fillchar = ccon->value.stringv.stringv[0];
+                return ccon->value.stringv.stringv[0];
             }
         }
     }
-    if(fillchar == 0) fillchar = NC_FILL_CHAR; /* default */
-    return fillchar;
+    return NC_FILL_CHAR; /* default */
 }
 
 
