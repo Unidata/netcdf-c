@@ -82,9 +82,6 @@ struct LISTOBJECTSV2 {
     char* startafter;
 };
 
-static int ncs3_initialized = 0;
-static int ncs3_finalized = 0;
-
 /* Forward */
 static void s3client_destroy(NCS3CLIENT* s3client);
 static char* makes3rooturl(NCS3INFO* info);
@@ -140,28 +137,6 @@ dumps3client(void* s3client0, const char* tag)
 #endif
 
 /**************************************************/
-
-EXTERNL int
-NC_s3sdkinitialize(void)
-{
-    NCTRACE(11,NULL);
-    if(!ncs3_initialized) {
-	ncs3_initialized = 1;
-	ncs3_finalized = 0;
-    }
-    return NCUNTRACE(NC_NOERR);
-}
-
-EXTERNL int
-NC_s3sdkfinalize(void)
-{
-    NCTRACE(11,NULL);
-    if(!ncs3_finalized) {
-	ncs3_initialized = 0;
-	ncs3_finalized = 1;
-    }
-    return NCUNTRACE(NC_NOERR);
-}
 
 EXTERNL void*
 NC_s3sdkcreateclient(NCS3INFO* info)
