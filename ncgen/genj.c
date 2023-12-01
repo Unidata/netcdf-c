@@ -5,6 +5,7 @@
  *********************************************************************/
 
 #include "includes.h"
+#include <stddef.h>
 
 #ifdef ENABLE_JAVA
 
@@ -39,7 +40,8 @@ static void genj_writeattr(Generator*,Symbol*,Bytebuffer*,int,size_t*,size_t*);
 void
 genjava_netcdf(void)
 {
-    int idim, ivar, iatt, maxdims;
+    size_t idim, ivar, iatt;
+    int maxdims;
     int ndims, nvars, natts, ngatts;
     const char *filename = rootgroup->file.filename;
 

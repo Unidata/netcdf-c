@@ -6,6 +6,7 @@
 
 #include "includes.h"
 #include "dump.h"
+#include <stddef.h>
 
 /* mnemonic*/
 #define TOPLEVEL 1
@@ -110,7 +111,6 @@ fill(Symbol* tsym, Datalist* filler)
 static void
 filllist(Symbol* tsym, Datalist* dl)
 {
-    int i;
     Datalist* sublist;
     NCConstant* con = NULL;
 
@@ -124,7 +124,7 @@ filllist(Symbol* tsym, Datalist* dl)
 	break;
     case NC_COMPOUND:
 	sublist = builddatalist(listlength(tsym->subnodes));
-        for(i=0;i<listlength(tsym->subnodes);i++) {
+        for(size_t i=0;i<listlength(tsym->subnodes);i++) {
 	    Symbol* field = (Symbol*)listget(tsym->subnodes,i);
 	    filllist(field->typ.basetype,sublist);
         }	  
@@ -149,7 +149,7 @@ fillarray(Symbol* basetype, Dimset* dimset, int index, Datalist* arraylist)
 {
     int i;
     Symbol* dim = dimset->dimsyms[index];
-    unsigned int size = dim->dim.declsize;
+    size_t size = dim->dim.declsize;
     int isunlimited = (size == 0);
     int lastdim = (index == (dimset->ndims - 1));
 

@@ -767,7 +767,7 @@ ctypename(Symbol* tsym)
 static void
 definectype(Symbol* tsym)
 {
-    int i,j;
+    size_t i,j;
 
     ASSERT(tsym->objectclass == NC_TYPE);
     switch (tsym->subclass) {

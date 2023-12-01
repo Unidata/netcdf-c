@@ -629,11 +629,10 @@ dlset(Datalist* dl, size_t pos, NCConstant* constant)
 NCConstant*
 dlremove(Datalist* dl, size_t pos)
 {
-    int i;
     NCConstant* con = NULL;
     ASSERT(dl->length > 0 && pos < dl->length);	
     con = dl->data[pos];
-    for(i=pos+1;i<dl->length;i++)
+    for(size_t i=pos+1;i<dl->length;i++)
         dl->data[i-1] = dl->data[i];
     dl->length--;
     return con;

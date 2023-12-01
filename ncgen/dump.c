@@ -6,6 +6,7 @@
 /* $Header: /upc/share/CVS/netcdf-3/ncgen/dump.c,v 1.3 2010/05/24 19:59:57 dmh Exp $ */
 
 #include "includes.h"
+#include <stddef.h>
 #include "dump.h"
 
 #undef DEBUGSRC
@@ -51,14 +52,13 @@ bufdump(Datalist* list, Bytebuffer* buf)
 {
     int i;
     NCConstant** dpl;
-    unsigned int count;
 
     if(list == NULL) {
 	bbCat(buf,"NULL");
 	return;
     }
 
-    count = list->length;
+    size_t count = list->length;
     for(dpl=list->data,i=0;i<count;i++,dpl++) {
        NCConstant* dp = *dpl;
        switch (dp->nctype) {
