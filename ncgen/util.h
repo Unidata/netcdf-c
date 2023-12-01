@@ -6,6 +6,7 @@
  *   $Header: /upc/share/CVS/netcdf-3/ncgen/util.h,v 1.3 2010/04/04 19:39:57 dmh Exp $
  *********************************************************************/
 
+#include <stddef.h>
 #define MAX(x,y) ((x)>(y)?(x):(y))
 
 extern void expe2d(char*);
@@ -24,7 +25,7 @@ extern int classicunlimited(Dimset* dimset);
 extern int isbounded(Dimset* dimset);
 extern char* nctypename(nc_type);
 extern char* ncclassname(nc_class);
-extern int ncsize(nc_type);
+extern size_t ncsize(nc_type);
 
 extern nc_type signedtype(nc_type nctype);
 extern nc_type unsignedtype(nc_type nctype);

@@ -203,7 +203,7 @@ ncclassname(nc_class ncc)
     return s;
 }
 
-int ncsizes[17] = {
+size_t ncsizes[17] = {
 0,
 1,1,2,4,
 4,8,
@@ -214,7 +214,7 @@ sizeof(nc_vlen_t),
 0,0,0
 };
 
-int
+size_t
 ncsize(nc_type nctype)
 {
     if(nctype >= NC_NAT && nctype <= NC_COMPOUND)

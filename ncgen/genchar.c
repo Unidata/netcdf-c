@@ -284,7 +284,7 @@ rebuildsingletons(Datalist* data)
     }
     if(cccount > 1) {
         Bytebuffer* accum = bbNew();
-        int len = 0; /* >0 implies doing accum */
+        size_t len = 0; /* >0 implies doing accum */
         Datalist* newlist = builddatalist(datalistlen(data));
         int lineno = 0;
         NCConstant* con;

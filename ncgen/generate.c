@@ -116,7 +116,8 @@ generate_basetype(Symbol* tsym, NCConstant* con, Bytebuffer* codebuf, Datalist* 
         break;
 
     case NC_COMPOUND: {
-        int i,uid, nfields, dllen;
+        size_t i, dllen;
+        int uid, nfields;
         if(con == NULL || isfillconst(con)) {
             Datalist* fill = (filler==NULL?getfiller(tsym):filler);
 	    ASSERT(fill->length == 1);
@@ -212,7 +213,7 @@ static void
 generate_fieldarray(Symbol* basetype, NCConstant* con, Dimset* dimset,
                  Bytebuffer* codebuf, Datalist* filler, Generator* generator)
 {
-    int i;
+    size_t i;
     int chartype = (basetype->typ.typecode == NC_CHAR);
     Datalist* data;
     int rank = rankfor(dimset);
@@ -372,7 +373,7 @@ struct Args {
 };
 
 static void
-generate_arrayR(struct Args* args, int dimindex, size_t* index, Datalist* data)
+generate_arrayR(struct Args* args, size_t dimindex, size_t* index, Datalist* data)
 {
     size_t counter,stop;
     size_t count[NC_MAX_VAR_DIMS];
