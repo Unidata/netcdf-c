@@ -1254,7 +1254,7 @@ NC_computeshapes(NC3_INFO* ncp)
 		for( /*NADA*/; vpp < end; vpp++)
 		{
 			status = NC_var_shape(*vpp, &ncp->dims);
-	        if(status != NC_NOERR)
+		        if(status != NC_NOERR)
 				return(status);
 
 		  	if(IS_RECVAR(*vpp))
@@ -1265,13 +1265,13 @@ NC_computeshapes(NC3_INFO* ncp)
 			}
 			else
 			{
-		        if(first_var == NULL)
+		            if(first_var == NULL)
 			        first_var = *vpp;
-				/*
-				 * Overwritten each time thru.
-				 * Usually overwritten in first_rec != NULL clause below.
-				 */
-				ncp->begin_rec = (*vpp)->begin + (off_t)(*vpp)->len;
+			    /*
+			     * Overwritten each time thru.
+			     * Usually overwritten in first_rec != NULL clause below.
+			     */
+			    ncp->begin_rec = (*vpp)->begin + (off_t)(*vpp)->len;
 			}
 		}
 	}
