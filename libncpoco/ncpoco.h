@@ -71,6 +71,9 @@ EXTERNL const char* ncpgetpath(NCPSharedLib*);
 /* Return last err msg */
 EXTERNL const char* ncpgeterrmsg(NCPSharedLib* lib);
 
+/* Clear the last err msg. */
+EXTERNL void ncpclearerrmsg(NCPSharedLib* lib);
+
 EXTERNL const char* intstr(int err1);
 
 #endif /*NCPOCO_H*/
