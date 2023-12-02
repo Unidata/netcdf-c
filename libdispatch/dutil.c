@@ -428,6 +428,7 @@ NC_addmodetag(NCURI* uri, const char* tag)
     if((stat=ncurisetfragmentkey(uri,"mode",modevalue))) goto done;
 
 done:
+    nclistfreeall(modelist);
     nullfree(modevalue);
     return stat;
 }

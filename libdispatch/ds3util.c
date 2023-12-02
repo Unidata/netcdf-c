@@ -364,22 +364,24 @@ Check if a url has indicators that signal an S3 or Google S3 url.
 */
 
 int
-NC_iss3(NCURI* uri)
+NC_iss3(NCURI* uri, enum NCS3SVC* svcp)
 {
     int iss3 = 0;
+    NCS3SVC svc = NCS3UNK;
 
     if(uri == NULL) goto done; /* not a uri */
     /* is the protocol "s3" or "gs3" ? */
-    if(strcasecmp(uri->protocol,"s3")==0) {iss3 = 1; goto done;}
-    if(strcasecmp(uri->protocol,"gs3")==0) {iss3 = 1; goto done;}
+    if(strcasecmp(uri->protocol,"s3")==0) {iss3 = 1; svc = NCS3; goto done;}
+    if(strcasecmp(uri->protocol,"gs3")==0) {iss3 = 1; svc = NCS3GS; goto done;}
     /* Is "s3" or "gs3" in the mode list? */
-    if(NC_testmode(uri,"s3")) {iss3 = 1; goto done;}
-    if(NC_testmode(uri,"gs3")) {iss3 = 1; goto done;}    
+    if(NC_testmode(uri,"s3")) {iss3 = 1; svc = NCS3; goto done;}
+    if(NC_testmode(uri,"gs3")) {iss3 = 1; svc = NCS3GS; goto done;}    
     /* Last chance; see if host looks s3'y */
     if(uri->host != NULL) {
-        if(endswith(uri->host,AWSHOST)) {iss3 = 1; goto done;}
-        if(strcasecmp(uri->host,GOOGLEHOST)==0) {iss3 = 1; goto done;}
+        if(endswith(uri->host,AWSHOST)) {iss3 = 1; svc = NCS3; goto done;}
+        if(strcasecmp(uri->host,GOOGLEHOST)==0) {iss3 = 1; svc = NCS3GS; goto done;}
     }    
+    if(svcp) *svcp = svc;
 done:
     return iss3;
 }

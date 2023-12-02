@@ -473,7 +473,7 @@ rccompile(const char* filepath)
                 nclog(NCLOGERR, "Malformed [url] in %s entry: %s",filepath,line);
 		continue;
             }
-	    if(NC_iss3(uri)) {
+	    if(NC_iss3(uri,NULL)) {
 	         NCURI* newuri = NULL;
 	        /* Rebuild the url to S3 "path" format */
 		NC_s3clear(&s3);
