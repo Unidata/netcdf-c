@@ -914,7 +914,7 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 		if((retval = NC_s3profilelookup(profile0,AWS_SECRET_ACCESS_KEY,&awssecretkey0)))
 		    BAIL(retval);		
 		if(s3.region == NULL)
-		    s3.region = strdup(S3_REGION_DEFAULT);
+		    s3.region = strdup(AWS_GLOBAL_DEFAULT_REGION);
 	        if(awsaccessid0 == NULL || awssecretkey0 == NULL ) {
 		    /* default, non-authenticating, "anonymous" fapl configuration */
 		    fa.authenticate = (hbool_t)0;

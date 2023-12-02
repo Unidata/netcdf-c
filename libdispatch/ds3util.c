@@ -71,7 +71,7 @@ NC_s3sdkinitialize(void)
 	else if(getenv("AWS_DEFAULT_REGION")!=NULL)
 	    gs->aws.default_region = nulldup(getenv("AWS_DEFAULT_REGION"));
 	else if(gs->aws.default_region == NULL)
-	    gs->aws.default_region = nulldup("");
+	    gs->aws.default_region = nulldup(AWS_GLOBAL_DEFAULT_REGION);
 	gs->aws.access_key_id = nulldup(getenv("AWS_ACCESS_KEY_ID"));
 	gs->aws.config_file = nulldup(getenv("AWS_CONFIG_FILE"));
 	gs->aws.profile = nulldup(getenv("AWS_PROFILE"));
@@ -218,10 +218,8 @@ NC_s3urlrebuild(NCURI* url, NCS3INFO* s3, NCURI** newurlp)
 	ncbytesclear(buf);
         ncbytescat(buf,"s3");
 	assert(region != NULL);
-        if(region[0]) { /* region != "" */
-	    ncbytescat(buf,".");
-	    ncbytescat(buf,region);
-	}
+        ncbytescat(buf,".");
+	ncbytescat(buf,region);
         ncbytescat(buf,AWSHOST);
 	nullfree(host);
         host = ncbytesextract(buf);
@@ -243,13 +241,19 @@ NC_s3urlrebuild(NCURI* url, NCS3INFO* s3, NCURI** newurlp)
     }
     path = ncbytesextract(buf);
 
-    /* complete the new url */
+    /* clone the url so we can modify it*/
     if((newurl=ncuriclone(url))==NULL) {stat = NC_ENOMEM; goto done;}
+
+    /* Modify the URL to canonical form */
     ncurisetprotocol(newurl,"https");
     assert(host != NULL);
     ncurisethost(newurl,host);
     assert(path != NULL);
     ncurisetpath(newurl,path);
+
+    /* Add "s3" to the mode list */
+    NC_addmodetag(newurl,"s3");
+
     /* Rebuild the url->url */
     ncurirebuild(newurl);
     /* return various items */
