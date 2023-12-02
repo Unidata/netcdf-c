@@ -900,7 +900,7 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
 
 #ifdef ENABLE_S3
 	/* If s3, then rebuild the url */
-	if(NC_iss3(uri)) {
+	if(NC_iss3(uri,NULL)) {
 	    NCURI* newuri = NULL;
 	    if((stat = NC_s3urlrebuild(uri,NULL,&newuri))) goto done;
 	    ncurifree(uri);
