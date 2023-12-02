@@ -9,6 +9,9 @@
 #define AWSHOST ".amazonaws.com"
 #define GOOGLEHOST "storage.googleapis.com"
 
+/* Define the "global" default region to be used if no other region is specified */
+#define AWS_GLOBAL_DEFAULT_REGION "us-east-1"
+
 /* Track the server type, if known */
 typedef enum NCS3SVC {NCS3UNK=0, /* unknown */
                  NCS3=1,    /* s3.amazon.aws */

@@ -78,8 +78,10 @@ EXTERNL char* NC_mktmp(const char* base);
 EXTERNL int NC_getmodelist(const char* modestr, NClist** modelistp);
 EXTERNL int NC_testmode(NCURI* uri, const char* tag);
 EXTERNL int NC_testpathmode(const char* path, const char* tag);
+EXTERNL int NC_addmodetag(NCURI* uri, const char* tag);
 EXTERNL int NC_split_delim(const char* path, char delim, NClist* segments);
 EXTERNL int NC_join(struct NClist* segments, char** pathp);
+EXTERNL int NC_joinwith(NClist* segments, const char* sep, const char* prefix, const char* suffix, char** pathp);
 
 #if defined(__cplusplus)
 }
