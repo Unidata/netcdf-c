@@ -46,7 +46,7 @@
 typedef struct NCHTTP {
     NC_HTTP_STATE* state;
     long long size; /* of the object */
-    NCbytes* region;
+    NCbytes* interval;
 } NCHTTP;
 
 /* Forward */
@@ -100,8 +100,8 @@ done:
 
 fail:
     if(http != NULL) {
-	if(http->region)
-	    ncbytesfree(http->region);
+	if(http->interval)
+	    ncbytesfree(http->interval);
 	free(http);
     }
     if(nciop != NULL) {
@@ -237,7 +237,7 @@ httpio_close(ncio* nciop, int doUnlink)
 
     /* do cleanup  */
     if(http != NULL) {
-	ncbytesfree(http->region);
+	ncbytesfree(http->interval);
 	free(http);
     }
     if(nciop->path != NULL) free((char*)nciop->path);
@@ -246,7 +246,7 @@ httpio_close(ncio* nciop, int doUnlink)
 }
 
 /*
- * Request that the region (offset, extent)
+ * Request that the interval (offset, extent)
  * be made available through *vpp.
  */
 static int
@@ -258,13 +258,13 @@ httpio_get(ncio* const nciop, off_t offset, size_t extent, int rflags, void** co
     if(nciop == NULL || nciop->pvt == NULL) {status = NC_EINVAL; goto done;}
     http = (NCHTTP*)nciop->pvt;
 
-    assert(http->region == NULL);
-    http->region = ncbytesnew();
-    ncbytessetalloc(http->region,(unsigned long)extent);
-    if((status = nc_http_read(http->state,offset,extent,http->region)))
+    assert(http->interval == NULL);
+    http->interval = ncbytesnew();
+    ncbytessetalloc(http->interval,(unsigned long)extent);
+    if((status = nc_http_read(http->state,offset,extent,http->interval)))
 	goto done;
-    assert(ncbyteslength(http->region) == extent);
-    if(vpp) *vpp = ncbytescontents(http->region);
+    assert(ncbyteslength(http->interval) == extent);
+    if(vpp) *vpp = ncbytescontents(http->interval);
 done:
     return status;
 }
@@ -286,8 +286,8 @@ httpio_rel(ncio* const nciop, off_t offset, int rflags)
 
     if(nciop == NULL || nciop->pvt == NULL) {status = NC_EINVAL; goto done;}
     http = (NCHTTP*)nciop->pvt;
-    ncbytesfree(http->region);
-    http->region = NULL;
+    ncbytesfree(http->interval);
+    http->interval = NULL;
 done:
     return status;
 }
