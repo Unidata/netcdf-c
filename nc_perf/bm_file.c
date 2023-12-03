@@ -462,7 +462,7 @@ int copy_file(char *file_name_in, char *file_name_out, int cmode_out,
 	      size_t *data_read_us, int *data_write_us, int *in_format, int use_par,
 	      int par_access, float *num_bytes, int p, int my_rank,
 	      int slow_count, int verbose, int use_scs, int endianness,
-	      int convert_unlim)
+	      int convert_unlim, int zstandard)
 {
     int ncid_in, ncid_out;
     int natts, nvars, ndims, unlimdimid;
@@ -598,7 +598,20 @@ int copy_file(char *file_name_in, char *file_name_out, int cmode_out,
                         if (nc_def_var_chunking(ncid_out, v, 1, NULL)) ERR;
                     }
                     if (vo[o1].deflate_num != -1)
-                        if (nc_def_var_deflate(ncid_out, v, vo[o1].shuffle, 1, vo[o1].deflate_num)) ERR;
+		    {
+			if (zstandard)
+			{
+			    int ret;
+			    if (nc_def_var_deflate(ncid_out, v, vo[o1].shuffle, 0, 0)) ERR;
+			    if ((ret = nc_def_var_zstandard(ncid_out, v, vo[o1].deflate_num)))
+			    {
+				printf("ret %d\n", ret);
+				ERR;
+			    }
+			}
+			else
+			    if (nc_def_var_deflate(ncid_out, v, vo[o1].shuffle, 1, vo[o1].deflate_num)) ERR;
+		    }
                     break;
                 }
 
@@ -800,13 +813,14 @@ int copy_file(char *file_name_in, char *file_name_out, int cmode_out,
   [-i]        Use MPIIO (only relevant for parallel builds).\n\
   [-l]        Convert unlimited dimensions to fixed dimensions.\n\
   [-e 1|2]    Set the endianness of output (1=little 2=big).\n\
+  [-y]        Use zstandard compression instead of zlib.\n\
   file        Name of netCDF file\n"
 
 static void
 usage(void)
 {
     fprintf(stderr, "bm_file -v [-s N]|[-t V:S:S:S -u V:C:C:C -r V:I:I:I] -o file_out -f N -h"
-            " -c V:C:C,V:C:C:C -d -m -p -i -e 1|2 -l file\n%s", USAGE);
+            " -c V:C:C,V:C:C:C -d -m -p -i -e 1|2 -l -y file\n%s", USAGE);
 }
 
 int
@@ -819,6 +833,7 @@ main(int argc, char **argv)
     char file_in[NC_MAX_NAME + 1], file_out[NC_MAX_NAME + 1] = {""};
     char file_out_2[NC_MAX_NAME + 10 + 1]; /* extra 10 to silence warning */
     int out_format, in_format, header = 0, doublecheck = 0;
+    int zstandard = 0;
     int convert_unlim = 0;
     char *str1, *str2, *token, *subtoken;
     char *saveptr1, *saveptr2;
@@ -857,7 +872,7 @@ main(int argc, char **argv)
         for (i = 0; i < MAX_DIMS; i++)
             vo[o1].chunksize[i] = 0;
 
-    while ((c = getopt(argc, argv, "vo:f:hc:dpms:it:u:r:e:l")) != EOF)
+    while ((c = getopt(argc, argv, "vo:f:hc:dpms:it:u:r:e:l:y")) != EOF)
         switch(c)
         {
         case 'v':
@@ -1000,6 +1015,9 @@ main(int argc, char **argv)
         case 'l':
 	    convert_unlim++;
 	    break;
+        case 'y':
+	    zstandard++;
+	    break;
         case '?':
 	    usage();
 	    return 1;
@@ -1060,7 +1078,7 @@ main(int argc, char **argv)
     if ((ret = copy_file(file_in, file_out, cmode, num_vo, vo, &meta_read_us, &meta_write_us,
                          &data_read_us, &data_write_us, &in_format, use_par, par_access,
                          &num_bytes, p, my_rank, slow_count, verbose, use_scs, endianness,
-                         convert_unlim)))
+                         convert_unlim, zstandard)))
         return ret;
 
     /* If the user wants a double check, make sure the data in the new
