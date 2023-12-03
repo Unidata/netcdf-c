@@ -15,7 +15,7 @@ fi
 if test "x$FEATURE_S3TESTS" != xno ; then
 URL4a="https://s3.us-east-1.amazonaws.com/noaa-goes16/ABI-L1b-RadC/2017/059/03/OR_ABI-L1b-RadC-M3C13_G16_s20170590337505_e20170590340289_c20170590340316.nc#mode=bytes"
 URL4c="https://noaa-goes16.s3.amazonaws.com/ABI-L1b-RadF/2022/001/18/OR_ABI-L1b-RadF-M6C01_G16_s20220011800205_e20220011809513_c20220011809562.nc#mode=bytes,s3"
-# Test alternate URL with no specified region
+# Test alternate URL with no specified region and using s3 protocol
 URL4e="s3://noaa-goes16/ABI-L1b-RadC/2017/059/03/OR_ABI-L1b-RadC-M3C13_G16_s20170590337505_e20170590340289_c20170590340316.nc#mode=bytes"
 fi
 if test "x$FEATURE_S3TESTS" = xyes ; then
