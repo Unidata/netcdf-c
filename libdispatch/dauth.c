@@ -17,9 +17,10 @@ See COPYRIGHT for license information.
 #include "netcdf.h"
 #include "ncbytes.h"
 #include "ncuri.h"
-#include "ncauth.h"
 #include "nclog.h"
 #include "ncpathmgr.h"
+#include "ncs3sdk.h"
+#include "ncauth.h"
 
 #ifdef _MSC_VER
 #include <windows.h>
