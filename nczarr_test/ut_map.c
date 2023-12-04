@@ -88,6 +88,9 @@ simplecreate(void)
     NCZMAP* map = NULL;
     char* path = NULL;
 
+    if((stat = nczmap_truncate(impl,url)))
+	goto done;
+
     if((stat = nczmap_create(impl,url,0,0,NULL,&map)))
 	goto done;
 
