@@ -143,14 +143,12 @@ main(int argc, char** argv)
 	case 'k': {
 	    size_t len = strlen(optarg);
 	    dumpoptions.key = (char*)malloc(len+1+1);
-#if 0
 	    if(*optarg != '/') {
 	        fprintf(stderr,"warning: -k option does not start with '/': %s",optarg);
 		dumpoptions.key[0] = '/';
 		memcpy(dumpoptions.key+1,optarg,len);
 		len++;
 	    } else
-#endif
 		memcpy(dumpoptions.key,optarg,strlen(optarg));
 	    dumpoptions.key[len] = '\0';
 	    } break;
