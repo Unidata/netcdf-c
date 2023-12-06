@@ -11,7 +11,8 @@
 #include "d4odom.h"
 
 /* Forward */
-static int getvarx(int ncid, int varid, NCD4INFO**, NCD4node** varp, nc_type* xtypep, size_t*, nc_type* nc4typep, size_t*);
+static int getvarx(int gid, int varid, NCD4INFO**, NCD4node** varp, nc_type* xtypep, size_t*, nc_type* nc4typep, size_t*);
+static int mapvars(NCD4meta* dapmeta, NCD4meta* dmrmeta, int inferredchecksumming);
 
 int
 NCD4_get_vara(int ncid, int varid,
@@ -22,11 +23,11 @@ NCD4_get_vara(int ncid, int varid,
     int ret;
     /* TODO: optimize since we know stride is 1 */
     ret = NCD4_get_vars(ncid,varid,start,edges,NC_stride_one,value,memtype);
-    return ret;
+    return THROW(ret);
 }
 
 int
-NCD4_get_vars(int ncid, int varid,
+NCD4_get_vars(int gid, int varid,
 	    const size_t *start, const size_t *edges, const ptrdiff_t* stride,
             void *memoryin, nc_type xtype)
 {
@@ -43,14 +44,14 @@ NCD4_get_vars(int ncid, int varid,
     int rank;
     size_t dimsizes[NC_MAX_VAR_DIMS];
     d4size_t dimproduct;
-    size_t dstcount;
+    size_t dstpos;
     NCD4offset* offset = NULL;
     
-    /* Get netcdf type info */
-    if((ret=getvarx(ncid, varid, &info, &ncvar, &xtype, &xsize, &nc4type, &nc4size)))
+    /* Get netcdf var metadata and data */
+    if((ret=getvarx(gid, varid, &info, &ncvar, &xtype, &xsize, &nc4type, &nc4size)))
 	{goto done;}
 
-    meta = info->substrate.metadata;
+    meta = info->dmrmetadata;
     nctype = ncvar->basetype;
     rank = nclistlength(ncvar->dims);
     blobs = nclistnew();
@@ -74,18 +75,18 @@ NCD4_get_vars(int ncid, int varid,
         odom = d4odom_new(rank,start,edges,stride,dimsizes);
     else
         odom = d4scalarodom_new();
-    dstcount = 0; /* We always write into dst starting at position 0*/
-    for(;d4odom_more(odom);dstcount++) {
+    dstpos = 0; /* We always write into dst starting at position 0*/
+    for(;d4odom_more(odom);dstpos++) {
 	void* xpos;
 	void* dst;
-	d4size_t count;
+	d4size_t pos;
 
-        count = d4odom_next(odom);
-	if(count >= dimproduct) {
+        pos = d4odom_next(odom);
+	if(pos >= dimproduct) {
 	    ret = THROW(NC_EINVALCOORDS);
 	    goto done;
 	}
-        xpos = ((char*)memoryin)+(xsize * dstcount); /* ultimate destination */
+        xpos = ((char*)memoryin)+(xsize * dstpos); /* ultimate destination */
 	/* We need to compute the offset in the dap4 data of this instance;
 	   for fixed size types, this is easy, otherwise we have to walk
 	   the variable size type
@@ -95,16 +96,16 @@ NCD4_get_vars(int ncid, int varid,
 	offset = NULL;
 	offset = BUILDOFFSET(NULL,0);
         BLOB2OFFSET(offset,ncvar->data.dap4data);
-	/* Move offset to the count'th element of the array */
+	/* Move offset to the pos'th element of the array */
 	if(nctype->meta.isfixedsize) {
-	    INCR(offset,(dapsize*count));
+	    INCR(offset,(dapsize*pos));
 	} else {
-	    /* We have to walk to the count'th location in the data */
-	    if((ret=NCD4_moveto(meta,ncvar,count,offset)))
+	    /* We have to walk to the pos'th location in the data */
+	    if((ret=NCD4_moveto(meta,ncvar,pos,offset)))
 	        {goto done;}		    
 	}
 	dst = instance;
-	if((ret=NCD4_fillinstance(meta,nctype,offset,&dst,blobs)))
+	if((ret=NCD4_movetoinstance(meta,nctype,offset,&dst,blobs)))
 	    {goto done;}
 	if(xtype == nc4type) {
 	    /* We can just copy out the data */
@@ -132,45 +133,29 @@ done:
 }
 
 static int
-getvarx(int ncid, int varid, NCD4INFO** infop, NCD4node** varp,
+getvarx(int gid, int varid, NCD4INFO** infop, NCD4node** varp,
 	nc_type* xtypep, size_t* xsizep, nc_type* nc4typep, size_t* nc4sizep)
 {
     int ret = NC_NOERR;
-    NC* ncp;
-    NCD4INFO* info;
-    NCD4meta* meta;
-    NCD4node* group;
-    NCD4node* var;
-    NCD4node* type;
+    NC* ncp = NULL;
+    NCD4INFO* info = NULL;
+    NCD4meta* dmrmeta = NULL;
+    NCD4node* group = NULL;
+    NCD4node* var = NULL;
+    NCD4node* type = NULL;
     nc_type xtype, actualtype;
     size_t instancesize, xsize;
+    NCURI* ceuri = NULL; /* Constrained uri */
+    NCD4meta* dapmeta = NULL;
+    NCD4response* dapresp = NULL;
 
-    if((ret = NC_check_id(ncid, (NC**)&ncp)) != NC_NOERR)
+    if((ret = NC_check_id(gid, (NC**)&ncp)) != NC_NOERR)
 	goto done;
 
     info = getdap(ncp);
-    meta = info->substrate.metadata;
+    dmrmeta = info->dmrmetadata;
 
-    /* If the data has not already been read and processed, then do so. */
-    if(meta->serial.dap == NULL) {
-	size_t len = 0;
-	void* content = NULL;
-        /* (Re)Build the meta data; sets serial.rawdata */
-        NCD4_resetMeta(info->substrate.metadata);
-        meta->controller = info;
-        meta->ncid = info->substrate.nc4id; /* Transfer netcdf ncid */
-
-        if((ret=NCD4_readDAP(info, info->controls.flags.flags))) goto done;
-	len = ncbyteslength(info->curl->packet);
-	content = ncbytesextract(info->curl->packet);
-	NCD4_resetSerial(&meta->serial, len, content);
-        /* Process the data part */
-        if((ret=NCD4_dechunk(meta))) goto done;
-        if((ret = NCD4_processdata(info->substrate.metadata))) goto done;
-    }
-
-    if((ret = NCD4_findvar(ncp,ncid,varid,&var,&group))) goto done;
-
+    if((ret = NCD4_findvar(ncp,gid,varid,&var,&group))) goto done;
     type = var->basetype;
     actualtype = type->meta.id;
     instancesize = type->meta.memsize;
@@ -189,6 +174,46 @@ getvarx(int ncid, int varid, NCD4INFO** infop, NCD4node** varp,
     else
 	xsize = instancesize;
 
+    /* If we already have valid data, then just return */
+    if(var->data.valid) goto validated;
+
+    /* Ok, we need to read from the server */
+
+    /* Add the variable to the URI, unless the URI is already constrained or is unconstrainable */
+    ceuri = ncuriclone(info->dmruri);
+    /* append the request for a specific variable */
+    if(ncuriquerylookup(ceuri,DAP4CE) == NULL && !FLAGSET(info->controls.flags,NCF_UNCONSTRAINABLE)) {
+	ncurisetquerykey(ceuri,strdup("dap4.ce"),NCD4_makeFQN(var));
+    }
+
+    /* Read and process the data */
+
+    /* Setup the meta-data for the DAP */
+    if((ret=NCD4_newMeta(info,&dapmeta))) goto done;
+    if((ret=NCD4_newResponse(info,&dapresp))) goto done;
+    dapresp->mode = NCD4_DAP;
+    nclistpush(info->responses,dapresp);
+    if((ret=NCD4_readDAP(info, info->controls.flags.flags, ceuri, dapresp))) goto done;
+
+    /* Extract DMR and dechunk the data part */
+    if((ret=NCD4_dechunk(dapresp))) goto done;
+
+    /* Process the dmr part */
+    if((ret=NCD4_parse(dapmeta,dapresp,1))) goto done;
+
+    /* See if we are checksumming */
+    if((ret=NCD4_inferChecksums(dapmeta,dapresp))) goto done;
+
+    /* connect variables and corresponding dap data */
+    if((ret = NCD4_parcelvars(dapmeta,dapresp))) goto done;
+
+    /* Process checksums and byte-order swapping */
+    if((ret = NCD4_processdata(dapmeta,dapresp))) goto done;
+
+    /* Transfer and process the data */
+    if((ret = mapvars(dapmeta,dmrmeta,dapresp->inferredchecksumming))) goto done;
+
+validated:
     /* Return relevant info */
     if(infop) *infop = info;
     if(xtypep) *xtypep = xtype;
@@ -197,8 +222,96 @@ getvarx(int ncid, int varid, NCD4INFO** infop, NCD4node** varp,
     if(nc4sizep) *nc4sizep = instancesize;
     if(varp) *varp = var;
 done:
-    if(meta->error.message != NULL)
-	NCD4_reporterror(info);    /* Make sure the user sees this */
+    if(dapmeta) NCD4_reclaimMeta(dapmeta);
+    ncurifree(ceuri);
+    if(dapresp != NULL && dapresp->error.message != NULL)
+	NCD4_reporterror(dapresp,ceuri);    /* Make sure the user sees this */
     return THROW(ret);    
 }
 
+#if 0
+static NCD4node*
+findbyname(const char* name, NClist* nodes)
+{
+    int i;
+    for(i=0;i<nclistlength(nodes);i++) {
+        NCD4node* node = (NCD4node*)nclistget(nodes,i);
+        if(strcmp(name,node->name)==0)
+	    return node;
+    }
+    return NULL;
+}
+#endif
+
+static int
+matchvar(NCD4meta* dmrmeta, NCD4node* dapvar, NCD4node** dmrvarp)
+{
+    int i,ret = NC_NOERR;
+    NCD4node* x = NULL;
+    NClist* dappath = nclistnew();
+    NClist* dmrpath = nclistnew(); /* compute path for this dmr var */
+    int found = 0;
+    NCD4node* match = NULL;
+    
+    /* Capture the dap path starting at root and ending at the dapvar (assumed to be topvar) */
+    for(x=dapvar;x != NULL;x=x->container) nclistinsert(dappath,0,x);
+    /* Iterate over all variable nodes to find matching one */
+    for(i=0;i<nclistlength(dmrmeta->allnodes);i++) {
+	NCD4node* node = (NCD4node*)nclistget(dmrmeta->allnodes,i);
+	if(ISVAR(node->sort) && strcmp(node->name,dapvar->name)==0) { /* possible candidate */
+	    int j;
+    	    found = 0;
+	    nclistclear(dmrpath);
+	    for(x=node;x != NULL;x=x->container) nclistinsert(dmrpath,0,x);
+	    if(nclistlength(dmrpath) == nclistlength(dappath)) { /* same length paths */
+		/* compare paths: name and sort */
+	        for(found=1,j=0;j<nclistlength(dmrpath);j++) {
+		    NCD4node* pdmr = (NCD4node*)nclistget(dmrpath,j);
+    		    NCD4node* pdap = (NCD4node*)nclistget(dappath,j);
+	     	    if(pdmr->sort != pdap->sort || strcmp(pdmr->name,pdap->name) != 0)
+		        {found = 0; break;}
+		}
+		if(found) {match = node; break;}
+	    }
+	}
+    }
+    if(!found) {ret = NC_EINVAL; goto done;}
+    if(dmrvarp) *dmrvarp = match;
+
+done:
+    nclistfree(dappath);
+    nclistfree(dmrpath);
+    return THROW(ret);
+}
+
+/*
+Map each toplevel dap var to the corresponding
+toplevel dmr var and transfer necessary info;
+*/
+
+static int
+mapvars(NCD4meta* dapmeta, NCD4meta* dmrmeta, int inferredchecksumming)
+{
+    int i, ret = NC_NOERR;
+    NCD4node* daproot = dapmeta->root;
+    NClist* daptop = NULL; /* top variables in dap tree */
+
+    /* Get top level variables from the dap node tree */
+    daptop = nclistnew();
+    NCD4_getToplevelVars(dapmeta,daproot,daptop);
+
+    /* Match up the dap top variables with the dmr top variables */
+    for(i=0;i<nclistlength(daptop);i++) {
+	NCD4node* dapvar = (NCD4node*)nclistget(daptop,i);
+	NCD4node* dmrvar = NULL;
+	if((ret=matchvar(dmrmeta,dapvar,&dmrvar))) goto done;
+        /* Transfer info from dap var to dmr var */
+	dmrvar->data = dapvar->data;
+        memset(&dapvar->data,0,sizeof(NCD4vardata));
+	dmrvar->data.valid = 1;
+    }
+
+done:
+    nclistfree(daptop);
+    return THROW(ret);
+}

@@ -225,7 +225,7 @@ NC_rcload(void)
     globalstate = NC_getglobalstate();
 
     if(globalstate->rcinfo->ignore) {
-        nclog(NCLOGDBG,".rc file loading suppressed");
+        nclog(NCLOGNOTE,".rc file loading suppressed");
 	goto done;
     }
     if(globalstate->rcinfo->loaded) goto done;
@@ -437,7 +437,9 @@ rccompile(const char* filepath)
     NCURI* uri = NULL;
     char* nextline = NULL;
     NCglobalstate* globalstate = NC_getglobalstate();
-    char* bucket = NULL;
+    NCS3INFO s3;
+
+    memset(&s3,0,sizeof(s3));
 
     if((ret=NC_readfile(filepath,tmp))) {
         nclog(NCLOGWARN, "Could not open configuration file: %s",filepath);
@@ -484,9 +486,8 @@ rccompile(const char* filepath)
 	    if(NC_iss3(uri)) {
 	         NCURI* newuri = NULL;
 	        /* Rebuild the url to S3 "path" format */
-	        nullfree(bucket);
-		bucket = NULL;
-	        if((ret = NC_s3urlrebuild(uri,&bucket,NULL,&newuri))) goto done;
+		NC_s3clear(&s3);
+	        if((ret = NC_s3urlrebuild(uri,&s3,&newuri))) goto done;
 		ncurifree(uri);
 		uri = newuri;
 		newuri = NULL;
@@ -546,6 +547,7 @@ rccompile(const char* filepath)
     rcorder(rc);
 
 done:
+    NC_s3clear(&s3);
     if(contents) free(contents);
     ncurifree(uri);
     ncbytesfree(tmp);
@@ -653,7 +655,7 @@ rcsearch(const char* prefix, const char* rcname, char** pathp)
     /* see if file is readable */
     f = NCfopen(path,"r");
     if(f != NULL)
-        nclog(NCLOGDBG, "Found rc file=%s",path);
+        nclog(NCLOGNOTE, "Found rc file=%s",path);
 done:
     if(f == NULL || ret != NC_NOERR) {
 	nullfree(path);
@@ -1155,6 +1157,15 @@ aws_load_credentials(NCglobalstate* gstate)
 	    const char* text = ncbytescontents(buf);
             if((stat = awsparse(text,profiles))) goto done;
 	}
+    }
+  
+    /* add a "none" credentials */
+    {
+	struct AWSprofile* noprof = (struct AWSprofile*)calloc(1,sizeof(struct AWSprofile));
+    if(noprof == NULL) {stat = NC_ENOMEM; goto done;}
+	noprof->name = strdup("none");
+	noprof->entries = nclistnew();
+	nclistpush(profiles,noprof); noprof = NULL;
     }
 
     if(gstate->rcinfo->s3profiles)

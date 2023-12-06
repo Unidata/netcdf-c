@@ -38,5 +38,3 @@ diff -b ${srcdir}/ref_jsonconvention.zmap tmp_jsonconvention_clean_${zext}.txt
 testcase file
 if test "x$FEATURE_NCZARR_ZIP" = xyes ; then testcase zip; fi
 if test "x$FEATURE_S3TESTS" = xyes ; then testcase s3; fi
-
-if test "x$FEATURE_S3TESTS" = xyes ; then s3sdkdelete "/${S3ISOPATH}" ; fi # Cleanup

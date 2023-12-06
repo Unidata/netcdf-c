@@ -10,7 +10,6 @@
  *                                                                           *
  * This file is part of HDF5.  The full HDF5 copyright notice, including     *
  * terms governing use, modification, and redistribution, is contained in    *
- * the COPYING file, which can be found at the root of the source code       *
  * distribution tree, or in https://support.hdfgroup.org/ftp/hdf5/releases.  *
  * If you do not have access to either file, you may request a copy from     *
  * help@hdfgroup.org.                                                        *
@@ -130,12 +129,13 @@ ncz_hdf5_clear(NCZ_HDF5* h) {
 
 typedef struct NCZ_Filter {
     int flags;             	/**< Flags describing state of this filter. */
-#	define FLAG_VISIBLE 1 /* If set, then visible parameters are defined */
-#	define FLAG_WORKING 2 /* If set, then WORKING parameters are defined */
-#	define FLAG_CODEC 4 /* If set, then visbile parameters come from an existing codec string */
-#	define FLAG_HDF5  8 /* If set, => visible parameters came from nc_def_var_filter */
-#	define FLAG_NEWVISIBLE  16 /* If set, => visible parameters  were modified */
-#	define FLAG_INCOMPLETE  32 /* If set, => filter has no complete matching plugin */
+#	define FLAG_VISIBLE	1 /* If set, then visible parameters are defined */
+#	define FLAG_WORKING	2 /* If set, then WORKING parameters are defined */
+#	define FLAG_CODEC	4 /* If set, then visbile parameters come from an existing codec string */
+#	define FLAG_HDF5	8 /* If set, => visible parameters came from nc_def_var_filter */
+#	define FLAG_NEWVISIBLE	16 /* If set, => visible parameters  were modified */
+#	define FLAG_INCOMPLETE	32 /* If set, => filter has no complete matching plugin */
+#	define FLAG_SUPPRESS	64 /* If set, => filter should not be used (probably because variable is not fixed size */
     NCZ_HDF5 hdf5;
     NCZ_Codec codec;
     struct NCZ_Plugin* plugin;  /**< Implementation of this filter. */
@@ -367,7 +367,6 @@ NCZ_addfilter(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, unsigned int id, size_t 
     /* Before anything else, find the matching plugin */
     if((stat = NCZ_plugin_loaded(id,&plugin))) goto done;
     if(plugin == NULL) {
-	ZLOG(NCLOGWARN,"no such plugin: %u",(unsigned)id);
 	stat = THROW(NC_ENOFILTER);
 	goto done;
     }
@@ -387,6 +386,12 @@ NCZ_addfilter(NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, unsigned int id, size_t 
 	    nclistpush((NClist*)zvar->incompletefilters, fi);
 	} else
 	    nclistpush((NClist*)var->filters, fi);
+    }
+
+    /* If this variable is not fixed size, mark filter as suppressed */
+    if(var->type_info->varsized) {
+	fi->flags |= FLAG_SUPPRESS;
+	nclog(NCLOGWARN,"Filters cannot be applied to variable length data types; ignored");
     }
 
     if(!FILTERINCOMPLETE(fi)) {
@@ -431,7 +436,6 @@ NCZ_filter_remove(NC_VAR_INFO_T* var, unsigned int id)
 	    goto done;
 	}
     }
-    ZLOG(NCLOGERR,"no such filter: %u",(unsigned)id);
     stat = THROW(NC_ENOFILTER);
 done:
     return ZUNTRACE(stat);
@@ -560,10 +564,12 @@ NCZ_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams,
     /* See if deflate &/or szip is defined */
     if((stat = NCZ_filter_lookup(var,H5Z_FILTER_DEFLATE,&tmp))) goto done;
     havedeflate = (tmp == NULL ? 0 : 1);
+    stat = NC_NOERR; /* reset */
 
     if((stat = NCZ_filter_lookup(var,H5Z_FILTER_SZIP,&tmp))) goto done;
     haveszip = (tmp == NULL ? 0 : 1);
-
+    stat = NC_NOERR; /* reset */
+    
     /* If incoming filter not already defined, then check for conflicts */
     if(oldspec == NULL) {
         if(id == H5Z_FILTER_DEFLATE) {
@@ -704,7 +710,6 @@ NCZ_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparamsp, 
         if(params && spec->hdf5.visible.nparams > 0)
 	    memcpy(params,spec->hdf5.visible.params,sizeof(unsigned int)*spec->hdf5.visible.nparams);
     } else {
-        ZLOG(NCLOGWARN,"no such filter: %u",(unsigned)id);
         stat = THROW(NC_ENOFILTER);
     } 
 done:
@@ -839,7 +844,7 @@ NCZ_applyfilterchain(const NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, NClist* cha
 {
     int i, stat = NC_NOERR;
     void* lastbuffer = NULL; /* if not null, then last allocated buffer */
-
+    
     ZTRACE(6,"|chain|=%u inlen=%u indata=%p encode=%d", (unsigned)nclistlength(chain), (unsigned)inlen, indata, encode);
 
     /* Make sure all the filters are loaded && setup */
@@ -870,6 +875,7 @@ fprintf(stderr,">>> current: alloc=%u used=%u buf=%p\n",(unsigned)current_alloc,
         if(encode) {
             for(i=0;i<nclistlength(chain);i++) {
 	        f = (struct NCZ_Filter*)nclistget(chain,i);	
+		if(f->flags & FLAG_SUPPRESS) continue; /* this filter should not be applied */		
 	        ff = f->plugin->hdf5.filter;
 	        /* code can be simplified */
 	        next_alloc = current_alloc;
@@ -889,6 +895,7 @@ fprintf(stderr,">>> next: alloc=%u used=%u buf=%p\n",(unsigned)next_alloc,(unsig
 	    /* Apply in reverse order */
             for(i=nclistlength(chain)-1;i>=0;i--) {
 	        f = (struct NCZ_Filter*)nclistget(chain,i);	
+		if(f->flags & FLAG_SUPPRESS) continue; /* this filter should not be applied */
 	        ff = f->plugin->hdf5.filter;
 	        /* code can be simplified */
 	        next_alloc = current_alloc;
@@ -983,7 +990,6 @@ NCZ_filter_build(const NC_FILE_INFO_T* file, NC_VAR_INFO_T* var, const NCjson* j
     /* Get the id of this codec filter */
     if(NCJdictget(jfilter,"id",&jvalue)<0) {stat = NC_EFILTER; goto done;}
     if(NCJsort(jvalue) != NCJ_STRING) {
-        ZLOG(NCLOGERR,"no such filter: %s",NCJstring(jvalue));
 	stat = THROW(NC_ENOFILTER); goto done;
     }
 
@@ -1146,7 +1152,7 @@ static int
 NCZ_load_all_plugins(void)
 {
     int i,j,ret = NC_NOERR;
-    const char* pluginroots = NULL;
+    char* pluginroots = NULL;
     struct stat buf;
     NClist* dirs = nclistnew();
     char* defaultpluginpath = NULL;
@@ -1176,7 +1182,7 @@ NCZ_load_all_plugins(void)
     pluginroots = getenv(PLUGIN_ENV); /* Usually HDF5_PLUGIN_PATH */
     if(pluginroots  != NULL && strlen(pluginroots) == 0) pluginroots = NULL;
     if(pluginroots == NULL) {
-	pluginroots = strdup(defaultpluginpath);
+	pluginroots = defaultpluginpath;
     }
     assert(pluginroots != NULL);
     ZTRACEMORE(6,"pluginroots=%s",(pluginroots?pluginroots:"null"));

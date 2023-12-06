@@ -699,7 +699,7 @@ pr_att_valsx(
 	case NC_BYTE:
 	case NC_SHORT:
 	case NC_INT:
-	    ii = vals[iel];
+	    ii = (int)vals[iel];
 	    res = snprintf(gps, PRIM_LEN, "%d", ii);
 	    assert(res < PRIM_LEN);
 	    (void) strlcat(attvals, gps, attvalslen);
@@ -708,28 +708,28 @@ pr_att_valsx(
 	case NC_UBYTE:
 	case NC_USHORT:
 	case NC_UINT:
-	    ui = vals[iel];
+	    ui = (unsigned int)vals[iel];
 	    res = snprintf(gps, PRIM_LEN, "%u", ui);
 	    assert(res < PRIM_LEN);
 	    (void) strlcat(attvals, gps, attvalslen);
 	    (void) strlcat(attvals, iel < len-1 ? " " : "", attvalslen);
 	    break;
 	case NC_INT64:
-	    i64 = vals[iel];
+	    i64 = (int64_t)vals[iel];
 	    res = snprintf(gps, PRIM_LEN, "%lld", i64);
 	    assert(res < PRIM_LEN);
 	    (void) strlcat(attvals, gps, attvalslen);
 	    (void) strlcat(attvals, iel < len-1 ? " " : "", attvalslen);
 	    break;
 	case NC_UINT64:
-	    ui64 = vals[iel];
+	    ui64 = (uint64_t)vals[iel];
 	    res = snprintf(gps, PRIM_LEN, "%llu", ui64);
 	    assert(res < PRIM_LEN);
 	    (void) strlcat(attvals, gps, attvalslen);
 	    (void) strlcat(attvals, iel < len-1 ? " " : "", attvalslen);
 	    break;
 	case NC_FLOAT:
-	    ff = vals[iel];
+	    ff = (float)vals[iel];
 	    res = snprintf(gps, PRIM_LEN, float_attx_fmt, ff);
 	    assert(res < PRIM_LEN);
 	    tztrim(gps);	/* trim trailing 0's after '.' */
@@ -847,7 +847,7 @@ pr_att(
 	  case NC_VLEN:
 	      /* because size returned for vlen is base type size, but we
 	       * need space to read array of vlen structs into ... */
-              data = emalloc((att.len + 1) * sizeof(nc_vlen_t));
+	        data = emalloc((att.len + 1) * sizeof(nc_vlen_t));
 	     break;
 	  case NC_OPAQUE:
 	      data = emalloc((att.len + 1) * type_size);
@@ -1767,7 +1767,6 @@ do_ncdump_rec(int ncid, const char *path)
 
    for (varid = 0; varid < nvars; varid++) {
       NC_CHECK( nc_inq_varndims(ncid, varid, &var.ndims) );
-      if(var.dims != NULL) free(var.dims);
       var.dims = (int *) emalloc((var.ndims + 1) * sizeof(int));
       NC_CHECK( nc_inq_var(ncid, varid, var.name, &var.type, 0,
 			   var.dims, &var.natts) );
@@ -1890,6 +1889,7 @@ do_ncdump_rec(int ncid, const char *path)
 	  pr_att_specials(ncid, kind, varid, &var);
       }
 #endif /* USE_NETCDF4 */
+      if(var.dims) {free((void*)var.dims); var.dims = NULL;}
    }
 
    if (ngatts > 0 || formatting_specs.special_atts) {
@@ -1927,7 +1927,7 @@ do_ncdump_rec(int ncid, const char *path)
 	 if (formatting_specs.nlvars > 0 && ! idmember(vlist, varid))
 	    continue;
 	 NC_CHECK( nc_inq_varndims(ncid, varid, &var.ndims) );
-	 if(var.dims != NULL) free(var.dims);
+	 if(var.dims != NULL) {free(var.dims); var.dims = NULL;}
 	 var.dims = (int *) emalloc((var.ndims + 1) * sizeof(int));
 	 NC_CHECK( nc_inq_var(ncid, varid, var.name, &var.type, 0,
 			      var.dims, &var.natts) );
@@ -1975,6 +1975,7 @@ do_ncdump_rec(int ncid, const char *path)
 	 }
 	 if(var.fillvalp != NULL)
 	     {NC_CHECK(nc_reclaim_data_all(ncid,var.tinfo->tid,var.fillvalp,1)); var.fillvalp = NULL;}
+	 if(var.dims) {free(var.dims); var.dims = NULL;}
       }
       if (vdims) {
 	  free(vdims);
@@ -2396,7 +2397,7 @@ main(int argc, char *argv[])
 	    nc_set_log_level(level);
 	  }
 #endif
-	  ncsetlogging(1);
+	  ncsetloglevel(NCLOGNOTE);
 	  break;
 	case 'F':
 	  formatting_specs.filter_atts = true;

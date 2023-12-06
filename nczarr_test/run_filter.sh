@@ -72,7 +72,7 @@ if ! test -f ${MISCPATH} ; then echo "Unable to locate ${MISCPATH}"; exit 1; fi
 
 testapi() {
 zext=$1
-echo "*** Testing dynamic filters using API for map=$zext"
+echo "*** Testing dynamic filters using API for storage format $zext"
 fileargs tmp_api
 deletemap $zext $file
 ${execdir}/testfilter $fileurl
@@ -85,7 +85,7 @@ echo "*** Pass: API dynamic filter for map=$zext"
 
 testmisc() {
 zext=$1
-echo "*** Testing dynamic filters parameter passing for map $zext"
+echo "*** Testing dynamic filters parameter passing for storage format $zext"
 fileargs tmp_misc
 deletemap $zext $file
 ${execdir}/testfilter_misc $fileurl
@@ -100,12 +100,12 @@ cat >./tmp_misc2_$zext.txt <<EOF
 var:_Filter = "32768,2,239,23,65511,27,77,93,1145389056,3287505826,1097305129,1,2147483648,4294967295,4294967295" ;
 EOF
 diff -b -w ./tmp_misc_$zext.txt ./tmp_misc_$zext.txt
-echo "*** Pass: parameter passing for map $zext"
+echo "*** Pass: parameter passing for storage format $zext"
 }
 
 testng() {
 zext=$1
-echo "*** Testing dynamic filters using ncgen for map $zext"
+echo "*** Testing dynamic filters using ncgen for storage format $zext"
 fileargs tmp_misc
 deletemap $zext $file
 ${NCGEN} -lb -4 -o $fileurl ${srcdir}/../nc_test4/bzip2.cdl
@@ -113,12 +113,12 @@ ${NCDUMP} -s -n bzip2 $fileurl > ./tmp_ng_$zext.txt
 # Remove irrelevant -s output
 sclean ./tmp_ng_$zext.txt ./tmp_ng2_$zext.txt
 diff -b -w ${srcdir}/ref_bzip2.cdl ./tmp_ng2_$zext.txt
-echo "*** Pass: ncgen dynamic filter for map $zext"
+echo "*** Pass: ncgen dynamic filter for storage format $zext"
 }
 
 testncp() {
 zext=$1	
-echo "*** Testing dynamic filters using nccopy for map $zext"
+echo "*** Testing dynamic filters using nccopy for storage format $zext"
 fileargs tmp_unfiltered
 deletemap $zext $file
 # Create our input test files
@@ -130,22 +130,22 @@ ${NCDUMP} -s -n filtered $fileurl > ./tmp_ncp_$zext.txt
 # Remove irrelevant -s output
 sclean ./tmp_ncp_$zext.txt ./tmp_ncp_$zext.dump
 diff -b -w ${srcdir}/ref_filtered.cdl ./tmp_ncp_$zext.dump
-echo "	*** Pass: nccopy simple filter for map $zext"
+echo "	*** Pass: nccopy simple filter for storage format $zext"
 }
 
 testngc() {
 zext=$1	
-echo "*** Testing dynamic filters using ncgen with -lc for map $zext"
+echo "*** Testing dynamic filters using ncgen with -lc for storage format $zext"
 fileargs tmp_ngc
 deletemap $zext $file
 ${NCGEN} -lc -4 ${srcdir}/../nc_test4/bzip2.cdl > tmp_ngc.c
 diff -b -w ${srcdir}/../nc_test4/../nc_test4/ref_bzip2.c ./tmp_ngc.c
-echo "*** Pass: ncgen dynamic filter for map $zext"
+echo "*** Pass: ncgen dynamic filter for storage format $zext"
 }
 
 testmulti() {
 zext=$1	
-echo "*** Testing multiple filters for map $zext"
+echo "*** Testing multiple filters for storage format $zext"
 fileargs tmp_multi
 deletemap $zext $file
 ${execdir}/testfilter_multi $fileurl
@@ -153,12 +153,12 @@ ${NCDUMP} -hsF -n multifilter $fileurl >./tmp_multi_$zext.cdl
 # Remove irrelevant -s output
 sclean ./tmp_multi_$zext.cdl ./tmp_smulti_$zext.cdl
 diff -b -w ${srcdir}/ref_multi.cdl ./tmp_smulti_$zext.cdl
-echo "*** Pass: multiple filters for map $zext"
+echo "*** Pass: multiple filters for storage format $zext"
 }
 
 testrep() {
 zext=$1	
-echo "*** Testing filter re-definition invocation for map $zext"
+echo "*** Testing filter re-definition invocation for storage format $zext"
 fileargs tmp_rep
 deletemap $zext $file
 ${execdir}/testfilter_repeat $fileurl >tmp_rep_$zext.txt
@@ -167,12 +167,12 @@ diff -b -w ${srcdir}/../nc_test4/ref_filter_repeat.txt tmp_rep_$zext.txt
 
 testorder() {
 zext=$1	
-echo "*** Testing multiple filter order of invocation on create for map $zext"
+echo "*** Testing multiple filter order of invocation on create for storage format $zext"
 fileargs tmp_order
 deletemap $zext $file
 ${execdir}/testfilter_order create $fileurl >tmp_order_$zext.txt
 diff -b -w ${srcdir}/../nc_test4/ref_filter_order_create.txt tmp_order_$zext.txt
-echo "*** Testing multiple filter order of invocation on read for map $zext"
+echo "*** Testing multiple filter order of invocation on read for storage format $zext"
 ${execdir}/testfilter_order read $fileurl >tmp_order_rd_$zext.txt
 diff -b -w ${srcdir}/../nc_test4/ref_filter_order_read.txt tmp_order_rd_$zext.txt
 }
@@ -180,5 +180,3 @@ diff -b -w ${srcdir}/../nc_test4/ref_filter_order_read.txt tmp_order_rd_$zext.tx
 testset file
 if test "x$FEATURE_NCZARR_ZIP" = xyes ; then testset zip ; fi
 if test "x$FEATURE_S3TESTS" = xyes ; then testset s3 ; fi
-
-if test "x$FEATURE_S3TESTS" = xyes ; then s3sdkdelete "/${S3ISOPATH}" ; fi # Cleanup

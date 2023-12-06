@@ -6,12 +6,22 @@
 #ifndef NCS3SDK_H
 #define NCS3SDK_H 1
 
+#define AWSHOST ".amazonaws.com"
+#define GOOGLEHOST "storage.googleapis.com"
+
+/* Track the server type, if known */
+typedef enum NCS3SVC {NCS3UNK=0, /* unknown */
+                 NCS3=1,    /* s3.amazon.aws */
+		 NCS3GS=0   /* storage.googleapis.com */
+} NCS3SVC;
+
 typedef struct NCS3INFO {
     char* host; /* non-null if other*/
     char* region; /* region */
     char* bucket; /* bucket name */
     char* rootkey;
     char* profile;
+    NCS3SVC svc;
 } NCS3INFO;
 
 #ifdef __cplusplus
@@ -35,7 +45,7 @@ EXTERNL const char* NC_s3dumps3info(NCS3INFO* info);
 
 /* From ds3util.c */
 EXTERNL int NC_getdefaults3region(NCURI* uri, const char** regionp);
-EXTERNL int NC_s3urlprocess(NCURI* url, NCS3INFO* s3);
+EXTERNL int NC_s3urlprocess(NCURI* url, NCS3INFO* s3, NCURI** newurlp);
 EXTERNL int NC_s3clear(NCS3INFO* s3);
 EXTERNL int NC_s3clone(NCS3INFO* s3, NCS3INFO** news3p);
 

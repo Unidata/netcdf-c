@@ -15,8 +15,8 @@
 #include "ncrc.h"
 #include "ncxml.h"
 
-#include "nch5s3comms.h"
 #include "ncs3sdk.h"
+#include "nch5s3comms.h"
 
 #define NCTRACING
 #ifdef NCTRACING
@@ -181,7 +181,7 @@ NC_s3sdkcreateclient(NCS3INFO* info)
         if((stat = NC_s3profilelookup(info->profile, "aws_secret_access_key", &accesskey))) goto done;
     }
     if((s3client->rooturl = makes3rooturl(info))==NULL) {stat = NC_ENOMEM; goto done;}
-    s3client->h5s3client = NCH5_s3comms_s3r_open(s3client->rooturl,info->region,accessid,accesskey);
+    s3client->h5s3client = NCH5_s3comms_s3r_open(s3client->rooturl,info->svc,info->region,accessid,accesskey);
     if(s3client->h5s3client == NULL) {stat = NC_ES3; goto done;}
 
 done:
@@ -427,7 +427,7 @@ EXTERNL int
 NC_s3sdkgetkeys(void* s3client0, const char* bucket, const char* prefixkey0, size_t* nkeysp, char*** keysp, char** errmsgp)
 {
     NCTRACE(11,"bucket=%s prefixkey0=%s",bucket,prefixkey0);
-    return getkeys(s3client0, bucket, prefixkey0, "/", nkeysp, keysp, errmsgp);
+    return NCUNTRACE(getkeys(s3client0, bucket, prefixkey0, "/", nkeysp, keysp, errmsgp));
 }
 
 /*
@@ -439,7 +439,7 @@ EXTERNL int
 NC_s3sdksearch(void* s3client0, const char* bucket, const char* prefixkey0, size_t* nkeysp, char*** keysp, char** errmsgp)
 {
     NCTRACE(11,"bucket=%s prefixkey0=%s",bucket,prefixkey0);
-    return getkeys(s3client0, bucket, prefixkey0, NULL, nkeysp, keysp, errmsgp);
+    return NCUNTRACE(getkeys(s3client0, bucket, prefixkey0, NULL, nkeysp, keysp, errmsgp));
 }
 
 EXTERNL int
@@ -561,7 +561,8 @@ makes3prefix(const char* prefix, char** prefixdirp)
     return NC_NOERR;
 }
 
-/* Copy keys1 concat keys2 into merge; note that merge list may not be empty. */
+/* Move keys1 concat keys2 into merge; note that merge list may not be empty. */
+/* Will leave keys1 and keys2 empty */
 static int
 mergekeysets(NClist* keys1, NClist* keys2, NClist* merge)
 {
@@ -612,6 +613,10 @@ HTTP/1.1 200
          <DisplayName>string</DisplayName>
          <ID>string</ID>
       </Owner>
+#ifdef GOOGLES3
+      <Generation>string</Generation>
+      <MetaGeneration>string</MetaGeneration>
+#endif
       ...
    </Contents>
    ...
@@ -678,6 +683,8 @@ parse_listbucketresult(char* xml, unsigned long long xmllen, struct LISTOBJECTSV
 	    result->nextcontinuationtoken = trim(ncxml_text(x),RECLAIM);
 	} else if(strcmp(elem,"StartAfter")==0) {
 	    result->startafter = trim(ncxml_text(x),RECLAIM);
+	} else if(strcmp(elem,"StartAfter")==0) {
+	    result->startafter = trim(ncxml_text(x),RECLAIM);
 	} else {
 	    nclog(NCLOGERR,"Unexpected Element: <%s>",elem);
 	    stat = NC_ES3;
@@ -710,7 +717,7 @@ parse_object(ncxml_t root, NClist* objects)
 
     for(x=ncxml_child_first(root);x != NULL;x=ncxml_child_next(x)) {
 	const char* elem = ncxml_name(x);
-	if(strcmp(elem,"ChecksumAlorithm")==0) {
+	if(strcmp(elem,"ChecksumAlgorithm")==0) {
 	    if((stat = parse_checksumalgorithm(x,object->checksumalgorithms))) goto done;
 	} else if(strcmp(elem,"ETag")==0) {
 	    object->etag = trim(ncxml_text(x),RECLAIM);
@@ -724,6 +731,10 @@ parse_object(ncxml_t root, NClist* objects)
 	    object->size = trim(ncxml_text(x),RECLAIM);
 	} else if(strcmp(elem,"StorageClass")==0) {
 	    object->storageclass = trim(ncxml_text(x),RECLAIM);
+	} else if(strcmp(elem,"Generation")==0) {
+	    /* Ignore */
+	} else if(strcmp(elem,"MetaGeneration")==0) {
+	    /* Ignore */
 	} else {
 	    nclog(NCLOGERR,"Unexpected Element: <%s>",elem);
 	    stat = NC_ES3;

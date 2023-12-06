@@ -12,8 +12,7 @@ if test "x$NCZARR_S3_TEST_HOST" = x ; then
     export NCZARR_S3_TEST_HOST=s3.us-east-1.amazonaws.com
 fi
 if test "x$NCZARR_S3_TEST_BUCKET" = x ; then
-#    export NCZARR_S3_TEST_BUCKET=unidata-netcdf-zarr-testing
-    export NCZARR_S3_TEST_BUCKET=unidata-zarr-test-data
+    export NCZARR_S3_TEST_BUCKET="${S3TESTBUCKET}"
 fi
 export NCZARR_S3_TEST_URL="https://${NCZARR_S3_TEST_HOST}/${NCZARR_S3_TEST_BUCKET}"
 
@@ -24,25 +23,6 @@ else
     ZMD="${execdir}/zmapio"
     S3UTIL="${execdir}/s3util"
 fi
-
-s3sdkdelete() {
-# aws s3api delete-object --endpoint-url=https://${NCZARR_S3_TEST_HOST} --bucket=${NCZARR_S3_TEST_BUCKET} --key="/${S3ISOPATH}/$1"
-${S3UTIL} ${PROFILE} -u "${NCZARR_S3_TEST_URL}" -k "$1" clear
-}
-
-
-# Create an isolation path for S3; build on the isolation directory
-s3isolate() {
-if test "x$S3ISOPATH" = x ; then
-  if test "x$ISOPATH" = x ; then isolate "$1"; fi
-  S3ISODIR="$ISODIR"
-  S3ISOPATH="netcdf-c"
-  if test "x$S3ISODIR" == x ; then
-    S3ISODIR=`${execdir}/../libdispatch/ncrandom`
-  fi
-  S3ISOPATH="${S3ISOPATH}/$S3ISODIR"
-fi
-}
 
 # Check settings
 checksetting() {
@@ -172,19 +152,39 @@ resetrc() {
   unset DAPRCFILE
 }
 
-# Enforce cleanup
-atexit() {
-  atexit_cleanup() {
-    if test "x$S3ISOPATH" != x ; then
-      if test "x$FEATURE_S3TESTS" = xyes ; then s3sdkdelete "/${S3ISOPATH}" ; fi # Cleanup
-    fi
-  }
-  trap atexit_cleanup EXIT
+s3sdkdelete() {
+if test -f ${execdir}/s3util ; then
+  ${S3UTIL} ${PROFILE} -u "${NCZARR_S3_TEST_URL}" -k "$1" clear
+elif which aws ; then
+  aws s3api delete-object --endpoint-url=https://${NCZARR_S3_TEST_HOST} --bucket=${NCZARR_S3_TEST_BUCKET} --key="/${S3ISOPATH}/$1"
+else
+  echo "**** Could not delete ${NCZAR_S3_TEST_URL}"
+fi
+}
+
+s3sdkcleanup() {
+if test -f ${execdir}/s3util ; then
+  ${S3UTIL} ${PROFILE} -u "${NCZARR_S3_TEST_URL}" -k "$1" clear
+elif which aws ; then
+  aws s3api delete-object --endpoint-url=https://${NCZARR_S3_TEST_HOST} --bucket=${NCZARR_S3_TEST_BUCKET} --key="/${S3ISOPATH}/$1"
+else
+  echo "**** Could not delete ${NCZAR_S3_TEST_URL}"
+fi
+}
+
+# Create an isolation path for S3; build on the isolation directory
+s3isolate() {
+  if test "x$S3ISOPATH" = x ; then
+    if test "x$ISOPATH" = x ; then isolate "$1"; fi
+    S3ISODIR="$ISODIR"
+    S3ISOTESTSET="${S3TESTSUBTREE}/testset_"
+    if test "x$NOISOPATH" = x ; then S3ISOTESTSET="${S3ISOTESTSET}${TESTUID}"; fi    
+    S3ISOPATH="${S3ISOTESTSET}/$S3ISODIR"
+  fi
 }
 
 GDBB="gdb -batch -ex r -ex bt -ex q --args"
 
 resetrc
-atexit
 
 fi #TEST_NCZARR_SH

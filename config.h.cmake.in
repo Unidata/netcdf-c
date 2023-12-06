@@ -83,9 +83,6 @@ are set when opening a binary file on Windows. */
 /* default file chunk cache size in bytes. */
 #cmakedefine CHUNK_CACHE_SIZE ${CHUNK_CACHE_SIZE}
 
-/* default nczarr chunk cache size in bytes. */
-#cmakedefine CHUNK_CACHE_SIZE_NCZARR ${CHUNK_CACHE_SIZE_NCZARR}
-
 /* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
    systems. This function is required for `alloca.c' support on those systems.
    */
@@ -94,7 +91,16 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if using `alloca.c'. */
 #cmakedefine C_ALLOCA 1
 
-/* num chunks in default per-var chunk cache. */
+/* default num chunks per cache. */
+#cmakedefine DEFAULT_CHUNKS_CACHE_SIZE ${DEFAULT_CHUNKS_CACHE_SIZE}
+
+/* default num chunks per cache. */
+#cmakedefine DEFAULT_CHUNK_CACHE_PREEMPTION ${DEFAULT_CHUNK_CACHE_PREEMPTION}
+
+/* default total chunks cache size. */
+#cmakedefine DEFAULT_CHUNK_CACHE_SIZE ${DEFAULT_CHUNK_CACHE_SIZE}
+
+/* default num chunks per cache. */
 #cmakedefine DEFAULT_CHUNKS_IN_CACHE ${DEFAULT_CHUNKS_IN_CACHE}
 
 /* default chunk size in bytes */
@@ -156,6 +162,12 @@ are set when opening a binary file on Windows. */
 
 /* if true, enable S3 testing*/
 #cmakedefine WITH_S3_TESTING "PUBLIC"
+
+/* S3 Test Bucket */
+#define S3TESTBUCKET "${S3TESTBUCKET}"
+
+/* S3 Working subtree path prefix*/
+#define S3TESTSUBTREE "${S3TESTSUBTREE}"
 
 /* if true, run extra tests which may not work yet */
 #cmakedefine EXTRA_TESTS 1
@@ -331,6 +343,9 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the `snprintf' function. */
 #cmakedefine HAVE_SNPRINTF 1
 
+/* Define to 1 if the system has the type `mode_t'. */
+#cmakedefine HAVE_MODE_T 1
+
 /* Define to 1 if the system has the type `ssize_t'. */
 #cmakedefine HAVE_SSIZE_T 1
 
@@ -351,6 +366,9 @@ are set when opening a binary file on Windows. */
 
 /* Define to 1 if you have the <stdlib.h> header file. */
 #cmakedefine HAVE_STDLIB_H 1
+
+/* Define to 1 if you have the <ctype.h> header file. */
+#cmakedefine HAVE_CTYPE_H 1
 
 /* Define to 1 if you have the <strings.h> header file. */
 #cmakedefine HAVE_STRINGS_H 1
@@ -444,9 +462,6 @@ with zip */
 /* if true, HDF5 is at least version 1.10.5 and supports UTF8 paths */
 #cmakedefine HDF5_UTF8_PATHS 1
 
-/* if true, backtrace support will be used. */
-#cmakedefine HAVE_EXECINFO_H 1
-
 /* if true, include JNA bug fix */
 #cmakedefine JNA 1
 
@@ -458,9 +473,6 @@ with zip */
 
 /* If true, define nc_set_log_level. */
 #cmakedefine ENABLE_SET_LOG_LEVEL 1
-
-/* max size of the default per-var chunk cache. */
-#cmakedefine MAX_DEFAULT_CACHE_SIZE ${MAX_DEFAULT_CACHE_SIZE}
 
 /* min blocksize for posixio. */
 #cmakedefine NCIO_MINBLOCKSIZE ${NCIO_MINBLOCKSIZE}

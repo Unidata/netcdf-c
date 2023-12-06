@@ -4,12 +4,16 @@
 # for information related to github runners.
 ###
 
-name: Run MSYS2, MinGW64-based Tests
+name: Run MSYS2, MinGW64-based Tests (Not Visual Studio)
 
 env:
   CPPFLAGS: "-D_BSD_SOURCE"
 
 on: [pull_request,workflow_dispatch]
+
+concurrency:  
+  group: ${{ github.workflow}}-${{ github.head_ref }}  
+  cancel-in-progress: true
 
 jobs:
 
@@ -27,7 +31,7 @@ jobs:
         with:
           msystem: MINGW64
           update: true
-          install: git mingw-w64-x86_64-toolchain automake libtool autoconf make cmake mingw-w64-x86_64-hdf5 unzip mingw-w64-x86_64-libxml2
+          install: git mingw-w64-x86_64-toolchain automake libtool autoconf make cmake mingw-w64-x86_64-hdf5 unzip mingw-w64-x86_64-libxml2 mingw-w64-x86_64-zlib
 
 ###
 # Configure and build

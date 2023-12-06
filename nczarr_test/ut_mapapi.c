@@ -16,7 +16,6 @@
 #define FAIL 0
 #define XFAIL -1
 
-
 static const char* metadata1 = "{\n\"foo\": 42,\n\"bar\": \"apples\",\n\"baz\": [1, 2, 3, 4]}";
 static const char* metaarray1 = "{\n\"shape\": [1,2,3],\n\"dtype\": \"<1\"}";
 
@@ -96,7 +95,7 @@ simplecreate(void)
     printf("Pass: create: create: %s\n",url);
 
     truekey = makekey(NCZMETAROOT);
-    if((stat = nczmap_write(map, truekey, 0, 0, NULL)))
+    if((stat = nczmap_write(map, truekey, 0, NULL)))
 	goto done;
     printf("Pass: create: defineobj: %s\n",truekey);
     
@@ -190,13 +189,13 @@ simplemeta(void)
 	goto done;
     truekey = makekey(key);
     nullfree(key); key = NULL;
-    if((stat = nczmap_write(map, truekey, 0, 0, NULL)))
+    if((stat = nczmap_write(map, truekey, 0, NULL)))
 	goto done;
     report(PASS,".zarray: def",map);
     free(truekey); truekey = NULL;
 
     truekey = makekey(NCZMETAROOT);
-    if((stat = nczmap_write(map, truekey, 0, strlen(metadata1), metadata1)))
+    if((stat = nczmap_write(map, truekey, strlen(metadata1), metadata1)))
 	goto done;
     report(PASS,".nczarr: writemetadata",map);
     free(truekey); truekey = NULL;
@@ -206,7 +205,7 @@ simplemeta(void)
     truekey = makekey(key);
     free(key); key = NULL;    
 
-    if((stat = nczmap_write(map, truekey, 0, strlen(metaarray1), metaarray1)))
+    if((stat = nczmap_write(map, truekey, strlen(metaarray1), metaarray1)))
 	goto done;
     report(PASS,".zarray: writemetaarray1",map);
     free(truekey); truekey = NULL;
@@ -288,7 +287,6 @@ simpledata(void)
     int i;
     size64_t totallen, size;
     char* data1p = (char*)&data1[0]; /* byte level version of data1 */
-    NCZM_FEATURES features;
 
     title(__func__);
 
@@ -302,24 +300,9 @@ simpledata(void)
 	
     truekey = makekey(DATA1);
 
-    features = nczmap_features(impl);
-    if((NCZM_ZEROSTART & features) || (NCZM_WRITEONCE & features)) {
-	if((stat = nczmap_write(map, truekey, 0, totallen, data1p)))
-	    goto done;
-    } else {
-        /* Write in 3 slices */
-        for(i=0;i<3;i++) {
-            size64_t start, count, third, last;
-	    third = (totallen+2) / 3; /* round up */
-            start = i * third;
-	    last = start + third;
-	    if(last > totallen) 
-	        last = totallen;
-  	    count = last - start;
-	    if((stat = nczmap_write(map, truekey, start, count, &data1p[start])))
-	        goto done;
-	}
-    }
+    if((stat = nczmap_write(map, truekey, totallen, data1p)))
+	goto done;
+
     report(PASS,DATA1": write",map);
     
     if((stat = nczmap_close(map,0)))

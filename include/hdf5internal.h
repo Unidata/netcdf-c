@@ -60,6 +60,7 @@ struct NCauth;
 /** Struct to hold HDF5-specific info for the file. */
 typedef struct NC_HDF5_FILE_INFO {
    hid_t hdfid;
+   unsigned transientid; /* counter for transient ids */
    NCURI* uri; /* Parse of the incoming path, if url */
 #if defined(ENABLE_BYTERANGE)
    int byterange;

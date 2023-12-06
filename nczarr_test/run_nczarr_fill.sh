@@ -68,5 +68,3 @@ if test "x$FEATURE_HDF5" = xyes ; then
     testcase2059 s3
   fi
 fi
-
-if test "x$FEATURE_S3TESTS" = xyes ; then s3sdkdelete "/${S3ISOPATH}" ; fi # Cleanup

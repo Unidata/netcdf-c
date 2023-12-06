@@ -6,6 +6,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
@@ -30,7 +34,7 @@
 #undef DEBUG
 
 /* Short Aliases */
-#ifdef HDF5_SUPPORTS_PAR_FILTERS
+#ifdef USE_HDF5
 #define H5
 #endif
 #ifdef ENABLE_NCZARR
@@ -43,6 +47,8 @@ typedef struct Format {
     char var_name[NC_MAX_NAME];
     int fillvalue;
     int debug;
+    int linear;
+    int holevalue;
     int rank;
     size_t dimlens[NC_MAX_VAR_DIMS];
     size_t chunklens[NC_MAX_VAR_DIMS];
@@ -82,7 +88,7 @@ usage(int err)
      if(err != 0) {
 	 fprintf(stderr,"Error: (%d) %s\n",err,nc_strerror(err));
      }
-     fprintf(stderr,"usage: ncdumpchunks -v <var> <file> \n");
+     fprintf(stderr,"usage: ncdumpchunks [-b] -v <var> <file> \n");
      fflush(stderr);
      exit(1);
 }
@@ -107,7 +113,7 @@ printvector(int rank, size_t* vec)
 void
 cleanup(void)
 {
-    int i;
+    size_t i;
     for(i=0;i<ncap;i++)
         if(captured[i]) free(captured[i]);
 }
@@ -164,8 +170,7 @@ odom_indices(Odometer* odom)
 size_t
 odom_offset(Odometer* odom)
 {
-     size_t offset;
-     int i;
+     size_t i,offset;
 
      offset = 0;
      for(i=0;i<odom->rank;i++) {
@@ -214,7 +219,7 @@ chunk_key(int format->rank, size_t* indices)
 void
 setoffset(Odometer* odom, size_t* chunksizes, size_t* offset)
 {
-     int i;
+     size_t i;
      for(i=0;i<odom->rank;i++)
 	 offset[i] = odom->index[i] * chunksizes[i];
 }
@@ -225,10 +230,40 @@ printindent(size_t indent)
     while(indent-- > 0) printf(" ");
 }
 
+int
+printchunklinear(Format* format, int* chunkdata, size_t indent)
+{
+    size_t i;
+    for(i=0;i<format->chunkprod;i++) {
+	if(chunkdata[i] == format->fillvalue)
+	    printf(" _");
+	else
+	    printf(" %02d", chunkdata[i]);
+    }
+    printf("\n");
+    return NC_NOERR;
+}
+
+static void
+printchunk2d(Format* format, int* chunkdata, size_t indent)
+{
+    size_t pos;
+    size_t row;
+    pos = 0;
+    for(row=0;row<format->chunklens[0];row++) {
+	size_t col;
+        if(row > 0) printindent(indent);
+	for(col=0;col<format->chunklens[1];col++,pos++) {
+            if(chunkdata[pos] == format->fillvalue) printf(" _"); else printf(" %02d", chunkdata[pos]);
+	}
+        printf("\n");
+    }	
+}
+
 static void
 printchunk(Format* format, int* chunkdata, size_t indent)
 {
-    int k[3];
+    size_t k[3];
     int rank = format->rank;
     unsigned cols[3], pos;
     size_t* chl = format->chunklens;
@@ -268,13 +303,19 @@ printchunk(Format* format, int* chunkdata, size_t indent)
 	    if(k[1] > 0) printf(" |");
 	    for(k[2]=0;k[2]<cols[2];k[2]++) {
 		if(format->xtype == NC_UBYTE) {
-		    int l;
+		    size_t l;
 		    unsigned char* bchunkdata = (unsigned char*)(&chunkdata[pos]);
 		    for(l=0;l<sizeof(int);l++) {
-                        printf(" %02u", bchunkdata[l]);
+			if(bchunkdata[l] == format->fillvalue)
+                            printf(" _");
+			else
+                            printf(" %02u", bchunkdata[l]);
 		    }
 		} else {
-                    printf(" %02d", chunkdata[pos]);
+		    if(chunkdata[pos] == format->fillvalue)
+			printf(" _");
+		    else
+                        printf(" %02d", chunkdata[pos]);
 		}
 		pos++;
 	    }
@@ -387,11 +428,11 @@ dump(Format* format)
 	default: usage(NC_EINVAL);
 	}
 	if(holechunk) {
-	    /* Hole chunk: use fillvalue */
+	    /* Hole chunk: use holevalue */
 	    size_t i = 0;
 	    int* idata = (int*)chunkdata;
 	    for(i=0;i<format->chunkprod;i++)
-	        idata[i] = format->fillvalue;
+	        idata[i] = format->holevalue;
 	}
 	sindices[0] = '\0';
 	for(r=0;r<format->rank;r++) {
@@ -401,7 +442,12 @@ dump(Format* format)
 	}
 	strcat(sindices," =");
 	printf("%s",sindices);
-	printchunk(format,chunkdata,strlen(sindices));
+	if(format->linear)
+             printchunklinear(format,chunkdata,strlen(sindices));
+        else if(format->rank == 2)
+  	    printchunk2d(format,chunkdata,strlen(sindices));
+	else
+   	    printchunk(format,chunkdata,strlen(sindices));
 	fflush(stdout);
 	odom_next(odom);
      }
@@ -470,17 +516,24 @@ main(int argc, char** argv)
 
     /* Init some format fields */
     format.xtype = NC_INT;
-
-    while ((c = getopt(argc, argv, "bv:DT:")) != EOF) {
+    format.holevalue = -2;
+    
+    while ((c = getopt(argc, argv, "bhv:DT:L")) != EOF) {
     switch(c) {
 	case 'b':
 	    format.xtype = NC_UBYTE;
-	    break;
+	    break;	
+	case 'h':
+	    usage(0);
+	    break;	
 	case 'v':
 	    strcpy(format.var_name,optarg);
-	    break;
+	    break;	
 	case 'D':
 	    format.debug = 1;
+	    break;
+	case 'L':
+	    format.linear = 1;
 	    break;
 	case 'T':
 	    nctracelevel(atoi(optarg));

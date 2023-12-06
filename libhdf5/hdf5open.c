@@ -13,6 +13,7 @@
 #include "hdf5internal.h"
 #include "hdf5err.h"
 #include "hdf5debug.h"
+#include "nc4internal.h"
 #include "ncrc.h"
 #include "ncauth.h"
 #include "ncmodel.h"
@@ -24,6 +25,7 @@
 
 #ifdef ENABLE_HDF5_ROS3
 #include <H5FDros3.h>
+#include "ncs3sdk.h"
 #endif
 
 /*Nemonic */
@@ -63,6 +65,7 @@ extern int NC4_open_image_file(NC_FILE_INFO_T* h5);
 
 /* Defined later in this file. */
 static int rec_read_metadata(NC_GRP_INFO_T *grp);
+static int read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name);
 
 /**
  * @internal Struct to track HDF5 object info, for
@@ -103,7 +106,7 @@ typedef struct {
  * struct, either an existing one (for user-defined types) or a newly
  * created one.
  *
- * @param h5 Pointer to HDF5 file info struct.
+ * @param h5_grp Pointer to group info struct.
  * @param datasetid HDF5 dataset ID.
  * @param type_info Pointer to pointer that gets type info struct.
  *
@@ -114,7 +117,7 @@ typedef struct {
  * @author Ed Hartnett
  */
 static int
-get_type_info2(NC_FILE_INFO_T *h5, hid_t datasetid, NC_TYPE_INFO_T **type_info)
+get_type_info2(NC_GRP_INFO_T *h5_grp, hid_t datasetid, NC_TYPE_INFO_T **type_info)
 {
     NC_HDF5_TYPE_INFO_T *hdf5_type;
     htri_t is_str, equal = 0;
@@ -123,7 +126,7 @@ get_type_info2(NC_FILE_INFO_T *h5, hid_t datasetid, NC_TYPE_INFO_T **type_info)
     H5T_order_t order;
     int t;
 
-    assert(h5 && type_info);
+    assert(h5_grp && type_info);
 
     /* Because these N5T_NATIVE_* constants are actually function calls
      * (!) in H5Tpublic.h, I can't initialize this array in the usual
@@ -232,10 +235,22 @@ get_type_info2(NC_FILE_INFO_T *h5, hid_t datasetid, NC_TYPE_INFO_T **type_info)
     else
     {
         NC_TYPE_INFO_T *type;
+        NC_FILE_INFO_T *h5 = h5_grp->nc4_info;
 
         /* This is a user-defined type. */
         if((type = nc4_rec_find_hdf_type(h5, native_typeid)))
             *type_info = type;
+
+        /* If we didn't find the type, then it's probably a transient
+         * type, stored in the dataset itself, so let's read it now */
+        if (type == NULL) {
+          /* If we still can't read the type, ignore it, it probably
+           * means this object is a reference */
+          if (read_type(h5_grp, native_typeid, NULL))
+            return NC_EBADTYPID;
+          if((type = nc4_rec_find_hdf_type(h5, native_typeid)))
+            *type_info = type;
+        }
 
         /* The type entry in the array of user-defined types already has
          * an open data typeid (and native typeid), so close the ones we
@@ -869,12 +884,11 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 #ifdef ENABLE_BYTERANGE
 	else if(h5->byterange) {   /* Arrange to use the byte-range drivers */
 	    char* newpath = NULL;
-            char* awsregion0 = NULL;
 #ifdef ENABLE_HDF5_ROS3
 	    H5FD_ros3_fapl_t fa;
-	    const char* profile0 = NULL;
 	    const char* awsaccessid0 = NULL;
 	    const char* awssecretkey0 = NULL;
+	    const char* profile0 = NULL;
 	    int iss3 = NC_iss3(h5->uri);
 	    
             fa.version = H5FD_CURR_ROS3_FAPL_T_VERSION;
@@ -884,9 +898,11 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 	    fa.secret_key[0] = '\0';
 
 	    if(iss3) {
-	        /* Rebuild the URL */
+	        NCS3INFO s3;
 		NCURI* newuri = NULL;
-		if((retval = NC_s3urlrebuild(h5->uri,NULL,&awsregion0,&newuri))) goto exit;
+	        /* Rebuild the URL */
+	        memset(&s3,0,sizeof(s3));
+		if((retval = NC_s3urlrebuild(h5->uri,&s3,&newuri))) goto exit;
 		if((newpath = ncuribuild(newuri,NULL,NULL,NCURISVC))==NULL)
 		    {retval = NC_EURL; goto exit;}
 		ncurifree(h5->uri);
@@ -895,22 +911,23 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 		    BAIL(retval);
    	        if((retval = NC_s3profilelookup(profile0,AWS_ACCESS_KEY_ID,&awsaccessid0)))
 		    BAIL(retval);		
-	        if((retval = NC_s3profilelookup(profile0,AWS_SECRET_ACCESS_KEY,&awssecretkey0)))
+		if((retval = NC_s3profilelookup(profile0,AWS_SECRET_ACCESS_KEY,&awssecretkey0)))
 		    BAIL(retval);		
-		if(awsregion0 == NULL)
-		    awsregion0 = strdup(S3_REGION_DEFAULT);
+		if(s3.region == NULL)
+		    s3.region = strdup(S3_REGION_DEFAULT);
 	        if(awsaccessid0 == NULL || awssecretkey0 == NULL ) {
 		    /* default, non-authenticating, "anonymous" fapl configuration */
 		    fa.authenticate = (hbool_t)0;
 	        } else {
 		    fa.authenticate = (hbool_t)1;
-	  	    assert(awsregion0 != NULL && strlen(awsregion0) > 0);
+	  	    assert(s3.region != NULL && strlen(s3.region) > 0);
 		    assert(awsaccessid0 != NULL && strlen(awsaccessid0) > 0);
 		    assert(awssecretkey0 != NULL && strlen(awssecretkey0) > 0);
-		    strlcat(fa.aws_region,awsregion0,H5FD_ROS3_MAX_REGION_LEN);
+		    strlcat(fa.aws_region,s3.region,H5FD_ROS3_MAX_REGION_LEN);
 		    strlcat(fa.secret_id, awsaccessid0, H5FD_ROS3_MAX_SECRET_ID_LEN);
                     strlcat(fa.secret_key, awssecretkey0, H5FD_ROS3_MAX_SECRET_KEY_LEN);
 	        }
+		NC_s3clear(&s3);
                 /* create and set fapl entry */
                 if(H5Pset_fapl_ros3(fapl_id, &fa) < 0)
                     BAIL(NC_EHDFERR);
@@ -924,7 +941,6 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
             if ((h5->hdfid = nc4_H5Fopen((newpath?newpath:path), flags, fapl_id)) < 0)
                 BAIL(NC_EHDFERR);
 	    nullfree(newpath);
-	    nullfree(awsregion0);
         }
 #endif
         else {
@@ -944,6 +960,8 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
       if (!(crt_order_flags & H5P_CRT_ORDER_TRACKED)) {
 	  nc4_info->no_attr_create_order = NC_TRUE;
       }
+      if (H5Pclose(pid) < 0)
+	  BAIL(NC_EHDFERR);
     }
 
     /* Now read in all the metadata. Some types and dimscale
@@ -1465,7 +1483,7 @@ nc4_get_var_meta(NC_VAR_INFO_T *var)
     if ((H5Pget_chunk_cache(access_pid, &(var->chunkcache.nelems),
                             &(var->chunkcache.size), &rdcc_w0)) < 0)
         BAIL(NC_EHDFERR);
-    var->chunkcache.preemption = rdcc_w0;
+    var->chunkcache.preemption = (float)rdcc_w0;
 
     /* Get the dataset creation properties. */
     if ((propid = H5Dget_create_plist(hdf5_var->hdf_datasetid)) < 0)
@@ -1589,7 +1607,7 @@ read_var(NC_GRP_INFO_T *grp, hid_t datasetid, const char *obj_name,
     /* Learn all about the type of this variable. This will fail for
      * HDF5 reference types, and then the var we just created will be
      * deleted, thus ignoring HDF5 reference type objects. */
-    if ((retval = get_type_info2(var->container->nc4_info, hdf5_var->hdf_datasetid,
+    if ((retval = get_type_info2(var->container, hdf5_var->hdf_datasetid,
                                  &var->type_info)))
         BAIL(retval);
 
@@ -1964,7 +1982,7 @@ hdf5free(void* memory)
  *
  * @param grp Pointer to group info struct.
  * @param hdf_typeid HDF5 type ID.
- * @param type_name Pointer that gets the type name.
+ * @param type_name Pointer that gets the type name; NULL => anonymous
  *
  * @return ::NC_NOERR No error.
  * @return ::NC_EBADID Bad ncid.
@@ -1976,18 +1994,33 @@ hdf5free(void* memory)
 static int
 read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
 {
-    NC_TYPE_INFO_T *type;
-    NC_HDF5_TYPE_INFO_T *hdf5_type;
+    NC_FILE_INFO_T *h5 = NULL; 
+    NC_TYPE_INFO_T *type = NULL;
+    NC_HDF5_FILE_INFO_T *hdf5_info = NULL;
+    NC_HDF5_TYPE_INFO_T *hdf5_type = NULL;
     H5T_class_t class;
     hid_t native_typeid;
     size_t type_size;
     int nmembers;
     int retval;
+    char transientname[NC_MAX_NAME];
 
-    assert(grp && type_name);
+    assert(grp);
 
-    LOG((4, "%s: type_name %s grp->hdr.name %s", __func__, type_name,
+    LOG((4, "%s: type_name %s grp->hdr.name %s", __func__, (type_name?type_name:"NULL"),
          grp->hdr.name));
+
+    /* Get HDF5-specific object info. */
+    h5 = (NC_FILE_INFO_T *)grp->nc4_info;
+    hdf5_info = (NC_HDF5_FILE_INFO_T*)h5->format_file_info;
+
+    /* What is the class of this type, compound, vlen, etc. */
+    if ((class = H5Tget_class(hdf_typeid)) < 0)
+        return NC_EHDFERR;
+
+    /* Explicitly don't handle reference types */
+    if (class == H5T_REFERENCE)
+        return NC_EBADCLASS;
 
     /* What is the native type for this platform? */
     if ((native_typeid = H5Tget_native_type(hdf_typeid, H5T_DIR_DEFAULT)) < 0)
@@ -1997,6 +2030,20 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
     if (!(type_size = H5Tget_size(native_typeid)))
         return NC_EHDFERR;
     LOG((5, "type_size %d", type_size));
+
+    if(type_name == NULL) {
+        /* This is a transient/anonymous type, so generate a name for it */
+	const char* suffix = NULL; /* class */
+	switch (class) {
+	case H5T_ENUM: suffix = "Enum"; break;
+	case H5T_COMPOUND: suffix = "Compound"; break;
+	case H5T_VLEN: suffix = "Vlen"; break;
+	case H5T_OPAQUE: suffix = "Opaque"; break;
+	default: suffix = "Unknown"; break;
+	}
+	snprintf(transientname,sizeof(transientname),"_Anonymous%s%u",suffix,++hdf5_info->transientid);
+	type_name = transientname;
+    }
 
     /* Add to the list for this new type, and get a local pointer to it. */
     if ((retval = nc4_type_list_add(grp, type_size, type_name, &type)))
@@ -2018,9 +2065,6 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
     if (H5Iinc_ref(hdf5_type->hdf_typeid) < 0)
         return NC_EHDFERR;
 
-    /* What is the class of this type, compound, vlen, etc. */
-    if ((class = H5Tget_class(hdf_typeid)) < 0)
-        return NC_EHDFERR;
     switch (class)
     {
     case H5T_STRING:
