@@ -31,7 +31,7 @@ NClist* nclistnew(void)
     ncinitialized = 1;
   }
 */
-  l = (NClist*)malloc(sizeof(NClist));
+  l = (NClist*)calloc(1,sizeof(NClist));
   if(l) {
     l->alloc=0;
     l->length=0;
@@ -286,10 +286,13 @@ done:
 void*
 nclistextract(NClist* l)
 {
-    void* result = l->content;
+    void* result = NULL;
+    if(l) {
+    result = l->content;
     l->alloc = 0;
     l->length = 0;
     l->content = NULL;
+    }
     return result;
 }
 

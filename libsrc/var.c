@@ -267,14 +267,17 @@ dup_NC_vararrayV(NC_vararray *ncap, const NC_vararray *ref)
 	{
 		NC_var **vpp = ncap->value;
 		const NC_var **drpp = (const NC_var **)ref->value;
-		NC_var *const *const end = &vpp[ref->nelems];
-		for( /*NADA*/; vpp < end; drpp++, vpp++, ncap->nelems++)
+		if (vpp)
 		{
-			*vpp = dup_NC_var(*drpp);
-			if(*vpp == NULL)
+			NC_var *const *const end = &vpp[ref->nelems];
+			for( /*NADA*/; vpp < end; drpp++, vpp++, ncap->nelems++)
 			{
-				status = NC_ENOMEM;
-				break;
+				*vpp = dup_NC_var(*drpp);
+				if(*vpp == NULL)
+				{
+					status = NC_ENOMEM;
+					break;
+				}
 			}
 		}
 	}

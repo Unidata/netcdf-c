@@ -551,7 +551,7 @@ static int
 NCedgeck(const NC3_INFO* ncp, const NC_var *varp,
 	 const size_t *start, const size_t *edges)
 {
-	const size_t *const end = start + varp->ndims;
+	const size_t *const end = start ? (start + varp->ndims) : NULL;
 	const size_t *shp = varp->shape;
 
 	if(varp->ndims == 0)
