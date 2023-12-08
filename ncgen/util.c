@@ -524,12 +524,11 @@ makebytestring(char* s, size_t* lenp)
     return bytes;
 }
 
-int
-getpadding(int offset, int alignment)
+size_t
+getpadding(size_t offset, size_t alignment)
 {
-    int rem = (alignment==0?0:(offset % alignment));
-    int pad = (rem==0?0:(alignment - rem));
-    return pad;
+    size_t rem = (alignment==0 ? 0 : (offset % alignment));
+    return rem == 0 ? 0 : (alignment - rem);
 }
 
 static void

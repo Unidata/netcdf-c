@@ -97,7 +97,7 @@ void
 generate_basetype(Symbol* tsym, NCConstant* con, Bytebuffer* codebuf, Datalist* filler, Generator* generator)
 {
     Datalist* data;
-    int offsetbase = 0;
+    size_t offsetbase = 0;
 
     switch (tsym->subclass) {
 
