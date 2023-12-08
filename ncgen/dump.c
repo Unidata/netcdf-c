@@ -17,16 +17,6 @@
 /* Forward */
 static void dumpdataprim(NCConstant*,Bytebuffer*);
 
-char*
-indentstr(int n)
-{
-    static char indentline[1024];
-    memset(indentline,' ',n+1);
-    indentline[n+1] = '\0';
-    return indentline;
-}
-
-
 void
 dumpconstant(NCConstant* con, char* tag)
 {
