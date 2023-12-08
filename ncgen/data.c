@@ -309,7 +309,7 @@ alignbuffer(NCConstant* prim, Bytebuffer* buf)
 {
     int stat = NC_NOERR;
     size_t alignment;
-    int pad,offset;
+    size_t pad,offset;
 
     ASSERT(prim->nctype != NC_COMPOUND);
 
