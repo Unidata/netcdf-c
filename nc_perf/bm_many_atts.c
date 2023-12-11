@@ -58,12 +58,12 @@ int main(int argc, char **argv)
 	ERR;
 
     for(g = 1; g < numgrp + 1; g++) {
-	sprintf(gname, "group%d", g);
+	snprintf(gname, sizeof(gname), "group%d", g);
 	if (nc_def_grp(ncid, gname, &grp)) ERR;
 	natts = g < numgrp ? NC_MAX_ATTRS : aleft; /* leftovers on last time through */
 	for(an = 1; an < natts + 1; an++) {
 	    char aname[20];
-	    sprintf(aname, "attribute%d", a);
+	    snprintf(aname, sizeof(aname), "attribute%d", a);
 	    if (nc_put_att_int(grp, NC_GLOBAL, aname, NC_INT, 1, data)) ERR;
 	    if(a%100 == 0) {		/* only print every 100th attribute name */
 		if (gettimeofday(&end_time, NULL)) ERR;

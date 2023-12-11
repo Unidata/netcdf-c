@@ -386,7 +386,7 @@ cdParseRelunits(cdCalenType timetype, char* relunits, cdUnitTime* unit, cdCompTi
 		else{
 			cdTrim(basetime_1,CD_MAX_CHARTIME);
 			cdTrim(basetime_2,CD_MAX_CHARTIME);
-			sprintf(basetime,"%s %s",basetime_1,basetime_2);
+			snprintf(basetime,sizeof(basetime),"%s %s",basetime_1,basetime_2);
 		}
 	}
 

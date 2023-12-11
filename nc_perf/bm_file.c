@@ -1075,8 +1075,8 @@ main(int argc, char **argv)
 #endif
         /* Create a copy of file_out. This will defeat any buffering
          * that may exist from the fact that we just wrote file_out. */
-        sprintf(file_out_2, "tst_copy_%s", file_out);
-        sprintf(cmd, "cp %s %s\n", file_out, file_out_2);
+        snprintf(file_out_2, sizeof(file_out_2), "tst_copy_%s", file_out);
+        snprintf(cmd, sizeof(cmd), "cp %s %s\n", file_out, file_out_2);
         system(cmd);
 
         if ((ret = cmp_file(file_in, file_out_2, &meta_read2_us, &data_read2_us,

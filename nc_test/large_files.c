@@ -72,7 +72,7 @@ main(int argc, char **argv) {
 
     printf("\n*** Testing large files, slowly.\n");
 
-    sprintf(file_name, "%s/%s", TEMP_LARGE, FILE_NAME);
+    snprintf(file_name, sizeof(file_name), "%s/%s", TEMP_LARGE, FILE_NAME);
     printf("*** Creating large file %s...", file_name);
 
    /* enter define mode */
