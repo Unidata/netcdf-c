@@ -2347,7 +2347,7 @@ YY_RULE_SETUP
 case 40:
 YY_RULE_SETUP
 #line 379 "ncgen/ncgen.l"
-{ char* id = NULL; int len;
+{ char* id = NULL; size_t len;
 		    len = strlen(yytext);
 		    len = unescape(yytext,len,ISIDENT,&id);
 		    if(NCSTREQ(id, FILL_STRING)) {
@@ -2369,7 +2369,7 @@ YY_RULE_SETUP
 		  If out of any integer range, then complain
 		  Also, if the digits begin with 0, then assume octal.
 		*/
-		    int slen = strlen(ncgtext);
+		    size_t slen = strlen(ncgtext);
 		    char* stag = NULL;
 		    int tag = NC_NAT;
 		    int isneg = 0;
@@ -2446,11 +2446,11 @@ YY_RULE_SETUP
 {
 		int c;
 		int token = 0;
-		int slen = strlen(yytext);
+		size_t slen = strlen(yytext);
 		char* stag = NULL;
 	        int tag = NC_NAT;
 		char* hex = yytext+2; /* point to first true hex digit */
-		int xlen = (slen - 3);  /* true hex length */
+		size_t xlen = (slen - 3);  /* true hex length */
 
 		yytext[slen-1] = '\0';
 	        /* capture the tag string */
@@ -3876,8 +3876,8 @@ collecttag(char* text, char** stagp)
     char* stag0;
 #define MAXTAGLEN 3
     char stag[MAXTAGLEN+1];
-    int slen = strlen(text);
-    int staglen;
+    size_t slen = strlen(text);
+    size_t staglen;
     int tag = NC_NAT;
     int hasU = 0;
 

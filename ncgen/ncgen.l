@@ -376,7 +376,7 @@ NIL|nil|Nil {
 		    return lexdebug(DATASETID);
 		}
 
-{ID}		{ char* id = NULL; int len;
+{ID}		{ char* id = NULL; size_t len;
 		    len = strlen(yytext);
 		    len = unescape(yytext,len,ISIDENT,&id);
 		    if(NCSTREQ(id, FILL_STRING)) {
@@ -395,7 +395,7 @@ NIL|nil|Nil {
 		  If out of any integer range, then complain
 		  Also, if the digits begin with 0, then assume octal.
 		*/
-		    int slen = strlen(ncgtext);
+		    size_t slen = strlen(ncgtext);
 		    char* stag = NULL;
 		    int tag = NC_NAT;
 		    int isneg = 0;
@@ -469,11 +469,11 @@ done: return 0;
 {XUNUMBER}    {
 		int c;
 		int token = 0;
-		int slen = strlen(yytext);
+		size_t slen = strlen(yytext);
 		char* stag = NULL;
 	        int tag = NC_NAT;
 		char* hex = yytext+2; /* point to first true hex digit */
-		int xlen = (slen - 3);  /* true hex length */
+		size_t xlen = (slen - 3);  /* true hex length */
 
 		yytext[slen-1] = '\0';
 	        /* capture the tag string */
@@ -842,8 +842,8 @@ collecttag(char* text, char** stagp)
     char* stag0;
 #define MAXTAGLEN 3
     char stag[MAXTAGLEN+1];
-    int slen = strlen(text);
-    int staglen;
+    size_t slen = strlen(text);
+    size_t staglen;
     int tag = NC_NAT;
     int hasU = 0;
 

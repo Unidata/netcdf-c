@@ -66,9 +66,9 @@ static List* stack;
 static nc_type consttype;
 
 /* Misc. */
-static int stackbase;
-static int stacklen;
-static int count;
+static size_t stackbase;
+static size_t stacklen;
+static size_t count;
 static int opaqueid; /* counter for opaque constants*/
 static int arrayuid; /* counter for pseudo-array types*/
 
@@ -156,7 +156,7 @@ extern int lex_init(void);
 %union {
 Symbol* sym;
 unsigned long  size; /* allow for zero size to indicate e.g. UNLIMITED*/
-long           mark; /* track indices into the sequence*/
+size_t         mark; /* track indices into the sequence*/
 int            nctype; /* for tracking attribute list type*/
 Datalist*      datalist;
 NCConstant*    constant;
@@ -312,7 +312,7 @@ optsemicolon: /*empty*/ | ';' ;
 enumdecl: primtype ENUM typename
           '{' enumidlist '}'
               {
-		int i;
+		size_t i;
                 addtogroup($3); /* sets prefix*/
                 $3->objectclass=NC_TYPE;
                 $3->subclass=NC_ENUM;
@@ -343,7 +343,7 @@ enumidlist:   enumid
 		{$$=listlength(stack); listpush(stack,(void*)$1);}
 	    | enumidlist ',' enumid
 		{
-		    int i;
+		    size_t i;
 		    $$=$1;
 		    /* check for duplicates*/
 		    stackbase=$1;
@@ -395,7 +395,7 @@ vlendecl: typeref '(' '*' ')' typename
 
 compounddecl: COMPOUND typename '{' fields '}'
           {
-	    int i,j;
+	    size_t i,j;
 	    vercheck(NC_COMPOUND);
             addtogroup($2);
 	    /* check for duplicate field names*/
@@ -432,7 +432,7 @@ fields:   field ';' {$$=$1;}
 
 field: typeref fieldlist
         {
-	    int i;
+	    size_t i;
 	    $$=$2;
 	    stackbase=$2;
 	    stacklen=listlength(stack);
@@ -517,7 +517,7 @@ vadecl_or_attr: vardecl {} | attrdecl {} ;
 
 vardecl:        typeref varlist
 		{
-		    int i;
+		    size_t i;
 		    stackbase=$2;
 		    stacklen=listlength(stack);
 		    /* process each variable in the varlist*/
@@ -547,7 +547,7 @@ varlist:      varspec
 
 varspec:        varident dimspec
                     {
-		    int i;
+		    size_t i;
 		    Dimset dimset;
 		    Symbol* var = $1; /* for debugging */
 		    stacklen=listlength(stack);
@@ -608,7 +608,7 @@ fieldlist:
 fieldspec:
 	ident fielddimspec
 	    {
-		int i;
+		size_t i;
 		Dimset dimset;
 		stackbase=$2;
 		stacklen=listlength(stack);
@@ -1082,8 +1082,7 @@ makeconstdata(nc_type nctype)
 #ifdef USE_NETCDF4
 	case NC_OPAQUE: {
 	    char* s;
-	    int len;
-	    len = bbLength(lextext);
+	    size_t len = bbLength(lextext);
 	    s = (char*)ecalloc(len+1);
 	    strncpy(s,bbContents(lextext),len);
 	    s[len] = '\0';
@@ -1136,7 +1135,7 @@ addtogroup(Symbol* sym)
 static int
 dupobjectcheck(nc_class objectclass, Symbol* pattern)
 {
-    int i;
+    size_t i;
     Symbol* grp;
     if(pattern == NULL) return 0;
     grp = pattern->container;
