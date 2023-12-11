@@ -357,8 +357,7 @@ genbin_deftype(Symbol* tsym)
                 int dimsizes[NC_MAX_VAR_DIMS]; /* int because inside compound */
                 /* Generate the field dimension constants*/
                 for(j=0;j<efield->typ.dimset.ndims;j++) {
-                     unsigned int size = efield->typ.dimset.dimsyms[j]->dim.declsize;
-                     dimsizes[j] = size;
+                     dimsizes[j] = (int)efield->typ.dimset.dimsyms[j]->dim.declsize;
                 }
                 stat = nc_insert_array_compound(
                                 tsym->container->nc_id,
