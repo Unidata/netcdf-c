@@ -442,6 +442,7 @@ ENDIF(NOT ENABLE_V2_API)
 
 # Option to build utilities
 OPTION(BUILD_UTILITIES "Build ncgen, ncgen3, ncdump." ON)
+option(GENERATE_NCGEN "Automatically regenerate ncgen C files if required" OFF)
 
 # Option to use MMAP
 OPTION(ENABLE_MMAP "Use MMAP." ON)
