@@ -104,7 +104,7 @@ dap_unrecognizedresponse(DAPparsestate* state)
     int i;
     char iv[32];
     (void)sscanf(state->lexstate->input,"%u ",&httperr);
-    sprintf(iv,"%u",httperr);
+    snprintf(iv,sizeof(iv),"%u",httperr);
     state->lexstate->next = state->lexstate->input;
     /* Limit the amount of input to prevent runaway */
     for(i=0;i<4096;i++) {if(state->lexstate->input[i] == '\0') break;}
@@ -256,7 +256,7 @@ char*
 dimnameanon(char* basename, unsigned int index)
 {
     char name[64];
-    sprintf(name,"%s_%d",basename,index);
+    snprintf(name,sizeof(name),"%s_%d",basename,index);
     return strdup(name);
 }
 

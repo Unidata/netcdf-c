@@ -106,7 +106,7 @@ main(int argc, char **argv)
 #endif /* USE_MPE */
 
     /* Create a parallel netcdf-4 file. */
-    sprintf(file_name, "%s/%s", TEMP_LARGE, FILE_NAME);
+    snprintf(file_name, sizeof(file_name), "%s/%s", TEMP_LARGE, FILE_NAME);
     if (nc_create_par(file_name, NC_NETCDF4, comm, info, &ncid)) ERR;
 
     /* A global attribute holds the number of processors that created

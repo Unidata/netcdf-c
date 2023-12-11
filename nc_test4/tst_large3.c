@@ -59,7 +59,7 @@ main(int argc, char **argv)
        int i; 
 
        /* Create a netCDF netCDF-4/HDF5 format file, with 4 vars. */
-	sprintf(file_name, "%s/%s", TEMP_LARGE, FILE_NAME);
+	snprintf(file_name, sizeof(file_name), "%s/%s", TEMP_LARGE, FILE_NAME);
        if (nc_create(file_name, NC_NETCDF4, &ncid)) ERR;
        if (nc_set_fill(ncid, NC_NOFILL, NULL)) ERR;
        if (nc_def_dim(ncid, DIM_NAME, QTR_CLASSIC_MAX, dimids)) ERR;

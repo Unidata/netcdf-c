@@ -93,7 +93,7 @@ main()
 				   spaceid, create_propid)) < 0) ERR;
       if (H5Sclose(spaceid) < 0) ERR;
       if (H5Pclose(create_propid) < 0) ERR;
-      sprintf(dimscale_wo_var, "%s%10d", DIM_WITHOUT_VARIABLE, DIM_LEN);
+      snprintf(dimscale_wo_var, sizeof(dimscale_wo_var), "%s%10d", DIM_WITHOUT_VARIABLE, DIM_LEN);
       if (H5DSset_scale(dimscaleid, dimscale_wo_var) < 0) ERR;
 
       /* Create a variable that uses this dimension scale. */

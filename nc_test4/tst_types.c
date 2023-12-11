@@ -49,7 +49,7 @@ create_test_file(char *filename, int *varid, int *ncid)
    for (type = 0; type < NUM_TYPES; type++)
    {
       /* Create a var... */
-      sprintf(varname, "var_%d", type);
+      snprintf(varname, sizeof(varname), "var_%d", type);
       if (nc_def_var(*ncid, varname, type + NC_UBYTE, 1, &dimid, &varid[type])) ERR;
    }
    return 0;
@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
       for (type = 0; type < NUM_TYPES; type++)
       {
          /* Create a var... */
-         sprintf(varname, "var_%d", type);
+         snprintf(varname, sizeof(varname), "var_%d", type);
          if (nc_def_var(ncid1, varname, type + NC_UBYTE, 1, &dimid, &varid[type])) ERR;
          if (nc_inq_type_equal(ncid1, type + NC_UBYTE, ncid2, type + NC_UBYTE, &equal)) ERR;
          if (!equal) ERR;

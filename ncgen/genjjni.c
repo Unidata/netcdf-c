@@ -838,7 +838,7 @@ genjjni_deftype(Symbol* tsym)
 		char tmp[256];
 	        Symbol* e = efield->typ.dimset.dimsyms[j];
 		ASSERT(e->dim.isconstant);
-		sprintf(tmp,"%u",e->dim.size);
+		snprintf(tmp,sizeof(tmp),"%u",e->dim.size);
 		strcat(stmt,(j==0?"":", "));
 		strcat(stmt,tmp);
 	    }
@@ -849,7 +849,7 @@ genjjni_deftype(Symbol* tsym)
 	    Symbol* efield = (Symbol*)listget(tsym->subnodes,i);
 	    char tmp[1024];
 	    ASSERT(efield->subclass == NC_FIELD);
-	    sprintf(tmp,"%lu",efield->typ.offset);
+	    snprintf(tmp,sizeof(tmp),"%lu",efield->typ.offset);
 	    if(efield->typ.dimset.ndims > 0){ 
 	        nprintf(stmt,sizeof(stmt),"check_err(nc_insert_array_compound(%s, %s, \"%s\", %s, %s, %d, %s_dims));",
 		    jgroupncid(tsym->container),
@@ -1449,39 +1449,39 @@ jconst(Constant* ci)
 	}
 	break;
     case NC_BYTE:
-	    sprintf(tmp,"%hhd",ci->value.int8v);
+	    snprintf(tmp,sizeof(tmp),"%hhd",ci->value.int8v);
 	break;
     case NC_SHORT:
-	sprintf(tmp,"%hd",ci->value.int16v);
+	snprintf(tmp,sizeof(tmp),"%hd",ci->value.int16v);
 	break;
     case NC_INT:
-	sprintf(tmp,"%d",ci->value.int32v);
+	snprintf(tmp,sizeof(tmp),"%d",ci->value.int32v);
 	break;
     case NC_FLOAT:
-	sprintf(tmp,"%.8g",ci->value.floatv);
+	snprintf(tmp,sizeof(tmp),"%.8g",ci->value.floatv);
 	break;
     case NC_DOUBLE:
-	sprintf(tmp,"%.16g",ci->value.doublev);
+	snprintf(tmp,sizeof(tmp),"%.16g",ci->value.doublev);
 	break;
     case NC_UBYTE:
-	    sprintf(tmp,"%hhu",ci->value.uint8v);
+	    snprintf(tmp,sizeof(tmp),"%hhu",ci->value.uint8v);
 	break;
     case NC_USHORT:
-	sprintf(tmp,"%hu",ci->value.uint16v);
+	snprintf(tmp,sizeof(tmp),"%hu",ci->value.uint16v);
 	break;
     case NC_UINT:
-	sprintf(tmp,"%uL",ci->value.uint32v); /* upgrade to long */
+	snprintf(tmp,sizeof(tmp),"%uL",ci->value.uint32v); /* upgrade to long */
 	break;
     case NC_INT64:
-	sprintf(tmp,"%lldL",ci->value.int64v);
+	snprintf(tmp,sizeof(tmp),"%lldL",ci->value.int64v);
 	break;
     case NC_UINT64: {
 	/* HACK to handle unsigned values */
 	long long l = (long)ci->value.uint64v;
-	sprintf(tmp,"%lldL",l);
+	snprintf(tmp,sizeof(tmp),"%lldL",l);
 	} break;
     case NC_ECONST:
-	sprintf(tmp,"%s",jname(ci->value.enumv));
+	snprintf(tmp,sizeof(tmp),"%s",jname(ci->value.enumv));
 	break;
     case NC_STRING:
 	{

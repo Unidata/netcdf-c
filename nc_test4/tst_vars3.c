@@ -314,7 +314,7 @@ main(int argc, char **argv)
         if (nc_def_dim(ncid, D0_NAME3, NC_UNLIMITED, &dimid)) ERR;
         for (v = 0; v < NUM_VARS; v++)
         {
-            sprintf(var_name, "var_%d", v);
+            snprintf(var_name, sizeof(var_name), "var_%d", v);
             if (nc_def_var(ncid, var_name, NC_INT, 1, &dimid, &varid)) ERR_RET;
             if (nc_set_var_chunk_cache(ncid, varid, 0, 0, 0.75)) ERR_RET;
         }
