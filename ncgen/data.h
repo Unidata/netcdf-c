@@ -41,7 +41,7 @@ typedef union Constvalue {
         char* stringv;
     } stringv;
     struct Opaquev {     /* NC_OPAQUE*/
-	int len; /* length as originally written (rounded to even number)*/
+	size_t len; /* length as originally written (rounded to even number)*/
 	char* stringv; /*as  constant was written*/
 		      /* (padded to even # chars >= 16)*/
 		      /* without leading 0x*/
