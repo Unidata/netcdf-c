@@ -117,7 +117,6 @@ cquotestring(Bytebuffer* databuf, char quote)
 
 static int init = 0;
 static char* repls[256];	/* replacement string for each char */
-static int lens[256];	/* lengths of replacement strings */
 static struct {
 	char c;
 	char *s;
@@ -185,9 +184,6 @@ initcodify(void)
         snprintf(rp, hexlen+1, "_X%2.2X", i); /* need to include null*/
         rp[hexlen] = '\0';
         repls[i] = rp;
-    }
-    for(i = 0; i < 256; i++) {
-        lens[i] = strlen(repls[i]);
     }
     init = 1;               /* only do this initialization once */
 }
