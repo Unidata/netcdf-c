@@ -133,9 +133,9 @@ static List* stack;
 static nc_type consttype;
 
 /* Misc. */
-static int stackbase;
-static int stacklen;
-static int count;
+static size_t stackbase;
+static size_t stacklen;
+static size_t count;
 static int opaqueid; /* counter for opaque constants*/
 static int arrayuid; /* counter for pseudo-array types*/
 
@@ -1913,7 +1913,7 @@ yyreduce:
   case 25: /* enumdecl: primtype ENUM typename '{' enumidlist '}'  */
 #line 314 "ncgen/ncgen.y"
               {
-		int i;
+		size_t i;
                 addtogroup((yyvsp[-3].sym)); /* sets prefix*/
                 (yyvsp[-3].sym)->objectclass=NC_TYPE;
                 (yyvsp[-3].sym)->subclass=NC_ENUM;
@@ -1950,7 +1950,7 @@ yyreduce:
   case 27: /* enumidlist: enumidlist ',' enumid  */
 #line 345 "ncgen/ncgen.y"
                 {
-		    int i;
+		    size_t i;
 		    (yyval.mark)=(yyvsp[-2].mark);
 		    /* check for duplicates*/
 		    stackbase=(yyvsp[-2].mark);
@@ -2010,7 +2010,7 @@ yyreduce:
   case 31: /* compounddecl: COMPOUND typename '{' fields '}'  */
 #line 397 "ncgen/ncgen.y"
           {
-	    int i,j;
+	    size_t i,j;
 	    vercheck(NC_COMPOUND);
             addtogroup((yyvsp[-3].sym));
 	    /* check for duplicate field names*/
@@ -2056,7 +2056,7 @@ yyreduce:
   case 34: /* field: typeref fieldlist  */
 #line 434 "ncgen/ncgen.y"
         {
-	    int i;
+	    size_t i;
 	    (yyval.mark)=(yyvsp[0].mark);
 	    stackbase=(yyvsp[0].mark);
 	    stacklen=listlength(stack);
@@ -2230,7 +2230,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
   case 66: /* vardecl: typeref varlist  */
 #line 519 "ncgen/ncgen.y"
                 {
-		    int i;
+		    size_t i;
 		    stackbase=(yyvsp[0].mark);
 		    stacklen=listlength(stack);
 		    /* process each variable in the varlist*/
@@ -2268,7 +2268,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
   case 69: /* varspec: varident dimspec  */
 #line 549 "ncgen/ncgen.y"
                     {
-		    int i;
+		    size_t i;
 		    Dimset dimset;
 		    Symbol* var = (yyvsp[-1].sym); /* for debugging */
 		    stacklen=listlength(stack);
@@ -2352,7 +2352,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
   case 77: /* fieldspec: ident fielddimspec  */
 #line 610 "ncgen/ncgen.y"
             {
-		int i;
+		size_t i;
 		Dimset dimset;
 		stackbase=(yyvsp[0].mark);
 		stacklen=listlength(stack);
@@ -3318,12 +3318,13 @@ makeconstdata(nc_type nctype)
 #ifdef USE_NETCDF4
 	case NC_OPAQUE: {
 	    char* s;
-	    size_t len = bbLength(lextext);
+	    size_t len;
+	    len = bbLength(lextext);
 	    s = (char*)ecalloc(len+1);
 	    strncpy(s,bbContents(lextext),len);
 	    s[len] = '\0';
 	    con->value.opaquev.stringv = s;
-	    con->value.opaquev.len = (int)len;
+	    con->value.opaquev.len = len;
 	    } break;
 
 	case NC_NIL:
@@ -3371,7 +3372,7 @@ addtogroup(Symbol* sym)
 static int
 dupobjectcheck(nc_class objectclass, Symbol* pattern)
 {
-    int i;
+    size_t i;
     Symbol* grp;
     if(pattern == NULL) return 0;
     grp = pattern->container;
