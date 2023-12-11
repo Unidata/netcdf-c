@@ -298,7 +298,7 @@ test_slabs(ncid, sizes)
 	    edge[idim] = dims[idim].size;
 	}
 
-	sprintf(time_mess,"ncvarput %ldx%ldx%ldx%ld",
+	snprintf(time_mess, sizeof(time_mess),"ncvarput %ldx%ldx%ldx%ld",
 		edge[0], edge[1], edge[2], edge[3]);
 
 	TIMING_START ;
@@ -321,7 +321,7 @@ test_slabs(ncid, sizes)
 	    point[idim] = corner[idim];
 	}
 
-	sprintf(time_mess,"ncvarget %ldx%ldx%ldx%ld"
+	snprintf(time_mess, sizeof(time_mess),"ncvarget %ldx%ldx%ldx%ld"
 		,edge[0],edge[1],edge[2],edge[3]);
 
 	TIMING_START ;
@@ -343,7 +343,7 @@ test_slabs(ncid, sizes)
 	    corner[idim] = 0;		/* get vector along dimension idim */
 	    edge[idim] = dims[idim].size;
 
-	    sprintf(time_mess,"ncvarget %ldx%ldx%ldx%ld"
+	    snprintf(time_mess, sizeof(time_mess),"ncvarget %ldx%ldx%ldx%ld"
 		    ,edge[0],edge[1],edge[2],edge[3]);
 
 	    TIMING_START ;
@@ -372,7 +372,7 @@ test_slabs(ncid, sizes)
 		edge[idim] = dims[idim].size;
 		edge[jdim] = dims[jdim].size;
 
-		sprintf(time_mess,"ncvarget %ldx%ldx%ldx%ld"
+		snprintf(time_mess, sizeof(time_mess),"ncvarget %ldx%ldx%ldx%ld"
 			,edge[0],edge[1],edge[2],edge[3]);
 
 		TIMING_START ;
@@ -411,7 +411,7 @@ test_slabs(ncid, sizes)
 		    edge[jdim] = dims[jdim].size;
 		    edge[kdim] = dims[kdim].size;
 
-		    sprintf(time_mess,"ncvarget %ldx%ldx%ldx%ld"
+		    snprintf(time_mess, sizeof(time_mess),"ncvarget %ldx%ldx%ldx%ld"
 			    ,edge[0],edge[1],edge[2],edge[3]);
 
 		    TIMING_START ;
@@ -447,7 +447,7 @@ test_slabs(ncid, sizes)
 	    edge[idim] = dims[idim].size;
 	}
 
-	sprintf(time_mess,"ncvarget %ldx%ldx%ldx%ld"
+	snprintf(time_mess, sizeof(time_mess),"ncvarget %ldx%ldx%ldx%ld"
 		,edge[0],edge[1],edge[2],edge[3]);
 
 	TIMING_START ;

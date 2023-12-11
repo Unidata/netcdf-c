@@ -121,11 +121,12 @@ give_var_secret_name(NC_VAR_INFO_T *var, const char *name)
      * clash. */
     if (strlen(name) + strlen(NON_COORD_PREPEND) > NC_MAX_NAME)
         return NC_EMAXNAME;
-    if (!(var->alt_name = malloc((strlen(NON_COORD_PREPEND) +
-                                   strlen(name) + 1) * sizeof(char))))
+    size_t alt_name_size = (strlen(NON_COORD_PREPEND) + strlen(name) + 1) *
+                           sizeof(char);
+    if (!(var->alt_name = malloc(alt_name_size)))
         return NC_ENOMEM;
 
-    sprintf(var->alt_name, "%s%s", NON_COORD_PREPEND, name);
+    snprintf(var->alt_name, alt_name_size, "%s%s", NON_COORD_PREPEND, name);
 
     return NC_NOERR;
 }

@@ -119,7 +119,7 @@ main(int argc, char **argv)
 #endif /* USE_MPE */
 
     /* Create a parallel netcdf-4 file. */
-    sprintf(file_name, "%s/%s", TEMP_LARGE, FILE_NAME);
+    snprintf(file_name, sizeof(file_name), "%s/%s", TEMP_LARGE, FILE_NAME);
 #ifdef DEBUG
     fprintf(stderr,"create: file_name=%s\n",file_name);
 #endif

@@ -1543,7 +1543,7 @@ yysyntax_error (YYPTRDIFF_T *yymsg_alloc, char **yymsg,
       return -1;
     }
 
-  /* Avoid sprintf, as that infringes on the user's name space.
+  /* Avoid snprintf, as that infringes on the user's name space.
      Don't have undefined behavior even if the translation
      produced a string with the wrong number of "%s"s.  */
   {
@@ -2409,7 +2409,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
             {  /* Anonymous integer dimension.
 	         Can only occur in type definitions*/
 	     char anon[32];
-	     sprintf(anon,"const%u",uint32_val);
+	     snprintf(anon,sizeof(anon),"const%u",uint32_val);
 	     (yyval.sym) = install(anon);
 	     (yyval.sym)->objectclass = NC_DIM;
 	     (yyval.sym)->dim.isconstant = 1;
@@ -2427,7 +2427,7 @@ fprintf(stderr,"dimension: %s = UNLIMITED\n",(yyvsp[-2].sym)->name);
 		derror("field dimension must be positive");
 		YYABORT;
 	     }
-	     sprintf(anon,"const%d",int32_val);
+	     snprintf(anon,sizeof(anon),"const%d",int32_val);
 	     (yyval.sym) = install(anon);
 	     (yyval.sym)->objectclass = NC_DIM;
 	     (yyval.sym)->dim.isconstant = 1;

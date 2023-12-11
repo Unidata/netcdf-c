@@ -165,7 +165,7 @@ main(int argc, char **argv)
       /* Create a few dimensions. */
       for (d = 0; d < NDIMS3; d++)
       {
-	 sprintf(dim_name, "dim_%d", d);
+	 snprintf(dim_name, sizeof(dim_name), "dim_%d", d);
 	 if (nc_def_dim(ncid, dim_name, dim_len[d], &dimids[d])) ERR;
       }
 
@@ -203,7 +203,7 @@ main(int argc, char **argv)
       /* Create a few dimensions. */
       for (d = 0; d < NDIMS3; d++)
       {
-	 sprintf(dim_name, "dim_%d", d);
+	 snprintf(dim_name, sizeof(dim_name), "dim_%d", d);
 	 if (nc_def_dim(ncid, dim_name, dim_len[d], &dimids[d])) ERR;
       }
 
@@ -241,7 +241,7 @@ main(int argc, char **argv)
       /* Create a few dimensions. */
       for (d = 0; d < NDIMS3; d++)
       {
-	 sprintf(dim_name, "dim_%d", d);
+	 snprintf(dim_name, sizeof(dim_name), "dim_%d", d);
 	 if (nc_def_dim(ncid, dim_name, dim_len[d], &dimids[d])) ERR;
       }
 
@@ -282,7 +282,7 @@ main(int argc, char **argv)
       /* Create a few dimensions. */
       for (d = 0; d < NDIMS3; d++)
       {
-	 sprintf(dim_name, "dim_%d", d);
+	 snprintf(dim_name, sizeof(dim_name), "dim_%d", d);
 	 if (nc_def_dim(ncid, dim_name, dim_len[d], &dimids[d])) ERR;
       }
 
@@ -322,7 +322,7 @@ main(int argc, char **argv)
       /* Create a few dimensions. */
       for (d = 0; d < NDIMS3; d++)
       {
-	 sprintf(dim_name, "dim_%d", d);
+	 snprintf(dim_name, sizeof(dim_name), "dim_%d", d);
 	 if (nc_def_dim(ncid, dim_name, dim_len[d], &dimids[d])) ERR;
       }
 
@@ -364,7 +364,7 @@ main(int argc, char **argv)
 	 for (d = 0; d < NDIMS3; d++)
 	 {
 	    dim_len[d] = rand();
-	    sprintf(dim_name, "dim_%d", d);
+	    snprintf(dim_name, sizeof(dim_name), "dim_%d", d);
 	    if (nc_def_dim(ncid, dim_name, dim_len[d], &dimids[d])) ERR;
 	 }
 
@@ -403,7 +403,7 @@ main(int argc, char **argv)
 	 /* Create a few dimensions. */
 	 for (d = 0; d < NDIMS3; d++)
 	 {
-	    sprintf(dim_name, "dim_%d", d);
+	    snprintf(dim_name, sizeof(dim_name), "dim_%d", d);
 	    if (nc_def_dim(ncid, dim_name, dim_len[d], &dimids[d])) ERR;
 	 }
 
@@ -442,7 +442,7 @@ main(int argc, char **argv)
 	 /* Create a few dimensions. */
 	 for (d = 0; d < NDIMS3; d++)
 	 {
-	    sprintf(dim_name, "dim_%d", d);
+	    snprintf(dim_name, sizeof(dim_name), "dim_%d", d);
 	    if (nc_def_dim(ncid, dim_name, dim_len[d], &dimids[d])) ERR;
 	 }
 

@@ -452,7 +452,7 @@ main()
          hr_data_out[i].starfleet_id = i;
          hr_data_out[i].svc_rec.i1 = 95;
          hr_data_out[i].svc_rec.i2 = 90;
-         if (sprintf(hr_data_out[i].name, "alien_%d", i) < 0) ERR;
+         if (snprintf(hr_data_out[i].name, sizeof(hr_data_out[i].name), "alien_%d", i) < 0) ERR;
          hr_data_out[i].max_temp = 99.99f;
          hr_data_out[i].min_temp = -9.99f;
          hr_data_out[i].percent_transporter_errosion = .1;
@@ -557,7 +557,7 @@ main()
          hr_data_out[i].starfleet_id = i;
          hr_data_out[i].svc_rec.i1 = 95;
          hr_data_out[i].svc_rec.i2 = 90;
-         if (sprintf(hr_data_out[i].name, "alien_%d", i) < 0) ERR;
+         if (snprintf(hr_data_out[i].name, sizeof(hr_data_out[i].name), "alien_%d", i) < 0) ERR;
          hr_data_out[i].max_temp = 99.99f;
          hr_data_out[i].min_temp = -9.99f;
          hr_data_out[i].percent_transporter_errosion = .1;
@@ -665,7 +665,7 @@ main()
          hr_data_out[i].starfleet_id = i;
          hr_data_out[i].svc_rec.i1 = 95;
          hr_data_out[i].svc_rec.i2 = 90;
-         if (sprintf(hr_data_out[i].name, "alien_%d", i) < 0) ERR;
+         if (snprintf(hr_data_out[i].name, sizeof(hr_data_out[i].name), "alien_%d", i) < 0) ERR;
          hr_data_out[i].max_temp = 99.99f;
          hr_data_out[i].min_temp = -9.99f;
          hr_data_out[i].percent_transporter_errosion = .1;
@@ -756,7 +756,7 @@ main()
       /* Create some phony data. */
       for (i = 0; i < DIM1_LEN; i++)
       {
-         if (sprintf(hr_data_out[i].name, "alien_%d", i) < 0) ERR;
+         if (snprintf(hr_data_out[i].name, sizeof(hr_data_out[i].name), "alien_%d", i) < 0) ERR;
          hr_data_out[i].max_temp = 99.99f;
       }
 
@@ -841,7 +841,7 @@ main()
       /* Create some phony data. */
       for (i = 0; i < DIM2_LEN; i++)
       {
-         if (sprintf(hr_data_out[i].name, "alien_%d", i) < 0) ERR;
+         if (snprintf(hr_data_out[i].name, sizeof(hr_data_out[i].name), "alien_%d", i) < 0) ERR;
          hr_data_out[i].max_temp = 99.99f;
       }
 

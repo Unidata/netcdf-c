@@ -248,7 +248,7 @@ main()
         void *bufr;
         void *fillp = NULL;
 
-        sprintf(file_name, "%s/%s", TEMP_LARGE, FILE_NAME);
+        snprintf(file_name, sizeof(file_name), "%s/%s", TEMP_LARGE, FILE_NAME);
 
         /* Create file access and create property lists. */
         if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
@@ -285,7 +285,7 @@ main()
                                          spaceid, plistid)) < 0) ERR;
         if (H5Sclose(spaceid) < 0) ERR;
         if (H5Pclose(plistid) < 0) ERR;
-        sprintf(dimscale_wo_var, "%s%10d", DIM_WITHOUT_VARIABLE, DIM1);
+        snprintf(dimscale_wo_var, sizeof(dimscale_wo_var), "%s%10d", DIM_WITHOUT_VARIABLE, DIM1);
         if (H5DSset_scale(dim1_dimscaleid, dimscale_wo_var) < 0) ERR;
 
         /* Create the dim2 dimscale. */
@@ -299,7 +299,7 @@ main()
                                          spaceid, plistid)) < 0) ERR;
         if (H5Sclose(spaceid) < 0) ERR;
         if (H5Pclose(plistid) < 0) ERR;
-        sprintf(dimscale_wo_var, "%s%10d", DIM_WITHOUT_VARIABLE, DIM2);
+        snprintf(dimscale_wo_var, sizeof(dimscale_wo_var), "%s%10d", DIM_WITHOUT_VARIABLE, DIM2);
         if (H5DSset_scale(dim2_dimscaleid, dimscale_wo_var) < 0) ERR;
 
         /* Now create the 2D dataset. */
