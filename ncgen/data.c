@@ -156,9 +156,9 @@ cloneconstant(NCConstant* con)
 	newcon->value.stringv.stringv = s;
 	break;
     case NC_OPAQUE:
-	s = (char*)ecalloc((size_t)newcon->value.opaquev.len+1);
+	s = (char*)ecalloc(newcon->value.opaquev.len+1);
 	if(newcon->value.opaquev.len > 0)
-	    memcpy(s,newcon->value.opaquev.stringv, (size_t)newcon->value.opaquev.len);
+	    memcpy(s,newcon->value.opaquev.stringv, newcon->value.opaquev.len);
 	s[newcon->value.opaquev.len] = '\0';
 	newcon->value.opaquev.stringv = s;
 	break;

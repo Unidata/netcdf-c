@@ -259,16 +259,16 @@ normalizeopaquelength(NCConstant* prim, unsigned long nbytes)
         /* do nothing*/
     } else if(prim->value.opaquev.len > nnibs) { /* truncate*/
         prim->value.opaquev.stringv[nnibs] = '\0';
-        prim->value.opaquev.len = (int)nnibs;
+        prim->value.opaquev.len = nnibs;
     } else {/* prim->value.opaquev.len < nnibs => expand*/
         char* s;
         s = (char*)ecalloc(nnibs+1);
         memset(s,'0',nnibs);    /* Fill with '0' characters */
-        memcpy(s,prim->value.opaquev.stringv, (size_t)prim->value.opaquev.len);
+        memcpy(s,prim->value.opaquev.stringv, prim->value.opaquev.len);
         s[nnibs] = '\0';
         efree(prim->value.opaquev.stringv);
         prim->value.opaquev.stringv=s;
-        prim->value.opaquev.len = (int)nnibs;
+        prim->value.opaquev.len = nnibs;
     }
 }
 
