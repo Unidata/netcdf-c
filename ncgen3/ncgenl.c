@@ -1347,12 +1347,12 @@ YY_RULE_SETUP
 {
                 int ii;
 		if (sscanf((char*)ncgtext, "%d", &ii) != 1) {
-		    sprintf(errstr,"bad byte constant: %s",(char*)ncgtext);
+		    snprintf(errstr,sizeof(errstr),"bad byte constant: %s",(char*)ncgtext);
 		    yyerror(errstr);
 		}
                 byte_val = ii;
 		if (ii != (int)byte_val) {
-		    sprintf(errstr,"byte constant out of range (-128,127): %s",(char*)ncgtext);
+		    snprintf(errstr,sizeof(errstr),"byte constant out of range (-128,127): %s",(char*)ncgtext);
 		    yyerror(errstr);
 		}
 		return (BYTE_CONST);
@@ -1363,7 +1363,7 @@ YY_RULE_SETUP
 #line 195 "ncgen.l"
 {
 		if (sscanf((char*)ncgtext, "%le", &double_val) != 1) {
-		    sprintf(errstr,"bad long or double constant: %s",(char*)ncgtext);
+		    snprintf(errstr,sizeof(errstr),"bad long or double constant: %s",(char*)ncgtext);
 		    yyerror(errstr);
 		}
                 return (DOUBLE_CONST);
@@ -1374,7 +1374,7 @@ YY_RULE_SETUP
 #line 202 "ncgen.l"
 {
 		if (sscanf((char*)ncgtext, "%e", &float_val) != 1) {
-		    sprintf(errstr,"bad float constant: %s",(char*)ncgtext);
+		    snprintf(errstr,sizeof(errstr),"bad float constant: %s",(char*)ncgtext);
 		    yyerror(errstr);
 		}
                 return (FLOAT_CONST);
@@ -1386,7 +1386,7 @@ YY_RULE_SETUP
 {
 		int tmp = 0;
 		if (sscanf((char*)ncgtext, "%d", &tmp) != 1) {
-		    sprintf(errstr,"bad short constant: %s",(char*)ncgtext);
+		    snprintf(errstr,sizeof(errstr),"bad short constant: %s",(char*)ncgtext);
 		    yyerror(errstr);
 		}
 		short_val = (short)tmp;
@@ -1401,7 +1401,7 @@ YY_RULE_SETUP
                 errno = 0;
 		double_val = strtod((char*)ncgtext, &ptr);
 		if (errno != 0 && double_val == 0.0) {
-		    sprintf(errstr,"bad numerical constant: %s",(char*)ncgtext);
+		    snprintf(errstr,sizeof(errstr),"bad numerical constant: %s",(char*)ncgtext);
 		    yyerror(errstr);
 		}
                 if (double_val < XDR_INT_MIN ||double_val > XDR_INT_MAX) {
@@ -1421,7 +1421,7 @@ YY_RULE_SETUP
                 errno = 0;
 		long_val = strtol((char*)ncgtext, &ptr, 0);
 		if (errno != 0) {
-		    sprintf(errstr,"bad long constant: %s",(char*)ncgtext);
+		    snprintf(errstr,sizeof(errstr),"bad long constant: %s",(char*)ncgtext);
 		    yyerror(errstr);
 		}
                 if (long_val < XDR_INT_MIN || long_val > XDR_INT_MAX) {

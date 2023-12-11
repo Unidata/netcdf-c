@@ -386,7 +386,7 @@ cdParseRelunits(cdCalenType timetype, char* relunits, cdUnitTime* unit, cdCompTi
 		else{
 			cdTrim(basetime_1,CD_MAX_CHARTIME);
 			cdTrim(basetime_2,CD_MAX_CHARTIME);
-			sprintf(basetime,"%s %s",basetime_1,basetime_2);
+			snprintf(basetime,sizeof(basetime),"%s %s",basetime_1,basetime_2);
 		}
 	}
 
@@ -1085,7 +1085,7 @@ cdRel2Comp(cdCalenType timetype, char* relunits, double reltime, cdCompTime* com
 
 /* rkr: output as ISO 8601 strings */
 static void
-cdComp2Iso(cdCalenType timetype, int separator, cdCompTime comptime, char* time)
+cdComp2Iso(cdCalenType timetype, int separator, cdCompTime comptime, char* time, size_t time_size)
 {
 	double dtmp, sec;
 	int ihr, imin, isec;
@@ -1121,23 +1121,23 @@ cdComp2Iso(cdCalenType timetype, int separator, cdCompTime comptime, char* time)
 	if(timetype & cdStandardCal){
 	    switch (nskip) {
 	    case 0:		/* sec != 0 && (int)sec != sec */
-		sprintf(time,"%4.4ld-%2.2hd-%2.2hd%c%2.2d:%2.2d:%lf",
+		snprintf(time,time_size,"%4.4ld-%2.2hd-%2.2hd%c%2.2d:%2.2d:%lf",
 			comptime.year,comptime.month,comptime.day,separator,ihr,imin,sec);
 		break;
 	    case 1:
-		sprintf(time,"%4.4ld-%2.2hd-%2.2hd%c%2.2d:%2.2d:%2.2d",
+		snprintf(time,time_size,"%4.4ld-%2.2hd-%2.2hd%c%2.2d:%2.2d:%2.2d",
 			comptime.year,comptime.month,comptime.day,separator,ihr,imin,isec);
 		break;
 	    case 2:
-		sprintf(time,"%4.4ld-%2.2hd-%2.2hd%c%2.2d:%2.2d",
+		snprintf(time,time_size,"%4.4ld-%2.2hd-%2.2hd%c%2.2d:%2.2d",
 			comptime.year,comptime.month,comptime.day,separator,ihr,imin);
 		break;
 	    case 3:
-		sprintf(time,"%4.4ld-%2.2hd-%2.2hd%c%2.2d",
+		snprintf(time,time_size,"%4.4ld-%2.2hd-%2.2hd%c%2.2d",
 			comptime.year,comptime.month,comptime.day,separator,ihr);
 		break;
 	    case 4:
-		sprintf(time,"%4.4ld-%2.2hd-%2.2hd",
+		snprintf(time,time_size,"%4.4ld-%2.2hd-%2.2hd",
 			comptime.year,comptime.month,comptime.day);
 		break;
 	    }
@@ -1145,23 +1145,23 @@ cdComp2Iso(cdCalenType timetype, int separator, cdCompTime comptime, char* time)
 	else {				     /* Climatological */
 	    switch (nskip) {
 	    case 0:		/* sec != 0 && (int)sec != sec */
-		sprintf(time,"%2.2hd-%2.2hd%c%2.2d:%2.2d:%lf",
+		snprintf(time,time_size,"%2.2hd-%2.2hd%c%2.2d:%2.2d:%lf",
 			comptime.month,comptime.day,separator,ihr,imin,sec);
 		break;
 	    case 1:
-		sprintf(time,"%2.2hd-%2.2hd%c%2.2d:%2.2d:%2.2d",
+		snprintf(time,time_size,"%2.2hd-%2.2hd%c%2.2d:%2.2d:%2.2d",
 			comptime.month,comptime.day,separator,ihr,imin,isec);
 		break;
 	    case 2:
-		sprintf(time,"%2.2hd-%2.2hd%c%2.2d:%2.2d",
+		snprintf(time,time_size,"%2.2hd-%2.2hd%c%2.2d:%2.2d",
 			comptime.month,comptime.day,separator,ihr,imin);
 		break;
 	    case 3:
-		sprintf(time,"%2.2hd-%2.2hd%c%2.2d",
+		snprintf(time,time_size,"%2.2hd-%2.2hd%c%2.2d",
 			comptime.month,comptime.day,separator,ihr);
 		break;
 	    case 4:
-		sprintf(time,"%2.2hd-%2.2hd",
+		snprintf(time,time_size,"%2.2hd-%2.2hd",
 			comptime.month,comptime.day);
 		break;
 	    }
@@ -1171,12 +1171,12 @@ cdComp2Iso(cdCalenType timetype, int separator, cdCompTime comptime, char* time)
 
 /* rkr: added for output closer to ISO 8601 */
 void
-cdRel2Iso(cdCalenType timetype, char* relunits, int separator, double reltime, char* chartime)
+cdRel2Iso(cdCalenType timetype, char* relunits, int separator, double reltime, char* chartime, size_t chartime_size)
 {
 	cdCompTime comptime;
 
 	cdRel2Comp(timetype, relunits, reltime, &comptime);
-	cdComp2Iso(timetype, separator, comptime, chartime);
+	cdComp2Iso(timetype, separator, comptime, chartime, chartime_size);
 
 	return;
 }

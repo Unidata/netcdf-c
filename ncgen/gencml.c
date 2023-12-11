@@ -316,7 +316,7 @@ definextype(Symbol* tsym)
 		    if(j > 0) bbCat(dimbuf," ");
 		    dim = efield->typ.dimset.dimsyms[j];
 		    ASSERT(dim->dim.isconstant);
-		    sprintf(tmp,"%lu",(unsigned long)dim->dim.size);
+		    snprintf(tmp,sizeof(tmp),"%lu",(unsigned long)dim->dim.size);
 		    bbCat(dimbuf,tmp);
 		}
 		bbCat(dimbuf,"\"");

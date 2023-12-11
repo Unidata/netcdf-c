@@ -52,7 +52,7 @@ int main(int argc, char **argv)
     /* create N groups, printing time after every 1000 */
     numgrp = nitem;
     for(g = 1; g < numgrp + 1; g++) {
-	sprintf(gname, "group%d", g);
+	snprintf(gname, sizeof(gname), "group%d", g);
 	if (nc_def_grp(ncid, gname, &grp)) ERR;
 	if (nc_def_var(grp, "var", NC_INT, 0, NULL, &var)) ERR;
 	if(nc_enddef (grp)) ERR;
@@ -80,13 +80,13 @@ int main(int argc, char **argv)
 	ERR;
 
     for(g = 1; g < numgrp + 1; g++) {
-	sprintf(gname, "group%d", g);
+	snprintf(gname, sizeof(gname), "group%d", g);
 	if (nc_def_grp(ncid, gname, &grp)) ERR;
 	nvars = g < numgrp ? NC_MAX_VARS : vleft; /* leftovers on last time through */
 	for(vn = 1; vn < nvars + 1; vn++) {
 	    int var;
 	    char vname[20];
-	    sprintf(vname, "variable%d", v);
+	    snprintf(vname, sizeof(vname), "variable%d", v);
 	    if(nc_def_var(grp, vname, NC_INT, 0, NULL, &var)) ERR;
 	    if(nc_put_var(grp, var, data)) ERR;
 	    if(v%1000 == 0) {		/* only print every 1000th variable name */

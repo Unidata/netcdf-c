@@ -53,7 +53,7 @@ int test_pio_2d(size_t cache_size, int access_flag, MPI_Comm comm,
 	 data[j * DIMSIZE1 / mpi_size + i] = (float)mpi_rank * (j + 1);
 
    /* Get the file name. */
-   sprintf(file_name, "%s/%s", TEMP_LARGE, FILENAME);
+   snprintf(file_name, sizeof(file_name), "%s/%s", TEMP_LARGE, FILENAME);
 
    /* Set the cache size. */
    if (nc_get_chunk_cache(NULL, &nelems_in, &preemption_in)) ERR;
@@ -114,7 +114,7 @@ int test_pio_2d(size_t cache_size, int access_flag, MPI_Comm comm,
 
       /* What was our chunking? */
       if (chunk_size[0])
-	 sprintf(chunk_string, "%dx%d    ", (int)chunk_size[0], (int)chunk_size[1]);
+	 snprintf(chunk_string, sizeof(chunk_string), "%dx%d    ", (int)chunk_size[0], (int)chunk_size[1]);
       else
 	 strcat(chunk_string, "contiguous");
 
@@ -162,7 +162,7 @@ int test_pio_4d(size_t cache_size, int access_flag, MPI_Comm comm,
 	 }
 
    /* Get the file name. */
-   sprintf(file_name, "%s/%s", TEMP_LARGE, FILENAME);
+   snprintf(file_name, sizeof(file_name), "%s/%s", TEMP_LARGE, FILENAME);
 
    /* Set the cache size. */
    if (nc_get_chunk_cache(NULL, &nelems_in, &preemption_in)) ERR;
@@ -226,7 +226,7 @@ int test_pio_4d(size_t cache_size, int access_flag, MPI_Comm comm,
 
       /* What was our chunking? */
       if (chunk_size[0])
-	 sprintf(chunk_string, "%dx%dx%dx%d", (int)chunk_size[0], (int)chunk_size[1],
+	 snprintf(chunk_string, sizeof(chunk_string), "%dx%dx%dx%d", (int)chunk_size[0], (int)chunk_size[1],
 		 (int)chunk_size[2], (int)chunk_size[3]);
       else
 	 strcat(chunk_string, "contiguous");

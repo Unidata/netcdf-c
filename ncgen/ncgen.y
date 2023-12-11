@@ -650,7 +650,7 @@ fielddim:
 	    {  /* Anonymous integer dimension.
 	         Can only occur in type definitions*/
 	     char anon[32];
-	     sprintf(anon,"const%u",uint32_val);
+	     snprintf(anon, sizeof(anon),"const%u",uint32_val);
 	     $$ = install(anon);
 	     $$->objectclass = NC_DIM;
 	     $$->dim.isconstant = 1;
@@ -664,7 +664,7 @@ fielddim:
 		derror("field dimension must be positive");
 		YYABORT;
 	     }
-	     sprintf(anon,"const%d",int32_val);
+	     snprintf(anon, sizeof(anon),"const%d",int32_val);
 	     $$ = install(anon);
 	     $$->objectclass = NC_DIM;
 	     $$->dim.isconstant = 1;
