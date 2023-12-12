@@ -14,6 +14,8 @@ set(netCDF_LIBRARIES netCDF::netcdf)
 # include target information
 include("${CMAKE_CURRENT_LIST_DIR}/netCDFTargets.cmake")
 
+@IMPORT_MPI@
+
 # Compiling Options
 #
 set(netCDF_C_COMPILER "@CC_VERSION@")
