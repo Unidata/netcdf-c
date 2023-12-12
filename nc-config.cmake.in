@@ -118,7 +118,7 @@ fi
 
 has_multifilters="yes"
 
-has_zstd="@HAS_ZSTD"
+has_zstd="@HAVE_ZSTD@"
 if [ -z "$has_zstd" -o "$has_zstd" = "OFF" -o "$has_zstd" = "FALSE" ]; then
     has_zstd="no"
 else
