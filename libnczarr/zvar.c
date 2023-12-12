@@ -1703,6 +1703,7 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
        do no harm to reextend it to that size. */
     if (var->ndims)
     {
+
 	for (d2 = 0; d2 < var->ndims; d2++)
 	{
 	    size64_t endindex = start[d2] + stride[d2] * (count[d2] - 1); /* last index written */
@@ -1727,7 +1728,7 @@ NCZ_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 	    }
 	}
 
-#endif
+
 
 #ifdef LOOK
 	/* If we need to extend it, we also need a new file_spaceid
