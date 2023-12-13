@@ -100,6 +100,7 @@ int dump_hdf_file(const float *data, int docompression)
    hsize_t dims[NDIMS] = {X_LEN, Y_LEN, Z_LEN};
    hsize_t start[NDIMS] = {0, 0, 0};
    hsize_t count[NDIMS] = {1, 1, Z_LEN};
+   hsize_t ones[NDIMS] = {1, 1, 1};
 
    /* create file */
    file_id = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC,
@@ -138,7 +139,7 @@ int dump_hdf_file(const float *data, int docompression)
       for (start[1] = 0; start[1] < Y_LEN; start[1]++)
       {
 	 if (H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET, start, NULL,
-				 count, NULL) < 0) ERR_RET;
+				 ones, count) < 0) ERR_RET;
 	 if (H5Dwrite(dataset_id, H5T_NATIVE_FLOAT, mem_spaceid, file_spaceid,
 		      xfer_plistid, data) < 0) ERR_RET;
       }
