@@ -121,11 +121,12 @@ give_var_secret_name(NC_VAR_INFO_T *var, const char *name)
      * clash. */
     if (strlen(name) + strlen(NON_COORD_PREPEND) > NC_MAX_NAME)
         return NC_EMAXNAME;
-    if (!(var->alt_name = malloc((strlen(NON_COORD_PREPEND) +
-                                   strlen(name) + 1) * sizeof(char))))
+    size_t alt_name_size = (strlen(NON_COORD_PREPEND) + strlen(name) + 1) *
+                           sizeof(char);
+    if (!(var->alt_name = malloc(alt_name_size)))
         return NC_ENOMEM;
 
-    sprintf(var->alt_name, "%s%s", NON_COORD_PREPEND, name);
+    snprintf(var->alt_name, alt_name_size, "%s%s", NON_COORD_PREPEND, name);
 
     return NC_NOERR;
 }
@@ -1491,11 +1492,12 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     NC_VAR_INFO_T *var;
     NC_DIM_INFO_T *dim;
     NC_HDF5_VAR_INFO_T *hdf5_var;
+    herr_t herr;
     hid_t file_spaceid = 0, mem_spaceid = 0, xfer_plistid = 0;
     long long unsigned xtend_size[NC_MAX_VAR_DIMS];
     hsize_t fdims[NC_MAX_VAR_DIMS], fmaxdims[NC_MAX_VAR_DIMS];
     hsize_t start[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
-    hsize_t stride[NC_MAX_VAR_DIMS];
+    hsize_t stride[NC_MAX_VAR_DIMS], ones[NC_MAX_VAR_DIMS];
     int need_to_extend = 0;
 #ifdef USE_PARALLEL4
     int extend_possible = 0;
@@ -1546,6 +1548,7 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
         start[i] = startp[i];
         count[i] = countp ? countp[i] : var->dim[i]->len;
         stride[i] = stridep ? stridep[i] : 1;
+        ones[i] = 1;
 	LOG((4, "start[%d] %ld count[%d] %ld stride[%d] %ld", i, start[i], i, count[i], i, stride[i]));
 
         /* Check to see if any counts are zero. */
@@ -1596,8 +1599,13 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     }
     else
     {
-        if (H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET, start, stride,
-                                count, NULL) < 0)
+        if (stridep == NULL)
+            herr = H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET, start,
+                                       NULL, ones, count);
+        else
+            herr = H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET, start,
+                                       stride, count, NULL);
+        if (herr < 0)
             BAIL(NC_EHDFERR);
 
         /* Create a space for the memory, just big enough to hold the slab
@@ -1722,8 +1730,14 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
                 BAIL2(NC_EHDFERR);
             if ((file_spaceid = H5Dget_space(hdf5_var->hdf_datasetid)) < 0)
                 BAIL(NC_EHDFERR);
-            if (H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET,
-                                    start, stride, count, NULL) < 0)
+
+            if (stridep == NULL)
+                herr = H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET,
+                                           start, NULL, ones, count);
+            else
+                herr = H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET,
+                                           start, stride, count, NULL);
+            if (herr < 0)
                 BAIL(NC_EHDFERR);
         }
     }
@@ -1822,7 +1836,7 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
     hsize_t count[NC_MAX_VAR_DIMS];
     hsize_t fdims[NC_MAX_VAR_DIMS], fmaxdims[NC_MAX_VAR_DIMS];
     hsize_t start[NC_MAX_VAR_DIMS];
-    hsize_t stride[NC_MAX_VAR_DIMS];
+    hsize_t stride[NC_MAX_VAR_DIMS], ones[NC_MAX_VAR_DIMS];
     void *fillvalue = NULL;
     int no_read = 0, provide_fill = 0;
     hssize_t fill_value_size[NC_MAX_VAR_DIMS];
@@ -1873,6 +1887,7 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
         start[i] = startp[i];
         count[i] = countp[i];
         stride[i] = stridep ? stridep[i] : 1;
+        ones[i] = 1;
 
         /* if any of the count values are zero don't actually read. */
         if (count[i] == 0)
@@ -2002,9 +2017,16 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
         }
         else
         {
-            if (H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET,
-                                    start, stride, count, NULL) < 0)
+            herr_t herr;
+            if (stridep == NULL)
+                herr = H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET,
+                                           start, NULL, ones, count);
+            else
+                herr = H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET,
+                                           start, stride, count, NULL);
+            if (herr < 0)
                 BAIL(NC_EHDFERR);
+
             /* Create a space for the memory, just big enough to hold the slab
                we want. */
             if ((mem_spaceid = H5Screate_simple(var->ndims, count, NULL)) < 0)
@@ -2343,7 +2365,7 @@ nc_set_var_chunk_cache_ints(int ncid, int varid, int size, int nelems,
         real_nelems = nelems;
 
     if (preemption >= 0)
-        real_preemption = preemption / 100.;
+        real_preemption = (float)(preemption / 100.);
 
     stat = NC4_HDF5_set_var_chunk_cache(ncid, varid, real_size, real_nelems,
                                         real_preemption);

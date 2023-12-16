@@ -70,7 +70,6 @@ EXTERNL int dsp_open(const char* path, ND4dsp** dspp);
 
 /* From d4http.c */
 EXTERNL long NCD4_fetchhttpcode(CURL* curl);
-EXTERNL int NCD4_fetchurl_file(CURL* curl, const char* url, FILE* stream, d4size_t* sizep, long* filetime);
 EXTERNL int NCD4_fetchurl(CURL* curl, const char* url, NCbytes* buf, long* filetime, int* httpcode);
 EXTERNL int NCD4_curlopen(CURL** curlp);
 EXTERNL void NCD4_curlclose(CURL* curl);
@@ -78,15 +77,16 @@ EXTERNL int NCD4_fetchlastmodified(CURL* curl, char* url, long* filetime);
 EXTERNL int NCD4_ping(const char* url);
 
 /* From d4read.c */
-EXTERNL int NCD4_readDMR(NCD4INFO* state, int flags);
-EXTERNL int NCD4_readDAP(NCD4INFO* state, int flags);
-EXTERNL int NCD4_seterrormessage(NCD4meta* metadata, size_t len, char* msg);
+EXTERNL int NCD4_readDMR(NCD4INFO* state, int flags, NCURI* url, NCD4response*);
+EXTERNL int NCD4_readDAP(NCD4INFO* state, int flags, NCURI* ceuri, NCD4response*);
+EXTERNL int NCD4_seterrormessage(NCD4response*, size_t len, char* msg);
 
 /* From d4parser.c */
-EXTERNL int NCD4_parse(NCD4meta*);
+EXTERNL int NCD4_parse(NCD4meta*, NCD4response*, int dapparse);
 EXTERNL NCD4node* NCD4_findAttr(NCD4node* container, const char* attrname);
 EXTERNL NCD4node* NCD4_groupFor(NCD4node* node);
 EXTERNL int NCD4_defineattr(NCD4meta* meta, NCD4node* parent, const char* aname, const char* typename, NCD4node** attrp);
+EXTERNL void NCD4_setdebuglevel(NCD4parser*,int);
 
 /* From d4printer.c */
 EXTERNL int NCD4_print(NCD4meta*, NCbytes* output);
@@ -97,29 +97,33 @@ EXTERNL void NCD4_attachraw(NCD4meta*, size_t size, void* rawdata);
 EXTERNL void NCD4_reclaimMeta(NCD4meta*);
 EXTERNL void NCD4_resetMeta(NCD4meta*);
 EXTERNL void reclaimNode(NCD4node* node);
-EXTERNL void NCD4_setdebuglevel(NCD4meta*,int);
 EXTERNL int NCD4_metabuild(NCD4meta*, int ncid);
 EXTERNL size_t NCD4_computeTypeSize(NCD4meta*, NCD4node* type);
 EXTERNL int NCD4_findvar(NC* ncp, int ncid, int varid, NCD4node** varp, NCD4node** grpp);
+EXTERNL char* NCD4_getVarFQN(NCD4node* var, const char* tail);
+
 
 /* From d4chunk.c */
-EXTERNL int NCD4_dechunk(NCD4meta*);
-EXTERNL int NCD4_infermode(NCD4meta* meta);
+EXTERNL int NCD4_dechunk(NCD4response*);
+EXTERNL int NCD4_infermode(NCD4response*);
 struct NCD4serial;
 EXTERNL void NCD4_resetSerial(struct NCD4serial* serial, size_t rawsize, void* rawdata);
+EXTERNL void NCD4_moveSerial(struct NCD4serial* serial, struct NCD4serial* dst);
 
 /* From d4swap.c */
-EXTERNL int NCD4_swapdata(NCD4meta*, NClist* topvars);
+EXTERNL int NCD4_swapdata(NCD4response*, NCD4node* topvar, int doswap);
 
 /* From d4fix.c */
-EXTERNL int NCD4_delimit(NCD4meta*, NCD4node* var, NCD4offset* offset);
+EXTERNL int NCD4_delimit(NCD4meta*, NCD4node* var, NCD4offset* offset, int inferredchecksumming);
 EXTERNL int NCD4_moveto(NCD4meta*, NCD4node* var, d4size_t count, NCD4offset* offset);
 EXTERNL int NCD4_toposort(NCD4meta*);
 
 /* From d4data.c */
-EXTERNL int NCD4_processdata(NCD4meta*);
-EXTERNL int NCD4_fillinstance(NCD4meta*, NCD4node* type, NCD4offset* offset, void** dstp, NClist* blobs);
+EXTERNL int NCD4_parcelvars(NCD4meta* meta, NCD4response* resp);
+EXTERNL int NCD4_processdata(NCD4meta*,NCD4response*);
+EXTERNL int NCD4_movetoinstance(NCD4meta*, NCD4node* type, NCD4offset* offset, void** dstp, NClist* blobs);
 EXTERNL int NCD4_getToplevelVars(NCD4meta* meta, NCD4node* group, NClist* toplevel);
+EXTERNL int NCD4_inferChecksums(NCD4meta* meta, NCD4response* resp);
 
 /* From d4util.c */
 EXTERNL d4size_t NCD4_dimproduct(NCD4node* node);
@@ -134,7 +138,7 @@ EXTERNL char* NCD4_deescape(const char* esc);
 EXTERNL char* NCD4_entityescape(const char* s);
 EXTERNL size_t NCD4_elidenuls(char* s, size_t slen);
 EXTERNL void* NCD4_getheader(void* p, NCD4HDR* hdr, int hostlittleendian);
-EXTERNL void NCD4_reporterror(NCD4INFO* state);
+EXTERNL void NCD4_reporterror(NCD4response*, NCURI* uri);
 
 /* From d4dump.c */
 EXTERNL void NCD4_dumpbytes(size_t size, const void* data0, int swap);
@@ -156,7 +160,15 @@ EXTERNL int NCD4_convert(nc_type srctype, nc_type dsttype, char* memory0, char* 
 /* d4file.c */
 EXTERNL int NCD4_readDMRorDAP(NCD4INFO* d4info, NCD4mode mode);
 EXTERNL void NCD4_applyclientfragmentcontrols(NCD4INFO* d4info);
-EXTERNL void NCD4_applyclientquerycontrols(NCD4INFO* d4info);
+EXTERNL void NCD4_applychecksumcontrols(NCD4INFO* d4info, NCD4response*);
+EXTERNL int NCD4_newInfo(NCD4INFO** d4infop);
+EXTERNL void NCD4_reclaimInfo(NCD4INFO* d4info);
+EXTERNL void NCD4_resetInfoforRead(NCD4INFO* d4info);
+EXTERNL int NCD4_newResponse(NCD4INFO*,NCD4response** respp);
+EXTERNL void NCD4_reclaimResponse(NCD4response* d4resp);
+EXTERNL void NCD4_resetInfoForRead(NCD4INFO* d4info);
+EXTERNL int NCD4_newMeta(NCD4INFO*,NCD4meta**);
+EXTERNL void NCD4_reclaimMeta(NCD4meta*);
 
 /* ncd4dispatch.c */
 struct NC_reservedatt; /*forward*/

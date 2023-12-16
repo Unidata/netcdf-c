@@ -388,11 +388,11 @@ NCD4_inq_attname(int ncid, int varid, int attnum, char* name)
     const NC_reservedatt* rsvp = NULL;
     
     if((ret = NC_check_id(ncid, (NC**)&ncp)) != NC_NOERR) return (ret);
+    substrateid = makenc4id(ncp,ncid);
+    ret = nc_inq_attname(substrateid, varid, attnum, name);
     /* Is this a reserved attribute name? */
     if(name && (rsvp = NCD4_lookupreserved(name)))
 	return NC_EATTMETA;
-    substrateid = makenc4id(ncp,ncid);
-    ret = nc_inq_attname(substrateid, varid, attnum, name);
     return (ret);
 }
 
@@ -847,7 +847,7 @@ NCD4_inq_dim(int ncid, int dimid, char* name, size_t* lenp)
     if((ret = NC_check_id(ncid, (NC**)&ncp)) != NC_NOERR)
 	goto done;
     info = (NCD4INFO*)ncp->dispatchdata;
-    meta = info->substrate.metadata;
+    meta = info->dmrmetadata;
 
     /* Locate the dimension specified by dimid */
     for(i=0;i<nclistlength(meta->allnodes);i++) {
@@ -871,16 +871,15 @@ static int
 ncd4_get_att_reserved(NC* ncp, int ncid, int varid, const char* name, void* value, nc_type t, const NC_reservedatt* rsvp)
 {
     int ret = NC_NOERR;
-    NCD4INFO* info = (NCD4INFO*)(ncp->dispatchdata);
-    NCD4meta* meta = info->substrate.metadata;
     NCD4node* var = NULL;
+
+    if((ret=NCD4_findvar(ncp,ncid,varid,&var,NULL))) goto done;
 
     if(strcmp(rsvp->name,D4CHECKSUMATTR)==0) {
 	unsigned int* ip = (unsigned int*)value;
 	if(varid == NC_GLOBAL)
             {ret = NC_EBADID; goto done;}
 	if(t != NC_UINT) {ret = NC_EBADTYPE; goto done;}
-        if((ret=NCD4_findvar(ncp,ncid,varid,&var,NULL))) goto done;
 	if(var->data.checksumattr == 0)
 	    {ret = NC_ENOTATT; goto done;} 
 	*ip = (var->data.remotechecksum);
@@ -889,7 +888,7 @@ ncd4_get_att_reserved(NC* ncp, int ncid, int varid, const char* name, void* valu
 	if(varid != NC_GLOBAL)
             {ret = NC_EBADID; goto done;}
 	if(t != NC_INT) {ret = NC_EBADTYPE; goto done;}
-	*ip = (meta->serial.remotelittleendian?1:0);
+	*ip = (var->data.response->remotelittleendian?1:0);
     }
 done:
     return THROW(ret);
@@ -925,7 +924,7 @@ static int
 globalinit(void)
 {
     int stat = NC_NOERR;
-    return stat;
+    return THROW(stat);
 }
 
 /**************************************************/

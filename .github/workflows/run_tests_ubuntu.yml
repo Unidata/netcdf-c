@@ -6,6 +6,10 @@ name: Run Ubuntu/Linux netCDF Tests
 
 on: [pull_request, workflow_dispatch]
 
+concurrency:  
+  group: ${{ github.workflow}}-${{ github.head_ref }}  
+  cancel-in-progress: true
+
 jobs:
 
   build-deps-serial:
@@ -195,6 +199,19 @@ jobs:
           LD_LIBRARY_PATH="/home/runner/work/netcdf-c/netcdf-c/liblib/.libs:${LD_LIBRARY_PATH}"
           CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check -j
         if: ${{ success() }}
+
+      - name: Create source distribution
+        shell: bash -l {0}
+        if: ${{ success() }}
+        run: make dist -j
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: netcdf-c-autotools-source-distribution
+          path: |
+            *.tar*
+            *.zip
+            *.tgz
 
   ##
   # Parallel
@@ -449,7 +466,28 @@ jobs:
         use_nczarr: [ nczarr_off, nczarr_on ]
     steps:
 
-      - uses: actions/checkout@v3
+      - uses: actions/download-artifact@v3
+        with:
+          name: netcdf-c-autotools-source-distribution
+
+      - name: Unpack source distribution
+        shell: bash -l {0}
+        run: |
+          if [ -f *.zip ];
+          then
+            unzip *.zip
+          else
+            tar xvzf $(ls *.tar* *.tgz *.zip | head -1)
+          fi
+          ls -d netcdf-c*
+          for name in netcdf-c*;
+          do
+              if [ -d ${name} ];
+              then
+                  cd ${name}
+                  break
+              fi
+          done
 
       - name: Install System dependencies
         shell: bash -l {0}
@@ -498,11 +536,28 @@ jobs:
 
       - name: Run autoconf
         shell: bash -l {0}
-        run: autoreconf -if
+        run: |
+          for name in netcdf-c*;
+          do
+              if [ -d ${name} ];
+              then
+                  cd ${name}
+                  break
+              fi
+          done
+          autoreconf -if
 
       - name: Configure
         shell: bash -l {0}
         run: |
+          for name in netcdf-c*;
+          do
+              if [ -d ${name} ];
+              then
+                  cd ${name}
+                  break
+              fi
+          done
           current_directory="$(pwd)"
           mkdir ../build
           cd ../build && CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} "${current_directory}/configure" ${ENABLE_HDF5} ${ENABLE_DAP} ${ENABLE_NCZARR}
@@ -510,29 +565,56 @@ jobs:
 
       - name: Look at config.log if error
         shell: bash -l {0}
-        run: cd ../build && cat config.log
+        run: |
+          if [ -d ../build ];
+          then
+              cd ../build
+          else
+              cd build
+          fi && cat config.log
         if: ${{ failure() }}
 
       - name: Print Summary
         shell: bash -l {0}
-        run: cd ../build && cat libnetcdf.settings
+        run: |
+          if [ -d ../build ];
+          then
+              cd ../build
+          else
+              cd build
+          fi && cat libnetcdf.settings
 
       - name: Build Library and Utilities
         shell: bash -l {0}
         run: |
-          cd ../build && CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make -j
+          if [ -d ../build ];
+          then
+              cd ../build
+          else
+              cd build
+          fi && CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make -j
         if: ${{ success() }}
 
       - name: Build Tests
         shell: bash -l {0}
         run: |
-          cd ../build && CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check TESTS="" -j
+          if [ -d ../build ];
+          then
+              cd ../build
+          else
+              cd build
+          fi && CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check TESTS="" -j
         if: ${{ success() }}
 
       - name: Run Tests
         shell: bash -l {0}
         run: |
-          cd ../build && CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check -j
+          if [ -d ../build ];
+          then
+              cd ../build
+          else
+              cd build
+          fi && CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} make check -j
         if: ${{ success() }}
 
   nc-cmake:

@@ -883,129 +883,136 @@ AC_MSG_RESULT([${have_sz}])
 
 ##########
 
-# See if we have libzip for NCZarr
-AC_SEARCH_LIBS([zip_open],[zip zip.dll cygzip.dll],[have_zip=yes],[have_zip=no])
-AC_MSG_CHECKING([whether libzip library is available])
-AC_MSG_RESULT([${have_zip}])
-enable_nczarr_zip=${have_zip} # alias
+## 
+# Check to see if we're using NCZarr. If not, we don't need to check for dependencies and such.
+##
 
 if test "x$enable_nczarr" = xno ; then
    enable_nczarr_zip=no
-fi
-
-AC_MSG_CHECKING([whether nczarr zip support is enabled])
-AC_MSG_RESULT([${enable_nczarr_zip}])
-
-if test "x$enable_nczarr_zip" = xyes ; then
-AC_DEFINE([ENABLE_NCZARR_ZIP], [1], [If true, then libzip found])
-fi
-
-# Check for enabling of S3 support
-AC_MSG_CHECKING([whether netcdf S3 support should be enabled])
-AC_ARG_ENABLE([s3],
-              [AS_HELP_STRING([--enable-s3],
-                              [enable netcdf S3 support])])
-test "x$enable_s3" = xyes || enable_s3=no
-AC_MSG_RESULT($enable_s3)
-
-if test "x$enable_remote_functionality" = xno ; then
-  AC_MSG_WARN([--disable-remote-functionality => --disable-s3])
-  enable_s3=no
-fi
-
-# --enable-nczarr-s3 is synonym for --enable-s3 (but...)
-AC_MSG_CHECKING([whether netcdf NCZarr S3 support should be enabled])
-AC_ARG_ENABLE([nczarr-s3],
-              [AS_HELP_STRING([--enable-nczarr-s3],
-                              [(Deprecated) enable netcdf NCZarr S3 support; Deprecated in favor of --enable-s3])])
-AC_MSG_RESULT([$enable_nczarr_s3 (Deprecated) Please use --enable-s3)])
-
-# Set enable_s3 instead of enable_nczarr_s3
-if test "x$enable_s3" = xno && test "x$enable_nczarr_s3" = xyes && test "x$enable_remote_functionality" = xyes; then
-enable_s3=yes # back compatibility
-fi
-unset enable_nczarr_s3
-
-# Note we check for the library after checking for enable_s3
-# because for some reason this fails if we unconditionally test for sdk
-# and it is not available. Fix someday
-S3LIBS=""
-if test "x$enable_s3" = xyes ; then
-# See if we have the s3 aws library
-# Check for the AWS S3 SDK library
-   AC_LANG_PUSH([C++])
-   AC_CHECK_LIB([aws-c-common], [aws_string_destroy], [enable_s3_aws=yes],[enable_s3_aws=no])
-   if test "x$enable_s3_aws" = "xyes" ; then
-      S3LIBS="-laws-cpp-sdk-core -laws-cpp-sdk-s3"
-   fi
-   AC_LANG_POP
 else
+
+   # See if we have libzip for NCZarr
+   AC_SEARCH_LIBS([zip_open],[zip zip.dll cygzip.dll],[have_zip=yes],[have_zip=no])
+   AC_MSG_CHECKING([whether libzip library is available])
+   AC_MSG_RESULT([${have_zip}])
+   enable_nczarr_zip=${have_zip} # alias
+
+
+
+   AC_MSG_CHECKING([whether nczarr zip support is enabled])
+   AC_MSG_RESULT([${enable_nczarr_zip}])
+
+   if test "x$enable_nczarr_zip" = xyes ; then
+   AC_DEFINE([ENABLE_NCZARR_ZIP], [1], [If true, then libzip found])
+   fi
+
+   # Check for enabling of S3 support
+   AC_MSG_CHECKING([whether netcdf S3 support should be enabled])
+   AC_ARG_ENABLE([s3],
+               [AS_HELP_STRING([--enable-s3],
+                                 [enable netcdf S3 support])])
+   test "x$enable_s3" = xyes || enable_s3=no
+   AC_MSG_RESULT($enable_s3)
+
+   if test "x$enable_remote_functionality" = xno ; then
+   AC_MSG_WARN([--disable-remote-functionality => --disable-s3])
+   enable_s3=no
+   fi
+
+   # --enable-nczarr-s3 is synonym for --enable-s3 (but...)
+   AC_MSG_CHECKING([whether netcdf NCZarr S3 support should be enabled])
+   AC_ARG_ENABLE([nczarr-s3],
+               [AS_HELP_STRING([--enable-nczarr-s3],
+                                 [(Deprecated) enable netcdf NCZarr S3 support; Deprecated in favor of --enable-s3])])
+   AC_MSG_RESULT([$enable_nczarr_s3 (Deprecated) Please use --enable-s3)])
+
+   # Set enable_s3 instead of enable_nczarr_s3
+   if test "x$enable_s3" = xno && test "x$enable_nczarr_s3" = xyes && test "x$enable_remote_functionality" = xyes; then
+   enable_s3=yes # back compatibility
+   fi
+   unset enable_nczarr_s3
+
+   # Note we check for the library after checking for enable_s3
+   # because for some reason this fails if we unconditionally test for sdk
+   # and it is not available. Fix someday
+   S3LIBS=""
+   if test "x$enable_s3" = xyes ; then
+   # See if we have the s3 aws library
+   # Check for the AWS S3 SDK library
+      AC_LANG_PUSH([C++])
+      AC_CHECK_LIB([aws-c-common], [aws_string_destroy], [enable_s3_aws=yes],[enable_s3_aws=no])
+      if test "x$enable_s3_aws" = "xyes" ; then
+         S3LIBS="-laws-cpp-sdk-core -laws-cpp-sdk-s3"
+      fi
+      AC_LANG_POP
+   else
+      enable_s3_aws=no
+   fi
+
+   AC_MSG_CHECKING([whether AWS S3 SDK library is available])
+   AC_MSG_RESULT([$enable_s3_aws])
+
+   # Check for enabling forced use of Internal S3 library
+   AC_MSG_CHECKING([whether internal S3 support should be used])
+   AC_ARG_ENABLE([s3-internal],
+               [AS_HELP_STRING([--enable-s3-internal],
+                                 [enable internal S3 support])])
+   test "x$enable_s3_internal" = xyes || enable_s3_internal=no
+   AC_MSG_RESULT($enable_s3_internal)
+
+   if test "x$enable_s3_aws" = xno && test "x$enable_s3_internal" = xno ; then
+   AC_MSG_WARN([No S3 library available => S3 support disabled])
+   enable_s3=no
+   fi
+
+   if test "x$enable_s3_aws" = xyes && test "x$enable_s3_internal" = xyes ; then
+   AC_MSG_WARN([Both aws-sdk-cpp and s3-internal enabled => use s3-internal.])
    enable_s3_aws=no
-fi
+   fi
 
-AC_MSG_CHECKING([whether AWS S3 SDK library is available])
-AC_MSG_RESULT([$enable_s3_aws])
+   if test "x$enable_s3_internal" = xyes ; then
+   if test "x$ISOSX" != xyes && test "x$ISMINGW" != xyes && test "x$ISMSVC" != xyes ; then
+   # Find crypto libraries if using ssl
+   AC_CHECK_LIB([ssl],[ssl_create_cipher_list])
+   AC_CHECK_LIB([crypto],[SHA256])
+   fi
+   fi
 
-# Check for enabling forced use of Internal S3 library
-AC_MSG_CHECKING([whether internal S3 support should be used])
-AC_ARG_ENABLE([s3-internal],
-              [AS_HELP_STRING([--enable-s3-internal],
-                              [enable internal S3 support])])
-test "x$enable_s3_internal" = xyes || enable_s3_internal=no
-AC_MSG_RESULT($enable_s3_internal)
+   # Check for enabling S3 testing
+   AC_MSG_CHECKING([what level of netcdf S3 testing should be enabled])
+   AC_ARG_WITH([s3-testing],
+               [AS_HELP_STRING([--with-s3-testing=yes|no|public],
+                                 [control netcdf S3 testing])],
+               [], [with_s3_testing=public])
+   AC_MSG_RESULT($with_s3_testing)
 
-if test "x$enable_s3_aws" = xno && test "x$enable_s3_internal" = xno ; then
-AC_MSG_WARN([No S3 library available => S3 support disabled])
-enable_s3=no
-fi
+   # Disable S3 tests if S3 support is disabled
+   if test "x$enable_s3" = xno ; then
+   if test "x$with_s3_testing" != xno ; then
+      AC_MSG_WARN([S3 support is disabled => no testing])
+      with_s3_testing=no
+   fi
+   fi
 
-if test "x$enable_s3_aws" = xyes && test "x$enable_s3_internal" = xyes ; then
-AC_MSG_WARN([Both aws-sdk-cpp and s3-internal enabled => use s3-internal.])
-enable_s3_aws=no
-fi
+   if test "x$enable_s3" = xyes ; then
+   AC_DEFINE([ENABLE_S3], [1], [if true, build netcdf-c with S3 support enabled])
+   fi
 
-if test "x$enable_s3_internal" = xyes ; then
-if test "x$ISOSX" != xyes && test "x$ISMINGW" != xyes && test "x$ISMSVC" != xyes ; then
-# Find crypto libraries if using ssl
-AC_CHECK_LIB([ssl],[ssl_create_cipher_list])
-AC_CHECK_LIB([crypto],[SHA256])
-fi
-fi
+   if test "x$enable_s3_aws" = xyes ; then
+      LIBS="$LIBS$S3LIBS"
+      AC_DEFINE([ENABLE_S3_AWS], [1], [If true, then use aws S3 library])
+   fi
 
-# Check for enabling S3 testing
-AC_MSG_CHECKING([what level of netcdf S3 testing should be enabled])
-AC_ARG_WITH([s3-testing],
-              [AS_HELP_STRING([--with-s3-testing=yes|no|public],
-                              [control netcdf S3 testing])],
-            [], [with_s3_testing=public])
-AC_MSG_RESULT($with_s3_testing)
+   if test "x$enable_s3_internal" = xyes ; then
+      AC_DEFINE([ENABLE_S3_INTERNAL], [1], [If true, then use internal S3 library])
+   fi
 
-# Disable S3 tests if S3 support is disabled
-if test "x$enable_s3" = xno ; then
-  if test "x$with_s3_testing" != xno ; then
-    AC_MSG_WARN([S3 support is disabled => no testing])
-    with_s3_testing=no
-  fi
-fi
+   AC_DEFINE_UNQUOTED([WITH_S3_TESTING], [$with_s3_testing], [control S3 testing.])
 
-if test "x$enable_s3" = xyes ; then
-  AC_DEFINE([ENABLE_S3], [1], [if true, build netcdf-c with S3 support enabled])
-fi
-
-if test "x$enable_s3_aws" = xyes ; then
-   LIBS="$LIBS$S3LIBS"
-   AC_DEFINE([ENABLE_S3_AWS], [1], [If true, then use aws S3 library])
-fi
-
-if test "x$enable_s3_internal" = xyes ; then
-   AC_DEFINE([ENABLE_S3_INTERNAL], [1], [If true, then use internal S3 library])
-fi
-
-AC_DEFINE_UNQUOTED([WITH_S3_TESTING], [$with_s3_testing], [control S3 testing.])
-
-if test "x$with_s3_testing" = xyes ; then
-  AC_MSG_WARN([*** DO NOT SPECIFY WITH_S3_TESTING=YES UNLESS YOU HAVE ACCESS TO THE UNIDATA S3 BUCKET! ***])
-  AC_DEFINE([ENABLE_S3_TESTALL], [yes], [control S3 testing.])
+   if test "x$with_s3_testing" = xyes ; then
+   AC_MSG_WARN([*** DO NOT SPECIFY WITH_S3_TESTING=YES UNLESS YOU HAVE ACCESS TO THE UNIDATA S3 BUCKET! ***])
+   AC_DEFINE([ENABLE_S3_TESTALL], [yes], [control S3 testing.])
+   fi
 fi
 
 # Check whether we want to enable strict null byte header padding.
@@ -1335,9 +1342,6 @@ AC_CHECK_HEADERS([sys/resource.h])
 
 # See if we have ftw.h to walk directory trees
 AC_CHECK_HEADERS([ftw.h])
-
-# See if we can do stack tracing programmatically
-AC_CHECK_HEADERS([execinfo.h])
 
 # Check for these functions...
 AC_CHECK_FUNCS([strlcat snprintf strcasecmp fileno \

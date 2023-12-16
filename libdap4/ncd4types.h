@@ -50,6 +50,8 @@ typedef struct NCD4node NCD4node;
 typedef struct NCD4params NCD4params;
 typedef struct NCD4HDR NCD4HDR;
 typedef struct NCD4offset NCD4offset;
+typedef struct NCD4vardata NCD4vardata;
+typedef struct NCD4response NCD4response;
 
 /* Define the NCD4HDR flags */
 /* Header flags */
@@ -228,19 +230,20 @@ struct NCD4node {
 	int isfixedsize; /* sort == NCD4_TYPE; Is this a fixed size (recursively) type? */
 	d4size_t dapsize; /* size of the type as stored in the dap data; will, as a rule,
                              be same as memsize only for types <= NC_UINT64 */
-        nc_type cmpdid; /*netcdf id for the compound type created for seq type */
+        nc_type cmpdid; /* netcdf id for the compound type created for seq type */
 	size_t memsize; /* size of a memory instance without taking dimproduct into account,
                            but taking compound alignment into account  */
         d4size_t offset; /* computed structure field offset in memory */
         size_t alignment; /* computed structure field alignment in memory */
     } meta;
-    struct { /* Data compilation info */
-        int flags; /* See d4data for actual flags */
+    struct NCD4vardata { /* Data compilation info */
+	int valid; /* 1 => this contains valid data */
 	D4blob dap4data; /* offset and start pos for this var's data in serialization */
-        unsigned int remotechecksum; /* checksum from data as sent by server */
-        unsigned int localchecksum; /* toplevel variable checksum as computed by client */    
-	int checksumattr; /* 1=> _DAP4_Checksum_CRC32 is defined */
-	int attrchecksum; /* _DAP4_Checksum_CRC32 value */
+        unsigned remotechecksum; /* toplevel per-variable checksum contained in the data */
+        unsigned localchecksum; /* toplevel variable checksum as computed by client */    
+	int checksumattr; /* 1 => _DAP4_Checksum_CRC32 is defined */
+	unsigned attrchecksum; /* _DAP4_Checksum_CRC32 value; this is the checksum computed by server */
+	NCD4response* response; /* Response from which this data is taken */
     } data;
     struct { /* Track netcdf-4 conversion info */
 	int isvlen;	/*  _edu.ucar.isvlen */
@@ -253,36 +256,13 @@ struct NCD4node {
     } nc4;
 };
 
-/* Tracking info about the serialized input before and after de-chunking */
-typedef struct NCD4serial {
-    size_t rawsize; /* |rawdata| */ 
-    void* rawdata;
-    size_t dapsize; /* |dap|; this is transient */
-    void* dap; /* pointer into rawdata where dap data starts */ 
-    char* dmr;/* copy of dmr */ 
-    char* errdata; /* null || error chunk (null terminated) */
-    int httpcode; /* returned from last request */
-    int hostlittleendian; /* 1 if the host is little endian */
-    int remotelittleendian; /* 1 if the packet says data is little endian */
-} NCD4serial;
-
-/* This will be passed out of the parse */
+/* DMR information from a response; this will be passed out of the parse */
 struct NCD4meta {
     NCD4INFO* controller;
     int ncid; /* root ncid of the substrate netcdf-4 file;
 		 warning: copy of NCD4Info.substrate.nc4id */
     NCD4node* root;
-    NCD4mode  mode; /* Are we reading DMR (only) or DAP (includes DMR) */
     NClist* allnodes; /*list<NCD4node>*/
-    struct Error { /* Content of any error response */
-	char* parseerror;
-	int   httpcode;
-	char* message;
-	char* context;
-	char* otherinfo;
-    } error;
-    int debuglevel;
-    NCD4serial serial;
     int swap; /* 1 => swap data */
     /* Define some "global" (to a DMR) data */
     NClist* groupbyid; /* NClist<NCD4node*> indexed by groupid >> 16; this is global */
@@ -292,9 +272,12 @@ struct NCD4meta {
 };
 
 typedef struct NCD4parser {
+    NCD4INFO* controller;
     char* input;
     int debuglevel;
+    int dapparse; /* 1 => we are parsing the DAP DMR */
     NCD4meta* metadata;
+    NCD4response* response;
     /* Capture useful subsets of dataset->allnodes */
     NClist* types; /*list<NCD4node>; user-defined types only*/
     NClist* dims; /*list<NCD4node>*/
@@ -302,6 +285,32 @@ typedef struct NCD4parser {
     NClist* groups; /*list<NCD4node>*/
     NCD4node* dapopaque; /* Single non-fixed-size opaque type */
 } NCD4parser;
+
+/* Capture all the relevant info about the response to a server request */
+struct NCD4response { /* possibly processed response from a query */
+    NCD4INFO* controller; /* controlling connection */
+    D4blob raw; /* complete response in memory */
+    int querychecksumming; /* 1 => user specified dap4.ce value */
+    int attrchecksumming; /* 1=> _DAP4_Checksum_CRC32 is defined for at least one variable */
+    int inferredchecksumming; /* 1 => either query checksum || att checksum */
+    int checksumignore; /* 1 => assume checksum, but do not validate */
+    int remotelittleendian; /* 1 if the packet says data is little endian */
+    NCD4mode  mode; /* Are we reading DMR (only) or DAP (includes DMR) */
+    struct NCD4serial {
+        size_t dapsize; /* |dap|; this is transient */
+        void* dap; /* pointer into raw where dap data starts */ 
+        char* dmr;/* copy of dmr */ 
+        char* errdata; /* null || error chunk (null terminated) */
+        int httpcode; /* returned from last request */
+    } serial; /* Dechunked and processed DAP part of the response */
+    struct Error { /* Content of any error response */
+	char* parseerror;
+	int   httpcode;
+	char* message;
+	char* context;
+	char* otherinfo;
+    } error;
+};
 
 /**************************************************/
 
@@ -328,28 +337,20 @@ struct NCD4curl {
 
 struct NCD4INFO {
     NC*   controller; /* Parent instance of NCD4INFO */
-    char* rawurltext; /* as given to ncd4_open */
-    char* urltext;    /* as modified by ncd4_open */
-    NCURI* uri;      /* parse of rawuritext */
+    char* rawdmrurltext; /* as given to ncd4_open */
+    char* dmrurltext;    /* as modified by ncd4_open */
+    NCURI* dmruri;      /* parse of rawuritext */
     NCD4curl* curl;
     int inmemory; /* store fetched data in memory? */
-    struct {
-	char*   memory;   /* allocated memory if ONDISK is not set */
-        char*   ondiskfilename; /* If ONDISK is set */
-        FILE*   ondiskfile;     /* ditto */
-        d4size_t   datasize; /* size on disk or in memory */
-        long dmrlastmodified;
-        long daplastmodified;
-        int querychecksumming; /* 1 => user specified dap4.ce value */
-	int attrchecksumming; /* 1=> _DAP4_Checksum_CRC32 is defined for at least one variable */
-	int inferredchecksumming; /* 1 => either query checksum || att checksum */
-        int checksumignore; /* 1 => assume checksum, but do not validate */
-	} data;
+    NCD4meta* dmrmetadata; /* Independent of responses */
+    NClist* responses; /* NClist<NCD4response> all responses from this curl handle */
+    struct { /* Properties that are per-platform */
+        int hostlittleendian; /* 1 if the host is little endian */
+    } platform;
     struct {
 	int realfile; /* 1 => we created actual temp file */
 	char* filename; /* of the substrate file */
         int nc4id; /* substrate nc4 file ncid used to hold metadata; not same as external id  */
-	NCD4meta* metadata;
     } substrate;
     struct {
         NCCONTROLS  flags;
@@ -362,6 +363,7 @@ struct NCD4INFO {
     struct {
 	char* filename;
     } fileproto;
+    int debuglevel;
     NClist* blobs;
 };
 

@@ -693,7 +693,7 @@ searchgrouptree(int ncid1, int tid1, int grp, int* tid2)
     int gid;
     uintptr_t id;
 
-    id = grp;
+    id = (uintptr_t)grp;
     nclistpush(queue,(void*)id); /* prime the queue */
     while(nclistlength(queue) > 0) {
         id = (uintptr_t)nclistremove(queue,0);
@@ -711,7 +711,7 @@ searchgrouptree(int ncid1, int tid1, int grp, int* tid2)
             goto done;
 	/* push onto the end of the queue */
         for(i=0;i<nids;i++) {
-	    id = ids[i];
+	    id = (uintptr_t)ids[i];
 	    nclistpush(queue,(void*)id);
 	}
 	free(ids); ids = NULL;

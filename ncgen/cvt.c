@@ -452,57 +452,57 @@ case CASE(NC_STRING,NC_STRING):
 
 /* What is the proper conversion for T->STRING?*/
 case CASE(NC_CHAR,NC_STRING):
-    sprintf(stmp,"%c",src->value.charv);
+    snprintf(stmp, sizeof(stmp),"%c",src->value.charv);
     tmp.stringv.len = nulllen(stmp);
     tmp.stringv.stringv = nulldup(stmp);
     break;
 case CASE(NC_BYTE,NC_STRING):
-    sprintf(stmp,"%hhd",src->value.uint8v);
+    snprintf(stmp, sizeof(stmp),"%hhd",src->value.uint8v);
     tmp.stringv.len = nulllen(stmp);
     tmp.stringv.stringv = nulldup(stmp);
     break;
 case CASE(NC_UBYTE,NC_STRING):
-    sprintf(stmp,"%hhu",src->value.uint8v);
+    snprintf(stmp, sizeof(stmp),"%hhu",src->value.uint8v);
     tmp.stringv.len = nulllen(stmp);
     tmp.stringv.stringv = nulldup(stmp);
     break;
 case CASE(NC_USHORT,NC_STRING):
-    sprintf(stmp,"%hu",src->value.uint16v);
+    snprintf(stmp, sizeof(stmp),"%hu",src->value.uint16v);
     tmp.stringv.len = nulllen(stmp);
     tmp.stringv.stringv = nulldup(stmp);
     break;
 case CASE(NC_UINT,NC_STRING):
-    sprintf(stmp,"%u",src->value.uint32v);
+    snprintf(stmp, sizeof(stmp),"%u",src->value.uint32v);
     tmp.stringv.len = nulllen(stmp);
     tmp.stringv.stringv = nulldup(stmp);
     break;
 case CASE(NC_UINT64,NC_STRING):
-    sprintf(stmp,"%llu",src->value.uint64v);
+    snprintf(stmp, sizeof(stmp),"%llu",src->value.uint64v);
     tmp.stringv.len = nulllen(stmp);
     tmp.stringv.stringv = nulldup(stmp);
     break;
 case CASE(NC_SHORT,NC_STRING):
-    sprintf(stmp,"%hd",src->value.int16v);
+    snprintf(stmp, sizeof(stmp),"%hd",src->value.int16v);
     tmp.stringv.len = nulllen(stmp);
     tmp.stringv.stringv = nulldup(stmp);
     break;
 case CASE(NC_INT,NC_STRING):
-    sprintf(stmp,"%d",src->value.int32v);
+    snprintf(stmp, sizeof(stmp),"%d",src->value.int32v);
     tmp.stringv.len = nulllen(stmp);
     tmp.stringv.stringv = nulldup(stmp);
     break;
 case CASE(NC_INT64,NC_STRING):
-    sprintf(stmp,"%lld",src->value.int64v);
+    snprintf(stmp, sizeof(stmp),"%lld",src->value.int64v);
     tmp.stringv.len = nulllen(stmp);
     tmp.stringv.stringv = nulldup(stmp);
     break;
 case CASE(NC_FLOAT,NC_STRING):
-    sprintf(stmp,"%.8g",src->value.floatv);
+    snprintf(stmp, sizeof(stmp),"%.8g",src->value.floatv);
     tmp.stringv.len = nulllen(stmp);
     tmp.stringv.stringv = nulldup(stmp);
     break;
 case CASE(NC_DOUBLE,NC_STRING):
-    sprintf(stmp,"%.8g",src->value.doublev);
+    snprintf(stmp, sizeof(stmp),"%.8g",src->value.doublev);
     tmp.stringv.len = nulllen(stmp);
     tmp.stringv.stringv = nulldup(stmp);
     break;

@@ -14,6 +14,8 @@ set(netCDF_LIBRARIES netCDF::netcdf)
 # include target information
 include("${CMAKE_CURRENT_LIST_DIR}/netCDFTargets.cmake")
 
+@IMPORT_MPI@
+
 # Compiling Options
 #
 set(netCDF_C_COMPILER "@CC_VERSION@")
@@ -40,6 +42,10 @@ set(netCDF_HAS_DAP4 @HAS_DAP4@)
 set(netCDF_HAS_DISKLESS @HAS_DISKLESS@)
 set(netCDF_HAS_MMAP @HAS_MMAP@)
 set(netCDF_HAS_JNA @HAS_JNA@)
+if (netCDF_HAS_HDF4 OR netCDF_HAS_HDF5)
+  include(CMakeFindDependencyMacro)
+  find_dependency(HDF5)
+endif ()
 
 if (@HAS_PARALLEL@)
   include(CMakeFindDependencyMacro)

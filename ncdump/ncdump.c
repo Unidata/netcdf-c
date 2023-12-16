@@ -699,7 +699,7 @@ pr_att_valsx(
 	case NC_BYTE:
 	case NC_SHORT:
 	case NC_INT:
-	    ii = vals[iel];
+	    ii = (int)vals[iel];
 	    res = snprintf(gps, PRIM_LEN, "%d", ii);
 	    assert(res < PRIM_LEN);
 	    (void) strlcat(attvals, gps, attvalslen);
@@ -708,28 +708,28 @@ pr_att_valsx(
 	case NC_UBYTE:
 	case NC_USHORT:
 	case NC_UINT:
-	    ui = vals[iel];
+	    ui = (unsigned int)vals[iel];
 	    res = snprintf(gps, PRIM_LEN, "%u", ui);
 	    assert(res < PRIM_LEN);
 	    (void) strlcat(attvals, gps, attvalslen);
 	    (void) strlcat(attvals, iel < len-1 ? " " : "", attvalslen);
 	    break;
 	case NC_INT64:
-	    i64 = vals[iel];
+	    i64 = (int64_t)vals[iel];
 	    res = snprintf(gps, PRIM_LEN, "%lld", i64);
 	    assert(res < PRIM_LEN);
 	    (void) strlcat(attvals, gps, attvalslen);
 	    (void) strlcat(attvals, iel < len-1 ? " " : "", attvalslen);
 	    break;
 	case NC_UINT64:
-	    ui64 = vals[iel];
+	    ui64 = (uint64_t)vals[iel];
 	    res = snprintf(gps, PRIM_LEN, "%llu", ui64);
 	    assert(res < PRIM_LEN);
 	    (void) strlcat(attvals, gps, attvalslen);
 	    (void) strlcat(attvals, iel < len-1 ? " " : "", attvalslen);
 	    break;
 	case NC_FLOAT:
-	    ff = vals[iel];
+	    ff = (float)vals[iel];
 	    res = snprintf(gps, PRIM_LEN, float_attx_fmt, ff);
 	    assert(res < PRIM_LEN);
 	    tztrim(gps);	/* trim trailing 0's after '.' */
@@ -847,7 +847,7 @@ pr_att(
 	  case NC_VLEN:
 	      /* because size returned for vlen is base type size, but we
 	       * need space to read array of vlen structs into ... */
-              data = emalloc((att.len + 1) * sizeof(nc_vlen_t));
+	        data = emalloc((att.len + 1) * sizeof(nc_vlen_t));
 	     break;
 	  case NC_OPAQUE:
 	      data = emalloc((att.len + 1) * type_size);

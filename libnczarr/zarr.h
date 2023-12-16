@@ -26,8 +26,8 @@ struct ZCVT {
 #define zcvt_empty {0,0,0.0,NULL}
 
 /* zarr.c */
-EXTERNL int ncz_create_dataset(NC_FILE_INFO_T*, NC_GRP_INFO_T*, const char** controls);
-EXTERNL int ncz_open_dataset(NC_FILE_INFO_T*, const char** controls);
+EXTERNL int ncz_create_dataset(NC_FILE_INFO_T*, NC_GRP_INFO_T*, NClist* controls);
+EXTERNL int ncz_open_dataset(NC_FILE_INFO_T*, NClist* controls);
 EXTERNL int ncz_del_attr(NC_FILE_INFO_T* file, NC_OBJ* container, const char* name);
 
 /* HDF5 Mimics */

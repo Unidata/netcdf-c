@@ -49,7 +49,7 @@ ncz_close_file(NC_FILE_INFO_T* file, int abort)
 
     if((stat = nczmap_close(zinfo->map,(abort && zinfo->creating)?1:0)))
 	goto done;
-    NCZ_freestringvec(0,zinfo->envv_controls);
+    nclistfreeall(zinfo->controllist);
     NC_authfree(zinfo->auth);
     nullfree(zinfo);
 
@@ -179,7 +179,7 @@ NCZ_zclose_var1(NC_VAR_INFO_T* var)
 }
 
 /**
- * @internal Close resources for vars in a group.
+ * @internal Close nczarr resources for vars in a group.
  *
  * @param grp Pointer to group info struct.
  *

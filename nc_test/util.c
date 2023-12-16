@@ -79,8 +79,8 @@ inRange_float(const double value, const nc_type xtype)
         case NC_UBYTE:  min = 0;            max = X_UCHAR_MAX;  break;
         case NC_USHORT: min = 0;            max = X_USHORT_MAX; break;
         case NC_UINT:   min = 0;            max = X_UINT_MAX;   break;
-        case NC_INT64:  min = X_INT64_MIN;  max = X_INT64_MAX;  break;
-        case NC_UINT64: min = 0;            max = X_UINT64_MAX; break;
+        case NC_INT64:  min = X_INT64_MIN;  max = (double)X_INT64_MAX;  break;
+        case NC_UINT64: min = 0;            max = (double)X_UINT64_MAX; break;
 	default:  assert(0);
     }
     if(!( value >= min && value <= max)) {
@@ -1216,9 +1216,9 @@ char* nc_err_code_name(int err)
     if (err > 0) { /* system error */
         const char *cp = (const char *) strerror(err);
         if (cp == NULL)
-            sprintf(unknown_str,"Unknown error code %d",err);
+            snprintf(unknown_str,sizeof(unknown_str),"Unknown error code %d",err);
         else
-            sprintf(unknown_str,"Error code %d (%s)",err,cp);
+            snprintf(unknown_str,sizeof(unknown_str),"Error code %d (%s)",err,cp);
         return unknown_str;
     }
 
@@ -1388,7 +1388,7 @@ char* nc_err_code_name(int err)
 #endif
 #endif
         default:
-              sprintf(unknown_str,"Unknown code %d",err);
+              snprintf(unknown_str,sizeof(unknown_str),"Unknown code %d",err);
     }
     return unknown_str;
 }

@@ -21,10 +21,6 @@
 #include <unistd.h>
 #endif
  
-#ifdef HAVE_EXECINFO_H
-#include <execinfo.h>
-#endif
-
 #include "netcdf.h"
 #include "nclog.h"
 
@@ -82,9 +78,11 @@ ncloginit(void)
 }
 
 /*!
-Enable/Disable logging.
+Enable logging messages to a given level. Set to NCLOGOFF to disable
+all messages, NCLOGERR for errors only, NCLOGWARN for warnings and
+errors, and so on
 
-\param[in] tf If 1, then turn on logging, if 0, then turn off logging.
+\param[in] level Messages above this level are ignored
 
 \return The previous value of the logging flag.
 */
@@ -136,8 +134,11 @@ ncvlog(int level, const char* fmt, va_list ap)
     const char* prefix;
 
     if(!nclogginginitialized) ncloginit();
-    if(nclog_global.loglevel > level || nclog_global.nclogstream == NULL)
-	return;
+
+    if(nclog_global.loglevel < level || nclog_global.nclogstream == NULL) {
+        return;
+    }
+
     prefix = nctagname(level);
     fprintf(nclog_global.nclogstream,"%s: ",prefix);
     if(fmt != NULL) {
@@ -273,10 +274,6 @@ ncuntrace(const char* fcn, int err, const char* fmt, ...)
             vfprintf(nclog_global.nclogstream, fmt, args);
         fprintf(nclog_global.nclogstream, "\n" );
         fflush(nclog_global.nclogstream);
-#ifdef HAVE_EXECINFO_H
-        if(err != 0)
-            ncbacktrace();
-#endif
     }
 done:
     va_end(args);
@@ -298,29 +295,5 @@ ncbreakpoint(int err)
 {
     return err;
 }
-
-#ifdef HAVE_EXECINFO_H
-#define MAXSTACKDEPTH 100
-void
-ncbacktrace(void)
-{
-    int j, nptrs;
-    void* buffer[MAXSTACKDEPTH];
-    char **strings;
-
-    if(getenv("NCBACKTRACE") == NULL) return;
-    nptrs = backtrace(buffer, MAXSTACKDEPTH);
-    strings = backtrace_symbols(buffer, nptrs);
-    if (strings == NULL) {
-        perror("backtrace_symbols");
-        errno = 0;
-	return;
-    }
-    fprintf(stderr,"Backtrace:\n");
-    for(j = 0; j < nptrs; j++)
-	fprintf(stderr,"%s\n", strings[j]);
-    free(strings);
-}
-#endif
 
 /**@}*/

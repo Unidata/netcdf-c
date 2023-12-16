@@ -199,7 +199,7 @@ main()
         hid_t did, fapl_id, fcpl_id, gcpl_id, attid;
         hsize_t num_obj;
         hid_t fileid, grpid, spaceid;
-        float val = 3.1495;
+        float val = 3.1495f;
 #if H5_VERSION_GE(1,12,0)
         H5O_info2_t obj_info;
 #else
@@ -478,7 +478,7 @@ main()
 	/* Create the variables. */
 	for (v = 0; v < NUM_DATASETS; v++)
 	{
-	    sprintf(var_name, "var_%d", v);
+	    snprintf(var_name, sizeof(var_name), "var_%d", v);
 	    /*       printf("creating var %s\n", var_name);*/
 	    if ((datasetid[v] = H5Dcreate1(grpid, var_name, H5T_NATIVE_INT,
 					  spaceid, plistid)) < 0) ERR_RET;

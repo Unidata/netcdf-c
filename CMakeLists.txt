@@ -6,9 +6,7 @@
 # Set Project Properties
 ##################################
 
-#Minimum required CMake Version
 cmake_minimum_required(VERSION 3.12.0)
-# CMake 3.12: Use libraries specified in CMAKE_REQUIRED_LIBRARIES for check include macros
 
 #Project Name
 project(netCDF
@@ -17,6 +15,14 @@ HOMEPAGE_URL "https://www.unidata.ucar.edu/software/netcdf/"
 DESCRIPTION "NetCDF is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data."
 )
 set(PACKAGE "netCDF" CACHE STRING "")
+
+# Backport of built-in `PROJECT_IS_TOP_LEVEL` from CMake 3.21
+if (NOT DEFINED NETCDF_IS_TOP_LEVEL)
+  set(NETCDF_IS_TOP_LEVEL OFF)
+  if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+    set(NETCDF_IS_TOP_LEVEL ON)
+  endif ()
+endif ()
 
 #####
 # Version Info:
@@ -51,7 +57,7 @@ SET(NC_DISPATCH_VERSION 5)
 find_program(UNAME NAMES uname)
 IF(UNAME)
   macro(getuname name flag)
-    exec_program("${UNAME}" ARGS "${flag}" OUTPUT_VARIABLE "${name}")
+    execute_process(COMMAND "${UNAME}" "${flag}" OUTPUT_VARIABLE "${name}" OUTPUT_STRIP_TRAILING_WHITESPACE)
   endmacro(getuname)
   getuname(osname -s)
   getuname(osrel  -r)
@@ -267,7 +273,8 @@ IF(CMAKE_COMPILER_IS_GNUCC OR APPLE)
 
   # Coverage tests need to have optimization turned off.
   IF(ENABLE_COVERAGE_TESTS)
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -coverage -fprofile-arcs -ftest-coverage")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -coverage -fprofile-arcs -ftest-coverage")
     SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
     MESSAGE(STATUS "Coverage Tests: On.")
   ENDIF()
@@ -1206,7 +1213,8 @@ set_std_filter(Szip)
 SET(HAVE_SZ ${Szip_FOUND})
 set_std_filter(Blosc)
 IF(Zstd_FOUND)
-set_std_filter(Zstd)
+  set_std_filter(Zstd)
+  SET(HAVE_ZSTD ON)
 ENDIF()
 IF(Bz2_FOUND)
   set_std_filter(Bz2)
@@ -1214,7 +1222,7 @@ ELSE()
   # The reason we use a local version is to support a more comples test case
   MESSAGE("libbz2 not found using built-in version")
   SET(HAVE_LOCAL_BZ2 ON)
-  SET(HAVE_BZ2 ON)
+  SET(HAVE_BZ2 ON CACHE BOOL "")
   set(STD_FILTERS "${STD_FILTERS} bz2")
 ENDIF()
 
@@ -1456,7 +1464,7 @@ IF(ENABLE_TESTS)
     SET(HOSTNAME_ARG "-s")
   ENDIF()
   IF(HOSTNAME_CMD)
-    EXEC_PROGRAM(${HOSTNAME_CMD} ARGS "${HOSTNAME_ARG}" OUTPUT_VARIABLE HOSTNAME)
+    EXECUTE_PROCESS(COMMAND ${HOSTNAME_CMD} "${HOSTNAME_ARG}" OUTPUT_VARIABLE HOSTNAME OUTPUT_STRIP_TRAILING_WHITESPACE)
     SET(NC_CTEST_SITE "${HOSTNAME}" CACHE STRING "Hostname of test machine.")
   ENDIF()
 
@@ -1552,6 +1560,7 @@ ENDIF()
 
 # Enable Parallel IO with netCDF-4/HDF5 files using HDF5 parallel I/O.
 SET(STATUS_PARALLEL "OFF")
+set(IMPORT_MPI "")
 OPTION(ENABLE_PARALLEL4 "Build netCDF-4 with parallel IO" "${HDF5_PARALLEL}")
 IF(ENABLE_PARALLEL4 AND ENABLE_HDF5)
   IF(NOT HDF5_PARALLEL)
@@ -1573,6 +1582,7 @@ IF(ENABLE_PARALLEL4 AND ENABLE_HDF5)
     FILE(COPY "${netCDF_BINARY_DIR}/tmp/run_par_tests.sh"
       DESTINATION ${netCDF_BINARY_DIR}/h5_test
       FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+    set(IMPORT_MPI "include(CMakeFindDependencyMacro)\nfind_dependency(MPI COMPONENTS C)")
   ENDIF()
 ENDIF()
 
@@ -2842,5 +2852,8 @@ install(
 ####
 
 # CPack inclusion must come last.
-# INCLUDE(CPack)
-INCLUDE(CMakeInstallation.cmake)
+option(NETCDF_PACKAGE "Create netCDF-C package " ${NETCDF_IS_TOP_LEVEL})
+
+if (NETCDF_PACKAGE)
+  include(CMakeInstallation.cmake)
+endif()

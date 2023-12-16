@@ -132,6 +132,7 @@ static const struct MACRODEF {
 {"xarray","mode",{"zarr", NULL}},
 {"noxarray","mode",{"nczarr", "noxarray", NULL}},
 {"zarr","mode",{"nczarr","zarr", NULL}},
+{"gs3","mode",{"gs3","nczarr",NULL}}, /* Google S3 API */
 {NULL,NULL,{NULL}}
 };
 
@@ -192,6 +193,7 @@ static struct NCPROTOCOLLIST {
     {"dods","http","mode=dap2"},
     {"dap4","http","mode=dap4"},
     {"s3","s3","mode=s3"},
+    {"gs3","gs3","mode=gs3"},
     {NULL,NULL,NULL} /* Terminate search */
 };
 
@@ -199,7 +201,7 @@ static struct NCPROTOCOLLIST {
 static int NC_omodeinfer(int useparallel, int omode, NCmodel*);
 static int check_file_type(const char *path, int omode, int use_parallel, void *parameters, NCmodel* model, NCURI* uri);
 static int processuri(const char* path, NCURI** urip, NClist* fraglist);
-static int processmacros(NClist** fraglistp);
+static int processmacros(NClist* fraglistp, NClist* expanded);
 static char* envvlist2string(NClist* pairs, const char*);
 static void set_default_mode(int* cmodep);
 static int parseonchar(const char* s, int ch, NClist* segments);
@@ -236,8 +238,8 @@ processuri(const char* path, NCURI** urip, NClist* fraglenv)
     NCURI* uri = NULL;
     size_t pathlen = strlen(path);
     char* str = NULL;
-    const char** ufrags;
-    const char** p;
+    const NClist* ufrags;
+    size_t i;
 
     if(path == NULL || pathlen == 0) {stat = NC_EURL; goto done;}
 
@@ -259,7 +261,6 @@ processuri(const char* path, NCURI** urip, NClist* fraglenv)
 
     /* process the corresponding fragments for that protocol */
     if(protolist->fragments != NULL) {
-	int i;
 	tmp = nclistnew();
 	if((stat = parseonchar(protolist->fragments,'&',tmp))) goto done;
 	for(i=0;i<nclistlength(tmp);i++) {
@@ -277,15 +278,13 @@ processuri(const char* path, NCURI** urip, NClist* fraglenv)
     if(protolist->substitute) ncurisetprotocol(uri,protolist->substitute);
 
     /* capture the fragments of the url */
-    ufrags = ncurifragmentparams(uri);
-    if(ufrags != NULL) {
-        for(p=ufrags;*p;p+=2) {
-	    const char* key = p[0];
-	    const char* value = p[1];
-	    nclistpush(fraglenv,nulldup(key));
-	    value = (value==NULL?"":value);
-	    nclistpush(fraglenv,strdup(value));
-	}
+    ufrags = (const NClist*)ncurifragmentparams(uri);
+    for(i=0;i<nclistlength(ufrags);i+=2) {
+	const char* key = nclistget(ufrags,i);
+	const char* value = nclistget(ufrags,i+1);
+        nclistpush(fraglenv,nulldup(key));
+	value = (value==NULL?"":value);
+	nclistpush(fraglenv,strdup(value));
     }
     if(urip) {
 	*urip = uri;
@@ -436,22 +435,15 @@ processmodearg(const char* arg, NCmodel* model)
 
 /* Given an envv fragment list, do macro replacement */
 static int
-processmacros(NClist** fraglenvp)
+processmacros(NClist* fraglenv, NClist* expanded)
 {
-    int stat = NC_NOERR;
+    int i, stat = NC_NOERR;
     const struct MACRODEF* macros = NULL;
-    NClist*  fraglenv = NULL;
-    NClist* expanded = NULL;
 
-    if(fraglenvp == NULL || nclistlength(*fraglenvp) == 0) goto done;
-    fraglenv = *fraglenvp;
-    expanded = nclistnew();
-    while(nclistlength(fraglenv) > 0) {
+    for(i=0;i<nclistlength(fraglenv);i+=2) {
 	int found = 0;
-	char* key = NULL;
-	char* value = NULL;
-	key = nclistremove(fraglenv,0); /* remove from changing front */
-	value = nclistremove(fraglenv,0); /* remove from changing front */
+	char* key = nclistget(fraglenv,i);
+	char* value = nclistget(fraglenv,i+1);
 	if(strlen(value) == 0) { /* must be a singleton  */
             for(macros=macrodefs;macros->name;macros++) {
                 if(strcmp(macros->name,key)==0) {
@@ -468,14 +460,8 @@ processmacros(NClist** fraglenvp)
 	    nclistpush(expanded,strdup(key));
     	    nclistpush(expanded,strdup(value));
 	}
-	nullfree(key);
-	nullfree(value);
     }
-    *fraglenvp = expanded; expanded = NULL;
 
-done:
-    nclistfreeall(expanded);
-    nclistfreeall(fraglenv);
     return check(stat);
 }
 
@@ -490,8 +476,6 @@ processinferences(NClist* fraglenv)
     NClist* nextmodes = nclistnew();
     int i;
     char* newmodeval = NULL;
-
-    if(fraglenv == NULL || nclistlength(fraglenv) == 0) goto done;
 
     /* Get "mode" entry */
     if((modeval = getmodekey(fraglenv))==NULL) goto done;
@@ -530,7 +514,7 @@ printlist(newmodes,"processinferences: new mode list");
 	nextmodes = tmp;
         tmp = NULL;
     }
-    /* cleanup any unused elements in currenmodes */
+    /* cleanup any unused elements in currentmodes */
     nclistclearall(currentmodes);
 
     /* Ensure no duplicates */
@@ -685,21 +669,15 @@ collectallkeys(NClist* fraglenv, NClist* allkeys)
 
 /* Given a fragment envv list, coalesce duplicate keys and remove duplicate values*/
 static int
-cleanfragments(NClist** fraglenvp)
+cleanfragments(NClist* fraglenv, NClist* newlist)
 {
     int i,stat = NC_NOERR;
-    NClist*  fraglenv = NULL;
     NClist* tmp = NULL;
     NClist* allkeys = NULL;
-    NClist* newlist = NULL;
     NCbytes* buf = NULL;
     char* key = NULL;
     char* value = NULL;
 
-    if(fraglenvp == NULL || nclistlength(*fraglenvp) == 0) return NC_NOERR;
-    fraglenv = *fraglenvp; /* take control of this list */
-    *fraglenvp = NULL;
-    newlist = nclistnew();
     buf = ncbytesnew();
     allkeys = nclistnew();
     tmp = nclistnew();
@@ -719,13 +697,10 @@ cleanfragments(NClist** fraglenvp)
 	nclistpush(newlist,value);
 	nclistclear(tmp);
     }
-    *fraglenvp = newlist; newlist = NULL;
 done:
     nclistfree(allkeys);
     nclistfree(tmp);
     ncbytesfree(buf);
-    nclistfreeall(fraglenv);
-    nclistfreeall(newlist);
     return check(stat);
 }
 
@@ -865,7 +840,8 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
     char* sfrag = NULL;
     const char* modeval = NULL;
     char* abspath = NULL;
-
+    NClist* tmp = NULL;
+    
     /* Phase 1:
        1. convert special protocols to http|https
        2. begin collecting fragments
@@ -878,13 +854,20 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
 #endif
 
         /* Phase 2: Expand macros and add to fraglenv */
-        if((stat = processmacros(&fraglenv))) goto done;
+	nclistfreeall(tmp);
+	tmp = nclistnew();
+        if((stat = processmacros(fraglenv,tmp))) goto done;
+	nclistfreeall(fraglenv);
+	fraglenv = tmp; tmp = NULL;
 #ifdef DEBUG
 	printlist(fraglenv,"processmacros");
 #endif
-
 	/* Cleanup the fragment list */
-	if((stat = cleanfragments(&fraglenv))) goto done;
+	nclistfreeall(tmp);
+	tmp = nclistnew();
+        if((stat = cleanfragments(fraglenv,tmp))) goto done;
+	nclistfreeall(fraglenv);
+	fraglenv = tmp; tmp = NULL;
 
         /* Phase 2a: Expand mode inferences and add to fraglenv */
         if((stat = processinferences(fraglenv))) goto done;
@@ -893,7 +876,11 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
 #endif
 
         /* Phase 3: coalesce duplicate fragment keys and remove duplicate values */
-        if((stat = cleanfragments(&fraglenv))) goto done;
+	nclistfreeall(tmp);
+	tmp = nclistnew();
+        if((stat = cleanfragments(fraglenv,tmp))) goto done;
+	nclistfreeall(fraglenv);
+	fraglenv = tmp; tmp = NULL;
 #ifdef DEBUG
 	printlist(fraglenv,"cleanfragments");
 #endif
@@ -910,7 +897,7 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
 	/* If s3, then rebuild the url */
 	if(NC_iss3(uri)) {
 	    NCURI* newuri = NULL;
-	    if((stat = NC_s3urlrebuild(uri,NULL,NULL,&newuri))) goto done;
+	    if((stat = NC_s3urlrebuild(uri,NULL,&newuri))) goto done;
 	    ncurifree(uri);
 	    uri = newuri;
 	} else if(strcmp(uri->protocol,"file")==0) {
@@ -943,13 +930,12 @@ NC_infermodel(const char* path, int* omodep, int iscreate, int useparallel, void
 
         /* Phase 6: Process the non-mode keys to see if we can tell the formatx */
 	if(!modelcomplete(model)) {
-	    const char** p = ncurifragmentparams(uri); /* envv format */
-	    if(p != NULL) {
-	        for(;*p;p+=2) {
-		    const char* key = p[0];
-		    const char* value = p[1];;
-        	    if((stat=processfragmentkeys(key,value,model))) goto done;
-	        }
+	    size_t i;
+	    NClist* p = (NClist*)ncurifragmentparams(uri); /* envv format */
+	    for(i=0;i<nclistlength(p);i+=2) {
+		const char* key = nclistget(p,0);
+		const char* value = nclistget(p,1);
+		if((stat=processfragmentkeys(key,value,model))) goto done;
 	    }
 	}
 
@@ -1030,6 +1016,7 @@ done:
     ncurifree(uri);
     nclistfreeall(modeargs);
     nclistfreeall(fraglenv);
+    nclistfreeall(tmp);
     *omodep = omode; /* in/out */
     return check(stat);
 }

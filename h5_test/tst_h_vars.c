@@ -69,14 +69,14 @@ main()
         float float_data_out[LAT_LEN][LON_LEN];
         hsize_t dims[NDIMS], max_dims[NDIMS];
         hsize_t dims_in[NDIMS], max_dims_in[NDIMS];
-        hsize_t start[MAX_DIMS], count[MAX_DIMS];
+        hsize_t start[MAX_DIMS], count[MAX_DIMS], ones[MAX_DIMS];
         int lat, lon;
 
         /* Set up some phoney data, 1 record's worth. In C, first
          * dimension varies most slowly. */
         for (lat = 0; lat < LAT_LEN; lat++)
             for (lon = 0; lon < LON_LEN; lon++)
-                float_data_out[lat][lon] = -666.666;
+                float_data_out[lat][lon] = -666.666f;
 
         /* Create file and group. */
         if ((fileid = H5Fcreate(FILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT,
@@ -153,8 +153,9 @@ main()
         start[0] = 1;
         start[1] = 0;
         start[2] = 0;
+        ones[0] = ones[1] = ones[2] = 1;
         if (H5Sselect_hyperslab(write_spaceid, H5S_SELECT_SET,
-                                start, NULL, count, NULL) < 0) ERR;
+                                start, NULL, ones, count) < 0) ERR;
 
         /* Write second record of data to each dataset. */
         if (H5Dwrite(pres_dsid, H5T_IEEE_F32LE, mem_spaceid, write_spaceid,
@@ -517,7 +518,7 @@ main()
                                                 "szip_and_zlib"};
 
             /* Open file and create group. */
-            sprintf(file_name, "%s_%s.h5", TEST_NAME, desc[f]);
+            snprintf(file_name, sizeof(file_name), "%s_%s.h5", TEST_NAME, desc[f]);
             if ((fileid = H5Fcreate(file_name, H5F_ACC_TRUNC, H5P_DEFAULT,
                                     H5P_DEFAULT)) < 0) ERR;
             if ((grpid = H5Gcreate1(fileid, GRP_NAME, 0)) < 0) ERR;

@@ -209,7 +209,7 @@ main(int argc, char **argv)
       int dimids_var[2], var_type;
       size_t dim_len;
       char dim_name[NC_MAX_NAME+1], var_name[NC_MAX_NAME+1];
-      float float_in, float_out = 99.99;
+      float float_in, float_out = 99.99f;
       int int_in, int_out = -9999;
 
       /* Create a file, this time with attributes. */
@@ -329,7 +329,7 @@ main(int argc, char **argv)
       /* Create a bunch of files. */
       for (f = 0; f < NUM_FILES; f++)
       {
-         sprintf(file_name, "tst_files2_%d.nc", f);
+         snprintf(file_name, sizeof(file_name), "tst_files2_%d.nc", f);
          if (nc_create(file_name, NC_NETCDF4, &ncid[f])) ERR;
          if (nc_def_dim(ncid[f], D1_NAME, TEXT_LEN + 1, &dimid)) ERR;
          if (nc_def_var(ncid[f], VAR_NAME, NC_CHAR, NDIMS, &dimid, &varid)) ERR;

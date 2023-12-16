@@ -1033,7 +1033,7 @@ dumpdatanode(OClink link, OCdatanode datanode, size_t count, void* memory, NCbyt
             ncbytescat(path,id);
             if(entry->rank > 0) {
 		for(i=0;i<entry->rank;i++) {
-                    sprintf(tmp,"[%lu]",(unsigned long)entry->indices[i]);
+                    snprintf(tmp,sizeof(tmp),"[%lu]",(unsigned long)entry->indices[i]);
                     ncbytescat(path,tmp);
 		}
             }
@@ -1047,7 +1047,7 @@ dumpdatanode(OClink link, OCdatanode datanode, size_t count, void* memory, NCbyt
         case OC_Sequence:
             ncbytescat(path,"/");
             ncbytescat(path,id);
-            sprintf(tmp,"[%lu]",(unsigned long)entry->indices[0]);
+            snprintf(tmp,sizeof(tmp),"[%lu]",(unsigned long)entry->indices[0]);
             ncbytescat(path,tmp);
             break;
 

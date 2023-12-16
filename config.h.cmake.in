@@ -118,6 +118,12 @@ are set when opening a binary file on Windows. */
 /* if true, build byte-range Client */
 #cmakedefine ENABLE_BYTERANGE 1
 
+/* if true, enable ERANGE fill */
+#cmakedefine ENABLE_ERANGE_FILL 1
+#ifdef ENABLE_ERANGE_FILL
+#define ERANGE_FILL 1
+#endif
+
 /* if true, use hdf5 S3 virtual file reader */
 #cmakedefine ENABLE_HDF5_ROS3 1
 
@@ -467,9 +473,6 @@ with zip */
 
 /* if true, HDF5 is at least version 1.10.5 and supports UTF8 paths */
 #cmakedefine HDF5_UTF8_PATHS 1
-
-/* if true, backtrace support will be used. */
-#cmakedefine HAVE_EXECINFO_H 1
 
 /* if true, include JNA bug fix */
 #cmakedefine JNA 1

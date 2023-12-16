@@ -46,7 +46,7 @@ void fail(int line) {
 #endif
 
 /* Control flags  */
-static int flags, persist, usenetcdf4, mmap, diskless;
+static int flags, persist, usenetcdf4, use_mmap, diskless;
 
 char*
 smode(int mode)
@@ -90,13 +90,13 @@ main(int argc, char **argv)
     /* Set defaults */
     persist = 0;
     usenetcdf4 = 0;
-    mmap = 0;
+    use_mmap = 0;
     diskless = 0;
 
     for(i=1;i<argc;i++) {
 	if(strcmp(argv[i],"netcdf4")==0) usenetcdf4=1;
 	else if(strcmp(argv[i],"persist")==0) persist=1;
-	else if(strcmp(argv[i],"mmap")==0) mmap=1;
+	else if(strcmp(argv[i],"mmap")==0) use_mmap=1;
 	else if(strcmp(argv[i],"diskless")==0) diskless=1;
 	else if(strncmp(argv[i],"file:",strlen("file:"))==0) {
 	    filename = argv[i];
@@ -111,12 +111,12 @@ main(int argc, char **argv)
 #endif
 
     /* Invalid combinations */
-    if(mmap && diskless) {fprintf(stderr,"Illegal: mmap+diskless\n"); exit(1);};
-    if(mmap && usenetcdf4) {fprintf(stderr,"Illegal: mmap+netcdf4\n"); exit(1);};
+    if(use_mmap && diskless) {fprintf(stderr,"Illegal: mmap+diskless\n"); exit(1);};
+    if(use_mmap && usenetcdf4) {fprintf(stderr,"Illegal: mmap+netcdf4\n"); exit(1);};
 
     flags = usenetcdf4?FLAGS4:FLAGS3;
     if(persist) flags |= NC_PERSIST;
-    if(mmap) flags |= NC_MMAP;
+    if(use_mmap) flags |= NC_MMAP;
     if(diskless) flags |= NC_DISKLESS;
 
 printf("\n*** Testing the diskless|mmap API.\n");
@@ -126,7 +126,7 @@ printf("*** testing diskless file with scalar vars...");
     int ndims_in, nvars_in, natts_in, unlimdimid_in;
     char name_in[NC_MAX_NAME + 1];
     nc_type type_in;
-    float float_data = 3.14, float_data_in;
+    float float_data = 3.14f, float_data_in;
     int int_data = 42, int_data_in;
     short short_data = 2, short_data_in;
 
@@ -176,7 +176,7 @@ printf("*** testing diskless file with scalar vars...");
 
     if(!usenetcdf4 && persist) {
         int ncid, varid0, varid1, varid2;
-        float float_data = 3.14, float_data_in;
+        float float_data = 3.14f, float_data_in;
         int int_data = 42, int_data_in;
         short short_data = 2, short_data_in;
 
@@ -221,7 +221,7 @@ printf("*** testing diskless file with scalar vars...");
     size_t start[1] = {0};
     size_t count[1] = {DIM1_LEN};
     int i;
-    float float_data = 42.22, float_data_in;
+    float float_data = 42.22f, float_data_in;
 
     /* This is some really important data that I want to save. */
     for (i = 0; i < DIM1_LEN; i++)
@@ -301,7 +301,7 @@ printf("*** testing diskless file with scalar vars...");
     int ndims_in, nvars_in, natts_in, unlimdimid_in;
     char name_in[NC_MAX_NAME + 1];
     nc_type type_in;
-    float float_data = 3.14, float_data_in;
+    float float_data = 3.14f, float_data_in;
     int int_data = 42, int_data_in;
     short short_data = 2, short_data_in;
 
