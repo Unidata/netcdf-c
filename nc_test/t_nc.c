@@ -313,7 +313,6 @@ check_fill_seq(int id)
 bad_ret :
 	(void) printf("couldn't get a var in check_fill_seq() %d\n",
 		ii);
-	return;
 }
 
 static size_t	indices[][3] = {
