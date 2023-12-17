@@ -1441,7 +1441,6 @@ set_tostring_func(ncvar_t *varp) {
 	      varp->tinfo->class);
     }
 #endif /* USE_NETCDF4 */
-    return;
 }
 
 

@@ -257,7 +257,6 @@ tztrim(char *ss)
     while (*ep)
       *cp++ = *ep++;
     *cp = '\0';
-    return;
 }
 
 
@@ -2246,7 +2245,6 @@ adapt_url_for_cache(char **pathp)
     if(pathp) {*pathp = path; path = NULL;}
     ncurifree(url);
     nullfree(path);
-    return;
 }
 #endif
 
