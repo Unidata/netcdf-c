@@ -12,7 +12,6 @@ static OCerror mergedods1(OCnode* dds, OCnode* das);
 static OCerror mergeother1(OCnode* root, OCnode* das);
 static char* pathtostring(NClist* path, char* separator);
 static void computefullname(OCnode* node);
-static OCerror mergeother1(OCnode* root, OCnode* das);
 static OCerror mergeother(OCnode* ddsroot, NClist* dasnodes);
 
 /* Process ocnodes to fix various semantic issues*/

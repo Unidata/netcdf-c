@@ -23,7 +23,6 @@ static void processtypesizes(void);
 static void processvars(void);
 static void processattributes(void);
 static void processunlimiteddims(void);
-static void processeconstrefs(void);
 static void processeconstrefsR(Symbol*,Datalist*);
 static void processroot(void);
 static void processvardata(void);

@@ -244,9 +244,6 @@ CdAddDelTime(double begEtm, long nDel, CdDeltaTime delTime, CdTimeType timeType,
 	long delMonths, delYears;
 	CdTime bhtime, ehtime;
 
-	extern void Cde2h(double etime, CdTimeType timeType, long baseYear, CdTime *htime);
-	extern void Cdh2e(CdTime *htime, double *etime);
-
 	switch(delTime.units){
 	  case CdYear:
 		delMonths = 12;
@@ -465,8 +462,6 @@ CdDivDelTime(double begEtm, double endEtm, CdDeltaTime delTime, CdTimeType timeT
 	long delMonths, range;
 	CdTime bhtime, ehtime;
 	int hoursInYear;
-
-	extern void Cde2h(double etime, CdTimeType timeType, long baseYear, CdTime *htime);
 
 	switch(delTime.units){
 	  case CdYear:
