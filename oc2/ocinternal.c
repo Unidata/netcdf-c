@@ -422,10 +422,16 @@ ocextractddsinfile(OCstate* state, OCtree* tree, OCflags flags)
 {
     OCerror stat = OC_NOERR;
     size_t ddslen, bod, bodfound;
+    int retVal;
 
     /* Read until we find the separator (or EOF)*/
     ncbytesclear(state->packet);
-    rewind(tree->data.file);
+    retVal = fseek(tree->data.file, 0L, SEEK_SET);  
+    if (retVal != 0) {
+    	stat = OC_EDATADDS;
+        return OCTHROW(stat);
+    }
+
     bodfound = 0;
     do {
         char chunk[1024];
