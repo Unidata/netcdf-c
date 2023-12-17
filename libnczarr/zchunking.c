@@ -10,7 +10,7 @@
 static int pcounter = 0;
 
 /* Forward */
-static int compute_intersection(const NCZSlice* slice, const size64_t chunklen, unsigned char isunlimited, NCZChunkRange* range);
+static int compute_intersection(const NCZSlice* slice, size64_t chunklen, unsigned char isunlimited, NCZChunkRange* range);
 static void skipchunk(const NCZSlice* slice, NCZProjection* projection);
 static int verifyslice(const NCZSlice* slice);
 
