@@ -1384,7 +1384,9 @@ openmagic(struct MagicFile* file)
 		file->filelen = (long long)size;
 #endif
 	}
-        rewind(file->fp);
+        int retval2 = fseek(file->fp, 0L, SEEK_SET);        
+	    if(retval2 != 0)
+		{status = errno; goto done;}
     }
 done:
     return check(status);
