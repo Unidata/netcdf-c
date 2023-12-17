@@ -536,7 +536,7 @@ ncfloat_val_equals(const nctype_t *this,
 		   const void *v1p, const void *v2p) {
     float v1 = *(float* )v1p;
     float v2 = *(float* )v2p;
-    if((v1 > 0.0f) != (v2 > 0.0f))	/* avoid overflow */
+    if((v1 > 0.0F) != (v2 > 0.0F))	/* avoid overflow */
 	return false;
     if(isfinite(v1) && isfinite(v2))
 	return (absval(v1 - v2) <= absval(float_eps * v2)) ;

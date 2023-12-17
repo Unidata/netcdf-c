@@ -126,7 +126,7 @@ printf("*** testing diskless file with scalar vars...");
     int ndims_in, nvars_in, natts_in, unlimdimid_in;
     char name_in[NC_MAX_NAME + 1];
     nc_type type_in;
-    float float_data = 3.14f, float_data_in;
+    float float_data = 3.14F, float_data_in;
     int int_data = 42, int_data_in;
     short short_data = 2, short_data_in;
 
@@ -176,7 +176,7 @@ printf("*** testing diskless file with scalar vars...");
 
     if(!usenetcdf4 && persist) {
         int ncid, varid0, varid1, varid2;
-        float float_data = 3.14f, float_data_in;
+        float float_data = 3.14F, float_data_in;
         int int_data = 42, int_data_in;
         short short_data = 2, short_data_in;
 
@@ -221,7 +221,7 @@ printf("*** testing diskless file with scalar vars...");
     size_t start[1] = {0};
     size_t count[1] = {DIM1_LEN};
     int i;
-    float float_data = 42.22f, float_data_in;
+    float float_data = 42.22F, float_data_in;
 
     /* This is some really important data that I want to save. */
     for (i = 0; i < DIM1_LEN; i++)
@@ -301,7 +301,7 @@ printf("*** testing diskless file with scalar vars...");
     int ndims_in, nvars_in, natts_in, unlimdimid_in;
     char name_in[NC_MAX_NAME + 1];
     nc_type type_in;
-    float float_data = 3.14f, float_data_in;
+    float float_data = 3.14F, float_data_in;
     int int_data = 42, int_data_in;
     short short_data = 2, short_data_in;
 
