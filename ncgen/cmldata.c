@@ -288,37 +288,37 @@ xconst(Constant* ci)
 	return result;
 	} break;
     case NC_BYTE:
-	    sprintf(tmp,"%hhd",ci->value.int8v);
+	    snprintf(tmp,sizeof(tmp),"%hhd",ci->value.int8v);
 	break;
     case NC_SHORT:
-	sprintf(tmp,"%hd",ci->value.int16v);
+	snprintf(tmp,sizeof(tmp),"%hd",ci->value.int16v);
 	break;
     case NC_INT:
-	sprintf(tmp,"%d",ci->value.int32v);
+	snprintf(tmp,sizeof(tmp),"%d",ci->value.int32v);
 	break;
     case NC_FLOAT:
-	sprintf(tmp,"%.8g",ci->value.floatv);
+	snprintf(tmp,sizeof(tmp),"%.8g",ci->value.floatv);
 	break;
     case NC_DOUBLE:
-	sprintf(tmp,"%.16g",ci->value.doublev);
+	snprintf(tmp,sizeof(tmp),"%.16g",ci->value.doublev);
 	break;
     case NC_UBYTE:
-	    sprintf(tmp,"%hhu",ci->value.uint8v);
+	    snprintf(tmp,sizeof(tmp),"%hhu",ci->value.uint8v);
 	break;
     case NC_USHORT:
-	sprintf(tmp,"%hu",ci->value.uint16v);
+	snprintf(tmp,sizeof(tmp),"%hu",ci->value.uint16v);
 	break;
     case NC_UINT:
-	sprintf(tmp,"%uU",ci->value.uint32v);
+	snprintf(tmp,sizeof(tmp),"%uU",ci->value.uint32v);
 	break;
     case NC_INT64:
-	sprintf(tmp,"%lldLL",ci->value.int64v);
+	snprintf(tmp,sizeof(tmp),"%lldLL",ci->value.int64v);
 	break;
     case NC_UINT64:
-	sprintf(tmp,"%lluLLU",ci->value.uint64v);
+	snprintf(tmp,sizeof(tmp),"%lluLLU",ci->value.uint64v);
 	break;
     case NC_ECONST:
-	sprintf(tmp,"%s",cname(ci->value.enumv));
+	snprintf(tmp,sizeof(tmp),"%s",cname(ci->value.enumv));
 	break;
     case NC_STRING:
 	{

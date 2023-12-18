@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
 #endif
 
     cmode = NC_CLOBBER;
-    sprintf(file_name, "%s/%s", TEMP_LARGE, FILENAME);
+    snprintf(file_name, sizeof(file_name), "%s/%s", TEMP_LARGE, FILENAME);
     st = nc_create_par(file_name, cmode, comm, info, &ncid);
 
 #ifdef USE_PNETCDF
@@ -81,11 +81,11 @@ int main(int argc, char* argv[])
     /* Odd numbers are fixed variables, even numbers are record variables */
     for (i=0; i<NVARS; i++) {
         if (i%2) {
-            sprintf(str,"fixed_var_%d",i);
+            snprintf(str, sizeof(str),"fixed_var_%d",i);
             st = nc_def_var(ncid, str, NC_INT, 1, dimid+1, &varid[i]); CHK_ERR(st)
         }
         else {
-            sprintf(str,"record_var_%d",i);
+            snprintf(str, sizeof(str),"record_var_%d",i);
             st = nc_def_var(ncid, str, NC_INT, 2, dimid, &varid[i]); CHK_ERR(st)
         }
     }
@@ -118,7 +118,7 @@ int main(int argc, char* argv[])
 
     /* add attributes to make header grow */
     for (i=0; i<NVARS; i++) {
-        sprintf(str, "annotation_for_var_%d",i);
+        snprintf(str, sizeof(str), "annotation_for_var_%d",i);
         st = nc_put_att_text(ncid, varid[i], "text_attr", strlen(str), str); CHK_ERR(st)
     }
     st = nc_enddef(ncid); CHK_ERR(st)

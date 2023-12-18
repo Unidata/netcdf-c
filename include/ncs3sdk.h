@@ -6,6 +6,9 @@
 #ifndef NCS3SDK_H
 #define NCS3SDK_H 1
 
+#define AWSHOST ".amazonaws.com"
+#define GOOGLEHOST "storage.googleapis.com"
+
 /* Track the server type, if known */
 typedef enum NCS3SVC {NCS3UNK=0, /* unknown */
                  NCS3=1,    /* s3.amazon.aws */

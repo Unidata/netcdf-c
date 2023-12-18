@@ -174,7 +174,7 @@ main()
 #define MILLION 1000000
 
         hid_t fileid, write_spaceid, datasetid, mem_spaceid;
-        hsize_t start[NDIMS], count[NDIMS];
+        hsize_t start[NDIMS], count[NDIMS], ones[NDIMS];
         hsize_t dims[1];
         int *data;
         int num_steps;
@@ -210,8 +210,9 @@ main()
         {
             /* Select hyperslab for write of one slice. */
             start[0] = s * SC;
+            ones[0] = 1;
             if (H5Sselect_hyperslab(write_spaceid, H5S_SELECT_SET,
-                                    start, NULL, count, NULL) < 0) ERR;
+                                    start, NULL, ones, count) < 0) ERR;
 
             if (H5Dwrite(datasetid, H5T_NATIVE_INT, mem_spaceid, write_spaceid,
                          H5P_DEFAULT, data) < 0) ERR;
@@ -242,13 +243,13 @@ main()
         hid_t mem_spaceid, xfer_plistid, native_typeid;
         hsize_t *chunksize, dims[1], maxdims[1], *dimsize, *maxdimsize;
         hsize_t fdims[MAX_DIMS], fmaxdims[MAX_DIMS];
-        hsize_t start[MAX_DIMS],  count[MAX_DIMS];
+        hsize_t start[MAX_DIMS], count[MAX_DIMS], ones[MAX_DIMS];
         char file_name[STR_LEN + 1];
         char dimscale_wo_var[STR_LEN];
         void *bufr;
         void *fillp = NULL;
 
-        sprintf(file_name, "%s/%s", TEMP_LARGE, FILE_NAME);
+        snprintf(file_name, sizeof(file_name), "%s/%s", TEMP_LARGE, FILE_NAME);
 
         /* Create file access and create property lists. */
         if ((fapl_id = H5Pcreate(H5P_FILE_ACCESS)) < 0) ERR;
@@ -285,7 +286,7 @@ main()
                                          spaceid, plistid)) < 0) ERR;
         if (H5Sclose(spaceid) < 0) ERR;
         if (H5Pclose(plistid) < 0) ERR;
-        sprintf(dimscale_wo_var, "%s%10d", DIM_WITHOUT_VARIABLE, DIM1);
+        snprintf(dimscale_wo_var, sizeof(dimscale_wo_var), "%s%10d", DIM_WITHOUT_VARIABLE, DIM1);
         if (H5DSset_scale(dim1_dimscaleid, dimscale_wo_var) < 0) ERR;
 
         /* Create the dim2 dimscale. */
@@ -299,7 +300,7 @@ main()
                                          spaceid, plistid)) < 0) ERR;
         if (H5Sclose(spaceid) < 0) ERR;
         if (H5Pclose(plistid) < 0) ERR;
-        sprintf(dimscale_wo_var, "%s%10d", DIM_WITHOUT_VARIABLE, DIM2);
+        snprintf(dimscale_wo_var, sizeof(dimscale_wo_var), "%s%10d", DIM_WITHOUT_VARIABLE, DIM2);
         if (H5DSset_scale(dim2_dimscaleid, dimscale_wo_var) < 0) ERR;
 
         /* Now create the 2D dataset. */
@@ -342,7 +343,8 @@ main()
         start[1] = 0;
         count[0] = 1;
         count[1] = 2097153;
-        if (H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET, start, NULL, count, NULL) < 0) ERR;
+        ones[0] = ones[1] = 1;
+        if (H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET, start, NULL, ones, count) < 0) ERR;
         if ((mem_spaceid = H5Screate_simple(NDIMS2, count, NULL)) < 0) ERR;
         if ((xfer_plistid = H5Pcreate(H5P_DATASET_XFER)) < 0) ERR;
         if ((native_typeid = H5Tget_native_type(H5T_NATIVE_SCHAR, H5T_DIR_DEFAULT)) < 0) ERR;

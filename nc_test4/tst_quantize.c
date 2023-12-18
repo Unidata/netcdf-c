@@ -54,7 +54,7 @@ pf(float myf)
 	uint32_t u;
     } fu;
     fu.f = myf;
-    sprintf(pf_str, "0x%x", fu.u);
+    snprintf(pf_str, sizeof(pf_str), "0x%x", fu.u);
     return pf_str;
 }
 
@@ -67,7 +67,7 @@ pd(double myd)
 	uint64_t u;
     } du;
     du.d = myd;
-    sprintf(pf_str, "0x%llx", (unsigned long long)du.u);
+    snprintf(pf_str, sizeof(pf_str), "0x%llx", (unsigned long long)du.u);
     return pf_str;
 }
 
@@ -239,7 +239,7 @@ main(int argc, char **argv)
 		printf("\t\t**** testing quantize algorithm %d...\n", quantize_mode[q]);
 		for (t = 0; t < NTYPES; t++)
 		{
-		    sprintf(file_name, "%s_quantize_%d_type_%d.nc", TEST, quantize_mode[q], xtype[t]);
+		    snprintf(file_name, sizeof(file_name), "%s_quantize_%d_type_%d.nc", TEST, quantize_mode[q], xtype[t]);
 #ifdef TESTNCZARR
 		    {
 			char url[NC_MAX_FILENAME + 1];
@@ -277,7 +277,7 @@ main(int argc, char **argv)
 	    {
 		int ncid, varid1, varid2;
 		int quantize_mode_in, nsd_in;
-		float float_data[DIM_LEN_1] = {1.1111111};
+		float float_data[DIM_LEN_1] = {1.1111111f};
 		double double_data[DIM_LEN_1] = {1.111111111111};
 
 		printf("\t\t**** testing quantize algorithm %d...\n", quantize_mode[q]);
@@ -394,7 +394,7 @@ main(int argc, char **argv)
 	    {
 		int ncid, dimid, varid1, varid2;
 		int quantize_mode_in, nsd_in;
-		float float_data[DIM_LEN_1] = {1.1111111};
+		float float_data[DIM_LEN_1] = {1.1111111f};
 		double double_data[DIM_LEN_1] = {1.111111111111};
 
 		printf("\t\t**** testing quantize algorithm %d...\n", quantize_mode[q]);
@@ -485,7 +485,7 @@ main(int argc, char **argv)
 	    {
 		int ncid, dimid, varid1, varid2;
 		int quantize_mode_in, nsd_in;
-		float float_data[DIM_LEN_5] = {1.11111111, 1.0, 9.99999999, 12345.67, .1234567};
+		float float_data[DIM_LEN_5] = {1.11111111f, 1.0f, 9.99999999f, 12345.67f, .1234567f};
 		double double_data[DIM_LEN_5] = {1.1111111, 1.0, 9.999999999, 1234567890.12345, 123456789012345.0};
 		int x;
 
@@ -616,7 +616,7 @@ main(int argc, char **argv)
 	    {
 		int ncid, dimid, varid1, varid2;
 		int quantize_mode_in, nsd_in;
-		float float_data[DIM_LEN_1] = {1.1111111};
+		float float_data[DIM_LEN_1] = {1.1111111f};
 		double double_data[DIM_LEN_1] = {1.111111111111};
 
 		printf("\t\t**** testing quantize algorithm %d...\n", quantize_mode[q]);
@@ -733,7 +733,7 @@ main(int argc, char **argv)
 	    {
 		int ncid, dimid, varid1, varid2;
 		int quantize_mode_in, nsd_in;
-		float float_data[DIM_LEN_5] = {1.11111111, 1.0, 9.99999999, 12345.67, .1234567};
+		float float_data[DIM_LEN_5] = {1.11111111f, 1.0, 9.99999999f, 12345.67f, .1234567f};
 		double double_data[DIM_LEN_5] = {1.1111111, 1.0, 9.999999999, 1234567890.12345, 123456789012345.0};
 		int x;
 
@@ -862,7 +862,7 @@ main(int argc, char **argv)
 	    {
 		int ncid, dimid, varid1, varid2;
 		int quantize_mode_in, nsd_in;
-		float float_data[DIM_LEN_5] = {1.11111111, NC_FILL_FLOAT, 9.99999999, 12345.67, NC_FILL_FLOAT};
+		float float_data[DIM_LEN_5] = {1.11111111f, NC_FILL_FLOAT, 9.99999999f, 12345.67f, NC_FILL_FLOAT};
 		double double_data[DIM_LEN_5] = {1.1111111, NC_FILL_DOUBLE, 9.999999999, 1234567890.12345, NC_FILL_DOUBLE};
 		int x;
 
@@ -987,13 +987,13 @@ main(int argc, char **argv)
 	SUMMARIZE_ERR;
 	printf("\t**** testing more quantization values with custom fill values...\n");
 	{
-#define CUSTOM_FILL_FLOAT 99.99999
+#define CUSTOM_FILL_FLOAT 99.99999f
 #define CUSTOM_FILL_DOUBLE -99999.99999
 	    for (q = 0; q < NUM_QUANTIZE_MODES; q++)
 	    {
 		int ncid, dimid, varid1, varid2;
 		int quantize_mode_in, nsd_in;
-		float float_data[DIM_LEN_5] = {1.11111111, CUSTOM_FILL_FLOAT, 9.99999999, 12345.67, CUSTOM_FILL_FLOAT};
+		float float_data[DIM_LEN_5] = {1.11111111f, CUSTOM_FILL_FLOAT, 9.99999999f, 12345.67f, CUSTOM_FILL_FLOAT};
 		double double_data[DIM_LEN_5] = {1.1111111, CUSTOM_FILL_DOUBLE, 9.999999999, 1234567890.12345, CUSTOM_FILL_DOUBLE};
 		float custom_fill_float = CUSTOM_FILL_FLOAT;
 		double custom_fill_double = CUSTOM_FILL_DOUBLE;
@@ -1311,8 +1311,8 @@ main(int argc, char **argv)
 		ERR;
 	    for (i = 0; i < DIM_LEN_SIMPLE; i++)
 	    {
-		float_data[i] = 1.5 * i;
-		double_data[i] = 1.5 * i;
+		float_data[i] = 1.5f * (float)i;
+		double_data[i] = 1.5 * (double)i;
 	    }
 
 	    /* Create the file. */

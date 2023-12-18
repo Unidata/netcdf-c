@@ -81,7 +81,7 @@ dapodom_print(Dapodometer* odom)
     if(odom->rank == 0) {
 	strlcat(line,"[]",sizeof(line));
     } else for(i=0;i<odom->rank;i++) {
-	sprintf(tmp,"[%lu/%lu:%lu:%lu]",
+	snprintf(tmp,sizeof(tmp),"[%lu/%lu:%lu:%lu]",
 		(size_t)odom->index[i],
 		(size_t)odom->start[i],
 		(size_t)odom->stride[i],

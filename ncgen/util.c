@@ -174,8 +174,9 @@ nctypename(nc_type nctype)
 	return nctypenamesextend[(nctype - NC_GRP)];
     if(nctype == NC_FILLVALUE) return "NC_FILL";
     if(nctype == NC_NIL) return "NC_NIL";
-    s = poolalloc(128);
-    sprintf(s,"NC_<%d>",nctype);
+    const size_t s_size = 128;
+    s = poolalloc(s_size);
+    snprintf(s,s_size,"NC_<%d>",nctype);
     return s;
 }
 
@@ -195,8 +196,9 @@ ncclassname(nc_class ncc)
     if(ncc == NC_FILLVALUE) return "NC_FILL";
     if(ncc >= NC_GRP && ncc <= NC_PRIM)
 	return ncclassnames[ncc - NC_GRP];
-    s = poolalloc(128);
-    sprintf(s,"NC_<%d>",ncc);
+    const size_t s_size = 128;
+    s = poolalloc(s_size);
+    snprintf(s,s_size,"NC_<%d>",ncc);
     return s;
 }
 

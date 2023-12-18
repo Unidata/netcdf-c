@@ -8,6 +8,10 @@ This file contains a high-level description of this package's evolution. Release
 ## 4.9.3 - TBD
 
 * Obviate a number of irrelevant warnings. See [Github #2781](https://github.com/Unidata/netcdf-c/pull/2781).
+* Improve the speed and data quantity for DAP4 queries. See [Github #2765](https://github.com/Unidata/netcdf-c/pull/2765).
+* Remove the use of execinfo to programmatically dump the stack; it never worked. See [Github #2789](https://github.com/Unidata/netcdf-c/pull/2789).
+* Update the internal copy of tinyxml2 to latest code. See [Github #2771](https://github.com/Unidata/netcdf-c/pull/2771).
+* Mitigate the problem of remote/nczarr-related test interference. See [Github #2755](https://github.com/Unidata/netcdf-c/pull/2755).
 * Fix DAP2 proxy problems. See [Github #2764](https://github.com/Unidata/netcdf-c/pull/2764).
 * Cleanup a number of misc issues. See [Github #2763](https://github.com/Unidata/netcdf-c/pull/2763).
 * Mitigate the problem of test interference. See [Github #2755](https://github.com/Unidata/netcdf-c/pull/2755).

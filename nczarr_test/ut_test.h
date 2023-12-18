@@ -62,18 +62,18 @@ struct Test {
     int (*test)(void);
 };
 
-extern struct UTOptions utoptions;
+EXTERNL struct UTOptions utoptions;
 
 #define NCCHECK(expr) nccheck((expr),__LINE__)
 
-extern void usage(int err);
-extern int ut_init(int argc, char** argv, struct UTOptions* test);
-extern void ut_final(void);
+EXTERNL void usage(int err);
+EXTERNL int ut_init(int argc, char** argv, struct UTOptions* test);
+EXTERNL void ut_final(void);
 
-extern void nccheck(int stat, int line);
-extern char* makeurl(const char* file, NCZM_IMPL, struct UTOptions*);
+EXTERNL void nccheck(int stat, int line);
+EXTERNL char* makeurl(const char* file, NCZM_IMPL, struct UTOptions*);
 //extern int setup(int argc, char** argv);
-extern struct Test* findtest(const char* cmd, struct Test* tests);
-extern int runtests(const char** cmds, struct Test* tests);
+EXTERNL struct Test* findtest(const char* cmd, struct Test* tests);
+EXTERNL int runtests(const char** cmds, struct Test* tests);
 
 #endif /*ZTEST_H*/

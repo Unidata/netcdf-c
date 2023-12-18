@@ -47,7 +47,7 @@
 static int status = NC_NOERR;
 
 /* Control flags  */
-static int persist, usenetcdf4, mmap, diskless, file, openfile;
+static int persist, usenetcdf4, use_mmap, diskless, file, openfile;
 static char* filename = NCFILENAME;
 static int diskmode = 0;
 
@@ -133,7 +133,7 @@ test_two_growing_with_att(const char *testfile)
    {
       count[0] = 1;
       start[0] = r;
-      sprintf(att_name, "a_%d", data[r]);
+      snprintf(att_name, sizeof(att_name), "a_%d", data[r]);
       for (v = 0; v < NUM_VARS; v++)
       {
 	 if((status=nc_put_vara_text(ncid, varid[v], start, count, &data[r]))) ERRSTAT(status);
@@ -211,7 +211,7 @@ parse(int argc, char** argv)
     /* Set defaults */
     persist = 0;
     usenetcdf4 = 0;
-    mmap = 0;
+    use_mmap = 0;
     diskless = 0;
     file = 0;
     diskmode = 0;
@@ -219,7 +219,7 @@ parse(int argc, char** argv)
 
     for(i=1;i<argc;i++) {
 	if(strcmp(argv[i],"diskless")==0) diskless=1;
-	else if(strcmp(argv[i],"mmap")==0) mmap=1;
+	else if(strcmp(argv[i],"mmap")==0) use_mmap=1;
 	else if(strcmp(argv[i],"file")==0) file=1;
 	else if(strcmp(argv[i],"persist")==0) persist=1;
 	else if(strcmp(argv[i],"open")==0) openfile=1;
@@ -231,7 +231,7 @@ parse(int argc, char** argv)
 	/* ignore anything not recognized */
     }
 
-    if(diskless && mmap) {
+    if(diskless && use_mmap) {
 	fprintf(stderr,"NC_DISKLESS and NC_MMAP are mutually exclusive\n");
 	exit(1);
     }
@@ -244,7 +244,7 @@ buildmode(void)
     diskmode = 0;
     if(diskless)
         diskmode |= NC_DISKLESS;
-    if(mmap)
+    if(use_mmap)
         diskmode |= NC_MMAP;
     if(persist)
         diskmode |= NC_PERSIST;
@@ -257,7 +257,7 @@ main(int argc, char **argv)
 {
     parse(argc,argv);
 
-    if(!diskless && !mmap && !file) {
+    if(!diskless && !use_mmap && !file) {
 	fprintf(stderr,"file or diskless or mmap must be specified\n");
 	exit(1);
     }

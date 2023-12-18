@@ -301,10 +301,10 @@ main()
       /* Initialize data. */
       for (i = 0; i < DIM6_LEN; i++)
       {
-	 obsdata[i].day = 15 * i + 1;
-	 obsdata[i].elev = 2 * i + 1;
+	 obsdata[i].day = 15 * (char)i + 1;
+	 obsdata[i].elev = 2 * (short)i + 1;
 	 obsdata[i].count = 2 * i + 1;
-	 obsdata[i].relhum = 2.0 * i + 1;
+	 obsdata[i].relhum = 2.0f * (float)i + 1;
 	 obsdata[i].time = 2.0 * i + 1;
       }
 
@@ -452,9 +452,9 @@ main()
          hr_data_out[i].starfleet_id = i;
          hr_data_out[i].svc_rec.i1 = 95;
          hr_data_out[i].svc_rec.i2 = 90;
-         if (sprintf(hr_data_out[i].name, "alien_%d", i) < 0) ERR;
-         hr_data_out[i].max_temp = 99.99;
-         hr_data_out[i].min_temp = -9.99;
+         if (snprintf(hr_data_out[i].name, sizeof(hr_data_out[i].name), "alien_%d", i) < 0) ERR;
+         hr_data_out[i].max_temp = 99.99f;
+         hr_data_out[i].min_temp = -9.99f;
          hr_data_out[i].percent_transporter_errosion = .1;
       }
 
@@ -557,9 +557,9 @@ main()
          hr_data_out[i].starfleet_id = i;
          hr_data_out[i].svc_rec.i1 = 95;
          hr_data_out[i].svc_rec.i2 = 90;
-         if (sprintf(hr_data_out[i].name, "alien_%d", i) < 0) ERR;
-         hr_data_out[i].max_temp = 99.99;
-         hr_data_out[i].min_temp = -9.99;
+         if (snprintf(hr_data_out[i].name, sizeof(hr_data_out[i].name), "alien_%d", i) < 0) ERR;
+         hr_data_out[i].max_temp = 99.99f;
+         hr_data_out[i].min_temp = -9.99f;
          hr_data_out[i].percent_transporter_errosion = .1;
       }
 
@@ -665,9 +665,9 @@ main()
          hr_data_out[i].starfleet_id = i;
          hr_data_out[i].svc_rec.i1 = 95;
          hr_data_out[i].svc_rec.i2 = 90;
-         if (sprintf(hr_data_out[i].name, "alien_%d", i) < 0) ERR;
-         hr_data_out[i].max_temp = 99.99;
-         hr_data_out[i].min_temp = -9.99;
+         if (snprintf(hr_data_out[i].name, sizeof(hr_data_out[i].name), "alien_%d", i) < 0) ERR;
+         hr_data_out[i].max_temp = 99.99f;
+         hr_data_out[i].min_temp = -9.99f;
          hr_data_out[i].percent_transporter_errosion = .1;
       }
 
@@ -756,8 +756,8 @@ main()
       /* Create some phony data. */
       for (i = 0; i < DIM1_LEN; i++)
       {
-         if (sprintf(hr_data_out[i].name, "alien_%d", i) < 0) ERR;
-         hr_data_out[i].max_temp = 99.99;
+         if (snprintf(hr_data_out[i].name, sizeof(hr_data_out[i].name), "alien_%d", i) < 0) ERR;
+         hr_data_out[i].max_temp = 99.99f;
       }
 
       /* Open file and get root group. */
@@ -841,8 +841,8 @@ main()
       /* Create some phony data. */
       for (i = 0; i < DIM2_LEN; i++)
       {
-         if (sprintf(hr_data_out[i].name, "alien_%d", i) < 0) ERR;
-         hr_data_out[i].max_temp = 99.99;
+         if (snprintf(hr_data_out[i].name, sizeof(hr_data_out[i].name), "alien_%d", i) < 0) ERR;
+         hr_data_out[i].max_temp = 99.99f;
       }
 
       /* Open file and get root group. */
@@ -921,7 +921,7 @@ main()
       {
 	 for (j = 0; j < STR_LEN + 1; j++)
 	    data_out[i].x[j] = 4;
-	 data_out[i].y = 99.99;
+	 data_out[i].y = 99.99f;
       }
 
       /* Set latest_format in access propertly list and

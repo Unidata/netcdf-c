@@ -1215,7 +1215,7 @@ create_file()
     check_err(stat,__LINE__,__FILE__);
     }
     { /* Gf */
-    static const float Gf_att[5] = {-3.4028231e+38, 3.4028231e+38, -9.96921e+36, 9.96921e+36, 531} ;
+    static const float Gf_att[5] = {-3.4028231e+38f, 3.4028231e+38f, -9.96921e+36f, 9.96921e+36f, 531} ;
     stat = nc_put_att_float(ncid, NC_GLOBAL, "Gf", NC_FLOAT, 5, Gf_att);
     check_err(stat,__LINE__,__FILE__);
     }
@@ -1247,7 +1247,7 @@ create_file()
     check_err(stat,__LINE__,__FILE__);
     }
     { /* f */
-    static const float i_f_att[4] = {-3.4028231e+38, 3.4028231e+38, -9.96921e+36, 9.96921e+36} ;
+    static const float i_f_att[4] = {-3.4028231e+38f, 3.4028231e+38f, -9.96921e+36f, 9.96921e+36f} ;
     stat = nc_put_att_float(ncid, i_id, "f", NC_FLOAT, 4, i_f_att);
     check_err(stat,__LINE__,__FILE__);
     }
@@ -1330,7 +1330,7 @@ create_file()
     }
 
     {
-    float fr_data[2] = {-3.4028231e+38, 3.4028231e+38} ;
+    float fr_data[2] = {-3.4028231e+38f, 3.4028231e+38f} ;
     size_t fr_startset[1] = {0} ;
     size_t fr_countset[1] = {2} ;
     stat = nc_put_vara(ncid, fr_id, fr_startset, fr_countset, fr_data);
@@ -1378,7 +1378,7 @@ create_file()
     }
 
     {
-    float f1_data[1] = {-3.4028231e+38} ;
+    float f1_data[1] = {-3.4028231e+38f} ;
     size_t f1_startset[1] = {0} ;
     size_t f1_countset[1] = {1} ;
     stat = nc_put_vara(ncid, f1_id, f1_startset, f1_countset, f1_data);
@@ -1426,7 +1426,7 @@ create_file()
     }
 
     {
-    float f2_data[2] = {-3.4028231e+38, 3.4028231e+38} ;
+    float f2_data[2] = {-3.4028231e+38f, 3.4028231e+38f} ;
     size_t f2_startset[1] = {0} ;
     size_t f2_countset[1] = {2} ;
     stat = nc_put_vara(ncid, f2_id, f2_startset, f2_countset, f2_data);
@@ -1474,7 +1474,7 @@ create_file()
     }
 
     {
-    float f3_data[3] = {-3.4028231e+38, 3.4028231e+38, -9.96921e+36} ;
+    float f3_data[3] = {-3.4028231e+38f, 3.4028231e+38f, -9.96921e+36f} ;
     size_t f3_startset[1] = {0} ;
     size_t f3_countset[1] = {3} ;
     stat = nc_put_vara(ncid, f3_id, f3_startset, f3_countset, f3_data);
@@ -1522,7 +1522,7 @@ create_file()
     }
 
     {
-    float f4_data[4] = {-3.4028231e+38, 3.4028231e+38, -9.96921e+36, 9.96921e+36} ;
+    float f4_data[4] = {-3.4028231e+38f, 3.4028231e+38f, -9.96921e+36f, 9.96921e+36f} ;
     size_t f4_startset[1] = {0} ;
     size_t f4_countset[1] = {4} ;
     stat = nc_put_vara(ncid, f4_id, f4_startset, f4_countset, f4_data);

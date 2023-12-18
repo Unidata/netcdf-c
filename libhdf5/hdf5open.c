@@ -482,7 +482,7 @@ create_phony_dims(NC_GRP_INFO_T *grp, hid_t hdf_datasetid, NC_VAR_INFO_T *var)
         if (!match)
         {
             char phony_dim_name[NC_MAX_NAME + 1];
-            sprintf(phony_dim_name, "phony_dim_%d", grp->nc4_info->next_dimid);
+            snprintf(phony_dim_name, sizeof(phony_dim_name), "phony_dim_%d", grp->nc4_info->next_dimid);
             LOG((3, "%s: creating phony dim for var %s", __func__, var->hdr.name));
 
             /* Add phony dim to metadata list. */
@@ -1483,7 +1483,7 @@ nc4_get_var_meta(NC_VAR_INFO_T *var)
     if ((H5Pget_chunk_cache(access_pid, &(var->chunkcache.nelems),
                             &(var->chunkcache.size), &rdcc_w0)) < 0)
         BAIL(NC_EHDFERR);
-    var->chunkcache.preemption = rdcc_w0;
+    var->chunkcache.preemption = (float)rdcc_w0;
 
     /* Get the dataset creation properties. */
     if ((propid = H5Dget_create_plist(hdf5_var->hdf_datasetid)) < 0)
