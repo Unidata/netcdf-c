@@ -56,10 +56,10 @@
 #define NVARS_EX 4
 
 /* These are used to construct some example data. */
-#define SAMPLE_PRESSURE 900
-#define SAMPLE_TEMP 9.0
-#define START_LAT 25.0
-#define START_LON -125.0
+#define SAMPLE_PRESSURE 900.f
+#define SAMPLE_TEMP 9.0f
+#define START_LAT 25.0f
+#define START_LON -125.0f
 
 /* For the units attributes. */
 #define UNITS "units"
@@ -97,16 +97,16 @@ create_4D_example(char *file_name, int cmode)
     * would have some real data to write, for example, model
     * output. */
    for (lat = 0; lat < NLAT; lat++)
-      lats[lat] = START_LAT + 5.*lat;
+      lats[lat] = START_LAT + 5.f*(float)lat;
    for (lon = 0; lon < NLON; lon++)
-      lons[lon] = START_LON + 5.*lon;
+      lons[lon] = START_LON + 5.f*(float)lon;
 
    for (lvl = 0; lvl < NLVL; lvl++)
       for (lat = 0; lat < NLAT; lat++)
 	 for (lon = 0; lon < NLON; lon++)
 	 {
-	    pres_out[lvl][lat][lon] = SAMPLE_PRESSURE + i;
-	    temp_out[lvl][lat][lon] = SAMPLE_TEMP + i++;
+	    pres_out[lvl][lat][lon] = SAMPLE_PRESSURE + (float)i;
+	    temp_out[lvl][lat][lon] = SAMPLE_TEMP + (float)i++;
 	 }
 
    /* Create the file. */
@@ -307,7 +307,7 @@ main(int argc, char **argv)
    unsigned short ushort_out[DIM1_LEN][DIM2_LEN] = {{110, 128, 255},{110, 128, 255}};
    short short_in[DIM1_LEN][DIM2_LEN], short_out[DIM1_LEN][DIM2_LEN] = {{-110, -128, 255},{-110, -128, 255}};
    int int_in[DIM1_LEN][DIM2_LEN], int_out[DIM1_LEN][DIM2_LEN] = {{0, 128, 255},{0, 128, 255}};
-   float float_in[DIM1_LEN][DIM2_LEN], float_out[DIM1_LEN][DIM2_LEN] = {{-.1, 9999.99, 100.001},{-.1, 9999.99, 100.001}};
+   float float_in[DIM1_LEN][DIM2_LEN], float_out[DIM1_LEN][DIM2_LEN] = {{-.1f, 9999.99f, 100.001f},{-.1f, 9999.99f, 100.001f}};
    double double_in[DIM1_LEN][DIM2_LEN], double_out[DIM1_LEN][DIM2_LEN] = {{0.02, .1128, 1090.1},{0.02, .1128, 1090.1}};
    unsigned int uint_in[DIM1_LEN][DIM2_LEN], uint_out[DIM1_LEN][DIM2_LEN] = {{0, 128, 255},{0, 128, 255}};
    long long int64_in[DIM1_LEN][DIM2_LEN], int64_out[DIM1_LEN][DIM2_LEN] = {{-111, 777, 100},{-111, 777, 100}};
@@ -1279,7 +1279,7 @@ main(int argc, char **argv)
       /* Create a large number of variables. */
       for (i = 0; i < NUM_VARS; i++)
       {
-	 sprintf(varname, "a_%d", i);
+	 snprintf(varname, sizeof(varname), "a_%d", i);
 	 if (nc_def_var(ncid, varname, NC_FLOAT, 1, dimids, &varids[i])) {
 	    ERR;
 	    break;

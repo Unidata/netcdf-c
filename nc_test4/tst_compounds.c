@@ -545,9 +545,9 @@ main(int argc, char **argv)
 	 /* hr data */
 	 hr_data_out[i].starfleet_id = i;
 	 hr_data_out[i].svc_rec = data[i];
-	 if (sprintf(hr_data_out[i].name, "alien_%d", i) < 0) ERR;
-	 hr_data_out[i].max_temp = 99.99;
-	 hr_data_out[i].min_temp = -9.99;
+	 if (snprintf(hr_data_out[i].name, sizeof(hr_data_out[i].name), "alien_%d", i) < 0) ERR;
+	 hr_data_out[i].max_temp = 99.99f;
+	 hr_data_out[i].min_temp = -9.99f;
 	 hr_data_out[i].percent_transporter_errosion = .030303;
       }
 
@@ -659,10 +659,10 @@ main(int argc, char **argv)
       /* Initialize data. */
       for (i = 0; i < DIM6_LEN; i++)
       {
-	 obsdata[i].day = 15 * i + 1;
-	 obsdata[i].elev = 2 * i + 1;
+	 obsdata[i].day = 15 * (char)i + 1;
+	 obsdata[i].elev = 2 * (short)i + 1;
 	 obsdata[i].count = 2 * i + 1;
-	 obsdata[i].relhum = 2.0 * i + 1;
+	 obsdata[i].relhum = 2.0f * (float)i + 1;
 	 obsdata[i].time = 2.0 * i + 1;
       }
       missing_val.day = 99;
@@ -862,8 +862,8 @@ main(int argc, char **argv)
       /* Create some phony data. */
       for (i = 0; i < DIM1_LEN; i++)
       {
-	 if (sprintf(hr_data_out[i].name, "alien_%d", i) < 0) ERR;
-	 hr_data_out[i].max_temp = 99.99;
+	 if (snprintf(hr_data_out[i].name, sizeof(hr_data_out[i].name), "alien_%d", i) < 0) ERR;
+	 hr_data_out[i].max_temp = 99.99f;
       }
 
       /* Create a file with a nested compound type attribute and variable. */
@@ -927,7 +927,7 @@ main(int argc, char **argv)
       /* Create some phony data. */
       for (i = 0; i < DIM1_LEN; i++)
       {
-	 hr_data_out[i].max_temp = 99.99;
+	 hr_data_out[i].max_temp = 99.99f;
 	 for (j = 0; j < ARRAY_LEN; j++)
 	    hr_data_out[i].name[j] = j;
       }

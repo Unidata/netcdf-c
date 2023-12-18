@@ -48,7 +48,7 @@ add_attributes(int ncid, int varid, size_t num_atts, size_t att_len)
    /* Write a bunch of attributes. */
    for (a = 0; a < num_atts; a++)
    {
-      sprintf(att_name, "%s_varid_%d_att_%d", TEST, varid, a);
+      snprintf(att_name, sizeof(att_name), "%s_varid_%d_att_%d", TEST, varid, a);
       if (nc_put_att_double(ncid, varid, att_name, NC_DOUBLE,
                             att_len, att_data)) ERR;
    }
@@ -73,7 +73,7 @@ buildfile(size_t num_vars, size_t num_atts, size_t att_len, char *file_name)
    for (v = 0; v < num_vars; v++)
    {
       char var_name[NC_MAX_NAME + 1];
-      sprintf(var_name, "%s_var_%d", TEST, v);
+      snprintf(var_name, sizeof(var_name), "%s_var_%d", TEST, v);
       if (nc_def_var(ncid, var_name, NC_INT, NDIMS, dimids, &varid)) ERR;
       if (add_attributes(ncid, v, num_atts, att_len)) ERR;
    }
@@ -200,7 +200,7 @@ main(int argc, char **argv)
                long long hdf5_open_time = 0;
 
                /* Determine file name. */
-               sprintf(file_name, "%s_%d_%d.nc", TEST, num_vars, r);
+               snprintf(file_name, sizeof(file_name), "%s_%d_%d.nc", TEST, num_vars, r);
 
                if (buildfile(num_vars, num_atts, ATT_LEN, file_name)) ERR;
                if (readfile(file_name, &nc4_open_time, do_inq, num_vars)) ERR;
@@ -242,7 +242,7 @@ main(int argc, char **argv)
                   long long hdf5_open_time;
 
                   /* Determine file name. */
-                  sprintf(file_name, "%s_%d_%d_%d.nc", TEST, num_vars, s, r);
+                  snprintf(file_name, sizeof(file_name), "%s_%d_%d_%d.nc", TEST, num_vars, s, r);
 
                   if (buildfile(num_vars, num_atts, ATT_LEN, file_name)) ERR;
                   if (readfile(file_name, &nc4_open_time, do_inq, num_vars)) ERR;

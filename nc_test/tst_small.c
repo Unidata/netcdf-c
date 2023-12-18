@@ -370,7 +370,7 @@ test_one_growing_with_att(const char *testfile)
       FMTCHECK;
 
       if (nc_put_vara_text(ncid, varid, start, count, &data[r])) ERR;
-      sprintf(att_name, "a_%d", data[r]);
+      snprintf(att_name, sizeof(att_name), "a_%d", data[r]);
       if (nc_redef(ncid)) ERR;
       if (nc_put_att_text(ncid, varid, att_name, 1, &data[r])) ERR;
       if (nc_close(ncid)) ERR;
@@ -430,7 +430,7 @@ test_two_growing_with_att(const char *testfile)
 #endif
       count[0] = 1;
       start[0] = r;
-      sprintf(att_name, "a_%d", data[r]);
+      snprintf(att_name, sizeof(att_name), "a_%d", data[r]);
       for (v = 0; v < NUM_VARS; v++)
       {
 	 if (nc_put_vara_text(ncid, varid[v], start, count, &data[r])) ERR;

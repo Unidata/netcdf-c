@@ -19,9 +19,8 @@ See \ref copyright file for more info.
 /* Do conversion if this code was compiled via Vis. Studio or Mingw */
 
 /*Forward*/
-static int readpacket(NCD4INFO* state, NCURI*, NCbytes*, NCD4mode, NCD4format, long*);
+static int readpacket(NCD4INFO* state, NCURI*, NCbytes*, NCD4mode, NCD4format, int*, long*);
 static int readfile(NCD4INFO* state, const NCURI* uri, NCD4mode dxx, NCD4format fxx, NCbytes* packet);
-static int readfiletofile(NCD4INFO* state, const NCURI* uri, NCD4mode dxx, NCD4format fxx, FILE* stream, d4size_t* sizep);
 static int readfileDAPDMR(NCD4INFO* state, const NCURI* uri, NCbytes* packet);
 
 #ifdef HAVE_GETTIMEOFDAY
@@ -38,82 +37,27 @@ deltatime(struct timeval time0,struct timeval time1)
 #endif
 
 int
-NCD4_readDMR(NCD4INFO* state, int flags)
+NCD4_readDMR(NCD4INFO* state, int flags, NCURI* url, NCD4response* resp)
 {
     int stat = NC_NOERR;
-    long lastmod = -1;
-
-    if((flags & NCF_ONDISK) == 0) {
-	ncbytesclear(state->curl->packet);
-        stat = readpacket(state,state->uri,state->curl->packet,NCD4_DMR,NCD4_FORMAT_XML,&lastmod);
-        if(stat == NC_NOERR)
-            state->data.dmrlastmodified = lastmod;
-    } else { /*((flags & NCF_ONDISK) != 0) */
-        NCURI* url = state->uri;
-        int fileprotocol = (strcmp(url->protocol,"file")==0);
-        if(fileprotocol) {
-            stat = readfiletofile(state, url, NCD4_DMR, NCD4_FORMAT_XML, state->data.ondiskfile, &state->data.datasize);
-        } else {
-	    char* readurl = NULL;
-            int flags = 0;
-            if(!fileprotocol) flags |= NCURIQUERY;
-            flags |= NCURIENCODE;
-	    flags |= NCURIPWD;
-#ifdef FIX
-            ncurisetconstraints(url,state->constraint);
-#endif
-	    readurl = ncuribuild(url,NULL,".dmr.xml",NCURISVC);
-	    if(readurl == NULL)
-		return THROW(NC_ENOMEM);
-            stat = NCD4_fetchurl_file(state->curl, readurl, state->data.ondiskfile,
-                                   &state->data.datasize, &lastmod);
-            nullfree(readurl);
-            if(stat == NC_NOERR)
-                state->data.dmrlastmodified = lastmod;
-        }
-    }
+    ncbytesclear(state->curl->packet);
+    stat = readpacket(state,url,state->curl->packet,NCD4_DMR,NCD4_FORMAT_XML,&resp->serial.httpcode,NULL);
     return THROW(stat);
 }
 
 int
-NCD4_readDAP(NCD4INFO* state, int flags)
+NCD4_readDAP(NCD4INFO* state, int flags, NCURI* url, NCD4response* resp)
 {
     int stat = NC_NOERR;
-    long lastmod = -1;
-
-    if((flags & NCF_ONDISK) == 0) {
-	ncbytesclear(state->curl->packet);
-        stat = readpacket(state,state->uri,state->curl->packet,NCD4_DAP,NCD4_FORMAT_NONE,&lastmod);
-	if(stat) {
-	    NCD4_seterrormessage(state->substrate.metadata, nclistlength(state->curl->packet), nclistcontents(state->curl->packet));
-	    goto done;
-	} else
-            state->data.daplastmodified = lastmod;
-    } else { /*((flags & NCF_ONDISK) != 0) */
-        NCURI* url = state->uri;
-        int fileprotocol = (strcmp(url->protocol,"file")==0);
-        if(fileprotocol) {
-            stat = readfiletofile(state, url, NCD4_DAP, NCD4_FORMAT_NONE, state->data.ondiskfile, &state->data.datasize);
-        } else {
-	    char* readurl = NULL;
-            int flags = 0;
-            if(!fileprotocol) flags |= NCURIQUERY;
-            flags |= NCURIENCODE;
-	    flags |= NCURIPWD;
-#ifdef FIX
-            ncurisetconstraints(url,state->constraint);
-#endif
-	    readurl = ncuribuild(url,NULL,".dap",NCURISVC);
-	    if(readurl == NULL)
-		return THROW(NC_ENOMEM);
-            stat = NCD4_fetchurl_file(state->curl, readurl, state->data.ondiskfile,
-                                   &state->data.datasize, &lastmod);
-            nullfree(readurl);
-            if(stat == NC_NOERR)
-                state->data.daplastmodified = lastmod;
-        }
+    
+    ncbytesclear(state->curl->packet);
+    stat = readpacket(state,url,state->curl->packet,NCD4_DAP,NCD4_FORMAT_NONE,&resp->serial.httpcode,NULL);
+    if(stat) {
+	NCD4_seterrormessage(resp, nclistlength(state->curl->packet), nclistcontents(state->curl->packet));
+    } else {
+        resp->raw.size = ncbyteslength(state->curl->packet);
+        resp->raw.memory = ncbytesextract(state->curl->packet);
     }
-done:
     return THROW(stat);
 }
 
@@ -150,7 +94,7 @@ dxxformat(int fxx, int dxx)
 }
 
 static int
-readpacket(NCD4INFO* state, NCURI* url, NCbytes* packet, NCD4mode dxx, NCD4format fxx, long* lastmodified)
+readpacket(NCD4INFO* state, NCURI* url, NCbytes* packet, NCD4mode dxx, NCD4format fxx, int* httpcodep, long* lastmodified)
 {
     int stat = NC_NOERR;
     int fileprotocol = 0;
@@ -185,7 +129,7 @@ readpacket(NCD4INFO* state, NCURI* url, NCbytes* packet, NCD4mode dxx, NCD4forma
    	    gettimeofday(&time0,NULL);
 #endif
 	}
-        stat = NCD4_fetchurl(curl,fetchurl,packet,lastmodified,&state->substrate.metadata->error.httpcode);
+        stat = NCD4_fetchurl(curl,fetchurl,packet,lastmodified,httpcodep);
         nullfree(fetchurl);
 	if(stat) goto fail;
 	if(FLAGSET(state->controls.flags,NCF_SHOWFETCH)) {
@@ -207,37 +151,26 @@ fail:
     return THROW(stat);
 }
 
+#if 0
 static int
-readfiletofile(NCD4INFO* state, const NCURI* uri, NCD4mode dxx, NCD4format fxx, FILE* stream, d4size_t* sizep)
+readfromfile(NCD4INFO* state, const NCURI* uri, NCD4mode dxx, NCD4format fxx, d4size_t* sizep)
 {
     int stat = NC_NOERR;
-    NCbytes* packet = ncbytesnew();
     size_t len;
 
-    stat = readfile(state, uri, dxx, fxx, packet);
+    ncbytesclear(state->curl->packet);
+    stat = readfile(state, uri, dxx, fxx, state->curl->packet);
 #ifdef D4DEBUG
 fprintf(stderr,"readfiletofile: packet.size=%lu\n",
-		(unsigned long)ncbyteslength(packet));
+		(unsigned long)ncbyteslength(state->curl->packet));
 #endif
     if(stat != NC_NOERR) goto unwind;
-    len = nclistlength(packet);
-    if(stat == NC_NOERR) {
-	size_t written;
-        fseek(stream,0,SEEK_SET);
-	written = fwrite(ncbytescontents(packet),1,len,stream);
-	if(written != len) {
-#ifdef D4DEBUG
-fprintf(stderr,"readfiletofile: written!=length: %lu :: %lu\n",
-	(unsigned long)written,(unsigned long)len);
-#endif
-	    stat = NC_EIO;
-	}
-    }
+    len = nclistlength(state->curl->packet);
     if(sizep != NULL) *sizep = len;
 unwind:
-    ncbytesfree(packet);
     return THROW(stat);
 }
+#endif
 
 static int
 readfile(NCD4INFO* state, const NCURI* uri, NCD4mode dxx, NCD4format fxx, NCbytes* packet)
@@ -365,12 +298,12 @@ done:
 
 /* Extract packet as error message; assume httpcode set */
 int
-NCD4_seterrormessage(NCD4meta* metadata, size_t len, char* msg)
+NCD4_seterrormessage(NCD4response* resp, size_t len, char* msg)
 {
-    metadata->error.message = (char*)d4alloc(len+1);
-    if(metadata->error.message == NULL)
+    resp->error.message = (char*)d4alloc(len+1);
+    if(resp->error.message == NULL)
         return THROW(NC_ENOMEM);
-    memcpy(metadata->error.message,msg,len);
-    metadata->error.message[len] = '\0';
+    memcpy(resp->error.message,msg,len);
+    resp->error.message[len] = '\0';
     return THROW(NC_ENODATA); /* slight lie */
 }

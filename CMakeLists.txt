@@ -1160,7 +1160,8 @@ set_std_filter(Szip)
 SET(HAVE_SZ ${Szip_FOUND})
 set_std_filter(Blosc)
 IF(Zstd_FOUND)
-set_std_filter(Zstd)
+  set_std_filter(Zstd)
+  SET(HAVE_ZSTD ON)
 ENDIF()
 IF(Bz2_FOUND)
   set_std_filter(Bz2)
@@ -1168,7 +1169,7 @@ ELSE()
   # The reason we use a local version is to support a more comples test case
   MESSAGE("libbz2 not found using built-in version")
   SET(HAVE_LOCAL_BZ2 ON)
-  SET(HAVE_BZ2 ON)
+  SET(HAVE_BZ2 ON CACHE BOOL "")
   set(STD_FILTERS "${STD_FILTERS} bz2")
 ENDIF()
 
@@ -1507,6 +1508,7 @@ ENDIF()
 
 # Enable Parallel IO with netCDF-4/HDF5 files using HDF5 parallel I/O.
 SET(STATUS_PARALLEL "OFF")
+set(IMPORT_MPI "")
 OPTION(ENABLE_PARALLEL4 "Build netCDF-4 with parallel IO" "${HDF5_PARALLEL}")
 IF(ENABLE_PARALLEL4 AND ENABLE_HDF5)
   IF(NOT HDF5_PARALLEL)
@@ -1528,6 +1530,7 @@ IF(ENABLE_PARALLEL4 AND ENABLE_HDF5)
     FILE(COPY "${netCDF_BINARY_DIR}/tmp/run_par_tests.sh"
       DESTINATION ${netCDF_BINARY_DIR}/h5_test
       FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+    set(IMPORT_MPI "include(CMakeFindDependencyMacro)\nfind_dependency(MPI COMPONENTS C)")
   ENDIF()
 ENDIF()
 

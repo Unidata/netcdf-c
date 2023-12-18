@@ -1742,7 +1742,7 @@ nc4_init_logging(void)
         }
 
         /* Create a filename with the rank in it. */
-        sprintf(log_filename, "nc4_log_%d.log", my_rank);
+        snprintf(log_filename, sizeof(log_filename), "nc4_log_%d.log", my_rank);
 
         /* Open a file for this rank to log messages. */
         if (!(LOG_FILE = fopen(log_filename, "w")))
@@ -1875,7 +1875,7 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
             strcpy(dims_string, "");
             for (d = 0; d < var->ndims; d++)
             {
-                sprintf(temp_string, " %d", var->dimids[d]);
+                snprintf(temp_string, sizeof(temp_string), " %d", var->dimids[d]);
                 strcat(dims_string, temp_string);
             }
         }

@@ -243,7 +243,7 @@ yytext[MAXTRST-1] = '\0';
 */
 			len = unescape((char *)yytext+1,yyleng-2,!ISIDENT,&s);
 			if(len < 0) {
-			    sprintf(errstr,"Illegal character: %s",yytext);
+			    snprintf(errstr, sizeof(errstr),"Illegal character: %s",yytext);
 			    yyerror(errstr);
 			}
 			bbClear(lextext);
@@ -411,7 +411,7 @@ NIL|nil|Nil {
 		    /* capture the tag string */
 		    tag = collecttag(pos,&stag);
 		    if(tag == NC_NAT) {
-			sprintf(errstr,"Illegal integer suffix: %s",stag);
+			snprintf(errstr, sizeof(errstr),"Illegal integer suffix: %s",stag);
 			yyerror(errstr);
 			goto done;
 		    }
@@ -433,13 +433,13 @@ NIL|nil|Nil {
 			radix = 10;
 
 		    if(isneg && hasU) {
-			sprintf(errstr,"Unsigned integer cannot be signed: %s",ncgtext);
+			snprintf(errstr, sizeof(errstr),"Unsigned integer cannot be signed: %s",ncgtext);
 			yyerror(errstr);
 			goto done;
 		    }
 		    uint64_val = parseULL(radix, pos,&fail);
 		    if(fail) {
-			sprintf(errstr,"integer constant out of range: %s",ncgtext);
+			snprintf(errstr, sizeof(errstr),"integer constant out of range: %s",ncgtext);
 			yyerror(errstr);
 			goto done;
 		    }
@@ -453,7 +453,7 @@ NIL|nil|Nil {
 		    case NC_FORMAT_64BIT_OFFSET:
 		    case NC_FORMAT_NETCDF4_CLASSIC:
 			    if(nct > NC_INT) {
-				sprintf(errstr,"Illegal integer constant for classic format: %s",ncgtext);
+				snprintf(errstr, sizeof(errstr),"Illegal integer constant for classic format: %s",ncgtext);
 				yyerror(errstr);
 				goto done;
 			    }
@@ -479,7 +479,7 @@ done: return 0;
 	        /* capture the tag string */
 		tag = collecttag(yytext,&stag);
 		if(tag == NC_NAT) {
-		    sprintf(errstr,"Illegal integer suffix: %s",stag);
+		    snprintf(errstr, sizeof(errstr),"Illegal integer suffix: %s",stag);
 		    yyerror(errstr);
 			//goto done;
 		    return 0;
@@ -507,7 +507,7 @@ done: return 0;
 		    break;
 		default: /* should never happen */
 		    if (sscanf((char*)yytext, "%i", &uint32_val) != 1) {
-		        sprintf(errstr,"bad unsigned int constant: %s",(char*)yytext);
+		        snprintf(errstr, sizeof(errstr),"bad unsigned int constant: %s",(char*)yytext);
 		        yyerror(errstr);
 		    }
 		    token = UINT_CONST;
@@ -516,14 +516,14 @@ done: return 0;
 	    }
 {DBLNUMBER}	{
 		if (sscanf((char*)yytext, "%le", &double_val) != 1) {
-		    sprintf(errstr,"bad long or double constant: %s",(char*)yytext);
+		    snprintf(errstr, sizeof(errstr),"bad long or double constant: %s",(char*)yytext);
 		    yyerror(errstr);
 		}
                 return lexdebug(DOUBLE_CONST);
                 }
 {FLTNUMBER}  {
 		if (sscanf((char*)yytext, "%e", &float_val) != 1) {
-		    sprintf(errstr,"bad float constant: %s",(char*)yytext);
+		    snprintf(errstr, sizeof(errstr),"bad float constant: %s",(char*)yytext);
 		    yyerror(errstr);
 		}
                 return lexdebug(FLOAT_CONST);
@@ -535,7 +535,7 @@ done: return 0;
 \'\\[0-7][0-7][0-7]\'  {
 		int oct = unescapeoct(&yytext[2]);
 		if(oct < 0) {
-		    sprintf(errstr,"bad octal character constant: %s",(char*)yytext);
+		    snprintf(errstr, sizeof(errstr),"bad octal character constant: %s",(char*)yytext);
 		    yyerror(errstr);
 		}
 	        byte_val = (unsigned int)oct;
@@ -544,7 +544,7 @@ done: return 0;
 \'\\[xX][0-9a-fA-F][0-9a-fA-F]\'  {
 		int hex = unescapehex(&yytext[3]);
 		if(byte_val < 0) {
-		    sprintf(errstr,"bad hex character constant: %s",(char*)yytext);
+		    snprintf(errstr, sizeof(errstr),"bad hex character constant: %s",(char*)yytext);
 		    yyerror(errstr);
 		}
 		byte_val = (unsigned int)hex;
@@ -647,7 +647,7 @@ makepath(char* text0)
 	    refsym = lookupingroup(NC_GRP,ident,container);
 	    if(!lastident) {
 	        if(refsym == NULL) {
-	            sprintf(errstr,"Undefined or forward referenced group: %s",ident);
+	            snprintf(errstr, sizeof(errstr),"Undefined or forward referenced group: %s",ident);
 	            yyerror(errstr);
 		    refsym = rootgroup;
 	        } else

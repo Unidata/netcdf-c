@@ -440,7 +440,7 @@ main(int argc, char **argv)
          char **string_fillp = dim_combo == 3 ? my_string_fill : &default_fill;
          char *data_in;
 
-         sprintf(filename, "%s_dim_combo_%d.nc", TEST_NAME, dim_combo);
+         snprintf(filename, sizeof(filename), "%s_dim_combo_%d.nc", TEST_NAME, dim_combo);
          if (nc_create(filename, NC_NETCDF4, &ncid)) ERR;
 
          /* Create an array of strings for the Universal Declaraion of Human Rights. */

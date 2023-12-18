@@ -30,6 +30,7 @@ main()
       hid_t file_spaceid, mem_spaceid;
       hsize_t dims[1] = {0}, max_dims[1] = {H5S_UNLIMITED}, chunk_dims[1] = {1};
       hsize_t xtend_size[NDIMS] = {2}, start[NDIMS] = {1}, count[NDIMS] = {1};
+      hsize_t ones[NDIMS] = {1};
 /*      void *fillp;*/
       char *data = "A man who carries a cat by the tail learns "
 	 "something he can learn in no other way.";
@@ -91,7 +92,7 @@ main()
       /* Select space in file to write a record. */
       if ((file_spaceid = H5Dget_space(datasetid)) < 0) ERR;
       if (H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET,
-			      start, NULL, count, NULL) < 0) ERR;
+			      start, NULL, ones, count) < 0) ERR;
 
       /* Select space in memory to read from. */
       if ((mem_spaceid = H5Screate_simple(NDIMS, count, NULL)) < 0) ERR;
@@ -126,7 +127,7 @@ main()
       hid_t typeid, datasetid, plistid;
       hid_t file_spaceid, mem_spaceid;
       hsize_t dims[1] = {2}, chunk_dims[1] = {1}; 
-      hsize_t start[NDIMS] = {1}, count[NDIMS] = {1};
+      hsize_t start[NDIMS] = {1}, count[NDIMS] = {1}, ones[NDIMS] = {1};
 /*      void *fillp;*/
       char *data = "A man who carries a cat by the tail learns "
 	 "something he can learn in no other way.";
@@ -179,7 +180,7 @@ To be good is noble; but to show others how to be good is nobler and no trouble.
       /* Select space in file to write a record. */
       if ((file_spaceid = H5Dget_space(datasetid)) < 0) ERR;
       if (H5Sselect_hyperslab(file_spaceid, H5S_SELECT_SET, 
-			      start, NULL, count, NULL) < 0) ERR;
+			      start, NULL, ones, count) < 0) ERR;
 
       /* Select space in memory to read from. */
       if ((mem_spaceid = H5Screate_simple(NDIMS, count, NULL)) < 0) 
