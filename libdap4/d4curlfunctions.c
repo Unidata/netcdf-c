@@ -3,6 +3,11 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
+/* WARNING: oc2/occurlfunctions.c and libdap4/d4curlfunctions.c
+should be merged since they are essentially the same file.
+In the meantime, changes to one should be propagated to the other.
+*/
+
 #include "d4includes.h"
 #include "d4curlfunctions.h"
 
@@ -102,12 +107,12 @@ set_curlflag(NCD4INFO* state, int flag)
     case CURLOPT_ERRORBUFFER:
 	SETCURLOPT(state, CURLOPT_ERRORBUFFER, state->curl->errdata.errorbuf);
 	break;
-    case CURLOPT_ENCODING:
-#ifdef CURLOPT_ENCODING
-	if(state->auth->curlflags.compress) {
-	    SETCURLOPT(state, CURLOPT_ENCODING,"deflate, gzip");
+    case CURLOPT_ACCEPT_ENCODING:
+	if(state->auth->curlflags.encode) {
+	    SETCURLOPT(state, CURLOPT_ACCEPT_ENCODING, "" ); /* Accept all available encodings */
+	} else {
+    	    SETCURLOPT(state, CURLOPT_ACCEPT_ENCODING, NULL);
         }
-#endif
 	break;
     case CURLOPT_PROXY:
 	if(state->auth->proxy.host != NULL) {
@@ -123,33 +128,43 @@ set_curlflag(NCD4INFO* state, int flag)
 	    }
 	}
 	break;
-    case CURLOPT_USE_SSL:
-    case CURLOPT_SSLCERT: case CURLOPT_SSLKEY:
-    case CURLOPT_SSL_VERIFYPEER: case CURLOPT_SSL_VERIFYHOST:
-    {
-        struct ssl* ssl = &state->auth->ssl;
+    case CURLOPT_SSL_VERIFYPEER:
 	/* VERIFYPEER == 0 => VERIFYHOST == 0 */
 	/* We need to have 2 states: default and a set value */
-	/* So -1 => default, >= 0 => use value; */
-	if(ssl->verifypeer >= 0)
-            SETCURLOPT(state, CURLOPT_SSL_VERIFYPEER, (OPTARG)(ssl->verifypeer));
+	/* So -1 => default >= 0 => use value */
+	if(state->auth->ssl.verifypeer >= 0) {
+            SETCURLOPT(state, CURLOPT_SSL_VERIFYPEER, (OPTARG)(state->auth->ssl.verifypeer));
+	    if(state->auth->ssl.verifypeer == 0) state->auth->ssl.verifyhost = 0;
+        }
+	break;
+    case CURLOPT_SSL_VERIFYHOST:
 #ifdef HAVE_LIBCURL_766
-	if(ssl->verifyhost >= 0)
-            SETCURLOPT(state, CURLOPT_SSL_VERIFYHOST, (OPTARG)(ssl->verifyhost));
+	if(state->auth->ssl.verifyhost >= 0) {
+            SETCURLOPT(state, CURLOPT_SSL_VERIFYHOST, (OPTARG)(state->auth->ssl.verifyhost));
+	}
 #endif
-        if(ssl->certificate)
-            SETCURLOPT(state, CURLOPT_SSLCERT, ssl->certificate);
-        if(ssl->key)
-            SETCURLOPT(state, CURLOPT_SSLKEY, ssl->key);
-        if(ssl->keypasswd)
+	break;
+    case CURLOPT_SSLCERT:
+        if(state->auth->ssl.certificate)
+            SETCURLOPT(state, CURLOPT_SSLCERT, state->auth->ssl.certificate);
+	break;
+    case CURLOPT_SSLKEY:
+        if(state->auth->ssl.key)
+            SETCURLOPT(state, CURLOPT_SSLKEY, state->auth->ssl.key);
+        if(state->auth->ssl.keypasswd)
             /* libcurl prior to 7.16.4 used 'CURLOPT_SSLKEYPASSWD' */
-            SETCURLOPT(state, CURLOPT_KEYPASSWD, ssl->keypasswd);
-        if(ssl->cainfo)
-            SETCURLOPT(state, CURLOPT_CAINFO, ssl->cainfo);
-        if(ssl->capath)
-            SETCURLOPT(state, CURLOPT_CAPATH, ssl->capath);
-    }
-    break;
+            SETCURLOPT(state, CURLOPT_SSLKEYPASSWD, state->auth->ssl.keypasswd);
+	break;
+    case CURLOPT_CAINFO:
+        if(state->auth->ssl.cainfo)
+            SETCURLOPT(state, CURLOPT_CAINFO, state->auth->ssl.cainfo);
+	break;
+    case CURLOPT_CAPATH:
+	if(state->auth->ssl.capath)
+            SETCURLOPT(state, CURLOPT_CAPATH, state->auth->ssl.capath);
+        break;
+    case CURLOPT_USE_SSL:
+	break;
 
 #ifdef HAVE_CURLOPT_BUFFERSIZE
     case CURLOPT_BUFFERSIZE:
@@ -192,7 +207,7 @@ NCD4_set_flags_perlink(NCD4INFO* state)
 {
     int ret = NC_NOERR;
     /* Following are always set */
-    if(ret == NC_NOERR) ret = set_curlflag(state,CURLOPT_ENCODING);
+    if(ret == NC_NOERR) ret = set_curlflag(state,CURLOPT_ACCEPT_ENCODING);
     if(ret == NC_NOERR) ret = set_curlflag(state,CURLOPT_NETRC);
     if(ret == NC_NOERR) ret = set_curlflag(state,CURLOPT_VERBOSE);
     if(ret == NC_NOERR) ret = set_curlflag(state,CURLOPT_TIMEOUT);
@@ -200,6 +215,12 @@ NCD4_set_flags_perlink(NCD4INFO* state)
     if(ret == NC_NOERR) ret = set_curlflag(state,CURLOPT_COOKIEJAR);
     if(ret == NC_NOERR) ret = set_curlflag(state,CURLOPT_USERPWD);
     if(ret == NC_NOERR) ret = set_curlflag(state,CURLOPT_PROXY);
+    if(ret == NC_NOERR) ret = set_curlflag(state,CURLOPT_SSL_VERIFYPEER);
+    if(ret == NC_NOERR) ret = set_curlflag(state,CURLOPT_SSL_VERIFYHOST);
+    if(ret == NC_NOERR) ret = set_curlflag(state,CURLOPT_SSLCERT);
+    if(ret == NC_NOERR) ret = set_curlflag(state,CURLOPT_SSLKEY);
+    if(ret == NC_NOERR) ret = set_curlflag(state,CURLOPT_CAINFO);
+    if(ret == NC_NOERR) ret = set_curlflag(state,CURLOPT_CAPATH);
     if(ret == NC_NOERR) ret = set_curlflag(state,CURLOPT_USE_SSL);
     if(ret == NC_NOERR) ret = set_curlflag(state, CURLOPT_FOLLOWLOCATION);
     if(ret == NC_NOERR) ret = set_curlflag(state, CURLOPT_MAXREDIRS);
@@ -319,7 +340,7 @@ NCD4_get_rcproperties(NCD4INFO* state)
     ncerror err = NC_NOERR;
     char* option = NULL;
 #ifdef HAVE_CURLOPT_BUFFERSIZE
-    option = NC_rclookup(D4BUFFERSIZE,state->uri->uri,NULL);
+    option = NC_rclookup(D4BUFFERSIZE,state->dmruri->uri,NULL);
     if(option != NULL && strlen(option) != 0) {
 	long bufsize;
 	if(strcasecmp(option,"max")==0)
@@ -330,7 +351,7 @@ NCD4_get_rcproperties(NCD4INFO* state)
     }
 #endif
 #ifdef HAVE_CURLOPT_KEEPALIVE
-    option = NC_rclookup(D4KEEPALIVE,state->uri->uri,NULL);
+    option = NC_rclookup(D4KEEPALIVE,state->dmruri->uri,NULL);
     if(option != NULL && strlen(option) != 0) {
 	/* The keepalive value is of the form 0 or n/m,
            where n is the idle time and m is the interval time;
@@ -396,7 +417,7 @@ NCD4_set_curlstate(NCD4INFO* state, int flag, void* value)
     case CURLOPT_ERRORBUFFER:
 	/* no need to store; will always be set */
 	break;
-    case CURLOPT_ENCODING:
+    case CURLOPT_ACCEPT_ENCODING:
 	/* no need to store; will always be set to fixed value */
 	break;
     case CURLOPT_PROXY:

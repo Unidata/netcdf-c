@@ -4,14 +4,20 @@
 # for information related to github runners.
 ###
 
-name: Run MSYS2, MinGW64-based Tests
+name: Run MSYS2, MinGW64-based Tests (Not Visual Studio)
 
+env:
+  CPPFLAGS: "-D_BSD_SOURCE"
 
-on: [pull_request]
+on: [pull_request,workflow_dispatch]
+
+concurrency:  
+  group: ${{ github.workflow}}-${{ github.head_ref }}  
+  cancel-in-progress: true
 
 jobs:
 
-  build-and-test:
+  build-and-test-autotools:
 
     runs-on: windows-latest
     defaults:
@@ -20,12 +26,12 @@ jobs:
 
     steps:
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
           update: true
-          install: git mingw-w64-x86_64-toolchain automake libtool autoconf make cmake mingw-w64-x86_64-hdf5 unzip
+          install: git mingw-w64-x86_64-toolchain automake libtool autoconf make cmake mingw-w64-x86_64-hdf5 unzip mingw-w64-x86_64-libxml2 mingw-w64-x86_64-zlib
 
 ###
 # Configure and build
@@ -35,7 +41,7 @@ jobs:
         run: autoreconf -if
 
       - name: (Autotools) Configure Build
-        run: ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests --disable-static --disable-plugins --disable-byterange --disable-dap-remote-tests --disable-logging
+        run: ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests --disable-static --disable-byterange --disable-dap-remote-tests --disable-logging --enable-plugins --disable-nczarr-filters --disable-s3
         if: ${{ success() }}
 
       - name: (Autotools) Look at config.log if error
@@ -46,9 +52,24 @@ jobs:
         run: cat libnetcdf.settings
 
       - name: (Autotools) Build Library and Utilities
-        run: make -j 8 LDFLAGS="-no-undefined -Wl,--export-all-symbols"
+        run: make -j 8 LDFLAGS="-Wl,--export-all-symbols"
         if: ${{ success() }}
 
+      - name: Check for plugins
+        run: |
+          dir ./plugins
+          if test -f ./plugins/.libs ; then dir ./plugins/.libs; fi
+
       - name: (Autotools) Build and Run Tests
-        run: make check -j 8
+        run: make check -j 8 LDFLAGS="-Wl,--export-all-symbols"
         if: ${{ success() }}
+        id: tests
+
+      - name: Upload test failures
+        if: ${{ failure() && steps.tests.conclusion == 'failure' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: mingw-autotools-test-logs
+          path: |
+            */*.log
+            */*.trs

@@ -1,0 +1,108 @@
+#!/bin/sh
+
+# Uncomment to get verbose output
+#VERBOSE=1
+#VERBOSE=2
+
+if test "x$VERBOSE" = x1 ; then set -x; fi
+
+# Constants passed in from configure.ac/CMakeLists
+abs_top_srcdir='@abs_top_srcdir@'
+abs_top_builddir='@abs_top_builddir@'
+# The process id
+puid='@PLATFORMUID@'
+
+
+# Additional configuration information
+. ${abs_top_builddir}/test_common.sh
+
+# Sanity checks
+
+# 1. This requires that the AWS CLI (command line interface) is installed.
+if ! which aws ; then
+    echo ">>>> The s3cleanup script requires the \"aws\" command (i.e. the AWS command line interface program)"
+    echo ">>>> Try installing \"awscli\" package with apt or equivalent."
+    exit 0
+fi
+
+# 2. Make sure S3TESTSUBTREE is defined
+if test "x$S3TESTSUBTREE" = x ; then
+    echo ">>>> The s3cleanup script requires that S3TESTSUBTREE is defined."
+    exit 1;
+fi
+
+test_cleanup() {
+rm -f s3cleanup_${puid}.json
+rm -f s3cleanup_${puid}.keys
+rm -f ${abs_top_builddir}/s3cleanup_${puid}.uids 
+}
+trap test_cleanup EXIT
+
+rm -f s3cleanup_${puid}.json s3cleanup_${puid}.keys
+
+# Get complete set of keys in ${S3TESTSUBTREE} prefix
+unset ALLKEYS
+if ! aws s3api list-objects-v2 --bucket ${S3TESTBUCKET} --prefix "${S3TESTSUBTREE}" | grep -F '"Key":' >s3cleanup_${puid}.keys ; then
+    echo "No keys found"
+    test_cleanup
+    exit 0
+fi
+
+if test "x$VERBOSE" = x1 ; then set +x; fi
+while read -r line; do
+  KEY=`echo "$line" | sed -e 's|[^"]*"Key":[^"]*"\([^"]*\)".*|\1|'`
+  # Ignore keys that do not start with ${S3TESTSUBTREE}
+  PREFIX=`echo "$KEY" | sed -e 's|\([^/]*\)/.*|\1|'`
+  if test "x$PREFIX" = "x$S3TESTSUBTREE" ; then
+      ALLKEYS="$ALLKEYS $KEY"
+  fi
+done < s3cleanup_${puid}.keys
+if test "x$VERBOSE" = x1 ; then set -x; fi
+
+# get the uid's for all the subtrees to be deleted
+UIDS=`cat ${abs_top_builddir}/s3cleanup_${puid}.uids | tr -d '\r' | tr '\n' ' '`
+# Capture the keys matching any uid
+unset MATCHKEYS
+if test "x$VERBOSE" = x1 ; then set +x; fi
+for key in $ALLKEYS ; do
+    for uid in $UIDS ; do
+        case "$key" in
+            "$S3TESTSUBTREE/testset_${uid}"*)
+                # capture the key'
+                MATCHKEYS="$MATCHKEYS $key"
+                ;;
+            *) if test "x$VERBOSE" = x1 ; then echo "Ignoring \"$key\""; fi ;;
+        esac
+    done
+done
+if test "x$VERBOSE" = x1 ; then set -x; fi
+
+# We can delete at most 1000 objects at a time, so divide into sets of size 500
+REM="$MATCHKEYS"
+while test "x$REM" != x ; do
+    K500=`echo "$REM" | cut -d' ' -f 1-500`
+    REM=`echo "$REM" | cut -d' ' -f 501-`
+    unset DELLIST
+    MATCH=0
+    FIRST=1
+    DELLIST="{\"Objects\":["
+    if test "x$VERBOSE" = x1 ; then set +x; fi
+    for key in $K500 ; do
+        if test $FIRST = 0 ; then DELLIST="${DELLIST},"; fi
+        DELLIST="${DELLIST}
+{\"Key\":\"$key\"}"
+        FIRST=0
+        MATCH=1
+    done
+    if test "x$VERBOSE" = x1 ; then set -x; fi
+    DELLIST="${DELLIST}],\"Quiet\":false}"
+    if test "x$MATCH" = x1 ;then
+	rm -f s3cleanup_${puid}.json
+        echo "$DELLIST" > s3cleanup_${puid}.json
+        aws s3api delete-objects --bucket ${S3TESTBUCKET} --delete "file://s3cleanup_${puid}.json"
+    fi
+done
+
+# Final cleanup
+test_cleanup
+

@@ -402,12 +402,11 @@ bin_generate_data_r(NCConstant* instance, Symbol* tsym, Datalist* fillvalue, Byt
 	    Symbol* field = listget(tsym->subnodes,fid);
 	    NCConstant* fieldinstance = datalistith(cmpd,fid);
 	    int ndims = field->typ.dimset.ndims;
-	    size_t arraycount;
+	    size_t arraycount = 1;
 	    if(ndims == 0) {
 	        ndims=1; /* fake the scalar case */
 	    }
   	    /* compute the total number of elements in the field array */
-	    arraycount = 1;
 	    for(i=0;i<ndims;i++) arraycount *= field->typ.dimset.dimsyms[i]->dim.declsize;
 	    write_alignment(field->typ.alignment,databuf);
 	    /* Write the instances */
@@ -423,6 +422,7 @@ done:
     return stat;
 }
 
+#if 0
 /**
 Internal equivalent of ncaux_reclaim_data.
 */
@@ -566,7 +566,8 @@ bin_reclaim_compound(Symbol* tsym, Reclaim* reclaimer)
 {
     int stat = NC_NOERR;
     int nfields;
-    size_t fid, i, arraycount;
+    size_t fid, i;
+    size_t arraycount = 1;
     ptrdiff_t saveoffset;
 
     reclaimer->offset = read_alignment(reclaimer->offset,tsym->typ.cmpdalign);
@@ -590,6 +591,9 @@ done:
     return stat;
 }
 #endif /*USE_NETCDF4*/
+
+#endif /*0*/
+
 
 #endif /*ENABLE_BINARY*/
 

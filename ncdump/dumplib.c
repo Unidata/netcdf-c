@@ -1034,7 +1034,8 @@ chars_tostring(
 {
     long iel;
     const char *sp;
-    char *sout = (char *)emalloc(4*len + 5); /* max len of string */
+    size_t sout_size = 4*len + 5; /* max len of string */
+    char *sout = (char *)emalloc(sout_size);
     char *cp = sout;
     *cp++ = '"';
 
@@ -1061,7 +1062,8 @@ chars_tostring(
 	    if (isprint(uc))
 		*cp++ = *(char *)&uc; /* just copy, even if char is signed */
 	    else {
-		sprintf(cp,"\\%.3o",uc);
+	    size_t remaining = sout_size - (cp - sout);
+		snprintf(cp,remaining,"\\%.3o",uc);
 		cp += 4;
 	    }
 	    break;
@@ -1270,7 +1272,7 @@ nctime_val_tostring(const ncvar_t *varp, safebuf_t *sfbf, const void *valp) {
 	oldopts = cdSetErrOpts(0);
 	newopts = oldopts | CU_VERBOSE;
 	cdSetErrOpts(newopts);
-	cdRel2Iso(varp->timeinfo->calendar, varp->timeinfo->units, separator, vv, &sout[1]);
+	cdRel2Iso(varp->timeinfo->calendar, varp->timeinfo->units, separator, vv, &sout[1], sizeof(sout) - 1);
 	cdSetErrOpts(oldopts);
 	res = strlen(sout);
 	sout[res++] = '"';

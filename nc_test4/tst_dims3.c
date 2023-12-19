@@ -12,13 +12,16 @@
 #include <nc_tests.h>
 #include "err_macros.h"
 
+#define NDIM1 1
 #define NDIM2 2
+#define DATALEN2 2
 #define VAR_NAME "var"
 #define DIM_NAME1 "y"
 #define DIM_NAME2 "x"
 #define NY 3
 #define NX 3
 #define DIM_LEN 2
+#define FILE_NAME "tst_dims3.nc"
 
 int
 main(int argc, char **argv)
@@ -26,7 +29,6 @@ main(int argc, char **argv)
    printf("\n*** Testing netcdf-4 dimensions even more.\n");
    printf("*** testing netcdf-4 dimension inheritance...");
    {
-#define FILE_NAME "tst_dims3.nc"
 #define RANK_time 1
 #define GRP_NAME  "G"
 #define GRP2_NAME "G2"
@@ -381,12 +383,111 @@ main(int argc, char **argv)
                /* This row is all fill. */
                for (x = 0; x < NX; x++)
                {
-                   printf("y %d x %d data %d\n", y, x, data_in[x]);
+                   /* printf("y %d x %d data %d\n", y, x, data_in[x]); */
                    if (data_in[x] != NC_FILL_INT) ERR;
                }
            }
        }
 
+       if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+   printf("*** testing dimlen issue reported in 2357 by Jeff W...");
+   {
+       /* This test code based on test code from Jeff Whitaker. See
+        * https://github.com/Unidata/netcdf-c/issues/2357. This is a
+        * simplified version. */
+       int varid, ncid;
+       int dimids[NDIM2];
+       size_t start[NDIM2] = {0, 0}, count[NDIM2] = {DATALEN2, 1}, dimlen;
+       int data[DATALEN2] = {42, 42};
+       
+       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+       if (nc_def_dim(ncid, "x", DATALEN2, &dimids[0])) ERR;
+       if (nc_def_dim(ncid, "t", NC_UNLIMITED, &dimids[1])) ERR;
+       if (nc_def_var(ncid, "v", NC_INT, NDIM2, dimids, &varid)) ERR;
+       if (nc_put_vara_int(ncid, varid, start, count, data)) ERR;
+       start[1] = 1;
+       if (nc_put_vara_int(ncid, varid, start, count, data)) ERR;
+       if (nc_close(ncid)) ERR;
+
+       /* Reopen file and add more data. */
+       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+       start[1] = 2;
+       if (nc_put_vara_int(ncid, varid, start, count, data)) ERR;
+       if (nc_inq_dimlen(ncid, dimids[1], &dimlen)) ERR;
+       if (dimlen != 3) ERR;
+       if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+   printf("*** testing dimlen with NC_UNLIMITED reopen and rewrite...");
+   {
+       int varid, ncid;
+       int dimid;
+       size_t start[NDIM1] = {0}, count[NDIM1] = {DATALEN2}, dimlen;
+       int data[DATALEN2] = {42, 42};
+       int data2 = 99;
+
+       /* Create a file with unlimited dim and one var. */
+       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+       if (nc_def_dim(ncid, "Number_of_beaches", NC_UNLIMITED, &dimid)) ERR;
+       if (nc_def_var(ncid, "Paros", NC_INT, NDIM1, &dimid, &varid)) ERR;
+       if (nc_put_vara_int(ncid, varid, start, count, data)) ERR;
+       if (nc_inq_dimlen(ncid, dimid, &dimlen)) ERR;
+       if (dimlen != DATALEN2) ERR;
+       if (nc_close(ncid)) ERR;
+
+       /* Reopen file and change first element of array. */
+       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+       count[0] = 1;
+       if (nc_put_vara_int(ncid, varid, start, count, &data2)) ERR;
+       if (nc_inq_dimlen(ncid, dimid, &dimlen)) ERR;
+       if (dimlen != 2) ERR;
+       if (nc_close(ncid)) ERR;
+   }
+   SUMMARIZE_ERR;
+   printf("*** testing dimlen issue reported in 2357 by Jeff W...");
+   {
+       int i, dimidx, dimidt, varid, ncid;
+       int dimids[NDIM2];
+       size_t start[NDIM2], count[NDIM2], dimlen;
+       int data[DATALEN2];
+       
+       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
+       if (nc_def_dim(ncid, "x", DATALEN2, &dimidx)) ERR;
+       if (nc_def_dim(ncid, "t", NC_UNLIMITED, &dimidt)) ERR;
+       dimids[0] = dimidt; /* note order is now reversed */
+       dimids[1] = dimidx;
+       if (nc_def_var(ncid, "v", NC_INT, NDIM2, dimids, &varid)) ERR;
+       start[0]=0;
+       start[1]=0;
+       count[0]=1;
+       count[1]=DATALEN2;
+       for (i = 0; i < DATALEN2; i++)
+   	   data[i] = 1;
+       if (nc_put_vara_int(ncid, varid, start, count, data)) ERR;
+       start[0]=1;
+       start[1]=0;
+       count[0]=1;
+       count[1]=DATALEN2;
+       for (i = 0; i < DATALEN2; i++)
+   	   data[i] = 2;
+       if (nc_put_vara_int(ncid, varid, start, count, data)) ERR;
+       if (nc_close(ncid)) ERR;
+
+       /* Reopen the file. */
+       if (nc_open(FILE_NAME, NC_WRITE, &ncid)) ERR;
+       if (nc_inq_varid(ncid, "v", &varid)) ERR;
+       if (nc_inq_dimid(ncid, "t", &dimidt)) ERR;
+       start[0]=0;
+       start[1]=0;
+       count[0]=1;
+       count[1]=DATALEN2;
+       for (i = 0; i < DATALEN2; i++)
+   	   data[i] = 0;
+       if (nc_put_vara_int(ncid, varid, start, count, data)) ERR;
+       if (nc_inq_dimlen(ncid, dimidt, &dimlen)) ERR;
+       if (dimlen != DATALEN2) ERR;
        if (nc_close(ncid)) ERR;
    }
    SUMMARIZE_ERR;

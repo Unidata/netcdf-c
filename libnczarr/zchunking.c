@@ -10,7 +10,7 @@
 static int pcounter = 0;
 
 /* Forward */
-static int compute_intersection(const NCZSlice* slice, const size64_t chunklen, NCZChunkRange* range);
+static int compute_intersection(const NCZSlice* slice, const size64_t chunklen, unsigned char isunlimited, NCZChunkRange* range);
 static void skipchunk(const NCZSlice* slice, NCZProjection* projection);
 static int verifyslice(const NCZSlice* slice);
 
@@ -20,19 +20,25 @@ static int verifyslice(const NCZSlice* slice);
    absolute position) of the first chunk that intersects the slice
    and the index of the last chunk that intersects the slice.
    In practice, the count = last - first + 1 is stored instead of the last index.
+   Note that this n-dim array of indices may have holes in it if the slice stride
+   is greater than the chunk length.
+   @param rank variable rank
+   @param slices the complete set of slices |slices| == R
+   @param ncr (out) the vector of computed chunk ranges.
+   @return NC_EXXX error code
 */
 int
 NCZ_compute_chunk_ranges(
-	int rank, /* variable rank */
+	struct Common* common,
         const NCZSlice* slices, /* the complete set of slices |slices| == R*/
-	const size64_t* chunklen, /* the chunk length corresponding to the dimensions */
         NCZChunkRange* ncr)
 {
     int stat = NC_NOERR;
     int i;
+    int rank = common->rank;
 
     for(i=0;i<rank;i++) {
-	if((stat = compute_intersection(&slices[i],chunklen[i],&ncr[i])))
+	if((stat = compute_intersection(&slices[i],common->chunklens[i],common->isunlimited[i],&ncr[i])))
 	    goto done;
     }
 
@@ -40,10 +46,18 @@ done:
     return stat;
 }
 
+/**
+@param Compute chunk range for a single slice.
+@param chunklen size of the chunk
+@param isunlimited if corresponding dim is unlimited
+@param range (out) the range of chunks covered by this slice
+@return NC_EXX error code
+*/
 static int
 compute_intersection(
         const NCZSlice* slice,
-	const size64_t chunklen,
+	size64_t chunklen,
+	unsigned char isunlimited,
         NCZChunkRange* range)
 {
     range->start = floordiv(slice->start, chunklen);
@@ -53,6 +67,9 @@ compute_intersection(
 
 /**
 Compute the projection of a slice as applied to n'th chunk.
+A projection defines the set of grid points touched within a
+chunk by a slice. This set of points is the "projection"
+of the slice onto the chunk.
 This is somewhat complex because:
 1. for the first projection, the start is the slice start,
    but after that, we have to take into account that for
@@ -295,4 +312,3 @@ clearallprojections(NCZAllProjections* nap)
     }
 }
 #endif
-

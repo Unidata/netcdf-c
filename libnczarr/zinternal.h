@@ -22,9 +22,6 @@
 #define NCZ_CHUNKSIZE_FACTOR (10)
 #define NCZ_MIN_CHUNK_SIZE (2)
 
-/* An attribute in the ZARR root group of this name means that the
- * file must follow strict netCDF classic format rules. */
-#define NCZ_NC3_STRICT_ATT_NAME "_nc3_strict"
 
 /**************************************************/
 /* Constants */
@@ -62,43 +59,54 @@
 /* V2 Reserved Attributes */
 /*
 Inserted into /.zgroup
-_NCZARR_SUPERBLOCK: {"version": "2.0.0"}
+_nczarr_superblock: {"version": "2.0.0"}
 Inserted into any .zgroup
-"_NCZARR_GROUP": "{
+"_nczarr_group": "{
 \"dimensions\": {\"d1\": \"1\", \"d2\": \"1\",...}
 \"variables\": [\"v1\", \"v2\", ...]
 \"groups\": [\"g1\", \"g2\", ...]
 }"
 Inserted into any .zarray
-"_NCZARR_ARRAY": "{
+"_nczarr_array": "{
 \"dimensions\": [\"/g1/g2/d1\", \"/d2\",...]
 \"storage\": \"scalar\"|\"contiguous\"|\"compact\"|\"chunked\"
 }"
 Inserted into any .zattrs ? or should it go into the container?
-"_NCZARR_ATTRS": "{
+"_nczarr_attrs": "{
 \"types\": {\"attr1\": \"<i4\", \"attr2\": \"<i1\",...}
 }
++
++Note: _nczarr_attrs type include non-standard use of a zarr type "|U1" => NC_CHAR.
++
 */
 
-#define NCZ_V2_SUPERBLOCK "_NCZARR_SUPERBLOCK"
-#define NCZ_V2_GROUP   "_NCZARR_GROUP"
-#define NCZ_V2_ARRAY   "_NCZARR_ARRAY"
+#define NCZ_V2_SUPERBLOCK "_nczarr_superblock"
+#define NCZ_V2_GROUP   "_nczarr_group"
+#define NCZ_V2_ARRAY   "_nczarr_array"
 #define NCZ_V2_ATTR    NC_NCZARR_ATTR
 
+#define NCZ_V2_SUPERBLOCK_UC "_NCZARR_SUPERBLOCK"
+#define NCZ_V2_GROUP_UC   "_NCZARR_GROUP"
+#define NCZ_V2_ARRAY_UC   "_NCZARR_ARRAY"
+#define NCZ_V2_ATTR_UC    NC_NCZARR_ATTR_UC
+
+#define NCZARRCONTROL "nczarr"
 #define PUREZARRCONTROL "zarr"
 #define XARRAYCONTROL "xarray"
 #define NOXARRAYCONTROL "noxarray"
+#define XARRAYSCALAR "_scalar_"
 
 #define LEGAL_DIM_SEPARATORS "./"
 #define DFALT_DIM_SEPARATOR '.'
 
 #define islegaldimsep(c) ((c) != '\0' && strchr(LEGAL_DIM_SEPARATORS,(c)) != NULL)
 
-/* Mnemonics */
-#define ZCLOSE    1 /* this is closeorabort as opposed to enddef */
+/* Default max string length for fixed length strings */
+#define NCZ_MAXSTR_DEFAULT 128
 
 /* Mnemonics */
-#define ZCLOSE    1 /* this is closeorabort as opposed to enddef */
+#define ZCLOSE	 1 /* this is closeorabort as opposed to enddef */
+#define ZREADING 1 /* this is reading data rather than writing */
 
 /* Useful macro */
 #define ncidforx(file,grpid) ((file)->controller->ext_ncid | (grpid))
@@ -134,9 +142,9 @@ typedef struct NCZ_FILE_INFO {
 	    unsigned long release;
 	} nczarr_version;
     } zarr;
-    int created; /* 1=> created 0=>open */
+    int creating; /* 1=> created 0=>open */
     int native_endianness; /* NC_ENDIAN_LITTLE | NC_ENDIAN_BIG */
-    char** envv_controls; /* Envv format */
+    NClist* controllist; /* Envv format */
     struct Controls {
         size64_t flags;
 #		define FLAG_PUREZARR    1
@@ -146,6 +154,7 @@ typedef struct NCZ_FILE_INFO {
 #		define FLAG_NCZARR_V1   16
 	NCZM_IMPL mapimpl;
     } controls;
+    int default_maxstrlen; /* default max str size for variables of type string */
 } NCZ_FILE_INFO_T;
 
 /* This is a struct to handle the dim metadata. */
@@ -186,6 +195,7 @@ typedef struct NCZ_VAR_INFO {
     struct NClist* xarray; /* names from _ARRAY_DIMENSIONS */
     char dimension_separator; /* '.' | '/' */
     NClist* incompletefilters;
+    int maxstrlen; /* max length of strings for this variable */
 } NCZ_VAR_INFO_T;
 
 /* Struct to hold ZARR-specific info for a field. */
@@ -243,6 +253,7 @@ int ncz_closeorabort(NC_FILE_INFO_T*, void* params, int abort);
 
 /* zclose.c */
 int ncz_close_ncz_file(NC_FILE_INFO_T* file, int abort);
+int NCZ_zclose_var1(NC_VAR_INFO_T* var);
 
 /* zattr.c */
 int ncz_getattlist(NC_GRP_INFO_T *grp, int varid, NC_VAR_INFO_T **varp, NCindex **attlist);

@@ -21,6 +21,7 @@
 #define SMALLTABLE
 
 #ifdef CATCH
+/* Warning: do not evalue x more than once */
 #define THROW(x) throw(x)
 static void breakpoint(void) {}
 static int ignore[] = {0};

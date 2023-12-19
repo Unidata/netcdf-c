@@ -33,11 +33,22 @@ defined and missing types defined.
 */
 
 #ifdef _WIN32
+
 #ifndef HAVE_SSIZE_T
 #include <basetsd.h>
 typedef SSIZE_T ssize_t;
 #define HAVE_SSIZE_T 1
 #endif
+
+#ifndef HAVE_MODE_T
+typedef int mode_t;
+#define HAVE_MODE_T 1
+#endif
+
+#ifndef F_OK
+#define F_OK 00
+#endif
+
 #endif
 
 /*Warning: Cygwin with -ansi does not define these functions
@@ -50,7 +61,7 @@ extern "C" {
 #endif
 
 /* WARNING: in some systems, these functions may be defined as macros, so check */
-#ifndef HAVE_STRDUP
+#if ! defined(HAVE_STRDUP) || defined(__CYGWIN__)
 #ifndef strdup
 char* strdup(const char*);
 #endif
@@ -70,7 +81,7 @@ int snprintf(char*, size_t, const char*, ...);
 
 #ifndef HAVE_STRCASECMP
 #ifndef strcasecmp
-extern int strcasecmp(const char*, const char*);
+int strcasecmp(const char*, const char*);
 #endif
 #endif
 
@@ -98,6 +109,9 @@ unsigned long long int strtoull(const char*, char**, int);
 #define strlcat(d,s,n) strcat_s((d),(n),(s))
 #endif
 
+#ifndef HAVE_STRLCPY
+#define strlcpy(d,s,n) strcpy_s((d),(n),(s))
+#endif
 
 #ifndef __MINGW32__
 #ifndef strcasecmp
@@ -118,13 +132,8 @@ unsigned long long int strtoull(const char*, char**, int);
 
 #endif /*_WIN32*/
 
-/* handle null arguments */
 #ifndef nulldup
-#ifdef HAVE_STRDUP
 #define nulldup(s) ((s)==NULL?NULL:strdup(s))
-#else
-extern char *nulldup(const char* s);
-#endif
 #endif
 
 #ifndef nulllen
@@ -162,6 +171,7 @@ typedef unsigned long long uint64_t;
 
 #ifndef _WIN32
 #ifndef HAVE_UINTPTR_T
+#ifndef uintptr_t
 #if SIZEOF_VOIDP == 8
 #define uintptr_t unsigned long
 #else
@@ -169,9 +179,14 @@ typedef unsigned long long uint64_t;
 #endif
 #endif
 #endif
+#endif
 
 #ifndef HAVE_SIZE64_T
 typedef unsigned long long size64_t;
+#endif
+
+#ifndef HAVE_SSIZE64_T
+typedef long long ssize64_t;
 #endif
 
 #ifndef HAVE_PTRDIFF_T

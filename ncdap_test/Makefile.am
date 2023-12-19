@@ -44,18 +44,26 @@ findtestserver_SOURCES = findtestserver.c
 pingurl_SOURCES = pingurl.c
 
 if BUILD_UTILITIES
-TESTS += tst_ber.sh tst_remote3.sh tst_formatx.sh testurl.sh tst_fillmismatch.sh tst_zero_len_var.sh tst_encode.sh
+TESTS += tst_ber.sh tst_remote3.sh tst_formatx.sh testurl.sh tst_fillmismatch.sh tst_zero_len_var.sh
 endif
+
+# Remote servers
+# iridl.ldeo.columbia.edu
+TESTS += tst_encode.sh
+# test.opendap.org
+TESTS += tst_hyrax.sh
 
 TESTS += test_partvar
 
 if ENABLE_DAP_LONG_TESTS
  TESTS += tst_longremote3.sh
  tst_longremote3.log: tst_remote3.log
+if ENABLE_EXTERNAL_SERVER_TESTS
  test_manyurls_SOURCES = test_manyurls.c manyurls.h
  check_PROGRAMS += test_manyurls
- TESTS += test_manyurls
  test_manyurls.log: tst_longremote3.log
+ TESTS += test_manyurls
+endif
 endif
 
 test_partvar_SOURCES = test_partvar.c
@@ -85,7 +93,7 @@ endif #ENABLE_DAP_REMOTE_TESTS
 endif #ENABLE_DAP
 
 # Need to add subdirs
-SUBDIRS = testdata3 expected3 expectremote3
+SUBDIRS = testdata3 expected3 expectremote3 expectedhyrax
 
 EXTRA_DIST = tst_ncdap3.sh  \
              tst_remote3.sh \
@@ -93,7 +101,7 @@ EXTRA_DIST = tst_ncdap3.sh  \
 	     tst_zero_len_var.sh \
              tst_filelists.sh tst_urls.sh tst_utils.sh \
 	     t_dap.c CMakeLists.txt tst_formatx.sh testauth.sh testurl.sh \
-	     t_ncf330.c tst_ber.sh tst_fillmismatch.sh tst_encode.sh \
+	     t_ncf330.c tst_ber.sh tst_fillmismatch.sh tst_encode.sh tst_hyrax.sh \
 	     findtestserver.c.in
 
 CLEANFILES = test_varm3 test_cvt3 file_results/* remote_results/* datadds* t_dap3a test_nstride_cached *.exe tmp*.txt
@@ -123,6 +131,7 @@ clean-local: clean-local-check
 clean-local-check:
 	-rm -rf results
 	-rm -f .dodsrc
+	-rm -fr testdir_* testset_*
 
 # If valgrind is present, add valgrind targets.
 @VALGRIND_CHECK_RULES@

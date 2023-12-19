@@ -815,7 +815,7 @@ compute_var_shape(NC *ncp)
     ncp->recsize   = 0;
 
     for (i=0; i<ncp->vars.ndefined; i++) {
-        sprintf(xloc,"var %s:",ncp->vars.value[i]->name);
+        snprintf(xloc,sizeof(xloc),"var %s:",ncp->vars.value[i]->name);
         /* check if dimids are valid */
         for (j=0; j<ncp->vars.value[i]->ndims; j++) {
             if (ncp->vars.value[i]->dimids[j] < 0) {
@@ -1464,7 +1464,7 @@ val_get_NC_attr(int          fd,
         return status;
     }
 
-    sprintf(xloc,"%s \"%s\"",loc,name);
+    snprintf(xloc,sizeof(xloc),"%s \"%s\"",loc,name);
     err = val_get_nc_type(fd, gbp, &xtype, xloc);
     if (err != NC_NOERR) {
         if (name != NULL) free(name);
@@ -1575,7 +1575,7 @@ val_get_NC_attrarray(int           fd,
         }
 #endif
     } else {
-        sprintf(xloc, "%s attribute", loc);
+        snprintf(xloc, sizeof(xloc), "%s attribute", loc);
         if (tag != NC_ATTRIBUTE) {
             if (verbose) printf("Error @ [0x%8.8zx]:\n", tag_err_addr);
             if (verbose) printf("\t%s: Invalid NC component tag (%d), expecting NC_ATTRIBUTE (%d)\n",xloc,tag,NC_ATTRIBUTE);
@@ -1698,7 +1698,7 @@ val_get_NC_var(int          fd,
     if (trace) printf("\t\tname = \"%s\"\n", name);
 
     /* read number of dimensions */
-    sprintf(xloc,"%s \"%s\"",loc,name);
+    snprintf(xloc,sizeof(xloc),"%s \"%s\"",loc,name);
     err_addr = ERR_ADDR;
     err = hdr_get_NON_NEG(fd, gbp, &ndims);
     if (err != NC_NOERR) {
@@ -1760,7 +1760,7 @@ val_get_NC_var(int          fd,
 
     /* var = name nelems [dimid ...] vatt_list nc_type vsize begin
      *                               ^^^^^^^^^                     */
-    sprintf(xloc,"%s \"%s\"",loc,name);
+    snprintf(xloc,sizeof(xloc),"%s \"%s\"",loc,name);
     err = val_get_NC_attrarray(fd, gbp, &varp->attrs, xloc);
     if (err != NC_NOERR && err != NC_ENULLPAD) {
         free_NC_var(varp);

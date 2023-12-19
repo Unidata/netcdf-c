@@ -28,6 +28,7 @@
 #include <direct.h>
 #endif
 #include <locale.h>
+
 #include "netcdf.h"
 #include "ncpathmgr.h"
 #include "nclog.h"
@@ -167,6 +168,7 @@ done:
     }
     nullfree(tmp1);
     clearPath(&inparsed);
+    //fprintf(stderr,">>> ncpathcvt: inpath=%s result=%s\n",inpath,result);
     return result;
 }
 

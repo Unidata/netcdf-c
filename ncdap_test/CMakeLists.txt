@@ -48,18 +48,22 @@ IF(ENABLE_TESTS)
         SET_TESTS_PROPERTIES(ncdap_tst_remote3 PROPERTIES RUN_SERIAL TRUE)
       ENDIF(HAVE_BASH)
       add_sh_test(ncdap tst_zero_len_var)
-      add_sh_test(ncdap tst_encode)
-      # not yet      add_sh_test(ncdap tst_hyrax)
       add_sh_test(ncdap tst_fillmismatch)
       IF(ENABLE_DAP_LONG_TESTS)
-        add_sh_test(ncdap tst_longremote3)
-        add_bin_test(ncdap test_manyurls)
-        SET_TESTS_PROPERTIES(ncdap_tst_longremote3 ncdap_test_manyurls PROPERTIES RUN_SERIAL TRUE)
+        add_sh_test(ncdap tst_longremote3)	
+        SET_TESTS_PROPERTIES(ncdap_tst_longremote3 PROPERTIES RUN_SERIAL TRUE)
       ENDIF(ENABLE_DAP_LONG_TESTS)
-
-      
-
+      IF(TRUE)
+        # Apparently iridl.ldeo.columbia.edu is down for now
+        add_sh_test(ncdap tst_encode)
+        # not yet fixed
+        add_sh_test(ncdap tst_hyrax)
+      ENDIF()
     ENDIF(BUILD_UTILITIES)
+    IF(ENABLE_EXTERNAL_SERVER_TESTS)
+          add_bin_test(ncdap test_manyurls)
+          SET_TESTS_PROPERTIES(ncdap_test_manyurls PROPERTIES RUN_SERIAL TRUE)
+    ENDIF()
 
     IF(ENABLE_DAP_AUTH_TESTS)
 ##obsolete      add_bin_test(ncdap t_auth)

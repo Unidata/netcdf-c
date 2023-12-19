@@ -6,8 +6,11 @@
 
 name: Run macOS-based netCDF Tests
 
+on: [pull_request,workflow_dispatch]
 
-on: [pull_request]
+concurrency:  
+  group: ${{ github.workflow}}-${{ github.head_ref }}  
+  cancel-in-progress: true
 
 jobs:
 
@@ -17,18 +20,18 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.12.1 ]
+        hdf5: [ 1.12.2, 1.14.0 ]
 
     steps:
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
         ###
         # libhdf5
         ###
       - name: Cache libhdf5-${{ runner.os }}-${{ matrix.hdf5 }}
         id: cache-hdf5-osx
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/environments/${{ matrix.hdf5 }}
           key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
@@ -54,14 +57,13 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.12.1 ]
-        #hdf5: [ 1.8.21, 1.10.1, 1.10.7, 1.12.1 ]
+        hdf5: [ 1.12.2, 1.14.0 ]
         use_nc4: [ nc3, nc4 ]
         use_dap: [ dap_off, dap_on ]
         use_nczarr: [ nczarr_off, nczarr_on ]
     steps:
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
 ###
 # Set Environmental Variables
@@ -93,7 +95,7 @@ jobs:
 
       - name: Fetch HDF Cache
         id: cache-hdf-osx
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/environments/${{ matrix.hdf5 }}
           key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
@@ -161,13 +163,13 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.12.1 ]
+        hdf5: [ 1.12.2, 1.14.0 ]
         use_nc4: [ nc3, nc4 ]
         use_dap: [ dap_off, dap_on ]
         use_nczarr: [ nczarr_off, nczarr_on ]
     steps:
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
 ###
 # Set Environmental Variables
@@ -199,7 +201,7 @@ jobs:
 
       - name: Fetch HDF Cache
         id: cache-hdf5-osx
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/environments/${{ matrix.hdf5 }}
           key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
@@ -257,10 +259,10 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.12.1 ]
+        hdf5: [ 1.12.2, 1.14.0 ]
     steps:
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
 ###
 # Set Environmental Variables
@@ -277,7 +279,7 @@ jobs:
 
       - name: Fetch HDF Cache
         id: cache-hdf-osx
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/environments/${{ matrix.hdf5 }}
           key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
@@ -300,7 +302,7 @@ jobs:
 
       - name: Configure
         shell: bash -l {0}
-        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests
+        run: CFLAGS=${CFLAGS} LDFLAGS=${LDFLAGS} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./configure --enable-hdf5 --enable-dap --disable-dap-remote-tests --disable-xml2
         if: ${{ success() }}
 
       - name: Look at config.log if error
@@ -338,11 +340,11 @@ jobs:
 
     strategy:
       matrix:
-        hdf5: [ 1.12.1 ]
+        hdf5: [ 1.12.2, 1.14.0 ]
 
     steps:
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
 ###
 # Set Environmental Variables
@@ -357,7 +359,7 @@ jobs:
 
       - name: Fetch HDF Cache
         id: cache-hdf5-osx
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/environments/${{ matrix.hdf5 }}
           key: hdf5-${{ runner.os }}-${{ matrix.hdf5 }}
@@ -375,7 +377,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DENABLE_DAP=TRUE -DENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -D ENABLE_DAP_LONG_TESTS=TRUE
+          LD_LIBRARY_PATH=${LD_LIBRARY_PATH} cmake .. -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} -DENABLE_DAP=TRUE -DENABLE_HDF5=TRUE -DENABLE_NCZARR=TRUE -D ENABLE_DAP_LONG_TESTS=TRUE -DENABLE_XML2=FALSE
 
       - name: Print Summary
         shell: bash -l {0}

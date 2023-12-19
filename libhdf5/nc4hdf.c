@@ -470,12 +470,6 @@ put_att_grpa(NC_GRP_INFO_T *grp, int varid, NC_ATT_INFO_T *att)
      * some phoney data (which won't be written anyway.)*/
     if (!dims[0])
         data = &phoney_data;
-#ifdef SEPDATA
-    else if (att->vldata)
-        data = att->vldata;
-    else if (att->stdata)
-        data = att->stdata;
-#endif
     else
         data = att->data;
 
@@ -681,6 +675,67 @@ exit:
 }
 
 /**
+ * @internal When nc_def_var_quantize() is used, a new attribute is
+ * added to the var, containing the quantize information.
+ *
+ * @param var Pointer to var info struct.
+ *
+ * @returns NC_NOERR No error.
+ * @returns NC_EHDFERR HDF5 returned an error.
+ * @author Ed Hartnett
+ */
+static int
+write_quantize_att(NC_VAR_INFO_T *var)
+{
+    NC_HDF5_VAR_INFO_T *hdf5_var;
+    hsize_t len = 1;
+    hid_t c_spaceid = -1, c_attid = -1;
+    char att_name[NC_MAX_NAME + 1];
+    int retval = NC_NOERR;
+
+    assert(var && var->format_var_info);
+
+    /* Get HDF5-specific var info. */
+    hdf5_var = (NC_HDF5_VAR_INFO_T *)var->format_var_info;
+
+    /* Different quantize algorithms get different attribute names. */
+    switch (var->quantize_mode)
+    {
+	case NC_QUANTIZE_BITGROOM:
+	    snprintf(att_name, sizeof(att_name), "%s", NC_QUANTIZE_BITGROOM_ATT_NAME);
+	    break;
+	case NC_QUANTIZE_GRANULARBR:
+	    snprintf(att_name, sizeof(att_name), "%s", NC_QUANTIZE_GRANULARBR_ATT_NAME);
+	    break;
+	case NC_QUANTIZE_BITROUND:
+	    snprintf(att_name, sizeof(att_name), "%s", NC_QUANTIZE_BITROUND_ATT_NAME);
+	   break;
+        default:
+	    return NC_EINVAL;
+    }
+
+    /* Set up space for attribute. */
+    if ((c_spaceid = H5Screate_simple(1, &len, &len)) < 0)
+        BAIL(NC_EHDFERR);
+
+    /* Create the attribute. */
+    if ((c_attid = H5Acreate1(hdf5_var->hdf_datasetid, att_name,
+                             H5T_NATIVE_INT, c_spaceid, H5P_DEFAULT)) < 0)
+        BAIL(NC_EHDFERR);
+
+    /* Write our attribute. */
+    if (H5Awrite(c_attid, H5T_NATIVE_INT, &var->nsd) < 0)
+        BAIL(NC_EHDFERR);
+
+exit:
+    if (c_spaceid >= 0 && H5Sclose(c_spaceid) < 0)
+        BAIL2(NC_EHDFERR);
+    if (c_attid >= 0 && H5Aclose(c_attid) < 0)
+        BAIL2(NC_EHDFERR);
+    return retval;
+}
+
+/**
  * @internal Write a special attribute for the netCDF-4 dimension ID.
  *
  * @param datasetid HDF5 datasset ID.
@@ -859,11 +914,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
                     BAIL(NC_EFILTER);
             } else {
                 herr_t code = H5Pset_filter(plistid, fi->filterid,
-#if 1
-                                            H5Z_FLAG_MANDATORY,
-#else
-                                            H5Z_FLAG_OPTIONAL,
-#endif
+                                            H5Z_FLAG_OPTIONAL, /* always make optional so filters on vlens are ignored */
                                            fi->nparams, fi->params);
 		if(code < 0)
                     BAIL(NC_EFILTER);
@@ -1015,19 +1066,8 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
      * single integer which is the number of significant digits 
      * (NSD, for BitGroom and Granular BitRound) or number of significant bits
      * (NSB, for BitRound). */
-    if (var->quantize_mode == NC_QUANTIZE_BITGROOM)
-	if ((retval = nc4_put_att(var->container, var->hdr.id, NC_QUANTIZE_BITGROOM_ATT_NAME, NC_INT, 1,
-				  &var->nsd, NC_INT, 0)))
-	    BAIL(retval);
-
-    if (var->quantize_mode == NC_QUANTIZE_GRANULARBR)
-	if ((retval = nc4_put_att(var->container, var->hdr.id, NC_QUANTIZE_GRANULARBR_ATT_NAME, NC_INT, 1,
-				  &var->nsd, NC_INT, 0)))
-	    BAIL(retval);
-
-    if (var->quantize_mode == NC_QUANTIZE_BITROUND)
-	if ((retval = nc4_put_att(var->container, var->hdr.id, NC_QUANTIZE_BITROUND_ATT_NAME, NC_INT, 1,
-				  &var->nsd, NC_INT, 0)))
+    if (var->quantize_mode)
+	if ((retval = write_quantize_att(var)))
 	    BAIL(retval);
 
     /* Write attributes for this var. */
@@ -1104,8 +1144,8 @@ nc4_adjust_var_cache(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var)
         if (chunk_size_bytes > var->chunkcache.size)
         {
             var->chunkcache.size = chunk_size_bytes * DEFAULT_CHUNKS_IN_CACHE;
-            if (var->chunkcache.size > MAX_DEFAULT_CACHE_SIZE)
-                var->chunkcache.size = MAX_DEFAULT_CACHE_SIZE;
+            if (var->chunkcache.size > DEFAULT_CHUNK_CACHE_SIZE)
+                var->chunkcache.size = DEFAULT_CHUNK_CACHE_SIZE;
             if ((retval = nc4_reopen_dataset(grp, var)))
                 return retval;
         }
@@ -1718,8 +1758,6 @@ write_var(NC_VAR_INFO_T *var, NC_GRP_INFO_T *grp, nc_bool_t write_dimid)
  * coordinate variable. This is a special 1-D dataset.
  *
  * @param dim Pointer to dim info struct.
- * @param grp Pointer to group info struct.
- * @param write_dimid
  *
  * @returns ::NC_NOERR No error.
  * @returns ::NC_EPERM Read-only file.
@@ -1788,7 +1826,7 @@ nc4_create_dim_wo_var(NC_DIM_INFO_T *dim)
     /* Indicate that this is a scale. Also indicate that not
      * be shown to the user as a variable. It is hidden. It is
      * a DIM WITHOUT A VARIABLE! */
-    sprintf(dimscale_wo_var, "%s%10d", DIM_WITHOUT_VARIABLE, (int)dim->len);
+    snprintf(dimscale_wo_var, sizeof(dimscale_wo_var), "%s%10d", DIM_WITHOUT_VARIABLE, (int)dim->len);
     if (H5DSset_scale(hdf5_dim->hdf_dimscaleid, dimscale_wo_var) < 0)
         BAIL(NC_EHDFERR);
 
@@ -2219,7 +2257,7 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
                     if (match < 0)
                     {
                         char phony_dim_name[NC_MAX_NAME + 1];
-                        sprintf(phony_dim_name, "phony_dim_%d", grp->nc4_info->next_dimid);
+                        snprintf(phony_dim_name, sizeof(phony_dim_name), "phony_dim_%d", grp->nc4_info->next_dimid);
                         LOG((3, "%s: creating phony dim for var %s", __func__, var->hdr.name));
                         if ((retval = nc4_dim_list_add(grp, phony_dim_name, h5dimlen[d], -1, &dim)))
                         {

@@ -74,7 +74,7 @@ main(int argc, char **argv)
         if (nc_def_dim(ncid, DIM2_NAME, DIM2_LEN, &dimid[2])) ERR;
         for (v = 0; v < NUM_VAR; v++)
         {
-            sprintf(name, "var_%d", v);
+            snprintf(name, sizeof(name), "var_%d", v);
             if (nc_def_var(ncid, name, NC_FLOAT, NDIM3, dimid, &varid[v])) ERR;
             if (nc_def_var_chunking(ncid, v, NC_CHUNKED, chunksize)) ERR;
         }
@@ -103,8 +103,8 @@ main(int argc, char **argv)
             {
                 /* Create a copy of file_out. This will defeat any OS
                  * buffering. */
-                sprintf(file_2, "tst_copy_%d_%s", c, FILE_NAME);
-                sprintf(cmd, "cp %s %s\n", FILE_NAME, file_2);
+                snprintf(file_2, sizeof(file_2), "tst_copy_%d_%s", c, FILE_NAME);
+                snprintf(cmd, sizeof(cmd), "cp %s %s\n", FILE_NAME, file_2);
                 system(cmd);
             }
             else

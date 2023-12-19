@@ -1,0 +1,14 @@
+netcdf ref_nulls {
+dimensions:
+	_scalar_ = 1 ;
+variables:
+	int test(_scalar_) ;
+		test:nul_sng = 0 ;
+		test:empty_sng = "" ;
+		test:space_sng = " " ;
+		test:zero_sng = 0 ;
+		test:nul0 = 0 ;
+data:
+
+ test = 1 ;
+}

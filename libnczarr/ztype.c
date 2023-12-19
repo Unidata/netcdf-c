@@ -147,7 +147,7 @@ NCZ_inq_typeids(int ncid, int *ntypes, int *typeids)
  * @param size Size in bytes of new type.
  * @param name Name of new type.
  * @param base_typeid Base type ID.
- * @param type_class NC_VLEN, NC_ENUM, or NC_STRING
+ * @param type_class NC_VLEN, NC_ENUM
  * @param typeidp Pointer that gets new type ID.
  *
  * @return ::NC_NOERR No error.
@@ -227,6 +227,8 @@ add_user_type(int ncid, size_t size, const char *name, nc_type base_typeid,
         type->u.e.enum_member = nclistnew();
     } else if (type_class == NC_COMPOUND)
         type->u.c.field = nclistnew();
+
+    (void)NC4_set_varsize(type);
 
     /* Return the typeid to the user. */
     if (typeidp)
@@ -337,6 +339,8 @@ NCZ_insert_array_compound(int ncid, int typeid1, const char *name,
     if ((retval = ncz_field_list_add(type, norm_name, offset, field_typeid,
                                      ndims, dim_sizesp)))
         return retval;
+
+    NC4_recheck_varsize(type,field_typeid);
 
     return NC_NOERR;
 }

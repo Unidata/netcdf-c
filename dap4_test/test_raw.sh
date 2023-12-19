@@ -9,12 +9,7 @@ set -e
 
 echo "test_raw.sh:"
 
-# Compute the set of testfiles
-cd ${srcdir}/daptestfiles
-F=`ls -1d *.dap`
-cd -
-F=`echo $F | tr '\r\n' '  '`
-F=`echo $F | sed -e s/.dap//g`
+computetestablefiles
 
 # Do cleanup on the baseline file
 baseclean() {
@@ -44,25 +39,25 @@ resultclean() {
 
 setresultdir results_test_raw
 
-if test "x${RESET}" = x1 ; then rm -fr ${BASELINERAW}/*.dmp ; fi
+if test "x${RESET}" = x1 ; then rm -fr ${BASELINERAW}/*.ncdump ; fi
 for f in $F ; do
     echo "testing: $f"
-    URL="[log][dap4]file://${DAPTESTFILES}/${f}"
-    if ! ${NCDUMP} "${URL}" > ${builddir}/results_test_raw/${f}.dmp; then
+    URL="file://${RAWTESTFILES}/${f}?dap4.checksum=false#log&dap4"
+    if ! ${NCDUMP} ${DUMPFLAGS} "${URL}" > ${builddir}/results_test_raw/${f}.ncdump; then
         failure "${URL}"
     fi
     if test "x${TEST}" = x1 ; then
-	if ! diff -wBb ${BASELINERAW}/${f}.dmp ${builddir}/results_test_raw/${f}.dmp ; then
-	    failure "diff ${f}.dmp"
+	if ! diff -wBb ${BASELINERAW}/${f}.ncdump ${builddir}/results_test_raw/${f}.ncdump ; then
+	    failure "diff ${f}.ncdump"
 	fi
     elif test "x${RESET}" = x1 ; then
 	echo "${f}:"
-	cp ${builddir}/results_test_raw/${f}.dmp ${BASELINERAW}/${f}.dmp
+	cp ${builddir}/results_test_raw/${f}.ncdump ${BASELINERAW}/${f}.ncdump
     elif test "x${DIFF}" = x1 ; then
 	echo "hdrtest: ${f}"
 	baseclean
-        if ! diff -wBb ${BASELINERAW}/${f}.dmp ${BASELINE}/${f}.ncdump ; then
-          failure diff -wBb ${BASELINERAW}/${f}.dmp ${BASELINE}/${f}.ncdump
+        if ! diff -wBb ${BASELINERAW}/${f}.ncdump ${BASELINE}/${f}.ncdump ; then
+          failure diff -wBb ${BASELINERAW}/${f}.ncdump ${BASELINE}/${f}.ncdump
 	fi
     fi
 done

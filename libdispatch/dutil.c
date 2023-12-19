@@ -279,12 +279,13 @@ done:
 int
 NC_readfileF(FILE* stream, NCbytes* content, long long amount)
 {
+#define READ_BLOCK_SIZE 4194304
     int ret = NC_NOERR;
     long long red = 0;
-    char part[1024];
+    char *part = (char*) malloc(READ_BLOCK_SIZE);
 
     while(amount < 0 || red < amount) {
-	size_t count = fread(part, 1, sizeof(part), stream);
+	size_t count = fread(part, 1, READ_BLOCK_SIZE, stream);
 	if(ferror(stream)) {ret = NC_EIO; goto done;}
 	if(count > 0) ncbytesappendn(content,part,(unsigned long)count);
 	red += count;
@@ -297,6 +298,7 @@ NC_readfileF(FILE* stream, NCbytes* content, long long amount)
     }
     ncbytesnull(content);
 done:
+    free(part);
     return ret;
 }
 
@@ -394,9 +396,11 @@ done:
     return found;
 }
 
-#if ! defined __INTEL_COMPILER 
+#if ! defined __INTEL_COMPILER
 #if defined __APPLE__ 
 /** \internal */
+
+#if ! defined HAVE_DECL_ISINF
 
 int isinf(double x)
 {
@@ -406,6 +410,9 @@ int isinf(double x)
            ( (unsigned)ieee754.u == 0 );
 }
 
+#endif /* HAVE_DECL_ISINF */
+
+#if ! defined HAVE_DECL_ISNAN
 /** \internal */
 int isnan(double x)
 {
@@ -414,6 +421,8 @@ int isnan(double x)
     return ( (unsigned)(ieee754.u >> 32) & 0x7fffffff ) +
            ( (unsigned)ieee754.u != 0 ) > 0x7ff00000;
 }
+
+#endif /* HAVE_DECL_ISNAN */
 
 #endif /*APPLE*/
 #endif /*!_INTEL_COMPILER*/

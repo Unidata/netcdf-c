@@ -74,9 +74,6 @@ are set when opening a binary file on Windows. */
 /* Define if building universal (internal helper macro) */
 #cmakedefine AC_APPLE_UNIVERSAL_BUILD 1
 
-/* If true, will attempt to download and build netcdf-fortran. */
-#cmakedefine BUILD_FORTRAN 1
-
 /* default file chunk cache nelems. */
 #cmakedefine CHUNK_CACHE_NELEMS ${CHUNK_CACHE_NELEMS}
 
@@ -86,9 +83,6 @@ are set when opening a binary file on Windows. */
 /* default file chunk cache size in bytes. */
 #cmakedefine CHUNK_CACHE_SIZE ${CHUNK_CACHE_SIZE}
 
-/* default nczarr chunk cache size in bytes. */
-#cmakedefine CHUNK_CACHE_SIZE_NCZARR ${CHUNK_CACHE_SIZE_NCZARR}
-
 /* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
    systems. This function is required for `alloca.c' support on those systems.
    */
@@ -97,7 +91,16 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if using `alloca.c'. */
 #cmakedefine C_ALLOCA 1
 
-/* num chunks in default per-var chunk cache. */
+/* default num chunks per cache. */
+#cmakedefine DEFAULT_CHUNKS_CACHE_SIZE ${DEFAULT_CHUNKS_CACHE_SIZE}
+
+/* default num chunks per cache. */
+#cmakedefine DEFAULT_CHUNK_CACHE_PREEMPTION ${DEFAULT_CHUNK_CACHE_PREEMPTION}
+
+/* default total chunks cache size. */
+#cmakedefine DEFAULT_CHUNK_CACHE_SIZE ${DEFAULT_CHUNK_CACHE_SIZE}
+
+/* default num chunks per cache. */
 #cmakedefine DEFAULT_CHUNKS_IN_CACHE ${DEFAULT_CHUNKS_IN_CACHE}
 
 /* default chunk size in bytes */
@@ -114,6 +117,12 @@ are set when opening a binary file on Windows. */
 
 /* if true, build byte-range Client */
 #cmakedefine ENABLE_BYTERANGE 1
+
+/* if true, enable ERANGE fill */
+#cmakedefine ENABLE_ERANGE_FILL 1
+#ifdef ENABLE_ERANGE_FILL
+#define ERANGE_FILL 1
+#endif
 
 /* if true, use hdf5 S3 virtual file reader */
 #cmakedefine ENABLE_HDF5_ROS3 1
@@ -142,20 +151,29 @@ are set when opening a binary file on Windows. */
 /* if true, enable nczarr filter support */
 #cmakedefine ENABLE_NCZARR_FILTERS 1
 
-/* if true, enable S3 support */
-#cmakedefine ENABLE_NCZARR_S3 1
-
 /* if true, enable nczarr zip support */
 #cmakedefine ENABLE_NCZARR_ZIP 1
 
-/* if true, enable S3 testing*/
-#cmakedefine ENABLE_NCZARR_S3_TESTS 1
-
-/* if true, S3 SDK is available */
-#cmakedefine ENABLE_S3_SDK 1
-
 /* if true, Allow dynamically loaded plugins */
 #cmakedefine ENABLE_PLUGINS 1
+
+/* if true, enable S3 support */
+#cmakedefine ENABLE_S3 1
+
+/* if true, AWS S3 SDK is available */
+#cmakedefine ENABLE_S3_AWS 1
+
+/* if true, Force use of S3 internal library */
+#cmakedefine ENABLE_S3_INTERNAL 1
+
+/* if true, enable S3 testing*/
+#cmakedefine WITH_S3_TESTING "PUBLIC"
+
+/* S3 Test Bucket */
+#define S3TESTBUCKET "${S3TESTBUCKET}"
+
+/* S3 Working subtree path prefix*/
+#define S3TESTSUBTREE "${S3TESTSUBTREE}"
 
 /* if true, run extra tests which may not work yet */
 #cmakedefine EXTRA_TESTS 1
@@ -331,6 +349,9 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the `snprintf' function. */
 #cmakedefine HAVE_SNPRINTF 1
 
+/* Define to 1 if the system has the type `mode_t'. */
+#cmakedefine HAVE_MODE_T 1
+
 /* Define to 1 if the system has the type `ssize_t'. */
 #cmakedefine HAVE_SSIZE_T 1
 
@@ -351,6 +372,9 @@ are set when opening a binary file on Windows. */
 
 /* Define to 1 if you have the <stdlib.h> header file. */
 #cmakedefine HAVE_STDLIB_H 1
+
+/* Define to 1 if you have the <ctype.h> header file. */
+#cmakedefine HAVE_CTYPE_H 1
 
 /* Define to 1 if you have the <strings.h> header file. */
 #cmakedefine HAVE_STRINGS_H 1
@@ -378,6 +402,9 @@ are set when opening a binary file on Windows. */
 
 /* Define to 1 if you have the `strlcat' function. */
 #cmakedefine HAVE_STRLCAT 1
+
+/* Define to 1 if you have the `strlcpy' function. */
+#cmakedefine HAVE_STRLCPY 1
 
 /* Define to 1 if you have the `strtoll' function. */
 #cmakedefine HAVE_STRTOLL 1
@@ -452,9 +479,6 @@ with zip */
 
 /* If true, define nc_set_log_level. */
 #cmakedefine ENABLE_SET_LOG_LEVEL 1
-
-/* max size of the default per-var chunk cache. */
-#cmakedefine MAX_DEFAULT_CACHE_SIZE ${MAX_DEFAULT_CACHE_SIZE}
 
 /* min blocksize for posixio. */
 #cmakedefine NCIO_MINBLOCKSIZE ${NCIO_MINBLOCKSIZE}

@@ -83,7 +83,7 @@ int main(int argc, char **argv)
    facc_type_open = 0;
 
    /* Create file name. */
-   sprintf(file_name, "%s/%s", TEMP_LARGE, FILE_NAME);
+   snprintf(file_name, sizeof(file_name), "%s/%s", TEMP_LARGE, FILE_NAME);
 
    /* Test NetCDF4 with MPI-IO driver */
    if (mpi_rank == 0)

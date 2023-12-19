@@ -70,7 +70,7 @@ main(int argc, char **argv) {
     char testfile[NC_MAX_NAME + 1];
 
     printf("\n*** Testing files with one very big variable.\n");
-    sprintf(testfile, "%s/%s", TEMP_LARGE, FILE_NAME);
+    snprintf(testfile, sizeof(testfile), "%s/%s", TEMP_LARGE, FILE_NAME);
     for (i = NC_FORMAT_CLASSIC; i <= NUM_FORMATS; i++)
     {
        printf("*** testing format %d file with byte variable with > 2**32 values...", i);

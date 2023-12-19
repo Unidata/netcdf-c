@@ -10,7 +10,7 @@
 #define strcasecmp _stricmp
 #endif
 
-int nclistnull(void* e) {return e == NULL;}
+int nclistisnull(void* e) {return e == NULL;}
 
 #ifndef TRUE
 #define TRUE 1
@@ -31,7 +31,7 @@ NClist* nclistnew(void)
     ncinitialized = 1;
   }
 */
-  l = (NClist*)malloc(sizeof(NClist));
+  l = (NClist*)calloc(1,sizeof(NClist));
   if(l) {
     l->alloc=0;
     l->length=0;
@@ -183,6 +183,7 @@ nclistremove(NClist* l, size_t i)
   return elem;
 }
 
+/* Match on == */
 int
 nclistcontains(NClist* l, void* elem)
 {
@@ -193,7 +194,7 @@ nclistcontains(NClist* l, void* elem)
     return 0;
 }
 
-/* Return 1/0 */
+/* Match on str(case)cmp */
 int
 nclistmatch(NClist* l, const char* elem, int casesensitive)
 {
@@ -229,7 +230,6 @@ nclistelemremove(NClist* l, void* elem)
   }
   return found;
 }
-
 
 /* Extends nclist to include a unique operator
    which remove duplicate values; NULL values removed
@@ -286,9 +286,26 @@ done:
 void*
 nclistextract(NClist* l)
 {
-    void* result = l->content;
+    void* result = NULL;
+    if(l) {
+    result = l->content;
     l->alloc = 0;
     l->length = 0;
     l->content = NULL;
+    }
     return result;
 }
+
+/* Extends nclist to include a NULL that is not included
+   in list length.
+   return value is always 1.
+*/
+int
+nclistnull(NClist* l)
+{
+    if(l == NULL || l->length == 0) return 1;
+    nclistpush(l,NULL);
+    nclistsetlength(l,l->length-1);
+    return 1;
+}
+
