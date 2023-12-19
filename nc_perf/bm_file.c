@@ -462,7 +462,7 @@ int copy_file(char *file_name_in, char *file_name_out, int cmode_out,
 	      size_t *data_read_us, int *data_write_us, int *in_format, int use_par,
 	      int par_access, float *num_bytes, int p, int my_rank,
 	      int slow_count, int verbose, int use_scs, int endianness,
-	      int convert_unlim)
+	      int convert_unlim, int zstandard, int nsd)
 {
     int ncid_in, ncid_out;
     int natts, nvars, ndims, unlimdimid;
@@ -578,6 +578,9 @@ int copy_file(char *file_name_in, char *file_name_out, int cmode_out,
             /* Create the output var. */
             if (nc_def_var(ncid_out, name, xtype, ndims, dimids, &varid_out)) ERR;
 
+	    if (nsd)
+                if (nc_def_var_quantize(ncid_out, varid_out, NC_QUANTIZE_GRANULARBR, nsd)) ERR;
+
             /* Set the output endianness. For simplicity in this program,
              * all vars get the same endianness. But there's no reason why
              * this couldn't be varied from var to var, though it is hard to
@@ -598,7 +601,20 @@ int copy_file(char *file_name_in, char *file_name_out, int cmode_out,
                         if (nc_def_var_chunking(ncid_out, v, 1, NULL)) ERR;
                     }
                     if (vo[o1].deflate_num != -1)
-                        if (nc_def_var_deflate(ncid_out, v, vo[o1].shuffle, 1, vo[o1].deflate_num)) ERR;
+		    {
+			if (zstandard)
+			{
+			    int ret;
+			    if (nc_def_var_deflate(ncid_out, v, vo[o1].shuffle, 0, 0)) ERR;
+			    if ((ret = nc_def_var_zstandard(ncid_out, v, vo[o1].deflate_num)))
+			    {
+				printf("ret %d\n", ret);
+				ERR;
+			    }
+			}
+			else
+			    if (nc_def_var_deflate(ncid_out, v, vo[o1].shuffle, 1, vo[o1].deflate_num)) ERR;
+		    }
                     break;
                 }
 
@@ -780,7 +796,6 @@ int copy_file(char *file_name_in, char *file_name_out, int cmode_out,
 
 #define NDIMS 3
 #define MAX_DEFLATE 9
-#define INPUT_FILE "/upc/share/testdata/nssl/mosaic3d_nc/tile1/20070803-2300.netcdf"
 #define COLON ":"
 #define COMMA ","
 
@@ -800,13 +815,15 @@ int copy_file(char *file_name_in, char *file_name_out, int cmode_out,
   [-i]        Use MPIIO (only relevant for parallel builds).\n\
   [-l]        Convert unlimited dimensions to fixed dimensions.\n\
   [-e 1|2]    Set the endianness of output (1=little 2=big).\n\
+  [-y]        Use zstandard compression instead of zlib.\n\
+  [-q nsd]    Quantize to NSD.\n\
   file        Name of netCDF file\n"
 
 static void
 usage(void)
 {
     fprintf(stderr, "bm_file -v [-s N]|[-t V:S:S:S -u V:C:C:C -r V:I:I:I] -o file_out -f N -h"
-            " -c V:C:C,V:C:C:C -d -m -p -i -e 1|2 -l file\n%s", USAGE);
+            " -c V:C:C,V:C:C:C -d -m -p -i -e 1|2 -l -y -q N file\n%s", USAGE);
 }
 
 int
@@ -819,6 +836,7 @@ main(int argc, char **argv)
     char file_in[NC_MAX_NAME + 1], file_out[NC_MAX_NAME + 1] = {""};
     char file_out_2[NC_MAX_NAME + 10 + 1]; /* extra 10 to silence warning */
     int out_format, in_format, header = 0, doublecheck = 0;
+    int zstandard = 0;
     int convert_unlim = 0;
     char *str1, *str2, *token, *subtoken;
     char *saveptr1, *saveptr2;
@@ -839,6 +857,7 @@ main(int argc, char **argv)
     float read_rate, write_rate, reread_rate;
     int slow_count = 10, use_scs = 0;
     int endianness = 0;
+    int nsd = 0;
     float num_bytes = 0;
     int p = 1, my_rank = 0;
     int c;
@@ -857,7 +876,7 @@ main(int argc, char **argv)
         for (i = 0; i < MAX_DIMS; i++)
             vo[o1].chunksize[i] = 0;
 
-    while ((c = getopt(argc, argv, "vo:f:hc:dpms:it:u:r:e:l")) != EOF)
+    while ((c = getopt(argc, argv, "vo:f:hc:dpms:it:u:r:e:l:yq:")) != EOF)
         switch(c)
         {
         case 'v':
@@ -1000,6 +1019,12 @@ main(int argc, char **argv)
         case 'l':
 	    convert_unlim++;
 	    break;
+        case 'y':
+	    zstandard++;
+	    break;
+        case 'q':
+	    sscanf(optarg, "%d", &nsd);
+	    break;
         case '?':
 	    usage();
 	    return 1;
@@ -1060,7 +1085,7 @@ main(int argc, char **argv)
     if ((ret = copy_file(file_in, file_out, cmode, num_vo, vo, &meta_read_us, &meta_write_us,
                          &data_read_us, &data_write_us, &in_format, use_par, par_access,
                          &num_bytes, p, my_rank, slow_count, verbose, use_scs, endianness,
-                         convert_unlim)))
+                         convert_unlim, zstandard, nsd)))
         return ret;
 
     /* If the user wants a double check, make sure the data in the new
@@ -1133,7 +1158,7 @@ main(int argc, char **argv)
             if (use_par)
                 printf("num_proc, ");
             printf("deflate, shuffle, chunksize[0], chunksize[1], chunksize[2], "
-                   "chunksize[3]\n");
+                   "chunksize[3], zstandard, nsd\n");
         }
 
         printf("%d, %d, %ld, %ld, %d, %d, %ld, %d, %d, ", in_format, out_format, file_size(file_in),
@@ -1148,8 +1173,8 @@ main(int argc, char **argv)
             printf("%d, ", p);
         for (o1 = 0; o1 < num_vo; o1++)
         {
-            printf("%d, %d, %d, %d, %d, %d ", vo[o1].deflate_num, vo[o1].shuffle,
-                   (int)vo[o1].chunksize[0], (int)vo[o1].chunksize[1], (int)vo[o1].chunksize[2], (int)vo[o1].chunksize[3]);
+            printf("%d, %d, %d, %d, %d, %d, %d, %d", vo[o1].deflate_num, vo[o1].shuffle,
+                   (int)vo[o1].chunksize[0], (int)vo[o1].chunksize[1], (int)vo[o1].chunksize[2], (int)vo[o1].chunksize[3], zstandard, nsd);
             if (o1 >= MAX_VO_PRINTED)
                 break;
             if (o1 != num_vo - 1)
