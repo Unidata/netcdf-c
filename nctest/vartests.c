@@ -25,8 +25,7 @@
  *    try with bad handle, check error
  */
 int
-test_ncvarid(path)
-     const char *path;		/* name of writable netcdf file to open */
+test_ncvarid(const char *path) /* name of writable netcdf file to open */
 {
     static char pname[] = "test_ncvarid";
     int cdfid;			/* netcdf id */
@@ -104,8 +103,7 @@ test_ncvarid(path)
  *    try with bad netCDF handle, check error
  */
 int
-test_ncvarinq(path)
-     const char *path;		/* name of writable netcdf file to open */
+test_ncvarinq(const char *path) /* name of writable netcdf file to open */
 {
     int nerrs = 0;
     static char pname[] = "test_ncvarinq";
@@ -249,8 +247,7 @@ struct cdfelm {			/* coordinates and generic value */
  *    get values and compare with put values
  */
 static int
-test_varputget1(cdfid)
-     int cdfid;			/* handle of netcdf open and in data mode */
+test_varputget1(int cdfid) /* handle of netcdf open and in data mode */
 {
     int nerrs = 0;
     static char pname[] = "test_varputget1";
@@ -380,8 +377,7 @@ test_varputget1(cdfid)
  *    try with bad netCDF handle, check error
  */
 int
-test_ncvarput1(path)
-     const char *path;		/* name of writable netcdf file to open */
+test_ncvarput1(const char *path) /* name of writable netcdf file to open */
 {
     int nerrs = 0;
     static char pname[] = "test_ncvarput1";
@@ -468,8 +464,7 @@ test_ncvarput1(path)
  *    try with bad netCDF handle, check error
  */
 int
-test_ncvarget1(path)
-     const char *path;		/* name of writable netcdf file to open */
+test_ncvarget1(const char *path) /* name of writable netcdf file to open */
 {
     int nerrs = 0;
     static char pname[] = "test_ncvarget1";
@@ -556,8 +551,7 @@ test_ncvarget1(path)
  *    try renaming to existing variable name, check error
  */
 int
-test_ncvarrename(path)
-     const char *path;		/* name of writable netcdf file to open */
+test_ncvarrename(const char *path) /* name of writable netcdf file to open */
 {
     int nerrs = 0;
     static char pname[] = "test_ncvarrename";

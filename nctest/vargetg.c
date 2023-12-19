@@ -25,8 +25,7 @@
  *    try with bad netCDF handle, check error
  */
 int
-test_ncvargetg(path)
-     const char *path;		/* name of writable netcdf file to open */
+test_ncvargetg(const char *path) /* name of writable netcdf file to open */
 {
     int nerrs = 0;
     static char pname[] = "test_ncvargetg";

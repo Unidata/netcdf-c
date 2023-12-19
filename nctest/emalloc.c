@@ -12,8 +12,7 @@
 #include "emalloc.h"
 
 void *
-emalloc (size)			/* check return from malloc */
-     size_t size;
+emalloc (size_t size) /* check return from malloc */
 {
     void   *p;
 
@@ -32,9 +31,7 @@ emalloc (size)			/* check return from malloc */
 }
 
 void *
-erealloc (ptr, size)		/* check return from realloc */
-     void *ptr;
-     size_t size;
+erealloc (void *ptr, size_t size) /* check return from realloc */
 {
     void *p;
 
