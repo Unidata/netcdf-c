@@ -28,8 +28,7 @@
  * Uses: nccreate, ncendef, ncclose, ncopen.
  */
 int
-test_nccreate(path)
-     const char *path;		/* name of netCDF file to create */
+test_nccreate(const char *path) /* name of netCDF file to create */
 {
     int nerrs = 0;
     static char pname[] = "test_nccreate";
@@ -94,8 +93,7 @@ test_nccreate(path)
 #define DATA_LEN 32    
 #define TEMP_FILE_NAME "temp.tmp"
 int
-test_ncopen(path)
-     const char *path;		/* name of writable netcdf file to open */
+test_ncopen(const char *path) /* name of writable netcdf file to open */
 {
     int nerrs = 0;
     static char pname[] = "test_ncopen";
@@ -240,8 +238,7 @@ test_ncopen(path)
  * Uses: ncopen, ncredef, ncdimdef, ncvardef, ncattput, ncclose 
  */
 int
-test_ncredef(path)
-     const char *path;		/* name of writable netcdf file to open */
+test_ncredef(const char *path) /* name of writable netcdf file to open */
 {
     int nerrs = 0;
     static char pname[] = "test_ncredef";
@@ -328,8 +325,7 @@ test_ncredef(path)
  * Uses: ncopen, ncredef, ncdimdef, ncvardef, ncattput, ncendef, ncclose
  */
 int
-test_ncendef(path)
-     const char *path;		/* name of writable netcdf file to open */
+test_ncendef(const char *path) /* name of writable netcdf file to open */
 {
     int nerrs = 0;
     static char pname[] = "test_ncendef";
@@ -422,8 +418,7 @@ test_ncendef(path)
  *  On exit netcdf files are closed.
  */
 int
-test_ncclose(path)
-     const char *path;		/* name of writable netcdf file to open */
+test_ncclose(const char *path) /* name of writable netcdf file to open */
 {
     int nerrs = 0;
     static char pname[] = "test_ncclose";
@@ -476,8 +471,7 @@ test_ncclose(path)
  *  On exit netcdf files are closed.
  */
 int
-test_ncinquire(path)
-     const char *path;		/* name of writable netcdf file to open */
+test_ncinquire(const char *path) /* name of writable netcdf file to open */
 {
     int nerrs = 0;
     static char pname[] = "test_ncinquire";
@@ -640,8 +634,7 @@ test_ncinquire(path)
  *  On exit netcdf files are closed.
  */
 int
-test_ncsync(path)
-     const char *path;		/* name of writable netcdf file to open */
+test_ncsync(const char *path) /* name of writable netcdf file to open */
 {
     int nerrs = 0;
     static char pname[] = "test_ncsync";
@@ -781,8 +774,7 @@ test_ncsync(path)
  *  On exit netcdf files are closed.
  */
 int
-test_ncabort(path)
-     const char *path;		/* name of writable netcdf file to open */
+test_ncabort(const char *path) /* name of writable netcdf file to open */
 {
     int nerrs = 0;
     static char pname[] = "test_ncabort";

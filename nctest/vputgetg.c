@@ -34,8 +34,7 @@
  */
 
 int
-test_varputgetg(cdfid)
-     int cdfid;			/* handle of netcdf open and in data mode */
+test_varputgetg(int cdfid) /* handle of netcdf open and in data mode */
 {
     int nerrs = 0;
     static char pname[] = "test_varputgetg";
