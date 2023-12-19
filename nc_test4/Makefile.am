@@ -35,20 +35,18 @@ tst_h_scalar tst_rename tst_rename2 tst_rename3 tst_h5_endians		\
 tst_atts_string_rewrite tst_hdf5_file_compat tst_fill_attr_vanish	\
 tst_rehash tst_filterparser tst_bug324 tst_types tst_atts3		\
 tst_put_vars tst_elatefill tst_udf tst_put_vars_two_unlim_dim		\
-tst_bug1442 tst_quantize
+tst_bug1442 tst_quantize tst_h_transient_types
 
 if HAS_PAR_FILTERS
 NC4_TESTS += tst_alignment
 endif
 
-# Temporary I hoped, but hoped in vain.
-if !ISCYGWIN
 NC4_TESTS += tst_h_strbug tst_h_refs
-endif
 
 # Build test programs plus programs used in test scripts.
 check_PROGRAMS = $(NC4_TESTS) tst_empty_vlen_unlim tst_charvlenbug tst_vlenstr
 TESTS = $(NC4_TESTS) run_empty_vlen_test.sh
+XFAIL_TESTS =
 
 # Add these if large file tests are turned on.
 if LARGE_FILE_TESTS
@@ -70,6 +68,9 @@ TESTS += run_grp_rename.sh tst_misc.sh
 check_PROGRAMS += tst_fillonly
 TESTS += test_fillonly.sh
 
+# H5 and nczarr Fixed string support
+TESTS += tst_fixedstring.sh
+
 # Szip Tests (requires ncdump)
 if HAVE_H5Z_SZIP
 check_PROGRAMS += test_szip h5testszip
@@ -80,12 +81,33 @@ endif
 if USE_HDF5
 if ENABLE_FILTER_TESTING
 extradir =
-check_PROGRAMS += test_filter test_filter_misc test_filter_order test_filter_repeat test_filter_vlen
-check_PROGRAMS += tst_multifilter tst_filter_avail
+check_PROGRAMS += test_filter test_filter_misc test_filter_order test_filter_repeat
+check_PROGRAMS += tst_multifilter tst_filter_vlen
 TESTS += tst_filter.sh
-TESTS += tst_unknown.sh
 TESTS += tst_specific_filters.sh
+TESTS += tst_bloscfail.sh
+if ISMINGW
+XFAIL_TESTS += tst_filter.sh
+endif # ISMINGW
+
+TESTS += tst_filter_vlen.sh
+TESTS += tst_filter_misc.sh
+
+if AX_MANUAL
+# This test is too dangerous to run in a parallel make environment.
+# It causes race conditions. So suppress and only test by hand.
+TESTS += tst_unknown.sh
 endif
+
+if AX_MANUAL
+# The tst_filterinstall test can only be run after an install
+# occurred with --with-plugin-dir enabled. So there is no point
+#in running it via make check. It is kept here so it can be
+# manually invoked if desired
+TESTS += tst_filterinstall.sh
+endif
+
+endif # ENABLE_FILTER_TESTING
 endif # USE_HDF5
 endif # BUILD_UTILITIES
 
@@ -111,13 +133,10 @@ ref_ncgenF.cdl ref_nccopyF.cdl                                          \
 ref_filter_repeat.txt ref_fillonly.cdl test_fillonly.sh                 \
 ref_filter_order_create.txt ref_filter_order_read.txt			\
 ref_any.cdl tst_specific_filters.sh tst_unknown.sh                      \
-tst_virtual_datasets.c noop1.cdl unknown.cdl
-
-# The tst_filterinstall test can only be run after an install
-# occurred with --with-plugin-dir enabled. So there is no point
-#in running it via make check. It is kept here so it can be
-# manually invoked if desired
-EXTRA_DIST += tst_filterinstall.sh
+tst_virtual_datasets.c noop1.cdl unknown.cdl  \
+tst_broken_files.c ref_bloscx.cdl tst_bloscfail.sh			\
+tst_fixedstring.sh ref_fixedstring.h5 ref_fixedstring.cdl               \
+tst_filterinstall.sh tst_filter_vlen.sh tst_filter_misc.sh
 
 CLEANFILES = tst_mpi_parallel.bin cdm_sea_soundings.nc bm_chunking.nc	\
 tst_floats_1D.cdl floats_1D_3.nc floats_1D.cdl tst_*.nc tmp_*.txt       \
@@ -130,9 +149,22 @@ floats*.nc floats*.cdl shorts*.nc shorts*.cdl ints*.nc ints*.cdl        \
 testfilter_reg.nc filterrepeat.txt tmp_fillonly.nc                      \
 testfilter_order.nc crfilterorder.txt rdfilterorder.txt 1               \
 tmp_*.txt tmp_*.nc tmp*.dump tmp*.cdl tmp*.txt tmp*.tmp                 \
-tmp_bzip2.c bzip2.nc noop.nc tmp_*.dmp
+tmp_bzip2.c bzip2.nc noop.nc tmp_*.dmp tmp_*.cdl
 
 DISTCLEANFILES = findplugin.sh run_par_test.sh
 
+clean-local:
+	rm -fr testdir_* testset_*
+
 # If valgrind is present, add valgrind targets.
 @VALGRIND_CHECK_RULES@
+
+# The (otherwise unused) program build_fixedstring.c
+# is used to generate the test file ref_fixedstring.h5.
+# That test file is build and included as part of the distribution,
+# so the build_fixedstring.c program generally does not need to
+# be executed unless the test file needs to be modified..
+
+check_PROGRAMS += build_fixedstring
+ref_fixedstring.h5: build_fixedstring.c
+	${srcdir}/buildfixedstring

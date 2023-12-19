@@ -163,13 +163,6 @@ HDF5_inq_dim(int ncid, int dimid, char *name, size_t *lenp)
         {
             *lenp = 0;
 
-#ifndef USE_PARALLEL	    
-	    /* Shortcut for non-parallel operation: if the dim->len is
-	     * non-zero, it will be set to the correct size. */
-	    if (dim->len)
-		*lenp = dim->len;
-#endif
-	    
             /* Since this is an unlimited dimension, go to the file
                and see how many records there are. Take the max number
                of records from all the vars that share this

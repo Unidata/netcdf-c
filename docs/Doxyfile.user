@@ -748,7 +748,7 @@ INPUT = \
     ./docs/windows-binaries.md \
     ./docs/attribute_conventions.md \
     ./docs/file_format_specifications.md \
-    ./docs/byterange.dox \
+    ./docs/byterange.md \
     ./docs/inmemory.md \
     ./docs/auth.md \
     ./docs/filters.md \
@@ -760,7 +760,7 @@ INPUT = \
     ./docs/COPYRIGHT.md \
     ./docs/credits.md \
     ./docs/tutorial.dox \
-    ./docs/internal.dox \
+    ./docs/internal.md \
     ./docs/inmeminternal.dox \
     ./docs/indexing.dox \
     ./docs/testserver.dox \

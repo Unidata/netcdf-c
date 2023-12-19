@@ -66,7 +66,7 @@ main(int argc, char **argv)
         printf("*** Creating file for parallel I/O read, and rereading it...");
     {
         hid_t fapl_id, fileid, whole_spaceid, dsid, slice_spaceid, whole_spaceid1, xferid;
-        hsize_t start[NDIMS], count[NDIMS];
+        hsize_t start[NDIMS], count[NDIMS], ones[NDIMS];
         hsize_t dims[1];
         int data[SC1], data_in[SC1];
         int num_steps;
@@ -126,8 +126,9 @@ main(int argc, char **argv)
             /* Select hyperslab for write of one slice. */
             start[0] = s * SC1 * p + my_rank * SC1;
             count[0] = SC1;
+            ones[0] = 1;
             if (H5Sselect_hyperslab(whole_spaceid, H5S_SELECT_SET,
-                                    start, NULL, count, NULL) < 0) ERR;
+                                    start, NULL, ones, count) < 0) ERR;
 
             if (H5Dwrite(dsid, H5T_NATIVE_INT, slice_spaceid, whole_spaceid,
                          xferid, data) < 0) ERR;
@@ -185,8 +186,9 @@ main(int argc, char **argv)
             /* Select hyperslab for read of one slice. */
             start[0] = s * SC1 * p + my_rank * SC1;
             count[0] = SC1;
+            ones[0] = 1;
             if (H5Sselect_hyperslab(whole_spaceid1, H5S_SELECT_SET,
-                                    start, NULL, count, NULL) < 0)
+                                    start, NULL, ones, count) < 0)
             {
                 ERR;
                 return 2;

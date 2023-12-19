@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
+#include <stdint.h>
 
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
@@ -62,7 +63,7 @@
 #undef MIN  /* system may define MIN somewhere and complain */
 #define MIN(mm,nn) (((mm) < (nn)) ? (mm) : (nn))
 
-#if !defined(NDEBUG) && !defined(X_INT_MAX)
+#if /*!defined(NDEBUG) &&*/ !defined(X_INT_MAX)
 #define  X_INT_MAX 2147483647
 #endif
 
@@ -120,7 +121,7 @@ static off_t nc_get_filelen(const int fd) {
   off_t flen;
 
 #ifdef HAVE_FILE_LENGTH_I64
-  __int64 file_len = 0;
+  int64_t file_len = 0;
   if ((file_len = _filelengthi64(fd)) < 0) {
     return file_len;
   }
@@ -535,9 +536,8 @@ px_get(ncio *const nciop, ncio_px *const pxp,
 	off_t diff = (size_t)(offset - blkoffset);
 	off_t blkextent = _RNDUP(diff + extent, pxp->blksz);
 
-	assert(extent != 0);
-	assert(extent < X_INT_MAX); /* sanity check */
-	assert(offset >= 0); /* sanity check */
+	if(!(extent != 0 && extent < X_INT_MAX && offset >= 0)) /* sanity check */
+	    return NC_ENOTNC;
 
 	if(2 * pxp->blksz < blkextent)
 		return E2BIG; /* TODO: temporary kludge */
@@ -1634,7 +1634,7 @@ posixio_create(const char *path, int ioflags,
 #endif
 	if(fd < 0)
 	{
-		status = errno;
+		status = errno ? errno : ENOENT;
 		goto unwind_new;
 	}
 	*((int *)&nciop->fd) = fd; /* cast away const */
@@ -1767,7 +1767,7 @@ posixio_open(const char *path,
 #endif
 	if(fd < 0)
 	{
-		status = errno;
+		status = errno ? errno : ENOENT;
 		goto unwind_new;
 	}
 	*((int *)&nciop->fd) = fd; /* cast away const */
@@ -1829,7 +1829,7 @@ ncio_px_filesize(ncio *nciop, off_t *filesizep)
 		Use _filelengthi64 isntead. */
 #ifdef HAVE_FILE_LENGTH_I64
 
-	__int64 file_len = 0;
+	int64_t file_len = 0;
 	if( (file_len = _filelengthi64(nciop->fd)) < 0) {
 		return errno;
 	}

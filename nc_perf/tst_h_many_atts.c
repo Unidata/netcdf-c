@@ -58,7 +58,7 @@ main()
       if ((spaceid = H5Screate_simple(1, dims, NULL)) < 0) ERR;
       for (i = 0; i < NUM_ATTS; i++)
       {
-	 sprintf(name, "att_%d", i);
+	 snprintf(name, sizeof(name), "att_%d", i);
 	 if ((attid1 = H5Acreate2(grpid, name, H5T_NATIVE_INT, spaceid,
 				  H5P_DEFAULT, H5P_DEFAULT)) < 0) ERR;
 	 if (H5Awrite(attid1, H5T_NATIVE_INT, &one) < 0) ERR;

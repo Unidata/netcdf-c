@@ -54,17 +54,25 @@ MACRO(buildplugin TARGET TARGETLIB)
     SET_TARGET_PROPERTIES(${TARGET} PROPERTIES ARCHIVE_OUTPUT_NAME ${MANGLELIB})
     SET_TARGET_PROPERTIES(${TARGET} PROPERTIES RUNTIME_OUTPUT_NAME ${MANGLELIB})
     SET_TARGET_PROPERTIES(${TARGET} PROPERTIES PREFIX "") # Critical that this be set to ""
-    TARGET_LINK_LIBRARIES(${TARGET} ${ALL_TLL_LIBS};${ARGN})
+    SET_TARGET_PROPERTIES(${TARGET} PROPERTIES SUFFIX ".${PLUGINEXT}")
+    TARGET_LINK_LIBRARIES(${TARGET} PUBLIC ${ALL_TLL_LIBS};${ARGN})
   IF(MSVC)
     target_compile_options(${TARGET} PRIVATE /Zi)
     # Tell linker to include symbol data
     set_target_properties(${TARGET} PROPERTIES LINK_FLAGS "/INCREMENTAL:NO /DEBUG /OPT:REF /OPT:ICF")
     # Set file name & location
     set_target_properties(${TARGET} PROPERTIES COMPILE_PDB_NAME ${TARGET} COMPILE_PDB_OUTPUT_DIR ${CMAKE_BINARY_DIR})
+    IF(MPI_C_INCLUDE_PATH)
+      target_include_directories(${TARGET} PRIVATE ${MPI_C_INCLUDE_PATH})
+    ENDIF(MPI_C_INCLUDE_PATH)
   ENDIF()
+
+  IF(STATUS_PARALLEL)
+    target_link_libraries(${TARGET} PUBLIC MPI::MPI_C)
+  ENDIF(STATUS_PARALLEL)
 ENDMACRO()
 
-buildplugin(h5misc "h5misc")
+buildplugin(h5misc "h5misc" netcdf)
 buildplugin(h5noop "h5noop")
 buildplugin(h5noop1 "h5noop1")
 buildplugin(h5unknown "h5unknown")

@@ -86,7 +86,7 @@ main(int argc, char **argv)
          continue;
 
       /* Come up with a test file name. */
-      sprintf(testfile, "nctest_%s.nc", format_name[i]);
+      snprintf(testfile, sizeof(testfile), "nctest_%s.nc", format_name[i]);
       printf("Testing %s with file %s.\n", format_name[i], testfile);
 
       /* Set the default format. */

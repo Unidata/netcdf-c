@@ -3,6 +3,7 @@
 # $Id: run_tests.sh,v 1.9 2009/09/24 18:19:11 dmh Exp $
 
 echo "*** Testing ncgen3."
+
 set -e
 
 if test "x$srcdir" = x ;then srcdir=`pwd`; fi

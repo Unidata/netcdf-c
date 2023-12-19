@@ -236,7 +236,7 @@ main(int argc, char **argv)
          }
 
          /* Create a file name. */
-         sprintf(file_name, "%s_type_%d_fv_%d.nc", TEST_NAME, test_type[tt], fv);
+         snprintf(file_name, sizeof(file_name), "%s_type_%d_fv_%d.nc", TEST_NAME, test_type[tt], fv);
 
          /* Create a parallel netcdf-4 file. */
          if (nc_create_par(file_name, NC_NETCDF4, comm, info, &ncid)) ERR;

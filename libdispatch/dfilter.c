@@ -19,6 +19,7 @@
 #include "netcdf_filter.h"
 #include "ncdispatch.h"
 #include "nc4internal.h"
+#include "nclog.h"
 
 #ifdef USE_HDF5
 #include "hdf5internal.h"
@@ -100,6 +101,7 @@ nc_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparamsp, u
     if((stat = ncp->dispatch->inq_var_filter_info(ncid,varid,id,nparamsp,params))) goto done;
 
 done:
+     if(stat == NC_ENOFILTER) nclog(NCLOGWARN,"Undefined filter: %u",(unsigned)id);
      return stat;
 }
 
@@ -125,18 +127,12 @@ nc_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams, const un
 {
     int stat = NC_NOERR;
     NC* ncp;
-    int fixedsize;
-    nc_type xtype;
 
     TRACE(nc_inq_var_filter);
     if((stat = NC_check_id(ncid,&ncp))) return stat;
-    /* Get variable' type */
-    if((stat = nc_inq_vartype(ncid,varid,&xtype))) return stat;
-    /* If the variable's type is not fixed-size, then signal error */
-    if((stat = NC4_inq_type_fixed_size(ncid, xtype, &fixedsize))) return stat;
-    if(!fixedsize) return NC_EFILTER;
     if((stat = ncp->dispatch->def_var_filter(ncid,varid,id,nparams,params))) goto done;
 done:
+     if(stat == NC_ENOFILTER) nclog(NCLOGWARN,"Undefined filter: %u",(unsigned)id);
     return stat;
 }
 

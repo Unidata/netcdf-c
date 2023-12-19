@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# Load only once
+if test "x$TEST_NCZARR_SH" = x ; then
+export TEST_NCZARR_SH=1
+
 if test "x$SETX" != x; then set -x; fi
 
 # Figure out which cloud repo to use
@@ -8,18 +12,17 @@ if test "x$NCZARR_S3_TEST_HOST" = x ; then
     export NCZARR_S3_TEST_HOST=s3.us-east-1.amazonaws.com
 fi
 if test "x$NCZARR_S3_TEST_BUCKET" = x ; then
-#    export NCZARR_S3_TEST_BUCKET=unidata-netcdf-zarr-testing
-    export NCZARR_S3_TEST_BUCKET=unidata-zarr-test-data
+    export NCZARR_S3_TEST_BUCKET="${S3TESTBUCKET}"
 fi
 export NCZARR_S3_TEST_URL="https://${NCZARR_S3_TEST_HOST}/${NCZARR_S3_TEST_BUCKET}"
 
-ZMD="${execdir}/zmapio"
-
-awsdelete() {
-${execdir}/s3util ${PROFILE} -u "${NCZARR_S3_TEST_URL}" -k "$1" clear
-# aws s3api delete-object --endpoint-url=https://${NCZARR_S3_TEST_HOST} --bucket=${NCZARR_S3_TEST_BUCKET} --key="netcdf-c/$1"
-X=
-}
+if test "x$VALGRIND" != x ; then
+    ZMD="valgrind --leak-check=full ${execdir}/zmapio"
+    S3UTIL="valgrind --leak-check=full ${execdir}/s3util"
+else
+    ZMD="${execdir}/zmapio"
+    S3UTIL="${execdir}/s3util"
+fi
 
 # Check settings
 checksetting() {
@@ -63,14 +66,14 @@ deletemap() {
     case "$1" in
     file) rm -fr $2;;
     zip) rm -f $2;;
-    s3) S3KEY=`${execdir}/zs3parse -k $2`; awsdelete $S3KEY;;
+    s3) S3KEY=`${execdir}/zs3parse -k $2`; s3sdkdelete $S3KEY ;;
     *) echo "unknown kind: $1" ; exit 1;;
     esac
 }
 
 mapstillexists() {
     mapstillexists=0
-    if "./zmapio $fileurl" ; then
+    if "${execdir}/zmapio $fileurl" &> /dev/null ; then
       echo "delete failed: $1"
       mapstillexists=1
     fi
@@ -82,7 +85,7 @@ fileargs() {
   if test "x$frag" = x ; then frag="mode=nczarr,$zext" ; fi
   case "$zext" in
   s3)
-    S3PATH="${NCZARR_S3_TEST_URL}/netcdf-c"
+    S3PATH="${NCZARR_S3_TEST_URL}/${S3ISOPATH}"
     fileurl="${S3PATH}/${f}#${frag}"
     file=$fileurl
     S3HOST=`${execdir}/zs3parse -h $S3PATH`
@@ -125,8 +128,6 @@ if test "x$NCAUTH_HOMETEST" != x ; then RCHOME=1; fi
 
 # Set plugin path
 
-#cd ../plugins; make clean all >/dev/null; cd ../nczarr_test
-
 if test "x$FP_USEPLUGINS" = xyes; then
 # Load the findplugins function
 . ${builddir}/findplugin.sh
@@ -151,4 +152,39 @@ resetrc() {
   unset DAPRCFILE
 }
 
+s3sdkdelete() {
+if test -f ${execdir}/s3util ; then
+  ${S3UTIL} ${PROFILE} -u "${NCZARR_S3_TEST_URL}" -k "$1" clear
+elif which aws ; then
+  aws s3api delete-object --endpoint-url=https://${NCZARR_S3_TEST_HOST} --bucket=${NCZARR_S3_TEST_BUCKET} --key="/${S3ISOPATH}/$1"
+else
+  echo "**** Could not delete ${NCZAR_S3_TEST_URL}"
+fi
+}
+
+s3sdkcleanup() {
+if test -f ${execdir}/s3util ; then
+  ${S3UTIL} ${PROFILE} -u "${NCZARR_S3_TEST_URL}" -k "$1" clear
+elif which aws ; then
+  aws s3api delete-object --endpoint-url=https://${NCZARR_S3_TEST_HOST} --bucket=${NCZARR_S3_TEST_BUCKET} --key="/${S3ISOPATH}/$1"
+else
+  echo "**** Could not delete ${NCZAR_S3_TEST_URL}"
+fi
+}
+
+# Create an isolation path for S3; build on the isolation directory
+s3isolate() {
+  if test "x$S3ISOPATH" = x ; then
+    if test "x$ISOPATH" = x ; then isolate "$1"; fi
+    S3ISODIR="$ISODIR"
+    S3ISOTESTSET="${S3TESTSUBTREE}/testset_"
+    if test "x$NOISOPATH" = x ; then S3ISOTESTSET="${S3ISOTESTSET}${TESTUID}"; fi    
+    S3ISOPATH="${S3ISOTESTSET}/$S3ISODIR"
+  fi
+}
+
+GDBB="gdb -batch -ex r -ex bt -ex q --args"
+
 resetrc
+
+fi #TEST_NCZARR_SH

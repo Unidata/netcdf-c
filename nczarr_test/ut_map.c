@@ -95,7 +95,7 @@ simplecreate(void)
 	goto done;
 
     /* Write empty metadata content */
-    if((stat = nczmap_write(map, path, 0, 0, (const void*)"")))
+    if((stat = nczmap_write(map, path, 0, (const void*)"")))
 	goto done;
 
 done:
@@ -133,7 +133,7 @@ writemeta(void)
 
     if((stat=nczm_concat(META1,ZARRAY,&path)))
 	goto done;
-    if((stat = nczmap_write(map, path, 0, strlen(metadata1), metadata1)))
+    if((stat = nczmap_write(map, path, strlen(metadata1), metadata1)))
 	goto done;
     free(path); path = NULL;
 
@@ -156,7 +156,7 @@ writemeta2(void)
 
     if((stat=nczm_concat(META2,NCZARRAY,&path)))
 	goto done;
-    if((stat = nczmap_write(map, path, 0, strlen(metadata2), metadata2)))
+    if((stat = nczmap_write(map, path, strlen(metadata2), metadata2)))
 	goto done;
 
 done:
@@ -242,7 +242,6 @@ writedata(void)
     int i;
     size64_t totallen;
     char* data1p = (char*)&data1[0]; /* byte level version of data1 */
-    NCZM_FEATURES features;
 
     /* Create the data */
     for(i=0;i<DATA1LEN;i++) data1[i] = i;
@@ -255,24 +254,8 @@ writedata(void)
     if((stat=nczm_concat(DATA1,"0",&path)))
 	goto done;
 
-    features = nczmap_features(impl);
-    if((NCZM_ZEROSTART & features) || (NCZM_WRITEONCE & features)) {
-	if((stat = nczmap_write(map, path, 0, totallen, data1p)))
-	    goto done;
-    } else {
-        /* Write in 3 slices */
-        for(i=0;i<3;i++) {
-            size64_t start, count, third, last;
-	    third = (totallen+2) / 3; /* round up */
-            start = i * third;
-	    last = start + third;
-	    if(last > totallen) 
-	        last = totallen;
-  	    count = last - start;
-	    if((stat = nczmap_write(map, path, start, count, &data1p[start])))
-	        goto done;
-	}
-    }
+    if((stat = nczmap_write(map, path, totallen, data1p)))
+	goto done;
 
 done:
     /* Do not delete so we can look at it with ncdump */

@@ -122,9 +122,8 @@ ncbytesappend(NCbytes* bb, char elem)
 int
 ncbytescat(NCbytes* bb, const char* s)
 {
-  if(s == NULL) {
-    return 1;
-  }
+  if(bb == NULL) return ncbytesfail();
+  if(s == NULL) return 1;
   ncbytesappendn(bb,(void*)s,strlen(s)+1); /* include trailing null*/
   /* back up over the trailing null*/
   if(bb->length == 0) return ncbytesfail();
@@ -137,10 +136,9 @@ ncbytesappendn(NCbytes* bb, const void* elem, unsigned long n)
 {
   if(bb == NULL || elem == NULL) return ncbytesfail();
   if(n == 0) {n = strlen((char*)elem);}
-  ncbytessetalloc(bb,bb->length+n+1);
+  ncbytessetalloc(bb,bb->length+n);
   memcpy((void*)&bb->content[bb->length],(void*)elem,n);
   bb->length += n;
-  bb->content[bb->length] = '\0';
   return TRUE;
 }
 

@@ -87,6 +87,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
+/*
+HDF5 Blosc filter takes 7 parameters as follows:
+param[0] -- FILTER_BLOSC_VERSION (ignored)
+param[1] -- BLOSC_VERSION_FORMAT (ignored)
+param[2] -- typesize in bytes
+param[3] -- chunksize in bytes (ignored)
+param[4] -- compression level
+param[5] -- shuffle enabled
+param[6] -- compressor to use
+*/
+
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -105,25 +117,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <H5Epubgen.h>
 #endif
 
-#define BLOSCCTX
+#undef BLOSC_DEBUG
 
-#ifdef USE_HDF5
-#if defined(__GNUC__)
-#define PUSH_ERR(func, minor, str, ...) H5Epush1(__FILE__, func, __LINE__, H5_VERS_MAJOR, minor, str)
-#elif defined(_MSC_VER)
-#define PUSH_ERR(func, minor, str, ...) H5Epush1(__FILE__, func, __LINE__, H5_VERS_MAJOR, minor, str)
-#else
-/* This version is portable but it's better to use compiler-supported
-   approaches for handling the trailing comma issue when possible. */
-#define PUSH_ERR(func, minor, str, ...) H5Epush1(__FILE__, func, __LINE__, H5_VERS_MAJOR, minor, str
-)
-#endif	/* defined(__GNUC__) */
-
-#define GET_FILTER(a, b, c, d, e, f, g) H5Pget_filter_by_id1(a,b,c,d,e,f,g)
-
-#else /*!USE_HDF5*/
-#define PUSH_ERR(f,m,s,...) fprintf(stderr,"%s\n",s)
-#endif /*USE_HDF5*/
+#undef BLOSCCTX
 
 static size_t blosc_filter(unsigned flags, size_t cd_nelmts,
                     const unsigned cd_values[], size_t nbytes,
@@ -147,37 +143,40 @@ static herr_t blosc_set_local(hid_t dcpl, hid_t type, hid_t space);
 static
 herr_t blosc_set_local(hid_t dcpl, hid_t type, hid_t space)
 {
-  int ndims;
-  int i;
-  herr_t r;
-
+  int i,ndims;
   unsigned int typesize, basetypesize;
   unsigned int bufsize;
-  hsize_t chunkdims[32];
-  unsigned int flags;
-  size_t nelements = 8;
-  unsigned int values[] = {0, 0, 0, 0, 0, 0, 0, 0};
+  unsigned int flags = 0;
+  size_t nelements = 7;
+  unsigned int values[] = {0, 0, 0, 0, 0, 0, 0};
   hid_t super_type;
   H5T_class_t classt;
+  hsize_t chunkdims[32];
 
-  r = GET_FILTER(dcpl, H5Z_FILTER_BLOSC, &flags, &nelements, values, 0, NULL);
-  if (r < 0) return -1;
+  assert(sizeof(hid_t) == 8);
+  
+  if(H5Pget_filter_by_id1(dcpl, H5Z_FILTER_BLOSC, &flags, &nelements, values, 0, NULL) < 0) goto failed;
 
-  if (nelements < 4) nelements = 4;  /* First 4 slots reserved. */
+  assert(nelements == 7);
 
-  /* Set Blosc info in first two slots */
-  values[0] = FILTER_BLOSC_VERSION;
-  values[1] = BLOSC_VERSION_FORMAT;
+#ifdef BLOSC_DEBUG
+  fprintf(stderr, "Blosc: initial parameters =(%u) [%u %u %u %u %u %u %u]\n",
+		(unsigned)nelements,values[0],values[1],values[2],values[3],values[4],values[5],values[6]); fflush(stderr);
+#endif
+
+  /* Ignore first two slots */
+  values[0] = 0; /* FILTER_BLOSC_VERSION*/
+  values[1] = 0; /*BLOSC_VERSION_FORMAT*/
 
   ndims = H5Pget_chunk(dcpl, 32, chunkdims);
-  if (ndims < 0) return -1;
+  if (ndims < 0) goto failed;
   if (ndims > 32) {
-    PUSH_ERR("blosc_set_local", H5E_CALLBACK, "Chunk rank exceeds limit");
-    return -1;
+    fprintf(stderr,"Blosc Filter Error: blosc_set_local: Chunk rank exceeds limit\n");
+    goto failed;
   }
 
   typesize = H5Tget_size(type);
-  if (typesize == 0) return -1;
+  if (typesize == 0) goto failed;
   /* Get the size of the base type, even for ARRAY types */
   classt = H5Tget_class(type);
   if (classt == H5T_ARRAY) {
@@ -196,21 +195,32 @@ herr_t blosc_set_local(hid_t dcpl, hid_t type, hid_t space)
   if (basetypesize > BLOSC_MAX_TYPESIZE) basetypesize = 1;
   values[2] = basetypesize;
 
-  /* Get the size of the chunk */
-  bufsize = typesize;
-  for (i = 0; i < ndims; i++) {
-    bufsize *= chunkdims[i];
-  }
-  values[3] = bufsize;
-
+  {
+      /* Get the size of the chunk */
+      bufsize = typesize;
 #ifdef BLOSC_DEBUG
-  fprintf(stderr, "Blosc: Computed buffer size %d\n", bufsize);
+      fprintf(stderr,">>> set_local: |dims|=%d dims=(",(int)ndims);
+      for (i = 0; i < ndims; i++) {
+	fprintf(stderr,"%s%u",(i==0?"":","),(unsigned)chunkdims[i]);
+      }
+      fprintf(stderr,")\n");
+#endif
+      for (i = 0; i < ndims; i++) {
+        bufsize *= chunkdims[i];
+      }
+      values[3] = bufsize;
+  }
+#ifdef BLOSC_DEBUG
+  fprintf(stderr, "Blosc: working parameters =(%u) [%u %u %u %u %u %u %u]\n",
+		(unsigned)nelements,values[0],values[1],values[2],values[3],values[4],values[5],values[6]); fflush(stderr);
 #endif
 
-  r = H5Pmodify_filter(dcpl, H5Z_FILTER_BLOSC, flags, nelements, values);
-  if (r < 0) return -1;
+  if(H5Pmodify_filter(dcpl, H5Z_FILTER_BLOSC, flags, nelements, values) < 0) goto failed;
 
   return 1;
+
+failed:
+  return -1;
 }
 
 #endif /*USE_HDF5*/
@@ -222,7 +232,6 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
                     size_t* buf_size, void** buf)
 {
   void* outbuf = NULL;
-  int status = 0;                /* Return code from Blosc routines */
   size_t typesize;
   size_t outbuf_size;
   int clevel = 5;                /* Compression level default */
@@ -230,37 +239,27 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
   int compcode;                  /* Blosc compressor */
   int code;
   const char* compname = "blosclz";    /* The compressor by default */
-  const char* complist = NULL;
+  int bloscsize = 0;
+
+#ifdef BLOSC_DEBUG
+  fprintf(stderr, "Blosc: compressor =(%u) [%u %u %u %u %u %u %u]\n",
+		(unsigned)cd_nelmts,cd_values[0],cd_values[1],cd_values[2],cd_values[3],cd_values[4],cd_values[5],cd_values[6]); fflush(stderr);
+#endif
 
   /* Filter params that are always set */
   typesize = cd_values[2];      /* The datatype size */
-  outbuf_size = cd_values[3];   /* Precomputed buffer guess */
   /* Optional params */
   if (cd_nelmts >= 5) {
     clevel = cd_values[4];        /* The compression level */
   }
   if (cd_nelmts >= 6) {
     doshuffle = cd_values[5];  /* BLOSC_SHUFFLE, BLOSC_BITSHUFFLE */
-    /* bitshuffle is only meant for production in >= 1.8.0 */
-#if ((BLOSC_VERSION_MAJOR <= 1) && (BLOSC_VERSION_MINOR < 8))
-    if (doshuffle == BLOSC_BITSHUFFLE) {
-      PUSH_ERR("blosc_filter", H5E_CALLBACK,
-               "this Blosc library version is not supported.  Please update to >= 1.8");
-      goto failed;
-    }
-#endif
   }
   if (cd_nelmts >= 7) {
     compcode = cd_values[6];     /* The Blosc compressor used */
-    /* Check that we actually have support for the compressor code */
-    complist = blosc_list_compressors();
     code = blosc_compcode_to_compname(compcode, &compname);
     if (code == -1) {
-      char s[4096];
-      snprintf(s,sizeof(s),"this Blosc library does not have support for "
-                 "the '%s' compressor, but only for: %s",
-               compname, complist);
-      PUSH_ERR("blosc_filter", H5E_CALLBACK,s);
+      fprintf(stderr,"Blosc Filter Error: this Blosc library does not have support for the '%s' compressor\n",compname);
       goto failed;
     }
   }
@@ -277,33 +276,33 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
     outbuf_size = (*buf_size);
 
 #ifdef BLOSC_DEBUG
-    fprintf(stderr, "Blosc: Compress %zd chunk w/buffer %zd\n",
-    nbytes, outbuf_size);
+    fprintf(stderr, "Blosc: Compress %zd chunk w/chunksize %zd\n",
+		nbytes, outbuf_size);
 #endif
 
     outbuf = malloc(outbuf_size);
 
     if (outbuf == NULL) {
-      PUSH_ERR("blosc_filter", H5E_CALLBACK,
-               "Can't allocate compression buffer");
+      fprintf(stderr,"Blosc Filter Error: blosc_filter: Can't allocate compression buffer\n");
       goto failed;
     }
 
 #ifdef BLOSCCTX
-    blosc_set_compressor(compname);
-    status = blosc_compress(clevel, doshuffle, typesize, nbytes, *buf, outbuf, nbytes);
-#else
-    status = blosc_compress_ctx(clevel, doshuffle, typesize, nbytes, *buf, outbut, nbytes,
+    bloscsize = blosc_compress_ctx(clevel, doshuffle, typesize, nbytes, *buf, outbut, nbytes,
                                 compname, /*blocksize*/0, /*no. thredds*/0);
+#else
+    blosc_set_compressor(compname);
+    bloscsize = blosc_compress(clevel, doshuffle, typesize, nbytes, *buf, outbuf, nbytes);
 #endif
-
-    if (status < 0) {
-      PUSH_ERR("blosc_filter", H5E_CALLBACK, "Blosc compression error");
+    if(bloscsize == 0) {
+        fprintf(stderr,"Blosc_Filter Error: blosc_filter: Buffer is uncompressible.\n");
+	goto failed;
+    } else if(bloscsize < 0) {
+      fprintf(stderr,"Blosc Filter Error: blosc_filter: blosc compression error\n");
       goto failed;
     }
 
-    /* We're decompressing */
-  } else {
+  } else { /* We're decompressing */
     /* declare dummy variables */
     size_t cbytes, blocksize;
 
@@ -328,32 +327,34 @@ size_t blosc_filter(unsigned flags, size_t cd_nelmts,
     outbuf = malloc(outbuf_size);
 
     if (outbuf == NULL) {
-      PUSH_ERR("blosc_filter", H5E_CALLBACK, "Can't allocate decompression buffer");
+      fprintf(stderr,"Blosc Filter Error: blosc_filter: can't allocate decompression buffer\n");
       goto failed;
     }
 
 #ifdef BLOSCCTX
-    status = blosc_decompress(*buf, outbuf, outbuf_size);
+    bloscsize = blosc_decompress_ctx(*buf, outbuf, outbuf_size, /*no. thredds*/0);
 #else
-    status = blosc_decompress_ctx(*buf, outbuf, outbuf_size, /*no. thredds*/0);
+    bloscsize = blosc_decompress(*buf, outbuf, outbuf_size);
 #endif
 
-    if (status <= 0) {    /* decompression failed */
-      PUSH_ERR("blosc_filter", H5E_CALLBACK, "Blosc decompression error");
+    if(bloscsize <= 0) {    /* decompression failed */
+      fprintf(stderr,"Blosc Filter Error: blosc_filter: blosc decompression error\n");
       goto failed;
     } /* if !status */
 
   } /* compressing vs decompressing */
 
-  if (status != 0) {
+  {
     free(*buf);
     *buf = outbuf;
     *buf_size = outbuf_size;
-    return status;  /* Size of compressed/decompressed data */
+    return bloscsize;  /* Size of compressed/decompressed data */
   }
 
-  failed:
+failed:
    free(outbuf);
+   *buf = NULL;
+   *buf_size = 0;
    return 0;
 
 } /* End filter function */

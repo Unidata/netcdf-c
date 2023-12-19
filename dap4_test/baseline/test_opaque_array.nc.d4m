@@ -1,9 +1,8 @@
 netcdf test_opaque_array {
 types:
-  opaque(8) opaque8_t ;
+  opaque(16) opaque16_t ;
 dimensions:
 	d2 = 2 ;
 variables:
-	opaque8_t vo2(d2, d2) ;
-
+	opaque16_t vo2(d2, d2) ;
 }

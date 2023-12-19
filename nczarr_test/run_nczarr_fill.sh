@@ -5,6 +5,10 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 . "$srcdir/test_nczarr.sh"
 
+s3isolate "testdir_nczarr_fill"
+THISDIR=`pwd`
+cd $ISOPATH
+
 set -e
 
 echo "*** Test: Github issues #2063, #2062, #2059"
@@ -15,10 +19,10 @@ echo "*** Test: Github issue #2059"
 fileargs tmp_groups_regular "mode=zarr,$zext"
 deletemap $zext $file
 ${NCCOPY} ${srcdir}/ref_groups.h5 "$fileurl"
-rm -f tmp.cdl
+rm -f tmp_nczfill.cdl
 ${ZMD} -h "$fileurl"
-${NCDUMP} -s -n tmp_groups_regular "$fileurl" > tmp.cdl
-sclean tmp.cdl tmp_groups_regular_$zext.cdl
+${NCDUMP} -s -n tmp_groups_regular "$fileurl" > tmp_nczfill.cdl
+sclean tmp_nczfill.cdl tmp_groups_regular_$zext.cdl
 diff -wb ${srcdir}/ref_groups_regular.cdl tmp_groups_regular_$zext.cdl
 }
 
@@ -26,11 +30,11 @@ testcase2062() {
 zext=$1
 echo "*** Test: Github issue #2062"
 rm -fr ref_byte.zarr
-unzip ${srcdir}/ref_byte.zarr.zip
-rm -fr tmp.cdl
+unzip ref_byte.zarr.zip >> tmp_ignore.txt
+rm -fr tmp_nczfill.cdl
 ${ZMD} -h "file://ref_byte.zarr#mode=zarr,$zext"
-${NCDUMP} -s "file://ref_byte.zarr#mode=zarr,$zext" > tmp.cdl
-sclean tmp.cdl tmp_byte_$zext.cdl
+${NCDUMP} -s "file://ref_byte.zarr#mode=zarr,$zext" > tmp_nczfill.cdl
+sclean tmp_nczfill.cdl tmp_byte_$zext.cdl
 diff -wb ${srcdir}/ref_byte.cdl tmp_byte_$zext.cdl
 rm -fr ref_byte.zarr
 }
@@ -39,15 +43,19 @@ testcase2063() {
 zext=$1
 echo "*** Test: Github issue #2063"
 rm -fr ref_byte_fill_value_null.zarr
-unzip ${srcdir}/ref_byte_fill_value_null.zarr.zip
-rm -fr tmp.cdl
+unzip ref_byte_fill_value_null.zarr.zip >> tmp_ignore.txt
+rm -fr tmp_nczfill.cdl
 ${ZMD} -h "file://ref_byte_fill_value_null.zarr#mode=zarr,$zext"
-${NCDUMP} -s "file://ref_byte_fill_value_null.zarr#mode=zarr,$zext" > tmp.cdl
-sclean tmp.cdl tmp_byte_fill_value_null_$zext.cdl
+${NCDUMP} -s "file://ref_byte_fill_value_null.zarr#mode=zarr,$zext" > tmp_nczfill.cdl
+sclean tmp_nczfill.cdl tmp_byte_fill_value_null_$zext.cdl
 diff -wb ${srcdir}/ref_byte_fill_value_null.cdl tmp_byte_fill_value_null_$zext.cdl
 rm -fr ref_byte_fill_value_null.zarr
 }
 
+if ! test -f ${ISOPATH}/ref_byte.zarr.zip ; then
+  cp -f ${srcdir}/ref_byte.zarr.zip ${ISOPATH}/ref_byte.zarr.zip
+  cp -f ${srcdir}/ref_byte_fill_value_null.zarr.zip ${ISOPATH}/ref_byte_fill_value_null.zarr.zip
+fi
 
 testcase2062 file
 testcase2063 file
@@ -60,5 +68,3 @@ if test "x$FEATURE_HDF5" = xyes ; then
     testcase2059 s3
   fi
 fi
-
-exit 0

@@ -134,7 +134,7 @@ static int parsecodecsflag(const char* sdata0, Specialdata* special);
 static Symbol* identkeyword(const Symbol*);
 
 #ifdef GENDEBUG1
-static void printfilters(int nfilters, NC_ParsedFilterSpec** filters);
+static void printfilters(int nfilters, NC_H5_Filterspec** filters);
 #endif
 #endif
 
@@ -650,7 +650,7 @@ fielddim:
 	    {  /* Anonymous integer dimension.
 	         Can only occur in type definitions*/
 	     char anon[32];
-	     sprintf(anon,"const%u",uint32_val);
+	     snprintf(anon, sizeof(anon),"const%u",uint32_val);
 	     $$ = install(anon);
 	     $$->objectclass = NC_DIM;
 	     $$->dim.isconstant = 1;
@@ -664,7 +664,7 @@ fielddim:
 		derror("field dimension must be positive");
 		YYABORT;
 	     }
-	     sprintf(anon,"const%d",int32_val);
+	     snprintf(anon, sizeof(anon),"const%d",int32_val);
 	     $$ = install(anon);
 	     $$->objectclass = NC_DIM;
 	     $$->dim.isconstant = 1;
@@ -1645,16 +1645,16 @@ done:
 
 #ifdef GENDEBUG1
 static void
-printfilters(int nfilters, NC_FilterSpec** filters)
+printfilters(int nfilters, NC_H5_Filterspec** filters)
 {
     int i;
     fprintf(stderr,"xxx: nfilters=%lu: ",(unsigned long)nfilters);
     for(i=0;i<nfilters;i++) {
 	int k;
-	NC_Filterspec* sp = filters[i];
+	NC_H5_Filterspec* sp = filters[i];
         fprintf(stderr,"{");
-        fprintf(stderr,"filterid=%llu format=%d nparams=%lu params=%p",
-		sp->filterid,sp->format,(unsigned long)sp->nparams,sp->params);
+        fprintf(stderr,"filterid=%lu nparams=%lu params=%p",
+		(unsigned long)sp->filterid,(unsigned long)sp->nparams,sp->params);
 	if(sp->nparams > 0 && sp->params != NULL) {
             fprintf(stderr," params={");
             for(k=0;k<sp->nparams;k++) {

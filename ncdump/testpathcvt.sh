@@ -12,7 +12,7 @@ export MSYS2_ARG_CONV_EXCL='*'
 DL=`${NCPATHCVT} -c -e / | sed -e 's|/cygdrive/\([a-zA-Z]\)/.*|\1|'`
 if test "x$DL" != x ; then
   # Lower case drive letter
-  DLL=`echo "$DL" | tr '[:upper:]' '[:lower:]'`
+  DLL=`echon "$DL" | tr '[:upper:]' '[:lower:]'`
   DL="-d $DLL"
 fi
 
@@ -21,7 +21,7 @@ testcase1() {
 T="$1"
 P="$2"
 
-echo -n "path: $T: |$P| => |" >>tmp_pathcvt.txt
+echon "path: $T: |$P| => |" >>tmp_pathcvt.txt
 ${NCPATHCVT} -B"@" ${DL} "$T" -e "$P" >>tmp_pathcvt.txt
 echo "|" >> tmp_pathcvt.txt
 }

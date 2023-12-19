@@ -2,7 +2,7 @@
 # Tests for ncgen4 using list of test cdl files from the cdl4
 # directory, and comparing output to expected results in the expected4
 # directory. Note that these tests are run for classic files in
-# tst_ncgen4_classic.sh
+# test_ncgen4_classic.sh
 # Dennis Heimbigner
 
 if test "x$srcdir" = x ; then srcdir=`pwd`; fi
@@ -10,8 +10,12 @@ if test "x$srcdir" = x ; then srcdir=`pwd`; fi
 
 . "$srcdir/test_nczarr.sh"
 
-set -e
+# Isolate both test and S3
+s3isolate "testdir_ncgen4"
+THISDIR=`pwd`
+cd $ISOPATH
 
+set -e
 
 # To add a new test,
 # 1. put the .cdl file in the 'ncdump/cdl' directory
@@ -36,7 +40,6 @@ ALLTESTS="$TESTS $FVTESTS"
 # Location constants
 cdl="$srcdir/../ncdump/cdl"
 expected="$srcdir/../ncdump/expected"
-RESULTSDIR="./results"
 
 # Functions
 
@@ -83,12 +86,7 @@ done
 runtestset() {
 extfor $1
 echo "*** Testing nczarr X ncgen with zmap=${zext}"
-rm -fr ${RESULTSDIR}.$zext
-mkdir ${RESULTSDIR}.${zext}
-WD=`pwd	`
-cd ${RESULTSDIR}.${zext}
 difftest
-cd $WD
 echo "*** PASSED: zext=${zext}"
 }
 

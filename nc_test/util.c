@@ -88,8 +88,8 @@ inRange_float(const double value, const nc_type xtype)
         case NC_UBYTE:  min = 0;            max = X_UCHAR_MAX;  break;
         case NC_USHORT: min = 0;            max = X_USHORT_MAX; break;
         case NC_UINT:   min = 0;            max = X_UINT_MAX;   break;
-        case NC_INT64:  min = X_INT64_MIN;  max = X_INT64_MAX;  break;
-        case NC_UINT64: min = 0;            max = X_UINT64_MAX; break;
+        case NC_INT64:  min = X_INT64_MIN;  max = (double)X_INT64_MAX;  break;
+        case NC_UINT64: min = 0;            max = (double)X_UINT64_MAX; break;
 	default:  assert(0);
     }
     if(!( value >= min && value <= max)) {
@@ -170,8 +170,8 @@ equal(const double x,
         /* because in-memory data type char can be signed or unsigned,
          * type cast the value from external NC_CHAR before the comparison
          */
-        char x2 = (char) x;
-        char y2 = (char) y;
+        char x2 = *(char *)&x;
+        char y2 = *(char *)&y;
         return ABS(x2-y2) <= epsilon * MAX( ABS(x2), ABS(y2));
     }
 
@@ -194,8 +194,8 @@ equal2(const double x,
         /* because in-memory data type char can be signed or unsigned,
          * type cast the value from external NC_CHAR before the comparison
          */
-        char x2 = (char) x;
-        char y2 = (char) y;
+        char x2 = *(char *)&x;
+        char y2 = *(char *)&y;
         return ABS(x2-y2) <= epsilon * MAX( ABS(x2), ABS(y2));
     }
 
@@ -343,7 +343,7 @@ int dbl2nc ( const double d, const nc_type xtype, void *p)
              * reporting it as a range error.
              */
             if ( r < X_CHAR_MIN || r > X_CHAR_MAX ) return 2;
-            *((signed char*) p) = (signed char)r;
+            *((unsigned char*) p) = (unsigned char)r;
             break;
         case NC_BYTE:
             r = floor(0.5+d);
@@ -413,8 +413,8 @@ int dbl2nc ( const double d, const nc_type xtype, void *p)
 double
 hash( const nc_type xtype, const int rank, const size_t *index )
 {
-    double base;
-    double result;
+    double base = 0;
+    double result = 0;
     int  d;       /* index of dimension */
 
 	/* If vector then elements 0 & 1 are min & max. Elements 2 & 3 are */
@@ -841,7 +841,7 @@ put_atts(int ncid)
 	for (j = 0; j < NATTS(i); j++) {
 	    if (ATT_TYPE(i,j) == NC_CHAR) {
 		for (k = 0; k < ATT_LEN(i,j); k++) {
-                    catt[k] = (char) hash(ATT_TYPE(i,j), -1, &k);
+                    catt[k] = (unsigned char) hash(ATT_TYPE(i,j), -1, &k);
 		}
 		err = nc_put_att_text(ncid, i, ATT_NAME(i,j),
 		    ATT_LEN(i,j), catt);
@@ -969,7 +969,7 @@ check_dims(int  ncid)
 void
 check_vars(int  ncid)
 {
-    size_t index[MAX_RANK];
+    size_t index[MAX_RANK] = {0};
     char  text, name[NC_MAX_NAME];
     int  i, err;		/* status */
     size_t  j;
@@ -1006,7 +1006,7 @@ check_vars(int  ncid)
           	err = nc_get_var1_text(ncid, i, index, &text);
             IF (err)
 		    error("nc_get_var1_text: %s", nc_strerror(err));
-            IF (text != (char)expect) {
+            IF ((unsigned char)text != (unsigned char)expect) {
               error("Var %s [%lu] value read %hhd not that expected %g ",
                   var_name[i], j, text, expect);
 		    print_n_size_t(var_rank[i], index);
@@ -1073,8 +1073,9 @@ check_atts(int  ncid)
 		    error("nc_get_att_text: %s", nc_strerror(err));
 		for (k = 0; k < ATT_LEN(i,j); k++) {
 		    expect = hash(xtype, -1, &k);
-		    IF (text[k] != (char)expect) {
-			error("nc_get_att_text: unexpected value");
+		    IF ((unsigned char)text[k] != (unsigned char)expect) {
+            error("Var %s [%lu] value read %hhd not that expected %g ",
+                  var_name[i], j, text, expect);
             	    } else {
               		nok++;
             	    }
@@ -1223,9 +1224,9 @@ char* nc_err_code_name(int err)
     if (err > 0) { /* system error */
         const char *cp = (const char *) strerror(err);
         if (cp == NULL)
-            sprintf(unknown_str,"Unknown error code %d",err);
+            snprintf(unknown_str,sizeof(unknown_str),"Unknown error code %d",err);
         else
-            sprintf(unknown_str,"Error code %d (%s)",err,cp);
+            snprintf(unknown_str,sizeof(unknown_str),"Error code %d (%s)",err,cp);
         return unknown_str;
     }
 
@@ -1395,7 +1396,7 @@ char* nc_err_code_name(int err)
 #endif
 #endif
         default:
-              sprintf(unknown_str,"Unknown code %d",err);
+              snprintf(unknown_str,sizeof(unknown_str),"Unknown code %d",err);
     }
     return unknown_str;
 }

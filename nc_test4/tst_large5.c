@@ -92,7 +92,7 @@ main(int argc, char **argv)
       for (f = 0; f < NUM_FORMATS; f++)
       {
 	 printf("\t...testing with %s\n", format_name[f]);
-	 sprintf(file_name, "%s/%s", TEMP_LARGE, FILE_NAME);
+	 snprintf(file_name, sizeof(file_name), "%s/%s", TEMP_LARGE, FILE_NAME);
 	 if (nc_create(file_name, this_format[f], &ncid)) ERR;
 	 if (nc_def_dim(ncid, "lat", LAT_LEN, &dimids[1])) ERR;
 	 if (nc_def_dim(ncid, "lon", LON_LEN, &dimids[2])) ERR;

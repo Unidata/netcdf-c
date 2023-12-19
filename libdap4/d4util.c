@@ -19,6 +19,8 @@ extern int mkstemp(char *template);
 #define LBRACKET '['
 #define RBRACKET ']'
 
+#define VERIFY(off,space) assert((off)->offset+(space) <= (off)->limit)
+
 /**************************************************/
 /* Forward */
 
@@ -105,44 +107,45 @@ NCD4_makeFQN(NCD4node* node)
 {
     char* fqn = NULL;
     char* escaped;
-    int i;
-    NCD4node* g = node;
-    NClist* path = nclistnew();
-    size_t estimate;
+    NCbytes* buf = ncbytesnew();
+    NClist* grps = nclistnew();
+    NClist* parts = nclistnew();
+    NCD4node* n;
+    size_t i;
 
-    for(estimate=0;g != NULL;g=g->container) {
-	estimate += strlen(g->name);
-	nclistinsert(path,0,g);
+    /* collect all the non-groups */
+    for(n=node;n;n=n->container) {
+        if(ISGROUP(n->sort))
+	    nclistinsert(grps,0,n); /* keep the correct order of groups */
+	else
+	    nclistinsert(parts,0,n);	
     }
-    estimate = (estimate*2) + 2*nclistlength(path);
-    estimate++; /*strlcat nul*/
-    fqn = (char*)malloc(estimate+1);
-    if(fqn == NULL) goto done;
-    fqn[0] = '\0';
-    /* Create the group-based fqn prefix */
-    /* start at 1 to avoid dataset */
-    for(i=1;i<nclistlength(path);i++) {
-	NCD4node* elem = (NCD4node*)nclistget(path,i);
-	if(elem->sort != NCD4_GROUP) break;
+    
+    /* Build grp prefix of the fqn */
+    for(i=1;i<nclistlength(grps);i++) {
+        n = (NCD4node*)nclistget(grps,i);
 	/* Add in the group name */
-	escaped = backslashEscape(elem->name);
-	if(escaped == NULL) {free(fqn); fqn = NULL; goto done;}
-	strlcat(fqn,"/",estimate);
-	strlcat(fqn,escaped,estimate);
+	escaped = backslashEscape(n->name);
+	if(escaped == NULL) goto done;
+	ncbytescat(buf,"/");
+	ncbytescat(buf,escaped);
 	free(escaped);
     }
     /* Add in the final name part (if not group) */
-    if(i < nclistlength(path)) {
-	int last = nclistlength(path)-1;
-	NCD4node* n = (NCD4node*)nclistget(path,last);
-	char* name = NCD4_makeName(n,".");
-	strlcat(fqn,"/",estimate);
-	strlcat(fqn,name,estimate);
-	nullfree(name);
+    for(i=0;i<nclistlength(parts);i++) {
+        n = (NCD4node*)nclistget(parts,i);
+	escaped = backslashEscape(n->name);
+	if(escaped == NULL) goto done;
+	ncbytescat(buf,(i==0?"/":"."));
+	ncbytescat(buf,escaped);
+	free(escaped);
     }
+    fqn = ncbytesextract(buf);
 
 done:
-    nclistfree(path);
+    ncbytesfree(buf);
+    nclistfree(grps);
+    nclistfree(parts);
     return fqn;
 }
 
@@ -393,12 +396,38 @@ NCD4_errorNC(int code, const int line, const char* file)
     return NCD4_error(code,line,file,nc_strerror(code));
 }
 
+NCD4offset*
+NCD4_buildoffset(void* base, d4size_t limit)
+{
+    NCD4offset* offset = (NCD4offset*)calloc(1,sizeof(NCD4offset));
+    assert(offset != NULL);
+    offset->base = base;
+    offset->limit = ((char*)base)+limit;
+    offset->offset = base;
+    return offset;
+}
+
 d4size_t
-NCD4_getcounter(void* p)
+NCD4_getcounter(NCD4offset* p)
 {
     COUNTERTYPE v;
-    memcpy(&v,p,sizeof(v));
+    VERIFY(p,sizeof(v));
+    memcpy(&v,p->offset,sizeof(v));
     return (d4size_t)v;
+}
+
+void
+NCD4_incr(NCD4offset* p, d4size_t size)
+{
+    VERIFY(p,size);    
+    p->offset += size;
+}
+
+void
+NCD4_decr(NCD4offset* p, d4size_t size)
+{
+    VERIFY(p,size);    
+    p->offset -= size;
 }
 
 void*
@@ -406,7 +435,7 @@ NCD4_getheader(void* p, NCD4HDR* hdr, int hostlittleendian)
 {
     unsigned char bytes[4];
     memcpy(bytes,p,sizeof(bytes));
-    p = INCR(p,4); /* on-the-wire hdr is 4 bytes */
+    p = ((char*)p) + 4; /* on-the-wire hdr is 4 bytes */
     /* assume header is network (big) order */
     hdr->flags = bytes[0]; /* big endian => flags are in byte 0 */
     hdr->flags &= NCD4_ALL_CHUNK_FLAGS; /* Ignore extraneous flags */
@@ -418,11 +447,9 @@ NCD4_getheader(void* p, NCD4HDR* hdr, int hostlittleendian)
 }
 
 void
-NCD4_reporterror(NCD4INFO* state)
+NCD4_reporterror(NCD4response* resp, NCURI* uri)
 {
-    NCD4meta* meta = state->substrate.metadata;
     char* u = NULL;
-    if(meta == NULL) return;
-    u = ncuribuild(state->uri,NULL,NULL,NCURIALL);     
-    fprintf(stderr,"***FAIL: url=%s httpcode=%d errmsg->\n%s\n",u,meta->error.httpcode,meta->error.message);
+    u = ncuribuild(uri,NULL,NULL,NCURIALL);     
+    fprintf(stderr,"***FAIL: url=%s httpcode=%d errmsg->\n%s\n",u,resp->serial.httpcode,resp->error.message);
 }

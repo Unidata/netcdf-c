@@ -17,8 +17,18 @@
 */
 typedef unsigned long long d4size_t;
 
-/* Define an counted memory marker */
+/* Define a (size, memory) pair */
 typedef struct D4blob {d4size_t size; void* memory;} D4blob;
+
+/* Empty blob constant */
+#define NULLBLOB(blob) {blob.size = 0; blob.memory = NULL;}
+
+#define OFFSET2BLOB(blob,offset) do{(blob).size = ((offset)->limit - (offset)->base); (blob).memory = (offset)->base; }while(0)
+#define BLOB2OFFSET(offset,blob) do{\
+(offset)->base = (blob).memory; \
+(offset)->limit = ((char*)(blob).memory) + (blob).size; \
+(offset)->offset = (offset)->base; \
+} while(0)
 
 /**************************************************/
 

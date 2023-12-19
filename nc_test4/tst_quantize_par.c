@@ -50,7 +50,7 @@ pf(float myf)
 	uint32_t u;
     } fu;
     fu.f = myf;
-    sprintf(pf_str, "0x%x", fu.u);
+    snprintf(pf_str, sizeof(pf_str), "0x%x", fu.u);
     return pf_str;
 }
 
@@ -63,7 +63,7 @@ pd(double myd)
 	uint64_t u;
     } du;
     du.d = myd;
-    sprintf(pf_str, "0x%lx", du.u);
+    snprintf(pf_str, sizeof(pf_str), "0x%lx", du.u);
     return pf_str;
 }
 

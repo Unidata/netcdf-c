@@ -1186,11 +1186,11 @@ main(int argc, char **argv)
       if (nc_create(FILE_NAME, NC_CLOBBER | NC_NETCDF4, &ncid)) ERR;
       for (g = 0; g < PARENT_NUM_GRPS; g++)
       {
-	 sprintf(grp_name, "grp_%d", g);
+	 snprintf(grp_name, sizeof(grp_name), "grp_%d", g);
 	 if (nc_def_grp(ncid, grp_name, &g1id)) ERR;
 	 for (s = 0; s < SUB_NUM_GRPS; s++)
 	 {
-	    sprintf(grp_name, "sub_grp_%d", s);
+	    snprintf(grp_name, sizeof(grp_name), "sub_grp_%d", s);
 	    if (nc_def_grp(g1id, grp_name, &sub_grpid)) ERR;
 	 }
       }

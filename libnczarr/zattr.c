@@ -68,9 +68,11 @@ ncz_getattlist(NC_GRP_INFO_T *grp, int varid, NC_VAR_INFO_T **varp, NCindex **at
 }
 
 /**
- * @internal Get one of three special attributes, NCPROPS,
- * ISNETCDF4ATT, and SUPERBLOCKATT. These atts are not all really in
- * the file, they are constructed on the fly.
+ * @internal Get one of the special attributes:
+ * See the reserved attribute table in libsrc4/nc4internal.c.
+ * The special attributes are the ones marked with NAMEONLYFLAG.
+ * For example: NCPROPS, ISNETCDF4ATT, and SUPERBLOCKATT, and CODECS.
+ * These atts are not all really in the file, they are constructed on the fly.
  *
  * @param h5 Pointer to ZARR file info struct.
  * @param var Pointer to var info struct; NULL signals global.
@@ -323,8 +325,9 @@ NCZ_del_att(int ncid, int varid, const char *name)
         return NC_ENOTATT;
 
     /* Reclaim the content of the attribute */
-    if(att->data) 
-	if((retval = nc_reclaim_data_all(ncid,att->nc_typeid,att->data,att->len))) return retval;
+    if(att->data) {
+	if((retval = NC_reclaim_data_all(h5->controller,att->nc_typeid,att->data,att->len))) return retval;
+    }
     att->data = NULL;
     att->len = 0;
 
@@ -426,7 +429,7 @@ ncz_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
             size_t len, const void *data, nc_type mem_type, int force)
 {
     NC* nc;
-    NC_FILE_INFO_T *h5;
+    NC_FILE_INFO_T *h5 = NULL;
     NC_VAR_INFO_T *var = NULL;
     NCindex* attlist = NULL;
     NC_ATT_INFO_T* att;
@@ -575,7 +578,7 @@ ncz_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
     }
 
     /* If this is the _FillValue attribute, then we will also have to
-     * copy the value to the fill_vlue pointer of the NC_VAR_INFO_T
+     * copy the value to the fill_value pointer of the NC_VAR_INFO_T
      * struct for this var. (But ignore a global _FillValue
      * attribute). Also kill the cache fillchunk as no longer valid */
     if (!strcmp(att->hdr.name, _FillValue) && varid != NC_GLOBAL)
@@ -625,7 +628,7 @@ ncz_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
 	    } else { /* no conversion */
 		/* Still need a copy of the input data */
 		copy = NULL;
-	        if((retval = nc_copy_data_all(h5->controller->ext_ncid, mem_type, data, 1, &copy)))
+	        if((retval = NC_copy_data_all(h5->controller, mem_type, data, 1, &copy)))
 		    BAIL(retval);
 	    }
 	    var->fill_value = copy;
@@ -662,7 +665,7 @@ ncz_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
 					       NC_NOQUANTIZE, 0)))
                     BAIL(retval);
 	    } else if(mem_type == file_type) { /* General case: no conversion */
-	        if((retval = nc_copy_data(h5->controller->ext_ncid,file_type,data,len,copy)))
+	        if((retval = NC_copy_data(h5->controller,file_type,data,len,copy)))
 		    BAIL(retval);
 	    } else
 	    	BAIL(NC_EURL);
@@ -670,6 +673,23 @@ ncz_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
 	    att->data = copy; copy = NULL;
 	}
     }
+
+    /* If this is a maxstrlen attribute, then we will also have to
+     * sync the value to NCZ_VAR_INFO_T or NCZ_FILE_INFO_T structure */
+    {
+	if(strcmp(att->hdr.name,NC_NCZARR_DEFAULT_MAXSTRLEN_ATTR)==0 && varid == NC_GLOBAL && len == 1) {
+	    NCZ_FILE_INFO_T* zfile = (NCZ_FILE_INFO_T*)h5->format_file_info;
+	    if((retval = nc4_convert_type(att->data, &zfile->default_maxstrlen, file_type, NC_INT,
+				      len, &range_error, NULL, NC_CLASSIC_MODEL, NC_NOQUANTIZE, 0)))
+	        BAIL(retval);
+	} else if(strcmp(att->hdr.name,NC_NCZARR_MAXSTRLEN_ATTR)==0 && varid != NC_GLOBAL && len == 1) {
+	    NCZ_VAR_INFO_T* zvar = (NCZ_VAR_INFO_T*)var->format_var_info;
+	if((retval = nc4_convert_type(att->data, &zvar->maxstrlen, file_type, NC_INT,
+				      len, &range_error, NULL, NC_CLASSIC_MODEL, NC_NOQUANTIZE, 0)))
+	        BAIL(retval);
+	}
+    }
+
     att->dirty = NC_TRUE;
     att->created = NC_FALSE;
     att->len = len;
@@ -680,30 +700,30 @@ ncz_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
     /* Reclaim saved data */
     if(attsave.data != NULL) {
         assert(attsave.len > 0);
-        (void)nc_reclaim_data_all(h5->controller->ext_ncid,attsave.type,attsave.data,attsave.len);
+        (void)NC_reclaim_data_all(h5->controller,attsave.type,attsave.data,attsave.len);
 	attsave.len = 0; attsave.data = NULL;
     }
     if(fillsave.data != NULL) {
         assert(fillsave.len > 0);
-        (void)nc_reclaim_data_all(h5->controller->ext_ncid,fillsave.type,fillsave.data,fillsave.len);
+        (void)NC_reclaim_data_all(h5->controller,fillsave.type,fillsave.data,fillsave.len);
 	fillsave.len = 0; fillsave.data = NULL;
     }
 
 exit:
     if(copy)
-        (void)nc_reclaim_data_all(h5->controller->ext_ncid,file_type,copy,len);
+        (void)NC_reclaim_data_all(h5->controller,file_type,copy,len);
     if(retval) {
 	/* Rollback */
         if(attsave.data != NULL) {
             assert(attsave.len > 0);
 	    if(att->data)
-                (void)nc_reclaim_data_all(h5->controller->ext_ncid,attsave.type,att->data,att->len);
+                (void)NC_reclaim_data_all(h5->controller,attsave.type,att->data,att->len);
 	    att->len = attsave.len; att->data = attsave.data;
         }
         if(fillsave.data != NULL) {
             assert(fillsave.len > 0);
 	    if(att->data)
-	    (void)nc_reclaim_data_all(h5->controller->ext_ncid,fillsave.type,var->fill_value,1);
+	    (void)NC_reclaim_data_all(h5->controller,fillsave.type,var->fill_value,1);
 	    var->fill_value = fillsave.data;
         }
     }    
@@ -1001,8 +1021,7 @@ ncz_makeattr(NC_OBJ* container, NCindex* attlist, const char* name, nc_type type
     if ((stat = nc4_get_typelen_mem(grp->nc4_info, typeid, &typesize))) goto done;
     clonesize = len*typesize;
     if((clone = malloc(clonesize))==NULL) {stat = NC_ENOMEM; goto done;}
-    memcpy(clone,values,clonesize);
-
+    if((stat = NC_copy_data(grp->nc4_info->controller, typeid, values, len, clone))) goto done;
     if((stat=nc4_att_list_add(attlist,name,&att)))
 	goto done;
     if((zatt = calloc(1,sizeof(NCZ_ATT_INFO_T))) == NULL)

@@ -28,7 +28,7 @@ and accessing rc files (e.g. .daprc).
 
 typedef struct NCRCentry {
 	char* host; /* combined host:port */
-	char* path; /* prefix to match or NULL */
+	char* urlpath; /* prefix to match or NULL */
         char* key;
         char* value;
 } NCRCentry;
@@ -53,13 +53,8 @@ typedef struct NCRCinfo {
 	NClist* s3profiles; /* NClist<struct AWSprofile*> */
 } NCRCinfo;
 
-typedef struct NCS3INFO {
-    char* host; /* non-null if other*/
-    char* region; /* region */
-    char* bucket; /* bucket name */
-    char* rootkey;
-    char* profile;
-} NCS3INFO;
+/* Opaque structures */
+struct NCS3INFO;
 
 #if defined(__cplusplus)
 extern "C" {
@@ -67,7 +62,7 @@ extern "C" {
 
 /* From drc.c */
 EXTERNL void ncrc_initialize(void);
-EXTERNL int NC_rcfile_insert(const char* key, const char* value, const char* hostport, const char* path);
+EXTERNL int NC_rcfile_insert(const char* key, const char* hostport, const char* path, const char* value);
 EXTERNL char* NC_rclookup(const char* key, const char* hostport, const char* path);
 EXTERNL char* NC_rclookupx(NCURI* uri, const char* key);
 
@@ -98,14 +93,11 @@ EXTERNL int NC_join(struct NClist* segments, char** pathp);
 
 /* From ds3util.c */
 /* S3 profiles */
-EXTERNL int NC_s3urlrebuild(NCURI* url, NCURI** newurlp, char** bucketp, char** regionp);
 EXTERNL int NC_getactives3profile(NCURI* uri, const char** profilep);
-EXTERNL int NC_getdefaults3region(NCURI* uri, const char** regionp);
-EXTERNL int NC_authgets3profile(const char* profile, struct AWSprofile** profilep);
 EXTERNL int NC_s3profilelookup(const char* profile, const char* key, const char** valuep);
-EXTERNL int NC_s3urlprocess(NCURI* url, NCS3INFO* s3);
-EXTERNL int NC_s3clear(NCS3INFO* s3);
+EXTERNL int NC_authgets3profile(const char* profile, struct AWSprofile** profilep);
 EXTERNL int NC_iss3(NCURI* uri);
+EXTERNL int NC_s3urlrebuild(NCURI* url, struct NCS3INFO* s3, NCURI** newurlp);
 
 #if defined(__cplusplus)
 }

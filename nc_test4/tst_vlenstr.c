@@ -87,6 +87,17 @@ writeVariable(int dimlength, int ncid, nc_type vlen_typeID)
     free(data);
 }
 
+static void
+createFruitsData(int elemno, int vlensize, int* stringIndexp, nc_vlen_t* data)
+{
+    data[elemno].len = vlensize;
+    data[elemno].p = NULL;
+    if(vlensize > 0) {
+        data[elemno].p = charPointers+(*stringIndexp);
+        (*stringIndexp) += vlensize;
+    }
+}
+
 void
 writeAttribute(int len, int ncid, nc_type vlen_typeID)
 {
@@ -98,29 +109,12 @@ writeAttribute(int len, int ncid, nc_type vlen_typeID)
     /* create six variable length arrays of strings */
     int stringIndex = 0;
 
-    data[0].len = first_size;
-    data[0].p = charPointers+stringIndex;
-    stringIndex += first_size;
-    
-    data[1].len = second_size;
-    data[1].p = charPointers+stringIndex;
-    stringIndex += second_size;
-    
-    data[2].len = third_size;
-    data[2].p = charPointers+stringIndex;
-    stringIndex += third_size;
-    
-    data[3].len = fourth_size;
-    data[3].p = charPointers+stringIndex;
-    stringIndex += fourth_size;
-    
-    data[4].len = fifth_size;
-    data[4].p = charPointers+stringIndex;
-    stringIndex += fifth_size;
-    
-    data[5].len = sixth_size;
-    data[5].p = charPointers+stringIndex;
-    stringIndex += sixth_size;
+    createFruitsData(0,first_size,&stringIndex,data);
+    createFruitsData(1,second_size,&stringIndex,data);
+    createFruitsData(2,third_size,&stringIndex,data);
+    createFruitsData(3,fourth_size,&stringIndex,data);
+    createFruitsData(4,fifth_size,&stringIndex,data);
+    createFruitsData(5,sixth_size,&stringIndex,data);
         
 #ifdef DEBUG
     if(buf) {free(buf); buf = NULL;}

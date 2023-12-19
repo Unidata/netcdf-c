@@ -106,9 +106,6 @@ typedef enum {NCNAT, NCVAR, NCDIM, NCATT, NCTYP, NCFLD, NCGRP, NCFIL} NC_SORT;
 /** Subset of readonly flags; readable by name only thru the API. */
 #define NAMEONLYFLAG 4
 
-/** Subset of readonly flags; Value is actually in file. */
-#define MATERIALIZEDFLAG 8
-
 /** Per-variable attribute, as opposed to global */
 #define VARFLAG 16
 
@@ -171,10 +168,6 @@ typedef struct NC_ATT_INFO
     nc_type nc_typeid;      /**< NetCDF type of attribute's data. */
     void *format_att_info;  /**< Pointer to format-specific att info. */
     void *data;             /**< The attribute data. */
-#ifdef SEPDATA
-    nc_vlen_t *vldata;      /**< VLEN data (only used for vlen types). */
-    char **stdata;          /**< String data (only for string type). */
-#endif
 } NC_ATT_INFO_T;
 
 /** This is a struct to handle the var metadata. */
@@ -246,6 +239,7 @@ typedef struct NC_TYPE_INFO
     nc_bool_t committed;         /**< True when datatype is committed in the file */
     nc_type nc_type_class;       /**< NC_VLEN, NC_COMPOUND, NC_OPAQUE, NC_ENUM, NC_INT, NC_FLOAT, or NC_STRING. */
     void *format_type_info;      /**< HDF5-specific type info. */
+    int varsized; 	         /**< <! 1 if this type is (recursively) variable sized; 0 if fixed size */
 
     /** Information for each type or class */
     union {
@@ -255,7 +249,6 @@ typedef struct NC_TYPE_INFO
         } e;                        /**< Enum */
         struct Fields {
             NClist* field;        /**< <! NClist<NC_FIELD_INFO_T*> */
-	    int varsized;         /**< <! 1 if this compound is variable sized; 0 if fixed size */
         } c;                      /**< Compound */
         struct {
             nc_type base_nc_typeid; /**< Typeid of the base type. */
@@ -291,7 +284,7 @@ typedef struct NC_FILE_INFO
 {
     NC_OBJ hdr;
     NC *controller; /**< Pointer to containing NC. */
-#ifdef USE_PARALLEL4
+#ifdef USE_PARALLEL
     MPI_Comm comm;  /**< Copy of MPI Communicator used to open the file. */
     MPI_Info info;  /**< Copy of MPI Information Object used to open the file. */
 #endif
@@ -453,8 +446,12 @@ extern int nc4_get_att_ptrs(NC_FILE_INFO_T *h5, NC_GRP_INFO_T *grp, NC_VAR_INFO_
                      const char *name, nc_type *xtype, nc_type mem_type,
                      size_t *lenp, int *attnum, void *data);
 
-/* Get variable/fixed size flag for type */
+/* Get variable/fixed size flag for type (ncid API level)*/
 extern int NC4_inq_type_fixed_size(int ncid, nc_type xtype, int* isfixedsizep);
+/* Manage the fixed/var sized'ness of a type */
+extern int NC4_recheck_varsize(NC_TYPE_INFO_T* parenttype, nc_type addedtype);
+extern int NC4_set_varsize(NC_TYPE_INFO_T* parenttype);
+extern int NC4_var_varsized(NC_VAR_INFO_T* var);
 
 /* Close the file. */
 extern int nc4_close_netcdf4_file(NC_FILE_INFO_T *h5, int abort, NC_memio *memio);
@@ -492,9 +489,13 @@ extern void NC_freeglobalstate(void);
 #define NC_ATT_COORDINATES "_Netcdf4Coordinates" /*see hdf5internal.h:COORDINATES*/
 #define NC_ATT_FORMAT "_Format"
 #define NC_ATT_DIMID_NAME "_Netcdf4Dimid"
+#define NC_ATT_FILLVALUE "_FillValue"
 #define NC_ATT_NC3_STRICT_NAME "_nc3_strict"
 #define NC_XARRAY_DIMS "_ARRAY_DIMENSIONS"
 #define NC_ATT_CODECS "_Codecs"
-#define NC_NCZARR_ATTR "_NCZARR_ATTR"
+#define NC_NCZARR_ATTR "_nczarr_attr"
+#define NC_NCZARR_ATTR_UC "_NCZARR_ATTR"
+#define NC_NCZARR_MAXSTRLEN_ATTR "_nczarr_maxstrlen"
+#define NC_NCZARR_DEFAULT_MAXSTRLEN_ATTR "_nczarr_default_maxstrlen"
 
 #endif /* _NC4INTERNAL_ */

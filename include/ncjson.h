@@ -2,9 +2,20 @@
    See the COPYRIGHT file for more information.
 */
 
+
 #ifndef NCJSON_H
 #define NCJSON_H 1
 
+/*
+WARNING:
+If you modify this file,
+then you need to got to
+the include/ directory
+and do the command:
+    make makepluginjson
+*/
+
+/* Inside libnetcdf and for plugins, export the json symbols */
 #ifndef DLLEXPORT
 #ifdef _WIN32
 #define DLLEXPORT __declspec(dllexport)
@@ -12,6 +23,13 @@
 #define DLLEXPORT
 #endif
 #endif
+
+/* Override for plugins */
+#ifdef NETCDF_JSON_H
+#define OPTEXPORT static
+#else
+#define OPTEXPORT DLLEXPORT
+#endif /*NETCDF_JSON_H*/
 
 /**************************************************/
 /* Json object sorts (note use of term sort rather than e.g. type or discriminant) */
@@ -25,8 +43,6 @@
 #define NCJ_NULL     7
 
 #define NCJ_NSORTS   8
-
-/* No flags are currently defined, but the argument is a placeholder */
 
 /* Define a struct to store primitive values as unquoted
    strings. The sort will provide more info.  Do not bother with
@@ -46,6 +62,7 @@ typedef struct NCjson {
    don't use union so we can know when to reclaim sval
 */
 struct NCJconst {int bval; long long ival; double dval; char* sval;};
+#define NCJconst_empty {0,0,0.0,NULL}
 
 /**************************************************/
 /* Extended API */
@@ -57,48 +74,49 @@ extern "C" {
 #endif
 
 /* Parse a string to NCjson*/
-DLLEXPORT int NCJparse(const char* text, unsigned flags, NCjson** jsonp);
+OPTEXPORT int NCJparse(const char* text, unsigned flags, NCjson** jsonp);
 
 /* Parse a counted string to NCjson*/
-DLLEXPORT int NCJparsen(size_t len, const char* text, unsigned flags, NCjson** jsonp);
+OPTEXPORT int NCJparsen(size_t len, const char* text, unsigned flags, NCjson** jsonp);
 
 /* Reclaim a JSON tree */
-DLLEXPORT extern void NCJreclaim(NCjson* json);
+OPTEXPORT void NCJreclaim(NCjson* json);
 
 /* Create a new JSON node of a given sort */
-DLLEXPORT extern int NCJnew(int sort, NCjson** objectp);
+OPTEXPORT int NCJnew(int sort, NCjson** objectp);
 
 /* Create new json object with given string content */
-DLLEXPORT extern int NCJnewstring(int sort, const char* value, NCjson** jsonp);
+OPTEXPORT int NCJnewstring(int sort, const char* value, NCjson** jsonp);
 
 /* Create new json object with given counted string content */
-DLLEXPORT extern int NCJnewstringn(int sort, size_t len, const char* value, NCjson** jsonp);
+OPTEXPORT int NCJnewstringn(int sort, size_t len, const char* value, NCjson** jsonp);
 
 /* Get dict key value by name */
-DLLEXPORT extern int NCJdictget(const NCjson* dict, const char* key, NCjson** valuep);
+OPTEXPORT int NCJdictget(const NCjson* dict, const char* key, NCjson** valuep);
 
 /* Convert one json sort to  value of another type; don't use union so we can know when to reclaim sval */
-DLLEXPORT extern int NCJcvt(const NCjson* value, int outsort, struct NCJconst* output);
-
-#ifndef NETCDF_JSON_H
+OPTEXPORT int NCJcvt(const NCjson* value, int outsort, struct NCJconst* output);
 
 /* Insert an atomic value to an array or dict object. */
-DLLEXPORT int NCJaddstring(NCjson* json, int sort, const char* s);
+OPTEXPORT int NCJaddstring(NCjson* json, int sort, const char* s);
 
 /* Append value to an array or dict object. */
-DLLEXPORT extern int NCJappend(NCjson* object, NCjson* value);
+OPTEXPORT int NCJappend(NCjson* object, NCjson* value);
 
 /* Insert key-value pair into a dict object. key will be copied */
-DLLEXPORT extern int NCJinsert(NCjson* object, char* key, NCjson* value);
+OPTEXPORT int NCJinsert(NCjson* object, char* key, NCjson* value);
 
 /* Unparser to convert NCjson object to text in buffer */
-DLLEXPORT extern int NCJunparse(const NCjson* json, unsigned flags, char** textp);
+OPTEXPORT int NCJunparse(const NCjson* json, unsigned flags, char** textp);
 
 /* Deep clone a json object */
-DLLEXPORT extern int NCJclone(const NCjson* json, NCjson** clonep);
+OPTEXPORT int NCJclone(const NCjson* json, NCjson** clonep);
 
+#ifndef NETCDF_JSON_H
 /* dump NCjson* object to output file */
-DLLEXPORT extern void NCJdump(const NCjson* json, unsigned flags, FILE*);
+OPTEXPORT void NCJdump(const NCjson* json, unsigned flags, FILE*);
+/* convert NCjson* object to output string */
+OPTEXPORT const char* NCJtotext(const NCjson* json);
 #endif
 
 #if defined(__cplusplus)
