@@ -417,7 +417,7 @@ In order to accomodate existing implementations, certain mode tags are provided 
 
 ## XArray
 
-The Xarray <a href="#ref_xarray">[7]</a> Zarr implementation uses its own mechanism for specifying shared dimensions.
+The Xarray [XArray Zarr Encoding Specification](http://xarray.pydata.org/en/latest/internals.html#zarr-encoding-specification) Zarr implementation uses its own mechanism for specifying shared dimensions.
 It uses a special attribute named ''_ARRAY_DIMENSIONS''.
 The value of this attribute is a list of dimension names (strings).
 An example might be ````["time", "lon", "lat"]````.
