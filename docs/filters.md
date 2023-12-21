@@ -65,6 +65,28 @@ The concept of a variable-sized type is defined as follows:
    then that compound type is variable-sized.
 4. All other types are fixed-size.
 
+## A Warning on Backward Compatibility {#filters_compatibility}
+
+The API defined in this document should accurately reflect the
+current state of filters in the netCDF-c library.  Be aware that
+there was a short period in which the filter code was undergoing
+some revision and extension.  Those extensions have largely been
+reverted.  Unfortunately, some users may experience some
+compilation problems for previously working code because of
+these reversions.  In that case, please revise your code to
+adhere to this document. Apologies are extended for any
+inconvenience.
+
+A user may encounter an incompatibility if any of the following appears in user code.
+
+* The function *\_nc\_inq\_var\_filter* was returning the error value NC\_ENOFILTER  if a variable had no associated filters.
+  It has been reverted to the previous case where it returns NC\_NOERR and the returned filter id was set to zero if the variable had no filters.
+* The function *nc\_inq\_var\_filterids* was renamed to *nc\_inq\_var\_filter\_ids*.
+* Some auxilliary functions for parsing textual filter specifications have been moved to the file *netcdf\_aux.h*. See [Appendix A](#filters_appendixa).
+* All of the "filterx" functions have been removed. This is unlikely to cause problems because they had limited visibility.
+
+For additional information, see [Appendix B](#filters_appendixb).
+
 ## Enabling A HDF5 Compression Filter {#filters_enable}
 
 HDF5 supports dynamic loading of compression filters using the

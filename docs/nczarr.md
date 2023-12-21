@@ -449,16 +449,16 @@ Here are a couple of examples using the _ncgen_ and _ncdump_ utilities.
     ```
 4. Create an nczarr file using S3 as storage and keeping to the pure zarr format.
     ```
-    ncgen -4 -lb -o "s3://s3.uswest-1.amazonaws.com/datasetbucket#mode=zarr" dataset.cdl
+    ncgen -4 -lb -o 's3://s3.uswest-1.amazonaws.com/datasetbucket#mode=zarr dataset.cdl
     ```
 5. Create an nczarr file using the s3 protocol with a specific profile
     ```
-    ncgen -4 -lb -o "s3://datasetbucket/rootkey#mode=nczarr,awsprofile=unidata" dataset.cdl
+    ncgen -4 -lb -o 's3://datasetbucket/rootkey#mode=nczarr,awsprofile=unidata' dataset.cdl
     ```
     Note that the URL is internally translated to this
-    ````
-    https://s2.&lt;region&gt.amazonaws.com/datasetbucket/rootkey#mode=nczarr,awsprofile=unidata" dataset.cdl
-    ````
+    ```
+    'https://s2.&lt;region&gt.amazonaws.com/datasetbucket/rootkey#mode=nczarr,awsprofile=unidata' dataset.cdl
+    ```
 
 # References {#nczarr_bib}
 
@@ -473,7 +473,7 @@ collections — High-performance dataset datatypes](https://docs.python.org/2/li
 <a name="dynamic_filter_loading">[8]</a> [Dynamic Filter Loading](https://support.hdfgroup.org/HDF5/doc/Advanced/DynamicallyLoadedFilters/HDF5DynamicallyLoadedFilters.pdf)<br>
 <a name="official_hdf5_filters">[9]</a> [Officially Registered Custom HDF5 Filters](https://portal.hdfgroup.org/display/support/Registered+Filter+Plugins)<br>
 <a name="blosc-c-impl">[10]</a> [C-Blosc Compressor Implementation](https://github.com/Blosc/c-blosc)<br>
-<a name="ref_awssdk_conda">[11]</a> [Conda-forge / packages / aws-sdk-cpp](https://anaconda.org/conda-forge/aws-sdk-cpp)<br>
+<a name="ref_awssdk_conda">[11]</a> [Conda-forge packages / aws-sdk-cpp](https://anaconda.org/conda-forge/aws-sdk-cpp)<br>
 <a name="ref_gdal">[12]</a> [GDAL Zarr](https://gdal.org/drivers/raster/zarr.html)<br>
 
 # Appendix A. Building NCZarr Support {#nczarr_build}
@@ -539,7 +539,7 @@ PATH="$PATH:${AWSSDKBIN}"
 Then the following options must be specified for cmake.
 ````
 -DAWSSDK_ROOT_DIR=${AWSSDK_ROOT_DIR}
--DAWSSDK_DIR=${AWSSDK_ROOT_DIR}/lib/cmake/AWSSDK"
+-DAWSSDK_DIR=${AWSSDK_ROOT_DIR}/lib/cmake/AWSSDK
 ````
 # Appendix B. Amazon S3 Imposed Limits {#nczarr_s3limits}
 
@@ -578,7 +578,7 @@ can in fact be any legal JSON expression.
 This "convention" is currently used routinely to help support various
 attributes created by other packages where the attribute is a
 complex JSON expression.  An example is the GDAL Driver
-convention <a href="#ref_gdal">[12]</a>, where the value is a complex
+convention <a href='#ref_gdal'>[12]</a>, where the value is a complex
 JSON dictionary.
 
 In order for NCZarr to be as consistent as possible with Zarr Version 2,
