@@ -449,11 +449,11 @@ Here are a couple of examples using the _ncgen_ and _ncdump_ utilities.
     ```
 4. Create an nczarr file using S3 as storage and keeping to the pure zarr format.
     ```
-    ncgen -4 -lb -o 's3://s3.uswest-1.amazonaws.com/datasetbucket#mode=zarr dataset.cdl
+    ncgen -4 -lb -o 's3://s3.uswest-1.amazonaws.com/datasetbucket\#mode=zarr dataset.cdl
     ```
 5. Create an nczarr file using the s3 protocol with a specific profile
     ```
-    ncgen -4 -lb -o 's3://datasetbucket/rootkey#mode=nczarr,awsprofile=unidata' dataset.cdl
+    ncgen -4 -lb -o 's3://datasetbucket/rootkey\#mode=nczarr,awsprofile=unidata' dataset.cdl
     ```
     Note that the URL is internally translated to this
     ```
