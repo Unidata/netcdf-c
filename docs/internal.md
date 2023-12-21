@@ -8,13 +8,13 @@ This document attempts to record important information about
 the internal architecture and operation of the netcdf-c library.
 It covers the following issues.
 
-* [Including C++ Code in the netcdf-c Library](#intern_c++)
+* [Including C++ Code in the netcdf-c Library](#intern_cpp)
 * [Managing instances of variable-length data types](#intern_vlens)
 * [Inferring File Types](#intern_infer)
 * [Adding a Standard Filter](#intern_filters)
 * [Test Interference](#intern_isolation)
 
-# 1. Including C++ Code in the netcdf-c Library {#intern_c++}
+# 1. Including C++ Code in the netcdf-c Library {#intern_cpp}
 
 The state of C compiler technology has reached the point where
 it is possible to include C++ code into the netcdf-c library
