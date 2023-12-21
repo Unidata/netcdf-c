@@ -739,7 +739,7 @@ This can be accomplished using this command.
 Since ncdump is not being asked to access the data (the -h flag), it can obtain the filter information without failures.
 Then it can print out the filter id and the parameters as well as the Codecs (via the -s flag).
 
-### Test Cases {#filters_TestCase}
+## Test Cases {#filters_TestCase}
 
 Within the netcdf-c source tree, the directory two directories contain test cases for testing dynamic filter operation.
 
