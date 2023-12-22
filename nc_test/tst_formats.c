@@ -9,6 +9,7 @@
 
 #include "config.h"
 #include <nc_tests.h>
+#include <stddef.h>
 #include "err_macros.h"
 
 #define FILE_NAME_BASE "tst_formats"
@@ -281,7 +282,7 @@ main(int argc, char **argv)
                 char var_name[NC_MAX_NAME + 1];
                 int dimid[NDIM2];
                 int xtype[NTYPE] = {NC_BYTE, NC_CHAR, NC_SHORT, NC_INT, NC_FLOAT, NC_DOUBLE};
-                int type_size[NTYPE] = {1, 1, 2, 4, 4, 8};
+                size_t type_size[NTYPE] = {1, 1, 2, 4, 4, 8};
                 int varid[NTYPE];
                 size_t start[NDIM2] = {0, 0};
                 size_t count[NDIM2] = {2, 2};

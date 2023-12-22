@@ -713,7 +713,7 @@ static nc_utf8proc_ssize_t nc_seqindex_write_char_decomposed(nc_utf8proc_uint16_
   *dstptr = NULL;
   result = nc_utf8proc_decompose_custom(str, strlen, NULL, 0, options, custom_func, custom_data);
   if (result < 0) return result;
-  buffer = (nc_utf8proc_int32_t *) malloc(result * sizeof(nc_utf8proc_int32_t) + 1);
+  buffer = (nc_utf8proc_int32_t *) malloc((size_t)result * sizeof(nc_utf8proc_int32_t) + 1);
   if (!buffer) return UTF8PROC_ERROR_NOMEM;
   result = nc_utf8proc_decompose_custom(str, strlen, buffer, result, options, custom_func, custom_data);
   if (result < 0) {

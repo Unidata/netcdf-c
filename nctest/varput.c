@@ -65,7 +65,7 @@ test_ncvarput(const char *path) /* name of writable netcdf file to open */
 	    hc.edg[id] = 1;
 	}
 	/* fill in vals with value of appropriate type */
-	hc.vals = emalloc(nctypelen(test.vars[iv].type));
+	hc.vals = emalloc((size_t)nctypelen(test.vars[iv].type));
 	val_fill(test.vars[iv].type, 1, hc.vals);
 
 	id = test.vars[iv].ndims - 1;

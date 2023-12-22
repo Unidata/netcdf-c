@@ -131,11 +131,11 @@ buildodom(int rank, NCZOdometer** odomp)
         if((odom = calloc(1,sizeof(NCZOdometer))) == NULL)
 	    goto done;   
         odom->rank = rank;
-        if((odom->start=calloc(1,(sizeof(size64_t)*rank)))==NULL) goto nomem;
-        if((odom->stop=calloc(1,(sizeof(size64_t)*rank)))==NULL) goto nomem;
-        if((odom->stride=calloc(1,(sizeof(size64_t)*rank)))==NULL) goto nomem;
-        if((odom->len=calloc(1,(sizeof(size64_t)*rank)))==NULL) goto nomem;
-        if((odom->index=calloc(1,(sizeof(size64_t)*rank)))==NULL) goto nomem;
+        if((odom->start=calloc(1,(sizeof(size64_t)*(size_t)rank)))==NULL) goto nomem;
+        if((odom->stop=calloc(1,(sizeof(size64_t)*(size_t)rank)))==NULL) goto nomem;
+        if((odom->stride=calloc(1,(sizeof(size64_t)*(size_t)rank)))==NULL) goto nomem;
+        if((odom->len=calloc(1,(sizeof(size64_t)*(size_t)rank)))==NULL) goto nomem;
+        if((odom->index=calloc(1,(sizeof(size64_t)*(size_t)rank)))==NULL) goto nomem;
         *odomp = odom; odom = NULL;
     }
 done:

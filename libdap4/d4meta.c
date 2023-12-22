@@ -5,6 +5,7 @@
 
 #include "d4includes.h"
 #include <stdarg.h>
+#include <stddef.h>
 #include "nc4internal.h"
 #include "ncoffsets.h"
 
@@ -603,8 +604,8 @@ savevarbyid(NCD4node* group, NCD4node* var)
 {
     if(group->group.varbyid == NULL)
         group->group.varbyid = nclistnew();
-    nclistsetalloc(group->group.varbyid,var->meta.id);
-    nclistinsert(group->group.varbyid,var->meta.id,var);
+    nclistsetalloc(group->group.varbyid, (size_t)var->meta.id);
+    nclistinsert(group->group.varbyid, (size_t)var->meta.id,var);
 }
 
 /* Collect FQN path from var node up to and including
@@ -730,7 +731,7 @@ compileAttrValues(NCD4meta* builder, NCD4node* attr, void** memoryp, NClist* blo
     NCD4node* container = attr->container;
     NCD4node* basetype = attr->basetype;
     NClist* values = attr->attr.values;
-    int count = nclistlength(values);
+    size_t count = nclistlength(values);
 
     memset((void*)&converter,0,sizeof(converter));
 

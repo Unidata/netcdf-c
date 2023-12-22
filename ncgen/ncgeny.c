@@ -3318,13 +3318,12 @@ makeconstdata(nc_type nctype)
 #ifdef USE_NETCDF4
 	case NC_OPAQUE: {
 	    char* s;
-	    int len;
-	    len = bbLength(lextext);
+	    size_t len = bbLength(lextext);
 	    s = (char*)ecalloc(len+1);
 	    strncpy(s,bbContents(lextext),len);
 	    s[len] = '\0';
 	    con->value.opaquev.stringv = s;
-	    con->value.opaquev.len = len;
+	    con->value.opaquev.len = (int)len;
 	    } break;
 
 	case NC_NIL:

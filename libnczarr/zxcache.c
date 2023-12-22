@@ -14,6 +14,7 @@
 #include "zcache.h"
 #include "ncxcache.h"
 #include "zfilter.h"
+#include <stddef.h>
 
 #undef DEBUG
 
@@ -662,7 +663,7 @@ put_chunk(NCZChunkCache* cache, NCZCacheEntry* entry)
         /* Convert from char* to char[strlen] format */
         int maxstrlen = NCZ_get_maxstrlen((NC_OBJ*)cache->var);
         assert(maxstrlen > 0);
-        if((strchunk = malloc(cache->chunkcount*maxstrlen))==NULL) {stat = NC_ENOMEM; goto done;}
+        if((strchunk = malloc((size_t)cache->chunkcount * (size_t)maxstrlen))==NULL) {stat = NC_ENOMEM; goto done;}
         /* copy char* to char[] format */
         if((stat = NCZ_char2fixed((const char**)entry->data,strchunk,cache->chunkcount,maxstrlen))) goto done;
         /* Reclaim the old chunk */

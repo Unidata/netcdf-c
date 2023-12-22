@@ -63,7 +63,7 @@ test_ncvargetg(const char *path) /* name of writable netcdf file to open */
 	}
 
 	/* get space for vals */
-	hc.vals = emalloc(nctypelen(test.vars[iv].type) + 8);
+	hc.vals = emalloc((size_t)nctypelen(test.vars[iv].type) + 8);
 
 #	define TEST_FAILS(varid) \
 	    (ncvarputg(cdfid, varid, hc.cor, hc.edg, \

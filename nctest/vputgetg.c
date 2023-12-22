@@ -5,6 +5,7 @@
  *********************************************************************/
 
 #include <config.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>		/* for free() */
 #include "netcdf.h"
@@ -108,7 +109,7 @@ test_varputgetg(int cdfid) /* handle of netcdf open and in data mode */
 	}
 
 	for (ie = 0; ie < ne; ie++) { /* for each test */
-	    int nelms = (int)nel[ie]*nctypelen(test.vars[iv].type) + 8;
+	    size_t nelms = (size_t)(nel[ie]*nctypelen(test.vars[iv].type) + 8);
 	    /* allocate space for the cube of values */
 	    hc[ie].vals	= emalloc(nelms);
 	    tmp.vals = emalloc(nelms);

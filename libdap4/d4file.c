@@ -7,6 +7,7 @@
 #include "ncd4dispatch.h"
 #include "d4includes.h"
 #include "d4curlfunctions.h"
+#include <stddef.h>
 
 #ifdef _MSC_VER
 #include <process.h>
@@ -301,7 +302,7 @@ set_curl_properties(NCD4INFO* d4info)
 	/* If no cookie file was defined, define a default */
         char* path = NULL;
         char* newpath = NULL;
-        int len;
+        size_t len;
 	errno = 0;
 	NCglobalstate* globalstate = NC_getglobalstate();
 

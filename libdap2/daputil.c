@@ -4,6 +4,7 @@
  *********************************************************************/
 
 #include "config.h"
+#include <stddef.h>
 
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
@@ -763,7 +764,7 @@ repairname(const char* name, const char* badchars)
     const char *p;
     char *q;
     int c;
-    int nnlen = 0;
+    size_t nnlen = 0;
 
     if(name == NULL) return NULL;
     nnlen = (3*strlen(name)); /* max needed */

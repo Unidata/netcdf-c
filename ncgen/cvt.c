@@ -450,10 +450,10 @@ case CASE(NC_STRING,NC_CHAR):
 case CASE(NC_STRING,NC_STRING):
     /* Need to watch out for embedded NULs */
     tmp.stringv.len = src->value.stringv.len;
-    tmp.stringv.stringv = (char*)ecalloc(src->value.stringv.len+1);
+    tmp.stringv.stringv = (char*)ecalloc((size_t)src->value.stringv.len+1);
     memcpy((void*)tmp.stringv.stringv,
            (void*)src->value.stringv.stringv,
-           tmp.stringv.len);
+           (size_t)tmp.stringv.len);
     tmp.stringv.stringv[tmp.stringv.len] = '\0';
     break;
 
@@ -559,8 +559,8 @@ case CASE(NC_OPAQUE,NC_DOUBLE):
     tmp.doublev = *(double*)bytes;
   break;
 case CASE(NC_OPAQUE,NC_OPAQUE):
-    tmp.opaquev.stringv = (char*)ecalloc(src->value.opaquev.len+1);
-    memcpy(tmp.opaquev.stringv,src->value.opaquev.stringv,src->value.opaquev.len);
+    tmp.opaquev.stringv = (char*)ecalloc((size_t)src->value.opaquev.len+1);
+    memcpy(tmp.opaquev.stringv,src->value.opaquev.stringv, (size_t)src->value.opaquev.len);
     tmp.opaquev.len = src->value.opaquev.len;
     tmp.opaquev.stringv[tmp.opaquev.len] = '\0';
     break;

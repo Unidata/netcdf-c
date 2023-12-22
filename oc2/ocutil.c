@@ -3,6 +3,7 @@
 
 #include "config.h"
 #include <errno.h>
+#include <stddef.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -695,7 +696,7 @@ done:
 char**
 ocmerge(const char** list1, const char** list2)
 {
-    int l1, l2;
+    size_t l1, l2;
     char** merge;
     const char** p;
     for(l1=0,p=list1;*p;p++) {l1++;}
