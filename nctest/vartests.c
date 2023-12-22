@@ -47,7 +47,7 @@ test_ncvarid(const char *path) /* name of writable netcdf file to open */
 	ncclose(cdfid); return ++nerrs;
     }
     /* in define mode, add a variable */
-    xx.dims = (int *) emalloc(sizeof(int) * xx.ndims);
+    xx.dims = (int *) emalloc(sizeof(int) * (size_t)xx.ndims);
     for (id = 0; id < xx.ndims; id++)
       xx.dims[id] = id;
     if ((varid = ncvardef(cdfid,
@@ -578,7 +578,7 @@ test_ncvarrename(const char *path) /* name of writable netcdf file to open */
 	ncclose(cdfid); return ++nerrs;
     }
     /* in define mode, add two variables */
-    yy.dims = (int *) emalloc(sizeof(int) * yy.ndims);
+    yy.dims = (int *) emalloc(sizeof(int) * (size_t)yy.ndims);
     for (id = 0; id < yy.ndims; id++)
       yy.dims[id] = id;
     if ((yy_id = ncvardef(cdfid,
@@ -587,7 +587,7 @@ test_ncvarrename(const char *path) /* name of writable netcdf file to open */
 	ncclose(cdfid); return ++nerrs;
     }
     add_var(&test, &yy);	/* keep in-memory netcdf in sync */
-    zz.dims = (int *) emalloc(sizeof(int) * zz.ndims);
+    zz.dims = (int *) emalloc(sizeof(int) * (size_t)zz.ndims);
     for (id = 0; id < zz.ndims; id++)
       zz.dims[id] = id;
     if (ncvardef(cdfid, zz.name, zz.type, zz.ndims, zz.dims) == -1) {

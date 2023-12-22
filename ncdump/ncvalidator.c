@@ -1622,9 +1622,9 @@ val_new_NC_var(char *name, int ndims)
     if (varp == NULL) return NULL;
 
     if (ndims > 0) {
-        varp->shape  = (long long*)calloc(ndims, sizeof(long long));
-        varp->dsizes = (long long*)calloc(ndims, sizeof(long long));
-        varp->dimids = (int *)     calloc(ndims, sizeof(int));
+        varp->shape  = (long long*)calloc((size_t)ndims, sizeof(long long));
+        varp->dsizes = (long long*)calloc((size_t)ndims, sizeof(long long));
+        varp->dimids = (int *)     calloc((size_t)ndims, sizeof(int));
     }
 
     varp->name     = name;

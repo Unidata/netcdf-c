@@ -156,7 +156,7 @@ test_slabs(int cdfid) /* handle of netcdf open and in data mode */
     /* define a multi-dimensional variable of each type */
 
     for (iv = 0; iv < NVARS; iv++) {
-	va[iv].dims = (int *) emalloc(sizeof(int) * va[iv].ndims);
+	va[iv].dims = (int *) emalloc(sizeof(int) * (size_t)va[iv].ndims);
 	for (idim = 0; idim < va[iv].ndims; idim++)
 	  va[iv].dims[idim] = dimids[idim];
 	varid[iv] = ncvardef(cdfid, va[iv].name, va[iv].type, va[iv].ndims,
@@ -176,7 +176,7 @@ test_slabs(int cdfid) /* handle of netcdf open and in data mode */
 
     for (iv = 0; iv < NVARS; iv++) { /* test each type of variable */
 
-	v = emalloc(WSIZE*XSIZE*YSIZE*ZSIZE * nctypelen(va[iv].type));
+	v = emalloc(WSIZE*XSIZE*YSIZE*ZSIZE * (size_t)nctypelen(va[iv].type));
 
 	/* fill it with values using a function of dimension indices */
 	ii = 0;

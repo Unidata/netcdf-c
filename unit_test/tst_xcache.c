@@ -84,7 +84,7 @@ generatestrings(int n, unsigned seed)
     char* s = NULL;
 
     srandom(seed);
-    strings = (NCXSTR*)calloc(sizeof(NCXSTR),(n+1));
+    strings = (NCXSTR*)calloc(sizeof(NCXSTR),((size_t)n+1));
     if(strings == NULL) abort();
     for(i=0;i<n;i++) {
         /* Generate one random string */

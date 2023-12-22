@@ -24,6 +24,7 @@
 #include "ncdispatch.h" /* from libdispatch */
 #include "ncutf8.h"
 #include <stdarg.h>
+#include <stddef.h>
 #include "ncrc.h"
 
 /** @internal Number of reserved attributes. These attributes are
@@ -788,14 +789,14 @@ nc4_var_set_ndims(NC_VAR_INFO_T *var, int ndims)
     /* Allocate space for dimension information. */
     if (ndims)
     {
-        if (!(var->dim = calloc(ndims, sizeof(NC_DIM_INFO_T *))))
+      if (!(var->dim = calloc((size_t)ndims, sizeof(NC_DIM_INFO_T *))))
             return NC_ENOMEM;
-        if (!(var->dimids = calloc(ndims, sizeof(int))))
+      if (!(var->dimids = calloc((size_t)ndims, sizeof(int))))
             return NC_ENOMEM;
 
         /* Initialize dimids to illegal values (-1). See the comment
            in nc4_rec_match_dimscales(). */
-        memset(var->dimids, -1, ndims * sizeof(int));
+      memset(var->dimids, -1, (size_t)ndims * sizeof(int));
     }
 
     return NC_NOERR;
@@ -1159,7 +1160,7 @@ nc4_field_list_add(NC_TYPE_INFO_T *parent, const char *name,
     if (ndims)
     {
         int i;
-        if (!(field->dim_size = malloc(ndims * sizeof(int))))
+        if (!(field->dim_size = malloc((size_t)ndims * sizeof(int))))
         {
             free(field->hdr.name);
             free(field);

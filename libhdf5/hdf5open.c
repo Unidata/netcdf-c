@@ -1365,9 +1365,9 @@ get_attached_info(NC_VAR_INFO_T *var, NC_HDF5_VAR_INFO_T *hdf5_var, int ndims,
          * attached for each dimension, and the HDF5 object IDs of the
          * scale(s). */
         assert(!hdf5_var->dimscale_hdf5_objids);
-        if (!(hdf5_var->dimscale_attached = calloc(ndims, sizeof(nc_bool_t))))
+        if (!(hdf5_var->dimscale_attached = calloc((size_t)ndims, sizeof(nc_bool_t))))
             return NC_ENOMEM;
-        if (!(hdf5_var->dimscale_hdf5_objids = malloc(ndims *
+        if (!(hdf5_var->dimscale_hdf5_objids = malloc((size_t)ndims *
                                                       sizeof(struct hdf5_objid))))
             return NC_ENOMEM;
 
@@ -1886,7 +1886,7 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
                                           &type_size)))
             return retval;
         {
-            if (!(att->data = malloc((unsigned int)(att->len * type_size))))
+            if (!(att->data = malloc((unsigned int)((size_t)att->len * type_size))))
                 BAIL(NC_ENOMEM);
 
             /* For a fixed length HDF5 string, the read requires
@@ -1907,7 +1907,7 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
 		char** dst = NULL;
 
                 /* Alloc space for the contiguous memory read. */
-                if (!(contig_buf = malloc(att->len * fixed_size * sizeof(char))))
+                if (!(contig_buf = malloc((size_t)att->len * fixed_size * sizeof(char))))
                     BAIL(NC_ENOMEM);
 
                 /* Read the fixed-len strings as one big block. */
@@ -2088,7 +2088,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
             return NC_EHDFERR;
         LOG((5, "compound type has %d members", nmembers));
         type->u.c.field = nclistnew();
-        nclistsetalloc(type->u.c.field,nmembers);
+        nclistsetalloc(type->u.c.field, (size_t)nmembers);
 
         for (m = 0; m < nmembers; m++)
         {
@@ -2253,7 +2253,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
         if ((nmembers = H5Tget_nmembers(hdf_typeid)) < 0)
             return NC_EHDFERR;
         type->u.e.enum_member = nclistnew();
-        nclistsetalloc(type->u.e.enum_member,nmembers);
+        nclistsetalloc(type->u.e.enum_member, (size_t)nmembers);
 
         /* Allocate space for one value. */
         if (!(value = calloc(1, type_size)))

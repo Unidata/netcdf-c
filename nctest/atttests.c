@@ -124,7 +124,7 @@ test_ncattput(const char *path) /* name of writable netcdf file to open */
 	    ncclose(cdfid); return ++nerrs;
 	}
 	/* allocate space to hold the attribute value to be retrieved */
-	tmp.val = emalloc(atts[ia].len * nctypelen(atts[ia].type));
+	tmp.val = emalloc((size_t)(atts[ia].len * nctypelen(atts[ia].type)));
 	if (ncattget(cdfid, NC_GLOBAL, atts[ia].name, tmp.val) == -1) {
 	    error("%s: ncattget of variable attribute failed", pname);
 	    ncclose(cdfid); return ++nerrs;
@@ -137,7 +137,7 @@ test_ncattput(const char *path) /* name of writable netcdf file to open */
 	free (tmp.val);
     }
     /* add a variable, then variable attributes of every type */
-    ww.dims = (int *) emalloc(sizeof(int) * ww.ndims);
+    ww.dims = (int *) emalloc(sizeof(int) * (size_t)ww.ndims);
     for (id = 0; id < ww.ndims; id++)
       ww.dims[id] = id;
     if ((ww_id = ncvardef(cdfid,
@@ -168,7 +168,7 @@ test_ncattput(const char *path) /* name of writable netcdf file to open */
 	    ncclose(cdfid); return ++nerrs;
 	}
 	/* allocate space to hold the attribute value to be retrieved */
-	tmp.val = emalloc(atts[ia].len * nctypelen(atts[ia].type));
+	tmp.val = emalloc((size_t)(atts[ia].len * nctypelen(atts[ia].type)));
 	if (ncattget(cdfid, ww_id, atts[ia].name, tmp.val) == -1) {
 	    error("%s: ncattget of variable attribute failed", pname);
 	    ncclose(cdfid); return ++nerrs;
@@ -212,7 +212,7 @@ test_ncattput(const char *path) /* name of writable netcdf file to open */
 	    ncclose(cdfid); return ++nerrs;
 	}
 	/* allocate space to hold the attribute value to be retrieved */
-	tmp.val = emalloc(atts[ia].len * nctypelen(atts[ia].type));
+	tmp.val = emalloc((size_t)(atts[ia].len * nctypelen(atts[ia].type)));
 	if (ncattget(cdfid, ww_id, atts[ia-1].name, tmp.val) == -1) {
 	    error("%s: ncattget of variable attribute failed", pname);
 	    ncclose(cdfid); return ++nerrs;
@@ -293,7 +293,7 @@ test_ncattput(const char *path) /* name of writable netcdf file to open */
 	    ncclose(cdfid); return ++nerrs;
 	}
 	/* allocate space to hold the attribute value to be retrieved */
-	tmp.val = emalloc(atts[ia].len * nctypelen(atts[ia].type));
+	tmp.val = emalloc((size_t)(atts[ia].len * nctypelen(atts[ia].type)));
 	if (ncattget(cdfid, ww_id, atts[ia+1].name, tmp.val) == -1) {
 	    error("%s: ncattget of variable attribute failed in data mode",
 		  pname);
@@ -384,7 +384,7 @@ test_ncattinq(const char *path) /* name of writable netcdf file to open */
 	ncclose(cdfid); return ++nerrs;
     }
     /* in define mode, add a variable */
-    vv.dims = (int *) emalloc(sizeof(int) * vv.ndims);
+    vv.dims = (int *) emalloc(sizeof(int) * (size_t)vv.ndims);
     for (id = 0; id < vv.ndims; id++)
       vv.dims[id] = id;		/* assumes vv.ndims <= test.ndims */
     if ((vv_id = ncvardef(cdfid, vv.name, vv.type, vv.ndims, vv.dims))
@@ -481,7 +481,7 @@ test_ncattget(const char *path) /* name of writable netcdf file to open */
 	ncclose(cdfid); return ++nerrs;
     }
     /* add a variable */
-    uu.dims = (int *) emalloc(sizeof(int) * uu.ndims);
+    uu.dims = (int *) emalloc(sizeof(int) * (size_t)uu.ndims);
     for (id = 0; id < uu.ndims; id++)
       uu.dims[id] = id;
     if ((uu_id = ncvardef(cdfid,
@@ -517,7 +517,7 @@ test_ncattget(const char *path) /* name of writable netcdf file to open */
 	    ncclose(cdfid); return ++nerrs;
 	}
 	/* allocate space to hold the attribute value to be retrieved */
-	tmp.val = emalloc(tmp.len * nctypelen(tmp.type));
+	tmp.val = emalloc((size_t)(tmp.len * nctypelen(tmp.type)));
 	if (ncattget(cdfid, test.atts[ia].var, test.atts[ia].name, tmp.val)
 	    == -1) {
 	    error("%s: ncattget of variable attribute failed in define mode",
@@ -562,7 +562,7 @@ test_ncattget(const char *path) /* name of writable netcdf file to open */
 	    return ++nerrs;
 	}
 	/* allocate space to hold the attribute value to be retrieved */
-	tmp.val = emalloc(tmp.len * nctypelen(tmp.type));
+	tmp.val = emalloc((size_t)(tmp.len * nctypelen(tmp.type)));
 	if (ncattget(cdfid, test.atts[ia].var, test.atts[ia].name, tmp.val)
 	    == -1) {
 	    error("%s: ncattget of variable attribute failed in data mode",
@@ -664,7 +664,7 @@ test_ncattcopy(const char *path1, const char *path2)
 	ncclose(cdfid); return ++nerrs;
     }
     add_att(&test, NC_GLOBAL, &att); /* keep in-memory netcdf consistent */
-    tt.dims = (int *) emalloc(sizeof(int) * tt.ndims);
+    tt.dims = (int *) emalloc(sizeof(int) * (size_t)tt.ndims);
     for (id=0; id < tt.ndims; id++)
       tt.dims[0] = id;
     if ((tt_id=ncvardef(cdfid, tt.name, tt.type, tt.ndims, tt.dims)) == -1) {
@@ -678,7 +678,7 @@ test_ncattcopy(const char *path1, const char *path2)
     }
     add_att(&test, tt_id, &att); /* keep in-memory netcdf consistent */
 
-    tu.dims = (int *) emalloc(sizeof(int) * tu.ndims);
+    tu.dims = (int *) emalloc(sizeof(int) * (size_t)tu.ndims);
     for (id = 0; id < tu.ndims; id++)
 	tu.dims[id] = id;
     if ((tu_id=ncvardef(cdfid, tu.name, tu.type, tu.ndims, tu.dims)) == -1) {
@@ -729,7 +729,7 @@ test_ncattcopy(const char *path1, const char *path2)
 	ncclose(cdfid); ncclose(cdfid2); return ++nerrs;
     }
     /* allocate space to hold the attribute value to be retrieved */
-    tmp.val = emalloc(att.len * nctypelen(att.type));
+    tmp.val = emalloc((size_t)(att.len * nctypelen(att.type)));
     if (ncattget(cdfid2, NC_GLOBAL, att.name, tmp.val) == -1) {
 	error("%s: ncattget of variable attribute failed", pname);
 	ncclose(cdfid); ncclose(cdfid2); return ++nerrs;
@@ -755,7 +755,7 @@ test_ncattcopy(const char *path1, const char *path2)
 	ncclose(cdfid); ncclose(cdfid2); return ++nerrs;
     }
     /* allocate space to hold the attribute value to be retrieved */
-    tmp.val = emalloc(att.len * nctypelen(att.type));
+    tmp.val = emalloc((size_t)(att.len * nctypelen(att.type)));
     if (ncattget(cdfid2, tu2_id, att.name, tmp.val) == -1) {
 	error("%s: ncattget of variable attribute failed", pname);
 	ncclose(cdfid); ncclose(cdfid2); return ++nerrs;
@@ -798,7 +798,7 @@ test_ncattcopy(const char *path1, const char *path2)
 	ncclose(cdfid); ncclose(cdfid2); return ++nerrs;
     }
     /* allocate space to hold the attribute value to be retrieved */
-    tmp.val = emalloc(att2.len * nctypelen(att2.type));
+    tmp.val = emalloc((size_t)(att2.len * nctypelen(att2.type)));
     if (ncattget(cdfid2, tu2_id, att2.name, tmp.val) == -1) {
 	error("%s: ncattget of variable attribute failed", pname);
 	ncclose(cdfid); ncclose(cdfid2); return ++nerrs;
@@ -827,7 +827,7 @@ test_ncattcopy(const char *path1, const char *path2)
 	ncclose(cdfid); ncclose(cdfid2); return ++nerrs;
     }
     /* allocate space to hold the attribute value to be retrieved */
-    tmp.val = emalloc(att2.len * nctypelen(att2.type));
+    tmp.val = emalloc((size_t)(att2.len * nctypelen(att2.type)));
     if (ncattget(cdfid, tu_id, att2.name, tmp.val) == -1) {
 	error("%s: ncattget of variable attribute failed", pname);
 	ncclose(cdfid); ncclose(cdfid2); return ++nerrs;
@@ -1144,7 +1144,7 @@ test_ncattrename(const char *path) /* name of writable netcdf file to open */
 	ncclose(cdfid); return ++nerrs;
     }
     /* allocate space to hold the attribute value to be retrieved */
-    tmp.val = emalloc(atty.len * nctypelen(atty.type));
+    tmp.val = emalloc((size_t)(atty.len * nctypelen(atty.type)));
     if (ncattget(cdfid, NC_GLOBAL, newname, tmp.val) == -1) {
 	error("%s: ncattget of variable attribute failed", pname);
 	ncclose(cdfid); return ++nerrs;
@@ -1267,7 +1267,7 @@ test_ncattdel(const char *path) /* name of writable netcdf file to open */
 	ncclose(cdfid); return ++nerrs;
     }
     add_att(&test, NC_GLOBAL, &yaa); /* keep in-memory netcdf in sync */
-    yav.dims = (int *) emalloc(sizeof(int) * yav.ndims);
+    yav.dims = (int *) emalloc(sizeof(int) * (size_t)yav.ndims);
     for (id = 0; id < yav.ndims; id++)
 	yav.dims[id] = id;
     if ((yav_id=ncvardef(cdfid, yav.name, yav.type, yav.ndims, yav.dims))

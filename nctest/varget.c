@@ -61,7 +61,7 @@ test_ncvarget(const char *path) /* name of writable netcdf file to open */
 	    hc.edg[id] = 1;
 	}
 	/* get space for vals */
-	hc.vals = emalloc(nctypelen(test.vars[iv].type) + 8);
+	hc.vals = emalloc((size_t)nctypelen(test.vars[iv].type) + 8);
 
 	id = test.vars[iv].ndims - 1;
 	tmp = hc.cor[id];
