@@ -329,7 +329,7 @@ main(int argc, char **argv)
       /* Create a bunch of files. */
       for (f = 0; f < NUM_FILES; f++)
       {
-         sprintf(file_name, "tst_files2_%d.nc", f);
+         snprintf(file_name, sizeof(file_name), "tst_files2_%d.nc", f);
          if (nc_create(file_name, NC_NETCDF4, &ncid[f])) ERR;
          if (nc_def_dim(ncid[f], D1_NAME, TEXT_LEN + 1, &dimid)) ERR;
          if (nc_def_var(ncid[f], VAR_NAME, NC_CHAR, NDIMS, &dimid, &varid)) ERR;

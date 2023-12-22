@@ -150,9 +150,9 @@ find_var_dim_max_length(NC_GRP_INFO_T *grp, int varid, int dimid,
                 BAIL(NC_EHDFERR);
             if (dataset_ndims != var->ndims)
                 BAIL(NC_EHDFERR);
-            if (!(h5dimlen = malloc(dataset_ndims * sizeof(hsize_t))))
+            if (!(h5dimlen = malloc((size_t)dataset_ndims * sizeof(hsize_t))))
                 BAIL(NC_ENOMEM);
-            if (!(h5dimlenmax = malloc(dataset_ndims * sizeof(hsize_t))))
+            if (!(h5dimlenmax = malloc((size_t)dataset_ndims * sizeof(hsize_t))))
                 BAIL(NC_ENOMEM);
             if ((dataset_ndims = H5Sget_simple_extent_dims(spaceid,
                                                            h5dimlen, h5dimlenmax)) < 0)

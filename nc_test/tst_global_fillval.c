@@ -16,6 +16,7 @@
 
 #include "config.h"
 #include <nc_tests.h>
+#include <stddef.h>
 #include "err_macros.h"
 
 #define FILE_NAME "tst_global_fillval.nc"
@@ -28,8 +29,8 @@ main(int argc, char **argv)
     {
 
 	int n = 0;
-    int i;
-    int num_formats = 2;
+    size_t i;
+    size_t num_formats = 2;
     int *formats = NULL;
 	/* Determine how many formats are in use. */
 

@@ -798,9 +798,9 @@ listappend(struct NCjlist* list, NCjson* json)
 	list->contents[0] = json;
 	list->len++;
     } else {
-        if((newcontents = (NCjson**)calloc((2*list->len)+1,sizeof(NCjson*)))==NULL)
+        if((newcontents = (NCjson**)calloc((size_t)(2*list->len)+1,sizeof(NCjson*)))==NULL)
             {stat = NCJTHROW(NCJ_ERR); goto done;}
-        memcpy(newcontents,list->contents,list->len*sizeof(NCjson*));
+        memcpy(newcontents,list->contents, (size_t)list->len*sizeof(NCjson*));
 	newcontents[list->len] = json;
 	list->len++;
 	free(list->contents);

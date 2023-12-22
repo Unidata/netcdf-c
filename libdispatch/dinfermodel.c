@@ -320,8 +320,8 @@ parsepair(const char* pair, char** keyp, char** valuep)
 	key = strdup(pair);
     } else {
 	ptrdiff_t len = (p-pair);
-	if((key = malloc(len+1))==NULL) return NC_ENOMEM;
-	memcpy(key,pair,len);
+	if((key = malloc((size_t)len+1))==NULL) return NC_ENOMEM;
+	memcpy(key,pair,(size_t)len);
 	key[len] = '\0';
 	if(p[1] == '\0')
 	    value = NULL;
@@ -383,8 +383,8 @@ parseonchar(const char* s, int ch, NClist* segments)
 	endp = strchr(p,ch);
 	if(endp == NULL) endp = p + strlen(p);
 	slen = (endp - p);
-	if((q = malloc(slen+1)) == NULL) {stat = NC_ENOMEM; goto done;}
-	memcpy(q,p,slen);
+	if((q = malloc((size_t)slen+1)) == NULL) {stat = NC_ENOMEM; goto done;}
+	memcpy(q,p,(size_t)slen);
 	q[slen] = '\0';
 	nclistpush(segments,q);
 	if(*endp == '\0') break;

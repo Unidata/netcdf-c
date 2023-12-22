@@ -25,8 +25,7 @@
  *    try with bad netCDF handle, check error
  */
 int
-test_ncvargetg(path)
-     const char *path;		/* name of writable netcdf file to open */
+test_ncvargetg(const char *path) /* name of writable netcdf file to open */
 {
     int nerrs = 0;
     static char pname[] = "test_ncvargetg";
@@ -64,7 +63,7 @@ test_ncvargetg(path)
 	}
 
 	/* get space for vals */
-	hc.vals = emalloc(nctypelen(test.vars[iv].type) + 8);
+	hc.vals = emalloc((size_t)nctypelen(test.vars[iv].type) + 8);
 
 #	define TEST_FAILS(varid) \
 	    (ncvarputg(cdfid, varid, hc.cor, hc.edg, \

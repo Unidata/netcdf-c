@@ -13,7 +13,7 @@ The NetCDF homepage may be found at <a href="https://www.unidata.ucar.edu/softwa
 
 You can find the documentation for netCDF-Fortran here:
 
-- <a href="https://www.unidata.ucar.edu/software/netcdf/fortran/docs"> The NetCDF-Fortran Developer's Guide</a>
+- <a href="https://docs.unidata.ucar.edu/netcdf-fortran/current/"> The NetCDF-Fortran Developer's Guide</a>
 
 \section this_release Learn more about the current NetCDF-C Release
 

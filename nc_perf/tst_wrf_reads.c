@@ -26190,7 +26190,7 @@ main(int argc, char **argv)
                char file_name[NC_MAX_NAME + 1];
 
                nc_set_log_level(4);
-               sprintf(file_name, "%s_wrf_chem_%d.nc", FILE_NAME, i);
+               snprintf(file_name, sizeof(file_name), "%s_wrf_chem_%d.nc", FILE_NAME, i);
                run_test(2, file_name, cmode[c], &open_time, &create_time, &close_time);
                remove(file_name);
             }
@@ -26214,7 +26214,7 @@ main(int argc, char **argv)
    /*             char file_name[NC_MAX_NAME + 1]; */
 
    /*             nc_set_log_level(4); */
-   /*             sprintf(file_name, "%s_%d.nc", FILE_NAME, i); */
+   /*             snprintf(file_name, sizeof(file_name), "%s_%d.nc", FILE_NAME, i); */
    /*             run_test(0, file_name, cmode[c], &open_time, &create_time, &close_time); */
    /*             remove(file_name); */
    /*          } */
@@ -26237,7 +26237,7 @@ main(int argc, char **argv)
    /*             char file_name[NC_MAX_NAME + 1]; */
 
    /*             nc_set_log_level(4); */
-   /*             sprintf(file_name, "%s_%d.nc", FILE_NAME, i); */
+   /*             snprintf(file_name, sizeof(file_name), "%s_%d.nc", FILE_NAME, i); */
    /*             run_test(1, file_name, cmode[c], &open_time, &create_time, &close_time); */
    /*             remove(file_name); */
    /*          } */

@@ -5,6 +5,7 @@
  *********************************************************************/
 
 #include "config.h"		/* for USE_NETCDF4 macro */
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -193,10 +194,10 @@ nc_get_iter(int ncid,
 
     NC_CHECK(nc_inq_varndims(ncid, varid, &ndims));
 
-    dimids = (int *) emalloc((ndims + 1) * sizeof(int));
+    dimids = (int *) emalloc((size_t)(ndims + 1) * sizeof(int));
 
-    iterp->dimsizes = (size_t *) emalloc((ndims + 1) * sizeof(size_t));
-    iterp->chunksizes = (size_t *) emalloc((ndims + 1) * sizeof(size_t));
+    iterp->dimsizes = (size_t *) emalloc((size_t)(ndims + 1) * sizeof(size_t));
+    iterp->chunksizes = (size_t *) emalloc((size_t)(ndims + 1) * sizeof(size_t));
 
     NC_CHECK(nc_inq_vardimid (ncid, varid, dimids));
     for(dim = 0; dim < ndims; dim++) {

@@ -55,6 +55,7 @@ int read_back_contents(const char* filename) {
     size_t i;
     float data[VARIABLE_SIZE];
 
+
     char var_name[NC_MAX_NAME+1];
     int dimids_var[1], var_type, natts;
 
