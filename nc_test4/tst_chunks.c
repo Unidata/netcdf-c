@@ -90,7 +90,7 @@ main(int argc, char **argv)
       if (nc_create(FILE_NAME, NC_NETCDF4, &ncid)) ERR;
       for (d = 0; d < NUM_DIM; d++)
       {
-	 sprintf(dim_name, "dim_%d", dim_len[d]);
+	 snprintf(dim_name, sizeof(dim_name), "dim_%d", dim_len[d]);
 #ifdef PRINT_DEFAULT_CHUNKSIZE_TABLE
 	 printf("creating dim %s\n", dim_name);
 #endif
@@ -99,7 +99,7 @@ main(int argc, char **argv)
 
       for (t = 0; t < NUM_TYPE; t++)
       {
-	 sprintf(var_name, "var_%d", type_id[t]);
+	 snprintf(var_name, sizeof(var_name), "var_%d", type_id[t]);
 	 if (nc_def_var(ncid, var_name, type_id[t], NUM_DIM, dimid, &varid[t])) ERR;
 	 if (nc_inq_var_chunking(ncid, varid[t], &contig, chunksize_in)) ERR;
 #ifdef PRINT_DEFAULT_CHUNKSIZE_TABLE
@@ -120,7 +120,7 @@ main(int argc, char **argv)
 
       for (t = 0; t < NUM_TYPE; t++)
       {
-	 sprintf(var_name, "var_%d", type_id[t]);
+	 snprintf(var_name, sizeof(var_name), "var_%d", type_id[t]);
 	 if (nc_inq_var_chunking(ncid, varid[t], &contig, chunksize_in)) ERR;
 	 if (contig) ERR;
 #ifdef PRINT_DEFAULT_CHUNKSIZE_TABLE
@@ -216,7 +216,7 @@ main(int argc, char **argv)
       /* Oh that tricky Cardinal Richelieu, he had many plans! */
       for (i = 0; i < NUM_PLANS; i++)
       {
-	 sprintf(plan_name, "Richelieu_sneaky_plan_%d", i);
+	 snprintf(plan_name, sizeof(plan_name), "Richelieu_sneaky_plan_%d", i);
 	 if (nc_def_var(ncid, plan_name, i % (NC_STRING - 1) + 1, NDIMS_3,
 			dimids, &varid[i])) ERR;
 	 if (i % 2 && nc_def_var_chunking(ncid, varid[i], 0, chunksize)) ERR;

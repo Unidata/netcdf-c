@@ -191,7 +191,7 @@ count_udtypes(int ncid) {
 	/* Get number of types in this group */
 	if( nc_inq_typeids(ncid, &ntypes, NULL) ) ERR;
 	if( nc_inq_grps(ncid, &numgrps, NULL) ) ERR;
-	ncids = (int *) malloc(sizeof(int) * numgrps);
+	ncids = (int *) malloc(sizeof(int) * (size_t)numgrps);
 	if( nc_inq_grps(ncid, NULL, ncids) ) ERR;
 	/* Add number of types in each subgroup, if any */
 	for (i=0; i < numgrps; i++) {

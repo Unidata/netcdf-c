@@ -1676,7 +1676,7 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
   	        /* Save the rank of the variable */
 	        if((stat = nc4_var_set_ndims(var, rank))) goto done;
 	        /* extract the shapes */
-	        if((shapes = (size64_t*)malloc(sizeof(size64_t)*zarr_rank)) == NULL)
+	        if((shapes = (size64_t*)malloc(sizeof(size64_t)*(size_t)zarr_rank)) == NULL)
 	            {stat = (THROW(NC_ENOMEM)); goto done;}
 	        if((stat = decodeints(jvalue, shapes))) goto done;
 	    }
@@ -1702,7 +1702,7 @@ define_vars(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NClist* varnames)
 		var->storage = NC_CHUNKED;
 		if(var->ndims != rank)
 		    {stat = (THROW(NC_ENCZARR)); goto done;}
-		if((var->chunksizes = malloc(sizeof(size_t)*zarr_rank)) == NULL)
+		if((var->chunksizes = malloc(sizeof(size_t)*(size_t)zarr_rank)) == NULL)
 		    {stat = NC_ENOMEM; goto done;}
 		if((stat = decodeints(jvalue, chunks))) goto done;
 		/* validate the chunk sizes */

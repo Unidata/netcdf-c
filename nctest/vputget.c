@@ -34,8 +34,7 @@
  */
 
 int
-test_varputget(cdfid)
-     int cdfid;			/* handle of netcdf open and in data mode */
+test_varputget(int cdfid) /* handle of netcdf open and in data mode */
 {
     int nerrs = 0;
     static char pname[] = "test_varputget";
@@ -77,8 +76,8 @@ test_varputget(cdfid)
 	for (ie = 0; ie < ne; ie++) { /* for each of ne points */
 
 	    /* allocate space for the cube of values */
-	    hc[ie].vals = emalloc(nel[ie]*nctypelen(test.vars[iv].type) + 8);
-	    tmp.vals = emalloc(nel[ie]*nctypelen(test.vars[iv].type) + 8);
+	    hc[ie].vals = emalloc((size_t)(nel[ie]*nctypelen(test.vars[iv].type) + 8));
+	    tmp.vals = emalloc((size_t)(nel[ie]*nctypelen(test.vars[iv].type) + 8));
 
 	    /* fill allocated space with different values of right type */
 	    val_fill(test.vars[iv].type, nel[ie], hc[ie].vals);

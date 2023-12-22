@@ -118,6 +118,12 @@ are set when opening a binary file on Windows. */
 /* if true, build byte-range Client */
 #cmakedefine ENABLE_BYTERANGE 1
 
+/* if true, enable ERANGE fill */
+#cmakedefine ENABLE_ERANGE_FILL 1
+#ifdef ENABLE_ERANGE_FILL
+#define ERANGE_FILL 1
+#endif
+
 /* if true, use hdf5 S3 virtual file reader */
 #cmakedefine ENABLE_HDF5_ROS3 1
 

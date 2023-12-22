@@ -5,6 +5,7 @@
  *********************************************************************/
 
 #include "includes.h"
+#include <stddef.h>
 
 /* Track primitive symbol instances (initialized in ncgen.y) */
 Symbol* primsymbols[PRIMNO];
@@ -12,7 +13,7 @@ Symbol* primsymbols[PRIMNO];
 char*
 append(const char* s1, const char* s2)
 {
-    int len = (s1?strlen(s1):0)+(s2?strlen(s2):0);
+    size_t len = (s1?strlen(s1):0)+(s2?strlen(s2):0);
     char* result = (char*)ecalloc(len+1);
     result[0] = '\0';
     if(s1) strcat(result,s1);
@@ -174,8 +175,9 @@ nctypename(nc_type nctype)
 	return nctypenamesextend[(nctype - NC_GRP)];
     if(nctype == NC_FILLVALUE) return "NC_FILL";
     if(nctype == NC_NIL) return "NC_NIL";
-    s = poolalloc(128);
-    sprintf(s,"NC_<%d>",nctype);
+    const size_t s_size = 128;
+    s = poolalloc(s_size);
+    snprintf(s,s_size,"NC_<%d>",nctype);
     return s;
 }
 
@@ -195,8 +197,9 @@ ncclassname(nc_class ncc)
     if(ncc == NC_FILLVALUE) return "NC_FILL";
     if(ncc >= NC_GRP && ncc <= NC_PRIM)
 	return ncclassnames[ncc - NC_GRP];
-    s = poolalloc(128);
-    sprintf(s,"NC_<%d>",ncc);
+    const size_t s_size = 128;
+    s = poolalloc(s_size);
+    snprintf(s,s_size,"NC_<%d>",ncc);
     return s;
 }
 
@@ -369,7 +372,7 @@ collectpath(Symbol* grp, List* grpstack)
 char*
 prefixtostring(List* prefix, char* separator)
 {
-    int slen=0;
+    size_t slen=0;
     int plen;
     int i;
     char* result;
@@ -439,7 +442,7 @@ prefixdup(List* prefix)
     int i;
     if(prefix == NULL) return listnew();
     dupseq = listnew();
-    listsetalloc(dupseq,listlength(prefix));
+    listsetalloc(dupseq, (size_t)listlength(prefix));
     for(i=0;i<listlength(prefix);i++) listpush(dupseq,listget(prefix,i));
     return dupseq;
 }
@@ -486,7 +489,7 @@ pooldup(const char* s)
 char*
 poolcat(const char* s1, const char* s2)
 {
-    int len1, len2;
+    size_t len1, len2;
     char* cat;
     if(s1 == NULL && s2 == NULL) return NULL;
     len1 = (s1?strlen(s1):0);
