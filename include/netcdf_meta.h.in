@@ -23,9 +23,9 @@
 #ifndef NETCDF_META_H
 #define NETCDF_META_H
 
-#define NC_VERSION_MAJOR @NC_VERSION_MAJOR@ /*!< netcdf-c major version. */
-#define NC_VERSION_MINOR @NC_VERSION_MINOR@ /*!< netcdf-c minor version. */
-#define NC_VERSION_PATCH @NC_VERSION_PATCH@ /*!< netcdf-c patch version. */
+#define NC_VERSION_MAJOR @netCDF_VERSION_MAJOR@ /*!< netcdf-c major version. */
+#define NC_VERSION_MINOR @netCDF_VERSION_MINOR@ /*!< netcdf-c minor version. */
+#define NC_VERSION_PATCH @netCDF_VERSION_PATCH@ /*!< netcdf-c patch version. */
 #define NC_VERSION_NOTE  "@NC_VERSION_NOTE@" /*!< netcdf-c note. May be blank. */
 
 /*! netcdf-c version string.
