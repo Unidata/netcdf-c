@@ -47,10 +47,11 @@ IF(ENABLE_PLUGINS)
 ENDIF()
 
 FOREACH(LIBS ${liblib_LIBS})
-  SET(LARGS ${LARGS} $<TARGET_OBJECTS:${LIBS}>)
+  SET(LARGS ${LARGS} $<TARGET_NAME_IF_EXISTS:${LIBS}>)
 ENDFOREACH()
 
-ADD_LIBRARY(netcdf nc_initialize.c ${LARGS} )
+ADD_LIBRARY(netcdf nc_initialize.c )
+target_link_libraries( netcdf ${LARGS} )
 
 IF(STATUS_PARALLEL)
   # TODO: Make PUBLIC when other dependencies have PUBLIC/PRIVATE specified
