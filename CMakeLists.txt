@@ -13,6 +13,7 @@ project(netCDF
 LANGUAGES C CXX
 HOMEPAGE_URL "https://www.unidata.ucar.edu/software/netcdf/"
 DESCRIPTION "NetCDF is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data."
+VERSION 4.9.3
 )
 set(PACKAGE "netCDF" CACHE STRING "")
 
@@ -35,11 +36,8 @@ endif ()
 # http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning
 #####
 
-SET(NC_VERSION_MAJOR 4)
-SET(NC_VERSION_MINOR 9)
-SET(NC_VERSION_PATCH 3)
 SET(NC_VERSION_NOTE "-development")
-SET(netCDF_VERSION ${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE})
+SET(netCDF_VERSION ${PROJECT_VERSION}${NC_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
 SET(NC_VERSION ${netCDF_VERSION})
 SET(PACKAGE_VERSION ${VERSION})
