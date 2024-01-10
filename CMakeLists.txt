@@ -10,10 +10,16 @@ cmake_minimum_required(VERSION 3.12.0)
 
 #Project Name
 project(netCDF
-LANGUAGES C CXX
-HOMEPAGE_URL "https://www.unidata.ucar.edu/software/netcdf/"
-DESCRIPTION "NetCDF is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data."
+  LANGUAGES C CXX
+  HOMEPAGE_URL "https://www.unidata.ucar.edu/software/netcdf/"
+  DESCRIPTION "NetCDF is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data."
 )
+
+#Add custom CMake Module
+
+set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/;${PROJECT_SOURCE_DIR}/cmake"
+  CACHE INTERNAL "Location of our custom CMake modules.")
+
 set(PACKAGE "netCDF" CACHE STRING "")
 
 # Backport of built-in `PROJECT_IS_TOP_LEVEL` from CMake 3.21
@@ -114,10 +120,6 @@ IF(MSVC)
   ADD_COMPILE_OPTIONS("/utf-8")
 ENDIF()
 
-#Add custom CMake Module
-SET(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/"
-  CACHE INTERNAL "Location of our custom CMake modules.")
-
 # auto-configure style checks, other CMake modules.
 INCLUDE(CheckLibraryExists)
 INCLUDE(CheckIncludeFile)
@@ -200,7 +202,6 @@ SET(EXTRA_DEPS "")
 ################################
 # End Project Properties
 ################################
-
 
 ################################
 # Set CTest Properties
@@ -602,28 +603,6 @@ ENDIF()
 
 SET(REMOTETESTSERVERS "remotetest.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
 SET(REMOTETESTSERVERS "remotetest.unidata.ucar.edu" CACHE STRING "test servers to use for remote test")
-
-
-macro(set_std_filter filter)
-# Upper case the filter name
-string(TOUPPER "${filter}" upfilter)
-string(TOLOWER "${filter}" downfilter)
-if(ENABLE_FILTER_${upfilter})
-# Define a test flag for filter
-  IF(${filter}_FOUND)
-    INCLUDE_DIRECTORIES(${${filter}_INCLUDE_DIRS})
-    SET(ENABLE_${upfilter} TRUE)
-    SET(HAVE_${upfilter} ON)
-    SET(STD_FILTERS "${STD_FILTERS} ${downfilter}")
-    MESSAGE(">>> Standard Filter: ${downfilter}")
-  ELSE()
-    SET(ENABLE_${upfilter} FALSE)
-    SET(HAVE_${upfilter} OFF)
-  ENDIF()
-ELSE()
-  SET(HAVE_${upfilter} OFF)
-ENDIF()
-endmacro(set_std_filter)
 
 # Locate some compressors
 OPTION(ENABLE_FILTER_SZIP  "Enable use of Szip compression library if it is available. Required if ENABLE_NCZARR is true." ON)
@@ -1187,6 +1166,17 @@ MARK_AS_ADVANCED(ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_COVERAGE_TESTS )
 MARK_AS_ADVANCED(ENABLE_DAP_REMOTE_TESTS ENABLE_DAP_LONG_TESTS USE_REMOTE_CDASH ENABLE_EXTERNAL_SERVER_TESTS)
 MARK_AS_ADVANCED(ENABLE_DOXYGEN_BUILD_RELEASE_DOCS DOXYGEN_ENABLE_TASKS ENABLE_DOXYGEN_SERVER_SIDE_SEARCH)
 MARK_AS_ADVANCED(ENABLE_SHARED_LIBRARY_VERSION)
+
+##################################
+# Dependencies
+##################################
+
+include(cmake/dependencies.cmake)
+message(STATUS "HDF5VERSION: ${HDF5_VERSION}")
+
+################################
+# End Dependencies
+################################
 
 ################################
 # Option checks
