@@ -1,3 +1,5 @@
+include(netcdf_functions_macros)
+
 ################################
 # PkgConfig
 ################################
@@ -123,7 +125,7 @@ IF(USE_HDF5)
         REGEX "#define[ \t]+H5_VERSION")
       string(REGEX REPLACE ".*H5_VERSION .*\"\(.*\)\".*" "\\1" _hdf5_version "${_hdf5_version_lines}")
       set(HDF5_VERSION "${_hdf5_version}" CACHE STRING "")
-      set(HDF5_VERSION ${HDF5_VERSION} )
+      set(HDF5_VERSION ${HDF5_VERSION} PARENT_SCOPE)
       unset(_hdf5_version)
       unset(_hdf5_version_lines)
     endif ()
@@ -132,6 +134,7 @@ IF(USE_HDF5)
     # If HDF5_VERSION is still empty, we have a problem.
     # Error out.
     ###
+    message(STATUS "Thing: ${HDF5_VERSION}")
     IF("${HDF5_VERSION}" STREQUAL "")
       MESSAGE(FATAL_ERR "Unable to determine HDF5 version.  NetCDF requires at least version ${HDF5_VERSION_REQUIRED}. Please ensure that libhdf5 is installed and accessible.")
     ENDIF()
@@ -641,7 +644,7 @@ IF(ENABLE_PNETCDF)
   IF(NOT PNETCDF)
     MESSAGE(STATUS "Cannot find PnetCDF library. Disabling PnetCDF support.")
     SET(USE_PNETCDF OFF CACHE BOOL "")
-  ENDIF
+  ENDIF()
 ENDIF()
 
 ################################
