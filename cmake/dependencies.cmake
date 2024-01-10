@@ -134,7 +134,6 @@ IF(USE_HDF5)
     # If HDF5_VERSION is still empty, we have a problem.
     # Error out.
     ###
-    message(STATUS "Thing: ${HDF5_VERSION}")
     IF("${HDF5_VERSION}" STREQUAL "")
       MESSAGE(FATAL_ERR "Unable to determine HDF5 version.  NetCDF requires at least version ${HDF5_VERSION_REQUIRED}. Please ensure that libhdf5 is installed and accessible.")
     ENDIF()

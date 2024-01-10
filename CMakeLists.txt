@@ -1172,7 +1172,6 @@ MARK_AS_ADVANCED(ENABLE_SHARED_LIBRARY_VERSION)
 ##################################
 
 include(cmake/dependencies.cmake)
-message(STATUS "HDF5VERSION: ${HDF5_VERSION}")
 
 ################################
 # End Dependencies
