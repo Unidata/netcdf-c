@@ -14,7 +14,7 @@ notes.md install-fortran.md credits.md auth.md filters.md		\
 obsolete/fan_utils.html indexing.dox inmemory.md FAQ.md			\
 known_problems.md COPYRIGHT.md inmeminternal.dox testserver.dox		\
 byterange.md nczarr.md quantize.md all-error-codes.md                   \
-quickstart_paths.md cloud.md
+quickstart_paths.md cloud.md threadsafe.md
 
 # Turn off parallel builds in this directory.
 .NOTPARALLEL:

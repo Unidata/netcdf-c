@@ -429,6 +429,54 @@ IF(MSVC)
   ENDIF()
 ENDIF()
 
+# Control thread-safe operation
+OPTION (ENABLE_THREADSAFE "Enable Thread safe operation" OFF)
+
+SET(Threads_FOUND FALSE)
+IF(MSVC)
+  FIND_PACKAGE(PTHREADS4W QUIET)
+  IF(PTHREADS4W_FOUND)
+    GET_TARGET_PROPERTY(PTHREADS4W_LIBS Threads::Threads IMPORTED_IMPLIB_RELEASE)
+    GET_TARGET_PROPERTY(PTHREADS4W_IMPL Threads::Threads IMPORTED_LOCATION_RELEASE)
+    GET_TARGET_PROPERTY(PTHREADS4W_INCLUDE_DIR Threads::Threads INTERFACE_INCLUDE_DIRECTORIES)
+    SET(Threads_FOUND ${PTHREADS4W_FOUND})
+    SET(CMAKE_THREAD_LIBS_INIT ${PTHREADS4W_LIBS})
+    SET(CMAKE_USE_WIN32_THREADS_INIT FALSE)
+    SET(CMAKE_USE_PTHREADS_INIT TRUE)
+    SET(CMAKE_HP_PTHREADS_INIT FALSE)
+    INCLUDE_DIRECTORIES(${PTHREADS4W_INCLUDE_DIR})
+  ENDIF(PTHREADS4W_FOUND)
+ENDIF(MSVC)
+
+IF(NOT Threads_FOUND)
+  # Look for some other pthreads library
+  SET(THREADS_PREFER_PTHREAD_FLAG TRUE)
+  FIND_PACKAGE(Threads)
+  # If the window's threads is found, then do not use it.
+  if(CMAKE_USE_WIN32_THREADS_INIT)
+    message(WARNING "*** Only WinThreads found, so disable Threads_FOUND")
+    SET(Threads_FOUND FALSE)
+  ENDIF()
+#    SET_TARGET_PROPERTIES(Threads::Threads PROPERTIES IMPORTED_GLOBAL TRUE)
+ENDIF(NOT Threads_FOUND)
+
+IF(Threads_FOUND)
+  SET(HAVE_PTHREADS YES CACHE BOOL "Have pthreads library")
+ELSE()
+  SET(HAVE_PTHREADS NO CACHE BOOL "Have pthreads library")
+ENDIF()
+
+IF(ENABLE_THREADSAFE)
+  SET(PTHREAD_T_MAX_SIZE 64 CACHE STRING "|pthread_t|")
+ELSE()
+  SET(PTHREAD_T_MAX_SIZE 0 CACHE STRING "|pthread_t|")
+ENDIF()
+
+# Consistency
+IF(ENABLE_THREADSAFE AND NOT HAVE_PTHREADS)
+  MESSAGE(FATAL_ERROR "ENABLE_THREADSAFE requires HAVE_PTHREADS; Please disable  ENABLE_THREADSAFE")
+ENDIF()
+
 # Option to build netCDF Version 2
 OPTION (ENABLE_V2_API "Build netCDF Version 2." ON)
 SET(BUILD_V2 ${ENABLE_V2_API})
@@ -838,8 +886,6 @@ IF(USE_HDF5)
 
   ENDIF(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR)
 
-  FIND_PACKAGE(Threads)
-
   # There is a missing case in the above code so default it
   IF(NOT HDF5_C_LIBRARY_hdf5 OR "${HDF5_C_LIBRARY_hdf5}" STREQUAL "" )
     SET(HDF5_C_LIBRARY_hdf5 "${HDF5_C_LIBRARY}")
@@ -909,17 +955,22 @@ IF(USE_HDF5)
 
   # H5Pset_fapl_mpiposix and H5Pget_fapl_mpiposix have been removed since HDF5 1.8.12.
   # Use H5Pset_fapl_mpio and H5Pget_fapl_mpio, instead.
-  # CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pget_fapl_mpiposix "" HDF5_IS_PARALLEL_MPIPOSIX)
+  #  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pget_fapl_mpiposix "" HDF5_IS_PARALLEL_MPIO)
 
+if(Threads_FOUND)
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pget_fapl_mpio "" HDF5_IS_PARALLEL_MPIO)
+endif()
+
   IF(HDF5_IS_PARALLEL_MPIO)
     SET(HDF5_PARALLEL ON)
   ELSE()
     SET(HDF5_PARALLEL OFF)
   ENDIF()
 
+if(NOT Threads_FOUND)
   #Check to see if HDF5 library has collective metadata APIs, (HDF5 >= 1.10.0)
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pset_all_coll_metadata_ops "" HDF5_HAS_COLL_METADATA_OPS)
+endif()
 
   IF(HDF5_PARALLEL)
 	SET(HDF5_CC h5pcc)
@@ -1062,7 +1113,9 @@ ELSE()
   SET(ENABLE_DAP2 OFF CACHE BOOL "")
   SET(ENABLE_DAP4 OFF CACHE BOOL "")
 ENDIF()
-
+# Default disable dap4 for now
+#SET(ENABLE_DAP4 OFF CACHE BOOL "")
+    
 # Option to support byte-range reading of remote datasets
 OPTION(ENABLE_BYTERANGE "Enable byte-range access to remote datasets.." ON)
 if(NOT ENABLE_REMOTE_FUNCTIONALITY)
@@ -1262,14 +1315,13 @@ IF(ENABLE_EXTRA_TESTS)
   SET(EXTRA_TESTS ON)
 ENDIF()
 
-# Option to use bundled XGetopt in place of getopt(). This is mostly useful
-# for MSVC builds. If not building utilities or some tests,
+# Check if getopt is available else use bundled XGetopt.
+# This is mostly useful for MSVC builds. If not building utilities or some tests,
 # getopt() isn't required at all.
 IF(MSVC)
-  OPTION(ENABLE_XGETOPT "Enable bundled XGetOpt instead of external getopt()." ON)
-  IF(ENABLE_XGETOPT)
-    SET(USE_X_GETOPT ON CACHE BOOL "")
-  ENDIF()
+  SET(USE_X_GETOPT ON CACHE BOOL "")
+ELSE()
+  SET(USE_X_GETOPT OFF CACHE BOOL "")
 ENDIF()
 
 SET(MATH "")
@@ -1676,7 +1728,7 @@ OPTION(ENABLE_NCZARR_FILTERS_TESTING "Enable NCZarr filter testing." ON)
 
 # Constraints
 IF (NOT ENABLE_PLUGINS)
-  MESSAGE(WARNING "ENABLE_FILTER_TESTING requires shared libraries. Disabling.")
+  MESSAGE(WARNING "ENABLE_NCZARR_FILTERS requires ENABLE_PLUGINS. Disabling.")
   SET(ENABLE_NCZARR_FILTERS OFF CACHE BOOL "Enable NCZarr Filters." FORCE)
 ENDIF()
 
@@ -1794,7 +1846,7 @@ IF(NOT HAVE_UNISTD_H)
 ENDIF()
 
 CHECK_INCLUDE_FILE("alloca.h"  HAVE_ALLOCA_H)
-CHECK_INCLUDE_FILE("malloc.h"    HAVE_MALLOC_H)
+CHECK_INCLUDE_FILE("malloc.h"  HAVE_MALLOC_H)
 CHECK_INCLUDE_FILE("fcntl.h"   HAVE_FCNTL_H)
 CHECK_INCLUDE_FILE("getopt.h"  HAVE_GETOPT_H)
 CHECK_INCLUDE_FILE("locale.h"  HAVE_LOCALE_H)
@@ -2142,7 +2194,7 @@ ENDMACRO()
 
 # Binary tests which are used by a script looking for a specific name.
 MACRO(build_bin_test_no_prefix F)
-  build_bin_test(${F})
+  build_bin_test(${F} ${ARGN})
   IF(MSVC)
     #SET_PROPERTY(TEST ${F} PROPERTY FOLDER "tests/")
     SET_TARGET_PROPERTIES(${F} PROPERTIES RUNTIME_OUTPUT_DIRECTORY
@@ -2608,6 +2660,7 @@ is_enabled(HAVE_ZSTD HAS_ZSTD)
 is_enabled(HAVE_BLOSC HAS_BLOSC)
 is_enabled(HAVE_BZ2 HAS_BZ2)
 is_enabled(ENABLE_REMOTE_FUNCTIONALITY DO_REMOTE_FUNCTIONALITY)
+is_enabled(ENABLE_THREADSAFE IS_THREADSAFE)
 
 if(ENABLE_S3_INTERNAL)
   SET(WHICH_S3_SDK "internal")

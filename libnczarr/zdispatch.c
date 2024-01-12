@@ -109,7 +109,7 @@ static const NC_Dispatch NCZ_dispatcher = {
     NCZ_inq_filter_avail,
 };
 
-const NC_Dispatch* NCZ_dispatch_table = NULL; /* moved here from ddispatch.c */
+NC_Dispatch* NCZ_dispatch_table = NULL; /* moved here from ddispatch.c */
 
 /**
  * @internal Initialize the ZARR dispatch layer.

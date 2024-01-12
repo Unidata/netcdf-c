@@ -166,6 +166,9 @@ are set when opening a binary file on Windows. */
 /* if true, Force use of S3 internal library */
 #cmakedefine ENABLE_S3_INTERNAL 1
 
+/* if true, Support serialized thread safe operation */
+#cmakedefine ENABLE_THREADSAFE 1
+
 /* if true, enable S3 testing*/
 #cmakedefine WITH_S3_TESTING "PUBLIC"
 
@@ -345,6 +348,9 @@ are set when opening a binary file on Windows. */
 
 /* Define to 1 if you have the `random' function. */
 #cmakedefine HAVE_RANDOM 1
+
+/* Define to 1 if you have the pthreads library */
+#cmakedefine HAVE_PTHREADS 1
 
 /* Define to 1 if you have the `snprintf' function. */
 #cmakedefine HAVE_SNPRINTF 1
@@ -533,6 +539,9 @@ with zip */
 
 /* define the possible sources for remote test servers */
 #cmakedefine REMOTETESTSERVERS	"${REMOTETESTSERVERS}"
+
+/* Max size for pthread_t instance */
+#cmakedefine PTHREAD_T_MAX_SIZE @PTHREAD_T_MAX_SIZE@
 
 /* The size of `ulonglong` as computed by sizeof. */
 #cmakedefine SIZEOF_ULONGLONG @SIZEOF_ULONGLONG@

@@ -31,6 +31,16 @@ IF(REGEDIT)
   SET(libdispatch_SOURCES ${libdispatch_SOURCES} dreg.c)
 ENDIF(REGEDIT)
 
+IF(ENABLE_THREADSAFE)
+  SET(libdispatch_SOURCES ${libdispatch_SOURCES} dthreaded.c)
+ENDIF(ENABLE_THREADSAFE)
+
+#IF(MSVC)
+#IF(NOT HAVE_GETOPT_H)
+#  SET(libdispatch_SOURCES ${libdispatch_SOURCES} XGetopt.c)
+#ENDIF(NOT HAVE_GETOPT_H)
+#ENDIF(MSVC)
+
 add_library(dispatch OBJECT ${libdispatch_SOURCES})
 IF(STATUS_PARALLEL)
     target_link_libraries(dispatch PUBLIC MPI::MPI_C)

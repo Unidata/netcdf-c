@@ -825,6 +825,7 @@ INPUT                  = @abs_top_srcdir@/docs/mainpage.dox \
                          @abs_top_srcdir@/docs/indexing.dox \
                          @abs_top_srcdir@/docs/testserver.dox \
                          @abs_top_srcdir@/docs/quantize.md \
+                         @abs_top_srcdir@/docs/threadsafe.md \
                          @abs_top_srcdir@/docs/attribute_conventions.md \
                          @abs_top_srcdir@/docs/file_format_specifications.md \
                          @abs_top_srcdir@/docs/all-error-codes.md \

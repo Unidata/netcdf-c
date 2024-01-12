@@ -2508,7 +2508,7 @@ main(int argc, char *argv[])
 	    }
 	    NC_CHECK( nc_close(ncid) );
     }
-    nullfree(path) path = NULL;
+    nullfree(path); path = NULL;
     nc_finalize();
     exit(EXIT_SUCCESS);
 

@@ -99,10 +99,9 @@ NC_compare_nc_types(int ncid1, int typeid1, int ncid2, int typeid2, int *equalp)
 	    if (!(value1 = malloc(size1)))
 	       return NC_ENOMEM;
 	    if (!(value2 = malloc(size2))) {
-          free(value1);
-          return NC_ENOMEM;
-        }
-
+	          free(value1);
+	          return NC_ENOMEM;
+	    }
 	    for(i = 0; i < nelems1; i++)
 	    {
 	       if ((ret = nc_inq_enum_member(ncid1, typeid1, i, name1,
@@ -483,7 +482,7 @@ nc_copy_var(int ncid_in, int varid_in, int ncid_out)
       }
    }
 
-  exit:
+exit:
    if (data) free(data);
    if (dimlen) free(dimlen);
    if (start) free(start);

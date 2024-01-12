@@ -56,9 +56,14 @@ files in one program context is limited to 32767.
 int nc_inq_ncid(int ncid, const char *name, int *grp_ncid)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->inq_ncid(ncid,name,grp_ncid);
+    int stat = NC_NOERR;
+    NCLOCK;
+    stat = NC_check_id(ncid,&ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->inq_ncid(ncid,name,grp_ncid);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /*! Get a list of groups or subgroups from a file or groupID.
@@ -73,9 +78,14 @@ int nc_inq_ncid(int ncid, const char *name, int *grp_ncid)
 int nc_inq_grps(int ncid, int *numgrps, int *ncids)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->inq_grps(ncid,numgrps,ncids);
+    int stat = NC_NOERR;
+    NCLOCK;
+    stat = NC_check_id(ncid,&ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->inq_grps(ncid,numgrps,ncids);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /*! Get the name of a group given an ID.
@@ -88,9 +98,14 @@ int nc_inq_grps(int ncid, int *numgrps, int *ncids)
 int nc_inq_grpname(int ncid, char *name)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->inq_grpname(ncid,name);
+    int stat = NC_NOERR;
+    NCLOCK;
+    stat = NC_check_id(ncid,&ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->inq_grpname(ncid,name);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /*! Get the full path/groupname of a group/subgroup given an ID.
@@ -106,9 +121,14 @@ int nc_inq_grpname(int ncid, char *name)
 int nc_inq_grpname_full(int ncid, size_t *lenp, char *full_name)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->inq_grpname_full(ncid,lenp,full_name);
+    int stat = NC_NOERR;
+    NCLOCK;
+    stat = NC_check_id(ncid,&ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->inq_grpname_full(ncid,lenp,full_name);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /*! Get the length of a group name given an ID.
@@ -136,9 +156,14 @@ int nc_inq_grpname_len(int ncid, size_t *lenp)
 int nc_inq_grp_parent(int ncid, int *parent_ncid)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->inq_grp_parent(ncid,parent_ncid);
+    int stat = NC_NOERR;
+    NCLOCK;
+    stat = NC_check_id(ncid,&ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->inq_grp_parent(ncid,parent_ncid);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /*! Get a group ncid given the group name.
@@ -169,9 +194,14 @@ int nc_inq_grp_ncid(int ncid, const char *grp_name, int *grp_ncid)
 int nc_inq_grp_full_ncid(int ncid, const char *full_name, int *grp_ncid)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->inq_grp_full_ncid(ncid,full_name,grp_ncid);
+    int stat = NC_NOERR;
+    NCLOCK;
+    stat = NC_check_id(ncid,&ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->inq_grp_full_ncid(ncid,full_name,grp_ncid);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 
@@ -187,9 +217,14 @@ int nc_inq_grp_full_ncid(int ncid, const char *full_name, int *grp_ncid)
 int nc_inq_varids(int ncid, int *nvars, int *varids)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->inq_varids(ncid,nvars,varids);
+    int stat = NC_NOERR;
+    NCLOCK;
+    stat = NC_check_id(ncid,&ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->inq_varids(ncid,nvars,varids);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /*! Retrieve a list of dimension ids associated with a group.
@@ -205,9 +240,14 @@ int nc_inq_varids(int ncid, int *nvars, int *varids)
 int nc_inq_dimids(int ncid, int *ndims, int *dimids, int include_parents)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->inq_dimids(ncid,ndims,dimids,include_parents);
+    int stat = NC_NOERR;
+    NCLOCK;
+    stat = NC_check_id(ncid,&ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->inq_dimids(ncid,ndims,dimids,include_parents);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /*! Retrieve a list of types associated with a group
@@ -223,9 +263,14 @@ int nc_inq_dimids(int ncid, int *ndims, int *dimids, int include_parents)
 int nc_inq_typeids(int ncid, int *ntypes, int *typeids)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->inq_typeids(ncid,ntypes,typeids);
+    int stat = NC_NOERR;
+    NCLOCK;
+    stat = NC_check_id(ncid,&ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->inq_typeids(ncid,ntypes,typeids);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /*! Define a new group.
@@ -268,9 +313,14 @@ int nc_inq_typeids(int ncid, int *ntypes, int *typeids)
 int nc_def_grp(int parent_ncid, const char *name, int *new_ncid)
 {
     NC* ncp;
-    int stat = NC_check_id(parent_ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->def_grp(parent_ncid,name,new_ncid);
+    int stat = NC_NOERR;
+    NCLOCK;
+    stat = NC_check_id(parent_ncid,&ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->def_grp(parent_ncid,name,new_ncid);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /*! Rename a group.
@@ -284,9 +334,14 @@ int nc_def_grp(int parent_ncid, const char *name, int *new_ncid)
 int nc_rename_grp(int grpid, const char *name)
 {
     NC* ncp;
-    int stat = NC_check_id(grpid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->rename_grp(grpid,name);
+    int stat = NC_NOERR;
+    NCLOCK;
+    stat = NC_check_id(grpid,&ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->rename_grp(grpid,name);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /*! Print the metadata for a file.
@@ -299,9 +354,14 @@ int nc_rename_grp(int grpid, const char *name)
 int nc_show_metadata(int ncid)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
-    return ncp->dispatch->show_metadata(ncid);
+    int stat = NC_NOERR;
+    NCLOCK;
+    stat = NC_check_id(ncid,&ncp);
+    if(stat != NC_NOERR) goto done;
+    stat = ncp->dispatch->show_metadata(ncid);
+done:
+    NCUNLOCK;
+    return stat;
 }
 
 /** \} */

@@ -389,10 +389,12 @@ nc_var_par_access(int ncid, int varid, int par_access)
     int stat = NC_NOERR;
     NC* ncp;
 
-    if ((stat = NC_check_id(ncid, &ncp)))
-       return stat;
-
-    return ncp->dispatch->var_par_access(ncid,varid,par_access);
+    NCLOCK;
+    if ((stat = NC_check_id(ncid, &ncp))) goto done;
+    stat = ncp->dispatch->var_par_access(ncid,varid,par_access);
+done:
+    NCUNLOCK;
+    return stat;
 #endif
 }
 

@@ -117,8 +117,35 @@ ISMINGW=yes
 ISMSYS=yes
 fi
 
+# See if we have libpthreads
+AC_SEARCH_LIBS([pthread_mutex_init],[pthreads pthreads.dll cygpthreads.dll], [have_pthreads=yes], [have_pthreads=no])
+if test "x$have_pthreads" = "xyes" ; then
+  AC_CHECK_LIB([pthread],[pthread_mutex_init],[],[]) # Make sure it gets included in the lib list
+  AC_DEFINE([HAVE_PTHREADS], [1], [if true, pthreads is available])
+fi
+
+AC_MSG_CHECKING([whether we should enable thread safety])
+AC_ARG_ENABLE([threadsafe], [AS_HELP_STRING([--enable-threadsafe],
+              [enable thread-safe operation (default=no)])])
+test "x$enable_threadsafe" = xyes || enable_threadsafe=no
+AC_MSG_RESULT([$enable_threadsafe])
+if test "x$enable_threadsafe" = xyes && test "x$have_pthreads" = xno ; then
+  AC_MSG_NOTICE([!pthreads => !threadsafe])
+  enable_threadsafe=no
+fi
+
+if test "x$enable_threadsafe" = xyes ; then
+AC_DEFINE([ENABLE_THREADSAFE], [1], [if true, include experimental thread safe code])
+AC_DEFINE_UNQUOTED([PTHREAD_T_MAX_SIZE], [64], [|pthread_t|])
+else
+AC_DEFINE_UNQUOTED([PTHREAD_T_MAX_SIZE], [0], [|pthread_t|])
+fi
+AM_CONDITIONAL(ENABLE_THREADSAFE, [test "x$enable_threadsafe" = xyes])
+
+# Setup the config.h
+
 # Get windows version info
-if test "x$ISMSVC" = xyes ; then
+if test "x$ISMINGW" = xyes || test "x$ISMSVC" = xyes ; then
 WINVER=`systeminfo | sed -e '/^OS Version:/p' -ed | sed -e 's|[^0-9]*\([0-9.]*\).*|\1|'`
 else
 WINVER="0.0.0"
@@ -621,7 +648,6 @@ fi
 AM_CONDITIONAL(ENABLE_QUANTIZE, [test x$enable_quantize = xyes])
 
 # --enable-dap => enable-dap4
-enable_dap4=$enable_dap
 AC_MSG_CHECKING([whether dap use of remotetest server should be enabled])
 AC_ARG_ENABLE([dap-remote-tests],
               [AS_HELP_STRING([--disable-dap-remote-tests],
@@ -1302,6 +1328,11 @@ AC_CHECK_HEADERS([libgen.h])
 #AC_CHECK_HEADERS([locale.h])
 AC_HEADER_STDC
 AC_CHECK_HEADERS([locale.h stdio.h stdarg.h fcntl.h malloc.h stdlib.h string.h strings.h unistd.h sys/stat.h getopt.h sys/time.h sys/types.h time.h dirent.h stdint.h ctype.h])
+
+# Do getopt.h separately so we can AM_CONDITIONAL it.
+# This should still do the implicit AC_DEFINE.
+AC_CHECK_HEADERS([getopt.h],[havegetopth=yes],[havegetopth=no])
+AM_CONDITIONAL(HAVE_GETOPT_H, [test "x$havegetopth" = xyes])
 
 # Do sys/resource.h separately
 #AC_CHECK_HEADERS([sys/resource.h],[havesysresource=1],[havesysresource=0])
@@ -2057,6 +2088,7 @@ AC_SUBST(HAS_SZLIB_WRITE, [$have_sz])
 AC_SUBST(HAS_ZSTD,[$have_zstd])
 AC_SUBST(DO_LARGE_TESTS,[$enable_large_file_tests])
 AC_SUBST(DO_REMOTE_FUNCTIONALITY,[$enable_remote_functionality])
+AC_SUBST(IS_THREADSAFE,[$enable_threadsafe])
 
 if test "x$enable_s3_aws" = xyes ; then
 AC_SUBST(WHICH_S3_SDK,[aws-sdk-cpp])
@@ -2217,6 +2249,7 @@ AX_SET_META([NC_HAS_SZIP],[$enable_hdf5_szip],[yes])
 AX_SET_META([NC_HAS_ZSTD],[$have_zstd],[yes])
 AX_SET_META([NC_HAS_BLOSC],[$have_blosc],[yes])
 AX_SET_META([NC_HAS_BZ2],[$have_bz2],[yes])
+AX_SET_META([NC_IS_THREADSAFE],[$enable_threadsafe],[yes])
 
 # This is the version of the dispatch table. If the dispatch table is
 # changed, this should be incremented, so that user-defined format

@@ -287,7 +287,7 @@ rootpathfor(const char* path)
 	break;
 #ifdef ENABLE_S3  
     case NCZM_S3: {
-	char* p = NULL;
+        char* p = NULL;
         /* Split the path part */
         if((stat = nczm_split(uri->path,segments))) goto done;
 	/* remove the bucket name */

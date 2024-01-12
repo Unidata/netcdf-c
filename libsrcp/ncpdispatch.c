@@ -1470,7 +1470,7 @@ NC_NOTNC4_inq_var_quantize,
 NC_NOOP_inq_filter_avail,
 };
 
-const NC_Dispatch *NCP_dispatch_table = NULL; /* moved here from ddispatch.c */
+NC_Dispatch *NCP_dispatch_table = NULL; /* moved here from ddispatch.c */
 
 int
 NCP_initialize(void)

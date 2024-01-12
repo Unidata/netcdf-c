@@ -21,6 +21,8 @@ FILE(GLOB COPY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.sh)
 
 FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ FILE_PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE)
 
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/libdap4)
+
 IF(ENABLE_DAP_REMOTE_TESTS)
     # Change name (add '4') to avoid cmake
     # complaint about duplicate targets.
@@ -36,7 +38,6 @@ IF(ENABLE_TESTS)
   # keep it from being too bad.
 
   IF(BUILD_UTILITIES)
-      INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/libdap4)
       build_bin_test(test_parse)
       build_bin_test(test_meta)
 IF(USE_X_GETOPT)

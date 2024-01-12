@@ -29,9 +29,7 @@
 #include "ncpathmgr.h"
 
 #define NC_MAX_PATH 4096
-#ifndef nulldup
- #define nulldup(x) ((x)?strdup(x):(x))
-#endif
+
 /**************************************************/
 /** \internal
  * Provide a hidden interface to allow utilities
@@ -257,7 +255,7 @@ done:
 int
 NC_readfile(const char* filename, NCbytes* content)
 {
-    int stat;
+    int stat = NC_NOERR;
     stat = NC_readfilen(filename, content, -1);
     return stat;
 }

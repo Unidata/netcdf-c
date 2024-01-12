@@ -207,9 +207,9 @@ NC_s3urlrebuild(NCURI* url, NCS3INFO* s3, NCURI** newurlp)
     }
 done:
     nullfree(region);
-    nullfree(bucket)
-    nullfree(host)
-    nullfree(path)
+    nullfree(bucket);
+    nullfree(host);
+    nullfree(path);
     ncurifree(newurl);
     ncbytesfree(buf);
     nclistfreeall(hostsegments);

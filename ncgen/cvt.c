@@ -10,14 +10,7 @@
 #include "isnan.h"
 #include <math.h>
 
-
-#ifndef nulldup
- #define nulldup(x) ((x)?strdup(x):(x))
-#endif
-
 static char stmp[256];
-
-
 
 void
 convert1(NCConstant* src, NCConstant* dst)

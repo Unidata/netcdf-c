@@ -170,7 +170,7 @@ NC_check_name(const char *name)
 	int skip;
 	int ch;
 	const char *cp = name;
-	int stat;
+	int stat = NC_NOERR;
 
 	assert(name != NULL);
 

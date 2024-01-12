@@ -173,7 +173,7 @@ NC_NOTNC4_inq_var_quantize,
 NC_NOOP_inq_filter_avail,
 };
 
-const NC_Dispatch* NC3_dispatch_table = NULL; /*!< NC3 Dispatch table, moved here from ddispatch.c */
+NC_Dispatch* NC3_dispatch_table = NULL; /*!< NC3 Dispatch table, moved here from ddispatch.c */
 
 int
 NC3_initialize(void)

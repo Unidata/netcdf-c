@@ -22,6 +22,9 @@ AM_CPPFLAGS += -I$(top_builddir)/liblib -I$(top_builddir)/include -I$(top_srcdir
 
 TEST_EXTENSIONS = .sh
 
+
+TESTS =
+
 # These are the tests which are always run.
 TESTPROGRAMS = tst_names tst_nofill2 tst_nofill3 tst_meta		\
 tst_inq_type tst_utf8_validate tst_utf8_phrases tst_global_fillval	\
@@ -63,6 +66,18 @@ if USE_HDF5
 TESTPROGRAMS += tst_diskless6
 endif
 
+if ENABLE_THREADSAFE
+check_PROGRAMS += tst_threads
+TESTS += run_threads.sh
+if LARGE_FILE_TESTS
+thread_nc_test_SOURCES = thread_nc_test.c error.c \
+			  test_get.c test_put.c test_read.c test_write.c util.c \
+			  error.h tests.h
+check_PROGRAMS += thread_nc_test
+TESTS += run_thread_nc_test.sh
+endif
+endif
+
 # Set up the tests.
 check_PROGRAMS += $(TESTPROGRAMS)
 
@@ -73,7 +88,7 @@ if USE_HDF5
 check_PROGRAMS += tst_diskless2
 endif
 
-TESTS = $(TESTPROGRAMS)
+TESTS += $(TESTPROGRAMS)
 
 if BUILD_UTILITIES
 
@@ -116,7 +131,10 @@ ref_tst_diskless3_create.cdl ref_tst_diskless3_open.cdl			\
 run_inmemory.sh run_mmap.sh f03tst_open_mem.nc test_byterange.sh	\
 ref_tst_http_nc3.cdl ref_tst_http_nc4a.cdl ref_tst_http_nc4b.cdl	\
 ref_tst_http_nc4c.cdl CMakeLists.txt run_pnetcdf_tests.sh.in \
-tst_misc.c tst_norm.c ref_tst_http_nc4e.cdl ref_tst_http_nc4f.cdl
+tst_misc.c tst_norm.c ref_tst_http_nc4e.cdl ref_tst_http_nc4f.cdl      \
+run_threads.sh
+
+EXTRA_DIST += bad_cdf5_begin.nc run_cdf5.sh nc_enddef.cdl
 
 # These files are created by the tests.
 CLEANFILES = nc_test_*.nc tst_*.nc t_nc.nc large_files.nc		\
@@ -124,7 +142,6 @@ quick_large_files.nc tst_diskless3_file.cdl                             \
 tst_diskless4.cdl ref_tst_diskless4.cdl benchmark.nc                    \
 tst_http_nc3.cdl tst_http_nc4?.cdl tmp*.cdl tmp*.nc
 
-EXTRA_DIST += bad_cdf5_begin.nc run_cdf5.sh nc_enddef.cdl
 if ENABLE_CDF5
    # bad_cdf5_begin.nc is a corrupted CDF-5 file with bad variable starting
    # file offsets. It is to be used by tst_open_cdf5.c to check if it can
@@ -139,6 +156,10 @@ endif
 # Only clean these on maintainer-clean, because they require m4 to
 # regenerate.
 MAINTAINERCLEANFILES = test_get.c test_put.c
+
+# Remove directories
+clean-local:
+	rm -fr testdir_nc_test_*
 
 # This rule tells make how to turn our .m4 files into .c files.
 .m4.c:

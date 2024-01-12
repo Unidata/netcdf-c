@@ -36,6 +36,10 @@ dnl
 #include "config.h"
 #include "math.h"
 
+#ifdef ENABLE_THREADSAFE
+#include "ncthreaded.h"
+#endif
+
 define(`EXPECT_ERR',`error("expecting $1 but got %s",nc_err_code_name($2));')dnl
 
 define(`IntType', `ifdef(`PNETCDF',`MPI_Offset',`size_t')')dnl
@@ -510,9 +514,11 @@ ifdef(`PNETCDF',
     IF (err != NC_NOERR)
         error("abort of ncid failed: %s", APIFunc(strerror)(err));
     ELSE_NOK
+#ifdef THREADSAFE_IDUNIQUE
     err = APIFunc(close)(ncid);        /* should already be closed */
     IF (err != NC_EBADID)
         error("expecting NC_EBADID but got %s", nc_err_code_name(err));
+#endif
     err = FileOpen(scratch, NC_NOWRITE, &ncid);
     IF (err != NC_NOERR)
         error("open: %s", APIFunc(strerror)(err));

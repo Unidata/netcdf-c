@@ -59,12 +59,15 @@ EXTERNL int
 nc_inq_var_filter_ids(int ncid, int varid, size_t* nfiltersp, unsigned int* ids)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
+    int stat = NC_NOERR;
+    NCLOCK;
+    stat = NC_check_id(ncid,&ncp);
+    if(stat != NC_NOERR) goto done;
     TRACE(nc_inq_var_filter_ids);
     if((stat = ncp->dispatch->inq_var_filter_ids(ncid,varid,nfiltersp,ids))) goto done;
 
 done:
+   NCUNLOCK;
    return stat;
 }
 
@@ -95,13 +98,16 @@ EXTERNL int
 nc_inq_var_filter_info(int ncid, int varid, unsigned int id, size_t* nparamsp, unsigned int* params)
 {
     NC* ncp;
-    int stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
+    int stat = NC_NOERR;
+    NCLOCK;
+    stat = NC_check_id(ncid,&ncp);
+    if(stat != NC_NOERR) goto done;
     TRACE(nc_inq_var_filter_info);
     if((stat = ncp->dispatch->inq_var_filter_info(ncid,varid,id,nparamsp,params))) goto done;
 
 done:
      if(stat == NC_ENOFILTER) nclog(NCLOGWARN,"Undefined filter: %u",(unsigned)id);
+     NCUNLOCK;
      return stat;
 }
 
@@ -128,11 +134,13 @@ nc_def_var_filter(int ncid, int varid, unsigned int id, size_t nparams, const un
     int stat = NC_NOERR;
     NC* ncp;
 
+    NCLOCK;
     TRACE(nc_inq_var_filter);
     if((stat = NC_check_id(ncid,&ncp))) return stat;
     if((stat = ncp->dispatch->def_var_filter(ncid,varid,id,nparams,params))) goto done;
 done:
-     if(stat == NC_ENOFILTER) nclog(NCLOGWARN,"Undefined filter: %u",(unsigned)id);
+    if(stat == NC_ENOFILTER) nclog(NCLOGWARN,"Undefined filter: %u",(unsigned)id);
+    NCUNLOCK;
     return stat;
 }
 
@@ -169,9 +177,11 @@ nc_inq_var_filter(int ncid, int varid, unsigned int* idp, size_t* nparamsp, unsi
     NC* ncp;
     size_t nfilters;
     unsigned int* ids = NULL;
-    int stat = NC_check_id(ncid,&ncp);
+    int stat = NC_NOERR;
+    NCLOCK;
+    stat = NC_check_id(ncid,&ncp);
 
-    if(stat != NC_NOERR) return stat;
+    if(stat != NC_NOERR) goto done;
     TRACE(nc_inq_var_filter);
 
     /* Get the number of filters on this variable */
@@ -188,6 +198,7 @@ nc_inq_var_filter(int ncid, int varid, unsigned int* idp, size_t* nparamsp, unsi
     if((stat = nc_inq_var_filter_info(ncid,varid,ids[0],nparamsp,params))) goto done;
     if(idp) *idp = ids[0];
  done:
+   NCUNLOCK;
     nullfree(ids);        
     return stat;
 }
@@ -211,10 +222,12 @@ nc_inq_filter_avail(int ncid, unsigned id)
     int stat = NC_NOERR;
     NC* ncp;
 
+    NCLOCK;
     stat = NC_check_id(ncid,&ncp);
-    if(stat != NC_NOERR) return stat;
+    if(stat != NC_NOERR) goto done;
     if((stat = ncp->dispatch->inq_filter_avail(ncid,id))) goto done;
 done:
+   NCUNLOCK;
     return stat;
 }
 
@@ -338,6 +351,7 @@ nc_def_var_bzip2(int ncid, int varid, int level)
     ulevel = (unsigned) level; /* Keep bit pattern */
     if((stat = nc_def_var_filter(ncid,varid,H5Z_FILTER_BZIP2,1,&ulevel))) goto done;
 done:
+   NCUNLOCK;
     return stat;
 }
 
@@ -373,6 +387,7 @@ nc_inq_var_bzip2(int ncid, int varid, int* hasfilterp, int *levelp)
     if(nparams != 1) {stat = NC_EFILTER; goto done;}
     if((stat = nc_inq_var_filter_info(ncid,varid,H5Z_FILTER_BZIP2,&nparams,&params))) goto done;
 done:
+   NCUNLOCK;
     if(levelp) *levelp = (int)params;
     if(hasfilterp) *hasfilterp = hasfilter;
     return stat;
@@ -408,6 +423,7 @@ nc_def_var_zstandard(int ncid, int varid, int level)
     ulevel = (unsigned) level; /* Keep bit pattern */
     if((stat = nc_def_var_filter(ncid,varid,H5Z_FILTER_ZSTD,1,&ulevel))) goto done;
 done:
+   NCUNLOCK;
     return stat;
 #else
     return NC_NOERR;
@@ -447,6 +463,7 @@ nc_inq_var_zstandard(int ncid, int varid, int* hasfilterp, int *levelp)
     if(nparams != 1) {stat = NC_EFILTER; goto done;}
     if((stat = nc_inq_var_filter_info(ncid,varid,H5Z_FILTER_ZSTD,&nparams,&params))) goto done;
 done:
+   NCUNLOCK;
     if(levelp) *levelp = (int)params;
     if(hasfilterp) *hasfilterp = hasfilter;
     return stat;
@@ -493,6 +510,7 @@ nc_def_var_blosc(int ncid, int varid, unsigned subcompressor, unsigned level, un
     params[6] = subcompressor;
     if((stat = nc_def_var_filter(ncid,varid,H5Z_FILTER_BLOSC,7,params))) goto done;
 done:
+   NCUNLOCK;
     return stat;
 #else
     return NC_NOERR;
@@ -544,6 +562,7 @@ nc_inq_var_blosc(int ncid, int varid, int* hasfilterp, unsigned* subcompressorp,
     if(addshufflep) *addshufflep = params[5];
     if(subcompressorp) *subcompressorp = params[6];
 done:
+    NCUNLOCK;
     if(hasfilterp) *hasfilterp = hasfilter;
     return stat;
 #else

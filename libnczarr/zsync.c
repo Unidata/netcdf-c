@@ -6,10 +6,6 @@
 #include "zincludes.h"
 #include "zfilter.h"
 
-#ifndef nulldup
- #define nulldup(x) ((x)?strdup(x):(x))
-#endif
-
 #undef FILLONCLOSE
 
 /*mnemonics*/

@@ -24,9 +24,11 @@ NCDISPATCH_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
                )
 {
    NC* ncp;
-   int stat = NC_check_id(ncid,&ncp);
-   if(stat != NC_NOERR) return stat;
-   return ncp->dispatch->inq_var_all(
+   int stat = NC_NOERR;
+   NCLOCK;
+   stat = NC_check_id(ncid,&ncp);
+   if(stat != NC_NOERR) goto done;
+   stat = ncp->dispatch->inq_var_all(
       ncid, varid, name, xtypep,
       ndimsp, dimidsp, nattsp,
       shufflep, deflatep, deflate_levelp, fletcher32p,
@@ -34,15 +36,23 @@ NCDISPATCH_inq_var_all(int ncid, int varid, char *name, nc_type *xtypep,
       no_fill, fill_valuep,
       endiannessp,
       idp, nparamsp, params);
+done:
+   NCUNLOCK;
+   return stat;
 }
 
 int
 NCDISPATCH_get_att(int ncid, int varid, const char* name, void* value, nc_type t)
 {
    NC* ncp;
-   int stat = NC_check_id(ncid,&ncp);
-   if(stat != NC_NOERR) return stat;
-   return ncp->dispatch->get_att(ncid,varid,name,value,t);
+   int stat = NC_NOERR;
+   NCLOCK;
+   stat = NC_check_id(ncid,&ncp);
+   if(stat != NC_NOERR) goto done;
+   stat = ncp->dispatch->get_att(ncid,varid,name,value,t);
+done:
+   NCUNLOCK;
+   return stat;
 }
 
 /*! \} */  /* End of named group ...*/
