@@ -48,6 +48,7 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
     NC_FILE_INFO_T *nc4_info;
     NC_HDF5_FILE_INFO_T *hdf5_info;
     NC_HDF5_GRP_INFO_T *hdf5_grp;
+    H5F_libver_t low, high;
 
 #ifdef USE_PARALLEL4
     NC_MPI_INFO *mpiinfo = NULL;
@@ -102,6 +103,11 @@ nc4_create_file(const char *path, int cmode, size_t initialsz,
         flags = H5F_ACC_EXCL;
     else
         flags = H5F_ACC_TRUNC;
+
+#ifdef HDF5_HAS_SWMR
+    if (cmode & NC_HDF5_SWMR)
+        flags |= H5F_ACC_SWMR_WRITE;
+#endif
 
     /* If this file already exists, and NC_NOCLOBBER is specified,
        return an error (unless diskless|inmemory) */

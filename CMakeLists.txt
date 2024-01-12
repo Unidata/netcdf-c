@@ -572,6 +572,8 @@ IF(ENABLE_HDF4)
   ENDIF()
 ENDIF()
 
+OPTION(ENABLE_HDF5_SWMR "Support SWMR in HDF5. This requires HDF version 1.10 or later" OFF)
+
 # Option to Build DLL
 IF(WIN32)
   OPTION(ENABLE_DLL "Build a Windows DLL." ${BUILD_SHARED_LIBS})
@@ -651,7 +653,10 @@ IF(USE_HDF5)
   # Assert HDF5 version meets minimum required version.
   ##
   SET(HDF5_VERSION_REQUIRED 1.8.10)
-
+  IF(ENABLE_HDF5_SWMR)
+      SET(HDF5_VERSION_REQUIRED 1.10)
+      MESSAGE(STATUS "HDF5 SWMR is enabled. This implies that HDF5 version at least ${HDF5_VERSION_REQUIRED} is required.")
+  ENDIF()
 
   ##
   # Accommodate developers who have hdf5 libraries and
@@ -772,8 +777,6 @@ IF(USE_HDF5)
       MESSAGE(FATAL_ERROR "netCDF requires at least HDF5 ${HDF5_VERSION_REQUIRED}. Found ${HDF5_VERSION}.")
     ENDIF()
 
-
-
     ##
     # Include the HDF5 include directory.
     ##
@@ -837,6 +840,11 @@ IF(USE_HDF5)
     ENDIF()
 
   ENDIF(HDF5_C_LIBRARY AND HDF5_HL_LIBRARY AND HDF5_INCLUDE_DIR)
+
+  # Requesting SWMR support sets the minimum version to 1.10, so if
+  # we've got this far, we've got SWMR support
+  set(HDF5_HAS_SWMR ${ENABLE_HDF5_SWMR})
+  message(STATUS "HDF5 SWMR support: ${HDF5_HAS_SWMR}")
 
   FIND_PACKAGE(Threads)
 
@@ -2577,6 +2585,7 @@ is_enabled(ENABLE_V2_API HAS_NC2)
 is_enabled(ENABLE_NETCDF_4 HAS_NC4)
 is_enabled(ENABLE_HDF4 HAS_HDF4)
 is_enabled(USE_HDF5 HAS_HDF5)
+is_enabled(HDF5_HAS_SWMR HAS_HDF5_SWMR)
 is_enabled(OFF HAS_BENCHMARKS)
 is_enabled(STATUS_PNETCDF HAS_PNETCDF)
 is_enabled(STATUS_PARALLEL HAS_PARALLEL)

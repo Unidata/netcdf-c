@@ -9,6 +9,7 @@
  * @author Ed Hartnett
  */
 
+#include "H5version.h"
 #include "config.h"
 #include "hdf5internal.h"
 #include "hdf5err.h"
@@ -724,7 +725,21 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
     assert(nc);
 
     /* Determine the HDF5 open flag to use. */
-    flags = (mode & NC_WRITE) ? H5F_ACC_RDWR : H5F_ACC_RDONLY;
+    if((mode & NC_WRITE)) {
+      flags = H5F_ACC_RDWR;
+#ifdef HDF5_HAS_SWMR
+      if((mode & NC_HDF5_SWMR)) {
+        flags |= H5F_ACC_SWMR_WRITE;
+      }
+#endif
+    } else {
+      flags = H5F_ACC_RDONLY;
+#ifdef HDF5_HAS_SWMR
+      if((mode & NC_HDF5_SWMR)) {
+        flags |= H5F_ACC_SWMR_READ;
+      }
+#endif
+    }
 
     /* Add necessary structs to hold netcdf-4 file data. */
     if ((retval = nc4_nc4f_list_add(nc, path, mode)))

@@ -1810,6 +1810,15 @@ NC4_put_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
                  mem_spaceid, file_spaceid, xfer_plistid, bufr) < 0)
         BAIL(NC_EHDFERR);
 
+#ifdef HDF5_HAS_SWMR
+    /* Flush data for SWMR */
+    if (h5->cmode & NC_HDF5_SWMR)
+    {
+      if (H5Dflush(hdf5_var->hdf_datasetid) < 0)
+        BAIL(NC_EHDFERR);
+    }
+#endif
+
     /* Remember that we have written to this var so that Fill Value
      * can't be set for it. */
     if (!var->written_to)
@@ -1838,6 +1847,7 @@ exit:
         return retval;
     if (range_error)
         return NC_ERANGE;
+
     return NC_NOERR;
 }
 
@@ -1911,6 +1921,15 @@ NC4_get_vars(int ncid, int varid, const size_t *startp, const size_t *countp,
 
     LOG((3, "%s: var->hdr.name %s mem_nc_type %d", __func__,
          var->hdr.name, mem_nc_type));
+
+#ifdef HDF5_HAS_SWMR
+    /* Refresh dataset metadata, required if opened in SWMR mode */
+    if (h5->cmode & NC_HDF5_SWMR)
+    {
+      if (H5Drefresh(hdf5_var->hdf_datasetid) < 0)
+        BAIL(NC_EHDFERR);
+    }
+#endif
 
     /* Check some stuff about the type and the file. Also end define
      * mode, if needed. */

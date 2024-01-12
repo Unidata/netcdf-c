@@ -221,6 +221,16 @@ nc4_open_var_grp2(NC_GRP_INFO_T *grp, int varid, hid_t *dataset)
         if ((hdf5_var->hdf_datasetid = H5Dopen2(hdf5_grp->hdf_grpid,
                                                 var->hdr.name, H5P_DEFAULT)) < 0)
             return NC_ENOTVAR;
+    } else {
+#ifdef HDF5_HAS_SWMR
+      /* If file is opened in SWMR mode, we need to refresh the
+       * dataset's metadata */
+      if (grp->nc4_info->cmode & NC_HDF5_SWMR)
+      {
+        if (H5Drefresh(hdf5_var->hdf_datasetid) < 0)
+          return NC_EHDFERR;
+      }
+#endif
     }
 
     *dataset = hdf5_var->hdf_datasetid;
