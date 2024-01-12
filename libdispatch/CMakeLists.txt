@@ -8,6 +8,10 @@ SET(libdispatch_SOURCES dcopy.c dfile.c ddim.c datt.c dattinq.c dattput.c dattge
 daux.c dinstance.c dinstance_intern.c
 dcrc32.c dcrc32.h dcrc64.c ncexhash.c ncxcache.c ncjson.c ds3util.c dparallel.c dmissing.c)
 
+set_property(SOURCE dinstance_intern.c dinstance.c dvarput.c
+  PROPERTY
+    SKIP_UNITY_BUILD_INCLUSION ON)
+
 # Netcdf-4 only functions. Must be defined even if not used
 SET(libdispatch_SOURCES ${libdispatch_SOURCES} dgroup.c dvlen.c dcompound.c dtype.c denum.c dopaque.c dfilter.c)
 

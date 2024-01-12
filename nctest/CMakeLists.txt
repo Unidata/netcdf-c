@@ -16,6 +16,7 @@ FILE(COPY ${COPY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/)
 ADD_EXECUTABLE(nctest ${nctest_SRC})
 TARGET_LINK_LIBRARIES(nctest netcdf)
 ADD_TEST(nctest ${EXECUTABLE_OUTPUT_PATH}/nctest)
+set_property(TARGET nctest PROPERTY UNITY_BUILD OFF)
 
 add_bin_test_no_prefix(tst_rename)
 IF(BUILD_UTILITIES)

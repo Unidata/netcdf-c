@@ -6,6 +6,10 @@
 # See netcdf-c/COPYRIGHT file for more info.
 SET(dap4_SOURCES d4curlfunctions.c d4fix.c d4data.c d4file.c d4parser.c d4meta.c d4varx.c d4dump.c d4swap.c d4chunk.c d4printer.c d4read.c d4http.c d4util.c d4odom.c d4cvt.c d4debug.c ncd4dispatch.c)
 
+set_property(SOURCE d4meta.c
+  PROPERTY
+    SKIP_UNITY_BUILD_INCLUSION ON)
+
 add_library(dap4 OBJECT ${dap4_SOURCES})
 
 IF(STATUS_PARALLEL)

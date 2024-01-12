@@ -24,6 +24,10 @@ SET(ncpathcvt_FILES ncpathcvt.c ${XGETOPTSRC})
 SET(ncfilteravail_FILES ncfilteravail.c ${XGETOPTSRC})
 SET(nchdf5version_FILES nchdf5version.c)
  
+set_property(SOURCE dumplib.c
+  PROPERTY
+    SKIP_UNITY_BUILD_INCLUSION ON)
+
 ADD_EXECUTABLE(ncdump ${ncdump_FILES})
 ADD_EXECUTABLE(nccopy ${nccopy_FILES})
 ADD_EXECUTABLE(ncvalidator ${ncvalidator_FILES})
