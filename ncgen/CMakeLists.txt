@@ -22,6 +22,10 @@ util.c bytebuffer.h data.h debug.h dump.h
 generate.h generr.h genlib.h includes.h list.h
 ncgen.h ncgeny.h util.h ${XGETOPTSRC})
 
+set_property(SOURCE data.c
+  PROPERTY
+    SKIP_UNITY_BUILD_INCLUSION ON)
+
 # Obsolete
 SET(OBSOLETE odom.c odom.h jdatastd.c jdatajni.c genjni.c cdfdata.c cmldata.c)
 

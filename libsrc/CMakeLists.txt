@@ -4,6 +4,10 @@
 SET(libsrc_SOURCES v1hpg.c putget.c attr.c nc3dispatch.c
   nc3internal.c var.c dim.c ncx.c lookup3.c ncio.c)
 
+set_property(SOURCE httpio.c posixio.c mmapio.c
+  PROPERTY
+    SKIP_UNITY_BUILD_INCLUSION ON)
+
 # Process these files with m4.
 SET(m4_SOURCES attr ncx putget)
 foreach (f ${m4_SOURCES})
