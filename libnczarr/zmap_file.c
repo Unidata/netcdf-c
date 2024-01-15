@@ -132,7 +132,7 @@ static int platformerr(int err);
 static int platformcreatefile(mode_t mode, const char* truepath,FD*);
 static int platformcreatedir(mode_t mode, const char* truepath);
 static int platformopenfile(mode_t mode, const char* truepath, FD* fd);
-static int platformopendir(mode_t mode, const char* truepath);
+static int platformopendir(const char* truepath);
 static int platformdircontent(const char* path, NClist* contents);
 static int platformdelete(const char* path, int delroot);
 static int platformseek(FD* fd, int pos, size64_t* offset);
@@ -299,7 +299,7 @@ zfileopen(const char *path, int mode, size64_t flags, void* parameters, NCZMAP**
 	abspath = NULL;
     
     /* Verify root dir exists */
-    if((stat = platformopendir(zfmap->map.mode,zfmap->root)))
+    if((stat = platformopendir(zfmap->root)))
 	goto done;
     
     /* Dataset superblock will be read by higher layer */
@@ -811,7 +811,7 @@ done:
 
 /* Open a dir; fail if it does not exist */
 static int
-platformopendir(mode_t mode, const char* canonpath)
+platformopendir(const char* canonpath)
 {
     int ret = NC_NOERR;
 

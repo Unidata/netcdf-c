@@ -274,7 +274,7 @@ NCZ_write_ncproperties(NC_FILE_INFO_T* h5)
 #ifdef SUPPRESSNCPROPERTY
     return NC_NOERR;
 #else /*!SUPPRESSNCPROPERTY*/
-    int i,stat = NC_NOERR;
+    int stat = NC_NOERR;
     NC4_Provenance* prov = &h5->provenance;
     NC_ATT_INFO_T* ncprops = NULL;
     NCindex* attlist = NULL;
@@ -291,7 +291,7 @@ NCZ_write_ncproperties(NC_FILE_INFO_T* h5)
 	goto done;
 
     /* Look for _NCProperties */
-    for(i=0; i<ncindexsize(attlist); i++) {
+    for(size_t i=0; i<ncindexsize(attlist); i++) {
 	NC_ATT_INFO_T* att = (NC_ATT_INFO_T*)ncindexith(attlist,i);
 	if(strcmp(NCPROPS,att->hdr.name)==0) {
 	    ncprops = att;

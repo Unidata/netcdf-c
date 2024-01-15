@@ -439,7 +439,7 @@ nczm_segment1(const char* path, char** seg1p)
     delta = (q-p);
     if((seg1 = (char*)malloc((size_t)delta+1))==NULL)
         {ret = NC_ENOMEM; goto done;}
-    memcpy(seg1,p,delta);
+    memcpy(seg1,p,(size_t)delta);
     seg1[delta] = '\0';
 
     if(seg1p) {*seg1p = seg1; seg1 = NULL;}

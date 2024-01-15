@@ -34,10 +34,8 @@ NCZ_compute_chunk_ranges(
         NCZChunkRange* ncr)
 {
     int stat = NC_NOERR;
-    int i;
-    int rank = common->rank;
 
-    for(i=0;i<rank;i++) {
+    for(size_t i=0;i<common->rank;i++) {
 	if((stat = compute_intersection(&slices[i],common->chunklens[i],common->isunlimited[i],&ncr[i])))
 	    goto done;
     }

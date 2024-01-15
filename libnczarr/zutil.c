@@ -863,14 +863,13 @@ int
 NCZ_swapatomicdata(size_t datalen, void* data, int typesize)
 {
     int stat = NC_NOERR;
-    int i;
 
     assert(datalen % typesize == 0);
 
     if(typesize == 1) goto done;
 
     /*(typesize > 1)*/
-    for(i=0;i<datalen;) {
+    for(size_t i=0;i<datalen;) {
 	char* p = ((char*)data) + i;
         switch (typesize) {
         case 2: swapinline16(p); break;

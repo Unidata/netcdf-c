@@ -93,7 +93,7 @@ done:
 static int
 ncz_collect_dims(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NCjson** jdimsp)
 {
-    int i, stat=NC_NOERR;
+    int stat=NC_NOERR;
     NCjson* jdims = NULL;
     NCjson* jdimsize = NULL;
     NCjson* jdimargs = NULL;
@@ -102,7 +102,7 @@ ncz_collect_dims(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, NCjson** jdimsp)
     ZTRACE(3,"file=%s grp=%s",file->controller->path,grp->hdr.name);
 
     NCJnew(NCJ_DICT,&jdims);
-    for(i=0; i<ncindexsize(grp->dim); i++) {
+    for(size_t i=0; i<ncindexsize(grp->dim); i++) {
 	NC_DIM_INFO_T* dim = (NC_DIM_INFO_T*)ncindexith(grp->dim,i);
 	char slen[128];
 
@@ -144,7 +144,8 @@ done:
 int
 ncz_sync_grp(NC_FILE_INFO_T* file, NC_GRP_INFO_T* grp, int isclose)
 {
-    int i,stat = NC_NOERR;
+    int stat = NC_NOERR;
+    size_t i;
     NCZ_FILE_INFO_T* zinfo = NULL;
     char version[1024];
     int purezarr = 0;
@@ -709,7 +710,7 @@ ncz_sync_atts(NC_FILE_INFO_T* file, NC_OBJ* container, NCindex* attlist, int isc
         if((stat = NCJnew(NCJ_DICT,&jtypes)))
 	    goto done;
         /* Walk all the attributes convert to json and collect the dtype */
-        for(i=0;i<ncindexsize(attlist);i++) {
+        for(size_t i=0;i<ncindexsize(attlist);i++) {
 	    NC_ATT_INFO_T* a = (NC_ATT_INFO_T*)ncindexith(attlist,i);
 	    size_t typesize = 0;
 #if 0
@@ -1917,7 +1918,7 @@ ncz_read_superblock(NC_FILE_INFO_T* file, char** nczarrvp, char** zarrfp)
         if((stat = ncz_validate(file))) goto done;
 	/* ok, assume pure zarr with no groups */
 	zinfo->controls.flags |= FLAG_PUREZARR;	
-	zinfo->controls.flags &= ~(FLAG_NCZARR_V1);
+	zinfo->controls.flags &= ~((size64_t)FLAG_NCZARR_V1);
 	if(zarr_format == NULL) zarr_format = strdup("2");
     } else if(jnczgroup != NULL) {
 	zinfo->controls.flags |= FLAG_NCZARR_V1;

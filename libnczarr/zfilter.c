@@ -772,7 +772,7 @@ int
 NCZ_filter_finalize(void)
 {
     int stat = NC_NOERR;
-    int i;
+    size_t i;
     ZTRACE(6,"");
     if(!NCZ_filter_initialized) goto done;
 #ifdef ENABLE_NCZARR_FILTERS

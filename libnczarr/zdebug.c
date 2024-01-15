@@ -294,7 +294,7 @@ nczprint_idvector(size_t len, const int* ids)
 {
     size64_t v[4096];
     size_t i;
-    for(i=0;i<len;i++) v[i] = ids[i];    
+    for(i=0;i<len;i++) v[i] = (size64_t)ids[i];
     return nczprint_vector(len,v);
 }
 

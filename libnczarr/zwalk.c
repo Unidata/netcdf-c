@@ -56,7 +56,7 @@ ncz_chunking_init(void)
     optimize = 0;
 #endif
     val = getenv("NCZ_WDEBUG");
-    wdebug = (val == NULL ? 0 : atoi(val));
+    wdebug = (val == NULL ? 0 : (unsigned int)atoi(val));
 #ifdef WDEBUG
     if(wdebug > 0) fprintf(stderr,"wdebug=%u\n",wdebug);
 #endif
