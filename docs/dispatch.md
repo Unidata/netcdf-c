@@ -520,7 +520,7 @@ Modifying the dispatch version requires two steps:
 
 The two should agree in value.
 
-### NC_DISPATCH_VERSION Incompatibility
+## NC_DISPATCH_VERSION Incompatibility
 
 When dynamically adding a dispatch table
 -- in nc_def_user_format (see libdispatch/dfile.c) --

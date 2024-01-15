@@ -68,6 +68,7 @@ EXTERNL int
 ncpload(NCPSharedLib* lib, const char* path, int flags)
 {
     if(lib == NULL || path == NULL) return NC_EINVAL;
+    ncpclearerrmsg(lib);
     return lib->api.load(lib,path,flags);
 }
 
@@ -75,6 +76,7 @@ EXTERNL int
 ncpunload(NCPSharedLib* lib) /* Unloads a shared library. */
 {
     if(lib == NULL) return NC_EINVAL;
+    ncpclearerrmsg(lib);
     return lib->api.unload(lib);
 }
 
@@ -93,6 +95,7 @@ EXTERNL void*
 ncpgetsymbol(NCPSharedLib* lib,const char* name)
 {
     if(lib == NULL) return NULL;
+    ncpclearerrmsg(lib);
     return lib->api.getsymbol(lib,name);
 }
 
@@ -112,4 +115,12 @@ ncpgeterrmsg(NCPSharedLib* lib)
 {
     if(lib == NULL) return NULL;
     return (lib->err.msg[0] == '\0' ? NULL : lib->err.msg);
+}
+
+/* Clear the last err msg. */
+EXTERNL void
+ncpclearerrmsg(NCPSharedLib* lib)
+{
+    if(lib == NULL) return;
+    memset(lib->err.msg,0,sizeof(lib->err.msg));
 }

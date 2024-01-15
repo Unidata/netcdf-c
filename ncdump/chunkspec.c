@@ -136,7 +136,7 @@ dimchunkspec_parse(int igrp, const char *spec)
 		goto done;
 	    }
 	    /* extract dimension name */
-	    dimname = (char *) emalloc(pp - np + 1);
+	    dimname = (char *) emalloc((size_t)(pp - np + 1));
 	    dp = dimname;
 	    while(np < pp) {
 		*dp++ = *np++;

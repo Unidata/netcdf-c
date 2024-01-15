@@ -13,6 +13,7 @@ project(netCDF
 LANGUAGES C CXX
 HOMEPAGE_URL "https://www.unidata.ucar.edu/software/netcdf/"
 DESCRIPTION "NetCDF is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data."
+VERSION 4.9.3
 )
 set(PACKAGE "netCDF" CACHE STRING "")
 
@@ -35,11 +36,8 @@ endif ()
 # http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning
 #####
 
-SET(NC_VERSION_MAJOR 4)
-SET(NC_VERSION_MINOR 9)
-SET(NC_VERSION_PATCH 3)
 SET(NC_VERSION_NOTE "-development")
-SET(netCDF_VERSION ${NC_VERSION_MAJOR}.${NC_VERSION_MINOR}.${NC_VERSION_PATCH}${NC_VERSION_NOTE})
+SET(netCDF_VERSION ${PROJECT_VERSION}${NC_VERSION_NOTE})
 SET(VERSION ${netCDF_VERSION})
 SET(NC_VERSION ${netCDF_VERSION})
 SET(PACKAGE_VERSION ${VERSION})
@@ -1158,9 +1156,11 @@ ENDIF()
 set(STD_FILTERS "deflate") # Always have deflate*/
 set_std_filter(Szip)
 SET(HAVE_SZ ${Szip_FOUND})
+SET(USE_SZIP ${HAVE_SZ})
 set_std_filter(Blosc)
 IF(Zstd_FOUND)
-set_std_filter(Zstd)
+  set_std_filter(Zstd)
+  SET(HAVE_ZSTD ON)
 ENDIF()
 IF(Bz2_FOUND)
   set_std_filter(Bz2)
@@ -1168,7 +1168,7 @@ ELSE()
   # The reason we use a local version is to support a more comples test case
   MESSAGE("libbz2 not found using built-in version")
   SET(HAVE_LOCAL_BZ2 ON)
-  SET(HAVE_BZ2 ON)
+  SET(HAVE_BZ2 ON CACHE BOOL "")
   set(STD_FILTERS "${STD_FILTERS} bz2")
 ENDIF()
 
@@ -1507,6 +1507,7 @@ ENDIF()
 
 # Enable Parallel IO with netCDF-4/HDF5 files using HDF5 parallel I/O.
 SET(STATUS_PARALLEL "OFF")
+set(IMPORT_MPI "")
 OPTION(ENABLE_PARALLEL4 "Build netCDF-4 with parallel IO" "${HDF5_PARALLEL}")
 IF(ENABLE_PARALLEL4 AND ENABLE_HDF5)
   IF(NOT HDF5_PARALLEL)
@@ -1528,6 +1529,7 @@ IF(ENABLE_PARALLEL4 AND ENABLE_HDF5)
     FILE(COPY "${netCDF_BINARY_DIR}/tmp/run_par_tests.sh"
       DESTINATION ${netCDF_BINARY_DIR}/h5_test
       FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+    set(IMPORT_MPI "include(CMakeFindDependencyMacro)\nfind_dependency(MPI COMPONENTS C)")
   ENDIF()
 ENDIF()
 

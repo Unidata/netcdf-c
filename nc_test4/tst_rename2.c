@@ -62,7 +62,7 @@ main(int argc, char **argv)
          for (enddef_setting = 0; enddef_setting < NUM_ENDDEF_SETTINGS;
               enddef_setting++)
          {
-            sprintf(filename, "%s_%d_%d.nc", TEST_NAME, formats[format],
+            snprintf(filename, sizeof(filename), "%s_%d_%d.nc", TEST_NAME, formats[format],
                     enddef_setting);
 
             /* Create file with three dims. */
@@ -110,7 +110,7 @@ main(int argc, char **argv)
 
          if (nc_set_default_format(formats[format], NULL)) ERR;
 
-         sprintf(filename, "%s_data_%d.nc", TEST_NAME, formats[format]);
+         snprintf(filename, sizeof(filename), "%s_data_%d.nc", TEST_NAME, formats[format]);
 
          /* Create file with three dims. */
          if (nc_create(filename, 0, &ncid)) ERR;
@@ -168,7 +168,7 @@ main(int argc, char **argv)
       char name[NC_MAX_NAME + 1];
 
       /* Create file with dim and associated coordinate var. */
-      sprintf(file_name, "%s_sync.nc", TEST_NAME);
+      snprintf(file_name, sizeof(file_name), "%s_sync.nc", TEST_NAME);
       if (nc_create(file_name, NC_CLOBBER|NC_NETCDF4|NC_CLASSIC_MODEL, &ncid)) ERR;
       if (nc_def_dim(ncid, DIM_NAME_END, DIM1_LEN, &dimid)) ERR;
       if (nc_def_var(ncid, DIM_NAME_END, NC_INT, NDIM1, &dimid, &varid)) ERR;
@@ -201,7 +201,7 @@ main(int argc, char **argv)
       char name[NC_MAX_NAME + 1];
 
       /* Create file with dim and associated coordinate var. */
-      sprintf(file_name, "%s_sync.nc", TEST_NAME);
+      snprintf(file_name, sizeof(file_name), "%s_sync.nc", TEST_NAME);
       if (nc_create(file_name, NC_CLOBBER|NC_NETCDF4|NC_CLASSIC_MODEL, &ncid)) ERR;
       if (nc_def_dim(ncid, DIM_NAME_START, DIM1_LEN, &dimid)) ERR;
       if (nc_def_var(ncid, VAR_NAME_START, NC_INT, NDIM1, &dimid, &varid)) ERR;
@@ -244,7 +244,7 @@ main(int argc, char **argv)
       char file_name[NC_MAX_NAME + 1];
 
       /* Create file with dim and associated coordinate var. */
-      sprintf(file_name, "%s_non_coord_to_dim.nc", TEST_NAME);
+      snprintf(file_name, sizeof(file_name), "%s_non_coord_to_dim.nc", TEST_NAME);
       if (nc_create(file_name, NC_CLOBBER|NC_NETCDF4|NC_CLASSIC_MODEL, &ncid)) ERR;
       if (nc_def_dim(ncid, D1_NAME, DIM1_LEN, &dimid1)) ERR;
       if (nc_def_dim(ncid, D2_NAME, DIM1_LEN, &dimid2)) ERR;
@@ -280,7 +280,7 @@ main(int argc, char **argv)
       char file_name[NC_MAX_NAME + 1];
 
       /* Create file with two scalar vars. */
-      sprintf(file_name, "%s_rename_affect_varid_order.nc", TEST_NAME);
+      snprintf(file_name, sizeof(file_name), "%s_rename_affect_varid_order.nc", TEST_NAME);
       if (nc_create(file_name, NC_CLOBBER|NC_NETCDF4|NC_CLASSIC_MODEL, &ncid)) ERR;
       if (nc_def_var(ncid, D1_NAME, NC_INT, 0, NULL, &varid1)) ERR;
       if (nc_def_var(ncid, D2_NAME, NC_INT, 0, NULL, &varid2)) ERR;

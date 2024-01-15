@@ -25,8 +25,7 @@
  *    try to define a second unlimited dimension, check error
  */
 int
-test_ncdimdef(path)
-     const char *path;		/* name of writable netcdf to open */
+test_ncdimdef(const char *path) /* name of writable netcdf to open */
 {
     int nerrs = 0;
     static char pname[] = "test_ncdimdef";
@@ -129,8 +128,7 @@ test_ncdimdef(path)
  *    try with bad handle, check error
  */
 int
-test_ncdimid(path)
-     const char *path;		/* name of writable netcdf file to open */
+test_ncdimid(const char *path) /* name of writable netcdf file to open */
 {
     int nerrs = 0;
     static char pname[] = "test_ncdimid";
@@ -206,8 +204,7 @@ test_ncdimid(path)
  *    try with bad netCDF handle, check error
  */
 int
-test_ncdiminq(path)
-     const char *path;		/* name of writable netcdf file to open */
+test_ncdiminq(const char *path) /* name of writable netcdf file to open */
 {
     int nerrs = 0;
     static char pname[] = "test_ncdiminq";
@@ -303,8 +300,7 @@ test_ncdiminq(path)
  *    try with bad netCDF handle, check error
  */
 int
-test_ncdimrename(path)
-     const char *path;		/* name of writable netcdf file to open */
+test_ncdimrename(const char *path) /* name of writable netcdf file to open */
 {
     int nerrs = 0;
     static char pname[] = "test_ncdimrename";

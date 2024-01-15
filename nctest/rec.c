@@ -20,9 +20,7 @@
  * error.
  */
 static int
-numrecvars(ncid, recvarids)
-     int ncid;
-     int *recvarids;
+numrecvars(int ncid, int *recvarids)
 {
     int ndims, iv, nvars;
     int nrecvars;
@@ -52,9 +50,7 @@ numrecvars(ncid, recvarids)
  * variable id.  Returns 0 if not a record variable.  Returns -1 on error.
  */
 static long
-ncrecsize(ncid,vid)
-     int ncid;
-     int vid;
+ncrecsize(int ncid,int vid)
 {
     int recdimid;
     nc_type type;
@@ -87,11 +83,7 @@ ncrecsize(ncid,vid)
  * errors better.
  */
 static int
-recinq(ncid, nrecvars, recvarids, recsizes)
-     int ncid;
-     int *nrecvars;
-     int *recvarids;
-     long *recsizes;
+recinq(int ncid, int *nrecvars, int *recvarids, long *recsizes)
 {
     int iv;
     int rvarids[MAX_NC_VARS];
@@ -119,8 +111,7 @@ recinq(ncid, nrecvars, recvarids, recsizes)
  *    try with bad netCDF handle, check error
  */
 int
-test_ncrecinq(path)
-     const char *path;		/* name of netcdf file to open */
+test_ncrecinq(const char *path) /* name of netcdf file to open */
 {
     int nerrs = 0;
     static char pname[] = "test_ncrecinq";
@@ -225,10 +216,7 @@ test_ncrecinq(path)
  * an open netCDF file.  Returns -1 on error.
  */
 static int
-dimsizes(ncid, varid, sizes)
-     int ncid;
-     int varid;
-     long *sizes;
+dimsizes(int ncid, int varid, long *sizes)
 {
     int ndims;
     int id;
@@ -251,10 +239,7 @@ dimsizes(ncid, varid, sizes)
  * better.
  */
 static int
-recput(ncid, recnum, datap)
-     int ncid;
-     long recnum;
-     void **datap;
+recput(int ncid, long recnum, void **datap)
 {
     int iv;
     int rvids[MAX_NC_VARS];
@@ -288,10 +273,7 @@ recput(ncid, recnum, datap)
  * better.
  */
 static int
-recget(ncid, recnum, datap)
-     int ncid;
-     long recnum;
-     void **datap;
+recget(int ncid, long recnum, void **datap)
 {
     int iv;
     int rvids[MAX_NC_VARS];
@@ -327,8 +309,7 @@ recget(ncid, recnum, datap)
  *    try with bad netCDF handle, check error
  */
 int
-test_ncrecput(path)
-     const char *path;		/* name of writable netcdf file to open */
+test_ncrecput(const char *path) /* name of writable netcdf file to open */
 {
     int nerrs = 0;
     static char pname[] = "test_ncrecput";
@@ -359,8 +340,8 @@ test_ncrecput(path)
 
     /* get a block of data of the right type for each record variable */
     for (iv = 0; iv < nrvars; iv++) {
-	datap[iv] = emalloc(rvarsizes[iv]);
-	datar[iv] = emalloc(rvarsizes[iv]); /* for comparison values */
+	datap[iv] = emalloc((size_t)rvarsizes[iv]);
+	datar[iv] = emalloc((size_t)rvarsizes[iv]); /* for comparison values */
 	if (ncvarinq(ncid, rvarids[iv], 0, &vartype[iv], 0, 0, 0) == -1) {
 	    error("%s: ncvarinq failed", pname);
 	    ncclose(ncid);
@@ -485,8 +466,7 @@ test_ncrecput(path)
  *    try with bad netCDF handle, check error
  */
 int
-test_ncrecget(path)
-     const char *path;		/* name of netcdf file to open */
+test_ncrecget(const char *path) /* name of netcdf file to open */
 {
     int nerrs = 0;
     static char pname[] = "test_ncrecget";
@@ -517,8 +497,8 @@ test_ncrecget(path)
 
     /* get a block of data of the right type for each record variable */
     for (iv = 0; iv < nrvars; iv++) {
-	datap[iv] = emalloc(rvarsizes[iv]);
-	datar[iv] = emalloc(rvarsizes[iv]); /* for comparison values */
+	datap[iv] = emalloc((size_t)rvarsizes[iv]);
+	datar[iv] = emalloc((size_t)rvarsizes[iv]); /* for comparison values */
 	if (ncvarinq(ncid, rvarids[iv], 0, &vartype[iv], 0, 0, 0) == -1) {
 	    error("%s: ncvarinq failed", pname);
 	    ncclose(ncid);

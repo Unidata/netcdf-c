@@ -1254,7 +1254,7 @@ ncvarputg(
 		ret = nc_inq_vartype(ncid, varid, &type);
 		if(ret) return ret;
 				el_size = nctypelen(type);
-		imp = (ptrdiff_t*) malloc(ndims * sizeof(ptrdiff_t));
+		imp = (ptrdiff_t*) malloc((size_t)ndims * sizeof(ptrdiff_t));
 		for (i=0; i<ndims; i++) imp[i] = map[i] / el_size;
 	}
 
@@ -1327,7 +1327,7 @@ ncvargetg(
 		ret = nc_inq_vartype(ncid, varid, &type);
 		if(ret) return ret;
 		el_size = nctypelen(type);
-		imp = (ptrdiff_t*) malloc(ndims * sizeof(ptrdiff_t));
+		imp = (ptrdiff_t*) malloc((size_t)ndims * sizeof(ptrdiff_t));
 		for (i=0; i<ndims; i++) imp[i] = map[i] / el_size;
 	}
 

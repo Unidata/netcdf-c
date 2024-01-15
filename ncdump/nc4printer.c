@@ -657,18 +657,18 @@ record(NC4printer* out, NCID* node)
     switch (node->sort) {
     case DIM:
         if(nclistlength(out->dims) <= node->id) {
-            nclistsetalloc(out->dims,node->id+1);
-            nclistsetlength(out->dims,node->id+1);
+            nclistsetalloc(out->dims, (size_t)node->id+1);
+            nclistsetlength(out->dims, (size_t)node->id+1);
         }
-        nclistset(out->dims,node->id,node);
+        nclistset(out->dims, (size_t)node->id, node);
         break;
     case ATOMTYPE:
     case USERTYPE:
         if(nclistlength(out->types) <= node->id) {
-            nclistsetalloc(out->types,node->id+1);
-            nclistsetlength(out->types,node->id+1);
+            nclistsetalloc(out->types, (size_t)node->id+1);
+            nclistsetlength(out->types, (size_t)node->id+1);
         }
-        nclistset(out->types,node->id,node);
+        nclistset(out->types, (size_t)node->id, node);
         break;
     default: break;
     }

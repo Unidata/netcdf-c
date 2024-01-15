@@ -67,9 +67,9 @@ https://thredds-test.unidata.ucar.edu/thredds/fileServer/irma/metar/files/METAR_
 
 # References {#nccloud_bib}
 
-<a name="ref_aws">[1]</a> [Amazon Simple Storage Service Documentation](https://docs.aws.amazon.com/s3/index.html)<br>
-<a name="ref_awssdk">[2]</a> [Amazon Simple Storage Service Library](https://github.com/aws/aws-sdk-cpp)<br>
-<a name="ref_awssdk_conda">[11]</a> [Conda-forge / packages / aws-sdk-cpp](https://anaconda.org/conda-forge/aws-sdk-cpp)<br>
+<a name="cloud_ref_aws">[1]</a> [Amazon Simple Storage Service Documentation](https://docs.aws.amazon.com/s3/index.html)<br>
+<a name="cloud_ref_awssdk">[2]</a> [Amazon Simple Storage Service Library](https://github.com/aws/aws-sdk-cpp)<br>
+<a name="cloud_ref_awssdk_conda">[11]</a> [Conda-forge / packages / aws-sdk-cpp](https://anaconda.org/conda-forge/aws-sdk-cpp)<br>
 
 # Appendix A. S3 Build Support {#nccloud_s3build}
 

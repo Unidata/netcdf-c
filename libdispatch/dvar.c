@@ -1034,7 +1034,7 @@ NC_inq_recvar(int ncid, int varid, int* nrecdimsp, int *is_recdim)
         if(status != NC_NOERR) return status;
         if(nunlimdims == 0) return status;
 
-        if (!(unlimids = malloc(nunlimdims * sizeof(int))))
+        if (!(unlimids = malloc((size_t)nunlimdims * sizeof(int))))
             return NC_ENOMEM;
         status = nc_inq_unlimdims(ncid, &nunlimdims, unlimids); /* for group or file, not variable */
         if(status != NC_NOERR) {
@@ -1263,7 +1263,7 @@ NC_check_nulls(int ncid, int varid, const size_t *start, size_t **count,
     /* If count is NULL, assume full extent of var. */
     if (!*count)
     {
-        if (!(*count = malloc(varndims * sizeof(size_t))))
+        if (!(*count = malloc((size_t)varndims * sizeof(size_t))))
             return NC_ENOMEM;
         if ((stat = NC_getshape(ncid, varid, varndims, *count)))
         {
@@ -1279,7 +1279,7 @@ NC_check_nulls(int ncid, int varid, const size_t *start, size_t **count,
     {
         int i;
 
-        if (!(*stride = malloc(varndims * sizeof(ptrdiff_t))))
+        if (!(*stride = malloc((size_t)varndims * sizeof(ptrdiff_t))))
             return NC_ENOMEM;
         for (i = 0; i < varndims; i++)
             (*stride)[i] = 1;

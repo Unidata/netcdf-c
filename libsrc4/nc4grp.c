@@ -177,9 +177,9 @@ NC4_inq_grpname_full(int ncid, size_t *lenp, char *full_name)
         ;
 
     /* Allocate storage. */
-    if (!(name = malloc((g + 1) * (NC_MAX_NAME + 1) + 1)))
+    if (!(name = malloc((size_t)(g + 1) * (NC_MAX_NAME + 1) + 1)))
         return NC_ENOMEM;
-    if (!(gid = malloc((g + 1) * sizeof(int))))
+    if (!(gid = malloc((size_t)(g + 1) * sizeof(int))))
     {
         free(name);
         return NC_ENOMEM;

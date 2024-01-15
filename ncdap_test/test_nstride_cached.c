@@ -99,7 +99,7 @@ main()
     int pass = 1;
     int nelems = XSIZE*YSIZE;
     int idim, ndim;
-    float *dat = (float*)malloc(sizeof(float)*nelems);
+    float *dat = (float*)malloc(sizeof(float)*(size_t)nelems);
     float sdat[10];
     char* svc;
 

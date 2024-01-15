@@ -9,6 +9,7 @@
 
 #include "config.h"
 #include <nc_tests.h>
+#include <stddef.h>
 #include "err_macros.h"
 
 #define FILE_NAME_BASE "tst_formats"
@@ -115,7 +116,7 @@ main(int argc, char **argv)
                 int expected_mode;
                 int expected_extended_format;
 
-                sprintf(file_name, "%s_%d.nc", FILE_NAME_BASE, format[f]);
+                snprintf(file_name, sizeof(file_name), "%s_%d.nc", FILE_NAME_BASE, format[f]);
 
                 /* Set up test. */
                 switch (format[f]) {
@@ -179,7 +180,7 @@ main(int argc, char **argv)
 		    size_t nfilters;
 
                     /* Try to set fill mode after data have been written. */
-                    sprintf(file_name, "%s_%d_%d_%d_elatefill.nc", FILE_NAME_BASE, format[f], d, a);
+                    snprintf(file_name, sizeof(file_name), "%s_%d_%d_%d_elatefill.nc", FILE_NAME_BASE, format[f], d, a);
                     if (nc_set_default_format(format[f], NULL)) ERR;
                     if (nc_create(file_name, 0, &ncid)) ERR;
                     if (nc_def_dim(ncid, DIM_NAME, DIM_LEN, &dimid)) ERR;
@@ -281,7 +282,7 @@ main(int argc, char **argv)
                 char var_name[NC_MAX_NAME + 1];
                 int dimid[NDIM2];
                 int xtype[NTYPE] = {NC_BYTE, NC_CHAR, NC_SHORT, NC_INT, NC_FLOAT, NC_DOUBLE};
-                int type_size[NTYPE] = {1, 1, 2, 4, 4, 8};
+                size_t type_size[NTYPE] = {1, 1, 2, 4, 4, 8};
                 int varid[NTYPE];
                 size_t start[NDIM2] = {0, 0};
                 size_t count[NDIM2] = {2, 2};
@@ -295,14 +296,14 @@ main(int argc, char **argv)
                 int t;
 
                 /* Create the test file. */
-                sprintf(file_name, "%s_%d_null_strides.nc", FILE_NAME_BASE, format[f]);
+                snprintf(file_name, sizeof(file_name), "%s_%d_null_strides.nc", FILE_NAME_BASE, format[f]);
                 if (nc_set_default_format(format[f], NULL)) ERR;
                 if (nc_create(file_name, 0, &ncid)) ERR;
                 if (nc_def_dim(ncid, DIM1_NAME, DIM_LEN, &dimid[0])) ERR;
                 if (nc_def_dim(ncid, DIM2_NAME, DIM_LEN, &dimid[1])) ERR;
                 for (t = 0; t < NTYPE; t++)
                 {
-                    sprintf(var_name, "var_%d", xtype[t]);
+                    snprintf(var_name, sizeof(var_name), "var_%d", xtype[t]);
                     if (nc_def_var(ncid, var_name, xtype[t], NDIM2, dimid, &varid[t])) ERR;
                 }
                 if (nc_enddef(ncid)) ERR;
