@@ -349,7 +349,7 @@ main(int argc, char **argv)
       size_t dim_len[NDIMS3];
       int storage = 0;
       size_t chunksizes[NDIMS3];
-      int d, t;
+      int t;
       char dim_name[NC_MAX_NAME + 1];
       float waste;
 
@@ -358,7 +358,7 @@ main(int argc, char **argv)
 	 if (nc_create(itoptions.path, NC_NETCDF4 | NC_CLOBBER, &ncid)) ERR;
 
 	 /* Create a few dimensions. */
-	 for (d = 0; d < NDIMS3; d++)
+	 for (size_t d = 0; d < NDIMS3; d++)
 	 {
 	    dim_len[d] = (size_t)rand();
 	    snprintf(dim_name, sizeof(dim_name), "dim_%zu", d);
