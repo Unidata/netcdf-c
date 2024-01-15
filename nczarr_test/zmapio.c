@@ -3,8 +3,6 @@
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 
-#include "ncconfigure.h"
-#include <stddef.h>
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -20,6 +18,9 @@
 #include "XGetopt.h"
 #endif
 
+#include <stddef.h>
+
+#include "ncconfigure.h"
 #include "zincludes.h"
 #include "ncpathmgr.h"
 #include "nclog.h"
