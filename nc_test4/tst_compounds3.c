@@ -173,11 +173,11 @@ main(int argc, char **argv)
       if (strcmp(name_in, TYPE2_NAME) || size_in != sizeof(g2_d_t)) ERR;
 
       /* This fails because it's not a fully-qualified name. */
-      sprintf(full_name, "%s/%s", GROUP2_NAME, TYPE2_NAME);
+      snprintf(full_name, sizeof(full_name), "%s/%s", GROUP2_NAME, TYPE2_NAME);
       if (nc_inq_typeid(root_grp, full_name, &type2id) != NC_EINVAL) ERR;
 
       /* Check the type using it's full name. */
-      sprintf(full_name, "/%s/%s", GROUP2_NAME, TYPE2_NAME);
+      snprintf(full_name, sizeof(full_name), "/%s/%s", GROUP2_NAME, TYPE2_NAME);
 /*      if (nc_inq_typeid(root_grp, full_name, &type2id)) ERR;       */
 /*       if (nc_inq_type(g2_grp, type2id, name_in, &size_in)) ERR; */
 /*       if (strcmp(name_in, TYPE2_NAME) || size_in != sizeof(g2_d_t)) ERR; */

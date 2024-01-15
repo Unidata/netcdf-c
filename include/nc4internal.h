@@ -131,7 +131,7 @@ typedef struct NC_OBJ
 {
     NC_SORT sort; /**< Type of object. */
     char* name;   /**< Name, assumed to be null terminated. */
-    size_t id;    /**< This objects ID. */
+    int id;    /**< This objects ID. */
 } NC_OBJ;
 
 /**

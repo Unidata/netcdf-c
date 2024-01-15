@@ -307,7 +307,7 @@ main(int argc, char *argv[]) {
     count[1] = dims[1];
     count[2] = dims[2];
 
-    sprintf(time_mess,"  contiguous write %3d %3ld %3ld",
+    snprintf(time_mess, sizeof(time_mess),"  contiguous write %3d %3ld %3ld",
 	    1, dims[1], dims[2]);
     TIMING_START ;
     for(i = 0; i < dims[0]; i++) {
@@ -319,7 +319,7 @@ main(int argc, char *argv[]) {
     printf("\n");
     contig_time = TMsec;
 
-    sprintf(time_mess,"  chunked    write %3d %3ld %3ld  %3ld %3ld %3ld",
+    snprintf(time_mess, sizeof(time_mess),"  chunked    write %3d %3ld %3ld  %3ld %3ld %3ld",
 	    1, dims[1], dims[2], chunks[0], chunks[1], chunks[2]);
     TIMING_START ;
     for(i = 0; i < dims[0]; i++) {
@@ -335,7 +335,7 @@ main(int argc, char *argv[]) {
     else
 	printf(" %5.2g x slower\n", 1.0/ratio);
 
-    sprintf(time_mess,"  compressed write %3d %3ld %3ld  %3ld %3ld %3ld",
+    snprintf(time_mess, sizeof(time_mess),"  compressed write %3d %3ld %3ld  %3ld %3ld %3ld",
 	    1, dims[1], dims[2], chunks[0], chunks[1], chunks[2]);
     TIMING_START ;
     for(i = 0; i < dims[0]; i++) {
@@ -360,7 +360,7 @@ main(int argc, char *argv[]) {
     count[1] = 1;
     count[2] = dims[2];
 
-    sprintf(time_mess,"  contiguous write %3ld %3d %3ld",
+    snprintf(time_mess, sizeof(time_mess),"  contiguous write %3ld %3d %3ld",
 	    dims[0], 1, dims[2]);
     TIMING_START ;
     for(i = 0; i < dims[1]; i++) {
@@ -372,7 +372,7 @@ main(int argc, char *argv[]) {
     printf("\n");
     contig_time = TMsec;
 
-    sprintf(time_mess,"  chunked    write %3ld %3d %3ld  %3ld %3ld %3ld",
+    snprintf(time_mess, sizeof(time_mess),"  chunked    write %3ld %3d %3ld  %3ld %3ld %3ld",
 	    dims[0], 1, dims[2], chunks[0], chunks[1], chunks[2]);
     TIMING_START ;
     for(i = 0; i < dims[1]; i++) {
@@ -388,7 +388,7 @@ main(int argc, char *argv[]) {
     else
 	printf(" %5.2g x slower\n", 1.0/ratio);
 
-    sprintf(time_mess,"  compressed write %3ld %3d %3ld  %3ld %3ld %3ld",
+    snprintf(time_mess, sizeof(time_mess),"  compressed write %3ld %3d %3ld  %3ld %3ld %3ld",
 	    dims[0], 1, dims[2], chunks[0], chunks[1], chunks[2]);
     TIMING_START ;
     for(i = 0; i < dims[1]; i++) {
@@ -413,7 +413,7 @@ main(int argc, char *argv[]) {
     count[1] = dims[1];
     count[2] = 1;
 
-    sprintf(time_mess,"  contiguous write %3ld %3ld %3d",
+    snprintf(time_mess, sizeof(time_mess),"  contiguous write %3ld %3ld %3d",
 	    dims[0], dims[1], 1);
     TIMING_START ;
     for(i = 0; i < dims[2]; i++) {
@@ -425,7 +425,7 @@ main(int argc, char *argv[]) {
     printf("\n");
     contig_time = TMsec;
 
-    sprintf(time_mess,"  chunked    write %3ld %3ld %3d  %3ld %3ld %3ld",
+    snprintf(time_mess, sizeof(time_mess),"  chunked    write %3ld %3ld %3d  %3ld %3ld %3ld",
 	    dims[0], dims[1], 1, chunks[0], chunks[1], chunks[2]);
     TIMING_START ;
     for(i = 0; i < dims[2]; i++) {
@@ -441,7 +441,7 @@ main(int argc, char *argv[]) {
     else
 	printf(" %5.2g x slower\n", 1.0/ratio);
 
-    sprintf(time_mess,"  compressed write %3ld %3ld %3d  %3ld %3ld %3ld",
+    snprintf(time_mess, sizeof(time_mess),"  compressed write %3ld %3ld %3d  %3ld %3ld %3ld",
 	    dims[0], dims[1], 1, chunks[0], chunks[1], chunks[2]);
     TIMING_START ;
     for(i = 0; i < dims[2]; i++) {
@@ -466,7 +466,7 @@ main(int argc, char *argv[]) {
     count[1] = dims[1];
     count[2] = dims[2];
 
-    sprintf(time_mess,"  contiguous  read %3d %3ld %3ld",
+    snprintf(time_mess, sizeof(time_mess),"  contiguous  read %3d %3ld %3ld",
 	    1, dims[1], dims[2]);
     TIMING_START ;
     for(i = 0; i < dims[0]; i++) {
@@ -478,7 +478,7 @@ main(int argc, char *argv[]) {
     printf("\n");
     contig_time = TMsec;
 
-    sprintf(time_mess,"  chunked     read %3d %3ld %3ld  %3ld %3ld %3ld",
+    snprintf(time_mess, sizeof(time_mess),"  chunked     read %3d %3ld %3ld  %3ld %3ld %3ld",
 	    1, dims[1], dims[2] , chunks[0], chunks[1], chunks[2]);
     TIMING_START ;
     for(i = 0; i < dims[0]; i++) {
@@ -494,7 +494,7 @@ main(int argc, char *argv[]) {
     else
 	printf(" %5.2g x slower\n", 1.0/ratio);
 
-    sprintf(time_mess,"  compressed  read %3d %3ld %3ld  %3ld %3ld %3ld",
+    snprintf(time_mess, sizeof(time_mess),"  compressed  read %3d %3ld %3ld  %3ld %3ld %3ld",
 	    1, dims[1], dims[2] , chunks[0], chunks[1], chunks[2]);
     TIMING_START ;
     for(i = 0; i < dims[0]; i++) {
@@ -519,7 +519,7 @@ main(int argc, char *argv[]) {
     count[1] = 1;
     count[2] = dims[2];
 
-    sprintf(time_mess,"  contiguous  read %3ld %3d %3ld",
+    snprintf(time_mess, sizeof(time_mess),"  contiguous  read %3ld %3d %3ld",
 	    dims[0], 1, dims[2]);
     TIMING_START ;
     for(i = 0; i < dims[1]; i++) {
@@ -531,7 +531,7 @@ main(int argc, char *argv[]) {
     printf("\n");
     contig_time = TMsec;
 
-    sprintf(time_mess,"  chunked     read %3ld %3d %3ld  %3ld %3ld %3ld",
+    snprintf(time_mess, sizeof(time_mess),"  chunked     read %3ld %3d %3ld  %3ld %3ld %3ld",
 	    dims[0], 1, dims[2], chunks[0], chunks[1], chunks[2]);
     TIMING_START ;
     for(i = 0; i < dims[1]; i++) {
@@ -547,7 +547,7 @@ main(int argc, char *argv[]) {
     else
 	printf(" %5.2g x slower\n", 1.0/ratio);
 
-    sprintf(time_mess,"  compressed  read %3ld %3d %3ld  %3ld %3ld %3ld",
+    snprintf(time_mess, sizeof(time_mess),"  compressed  read %3ld %3d %3ld  %3ld %3ld %3ld",
 	    dims[0], 1, dims[2], chunks[0], chunks[1], chunks[2]);
     TIMING_START ;
     for(i = 0; i < dims[1]; i++) {
@@ -572,7 +572,7 @@ main(int argc, char *argv[]) {
     count[1] = dims[1];
     count[2] = 1;
 
-    sprintf(time_mess,"  contiguous  read %3ld %3ld %3d",
+    snprintf(time_mess, sizeof(time_mess),"  contiguous  read %3ld %3ld %3d",
 	    dims[0], dims[1], 1);
     TIMING_START ;
     for(i = 0; i < dims[2]; i++) {
@@ -584,7 +584,7 @@ main(int argc, char *argv[]) {
     printf("\n");
     contig_time = TMsec;
 
-    sprintf(time_mess,"  chunked     read %3ld %3ld %3d  %3ld %3ld %3ld",
+    snprintf(time_mess, sizeof(time_mess),"  chunked     read %3ld %3ld %3d  %3ld %3ld %3ld",
 	    dims[0], dims[1], 1, chunks[0], chunks[1], chunks[2]);
     TIMING_START ;
     for(i = 0; i < dims[2]; i++) {
@@ -600,7 +600,7 @@ main(int argc, char *argv[]) {
     else
 	printf(" %5.2g x slower\n", 1.0/ratio);
 
-    sprintf(time_mess,"  compressed  read %3ld %3ld %3d  %3ld %3ld %3ld",
+    snprintf(time_mess, sizeof(time_mess),"  compressed  read %3ld %3ld %3d  %3ld %3ld %3ld",
 	    dims[0], dims[1], 1, chunks[0], chunks[1], chunks[2]);
     TIMING_START ;
     for(i = 0; i < dims[2]; i++) {

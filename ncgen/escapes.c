@@ -6,6 +6,7 @@
 
 #include "includes.h"
 #include "ncutf8.h"
+#include <stddef.h>
 
 #define HEXCHARS "0123456789abcdefABCDEF"
 #define OCTCHARS "01234567"
@@ -155,7 +156,7 @@ static struct {
  	{'/', "_SLASH_"},
 };
 static int idtlen;
-static int hexlen;
+static size_t hexlen;
 static Bytebuffer* newname;
 
 static void
@@ -508,7 +509,7 @@ fqnescape(const char* s)
     const char* p;
     char* q;
     int c;
-    int l = strlen(s);
+    size_t l = strlen(s);
 
 /*
 1234567
@@ -617,8 +618,8 @@ unescape(
     char* p;
     int b;
 
-    s = (char*)emalloc(yyleng+1);
-    memcpy(s,yytext,yyleng);
+    s = (char*)emalloc((size_t)yyleng+1);
+    memcpy(s,yytext, (size_t)yyleng);
     s[yyleng] = '\0';
 
     /* translate "\" escapes, e.g. "\t" to tab character  */

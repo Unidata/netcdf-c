@@ -322,8 +322,8 @@ nczm_divide_at(const char* key, int nsegs, char** prefixp, char** suffixp)
     /* p should point at the presegs+1 start point */
     delta = (p-key);    
     if(prefixp) {
-        prefix = malloc(delta+1);
-        memcpy(prefix,key,delta);
+        prefix = malloc((size_t)delta+1);
+        memcpy(prefix,key,(size_t)delta);
         prefix[delta] = '\0';
         *prefixp = prefix;
     } 
@@ -436,7 +436,7 @@ nczm_segment1(const char* path, char** seg1p)
     q = strchr(p,'/');
     if(q == NULL) q = p+strlen(p); /* point to stop character */
     delta = (q-p);
-    if((seg1 = (char*)malloc(delta+1))==NULL)
+    if((seg1 = (char*)malloc((size_t)delta+1))==NULL)
         {ret = NC_ENOMEM; goto done;}
     memcpy(seg1,p,delta);
     seg1[delta] = '\0';
@@ -489,9 +489,9 @@ nczm_basename(const char* path, char** basep)
     p = strrchr(last,'.');
     if(p == NULL) p = last+strlen(last);
     delta = (p - last);
-    if((base = (char*)malloc(delta+1))==NULL)
+    if((base = (char*)malloc((size_t)delta+1))==NULL)
         {stat = NC_ENOMEM; goto done;}
-    memcpy(base,last,delta);
+    memcpy(base,last,(size_t)delta);
     base[delta] = '\0';
     if(basep) {*basep = base; base = NULL;}
 done:

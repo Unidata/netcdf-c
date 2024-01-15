@@ -133,7 +133,7 @@ main(int argc, char **argv)
       if (nc_create(FILE_NAME1, NC_NETCDF4, &ncid1)) ERR;
       for (a = 0; a < NUM_ATT; a++)
       {
-	 sprintf(name[a], "atomic_att_type_%d", a + 1);
+	 snprintf(name[a], sizeof(name[a]), "atomic_att_type_%d", a + 1);
 	 nc_put_att(ncid1, NC_GLOBAL, name[a], a + 1, ATT_LEN,
 		    (void *)&data);
       }

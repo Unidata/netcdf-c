@@ -54,7 +54,7 @@ pf(float myf)
 	uint32_t u;
     } fu;
     fu.f = myf;
-    sprintf(pf_str, "0x%x", fu.u);
+    snprintf(pf_str, sizeof(pf_str), "0x%x", fu.u);
     return pf_str;
 }
 
@@ -67,7 +67,7 @@ pd(double myd)
 	uint64_t u;
     } du;
     du.d = myd;
-    sprintf(pf_str, "0x%llx", (unsigned long long)du.u);
+    snprintf(pf_str, sizeof(pf_str), "0x%llx", (unsigned long long)du.u);
     return pf_str;
 }
 
@@ -239,7 +239,7 @@ main(int argc, char **argv)
 		printf("\t\t**** testing quantize algorithm %d...\n", quantize_mode[q]);
 		for (t = 0; t < NTYPES; t++)
 		{
-		    sprintf(file_name, "%s_quantize_%d_type_%d.nc", TEST, quantize_mode[q], xtype[t]);
+		    snprintf(file_name, sizeof(file_name), "%s_quantize_%d_type_%d.nc", TEST, quantize_mode[q], xtype[t]);
 #ifdef TESTNCZARR
 		    {
 			char url[NC_MAX_FILENAME + 1];

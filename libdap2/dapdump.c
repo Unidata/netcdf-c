@@ -38,7 +38,7 @@ dumpmetadata(int ncid, NChdr** hdrp)
         fprintf(stdout,"ncid=%d ngatts=%d ndims=%d nvars=%d unlimid=%d\n",
 		hdr->ncid,hdr->ngatts,hdr->ndims,hdr->nvars,hdr->unlimid);
 #endif
-    hdr->gatts = (NCattribute*)calloc(1,hdr->ngatts*sizeof(NCattribute));
+    hdr->gatts = (NCattribute*)calloc(1, (size_t)hdr->ngatts*sizeof(NCattribute));
     MEMCHECK(hdr->gatts,NC_ENOMEM);
     if(hdr->ngatts > 0)
 	fprintf(stdout,"global attributes:\n");
@@ -81,7 +81,7 @@ dumpmetadata(int ncid, NChdr** hdrp)
 	fprintf(stdout,"\n");
     }
 
-    hdr->dims = (Dim*)malloc(hdr->ndims*sizeof(Dim));
+    hdr->dims = (Dim*)malloc((size_t)hdr->ndims*sizeof(Dim));
     MEMCHECK(hdr->dims,NC_ENOMEM);
     for(i=0;i<hdr->ndims;i++) {
 	hdr->dims[i].dimid = i;
@@ -93,7 +93,7 @@ dumpmetadata(int ncid, NChdr** hdrp)
 	fprintf(stdout,"dim[%d]: name=%s size=%lu\n",
 		i,hdr->dims[i].name,(unsigned long)hdr->dims[i].size);
     }
-    hdr->vars = (Var*)malloc(hdr->nvars*sizeof(Var));
+    hdr->vars = (Var*)malloc((size_t)hdr->nvars*sizeof(Var));
     MEMCHECK(hdr->vars,NC_ENOMEM);
     for(i=0;i<hdr->nvars;i++) {
 	Var* var = &hdr->vars[i];
@@ -118,7 +118,7 @@ dumpmetadata(int ncid, NChdr** hdrp)
 	    fprintf(stdout," %d",var->dimids[j]);
 	}
 	fprintf(stdout,"}\n");
-	var->atts = (NCattribute*)malloc(var->natts*sizeof(NCattribute));
+	var->atts = (NCattribute*)malloc((size_t)var->natts*sizeof(NCattribute));
         MEMCHECK(var->atts,NC_ENOMEM);
         for(j=0;j<var->natts;j++) {
 	    NCattribute* att = &var->atts[j];
