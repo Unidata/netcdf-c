@@ -60,7 +60,7 @@ set_max_len(int len) {
  */
 void
 lput(const char *cp) {
-    size_t nn = strlen(cp);
+    int nn = (int)strlen(cp);
 
     if (nn+linep > max_line_len && nn > 2) {
 	(void) fputs("\n", stdout);
@@ -99,9 +99,9 @@ lput2(
     				 * false=stay on same line  */
     )
 {
-    static int linep;			/* current line position (number of */
+    static size_t linep;			/* current line position (number of */
     					/*   chars); saved between calls    */
-    int len_prefix = strlen (CDL_COMMENT_PREFIX);
+    size_t len_prefix = strlen (CDL_COMMENT_PREFIX);
     bool_t make_newline;
 
     size_t len1 = strlen(cp);		/* length of input string */
@@ -306,11 +306,11 @@ annotate(
 	/* C variable indices */
 	for (id = 0; id < vrank-1; id++)
 	  printf("%lu,", (unsigned long) cor[id]);
-	printf("%lu", (unsigned long) cor[id] + iel);
+	printf("%lu", (unsigned long) cor[id] + (unsigned long) iel);
 	break;
       case LANG_F:
 	/* Fortran variable indices */
-	printf("%lu", (unsigned long) cor[vrank-1] + iel + 1);
+	printf("%lu", (unsigned long) cor[vrank-1] + (unsigned long) iel + 1);
 	for (id = vrank-2; id >=0 ; id--) {
 	    printf(",%lu", 1 + (unsigned long) cor[id]);
 	}
@@ -342,7 +342,7 @@ pr_tvals(
 	len--;
     for (iel = 0; iel < len; iel++) {
 	unsigned char uc;
-	switch (uc = *vals++ & 0377) {
+	switch (uc = (unsigned char)(*vals++ & 0377)) {
 	case '\b':
 	    printf("\\b");
 	    break;
@@ -441,7 +441,7 @@ print_rows(
     bool_t mark_record = (level > 0 && is_unlim_dim(ncid, vp->dims[level]));
     safebuf_t *sb = sbuf_new();
     if (rank > 0)
-	d0 = vdims[level];
+	d0 = (int)vdims[level];
     if(mark_record) { /* the whole point of this recursion is printing these "{}" */
 	lput(LBRACE);
 	marks_pending++;	/* matching "}"s to emit after last "row" */
@@ -634,7 +634,7 @@ pr_tvalsx(
 	len--;
     for (iel = 0; iel < len; iel++) {
 	unsigned char uc;
-	switch (uc = *vals++ & 0377) {
+	switch (uc = (unsigned char)(*vals++ & 0377)) {
 	case '\b':
 	    printf("\\b");
 	    break;

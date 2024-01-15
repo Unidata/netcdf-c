@@ -861,7 +861,7 @@ int ncstring_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp
         sp = sout;
         *sp++ = '"' ;
         while(*cp) {
-            switch (uc = *cp++ & 0377) {
+            switch (uc = (unsigned char)*cp++ & 0377) {
             case '\b':
                 *sp++ = '\\';
                 *sp++ = 'b' ;
@@ -904,7 +904,7 @@ int ncstring_typ_tostring(const nctype_t *typ, safebuf_t *sfbf, const void *valp
                     sp += 4;
                 }
                 else
-                    *sp++ = uc;
+                    *sp++ = (char)uc;
                 break;
             }
         }
@@ -1045,7 +1045,7 @@ chars_tostring(
 	len--;
     for (iel = 0; iel < len; iel++) {
 	unsigned char uc;
-	switch (uc = *vals++ & 0377) {
+	switch (uc = (unsigned char)(*vals++ & 0377)) {
 	case '\b':
 	case '\f':
 	case '\n':
@@ -1062,7 +1062,7 @@ chars_tostring(
 	    if (isprint(uc))
 		*cp++ = *(char *)&uc; /* just copy, even if char is signed */
 	    else {
-	    size_t remaining = sout_size - (cp - sout);
+		size_t remaining = sout_size - (size_t)(cp - sout);
 		snprintf(cp,remaining,"\\%.3o",uc);
 		cp += 4;
 	    }

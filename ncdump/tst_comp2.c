@@ -30,7 +30,7 @@ main(int argc, char **argv)
    int dimid, varid;
    nc_type typeid;
    char name_in[NC_MAX_NAME+1];
-   int i, j, k;
+   int i, j;
 
    int var_dims[VAR_RANK];
 
@@ -150,7 +150,7 @@ main(int argc, char **argv)
        if (val_in.mon[i] != missing_val.mon[i]) ERR;
    }
    /* Read in each value and check */
-   for (k = 0; k < DIM_LEN; k++) {
+   for (size_t k = 0; k < DIM_LEN; k++) {
        size_t index[VAR_RANK];
        index[0] = k;
        if (nc_get_var1(ncid, varid, index, (void *) &val_in)) ERR;

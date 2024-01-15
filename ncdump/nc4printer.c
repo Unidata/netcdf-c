@@ -312,9 +312,8 @@ printNode(NC4printer* out, NCID* node, int depth)
             CAT(">\n");
             depth++;
             for(i=0;i<count;i++) {
-                long long value;
                 if((ret=nc_inq_enum_member(GROUPOF(node),node->id,i,name,&numvalue))) FAIL;
-                value = getNumericValue(numvalue,node->base->id);
+                long long value = (long long)getNumericValue(numvalue,node->base->id);
                 INDENT(depth);
                 CAT("<EnumConst");
                 printXMLAttributeName(out, "name", name);
@@ -442,7 +441,6 @@ static int
 printAttribute(NC4printer* out, NCID* attr, int depth)
 {
     int ret = NC_NOERR;
-    int i = 0;
     void* values;
 
     INDENT(depth); CAT("<Attribute");
@@ -450,7 +448,7 @@ printAttribute(NC4printer* out, NCID* attr, int depth)
     CAT(">\n");
     if((ret=readAttributeValues(attr,&values))) FAIL;
     depth++;
-    for(i=0;i<attr->size;i++) {
+    for(size_t i=0;i<attr->size;i++) {
         void* value = computeOffset(attr->base,values,i);
         if((ret=printValue(out,attr->base,value,depth))) FAIL;
     }
@@ -695,7 +693,7 @@ entityEscape(NCbytes* escaped, const char* s)
     const char* p;
     ncbytesclear(escaped);
     for(p=s;*p;p++) {
-        int c = *p;
+        char c = *p;
         switch (c) {
         case '&':  ncbytescat(escaped,"&amp;"); break;
         case '<':  ncbytescat(escaped,"&lt;"); break;
@@ -734,7 +732,7 @@ printString(NCbytes* out, const char* s, int quotes)
     if(quotes) ncbytesappend(out,'"');
     if(s == NULL) s = "";
     for(p=s;*p;p++) {
-        int c = *p;
+        char c = *p;
         if(c == '\\') ncbytescat(out,"\\\\");
         else if(c == '"') ncbytescat(out,"\\\"");
         else ncbytesappend(out,c);

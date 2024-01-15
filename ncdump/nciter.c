@@ -26,7 +26,7 @@ nc_blkio_init(size_t bufsize, 	/* size in bytes of in-memory copy buffer */
 {
     int stat = NC_NOERR;
     int i;
-    long long prod;
+    size_t prod;
     size_t *dims = iter->dimsizes;
 
     iter->rank = rank;

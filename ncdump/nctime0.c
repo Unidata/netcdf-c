@@ -88,7 +88,7 @@ calendar_type(int ncid, int varid) {
 	nc_get_att_single_string(ncid, varid, &catt, &calstr);
 
 	int itype;
-	int calstr_len = strlen(calstr);
+	size_t calstr_len = strlen(calstr);
 	for(itype = 0; itype < ncals; itype++) {
 	    if(strncasecmp(calstr, calmap[itype].attname, calstr_len) == 0) {
 		ctype = calmap[itype].type;
