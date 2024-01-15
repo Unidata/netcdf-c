@@ -1807,9 +1807,7 @@ static int
 init_is_unlim(int ncid, int **is_unlim_p)
 {
     int num_grps;	 /* total number of groups */
-    int num_dims = 0;    /* total number of dimensions in all groups */
     int max_dimid = -1;    /* maximum dimid across whole dataset */
-    int num_undims = 0;  /* total number of unlimited dimensions in all groups */
     int *grpids = NULL;	 /* temporary list of all grpids */
     int igrp;
     int grpid;
@@ -1836,7 +1834,6 @@ init_is_unlim(int ncid, int **is_unlim_p)
 	int* dimids = NULL;
 	grpid = grpids[igrp];
 	NC_CHECK( nc_inq_dimids(grpid, &ndims, NULL, DONT_INCLUDE_PARENTS) );
-	num_dims += ndims;
 	dimids = (int*)emalloc((size_t)ndims*sizeof(int));
 	NC_CHECK( nc_inq_dimids(grpid, &ndims, dimids, DONT_INCLUDE_PARENTS) );
 	for(i=0;i<ndims;i++) {if(dimids[i] > max_dimid) max_dimid = dimids[i];}
@@ -1863,7 +1860,6 @@ init_is_unlim(int ncid, int **is_unlim_p)
 	    int* isunlim = *is_unlim_p;
 	    int did = dimids[idim];
 	    isunlim[did] = 1;
-	    num_undims++;
 	}
 	if(dimids)
 	    free(dimids);

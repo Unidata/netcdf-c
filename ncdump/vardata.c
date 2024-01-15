@@ -437,15 +437,11 @@ print_rows(
     int rank = vp->ndims;
     size_t ncols = rank > 0 ? vdims[rank - 1] : 1; /* number of values in a row */
     int d0 = 0;
-    size_t inc = 1;
     int i;
     bool_t mark_record = (level > 0 && is_unlim_dim(ncid, vp->dims[level]));
     safebuf_t *sb = sbuf_new();
     if (rank > 0)
 	d0 = vdims[level];
-    for(i = level + 1; i < rank; i++) {
-	inc *= vdims[i];
-    }
     if(mark_record) { /* the whole point of this recursion is printing these "{}" */
 	lput(LBRACE);
 	marks_pending++;	/* matching "}"s to emit after last "row" */
