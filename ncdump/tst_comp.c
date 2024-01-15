@@ -29,7 +29,6 @@ main(int argc, char **argv)
    int dimid, varid;
    nc_type typeid;
    char name_in[NC_MAX_NAME+1];
-   int i;
 
    int var_dims[VAR6_RANK];
 
@@ -139,7 +138,7 @@ main(int argc, char **argv)
        val_in.attention_span != missing_val.attention_span ) ERR;
 
    /* Read in each value and check */
-   for (i = 0; i < DIM6_LEN; i++) {
+   for (size_t i = 0; i < DIM6_LEN; i++) {
        size_t index[VAR6_RANK];
        index[0] = i;
        if (nc_get_var1(ncid, varid, index, (void *) &val_in)) ERR;

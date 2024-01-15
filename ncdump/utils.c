@@ -317,7 +317,7 @@ nc_inq_dimid2(int ncid, const char *dimname, int *dimidp) {
     } 
 #ifdef USE_NETCDF4
     else {  /* Parse group name out and get dimid using that */
-      size_t grp_namelen = sp - dimname;
+      size_t grp_namelen = (size_t)(sp - dimname);
       char *grpname = emalloc(grp_namelen+1);
       
       int grpid;
