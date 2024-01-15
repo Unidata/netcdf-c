@@ -1892,7 +1892,6 @@ copy_fixed_size_data(int igrp, int ogrp, size_t nfixed_vars, int *fixed_varids) 
 static int
 copy_rec_var_data(int ncid, 	/* input */
 		  int ogrp, 	/* output */
-		  int irec, 	/* record number */
 		  int varid, 	/* input variable id */
 		  int ovarid, 	/* output variable id */
 		  size_t *start,   /* start indices for record data */
@@ -1964,7 +1963,7 @@ copy_record_data(int ncid, int ogrp, size_t nrec_vars, int *rec_varids) {
 	    varid = rec_varids[ivar];
 	    ovarid = rec_ovarids[ivar];
 	    start[ivar][0] = irec;
-	    NC_CHECK(copy_rec_var_data(ncid, ogrp, irec, varid, ovarid,
+	    NC_CHECK(copy_rec_var_data(ncid, ogrp, varid, ovarid,
 				       start[ivar], count[ivar], buf[ivar]));
 	}
     }
