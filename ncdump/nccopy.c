@@ -340,9 +340,9 @@ parsefilterspec(const char* optarg0, List* speclist)
             filtopt->fqn[0] = '\0'; /* for strlcat */
 	    if(strcmp(var,"*") != 0 && var[0] != '/') strlcat(filtopt->fqn,"/",vlen+2);
 	    strlcat(filtopt->fqn,var,vlen+2);
-   	    if(isnone)
+	    if(isnone) {
 	        filtopt->nofilter = 1;
-	    else {
+	    } else {
  	        filtopt->pfs = *nsf;
 		if(nsf->nparams != 0) {
 	            /* Duplicate the params */
