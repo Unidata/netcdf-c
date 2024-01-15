@@ -196,7 +196,7 @@ dimchunkspec_size(int indimid) {
 /* Return number of dimensions for which chunking was specified in
  * chunkspec string on command line, 0 if no chunkspec string was
  * specified. */
-int
+size_t
 dimchunkspec_ndims(void) {
     return dimchunkspecs.ndims;
 }
