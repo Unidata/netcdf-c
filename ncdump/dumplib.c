@@ -1806,7 +1806,7 @@ print_type_name(int locid, int typeid) {
 static int
 init_is_unlim(int ncid, int **is_unlim_p)
 {
-    int num_grps;	 /* total number of groups */
+    size_t num_grps;	 /* total number of groups */
     int max_dimid = -1;    /* maximum dimid across whole dataset */
     int *grpids = NULL;	 /* temporary list of all grpids */
     int igrp;
@@ -1822,7 +1822,7 @@ init_is_unlim(int ncid, int **is_unlim_p)
 	return NC_EBADGRPID;
     /* Now ncid is root group.  Get total number of groups and their ids */
     NC_CHECK( nc_inq_grps_full(ncid, &num_grps, NULL) );
-    grpids = emalloc((size_t)(num_grps + 1) * sizeof(int));
+    grpids = emalloc((num_grps + 1) * sizeof(int));
     NC_CHECK( nc_inq_grps_full(ncid, &num_grps, grpids) );
 #define DONT_INCLUDE_PARENTS 0
     /* Get all dimensions in groups and info about which ones are unlimited */

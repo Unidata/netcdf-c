@@ -681,14 +681,14 @@ static int
 copy_groups(int iroot, int oroot)
 {
     int stat = NC_NOERR;
-    int numgrps;
+    size_t numgrps;
     int *grpids;
     int i;
 
     /* get total number of groups and their ids, including all descendants */
     NC_CHECK(nc_inq_grps_full(iroot, &numgrps, NULL));
     if(numgrps > 1) {		/* there's always 1 root group */
-	grpids = emalloc((size_t)numgrps * sizeof(int));
+	grpids = emalloc(numgrps * sizeof(int));
 	NC_CHECK(nc_inq_grps_full(iroot, NULL, grpids));
 	/* create corresponding new groups in ogrp, except for root group */
 	for(i = 1; i < numgrps; i++) {

@@ -520,7 +520,7 @@ nc_inq_grpname_count(int ncid, int igrp, char **lgrps, idnode_t *grpids) {
 /* Check if any group names specified with "-g grp1,...,grpn" are
  * missing.  Returns total number of matching groups if no missing
  * groups detected, otherwise exits. */
-int
+size_t
 grp_matches(int ncid, int nlgrps, char** lgrps, idnode_t *grpids) {
     int ig;
     size_t total = 0;
@@ -883,7 +883,7 @@ nc_free_giter(ncgiter_t *iterp)
  * for the group ids, then call again to get them.
  */
 int
-nc_inq_grps_full(int rootid, int *numgrps, int *grpids) 
+nc_inq_grps_full(int rootid, size_t *numgrps, int *grpids)
 {
     int stat = NC_NOERR;
     ncgiter_t *giter;		/* pointer to group iterator */
