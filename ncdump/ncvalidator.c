@@ -962,7 +962,7 @@ val_fetch(int fd, bufferinfo *gbp) {
 static int
 val_check_buffer(int         fd,
                  bufferinfo *gbp,
-                 long long  nextread)
+                 size_t  nextread)
 {
     size_t pos_addr, base_addr;
 
@@ -1014,12 +1014,12 @@ hdr_get_NON_NEG(int fd, bufferinfo *gbp, long long *sp)
      * NON_NEG    = <non-negative INT> |  // CDF-1 and CDF-2
      *              <non-negative INT64>  // CDF-5
      */
-    int sizeof_NON_NEG, status;
+    int status;
 
-    sizeof_NON_NEG = (gbp->version < 5) ? 4 : 8;
+    size_t sizeof_NON_NEG = (gbp->version < 5) ? 4 : 8;
     status = val_check_buffer(fd, gbp, sizeof_NON_NEG);
     if (status != NC_NOERR) {
-        if (verbose) printf("%d-byte size is expected for ", sizeof_NON_NEG);
+        if (verbose) printf("%zu-byte size is expected for ", sizeof_NON_NEG);
         return status;
     }
     if (gbp->version < 5)
@@ -1091,13 +1091,13 @@ hdr_get_name(int          fd,
                 *namep = NULL;
                 return err;
             }
-            bufremain = gbp->size;
+            bufremain = (long long)gbp->size;
         }
     }
 
     if (padding > 0) {
         err_addr = ERR_ADDR;
-        err = val_check_buffer(fd, gbp, padding);
+        err = val_check_buffer(fd, gbp, (size_t)padding);
         if (err != NC_NOERR) {
             if (verbose) printf("Error @ [0x%8.8zx]:\n", err_addr);
             if (verbose) printf("\t%s - fetching name string padding\n", loc);
