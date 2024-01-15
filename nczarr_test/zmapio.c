@@ -369,10 +369,11 @@ objdump(void)
 	            printcontent(len,content,kind);
 		    break;
 		case OK_CHUNK:
-	    	    if(dumpoptions.meta_only)
+		    if(dumpoptions.meta_only) {
 			printf("...");
-		    else
+		    } else {
 	                printcontent(len,content,kind);
+		    }
 		    break;
 		default: break;
 		}
