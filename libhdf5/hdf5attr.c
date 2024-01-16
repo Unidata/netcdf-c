@@ -499,7 +499,7 @@ nc4_put_att(NC_GRP_INFO_T* grp, int varid, const char *name, nc_type file_type,
         /* For an existing att, if we're not in define mode, the len
            must not be greater than the existing len for classic model. */
         if (!(h5->flags & NC_INDEF) &&
-            len * nc4typelen(file_type) > (size_t)att->len * nc4typelen(att->nc_typeid))
+            len * nc4typelen(file_type) > att->len * nc4typelen(att->nc_typeid))
         {
             if (h5->cmode & NC_CLASSIC_MODEL)
                 return NC_ENOTINDEFINE;
