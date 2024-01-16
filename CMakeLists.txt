@@ -894,6 +894,16 @@ IF(NOT ENABLE_HDF5 AND ENABLE_EXAMPLE_TESTS)
   SET(ENABLE_EXAMPLE_TESTS OFF)
 ENDIF()
 
+##################################
+# Dependencies
+##################################
+
+include(cmake/dependencies.cmake)
+
+################################
+# End Dependencies
+################################
+
 # Enable Parallel IO with netCDF-4/HDF5 files using HDF5 parallel I/O.
 SET(STATUS_PARALLEL "OFF")
 set(IMPORT_MPI "")
@@ -1164,16 +1174,6 @@ MARK_AS_ADVANCED(ENABLE_INTERNAL_DOCS VALGRIND_TESTS ENABLE_COVERAGE_TESTS )
 MARK_AS_ADVANCED(ENABLE_DAP_REMOTE_TESTS ENABLE_DAP_LONG_TESTS USE_REMOTE_CDASH ENABLE_EXTERNAL_SERVER_TESTS)
 MARK_AS_ADVANCED(ENABLE_DOXYGEN_BUILD_RELEASE_DOCS DOXYGEN_ENABLE_TASKS ENABLE_DOXYGEN_SERVER_SIDE_SEARCH)
 MARK_AS_ADVANCED(ENABLE_SHARED_LIBRARY_VERSION)
-
-##################################
-# Dependencies
-##################################
-
-include(cmake/dependencies.cmake)
-
-################################
-# End Dependencies
-################################
 
 ################################
 # Option checks
@@ -1700,7 +1700,7 @@ configure_file("${netCDF_SOURCE_DIR}/config.h.cmake.in"
   "${netCDF_BINARY_DIR}/config.h")
 ADD_DEFINITIONS(-DHAVE_CONFIG_H)
 INCLUDE_DIRECTORIES(${netCDF_BINARY_DIR})
-# End autotools-style checs for config.h
+# End autotools-style checks for config.h
 
 #####
 # Set core names of the libraries.
