@@ -10,13 +10,13 @@
 # build binary installers.
 #####
 
-SET(CPACK_PACKAGE_VENDOR "Unidata")
+set(CPACK_PACKAGE_VENDOR "Unidata")
 
 ##
 # Declare exclusions list used when building a source file.
 # NOTE!! This list uses regular expressions, NOT wildcards!!
 ##
-SET(CPACK_SOURCE_IGNORE_FILES "${CPACK_SOURCE_IGNORE_FILES}"
+set(CPACK_SOURCE_IGNORE_FILES "${CPACK_SOURCE_IGNORE_FILES}"
   "/expecttds3/"
   "/nocacheremote3/"
   "/nocacheremote4/"
@@ -46,21 +46,21 @@ SET(CPACK_SOURCE_IGNORE_FILES "${CPACK_SOURCE_IGNORE_FILES}"
 # Nullsoft Installation System (NSIS)
 ###
 
-SET(CPACK_PACKAGE_CONTACT "NetCDF Support <support-netcdf@unidata.ucar.edu>")
+set(CPACK_PACKAGE_CONTACT "NetCDF Support <support-netcdf@unidata.ucar.edu>")
 
-IF(WIN32)
-  SET(CPACK_NSIS_MODIFY_PATH ON)
-  SET(CPACK_NSIS_DISPLAY_NAME "NetCDF ${netCDF_VERSION}")
-  SET(CPACK_NSIS_PACKAGE_NAME "NetCDF ${netCDF_VERSION}")
-  SET(CPACK_NSIS_HELP_LINK "https://www.unidata.ucar.edu/netcdf")
-  SET(CPACK_NSIS_URL_INFO_ABOUT "https://www.unidata.ucar.edu/netcdf")
-  SET(CPACK_NSIS_CONTACT "support-netcdf@unidata.ucar.edu")
-  SET(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
-  SET(CPACK_NSIS_MENU_LINKS
+if(WIN32)
+  set(CPACK_NSIS_MODIFY_PATH ON)
+  set(CPACK_NSIS_DISPLAY_NAME "NetCDF ${netCDF_VERSION}")
+  set(CPACK_NSIS_PACKAGE_NAME "NetCDF ${netCDF_VERSION}")
+  set(CPACK_NSIS_HELP_LINK "https://www.unidata.ucar.edu/netcdf")
+  set(CPACK_NSIS_URL_INFO_ABOUT "https://www.unidata.ucar.edu/netcdf")
+  set(CPACK_NSIS_CONTACT "support-netcdf@unidata.ucar.edu")
+  set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
+  set(CPACK_NSIS_MENU_LINKS
 	"https://www.unidata.ucar.edu/software/netcdf" "Unidata Website"
 	"https://docs.unidata.ucar.edu/netcdf-c" "NetCDF Stable Documentation")
 
-ENDIF()
+endif()
 
 ###
 # Set debian-specific options used when
@@ -71,51 +71,51 @@ ENDIF()
 
 # This should be set using the output of dpkg --print-architecture.
 FIND_PROGRAM(NC_DPKG NAMES dpkg)
-IF(NC_DPKG)
+if(NC_DPKG)
   # Define a macro for getting the dpkg architecture.
-  MACRO(getdpkg_arch arch)
+  macro(getdpkg_arch arch)
     execute_process(COMMAND "${NC_DPKG}" "--print-architecture" OUTPUT_VARIABLE "${arch}" OUTPUT_STRIP_TRAILING_WHITESPACE)
-  ENDMACRO(getdpkg_arch)
+  endmacro(getdpkg_arch)
   getdpkg_arch(dpkg_arch)
 
-  SET(CPACK_DEBIAN_PACKAGE_NAME "netcdf4-dev")
-  SET(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "${dpkg_arch}")
-  SET(CPACK_DEBIAN_PACKAGE_DEPENDS "zlib1g (>= 1:1.2.3.4), libhdf5-7 (>= 1.8.11), libcurl4-openssl-dev (>= 7.22.0)")
-ENDIF()
+  set(CPACK_DEBIAN_PACKAGE_NAME "netcdf4-dev")
+  set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "${dpkg_arch}")
+  set(CPACK_DEBIAN_PACKAGE_DEPENDS "zlib1g (>= 1:1.2.3.4), libhdf5-7 (>= 1.8.11), libcurl4-openssl-dev (>= 7.22.0)")
+endif()
 
 
 ##
 # Set Copyright, License info for CPack.
 ##
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/COPYRIGHT
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/COPYRIGHT
   ${CMAKE_CURRENT_BINARY_DIR}/COPYRIGHT.txt
   @ONLY
   )
 
-SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_BINARY_DIR}/COPYRIGHT.txt")
-IF(NOT CPACK_PACK_VERSION)
-  SET(CPACK_PACKAGE_VERSION ${VERSION})
-ENDIF()
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_BINARY_DIR}/COPYRIGHT.txt")
+if(NOT CPACK_PACK_VERSION)
+  set(CPACK_PACKAGE_VERSION ${VERSION})
+endif()
 
-IF(UNIX)
-  SET(CPACK_GENERATOR "STGZ" "TBZ2" "DEB" "ZIP")
-ENDIF()
+if(UNIX)
+  set(CPACK_GENERATOR "STGZ" "TBZ2" "DEB" "ZIP")
+endif()
 
-IF(APPLE)
-  SET(CPACK_SOURCE_GENERATOR "TGZ")
-  SET(CPACK_GENERATOR "productbuild" "STGZ" "TBZ2" "TGZ" "ZIP")
-ENDIF()
+if(APPLE)
+  set(CPACK_SOURCE_GENERATOR "TGZ")
+  set(CPACK_GENERATOR "productbuild" "STGZ" "TBZ2" "TGZ" "ZIP")
+endif()
 
 ##
 # Create an 'uninstall' target.
 ##
-CONFIGURE_FILE(
+configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
   "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
   IMMEDIATE @ONLY)
 
 
-ADD_CUSTOM_TARGET(uninstall
+add_custom_target(uninstall
   COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 
 ##
@@ -133,4 +133,4 @@ set(CPACK_COMPONENT_DEPENDENCIES_DESCRIPTION
 set(CPACK_COMPONENT_DOCUMENTATION_DESCRIPTION
   "The NetCDF-C user documentation.")
 
-INCLUDE(CPack)
+include(CPack)
