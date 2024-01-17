@@ -1,5 +1,3 @@
-include(netcdf_functions_macros)
-
 ################################
 # PkgConfig
 ################################
