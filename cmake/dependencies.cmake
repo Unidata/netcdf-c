@@ -628,22 +628,24 @@ IF(ENABLE_LIBXML2)
 ENDIF(ENABLE_LIBXML2)
 
 ################################
-# MPI
-################################ 
-IF(ENABLE_PARALLEL4 OR HDF5_PARALLEL)
-  FIND_PACKAGE(MPI REQUIRED)
-ENDIF()
-
-################################
 # parallel IO
 ################################ 
 IF(ENABLE_PNETCDF)
-  FIND_LIBRARY(PNETCDF NAMES pnetcdf)
-  FIND_PATH(PNETCDF_INCLUDE_DIR pnetcdf.h)
-  IF(NOT PNETCDF)
-    MESSAGE(STATUS "Cannot find PnetCDF library. Disabling PnetCDF support.")
-    SET(USE_PNETCDF OFF CACHE BOOL "")
+  find_package(PNETCDF 1.6.0)
+  IF(PNETCDF_FOUND)
+    set(USE_PNETCDF ON CACHE BOOL "")
+  else()
+    message(STATUS "Cannot find PnetCDF library. Disabling PnetCDF support.")
+    set(USE_PNETCDF OFF CACHE BOOL "")
   ENDIF()
+  include_directories(${PNETCDF_INCLUDE_DIR})
+ENDIF()
+
+################################
+# MPI
+################################
+IF(ENABLE_PARALLEL4 OR HDF5_PARALLEL OR ENABLE_PNETCDF)
+  FIND_PACKAGE(MPI REQUIRED)
 ENDIF()
 
 ################################

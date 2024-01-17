@@ -932,47 +932,14 @@ IF(ENABLE_PARALLEL4 AND ENABLE_HDF5)
 ENDIF()
 
 # Options to enable parallel IO for classic formats with PnetCDF library.
-SET(STATUS_PNETCDF "OFF")
+SET(STATUS_PNETCDF ${USE_PNETCDF})
 IF(ENABLE_PNETCDF)
-  # Check for ncmpi_create in libpnetcdf, define USE_PNETCDF
-  # Does the user want to turn on PnetCDF read ability?
-  SET(USE_PNETCDF ON CACHE BOOL "")
-  IF(NOT PNETCDF)
-    MESSAGE(STATUS "Cannot find PnetCDF library. Disabling PnetCDF support.")
-    SET(USE_PNETCDF OFF CACHE BOOL "")
-  ELSE(NOT PNETCDF)
-    SET(USE_PARALLEL ON CACHE BOOL "")
-
-    # Check PnetCDF version. Must be >= 1.6.0
-    set(pnetcdf_h "${PNETCDF_INCLUDE_DIR}/pnetcdf.h" )
-    message(STATUS "PnetCDF include file ${pnetcdf_h} will be searched for version")
-    file(STRINGS "${pnetcdf_h}" pnetcdf_major_string REGEX "^#define PNETCDF_VERSION_MAJOR")
-    string(REGEX REPLACE "[^0-9]" "" pnetcdf_major "${pnetcdf_major_string}")
-    file(STRINGS "${pnetcdf_h}" pnetcdf_minor_string REGEX "^#define PNETCDF_VERSION_MINOR")
-    string(REGEX REPLACE "[^0-9]" "" pnetcdf_minor "${pnetcdf_minor_string}")
-    file(STRINGS "${pnetcdf_h}" pnetcdf_sub_string REGEX "^#define PNETCDF_VERSION_SUB")
-    string(REGEX REPLACE "[^0-9]" "" pnetcdf_sub "${pnetcdf_sub_string}")
-    set(pnetcdf_version "${pnetcdf_major}.${pnetcdf_minor}.${pnetcdf_sub}")
-    message(STATUS "Found PnetCDF version ${pnetcdf_version}")
-
-    if(${pnetcdf_version} VERSION_GREATER "1.6.0")
-      SET(STATUS_PNETCDF "ON")
-      INCLUDE_DIRECTORIES(${PNETCDF_INCLUDE_DIR})
-      SET(HAVE_LIBPNETCDF ON)
-      # PnetCDF => parallel
-      SET(STATUS_PARALLEL ON)
-      SET(USE_PARALLEL ON)
-      MESSAGE(STATUS "Using PnetCDF Library: ${PNETCDF}")
-    ELSE()
-      MESSAGE(WARNING "ENABLE_PNETCDF requires version 1.6.1 or later; found version ${pnetcdf_version}. PnetCDF is disabled")
-    ENDIF()
-
+  set(STATUS_PARALLEL ON)
   ### 
-  # Generate pnetcdf test.  
+  # Generate pnetcdf test
   ###
-  CONFIGURE_FILE("${netCDF_SOURCE_DIR}/nc_test/run_pnetcdf_tests.sh.in"
+  configure_file("${netCDF_SOURCE_DIR}/nc_test/run_pnetcdf_tests.sh.in"
     "${netCDF_BINARY_DIR}/nc_test/run_pnetcdf_tests.sh")
-  ENDIF(NOT PNETCDF)
 ENDIF()
 
 # Options to enable use of fill values for elements causing NC_ERANGE
@@ -995,37 +962,18 @@ ENDIF(ENABLE_ERANGE_FILL)
 SET(ENABLE_ZERO_LENGTH_COORD_BOUND ON)
 
 # check and conform with PnetCDF settings on ERANGE_FILL and RELAX_COORD_BOUND
-IF(STATUS_PNETCDF)
-  file(STRINGS "${pnetcdf_h}" enable_erange_fill_pnetcdf REGEX "^#define PNETCDF_ERANGE_FILL")
-  string(REGEX REPLACE "[^0-9]" "" erange_fill_pnetcdf "${enable_erange_fill_pnetcdf}")
-  IF("x${erange_fill_pnetcdf}" STREQUAL "x1")
-     SET(erange_fill_pnetcdf "ON")
-  ELSE()
-     SET(erange_fill_pnetcdf "OFF")
-  ENDIF()
+IF(USE_PNETCDF)
   IF(ENABLE_ERANGE_FILL STREQUAL "AUTO") # not set on command line
-     SET(ENABLE_ERANGE_FILL "${erange_fill_pnetcdf}")
+     SET(ENABLE_ERANGE_FILL "${PNETCDF_ERANGE_FILL}")
   ELSE()
      # user explicitly set this option on command line
-     IF(NOT ENABLE_ERANGE_FILL STREQUAL "${erange_fill_pnetcdf}")
+     IF(NOT ENABLE_ERANGE_FILL STREQUAL "${PNETCDF_ERANGE_FILL}")
         IF(ENABLE_ERANGE_FILL)
            MESSAGE(FATAL_ERROR "Enabling erange-fill conflicts with PnetCDF setting")
         ELSE()
            MESSAGE(FATAL_ERROR "Disabling erange-fill conflicts with PnetCDF setting")
         ENDIF()
      ENDIF()
-  ENDIF()
-
-  file(STRINGS "${pnetcdf_h}" relax_coord_bound_pnetcdf REGEX "^#define PNETCDF_RELAX_COORD_BOUND")
-  string(REGEX REPLACE "[^0-9]" "" relax_coord_bound "${relax_coord_bound_pnetcdf}")
-  IF("x${relax_coord_bound}" STREQUAL "x1")
-     SET(relax_coord_bound_pnetcdf "ON")
-  ELSE()
-     SET(relax_coord_bound_pnetcdf "OFF")
-  ENDIF()
-  # pnetcdf must have relaxed coord bounds to build with netCDF-4
-  IF(NOT ENABLE_ZERO_LENGTH_COORD_BOUND STREQUAL "${relax_coord_bound_pnetcdf}")
-     MESSAGE(FATAL_ERROR "Pnetcdf must be built with relax-coord-bound enabled")
   ENDIF()
 ENDIF()
 
