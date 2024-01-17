@@ -631,13 +631,8 @@ ENDIF(ENABLE_LIBXML2)
 # parallel IO
 ################################ 
 IF(ENABLE_PNETCDF)
-  find_package(PNETCDF 1.6.0)
-  IF(PNETCDF_FOUND)
-    set(USE_PNETCDF ON CACHE BOOL "")
-  else()
-    message(STATUS "Cannot find PnetCDF library. Disabling PnetCDF support.")
-    set(USE_PNETCDF OFF CACHE BOOL "")
-  ENDIF()
+  find_package(PNETCDF 1.6.0 REQUIRED)
+  set(USE_PNETCDF ON CACHE BOOL "")
   include_directories(${PNETCDF_INCLUDE_DIR})
 ENDIF()
 
