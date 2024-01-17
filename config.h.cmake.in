@@ -307,9 +307,6 @@ are set when opening a binary file on Windows. */
 /* Define to 1 if you have the `mfhdf' library (-lmfhdf). */
 #cmakedefine HAVE_LIBMFHDF 1
 
-/* Define to 1 if you have the `pnetcdf' library (-lpnetcdf). */
-#cmakedefine HAVE_LIBPNETCDF 1
-
 /* Define to 1 if you have the libxml2 library. */
 #cmakedefine ENABLE_LIBXML2 1
 
