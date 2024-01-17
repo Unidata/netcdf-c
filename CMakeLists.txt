@@ -932,9 +932,11 @@ IF(ENABLE_PARALLEL4 AND ENABLE_HDF5)
 ENDIF()
 
 # Options to enable parallel IO for classic formats with PnetCDF library.
-SET(STATUS_PNETCDF ${USE_PNETCDF})
+set(STATUS_PNETCDF ${ENABLE_PNETCDF})
+set(USE_PNETCDF ${ENABLE_PNETCDF})
 IF(ENABLE_PNETCDF)
   set(STATUS_PARALLEL ON)
+  set(USE_PARALLEL ON CACHE BOOL "")
   ### 
   # Generate pnetcdf test
   ###
