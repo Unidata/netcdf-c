@@ -632,7 +632,6 @@ ENDIF(ENABLE_LIBXML2)
 ################################ 
 IF(ENABLE_PNETCDF)
   find_package(PNETCDF 1.6.0 REQUIRED)
-  include_directories(${PNETCDF_INCLUDE_DIR})
 ENDIF()
 
 ################################

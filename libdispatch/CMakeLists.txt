@@ -36,6 +36,10 @@ IF(STATUS_PARALLEL)
     target_link_libraries(dispatch PUBLIC MPI::MPI_C)
 ENDIF(STATUS_PARALLEL)
 
+if (ENABLE_PNETCDF)
+    target_link_libraries(dispatch PUBLIC pnetcdf::pnetcdf)
+endif()
+
 IF(ENABLE_NCZARR)
     target_include_directories(dispatch PUBLIC ../libnczarr)
 ENDIF(ENABLE_NCZARR)
