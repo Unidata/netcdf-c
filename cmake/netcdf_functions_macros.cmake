@@ -275,6 +275,9 @@ macro(add_sh_test prefix F)
   endif()
 endmacro()
 
+macro(getdpkg_arch arch)
+  execute_process(COMMAND "${NC_DPKG}" "--print-architecture" OUTPUT_VARIABLE "${arch}" OUTPUT_STRIP_TRAILING_WHITESPACE)
+endmacro(getdpkg_arch)
 
 ################################
 # Functions
