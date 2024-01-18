@@ -70,12 +70,8 @@ endif()
 ###
 
 # This should be set using the output of dpkg --print-architecture.
-FIND_PROGRAM(NC_DPKG NAMES dpkg)
 if(NC_DPKG)
   # Define a macro for getting the dpkg architecture.
-  macro(getdpkg_arch arch)
-    execute_process(COMMAND "${NC_DPKG}" "--print-architecture" OUTPUT_VARIABLE "${arch}" OUTPUT_STRIP_TRAILING_WHITESPACE)
-  endmacro(getdpkg_arch)
   getdpkg_arch(dpkg_arch)
 
   set(CPACK_DEBIAN_PACKAGE_NAME "netcdf4-dev")

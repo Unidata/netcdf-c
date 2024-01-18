@@ -61,9 +61,9 @@ if(ENABLE_HDF4)
   message(STATUS "Found JPEG libraries: ${JPEG_LIB}")
 
   # Option to enable HDF4 file tests.
-  OPTION(ENABLE_HDF4_FILE_TESTS "Run HDF4 file tests.  This fetches sample HDF4 files from the Unidata ftp site to test with (requires curl)." ON)
+  option(ENABLE_HDF4_FILE_TESTS "Run HDF4 file tests.  This fetches sample HDF4 files from the Unidata ftp site to test with (requires curl)." ON)
   if(ENABLE_HDF4_FILE_TESTS)
-    FIND_PROGRAM(PROG_CURL NAMES curl)
+    find_program(PROG_CURL NAMES curl)
     if(PROG_CURL)
       set(USE_HDF4_FILE_TESTS ON )
     else()
@@ -649,4 +649,11 @@ endif()
 ################################ 
 if(ENABLE_DOXYGEN)
   find_package(Doxygen REQUIRED)
+endif()
+
+################################
+# NC_DPKG
+################################ 
+if (NETCDF_PACKAGE)
+  find_program(NC_DPKG NAMES dpkg)
 endif()
