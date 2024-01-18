@@ -290,20 +290,7 @@ if(USE_HDF5)
   message("-- HDF5_UTF8_PATHS (HDF5 version 1.10.6+): ${HDF5_UTF8_PATHS}")
 
   # Find out if HDF5 was built with parallel support.
-  # Do that by checking for the targets H5Pget_fapl_mpiposx and
-  # H5Pget_fapl_mpio in ${HDF5_LIB}.
-
-  # H5Pset_fapl_mpiposix and H5Pget_fapl_mpiposix have been removed since HDF5 1.8.12.
-  # Use H5Pset_fapl_mpio and H5Pget_fapl_mpio, instead.
-  # CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pget_fapl_mpiposix "" HDF5_IS_PARALLEL_MPIPOSIX)
-
-  CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pget_fapl_mpio "" HDF5_IS_PARALLEL_MPIO)
-  if(HDF5_IS_PARALLEL_MPIO)
-    set(HDF5_PARALLEL ON)
-  else()
-    set(HDF5_PARALLEL OFF)
-  endif()
-  set(HDF5_PARALLEL ${HDF5_PARALLEL} )
+  set(HDF5_PARALLEL ${HDF5_IS_PARALLEL})
 
   #Check to see if HDF5 library has collective metadata APIs, (HDF5 >= 1.10.0)
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pset_all_coll_metadata_ops "" HDF5_HAS_COLL_METADATA_OPS)
