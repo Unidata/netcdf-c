@@ -295,12 +295,6 @@ if(USE_HDF5)
   #Check to see if HDF5 library has collective metadata APIs, (HDF5 >= 1.10.0)
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Pset_all_coll_metadata_ops "" HDF5_HAS_COLL_METADATA_OPS)
 
-  if(HDF5_PARALLEL)
-	set(HDF5_CC h5pcc )
-  else()
-	set(HDF5_CC h5cc )
-  endif()
-
   # Check to see if H5Dread_chunk is available
   CHECK_LIBRARY_EXISTS(${HDF5_C_LIBRARY_hdf5} H5Dread_chunk "" HAS_READCHUNKS)
 
