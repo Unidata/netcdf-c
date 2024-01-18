@@ -1587,7 +1587,7 @@ foreach(_LIB ${ALL_TLL_LIBS})
   list(APPEND NC_LIBS "-l${_NAME}")
   get_filename_component(_LIB_DIR ${_LIB} PATH)
   list(APPEND LINKFLAGS "-L${_LIB_DIR}")
-endforach()
+endforeach()
 
 #set(NC_LIBS "-lnetcdf ${NC_LIBS}")
 if(NC_LIBS)
