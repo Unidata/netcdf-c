@@ -164,74 +164,15 @@ if(USE_HDF5)
     # by explicitly modifying NC_FIND_SHARED_LIBS.
     ##
     if(NC_FIND_SHARED_LIBS)
-      set(NC_HDF5_LINK_TYPE "shared")
-      set(NC_HDF5_LINK_TYPE_UPPER "SHARED")
+      set(HDF5_USE_STATIC_LIBRARIES OFF)
     else(NC_FIND_SHARED_LIBS)
-      set(NC_HDF5_LINK_TYPE "static")
-      set(NC_HDF5_LINK_TYPE_UPPER "STATIC")
+      set(HDF5_USE_STATIC_LIBRARIES ON)
     endif(NC_FIND_SHARED_LIBS)
 
     #####
     # First, find the C and HL libraries.
-    #
-    # This has been updated to reflect what is in the hdf5
-    # examples, even though the previous version of what we
-    # had worked.
     #####
-    if(MSVC)
-      set(SEARCH_PACKAGE_NAME ${HDF5_PACKAGE_NAME})
-      find_package(HDF5 NAMES ${SEARCH_PACKAGE_NAME} COMPONENTS C HL CONFIG REQUIRED ${NC_HDF5_LINK_TYPE})
-    else(MSVC)
-      find_package(HDF5 COMPONENTS C HL REQUIRED)
-    endif(MSVC)
-
-    ##
-    # Next, check the HDF5 version. This will inform which
-    # HDF5 variables we need to munge.
-    ##
-
-    # Some versions of HDF5 set HDF5_VERSION_STRING instead of HDF5_VERSION
-    if(HDF5_VERSION_STRING AND NOT HDF5_VERSION)
-      set(HDF5_VERSION ${HDF5_VERSION_STRING})
-    endif()
-
-
-    ###
-    # If HDF5_VERSION is undefined, attempt to determine it programatically.
-    ###
-    if("${HDF5_VERSION}" STREQUAL "")
-      message(STATUS "HDF5_VERSION not detected. Attempting to determine programatically.")
-      IF (EXISTS "${HDF5_INCLUDE_DIR}/H5pubconf.h")
-        file(READ "${HDF5_INCLUDE_DIR}/H5pubconf.h" _hdf5_version_lines
-          REGEX "#define[ \t]+H5_VERSION")
-        string(REGEX REPLACE ".*H5_VERSION .*\"\(.*\)\".*" "\\1" _hdf5_version "${_hdf5_version_lines}")
-        set(HDF5_VERSION "${_hdf5_version}" CACHE STRING "")
-        unset(_hdf5_version)
-        unset(_hdf5_version_lines)
-        message(STATUS "Found HDF5 libraries version ${HDF5_VERSION}")
-      endif()
-    else()
-      set(HDF5_VERSION ${HDF5_VERSION} CACHE STRING "")
-    endif()
-
-    ###
-    # If HDF5_VERSION is still empty, we have a problem.
-    # Error out.
-    ###
-    if("${HDF5_VERSION}" STREQUAL "")
-      message(FATAL_ERR "Unable to determine HDF5 version.  NetCDF requires at least version ${HDF5_VERSION_REQUIRED}. Please ensure that libhdf5 is installed and accessible.")
-    endif()
-
-    ###
-    # Now that we know HDF5_VERSION isn't empty, we can check for minimum required version,
-    # and toggle various options.
-    ###
-
-    if(${HDF5_VERSION} VERSION_LESS ${HDF5_VERSION_REQUIRED})
-      message(FATAL_ERROR "netCDF requires at least HDF5 ${HDF5_VERSION_REQUIRED}. Found ${HDF5_VERSION}.")
-    endif()
-
-
+    find_package(HDF5 ${HDF5_VERSION_REQUIRED} COMPONENTS C HL REQUIRED)
 
     ##
     # Include the HDF5 include directory.
