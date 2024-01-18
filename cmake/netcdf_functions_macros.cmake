@@ -82,7 +82,7 @@ macro(GEN_m4 filename)
 
   # If m4 isn't present, and the generated file doesn't exist,
   # it cannot be generated and an error should be thrown.
-  if(not HAVE_M4)
+  if(NOT HAVE_M4)
     if(NOT EXISTS ${fallbackdest})
       message(FATAL_ERROR "m4 is required to generate ${filename}.c. Please install m4 so that it is on the PATH and try again.")
     else()
