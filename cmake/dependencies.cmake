@@ -248,16 +248,6 @@ if(USE_HDF5)
     set(HDF5_C_LIBRARY_hdf5 "${HDF5_C_LIBRARY}" )
   endif()
 
-  find_path(HAVE_HDF5_H hdf5.h PATHS ${HDF5_INCLUDE_DIR} NO_DEFAULT_PATH)
-  if(NOT HAVE_HDF5_H)
-    message(FATAL_ERROR "Compiling a test with hdf5 failed. Either hdf5.h cannot be found, or the log messages should be checked for another reason.")
-  else(NOT HAVE_HDF5_H)
-    target_include_directories(netcdf
-      PRIVATE
-        ${HAVE_HDF5_H}
-    )
-  endif(NOT HAVE_HDF5_H)
-
   include(cmake/check_hdf5.cmake)
 
   # Check to ensure that HDF5 was built with zlib.
@@ -349,15 +339,11 @@ if(USE_HDF5)
     set(HAS_PAR_FILTERS no CACHE STRING "" )
   endif()
 
-  find_path(HAVE_HDF5_H hdf5.h PATHS ${HDF5_INCLUDE_DIR} NO_DEFAULT_PATH)
-  if(NOT HAVE_HDF5_H)
-    message(FATAL_ERROR "Compiling a test with hdf5 failed. Either hdf5.h cannot be found, or the log messages should be checked for another reason.")
-  else(NOT HAVE_HDF5_H)
-    target_include_directories(netcdf
-      PRIVATE
-        ${HAVE_HDF5_H}
-    )
-  endif(NOT HAVE_HDF5_H)
+  set(HAVE_HDF5_H ${HDF5_C_INCLUDE_DIR})
+  target_include_directories(netcdf
+    PRIVATE
+    ${HAVE_HDF5_H}
+  )
 
   #option to include HDF5 High Level header file (hdf5_hl.h) in case we are not doing a make install
   target_include_directories(netcdf
