@@ -5,6 +5,7 @@
 
 #include <stdarg.h>
 #include <assert.h>
+#include <stddef.h>
 
 #include "d4includes.h"
 
@@ -120,7 +121,7 @@ Do depth first search
 static void
 walk(NCD4node* node, NClist* sorted)
 {
-    int i;
+    size_t i;
 
     if(node->visited) return;
     node->visited = 1;
@@ -310,7 +311,7 @@ static int
 delimitStruct(NCD4meta* compiler, NCD4node* basetype, NCD4offset* offset)
 {
     int ret = NC_NOERR;
-    int i;
+    size_t i;
 
     /* The fields are associated with the basetype struct */
     for(i=0;i<nclistlength(basetype->vars);i++) {

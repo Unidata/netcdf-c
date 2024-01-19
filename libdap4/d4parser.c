@@ -6,6 +6,7 @@
 #include "d4includes.h"
 #include <stdarg.h>
 #include <assert.h>
+#include <stddef.h>
 #include "ncxml.h"
 
 /**
@@ -878,7 +879,8 @@ Find or create an opaque type
 static NCD4node*
 getOpaque(NCD4parser* parser, ncxml_t varxml, NCD4node* group)
 {
-    int i, ret = NC_NOERR;
+    size_t i;
+    int ret = NC_NOERR;
     long long len;
     NCD4node* opaquetype = NULL;
     char* xattr;
@@ -1024,7 +1026,7 @@ done:
 NCD4node*
 NCD4_findAttr(NCD4node* container, const char* attrname)
 {
-    int i;
+    size_t i;
     /* Look directly under this xml for <Attribute> */
     for(i=0;i<nclistlength(container->attributes);i++) {
 	NCD4node* attr = (NCD4node*)nclistget(container->attributes,i);
@@ -1095,7 +1097,8 @@ static int
 lookupFQNList(NCD4parser* parser, NClist* fqn, NCD4sort sort, NCD4node** result)
 {
     int ret = NC_NOERR;
-    int i,nsteps;
+    size_t i;
+    int nsteps;
     NCD4node* current;
     char* name = NULL;
     NCD4node* node = NULL;
@@ -1139,7 +1142,7 @@ lookupFQNList(NCD4parser* parser, NClist* fqn, NCD4sort sort, NCD4node** result)
     assert (i < (nsteps - 1));
     i++; /* skip variable name */
     for(;;i++) {
-	int j;
+	size_t j;
 	name = (char*)nclistget(fqn,i);
 	assert(ISTYPE(current->sort) && ISCMPD(current->subsort));
 	for(node=NULL,j=0;j<nclistlength(current->vars);j++) {
@@ -1166,7 +1169,7 @@ notfound:
 static NCD4node*
 lookFor(NClist* elems, const char* name, NCD4sort sort)
 {
-    int n,i;
+    size_t n,i;
     if(elems == NULL || nclistlength(elems) == 0) return NULL;
     n = nclistlength(elems);
     for(i=0;i<n;i++) {
@@ -1180,7 +1183,7 @@ lookFor(NClist* elems, const char* name, NCD4sort sort)
 void
 NCD4_printElems(NCD4node* group)
 {
-    int n,i;
+    size_t n,i;
     NClist* elems;
     elems = group->group.elements;
     if(elems == NULL || nclistlength(elems) == 0) return;
@@ -1646,7 +1649,7 @@ static int
 parseForwards(NCD4parser* parser, NCD4node* root)
 {
     int ret = NC_NOERR;
-    int i,j;
+    size_t i,j;
 
     /* process all vars */
     for(i=0;i<nclistlength(parser->vars);i++) {
