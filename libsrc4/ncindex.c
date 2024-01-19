@@ -14,6 +14,7 @@
 */
 
 /* Define this for debug so that table sizes are small */
+#include <stddef.h>
 #undef SMALLTABLE
 #undef NCNOHASH
 
@@ -369,7 +370,7 @@ sortname(NC_SORT sort)
 void
 printindexlist(NClist* lm)
 {
-    int i;
+    size_t i;
     if(lm == NULL) {
         fprintf(stderr,"<empty>\n");
         return;
@@ -377,10 +378,10 @@ printindexlist(NClist* lm)
     for(i=0;i<nclistlength(lm);i++) {
         NC_OBJ* o = (NC_OBJ*)nclistget(lm,i);
         if(o == NULL)
-            fprintf(stderr,"[%ld] <null>\n",(unsigned long)i);
+            fprintf(stderr,"[%zu] <null>\n",i);
         else
-            fprintf(stderr,"[%ld] sort=%s name=|%s| id=%lu\n",
-                    (unsigned long)i,sortname(o->sort),o->name,(unsigned long)o->id);
+            fprintf(stderr,"[%zu] sort=%s name=|%s| id=%lu\n",
+                    i,sortname(o->sort),o->name,(unsigned long)o->id);
     }
 }
 
