@@ -4,6 +4,7 @@
  */
 
 #include "ut_includes.h"
+#include <stddef.h>
 
 #undef DEBUG
 
@@ -342,7 +343,8 @@ done:
 static int
 searchR(NCZMAP* map, int depth, const char* prefix0, NClist* objects)
 {
-    int i,stat = NC_NOERR;
+    size_t i;
+    int stat = NC_NOERR;
     NClist* matches = nclistnew();
     char prefix[4096]; /* only ok because we know testdata */
     size_t prefixlen;
@@ -382,7 +384,8 @@ done:
 static int
 search(void)
 {
-    int i,stat = NC_NOERR;
+    size_t i;
+    int stat = NC_NOERR;
     NCZMAP* map = NULL;
     NClist* objects = nclistnew();
 
@@ -398,7 +401,7 @@ search(void)
     /* Print out the list */
     for(i=0;i<nclistlength(objects);i++) {
 	const char* key = nclistget(objects,i);
-	printf("[%d] %s\n",i,key);
+	printf("[%zu] %s\n",i,key);
     }
 
 done:

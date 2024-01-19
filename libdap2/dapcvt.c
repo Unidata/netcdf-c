@@ -4,6 +4,7 @@
  *********************************************************************/
 #include "config.h"
 #include "dapincludes.h"
+#include <stddef.h>
 
 #ifdef _WIN32
 #include <crtdbg.h>
@@ -215,10 +216,10 @@ If we need an int and the string value is out of range, return NC_ERANGE.
 NCerror
 dapcvtattrval(nc_type etype, void* dst, NClist* src, NCattribute* att)
 {
-    int i;
+    size_t i;
     NCerror  ncstat = NC_NOERR;
-    unsigned int memsize = nctypesizeof(etype);
-    unsigned int nvalues = nclistlength(src);
+    size_t memsize = nctypesizeof(etype);
+    size_t nvalues = nclistlength(src);
     char* dstmem = (char*)dst;
 
     for(i=0;i<nvalues;i++) {
