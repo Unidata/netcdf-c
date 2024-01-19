@@ -5,6 +5,7 @@
 #include "ocinternal.h"
 #include "occompile.h"
 #include "ocdebug.h"
+#include <stddef.h>
 
 static OCerror mergedas1(OCnode* dds, OCnode* das);
 static OCerror mergedods1(OCnode* dds, OCnode* das);
@@ -79,23 +80,23 @@ computefullname(OCnode* node)
 static char*
 pathtostring(NClist* path, char* separator)
 {
-    int slen,i,len;
+    size_t slen,i,len;
     char* pathname;
     if(path == NULL) return NULL;
     len = nclistlength(path);
     if(len == 0) return NULL;
     for(i=0,slen=0;i<len;i++) {
-	OCnode* node = (OCnode*)nclistget(path,(size_t)i);
+	OCnode* node = (OCnode*)nclistget(path, i);
 	if(node->container == NULL || node->name == NULL) continue;
 	slen += strlen(node->name);
     }
     slen += ((len-1)*strlen(separator));
     slen += 1;   /* for null terminator*/
-    pathname = (char*)ocmalloc((size_t)slen);
+    pathname = (char*)ocmalloc(slen);
     MEMCHECK(pathname,NULL);
     pathname[0] = '\0';
     for(i=0;i<len;i++) {
-	OCnode* node = (OCnode*)nclistget(path,(size_t)i);
+	OCnode* node = (OCnode*)nclistget(path, i);
 	if(node->container == NULL || node->name == NULL) continue;
 	if(strlen(pathname) > 0) strcat(pathname,separator);
         strcat(pathname,node->name);
@@ -417,7 +418,7 @@ static OCerror
 mergeother(OCnode* ddsroot, NClist* dasnodes)
 {
     OCerror stat = OC_NOERR;
-    int i;
+    size_t i;
     for(i=0;i<nclistlength(dasnodes);i++) {
 	OCnode* das = (OCnode*)nclistget(dasnodes,i);
 	if(das == NULL) continue;
@@ -445,7 +446,7 @@ mergeother1(OCnode* root, OCnode* das)
         att = makeattribute(das->fullname,das->etype,das->att.values);	
         nclistpush(root->attributes,(void*)att);
     } else if(das->octype == OC_Attributeset) {
-	int i;
+	size_t i;
 	/* Recurse */
         for(i=0;i<nclistlength(das->subnodes);i++) {
 	    OCnode* sub = (OCnode*)nclistget(das->subnodes,i);

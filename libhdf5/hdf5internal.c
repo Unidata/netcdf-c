@@ -17,6 +17,7 @@
 #include "config.h"
 #include "hdf5internal.h"
 #include "hdf5err.h" /* For BAIL2 */
+#include <stddef.h>
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -205,7 +206,7 @@ nc4_rec_find_hdf_type(NC_FILE_INFO_T *h5, hid_t target_hdf_typeid)
 {
     NC_TYPE_INFO_T *type;
     htri_t equal;
-    int i;
+    size_t i;
 
     assert(h5);
 

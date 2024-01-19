@@ -8,6 +8,7 @@
 */
 
 #include "config.h"
+#include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -91,7 +92,7 @@ segmentlist(DCEparsestate* state, Object var0, Object decl)
 Object
 segment(DCEparsestate* state, Object name, Object slices0)
 {
-    int i;
+    size_t i;
     DCEsegment* segment = (DCEsegment*)dcecreate(CES_SEGMENT);
     NClist* slices = (NClist*)slices0;
     segment->name = strdup((char*)name);
@@ -222,7 +223,7 @@ array_indices(DCEparsestate* state, Object list0, Object indexno)
 Object
 indexer(DCEparsestate* state, Object name, Object indices)
 {
-    int i;
+    size_t i;
     NClist* list = (NClist*)indices;
     DCEsegment* seg = (DCEsegment*)dcecreate(CES_SEGMENT);
     seg->name = strdup((char*)name);
