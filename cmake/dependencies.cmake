@@ -22,7 +22,11 @@ if(ENABLE_HDF4)
   if(NOT MFHDF_H_INCLUDE_DIR)
     message(FATAL_ERROR "HDF4 Support specified, cannot find file mfhdf.h")
   else()
-    include_directories(${MFHDF_H_INCLUDE_DIR})
+
+  target_include_directories(netcdf
+    PRIVATE
+      ${MFHDF_H_INCLUDE_DIR}
+  )
   endif()
 
   find_library(HDF4_DF_LIB NAMES df libdf hdf)
@@ -50,7 +54,11 @@ if(ENABLE_HDF4)
   else()
     set(HAVE_JPEGLIB_H ON CACHE BOOL "")
     set(HAVE_LIBJPEG TRUE )
-    include_directories(${JPEGLIB_H_INCLUDE_DIR})
+
+    target_include_directories(netcdf
+      PRIVATE
+        ${JPEGLIB_H_INCLUDE_DIR}
+    )
   endif()
 
   find_library(JPEG_LIB NAMES jpeg libjpeg)
@@ -115,7 +123,10 @@ if(USE_HDF5)
     set(HDF5_C_LIBRARIES ${HDF5_C_LIBRARY} )
     set(HDF5_C_LIBRARY_hdf5 ${HDF5_C_LIBRARY} )
     set(HDF5_HL_LIBRARIES ${HDF5_HL_LIBRARY} )
-    include_directories(${HDF5_INCLUDE_DIR})
+    target_include_directories(netcdf
+      PRIVATE
+        ${HDF5_INCLUDE_DIR}
+    )
     message(STATUS "Using HDF5 C Library: ${HDF5_C_LIBRARY}")
     message(STATUS "Using HDF5 HL LIbrary: ${HDF5_HL_LIBRARY}")
     if (EXISTS "${HDF5_INCLUDE_DIR}/H5pubconf.h")
@@ -231,7 +242,10 @@ if(USE_HDF5)
       set(HDF5_INCLUDE_DIR ${HDF5_INCLUDE_DIRS} )
     endif()
     message(STATUS "Using HDF5 include dir: ${HDF5_INCLUDE_DIR}")
-    include_directories(${HDF5_INCLUDE_DIR})
+    target_include_directories(netcdf
+      PRIVATE
+        ${HDF5_INCLUDE_DIR}
+    )
 
     ###
     # This is the block where we figure out what the appropriate
@@ -299,7 +313,10 @@ if(USE_HDF5)
   if(NOT HAVE_HDF5_H)
     message(FATAL_ERROR "Compiling a test with hdf5 failed. Either hdf5.h cannot be found, or the log messages should be checked for another reason.")
   else(NOT HAVE_HDF5_H)
-    include_directories(${HAVE_HDF5_H})
+    target_include_directories(netcdf
+      PRIVATE
+        ${HAVE_HDF5_H}
+    )
   endif(NOT HAVE_HDF5_H)
 
   set (CMAKE_REQUIRED_INCLUDES ${HDF5_INCLUDE_DIR})
@@ -407,11 +424,17 @@ if(USE_HDF5)
   if(NOT HAVE_HDF5_H)
     message(FATAL_ERROR "Compiling a test with hdf5 failed. Either hdf5.h cannot be found, or the log messages should be checked for another reason.")
   else(NOT HAVE_HDF5_H)
-    include_directories(${HAVE_HDF5_H})
+    target_include_directories(netcdf
+      PRIVATE
+        ${HAVE_HDF5_H}
+    )
   endif(NOT HAVE_HDF5_H)
 
   #option to include HDF5 High Level header file (hdf5_hl.h) in case we are not doing a make install
-  include_directories(${HDF5_HL_INCLUDE_DIR})
+  target_include_directories(netcdf
+    PRIVATE
+      ${HDF5_HL_INCLUDE_DIR}
+  )
 
 endif(USE_HDF5)
 
@@ -420,8 +443,14 @@ endif(USE_HDF5)
 ################################
 # See if we have libcurl
 find_package(CURL)
-ADD_DEFINITIONS(-DCURL_STATICLIB=1)
-include_directories(${CURL_INCLUDE_DIRS})
+target_compile_options(netcdf
+  PRIVATE
+    -DCURL_STATICLIB=1
+)
+target_include_directories(netcdf
+  PRIVATE
+    ${CURL_INCLUDE_DIRS}
+)
 
 # Define a test flag for have curl library
 if(CURL_LIBRARIES OR CURL_LIBRARY)
@@ -527,7 +556,10 @@ find_package(ZLIB)
 
 # Define a test flag for have zlib library
 if(ZLIB_FOUND)
-  include_directories(${ZLIB_INCLUDE_DIRS})
+  target_include_directories(netcdf
+    PRIVATE
+      ${ZLIB_INCLUDE_DIRS}
+  )
   set(ENABLE_ZLIB TRUE)
 else()
   set(ENABLE_ZLIB FALSE)
@@ -573,7 +605,10 @@ endif()
 
 IF (ENABLE_NCZARR_ZIP)
   find_package(Zip REQUIRED)
-  include_directories(${Zip_INCLUDE_DIRS})
+  target_include_directories(netcdf
+    PRIVATE
+      ${Zip_INCLUDE_DIRS}
+  )
 endif ()
 
 ################################
@@ -588,7 +623,10 @@ if(ENABLE_S3)
     find_package(AWSSDK REQUIRED COMPONENTS s3;transfer)
     if(AWSSDK_FOUND)
       set(ENABLE_S3_AWS ON CACHE BOOL "S3 AWS" FORCE)
-      include_directories(${AWSSDK_INCLUDE_DIR})
+      target_include_directories(netcdf
+        PRIVATE
+          ${AWSSDK_INCLUDE_DIR}
+      )
     else(AWSSDK_FOUND)
       set(ENABLE_S3_AWS OFF CACHE BOOL "S3 AWS" FORCE)
     endif(AWSSDK_FOUND)
@@ -618,7 +656,10 @@ if(ENABLE_LIBXML2)
   find_package(LibXml2)
   if(LibXml2_FOUND)
     set(HAVE_LIBXML2 TRUE)
-    include_directories(${LIBXML2_INCLUDE_DIRS})
+    target_include_directories(netcdf
+      PRIVATE
+        ${LIBXML2_INCLUDE_DIRS}
+    )
     set(XMLPARSER "libxml2")
   else()
     set(HAVE_LIBXML2 FALSE)

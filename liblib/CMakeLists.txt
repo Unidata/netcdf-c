@@ -4,194 +4,221 @@
 # University Corporation for Atmospheric Research/Unidata.
 
 # See netcdf-c/COPYRIGHT file for more info.
-SET(liblib_LIBS dispatch netcdf3)
 
 #####
 # Add target objects/modules based on options.
 #####
 
-IF(USE_NETCDF4)
-  SET(liblib_LIBS ${liblib_LIBS} netcdf4)
-ENDIF()
-IF(USE_HDF5)
-  SET(liblib_LIBS ${liblib_LIBS} netcdfhdf5)
-ENDIF()
+if(USE_NETCDF4)
+  target_sources(netcdf
+    PRIVATE
+      $<TARGET_OBJECTS:netcdf4>
+  )
+endif()
 
-IF(USE_PNETCDF)
-  SET(liblib_LIBS ${liblib_LIBS} netcdfp)
-ENDIF()
+if(USE_HDF5)
+  target_sources(netcdf
+    PRIVATE
+      $<TARGET_OBJECTS:netcdfhdf5>
+  )
+endif()
 
-IF(USE_HDF4)
-  SET(liblib_LIBS ${liblib_LIBS} netcdfhdf4)
-ENDIF()
+if(USE_PNETCDF)
+  target_sources(netcdf
+    PRIVATE
+      $<TARGET_OBJECTS:netcdfp>
+  )
+endif()
 
-IF(ENABLE_DAP2)
-  SET(liblib_LIBS ${liblib_LIBS} oc2 dap2)
-ENDIF()
+if(USE_HDF4)
+  target_sources(netcdf
+    PRIVATE
+      $<TARGET_OBJECTS:netcdfhdf4>
+  )
+endif()
 
-IF(ENABLE_DAP4)
-  SET(liblib_LIBS ${liblib_LIBS} dap4)
-  SET(liblib_LIBS ${liblib_LIBS} ncxml)
-ENDIF()
+if(ENABLE_DAP2)
+  target_sources(netcdf
+    PRIVATE
+      $<TARGET_OBJECTS:oc2>
+      $<TARGET_OBJECTS:dap2>
+  )
+endif()
 
-IF(ENABLE_NCZARR)
-  SET(liblib_LIBS ${liblib_LIBS} nczarr)
-ENDIF()
+if(ENABLE_DAP4)
+  target_sources(netcdf
+    PRIVATE
+      $<TARGET_OBJECTS:dap4>
+      $<TARGET_OBJECTS:ncxml>
+  )
+endif()
 
-IF(ENABLE_S3_INTERNAL)
-  SET(liblib_LIBS ${liblib_LIBS} ncxml)
-ENDIF()
+if(ENABLE_NCZARR)
+  target_sources(netcdf
+    PRIVATE
+      $<TARGET_OBJECTS:nczarr>
+  )
+endif()
 
-IF(ENABLE_PLUGINS)
-  SET(liblib_LIBS ${liblib_LIBS} ncpoco)
-ENDIF()
+if(ENABLE_S3_INTERNAL)
+  target_sources(netcdf
+    PRIVATE
+      $<TARGET_OBJECTS:ncxml>
+  )
+endif()
 
-FOREACH(LIBS ${liblib_LIBS})
-  SET(LARGS ${LARGS} $<TARGET_OBJECTS:${LIBS}>)
-ENDFOREACH()
+if(ENABLE_PLUGINS)
+  target_sources(netcdf
+    PRIVATE
+      $<TARGET_OBJECTS:ncpoco>
+  )
+endif()
 
-ADD_LIBRARY(netcdf nc_initialize.c ${LARGS} )
+target_sources(netcdf
+  PRIVATE
+    nc_initialize.c 
+)
 
-IF(STATUS_PARALLEL)
+if(STATUS_PARALLEL)
   # TODO: Make PUBLIC when other dependencies have PUBLIC/PRIVATE specified
   target_link_libraries(netcdf MPI::MPI_C)
-ENDIF(STATUS_PARALLEL)
+endif(STATUS_PARALLEL)
 
-IF(TARGET MPI::MPI_C)
+if(TARGET MPI::MPI_C)
   target_link_libraries(netcdf MPI::MPI_C)
-ENDIF(TARGET MPI::MPI_C)
+endif(TARGET MPI::MPI_C)
 
-IF(MOD_NETCDF_NAME)
-  SET_TARGET_PROPERTIES(netcdf PROPERTIES LIBRARY_OUTPUT_NAME ${NETCDF_LIB_NAME})
-  SET_TARGET_PROPERTIES(netcdf PROPERTIES ARCHIVE_OUTPUT_NAME ${NETCDF_LIB_NAME})
-  SET_TARGET_PROPERTIES(netcdf PROPERTIES RUNTIME_OUTPUT_NAME ${NETCDF_LIB_NAME})
-ENDIF()
+if(MOD_NETCDF_NAME)
+  set_target_properties(netcdf PROPERTIES LIBRARY_OUTPUT_NAME ${NETCDF_LIB_NAME})
+  set_target_properties(netcdf PROPERTIES ARCHIVE_OUTPUT_NAME ${NETCDF_LIB_NAME})
+  set_target_properties(netcdf PROPERTIES RUNTIME_OUTPUT_NAME ${NETCDF_LIB_NAME})
+endif()
 
 # Make sure that netcdf.dll path does not include the build configuration
-IF(MSVC)
-  SET_TARGET_PROPERTIES(netcdf PROPERTIES
-	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-	RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR})
-ENDIF()
+if(MSVC)
+  set_target_properties(netcdf PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR})
+endif()
 
 #####
 # Add dependencies required for linking.
 #####
 
-SET(TLL_LIBS "")
+set(TLL_LIBS "")
 
-SET(TLL_LIBS ${TLL_LIBS} ${HAVE_LIBM} ${ZLIB_LIBRARY})
+set(TLL_LIBS ${TLL_LIBS} ${HAVE_LIBM} ${ZLIB_LIBRARY})
 
 # Add extra dependencies specified via NC_EXTRA_DEPS
-SET(TLL_LIBS ${TLL_LIBS} ${EXTRA_DEPS})
+set(TLL_LIBS ${TLL_LIBS} ${EXTRA_DEPS})
 
-IF(ENABLE_NCZARR_ZIP)
-  SET(TLL_LIBS ${TLL_LIBS} ${Zip_LIBRARIES})
-ENDIF()
+if(ENABLE_NCZARR_ZIP)
+  set(TLL_LIBS ${TLL_LIBS} ${Zip_LIBRARIES})
+endif()
 
-IF(Blosc_FOUND)
-SET(TLL_LIBS ${TLL_LIBS} ${Blosc_LIBRARIES})
-ENDIF()
-IF(Zstd_FOUND)
-SET(TLL_LIBS ${TLL_LIBS} ${Zstd_LIBRARIES})
-ENDIF()
-IF(Bz2_FOUND)
-SET(TLL_LIBS ${TLL_LIBS} ${Bz2_LIBRARIES})
-ENDIF()
-IF(SZIP_FOUND)
-SET(TLL_LIBS ${TLL_LIBS} ${Szip_LIBRARY})
-ENDIF()
+if(Blosc_FOUND)
+  set(TLL_LIBS ${TLL_LIBS} ${Blosc_LIBRARIES})
+endif()
+if(Zstd_FOUND)
+  set(TLL_LIBS ${TLL_LIBS} ${Zstd_LIBRARIES})
+endif()
+if(Bz2_FOUND)
+  set(TLL_LIBS ${TLL_LIBS} ${Bz2_LIBRARIES})
+endif()
+if(SZIP_FOUND)
+  set(TLL_LIBS ${TLL_LIBS} ${Szip_LIBRARY})
+endif()
 
-IF(HAVE_LIBDL)
-  SET(TLL_LIBS ${LIBDL} ${TLL_LIBS})
-ENDIF()
+if(HAVE_LIBDL)
+  set(TLL_LIBS ${LIBDL} ${TLL_LIBS})
+endif()
 
-IF(ENABLE_NCZARR_ZIP)
-  SET(TLL_LIBS ${TLL_LIBS} ${Zip_LIBRARIES})
-ENDIF()
+if(ENABLE_NCZARR_ZIP)
+  set(TLL_LIBS ${TLL_LIBS} ${Zip_LIBRARIES})
+endif()
 
-IF(USE_HDF5)
-  IF(NOT MSVC)
+if(USE_HDF5)
+  if(NOT MSVC)
     # Some version of cmake define HDF5_hdf5_LIBRARY instead of
     # HDF5_LIBRARY. Same with HDF5_HL_LIBRARIES
-    IF(HDF5_hdf5_LIBRARY AND NOT HDF5_C_LIBRARIES)
-      SET(HDF5_C_LIBRARIES ${HDF5_hdf5_LIBRARY})
-    ENDIF()
-    IF(HDF5_hdf5_hl_LIBRARY AND NOT HDF5_HL_LIBRARIES)
-      SET(HDF5_HL_LIBRARIES ${HDF5_hdf5_hl_LIBRARY})
-    ENDIF()
+    if(HDF5_hdf5_LIBRARY AND NOT HDF5_C_LIBRARIES)
+      set(HDF5_C_LIBRARIES ${HDF5_hdf5_LIBRARY})
+    endif()
+    if(HDF5_hdf5_hl_LIBRARY AND NOT HDF5_HL_LIBRARIES)
+      set(HDF5_HL_LIBRARIES ${HDF5_hdf5_hl_LIBRARY})
+    endif()
     # The order of the libraries is important here for static
     # builds:
     # Make sure that HDF5_C_LIBRARY appears *after*
     # HDF5_HL_LIBRARY.
-    SET(TLL_LIBS ${HDF5_HL_LIBRARIES} ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${TLL_LIBS} ${Szip_LIBRARY})
-  ELSE() # Windows CMake defines HDF5_LIBRARIES.
-    SET(TLL_LIBS ${HDF5_LIBRARIES} ${TLL_LIBS} ${Szip_LIBRARY})
-  ENDIF()
-ENDIF()
+    set(TLL_LIBS ${HDF5_HL_LIBRARIES} ${HDF5_C_LIBRARIES} ${HDF5_LIBRARIES} ${TLL_LIBS} ${Szip_LIBRARY})
+  else() # Windows CMake defines HDF5_LIBRARIES.
+    set(TLL_LIBS ${HDF5_LIBRARIES} ${TLL_LIBS} ${Szip_LIBRARY})
+  endif()
+endif()
 
-IF(FOUND_CURL)
-  SET(TLL_LIBS ${TLL_LIBS} ${CURL_LIBRARIES})
-ENDIF()
+if(FOUND_CURL)
+  set(TLL_LIBS ${TLL_LIBS} ${CURL_LIBRARIES})
+endif()
 
-IF(USE_HDF4)
-  SET(TLL_LIBS ${HDF4_MFHDF_LIB} ${HDF4_DF_LIB} ${TLL_LIBS})
-ENDIF()
+if(USE_HDF4)
+  set(TLL_LIBS ${HDF4_MFHDF_LIB} ${HDF4_DF_LIB} ${TLL_LIBS})
+endif()
 
-IF(ENABLE_PNETCDF AND PNETCDF)
-  SET(TLL_LIBS ${TLL_LIBS} ${PNETCDF})
-ENDIF()
+if(ENABLE_PNETCDF AND PNETCDF)
+  set(TLL_LIBS ${TLL_LIBS} ${PNETCDF})
+endif()
 
 
-IF(ENABLE_S3)
-  IF(ENABLE_S3_AWS)
+if(ENABLE_S3)
+  if(ENABLE_S3_AWS)
     TARGET_LINK_DIRECTORIES(netcdf PUBLIC ${AWSSDK_LIB_DIR})
-    SET(TLL_LIBS ${AWSSDK_LINK_LIBRARIES} ${TLL_LIBS})
-  ELSEIF(ENABLE_S3_INTERNAL)
-    IF(OPENSSL_FOUND)
-      SET(TLL_LIBS ${OPENSSL_SSL_LIBRARIES} ${OPENSSL_CRYPTO_LIBRARIES} ${TLL_LIBS})
-    ENDIF(OPENSSL_FOUND)
-  ENDIF(ENABLE_S3_AWS)  
-ENDIF(ENABLE_S3)
+    set(TLL_LIBS ${AWSSDK_LINK_LIBRARIES} ${TLL_LIBS})
+  elseif(ENABLE_S3_INTERNAL)
+    if(OPENSSL_FOUND)
+      set(TLL_LIBS ${OPENSSL_SSL_LIBRARIES} ${OPENSSL_CRYPTO_LIBRARIES} ${TLL_LIBS})
+    endif(OPENSSL_FOUND)
+  endif(ENABLE_S3_AWS)  
+endif(ENABLE_S3)
 
-IF(HAVE_LIBXML2)
-  SET(TLL_LIBS ${TLL_LIBS} ${LIBXML2_LIBRARIES})
-ENDIF()
+if(HAVE_LIBXML2)
+  set(TLL_LIBS ${TLL_LIBS} ${LIBXML2_LIBRARIES})
+endif()
 
-IF(NOT WIN32)
-  IF(NOT APPLE)
-    IF(CMAKE_DL_LIBS)
+if(NOT WIN32)
+  if(NOT APPLE)
+    if(CMAKE_DL_LIBS)
       TARGET_LINK_LIBRARIES(netcdf ${CMAKE_DL_LIBS})
-    ENDIF()
-  ENDIF()
-ENDIF()
+    endif()
+  endif()
+endif()
 
-IF(TLL_LIBS)
-  LIST(REMOVE_DUPLICATES TLL_LIBS)
-ENDIF()
+if(TLL_LIBS)
+  list(REMOVE_DUPLICATES TLL_LIBS)
+endif()
 
-TARGET_LINK_LIBRARIES(netcdf ${TLL_LIBS})
+target_link_libraries(netcdf ${TLL_LIBS})
 
-SET(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} ${TLL_LIBS})
-IF(MSVC)
-  SET_TARGET_PROPERTIES(netcdf PROPERTIES
+set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} ${TLL_LIBS})
+if(MSVC)
+  set_target_properties(netcdf PROPERTIES
     LINK_FLAGS_DEBUG " /NODEFAULTLIB:MSVCRT"
     )
-ENDIF()
+endif()
 
-IF(NOT MSVC)
-  IF(BUILD_SHARED_LIBS)
-    SET_TARGET_PROPERTIES(netcdf PROPERTIES LINK_FLAGS -shared)
-  ENDIF()
-ENDIF()
+if(NOT MSVC)
+  if(BUILD_SHARED_LIBS)
+    set_target_properties(netcdf PROPERTIES LINK_FLAGS -shared)
+  endif()
+endif()
 
-IF(ENABLE_SHARED_LIBRARY_VERSION)
-  SET_TARGET_PROPERTIES(netcdf PROPERTIES
+if(ENABLE_SHARED_LIBRARY_VERSION)
+  set_target_properties(netcdf PROPERTIES
     VERSION ${netCDF_LIB_VERSION}
     SOVERSION ${netCDF_SO_VERSION}
     )
-ENDIF(ENABLE_SHARED_LIBRARY_VERSION)
+endif(ENABLE_SHARED_LIBRARY_VERSION)
 
 ###
 # The INCLUDES directive was introduced in 2.8.12.
@@ -200,7 +227,7 @@ ENDIF(ENABLE_SHARED_LIBRARY_VERSION)
 # https://github.com/Unidata/netcdf-c/issues/135
 # for more information.
 ###
-IF(${CMAKE_VERSION} VERSION_LESS 2.8.12)
+if(${CMAKE_VERSION} VERSION_LESS 2.8.12)
   INSTALL(
     TARGETS netcdf EXPORT netCDFTargets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT libraries
@@ -208,7 +235,7 @@ IF(${CMAKE_VERSION} VERSION_LESS 2.8.12)
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT libraries
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     )
-ELSE()
+else()
     INSTALL(
     TARGETS netcdf EXPORT netCDFTargets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT libraries
@@ -216,11 +243,11 @@ ELSE()
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT libraries
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     )
-ENDIF()
+endif()
 
-SET(ALL_TLL_LIBS ${TLL_LIBS} PARENT_SCOPE)
-SET(NC_LIBS ${NC_LIBS} PARENT_SCOPE)
+set(ALL_TLL_LIBS ${TLL_LIBS} PARENT_SCOPE)
+set(NC_LIBS ${NC_LIBS} PARENT_SCOPE)
 
 FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
-SET(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am)
+set(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am)
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")

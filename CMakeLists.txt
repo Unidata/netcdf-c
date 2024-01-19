@@ -33,6 +33,15 @@ if (NOT DEFINED NETCDF_IS_TOP_LEVEL)
   endif ()
 endif ()
 
+
+################################
+# The target
+################################
+
+add_library(netcdf)
+add_library(netCDF::netcdf ALIAS netcdf)
+
+
 #####
 # Version Info:
 #
@@ -1403,11 +1412,6 @@ include_directories(${netCDF_BINARY_DIR})
 # End autotools-style checks for config.h
 
 #####
-# Set core names of the libraries.
-#####
-set(netCDF_LIB_CORENAME  "netcdf")
-
-#####
 # Set the true names of all the libraries, if customized by external project
 #####
 # Recurse into other subdirectories.
@@ -1477,7 +1481,7 @@ endif()
 # For tests and utilities, we are no longer
 # exporting symbols but rather importing them.
 if(BUILD_DLL)
-  REMOVE_DEFINITIONS(-DDLL_EXPORT)
+  remove_definitions(-DDLL_EXPORT)
 endif()
 
 # Enable Utilities.
@@ -1716,14 +1720,14 @@ else()
 endif()
 
 if(WITH_S3_TESTING STREQUAL PUBLIC)
-set(ENABLE_S3_TESTING "public")
+  set(ENABLE_S3_TESTING "public")
 elseif(WITH_S3_TESTING)
-set(ENABLE_S3_TESTING "yes")
-set(ENABLE_S3_TESTALL "yes")
+  set(ENABLE_S3_TESTING "yes")
+  set(ENABLE_S3_TESTALL "yes")
 elseif(NOT WITH_S3_TESTING)
-set(ENABLE_S3_TESTING "no")
+  set(ENABLE_S3_TESTING "no")
 else()
-set(ENABLE_S3_TESTING "no")
+  set(ENABLE_S3_TESTING "no")
 endif()
 
 # The Unidata testing S3 bucket
@@ -1833,68 +1837,3 @@ endif()
 if(DEFINED ENV{LIB_FUZZING_ENGINE})
   add_subdirectory(fuzz)
 endif(DEFINED ENV{LIB_FUZZING_ENGINE})
-
-####
-# Export files
-####
-
-# Create CMake package configuration files. With these, other packages using
-# cmake should be able to find netcdf using find_package and find_library.
-# The EXPORT call is paired with one in liblib.
-set(ConfigPackageLocation ${CMAKE_INSTALL_LIBDIR}/cmake/netCDF)
-
-install(EXPORT netCDFTargets
-  DESTINATION ${ConfigPackageLocation}
-  COMPONENT headers
-  NAMESPACE netCDF::
-  )
-
-include(CMakePackageConfigHelpers)
-CONFIGURE_PACKAGE_CONFIG_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/netCDFConfig.cmake.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/netCDFConfig.cmake"
-  INSTALL_DESTINATION "${ConfigPackageLocation}"
-  NO_CHECK_REQUIRED_COMPONENTS_MACRO
-  PATH_VARS
-  CMAKE_INSTALL_PREFIX
-  CMAKE_INSTALL_INCLUDEDIR
-  CMAKE_INSTALL_LIBDIR
-  )
-
-install(
-  FILES "${CMAKE_CURRENT_BINARY_DIR}/netCDFConfig.cmake"
-  DESTINATION "${ConfigPackageLocation}"
-  COMPONENT headers
-  )
-
-add_library(netCDF::netcdf ALIAS netcdf)
-target_include_directories(netcdf
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-)
-
-# Create export configuration
-write_basic_package_version_file(
-  "${CMAKE_CURRENT_BINARY_DIR}/netCDF/netCDFConfigVersion.cmake"
-  VERSION ${netCDF_VERSION}
-  COMPATIBILITY SameMajorVersion
-  )
-
-install(
-  FILES
-  "${CMAKE_CURRENT_BINARY_DIR}/netCDF/netCDFConfigVersion.cmake"
-  DESTINATION ${ConfigPackageLocation}
-  COMPONENT headers
-  )
-
-####
-# End export files
-####
-
-# CPack inclusion must come last.
-option(NETCDF_PACKAGE "Create netCDF-C package " ${NETCDF_IS_TOP_LEVEL})
-
-if (NETCDF_PACKAGE)
-  include(CMakeInstallation.cmake)
-endif()
