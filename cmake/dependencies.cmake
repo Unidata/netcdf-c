@@ -319,18 +319,14 @@ if(USE_HDF5)
     )
   endif(NOT HAVE_HDF5_H)
 
-  set (CMAKE_REQUIRED_INCLUDES ${HDF5_INCLUDE_DIR})
+  include(cmake/check_hdf5.cmake)
 
   # Check to ensure that HDF5 was built with zlib.
   # This needs to be near the beginning since we
   # need to know whether to add "-lz" to the symbol
   # tests below.
-  CHECK_C_SOURCE_COMPILES("#include <H5pubconf.h>
-   #if !H5_HAVE_ZLIB_H
-   #error
-   #endif
-   int main() {
-   int x = 1;}" HAVE_HDF5_ZLIB)
+
+  check_hdf5_feature(HAVE_HDF5_ZLIB H5_HAVE_ZLIB_H)
   if(NOT HAVE_HDF5_ZLIB)
     message(FATAL_ERROR "HDF5 was built without zlib. Rebuild HDF5 with zlib.")
   else()
@@ -347,16 +343,10 @@ if(USE_HDF5)
     message(STATUS "HDF5 has zlib.")
   endif()
 
-  #Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip library.
-  CHECK_C_SOURCE_COMPILES("#include <H5pubconf.h>
-   #if !H5_HAVE_FILTER_SZIP
-   #error
-   #endif
-   int main() {
-   int x = 1;}" USE_HDF5_SZIP)
-  if(USE_HDF5_SZIP)
-    set(HAVE_H5Z_SZIP yes )
-  endif()
+
+  # Check to see if H5Z_SZIP exists in HDF5_Libraries. If so, we must use szip library.
+  check_hdf5_feature(HAVE_H5Z_SZIP H5_HAVE_FILTER_SZIP)
+
 
   ####
   # Check to see if HDF5 library is 1.10.6 or greater.
@@ -688,6 +678,7 @@ endif()
 ################################
 # Doxygen
 ################################ 
+
 if(ENABLE_DOXYGEN)
   find_package(Doxygen REQUIRED)
 endif()
