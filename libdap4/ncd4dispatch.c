@@ -3,6 +3,7 @@
  *   See netcdf/COPYRIGHT file for copying and redistribution conditions.
  *********************************************************************/
 
+#include <stddef.h>
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -841,7 +842,7 @@ NCD4_inq_dim(int ncid, int dimid, char* name, size_t* lenp)
     NC* ncp;
     NCD4INFO* info;
     NCD4meta* meta;
-    int i;
+    size_t i;
     NCD4node* dim = NULL;
 
     if((ret = NC_check_id(ncid, (NC**)&ncp)) != NC_NOERR)
