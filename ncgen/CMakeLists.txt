@@ -22,6 +22,15 @@ util.c bytebuffer.h data.h debug.h dump.h
 generate.h generr.h genlib.h includes.h list.h
 ncgen.h ncgeny.h util.h ${XGETOPTSRC})
 
+## 
+# Turn off inclusion of particular files when using the cmake-native
+# option to turn on Unity Builds.  
+#
+# For more information, see:
+#  * https://github.com/Unidata/netcdf-c/pull/2839/
+#  * https://cmake.org/cmake/help/latest/prop_tgt/UNITY_BUILD.html
+#  * https://cmake.org/cmake/help/latest/prop_tgt/UNITY_BUILD_MODE.html#prop_tgt:UNITY_BUILD_MODE
+##
 set_property(SOURCE data.c
   PROPERTY
     SKIP_UNITY_BUILD_INCLUSION ON)

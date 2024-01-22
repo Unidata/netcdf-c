@@ -24,6 +24,15 @@ SET(ncpathcvt_FILES ncpathcvt.c ${XGETOPTSRC})
 SET(ncfilteravail_FILES ncfilteravail.c ${XGETOPTSRC})
 SET(nchdf5version_FILES nchdf5version.c)
  
+## 
+# Turn off inclusion of particular files when using the cmake-native
+# option to turn on Unity Builds.  
+#
+# For more information, see:
+#  * https://github.com/Unidata/netcdf-c/pull/2839/
+#  * https://cmake.org/cmake/help/latest/prop_tgt/UNITY_BUILD.html
+#  * https://cmake.org/cmake/help/latest/prop_tgt/UNITY_BUILD_MODE.html#prop_tgt:UNITY_BUILD_MODE
+##
 set_property(SOURCE dumplib.c
   PROPERTY
     SKIP_UNITY_BUILD_INCLUSION ON)
