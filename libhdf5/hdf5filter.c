@@ -13,6 +13,7 @@
  */
 
 #include "config.h"
+#include <stddef.h>
 #include <stdlib.h>
 #include "hdf5internal.h"
 #include "hdf5debug.h"
@@ -335,7 +336,7 @@ fprintf(stderr,"\tid=%s\n",id);
 int
 NC4_hdf5_filter_lookup(NC_VAR_INFO_T* var, unsigned int id, struct NC_HDF5_Filter** specp)
 {
-    int i;
+    size_t i;
     NClist* flist = (NClist*)var->filters;
     
     if(flist == NULL) {
@@ -520,7 +521,7 @@ NC4_hdf5_inq_var_filter_ids(int ncid, int varid, size_t* nfiltersp, unsigned int
 
     nfilters = nclistlength(flist);
     if(nfilters > 0 && ids != NULL) {
-	int k;
+	size_t k;
 	for(k=0;k<nfilters;k++) {
 	    struct NC_HDF5_Filter* f = (struct NC_HDF5_Filter*)nclistget(flist,k);
 	    ids[k] = f->filterid;
@@ -569,7 +570,8 @@ done:
 int
 NC4_hdf5_find_missing_filter(NC_VAR_INFO_T* var, unsigned int* idp)
 {
-    int i,stat = NC_NOERR;
+    size_t i;
+    int stat = NC_NOERR;
     NClist* flist = (NClist*)var->filters;
     int id = 0;
     

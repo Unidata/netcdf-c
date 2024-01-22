@@ -14,6 +14,7 @@
  */
 
 #include "zincludes.h"
+#include <stddef.h>
 
 /**
  * @internal Determine if two types are equal.
@@ -69,11 +70,11 @@ NCZ_inq_type_equal(int ncid1, nc_type typeid1, int ncid2,
     /* Not atomic types - so find type1 and type2 information. */
     if ((retval = nc4_find_nc4_grp(ncid1, &grpone)))
         return retval;
-    if (!(type1 = nclistget(grpone->nc4_info->alltypes, typeid1)))
+    if (!(type1 = nclistget(grpone->nc4_info->alltypes, (size_t)typeid1)))
         return NC_EBADTYPE;
     if ((retval = nc4_find_nc4_grp(ncid2, &grptwo)))
         return retval;
-    if (!(type2 = nclistget(grptwo->nc4_info->alltypes, typeid2)))
+    if (!(type2 = nclistget(grptwo->nc4_info->alltypes, (size_t)typeid2)))
         return NC_EBADTYPE;
 
 #ifdef LOOK

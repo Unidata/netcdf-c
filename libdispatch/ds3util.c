@@ -52,7 +52,8 @@ if provided, otherwise us-east-1.
 int
 NC_s3urlrebuild(NCURI* url, NCS3INFO* s3, NCURI** newurlp)
 {
-    int i,stat = NC_NOERR;
+    size_t i;
+    int stat = NC_NOERR;
     NClist* hostsegments = NULL;
     NClist* pathsegments = NULL;
     NCbytes* buf = ncbytesnew();
