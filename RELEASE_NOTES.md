@@ -8,7 +8,7 @@ This file contains a high-level description of this package's evolution. Release
 ## 4.9.3 - TBD
 
 
-* Added infrastructure to allow for `CMAKE_UNITY_BUILD`, @jschueller.  See [Github #2839](https://github.com/Unidata/netcdf-c/pull/2839) for more information.
+* Added infrastructure to allow for `CMAKE_UNITY_BUILD`, (thanks \@jschueller).  See [Github #2839](https://github.com/Unidata/netcdf-c/pull/2839) for more information.
 * [cmake] Move dependency management out of the root-level `CMakeLists.txt` into two different files in the `cmake/` folder, `dependencies.cmake` and `netcdf_functions_macros.cmake`. See [Github #2838](https://github.com/Unidata/netcdf-c/pull/2838/) for more information.
 * Obviate a number of irrelevant warnings. See [Github #2781](https://github.com/Unidata/netcdf-c/pull/2781).
 * Improve the speed and data quantity for DAP4 queries. See [Github #2765](https://github.com/Unidata/netcdf-c/pull/2765).
