@@ -323,6 +323,7 @@ done:
 static int
 searchR(NCZMAP* map, int depth, const char* prefix0, NClist* objects)
 {
+
     int stat = NC_NOERR;
     NClist* matches = nclistnew();
     char prefix[4096]; /* only ok because we know testdata */
@@ -361,6 +362,7 @@ done:
 static int
 search(void)
 {
+
     int stat = NC_NOERR;
     NCZMAP* map = NULL;
     NClist* objects = nclistnew();

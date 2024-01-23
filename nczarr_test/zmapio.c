@@ -3,6 +3,7 @@
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 
+#include <stddef.h>
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -252,6 +253,7 @@ implfor(const char* path)
     NCURI* uri = NULL;
     const char* mode = NULL;
     NClist* segments = nclistnew();
+
     NCZM_IMPL impl = NCZM_UNDEF;
 
     ncuriparse(path,&uri);
@@ -321,6 +323,7 @@ objdump(void)
     char* obj = NULL;
     char* content = NULL;
 
+
     if((stat=nczmap_open(dumpoptions.impl, dumpoptions.infile, NC_NOCLOBBER, 0, NULL, &map)))
         goto done;
 
@@ -328,8 +331,10 @@ objdump(void)
     if((stat = breadthfirst(map,"/",stack))) goto done;
 
     if(dumpoptions.debug) {
+
         fprintf(stderr,"stack:\n");
         for(size_t i=0;i<nclistlength(stack);i++)
+
             fprintf(stderr,"[%zu] %s\n",i,(char*)nclistget(stack,i));
     }    
     for(size_t depth=0;depth < nclistlength(stack);depth++) {

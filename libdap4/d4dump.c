@@ -3,6 +3,7 @@
 */
 
 #include "d4includes.h"
+#include <stddef.h>
 
 /*
 Provide a simple dump of binary data
@@ -87,7 +88,7 @@ NCD4_tagdump(size_t size, const void* data0, int swap, const char* tag)
 void
 NCD4_dumpvars(NCD4node* group)
 {
-    int i;
+    size_t i;
     fprintf(stderr,"%s.vars:\n",group->name);
     for(i=0;i<nclistlength(group->vars);i++) {
 	NCD4node* var = (NCD4node*)nclistget(group->vars,i);

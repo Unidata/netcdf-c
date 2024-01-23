@@ -6,6 +6,7 @@
 #include "d4includes.h"
 #include <stdarg.h>
 #include <assert.h>
+#include <stddef.h>
 #include "d4includes.h"
 #include "d4odom.h"
 #include "nccrc.h"
@@ -58,7 +59,7 @@ int
 NCD4_parcelvars(NCD4meta* meta, NCD4response* resp)
 {
     int ret = NC_NOERR;
-    int i;
+    size_t i;
     NClist* toplevel = NULL;
     NCD4node* root = meta->root;
     NCD4offset* offset = NULL;
@@ -88,7 +89,7 @@ int
 NCD4_processdata(NCD4meta* meta, NCD4response* resp)
 {
     int ret = NC_NOERR;
-    int i;
+    size_t i;
     NClist* toplevel = NULL;
     NCD4node* root = meta->root;
     NCD4offset* offset = NULL;
@@ -203,7 +204,8 @@ done:
 static int
 fillstruct(NCD4meta* meta, NCD4node* type, NCD4offset* offset, void** dstp, NClist* blobs)
 {
-    int i,ret = NC_NOERR;
+    size_t i;
+    int ret = NC_NOERR;
     void* dst = *dstp;
  
 #ifdef CLEARSTRUCT
@@ -370,7 +372,7 @@ int
 NCD4_getToplevelVars(NCD4meta* meta, NCD4node* group, NClist* toplevel)
 {
     int ret = NC_NOERR;
-    int i;
+    size_t i;
 
     if(group == NULL)
 	group = meta->root;
@@ -397,7 +399,8 @@ int
 NCD4_inferChecksums(NCD4meta* meta, NCD4response* resp)
 {
     int ret = NC_NOERR;
-    int i, attrfound;
+    size_t i;
+    int attrfound;
     NClist* toplevel = NULL;
  
     /* Get the toplevel vars */
@@ -407,7 +410,7 @@ NCD4_inferChecksums(NCD4meta* meta, NCD4response* resp)
     /* First, look thru the DMR to see if there is a checksum attribute */
     attrfound = 0;
     for(i=0;i<nclistlength(toplevel);i++) {
-	int a;
+	size_t a;
         NCD4node* node = (NCD4node*)nclistget(toplevel,i);
 	for(a=0;a<nclistlength(node->attributes);a++) {	
             NCD4node* attr = (NCD4node*)nclistget(node->attributes,a);
