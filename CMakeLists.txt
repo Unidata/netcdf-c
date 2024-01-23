@@ -1171,7 +1171,6 @@ IF(Bz2_FOUND)
   set_std_filter(Bz2)
 ELSEIF(BZIP2_FOUND)
   set_std_filter(BZIP2)
-ENDIF()
 ELSE()
   # The reason we use a local version is to support a more comples test case
   MESSAGE("libbz2 not found using built-in version")
