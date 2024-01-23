@@ -9,6 +9,7 @@
 #include "dapdump.h"
 #include "ncd2dispatch.h"
 #include "ocx.h"
+#include <stddef.h>
 
 #define NEWVARM
 
@@ -95,7 +96,7 @@ nc3d_getvarx(int ncid, int varid,
 {
     NCerror ncstat = NC_NOERR;
     OCerror ocstat = OC_NOERR;
-    int i;
+    size_t i;
     NC* drno;
     NC* substrate;
     NCDAPCOMMON* dapcomm;
@@ -426,7 +427,7 @@ fail:
 static NCerror
 removepseudodims(DCEprojection* proj)
 {
-    int i;
+    size_t i;
 #ifdef DEBUG1
 fprintf(stderr,"removesequencedims.before: %s\n",dumpprojection(proj));
 #endif
@@ -935,7 +936,7 @@ extractstring(
 {
     NCerror ncstat = NC_NOERR;
     OCerror ocstat = OC_NOERR;
-    int i;
+    size_t i;
     size_t rank0;
     NClist* strings = NULL;
     Dapodometer* odom = NULL;
@@ -1056,9 +1057,9 @@ It is assumed that both trees have been re-struct'ed if necessary.
 */
 
 static NCerror
-attachr(CDFnode* xnode, NClist* patternpath, int depth)
+attachr(CDFnode* xnode, NClist* patternpath, size_t depth)
 {
-    unsigned int i,plen,lastnode,gridable;
+    size_t i,plen,lastnode,gridable;
     NCerror ncstat = NC_NOERR;
     CDFnode* patternpathnode;
     CDFnode* patternpathnext;
@@ -1129,7 +1130,7 @@ attachsubsetr(CDFnode* target, CDFnode* pattern)
 {
     unsigned int i;
     NCerror ncstat = NC_NOERR;
-    int fieldindex;
+    size_t fieldindex;
 
 #ifdef DEBUG2
 fprintf(stderr,"attachsubsetr: attach: target=%s pattern=%s\n",

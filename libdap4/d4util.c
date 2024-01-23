@@ -4,6 +4,7 @@
  *********************************************************************/
 
 #include "d4includes.h"
+#include <stddef.h>
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif
@@ -92,7 +93,7 @@ NCD4_typesize(nc_type tid)
 d4size_t
 NCD4_dimproduct(NCD4node* node)
 {
-    int i;
+    size_t i;
     d4size_t product = 1;
     for(i=0;i<nclistlength(node->dims);i++) {
         NCD4node* dim = (NCD4node*)nclistget(node->dims,i);
@@ -156,7 +157,7 @@ create the last part of the fqn
 char*
 NCD4_makeName(NCD4node* elem, const char* sep)
 {
-    int i;
+    size_t i;
     size_t estimate = 0;
     NCD4node* n;
     NClist* path = nclistnew();

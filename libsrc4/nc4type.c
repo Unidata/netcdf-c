@@ -13,6 +13,7 @@
  */
 #include "nc4internal.h"
 #include "nc4dispatch.h"
+#include <stddef.h>
 
 #if 0
 #ifdef ENABLE_DAP4
@@ -187,7 +188,7 @@ NC4_inq_type(int ncid, nc_type typeid1, char *name, size_t *size)
         return retval;
 
     /* Find this type. */
-    if (!(type = nclistget(grp->nc4_info->alltypes, typeid1)))
+    if (!(type = nclistget(grp->nc4_info->alltypes, (size_t)typeid1)))
         return NC_EBADTYPE;
 
     if (name)
@@ -237,7 +238,7 @@ NC4_inq_user_type(int ncid, nc_type typeid1, char *name, size_t *size,
         return retval;
 
     /* Find this type. */
-    if (!(type = nclistget(grp->nc4_info->alltypes, typeid1)))
+    if (!(type = nclistget(grp->nc4_info->alltypes, (size_t)typeid1)))
         return NC_EBADTYPE;
 
     /* Count the number of fields. */
@@ -316,11 +317,11 @@ NC4_inq_compound_field(int ncid, nc_type typeid1, int fieldid, char *name,
         return retval;
 
     /* Find this type. */
-    if (!(type = nclistget(grp->nc4_info->alltypes, typeid1)))
+    if (!(type = nclistget(grp->nc4_info->alltypes, (size_t)typeid1)))
         return NC_EBADTYPE;
 
     /* Find the field. */
-    if (!(field = nclistget(type->u.c.field,fieldid)))
+    if (!(field = nclistget(type->u.c.field, (size_t)fieldid)))
         return NC_EBADFIELD;
 
     if (name)
@@ -360,7 +361,7 @@ NC4_inq_compound_fieldindex(int ncid, nc_type typeid1, const char *name, int *fi
     NC_FIELD_INFO_T *field;
     char norm_name[NC_MAX_NAME + 1];
     int retval;
-    int i;
+    size_t i;
 
     LOG((2, "nc_inq_compound_fieldindex: ncid 0x%x typeid %d name %s",
          ncid, typeid1, name));
@@ -422,7 +423,7 @@ NC4_inq_enum_ident(int ncid, nc_type xtype, long long value, char *identifier)
     NC_TYPE_INFO_T *type;
     NC_ENUM_MEMBER_INFO_T *enum_member;
     long long ll_val;
-    int i;
+    size_t i;
     int retval;
     int found;
 
@@ -433,7 +434,7 @@ NC4_inq_enum_ident(int ncid, nc_type xtype, long long value, char *identifier)
         return retval;
 
     /* Find this type. */
-    if (!(type = nclistget(grp->nc4_info->alltypes, xtype)))
+    if (!(type = nclistget(grp->nc4_info->alltypes, (size_t)xtype)))
         return NC_EBADTYPE;
 
     /* Complain if they are confused about the type. */
@@ -525,7 +526,7 @@ NC4_inq_enum_member(int ncid, nc_type typeid1, int idx, char *identifier,
         return retval;
 
     /* Find this type. */
-    if (!(type = nclistget(grp->nc4_info->alltypes, typeid1)))
+    if (!(type = nclistget(grp->nc4_info->alltypes, (size_t)typeid1)))
         return NC_EBADTYPE;
 
     /* Complain if they are confused about the type. */
@@ -533,7 +534,7 @@ NC4_inq_enum_member(int ncid, nc_type typeid1, int idx, char *identifier,
         return NC_EBADTYPE;
 
     /* Move to the desired enum member in the list. */
-    if (!(enum_member = nclistget(type->u.e.enum_member, idx)))
+    if (!(enum_member = nclistget(type->u.e.enum_member, (size_t)idx)))
         return NC_EINVAL;
 
     /* Give the people what they want. */
