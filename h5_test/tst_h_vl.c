@@ -7,6 +7,7 @@
 
 #include "h5_err_macros.h"
 #include <hdf5.h>
+#include <stddef.h>
 
 #define FILE_NAME "tst_h_vl.h5"
 #define DIM1_LEN 3
@@ -23,7 +24,7 @@ main()
       hsize_t dims[1] = {DIM1_LEN};
       hvl_t data[DIM1_LEN], data_in[DIM1_LEN];
       int *phoney;
-      int i, j;
+      size_t i, j;
       size_t size;
       
       /* Create some phoney data, an array of struct s1, which holds a

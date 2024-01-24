@@ -11,6 +11,7 @@
  */
 
 #include "zincludes.h"
+#include <stddef.h>
 
 #undef DEBUG
 
@@ -125,7 +126,7 @@ NCZ_grpkey(const NC_GRP_INFO_T* grp, char** pathp)
     NClist* segments = nclistnew();
     NCbytes* path = NULL;
     NC_GRP_INFO_T* parent = NULL;
-    int i;
+    size_t i;
 
     nclistinsert(segments,0,(void*)grp);
     parent = grp->parent;
@@ -475,7 +476,8 @@ Note: need to test with "/", "", and with and without trailing "/".
 int
 NCZ_subobjects(NCZMAP* map, const char* prefix, const char* tag, char dimsep, NClist* objlist)
 {
-    int i,stat=NC_NOERR;
+    size_t i;
+    int stat = NC_NOERR;
     NClist* matches = nclistnew();
     NCbytes* path = ncbytesnew();
 
@@ -801,8 +803,8 @@ NCZ_comma_parse(const char* s, NClist* list)
 	endp = strchr(p,',');
 	if(endp == NULL) endp = p + strlen(p);
 	slen = (endp - p);
-	if((s = malloc(slen+1)) == NULL) {stat = NC_ENOMEM; goto done;}
-	memcpy(s,p,slen);
+	if((s = malloc((size_t)slen+1)) == NULL) {stat = NC_ENOMEM; goto done;}
+	memcpy(s,p,(size_t)slen);
 	s[slen] = '\0';
 	if(nclistmatch(list,s,0)) {
 	    nullfree(s); /* duplicate */
@@ -1013,9 +1015,9 @@ NCZ_fixed2char(const void* fixed, char** charp, size_t count, int maxstrlen)
 	if(p[0] == '\0') {
 	    sp = NULL;
 	} else {
-	    if((sp = (unsigned char*)malloc(maxstrlen+1))==NULL) /* ensure null terminated */
+	    if((sp = (unsigned char*)malloc((size_t)maxstrlen+1))==NULL) /* ensure null terminated */
 	        return NC_ENOMEM; 
-	    memcpy(sp,p,maxstrlen);
+	    memcpy(sp,p,(size_t)maxstrlen);
 	    sp[maxstrlen] = '\0';
 	}
 	charp[i] = (char*)sp;

@@ -35,10 +35,10 @@
 #define DEGREES_NORTH "degrees_north"
 
 /* These are used to construct some example data. */
-#define SAMPLE_PRESSURE 900
-#define SAMPLE_TEMP 9.0
-#define START_LAT 25.0
-#define START_LON -125.0
+#define SAMPLE_PRESSURE 900.0f
+#define SAMPLE_TEMP 9.0f
+#define START_LAT 25.0f
+#define START_LON -125.0f
 
 /* Handle errors by printing an error message and exiting with a
  * non-zero status. */
@@ -78,15 +78,15 @@ main()
     * would have some real data to write, for example, model
     * output. */
    for (lat = 0; lat < NLAT; lat++)
-      lats[lat] = START_LAT + 5.*lat;
+      lats[lat] = START_LAT + 5.f*(float)lat;
    for (lon = 0; lon < NLON; lon++)
-      lons[lon] = START_LON + 5.*lon;
+      lons[lon] = START_LON + 5.f*(float)lon;
 
    for (lat = 0; lat < NLAT; lat++)
       for (lon = 0; lon < NLON; lon++)
       {
-	 pres_out[lat][lon] = SAMPLE_PRESSURE + (lon * NLAT + lat);
-	 temp_out[lat][lon] = SAMPLE_TEMP + .25 * (lon * NLAT + lat);
+	 pres_out[lat][lon] = SAMPLE_PRESSURE + (float)(lon * NLAT + lat);
+	 temp_out[lat][lon] = SAMPLE_TEMP + .25f * (float)(lon * NLAT + lat);
       }
 
    /* Create the file. */

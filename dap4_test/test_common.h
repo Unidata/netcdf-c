@@ -21,6 +21,7 @@ typedef int TDMR;
 static NCbytes* input = NULL;
 static NCbytes* output = NULL;
 static NCD4meta* metadata = NULL;
+static NCD4response* resp = NULL;
 static char* infile = NULL;
 static char* outfile = NULL;
 static int ncid = 0;
@@ -85,16 +86,21 @@ setup(int tdmr, int argc, char** argv)
     if(translatenc4)
 	controller->controls.translation = NCD4_TRANSNC4;
     NCD4_applyclientfragmentcontrols(controller);
-    if((metadata=NCD4_newmeta(controller))==NULL)
-	fail(NC_ENOMEM);
-    metadata->mode = mode;
-    NCD4_attachraw(metadata, ncbyteslength(input),ncbytescontents(input));
 
-    if((ret=NCD4_dechunk(metadata))) /* ok for mode == DMR or mode == DAP */
+    if((ret=NCD4_newMeta(controller,&metadata)))
+	fail(ret);
+
+    if((ret=NCD4_newResponse(controller,&resp)))
+	fail(ret);
+    resp->raw.size = ncbyteslength(input);
+    resp->raw.memory = ncbytescontents(input);
+    resp->mode = mode;
+
+    if((ret=NCD4_dechunk(resp))) /* ok for mode == DMR or mode == DAP */
 	fail(ret);
 #ifdef DEBUG
     {
-	int swap = (metadata->serial.hostbigendian != metadata->serial.remotebigendian);
+	int swap = (controller->platform.hostlittleendian != resp->remotelittleendian);
 	void* d = metadata->serial.dap;
 	size_t sz = metadata->serial.dapsize;
 	fprintf(stderr,"====================\n");

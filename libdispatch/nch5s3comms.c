@@ -96,6 +96,7 @@
 
 /*****************/
 
+#include "ncs3sdk.h"
 #include "nch5s3comms.h" /* S3 Communications */
 
 /****************/
@@ -1063,7 +1064,7 @@ done:
  *----------------------------------------------------------------------------
  */
 s3r_t *
-NCH5_s3comms_s3r_open(const char* root, const char *region, const char *access_id, const char* access_key)
+NCH5_s3comms_s3r_open(const char* root, NCS3SVC svc, const char *region, const char *access_id, const char* access_key)
 {
     int ret_value = SUCCEED;
     size_t         tmplen    = 0;
@@ -1092,10 +1093,15 @@ NCH5_s3comms_s3r_open(const char* root, const char *region, const char *access_i
      * RECORD THE ROOT PATH
      *************************************/
 
-    /* Verify that the region is a substring of root */
-    if(region != NULL && region[0] != '\0') {
-	if(strstr(root,region) == NULL)
-	    HGOTO_ERROR(H5E_ARGS, NC_EINVAL, NULL, "region not present in root path.");
+    switch (svc) {
+    case NCS3:
+        /* Verify that the region is a substring of root */
+        if(region != NULL && region[0] != '\0') {
+	    if(strstr(root,region) == NULL)
+	        HGOTO_ERROR(H5E_ARGS, NC_EINVAL, NULL, "region not present in root path.");
+        }
+	break;
+    default: break;
     }
     handle->rootpath = nulldup(root);
 
@@ -1146,7 +1152,7 @@ NCH5_s3comms_s3r_open(const char* root, const char *region, const char *access_i
         /* Compute the signing key */
         if (SUCCEED != NCH5_s3comms_signing_key(&signing_key, access_key, region, iso8601now))
             HGOTO_ERROR(H5E_ARGS, NC_EINVAL, NULL, "problem in NCH5_s3comms_s3comms_signing_key.");
-        if (nulllen(signing_key)==0)
+        if (signing_key == NULL)
             HGOTO_ERROR(H5E_ARGS, NC_EAUTH, NULL, "signing key cannot be null.");
 	handle->signing_key = signing_key;
 	signing_key = NULL;
@@ -2027,7 +2033,7 @@ NCH5_s3comms_signing_key(unsigned char **mdp, const char *secret, const char *re
     if ((size_t)ret != (AWS4_secret_len - 1))
         HGOTO_ERRORVA(H5E_ARGS, NC_EINVAL, FAIL, "problem writing AWS4+secret `%s`", secret);
 
-    if((md = (unsigned char*)malloc(SHA256_DIGEST_LENGTH))==NULL)
+    if((md = (unsigned char*)calloc(1,SHA256_DIGEST_LENGTH))==NULL)
        HGOTO_ERROR(H5E_ARGS, NC_ENOMEM, NULL, "could not malloc space for signing key .");
 
     /* hash_func, key, len(key), msg, len(msg), digest_dest, digest_len_dest

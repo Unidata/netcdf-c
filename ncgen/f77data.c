@@ -35,26 +35,26 @@ f77_constant(Generator* generator, Symbol* sym, NCConstant* ci, Bytebuffer* code
 
     case NC_CHAR:
 	if(ci->value.charv == '\'') 
-	    sprintf(tmp,"'\\''");
+	    snprintf(tmp,sizeof(tmp),"'\\''");
 	else
-	    sprintf(tmp,"'%c'",ci->value.charv);
+	    snprintf(tmp,sizeof(tmp),"'%c'",ci->value.charv);
 	break;
     case NC_BYTE:
-	sprintf(tmp,"%hhd",ci->value.int8v);
+	snprintf(tmp,sizeof(tmp),"%hhd",ci->value.int8v);
 	break;
     case NC_SHORT:
-	sprintf(tmp,"%hd",ci->value.int16v);
+	snprintf(tmp,sizeof(tmp),"%hd",ci->value.int16v);
 	break;
     case NC_INT:
-	sprintf(tmp,"%d",ci->value.int32v);
+	snprintf(tmp,sizeof(tmp),"%d",ci->value.int32v);
 	break;
     case NC_FLOAT:
-	sprintf(tmp,"%.8g",ci->value.floatv);
+	snprintf(tmp,sizeof(tmp),"%.8g",ci->value.floatv);
 	break;
     case NC_DOUBLE: { 
 	char* p = tmp;
 	/* FORTRAN requires e|E->D */
-	sprintf(tmp,"%.16g",ci->value.doublev);
+	snprintf(tmp,sizeof(tmp),"%.16g",ci->value.doublev);
 	while(*p) {if(*p == 'e' || *p == 'E') {*p = 'D';}; p++;}
 	} break;
     case NC_STRING:

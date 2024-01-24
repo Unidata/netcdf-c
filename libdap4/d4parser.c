@@ -6,6 +6,7 @@
 #include "d4includes.h"
 #include <stdarg.h>
 #include <assert.h>
+#include <stddef.h>
 #include "ncxml.h"
 
 /**
@@ -154,7 +155,7 @@ static int defineBytestringType(NCD4parser*);
 /* API */
 
 int
-NCD4_parse(NCD4meta* metadata)
+NCD4_parse(NCD4meta* metadata, NCD4response* resp, int dapparse)
 {
     int ret = NC_NOERR;
     NCD4parser* parser = NULL;
@@ -168,8 +169,10 @@ NCD4_parse(NCD4meta* metadata)
     /* Create and fill in the parser state */
     parser = (NCD4parser*)calloc(1,sizeof(NCD4parser));
     if(parser == NULL) {ret=NC_ENOMEM; goto done;}
+    parser->controller = metadata->controller;
     parser->metadata = metadata;
-    doc = ncxml_parse(parser->metadata->serial.dmr,strlen(parser->metadata->serial.dmr));
+    parser->response = resp;
+    doc = ncxml_parse(parser->response->serial.dmr,strlen(parser->response->serial.dmr));
     if(doc == NULL) {ret=NC_ENOMEM; goto done;}
     dom = ncxml_root(doc);
     parser->types = nclistnew();
@@ -178,6 +181,7 @@ NCD4_parse(NCD4meta* metadata)
 #ifdef D4DEBUG
     parser->debuglevel = 1;
 #endif
+    parser->dapparse = dapparse;
 
     /*Walk the DOM tree to build the DAP4 node tree*/
     ret = traverse(parser,dom);
@@ -214,9 +218,9 @@ traverse(NCD4parser* parser, ncxml_t dom)
 	ret=parseError(parser,dom);
         /* Report the error */
 	fprintf(stderr,"DAP4 Error: http-code=%d message=\"%s\" context=\"%s\"\n",
-		parser->metadata->error.httpcode,
-		parser->metadata->error.message,
-		parser->metadata->error.context);
+		parser->response->error.httpcode,
+		parser->response->error.message,
+		parser->response->error.context);
 	fflush(stderr);
 	ret=NC_EDMR;
 	goto done;
@@ -225,7 +229,8 @@ traverse(NCD4parser* parser, ncxml_t dom)
         if((ret=makeNode(parser,NULL,NULL,NCD4_GROUP,NC_NULL,&parser->metadata->root))) goto done;
         parser->metadata->root->group.isdataset = 1;
         parser->metadata->root->meta.id = parser->metadata->ncid;
-        parser->metadata->groupbyid = nclistnew();
+        if(parser->metadata->groupbyid == NULL)
+	    parser->metadata->groupbyid = nclistnew();
         SETNAME(parser->metadata->root,"/");
 	xattr = ncxml_attr(dom,"name");
 	if(xattr != NULL) parser->metadata->root->group.datasetname = xattr;
@@ -847,23 +852,23 @@ parseError(NCD4parser* parser, ncxml_t errxml)
     char* shttpcode = ncxml_attr(errxml,"httpcode");
     ncxml_t x;
     if(shttpcode == NULL) shttpcode = strdup("400");
-    if(sscanf(shttpcode,"%d",&parser->metadata->error.httpcode) != 1)
+    if(sscanf(shttpcode,"%d",&parser->response->error.httpcode) != 1)
         nclog(NCLOGERR,"Malformed <ERROR> response");
     nullfree(shttpcode);
     x=ncxml_child(errxml, "Message");
     if(x != NULL) {
 	char* txt = ncxml_text(x);
-	parser->metadata->error.message = (txt == NULL ? NULL : txt);
+	parser->response->error.message = (txt == NULL ? NULL : txt);
     }
     x = ncxml_child(errxml, "Context");
     if(x != NULL) {
 	const char* txt = ncxml_text(x);
-	parser->metadata->error.context = (txt == NULL ? NULL : strdup(txt));
+	parser->response->error.context = (txt == NULL ? NULL : strdup(txt));
     }
     x=ncxml_child(errxml, "OtherInformation");
     if(x != NULL) {
 	const char* txt = ncxml_text(x);
-	parser->metadata->error.otherinfo = (txt == NULL ? NULL : strdup(txt));
+	parser->response->error.otherinfo = (txt == NULL ? NULL : strdup(txt));
     }
     return THROW(NC_NOERR);
 }
@@ -874,7 +879,8 @@ Find or create an opaque type
 static NCD4node*
 getOpaque(NCD4parser* parser, ncxml_t varxml, NCD4node* group)
 {
-    int i, ret = NC_NOERR;
+    size_t i;
+    int ret = NC_NOERR;
     long long len;
     NCD4node* opaquetype = NULL;
     char* xattr;
@@ -1020,7 +1026,7 @@ done:
 NCD4node*
 NCD4_findAttr(NCD4node* container, const char* attrname)
 {
-    int i;
+    size_t i;
     /* Look directly under this xml for <Attribute> */
     for(i=0;i<nclistlength(container->attributes);i++) {
 	NCD4node* attr = (NCD4node*)nclistget(container->attributes,i);
@@ -1091,7 +1097,8 @@ static int
 lookupFQNList(NCD4parser* parser, NClist* fqn, NCD4sort sort, NCD4node** result)
 {
     int ret = NC_NOERR;
-    int i,nsteps;
+    size_t i;
+    int nsteps;
     NCD4node* current;
     char* name = NULL;
     NCD4node* node = NULL;
@@ -1135,7 +1142,7 @@ lookupFQNList(NCD4parser* parser, NClist* fqn, NCD4sort sort, NCD4node** result)
     assert (i < (nsteps - 1));
     i++; /* skip variable name */
     for(;;i++) {
-	int j;
+	size_t j;
 	name = (char*)nclistget(fqn,i);
 	assert(ISTYPE(current->sort) && ISCMPD(current->subsort));
 	for(node=NULL,j=0;j<nclistlength(current->vars);j++) {
@@ -1162,7 +1169,7 @@ notfound:
 static NCD4node*
 lookFor(NClist* elems, const char* name, NCD4sort sort)
 {
-    int n,i;
+    size_t n,i;
     if(elems == NULL || nclistlength(elems) == 0) return NULL;
     n = nclistlength(elems);
     for(i=0;i<n;i++) {
@@ -1176,7 +1183,7 @@ lookFor(NClist* elems, const char* name, NCD4sort sort)
 void
 NCD4_printElems(NCD4node* group)
 {
-    int n,i;
+    size_t n,i;
     NClist* elems;
     elems = group->group.elements;
     if(elems == NULL || nclistlength(elems) == 0) return;
@@ -1321,7 +1328,7 @@ makeNode(NCD4parser* parser, NCD4node* parent, ncxml_t xml, NCD4sort sort, nc_ty
     record(parser,node);
     if(nodep) *nodep = node;
 done:
-    return ret;
+    return THROW(ret);
 }
 
 static int
@@ -1642,7 +1649,7 @@ static int
 parseForwards(NCD4parser* parser, NCD4node* root)
 {
     int ret = NC_NOERR;
-    int i,j;
+    size_t i,j;
 
     /* process all vars */
     for(i=0;i<nclistlength(parser->vars);i++) {
@@ -1652,12 +1659,19 @@ parseForwards(NCD4parser* parser, NCD4node* root)
             const char* mapname = (const char*)nclistget(var->mapnames,j);
             /* Find the corresponding variable */
             NCD4node* mapref = lookupFQN(parser,mapname,NCD4_VAR);
-	    if(mapref == NULL)
+	    if(mapref != NULL)
+	        PUSH(var->maps,mapref);
+	    else if(!parser->dapparse) 
 	        FAIL(NC_ENOTVAR,"<Map> name does not refer to a variable: %s",mapname);
-	    PUSH(var->maps,mapref);
 	}
     }
     
 done:
     return THROW(ret);
+}
+
+void
+NCD4_setdebuglevel(NCD4parser* parser, int debuglevel)
+{
+    parser->debuglevel = debuglevel;
 }

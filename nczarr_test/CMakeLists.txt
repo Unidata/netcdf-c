@@ -9,6 +9,7 @@ SET(abs_top_srcdir ${CMAKE_CURRENT_SOURCE_DIR})
 
 remove_definitions(-DDLL_EXPORT)
 
+
 # Create nczarr tests from nc_test4 tests
 macro(NCZARR_SH_TEST basename src)
 FILE(READ ${CMAKE_CURRENT_SOURCE_DIR}/../${src}/tst_${basename}.sh SHSOURCE)
@@ -55,36 +56,67 @@ ENDIF()
 
 IF(ENABLE_TESTS)
 
-  SET(COMMONSRC ut_util.c ut_test.c ${XGETOPTSRC})
-  
-  SET(TSTCOMMONSRC test_utils.c test_utils.h ${XGETOPTSRC})
+  add_library(ut_util STATIC ut_util.c ut_test.c ut_includes.h ut_test.h ${XGETOPTSRC})
+  IF(ENABLE_DLL)
+    target_compile_definitions(ut_util PUBLIC -DDLL_EXPORT -DDLL_NETCDF)
+  ENDIF(ENABLE_DLL)
+  target_include_directories(ut_util PUBLIC ../libnczarr ../plugins ${CMAKE_CURRENT_LIST_DIR})
+  target_link_libraries(ut_util PUBLIC netcdf ${ALL_TLL_LIBS})
 
-  INCLUDE_DIRECTORIES(../libnczarr ../plugins ${CMAKE_SOURCE_DIR}/nczarr_test)
+  add_library(test_utils STATIC test_utils.c test_utils.h ${XGETOPTSRC})
+  IF(ENABLE_DLL)
+    target_compile_definitions(test_utils PUBLIC -DDLL_EXPORT -DDLL_NETCDF)
+  ENDIF(ENABLE_DLL)
+  target_include_directories(test_utils PUBLIC ../libnczarr ../plugins ${CMAKE_CURRENT_LIST_DIR})
+  target_link_libraries(test_utils PUBLIC netcdf ${ALL_TLL_LIBS})
+
+  set_target_properties(ut_util test_utils PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}
+  )
+
+  macro(build_bin_test_with_util_lib F UTIL_LIB)
+    build_bin_test(${F})
+    IF(ENABLE_DLL)
+      target_compile_definitions(${F} PUBLIC -DDLL_NETCDF)
+    ENDIF(ENABLE_DLL)
+    target_link_libraries(${F} ${UTIL_LIB} ${ALL_TLL_LIBS})
+  endmacro()
+
+  macro(add_bin_test_with_util_lib PREFIX F UTIL_LIB)
+    add_bin_test(${PREFIX} ${F})
+    IF(ENABLE_DLL)
+      target_compile_definitions(${PREFIX}_${F} PUBLIC -DDLL_NETCDF)
+    ENDIF(ENABLE_DLL)
+    target_link_libraries(${PREFIX}_${F} ${UTIL_LIB} ${ALL_TLL_LIBS})
+
+  endmacro()
 
   # Base tests
   # The tests are set up as a combination of shell scripts and executables that
   # must be run in a particular order. It is painful but will use macros to help
   # keep it from being too bad.
 
-  BUILD_BIN_TEST(ut_map ${COMMONSRC})
-  BUILD_BIN_TEST(ut_mapapi ${COMMONSRC})
-  BUILD_BIN_TEST(ut_json ${COMMONSRC})
+  build_bin_test_with_util_lib(ut_map ut_util)
+  build_bin_test_with_util_lib(ut_mapapi ut_util)
+  build_bin_test_with_util_lib(ut_json ut_util)
 
-  BUILD_BIN_TEST(test_fillonlyz ${TSTCOMMONSRC})
-  BUILD_BIN_TEST(test_quantize ${TSTCOMMONSRC})
-  BUILD_BIN_TEST(test_notzarr ${TSTCOMMONSRC})
+  build_bin_test_with_util_lib(test_fillonlyz test_utils)
+  build_bin_test_with_util_lib(test_quantize test_utils)
+  build_bin_test_with_util_lib(test_notzarr test_utils)
 
 #  ADD_BIN_TEST(nczarr_test test_endians ${TSTCOMMONSRC})
 
   # Unlimited Tests
   IF(USE_HDF5)
-  ADD_BIN_TEST(nczarr_test test_unlim_vars ${TSTCOMMONSRC})
-  ADD_BIN_TEST(nczarr_test test_put_vars_two_unlim_dim ${TSTCOMMONSRC})
-  BUILD_BIN_TEST(test_zchunks ${COMMONSRC})
-  BUILD_BIN_TEST(test_zchunks2 ${COMMONSRC})
-  BUILD_BIN_TEST(test_zchunks3 ${COMMONSRC})
-  BUILD_BIN_TEST(test_unlim_io ${TSTCOMMONSRC})
-  BUILD_BIN_TEST(test_chunking ${TSTCOMMONSRC})
+  add_bin_test_with_util_lib(nczarr_test test_unlim_vars test_utils)
+  add_bin_test_with_util_lib(nczarr_test test_put_vars_two_unlim_dim test_utils)
+  build_bin_test_with_util_lib(test_zchunks ut_util)
+  build_bin_test_with_util_lib(test_zchunks2 ut_util)
+  build_bin_test_with_util_lib(test_zchunks3 ut_util)
+  build_bin_test_with_util_lib(test_unlim_io test_utils)
+  build_bin_test_with_util_lib(test_chunking test_utils)
   ADD_SH_TEST(nczarr_test run_nccopyz)
   ADD_SH_TEST(nczarr_test run_unlim_io)
   ADD_SH_TEST(nczarr_test run_nccopy5)
@@ -99,11 +131,11 @@ IF(ENABLE_TESTS)
 
   # Helper programs for testing
   BUILD_BIN_TEST(zhex)
-  BUILD_BIN_TEST(zisjson ${COMMONSRC})
+  build_bin_test_with_util_lib(zisjson ut_util)
   TARGET_INCLUDE_DIRECTORIES(zisjson PUBLIC ../libnczarr)
-  BUILD_BIN_TEST(zs3parse ${COMMONSRC})
+  build_bin_test_with_util_lib(zs3parse ut_util)
   TARGET_INCLUDE_DIRECTORIES(zs3parse PUBLIC ../libnczarr)
-  BUILD_BIN_TEST(zmapio ${COMMONSRC})
+  build_bin_test_with_util_lib(zmapio ut_util)
 
   IF(ENABLE_S3 AND NOT WITH_S3_TESTING STREQUAL "NO")
   # Helper programs for testing
@@ -132,9 +164,7 @@ IF(ENABLE_TESTS)
   endif()
   
   if(ENABLE_NCDUMPCHUNKS)
-  SET(ncdumpchunks_SOURCE ncdumpchunks.c)
-  SET(ncdumpchunks_SOURCE ${ncdumpchunks_SOURCE} ${XGETOPTSRC})
-  BUILD_BIN_TEST(ncdumpchunks ${ncdumpchunks_SOURCE})
+    build_bin_test_with_util_lib(ncdumpchunks ut_util)
   endif()
 
   IF(BUILD_UTILITIES)
@@ -143,8 +173,8 @@ IF(ENABLE_TESTS)
     add_sh_test(nczarr_test run_ut_misc)
     add_sh_test(nczarr_test run_ncgen4)
     if(LARGE_FILE_TESTS)
-      BUILD_BIN_TEST(test_readcaching})
-      BUILD_BIN_TEST(test_writecaching})
+      BUILD_BIN_TEST(test_readcaching)
+      BUILD_BIN_TEST(test_writecaching)
       BUILD_BIN_TEST(test_chunkcases ${TSTCOMMONSRC})
       add_sh_test(nczarr_test run_cachetest)
       add_sh_test(nczarr_test run_chunkcases)
@@ -175,7 +205,7 @@ IF(ENABLE_TESTS)
 	  build_bin_test(test_nczfilter)
   	  build_bin_test(test_filter_vlen)
 	  build_bin_test(testfilter)
-	  build_bin_test(testfilter_misc)
+	  build_bin_test_with_util_lib(testfilter_misc test_utils)
 	  build_bin_test(testfilter_multi)
 	  build_bin_test(testfilter_order)
 	  build_bin_test(testfilter_repeat)
@@ -193,6 +223,8 @@ IF(ENABLE_TESTS)
 
   if(ENABLE_NCZARR_ZIP)
       add_sh_test(nczarr_test run_newformat)
+      # Test various corrupted files
+      ADD_SH_TEST(nczarr_test run_corrupt.sh)
   endif()
 
   IF(FALSE) # Obsolete tests

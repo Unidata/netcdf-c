@@ -24,6 +24,7 @@
 #include "ncdispatch.h" /* from libdispatch */
 #include "ncutf8.h"
 #include <stdarg.h>
+#include <stddef.h>
 #include "ncrc.h"
 
 /** @internal Number of reserved attributes. These attributes are
@@ -507,7 +508,7 @@ nc4_find_dim(NC_GRP_INFO_T *grp, int dimid, NC_DIM_INFO_T **dim,
     LOG((4, "%s: dimid %d", __func__, dimid));
 
     /* Find the dim info. */
-    if (!((*dim) = nclistget(grp->nc4_info->alldims, dimid)))
+    if (!((*dim) = nclistget(grp->nc4_info->alldims, (size_t)dimid)))
         return NC_EBADDIM;
 
     /* Give the caller the group the dimension is in. */
@@ -597,7 +598,7 @@ nc4_find_type(const NC_FILE_INFO_T *h5, nc_type typeid, NC_TYPE_INFO_T **type)
         return NC_NOERR;
 
     /* Find the type. */
-    if (!(*type = nclistget(h5->alltypes,typeid)))
+    if (!(*type = nclistget(h5->alltypes, (size_t)typeid)))
         return NC_EBADTYPID;
 
     return NC_NOERR;
@@ -788,14 +789,14 @@ nc4_var_set_ndims(NC_VAR_INFO_T *var, int ndims)
     /* Allocate space for dimension information. */
     if (ndims)
     {
-        if (!(var->dim = calloc(ndims, sizeof(NC_DIM_INFO_T *))))
+      if (!(var->dim = calloc((size_t)ndims, sizeof(NC_DIM_INFO_T *))))
             return NC_ENOMEM;
-        if (!(var->dimids = calloc(ndims, sizeof(int))))
+      if (!(var->dimids = calloc((size_t)ndims, sizeof(int))))
             return NC_ENOMEM;
 
         /* Initialize dimids to illegal values (-1). See the comment
            in nc4_rec_match_dimscales(). */
-        memset(var->dimids, -1, ndims * sizeof(int));
+      memset(var->dimids, -1, (size_t)ndims * sizeof(int));
     }
 
     return NC_NOERR;
@@ -1159,7 +1160,7 @@ nc4_field_list_add(NC_TYPE_INFO_T *parent, const char *name,
     if (ndims)
     {
         int i;
-        if (!(field->dim_size = malloc(ndims * sizeof(int))))
+        if (!(field->dim_size = malloc((size_t)ndims * sizeof(int))))
         {
             free(field->hdr.name);
             free(field);
@@ -1252,7 +1253,7 @@ field_free(NC_FIELD_INFO_T *field)
 int
 nc4_type_free(NC_TYPE_INFO_T *type)
 {
-    int i;
+    size_t i;
 
     assert(type && type->rc && type->hdr.name);
 
@@ -1742,7 +1743,7 @@ nc4_init_logging(void)
         }
 
         /* Create a filename with the rank in it. */
-        sprintf(log_filename, "nc4_log_%d.log", my_rank);
+        snprintf(log_filename, sizeof(log_filename), "nc4_log_%d.log", my_rank);
 
         /* Open a file for this rank to log messages. */
         if (!(LOG_FILE = fopen(log_filename, "w")))
@@ -1875,7 +1876,7 @@ rec_print_metadata(NC_GRP_INFO_T *grp, int tab_count)
             strcpy(dims_string, "");
             for (d = 0; d < var->ndims; d++)
             {
-                sprintf(temp_string, " %d", var->dimids[d]);
+                snprintf(temp_string, sizeof(temp_string), " %d", var->dimids[d]);
                 strcat(dims_string, temp_string);
             }
         }

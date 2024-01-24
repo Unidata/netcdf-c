@@ -67,7 +67,7 @@ main()
       /* Create the variables. */
       for (v = 0; v < NUM_DATASETS; v++)
       {
-	 sprintf(var_name, "var_%d", v);
+	 snprintf(var_name, sizeof(var_name), "var_%d", v);
 /*	 printf("creating var %s\n", var_name);*/
 	 if ((datasetid[v] = H5Dcreate1(grpid, var_name, H5T_NATIVE_INT,
 				    spaceid, plistid)) < 0) ERR_RET;

@@ -10,6 +10,7 @@
 */
 
 #include "config.h"
+#include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -146,7 +147,7 @@ NC4print(NCbytes* buf, int ncid)
 static void
 freeNC4Printer(NC4printer* out)
 {
-    int i;
+    size_t i;
 
     if(out == NULL) return;
 
@@ -612,17 +613,17 @@ getNumericValue(union NUMVALUE numvalue, nc_type base)
 static NCID*
 findType(NC4printer* out, nc_type t)
 {
-    int len = nclistlength(out->types);
+    size_t len = nclistlength(out->types);
     if(t >= len)
         abort();
-    return (NCID*)nclistget(out->types,t);
+    return (NCID*)nclistget(out->types, (size_t)t);
 }
 
 static NCID*
 findDim(NC4printer* out, int dimid)
 {
     if(nclistlength(out->dims) <= dimid) abort();
-    return (NCID*)nclistget(out->dims,dimid);
+    return (NCID*)nclistget(out->dims, (size_t)dimid);
 }
 
 static void
@@ -657,18 +658,18 @@ record(NC4printer* out, NCID* node)
     switch (node->sort) {
     case DIM:
         if(nclistlength(out->dims) <= node->id) {
-            nclistsetalloc(out->dims,node->id+1);
-            nclistsetlength(out->dims,node->id+1);
+            nclistsetalloc(out->dims, (size_t)node->id+1);
+            nclistsetlength(out->dims, (size_t)node->id+1);
         }
-        nclistset(out->dims,node->id,node);
+        nclistset(out->dims, (size_t)node->id, node);
         break;
     case ATOMTYPE:
     case USERTYPE:
         if(nclistlength(out->types) <= node->id) {
-            nclistsetalloc(out->types,node->id+1);
-            nclistsetlength(out->types,node->id+1);
+            nclistsetalloc(out->types, (size_t)node->id+1);
+            nclistsetlength(out->types, (size_t)node->id+1);
         }
-        nclistset(out->types,node->id,node);
+        nclistset(out->types, (size_t)node->id, node);
         break;
     default: break;
     }

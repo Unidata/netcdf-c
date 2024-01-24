@@ -4,6 +4,7 @@
  *********************************************************************/
 #include "config.h"
 #include <stdarg.h>
+#include <stddef.h>
 #include <stdio.h>
 
 #include "d4includes.h"
@@ -96,8 +97,9 @@ bv inserting the data into the substrate and then writing it out.
 int
 NCD4_debugcopy(NCD4INFO* info)
 {
-    int i,ret=NC_NOERR;
-    NCD4meta* meta = info->substrate.metadata;
+    size_t i;
+    int ret = NC_NOERR;
+    NCD4meta* meta = info->dmrmetadata;
     NClist* topvars = nclistnew();
     NC* ncp = info->controller;
     void* memory = NULL;
@@ -134,7 +136,7 @@ NCD4_debugcopy(NCD4INFO* info)
 	*/
 	{	
 	    size_t edges[NC_MAX_VAR_DIMS];
-	    int d;
+	    size_t d;
 	    for(d=0;d<nclistlength(var->dims);d++) {
 		NCD4node* dim = (NCD4node*)nclistget(var->dims,d);
 		edges[d] = (size_t)dim->dim.size;

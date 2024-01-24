@@ -22,6 +22,7 @@
 #include "hdf5err.h" /* For BAIL2 */
 #include "hdf5debug.h"
 #include <math.h>
+#include <stddef.h>
 
 #ifdef HAVE_INTTYPES_H
 #define __STDC_FORMAT_MACROS
@@ -702,13 +703,13 @@ write_quantize_att(NC_VAR_INFO_T *var)
     switch (var->quantize_mode)
     {
 	case NC_QUANTIZE_BITGROOM:
-	    sprintf(att_name, "%s", NC_QUANTIZE_BITGROOM_ATT_NAME);
+	    snprintf(att_name, sizeof(att_name), "%s", NC_QUANTIZE_BITGROOM_ATT_NAME);
 	    break;
 	case NC_QUANTIZE_GRANULARBR:
-	    sprintf(att_name, "%s", NC_QUANTIZE_GRANULARBR_ATT_NAME);
+	    snprintf(att_name, sizeof(att_name), "%s", NC_QUANTIZE_GRANULARBR_ATT_NAME);
 	    break;
 	case NC_QUANTIZE_BITROUND:
-	    sprintf(att_name, "%s", NC_QUANTIZE_BITROUND_ATT_NAME);
+	    snprintf(att_name, sizeof(att_name), "%s", NC_QUANTIZE_BITROUND_ATT_NAME);
 	   break;
         default:
 	    return NC_EINVAL;
@@ -886,7 +887,7 @@ var_create_dataset(NC_GRP_INFO_T *grp, NC_VAR_INFO_T *var, nc_bool_t write_dimid
      * nc_def_var_filter(). If the user
      * has specified a filter, it will be applied here. */
     if(var->filters != NULL) {
-	int j;
+	size_t j;
 	NClist* filters = (NClist*)var->filters;
 	for(j=0;j<nclistlength(filters);j++) {
 	    struct NC_HDF5_Filter* fi = (struct NC_HDF5_Filter*)nclistget(filters,j);
@@ -1191,7 +1192,7 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
     {
         NC_FIELD_INFO_T *field;
         hid_t hdf_base_typeid, hdf_typeid;
-        int i;
+        size_t i;
 
         if ((hdf5_type->hdf_typeid = H5Tcreate(H5T_COMPOUND, type->size)) < 0)
             return NC_EHDFERR;
@@ -1255,7 +1256,7 @@ commit_type(NC_GRP_INFO_T *grp, NC_TYPE_INFO_T *type)
     else if (type->nc_type_class == NC_ENUM)
     {
         NC_ENUM_MEMBER_INFO_T *enum_m;
-        int i;
+        size_t i;
 
         if (nclistlength(type->u.e.enum_member) == 0)
             return NC_EINVAL;
@@ -1826,7 +1827,7 @@ nc4_create_dim_wo_var(NC_DIM_INFO_T *dim)
     /* Indicate that this is a scale. Also indicate that not
      * be shown to the user as a variable. It is hidden. It is
      * a DIM WITHOUT A VARIABLE! */
-    sprintf(dimscale_wo_var, "%s%10d", DIM_WITHOUT_VARIABLE, (int)dim->len);
+    snprintf(dimscale_wo_var, sizeof(dimscale_wo_var), "%s%10d", DIM_WITHOUT_VARIABLE, (int)dim->len);
     if (H5DSset_scale(hdf5_dim->hdf_dimscaleid, dimscale_wo_var) < 0)
         BAIL(NC_EHDFERR);
 
@@ -2257,7 +2258,7 @@ nc4_rec_match_dimscales(NC_GRP_INFO_T *grp)
                     if (match < 0)
                     {
                         char phony_dim_name[NC_MAX_NAME + 1];
-                        sprintf(phony_dim_name, "phony_dim_%d", grp->nc4_info->next_dimid);
+                        snprintf(phony_dim_name, sizeof(phony_dim_name), "phony_dim_%d", grp->nc4_info->next_dimid);
                         LOG((3, "%s: creating phony dim for var %s", __func__, var->hdr.name));
                         if ((retval = nc4_dim_list_add(grp, phony_dim_name, h5dimlen[d], -1, &dim)))
                         {

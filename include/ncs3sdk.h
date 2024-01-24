@@ -6,6 +6,14 @@
 #ifndef NCS3SDK_H
 #define NCS3SDK_H 1
 
+#define AWSHOST ".amazonaws.com"
+#define GOOGLEHOST "storage.googleapis.com"
+
+/* Track the server type, if known */
+typedef enum NCS3SVC {NCS3UNK=0, /* unknown */
+                 NCS3=1,    /* s3.amazon.aws */
+		 NCS3GS=0   /* storage.googleapis.com */
+} NCS3SVC;
 
 typedef struct NCS3INFO {
     char* host; /* non-null if other*/
@@ -13,6 +21,7 @@ typedef struct NCS3INFO {
     char* bucket; /* bucket name */
     char* rootkey;
     char* profile;
+    NCS3SVC svc;
 } NCS3INFO;
 
 #ifdef __cplusplus

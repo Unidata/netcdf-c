@@ -415,7 +415,7 @@ count_udtypes(int ncid) {
 	/* Get number of types in this group */
 	NC_CHECK( nc_inq_typeids(ncid, &ntypes, NULL) ) ;
 	NC_CHECK( nc_inq_grps(ncid, &numgrps, NULL) ) ;
-	ncids = (int *) emalloc(sizeof(int) * (numgrps + 1));
+	ncids = (int *) emalloc(sizeof(int) * (size_t)(numgrps + 1));
 	NC_CHECK( nc_inq_grps(ncid, NULL, ncids) ) ;
 	/* Add number of types in each subgroup, if any */
 	for (i=0; i < numgrps; i++) {
@@ -1034,7 +1034,8 @@ chars_tostring(
 {
     long iel;
     const char *sp;
-    char *sout = (char *)emalloc(4*len + 5); /* max len of string */
+    size_t sout_size = 4*len + 5; /* max len of string */
+    char *sout = (char *)emalloc(sout_size);
     char *cp = sout;
     *cp++ = '"';
 
@@ -1061,7 +1062,8 @@ chars_tostring(
 	    if (isprint(uc))
 		*cp++ = *(char *)&uc; /* just copy, even if char is signed */
 	    else {
-		sprintf(cp,"\\%.3o",uc);
+	    size_t remaining = sout_size - (cp - sout);
+		snprintf(cp,remaining,"\\%.3o",uc);
 		cp += 4;
 	    }
 	    break;
@@ -1270,7 +1272,7 @@ nctime_val_tostring(const ncvar_t *varp, safebuf_t *sfbf, const void *valp) {
 	oldopts = cdSetErrOpts(0);
 	newopts = oldopts | CU_VERBOSE;
 	cdSetErrOpts(newopts);
-	cdRel2Iso(varp->timeinfo->calendar, varp->timeinfo->units, separator, vv, &sout[1]);
+	cdRel2Iso(varp->timeinfo->calendar, varp->timeinfo->units, separator, vv, &sout[1], sizeof(sout) - 1);
 	cdSetErrOpts(oldopts);
 	res = strlen(sout);
 	sout[res++] = '"';
@@ -1520,7 +1522,7 @@ init_types(int ncid) {
     if (max_type == 0) {	/* if called for first time */
 	int maxtype = max_typeid(ncid);
 	int i;
-	nctypes = (nctype_t **) emalloc((maxtype + 2) * sizeof(nctype_t *));
+	nctypes = (nctype_t **) emalloc((size_t)(maxtype + 2) * sizeof(nctype_t *));
 	for(i=0; i < maxtype+1; i++)
 	    nctypes[i] = NULL;	/* so can later skip over unused type slots */
 	init_prim_types(ncid);
@@ -1532,7 +1534,7 @@ init_types(int ncid) {
    if (ntypes)
    {
       int t;
-      int *typeids = emalloc((ntypes + 1) * sizeof(int));
+      int *typeids = emalloc((size_t)(ntypes + 1) * sizeof(int));
       NC_CHECK( nc_inq_typeids(ncid, NULL, typeids) );
       for (t = 0; t < ntypes; t++) {
 	  nctype_t *tinfo;	/* details about the type */
@@ -1587,14 +1589,14 @@ init_types(int ncid) {
 		  NC_CHECK( nc_inq_compound_field(ncid, tinfo->tid, fidx, NULL,
 						  &offset, &ftype, &rank,
 						  sides) );
-		  if(rank > 0) sides = (int *) emalloc(rank * sizeof(int));
+		  if(rank > 0) sides = (int *) emalloc((size_t)rank * sizeof(int));
 		  NC_CHECK( nc_inq_compound_field(ncid, tinfo->tid, fidx, NULL,
 						  NULL, NULL, NULL, sides) );
 		  tinfo->fids[fidx] = ftype;
 		  tinfo->offsets[fidx] = offset;
 		  tinfo->ranks[fidx] = rank;
 		  if (rank > 0)
-		      tinfo->sides[fidx] = (int *) emalloc(rank * sizeof(int));
+		      tinfo->sides[fidx] = (int *) emalloc((size_t)rank * sizeof(int));
 		  tinfo->nvals[fidx] = 1;
 		  for(i = 0; i < rank; i++) {
 		      tinfo->sides[fidx][i] = sides[i];
@@ -1629,7 +1631,7 @@ init_types(int ncid) {
       /* See how many groups there are. */
       NC_CHECK( nc_inq_grps(ncid, &numgrps, NULL) );
       if (numgrps > 0) {
-	  ncids = (int *) emalloc(numgrps * sizeof(int));
+	  ncids = (int *) emalloc((size_t)numgrps * sizeof(int));
 	  /* Get the list of group ids. */
 	  NC_CHECK( nc_inq_grps(ncid, NULL, ncids) );
 	  /* Call this function for each group. */
@@ -1670,10 +1672,10 @@ iscoordvar(int ncid, int varid)
 #endif
 	if (dims)
 	    free(dims);
-	dims = (ncdim_t *) emalloc((ndims + 1) * sizeof(ncdim_t));
+	dims = (ncdim_t *) emalloc((size_t)(ndims + 1) * sizeof(ncdim_t));
 	if (dimids)
 	    free(dimids);
-	dimids = (int *) emalloc((ndims + 1) * sizeof(int));
+	dimids = (int *) emalloc((size_t)(ndims + 1) * sizeof(int));
 #ifdef USE_NETCDF4
 	NC_CHECK( nc_inq_dimids(ncid, &ndims1, dimids, include_parents ) );
 #else
@@ -1767,7 +1769,7 @@ print_type_name(int locid, int typeid) {
 	    curlocid = parent_groupid;
 	    NC_CHECK( nc_inq_typeids(curlocid, &ntypes, NULL) );
 	    if(ntypes > 0) {
-		int *typeids = (int *) emalloc((ntypes + 1) * sizeof(int));
+		int *typeids = (int *) emalloc((size_t)(ntypes + 1) * sizeof(int));
 		int i;
 		NC_CHECK( nc_inq_typeids(curlocid, &ntypes, typeids) );
 		for(i = 0; i < ntypes; i++) {
@@ -1822,7 +1824,7 @@ init_is_unlim(int ncid, int **is_unlim_p)
 	return NC_EBADGRPID;
     /* Now ncid is root group.  Get total number of groups and their ids */
     NC_CHECK( nc_inq_grps_full(ncid, &num_grps, NULL) );
-    grpids = emalloc((num_grps + 1) * sizeof(int));
+    grpids = emalloc((size_t)(num_grps + 1) * sizeof(int));
     NC_CHECK( nc_inq_grps_full(ncid, &num_grps, grpids) );
 #define DONT_INCLUDE_PARENTS 0
     /* Get all dimensions in groups and info about which ones are unlimited */
@@ -1835,18 +1837,18 @@ init_is_unlim(int ncid, int **is_unlim_p)
 	grpid = grpids[igrp];
 	NC_CHECK( nc_inq_dimids(grpid, &ndims, NULL, DONT_INCLUDE_PARENTS) );
 	num_dims += ndims;
-	dimids = (int*)emalloc(ndims*sizeof(int));
+	dimids = (int*)emalloc((size_t)ndims*sizeof(int));
 	NC_CHECK( nc_inq_dimids(grpid, &ndims, dimids, DONT_INCLUDE_PARENTS) );
 	for(i=0;i<ndims;i++) {if(dimids[i] > max_dimid) max_dimid = dimids[i];}
 	free(dimids);
     }
     assert(max_dimid >= 0);
-    *is_unlim_p = emalloc((max_dimid + 1 + 1) * sizeof(int));
+    *is_unlim_p = emalloc((size_t)(max_dimid + 1 + 1) * sizeof(int));
     for(igrp = 0; igrp < num_grps; igrp++) {
 	int ndims, idim, *dimids, nundims;
 	grpid = grpids[igrp];
 	NC_CHECK( nc_inq_dimids(grpid, &ndims, NULL, DONT_INCLUDE_PARENTS) );
-	dimids = emalloc((ndims + 1) * sizeof(int));
+	dimids = emalloc((size_t)(ndims + 1) * sizeof(int));
 	NC_CHECK( nc_inq_dimids(grpid, &ndims, dimids, DONT_INCLUDE_PARENTS) );
 	/* mark all dims in this group as fixed-size */
 	for(idim = 0; idim < ndims; idim++) {

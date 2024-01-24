@@ -348,10 +348,10 @@ test(Tag tag, int reading, int ncid, int varid, int rank, int index, size_t* dim
     count[index] = 1;    
 
     if(chunks != NULL)
-        sprintf(time_mess,"%s %s %3ld %3ld %3ld  %3ld %3ld %3ld", tagnames[tag], rwnames[reading],
+        snprintf(time_mess, sizeof(time_mess),"%s %s %3ld %3ld %3ld  %3ld %3ld %3ld", tagnames[tag], rwnames[reading],
 	        count[0], count[1], count[2], chunks[0], chunks[1], chunks[2]);
     else
-        sprintf(time_mess,"%s %s %3ld %3ld %3ld", tagnames[tag], rwnames[reading],
+        snprintf(time_mess, sizeof(time_mess),"%s %s %3ld %3ld %3ld", tagnames[tag], rwnames[reading],
 		count[0], count[1], count[2]);
 
     TIMING_START ;

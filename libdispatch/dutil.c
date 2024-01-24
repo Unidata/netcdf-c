@@ -4,6 +4,7 @@
  *********************************************************************/
 
 #include "config.h"
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -378,7 +379,7 @@ NC_testmode(NCURI* uri, const char* tag)
 {
     int stat = NC_NOERR;
     int found = 0;
-    int i;
+    size_t i;
     const char* modestr = NULL;
     NClist* modelist = NULL;
 
@@ -448,9 +449,9 @@ NC_split_delim(const char* arg, char delim, NClist* segments)
         len = (q - p);
 	if(len == 0)
 	    {stat = NC_EURL; goto done;}
-	if((seg = malloc(len+1)) == NULL)
+	if((seg = malloc((size_t)len+1)) == NULL)
 	    {stat = NC_ENOMEM; goto done;}
-	memcpy(seg,p,len);
+	memcpy(seg,p,(size_t)len);
 	seg[len] = '\0';
 	nclistpush(segments,seg);
 	seg = NULL; /* avoid mem errors */
@@ -467,7 +468,7 @@ int
 NC_join(NClist* segments, char** pathp)
 {
     int stat = NC_NOERR;
-    int i;
+    size_t i;
     NCbytes* buf = NULL;
 
     if(segments == NULL)
