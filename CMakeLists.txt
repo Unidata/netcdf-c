@@ -2745,28 +2745,14 @@ install(EXPORT netCDFTargets
   NAMESPACE netCDF::
   )
 
-export(EXPORT netCDFTargets
-  FILE "${CMAKE_CURRENT_BINARY_DIR}/netCDFTargets.cmake"
-  NAMESPACE netCDF::
-  )
+export(EXPORT netCDFTargets FILE netCDFTargets.cmake NAMESPACE netCDF::)
 
 include(CMakePackageConfigHelpers)
-CONFIGURE_PACKAGE_CONFIG_FILE(
+configure_package_config_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/netCDFConfig.cmake.in"
   "${CMAKE_CURRENT_BINARY_DIR}/netCDFConfig.cmake"
   INSTALL_DESTINATION "${ConfigPackageLocation}"
-  NO_CHECK_REQUIRED_COMPONENTS_MACRO
-  PATH_VARS
-  CMAKE_INSTALL_PREFIX
-  CMAKE_INSTALL_INCLUDEDIR
-  CMAKE_INSTALL_LIBDIR
-  )
-
-INSTALL(
-  FILES "${CMAKE_CURRENT_BINARY_DIR}/netCDFConfig.cmake"
-  DESTINATION "${ConfigPackageLocation}"
-  COMPONENT headers
-  )
+)
 
 add_library(netCDF::netcdf ALIAS netcdf)
 target_include_directories(netcdf
@@ -2780,14 +2766,15 @@ write_basic_package_version_file(
   netCDFConfigVersion.cmake
   VERSION ${netCDF_VERSION}
   COMPATIBILITY SameMajorVersion
-  )
+)
 
 install(
   FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/netCDFConfig.cmake"
   "${CMAKE_CURRENT_BINARY_DIR}/netCDFConfigVersion.cmake"
   DESTINATION ${ConfigPackageLocation}
   COMPONENT headers
-  )
+)
 
 ####
 # End export files
