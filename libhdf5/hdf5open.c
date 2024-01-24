@@ -18,6 +18,7 @@
 #include "ncauth.h"
 #include "ncmodel.h"
 #include "ncpathmgr.h"
+#include <stddef.h>
 
 #ifdef ENABLE_BYTERANGE
 #include "H5FDhttp.h"
@@ -2816,7 +2817,8 @@ rec_read_metadata(NC_GRP_INFO_T *grp)
     hid_t pid = -1;
     unsigned crt_order_flags = 0;
     H5_index_t iter_index;
-    int i, retval = NC_NOERR;
+    size_t i;
+    int retval = NC_NOERR;
 
     assert(grp && grp->hdr.name && grp->format_grp_info);
     LOG((3, "%s: grp->hdr.name %s", __func__, grp->hdr.name));

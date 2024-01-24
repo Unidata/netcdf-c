@@ -5,6 +5,7 @@
 
 #include "zincludes.h"
 #include <stdarg.h>
+#include <stddef.h>
 #include "ncpathmgr.h"
 
 /**************************************************/
@@ -217,7 +218,7 @@ int
 nczm_join(NClist* segments, char** pathp)
 {
     int stat = NC_NOERR;
-    int i;
+    size_t i;
     NCbytes* buf = NULL;
 
     if(segments == NULL)
@@ -517,7 +518,7 @@ nczm_compare(const void* arg1, const void* arg2)
 
 /* quick sort a list of strings */
 void
-nczm_sortenvv(int n, char** envv)
+nczm_sortenvv(size_t n, char** envv)
 {
     if(n <= 1) return;
     qsort(envv, n, sizeof(char*), nczm_compare);

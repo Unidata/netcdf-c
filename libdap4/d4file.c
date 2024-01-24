@@ -679,7 +679,7 @@ NCD4_newMeta(NCD4INFO* info, NCD4meta** metap)
 void
 NCD4_reclaimMeta(NCD4meta* dataset)
 {
-    int i;
+    size_t i;
     if(dataset == NULL) return;
 
     for(i=0;i<nclistlength(dataset->allnodes);i++) {

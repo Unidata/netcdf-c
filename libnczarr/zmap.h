@@ -136,6 +136,7 @@ of the implementation.
 #define ZMAP_H
 
 #include "ncexternl.h"
+#include <stddef.h>
 
 #define NCZM_SEP "/"
 
@@ -369,7 +370,7 @@ EXTERNL int nczm_lastsegment(const char* path, char** lastp);
 
 /* bubble sorts (note arguments) */
 EXTERNL void nczm_sortlist(struct NClist* l);
-EXTERNL void nczm_sortenvv(int n, char** envv);
+EXTERNL void nczm_sortenvv(size_t n, char** envv);
 EXTERNL void NCZ_freeenvv(int n, char** envv);
 
 #ifdef __cplusplus

@@ -4,6 +4,7 @@
  *********************************************************************/
 
 #include "zincludes.h"
+#include <stddef.h>
 
 /**************************************************/
 /* Forwards */
@@ -296,7 +297,7 @@ done:
 static const char*
 controllookup(NClist* controls, const char* key)
 {
-    int i;
+    size_t i;
     for(i=0;i<nclistlength(controls);i+=2) {
         const char* p = (char*)nclistget(controls,i);
 	if(strcasecmp(key,p)==0) {
@@ -310,7 +311,8 @@ controllookup(NClist* controls, const char* key)
 static int
 applycontrols(NCZ_FILE_INFO_T* zinfo)
 {
-    int i,stat = NC_NOERR;
+    size_t i;
+    int stat = NC_NOERR;
     const char* value = NULL;
     NClist* modelist = nclistnew();
     int noflags = 0; /* track non-default negative flags */

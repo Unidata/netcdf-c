@@ -8,6 +8,7 @@
 */
 
 #include "config.h"
+#include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -715,7 +716,7 @@ headersoff(NC_HTTP_STATE* state)
 static int
 lookupheader(NC_HTTP_STATE* state, const char* key, const char** valuep)
 {
-    int i;
+    size_t i;
     const char* value = NULL;
     /* Get the content length header */
     for(i=0;i<nclistlength(state->curl.response.headers);i+=2) {
