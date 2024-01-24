@@ -616,17 +616,17 @@ if(ENABLE_LIBXML2)
 endif(ENABLE_LIBXML2)
 
 ################################
+# MPI
+################################
+if(ENABLE_PARALLEL4 OR HDF5_PARALLEL)
+  find_package(MPI REQUIRED)
+endif()
+
+################################
 # Parallel IO
 ################################ 
 if(ENABLE_PNETCDF)
   find_package(PNETCDF 1.6.0 REQUIRED)
-endif()
-
-################################
-# MPI
-################################
-if(ENABLE_PARALLEL4 OR HDF5_PARALLEL OR ENABLE_PNETCDF)
-  find_package(MPI REQUIRED)
 endif()
 
 ################################
