@@ -627,6 +627,9 @@ endif()
 ################################ 
 if(ENABLE_PNETCDF)
   find_package(PNETCDF 1.6.0 REQUIRED)
+  if(NOT PNETCDF_HAS_RELAXED_COORD_BOUND)
+    message(FATAL_ERROR "Pnetcdf must be built with relax-coord-bound enabled")
+  endif()
 endif()
 
 ################################
