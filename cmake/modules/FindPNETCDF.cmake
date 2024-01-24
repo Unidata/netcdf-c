@@ -11,7 +11,7 @@
 #   PNETCDF_INCLUDE_DIRS
 #   PNETCDF_LIBRARIES
 #   PNETCDF_VERSION
-#   PNETCDF_ERANGE_FILL  - True if PnetCDF was built with ``NC_ERANGE`` support`
+#   PNETCDF_HAS_ERANGE_FILL  - True if PnetCDF was built with ``NC_ERANGE`` support`
 #   PNETCDF_HAS_RELAXED_COORD_BOUND - True if PnetCDF was built with relaxed coordinate bounds
 #
 # The ``PNETCDF::pnetcdf`` target will also be exported
@@ -44,9 +44,9 @@ message(DEBUG "[ ${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE} ]"
 file(STRINGS "${pnetcdf_h}" enable_erange_fill_pnetcdf REGEX "^#define PNETCDF_ERANGE_FILL")
 string(REGEX REPLACE "[^0-9]" "" erange_fill_pnetcdf "${enable_erange_fill_pnetcdf}")
 if("${erange_fill_pnetcdf}" STREQUAL "1")
-  set(PNETCDF_ERANGE_FILL ON CACHE BOOL "")
+  set(PNETCDF_HAS_ERANGE_FILL ON CACHE BOOL "")
 else()
-  set(PNETCDF_ERANGE_FILL OFF CACHE BOOL "")
+  set(PNETCDF_HAS_ERANGE_FILL OFF CACHE BOOL "")
 endif()
 
 mark_as_advanced(PNETCDF_INCLUDE_DIR PNETCDF_LIBRARY PNETCDF_ERANGE_FILL)
