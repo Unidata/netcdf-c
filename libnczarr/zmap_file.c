@@ -3,6 +3,7 @@
  *      See netcdf/COPYRIGHT file for copying and redistribution conditions.
  */
 
+#include <stddef.h>
 #undef DEBUG
 
 /* Not sure this has any effect */
@@ -529,7 +530,8 @@ static int
 zfcreategroup(ZFMAP* zfmap, const char* key, int nskip)
 {
     int stat = NC_NOERR;
-    int i, len;
+    size_t i;
+    int len;
     char* fullpath = NULL;
     NCbytes* path = ncbytesnew();
     NClist* segments = nclistnew();
@@ -948,7 +950,7 @@ static int
 platformdeleter(NCbytes* canonpath, int depth)
 {
     int ret = NC_NOERR;
-    int i;
+    size_t i;
     NClist* subfiles = nclistnew();
     size_t tpathlen = ncbyteslength(canonpath);
     char* local = NULL;

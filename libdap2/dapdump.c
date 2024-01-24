@@ -5,6 +5,7 @@
 
 #include "config.h"
 #include "netcdf.h"
+#include <stddef.h>
 #ifdef USE_PARALLEL
 #include "netcdf_par.h"
 #endif
@@ -247,7 +248,7 @@ dumppath(CDFnode* leaf)
     NClist* path = nclistnew();
     NCbytes* buf = ncbytesnew();
     char* result;
-    int i;
+    size_t i;
 
     if(leaf == NULL) return nulldup("");
     collectnodepath(leaf,path,!WITHDATASET);
@@ -272,7 +273,7 @@ dumpindent(int indent, NCbytes* buf)
 static void
 dumptreer1(CDFnode* root, NCbytes* buf, int indent, char* tag, int visible)
 {
-    int i;
+    size_t i;
     dumpindent(indent,buf);
     ncbytescat(buf,tag);
     ncbytescat(buf," {\n");
@@ -300,7 +301,7 @@ dumptreer1(CDFnode* root, NCbytes* buf, int indent, char* tag, int visible)
 static void
 dumptreer(CDFnode* root, NCbytes* buf, int indent, int visible)
 {
-    int i;
+    size_t i;
     char* primtype = NULL;
     NClist* dimset = NULL;
 
@@ -389,7 +390,7 @@ dumpnode(CDFnode* node)
 {
     NCbytes* buf = ncbytesnew();
     char* result;
-    int i;
+    size_t i;
     char* nctype = NULL;
     char* primtype = NULL;
     char tmp[1024];
@@ -456,7 +457,7 @@ dumpnode(CDFnode* node)
     ncbytescat(buf,tmp);
     for(i=0;i<nclistlength(node->array.dimset0);i++) {
 	CDFnode* dim = (CDFnode*)nclistget(node->array.dimset0,i);
-        snprintf(tmp,sizeof(tmp),"dims[%d]={\n",i);
+        snprintf(tmp,sizeof(tmp),"dims[%zu]={\n",i);
         ncbytescat(buf,tmp);
 	snprintf(tmp,sizeof(tmp),"    ocname=%s\n",dim->ocname);
         ncbytescat(buf,tmp);
@@ -497,7 +498,7 @@ dumpcachenode(NCcachenode* node)
 {
     char* result = NULL;
     char tmp[8192];
-    int i;
+    size_t i;
     NCbytes* buf;
 
     if(node == NULL) return strdup("cachenode{null}");
@@ -527,7 +528,7 @@ dumpcache(NCcache* cache)
 {
     char* result = NULL;
     char tmp[8192];
-    int i;
+    size_t i;
     NCbytes* buf;
 
     if(cache == NULL) return strdup("cache{null}");
@@ -619,10 +620,10 @@ dumplistraw(NClist* l)
 void
 dumpstringlist(NClist* l)
 {
-    int i;
+    size_t i;
     for(i=0;i<nclistlength(l);i++) {
 	const char* s = (const char*)nclistget(l,i);
-	fprintf(stderr,"[%d]: |%s|\n",i,s);
+	fprintf(stderr,"[%zu]: |%s|\n",i,s);
     }
     fflush(stderr);
 }
