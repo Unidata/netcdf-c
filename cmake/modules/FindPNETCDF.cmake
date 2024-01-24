@@ -22,7 +22,7 @@ find_library(PNETCDF_LIBRARY NAMES pnetcdf)
 
 if (PNETCDF_INCLUDE_DIR)
   set(pnetcdf_h "${PNETCDF_INCLUDE_DIR}/pnetcdf.h" )
-  message(STATUS "PnetCDF include file ${pnetcdf_h} will be searched for version")
+  message(DEBUG "PnetCDF include file ${pnetcdf_h} will be searched for version")
   file(STRINGS "${pnetcdf_h}" pnetcdf_major_string REGEX "^#define PNETCDF_VERSION_MAJOR")
   string(REGEX REPLACE "[^0-9]" "" pnetcdf_major "${pnetcdf_major_string}")
   file(STRINGS "${pnetcdf_h}" pnetcdf_minor_string REGEX "^#define PNETCDF_VERSION_MINOR")
@@ -30,17 +30,15 @@ if (PNETCDF_INCLUDE_DIR)
   file(STRINGS "${pnetcdf_h}" pnetcdf_sub_string REGEX "^#define PNETCDF_VERSION_SUB")
   string(REGEX REPLACE "[^0-9]" "" pnetcdf_sub "${pnetcdf_sub_string}")
   set(pnetcdf_version "${pnetcdf_major}.${pnetcdf_minor}.${pnetcdf_sub}")
-  message(STATUS "Found PnetCDF version ${pnetcdf_version}")
+  message(DEBUG "Found PnetCDF version ${pnetcdf_version}")
 endif()
 
-if (PNETCDF_DEBUG)
-  message(STATUS "[ ${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE} ]"
-     " PNETCDF_ROOT = ${PNETCDF_ROOT}"
-    " PNETCDF_INCLUDE_DIR = ${PNETCDF_INCLUDE_DIR}"
-    " PNETCDF_LIBRARY = ${PNETCDF_LIBRARY}"
-    " PNETCDF_VERSION = ${PNETCDF_VERSION}"
-    )
-endif()
+message(DEBUG "[ ${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE} ]"
+  " PNETCDF_ROOT = ${PNETCDF_ROOT}"
+  " PNETCDF_INCLUDE_DIR = ${PNETCDF_INCLUDE_DIR}"
+  " PNETCDF_LIBRARY = ${PNETCDF_LIBRARY}"
+  " PNETCDF_VERSION = ${PNETCDF_VERSION}"
+)
 
 file(STRINGS "${pnetcdf_h}" enable_erange_fill_pnetcdf REGEX "^#define PNETCDF_ERANGE_FILL")
 string(REGEX REPLACE "[^0-9]" "" erange_fill_pnetcdf "${enable_erange_fill_pnetcdf}")
