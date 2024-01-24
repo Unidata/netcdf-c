@@ -916,10 +916,10 @@ set(ENABLE_ZERO_LENGTH_COORD_BOUND ON)
 # check and conform with PnetCDF settings on ERANGE_FILL and RELAX_COORD_BOUND
 if(USE_PNETCDF)
   if(ENABLE_ERANGE_FILL STREQUAL "AUTO") # not set on command line
-     set(ENABLE_ERANGE_FILL "${PNETCDF_ERANGE_FILL}")
+     set(ENABLE_ERANGE_FILL "${PNETCDF_HAS_ERANGE_FILL}")
   else()
      # user explicitly set this option on command line
-     if(NOT ENABLE_ERANGE_FILL STREQUAL "${PNETCDF_ERANGE_FILL}")
+     if(NOT ENABLE_ERANGE_FILL STREQUAL "${PNETCDF_HAS_ERANGE_FILL}")
         if(ENABLE_ERANGE_FILL)
            message(FATAL_ERROR "Enabling erange-fill conflicts with PnetCDF setting")
         else()
