@@ -12,6 +12,7 @@
 #   PNETCDF_LIBRARIES
 #   PNETCDF_VERSION
 #   PNETCDF_ERANGE_FILL  - True if PnetCDF was built with ``NC_ERANGE`` support`
+#   PNETCDF_HAS_RELAXED_COORD_BOUND - True if PnetCDF was built with relaxed coordinate bounds
 #
 # The ``PNETCDF::pnetcdf`` target will also be exported
 
@@ -52,9 +53,10 @@ mark_as_advanced(PNETCDF_INCLUDE_DIR PNETCDF_LIBRARY PNETCDF_ERANGE_FILL)
 
 file(STRINGS "${pnetcdf_h}" relax_coord_bound_pnetcdf REGEX "^#define PNETCDF_RELAX_COORD_BOUND")
 string(REGEX REPLACE "[^0-9]" "" relax_coord_bound "${relax_coord_bound_pnetcdf}")
-# pnetcdf must have relaxed coord bounds to build with netCDF-4
-if(NOT "${relax_coord_bound}" STREQUAL "1")
-  message(FATAL_ERROR "Pnetcdf must be built with relax-coord-bound enabled")
+if ("${relax_coord_bound}" STREQUAL "1")
+  set(PNETCDF_HAS_RELAXED_COORD_BOUND ON CACHE BOOL "")
+else()
+  set(PNETCDF_HAS_RELAXED_COORD_BOUND OFF CACHE BOOL "")
 endif()
 
 find_package_handle_standard_args(PNETCDF
