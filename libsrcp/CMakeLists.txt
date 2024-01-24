@@ -8,6 +8,6 @@
 SET(libsrcp_SOURCES ncpdispatch.c)
 
 add_library(netcdfp OBJECT ${libsrcp_SOURCES})
-target_link_libraries(netcdfp PUBLIC pnetcdf::pnetcdf)
+target_link_libraries(netcdfp PUBLIC PNETCDF::PNETCDF)
 
 ADD_EXTRA_DIST(${libsrcp_SOURCES} CMakeLists.txt)

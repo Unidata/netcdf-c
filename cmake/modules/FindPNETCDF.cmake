@@ -63,9 +63,9 @@ find_package_handle_standard_args(PNETCDF
   )
 
 if (PNETCDF_FOUND AND NOT TARGET PNETCDF::PNETCDF)
-  add_library(pnetcdf::pnetcdf UNKNOWN IMPORTED)
-  set_target_properties(pnetcdf::pnetcdf PROPERTIES
+  add_library(PNETCDF::PNETCDF UNKNOWN IMPORTED)
+  set_target_properties(PNETCDF::PNETCDF PROPERTIES
     IMPORTED_LOCATION "${PNETCDF_LIBRARY}"
     INTERFACE_INCLUDE_DIRECTORIES "${PNETCDF_INCLUDE_DIR}"
-    )
+  )
 endif()
