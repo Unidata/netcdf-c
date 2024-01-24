@@ -65,7 +65,7 @@ data:
 
 static size_t dimsize = DIMSIZE;
 static size_t chunksize = CHUNKSIZE;
-static size_t actualdims = NDIMS;
+static int actualdims = NDIMS;
 
 static size_t actualproduct = 1; /* x-product over dim sizes */
 static size_t chunkproduct = 1; /* x-product over chunksizes */

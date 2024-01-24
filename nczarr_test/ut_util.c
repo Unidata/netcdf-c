@@ -200,44 +200,6 @@ parsestringvector(const char* s0, int stopchar, char*** namesp)
     return nelems;
 }
 
-int
-parseintvector(const char* s0, int typelen, void** vectorp)
-{
-    int count,nchars,nelems,index;
-    const char* s = NULL;
-    void* vector = NULL;
-
-    /* First, compute number of elements */
-    for(s=s0,nelems=1;*s;s++) {
-        if(*s == ',') nelems++;
-    }
-
-    vector = calloc((size_t)nelems, (size_t)typelen);
-
-    /* Extract the elements of the vector */
-    /* Skip any leading bracketchar */
-    s=s0;
-    if(strchr(OPEN,*s0) != NULL) s++;
-    for(index=0;*s;index++) {
-        long long elem;
-        nchars = -1;
-        count = sscanf(s,"%lld%n",&elem,&nchars);
-        if(nchars == -1 || count != 1) return THROW(NC_EINVAL);
-        s += nchars;
-        if(*s == ',') s++;
-        switch (typelen) {
-        case 1: ((char*)vector)[index] = (char)elem; break;
-        case 2: ((short*)vector)[index] = (short)elem; break;
-        case 4: ((int*)vector)[index] = (int)elem; break;
-        case 8: ((long long*)vector)[index] = (long long)elem; break;
-        default: abort();
-        }
-    }
-    assert(nelems == index);
-    if(vectorp) *vectorp = vector;
-    return nelems;
-}
-
 void
 freedimdefs(NClist* defs)
 {
@@ -315,7 +277,7 @@ printvec(int len, size64_t* vec)
 #endif /*0*/
 
 /**************************************************/
-int
+size_t
 ut_typesize(nc_type t)
 {
     switch (t) {

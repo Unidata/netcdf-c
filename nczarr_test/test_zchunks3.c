@@ -66,7 +66,7 @@ main(int argc, char** argv)
 
     /* fvar is unchanged */
     for(i=0; i < NVALS; i++) {
-        fvar_data[i] = NVALS - i;
+        fvar_data[i] = (float)(NVALS - i);
     }
     if ((ret=nc_put_var(ncid, fvarid, fvar_data))) LERR;
 
