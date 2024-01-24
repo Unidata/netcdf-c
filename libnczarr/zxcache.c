@@ -14,6 +14,7 @@
 #include "zcache.h"
 #include "ncxcache.h"
 #include "zfilter.h"
+#include <stddef.h>
 
 #undef DEBUG
 
@@ -423,7 +424,7 @@ constraincache(NCZChunkCache* cache, size64_t needed)
 
     /* Flush from LRU end if we are at capacity */
     while(nclistlength(cache->mru) > cache->params.nelems || cache->used > final_size) {
-	int i;
+	size_t i;
 	void* ptr;
 	NCZCacheEntry* e = ncxcachelast(cache->xcache); /* last entry is the least recently used */
 	if(e == NULL) break;
@@ -662,7 +663,7 @@ put_chunk(NCZChunkCache* cache, NCZCacheEntry* entry)
         /* Convert from char* to char[strlen] format */
         int maxstrlen = NCZ_get_maxstrlen((NC_OBJ*)cache->var);
         assert(maxstrlen > 0);
-        if((strchunk = malloc(cache->chunkcount*maxstrlen))==NULL) {stat = NC_ENOMEM; goto done;}
+        if((strchunk = malloc((size_t)cache->chunkcount * (size_t)maxstrlen))==NULL) {stat = NC_ENOMEM; goto done;}
         /* copy char* to char[] format */
         if((stat = NCZ_char2fixed((const char**)entry->data,strchunk,cache->chunkcount,maxstrlen))) goto done;
         /* Reclaim the old chunk */
@@ -773,7 +774,7 @@ get_chunk(NCZChunkCache* cache, NCZCacheEntry* entry)
         case NC_EEMPTY: empty = 1; stat = NC_NOERR;break;
 	default: goto done;
 	}
-        entry->isfiltered = FILTERED(cache); /* Is the data being read filtered? */
+        entry->isfiltered = (int)FILTERED(cache); /* Is the data being read filtered? */
 	if(tid == NC_STRING)
 	    entry->isfixedstring = 1; /* fill cache is in char[maxstrlen] format */
     }
@@ -890,7 +891,7 @@ NCZ_printxcache(NCZChunkCache* cache)
     static char xs[20000];
     NCbytes* buf = ncbytesnew();
     char s[8192];
-    int i;
+    size_t i;
 
     ncbytescat(buf,"NCZChunkCache:\n");
     snprintf(s,sizeof(s),"\tvar=%s\n\tndims=%u\n\tchunksize=%u\n\tchunkcount=%u\n\tfillchunk=%p\n",
@@ -916,7 +917,7 @@ NCZ_printxcache(NCZChunkCache* cache)
         ncbytescat(buf,"\t\t<empty>\n");
     for(i=0;i<nclistlength(cache->mru);i++) {
 	NCZCacheEntry* e = (NCZCacheEntry*)nclistget(cache->mru,i);
-	snprintf(s,sizeof(s),"\t\t[%d] ",i);
+	snprintf(s,sizeof(s),"\t\t[%zu] ", i);
 	ncbytescat(buf,s);
 	if(e == NULL)
 	    ncbytescat(buf,"<null>");

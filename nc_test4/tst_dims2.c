@@ -433,7 +433,7 @@ main(int argc, char **argv)
       {
          char dim_name[NC_MAX_NAME + 1];
 
-         sprintf(dim_name, "dim_%d", i);
+         snprintf(dim_name, sizeof(dim_name), "dim_%d", i);
          if (nc_def_dim(ncid, dim_name, 1, &dimids[i])) ERR;
       }
 

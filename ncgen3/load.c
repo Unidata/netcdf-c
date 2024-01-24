@@ -77,22 +77,22 @@ gen_load_c(
 	return;
 
     cline("");
-    sprintf(stmnt, "   {\t\t\t/* store %s */", vars[varnum].name);
+    snprintf(stmnt, sizeof(stmnt), "   {\t\t\t/* store %s */", vars[varnum].name);
     cline(stmnt);
 
     if (vars[varnum].ndims > 0) {
 	if (vars[varnum].dims[0] == rec_dim) {
-	    sprintf(stmnt, "    static size_t %s_start[RANK_%s];",
+	    snprintf(stmnt, sizeof(stmnt), "    static size_t %s_start[RANK_%s];",
 		    vars[varnum].lname, vars[varnum].lname);
 	    cline(stmnt);
 
-	    sprintf(stmnt, "    static size_t %s_count[RANK_%s];",
+	    snprintf(stmnt, sizeof(stmnt), "    static size_t %s_count[RANK_%s];",
 		    vars[varnum].lname, vars[varnum].lname);
 	    cline(stmnt);
 	}
 
 	/* load variable with data values using static initialization */
-	sprintf(stmnt, "    static %s %s[] = {",
+	snprintf(stmnt, sizeof(stmnt), "    static %s %s[] = {",
 		ncctype(vars[varnum].type),
 		vars[varnum].lname);
 
@@ -100,7 +100,7 @@ gen_load_c(
 	switch (vars[varnum].type) {
 	  case NC_CHAR:
 	    val_string = cstrstr((char *) rec_start, var_len);
-	    sprintf(s2, "%s", val_string);
+	    snprintf(s2, sizeof(s2), "%s", val_string);
 	    strlcat(stmnt, s2, C_MAX_STMNT);
 	    free(val_string);
 	    break;
@@ -127,23 +127,23 @@ gen_load_c(
 		switch (vars[varnum].type) {
 		  case NC_BYTE:
 		    assert(charvalp != NULL);
-		    sprintf(s2, "%d, ", *charvalp++);
+		    snprintf(s2, sizeof(s2), "%d, ", *charvalp++);
 		    break;
 		  case NC_SHORT:
 		    assert(shortvalp != NULL);
-		    sprintf(s2, "%d, ", *shortvalp++);
+		    snprintf(s2, sizeof(s2), "%d, ", *shortvalp++);
 		    break;
 		  case NC_INT:
 		    assert(intvalp != NULL);
-		    sprintf(s2, "%ld, ", (long)*intvalp++);
+		    snprintf(s2, sizeof(s2), "%ld, ", (long)*intvalp++);
 		    break;
 		  case NC_FLOAT:
 		    assert(floatvalp != NULL);
-		    sprintf(s2, "%.8g, ", *floatvalp++);
+		    snprintf(s2, sizeof(s2), "%.8g, ", *floatvalp++);
 		    break;
 		  case NC_DOUBLE:
 		    assert(doublevalp != NULL);
-		    sprintf(s2, "%#.16g", *doublevalp++);
+		    snprintf(s2, sizeof(s2), "%#.16g", *doublevalp++);
 		    tztrim(s2);
 		    strcat(s2, ", ");
 		    break;
@@ -162,23 +162,23 @@ gen_load_c(
 	      switch (vars[varnum].type) {
 	      case NC_BYTE:
 		assert(charvalp != NULL);
-		sprintf(s2, "%d", *charvalp);
+		snprintf(s2, sizeof(s2), "%d", *charvalp);
 		break;
 	      case NC_SHORT:
 		assert(shortvalp != NULL);
-		sprintf(s2, "%d", *shortvalp);
+		snprintf(s2, sizeof(s2), "%d", *shortvalp);
 		break;
 	      case NC_INT:
 		assert(intvalp != NULL);
-		sprintf(s2, "%ld", (long)*intvalp);
+		snprintf(s2, sizeof(s2), "%ld", (long)*intvalp);
 		break;
 	      case NC_FLOAT:
 		assert(floatvalp != NULL);
-		sprintf(s2, "%.8g", *floatvalp);
+		snprintf(s2, sizeof(s2), "%.8g", *floatvalp);
 		break;
 	      case NC_DOUBLE:
 		assert(doublevalp != NULL);
-		sprintf(s2, "%#.16g", *doublevalp++);
+		snprintf(s2, sizeof(s2), "%#.16g", *doublevalp++);
 		tztrim(s2);
 		break;
 	      default: break;
@@ -198,7 +198,7 @@ gen_load_c(
 	cline(stmnt);
 
 	if (vars[varnum].dims[0] == rec_dim) {
-	    sprintf(stmnt,
+	    snprintf(stmnt, sizeof(stmnt),
 		    "    %s_len = %lu;			/* number of records of %s data */",
 		    dims[rec_dim].lname,
 		    (unsigned long)vars[varnum].nrecs, /* number of recs for this variable */
@@ -206,14 +206,14 @@ gen_load_c(
 	    cline(stmnt);
 
 	    for (idim = 0; idim < vars[varnum].ndims; idim++) {
-		sprintf(stmnt, "    %s_start[%d] = 0;",
+		snprintf(stmnt, sizeof(stmnt), "    %s_start[%d] = 0;",
 			vars[varnum].lname,
 			idim);
 		cline(stmnt);
 	    }
 
 	    for (idim = 0; idim < vars[varnum].ndims; idim++) {
-		sprintf(stmnt, "    %s_count[%d] = %s_len;",
+		snprintf(stmnt, sizeof(stmnt), "    %s_count[%d] = %s_len;",
 			vars[varnum].lname,
 			idim,
 			dims[vars[varnum].dims[idim]].lname);
@@ -222,7 +222,7 @@ gen_load_c(
 	}
 
 	if (vars[varnum].dims[0] == rec_dim) {
-	    sprintf(stmnt,
+	    snprintf(stmnt, sizeof(stmnt),
 		    "    stat = nc_put_vara_%s(ncid, %s_id, %s_start, %s_count, %s);",
 		    ncstype(vars[varnum].type),
 		    vars[varnum].lname,
@@ -230,7 +230,7 @@ gen_load_c(
 		    vars[varnum].lname,
 		    vars[varnum].lname);
 	} else {		/* non-record variables */
-	    sprintf(stmnt,
+	    snprintf(stmnt, sizeof(stmnt),
 		    "    stat = nc_put_var_%s(ncid, %s_id, %s);",
 		    ncstype(vars[varnum].type),
 		    vars[varnum].lname,
@@ -239,7 +239,7 @@ gen_load_c(
 	cline(stmnt);
     } else {			/* scalar variables */
 	/* load variable with data values using static initialization */
-	sprintf(stmnt, "    static %s %s = ",
+	snprintf(stmnt, sizeof(stmnt), "    static %s %s = ",
 		ncctype(vars[varnum].type),
 		vars[varnum].lname);
 
@@ -247,28 +247,28 @@ gen_load_c(
 	  case NC_CHAR:
 	    val_string = cstrstr((char *) rec_start, var_len);
 	    val_string[strlen(val_string)-1] = '\0';
-	    sprintf(s2, "'%s'", &val_string[1]);
+	    snprintf(s2, sizeof(s2), "'%s'", &val_string[1]);
 	    free(val_string);
 	    break;
 	  case NC_BYTE:
 	    charvalp = (char *) rec_start;
-	    sprintf(s2, "%d", *charvalp);
+	    snprintf(s2, sizeof(s2), "%d", *charvalp);
 	    break;
 	  case NC_SHORT:
 	    shortvalp = (short *) rec_start;
-	    sprintf(s2, "%d", *shortvalp);
+	    snprintf(s2, sizeof(s2), "%d", *shortvalp);
 	    break;
 	  case NC_INT:
 	    intvalp = (int *) rec_start;
-	    sprintf(s2, "%ld", (long)*intvalp);
+	    snprintf(s2, sizeof(s2), "%ld", (long)*intvalp);
 	    break;
 	  case NC_FLOAT:
 	    floatvalp = (float *) rec_start;
-	    sprintf(s2, "%.8g", *floatvalp);
+	    snprintf(s2, sizeof(s2), "%.8g", *floatvalp);
 	    break;
 	  case NC_DOUBLE:
 	    doublevalp = (double *) rec_start;
-	    sprintf(s2, "%#.16g", *doublevalp++);
+	    snprintf(s2, sizeof(s2), "%#.16g", *doublevalp++);
 	    tztrim(s2);
 	    break;
 	  default: break;
@@ -276,7 +276,7 @@ gen_load_c(
 	strlcat(stmnt, s2, C_MAX_STMNT);
 	strlcat(stmnt,";", C_MAX_STMNT);
 	cline(stmnt);
-	sprintf(stmnt,
+	snprintf(stmnt, sizeof(stmnt),
 		"    stat = nc_put_var_%s(ncid, %s_id, &%s);",
 		ncstype(vars[varnum].type),
 		vars[varnum].lname,
@@ -345,14 +345,14 @@ f_var_init(
     int ival;
 
     /* load variable with data values  */
-    sprintf(stmnt, "data %s /",vars[varnum].lname);
+    snprintf(stmnt, sizeof(stmnt), "data %s /",vars[varnum].lname);
     stmnt_len = strlen(stmnt);
     switch (vars[varnum].type) {
     case NC_BYTE:
 	charvalp = (char *) rec_start;
 	for (ival = 0; ival < var_len-1; ival++) {
 	    val_string = fstring(NC_BYTE,(void *)charvalp++,0);
-	    sprintf(s2, "%s, ", val_string);
+	    snprintf(s2, sizeof(s2), "%s, ", val_string);
 	    fstrcat(stmnt, s2, &stmnt_len);
 	    free(val_string);
 	}
@@ -363,40 +363,40 @@ f_var_init(
     case NC_SHORT:
 	shortvalp = (short *) rec_start;
 	for (ival = 0; ival < var_len-1; ival++) {
-	    sprintf(s2, "%d, ", *shortvalp++);
+	    snprintf(s2, sizeof(s2), "%d, ", *shortvalp++);
 	    fstrcat(stmnt, s2, &stmnt_len);
 	}
-	sprintf(s2, "%d", *shortvalp);
+	snprintf(s2, sizeof(s2), "%d", *shortvalp);
 	fstrcat(stmnt, s2, &stmnt_len);
 	break;
     case NC_INT:
 	intvalp = (int *) rec_start;
 	for (ival = 0; ival < var_len-1; ival++) {
-	    sprintf(s2, "%ld, ", (long)*intvalp++);
+	    snprintf(s2, sizeof(s2), "%ld, ", (long)*intvalp++);
 	    fstrcat(stmnt, s2, &stmnt_len);
 	}
-	sprintf(s2, "%ld", (long)*intvalp);
+	snprintf(s2, sizeof(s2), "%ld", (long)*intvalp);
 	fstrcat(stmnt, s2, &stmnt_len);
 	break;
     case NC_FLOAT:
 	floatvalp = (float *) rec_start;
 	for (ival = 0; ival < var_len-1; ival++) {
-	    sprintf(s2, "%.8g, ", *floatvalp++);
+	    snprintf(s2, sizeof(s2), "%.8g, ", *floatvalp++);
 	    fstrcat(stmnt, s2, &stmnt_len);
 	}
-	sprintf(s2, "%.8g", *floatvalp);
+	snprintf(s2, sizeof(s2), "%.8g", *floatvalp);
 	fstrcat(stmnt, s2, &stmnt_len);
 	break;
     case NC_DOUBLE:
 	doublevalp = (double *) rec_start;
 	for (ival = 0; ival < var_len-1; ival++) {
-	    sprintf(s2, "%#.16g", *doublevalp++);
+	    snprintf(s2, sizeof(s2), "%#.16g", *doublevalp++);
 	    tztrim(s2);
 	    expe2d(s2);	/* change 'e' to 'd' in exponent */
 	    fstrcat(s2, ", ", &stmnt_len);
 	    fstrcat(stmnt, s2, &stmnt_len);
 	}
-	sprintf(s2, "%#.16g", *doublevalp++);
+	snprintf(s2, sizeof(s2), "%#.16g", *doublevalp++);
 	tztrim(s2);
 	expe2d(s2);
 	fstrcat(stmnt, s2, &stmnt_len);
@@ -432,7 +432,7 @@ gen_load_fortran(
 	return;
 
     if (v->ndims == 0 || v->dims[0] != rec_dim) {
-	sprintf(stmnt, "* store %s", v->name);
+	snprintf(stmnt, sizeof(stmnt), "* store %s", v->name);
 	fline(stmnt);
     }
 
@@ -447,7 +447,7 @@ gen_load_fortran(
 	return;
     }
     if (v->type != NC_CHAR) {
-	sprintf(stmnt, "iret = nf_put_var_%s(ncid, %s_id, %s)",
+	snprintf(stmnt, sizeof(stmnt), "iret = nf_put_var_%s(ncid, %s_id, %s)",
 		nfftype(v->type), v->lname, v->lname);
     } else {
 	char *char_expr = fstrstr(rec_start, valnum);
@@ -459,7 +459,7 @@ gen_load_fortran(
 		   v->lname);
 	    exit(9);
 	}
-	sprintf(stmnt, "iret = nf_put_var_%s(ncid, %s_id, %s)",
+	snprintf(stmnt, sizeof(stmnt), "iret = nf_put_var_%s(ncid, %s_id, %s)",
 		nfftype(v->type), v->lname, char_expr);
 	free(char_expr);
     }

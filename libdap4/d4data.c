@@ -6,6 +6,7 @@
 #include "d4includes.h"
 #include <stdarg.h>
 #include <assert.h>
+#include <stddef.h>
 #include "d4includes.h"
 #include "d4odom.h"
 #include "nccrc.h"
@@ -16,7 +17,7 @@ This code serves two purposes
    (NCD4_processdata)
 2. Walk a specified variable instance to convert to netcdf4
    memory representation.
-   (NCD4_fillinstance)
+   (NCD4_movetoinstance)
 
 */
 
@@ -29,7 +30,6 @@ static int fillopfixed(NCD4meta*, d4size_t opaquesize, NCD4offset* offset, void*
 static int fillopvar(NCD4meta*, NCD4node* type, NCD4offset* offset, void** dstp, NClist* blobs);
 static int fillstruct(NCD4meta*, NCD4node* type, NCD4offset* offset, void** dstp, NClist* blobs);
 static int fillseq(NCD4meta*, NCD4node* type, NCD4offset* offset, void** dstp, NClist* blobs);
-static int NCD4_inferChecksums(NCD4meta* meta, NClist* toplevel);
 static unsigned NCD4_computeChecksum(NCD4meta* meta, NCD4node* topvar);
 
 /***************************************************/
@@ -54,11 +54,12 @@ static unsigned int debugcrc32(unsigned int crc, const void *buf, size_t size)
 /***************************************************/
 /* API */
 
+/* Parcel out the dechunked data to the corresponding vars */
 int
-NCD4_processdata(NCD4meta* meta)
+NCD4_parcelvars(NCD4meta* meta, NCD4response* resp)
 {
     int ret = NC_NOERR;
-    int i;
+    size_t i;
     NClist* toplevel = NULL;
     NCD4node* root = meta->root;
     NCD4offset* offset = NULL;
@@ -68,35 +69,57 @@ NCD4_processdata(NCD4meta* meta)
     toplevel = nclistnew();
     NCD4_getToplevelVars(meta,root,toplevel);
 
-    /* Otherwise */
-    NCD4_inferChecksums(meta,toplevel);
-
-    /* If necessary, byte swap the serialized data */
-    /* Do we need to swap the dap4 data? */
-    meta->swap = (meta->serial.hostlittleendian != meta->serial.remotelittleendian);
-
     /* Compute the  offset and size of the toplevel vars in the raw dap data. */
-    /* Also extract remote checksums */ 
-    offset = BUILDOFFSET(meta->serial.dap,meta->serial.dapsize);
+    offset = BUILDOFFSET(resp->serial.dap,resp->serial.dapsize);
     for(i=0;i<nclistlength(toplevel);i++) {
 	NCD4node* var = (NCD4node*)nclistget(toplevel,i);
-        if((ret=NCD4_delimit(meta,var,offset)))
+        if((ret=NCD4_delimit(meta,var,offset,resp->inferredchecksumming))) {
 	    FAIL(ret,"delimit failure");
-        if(meta->controller->data.inferredchecksumming) {
-	    /* Compute remote checksum: must occur before any byte swapping */
+	}
+	var->data.response = resp; /* cross link */	
+    }
+done:
+    nclistfree(toplevel);
+    nullfree(offset);    
+    return THROW(ret);
+}
+
+/* Process top level vars wrt checksums and swapping */
+int
+NCD4_processdata(NCD4meta* meta, NCD4response* resp)
+{
+    int ret = NC_NOERR;
+    size_t i;
+    NClist* toplevel = NULL;
+    NCD4node* root = meta->root;
+    NCD4offset* offset = NULL;
+
+    /* Do we need to swap the dap4 data? */
+    meta->swap = (meta->controller->platform.hostlittleendian != resp->remotelittleendian);
+
+    /* Recursively walk the tree in prefix order 
+       to get the top-level variables; also mark as unvisited */
+    toplevel = nclistnew();
+    NCD4_getToplevelVars(meta,root,toplevel);
+
+    /* Extract remote checksums */ 
+    for(i=0;i<nclistlength(toplevel);i++) {
+	NCD4node* var = (NCD4node*)nclistget(toplevel,i);
+        if(resp->inferredchecksumming) {
+	    /* Compute checksum of response data: must occur before any byte swapping and after delimiting */
             var->data.localchecksum = NCD4_computeChecksum(meta,var);
 #ifdef DUMPCHECKSUM
             fprintf(stderr,"var %s: remote-checksum = 0x%x\n",var->name,var->data.remotechecksum);
 #endif
             /* verify checksums */
-	    if(!meta->controller->data.checksumignore) {
+	    if(!resp->checksumignore) {
                 if(var->data.localchecksum != var->data.remotechecksum) {
                     nclog(NCLOGERR,"Checksum mismatch: %s\n",var->name);
                     ret = NC_EDAP;
                     goto done;
                  }
                  /* Also verify checksum attribute */
-                 if(meta->controller->data.attrchecksumming) {
+                 if(resp->attrchecksumming) {
                     if(var->data.attrchecksum != var->data.remotechecksum) {
                         nclog(NCLOGERR,"Attribute Checksum mismatch: %s\n",var->name);
                         ret = NC_EDAP;
@@ -105,13 +128,11 @@ NCD4_processdata(NCD4meta* meta)
                 }
 	    }
 	}
-    }
-
-    /* Swap the data for each top level variable,
-    */
-    if(meta->swap) {
-        if((ret=NCD4_swapdata(meta,toplevel)))
-	    FAIL(ret,"byte swapping failed");
+        if(meta->swap) {
+            if((ret=NCD4_swapdata(resp,var,meta->swap)))
+	        FAIL(ret,"byte swapping failed");
+	}
+	var->data.valid = 1; /* Everything should be in place */
     }
 
 done:
@@ -133,7 +154,7 @@ Assumes that NCD4_processdata has been called.
 */
 
 int
-NCD4_fillinstance(NCD4meta* meta, NCD4node* type, NCD4offset* offset, void** dstp, NClist* blobs)
+NCD4_movetoinstance(NCD4meta* meta, NCD4node* type, NCD4offset* offset, void** dstp, NClist* blobs)
 {
     int ret = NC_NOERR;
     void* dst = *dstp;
@@ -149,30 +170,30 @@ NCD4_fillinstance(NCD4meta* meta, NCD4node* type, NCD4offset* offset, void** dst
     } else switch(type->subsort) {
         case NC_STRING: /* oob strings */
 	    if((ret=fillstring(meta,offset,&dst,blobs)))
-	        FAIL(ret,"fillinstance");
+	        FAIL(ret,"movetoinstance");
 	    break;
 	case NC_OPAQUE:
 	    if(type->opaque.size > 0) {
 	        /* We know the size and its the same for all instances */
 	        if((ret=fillopfixed(meta,type->opaque.size,offset,&dst)))
-	            FAIL(ret,"fillinstance");
+	            FAIL(ret,"movetoinstance");
    	    } else {
 	        /* Size differs per instance, so we need to convert each opaque to a vlen */
 	        if((ret=fillopvar(meta,type,offset,&dst,blobs)))
-	            FAIL(ret,"fillinstance");
+	            FAIL(ret,"movetoinstance");
 	    }
 	    break;
 	case NC_STRUCT:
 	    if((ret=fillstruct(meta,type,offset,&dst,blobs)))
-                FAIL(ret,"fillinstance");
+                FAIL(ret,"movetoinstance");
 	    break;
 	case NC_SEQ:
 	    if((ret=fillseq(meta,type,offset,&dst,blobs)))
-                FAIL(ret,"fillinstance");
+                FAIL(ret,"movetoinstance");
 	    break;
 	default:
 	    ret = NC_EINVAL;
-            FAIL(ret,"fillinstance");
+            FAIL(ret,"movetoinstance");
     }
     *dstp = dst;
 
@@ -183,7 +204,8 @@ done:
 static int
 fillstruct(NCD4meta* meta, NCD4node* type, NCD4offset* offset, void** dstp, NClist* blobs)
 {
-    int i,ret = NC_NOERR;
+    size_t i;
+    int ret = NC_NOERR;
     void* dst = *dstp;
  
 #ifdef CLEARSTRUCT
@@ -196,7 +218,7 @@ fillstruct(NCD4meta* meta, NCD4node* type, NCD4offset* offset, void** dstp, NCli
 	NCD4node* field = nclistget(type->vars,i);
 	NCD4node* ftype = field->basetype;
 	void* fdst = (((char*)dst) + field->meta.offset);
-	if((ret=NCD4_fillinstance(meta,ftype,offset,&fdst,blobs)))
+	if((ret=NCD4_movetoinstance(meta,ftype,offset,&fdst,blobs)))
             FAIL(ret,"fillstruct");
     }
     dst = ((char*)dst) + type->meta.memsize;
@@ -231,7 +253,7 @@ fillseq(NCD4meta* meta, NCD4node* type, NCD4offset* offset, void** dstp, NClist*
     for(i=0;i<recordcount;i++) {
 	/* Read each record instance */
 	void* recdst = ((char*)(dst->p))+(recordsize * i);
-	if((ret=NCD4_fillinstance(meta,vlentype,offset,&recdst,blobs)))
+	if((ret=NCD4_movetoinstance(meta,vlentype,offset,&recdst,blobs)))
 	    FAIL(ret,"fillseq");
     }
     dst++;
@@ -350,7 +372,7 @@ int
 NCD4_getToplevelVars(NCD4meta* meta, NCD4node* group, NClist* toplevel)
 {
     int ret = NC_NOERR;
-    int i;
+    size_t i;
 
     if(group == NULL)
 	group = meta->root;
@@ -373,17 +395,22 @@ done:
     return THROW(ret);
 }
 
-static int
-NCD4_inferChecksums(NCD4meta* meta, NClist* toplevel)
+int
+NCD4_inferChecksums(NCD4meta* meta, NCD4response* resp)
 {
     int ret = NC_NOERR;
-    int i, attrfound;
-    NCD4INFO* info = meta->controller;
+    size_t i;
+    int attrfound;
+    NClist* toplevel = NULL;
+ 
+    /* Get the toplevel vars */
+    toplevel = nclistnew();
+    NCD4_getToplevelVars(meta,meta->root,toplevel);
 
     /* First, look thru the DMR to see if there is a checksum attribute */
     attrfound = 0;
     for(i=0;i<nclistlength(toplevel);i++) {
-	int a;
+	size_t a;
         NCD4node* node = (NCD4node*)nclistget(toplevel,i);
 	for(a=0;a<nclistlength(node->attributes);a++) {	
             NCD4node* attr = (NCD4node*)nclistget(node->attributes,a);
@@ -399,9 +426,10 @@ NCD4_inferChecksums(NCD4meta* meta, NClist* toplevel)
 	    }
 	}
     }
-    info->data.attrchecksumming = (attrfound ? 1 : 0);
+    nclistfree(toplevel);
+    resp->attrchecksumming = (attrfound ? 1 : 0);
     /* Infer checksums */
-    info->data.inferredchecksumming = ((info->data.attrchecksumming || info->data.querychecksumming) ? 1 : 0);
+    resp->inferredchecksumming = ((resp->attrchecksumming || resp->querychecksumming) ? 1 : 0);
     return THROW(ret);
 }
 

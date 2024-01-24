@@ -124,7 +124,7 @@ main(int argc, char **argv)
 
     for(iv=0;iv<nvars;iv++) {
 	char varname[32];
-        sprintf(varname,"var%d",iv);
+        snprintf(varname, sizeof(varname),"var%d",iv);
 	switch (tag) {
         case Create:
         case CreateDiskless:

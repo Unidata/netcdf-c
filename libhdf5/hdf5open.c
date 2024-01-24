@@ -18,6 +18,7 @@
 #include "ncauth.h"
 #include "ncmodel.h"
 #include "ncpathmgr.h"
+#include <stddef.h>
 
 #ifdef ENABLE_BYTERANGE
 #include "H5FDhttp.h"
@@ -25,6 +26,7 @@
 
 #ifdef ENABLE_HDF5_ROS3
 #include <H5FDros3.h>
+#include "ncs3sdk.h"
 #endif
 
 /*Nemonic */
@@ -481,7 +483,7 @@ create_phony_dims(NC_GRP_INFO_T *grp, hid_t hdf_datasetid, NC_VAR_INFO_T *var)
         if (!match)
         {
             char phony_dim_name[NC_MAX_NAME + 1];
-            sprintf(phony_dim_name, "phony_dim_%d", grp->nc4_info->next_dimid);
+            snprintf(phony_dim_name, sizeof(phony_dim_name), "phony_dim_%d", grp->nc4_info->next_dimid);
             LOG((3, "%s: creating phony dim for var %s", __func__, var->hdr.name));
 
             /* Add phony dim to metadata list. */
@@ -883,12 +885,11 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 #ifdef ENABLE_BYTERANGE
 	else if(h5->byterange) {   /* Arrange to use the byte-range drivers */
 	    char* newpath = NULL;
-            char* awsregion0 = NULL;
 #ifdef ENABLE_HDF5_ROS3
 	    H5FD_ros3_fapl_t fa;
-	    const char* profile0 = NULL;
 	    const char* awsaccessid0 = NULL;
 	    const char* awssecretkey0 = NULL;
+	    const char* profile0 = NULL;
 	    int iss3 = NC_iss3(h5->uri);
 	    
             fa.version = H5FD_CURR_ROS3_FAPL_T_VERSION;
@@ -898,9 +899,11 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 	    fa.secret_key[0] = '\0';
 
 	    if(iss3) {
-	        /* Rebuild the URL */
+	        NCS3INFO s3;
 		NCURI* newuri = NULL;
-		if((retval = NC_s3urlrebuild(h5->uri,NULL,&awsregion0,&newuri))) goto exit;
+	        /* Rebuild the URL */
+	        memset(&s3,0,sizeof(s3));
+		if((retval = NC_s3urlrebuild(h5->uri,&s3,&newuri))) goto exit;
 		if((newpath = ncuribuild(newuri,NULL,NULL,NCURISVC))==NULL)
 		    {retval = NC_EURL; goto exit;}
 		ncurifree(h5->uri);
@@ -909,22 +912,23 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
 		    BAIL(retval);
    	        if((retval = NC_s3profilelookup(profile0,AWS_ACCESS_KEY_ID,&awsaccessid0)))
 		    BAIL(retval);		
-	        if((retval = NC_s3profilelookup(profile0,AWS_SECRET_ACCESS_KEY,&awssecretkey0)))
+		if((retval = NC_s3profilelookup(profile0,AWS_SECRET_ACCESS_KEY,&awssecretkey0)))
 		    BAIL(retval);		
-		if(awsregion0 == NULL)
-		    awsregion0 = strdup(S3_REGION_DEFAULT);
+		if(s3.region == NULL)
+		    s3.region = strdup(S3_REGION_DEFAULT);
 	        if(awsaccessid0 == NULL || awssecretkey0 == NULL ) {
 		    /* default, non-authenticating, "anonymous" fapl configuration */
 		    fa.authenticate = (hbool_t)0;
 	        } else {
 		    fa.authenticate = (hbool_t)1;
-	  	    assert(awsregion0 != NULL && strlen(awsregion0) > 0);
+	  	    assert(s3.region != NULL && strlen(s3.region) > 0);
 		    assert(awsaccessid0 != NULL && strlen(awsaccessid0) > 0);
 		    assert(awssecretkey0 != NULL && strlen(awssecretkey0) > 0);
-		    strlcat(fa.aws_region,awsregion0,H5FD_ROS3_MAX_REGION_LEN);
+		    strlcat(fa.aws_region,s3.region,H5FD_ROS3_MAX_REGION_LEN);
 		    strlcat(fa.secret_id, awsaccessid0, H5FD_ROS3_MAX_SECRET_ID_LEN);
                     strlcat(fa.secret_key, awssecretkey0, H5FD_ROS3_MAX_SECRET_KEY_LEN);
 	        }
+		NC_s3clear(&s3);
                 /* create and set fapl entry */
                 if(H5Pset_fapl_ros3(fapl_id, &fa) < 0)
                     BAIL(NC_EHDFERR);
@@ -938,7 +942,6 @@ nc4_open_file(const char *path, int mode, void* parameters, int ncid)
             if ((h5->hdfid = nc4_H5Fopen((newpath?newpath:path), flags, fapl_id)) < 0)
                 BAIL(NC_EHDFERR);
 	    nullfree(newpath);
-	    nullfree(awsregion0);
         }
 #endif
         else {
@@ -1363,9 +1366,9 @@ get_attached_info(NC_VAR_INFO_T *var, NC_HDF5_VAR_INFO_T *hdf5_var, int ndims,
          * attached for each dimension, and the HDF5 object IDs of the
          * scale(s). */
         assert(!hdf5_var->dimscale_hdf5_objids);
-        if (!(hdf5_var->dimscale_attached = calloc(ndims, sizeof(nc_bool_t))))
+        if (!(hdf5_var->dimscale_attached = calloc((size_t)ndims, sizeof(nc_bool_t))))
             return NC_ENOMEM;
-        if (!(hdf5_var->dimscale_hdf5_objids = malloc(ndims *
+        if (!(hdf5_var->dimscale_hdf5_objids = malloc((size_t)ndims *
                                                       sizeof(struct hdf5_objid))))
             return NC_ENOMEM;
 
@@ -1481,7 +1484,7 @@ nc4_get_var_meta(NC_VAR_INFO_T *var)
     if ((H5Pget_chunk_cache(access_pid, &(var->chunkcache.nelems),
                             &(var->chunkcache.size), &rdcc_w0)) < 0)
         BAIL(NC_EHDFERR);
-    var->chunkcache.preemption = rdcc_w0;
+    var->chunkcache.preemption = (float)rdcc_w0;
 
     /* Get the dataset creation properties. */
     if ((propid = H5Dget_create_plist(hdf5_var->hdf_datasetid)) < 0)
@@ -1884,7 +1887,7 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
                                           &type_size)))
             return retval;
         {
-            if (!(att->data = malloc((unsigned int)(att->len * type_size))))
+            if (!(att->data = malloc((unsigned int)((size_t)att->len * type_size))))
                 BAIL(NC_ENOMEM);
 
             /* For a fixed length HDF5 string, the read requires
@@ -1905,7 +1908,7 @@ read_hdf5_att(NC_GRP_INFO_T *grp, hid_t attid, NC_ATT_INFO_T *att)
 		char** dst = NULL;
 
                 /* Alloc space for the contiguous memory read. */
-                if (!(contig_buf = malloc(att->len * fixed_size * sizeof(char))))
+                if (!(contig_buf = malloc((size_t)att->len * fixed_size * sizeof(char))))
                     BAIL(NC_ENOMEM);
 
                 /* Read the fixed-len strings as one big block. */
@@ -2086,7 +2089,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
             return NC_EHDFERR;
         LOG((5, "compound type has %d members", nmembers));
         type->u.c.field = nclistnew();
-        nclistsetalloc(type->u.c.field,nmembers);
+        nclistsetalloc(type->u.c.field, (size_t)nmembers);
 
         for (m = 0; m < nmembers; m++)
         {
@@ -2251,7 +2254,7 @@ read_type(NC_GRP_INFO_T *grp, hid_t hdf_typeid, char *type_name)
         if ((nmembers = H5Tget_nmembers(hdf_typeid)) < 0)
             return NC_EHDFERR;
         type->u.e.enum_member = nclistnew();
-        nclistsetalloc(type->u.e.enum_member,nmembers);
+        nclistsetalloc(type->u.e.enum_member, (size_t)nmembers);
 
         /* Allocate space for one value. */
         if (!(value = calloc(1, type_size)))
@@ -2814,7 +2817,8 @@ rec_read_metadata(NC_GRP_INFO_T *grp)
     hid_t pid = -1;
     unsigned crt_order_flags = 0;
     H5_index_t iter_index;
-    int i, retval = NC_NOERR;
+    size_t i;
+    int retval = NC_NOERR;
 
     assert(grp && grp->hdr.name && grp->format_grp_info);
     LOG((3, "%s: grp->hdr.name %s", __func__, grp->hdr.name));

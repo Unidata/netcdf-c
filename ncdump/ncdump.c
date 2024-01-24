@@ -4,6 +4,7 @@ Copyright 2018 University Corporation for Atmospheric
 Research/Unidata. See \ref copyright file for more info.  */
 
 #include "config.h"
+#include <stddef.h>
 #include <stdio.h>
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
@@ -699,7 +700,7 @@ pr_att_valsx(
 	case NC_BYTE:
 	case NC_SHORT:
 	case NC_INT:
-	    ii = vals[iel];
+	    ii = (int)vals[iel];
 	    res = snprintf(gps, PRIM_LEN, "%d", ii);
 	    assert(res < PRIM_LEN);
 	    (void) strlcat(attvals, gps, attvalslen);
@@ -708,28 +709,28 @@ pr_att_valsx(
 	case NC_UBYTE:
 	case NC_USHORT:
 	case NC_UINT:
-	    ui = vals[iel];
+	    ui = (unsigned int)vals[iel];
 	    res = snprintf(gps, PRIM_LEN, "%u", ui);
 	    assert(res < PRIM_LEN);
 	    (void) strlcat(attvals, gps, attvalslen);
 	    (void) strlcat(attvals, iel < len-1 ? " " : "", attvalslen);
 	    break;
 	case NC_INT64:
-	    i64 = vals[iel];
+	    i64 = (int64_t)vals[iel];
 	    res = snprintf(gps, PRIM_LEN, "%lld", i64);
 	    assert(res < PRIM_LEN);
 	    (void) strlcat(attvals, gps, attvalslen);
 	    (void) strlcat(attvals, iel < len-1 ? " " : "", attvalslen);
 	    break;
 	case NC_UINT64:
-	    ui64 = vals[iel];
+	    ui64 = (uint64_t)vals[iel];
 	    res = snprintf(gps, PRIM_LEN, "%llu", ui64);
 	    assert(res < PRIM_LEN);
 	    (void) strlcat(attvals, gps, attvalslen);
 	    (void) strlcat(attvals, iel < len-1 ? " " : "", attvalslen);
 	    break;
 	case NC_FLOAT:
-	    ff = vals[iel];
+	    ff = (float)vals[iel];
 	    res = snprintf(gps, PRIM_LEN, float_attx_fmt, ff);
 	    assert(res < PRIM_LEN);
 	    tztrim(gps);	/* trim trailing 0's after '.' */
@@ -847,7 +848,7 @@ pr_att(
 	  case NC_VLEN:
 	      /* because size returned for vlen is base type size, but we
 	       * need space to read array of vlen structs into ... */
-              data = emalloc((att.len + 1) * sizeof(nc_vlen_t));
+	        data = emalloc((att.len + 1) * sizeof(nc_vlen_t));
 	     break;
 	  case NC_OPAQUE:
 	      data = emalloc((att.len + 1) * type_size);
@@ -997,7 +998,7 @@ pr_att_specials(
 	   int i;
 	    pr_att_name(ncid, varp->name, NC_ATT_STORAGE);
 	    printf(" = \"chunked\" ;\n");
-	    chunkp = (size_t *) emalloc(sizeof(size_t) * (varp->ndims + 1) );
+	    chunkp = (size_t *) emalloc(sizeof(size_t) * (size_t)(varp->ndims + 1) );
 	    NC_CHECK( nc_inq_var_chunking(ncid, varid, NULL, chunkp) );
 	    /* print chunking, even if it is default */
 	    pr_att_name(ncid, varp->name, NC_ATT_CHUNKING);
@@ -1224,7 +1225,7 @@ pr_attx(
 {
     ncatt_t att;			/* attribute */
     char *attvals = NULL;
-    int attvalslen = 0;
+    size_t attvalslen = 0;
 
     NC_CHECK( nc_inq_attname(ncid, varid, ia, att.name) );
 #ifdef USE_NETCDF4
@@ -1308,7 +1309,7 @@ static void
 pr_shape(ncvar_t* varp, ncdim_t *dims)
 {
     char *shape;
-    int shapelen = 0;
+    size_t shapelen = 0;
     int id;
 
     if (varp->ndims == 0)
@@ -1472,7 +1473,7 @@ print_ud_type(int ncid, nc_type typeid) {
 		    printf(" ");
 		    print_name(field_name);
 		    if (field_ndims > 0) {
-			int *field_dim_sizes = (int *) emalloc((field_ndims + 1) * sizeof(int));
+			int *field_dim_sizes = (int *) emalloc((size_t)(field_ndims + 1) * sizeof(int));
 			NC_CHECK( nc_inq_compound_field(ncid, typeid, f, NULL,
 							NULL, NULL, NULL,
 							field_dim_sizes) );
@@ -1647,7 +1648,7 @@ do_ncdump_rec(int ncid, const char *path)
    {
       int t;
 
-      typeids = emalloc((ntypes + 1) * sizeof(int));
+      typeids = emalloc((size_t)(ntypes + 1) * sizeof(int));
       NC_CHECK( nc_inq_typeids(ncid, &ntypes, typeids) );
       indent_out();
       printf("types:\n");
@@ -1667,7 +1668,7 @@ do_ncdump_rec(int ncid, const char *path)
     */
    NC_CHECK( nc_inq(ncid, &ndims, &nvars, &ngatts, &xdimid) );
    /* get dimension info */
-   dims = (ncdim_t *) emalloc((ndims + 1) * sizeof(ncdim_t));
+   dims = (ncdim_t *) emalloc((size_t)(ndims + 1) * sizeof(ncdim_t));
    if (ndims > 0) {
        indent_out();
        printf ("dimensions:\n");
@@ -1680,14 +1681,14 @@ do_ncdump_rec(int ncid, const char *path)
 
    /* Find the number of dimids defined in this group. */
    NC_CHECK( nc_inq_ndims(ncid, &ndims_grp) );
-   dimids_grp = (int *)emalloc((ndims_grp + 1) * sizeof(int));
+   dimids_grp = (int *)emalloc((size_t)(ndims_grp + 1) * sizeof(int));
 
    /* Find the dimension ids in this group. */
    NC_CHECK( nc_inq_dimids(ncid, 0, dimids_grp, 0) );
 
    /* Find the number of unlimited dimensions and get their IDs */
    NC_CHECK( nc_inq_unlimdims(ncid, &nunlim, NULL) );
-   unlimids = (int *)emalloc((nunlim + 1) * sizeof(int));
+   unlimids = (int *)emalloc((size_t)(nunlim + 1) * sizeof(int));
    NC_CHECK( nc_inq_unlimdims(ncid, &nunlim, unlimids) );
 
    /* For each dimension defined in this group, get and print out info. */
@@ -1767,7 +1768,7 @@ do_ncdump_rec(int ncid, const char *path)
 
    for (varid = 0; varid < nvars; varid++) {
       NC_CHECK( nc_inq_varndims(ncid, varid, &var.ndims) );
-      var.dims = (int *) emalloc((var.ndims + 1) * sizeof(int));
+      var.dims = (int *) emalloc((size_t)(var.ndims + 1) * sizeof(int));
       NC_CHECK( nc_inq_var(ncid, varid, var.name, &var.type, 0,
 			   var.dims, &var.natts) );
       /* TODO: don't bother if type name not needed here */
@@ -1928,7 +1929,7 @@ do_ncdump_rec(int ncid, const char *path)
 	    continue;
 	 NC_CHECK( nc_inq_varndims(ncid, varid, &var.ndims) );
 	 if(var.dims != NULL) {free(var.dims); var.dims = NULL;}
-	 var.dims = (int *) emalloc((var.ndims + 1) * sizeof(int));
+	 var.dims = (int *) emalloc((size_t)(var.ndims + 1) * sizeof(int));
 	 NC_CHECK( nc_inq_var(ncid, varid, var.name, &var.type, 0,
 			      var.dims, &var.natts) );
 	 var.tinfo = get_typeinfo(var.type);
@@ -1942,7 +1943,7 @@ do_ncdump_rec(int ncid, const char *path)
 	     free(vdims);
 	     vdims = 0;
 	 }
-	 vdims = (size_t *) emalloc((var.ndims + 1) * SIZEOF_SIZE_T);
+	 vdims = (size_t *) emalloc((size_t)(var.ndims + 1) * SIZEOF_SIZE_T);
 	 no_data = 0;
 	 for (id = 0; id < var.ndims; id++) {
 	     size_t len;
@@ -1995,7 +1996,7 @@ do_ncdump_rec(int ncid, const char *path)
       NC_CHECK( nc_inq_grps(ncid, &numgrps, NULL) );
 
       /* Allocate memory to hold the list of group ids. */
-      ncids = emalloc((numgrps + 1) * sizeof(int));
+      ncids = emalloc((size_t)(numgrps + 1) * sizeof(int));
 
       /* Get the list of group ids. */
       NC_CHECK( nc_inq_grps(ncid, NULL, ncids) );
@@ -2095,7 +2096,7 @@ do_ncdumpx(int ncid, const char *path)
     /* TODO: print names with XML-ish escapes fopr special chars */
     NC_CHECK( nc_inq(ncid, &ndims, &nvars, &ngatts, &xdimid) );
     /* get dimension info */
-    dims = (ncdim_t *) emalloc((ndims + 1) * sizeof(ncdim_t));
+    dims = (ncdim_t *) emalloc((size_t)(ndims + 1) * sizeof(ncdim_t));
     for (dimid = 0; dimid < ndims; dimid++) {
 	NC_CHECK( nc_inq_dim(ncid, dimid, dims[dimid].name, &dims[dimid].size) );
 	if (dimid == xdimid)
@@ -2115,7 +2116,7 @@ do_ncdumpx(int ncid, const char *path)
     for (varid = 0; varid < nvars; varid++) {
 	NC_CHECK( nc_inq_varndims(ncid, varid, &var.ndims) );
 	if(var.dims != NULL) free(var.dims);
-	var.dims = (int *) emalloc((var.ndims + 1) * sizeof(int));
+	var.dims = (int *) emalloc((size_t)(var.ndims + 1) * sizeof(int));
 	NC_CHECK( nc_inq_var(ncid, varid, var.name, &var.type, 0,
 			     var.dims, &var.natts) );
 	printf ("  <variable name=\"%s\"", var.name);

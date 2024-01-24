@@ -111,7 +111,7 @@ ncexinit(void)
     int i;
     bitmasks[0] = 0;
     for(i=1;i<NCEXHASHKEYBITS;i++)
-	bitmasks[i] = (1 << i) - 1;
+	bitmasks[i] = (1ULL << i) - 1;
     ncexinitialized = 1;
 }
 
@@ -386,7 +386,7 @@ exhashsplit(NCexhashmap* map, ncexhashkey_t hkey, NCexleaf* leaf)
     }
     
     /* Re-build the old leaf; keep same uid */
-    if((leaf->entries = (NCexentry*)calloc(map->leaflen,sizeof(NCexentry))) == NULL)
+    if((leaf->entries = (NCexentry*)calloc((size_t)map->leaflen, sizeof(NCexentry))) == NULL)
 	{stat = NC_ENOMEM; goto done;}
     leaf->active = 0;
 
@@ -588,7 +588,7 @@ exhashnewleaf(NCexhashmap* map, NCexleaf** leafp)
         if((leaf = calloc(1,sizeof(NCexleaf))) == NULL)
 	    goto done;
 	assert(map->leaflen > 0);
-        if((leaf->entries = calloc(map->leaflen,sizeof(NCexentry))) == NULL)
+        if((leaf->entries = calloc((size_t)map->leaflen, sizeof(NCexentry))) == NULL)
 	    goto done;	
         leaf->uid = map->uid++;
 	*leafp = leaf; leaf = NULL;
@@ -855,7 +855,7 @@ ncexhashprintstats(NCexhashmap* map)
     fprintf(stderr," |leaf|=%d nactive/nleaves=%g", map->leaflen, leafavg);
     fprintf(stderr," load=%g",leafload);
     fprintf(stderr,"]\n");
-    dirsize = (1<<(map->depth))*((unsigned long long)sizeof(void*));
+    dirsize = (1ULL<<(map->depth))*((unsigned long long)sizeof(void*));
     leafsize = (nleaves)*((unsigned long long)sizeof(NCexleaf));
     total = dirsize + leafsize;
     fprintf(stderr,"\tsizeof(directory)=%llu sizeof(leaves)=%lld total=%lld\n",

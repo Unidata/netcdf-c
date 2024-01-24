@@ -4,6 +4,7 @@ See COPYRIGHT for license information.
 */
 
 #include "config.h"
+#include <stddef.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -204,7 +205,7 @@ rcfreeentry(NCRCentry* t)
 static void
 rcfreeentries(NClist* rc)
 {
-    int i;
+    size_t i;
     for(i=0;i<nclistlength(rc);i++) {
 	NCRCentry* t = (NCRCentry*)nclistget(rc,i);
 	rcfreeentry(t);
@@ -216,7 +217,8 @@ rcfreeentries(NClist* rc)
 static int
 NC_rcload(void)
 {
-    int i,ret = NC_NOERR;
+    size_t i;
+    int ret = NC_NOERR;
     char* path = NULL;
     NCglobalstate* globalstate = NULL;
     NClist* rcfileorder = nclistnew();
@@ -397,8 +399,8 @@ rctrim(char* text)
 static void
 rcorder(NClist* rc)
 {
-    int i;
-    int len = nclistlength(rc);
+    size_t i;
+    size_t len = nclistlength(rc);
     NClist* tmprc = NULL;
     if(rc == NULL || len == 0) return;
     tmprc = nclistnew();
@@ -437,7 +439,9 @@ rccompile(const char* filepath)
     NCURI* uri = NULL;
     char* nextline = NULL;
     NCglobalstate* globalstate = NC_getglobalstate();
-    char* bucket = NULL;
+    NCS3INFO s3;
+
+    memset(&s3,0,sizeof(s3));
 
     if((ret=NC_readfile(filepath,tmp))) {
         nclog(NCLOGWARN, "Could not open configuration file: %s",filepath);
@@ -484,9 +488,8 @@ rccompile(const char* filepath)
 	    if(NC_iss3(uri)) {
 	         NCURI* newuri = NULL;
 	        /* Rebuild the url to S3 "path" format */
-	        nullfree(bucket);
-		bucket = NULL;
-	        if((ret = NC_s3urlrebuild(uri,&bucket,NULL,&newuri))) goto done;
+		NC_s3clear(&s3);
+	        if((ret = NC_s3urlrebuild(uri,&s3,&newuri))) goto done;
 		ncurifree(uri);
 		uri = newuri;
 		newuri = NULL;
@@ -546,6 +549,7 @@ rccompile(const char* filepath)
     rcorder(rc);
 
 done:
+    NC_s3clear(&s3);
     if(contents) free(contents);
     ncurifree(uri);
     ncbytesfree(tmp);
@@ -594,7 +598,7 @@ rcequal(NCRCentry* e1, NCRCentry* e2)
 static int
 rclocatepos(const char* key, const char* hostport, const char* urlpath)
 {
-    int i;
+    size_t i;
     NCglobalstate* globalstate = NC_getglobalstate();
     struct NCRCinfo* info = globalstate->rcinfo;
     NCRCentry* entry = NULL;
@@ -610,7 +614,7 @@ rclocatepos(const char* key, const char* hostport, const char* urlpath)
 
     for(i=0;i<nclistlength(rc);i++) {
       entry = (NCRCentry*)nclistget(rc,i);
-      if(rcequal(entry,&candidate)) return i;
+      if(rcequal(entry,&candidate)) return (int)i;
     }
     return -1;
 }
@@ -970,7 +974,8 @@ done:
 static int
 awsparse(const char* text, NClist* profiles)
 {
-    int i,stat = NC_NOERR;
+    size_t i;
+    int stat = NC_NOERR;
     size_t len;
     AWSparser* parser = NULL;
     struct AWSprofile* profile = NULL;
@@ -1093,7 +1098,7 @@ static void
 freeprofile(struct AWSprofile* profile)
 {
     if(profile) {
-	int i;
+	size_t i;
 #ifdef AWSDEBUG
 fprintf(stderr,">>> freeprofile: %s\n",profile->name);
 #endif
@@ -1111,7 +1116,7 @@ static void
 freeprofilelist(NClist* profiles)
 {
     if(profiles) {
-	int i;
+	size_t i;
 	for(i=0;i<nclistlength(profiles);i++) {
 	    struct AWSprofile* p = (struct AWSprofile*)nclistget(profiles,i);
 	    freeprofile(p);
@@ -1206,7 +1211,7 @@ int
 NC_authgets3profile(const char* profilename, struct AWSprofile** profilep)
 {
     int stat = NC_NOERR;
-    int i = -1;
+    size_t i;
     NCglobalstate* gstate = NC_getglobalstate();
 
     for(i=0;i<nclistlength(gstate->rcinfo->s3profiles);i++) {
@@ -1229,7 +1234,8 @@ done:
 int
 NC_s3profilelookup(const char* profile, const char* key, const char** valuep)
 {
-    int i,stat = NC_NOERR;
+    size_t i;
+    int stat = NC_NOERR;
     struct AWSprofile* awsprof = NULL;
     const char* value = NULL;
 

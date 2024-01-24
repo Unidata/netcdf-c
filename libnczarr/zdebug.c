@@ -34,7 +34,7 @@ int
 zreport(int err, const char* msg, const char* file, const char* fcn, int line)
 {
     if(err == 0) return err;
-    ZLOG(NCLOGWARN,"!!! zreport: err=%d msg=%s",err,msg);
+    ZLOG(NCLOGWARN,"!!! zreport: err=%d msg=%s @ %s#%s:%d",err,msg,file,fcn,line);
     ncbacktrace();
     return zbreakpoint(err);
 }
