@@ -73,7 +73,7 @@ macro(buildplugin TARGET TARGETLIB)
 
   if (USE_HDF5)
     target_include_directories(${TARGET} PRIVATE ${HDF5_INCLUDE_DIR})
-endif(USE_HDF5)
+  endif(USE_HDF5)
 endmacro()
 
 buildplugin(h5misc "h5misc" netcdf)
