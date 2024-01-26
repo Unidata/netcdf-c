@@ -36,6 +36,7 @@ set(ARGS_MANPAGE -DAPI=C)
 
 if (USE_HDF5)
   set(ARGS_MANPAGE ${ARGS_MANPAGE} -DNETCDF4=TRUE)
+  target_include_directories(netcdf4 PRIVATE ${HDF5_INCLUDE_DIR})
 endif(USE_HDF5)
 
 if (BUILD_DAP)
