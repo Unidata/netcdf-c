@@ -61,8 +61,8 @@ endif(BUILD_PARALLEL)
 # Generate the man page.
 if(HAVE_M4)
 
-  FILE(GLOB libsrc_MANPAGE ${CMAKE_CURRENT_SOURCE_DIR}/../docs/netcdf.m4)
-  FILE(COPY ${libsrc_MANPAGE} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+  file(GLOB libsrc_MANPAGE ${CMAKE_CURRENT_SOURCE_DIR}/../docs/netcdf.m4)
+  file(COPY ${libsrc_MANPAGE} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
   if(NOT MSVC)
     add_custom_target(manpage ALL
