@@ -70,6 +70,10 @@ macro(buildplugin TARGET TARGETLIB)
   if(STATUS_PARALLEL)
     target_link_libraries(${TARGET} PUBLIC MPI::MPI_C)
   endif(STATUS_PARALLEL)
+
+  if (USE_HDF5)
+    target_include_directories(${TARGET} PRIVATE ${HDF5_INCLUDE_DIR})
+endif(USE_HDF5)
 endmacro()
 
 buildplugin(h5misc "h5misc" netcdf)
