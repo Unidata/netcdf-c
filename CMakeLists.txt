@@ -288,12 +288,12 @@ endif()
 # Suppress CRT Warnings.
 # Only necessary for Windows
 if(MSVC)
-  target_compile_definitions(netcdf -D_CRT_SECURE_NO_WARNINGS)
+  target_compile_definitions(netcdf PRIVATE -D_CRT_SECURE_NO_WARNINGS)
 endif()
 
 # Support ANSI format specifiers for *printf on MINGW:
 if(MINGW)
-  target_compile_definitions(-D__USE_MINGW_ANSI_STDIO=1)
+  target_compile_definitions(netcdf PRIVATE -D__USE_MINGW_ANSI_STDIO=1)
 endif()
 
 #####
@@ -469,8 +469,8 @@ if(WIN32)
   option(ENABLE_DLL "Build a Windows DLL." ${BUILD_SHARED_LIBS})
   if(ENABLE_DLL)
     set(BUILD_DLL ON CACHE BOOL "")
-    target_compile_definitions(-DDLL_NETCDF)
-    target_compile_definitions(-DDLL_EXPORT)
+    target_compile_definitions(netcdf PRIVATE -DDLL_NETCDF)
+    target_compile_definitions(netcdf PRIVATE -DDLL_EXPORT)
   endif()
 endif()
 # Did the user specify a default minimum blocksize for posixio?
@@ -493,14 +493,14 @@ if(NOT ENABLE_NETCDF_4)
 set(ENABLE_LOGGING OFF)
 endif()
 if(ENABLE_LOGGING)
-  target_compile_definitions(-DLOGGING)
-  target_compile_definitions(-DENABLE_SET_LOG_LEVEL)
+  target_compile_definitions(netcdf PRIVATE -DLOGGING)
+  target_compile_definitions(netcdf PRIVATE -DENABLE_SET_LOG_LEVEL)
   set(LOGGING ON)
   set(ENABLE_SET_LOG_LEVEL ON)
 endif()
 option(ENABLE_SET_LOG_LEVEL_FUNC "Enable definition of nc_set_log_level()." ON)
 if(ENABLE_NETCDF_4 AND NOT ENABLE_LOGGING AND ENABLE_SET_LOG_LEVEL_FUNC)
-  target_compile_definitions(-DENABLE_SET_LOG_LEVEL)
+  target_compile_definitions(netcdf PRIVATE -DENABLE_SET_LOG_LEVEL)
   set(ENABLE_SET_LOG_LEVEL ON)
 endif()
 
@@ -993,7 +993,7 @@ endif()
 
 if(ENABLE_ZERO_LENGTH_COORD_BOUND)
   message(STATUS "Enabling a more relaxed check for NC_EINVALCOORDS")
-  target_compile_definitions(-DRELAX_COORD_BOUND)
+  target_compile_definitions(netcdf PRIVATE -DRELAX_COORD_BOUND)
 endif()
 
 # Enable Parallel Tests.
@@ -1405,7 +1405,9 @@ endif(ENABLE_BASH_SCRIPT_TESTING)
 # Create config.h file.
 configure_file("${netCDF_SOURCE_DIR}/config.h.cmake.in"
   "${netCDF_BINARY_DIR}/config.h")
-target_compile_definitions(-DHAVE_CONFIG_H)
+
+add_compile_definitions(-DHAVE_CONFIG_H)
+
 include_directories(${netCDF_BINARY_DIR})
 # End autotools-style checks for config.h
 
