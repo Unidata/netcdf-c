@@ -8,6 +8,11 @@
 #####
 # Add target objects/modules based on options.
 #####
+target_sources(netcdf
+  PRIVATE
+    $<TARGET_OBJECTS:netcdf3>
+    $<TARGET_OBJECTS:dispatch>
+)
 
 if(USE_NETCDF4)
   target_sources(netcdf
@@ -75,8 +80,8 @@ if(ENABLE_PLUGINS)
 endif()
 
 target_sources(netcdf
-  PRIVATE
-    nc_initialize.c 
+  PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/nc_initialize.c 
 )
 
 if(STATUS_PARALLEL)
@@ -189,7 +194,7 @@ endif()
 if(NOT WIN32)
   if(NOT APPLE)
     if(CMAKE_DL_LIBS)
-      TARGET_LINK_LIBRARIES(netcdf ${CMAKE_DL_LIBS})
+      target_link_libraries(netcdf ${CMAKE_DL_LIBS})
     endif()
   endif()
 endif()
@@ -228,7 +233,7 @@ endif(ENABLE_SHARED_LIBRARY_VERSION)
 # for more information.
 ###
 if(${CMAKE_VERSION} VERSION_LESS 2.8.12)
-  INSTALL(
+  install(
     TARGETS netcdf EXPORT netCDFTargets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT libraries
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT libraries
@@ -236,7 +241,7 @@ if(${CMAKE_VERSION} VERSION_LESS 2.8.12)
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     )
 else()
-    INSTALL(
+    install(
     TARGETS netcdf EXPORT netCDFTargets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT libraries
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT libraries
@@ -248,6 +253,31 @@ endif()
 set(ALL_TLL_LIBS ${TLL_LIBS} PARENT_SCOPE)
 set(NC_LIBS ${NC_LIBS} PARENT_SCOPE)
 
-FILE(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
+file(GLOB CUR_EXTRA_DIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 set(CUR_EXTRA_DIST ${CUR_EXTRA_DIST} CMakeLists.txt Makefile.am)
 ADD_EXTRA_DIST("${CUR_EXTRA_DIST}")
+
+# [ 10%] Linking C shared library libnetcdf.dylib
+# /opt/homebrew/Cellar/cmake/3.27.1/bin/cmake -E cmake_link_script CMakeFiles/netcdf.dir/link.txt --verbose=1
+# /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc  
+#   -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -g -Wall -Wshorten-64-to-32 -Wconversion -arch arm64 
+#   -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.0.sdk -dynamiclib -Wl,-headerpad_max_install_names 
+#   -shared -L/opt/homebrew/opt/llvm/lib/c++ -Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++ -compatibility_version 19.0.0 -current_version 19.0.0 
+#   -o libnetcdf.19.dylib -install_name @rpath/libnetcdf.19.dylib 
+#   CMakeFiles/netcdf.dir/liblib/nc_initialize.c.o libsrc4/CMakeFiles/netcdf4.dir/nc4dispatch.c.o libsrc4/CMakeFiles/netcdf4.dir/nc4attr.c.o 
+#   libsrc4/CMakeFiles/netcdf4.dir/nc4dim.c.o libsrc4/CMakeFiles/netcdf4.dir/nc4grp.c.o libsrc4/CMakeFiles/netcdf4.dir/nc4internal.c.o libsrc4/CMakeFiles/netcdf4.dir/nc4type.c.o libsrc4/CMakeFiles/netcdf4.dir/nc4var.c.o libsrc4/CMakeFiles/netcdf4.dir/ncfunc.c.o libsrc4/CMakeFiles/netcdf4.dir/ncindex.c.o libsrc4/CMakeFiles/netcdf4.dir/nc4cache.c.o libhdf5/CMakeFiles/netcdfhdf5.dir/nc4hdf.c.o libhdf5/CMakeFiles/netcdfhdf5.dir/nc4info.c.o libhdf5/CMakeFiles/netcdfhdf5.dir/hdf5file.c.o libhdf5/CMakeFiles/netcdfhdf5.dir/hdf5attr.c.o 
+#   libhdf5/CMakeFiles/netcdfhdf5.dir/hdf5dim.c.o libhdf5/CMakeFiles/netcdfhdf5.dir/hdf5grp.c.o libhdf5/CMakeFiles/netcdfhdf5.dir/hdf5type.c.o libhdf5/CMakeFiles/netcdfhdf5.dir/hdf5internal.c.o libhdf5/CMakeFiles/netcdfhdf5.dir/hdf5create.c.o libhdf5/CMakeFiles/netcdfhdf5.dir/hdf5open.c.o libhdf5/CMakeFiles/netcdfhdf5.dir/hdf5var.c.o libhdf5/CMakeFiles/netcdfhdf5.dir/nc4mem.c.o libhdf5/CMakeFiles/netcdfhdf5.dir/nc4memcb.c.o libhdf5/CMakeFiles/netcdfhdf5.dir/hdf5dispatch.c.o libhdf5/CMakeFiles/netcdfhdf5.dir/hdf5filter.c.o libhdf5/CMakeFiles/netcdfhdf5.dir/hdf5set_format_compatibility.c.o libhdf5/CMakeFiles/netcdfhdf5.dir/hdf5debug.c.o libhdf5/CMakeFiles/netcdfhdf5.dir/H5FDhttp.c.o 
+#   oc2/CMakeFiles/oc2.dir/oc.c.o oc2/CMakeFiles/oc2.dir/daplex.c.o oc2/CMakeFiles/oc2.dir/dapparse.c.o oc2/CMakeFiles/oc2.dir/dapy.c.o oc2/CMakeFiles/oc2.dir/occompile.c.o oc2/CMakeFiles/oc2.dir/occurlfunctions.c.o oc2/CMakeFiles/oc2.dir/ocdata.c.o oc2/CMakeFiles/oc2.dir/ocdebug.c.o oc2/CMakeFiles/oc2.dir/ocdump.c.o oc2/CMakeFiles/oc2.dir/ocinternal.c.o oc2/CMakeFiles/oc2.dir/ocnode.c.o oc2/CMakeFiles/oc2.dir/ochttp.c.o oc2/CMakeFiles/oc2.dir/ocread.c.o oc2/CMakeFiles/oc2.dir/ocutil.c.o oc2/CMakeFiles/oc2.dir/xxdr.c.o 
+#   libdap2/CMakeFiles/dap2.dir/constraints.c.o libdap2/CMakeFiles/dap2.dir/dapcvt.c.o libdap2/CMakeFiles/dap2.dir/dapodom.c.o libdap2/CMakeFiles/dap2.dir/daputil.c.o libdap2/CMakeFiles/dap2.dir/ncdaperr.c.o libdap2/CMakeFiles/dap2.dir/cdf.c.o libdap2/CMakeFiles/dap2.dir/cache.c.o libdap2/CMakeFiles/dap2.dir/dapdump.c.o libdap2/CMakeFiles/dap2.dir/dapdebug.c.o libdap2/CMakeFiles/dap2.dir/dapattr.c.o libdap2/CMakeFiles/dap2.dir/ncd2dispatch.c.o libdap2/CMakeFiles/dap2.dir/getvara.c.o libdap2/CMakeFiles/dap2.dir/dceconstraints.c.o libdap2/CMakeFiles/dap2.dir/dcetab.c.o libdap2/CMakeFiles/dap2.dir/dceparse.c.o libdap2/CMakeFiles/dap2.dir/dcelex.c.o 
+#   libdap4/CMakeFiles/dap4.dir/d4curlfunctions.c.o libdap4/CMakeFiles/dap4.dir/d4fix.c.o libdap4/CMakeFiles/dap4.dir/d4data.c.o libdap4/CMakeFiles/dap4.dir/d4file.c.o libdap4/CMakeFiles/dap4.dir/d4parser.c.o libdap4/CMakeFiles/dap4.dir/d4meta.c.o libdap4/CMakeFiles/dap4.dir/d4varx.c.o libdap4/CMakeFiles/dap4.dir/d4dump.c.o libdap4/CMakeFiles/dap4.dir/d4swap.c.o libdap4/CMakeFiles/dap4.dir/d4chunk.c.o libdap4/CMakeFiles/dap4.dir/d4printer.c.o libdap4/CMakeFiles/dap4.dir/d4read.c.o libdap4/CMakeFiles/dap4.dir/d4http.c.o libdap4/CMakeFiles/dap4.dir/d4util.c.o libdap4/CMakeFiles/dap4.dir/d4odom.c.o libdap4/CMakeFiles/dap4.dir/d4cvt.c.o libdap4/CMakeFiles/dap4.dir/d4debug.c.o libdap4/CMakeFiles/dap4.dir/ncd4dispatch.c.o 
+#   libncxml/CMakeFiles/ncxml.dir/ncxml_xml2.c.o 
+#   libnczarr/CMakeFiles/nczarr.dir/zarr.c.o libnczarr/CMakeFiles/nczarr.dir/zattr.c.o libnczarr/CMakeFiles/nczarr.dir/zxcache.c.o libnczarr/CMakeFiles/nczarr.dir/zchunking.c.o libnczarr/CMakeFiles/nczarr.dir/zclose.c.o libnczarr/CMakeFiles/nczarr.dir/zcreate.c.o libnczarr/CMakeFiles/nczarr.dir/zcvt.c.o libnczarr/CMakeFiles/nczarr.dir/zdim.c.o libnczarr/CMakeFiles/nczarr.dir/zdispatch.c.o libnczarr/CMakeFiles/nczarr.dir/zfile.c.o libnczarr/CMakeFiles/nczarr.dir/zfilter.c.o libnczarr/CMakeFiles/nczarr.dir/zgrp.c.o libnczarr/CMakeFiles/nczarr.dir/zinternal.c.o libnczarr/CMakeFiles/nczarr.dir/zmap.c.o libnczarr/CMakeFiles/nczarr.dir/zmap_file.c.o libnczarr/CMakeFiles/nczarr.dir/zodom.c.o libnczarr/CMakeFiles/nczarr.dir/zopen.c.o libnczarr/CMakeFiles/nczarr.dir/zprov.c.o libnczarr/CMakeFiles/nczarr.dir/zsync.c.o libnczarr/CMakeFiles/nczarr.dir/ztype.c.o libnczarr/CMakeFiles/nczarr.dir/zutil.c.o libnczarr/CMakeFiles/nczarr.dir/zvar.c.o libnczarr/CMakeFiles/nczarr.dir/zwalk.c.o libnczarr/CMakeFiles/nczarr.dir/zdebug.c.o 
+#   libncpoco/CMakeFiles/ncpoco.dir/ncpoco.c.o libncpoco/CMakeFiles/ncpoco.dir/cp_unix.c.o  
+#   /opt/homebrew/lib/libhdf5_hl.dylib /opt/homebrew/lib/libhdf5.dylib 
+#   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.0.sdk/usr/lib/libm.tbd 
+#   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.0.sdk/usr/lib/libz.tbd 
+#   /opt/homebrew/lib/libzstd.dylib 
+#   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.0.sdk/usr/lib/libbz2.tbd 
+#   /opt/homebrew/lib/libsz.dylib 
+#   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.0.sdk/usr/lib/libcurl.tbd 
+#   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.0.sdk/usr/lib/libxml2.tbd
